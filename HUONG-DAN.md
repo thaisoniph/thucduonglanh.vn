@@ -1,68 +1,66 @@
-# Website Thực Dưỡng Lành – Hướng dẫn
+# Website Thực Dưỡng Lành – Hướng dẫn kỹ thuật
+
+Web: https://thucduonglanh.vn · Quản trị: https://thucduonglanh.vn/admin/ · Kho mã: https://github.com/thaisoniph/thucduonglanh.vn
+
+## Cách hệ thống hoạt động
+
+```
+Nhân sự sửa ở /admin  →  lưu vào GitHub (content/, data/)  →  GitHub Actions chạy build.py  →  web cập nhật sau ~1 phút
+```
+
+Hướng dẫn cho nhân sự: Google Docs "Hướng dẫn cập nhật website thucduonglanh.vn (dành cho nhân sự)".
 
 ## Cấu trúc
 
 ```
 website/
-├── build.py            ← chạy để tạo website: python3 build.py
+├── admin/                 ← trang quản trị (Sveltia CMS): index.html + config.yml
+├── content/
+│   ├── products/*.json    ← mỗi sản phẩm 1 file (tên file = đường link)
+│   ├── posts/*.md         ← bài viết Góc Sống Lành
+│   └── pages/*.md         ← trang chính sách
 ├── data/
-│   ├── site.json       ← hotline, email, địa chỉ, mạng xã hội, ngân hàng, link nhận đơn
-│   ├── products.json   ← danh mục + sản phẩm (giá, ảnh, mô tả)
-│   ├── posts.json      ← bài viết Góc Sống Lành
-│   └── pages.json      ← các trang chính sách
-├── assets/             ← CSS, JS, ảnh, video
-├── backend/google-apps-script.gs  ← code nhận đơn hàng (Google Sheet + email)
-└── dist/               ← WEBSITE HOÀN CHỈNH (thư mục này đưa lên hosting)
+│   ├── site.json          ← liên hệ, mạng xã hội, ngân hàng, kênh cộng đồng
+│   ├── home.json          ← slider trang chủ
+│   ├── categories.json    ← danh mục sản phẩm
+│   ├── post-categories.json
+│   └── config.json        ← kỹ thuật: tên miền, link nhận đơn (không có trong trang quản trị)
+├── assets/                ← CSS, JS, ảnh, video; ảnh tải lên từ /admin nằm ở assets/uploads/
+├── build.py               ← sinh web vào dist/ (tự nén ảnh sang WebP)
+├── .github/workflows/deploy.yml  ← tự build + đăng khi có thay đổi
+└── backend/google-apps-script.gs ← code nhận đơn (CHỈ Ở MÁY, không đưa lên GitHub vì có mã Telegram)
 ```
 
-## 1. Sửa nội dung
+## Cấp quyền cho nhân sự
 
-1. Mở file trong `data/` và sửa.
-2. Chạy `python3 build.py` trong thư mục `website/`.
-3. Xem thử: `cd dist && python3 -m http.server 8000`, rồi mở http://localhost:8000
-4. Đưa lại thư mục `dist/` lên hosting (mục 4).
+1. Nhân sự tạo tài khoản GitHub và gửi tên đăng nhập.
+2. Vào https://github.com/thaisoniph/thucduonglanh.vn/settings/access → **Add people**, nhập tên đăng nhập, chọn quyền **Write**.
+3. Nhân sự chấp nhận lời mời trong email, tạo token (quyền `public_repo`) theo hướng dẫn và đăng nhập /admin.
+4. Nghỉ việc: vào lại trang trên, bấm **Remove** để thu hồi quyền.
 
-**Giá sản phẩm:** trong `products.json`, `"price": 135000` là giá bán, `"regular_price": 189000` là giá gạch ngang.
-Nếu `price` là `null` thì web hiện "Liên hệ" và ẩn nút giỏ hàng.
+## Xem thử trên máy & sửa giao diện
 
-**Thêm sản phẩm:** chép một khối sản phẩm có sẵn, đổi `slug` (đường dẫn, không dấu), tên, ảnh.
-Ảnh để trong `assets/img/products/` dạng `.webp`, gồm 2 bản: `ten-anh.webp` (1000px) và `ten-anh-sm.webp` (480px).
-
-## 2. Thanh toán chuyển khoản (VietQR)
-
-Trong `site.json`, mục `bank`:
-
-```json
-"bank": { "enabled": true, "bank_id": "VCB", "bank_name": "Vietcombank",
-          "account_no": "0123456789", "account_name": "CONG TY TNHH TAP DOAN VITAGREEN NUTRITION" }
+```bash
+cd website
+python3 -m pip install --user -r requirements.txt   # lần đầu
+python3 build.py && (cd dist && python3 -m http.server 8000)   # mở http://localhost:8000
 ```
 
-Khi khách chọn chuyển khoản, trang hoàn tất sẽ hiện mã QR đã điền sẵn số tiền và mã đơn.
+Đẩy thay đổi giao diện lên (cần token quyền `repo` + `workflow`):
+`GH_TOKEN=ghp_xxx ./deploy-github.sh "ghi chú"` — script tự lấy các thay đổi nhân sự đã làm trước khi đẩy.
 
-## 3. Nhận đơn hàng vào Google Sheet + email
+## Nhận đơn hàng
 
-Nếu chưa cài, khách đặt xong sẽ được nhắc gửi đơn qua Zalo để không mất đơn.
+- Web gửi đơn tới Google Apps Script (link trong `data/config.json` → `order_endpoint`).
+- Apps Script ghi vào Google Sheet "Đơn hàng website Thực Dưỡng Lành", gửi email tới vitagreennutrition@gmail.com và báo vào nhóm Telegram "Đơn hàng Thực Dưỡng Lành" (bot @thucduonglanh_donhang_bot).
+- Thêm/bớt người nhận báo đơn: thêm/xoá thành viên trong nhóm Telegram.
+- Sửa code Apps Script xong phải: Triển khai → Quản lý các bản triển khai → ✏️ → Phiên bản mới → Triển khai.
 
-1. Vào https://sheets.new, tạo bảng tính và đặt tên "Đơn hàng website Thực Dưỡng Lành".
-2. Vào menu **Tiện ích mở rộng → Apps Script**, xóa code mẫu, dán toàn bộ `backend/google-apps-script.gs`, bấm Lưu.
-3. Bấm **Triển khai → Tùy chọn triển khai mới**, chọn loại **Ứng dụng web**:
-   - Thực thi với tư cách: **Tôi**
-   - Người có quyền truy cập: **Bất kỳ ai**
-4. Cấp quyền khi Google hỏi. Copy **URL ứng dụng web** (có đuôi `/exec`).
-5. Dán URL vào `"order_endpoint"` trong `data/site.json`, chạy `python3 build.py` rồi tải `dist/` lên lại.
+## Tên miền
 
-## 4. Hosting & tên miền (ĐANG CHẠY)
+DNS tại Tenten: `@` = 4 bản ghi A (185.199.108.153 / .109 / .110 / .111), `www` = CNAME `thaisoniph.github.io`. Không xoá các bản ghi này. HTTPS do GitHub cấp và tự gia hạn.
 
-- Web đang chạy tại **https://thucduonglanh.vn** bằng GitHub Pages (miễn phí, HTTPS Let's Encrypt tự gia hạn).
-- Kho chứa: https://github.com/thaisoniph/thucduonglanh.vn (chỉ chứa web hoàn chỉnh `dist/`, không chứa code nhận đơn).
-- DNS tại Tenten: `@` có 4 bản ghi A (185.199.108.153 / .109 / .110 / .111), `www` là CNAME → `thaisoniph.github.io`. Không xoá các bản ghi này.
+## Việc nên làm
 
-**Cập nhật web sau khi sửa nội dung:**
-1. Tạo token mới tại https://github.com/settings/tokens/new?scopes=repo&description=thucduonglanh (chọn 7 days).
-2. Trong thư mục `website/` chạy:
-   `GH_USER=thaisoniph GH_TOKEN=ghp_xxx ./deploy-github.sh`
-3. Khoảng 1 phút sau web tự cập nhật.
-
-## 5. Sau khi web chạy
-- Khai báo website với Bộ Công Thương tại online.gov.vn. Sau khi được duyệt, điền link vào `bo_cong_thuong_url` và đặt ảnh logo tại `assets/img/brand/bo-cong-thuong.png`.
+- Khai báo website với Bộ Công Thương (online.gov.vn), sau đó điền link vào `bo_cong_thuong_url` trong `data/config.json` và đặt logo tại `assets/img/brand/bo-cong-thuong.png`.
 - Gửi sitemap `https://thucduonglanh.vn/sitemap.xml` lên Google Search Console.
