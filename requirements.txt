@@ -1,0 +1,3 @@
+Pillow>=10
+Markdown>=3.5
+PyYAML>=6

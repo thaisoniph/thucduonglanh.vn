@@ -1,0 +1,69 @@
+{
+  "slogan": "Dưỡng Thân – Tâm An – Bền Sức Khoẻ",
+  "tagline": "Dinh dưỡng thuần tự nhiên cho người Việt",
+  "company": "CÔNG TY TNHH TẬP ĐOÀN VITAGREEN NUTRITION",
+  "tax_code": "0111053409",
+  "tax_date": "15/05/2025",
+  "hotline": "0896 869 333",
+  "hotline2": "",
+  "zalo": "0896869333",
+  "email": "vitagreennutrition@gmail.com",
+  "address": "HA10-SP8A-15, Đường Hải Âu 8A, KĐT Vinhomes Ocean Park, Gia Lâm, TP. Hà Nội",
+  "opening_hours": "Thứ 2 – Thứ 7: 8h00 – 17h00",
+  "socials": {
+    "shopee": "https://shopee.vn/greeneats.official",
+    "facebook": "https://www.facebook.com/profile.php?id=61575904679350",
+    "tiktok": "https://www.tiktok.com/@thucduonglanh",
+    "youtube": "https://www.youtube.com/@thucduonglanh",
+    "tiktok_shop": "",
+    "lazada": ""
+  },
+  "bank": {
+    "enabled": true,
+    "bank_id": "VCB",
+    "bank_name": "Vietcombank – CN Đông Hà Nội",
+    "account_no": "1064130558",
+    "account_name": "CT TNHH TAP DOAN VITAGREEN NUTRITION"
+  },
+  "free_ship_threshold": 0,
+  "shipping_fee": 0,
+  "zalo_oa": "https://zalo.me/4116030867157210870",
+  "community": [
+    {
+      "name": "Fanpage Thực Dưỡng Lành",
+      "stat": "98.000+ người theo dõi",
+      "url": "https://www.facebook.com/profile.php?id=61575904679350",
+      "image": "/assets/img/products/tra-dilvang-7.webp",
+      "desc": "Trang chính thức cập nhật sản phẩm, chương trình ưu đãi, kiến thức dinh dưỡng và những câu chuyện sống lành mỗi ngày."
+    },
+    {
+      "name": "Cộng đồng Sống Khỏe cùng TDL",
+      "stat": "52.000+ thành viên",
+      "url": "https://www.facebook.com/share/g/19NHcqWCUR/",
+      "image": "/assets/img/products/curcumin-3.webp",
+      "desc": "Nhóm Facebook nơi mọi người chia sẻ trải nghiệm, công thức món lành, kinh nghiệm chăm sóc sức khỏe gia đình và đồng hành cùng nhau."
+    },
+    {
+      "name": "Kênh TikTok Thực Dưỡng Lành",
+      "stat": "127.000+ người theo dõi",
+      "url": "https://www.tiktok.com/@thucduonglanh",
+      "image": "/assets/img/products/ruoc-chay-rong-bien-5.webp",
+      "desc": "Những thước phim ngắn về lối sống thực dưỡng, cách dùng sản phẩm, món lành dễ làm và các buổi live chia sẻ cùng cộng đồng."
+    },
+    {
+      "name": "Kênh YouTube Thực Dưỡng Lành",
+      "stat": "Video hướng dẫn & chia sẻ",
+      "url": "https://www.youtube.com/@thucduonglanh",
+      "image": "/assets/img/products/tra-dilvang-4.webp",
+      "desc": "Video hướng dẫn cách dùng sản phẩm, câu chuyện thương hiệu, chia sẻ kiến thức thực dưỡng và hành trình sống lành cùng cộng đồng."
+    },
+    {
+      "name": "Nhóm Zalo Sống khỏe cùng Thực Dưỡng Lành",
+      "stat": "Tham gia miễn phí",
+      "url": "https://zalo.me/g/tvepjg478",
+      "image": "/assets/img/products/bua-an-dinh-duong-3.webp",
+      "desc": "Nhận thông báo ưu đãi, quà tặng cộng đồng và được đội ngũ Thực Dưỡng Lành tư vấn trực tiếp qua Zalo."
+    }
+  ],
+  "community_group": "https://www.facebook.com/share/g/19NHcqWCUR/"
+}

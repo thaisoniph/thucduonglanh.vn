@@ -1,0 +1,120 @@
+{
+  "name": "Bữa Ăn Dinh Dưỡng VitaGreen",
+  "short_name": "Bữa Ăn Dinh Dưỡng",
+  "category": "dinh-duong-tu-hat",
+  "sku": "TDL-BADD",
+  "order": 1,
+  "featured": true,
+  "published": true,
+  "badge": "Bán chạy",
+  "price": 450000,
+  "regular_price": null,
+  "unit": "",
+  "variants": [
+    {
+      "name": "Hộp 500g (20 gói x 25g)",
+      "price": 450000,
+      "regular_price": null
+    },
+    {
+      "name": "Hộp 125g",
+      "price": 120000,
+      "regular_price": null
+    }
+  ],
+  "images": [
+    "/assets/img/products/bua-an-dinh-duong-1.webp",
+    "/assets/img/products/bua-an-dinh-duong-2.webp",
+    "/assets/img/products/bua-an-dinh-duong-3.webp",
+    "/assets/img/products/bua-an-dinh-duong-4.webp",
+    "/assets/img/products/bua-an-dinh-duong-5.webp"
+  ],
+  "summary": "Bữa ăn dinh dưỡng từ **12 loại hạt và ngũ cốc** (không đậu nành) kết hợp **Fucoidan Okinawa Mozuku, Curcumin 95%, Spirulina, Pea Protein** và chất xơ FOS. Dùng đường cỏ ngọt, không đường tinh luyện – dễ pha, dễ uống, tiện cho người bận rộn.",
+  "highlights": [
+    "12 loại hạt & ngũ cốc, không đậu nành",
+    "Fucoidan Okinawa Mozuku – Nhật Bản",
+    "Curcumin 95% từ nghệ vàng Việt Nam",
+    "Đường cỏ ngọt, không đường tinh luyện",
+    "Sản xuất theo GMP, ISO 22000:2018"
+  ],
+  "sections": [
+    {
+      "title": "Thành phần",
+      "style": "quote",
+      "text": "**Ngũ cốc & hạt:** Yến mạch, Gạo lứt, Đậu Hà Lan, Đậu gà, Đậu đen, Đậu trắng, Hạt macca, Hạt óc chó, Hạnh nhân, Mè đen, Hạt sen, Cacao.\n\n**Thành phần nổi bật:** Curcumin 95%, Spirulina (tảo xoắn), Fucoidan chiết xuất từ tảo nâu Okinawa Mozuku, Táo đỏ, Kỷ tử, Pea Protein (đạm thực vật), FOS (chất xơ hòa tan), đường cỏ ngọt, Vitamin B1."
+    },
+    {
+      "title": "Điểm nổi bật",
+      "style": "list",
+      "items": [
+        "**12 loại hạt và ngũ cốc:** nền tảng bữa ăn cân bằng – tinh bột tốt, chất béo tốt, protein thực vật, vitamin và khoáng chất tự nhiên.",
+        "**Fucoidan Okinawa Mozuku:** chiết xuất tảo nâu Nhật Bản, hỗ trợ tăng cường miễn dịch, chống oxy hóa.",
+        "**Curcumin 95%:** chiết xuất nghệ vàng Việt Nam, chống oxy hóa, hỗ trợ ổn định tiêu hóa.",
+        "**Spirulina:** vi tảo giàu protein thực vật, vitamin, khoáng chất.",
+        "**Pea Protein:** đạm thực vật chất lượng cao, nhẹ nhàng với hệ tiêu hóa.",
+        "**FOS:** chất xơ hòa tan hỗ trợ tiêu hóa và hệ vi sinh đường ruột.",
+        "**Đường cỏ ngọt:** không đường tinh luyện, phù hợp người cần kiêng đường."
+      ]
+    },
+    {
+      "title": "Công dụng",
+      "style": "box",
+      "text": "Bổ sung dinh dưỡng từ ngũ cốc và hạt; bổ sung vitamin, khoáng chất, đạm thực vật và chất xơ; hỗ trợ tiêu hóa khỏe mạnh; hỗ trợ tăng cường sức khỏe và sức đề kháng. Có thể dùng thay bữa phụ hoặc bổ sung bữa ăn hằng ngày."
+    },
+    {
+      "title": "Giá trị dinh dưỡng (trong 100g)",
+      "style": "table",
+      "rows": [
+        {
+          "label": "Năng lượng",
+          "value": "436 kcal"
+        },
+        {
+          "label": "Carbohydrate",
+          "value": "68,5 g"
+        },
+        {
+          "label": "Chất béo",
+          "value": "13,6 g"
+        },
+        {
+          "label": "Chất đạm",
+          "value": "11,2 g"
+        },
+        {
+          "label": "Natri",
+          "value": "171 mg"
+        },
+        {
+          "label": "FOS",
+          "value": "1,20 g"
+        }
+      ]
+    },
+    {
+      "title": "Đối tượng sử dụng",
+      "style": "box",
+      "text": "Người từ 3 tuổi trở lên; người trưởng thành cần bổ sung dinh dưỡng; người lớn tuổi ăn uống kém; người ăn chay; người bận rộn; người cần bổ sung đạm thực vật và chất xơ."
+    },
+    {
+      "title": "Cách dùng",
+      "style": "box",
+      "text": "**Pha nhanh:** 25–30g (3 thìa gạt ngang) với 150–180ml nước khoảng 60°C, khuấy đều, dùng ngay. Ngày 2–3 lần.\n\n**Pha chuẩn:** 25–30g với 100ml nước nguội, khuấy đều, để yên cho ngấm rồi thêm khoảng 100ml nước nóng 70°C.\n\n**Làm sinh tố:** 100ml nước nguội + 1 gói 25g + hoa quả theo khẩu vị (thêm sữa, đá tùy thích), xay đều."
+    },
+    {
+      "title": "Bảo quản",
+      "style": "list",
+      "items": [
+        "Nơi khô ráo, thoáng mát, tránh ánh nắng trực tiếp.",
+        "Sau khi mở nắp dùng trong 30 ngày.",
+        "Hạn sử dụng: 24 tháng kể từ ngày sản xuất."
+      ]
+    },
+    {
+      "title": "Tiêu chuẩn & kiểm nghiệm",
+      "style": "box",
+      "text": "Sản xuất tại nhà máy Công ty Cổ phần Dinh dưỡng Xanh Vitanuts theo tiêu chuẩn GMP, hệ thống ISO 22000:2018, TCCS/012/VITANUTS/2025. Kiểm nghiệm tại Viện Kiểm nghiệm An toàn Vệ sinh Thực phẩm Quốc gia (NIFC): hóa lý, vi sinh, kim loại nặng, Aflatoxin M1 đều đạt yêu cầu.\n\nĐơn vị công bố: Công ty TNHH Tập đoàn VitaGreen Nutrition."
+    }
+  ],
+  "disclaimer": "Thực phẩm bổ sung. Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh."
+}

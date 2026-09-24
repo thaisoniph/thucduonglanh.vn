@@ -1,0 +1,22 @@
+{
+  "categories": [
+    {
+      "slug": "dinh-duong-tu-hat",
+      "name": "Dinh Dưỡng Từ Hạt",
+      "image": "/assets/img/products/bua-an-dinh-duong-2.webp",
+      "desc": "Bột dinh dưỡng từ hạt và ngũ cốc thực dưỡng, không đậu nành, không đường tinh luyện."
+    },
+    {
+      "slug": "tra-thao-moc",
+      "name": "Trà Thảo Mộc",
+      "image": "/assets/img/products/tra-dilvang-1.webp",
+      "desc": "Trà thảo mộc hòa tan tiện lợi từ dược liệu Việt Nam."
+    },
+    {
+      "slug": "gia-vi-mon-chay",
+      "name": "Gia Vị & Món Chay",
+      "image": "/assets/img/products/ruoc-chay-rong-bien-1.webp",
+      "desc": "Gia vị lên men tự nhiên và món chay thuần thực vật cho bữa cơm gia đình."
+    }
+  ]
+}

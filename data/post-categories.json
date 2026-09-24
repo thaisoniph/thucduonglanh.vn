@@ -1,0 +1,16 @@
+{
+  "categories": [
+    {
+      "slug": "kien-thuc-dinh-duong",
+      "name": "Kiến Thức Dinh Dưỡng"
+    },
+    {
+      "slug": "song-lanh-moi-ngay",
+      "name": "Sống Lành Mỗi Ngày"
+    },
+    {
+      "slug": "cau-chuyen-san-pham",
+      "name": "Câu Chuyện Sản Phẩm"
+    }
+  ]
+}

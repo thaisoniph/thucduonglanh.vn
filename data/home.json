@@ -1,0 +1,25 @@
+{
+  "slides": [
+    {
+      "product": "tra-hoa-tan-dilvang-dinh-lang-che-vang",
+      "eyebrow": "Tinh hoa Quảng Trị",
+      "title": "Trà Hòa Tan *DILVANG*",
+      "subtitle": "Tinh chất Đinh Lăng – Chè Vằng từ vùng chè vằng được bảo hộ Chỉ dẫn địa lý. Pha nước ấm, không cần đun sắc.",
+      "image": "/assets/img/brand/hero-dilvang.webp"
+    },
+    {
+      "product": "bua-an-dinh-duong-vitagreen",
+      "eyebrow": "Dinh dưỡng toàn diện",
+      "title": "Bữa Ăn *Dinh Dưỡng* VitaGreen",
+      "subtitle": "12 loại hạt & ngũ cốc kết hợp Fucoidan, Curcumin 95%, Spirulina – bữa ăn cân bằng cho người bận rộn.",
+      "image": "/assets/img/brand/hero-bua-an.webp"
+    },
+    {
+      "product": "ruoc-rong-bien-vi-suon-non",
+      "eyebrow": "Thuần chay – Đưa cơm",
+      "title": "Ruốc Rong Biển *Vị Sườn Non*",
+      "subtitle": "Rong biển tự nhiên, sườn non chay, thơm lá chanh và mè rang. Không chất bảo quản.",
+      "image": "/assets/img/brand/hero-ruoc.webp"
+    }
+  ]
+}

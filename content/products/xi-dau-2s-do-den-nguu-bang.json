@@ -1,0 +1,51 @@
+{
+  "name": "Xì Dầu 2S Đỗ Đen Ngưu Bàng",
+  "short_name": "Xì Dầu 2S",
+  "category": "gia-vi-mon-chay",
+  "sku": "TDL-XD2S",
+  "order": 5,
+  "featured": true,
+  "published": true,
+  "badge": "Lên men 99 ngày",
+  "price": 189000,
+  "regular_price": null,
+  "unit": "Chai 500ml",
+  "variants": [],
+  "images": [
+    "/assets/img/products/xi-dau-2s-1.webp",
+    "/assets/img/products/xi-dau-2s-2.webp",
+    "/assets/img/products/xi-dau-2s-3.webp",
+    "/assets/img/products/xi-dau-2s-4.webp"
+  ],
+  "summary": "Xì dầu đầu tiên **lên men tự nhiên từ đậu đen xanh lòng Việt Nam và củ ngưu bàng** trồng tại Sóc Sơn. Qua **99 ngày lên men thủ công**, cho ra giọt xì dầu thơm ngon, an lành cho cả người ăn thường và người ăn thuần thực vật.",
+  "highlights": [
+    "Lên men tự nhiên 99 ngày",
+    "Đỗ đen xanh lòng & ngưu bàng Sóc Sơn",
+    "VNPS xác nhận 100% tự nhiên",
+    "Giải Khoa học Sáng tạo TP Hà Nội 2025",
+    "Quy trình đạt HACCP"
+  ],
+  "sections": [
+    {
+      "title": "Thành phần",
+      "style": "quote",
+      "text": "Nước, đỗ đen (200g/l), ngưu bàng (60g/l), muối, đường thốt nốt, trà hoa vàng, chất bảo quản, chất điều vị tự nhiên từ lên men (không phụ gia công nghiệp)."
+    },
+    {
+      "title": "Chứng nhận & giải thưởng",
+      "style": "list",
+      "items": [
+        "Sản phẩm thuần thiên nhiên – VNPS xác nhận 100% tự nhiên (mã TN.TP.23.01.01).",
+        "Giải Khoa học Sáng tạo TP Hà Nội năm 2025.",
+        "Quy trình sản xuất đạt HACCP.",
+        "Nhà sản xuất: HTX Bảo tồn và Phát triển Dược liệu Sóc Sơn – đạt chuẩn hữu cơ Việt Nam và chuẩn hữu cơ Nhật Bản J.A.S."
+      ]
+    },
+    {
+      "title": "Cách dùng",
+      "style": "box",
+      "text": "Dùng chấm, trộn trực tiếp hoặc làm gia vị tẩm ướp, kho, xào. Phù hợp cả người ăn thông thường và người ăn thuần thực vật."
+    }
+  ],
+  "disclaimer": ""
+}

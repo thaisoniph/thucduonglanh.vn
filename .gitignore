@@ -1,0 +1,8 @@
+# Không đưa lên GitHub
+dist/
+.publish/
+backend/
+.netlify_site
+__pycache__/
+.DS_Store
+*.pyc

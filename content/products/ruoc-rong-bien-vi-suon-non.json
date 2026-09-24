@@ -1,0 +1,108 @@
+{
+  "name": "Ruốc Rong Biển Vị Sườn Non Thuần Chay",
+  "short_name": "Ruốc Rong Biển",
+  "category": "gia-vi-mon-chay",
+  "sku": "TDL-RUOC",
+  "order": 4,
+  "featured": true,
+  "published": true,
+  "badge": "Thuần chay",
+  "price": 89000,
+  "regular_price": null,
+  "unit": "",
+  "variants": [
+    {
+      "name": "Hũ 215g",
+      "price": 89000,
+      "regular_price": null
+    },
+    {
+      "name": "Hũ 165g",
+      "price": 75000,
+      "regular_price": null
+    }
+  ],
+  "images": [
+    "/assets/img/products/ruoc-chay-rong-bien-1.webp",
+    "/assets/img/products/ruoc-chay-rong-bien-2.webp",
+    "/assets/img/products/ruoc-chay-rong-bien-3.webp",
+    "/assets/img/products/ruoc-chay-rong-bien-4.webp",
+    "/assets/img/products/ruoc-chay-rong-bien-5.webp",
+    "/assets/img/products/ruoc-chay-rong-bien-6.webp",
+    "/assets/img/products/ruoc-chay-rong-bien-7.webp"
+  ],
+  "summary": "Ruốc chay từ **rong biển tự nhiên** kết hợp **sườn non chay**, thơm lá chanh và mè rang. Vị bùi, đậm đà, rất đưa cơm – **thuần chay tinh khiết, không chất bảo quản**.",
+  "highlights": [
+    "Thuần chay tinh khiết",
+    "Không chất bảo quản",
+    "Giàu khoáng chất từ rong biển",
+    "Bổ sung đạm thực vật",
+    "Ăn liền với cơm, cháo, xôi, bánh mì"
+  ],
+  "sections": [
+    {
+      "title": "Thành phần",
+      "style": "quote",
+      "text": "Sườn non chay (80%), rong biển (12%), mè (vừng), lá chanh, dầu thực vật, gia vị thuần chay."
+    },
+    {
+      "title": "Đặc điểm nổi bật",
+      "style": "list",
+      "items": [
+        "Thuần chay tinh khiết, không chất bảo quản.",
+        "Giàu khoáng chất tự nhiên từ rong biển.",
+        "Bổ sung đạm thực vật và chất béo tốt.",
+        "Hương thơm lá chanh, mè rang; vị bùi, đậm đà."
+      ]
+    },
+    {
+      "title": "Cách dùng",
+      "style": "box",
+      "text": "Dùng trực tiếp với cơm nóng, cháo, xôi, bánh mì, cơm nắm, cơm hộp hoặc rắc lên salad."
+    },
+    {
+      "title": "Giá trị dinh dưỡng (trong 100g)",
+      "style": "table",
+      "rows": [
+        {
+          "label": "Năng lượng",
+          "value": "350–500 kcal"
+        },
+        {
+          "label": "Chất đạm",
+          "value": "30–40 g"
+        },
+        {
+          "label": "Chất béo",
+          "value": "25–35 g"
+        },
+        {
+          "label": "Carbohydrate",
+          "value": "4,0–5,5 g"
+        },
+        {
+          "label": "Đường",
+          "value": "2,5–3,5 g"
+        },
+        {
+          "label": "Natri",
+          "value": "1.200–1.800 mg"
+        }
+      ]
+    },
+    {
+      "title": "Đối tượng sử dụng",
+      "style": "box",
+      "text": "Người ăn chay, người theo thực dưỡng, người muốn bổ sung đạm thực vật, người lớn tuổi, học sinh – sinh viên, nhân viên văn phòng và mọi gia đình."
+    },
+    {
+      "title": "Bảo quản",
+      "style": "list",
+      "items": [
+        "Nơi khô ráo, thoáng mát, tránh ánh nắng.",
+        "Đậy kín sau khi dùng; ngon nhất trong 7 ngày sau khi mở."
+      ]
+    }
+  ],
+  "disclaimer": ""
+}

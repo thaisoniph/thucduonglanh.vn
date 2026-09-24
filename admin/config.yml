@@ -1,0 +1,265 @@
+# Cấu hình trang quản trị https://thucduonglanh.vn/admin/ (Sveltia CMS)
+backend:
+  name: github
+  repo: thaisoniph/thucduonglanh.vn
+  branch: main
+  commit_messages:
+    create: "Thêm {{collection}}: {{slug}}"
+    update: "Cập nhật {{collection}}: {{slug}}"
+    delete: "Xoá {{collection}}: {{slug}}"
+    uploadMedia: "Tải ảnh {{path}}"
+    deleteMedia: "Xoá ảnh {{path}}"
+
+site_url: https://thucduonglanh.vn
+display_url: https://thucduonglanh.vn
+logo_url: /assets/img/brand/icon-180.png
+media_folder: assets/uploads
+public_folder: /assets/uploads
+
+slug:
+  encoding: ascii
+  clean_accents: true
+  sanitize_replacement: "-"
+
+collections:
+  # ------------------------------------------------------------ BÀI VIẾT
+  - name: posts
+    label: "Bài viết (Góc Sống Lành)"
+    label_singular: "bài viết"
+    description: "Bài viết hiển thị ở mục Góc Sống Lành. Bấm “Xuất bản” – khoảng 2 phút sau bài xuất hiện trên web."
+    folder: content/posts
+    extension: md
+    format: frontmatter
+    create: true
+    delete: true
+    slug: "{{slug}}"
+    identifier_field: title
+    summary: "{{title}} ({{date}})"
+    sortable_fields: [date, title]
+    preview_path: "goc-song-lanh/{{slug}}/"
+    fields:
+      - { label: "Tiêu đề bài viết", name: title, widget: string }
+      - { label: "Ngày đăng", name: date, widget: datetime, format: "YYYY-MM-DD", time_format: false }
+      - label: "Chuyên mục"
+        name: category
+        widget: relation
+        collection: settings
+        file: post_categories
+        value_field: "categories.*.slug"
+        search_fields: ["categories.*.name"]
+        display_fields: ["categories.*.name"]
+      - { label: "Ảnh đại diện", name: image, widget: image, hint: "Ảnh vuông hoặc ngang, tối thiểu 1000px. Web tự nén ảnh." }
+      - { label: "Mô tả ngắn", name: excerpt, widget: text, hint: "1–2 câu, hiện ở danh sách bài và khi chia sẻ Facebook/Zalo." }
+      - { label: "Hiển thị trên web", name: published, widget: boolean, default: true, hint: "Tắt để ẩn bài mà không xoá." }
+      - { label: "Nội dung", name: body, widget: markdown }
+
+  # ------------------------------------------------------------ SẢN PHẨM
+  - name: products
+    label: "Sản phẩm"
+    label_singular: "sản phẩm"
+    description: "Thông tin, giá, ảnh và mô tả sản phẩm. Giá nhập bằng số, ví dụ 140000."
+    folder: content/products
+    extension: json
+    format: json
+    create: true
+    delete: true
+    slug: "{{slug}}"
+    identifier_field: name
+    summary: "{{name}}"
+    sortable_fields: [order, name]
+    preview_path: "san-pham/{{slug}}/"
+    fields:
+      - { label: "Tên sản phẩm", name: name, widget: string }
+      - { label: "Tên ngắn", name: short_name, widget: string, required: false, hint: "Dùng ở nút tư vấn nổi, ví dụ: Trà DILVANG" }
+      - label: "Danh mục"
+        name: category
+        widget: relation
+        collection: settings
+        file: categories
+        value_field: "categories.*.slug"
+        search_fields: ["categories.*.name"]
+        display_fields: ["categories.*.name"]
+      - { label: "Hiển thị trên web", name: published, widget: boolean, default: true, hint: "Tắt để tạm ẩn sản phẩm (hết hàng, ngừng bán)." }
+      - { label: "Sản phẩm nổi bật", name: featured, widget: boolean, default: false, hint: "Hiện ở mục “Sản phẩm được yêu thích nhất” trên trang chủ." }
+      - { label: "Thứ tự hiển thị", name: order, widget: number, value_type: int, default: 50, hint: "Số nhỏ đứng trước." }
+      - { label: "Nhãn trên ảnh", name: badge, widget: string, required: false, hint: "Ví dụ: Bán chạy, Mới, Thuần chay. Để trống nếu không cần." }
+      - { label: "Mã SKU", name: sku, widget: string, required: false }
+      - { label: "Giá bán (đồng)", name: price, widget: number, value_type: int, required: false, hint: "Để trống = hiện “Liên hệ”. Nếu có nhiều quy cách thì nhập giá ở phần Quy cách bên dưới." }
+      - { label: "Giá gốc gạch ngang (đồng)", name: regular_price, widget: number, value_type: int, required: false, hint: "Chỉ nhập khi đang giảm giá, phải lớn hơn Giá bán." }
+      - { label: "Quy cách (1 loại)", name: unit, widget: string, required: false, hint: "Ví dụ: Chai 500ml. Bỏ qua nếu dùng nhiều quy cách." }
+      - label: "Nhiều quy cách / nhiều giá"
+        name: variants
+        widget: list
+        required: false
+        summary: "{{fields.name}} – {{fields.price}}đ"
+        hint: "Ví dụ: Hộp 400g – 450000, Hộp 125g – 140000. Loại đầu tiên được chọn sẵn."
+        fields:
+          - { label: "Tên quy cách", name: name, widget: string }
+          - { label: "Giá bán (đồng)", name: price, widget: number, value_type: int, required: false }
+          - { label: "Giá gốc gạch ngang (đồng)", name: regular_price, widget: number, value_type: int, required: false }
+      - label: "Ảnh sản phẩm"
+        name: images
+        widget: list
+        hint: "Ảnh đầu tiên là ảnh đại diện. Nên dùng ảnh vuông ≥1000px. Web tự nén ảnh."
+        field: { label: "Ảnh", name: image, widget: image }
+      - { label: "Mô tả ngắn (cạnh giá)", name: summary, widget: markdown, buttons: [bold, italic, link] }
+      - label: "Điểm nổi bật (dấu tích xanh)"
+        name: highlights
+        widget: list
+        required: false
+        field: { label: "Điểm nổi bật", name: text, widget: string }
+      - label: "Các mục mô tả chi tiết"
+        name: sections
+        widget: list
+        required: false
+        summary: "{{fields.title}}"
+        hint: "Mỗi mục là 1 khối: Thành phần, Công dụng, Cách dùng, Bảo quản…"
+        fields:
+          - { label: "Tiêu đề mục", name: title, widget: string }
+          - label: "Kiểu trình bày"
+            name: style
+            widget: select
+            default: box
+            options:
+              - { label: "Đoạn văn trong khung xám", value: box }
+              - { label: "Đoạn văn có viền xanh bên trái", value: quote }
+              - { label: "Danh sách gạch đầu dòng", value: list }
+              - { label: "Bảng thông số (2 cột)", value: table }
+          - { label: "Nội dung (khi chọn Đoạn văn)", name: text, widget: markdown, required: false }
+          - label: "Các dòng (khi chọn Danh sách)"
+            name: items
+            widget: list
+            required: false
+            field: { label: "Dòng", name: item, widget: string }
+          - label: "Các dòng bảng (khi chọn Bảng)"
+            name: rows
+            widget: list
+            required: false
+            summary: "{{fields.label}}: {{fields.value}}"
+            fields:
+              - { label: "Tên", name: label, widget: string }
+              - { label: "Giá trị", name: value, widget: string }
+      - { label: "Dòng lưu ý cuối trang", name: disclaimer, widget: text, required: false, hint: "Ví dụ: Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh." }
+
+  # ------------------------------------------------------------ TRANG CHÍNH SÁCH
+  - name: pages
+    label: "Trang chính sách / hỗ trợ"
+    label_singular: "trang"
+    folder: content/pages
+    extension: md
+    format: frontmatter
+    create: true
+    delete: true
+    slug: "{{slug}}"
+    identifier_field: title
+    sortable_fields: [order, title]
+    preview_path: "{{slug}}/"
+    fields:
+      - { label: "Tiêu đề", name: title, widget: string }
+      - { label: "Thứ tự ở chân trang", name: order, widget: number, value_type: int, default: 50 }
+      - { label: "Nội dung", name: body, widget: markdown, hint: "Có thể dùng {brand}, {hotline}, {email}, {address}, {company} – web tự thay bằng thông tin công ty." }
+
+  # ------------------------------------------------------------ CÀI ĐẶT
+  - name: settings
+    label: "Cài đặt website"
+    editor: { preview: false }
+    files:
+      - name: site
+        label: "Thông tin liên hệ, mạng xã hội, ngân hàng"
+        file: data/site.json
+        format: json
+        fields:
+          - { label: "Slogan", name: slogan, widget: string }
+          - { label: "Câu giới thiệu ngắn (tiêu đề trang chủ)", name: tagline, widget: string }
+          - { label: "Tên công ty", name: company, widget: string }
+          - { label: "Mã số doanh nghiệp", name: tax_code, widget: string }
+          - { label: "Ngày cấp", name: tax_date, widget: string }
+          - { label: "Hotline", name: hotline, widget: string }
+          - { label: "Hotline 2", name: hotline2, widget: string, required: false }
+          - { label: "Số Zalo tư vấn (viết liền)", name: zalo, widget: string }
+          - { label: "Email", name: email, widget: string }
+          - { label: "Địa chỉ", name: address, widget: string }
+          - { label: "Giờ làm việc", name: opening_hours, widget: string }
+          - label: "Mạng xã hội (chân trang)"
+            name: socials
+            widget: object
+            fields:
+              - { label: "Shopee", name: shopee, widget: string, required: false }
+              - { label: "Facebook", name: facebook, widget: string, required: false }
+              - { label: "TikTok", name: tiktok, widget: string, required: false }
+              - { label: "YouTube", name: youtube, widget: string, required: false }
+              - { label: "TikTok Shop", name: tiktok_shop, widget: string, required: false }
+              - { label: "Lazada", name: lazada, widget: string, required: false }
+          - { label: "Link Zalo OA", name: zalo_oa, widget: string, required: false }
+          - { label: "Link nhóm cộng đồng (góc trên cùng)", name: community_group, widget: string, required: false }
+          - label: "Các kênh cộng đồng (trang chủ)"
+            name: community
+            widget: list
+            summary: "{{fields.name}}"
+            fields:
+              - { label: "Tên kênh", name: name, widget: string }
+              - { label: "Số liệu", name: stat, widget: string, required: false, hint: "Ví dụ: 98.000+ người theo dõi" }
+              - { label: "Link", name: url, widget: string }
+              - { label: "Ảnh", name: image, widget: image }
+              - { label: "Mô tả", name: desc, widget: text }
+          - label: "Tài khoản nhận chuyển khoản (mã QR)"
+            name: bank
+            widget: object
+            fields:
+              - { label: "Bật thanh toán chuyển khoản", name: enabled, widget: boolean }
+              - { label: "Mã ngân hàng VietQR (VCB, TCB, MB, ACB…)", name: bank_id, widget: string }
+              - { label: "Tên ngân hàng hiển thị", name: bank_name, widget: string }
+              - { label: "Số tài khoản", name: account_no, widget: string }
+              - { label: "Chủ tài khoản (không dấu)", name: account_name, widget: string }
+          - { label: "Miễn phí ship cho đơn từ (đồng, 0 = không áp dụng)", name: free_ship_threshold, widget: number, value_type: int, default: 0 }
+          - { label: "Phí ship cố định (đồng, 0 = báo khi xác nhận đơn)", name: shipping_fee, widget: number, value_type: int, default: 0 }
+
+      - name: home
+        label: "Trang chủ – Slider đầu trang"
+        file: data/home.json
+        format: json
+        fields:
+          - label: "Các slide"
+            name: slides
+            widget: list
+            summary: "{{fields.title}}"
+            fields:
+              - label: "Sản phẩm khi bấm “Mua ngay”"
+                name: product
+                widget: relation
+                collection: products
+                value_field: "{{slug}}"
+                search_fields: [name]
+                display_fields: [name]
+              - { label: "Dòng nhỏ phía trên", name: eyebrow, widget: string }
+              - { label: "Tiêu đề", name: title, widget: string, hint: "Đặt chữ giữa hai dấu *sao* để hiện màu vàng nghiêng, ví dụ: Trà Hòa Tan *DILVANG*" }
+              - { label: "Mô tả", name: subtitle, widget: text }
+              - { label: "Ảnh (vuông)", name: image, widget: image }
+
+      - name: categories
+        label: "Danh mục sản phẩm"
+        file: data/categories.json
+        format: json
+        fields:
+          - label: "Danh mục"
+            name: categories
+            widget: list
+            summary: "{{fields.name}}"
+            fields:
+              - { label: "Tên danh mục", name: name, widget: string }
+              - { label: "Mã (không dấu, dùng trên đường link)", name: slug, widget: string, hint: "Ví dụ: tra-thao-moc. Không đổi mã của danh mục đang có sản phẩm." }
+              - { label: "Ảnh", name: image, widget: image }
+              - { label: "Mô tả", name: desc, widget: text, required: false }
+
+      - name: post_categories
+        label: "Chuyên mục bài viết"
+        file: data/post-categories.json
+        format: json
+        fields:
+          - label: "Chuyên mục"
+            name: categories
+            widget: list
+            summary: "{{fields.name}}"
+            fields:
+              - { label: "Tên chuyên mục", name: name, widget: string }
+              - { label: "Mã (không dấu)", name: slug, widget: string }

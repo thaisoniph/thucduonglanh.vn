@@ -1,0 +1,105 @@
+{
+  "name": "Dinh Dưỡng Từ Hạt Và Curcumin",
+  "short_name": "Sữa Hạt Curcumin",
+  "category": "dinh-duong-tu-hat",
+  "sku": "TDL-CUR400",
+  "order": 2,
+  "featured": true,
+  "published": true,
+  "badge": "Được yêu thích",
+  "price": 450000,
+  "regular_price": null,
+  "unit": "",
+  "variants": [
+    {
+      "name": "Hộp 400g",
+      "price": 450000,
+      "regular_price": null
+    },
+    {
+      "name": "Hộp 125g",
+      "price": 140000,
+      "regular_price": null
+    }
+  ],
+  "images": [
+    "/assets/img/products/curcumin-1.webp",
+    "/assets/img/products/curcumin-2.webp",
+    "/assets/img/products/curcumin-3.webp"
+  ],
+  "summary": "Sữa hạt kết hợp **Curcumin tinh khiết 95%**, tảo biển và **15 loại hạt, ngũ cốc** thực dưỡng. Dùng đường cỏ ngọt, vị thơm béo dễ uống – bữa phụ nhẹ nhàng cho cả gia đình.",
+  "highlights": [
+    "Curcumin tinh khiết 95%",
+    "15 loại hạt & ngũ cốc thực dưỡng",
+    "Bổ sung tảo biển",
+    "Đường cỏ ngọt",
+    "Hộp 400g / 125g"
+  ],
+  "sections": [
+    {
+      "title": "Thành phần",
+      "style": "quote",
+      "text": "Curcumin tinh khiết 95%, tảo biển, 15 loại hạt/ngũ cốc: hạt macca, hạt sen, yến mạch, óc chó, hạt chia, hạt bí, ngô, đậu Hà Lan, hạt sachi, gạo lứt, mè đen, hạnh nhân, đậu xanh, đậu đỏ, đậu gà. Cùng nondairy creamer, maltodextrin, Stevinten fresh (đường cỏ ngọt), hương vani."
+    },
+    {
+      "title": "Giá trị dinh dưỡng (trong 100g)",
+      "style": "table",
+      "rows": [
+        {
+          "label": "Năng lượng",
+          "value": "434 kcal"
+        },
+        {
+          "label": "Protein",
+          "value": "14,6 g"
+        },
+        {
+          "label": "Carbohydrate",
+          "value": "55,8 g"
+        },
+        {
+          "label": "Chất béo",
+          "value": "16,9 g"
+        },
+        {
+          "label": "Natri",
+          "value": "245 mg"
+        }
+      ]
+    },
+    {
+      "title": "Vì sao nên chọn",
+      "style": "list",
+      "items": [
+        "Curcumin chiết tách từ nghệ vàng Việt Nam bằng công nghệ của Viện Hoá học Công nghiệp Việt Nam.",
+        "Kết hợp nhiều loại hạt giàu đạm thực vật, chất béo tốt, vitamin và khoáng chất.",
+        "Bổ sung dinh dưỡng cho bữa phụ, hỗ trợ tiêu hóa, chống oxy hóa.",
+        "Hàng Việt Nam chính hãng, có giấy tờ kiểm định, tra cứu được bằng iCheck."
+      ]
+    },
+    {
+      "title": "Đối tượng sử dụng",
+      "style": "box",
+      "text": "Trẻ từ 3 tuổi trở lên; người cao tuổi; người có hệ tiêu hóa nhạy cảm; người cần bồi bổ, mới ốm dậy; người muốn kiểm soát cân nặng; người ăn chay."
+    },
+    {
+      "title": "Cách dùng",
+      "style": "box",
+      "text": "**Cách pha:** 3 muỗng bột (khoảng 30g) với 150–180ml nước ấm 60–70°C, khuấy đều.\n\n**Liều dùng:** 1 ly 180ml, 2–3 lần mỗi ngày.\n\nNgười mới dùng có thể bắt đầu với nửa liều rồi tăng dần để cơ thể làm quen với chất xơ."
+    },
+    {
+      "title": "Bảo quản",
+      "style": "list",
+      "items": [
+        "Chưa mở: nơi thoáng mát, tránh ánh nắng. Hạn sử dụng 24 tháng.",
+        "Đã mở: đậy kín, dùng trong 30 ngày."
+      ]
+    },
+    {
+      "title": "Xuất xứ",
+      "style": "box",
+      "text": "Hàng Việt Nam chính hãng. Chịu trách nhiệm chất lượng: Công ty CP Dinh dưỡng Xanh Vitanuts. Nhà máy đạt chuẩn vệ sinh an toàn thực phẩm."
+    }
+  ],
+  "disclaimer": "Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh."
+}
