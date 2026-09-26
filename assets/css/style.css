@@ -777,3 +777,8 @@ label .invalid,input.invalid,textarea.invalid{border-color:var(--red)!important}
   .br-play{font-size:15px;padding:12px 20px;width:max-content;max-width:90%}
 }
 .ch-no{color:#fff;background:linear-gradient(135deg,var(--primary),var(--primary-3));font-size:16px;font-weight:700}
+/* Khung chat nổi: vùng trong suốt không được chặn cú bấm của nội dung bên dưới */
+.float-widget{pointer-events:none}
+.float-widget .fw-btn,.float-widget.open .fw-pop{pointer-events:auto}
+.fw-pop{pointer-events:none}
+@media (min-width:641px) and (max-width:1320px){.f-social{padding-right:84px}}
