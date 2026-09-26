@@ -510,7 +510,8 @@ def page_home():
     fb = "".join(f'<a class="fb-item" href="/assets/img/brand/feedback-{i}.webp" data-lightbox="fb"><img src="/assets/img/brand/feedback-{i}.webp" alt="Phản hồi khách hàng {i}" loading="lazy" width="900" height="900"></a>' for i in range(1, 6))
 
     tags = ["Dinh dưỡng từ hạt", "Sữa hạt Curcumin", "Fucoidan", "Bữa ăn dinh dưỡng", "Trà chè vằng", "Đinh lăng", "Trà thảo mộc hòa tan", "Ruốc chay", "Rong biển", "Xì dầu lên men", "Ngưu bàng", "Thực dưỡng", "Thuần chay", "Đạm thực vật", "Không đường tinh luyện"]
-    tag_html = "".join(f'<a href="/tim-kiem/?q={esc(t)}">{esc(t)}</a>' for t in tags)
+    from urllib.parse import quote
+    tag_html = "".join(f'<a href="/tim-kiem/?q={quote(t)}">{esc(t)}</a>' for t in tags)
 
     body = f'''{hero}
 <section class="section section-tight"><div class="container">{benefits_banner()}</div></section>

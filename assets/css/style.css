@@ -782,3 +782,10 @@ label .invalid,input.invalid,textarea.invalid{border-color:var(--red)!important}
 .float-widget .fw-btn,.float-widget.open .fw-pop{pointer-events:auto}
 .fw-pop{pointer-events:none}
 @media (min-width:641px) and (max-width:1320px){.f-social{padding-right:84px}}
+/* Điện thoại: chỉ giữ nút Gọi + Zalo để không che nội dung */
+@media (max-width:640px){
+  .float-widget .fw-main,.float-widget .fw-pop{display:none}
+  .float-widget{gap:8px}
+  .fw-btn{width:44px;height:44px}.fw-zalo svg{width:44px;height:44px}
+  .site-footer{padding-bottom:0}.f-bottom{padding-bottom:70px}
+}
