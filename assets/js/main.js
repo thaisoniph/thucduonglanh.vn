@@ -494,10 +494,21 @@
     $('#fwClose').addEventListener('click', function () { w.classList.remove('open'); try { sessionStorage.setItem('tdl_fw', '1'); } catch (e) { } });
   }
 
+  function initFlipbook() {
+    $$('[data-flipbook]').forEach(function (v) {
+      v.addEventListener('click', function () {
+        if (v.querySelector('iframe')) return;
+        var f = document.createElement('iframe');
+        f.src = v.getAttribute('data-flipbook'); f.allowFullscreen = true; f.setAttribute('allow', 'fullscreen'); f.title = 'Hồ sơ thương hiệu';
+        v.appendChild(f); var b = v.querySelector('.br-play'); if (b) b.remove(); v.style.cursor = 'default';
+      });
+    });
+  }
+
   function init() {
     renderCounts(); renderMini(); markWish();
     initHeader(); initClicks(); initHero(); initLightbox(); initProduct(); initTabs(); initReadmore(); initSort();
-    initCartPage(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initFloat();
+    initCartPage(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initFloat(); initFlipbook();
     window.addEventListener('storage', function (e) { if (e.key === 'tdl_cart') { cart = load('tdl_cart', []); cleanCart(); renderCounts(); renderMini(); } });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();

@@ -50,6 +50,9 @@ def num(v):
 
 SITE = {**json.loads((DATA / "config.json").read_text("utf-8")), **json.loads((DATA / "site.json").read_text("utf-8"))}
 HOME = json.loads((DATA / "home.json").read_text("utf-8"))
+_bf = DATA / "brochure.json"
+BROCHURE = json.loads(_bf.read_text("utf-8")) if _bf.exists() else {}
+BR_PATH = "/ho-so-thuong-hieu/"
 CATS = json.loads((DATA / "categories.json").read_text("utf-8"))["categories"]
 
 PRODUCTS = []
@@ -224,7 +227,7 @@ HAS_SALE = any(discount(p) for p in PRODUCTS)
 SALE_NAV = [("Khuyến Mãi", "/khuyen-mai/", [])] if HAS_SALE else []
 NAV = [
     ("Trang Chủ", "/", []),
-    ("Giới Thiệu", "/gioi-thieu/", []),
+    ("Giới Thiệu", "/gioi-thieu/", [("Câu chuyện thương hiệu", "/gioi-thieu/", []), ("Hồ sơ thương hiệu", BR_PATH, [])] if BROCHURE else []),
     ("Sản Phẩm", "/san-pham/", [(c["name"], f"/danh-muc/{c['slug']}/", []) for c in CATS] + SALE_NAV),
     ("Góc Sống Lành", "/goc-song-lanh/", [(c["name"], f"/goc-song-lanh/chuyen-muc/{c['slug']}/", []) for c in POSTS["categories"]]),
     ("Liên Hệ", "/lien-he/", []),
@@ -291,6 +294,8 @@ def social_links(cls="socials"):
 def footer():
     support = "".join(f'<li><a href="/{p["slug"]}/">{esc(p["title"])}</a></li>' for p in PAGES)
     about = "".join(f'<li><a href="{h}">{l}</a></li>' for l, h, _ in NAV)
+    if BROCHURE:
+        about = about.replace('<li><a href="/gioi-thieu/">Giới Thiệu</a></li>', f'<li><a href="/gioi-thieu/">Giới Thiệu</a></li><li><a href="{BR_PATH}">Hồ sơ thương hiệu</a></li>')
     bct = f'<a href="{esc(SITE["bo_cong_thuong_url"])}" target="_blank" rel="noopener" class="bct"><img src="/assets/img/brand/bo-cong-thuong.png" alt="Đã thông báo Bộ Công Thương" width="150" loading="lazy"></a>' if SITE.get("bo_cong_thuong_url") else ""
     year = datetime.date.today().year
     return f'''
@@ -532,7 +537,7 @@ def page_home():
     <h2 class="story-title">Câu chuyện {BRAND}<br>Hành trình <span class="hl">10 triệu</span> người Việt sống lành</h2>
     <p>Sau khi một người thân ra đi đột ngột, không kịp lời tạm biệt, cùng lúc hàng loạt vụ thực phẩm kém chất lượng vỡ lở, những người sáng lập nhận ra: <i>“Ai rồi cũng sẽ đến lúc rời khỏi cuộc đời này. Và nếu ngày mai là ngày cuối, mình đã sống xứng đáng và trọn vẹn chưa?”</i></p>
     <p>{BRAND} ra đời không chỉ để bán sản phẩm – mà là lời xin lỗi muộn với những người ta không kịp chăm sóc, lời hứa sớm với những người ta vẫn còn được đồng hành, và lời cam kết với chính mình: <b>“Tôi chọn sống lành – để sống đáng.”</b></p>
-    <a class="btn btn-lg" href="/gioi-thieu/">Xem thêm</a>
+    <div class="slide-cta"><a class="btn btn-lg" href="/gioi-thieu/">Xem thêm</a>{f'<a class="btn btn-lg btn-ghost" href="{BR_PATH}">📖 Đọc hồ sơ thương hiệu</a>' if BROCHURE else ""}</div>
   </div>
   <div class="story-media"><img src="/assets/img/brand/story-tea.webp" alt="Tách trà thảo mộc Thực Dưỡng Lành" loading="lazy" width="1200" height="1200"></div>
 </div></section>
@@ -713,6 +718,68 @@ def page_product(p):
     return layout(path, p["name"], desc, body, og=pimg(p["images"][0]), jsonld=[ld, bld], body_class="page-product")
 
 
+def brochure_promo():
+    b = BROCHURE
+    if not b:
+        return ""
+    return f"""<section class="section"><div class="container"><a class="br-promo" href="{BR_PATH}">
+  <img src="{img_url(b.get("cover"), 480)}" alt="Bìa {esc(b.get("title"))}" width="400" height="566" loading="lazy">
+  <div><span class="eyebrow">Hồ sơ thương hiệu · {esc(b.get("pages", ""))} trang</span>
+  <h2>Hiểu sâu hơn về {BRAND}</h2><p>{esc(b.get("intro"))}</p>
+  <span class="btn btn-lg">📖 Đọc hồ sơ thương hiệu</span></div></a></div></section>"""
+
+
+def page_brochure():
+    b = BROCHURE
+    bc, bld = breadcrumb([("Giới thiệu", "/gioi-thieu/"), ("Hồ sơ thương hiệu", None)])
+    pdf = b.get("pdf")
+    size = ""
+    if pdf and (ROOT / pdf.lstrip("/")).exists():
+        size = f" ({(ROOT / pdf.lstrip('/')).stat().st_size / 1048576:.1f} MB)".replace(".", ",")
+    pdf_btn = f'<a class="btn btn-lg btn-outline" href="{esc(pdf)}" download>⬇ Tải bản PDF{size}</a>' if pdf else ""
+    chapters = "".join(f'<li><span class="ch-no">{esc(c.get("no"))}</span><div><b>{esc(c.get("title"))}</b><span>{esc(c.get("desc"))}</span></div></li>' for c in b.get("chapters", []))
+    stats = "".join(f'<div class="br-stat"><b>{esc(x.get("value"))}</b><span>{esc(x.get("label"))}</span></div>' for x in b.get("stats", []))
+    award = f'<div class="br-award"><span class="br-award-ic">🏆</span><div><b>{esc(b["award"])}</b><small>{esc(b.get("award_note", ""))}</small></div></div>' if b.get("award") else ""
+    fb = esc(b.get("flipbook_url"))
+    body = f"""<section class="br-hero"><div class="container br-hero-in">
+  <div class="br-hero-text">{bc}
+    <span class="eyebrow">Công ty VitaGreen Nutrition</span>
+    <h1>{esc(b.get("title"))}</h1>
+    <blockquote>“{esc(b.get("quote"))}”</blockquote>
+    <p>{esc(b.get("intro"))}</p>
+    <div class="slide-cta"><a class="btn btn-lg" href="{fb}" target="_blank" rel="noopener">⛶ Đọc toàn màn hình</a>{pdf_btn}</div>
+  </div>
+  <div class="br-hero-cover"><img src="{img_url(b.get("cover"), 800)}" alt="Bìa {esc(b.get("title"))}" width="800" height="1132"></div>
+</div></section>
+
+<section class="section"><div class="container">
+  <h2 class="sec-title">Đọc trực tiếp <span class="accent">{esc(b.get("pages", ""))} trang</span></h2>
+  <div class="br-viewer" data-flipbook="{fb}">
+    <img src="{img_url(b.get("cover"), 800)}" alt="" loading="lazy">
+    <button class="br-play" type="button">📖 Bấm để mở hồ sơ thương hiệu</button>
+  </div>
+  <p class="sec-note">Trên điện thoại, nên bấm <a href="{fb}" target="_blank" rel="noopener">Đọc toàn màn hình</a> để xem rõ hơn.</p>
+</div></section>
+
+<section class="section bg-soft"><div class="container">
+  <h2 class="sec-title">Trong hồ sơ có gì?</h2>
+  <ol class="br-chapters">{chapters}</ol>
+</div></section>
+
+<section class="section"><div class="container">
+  <h2 class="sec-title">Cộng đồng {BRAND} hôm nay</h2>
+  <div class="br-stats">{stats}</div>
+  <p class="sec-note">{esc(b.get("stats_note", ""))}</p>
+  {award}
+</div></section>
+
+<section class="section bg-soft center"><div class="container narrow">
+  <h2 class="sec-title">Bắt đầu từ một điều lành</h2>
+  <div class="slide-cta center"><a class="btn btn-lg" href="/san-pham/">Khám phá sản phẩm</a><a class="btn btn-lg btn-outline" href="{zalo_link()}" target="_blank" rel="noopener">Tư vấn & hợp tác qua Zalo</a><a class="btn btn-lg btn-ghost" href="/lien-he/">Liên hệ</a></div>
+</div></section>"""
+    return layout(BR_PATH, b.get("title", "Hồ sơ thương hiệu"), strip_tags(b.get("intro", ""))[:158], body, og=img_url(b.get("cover"), 800), jsonld=[bld])
+
+
 def page_about():
     values = [("Tử tế & Chính trực", "Minh bạch – sản phẩm thật, giá trị thật"), ("Thân – Tâm – Trí", "Chăm sóc con người toàn diện, từ dinh dưỡng đến tinh thần và nhận thức"),
               ("Sống tỉnh thức", "Nuôi dưỡng lòng biết ơn, yêu thương cuộc sống"), ("Lan tỏa cộng đồng", "Gắn kết – chia sẻ – đồng hành"), ("Phát triển bền vững", "Dẫn đầu bằng sự kiên định và chất lượng")]
@@ -734,6 +801,7 @@ def page_about():
   <div class="vm-card"><h3>Tầm nhìn</h3><p>Trở thành hệ sinh thái sản phẩm thực dưỡng uy tín hàng đầu Việt Nam — một biểu tượng uy tín được tin chọn trong từng gia đình. Không ngừng kiến tạo hệ sinh thái sản phẩm chất lượng – lành mạnh – bền vững, giúp người Việt sống khỏe từ THÂN đến TÂM, để mỗi ngày sống là một ngày thật sự đáng sống.</p></div>
   <div class="vm-card"><h3>Sứ mệnh</h3><p>Truyền cảm hứng về một lối sống lành mạnh – tỉnh thức – đầy yêu thương. Hướng tới hành trình giúp <b>10 triệu người Việt</b> sống khỏe mạnh từ THÂN đến TÂM, để mỗi bữa ăn là một lần trở về với chính mình, và mỗi ngày sống là một ngày thật sự đáng sống.</p></div>
 </div></section>
+{brochure_promo()}
 <section class="section"><div class="container">
   <h2 class="sec-title">Giá trị cốt lõi</h2>
   <div class="val-grid">{vals}</div>
@@ -922,6 +990,8 @@ def main():
     routes = []
     routes.append(write("/", page_home()))
     routes.append(write("/gioi-thieu/", page_about()))
+    if BROCHURE:
+        routes.append(write(BR_PATH, page_brochure()))
     routes.append(write("/lien-he/", page_contact()))
     routes.append(write("/san-pham/", page_listing("/san-pham/", "Toàn bộ sản phẩm", PRODUCTS, "", [("Toàn bộ sản phẩm", None)])))
     sale = [p for p in PRODUCTS if discount(p)]

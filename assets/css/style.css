@@ -727,3 +727,53 @@ label .invalid,input.invalid,textarea.invalid{border-color:var(--red)!important}
   .p-card:hover .pc-media img{transform:none}
   .g-nav{opacity:1}
 }
+/* === Hồ sơ thương hiệu === */
+.br-hero{background:linear-gradient(135deg,#123f27 0,#1f5f3a 60%,#2a7a4b 100%);color:#e9f1ea;padding:36px 0 56px}
+.br-hero-in{display:grid;grid-template-columns:1.3fr .8fr;gap:48px;align-items:center}
+.br-hero .breadcrumb,.br-hero .breadcrumb a,.br-hero .breadcrumb span[aria-current]{color:#cfe3d4}
+.br-hero .eyebrow{background:var(--gold)}
+.br-hero h1{color:#fff;font-size:40px;margin:10px 0 16px}
+.br-hero blockquote{margin:0 0 16px;padding-left:16px;border-left:3px solid var(--gold-2);font-family:var(--serif);font-style:italic;font-size:21px;line-height:1.5;color:#f6efdc}
+.br-hero p{color:#dbe8dd}
+.br-hero .btn-outline{background:transparent;color:#fff;border-color:rgba(255,255,255,.6)}
+.br-hero .btn-outline:hover{background:#fff;color:var(--primary)}
+.br-hero .btn{background:var(--gold);border-color:var(--gold)}
+.br-hero .btn.btn-outline{background:transparent;border-color:rgba(255,255,255,.6)}
+.br-hero-cover img{border-radius:10px;box-shadow:0 30px 60px rgba(0,0,0,.35);max-width:360px;margin:0 auto;transform:rotate(2deg)}
+.br-viewer{position:relative;max-width:1100px;margin:0 auto;aspect-ratio:16/10;border-radius:16px;overflow:hidden;background:#eef2ee;box-shadow:var(--shadow-lg);cursor:pointer}
+.br-viewer>img{width:100%;height:100%;object-fit:contain;filter:blur(1px) brightness(.92);background:#123f27}
+.br-viewer iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.br-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--primary);color:#fff;border:3px solid #fff;border-radius:999px;padding:16px 30px;font-size:17px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.3);transition:transform .2s}
+.br-viewer:hover .br-play{transform:translate(-50%,-50%) scale(1.05)}
+.br-chapters{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,1fr);gap:14px 28px;max-width:980px;margin:0 auto}
+.br-chapters li{display:flex;gap:16px;align-items:center;background:#fff;border-radius:12px;padding:14px 18px;border:1px solid #efe6cc}
+.ch-no{flex:0 0 46px;height:46px;border-radius:50%;background:var(--primary);color:var(--gold-2);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-weight:600;font-size:15px}
+.br-chapters b{display:block;color:var(--ink)}
+.br-chapters span{font-size:14px;color:var(--muted)}
+.br-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.br-stat{text-align:center;background:var(--cream);border-radius:14px;padding:26px 16px;border:1px solid #efe6cc}
+.br-stat b{display:block;font-size:32px;color:var(--primary);line-height:1.2;margin-bottom:6px}
+.br-stat span{font-size:14px}
+.br-award{display:flex;gap:16px;align-items:center;max-width:760px;margin:26px auto 0;background:#fffaf0;border:1px solid #f1dfa8;border-radius:14px;padding:18px 22px}
+.br-award-ic{font-size:36px}
+.br-award b{display:block;color:var(--ink);font-size:17px}
+.br-award small{color:var(--muted);font-size:13px}
+.br-promo{display:grid;grid-template-columns:220px 1fr;gap:36px;align-items:center;background:linear-gradient(120deg,#f6f1e2,#eaf3ec);border-radius:22px;padding:28px 36px;color:var(--text);box-shadow:var(--shadow)}
+.br-promo:hover{color:var(--text);box-shadow:var(--shadow-lg)}
+.br-promo img{border-radius:8px;box-shadow:0 14px 30px rgba(0,0,0,.2);transform:rotate(-3deg)}
+.br-promo h2{font-size:28px;color:var(--primary);margin:10px 0}
+@media (max-width:960px){
+  .br-hero-in{grid-template-columns:1fr;gap:26px}
+  .br-hero-cover{order:-1}.br-hero-cover img{max-width:220px}
+  .br-hero h1{font-size:30px}.br-hero blockquote{font-size:18px}
+  .br-stats{grid-template-columns:repeat(2,1fr)}
+  .br-viewer{aspect-ratio:3/4}
+}
+@media (max-width:640px){
+  .br-chapters{grid-template-columns:1fr}
+  .br-promo{grid-template-columns:1fr;text-align:center;padding:22px}
+  .br-promo img{max-width:150px;margin:0 auto}
+  .br-stat b{font-size:24px}
+  .br-play{font-size:15px;padding:12px 20px;width:max-content;max-width:90%}
+}
+.ch-no{color:#fff;background:linear-gradient(135deg,var(--primary),var(--primary-3));font-size:16px;font-weight:700}

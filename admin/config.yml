@@ -236,6 +236,36 @@ collections:
               - { label: "Mô tả", name: subtitle, widget: text }
               - { label: "Ảnh (vuông)", name: image, widget: image }
 
+      - name: brochure
+        label: "Hồ sơ thương hiệu (brochure)"
+        file: data/brochure.json
+        format: json
+        fields:
+          - { label: "Tiêu đề", name: title, widget: string }
+          - { label: "Câu trích dẫn", name: quote, widget: text }
+          - { label: "Giới thiệu ngắn", name: intro, widget: text }
+          - { label: "Link sách lật Heyzine", name: flipbook_url, widget: string, hint: "Khi có bản brochure mới trên Heyzine, dán link mới vào đây." }
+          - { label: "File PDF để khách tải", name: pdf, widget: file, required: false }
+          - { label: "Ảnh bìa", name: cover, widget: image }
+          - { label: "Số trang", name: pages, widget: number, value_type: int }
+          - label: "Các chương"
+            name: chapters
+            widget: list
+            summary: "{{fields.no}}. {{fields.title}}"
+            fields:
+              - { label: "Số chương", name: no, widget: string }
+              - { label: "Tên chương", name: title, widget: string }
+              - { label: "Mô tả", name: desc, widget: string }
+          - label: "Số liệu nổi bật"
+            name: stats
+            widget: list
+            summary: "{{fields.value}} – {{fields.label}}"
+            fields:
+              - { label: "Con số", name: value, widget: string }
+              - { label: "Ý nghĩa", name: label, widget: string }
+          - { label: "Ghi chú số liệu", name: stats_note, widget: string, required: false }
+          - { label: "Giải thưởng / ghi nhận", name: award, widget: string, required: false }
+          - { label: "Ghi chú giải thưởng", name: award_note, widget: text, required: false }
       - name: categories
         label: "Danh mục sản phẩm"
         file: data/categories.json
