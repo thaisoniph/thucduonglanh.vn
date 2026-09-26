@@ -1040,6 +1040,13 @@ def main():
     (DIST / "sitemap.xml").write_text("\n".join(sm), "utf-8")
     (DIST / "robots.txt").write_text(f"User-agent: *\nAllow: /\nDisallow: /gio-hang/\nDisallow: /thanh-toan/\nDisallow: /dat-hang-thanh-cong/\nDisallow: /admin/\n\nSitemap: {DOMAIN}/sitemap.xml\n", "utf-8")
     (DIST / "CNAME").write_text(DOMAIN.replace("https://", "").replace("http://", "") + "\n", "utf-8")
+    # Landing page Ebook chạy trên LadiPage bằng subdomain riêng. Giữ link
+    # quảng cáo cũ /ebook hoạt động mà không để Cloudflare Pages trả 404.
+    (DIST / "_redirects").write_text(
+        "/ebook https://ebook.thucduonglanh.vn 302\n"
+        "/ebook/ https://ebook.thucduonglanh.vn 302\n",
+        "utf-8",
+    )
     (DIST / ".nojekyll").write_text("", "utf-8")
     (DIST / "_headers").write_text(
         "/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n  X-Frame-Options: SAMEORIGIN\n"
