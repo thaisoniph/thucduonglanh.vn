@@ -1,5 +1,5 @@
 #!/bin/bash
-# Đẩy mã nguồn website lên GitHub. GitHub Actions sẽ tự dựng (build.py) và đăng lên https://thucduonglanh.vn
+# Đẩy mã nguồn website lên GitHub. GitHub Actions sẽ tự dựng (build.py) và đăng lên Cloudflare Pages (https://thucduonglanh.vn)
 # Cách dùng:  GH_TOKEN=ghp_xxx ./deploy-github.sh "ghi chú thay đổi"
 # Token cần quyền "repo" và "workflow". Token không được lưu lại trên máy.
 set -euo pipefail
@@ -25,6 +25,4 @@ if "${GIT[@]}" ls-remote --exit-code "$URL" main >/dev/null 2>&1 && [ "${FIRST_P
 fi
 if [ "${FIRST_PUSH:-0}" = "1" ]; then "${GIT[@]}" push -qf "$URL" main; else "${GIT[@]}" push -q "$URL" main; fi
 
-# Đảm bảo GitHub Pages dùng GitHub Actions + tên miền riêng
-curl -s -o /dev/null -X PUT "${H[@]}" -d '{"build_type":"workflow","cname":"thucduonglanh.vn","https_enforced":true}' "$API/pages"
 echo "Đã đẩy lên. Theo dõi tiến trình: https://github.com/$GH_USER/$REPO/actions"

@@ -5,7 +5,7 @@ Web: https://thucduonglanh.vn · Quản trị: https://thucduonglanh.vn/admin/ �
 ## Cách hệ thống hoạt động
 
 ```
-Nhân sự sửa ở /admin  →  lưu vào GitHub (content/, data/)  →  GitHub Actions chạy build.py  →  web cập nhật sau ~1 phút
+Nhân sự sửa ở /admin  →  lưu vào GitHub (content/, data/)  →  GitHub Actions chạy build.py  →  đăng lên Cloudflare Pages  →  web cập nhật sau ~1 phút
 ```
 
 Hướng dẫn cho nhân sự: Google Docs "Hướng dẫn cập nhật website thucduonglanh.vn (dành cho nhân sự)".
@@ -56,9 +56,12 @@ python3 build.py && (cd dist && python3 -m http.server 8000)   # mở http://loc
 - Thêm/bớt người nhận báo đơn: thêm/xoá thành viên trong nhóm Telegram.
 - Sửa code Apps Script xong phải: Triển khai → Quản lý các bản triển khai → ✏️ → Phiên bản mới → Triển khai.
 
-## Tên miền
+## Tên miền & hosting
 
-DNS tại Tenten: `@` = 4 bản ghi A (185.199.108.153 / .109 / .110 / .111), `www` = CNAME `thaisoniph.github.io`. Không xoá các bản ghi này. HTTPS do GitHub cấp và tự gia hạn.
+- Hosting: **Cloudflare Pages**, dự án `thucduonglanh` (địa chỉ dự phòng https://thucduonglanh.pages.dev). Miễn phí, được phép dùng cho kinh doanh.
+- Tên miền vẫn đăng ký/gia hạn ở **Tenten** (hết hạn 22/04/2027), nhưng DNS do **Cloudflare** quản lý (nameserver `liberty.ns.cloudflare.com`, `randy.ns.cloudflare.com`). Mọi thay đổi bản ghi DNS làm trên dash.cloudflare.com, không làm ở Tenten.
+- Link phụ (shop, story, family, mkt…) là **Redirect Rules** trong Cloudflare: dash.cloudflare.com → thucduonglanh.vn → Rules → Redirect Rules. Gói miễn phí tối đa 10 quy tắc (đang dùng đủ 10; muốn thêm link phải xoá bớt hoặc chuyển sang Bulk Redirects). Bản sao cấu hình: `backend/cloudflare-redirect-rules.json`.
+- Mã Cloudflare cho GitHub Actions lưu ở GitHub → Settings → Secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`.
 
 ## Việc nên làm
 
