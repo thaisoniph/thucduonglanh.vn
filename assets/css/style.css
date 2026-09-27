@@ -899,3 +899,11 @@ label .invalid,input.invalid,textarea.invalid{border-color:var(--red)!important}
 .co-sum>.fs-hint{display:block}
 .tb-free{font-weight:600;color:#fde68a}
 @media (max-width:640px){.tb-hot{display:none}.tb-left{justify-content:center;width:100%}}
+/* thông báo cookie + Zalo OA */
+.cookie-bar{position:fixed;left:12px;right:12px;bottom:12px;z-index:125;max-width:720px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow-lg);padding:14px 16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.cookie-bar[hidden]{display:none}
+.cookie-bar p{margin:0;flex:1 1 320px;font-size:14px}
+.cookie-bar div{display:flex;gap:8px;flex-wrap:wrap}
+.oa-cta{border:1.5px solid #bfd6ff;background:#f3f7ff;border-radius:14px;padding:16px;margin:0 0 16px;text-align:center}
+.oa-cta b{display:block;color:#0050c8;font-size:16.5px}
+.oa-cta p{margin:6px 0 10px;font-size:14.5px}

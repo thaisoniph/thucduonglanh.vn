@@ -56,6 +56,22 @@ python3 build.py && (cd dist && python3 -m http.server 8000)   # mở http://loc
 - Thêm/bớt người nhận báo đơn: thêm/xoá thành viên trong nhóm Telegram.
 - Sửa code Apps Script xong phải: Triển khai → Quản lý các bản triển khai → ✏️ → Phiên bản mới → Triển khai.
 
+## Đo lường & remarketing
+
+- Mã đo lường khai báo trong `data/config.json`: `ga4_id` (Google Analytics 4, dạng G-XXXX), `clarity_id` (Microsoft Clarity), `meta_pixel`, `tiktok_pixel`. Để trống = không bật.
+- Công cụ chỉ chạy **sau khi khách bấm "Đồng ý"** ở thông báo cookie (Nghị định 13/2023).
+- Sự kiện gửi đi: `view_item`, `add_to_cart`, `begin_checkout`, `purchase` (kèm doanh thu), `upsell_add`, `paste_fill`, `click_call`, `click_zalo`, `view_brochure`, `video_play`, `search`, `generate_lead`.
+- Nguồn khách (UTM / fbclid / ttclid / gclid / trang giới thiệu) lưu 30 ngày và ghi vào cột **Nguồn** của đơn hàng.
+- Tạo link theo dõi cho bài đăng/quảng cáo: **https://thucduonglanh.vn/admin/utm.html**
+
+## CRM chăm sóc khách hàng (Google Sheet)
+
+- Trang **Khách hàng**: tự cập nhật theo SĐT mỗi khi có đơn – số đơn, tổng chi, đơn gần nhất, sản phẩm đã mua, **Dự kiến hết hàng**, **Nhóm** (Mới / Quay lại / VIP / Sắp mất), đồng ý nhận tin, nguồn đầu tiên. Nhân viên điền: Phụ trách, Lần CSKH gần nhất, Kết quả CSKH, Ghi chú CSKH.
+- Trang **Chu kỳ dùng**: số ngày dùng hết 1 đơn vị sản phẩm – chỉnh để ngày "Dự kiến hết hàng" chính xác hơn.
+- Trang **Mẫu tin nhắn CSKH**: mẫu Zalo theo từng thời điểm.
+- **8h sáng mỗi ngày** nhóm Telegram nhận danh sách: hỏi nhận hàng (D+1), sắp hết sản phẩm, xin cảm nhận (D+14), giới thiệu sản phẩm (D+30), mời quay lại (60 ngày).
+- Đơn bị huỷ: ghi "Huỷ" ở cột Trạng thái rồi chạy hàm `rebuildCustomers` để tính lại.
+
 ## Tên miền & hosting
 
 - Hosting: **Cloudflare Pages**, dự án `thucduonglanh` (địa chỉ dự phòng https://thucduonglanh.pages.dev). Miễn phí, được phép dùng cho kinh doanh.

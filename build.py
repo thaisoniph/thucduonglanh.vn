@@ -327,6 +327,7 @@ def footer():
   <a href="/gio-hang/" class="btn btn-outline btn-block">Xem giỏ hàng</a><a href="/thanh-toan/" class="btn btn-block">Thanh toán</a></div>
 </div></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="cookie-bar" id="cookieBar" hidden role="dialog" aria-label="Thông báo cookie"><p>🍪 Website dùng cookie để đo lường lượt truy cập và cải thiện trải nghiệm mua hàng. Xem <a href="/chinh-sach-bao-mat/">chính sách bảo mật</a>.</p><div><button type="button" class="btn btn-sm" data-consent="yes">Đồng ý</button><button type="button" class="btn btn-sm btn-ghost" data-consent="no">Chỉ cookie cần thiết</button></div></div>
 <button class="to-top" id="toTop" aria-label="Lên đầu trang">{I["up"]}</button>'''
 
 
@@ -1013,7 +1014,8 @@ def main():
         "text": strip_tags(p["name"] + " " + p["summary"] + " " + " ".join(p.get("highlights", []))),
         "featured": bool(p.get("featured")), "upsell": [x for x in (p.get("upsell") or []) if x],
     } for p in PRODUCTS]
-    cfg = {"brand": BRAND, "hotline": SITE["hotline"], "zalo": tel(SITE["zalo"]), "email": SITE["email"],
+    cfg = {"brand": BRAND, "hotline": SITE["hotline"], "zalo": tel(SITE["zalo"]), "email": SITE["email"], "zalo_oa": SITE.get("zalo_oa", ""),
+           "ga4_id": SITE.get("ga4_id", ""), "clarity_id": SITE.get("clarity_id", ""), "meta_pixel": SITE.get("meta_pixel", ""), "tiktok_pixel": SITE.get("tiktok_pixel", ""),
            "endpoint": SITE.get("order_endpoint", ""), "bank": SITE["bank"] if SITE["bank"].get("enabled") else None,
            "shipping_fee": SITE.get("shipping_fee", 0), "free_ship_threshold": SITE.get("free_ship_threshold", 0)}
     (DIST / "assets/data").mkdir(parents=True, exist_ok=True)
