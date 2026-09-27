@@ -256,7 +256,7 @@ def header(active):
     hot2 = f' - <a href="tel:{tel(SITE["hotline2"])}">{esc(SITE["hotline2"])}</a>' if SITE.get("hotline2") else ""
     return f'''
 <div class="topbar"><div class="container topbar-in">
-  <div class="tb-left">Hotline {BRAND}: {ic("phone","ic ic-sm")} <a href="tel:{tel(SITE["hotline"])}">{esc(SITE["hotline"])}</a>{hot2}</div>
+  <div class="tb-left">{('<span class="tb-free">🚚 Miễn phí vận chuyển đơn từ ' + money(SITE['free_ship_threshold']).replace(' ₫', 'đ') + '</span><span class="tb-hot">&nbsp;·&nbsp;</span>') if SITE.get('free_ship_threshold') and SITE.get('shipping_fee') else ''}<span class="tb-hot">Hotline {BRAND}: {ic("phone","ic ic-sm")} <a href="tel:{tel(SITE["hotline"])}">{esc(SITE["hotline"])}</a>{hot2}</span></div>
   <div class="tb-right"><a href="{esc(SITE.get("community_group") or "/goc-song-lanh/")}"{' target="_blank" rel="noopener"' if SITE.get("community_group") else ""}>Cộng Đồng Sống Khỏe {ic("globe","ic ic-sm")}</a></div>
 </div></div>
 <header class="site-header" id="siteHeader"><div class="container header-in">
@@ -323,7 +323,7 @@ def footer():
 <div class="minicart" id="minicart" aria-hidden="true"><div class="mc-panel">
   <div class="mc-head"><h3>Giỏ hàng</h3><button class="icon-btn" data-mc-close aria-label="Đóng">{I["close"]}</button></div>
   <div class="mc-body" id="mcBody"></div>
-  <div class="mc-foot"><div class="mc-total"><span>Tạm tính</span><b id="mcTotal">0 ₫</b></div>
+  <div class="mc-foot"><div id="mcHint"></div><div class="mc-total"><span>Tạm tính</span><b id="mcTotal">0 ₫</b></div>
   <a href="/gio-hang/" class="btn btn-outline btn-block">Xem giỏ hàng</a><a href="/thanh-toan/" class="btn btn-block">Thanh toán</a></div>
 </div></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -447,7 +447,7 @@ def page_hero(title, sub=""):
 
 
 def benefits_banner():
-    items = [("truck", "Giao hàng", "toàn quốc"), ("return", "Đổi trả", "dễ dàng"), ("chat", "Tư vấn", "tận tâm"), ("wallet", "Thanh toán", "tiện lợi")]
+    items = [("truck", "Miễn phí ship", f"đơn từ {money(SITE.get('free_ship_threshold')).replace(' ₫', 'đ')}" if SITE.get("free_ship_threshold") else "toàn quốc"), ("return", "Đổi trả", "dễ dàng"), ("chat", "Tư vấn", "tận tâm"), ("wallet", "Thanh toán", "tiện lợi")]
     feats = "".join(f'<div class="bb-feat">{ic(i,"bb-ic")}<span>{a}<br><b>{b}</b></span></div>' for i, a, b in items)
     pills = "".join(f'<div class="bb-pill">{ic(i,"bb-pic")}<span>{a}<b>{b}</b></span></div>' for i, a, b in [
         ("leaf", "Sản phẩm", "thuần tự nhiên"), ("shield", "Nguồn gốc", "rõ ràng"), ("check", "Kiểm nghiệm", "đầy đủ")])
@@ -908,6 +908,7 @@ def page_checkout():
   <aside class="co-right card">
     <h2>Đơn hàng của bạn</h2>
     <div id="coItems"></div>
+    <div id="coUpsell"></div>
     <button class="btn btn-lg btn-block btn-order" type="submit" id="placeOrder">✅ Đặt hàng</button>
     <p class="form-msg" role="status"></p>
     <p class="qo-note">Nhân viên sẽ gọi xác nhận trước khi giao hàng.</p>
@@ -1010,7 +1011,7 @@ def main():
         "regular": p.get("regular_price"), "unit": p.get("unit", ""), "variants": p.get("variants", []),
         "img": pimg(p["images"][0], True), "url": f"/san-pham/{p['slug']}/", "cat": CAT_BY[p["category"]]["name"],
         "text": strip_tags(p["name"] + " " + p["summary"] + " " + " ".join(p.get("highlights", []))),
-        "featured": bool(p.get("featured")),
+        "featured": bool(p.get("featured")), "upsell": [x for x in (p.get("upsell") or []) if x],
     } for p in PRODUCTS]
     cfg = {"brand": BRAND, "hotline": SITE["hotline"], "zalo": tel(SITE["zalo"]), "email": SITE["email"],
            "endpoint": SITE.get("order_endpoint", ""), "bank": SITE["bank"] if SITE["bank"].get("enabled") else None,

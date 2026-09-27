@@ -139,6 +139,16 @@ collections:
             fields:
               - { label: "Tên", name: label, widget: string }
               - { label: "Giá trị", name: value, widget: string }
+      - label: "Gợi ý mua kèm"
+        name: upsell
+        widget: relation
+        collection: products
+        value_field: "{{slug}}"
+        search_fields: [name]
+        display_fields: [name]
+        multiple: true
+        required: false
+        hint: "Sản phẩm ưu tiên gợi ý khi khách mua sản phẩm này. Để trống thì web tự gợi ý món giúp đơn đạt mức miễn phí vận chuyển."
       - { label: "Dòng lưu ý cuối trang", name: disclaimer, widget: text, required: false, hint: "Ví dụ: Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh." }
 
   # ------------------------------------------------------------ TRANG CHÍNH SÁCH

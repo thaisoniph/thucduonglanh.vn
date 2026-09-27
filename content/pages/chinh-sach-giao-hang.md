@@ -16,7 +16,10 @@ Thời gian có thể thay đổi trong dịp lễ, Tết hoặc do điều ki�
 
 ## Phí giao hàng
 
-Phí giao hàng được thông báo khi nhân viên xác nhận đơn hàng, tùy theo khu vực và khối lượng đơn. Các chương trình miễn phí giao hàng sẽ được thông báo cụ thể trên website.
+- Đơn hàng **dưới 300.000đ**: phí vận chuyển **30.000đ**, cộng vào tổng thanh toán.
+- Đơn hàng **từ 300.000đ**: **miễn phí vận chuyển** toàn quốc.
+
+Phí vận chuyển hiển thị rõ ở bước đặt hàng trước khi khách xác nhận.
 
 ## Theo dõi đơn hàng
 

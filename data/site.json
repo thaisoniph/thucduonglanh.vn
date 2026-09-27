@@ -25,8 +25,8 @@
     "account_no": "1064130558",
     "account_name": "CT TNHH TAP DOAN VITAGREEN NUTRITION"
   },
-  "free_ship_threshold": 0,
-  "shipping_fee": 0,
+  "free_ship_threshold": 300000,
+  "shipping_fee": 30000,
   "zalo_oa": "https://zalo.me/4116030867157210870",
   "community": [
     {
