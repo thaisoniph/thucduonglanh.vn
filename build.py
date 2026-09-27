@@ -898,34 +898,20 @@ def page_cart():
 
 def page_checkout():
     bc, _ = breadcrumb([("Giỏ hàng", "/gio-hang/"), ("Thanh toán", None)])
-    bank = SITE["bank"]
-    bank_opt = ""
-    if bank.get("enabled"):
-        bank_opt = f'''<label class="pay-opt"><input type="radio" name="payment" value="bank"><span><b>Chuyển khoản ngân hàng</b><small>Quét mã QR sau khi đặt hàng – {esc(bank["bank_name"])}</small></span></label>'''
     body = f'''<section class="section pt-2"><div class="container">{bc}
 <div class="steps"><span class="done">1. Giỏ hàng</span><span class="is-active">2. Thanh toán</span><span>3. Hoàn tất</span></div>
 <form id="checkoutForm" class="checkout" novalidate>
   <div class="co-left card">
     <h2>Thông tin nhận hàng</h2>
-    <div class="f-row"><label>Họ và tên *<input name="name" required autocomplete="name"></label><label>Số điện thoại *<input name="phone" type="tel" required autocomplete="tel" inputmode="tel" pattern="[0-9 +.]{{9,15}}"></label></div>
-    <label>Email (không bắt buộc)<input name="email" type="email" autocomplete="email"></label>
-    <div class="f-row"><label>Tỉnh / Thành phố *<input name="province" required list="provinces" autocomplete="address-level1"></label><label>Phường / Xã *<input name="district" required autocomplete="address-level2"></label></div>
-    <datalist id="provinces"></datalist>
-    <label>Địa chỉ cụ thể (số nhà, đường…) *<input name="address" required autocomplete="street-address"></label>
-    <label>Ghi chú đơn hàng<textarea name="note" rows="3" placeholder="Ví dụ: giao giờ hành chính, gọi trước khi giao…"></textarea></label>
-    <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
-    <h2 class="mt-2">Phương thức thanh toán</h2>
-    <div class="pay-opts">
-      <label class="pay-opt"><input type="radio" name="payment" value="cod" checked><span><b>Thanh toán khi nhận hàng (COD)</b><small>Kiểm tra hàng rồi thanh toán cho nhân viên giao hàng</small></span></label>
-      {bank_opt}
-    </div>
+    <div data-order-fields><div class="loading">Đang tải…</div></div>
   </div>
   <aside class="co-right card">
     <h2>Đơn hàng của bạn</h2>
     <div id="coItems"></div>
-    <div class="co-sum"><div><span>Tạm tính</span><b id="coSub">0 ₫</b></div><div><span>Phí giao hàng</span><b id="coShip">Liên hệ</b></div><div class="co-total"><span>Tổng cộng</span><b id="coTotal">0 ₫</b></div></div>
-    <button class="btn btn-lg btn-block" type="submit" id="placeOrder">Đặt hàng</button>
+    <button class="btn btn-lg btn-block btn-order" type="submit" id="placeOrder">✅ Đặt hàng</button>
     <p class="form-msg" role="status"></p>
+    <p class="qo-note">Nhân viên sẽ gọi xác nhận trước khi giao hàng.</p>
+    <div class="qo-alt"><a class="btn btn-outline" href="tel:{tel(SITE["hotline"])}">📞 Gọi đặt hàng</a><a class="btn btn-zalo" href="{zalo_link()}" target="_blank" rel="noopener">💬 Đặt qua Zalo</a></div>
     <p class="small muted">Bằng việc đặt hàng, bạn đồng ý với <a href="/chinh-sach-bao-mat/">chính sách bảo mật</a> và <a href="/chinh-sach-doi-tra/">chính sách đổi trả</a> của {BRAND}.</p>
   </aside>
 </form>
@@ -1029,6 +1015,8 @@ def main():
     cfg = {"brand": BRAND, "hotline": SITE["hotline"], "zalo": tel(SITE["zalo"]), "email": SITE["email"],
            "endpoint": SITE.get("order_endpoint", ""), "bank": SITE["bank"] if SITE["bank"].get("enabled") else None,
            "shipping_fee": SITE.get("shipping_fee", 0), "free_ship_threshold": SITE.get("free_ship_threshold", 0)}
+    (DIST / "assets/data").mkdir(parents=True, exist_ok=True)
+    shutil.copy(DATA / "vn-units.json", DIST / "assets/data/vn-units.json")
     (DIST / "assets/js/data.js").write_text(
         "window.TDL_PRODUCTS=" + json.dumps(js_products, ensure_ascii=False) + ";\nwindow.TDL_CONFIG=" + json.dumps(cfg, ensure_ascii=False) + ";\n", "utf-8")
 

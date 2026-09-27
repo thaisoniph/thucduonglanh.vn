@@ -128,7 +128,7 @@
     if (input) input.addEventListener('input', liveSearch);
 
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') { if (layer) closeS(); if (oc) closeOc(); closeMini(); closeLb(); }
+      if (e.key === 'Escape') { if (layer) closeS(); if (oc) closeOc(); closeMini(); closeLb(); var q = $('.qo'); if (q) { q.remove(); lock(false); } }
       if (e.key === '/' && !/input|textarea/i.test(document.activeElement.tagName) && layer) { e.preventDefault(); openS(); }
     });
   }
@@ -262,7 +262,7 @@
     renderPrice();
     var getQty = function () { return Math.max(1, Math.min(99, parseInt(qin && qin.value, 10) || 1)); };
     $$('[data-add-detail]').forEach(function (b) { b.addEventListener('click', function () { if (addToCart(slug, getQty(), vi)) openMini(); }); });
-    $$('[data-buy-now]').forEach(function (b) { b.addEventListener('click', function () { if (addToCart(slug, qin ? getQty() : 1, vi)) location.href = '/thanh-toan/'; }); });
+    $$('[data-buy-now]').forEach(function (b) { b.addEventListener('click', function () { var pr = (vi >= 0 && p.variants[vi]) ? p.variants[vi].price : p.price; if (pr == null) { toast('Sản phẩm đang cập nhật giá, vui lòng liên hệ tư vấn.', 'err'); return; } openQuickOrder(slug, vi, qin ? getQty() : 1); }); });
   }
 
   function initTabs() {
@@ -340,22 +340,13 @@
   }
 
   /* ---------- checkout ---------- */
-  var PROVINCES = ['TP. Hà Nội', 'TP. Hồ Chí Minh', 'TP. Hải Phòng', 'TP. Đà Nẵng', 'TP. Cần Thơ', 'TP. Huế', 'An Giang', 'Bắc Ninh', 'Cà Mau', 'Cao Bằng', 'Đắk Lắk', 'Điện Biên', 'Đồng Nai', 'Đồng Tháp', 'Gia Lai', 'Hà Tĩnh', 'Hưng Yên', 'Khánh Hòa', 'Lai Châu', 'Lạng Sơn', 'Lào Cai', 'Lâm Đồng', 'Nghệ An', 'Ninh Bình', 'Phú Thọ', 'Quảng Ngãi', 'Quảng Ninh', 'Quảng Trị', 'Sơn La', 'Tây Ninh', 'Thái Nguyên', 'Thanh Hóa', 'Tuyên Quang', 'Vĩnh Long'];
-  function renderCheckoutSummary() {
-    var box = $('#coItems'); if (!box) return;
-    var sub = cartTotal(), sh = shipInfo(sub);
-    box.innerHTML = cart.map(function (it) {
-      var p = BY[it.slug];
-      return '<div class="co-item"><img src="' + p.img + '" alt=""><div><b>' + esc(p.name) + '</b><small>' + esc(variantName(it)) + ' × ' + it.qty + '</small></div><span class="ct-sub">' + money(unitPrice(it) * it.qty) + '</span></div>';
-    }).join('');
-    $('#coSub').textContent = money(sub); $('#coShip').textContent = sh.label; $('#coTotal').textContent = money(sub + sh.fee);
-  }
+  function renderCheckoutSummary() {}
   function orderText(o) {
-    var lines = ['ĐƠN HÀNG ' + o.id + ' – ' + CFG.brand, 'Khách: ' + o.customer.name + ' – ' + o.customer.phone,
-      'Địa chỉ: ' + o.customer.address + ', ' + o.customer.district + ', ' + o.customer.province];
+    var c = o.customer, lines = ['ĐƠN HÀNG ' + o.id + ' – ' + CFG.brand, 'Khách: ' + c.name + ' – ' + c.phone,
+      'Địa chỉ: ' + c.address + ', ' + c.district + ', ' + c.province];
     o.items.forEach(function (it) { lines.push('• ' + it.name + (it.variant ? ' (' + it.variant + ')' : '') + ' x' + it.qty + ' = ' + money(it.subtotal)); });
     lines.push('Tổng: ' + money(o.total) + ' – Thanh toán: ' + (o.payment === 'bank' ? 'Chuyển khoản' : 'COD'));
-    if (o.customer.note) lines.push('Ghi chú: ' + o.customer.note);
+    if (c.note) lines.push('Ghi chú: ' + c.note);
     return lines.join('\n');
   }
   function send(payload) {
@@ -369,50 +360,231 @@
           .then(function () { return { sent: true }; });
       });
   }
-  function validate(form) {
+  function validate(form) { // dùng cho form liên hệ
     var ok = true, first = null;
     $$('[required]', form).forEach(function (f) {
-      var bad = !f.value.trim() || (f.type === 'tel' && !/^[0-9 +.]{9,15}$/.test(f.value.trim())) || (f.type === 'email' && f.value && !/^\S+@\S+\.\S+$/.test(f.value));
+      var bad = !f.value.trim() || (f.type === 'tel' && !normPhone(f.value)) || (f.type === 'email' && f.value && !/^\S+@\S+\.\S+$/.test(f.value));
       f.classList.toggle('invalid', bad); if (bad) { ok = false; first = first || f; }
     });
-    var em = form.querySelector('[type=email]');
-    if (em && em.value && !/^\S+@\S+\.\S+$/.test(em.value)) { em.classList.add('invalid'); ok = false; first = first || em; }
     if (first) first.focus();
     return ok;
+  }
+  function normPhone(v) {
+    var d = String(v || '').replace(/[^\d+]/g, '');
+    if (d.indexOf('+84') === 0) d = '0' + d.slice(3); else if (/^84\d{9,10}$/.test(d)) d = '0' + d.slice(2);
+    d = d.replace(/\D/g, '');
+    return /^0\d{9,10}$/.test(d) ? d : '';
+  }
+
+  /* ---------- nhận diện địa chỉ (34 tỉnh / 3.321 phường xã, từ 1/7/2025) ---------- */
+  var UNITS = null, unitsP = null;
+  var PROV_ALIAS = { 'ha noi': ['hn', 'hanoi', 'tp hn', 'thu do ha noi'], 'ho chi minh': ['hcm', 'tp hcm', 'tphcm', 'sai gon', 'saigon', 'sg', 'thanh pho ho chi minh', 'tp ho chi minh', 'hcmc'], 'hai phong': ['hp', 'tp hp'], 'hue': ['thua thien hue', 'tt hue', 'thanh pho hue'], 'da nang': ['tp da nang'], 'can tho': ['tp can tho'], 'dak lak': ['daklak', 'dac lac'], 'ba ria vung tau': [] };
+  var OLD_PROV = { 'ha giang': 'tuyen quang', 'yen bai': 'lao cai', 'bac kan': 'thai nguyen', 'bac can': 'thai nguyen', 'vinh phuc': 'phu tho', 'hoa binh': 'phu tho', 'bac giang': 'bac ninh', 'thai binh': 'hung yen', 'hai duong': 'hai phong', 'ha nam': 'ninh binh', 'nam dinh': 'ninh binh', 'quang binh': 'quang tri', 'quang nam': 'da nang', 'kon tum': 'quang ngai', 'kontum': 'quang ngai', 'binh dinh': 'gia lai', 'ninh thuan': 'khanh hoa', 'dak nong': 'lam dong', 'dac nong': 'lam dong', 'binh thuan': 'lam dong', 'phu yen': 'dak lak', 'binh duong': 'ho chi minh', 'ba ria vung tau': 'ho chi minh', 'ba ria': 'ho chi minh', 'vung tau': 'ho chi minh', 'brvt': 'ho chi minh', 'binh phuoc': 'dong nai', 'long an': 'tay ninh', 'soc trang': 'can tho', 'hau giang': 'can tho', 'ben tre': 'vinh long', 'tra vinh': 'vinh long', 'tien giang': 'dong thap', 'bac lieu': 'ca mau', 'kien giang': 'an giang' };
+  function nz(s) { return ' ' + norm(s).replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim() + ' '; }
+  function wardCore(n) { return n.replace(/^(Phường|Xã|Đặc khu)\s+/i, ''); }
+  function loadUnits() {
+    if (unitsP) return unitsP;
+    unitsP = fetch('/assets/data/vn-units.json').then(function (r) { return r.json(); }).then(function (d) {
+      d.forEach(function (p) {
+        p.k = nz(p.n).trim(); p.keys = [p.k].concat(PROV_ALIAS[p.k] || []);
+        Object.keys(OLD_PROV).forEach(function (o) { if (OLD_PROV[o] === p.k) p.keys.push(o); });
+        p.ws = p.w.map(function (w) { var t = /^Xã/i.test(w) ? 'xa' : (/^Đặc khu/i.test(w) ? 'dac khu' : 'phuong'); return { n: w, k: nz(wardCore(w)).trim(), t: t }; });
+      });
+      var top = ['ha noi', 'ho chi minh'];
+      d.sort(function (a, b) { var ia = top.indexOf(a.k), ib = top.indexOf(b.k); if (ia >= 0 || ib >= 0) return (ia < 0 ? 9 : ia) - (ib < 0 ? 9 : ib); return a.n.localeCompare(b.n, 'vi'); });
+      UNITS = d; return d;
+    });
+    return unitsP;
+  }
+  var OLD_DISTRICT_WORDS = [' quan ', ' huyen ', ' q ', ' h ', ' thi xa ', ' tx ', ' tp ', ' thanh pho ', ' thi tran ', ' tt '];
+  function findWard(txt, p) {
+    var best = null;
+    p.ws.forEach(function (w) {
+      if (!w.k) return;
+      var strongPrefixes = w.t === 'xa' ? [' xa ', ' x '] : (w.t === 'dac khu' ? [' dac khu ', ' dk '] : [' phuong ', ' p ']);
+      var strong = strongPrefixes.some(function (pre) { return txt.indexOf(pre + w.k + ' ') >= 0; });
+      var weak = false;
+      if (!strong && w.k.length >= 4 && !/^\d+$/.test(w.k)) {
+        var i = txt.indexOf(' ' + w.k + ' ');
+        while (i >= 0) {
+          var before = txt.slice(Math.max(0, i - 12), i + 1);
+          if (!OLD_DISTRICT_WORDS.some(function (x) { return before.slice(-x.length) === x; }) && !/ (duong|pho|ngo|ngach|hem|kiet|to|thon|ap|khu|kdt|cho) $/.test(before)) { weak = true; break; }
+          i = txt.indexOf(' ' + w.k + ' ', i + 1);
+        }
+      }
+      if (strong || weak) {
+        var score = (strong ? 100 : 0) + w.k.length;
+        if (!best || score > best.score) best = { ward: w.n, score: score, strong: strong };
+      }
+    });
+    return best;
+  }
+  function detectAddress(raw) {
+    if (!UNITS || !raw || raw.trim().length < 4) return null;
+    var txt = nz(raw), prov = null, provPos = -1, oldName = false;
+    UNITS.forEach(function (p) {
+      p.keys.forEach(function (k) {
+        var i = txt.lastIndexOf(' ' + k + ' ');
+        if (i > provPos || (i === provPos && i >= 0 && prov && k.length > prov.len)) { if (i >= 0) { provPos = i; prov = { p: p, len: k.length, key: k, old: !!OLD_PROV[k] }; } }
+      });
+    });
+    if (prov) {
+      // bỏ phần chữ đã dùng để nhận diện tỉnh, tránh hiểu nhầm tên tỉnh thành tên phường
+      txt = txt.slice(0, provPos) + ' ' + txt.slice(provPos + prov.key.length + 1);
+      prov.p.keys.forEach(function (k) { // gỡ cả tên tỉnh cũ (vd "bà rịa vũng tàu") nếu không đứng sau chữ Phường/Xã
+        var i = txt.indexOf(' ' + k + ' ');
+        while (i >= 0) {
+          var pre = txt.slice(Math.max(0, i - 8), i + 1);
+          if (/ (phuong|xa|p|x|dac khu) $/.test(pre)) { i = txt.indexOf(' ' + k + ' ', i + 1); continue; }
+          txt = txt.slice(0, i) + ' ' + txt.slice(i + k.length + 1);
+          i = txt.indexOf(' ' + k + ' ', i);
+        }
+      });
+      var w = findWard(txt, prov.p);
+      return { province: prov.p.n, ward: w ? w.ward : '', sure: !!(w && w.strong && !prov.old), oldProvince: prov.old };
+    }
+    var hits = [];
+    UNITS.forEach(function (p) { var w = findWard(txt, p); if (w && w.strong) hits.push({ p: p, w: w }); });
+    if (hits.length === 1) return { province: hits[0].p.n, ward: hits[0].w.ward, sure: true, inferred: true };
+    return null;
+  }
+
+  /* ---------- form đặt hàng dùng chung (trang Thanh toán + khung Mua ngay) ---------- */
+  function orderFieldsHTML() {
+    var bank = CFG.bank;
+    var pay = (bank ? '<label class="pay-opt"><input type="radio" name="payment" value="bank" checked><span><b>Chuyển khoản ngân hàng</b><small>Đặt hàng xong sẽ hiện mã QR để quét – ' + esc(bank.bank_name) + '</small></span></label>' : '') +
+      '<label class="pay-opt"><input type="radio" name="payment" value="cod"' + (bank ? '' : ' checked') + '><span><b>Thanh toán khi nhận hàng (COD)</b><small>Nhận hàng, kiểm tra rồi trả tiền cho người giao</small></span></label>';
+    return '<div class="of">' +
+      '<label class="of-f">Họ và tên <em>*</em><input name="name" autocomplete="name" placeholder="Ví dụ: Nguyễn Thị Lan"><small class="of-err"></small></label>' +
+      '<label class="of-f">Số điện thoại <em>*</em><input name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="Ví dụ: 0912 345 678"><small class="of-err"></small></label>' +
+      '<div class="of-f"><span class="of-lbl">Địa chỉ nhận hàng <em>*</em></span>' +
+        '<div class="of-type" role="radiogroup" aria-label="Loại địa chỉ"><label><input type="radio" name="addr_type" value="home" checked><span>🏠 Nhà riêng</span></label><label><input type="radio" name="addr_type" value="office"><span>🏢 Văn phòng</span></label></div>' +
+        '<textarea name="address" rows="2" autocomplete="street-address" placeholder="Số nhà, tên đường, phường/xã, tỉnh/thành&#10;Ví dụ: Số 12 Hải Âu 8, Xã Gia Lâm, Hà Nội"></textarea>' +
+        '<div class="of-detect" aria-live="polite"></div>' +
+        '<div class="of-pick" hidden><select name="province" aria-label="Tỉnh / Thành phố"><option value="">— Chọn Tỉnh / Thành phố —</option></select>' +
+        '<input name="ward" list="" autocomplete="off" placeholder="Gõ để tìm Phường / Xã" aria-label="Phường / Xã"><datalist></datalist></div>' +
+        '<small class="of-err"></small></div>' +
+      '<div class="of-f"><span class="of-lbl">Ghi chú <span class="muted">(không bắt buộc)</span></span>' +
+        '<div class="of-chips"><button type="button" data-chip="Giao giờ hành chính">Giao giờ hành chính</button><button type="button" data-chip="Gọi trước khi giao">Gọi trước khi giao</button><button type="button" data-chip="Địa chỉ cũ: " data-focus="1">Địa chỉ cũ</button></div>' +
+        '<textarea name="note" rows="2" placeholder="Yêu cầu thêm khi giao hàng…"></textarea></div>' +
+      '<input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">' +
+      '<div class="of-f"><span class="of-lbl">Thanh toán</span><div class="pay-opts">' + pay + '</div></div>' +
+      '</div>';
+  }
+  function mountOrderForm(root) {
+    root.querySelector('[data-order-fields]').innerHTML = orderFieldsHTML();
+    var f = root.querySelector('form') || root, el = function (n) { return f.querySelector('[name=' + n + ']'); };
+    var det = root.querySelector('.of-detect'), pick = root.querySelector('.of-pick'), sel = el('province'), wardIn = el('ward'), dl = root.querySelector('.of-pick datalist');
+    var dlId = 'wards' + Math.random().toString(36).slice(2, 7); dl.id = dlId; wardIn.setAttribute('list', dlId);
+    var state = { province: '', ward: '', manual: false, auto: null };
+    function fillWards() { var p = UNITS && UNITS.filter(function (x) { return x.n === sel.value; })[0]; dl.innerHTML = p ? p.w.map(function (w) { return '<option value="' + esc(w) + '">'; }).join('') : ''; }
+    function showPick(open) { pick.hidden = !open; }
+    function renderDetect() {
+      if (state.province && state.ward) {
+        det.innerHTML = '<span class="ok">📍 ' + esc(state.ward) + ', ' + esc(state.province) + ' ✓</span>' + (pick.hidden ? ' <button type="button" class="of-edit">Sửa</button>' : '');
+      } else if (state.province) {
+        det.innerHTML = '<span class="warn">📍 ' + esc(state.province) + (state.auto && state.auto.oldProvince ? ' (tên tỉnh mới sau sáp nhập)' : '') + ' – bạn chọn giúp Phường/Xã bên dưới</span>';
+      } else if (!pick.hidden) {
+        det.innerHTML = '<span class="warn">Bạn chọn giúp Tỉnh/Thành và Phường/Xã bên dưới</span>';
+      } else det.innerHTML = '';
+    }
+    function applyAuto() {
+      if (state.manual) return;
+      var r = detectAddress(el('address').value); state.auto = r;
+      if (r && r.province) { sel.value = r.province; fillWards(); }
+      if (r && r.province && r.ward && r.sure) { state.province = r.province; state.ward = r.ward; wardIn.value = r.ward; showPick(false); }
+      else if (r && r.province && r.ward) { state.province = r.province; state.ward = r.ward; wardIn.value = r.ward; showPick(true); det.innerHTML = '<span class="warn">📍 Có phải ' + esc(r.ward) + ', ' + esc(r.province) + '? Nếu đúng thì giữ nguyên, sai thì chọn lại bên dưới.</span>'; return; }
+      else { state.province = r && r.province || ''; state.ward = ''; wardIn.value = ''; showPick(el('address').value.trim().length >= 8); }
+      renderDetect();
+    }
+    loadUnits().then(function (d) {
+      sel.innerHTML = '<option value="">— Chọn Tỉnh / Thành phố —</option>' + d.map(function (p) { return '<option>' + esc(p.n) + '</option>'; }).join('');
+      var saved = load('tdl_customer', null);
+      if (saved) { ['name', 'phone', 'address'].forEach(function (k) { if (saved[k] && el(k)) el(k).value = saved[k]; }); if (saved.addr_type) { var r = f.querySelector('[name=addr_type][value=' + saved.addr_type + ']'); if (r) r.checked = true; }
+        if (saved.province) { sel.value = saved.province; fillWards(); wardIn.value = saved.ward || ''; state.province = saved.province; state.ward = saved.ward || ''; state.manual = !!saved.manual; } }
+      if (el('address').value) { if (state.manual) { showPick(true); renderDetect(); } else applyAuto(); }
+    });
+    var t; el('address').addEventListener('input', function () { clearTimeout(t); t = setTimeout(function () { state.manual = false; applyAuto(); }, 350); });
+    sel.addEventListener('change', function () { state.manual = true; state.province = sel.value; state.ward = ''; wardIn.value = ''; fillWards(); renderDetect(); wardIn.focus(); });
+    wardIn.addEventListener('change', function () { state.manual = true; var p = UNITS && UNITS.filter(function (x) { return x.n === sel.value; })[0]; var v = wardIn.value.trim(), m = '';
+      if (p) { var k = nz(wardCore(v)).trim(); p.w.forEach(function (w) { if (w === v || nz(wardCore(w)).trim() === k) m = w; }); }
+      state.ward = m; if (m) wardIn.value = m; state.province = sel.value; renderDetect(); });
+    det.addEventListener('click', function (e) { if (e.target.closest('.of-edit')) { showPick(true); state.manual = true; renderDetect(); sel.focus(); } });
+    root.addEventListener('click', function (e) {
+      var c = e.target.closest('[data-chip]'); if (!c) return;
+      var n = el('note'), txt = c.getAttribute('data-chip');
+      if (c.getAttribute('data-focus')) { n.value = (n.value.trim() ? n.value.trim() + '. ' : '') + txt; n.focus(); n.setSelectionRange(n.value.length, n.value.length); return; }
+      if (n.value.indexOf(txt) >= 0) { n.value = n.value.replace(new RegExp('(\\.\\s*)?' + txt.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), '').replace(/^\.\s*/, '').trim(); c.classList.remove('on'); }
+      else { n.value = (n.value.trim() ? n.value.trim() + '. ' : '') + txt; c.classList.add('on'); }
+    });
+    function err(name, msg) { var box = (name === 'address' ? el('address').closest('.of-f') : el(name).closest('.of-f')).querySelector('.of-err'); box.textContent = msg || ''; var inp = el(name); if (inp) inp.classList.toggle('invalid', !!msg); }
+    return {
+      collect: function () {
+        var ok = true, first = null;
+        var name = el('name').value.trim(), phone = normPhone(el('phone').value), addr = el('address').value.trim();
+        err('name', name.length < 2 ? 'Bạn nhập giúp họ tên người nhận nhé' : ''); if (name.length < 2) { ok = false; first = first || el('name'); }
+        err('phone', !phone ? 'Số điện thoại cần đủ 10 số (ví dụ 0912 345 678), bạn kiểm tra lại giúp nhé' : ''); if (!phone) { ok = false; first = first || el('phone'); }
+        var addrMsg = addr.length < 6 ? 'Bạn nhập giúp số nhà, tên đường và khu vực nhé' : (!state.province || !state.ward ? 'Bạn chọn giúp Tỉnh/Thành và Phường/Xã để giao hàng chính xác' : '');
+        if (addrMsg) { if (addr.length >= 6) showPick(true); renderDetect(); }
+        err('address', addrMsg); if (addrMsg) { ok = false; first = first || (addr.length < 6 ? el('address') : (sel.value ? wardIn : sel)); }
+        if (first) { first.focus(); first.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+        if (!ok || el('website').value) return null;
+        var type = (f.querySelector('[name=addr_type]:checked') || {}).value || 'home';
+        var note = el('note').value.trim(); if (state.manual || (state.auto && !state.auto.sure)) note = '⚠ Kiểm tra địa chỉ (khách tự chọn phường/xã). ' + note;
+        var c = { name: name, phone: phone, email: '', province: state.province, district: state.ward, address: '[' + (type === 'office' ? 'Văn phòng' : 'Nhà riêng') + '] ' + addr, note: note.trim(), addr_type: type };
+        save('tdl_customer', { name: name, phone: phone, address: addr, province: state.province, ward: state.ward, addr_type: type, manual: state.manual });
+        return { customer: c, payment: (f.querySelector('[name=payment]:checked') || {}).value || 'cod' };
+      }
+    };
+  }
+  function placeOrder(items, data, btn, msg, onSent) {
+    var sub = items.reduce(function (s, i) { return s + i.subtotal; }, 0), sh = shipInfo(sub), d = new Date();
+    var id = 'TDL' + String(d.getFullYear()).slice(2) + ('0' + (d.getMonth() + 1)).slice(-2) + ('0' + d.getDate()).slice(-2) + Math.floor(1000 + Math.random() * 9000);
+    var order = { type: 'order', id: id, created: d.toISOString(), customer: data.customer, payment: data.payment, items: items, subtotal: sub, shipping: sh.fee, total: sub + sh.fee, page: location.href };
+    var label = btn.innerHTML; btn.disabled = true; btn.textContent = 'Đang gửi đơn hàng…';
+    send(order).then(function (r) { order.sent = r.sent; save('tdl_last_order', order); if (onSent) onSent(); location.href = '/dat-hang-thanh-cong/?id=' + id; })
+      .catch(function () { btn.disabled = false; btn.innerHTML = label; msg.className = 'form-msg err'; msg.textContent = 'Chưa gửi được đơn do mạng chập chờn. Bạn bấm lại giúp, hoặc gọi ' + CFG.hotline + ' để đặt nhé.'; });
+  }
+  function itemLine(slug, vi, qty) { var p = BY[slug], u = (vi >= 0 && p.variants[vi]) ? p.variants[vi].price : p.price; return { slug: slug, name: p.name, variant: (vi >= 0 && p.variants[vi]) ? p.variants[vi].name : (p.unit || ''), qty: qty, price: u, subtotal: u * qty, img: p.img }; }
+  function summaryHTML(items, noLines) {
+    var sub = items.reduce(function (s, i) { return s + i.subtotal; }, 0), sh = shipInfo(sub);
+    return (noLines ? [] : items).map(function (i) { return '<div class="co-item"><img src="' + i.img + '" alt=""><div><b>' + esc(i.name) + '</b><small>' + esc(i.variant) + ' × ' + i.qty + '</small></div><span class="ct-sub">' + money(i.subtotal) + '</span></div>'; }).join('') +
+      '<div class="co-sum"><div><span>Tạm tính</span><b>' + money(sub) + '</b></div><div><span>Phí giao hàng</span><b>' + sh.label + '</b></div><div class="co-total"><span>Tổng cộng</span><b>' + money(sub + sh.fee) + '</b></div></div>';
   }
   function initCheckout() {
     var form = $('#checkoutForm'); if (!form) return;
     if (!cart.length) { location.replace('/gio-hang/'); return; }
-    var dl = $('#provinces'); if (dl) dl.innerHTML = PROVINCES.map(function (p) { return '<option value="' + p + '">'; }).join('');
-    var saved = load('tdl_customer', null);
-    if (saved) Object.keys(saved).forEach(function (k) { var f = form.elements[k]; if (f && f.type !== 'radio') f.value = saved[k] || ''; });
-    renderCheckoutSummary();
+    var items = function () { return cart.map(function (it) { return itemLine(it.slug, it.vi, it.qty); }); };
+    $('#coItems').innerHTML = summaryHTML(items());
+    var total = items().reduce(function (s, i) { return s + i.subtotal; }, 0) + shipInfo(cartTotal()).fee;
+    $('#placeOrder').innerHTML = '✅ Đặt hàng – ' + money(total);
+    var of = mountOrderForm(form);
     form.addEventListener('submit', function (e) {
-      e.preventDefault();
-      var msg = $('.form-msg', form); msg.className = 'form-msg'; msg.textContent = '';
-      if (form.elements.website.value) return;
-      if (!validate(form)) { msg.className = 'form-msg err'; msg.textContent = 'Vui lòng điền đầy đủ và đúng các thông tin bắt buộc (*).'; return; }
-      var f = form.elements;
-      var customer = { name: f.name.value.trim(), phone: f.phone.value.trim(), email: f.email.value.trim(), province: f.province.value.trim(), district: f.district.value.trim(), address: f.address.value.trim(), note: f.note.value.trim() };
-      save('tdl_customer', { name: customer.name, phone: customer.phone, email: customer.email, province: customer.province, district: customer.district, address: customer.address });
-      var sub = cartTotal(), sh = shipInfo(sub), d = new Date();
-      var id = 'TDL' + String(d.getFullYear()).slice(2) + ('0' + (d.getMonth() + 1)).slice(-2) + ('0' + d.getDate()).slice(-2) + Math.floor(1000 + Math.random() * 9000);
-      var order = {
-        type: 'order', id: id, created: d.toISOString(), customer: customer, payment: form.querySelector('[name=payment]:checked').value,
-        items: cart.map(function (it) { var p = BY[it.slug], u = unitPrice(it); return { slug: it.slug, name: p.name, variant: variantName(it), qty: it.qty, price: u, subtotal: u * it.qty }; }),
-        subtotal: sub, shipping: sh.fee, total: sub + sh.fee, page: location.href
-      };
-      var btn = $('#placeOrder'); btn.disabled = true; btn.textContent = 'Đang gửi đơn hàng…';
-      send(order).then(function (r) {
-        order.sent = r.sent;
-        save('tdl_last_order', order);
-        cart = []; saveCart();
-        location.href = '/dat-hang-thanh-cong/?id=' + id;
-      }).catch(function () {
-        btn.disabled = false; btn.textContent = 'Đặt hàng';
-        msg.className = 'form-msg err'; msg.textContent = 'Không gửi được đơn hàng do lỗi kết nối. Vui lòng thử lại hoặc gọi ' + CFG.hotline + '.';
-      });
+      e.preventDefault(); var msg = $('.form-msg', form); msg.className = 'form-msg'; msg.textContent = '';
+      var data = of.collect(); if (!data) return;
+      placeOrder(items(), data, $('#placeOrder'), msg, function () { cart = []; saveCart(); });
     });
+  }
+  function openQuickOrder(slug, vi, qty) {
+    var p = BY[slug]; if (!p) return;
+    var m = document.createElement('div'); m.className = 'qo'; m.setAttribute('role', 'dialog'); m.setAttribute('aria-modal', 'true'); m.setAttribute('aria-label', 'Đặt hàng nhanh');
+    m.innerHTML = '<form class="qo-box" novalidate><div class="qo-head"><b>Đặt hàng nhanh</b><button type="button" class="icon-btn qo-x" aria-label="Đóng">' + ICON.close + '</button></div>' +
+      '<div class="qo-prod"><img src="' + p.img + '" alt=""><div><b>' + esc(p.name) + '</b><small class="qo-var"></small><div class="qo-qty"><span>Số lượng</span><div class="qty"><button type="button" data-q="-1" aria-label="Giảm">−</button><input type="number" min="1" max="99" value="' + qty + '" aria-label="Số lượng"><button type="button" data-q="1" aria-label="Tăng">+</button></div></div></div></div>' +
+      '<div data-order-fields></div><div class="qo-sum"></div>' +
+      '<button class="btn btn-lg btn-block btn-order" type="submit"></button><p class="form-msg" role="status"></p>' +
+      '<p class="qo-note">Nhân viên sẽ gọi xác nhận trước khi giao hàng.</p>' +
+      '<div class="qo-alt"><a class="btn btn-outline" href="tel:' + CFG.zalo + '">📞 Gọi đặt hàng</a><a class="btn btn-zalo" href="https://zalo.me/' + CFG.zalo + '" target="_blank" rel="noopener">💬 Đặt qua Zalo</a></div></form>';
+    document.body.appendChild(m); lock(true);
+    var form = m.querySelector('form'), qIn = m.querySelector('.qo-qty input');
+    var items = function () { return [itemLine(slug, vi, Math.max(1, Math.min(99, parseInt(qIn.value, 10) || 1)))]; };
+    function refresh() { var it = items(); m.querySelector('.qo-var').textContent = it[0].variant + ' · ' + money(it[0].price); m.querySelector('.qo-sum').innerHTML = summaryHTML(it, true);
+      var t = it[0].subtotal + shipInfo(it[0].subtotal).fee; m.querySelector('.btn-order').innerHTML = '✅ Đặt hàng – ' + money(t); }
+    m.addEventListener('click', function (e) { var b = e.target.closest('[data-q]'); if (b) { qIn.value = Math.max(1, Math.min(99, (parseInt(qIn.value, 10) || 1) + (+b.getAttribute('data-q')))); refresh(); }
+      if (e.target === m || e.target.closest('.qo-x')) { m.remove(); lock(false); } });
+    qIn.addEventListener('change', refresh);
+    var of = mountOrderForm(m); refresh();
+    setTimeout(function () { var n = form.querySelector('[name=name]'); if (n && !n.value) n.focus(); }, 250);
+    form.addEventListener('submit', function (e) { e.preventDefault(); var msg = m.querySelector('.form-msg'); msg.textContent = ''; var data = of.collect(); if (!data) return; placeOrder(items(), data, m.querySelector('.btn-order'), msg); });
   }
   function initThanks() {
     var el = $('#thanksPage'); if (!el) return;

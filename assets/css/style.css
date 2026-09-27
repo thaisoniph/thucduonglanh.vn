@@ -789,3 +789,56 @@ label .invalid,input.invalid,textarea.invalid{border-color:var(--red)!important}
   .fw-btn{width:44px;height:44px}.fw-zalo svg{width:44px;height:44px}
   .site-footer{padding-bottom:0}.f-bottom{padding-bottom:70px}
 }
+/* === Form đặt hàng đơn giản === */
+.of{display:grid;gap:18px}
+.of-f{display:block;margin:0;font-size:16px;font-weight:600;color:var(--ink)}
+.of-lbl{display:block;margin-bottom:8px}
+.of-f em{color:var(--red);font-style:normal}
+.of input,.of textarea,.of select{display:block;width:100%;margin-top:8px;font-size:18px;padding:14px 16px;border:1.5px solid #d6d3c8;border-radius:12px;background:#fff;color:var(--ink);font-weight:400;font-family:inherit;min-height:54px}
+.of .of-lbl+.of-type+textarea,.of .of-chips+textarea{margin-top:10px}
+.of textarea{resize:vertical;line-height:1.5}
+.of input:focus,.of textarea:focus,.of select:focus{outline:0;border-color:var(--primary-3);box-shadow:0 0 0 4px rgba(63,154,99,.15)}
+.of .invalid{border-color:var(--red)!important;background:#fff8f7}
+.of-err{display:block;color:var(--red);font-weight:500;font-size:14.5px;margin-top:6px;min-height:0}
+.of-err:empty{display:none}
+.of-type{display:flex;gap:10px}
+.of-type label{flex:1;margin:0}
+.of-type input{position:absolute;opacity:0;width:1px;height:1px;min-height:0}
+.of-type span{display:flex;align-items:center;justify-content:center;gap:6px;min-height:50px;border:1.5px solid #d6d3c8;border-radius:12px;font-weight:600;font-size:16px;cursor:pointer;background:#fff}
+.of-type input:checked+span{border-color:var(--primary-2);background:var(--primary-light);color:var(--primary);box-shadow:inset 0 0 0 1px var(--primary-2)}
+.of-type input:focus-visible+span{outline:2px solid var(--gold)}
+.of-detect{font-size:15px;font-weight:500;margin-top:8px}
+.of-detect:empty{display:none}
+.of-detect .ok{color:var(--primary);background:var(--primary-light);border-radius:8px;padding:6px 10px;display:inline-block}
+.of-detect .warn{color:#8a5a00;background:#fff6dd;border-radius:8px;padding:6px 10px;display:inline-block}
+.of-edit{background:none;border:0;color:var(--primary-2);text-decoration:underline;font-weight:600;font-size:15px;padding:6px}
+.of-pick{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.of-pick[hidden]{display:none}
+.of-chips{display:flex;flex-wrap:wrap;gap:8px}
+.of-chips button{border:1.5px solid var(--primary-3);background:#fff;color:var(--primary);border-radius:999px;padding:10px 16px;font-size:15px;font-weight:600;min-height:44px}
+.of-chips button.on{background:var(--primary);color:#fff;border-color:var(--primary)}
+.of .pay-opt{padding:16px}
+.of .pay-opt b{font-size:16.5px}
+.of .pay-opt input{width:22px;height:22px;min-height:0;margin-top:2px;padding:0;flex:0 0 22px}
+.btn-order{min-height:60px;font-size:19px;border-radius:14px}
+.qo-note{text-align:center;color:var(--muted);font-size:14.5px;margin:10px 0}
+.qo-alt{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.qo-alt .btn{min-height:48px;padding:10px;font-size:15px;white-space:normal}
+.qo{position:fixed;inset:0;z-index:120;background:rgba(20,25,18,.55);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0}}
+.qo-box{background:#fff;width:100%;max-width:560px;max-height:94vh;overflow-y:auto;border-radius:20px 20px 0 0;padding:18px 18px 22px;animation:slideUp .25s}
+@keyframes slideUp{from{transform:translateY(40px)}}
+@media (min-width:700px){.qo{align-items:center}.qo-box{border-radius:20px;padding:24px 28px}}
+.qo-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.qo-head b{font-size:20px;color:var(--ink)}
+.qo-prod{display:flex;gap:14px;align-items:center;background:var(--soft);border-radius:14px;padding:12px;margin-bottom:16px}
+.qo-prod img{width:76px;height:76px;border-radius:10px;object-fit:cover;flex:0 0 76px}
+.qo-prod b{display:block;font-size:16px;line-height:1.35;color:var(--ink)}
+.qo-prod small{display:block;color:var(--primary-2);font-weight:600;margin:3px 0 6px}
+.qo-qty{display:flex;align-items:center;gap:10px;font-size:15px}
+.qo-qty .qty{background:#fff}
+.qo-qty .qty button{width:42px;height:42px;font-size:22px}
+.qo-sum{margin:14px 0 12px}
+.qo-sum .co-sum>div{padding:6px 0}
+.page-checkout .co-left h2{font-size:22px}
+@media (max-width:640px){.of-pick{grid-template-columns:1fr}.of input,.of textarea,.of select{font-size:17px}}
