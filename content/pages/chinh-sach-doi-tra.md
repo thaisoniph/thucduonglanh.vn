@@ -19,6 +19,10 @@ order: 7
 
 {brand} chịu toàn bộ chi phí vận chuyển đổi trả nếu lỗi thuộc về chúng tôi.
 
+## Hoàn tiền
+
+Trường hợp đơn hàng đủ điều kiện hoàn tiền sau khi được xác minh, {brand} hoàn tiền bằng **chuyển khoản ngân hàng** trong vòng **7 ngày làm việc**. Quý khách cung cấp chính xác thông tin tài khoản nhận tiền để quá trình hoàn tiền được thực hiện thuận lợi.
+
 ## Không áp dụng đổi trả
 
 Sản phẩm đã qua sử dụng, bị hư hỏng do bảo quản không đúng hướng dẫn, hoặc đổi trả vì lý do cá nhân không thuộc các trường hợp trên.
