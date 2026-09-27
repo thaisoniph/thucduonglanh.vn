@@ -674,7 +674,7 @@
       }
       var c = e.target.closest('[data-chip]'); if (!c) return;
       var n = el('note'), txt = c.getAttribute('data-chip');
-      if (c.getAttribute('data-focus')) { n.value = (n.value.trim() ? n.value.trim() + '. ' : '') + txt; n.focus(); n.setSelectionRange(n.value.length, n.value.length); return; }
+      if (c.getAttribute('data-focus')) { if (n.value.indexOf(txt.trim()) < 0) n.value = (n.value.trim() ? n.value.trim() + '. ' : '') + txt; n.focus(); var at = n.value.indexOf(txt.trim()) + txt.length; n.setSelectionRange(at, at); return; }
       if (n.value.indexOf(txt) >= 0) { n.value = n.value.replace(new RegExp('(\\.\\s*)?' + txt.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), '').replace(/^\.\s*/, '').trim(); c.classList.remove('on'); }
       else { n.value = (n.value.trim() ? n.value.trim() + '. ' : '') + txt; c.classList.add('on'); }
     });
@@ -690,7 +690,7 @@
         if (!ok) { showFields(true); if (first) { first.focus(); first.scrollIntoView({ block: 'center', behavior: 'smooth' }); } return null; }
         if (el('website').value) return null;
         var type = (f.querySelector('[name=addr_type]:checked') || {}).value || 'home';
-        var note = el('note').value.trim(); if (state.picked || (!state.manual && state.auto && !state.auto.sure)) note = '⚠ Kiểm tra địa chỉ (phường/xã khách tự chọn hoặc web đoán). ' + note;
+        var note = el('note').value.replace(/Địa chỉ cũ:\s*(?=\.|$)/g, '').replace(/(\.\s*){2,}/g, '. ').replace(/^[\s.]+|[\s.]+$/g, '').trim(); if (state.picked || (!state.manual && state.auto && !state.auto.sure)) note = '⚠ Kiểm tra địa chỉ (phường/xã khách tự chọn hoặc web đoán). ' + note;
         var c = { name: name, phone: phone, email: '', province: state.province, district: state.ward, address: '[' + (type === 'office' ? 'Văn phòng' : 'Nhà riêng') + '] ' + addr, note: note.trim(), addr_type: type };
         if (el('remember').checked) save('tdl_customer', { name: name, phone: phone, address: addr, province: state.province, ward: state.ward, addr_type: type, manual: true });
         else { try { localStorage.removeItem('tdl_customer'); } catch (e) { } }
