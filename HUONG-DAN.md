@@ -98,6 +98,7 @@ Sheet **Đơn hàng website Thực Dưỡng Lành**: https://docs.google.com/spr
 - **Đăng nhập**: nhập email → Apps Script gửi mã 6 số (10 phút, sai 5 lần phải xin mã mới, tối đa 5 lần xin mã / 15 phút) → phiên 30 ngày lưu trong Script Properties (`crm_s_…`). Chỉ email có trong trang **Nhân sự CRM** và "Đang dùng = Có" mới vào được. Bỏ tích "Đang dùng" là khoá ngay.
 - **Quyền**: Nhân viên = Hôm nay, Khách hàng, Đơn hàng (đổi trạng thái, tạo đơn nhập tay), Liên hệ. Quản lý = thêm doanh thu, sửa Chu kỳ dùng và Mẫu tin nhắn. Quản trị = thêm quản lý nhân sự.
 - **Tạo đơn nhập tay** (Zalo, điện thoại…): ghi vào Đơn hàng với Nguồn "Nhập tay – …", cập nhật Khách hàng, báo Telegram (không gửi email).
+- **Số ngày chưa chăm sóc** (nhãn màu trên mỗi thẻ khách + ô lớn trong trang chi tiết): đếm từ lần gần nhất khách *có phản hồi* (mọi kết quả trừ "Không nghe máy"), lấy từ Nhật ký CSKH + cột Lần CSKH/Kết quả CSKH. Chưa chăm sóc lần nào thì đếm từ ngày mua đầu tiên. Xanh ≤ 7 ngày, cam 8–30, đỏ > 30. Có bộ lọc "Quá 30 ngày chưa chăm sóc" và cách sắp xếp "Lâu chưa chăm sóc nhất". Tính trên trình duyệt, không cần sửa Apps Script.
 - Đổi trạng thái sang/khỏi **Huỷ** trên web sẽ tự chạy `rebuildCustomers`. Lưu Chu kỳ dùng cũng vậy.
 - Chạy thử trên máy: `python3 build.py` rồi serve `dist-crm/`. Muốn chạy không cần Apps Script thì dùng bộ giả lập (mock SpreadsheetApp) như lúc phát triển.
 
