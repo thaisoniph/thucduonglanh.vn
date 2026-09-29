@@ -6,3 +6,4 @@ backend/
 __pycache__/
 .DS_Store
 *.pyc
+dist-crm/

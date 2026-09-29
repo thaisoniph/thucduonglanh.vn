@@ -49,7 +49,8 @@ website/
 │   ├── vn-units.json      34 tỉnh/thành + 3.321 phường/xã (sau 1/7/2025) – dùng nhận diện địa chỉ
 │   └── config.json        kỹ thuật: tên miền, link nhận đơn, mã GA4/Clarity/Pixel (không có trong /admin)
 ├── assets/                CSS, JS, ảnh, video, PDF; ảnh tải từ /admin nằm ở assets/uploads/
-├── build.py               sinh web vào dist/ (tự nén ảnh sang WebP)
+├── crm/                   CRM cho nhân sự (index.html, app.js, app.css) → build ra dist-crm/ → crm.thucduonglanh.vn
+├── build.py               sinh web vào dist/ (tự nén ảnh sang WebP) + CRM vào dist-crm/
 ├── .github/workflows/deploy.yml   tự build + đăng lên Cloudflare mỗi khi có thay đổi
 └── backend/               CHỈ Ở MÁY (không đưa lên GitHub – có mã Telegram)
     ├── google-apps-script.gs            code nhận đơn + CRM
@@ -85,8 +86,20 @@ Sheet **Đơn hàng website Thực Dưỡng Lành**: https://docs.google.com/spr
 | Chu kỳ dùng | Số ngày dùng hết 1 đơn vị sản phẩm → tính "Dự kiến hết hàng". Chỉnh theo thực tế. |
 | Mẫu tin nhắn CSKH | Mẫu Zalo cho từng thời điểm chăm sóc. |
 | Liên hệ | Lời nhắn từ form Liên hệ. |
+| Nhân sự CRM | Email · Tên · Quyền (Quản trị / Quản lý / Nhân viên) · Đang dùng (Có/Không). Sửa được trên web ở mục Cài đặt (chỉ Quản trị). thaisoniph@gmail.com luôn là Quản trị. |
+| Nhật ký CSKH | Mỗi thao tác trên CRM web: ai làm, lúc nào, việc gì, kết quả, ghi chú. |
 
-**Tin Telegram 8h sáng**: hỏi nhận hàng (đơn hôm qua) · sắp hết / đã hết sản phẩm (–7 đến +2 ngày, bỏ qua khách đã chăm sóc) · xin cảm nhận (D+14) · giới thiệu sản phẩm (D+30) · mời quay lại (60 ngày).
+**Việc chăm sóc mỗi ngày** (hàm `careTask`, dùng chung cho tin Telegram 8h và tab Hôm nay trên CRM web): hẹn gọi lại (cột "Hẹn gọi lại" đến ngày) · hỏi nhận hàng (D+1 đến D+3) · sắp hết / đã hết sản phẩm (–7 đến +2 ngày) · xin cảm nhận (D+14 đến D+17) · giới thiệu sản phẩm (D+30 đến D+33) · mời quay lại (D+60 đến D+67). Khách đã được chăm sóc sau mốc đó thì không nhắc nữa.
+
+### CRM web – https://crm.thucduonglanh.vn
+
+- Trang tĩnh trong `crm/`, build ra `dist-crm/`, đăng lên Cloudflare Pages project **thucduonglanh-crm** (bước riêng trong `deploy.yml`, tự tạo project + gắn tên miền + bản ghi DNS `crm` lần đầu).
+- Dữ liệu vẫn nằm trong Google Sheet. Trang gọi thẳng link Apps Script (`order_endpoint`) với `type: 'crm'` (hàm `crmApi`). Không có máy chủ riêng.
+- **Đăng nhập**: nhập email → Apps Script gửi mã 6 số (10 phút, sai 5 lần phải xin mã mới, tối đa 5 lần xin mã / 15 phút) → phiên 30 ngày lưu trong Script Properties (`crm_s_…`). Chỉ email có trong trang **Nhân sự CRM** và "Đang dùng = Có" mới vào được. Bỏ tích "Đang dùng" là khoá ngay.
+- **Quyền**: Nhân viên = Hôm nay, Khách hàng, Đơn hàng (đổi trạng thái, tạo đơn nhập tay), Liên hệ. Quản lý = thêm doanh thu, sửa Chu kỳ dùng và Mẫu tin nhắn. Quản trị = thêm quản lý nhân sự.
+- **Tạo đơn nhập tay** (Zalo, điện thoại…): ghi vào Đơn hàng với Nguồn "Nhập tay – …", cập nhật Khách hàng, báo Telegram (không gửi email).
+- Đổi trạng thái sang/khỏi **Huỷ** trên web sẽ tự chạy `rebuildCustomers`. Lưu Chu kỳ dùng cũng vậy.
+- Chạy thử trên máy: `python3 build.py` rồi serve `dist-crm/`. Muốn chạy không cần Apps Script thì dùng bộ giả lập (mock SpreadsheetApp) như lúc phát triển.
 
 **Hàm trong Apps Script** (chọn hàm → ▶ Chạy):
 
@@ -95,9 +108,10 @@ Sheet **Đơn hàng website Thực Dưỡng Lành**: https://docs.google.com/spr
 | `setupCRM` | Lần đầu cài CRM, hoặc cài lại lịch 8h |
 | `dailyCare` | Xem thử tin CSKH ngay |
 | `rebuildCustomers` | Sau khi sửa/huỷ đơn cũ – tính lại trang Khách hàng (giữ cột CSKH) |
+| `tidySheet` | Tạo trang "📖 Hướng dẫn" + "✅ Việc hôm nay", tô màu (xanh = máy điền, cam = nhân viên điền), ô chọn Trạng thái / Kết quả CSKH, định dạng tiền-ngày, khoá mềm cột tự động, thu gọn cột ít dùng. Chạy lại bất cứ lúc nào, không mất dữ liệu. Có trong menu 🌿 Thực Dưỡng Lành trên Sheet |
 | `testTelegram` | Kiểm tra bot Telegram |
 
-**Sửa code Apps Script**: dán đè toàn bộ `backend/google-apps-script.gs` → Lưu. Nếu sửa phần nhận đơn (`doPost`) thì thêm: Triển khai → Quản lý các bản triển khai → ✏️ → **Phiên bản mới** → Triển khai (link nhận đơn giữ nguyên). Lịch 8h luôn dùng bản đã lưu mới nhất.
+**Sửa code Apps Script**: (phần CRM web nằm trong `doPost` → mọi thay đổi `crm…` đều phải Deploy phiên bản mới) dán đè toàn bộ `backend/google-apps-script.gs` → Lưu. Nếu sửa phần nhận đơn (`doPost`) thì thêm: Triển khai → Quản lý các bản triển khai → ✏️ → **Phiên bản mới** → Triển khai (link nhận đơn giữ nguyên). Lịch 8h luôn dùng bản đã lưu mới nhất.
 
 **Người nhận báo đơn**: thêm/xoá thành viên trong nhóm Telegram "Đơn hàng Thực Dưỡng Lành" – không cần sửa code.
 

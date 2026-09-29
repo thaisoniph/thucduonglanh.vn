@@ -29,3 +29,36 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy dist --project-name=thucduonglanh --branch=main --commit-dirty=true
+      # CRM cho nhân sự: crm.thucduonglanh.vn (thư mục crm/ → dist-crm/, project Pages riêng)
+      - name: Tạo project CRM (chỉ lần đầu)
+        continue-on-error: true
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages project create thucduonglanh-crm --production-branch=main
+      - name: Đăng CRM lên Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist-crm --project-name=thucduonglanh-crm --branch=main --commit-dirty=true
+      - name: Gắn tên miền crm.thucduonglanh.vn (chỉ lần đầu)
+        continue-on-error: true
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CF_ZONE: 5cee9541139ab9326026e0c7f0826d7e
+        run: |
+          API=https://api.cloudflare.com/client/v4
+          H=(-H "Authorization: Bearer $CF_TOKEN" -H "Content-Type: application/json")
+          if curl -s "${H[@]}" "$API/accounts/$CF_ACCOUNT/pages/projects/thucduonglanh-crm/domains" | grep -q '"name":"crm.thucduonglanh.vn"'; then
+            echo "Tên miền đã gắn"
+          else
+            curl -s "${H[@]}" -X POST "$API/accounts/$CF_ACCOUNT/pages/projects/thucduonglanh-crm/domains" -d '{"name":"crm.thucduonglanh.vn"}' | head -c 600; echo
+          fi
+          if curl -s "${H[@]}" "$API/zones/$CF_ZONE/dns_records?name=crm.thucduonglanh.vn" | grep -q '"name":"crm.thucduonglanh.vn"'; then
+            echo "Bản ghi DNS đã có"
+          else
+            curl -s "${H[@]}" -X POST "$API/zones/$CF_ZONE/dns_records" -d '{"type":"CNAME","name":"crm","content":"thucduonglanh-crm.pages.dev","proxied":true,"comment":"CRM nhân sự"}' | head -c 600; echo
+          fi

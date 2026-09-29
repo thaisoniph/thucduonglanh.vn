@@ -1046,6 +1046,42 @@ def main():
         "/assets/img/*\n  Cache-Control: public, max-age=604800\n"
         "/assets/video/*\n  Cache-Control: public, max-age=604800\n", "utf-8")
     print(f"Đã tạo {len(routes)} trang công khai + 6 trang chức năng vào {DIST}")
+    build_crm()
+
+
+def build_crm():
+    """CRM cho nhân sự tại crm.thucduonglanh.vn: trang tĩnh trong crm/, dữ liệu lấy qua Apps Script. Ra thư mục dist-crm/."""
+    src, out = ROOT / "crm", ROOT / "dist-crm"
+    if not src.exists():
+        return
+    if out.exists():
+        shutil.rmtree(out)
+    out.mkdir()
+    import hashlib
+    ver = hashlib.md5(b"".join((src / f).read_bytes() for f in ("app.js", "app.css"))).hexdigest()[:8]
+    for f in ("app.js", "app.css"):
+        shutil.copy(src / f, out / f)
+    (out / "index.html").write_text((src / "index.html").read_text("utf-8").replace("__V__", ver), "utf-8")
+    brand = ROOT / "assets/img/brand"
+    for f in ("logo.webp", "icon-32.png", "icon-180.png", "icon-512.png"):
+        shutil.copy(brand / f, out / f)
+    shutil.copy(DATA / "vn-units.json", out / "vn-units.json")
+    products = [{"name": p["name"], "price": p.get("price"), "unit": p.get("unit", ""),
+                 "variants": [{"name": v["name"], "price": v["price"]} for v in p.get("variants", [])]} for p in PRODUCTS]
+    cfg = {"endpoint": SITE.get("order_endpoint", ""), "shipping_fee": SITE.get("shipping_fee", 0),
+           "free_ship_threshold": SITE.get("free_ship_threshold", 0), "products": products}
+    (out / "crm-data.js").write_text("window.CRM_CONFIG=" + json.dumps(cfg, ensure_ascii=False) + ";\n", "utf-8")
+    (out / "manifest.webmanifest").write_text(json.dumps({
+        "name": "CRM Thực Dưỡng Lành", "short_name": "CRM TDL", "start_url": "/", "display": "standalone",
+        "background_color": "#f5f4ef", "theme_color": "#1f5f3a",
+        "icons": [{"src": "/icon-180.png", "sizes": "180x180", "type": "image/png"}, {"src": "/icon-512.png", "sizes": "512x512", "type": "image/png"}]}, ensure_ascii=False), "utf-8")
+    (out / "robots.txt").write_text("User-agent: *\nDisallow: /\n", "utf-8")
+    (out / "_headers").write_text(
+        "/*\n  X-Robots-Tag: noindex, nofollow\n  X-Content-Type-Options: nosniff\n  X-Frame-Options: DENY\n  Referrer-Policy: no-referrer\n"
+        "  Content-Security-Policy: default-src 'self'; connect-src 'self' https://script.google.com https://script.googleusercontent.com; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'\n"
+        "/\n  Cache-Control: no-cache\n/index.html\n  Cache-Control: no-cache\n/crm-data.js\n  Cache-Control: no-cache\n"
+        "/app.js\n  Cache-Control: public, max-age=31536000, immutable\n/app.css\n  Cache-Control: public, max-age=31536000, immutable\n", "utf-8")
+    print(f"Đã tạo CRM vào {out}")
 
 
 if __name__ == "__main__":
