@@ -87,7 +87,8 @@ Sheet **Đơn hàng website Thực Dưỡng Lành**: https://docs.google.com/spr
 | Mẫu tin nhắn CSKH | Mẫu Zalo cho từng thời điểm chăm sóc. |
 | Liên hệ | Lời nhắn từ form Liên hệ. |
 | Nhân sự CRM | Email · Tên · Quyền (Quản trị / Quản lý / Nhân viên) · Đang dùng (Có/Không). Sửa được trên web ở mục Cài đặt (chỉ Quản trị). thaisoniph@gmail.com luôn là Quản trị. |
-| Nhật ký CSKH | Mỗi thao tác trên CRM web: ai làm, lúc nào, việc gì, kết quả, ghi chú. |
+| Nhật ký CSKH | Mỗi thao tác trên CRM web: ai làm, lúc nào, việc gì, kết quả, ghi chú. Là nguồn số liệu của tab Báo cáo. |
+| Khách tiềm năng | Người hỏi mua nhưng chưa mua: Mã · Kênh · Quan tâm · Trạng thái (Mới hỏi → Đang tư vấn → Đã chốt / Không mua) · Phụ trách · Lần liên hệ · Hẹn liên hệ lại · Lý do không mua · Mã đơn. Form Liên hệ trên web tự thêm vào đây (vẫn ghi cả trang Liên hệ). Cùng 1 số đang mở thì ghi nối, không tạo trùng. Lần đầu tạo trang, các lời nhắn cũ ở Liên hệ được chuyển sang. |
 
 **Việc chăm sóc mỗi ngày** (hàm `careTask`, dùng chung cho tin Telegram 8h và tab Hôm nay trên CRM web): hẹn gọi lại (cột "Hẹn gọi lại" đến ngày) · hỏi nhận hàng (D+1 đến D+3) · sắp hết / đã hết sản phẩm (–7 đến +2 ngày) · xin cảm nhận (D+14 đến D+17) · giới thiệu sản phẩm (D+30 đến D+33) · mời quay lại (D+60 đến D+67). Khách đã được chăm sóc sau mốc đó thì không nhắc nữa.
 
@@ -99,8 +100,12 @@ Sheet **Đơn hàng website Thực Dưỡng Lành**: https://docs.google.com/spr
 - **Quyền**: Nhân viên = Hôm nay, Khách hàng, Đơn hàng (đổi trạng thái, tạo đơn nhập tay), Liên hệ. Quản lý = thêm doanh thu, sửa Chu kỳ dùng và Mẫu tin nhắn. Quản trị = thêm quản lý nhân sự.
 - **Tạo đơn nhập tay** (Zalo, điện thoại…): ghi vào Đơn hàng với Nguồn "Nhập tay – …", cập nhật Khách hàng, báo Telegram (không gửi email).
 - **Số ngày chưa chăm sóc** (nhãn màu trên mỗi thẻ khách + ô lớn trong trang chi tiết): đếm từ lần gần nhất khách *có phản hồi* (mọi kết quả trừ "Không nghe máy"), lấy từ Nhật ký CSKH + cột Lần CSKH/Kết quả CSKH. Chưa chăm sóc lần nào thì đếm từ ngày mua đầu tiên. Xanh ≤ 7 ngày, cam 8–30, đỏ > 30. Có bộ lọc "Quá 30 ngày chưa chăm sóc" và cách sắp xếp "Lâu chưa chăm sóc nhất". Tính trên trình duyệt, không cần sửa Apps Script.
+- **Khách tiềm năng** (tab Tiềm năng): cần liên hệ khi Mới hỏi chưa liên hệ, đến ngày hẹn, hoặc Đang tư vấn mà 3 ngày chưa liên hệ lại. Nút Tư vấn → kết quả; "Khách chốt mua" mở form tạo đơn (`order_create` với `leadId` → lead thành Đã chốt + Mã đơn, Nguồn đơn = "Tiềm năng – <kênh>"); "Khách không mua" bắt buộc lý do. Mẫu tin "Khách mới hỏi" được thêm 1 lần vào Mẫu tin nhắn CSKH (cờ `tpl_lead_added` trong Script Properties).
+- **Báo cáo** (Quản lý trở lên): theo kỳ Hôm nay / 7 ngày / Tháng này / Tháng trước. Doanh thu, doanh thu khách mua lại, khách mới, tiềm năng mới, tỉ lệ chốt, lý do không mua; theo từng nhân viên: lượt chăm sóc, khách trả lời, khách đặt lại, tư vấn, chốt từ tiềm năng, đơn tự nhập, doanh số (theo khách đang phụ trách), khách quá 30 ngày, việc tồn. Tính trên trình duyệt từ Nhật ký (6.000 dòng gần nhất) + Đơn hàng.
+- **Đơn hàng**: 3 cột mới ở trang Đơn hàng: Đã nhận tiền ("Có – người – thời gian"), Đơn vị vận chuyển, Mã vận đơn. Nhập mã vận đơn → đơn Mới/Đã xác nhận tự thành Đang giao. Link tra cứu theo hãng nằm ở `CARRIERS` trong `crm/app.js`. Sửa đơn (`order_edit`) ghi lại khách/sản phẩm/ship/thanh toán rồi chạy `rebuildCustomers`.
+- Chạy thử trên máy với dữ liệu giả: `backend/crm-test/sync.sh` rồi `backend/crm-test/shot.sh <kịch bản> <ảnh.png>` (kịch bản trong `flow.js`, ảnh ở `crm-test/out/`). Bộ giả lập Apps Script: `mock.js`.
 - Đổi trạng thái sang/khỏi **Huỷ** trên web sẽ tự chạy `rebuildCustomers`. Lưu Chu kỳ dùng cũng vậy.
-- Chạy thử trên máy: `python3 build.py` rồi serve `dist-crm/`. Muốn chạy không cần Apps Script thì dùng bộ giả lập (mock SpreadsheetApp) như lúc phát triển.
+- Chạy thử trên máy: `python3 build.py` rồi serve `dist-crm/` (gọi Apps Script thật), hoặc dùng `backend/crm-test/` (dữ liệu giả).
 
 **Hàm trong Apps Script** (chọn hàm → ▶ Chạy):
 
