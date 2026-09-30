@@ -1162,7 +1162,7 @@
     var roles = ads ? { skip: 'Không lấy', ads: '✅ Lấy số từ sheet này' } : ROLE_LABEL, role = sh.role;
     var fields = ROLE_FIELDS[ads ? 'ads' : role] || [];
     var mapped = {}; Object.keys(sh.map || {}).forEach(function (k) { mapped[sh.map[k]] = 1; });
-    return '<div class="sheet-cfg" data-si="' + i + '"><div class="r1"><b>' + esc(sh.name) + '</b><span class="muted small">' + (sh.rows || 0) + ' dòng</span>' +
+    return '<div class="sheet-cfg' + (sh.unread ? ' unread' : '') + '" data-si="' + i + '"><div class="r1"><b>' + esc(sh.name) + '</b><span class="muted small">' + (sh.unread ? 'sheet báo cáo – không nhập' : (sh.rows || 0) + ' dòng') + '</span>' +
       '<select class="role" style="margin-left:auto;width:auto">' + Object.keys(roles).map(function (k) { return '<option value="' + k + '"' + (k === role || (ads && k === 'ads' && sh.on) ? ' selected' : '') + '>' + roles[k] + '</option>'; }).join('') + '</select></div>' +
       (sh.headers && sh.headers.length && (ads ? sh.on : role !== 'skip') ? '<details><summary>Cột nào là gì? (máy tự nhận – bấm để kiểm tra)</summary><div class="map-grid">' + fields.map(function (k) { return fieldSelect(k, sh.headers, sh.map ? sh.map[k] : ''); }).join('') + '</div>' +
         (role === 'orders' ? '<p class="small" style="margin:8px 0 4px"><b>Cột riêng của sale</b> (tick để giữ vào ghi chú đơn):</p><div class="extra">' + sh.headers.map(function (hh, k) { return mapped[k] || !/·/.test(hh) ? '' : '<label class="switch small"><input type="checkbox" data-extra="' + k + '"' + ((sh.extra || []).indexOf(k) >= 0 ? ' checked' : '') + '> ' + esc(hh) + '</label>'; }).join(' ') + '</div>' : '') +
@@ -1196,13 +1196,15 @@
       $('#srcSave', m).disabled = false;
     }
     $('#srcRead', m).onclick = function () {
-      var b = this, url = $('#srcUrl', m).value.trim(); if (!url) return; b.disabled = true; b.textContent = 'Đang đọc file…'; $('#srcErr', m).textContent = '';
-      api('src_inspect', { url: url }).then(function (j) {
+      var b = this, url = $('#srcUrl', m).value.trim(); if (!url) return; b.disabled = true; $('#srcErr', m).textContent = '';
+      var t0 = Date.now(), tick = setInterval(function () { var sec = Math.round((Date.now() - t0) / 1000); b.textContent = 'Đang đọc file… ' + sec + ' giây' + (sec > 30 ? ' (file lớn, vui lòng chờ)' : ''); }, 1000); b.textContent = 'Đang đọc file…';
+      var done = function () { clearInterval(tick); };
+      api('src_inspect', { url: url }).then(function (j) { done();
         info = j; var old = {}; (cur && cur.cfg.sheets || []).forEach(function (s) { old[s.name] = s; });
         j.sheets.forEach(function (sh) { var o = old[sh.name]; if (o) { sh.role = o.role; sh.map = o.map; sh.extra = o.extra; } });
         if (!cur) j.sheets.forEach(function (sh) { sh.role = defaultRole(sh, j.sheets); });
         b.disabled = false; b.textContent = '📖 Đọc lại file'; renderSheets();
-      }, function (e) { b.disabled = false; b.textContent = '📖 Đọc file'; $('#srcErr', m).textContent = e.message; });
+      }, function (e) { done(); b.disabled = false; b.textContent = '📖 Đọc file'; $('#srcErr', m).textContent = e.message; });
     };
     if (cur) $('#srcRead', m).click();
     $('#srcSave', m).onclick = function () {
