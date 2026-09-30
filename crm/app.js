@@ -73,7 +73,7 @@
   function lvl() { return S.user ? S.user.level : 0; }
   function toast(msg, err) {
     var el = document.createElement('div'); if (err) el.className = 'err'; el.textContent = msg; $('#toast').appendChild(el);
-    setTimeout(function () { el.remove(); }, err ? 6000 : 2800);
+    setTimeout(function () { el.remove(); }, err ? (msg.length > 120 ? 15000 : 6000) : 2800);
   }
   function copy(text) {
     if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text).catch(fallback);
@@ -81,6 +81,12 @@
     function fallback() { var t = document.createElement('textarea'); t.value = text; t.style.position = 'fixed'; t.style.opacity = '0'; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); } catch (e) { } t.remove(); }
   }
 
+  var SERVER_V = '2026-09-30h'; // phải trùng CRM_VERSION trong Apps Script
+  function checkVersion(j) {
+    if (!j || S._vWarned || j.v === SERVER_V) return;
+    S._vWarned = true;
+    if (lvl() >= 2 || (j.user && j.user.level >= 2)) toast('⚠️ Máy chủ Apps Script đang chạy bản cũ (' + (j.v || 'chưa có số phiên bản') + '), cần bản ' + SERVER_V + '. Vào Apps Script → Triển khai → Quản lý các bản triển khai → ✏️ → Phiên bản: Phiên bản mới → Triển khai.', true);
+  }
   function api(action, payload) {
     var body = Object.assign({ type: 'crm', action: action, token: S.token }, payload || {});
     if (!CFG.endpoint) return Promise.reject(new Error('Chưa cấu hình máy chủ.'));
@@ -88,6 +94,7 @@
       .then(function (r) { return r.text(); }, function () { throw new Error('Mất kết nối mạng. Bạn thử lại nhé.'); })
       .then(function (t) { try { return JSON.parse(t); } catch (e) { throw new Error('Máy chủ Google báo lỗi (thường do việc chạy quá lâu hoặc file quá lớn). Bạn bấm lại thử; nếu vẫn lỗi, báo quản trị xem mục “Lượt thực thi” trong Apps Script.'); } })
       .then(function (j) {
+        checkVersion(j);
         if (!j || !j.ok) {
           if (j && j.auth) { logout(true); }
           throw new Error((j && j.error) || 'Có lỗi, bạn thử lại nhé.');
