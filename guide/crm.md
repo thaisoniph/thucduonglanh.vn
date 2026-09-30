@@ -277,7 +277,13 @@ Doanh số tính theo **Nhân viên bán** ghi trên từng đơn. Đơn khách 
 
 **Đồng nghiệp đã sửa mà máy tôi chưa thấy?** Bấm nút **⟳** góc trên để tải lại.
 
-**Báo “Mất kết nối mạng”?** Kiểm tra wifi hoặc 4G rồi bấm lại. Việc chưa lưu thì làm lại.
+**Báo “Mất kết nối mạng”?** Kiểm tra wifi hoặc 4G rồi bấm lại. Riêng kết quả chăm sóc (KNM, Dùng ok…) và ghi chú khách thì không cần bấm lại: CRM tự gửi khi có mạng.
+
+**Góc trên hiện “⏳ Đang gửi 1”?** Việc bạn vừa lưu đang được gửi lên máy chủ. Cứ làm tiếp. Mất mạng thì CRM giữ lại và tự gửi khi có mạng, kể cả khi bạn tắt trang rồi mở lại.
+
+**Cuối trang hiện “⏳ Đang cập nhật…”?** Để mở nhanh, CRM hiện ngay dữ liệu lần trước lưu trên máy bạn, rồi tự tải bản mới trong vài giây. Dữ liệu này tự xoá khi bạn **đăng xuất**. Dùng máy chung thì nhớ đăng xuất khi xong việc.
+
+**Sửa trực tiếp trên Google Sheet mà CRM chưa thấy?** Bấm **⟳** để đọc lại ngay. Nếu không bấm, khoảng 10 phút sau CRM tự thấy.
 
 **Khách đặt lại qua Zalo, tôi đã chọn “Đã đặt lại”, có cần tạo đơn không?** **Có.** Chọn kết quả chỉ ghi lại việc chăm sóc. Phải tạo đơn thì mới có đơn hàng và tính doanh số.
 

@@ -355,3 +355,5 @@ table.bcdt tr.tot td { font-weight: 700; background: var(--primary-light); }
 .radios span { border-width: 1.5px; padding: 8px 13px; }
 .radios input:checked + span { box-shadow: 0 2px 8px rgba(31, 95, 58, .25); }
 @media (max-width: 859px) { .nav a.on { font-weight: 800; } }
+
+.pending { font-size: 12px; font-weight: 600; color: var(--muted); background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; white-space: nowrap; }

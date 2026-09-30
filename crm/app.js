@@ -96,7 +96,7 @@
   var SERVER_V = '2026-10-02a'; // phải trùng số phiên bản máy chủ (api/src/index.js)
   var ON_CF = !/script\.google/.test(CFG.endpoint || ''); // máy chủ Cloudflare (nhanh) hay Apps Script cũ
   function checkVersion(j) {
-    if (!j || S._vWarned || j.v === SERVER_V || j.v === '2026-10-01c' || j.v === 'moved') return;
+    if (!j || S._vWarned || j.v === SERVER_V || j.v === '2026-10-01d' || j.v === 'moved') return;
     S._vWarned = true;
     if (lvl() >= 2 || (j.user && j.user.level >= 2)) toast('⚠️ Máy chủ Apps Script đang chạy bản cũ (' + (j.v || 'chưa có số phiên bản') + '), cần bản ' + SERVER_V + '. Vào Apps Script → Triển khai → Quản lý các bản triển khai → ✏️ → Phiên bản: Phiên bản mới → Triển khai.', true);
   }
@@ -104,8 +104,8 @@
     var body = Object.assign({ type: 'crm', action: action, token: S.token }, payload || {});
     if (!CFG.endpoint) return Promise.reject(new Error('Chưa cấu hình máy chủ.'));
     return fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) })
-      .then(function (r) { return r.text(); }, function () { throw new Error('Mất kết nối mạng. Bạn thử lại nhé.'); })
-      .then(function (t) { try { return JSON.parse(t); } catch (e) { throw new Error('Máy chủ Google báo lỗi (thường do việc chạy quá lâu hoặc file quá lớn). Bạn bấm lại thử; nếu vẫn lỗi, báo quản trị xem mục “Lượt thực thi” trong Apps Script.'); } })
+      .then(function (r) { return r.text(); }, function () { var e0 = new Error('Mất kết nối mạng. Bạn thử lại nhé.'); e0.net = true; throw e0; })
+      .then(function (t) { try { return JSON.parse(t); } catch (e) { var e1 = new Error('Máy chủ Google báo lỗi (thường do việc chạy quá lâu hoặc file quá lớn). Bạn bấm lại thử; nếu vẫn lỗi, báo quản trị xem mục “Lượt thực thi” trong Apps Script.'); e1.net = true; throw e1; } })
       .then(function (j) {
         checkVersion(j);
         if (!j || !j.ok) {
@@ -153,6 +153,7 @@
   function logout(expired) {
     if (!expired && S.token) api('logout').catch(function () { });
     S.token = null; S.user = null; S.d = null; store('crm_token', null); closeModal(true);
+    idb('del', 'data'); S.outbox = []; saveOutbox(); // xoá dữ liệu khách lưu trên máy này
     renderLogin('email', '', expired ? 'Phiên đăng nhập đã hết, bạn đăng nhập lại nhé.' : '');
   }
 
@@ -160,19 +161,89 @@
   function load(silent) {
     if (S.loading) return Promise.resolve();
     S.loading = true; var b = $('#refresh'); if (b) b.classList.add('spin');
-    return api('load').then(function (j) {
-      S.d = j; S.user = j.user; S.loadedAt = Date.now();
-      S.d.byPhone = {}; j.customers.forEach(function (c) { S.d.byPhone[c.phone] = c; });
+    var fresh = !silent && !!S.d; // bấm ↻: đọc thẳng từ Sheet, không dùng bản máy chủ nhớ tạm
+    return api('load', fresh ? { fresh: 1 } : {}).then(function (j) {
+      S.stale = false; setData(j, Date.now());
+      idb('set', 'data', { tk: S.token.slice(-12), at: S.loadedAt, d: j }); // lần sau mở CRM hiện ngay
       if (!$('.top')) shell(); else { $('.me').innerHTML = meHTML(); navBadges(); }
       var ae = document.activeElement, editing = silent && ae && ae.closest && ae.closest('#view') && /INPUT|TEXTAREA|SELECT/.test(ae.tagName) && ae.type !== 'search';
       if (!editing) render(); // đang gõ dở thì không vẽ lại, tránh mất chữ
     }, function (e) { if (!silent && S.token) toast(e.message, true); if (!S.d && S.token && !$('.top')) { $('#app').innerHTML = '<div class="login"><div class="login-box"><h1>Chưa tải được dữ liệu</h1><p class="sub">' + esc(e.message) + '</p><button class="btn pri block" id="retry">Thử lại</button></div></div>'; $('#retry').onclick = function () { location.reload(); }; } })
       .then(function () { S.loading = false; var b2 = $('#refresh'); if (b2) b2.classList.remove('spin'); });
   }
+  function setData(j, at) {
+    S.d = j; S.user = j.user; S.loadedAt = at;
+    S.d.byPhone = {}; j.customers.forEach(function (c) { S.d.byPhone[c.phone] = c; });
+    S.outbox.forEach(applyOp); // việc vừa bấm nhưng máy chủ chưa nhận xong → vẫn hiện đúng
+  }
   function start() {
     $('#app').innerHTML = '<div class="boot"><img src="/logo.webp" alt="" height="64"><p>Đang tải dữ liệu…</p></div>';
-    load();
+    idb('get', 'data').then(function (c) {
+      if (c && c.d && c.tk === String(S.token || '').slice(-12) && Date.now() - c.at < 7 * DAY && !S.d) { // dữ liệu lần trước trên máy này → hiện ngay, cập nhật ngầm
+        S.stale = true; setData(c.d, c.at); shell(); render(); load(true); flush();
+      } else load().then(flush);
+    });
   }
+
+  /* ---------- lưu dữ liệu trên máy (IndexedDB): mở CRM thấy ngay, không phải chờ máy chủ. Đăng xuất là xoá. */
+  var IDB = null;
+  function idb(op, key, val) {
+    return new Promise(function (ok) {
+      setTimeout(function () { ok(null); }, 2500); // trình duyệt chặn / treo bộ nhớ máy → bỏ qua, tải bình thường
+      try {
+        var go = function (db) {
+          var tx = db.transaction('kv', op === 'get' ? 'readonly' : 'readwrite'), st = tx.objectStore('kv');
+          var rq = op === 'get' ? st.get(key) : op === 'set' ? st.put(val, key) : st.delete(key);
+          rq.onsuccess = function () { ok(op === 'get' ? rq.result : true); }; rq.onerror = function () { ok(null); };
+        };
+        if (IDB) return go(IDB);
+        var o = indexedDB.open('crm-tdl', 1);
+        o.onupgradeneeded = function () { o.result.createObjectStore('kv'); };
+        o.onsuccess = function () { IDB = o.result; go(IDB); }; o.onerror = function () { ok(null); };
+      } catch (e) { ok(null); }
+    });
+  }
+
+  /* ---------- hàng chờ gửi: bấm lưu là màn hình đổi ngay, lệnh gửi ngầm lên máy chủ; mất mạng thì tự gửi lại */
+  S.outbox = (function () { try { return JSON.parse(store('crm_outbox') || '[]'); } catch (e) { return []; } })();
+  function saveOutbox() { store('crm_outbox', S.outbox.length ? JSON.stringify(S.outbox) : null); pendingBadge(); }
+  function sendOp(action, p) {
+    var op = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7), action: action, p: p, at: Date.now() };
+    p.opId = op.id; S.outbox.push(op); saveOutbox(); applyOp(op); flush(); return op;
+  }
+  function applyOp(op) {
+    var p = op.p, c = cust(p.phone); if (!c) return;
+    if (op.action === 'care') {
+      c.careAt = op.at; c.careResult = p.result; if (!c.owner) c.owner = S.user.name;
+      c.callback = p.callback ? new Date(p.callback + 'T09:00:00+07:00').getTime() : null; c.task = null;
+      if (!S.d.log.some(function (l) { return l.op === op.id; })) S.d.log.push({ op: op.id, time: op.at, by: S.user.name, what: TASK_LOG[p.task] || TASK_LOG.other, ref: c.phone, name: c.name, result: p.result, note: p.note + (p.callback ? (p.note ? ' – ' : '') + 'hẹn gọi lại ' + p.callback.split('-').reverse().join('/') : '') });
+    }
+    if (op.action === 'customer') {
+      if (p.owner !== undefined) c.owner = p.owner; c.note = p.note; c.noteCut = false; c.tag = p.tag;
+      c.callback = p.callback ? new Date(p.callback + 'T09:00:00+07:00').getTime() : null;
+      if (c.callback && dayStart(c.callback) <= today()) c.task = { type: 'callback', late: Math.round((today() - dayStart(c.callback)) / DAY), days: 0 };
+      else if (c.task && c.task.type === 'callback') c.task = null;
+    }
+  }
+  var flushing = false, flushTimer = null;
+  function flush() {
+    if (flushing || !S.outbox.length || !S.token) return;
+    flushing = true; var op = S.outbox[0];
+    api(op.action, op.p).then(function () {
+      S.outbox.shift(); saveOutbox(); flushing = false; flush();
+    }, function (e) {
+      flushing = false;
+      if (e.net) { clearTimeout(flushTimer); flushTimer = setTimeout(flush, 20e3); pendingBadge(); return; } // mất mạng / máy chủ bận → 20 giây sau gửi lại
+      S.outbox.shift(); saveOutbox(); toast('Chưa lưu được (' + ((cust(op.p.phone) || {}).name || op.p.phone) + '): ' + e.message, true); load(true); flush();
+    });
+  }
+  function pendingBadge() {
+    var n = S.outbox.length, b = $('#pending');
+    if (!b && n && $('.top .me')) { $('.top .me').insertAdjacentHTML('beforebegin', '<span id="pending" class="pending"></span>'); b = $('#pending'); }
+    if (b) { b.style.display = n ? '' : 'none'; b.textContent = '⏳ Đang gửi ' + n; b.title = 'Việc vừa lưu đang được gửi lên máy chủ. Mất mạng thì CRM tự gửi lại, không cần bấm lại.'; }
+  }
+  window.addEventListener('online', function () { flush(); });
+
   function cust(phone) { return S.d && S.d.byPhone[normPhone(phone)]; }
   function ordersOf(phone) { phone = normPhone(phone); return S.d.orders.filter(function (o) { return o.phone === phone; }).sort(function (a, b) { return b.time - a.time; }); }
   function logOf(ref) { return S.d.log.filter(function (l) { return String(l.ref).replace(/^'/, '') === ref; }).sort(function (a, b) { return b.time - a.time; }); }
@@ -278,7 +349,7 @@
       '<button class="icon-btn" id="refresh" title="Tải lại dữ liệu" aria-label="Tải lại dữ liệu">' + I.refresh + '</button>' +
       '</div></header><main id="view"></main>';
     $('#refresh').onclick = function () { load(); };
-    navBadges();
+    navBadges(); pendingBadge();
   }
   function navBadges() {
     var ld = leadsDue().length, n = { 'hom-nay': newOrders().length + tasksShown().length + ld, 'don-hang': newOrders().length, 'tiem-nang': ld };
@@ -297,7 +368,7 @@
     var el = $('#view');
     var focusId = document.activeElement && document.activeElement.id, selStart = document.activeElement && document.activeElement.selectionStart;
     el.innerHTML = ({ 'hom-nay': viewToday, 'khach-hang': viewCustomers, 'don-hang': viewOrders, 'tiem-nang': viewLeads, 'bao-cao': viewReport, 'cai-dat': viewSettings })[v]();
-    el.insertAdjacentHTML('beforeend', '<p class="updated">Cập nhật lúc ' + fDateTime(S.loadedAt) + ' · dữ liệu lưu trong Google Sheet</p>');
+    el.insertAdjacentHTML('beforeend', '<p class="updated">' + (S.stale ? '⏳ Đang cập nhật… (đang xem dữ liệu lúc ' + fDateTime(S.loadedAt) + ')' : 'Cập nhật lúc ' + fDateTime(S.loadedAt)) + ' · dữ liệu lưu trong Google Sheet</p>');
     if (focusId && $('#' + focusId)) { var f = $('#' + focusId); f.focus(); try { f.setSelectionRange(selStart, selStart); } catch (e) { } }
     if (keepScroll) window.scrollTo(0, y); else window.scrollTo(0, 0);
     lastView = v;
@@ -539,13 +610,9 @@
       if (q) noteNow = fDate(Date.now()).slice(0, 5) + ': ' + q + (noteNow ? '\n' + noteNow : '');
       var p = { phone: c.phone, note: noteNow, callback: $('#cCb', m).value, tag: $('#cTag', m).value, quick: q };
       if ($('#cOwner', m)) p.owner = $('#cOwner', m).value;
-      var btn = this; btn.disabled = true; btn.textContent = 'Đang lưu…';
-      api('customer', p).then(function () {
-        if (p.owner !== undefined) c.owner = p.owner; c.note = p.note; c.tag = p.tag; $('#cNote', m).value = p.note; $('#cQuick', m).value = ''; c.callback = p.callback ? new Date(p.callback + 'T09:00:00+07:00').getTime() : null;
-        if (c.callback && dayStart(c.callback) <= today()) c.task = { type: 'callback', late: Math.round((today() - dayStart(c.callback)) / DAY), days: 0 };
-        else if (c.task && c.task.type === 'callback') c.task = null;
-        toast('Đã lưu'); btn.textContent = 'Đã lưu ✓'; setTimeout(function () { btn.disabled = false; btn.textContent = 'Lưu thông tin chăm sóc'; }, 1500); refreshBehind();
-      }, function (e) { toast(e.message, true); btn.disabled = false; btn.textContent = 'Lưu thông tin chăm sóc'; });
+      var btn = this; sendOp('customer', p);
+      $('#cNote', m).value = p.note; $('#cQuick', m).value = ''; $('#cHist', m).innerHTML = histHtml(c, logOf(c.phone));
+      toast('Đã lưu'); btn.textContent = 'Đã lưu ✓'; btn.disabled = true; setTimeout(function () { btn.disabled = false; btn.textContent = 'Lưu thông tin chăm sóc'; }, 1500); render();
     };
   }
   /** Các dòng "30/09/25: knm" trong ghi chú (nhập từ Sheet cũ hoặc ghi nhanh) → mốc thời gian. */
@@ -620,14 +687,7 @@
       saveCare(c, p).then(function () { closeModal(); toast('Đã lưu kết quả chăm sóc ✓'); navBadges(); render(); }, function (e) { btn.disabled = false; btn.textContent = 'Lưu kết quả'; err.textContent = e.message; });
     };
   }
-  function saveCare(c, p) {
-    return api('care', p).then(function (j) {
-      c.careAt = j.careAt; c.careResult = p.result; c.owner = j.owner || c.owner; c.callback = j.callback || null;
-      c.task = null; // vừa chăm sóc xong → rời danh sách hôm nay
-      S.d.log.push({ time: j.careAt, by: S.user.name, what: TASK_LOG[p.task] || TASK_LOG.other, ref: c.phone, name: c.name, result: p.result, note: p.note + (p.callback ? (p.note ? ' – ' : '') + 'hẹn gọi lại ' + p.callback.split('-').reverse().join('/') : '') });
-      return j;
-    });
-  }
+  function saveCare(c, p) { sendOp('care', p); return Promise.resolve(); } // lưu ngay trên màn hình, gửi ngầm (xem hàng chờ gửi)
   /** Ghi nhanh 1 chạm: KNM, thuê bao, dùng ok… (thêm ghi chú đang gõ nếu có). */
   function quickCare(c, key, task, extra, btn, errEl) {
     var q = QUICK.filter(function (x) { return x.k === key; })[0]; if (!q) return;
