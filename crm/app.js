@@ -85,7 +85,8 @@
     var body = Object.assign({ type: 'crm', action: action, token: S.token }, payload || {});
     if (!CFG.endpoint) return Promise.reject(new Error('Chưa cấu hình máy chủ.'));
     return fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) })
-      .then(function (r) { return r.json(); }, function () { throw new Error('Mất kết nối mạng. Bạn thử lại nhé.'); })
+      .then(function (r) { return r.text(); }, function () { throw new Error('Mất kết nối mạng. Bạn thử lại nhé.'); })
+      .then(function (t) { try { return JSON.parse(t); } catch (e) { throw new Error('Máy chủ Google báo lỗi (thường do việc chạy quá lâu hoặc file quá lớn). Bạn bấm lại thử; nếu vẫn lỗi, báo quản trị xem mục “Lượt thực thi” trong Apps Script.'); } })
       .then(function (j) {
         if (!j || !j.ok) {
           if (j && j.auth) { logout(true); }
