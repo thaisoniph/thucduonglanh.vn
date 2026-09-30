@@ -442,6 +442,10 @@
       '<button class="btn" id="cAllOrders" style="margin-top:8px">📜 Xem toàn bộ lịch sử mua (kể cả đơn cũ)</button></div>' +
       '<div class="box"><h3>Lịch sử chăm sóc (' + logs.length + ')</h3>' + (logs.length ? '<div class="timeline">' + logs.map(logItem).join('') + '</div>' : '<p class="muted">Chưa có lần chăm sóc nào trên CRM.' + (c.careAt ? ' Lần gần nhất ghi trong Sheet: ' + fDate(c.careAt) + (c.careResult ? ' – ' + esc(c.careResult) : '') : '') + '</p>') + '</div>';
     var m = modal('<span>' + esc(c.name || 'Khách') + '</span> ' + groupTag(c.group), body, null, { route: '#khach-hang', pushed: !fromRoute });
+    if (c.noteCut) { // nhật ký dài: tải bản đầy đủ trước khi cho sửa
+      var ta = $('#cNote', m), sv = $('#cSave', m); ta.disabled = true; sv.disabled = true; ta.value = 'Đang tải nhật ký đầy đủ…';
+      api('cust_orders', { phone: c.phone }).then(function (j) { c.note = j.note; c.noteCut = false; ta.value = j.note; ta.disabled = false; sv.disabled = false; }, function (e) { ta.value = c.note; toast(e.message, true); });
+    }
     $('#cAllOrders', m).onclick = function () {
       var b = this; b.disabled = true; b.textContent = 'Đang tải…';
       api('cust_orders', { phone: c.phone }).then(function (j) {
