@@ -81,7 +81,7 @@
     function fallback() { var t = document.createElement('textarea'); t.value = text; t.style.position = 'fixed'; t.style.opacity = '0'; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); } catch (e) { } t.remove(); }
   }
 
-  var SERVER_V = '2026-09-30i'; // phải trùng CRM_VERSION trong Apps Script
+  var SERVER_V = '2026-09-30j'; // phải trùng CRM_VERSION trong Apps Script
   function checkVersion(j) {
     if (!j || S._vWarned || j.v === SERVER_V) return;
     S._vWarned = true;
@@ -1162,6 +1162,8 @@
     var roles = ads ? { skip: 'Không lấy', ads: '✅ Lấy số từ sheet này' } : ROLE_LABEL, role = sh.role;
     var fields = ROLE_FIELDS[ads ? 'ads' : role] || [];
     var mapped = {}; Object.keys(sh.map || {}).forEach(function (k) { mapped[sh.map[k]] = 1; });
+    if (sh.pending) return '<div class="sheet-cfg unread" data-si="' + i + '"><div class="r1"><b>' + esc(sh.name) + '</b><span class="muted small">⏳ đang đọc…</span></div></div>';
+    if (sh.failed) return '<div class="sheet-cfg" data-si="' + i + '"><div class="r1"><b>' + esc(sh.name) + '</b><span class="bad-line small">Không đọc được: ' + esc(sh.failed) + '</span><select class="role" style="display:none"><option value="skip">skip</option></select></div></div>';
     return '<div class="sheet-cfg' + (sh.unread ? ' unread' : '') + '" data-si="' + i + '"><div class="r1"><b>' + esc(sh.name) + '</b><span class="muted small">' + (sh.unread ? 'sheet báo cáo – không nhập' : (sh.rows || 0) + ' dòng') + '</span>' +
       '<select class="role" style="margin-left:auto;width:auto">' + Object.keys(roles).map(function (k) { return '<option value="' + k + '"' + (k === role || (ads && k === 'ads' && sh.on) ? ' selected' : '') + '>' + roles[k] + '</option>'; }).join('') + '</select></div>' +
       (sh.headers && sh.headers.length && (ads ? sh.on : role !== 'skip') ? '<details><summary>Cột nào là gì? (máy tự nhận – bấm để kiểm tra)</summary><div class="map-grid">' + fields.map(function (k) { return fieldSelect(k, sh.headers, sh.map ? sh.map[k] : ''); }).join('') + '</div>' +
@@ -1181,6 +1183,22 @@
       return ads ? { name: sh.name, on: role === 'ads', header: sh.header, map: map } : { name: sh.name, role: role, header: sh.header, map: map, extra: extra };
     });
   }
+  /** Đọc file theo từng sheet: lấy danh sách tên trước, rồi đọc lần lượt từng sheet (sheet báo cáo bỏ qua). */
+  function inspectFile(url, ads, onUpdate) {
+    var act = ads ? 'ads_inspect' : 'src_inspect';
+    return api(act, { url: url, list: true }).then(function (j) {
+      var info = { fileId: j.fileId, fileName: j.fileName, sheets: j.sheets.map(function (x) { return x.report ? { name: x.name, role: 'skip', headers: [], unread: true } : { name: x.name, role: 'skip', headers: [], pending: true }; }) };
+      onUpdate(info);
+      var k = 0;
+      return (function next() {
+        while (k < info.sheets.length && !info.sheets[k].pending) k++;
+        if (k >= info.sheets.length) return info;
+        var i = k++;
+        return api(act, { url: url, sheet: info.sheets[i].name }).then(function (r) { info.sheets[i] = r.sheets[0] || { name: info.sheets[i].name, role: 'skip', headers: [] }; onUpdate(info); return next(); },
+          function (e) { info.sheets[i] = { name: info.sheets[i].name, role: 'skip', headers: [], failed: e.message }; onUpdate(info); return next(); });
+      })();
+    });
+  }
   function openSrc(id) {
     var cur = (S.d.sources || []).filter(function (x) { return x.id === id; })[0], saleNames = userNames();
     var body = '<div class="box"><div class="row2c"><label class="f"><span>File của sale</span><select id="srcSale">' + saleNames.map(function (n) { return '<option' + (cur && cur.sale === n ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('') + '</select></label>' +
@@ -1193,18 +1211,22 @@
         info.sheets.map(function (sh, i) { return sheetBlock(sh, i); }).join('') + '</div>';
       $$('.sheet-cfg .role', m).forEach(function (sel) { sel.onchange = function () { var i = +sel.closest('.sheet-cfg').getAttribute('data-si'); info.sheets[i].role = sel.value; if (!info.sheets[i].map || !Object.keys(info.sheets[i].map).length) info.sheets[i].map = {}; renderSheets(); }; });
       $$('select[data-field]', m).forEach(function (s) { var show = function () { var sh = info.sheets[+s.closest('.sheet-cfg').getAttribute('data-si')], v = s.value; s.parentNode.querySelector('.map-s').textContent = v === '' ? '' : 'vd: ' + ((sh.samples[0] || [])[+v] || (sh.samples[1] || [])[+v] || ''); }; s.onchange = show; show(); });
-      $('#srcSave', m).disabled = false;
     }
     $('#srcRead', m).onclick = function () {
       var b = this, url = $('#srcUrl', m).value.trim(); if (!url) return; b.disabled = true; $('#srcErr', m).textContent = '';
       var t0 = Date.now(), tick = setInterval(function () { var sec = Math.round((Date.now() - t0) / 1000); b.textContent = 'Đang đọc file… ' + sec + ' giây' + (sec > 30 ? ' (file lớn, vui lòng chờ)' : ''); }, 1000); b.textContent = 'Đang đọc file…';
       var done = function () { clearInterval(tick); };
-      api('src_inspect', { url: url }).then(function (j) { done();
-        info = j; var old = {}; (cur && cur.cfg.sheets || []).forEach(function (s) { old[s.name] = s; });
-        j.sheets.forEach(function (sh) { var o = old[sh.name]; if (o) { sh.role = o.role; sh.map = o.map; sh.extra = o.extra; } });
-        if (!cur) j.sheets.forEach(function (sh) { sh.role = defaultRole(sh, j.sheets); });
-        b.disabled = false; b.textContent = '📖 Đọc lại file'; renderSheets();
-      }, function (e) { done(); b.disabled = false; b.textContent = '📖 Đọc file'; $('#srcErr', m).textContent = e.message; });
+      var old = {}; (cur && cur.cfg.sheets || []).forEach(function (s) { old[s.name] = s; });
+      inspectFile(url, false, function (j) {
+        info = j;
+        var allDone = !j.sheets.some(function (x) { return x.pending; }), usable = function (x) { return !x.pending && !x.unread && !x.failed; };
+        j.sheets.forEach(function (sh) { if (usable(sh) && sh._det === undefined) { sh._det = sh.role; sh.role = old[sh.name] ? old[sh.name].role : 'skip'; if (old[sh.name]) { sh.map = old[sh.name].map || sh.map; sh.extra = old[sh.name].extra; } } });
+        if (allDone) { // đọc xong hết mới chọn vai trò mặc định (cần biết toàn bộ sheet để chọn đúng sheet chăm sóc)
+          var det = j.sheets.map(function (x) { return Object.assign({}, x, { role: x._det || 'skip' }); });
+          j.sheets.forEach(function (sh, k) { if (usable(sh) && !sh._set) { sh._set = 1; if (!old[sh.name]) sh.role = defaultRole(det[k], det); } });
+        }
+        renderSheets(); $('#srcSave', m).disabled = j.sheets.some(function (x) { return x.pending; });
+      }).then(function () { done(); b.disabled = false; b.textContent = '📖 Đọc lại file'; }, function (e) { done(); b.disabled = false; b.textContent = '📖 Đọc file'; $('#srcErr', m).textContent = e.message; });
     };
     if (cur) $('#srcRead', m).click();
     $('#srcSave', m).onclick = function () {
@@ -1287,17 +1309,16 @@
       $('#adSheets', m).innerHTML = '<div class="box"><h3>Sheet sản phẩm</h3>' + info.sheets.map(function (sh, i) { return sheetBlock(sh, i, true); }).join('') + '</div>';
       $$('.sheet-cfg .role', m).forEach(function (sel) { sel.onchange = function () { info.sheets[+sel.closest('.sheet-cfg').getAttribute('data-si')].on = sel.value === 'ads'; renderSheets(); }; });
       $$('select[data-field]', m).forEach(function (s) { var show = function () { var sh = info.sheets[+s.closest('.sheet-cfg').getAttribute('data-si')], v = s.value; s.parentNode.querySelector('.map-s').textContent = v === '' || !sh.samples ? '' : 'vd: ' + ((sh.samples[0] || [])[+v] || ''); }; s.onchange = show; show(); });
-      $('#adSave', m).disabled = false;
     }
     $('#adRead', m).onclick = function () {
       var b = this, url = $('#adUrl', m).value.trim(); if (!url) return; b.disabled = true; b.textContent = 'Đang đọc file…'; $('#adErr', m).textContent = '';
-      api('ads_inspect', { url: url }).then(function (j) {
-        var old = {}; (cur.sheets || []).forEach(function (s) { old[s.name] = s; });
-        j.sheets.forEach(function (sh) { sh.on = old[sh.name] ? old[sh.name].on : sh.role === 'ads'; if (old[sh.name] && old[sh.name].map) sh.map = old[sh.name].map; });
-        info = j; b.disabled = false; b.textContent = '📖 Đọc lại file'; renderSheets();
-      }, function (e) { b.disabled = false; b.textContent = '📖 Đọc file'; $('#adErr', m).textContent = e.message; });
+      var old = {}; (cur.sheets || []).forEach(function (s) { old[s.name] = s; });
+      inspectFile(url, true, function (j) {
+        j.sheets.forEach(function (sh) { if (sh.pending || sh._set) return; sh._set = 1; sh.on = old[sh.name] ? old[sh.name].on : sh.role === 'ads'; if (old[sh.name] && old[sh.name].map) sh.map = old[sh.name].map; });
+        info = j; renderSheets(); $('#adSave', m).disabled = j.sheets.some(function (x) { return x.pending; });
+      }).then(function () { b.disabled = false; b.textContent = '📖 Đọc lại file'; }, function (e) { b.disabled = false; b.textContent = '📖 Đọc file'; $('#adErr', m).textContent = e.message; });
     };
-    if (info) renderSheets();
+    if (info) { renderSheets(); $('#adSave', m).disabled = false; }
     $('#adSave', m).onclick = function () {
       var b = this; b.disabled = true;
       var cfg = { url: $('#adUrl', m).value.trim(), mode: ($('input[name=adMode]:checked', m) || {}).value || 'staff', since: $('#adSince', m).value, auto: $('#adAuto', m).checked, sheets: readSheetCfg(m, info.sheets, true) };
