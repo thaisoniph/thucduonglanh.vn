@@ -168,8 +168,21 @@ Bấm vào tên khách ở bất kỳ đâu để mở hồ sơ.
 | --- | --- |
 | **Mới** | Mới mua 1 đơn |
 | **Quay lại** | Đã mua từ 2 đơn |
-| **VIP** | Từ 3 đơn, hoặc tổng chi từ 2.000.000đ |
-| **Sắp mất** | Hơn 60 ngày chưa mua lại |
+| **VIP** | Từ 3 đơn, hoặc tổng chi từ 2.000.000đ (quản lý đổi được mức này) |
+| **Sắp mất** | Hơn 60 ngày chưa mua lại (quản lý đổi được) |
+
+**Màu thẻ khách** (máy tự tô, để nhìn là biết loại khách):
+
+| Màu | Nghĩa là |
+| --- | --- |
+| **Trắng** | Khách mới, mới mua 1 lần |
+| **Vàng** | Khách cũ, đã mua lại |
+| **Tím** | Đơn gần nhất đặt buổi tối, Chủ nhật hoặc ngày lễ |
+| **Xám** | Đơn gần nhất bị hoàn / huỷ, hoặc khách có nhãn bom hàng |
+
+Nếu khách thuộc nhiều loại thì ưu tiên: nhãn riêng của bạn → xám → tím → vàng → trắng. Bấm vào ô màu phía trên danh sách để chỉ xem khách loại đó.
+
+**Tự đặt màu và nhãn riêng**: vào **Cài đặt → 🎨 Màu phân loại khách** để đổi màu cho từng loại, hoặc bấm **+ Thêm nhãn** để tạo nhãn riêng (ví dụ “Khách sỉ” màu xanh), rồi bấm **Lưu màu & nhãn**. Muốn gắn nhãn cho khách: mở hồ sơ khách → ô **Nhãn màu** → chọn nhãn → **Lưu thông tin chăm sóc**. Màu bạn chọn chỉ áp dụng trên máy của bạn, không ảnh hưởng người khác.
 
 Ở tab **Khách hàng**, gõ tên, số điện thoại hoặc tên sản phẩm để tìm. Các nút lọc nhanh: *Cần chăm sóc*, *VIP*, *Sắp mất*, *Quá 30 ngày chưa chăm sóc*, *Có hẹn gọi lại*… Ô sắp xếp bên phải để xếp theo *Mua gần nhất*, *Lâu chưa chăm sóc nhất*, *Chi nhiều nhất*, *Sắp hết hàng*.
 
@@ -234,6 +247,7 @@ Doanh số tính theo **Nhân viên bán** ghi trên từng đơn. Đơn khách 
 
 - **Chu kỳ dùng sản phẩm**: khách dùng hết 1 hộp trong bao nhiêu ngày. CRM dùng số này để tính ngày nhắc đặt lại. Tên sản phẩm chỉ cần chứa 1 phần (ví dụ “DILVANG”). Để trống quy cách thì áp dụng cho mọi quy cách. Thực tế khách dùng nhanh hay chậm hơn thì sửa lại cho khớp.
 - **Mẫu tin nhắn chăm sóc**: viết **[Tên]** và **[Sản phẩm]** để máy tự thay. Cột *Thời điểm* cần chứa “1 ngày”, “hết”, “14”, “30” hoặc “60” thì CRM mới tự chọn đúng mẫu cho từng việc. Mẫu tin không được hứa hẹn công dụng chữa bệnh.
+- **⭐ Nhóm khách**: đặt mức để máy xếp khách **VIP** (mua từ bao nhiêu đơn, hoặc tổng chi từ bao nhiêu tiền) và **Sắp mất** (bao nhiêu ngày chưa mua lại). Bấm **Lưu nhóm khách**, cả nhóm cùng áp dụng.
 - **Nhân sự được vào CRM** (chỉ Quản trị): thêm email, tên hiển thị, quyền. Nhân viên nghỉ việc thì **bỏ tích “Đang dùng”**, không cần xoá.
 
 ## Câu hỏi thường gặp

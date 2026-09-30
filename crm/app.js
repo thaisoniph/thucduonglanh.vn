@@ -81,7 +81,7 @@
     function fallback() { var t = document.createElement('textarea'); t.value = text; t.style.position = 'fixed'; t.style.opacity = '0'; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); } catch (e) { } t.remove(); }
   }
 
-  var SERVER_V = '2026-09-30l'; // phải trùng CRM_VERSION trong Apps Script
+  var SERVER_V = '2026-10-01a'; // phải trùng CRM_VERSION trong Apps Script
   function checkVersion(j) {
     if (!j || S._vWarned || j.v === SERVER_V) return;
     S._vWarned = true;
@@ -183,6 +183,46 @@
   }
   function ownerWarn(r) { return r && r.status === 'other' ? '⚠️ Số này ' + (r.lead ? 'đang là khách tiềm năng' : 'là khách hàng') + ' do <b>' + esc(r.owner) + '</b> phụ trách. Bạn không thao tác được – nhờ ' + esc(r.owner) + ' hoặc quản lý.' : ''; }
   function claimBtn(kind, id) { return '<button class="btn" data-claim="' + kind + '|' + esc(id) + '">✋ Nhận khách này</button>'; }
+  /* ---------- màu phân loại khách (mỗi người tự chọn màu, tự tạo nhãn trong Cài đặt) */
+  var CAT_DEF = {
+    new: { label: 'Khách mới', color: '#ffffff', tip: 'mới mua 1 lần' },
+    old: { label: 'Khách cũ', color: '#fff1b8', tip: 'đã mua lại' },
+    off: { label: 'Ngoài giờ', color: '#eee2ff', tip: 'đơn gần nhất buổi tối / Chủ nhật / lễ' },
+    void: { label: 'Hoàn / bom', color: '#e4e4e4', tip: 'đơn gần nhất bị hoàn, huỷ hoặc khách có nhãn bom hàng' }
+  };
+  var CAT_ORDER = ['new', 'old', 'off', 'void'];
+  function catColor(k) { var p = (S.d && S.d.prefs && S.d.prefs.colors) || {}; return p[k] || CAT_DEF[k].color; }
+  function myTags() { return (S.d && S.d.prefs && S.d.prefs.tags) || []; }
+  function tagColor(name) { var t = myTags().filter(function (x) { return x.name === name; })[0]; return t ? t.color : (S.d.tagColors || {})[name] || '#dbeafe'; }
+  function custCat(c) {
+    if (c.tag) return { key: 'tag:' + c.tag, label: c.tag, color: tagColor(c.tag) };
+    var k = c.flag || /hoàn|huỷ|hủy/i.test(c.lastStatus || '') ? 'void' : c.lastCa === 'Tối/CN' || c.lastCa === 'Lễ' ? 'off' : c.orders >= 2 ? 'old' : 'new';
+    return { key: k, label: CAT_DEF[k].label, color: catColor(k) };
+  }
+  function orderCat(o) {
+    var c = cust(o.phone), k = isVoid(o.status) ? 'void' : o.ca === 'Tối/CN' || o.ca === 'Lễ' ? 'off' : c && c.first && c.first < (o.time || 0) - 3600e3 ? 'old' : 'new';
+    if (!isVoid(o.status) && c && c.tag) return { key: 'tag:' + c.tag, label: c.tag, color: tagColor(c.tag) };
+    return { key: k, label: k === 'old' ? 'Khách cũ' : CAT_DEF[k].label, color: catColor(k) };
+  }
+  /** Màu đậm hơn để làm viền / chữ trên nền màu nhạt. */
+  function shade(hex, f) {
+    var n = parseInt(String(hex).slice(1), 16); if (isNaN(n)) return '#999';
+    var r = n >> 16, g = (n >> 8) & 255, b = n & 255, m = function (x) { return Math.max(0, Math.min(255, Math.round(x * (1 - f)))); };
+    if (r > 245 && g > 245 && b > 245) return f > .5 ? '#555' : '#c9c6bb'; // màu trắng: viền xám
+    return '#' + [m(r), m(g), m(b)].map(function (x) { return ('0' + x.toString(16)).slice(-2); }).join('');
+  }
+  function catAttr(cat) { return ' style="background:' + cat.color + ';border-left:7px solid ' + shade(cat.color, .35) + '"'; }
+  function catChip(cat) { return '<span class="cat-chip" style="background:' + shade(cat.color, .08) + ';color:' + shade(cat.color, .72) + ';border-color:' + shade(cat.color, .3) + '">' + esc(cat.label) + '</span>'; }
+  /** Chú thích màu; bấm vào để lọc (ở trang Khách hàng). */
+  function legend(list, active) {
+    var cnt = {}; (list || []).forEach(function (c) { var k = custCat(c).key; cnt[k] = (cnt[k] || 0) + 1; });
+    var keys = CAT_ORDER.concat(myTags().map(function (t) { return 'tag:' + t.name; }));
+    Object.keys(cnt).forEach(function (k) { if (keys.indexOf(k) < 0) keys.push(k); });
+    return '<div class="legend">' + keys.map(function (k) {
+      var isTag = k.indexOf('tag:') === 0, color = isTag ? tagColor(k.slice(4)) : catColor(k), label = isTag ? k.slice(4) : CAT_DEF[k].label;
+      return '<button class="lg' + (active === k ? ' on' : '') + '" data-cat="' + esc(k) + '"' + (isTag ? '' : ' title="' + esc(CAT_DEF[k].tip) + '"') + '><i style="background:' + color + ';border-color:' + shade(color, .35) + '"></i>' + esc(label) + (list ? ' <em>' + (cnt[k] || 0) + '</em>' : '') + '</button>';
+    }).join('') + '<a class="lg-set" href="#cai-dat">🎨 Đổi màu</a></div>';
+  }
   function isBank(o) { return /chuyển khoản/i.test(o.payment); }
   function unpaidOrders() { return S.d.orders.filter(function (o) { return isBank(o) && !o.paid && !isVoid(o.status); }); }
   function isOpenLead(l) { return l.status === 'Mới hỏi' || l.status === 'Đang tư vấn'; }
@@ -284,8 +324,9 @@
       (r.missed ? '<span class="age-miss">📵 ' + r.missed + ' lần không nghe máy</span>' : '');
   }
   function custCard(c, withTask) {
-    return '<div class="card click" data-cust="' + c.phone + '">' +
-      '<div class="r1"><b>' + esc(c.name || 'Khách') + '</b>' + groupTag(c.group) + (c.owner ? (lvl() >= 2 || c.owner !== S.user.name ? '<span class="tag owner">👤 ' + esc(c.owner) + '</span>' : '') : '<span class="tag noconsent">Chưa ai phụ trách</span>') + '<span class="end">' + (c.orders > 1 ? c.orders + ' đơn · ' : '') + moneyShort(c.spent) + '</span></div>' +
+    var cat = custCat(c);
+    return '<div class="card click tinted" data-cust="' + c.phone + '"' + catAttr(cat) + '>' +
+      '<div class="r1"><b>' + esc(c.name || 'Khách') + '</b>' + catChip(cat) + groupTag(c.group) + (c.owner ? (lvl() >= 2 || c.owner !== S.user.name ? '<span class="tag owner">👤 ' + esc(c.owner) + '</span>' : '') : '<span class="tag noconsent">Chưa ai phụ trách</span>') + '<span class="end">' + (c.orders > 1 ? c.orders + ' đơn · ' : '') + moneyShort(c.spent) + '</span></div>' +
       '<div class="r2">' + fPhone(c.phone) + (c.products.length ? ' · ' + esc(shortProducts(c.products)) : '') + '</div>' +
       '<div class="r-age">' + ageTag(c) + (c.flag ? '<span class="age bad">⚠️ ' + esc(c.flag) + '</span>' : '') + '</div>' +
       '<div class="r3">' + (withTask ? taskLine(c) : 'Đơn gần nhất ' + daysAgo(c.last)) + (c.consent ? '' : ' · <span class="tag noconsent">Chỉ hỏi thăm</span>') + '</div>' +
@@ -295,8 +336,9 @@
   }
   function orderCard(o, withActs) {
     var next = NEXT[o.status];
-    return '<div class="card click" data-order="' + esc(o.id) + '">' +
-      '<div class="r1"><b>' + esc(o.name) + '</b>' + stTag(o.status) + '<span class="end">' + money(o.total) + '</span></div>' +
+    var oc = orderCat(o);
+    return '<div class="card click tinted" data-order="' + esc(o.id) + '"' + catAttr(oc) + '>' +
+      '<div class="r1"><b>' + esc(o.name) + '</b>' + stTag(o.status) + (oc.key !== 'void' ? catChip(oc) : '') + '<span class="end">' + money(o.total) + '</span></div>' +
       '<div class="r2">' + fPhone(o.phone) + ' · ' + esc(o.payment) + ' ' + paidTag(o) + ' · <span class="muted">' + esc(o.id) + '</span></div>' +
       (o.tracking ? '<div class="r3">🚚 ' + esc(o.carrier) + ' ' + esc(o.tracking) + '</div>' : '') +
       '<div class="r3 pre">' + esc(o.items.split('\n').map(function (l) { return l.replace(/\s*=\s*[\d.,]+\s*₫?$/, ''); }).join('\n')) + '</div>' +
@@ -329,6 +371,7 @@
     }
     h += '</div>';
 
+    h += legend(null);
     if (lvl() >= 2) h += waitingBlock();
     h += '<section class="section"><div class="section-h"><h2>1️⃣ Đơn mới – gọi khách xác nhận</h2>' + (no.length ? '<span class="count">' + no.length + '</span>' : '') + '<span class="tip">gọi xong bấm “Xác nhận”</span></div>' +
       (no.length ? '<div class="list cols">' + no.map(function (o) { return orderCard(o, true); }).join('') + '</div>' : empty('Không có đơn mới 🎉')) +
@@ -411,12 +454,14 @@
     var f = S.f.c || (S.f.c = { q: '', k: 'all', sort: 'last', n: 60 });
     var q = norm(f.q), qd = q.replace(/\D/g, '');
     var base = S.d.customers.filter(function (c) { return !q || norm(c.name + ' ' + c.products.join(' ') + ' ' + c.owner + ' ' + c.province).indexOf(q) >= 0 || (qd.length >= 3 && c.phone.indexOf(qd) >= 0); });
+    if (f.cat) base = base.filter(function (c) { return custCat(c).key === f.cat; });
     var chips = CF.filter(function (x) { return lvl() >= 2 || isPoolStaff() || (x.k !== 'mine' && x.k !== 'noowner' && x.k !== 'myold'); });
     var cur = chips.filter(function (x) { return x.k === f.k; })[0] || chips[0];
     var list = base.filter(cur.f).sort(SORTS[f.sort][1]);
     return '<div class="page-head"><h1>Khách hàng</h1><span class="muted">' + S.d.customers.length + ' khách</span></div>' +
       '<div class="tools"><div class="search">' + I.search + '<input type="search" id="cq" placeholder="Tìm tên, số điện thoại, sản phẩm…" value="' + esc(f.q) + '"></div>' +
       '<select id="csort" style="flex:0 0 auto;width:auto">' + Object.keys(SORTS).map(function (k) { return '<option value="' + k + '"' + (f.sort === k ? ' selected' : '') + '>' + SORTS[k][0] + '</option>'; }).join('') + '</select></div>' +
+      legend(S.d.customers, f.cat) +
       '<div class="chips">' + chips.map(function (x) { var n = base.filter(x.f).length; return '<button class="chip' + (x.k === cur.k ? ' on' : '') + '" data-cf="' + x.k + '">' + x.l + ' <em>' + n + '</em></button>'; }).join('') + '</div>' +
       (list.length ? '<div class="list cols">' + list.slice(0, f.n).map(function (c) { return custCard(c, false); }).join('') + '</div>' +
         (list.length > f.n ? '<button class="btn more" data-more="c">Xem thêm ' + Math.min(60, list.length - f.n) + ' khách</button>' : '') : empty('Không có khách nào khớp.'));
@@ -442,6 +487,9 @@
       (lvl() >= 2 ? '<label class="f"><span>Người phụ trách</span><select id="cOwner"><option value="">– Chưa ai –</option>' + owners.map(function (n) { return '<option' + (n === c.owner ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('') + '</select></label>'
         : '<div class="f"><span style="display:block;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px">Người phụ trách</span>' + (c.owner ? '<b>' + esc(c.owner) + '</b>' : (isPoolStaff() ? claimBtn('c', c.phone) : 'Chưa ai')) + '</div>') +
       '<label class="f"><span>Hẹn gọi lại ngày</span><input type="date" id="cCb" value="' + (c.callback ? isoDate(c.callback) : '') + '"></label></div>' +
+      '<label class="f"><span>🎨 Nhãn màu (để trống = máy tự tô theo loại khách)</span><select id="cTag"><option value="">Tự động: ' + esc(custCat(Object.assign({}, c, { tag: '' })).label) + '</option>' +
+      myTags().concat(c.tag && !myTags().some(function (t) { return t.name === c.tag; }) ? [{ name: c.tag }] : []).map(function (t) { return '<option' + (t.name === c.tag ? ' selected' : '') + '>' + esc(t.name) + '</option>'; }).join('') + '</select></label>' +
+      (myTags().length ? '' : '<p class="hint">Tạo nhãn riêng (vd “Khách hỏi giá”, “Khách thân”) ở <a href="#cai-dat">Cài đặt → Màu phân loại</a>.</p>') +
       '<label class="f"><span>Ghi nhanh hôm nay (tự thêm ngày, như ghi trên Sheet)</span><input type="text" id="cQuick" placeholder="vd: kh dùng ok, hẹn cuối tháng lấy tiếp"></label>' +
       '<label class="f"><span>Ghi chú về khách / nhật ký</span><textarea id="cNote" rows="5">' + esc(c.note) + '</textarea></label>' +
       '<button class="btn" id="cSave">Lưu thông tin chăm sóc</button></div>' +
@@ -464,11 +512,11 @@
     $('#cSave', m).onclick = function () {
       var q = $('#cQuick', m).value.trim(), noteNow = $('#cNote', m).value.trim();
       if (q) noteNow = fDate(Date.now()).slice(0, 5) + ': ' + q + (noteNow ? '\n' + noteNow : '');
-      var p = { phone: c.phone, note: noteNow, callback: $('#cCb', m).value };
+      var p = { phone: c.phone, note: noteNow, callback: $('#cCb', m).value, tag: $('#cTag', m).value };
       if ($('#cOwner', m)) p.owner = $('#cOwner', m).value;
       var btn = this; btn.disabled = true; btn.textContent = 'Đang lưu…';
       api('customer', p).then(function () {
-        if (p.owner !== undefined) c.owner = p.owner; c.note = p.note; $('#cNote', m).value = p.note; $('#cQuick', m).value = ''; c.callback = p.callback ? new Date(p.callback + 'T09:00:00+07:00').getTime() : null;
+        if (p.owner !== undefined) c.owner = p.owner; c.note = p.note; c.tag = p.tag; $('#cNote', m).value = p.note; $('#cQuick', m).value = ''; c.callback = p.callback ? new Date(p.callback + 'T09:00:00+07:00').getTime() : null;
         if (c.callback && dayStart(c.callback) <= today()) c.task = { type: 'callback', late: Math.round((today() - dayStart(c.callback)) / DAY), days: 0 };
         else if (c.task && c.task.type === 'callback') c.task = null;
         toast('Đã lưu'); btn.textContent = 'Đã lưu ✓'; setTimeout(function () { btn.disabled = false; btn.textContent = 'Lưu thông tin chăm sóc'; }, 1500); refreshBehind();
@@ -1398,6 +1446,12 @@
     h += '<div class="box"><h3>📲 Thông báo Telegram riêng</h3>' + (S.user.tg
       ? '<p style="margin:0 0 10px">✅ Đã kết nối. Bạn nhận riêng: đơn mới của khách mình phụ trách, khách tiềm năng mới được giao, danh sách việc lúc 8h sáng.</p><button class="btn ghost" id="tgOff">Ngắt kết nối</button>'
       : '<p style="margin:0 0 10px">Nhận thông báo về khách <b>của riêng bạn</b> qua Telegram. Làm 1 lần, mất 30 giây:</p><ol style="margin:0 0 10px;padding-left:20px"><li>Bấm <b>“Kết nối Telegram”</b>.</li><li>Bấm <b>“Mở Telegram”</b> → trong Telegram bấm <b>Start / Bắt đầu</b>.</li><li>Quay lại đây bấm <b>“Tôi đã bấm Start”</b>.</li></ol><div class="steps" id="tgSteps"><button class="btn pri" id="tgLink">Kết nối Telegram</button></div>') + '</div>';
+    var cc = {}; CAT_ORDER.forEach(function (k) { cc[k] = catColor(k); });
+    var tg = S.f.tags || (S.f.tags = myTags().map(function (t) { return { name: t.name, color: t.color }; }));
+    h += '<div class="box"><h3>🎨 Màu phân loại khách</h3><p class="hint" style="margin:0 0 10px">Thẻ khách và thẻ đơn được tô màu tự động theo loại. Bạn đổi màu tuỳ ý, hoặc tạo thêm nhãn riêng rồi gắn cho khách trong hồ sơ khách.</p>' +
+      '<div class="color-rows">' + CAT_ORDER.map(function (k) { return '<label class="color-row"><input type="color" data-cc="' + k + '" value="' + cc[k] + '"><span><b>' + CAT_DEF[k].label + '</b><small>' + CAT_DEF[k].tip + '</small></span></label>'; }).join('') + '</div>' +
+      '<h3 style="margin:14px 0 8px">Nhãn riêng của bạn</h3><div class="color-rows" id="tagRows">' + tg.map(function (t, i) { return '<div class="color-row" data-ti="' + i + '"><input type="color" data-tk="color" value="' + esc(t.color) + '"><input type="text" data-tk="name" value="' + esc(t.name) + '" placeholder="Tên nhãn (vd Khách thân)" maxlength="30"><button class="rm" data-deltag="' + i + '" aria-label="Xoá">✕</button></div>'; }).join('') + '</div>' +
+      '<div class="steps" style="margin-top:10px"><button class="btn" data-addtag>＋ Thêm nhãn</button><button class="btn pri" id="prefSave">Lưu màu & nhãn</button><button class="btn ghost" id="prefReset">Về màu mặc định</button></div></div>';
     h += '<div class="box guide"><h3>Hướng dẫn nhanh</h3><ol>' +
       '<li>Mỗi sáng mở tab <b>Hôm nay</b>. Làm lần lượt 3 phần: đơn mới, chăm sóc khách, khách tiềm năng.</li>' +
       '<li><b>Đơn mới:</b> gọi khách xác nhận, xong bấm <b>✅ Xác nhận</b>. Gửi hàng thì bấm <b>🚚 Đang giao</b>, khách nhận thì <b>📬 Đã giao</b>.</li>' +
@@ -1409,11 +1463,18 @@
       '<li><b>Đơn chuyển khoản</b>: tiền về tài khoản thì mở đơn bấm <b>💳 Xác nhận đã nhận tiền</b>. Gửi hàng thì nhập <b>mã vận đơn</b>, đơn tự chuyển sang “Đang giao”.</li>' +
       '<li>Bạn chỉ thấy <b>khách mình phụ trách</b>. Gõ số của khách người khác đang phụ trách, CRM sẽ báo tên người đó. Muốn đổi người phụ trách thì nhờ quản lý chuyển.</li>' +
       '<li>Nên bấm <b>📲 Kết nối Telegram</b> (ngay trên) để nhận riêng đơn mới và việc hằng ngày của mình.</li>' +
+      '<li><b>Màu thẻ khách</b>: trắng = khách mới, vàng = khách cũ, tím = ngoài giờ (tối / CN / lễ), xám = hoàn / bom. Bấm vào ô màu ở trang Khách hàng để lọc. Đổi màu hoặc tạo nhãn riêng ở mục 🎨 bên trên.</li>' +
       '<li>Nhãn <span class="tag noconsent">Chỉ hỏi thăm</span>: khách chưa đồng ý nhận tin, không gửi quảng cáo / ưu đãi.</li>' +
       '<li>Nhãn <span class="age ok">💬 5 ngày chưa chăm sóc</span>: đếm từ lần gần nhất khách <b>có trả lời</b> (gọi không nghe máy thì vẫn đếm tiếp). <b>Xanh</b> ≤ 7 ngày · <b>Cam</b> 8–30 ngày · <b>Đỏ</b> trên 30 ngày, nên liên hệ lại.</li>' +
       '</ol><p style="margin:10px 0"><a class="btn" href="/huong-dan/crm/" target="_blank" rel="noopener">📖 Xem hướng dẫn đầy đủ</a></p><p class="small muted" style="margin:6px 0 0">Không chụp màn hình, không gửi danh sách khách ra ngoài: đây là dữ liệu cá nhân, pháp luật yêu cầu giữ kín (Nghị định 13/2023).</p></div>';
     if (lvl() < 2) return h;
     if (lvl() >= 3) h += syncBoxes();
+    var R = S.d.rules || {};
+    h += '<div class="box"><h3>⭐ Nhóm khách (VIP, Sắp mất)</h3><p class="hint" style="margin:0 0 10px">Máy tự xếp nhóm cho khách theo các mức dưới đây.</p>' +
+      '<div class="row2c"><label class="f"><span>VIP khi mua từ (số đơn)</span><input type="number" id="rVipN" min="1" value="' + esc(R.vipOrders || 3) + '"></label>' +
+      '<label class="f"><span>hoặc tổng chi từ</span><input type="text" id="rVipS" inputmode="decimal" value="' + esc(R.vipSpent || 2000000) + '" placeholder="vd 5tr"></label></div>' +
+      '<label class="f"><span>“Sắp mất” khi bao nhiêu ngày chưa mua lại</span><input type="number" id="rRisk" min="7" value="' + esc(R.atRisk || 60) + '"></label>' +
+      '<p class="hint" id="rHint"></p><button class="btn pri" id="rSave">Lưu nhóm khách</button></div>';
     h += caBox();
     var md = mode(), staff = (S.d.users || []).filter(function (u) { return u.active !== false; }), noOwner = S.d.customers.filter(function (c) { return !c.owner; }).length;
     h += '<div class="box"><h3>👥 Chia khách & phân quyền</h3><p class="hint" style="margin:0 0 10px">Nhân viên chỉ thấy khách mình phụ trách. Quản lý thấy tất cả.</p>' +
@@ -1449,6 +1510,18 @@
   }
   function bindSettings() {
     $('#logout').onclick = function () { if (confirm('Đăng xuất khỏi CRM?')) logout(); };
+    var syncTags = function () { $$('#tagRows [data-ti]').forEach(function (r) { var i = +r.getAttribute('data-ti'); $$('[data-tk]', r).forEach(function (x) { S.f.tags[i][x.getAttribute('data-tk')] = x.value; }); }); };
+    if ($('#tagRows')) $('#tagRows').addEventListener('input', syncTags);
+    if ($('#prefSave')) $('#prefSave').onclick = function () {
+      syncTags(); var b = this, colors = {}; $$('[data-cc]').forEach(function (x) { colors[x.getAttribute('data-cc')] = x.value; }); b.disabled = true;
+      api('prefs', { colors: colors, tags: S.f.tags.filter(function (t) { return String(t.name).trim(); }) }).then(function (j) { S.d.prefs = j.prefs; (j.prefs.tags || []).forEach(function (t) { S.d.tagColors[t.name] = t.color; }); S.f.tags = null; toast('Đã lưu màu ✓'); b.disabled = false; render(); }, function (e) { toast(e.message, true); b.disabled = false; });
+    };
+    if ($('#prefReset')) $('#prefReset').onclick = function () { CAT_ORDER.forEach(function (k) { var x = $('[data-cc="' + k + '"]'); if (x) x.value = CAT_DEF[k].color; }); toast('Bấm “Lưu màu & nhãn” để áp dụng'); };
+    if ($('#rSave')) { var rh = function () { $('#rHint').textContent = 'Tổng chi = ' + money(moneyIn($('#rVipS').value)); }; $('#rVipS').addEventListener('input', rh); rh();
+      $('#rSave').onclick = function () {
+        var b = this; b.disabled = true;
+        api('settings', { rules: { vipOrders: $('#rVipN').value, vipSpent: moneyIn($('#rVipS').value), atRisk: $('#rRisk').value } }).then(function (j) { Object.assign(S.d.rules, j.rules); toast('Đã lưu. Nhóm khách được tính lại ✓'); load(true); }, function (e) { toast(e.message, true); b.disabled = false; });
+      }; }
     if ($('#tgOff')) $('#tgOff').onclick = function () { if (!confirm('Ngắt thông báo Telegram riêng?')) return; api('tg_off').then(function () { S.user.tg = false; toast('Đã ngắt'); render(); }, function (e) { toast(e.message, true); }); };
     if ($('#tgLink')) $('#tgLink').onclick = function () {
       var b = this; b.disabled = true; b.textContent = 'Đang tạo link…';
@@ -1524,12 +1597,15 @@
 
   /* ================================================================ sự kiện chung */
   document.addEventListener('click', function (e) {
-    var t = e.target.closest('[data-care],[data-next],[data-neworder],[data-cf],[data-os],[data-tf],[data-claim],[data-mon],[data-bcdt],[data-srcadd],[data-srcedit],[data-srcsync],[data-srcdel],[data-adsedit],[data-adssync],[data-who],[data-target],[data-myold],[data-more],[data-add],[data-rm],[data-consult],[data-leadorder],[data-newlead],[data-editlead],[data-cust],[data-order],[data-lead]');
+    var t = e.target.closest('[data-care],[data-next],[data-neworder],[data-cf],[data-os],[data-tf],[data-cat],[data-addtag],[data-deltag],[data-claim],[data-mon],[data-bcdt],[data-srcadd],[data-srcedit],[data-srcsync],[data-srcdel],[data-adsedit],[data-adssync],[data-who],[data-target],[data-myold],[data-more],[data-add],[data-rm],[data-consult],[data-leadorder],[data-newlead],[data-editlead],[data-cust],[data-order],[data-lead]');
     if (!t || !S.d) return;
     if (e.target.closest('a[href]') && !t.hasAttribute('data-myold')) return; // nút gọi / Zalo bên trong thẻ
     var a = function (k) { return t.getAttribute(k); };
     if (t.hasAttribute('data-care')) { e.stopPropagation(); openCare(a('data-care'), a('data-task')); return; }
     if (t.hasAttribute('data-next')) { var o = findOrder(a('data-next')); if (o && NEXT[o.status]) setStatus(o, NEXT[o.status]); return; }
+    if (t.hasAttribute('data-cat')) { var ck = a('data-cat'); S.f.c = S.f.c || { q: '', k: 'all', sort: 'last', n: 60 }; S.f.c.cat = S.f.c.cat === ck ? '' : ck; S.f.c.n = 60; if (route().view !== 'khach-hang') location.hash = '#khach-hang'; else render(); return; }
+    if (t.hasAttribute('data-addtag')) { var cols = ['#dbeafe', '#dcfce7', '#fee2e2', '#ffedd5', '#fce7f3', '#e0f2fe']; S.f.tags.push({ name: '', color: cols[S.f.tags.length % cols.length] }); render(); var ins = $$('#tagRows input[type=text]'); if (ins.length) ins[ins.length - 1].focus(); return; }
+    if (t.hasAttribute('data-deltag')) { S.f.tags.splice(+a('data-deltag'), 1); render(); return; }
     if (t.hasAttribute('data-bcdt')) { var bc = a('data-bcdt').split('|'); openBcdt(bc[0] || null, bc[1]); return; }
     if (t.hasAttribute('data-srcadd')) { openSrc(''); return; }
     if (t.hasAttribute('data-srcedit')) { openSrc(a('data-srcedit')); return; }
