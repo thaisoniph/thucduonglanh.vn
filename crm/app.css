@@ -143,6 +143,9 @@ textarea { min-height: 88px; resize: vertical; line-height: 1.45; }
 input:focus, select:focus, textarea:focus { outline: 2px solid rgba(31, 95, 58, .25); border-color: var(--primary); }
 .row2c { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 @media (max-width: 520px) { .row2c { grid-template-columns: 1fr; } }
+.quick { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px; }
+.quick .btn { justify-content: center; min-height: 44px; white-space: normal; text-align: center; line-height: 1.2; }
+
 .radios { display: flex; gap: 6px; flex-wrap: wrap; }
 .radios label { cursor: pointer; }
 .radios input { position: absolute; opacity: 0; pointer-events: none; }
@@ -175,6 +178,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid rgba(31, 95, 58, 
 .timeline { display: grid; gap: 8px; }
 .timeline .it { border-left: 3px solid var(--primary-light); padding: 2px 0 2px 10px; font-size: 14px; }
 .timeline .it small { color: var(--muted); display: block; }
+.timeline .it.old { border-left-color: var(--line, #e5e7eb); }
 .steps { display: flex; gap: 6px; flex-wrap: wrap; }
 
 /* ---------- đơn hàng: dòng sản phẩm */

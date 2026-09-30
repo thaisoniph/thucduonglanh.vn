@@ -56,7 +56,7 @@ Phía trên là các ô số: đơn mới, khách cần chăm sóc, tiềm năng
 Bên dưới có 3 phần, làm từ trên xuống:
 
 1. **Đơn mới – gọi khách xác nhận.** Ngay dưới là **Chuyển khoản chưa nhận tiền**: các đơn đã xác nhận nhưng chưa thấy tiền về.
-2. **Chăm sóc khách**, chia theo từng loại việc (xem [bảng các loại việc](#cac-loai-viec-cham-soc)).
+2. **Chăm sóc khách**, chia theo từng loại việc (xem [bảng các loại việc](#cac-loai-viec-cham-soc)). Cuối phần này là **🔁 Khách cũ lâu chưa gọi**: mỗi ngày 15 khách cũ đã quá 30 ngày chưa phản hồi, khách chi nhiều nhất lên trước. Gọi xong khách nào, danh sách tự đưa khách tiếp theo lên.
 3. **Khách tiềm năng cần liên hệ.**
 
 Cuối trang là **Đã làm hôm nay**: danh sách việc cả nhóm đã làm trong ngày.
@@ -100,7 +100,7 @@ Vào **Đơn hàng → ＋ Tạo đơn**, hoặc bấm **＋ Tạo đơn** trong
 
 Trong hồ sơ khách, ô **Ghi nhanh hôm nay** tự thêm ngày ở đầu dòng, giống cách ghi trên Sheet: *“30/09: kh dùng ok, hẹn cuối tháng lấy tiếp”*. Nhật ký chăm sóc cũ từ file của bạn nằm ngay bên dưới.
 
-Tab **Hiệu quả → 📊 Bảng BCDT** tự làm báo cáo doanh thu tháng: theo ngày, theo dòng sản phẩm, khách mới / cũ, đơn hoàn và doanh thu theo ca. Bấm **Tải file Excel** để gửi báo cáo.
+Tab **Hiệu quả → 📊 Bảng BCDT** tự làm báo cáo doanh thu tháng: theo ngày, theo dòng sản phẩm, khách mới / cũ, đơn hoàn và doanh thu theo ca. Phía trên có sẵn **tỷ lệ chốt** (đơn mới / data mới), **trung bình mỗi đơn khách mới**, **% doanh thu từ khách cũ** và **% tiến độ mục tiêu**. Cột nào cả tháng bằng 0 (dòng sản phẩm không bán) thì tự ẩn cho gọn. Bấm **Tải file Excel** để gửi báo cáo.
 
 ## Tạo đơn cho khách đặt qua Zalo, điện thoại
 
@@ -133,6 +133,7 @@ CRM tự tính ngày cần liên hệ từng khách, dựa vào ngày mua và th
 | 💬 **Xin cảm nhận** | 14 ngày sau khi mua | Hỏi cảm nhận, xin phép chia sẻ |
 | 🌿 **Giới thiệu sản phẩm phù hợp** | 30 ngày sau khi mua | Giới thiệu sản phẩm khác hợp với khách |
 | 💌 **Mời quay lại** | 60 ngày chưa mua lại | Hỏi thăm, gửi ưu đãi khách cũ |
+| 🔁 **Khách cũ lâu chưa gọi** | Quá 30 ngày khách chưa phản hồi (không tính các lần không nghe máy) | Hỏi thăm, hỏi còn hàng không, mời đặt lại |
 
 ### Cách chăm sóc 1 khách
 
@@ -140,13 +141,30 @@ CRM tự tính ngày cần liên hệ từng khách, dựa vào ngày mua và th
 
 1. Bấm **💬 Chăm sóc** ở thẻ khách.
 2. **Bước 1 – Gửi tin:** CRM chọn sẵn **mẫu tin** hợp với việc, tự điền tên khách và sản phẩm. Đọc lại, sửa cho tự nhiên. Bấm **📋 Copy tin & mở Zalo**, rồi dán tin vào khung chat Zalo của khách và gửi. Muốn gọi thì bấm **📞 Gọi**.
-3. Quay lại CRM. **Bước 2 – Ghi kết quả:** chọn 1 kết quả:
+3. Quay lại CRM. **Bước 2 – Ghi kết quả.** Cách nhanh nhất là **bấm 1 nút**, bấm xong là lưu luôn và máy tự hẹn ngày gọi lại:
+
+    | Nút | Máy ghi | Tự nhắc gọi lại |
+    | --- | --- | --- |
+    | 📵 **KNM** | knm (không nghe máy) | sau 2 ngày |
+    | 📴 **Thuê bao** | thuê bao | sau 3 ngày |
+    | 🙅 **Từ chối nghe** | từ chối nghe | sau 7 ngày |
+    | 👍 **Dùng ok** | kh dùng ok | không hẹn |
+    | 📦 **Còn hàng** | kh còn nhiều | sau 14 ngày |
+    | 💸 **Hết tiền** | kh hết tiền, hẹn tháng sau | sau 30 ngày |
+    | 🛒 **Đặt lại** | kh đặt lại, rồi mở luôn form tạo đơn | không hẹn |
+    | 🚫 **Không dùng nữa** | kh không dùng nữa | không hẹn |
+
+    Có gõ thêm vào **Ghi chú lần này** thì máy ghi kèm. Ở tab Hôm nay, thẻ khách có sẵn nút **📵 KNM**: gọi không được thì bấm ngay, không cần mở hộp chăm sóc.
+
+    Hoặc tự chọn 1 kết quả bên dưới:
     - **Đã đặt lại**: khách đặt thêm. Nhớ tạo đơn nếu khách đặt qua Zalo.
     - **Hẹn gọi lại**: chọn ngày hẹn (máy gợi ý 2 ngày sau). Đến ngày, khách tự hiện lại ở tab Hôm nay.
     - **Không nghe máy**: gọi hoặc nhắn mà khách chưa trả lời.
     - **Đã hỏi thăm**: đã nói chuyện, khách chưa cần mua.
     - **Không có nhu cầu**: khách không muốn mua thêm.
 4. Ghi vài chữ vào **Ghi chú lần này** (khách nói gì, cần gì), bấm **Lưu kết quả**. Khách rời khỏi danh sách hôm nay.
+
+**Lịch sử chăm sóc** trong hồ sơ khách gồm cả các lần ghi trên CRM và các ghi chú cũ nhập từ Sheet (ví dụ “21/7 kh nhận hàng, 9/8 knm”), sắp theo ngày, mới nhất ở trên.
 
 > **Khách có nhãn “Chỉ hỏi thăm”** là khách chưa đồng ý nhận tin. Chỉ hỏi thăm sức khoẻ, hướng dẫn dùng, **không gửi quảng cáo, ưu đãi**.
 
@@ -248,6 +266,7 @@ Doanh số tính theo **Nhân viên bán** ghi trên từng đơn. Đơn khách 
 - **Chu kỳ dùng sản phẩm**: khách dùng hết 1 hộp trong bao nhiêu ngày. CRM dùng số này để tính ngày nhắc đặt lại. Tên sản phẩm chỉ cần chứa 1 phần (ví dụ “DILVANG”). Để trống quy cách thì áp dụng cho mọi quy cách. Thực tế khách dùng nhanh hay chậm hơn thì sửa lại cho khớp.
 - **Mẫu tin nhắn chăm sóc**: viết **[Tên]** và **[Sản phẩm]** để máy tự thay. Cột *Thời điểm* cần chứa “1 ngày”, “hết”, “14”, “30” hoặc “60” thì CRM mới tự chọn đúng mẫu cho từng việc. Mẫu tin không được hứa hẹn công dụng chữa bệnh.
 - **⭐ Nhóm khách**: đặt mức để máy xếp khách **VIP** (mua từ bao nhiêu đơn, hoặc tổng chi từ bao nhiêu tiền) và **Sắp mất** (bao nhiêu ngày chưa mua lại). Bấm **Lưu nhóm khách**, cả nhóm cùng áp dụng.
+- **📂 File của sale** (chỉ Quản trị): nhập đơn và nhật ký chăm sóc từ file Google Sheet sale đang dùng. Ô ghi chú kiểu “21/7 kh nhận hàng, 9/8 knm, 16/5 kh hết tiền” được tách thành từng lần chăm sóc có ngày, máy tự đoán năm. Tích **✍️ Ghi kết quả chăm sóc ngược vào file này** thì mỗi lần sale bấm kết quả trên CRM, máy tự viết thêm vào ô ghi chú của khách trong file, ví dụ “, 30/9 knm (hẹn gọi 2/10)”, khoảng 5 phút một lần. Sale vẫn xem đầy đủ trên file của mình. Để dùng được, sale cần **chia sẻ quyền Chỉnh sửa** file cho tài khoản chạy CRM. Kết quả từng lần ghi xem ở tab *Ghi ngược file sale* trong Sheet.
 - **Nhân sự được vào CRM** (chỉ Quản trị): thêm email, tên hiển thị, quyền. Nhân viên nghỉ việc thì **bỏ tích “Đang dùng”**, không cần xoá.
 
 ## Câu hỏi thường gặp

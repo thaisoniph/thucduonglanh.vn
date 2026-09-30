@@ -7,3 +7,6 @@ __pycache__/
 .DS_Store
 *.pyc
 dist-crm/
+api/.dev.vars
+api/.wrangler/
+api/node_modules/

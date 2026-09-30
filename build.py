@@ -1016,7 +1016,7 @@ def main():
     } for p in PRODUCTS]
     cfg = {"brand": BRAND, "hotline": SITE["hotline"], "zalo": tel(SITE["zalo"]), "email": SITE["email"], "zalo_oa": SITE.get("zalo_oa", ""),
            "ga4_id": SITE.get("ga4_id", ""), "clarity_id": SITE.get("clarity_id", ""), "meta_pixel": SITE.get("meta_pixel", ""), "tiktok_pixel": SITE.get("tiktok_pixel", ""),
-           "endpoint": SITE.get("order_endpoint", ""), "bank": SITE["bank"] if SITE["bank"].get("enabled") else None,
+           "endpoint": (SITE.get("api_endpoint") or SITE.get("order_endpoint", "")), "bank": SITE["bank"] if SITE["bank"].get("enabled") else None,
            "shipping_fee": SITE.get("shipping_fee", 0), "free_ship_threshold": SITE.get("free_ship_threshold", 0)}
     (DIST / "assets/data").mkdir(parents=True, exist_ok=True)
     shutil.copy(DATA / "vn-units.json", DIST / "assets/data/vn-units.json")
@@ -1068,7 +1068,7 @@ def build_crm():
     shutil.copy(DATA / "vn-units.json", out / "vn-units.json")
     products = [{"name": p["name"], "price": p.get("price"), "unit": p.get("unit", ""),
                  "variants": [{"name": v["name"], "price": v["price"]} for v in p.get("variants", [])]} for p in PRODUCTS]
-    cfg = {"endpoint": SITE.get("order_endpoint", ""), "shipping_fee": SITE.get("shipping_fee", 0),
+    cfg = {"endpoint": (SITE.get("api_endpoint") or SITE.get("order_endpoint", "")), "shipping_fee": SITE.get("shipping_fee", 0),
            "free_ship_threshold": SITE.get("free_ship_threshold", 0), "products": products}
     (out / "crm-data.js").write_text("window.CRM_CONFIG=" + json.dumps(cfg, ensure_ascii=False) + ";\n", "utf-8")
     (out / "manifest.webmanifest").write_text(json.dumps({
@@ -1078,7 +1078,7 @@ def build_crm():
     (out / "robots.txt").write_text("User-agent: *\nDisallow: /\n", "utf-8")
     (out / "_headers").write_text(
         "/*\n  X-Robots-Tag: noindex, nofollow\n  X-Content-Type-Options: nosniff\n  X-Frame-Options: DENY\n  Referrer-Policy: no-referrer\n"
-        "  Content-Security-Policy: default-src 'self'; connect-src 'self' https://script.google.com https://script.googleusercontent.com; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'\n"
+        "  Content-Security-Policy: default-src 'self'; connect-src 'self' https://api.thucduonglanh.vn https://script.google.com https://script.googleusercontent.com; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'\n"
         "/\n  Cache-Control: no-cache\n/index.html\n  Cache-Control: no-cache\n/crm-data.js\n  Cache-Control: no-cache\n"
         "/app.js\n  Cache-Control: public, max-age=31536000, immutable\n/app.css\n  Cache-Control: public, max-age=31536000, immutable\n", "utf-8")
     build_guide(out / "huong-dan")
