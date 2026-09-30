@@ -2,7 +2,7 @@
 
 Cập nhật: 27/09/2026 · Web: https://thucduonglanh.vn · Quản trị: https://thucduonglanh.vn/admin/ · Kho mã: https://github.com/thaisoniph/thucduonglanh.vn
 
-> Tài liệu dành cho chủ web / người phụ trách kỹ thuật. Nhân sự dùng Google Docs "Hướng dẫn cập nhật website thucduonglanh.vn (dành cho nhân sự)".
+> Tài liệu dành cho chủ web / người phụ trách kỹ thuật. Hướng dẫn cho nhân sự (CRM + sửa website) nằm tại **https://crm.thucduonglanh.vn/huong-dan/**, nguồn ở thư mục `guide/`. Google Doc cũ không dùng nữa.
 
 ---
 
@@ -50,6 +50,7 @@ website/
 │   └── config.json        kỹ thuật: tên miền, link nhận đơn, mã GA4/Clarity/Pixel (không có trong /admin)
 ├── assets/                CSS, JS, ảnh, video, PDF; ảnh tải từ /admin nằm ở assets/uploads/
 ├── crm/                   CRM cho nhân sự (index.html, app.js, app.css) → build ra dist-crm/ → crm.thucduonglanh.vn
+├── guide/                 Hướng dẫn nhân sự: index.md (Bắt đầu), crm.md, website.md, guide.css, img/ → dist-crm/huong-dan/
 ├── build.py               sinh web vào dist/ (tự nén ảnh sang WebP) + CRM vào dist-crm/
 ├── .github/workflows/deploy.yml   tự build + đăng lên Cloudflare mỗi khi có thay đổi
 └── backend/               CHỈ Ở MÁY (không đưa lên GitHub – có mã Telegram)
@@ -143,6 +144,14 @@ Sheet **Đơn hàng website Thực Dưỡng Lành**: https://docs.google.com/spr
 - Nhân sự đăng nhập /admin bằng **mã truy cập GitHub** (quyền `public_repo`), chọn "Đăng nhập bằng mã truy cập".
 - Trong /admin: Bài viết · Sản phẩm (giá, quy cách, ảnh, mô tả, **Gợi ý mua kèm**, ẩn/hiện) · Trang chính sách · Cài đặt (liên hệ, mạng xã hội, ngân hàng, **phí ship**, kênh cộng đồng, slider, danh mục, **Hồ sơ thương hiệu**).
 - Mọi lần lưu có lịch sử trên GitHub → khôi phục được.
+
+### Trang hướng dẫn nhân sự – https://crm.thucduonglanh.vn/huong-dan/
+
+- Nguồn: `guide/*.md` (frontmatter: title, nav = tên trên menu, order, updated, description). Mỗi file là 1 tab; mỗi tiêu đề `##` tự thành 1 mục ở "Trong trang này". `index.md` → /huong-dan/, `crm.md` → /huong-dan/crm/.
+- `build_guide()` trong build.py sinh trang vào `dist-crm/huong-dan/`, deploy cùng CRM. Không cần đăng nhập (để người mới đọc được cách đăng nhập) nhưng có noindex + robots chặn; không đưa dữ liệu khách thật hay mã bí mật vào đây.
+- Sửa được trong /admin → **Hướng dẫn nội bộ** (ảnh tải lên vào `guide/img/`).
+- Ảnh chụp CRM dùng dữ liệu giả: `backend/crm-test/sync.sh` rồi `SCALE=2 ./shot.sh "g-care&as=sondmt.bsm@gmail.com" g-care.png 500 1900` (các kịch bản `g-…` trong flow.js), cắt và lưu WebP rộng 640px vào `guide/img/`.
+- **Khi thêm/đổi tính năng CRM hay /admin, sửa luôn `guide/` trong cùng lần đẩy code.**
 
 ---
 

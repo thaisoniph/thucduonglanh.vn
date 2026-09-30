@@ -1081,7 +1081,94 @@ def build_crm():
         "  Content-Security-Policy: default-src 'self'; connect-src 'self' https://script.google.com https://script.googleusercontent.com; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'\n"
         "/\n  Cache-Control: no-cache\n/index.html\n  Cache-Control: no-cache\n/crm-data.js\n  Cache-Control: no-cache\n"
         "/app.js\n  Cache-Control: public, max-age=31536000, immutable\n/app.css\n  Cache-Control: public, max-age=31536000, immutable\n", "utf-8")
+    build_guide(out / "huong-dan")
     print(f"Đã tạo CRM vào {out}")
+
+
+def _slug_vi(value, separator="-"):
+    """Tiêu đề tiếng Việt -> id không dấu, dùng làm neo #... trong trang hướng dẫn."""
+    import unicodedata
+    s = unicodedata.normalize("NFD", value.replace("Đ", "D").replace("đ", "d"))
+    s = "".join(c for c in s if unicodedata.category(c) != "Mn").lower()
+    return re.sub(r"[^a-z0-9]+", separator, s).strip(separator)
+
+
+def build_guide(out):
+    """Hướng dẫn nội bộ cho nhân sự: guide/*.md (sửa được ở trang quản trị) -> crm.thucduonglanh.vn/huong-dan/."""
+    src = ROOT / "guide"
+    if not src.exists():
+        return
+    from PIL import Image
+    out.mkdir(parents=True)
+    if (src / "img").exists():
+        shutil.copytree(src / "img", out / "img")
+    shutil.copy(src / "guide.css", out / "guide.css")
+    ver = hashlib.md5((src / "guide.css").read_bytes()).hexdigest()[:8]
+    pages = []
+    for f in src.glob("*.md"):
+        meta, body = read_front(f)
+        slug = "" if f.stem == "index" else f.stem
+        pages.append({"slug": slug, "meta": meta, "body": body, "order": meta.get("order", 50)})
+    pages.sort(key=lambda p: p["order"])
+
+    def figure(m):
+        alt, url = html.unescape(m.group(1)), m.group(2)
+        size = ""
+        p = src / "img" / url.rsplit("/", 1)[-1]
+        if url.startswith("/huong-dan/img/") and p.exists():
+            with Image.open(p) as im:
+                size = f' width="{im.width}" height="{im.height}"'
+        return (f'<figure><img src="{html.escape(url)}" alt="{html.escape(alt)}"{size} loading="lazy">'
+                f'<figcaption>{html.escape(alt)}</figcaption></figure>')
+
+    for pg in pages:
+        conv = _md.Markdown(extensions=["extra", "sane_lists", "toc"], extension_configs={"toc": {"slugify": _slug_vi, "toc_depth": "2"}})
+        # trang quản trị có thể lưu danh sách con thụt 2–3 dấu cách; Markdown cần 4
+        body = conv.convert(re.sub(r"^ {2,3}(?=(?:[-*+]|\d+\.) )", "    ", pg["body"], flags=re.M))
+        body = re.sub(r'<p><img alt="([^"]*)" src="([^"]+)"\s*/?></p>', figure, body)
+        body = body.replace("<table>", '<div class="tbl"><table>').replace("</table>", "</table></div>")
+        body = re.sub(r'<a href="(https?://[^"]+)"', r'<a href="\1" target="_blank" rel="noopener"', body)
+        toc = "".join(f'<li><a href="#{t["id"]}">{t["name"]}</a></li>' for t in conv.toc_tokens)
+        meta, here = pg["meta"], pg["slug"]
+        tabs = "".join(
+            f'<a href="/huong-dan/{p["slug"] + "/" if p["slug"] else ""}"{" class=on aria-current=page" if p["slug"] == here else ""}>'
+            f'{html.escape(p["meta"].get("nav", p["meta"].get("title", "")))}</a>' for p in pages)
+        upd = meta.get("updated")
+        upd = upd.strftime("%d/%m/%Y") if hasattr(upd, "strftime") else (str(upd) if upd else "")
+        title = html.escape(meta.get("title", "Hướng dẫn"))
+        page = f"""<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#1f5f3a">
+<title>{title} – Thực Dưỡng Lành</title>
+<link rel="icon" href="/icon-32.png" sizes="32x32">
+<link rel="stylesheet" href="/huong-dan/guide.css?v={ver}">
+</head>
+<body>
+<header class="g-top"><div class="g-in">
+<a class="g-brand" href="/huong-dan/"><img src="/icon-180.png" alt="" width="32" height="32">Hướng dẫn nội bộ</a>
+<a class="g-crm" href="/">Mở CRM →</a>
+</div>
+<nav class="g-tabs g-in" aria-label="Các phần hướng dẫn">{tabs}</nav>
+</header>
+<div class="g-wrap g-in">
+<aside class="g-toc"><details open><summary>Trong trang này</summary><ol>{toc}</ol></details></aside>
+<main>
+<h1>{title}</h1>
+{f'<p class="g-lead">{html.escape(meta["description"])}</p>' if meta.get("description") else ""}
+{body}
+<footer class="g-foot">{f"Cập nhật {upd} · " if upd else ""}Tài liệu nội bộ Thực Dưỡng Lành, không chia sẻ ra ngoài.</footer>
+</main>
+</div>
+</body>
+</html>
+"""
+        d = out / here if here else out
+        d.mkdir(parents=True, exist_ok=True)
+        (d / "index.html").write_text(page, "utf-8")
 
 
 if __name__ == "__main__":

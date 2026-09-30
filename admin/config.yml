@@ -169,6 +169,30 @@ collections:
       - { label: "Thứ tự ở chân trang", name: order, widget: number, value_type: int, default: 50 }
       - { label: "Nội dung", name: body, widget: markdown, hint: "Có thể dùng {brand}, {hotline}, {email}, {address}, {company} – web tự thay bằng thông tin công ty." }
 
+  # ------------------------------------------------------------ HƯỚNG DẪN NỘI BỘ (crm.thucduonglanh.vn/huong-dan/)
+  - name: guide
+    label: "Hướng dẫn nội bộ"
+    label_singular: "phần hướng dẫn"
+    description: "Trang hướng dẫn cho nhân sự tại crm.thucduonglanh.vn/huong-dan. Bấm Lưu, khoảng 2 phút sau trang được cập nhật."
+    folder: guide
+    extension: md
+    format: frontmatter
+    create: true
+    delete: false
+    slug: "{{slug}}"
+    identifier_field: title
+    summary: "{{nav}} – {{title}}"
+    sortable_fields: [order, title]
+    media_folder: /guide/img
+    public_folder: /huong-dan/img
+    fields:
+      - { label: "Tiêu đề trang", name: title, widget: string }
+      - { label: "Tên trên thanh menu", name: nav, widget: string, hint: "Ngắn, 1–2 chữ. Ví dụ: CRM, Website." }
+      - { label: "Thứ tự trên menu", name: order, widget: number, value_type: int, default: 50 }
+      - { label: "Ngày cập nhật", name: updated, widget: datetime, format: "YYYY-MM-DD", time_format: false }
+      - { label: "Mô tả ngắn dưới tiêu đề", name: description, widget: string, required: false }
+      - { label: "Nội dung", name: body, widget: markdown, hint: "Mỗi tiêu đề lớn (Heading 2) tự thành 1 mục trong phần “Trong trang này”. Ảnh chụp màn hình nên che tên, số điện thoại khách thật." }
+
   # ------------------------------------------------------------ CÀI ĐẶT
   - name: settings
     label: "Cài đặt website"
