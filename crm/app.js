@@ -81,7 +81,7 @@
     function fallback() { var t = document.createElement('textarea'); t.value = text; t.style.position = 'fixed'; t.style.opacity = '0'; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); } catch (e) { } t.remove(); }
   }
 
-  var SERVER_V = '2026-09-30j'; // phải trùng CRM_VERSION trong Apps Script
+  var SERVER_V = '2026-09-30k'; // phải trùng CRM_VERSION trong Apps Script
   function checkVersion(j) {
     if (!j || S._vWarned || j.v === SERVER_V) return;
     S._vWarned = true;
