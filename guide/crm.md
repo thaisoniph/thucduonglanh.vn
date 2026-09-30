@@ -38,7 +38,14 @@ Mã dùng được trong **10 phút**. Đăng nhập xong, máy nhớ bạn tron
 
 - Chấm đỏ trên tab là số việc đang chờ.
 - Nút **⟳** góc trên bên phải: tải lại dữ liệu mới nhất, ví dụ khi đồng nghiệp vừa cập nhật.
-- Ô **“Chỉ khách của tôi”** ở tab Hôm nay: chỉ hiện khách bạn phụ trách, cùng với khách chưa có ai phụ trách.
+- **Bạn chỉ thấy khách mình phụ trách.** Quản lý thấy toàn bộ. Khi gõ số điện thoại của khách đang do người khác phụ trách, CRM chỉ báo tên người đó và không cho thao tác. Muốn đổi người phụ trách thì nhờ quản lý chuyển.
+- Khi công ty dùng chế độ **Kho chung**, bạn thấy thêm khách *chưa ai phụ trách* (có nhãn cam). Bấm **✋ Nhận khách này**, hoặc chăm sóc hay xác nhận đơn của khách đó, là khách thuộc về bạn.
+
+### Nhận thông báo Telegram riêng
+
+Vào **Cài đặt → 📲 Thông báo Telegram riêng** → bấm **Kết nối Telegram** → **① Mở Telegram** → trong Telegram bấm **Start / Bắt đầu** → quay lại CRM bấm **② Tôi đã bấm Start**. Bot gửi tin xác nhận là xong.
+
+Từ đó bạn nhận riêng: **đơn mới của khách mình phụ trách**, **khách tiềm năng mới được giao**, và **danh sách việc lúc 8h sáng**. Nhóm Telegram chung chỉ dành cho quản lý.
 
 ## Tab Hôm nay
 
@@ -135,7 +142,7 @@ Bấm vào tên khách ở bất kỳ đâu để mở hồ sơ.
 
 - **Số ngày chưa chăm sóc**: đếm từ lần gần nhất **khách có trả lời**. Gọi không nghe máy thì vẫn đếm tiếp. **Xanh**: tối đa 7 ngày. **Cam**: 8–30 ngày. **Đỏ**: trên 30 ngày, nên liên hệ lại.
 - **Thông tin mua hàng**: số đơn, tổng chi, sản phẩm đã mua, **ngày dự kiến hết hàng**, nguồn khách.
-- **Người phụ trách**: chọn tên bạn khi nhận chăm sóc khách này. Khi bạn lưu kết quả chăm sóc cho khách chưa có ai phụ trách, CRM tự ghi tên bạn.
+- **Người phụ trách**: người chăm sóc khách này. Chỉ quản lý đổi được.
 - **Hẹn gọi lại ngày**, **Ghi chú về khách** (thích gì, dị ứng gì…): bấm **Lưu thông tin chăm sóc**.
 - Bên dưới là **các đơn hàng** và **lịch sử chăm sóc** của khách.
 
@@ -148,7 +155,7 @@ Bấm vào tên khách ở bất kỳ đâu để mở hồ sơ.
 | **VIP** | Từ 3 đơn, hoặc tổng chi từ 2.000.000đ |
 | **Sắp mất** | Hơn 60 ngày chưa mua lại |
 
-Ở tab **Khách hàng**, gõ tên, số điện thoại hoặc tên sản phẩm để tìm. Các nút lọc nhanh: *Cần chăm sóc*, *Của tôi*, *Chưa ai phụ trách*, *VIP*, *Sắp mất*, *Quá 30 ngày chưa chăm sóc*, *Có hẹn gọi lại*… Ô sắp xếp bên phải để xếp theo *Mua gần nhất*, *Lâu chưa chăm sóc nhất*, *Chi nhiều nhất*, *Sắp hết hàng*.
+Ở tab **Khách hàng**, gõ tên, số điện thoại hoặc tên sản phẩm để tìm. Các nút lọc nhanh: *Cần chăm sóc*, *VIP*, *Sắp mất*, *Quá 30 ngày chưa chăm sóc*, *Có hẹn gọi lại*… Ô sắp xếp bên phải để xếp theo *Mua gần nhất*, *Lâu chưa chăm sóc nhất*, *Chi nhiều nhất*, *Sắp hết hàng*.
 
 ## Khách tiềm năng
 
@@ -191,11 +198,21 @@ Doanh số tính theo **Nhân viên bán** ghi trên từng đơn. Đơn khách 
 
 | Quyền | Làm được |
 | --- | --- |
-| **Nhân viên** | Chăm sóc khách, xử lý đơn, khách tiềm năng, xem hiệu quả của mình |
-| **Quản lý** | Thêm: xem doanh thu cả nhóm, hiệu quả từng nhân viên, đặt mục tiêu cho nhân viên, đổi *Nhân viên bán* trên đơn, sửa chu kỳ dùng và mẫu tin |
+| **Nhân viên** | Chỉ thấy và làm việc với khách mình phụ trách: chăm sóc, xử lý đơn, khách tiềm năng, xem hiệu quả của mình |
+| **Quản lý** | Thấy toàn bộ khách. Thêm: giao / chuyển khách, chọn cách chia khách mới, xem doanh thu cả nhóm, hiệu quả từng nhân viên, đặt mục tiêu cho nhân viên, đổi *Nhân viên bán* trên đơn, sửa chu kỳ dùng và mẫu tin |
 | **Quản trị** | Thêm: thêm, khoá nhân sự và đổi quyền |
 
 **Tab Hiệu quả → 👥 Cả nhóm:** doanh thu, mục tiêu cả nhóm, bảng từng nhân viên. Bấm vào 1 người để xem chi tiết và đặt mục tiêu. Có mục **Vì sao khách tiềm năng không mua** và cảnh báo **đơn chưa có nhân viên bán** (mở đơn để gán).
+
+**Giao khách:**
+
+- Tab **Hôm nay** có mục **🧺 Chờ giao người phụ trách**: khách và khách tiềm năng chưa ai phụ trách. Chọn tên trong ô *Giao cho…* là xong.
+- Mở hồ sơ khách → ô **Người phụ trách** để đổi người.
+- **Cài đặt → 👥 Chia khách & phân quyền**:
+    - **Khách mới được giao thế nào**: *Tự chia đều* (lần lượt cho những người bật “Nhận khách mới”), *Quản lý giao tay* (khách mới vào mục Chờ giao), *Kho chung* (ai nhận trước được khách). Đổi lúc nào cũng được.
+    - **Ai được nhận khách mới**: bật / tắt cho từng người, ví dụ khi nghỉ phép. Cột bên cạnh cho biết người đó đã kết nối Telegram chưa.
+    - **Chia đều khách chưa ai phụ trách**: dùng 1 lần cho khách cũ.
+    - **Chuyển toàn bộ khách của A sang B**: dùng khi nhân viên nghỉ việc. Khách tiềm năng đang theo dõi cũng chuyển theo.
 
 **Tab Cài đặt:**
 
