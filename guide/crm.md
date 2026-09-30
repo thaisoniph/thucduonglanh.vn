@@ -86,6 +86,22 @@ Các nút khác khi mở đơn:
 >
 > **Bấm nhầm trạng thái?** Mở đơn, chọn lại trạng thái đúng. Mọi thay đổi đều được ghi lịch sử.
 
+## Lên đơn (giống sheet VTG_lendon)
+
+Vào **Đơn hàng → ＋ Tạo đơn**, hoặc bấm **＋ Tạo đơn** trong hồ sơ khách. Các ô xếp theo đúng thứ tự trên Sheet:
+
+1. **SĐT, tên khách**. Khách cũ thì CRM tự điền thông tin. Khách có nhãn ⚠️ *Bom hàng* thì CRM cảnh báo.
+2. **Địa chỉ**: dán nguyên 1 dòng, CRM tự nhận ra phường và tỉnh. Nhận sai thì bấm *Sửa tỉnh / phường*.
+3. **Sản phẩm + số lượng**: gõ vài chữ rồi chọn trong danh sách gợi ý.
+4. **🎁 Quà tặng + số lượng**.
+5. **Số tiền thu khách**: gõ `1800000`, `1tr8` hoặc `1,8tr` đều được. Giá linh động, CRM chỉ nhắc giá niêm yết để tham khảo.
+6. **Ca** (Ngày / Tối-CN / Lễ): CRM tự chọn theo giờ lên đơn, sửa được.
+7. Bấm **📋 Copy nội dung lên đơn** để gửi bên vận chuyển. **Mã đơn** tự tạo theo kiểu cũ, ví dụ *Phuong300926-01*.
+
+Trong hồ sơ khách, ô **Ghi nhanh hôm nay** tự thêm ngày ở đầu dòng, giống cách ghi trên Sheet: *“30/09: kh dùng ok, hẹn cuối tháng lấy tiếp”*. Nhật ký chăm sóc cũ từ file của bạn nằm ngay bên dưới.
+
+Tab **Hiệu quả → 📊 Bảng BCDT** tự làm báo cáo doanh thu tháng: theo ngày, theo dòng sản phẩm, khách mới / cũ, đơn hoàn và doanh thu theo ca. Bấm **Tải file Excel** để gửi báo cáo.
+
 ## Tạo đơn cho khách đặt qua Zalo, điện thoại
 
 Khách đặt qua Zalo, Facebook, điện thoại hay mua tại cửa hàng thì **luôn tạo đơn trên CRM**. Khách sẽ được nhắc chăm sóc và tính doanh số cho bạn như đơn web.

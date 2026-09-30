@@ -18,7 +18,7 @@ FONT_BOLD = "/System/Library/Fonts/Supplemental/Arial Bold.ttf"
 
 COMPANY = "CÔNG TY TNHH TẬP ĐOÀN VITAGREEN NUTRITION"
 ADDRESS = "HA10-SP8A-15, Đường Hải Âu 8A, KĐT Vinhomes Ocean Park, Gia Lâm, TP. Hà Nội"
-HOTLINE = "0896 869 333"
+HOTLINE = "0966 326 522"
 EMAIL = "vitagreennutrition@gmail.com"
 DOMAIN = "thucduonglanh.vn"
 
@@ -76,18 +76,23 @@ def main():
         ("Bước 3. Giải quyết", ["Chúng tôi đưa ra phương án xử lý như đổi sản phẩm, hoàn tiền hoặc bồi hoàn trong vòng 3–5 ngày làm việc kể từ khi xác minh xong."]),
         ("Bước 4. Phản hồi", ["Kết quả được thông báo tới quý khách. Trường hợp không đạt được thỏa thuận, các bên có thể yêu cầu cơ quan có thẩm quyền giải quyết theo quy định pháp luật."]),
     ])
-    make_pdf("03-chinh-sach-gia-va-dieu-kien-cung-cap.pdf", "CHÍNH SÁCH GIÁ VÀ ĐIỀU KIỆN CUNG CẤP HÀNG HÓA", [
+    make_pdf("03-chinh-sach-gia.pdf", "CHÍNH SÁCH GIÁ", [
         ("Giá niêm yết", ["Giá bán của từng sản phẩm được niêm yết bằng đồng Việt Nam (VND) trên trang sản phẩm và được hiển thị lại trong giỏ hàng, bước thanh toán trước khi quý khách xác nhận đặt hàng.", "Giá niêm yết trên website đã bao gồm thuế giá trị gia tăng (VAT)."]),
         ("Phí giao hàng", ["Đơn hàng dưới 300.000đ áp dụng phí vận chuyển 30.000đ. Đơn hàng từ 300.000đ được miễn phí vận chuyển toàn quốc. Phí giao hàng được hiển thị rõ tại bước thanh toán."]),
         ("Thay đổi giá và ưu đãi", ["Khi có chương trình ưu đãi, mức giá và điều kiện áp dụng sẽ được công bố trực tiếp trên website. Giá và ưu đãi hiển thị tại thời điểm quý khách xác nhận đơn hàng là căn cứ áp dụng cho đơn hàng đó."]),
-        ("Phạm vi và điều kiện cung cấp", ["Thực Dưỡng Lành cung cấp các sản phẩm dinh dưỡng từ hạt, trà thảo mộc, gia vị và thực phẩm thuần chay trên phạm vi Việt Nam.", "Quý khách cần cung cấp chính xác họ tên, số điện thoại và địa chỉ nhận hàng để xác nhận, giao hàng và hỗ trợ sau bán hàng. Sản phẩm được cung cấp theo tình trạng còn hàng thực tế. Nếu sản phẩm tạm hết hàng hoặc cần điều chỉnh thông tin đơn hàng, chúng tôi sẽ liên hệ với quý khách qua số điện thoại đã cung cấp để thống nhất phương án xử lý."]),
     ])
     make_pdf("04-chinh-sach-thanh-toan.pdf", "CHÍNH SÁCH THANH TOÁN", [
         ("1. Thanh toán khi nhận hàng (COD)", ["Quý khách thanh toán tiền mặt cho nhân viên giao hàng sau khi kiểm tra hàng hóa."]),
         ("2. Chuyển khoản ngân hàng", ["Quý khách chuyển khoản theo thông tin tài khoản hiển thị ở bước thanh toán, nội dung chuyển khoản ghi mã đơn hàng. Đơn hàng sẽ được xử lý ngay sau khi chúng tôi nhận được thanh toán."]),
         ("Lưu ý an toàn", ["Thực Dưỡng Lành không yêu cầu quý khách cung cấp mật khẩu, mã OTP hay thông tin thẻ dưới bất kỳ hình thức nào."]),
     ])
-    make_pdf("05-giao-hang-doi-tra-va-hoan-tien.pdf", "CHÍNH SÁCH GIAO HÀNG, ĐỔI TRẢ VÀ HOÀN TIỀN", [
+    make_pdf("05-dieu-kien-han-che-cung-cap.pdf", "ĐIỀU KIỆN VÀ HẠN CHẾ CUNG CẤP HÀNG HÓA", [
+        ("Phạm vi cung cấp", ["Thực Dưỡng Lành cung cấp các sản phẩm dinh dưỡng từ hạt, trà thảo mộc, gia vị và thực phẩm thuần chay trên phạm vi Việt Nam."]),
+        ("Điều kiện đặt hàng", ["Quý khách cần cung cấp chính xác họ tên, số điện thoại và địa chỉ nhận hàng để Thực Dưỡng Lành xác nhận, giao hàng và hỗ trợ sau bán hàng. Đơn hàng được xử lý sau khi thông tin nhận hàng được xác nhận."]),
+        ("Tình trạng hàng hóa", ["Sản phẩm được cung cấp theo tình trạng còn hàng thực tế. Nếu sản phẩm tạm hết hàng hoặc cần điều chỉnh thông tin đơn hàng, chúng tôi sẽ liên hệ với quý khách qua số điện thoại đã cung cấp để thống nhất phương án xử lý."]),
+        ("Hạn chế áp dụng", ["Chính sách giao hàng, đổi trả và hoàn tiền được áp dụng theo nội dung công bố trên website. Quý khách vui lòng đọc kỹ thành phần, hướng dẫn sử dụng và thông tin phù hợp trên từng trang sản phẩm trước khi đặt hàng."]),
+    ])
+    make_pdf("06-giao-hang-doi-tra-va-hoan-tien.pdf", "CHÍNH SÁCH GIAO HÀNG, ĐỔI TRẢ VÀ HOÀN TIỀN", [
         ("Phạm vi và thời gian giao hàng", ["Thực Dưỡng Lành giao hàng trên toàn quốc thông qua các đơn vị vận chuyển uy tín. Nội thành Hà Nội dự kiến 1–2 ngày làm việc; các tỉnh thành khác dự kiến 2–5 ngày làm việc tùy khu vực. Thời gian có thể thay đổi trong dịp lễ, Tết hoặc do điều kiện thời tiết, dịch bệnh."]),
         ("Theo dõi đơn hàng", [f"Sau khi đơn hàng được gửi đi, chúng tôi sẽ cung cấp mã vận đơn để quý khách theo dõi. Mọi thắc mắc vui lòng liên hệ {HOTLINE}."]),
         ("Trường hợp được đổi trả", ["Sản phẩm bị lỗi do nhà sản xuất, hư hỏng do vận chuyển; giao sai sản phẩm hoặc sai số lượng; sản phẩm hết hạn sử dụng tại thời điểm nhận hàng."]),
