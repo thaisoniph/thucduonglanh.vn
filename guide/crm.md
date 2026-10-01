@@ -123,17 +123,20 @@ Khách đặt qua Zalo, Facebook, điện thoại hay mua tại cửa hàng thì
 
 ### Các loại việc chăm sóc
 
-CRM tự tính ngày cần liên hệ từng khách, dựa vào ngày mua và thời gian dùng hết sản phẩm.
+CRM tự tính ngày cần liên hệ từng khách, dựa vào **ngày khách nhận hàng** và thời gian dùng hết sản phẩm. Ngày nhận hàng là ngày đơn chuyển **Đã giao**, hoặc ngày bạn bấm **📦 Đã nhận, đã HD dùng** khi gọi. Chưa biết ngày nhận thì máy ước tính = ngày đặt + số ngày giao hàng trung bình (mặc định 3 ngày, quản lý sửa ở Cài đặt → Nhóm khách).
 
 | Việc | Khi nào | Nên làm gì |
 | --- | --- | --- |
 | 📞 **Hẹn gọi lại** | Đến ngày khách đã hẹn | Gọi lại đúng hẹn |
-| 📦 **Hỏi nhận hàng, hướng dẫn dùng** | 1–3 ngày sau khi đặt | Hỏi đã nhận hàng chưa, gửi cách dùng |
+| 📦 **Hỏi nhận hàng, hướng dẫn dùng** | Ngày khách nhận hàng đến 2 ngày sau (chưa rõ ngày nhận: từ ngày đặt + 3 ngày) | Hỏi đã nhận hàng chưa, gửi cách dùng. Bấm **📦 Đã nhận, đã HD dùng** hoặc **🚚 Chưa nhận hàng** (2 ngày sau tự nhắc lại) |
 | ⏰ **Sắp hết / đã hết sản phẩm** | Gần ngày khách dùng hết | Nhắc đặt lại, gợi ý thêm món để đơn từ 300.000đ được miễn phí ship |
-| 💬 **Xin cảm nhận** | 14 ngày sau khi mua | Hỏi cảm nhận, xin phép chia sẻ |
-| 🌿 **Giới thiệu sản phẩm phù hợp** | 30 ngày sau khi mua | Giới thiệu sản phẩm khác hợp với khách |
-| 💌 **Mời quay lại** | 60 ngày chưa mua lại | Hỏi thăm, gửi ưu đãi khách cũ |
+| 💬 **Xin cảm nhận** | 14 ngày sau khi nhận hàng | Hỏi cảm nhận, xin phép chia sẻ |
+| 🌿 **Giới thiệu sản phẩm phù hợp** | 30 ngày sau khi nhận hàng | Giới thiệu sản phẩm khác hợp với khách |
+| 💌 **Mời quay lại** | 60 ngày sau khi nhận hàng, chưa mua lại | Hỏi thăm, gửi ưu đãi khách cũ |
+
 | 🔁 **Khách cũ lâu chưa gọi** | Quá 30 ngày khách chưa phản hồi (không tính các lần không nghe máy) | Hỏi thăm, hỏi còn hàng không, mời đặt lại |
+
+Việc nào **qua khung mà chưa làm** (ví dụ bạn nghỉ vài hôm) vẫn hiện thêm 7 ngày, kèm dòng **⏳ trễ N ngày**, để không sót khách.
 
 ### Cách chăm sóc 1 khách
 

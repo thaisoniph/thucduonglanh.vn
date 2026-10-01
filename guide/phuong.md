@@ -64,6 +64,8 @@ Dòng đỏ **“… ngày chưa chăm sóc”** là số ngày từ lần cuố
 | 💸 **Hết tiền** | kh hết tiền, hẹn tháng sau | sau 30 ngày |
 | 🛒 **Đặt lại** | kh đặt lại | không hẹn |
 | 🚫 **Không dùng nữa** | kh không dùng nữa | không hẹn, không đưa vào danh sách khách cũ nữa |
+| 📦 **Đã nhận, đã HD dùng** *(chỉ hiện khi hỏi nhận hàng)* | kh đã nhận hàng, đã hướng dẫn dùng · máy ghi luôn ngày nhận hàng | không hẹn |
+| 🚚 **Chưa nhận hàng** *(chỉ hiện khi hỏi nhận hàng)* | kh chưa nhận được hàng | sau 2 ngày |
 
 Khách nói gì thêm (vd “bà ngủ ngon hơn”, “hẹn cuối tháng”) thì gõ vào **Ghi chú lần này** **trước** khi bấm nút, máy ghi kèm luôn. Muốn tự chọn ngày hẹn thì dùng phần **Hoặc tự chọn bên dưới**.
 
