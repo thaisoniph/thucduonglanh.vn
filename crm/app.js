@@ -99,7 +99,7 @@
   var SERVER_V = '2026-10-02a'; // phải trùng số phiên bản máy chủ (api/src/index.js)
   var ON_CF = !/script\.google/.test(CFG.endpoint || ''); // máy chủ Cloudflare (nhanh) hay Apps Script cũ
   function checkVersion(j) {
-    if (!j || S._vWarned || j.v === SERVER_V || j.v === '2026-10-01i' || j.v === 'moved') return;
+    if (!j || S._vWarned || j.v === SERVER_V || j.v === '2026-10-01j' || j.v === 'moved') return;
     S._vWarned = true;
     if (lvl() >= 2 || (j.user && j.user.level >= 2)) toast('⚠️ Máy chủ Apps Script đang chạy bản cũ (' + (j.v || 'chưa có số phiên bản') + '), cần bản ' + SERVER_V + '. Vào Apps Script → Triển khai → Quản lý các bản triển khai → ✏️ → Phiên bản: Phiên bản mới → Triển khai.', true);
   }
@@ -1731,6 +1731,8 @@
       if (l === 'Khác') lines.push('Sản phẩm khác: ' + r.newN[l] + (r.newR[l] ? ' · ' + mf(r.newR[l]) : ''));
       else lines.push('Số đơn ' + l + ': ' + r.newN[l] + (r.newR[l] ? ' · ' + mf(r.newR[l]) : ''), 'Số mới ' + l + ': ' + r.newD[l]);
     });
+    var d0 = dayStart(day), eb = (S.d.leads || []).filter(function (l) { return /^ebook/i.test(l.channel || '') && l.time >= d0 && l.time < d0 + DAY && (name === null || l.owner === name); }).length;
+    if (eb) lines.push('Số mới Ebook (quà tặng): ' + eb);
     lines.push('Số đơn từ khách cũ: ' + sum(r.oldN) + (sum(r.oldR) ? ' · ' + mf(sum(r.oldR)) : ''));
     lines.push('💰 TỔNG DT: ' + mf(sum(r.newR) + sum(r.oldR)));
     if (r.offN) lines.push('   (trong đó ngoài giờ: ' + r.offN + ' đơn · ' + mf(r.offR) + ')');
