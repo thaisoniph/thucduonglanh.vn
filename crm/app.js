@@ -296,10 +296,10 @@
   function claimBtn(kind, id) { return '<button class="btn" data-claim="' + kind + '|' + esc(id) + '">✋ Nhận khách này</button>'; }
   /* ---------- màu phân loại khách (mỗi người tự chọn màu, tự tạo nhãn trong Cài đặt) */
   var CAT_DEF = {
-    new: { label: 'Khách mới', color: '#ffffff', tip: 'mới mua 1 lần' },
-    old: { label: 'Khách cũ', color: '#fff1b8', tip: 'đã mua lại' },
-    off: { label: 'Ngoài giờ', color: '#eee2ff', tip: 'đơn gần nhất buổi tối / Chủ nhật / lễ' },
-    void: { label: 'Hoàn / bom', color: '#e4e4e4', tip: 'đơn gần nhất bị hoàn, huỷ hoặc khách có nhãn bom hàng' }
+    new: { label: 'Mua 1 lần', color: '#ffffff', tip: 'Khách đã mua 1 đơn (người chưa mua nằm ở tab Tiềm năng)' },
+    old: { label: 'Mua từ 2 lần', color: '#fff1b8', tip: 'Khách đã mua lại, từ 2 đơn trở lên' },
+    off: { label: 'Đặt tối / CN / lễ', color: '#eee2ff', tip: 'Đơn gần nhất đặt buổi tối, Chủ nhật hoặc ngày lễ (ngoài giờ hành chính)' },
+    void: { label: 'Hay hoàn / bom', color: '#e4e4e4', tip: 'Hoàn từ 2 lần và hoàn ≥ số lần nhận, chưa nhận đơn nào, hoặc có nhãn bom hàng. Hoàn 1 lần trong nhiều đơn vẫn là khách tốt' }
   };
   var CAT_ORDER = ['new', 'old', 'off', 'void'];
   function catColor(k) { var p = (S.d && S.d.prefs && S.d.prefs.colors) || {}; return p[k] || CAT_DEF[k].color; }
@@ -313,7 +313,7 @@
   function orderCat(o) {
     var c = cust(o.phone), k = isVoid(o.status) ? 'void' : o.ca === 'Tối/CN' || o.ca === 'Lễ' ? 'off' : c && c.first && c.first < (o.time || 0) - 3600e3 ? 'old' : 'new';
     if (!isVoid(o.status) && c && c.tag) return { key: 'tag:' + c.tag, label: c.tag, color: tagColor(c.tag) };
-    return { key: k, label: k === 'old' ? 'Khách cũ' : CAT_DEF[k].label, color: catColor(k) };
+    return { key: k, label: { new: 'Đơn đầu tiên', old: 'Khách mua lại', off: 'Đặt tối / CN / lễ', void: 'Hoàn / huỷ' }[k], color: catColor(k) };
   }
   /** Màu đậm hơn để làm viền / chữ trên nền màu nhạt. */
   function shade(hex, f) {
@@ -332,7 +332,7 @@
     return '<div class="legend">' + keys.map(function (k) {
       var isTag = k.indexOf('tag:') === 0, color = isTag ? tagColor(k.slice(4)) : catColor(k), label = isTag ? k.slice(4) : CAT_DEF[k].label;
       return '<button class="lg' + (active === k ? ' on' : '') + '" data-cat="' + esc(k) + '"' + (isTag ? '' : ' title="' + esc(CAT_DEF[k].tip) + '"') + '><i style="background:' + color + ';border-color:' + shade(color, .35) + '"></i>' + esc(label) + (list ? ' <em>' + (cnt[k] || 0) + '</em>' : '') + '</button>';
-    }).join('') + '<a class="lg-set" href="#cai-dat">🎨 Đổi màu</a></div>';
+    }).join('') + '<button type="button" class="lg-set lg-help" data-taghelp>ⓘ Giải thích nhãn</button><a class="lg-set" href="#cai-dat">🎨 Đổi màu</a></div>';
   }
   function isBank(o) { return /chuyển khoản/i.test(o.payment); }
   function unpaidOrders() { return S.d.orders.filter(function (o) { return isBank(o) && !o.paid && !isVoid(o.status); }); }
@@ -414,10 +414,23 @@
     var r = replyOf(c); if (r.result === 'Không có nhu cầu' && r.at && !((c.last || 0) > r.at) && today() - r.at < 180 * DAY) return 'Không dùng nữa';
     return '';
   }
+  var TIP = {
+    vip: function () { var R = S.d.rules || {}; return 'Khách mua từ ' + (R.vipOrders || 3) + ' đơn, hoặc tổng chi từ ' + money(R.vipSpent || 2e6); },
+    risk: 'Sắp mất: 61–180 ngày chưa mua lại. Nhóm đáng gọi nhất',
+    lost: 'Lâu không mua: hơn 180 ngày chưa mua lại',
+    live: 'Đang dùng: mua trong 60 ngày gần đây',
+    cold: 'Khách lạnh: đã nói không dùng nữa, hoặc bom hàng / từ chối nhận. Không đưa vào danh sách gọi hằng ngày',
+    back: 'Hay hoàn: hoàn từ 2 lần và số lần hoàn ≥ số lần nhận, hoặc chưa nhận đơn nào. Nên nhờ khách chuyển khoản trước',
+    zalo: 'Đã kết bạn Zalo: nhắn tin chăm sóc được',
+    nozalo: 'Chưa kết bạn Zalo: gọi xong nhớ xin kết bạn',
+    task: 'Khách đến lịch chăm sóc hôm nay (hẹn gọi lại, hỏi nhận hàng, sắp hết hàng…)',
+    callback: 'Khách đã hẹn ngày gọi lại',
+    all: 'Tất cả khách của bạn'
+  };
   function custTags(c) {
     var st = stageOf(c), cold = coldOf(c);
-    return (isVip(c) ? '<span class="tag vip">VIP</span>' : '') + (cold ? '<span class="tag cold">❄️ ' + esc(cold) + '</span>' : st === 'risk' ? '<span class="tag risk">Sắp mất</span>' : st === 'lost' ? '<span class="tag lost">Lâu không mua</span>' : '') +
-      (riskyReturn(c) && !cold ? '<span class="tag st-huy">⚠️ hay hoàn</span>' : '');
+    return (isVip(c) ? '<span class="tag vip" title="' + TIP.vip() + '">VIP</span>' : '') + (cold ? '<span class="tag cold" title="' + TIP.cold + '">❄️ ' + esc(cold) + '</span>' : st === 'risk' ? '<span class="tag risk" title="' + TIP.risk + '">Sắp mất</span>' : st === 'lost' ? '<span class="tag lost" title="' + TIP.lost + '">Lâu không mua</span>' : '') +
+      (riskyReturn(c) && !cold ? '<span class="tag st-huy" title="' + TIP.back + '">⚠️ hay hoàn</span>' : '');
   }
   function stTag(s) { return '<span class="tag ' + (ST_CLS[s] || '') + '">' + esc(s) + '</span>'; }
   function shortProducts(list, n) { return (list || []).slice(-(n || 2)).map(function (p) { return p.replace(/\s*\(.*\)\s*$/, ''); }).join(', '); }
@@ -464,6 +477,24 @@
       (withTask ? '<div class="acts"><button class="btn pri" data-care="' + c.phone + '" data-task="' + (c.task ? c.task.type : 'old') + '">💬 Chăm sóc</button><a class="btn" href="tel:' + c.phone + '">📞 Gọi</a>' + (!c.owner && isPoolStaff() ? claimBtn('c', c.phone) : '<button class="btn" data-quick="' + c.phone + '|knm|' + (c.task ? c.task.type : 'old') + '" title="Gọi không nghe máy: ghi “knm”, 2 ngày sau tự nhắc gọi lại">📵 KNM</button>') + '</div>'
         : !c.owner && isPoolStaff() ? '<div class="acts">' + claimBtn('c', c.phone) + '</div>' : '') +
       '</div>';
+  }
+  /** Bảng giải thích mọi nhãn (bấm ⓘ, dùng được trên điện thoại). */
+  function openTagHelp() {
+    var sw = function (k) { var col = catColor(k); return '<i class="sw" style="background:' + col + ';border-color:' + shade(col, .35) + '"></i>'; };
+    var row = function (a, b) { return '<tr><td>' + a + '</td><td>' + b + '</td></tr>'; };
+    var body = '<div class="box"><h3>🎨 Màu thẻ khách</h3><table class="tg-help">' +
+      CAT_ORDER.map(function (k) { return row(sw(k) + '<b>' + esc(CAT_DEF[k].label) + '</b>', esc(CAT_DEF[k].tip)); }).join('') + '</table>' +
+      '<p class="small muted" style="margin:6px 0 0">Người <b>chưa mua</b> lần nào nằm ở tab <b>Tiềm năng</b>, không có trong danh sách khách hàng. Màu có thể đổi ở Cài đặt; nhãn riêng bạn tạo được ưu tiên tô màu trước.</p></div>' +
+      '<div class="box"><h3>🏷️ Nhãn nhóm khách</h3><table class="tg-help">' +
+      row('<i>(không nhãn)</i>', esc(TIP.live)) + row('<span class="tag risk">Sắp mất</span>', esc(TIP.risk)) + row('<span class="tag lost">Lâu không mua</span>', esc(TIP.lost)) +
+      row('<span class="tag vip">VIP</span>', esc(TIP.vip())) + row('<span class="tag cold">❄️ Khách lạnh</span>', esc(TIP.cold) + '. Đặt đơn mới là hết lạnh; khách “không dùng nữa” sau 6 tháng tự quay lại để chào lại 1 lần.') +
+      row('<span class="tag st-huy">⚠️ hay hoàn</span>', esc(TIP.back)) + '</table></div>' +
+      '<div class="box"><h3>📌 Nhãn khác</h3><table class="tg-help">' +
+      row('<span class="zl on">💬 Zalo</span>', esc(TIP.zalo) + ' (trên file Sheet cũ là dấu “(x)” sau tên).') + row('<span class="zl add">➕ Đã kết bạn Zalo</span>', 'Bấm khi vừa kết bạn Zalo với khách.') +
+      row('<span class="tag st-xong">✓ Nhận ưu đãi</span>', 'Khách đồng ý nhận tin khuyến mãi. Chưa đồng ý thì vẫn hỏi thăm, hướng dẫn dùng bình thường; chỉ tránh gửi quảng cáo hàng loạt.') +
+      row('<span class="tag noconsent">Chưa ai phụ trách</span>', 'Khách chưa có sale nhận. Ở chế độ Kho chung, khách này nằm ở mục 🧺 Kho chung tab Hôm nay.') +
+      row('<span class="bad-line">⏳ trễ N ngày</span>', 'Việc chăm sóc đã qua ngày nên làm mà chưa làm (vẫn giữ thêm 7 ngày).') + '</table></div>';
+    modal('ⓘ Giải thích nhãn', body, '<button class="btn pri" data-close>Đã hiểu</button>');
   }
   function consentTag(c) { return c.consent ? '<span class="tag st-xong" title="Khách đồng ý nhận tin ưu đãi">✓ Nhận ưu đãi</span>' : canEdit(c) ? '<button type="button" class="zl add" data-consent="' + c.phone + '" title="Bấm khi khách đồng ý nhận tin ưu đãi / khuyến mãi">☐ Khách đồng ý nhận ưu đãi</button>' : ''; }
   function canEdit(c) { return lvl() >= 2 || c.owner === S.user.name; }
@@ -649,7 +680,7 @@
       '<div class="tools"><div class="search">' + I.search + '<input type="search" id="cq" placeholder="Tìm tên, số điện thoại, sản phẩm…" value="' + esc(f.q) + '"></div>' +
       '<select id="csort" style="flex:0 0 auto;width:auto">' + Object.keys(SORTS).map(function (k) { return '<option value="' + k + '"' + (f.sort === k ? ' selected' : '') + '>' + SORTS[k][0] + '</option>'; }).join('') + '</select></div>' +
       legend(lvl() >= 2 ? S.d.customers : S.d.customers.filter(function (c) { return c.owner === S.user.name; }), f.cat) +
-      '<div class="chips">' + chips.map(function (x) { var n = base.filter(x.f).length; return '<button class="chip' + (x.k === cur.k ? ' on' : '') + '" data-cf="' + x.k + '">' + x.l + ' <em>' + n + '</em></button>'; }).join('') + '</div>' +
+      '<div class="chips">' + chips.map(function (x) { var n = base.filter(x.f).length, tp = { vip: TIP.vip(), risk: TIP.risk, lost: TIP.lost, cold: TIP.cold, nozalo: TIP.nozalo, task: TIP.task, callback: TIP.callback, all: TIP.all }[x.k]; return '<button class="chip' + (x.k === cur.k ? ' on' : '') + '" data-cf="' + x.k + '"' + (tp ? ' title="' + esc(tp) + '"' : '') + '>' + x.l + ' <em>' + n + '</em></button>'; }).join('') + '</div>' +
       (list.length ? '<div class="crows">' + list.slice(0, f.n).map(custRow).join('') + '</div>' +
         (list.length > f.n ? '<button class="btn more" data-more="c">Xem thêm ' + Math.min(60, list.length - f.n) + ' khách</button>' : '') : empty('Không có khách nào khớp.'));
   }
@@ -1989,11 +2020,12 @@
   /* ================================================================ sự kiện chung */
   document.addEventListener('toggle', function (e) { var d = e.target; if (d && d.matches && d.matches('details[data-grp]')) { S.f.gopen = S.f.gopen || {}; S.f.gopen[d.getAttribute('data-grp')] = d.open; } }, true);
   document.addEventListener('click', function (e) {
-    var t = e.target.closest('[data-consent],[data-daily],[data-flow],[data-zalo],[data-quick],[data-care],[data-next],[data-neworder],[data-cf],[data-os],[data-tf],[data-cat],[data-addtag],[data-deltag],[data-claim],[data-mon],[data-bcdt],[data-srcadd],[data-srcedit],[data-srcsync],[data-srcdel],[data-adsedit],[data-adssync],[data-who],[data-target],[data-myold],[data-more],[data-add],[data-rm],[data-consult],[data-leadorder],[data-newlead],[data-editlead],[data-cust],[data-order],[data-lead]');
+    var t = e.target.closest('[data-taghelp],[data-consent],[data-daily],[data-flow],[data-zalo],[data-quick],[data-care],[data-next],[data-neworder],[data-cf],[data-os],[data-tf],[data-cat],[data-addtag],[data-deltag],[data-claim],[data-mon],[data-bcdt],[data-srcadd],[data-srcedit],[data-srcsync],[data-srcdel],[data-adsedit],[data-adssync],[data-who],[data-target],[data-myold],[data-more],[data-add],[data-rm],[data-consult],[data-leadorder],[data-newlead],[data-editlead],[data-cust],[data-order],[data-lead]');
     if (!t || !S.d) return;
     if (e.target.closest('a[href]') && !t.hasAttribute('data-myold')) return; // nút gọi / Zalo bên trong thẻ
     var a = function (k) { return t.getAttribute(k); };
     if (t.hasAttribute('data-flow')) { startFlow(); return; }
+    if (t.hasAttribute('data-taghelp')) { openTagHelp(); return; }
     if (t.hasAttribute('data-consent')) { e.stopPropagation(); var cc = cust(a('data-consent')); if (cc) { sendOp('customer', { phone: cc.phone, consent: 1 }); t.outerHTML = consentTag(cc); toast('Đã ghi: khách đồng ý nhận ưu đãi ✓'); } return; }
     if (t.hasAttribute('data-daily')) { openDaily(a('data-daily') || null); return; }
     if (t.hasAttribute('data-zalo')) { e.stopPropagation(); var zc = cust(a('data-zalo')); if (zc) { setZalo(zc, true); var zb = $('.modal [data-zalo]'); if (zb) zb.outerHTML = zaloTag(zc); } return; }

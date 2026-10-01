@@ -432,3 +432,8 @@ details.grp .g-tip { flex-basis: 100%; font-size: 12px; color: var(--muted); }
 @media (min-width: 900px) { .crows { display: grid; grid-template-columns: 1fr 1fr; } .crows .rw { border-right: 1px solid var(--line); } }
 .rw.cr { align-items: flex-start; } .rw-3 { font-size: 13px; color: var(--text); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tag.vip { background: #fff3cd; color: #946200; } .tag.cold { background: #e8eef6; color: #3b5578; } .tag.lost { background: #eceae4; color: #6b6a63; }
+
+.lg-help { background: none; border: 0; cursor: pointer; font: inherit; color: var(--primary); text-decoration: underline; padding: 0; }
+.tg-help { width: 100%; border-collapse: collapse; font-size: 14px; } .tg-help td { padding: 8px 6px; border-bottom: 1px solid var(--line); vertical-align: top; } .tg-help td:first-child { white-space: nowrap; width: 1%; }
+.tg-help .sw { display: inline-block; width: 14px; height: 14px; border-radius: 4px; border: 1px solid; vertical-align: -2px; margin-right: 6px; }
+[title] { cursor: help; } button[title], a[title] { cursor: pointer; }

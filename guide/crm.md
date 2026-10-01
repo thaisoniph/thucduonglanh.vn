@@ -221,12 +221,12 @@ Từ trên xuống:
 
 | Màu | Nghĩa là |
 | --- | --- |
-| **Trắng** | Khách mới, mới mua 1 lần |
-| **Vàng** | Khách cũ, đã mua lại |
-| **Tím** | Đơn gần nhất đặt buổi tối, Chủ nhật hoặc ngày lễ |
-| **Xám** | Khách hay hoàn (xem trên) hoặc có nhãn bom hàng. Khách thân thiết chỉ hoàn 1 lần không bị tô xám |
+| **Trắng** – *Mua 1 lần* | Khách đã mua 1 đơn. Người **chưa mua** nằm ở tab Tiềm năng |
+| **Vàng** – *Mua từ 2 lần* | Khách đã mua lại |
+| **Tím** – *Đặt tối / CN / lễ* | Đơn gần nhất đặt buổi tối, Chủ nhật hoặc ngày lễ |
+| **Xám** – *Hay hoàn / bom* | Khách hay hoàn (xem trên) hoặc có nhãn bom hàng. Khách thân thiết chỉ hoàn 1 lần không bị tô xám |
 
-Nếu khách thuộc nhiều loại thì ưu tiên: nhãn riêng của bạn → xám → tím → vàng → trắng. Bấm vào ô màu phía trên danh sách để chỉ xem khách loại đó.
+Quên nghĩa nhãn nào thì bấm **ⓘ Giải thích nhãn** cạnh hàng nhãn màu (trên máy tính: di chuột vào nhãn để xem chú thích). Nếu khách thuộc nhiều loại thì ưu tiên: nhãn riêng của bạn → xám → tím → vàng → trắng. Bấm vào ô màu phía trên danh sách để chỉ xem khách loại đó.
 
 **Tự đặt màu và nhãn riêng**: vào **Cài đặt → 🎨 Màu phân loại khách** để đổi màu cho từng loại, hoặc bấm **+ Thêm nhãn** để tạo nhãn riêng (ví dụ “Khách sỉ” màu xanh), rồi bấm **Lưu màu & nhãn**. Muốn gắn nhãn cho khách: mở hồ sơ khách → ô **Nhãn màu** → chọn nhãn → **Lưu thông tin chăm sóc**. Màu bạn chọn chỉ áp dụng trên máy của bạn, không ảnh hưởng người khác.
 
