@@ -30,6 +30,13 @@
   "zalo_oa": "https://zalo.me/4116030867157210870",
   "community": [
     {
+      "name": "Nhóm Zalo Sống khỏe cùng Thực Dưỡng Lành",
+      "stat": "Tham gia miễn phí",
+      "url": "https://zalo.me/g/tvepjg478",
+      "image": "/assets/img/products/bua-an-dinh-duong-3.webp",
+      "desc": "Nhận thông báo ưu đãi, quà tặng cộng đồng và được đội ngũ Thực Dưỡng Lành tư vấn trực tiếp qua Zalo."
+    },
+    {
       "name": "Fanpage Thực Dưỡng Lành",
       "stat": "98.000+ người theo dõi",
       "url": "https://www.facebook.com/profile.php?id=61575904679350",
@@ -56,13 +63,6 @@
       "url": "https://www.youtube.com/@thucduonglanh",
       "image": "/assets/img/products/tra-dilvang-4.webp",
       "desc": "Video hướng dẫn cách dùng sản phẩm, câu chuyện thương hiệu, chia sẻ kiến thức thực dưỡng và hành trình sống lành cùng cộng đồng."
-    },
-    {
-      "name": "Nhóm Zalo Sống khỏe cùng Thực Dưỡng Lành",
-      "stat": "Tham gia miễn phí",
-      "url": "https://zalo.me/g/tvepjg478",
-      "image": "/assets/img/products/bua-an-dinh-duong-3.webp",
-      "desc": "Nhận thông báo ưu đãi, quà tặng cộng đồng và được đội ngũ Thực Dưỡng Lành tư vấn trực tiếp qua Zalo."
     }
   ],
   "community_group": "https://www.facebook.com/share/g/19NHcqWCUR/",
@@ -73,5 +73,13 @@
     "image": "/assets/img/brand/video-thuong-hieu.webp",
     "upload_date": "2026-08-18",
     "duration": "PT2M9S"
+  },
+  "zalo_group": "https://zalo.me/g/tvepjg478",
+  "ebook": {
+    "url": "https://ebook.thucduonglanh.vn/",
+    "title": "Tặng ebook “7 ngày thanh lọc cơ thể”",
+    "sub": "Thực đơn và bí quyết ăn lành mỗi ngày, kèm lời mời vào nhóm Zalo Sống khỏe cùng Thực Dưỡng Lành.",
+    "button": "Nhận ebook miễn phí",
+    "image": "/assets/img/brand/ebook-7-ngay.webp"
   }
 }

@@ -915,3 +915,31 @@ label .invalid,input.invalid,textarea.invalid{border-color:var(--red)!important}
 .oa-cta{border:1.5px solid #bfd6ff;background:#f3f7ff;border-radius:14px;padding:16px;margin:0 0 16px;text-align:center}
 .oa-cta b{display:block;color:#0050c8;font-size:16.5px}
 .oa-cta p{margin:6px 0 10px;font-size:14.5px}
+
+/* ---------- mời nhận ebook + nhóm Zalo ---------- */
+.eb-cta{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:22px;align-items:center;margin-top:22px;padding:16px 26px 16px 18px;border-radius:18px;background:linear-gradient(100deg,#f3f8ee,#fdf7e6);border:1.5px solid #e2ebd5;color:var(--ink);transition:box-shadow .2s,transform .2s}
+.eb-cta:hover{box-shadow:var(--shadow-lg);transform:translateY(-1px);color:var(--ink)}
+.eb-img img{display:block;width:96px;height:auto;border-radius:6px;box-shadow:0 6px 16px rgba(0,0,0,.14)}
+.eb-text{display:block;min-width:0}
+.eb-tag{display:inline-block;font-size:12.5px;font-weight:700;color:#a86b00;background:#fff3d1;border-radius:99px;padding:3px 10px;margin-bottom:6px}
+.eb-text b{display:block;font-size:19px;line-height:1.35;color:var(--primary)}
+.eb-sub{display:block;font-size:14.5px;color:var(--muted);line-height:1.5;margin-top:4px}
+.eb-btn{white-space:nowrap;pointer-events:none}
+.post + .eb-cta{margin-top:36px}
+.fw-chip.fw-gift{background:#fff3d1;border-color:#f0c96a;color:#8a5600;font-weight:600}
+.oc-zalo{display:flex;gap:12px;align-items:center;margin:4px 16px 12px;padding:12px 14px;border-radius:14px;background:#eef4ff;border:1.5px solid #cfe0ff;color:#0050c8;font-size:13px;line-height:1.4}
+.oc-zalo svg{width:38px;height:38px;flex:none}
+.oc-zalo b{display:block;font-size:15px}
+.oa-link{display:block;margin-top:10px;font-size:13.5px;color:#0050c8}
+@media (max-width:640px){
+  .eb-cta{grid-template-columns:64px minmax(0,1fr);gap:12px 14px;padding:14px;margin-top:16px}
+  .eb-img img{width:64px}
+  .eb-text b{font-size:16px}
+  .eb-sub{font-size:13.5px}
+  .eb-btn{grid-column:1/-1;width:100%;justify-content:center;text-align:center}
+}
+.oc-panel .oc-menu{flex:none}
+.oc-panel .oc-zalo{margin-top:14px}
+.oc-panel .oc-foot{margin-top:auto}
+.oa-cta .btn-zalo{background:#0068ff;border-color:#0068ff;color:#fff;padding:12px 30px;font-size:16px}
+.oa-cta .btn-zalo:hover{background:#0050c8;border-color:#0050c8;color:#fff}

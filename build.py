@@ -272,7 +272,8 @@ def header(active):
 <div class="offcanvas" id="offcanvas" aria-hidden="true"><div class="oc-panel">
   <div class="oc-head"><img src="/assets/img/brand/logo.webp" alt="{BRAND}" height="56"><button class="icon-btn" data-oc-close aria-label="Đóng">{I["close"]}</button></div>
   {nav_html(active, "oc-menu")}
-  <div class="oc-foot"><a href="/yeu-thich/">{ic("heart")} Sản phẩm yêu thích</a><a href="tel:{tel(SITE["hotline"])}">{ic("phone")} {esc(SITE["hotline"])}</a></div>
+  {f'<a class="oc-zalo" href="{esc(SITE["zalo_group"])}" target="_blank" rel="noopener" data-cta="zalo_group_menu">{I["zalo"]}<span><b>Nhóm Zalo Sống khỏe</b>Tham gia miễn phí – chia sẻ món lành, ưu đãi thành viên</span></a>' if SITE.get("zalo_group") else ""}
+  <div class="oc-foot">{f'<a href="{esc(ebook_href("menu"))}" target="_blank" rel="noopener" data-cta="ebook_menu">🎁 Nhận ebook miễn phí</a>' if ebook_href("menu") else ""}<a href="/yeu-thich/">{ic("heart")} Sản phẩm yêu thích</a><a href="tel:{tel(SITE["hotline"])}">{ic("phone")} {esc(SITE["hotline"])}</a></div>
 </div></div>
 <div class="search-layer" id="searchLayer" aria-hidden="true"><div class="search-box">
   <form action="/tim-kiem/" method="get" role="search"><span class="s-ic">{I["search"]}</span><input type="search" name="q" id="searchInput" placeholder="Tìm sản phẩm..." autocomplete="off" aria-label="Tìm sản phẩm"><button type="button" class="icon-btn" data-search-close aria-label="Đóng">{I["close"]}</button></form>
@@ -339,7 +340,7 @@ def float_widget():
     <button class="fw-x" id="fwClose" aria-label="Ẩn">{I["close"]}</button>
     <div class="fw-msg"><div class="fw-name"><img src="/assets/img/brand/emblem.png" alt="" width="22" height="22">{BRAND}</div>
     <p>Anh/chị đang tìm hiểu sản phẩm nào ạ? Em sẵn sàng tư vấn ngay cho anh/chị nhé!</p></div>
-    <div class="fw-chips">{chips}<a class="fw-chip" href="{zalo_link()}" target="_blank" rel="noopener">Liên hệ tư vấn</a></div>
+    <div class="fw-chips">{f'<a class="fw-chip fw-gift" href="{esc(ebook_href("float"))}" target="_blank" rel="noopener" data-cta="ebook_float">🎁 Nhận ebook miễn phí</a>' if ebook_href("float") else ""}{chips}<a class="fw-chip" href="{zalo_link()}" target="_blank" rel="noopener">Liên hệ tư vấn</a></div>
   </div>
   <a class="fw-btn fw-phone" href="tel:{tel(SITE["hotline"])}" aria-label="Gọi {esc(SITE["hotline"])}">{I["phone"]}</a>
   <a class="fw-btn fw-zalo" href="{zalo_link()}" target="_blank" rel="noopener" aria-label="Chat Zalo">{I["zalo"]}</a>
@@ -447,6 +448,28 @@ def page_hero(title, sub=""):
     return f'<section class="page-hero"><div class="container"><h1>{esc(title)}</h1>{s}</div></section>'
 
 
+def ebook_href(medium):
+    """Link trang tặng ebook (LadiPage) kèm UTM để biết khách đến từ vị trí nào trên web."""
+    eb = SITE.get("ebook") or {}
+    if not eb.get("url"):
+        return ""
+    sep = "&" if "?" in eb["url"] else "?"
+    return f'{eb["url"]}{sep}utm_source=website&utm_medium={medium}&utm_campaign=ebook'
+
+
+def ebook_cta(medium):
+    """Khung mời nhận ebook: cả khung bấm được, một chạm sang trang ebook."""
+    eb, href = SITE.get("ebook") or {}, ebook_href(medium)
+    if not href:
+        return ""
+    img = f'<img src="{esc(eb["image"])}" alt="" width="300" height="497" loading="lazy">' if eb.get("image") else ""
+    return f'''<a class="eb-cta" href="{esc(href)}" target="_blank" rel="noopener" data-cta="ebook_{medium}">
+  <span class="eb-img">{img}</span>
+  <span class="eb-text"><span class="eb-tag">🎁 Quà tặng miễn phí</span><b>{esc(eb.get("title", "Nhận ebook miễn phí"))}</b><span class="eb-sub">{esc(eb.get("sub", ""))}</span></span>
+  <span class="btn eb-btn">{esc(eb.get("button") or "Nhận ebook miễn phí")}</span>
+</a>'''
+
+
 def benefits_banner():
     items = [("truck", "Miễn phí ship", f"đơn từ {money(SITE.get('free_ship_threshold')).replace(' ₫', 'đ')}" if SITE.get("free_ship_threshold") else "toàn quốc"), ("return", "Đổi trả", "dễ dàng"), ("chat", "Tư vấn", "tận tâm"), ("wallet", "Thanh toán", "tiện lợi")]
     feats = "".join(f'<div class="bb-feat">{ic(i,"bb-ic")}<span>{a}<br><b>{b}</b></span></div>' for i, a, b in items)
@@ -541,7 +564,7 @@ def page_home():
     tag_html = "".join(f'<a href="/tim-kiem/?q={quote(t)}">{esc(t)}</a>' for t in tags)
 
     body = f'''{hero}
-<section class="section section-tight"><div class="container">{benefits_banner()}</div></section>
+<section class="section section-tight"><div class="container">{benefits_banner()}{ebook_cta("home")}</div></section>
 
 <section class="section"><div class="container">
   <h2 class="sec-title">Danh mục sản phẩm</h2>
@@ -910,7 +933,8 @@ def page_post(p):
   <h1>{esc(p["title"])}</h1>
   <img class="post-cover" src="{img_url(p["image"], 1400)}" alt="{esc(p["title"])}" width="1200" height="1200">
   {p["content"]}
-</article></div></section>
+</article>
+{ebook_cta("post")}</div></section>
 <section class="section bg-soft"><div class="container"><h2 class="sec-title">Bài viết khác</h2><div class="post-grid">{"".join(post_card(x) for x in others)}</div></div></section>'''
     ld = {"@context": "https://schema.org", "@type": "Article", "headline": p["title"], "datePublished": p["date"], "image": DOMAIN + p["image"],
           "author": {"@type": "Organization", "name": BRAND}, "publisher": {"@type": "Organization", "name": BRAND, "logo": {"@type": "ImageObject", "url": DOMAIN + "/assets/img/brand/logo@2x.png"}}}
@@ -1043,7 +1067,7 @@ def main():
         "text": strip_tags(p["name"] + " " + p["summary"] + " " + " ".join(p.get("highlights", []))),
         "featured": bool(p.get("featured")), "upsell": [x for x in (p.get("upsell") or []) if x],
     } for p in PRODUCTS]
-    cfg = {"brand": BRAND, "hotline": SITE["hotline"], "zalo": tel(SITE["zalo"]), "email": SITE["email"], "zalo_oa": SITE.get("zalo_oa", ""),
+    cfg = {"brand": BRAND, "hotline": SITE["hotline"], "zalo": tel(SITE["zalo"]), "email": SITE["email"], "zalo_oa": SITE.get("zalo_oa", ""), "zalo_group": SITE.get("zalo_group", ""),
            "ga4_id": SITE.get("ga4_id", ""), "clarity_id": SITE.get("clarity_id", ""), "meta_pixel": SITE.get("meta_pixel", ""), "tiktok_pixel": SITE.get("tiktok_pixel", ""),
            "endpoint": (SITE.get("api_endpoint") or SITE.get("order_endpoint", "")), "bank": SITE["bank"] if SITE["bank"].get("enabled") else None,
            "shipping_fee": SITE.get("shipping_fee", 0), "free_ship_threshold": SITE.get("free_ship_threshold", 0)}

@@ -218,6 +218,7 @@
         if (navigator.clipboard) navigator.clipboard.writeText(url).then(function () { toast('Đã sao chép liên kết', 'ok'); });
         return;
       }
+      if ((t = e.target.closest('[data-cta]'))) track('cta_click', { cta: t.getAttribute('data-cta') });
       if ((t = e.target.closest('.v-frame[data-yt]'))) {
         if (t.querySelector('iframe')) return;
         $$('.v-frame video').forEach(function (o) { o.pause(); });
@@ -783,7 +784,7 @@
     el.innerHTML = '<div class="ok-ic">' + ICON.check + '</div><h1>Cảm ơn ' + esc(o.customer.name) + '!</h1><p>Đơn hàng <b>' + esc(o.id) + '</b> đã được ghi nhận. ' + esc(CFG.brand) + ' sẽ gọi điện xác nhận tới số <b>' + esc(o.customer.phone) + '</b> trong thời gian sớm nhất.</p>' +
       zaloNote + qr + '<div class="order-box">' + rows + '<div class="row"><span>Giao hàng</span><span>' + (o.shipping ? money(o.shipping) : ((+CFG.shipping_fee && +CFG.free_ship_threshold) ? 'Miễn phí' : 'Báo khi xác nhận')) + '</span></div><div class="row"><span><b>Tổng cộng</b></span><b style="color:var(--primary-2)">' + money(o.total) + '</b></div>' +
       '<div class="row"><span>Người nhận</span><span>' + esc(o.customer.name) + ' – ' + esc(o.customer.phone) + '</span></div><div class="row"><span>Địa chỉ</span><span>' + esc(o.customer.address + ', ' + o.customer.district + ', ' + o.customer.province) + '</span></div>' +
-      '<div class="row"><span>Thanh toán</span><span>' + (o.payment === 'bank' ? 'Chuyển khoản' : 'Thanh toán khi nhận hàng (COD)') + '</span></div></div>' + (CFG.zalo_oa ? '<div class="oa-cta"><b>📲 Quan tâm Zalo OA Thực Dưỡng Lành</b><p>Để nhận hướng dẫn dùng sản phẩm, lịch nhắc và ưu đãi dành riêng cho khách đã mua.</p><a class="btn btn-zalo" href="' + esc(CFG.zalo_oa) + '" target="_blank" rel="noopener">Quan tâm Zalo OA</a></div>' : '') + '<a class="btn btn-outline" href="/san-pham/">Tiếp tục mua sắm</a>';
+      '<div class="row"><span>Thanh toán</span><span>' + (o.payment === 'bank' ? 'Chuyển khoản' : 'Thanh toán khi nhận hàng (COD)') + '</span></div></div>' + (CFG.zalo_group ? '<div class="oa-cta"><b>👥 Mời anh/chị vào nhóm Zalo Sống khỏe cùng ' + esc(CFG.brand) + '</b><p>Nhận hướng dẫn dùng sản phẩm, thực đơn lành mỗi ngày và ưu đãi riêng cho thành viên.</p><a class="btn btn-zalo" href="' + esc(CFG.zalo_group) + '" target="_blank" rel="noopener" data-cta="zalo_group_thanks">Vào nhóm Zalo</a>' + (CFG.zalo_oa ? '<a class="oa-link" href="' + esc(CFG.zalo_oa) + '" target="_blank" rel="noopener" data-cta="zalo_oa_thanks">hoặc Quan tâm Zalo OA</a>' : '') + '</div>' : CFG.zalo_oa ? '<div class="oa-cta"><b>📲 Quan tâm Zalo OA Thực Dưỡng Lành</b><p>Để nhận hướng dẫn dùng sản phẩm, lịch nhắc và ưu đãi dành riêng cho khách đã mua.</p><a class="btn btn-zalo" href="' + esc(CFG.zalo_oa) + '" target="_blank" rel="noopener">Quan tâm Zalo OA</a></div>' : '') + '<a class="btn btn-outline" href="/san-pham/">Tiếp tục mua sắm</a>';
     var z = $('#sendZalo');
     if (z) z.addEventListener('click', function () {
       var txt = orderText(o);

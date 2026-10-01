@@ -238,6 +238,17 @@ collections:
               - { label: "Ảnh bìa", name: image, widget: image, required: false, hint: "Để trống thì dùng ảnh bìa của YouTube." }
               - { label: "Ngày đăng video (YYYY-MM-DD)", name: upload_date, widget: string, required: false }
               - { label: "Thời lượng (ví dụ PT2M9S = 2 phút 9 giây)", name: duration, widget: string, required: false }
+          - { label: "Link nhóm Zalo Sống khỏe", name: zalo_group, widget: string, required: false, hint: "Hiện trong menu điện thoại và trang Đặt hàng thành công. Để trống thì ẩn." }
+          - label: "Mời nhận ebook (trang chủ, cuối bài viết, hộp tư vấn, menu)"
+            name: ebook
+            widget: object
+            required: false
+            fields:
+              - { label: "Link trang ebook", name: url, widget: string, required: false, hint: "Web tự gắn thêm UTM để biết khách đến từ vị trí nào. Để trống thì ẩn toàn bộ." }
+              - { label: "Tiêu đề", name: title, widget: string }
+              - { label: "Mô tả ngắn", name: sub, widget: text, required: false }
+              - { label: "Chữ trên nút", name: button, widget: string, required: false }
+              - { label: "Ảnh bìa ebook", name: image, widget: image, required: false }
           - label: "Các kênh cộng đồng (trang chủ)"
             name: community
             widget: list

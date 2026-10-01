@@ -41,7 +41,7 @@ website/
 │   ├── posts/*.md         bài viết Góc Sống Lành
 │   └── pages/*.md         trang chính sách
 ├── data/
-│   ├── site.json          liên hệ, hotline/Zalo, mạng xã hội, ngân hàng, phí ship, kênh cộng đồng, video thương hiệu (brand_video)
+│   ├── site.json          liên hệ, hotline/Zalo, mạng xã hội, ngân hàng, phí ship, kênh cộng đồng, video thương hiệu (brand_video), mời ebook (ebook, gắn UTM utm_source=website), nhóm Zalo (zalo_group)
 │   ├── home.json          slider trang chủ
 │   ├── categories.json    danh mục sản phẩm
 │   ├── post-categories.json
@@ -150,7 +150,7 @@ Sheet **Đơn hàng website Thực Dưỡng Lành**: https://docs.google.com/spr
 
 - Cấp quyền: https://github.com/thaisoniph/thucduonglanh.vn/settings/access → **Add people** → quyền **Write**. Nghỉ việc → **Remove**.
 - Nhân sự đăng nhập /admin bằng **mã truy cập GitHub** (quyền `public_repo`), chọn "Đăng nhập bằng mã truy cập".
-- Trong /admin: Bài viết · Sản phẩm (giá, quy cách, ảnh, mô tả, **Gợi ý mua kèm**, ẩn/hiện) · Trang chính sách · Cài đặt (liên hệ, mạng xã hội, ngân hàng, **phí ship**, kênh cộng đồng, **video thương hiệu**, slider, danh mục, **Hồ sơ thương hiệu**).
+- Trong /admin: Bài viết · Sản phẩm (giá, quy cách, ảnh, mô tả, **Gợi ý mua kèm**, ẩn/hiện) · Trang chính sách · Cài đặt (liên hệ, mạng xã hội, ngân hàng, **phí ship**, kênh cộng đồng, **video thương hiệu**, **mời ebook**, **nhóm Zalo**, slider, danh mục, **Hồ sơ thương hiệu**).
 - Mọi lần lưu có lịch sử trên GitHub → khôi phục được.
 
 ### Trang hướng dẫn nhân sự – https://crm.thucduonglanh.vn/huong-dan/
