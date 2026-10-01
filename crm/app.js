@@ -104,12 +104,20 @@
     if (lvl() >= 2 || (j.user && j.user.level >= 2)) toast('⚠️ Máy chủ Apps Script đang chạy bản cũ (' + (j.v || 'chưa có số phiên bản') + '), cần bản ' + SERVER_V + '. Vào Apps Script → Triển khai → Quản lý các bản triển khai → ✏️ → Phiên bản: Phiên bản mới → Triển khai.', true);
   }
   var lastErr = '';
-  function api(action, payload) {
+  var READ_ACTS = { load: 1, src_inspect: 1, ads_inspect: 1, cust_orders: 1, fb_list: 1, fb_img: 1, check_phone: 1 }; // chỉ đọc: Google trả lỗi tạm thời thì tự thử lại
+  function api(action, payload, tries) {
     var body = Object.assign({ type: 'crm', action: action, token: S.token }, payload || {});
     if (!CFG.endpoint) return Promise.reject(new Error('Chưa cấu hình máy chủ.'));
+    tries = tries || 0;
     return fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) })
-      .then(function (r) { return r.text(); }, function () { var e0 = new Error('Mất kết nối mạng. Bạn thử lại nhé.'); e0.net = true; throw e0; })
-      .then(function (t) { try { return JSON.parse(t); } catch (e) { var e1 = new Error('Máy chủ Google báo lỗi (thường do việc chạy quá lâu hoặc file quá lớn). Bạn bấm lại thử; nếu vẫn lỗi, báo quản trị xem mục “Lượt thực thi” trong Apps Script.'); e1.net = true; throw e1; } })
+      .then(function (r) { return r.text().then(function (t) { return { t: t, st: r.status }; }); }, function () { var e0 = new Error('Mất kết nối mạng. Bạn thử lại nhé.'); e0.net = true; throw e0; })
+      .then(function (x) {
+        try { return JSON.parse(x.t); } catch (e) {
+          if (READ_ACTS[action] && tries < 2) return new Promise(function (ok) { setTimeout(ok, 1500 * (tries + 1)); }).then(function () { return api(action, payload, tries + 1); }).then(function (j) { j.__retried = 1; return j; });
+          var hint = String(x.t || '').replace(/<style[\s\S]*?<\/style>|<script[\s\S]*?<\/script>/gi, ' ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160);
+          var e1 = new Error('Máy chủ Google báo lỗi (thường do việc chạy quá lâu hoặc file quá lớn). Bạn bấm lại thử; nếu vẫn lỗi, chụp màn hình gửi quản trị. [' + x.st + (hint ? ': ' + hint : '') + ']'); e1.net = true; throw e1;
+        }
+      })
       .then(function (j) {
         checkVersion(j);
         if (!j || !j.ok) {
