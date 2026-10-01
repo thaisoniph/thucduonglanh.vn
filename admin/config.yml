@@ -238,6 +238,20 @@ collections:
               - { label: "Ảnh bìa", name: image, widget: image, required: false, hint: "Để trống thì dùng ảnh bìa của YouTube." }
               - { label: "Ngày đăng video (YYYY-MM-DD)", name: upload_date, widget: string, required: false }
               - { label: "Thời lượng (ví dụ PT2M9S = 2 phút 9 giây)", name: duration, widget: string, required: false }
+          - label: "Ưu đãi chỉ có khi đặt trên website"
+            name: web_offer
+            widget: object
+            required: false
+            hint: "Giá trong từng sản phẩm vẫn nhập GIÁ GỐC. Web tự giảm theo % dưới đây, gạch giá gốc và hiện nhãn -%. CRM (đơn gọi điện/Zalo) vẫn dùng giá gốc."
+            fields:
+              - { label: "Bật giảm giá trên web", name: enabled, widget: boolean, default: true }
+              - { label: "Mức giảm (%)", name: percent, widget: number, value_type: int, min: 0, max: 90, default: 15 }
+              - { label: "Cộng dồn với sản phẩm đang có giá khuyến mãi riêng", name: stack_sale, widget: boolean, default: false, hint: "Tắt: sản phẩm đang có giá khuyến mãi riêng thì giữ giá khuyến mãi đó, không giảm thêm." }
+              - { label: "Tiêu đề khung ưu đãi", name: label, widget: string, default: "Ưu đãi chỉ có khi đặt tại website" }
+              - { label: "Bật quà tặng", name: gift_enabled, widget: boolean, default: true }
+              - { label: "Tên quà tặng", name: gift_title, widget: string, required: false }
+              - { label: "Trị giá quà", name: gift_value, widget: string, required: false, hint: "Ví dụ: 999.000đ" }
+              - { label: "Điều kiện nhận quà", name: gift_how, widget: string, required: false, hint: "Ví dụ: khi tham gia nhóm Zalo Cộng đồng Sống khỏe cùng Thực Dưỡng Lành" }
           - { label: "Link nhóm Zalo Sống khỏe", name: zalo_group, widget: string, required: false, hint: "Hiện trong menu điện thoại và trang Đặt hàng thành công. Để trống thì ẩn." }
           - label: "Mời nhận ebook (trang chủ, cuối bài viết, hộp tư vấn, menu)"
             name: ebook

@@ -81,5 +81,15 @@
     "sub": "Thực đơn và bí quyết ăn lành mỗi ngày, kèm lời mời vào nhóm Zalo Sống khỏe cùng Thực Dưỡng Lành.",
     "button": "Nhận ebook miễn phí",
     "image": "/assets/img/brand/ebook-7-ngay.webp"
+  },
+  "web_offer": {
+    "enabled": true,
+    "percent": 15,
+    "stack_sale": false,
+    "label": "Ưu đãi chỉ có khi đặt tại website",
+    "gift_enabled": true,
+    "gift_title": "Khóa Zoom 4 buổi cùng chuyên gia dinh dưỡng",
+    "gift_value": "999.000đ",
+    "gift_how": "khi tham gia nhóm Zalo Cộng đồng Sống khỏe cùng Thực Dưỡng Lành"
   }
 }

@@ -71,6 +71,33 @@ for f in sorted((CONTENT / "products").glob("*.json")):
     p["highlights"] = [h for h in (p.get("highlights") or []) if h]
     PRODUCTS.append(p)
 PRODUCTS.sort(key=lambda p: (p.get("order") or 999, p["name"]))
+
+# Ưu đãi chỉ có trên web (Cài đặt → Ưu đãi website): giá nhập trong /admin là giá gốc, web tự giảm X% và gạch giá gốc.
+WEB_OFFER = (lambda o: {**o, "percent": (num(o.get("percent")) or 0) if o.get("enabled") else 0})(SITE.get("web_offer") or {})
+
+
+def web_price(x):
+    return max(1000, int(x * (100 - WEB_OFFER["percent"]) // 100000) * 1000)  # làm tròn xuống nghìn: khách luôn được giảm ít nhất X%
+
+
+def apply_web_offer(it):
+    """it có price / regular_price. Sản phẩm đang giảm giá riêng: chỉ cộng dồn khi bật stack_sale."""
+    if not WEB_OFFER["percent"] or not it.get("price"):
+        return
+    on_sale = it.get("regular_price") and it["regular_price"] > it["price"]
+    if on_sale and not WEB_OFFER.get("stack_sale"):
+        return
+    it["regular_price"] = it["regular_price"] if on_sale else it["price"]
+    it["price"] = web_price(it["price"])
+    it["web_off"] = 0 if on_sale else WEB_OFFER["percent"]  # nhãn hiện đúng X% dù giá đã làm tròn xuống
+
+
+for p in PRODUCTS:
+    p["base_price"], p["base_variants"] = p["price"], [dict(v) for v in p["variants"]]
+    p["on_sale"] = bool(p.get("regular_price") and p["price"] and p["regular_price"] > p["price"])
+    apply_web_offer(p)
+    for v in p["variants"]:
+        apply_web_offer(v)
 CATS = [c for c in CATS if c.get("slug")]
 _cat_slugs = {c["slug"] for c in CATS}
 for p in PRODUCTS:
@@ -169,10 +196,24 @@ def tel(s):
 def fill(s):
     return (s.replace("{brand}", BRAND).replace("{company}", SITE["company"])
              .replace("{hotline}", SITE["hotline"]).replace("{email}", SITE["email"])
-             .replace("{address}", SITE["address"]).replace("{domain}", DOMAIN))
+             .replace("{address}", SITE["address"]).replace("{domain}", DOMAIN)
+             .replace("<p>{uu_dai_web}</p>", uu_dai_html()).replace("{uu_dai_web}", uu_dai_html()))
+
+
+def uu_dai_html():
+    """Danh sách ưu đãi web cho trang nội dung (chèn bằng {uu_dai_web} trong bài / trang chính sách)."""
+    w, out = WEB_OFFER, []
+    if w["percent"]:
+        out.append(f"<li><strong>Giảm {w['percent']}% mọi sản phẩm</strong> khi đặt trên website (đã trừ trực tiếp vào giá).</li>")
+    if w.get("gift_enabled") and w.get("gift_title"):
+        link = f' – <a href="{esc(SITE["zalo_group"])}" target="_blank" rel="noopener">tham gia tại đây</a>' if SITE.get("zalo_group") and w.get("gift_how") else ""
+        out.append(f"<li><strong>Tặng {esc(w['gift_title'])}</strong>" + (f" trị giá {esc(w['gift_value'])}" if w.get("gift_value") else "") + (f" {esc(w['gift_how'])}" if w.get("gift_how") else "") + link + ".</li>")
+    return f'<ul class="uu-dai">{"".join(out)}</ul>' if out else ""
 
 
 def discount(p):
+    if p.get("web_off"):
+        return p["web_off"]
     if p.get("price") and p.get("regular_price") and p["regular_price"] > p["price"]:
         return round((1 - p["price"] / p["regular_price"]) * 100)
     return 0
@@ -223,7 +264,7 @@ def ic(name, cls="ic"):
 
 
 # ---------------------------------------------------------------- layout
-HAS_SALE = any(discount(p) for p in PRODUCTS)
+HAS_SALE = any(p["on_sale"] for p in PRODUCTS)  # chỉ khuyến mãi riêng, không tính ưu đãi web
 SALE_NAV = [("Khuyến Mãi", "/khuyen-mai/", [])] if HAS_SALE else []
 NAV = [
     ("Trang Chủ", "/", []),
@@ -256,7 +297,7 @@ def header(active):
     hot2 = f' - <a href="tel:{tel(SITE["hotline2"])}">{esc(SITE["hotline2"])}</a>' if SITE.get("hotline2") else ""
     return f'''
 <div class="topbar"><div class="container topbar-in">
-  <div class="tb-left">{('<span class="tb-free">🚚 Miễn phí vận chuyển đơn từ ' + money(SITE['free_ship_threshold']).replace(' ₫', 'đ') + '</span><span class="tb-hot">&nbsp;·&nbsp;</span>') if SITE.get('free_ship_threshold') and SITE.get('shipping_fee') else ''}<span class="tb-hot">Hotline {BRAND}: {ic("phone","ic ic-sm")} <a href="tel:{tel(SITE["hotline"])}">{esc(SITE["hotline"])}</a>{hot2}</span></div>
+  <div class="tb-left">{(f'<span class="tb-offer">🎁 Giảm {WEB_OFFER["percent"]}% <span class="tb-long">khi đặt trên website</span><span class="tb-short">khi đặt trên web</span></span><span>&nbsp;·&nbsp;</span>' if WEB_OFFER["percent"] else '')}{('<span class="tb-free">🚚 <span class="tb-long">Miễn phí vận chuyển đơn</span><span class="tb-short">Freeship</span> từ ' + money(SITE['free_ship_threshold']).replace(' ₫', 'đ') + '</span><span class="tb-hot">&nbsp;·&nbsp;</span>') if SITE.get('free_ship_threshold') and SITE.get('shipping_fee') else ''}<span class="tb-hot">Hotline {BRAND}: {ic("phone","ic ic-sm")} <a href="tel:{tel(SITE["hotline"])}">{esc(SITE["hotline"])}</a>{hot2}</span></div>
   <div class="tb-right"><a href="{esc(SITE.get("community_group") or "/goc-song-lanh/")}"{' target="_blank" rel="noopener"' if SITE.get("community_group") else ""}>Cộng Đồng Sống Khỏe {ic("globe","ic ic-sm")}</a></div>
 </div></div>
 <header class="site-header" id="siteHeader"><div class="container header-in">
@@ -272,7 +313,7 @@ def header(active):
 <div class="offcanvas" id="offcanvas" aria-hidden="true"><div class="oc-panel">
   <div class="oc-head"><img src="/assets/img/brand/logo.webp" alt="{BRAND}" height="56"><button class="icon-btn" data-oc-close aria-label="Đóng">{I["close"]}</button></div>
   {nav_html(active, "oc-menu")}
-  {f'<a class="oc-zalo" href="{esc(SITE["zalo_group"])}" target="_blank" rel="noopener" data-cta="zalo_group_menu">{I["zalo"]}<span><b>Nhóm Zalo Sống khỏe</b>Tham gia miễn phí – chia sẻ món lành, ưu đãi thành viên</span></a>' if SITE.get("zalo_group") else ""}
+  {f'<a class="oc-zalo" href="{esc(SITE["zalo_group"])}" target="_blank" rel="noopener" data-cta="zalo_group_menu">{I["zalo"]}<span><b>Nhóm Zalo Sống khỏe</b>{(esc(WEB_OFFER["gift_title"]) + (" – trị giá " + esc(WEB_OFFER["gift_value"]) if WEB_OFFER.get("gift_value") else "") + " 🎁 tặng thành viên") if WEB_OFFER.get("gift_enabled") and WEB_OFFER.get("gift_title") else "Tham gia miễn phí – chia sẻ món lành, ưu đãi thành viên"}</span></a>' if SITE.get("zalo_group") else ""}
   <div class="oc-foot">{f'<a href="{esc(ebook_href("menu"))}" target="_blank" rel="noopener" data-cta="ebook_menu">🎁 Nhận ebook miễn phí</a>' if ebook_href("menu") else ""}<a href="/yeu-thich/">{ic("heart")} Sản phẩm yêu thích</a><a href="tel:{tel(SITE["hotline"])}">{ic("phone")} {esc(SITE["hotline"])}</a></div>
 </div></div>
 <div class="search-layer" id="searchLayer" aria-hidden="true"><div class="search-box">
@@ -286,7 +327,7 @@ def social_links(cls="socials"):
     names = {"shopee": "Shopee", "lazada": "Lazada", "tiktok_shop": "TikTok Shop", "facebook": "Facebook", "tiktok": "TikTok", "youtube": "YouTube"}
     icons = {"tiktok_shop": "tiktok"}
     for k, url in SITE["socials"].items():
-        if url:
+        if url and k not in ("shopee", "lazada", "tiktok_shop"):  # sàn TMĐT: không dẫn khách khỏi web (phí sàn cao)
             items.append(f'<a class="s-{k}" href="{esc(url)}" target="_blank" rel="noopener" aria-label="{names.get(k,k)}" title="{names.get(k,k)}">{I[icons.get(k,k)]}</a>')
     items.append(f'<a class="s-zalo" href="{esc(SITE.get("zalo_oa") or zalo_link())}" target="_blank" rel="noopener" aria-label="Zalo OA" title="Zalo OA">{I["zalo"]}</a>')
     return f'<div class="{cls}">' + "".join(items) + "</div>"
@@ -685,6 +726,26 @@ def section_html(i, s):
     return f'<div class="d-sec d-type-{style}"><h3>{i}. {esc(s.get("title"))}</h3><div class="d-box">{inner}</div></div>'
 
 
+def gift_text():
+    w = WEB_OFFER
+    if not (w.get("gift_enabled") and w.get("gift_title")):
+        return ""
+    return f'Tặng <b>{esc(w["gift_title"])}</b>' + (f' (trị giá {esc(w["gift_value"])})' if w.get("gift_value") else "") + (f' {esc(w["gift_how"])}' if w.get("gift_how") else "")
+
+
+def offer_box(compact=False):
+    """Khung "Ưu đãi chỉ có khi đặt tại website" ở trang sản phẩm và trang thanh toán."""
+    w, items = WEB_OFFER, []
+    if w["percent"]:
+        items.append(f'<li>{ic("check","wo-ic")}<span>Giảm <b>{w["percent"]}%</b> mọi sản phẩm – đã trừ trực tiếp vào giá</span></li>')
+    if gift_text():
+        join = f' <a href="{esc(SITE["zalo_group"])}" target="_blank" rel="noopener" data-cta="zalo_group_offer">Tham gia nhóm →</a>' if SITE.get("zalo_group") and not compact else ""
+        items.append(f'<li>{ic("check","wo-ic")}<span>{gift_text()}{join}</span></li>')
+    if not items:
+        return ""
+    return f'<div class="wo-box{" wo-compact" if compact else ""}"><b class="wo-head">🎁 {esc(w.get("label") or "Ưu đãi chỉ có khi đặt tại website")}</b><ul>{"".join(items)}</ul></div>'
+
+
 def page_product(p):
     path = f"/san-pham/{p['slug']}/"
     cat = CAT_BY.get(p["category"])
@@ -728,6 +789,7 @@ def page_product(p):
       <div class="p-price" id="pPrice">{price_html(p, "price big")}</div>
       {unit}{variants}
       {buy}
+      {offer_box() if purchasable else ""}
       <ul class="p-highlights">{highlights}</ul>
       <div class="p-meta"><p><b>SKU:</b> {esc(p["sku"])}</p><p><b>Danh mục:</b> <a href="/danh-muc/{cat["slug"]}/">{esc(cat["name"])}</a>, <a href="/san-pham/">Toàn bộ sản phẩm</a></p></div>
       <div class="share"><b>Chia sẻ</b>
@@ -963,6 +1025,7 @@ def page_checkout():
     <h2>Đơn hàng của bạn</h2>
     <div id="coItems"></div>
     <div id="coUpsell"></div>
+    {offer_box(True)}
     <button class="btn btn-lg btn-block btn-order" type="submit" id="placeOrder">✅ Đặt hàng</button>
     <p class="form-msg" role="status"></p>
     <p class="qo-note">Nhân viên sẽ gọi xác nhận trước khi giao hàng.</p>
@@ -1036,7 +1099,7 @@ def main():
         routes.append(write(BR_PATH, page_brochure()))
     routes.append(write("/lien-he/", page_contact()))
     routes.append(write("/san-pham/", page_listing("/san-pham/", "Toàn bộ sản phẩm", PRODUCTS, "", [("Toàn bộ sản phẩm", None)])))
-    sale = [p for p in PRODUCTS if discount(p)]
+    sale = [p for p in PRODUCTS if p["on_sale"]]
     if HAS_SALE: routes.append(write("/khuyen-mai/", page_listing("/khuyen-mai/", "Khuyến Mãi", sale, "Các sản phẩm đang có chương trình ưu đãi tại " + BRAND + ".", [("Sản phẩm", "/san-pham/"), ("Khuyến Mãi", None)])))
     for c in CATS:
         items = [p for p in PRODUCTS if p["category"] == c["slug"]]
@@ -1062,12 +1125,12 @@ def main():
     # dữ liệu cho JavaScript
     js_products = [{
         "slug": p["slug"], "name": p["name"], "short": p.get("short_name") or p["name"], "price": p.get("price"),
-        "regular": p.get("regular_price"), "unit": p.get("unit", ""), "variants": p.get("variants", []),
+        "regular": p.get("regular_price"), "off": p.get("web_off") or 0, "unit": p.get("unit", ""), "variants": p.get("variants", []),
         "img": pimg(p["images"][0], True), "url": f"/san-pham/{p['slug']}/", "cat": CAT_BY[p["category"]]["name"],
         "text": strip_tags(p["name"] + " " + p["summary"] + " " + " ".join(p.get("highlights", []))),
         "featured": bool(p.get("featured")), "upsell": [x for x in (p.get("upsell") or []) if x],
     } for p in PRODUCTS]
-    cfg = {"brand": BRAND, "hotline": SITE["hotline"], "zalo": tel(SITE["zalo"]), "email": SITE["email"], "zalo_oa": SITE.get("zalo_oa", ""), "zalo_group": SITE.get("zalo_group", ""),
+    cfg = {"brand": BRAND, "hotline": SITE["hotline"], "zalo": tel(SITE["zalo"]), "email": SITE["email"], "zalo_oa": SITE.get("zalo_oa", ""), "zalo_group": SITE.get("zalo_group", ""), "gift": (WEB_OFFER.get("gift_title", "") + (" (trị giá " + WEB_OFFER["gift_value"] + ")" if WEB_OFFER.get("gift_value") else "")) if WEB_OFFER.get("gift_enabled") else "",
            "ga4_id": SITE.get("ga4_id", ""), "clarity_id": SITE.get("clarity_id", ""), "meta_pixel": SITE.get("meta_pixel", ""), "tiktok_pixel": SITE.get("tiktok_pixel", ""),
            "endpoint": (SITE.get("api_endpoint") or SITE.get("order_endpoint", "")), "bank": SITE["bank"] if SITE["bank"].get("enabled") else None,
            "shipping_fee": SITE.get("shipping_fee", 0), "free_ship_threshold": SITE.get("free_ship_threshold", 0)}
@@ -1119,8 +1182,8 @@ def build_crm():
     for f in ("logo.webp", "icon-32.png", "icon-180.png", "icon-512.png"):
         shutil.copy(brand / f, out / f)
     shutil.copy(DATA / "vn-units.json", out / "vn-units.json")
-    products = [{"name": p["name"], "price": p.get("price"), "unit": p.get("unit", ""),
-                 "variants": [{"name": v["name"], "price": v["price"]} for v in p.get("variants", [])]} for p in PRODUCTS]
+    products = [{"name": p["name"], "price": p.get("base_price"), "unit": p.get("unit", ""),
+                 "variants": [{"name": v["name"], "price": v["price"]} for v in p.get("base_variants", [])]} for p in PRODUCTS]
     cfg = {"endpoint": (SITE.get("api_endpoint") or SITE.get("order_endpoint", "")), "shipping_fee": SITE.get("shipping_fee", 0),
            "free_ship_threshold": SITE.get("free_ship_threshold", 0), "products": products}
     (out / "crm-data.js").write_text("window.CRM_CONFIG=" + json.dumps(cfg, ensure_ascii=False) + ";\n", "utf-8")

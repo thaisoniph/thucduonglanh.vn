@@ -943,3 +943,17 @@ label .invalid,input.invalid,textarea.invalid{border-color:var(--red)!important}
 .oc-panel .oc-foot{margin-top:auto}
 .oa-cta .btn-zalo{background:#0068ff;border-color:#0068ff;color:#fff;padding:12px 30px;font-size:16px}
 .oa-cta .btn-zalo:hover{background:#0050c8;border-color:#0050c8;color:#fff}
+
+/* ---------- ưu đãi chỉ có trên web ---------- */
+.wo-box{margin:14px 0 18px;padding:14px 16px;border-radius:14px;background:#fff8e8;border:1.5px dashed #e8b84a}
+.wo-head{display:block;color:#8a5600;font-size:15.5px;margin-bottom:6px}
+.wo-box ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.wo-box li{display:flex;gap:8px;align-items:flex-start;font-size:14.5px;line-height:1.5;color:var(--ink)}
+.wo-ic{width:18px;height:18px;flex:none;margin-top:2px;color:var(--primary)}
+.wo-box a{font-weight:600;color:#0068ff;white-space:nowrap}
+.wo-compact{margin:4px 0 14px;padding:12px 14px}
+.wo-compact li{font-size:13.5px}
+.tb-offer{font-weight:600;color:#ffe08a}
+.tb-short{display:none}
+@media (max-width:640px){.tb-long{display:none}.tb-short{display:inline}.topbar{font-size:12px}}
+.prose .uu-dai{margin-bottom:0}
