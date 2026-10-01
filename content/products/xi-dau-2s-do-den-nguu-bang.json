@@ -2,13 +2,14 @@
   "name": "Xì Dầu 2S Đỗ Đen Ngưu Bàng",
   "short_name": "Xì Dầu 2S",
   "category": "gia-vi-mon-chay",
-  "sku": "TDL-XD2S",
-  "order": 5,
-  "featured": true,
   "published": true,
+  "featured": true,
+  "order": 5,
   "badge": "Lên men 99 ngày",
+  "sku": "TDL-XD2S",
   "price": 189000,
   "regular_price": null,
+  "web_discount": 5,
   "unit": "Chai 500ml",
   "variants": [],
   "images": [
@@ -29,26 +30,32 @@
     {
       "title": "Thành phần",
       "style": "quote",
-      "text": "Nước, đỗ đen (200g/l), ngưu bàng (60g/l), muối, đường thốt nốt, trà hoa vàng, chất bảo quản, chất điều vị tự nhiên từ lên men (không phụ gia công nghiệp)."
+      "text": "Nước, đỗ đen (200g/l), ngưu bàng (60g/l), muối, đường thốt nốt, trà hoa vàng, chất bảo quản, chất điều vị tự nhiên từ lên men (không phụ gia công nghiệp).",
+      "items": [],
+      "rows": []
     },
     {
       "title": "Chứng nhận & giải thưởng",
       "style": "list",
+      "text": "",
       "items": [
         "Sản phẩm thuần thiên nhiên – VNPS xác nhận 100% tự nhiên (mã TN.TP.23.01.01).",
         "Giải Khoa học Sáng tạo TP Hà Nội năm 2025.",
         "Quy trình sản xuất đạt HACCP.",
         "Nhà sản xuất: HTX Bảo tồn và Phát triển Dược liệu Sóc Sơn – đạt chuẩn hữu cơ Việt Nam và chuẩn hữu cơ Nhật Bản J.A.S."
-      ]
+      ],
+      "rows": []
     },
     {
       "title": "Cách dùng",
       "style": "box",
-      "text": "Dùng chấm, trộn trực tiếp hoặc làm gia vị tẩm ướp, kho, xào. Phù hợp cả người ăn thông thường và người ăn thuần thực vật."
+      "text": "Dùng chấm, trộn trực tiếp hoặc làm gia vị tẩm ướp, kho, xào. Phù hợp cả người ăn thông thường và người ăn thuần thực vật.",
+      "items": [],
+      "rows": []
     }
   ],
-  "disclaimer": "",
   "upsell": [
     "ruoc-rong-bien-vi-suon-non"
-  ]
+  ],
+  "disclaimer": ""
 }
