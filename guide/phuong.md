@@ -44,6 +44,8 @@ Tab **Hôm nay** cho em biết **hôm nay gọi ai**, em không phải cuộn fi
 
 Dòng đỏ **“… ngày chưa chăm sóc”** là số ngày từ lần cuối khách **có trả lời** (các lần knm không tính).
 
+**💬 Zalo** = khách em **đã kết bạn Zalo**. Đây chính là dấu **(x)** em vẫn đánh sau tên trong file, CRM đã tự chuyển thành nhãn này. Khách chưa kết bạn có nút **➕ Đã kết bạn Zalo**: kết bạn xong em bấm 1 lần là được, máy cũng tự thêm **(x)** vào tên khách trong file Sheet của em.
+
 ## 3. Gọi khách và bấm 1 nút
 
 - Bấm **📞 Gọi** ngay trên thẻ khách.
@@ -65,7 +67,7 @@ Dòng đỏ **“… ngày chưa chăm sóc”** là số ngày từ lần cuố
 
 Khách nói gì thêm (vd “bà ngủ ngon hơn”, “hẹn cuối tháng”) thì gõ vào **Ghi chú lần này** **trước** khi bấm nút, máy ghi kèm luôn. Muốn tự chọn ngày hẹn thì dùng phần **Hoặc tự chọn bên dưới**.
 
-Bước 1 (gửi tin Zalo) có sẵn **tin nhắn mẫu** đã điền tên khách. Bấm **📋 Copy tin & mở Zalo**, dán vào khung chat là gửi được.
+Bước 1 (gửi tin Zalo) có sẵn **tin nhắn mẫu** đã điền tên khách. Bấm **📋 Copy tin & mở Zalo**, dán vào khung chat là gửi được. Khách **đã kết bạn Zalo** thì nên nhắn trước; khách **chưa kết bạn** thì gọi, và gọi xong nhớ xin kết bạn để lần sau chăm dễ hơn.
 
 ## 4. Xem lại khách đã nói gì
 

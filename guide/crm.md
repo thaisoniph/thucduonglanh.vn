@@ -168,6 +168,15 @@ CRM tự tính ngày cần liên hệ từng khách, dựa vào ngày mua và th
 
 > **Khách có nhãn “Chỉ hỏi thăm”** là khách chưa đồng ý nhận tin. Chỉ hỏi thăm sức khoẻ, hướng dẫn dùng, **không gửi quảng cáo, ưu đãi**.
 
+### Khách đã kết bạn Zalo
+
+Nhãn **💬 Zalo** trên thẻ khách nghĩa là bạn **đã kết bạn Zalo** với khách, nên nhắn tin chăm sóc được. Khi nhập file Sheet cũ, tên có dấu **(x)** được tự chuyển thành nhãn này.
+
+- Kết bạn xong với khách nào, bấm **➕ Đã kết bạn Zalo** ngay trên thẻ khách (hoặc trong hồ sơ). Nếu file Sheet của bạn đang bật ghi ngược, máy tự thêm **(x)** vào tên khách trong file.
+- Hộp chăm sóc tự gợi ý: khách đã kết bạn thì **nhắn Zalo trước**, khách chưa kết bạn thì **gọi trước** và nhắc xin kết bạn.
+- Tab **Khách hàng** có bộ lọc **💬 Đã kết bạn Zalo** và **Chưa kết bạn Zalo**.
+- Lỡ đánh dấu nhầm: mở hồ sơ khách, bấm **Bỏ đánh dấu đã kết bạn Zalo**.
+
 ### Hồ sơ khách hàng
 
 Bấm vào tên khách ở bất kỳ đâu để mở hồ sơ.

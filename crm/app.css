@@ -369,3 +369,9 @@ table.bcdt tr.tot td { font-weight: 700; background: var(--primary-light); }
 .fb-full { display: grid; gap: 10px; }
 .fb-full img { width: 100%; border-radius: 8px; border: 1px solid var(--line); }
 .fb-ph { padding: 30px; text-align: center; color: var(--muted); background: var(--bg); border-radius: 8px; }
+
+.zl { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; border-radius: 999px; padding: 2px 9px; white-space: nowrap; }
+.zl.on { background: #e0f0ff; color: #0068ff; }
+.zl.add { background: transparent; color: var(--muted); border: 1px dashed var(--line); cursor: pointer; font-family: inherit; }
+.zl.add:hover { color: #0068ff; border-color: #0068ff; }
+.link { background: none; border: 0; color: var(--primary); padding: 4px 0; cursor: pointer; text-decoration: underline; font-family: inherit; }
