@@ -39,7 +39,7 @@ Mã dùng được trong **10 phút**. Đăng nhập xong, máy nhớ bạn tron
 - Chấm đỏ trên tab là số việc đang chờ.
 - Nút **⟳** góc trên bên phải: tải lại dữ liệu mới nhất, ví dụ khi đồng nghiệp vừa cập nhật.
 - **Bạn chỉ thấy khách mình phụ trách.** Quản lý thấy toàn bộ. Khi gõ số điện thoại của khách đang do người khác phụ trách, CRM chỉ báo tên người đó và không cho thao tác. Muốn đổi người phụ trách thì nhờ quản lý chuyển.
-- Khi công ty dùng chế độ **Kho chung**, bạn thấy thêm khách *chưa ai phụ trách* (có nhãn cam). Bấm **✋ Nhận khách này**, hoặc chăm sóc hay xác nhận đơn của khách đó, là khách thuộc về bạn.
+- Danh sách việc ở tab Hôm nay **chỉ có khách của bạn**. Khi công ty dùng chế độ **Kho chung**, khách *chưa ai phụ trách* nằm riêng ở mục **🧺 Kho chung** cuối tab Hôm nay. Bấm **✋ Nhận khách này**, hoặc chăm sóc hay xác nhận đơn của khách đó, là khách thuộc về bạn.
 
 ### Nhận thông báo Telegram riêng
 
@@ -268,6 +268,18 @@ Doanh số tính theo **Nhân viên bán** ghi trên từng đơn. Đơn khách 
 - **⭐ Nhóm khách**: đặt mức để máy xếp khách **VIP** (mua từ bao nhiêu đơn, hoặc tổng chi từ bao nhiêu tiền) và **Sắp mất** (bao nhiêu ngày chưa mua lại). Bấm **Lưu nhóm khách**, cả nhóm cùng áp dụng.
 - **📂 File của sale** (chỉ Quản trị): nhập đơn và nhật ký chăm sóc từ file Google Sheet sale đang dùng. Ô ghi chú kiểu “21/7 kh nhận hàng, 9/8 knm, 16/5 kh hết tiền” được tách thành từng lần chăm sóc có ngày, máy tự đoán năm. Tích **✍️ Ghi kết quả chăm sóc ngược vào file này** thì mỗi lần sale bấm kết quả trên CRM, máy tự viết thêm vào ô ghi chú của khách trong file, ví dụ “, 30/9 knm (hẹn gọi 2/10)”, khoảng 5 phút một lần. Sale vẫn xem đầy đủ trên file của mình. Để dùng được, sale cần **chia sẻ quyền Chỉnh sửa** file cho tài khoản chạy CRM. Kết quả từng lần ghi xem ở tab *Ghi ngược file sale* trong Sheet.
 - **Nhân sự được vào CRM** (chỉ Quản trị): thêm email, tên hiển thị, quyền. Nhân viên nghỉ việc thì **bỏ tích “Đang dùng”**, không cần xoá.
+
+## Góp ý cho CRM
+
+Gặp lỗi, chỗ khó dùng hay có ý tưởng làm CRM tiện hơn, bạn cứ góp ý. **Mọi góp ý đều được đọc.**
+
+1. **Chụp màn hình** chỗ đó bằng nút của điện thoại.
+2. Bấm nút **💡 Góp ý** trên đầu trang (có ở mọi màn hình).
+3. Chọn loại **🐞 Lỗi / 😕 Khó dùng / 💡 Ý tưởng**, gõ vài chữ, bấm **📷 Chọn ảnh** để gửi kèm ảnh vừa chụp (tối đa 3 ảnh; trên máy tính dán bằng Ctrl+V). Bấm **Gửi góp ý**.
+
+Máy tự ghi kèm bạn đang ở màn hình nào, dùng máy gì, nên bạn chỉ cần tả ngắn. Xem trạng thái ở **💡 Góp ý → Góp ý của tôi** (*Mới → Đang làm → Đã xong*). Khi có trả lời, bạn nhận tin qua Telegram riêng (nếu đã kết nối).
+
+**Quản lý:** nút 💡 có số đỏ khi có góp ý mới. Mở **💡 Góp ý → Danh sách góp ý** để xem ảnh, đổi trạng thái và trả lời. Quản trị nhận Telegram kèm ảnh ngay khi có góp ý. Ảnh lưu trong thư mục *Góp ý CRM Thực Dưỡng Lành* trên Google Drive, nội dung lưu ở tab *Góp ý* trong Sheet.
 
 ## Câu hỏi thường gặp
 

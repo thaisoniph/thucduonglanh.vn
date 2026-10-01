@@ -96,10 +96,11 @@
   var SERVER_V = '2026-10-02a'; // phải trùng số phiên bản máy chủ (api/src/index.js)
   var ON_CF = !/script\.google/.test(CFG.endpoint || ''); // máy chủ Cloudflare (nhanh) hay Apps Script cũ
   function checkVersion(j) {
-    if (!j || S._vWarned || j.v === SERVER_V || j.v === '2026-10-01f' || j.v === 'moved') return;
+    if (!j || S._vWarned || j.v === SERVER_V || j.v === '2026-10-01g' || j.v === 'moved') return;
     S._vWarned = true;
     if (lvl() >= 2 || (j.user && j.user.level >= 2)) toast('⚠️ Máy chủ Apps Script đang chạy bản cũ (' + (j.v || 'chưa có số phiên bản') + '), cần bản ' + SERVER_V + '. Vào Apps Script → Triển khai → Quản lý các bản triển khai → ✏️ → Phiên bản: Phiên bản mới → Triển khai.', true);
   }
+  var lastErr = '';
   function api(action, payload) {
     var body = Object.assign({ type: 'crm', action: action, token: S.token }, payload || {});
     if (!CFG.endpoint) return Promise.reject(new Error('Chưa cấu hình máy chủ.'));
@@ -110,6 +111,7 @@
         checkVersion(j);
         if (!j || !j.ok) {
           if (j && j.auth) { logout(true); }
+          lastErr = action + ': ' + ((j && j.error) || '');
           throw new Error((j && j.error) || 'Có lỗi, bạn thử lại nhé.');
         }
         return j;
@@ -247,7 +249,7 @@
   function cust(phone) { return S.d && S.d.byPhone[normPhone(phone)]; }
   function ordersOf(phone) { phone = normPhone(phone); return S.d.orders.filter(function (o) { return o.phone === phone; }).sort(function (a, b) { return b.time - a.time; }); }
   function logOf(ref) { return S.d.log.filter(function (l) { return String(l.ref).replace(/^'/, '') === ref; }).sort(function (a, b) { return b.time - a.time; }); }
-  function mineOk(c) { return !S.mine || !c.owner || c.owner === S.user.name; }
+  function mineOk(c) { return lvl() < 2 ? c.owner === S.user.name : !S.mine || !c.owner || c.owner === S.user.name; } // sale: chỉ khách của mình (khách chưa ai nhận nằm ở mục Kho chung)
   function tasksAll() { return S.d.customers.filter(function (c) { return c.task; }); }
   function tasksShown() { return tasksAll().filter(mineOk); }
   /** Khách cũ lâu chưa gọi (không nằm trong lịch chăm sóc tự động): ưu tiên khách chi nhiều. */
@@ -325,7 +327,7 @@
     if (!l.lastAt) return 'new';
     return (today() - dayStart(l.lastAt)) / DAY >= 3 ? 'stale' : null;
   }
-  function leadMine(l) { return !S.mine || !l.owner || l.owner === S.user.name; }
+  function leadMine(l) { return lvl() < 2 ? l.owner === S.user.name : !S.mine || !l.owner || l.owner === S.user.name; }
   function leadsDue() { return (S.d.leads || []).filter(function (l) { return leadDue(l) && leadMine(l); }); }
   function findLead(id) { return (S.d.leads || []).filter(function (l) { return l.id === id; })[0]; }
 
@@ -345,13 +347,16 @@
       '<a class="brand" href="#hom-nay"><img src="/icon-180.png" alt="">CRM</a>' +
       '<nav class="nav">' + myViews().map(function (v) { return '<a href="#' + v.id + '" data-v="' + v.id + '">' + I[v.icon] + '<span>' + v.label + '</span></a>'; }).join('') + '</nav>' +
       '<div class="grow"></div><div class="me">' + meHTML() + '</div>' +
+      '<button class="icon-btn fb-btn" id="fbBtn" title="Góp ý: báo lỗi, chỗ khó dùng, ý tưởng" aria-label="Góp ý">💡<span class="fb-lbl">Góp ý</span></button>' +
       '<a class="icon-btn" href="/huong-dan/crm/" target="_blank" rel="noopener" title="Hướng dẫn sử dụng" aria-label="Hướng dẫn sử dụng">' + I.help + '</a>' +
       '<button class="icon-btn" id="refresh" title="Tải lại dữ liệu" aria-label="Tải lại dữ liệu">' + I.refresh + '</button>' +
       '</div></header><main id="view"></main>';
     $('#refresh').onclick = function () { load(); };
+    $('#fbBtn').onclick = function () { openFeedback(); };
     navBadges(); pendingBadge();
   }
   function navBadges() {
+    var fb = $('#fbBtn'); if (fb) { var fd = $('.dot', fb); if (fd) fd.remove(); if (lvl() >= 2 && S.d.fbNew) fb.insertAdjacentHTML('beforeend', '<span class="dot">' + S.d.fbNew + '</span>'); }
     var ld = leadsDue().length, n = { 'hom-nay': newOrders().length + tasksShown().length + ld, 'don-hang': newOrders().length, 'tiem-nang': ld };
     $$('.nav a').forEach(function (a) {
       var v = a.getAttribute('data-v'), d = $('.dot', a); if (d) d.remove();
@@ -451,7 +456,7 @@
     var up = unpaidOrders().filter(function (o) { return o.status !== 'Mới'; }).sort(function (a, b) { return a.time - b.time; });
     var t0 = today(), doneToday = S.d.log.filter(function (l) { return l.time >= t0 && l.what !== 'Cài đặt' && l.what !== 'Nhân sự'; }).sort(function (a, b) { return b.time - a.time; });
     var h = '<div class="page-head"><h1>Chào ' + esc(S.user.name) + ' 👋</h1><div class="grow"></div>' +
-      (lvl() >= 2 || mode() === 'pool' ? '<label class="switch"><input type="checkbox" id="mine"' + (S.mine ? ' checked' : '') + '> Chỉ khách của tôi</label>' : '') + '</div>';
+      (lvl() >= 2 ? '<label class="switch"><input type="checkbox" id="mine"' + (S.mine ? ' checked' : '') + '> Chỉ khách của tôi</label>' : '') + '</div>';
     h += '<div class="kpis">' +
       kpi('Đơn mới cần xác nhận', no.length, no.length ? 'warn' : 'good', '#don-hang') +
       kpi('Khách cần chăm sóc', ts.length + Math.min(OLD_PER_DAY, od.length), ts.length + od.length ? 'warn' : 'good') +
@@ -472,7 +477,7 @@
         '<div class="list cols">' + up.map(function (o) { return orderCard(o, false); }).join('') + '</div>' : '') + '</section>';
 
     h += '<section class="section"><div class="section-h"><h2>2️⃣ Chăm sóc khách</h2>' + (ts.length ? '<span class="count">' + ts.length + '</span>' : '') + '<span class="tip">bấm “Chăm sóc” → gửi tin mẫu → chọn kết quả</span></div>';
-    if (!ts.length && !od.length) h += empty(S.mine && tasksAll().length ? 'Khách của bạn đã chăm sóc xong. Tắt “Chỉ khách của tôi” để xem các khách khác.' : 'Hôm nay không có khách đến lịch chăm sóc 🎉');
+    if (!ts.length && !od.length) h += empty(lvl() >= 2 && S.mine && tasksAll().length ? 'Khách của bạn đã chăm sóc xong. Tắt “Chỉ khách của tôi” để xem các khách khác.' : 'Hôm nay không có khách đến lịch chăm sóc 🎉');
     TASK_ORDER.forEach(function (k) {
       var arr = ts.filter(function (c) { return c.task.type === k; }); if (!arr.length) return;
       arr.sort(function (a, b) { return (b.task.late || 0) - (a.task.late || 0) || b.spent - a.spent; });
@@ -488,6 +493,7 @@
       (ld.length ? '<div class="list cols">' + ld.map(leadCard).join('') + '</div>' : empty('Không có khách tiềm năng cần liên hệ 🎉')) +
       '<button class="btn" data-newlead style="margin-top:10px">＋ Thêm khách tiềm năng</button></section>';
 
+    if (isPoolStaff()) h += poolBlock();
     if (doneToday.length) h += '<section class="section"><div class="section-h"><h2>✅ Đã làm hôm nay</h2><span class="count">' + doneToday.length + '</span></div><div class="box timeline">' +
       doneToday.slice(0, 40).map(logItem).join('') + '</div></section>';
     return h;
@@ -504,6 +510,14 @@
         cs.slice(0, 20).map(function (c) { return '<div class="card"><div class="r1"><b>' + esc(c.name) + '</b>' + groupTag(c.group) + '<span class="end">' + moneyShort(c.spent) + '</span></div><div class="r2">' + fPhone(c.phone) + ' · mua ' + daysAgo(c.last) + '</div><div class="acts">' + sel('c', c.phone) + '</div></div>'; }).join('') +
         ls.slice(0, 20).map(function (l) { return '<div class="card"><div class="r1"><b>' + esc(l.name) + '</b>' + leadTag(l) + '<span class="end small muted">' + esc(l.channel) + '</span></div><div class="r2">' + fPhone(l.phone) + (l.interest ? ' · ' + esc(l.interest) : '') + ' · hỏi ' + daysAgo(l.time) + '</div><div class="acts">' + sel('l', l.id) + '</div></div>'; }).join('') + '</div>' : '') +
       (allC > cs.length ? '<p class="small muted">Tổng cộng ' + allC + ' khách (kể cả khách cũ) chưa ai phụ trách. Vào <a href="#cai-dat">Cài đặt → Chia khách</a> để chia đều một lần.</p>' : '') + '</section>';
+  }
+  /** Sale ở chế độ Kho chung: khách / tiềm năng chưa ai nhận, để riêng cuối trang (không lẫn vào danh sách gọi của mình). */
+  function poolBlock() {
+    var t0 = today(), cs = S.d.customers.filter(function (c) { return !c.owner && (c.task || (c.last && t0 - dayStart(c.last) <= 30 * DAY)); }).sort(function (a, b) { return (b.last || 0) - (a.last || 0); });
+    var ls = (S.d.leads || []).filter(function (l) { return !l.owner && isOpenLead(l); });
+    if (!cs.length && !ls.length) return '';
+    return '<section class="section"><div class="section-h"><h2>🧺 Kho chung – chưa ai nhận</h2><span class="count">' + (cs.length + ls.length) + '</span><span class="tip">bấm “Nhận khách” để thành khách của bạn</span></div><div class="list cols">' +
+      cs.slice(0, 10).map(function (c) { return custCard(c, false); }).join('') + ls.slice(0, 10).map(leadCard).join('') + '</div></section>';
   }
   function myGoalKpi() {
     var mk = monthOf(Date.now()), t = targetOf(S.user.name, mk), sales = perf(S.user.name, monthRange(mk)).sales;
@@ -698,6 +712,75 @@
       toast('Đã ghi “' + q.n + '”' + (q.d ? ' · ' + q.d + ' ngày sau tự nhắc gọi lại' : '') + ' ✓'); navBadges(); render();
       if (q.order) openNewOrder(c.phone);
     }, function (e) { if (btn) { btn.disabled = false; btn.textContent = txt; } if (errEl) errEl.textContent = e.message; else toast(e.message, true); });
+  }
+
+  /* ================================================================ GÓP Ý: chụp màn hình + vài chữ → quản trị nhận qua Telegram, xem & trả lời trong CRM */
+  var FB_KINDS = [['🐞 Lỗi', 'Lỗi'], ['😕 Khó dùng', 'Khó dùng'], ['💡 Ý tưởng', 'Ý tưởng']];
+  function shrinkImage(file) { // ảnh chụp màn hình → JPEG rộng tối đa 1280px (~100–250KB) cho gửi nhanh
+    return new Promise(function (ok, bad) {
+      var fr = new FileReader(); fr.onerror = bad;
+      fr.onload = function () {
+        var im = new Image(); im.onerror = bad;
+        im.onload = function () { var k = Math.min(1, 1280 / Math.max(im.width, im.height / 2.2)), c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); ok(c.toDataURL('image/jpeg', 0.75)); };
+        im.src = fr.result;
+      };
+      fr.readAsDataURL(file);
+    });
+  }
+  function openFeedback(tab) {
+    tab = tab || 'send';
+    var mgr = lvl() >= 2, here = (location.hash || '#hom-nay').slice(1).split('/')[0] || 'hom-nay', imgs = [];
+    var tabs = '<div class="chips" style="margin:0 0 12px"><button class="chip' + (tab === 'send' ? ' on' : '') + '" data-fbtab="send">✍️ Gửi góp ý</button><button class="chip' + (tab === 'list' ? ' on' : '') + '" data-fbtab="list">' + (mgr ? '📥 Danh sách góp ý' + (S.d.fbNew ? ' <em>' + S.d.fbNew + ' mới</em>' : '') : '📋 Góp ý của tôi') + '</button></div>';
+    var body = tabs + (tab === 'send' ?
+      '<p class="small muted" style="margin:0 0 10px">Gặp lỗi, chỗ khó dùng hay có ý tưởng? <b>Chụp màn hình</b> chỗ đó, rồi gửi kèm vài chữ. Máy tự ghi bạn đang ở màn hình nào.</p>' +
+      '<div class="radios" style="margin-bottom:10px">' + FB_KINDS.map(function (k, i) { return '<label><input type="radio" name="fbKind" value="' + k[1] + '"' + (i === 0 ? ' checked' : '') + '><span>' + k[0] + '</span></label>'; }).join('') + '</div>' +
+      '<label class="f"><span>Nội dung</span><textarea id="fbText" rows="4" placeholder="vd: Bấm KNM xong khách vẫn còn trong danh sách / Muốn có nút gửi tin Zalo hàng loạt…"></textarea></label>' +
+      '<div class="f"><span style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--ink)">Ảnh chụp màn hình (tối đa 3)</span><div class="fb-imgs" id="fbImgs"></div>' +
+      '<label class="btn" style="margin-top:6px">📷 Chọn ảnh<input type="file" id="fbFile" accept="image/*" multiple hidden></label> <span class="small muted">Trên máy tính: bấm Ctrl+V để dán ảnh</span></div><p class="err" id="fbErr"></p>'
+      : '<div id="fbList"><p class="muted">Đang tải…</p></div>');
+    var m = modal('💡 Góp ý cho CRM', body, tab === 'send' ? '<button class="btn" data-close>Đóng</button><button class="btn pri" id="fbSend">Gửi góp ý</button>' : '<button class="btn" data-close>Đóng</button>');
+    $$('[data-fbtab]', m).forEach(function (b) { b.onclick = function () { closeModal(true); openFeedback(b.getAttribute('data-fbtab')); }; });
+    if (tab === 'list') { fbList(m, mgr); return; }
+    var draw = function () { $('#fbImgs', m).innerHTML = imgs.map(function (src, i) { return '<div class="fb-img"><img src="' + src + '" alt=""><button type="button" data-rmimg="' + i + '" aria-label="Bỏ ảnh">✕</button></div>'; }).join(''); $$('[data-rmimg]', m).forEach(function (b) { b.onclick = function () { imgs.splice(+b.getAttribute('data-rmimg'), 1); draw(); }; }); };
+    var add = function (files) { Array.prototype.slice.call(files || []).filter(function (f) { return /^image\//.test(f.type); }).slice(0, 3 - imgs.length).forEach(function (f) { shrinkImage(f).then(function (src) { if (imgs.length < 3) { imgs.push(src); draw(); } }, function () { toast('Không đọc được ảnh này', true); }); }); };
+    $('#fbFile', m).onchange = function () { add(this.files); this.value = ''; };
+    m.addEventListener('paste', function (e) { var fs = []; Array.prototype.forEach.call((e.clipboardData || {}).items || [], function (it) { if (it.kind === 'file') fs.push(it.getAsFile()); }); if (fs.length) { e.preventDefault(); add(fs); } });
+    setTimeout(function () { $('#fbText', m).focus(); }, 50);
+    $('#fbSend', m).onclick = function () {
+      var text = $('#fbText', m).value.trim(), err = $('#fbErr', m); if (!text && !imgs.length) { err.textContent = 'Bạn gõ vài chữ hoặc chọn ảnh giúp nhé.'; return; }
+      var b = this; b.disabled = true; b.textContent = 'Đang gửi…';
+      var ctx = 'Màn hình: ' + here + (lastErr ? ' · lỗi gần nhất: ' + lastErr.slice(0, 150) : '') + (S.outbox.length ? ' · đang chờ gửi ' + S.outbox.length : '');
+      api('feedback', { kind: $('input[name=fbKind]:checked', m).value, text: text, images: imgs, route: here, ua: navigator.userAgent + ' · ' + screen.width + 'x' + screen.height + ' · ' + ctx, ver: 'web ' + ((($('script[src*="app.js"]') || {}).src || '').split('v=')[1] || '?') }).then(function (j) {
+        closeModal(true); toast(j.warn ? 'Đã gửi nội dung (ảnh chưa lưu được, quản trị sẽ xem)' : 'Đã gửi góp ý. Cảm ơn bạn! 🙏', !!j.warn);
+      }, function (e) { b.disabled = false; b.textContent = 'Gửi góp ý'; err.textContent = e.message; });
+    };
+  }
+  var FB_CLS = { 'Mới': 'st-moi', 'Đang làm': 'st-xn', 'Đã xong': 'st-xong', 'Không làm': 'st-huy' };
+  function fbList(m, mgr) {
+    api('fb_list').then(function (j) {
+      var box = $('#fbList', m); if (!j.items.length) { box.innerHTML = empty(mgr ? 'Chưa có góp ý nào.' : 'Bạn chưa gửi góp ý nào. Bấm “Gửi góp ý” để bắt đầu.'); return; }
+      box.innerHTML = '<div class="list">' + j.items.map(function (x, i) {
+        return '<div class="card click" data-fbi="' + i + '"><div class="r1"><b>' + esc(x.kind) + '</b><span class="tag ' + (FB_CLS[x.status] || '') + '">' + esc(x.status) + '</span><span class="end small muted">' + fDateTime(x.time) + '</span></div>' +
+          '<div class="r2">' + esc(x.text.length > 140 ? x.text.slice(0, 140) + '…' : x.text) + '</div><div class="r3">' + (mgr ? '👤 ' + esc(x.by) + ' · ' : '') + '📍 ' + esc(x.route) + (x.imgs.length ? ' · 🖼 ' + x.imgs.length + ' ảnh' : '') + (x.reply ? ' · 💬 đã trả lời' : '') + '</div></div>';
+      }).join('') + '</div>';
+      $$('[data-fbi]', box).forEach(function (c) { c.onclick = function () { fbDetail(j.items[+c.getAttribute('data-fbi')], j.statuses, mgr); }; });
+      if (mgr) { S.d.fbNew = j.items.filter(function (x) { return x.status === 'Mới'; }).length; navBadges(); }
+    }, function (e) { $('#fbList', m).innerHTML = '<p class="err">' + esc(e.message) + '</p>'; });
+  }
+  function fbDetail(x, statuses, mgr) {
+    var body = '<div class="box"><div class="r1" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>' + esc(x.kind) + '</b><span class="tag ' + (FB_CLS[x.status] || '') + '">' + esc(x.status) + '</span><span class="small muted">' + fDateTime(x.time) + ' · ' + esc(x.by) + '</span></div>' +
+      '<p class="pre" style="margin:8px 0">' + esc(x.text) + '</p><p class="small muted" style="margin:0">📍 ' + esc(x.route) + ' · ' + esc(x.ver) + '</p>' + (x.imgNote ? '<p class="small err">' + esc(x.imgNote) + '</p>' : '') + '</div>' +
+      (x.imgs.length ? '<div class="box fb-full">' + x.imgs.map(function (f, i) { return '<div class="fb-ph" data-fbimg="' + i + '">Đang tải ảnh ' + (i + 1) + '…</div>'; }).join('') + '</div>' : '') +
+      (mgr ? '<div class="box"><h3>Xử lý</h3><label class="f"><span>Trạng thái</span><select id="fbSt">' + statuses.map(function (s0) { return '<option' + (s0 === x.status ? ' selected' : '') + '>' + s0 + '</option>'; }).join('') + '</select></label>' +
+        '<label class="f"><span>Trả lời người góp ý (gửi qua Telegram riêng của họ)</span><textarea id="fbReply" rows="3">' + esc(x.reply) + '</textarea></label><p class="small muted" style="margin:0">' + (x.handler ? 'Cập nhật bởi ' + esc(x.handler) + ' lúc ' + fDateTime(x.updated) : '') + '</p></div>'
+        : (x.reply ? '<div class="box"><h3>💬 Phản hồi</h3><p class="pre" style="margin:0">' + esc(x.reply) + '</p><p class="small muted" style="margin:6px 0 0">' + esc(x.handler) + '</p></div>' : ''));
+    var m = modal('💡 Góp ý ' + esc(x.id), body, '<button class="btn" data-back>← Danh sách</button>' + (mgr ? '<button class="btn pri" id="fbSave">Lưu</button>' : ''));
+    $('[data-back]', m).onclick = function () { closeModal(true); openFeedback('list'); };
+    $$('[data-fbimg]', m).forEach(function (ph) { api('fb_img', { id: x.id, i: +ph.getAttribute('data-fbimg') }).then(function (j) { ph.outerHTML = '<a href="' + j.src + '" target="_blank" rel="noopener"><img src="' + j.src + '" alt="Ảnh góp ý"></a>'; }, function (e) { ph.textContent = e.message; }); });
+    if (mgr) $('#fbSave', m).onclick = function () {
+      var b = this; b.disabled = true;
+      api('fb_update', { id: x.id, status: $('#fbSt', m).value, reply: $('#fbReply', m).value.trim() }).then(function () { toast('Đã lưu ✓'); closeModal(true); openFeedback('list'); }, function (e) { toast(e.message, true); b.disabled = false; });
+    };
   }
 
   /* ================================================================ ĐƠN HÀNG */

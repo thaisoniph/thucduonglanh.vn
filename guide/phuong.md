@@ -81,11 +81,12 @@ Mỗi lần em bấm kết quả trên CRM, khoảng **5 phút sau** máy tự v
 
 Nên em **đừng ghi tay thêm vào Sheet** cho những cuộc gọi đã bấm trên CRM, kẻo bị ghi 2 lần.
 
-## 3 điều cần nhớ
+## 4 điều cần nhớ
 
 1. **Gọi khách cũ → bấm kết quả trên CRM.** Không ghi tay vào Sheet nữa.
 2. **Lên đơn vẫn trên Sheet** trong tuần này. Sáng hôm sau đơn tự có trên CRM.
 3. **Mất mạng vẫn bấm được.** Góc trên hiện “⏳ Đang gửi”, CRM tự gửi khi có mạng, em không cần bấm lại.
+4. **Chỗ nào chưa tiện thì bấm 💡 Góp ý** kèm ảnh chụp màn hình.
 
 ## Hỏi nhanh
 
@@ -95,4 +96,4 @@ Nên em **đừng ghi tay thêm vào Sheet** cho những cuộc gọi đã bấm
 
 **Muốn xem hướng dẫn đầy đủ?** Xem [Hướng dẫn CRM](/huong-dan/crm/).
 
-**Có gì vướng?** Nhắn anh Sơn qua Zalo. Sau 1 tuần anh sẽ hỏi em chỗ nào còn bất tiện để sửa cho hợp.
+**Có gì vướng, thấy lỗi hay có ý tưởng?** Chụp màn hình chỗ đó, bấm nút **💡 Góp ý** trên đầu trang CRM, chọn ảnh, gõ vài chữ rồi gửi. Anh Sơn nhận được ngay kèm ảnh và sẽ sửa cho hợp với cách em làm việc.
