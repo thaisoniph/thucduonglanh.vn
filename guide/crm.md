@@ -186,11 +186,17 @@ Bấm vào tên khách ở bất kỳ đâu để mở hồ sơ.
 
 ![Hồ sơ một khách hàng](/huong-dan/img/crm-custd.webp)
 
-- **Số ngày chưa chăm sóc**: đếm từ lần gần nhất **khách có trả lời**. Gọi không nghe máy thì vẫn đếm tiếp. **Xanh**: tối đa 7 ngày. **Cam**: 8–30 ngày. **Đỏ**: trên 30 ngày, nên liên hệ lại.
-- **Thông tin mua hàng**: số đơn, tổng chi, sản phẩm đã mua, **ngày dự kiến hết hàng**, nguồn khách.
-- **Người phụ trách**: người chăm sóc khách này. Chỉ quản lý đổi được.
-- **Hẹn gọi lại ngày**, **Ghi chú về khách** (thích gì, dị ứng gì…): bấm **Lưu thông tin chăm sóc**.
-- Bên dưới là **các đơn hàng** và **lịch sử chăm sóc** của khách.
+Từ trên xuống:
+
+- **Phần đầu:** số điện thoại, người phụ trách, nhãn (💬 Zalo, Chỉ hỏi thăm, ⚠️ bom hàng…) và 4 nút **Gọi · Zalo · Chăm sóc · ＋ Đơn**.
+- **Giá trị khách (chữ to):** **Tổng chi · Số đơn · Trung bình mỗi đơn**. Bên dưới: **mua gần nhất** bao lâu rồi, **hay mua** sản phẩm gì, khoảng **bao nhiêu ngày khách mua lại 1 lần**, **ngày dự kiến hết hàng**.
+- **Khung vàng:** việc cần làm hôm nay với khách (nếu có) và **lần cuối khách trả lời** (ngày, kết quả, ai gọi). Nếu sau đó gọi mà khách không nghe máy thì ghi rõ số lần.
+- **3 thẻ:**
+    - **Lịch sử** (mở sẵn): **đơn hàng 🛒 và các lần chăm sóc gộp chung 1 dòng thời gian**, mới nhất ở trên. 📵 = không nghe máy, 📒 = ghi chú cũ từ Sheet.
+    - **Đơn hàng:** toàn bộ đơn của khách, kể cả đơn cũ.
+    - **Thông tin:** địa chỉ, nguồn, đơn đầu, ngày nhận hàng gần nhất, người giới thiệu, số điện thoại khác, tình trạng sức khoẻ.
+- **Ô ✏️ Ghi nhanh** luôn ở đáy màn hình: gõ vài chữ (vd “kh dùng ok, hẹn cuối tháng”) rồi bấm **Lưu** hoặc Enter. Máy tự thêm ngày.
+- **⚙️ Sửa thông tin** (bấm để mở): đổi người phụ trách (quản lý), hẹn gọi lại ngày, nhãn màu, sửa ghi chú dài.
 
 **Nhóm khách** (máy tự xếp):
 

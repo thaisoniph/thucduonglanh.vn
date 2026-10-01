@@ -404,3 +404,26 @@ details.grp .g-tip { flex-basis: 100%; font-size: 12px; color: var(--muted); }
 .flow-h > div:first-child { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 6px; font-size: 14px; } .flow-h .bar { margin: 0; background: #fff; }
 .mini-hist { margin-top: 8px; border-top: 1px dashed var(--line); padding-top: 6px; font-size: 13px; color: var(--text); }
 .mini-hist div { padding: 2px 0; } .mini-hist span { color: var(--muted); font-size: 12px; margin-right: 4px; }
+
+/* hồ sơ khách */
+.p-top { margin: 0 0 10px; } .p-sub { color: var(--muted); font-size: 14px; margin-bottom: 6px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.p-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; } .p-tags:empty { display: none; }
+.p-acts .btn { flex: 1; justify-content: center; }
+.p-val { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 0 0 8px; }
+.p-val > div { background: var(--card); border-radius: 12px; padding: 10px; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,.05); }
+.p-val b { display: block; font-size: 20px; color: var(--ink); line-height: 1.2; } .p-val span { font-size: 12px; color: var(--muted); }
+.p-lines { display: grid; gap: 4px; font-size: 14px; margin: 0 0 10px; } .p-lines #pHabit { display: flex; flex-wrap: wrap; gap: 4px 14px; color: var(--text); }
+.p-now { background: #fff8e6; border-radius: 12px; padding: 10px 12px; font-size: 14px; display: grid; gap: 4px; margin: 0 0 12px; }
+.tabs { display: flex; gap: 4px; background: var(--bg); border-radius: 12px; padding: 4px; margin: 0 0 10px; position: sticky; top: 0; z-index: 2; }
+.tabs button { flex: 1; border: 0; background: transparent; padding: 9px 6px; border-radius: 9px; font: inherit; font-size: 14px; font-weight: 600; color: var(--muted); cursor: pointer; }
+.tabs button.on { background: var(--card); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.tls { background: var(--card); border-radius: 12px; padding: 4px 12px; }
+.tl { display: grid; grid-template-columns: 26px 1fr auto; gap: 8px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 14px; align-items: start; }
+.tl:last-child { border-bottom: 0; } .tl i { font-style: normal; font-size: 17px; line-height: 1.3; } .tl small { color: var(--muted); font-size: 12px; text-align: right; white-space: nowrap; }
+.tl.o { background: linear-gradient(90deg, #f0f7f2, transparent 70%); margin: 0 -12px; padding: 9px 12px; } .tl.void { opacity: .55; } .tl.old > div { color: var(--text); }
+.tl-s { color: var(--muted); font-size: 13px; margin-top: 2px; }
+.rows-b { background: var(--card); border-radius: 12px; padding: 0 12px; }
+.or { padding: 10px 0; border-bottom: 1px solid var(--line); } .or:last-child { border-bottom: 0; } .or.void { opacity: .55; }
+.or-1 { display: flex; gap: 8px; align-items: center; } .or-1 .end { margin-left: auto; font-weight: 700; } .or-2 { font-size: 14px; margin-top: 3px; } .or-3 { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.p-edit { margin: 12px 0 0; } .p-edit > summary { cursor: pointer; color: var(--primary); font-weight: 600; font-size: 14px; padding: 6px 0; }
+.p-quick { display: flex; gap: 8px; width: 100%; } .p-quick input { flex: 1; min-width: 0; }

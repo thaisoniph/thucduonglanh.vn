@@ -72,11 +72,13 @@ Khách nói gì thêm (vd “bà ngủ ngon hơn”) thì gõ vào **Ghi chú l�
 
 Không muốn gọi lần lượt thì mở nhóm, bấm **📵** ngay trên dòng khách (không nghe máy) hoặc **💬** để mở hộp chăm sóc của riêng khách đó.
 
-## 4. Xem lại khách đã nói gì
+## 4. Xem nhanh 1 khách
 
-Bấm vào tên khách để mở hồ sơ. Kéo xuống **Lịch sử chăm sóc**: toàn bộ ghi chú cũ trong file của em đã được tách ra **từng lần, có ngày**, mới nhất ở trên. Các lần em bấm trên CRM cũng nằm ở đây.
+Bấm vào tên khách để mở hồ sơ. Nhìn là biết ngay: **khách đã chi bao nhiêu, mua mấy lần, lần gần nhất bao giờ, hay mua gì, bao lâu mua lại 1 lần**, và **lần cuối khách trả lời** em là khi nào.
 
-![Hồ sơ khách – lịch sử chăm sóc](/huong-dan/img/ph-hist.webp)
+Thẻ **Lịch sử** gộp **đơn hàng 🛒 và mọi lần chăm sóc** (kể cả ghi chú cũ trong file của em, đã tách theo ngày) thành 1 dòng thời gian, mới nhất ở trên. Muốn ghi thêm, gõ vào ô **✏️ Ghi nhanh** ở đáy màn hình rồi bấm **Lưu**.
+
+![Hồ sơ khách: giá trị khách, lần cuối trả lời, lịch sử gộp đơn hàng và chăm sóc](/huong-dan/img/ph-hist.webp)
 
 ## 5. File Sheet của em vẫn đầy đủ
 
