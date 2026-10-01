@@ -371,8 +371,10 @@
   }
 
   /* ---------- cart page ---------- */
-  function shipInfo(sub) {
+  function hasFS(items) { return (items || cart).some(function (i) { return (BY[i.slug] || {}).fs; }); } // có gói "miễn phí ship" trong đơn
+  function shipInfo(sub, items) {
     var fee = +CFG.shipping_fee || 0, th = +CFG.free_ship_threshold || 0;
+    if (hasFS(items)) return { fee: 0, label: 'Miễn phí' };
     if (th && sub >= th) return { fee: 0, label: 'Miễn phí' };
     if (fee) return { fee: fee, label: money(fee) };
     return { fee: 0, label: 'Báo khi xác nhận đơn' };
@@ -524,9 +526,9 @@
 
   /* ---------- form đặt hàng dùng chung (trang Thanh toán + khung Mua ngay) ---------- */
   /* ---------- miễn phí vận chuyển ---------- */
-  function freeShipHint(sub) {
+  function freeShipHint(sub, items) {
     var th = +CFG.free_ship_threshold || 0, fee = +CFG.shipping_fee || 0; if (!th || !fee) return '';
-    if (sub >= th) return '<div class="fs-hint ok">🎉 Đơn hàng được <b>miễn phí vận chuyển</b></div>';
+    if (sub >= th || hasFS(items)) return '<div class="fs-hint ok">🎉 Đơn hàng được <b>miễn phí vận chuyển</b></div>';
     var gap = th - sub, pct = Math.max(4, Math.round(sub / th * 100));
     return '<div class="fs-hint">🚚 Mua thêm <b>' + money(gap) + '</b> để được <b>miễn phí vận chuyển</b><span class="fs-bar"><i style="width:' + pct + '%"></i></span></div>';
   }
@@ -534,7 +536,7 @@
   /* ---------- gợi ý mua kèm ---------- */
   function upsellList(items, max) {
     var inSet = {}; items.forEach(function (i) { inSet[i.slug] = 1; });
-    var sub = items.reduce(function (s, i) { return s + i.subtotal; }, 0), th = +CFG.free_ship_threshold || 0, gap = th && sub < th ? th - sub : 0;
+    var sub = items.reduce(function (s, i) { return s + i.subtotal; }, 0), th = +CFG.free_ship_threshold || 0, gap = th && sub < th && !hasFS(items) ? th - sub : 0;
     var paired = []; items.forEach(function (i) { ((BY[i.slug] || {}).upsell || []).forEach(function (x) { if (paired.indexOf(x) < 0) paired.push(x); }); });
     var cands = [];
     PRODUCTS.forEach(function (p) {
@@ -709,9 +711,9 @@
     };
   }
   function placeOrder(items, data, btn, msg, onSent) {
-    var sub = items.reduce(function (s, i) { return s + i.subtotal; }, 0), sh = shipInfo(sub), d = new Date();
+    var sub = items.reduce(function (s, i) { return s + i.subtotal; }, 0), sh = shipInfo(sub, items), d = new Date();
     var id = 'TDL' + String(d.getFullYear()).slice(2) + ('0' + (d.getMonth() + 1)).slice(-2) + ('0' + d.getDate()).slice(-2) + Math.floor(1000 + Math.random() * 9000);
-    var clean = items.map(function (i) { return { slug: i.slug, name: i.name, variant: i.variant, qty: i.qty, price: i.price, subtotal: i.subtotal }; });
+    var clean = items.map(function (i) { var b = BY[i.slug] || {}; return { slug: i.slug, name: i.name, variant: i.variant, qty: i.qty, price: i.price, subtotal: i.subtotal, days: b.days || undefined }; });
     var src = sourceLabel();
     var order = { type: 'order', id: id, created: d.toISOString(), customer: data.customer, payment: data.payment, items: clean, subtotal: sub, shipping: sh.fee, total: sub + sh.fee, page: location.href, marketing_consent: !!data.marketing, source: src.last, first_source: src.first };
     var label = btn.innerHTML; btn.disabled = true; btn.textContent = 'Đang gửi đơn hàng…';
@@ -720,11 +722,11 @@
   }
   function itemLine(slug, vi, qty) { var p = BY[slug], u = (vi >= 0 && p.variants[vi]) ? p.variants[vi].price : p.price; return { slug: slug, vi: vi, name: p.name, variant: (vi >= 0 && p.variants[vi]) ? p.variants[vi].name : (p.unit || ''), qty: qty, price: u, subtotal: u * qty, img: p.img }; }
   function summaryHTML(items, skipFirst, removable) {
-    var sub = items.reduce(function (s, i) { return s + i.subtotal; }, 0), sh = shipInfo(sub);
+    var sub = items.reduce(function (s, i) { return s + i.subtotal; }, 0), sh = shipInfo(sub, items);
     return items.map(function (i, k) { if (skipFirst && k === 0) return ''; return '<div class="co-item"><img src="' + i.img + '" alt=""><div><b>' + esc(i.name) + '</b><small>' + esc(i.variant) + ' × ' + i.qty + '</small></div><span class="ct-sub">' + money(i.subtotal) + (removable && k > 0 ? ' <button type="button" class="co-rm" data-rmx="' + k + '" aria-label="Bỏ">✕</button>' : '') + '</span></div>'; }).join('') +
-      '<div class="co-sum"><div><span>Tạm tính</span><b>' + money(sub) + '</b></div><div><span>Phí vận chuyển</span><b' + (sh.fee ? '' : ' class="free"') + '>' + sh.label + '</b></div>' + freeShipHint(sub) + '<div class="co-total"><span>Tổng thanh toán</span><b>' + money(sub + sh.fee) + '</b></div></div>';
+      '<div class="co-sum"><div><span>Tạm tính</span><b>' + money(sub) + '</b></div><div><span>Phí vận chuyển</span><b' + (sh.fee ? '' : ' class="free"') + '>' + sh.label + '</b></div>' + freeShipHint(sub, items) + '<div class="co-total"><span>Tổng thanh toán</span><b>' + money(sub + sh.fee) + '</b></div></div>';
   }
-  function orderTotal(items) { var sub = items.reduce(function (s, i) { return s + i.subtotal; }, 0); return sub + shipInfo(sub).fee; }
+  function orderTotal(items) { var sub = items.reduce(function (s, i) { return s + i.subtotal; }, 0); return sub + shipInfo(sub, items).fee; }
   function initCheckout() {
     var form = $('#checkoutForm'); if (!form) return;
     if (!cart.length) { location.replace('/gio-hang/'); return; }

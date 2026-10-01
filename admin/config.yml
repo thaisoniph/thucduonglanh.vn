@@ -153,6 +153,76 @@ collections:
         hint: "Sản phẩm ưu tiên gợi ý khi khách mua sản phẩm này. Để trống thì web tự gợi ý món giúp đơn đạt mức miễn phí vận chuyển."
       - { label: "Dòng lưu ý cuối trang", name: disclaimer, widget: text, required: false, hint: "Ví dụ: Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh." }
 
+  # ------------------------------------------------------------ GÓI GIẢI PHÁP (COMBO)
+  - name: combos
+    label: "Gói giải pháp"
+    label_singular: "gói"
+    description: "Combo nhiều sản phẩm bán theo 1 giá (ví dụ Thử thách 10 ngày sống lành). Web tự hiện ở trang chủ, danh mục Gói Giải Pháp, và gợi ý ở trang các sản phẩm có trong gói."
+    folder: content/combos
+    extension: json
+    format: json
+    create: true
+    delete: true
+    slug: "{{slug}}"
+    identifier_field: name
+    summary: "{{name}} – {{price}}đ"
+    sortable_fields: [order, name]
+    preview_path: "san-pham/{{slug}}/"
+    fields:
+      - { label: "Tên gói", name: name, widget: string, hint: "Ví dụ: Gói Thử Thách 10 Ngày Sống Lành" }
+      - { label: "Tên ngắn", name: short_name, widget: string, required: false }
+      - { label: "Hiển thị trên web", name: published, widget: boolean, default: true }
+      - { label: "Nổi bật (hiện ở hộp tư vấn)", name: featured, widget: boolean, default: true }
+      - { label: "Thứ tự hiển thị", name: order, widget: number, value_type: int, default: 1, hint: "Số nhỏ đứng trước." }
+      - { label: "Nhãn trên ảnh", name: badge, widget: string, required: false, default: "Gói giải pháp" }
+      - label: "Sản phẩm trong gói"
+        name: items
+        widget: list
+        summary: "{{fields.qty}} × {{fields.product}} {{fields.variant}}"
+        hint: "Chọn từng sản phẩm, gõ đúng tên quy cách (ví dụ: Hộp 125g). Sản phẩm 1 quy cách thì để trống ô quy cách. Web tự cộng giá gốc để hiện số tiền tiết kiệm."
+        fields:
+          - { label: "Sản phẩm", name: product, widget: relation, collection: products, value_field: "{{slug}}", search_fields: [name], display_fields: [name] }
+          - { label: "Quy cách", name: variant, widget: string, required: false, hint: "Ví dụ: Hộp 125g. Để trống = quy cách đầu tiên." }
+          - { label: "Số lượng", name: qty, widget: number, value_type: int, default: 1, min: 1 }
+      - { label: "Giá gói (đồng)", name: price, widget: number, value_type: int, hint: "Nên thấp hơn tổng giá mua lẻ trên web (đã giảm %) để khách thấy lợi khi mua gói. Web hiện cả 2 mức tiết kiệm." }
+      - { label: "Miễn phí vận chuyển", name: free_ship, widget: boolean, default: true, hint: "Bật: đơn có gói này được miễn phí ship." }
+      - { label: "Số ngày dùng hết gói", name: days, widget: number, value_type: int, required: false, hint: "CRM dùng để nhắc sale gọi khách trước khi dùng hết (ví dụ 10)." }
+      - { label: "Giảm thêm khi đặt trên web (%)", name: web_discount, widget: number, value_type: int, min: 0, max: 90, required: false, hint: "Thường để trống (= không giảm thêm, vì giá gói đã là giá ưu đãi)." }
+      - label: "Ảnh gói"
+        name: images
+        widget: list
+        hint: "Ảnh đầu tiên là ảnh đại diện (vuông ≥1000px)."
+        field: { label: "Ảnh", name: image, widget: image }
+      - { label: "Mô tả ngắn (cạnh giá)", name: summary, widget: markdown, buttons: [bold, italic, link] }
+      - label: "Điểm nổi bật (dấu tích xanh)"
+        name: highlights
+        widget: list
+        required: false
+        field: { label: "Điểm nổi bật", name: text, widget: string }
+      - label: "Các mục mô tả chi tiết"
+        name: sections
+        widget: list
+        required: false
+        summary: "{{fields.title}}"
+        hint: "Ví dụ: Lịch dùng 10 ngày, Phù hợp với ai, Lưu ý. Chỉ mô tả thói quen, thực đơn – không hứa kết quả sức khỏe."
+        fields:
+          - { label: "Tiêu đề mục", name: title, widget: string }
+          - label: "Kiểu trình bày"
+            name: style
+            widget: select
+            default: box
+            options:
+              - { label: "Đoạn văn trong khung xám", value: box }
+              - { label: "Đoạn văn có viền xanh bên trái", value: quote }
+              - { label: "Danh sách gạch đầu dòng", value: list }
+          - { label: "Nội dung (khi chọn Đoạn văn)", name: text, widget: markdown, required: false }
+          - label: "Các dòng (khi chọn Danh sách)"
+            name: items
+            widget: list
+            required: false
+            field: { label: "Dòng", name: item, widget: string }
+      - { label: "Dòng lưu ý cuối trang", name: disclaimer, widget: text, required: false, hint: "Gói có thực phẩm bổ sung thì phải có câu: Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh." }
+
   # ------------------------------------------------------------ TRANG CHÍNH SÁCH
   - name: pages
     label: "Trang chính sách / hỗ trợ"

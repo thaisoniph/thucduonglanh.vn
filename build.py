@@ -70,6 +70,18 @@ for f in sorted((CONTENT / "products").glob("*.json")):
     p["summary"] = md_inline(p["summary_md"])
     p["highlights"] = [h for h in (p.get("highlights") or []) if h]
     PRODUCTS.append(p)
+# Gói giải pháp / combo (/admin → Gói giải pháp): bán như 1 sản phẩm, gồm nhiều sản phẩm lẻ
+for f in sorted((CONTENT / "combos").glob("*.json")) if (CONTENT / "combos").exists() else []:
+    p = json.loads(f.read_text("utf-8"))
+    if p.get("published") is False or not [i for i in (p.get("items") or []) if i.get("product")]:
+        continue
+    p.update(slug=f.stem, category="goi-giai-phap", combo=True, variants=[], regular_price=None, price=num(p.get("price")))
+    p.setdefault("sku", "COMBO-" + f.stem.upper()[:20])
+    p["images"] = [i for i in (p.get("images") or []) if i] or ["/assets/img/brand/og-image.jpg"]
+    p["summary_md"] = p.get("summary") or ""
+    p["summary"] = md_inline(p["summary_md"])
+    p["highlights"] = [h for h in (p.get("highlights") or []) if h]
+    PRODUCTS.append(p)
 PRODUCTS.sort(key=lambda p: (p.get("order") or 999, p["name"]))
 
 # Ưu đãi chỉ có trên web (Cài đặt → Ưu đãi website): giá nhập trong /admin là giá gốc, web tự giảm X% và gạch giá gốc.
@@ -106,13 +118,34 @@ def apply_web_offer(it, pct):
 for p in PRODUCTS:
     p["base_price"], p["base_variants"] = p["price"], [dict(v) for v in p["variants"]]
     p["on_sale"] = bool(p.get("regular_price") and p["price"] and p["regular_price"] > p["price"])
-    pp = pct_of(p.get("web_discount"), WEB_OFFER["percent"])
+    pp = pct_of(p.get("web_discount"), 0 if p.get("combo") else WEB_OFFER["percent"])  # gói: giá gói đã là giá ưu đãi
     apply_web_offer(p, pp)
     for v in p["variants"]:
         apply_web_offer(v, pct_of(v.get("web_discount"), pp))
     p["web_off_max"] = max([p["web_off"]] + [v["web_off"] for v in p["variants"]])
+_BY_SLUG = {p["slug"]: p for p in PRODUCTS}
+for p in PRODUCTS:
+    if not p.get("combo"):
+        continue
+    parts = []
+    for it in p.get("items") or []:
+        q, qty = _BY_SLUG.get(it.get("product")), max(1, num(it.get("qty")) or 1)
+        if not q or q.get("combo"):
+            continue
+        vi = next((k for k, v in enumerate(q["variants"]) if it.get("variant") and v["name"].strip().lower() == str(it["variant"]).strip().lower()), 0 if q["variants"] else -1)
+        base = q["base_variants"][vi]["price"] if vi >= 0 else q["base_price"]
+        web = q["variants"][vi]["price"] if vi >= 0 else q["price"]
+        unit = q["variants"][vi]["name"] if vi >= 0 else q.get("unit", "")
+        parts.append({"p": q, "qty": qty, "unit": unit, "base": (base or 0) * qty, "web": (web or 0) * qty, "label": f'{qty} {q.get("short_name") or q["name"]}' + (f' {unit.split("(")[0].strip()}' if vi >= 0 else "")})
+    p["parts"] = parts
+    p["parts_base"], p["parts_web"] = sum(x["base"] for x in parts), sum(x["web"] for x in parts)
+    p["unit"] = "Gồm " + " + ".join(x["label"] for x in parts)
+    p["on_sale"] = False
+    if p.get("price") and p["parts_base"] > p["price"] and not p["web_off"]:
+        p["regular_price"] = p["parts_base"]  # gạch giá gốc mua lẻ
+    p["base_price"] = p["price"]
 WEB_OFF_MAX = max([p["web_off_max"] for p in PRODUCTS] or [0])
-WEB_OFF_SAME = len({p["web_off_max"] for p in PRODUCTS if p["web_off_max"]}) <= 1 and all(p["web_off_max"] for p in PRODUCTS)
+WEB_OFF_SAME = len({p["web_off_max"] for p in PRODUCTS if p["web_off_max"]}) <= 1 and all(p["web_off_max"] for p in PRODUCTS if not p.get("combo"))
 
 
 def upto(pct):
@@ -631,9 +664,10 @@ def page_home():
   <div class="cat-grid">{cat_html}</div>
 </div></section>
 
+{combos_home()}
 <section class="section pt-0"><div class="container">
   <h2 class="sec-title">Sản phẩm được yêu thích nhất</h2>
-  {grid(featured, "p-grid p-grid-feature")}
+  {grid([x for x in featured if not x.get("combo")], "p-grid p-grid-feature")}
   <p class="sec-note">Các dòng sản phẩm được nhiều khách hàng của {BRAND} tin dùng.</p>
 </div></section>
 
@@ -769,6 +803,47 @@ def offer_box(p=None):
     return f'<div class="wo-box{" wo-compact" if compact else ""}"><b class="wo-head">🎁 {esc(w.get("label") or "Ưu đãi chỉ có khi đặt tại website")}</b><ul>{"".join(items)}</ul></div>'
 
 
+def combo_parts_html(p):
+    """Trang gói: danh sách sản phẩm trong gói + tiết kiệm + miễn phí ship."""
+    rows = "".join(f'<li><a href="/san-pham/{x["p"]["slug"]}/"><img src="{pimg(x["p"]["images"][0], True)}" alt="" width="56" height="56" loading="lazy"><span><b>{x["qty"]} × {esc(x["p"]["name"])}</b><small>{esc(x["unit"])}</small></span></a><s>{money(x["base"])}</s></li>' for x in p["parts"])
+    save = []
+    if p.get("price") and p["parts_base"] > p["price"]:
+        save.append(f'Tiết kiệm <b>{money(p["parts_base"] - p["price"])}</b> so với giá gốc mua lẻ ({money(p["parts_base"])})')
+    if p.get("price") and p["parts_web"] > p["price"] and p["parts_web"] != p["parts_base"]:
+        save.append(f'rẻ hơn mua lẻ trên web <b>{money(p["parts_web"] - p["price"])}</b>')
+    ship = '<span class="cb-ship">🚚 Miễn phí vận chuyển</span>' if p.get("free_ship") else ""
+    days = f'<span class="cb-ship">📅 Dùng trong {num(p.get("days"))} ngày</span>' if num(p.get("days")) else ""
+    return f'''<div class="cb-box"><b class="cb-head">Gói gồm {len(p["parts"])} sản phẩm</b><ul class="cb-parts">{rows}</ul>
+{f'<p class="cb-save">💰 {", ".join(save)}</p>' if save else ""}<div class="cb-tags">{ship}{days}</div></div>'''
+
+
+def in_combos_html(p):
+    """Trang sản phẩm lẻ: gợi ý các gói có chứa sản phẩm này."""
+    cs = [c for c in PRODUCTS if c.get("combo") and c.get("price") and any(x["p"]["slug"] == p["slug"] for x in c.get("parts", []))]
+    if not cs:
+        return ""
+    li = "".join(f'<a class="ic-item" href="/san-pham/{c["slug"]}/"><img src="{pimg(c["images"][0], True)}" alt="" width="52" height="52" loading="lazy"><span><b>{esc(c["name"])}</b><small>{len(c["parts"])} sản phẩm · chỉ {money(c["price"])}{" · miễn phí ship" if c.get("free_ship") else ""}</small></span><i>Xem gói →</i></a>' for c in cs)
+    return f'<div class="ic-box"><b class="ic-head">💡 Tiết kiệm hơn khi mua theo gói</b>{li}</div>'
+
+
+def combos_home():
+    cs = [c for c in PRODUCTS if c.get("combo") and c.get("price")]
+    if not cs:
+        return ""
+    cards = ""
+    for c in cs:
+        save = f'<span class="cbh-save">Tiết kiệm {money(c["parts_base"] - c["price"])}</span>' if c["parts_base"] > c["price"] else ""
+        parts = "".join(f"<li>{esc(x['label'])}</li>" for x in c["parts"])
+        cards += f'''<article class="cbh-card"><a class="cbh-media" href="/san-pham/{c["slug"]}/"><img src="{pimg(c["images"][0])}" alt="{esc(c["name"])}" width="1000" height="1000" loading="lazy"></a>
+<div class="cbh-body"><h3><a href="/san-pham/{c["slug"]}/">{esc(c["name"])}</a></h3><ul class="cbh-parts">{parts}</ul>
+{price_html(c)}<div class="cbh-tags">{save}{'<span>🚚 Miễn phí ship</span>' if c.get("free_ship") else ""}</div>
+<div class="cbh-btns"><button class="btn" data-buy-now="{c["slug"]}">{ic("bolt")} Mua ngay</button><a class="btn btn-outline" href="/san-pham/{c["slug"]}/">Xem chi tiết</a></div></div></article>'''
+    return f'''<section class="section pt-0"><div class="container">
+  <h2 class="sec-title">Gói Giải Pháp Sống Lành</h2>
+  <div class="cbh-grid">{cards}</div>
+</div></section>'''
+
+
 def page_product(p):
     path = f"/san-pham/{p['slug']}/"
     cat = CAT_BY.get(p["category"])
@@ -810,9 +885,10 @@ def page_product(p):
       <h1 class="p-title">{esc(p["name"])}</h1>
       <div class="p-summary">{p["summary"]}</div>
       <div class="p-price" id="pPrice">{price_html(p, "price big")}</div>
-      {unit}{variants}
+      {combo_parts_html(p) if p.get("combo") else unit}{variants}
       {buy}
       {offer_box(p) if purchasable else ""}
+      {"" if p.get("combo") else in_combos_html(p)}
       <ul class="p-highlights">{highlights}</ul>
       <div class="p-meta"><p><b>SKU:</b> {esc(p["sku"])}</p><p><b>Danh mục:</b> <a href="/danh-muc/{cat["slug"]}/">{esc(cat["name"])}</a>, <a href="/san-pham/">Toàn bộ sản phẩm</a></p></div>
       <div class="share"><b>Chia sẻ</b>
@@ -1148,7 +1224,7 @@ def main():
     # dữ liệu cho JavaScript
     js_products = [{
         "slug": p["slug"], "name": p["name"], "short": p.get("short_name") or p["name"], "price": p.get("price"),
-        "regular": p.get("regular_price"), "off": p.get("web_off") or 0, "unit": p.get("unit", ""), "variants": p.get("variants", []),
+        "regular": p.get("regular_price"), "off": p.get("web_off") or 0, "fs": bool(p.get("free_ship")), "days": num(p.get("days")) or 0, "unit": p.get("unit", ""), "variants": p.get("variants", []),
         "img": pimg(p["images"][0], True), "url": f"/san-pham/{p['slug']}/", "cat": CAT_BY[p["category"]]["name"],
         "text": strip_tags(p["name"] + " " + p["summary"] + " " + " ".join(p.get("highlights", []))),
         "featured": bool(p.get("featured")), "upsell": [x for x in (p.get("upsell") or []) if x],

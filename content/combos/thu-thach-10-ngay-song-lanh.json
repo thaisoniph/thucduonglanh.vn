@@ -1,0 +1,69 @@
+{
+  "name": "Gói Thử Thách 10 Ngày Sống Lành",
+  "short_name": "Thử thách 10 ngày",
+  "published": true,
+  "featured": true,
+  "order": 1,
+  "badge": "Gói giải pháp",
+  "price": 329000,
+  "free_ship": true,
+  "days": 10,
+  "web_discount": null,
+  "items": [
+    {
+      "product": "bua-an-dinh-duong-vitagreen",
+      "variant": "Hộp 125g",
+      "qty": 1
+    },
+    {
+      "product": "dinh-duong-tu-hat-va-curcumin",
+      "variant": "Hộp 125g",
+      "qty": 1
+    },
+    {
+      "product": "tra-hoa-tan-dilvang-dinh-lang-che-vang",
+      "variant": "",
+      "qty": 1
+    }
+  ],
+  "images": [
+    "/assets/img/products/combo-thu-thach-10-ngay.webp",
+    "/assets/img/products/bua-an-dinh-duong-1.webp",
+    "/assets/img/products/curcumin-1.webp",
+    "/assets/img/products/tra-dilvang-1.webp"
+  ],
+  "summary": "Bắt đầu thói quen **ăn lành – uống lành** trong 10 ngày với 3 sản phẩm thuần tự nhiên của Thực Dưỡng Lành: bữa sáng dinh dưỡng từ hạt và một tách trà thảo mộc mỗi ngày. Có người đồng hành trong nhóm Zalo suốt thử thách.",
+  "highlights": [
+    "Đủ dùng cho 10 ngày làm quen",
+    "Miễn phí vận chuyển toàn quốc",
+    "Có người đồng hành, nhắc lịch trong nhóm Zalo",
+    "Sản phẩm thuần chay, nguồn gốc rõ ràng"
+  ],
+  "sections": [
+    {
+      "title": "Lịch dùng gợi ý 10 ngày",
+      "style": "list",
+      "items": [
+        "**Buổi sáng:** 1 ly Bữa Ăn Dinh Dưỡng VitaGreen hoặc Dinh Dưỡng Từ Hạt & Curcumin – dùng xen kẽ mỗi ngày một loại.",
+        "**Trong ngày:** 1–2 gói Trà DILVANG pha với 300–400ml nước ấm, thay cho nước ngọt, trà sữa.",
+        "**Mỗi tối:** ghi lại một điều biết ơn và chia sẻ trong nhóm Zalo thử thách.",
+        "Cách pha từng sản phẩm xem trên bao bì hoặc tại trang sản phẩm."
+      ]
+    },
+    {
+      "title": "Phù hợp với ai",
+      "style": "list",
+      "items": [
+        "Người bận rộn hay bỏ bữa sáng, muốn có bữa sáng nhanh từ hạt.",
+        "Người muốn làm quen với thực dưỡng, ăn chay, giảm đồ uống nhiều đường.",
+        "Người muốn dùng thử cả 3 dòng sản phẩm trước khi mua hộp lớn."
+      ]
+    },
+    {
+      "title": "Lưu ý",
+      "style": "box",
+      "text": "Thử thách nhằm xây dựng thói quen ăn uống lành mạnh, không thay thế chế độ điều trị. Người đang dùng thuốc, phụ nữ mang thai, cho con bú nên hỏi ý kiến bác sĩ trước khi dùng."
+    }
+  ],
+  "disclaimer": "Bữa Ăn Dinh Dưỡng VitaGreen và Dinh Dưỡng Từ Hạt & Curcumin là thực phẩm bổ sung. Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh."
+}

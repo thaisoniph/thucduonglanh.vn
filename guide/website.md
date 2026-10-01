@@ -69,6 +69,20 @@ Muốn ẩn bài mà không xoá: tắt **“Hiển thị trên web”**.
 4. **Công dụng** chỉ ghi đúng hồ sơ công bố. Giữ dòng lưu ý cuối trang: *“Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh.”*
 5. Bấm **Lưu**.
 
+## Tạo gói giải pháp (combo)
+
+Gói = nhiều sản phẩm bán chung 1 giá, ví dụ **Gói Thử Thách 10 Ngày Sống Lành**.
+
+1. Vào **/admin → Gói giải pháp → Tạo gói** (hoặc bấm vào gói có sẵn để sửa / nhân bản).
+2. **Sản phẩm trong gói**: bấm **Thêm**, chọn sản phẩm, gõ đúng tên **quy cách** như trong sản phẩm (ví dụ `Hộp 125g`; sản phẩm 1 quy cách thì để trống), nhập số lượng.
+3. **Giá gói**: nên **thấp hơn tổng giá mua lẻ trên web** (giá đã giảm %), nếu không khách mua lẻ còn rẻ hơn. Web tự tính và hiện: *"Tiết kiệm … so với giá gốc mua lẻ, rẻ hơn mua lẻ trên web …"*.
+4. **Miễn phí vận chuyển**: bật thì đơn có gói này được freeship.
+5. **Số ngày dùng hết gói** (ví dụ 10): CRM tự nhắc sale gọi khách trước khi khách dùng hết.
+6. Ảnh, mô tả, lịch dùng: chỉ mô tả **thói quen, thực đơn, cách dùng** – không hứa kết quả sức khỏe (không dùng "giảm cân, thải độc, chữa, khỏi…"). Gói có thực phẩm bổ sung phải có dòng *"không phải là thuốc…"*.
+7. Bấm **Lưu → Đăng**. Sau 1–2 phút gói hiện ở: trang chủ (mục **Gói Giải Pháp Sống Lành**), danh mục **Gói Giải Pháp**, hộp tư vấn nổi, và khung *"Tiết kiệm hơn khi mua theo gói"* trong trang từng sản phẩm có trong gói.
+
+Muốn tạm ngừng bán gói: tắt **Hiển thị trên web**.
+
 ## Cài đặt website
 
 Vào **Cài đặt website**:

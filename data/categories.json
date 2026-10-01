@@ -1,6 +1,12 @@
 {
   "categories": [
     {
+      "slug": "goi-giai-phap",
+      "name": "Gói Giải Pháp",
+      "image": "/assets/img/products/combo-thu-thach-10-ngay.webp",
+      "desc": "Combo nhiều sản phẩm theo mục tiêu sống lành, giá ưu đãi hơn mua lẻ."
+    },
+    {
       "slug": "dinh-duong-tu-hat",
       "name": "Dinh Dưỡng Từ Hạt",
       "image": "/assets/img/products/bua-an-dinh-duong-2.webp",

@@ -41,6 +41,7 @@ website/
 │   ├── posts/*.md         bài viết Góc Sống Lành
 │   └── pages/*.md         trang chính sách
 ├── data/
+│   (content/combos/*.json = gói giải pháp: items[product, variant, qty], price, free_ship, days; build.py nạp như sản phẩm category "goi-giai-phap", tự tính parts_base/parts_web; JS hasFS() miễn ship; đơn gửi items[].days → Apps Script comboCycles() tự thêm tab Chu kỳ dùng)
 │   ├── site.json          liên hệ, hotline/Zalo, mạng xã hội, ngân hàng, phí ship, kênh cộng đồng, video thương hiệu (brand_video), mời ebook (ebook, gắn UTM utm_source=website; Apps Script ebookFromWeb() nhận dòng Ladi có "website" → kênh "Ebook – quà tặng (Website)"), nhóm Zalo (zalo_group), ưu đãi web (web_offer: mức chung; ghi đè theo sản phẩm/quy cách bằng web_discount trong content/products, 0 = không giảm; build.py apply_web_offer() giảm giá lúc build, giá gốc giữ cho CRM; placeholder {uu_dai_web} trong trang nội dung); icon sàn TMĐT (shopee/lazada/tiktok_shop) không hiện, chỉ còn trong sameAs
 │   ├── home.json          slider trang chủ
 │   ├── categories.json    danh mục sản phẩm
