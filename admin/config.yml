@@ -191,6 +191,7 @@ collections:
       - { label: "Thứ tự trên menu", name: order, widget: number, value_type: int, default: 50 }
       - { label: "Ngày cập nhật", name: updated, widget: datetime, format: "YYYY-MM-DD", time_format: false }
       - { label: "Mô tả ngắn dưới tiêu đề", name: description, widget: string, required: false }
+      - { label: "Ẩn khỏi thanh menu", name: hidden, widget: boolean, required: false, default: false, hint: "Bật = trang riêng, chỉ ai có link mới mở được (vd hướng dẫn riêng cho 1 nhân sự)." }
       - { label: "Nội dung", name: body, widget: markdown, hint: "Mỗi tiêu đề lớn (Heading 2) tự thành 1 mục trong phần “Trong trang này”. Ảnh chụp màn hình nên che tên, số điện thoại khách thật." }
 
   # ------------------------------------------------------------ CÀI ĐẶT

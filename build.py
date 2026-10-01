@@ -1132,7 +1132,7 @@ def build_guide(out):
         meta, here = pg["meta"], pg["slug"]
         tabs = "".join(
             f'<a href="/huong-dan/{p["slug"] + "/" if p["slug"] else ""}"{" class=on aria-current=page" if p["slug"] == here else ""}>'
-            f'{html.escape(p["meta"].get("nav", p["meta"].get("title", "")))}</a>' for p in pages)
+            f'{html.escape(p["meta"].get("nav", p["meta"].get("title", "")))}</a>' for p in pages if not p["meta"].get("hidden") or p["slug"] == here)  # trang ẩn (hidden: true): chỉ ai có link mới thấy
         upd = meta.get("updated")
         upd = upd.strftime("%d/%m/%Y") if hasattr(upd, "strftime") else (str(upd) if upd else "")
         title = html.escape(meta.get("title", "Hướng dẫn"))

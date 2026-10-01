@@ -96,7 +96,7 @@
   var SERVER_V = '2026-10-02a'; // phải trùng số phiên bản máy chủ (api/src/index.js)
   var ON_CF = !/script\.google/.test(CFG.endpoint || ''); // máy chủ Cloudflare (nhanh) hay Apps Script cũ
   function checkVersion(j) {
-    if (!j || S._vWarned || j.v === SERVER_V || j.v === '2026-10-01d' || j.v === '2026-10-01e' || j.v === 'moved') return;
+    if (!j || S._vWarned || j.v === SERVER_V || j.v === '2026-10-01f' || j.v === 'moved') return;
     S._vWarned = true;
     if (lvl() >= 2 || (j.user && j.user.level >= 2)) toast('⚠️ Máy chủ Apps Script đang chạy bản cũ (' + (j.v || 'chưa có số phiên bản') + '), cần bản ' + SERVER_V + '. Vào Apps Script → Triển khai → Quản lý các bản triển khai → ✏️ → Phiên bản: Phiên bản mới → Triển khai.', true);
   }
@@ -1374,6 +1374,8 @@
       '<p class="hint">Chưa có tên sale trong danh sách? Thêm ở <b>Cài đặt → Nhân sự</b> trước.</p>' +
       '<label class="f"><span>Ngày sale bắt đầu lên đơn trên CRM (không bắt buộc)</span><input type="date" id="srcUntil" value="' + esc(cur && cur.cfg.until || '') + '"></label>' +
       '<p class="hint">Đơn từ ngày này trở đi trong file cũ sẽ <b>không nhập</b>, tránh trùng với đơn đã lên trên CRM. Để trống nếu sale vẫn chỉ lên đơn trên file.</p>' +
+      '<label class="switch" style="margin-top:6px"><input type="checkbox" id="srcAuto"' + (!cur || cur.cfg.autoSync !== false ? ' checked' : '') + '> 🕖 Tự nhập dòng mới mỗi sáng 7h</label>' +
+      '<p class="hint">Máy tự lấy đơn và khách mới sale ghi thêm trong file, không phải bấm “Nhập vào CRM” mỗi ngày. Kết quả báo qua Telegram riêng của quản trị.</p>' +
       '<label class="switch" style="margin-top:6px"><input type="checkbox" id="srcWb"' + (cur && cur.cfg.writeBack ? ' checked' : '') + '> ✍️ Ghi kết quả chăm sóc ngược vào file này</label>' +
       '<p class="hint">Sale bấm kết quả trên CRM → máy tự viết thêm vào ô ghi chú của khách trong sheet chăm sóc (vd “, 30/9 knm”), khoảng 5 phút một lần. Sale vẫn xem đầy đủ trên file của mình. Cần sale <b>chia sẻ quyền Chỉnh sửa</b> file cho tài khoản chạy CRM.</p>' +
       '<button class="btn pri" id="srcRead">📖 Đọc file</button><p class="err" id="srcErr"></p></div><div id="srcSheets"></div>';
@@ -1404,7 +1406,7 @@
     if (cur) $('#srcRead', m).click();
     $('#srcSave', m).onclick = function () {
       var b = this; b.disabled = true;
-      var cfg = { sheets: readSheetCfg(m, info.sheets), until: $('#srcUntil', m).value, writeBack: $('#srcWb', m).checked };
+      var cfg = { sheets: readSheetCfg(m, info.sheets), until: $('#srcUntil', m).value, writeBack: $('#srcWb', m).checked, autoSync: $('#srcAuto', m).checked };
       if (!cfg.sheets.some(function (s) { return s.role !== 'skip'; })) { toast('Chọn ít nhất 1 sheet để nhập', true); b.disabled = false; return; }
       api('src_save', { id: cur ? cur.id : '', sale: $('#srcSale', m).value, url: $('#srcUrl', m).value.trim(), fileName: info.fileName, cfg: cfg }).then(function (j) {
         toast('Đã lưu cấu hình ✓'); closeModal(true);
