@@ -202,14 +202,20 @@ Từ trên xuống:
 - **Ô ✏️ Ghi nhanh** luôn ở đáy màn hình: gõ vài chữ (vd “kh dùng ok, hẹn cuối tháng”) rồi bấm **Lưu** hoặc Enter. Máy tự thêm ngày.
 - **⚙️ Sửa thông tin** (bấm để mở): đổi người phụ trách (quản lý), hẹn gọi lại ngày, nhãn màu, sửa ghi chú dài.
 
-**Nhóm khách** (máy tự xếp):
+**Nhóm khách** (máy tự xếp theo số ngày chưa mua):
 
 | Nhóm | Nghĩa là |
 | --- | --- |
-| **Mới** | Mới mua 1 đơn |
-| **Quay lại** | Đã mua từ 2 đơn |
-| **VIP** | Từ 3 đơn, hoặc tổng chi từ 2.000.000đ (quản lý đổi được mức này) |
-| **Sắp mất** | Hơn 60 ngày chưa mua lại (quản lý đổi được) |
+| *(không nhãn)* | **Đang dùng**: mua trong 60 ngày gần đây |
+| **Sắp mất** | 61–180 ngày chưa mua lại. **Nhóm đáng gọi nhất** |
+| **Lâu không mua** | Hơn 180 ngày chưa mua |
+| **VIP** (nhãn thêm) | Từ 3 đơn, hoặc tổng chi từ 2.000.000đ (quản lý đổi được mức này) |
+| **❄️ Khách lạnh** | Đã nói **không dùng nữa**, hoặc **bom hàng / từ chối nhận**. Không đưa vào danh sách gọi hằng ngày. Khách “không dùng nữa” sau 6 tháng tự quay lại để chào lại 1 lần; đặt đơn mới là hết lạnh |
+| **⚠️ hay hoàn** | Hoàn từ 2 lần và số lần hoàn nhiều hơn hoặc bằng số lần nhận, hoặc chưa nhận đơn nào. Khách mua nhiều lần mà chỉ **hoàn 1 lần vẫn là khách tốt** (hồ sơ ghi “↩ 1 lần hoàn”) |
+
+**Đồng ý nhận ưu đãi:** khách nhập từ file Sheet cũ chưa có thông tin này. Khi khách đồng ý nhận tin khuyến mãi, mở hồ sơ bấm **☐ Khách đồng ý nhận ưu đãi**. Khách chưa đồng ý vẫn chăm sóc, hỏi thăm, hướng dẫn dùng bình thường; chỉ tránh gửi tin quảng cáo hàng loạt.
+
+**Danh sách khách** mỗi khách 1 dòng: số đơn · tổng chi, lần mua gần nhất, việc cần làm, **lần chăm sóc gần nhất**, nút 📞 và 💬. Mặc định xếp **Nên gọi trước** (khách có việc hôm nay → VIP sắp mất → chi nhiều). Bộ lọc: Cần chăm sóc · VIP · Sắp mất · Lâu không mua · Có hẹn gọi lại · Chưa kết bạn Zalo · ❄️ Khách lạnh.
 
 **Màu thẻ khách** (máy tự tô, để nhìn là biết loại khách):
 
@@ -218,7 +224,7 @@ Từ trên xuống:
 | **Trắng** | Khách mới, mới mua 1 lần |
 | **Vàng** | Khách cũ, đã mua lại |
 | **Tím** | Đơn gần nhất đặt buổi tối, Chủ nhật hoặc ngày lễ |
-| **Xám** | Đơn gần nhất bị hoàn / huỷ, hoặc khách có nhãn bom hàng |
+| **Xám** | Khách hay hoàn (xem trên) hoặc có nhãn bom hàng. Khách thân thiết chỉ hoàn 1 lần không bị tô xám |
 
 Nếu khách thuộc nhiều loại thì ưu tiên: nhãn riêng của bạn → xám → tím → vàng → trắng. Bấm vào ô màu phía trên danh sách để chỉ xem khách loại đó.
 
