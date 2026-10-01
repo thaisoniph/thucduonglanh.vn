@@ -86,6 +86,7 @@ collections:
       - { label: "Mã SKU", name: sku, widget: string, required: false }
       - { label: "Giá bán (đồng)", name: price, widget: number, value_type: int, required: false, hint: "Để trống = hiện “Liên hệ”. Nếu có nhiều quy cách thì nhập giá ở phần Quy cách bên dưới." }
       - { label: "Giá gốc gạch ngang (đồng)", name: regular_price, widget: number, value_type: int, required: false, hint: "Chỉ nhập khi đang giảm giá, phải lớn hơn Giá bán." }
+      - { label: "Giảm khi đặt trên web (%)", name: web_discount, widget: number, value_type: int, min: 0, max: 90, required: false, hint: "Để trống = theo mức chung trong Cài đặt → Ưu đãi chỉ có khi đặt trên website. Nhập 0 = không giảm (sản phẩm giá thấp, lãi mỏng). Áp dụng cho mọi quy cách, trừ quy cách có ô riêng." }
       - { label: "Quy cách (1 loại)", name: unit, widget: string, required: false, hint: "Ví dụ: Chai 500ml. Bỏ qua nếu dùng nhiều quy cách." }
       - label: "Nhiều quy cách / nhiều giá"
         name: variants
@@ -97,6 +98,7 @@ collections:
           - { label: "Tên quy cách", name: name, widget: string }
           - { label: "Giá bán (đồng)", name: price, widget: number, value_type: int, required: false }
           - { label: "Giá gốc gạch ngang (đồng)", name: regular_price, widget: number, value_type: int, required: false }
+          - { label: "Giảm khi đặt trên web (%) – riêng quy cách này", name: web_discount, widget: number, value_type: int, min: 0, max: 90, required: false, hint: "Để trống = theo mức của sản phẩm. Nhập 0 = quy cách này không giảm." }
       - label: "Ảnh sản phẩm"
         name: images
         widget: list
@@ -245,7 +247,7 @@ collections:
             hint: "Giá trong từng sản phẩm vẫn nhập GIÁ GỐC. Web tự giảm theo % dưới đây, gạch giá gốc và hiện nhãn -%. CRM (đơn gọi điện/Zalo) vẫn dùng giá gốc."
             fields:
               - { label: "Bật giảm giá trên web", name: enabled, widget: boolean, default: true }
-              - { label: "Mức giảm (%)", name: percent, widget: number, value_type: int, min: 0, max: 90, default: 15 }
+              - { label: "Mức giảm chung (%)", name: percent, widget: number, value_type: int, min: 0, max: 90, default: 15, hint: "Áp dụng cho sản phẩm để trống ô \"Giảm khi đặt trên web (%)\". Muốn giảm khác nhau thì vào từng Sản phẩm để nhập." }
               - { label: "Cộng dồn với sản phẩm đang có giá khuyến mãi riêng", name: stack_sale, widget: boolean, default: false, hint: "Tắt: sản phẩm đang có giá khuyến mãi riêng thì giữ giá khuyến mãi đó, không giảm thêm." }
               - { label: "Tiêu đề khung ưu đãi", name: label, widget: string, default: "Ưu đãi chỉ có khi đặt tại website" }
               - { label: "Bật quà tặng", name: gift_enabled, widget: boolean, default: true }

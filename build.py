@@ -73,31 +73,50 @@ for f in sorted((CONTENT / "products").glob("*.json")):
 PRODUCTS.sort(key=lambda p: (p.get("order") or 999, p["name"]))
 
 # Ưu đãi chỉ có trên web (Cài đặt → Ưu đãi website): giá nhập trong /admin là giá gốc, web tự giảm X% và gạch giá gốc.
-WEB_OFFER = (lambda o: {**o, "percent": (num(o.get("percent")) or 0) if o.get("enabled") else 0})(SITE.get("web_offer") or {})
+WEB_OFFER = (lambda o: {**o, "enabled_pct": bool(o.get("enabled")), "percent": (num(o.get("percent")) or 0) if o.get("enabled") else 0})(SITE.get("web_offer") or {})
 
 
-def web_price(x):
-    return max(1000, int(x * (100 - WEB_OFFER["percent"]) // 100000) * 1000)  # làm tròn xuống nghìn: khách luôn được giảm ít nhất X%
+def web_price(x, pct):
+    return max(1000, int(x * (100 - pct) // 100000) * 1000)  # làm tròn xuống nghìn: khách luôn được giảm ít nhất X%
 
 
-def apply_web_offer(it):
+def pct_of(raw, default):
+    """Ô "Giảm trên web (%)" của sản phẩm / quy cách: để trống = theo mức chung, 0 = không giảm."""
+    if raw is None or str(raw).strip() == "":
+        return default
+    try:
+        return max(0, min(90, int(float(raw))))
+    except (TypeError, ValueError):
+        return default
+
+
+def apply_web_offer(it, pct):
     """it có price / regular_price. Sản phẩm đang giảm giá riêng: chỉ cộng dồn khi bật stack_sale."""
-    if not WEB_OFFER["percent"] or not it.get("price"):
+    it["web_off"] = 0
+    if not WEB_OFFER["enabled_pct"] or not pct or not it.get("price"):
         return
     on_sale = it.get("regular_price") and it["regular_price"] > it["price"]
     if on_sale and not WEB_OFFER.get("stack_sale"):
         return
     it["regular_price"] = it["regular_price"] if on_sale else it["price"]
-    it["price"] = web_price(it["price"])
-    it["web_off"] = 0 if on_sale else WEB_OFFER["percent"]  # nhãn hiện đúng X% dù giá đã làm tròn xuống
+    it["price"] = web_price(it["price"], pct)
+    it["web_off"] = 0 if on_sale else pct  # nhãn hiện đúng X% dù giá đã làm tròn xuống
 
 
 for p in PRODUCTS:
     p["base_price"], p["base_variants"] = p["price"], [dict(v) for v in p["variants"]]
     p["on_sale"] = bool(p.get("regular_price") and p["price"] and p["regular_price"] > p["price"])
-    apply_web_offer(p)
+    pp = pct_of(p.get("web_discount"), WEB_OFFER["percent"])
+    apply_web_offer(p, pp)
     for v in p["variants"]:
-        apply_web_offer(v)
+        apply_web_offer(v, pct_of(v.get("web_discount"), pp))
+    p["web_off_max"] = max([p["web_off"]] + [v["web_off"] for v in p["variants"]])
+WEB_OFF_MAX = max([p["web_off_max"] for p in PRODUCTS] or [0])
+WEB_OFF_SAME = len({p["web_off_max"] for p in PRODUCTS if p["web_off_max"]}) <= 1 and all(p["web_off_max"] for p in PRODUCTS)
+
+
+def upto(pct):
+    return f"{pct}%" if WEB_OFF_SAME else f"đến {pct}%"
 CATS = [c for c in CATS if c.get("slug")]
 _cat_slugs = {c["slug"] for c in CATS}
 for p in PRODUCTS:
@@ -203,8 +222,8 @@ def fill(s):
 def uu_dai_html():
     """Danh sách ưu đãi web cho trang nội dung (chèn bằng {uu_dai_web} trong bài / trang chính sách)."""
     w, out = WEB_OFFER, []
-    if w["percent"]:
-        out.append(f"<li><strong>Giảm {w['percent']}% mọi sản phẩm</strong> khi đặt trên website (đã trừ trực tiếp vào giá).</li>")
+    if WEB_OFF_MAX:
+        out.append(f"<li><strong>Giảm {upto(WEB_OFF_MAX)}</strong> khi đặt trên website (mức giảm ghi ở từng sản phẩm, đã trừ trực tiếp vào giá).</li>")
     if w.get("gift_enabled") and w.get("gift_title"):
         link = f' – <a href="{esc(SITE["zalo_group"])}" target="_blank" rel="noopener">tham gia tại đây</a>' if SITE.get("zalo_group") and w.get("gift_how") else ""
         out.append(f"<li><strong>Tặng {esc(w['gift_title'])}</strong>" + (f" trị giá {esc(w['gift_value'])}" if w.get("gift_value") else "") + (f" {esc(w['gift_how'])}" if w.get("gift_how") else "") + link + ".</li>")
@@ -297,7 +316,7 @@ def header(active):
     hot2 = f' - <a href="tel:{tel(SITE["hotline2"])}">{esc(SITE["hotline2"])}</a>' if SITE.get("hotline2") else ""
     return f'''
 <div class="topbar"><div class="container topbar-in">
-  <div class="tb-left">{(f'<span class="tb-offer">🎁 Giảm {WEB_OFFER["percent"]}% <span class="tb-long">khi đặt trên website</span><span class="tb-short">khi đặt trên web</span></span><span>&nbsp;·&nbsp;</span>' if WEB_OFFER["percent"] else '')}{('<span class="tb-free">🚚 <span class="tb-long">Miễn phí vận chuyển đơn</span><span class="tb-short">Freeship</span> từ ' + money(SITE['free_ship_threshold']).replace(' ₫', 'đ') + '</span><span class="tb-hot">&nbsp;·&nbsp;</span>') if SITE.get('free_ship_threshold') and SITE.get('shipping_fee') else ''}<span class="tb-hot">Hotline {BRAND}: {ic("phone","ic ic-sm")} <a href="tel:{tel(SITE["hotline"])}">{esc(SITE["hotline"])}</a>{hot2}</span></div>
+  <div class="tb-left">{(f'<span class="tb-offer">🎁 Giảm {upto(WEB_OFF_MAX)} <span class="tb-long">khi đặt trên website</span><span class="tb-short">khi đặt trên web</span></span><span>&nbsp;·&nbsp;</span>' if WEB_OFF_MAX else '')}{('<span class="tb-free">🚚 <span class="tb-long">Miễn phí vận chuyển đơn</span><span class="tb-short">Freeship</span> từ ' + money(SITE['free_ship_threshold']).replace(' ₫', 'đ') + '</span><span class="tb-hot">&nbsp;·&nbsp;</span>') if SITE.get('free_ship_threshold') and SITE.get('shipping_fee') else ''}<span class="tb-hot">Hotline {BRAND}: {ic("phone","ic ic-sm")} <a href="tel:{tel(SITE["hotline"])}">{esc(SITE["hotline"])}</a>{hot2}</span></div>
   <div class="tb-right"><a href="{esc(SITE.get("community_group") or "/goc-song-lanh/")}"{' target="_blank" rel="noopener"' if SITE.get("community_group") else ""}>Cộng Đồng Sống Khỏe {ic("globe","ic ic-sm")}</a></div>
 </div></div>
 <header class="site-header" id="siteHeader"><div class="container header-in">
@@ -733,11 +752,15 @@ def gift_text():
     return f'Tặng <b>{esc(w["gift_title"])}</b>' + (f' (trị giá {esc(w["gift_value"])})' if w.get("gift_value") else "") + (f' {esc(w["gift_how"])}' if w.get("gift_how") else "")
 
 
-def offer_box(compact=False):
-    """Khung "Ưu đãi chỉ có khi đặt tại website" ở trang sản phẩm và trang thanh toán."""
-    w, items = WEB_OFFER, []
-    if w["percent"]:
-        items.append(f'<li>{ic("check","wo-ic")}<span>Giảm <b>{w["percent"]}%</b> mọi sản phẩm – đã trừ trực tiếp vào giá</span></li>')
+def offer_box(p=None):
+    """Khung "Ưu đãi chỉ có khi đặt tại website": trang sản phẩm (p) và trang thanh toán (p=None, gọn)."""
+    w, items, compact = WEB_OFFER, [], p is None
+    if p is not None and p.get("web_off_max"):
+        vs = {v["web_off"] for v in p["variants"]} or {p["web_off"]}
+        txt = f'<b>{p["web_off_max"]}%</b>' if len(vs) == 1 else f'đến <b>{p["web_off_max"]}%</b>'
+        items.append(f'<li>{ic("check","wo-ic")}<span>Giảm {txt} cho sản phẩm này – đã trừ trực tiếp vào giá</span></li>')
+    elif p is None and WEB_OFF_MAX:
+        items.append(f'<li>{ic("check","wo-ic")}<span>Giá trên web đã giảm <b>{upto(WEB_OFF_MAX)}</b> – trừ trực tiếp vào giá</span></li>')
     if gift_text():
         join = f' <a href="{esc(SITE["zalo_group"])}" target="_blank" rel="noopener" data-cta="zalo_group_offer">Tham gia nhóm →</a>' if SITE.get("zalo_group") and not compact else ""
         items.append(f'<li>{ic("check","wo-ic")}<span>{gift_text()}{join}</span></li>')
@@ -789,7 +812,7 @@ def page_product(p):
       <div class="p-price" id="pPrice">{price_html(p, "price big")}</div>
       {unit}{variants}
       {buy}
-      {offer_box() if purchasable else ""}
+      {offer_box(p) if purchasable else ""}
       <ul class="p-highlights">{highlights}</ul>
       <div class="p-meta"><p><b>SKU:</b> {esc(p["sku"])}</p><p><b>Danh mục:</b> <a href="/danh-muc/{cat["slug"]}/">{esc(cat["name"])}</a>, <a href="/san-pham/">Toàn bộ sản phẩm</a></p></div>
       <div class="share"><b>Chia sẻ</b>
@@ -1025,7 +1048,7 @@ def page_checkout():
     <h2>Đơn hàng của bạn</h2>
     <div id="coItems"></div>
     <div id="coUpsell"></div>
-    {offer_box(True)}
+    {offer_box()}
     <button class="btn btn-lg btn-block btn-order" type="submit" id="placeOrder">✅ Đặt hàng</button>
     <p class="form-msg" role="status"></p>
     <p class="qo-note">Nhân viên sẽ gọi xác nhận trước khi giao hàng.</p>

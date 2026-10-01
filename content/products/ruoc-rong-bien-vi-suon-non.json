@@ -9,6 +9,7 @@
   "badge": "Thuần chay",
   "price": 89000,
   "regular_price": null,
+  "web_discount": 0,
   "unit": "",
   "variants": [
     {
