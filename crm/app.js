@@ -474,7 +474,8 @@
     h += '<section class="hero"><div class="hero-t"><b>' + (q.list.length ? 'Hôm nay: ' + q.list.length + ' khách cần chăm sóc' : '🎉 Đã xong việc chăm sóc hôm nay') + '</b><span>đã xong ' + q.done + '</span></div>' +
       '<div class="bar"><i style="width:' + pc + '%"></i></div>' +
       (q.list.length ? '<button class="btn pri lg block" data-flow>▶ Bắt đầu gọi lần lượt</button>' : '') +
-      (q.rest ? '<p class="small muted" style="margin:8px 0 0">Còn ' + q.rest + ' khách để các ngày sau (tối đa ' + dayLimit() + ' khách/ngày, đổi ở <a href="#cai-dat">Cài đặt</a>).</p>' : '') + '</section>';
+      (q.rest ? '<p class="small muted" style="margin:8px 0 0">Còn ' + q.rest + ' khách để các ngày sau (tối đa ' + dayLimit() + ' khách/ngày, đổi ở <a href="#cai-dat">Cài đặt</a>).</p>' : '') +
+      '<button class="btn block" data-daily="' + (lvl() >= 2 ? '' : esc(S.user.name)) + '" style="margin-top:8px">📋 Báo cáo cuối ngày (gửi Zalo)</button></section>';
     h += '<div class="minis">' + mini('🧾 Đơn mới', no.length, '#don-hang', no.length ? 'warn' : '') + mini('🙋 Tiềm năng', ld.length, '#tiem-nang', ld.length ? 'bad' : '') + mini('✅ Đã làm', doneToday.length, '', '') + miniGoal() + '</div>';
     if (lvl() >= 2) {
       var m = monthStats();
@@ -1377,7 +1378,7 @@
     var R = monthRange(month), P = monthRange(shiftMonth(month, -1)), c = perf(name, R), p = perf(name, P), me = name === S.user.name;
     var h = (lvl() >= 2 && !me ? '<button class="btn ghost" data-who="team" style="margin-bottom:10px">← Quay lại cả nhóm</button>' : '') +
       targetBlock(name, month, c.sales, me || lvl() >= 2) +
-      '<button class="btn" data-bcdt="' + esc(name) + '|' + month + '" style="margin:0 0 16px">📊 Bảng BCDT ' + monthLabel(month) + '</button>';
+      '<div class="steps" style="margin:0 0 16px"><button class="btn pri" data-daily="' + esc(name) + '">📋 Báo cáo ngày (gửi Zalo)</button><button class="btn" data-bcdt="' + esc(name) + '|' + month + '">📊 Bảng BCDT ' + monthLabel(month) + '</button></div>';
     h += '<section class="section"><div class="section-h"><h2>💰 Bán hàng</h2></div><div class="metrics">' +
       metric('Doanh số', moneyShort(c.sales), 'Tổng tiền ' + c.orders + ' đơn ' + (me ? 'bạn' : '') + ' bán (không tính đơn huỷ).', delta(c.sales, p.sales)) +
       metric('Giá trị trung bình / đơn', c.orders ? moneyShort(c.avg) : '–', 'Doanh số chia số đơn. Tư vấn mua kèm, mua combo thì số này tăng.', c.orders ? delta(c.avg, p.orders ? p.avg : 0) : '') +
@@ -1396,7 +1397,7 @@
   function viewTeam(month) {
     var R = monthRange(month), all = perf(null, R), tt = teamTarget(month);
     var names = userNames(); S.d.orders.forEach(function (o) { if (o.seller && names.indexOf(o.seller) < 0) names.push(o.seller); });
-    var h = targetBlockTeam(all.sales, tt, month) + '<button class="btn" data-bcdt="|' + month + '" style="margin:0 0 16px">📊 Bảng BCDT cả nhóm ' + monthLabel(month) + '</button>';
+    var h = targetBlockTeam(all.sales, tt, month) + '<div class="steps" style="margin:0 0 16px"><button class="btn pri" data-daily="">📋 Báo cáo ngày (gửi Zalo)</button><button class="btn" data-bcdt="|' + month + '">📊 Bảng BCDT cả nhóm ' + monthLabel(month) + '</button></div>';
     h += '<div class="kpis">' + kpi('Doanh thu', moneyShort(all.sales), 'good', '', all.orders + ' đơn') + kpi('TB / đơn', all.orders ? moneyShort(all.avg) : '–', '', '', 'giá trị trung bình') +
       kpi('Tỷ lệ chốt', all.closePct === null ? '–' : all.closePct + '%', '', '', all.won + ' chốt · ' + all.lost + ' không mua') + kpi('Từ khách cũ', all.sales ? all.oldPct + '%' : '–', '', '', moneyShort(all.oldRev)) + '</div>';
     var rows = names.map(function (n) { var p = perf(n, R); p.n = n; p.t = targetOf(n, month); return p; }).sort(function (a, b) { return b.sales - a.sales; });
@@ -1688,7 +1689,7 @@
   function bcdtData(name, month) {
     var R = monthRange(month), days = Math.round((R[1] - R[0]) / DAY), rows = [], tot = null, ca = { 'Ngày': [0, 0], 'Tối/CN': [0, 0], 'Lễ': [0, 0] };
     var mine = function (o) { return name === null || o.seller === name; };
-    var blank = function () { var r = { newN: {}, newD: {}, newR: {}, oldN: {}, oldR: {}, hoanN: 0, hoanV: 0 }; BC_LINES.forEach(function (l) { r.newN[l] = 0; r.newD[l] = 0; r.newR[l] = 0; r.oldN[l] = 0; r.oldR[l] = 0; }); return r; };
+    var blank = function () { var r = { newN: {}, newD: {}, newR: {}, oldN: {}, oldR: {}, hoanN: 0, hoanV: 0, offN: 0, offR: 0, careOk: 0, knm: 0 }; BC_LINES.forEach(function (l) { r.newN[l] = 0; r.newD[l] = 0; r.newR[l] = 0; r.oldN[l] = 0; r.oldR[l] = 0; }); return r; };
     tot = blank();
     for (var d = 0; d < days; d++) rows.push(Object.assign(blank(), { day: R[0] + d * DAY }));
     S.d.orders.forEach(function (o) {
@@ -1700,12 +1701,57 @@
       var c = cust(o.phone), isNew = !c || !c.first || c.first >= o.time - 3600e3;
       [r, tot].forEach(function (x) { if (isNew) { x.newN[l]++; x.newR[l] += o.total; } else { x.oldN[l]++; x.oldR[l] += o.total; } });
       var k = o.ca && ca[o.ca] ? o.ca : 'Ngày'; ca[k][0]++; ca[k][1] += o.total;
+      if (k !== 'Ngày') [r, tot].forEach(function (x) { x.offN++; x.offR += o.total; });
     });
+    rows.forEach(function (r) { var cs = careStats(name, r.day, r.day + DAY); r.careOk = cs.ok; r.knm = cs.knm; tot.careOk += cs.ok; tot.knm += cs.knm; });
     (S.d.leads || []).forEach(function (ld) {
       if (!ld.time || ld.time < R[0] || ld.time >= R[1] || !/^quảng cáo/i.test(ld.channel) || (name !== null && ld.owner !== name)) return;
       var l = lineOfTxt(ld.interest + ' ' + ld.channel); rows[Math.floor((ld.time - R[0]) / DAY)].newD[l]++; tot.newD[l]++;
     });
     return { rows: rows, tot: tot, ca: ca };
+  }
+  /** Chăm sóc trong khoảng thời gian: số khách kết nối được, số khách không nghe máy, lý do khách chưa mua (ghi chú). */
+  function careStats(name, from, to) {
+    var ok = {}, miss = {}, why = [];
+    S.d.log.forEach(function (l) {
+      if (!l.time || l.time < from || l.time >= to || !isCareLog(l) || (name !== null && l.by !== name)) return;
+      var ph = String(l.ref).replace(/^'/, '');
+      if (l.result === NO_REPLY) miss[ph] = 1; else ok[ph] = 1;
+      var n = String(l.note || '').replace(/\s*[–-]\s*hẹn gọi lại \d{1,2}\/\d{1,2}(\/\d{2,4})?$/, '').trim();
+      if (n && (l.result === 'Không có nhu cầu' || l.result === 'Hẹn gọi lại') && !/chưa nhận/i.test(n) && why.indexOf(n) < 0) why.push(n);
+    });
+    Object.keys(ok).forEach(function (ph) { delete miss[ph]; }); // gọi lại sau đó khách nghe → tính kết nối
+    return { ok: Object.keys(ok).length, knm: Object.keys(miss).length, why: why };
+  }
+  function dailyText(name, day) {
+    var month = monthOf(day), d = bcdtData(name, month), R = monthRange(month), r = d.rows[Math.floor((dayStart(day) - R[0]) / DAY)] || d.rows[0];
+    var sum = function (o) { return BC_LINES.reduce(function (s0, l) { return s0 + o[l]; }, 0); }, mf = function (v) { return (Number(v) || 0).toLocaleString('vi-VN'); };
+    var lines = ['📋 BÁO CÁO NGÀY ' + fDate(day) + ' – ' + (name || 'Cả nhóm')];
+    BC_LINES.forEach(function (l) {
+      if (l === 'Khác') lines.push('Sản phẩm khác: ' + r.newN[l] + (r.newR[l] ? ' · ' + mf(r.newR[l]) : ''));
+      else lines.push('Số đơn ' + l + ': ' + r.newN[l] + (r.newR[l] ? ' · ' + mf(r.newR[l]) : ''), 'Số mới ' + l + ': ' + r.newD[l]);
+    });
+    lines.push('Số đơn từ khách cũ: ' + sum(r.oldN) + (sum(r.oldR) ? ' · ' + mf(sum(r.oldR)) : ''));
+    lines.push('💰 TỔNG DT: ' + mf(sum(r.newR) + sum(r.oldR)));
+    if (r.offN) lines.push('   (trong đó ngoài giờ: ' + r.offN + ' đơn · ' + mf(r.offR) + ')');
+    if (r.hoanN) lines.push('Đơn hoàn: ' + r.hoanN + ' · ' + mf(r.hoanV));
+    var cs = careStats(name, dayStart(day), dayStart(day) + DAY);
+    lines.push('KH cũ đã chăm sóc (kết nối): ' + cs.ok, 'Không nghe máy: ' + cs.knm);
+    lines.push('Lý do từ chối:' + (cs.why.length ? '' : ' –')); cs.why.slice(0, 12).forEach(function (w) { lines.push('- ' + w); });
+    var T = d.tot, mrev = sum(T.newR) + sum(T.oldR), tg = name ? targetOf(name, month) : null;
+    lines.push('', '📈 Luỹ kế ' + monthLabel(month) + ': ' + mf(mrev) + (tg && tg.amount ? ' · đạt ' + pct(mrev, tg.amount) + '% mục tiêu ' + moneyShort(tg.amount) : ''));
+    return lines.join('\n');
+  }
+  function openDaily(name, day) {
+    name = name === undefined ? (lvl() >= 2 ? null : S.user.name) : name; day = day || Date.now();
+    var opts = lvl() >= 2 ? '<label class="f"><span>Của ai</span><select id="dyWho"><option value="">Cả nhóm</option>' + userNames().map(function (n) { return '<option' + (n === name ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('') + '</select></label>' : '';
+    var body = '<div class="row2c">' + opts + '<label class="f"><span>Ngày</span><input type="date" id="dyDay" value="' + isoDate(day) + '" max="' + isoDate(Date.now()) + '"></label></div>' +
+      '<p class="small muted" style="margin:0 0 6px">Máy tự tính từ đơn hàng và các lần bạn bấm kết quả chăm sóc. Sửa được trước khi copy (vd thêm lý do từ chối).</p>' +
+      '<textarea id="dyText" rows="18" style="font-family:inherit;font-size:14px;line-height:1.5">' + esc(dailyText(name, day)) + '</textarea>';
+    var m = modal('📋 Báo cáo ngày', body, '<button class="btn" data-close>Đóng</button><button class="btn zalo" id="dyCopy">📋 Copy để dán vào Zalo</button>');
+    var redraw = function () { var w = $('#dyWho', m), dv = $('#dyDay', m).value; $('#dyText', m).value = dailyText(w ? (w.value || null) : name, dv ? new Date(dv + 'T12:00:00+07:00').getTime() : Date.now()); };
+    if ($('#dyWho', m)) $('#dyWho', m).onchange = redraw; $('#dyDay', m).onchange = redraw;
+    $('#dyCopy', m).onclick = function () { copy($('#dyText', m).value).then(function () { toast('Đã copy – mở nhóm Zalo và dán vào nhé'); }); };
   }
   function bcdtCols() {
     var c = [['Ngày', function (r) { return r.day ? fDate(r.day).slice(0, 5) : 'TỔNG'; }]];
@@ -1715,7 +1761,9 @@
     var sum = function (o) { return BC_LINES.reduce(function (s, l) { return s + o[l]; }, 0); };
     c.push(['DT khách mới', function (r) { return sum(r.newR); }, 1], ['DT khách cũ', function (r) { return sum(r.oldR); }, 1], ['TỔNG DT (đã trừ hoàn)', function (r) { return sum(r.newR) + sum(r.oldR); }, 1]);
     c.push(['Tỷ lệ chốt', function (r) { var d = sum(r.newD); return d ? Math.round(sum(r.newN) / d * 100) + '%' : ''; }], ['TB/đơn mới', function (r) { var n = sum(r.newN); return n ? Math.round(sum(r.newR) / n) : 0; }, 1],
-      ['% DT khách cũ', function (r) { var t = sum(r.newR) + sum(r.oldR); return t ? Math.round(sum(r.oldR) / t * 100) + '%' : ''; }]);
+      ['% DT khách cũ', function (r) { var t = sum(r.newR) + sum(r.oldR); return t ? Math.round(sum(r.oldR) / t * 100) + '%' : ''; }],
+      ['TB/đơn cũ', function (r) { var n = sum(r.oldN); return n ? Math.round(sum(r.oldR) / n) : 0; }, 1], ['DT ngoài giờ', function (r) { return r.offR; }, 1],
+      ['KH cũ chăm sóc (kết nối)', function (r) { return r.careOk; }], ['Không nghe máy', function (r) { return r.knm; }]);
     return c;
   }
   function openBcdt(name, month) {
@@ -1726,6 +1774,9 @@
       kpi('Tỷ lệ chốt', sumL(T.newD) ? Math.round(sumL(T.newN) / sumL(T.newD) * 100) + '%' : '–', '', '', sumL(T.newN) + ' đơn mới / ' + sumL(T.newD) + ' data mới') +
       kpi('TB/đơn khách mới', sumL(T.newN) ? moneyShort(sumL(T.newR) / sumL(T.newN)) : '–') +
       kpi('Doanh thu khách cũ', tRev ? Math.round(sumL(T.oldR) / tRev * 100) + '%' : '–', '', '', moneyShort(sumL(T.oldR))) +
+      kpi('TB/đơn khách cũ', sumL(T.oldN) ? moneyShort(sumL(T.oldR) / sumL(T.oldN)) : '–', '', '', sumL(T.oldN) + ' đơn khách cũ') +
+      kpi('DT ngoài giờ', moneyShort(T.offR), '', '', T.offN + ' đơn tối / CN / lễ') +
+      kpi('KH cũ đã chăm sóc', T.careOk, '', '', 'kết nối được · ' + T.knm + ' lượt không nghe máy') +
       (tg && tg.amount ? kpi('% tiến độ mục tiêu', pct(tRev, tg.amount) + '%', pct(tRev, tg.amount) >= 100 ? 'good' : '', '', 'mục tiêu ' + moneyShort(tg.amount)) : '');
     var head = '<tr>' + cols.map(function (c) { return '<th>' + esc(c[0]) + '</th>'; }).join('') + '</tr>';
     var tr = function (r, cls) { return '<tr' + (cls ? ' class="' + cls + '"' : '') + '>' + cols.map(function (c) { return '<td>' + fmtv(c[1](r), c[2]) + '</td>'; }).join('') + '</tr>'; };
@@ -1904,11 +1955,12 @@
   /* ================================================================ sự kiện chung */
   document.addEventListener('toggle', function (e) { var d = e.target; if (d && d.matches && d.matches('details[data-grp]')) { S.f.gopen = S.f.gopen || {}; S.f.gopen[d.getAttribute('data-grp')] = d.open; } }, true);
   document.addEventListener('click', function (e) {
-    var t = e.target.closest('[data-flow],[data-zalo],[data-quick],[data-care],[data-next],[data-neworder],[data-cf],[data-os],[data-tf],[data-cat],[data-addtag],[data-deltag],[data-claim],[data-mon],[data-bcdt],[data-srcadd],[data-srcedit],[data-srcsync],[data-srcdel],[data-adsedit],[data-adssync],[data-who],[data-target],[data-myold],[data-more],[data-add],[data-rm],[data-consult],[data-leadorder],[data-newlead],[data-editlead],[data-cust],[data-order],[data-lead]');
+    var t = e.target.closest('[data-daily],[data-flow],[data-zalo],[data-quick],[data-care],[data-next],[data-neworder],[data-cf],[data-os],[data-tf],[data-cat],[data-addtag],[data-deltag],[data-claim],[data-mon],[data-bcdt],[data-srcadd],[data-srcedit],[data-srcsync],[data-srcdel],[data-adsedit],[data-adssync],[data-who],[data-target],[data-myold],[data-more],[data-add],[data-rm],[data-consult],[data-leadorder],[data-newlead],[data-editlead],[data-cust],[data-order],[data-lead]');
     if (!t || !S.d) return;
     if (e.target.closest('a[href]') && !t.hasAttribute('data-myold')) return; // nút gọi / Zalo bên trong thẻ
     var a = function (k) { return t.getAttribute(k); };
     if (t.hasAttribute('data-flow')) { startFlow(); return; }
+    if (t.hasAttribute('data-daily')) { openDaily(a('data-daily') || null); return; }
     if (t.hasAttribute('data-zalo')) { e.stopPropagation(); var zc = cust(a('data-zalo')); if (zc) { setZalo(zc, true); var zb = $('.modal [data-zalo]'); if (zb) zb.outerHTML = zaloTag(zc); } return; }
     if (t.hasAttribute('data-quick')) { e.stopPropagation(); var qk = a('data-quick').split('|'), qc = cust(qk[0]); if (qc) quickCare(qc, qk[1], qk[2], '', t); return; }
     if (t.hasAttribute('data-care')) { e.stopPropagation(); openCare(a('data-care'), a('data-task')); return; }

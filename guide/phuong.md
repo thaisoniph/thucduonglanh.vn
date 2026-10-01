@@ -88,6 +88,10 @@ Mỗi lần em bấm kết quả trên CRM, khoảng **5 phút sau** máy tự v
 
 Nên em **đừng ghi tay thêm vào Sheet** cho những cuộc gọi đã bấm trên CRM, kẻo bị ghi 2 lần.
 
+## 6. Báo cáo cuối ngày
+
+Cuối ngày bấm **📋 Báo cáo cuối ngày (gửi Zalo)** ở tab Hôm nay. CRM tự điền đúng mẫu báo cáo của nhóm (số đơn từng dòng, đơn khách cũ, tổng DT, KH cũ đã chăm sóc, không nghe máy, lý do từ chối, luỹ kế tháng). Em chỉ cần xem lại, bấm **📋 Copy** rồi dán vào nhóm Zalo. Không phải tự đếm nữa.
+
 ## 4 điều cần nhớ
 
 1. **Gọi khách cũ → bấm kết quả trên CRM.** Không ghi tay vào Sheet nữa.

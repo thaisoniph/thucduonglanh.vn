@@ -101,7 +101,11 @@ Vào **Đơn hàng → ＋ Tạo đơn**, hoặc bấm **＋ Tạo đơn** trong
 
 Trong hồ sơ khách, ô **Ghi nhanh hôm nay** tự thêm ngày ở đầu dòng, giống cách ghi trên Sheet: *“30/09: kh dùng ok, hẹn cuối tháng lấy tiếp”*. Nhật ký chăm sóc cũ từ file của bạn nằm ngay bên dưới.
 
-Tab **Hiệu quả → 📊 Bảng BCDT** tự làm báo cáo doanh thu tháng: theo ngày, theo dòng sản phẩm, khách mới / cũ, đơn hoàn và doanh thu theo ca. Phía trên có sẵn **tỷ lệ chốt** (đơn mới / data mới), **trung bình mỗi đơn khách mới**, **% doanh thu từ khách cũ** và **% tiến độ mục tiêu**. Cột nào cả tháng bằng 0 (dòng sản phẩm không bán) thì tự ẩn cho gọn. Bấm **Tải file Excel** để gửi báo cáo.
+### Báo cáo ngày gửi nhóm Zalo
+
+Cuối ngày bấm **📋 Báo cáo cuối ngày (gửi Zalo)** ở tab **Hôm nay** (hoặc **Hiệu quả → 📋 Báo cáo ngày**). CRM tự làm báo cáo đúng mẫu nhóm đang dùng: số đơn và số mới từng dòng (Curcumin, BADD, Fucoidan Pro), sản phẩm khác, đơn từ khách cũ, **tổng doanh thu**, đơn ngoài giờ, đơn hoàn, **KH cũ đã chăm sóc (kết nối)**, **Không nghe máy**, **Lý do từ chối** (lấy từ ghi chú khi bấm *Hết tiền*, *Còn hàng*, *Không dùng nữa*…) và **luỹ kế tháng / % mục tiêu**. Sửa thêm nếu cần, bấm **📋 Copy để dán vào Zalo** rồi dán vào nhóm. Chọn ngày khác để làm báo cáo bù. Quản lý chọn được *Cả nhóm* hoặc từng người.
+
+Tab **Hiệu quả → 📊 Bảng BCDT** tự làm báo cáo doanh thu tháng: theo ngày, theo dòng sản phẩm, khách mới / cũ, đơn hoàn và doanh thu theo ca. Phía trên có sẵn **tỷ lệ chốt** (đơn mới / data mới), **trung bình mỗi đơn khách mới** và **khách cũ**, **% doanh thu từ khách cũ**, **doanh thu ngoài giờ**, **số khách cũ đã chăm sóc / không nghe máy** và **% tiến độ mục tiêu**. Cột nào cả tháng bằng 0 (dòng sản phẩm không bán) thì tự ẩn cho gọn. Bấm **Tải file Excel** để gửi báo cáo.
 
 ## Tạo đơn cho khách đặt qua Zalo, điện thoại
 
