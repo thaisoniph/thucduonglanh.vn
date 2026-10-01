@@ -218,6 +218,15 @@
         if (navigator.clipboard) navigator.clipboard.writeText(url).then(function () { toast('Đã sao chép liên kết', 'ok'); });
         return;
       }
+      if ((t = e.target.closest('.v-frame[data-yt]'))) {
+        if (t.querySelector('iframe')) return;
+        $$('.v-frame video').forEach(function (o) { o.pause(); });
+        var f = document.createElement('iframe'), id = t.getAttribute('data-yt');
+        f.src = 'https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&rel=0&playsinline=1&modestbranding=1';
+        f.title = t.getAttribute('data-title') || 'Video'; f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen'; f.allowFullscreen = true;
+        t.innerHTML = ''; t.appendChild(f); track('video_play', { video: 'youtube:' + id });
+        return;
+      }
       if ((t = e.target.closest('.v-frame'))) {
         if (t.querySelector('video')) return;
         var v = document.createElement('video');

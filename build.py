@@ -465,6 +465,31 @@ def benefits_banner():
 
 
 # ---------------------------------------------------------------- pages
+def yt_id(url):
+    m = re.search(r"(?:youtu\.be/|v=|embed/|shorts/)([\w-]{11})", url or "")
+    return m.group(1) if m else ""
+
+
+def brand_video():
+    """Video thương hiệu (YouTube): chỉ hiện ảnh bìa, bấm mới tải YouTube (nhẹ trang, không cookie trước khi xem)."""
+    bv = SITE.get("brand_video") or {}
+    vid = yt_id(bv.get("youtube"))
+    if not vid:
+        return "", None
+    title, cap = bv.get("title", ""), bv.get("caption", "")
+    img = bv.get("image") or f"https://i.ytimg.com/vi/{vid}/hqdefault.jpg"
+    html = f'''<figure class="bv">
+  <div class="v-frame bv-frame" data-yt="{vid}" data-title="{esc(title)}"><img src="{esc(img)}" alt="{esc(title)}" loading="lazy" width="540" height="960"><button class="v-play" aria-label="Phát video: {esc(title)}">{I["play"]}</button></div>
+  <figcaption class="bv-text"><span class="bv-kicker">Câu chuyện đồng hành</span><b>{esc(title)}</b>{f"<p>{esc(cap)}</p>" if cap else ""}<a class="bv-yt" href="https://www.youtube.com/watch?v={vid}" target="_blank" rel="noopener">Xem trên YouTube ↗</a></figcaption>
+</figure>'''
+    ld = {"@context": "https://schema.org", "@type": "VideoObject", "name": title, "description": cap or title,
+          "thumbnailUrl": [(DOMAIN + img) if img.startswith("/") else img], "uploadDate": bv.get("upload_date") or "2026-08-18",
+          "embedUrl": f"https://www.youtube-nocookie.com/embed/{vid}", "contentUrl": f"https://www.youtube.com/watch?v={vid}"}
+    if bv.get("duration"):
+        ld["duration"] = bv["duration"]
+    return html, ld
+
+
 def page_home():
     slides = []
     for sd in HOME.get("slides", []):
@@ -508,6 +533,7 @@ def page_home():
               ("feedback-vu-tan", "Anh Vũ Tân", "Giám đốc văn phòng bảo hiểm – Khâm Thiên, Hà Nội"),
               ("feedback-khach-hang-3", "Khách hàng tin dùng", "Chia sẻ trải nghiệm sản phẩm")]
     vid = "".join(f'''<figure class="v-card"><div class="v-frame" data-video="/assets/video/{v}.mp4"><img src="/assets/img/brand/{v}.webp" alt="Video cảm nhận của {esc(n)}" loading="lazy" width="480" height="854"><button class="v-play" aria-label="Phát video">{I["play"]}</button></div><figcaption><b>{esc(n)}</b><span>{esc(r)}</span></figcaption></figure>''' for v, n, r in videos)
+    bv_html, bv_ld = brand_video()
     fb = "".join(f'<a class="fb-item" href="/assets/img/brand/feedback-{i}.webp" data-lightbox="fb"><img src="/assets/img/brand/feedback-{i}.webp" alt="Phản hồi khách hàng {i}" loading="lazy" width="900" height="900"></a>' for i in range(1, 6))
 
     tags = ["Dinh dưỡng từ hạt", "Sữa hạt Curcumin", "Fucoidan", "Bữa ăn dinh dưỡng", "Trà chè vằng", "Đinh lăng", "Trà thảo mộc hòa tan", "Ruốc chay", "Rong biển", "Xì dầu lên men", "Ngưu bàng", "Thực dưỡng", "Thuần chay", "Đạm thực vật", "Không đường tinh luyện"]
@@ -548,6 +574,7 @@ def page_home():
 
 <section class="section"><div class="container">
   <h2 class="sec-title big">Khách hàng nói gì<br><span class="accent">về {BRAND}</span></h2>
+  {bv_html}
   <div class="v-grid">{vid}</div>
   <div class="fb-strip">{fb}</div>
 </div></section>
@@ -580,7 +607,7 @@ def page_home():
     web = {"@context": "https://schema.org", "@type": "WebSite", "name": BRAND, "url": DOMAIN,
            "potentialAction": {"@type": "SearchAction", "target": DOMAIN + "/tim-kiem/?q={search_term_string}", "query-input": "required name=search_term_string"}}
     return layout("/", f"{BRAND} – {SITE['tagline']}", "Thực Dưỡng Lành – dinh dưỡng từ hạt, trà thảo mộc và thực phẩm thuần chay chính hãng, nguồn gốc rõ ràng. Giao hàng toàn quốc. Hotline " + SITE["hotline"],
-                  body, jsonld=[org, web], body_class="home")
+                  body, jsonld=[org, web] + ([bv_ld] if bv_ld else []), body_class="home")
 
 
 def community_html():
@@ -787,8 +814,10 @@ def page_about():
               ("Sống tỉnh thức", "Nuôi dưỡng lòng biết ơn, yêu thương cuộc sống"), ("Lan tỏa cộng đồng", "Gắn kết – chia sẻ – đồng hành"), ("Phát triển bền vững", "Dẫn đầu bằng sự kiên định và chất lượng")]
     vals = "".join(f'<div class="val-card"><span class="val-no">0{i}</span><h3>{esc(a)}</h3><p>{esc(b)}</p></div>' for i, (a, b) in enumerate(values, 1))
     bc, bld = breadcrumb([("Giới thiệu", None)])
+    bv_html, bv_ld = brand_video()
     body = f'''{page_hero("Giới thiệu " + BRAND, esc(SITE["slogan"]))}
 <section class="section"><div class="container">{bc}
+  {f'<div class="bv-about">{bv_html}</div>' if bv_html else ""}
   <div class="story about-story">
     <div class="story-text">
       <h2 class="story-title">Câu chuyện thương hiệu</h2>
@@ -819,7 +848,7 @@ def page_about():
   </ul>
   <div class="center mt-2"><a class="btn btn-lg" href="/san-pham/">Khám phá sản phẩm</a></div>
 </div></section>'''
-    return layout("/gioi-thieu/", f"Giới thiệu {BRAND}", f"Câu chuyện thương hiệu {BRAND} – Sống xanh, sống lành, sống có giá trị. Tầm nhìn, sứ mệnh và giá trị cốt lõi của VitaGreen Nutrition.", body, jsonld=[bld])
+    return layout("/gioi-thieu/", f"Giới thiệu {BRAND}", f"Câu chuyện thương hiệu {BRAND} – Sống xanh, sống lành, sống có giá trị. Tầm nhìn, sứ mệnh và giá trị cốt lõi của VitaGreen Nutrition.", body, jsonld=[bld] + ([bv_ld] if bv_ld else []))
 
 
 def page_contact():

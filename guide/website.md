@@ -75,7 +75,7 @@ Vào **Cài đặt website**:
 
 | Mục | Sửa được gì |
 | --- | --- |
-| **Thông tin liên hệ, mạng xã hội, ngân hàng** | Hotline, Zalo, email, địa chỉ, giờ làm việc. Link Facebook, TikTok, YouTube, Shopee, Zalo OA. Tài khoản nhận chuyển khoản (mã QR). Phí vận chuyển (hiện tại 30.000đ, miễn phí từ 300.000đ). Các kênh cộng đồng trên trang chủ. |
+| **Thông tin liên hệ, mạng xã hội, ngân hàng** | Hotline, Zalo, email, địa chỉ, giờ làm việc. Link Facebook, TikTok, YouTube, Shopee, Zalo OA. Tài khoản nhận chuyển khoản (mã QR). Phí vận chuyển (hiện tại 30.000đ, miễn phí từ 300.000đ). Các kênh cộng đồng trên trang chủ. **Video thương hiệu** (link YouTube, tiêu đề, mô tả) hiện ở trang chủ (đầu phần "Khách hàng nói gì") và trang Giới thiệu; xoá link thì khối video tự ẩn. |
 | **Trang chủ – Slider đầu trang** | Ảnh, tiêu đề, sản phẩm quảng bá ở đầu trang chủ |
 | **Hồ sơ thương hiệu (brochure)** | Link sách lật, file PDF, ảnh bìa, các chương, số liệu, giải thưởng |
 | **Danh mục sản phẩm**, **Chuyên mục bài viết** | Thêm, đổi tên danh mục. **Không đổi “Mã”** của danh mục đang có sản phẩm, vì đường link sẽ bị đổi. |

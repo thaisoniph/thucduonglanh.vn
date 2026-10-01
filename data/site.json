@@ -65,5 +65,13 @@
       "desc": "Nhận thông báo ưu đãi, quà tặng cộng đồng và được đội ngũ Thực Dưỡng Lành tư vấn trực tiếp qua Zalo."
     }
   ],
-  "community_group": "https://www.facebook.com/share/g/19NHcqWCUR/"
+  "community_group": "https://www.facebook.com/share/g/19NHcqWCUR/",
+  "brand_video": {
+    "youtube": "https://youtu.be/PuFPITQe3R4",
+    "title": "Đồng hành cùng Thực Dưỡng Lành: Vì sự tử tế và sứ mệnh cộng đồng",
+    "caption": "Câu chuyện của chú Sơn – người nghệ sĩ luôn khắt khe khi chọn sản phẩm cho sức khỏe của bản thân và gia đình – và lý do chú chọn đồng hành lâu dài cùng Thực Dưỡng Lành.",
+    "image": "/assets/img/brand/video-thuong-hieu.webp",
+    "upload_date": "2026-08-18",
+    "duration": "PT2M9S"
+  }
 }
