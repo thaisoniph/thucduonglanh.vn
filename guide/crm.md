@@ -51,15 +51,16 @@ Từ đó bạn nhận riêng: **đơn mới của khách mình phụ trách**, 
 
 ![Tab Hôm nay trên điện thoại](/huong-dan/img/crm-today.webp)
 
-Phía trên là các ô số: đơn mới, khách cần chăm sóc, tiềm năng cần liên hệ, việc đã làm hôm nay, mục tiêu tháng của bạn. Bấm vào ô để mở đúng danh sách.
+- **Trên cùng:** số khách cần chăm sóc hôm nay, thanh tiến độ và nút **▶ Bắt đầu gọi lần lượt**. Mỗi ngày CRM đưa ra tối đa **30 khách** (đổi ở **Cài đặt → Số khách chăm sóc mỗi ngày**), khách quan trọng trước: hẹn gọi lại → hỏi nhận hàng → sắp hết hàng → việc bị trễ → các việc khác. Khách chưa tới lượt tự dời sang hôm sau.
+- **Ô nhỏ:** đơn mới, tiềm năng, việc đã làm, mục tiêu tháng. Bấm để mở đúng danh sách. Quản lý thấy thêm doanh thu và khách mới của tháng.
+- **1️⃣ Đơn mới – gọi khách xác nhận** (chỉ hiện khi có), kèm **Chuyển khoản chưa nhận tiền**.
+- **2️⃣ Chăm sóc khách:** chia nhóm theo loại việc (xem [bảng các loại việc](#cac-loai-viec-cham-soc)). Nhóm **thu gọn**, bấm vào mới mở. Mỗi khách 1 dòng với nút **📞 Gọi · 📵 KNM · 💬 Chăm sóc**.
+- **3️⃣ Khách tiềm năng cần liên hệ.**
+- Cuối trang: **✅ Đã làm hôm nay** (bấm để mở).
 
-Bên dưới có 3 phần, làm từ trên xuống:
+### Gọi lần lượt
 
-1. **Đơn mới – gọi khách xác nhận.** Ngay dưới là **Chuyển khoản chưa nhận tiền**: các đơn đã xác nhận nhưng chưa thấy tiền về.
-2. **Chăm sóc khách**, chia theo từng loại việc (xem [bảng các loại việc](#cac-loai-viec-cham-soc)). Cuối phần này là **🔁 Khách cũ lâu chưa gọi**: mỗi ngày 15 khách cũ đã quá 30 ngày chưa phản hồi, khách chi nhiều nhất lên trước. Gọi xong khách nào, danh sách tự đưa khách tiếp theo lên.
-3. **Khách tiềm năng cần liên hệ.**
-
-Cuối trang là **Đã làm hôm nay**: danh sách việc cả nhóm đã làm trong ngày.
+Bấm **▶ Bắt đầu gọi lần lượt**: CRM mở **từng khách một** (tên, sản phẩm, 2–3 lần chăm sóc gần nhất, tin nhắn mẫu). Gọi hoặc nhắn xong, bấm **1 nút kết quả**, CRM **tự sang khách tiếp theo** (“Khách 3 / 24”). **⏭ Để sau** bỏ qua khách đó trong lượt này; **✕** để dừng.
 
 ## Xử lý đơn hàng
 

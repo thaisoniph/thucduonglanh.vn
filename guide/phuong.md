@@ -31,28 +31,29 @@ Chào Phương! Toàn bộ khách, đơn hàng và **ghi chú cũ** trong file c
 
 > Lần đầu mở CRM sẽ hơi lâu vì máy tải toàn bộ khách của em. **Từ lần thứ hai CRM hiện ngay.**
 
-## 2. Mỗi sáng: mở tab Hôm nay
+## 2. Mỗi sáng: mở tab Hôm nay, bấm “Bắt đầu gọi lần lượt”
 
-![Tab Hôm nay – mục Khách cũ lâu chưa gọi](/huong-dan/img/ph-old.webp)
+![Tab Hôm nay: thanh mục tiêu và các nhóm việc thu gọn](/huong-dan/img/ph-old.webp)
 
-Tab **Hôm nay** cho em biết **hôm nay gọi ai**, em không phải cuộn file hay nhớ trong đầu nữa:
+Trên cùng là **số khách cần chăm sóc hôm nay** và **thanh tiến độ** (đã xong bao nhiêu). Mỗi ngày CRM đưa ra tối đa **30 khách**, khách quan trọng trước: hẹn gọi lại → hỏi nhận hàng → sắp hết hàng → việc bị trễ → các việc khác. Khách chưa tới lượt tự dời sang hôm sau, không mất.
 
-- **📞 Hẹn gọi lại**: khách em đã hẹn đến hôm nay, hoặc khách hôm trước không nghe máy.
-- **⏰ Sắp hết hàng**: khách sắp dùng hết, nên nhắc đặt lại.
-- **📦 / 💬 / 🌿**: khách mới mua: hỏi nhận hàng, xin cảm nhận, giới thiệu thêm.
-- **🔁 Khách cũ lâu chưa gọi**: mỗi ngày **15 khách cũ** đã hơn 30 ngày chưa nói chuyện, **khách chi nhiều nhất lên trước**. Gọi xong khách nào, danh sách tự đưa khách tiếp theo lên.
+Bên dưới, khách được chia **nhóm thu gọn** (bấm vào nhóm mới mở ra), mỗi khách 1 dòng với 3 nút **📞 Gọi · 📵 KNM · 💬 Chăm sóc**:
 
-Dòng đỏ **“… ngày chưa chăm sóc”** là số ngày từ lần cuối khách **có trả lời** (các lần knm không tính).
+- **📞 Hẹn gọi lại**: khách em đã hẹn, hoặc hôm trước không nghe máy.
+- **📦 Hỏi nhận hàng**: khách vừa nhận hàng (hoặc đã quá ngày giao dự kiến).
+- **⏰ Sắp hết hàng**: khách sắp dùng hết, nhắc đặt lại.
+- **💬 / 🌿 / 💌**: xin cảm nhận, giới thiệu thêm, mời quay lại.
+- **🔁 Khách cũ lâu chưa gọi**: hơn 30 ngày chưa nói chuyện, khách chi nhiều nhất lên trước.
 
-**💬 Zalo** = khách em **đã kết bạn Zalo**. Đây chính là dấu **(x)** em vẫn đánh sau tên trong file, CRM đã tự chuyển thành nhãn này. Khách chưa kết bạn có nút **➕ Đã kết bạn Zalo**: kết bạn xong em bấm 1 lần là được, máy cũng tự thêm **(x)** vào tên khách trong file Sheet của em.
+Dòng **⏳ trễ N ngày** là việc đã qua ngày nên làm (vd em nghỉ vài hôm), vẫn giữ lại để em không sót khách.
 
-## 3. Gọi khách và bấm 1 nút
+**💬 Zalo** = khách em **đã kết bạn Zalo** (chính là dấu **(x)** em vẫn đánh sau tên trong file). Khách chưa kết bạn: mở hồ sơ, bấm **➕ Đã kết bạn Zalo** khi kết bạn xong, máy tự thêm **(x)** vào tên trong file Sheet của em.
 
-- Bấm **📞 Gọi** ngay trên thẻ khách.
-- **Khách không nghe máy:** bấm **📵 KNM** ngay trên thẻ. Xong, **2 ngày sau** khách tự hiện lại ở *Hẹn gọi lại*.
-- **Khách nghe máy:** bấm **💬 Chăm sóc** rồi chọn 1 nút ở **Bước 2**:
+## 3. Gọi lần lượt: mỗi lần 1 khách
 
-![Các nút ghi kết quả 1 chạm](/huong-dan/img/ph-quick.webp)
+Bấm **▶ Bắt đầu gọi lần lượt**, CRM mở **từng khách một**: tên, sản phẩm, **2–3 lần chăm sóc gần nhất**, tin nhắn mẫu đã điền tên khách. Em gọi (hoặc nhắn Zalo), rồi **bấm 1 nút kết quả**, CRM **tự chuyển sang khách tiếp theo**. Khách chưa tiện gọi thì bấm **⏭ Để sau**. Bấm **✕** để dừng.
+
+![Gọi lần lượt: mỗi lần 1 khách, bấm kết quả là sang khách tiếp](/huong-dan/img/ph-quick.webp)
 
 | Nút | Máy ghi | Tự nhắc gọi lại |
 | --- | --- | --- |
@@ -62,14 +63,14 @@ Dòng đỏ **“… ngày chưa chăm sóc”** là số ngày từ lần cuố
 | 👍 **Dùng ok** | kh dùng ok | không hẹn |
 | 📦 **Còn hàng** | kh còn nhiều | sau 14 ngày |
 | 💸 **Hết tiền** | kh hết tiền, hẹn tháng sau | sau 30 ngày |
-| 🛒 **Đặt lại** | kh đặt lại | không hẹn |
+| 🛒 **Đặt lại** | kh đặt lại, mở luôn form tạo đơn | không hẹn |
 | 🚫 **Không dùng nữa** | kh không dùng nữa | không hẹn, không đưa vào danh sách khách cũ nữa |
-| 📦 **Đã nhận, đã HD dùng** *(chỉ hiện khi hỏi nhận hàng)* | kh đã nhận hàng, đã hướng dẫn dùng · máy ghi luôn ngày nhận hàng | không hẹn |
-| 🚚 **Chưa nhận hàng** *(chỉ hiện khi hỏi nhận hàng)* | kh chưa nhận được hàng | sau 2 ngày |
+| 📦 **Đã nhận, đã HD dùng** *(khi hỏi nhận hàng)* | kh đã nhận hàng · máy ghi luôn ngày nhận hàng | không hẹn |
+| 🚚 **Chưa nhận hàng** *(khi hỏi nhận hàng)* | kh chưa nhận được hàng | sau 2 ngày |
 
-Khách nói gì thêm (vd “bà ngủ ngon hơn”, “hẹn cuối tháng”) thì gõ vào **Ghi chú lần này** **trước** khi bấm nút, máy ghi kèm luôn. Muốn tự chọn ngày hẹn thì dùng phần **Hoặc tự chọn bên dưới**.
+Khách nói gì thêm (vd “bà ngủ ngon hơn”) thì gõ vào **Ghi chú lần này** **trước** khi bấm nút, máy ghi kèm. Khách **đã kết bạn Zalo** thì nên nhắn trước; khách **chưa kết bạn** thì gọi, gọi xong nhớ xin kết bạn.
 
-Bước 1 (gửi tin Zalo) có sẵn **tin nhắn mẫu** đã điền tên khách. Bấm **📋 Copy tin & mở Zalo**, dán vào khung chat là gửi được. Khách **đã kết bạn Zalo** thì nên nhắn trước; khách **chưa kết bạn** thì gọi, và gọi xong nhớ xin kết bạn để lần sau chăm dễ hơn.
+Không muốn gọi lần lượt thì mở nhóm, bấm **📵** ngay trên dòng khách (không nghe máy) hoặc **💬** để mở hộp chăm sóc của riêng khách đó.
 
 ## 4. Xem lại khách đã nói gì
 
