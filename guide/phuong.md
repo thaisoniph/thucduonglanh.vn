@@ -103,7 +103,7 @@ Cuối ngày bấm **📋 Báo cáo cuối ngày (gửi Zalo)** ở tab Hôm nay
 
 **Khách không có trong danh sách Hôm nay?** Vào tab **Khách đã mua**, gõ tên hoặc số điện thoại để tìm, mở hồ sơ rồi bấm **💬 Chăm sóc**.
 
-**Bấm nhầm nút?** Mở hồ sơ khách, sửa ô **Hẹn gọi lại ngày** và ghi chú cho đúng rồi bấm **Lưu thông tin chăm sóc**.
+**Bấm nhầm nút?** Mở hồ sơ khách, bấm **⚙️ Sửa thông tin**, sửa ô **Hẹn gọi lại ngày** và ghi chú cho đúng rồi bấm **Lưu thay đổi**.
 
 **Muốn xem hướng dẫn đầy đủ?** Xem [Hướng dẫn CRM](/huong-dan/crm/).
 

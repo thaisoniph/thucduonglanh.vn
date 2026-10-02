@@ -37,7 +37,7 @@ Bạn **không cần mở Google Sheet**. Mọi việc với đơn hàng và kh�
 
 ## Một ngày làm việc
 
-1. **8h sáng**: nhóm Telegram nhận tin **“CSKH hôm nay”** liệt kê các khách đến lịch chăm sóc.
+1. **8h sáng**: nhóm Telegram nhận tin tóm tắt **“CSKH hôm nay”** (số việc theo loại và theo từng người, khách VIP cần chú ý); ai đã kết nối Telegram riêng nhận thêm **danh sách khách của mình**.
 2. Mở **CRM → tab Hôm nay**. Làm lần lượt 3 phần:
     - **Đơn mới**: gọi khách xác nhận, xong bấm **✅ Xác nhận**.
     - **Chăm sóc khách**: bấm **💬 Chăm sóc** ở từng khách, gửi tin, chọn kết quả.
@@ -53,7 +53,7 @@ Làm đầy đủ trên CRM thì hệ thống biết khách nào đã được c
 
 1. **Công dụng sản phẩm**: chỉ nói và viết đúng theo hồ sơ công bố. **Không** dùng các từ “chữa bệnh”, “điều trị”, “khỏi bệnh”. Với thực phẩm bổ sung, luôn giữ câu: *“Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh.”*
 2. **Bảo mật dữ liệu khách hàng** (Nghị định 13/2023): không chụp màn hình, không gửi hay chia sẻ danh sách khách ra ngoài, không dùng số điện thoại của khách cho việc cá nhân.
-3. **Khách chưa đồng ý nhận tin** (nhãn **Chỉ hỏi thăm**): chỉ hỏi thăm, hướng dẫn cách dùng. Không gửi quảng cáo, ưu đãi.
+3. **Khách chưa đồng ý nhận tin ưu đãi**: vẫn hỏi thăm, hướng dẫn cách dùng bình thường, nhưng không gửi quảng cáo / ưu đãi. Khi khách đồng ý, mở hồ sơ bấm **☐ Khách đồng ý nhận ưu đãi**.
 4. **Không đưa mã đăng nhập** (mã 6 số của CRM, mã ghp_ của trang quản trị) cho bất kỳ ai, kể cả đồng nghiệp.
 5. **Nghỉ việc hoặc đổi máy**: báo quản lý để khoá tài khoản CRM, và tự xoá mã ghp_ trên GitHub.
 

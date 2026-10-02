@@ -165,7 +165,7 @@ Việc nào **qua khung mà chưa làm** (ví dụ bạn nghỉ vài hôm) vẫn
 
 ![Hộp chăm sóc khách](/huong-dan/img/crm-care.webp)
 
-1. Bấm **💬 Chăm sóc** ở thẻ khách.
+1. Bấm nút **💬** trên dòng khách (hoặc **▶ Bắt đầu gọi lần lượt** ở tab Hôm nay).
 2. **Bước 1 – Gửi tin:** CRM chọn sẵn **mẫu tin** hợp với việc, tự điền tên khách và sản phẩm. Đọc lại, sửa cho tự nhiên. Bấm **📋 Copy tin & mở Zalo**, rồi dán tin vào khung chat Zalo của khách và gửi. Muốn gọi thì bấm **📞 Gọi**.
 3. Quay lại CRM. **Bước 2 – Ghi kết quả.** Cách nhanh nhất là **bấm 1 nút**, bấm xong là lưu luôn và máy tự hẹn ngày gọi lại:
 
@@ -192,7 +192,7 @@ Việc nào **qua khung mà chưa làm** (ví dụ bạn nghỉ vài hôm) vẫn
 
 **Lịch sử chăm sóc** trong hồ sơ khách gồm cả các lần ghi trên CRM và các ghi chú cũ nhập từ Sheet (ví dụ “21/7 kh nhận hàng, 9/8 knm”), sắp theo ngày, mới nhất ở trên.
 
-> **Khách có nhãn “Chỉ hỏi thăm”** là khách chưa đồng ý nhận tin. Chỉ hỏi thăm sức khoẻ, hướng dẫn dùng, **không gửi quảng cáo, ưu đãi**.
+> **Khách chưa đồng ý nhận tin ưu đãi** (chưa có nhãn ✓ *Nhận ưu đãi*): vẫn hỏi thăm sức khoẻ, hướng dẫn dùng bình thường, nhưng **không gửi quảng cáo, ưu đãi**. Khách đồng ý thì bấm **☐ Khách đồng ý nhận ưu đãi** trong hồ sơ.
 
 ### Khách đã kết bạn Zalo
 
@@ -221,7 +221,7 @@ Bấm vào tên khách ở bất kỳ đâu để mở hồ sơ.
 
 Từ trên xuống:
 
-- **Phần đầu:** số điện thoại, người phụ trách, nhãn (💬 Zalo, Chỉ hỏi thăm, ⚠️ bom hàng…) và 4 nút **Gọi · Zalo · Chăm sóc · ＋ Đơn**.
+- **Phần đầu:** số điện thoại, người phụ trách, nhãn (💬 Zalo, ✓ Nhận ưu đãi, ⚠️ hay hoàn…) và 4 nút **Gọi · Zalo · Chăm sóc · ＋ Đơn**.
 - **Giá trị khách (chữ to):** **Tổng chi · Số đơn · Trung bình mỗi đơn**. Bên dưới: **mua gần nhất** bao lâu rồi, **hay mua** sản phẩm gì, khoảng **bao nhiêu ngày khách mua lại 1 lần**, **ngày dự kiến hết hàng**.
 - **Khung vàng:** việc cần làm hôm nay với khách (nếu có) và **lần cuối khách trả lời** (ngày, kết quả, ai gọi). Nếu sau đó gọi mà khách không nghe máy thì ghi rõ số lần.
 - **3 thẻ:**
@@ -257,9 +257,9 @@ Từ trên xuống:
 
 Quên nghĩa nhãn nào thì bấm **ⓘ Giải thích nhãn** cạnh hàng nhãn màu (trên máy tính: di chuột vào nhãn để xem chú thích). Nếu khách thuộc nhiều loại thì ưu tiên: nhãn riêng của bạn → xám → tím → vàng → trắng. Bấm vào ô màu phía trên danh sách để chỉ xem khách loại đó.
 
-**Tự đặt màu và nhãn riêng**: vào **Cài đặt → 🎨 Màu phân loại khách** để đổi màu cho từng loại, hoặc bấm **+ Thêm nhãn** để tạo nhãn riêng (ví dụ “Khách sỉ” màu xanh), rồi bấm **Lưu màu & nhãn**. Muốn gắn nhãn cho khách: mở hồ sơ khách → ô **Nhãn màu** → chọn nhãn → **Lưu thông tin chăm sóc**. Màu bạn chọn chỉ áp dụng trên máy của bạn, không ảnh hưởng người khác.
+**Tự đặt màu và nhãn riêng**: vào **Cài đặt → 🎨 Màu phân loại khách** để đổi màu cho từng loại, hoặc bấm **+ Thêm nhãn** để tạo nhãn riêng (ví dụ “Khách sỉ” màu xanh), rồi bấm **Lưu màu & nhãn**. Muốn gắn nhãn cho khách: mở hồ sơ khách → **⚙️ Sửa thông tin** → ô **Nhãn màu** → chọn nhãn → **Lưu thay đổi**. Màu bạn chọn chỉ áp dụng trên máy của bạn, không ảnh hưởng người khác.
 
-Ở tab **Khách đã mua**, gõ tên, số điện thoại hoặc tên sản phẩm để tìm. Các nút lọc nhanh: *Cần chăm sóc*, *VIP*, *Sắp mất*, *Quá 30 ngày chưa chăm sóc*, *Có hẹn gọi lại*… Ô sắp xếp bên phải để xếp theo *Mua gần nhất*, *Lâu chưa chăm sóc nhất*, *Chi nhiều nhất*, *Sắp hết hàng*.
+Ở tab **Khách đã mua**, gõ tên, số điện thoại hoặc tên sản phẩm để tìm. Các nút lọc nhanh: *Cần chăm sóc*, *VIP*, *Sắp mất*, *Lâu không mua*, *Có hẹn gọi lại*, *💬 Đã kết bạn Zalo*, *Chưa kết bạn Zalo*, *❄️ Khách lạnh*. Ô sắp xếp: *Nên gọi trước* (mặc định), *Mua gần nhất*, *Lâu chưa chăm sóc nhất*, *Chi nhiều nhất*, *Sắp hết hàng*, *Tên A–Z*.
 
 ## Khách hỏi
 
