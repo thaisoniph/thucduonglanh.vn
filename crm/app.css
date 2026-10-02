@@ -469,3 +469,5 @@ details.grp .g-tip { flex-basis: 100%; font-size: 12px; color: var(--muted); }
 @media (min-width: 860px) and (max-width: 1199px) { .fb-btn .fb-lbl { display: none; } .icon-btn.fb-btn { width: 38px; padding: 0; } }
 @media (min-width: 860px) and (max-width: 1023px) { .nav a svg { display: none; } .nav a { padding: 8px 9px; font-size: 13.5px; } .brand span, .brand { font-size: 16px; } }
 .me-r { opacity: .8; font-size: 12.5px; }
+.orw .rw-a .btn.pri { width: auto; padding: 0 12px; font-size: 13.5px; white-space: nowrap; }
+@media (max-width: 520px) { .orw { flex-wrap: wrap; } .orw .rw-m { flex-basis: 100%; } .orw .rw-a { margin-left: auto; } }

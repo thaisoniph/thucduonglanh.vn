@@ -64,6 +64,19 @@ Bấm **▶ Bắt đầu gọi lần lượt**: CRM mở **từng khách một**
 
 ## Xử lý đơn hàng
 
+Tab **Đơn hàng** mở sẵn mục **⚡ Cần xử lý**, chỉ gồm những đơn cần làm, chia nhóm:
+
+| Nhóm | Đơn nào | Việc cần làm |
+| --- | --- | --- |
+| 🆕 **Chờ xác nhận** | Đơn mới | Gọi khách, bấm **✅ Xác nhận** |
+| 📦 **Chờ gửi hàng** | Đã xác nhận, chưa có mã vận đơn | Đóng hàng, bấm **📦 Nhập mã VĐ** |
+| 🚚 **Giao lâu chưa tới** | Đang giao quá 5 ngày | Gọi hỏi khách, giục bưu cục để tránh hoàn |
+| 💳 **Chưa nhận tiền** | Chuyển khoản chưa thấy tiền về | Kiểm tra tài khoản, mở đơn bấm “đã nhận tiền” |
+| ↩ **Hoàn gần đây** | Đơn hoàn (đặt trong 3 tuần) | Gọi hỏi lý do, giữ khách |
+
+Mỗi đơn 1 dòng: ngày đặt, thanh toán, sản phẩm, mã vận đơn, **số ngày đang giao** (⚠️ khi quá 5 ngày), 1 nút đúng việc tiếp theo và nút 📞. Bấm vào dòng để mở đơn (Zalo, sửa đơn, ghi chú…). Thẻ **📋 Tất cả đơn** để tra cứu, chọn **Hôm nay / 7 ngày / Tháng này** và trạng thái. Đầu trang có số đơn và doanh thu hôm nay, số đơn đang giao, tỷ lệ hoàn tháng này.
+
+
 Đơn khách đặt trên web tự vào CRM và báo lên Telegram. Mỗi đơn đi qua các trạng thái:
 
 **Mới → Đã xác nhận → Đang giao → Đã giao** (hoặc **Huỷ**)

@@ -80,7 +80,7 @@
   function dayStart(t) { var x = vnDate(t); return Date.UTC(x.y, x.m - 1, x.d) - 7 * 3600e3; }
   function today() { return dayStart(Date.now()); }
   function daysAgo(t) { if (!t) return ''; var n = Math.round((today() - dayStart(t)) / DAY); if (n === 0) return 'hôm nay'; if (n === 1) return 'hôm qua'; if (n < 0) return 'còn ' + (-n) + ' ngày'; return n + ' ngày trước'; }
-  function when(t) { if (!t) return ''; var n = Math.round((today() - dayStart(t)) / DAY); return n === 0 ? 'Hôm nay ' + fDateTime(t).slice(0, 5) : n === 1 ? 'Hôm qua ' + fDateTime(t).slice(0, 5) : fDateTime(t); }
+  function when(t) { if (!t) return ''; var n = Math.round((today() - dayStart(t)) / DAY), x = vnDate(t), noTime = !x.h && !x.mi; return n === 0 ? 'Hôm nay' + (noTime ? '' : ' ' + fDateTime(t).slice(0, 5)) : n === 1 ? 'Hôm qua' + (noTime ? '' : ' ' + fDateTime(t).slice(0, 5)) : noTime ? fDate(t).slice(0, 5) : fDateTime(t); } // đơn nhập từ file không có giờ → chỉ hiện ngày
   function norm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd'); }
   function normPhone(p) { p = String(p || '').replace(/\D/g, ''); if (p.indexOf('84') === 0 && p.length >= 11) p = '0' + p.slice(2); return p; }
   function fPhone(p) { p = normPhone(p); return p.length === 10 ? p.slice(0, 4) + ' ' + p.slice(4, 7) + ' ' + p.slice(7) : p; }
@@ -1039,18 +1039,60 @@
   }
 
   /* ================================================================ ĐƠN HÀNG */
+  /* ---------- tab Đơn hàng: mặc định "Cần xử lý" (đơn cần làm trước), dòng gọn với 1 nút đúng việc tiếp theo */
+  var SHIP_LATE = 5; // đang giao quá 5 ngày → gọi giục để tránh hoàn
+  function orderTodo() {
+    var t0 = today(), d = function (o) { return daysSince(o.time); };
+    var G = [
+      { k: 'new', t: '🆕 Chờ xác nhận', tip: 'gọi khách xác nhận đơn', f: function (o) { return o.status === 'Mới'; } },
+      { k: 'pack', t: '📦 Chờ gửi hàng', tip: 'đã xác nhận, chưa có mã vận đơn – đóng hàng, nhập mã vận đơn', f: function (o) { return o.status === 'Đã xác nhận' && !o.tracking; } },
+      { k: 'late', t: '🚚 Giao lâu chưa tới', tip: 'đang giao quá ' + SHIP_LATE + ' ngày – gọi hỏi khách, giục bưu cục để tránh hoàn', f: function (o) { return o.status === 'Đang giao' && d(o) > SHIP_LATE; } },
+      { k: 'pay', t: '💳 Chưa nhận tiền', tip: 'chuyển khoản chưa thấy tiền về – kiểm tra tài khoản VCB', f: function (o) { return isBank(o) && !o.paid && !isVoid(o.status) && o.status !== 'Mới'; } },
+      { k: 'back', t: '↩ Hoàn gần đây', tip: 'đơn hoàn (đặt trong 3 tuần) – gọi hỏi lý do, giữ khách', f: function (o) { return /hoàn/i.test(o.status) && d(o) <= 21; } }
+    ];
+    G.forEach(function (g) { g.list = S.d.orders.filter(g.f).sort(function (a, b) { return a.time - b.time; }); });
+    return G;
+  }
+  function orderRow(o) {
+    var oc = orderCat(o), next = NEXT[o.status], dd = daysSince(o.time), shipping = o.status === 'Đang giao';
+    var act = o.status === 'Đã xác nhận' && !o.tracking ? '<button class="btn pri" data-order="' + esc(o.id) + '" title="Mở đơn để nhập mã vận đơn">📦 Nhập mã VĐ</button>' : next ? '<button class="btn pri" data-next="' + esc(o.id) + '">' + NEXT_LABEL[o.status] + '</button>' : '';
+    return '<div class="rw orw click tinted" data-order="' + esc(o.id) + '"' + catAttr(oc) + '><div class="rw-m">' +
+      '<div class="rw-1"><b>' + esc(o.name) + '</b>' + stTag(o.status) + (shipping ? '<span class="tag ' + (dd > SHIP_LATE ? 'st-huy' : 'st-giao') + '">' + dd + ' ngày' + (dd > SHIP_LATE ? ' ⚠️' : '') + '</span>' : '') + (oc.key !== 'void' ? catChip(oc) : '') + '<span class="end">' + money(o.total) + '</span></div>' +
+      '<div class="rw-2">' + when(o.time) + ' · ' + esc(o.payment) + (isBank(o) && !isVoid(o.status) ? (o.paid ? ' ✓' : ' <span class="warn-line">chưa nhận tiền</span>') : '') + ' · ' + esc(itemNames(o.items).join(', ')) + '</div>' +
+      '<div class="rw-3">' + (o.tracking ? '🚚 ' + esc(o.carrier) + ' ' + esc(o.tracking) + ' · ' : '') + '<span class="muted">' + esc(o.id) + '</span>' + (o.seller && (lvl() >= 2 || o.seller !== S.user.name) ? ' · 👤 ' + esc(o.seller) : '') + (o.note ? ' · 📝 ' + esc(o.note.length > 60 ? o.note.slice(0, 60) + '…' : o.note) : '') + '</div></div>' +
+      '<div class="rw-a">' + act + '<a class="btn" href="tel:' + o.phone + '" aria-label="Gọi">📞</a></div></div>';
+  }
   function viewOrders() {
-    var f = S.f.o || (S.f.o = { q: '', st: 'all', n: 60 });
-    var q = norm(f.q), qd = q.replace(/\D/g, '');
-    var base = S.d.orders.filter(function (o) { return !q || norm(o.name + ' ' + o.id + ' ' + o.items + ' ' + o.province + ' ' + o.source).indexOf(q) >= 0 || (qd.length >= 3 && o.phone.indexOf(qd) >= 0); })
-      .sort(function (a, b) { return b.time - a.time; });
+    var f = S.f.o || (S.f.o = { q: '', st: 'all', n: 60, tab: 'todo', rg: 'all' });
+    if (!f.tab) f.tab = 'todo'; if (!f.rg) f.rg = 'all';
+    var q = norm(f.q), qd = q.replace(/\D/g, ''), t0 = today();
+    if (q && f.tab === 'todo') f.tab = 'all'; // đang tìm → xem trong tất cả đơn
+    var mR = monthRange(monthOf(Date.now())), todayOs = S.d.orders.filter(function (o) { return o.time >= t0 && !isVoid(o.status); }), monthOs = S.d.orders.filter(function (o) { return o.time >= mR[0] && o.time < mR[1] && o.status !== 'Huỷ'; });
+    var backM = monthOs.filter(function (o) { return /hoàn/i.test(o.status); }).length, shipping = S.d.orders.filter(function (o) { return o.status === 'Đang giao'; }).length;
+    var h = '<div class="page-head"><h1>Đơn hàng</h1><div class="grow"></div><button class="btn pri" data-neworder="">＋ Tạo đơn (Zalo, điện thoại…)</button></div>' +
+      '<div class="minis">' + mini('🧾 Đơn hôm nay', todayOs.length, '', '') + mini('💰 Doanh thu hôm nay', moneyShort(todayOs.reduce(function (s0, o) { return s0 + o.total; }, 0)), '', 'good') + mini('🚚 Đang giao', shipping, '', '') + mini('↩ Hoàn tháng này', monthOs.length ? pct(backM, monthOs.length) + '%' : '–', '', backM ? 'bad' : '') + '</div>' +
+      '<div class="tools"><div class="search">' + I.search + '<input type="search" id="oq" placeholder="Tìm tên, SĐT, mã đơn, sản phẩm…" value="' + esc(f.q) + '"></div></div>';
+    var G = orderTodo(), todoN = G.reduce(function (s0, g) { return s0 + g.list.length; }, 0);
+    h += '<div class="tabs" style="max-width:420px"><button data-otab="todo" class="' + (f.tab === 'todo' ? 'on' : '') + '">⚡ Cần xử lý' + (todoN ? ' (' + todoN + ')' : '') + '</button><button data-otab="all" class="' + (f.tab === 'all' ? 'on' : '') + '">📋 Tất cả đơn</button></div>';
+    if (f.tab === 'todo') {
+      var any = false;
+      G.forEach(function (g) {
+        if (!g.list.length) return; any = true;
+        h += '<details class="grp" data-grp="o-' + g.k + '"' + (!S.f.gopen || S.f.gopen['o-' + g.k] !== false ? ' open' : '') + '><summary><span class="g-t">' + g.t + '</span><span class="count">' + g.list.length + '</span><span class="g-tip">' + g.tip + '</span></summary><div class="rows">' + g.list.slice(0, 50).map(orderRow).join('') + (g.list.length > 50 ? '<p class="small muted" style="padding:8px 12px">… và ' + (g.list.length - 50) + ' đơn khác (xem ở Tất cả đơn)</p>' : '') + '</div></details>';
+      });
+      if (!any) h += empty('🎉 Không có đơn nào cần xử lý. Xem lịch sử ở “Tất cả đơn”.');
+      return h;
+    }
+    var RG = { all: ['Mọi lúc', 0], today: ['Hôm nay', t0], d7: ['7 ngày', t0 - 6 * DAY], month: ['Tháng này', mR[0]] };
+    var base = S.d.orders.filter(function (o) { return o.time >= RG[f.rg][1] && (!q || norm(o.name + ' ' + o.id + ' ' + o.items + ' ' + o.province + ' ' + o.source + ' ' + o.tracking).indexOf(q) >= 0 || (qd.length >= 3 && o.phone.indexOf(qd) >= 0)); }).sort(function (a, b) { return b.time - a.time; });
     var list = f.st === 'all' ? base : base.filter(function (o) { return o.status === f.st; });
-    var sum = list.filter(function (o) { return !isVoid(o.status); }).reduce(function (s, o) { return s + o.total; }, 0);
-    return '<div class="page-head"><h1>Đơn hàng</h1><span class="muted">' + list.length + ' đơn' + (lvl() >= 2 ? ' · ' + money(sum) : '') + '</span><div class="grow"></div><button class="btn pri" data-neworder="">＋ Tạo đơn (Zalo, điện thoại…)</button></div>' +
-      '<div class="tools"><div class="search">' + I.search + '<input type="search" id="oq" placeholder="Tìm tên, SĐT, mã đơn, sản phẩm…" value="' + esc(f.q) + '"></div></div>' +
-      '<div class="chips">' + ['all'].concat(STATUS).map(function (s) { var n = s === 'all' ? base.length : base.filter(function (o) { return o.status === s; }).length; return '<button class="chip' + (f.st === s ? ' on' : '') + '" data-os="' + esc(s) + '">' + (s === 'all' ? 'Tất cả' : s) + ' <em>' + n + '</em></button>'; }).join('') + '</div>' +
-      (list.length ? '<div class="list cols">' + list.slice(0, f.n).map(function (o) { return orderCard(o, true); }).join('') + '</div>' +
+    var sum = list.filter(function (o) { return !isVoid(o.status); }).reduce(function (s0, o) { return s0 + o.total; }, 0);
+    h += '<div class="chips">' + Object.keys(RG).map(function (k) { return '<button class="chip' + (f.rg === k ? ' on' : '') + '" data-org="' + k + '">' + RG[k][0] + '</button>'; }).join('') + '</div>' +
+      '<div class="chips">' + ['all'].concat(STATUS).map(function (s0) { var n = s0 === 'all' ? base.length : base.filter(function (o) { return o.status === s0; }).length; return n || s0 === 'all' || f.st === s0 ? '<button class="chip' + (f.st === s0 ? ' on' : '') + '" data-os="' + esc(s0) + '">' + (s0 === 'all' ? 'Tất cả' : s0) + ' <em>' + n + '</em></button>' : ''; }).join('') + '</div>' +
+      '<p class="small muted" style="margin:0 0 8px">' + list.length + ' đơn' + ' · ' + money(sum) + ' (không tính huỷ / hoàn)' + '</p>' +
+      (list.length ? '<div class="crows">' + list.slice(0, f.n).map(orderRow).join('') + '</div>' +
         (list.length > f.n ? '<button class="btn more" data-more="o">Xem thêm ' + Math.min(60, list.length - f.n) + ' đơn</button>' : '') : empty('Không có đơn nào.'));
+    return h;
   }
   function findOrder(id) { return S.d.orders.filter(function (o) { return o.id === id; })[0]; }
   function openOrder(id, fromRoute) {
@@ -2185,7 +2227,7 @@
   /* ================================================================ sự kiện chung */
   document.addEventListener('toggle', function (e) { var d = e.target; if (d && d.matches && d.matches('details[data-grp]')) { S.f.gopen = S.f.gopen || {}; S.f.gopen[d.getAttribute('data-grp')] = d.open; } }, true);
   document.addEventListener('click', function (e) {
-    var t = e.target.closest('[data-promo],[data-rf],[data-vipgo],[data-taghelp],[data-consent],[data-daily],[data-flow],[data-zalo],[data-quick],[data-care],[data-next],[data-neworder],[data-cf],[data-os],[data-tf],[data-cat],[data-addtag],[data-deltag],[data-claim],[data-mon],[data-bcdt],[data-srcadd],[data-srcedit],[data-srcsync],[data-srcdel],[data-adsedit],[data-adssync],[data-who],[data-target],[data-myold],[data-more],[data-add],[data-rm],[data-consult],[data-leadorder],[data-newlead],[data-editlead],[data-cust],[data-order],[data-lead]');
+    var t = e.target.closest('[data-otab],[data-org],[data-promo],[data-rf],[data-vipgo],[data-taghelp],[data-consent],[data-daily],[data-flow],[data-zalo],[data-quick],[data-care],[data-next],[data-neworder],[data-cf],[data-os],[data-tf],[data-cat],[data-addtag],[data-deltag],[data-claim],[data-mon],[data-bcdt],[data-srcadd],[data-srcedit],[data-srcsync],[data-srcdel],[data-adsedit],[data-adssync],[data-who],[data-target],[data-myold],[data-more],[data-add],[data-rm],[data-consult],[data-leadorder],[data-newlead],[data-editlead],[data-cust],[data-order],[data-lead]');
     if (!t || !S.d) return;
     if (e.target.closest('a[href]') && !t.hasAttribute('data-myold')) return; // nút gọi / Zalo bên trong thẻ
     var a = function (k) { return t.getAttribute(k); };
@@ -2225,6 +2267,8 @@
     if (t.hasAttribute('data-neworder')) { openNewOrder(a('data-neworder')); return; }
     if (t.hasAttribute('data-cf')) { S.f.c.k = a('data-cf'); S.f.c.n = 60; render(); return; }
     if (t.hasAttribute('data-os')) { S.f.o.st = a('data-os'); S.f.o.n = 60; render(); return; }
+    if (t.hasAttribute('data-otab')) { S.f.o.tab = a('data-otab'); if (S.f.o.tab === 'todo') S.f.o.q = ''; S.f.o.n = 60; render(); return; }
+    if (t.hasAttribute('data-org')) { S.f.o.rg = a('data-org'); S.f.o.n = 60; render(); return; }
     if (t.hasAttribute('data-tf')) { S.f.t.k = a('data-tf'); S.f.t.n = 60; render(); return; }
     if (t.hasAttribute('data-mon')) { S.f.r.m = a('data-mon'); render(); return; }
     if (t.hasAttribute('data-who')) { S.f.r.who = a('data-who'); render(); return; }
