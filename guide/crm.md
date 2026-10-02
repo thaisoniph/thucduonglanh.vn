@@ -190,6 +190,16 @@ Nhãn **💬 Zalo** trên thẻ khách nghĩa là bạn **đã kết bạn Zalo*
 - Tab **Khách đã mua** có bộ lọc **💬 Đã kết bạn Zalo** và **Chưa kết bạn Zalo**.
 - Lỡ đánh dấu nhầm: mở hồ sơ khách, bấm **Bỏ đánh dấu đã kết bạn Zalo**.
 
+### 📣 Gửi ưu đãi lần lượt qua Zalo
+
+Ở tab **Khách đã mua**, lọc nhóm muốn gửi (vd **💬 Đã kết bạn Zalo**, VIP, Sắp mất, hoặc gõ tên sản phẩm vào ô tìm), rồi bấm **📣 Gửi ưu đãi lần lượt**:
+
+1. Giữ tích **Chỉ khách đã kết bạn Zalo** và **Chỉ khách đồng ý nhận ưu đãi** (đúng Nghị định 13). Khách lạnh và khách đã nhận chương trình này tự được bỏ ra.
+2. Đặt **tên chương trình** (vd “Ưu đãi 10/10”) và soạn tin. Viết **[Tên]**, **[Sản phẩm]** để máy tự điền cho từng khách; nhớ sửa phần “…”.
+3. Bấm **▶ Bắt đầu gửi**. Mỗi khách: bấm **📋 Copy tin & mở Zalo** → dán vào khung chat, gửi → quay lại bấm **✅ Đã gửi → khách tiếp**. Khách chưa tiện thì **⏭ Bỏ qua**; bấm **✕** để dừng, lần sau mở lại máy chỉ đưa ra khách chưa gửi.
+
+Mỗi lần gửi được ghi vào lịch sử khách và file Sheet của bạn (“📣 Ưu đãi 10/10”). Mở lại **📣 Gửi ưu đãi lần lượt** để xem **📊 kết quả từng chương trình**: đã gửi bao nhiêu khách, bao nhiêu khách mua trong 14 ngày sau đó. **Không dùng phần mềm tự gửi Zalo hàng loạt** (dễ bị khoá tài khoản); gửi rải trong ngày, không dồn vài trăm tin liên tục.
+
 ### Hồ sơ khách hàng
 
 Bấm vào tên khách ở bất kỳ đâu để mở hồ sơ.
