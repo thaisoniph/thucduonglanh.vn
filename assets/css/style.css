@@ -1,7 +1,8 @@
 /* Thực Dưỡng Lành – style chính */
 :root{
-  --primary:#1f5f3a; --primary-2:#2a7a4b; --primary-3:#3f9a63; --primary-light:#eaf3ec;
-  --gold:#b48a33; --gold-2:#d6b25e; --gold-light:#f6efdc;
+  /* Bảng màu thương hiệu (bộ nhận diện Branu): xanh #24805B, xanh đậm #0C5233, kem #F3E0BD, nâu vàng #C79666, nâu đậm #906540 */
+  --primary:#24805B; --primary-2:#0C5233; --primary-3:#3f9a72; --primary-light:#e8f3ee;
+  --gold:#C79666; --gold-2:#E2C08F; --gold-light:#F8EEDC; --cream:#F3E0BD; --brown:#906540;
   --cream:#faf7f0; --soft:#f7f6f2; --ink:#262a1f; --text:#4b4d45; --muted:#7c7e74; --line:#e8e5dc;
   --red:#e0352b; --white:#fff;
   --radius:14px; --radius-sm:10px; --shadow:0 6px 24px rgba(31,50,30,.08); --shadow-lg:0 18px 48px rgba(31,50,30,.16);
@@ -61,7 +62,7 @@ input,select,textarea{font-family:inherit;font-size:15px}
 .site-header{position:sticky;top:0;z-index:60;background:#fff;box-shadow:0 1px 0 var(--line);transition:box-shadow .25s}
 .site-header.scrolled{box-shadow:0 6px 24px rgba(0,0,0,.07)}
 .header-in{display:flex;align-items:center;height:var(--header-h);gap:24px}
-.logo img{height:62px;width:auto}
+.logo img{height:72px;width:auto}
 .main-nav{flex:1;display:flex;justify-content:center}
 .menu{list-style:none;margin:0;padding:0;display:flex;gap:6px}
 .menu>li{position:relative}
@@ -601,7 +602,7 @@ label .invalid,input.invalid,textarea.invalid{border-color:var(--red)!important}
   .main-nav{display:none}
   .header-in{gap:8px}
   .logo{flex:1;display:flex;justify-content:center}
-  .logo img{height:50px}
+  .logo img{height:58px}
   .header-icons{gap:0}
   .hide-sm{display:none}
   .section{padding:52px 0}
@@ -736,7 +737,7 @@ label .invalid,input.invalid,textarea.invalid{border-color:var(--red)!important}
   .g-nav{opacity:1}
 }
 /* === Hồ sơ thương hiệu === */
-.br-hero{background:linear-gradient(135deg,#123f27 0,#1f5f3a 60%,#2a7a4b 100%);color:#e9f1ea;padding:36px 0 56px}
+.br-hero{background:linear-gradient(135deg,#0C5233 0,#1a6b4a 60%,#24805B 100%);color:#e9f1ea;padding:36px 0 56px}
 .br-hero-in{display:grid;grid-template-columns:1.3fr .8fr;gap:48px;align-items:center}
 .br-hero .breadcrumb,.br-hero .breadcrumb a,.br-hero .breadcrumb span[aria-current]{color:#cfe3d4}
 .br-hero .eyebrow{background:var(--gold)}
@@ -749,7 +750,7 @@ label .invalid,input.invalid,textarea.invalid{border-color:var(--red)!important}
 .br-hero .btn.btn-outline{background:transparent;border-color:rgba(255,255,255,.6)}
 .br-hero-cover img{border-radius:10px;box-shadow:0 30px 60px rgba(0,0,0,.35);max-width:360px;margin:0 auto;transform:rotate(2deg)}
 .br-viewer{position:relative;max-width:1100px;margin:0 auto;aspect-ratio:16/10;border-radius:16px;overflow:hidden;background:#eef2ee;box-shadow:var(--shadow-lg);cursor:pointer}
-.br-viewer>img{width:100%;height:100%;object-fit:contain;filter:blur(1px) brightness(.92);background:#123f27}
+.br-viewer>img{width:100%;height:100%;object-fit:contain;filter:blur(1px) brightness(.92);background:#0C5233}
 .br-viewer iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .br-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--primary);color:#fff;border:3px solid #fff;border-radius:999px;padding:16px 30px;font-size:17px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.3);transition:transform .2s}
 .br-viewer:hover .br-play{transform:translate(-50%,-50%) scale(1.05)}
@@ -999,3 +1000,17 @@ label .invalid,input.invalid,textarea.invalid{border-color:var(--red)!important}
   .cbh-body .price{font-size:22px}
   .cbh-btns .btn{flex:1}
 }
+
+/* chân trang nền xanh đậm thương hiệu + logo kem */
+.site-footer{background:var(--primary-2);color:#d6e6dc;border-top:0}
+.site-footer h4,.f-company,.f-social h4{color:var(--cream)}
+.site-footer ul a,.f-contact a{color:#d6e6dc}
+.site-footer ul a:hover,.f-contact a:hover{color:#fff}
+.f-slogan{margin:-4px 0 14px;font-size:12.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--cream);line-height:1.7}
+.f-slogan span{white-space:nowrap}
+.f-social{border-top-color:rgba(255,255,255,.14)}
+.site-footer .socials a{background:rgba(255,255,255,.1);color:#fff}
+.site-footer .socials a:hover{background:var(--cream);color:var(--primary-2)}
+.site-footer .socials .s-zalo{background:none}
+.f-bottom{background:#083b25;color:#cfe0d6}
+.story-media .about-logo-gold{border-radius:24px;box-shadow:var(--shadow-lg);width:100%;max-width:440px;height:auto}

@@ -191,3 +191,8 @@ Script tự lấy các thay đổi nhân sự đã làm ở /admin trước khi 
 - Gửi mã Meta Pixel / TikTok Pixel khi có tài khoản quảng cáo.
 - Brochure PDF/Heyzine còn hotline cũ 0896 869 333 (trang 32) và câu công dụng DILVANG (trang 19) – sửa ở bản thiết kế mới.
 - Bổ sung ảnh + thông tin 4 sản phẩm: Trà Mâm Xôi, Bột Đậu Xanh Rau Má, Gafo Fucoidan, Fucoidan Progomax.
+
+## Logo & màu thương hiệu (2026-10-02)
+- Theo bộ nhận diện Branu (`../03_Logo & Thương hiệu/`): xanh #24805B, xanh đậm #0C5233, kem #F3E0BD, nâu vàng #C79666, nâu đậm #906540 (biến CSS --primary, --primary-2, --cream, --gold, --brown).
+- Đầu trang: logo phẳng xanh (`assets/img/brand/logo*.png|webp`, tạo từ `0905…/logo TDL_004.png`). Chân trang nền #0C5233: `logo-cream.*`. Trang Giới thiệu: logo vàng 3D `logo-gold.webp`.
+- Favicon / icon điện thoại / avatar: chỉ biểu tượng búp lá + vòng vô cực (`icon-32/180/512.png`, `emblem.png`); bản 1024px cho Zalo OA, Facebook ở `../03_Logo & Thương hiệu/Avatar & icon cho web - Zalo - Facebook/`.

@@ -387,6 +387,11 @@ def social_links(cls="socials"):
     return f'<div class="{cls}">' + "".join(items) + "</div>"
 
 
+def slogan_html():
+    """Slogan chân trang: mỗi cụm không bị ngắt giữa chừng khi xuống dòng."""
+    return " · ".join(f"<span>{esc(x.strip())}</span>" for x in re.split(r"\s*[–-]\s*", SITE["slogan"]) if x.strip())
+
+
 def footer():
     support = "".join(f'<li><a href="/{p["slug"]}/">{esc(p["title"])}</a></li>' for p in PAGES)
     about = "".join(f'<li><a href="{h}">{l}</a></li>' for l, h, _ in NAV)
@@ -398,7 +403,8 @@ def footer():
 <footer class="site-footer">
   <div class="container footer-grid">
     <div class="f-col f-brand">
-      <a href="/" class="f-logo"><img src="/assets/img/brand/logo-slogan.webp" alt="{BRAND}" width="220" loading="lazy"></a>
+      <a href="/" class="f-logo"><img src="/assets/img/brand/logo-cream.webp" alt="{BRAND}" width="200" height="142" loading="lazy"></a>
+      <p class="f-slogan">{slogan_html()}</p>
       <p class="f-company">{esc(SITE["company"])}</p>
       <p>Giấy chứng nhận đăng ký doanh nghiệp số {esc(SITE["tax_code"])} đăng ký lần đầu ngày {esc(SITE["tax_date"])}</p>
       {bct}
@@ -462,7 +468,7 @@ def layout(path, title, desc, body, og=None, jsonld=None, body_class="", noindex
 <meta property="og:type" content="website"><meta property="og:site_name" content="{BRAND}">
 <meta property="og:title" content="{esc(full_title)}"><meta property="og:description" content="{esc(desc)}">
 <meta property="og:url" content="{url}"><meta property="og:image" content="{og_img}"><meta property="og:locale" content="vi_VN">
-<meta name="theme-color" content="#1f5f3a">
+<meta name="theme-color" content="#24805B">
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/brand/icon-32.png">
 <link rel="apple-touch-icon" href="/assets/img/brand/icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1013,7 +1019,7 @@ def page_about():
       <p>Sau khi một người thân ra đi đột ngột, không kịp lời tạm biệt, cùng lúc đó hàng loạt vụ thực phẩm kém chất lượng vỡ lở, những người sáng lập nhận ra: <i>“Ai rồi cũng sẽ đến lúc phải rời khỏi cuộc đời này. Và nếu ngày mai là ngày cuối, thì mình đã sống xứng đáng và trọn vẹn chưa?”</i></p>
       <p>Từ đó, VitaGreen được xây dựng trên triết lý: <b>Sống xanh – sống lành – sống có giá trị</b>. Thương hiệu con <b>{BRAND}</b> ra đời không chỉ để bán sản phẩm, mà là lời xin lỗi muộn với những người ta không kịp chăm sóc, lời hứa sớm với những người ta vẫn còn được đồng hành, và lời cam kết với chính mình: <b>“Tôi chọn sống lành – để sống đáng.”</b></p>
     </div>
-    <div class="story-media"><img src="/assets/img/brand/logo-slogan.webp" alt="{BRAND}" class="about-logo" loading="lazy"></div>
+    <div class="story-media"><img src="/assets/img/brand/logo-gold.webp" alt="{BRAND} – {esc(SITE["slogan"])}" class="about-logo about-logo-gold" width="900" height="900" loading="lazy"></div>
   </div>
 </div></section>
 <section class="section bg-soft"><div class="container vm-grid">
@@ -1292,7 +1298,7 @@ def build_crm():
     (out / "crm-data.js").write_text("window.CRM_CONFIG=" + json.dumps(cfg, ensure_ascii=False) + ";\n", "utf-8")
     (out / "manifest.webmanifest").write_text(json.dumps({
         "name": "CRM Thực Dưỡng Lành", "short_name": "CRM TDL", "start_url": "/", "display": "standalone",
-        "background_color": "#f5f4ef", "theme_color": "#1f5f3a",
+        "background_color": "#f5f4ef", "theme_color": "#24805B",
         "icons": [{"src": "/icon-180.png", "sizes": "180x180", "type": "image/png"}, {"src": "/icon-512.png", "sizes": "512x512", "type": "image/png"}]}, ensure_ascii=False), "utf-8")
     (out / "robots.txt").write_text("User-agent: *\nDisallow: /\n", "utf-8")
     (out / "_headers").write_text(
@@ -1361,7 +1367,7 @@ def build_guide(out):
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<meta name="theme-color" content="#1f5f3a">
+<meta name="theme-color" content="#24805B">
 <title>{title} – Thực Dưỡng Lành</title>
 <link rel="icon" href="/icon-32.png" sizes="32x32">
 <link rel="stylesheet" href="/huong-dan/guide.css?v={ver}">
