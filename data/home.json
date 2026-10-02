@@ -8,6 +8,13 @@
       "image": "/assets/img/brand/hero-dilvang.webp"
     },
     {
+      "product": "thu-thach-10-ngay-song-lanh",
+      "eyebrow": "Gói giải pháp · Miễn phí ship",
+      "title": "Thử Thách *10 Ngày* Sống Lành",
+      "subtitle": "Bữa Ăn VitaGreen + Dinh Dưỡng Từ Hạt & Curcumin + Trà DILVANG: bắt đầu thói quen ăn lành, uống lành – giá ưu đãi hơn mua lẻ, có người đồng hành trong nhóm Zalo.",
+      "image": "/assets/img/products/combo-thu-thach-10-ngay.webp"
+    },
+    {
       "product": "bua-an-dinh-duong-vitagreen",
       "eyebrow": "Dinh dưỡng toàn diện",
       "title": "Bữa Ăn *Dinh Dưỡng* VitaGreen",
@@ -15,11 +22,18 @@
       "image": "/assets/img/brand/hero-bua-an.webp"
     },
     {
-      "product": "ruoc-rong-bien-vi-suon-non",
-      "eyebrow": "Thuần chay – Đưa cơm",
-      "title": "Ruốc Rong Biển *Vị Sườn Non*",
-      "subtitle": "Rong biển tự nhiên, sườn non chay, thơm lá chanh và mè rang. Không chất bảo quản.",
-      "image": "/assets/img/brand/hero-ruoc.webp"
+      "product": "dinh-duong-tu-hat-va-curcumin",
+      "eyebrow": "Sữa hạt thực dưỡng",
+      "title": "Dinh Dưỡng Từ Hạt & *Curcumin*",
+      "subtitle": "Curcumin tinh khiết 95%, tảo biển và 15 loại hạt, ngũ cốc. Dùng đường cỏ ngọt, thơm béo dễ uống – bữa phụ nhẹ nhàng cho cả gia đình.",
+      "image": "/assets/img/products/curcumin-1.webp"
+    },
+    {
+      "product": "xi-dau-2s-do-den-nguu-bang",
+      "eyebrow": "Lên men thủ công 99 ngày",
+      "title": "Xì Dầu 2S *Đỗ Đen Ngưu Bàng*",
+      "subtitle": "Lên men tự nhiên từ đậu đen xanh lòng và củ ngưu bàng Sóc Sơn. Thơm ngon, an lành cho cả người ăn thường và người ăn thuần thực vật.",
+      "image": "/assets/img/products/xi-dau-2s-1.webp"
     }
   ]
 }
