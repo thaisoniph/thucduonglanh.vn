@@ -448,3 +448,6 @@ details.grp .g-tip { flex-basis: 100%; font-size: 12px; color: var(--muted); }
 .bar-v { font-size: 13px; font-weight: 700; color: var(--ink); white-space: nowrap; text-align: right; } .bar-v small { display: block; font-weight: 400; color: var(--muted); font-size: 11px; }
 .bar-q { font-size: 12px; color: var(--muted); padding: 0 4px 6px; margin-top: -2px; font-style: italic; }
 @media (max-width: 520px) { .bar-r { grid-template-columns: minmax(90px, 40%) 1fr auto; gap: 6px; } }
+
+.notice.cross .link { padding: 0 2px; font-weight: 600; }
+.tl.lead { background: linear-gradient(90deg, #eef4ff, transparent 70%); margin: 0 -12px; padding: 9px 12px; }

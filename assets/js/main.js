@@ -219,6 +219,12 @@
         return;
       }
       if ((t = e.target.closest('[data-cta]'))) track('cta_click', { cta: t.getAttribute('data-cta') });
+      if ((t = e.target.closest('[data-buy-now]')) && !t.closest('[data-product]')) { // nút Mua ngay ngoài trang chi tiết (thẻ gói ở trang chủ…)
+        var bp = BY[t.getAttribute('data-buy-now')]; if (!bp) return;
+        var bvi = (bp.variants && bp.variants.length) ? 0 : -1, bpr = bvi >= 0 ? bp.variants[0].price : bp.price;
+        if (bpr == null) { toast('Sản phẩm đang cập nhật giá, vui lòng liên hệ tư vấn.', 'err'); return; }
+        openQuickOrder(bp.slug, bvi, 1); return;
+      }
       if ((t = e.target.closest('.v-frame[data-yt]'))) {
         if (t.querySelector('iframe')) return;
         $$('.v-frame video').forEach(function (o) { o.pause(); });
@@ -361,7 +367,7 @@
     cards.forEach(function (c, i) { c._i = i; var w = $('[data-wish]', c); c._p = w ? BY[w.getAttribute('data-wish')] : null; });
     sel.addEventListener('change', function () {
       var v = sel.value, list = cards.slice();
-      var pr = function (c) { return c._p && c._p.price != null ? c._p.price : Infinity; };
+      var pr = function (c) { if (!c._p) return Infinity; var ps = (c._p.variants || []).map(function (v) { return v.price; }).concat([c._p.price]).filter(function (x) { return x != null; }); return ps.length ? Math.min.apply(null, ps) : Infinity; }; // giá thấp nhất (đúng như thẻ hiện "Từ …")
       if (v === 'price-asc') list.sort(function (a, b) { return pr(a) - pr(b); });
       else if (v === 'price-desc') list.sort(function (a, b) { return (pr(b) === Infinity ? -1 : pr(b)) - (pr(a) === Infinity ? -1 : pr(a)); });
       else if (v === 'name') list.sort(function (a, b) { return a._p.name.localeCompare(b._p.name, 'vi'); });
