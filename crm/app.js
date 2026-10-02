@@ -357,7 +357,7 @@
     { id: 'cai-dat', label: 'Cài đặt', icon: 'gear' }
   ];
   function myViews() { return VIEWS.filter(function (v) { return !v.min || lvl() >= v.min; }); }
-  function meHTML() { return '<b>' + esc(S.user.name) + '</b>' + esc(S.user.role); }
+  function meHTML() { return '<b>' + esc(S.user.name) + '</b><span class="me-r">' + esc(S.user.role) + '</span>'; }
   function shell() {
     $('#app').innerHTML = '<header class="top"><div class="top-in">' +
       '<a class="brand" href="#hom-nay"><img src="/icon-180.png" alt="">CRM</a>' +

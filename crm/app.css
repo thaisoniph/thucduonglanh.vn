@@ -451,3 +451,21 @@ details.grp .g-tip { flex-basis: 100%; font-size: 12px; color: var(--muted); }
 
 .notice.cross .link { padding: 0 2px; font-weight: 600; }
 .tl.lead { background: linear-gradient(90deg, #eef4ff, transparent 70%); margin: 0 -12px; padding: 9px 12px; }
+
+/* thanh menu máy tính: chữ 1 dòng, số đỏ gọn, bớt phần phụ khi màn hình hẹp */
+@media (min-width: 860px) {
+  .top-in { gap: 10px; }
+  .nav { gap: 2px; }
+  .nav a { white-space: nowrap; padding: 8px 11px; gap: 7px; font-size: 14px; }
+  .nav a svg { width: 19px; height: 19px; flex: none; }
+  .nav .dot { min-width: 17px; height: 17px; line-height: 17px; font-size: 10.5px; padding: 0 5px; margin-left: -1px; }
+  .me { white-space: nowrap; display: flex; align-items: baseline; gap: 6px; }
+  .me b { display: inline; font-size: 14px; }
+  .icon-btn { width: 38px; height: 38px; }
+  .fb-btn { height: 38px; }
+}
+@media (min-width: 860px) and (max-width: 1399px) { .me { display: none; } }
+@media (min-width: 860px) { .icon-btn.fb-btn { width: auto; padding: 0 12px; white-space: nowrap; } }
+@media (min-width: 860px) and (max-width: 1199px) { .fb-btn .fb-lbl { display: none; } .icon-btn.fb-btn { width: 38px; padding: 0; } }
+@media (min-width: 860px) and (max-width: 1023px) { .nav a svg { display: none; } .nav a { padding: 8px 9px; font-size: 13.5px; } .brand span, .brand { font-size: 16px; } }
+.me-r { opacity: .8; font-size: 12.5px; }
