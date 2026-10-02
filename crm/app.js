@@ -357,7 +357,7 @@
     { id: 'cai-dat', label: 'Cài đặt', icon: 'gear' }
   ];
   function myViews() { return VIEWS.filter(function (v) { return !v.min || lvl() >= v.min; }); }
-  function meHTML() { return '<b>' + esc(S.user.name) + '</b><span class="me-r">' + esc(S.user.role) + '</span>'; }
+  function meHTML() { return '<b>' + esc(S.user.name) + '</b>'; } // chỉ tên: mỗi người là chủ công việc của mình
   function shell() {
     $('#app').innerHTML = '<header class="top"><div class="top-in">' +
       '<a class="brand" href="#hom-nay"><img src="/icon-180.png" alt="">CRM</a>' +
@@ -1969,7 +1969,7 @@
   /* ================================================================ CÀI ĐẶT */
   function viewSettings() {
     var h = '<div class="page-head"><h1>Cài đặt</h1></div>';
-    h += '<div class="box"><h3>Tài khoản</h3><p style="margin:0 0 10px">' + esc(S.user.name) + ' · ' + esc(S.user.email) + ' · <b>' + esc(S.user.role) + '</b></p><button class="btn danger" id="logout">Đăng xuất</button></div>';
+    h += '<div class="box"><h3>Tài khoản</h3><p style="margin:0 0 10px"><b>' + esc(S.user.name) + '</b> · ' + esc(S.user.email) + (lvl() >= 2 ? ' · ' + esc(S.user.role) : '') + '</p><button class="btn danger" id="logout">Đăng xuất</button></div>';
     h += '<div class="box"><h3>🎯 Số khách chăm sóc mỗi ngày</h3><p class="small muted" style="margin:0 0 8px">Tab Hôm nay chỉ đưa ra tối đa bấy nhiêu khách mỗi ngày (khách quan trọng trước). Khách chưa tới lượt tự dời sang hôm sau. Cài trên máy này.</p>' +
       '<div style="display:flex;gap:8px;align-items:center"><input type="number" id="dayLim" min="5" max="200" value="' + dayLimit() + '" style="max-width:110px"><button class="btn" id="dayLimSave">Lưu</button></div></div>';
     h += '<div class="box"><h3>📲 Thông báo Telegram riêng</h3>' + (S.user.tg
