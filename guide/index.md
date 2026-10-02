@@ -15,7 +15,7 @@ Trang này dành cho toàn bộ nhân sự. Đọc phần **Bắt đầu** trư�
 
 | Việc | Link |
 | --- | --- |
-| **CRM**: đơn hàng, chăm sóc khách, khách tiềm năng | [crm.thucduonglanh.vn](https://crm.thucduonglanh.vn) |
+| **CRM**: đơn hàng, chăm sóc khách, khách hỏi | [crm.thucduonglanh.vn](https://crm.thucduonglanh.vn) |
 | Trang hướng dẫn này | [crm.thucduonglanh.vn/huong-dan](https://crm.thucduonglanh.vn/huong-dan/) |
 | Website bán hàng | [thucduonglanh.vn](https://thucduonglanh.vn) |
 | Trang quản trị website (đăng bài, sửa sản phẩm) | [thucduonglanh.vn/admin](https://thucduonglanh.vn/admin/) |
@@ -41,10 +41,10 @@ Bạn **không cần mở Google Sheet**. Mọi việc với đơn hàng và kh�
 2. Mở **CRM → tab Hôm nay**. Làm lần lượt 3 phần:
     - **Đơn mới**: gọi khách xác nhận, xong bấm **✅ Xác nhận**.
     - **Chăm sóc khách**: bấm **💬 Chăm sóc** ở từng khách, gửi tin, chọn kết quả.
-    - **Khách tiềm năng**: liên hệ người hỏi mua nhưng chưa mua.
+    - **Khách hỏi**: liên hệ người hỏi mua nhưng chưa mua.
 3. **Trong ngày**: có đơn mới, Telegram báo ngay. Mở CRM xác nhận đơn, gửi hàng thì nhập mã vận đơn.
 4. **Khách nhắn Zalo, Facebook hoặc gọi điện đặt hàng**: tạo đơn trên CRM (**Đơn hàng → ＋ Tạo đơn**) để khách được chăm sóc tự động như đơn web.
-5. **Người hỏi mà chưa mua**: thêm vào **Tiềm năng** để không bỏ quên.
+5. **Người hỏi mà chưa mua**: thêm vào **Khách hỏi** để không bỏ quên.
 6. **Đăng bài, chạy quảng cáo**: luôn dùng link theo dõi (UTM), xem [mục này](/huong-dan/website/#tao-link-theo-doi-khi-dang-bai-chay-quang-cao).
 
 Làm đầy đủ trên CRM thì hệ thống biết khách nào đã được chăm sóc, không nhắc trùng, và tính đúng doanh số của bạn.

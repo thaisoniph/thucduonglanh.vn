@@ -3,7 +3,7 @@ title: Hướng dẫn dùng CRM
 nav: CRM
 order: 2
 updated: 2026-09-30
-description: Xử lý đơn hàng, chăm sóc khách, khách tiềm năng và theo dõi hiệu quả trên crm.thucduonglanh.vn.
+description: Xử lý đơn hàng, chăm sóc khách, khách hỏi và theo dõi hiệu quả trên crm.thucduonglanh.vn.
 ---
 
 CRM là nơi làm mọi việc với **đơn hàng** và **khách hàng**: xác nhận đơn, gửi tin chăm sóc, theo dõi người hỏi mua, xem doanh số của mình. Dữ liệu vẫn lưu trong Google Sheet của công ty, nhưng bạn không cần mở Sheet.
@@ -30,9 +30,9 @@ Mã dùng được trong **10 phút**. Đăng nhập xong, máy nhớ bạn tron
 | Tab | Dùng để |
 | --- | --- |
 | **Hôm nay** | Danh sách việc cần làm trong ngày. Mở tab này đầu tiên mỗi sáng. |
-| **Khách hàng** | Tìm khách, xem lịch sử mua và chăm sóc, ghi chú về khách. |
+| **Khách đã mua** | Người đã mua ít nhất 1 đơn: chăm sóc sau bán, mời mua lại. Tìm khách, xem lịch sử mua và chăm sóc. |
 | **Đơn hàng** | Xác nhận, giao hàng, nhận tiền, sửa đơn, tạo đơn cho khách đặt qua Zalo hoặc điện thoại. |
-| **Tiềm năng** | Người hỏi mua nhưng chưa mua. |
+| **Khách hỏi** | Người **hỏi nhưng chưa mua** (số quảng cáo, Ladi ebook, form web, nhắn Zalo hỏi giá): tư vấn để chốt đơn đầu tiên. Chốt đơn xong, khách tự sang tab Khách đã mua. |
 | **Hiệu quả** | Doanh số, mục tiêu tháng, kết quả chăm sóc của bạn. |
 | **Cài đặt** | Đăng xuất. Quản lý sửa chu kỳ dùng, mẫu tin nhắn, nhân sự ở đây. |
 
@@ -45,17 +45,17 @@ Mã dùng được trong **10 phút**. Đăng nhập xong, máy nhớ bạn tron
 
 Vào **Cài đặt → 📲 Thông báo Telegram riêng** → bấm **Kết nối Telegram** → **① Mở Telegram** → trong Telegram bấm **Start / Bắt đầu** → quay lại CRM bấm **② Tôi đã bấm Start**. Bot gửi tin xác nhận là xong.
 
-Từ đó bạn nhận riêng: **đơn mới của khách mình phụ trách**, **khách tiềm năng mới được giao**, và **danh sách việc lúc 8h sáng**. Nhóm Telegram chung chỉ dành cho quản lý.
+Từ đó bạn nhận riêng: **đơn mới của khách mình phụ trách**, **khách hỏi mới được giao**, và **danh sách việc lúc 8h sáng**. Nhóm Telegram chung chỉ dành cho quản lý.
 
 ## Tab Hôm nay
 
 ![Tab Hôm nay trên điện thoại](/huong-dan/img/crm-today.webp)
 
 - **Trên cùng:** số khách cần chăm sóc hôm nay, thanh tiến độ và nút **▶ Bắt đầu gọi lần lượt**. Mỗi ngày CRM đưa ra tối đa **30 khách** (đổi ở **Cài đặt → Số khách chăm sóc mỗi ngày**), khách quan trọng trước: hẹn gọi lại → hỏi nhận hàng → sắp hết hàng → việc bị trễ → các việc khác. Khách chưa tới lượt tự dời sang hôm sau.
-- **Ô nhỏ:** đơn mới, tiềm năng, việc đã làm, mục tiêu tháng. Bấm để mở đúng danh sách. Quản lý thấy thêm doanh thu và khách mới của tháng.
+- **Ô nhỏ:** đơn mới, khách hỏi, việc đã làm, mục tiêu tháng. Bấm để mở đúng danh sách. Quản lý thấy thêm doanh thu và khách mới của tháng.
 - **1️⃣ Đơn mới – gọi khách xác nhận** (chỉ hiện khi có), kèm **Chuyển khoản chưa nhận tiền**.
 - **2️⃣ Chăm sóc khách:** chia nhóm theo loại việc (xem [bảng các loại việc](#cac-loai-viec-cham-soc)). Nhóm **thu gọn**, bấm vào mới mở. Mỗi khách 1 dòng với nút **📞 Gọi · 📵 KNM · 💬 Chăm sóc**.
-- **3️⃣ Khách tiềm năng cần liên hệ.**
+- **3️⃣ Khách hỏi cần liên hệ.**
 - Cuối trang: **✅ Đã làm hôm nay** (bấm để mở).
 
 ### Gọi lần lượt
@@ -187,7 +187,7 @@ Nhãn **💬 Zalo** trên thẻ khách nghĩa là bạn **đã kết bạn Zalo*
 
 - Kết bạn xong với khách nào, bấm **➕ Đã kết bạn Zalo** ngay trên thẻ khách (hoặc trong hồ sơ). Nếu file Sheet của bạn đang bật ghi ngược, máy tự thêm **(x)** vào tên khách trong file.
 - Hộp chăm sóc tự gợi ý: khách đã kết bạn thì **nhắn Zalo trước**, khách chưa kết bạn thì **gọi trước** và nhắc xin kết bạn.
-- Tab **Khách hàng** có bộ lọc **💬 Đã kết bạn Zalo** và **Chưa kết bạn Zalo**.
+- Tab **Khách đã mua** có bộ lọc **💬 Đã kết bạn Zalo** và **Chưa kết bạn Zalo**.
 - Lỡ đánh dấu nhầm: mở hồ sơ khách, bấm **Bỏ đánh dấu đã kết bạn Zalo**.
 
 ### Hồ sơ khách hàng
@@ -227,7 +227,7 @@ Từ trên xuống:
 
 | Màu | Nghĩa là |
 | --- | --- |
-| **Trắng** – *Mua 1 lần* | Khách đã mua 1 đơn. Người **chưa mua** nằm ở tab Tiềm năng |
+| **Trắng** – *Mua 1 lần* | Khách đã mua 1 đơn. Người **chưa mua** nằm ở tab Khách hỏi |
 | **Vàng** – *Mua từ 2 lần* | Khách đã mua lại |
 | **Tím** – *Đặt tối / CN / lễ* | Đơn gần nhất đặt buổi tối, Chủ nhật hoặc ngày lễ |
 | **Xám** – *Hay hoàn / bom* | Khách hay hoàn (xem trên) hoặc có nhãn bom hàng. Khách thân thiết chỉ hoàn 1 lần không bị tô xám |
@@ -236,21 +236,26 @@ Quên nghĩa nhãn nào thì bấm **ⓘ Giải thích nhãn** cạnh hàng nhã
 
 **Tự đặt màu và nhãn riêng**: vào **Cài đặt → 🎨 Màu phân loại khách** để đổi màu cho từng loại, hoặc bấm **+ Thêm nhãn** để tạo nhãn riêng (ví dụ “Khách sỉ” màu xanh), rồi bấm **Lưu màu & nhãn**. Muốn gắn nhãn cho khách: mở hồ sơ khách → ô **Nhãn màu** → chọn nhãn → **Lưu thông tin chăm sóc**. Màu bạn chọn chỉ áp dụng trên máy của bạn, không ảnh hưởng người khác.
 
-Ở tab **Khách hàng**, gõ tên, số điện thoại hoặc tên sản phẩm để tìm. Các nút lọc nhanh: *Cần chăm sóc*, *VIP*, *Sắp mất*, *Quá 30 ngày chưa chăm sóc*, *Có hẹn gọi lại*… Ô sắp xếp bên phải để xếp theo *Mua gần nhất*, *Lâu chưa chăm sóc nhất*, *Chi nhiều nhất*, *Sắp hết hàng*.
+Ở tab **Khách đã mua**, gõ tên, số điện thoại hoặc tên sản phẩm để tìm. Các nút lọc nhanh: *Cần chăm sóc*, *VIP*, *Sắp mất*, *Quá 30 ngày chưa chăm sóc*, *Có hẹn gọi lại*… Ô sắp xếp bên phải để xếp theo *Mua gần nhất*, *Lâu chưa chăm sóc nhất*, *Chi nhiều nhất*, *Sắp hết hàng*.
 
-## Khách tiềm năng
+## Khách hỏi
+
+**Khách hỏi** và **Khách đã mua** là 2 tab riêng vì cách làm khác nhau: khách hỏi cần **tư vấn để chốt đơn đầu tiên** (đo bằng tỷ lệ chốt), khách đã mua cần **chăm sóc để dùng đều và mua lại** (đo bằng tỷ lệ mua lại). Việc hằng ngày của cả 2 nhóm đều gom ở tab **Hôm nay**.
+
+- **Tìm ở tab nào cũng được:** gõ tên hoặc số điện thoại, nếu người đó nằm ở tab kia CRM hiện dòng gợi ý, bấm vào để mở.
+- Hồ sơ khách đã mua có cả **lịch sử lúc còn là khách hỏi** (🙋 hỏi qua kênh nào, quan tâm gì) và dòng **Biết đến qua … · chốt sau N ngày** ở thẻ Thông tin.
 
 Là người **hỏi mua nhưng chưa mua**: nhắn Fanpage, Zalo, gọi điện, gửi form trên website, gặp ở sự kiện… Ghi lại để theo đến khi khách mua hoặc từ chối.
 
-![Tab Khách tiềm năng](/huong-dan/img/crm-leads.webp)
+![Tab Khách hỏi](/huong-dan/img/crm-leads.webp)
 
-**Thêm khách tiềm năng:** bấm **＋ Thêm khách tiềm năng**. Nhập số điện thoại, tên, khách đến từ đâu, sản phẩm quan tâm, khách hỏi gì. Số đã có trong danh sách thì CRM ghi nối vào, không tạo trùng.
+**Thêm khách hỏi:** bấm **＋ Thêm khách hỏi**. Nhập số điện thoại, tên, khách đến từ đâu, sản phẩm quan tâm, khách hỏi gì. Số đã có trong danh sách thì CRM ghi nối vào, không tạo trùng.
 
 > Khách gửi **form liên hệ trên website** thì CRM **tự thêm** vào đây, kênh ghi là “Form website”.
 
 **Tư vấn:** mỗi lần nói chuyện với khách, bấm **💬 Tư vấn**.
 
-![Hộp tư vấn khách tiềm năng](/huong-dan/img/crm-consult.webp)
+![Hộp tư vấn khách hỏi](/huong-dan/img/crm-consult.webp)
 
 1. Chọn mẫu tin (khách mới hỏi thì có sẵn mẫu chào hỏi), bấm **📋 Copy tin & mở Zalo**, dán gửi khách.
 2. Chọn kết quả:
@@ -260,7 +265,7 @@ Là người **hỏi mua nhưng chưa mua**: nhắn Fanpage, Zalo, gọi điện
     - **Khách không mua**: bắt buộc chọn **lý do** (giá cao, chưa có nhu cầu, đã mua nơi khác…). Quản lý dùng lý do này để cải thiện cách bán.
 3. Ghi chú lần này, bấm **Lưu**.
 
-Khách tiềm năng hiện ở tab Hôm nay khi: **chưa liên hệ lần nào**, **đến ngày hẹn**, hoặc **đã 3 ngày chưa liên hệ lại**.
+Khách hỏi hiện ở tab Hôm nay khi: **chưa liên hệ lần nào**, **đến ngày hẹn**, hoặc **đã 3 ngày chưa liên hệ lại**.
 
 ## Hiệu quả và mục tiêu tháng
 
@@ -268,7 +273,7 @@ Khách tiềm năng hiện ở tab Hôm nay khi: **chưa liên hệ lần nào**
 
 - **Đầu tháng**, bấm **🎯 Đặt mục tiêu** doanh số của bạn. Gõ số hoặc viết tắt, ví dụ `30tr`. Có nút lấy bằng tháng trước cộng 10%.
 - **Thanh tiến độ**: vạch đen là hôm nay. Thanh màu vượt vạch đen là đang **đúng tiến độ**. CRM cho biết còn thiếu bao nhiêu và **mỗi ngày cần bán khoảng bao nhiêu**.
-- **Bán hàng**: doanh số, giá trị trung bình mỗi đơn, tỷ lệ chốt khách tiềm năng, phần doanh thu từ khách cũ, so với tháng trước.
+- **Bán hàng**: doanh số, giá trị trung bình mỗi đơn, tỷ lệ chốt khách hỏi, phần doanh thu từ khách cũ, so với tháng trước.
 - **Chăm sóc khách**: số lượt chăm sóc, tỷ lệ khách trả lời, số khách đặt lại, số khách quá 30 ngày chưa chăm sóc (bấm vào để xem danh sách cần gọi).
 
 Doanh số tính theo **Nhân viên bán** ghi trên từng đơn. Đơn khách tự đặt trên web được tính cho **người đang phụ trách khách đó**.
@@ -279,21 +284,21 @@ Doanh số tính theo **Nhân viên bán** ghi trên từng đơn. Đơn khách 
 
 | Quyền | Làm được |
 | --- | --- |
-| **Nhân viên** | Chỉ thấy và làm việc với khách mình phụ trách: chăm sóc, xử lý đơn, khách tiềm năng, xem hiệu quả của mình |
+| **Nhân viên** | Chỉ thấy và làm việc với khách mình phụ trách: chăm sóc, xử lý đơn, khách hỏi, xem hiệu quả của mình |
 | **Quản lý** | Thấy toàn bộ khách. Thêm: giao / chuyển khách, chọn cách chia khách mới, xem doanh thu cả nhóm, hiệu quả từng nhân viên, đặt mục tiêu cho nhân viên, đổi *Nhân viên bán* trên đơn, sửa chu kỳ dùng và mẫu tin |
 | **Quản trị** | Thêm: thêm, khoá nhân sự và đổi quyền |
 
-**Tab Hiệu quả → 👥 Cả nhóm:** doanh thu, mục tiêu cả nhóm, bảng từng nhân viên. Bấm vào 1 người để xem chi tiết và đặt mục tiêu. Có mục **Vì sao khách tiềm năng không mua** và cảnh báo **đơn chưa có nhân viên bán** (mở đơn để gán).
+**Tab Hiệu quả → 👥 Cả nhóm:** doanh thu, mục tiêu cả nhóm, bảng từng nhân viên. Bấm vào 1 người để xem chi tiết và đặt mục tiêu. Có mục **Vì sao khách hỏi không mua** và cảnh báo **đơn chưa có nhân viên bán** (mở đơn để gán).
 
 **Giao khách:**
 
-- Tab **Hôm nay** có mục **🧺 Chờ giao người phụ trách**: khách và khách tiềm năng chưa ai phụ trách. Chọn tên trong ô *Giao cho…* là xong.
+- Tab **Hôm nay** có mục **🧺 Chờ giao người phụ trách**: khách và khách hỏi chưa ai phụ trách. Chọn tên trong ô *Giao cho…* là xong.
 - Mở hồ sơ khách → ô **Người phụ trách** để đổi người.
 - **Cài đặt → 👥 Chia khách & phân quyền**:
     - **Khách mới được giao thế nào**: *Tự chia đều* (lần lượt cho những người bật “Nhận khách mới”), *Quản lý giao tay* (khách mới vào mục Chờ giao), *Kho chung* (ai nhận trước được khách). Đổi lúc nào cũng được.
     - **Ai được nhận khách mới**: bật / tắt cho từng người, ví dụ khi nghỉ phép. Cột bên cạnh cho biết người đó đã kết nối Telegram chưa.
     - **Chia đều khách chưa ai phụ trách**: dùng 1 lần cho khách cũ.
-    - **Chuyển toàn bộ khách của A sang B**: dùng khi nhân viên nghỉ việc. Khách tiềm năng đang theo dõi cũng chuyển theo.
+    - **Chuyển toàn bộ khách của A sang B**: dùng khi nhân viên nghỉ việc. Khách hỏi đang theo dõi cũng chuyển theo.
 
 **Tab Cài đặt:**
 
