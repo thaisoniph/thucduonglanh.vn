@@ -101,6 +101,12 @@ Vào **Đơn hàng → ＋ Tạo đơn**, hoặc bấm **＋ Tạo đơn** trong
 
 Trong hồ sơ khách, ô **Ghi nhanh hôm nay** tự thêm ngày ở đầu dòng, giống cách ghi trên Sheet: *“30/09: kh dùng ok, hẹn cuối tháng lấy tiếp”*. Nhật ký chăm sóc cũ từ file của bạn nằm ngay bên dưới.
 
+### Chăm sóc, tỉnh thành và lý do từ chối (tab Hiệu quả)
+
+- **💬 Chăm sóc khách:** lượt chăm sóc và **% kết nối** (khách nghe máy / trả lời), **chăm sóc ra đơn** (khách được chăm sóc đã mua trong 14 ngày sau đó), **khách quay lại mua**, **tỷ lệ hoàn đơn**, **VIP sắp mất chưa gọi** (bấm để mở danh sách).
+- **📍 Khách theo tỉnh / thành:** biểu đồ tỉnh nào nhiều khách / doanh thu nhất, gộp theo 34 tỉnh mới (rê chuột để xem tỉnh cũ, vd Hưng Yên gồm cả Thái Bình). Chọn *Khách mới tháng này* để xem khách mới đến từ đâu.
+- **🙅 Lý do khách chưa mua / từ chối:** máy tự gom ghi chú khi chăm sóc thành các nhóm (hết tiền, còn hàng, dùng sản phẩm khác, người nhà quyết định, sức khoẻ / đi vắng, chưa thấy hợp, chê giá, bận…) kèm câu khách nói. Chọn *Toàn bộ* để xem cả ghi chú cũ từ file Sheet. Muốn số liệu đúng, khi gọi nhớ gõ vài chữ khách nói vào **Ghi chú lần này**.
+
 ### Báo cáo ngày gửi nhóm Zalo
 
 Cuối ngày bấm **📋 Báo cáo cuối ngày (gửi Zalo)** ở tab **Hôm nay** (hoặc **Hiệu quả → 📋 Báo cáo ngày**). CRM tự làm báo cáo đúng mẫu nhóm đang dùng: số đơn và số mới từng dòng (Curcumin, BADD, Fucoidan Pro), sản phẩm khác, đơn từ khách cũ, **tổng doanh thu**, đơn ngoài giờ, đơn hoàn, **KH cũ đã chăm sóc (kết nối)**, **Không nghe máy**, **Lý do từ chối** (lấy từ ghi chú khi bấm *Hết tiền*, *Còn hàng*, *Không dùng nữa*…) và **luỹ kế tháng / % mục tiêu**. Sửa thêm nếu cần, bấm **📋 Copy để dán vào Zalo** rồi dán vào nhóm. Chọn ngày khác để làm báo cáo bù. Quản lý chọn được *Cả nhóm* hoặc từng người.

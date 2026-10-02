@@ -437,3 +437,14 @@ details.grp .g-tip { flex-basis: 100%; font-size: 12px; color: var(--muted); }
 .tg-help { width: 100%; border-collapse: collapse; font-size: 14px; } .tg-help td { padding: 8px 6px; border-bottom: 1px solid var(--line); vertical-align: top; } .tg-help td:first-child { white-space: nowrap; width: 1%; }
 .tg-help .sw { display: inline-block; width: 14px; height: 14px; border-radius: 4px; border: 1px solid; vertical-align: -2px; margin-right: 6px; }
 [title] { cursor: help; } button[title], a[title] { cursor: pointer; }
+
+/* biểu đồ thanh ngang xếp hạng (1 màu, đầu thanh bo 4px, nhãn chữ màu chữ thường) */
+.bars { display: grid; gap: 2px; }
+.bar-r { display: grid; grid-template-columns: minmax(110px, 34%) 1fr auto; gap: 10px; align-items: center; padding: 5px 4px; border-radius: 8px; }
+.bar-r:hover { background: var(--bg); }
+.bar-l { font-size: 14px; color: var(--ink); line-height: 1.25; }
+.bar-t { height: 12px; background: transparent; position: relative; } .bar-t i { display: block; height: 100%; background: var(--primary); border-radius: 0 4px 4px 0; }
+.bar-r.mut .bar-t i { background: #b9c4bd; } .bar-r.mut .bar-l { color: var(--muted); }
+.bar-v { font-size: 13px; font-weight: 700; color: var(--ink); white-space: nowrap; text-align: right; } .bar-v small { display: block; font-weight: 400; color: var(--muted); font-size: 11px; }
+.bar-q { font-size: 12px; color: var(--muted); padding: 0 4px 6px; margin-top: -2px; font-style: italic; }
+@media (max-width: 520px) { .bar-r { grid-template-columns: minmax(90px, 40%) 1fr auto; gap: 6px; } }

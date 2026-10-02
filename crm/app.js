@@ -99,7 +99,7 @@
   var SERVER_V = '2026-10-02a'; // phải trùng số phiên bản máy chủ (api/src/index.js)
   var ON_CF = !/script\.google/.test(CFG.endpoint || ''); // máy chủ Cloudflare (nhanh) hay Apps Script cũ
   function checkVersion(j) {
-    if (!j || S._vWarned || j.v === SERVER_V || j.v === '2026-10-01l' || j.v === 'moved') return;
+    if (!j || S._vWarned || j.v === SERVER_V || j.v === '2026-10-01l' || j.v === '2026-10-01m' || j.v === 'moved') return;
     S._vWarned = true;
     if (lvl() >= 2 || (j.user && j.user.level >= 2)) toast('⚠️ Máy chủ Apps Script đang chạy bản cũ (' + (j.v || 'chưa có số phiên bản') + '), cần bản ' + SERVER_V + '. Vào Apps Script → Triển khai → Quản lý các bản triển khai → ✏️ → Phiên bản: Phiên bản mới → Triển khai.', true);
   }
@@ -603,12 +603,49 @@
     var mk = monthOf(Date.now()), t = targetOf(S.user.name, mk), sales = perf(S.user.name, monthRange(mk)).sales;
     return t && t.amount ? mini('🎯 Mục tiêu', pct(sales, t.amount) + '%', '#bao-cao', pct(sales, t.amount) >= 100 ? 'good' : '') : mini('🎯 Mục tiêu', 'Chưa đặt', '#bao-cao', 'warn');
   }
+  /* ---------- tỉnh / thành từ địa chỉ: nhận cả 63 tỉnh cũ, gộp về 34 tỉnh mới (sau sáp nhập 2025) để báo cáo */
+  var PROV_MERGE = { 'Tuyên Quang': ['Hà Giang', 'Tuyên Quang'], 'Lào Cai': ['Yên Bái', 'Lào Cai'], 'Thái Nguyên': ['Bắc Kạn', 'Bắc Cạn', 'Thái Nguyên'], 'Phú Thọ': ['Vĩnh Phúc', 'Hòa Bình', 'Phú Thọ'],
+    'Bắc Ninh': ['Bắc Giang', 'Bắc Ninh'], 'Hưng Yên': ['Thái Bình', 'Hưng Yên'], 'Hải Phòng': ['Hải Dương', 'Hải Phòng', 'HP'], 'Ninh Bình': ['Hà Nam', 'Nam Định', 'Ninh Bình'], 'Quảng Trị': ['Quảng Bình', 'Quảng Trị'],
+    'Đà Nẵng': ['Quảng Nam', 'Đà Nẵng'], 'Quảng Ngãi': ['Kon Tum', 'Kontum', 'Quảng Ngãi'], 'Gia Lai': ['Bình Định', 'Gia Lai', 'Quy Nhơn', 'Pleiku'], 'Khánh Hòa': ['Ninh Thuận', 'Khánh Hòa', 'Nha Trang', 'Phan Rang'],
+    'Lâm Đồng': ['Đắk Nông', 'Đăk Nông', 'Dak Nong', 'Bình Thuận', 'Lâm Đồng', 'Đà Lạt', 'Phan Thiết'], 'Đắk Lắk': ['Phú Yên', 'Đắk Lắk', 'Đăk Lăk', 'Dak Lak', 'Daklak', 'Đaklak', 'Buôn Ma Thuột', 'Buôn Mê Thuột', 'Tuy Hòa'],
+    'Hồ Chí Minh': ['Bà Rịa', 'Vũng Tàu', 'Bình Dương', 'Hồ Chí Minh', 'HCM', 'TPHCM', 'TP HCM', 'Sài Gòn', 'Thủ Đức', 'Thủ Dầu Một'], 'Đồng Nai': ['Bình Phước', 'Đồng Nai', 'Biên Hòa'],
+    'Tây Ninh': ['Long An', 'Tây Ninh'], 'Cần Thơ': ['Sóc Trăng', 'Hậu Giang', 'Cần Thơ'], 'Vĩnh Long': ['Bến Tre', 'Trà Vinh', 'Vĩnh Long'], 'Đồng Tháp': ['Tiền Giang', 'Đồng Tháp', 'Mỹ Tho'],
+    'Cà Mau': ['Bạc Liêu', 'Cà Mau'], 'An Giang': ['Kiên Giang', 'An Giang', 'Rạch Giá', 'Phú Quốc', 'Long Xuyên'],
+    'Hà Nội': ['Hà Nội', 'HN'], 'Huế': ['Thừa Thiên Huế', 'Huế'], 'Lai Châu': ['Lai Châu'], 'Điện Biên': ['Điện Biên'], 'Sơn La': ['Sơn La'], 'Lạng Sơn': ['Lạng Sơn'], 'Quảng Ninh': ['Quảng Ninh', 'Hạ Long'],
+    'Thanh Hóa': ['Thanh Hóa'], 'Nghệ An': ['Nghệ An'], 'Hà Tĩnh': ['Hà Tĩnh'], 'Cao Bằng': ['Cao Bằng'] };
+  var PROV_KEYS = null;
+  function provKeys() {
+    if (PROV_KEYS) return PROV_KEYS; PROV_KEYS = [];
+    Object.keys(PROV_MERGE).forEach(function (nw) { PROV_MERGE[nw].forEach(function (old) { PROV_KEYS.push({ k: ' ' + norm(old) + ' ', old: old, nw: nw }); }); });
+    PROV_KEYS.sort(function (a, b) { return b.k.length - a.k.length; }); return PROV_KEYS;
+  }
+  /** { old: tên như địa chỉ ghi, nw: tỉnh mới } – tỉnh thường ghi ở cuối địa chỉ nên lấy tên xuất hiện sau cùng. */
+  function provOf(c) {
+    if (c._pv !== undefined) return c._pv;
+    var t = ' ' + norm([c.address, c.ward, c.province].filter(Boolean).join(' ')).replace(/[.,;:\-–()/]/g, ' ').replace(/\s+/g, ' ') + ' ', best = null, at = -1;
+    provKeys().forEach(function (x) { var i = t.lastIndexOf(x.k); if (i > at) { at = i; best = x; } });
+    c._pv = best ? { old: /^(HCM|TPHCM|TP HCM|HN|HP|Kontum|Daklak|Đaklak)$/.test(best.old) ? best.nw : best.old, nw: best.nw } : null; return c._pv;
+  }
+  /* ---------- lý do khách chưa mua / từ chối: gom ghi chú về nhóm để sale xem và cải tiến cách tư vấn */
+  var WHY = [
+    ['💸 Chưa có tiền / hết tiền', /het tien|(k|ko|khong|chua) co tien|ket tien|kho khan|chua co luong|chua co lương|tien chua|eo hep/],
+    ['📦 Còn hàng, chưa dùng hết', /con nhieu|con hang|chua dung het|con \d|con (1|mot|vai|it)|van con|chua het|dung chua het|con khoang/],
+    ['🔄 Dùng sản phẩm khác', /ben khac|(sp|san pham|hang|sua|loai) khac|ensure|dung sang|chuyen sang|mua cho khac|nano|lovifood|dang dung .* khac/],
+    ['👨‍👩‍👧 Người nhà quyết định / đã mua', /con (kh |khach )?(mua|da mua)|con gai|con trai|nguoi nha|chong|vo (kh|khach)|hoi y kien|ban bac|de hoi/],
+    ['🏥 Sức khoẻ / nằm viện / đi vắng', /nam vien|di vien|nhap vien|dang om|benh|di vang|(k|ko|khong) co nha|ve que|di xa|dang o xa/],
+    ['😐 Chưa thấy hợp / chưa hiệu quả', /(k|ko|khong|chua) (thay )?hieu qua|(k|ko|khong) hop|(k|ko|khong) tot|che |ngot|mui|so (bi|nong)|tang can|chua thay/],
+    ['💰 Chê giá cao', /gia cao|dat qua|qua dat|mac qua|dat the|gia dat/],
+    ['⏰ Bận, hẹn lúc khác', /dang ban|ban viec|goi lai sau|hen (lai|cuoi|thang|tuan|hom)|de sau/],
+    ['🚫 Không có nhu cầu / không dùng nữa', /(k|ko|khong) (dung|mua|lay)( gi)? nua|(k|ko|khong) (co )?nhu cau|tu choi|(k|ko|khong) can/]
+  ];
+  var SHIFT_NOTE = /^(kh )?(toi|cn|le|chu nhat|ngay|khach toi|khach cn)$/;
+  function whyOf(text) { var n = norm(text); if (/(^|[^a-z])(knm|tb)([^a-z]|$)|thue bao|khong nghe|k nghe|tat may|tu choi nghe/.test(n)) return null; for (var i = 0; i < WHY.length; i++) if (WHY[i][1].test(n)) return WHY[i][0]; return null; }
   /** 1 dòng gọn ở tab Khách hàng: giá trị · lần mua gần nhất · việc tiếp theo · lần chăm sóc gần nhất. */
   function custRow(c) {
     var cat = custCat(c), h = recentHist(c, 1)[0], k = c.task ? c.task.type : '', live = stageOf(c) === 'live';
     return '<div class="rw cr click tinted" data-cust="' + c.phone + '"' + catAttr(cat) + '><div class="rw-m">' +
       '<div class="rw-1"><b>' + esc(c.name || 'Khách') + '</b>' + (c.zalo ? '<span class="zl on">💬</span>' : '') + custTags(c) + (c.owner && lvl() >= 2 ? '<span class="tag owner">👤 ' + esc(c.owner) + '</span>' : !c.owner ? '<span class="tag noconsent">Chưa ai phụ trách</span>' : '') + '<span class="end">' + c.orders + ' đơn · ' + moneyShort(c.spent) + '</span></div>' +
-      '<div class="rw-2">Mua gần nhất ' + daysAgo(c.last) + (c.products.length ? ' · ' + esc(shortProducts(c.products, 1)) : '') + (live && c.runout && k !== 'runout' ? ' · ⏰ hết ~' + fDate(c.runout).slice(0, 5) : '') + (k && TASKS[k] ? ' · <span class="warn-line">' + TASKS[k].icon + ' ' + TASKS[k].title + '</span>' : '') + '</div>' +
+      '<div class="rw-2">' + (provOf(c) ? '📍 ' + esc(provOf(c).old) + ' · ' : '') + 'Mua lần đầu ' + fDate(c.first).replace(/\/(\d{2})(\d{2})$/, '/$2') + ' · gần nhất ' + daysAgo(c.last) + (c.products.length ? ' · ' + esc(shortProducts(c.products, 1)) : '') + (live && c.runout && c.runout > (c.last || 0) && k !== 'runout' ? ' · ⏰ hết ~' + fDate(c.runout).slice(0, 5) : '') + (k && TASKS[k] ? ' · <span class="warn-line">' + TASKS[k].icon + ' ' + TASKS[k].title + '</span>' : '') + '</div>' +
       '<div class="rw-3">' + (h ? '💬 ' + fDate(h.time).slice(0, 5) + ': ' + esc(h.text.length > 90 ? h.text.slice(0, 90) + '…' : h.text) : '<span class="muted">Chưa có lần chăm sóc nào</span>') + '</div></div>' +
       '<div class="rw-a"><a class="btn" href="tel:' + c.phone + '" aria-label="Gọi">📞</a><button class="btn pri" data-care="' + c.phone + '" data-task="' + (k || 'other') + '" aria-label="Chăm sóc">💬</button></div></div>';
   }
@@ -699,7 +736,7 @@
   function timelineHtml(c, orders, max) {
     var items = (orders || []).map(function (o) { return { time: o.time, k: 'o', html: '<div class="tl o' + (isVoid(o.status) ? ' void' : '') + '"><i>🛒</i><div><b>Đơn ' + money(o.total) + '</b> ' + stTag(o.status) + '<div class="tl-s">' + esc(itemNames(o.items).join(', ')) + '</div></div><small>' + fDate(o.time) + '</small></div>' }; })
       .concat(logOf(c.phone).map(function (l) { var ic = l.result === NO_REPLY ? '📵' : l.result === 'Đã đặt lại' ? '✅' : '💬'; return { time: l.time, html: '<div class="tl"><i>' + ic + '</i><div><b>' + esc(l.result || l.what) + '</b>' + (l.note ? '<div class="tl-s">' + esc(l.note) + '</div>' : '') + '</div><small>' + fDate(l.time) + (l.by ? '<br>' + esc(l.by) : '') + '</small></div>' }; }))
-      .concat(noteEntries(c.note).map(function (e) { var miss = /(^|[^a-zà-ỹ])(knm|tb)([^a-zà-ỹ]|$)|thuê bao|không nghe|k nghe|tắt máy|từ chối nghe/i.test(e.text); return { time: e.time, html: '<div class="tl old"><i>' + (miss ? '📵' : '📒') + '</i><div>' + esc(e.text) + '</div><small>' + fDate(e.time) + '</small></div>' }; }))
+      .concat(noteEntries(c.note).filter(function (e) { return !SHIFT_NOTE.test(norm(e.text)); }).map(function (e) { var miss = /(^|[^a-zà-ỹ])(knm|tb)([^a-zà-ỹ]|$)|thuê bao|không nghe|k nghe|tắt máy|từ chối nghe/i.test(e.text); return { time: e.time, html: '<div class="tl old"><i>' + (miss ? '📵' : '📒') + '</i><div>' + esc(e.text) + '</div><small>' + fDate(e.time) + '</small></div>' }; }))
       .sort(function (a, b) { return (b.time || 0) - (a.time || 0); });
     if (!items.length) return '<p class="muted" style="padding:8px 0">Chưa có đơn hàng hay lần chăm sóc nào.</p>';
     return '<div class="tls">' + items.slice(0, max).map(function (x) { return x.html; }).join('') + '</div>' + (items.length > max ? '<button class="btn block" data-tlmore style="margin-top:8px">Xem thêm ' + (items.length - max) + ' mục cũ hơn</button>' : '');
@@ -741,7 +778,7 @@
       }).join('') + '</div>' : '<p class="muted">Chưa có đơn.</p>') + (all ? '' : '<p class="small muted">Đang tải đơn cũ…</p>');
       if (tab === 'info') box.innerHTML = '<div class="box" style="margin:0"><div class="grid-info">' + info('Điện thoại', fPhone(c.phone)) + info('Zalo', c.zalo ? '💬 Đã kết bạn' : 'Chưa kết bạn') +
         info('Đơn đầu', fDate(c.first)) + info('Nhận hàng gần nhất', c.recv ? fDate(c.recv) : 'chưa rõ') + info('Nhóm', c.group) + info('Nguồn', c.source || '–') +
-        info('Địa chỉ', [c.address, c.ward, c.province].filter(Boolean).join(', '), true) + info('Đã mua', c.products.join('; '), true) +
+        info('Tỉnh / thành', provOf(c) ? provOf(c).old + (provOf(c).old !== provOf(c).nw ? ' (nay thuộc ' + provOf(c).nw + ')' : '') : 'chưa rõ') + info('Địa chỉ', [c.address, c.ward, c.province].filter(Boolean).join(', '), true) + info('Đã mua', c.products.join('; '), true) +
         noteExtras(c.note).map(function (l) { var i = l.indexOf(':'); return info(l.slice(0, i), l.slice(i + 1).trim(), true); }).join('') + '</div></div>';
       var mo = $('[data-tlmore]', m); if (mo) mo.onclick = function () { tlMax += 50; draw(); };
     };
@@ -779,7 +816,7 @@
   }
   function recentHist(c, n) { // vài lần chăm sóc gần nhất (CRM + ghi chú cũ) để nhìn nhanh trước khi gọi
     return logOf(c.phone).filter(isCareLog).map(function (l) { return { time: l.time, text: (l.result || '') + (l.note ? ': ' + l.note : '') }; })
-      .concat(noteEntries(c.note)).sort(function (a, b) { return (b.time || 0) - (a.time || 0); }).slice(0, n);
+      .concat(noteEntries(c.note).filter(function (e) { return !SHIFT_NOTE.test(norm(e.text)); })).sort(function (a, b) { return (b.time || 0) - (a.time || 0); }).slice(0, n);
   }
   function histHtml(c, logs) {
     var items = logs.map(function (l) { return { time: l.time, html: logItem(l) }; }).concat(noteEntries(c.note).map(function (e) {
@@ -1378,6 +1415,59 @@
   function pct(a, b) { return b ? Math.round(a * 100 / b) : 0; }
 
   /** Số liệu của 1 nhân viên (name) hoặc cả nhóm (name = null) trong khoảng thời gian R. */
+  function careMetrics(c, p, me) {
+    return '<section class="section"><div class="section-h"><h2>💬 Chăm sóc khách</h2></div><div class="metrics">' +
+      metric('Lượt chăm sóc', c.care, (c.replyPct === null ? 'Chưa có lượt nào.' : 'Kết nối được ' + c.replyPct + '% (' + c.replied + '/' + c.care + ' lượt khách nghe máy / trả lời).'), delta(c.care, p.care)) +
+      metric('Chăm sóc ra đơn', c.convPct === null ? '–' : c.convPct + '%', c.conv + ' / ' + c.contacted + ' khách được chăm sóc đã mua trong 14 ngày sau đó · ' + moneyShort(c.convRev) + '. Số này cho biết chăm sóc có ra tiền không.', c.convPct === null ? '' : delta(c.convPct, p.convPct, 'rate')) +
+      metric('Khách quay lại mua', c.repeat, 'Số khách cũ đã mua lại trong tháng.', delta(c.repeat, p.repeat)) +
+      metric('Tỷ lệ hoàn đơn', c.backPct === null ? '–' : c.backPct + '%', c.backN + ' đơn hoàn · ' + moneyShort(c.backV) + '. Gọi xác nhận kỹ trước khi gửi, đơn lớn nên nhờ chuyển khoản trước.', c.backPct === null ? '' : delta(c.backPct, p.backPct, 'rate')) +
+      metric('VIP sắp mất chưa gọi', c.vipRisk, (c.vipRisk ? 'Khách VIP 61–180 ngày chưa mua và hơn 30 ngày chưa nói chuyện. Nên gọi trước tiên.' : 'Tốt lắm, khách VIP đều được chăm sóc.'), '', me && c.vipRisk ? '#khach-hang" data-vipgo="1' : '') +
+      '</div></section>';
+  }
+  /** Danh sách thanh ngang (xếp hạng): 1 màu, đầu thanh bo 4px, số ghi cạnh thanh, rê chuột xem chi tiết. */
+  function barList(items, fmt, empt) {
+    if (!items.length) return '<p class="muted">' + (empt || 'Chưa có số liệu.') + '</p>';
+    var mx = Math.max.apply(null, items.map(function (x) { return x.v; })) || 1;
+    return '<div class="bars" role="table">' + items.map(function (x) {
+      return '<div class="bar-r' + (x.muted ? ' mut' : '') + '" role="row" title="' + esc(x.tip || '') + '"><span class="bar-l" role="cell">' + esc(x.l) + '</span><span class="bar-t" role="cell"><i style="width:' + Math.max(1.5, x.v * 100 / mx) + '%"></i></span><span class="bar-v" role="cell">' + fmt(x.v) + (x.sub ? '<small>' + esc(x.sub) + '</small>' : '') + '</span></div>' +
+        (x.quotes && x.quotes.length ? '<div class="bar-q">' + x.quotes.map(function (q) { return '“' + esc(q) + '”'; }).join(' · ') + '</div>' : '');
+    }).join('') + '</div>';
+  }
+  function geoBlock(name, month) {
+    var f = S.f.r || {}, by = f.pvm || 'cnt', scope = f.pvs || 'all', R = monthRange(month);
+    var list = S.d.customers.filter(function (c) { return (name === null || c.owner === name) && (scope === 'all' || (c.first >= R[0] && c.first < R[1])); });
+    var g = {}, none = { v: 0, n: 0 }; list.forEach(function (c) { var pv = provOf(c), val = by === 'rev' ? c.spent : 1; if (!pv) { none.v += val; none.n++; return; } var x = g[pv.nw] || (g[pv.nw] = { v: 0, n: 0, olds: {} }); x.v += val; x.n++; x.olds[pv.old] = (x.olds[pv.old] || 0) + 1; });
+    var rows = Object.keys(g).map(function (k) { var x = g[k], olds = Object.keys(x.olds).filter(function (o) { return o !== k; }); return { l: k, v: x.v, sub: by === 'rev' ? x.n + ' khách' : '', tip: k + ': ' + x.n + ' khách' + (olds.length ? ' · gồm ' + olds.map(function (o) { return o + ' ' + x.olds[o]; }).join(', ') : '') }; }).sort(function (a, b) { return b.v - a.v; });
+    var top = rows.slice(0, 10), rest = rows.slice(10), restV = rest.reduce(function (s0, x) { return s0 + x.v; }, 0);
+    if (rest.length) top.push({ l: rest.length + ' tỉnh khác', v: restV, muted: true, tip: rest.map(function (x) { return x.l + ' ' + (by === 'rev' ? moneyShort(x.v) : x.v); }).join(', ') });
+    if (none.n) top.push({ l: 'Chưa rõ tỉnh', v: none.v, muted: true, tip: none.n + ' khách địa chỉ thiếu tỉnh hoặc gõ sai' });
+    var fmt = by === 'rev' ? moneyShort : function (v) { return v + ' khách'; }, total = list.length;
+    var chip = function (k, v, l) { return '<button class="chip' + ((k === 'pvm' ? by : scope) === v ? ' on' : '') + '" data-rf="' + k + '|' + v + '">' + l + '</button>'; };
+    return '<section class="section"><div class="section-h"><h2>📍 Khách theo tỉnh / thành</h2><span class="tip">' + total + ' khách · gộp theo 34 tỉnh mới, rê chuột để xem tỉnh cũ</span></div>' +
+      '<div class="chips">' + chip('pvs', 'all', 'Tất cả khách') + chip('pvs', 'new', 'Khách mới ' + monthLabel(month)) + chip('pvm', 'cnt', 'Số khách') + chip('pvm', 'rev', 'Doanh thu') + '</div>' +
+      '<div class="box">' + barList(top, fmt, 'Chưa có khách nào trong phạm vi này.') + (rows.length ? '<p class="small muted" style="margin:8px 0 0">Nhiều nhất: <b>' + esc(rows[0].l) + '</b> (' + pct(rows[0].v, rows.reduce(function (s0, x) { return s0 + x.v; }, 0) + none.v) + '% ' + (by === 'rev' ? 'doanh thu' : 'khách') + '). Dùng để chọn vùng chạy quảng cáo, giờ gọi và đơn vị vận chuyển phù hợp.</p>' : '') + '</div></section>';
+  }
+  function whyBlock(name, month) {
+    var f = S.f.r || {}, period = f.why || 'month', R = monthRange(month), inR = function (t) { return period === 'all' || (t && t >= R[0] && t < R[1]); }, me = function (n) { return name === null || n === name; };
+    var b = {}, add = function (k, text, t) { if (!k) return; var x = b[k] || (b[k] = { v: 0, q: [] }); x.v++; if (text) x.q.push({ t: t || 0, s: text }); }, miss = 0;
+    var CW = careWhat();
+    S.d.log.forEach(function (l) {
+      if (!CW[l.what] || !me(l.by) || !inR(l.time)) return;
+      if (l.result === NO_REPLY) { miss++; return; }
+      if (l.result === 'Đã đặt lại') return;
+      var n = String(l.note || '').replace(/\s*[–-]\s*hẹn gọi lại \d{1,2}\/\d{1,2}(\/\d{2,4})?$/, '').trim(), k = whyOf(n) || (l.result === 'Không có nhu cầu' ? WHY[8][0] : null); add(k, n, l.time);
+    });
+    var LR = { 'Giá cao': WHY[6][0], 'Chưa có nhu cầu': WHY[8][0], 'Đã mua nơi khác': WHY[2][0] };
+    (S.d.leads || []).forEach(function (l) { if (l.status !== 'Không mua' || !me(l.owner) || !inR(l.lastAt || l.time) || /dữ liệu cũ|rác/i.test(l.reason || '')) return; var k = LR[l.reason] || whyOf(l.note) || null; add(k, (l.note || l.reason || '').split('\n')[0].slice(0, 80), l.lastAt || l.time); });
+    if (period === 'all') S.d.customers.forEach(function (c) { if (!me(c.owner)) return; noteEntries(c.note).forEach(function (e) { var k = whyOf(e.text); if (k) add(k, e.text, e.time); else if (/(^|[^a-z])(knm|tb)([^a-z]|$)|thue bao/.test(norm(e.text))) miss++; }); });
+    var rows = WHY.map(function (w) { var x = b[w[0]]; return x ? { l: w[0], v: x.v, quotes: x.q.sort(function (a, c2) { return c2.t - a.t; }).map(function (q) { return q.s.slice(0, 70); }).filter(function (q, i, arr) { return q && arr.map(norm).indexOf(norm(q)) === i; }).slice(0, 3), tip: 'Bấm xem câu khách nói' } : null; }).filter(Boolean).sort(function (a, c2) { return c2.v - a.v; });
+    var tot = rows.reduce(function (s0, x) { return s0 + x.v; }, 0);
+    var chip = function (v, l) { return '<button class="chip' + (period === v ? ' on' : '') + '" data-rf="why|' + v + '">' + l + '</button>'; };
+    return '<section class="section"><div class="section-h"><h2>🙅 Lý do khách chưa mua / từ chối</h2><span class="tip">máy tự gom từ ghi chú khi chăm sóc và lý do “không mua” của khách tiềm năng</span></div>' +
+      '<div class="chips">' + chip('month', monthLabel(month)) + chip('all', 'Toàn bộ (cả ghi chú cũ từ Sheet)') + '</div>' +
+      '<div class="box">' + barList(rows, function (v) { return v + ' lần' + (tot ? ' · ' + pct(v, tot) + '%' : ''); }, 'Chưa có ghi chú lý do nào. Khi chăm sóc, gõ vài chữ khách nói vào “Ghi chú lần này” (vd “kh hết tiền”, “dùng bên khác”) để máy gom.') +
+      '<p class="small muted" style="margin:8px 0 0">Ngoài ra: <b>' + miss + '</b> lượt không nghe máy / thuê bao. Lý do nhiều nhất là chỗ cần chuẩn bị câu trả lời (vd hết tiền → gợi ý hộp nhỏ, chia đợt; còn hàng → hẹn đúng ngày sắp hết).</p></div></section>';
+  }
   function perf(name, R) {
     var CW = careWhat(), inR = function (t) { return t && t >= R[0] && t < R[1]; }, me = function (n) { return name === null || n === name; };
     var os = S.d.orders.filter(function (o) { return !isVoid(o.status) && inR(o.time) && me(o.seller); });
@@ -1388,8 +1478,15 @@
     var won = leads.filter(function (l) { return l.status === 'Đã chốt' && inR(l.lastAt); }).length, lost = leads.filter(function (l) { return l.status === 'Không mua' && inR(l.lastAt); }).length;
     var care = S.d.log.filter(function (l) { return CW[l.what] && me(l.by) && inR(l.time); });
     var replied = care.filter(function (l) { return l.result && l.result !== NO_REPLY; }).length;
-    var mine = S.d.customers.filter(function (c) { return name === null ? true : c.owner === name; });
-    return { sales: sales, orders: os.length, avg: os.length ? Math.round(sales / os.length) : 0, oldRev: oldRev, oldPct: pct(oldRev, sales), won: won, lost: lost, closePct: won + lost ? pct(won, won + lost) : null,
+    var mine = S.d.customers.filter(function (c) { return name === null ? true : c.owner === name; }); // (dùng cho khách VIP sắp mất)
+    // chăm sóc ra đơn: khách được chăm sóc trong kỳ rồi có đơn trong 14 ngày sau lần chăm sóc đầu tiên
+    var firstCare = {}; care.forEach(function (l) { var ph = String(l.ref).replace(/^'/, ''); if (!firstCare[ph] || l.time < firstCare[ph]) firstCare[ph] = l.time; });
+    var conv = 0, convRev = 0; Object.keys(firstCare).forEach(function (ph) { var t = firstCare[ph], hit = S.d.orders.filter(function (o) { return o.phone === ph && !isVoid(o.status) && o.time > t && o.time <= t + 14 * DAY; }); if (hit.length) { conv++; convRev += hit.reduce(function (s0, o) { return s0 + o.total; }, 0); } });
+    var allOs = S.d.orders.filter(function (o) { return inR(o.time) && me(o.seller) && o.status !== 'Huỷ'; }), back = allOs.filter(function (o) { return /hoàn/i.test(o.status); });
+    var repeat = {}; old.forEach(function (o) { repeat[o.phone] = 1; });
+    var vipRisk = mine.filter(function (c) { return isVip(c) && stageOf(c) === 'risk' && !coldOf(c) && replyOf(c).days > 30; }).length;
+    return { contacted: Object.keys(firstCare).length, conv: conv, convRev: convRev, convPct: Object.keys(firstCare).length ? pct(conv, Object.keys(firstCare).length) : null, backN: back.length, backPct: allOs.length ? pct(back.length, allOs.length) : null, backV: back.reduce(function (s0, o) { return s0 + o.total; }, 0), repeat: Object.keys(repeat).length, vipRisk: vipRisk,
+      sales: sales, orders: os.length, avg: os.length ? Math.round(sales / os.length) : 0, oldRev: oldRev, oldPct: pct(oldRev, sales), won: won, lost: lost, closePct: won + lost ? pct(won, won + lost) : null,
       care: care.length, replied: replied, replyPct: care.length ? pct(replied, care.length) : null, reorder: care.filter(function (l) { return l.result === 'Đã đặt lại'; }).length,
       stale: mine.filter(function (c) { return replyOf(c).days > 30; }).length, mine: mine.length };
   }
@@ -1448,11 +1545,8 @@
       metric('Tỷ lệ chốt', c.closePct === null ? '–' : c.closePct + '%', c.won + ' khách chốt / ' + (c.won + c.lost) + ' khách tiềm năng đã có kết quả.', delta(c.closePct, p.closePct, 'rate'), '#tiem-nang') +
       metric('Doanh thu từ khách cũ', c.sales ? c.oldPct + '%' : '–', moneyShort(c.oldRev) + ' từ khách mua lại. Chăm sóc tốt thì số này tăng.', c.sales ? delta(c.oldPct, p.sales ? p.oldPct : null, 'rate') : '') +
       '</div></section>';
-    h += '<section class="section"><div class="section-h"><h2>💬 Chăm sóc khách</h2></div><div class="metrics">' +
-      metric('Lượt chăm sóc', c.care, (c.replyPct === null ? 'Chưa có lượt nào.' : c.replyPct + '% lượt khách có trả lời (' + c.replied + '/' + c.care + ').'), delta(c.care, p.care)) +
-      metric('Khách đặt lại', c.reorder, 'Số lần chăm sóc có kết quả “Đã đặt lại”.', delta(c.reorder, p.reorder)) +
-      metric('Quá 30 ngày chưa chăm sóc', c.stale, (c.stale ? 'Bấm vào để xem danh sách cần gọi.' : 'Tốt lắm, không bỏ quên khách nào.') + ' Tính trên ' + c.mine + ' khách phụ trách.', '', me ? '#khach-hang" data-myold="1' : '') +
-      '</div></section>';
+    h += careMetrics(c, p, me);
+    h += geoBlock(name, month) + whyBlock(name, month);
     h += '<p class="small muted">Doanh số tính theo “Nhân viên bán” ghi trên từng đơn. Đơn khách tự đặt trên web được tính cho người đang phụ trách khách đó.</p>';
     return h;
   }
@@ -1463,6 +1557,7 @@
     var h = targetBlockTeam(all.sales, tt, month) + '<div class="steps" style="margin:0 0 16px"><button class="btn pri" data-daily="">📋 Báo cáo ngày (gửi Zalo)</button><button class="btn" data-bcdt="|' + month + '">📊 Bảng BCDT cả nhóm ' + monthLabel(month) + '</button></div>';
     h += '<div class="kpis">' + kpi('Doanh thu', moneyShort(all.sales), 'good', '', all.orders + ' đơn') + kpi('TB / đơn', all.orders ? moneyShort(all.avg) : '–', '', '', 'giá trị trung bình') +
       kpi('Tỷ lệ chốt', all.closePct === null ? '–' : all.closePct + '%', '', '', all.won + ' chốt · ' + all.lost + ' không mua') + kpi('Từ khách cũ', all.sales ? all.oldPct + '%' : '–', '', '', moneyShort(all.oldRev)) + '</div>';
+    h += careMetrics(all, perf(null, monthRange(shiftMonth(month, -1))), false) + geoBlock(null, month) + whyBlock(null, month);
     var rows = names.map(function (n) { var p = perf(n, R); p.n = n; p.t = targetOf(n, month); return p; }).sort(function (a, b) { return b.sales - a.sales; });
     h += '<section class="section"><div class="section-h"><h2>Theo nhân viên</h2><span class="tip">bấm vào từng người để xem chi tiết, đặt mục tiêu</span></div><div class="list cols">' +
       rows.map(function (r) {
@@ -2020,12 +2115,14 @@
   /* ================================================================ sự kiện chung */
   document.addEventListener('toggle', function (e) { var d = e.target; if (d && d.matches && d.matches('details[data-grp]')) { S.f.gopen = S.f.gopen || {}; S.f.gopen[d.getAttribute('data-grp')] = d.open; } }, true);
   document.addEventListener('click', function (e) {
-    var t = e.target.closest('[data-taghelp],[data-consent],[data-daily],[data-flow],[data-zalo],[data-quick],[data-care],[data-next],[data-neworder],[data-cf],[data-os],[data-tf],[data-cat],[data-addtag],[data-deltag],[data-claim],[data-mon],[data-bcdt],[data-srcadd],[data-srcedit],[data-srcsync],[data-srcdel],[data-adsedit],[data-adssync],[data-who],[data-target],[data-myold],[data-more],[data-add],[data-rm],[data-consult],[data-leadorder],[data-newlead],[data-editlead],[data-cust],[data-order],[data-lead]');
+    var t = e.target.closest('[data-rf],[data-vipgo],[data-taghelp],[data-consent],[data-daily],[data-flow],[data-zalo],[data-quick],[data-care],[data-next],[data-neworder],[data-cf],[data-os],[data-tf],[data-cat],[data-addtag],[data-deltag],[data-claim],[data-mon],[data-bcdt],[data-srcadd],[data-srcedit],[data-srcsync],[data-srcdel],[data-adsedit],[data-adssync],[data-who],[data-target],[data-myold],[data-more],[data-add],[data-rm],[data-consult],[data-leadorder],[data-newlead],[data-editlead],[data-cust],[data-order],[data-lead]');
     if (!t || !S.d) return;
     if (e.target.closest('a[href]') && !t.hasAttribute('data-myold')) return; // nút gọi / Zalo bên trong thẻ
     var a = function (k) { return t.getAttribute(k); };
     if (t.hasAttribute('data-flow')) { startFlow(); return; }
     if (t.hasAttribute('data-taghelp')) { openTagHelp(); return; }
+    if (t.hasAttribute('data-rf')) { var rf = a('data-rf').split('|'); S.f.r = S.f.r || {}; S.f.r[rf[0]] = rf[1]; render(); return; }
+    if (t.hasAttribute('data-vipgo')) { e.preventDefault(); S.f.c = { q: '', k: 'risk', sort: 'spent', n: 60 }; location.hash = '#khach-hang'; return; }
     if (t.hasAttribute('data-consent')) { e.stopPropagation(); var cc = cust(a('data-consent')); if (cc) { sendOp('customer', { phone: cc.phone, consent: 1 }); t.outerHTML = consentTag(cc); toast('Đã ghi: khách đồng ý nhận ưu đãi ✓'); } return; }
     if (t.hasAttribute('data-daily')) { openDaily(a('data-daily') || null); return; }
     if (t.hasAttribute('data-zalo')) { e.stopPropagation(); var zc = cust(a('data-zalo')); if (zc) { setZalo(zc, true); var zb = $('.modal [data-zalo]'); if (zb) zb.outerHTML = zaloTag(zc); } return; }
