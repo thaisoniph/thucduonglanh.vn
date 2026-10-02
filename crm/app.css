@@ -471,3 +471,15 @@ details.grp .g-tip { flex-basis: 100%; font-size: 12px; color: var(--muted); }
 .me-r { opacity: .8; font-size: 12.5px; }
 .orw .rw-a .btn.pri { width: auto; padding: 0 12px; font-size: 13.5px; white-space: nowrap; }
 @media (max-width: 520px) { .orw { flex-wrap: wrap; } .orw .rw-m { flex-basis: 100%; } .orw .rw-a { margin-left: auto; } }
+/* biểu tượng Zalo (khách đã kết bạn) + khung số liệu theo tỉnh / sản phẩm khi tìm kiếm */
+.zi { width: 16px; height: 16px; flex: none; vertical-align: -3px; border-radius: 4px; }
+.zl.ic { padding: 0; background: none; }
+.zl.ic .zi { width: 18px; height: 18px; }
+.chip .zi { width: 15px; height: 15px; }
+.notice.area { background: #eef6ff; color: #12385f; border: 1px solid #cfe3ff; line-height: 1.5; }
+.notice.area .small { margin-top: 4px; }
+.notice.area .say { margin-top: 6px; padding: 6px 10px; background: #fff; border-radius: 8px; font-size: 14px; }
+.tools.filt { margin-top: -4px; align-items: center; }
+.tools.filt select { flex: 0 1 auto; width: auto; min-width: 0; font-size: 14px; padding-top: 6px; padding-bottom: 6px; }
+.tools select.on { border-color: var(--primary); color: var(--primary); font-weight: 700; background-color: var(--primary-light); }
+#cArea .notice { margin-bottom: 0; }

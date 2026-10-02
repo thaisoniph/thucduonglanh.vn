@@ -85,6 +85,7 @@
   function normPhone(p) { p = String(p || '').replace(/\D/g, ''); if (p.indexOf('84') === 0 && p.length >= 11) p = '0' + p.slice(2); return p; }
   function fPhone(p) { p = normPhone(p); return p.length === 10 ? p.slice(0, 4) + ' ' + p.slice(4, 7) + ' ' + p.slice(7) : p; }
   function zalo(p) { return 'https://zalo.me/' + normPhone(p); }
+  var ZI = '<svg class="zi" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0068ff"/><text x="16" y="20.5" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="11.5" font-weight="700" fill="#fff">Zalo</text></svg>'; // biểu tượng Zalo: khách đã kết bạn (khác 💬 = chăm sóc / nhắn tin)
   function lvl() { return S.user ? S.user.level : 0; }
   function toast(msg, err) {
     var el = document.createElement('div'); if (err) el.className = 'err'; el.textContent = msg; $('#toast').appendChild(el);
@@ -99,7 +100,7 @@
   var SERVER_V = '2026-10-02a'; // phải trùng số phiên bản máy chủ (api/src/index.js)
   var ON_CF = !/script\.google/.test(CFG.endpoint || ''); // máy chủ Cloudflare (nhanh) hay Apps Script cũ
   function checkVersion(j) {
-    if (!j || S._vWarned || j.v === SERVER_V || j.v === '2026-10-01n' || j.v === '2026-10-01o' || j.v === 'moved') return;
+    if (!j || S._vWarned || j.v === SERVER_V || j.v === '2026-10-01o' || j.v === '2026-10-02b' || j.v === 'moved') return;
     S._vWarned = true;
     if (lvl() >= 2 || (j.user && j.user.level >= 2)) toast('⚠️ Máy chủ Apps Script đang chạy bản cũ (' + (j.v || 'chưa có số phiên bản') + '), cần bản ' + SERVER_V + '. Vào Apps Script → Triển khai → Quản lý các bản triển khai → ✏️ → Phiên bản: Phiên bản mới → Triển khai.', true);
   }
@@ -184,7 +185,7 @@
     }, function (e) { if (!silent && S.token) toast(e.message, true); if (!S.d && S.token && !$('.top')) { $('#app').innerHTML = '<div class="login"><div class="login-box"><h1>Chưa tải được dữ liệu</h1><p class="sub">' + esc(e.message) + '</p><button class="btn pri block" id="retry">Thử lại</button></div></div>'; $('#retry').onclick = function () { location.reload(); }; } })
       .then(function () { S.loading = false; var b2 = $('#refresh'); if (b2) b2.classList.remove('spin'); });
   }
-  var ZALO_X = /\s*\(\s*[xX×]\s*\)/g; // "(x)" sau tên = sale đã kết bạn Zalo (cách ghi trên Sheet) → hiện bằng nhãn 💬 Zalo, không hiện trong tên
+  var ZALO_X = /\s*\(\s*[xX×]\s*\)/g; // "(x)" sau tên = sale đã kết bạn Zalo (cách ghi trên Sheet) → hiện bằng biểu tượng Zalo, không hiện trong tên
   function setData(j, at) {
     S.d = j; S.user = j.user; S.loadedAt = at;
     [j.customers, j.orders, j.leads || [], j.log || []].forEach(function (arr) { arr.forEach(function (x) { if (x.name && ZALO_X.test(x.name)) { ZALO_X.lastIndex = 0; x.name = x.name.replace(ZALO_X, '').trim(); } ZALO_X.lastIndex = 0; }); });
@@ -228,6 +229,7 @@
   }
   function applyOp(op) {
     var p = op.p, c = cust(p.phone); if (!c) return;
+    c._q = undefined; // chuỗi tìm kiếm tính lại (tên / người phụ trách có thể vừa đổi)
     if (op.action === 'care') {
       c.careAt = op.at; c.careResult = p.result; if (!c.owner) c.owner = S.user.name;
       c.callback = p.callback ? new Date(p.callback + 'T09:00:00+07:00').getTime() : null; c.task = null;
@@ -491,7 +493,7 @@
       row('<span class="tag vip">VIP</span>', esc(TIP.vip())) + row('<span class="tag cold">❄️ Khách lạnh</span>', esc(TIP.cold) + '. Đặt đơn mới là hết lạnh; khách “không dùng nữa” sau 6 tháng tự quay lại để chào lại 1 lần.') +
       row('<span class="tag st-huy">⚠️ hay hoàn</span>', esc(TIP.back)) + '</table></div>' +
       '<div class="box"><h3>📌 Nhãn khác</h3><table class="tg-help">' +
-      row('<span class="zl on">💬 Zalo</span>', esc(TIP.zalo) + ' (trên file Sheet cũ là dấu “(x)” sau tên).') + row('<span class="zl add">➕ Đã kết bạn Zalo</span>', 'Bấm khi vừa kết bạn Zalo với khách.') +
+      row('<span class="zl on">' + ZI + ' Zalo</span>', esc(TIP.zalo) + ' (trên file Sheet cũ là dấu “(x)” sau tên).') + row('<span class="zl add">➕ Đã kết bạn Zalo</span>', 'Bấm khi vừa kết bạn Zalo với khách.') +
       row('<span class="tag st-xong">✓ Nhận ưu đãi</span>', 'Khách đồng ý nhận tin khuyến mãi. Chưa đồng ý thì vẫn hỏi thăm, hướng dẫn dùng bình thường; chỉ tránh gửi quảng cáo hàng loạt.') +
       row('<span class="tag noconsent">Chưa ai phụ trách</span>', 'Khách chưa có sale nhận. Ở chế độ Kho chung, khách này nằm ở mục 🧺 Kho chung tab Hôm nay.') +
       row('<span class="bad-line">⏳ trễ N ngày</span>', 'Việc chăm sóc đã qua ngày nên làm mà chưa làm (vẫn giữ thêm 7 ngày).') + '</table></div>';
@@ -537,7 +539,7 @@
     var c = cust(P.list[P.i]); if (!c) { P.i++; promoStep(); return; }
     var msg = fillTpl(P.text, c);
     var body = '<div class="flow-h"><div><b>Khách ' + (P.i + 1) + ' / ' + P.list.length + '</b><span>📣 ' + esc(P.name) + ' · đã gửi ' + P.sent + '</span></div><div class="bar"><i style="width:' + Math.round(P.i * 100 / P.list.length) + '%"></i></div></div>' +
-      '<div class="box"><div class="r1" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>' + esc(c.name) + '</b>' + custTags(c) + (c.zalo ? '<span class="zl on">💬 Zalo</span>' : '') + '<span class="muted">' + fPhone(c.phone) + '</span></div>' +
+      '<div class="box"><div class="r1" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>' + esc(c.name) + '</b>' + custTags(c) + (c.zalo ? '<span class="zl on">' + ZI + ' Zalo</span>' : '') + '<span class="muted">' + fPhone(c.phone) + '</span></div>' +
       '<div class="small muted" style="margin-top:4px">' + esc(shortProducts(c.products, 2)) + ' · mua gần nhất ' + daysAgo(c.last) + '</div></div>' +
       '<div class="box"><label class="f"><span>Tin gửi khách (sửa được)</span><textarea id="pmMsg" rows="6">' + esc(msg) + '</textarea></label>' +
       '<div class="steps"><button class="btn zalo" id="pmZalo">📋 Copy tin & mở Zalo</button><button class="btn" id="pmCopy">Copy tin</button></div>' +
@@ -551,7 +553,7 @@
   }
   function consentTag(c) { return c.consent ? '<span class="tag st-xong" title="Khách đồng ý nhận tin ưu đãi">✓ Nhận ưu đãi</span>' : canEdit(c) ? '<button type="button" class="zl add" data-consent="' + c.phone + '" title="Bấm khi khách đồng ý nhận tin ưu đãi / khuyến mãi">☐ Khách đồng ý nhận ưu đãi</button>' : ''; }
   function canEdit(c) { return lvl() >= 2 || c.owner === S.user.name; }
-  function zaloTag(c) { return c.zalo ? '<span class="zl on" title="Đã kết bạn Zalo: nhắn tin chăm sóc được">💬 Zalo</span>' : canEdit(c) ? '<button type="button" class="zl add" data-zalo="' + c.phone + '" title="Bấm khi đã kết bạn Zalo với khách">➕ Đã kết bạn Zalo</button>' : ''; }
+  function zaloTag(c) { return c.zalo ? '<span class="zl on" title="Đã kết bạn Zalo: nhắn tin chăm sóc được">' + ZI + ' Zalo</span>' : canEdit(c) ? '<button type="button" class="zl add" data-zalo="' + c.phone + '" title="Bấm khi đã kết bạn Zalo với khách">➕ Đã kết bạn Zalo</button>' : ''; }
   function setZalo(c, on) { sendOp('customer', { phone: c.phone, zalo: on ? 1 : 0 }); toast(on ? 'Đã đánh dấu kết bạn Zalo ✓' : 'Đã bỏ đánh dấu Zalo'); render(); }
   function orderCard(o, withActs) {
     var next = NEXT[o.status];
@@ -709,7 +711,7 @@
   function custRow(c) {
     var cat = custCat(c), h = recentHist(c, 1)[0], k = c.task ? c.task.type : '', live = stageOf(c) === 'live';
     return '<div class="rw cr click tinted" data-cust="' + c.phone + '"' + catAttr(cat) + '><div class="rw-m">' +
-      '<div class="rw-1"><b>' + esc(c.name || 'Khách') + '</b>' + (c.zalo ? '<span class="zl on">💬</span>' : '') + custTags(c) + (c.owner && lvl() >= 2 ? '<span class="tag owner">👤 ' + esc(c.owner) + '</span>' : !c.owner ? '<span class="tag noconsent">Chưa ai phụ trách</span>' : '') + '<span class="end">' + c.orders + ' đơn · ' + moneyShort(c.spent) + '</span></div>' +
+      '<div class="rw-1"><b>' + esc(c.name || 'Khách') + '</b>' + (c.zalo ? '<span class="zl ic" title="Đã kết bạn Zalo">' + ZI + '</span>' : '') + custTags(c) + (c.owner && lvl() >= 2 ? '<span class="tag owner">👤 ' + esc(c.owner) + '</span>' : !c.owner ? '<span class="tag noconsent">Chưa ai phụ trách</span>' : '') + '<span class="end">' + c.orders + ' đơn · ' + moneyShort(c.spent) + '</span></div>' +
       '<div class="rw-2">' + (provOf(c) ? '📍 ' + esc(provOf(c).old) + ' · ' : '') + 'Mua lần đầu ' + fDate(c.first).replace(/\/(\d{2})(\d{2})$/, '/$2') + ' · gần nhất ' + daysAgo(c.last) + (c.products.length ? ' · ' + esc(shortProducts(c.products, 1)) : '') + (live && c.runout && c.runout > (c.last || 0) && k !== 'runout' ? ' · ⏰ hết ~' + fDate(c.runout).slice(0, 5) : '') + (k && TASKS[k] ? ' · <span class="warn-line">' + TASKS[k].icon + ' ' + TASKS[k].title + '</span>' : '') + '</div>' +
       '<div class="rw-3">' + (h ? '💬 ' + fDate(h.time).slice(0, 5) + ': ' + esc(h.text.length > 90 ? h.text.slice(0, 90) + '…' : h.text) : '<span class="muted">Chưa có lần chăm sóc nào</span>') + '</div></div>' +
       '<div class="rw-a"><a class="btn" href="tel:' + c.phone + '" aria-label="Gọi">📞</a><button class="btn pri" data-care="' + c.phone + '" data-task="' + (k || 'other') + '" aria-label="Chăm sóc">💬</button></div></div>';
@@ -717,7 +719,7 @@
   /** 1 dòng gọn cho danh sách việc: tên · việc cần làm · nút gọi / KNM / chăm sóc. */
   function rowCard(c) {
     var cat = custCat(c), k = taskKey(c);
-    return '<div class="rw click tinted" data-cust="' + c.phone + '"' + catAttr(cat) + '><div class="rw-m"><div class="rw-1"><b>' + esc(c.name || 'Khách') + '</b>' + (c.zalo ? '<span class="zl on">💬</span>' : '') + custTags(c) + '<span class="end">' + moneyShort(c.spent) + '</span></div>' +
+    return '<div class="rw click tinted" data-cust="' + c.phone + '"' + catAttr(cat) + '><div class="rw-m"><div class="rw-1"><b>' + esc(c.name || 'Khách') + '</b>' + (c.zalo ? '<span class="zl ic" title="Đã kết bạn Zalo">' + ZI + '</span>' : '') + custTags(c) + '<span class="end">' + moneyShort(c.spent) + '</span></div>' +
       '<div class="rw-2">' + (c.task ? taskLine(c) : replyOf(c).days + ' ngày chưa phản hồi') + (c.products.length ? ' · ' + esc(shortProducts(c.products, 1)) : '') + '</div></div>' +
       '<div class="rw-a"><a class="btn" href="tel:' + c.phone + '" aria-label="Gọi">📞</a><button class="btn" data-quick="' + c.phone + '|knm|' + k + '" title="Không nghe máy: 2 ngày sau tự nhắc" aria-label="KNM">📵</button><button class="btn pri" data-care="' + c.phone + '" data-task="' + k + '" aria-label="Chăm sóc">💬</button></div></div>';
   }
@@ -763,29 +765,97 @@
     { k: 'vip', l: 'VIP', f: function (c) { return isVip(c) && !coldOf(c); } },
     { k: 'risk', l: 'Sắp mất', f: function (c) { return stageOf(c) === 'risk' && !coldOf(c); } },
     { k: 'lost', l: 'Lâu không mua', f: function (c) { return stageOf(c) === 'lost' && !coldOf(c); } },
+    { k: 'runout7', l: '⏰ Sắp hết hàng', f: function (c) { return !coldOf(c) && !!c.runout && c.runout > (c.last || 0) && c.runout >= today() - 7 * DAY && c.runout < today() + 8 * DAY; } },
     { k: 'callback', l: 'Có hẹn gọi lại', f: function (c) { return !!c.callback && !coldOf(c); } },
-    { k: 'zalo', l: '💬 Đã kết bạn Zalo', f: function (c) { return !!c.zalo && !coldOf(c); } },
+    { k: 'zalo', l: ZI + ' Đã kết bạn Zalo', f: function (c) { return !!c.zalo && !coldOf(c); } },
     { k: 'nozalo', l: 'Chưa kết bạn Zalo', f: function (c) { return !c.zalo && !coldOf(c); } },
     { k: 'cold', l: '❄️ Khách lạnh', f: function (c) { return !!coldOf(c); } }
   ];
   var SORTS = { prio: ['Nên gọi trước', function (a, b) { var pa = a.task ? prioOf(a) : isVip(a) && stageOf(a) === 'risk' ? 8 : 9, pb = b.task ? prioOf(b) : isVip(b) && stageOf(b) === 'risk' ? 8 : 9; return (coldOf(a) ? 1 : 0) - (coldOf(b) ? 1 : 0) || pa - pb || b.spent - a.spent; }],
     last: ['Mua gần nhất', function (a, b) { return (b.last || 0) - (a.last || 0); }], age: ['Lâu chưa chăm sóc nhất', function (a, b) { return (replyOf(a).at || 0) - (replyOf(b).at || 0) || (a.first || 0) - (b.first || 0); }], spent: ['Chi nhiều nhất', function (a, b) { return b.spent - a.spent; }],
     runout: ['Sắp hết hàng', function (a, b) { return (a.runout || 9e15) - (b.runout || 9e15); }], name: ['Tên A–Z', function (a, b) { return a.name.localeCompare(b.name, 'vi'); }] };
+  /** Tách chữ tìm kiếm; tên tỉnh giữ nguyên cụm (“nam dinh” không khớp tên “Nam” + “dinh dưỡng”). */
+  function qWords(q) {
+    var t = ' ' + q + ' ', w = [];
+    provKeys().forEach(function (x) { if (t.indexOf(x.k) >= 0) { w.push(x.k); t = t.split(x.k).join(' '); } });
+    return w.concat(t.split(/\s+/).filter(String));
+  }
+  /** Tìm nhiều chữ cùng lúc, vd “nghe an dilvang”: mỗi chữ phải có trong tên / SĐT / sản phẩm / tỉnh (cả tên tỉnh mới) / địa chỉ / người phụ trách. */
+  function custHit(c, words) {
+    if (c._q === undefined) { var pv = provOf(c); c._q = ' ' + norm([c.name, c.products.join(' '), c.owner, c.address, c.ward, c.province, pv ? pv.old + ' ' + pv.nw : ''].join(' ')).replace(/[.,;:\-–()/]/g, ' ').replace(/\s+/g, ' ') + ' '; }
+    return words.every(function (w) { return c._q.indexOf(w) >= 0; });
+  }
+  /** Số liệu cả công ty (máy chủ gửi kèm, chỉ con số) – máy chủ cũ chưa có thì tự đếm trên khách đang thấy. */
+  function areaData() {
+    if (S.d.areas) return S.d.areas;
+    if (S._areas && S._areas.src === S.d.customers) return S._areas.v;
+    var p = {}, s = {}, d30 = Date.now() - 30 * DAY;
+    S.d.customers.forEach(function (c) {
+      if (!c.orders) return; var rep = c.orders >= 2 ? 1 : 0, seen = {};
+      c.products.forEach(function (x) { var n = x.replace(/\s*\(.*\)\s*$/, '').trim(); if (n) seen[n] = 1; });
+      Object.keys(seen).forEach(function (n) { var r = s[n] || (s[n] = [0, 0]); r[0]++; r[1] += rep; });
+      var pv = provOf(c); if (!pv) return; var a = p[pv.old] || (p[pv.old] = [pv.nw, 0, 0, 0, {}]);
+      a[1]++; a[2] += rep; if (c.last && c.last >= d30) a[3]++; Object.keys(seen).forEach(function (n) { a[4][n] = (a[4][n] || 0) + 1; });
+    });
+    S._areas = { src: S.d.customers, v: { p: p, s: s, local: true } }; return S._areas.v;
+  }
+  function roundDown(n) { var r = n >= 100 ? Math.floor(n / 50) * 50 : n >= 10 ? Math.floor(n / 10) * 10 : n; return r < n ? 'hơn ' + r : String(n); } // 76 → “hơn 70”: nói tròn cho tự nhiên, không nói quá
+  /** Gõ tên tỉnh (hoặc sản phẩm) vào ô tìm → khung “bên mình đã có bao nhiêu khách ở đó” để sale có chuyện nói với khách mới. */
+  function areaBox(q, mode) {
+    if (!q || q.length < 2) return '';
+    var A = areaData(), t = ' ' + q.replace(/\s+/g, ' ') + ' ', key = null;
+    provKeys().some(function (x) { if (t.indexOf(x.k) >= 0) { key = x; return true; } });
+    var who = A.local && lvl() < 2 ? 'khách của bạn' : 'khách của công ty', h = '';
+    if (key) {
+      var old = /^(HCM|TPHCM|TP HCM|HN|HP|Kontum|Daklak|Đaklak)$/.test(key.old) || norm(key.old) === norm(key.nw) ? key.nw : key.old, nw = key.nw;
+      var olds = Object.keys(A.p).filter(function (k) { return A.p[k][0] === nw; }), one = A.p[old] || null;
+      if (old === nw) { one = [nw, 0, 0, 0, {}]; olds.forEach(function (k) { var a = A.p[k]; one[1] += a[1]; one[2] += a[2]; one[3] += a[3]; Object.keys(a[4]).forEach(function (n) { one[4][n] = (one[4][n] || 0) + a[4][n]; }); }); }
+      if (!one || !one[1]) return '<div class="notice area">📍 Chưa có ' + who + ' nào ở <b>' + esc(old) + '</b> đã mua. Khách này có thể là người đầu tiên ở đó – cứ tự tin giới thiệu nhé!</div>';
+      var merged = old !== nw ? olds.reduce(function (n, k) { return n + A.p[k][1]; }, 0) : 0;
+      var top = Object.keys(one[4]).sort(function (x, y) { return one[4][y] - one[4][x]; }).slice(0, 3);
+      h = '<b>📍 ' + esc(old) + (old !== nw ? ' <span class="muted">(nay thuộc ' + esc(nw) + ')</span>' : '') + '</b>: <b>' + one[1] + '</b> ' + who + ' đã mua' +
+        (one[2] ? ' · <b>' + one[2] + '</b> người mua từ 2 lần' : '') + (one[3] ? ' · <b>' + one[3] + '</b> người mua trong 30 ngày qua' : '') +
+        (merged > one[1] ? ' · cả ' + esc(nw) + ' mới: ' + merged + ' khách' : '') +
+        (top.length ? '<div class="small">Hay mua: ' + top.map(function (n) { return esc(n) + ' (' + one[4][n] + ')'; }).join(' · ') + '</div>' : '') +
+        '<div class="say">💡 Có thể nói: “Ở ' + esc(old) + ' bên em đã có ' + roundDown(one[1]) + ' cô chú anh chị dùng rồi' + (one[2] >= 2 ? ', nhiều người dùng thấy hợp nên mua lại' : '') + (top[0] ? ', nhất là ' + esc(top[0]) : '') + '.”</div>';
+    } else {
+      var ps = Object.keys(A.s).filter(function (n) { return norm(n).indexOf(q) >= 0; }).sort(function (x, y) { return A.s[y][0] - A.s[x][0]; });
+      if (!ps.length || q.length < 3) return '';
+      var n0 = ps[0], r = A.s[n0];
+      h = '<b>🛒 ' + esc(n0) + '</b>: <b>' + r[0] + '</b> ' + who + ' đã mua' + (r[1] ? ' · <b>' + r[1] + '</b> người (' + Math.round(r[1] * 100 / r[0]) + '%) mua từ 2 lần trở lên' : '') +
+        (ps.length > 1 ? '<div class="small muted">Cũng khớp: ' + ps.slice(1, 3).map(function (n) { return esc(n) + ' (' + A.s[n][0] + ')'; }).join(' · ') + '</div>' : '') +
+        '<div class="say">💡 Có thể nói: “Sản phẩm này bên em đã có ' + roundDown(r[0]) + ' khách dùng' + (r[1] >= 2 ? ', nhiều người mua lại đều đặn' : '') + '.”</div>';
+    }
+    return '<div class="notice area">' + h + '<div class="small muted">Chỉ nói con số, không nói tên hay số điện thoại khách khác.' + (mode ? '' : ' Danh sách bên dưới là ' + (lvl() >= 2 ? 'khách khớp tìm kiếm' : 'khách của bạn') + ' – có thể nhắc khách quen (đã đồng ý) làm ví dụ.') + '</div></div>';
+  }
+  var SPEND = { lo: ['Dưới 500k', 0, 5e5], mid: ['500k – 2 triệu', 5e5, 2e6], hi: ['Trên 2 triệu', 2e6, 9e15] };
+  /** Nguồn khách mua lần đầu (Facebook, Ladi, Zalo…), nhiều khách xếp trước. */
+  function custSources() {
+    var n = {}; S.d.customers.forEach(function (c) { if (lvl() >= 2 || c.owner === S.user.name) { var k = c.source || 'Chưa rõ'; n[k] = (n[k] || 0) + 1; } });
+    return Object.keys(n).sort(function (a, b) { return n[b] - n[a]; });
+  }
   function viewCustomers() {
     var f = S.f.c || (S.f.c = { q: '', k: 'all', sort: 'prio', n: 60 });
-    var q = norm(f.q), qd = q.replace(/\D/g, '');
-    var base = S.d.customers.filter(function (c) { return (lvl() >= 2 || c.owner === S.user.name) && (!q || norm(c.name + ' ' + c.products.join(' ') + ' ' + c.owner + ' ' + c.province).indexOf(q) >= 0 || (qd.length >= 3 && c.phone.indexOf(qd) >= 0)); }); // sale: chỉ khách của mình (khách chưa ai nhận ở mục Kho chung tab Hôm nay)
+    var q = norm(f.q), qd = q.replace(/\D/g, ''), words = qWords(q);
+    var base = S.d.customers.filter(function (c) { return (lvl() >= 2 || c.owner === S.user.name) && (!q || custHit(c, words) || (qd.length >= 3 && c.phone.indexOf(qd) >= 0)); }); // sale: chỉ khách của mình (khách chưa ai nhận ở mục Kho chung tab Hôm nay)
     if (f.cat) base = base.filter(function (c) { return custCat(c).key === f.cat; });
+    var srcs = custSources(); if (f.src && srcs.indexOf(f.src) < 0) f.src = '';
+    if (f.spend) base = base.filter(function (c) { var r = SPEND[f.spend]; return c.spent >= r[1] && c.spent < r[2]; });
+    if (f.src) base = base.filter(function (c) { return (c.source || 'Chưa rõ') === f.src; });
     var chips = CF.filter(function (x) { return lvl() >= 2 || (x.k !== 'mine' && x.k !== 'noowner' && x.k !== 'myold'); });
     var cur = chips.filter(function (x) { return x.k === f.k; })[0] || chips[0];
     var list = base.filter(cur.f).sort(SORTS[f.sort][1]);
-    S.promoPick = { list: list, label: cur.l + (f.q ? ' · tìm “' + f.q + '”' : '') };
+    if (q) list = list.filter(function (c) { return norm(c.name).indexOf(q) >= 0; }).concat(list.filter(function (c) { return norm(c.name).indexOf(q) < 0; })); // trùng tên lên đầu, rồi mới đến trùng tỉnh / địa chỉ / sản phẩm
+    S.promoPick = { list: list, label: cur.l + (f.spend ? ' · chi ' + SPEND[f.spend][0].toLowerCase() : '') + (f.src ? ' · nguồn ' + f.src : '') + (f.q ? ' · tìm “' + f.q + '”' : '') };
     return '<div class="page-head"><h1>Khách đã mua</h1><span class="muted">' + base.length + ' khách</span><div class="grow"></div><button class="btn pri" data-promo title="Gửi tin ưu đãi qua Zalo cho từng khách trong danh sách đang lọc">📣 Gửi ưu đãi lần lượt</button></div>' +
-      '<div class="tools"><div class="search">' + I.search + '<input type="search" id="cq" placeholder="Tìm tên, số điện thoại, sản phẩm…" value="' + esc(f.q) + '"></div>' +
+      '<div class="tools"><div class="search">' + I.search + '<input type="search" id="cq" placeholder="Tìm tên, SĐT, tỉnh, huyện, sản phẩm…" value="' + esc(f.q) + '"></div>' +
       '<select id="csort" style="flex:0 0 auto;width:auto">' + Object.keys(SORTS).map(function (k) { return '<option value="' + k + '"' + (f.sort === k ? ' selected' : '') + '>' + SORTS[k][0] + '</option>'; }).join('') + '</select></div>' +
+      '<div class="tools filt"><select id="cspend" class="' + (f.spend ? 'on' : '') + '" title="Lọc theo tổng tiền khách đã chi"><option value="">💰 Mọi mức chi</option>' + Object.keys(SPEND).map(function (k) { return '<option value="' + k + '"' + (f.spend === k ? ' selected' : '') + '>Đã chi ' + SPEND[k][0].toLowerCase() + '</option>'; }).join('') + '</select>' +
+        '<select id="csrc" class="' + (f.src ? 'on' : '') + '" title="Lọc theo nguồn khách mua lần đầu"><option value="">🧭 Mọi nguồn</option>' + srcs.map(function (x) { return '<option' + (f.src === x ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('') + '</select>' +
+        (f.spend || f.src ? '<button type="button" class="link small" data-cfclear>Bỏ lọc</button>' : '') + '</div>' +
       legend(lvl() >= 2 ? S.d.customers : S.d.customers.filter(function (c) { return c.owner === S.user.name; }), f.cat) +
-      '<div class="chips">' + chips.map(function (x) { var n = base.filter(x.f).length, tp = { vip: TIP.vip(), risk: TIP.risk, lost: TIP.lost, cold: TIP.cold, nozalo: TIP.nozalo, task: TIP.task, callback: TIP.callback, all: TIP.all }[x.k]; return '<button class="chip' + (x.k === cur.k ? ' on' : '') + '" data-cf="' + x.k + '"' + (tp ? ' title="' + esc(tp) + '"' : '') + '>' + x.l + ' <em>' + n + '</em></button>'; }).join('') + '</div>' +
-      crossHint(q, qd, true) +
+      '<div class="chips">' + chips.map(function (x) { var n = base.filter(x.f).length, tp = { runout7: 'Dự kiến dùng hết trong 7 ngày tới (hoặc vừa hết trong 7 ngày qua): gọi mời mua lại ngay', vip: TIP.vip(), risk: TIP.risk, lost: TIP.lost, cold: TIP.cold, nozalo: TIP.nozalo, task: TIP.task, callback: TIP.callback, all: TIP.all }[x.k]; return '<button class="chip' + (x.k === cur.k ? ' on' : '') + '" data-cf="' + x.k + '"' + (tp ? ' title="' + esc(tp) + '"' : '') + '>' + x.l + ' <em>' + n + '</em></button>'; }).join('') + '</div>' +
+      areaBox(q) + crossHint(q, qd, true) +
       (list.length ? '<div class="crows">' + list.slice(0, f.n).map(custRow).join('') + '</div>' +
         (list.length > f.n ? '<button class="btn more" data-more="c">Xem thêm ' + Math.min(60, list.length - f.n) + ' khách</button>' : '') : empty('Không có khách nào khớp.'));
   }
@@ -845,7 +915,7 @@
       if (tab === 'orders') box.innerHTML = (list.length ? '<div class="rows-b">' + list.slice().sort(function (a, b) { return (b.time || 0) - (a.time || 0); }).map(function (o) {
         return '<div class="or' + (isVoid(o.status) ? ' void' : '') + '"><div class="or-1"><b>' + fDate(o.time) + '</b>' + stTag(o.status) + '<span class="end">' + money(o.total) + '</span></div><div class="or-2">' + esc(itemNames(o.items).join(', ')) + '</div><div class="or-3">' + esc(o.id) + (o.seller ? ' · 👤 ' + esc(o.seller) : '') + (o.note ? ' · 📝 ' + esc(o.note.length > 80 ? o.note.slice(0, 80) + '…' : o.note) : '') + '</div></div>';
       }).join('') + '</div>' : '<p class="muted">Chưa có đơn.</p>') + (all ? '' : '<p class="small muted">Đang tải đơn cũ…</p>');
-      if (tab === 'info') box.innerHTML = '<div class="box" style="margin:0"><div class="grid-info">' + info('Điện thoại', fPhone(c.phone)) + info('Zalo', c.zalo ? '💬 Đã kết bạn' : 'Chưa kết bạn') +
+      if (tab === 'info') box.innerHTML = '<div class="box" style="margin:0"><div class="grid-info">' + info('Điện thoại', fPhone(c.phone)) + info('Zalo', c.zalo ? ZI + ' Đã kết bạn' : 'Chưa kết bạn') +
         info('Đơn đầu', fDate(c.first)) + info('Nhận hàng gần nhất', c.recv ? fDate(c.recv) : 'chưa rõ') + info('Nhóm', c.group) + info('Nguồn', c.source || '–') +
         (function () { var ld = leadsOf(c.phone)[0]; return ld ? info('Biết đến qua', ld.channel + ' · hỏi ' + fDate(ld.time) + (c.first && c.first >= (ld.time || 0) ? ' · chốt sau ' + Math.max(0, Math.round((c.first - ld.time) / DAY)) + ' ngày' : ''), true) : ''; })() + info('Tỉnh / thành', provOf(c) ? provOf(c).old + (provOf(c).old !== provOf(c).nw ? ' (nay thuộc ' + provOf(c).nw + ')' : '') : 'chưa rõ') + info('Địa chỉ', [c.address, c.ward, c.province].filter(Boolean).join(', '), true) + info('Đã mua', c.products.join('; '), true) +
         noteExtras(c.note).map(function (l) { var i = l.indexOf(':'); return info(l.slice(0, i), l.slice(i + 1).trim(), true); }).join('') + '</div></div>';
@@ -927,7 +997,7 @@
       '<div class="box"><h3>Bước 1 · Gửi tin cho khách</h3>' +
       '<label class="f"><span>Mẫu tin</span><select id="kTpl"><option value="-1">– Tự viết –</option>' + tp.map(function (t, i) { return '<option value="' + i + '"' + (i === ti ? ' selected' : '') + '>' + esc(t[0] + (t[1] ? ' – ' + t[1] : '')) + '</option>'; }).join('') + '</select></label>' +
       '<label class="f"><span>Nội dung (sửa được, nhớ điền phần “…” nếu có)</span><textarea id="kMsg" rows="6">' + esc(ti >= 0 ? fillTpl(tp[ti][2], c) : '') + '</textarea></label>' +
-      (c.zalo ? '<div class="steps"><button class="btn zalo" id="kZalo">📋 Copy tin & mở Zalo</button><button class="btn" id="kCopy">Copy tin</button><a class="btn" href="tel:' + c.phone + '">📞 Gọi</a></div><p class="small muted" style="margin:8px 0 0">💬 Khách đã kết bạn Zalo: nhắn tin trước, khách tiện trả lời lúc rảnh.</p></div>'
+      (c.zalo ? '<div class="steps"><button class="btn zalo" id="kZalo">📋 Copy tin & mở Zalo</button><button class="btn" id="kCopy">Copy tin</button><a class="btn" href="tel:' + c.phone + '">📞 Gọi</a></div><p class="small muted" style="margin:8px 0 0">' + ZI + ' Khách đã kết bạn Zalo: nhắn tin trước, khách tiện trả lời lúc rảnh.</p></div>'
         : '<div class="steps"><a class="btn pri" href="tel:' + c.phone + '">📞 Gọi</a><button class="btn zalo" id="kZalo">📋 Copy tin & mở Zalo</button><button class="btn" id="kCopy">Copy tin</button></div><p class="small" style="margin:8px 0 0">Khách <b>chưa kết bạn Zalo</b>: gọi xong nhớ xin kết bạn để lần sau nhắn tin chăm sóc. ' + (canEdit(c) ? zaloTag(c) : '') + '</p></div>') +
       '<div class="box"><h3>Bước 2 · Ghi kết quả</h3>' +
       '<div class="f"><span style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--ink)">Bấm 1 lần là lưu (tự hẹn ngày gọi lại)</span><div class="quick">' + QUICK.filter(function (q) { return !q.only || q.only === type; }).sort(function (a, b) { return (b.only ? 1 : 0) - (a.only ? 1 : 0); }).map(function (q) { return '<button class="btn" data-q="' + q.k + '" title="' + esc(q.r + (q.d ? ', ' + q.d + ' ngày sau tự nhắc gọi lại' : '')) + '">' + q.l + '</button>'; }).join('') + '</div></div>' +
@@ -1369,7 +1439,7 @@
     var open = isOpenLead(l), due = leadDueLine(l), note = lastNote(l);
     return '<div class="card click" data-lead="' + esc(l.id) + '">' +
       '<div class="r1"><b>' + esc(l.name || 'Khách') + '</b>' + leadTag(l) + (l.owner ? (lvl() >= 2 || l.owner !== S.user.name ? '<span class="tag owner">👤 ' + esc(l.owner) + '</span>' : '') : '<span class="tag noconsent">Chưa ai phụ trách</span>') + '<span class="end small muted">' + esc(l.channel) + '</span></div>' +
-      '<div class="r2">' + fPhone(l.phone) + (l.interest ? ' · Quan tâm: ' + esc(l.interest) : '') + '</div>' +
+      '<div class="r2">' + fPhone(l.phone) + (leadProv(l) ? ' · 📍 ' + esc(leadProv(l).old) : '') + (l.interest ? ' · Quan tâm: ' + esc(l.interest) : '') + '</div>' +
       '<div class="r-age">' + leadAge(l) + (cust(l.phone) ? '<span class="age-miss">👤 Đã là khách hàng</span>' : '') + '</div>' +
       (due || note ? '<div class="r3">' + due + (due && note ? '<br>' : '') + (note ? '📝 ' + esc(note.length > 90 ? note.slice(0, 90) + '…' : note) : '') + '</div>' : '') +
       (open ? '<div class="acts"><button class="btn pri" data-consult="' + esc(l.id) + '">💬 Tư vấn</button><a class="btn" href="tel:' + l.phone + '">📞 Gọi</a><button class="btn" data-leadorder="' + esc(l.id) + '">🛒 Chốt đơn</button>' + (!l.owner && isPoolStaff() ? claimBtn('l', l.id) : '') + '</div>' : '') +
@@ -1392,15 +1462,29 @@
     { k: 'Không mua', l: 'Không mua', f: function (l) { return l.status === 'Không mua'; } },
     { k: 'all', l: 'Tất cả', f: function () { return true; } }
   ];
+  function leadChannels() { var n = {}; (S.d.leads || []).forEach(function (l) { var k = l.channel || 'Khác'; n[k] = (n[k] || 0) + 1; }); return Object.keys(n).sort(function (a, b) { return n[b] - n[a]; }); }
+  /** Tỉnh của khách hỏi: lấy từ dòng “📍 …” sale ghi lúc tư vấn (khách hỏi chưa có địa chỉ). */
+  function leadProv(l) {
+    if (l._pvn === l.note) return l._pv; l._pvn = l.note;
+    var m = String(l.note || '').match(/📍\s*([^\n–;,]+)/g), last = m && m[m.length - 1].replace(/^📍\s*/, '');
+    l._pv = last ? provOf({ address: last }) : null; return l._pv;
+  }
+  function leadHit(l, words) {
+    var pv = leadProv(l), t = ' ' + norm([l.name, l.interest, l.channel, l.owner, l.note, pv ? pv.old + ' ' + pv.nw : ''].join(' ')).replace(/[.,;:\-–()/]/g, ' ').replace(/\s+/g, ' ') + ' ';
+    return words.every(function (w) { return t.indexOf(w) >= 0; });
+  }
+  /** Danh sách tên tỉnh (cũ + mới) để chọn nhanh. */
+  function provNames() { var o = {}; Object.keys(PROV_MERGE).forEach(function (nw) { o[nw] = 1; PROV_MERGE[nw].forEach(function (x) { if (!/^(HCM|TPHCM|TP HCM|HN|HP|Kontum|Daklak|Đaklak|Đăk .*|Dak .*|Bắc Cạn)$/.test(x)) o[x] = 1; }); }); return Object.keys(o).sort(function (a, b) { return a.localeCompare(b, 'vi'); }); }
   function viewLeads() {
     var f = S.f.t || (S.f.t = { q: '', k: 'due', n: 60 });
-    var q = norm(f.q), qd = q.replace(/\D/g, '');
-    var base = (S.d.leads || []).filter(function (l) { return !q || norm(l.name + ' ' + l.interest + ' ' + l.channel + ' ' + l.owner + ' ' + l.note).indexOf(q) >= 0 || (qd.length >= 3 && l.phone.indexOf(qd) >= 0); });
+    var q = norm(f.q), qd = q.replace(/\D/g, ''), words = qWords(q), chs = leadChannels(); if (f.ch && chs.indexOf(f.ch) < 0) f.ch = '';
+    var base = (S.d.leads || []).filter(function (l) { return (!f.ch || (l.channel || 'Khác') === f.ch) && (!q || leadHit(l, words) || (qd.length >= 3 && l.phone.indexOf(qd) >= 0)); });
     var cur = LF.filter(function (x) { return x.k === f.k; })[0] || LF[0], list = sortLeads(base.filter(cur.f));
     return '<div class="page-head"><h1>Khách hỏi</h1><span class="muted">người hỏi mua nhưng chưa mua</span><div class="grow"></div><button class="btn pri" data-newlead>＋ Thêm khách hỏi</button></div>' +
-      '<div class="tools"><div class="search">' + I.search + '<input type="search" id="tq" placeholder="Tìm tên, số điện thoại, sản phẩm quan tâm…" value="' + esc(f.q) + '"></div></div>' +
+      '<div class="tools"><div class="search">' + I.search + '<input type="search" id="tq" placeholder="Tìm tên, SĐT, tỉnh, sản phẩm quan tâm…" value="' + esc(f.q) + '"></div>' +
+        '<select id="tch" class="' + (f.ch ? 'on' : '') + '" style="flex:0 0 auto;width:auto" title="Lọc theo kênh khách hỏi"><option value="">📣 Mọi kênh</option>' + chs.map(function (x) { return '<option' + (f.ch === x ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('') + '</select></div>' +
       '<div class="chips">' + LF.map(function (x) { return '<button class="chip' + (x.k === f.k ? ' on' : '') + '" data-tf="' + esc(x.k) + '">' + x.l + ' <em>' + base.filter(x.f).length + '</em></button>'; }).join('') + '</div>' +
-      crossHint(q, qd, false) +
+      areaBox(q, 'lead') + crossHint(q, qd, false) +
       (list.length ? '<div class="list cols">' + list.slice(0, f.n).map(leadCard).join('') + '</div>' +
         (list.length > f.n ? '<button class="btn more" data-more="t">Xem thêm ' + Math.min(60, list.length - f.n) + ' khách</button>' : '')
         : empty(f.k === 'due' ? 'Không có khách hỏi cần liên hệ 🎉' : 'Chưa có khách nào ở mục này.'));
@@ -1414,7 +1498,7 @@
     var body = '<div class="acts steps" style="margin-bottom:12px">' + (open ? '<button class="btn pri" data-consult="' + esc(l.id) + '">💬 Tư vấn</button>' : '') +
       '<a class="btn" href="tel:' + l.phone + '">📞 Gọi</a><a class="btn zalo" href="' + zalo(l.phone) + '" target="_blank" rel="noopener">Zalo</a>' +
       (open ? '<button class="btn" data-leadorder="' + esc(l.id) + '">🛒 Chốt đơn</button>' : '') + '<button class="btn" data-editlead="' + esc(l.id) + '">✏️ Sửa</button></div>' +
-      (c ? '<div class="notice info">👤 Số này đã là khách hàng: <b>' + esc(c.name) + '</b> · ' + c.orders + ' đơn, ' + money(c.spent) + ' <button class="btn" data-cust="' + c.phone + '" style="margin-left:6px">Xem khách</button></div>' : '') +
+      (c ? '<div class="notice info">👤 Số này đã là khách hàng: <b>' + esc(c.name) + '</b> · ' + c.orders + ' đơn, ' + money(c.spent) + ' <button class="btn" data-cust="' + c.phone + '" style="margin-left:6px">Xem khách</button></div>' : '') + (leadProv(l) ? areaBox(norm(leadProv(l).old), 'lead') : '') +
       (open && leadDueLine(l) ? '<div class="notice">' + leadDueLine(l) + '</div>' : '') +
       '<div class="r-age" style="margin:0 0 12px">' + leadAge(l) + '</div>' +
       '<div class="box"><div class="grid-info">' + info('Điện thoại', fPhone(l.phone)) + info('Trạng thái', l.status) + info('Kênh', l.channel) + info('Quan tâm', l.interest || '–') +
@@ -1477,6 +1561,7 @@
     var fill = function (text) { return fillTpl(text, { name: l.name, products: [l.interest || 'sản phẩm bên em'] }); };
     var body = '<div class="box"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>' + esc(l.name) + '</b> ' + leadTag(l) + ' <span class="muted">' + fPhone(l.phone) + ' · ' + esc(l.channel) + '</span></div>' +
       '<div class="small muted" style="margin-top:4px">' + (l.interest ? 'Quan tâm: ' + esc(l.interest) + ' · ' : '') + 'hỏi ' + daysAgo(l.time) + (lastNote(l) ? '<br>📝 ' + esc(lastNote(l)) : '') + '</div></div>' +
+      '<div class="box"><label class="f" style="margin:0"><span>📍 Khách ở tỉnh nào? <em class="muted" style="font-style:normal;font-weight:400">(hỏi khách rồi gõ, máy cho biết bên mình đã có bao nhiêu khách ở đó)</em></span><input type="text" id="cProv" list="cProvs" autocomplete="off" placeholder="vd Nghệ An" value="' + esc(leadProv(l) ? leadProv(l).old : '') + '"><datalist id="cProvs">' + provNames().map(function (n) { return '<option value="' + esc(n) + '">'; }).join('') + '</datalist></label><div id="cArea" style="margin-top:8px"></div></div>' +
       '<div class="box"><h3>Bước 1 · Nhắn / gọi cho khách</h3>' +
       '<label class="f"><span>Mẫu tin</span><select id="cTpl"><option value="-1">– Tự viết –</option>' + tp.map(function (t, i) { return '<option value="' + i + '"' + (i === ti ? ' selected' : '') + '>' + esc(t[0] + (t[1] ? ' – ' + t[1] : '')) + '</option>'; }).join('') + '</select></label>' +
       '<label class="f"><span>Nội dung (sửa được)</span><textarea id="cMsg" rows="5">' + esc(ti >= 0 ? fill(tp[ti][2]) : '') + '</textarea></label>' +
@@ -1490,6 +1575,8 @@
     var msg = $('#cMsg', m);
     $('#cTpl', m).onchange = function () { var i = +this.value; msg.value = i >= 0 ? fill(tp[i][2]) : ''; };
     $('#cZalo', m).onclick = function () { copy(msg.value).then(function () { toast('Đã copy – dán vào khung chat Zalo'); }); window.open(zalo(l.phone), '_blank', 'noopener'); };
+    var provIn = $('#cProv', m), showArea = function () { var v = provIn.value.trim(), pv = v && provOf({ address: v }); $('#cArea', m).innerHTML = pv ? areaBox(norm(pv.old), 'consult') : v.length >= 3 ? '<p class="small muted" style="margin:0">Chưa nhận ra tỉnh – chọn trong danh sách gợi ý nhé.</p>' : ''; };
+    provIn.oninput = showArea; showArea();
     $$('input[name=cRes]', m).forEach(function (r) {
       r.onchange = function () {
         var o = LEAD_RESULTS.filter(function (x) { return x.v === r.value; })[0];
@@ -1502,7 +1589,9 @@
       if (!res) { err.textContent = 'Bạn chọn kết quả giúp nhé.'; return; }
       var o = LEAD_RESULTS.filter(function (x) { return x.v === res.value; })[0], reason = $('#cReason', m).value;
       if (o.lost && !reason) { err.textContent = 'Chọn lý do khách không mua giúp em nhé.'; return; }
-      var p = { id: l.id, result: o.v, note: $('#cNote', m).value.trim(), callback: o.lost || o.close ? '' : $('#cCb', m).value, status: o.lost ? 'Không mua' : 'Đang tư vấn', reason: reason };
+      var pvNew = provOf({ address: provIn.value.trim() }), pvOld = leadProv(l), note0 = $('#cNote', m).value.trim();
+      if (pvNew && (!pvOld || pvOld.old !== pvNew.old)) note0 = '📍 ' + pvNew.old + (note0 ? ' – ' + note0 : ''); // lưu tỉnh vào ghi chú (Sheet khách hỏi chưa có cột tỉnh)
+      var p = { id: l.id, result: o.v, note: note0, callback: o.lost || o.close ? '' : $('#cCb', m).value, status: o.lost ? 'Không mua' : 'Đang tư vấn', reason: reason };
       var btn = this; btn.disabled = true; btn.textContent = 'Đang lưu…';
       api('lead_contact', p).then(function (j) {
         l.status = j.status; l.lastAt = j.at; l.owner = j.owner || l.owner; l.callback = p.callback ? new Date(p.callback + 'T09:00:00+07:00').getTime() : null;
@@ -2284,6 +2373,7 @@
     if (t.hasAttribute('data-order')) { closeModal(true); openOrder(a('data-order')); return; }
     if (t.hasAttribute('data-lead')) { closeModal(true); openLead(a('data-lead')); return; }
   });
+  document.addEventListener('click', function (e) { if (S.d && e.target.closest('[data-cfclear]')) { S.f.c.spend = ''; S.f.c.src = ''; S.f.c.n = 60; render(); } });
   var typing = null;
   document.addEventListener('input', function (e) {
     if (!S.d) return;
@@ -2295,6 +2385,8 @@
   document.addEventListener('change', function (e) {
     if (!S.d) return;
     if (e.target.id === 'csort') { S.f.c.sort = e.target.value; render(); }
+    if (e.target.id === 'cspend' || e.target.id === 'csrc') { S.f.c[e.target.id === 'cspend' ? 'spend' : 'src'] = e.target.value; S.f.c.n = 60; render(); }
+    if (e.target.id === 'tch') { S.f.t.ch = e.target.value; S.f.t.n = 60; render(); }
     if (e.target.hasAttribute && e.target.hasAttribute('data-assign') && e.target.value) {
       var as = e.target.getAttribute('data-assign').split('|'), to = e.target.value, sel = e.target; sel.disabled = true;
       api('assign', as[0] === 'c' ? { phones: [as[1]], to: to, withLeads: true } : { leadIds: [as[1]], to: to }).then(function () {

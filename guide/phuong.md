@@ -47,7 +47,7 @@ Bên dưới, khách được chia **nhóm thu gọn** (bấm vào nhóm mới m
 
 Dòng **⏳ trễ N ngày** là việc đã qua ngày nên làm (vd em nghỉ vài hôm), vẫn giữ lại để em không sót khách.
 
-**💬 Zalo** = khách em **đã kết bạn Zalo** (chính là dấu **(x)** em vẫn đánh sau tên trong file). Khách chưa kết bạn: mở hồ sơ, bấm **➕ Đã kết bạn Zalo** khi kết bạn xong, máy tự thêm **(x)** vào tên trong file Sheet của em.
+Biểu tượng **Zalo** (ô vuông xanh có chữ Zalo) cạnh tên = khách em **đã kết bạn Zalo** (chính là dấu **(x)** em vẫn đánh sau tên trong file). Khách chưa kết bạn: mở hồ sơ, bấm **➕ Đã kết bạn Zalo** khi kết bạn xong, máy tự thêm **(x)** vào tên trong file Sheet của em.
 
 ## 3. Gọi lần lượt: mỗi lần 1 khách
 
@@ -102,6 +102,10 @@ Cuối ngày bấm **📋 Báo cáo cuối ngày (gửi Zalo)** ở tab Hôm nay
 ## Hỏi nhanh
 
 **Khách không có trong danh sách Hôm nay?** Vào tab **Khách đã mua**, gõ tên hoặc số điện thoại để tìm, mở hồ sơ rồi bấm **💬 Chăm sóc**.
+
+**Đang tư vấn khách mới?** Hỏi khách ở tỉnh nào rồi gõ tên tỉnh vào ô tìm ở tab **Khách đã mua**. Máy cho biết bên mình đã có bao nhiêu khách ở tỉnh đó đã mua, hay mua sản phẩm gì, kèm câu gợi ý để nói với khách. Chỉ nói con số, không nói tên khách khác. Khách hỏi thì gõ luôn tỉnh vào ô **📍 Khách ở tỉnh nào?** trong hộp **💬 Tư vấn**.
+
+**Muốn gọi mời mua lại?** Ở tab **Khách đã mua**, bấm nút lọc **⏰ Sắp hết hàng**: đây là những khách sắp dùng hết hoặc vừa hết trong 7 ngày.
 
 **Bấm nhầm nút?** Mở hồ sơ khách, bấm **⚙️ Sửa thông tin**, sửa ô **Hẹn gọi lại ngày** và ghi chú cho đúng rồi bấm **Lưu thay đổi**.
 

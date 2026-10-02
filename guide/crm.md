@@ -196,16 +196,16 @@ Việc nào **qua khung mà chưa làm** (ví dụ bạn nghỉ vài hôm) vẫn
 
 ### Khách đã kết bạn Zalo
 
-Nhãn **💬 Zalo** trên thẻ khách nghĩa là bạn **đã kết bạn Zalo** với khách, nên nhắn tin chăm sóc được. Khi nhập file Sheet cũ, tên có dấu **(x)** được tự chuyển thành nhãn này.
+Biểu tượng **Zalo** (ô vuông xanh có chữ Zalo) cạnh tên khách nghĩa là bạn **đã kết bạn Zalo** với khách, nên nhắn tin chăm sóc được. Khi nhập file Sheet cũ, tên có dấu **(x)** được tự chuyển thành biểu tượng này. (Còn nút **💬** màu xanh lá là nút **Chăm sóc**, không phải Zalo.)
 
 - Kết bạn xong với khách nào, bấm **➕ Đã kết bạn Zalo** ngay trên thẻ khách (hoặc trong hồ sơ). Nếu file Sheet của bạn đang bật ghi ngược, máy tự thêm **(x)** vào tên khách trong file.
 - Hộp chăm sóc tự gợi ý: khách đã kết bạn thì **nhắn Zalo trước**, khách chưa kết bạn thì **gọi trước** và nhắc xin kết bạn.
-- Tab **Khách đã mua** có bộ lọc **💬 Đã kết bạn Zalo** và **Chưa kết bạn Zalo**.
+- Tab **Khách đã mua** có bộ lọc **Đã kết bạn Zalo** và **Chưa kết bạn Zalo**.
 - Lỡ đánh dấu nhầm: mở hồ sơ khách, bấm **Bỏ đánh dấu đã kết bạn Zalo**.
 
 ### 📣 Gửi ưu đãi lần lượt qua Zalo
 
-Ở tab **Khách đã mua**, lọc nhóm muốn gửi (vd **💬 Đã kết bạn Zalo**, VIP, Sắp mất, hoặc gõ tên sản phẩm vào ô tìm), rồi bấm **📣 Gửi ưu đãi lần lượt**:
+Ở tab **Khách đã mua**, lọc nhóm muốn gửi (vd **Đã kết bạn Zalo**, VIP, Sắp mất, hoặc gõ tên sản phẩm vào ô tìm), rồi bấm **📣 Gửi ưu đãi lần lượt**:
 
 1. Giữ tích **Chỉ khách đã kết bạn Zalo** và **Chỉ khách đồng ý nhận ưu đãi** (đúng Nghị định 13). Khách lạnh và khách đã nhận chương trình này tự được bỏ ra.
 2. Đặt **tên chương trình** (vd “Ưu đãi 10/10”) và soạn tin. Viết **[Tên]**, **[Sản phẩm]** để máy tự điền cho từng khách; nhớ sửa phần “…”.
@@ -221,7 +221,7 @@ Bấm vào tên khách ở bất kỳ đâu để mở hồ sơ.
 
 Từ trên xuống:
 
-- **Phần đầu:** số điện thoại, người phụ trách, nhãn (💬 Zalo, ✓ Nhận ưu đãi, ⚠️ hay hoàn…) và 4 nút **Gọi · Zalo · Chăm sóc · ＋ Đơn**.
+- **Phần đầu:** số điện thoại, người phụ trách, nhãn (Zalo, ✓ Nhận ưu đãi, ⚠️ hay hoàn…) và 4 nút **Gọi · Zalo · Chăm sóc · ＋ Đơn**.
 - **Giá trị khách (chữ to):** **Tổng chi · Số đơn · Trung bình mỗi đơn**. Bên dưới: **mua gần nhất** bao lâu rồi, **hay mua** sản phẩm gì, khoảng **bao nhiêu ngày khách mua lại 1 lần**, **ngày dự kiến hết hàng**.
 - **Khung vàng:** việc cần làm hôm nay với khách (nếu có) và **lần cuối khách trả lời** (ngày, kết quả, ai gọi). Nếu sau đó gọi mà khách không nghe máy thì ghi rõ số lần.
 - **3 thẻ:**
@@ -259,12 +259,30 @@ Quên nghĩa nhãn nào thì bấm **ⓘ Giải thích nhãn** cạnh hàng nhã
 
 **Tự đặt màu và nhãn riêng**: vào **Cài đặt → 🎨 Màu phân loại khách** để đổi màu cho từng loại, hoặc bấm **+ Thêm nhãn** để tạo nhãn riêng (ví dụ “Khách sỉ” màu xanh), rồi bấm **Lưu màu & nhãn**. Muốn gắn nhãn cho khách: mở hồ sơ khách → **⚙️ Sửa thông tin** → ô **Nhãn màu** → chọn nhãn → **Lưu thay đổi**. Màu bạn chọn chỉ áp dụng trên máy của bạn, không ảnh hưởng người khác.
 
-Ở tab **Khách đã mua**, gõ tên, số điện thoại hoặc tên sản phẩm để tìm. Các nút lọc nhanh: *Cần chăm sóc*, *VIP*, *Sắp mất*, *Lâu không mua*, *Có hẹn gọi lại*, *💬 Đã kết bạn Zalo*, *Chưa kết bạn Zalo*, *❄️ Khách lạnh*. Ô sắp xếp: *Nên gọi trước* (mặc định), *Mua gần nhất*, *Lâu chưa chăm sóc nhất*, *Chi nhiều nhất*, *Sắp hết hàng*, *Tên A–Z*.
+Ở tab **Khách đã mua**, gõ tên, số điện thoại, **tỉnh, huyện/xã** hoặc tên sản phẩm để tìm. Gõ nhiều chữ cùng lúc cũng được, vd *Nghệ An progomax* = khách ở Nghệ An đã mua Progomax. Các nút lọc nhanh: *Cần chăm sóc*, *VIP*, *Sắp mất*, *Lâu không mua*, *⏰ Sắp hết hàng* (dự kiến dùng hết trong 7 ngày tới hoặc vừa hết trong 7 ngày qua, nên gọi mời mua lại), *Có hẹn gọi lại*, *Đã kết bạn Zalo*, *Chưa kết bạn Zalo*, *❄️ Khách lạnh*. Ô sắp xếp: *Nên gọi trước* (mặc định), *Mua gần nhất*, *Lâu chưa chăm sóc nhất*, *Chi nhiều nhất*, *Sắp hết hàng*, *Tên A–Z*.
+
+Dưới ô tìm có thêm 2 ô lọc: **💰 Mức chi** (dưới 500k / 500k – 2 triệu / trên 2 triệu) và **🧭 Nguồn** (khách đến từ đâu lần đầu: Facebook, Ladi, website…). Các ô lọc dùng chung được với nút lọc nhanh và ô tìm, vd *Trên 2 triệu* + *Sắp mất* = khách chi nhiều sắp mất. **📣 Gửi ưu đãi lần lượt** chỉ gửi cho đúng danh sách đang lọc. Bấm **Bỏ lọc** để xem lại tất cả.
+
+### Tìm theo tỉnh khi đang tư vấn
+
+Đang tư vấn khách mới, hỏi khách ở tỉnh nào rồi gõ tên tỉnh vào ô tìm ở tab **Khách đã mua** (vd *Nam Định*). Phía trên danh sách hiện khung xanh:
+
+![Tìm theo tỉnh](img/crm-area.webp)
+
+- **Bao nhiêu khách của công ty ở tỉnh đó đã mua**, bao nhiêu người mua từ 2 lần, bao nhiêu người mua trong 30 ngày qua, sản phẩm hay mua nhất ở đó. Gõ tên tỉnh cũ hay tỉnh mới đều được (vd *Nam Định* hay *Ninh Bình*).
+- Dòng **💡 Có thể nói** gợi ý câu nói với khách, vd “Ở Nam Định bên em đã có hơn 10 cô chú anh chị dùng rồi…”.
+- Gõ tên sản phẩm (vd *progomax*) thì khung cho biết bao nhiêu khách đã mua sản phẩm đó và bao nhiêu % mua lại.
+- **Khách hỏi cũng dùng được:** trong hộp **💬 Tư vấn** có ô **📍 Khách ở tỉnh nào?**. Hỏi khách rồi gõ tên tỉnh, khung số liệu hiện ngay, không cần chuyển tab. Bấm **Lưu** thì tỉnh được ghi vào ghi chú của khách, lần sau mở lại là thấy, và ô tìm ở tab **Khách hỏi** tìm được theo tỉnh đó.
+
+![Ô tỉnh trong hộp Tư vấn](img/crm-consult-prov.webp)
+
+- **Chỉ nói con số**, không nói tên hay số điện thoại của khách khác. Danh sách bên dưới là khách của bạn ở tỉnh đó; muốn lấy ai làm ví dụ thì phải được khách đó đồng ý.
 
 ## Khách hỏi
 
 **Khách hỏi** và **Khách đã mua** là 2 tab riêng vì cách làm khác nhau: khách hỏi cần **tư vấn để chốt đơn đầu tiên** (đo bằng tỷ lệ chốt), khách đã mua cần **chăm sóc để dùng đều và mua lại** (đo bằng tỷ lệ mua lại). Việc hằng ngày của cả 2 nhóm đều gom ở tab **Hôm nay**.
 
+- **Ô tìm ở tab Khách hỏi** tìm theo tên, số điện thoại, sản phẩm quan tâm, ghi chú và **tỉnh** (tỉnh đã ghi lúc tư vấn). Gõ tên tỉnh hay tên sản phẩm cũng hiện khung số liệu khách đã mua như tab Khách đã mua. Ô **📣 Kênh** lọc theo nơi khách hỏi (Form website, Facebook, Zalo…).
 - **Tìm ở tab nào cũng được:** gõ tên hoặc số điện thoại, nếu người đó nằm ở tab kia CRM hiện dòng gợi ý, bấm vào để mở.
 - Hồ sơ khách đã mua có cả **lịch sử lúc còn là khách hỏi** (🙋 hỏi qua kênh nào, quan tâm gì) và dòng **Biết đến qua … · chốt sau N ngày** ở thẻ Thông tin.
 
