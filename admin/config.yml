@@ -320,6 +320,8 @@ collections:
               - { label: "Mức giảm chung (%)", name: percent, widget: number, value_type: int, min: 0, max: 90, default: 15, hint: "Áp dụng cho sản phẩm để trống ô \"Giảm khi đặt trên web (%)\". Muốn giảm khác nhau thì vào từng Sản phẩm để nhập." }
               - { label: "Cộng dồn với sản phẩm đang có giá khuyến mãi riêng", name: stack_sale, widget: boolean, default: false, hint: "Tắt: sản phẩm đang có giá khuyến mãi riêng thì giữ giá khuyến mãi đó, không giảm thêm." }
               - { label: "Tiêu đề khung ưu đãi", name: label, widget: string, default: "Ưu đãi chỉ có khi đặt tại website" }
+              - { label: "Câu quảng bá chính (dòng trên cùng + khung ưu đãi)", name: headline, widget: string, required: false, hint: "Ví dụ: Giá tại website luôn tốt hơn mua trên sàn. Để trống thì hiện “Giảm đến X% khi đặt trên web”." }
+              - { label: "Câu quảng bá bản ngắn (điện thoại)", name: headline_short, widget: string, required: false, hint: "Tối đa khoảng 25 ký tự, ví dụ: Giá web tốt hơn trên sàn" }
               - { label: "Bật quà tặng", name: gift_enabled, widget: boolean, default: true }
               - { label: "Tên quà tặng", name: gift_title, widget: string, required: false }
               - { label: "Trị giá quà", name: gift_value, widget: string, required: false, hint: "Ví dụ: 999.000đ" }

@@ -255,8 +255,10 @@ def fill(s):
 def uu_dai_html():
     """Danh sách ưu đãi web cho trang nội dung (chèn bằng {uu_dai_web} trong bài / trang chính sách)."""
     w, out = WEB_OFFER, []
+    if w.get("headline"):
+        out.append(f"<li><strong>{esc(w['headline'])}.</strong></li>")
     if WEB_OFF_MAX:
-        out.append(f"<li><strong>Giảm {upto(WEB_OFF_MAX)}</strong> khi đặt trên website (mức giảm ghi ở từng sản phẩm, đã trừ trực tiếp vào giá).</li>")
+        out.append(f"<li><strong>{'Một số sản phẩm giảm thêm ' if w.get('headline') else 'Giảm '}{upto(WEB_OFF_MAX)}</strong> khi đặt trên website (mức giảm ghi ở từng sản phẩm, đã trừ trực tiếp vào giá).</li>")
     if w.get("gift_enabled") and w.get("gift_title"):
         link = f' – <a href="{esc(SITE["zalo_group"])}" target="_blank" rel="noopener">tham gia tại đây</a>' if SITE.get("zalo_group") and w.get("gift_how") else ""
         out.append(f"<li><strong>Tặng {esc(w['gift_title'])}</strong>" + (f" trị giá {esc(w['gift_value'])}" if w.get("gift_value") else "") + (f" {esc(w['gift_how'])}" if w.get("gift_how") else "") + link + ".</li>")
@@ -349,7 +351,7 @@ def header(active):
     hot2 = f' - <a href="tel:{tel(SITE["hotline2"])}">{esc(SITE["hotline2"])}</a>' if SITE.get("hotline2") else ""
     return f'''
 <div class="topbar"><div class="container topbar-in">
-  <div class="tb-left">{(f'<span class="tb-offer">🎁 Giảm {upto(WEB_OFF_MAX)} <span class="tb-long">khi đặt trên website</span><span class="tb-short">khi đặt trên web</span></span><span>&nbsp;·&nbsp;</span>' if WEB_OFF_MAX else '')}{('<span class="tb-free">🚚 <span class="tb-long">Miễn phí vận chuyển đơn</span><span class="tb-short">Freeship</span> từ ' + money(SITE['free_ship_threshold']).replace(' ₫', 'đ') + '</span><span class="tb-hot">&nbsp;·&nbsp;</span>') if SITE.get('free_ship_threshold') and SITE.get('shipping_fee') else ''}<span class="tb-hot">Hotline {BRAND}: {ic("phone","ic ic-sm")} <a href="tel:{tel(SITE["hotline"])}">{esc(SITE["hotline"])}</a>{hot2}</span></div>
+  <div class="tb-left">{(f'<span class="tb-offer">🎁 <span class="tb-long">{esc(WEB_OFFER["headline"])}</span><span class="tb-short">{esc(WEB_OFFER.get("headline_short") or WEB_OFFER["headline"])}</span></span><span>&nbsp;·&nbsp;</span>' if WEB_OFFER.get("headline") else f'<span class="tb-offer">🎁 Giảm {upto(WEB_OFF_MAX)} <span class="tb-long">khi đặt trên website</span><span class="tb-short">khi đặt trên web</span></span><span>&nbsp;·&nbsp;</span>' if WEB_OFF_MAX else '')}{('<span class="tb-free">🚚 <span class="tb-long">Miễn phí vận chuyển đơn</span><span class="tb-short">Freeship</span> từ ' + money(SITE['free_ship_threshold']).replace(' ₫', 'đ') + '</span><span class="tb-hot">&nbsp;·&nbsp;</span>') if SITE.get('free_ship_threshold') and SITE.get('shipping_fee') else ''}<span class="tb-hot">Hotline {BRAND}: {ic("phone","ic ic-sm")} <a href="tel:{tel(SITE["hotline"])}">{esc(SITE["hotline"])}</a>{hot2}</span></div>
   <div class="tb-right"><a href="{esc(SITE.get("community_group") or "/goc-song-lanh/")}"{' target="_blank" rel="noopener"' if SITE.get("community_group") else ""}>Cộng Đồng Sống Khỏe {ic("globe","ic ic-sm")}</a></div>
 </div></div>
 <header class="site-header" id="siteHeader"><div class="container header-in">
@@ -789,11 +791,13 @@ def gift_text():
 def offer_box(p=None):
     """Khung "Ưu đãi chỉ có khi đặt tại website": trang sản phẩm (p) và trang thanh toán (p=None, gọn)."""
     w, items, compact = WEB_OFFER, [], p is None
+    if w.get("headline"):
+        items.append(f'<li>{ic("check","wo-ic")}<span><b>{esc(w["headline"])}</b></span></li>')
     if p is not None and p.get("web_off_max"):
         vs = {v["web_off"] for v in p["variants"]} or {p["web_off"]}
         txt = f'<b>{p["web_off_max"]}%</b>' if len(vs) == 1 else f'đến <b>{p["web_off_max"]}%</b>'
         items.append(f'<li>{ic("check","wo-ic")}<span>Giảm {txt} cho sản phẩm này – đã trừ trực tiếp vào giá</span></li>')
-    elif p is None and WEB_OFF_MAX:
+    elif p is None and WEB_OFF_MAX and not w.get("headline"):
         items.append(f'<li>{ic("check","wo-ic")}<span>Giá trên web đã giảm <b>{upto(WEB_OFF_MAX)}</b> – trừ trực tiếp vào giá</span></li>')
     if gift_text():
         join = f' <a href="{esc(SITE["zalo_group"])}" target="_blank" rel="noopener" data-cta="zalo_group_offer">Tham gia nhóm →</a>' if SITE.get("zalo_group") and not compact else ""

@@ -9,6 +9,7 @@
   "badge": "Được yêu thích",
   "price": 450000,
   "regular_price": null,
+  "web_discount": 5,
   "unit": "",
   "variants": [
     {
@@ -19,7 +20,8 @@
     {
       "name": "Hộp 125g",
       "price": 140000,
-      "regular_price": null
+      "regular_price": null,
+      "web_discount": 15
     }
   ],
   "images": [

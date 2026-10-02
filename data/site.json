@@ -87,6 +87,8 @@
     "percent": 15,
     "stack_sale": false,
     "label": "Ưu đãi chỉ có khi đặt tại website",
+    "headline": "Giá tại website luôn tốt hơn mua trên sàn",
+    "headline_short": "Giá web tốt hơn trên sàn",
     "gift_enabled": true,
     "gift_title": "Khóa Zoom 4 buổi cùng chuyên gia dinh dưỡng",
     "gift_value": "999.000đ",
