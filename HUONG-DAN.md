@@ -135,6 +135,12 @@ Sheet **Đơn hàng website Thực Dưỡng Lành**: https://docs.google.com/spr
 
 ---
 
+- **Tốc độ tải CRM** (Apps Script 2026-10-02c):
+  - CRM tải 2 đợt: `load` `part=core` (khách, việc, đơn 100 ngày + đơn đang xử lý, nhật ký 60 ngày), rồi `part=rest` tải ngầm phần cũ. Dữ liệu lưu trên máy (IndexedDB), lần sau mở hiện ngay.
+  - Bản nhớ tạm trên máy chủ (CacheService, 10 phút, tối đa ~3 MB). Lưu chăm sóc / sửa khách / tư vấn khách hỏi → `cachePatch()` chỉ đọc lại đúng dòng đó + dòng nhật ký mới. Việc khác (đơn, chia khách, nhập file) → `dataChanged()` bỏ bản nhớ.
+  - Lịch `docSanCRM` mỗi 5 phút (6h–22h) đọc sẵn Sheet khi bản nhớ hết. Lịch này tự cài khi Quản trị mở CRM; có thể chạy tay `caiDocSan`.
+  - Quản trị thấy thời gian tải ở dòng cuối trang ("tải …s, máy chủ …s, bản đọc sẵn/đọc Sheet, … KB").
+
 ## 5. Đo lường & remarketing
 
 - Mã trong `data/config.json`: `ga4_id` = **G-X40P3S7FZ8**, `clarity_id` = **yoto1kqbmx**, `meta_pixel`, `tiktok_pixel` (để trống = chưa bật).

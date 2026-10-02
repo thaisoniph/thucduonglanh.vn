@@ -100,7 +100,7 @@
   var SERVER_V = '2026-10-02a'; // phải trùng số phiên bản máy chủ (api/src/index.js)
   var ON_CF = !/script\.google/.test(CFG.endpoint || ''); // máy chủ Cloudflare (nhanh) hay Apps Script cũ
   function checkVersion(j) {
-    if (!j || S._vWarned || j.v === SERVER_V || j.v === '2026-10-01o' || j.v === '2026-10-02b' || j.v === 'moved') return;
+    if (!j || S._vWarned || j.v === SERVER_V || j.v === '2026-10-02b' || j.v === '2026-10-02c' || j.v === 'moved') return;
     S._vWarned = true;
     if (lvl() >= 2 || (j.user && j.user.level >= 2)) toast('⚠️ Máy chủ Apps Script đang chạy bản cũ (' + (j.v || 'chưa có số phiên bản') + '), cần bản ' + SERVER_V + '. Vào Apps Script → Triển khai → Quản lý các bản triển khai → ✏️ → Phiên bản: Phiên bản mới → Triển khai.', true);
   }
@@ -113,7 +113,7 @@
     return fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) })
       .then(function (r) { return r.text().then(function (t) { return { t: t, st: r.status }; }); }, function () { var e0 = new Error('Mất kết nối mạng. Bạn thử lại nhé.'); e0.net = true; throw e0; })
       .then(function (x) {
-        try { return JSON.parse(x.t); } catch (e) {
+        try { var j0 = JSON.parse(x.t); if (j0 && action === 'load') j0.__kb = Math.round(x.t.length / 1024); return j0; } catch (e) {
           if (READ_ACTS[action] && tries < 2) return new Promise(function (ok) { setTimeout(ok, 1500 * (tries + 1)); }).then(function () { return api(action, payload, tries + 1); }).then(function (j) { j.__retried = 1; return j; });
           var hint = String(x.t || '').replace(/<style[\s\S]*?<\/style>|<script[\s\S]*?<\/script>/gi, ' ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160);
           var e1 = new Error('Máy chủ Google báo lỗi (thường do việc chạy quá lâu hoặc file quá lớn). Bạn bấm lại thử; nếu vẫn lỗi, chụp màn hình gửi quản trị. [' + x.st + (hint ? ': ' + hint : '') + ']'); e1.net = true; throw e1;
@@ -172,18 +172,45 @@
   }
 
   /* ================================================================ dữ liệu */
+  /** Tải 2 đợt: đợt 1 = khách, việc hôm nay, đơn 100 ngày, nhật ký 60 ngày (đủ làm việc ngay); đợt 2 tải ngầm đơn + nhật ký cũ hơn. */
   function load(silent) {
     if (S.loading) return Promise.resolve();
     S.loading = true; var b = $('#refresh'); if (b) b.classList.add('spin');
-    var fresh = !silent && !!S.d; // bấm ↻: đọc thẳng từ Sheet, không dùng bản máy chủ nhớ tạm
-    return api('load', fresh ? { fresh: 1 } : {}).then(function (j) {
-      S.stale = false; setData(j, Date.now());
-      idb('set', 'data', { tk: S.token.slice(-12), at: S.loadedAt, d: j }); // lần sau mở CRM hiện ngay
-      if (!$('.top')) shell(); else { $('.me').innerHTML = meHTML(); navBadges(); }
-      var ae = document.activeElement, editing = silent && ae && ae.closest && ae.closest('#view') && /INPUT|TEXTAREA|SELECT/.test(ae.tagName) && ae.type !== 'search';
-      if (!editing) render(); // đang gõ dở thì không vẽ lại, tránh mất chữ
-    }, function (e) { if (!silent && S.token) toast(e.message, true); if (!S.d && S.token && !$('.top')) { $('#app').innerHTML = '<div class="login"><div class="login-box"><h1>Chưa tải được dữ liệu</h1><p class="sub">' + esc(e.message) + '</p><button class="btn pri block" id="retry">Thử lại</button></div></div>'; $('#retry').onclick = function () { location.reload(); }; } })
+    var fresh = !silent && !!S.d, t0 = Date.now(), prev = S.d; // bấm ↻: đọc thẳng từ Sheet, không dùng bản máy chủ nhớ tạm
+    var p = { part: 'core' }; if (fresh) p.fresh = 1;
+    return api('load', p).then(function (j) {
+      S.stale = false;
+      if (j.part && prev && prev.orders) keepOld(j, prev); // đang có dữ liệu cũ trên máy → giữ phần cũ tới khi đợt 2 về, số liệu không bị hụt
+      j.partial = !!j.part; setData(j, Date.now()); S.perf = { core: Date.now() - t0, srv: j.t, kb: j.__kb };
+      if (!j.part) idb('set', 'data', { tk: S.token.slice(-12), at: S.loadedAt, d: j }); // máy chủ cũ: 1 đợt
+      if (!$('.me')) shell(); else { $('.me').innerHTML = meHTML(); navBadges(); } // .me chỉ có ở giao diện thật (khung chờ không có)
+      softRender(silent);
+      if (j.part) return loadRest(j);
+    }, function (e) { if (!silent && S.token) toast(e.message, true); if (!S.d && S.token && !$('.me')) { $('#app').innerHTML = '<div class="login"><div class="login-box"><h1>Chưa tải được dữ liệu</h1><p class="sub">' + esc(e.message) + '</p><button class="btn pri block" id="retry">Thử lại</button></div></div>'; $('#retry').onclick = function () { location.reload(); }; } })
       .then(function () { S.loading = false; var b2 = $('#refresh'); if (b2) b2.classList.remove('spin'); });
+  }
+  function softRender(silent) {
+    var ae = document.activeElement, editing = silent && ae && ae.closest && ae.closest('#view') && /INPUT|TEXTAREA|SELECT/.test(ae.tagName) && ae.type !== 'search';
+    if (!editing) render(); else if ($('.updated')) $('.updated').outerHTML = updatedLine(); // đang gõ dở / đang mở hộp thì không vẽ lại, tránh mất chữ
+  }
+  function keepOld(j, prev) {
+    var ids = {}; j.orders.forEach(function (o) { ids[o.id] = 1; });
+    j.orders = prev.orders.filter(function (o) { return !ids[o.id] && (o.time || 0) < j.part.o; }).concat(j.orders);
+    j.log = (prev.log || []).filter(function (l) { return (l.time || 0) < j.part.l; }).concat(j.log || []);
+  }
+  function loadRest(core) {
+    var t1 = Date.now();
+    return api('load', { part: 'rest', o: core.part.o, l: core.part.l }).then(function (r) {
+      if (S.d !== core) return; // đã tải lại lần nữa → bỏ
+      var ids = {}; r.orders.forEach(function (o) { ids[o.id] = 1; });
+      var newO = S.d.orders.filter(function (o) { return (o.time || 0) >= core.part.o || (!ids[o.id] && /^(Mới|Đã xác nhận|Đang giao)$/.test(o.status)); });
+      var newL = S.d.log.filter(function (l) { return (l.time || 0) >= core.part.l || l.op; }); // l.op: việc vừa bấm trên máy này
+      [r.orders, r.log].forEach(function (arr) { arr.forEach(function (x) { if (x.name && ZALO_X.test(x.name)) { ZALO_X.lastIndex = 0; x.name = x.name.replace(ZALO_X, '').trim(); } ZALO_X.lastIndex = 0; }); });
+      S.d.orders = r.orders.concat(newO); S.d.log = r.log.concat(newL); S.d.partial = false;
+      if (S.perf) { S.perf.rest = Date.now() - t1; S.perf.kb2 = r.__kb; }
+      idb('set', 'data', { tk: S.token.slice(-12), at: S.loadedAt, d: S.d }); // lần sau mở CRM hiện ngay
+      softRender(true);
+    }, function () { /* đợt 2 lỗi: vẫn dùng được, lần tải sau thử lại */ });
   }
   var ZALO_X = /\s*\(\s*[xX×]\s*\)/g; // "(x)" sau tên = sale đã kết bạn Zalo (cách ghi trên Sheet) → hiện bằng biểu tượng Zalo, không hiện trong tên
   function setData(j, at) {
@@ -192,8 +219,15 @@
     S.d.byPhone = {}; j.customers.forEach(function (c) { S.d.byPhone[c.phone] = c; });
     S.outbox.forEach(applyOp); // việc vừa bấm nhưng máy chủ chưa nhận xong → vẫn hiện đúng
   }
+  /** Khung trang hiện ngay lúc chờ máy chủ (thay cho màn hình trắng “Đang tải…”). */
+  function skeleton() {
+    var row = '<div class="sk-row"><div class="sk-l"><i style="width:45%"></i><i style="width:80%"></i><i style="width:60%"></i></div><div class="sk-b"></div><div class="sk-b"></div></div>';
+    return '<header class="top"><div class="top-in"><span class="brand"><img src="/icon-180.png" alt="">CRM</span><div class="grow"></div></div></header>' +
+      '<main id="view" class="sk"><p class="sk-msg">⏳ Đang tải dữ liệu… lần đầu trên máy này có thể mất 5–15 giây, các lần sau mở là thấy ngay.</p>' +
+      '<div class="sk-h"></div><div class="sk-kpis"><i></i><i></i><i></i></div>' + row + row + row + row + row + '</main>';
+  }
   function start() {
-    $('#app').innerHTML = '<div class="boot"><img src="/logo.webp" alt="" height="64"><p>Đang tải dữ liệu…</p></div>';
+    $('#app').innerHTML = skeleton();
     idb('get', 'data').then(function (c) {
       if (c && c.d && c.tk === String(S.token || '').slice(-12) && Date.now() - c.at < 7 * DAY && !S.d) { // dữ liệu lần trước trên máy này → hiện ngay, cập nhật ngầm
         S.stale = true; setData(c.d, c.at); shell(); render(); load(true); flush();
@@ -361,6 +395,10 @@
   ];
   function myViews() { return VIEWS.filter(function (v) { return !v.min || lvl() >= v.min; }); }
   function meHTML() { return '<b>' + esc(S.user.name) + '</b>'; } // chỉ tên: mỗi người là chủ công việc của mình
+  function updatedLine() {
+    var pf = S.perf, sp = pf && lvl() >= 3 ? ' · tải ' + (pf.core / 1000).toFixed(1) + 's' + (pf.srv ? ' (máy chủ ' + (pf.srv.ms / 1000).toFixed(1) + 's' + (pf.srv.cached ? ', bản đọc sẵn' : ', đọc Sheet') + ')' : '') + (pf.kb ? ', ' + pf.kb + ' KB' : '') + (pf.rest ? ' + đợt 2 ' + (pf.rest / 1000).toFixed(1) + 's' + (pf.kb2 ? '/' + pf.kb2 + ' KB' : '') : '') : '';
+    return '<p class="updated">' + (S.stale ? '⏳ Đang cập nhật… (đang xem dữ liệu lúc ' + fDateTime(S.loadedAt) + ')' : 'Cập nhật lúc ' + fDateTime(S.loadedAt)) + (S.d && S.d.partial ? ' · ⏳ đang tải thêm đơn & nhật ký cũ…' : '') + ' · dữ liệu lưu trong Google Sheet' + sp + '</p>';
+  }
   function shell() {
     $('#app').innerHTML = '<header class="top"><div class="top-in">' +
       '<a class="brand" href="#hom-nay"><img src="/icon-180.png" alt="">CRM</a>' +
@@ -392,7 +430,7 @@
     var el = $('#view');
     var focusId = document.activeElement && document.activeElement.id, selStart = document.activeElement && document.activeElement.selectionStart;
     el.innerHTML = ({ 'hom-nay': viewToday, 'khach-hang': viewCustomers, 'don-hang': viewOrders, 'tiem-nang': viewLeads, 'bao-cao': viewReport, 'cai-dat': viewSettings })[v]();
-    el.insertAdjacentHTML('beforeend', '<p class="updated">' + (S.stale ? '⏳ Đang cập nhật… (đang xem dữ liệu lúc ' + fDateTime(S.loadedAt) + ')' : 'Cập nhật lúc ' + fDateTime(S.loadedAt)) + ' · dữ liệu lưu trong Google Sheet</p>');
+    el.insertAdjacentHTML('beforeend', updatedLine());
     if (focusId && $('#' + focusId)) { var f = $('#' + focusId); f.focus(); try { f.setSelectionRange(selStart, selStart); } catch (e) { } }
     if (keepScroll) window.scrollTo(0, y); else window.scrollTo(0, 0);
     lastView = v;
