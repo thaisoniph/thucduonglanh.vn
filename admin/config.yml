@@ -157,7 +157,7 @@ collections:
   - name: combos
     label: "Gói giải pháp"
     label_singular: "gói"
-    description: "Combo nhiều sản phẩm bán theo 1 giá (ví dụ Thử thách 10 ngày sống lành). Web tự hiện ở trang chủ, danh mục Gói Giải Pháp, và gợi ý ở trang các sản phẩm có trong gói."
+    description: "Combo nhiều sản phẩm bán theo 1 giá (ví dụ Gói Khởi Động 10 Ngày Sống Lành). Web tự hiện ở trang chủ, danh mục Gói Giải Pháp, và gợi ý ở trang các sản phẩm có trong gói."
     folder: content/combos
     extension: json
     format: json
@@ -169,7 +169,7 @@ collections:
     sortable_fields: [order, name]
     preview_path: "san-pham/{{slug}}/"
     fields:
-      - { label: "Tên gói", name: name, widget: string, hint: "Ví dụ: Gói Thử Thách 10 Ngày Sống Lành" }
+      - { label: "Tên gói", name: name, widget: string, hint: "Ví dụ: Gói Khởi Động 10 Ngày Sống Lành. Tên đầy đủ dùng trong giỏ hàng, đơn hàng, CRM." }
       - { label: "Tên ngắn", name: short_name, widget: string, required: false }
       - { label: "Hiển thị trên web", name: published, widget: boolean, default: true }
       - { label: "Nổi bật (hiện ở hộp tư vấn)", name: featured, widget: boolean, default: true }
@@ -184,10 +184,89 @@ collections:
           - { label: "Sản phẩm", name: product, widget: relation, collection: products, value_field: "{{slug}}", search_fields: [name], display_fields: [name] }
           - { label: "Quy cách", name: variant, widget: string, required: false, hint: "Ví dụ: Hộp 125g. Để trống = quy cách đầu tiên." }
           - { label: "Số lượng", name: qty, widget: number, value_type: int, default: 1, min: 1 }
+          - { label: "Biểu tượng", name: icon, widget: string, required: false, hint: "1 emoji, ví dụ 🥣 🥛 🍵" }
+          - { label: "Lợi ích (chữ to)", name: benefit, widget: string, required: false, hint: "Ví dụ: Ăn lành hơn. Có ô này thì sản phẩm hiện thành 1 lợi ích ở thẻ gói trang chủ và trang gói." }
+          - { label: "Tên hiển thị (chữ nhỏ)", name: title, widget: string, required: false, hint: "Ví dụ: Trà DILVANG. Để trống = tên sản phẩm." }
+          - { label: "Câu ngắn (trang chủ)", name: note, widget: string, required: false }
+          - { label: "Mô tả (trang gói)", name: detail, widget: text, required: false }
+          - { label: "Thông điệp ngắn (trang gói)", name: quote, widget: string, required: false }
       - { label: "Giá gói (đồng)", name: price, widget: number, value_type: int, hint: "Nên thấp hơn tổng giá mua lẻ trên web (đã giảm %) để khách thấy lợi khi mua gói. Web hiện cả 2 mức tiết kiệm." }
       - { label: "Miễn phí vận chuyển", name: free_ship, widget: boolean, default: true, hint: "Bật: đơn có gói này được miễn phí ship." }
       - { label: "Số ngày dùng hết gói", name: days, widget: number, value_type: int, required: false, hint: "CRM dùng để nhắc sale gọi khách trước khi dùng hết (ví dụ 10)." }
       - { label: "Giảm thêm khi đặt trên web (%)", name: web_discount, widget: number, value_type: int, min: 0, max: 90, required: false, hint: "Thường để trống (= không giảm thêm, vì giá gói đã là giá ưu đãi)." }
+      - { label: "Nhãn nhỏ trên tiêu đề", name: eyebrow, widget: string, required: false, hint: "Thẻ gói ở trang chủ. Ví dụ: Gói khởi động. Có ô Tiêu đề lớn thì thẻ gói dùng bố cục mới (lợi ích, nút lớn)." }
+      - { label: "Tiêu đề lớn (trang chủ)", name: headline, widget: string, required: false, hint: "Ví dụ: 10 Ngày Sống Lành" }
+      - { label: "Câu chính", name: tagline, widget: string, required: false, hint: "Ví dụ: Không cần thay đổi tất cả. Chỉ cần 10 ngày để bắt đầu." }
+      - { label: "Câu phụ", name: subline, widget: string, required: false, hint: "Ví dụ: 3 sản phẩm – 3 thói quen nhỏ – 1 khởi đầu dễ dàng hơn." }
+      - { label: "Chữ trên nút mua", name: cta, widget: string, required: false, hint: "Ví dụ: Bắt đầu 10 ngày Sống Lành. Để trống = Mua ngay." }
+      - { label: "Chữ nút mua ngắn (thanh dưới đáy điện thoại)", name: cta_short, widget: string, required: false, hint: "Ví dụ: Bắt đầu ngay" }
+      - { label: "Câu nhỏ dưới nút mua", name: cta_note, widget: string, required: false }
+      - { label: "Link tài liệu lộ trình", name: roadmap_link, widget: string, required: false, hint: "CHỈ điền khi đã có tài liệu lộ trình thật gửi cho khách. Có link thì web tự hiện nhãn 🎁 Lộ trình đồng hành, dòng quyền lợi và nút Xem lộ trình." }
+      - label: "Trang gói – Phần đầu (hero)"
+        name: hero
+        widget: object
+        required: false
+        collapsed: true
+        hint: "Có phần này thì trang gói dùng bố cục thuyết phục: hero → vấn đề → giải pháp → 10 ngày → nhận được gì → nút cuối. Xuống dòng = ngắt dòng trên web."
+        fields:
+          - { label: "Nhãn nhỏ", name: eyebrow, widget: string, required: false }
+          - { label: "Tiêu đề (H1)", name: title, widget: text, required: false }
+          - { label: "Câu dẫn", name: sub, widget: text, required: false }
+          - { label: "Mô tả", name: desc, widget: text, required: false }
+      - label: "Trang gói – Chạm đúng vấn đề"
+        name: pains
+        widget: object
+        required: false
+        collapsed: true
+        fields:
+          - { label: "Tiêu đề", name: title, widget: string, required: false }
+          - { label: "Các vấn đề", name: items, widget: list, required: false, field: { label: "Dòng", name: item, widget: string } }
+          - { label: "Đoạn nổi bật", name: callout, widget: text, required: false }
+      - label: "Trang gói – Giới thiệu giải pháp"
+        name: solution
+        widget: object
+        required: false
+        collapsed: true
+        hint: "Các thẻ giải pháp lấy từ ô Lợi ích / Mô tả / Thông điệp của từng sản phẩm trong gói."
+        fields:
+          - { label: "Tiêu đề", name: title, widget: text, required: false }
+          - { label: "Đoạn mở đầu", name: intro, widget: text, required: false }
+      - label: "Trang gói – Các chặng (Cách trải nghiệm)"
+        name: journey
+        widget: object
+        required: false
+        collapsed: true
+        hint: "Nút Xem cách trải nghiệm ở trang chủ dẫn tới phần này."
+        fields:
+          - { label: "Tiêu đề", name: title, widget: string, required: false }
+          - { label: "Câu phụ", name: sub, widget: string, required: false }
+          - label: "Các chặng"
+            name: steps
+            widget: list
+            required: false
+            summary: "{{fields.label}}"
+            fields:
+              - { label: "Nhãn", name: label, widget: string, hint: "Ví dụ: Ngày 1 – 3" }
+              - { label: "Nội dung", name: text, widget: string }
+          - { label: "Câu trích dẫn", name: quote, widget: text, required: false }
+      - label: "Trang gói – Bạn nhận được gì"
+        name: receive
+        widget: object
+        required: false
+        collapsed: true
+        hint: "Web tự liệt kê sản phẩm trong gói + Miễn phí vận chuyển. Chỉ thêm quyền lợi khách THẬT SỰ nhận được."
+        fields:
+          - { label: "Tiêu đề", name: title, widget: text, required: false }
+          - { label: "Quyền lợi thêm", name: extras, widget: list, required: false, field: { label: "Dòng", name: item, widget: string } }
+      - label: "Trang gói – Khối giá & nút cuối trang"
+        name: final
+        widget: object
+        required: false
+        collapsed: true
+        fields:
+          - { label: "Tiêu đề", name: title, widget: text, required: false }
+          - { label: "Câu phụ", name: sub, widget: string, required: false }
+          - { label: "Câu nhỏ dưới nút", name: note, widget: string, required: false }
       - label: "Ảnh gói"
         name: images
         widget: list

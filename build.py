@@ -136,7 +136,7 @@ for p in PRODUCTS:
         base = q["base_variants"][vi]["price"] if vi >= 0 else q["base_price"]
         web = q["variants"][vi]["price"] if vi >= 0 else q["price"]
         unit = q["variants"][vi]["name"] if vi >= 0 else q.get("unit", "")
-        parts.append({"p": q, "qty": qty, "unit": unit, "base": (base or 0) * qty, "web": (web or 0) * qty, "label": f'{qty} {q.get("short_name") or q["name"]}' + (f' {unit.split("(")[0].strip()}' if vi >= 0 else "")})
+        parts.append({"p": q, "it": it, "qty": qty, "unit": unit, "base": (base or 0) * qty, "web": (web or 0) * qty, "label": f'{qty} {q.get("short_name") or q["name"]}' + (f' {unit.split("(")[0].strip()}' if vi >= 0 else "")})
     p["parts"] = parts
     p["parts_base"], p["parts_web"] = sum(x["base"] for x in parts), sum(x["web"] for x in parts)
     p["unit"] = "Gồm " + " + ".join(x["label"] for x in parts)
@@ -836,12 +836,60 @@ def in_combos_html(p):
     return f'<div class="ic-box"><b class="ic-head">💡 Tiết kiệm hơn khi mua theo gói</b>{li}</div>'
 
 
+def nl(t):
+    """Chữ nhiều dòng từ /admin → xuống dòng bằng <br>."""
+    return "<br>".join(esc(x.strip()) for x in str(t or "").split("\n") if x.strip())
+
+
+def combo_save_tags(c, cls=""):
+    """Nhãn Tiết kiệm / Miễn phí ship / Lộ trình – chỉ hiện quyền lợi khách thật sự nhận được."""
+    tags = []
+    if c.get("price") and c["parts_base"] > c["price"]:
+        tags.append(f'<span class="{cls}save">Tiết kiệm {money(c["parts_base"] - c["price"])}</span>')
+    if c.get("free_ship"):
+        tags.append("<span>🚚 Miễn phí vận chuyển</span>")
+    if c.get("roadmap_link"):
+        tags.append(f'<span>🎁 Lộ trình đồng hành {num(c.get("days")) or ""} ngày</span>')
+    return "".join(tags)
+
+
+def combo_bens(c):
+    """Lợi ích của gói (Ăn lành hơn – Bữa phụ tốt hơn – Uống lành hơn), lấy từ ô Lợi ích của từng sản phẩm trong gói."""
+    return [x for x in c.get("parts", []) if x["it"].get("benefit")]
+
+
+def combo_card_v2(c):
+    """Thẻ gói "khởi động" ở trang chủ: tên gói → thông điệp → ảnh → lợi ích → giá → nút (thứ tự trên điện thoại)."""
+    url = f'/san-pham/{c["slug"]}/'
+    bens = ""
+    for x in combo_bens(c):
+        it = x["it"]
+        note = f'<p>{esc(it["note"])}</p>' if it.get("note") else ""
+        bens += f'<li><span class="cbh-ic" aria-hidden="true">{esc(it.get("icon") or "✓")}</span><div><b>{esc(it["benefit"])}</b><small>{esc(it.get("title") or x["p"]["name"])}</small>{note}</div></li>'
+    eye = f'<span class="cbh-eye">{esc(c["eyebrow"])}</span>' if c.get("eyebrow") else ""
+    tagline = f'<p class="cbh-tagline">{esc(c["tagline"])}</p>' if c.get("tagline") else ""
+    sub = f'<p class="cbh-sub">{esc(c["subline"])}</p>' if c.get("subline") else ""
+    if c.get("journey"):
+        more = f'<a class="btn btn-lg btn-ghost" href="{url}#cach-trai-nghiem" data-cta="combo_how_home">Xem cách trải nghiệm</a>'
+    else:
+        more = f'<a class="btn btn-lg btn-ghost" href="{url}">Xem chi tiết</a>'
+    return f'''<article class="cbh-card cbh-v2">
+<div class="cbh-head">{eye}<h3><a href="{url}">{esc(c["headline"])}</a></h3>{tagline}{sub}</div>
+<a class="cbh-media" href="{url}"><img src="{pimg(c["images"][0])}" alt="{esc(c["name"])}" width="1000" height="1000" loading="lazy"></a>
+<div class="cbh-body">{f'<ul class="cbh-bens">{bens}</ul>' if bens else ""}
+<div class="cbh-buy">{price_html(c, "price big")}<div class="cbh-tags">{combo_save_tags(c, "cbh-")}</div></div>
+<div class="cbh-btns"><button class="btn btn-lg btn-buy cbh-cta" data-buy-now="{c["slug"]}" data-cta="combo_start_home">{esc(c.get("cta") or "Mua ngay")}</button>{more}</div></div></article>'''
+
+
 def combos_home():
     cs = [c for c in PRODUCTS if c.get("combo") and c.get("price")]
     if not cs:
         return ""
     cards = ""
     for c in cs:
+        if c.get("headline"):
+            cards += combo_card_v2(c)
+            continue
         save = f'<span class="cbh-save">Tiết kiệm {money(c["parts_base"] - c["price"])}</span>' if c["parts_base"] > c["price"] else ""
         parts = "".join(f"<li>{esc(x['label'])}</li>" for x in c["parts"])
         cards += f'''<article class="cbh-card"><a class="cbh-media" href="/san-pham/{c["slug"]}/"><img src="{pimg(c["images"][0])}" alt="{esc(c["name"])}" width="1000" height="1000" loading="lazy"></a>
@@ -852,6 +900,72 @@ def combos_home():
   <h2 class="sec-title">Gói Giải Pháp Sống Lành</h2>
   <div class="cbh-grid">{cards}</div>
 </div></section>'''
+
+
+def combo_cta(p, where):
+    return f'<button class="btn btn-lg btn-buy cbl-cta" data-buy-now="{p["slug"]}" data-cta="combo_start_{where}">{esc(p.get("cta") or "Mua ngay")}</button>'
+
+
+def combo_hero_head(p):
+    """Trang gói: eyebrow + tiêu đề + câu dẫn (trên điện thoại đứng trước ảnh)."""
+    h = p["hero"]
+    eye = f'<span class="cbl-eye">{esc(h["eyebrow"])}</span>' if h.get("eyebrow") else ""
+    sub = f'<p class="cbl-sub">{nl(h["sub"])}</p>' if h.get("sub") else ""
+    return f'<div class="cbl-head">{eye}<h1 class="p-title cbl-title">{nl(h.get("title") or p["name"])}</h1>{sub}</div>'
+
+
+def combo_hero_info(p):
+    """Trang gói: mô tả → 3 lợi ích → giá → nút chính → câu nhỏ dưới nút."""
+    h = p["hero"]
+    desc = f'<p class="cbl-desc">{nl(h["desc"])}</p>' if h.get("desc") else ""
+    bens = "".join(f'<li><span aria-hidden="true">{esc(x["it"].get("icon") or "✓")}</span>{esc(x["it"]["benefit"])}</li>' for x in combo_bens(p))
+    note = f'<p class="cbl-micro">{esc(p["cta_note"])}</p>' if p.get("cta_note") else ""
+    return f'''{desc}{f'<ul class="cbl-bens">{bens}</ul>' if bens else ""}
+<div class="cbl-price" id="pPrice">{price_html(p, "price big")}<div class="cbh-tags">{combo_save_tags(p, "cbh-")}</div></div>
+<div class="cbl-main">{combo_cta(p, "hero")}{note}</div>'''
+
+
+def combo_landing(p):
+    """Trang gói: các phần dưới hero – vấn đề → giải pháp → 10 ngày → nhận được gì → giá & nút cuối trang."""
+    out = []
+    pa = p.get("pains") or {}
+    if [x for x in pa.get("items") or [] if x]:
+        li = "".join(f"<li>{ic('check', 'cbl-ck')}<span>{esc(x)}</span></li>" for x in pa["items"] if x)
+        callout = f'<p class="cbl-callout">{nl(pa["callout"])}</p>' if pa.get("callout") else ""
+        out.append(f'<section class="cbl-sec cbl-pains"><h2 class="cbl-h2">{nl(pa.get("title"))}</h2><ul class="cbl-checks">{li}</ul>{callout}</section>')
+    so, bens = p.get("solution") or {}, combo_bens(p)
+    if bens:
+        cards = ""
+        for i, x in enumerate(bens, 1):
+            it, q = x["it"], x["p"]
+            quote = f'<blockquote>“{esc(it["quote"])}”</blockquote>' if it.get("quote") else ""
+            cards += f'''<article class="cbl-card"><a class="cbl-card-img" href="/san-pham/{q["slug"]}/"><img src="{pimg(q["images"][0], True)}" alt="{esc(q["name"])}" width="480" height="480" loading="lazy"><span class="cbl-no">{i:02d}</span></a>
+<b class="cbl-ben">{esc(it.get("icon") or "")} {esc(it["benefit"])}</b><h3><a href="/san-pham/{q["slug"]}/">{esc(it.get("title") or q["name"])}</a></h3>
+<p>{esc(it.get("detail") or it.get("note") or "")}</p>{quote}</article>'''
+        intro = f'<p class="cbl-lead">{nl(so["intro"])}</p>' if so.get("intro") else ""
+        out.append(f'<section class="cbl-sec"><h2 class="cbl-h2 center">{nl(so.get("title") or "3 thay đổi nhỏ")}</h2>{intro}<div class="cbl-cards">{cards}</div></section>')
+    jo = p.get("journey") or {}
+    steps = [x for x in jo.get("steps") or [] if x.get("text")]
+    if steps:
+        st = "".join(f'<li><b>{esc(x.get("label"))}</b><span>{esc(x["text"])}</span></li>' for x in steps)
+        sub = f'<p class="cbl-lead center"><b>{nl(jo["sub"])}</b></p>' if jo.get("sub") else ""
+        quote = f'<blockquote class="cbl-quote">“{nl(jo["quote"])}”</blockquote>' if jo.get("quote") else ""
+        road = f'<p class="center"><a class="btn btn-lg btn-outline" href="{esc(p["roadmap_link"])}" target="_blank" rel="noopener" data-cta="combo_roadmap">Xem lộ trình {num(p.get("days")) or ""} ngày</a></p>' if p.get("roadmap_link") else ""
+        out.append(f'<section class="cbl-sec cbl-journey" id="cach-trai-nghiem"><h2 class="cbl-h2 center">{nl(jo.get("title"))}</h2>{sub}<ol class="cbl-steps">{st}</ol>{quote}{road}</section>')
+    rc = p.get("receive") or {}
+    if rc.get("title"):
+        li = [f'{x["qty"]:02d} {x["it"].get("title") or x["p"]["name"]}' + (f' · {x["unit"]}' if x["unit"] else "") for x in p["parts"]]
+        li += ["Miễn phí vận chuyển"] if p.get("free_ship") else []
+        li += [f'Lộ trình trải nghiệm Sống Lành {num(p.get("days")) or ""} ngày'] if p.get("roadmap_link") else []
+        li += [x for x in rc.get("extras") or [] if x]
+        rows = "".join(f"<li>{ic('check', 'cbl-ck')}<span>{esc(x)}</span></li>" for x in li)
+        out.append(f'<section class="cbl-sec cbl-receive"><h2 class="cbl-h2">{nl(rc["title"])}</h2><ul class="cbl-checks">{rows}</ul></section>')
+    fi = p.get("final") or {}
+    if fi.get("title"):
+        sub = f'<p class="cbl-final-sub">{nl(fi["sub"])}</p>' if fi.get("sub") else ""
+        note = f'<p class="cbl-micro">{esc(fi["note"])}</p>' if fi.get("note") else ""
+        out.append(f'<section class="cbl-final"><h2>{nl(fi["title"])}</h2>{sub}{price_html(p, "price big")}<div class="cbh-tags">{combo_save_tags(p, "cbh-")}</div>{combo_cta(p, "final")}{note}</section>')
+    return f'<div class="cbl" data-product="{p["slug"]}">{"".join(out)}</div>' if out else ""
 
 
 def page_product(p):
@@ -878,6 +992,17 @@ def page_product(p):
         buy = f'''<div class="contact-price"><p>Sản phẩm đang cập nhật giá trên website. Anh/chị vui lòng liên hệ để được báo giá và ưu đãi tốt nhất.</p></div>
   <div class="buy-row"><a class="btn btn-lg btn-buy" href="tel:{tel(SITE["hotline"])}">{ic("phone")} Gọi {esc(SITE["hotline"])}</a>
   <a class="btn btn-lg btn-zalo" href="{zalo_link()}" target="_blank" rel="noopener">{ic("zalo")} Tư vấn qua Zalo</a></div>'''
+    landing = bool(p.get("combo") and p.get("hero"))  # gói "khởi động": hero + các phần thuyết phục, nút chính là lời mời bắt đầu
+    if landing and purchasable:
+        buy = f'''<div class="qty-row"><div class="qty" data-qty><button type="button" data-qminus aria-label="Giảm">−</button><input type="number" min="1" value="1" aria-label="Số lượng" id="qtyInput"><button type="button" data-qplus aria-label="Tăng">+</button></div>
+  <button class="btn btn-outline" data-add-detail="{p["slug"]}">Thêm vào giỏ hàng</button></div>
+  <div class="buy-row"><a class="btn btn-zalo" href="{zalo_link()}" target="_blank" rel="noopener">{ic("zalo")} Tư vấn qua Zalo</a></div>'''
+    if landing:
+        info_top = combo_hero_info(p)
+    else:
+        info_top = f'''<h1 class="p-title">{esc(p["name"])}</h1>
+      <div class="p-summary">{p["summary"]}</div>
+      <div class="p-price" id="pPrice">{price_html(p, "price big")}</div>'''
     share_url = DOMAIN + path
     sections = "".join(section_html(i, s) for i, s in enumerate(p.get("sections", []), 1))
     disc = f'<p class="disclaimer">{esc(p["disclaimer"])}</p>' if p.get("disclaimer") else ""
@@ -885,21 +1010,20 @@ def page_product(p):
     related += [x for x in PRODUCTS if x["slug"] != p["slug"] and x not in related]
     body = f'''<section class="section pt-2"><div class="container">
   {bc}
-  <div class="product" data-product="{p["slug"]}">
-    <div class="gallery" id="gallery">
+  <div class="product{" product-cbl" if landing else ""}" data-product="{p["slug"]}">
+    {combo_hero_head(p) if landing else ""}<div class="gallery" id="gallery">
       <div class="g-main">{badge}{main_imgs}<span class="g-zoom">{I["zoom"]}</span>
       <button class="g-nav prev" data-gprev aria-label="Ảnh trước">{I["left"]}</button><button class="g-nav next" data-gnext aria-label="Ảnh sau">{I["right"]}</button></div>
       <div class="g-thumbs">{thumbs}</div>
     </div>
     <div class="p-info">
-      <h1 class="p-title">{esc(p["name"])}</h1>
-      <div class="p-summary">{p["summary"]}</div>
-      <div class="p-price" id="pPrice">{price_html(p, "price big")}</div>
-      {combo_parts_html(p) if p.get("combo") else unit}{variants}
+      {info_top}
+      {"" if landing else (combo_parts_html(p) if p.get("combo") else unit)}{variants}
       {buy}
+      {combo_parts_html(p) if landing else ""}
       {offer_box(p) if purchasable else ""}
       {"" if p.get("combo") else in_combos_html(p)}
-      <ul class="p-highlights">{highlights}</ul>
+      {f'<ul class="p-highlights">{highlights}</ul>' if highlights else ""}
       <div class="p-meta"><p><b>SKU:</b> {esc(p["sku"])}</p><p><b>Danh mục:</b> <a href="/danh-muc/{cat["slug"]}/">{esc(cat["name"])}</a>, <a href="/san-pham/">Toàn bộ sản phẩm</a></p></div>
       <div class="share"><b>Chia sẻ</b>
         <a href="https://www.facebook.com/sharer/sharer.php?u={share_url}" target="_blank" rel="noopener" aria-label="Chia sẻ Facebook">{I["facebook"]}</a>
@@ -909,6 +1033,7 @@ def page_product(p):
       </div>
     </div>
   </div>
+  {combo_landing(p) if landing else ""}
 
   <div class="tabs" data-tabs>
     <div class="tab-nav" role="tablist"><button role="tab" class="is-active" data-tab="desc">Mô tả</button><button role="tab" data-tab="ship">Giao hàng & đổi trả</button></div>
@@ -931,7 +1056,7 @@ def page_product(p):
   {grid(related[:4], "p-grid related-grid")}
 </div></section>
 <div class="sticky-buy" id="stickyBuy"><div class="sb-info"><img src="{pimg(p["images"][0], True)}" alt="" width="44" height="44"><div><b>{esc(p.get("short_name") or p["name"])}</b>{price_html(p, "price")}</div></div>
-{('<button class="btn" data-buy-now="' + p["slug"] + '">Mua ngay</button>') if purchasable else f'<a class="btn" href="{zalo_link()}" target="_blank" rel="noopener">Tư vấn</a>'}</div>'''
+{('<button class="btn" data-buy-now="' + p["slug"] + '">' + esc(p.get("cta_short") or "Mua ngay") + '</button>') if purchasable else f'<a class="btn" href="{zalo_link()}" target="_blank" rel="noopener">Tư vấn</a>'}</div>'''
     ld = {"@context": "https://schema.org", "@type": "Product", "name": p["name"], "sku": p["sku"],
           "image": [DOMAIN + pimg(i) for i in p["images"]], "description": strip_tags(p["summary"]),
           "brand": {"@type": "Brand", "name": BRAND}}

@@ -1,68 +1,131 @@
 {
-  "name": "Gói Thử Thách 10 Ngày Sống Lành",
-  "short_name": "Thử thách 10 ngày",
+  "name": "Gói Khởi Động 10 Ngày Sống Lành",
+  "short_name": "Khởi động 10 ngày",
   "published": true,
   "featured": true,
   "order": 1,
-  "badge": "Gói giải pháp",
+  "badge": "Gói khởi động",
   "price": 349000,
   "free_ship": true,
   "days": 10,
   "web_discount": null,
+  "eyebrow": "Gói khởi động",
+  "headline": "10 Ngày Sống Lành",
+  "tagline": "Không cần thay đổi tất cả. Chỉ cần 10 ngày để bắt đầu.",
+  "subline": "3 sản phẩm – 3 thói quen nhỏ – 1 khởi đầu dễ dàng hơn.",
+  "cta": "Bắt đầu 10 ngày Sống Lành",
+  "cta_short": "Bắt đầu ngay",
+  "cta_note": "Bắt đầu từ những thay đổi nhỏ, dễ thực hiện và dễ duy trì.",
+  "roadmap_link": "",
   "items": [
     {
       "product": "bua-an-dinh-duong-vitagreen",
       "variant": "Hộp 125g",
-      "qty": 1
+      "qty": 1,
+      "icon": "🥣",
+      "benefit": "Ăn lành hơn",
+      "title": "Bữa Ăn Dinh Dưỡng VitaGreen",
+      "note": "Một lựa chọn tiện lợi cho những buổi sáng bận rộn.",
+      "detail": "Một lựa chọn tiện lợi cho những buổi sáng bận rộn, giúp việc chuẩn bị một lựa chọn dinh dưỡng từ hạt trở nên đơn giản hơn.",
+      "quote": "Buổi sáng bận rộn cũng có thể bắt đầu theo cách chủ động hơn."
     },
     {
       "product": "dinh-duong-tu-hat-va-curcumin",
       "variant": "Hộp 125g",
-      "qty": 1
+      "qty": 1,
+      "icon": "🥛",
+      "benefit": "Bữa phụ tốt hơn",
+      "title": "Dinh Dưỡng Từ Hạt & Curcumin",
+      "note": "Thêm một lựa chọn từ hạt cho những lúc cần một bữa phụ tiện lợi.",
+      "detail": "Một lựa chọn từ hạt tiện lợi cho những lúc giữa buổi hoặc khi bạn cần bổ sung một bữa phụ.",
+      "quote": "Thay vì chọn theo cảm tính khi đói, hãy chuẩn bị sẵn một lựa chọn tốt hơn."
     },
     {
       "product": "tra-hoa-tan-dilvang-dinh-lang-che-vang",
       "variant": "",
-      "qty": 1
+      "qty": 1,
+      "icon": "🍵",
+      "benefit": "Uống lành hơn",
+      "title": "Trà DILVANG",
+      "note": "Một lựa chọn trà thảo mộc tiện lợi để xây dựng thói quen uống lành hơn mỗi ngày.",
+      "detail": "Trà thảo mộc tiện lợi, dễ pha và dễ đưa vào nhịp sinh hoạt hàng ngày.",
+      "quote": "Một tách trà có thể là bước đầu để giảm dần những đồ uống bạn không còn muốn sử dụng quá thường xuyên."
     }
   ],
   "images": [
-    "/assets/img/products/combo-thu-thach-10-ngay.webp",
+    "/assets/img/products/combo-khoi-dong-10-ngay.webp",
     "/assets/img/products/bua-an-dinh-duong-1.webp",
     "/assets/img/products/curcumin-1.webp",
     "/assets/img/products/tra-dilvang-1.webp"
   ],
-  "summary": "Bắt đầu thói quen **ăn lành – uống lành** trong 10 ngày với 3 sản phẩm thuần tự nhiên của Thực Dưỡng Lành: bữa sáng dinh dưỡng từ hạt và một tách trà thảo mộc mỗi ngày. Có người đồng hành trong nhóm Zalo suốt thử thách.",
-  "highlights": [
-    "Đủ dùng cho 10 ngày làm quen",
-    "Miễn phí vận chuyển toàn quốc",
-    "Có người đồng hành, nhắc lịch trong nhóm Zalo",
-    "Sản phẩm thuần chay, nguồn gốc rõ ràng"
-  ],
+  "summary": "Dành cho người bận rộn muốn ăn uống lành mạnh hơn nhưng chưa biết bắt đầu từ đâu.",
+  "hero": {
+    "eyebrow": "Gói khởi động sống lành",
+    "title": "10 ngày để bắt đầu\nsống lành hơn",
+    "sub": "Bạn không cần thay đổi toàn bộ cuộc sống trong một ngày.\nHãy bắt đầu bằng 3 lựa chọn nhỏ: ăn lành hơn, chọn bữa phụ tốt hơn và uống lành hơn.",
+    "desc": "Gói Khởi Động 10 Ngày Sống Lành được thiết kế cho những người bận rộn muốn chăm sóc bản thân tốt hơn nhưng chưa biết nên bắt đầu từ đâu."
+  },
+  "pains": {
+    "title": "Bạn muốn sống lành hơn nhưng…",
+    "items": [
+      "Buổi sáng bận rộn nên thường ăn uống qua loa hoặc bỏ bữa?",
+      "Đói giữa buổi nhưng không biết nên chọn món gì cho tiện mà vẫn phù hợp hơn?",
+      "Quen với nước ngọt, trà sữa hoặc các loại đồ uống nhiều đường?",
+      "Muốn bắt đầu ăn uống tốt hơn nhưng thấy quá nhiều nguyên tắc và không biết bắt đầu từ đâu?",
+      "Đã nhiều lần muốn thay đổi nhưng khó duy trì vì mọi thứ quá phức tạp?"
+    ],
+    "callout": "Bạn không cần bắt đầu bằng một chế độ ăn thật khắt khe.\nHãy bắt đầu bằng những lựa chọn nhỏ mà bạn có thể thực hiện ngay trong cuộc sống hàng ngày."
+  },
+  "solution": {
+    "title": "3 thay đổi nhỏ\ncho một khởi đầu mới",
+    "intro": "Gói Khởi Động 10 Ngày Sống Lành không yêu cầu bạn thay đổi mọi thứ cùng lúc. Chúng tôi bắt đầu từ 3 tình huống rất quen thuộc trong một ngày:"
+  },
+  "journey": {
+    "title": "10 ngày không phải để trở nên hoàn hảo",
+    "sub": "10 ngày chỉ để bạn bắt đầu.",
+    "steps": [
+      { "label": "Ngày 1 – 3", "text": "Làm quen với những lựa chọn mới." },
+      { "label": "Ngày 4 – 7", "text": "Đưa chúng vào nhịp sinh hoạt hàng ngày." },
+      { "label": "Ngày 8 – 10", "text": "Nhìn lại và lựa chọn những thói quen phù hợp nhất để tiếp tục duy trì." }
+    ],
+    "quote": "Sống lành không bắt đầu bằng những thay đổi lớn.\nSống lành bắt đầu từ những lựa chọn nhỏ được lặp lại mỗi ngày."
+  },
+  "receive": {
+    "title": "Một gói nhỏ\ncho một khởi đầu dễ dàng hơn",
+    "extras": [
+      "Tham gia cộng đồng Sống Lành trên Zalo để cùng chia sẻ và duy trì động lực"
+    ]
+  },
+  "final": {
+    "title": "Sống lành không cần bắt đầu bằng những thay đổi lớn",
+    "sub": "Hãy cho mình 10 ngày để bắt đầu.",
+    "note": "3 sản phẩm • 3 thói quen nhỏ • Một bước bắt đầu"
+  },
+  "highlights": [],
   "sections": [
     {
-      "title": "Lịch dùng gợi ý 10 ngày",
+      "title": "Gợi ý cách dùng trong 10 ngày",
       "style": "list",
       "items": [
-        "**Buổi sáng:** 1 ly Bữa Ăn Dinh Dưỡng VitaGreen hoặc Dinh Dưỡng Từ Hạt & Curcumin – dùng xen kẽ mỗi ngày một loại.",
-        "**Trong ngày:** 1–2 gói Trà DILVANG pha với 300–400ml nước ấm, thay cho nước ngọt, trà sữa.",
-        "**Mỗi tối:** ghi lại một điều biết ơn và chia sẻ trong nhóm Zalo thử thách.",
-        "Cách pha từng sản phẩm xem trên bao bì hoặc tại trang sản phẩm."
+        "**Những buổi sáng bận rộn:** pha 1 gói Bữa Ăn Dinh Dưỡng VitaGreen thay cho bữa sáng qua loa.",
+        "**Khi đói giữa buổi:** dùng Dinh Dưỡng Từ Hạt & Curcumin như một bữa phụ đã chuẩn bị sẵn.",
+        "**Khi thèm đồ uống ngọt:** pha 1 gói Trà DILVANG với 300–400ml nước ấm.",
+        "Không cần dùng cả 3 sản phẩm mỗi ngày – chọn lúc nào phù hợp với nhịp sinh hoạt của bạn. Cách pha từng sản phẩm xem trên bao bì hoặc trang sản phẩm."
       ]
     },
     {
       "title": "Phù hợp với ai",
       "style": "list",
       "items": [
-        "Người bận rộn hay bỏ bữa sáng, muốn có bữa sáng nhanh từ hạt.",
-        "Người muốn làm quen với thực dưỡng, ăn chay, giảm đồ uống nhiều đường.",
-        "Người muốn dùng thử cả 3 dòng sản phẩm trước khi mua hộp lớn."
+        "Người bận rộn hay ăn sáng qua loa hoặc bỏ bữa.",
+        "Người muốn giảm dần nước ngọt, trà sữa và đồ uống nhiều đường.",
+        "Người muốn làm quen với cả 3 dòng sản phẩm trước khi chọn hộp lớn."
       ]
     },
     {
       "title": "Lưu ý",
       "style": "box",
-      "text": "Thử thách nhằm xây dựng thói quen ăn uống lành mạnh, không thay thế chế độ điều trị. Người đang dùng thuốc, phụ nữ mang thai, cho con bú nên hỏi ý kiến bác sĩ trước khi dùng."
+      "text": "Gói giúp bạn bắt đầu xây dựng thói quen ăn uống lành mạnh hơn; lượng sản phẩm trong gói không phải toàn bộ khẩu phần ăn trong 10 ngày. Người đang dùng thuốc, phụ nữ mang thai, cho con bú nên hỏi ý kiến bác sĩ trước khi dùng."
     }
   ],
   "disclaimer": "Bữa Ăn Dinh Dưỡng VitaGreen và Dinh Dưỡng Từ Hạt & Curcumin là thực phẩm bổ sung. Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh."

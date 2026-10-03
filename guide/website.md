@@ -71,7 +71,7 @@ Muốn ẩn bài mà không xoá: tắt **“Hiển thị trên web”**.
 
 ## Tạo gói giải pháp (combo)
 
-Gói = nhiều sản phẩm bán chung 1 giá, ví dụ **Gói Thử Thách 10 Ngày Sống Lành**.
+Gói = nhiều sản phẩm bán chung 1 giá, ví dụ **Gói Khởi Động 10 Ngày Sống Lành**.
 
 1. Vào **/admin → Gói giải pháp → Tạo gói** (hoặc bấm vào gói có sẵn để sửa / nhân bản).
 2. **Sản phẩm trong gói**: bấm **Thêm**, chọn sản phẩm, gõ đúng tên **quy cách** như trong sản phẩm (ví dụ `Hộp 125g`; sản phẩm 1 quy cách thì để trống), nhập số lượng.
@@ -79,7 +79,13 @@ Gói = nhiều sản phẩm bán chung 1 giá, ví dụ **Gói Thử Thách 10 N
 4. **Miễn phí vận chuyển**: bật thì đơn có gói này được freeship.
 5. **Số ngày dùng hết gói** (ví dụ 10): CRM tự nhắc sale gọi khách trước khi khách dùng hết.
 6. Ảnh, mô tả, lịch dùng: chỉ mô tả **thói quen, thực đơn, cách dùng** – không hứa kết quả sức khỏe (không dùng "giảm cân, thải độc, chữa, khỏi…"). Gói có thực phẩm bổ sung phải có dòng *"không phải là thuốc…"*.
-7. Bấm **Lưu → Đăng**. Sau 1–2 phút gói hiện ở: trang chủ (mục **Gói Giải Pháp Sống Lành**), danh mục **Gói Giải Pháp**, hộp tư vấn nổi, và khung *"Tiết kiệm hơn khi mua theo gói"* trong trang từng sản phẩm có trong gói.
+7. **Nội dung thuyết phục** (không bắt buộc, xem mẫu ở gói Khởi Động 10 Ngày):
+    - Trong từng sản phẩm của gói: **Biểu tượng**, **Lợi ích** (ví dụ "Ăn lành hơn"), câu ngắn, mô tả, thông điệp. Lợi ích hiện to hơn tên sản phẩm.
+    - **Tiêu đề lớn, Câu chính, Câu phụ, Chữ trên nút mua**: thẻ gói ở trang chủ.
+    - Các mục **Trang gói – …** (phần đầu, vấn đề, giải pháp, các chặng, nhận được gì, nút cuối): trang chi tiết gói. Xuống dòng trong ô thì trên web cũng xuống dòng.
+    - **Link tài liệu lộ trình**: chỉ điền khi đã có tài liệu thật gửi khách. Khi có link, web tự hiện nhãn "🎁 Lộ trình đồng hành" và nút "Xem lộ trình". Mục **Quyền lợi thêm** cũng chỉ ghi điều khách thật sự nhận được.
+    - Nên dùng các từ *bắt đầu, khởi động, trải nghiệm, thói quen nhỏ, dễ duy trì*. Tránh *thử thách, phải, bắt buộc*. Không viết lượng sản phẩm như thể đủ ăn cả 10 ngày.
+8. Bấm **Lưu → Đăng**. Sau 1–2 phút gói hiện ở: trang chủ (mục **Gói Giải Pháp Sống Lành**), danh mục **Gói Giải Pháp**, hộp tư vấn nổi, và khung *"Tiết kiệm hơn khi mua theo gói"* trong trang từng sản phẩm có trong gói.
 
 Muốn tạm ngừng bán gói: tắt **Hiển thị trên web**.
 
