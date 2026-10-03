@@ -84,7 +84,7 @@ Trên mỗi dòng đơn còn có:
 
 **Số ngày đang giao** tính từ **ngày gửi hàng**: CRM tự ghi ngày gửi khi bạn bấm **Đang giao** hoặc nhập mã vận đơn. Đơn cũ chưa có ngày gửi (vd đơn nhập từ file) thì tính từ ngày đặt; rê chuột vào ô số ngày để xem tính từ ngày nào. Khách đã nhận hàng thì nhớ bấm **📬 Đã giao** để đơn không còn bị báo giao lâu.
 
-Bấm vào dòng để mở đơn (Zalo, sửa đơn, ghi chú…). Thẻ **📋 Tất cả đơn** để tra cứu, chọn **Hôm nay / 7 ngày / Tháng này** và trạng thái. Đầu trang có số đơn và doanh thu hôm nay, số đơn đang giao, tỷ lệ hoàn tháng này.
+Bấm vào dòng để mở đơn (Zalo, sửa đơn, ghi chú…). Thẻ **📋 Tất cả đơn** để tra cứu: bấm nút **📅 thời gian** để chọn *Mọi lúc, Hôm nay, Hôm qua, 7 ngày qua, Tháng này, Tháng trước* hoặc **Tuỳ chỉnh** (tự chọn từ ngày – đến ngày), rồi lọc theo trạng thái. Đầu trang có số đơn và doanh thu hôm nay, số đơn đang giao, tỷ lệ hoàn tháng này.
 
 
 Đơn khách đặt trên web tự vào CRM và báo lên Telegram. Mỗi đơn đi qua các trạng thái:
@@ -334,11 +334,13 @@ Khách hỏi hiện ở tab Hôm nay khi: **chưa liên hệ lần nào**, **đ�
 
 ## Hiệu quả và mục tiêu tháng
 
+Bấm nút **📅 thời gian** ở đầu trang để xem số liệu *Hôm nay, Hôm qua, 7 ngày qua, Tháng này, Tháng trước* hoặc **Tuỳ chỉnh** (tự chọn từ ngày – đến ngày). Mỗi chỉ số tự so với kỳ liền trước cùng độ dài (vd hôm nay so với cùng giờ hôm qua). Mục tiêu và bảng BCDT luôn tính theo tháng.
+
 ![Tab Hiệu quả](/huong-dan/img/crm-report.webp)
 
 - **Đầu tháng**, bấm **🎯 Đặt mục tiêu** doanh số của bạn. Gõ số hoặc viết tắt, ví dụ `30tr`. Có nút lấy bằng tháng trước cộng 10%.
 - **Thanh tiến độ**: vạch đen là hôm nay. Thanh màu vượt vạch đen là đang **đúng tiến độ**. CRM cho biết còn thiếu bao nhiêu và **mỗi ngày cần bán khoảng bao nhiêu**.
-- **Bán hàng**: doanh số, giá trị trung bình mỗi đơn, tỷ lệ chốt khách hỏi, phần doanh thu từ khách cũ, so với tháng trước.
+- **Bán hàng**: doanh số, giá trị trung bình mỗi đơn, tỷ lệ chốt khách hỏi, phần doanh thu từ khách cũ, so với kỳ trước.
 - **Chăm sóc khách**: số lượt chăm sóc, tỷ lệ khách trả lời, số khách đặt lại, số khách quá 30 ngày chưa chăm sóc (bấm vào để xem danh sách cần gọi).
 
 Doanh số tính theo **Nhân viên bán** ghi trên từng đơn. Đơn khách tự đặt trên web được tính cho **người đang phụ trách khách đó**.
