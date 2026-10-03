@@ -76,6 +76,12 @@ Tab **Đơn hàng** mở sẵn mục **⚡ Cần xử lý**, chỉ gồm những
 
 Mỗi đơn 1 dòng: **📍 tỉnh giao đến**, ngày đặt, thanh toán, sản phẩm, mã vận đơn, **🚚 số ngày đang giao** (màu cam ⚠️ khi quá 5 ngày), 1 nút đúng việc tiếp theo và nút 📞.
 
+Trên mỗi dòng đơn còn có:
+- **⚠️ đã hoàn N lần** (nhãn đỏ): khách này từng hoàn đơn. Gọi xác nhận kỹ trước khi gửi, đơn lớn nên nhờ khách chuyển khoản trước.
+- **📌 Ghi chú giao hàng** (khung vàng): ghi chú có giờ giao, gọi trước, cho xem hàng… được hiện nổi bật để không bị sót.
+- **Mã vận đơn** bấm được: CRM copy sẵn mã và mở trang tra cứu của hãng vận chuyển (GHN, GHTK, J&T… mở thẳng kết quả; Viettel Post, VNPost thì dán mã vào ô tra cứu).
+- Đơn COD đang giao ghi **thu hộ** trước số tiền. Ô **🚚 Đang giao** phía trên cho biết tổng tiền thu hộ bưu cục đang giữ.
+
 **Số ngày đang giao** tính từ **ngày gửi hàng**: CRM tự ghi ngày gửi khi bạn bấm **Đang giao** hoặc nhập mã vận đơn. Đơn cũ chưa có ngày gửi (vd đơn nhập từ file) thì tính từ ngày đặt; rê chuột vào ô số ngày để xem tính từ ngày nào. Khách đã nhận hàng thì nhớ bấm **📬 Đã giao** để đơn không còn bị báo giao lâu.
 
 Bấm vào dòng để mở đơn (Zalo, sửa đơn, ghi chú…). Thẻ **📋 Tất cả đơn** để tra cứu, chọn **Hôm nay / 7 ngày / Tháng này** và trạng thái. Đầu trang có số đơn và doanh thu hôm nay, số đơn đang giao, tỷ lệ hoàn tháng này.

@@ -185,7 +185,7 @@
       if (!j.part) idb('set', 'data', { tk: S.token.slice(-12), at: S.loadedAt, d: j }); // máy chủ cũ: 1 đợt
       if (!$('.me')) shell(); else { $('.me').innerHTML = meHTML(); navBadges(); } // .me chỉ có ở giao diện thật (khung chờ không có)
       softRender(silent);
-      if (j.part) return loadRest(j);
+      if (j.part) loadRest(j); // tải ngầm, không giữ S.loading → bấm ↻ lúc đợt 2 chưa xong vẫn tải lại được
     }, function (e) { if (!silent && S.token) toast(e.message, true); if (!S.d && S.token && !$('.me')) { $('#app').innerHTML = '<div class="login"><div class="login-box"><h1>Chưa tải được dữ liệu</h1><p class="sub">' + esc(e.message) + '</p><button class="btn pri block" id="retry">Thử lại</button></div></div>'; $('#retry').onclick = function () { location.reload(); }; } })
       .then(function () { S.loading = false; var b2 = $('#refresh'); if (b2) b2.classList.remove('spin'); });
   }
@@ -1163,13 +1163,24 @@
     G.forEach(function (g) { g.list = S.d.orders.filter(g.f).sort(function (a, b) { return a.time - b.time; }); });
     return G;
   }
+  /** Ghi chú giao hàng cần làm đúng (giờ giao, gọi trước, cho xem hàng…) → hiện nổi bật trên dòng đơn. */
+  var KEY_NOTE = /gio hanh chinh|goi truoc|alo truoc|hen giao|giao (vao |buoi |sau |truoc |gap|nhanh|cuoi tuan|thu \d|chu nhat|sang|chieu|toi)|(khong|ko|k) (giao|nhan|cho xem|xem hang|goi)|cho xem hang|dong kiem|kiem hang|cuoi tuan|truoc \d+ ?h|sau \d+ ?h|gui (tai|o|qua)|nhan (tai|o)|de (o|tai)|bao ve|le tan|hoa toc/;
+  function keyNote(o) { return !!o.note && KEY_NOTE.test(norm(o.note)) && !isVoid(o.status) && o.status !== 'Đã giao'; }
+  /** Mã vận đơn bấm được: copy mã + mở trang tra cứu của hãng. */
+  function trackLink(o) {
+    if (!o.tracking) return '';
+    var u = CARRIERS[o.carrier] || '', t = esc(o.carrier) + ' ' + esc(o.tracking);
+    return u ? '<a class="trk" href="' + esc(u.replace('{c}', encodeURIComponent(o.tracking))) + '" target="_blank" rel="noopener" data-trk="' + esc(o.tracking) + '" title="Bấm để tra cứu (mã đã được copy sẵn)">🚚 ' + t + ' ↗</a>'
+      : '<button type="button" class="trk link" data-trk="' + esc(o.tracking) + '" title="Bấm để copy mã vận đơn">🚚 ' + t + ' 📋</button>';
+  }
   function orderRow(o) {
-    var oc = orderCat(o), next = NEXT[o.status], dd = shipDays(o), shipping = o.status === 'Đang giao', pv = provOf(o);
+    var oc = orderCat(o), next = NEXT[o.status], dd = shipDays(o), shipping = o.status === 'Đang giao', pv = provOf(o), oc0 = cust(o.phone) || {}, backWarn = oc0.backN && !isVoid(o.status) && o.status !== 'Đã giao', kn = keyNote(o);
     var act = o.status === 'Đã xác nhận' && !o.tracking ? '<button class="btn pri" data-order="' + esc(o.id) + '" title="Mở đơn để nhập mã vận đơn">📦 Nhập mã VĐ</button>' : next ? '<button class="btn pri" data-next="' + esc(o.id) + '">' + NEXT_LABEL[o.status] + '</button>' : '';
     return '<div class="rw orw click tinted" data-order="' + esc(o.id) + '"' + catAttr(oc) + '><div class="rw-m">' +
-      '<div class="rw-1"><b>' + esc(o.name) + '</b>' + stTag(o.status) + (shipping ? '<span class="tag ' + (dd > SHIP_LATE ? 'st-late' : 'st-giao') + '" title="' + (o.shipAt ? 'Đã gửi ' + dd + ' ngày (gửi ngày ' + fDate(o.shipAt).slice(0, 5) + ')' : 'Tính từ ngày đặt ' + fDate(o.time).slice(0, 5) + ' (đơn này chưa ghi ngày gửi)') + '">🚚 ' + dd + ' ngày' + (dd > SHIP_LATE ? ' ⚠️' : '') + '</span>' : '') + (oc.key !== 'void' ? catChip(oc) : '') + '<span class="end">' + money(o.total) + '</span></div>' +
+      '<div class="rw-1"><b>' + esc(o.name) + '</b>' + stTag(o.status) + (shipping ? '<span class="tag ' + (dd > SHIP_LATE ? 'st-late' : 'st-giao') + '" title="' + (o.shipAt ? 'Đã gửi ' + dd + ' ngày (gửi ngày ' + fDate(o.shipAt).slice(0, 5) + ')' : 'Tính từ ngày đặt ' + fDate(o.time).slice(0, 5) + ' (đơn này chưa ghi ngày gửi)') + '">🚚 ' + dd + ' ngày' + (dd > SHIP_LATE ? ' ⚠️' : '') + '</span>' : '') + (oc.key !== 'void' ? catChip(oc) : '') + (backWarn ? '<span class="tag st-back" title="' + esc('Khách này đã hoàn ' + oc0.backN + ' đơn' + (oc0.lastBack ? ', gần nhất ' + fDate(oc0.lastBack) : '') + '. Gọi xác nhận kỹ trước khi gửi; đơn lớn nên nhờ chuyển khoản trước.') + '">⚠️ đã hoàn ' + oc0.backN + ' lần</span>' : '') + '<span class="end">' + (shipping && !isBank(o) ? '<small class="muted">thu hộ </small>' : '') + money(o.total) + '</span></div>' +
       '<div class="rw-2">' + (pv ? '<b class="prov">📍 ' + esc(pv.old) + '</b> · ' : '') + when(o.time) + ' · ' + esc(o.payment) + (isBank(o) && !isVoid(o.status) ? (o.paid ? ' ✓' : ' <span class="warn-line">chưa nhận tiền</span>') : '') + ' · ' + esc(itemNames(o.items).join(', ')) + '</div>' +
-      '<div class="rw-3">' + (o.tracking ? '🚚 ' + esc(o.carrier) + ' ' + esc(o.tracking) + ' · ' : '') + '<span class="muted">' + esc(o.id) + '</span>' + (o.seller && (lvl() >= 2 || o.seller !== S.user.name) ? ' · 👤 ' + esc(o.seller) : '') + (o.note ? ' · 📝 ' + esc(o.note.length > 60 ? o.note.slice(0, 60) + '…' : o.note) : '') + '</div></div>' +
+      (kn ? '<div class="keynote">📌 ' + esc(o.note.length > 140 ? o.note.slice(0, 140) + '…' : o.note) + '</div>' : '') +
+      '<div class="rw-3">' + (o.tracking ? trackLink(o) + ' · ' : '') + '<span class="muted">' + esc(o.id) + '</span>' + (o.seller && (lvl() >= 2 || o.seller !== S.user.name) ? ' · 👤 ' + esc(o.seller) : '') + (o.note && !kn ? ' · 📝 ' + esc(o.note.length > 60 ? o.note.slice(0, 60) + '…' : o.note) : '') + '</div></div>' +
       '<div class="rw-a">' + act + '<a class="btn" href="tel:' + o.phone + '" aria-label="Gọi">📞</a></div></div>';
   }
   function viewOrders() {
@@ -1178,9 +1189,9 @@
     var q = norm(f.q), qd = q.replace(/\D/g, ''), t0 = today();
     if (q && f.tab === 'todo') f.tab = 'all'; // đang tìm → xem trong tất cả đơn
     var mR = monthRange(monthOf(Date.now())), todayOs = S.d.orders.filter(function (o) { return o.time >= t0 && !isVoid(o.status); }), monthOs = S.d.orders.filter(function (o) { return o.time >= mR[0] && o.time < mR[1] && o.status !== 'Huỷ'; });
-    var backM = monthOs.filter(function (o) { return /hoàn/i.test(o.status); }).length, shipping = S.d.orders.filter(function (o) { return o.status === 'Đang giao'; }).length;
+    var backM = monthOs.filter(function (o) { return /hoàn/i.test(o.status); }).length, shipOs = S.d.orders.filter(function (o) { return o.status === 'Đang giao'; }), shipping = shipOs.length, codOut = shipOs.reduce(function (s0, o) { return s0 + (isBank(o) ? 0 : o.total); }, 0);
     var h = '<div class="page-head"><h1>Đơn hàng</h1><div class="grow"></div><button class="btn pri" data-neworder="">＋ Tạo đơn (Zalo, điện thoại…)</button></div>' +
-      '<div class="minis">' + mini('🧾 Đơn hôm nay', todayOs.length, '', '') + mini('💰 Doanh thu hôm nay', moneyShort(todayOs.reduce(function (s0, o) { return s0 + o.total; }, 0)), '', 'good') + mini('🚚 Đang giao', shipping, '', '') + mini('↩ Hoàn tháng này', monthOs.length ? pct(backM, monthOs.length) + '%' : '–', '', backM ? 'bad' : '') + '</div>' +
+      '<div class="minis">' + mini('🧾 Đơn hôm nay', todayOs.length, '', '') + mini('💰 Doanh thu hôm nay', moneyShort(todayOs.reduce(function (s0, o) { return s0 + o.total; }, 0)), '', 'good') + mini('🚚 Đang giao', shipping + (codOut ? '<small class="mini-sub" title="Tiền COD bưu cục đang giữ của các đơn đang giao">thu hộ ' + moneyShort(codOut) + '</small>' : ''), '', '') + mini('↩ Hoàn tháng này', monthOs.length ? pct(backM, monthOs.length) + '%' : '–', '', backM ? 'bad' : '') + '</div>' +
       '<div class="tools"><div class="search">' + I.search + '<input type="search" id="oq" placeholder="Tìm tên, SĐT, mã đơn, sản phẩm…" value="' + esc(f.q) + '"></div></div>';
     var G = orderTodo(), todoN = G.reduce(function (s0, g) { return s0 + g.list.length; }, 0);
     h += '<div class="tabs" style="max-width:420px"><button data-otab="todo" class="' + (f.tab === 'todo' ? 'on' : '') + '">⚡ Cần xử lý' + (todoN ? ' (' + todoN + ')' : '') + '</button><button data-otab="all" class="' + (f.tab === 'all' ? 'on' : '') + '">📋 Tất cả đơn</button></div>';
@@ -2414,6 +2425,11 @@
     if (t.hasAttribute('data-lead')) { closeModal(true); openLead(a('data-lead')); return; }
   });
   document.addEventListener('click', function (e) { if (S.d && e.target.closest('[data-cfclear]')) { S.f.c.spend = ''; S.f.c.src = ''; S.f.c.n = 60; render(); } });
+  document.addEventListener('click', function (e) { // mã vận đơn trên dòng đơn: copy mã (link thì mở trang tra cứu), không mở hộp đơn
+    var tk = e.target.closest && e.target.closest('[data-trk]'); if (!tk) return;
+    e.stopPropagation(); var code = tk.getAttribute('data-trk'), paste = tk.tagName === 'A' && tk.getAttribute('href').indexOf(encodeURIComponent(code)) < 0;
+    copy(code).then(function () { toast('Đã copy mã vận đơn ' + code + (paste ? ' – dán vào ô tra cứu' : '')); });
+  }, true);
   var typing = null;
   document.addEventListener('input', function (e) {
     if (!S.d) return;
