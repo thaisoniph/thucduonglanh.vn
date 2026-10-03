@@ -15,7 +15,9 @@ Chào Phương! Toàn bộ khách, đơn hàng và **ghi chú cũ** trong file c
 | --- | --- |
 | **Gọi chăm sóc khách cũ** | 🆕 **Trên CRM**: mỗi sáng mở tab **Hôm nay**, gọi theo danh sách, gọi xong bấm 1 nút kết quả |
 | Ghi kết quả cuộc gọi vào file Sheet | ✅ **Máy tự ghi** vào ô ghi chú của khách trong file của em (vd “, 1/10 knm”). Em **không ghi tay nữa** |
-| Lên đơn | Vẫn **trên file Sheet như cũ**. Sáng hôm sau đơn tự vào CRM |
+| Lên đơn | Lên trên file như cũ cũng được (sáng hôm sau đơn tự vào CRM), **hoặc** lên trên CRM (**Đơn hàng → ＋ Tạo đơn**): khoảng 5 phút sau đơn tự có thêm 1 dòng trong sheet **“lên đơn”** của em, có cả mã đơn |
+| Đổi trạng thái đơn trên CRM | Đang giao, Đã giao, Hoàn, Huỷ… tự ghi vào cột **Trạng thái** của đúng dòng đơn trong file (“Đã giao” ghi là “Giao thành công”) |
+| Tư vấn khách hỏi trên CRM | Kết quả + ghi chú tự ghi vào **“cop số”** (khách chưa có dòng thì máy thêm dòng mới) |
 | Ghi chú chăm sóc | Nên ghi **trên CRM** (máy tự ghi ngược vào file “cop số” sau ~5 phút). Nếu em vẫn ghi thêm vào **dòng khách cũ** trong file (vd “3/10 kh hỏi cách pha”) thì **7h sáng hôm sau** ghi chú đó cũng tự lên CRM. Nhớ ghi **ngày ở đầu** mỗi ghi chú như em vẫn làm |
 | Khách nhận hàng | Ghi **“giao thành công”** ở cột trạng thái trong file, **hoặc** bấm **📬 Đã giao** ở tab Đơn hàng trên CRM. Không cập nhật thì đơn vẫn hiện “Giao lâu chưa tới” |
 | Báo cáo doanh thu (BCDT) | Vẫn làm như cũ. Tuần sau anh Sơn chỉ em xem báo cáo tự động trên CRM |
@@ -108,6 +110,8 @@ Cuối ngày bấm **📋 Báo cáo cuối ngày (gửi Zalo)** ở tab Hôm nay
 **Đang tư vấn khách mới?** Hỏi khách ở tỉnh nào rồi gõ tên tỉnh vào ô tìm ở tab **Khách đã mua**. Máy cho biết bên mình đã có bao nhiêu khách ở tỉnh đó đã mua, hay mua sản phẩm gì, kèm câu gợi ý để nói với khách. Chỉ nói con số, không nói tên khách khác. Khách hỏi thì gõ luôn tỉnh vào ô **📍 Khách ở tỉnh nào?** trong hộp **💬 Tư vấn**.
 
 **Mời khách vào nhóm Zalo cộng đồng:** trong hộp **💬 Chăm sóc** có khung **👥 Mời vào nhóm Zalo cộng đồng**. Bấm **📋 Copy lời mời & mở Zalo**, dán gửi khách. Khách vào nhóm rồi thì bấm **✅ Khách đã vào nhóm**. Nên mời ở lần hỏi nhận hàng và lần hỏi thăm sau 1 tuần.
+
+**Có sợ mất dữ liệu khi chuyển sang CRM không?** Không. Việc em làm trên CRM (chăm sóc, ghi chú, kết bạn Zalo, tạo đơn, đổi trạng thái đơn, tư vấn khách hỏi) đều **tự ghi lại vào file Google Sheet của em** khoảng 5 phút sau. Em vẫn mở file xem như cũ. Toàn bộ dữ liệu cũng được lưu trong file gốc của công ty và có nhật ký từng thao tác.
 
 **Muốn gọi mời mua lại?** Ở tab **Khách đã mua**, bấm nút lọc **⏰ Sắp hết hàng**: đây là những khách sắp dùng hết hoặc vừa hết trong 7 ngày.
 
