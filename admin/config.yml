@@ -406,12 +406,13 @@ collections:
               - { label: "Trị giá quà", name: gift_value, widget: string, required: false, hint: "Ví dụ: 999.000đ" }
               - { label: "Điều kiện nhận quà", name: gift_how, widget: string, required: false, hint: "Ví dụ: khi tham gia nhóm Zalo Cộng đồng Sống khỏe cùng Thực Dưỡng Lành" }
           - { label: "Link nhóm Zalo Sống khỏe", name: zalo_group, widget: string, required: false, hint: "Hiện trong menu điện thoại và trang Đặt hàng thành công. Để trống thì ẩn." }
-          - label: "Mời nhận ebook (trang chủ, cuối bài viết, hộp tư vấn, menu)"
+          - label: "Ebook quà tặng (trang /ebook/ + lời mời ở trang chủ, cuối bài viết, hộp tư vấn, menu)"
             name: ebook
             widget: object
             required: false
             fields:
-              - { label: "Link trang ebook", name: url, widget: string, required: false, hint: "Web tự gắn thêm UTM để biết khách đến từ vị trí nào. Để trống thì ẩn toàn bộ." }
+              - { label: "Link trang ebook", name: url, widget: string, required: false, hint: "Mặc định /ebook/ (trang nhận ebook trên web, số khách vào thẳng CRM). Để trống thì ẩn toàn bộ." }
+              - { label: "Link đọc ebook (Heyzine)", name: flipbook, widget: string, required: false, hint: "Khách điền tên + SĐT ở trang /ebook/ xong sẽ được mở link này. Để trống thì không có trang /ebook/." }
               - { label: "Tiêu đề", name: title, widget: string }
               - { label: "Mô tả ngắn", name: sub, widget: text, required: false }
               - { label: "Chữ trên nút", name: button, widget: string, required: false }

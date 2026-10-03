@@ -42,7 +42,7 @@ website/
 │   └── pages/*.md         trang chính sách
 ├── data/
 │   (content/combos/*.json = gói giải pháp: items[product, variant, qty, icon, benefit, title, note, detail, quote]; có headline → thẻ trang chủ combo_card_v2; có hero → trang gói combo_hero_*/combo_landing (pains, solution, journey #cach-trai-nghiem, receive, final; roadmap_link rỗng = ẩn quyền lợi lộ trình), price, free_ship, days; build.py nạp như sản phẩm category "goi-giai-phap", tự tính parts_base/parts_web; JS hasFS() miễn ship; đơn gửi items[].days → Apps Script comboCycles() tự thêm tab Chu kỳ dùng)
-│   ├── site.json          liên hệ, hotline/Zalo, mạng xã hội, ngân hàng, phí ship, kênh cộng đồng, video thương hiệu (brand_video), mời ebook (ebook, gắn UTM utm_source=website; Apps Script ebookFromWeb() nhận dòng Ladi có "website" → kênh "Ebook – quà tặng (Website)"), nhóm Zalo (zalo_group), ưu đãi web (web_offer: mức chung; ghi đè theo sản phẩm/quy cách bằng web_discount trong content/products, 0 = không giảm; build.py apply_web_offer() giảm giá lúc build, giá gốc giữ cho CRM; placeholder {uu_dai_web} trong trang nội dung); icon sàn TMĐT (shopee/lazada/tiktok_shop) không hiện, chỉ còn trong sameAs
+│   ├── site.json          liên hệ, hotline/Zalo, mạng xã hội, ngân hàng, phí ship, kênh cộng đồng, video thương hiệu (brand_video), ebook (url `/ebook/` = trang nhận ebook trên web, flipbook = link Heyzine mở sau khi khách điền form; khung mời gắn `?tu=home|post|menu|float`, không dùng UTM để không ghi đè nguồn khách; form gửi `type: 'contact', kind: 'ebook'` → Apps Script ≥ 2026-10-04c tạo khách hỏi kênh "Ebook – quà tặng (Website)", Telegram 🎁 ĐĂNG KÝ EBOOK, không gửi email; bản cũ hơn vẫn nhận như form Liên hệ), nhóm Zalo (zalo_group), ưu đãi web (web_offer: mức chung; ghi đè theo sản phẩm/quy cách bằng web_discount trong content/products, 0 = không giảm; build.py apply_web_offer() giảm giá lúc build, giá gốc giữ cho CRM; placeholder {uu_dai_web} trong trang nội dung); icon sàn TMĐT (shopee/lazada/tiktok_shop) không hiện, chỉ còn trong sameAs
 │   ├── home.json          slider trang chủ
 │   ├── categories.json    danh mục sản phẩm
 │   ├── post-categories.json
@@ -70,6 +70,8 @@ website/
 - **Phí vận chuyển**: đơn < 300.000đ cộng 30.000đ; từ 300.000đ miễn phí (sửa trong /admin → Cài đặt → Thông tin liên hệ…). Thanh tiến độ "Mua thêm … để được miễn phí vận chuyển".
 - **Gợi ý mua kèm**: tối đa 3 món, ưu tiên món giúp đơn đạt 300.000đ và cặp khai báo ở ô "Gợi ý mua kèm" của từng sản phẩm.
 - **Thanh toán**: Chuyển khoản (chọn sẵn, hiện mã VietQR Vietcombank đúng số tiền + mã đơn) hoặc COD.
+
+**Trang nhận ebook** `/ebook/` (thay LadiPage ebook.thucduonglanh.vn): họ tên + SĐT → mở ebook Heyzine + mời nhóm Zalo; nhớ trên máy khách (`tdl_ebook`) nên lần sau mở thẳng ebook.
 
 **Nội dung**: Góc Sống Lành, Giới thiệu, **Hồ sơ thương hiệu** (/ho-so-thuong-hieu/ – sách lật Heyzine + PDF), trang chính sách, Liên hệ (form gửi về Sheet/Telegram).
 
@@ -148,7 +150,7 @@ Sheet **Đơn hàng website Thực Dưỡng Lành**: https://docs.google.com/spr
 
 ## 5. Đo lường & remarketing
 
-- Mã trong `data/config.json`: `ga4_id` = **G-X40P3S7FZ8**, `clarity_id` = **yoto1kqbmx**, `meta_pixel`, `tiktok_pixel` (để trống = chưa bật).
+- Mã trong `data/config.json`: `ga4_id` = **G-X40P3S7FZ8**, `clarity_id` = **yoto1kqbmx**, `meta_pixel` = **1342001937266392** (lấy từ trang Ladi ebook cũ, bật 2026-10-04), `tiktok_pixel` (để trống = chưa bật). Form ebook bắn `generate_lead` → Meta `Lead`.
 - Công cụ chỉ chạy **sau khi khách bấm "Đồng ý"** ở thông báo cookie (Nghị định 13/2023/NĐ-CP).
 - Sự kiện: `view_item`, `add_to_cart`, `begin_checkout`, `purchase` (doanh thu), `upsell_add`, `paste_fill`, `click_call`, `click_zalo`, `view_brochure`, `video_play`, `search`, `generate_lead`.
 - Nguồn khách (UTM / fbclid / ttclid / gclid / trang giới thiệu) lưu 30 ngày → cột **Nguồn** của đơn.

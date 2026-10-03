@@ -32,7 +32,7 @@ Mã dùng được trong **10 phút**. Đăng nhập xong, máy nhớ bạn tron
 | **Hôm nay** | Danh sách việc cần làm trong ngày. Mở tab này đầu tiên mỗi sáng. |
 | **Khách đã mua** | Người đã mua ít nhất 1 đơn: chăm sóc sau bán, mời mua lại. Tìm khách, xem lịch sử mua và chăm sóc. |
 | **Đơn hàng** | Xác nhận, giao hàng, nhận tiền, sửa đơn, tạo đơn cho khách đặt qua Zalo hoặc điện thoại. |
-| **Khách hỏi** | Người **hỏi nhưng chưa mua** (số quảng cáo, Ladi ebook, form web, nhắn Zalo hỏi giá): tư vấn để chốt đơn đầu tiên. Chốt đơn xong, khách tự sang tab Khách đã mua. |
+| **Khách hỏi** | Người **hỏi nhưng chưa mua** (số quảng cáo, trang nhận ebook, form web, nhắn Zalo hỏi giá): tư vấn để chốt đơn đầu tiên. Chốt đơn xong, khách tự sang tab Khách đã mua. |
 | **Hiệu quả** | Doanh số, mục tiêu tháng, kết quả chăm sóc của bạn. |
 | **Cài đặt** | Đăng xuất. Quản lý sửa chu kỳ dùng, mẫu tin nhắn, nhân sự ở đây. |
 

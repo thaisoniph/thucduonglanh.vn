@@ -76,11 +76,12 @@
   },
   "zalo_group": "https://zalo.me/g/tvepjg478",
   "ebook": {
-    "url": "https://ebook.thucduonglanh.vn/",
-    "title": "Tặng ebook “7 ngày thanh lọc cơ thể”",
-    "sub": "Thực đơn và bí quyết ăn lành mỗi ngày, kèm lời mời vào nhóm Zalo Sống khỏe cùng Thực Dưỡng Lành.",
+    "url": "/ebook/",
+    "flipbook": "https://heyzine.com/flip-book/62a2fb55d0.html",
+    "title": "Tặng ebook “Dinh Dưỡng cho Cơ Xương Khớp”",
+    "sub": "Nên ăn gì, nên tránh gì cho 6 vấn đề cơ xương khớp thường gặp, kèm hơn 20 món dễ nấu tại nhà và video thực đơn 7 ngày.",
     "button": "Nhận ebook miễn phí",
-    "image": "/assets/img/brand/ebook-7-ngay.webp"
+    "image": "/assets/img/brand/ebook-co-xuong-khop.webp"
   },
   "web_offer": {
     "enabled": true,

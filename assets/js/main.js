@@ -845,6 +845,28 @@
     });
   }
 
+  /* ---------- trang nhận ebook: để lại tên + SĐT → mở ebook ngay + mời vào nhóm Zalo ---------- */
+  function initEbook() {
+    var box = $('#ebookBox'); if (!box) return;
+    var form = $('#ebookForm', box), done = $('.ebf-done', box);
+    function show(isDone) { form.hidden = isDone; done.hidden = !isDone; }
+    if (load('tdl_ebook', null)) show(true);
+    $('#ebookAgain').addEventListener('click', function () { form.reset(); show(false); form.elements.name.focus(); });
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var msg = $('.form-msg', form); msg.className = 'form-msg';
+      if (form.elements.website.value) return;
+      if (!validate(form)) { msg.className = 'form-msg err'; msg.textContent = 'Vui lòng điền họ tên và số điện thoại đúng (10 số).'; return; }
+      var f = form.elements, src = sourceLabel(), pos = qs('tu');
+      var data = { type: 'contact', kind: 'ebook', created: new Date().toISOString(), name: f.name.value.trim(), phone: f.phone.value.trim(), email: '', pos: pos, source: src.last,
+        message: '🎁 Đăng ký nhận ebook Dinh Dưỡng cho Cơ Xương Khớp' + (pos ? ' · bấm từ web: ' + pos : '') + ' · Nguồn: ' + src.last, page: location.href };
+      send(data).catch(function () { });
+      track('generate_lead', { form: 'ebook' });
+      save('tdl_ebook', { t: Date.now() });
+      show(true); box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
   /* ---------- floating widget ---------- */
   function initFloat() {
     var w = $('#floatWidget'); if (!w) return;
@@ -869,7 +891,7 @@
     captureSource(); initConsent(); trackPageEvents();
     renderCounts(); renderMini(); markWish();
     initHeader(); initClicks(); initHero(); initLightbox(); initProduct(); initTabs(); initReadmore(); initSort();
-    initCartPage(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initFloat(); initFlipbook();
+    initCartPage(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initEbook(); initFloat(); initFlipbook();
     window.addEventListener('storage', function (e) { if (e.key === 'tdl_cart') { cart = load('tdl_cart', []); cleanCart(); renderCounts(); renderMini(); } });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();

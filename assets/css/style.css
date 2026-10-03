@@ -1136,3 +1136,56 @@ label .invalid,input.invalid,textarea.invalid{border-color:var(--red)!important}
 .site-footer .socials .s-zalo{background:none}
 .f-bottom{background:#083b25;color:#cfe0d6}
 .story-media .about-logo-gold{border-radius:24px;box-shadow:var(--shadow-lg);width:100%;max-width:440px;height:auto}
+
+/* ---------- trang nhận ebook /ebook/ ---------- */
+.ebh{background:linear-gradient(160deg,#f3f8ee 0%,#fdf7e6 70%);padding:44px 0 56px}
+.ebh-in{display:grid;grid-template-columns:280px minmax(0,1fr) 400px;grid-template-areas:"cover head form" "cover list form";gap:8px 40px;align-items:start}
+.ebh-head{grid-area:head}.ebh-cover{grid-area:cover}.ebh-list{grid-area:list}.ebf{grid-area:form}
+.ebh-head .eyebrow{background:var(--gold);margin-bottom:14px}
+.ebh h1{font-size:36px;line-height:1.2;color:var(--primary-2);margin-bottom:12px}
+.ebh-sub{font-size:17px;margin-bottom:10px}
+.ebh-cover img{width:100%;height:auto;border-radius:16px;box-shadow:var(--shadow-lg)}
+.ebh-list{list-style:none;padding:0;margin:4px 0 0;display:grid;gap:10px}
+.ebh-list li{position:relative;padding-left:32px;font-size:15.5px}
+.ebh-list li::before{content:"✓";position:absolute;left:0;top:1px;width:22px;height:22px;border-radius:50%;background:var(--primary);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.ebf{padding:24px;border-color:#dfe9d6}
+.ebf h2{font-size:22px;margin-bottom:4px;color:var(--primary-2)}
+.ebf-note{font-size:14.5px;color:var(--muted);margin-bottom:14px}
+.ebf label{display:block;font-weight:600;font-size:14px;margin-bottom:12px}
+.ebf input{display:block;width:100%;margin-top:6px;padding:13px 14px;border:1.5px solid var(--line);border-radius:12px;font:inherit;font-size:16px;background:#fff}
+.ebf input:focus{outline:0;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-light)}
+.ebf input.invalid{border-color:#d33}
+.ebf .btn{width:100%;font-size:17px;white-space:normal}
+.ebf-legal{font-size:12.5px;color:var(--muted);margin-top:10px;line-height:1.5}
+.ebf .form-msg:empty{display:none}
+.ebf-done .btn{margin-bottom:16px}
+.ebz{border:1.5px solid #bfd6ff;background:#f3f7ff;border-radius:14px;padding:16px;text-align:center}
+.ebz b{display:block;color:#0050c8;font-size:16px}
+.ebz p{margin:6px 0 12px;font-size:14.5px}
+.ebz .btn-zalo{background:#0068ff;border-color:#0068ff;color:#fff;margin:0}
+.ebz .btn-zalo:hover{background:#0050c8;border-color:#0050c8}
+.ebf-again{display:block;margin:14px auto 0;background:none;border:0;color:var(--muted);text-decoration:underline;font:inherit;font-size:13.5px;cursor:pointer}
+.eb-topics{list-style:none;padding:0;margin:0 0 28px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.eb-topics li{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-weight:600;color:var(--ink)}
+.eb-topics span{font-size:24px}
+.eb-pages{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.eb-pages figure{margin:0}
+.eb-pages img{width:100%;height:auto;border-radius:10px;border:1px solid var(--line);box-shadow:var(--shadow)}
+.eb-pages figcaption{font-size:14px;text-align:center;margin-top:8px;color:var(--text)}
+.eb-why{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.eb-why li{display:flex;gap:12px;background:#fff;border-radius:14px;padding:16px;border:1px solid var(--line)}
+.eb-why span{font-size:26px;line-height:1}
+.eb-why b{display:block;color:var(--primary-2);margin-bottom:2px}
+.eb-why div{font-size:14.5px}
+.eb-proof{text-align:center;margin-top:18px;font-size:15px}
+.eb-disc{font-size:13px;color:var(--muted);margin-top:18px}
+@media (max-width:1100px){.ebh-in{grid-template-columns:220px minmax(0,1fr) 360px;gap:8px 28px}.ebh h1{font-size:30px}}
+@media (max-width:860px){
+  .ebh{padding:22px 0 36px}
+  .ebh-in{grid-template-columns:minmax(0,1fr);grid-template-areas:"head" "cover" "form" "list";gap:14px}
+  .ebh h1{font-size:26px}.ebh-sub{font-size:16px}
+  .ebh-cover img{width:min(62%,250px);display:block;margin:0 auto}
+  .eb-topics{grid-template-columns:1fr 1fr}.eb-topics li{padding:12px;font-size:14px}
+  .eb-pages{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.eb-pages figure:nth-child(3){display:none}
+  .eb-why{grid-template-columns:minmax(0,1fr)}
+}

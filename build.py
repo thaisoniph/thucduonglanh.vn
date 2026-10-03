@@ -368,7 +368,7 @@ def header(active):
   <div class="oc-head"><img src="/assets/img/brand/logo.webp" alt="{BRAND}" height="56"><button class="icon-btn" data-oc-close aria-label="Đóng">{I["close"]}</button></div>
   {nav_html(active, "oc-menu")}
   {f'<a class="oc-zalo" href="{esc(SITE["zalo_group"])}" target="_blank" rel="noopener" data-cta="zalo_group_menu">{I["zalo"]}<span><b>Nhóm Zalo Sống khỏe</b>{(esc(WEB_OFFER["gift_title"]) + (" – trị giá " + esc(WEB_OFFER["gift_value"]) if WEB_OFFER.get("gift_value") else "") + " 🎁 tặng thành viên") if WEB_OFFER.get("gift_enabled") and WEB_OFFER.get("gift_title") else "Tham gia miễn phí – chia sẻ món lành, ưu đãi thành viên"}</span></a>' if SITE.get("zalo_group") else ""}
-  <div class="oc-foot">{f'<a href="{esc(ebook_href("menu"))}" target="_blank" rel="noopener" data-cta="ebook_menu">🎁 Nhận ebook miễn phí</a>' if ebook_href("menu") else ""}<a href="/yeu-thich/">{ic("heart")} Sản phẩm yêu thích</a><a href="tel:{tel(SITE["hotline"])}">{ic("phone")} {esc(SITE["hotline"])}</a></div>
+  <div class="oc-foot">{f'<a href="{esc(ebook_href("menu"))}"{ebook_target()} data-cta="ebook_menu">🎁 Nhận ebook miễn phí</a>' if ebook_href("menu") else ""}<a href="/yeu-thich/">{ic("heart")} Sản phẩm yêu thích</a><a href="tel:{tel(SITE["hotline"])}">{ic("phone")} {esc(SITE["hotline"])}</a></div>
 </div></div>
 <div class="search-layer" id="searchLayer" aria-hidden="true"><div class="search-box">
   <form action="/tim-kiem/" method="get" role="search"><span class="s-ic">{I["search"]}</span><input type="search" name="q" id="searchInput" placeholder="Tìm sản phẩm..." autocomplete="off" aria-label="Tìm sản phẩm"><button type="button" class="icon-btn" data-search-close aria-label="Đóng">{I["close"]}</button></form>
@@ -441,7 +441,7 @@ def float_widget():
     <button class="fw-x" id="fwClose" aria-label="Ẩn">{I["close"]}</button>
     <div class="fw-msg"><div class="fw-name"><img src="/assets/img/brand/emblem.png" alt="" width="22" height="22">{BRAND}</div>
     <p>Anh/chị đang tìm hiểu sản phẩm nào ạ? Em sẵn sàng tư vấn ngay cho anh/chị nhé!</p></div>
-    <div class="fw-chips">{f'<a class="fw-chip fw-gift" href="{esc(ebook_href("float"))}" target="_blank" rel="noopener" data-cta="ebook_float">🎁 Nhận ebook miễn phí</a>' if ebook_href("float") else ""}{chips}<a class="fw-chip" href="{zalo_link()}" target="_blank" rel="noopener">Liên hệ tư vấn</a></div>
+    <div class="fw-chips">{f'<a class="fw-chip fw-gift" href="{esc(ebook_href("float"))}"{ebook_target()} data-cta="ebook_float">🎁 Nhận ebook miễn phí</a>' if ebook_href("float") else ""}{chips}<a class="fw-chip" href="{zalo_link()}" target="_blank" rel="noopener">Liên hệ tư vấn</a></div>
   </div>
   <a class="fw-btn fw-phone" href="tel:{tel(SITE["hotline"])}" aria-label="Gọi {esc(SITE["hotline"])}">{I["phone"]}</a>
   <a class="fw-btn fw-zalo" href="{zalo_link()}" target="_blank" rel="noopener" aria-label="Chat Zalo">{I["zalo"]}</a>
@@ -550,12 +550,20 @@ def page_hero(title, sub=""):
 
 
 def ebook_href(medium):
-    """Link trang tặng ebook (LadiPage) kèm UTM để biết khách đến từ vị trí nào trên web."""
+    """Link trang tặng ebook kèm vị trí bấm trên web. Trang trong web (/ebook/) dùng ?tu= thay cho UTM
+    để không ghi đè nguồn khách thật (Facebook, TikTok…) đang lưu cho đơn hàng."""
     eb = SITE.get("ebook") or {}
     if not eb.get("url"):
         return ""
     sep = "&" if "?" in eb["url"] else "?"
+    if eb["url"].startswith("/"):
+        return f'{eb["url"]}{sep}tu={medium}'
     return f'{eb["url"]}{sep}utm_source=website&utm_medium={medium}&utm_campaign=ebook'
+
+
+def ebook_target():
+    eb = SITE.get("ebook") or {}
+    return "" if str(eb.get("url", "")).startswith("/") else ' target="_blank" rel="noopener"'
 
 
 def ebook_cta(medium):
@@ -564,11 +572,92 @@ def ebook_cta(medium):
     if not href:
         return ""
     img = f'<img src="{esc(eb["image"])}" alt="" width="300" height="497" loading="lazy">' if eb.get("image") else ""
-    return f'''<a class="eb-cta" href="{esc(href)}" target="_blank" rel="noopener" data-cta="ebook_{medium}">
+    return f'''<a class="eb-cta" href="{esc(href)}"{ebook_target()} data-cta="ebook_{medium}">
   <span class="eb-img">{img}</span>
   <span class="eb-text"><span class="eb-tag">🎁 Quà tặng miễn phí</span><b>{esc(eb.get("title", "Nhận ebook miễn phí"))}</b><span class="eb-sub">{esc(eb.get("sub", ""))}</span></span>
   <span class="btn eb-btn">{esc(eb.get("button") or "Nhận ebook miễn phí")}</span>
 </a>'''
+
+
+EBOOK_PATH = "/ebook/"
+
+
+def page_ebook():
+    """Trang nhận ebook: khách để lại tên + SĐT → mở ngay ebook (Heyzine) + mời vào nhóm Zalo. Dữ liệu về Sheet/CRM như form Liên hệ."""
+    eb = SITE.get("ebook") or {}
+    gift = WEB_OFFER.get("gift_title", "") if WEB_OFFER.get("gift_enabled") else ""
+    gift_val = f' (trị giá {esc(WEB_OFFER["gift_value"])})' if gift and WEB_OFFER.get("gift_value") else ""
+    group = SITE.get("zalo_group", "")
+    stats = [c for c in (SITE.get("community") or []) if re.search(r"\d", c.get("stat", ""))]
+    proof = " · ".join(f'<b>{esc(c["stat"].split(" ")[0])}</b> {esc(" ".join(c["stat"].split(" ")[1:]))}' for c in stats[:2])
+    topics = [("🦴", "Thoái hóa khớp"), ("💪", "Đau mỏi cơ – cứng cơ"), ("🦶", "Gout cấp và mạn"), ("🥛", "Loãng xương"), ("🤲", "Viêm khớp dạng thấp"), ("🦵", "Đau thần kinh tọa")]
+    topic_html = "".join(f'<li><span>{i}</span>{esc(t)}</li>' for i, t in topics)
+    pages = [("an-gi-khop", "Nên ăn gì, nên tránh gì cho từng vấn đề"), ("mon-an", "Món ăn có định lượng và cách làm từng bước"), ("gout", "Giải thích dễ hiểu theo Tây y và Đông y")]
+    page_html = "".join(f'<figure><img src="/assets/img/brand/ebook-trang-{k}.webp" alt="Trang ebook: {esc(c)}" width="560" height="800" loading="lazy"><figcaption>{esc(c)}</figcaption></figure>' for k, c in pages)
+    gift_li = f'<li><span>🎁</span><div><b>{esc(gift)}{gift_val}</b>Quà tặng thành viên nhóm.</div></li>' if gift else ""
+    zalo_box = f'''<div class="ebz">
+  <b>👥 Bước 2: Vào nhóm Zalo “Sống khỏe cùng {BRAND}”</b>
+  <p>{f"Nhận quà <strong>{esc(gift)}</strong>{gift_val}, " if gift else ""}thực đơn lành, ưu đãi riêng cho thành viên và được tư vấn trực tiếp.</p>
+  <a class="btn btn-lg btn-zalo" href="{esc(group)}" target="_blank" rel="noopener" data-cta="zalo_group_ebook">Vào nhóm Zalo miễn phí →</a>
+</div>''' if group else ""
+    body = f'''<section class="ebh" id="nhan-ebook"><div class="container ebh-in">
+  <div class="ebh-head">
+    <span class="eyebrow">🎁 Quà tặng miễn phí</span>
+    <h1>Ăn gì để cơ xương khớp khỏe hơn mỗi ngày?</h1>
+    <p class="ebh-sub">Nhận ngay ebook <b>“Dinh Dưỡng cho Cơ Xương Khớp”</b> kèm <b>video thực đơn 7 ngày</b>. Xem trực tiếp trên điện thoại, không cần tải về.</p>
+  </div>
+  <div class="ebh-cover"><img src="{esc(eb.get("image") or "/assets/img/brand/ebook-co-xuong-khop.webp")}" alt="Bìa ebook Dinh Dưỡng cho Cơ Xương Khớp" width="720" height="900" fetchpriority="high"></div>
+  <ul class="ebh-list">
+    <li>Hiểu đúng <b>6 vấn đề cơ xương khớp</b> thường gặp, giải thích theo cả Tây y và Đông y</li>
+    <li><b>Nên ăn gì, nên tránh gì</b> cho từng vấn đề</li>
+    <li><b>Hơn 20 món</b> cháo, canh, trà, sinh tố dễ nấu, có định lượng và cách làm</li>
+    <li><b>Video thực đơn 7 ngày</b> để làm theo ngay</li>
+  </ul>
+  <div class="ebf card" id="ebookBox" data-flip="{esc(eb.get("flipbook", ""))}">
+    <form id="ebookForm" novalidate>
+      <h2>Nhận ebook ngay</h2>
+      <p class="ebf-note">Điền thông tin để mở ebook. Hoàn toàn miễn phí.</p>
+      <label>Họ và tên *<input name="name" required autocomplete="name" placeholder="Ví dụ: Nguyễn Thị Lan"></label>
+      <label>Số điện thoại (Zalo) *<input name="phone" type="tel" required autocomplete="tel" inputmode="tel" placeholder="Ví dụ: 0912 345 678"></label>
+      <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <button class="btn btn-lg btn-buy" type="submit">📖 Nhận ebook miễn phí</button>
+      <p class="form-msg" role="status"></p>
+      <p class="ebf-legal">Khi bấm nhận ebook, anh/chị đồng ý để {BRAND} liên hệ qua điện thoại/Zalo để gửi tài liệu và tư vấn dinh dưỡng, theo <a href="/chinh-sach-bao-mat/" target="_blank">Chính sách bảo mật</a>. Không chia sẻ thông tin cho bên thứ ba.</p>
+    </form>
+    <div class="ebf-done" hidden>
+      <h2>✅ Ebook đã sẵn sàng!</h2>
+      <p class="ebf-note">Bước 1: bấm nút bên dưới để đọc ebook và xem video thực đơn 7 ngày.</p>
+      <a class="btn btn-lg btn-buy" href="{esc(eb.get("flipbook", ""))}" target="_blank" rel="noopener" data-cta="ebook_open">📖 Mở ebook & video 7 ngày</a>
+      {zalo_box}
+      <button type="button" class="ebf-again" id="ebookAgain">Đăng ký cho người thân</button>
+    </div>
+  </div>
+</div></section>
+
+<section class="section"><div class="container">
+  <h2 class="sec-title">Trong ebook có gì?</h2>
+  <ul class="eb-topics">{topic_html}</ul>
+  <div class="eb-pages">{page_html}</div>
+</div></section>
+
+{f"""<section class="section bg-soft"><div class="container narrow">
+  <h2 class="sec-title">Vào nhóm Zalo <span class="accent">Sống khỏe cùng {BRAND}</span></h2>
+  <ul class="eb-why">
+    {gift_li}
+    <li><span>🥗</span><div><b>Thực đơn và món lành mỗi ngày</b>Gợi ý dễ làm, phù hợp bữa cơm gia đình.</div></li>
+    <li><span>💬</span><div><b>Hỏi đáp trực tiếp</b>Đội ngũ {BRAND} giải đáp thắc mắc về dinh dưỡng.</div></li>
+    <li><span>🏷️</span><div><b>Ưu đãi riêng cho thành viên</b>Thông báo chương trình sớm nhất.</div></li>
+  </ul>
+  {f'<p class="eb-proof">Cộng đồng {BRAND}: {proof}</p>' if proof else ""}
+</div></section>""" if group else ""}
+
+<section class="section center"><div class="container narrow">
+  <h2 class="sec-title">Bắt đầu ăn lành cho khớp khỏe từ hôm nay</h2>
+  <a class="btn btn-lg btn-buy" href="#nhan-ebook" data-cta="ebook_bottom">📖 Nhận ebook miễn phí</a>
+  <p class="eb-disc">Ebook là tài liệu tham khảo về dinh dưỡng và chế độ ăn, không thay thế chẩn đoán hay tư vấn của bác sĩ. Người đang có bệnh lý nên hỏi ý kiến bác sĩ trước khi thay đổi chế độ ăn.</p>
+</div></section>'''
+    desc = "Tặng miễn phí ebook Dinh Dưỡng cho Cơ Xương Khớp: nên ăn gì, nên tránh gì, hơn 20 món dễ nấu tại nhà và video thực đơn 7 ngày."
+    return layout(EBOOK_PATH, "Tặng ebook Dinh Dưỡng cho Cơ Xương Khớp + video thực đơn 7 ngày", desc, body, og="/assets/img/brand/og-ebook.jpg", body_class="page-ebook")
 
 
 def benefits_banner():
@@ -1332,6 +1421,8 @@ def main():
     if BROCHURE:
         routes.append(write(BR_PATH, page_brochure()))
     routes.append(write("/lien-he/", page_contact()))
+    if (SITE.get("ebook") or {}).get("flipbook"):
+        routes.append(write(EBOOK_PATH, page_ebook()))
     routes.append(write("/san-pham/", page_listing("/san-pham/", "Toàn bộ sản phẩm", PRODUCTS, "", [("Toàn bộ sản phẩm", None)])))
     sale = [p for p in PRODUCTS if p["on_sale"]]
     if HAS_SALE: routes.append(write("/khuyen-mai/", page_listing("/khuyen-mai/", "Khuyến Mãi", sale, "Các sản phẩm đang có chương trình ưu đãi tại " + BRAND + ".", [("Sản phẩm", "/san-pham/"), ("Khuyến Mãi", None)])))
@@ -1381,13 +1472,6 @@ def main():
     (DIST / "sitemap.xml").write_text("\n".join(sm), "utf-8")
     (DIST / "robots.txt").write_text(f"User-agent: *\nAllow: /\nDisallow: /gio-hang/\nDisallow: /thanh-toan/\nDisallow: /dat-hang-thanh-cong/\nDisallow: /admin/\n\nSitemap: {DOMAIN}/sitemap.xml\n", "utf-8")
     (DIST / "CNAME").write_text(DOMAIN.replace("https://", "").replace("http://", "") + "\n", "utf-8")
-    # Landing page Ebook chạy trên LadiPage bằng subdomain riêng. Giữ link
-    # quảng cáo cũ /ebook hoạt động mà không để Cloudflare Pages trả 404.
-    (DIST / "_redirects").write_text(
-        "/ebook https://ebook.thucduonglanh.vn 302\n"
-        "/ebook/ https://ebook.thucduonglanh.vn 302\n",
-        "utf-8",
-    )
     (DIST / ".nojekyll").write_text("", "utf-8")
     (DIST / "_headers").write_text(
         "/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n  X-Frame-Options: SAMEORIGIN\n"
