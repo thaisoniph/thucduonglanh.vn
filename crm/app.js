@@ -100,7 +100,7 @@
   var SERVER_V = '2026-10-02a'; // phải trùng số phiên bản máy chủ (api/src/index.js)
   var ON_CF = !/script\.google/.test(CFG.endpoint || ''); // máy chủ Cloudflare (nhanh) hay Apps Script cũ
   function checkVersion(j) {
-    if (!j || S._vWarned || j.v === SERVER_V || j.v === '2026-10-02b' || j.v === '2026-10-02c' || j.v === 'moved') return;
+    if (!j || S._vWarned || j.v === SERVER_V || j.v === '2026-10-02b' || j.v === '2026-10-02c' || j.v === '2026-10-02d' || j.v === 'moved') return;
     S._vWarned = true;
     if (lvl() >= 2 || (j.user && j.user.level >= 2)) toast('⚠️ Máy chủ Apps Script đang chạy bản cũ (' + (j.v || 'chưa có số phiên bản') + '), cần bản ' + SERVER_V + '. Vào Apps Script → Triển khai → Quản lý các bản triển khai → ✏️ → Phiên bản: Phiên bản mới → Triển khai.', true);
   }
@@ -1149,12 +1149,14 @@
   /* ================================================================ ĐƠN HÀNG */
   /* ---------- tab Đơn hàng: mặc định "Cần xử lý" (đơn cần làm trước), dòng gọn với 1 nút đúng việc tiếp theo */
   var SHIP_LATE = 5; // đang giao quá 5 ngày → gọi giục để tránh hoàn
+  /** Số ngày đơn đã đi đường: tính từ ngày gửi (cột “Ngày gửi”, tự ghi khi chuyển Đang giao / nhập mã vận đơn); đơn cũ chưa có thì tính từ ngày đặt. */
+  function shipDays(o) { return daysSince(o.shipAt || o.time); }
   function orderTodo() {
     var t0 = today(), d = function (o) { return daysSince(o.time); };
     var G = [
       { k: 'new', t: '🆕 Chờ xác nhận', tip: 'gọi khách xác nhận đơn', f: function (o) { return o.status === 'Mới'; } },
       { k: 'pack', t: '📦 Chờ gửi hàng', tip: 'đã xác nhận, chưa có mã vận đơn – đóng hàng, nhập mã vận đơn', f: function (o) { return o.status === 'Đã xác nhận' && !o.tracking; } },
-      { k: 'late', t: '🚚 Giao lâu chưa tới', tip: 'đang giao quá ' + SHIP_LATE + ' ngày – gọi hỏi khách, giục bưu cục để tránh hoàn', f: function (o) { return o.status === 'Đang giao' && d(o) > SHIP_LATE; } },
+      { k: 'late', t: '🚚 Giao lâu chưa tới', tip: 'đang giao quá ' + SHIP_LATE + ' ngày – gọi hỏi khách, giục bưu cục để tránh hoàn', f: function (o) { return o.status === 'Đang giao' && shipDays(o) > SHIP_LATE; } },
       { k: 'pay', t: '💳 Chưa nhận tiền', tip: 'chuyển khoản chưa thấy tiền về – kiểm tra tài khoản VCB', f: function (o) { return isBank(o) && !o.paid && !isVoid(o.status) && o.status !== 'Mới'; } },
       { k: 'back', t: '↩ Hoàn gần đây', tip: 'đơn hoàn (đặt trong 3 tuần) – gọi hỏi lý do, giữ khách', f: function (o) { return /hoàn/i.test(o.status) && d(o) <= 21; } }
     ];
@@ -1162,11 +1164,11 @@
     return G;
   }
   function orderRow(o) {
-    var oc = orderCat(o), next = NEXT[o.status], dd = daysSince(o.time), shipping = o.status === 'Đang giao';
+    var oc = orderCat(o), next = NEXT[o.status], dd = shipDays(o), shipping = o.status === 'Đang giao', pv = provOf(o);
     var act = o.status === 'Đã xác nhận' && !o.tracking ? '<button class="btn pri" data-order="' + esc(o.id) + '" title="Mở đơn để nhập mã vận đơn">📦 Nhập mã VĐ</button>' : next ? '<button class="btn pri" data-next="' + esc(o.id) + '">' + NEXT_LABEL[o.status] + '</button>' : '';
     return '<div class="rw orw click tinted" data-order="' + esc(o.id) + '"' + catAttr(oc) + '><div class="rw-m">' +
-      '<div class="rw-1"><b>' + esc(o.name) + '</b>' + stTag(o.status) + (shipping ? '<span class="tag ' + (dd > SHIP_LATE ? 'st-huy' : 'st-giao') + '">' + dd + ' ngày' + (dd > SHIP_LATE ? ' ⚠️' : '') + '</span>' : '') + (oc.key !== 'void' ? catChip(oc) : '') + '<span class="end">' + money(o.total) + '</span></div>' +
-      '<div class="rw-2">' + when(o.time) + ' · ' + esc(o.payment) + (isBank(o) && !isVoid(o.status) ? (o.paid ? ' ✓' : ' <span class="warn-line">chưa nhận tiền</span>') : '') + ' · ' + esc(itemNames(o.items).join(', ')) + '</div>' +
+      '<div class="rw-1"><b>' + esc(o.name) + '</b>' + stTag(o.status) + (shipping ? '<span class="tag ' + (dd > SHIP_LATE ? 'st-late' : 'st-giao') + '" title="' + (o.shipAt ? 'Đã gửi ' + dd + ' ngày (gửi ngày ' + fDate(o.shipAt).slice(0, 5) + ')' : 'Tính từ ngày đặt ' + fDate(o.time).slice(0, 5) + ' (đơn này chưa ghi ngày gửi)') + '">🚚 ' + dd + ' ngày' + (dd > SHIP_LATE ? ' ⚠️' : '') + '</span>' : '') + (oc.key !== 'void' ? catChip(oc) : '') + '<span class="end">' + money(o.total) + '</span></div>' +
+      '<div class="rw-2">' + (pv ? '<b class="prov">📍 ' + esc(pv.old) + '</b> · ' : '') + when(o.time) + ' · ' + esc(o.payment) + (isBank(o) && !isVoid(o.status) ? (o.paid ? ' ✓' : ' <span class="warn-line">chưa nhận tiền</span>') : '') + ' · ' + esc(itemNames(o.items).join(', ')) + '</div>' +
       '<div class="rw-3">' + (o.tracking ? '🚚 ' + esc(o.carrier) + ' ' + esc(o.tracking) + ' · ' : '') + '<span class="muted">' + esc(o.id) + '</span>' + (o.seller && (lvl() >= 2 || o.seller !== S.user.name) ? ' · 👤 ' + esc(o.seller) : '') + (o.note ? ' · 📝 ' + esc(o.note.length > 60 ? o.note.slice(0, 60) + '…' : o.note) : '') + '</div></div>' +
       '<div class="rw-a">' + act + '<a class="btn" href="tel:' + o.phone + '" aria-label="Gọi">📞</a></div></div>';
   }
@@ -1270,7 +1272,7 @@
     if (st === o.status) return;
     var reason = '';
     if (st === 'Huỷ' || st === 'Hoàn' || st === 'Đổi hàng') { reason = prompt('Lý do ' + st.toLowerCase() + ' đơn ' + o.id + '? (không bắt buộc)', ''); if (reason === null) { render(); var r = $('input[name=oSt][value="' + o.status + '"]'); if (r) r.checked = true; return; } }
-    var old = o.status; o.status = st; navBadges(); render(); if (done) done();
+    var old = o.status; o.status = st; if (st === 'Đang giao' && !o.shipAt) o.shipAt = Date.now(); navBadges(); render(); if (done) done();
     api('order_status', { id: o.id, row: o.row, status: st, reason: reason }).then(function (j) {
       if (j.row) o.row = j.row;
       S.d.log.push({ time: Date.now(), by: S.user.name, what: 'Đơn hàng', ref: o.id, name: o.name, result: old + ' → ' + st, note: reason || '' });

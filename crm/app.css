@@ -496,3 +496,5 @@ details.grp .g-tip { flex-basis: 100%; font-size: 12px; color: var(--muted); }
 .sk-b { width: 44px; height: 44px; border-radius: 12px; flex: none; }
 @keyframes skm { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
 @media (prefers-reduced-motion: reduce) { .sk-h, .sk-kpis i, .sk-row i, .sk-b { animation: none; } }
+.tag.st-late { background: #fff1e0; color: #b45309; }
+.rw .prov { font-weight: 600; color: var(--text); }

@@ -70,11 +70,15 @@ Tab **Đơn hàng** mở sẵn mục **⚡ Cần xử lý**, chỉ gồm những
 | --- | --- | --- |
 | 🆕 **Chờ xác nhận** | Đơn mới | Gọi khách, bấm **✅ Xác nhận** |
 | 📦 **Chờ gửi hàng** | Đã xác nhận, chưa có mã vận đơn | Đóng hàng, bấm **📦 Nhập mã VĐ** |
-| 🚚 **Giao lâu chưa tới** | Đang giao quá 5 ngày | Gọi hỏi khách, giục bưu cục để tránh hoàn |
+| 🚚 **Giao lâu chưa tới** | Đã gửi quá 5 ngày mà vẫn Đang giao | Gọi hỏi khách, giục bưu cục để tránh hoàn |
 | 💳 **Chưa nhận tiền** | Chuyển khoản chưa thấy tiền về | Kiểm tra tài khoản, mở đơn bấm “đã nhận tiền” |
 | ↩ **Hoàn gần đây** | Đơn hoàn (đặt trong 3 tuần) | Gọi hỏi lý do, giữ khách |
 
-Mỗi đơn 1 dòng: ngày đặt, thanh toán, sản phẩm, mã vận đơn, **số ngày đang giao** (⚠️ khi quá 5 ngày), 1 nút đúng việc tiếp theo và nút 📞. Bấm vào dòng để mở đơn (Zalo, sửa đơn, ghi chú…). Thẻ **📋 Tất cả đơn** để tra cứu, chọn **Hôm nay / 7 ngày / Tháng này** và trạng thái. Đầu trang có số đơn và doanh thu hôm nay, số đơn đang giao, tỷ lệ hoàn tháng này.
+Mỗi đơn 1 dòng: **📍 tỉnh giao đến**, ngày đặt, thanh toán, sản phẩm, mã vận đơn, **🚚 số ngày đang giao** (màu cam ⚠️ khi quá 5 ngày), 1 nút đúng việc tiếp theo và nút 📞.
+
+**Số ngày đang giao** tính từ **ngày gửi hàng**: CRM tự ghi ngày gửi khi bạn bấm **Đang giao** hoặc nhập mã vận đơn. Đơn cũ chưa có ngày gửi (vd đơn nhập từ file) thì tính từ ngày đặt; rê chuột vào ô số ngày để xem tính từ ngày nào. Khách đã nhận hàng thì nhớ bấm **📬 Đã giao** để đơn không còn bị báo giao lâu.
+
+Bấm vào dòng để mở đơn (Zalo, sửa đơn, ghi chú…). Thẻ **📋 Tất cả đơn** để tra cứu, chọn **Hôm nay / 7 ngày / Tháng này** và trạng thái. Đầu trang có số đơn và doanh thu hôm nay, số đơn đang giao, tỷ lệ hoàn tháng này.
 
 
 Đơn khách đặt trên web tự vào CRM và báo lên Telegram. Mỗi đơn đi qua các trạng thái:

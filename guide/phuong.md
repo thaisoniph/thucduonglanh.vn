@@ -16,6 +16,7 @@ Chào Phương! Toàn bộ khách, đơn hàng và **ghi chú cũ** trong file c
 | **Gọi chăm sóc khách cũ** | 🆕 **Trên CRM**: mỗi sáng mở tab **Hôm nay**, gọi theo danh sách, gọi xong bấm 1 nút kết quả |
 | Ghi kết quả cuộc gọi vào file Sheet | ✅ **Máy tự ghi** vào ô ghi chú của khách trong file của em (vd “, 1/10 knm”). Em **không ghi tay nữa** |
 | Lên đơn | Vẫn **trên file Sheet như cũ**. Sáng hôm sau đơn tự vào CRM |
+| Khách nhận hàng | Ghi **“giao thành công”** ở cột trạng thái trong file, **hoặc** bấm **📬 Đã giao** ở tab Đơn hàng trên CRM. Không cập nhật thì đơn vẫn hiện “Giao lâu chưa tới” |
 | Báo cáo doanh thu (BCDT) | Vẫn làm như cũ. Tuần sau anh Sơn chỉ em xem báo cáo tự động trên CRM |
 
 ## 1. Đăng nhập (làm 1 lần)
