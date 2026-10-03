@@ -409,5 +409,5 @@ Máy tự ghi kèm bạn đang ở màn hình nào, dùng máy gì, nên bạn c
 
 ## File Google Sheet riêng của sale
 
-Nếu bạn vẫn có file Sheet riêng (được quản trị nối vào CRM), mọi việc làm trên CRM tự ghi lại vào file đó khoảng 5 phút sau: kết quả chăm sóc và ghi chú (sheet chăm sóc), dấu (x) đã kết bạn Zalo, **đơn tạo trên CRM** (thêm dòng vào sheet lên đơn), **đổi trạng thái đơn**, **tư vấn khách hỏi**. Ngược lại, đơn và ghi chú bạn viết trên file tự vào CRM lúc 7h sáng hôm sau. Máy nhận ra dòng do chính CRM ghi nên không bị trùng.
+Nếu bạn vẫn có file Sheet riêng (được quản trị nối vào CRM), mọi việc làm trên CRM tự ghi lại vào file đó khoảng 5 phút sau: kết quả chăm sóc và ghi chú (sheet chăm sóc), dấu (x) đã kết bạn Zalo, **đơn tạo trên CRM** (thêm dòng vào sheet lên đơn), **đổi trạng thái đơn**, **tư vấn khách hỏi**. Ngược lại, đơn và ghi chú bạn viết trên file tự vào CRM khoảng 30 phút sau (máy tự nhập 30 phút/lần, 7h–21h). Máy nhận ra dòng do chính CRM ghi nên không bị trùng.
 

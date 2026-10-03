@@ -15,10 +15,10 @@ Chào Phương! Toàn bộ khách, đơn hàng và **ghi chú cũ** trong file c
 | --- | --- |
 | **Gọi chăm sóc khách cũ** | 🆕 **Trên CRM**: mỗi sáng mở tab **Hôm nay**, gọi theo danh sách, gọi xong bấm 1 nút kết quả |
 | Ghi kết quả cuộc gọi vào file Sheet | ✅ **Máy tự ghi** vào ô ghi chú của khách trong file của em (vd “, 1/10 knm”). Em **không ghi tay nữa** |
-| Lên đơn | Lên trên file như cũ cũng được (sáng hôm sau đơn tự vào CRM), **hoặc** lên trên CRM (**Đơn hàng → ＋ Tạo đơn**): khoảng 5 phút sau đơn tự có thêm 1 dòng trong sheet **VTG_lendon** của em (sheet em đang dùng), có cả mã đơn, quà tặng, phân loại kh mới/kh cũ |
+| Lên đơn | Lên trên file như cũ cũng được (khoảng **30 phút** sau đơn tự vào CRM, trong giờ 7h–21h), **hoặc** lên trên CRM (**Đơn hàng → ＋ Tạo đơn**): khoảng 5 phút sau đơn tự có thêm 1 dòng trong sheet **VTG_lendon** của em (sheet em đang dùng), có cả mã đơn, quà tặng, phân loại kh mới/kh cũ |
 | Đổi trạng thái đơn trên CRM | Đang giao, Đã giao, Hoàn, Huỷ… tự ghi vào cột **Trạng thái** của đúng dòng đơn trong file (“Đã giao” ghi là “Giao thành công”) |
 | Tư vấn khách hỏi trên CRM | Kết quả + ghi chú tự ghi vào **“cop số”** (khách chưa có dòng thì máy thêm dòng mới) |
-| Ghi chú chăm sóc | Nên ghi **trên CRM** (máy tự ghi ngược vào file “cop số” sau ~5 phút). Nếu em vẫn ghi thêm vào **dòng khách cũ** trong file (vd “3/10 kh hỏi cách pha”) thì **7h sáng hôm sau** ghi chú đó cũng tự lên CRM. Nhớ ghi **ngày ở đầu** mỗi ghi chú như em vẫn làm |
+| Ghi chú chăm sóc | Nên ghi **trên CRM** (máy tự ghi ngược vào file “cop số” sau ~5 phút). Nếu em vẫn ghi thêm vào **dòng khách cũ** trong file (vd “3/10 kh hỏi cách pha”) thì khoảng **30 phút** sau ghi chú đó cũng tự lên CRM. Nhớ ghi **ngày ở đầu** mỗi ghi chú như em vẫn làm |
 | Khách nhận hàng | Ghi **“giao thành công”** ở cột trạng thái trong file, **hoặc** bấm **📬 Đã giao** ở tab Đơn hàng trên CRM. Không cập nhật thì đơn vẫn hiện “Giao lâu chưa tới” |
 | Báo cáo doanh thu (BCDT) | Vẫn làm như cũ. Tuần sau anh Sơn chỉ em xem báo cáo tự động trên CRM |
 
