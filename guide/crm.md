@@ -157,12 +157,12 @@ Khách đặt qua Zalo, Facebook, điện thoại hay mua tại cửa hàng thì
 
 ### Các loại việc chăm sóc
 
-CRM tự tính ngày cần liên hệ từng khách, dựa vào **ngày khách nhận hàng** và thời gian dùng hết sản phẩm. Ngày nhận hàng là ngày đơn chuyển **Đã giao**, hoặc ngày bạn bấm **📦 Đã nhận, đã HD dùng** khi gọi. Chưa biết ngày nhận thì máy ước tính = ngày đặt + số ngày giao hàng trung bình (mặc định 3 ngày, quản lý sửa ở Cài đặt → Nhóm khách).
+CRM tự tính ngày cần liên hệ từng khách, dựa vào **ngày khách nhận hàng** và thời gian dùng hết sản phẩm. Ngày nhận hàng là ngày đơn chuyển **Đã giao**, hoặc ngày bạn bấm **📦 Đã nhận, đã HD dùng** khi gọi. Chưa biết ngày nhận thì máy ước tính = **ngày gửi hàng** + số ngày giao hàng trung bình (mặc định 3 ngày, quản lý sửa ở Cài đặt → Nhóm khách). Đơn chưa ghi ngày gửi thì tính từ ngày đặt. Đơn còn **chờ xác nhận / chờ gửi** thì CRM chưa nhắc hỏi nhận hàng.
 
 | Việc | Khi nào | Nên làm gì |
 | --- | --- | --- |
 | 📞 **Hẹn gọi lại** | Đến ngày khách đã hẹn | Gọi lại đúng hẹn |
-| 📦 **Hỏi nhận hàng, hướng dẫn dùng** | Ngày khách nhận hàng đến 2 ngày sau (chưa rõ ngày nhận: từ ngày đặt + 3 ngày) | Hỏi đã nhận hàng chưa, gửi cách dùng. Bấm **📦 Đã nhận, đã HD dùng** hoặc **🚚 Chưa nhận hàng** (2 ngày sau tự nhắc lại) |
+| 📦 **Hỏi nhận hàng, hướng dẫn dùng** | Ngày khách nhận hàng đến 2 ngày sau (chưa rõ ngày nhận: từ ngày gửi + 3 ngày) | Hỏi đã nhận hàng chưa, gửi cách dùng. Bấm **📦 Đã nhận, đã HD dùng** hoặc **🚚 Chưa nhận hàng** (2 ngày sau tự nhắc lại) |
 | ⏰ **Sắp hết / đã hết sản phẩm** | Gần ngày khách dùng hết | Nhắc đặt lại, gợi ý thêm món để đơn từ 300.000đ được miễn phí ship |
 | 💬 **Xin cảm nhận** | 14 ngày sau khi nhận hàng | Hỏi cảm nhận, xin phép chia sẻ |
 | 🌿 **Giới thiệu sản phẩm phù hợp** | 30 ngày sau khi nhận hàng | Giới thiệu sản phẩm khác hợp với khách |
