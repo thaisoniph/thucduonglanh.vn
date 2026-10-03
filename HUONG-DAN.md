@@ -140,6 +140,8 @@ Sheet **Đơn hàng website Thực Dưỡng Lành**: https://docs.google.com/spr
   - Bản nhớ tạm trên máy chủ (CacheService, 10 phút, tối đa ~3 MB). Lưu chăm sóc / sửa khách / tư vấn khách hỏi → `cachePatch()` chỉ đọc lại đúng dòng đó + dòng nhật ký mới. Việc khác (đơn, chia khách, nhập file) → `dataChanged()` bỏ bản nhớ.
   - Lịch `docSanCRM` mỗi 5 phút (6h–22h) đọc sẵn Sheet khi bản nhớ hết. Lịch này tự cài khi Quản trị mở CRM; có thể chạy tay `caiDocSan`.
   - Đơn hàng có cột **Ngày gửi** (Apps Script 2026-10-02d): tự ghi khi đơn chuyển Đang giao / nhập mã vận đơn; "Giao lâu chưa tới" tính từ ngày gửi, chưa có thì từ ngày đặt.
+  - 7h sáng (srcAutoTick): ngoài dòng mới, `syncOldNotes()` so ghi chú trên DÒNG CŨ của sheet chăm sóc sale (60 ngày gần đây, theo ngày + nội dung), bỏ dòng do CRM ghi ngược (tab "Ghi ngược file sale"), thêm lên đầu "Ghi chú CSKH".
+  - Tab "✅ Việc hôm nay" (trang việc cũ trên Sheet) tự ẩn 1 lần (docSanCRM); CRM đã thay.
   - Quản trị thấy thời gian tải ở dòng cuối trang ("tải …s, máy chủ …s, bản đọc sẵn/đọc Sheet, … KB").
 
 ## 5. Đo lường & remarketing
