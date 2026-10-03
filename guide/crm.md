@@ -164,12 +164,26 @@ CRM tự tính ngày cần liên hệ từng khách, dựa vào **ngày khách n
 | 📞 **Hẹn gọi lại** | Đến ngày khách đã hẹn | Gọi lại đúng hẹn |
 | 📦 **Hỏi nhận hàng, hướng dẫn dùng** | Ngày khách nhận hàng đến 2 ngày sau (chưa rõ ngày nhận: từ ngày gửi + 3 ngày) | Hỏi đã nhận hàng chưa, gửi cách dùng. Bấm **📦 Đã nhận, đã HD dùng** hoặc **🚚 Chưa nhận hàng** (2 ngày sau tự nhắc lại) |
 | ⏰ **Sắp hết / đã hết sản phẩm** | Gần ngày khách dùng hết | Nhắc đặt lại, gợi ý thêm món để đơn từ 300.000đ được miễn phí ship |
+| 🤝 **Hỏi thăm sau 1 tuần** | 7 ngày sau khi nhận hàng (đến 2 ngày sau) | Hỏi khách dùng có khó khăn gì, cần hỗ trợ gì. Mời vào nhóm Zalo cộng đồng nếu khách chưa vào |
 | 💬 **Xin cảm nhận** | 14 ngày sau khi nhận hàng | Hỏi cảm nhận, xin phép chia sẻ |
 | 🌿 **Giới thiệu sản phẩm phù hợp** | 30 ngày sau khi nhận hàng | Giới thiệu sản phẩm khác hợp với khách |
 | 💌 **Mời quay lại** | 60 ngày sau khi nhận hàng, chưa mua lại | Hỏi thăm, gửi ưu đãi khách cũ |
 | 🔁 **Khách cũ lâu chưa gọi** | Quá 30 ngày khách chưa phản hồi (không tính các lần không nghe máy) | Hỏi thăm, hỏi còn hàng không, mời đặt lại |
 
-Việc nào **qua khung mà chưa làm** (ví dụ bạn nghỉ vài hôm) vẫn hiện thêm 7 ngày, kèm dòng **⏳ trễ N ngày**, để không sót khách.
+Việc nào **qua khung mà chưa làm** (ví dụ bạn nghỉ vài hôm) vẫn hiện thêm 7 ngày, kèm dòng **⏳ trễ N ngày**, để không sót khách. Khi đã tới mốc sau (vd đã tới ngày 14) thì mốc trước chưa làm tự bỏ qua, chỉ hiện mốc mới nhất.
+
+### 👥 Mời khách vào nhóm Zalo cộng đồng
+
+Nhóm **“Sống khỏe cùng Thực Dưỡng Lành”** chia sẻ kiến thức dinh dưỡng, thực đơn lành mạnh và thông báo các buổi **Zoom hỏi đáp miễn phí cùng chuyên gia dinh dưỡng**. Khách trong nhóm gắn bó và mua lại nhiều hơn, nên mời mọi khách đã mua.
+
+![Khung mời vào nhóm cộng đồng](img/crm-community.webp)
+
+- Trong hộp **💬 Chăm sóc** của khách chưa vào nhóm có khung **👥 Mời vào nhóm Zalo cộng đồng**. Ở mốc **Hỏi nhận hàng** và **Hỏi thăm sau 1 tuần** khung này mở sẵn; mốc khác bấm vào để mở.
+- Bấm **📋 Copy lời mời & mở Zalo**: CRM điền tên khách + link nhóm, copy sẵn và mở khung chat. Dán, gửi. Khách được ghi là **Đã mời**.
+- Khách vào nhóm rồi thì bấm **✅ Khách đã vào nhóm**. Tên khách có thêm biểu tượng 👥 và không bị nhắc mời nữa.
+- Mời hàng loạt: tab **Khách đã mua** → lọc **👥 Chưa vào cộng đồng** → **📣 Gửi ưu đãi lần lượt**, dán lời mời làm nội dung.
+- Tab **Hiệu quả** có ô **Khách trong nhóm cộng đồng** (% khách đã vào nhóm).
+- Quản lý sửa câu mời ở tab **Mẫu tin nhắn CSKH** trong Sheet, dòng **“Mời vào cộng đồng”** (giữ chữ **[Link nhóm]** để CRM tự chèn link).
 
 ### Cách chăm sóc 1 khách
 

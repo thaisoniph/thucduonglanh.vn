@@ -504,3 +504,7 @@ details.grp .g-tip { flex-basis: 100%; font-size: 12px; color: var(--muted); }
 a.trk:hover { text-decoration: underline; }
 button.trk { font: inherit; font-weight: 600; padding: 0; }
 .mini-sub { display: block; font-size: 11px; font-weight: 600; color: var(--muted); }
+.comm-ic { font-size: 15px; line-height: 1; }
+details.comm summary { cursor: pointer; list-style: none; }
+details.comm summary::-webkit-details-marker { display: none; }
+details.comm { border: 1px dashed #9cc3a8; background: #f3faf5; }

@@ -1294,7 +1294,8 @@ def build_crm():
     products = [{"name": p["name"], "price": p.get("base_price"), "unit": p.get("unit", ""),
                  "variants": [{"name": v["name"], "price": v["price"]} for v in p.get("base_variants", [])]} for p in PRODUCTS]
     cfg = {"endpoint": (SITE.get("api_endpoint") or SITE.get("order_endpoint", "")), "shipping_fee": SITE.get("shipping_fee", 0),
-           "free_ship_threshold": SITE.get("free_ship_threshold", 0), "products": products}
+           "free_ship_threshold": SITE.get("free_ship_threshold", 0), "products": products,
+           "zalo_group": SITE.get("zalo_group", "")}
     (out / "crm-data.js").write_text("window.CRM_CONFIG=" + json.dumps(cfg, ensure_ascii=False) + ";\n", "utf-8")
     (out / "manifest.webmanifest").write_text(json.dumps({
         "name": "CRM Thực Dưỡng Lành", "short_name": "CRM TDL", "start_url": "/", "display": "standalone",

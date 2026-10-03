@@ -106,6 +106,8 @@ Cuối ngày bấm **📋 Báo cáo cuối ngày (gửi Zalo)** ở tab Hôm nay
 
 **Đang tư vấn khách mới?** Hỏi khách ở tỉnh nào rồi gõ tên tỉnh vào ô tìm ở tab **Khách đã mua**. Máy cho biết bên mình đã có bao nhiêu khách ở tỉnh đó đã mua, hay mua sản phẩm gì, kèm câu gợi ý để nói với khách. Chỉ nói con số, không nói tên khách khác. Khách hỏi thì gõ luôn tỉnh vào ô **📍 Khách ở tỉnh nào?** trong hộp **💬 Tư vấn**.
 
+**Mời khách vào nhóm Zalo cộng đồng:** trong hộp **💬 Chăm sóc** có khung **👥 Mời vào nhóm Zalo cộng đồng**. Bấm **📋 Copy lời mời & mở Zalo**, dán gửi khách. Khách vào nhóm rồi thì bấm **✅ Khách đã vào nhóm**. Nên mời ở lần hỏi nhận hàng và lần hỏi thăm sau 1 tuần.
+
 **Muốn gọi mời mua lại?** Ở tab **Khách đã mua**, bấm nút lọc **⏰ Sắp hết hàng**: đây là những khách sắp dùng hết hoặc vừa hết trong 7 ngày.
 
 **Bấm nhầm nút?** Mở hồ sơ khách, bấm **⚙️ Sửa thông tin**, sửa ô **Hẹn gọi lại ngày** và ghi chú cho đúng rồi bấm **Lưu thay đổi**.
