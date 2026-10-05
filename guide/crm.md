@@ -112,15 +112,20 @@ Các nút khác khi mở đơn:
 
 ## Lên đơn (giống sheet VTG_lendon)
 
-Vào **Đơn hàng → ＋ Tạo đơn**, hoặc bấm **＋ Tạo đơn** trong hồ sơ khách. Các ô xếp theo đúng thứ tự trên Sheet:
+Vào **Đơn hàng → ＋ Tạo đơn**, hoặc bấm **＋ Đơn** trong hồ sơ khách.
 
-1. **SĐT, tên khách**. Khách cũ thì CRM tự điền thông tin. Khách có nhãn ⚠️ *Bom hàng* thì CRM cảnh báo.
-2. **Địa chỉ**: dán nguyên 1 dòng, CRM tự nhận ra phường và tỉnh. Nhận sai thì bấm *Sửa tỉnh / phường*.
-3. **Sản phẩm + số lượng**: gõ vài chữ rồi chọn trong danh sách gợi ý.
-4. **🎁 Quà tặng + số lượng**.
-5. **Số tiền thu khách**: gõ `1800000`, `1tr8` hoặc `1,8tr` đều được. Giá linh động, CRM chỉ nhắc giá niêm yết để tham khảo.
-6. **Ca** (Ngày / Tối-CN / Lễ): CRM tự chọn theo giờ lên đơn, sửa được.
-7. Bấm **📋 Copy nội dung lên đơn** để gửi bên vận chuyển. **Mã đơn** tự tạo theo kiểu cũ, ví dụ *Phuong300926-01*.
+![Form tạo đơn mới](/huong-dan/img/crm-neworder.webp)
+
+1. **Khách hàng**: bấm **📋 Dán tin nhắn của khách** rồi dán nguyên tin Zalo (tên, số điện thoại, địa chỉ). CRM tự tách vào các ô, bạn chỉ cần kiểm tra lại. Hoặc gõ **số điện thoại**: khách cũ thì tên và địa chỉ tự điền. Khách có nhãn ⚠️ *Bom hàng* thì CRM cảnh báo. Địa chỉ nhận sai tỉnh / phường thì bấm *Sửa tỉnh / phường*.
+2. **Khách cũ mua lại**: bấm **🔁 Đặt lại như đơn trước**. Sản phẩm, quà, số tiền tự điền giống đơn gần nhất, sửa chỗ nào khác là xong.
+3. **Sản phẩm**: bấm nút tên sản phẩm (sản phẩm khách hay mua và sản phẩm bán chạy hiện trước). Bấm thêm lần nữa để tăng số lượng. Sản phẩm khác thì bấm **＋ Sản phẩm khác** và gõ tên. Có quà thì bấm **🎁 Thêm quà**.
+4. **Số tiền thu khách**: gõ `1800000`, `1tr8` hoặc `1,8tr` đều được. Giá linh động, CRM chỉ nhắc giá niêm yết để tham khảo. Chọn **COD** hoặc **Chuyển khoản**, ghi **ghi chú giao hàng** nếu có.
+5. Dòng **⚙️** tóm tắt các mục ít đổi (ca, khách đặt qua, trạng thái, phí ship riêng, đồng ý nhận ưu đãi). Cần sửa thì bấm vào. *Khách đặt qua* nhớ lựa chọn lần trước của bạn.
+6. Bấm **Lưu & copy lên đơn**: đơn được lưu, nội dung lên đơn đã copy sẵn, dán sang bên vận chuyển. **Mã đơn** tự tạo theo kiểu cũ, ví dụ *Phuong300926-01*.
+
+**Ca (Ngày / Tối-CN / Lễ)** dùng để tính hoa hồng nên **CRM tự ghi theo giờ bấm lưu đơn**, nhân viên không sửa được. Lên đơn muộn (vd khách chốt tối hôm trước, sáng nay mới lên) thì nhờ quản lý sửa ca trong đơn.
+
+Khách đặt qua Zalo, Facebook, điện thoại hay mua tại cửa hàng thì **luôn tạo đơn trên CRM**: khách sẽ được nhắc chăm sóc và tính doanh số cho bạn như đơn web.
 
 Trong hồ sơ khách, ô **Ghi nhanh hôm nay** tự thêm ngày ở đầu dòng, giống cách ghi trên Sheet: *“30/09: kh dùng ok, hẹn cuối tháng lấy tiếp”*. Nhật ký chăm sóc cũ từ file của bạn nằm ngay bên dưới.
 
@@ -135,23 +140,6 @@ Trong hồ sơ khách, ô **Ghi nhanh hôm nay** tự thêm ngày ở đầu dò
 Cuối ngày bấm **📋 Báo cáo cuối ngày (gửi Zalo)** ở tab **Hôm nay** (hoặc **Hiệu quả → 📋 Báo cáo ngày**). CRM tự làm báo cáo đúng mẫu nhóm đang dùng: số đơn và số mới từng dòng (Curcumin, BADD, Fucoidan Pro), sản phẩm khác, đơn từ khách cũ, **tổng doanh thu**, đơn ngoài giờ, đơn hoàn, **KH cũ đã chăm sóc (kết nối)**, **Không nghe máy**, **Lý do từ chối** (lấy từ ghi chú khi bấm *Hết tiền*, *Còn hàng*, *Không dùng nữa*…) và **luỹ kế tháng / % mục tiêu**. Sửa thêm nếu cần, bấm **📋 Copy để dán vào Zalo** rồi dán vào nhóm. Chọn ngày khác để làm báo cáo bù. Quản lý chọn được *Cả nhóm* hoặc từng người.
 
 Tab **Hiệu quả → 📊 Bảng BCDT** tự làm báo cáo doanh thu tháng: theo ngày, theo dòng sản phẩm, khách mới / cũ, đơn hoàn và doanh thu theo ca. Phía trên có sẵn **tỷ lệ chốt** (đơn mới / data mới), **trung bình mỗi đơn khách mới** và **khách cũ**, **% doanh thu từ khách cũ**, **doanh thu ngoài giờ**, **số khách cũ đã chăm sóc / không nghe máy** và **% tiến độ mục tiêu**. Cột nào cả tháng bằng 0 (dòng sản phẩm không bán) thì tự ẩn cho gọn. Bấm **Tải file Excel** để gửi báo cáo.
-
-## Tạo đơn cho khách đặt qua Zalo, điện thoại
-
-Khách đặt qua Zalo, Facebook, điện thoại hay mua tại cửa hàng thì **luôn tạo đơn trên CRM**. Khách sẽ được nhắc chăm sóc và tính doanh số cho bạn như đơn web.
-
-![Form tạo đơn mới](/huong-dan/img/crm-neworder.webp)
-
-1. Vào **Đơn hàng → ＋ Tạo đơn**. Hoặc mở hồ sơ khách, bấm **＋ Tạo đơn**.
-2. Nhập **số điện thoại**. Khách cũ thì tên và địa chỉ tự điền.
-3. Chọn **Tỉnh/Thành phố**, gõ **Phường/Xã** (máy gợi ý), nhập số nhà, đường.
-4. Chọn **sản phẩm** và số lượng. Giá tự điền, sửa được nếu có giảm giá. Bấm **＋ Thêm sản phẩm** nếu mua nhiều món. Chọn **Sản phẩm khác (tự gõ)** nếu món đó chưa có trong danh sách.
-5. **Phí ship** tự tính (30.000đ, miễn phí từ 300.000đ). Có thể sửa tay.
-6. Chọn **Khách đặt qua**, **Thanh toán** (COD hoặc chuyển khoản), **Trạng thái**:
-    - **Đã chốt với khách**: đã thống nhất xong với khách.
-    - **Chưa xác nhận**: cần gọi lại xác nhận sau.
-7. Tích **Khách đồng ý nhận tin ưu đãi** chỉ khi khách đã đồng ý.
-8. Bấm **Lưu đơn**.
 
 ## Chăm sóc khách
 
