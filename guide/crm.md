@@ -116,7 +116,7 @@ Vào **Đơn hàng → ＋ Tạo đơn**, hoặc bấm **＋ Đơn** trong hồ 
 
 ![Form tạo đơn mới](/huong-dan/img/crm-neworder.webp)
 
-1. **Khách hàng**: bấm **📋 Dán tin nhắn của khách** rồi dán nguyên tin Zalo (tên, số điện thoại, địa chỉ). CRM tự tách vào các ô, bạn chỉ cần kiểm tra lại. Hoặc gõ **số điện thoại**: khách cũ thì tên và địa chỉ tự điền. Khách có nhãn ⚠️ *Bom hàng* thì CRM cảnh báo. Địa chỉ nhận sai tỉnh / phường thì bấm *Sửa tỉnh / phường*.
+1. **Khách hàng**: bấm **📋 Dán tin nhắn của khách** rồi dán nguyên tin Zalo (tên, số điện thoại, địa chỉ). CRM tự tách vào các ô, bạn chỉ cần kiểm tra lại. Hoặc gõ **số điện thoại**: khách cũ thì tên và địa chỉ tự điền. Khách có nhãn ⚠️ *Bom hàng* thì CRM cảnh báo. Số của người đang ở tab **Khách hỏi** (chưa mua) thì CRM điền tên, tỉnh (nếu lúc tư vấn có ghi 📍) và đưa sản phẩm khách quan tâm lên đầu; lưu đơn xong khách tự chuyển sang **Đã chốt**. Địa chỉ nhận sai tỉnh / phường thì bấm *Sửa tỉnh / phường*.
 2. **Khách cũ mua lại**: bấm **🔁 Đặt lại như đơn trước**. Sản phẩm, quà, số tiền tự điền giống đơn gần nhất, sửa chỗ nào khác là xong.
 3. **Sản phẩm**: bấm nút tên sản phẩm (sản phẩm khách hay mua và sản phẩm bán chạy hiện trước). Bấm thêm lần nữa để tăng số lượng. Sản phẩm khác thì bấm **＋ Sản phẩm khác** và gõ tên. Có quà thì bấm **🎁 Thêm quà**.
 4. **Số tiền thu khách**: gõ `1800000`, `1tr8` hoặc `1,8tr` đều được. Giá linh động, CRM chỉ nhắc giá niêm yết để tham khảo. Chọn **COD** hoặc **Chuyển khoản**, ghi **ghi chú giao hàng** nếu có.

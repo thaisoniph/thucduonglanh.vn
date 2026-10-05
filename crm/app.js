@@ -1476,9 +1476,22 @@
       if (!F.full.value.trim()) { F.full.value = [c.address, c.ward, c.province].filter(Boolean).join(', '); if (c.province) setProvince(c.province, c.ward); else addrChanged(); }
       if (F.consent) F.consent.checked = c.consent;
     }
+    /* ---- số của người đang ở tab Khách hỏi (chưa mua): điền tên, gợi ý sản phẩm quan tâm; lưu đơn → khách hỏi tự chuyển "Đã chốt" */
+    var autoLead = null;
+    function openLeadOf(ph) { ph = normPhone(ph); return (S.d.leads || []).filter(function (l) { return l.phone === ph && (l.status === 'Mới hỏi' || l.status === 'Đang tư vấn'); }).sort(function (a, b) { return (b.time || 0) - (a.time || 0); })[0] || null; }
+    function showLead(l) {
+      var el = $('#noOld', m);
+      el.innerHTML = '🙋 Khách hỏi từ <b>' + fDate(l.time).slice(0, 5) + '</b>' + (l.channel ? ' · ' + esc(l.channel) : '') + (l.interest ? ' · quan tâm <b>' + esc(l.interest) + '</b>' : '') + (l.owner ? ' · 👤 ' + esc(l.owner) : '') + '<br>Lưu đơn xong, khách tự chuyển sang “Đã chốt” trong tab Khách hỏi.';
+      if (!F.name.value) F.name.value = l.name;
+      var pv = (String(l.note || '').match(/📍\s*([^\n,;]+)/) || [])[1]; // tỉnh sale ghi khi tư vấn
+      if (pv && !F.full.value.trim()) { F.full.value = pv.trim(); addrChanged(); }
+      renderChips(null, l.interest);
+    }
     F.phone.addEventListener('input', function () {
       var c = cust(this.value), hint = $('#noOld', m); curC = c || null; showOld(c);
-      if (!c && lvl() < 2) checkPhone(this.value, function (r) { if (r && r.status === 'other') hint.innerHTML = ownerWarn(r); });
+      autoLead = !c && !lead && !eo ? openLeadOf(this.value) : null;
+      if (autoLead) showLead(autoLead);
+      else if (!c && lvl() < 2) checkPhone(this.value, function (r) { if (r && r.status === 'other') hint.innerHTML = ownerWarn(r); });
       if (c) fillFrom(c);
     });
     /* ---- dán tin nhắn khách */
@@ -1492,8 +1505,10 @@
       }, 250);
     });
     /* ---- nút sản phẩm hay bán (+ sản phẩm khách hay mua lên trước) */
-    function renderChips(c) {
+    function renderChips(c, interest) {
       var list = [], add = function (n) { if (n && list.indexOf(n) < 0) list.push(n); };
+      var want = norm(interest || '').replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(function (w) { return w.length >= 3; }); // sản phẩm khách hỏi quan tâm lên đầu
+      if (want.length) names.forEach(function (n) { var k = norm(n); if (want.every(function (w) { return k.indexOf(w) >= 0; })) add(n); });
       if (c) ordersOf(c.phone).slice(0, 5).forEach(function (o) { parseItems(o.items).forEach(function (i) { if (!i.gift) add(i.name + (i.variant ? ' – ' + i.variant : '')); }); });
       soldNames().forEach(function (n) { if (list.length < 8) add(n); });
       P.forEach(function (p) { if (list.length < 8) add(p.label); });
@@ -1556,10 +1571,10 @@
         api('order_edit', common).then(function () { closeModal(true); toast('Đã sửa đơn ' + eo.id + ' ✓'); history.replaceState(null, '', '#don-hang'); load(true); }, fail);
         return;
       }
-      cu.note = F.note.value.trim(); common.status = $('input[name=status]:checked', form).value; common.source = F.source ? F.source.value : ''; common.consent = F.consent.checked; common.leadId = lead ? lead.id : '';
+      cu.note = F.note.value.trim(); common.status = $('input[name=status]:checked', form).value; common.source = F.source ? F.source.value : ''; common.consent = F.consent.checked; var L0 = lead || autoLead; common.leadId = L0 ? L0.id : '';
       if (F.source) store('crm_osrc', F.source.value);
       api('order_create', common).then(function (j) {
-        if (lead) { lead.status = 'Đã chốt'; lead.orderId = j.id; lead.callback = null; }
+        if (L0) { L0.status = 'Đã chốt'; L0.orderId = j.id; L0.callback = null; }
         closeModal(); toast('Đã tạo đơn ' + j.id + ' ✓ · nội dung lên đơn đã copy, dán sang bên vận chuyển'); location.hash = '#don-hang'; load(true);
       }, fail);
     };
