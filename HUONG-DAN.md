@@ -94,7 +94,7 @@ Sheet **Đơn hàng website Thực Dưỡng Lành**: https://docs.google.com/spr
 | Nhật ký CSKH | Mỗi thao tác trên CRM web: ai làm, lúc nào, việc gì, kết quả, ghi chú. Là nguồn số liệu của tab Báo cáo. |
 | Khách tiềm năng | Người hỏi mua nhưng chưa mua: Mã · Kênh · Quan tâm · Trạng thái (Mới hỏi → Đang tư vấn → Đã chốt / Không mua) · Phụ trách · Lần liên hệ · Hẹn liên hệ lại · Lý do không mua · Mã đơn. Form Liên hệ trên web tự thêm vào đây (vẫn ghi cả trang Liên hệ). Cùng 1 số đang mở thì ghi nối, không tạo trùng. Lần đầu tạo trang, các lời nhắn cũ ở Liên hệ được chuyển sang. |
 
-**Việc chăm sóc mỗi ngày** (hàm `careTask`, dùng chung cho tin Telegram 8h và tab Hôm nay trên CRM web): hẹn gọi lại (cột "Hẹn gọi lại" đến ngày) · hỏi nhận hàng (D+1 đến D+3) · sắp hết / đã hết sản phẩm (–7 đến +2 ngày) · xin cảm nhận (D+14 đến D+17) · giới thiệu sản phẩm (D+30 đến D+33) · mời quay lại (D+60 đến D+67). Khách đã được chăm sóc sau mốc đó thì không nhắc nữa.
+**Việc chăm sóc mỗi ngày** (hàm `careTask`, dùng chung cho tin Telegram 8h và tab Hôm nay trên CRM web): hẹn gọi lại (cột "Hẹn gọi lại" đến ngày) · hỏi nhận hàng (D+1 đến D+3) · sắp hết / đã hết sản phẩm (–7 đến +2 ngày) · xin cảm nhận (D+14 đến D+17) · giới thiệu sản phẩm (D+30 đến D+33) · mời quay lại (D+60 đến D+67). Khách đã được chăm sóc sau mốc đó thì không nhắc nữa. **Khách quen sản phẩm** (bản 2026-10-05a): `shipMap` gắn `fam` cho đơn gần nhất khi `famOf` thấy mọi sản phẩm (khoá `prodKeys`: bỏ 🎁, số lượng, quy cách) khách đã nhận ≥ `rules_cfg.famMin` lần trước (mặc định 1, 0 = tắt), lần gần nhất ≤ 180 ngày (`FAM_GAP`), đơn liền trước không hoàn → `careTask` bỏ mốc d1/d7/d14 (`FAM_SKIP`); vẫn nhắc runout/d30/winback/callback. `custObj` gửi `fam` → nhãn 🌟 Khách quen SP trong hồ sơ + hộp chăm sóc; ô chỉnh ở Cài đặt → Nhóm khách. Chưa port sang api/ (Cloudflare).
 
 ### CRM web – https://crm.thucduonglanh.vn
 
@@ -128,7 +128,7 @@ Sheet **Đơn hàng website Thực Dưỡng Lành**: https://docs.google.com/spr
 | `setupCRM` | Lần đầu cài CRM, hoặc cài lại lịch 8h |
 | `dailyCare` | Xem thử tin CSKH ngay |
 | `rebuildCustomers` | Sau khi sửa/huỷ đơn cũ – tính lại trang Khách hàng (giữ cột CSKH) |
-| `tidySheet` | Tạo trang "📖 Hướng dẫn" + "✅ Việc hôm nay", tô màu (xanh = máy điền, cam = nhân viên điền), ô chọn Trạng thái / Kết quả CSKH, định dạng tiền-ngày, khoá mềm cột tự động, thu gọn cột ít dùng. Chạy lại bất cứ lúc nào, không mất dữ liệu. Có trong menu 🌿 Thực Dưỡng Lành trên Sheet |
+| `tidySheet` | Tạo trang "📖 Hướng dẫn" (chỉ sang CRM), xoá trang "✅ Việc hôm nay" cũ nếu còn, tô màu (xanh = máy điền, cam = nhân viên điền), ô chọn Trạng thái / Kết quả CSKH, định dạng tiền-ngày, khoá mềm cột tự động, thu gọn cột ít dùng. Chạy lại bất cứ lúc nào, không mất dữ liệu. Có trong menu 🌿 Thực Dưỡng Lành trên Sheet |
 | `testTelegram` | Kiểm tra bot Telegram |
 
 **Sửa code Apps Script**: (phần CRM web nằm trong `doPost` → mọi thay đổi `crm…` đều phải Deploy phiên bản mới) dán đè toàn bộ `backend/google-apps-script.gs` → Lưu. Nếu sửa phần nhận đơn (`doPost`) thì thêm: Triển khai → Quản lý các bản triển khai → ✏️ → **Phiên bản mới** → Triển khai (link nhận đơn giữ nguyên). Lịch 8h luôn dùng bản đã lưu mới nhất.
@@ -144,7 +144,7 @@ Sheet **Đơn hàng website Thực Dưỡng Lành**: https://docs.google.com/spr
   - Đơn hàng có cột **Ngày gửi** (Apps Script 2026-10-02d): tự ghi khi đơn chuyển Đang giao / nhập mã vận đơn; "Giao lâu chưa tới" tính từ ngày gửi, chưa có thì từ ngày đặt.
   - Tự nhập file sale (srcAutoTick, Apps Script 2026-10-04b): 30 phút/lần trong 7h–21h; mỗi lần ghi 1 dòng vào tab "Tự nhập file sale" (giây chạy, đơn mới, cập nhật, ghi chú, lỗi); không có gì mới thì không tính lại khách / không ghi nhật ký; Telegram cho quản trị lần đầu trong ngày + khi lỗi. Lịch cũ 7h tự đổi (docSanCRM → wbTrigger).
   - Mỗi lần tự nhập: ngoài dòng mới, `syncOldNotes()` so ghi chú trên DÒNG CŨ của sheet chăm sóc sale (60 ngày gần đây, theo ngày + nội dung), bỏ dòng do CRM ghi ngược (tab "Ghi ngược file sale"), thêm lên đầu "Ghi chú CSKH".
-  - Tab "✅ Việc hôm nay" (trang việc cũ trên Sheet) tự ẩn 1 lần (docSanCRM); CRM đã thay.
+  - Tab "✅ Việc hôm nay" (trang việc cũ trên Sheet) tự ẩn 1 lần (docSanCRM); CRM đã thay. Từ 05/10/2026 hàm `suaHuongDanSheet` (chạy tay 1 lần) xoá hẳn tab này, viết lại "📖 Hướng dẫn" chỉ sang CRM và đổi tên mẫu tin "… sau khi đặt" → "… sau khi nhận hàng".
   - Ghi ngược file sale (Apps Script 2026-10-04a): ngoài ghi chú chăm sóc, còn `@order` (đơn tạo trên CRM → thêm dòng vào sheet đơn hàng sale đang dùng: `cfg.orderSheet` nếu đặt, không thì sheet có ngày đơn mới nhất – Phương: VTG_lendon), `@ost` (đổi trạng thái → cột Trạng thái của đúng sheet đơn được nhập từ, tìm theo mã đơn rồi SĐT+ngày+tiền), tư vấn khách hỏi → sheet chăm sóc. Lúc nhập file: `wbKeys` bỏ dòng CRM đã ghi, `crmOrderDays` bỏ đơn CRM/web đã ghi ngược, không tạo khách hỏi trùng SĐT.
   - Quản trị thấy thời gian tải ở dòng cuối trang ("tải …s, máy chủ …s, bản đọc sẵn/đọc Sheet, … KB").
 

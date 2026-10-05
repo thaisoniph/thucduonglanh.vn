@@ -44,7 +44,7 @@ Trên cùng là **số khách cần chăm sóc hôm nay** và **thanh tiến đ�
 Bên dưới, khách được chia **nhóm thu gọn** (bấm vào nhóm mới mở ra), mỗi khách 1 dòng với 3 nút **📞 Gọi · 📵 KNM · 💬 Chăm sóc**:
 
 - **📞 Hẹn gọi lại**: khách em đã hẹn, hoặc hôm trước không nghe máy.
-- **📦 Hỏi nhận hàng**: khách vừa nhận hàng (hoặc đã quá ngày giao dự kiến).
+- **📦 Hỏi nhận hàng**: khách vừa nhận hàng (hoặc đã quá ngày giao dự kiến). Khách **mua lại đúng sản phẩm đã dùng** (🌟 khách quen) thì CRM không nhắc mốc này, mốc 1 tuần và mốc 14 ngày nữa, vì khách đã biết cách dùng; chỉ nhắc khi sắp hết hàng.
 - **⏰ Sắp hết hàng**: khách sắp dùng hết, nhắc đặt lại.
 - **💬 / 🌿 / 💌**: xin cảm nhận, giới thiệu thêm, mời quay lại.
 - **🔁 Khách cũ lâu chưa gọi**: hơn 30 ngày chưa nói chuyện, khách chi nhiều nhất lên trước.

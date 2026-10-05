@@ -172,6 +172,8 @@ CRM tự tính ngày cần liên hệ từng khách, dựa vào **ngày khách n
 
 Việc nào **qua khung mà chưa làm** (ví dụ bạn nghỉ vài hôm) vẫn hiện thêm 7 ngày, kèm dòng **⏳ trễ N ngày**, để không sót khách. Khi đã tới mốc sau (vd đã tới ngày 14) thì mốc trước chưa làm tự bỏ qua, chỉ hiện mốc mới nhất.
 
+**🌟 Khách quen sản phẩm** (mua lại đúng sản phẩm đã dùng, lần mua trước trong 6 tháng, đơn trước không bị hoàn) đã biết cách dùng nên CRM **không nhắc** *Hỏi nhận hàng*, *Hỏi thăm sau 1 tuần*, *Xin cảm nhận*. Vẫn nhắc **Sắp hết hàng**, **Giới thiệu sản phẩm**, **Mời quay lại** và hẹn gọi lại. Đơn có **sản phẩm mới** thì vẫn đủ các mốc. Nhãn **🌟 Khách quen SP** hiện trong hồ sơ khách. Quản lý chỉnh số lần mua để tính là khách quen ở **Cài đặt → Nhóm khách** (mặc định 1 lần, ghi 0 = tắt).
+
 ### 👥 Mời khách vào nhóm Zalo cộng đồng
 
 Nhóm **“Sống khỏe cùng Thực Dưỡng Lành”** chia sẻ kiến thức dinh dưỡng, thực đơn lành mạnh và thông báo các buổi **Zoom hỏi đáp miễn phí cùng chuyên gia dinh dưỡng**. Khách trong nhóm gắn bó và mua lại nhiều hơn, nên mời mọi khách đã mua.

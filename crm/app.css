@@ -97,6 +97,7 @@ main { max-width: 1180px; margin: 0 auto; padding: 16px 16px calc(var(--nav-h) +
 /* ---------- nhãn */
 .tag { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 999px; background: #eee; color: #555; white-space: nowrap; }
 .tag.vip { background: #ffe08a; color: #6b4e00; }
+.tag.fam { background: #e6f4ea; color: #1f5f3a; }
 .tag.back { background: #d7f0dd; color: #1f5f3a; }
 .tag.new { background: var(--blue-light); color: var(--blue); }
 .tag.risk { background: var(--red-light); color: var(--red); }

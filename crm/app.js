@@ -101,7 +101,7 @@
   var SERVER_V = '2026-10-02a'; // phải trùng số phiên bản máy chủ (api/src/index.js)
   var ON_CF = !/script\.google/.test(CFG.endpoint || ''); // máy chủ Cloudflare (nhanh) hay Apps Script cũ
   function checkVersion(j) {
-    if (!j || S._vWarned || j.v === SERVER_V || j.v === '2026-10-02b' || j.v === '2026-10-02c' || j.v === '2026-10-04a' || j.v === '2026-10-04b' || j.v === '2026-10-04c' || j.v === 'moved') return;
+    if (!j || S._vWarned || j.v === SERVER_V || j.v === '2026-10-02b' || j.v === '2026-10-02c' || j.v === '2026-10-04a' || j.v === '2026-10-04b' || j.v === '2026-10-04c' || j.v === '2026-10-05a' || j.v === 'moved') return;
     S._vWarned = true;
     if (lvl() >= 2 || (j.user && j.user.level >= 2)) toast('⚠️ Máy chủ Apps Script đang chạy bản cũ (' + (j.v || 'chưa có số phiên bản') + '), cần bản ' + SERVER_V + '. Vào Apps Script → Triển khai → Quản lý các bản triển khai → ✏️ → Phiên bản: Phiên bản mới → Triển khai.', true);
   }
@@ -467,6 +467,7 @@
     nozalo: 'Chưa kết bạn Zalo: gọi xong nhớ xin kết bạn',
     task: 'Khách đến lịch chăm sóc hôm nay (hẹn gọi lại, hỏi nhận hàng, sắp hết hàng…)',
     callback: 'Khách đã hẹn ngày gọi lại',
+    fam: function () { var n = (S.d.rules && S.d.rules.famMin) || 1; return 'Khách quen sản phẩm: đơn gần nhất toàn sản phẩm khách đã mua từ ' + n + ' lần trước đó, đã biết cách dùng. CRM không nhắc hỏi nhận hàng / 7 ngày / 14 ngày; vẫn nhắc sắp hết hàng, 30 ngày, mời quay lại'; },
     all: 'Tất cả khách của bạn'
   };
   function custTags(c) {
@@ -474,6 +475,7 @@
     return (isVip(c) ? '<span class="tag vip" title="' + TIP.vip() + '">VIP</span>' : '') + (cold ? '<span class="tag cold" title="' + TIP.cold + '">❄️ ' + esc(cold) + '</span>' : st === 'risk' ? '<span class="tag risk" title="' + TIP.risk + '">Sắp mất</span>' : st === 'lost' ? '<span class="tag lost" title="' + TIP.lost + '">Lâu không mua</span>' : '') +
       (riskyReturn(c) && !cold ? '<span class="tag st-huy" title="' + TIP.back + '">⚠️ hay hoàn</span>' : '');
   }
+  function famTag(c) { return c.fam ? '<span class="tag fam" title="' + esc(TIP.fam()) + '">🌟 Khách quen SP</span>' : ''; } // chỉ hiện trong hồ sơ + hộp chăm sóc (danh sách đỡ rối)
   function stTag(s) { return '<span class="tag ' + (ST_CLS[s] || '') + '">' + esc(s) + '</span>'; }
   function shortProducts(list, n) { return (list || []).slice(-(n || 2)).map(function (p) { return p.replace(/\s*\(.*\)\s*$/, ''); }).join(', '); }
   function taskLine(c) {
@@ -970,7 +972,7 @@
       (canEdit(c) ? commBox(c, '') : '') + (canEdit(c) && c.zalo ? '<p style="margin:0 0 10px"><button type="button" class="link small" id="cUnZalo">Bỏ đánh dấu đã kết bạn Zalo</button></p>' : '') +
       '<button class="btn pri" id="cSave">Lưu thay đổi</button></div></details>';
     var foot = '<div class="p-quick"><input type="text" id="cQuick" placeholder="✏️ Ghi nhanh: kh dùng ok, hẹn cuối tháng…" enterkeyhint="send"><button class="btn pri" id="cQSave">Lưu</button></div>';
-    var m = modal('<span>' + esc(c.name || 'Khách') + '</span> ' + custTags(c), body, foot, { route: '#khach-hang', pushed: !fromRoute });
+    var m = modal('<span>' + esc(c.name || 'Khách') + '</span> ' + custTags(c) + famTag(c), body, foot, { route: '#khach-hang', pushed: !fromRoute });
     var draw = function () {
       var list = all || ordersOf(c.phone), box = $('#pTab', m); if (!box) return;
       $$('[data-ptab]', m).forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-ptab') === tab); });
@@ -1054,7 +1056,7 @@
     var ti = templateFor(type), tp = S.d.templates;
     var hist = recentHist(c, 3);
     var body = (opt.flow ? '<div class="flow-h"><div><b>Khách ' + opt.n + ' / ' + opt.total + '</b><span>' + (TASKS[type] ? TASKS[type].icon + ' ' + TASKS[type].title : 'Chăm sóc') + '</span></div><div class="bar"><i style="width:' + Math.round((opt.n - 1) * 100 / Math.max(1, opt.total)) + '%"></i></div></div>' : '') +
-      '<div class="box"><div class="r1" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>' + esc(c.name) + '</b> ' + custTags(c) + ' <span class="muted">' + fPhone(c.phone) + '</span></div>' +
+      '<div class="box"><div class="r1" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>' + esc(c.name) + '</b> ' + custTags(c) + famTag(c) + ' <span class="muted">' + fPhone(c.phone) + '</span></div>' +
       '<div class="small muted" style="margin-top:4px">' + esc(shortProducts(c.products, 3)) + ' · mua ' + daysAgo(c.last) + (c.task ? ' · ' + taskLine(c) : '') + '</div>' +
       (hist.length ? '<div class="mini-hist">' + hist.map(function (x) { return '<div><span>' + fDate(x.time).slice(0, 5) + '</span> ' + esc(x.text) + '</div>'; }).join('') + '</div>' : '') + '</div>' +
       '<div class="box"><h3>Bước 1 · Gửi tin cho khách</h3>' +
@@ -2324,6 +2326,8 @@
       '<label class="f"><span>hoặc tổng chi từ</span><input type="text" id="rVipS" inputmode="decimal" value="' + esc(R.vipSpent || 2000000) + '" placeholder="vd 5tr"></label></div>' +
       '<label class="f"><span>“Sắp mất” khi bao nhiêu ngày chưa mua lại</span><input type="number" id="rRisk" min="7" value="' + esc(R.atRisk || 60) + '"></label>' +
       '<label class="f"><span>🚚 Số ngày giao hàng trung bình</span><input type="number" id="rShip" min="0" max="15" value="' + esc(R.shipDays === undefined ? 3 : R.shipDays) + '"></label>' +
+      '<label class="f"><span>🌟 Khách quen sản phẩm khi đã mua sản phẩm đó từ (lần)</span><input type="number" id="rFam" min="0" max="10" value="' + esc(R.famMin === undefined ? 1 : R.famMin) + '"></label>' +
+      '<p class="hint">Khách quen (mua lại đúng sản phẩm đã dùng, lần mua trước trong 6 tháng, đơn trước không bị hoàn) đã biết cách dùng: CRM <b>bỏ qua</b> hỏi nhận hàng, hỏi thăm 7 ngày, xin cảm nhận 14 ngày. Vẫn nhắc <b>sắp hết hàng</b>, giới thiệu sản phẩm 30 ngày, mời quay lại. Ghi <b>0</b> = tắt (ai cũng gọi đủ các mốc).</p>' +
       '<p class="hint">Các mốc chăm sóc (hỏi nhận hàng, sắp hết hàng, xin cảm nhận…) tính từ <b>ngày khách nhận hàng</b>: ngày đơn chuyển “Đã giao”, hoặc ngày sale bấm “Đã nhận hàng” khi gọi. Chưa biết ngày nhận thì máy ước tính = <b>ngày gửi</b> + số ngày này (đơn chưa ghi ngày gửi: ngày đặt + số ngày này). Đơn còn chờ xác nhận / chờ gửi thì chưa nhắc hỏi nhận hàng.</p>' +
       '<p class="hint" id="rHint"></p><button class="btn pri" id="rSave">Lưu nhóm khách</button></div>';
     h += caBox();
@@ -2372,7 +2376,7 @@
     if ($('#rSave')) { var rh = function () { $('#rHint').textContent = 'Tổng chi = ' + money(moneyIn($('#rVipS').value)); }; $('#rVipS').addEventListener('input', rh); rh();
       $('#rSave').onclick = function () {
         var b = this; b.disabled = true;
-        api('settings', { rules: { vipOrders: $('#rVipN').value, vipSpent: moneyIn($('#rVipS').value), atRisk: $('#rRisk').value, shipDays: $('#rShip').value } }).then(function (j) { Object.assign(S.d.rules, j.rules); toast('Đã lưu. Nhóm khách được tính lại ✓'); load(true); }, function (e) { toast(e.message, true); b.disabled = false; });
+        api('settings', { rules: { vipOrders: $('#rVipN').value, vipSpent: moneyIn($('#rVipS').value), atRisk: $('#rRisk').value, shipDays: $('#rShip').value, famMin: $('#rFam').value } }).then(function (j) { Object.assign(S.d.rules, j.rules); toast('Đã lưu. Nhóm khách được tính lại ✓'); load(true); }, function (e) { toast(e.message, true); b.disabled = false; });
       }; }
     if ($('#tgOff')) $('#tgOff').onclick = function () { if (!confirm('Ngắt thông báo Telegram riêng?')) return; api('tg_off').then(function () { S.user.tg = false; toast('Đã ngắt'); render(); }, function (e) { toast(e.message, true); }); };
     if ($('#tgLink')) $('#tgLink').onclick = function () {
