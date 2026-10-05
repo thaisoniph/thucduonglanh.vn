@@ -131,6 +131,12 @@ main { max-width: 1180px; margin: 0 auto; padding: 16px 16px calc(var(--nav-h) +
 .chips::-webkit-scrollbar { display: none; }
 .chip { flex: none; border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 6px 12px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--text); white-space: nowrap; }
 .chip.on { background: var(--primary); border-color: var(--primary); color: #fff; }
+.radios.ot4 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.radios.ot4 span { display: block; border-radius: 12px; padding: 8px 10px; height: 100%; }
+.radios.ot4 span b { display: block; font-size: 14px; }
+.radios.ot4 span small { display: block; font-size: 12px; font-weight: 400; opacity: .8; margin-top: 2px; }
+.f.otype.warn .radios.ot4 input:checked + span { background: #b45309; border-color: #b45309; }
+.f.otype.warn #noOtHint { color: #b45309; }
 .chips.wrap { flex-wrap: wrap; overflow: visible; }
 details.paste summary { cursor: pointer; color: var(--primary); font-size: 14px; font-weight: 600; padding: 2px 0 8px; }
 details.paste textarea { width: 100%; }

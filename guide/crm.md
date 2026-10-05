@@ -119,11 +119,12 @@ Vào **Đơn hàng → ＋ Tạo đơn**, hoặc bấm **＋ Đơn** trong hồ 
 1. **Khách hàng**: bấm **📋 Dán tin nhắn của khách** rồi dán nguyên tin Zalo (tên, số điện thoại, địa chỉ). CRM tự tách vào các ô, bạn chỉ cần kiểm tra lại. Hoặc gõ **số điện thoại**: khách cũ thì tên và địa chỉ tự điền. Khách có nhãn ⚠️ *Bom hàng* thì CRM cảnh báo. Số của người đang ở tab **Khách hỏi** (chưa mua) thì CRM điền tên, tỉnh (nếu lúc tư vấn có ghi 📍) và đưa sản phẩm khách quan tâm lên đầu; lưu đơn xong khách tự chuyển sang **Đã chốt**. Địa chỉ nhận sai tỉnh / phường thì bấm *Sửa tỉnh / phường*.
 2. **Khách cũ mua lại**: bấm **🔁 Đặt lại như đơn trước**. Sản phẩm, quà, số tiền tự điền giống đơn gần nhất, sửa chỗ nào khác là xong.
 3. **Sản phẩm**: bấm nút tên sản phẩm (sản phẩm khách hay mua và sản phẩm bán chạy hiện trước). Bấm thêm lần nữa để tăng số lượng. Sản phẩm khác thì bấm **＋ Sản phẩm khác** và gõ tên. Có quà thì bấm **🎁 Thêm quà**.
-4. **Số tiền thu khách**: gõ `1800000`, `1tr8` hoặc `1,8tr` đều được. Giá linh động, CRM chỉ nhắc giá niêm yết để tham khảo. Chọn **COD** hoặc **Chuyển khoản**, ghi **ghi chú giao hàng** nếu có.
-5. Dòng **⚙️** tóm tắt các mục ít đổi (ca, khách đặt qua, trạng thái, phí ship riêng, đồng ý nhận ưu đãi). Cần sửa thì bấm vào. *Khách đặt qua* nhớ lựa chọn lần trước của bạn.
-6. Bấm **Lưu & copy lên đơn**: đơn được lưu, nội dung lên đơn đã copy sẵn, dán sang bên vận chuyển. **Mã đơn** tự tạo theo kiểu cũ, ví dụ *Phuong300926-01*.
+4. **Loại đơn (tính hoa hồng)**: chọn 1 trong 4 – 🆕 **Khách mới**, 🔁 **Khách cũ**, 🌙 **Ngoài giờ** (tối sau giờ ca tối hoặc Chủ nhật), 🎉 **Ngày lễ**. CRM chọn sẵn theo gợi ý, ưu tiên Lễ → Ngoài giờ → Mới/Cũ, lý do ghi ngay bên dưới (💡 CRM gợi ý…). Khách đã từng mua nhưng **vừa để lại số qua quảng cáo** (trong 30 ngày) vẫn là **Khách mới**. Bạn chọn khác gợi ý thì khung chuyển màu cam: vẫn lưu được, nhưng đơn sẽ được **quản lý kiểm tra lại**.
+5. **Số tiền thu khách**: gõ `1800000`, `1tr8` hoặc `1,8tr` đều được. Giá linh động, CRM chỉ nhắc giá niêm yết để tham khảo. Chọn **COD** hoặc **Chuyển khoản**, ghi **ghi chú giao hàng** nếu có.
+6. Dòng **⚙️ Tuỳ chọn khác** gồm các mục ít đổi (khách đặt qua, trạng thái, phí ship riêng, đồng ý nhận ưu đãi). Cần sửa thì bấm vào. *Khách đặt qua* nhớ lựa chọn lần trước của bạn.
+7. Bấm **Lưu & copy lên đơn**: đơn được lưu, nội dung lên đơn đã copy sẵn, dán sang bên vận chuyển. **Mã đơn** tự tạo theo kiểu cũ, ví dụ *Phuong300926-01*.
 
-**Ca (Ngày / Tối-CN / Lễ)** dùng để tính hoa hồng nên **CRM tự ghi theo giờ bấm lưu đơn**, nhân viên không sửa được. Lên đơn muộn (vd khách chốt tối hôm trước, sáng nay mới lên) thì nhờ quản lý sửa ca trong đơn.
+**Quản lý kiểm tra loại đơn:** đơn sale chọn khác gợi ý có nhãn **⚠️ Kiểm tra loại đơn** và nằm trong **Đơn hàng → Cần xử lý → Kiểm tra loại đơn**. Mở đơn, bấm **✓ Đúng** (giữ lựa chọn của sale) hoặc **Đổi sang** loại khác. % hoa hồng từng loại đặt ở **Cài đặt → 💰 Hoa hồng theo loại đơn**; báo cáo **BCDT** có mục *Theo loại đơn* với doanh thu và hoa hồng tạm tính của từng sale.
 
 Khách đặt qua Zalo, Facebook, điện thoại hay mua tại cửa hàng thì **luôn tạo đơn trên CRM**: khách sẽ được nhắc chăm sóc và tính doanh số cho bạn như đơn web.
 
