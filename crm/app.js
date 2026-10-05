@@ -101,7 +101,8 @@
   var SERVER_V = '2026-10-02a'; // phải trùng số phiên bản máy chủ (api/src/index.js)
   var ON_CF = !/script\.google/.test(CFG.endpoint || ''); // máy chủ Cloudflare (nhanh) hay Apps Script cũ
   function checkVersion(j) {
-    if (!j || S._vWarned || j.v === SERVER_V || j.v === '2026-10-02b' || j.v === '2026-10-02c' || j.v === '2026-10-04a' || j.v === '2026-10-04b' || j.v === '2026-10-04c' || j.v === '2026-10-05a' || j.v === '2026-10-05b' || j.v === '2026-10-05c' || j.v === 'moved') return;
+    if (j && j.v) S.srvV = j.v;
+    if (!j || S._vWarned || j.v === SERVER_V || j.v === '2026-10-02b' || j.v === '2026-10-02c' || j.v === '2026-10-04a' || j.v === '2026-10-04b' || j.v === '2026-10-04c' || j.v === '2026-10-05a' || j.v === '2026-10-05b' || j.v === '2026-10-05c' || j.v === '2026-10-05d' || j.v === 'moved') return;
     S._vWarned = true;
     if (lvl() >= 2 || (j.user && j.user.level >= 2)) toast('⚠️ Máy chủ Apps Script đang chạy bản cũ (' + (j.v || 'chưa có số phiên bản') + '), cần bản ' + SERVER_V + '. Vào Apps Script → Triển khai → Quản lý các bản triển khai → ✏️ → Phiên bản: Phiên bản mới → Triển khai.', true);
   }
@@ -110,7 +111,7 @@
   function api(action, payload, tries) {
     var body = Object.assign({ type: 'crm', action: action, token: S.token }, payload || {});
     if (!CFG.endpoint) return Promise.reject(new Error('Chưa cấu hình máy chủ.'));
-    tries = tries || 0;
+    tries = tries || 0; var t0 = Date.now();
     return fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) })
       .then(function (r) { return r.text().then(function (t) { return { t: t, st: r.status }; }); }, function () { var e0 = new Error('Mất kết nối mạng. Bạn thử lại nhé.'); e0.net = true; throw e0; })
       .then(function (x) {
@@ -121,7 +122,7 @@
         }
       })
       .then(function (j) {
-        checkVersion(j);
+        perfRec(action, t0, j); checkVersion(j);
         if (!j || !j.ok) {
           if (j && j.auth) { logout(true); }
           lastErr = action + ': ' + ((j && j.error) || '');
@@ -129,6 +130,20 @@
         }
         return j;
       });
+  }
+
+  /* ---------- đo tốc độ: ghi thời gian mỗi lần tải / lưu, 2 phút gửi 1 lần lên tab "Đo tốc độ CRM" (để biết chậm do máy chủ hay do mạng) */
+  var PERF_SKIP = { perf: 1, login: 1, verify: 1, logout: 1, fb_img: 1, fb_list: 1 };
+  function perfRec(action, t0, j) {
+    if (PERF_SKIP[action] || !j || !j.ok) return;
+    var src = action === 'load' ? (j.rest ? 'đợt 2 · ' : '') + (j.t && j.t.cached ? 'bản đọc sẵn' : 'đọc Sheet') : j.pc === true ? 'sửa bản đọc sẵn' : j.pc === false ? 'bỏ bản đọc sẵn' : '';
+    S.pq = S.pq || []; S.pq.push([t0, action, Date.now() - t0, j.sms, src, action === 'load' ? j.__kb || '' : '']); if (S.pq.length > 60) S.pq.shift();
+  }
+  function perfFlush() {
+    if (!S.pq || !S.pq.length || !S.token || !/^\d{4}-\d\d-\d\d[a-z]$/.test(S.srvV || '') || S.srvV < '2026-10-05d') return; // máy chủ cũ chưa có lệnh này
+    var rows = S.pq, ua = navigator.userAgent, cn = navigator.connection; S.pq = []; S.pqAt = Date.now();
+    var dev = (/iPhone|iPad/.test(ua) ? 'iPhone/iPad' : /Android/.test(ua) ? 'Android' : /Mac/.test(ua) ? 'Mac' : /Windows/.test(ua) ? 'Windows' : 'Khác') + (/Zalo/i.test(ua) ? ' · trong Zalo' : '') + (cn && cn.effectiveType ? ' · mạng ' + cn.effectiveType : '') + ' · ' + window.innerWidth + 'px';
+    api('perf', { rows: rows, dev: dev }).catch(function () { });
   }
 
   /* ================================================================ đăng nhập */
@@ -1313,7 +1328,7 @@
     };
     $('#oNoteSave', m).onclick = function () {
       var btn = this, note = $('#oNote', m).value.trim(); btn.disabled = true;
-      api('order_status', { id: o.id, row: o.row, note: note }).then(function () { o.note = note; toast('Đã lưu ghi chú'); btn.disabled = false; refreshBehind(); }, function (e) { toast(e.message, true); btn.disabled = false; });
+      api('order_status', { id: o.id, row: o.row, note: note }).then(function () { o.note = note; toast('Đã lưu ghi chú'); btn.disabled = false; render(); }, function (e) { toast(e.message, true); btn.disabled = false; });
     };
   }
   function setStatus(o, st, done) {
@@ -2578,8 +2593,6 @@
     if (!silent && modalRoute && route().id) { if (modalPushed) history.back(); else history.replaceState(null, '', modalRoute); }
     modalRoute = null; modalPushed = false;
   }
-  var bgTimer = null;
-  function refreshBehind() { render(); clearTimeout(bgTimer); bgTimer = setTimeout(function () { if (!$('.modal')) load(true); }, 1500); }
 
   /* ================================================================ sự kiện chung */
   document.addEventListener('toggle', function (e) { var d = e.target; if (d && d.matches && d.matches('details[data-grp]')) { S.f.gopen = S.f.gopen || {}; S.f.gopen[d.getAttribute('data-grp')] = d.open; } }, true);
@@ -2671,8 +2684,8 @@
   window.addEventListener('hashchange', function () { if (!route().id) closeModal(true); render(); });
   window.addEventListener('popstate', function () { if (!route().id && $('.modal')) closeModal(true); });
   // tự làm mới mỗi 3 phút khi đang mở trang, và khi quay lại tab
-  setInterval(function () { if (S.d && !document.hidden && !$('.modal') && Date.now() - S.loadedAt > 170e3) load(true); }, 30e3);
-  document.addEventListener('visibilitychange', function () { if (!document.hidden && S.d && !$('.modal') && Date.now() - S.loadedAt > 60e3) load(true); });
+  setInterval(function () { if (S.d && !document.hidden && !$('.modal') && Date.now() - S.loadedAt > 170e3) load(true); if (S.pq && S.pq.length && Date.now() - (S.pqAt || 0) > 120e3) perfFlush(); }, 30e3);
+  document.addEventListener('visibilitychange', function () { if (document.hidden) perfFlush(); if (!document.hidden && S.d && !$('.modal') && Date.now() - S.loadedAt > 60e3) load(true); });
 
   /* ================================================================ chạy */
   if (S.token) start(); else renderLogin('email');
