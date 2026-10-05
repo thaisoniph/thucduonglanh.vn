@@ -83,7 +83,7 @@
   function daysAgo(t) { if (!t) return ''; var n = Math.round((today() - dayStart(t)) / DAY); if (n === 0) return 'hôm nay'; if (n === 1) return 'hôm qua'; if (n < 0) return 'còn ' + (-n) + ' ngày'; return n + ' ngày trước'; }
   function when(t) { if (!t) return ''; var n = Math.round((today() - dayStart(t)) / DAY), x = vnDate(t), noTime = !x.h && !x.mi; return n === 0 ? 'Hôm nay' + (noTime ? '' : ' ' + fDateTime(t).slice(0, 5)) : n === 1 ? 'Hôm qua' + (noTime ? '' : ' ' + fDateTime(t).slice(0, 5)) : noTime ? fDate(t).slice(0, 5) : fDateTime(t); } // đơn nhập từ file không có giờ → chỉ hiện ngày
   function norm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd'); }
-  function normPhone(p) { p = String(p || '').replace(/\D/g, ''); if (p.indexOf('84') === 0 && p.length >= 11) p = '0' + p.slice(2); return p; }
+  function normPhone(p) { p = String(p || '').replace(/\D/g, ''); if (p.indexOf('84') === 0 && p.length >= 11) p = '0' + p.slice(2); if (p.length === 9 && /^[35789]/.test(p)) p = '0' + p; return p; } // số copy từ Google Sheet hay mất số 0 đầu
   function fPhone(p) { p = normPhone(p); return p.length === 10 ? p.slice(0, 4) + ' ' + p.slice(4, 7) + ' ' + p.slice(7) : p; }
   function zalo(p) { return 'https://zalo.me/' + normPhone(p); }
   var ZI = '<svg class="zi" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0068ff"/><text x="16" y="20.5" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="11.5" font-weight="700" fill="#fff">Zalo</text></svg>'; // biểu tượng Zalo: khách đã kết bạn (khác 💬 = chăm sóc / nhắn tin)
@@ -1352,7 +1352,8 @@
   var PROV_ALIAS = { 'hcm': 'Hồ Chí Minh', 'tphcm': 'Hồ Chí Minh', 'sai gon': 'Hồ Chí Minh', 'ha noi': 'Hà Nội', 'hn': 'Hà Nội' };
   function detectAddr(text) {
     var u = S.units || [], t = ' ' + norm(text).replace(/[.,;\-–()]/g, ' ').replace(/\s+/g, ' ') + ' ', prov = null, ward = '';
-    u.forEach(function (p) { [p.n, p.f].forEach(function (nm) { var k = ' ' + norm(nm) + ' '; if (t.indexOf(k) >= 0 && (!prov || nm.length > prov._len)) { prov = p; prov._len = nm.length; } }); });
+    if (!String(text || '').trim()) return { province: '', ward: '' }; // địa chỉ trống: không đoán tỉnh
+    u.forEach(function (p) { [p.n, p.f].forEach(function (nm) { if (!nm) return; var k = ' ' + norm(nm) + ' '; if (t.indexOf(k) >= 0 && (!prov || nm.length > prov._len)) { prov = p; prov._len = nm.length; } }); });
     if (!prov) Object.keys(PROV_ALIAS).forEach(function (k) { if (!prov && t.indexOf(' ' + k + ' ') >= 0) prov = u.filter(function (p) { return p.n === PROV_ALIAS[k]; })[0] || null; });
     var pool = prov ? [prov] : u, best = '';
     pool.forEach(function (p) {
@@ -1452,7 +1453,7 @@
     }
     function fillWards() { var p = (S.units || []).filter(function (x) { return x.n === prov.value; })[0]; $('#noWards', m).innerHTML = p ? p.w.map(function (w) { return '<option value="' + esc(w) + '">'; }).join('') : ''; }
     function addrHint() { $('#noAddrHint', m).innerHTML = prov.value || ward.value ? '📍 Nhận ra: <b>' + esc([ward.value, prov.value].filter(Boolean).join(', ')) + '</b> (sai thì bấm “Sửa tỉnh / phường”)' : F.full.value.trim() ? '⚠️ Chưa nhận ra tỉnh / phường – bấm “Sửa tỉnh / phường” để chọn.' : ''; }
-    function addrChanged() { var d = detectAddr(F.full.value); if (d.province) setProvince(d.province, d.ward || ward.value); else addrHint(); }
+    function addrChanged() { if (!F.full.value.trim()) { prov.value = ''; ward.value = ''; fillWards(); addrHint(); return; } var d = detectAddr(F.full.value); if (d.province) setProvince(d.province, d.ward || ward.value); else addrHint(); } // xoá địa chỉ → bỏ luôn tỉnh / phường cũ
     prov.onchange = function () { fillWards(); addrHint(); }; ward.addEventListener('input', addrHint);
     F.full.addEventListener('input', function () { clearTimeout(F.full._t); F.full._t = setTimeout(addrChanged, 300); });
     function flagOf(c) { return c && c.flag ? '<div class="notice">⚠️ Khách có nhãn <b>' + esc(c.flag) + '</b>. Kiểm tra kỹ trước khi gửi hàng (nên chuyển khoản trước).</div>' : ''; }
@@ -1487,6 +1488,8 @@
       if (pv && !F.full.value.trim()) { F.full.value = pv.trim(); addrChanged(); }
       renderChips(null, l.interest);
     }
+    F.phone.addEventListener('change', function () { var v = normPhone(this.value); if (/^0\d{9,10}$/.test(v) && v !== this.value) this.value = v; }); // gõ / dán xong: tự thêm số 0 đầu, bỏ dấu cách
+    F.phone.addEventListener('paste', function () { var el = this; setTimeout(function () { var v = normPhone(el.value); if (/^0\d{9,10}$/.test(v) && v !== el.value) { el.value = v; el.dispatchEvent(new Event('input')); } }, 0); });
     F.phone.addEventListener('input', function () {
       var c = cust(this.value), hint = $('#noOld', m); curC = c || null; showOld(c);
       autoLead = !c && !lead && !eo ? openLeadOf(this.value) : null;
