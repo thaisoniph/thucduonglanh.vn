@@ -245,9 +245,9 @@ Từ trên xuống:
 - **3 thẻ:**
     - **Lịch sử** (mở sẵn): **đơn hàng 🛒 và các lần chăm sóc gộp chung 1 dòng thời gian**, mới nhất ở trên. 📵 = không nghe máy, 📒 = ghi chú cũ từ Sheet.
     - **Đơn hàng:** toàn bộ đơn của khách, kể cả đơn cũ.
-    - **Thông tin:** địa chỉ, nguồn, đơn đầu, ngày nhận hàng gần nhất, người giới thiệu, số điện thoại khác, tình trạng sức khoẻ.
+    - **Thông tin:** ngày sinh, địa chỉ, nguồn, đơn đầu, ngày nhận hàng gần nhất, người giới thiệu, số điện thoại khác, tình trạng sức khoẻ.
 - **Ô ✏️ Ghi nhanh** luôn ở đáy màn hình: gõ vài chữ (vd “kh dùng ok, hẹn cuối tháng”) rồi bấm **Lưu** hoặc Enter. Máy tự thêm ngày.
-- **⚙️ Sửa thông tin** (bấm để mở): đổi người phụ trách (quản lý), hẹn gọi lại ngày, nhãn màu, sửa ghi chú dài.
+- **⚙️ Sửa thông tin** (bấm để mở): đổi người phụ trách (quản lý), hẹn gọi lại ngày, **🎂 ngày sinh**, nhãn màu, sửa ghi chú dài.
 
 **Nhóm khách** (máy tự xếp theo số ngày chưa mua):
 
@@ -279,7 +279,20 @@ Quên nghĩa nhãn nào thì bấm **ⓘ Giải thích nhãn** cạnh hàng nhã
 
 Ở tab **Khách đã mua**, gõ tên, số điện thoại, **tỉnh, huyện/xã** hoặc tên sản phẩm để tìm. Gõ nhiều chữ cùng lúc cũng được, vd *Nghệ An progomax* = khách ở Nghệ An đã mua Progomax. Các nút lọc nhanh: *Cần chăm sóc*, *VIP*, *Sắp mất*, *Lâu không mua*, *⏰ Sắp hết hàng* (dự kiến dùng hết trong 7 ngày tới hoặc vừa hết trong 7 ngày qua, nên gọi mời mua lại), *Có hẹn gọi lại*, *Đã kết bạn Zalo*, *Chưa kết bạn Zalo*, *❄️ Khách lạnh*. Ô sắp xếp: *Nên gọi trước* (mặc định), *Mua gần nhất*, *Lâu chưa chăm sóc nhất*, *Chi nhiều nhất*, *Sắp hết hàng*, *Tên A–Z*.
 
-Dưới ô tìm có thêm 2 ô lọc: **💰 Mức chi** (dưới 500k / 500k – 2 triệu / trên 2 triệu) và **🧭 Nguồn** (khách đến từ đâu lần đầu: Facebook, Ladi, website…). Các ô lọc dùng chung được với nút lọc nhanh và ô tìm, vd *Trên 2 triệu* + *Sắp mất* = khách chi nhiều sắp mất. **📣 Gửi ưu đãi lần lượt** chỉ gửi cho đúng danh sách đang lọc. Bấm **Bỏ lọc** để xem lại tất cả.
+Dưới ô tìm có thêm 3 ô lọc: **💰 Mức chi** (dưới 500k / 500k – 2 triệu / trên 2 triệu), **🧭 Nguồn** (khách đến từ đâu lần đầu: Facebook, Ladi, website…) và **🎂 Sinh nhật** (xem mục bên dưới). Các ô lọc dùng chung được với nút lọc nhanh và ô tìm, vd *Trên 2 triệu* + *Sắp mất* = khách chi nhiều sắp mất. **📣 Gửi ưu đãi lần lượt** chỉ gửi cho đúng danh sách đang lọc. Bấm **Bỏ lọc** để xem lại tất cả.
+
+### 🎂 Khách sinh nhật trong tháng
+
+Dùng để chúc mừng sinh nhật và gửi ưu đãi sinh nhật cho khách.
+
+1. **Ghi ngày sinh cho khách:** mở hồ sơ khách → **⚙️ Sửa thông tin** → ô **🎂 Ngày sinh** → gõ dạng *15/08* (nếu biết năm thì gõ *15/08/1975*) → **Lưu thay đổi**. Hỏi ngày sinh khi gọi chăm sóc, vd “Dạ chị cho em xin ngày sinh để dịp sinh nhật bên em gửi quà tặng chị ạ”.
+2. **Lọc khách sinh nhật:** tab **Khách đã mua** → ô **🎂 Sinh nhật** → chọn **Sinh nhật tháng này**, **tháng sau** hoặc 1 tháng bất kỳ. Danh sách tự xếp theo ngày sinh, ai sinh nhật sớm ở trên.
+3. **Gửi lời chúc / ưu đãi:** đang lọc sinh nhật thì bấm **📣 Gửi ưu đãi lần lượt** để nhắn Zalo từng khách.
+4. **Khách chưa có ngày sinh:** chọn **Chưa có ngày sinh** trong ô 🎂 để biết cần hỏi thêm ai.
+
+Trong danh sách, khách có sinh nhật trong tháng này hiện **🎂 SN ngày/tháng**, đúng ngày thì hiện **🎂 Sinh nhật hôm nay**.
+
+**Tin Telegram 8h sáng** có thêm mục **🎂 Sinh nhật khách**: khách sinh nhật **hôm nay** và **3 ngày tới** (để kịp chuẩn bị quà). Mỗi người nhận danh sách khách mình phụ trách; nhóm quản lý nhận đủ, kèm tên người phụ trách. Khách có nhãn (bom hàng…) không được nhắc.
 
 ### Tìm theo tỉnh khi đang tư vấn
 

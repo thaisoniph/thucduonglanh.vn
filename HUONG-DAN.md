@@ -133,7 +133,16 @@ Sheet **Đơn hàng website Thực Dưỡng Lành**: https://docs.google.com/spr
 
 **Token Telegram** (từ 06/10/2026): không còn ghi trong code, mà nằm ở Apps Script → ⚙️ Cài đặt dự án → Thuộc tính tập lệnh → `TELEGRAM_TOKEN`. Nhờ vậy `backend/google-apps-script.gs` được đưa lên GitHub. Các bản `backend/*.backup-*.gs` cũ vẫn còn token nên chỉ để ở máy.
 
-**Sửa code Apps Script**: (phần CRM web nằm trong `doPost` → mọi thay đổi `crm…` đều phải Deploy phiên bản mới) dán đè toàn bộ `backend/google-apps-script.gs` → Lưu. Nếu sửa phần nhận đơn (`doPost`) thì thêm: Triển khai → Quản lý các bản triển khai → ✏️ → **Phiên bản mới** → Triển khai (link nhận đơn giữ nguyên). Lịch 8h luôn dùng bản đã lưu mới nhất.
+**Tự triển khai Apps Script** (GitHub Actions `.github/workflows/apps-script.yml` → `scripts/apps-script-deploy.sh`, dùng `@google/clasp@2.4.2`): mỗi lần `backend/google-apps-script.gs` đổi trên `main`, GitHub kiểm tra cú pháp + không có token Telegram, `clasp pull` dự án hiện tại (giữ `appsscript.json`, file khác), ghi đè file có `function doPost`, `clasp push` (= Lưu), `clasp version`, `clasp deploy -i <mã trong order_endpoint>` (link nhận đơn giữ nguyên), rồi gọi `doGet` kiểm tra `v` = `CRM_VERSION`. Chưa có secrets thì bỏ qua (cảnh báo vàng). Chạy tay: GitHub → Actions → "Apps Script – tự dán code và triển khai" → Run workflow. Lỗi → GitHub báo đỏ + email; muốn quay lại bản cũ: revert commit trên `main`.
+Cài 1 lần (trên Mac, tài khoản Google sở hữu Apps Script – thaisoniph@gmail.com):
+1. script.google.com/home/usersettings → bật **Google Apps Script API**.
+2. Terminal: `npx -y @google/clasp@2.4.2 login` → trình duyệt mở → chọn tài khoản → Cho phép. (Báo "npx: command not found" thì cài Node từ nodejs.org trước.)
+3. `pbcopy < ~/.clasprc.json` → GitHub repo → Settings → Secrets and variables → Actions → **New repository secret**: tên `CLASPRC_JSON`, dán.
+4. Apps Script → ⚙️ Cài đặt dự án → **Mã tập lệnh** → copy → secret `APPS_SCRIPT_ID`.
+5. Actions → chạy tay workflow lần đầu, xem có ✅.
+Apps Script giới hạn 200 phiên bản/dự án: báo lỗi "Không tạo được phiên bản mới" thì xoá bớt phiên bản cũ. Đăng xuất / đổi mật khẩu Google có thể làm hết hạn mã đăng nhập → làm lại bước 2–3.
+
+**Sửa code Apps Script (làm tay, khi chưa cài tự triển khai)**: (phần CRM web nằm trong `doPost` → mọi thay đổi `crm…` đều phải Deploy phiên bản mới) dán đè toàn bộ `backend/google-apps-script.gs` → Lưu. Nếu sửa phần nhận đơn (`doPost`) thì thêm: Triển khai → Quản lý các bản triển khai → ✏️ → **Phiên bản mới** → Triển khai (link nhận đơn giữ nguyên). Lịch 8h luôn dùng bản đã lưu mới nhất.
 
 **Người nhận báo đơn**: thêm/xoá thành viên trong nhóm Telegram "Đơn hàng Thực Dưỡng Lành" – không cần sửa code.
 

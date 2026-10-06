@@ -25,7 +25,8 @@ Chủ dự án: anh Sơn (thaisoniph@gmail.com). Anh Sơn không chuyên kỹ th
 - Trên máy Mac có thêm script `deploy-github.sh` (cần GH_TOKEN). Phiên Claude trên web/điện thoại không cần script này.
 
 ## Khi sửa Apps Script (`backend/google-apps-script.gs`)
-Code này **không tự lên Google**. Sau khi sửa và push, phải hướng dẫn anh Sơn từng bước:
+Nếu đã cài **tự triển khai** (workflow `.github/workflows/apps-script.yml`, secrets `CLASPRC_JSON` + `APPS_SCRIPT_ID`, xem HUONG-DAN.md): merge vào `main` là GitHub tự Lưu + Triển khai phiên bản mới (~1–2 phút), báo anh xem tab Actions có ✅. Nếu chưa cài hoặc workflow báo bỏ qua/lỗi thì làm tay như dưới.
+Làm tay: sau khi sửa và push, hướng dẫn anh Sơn từng bước:
 1. Mở file trên GitHub, bấm biểu tượng Copy (sao chép toàn bộ nội dung). Nên làm trên máy tính, hoặc bật "Trang web cho máy tính" trên điện thoại.
 2. Vào script.google.com → dự án Apps Script của Sheet "Đơn hàng website Thực Dưỡng Lành" → chọn hết code cũ → dán đè → Lưu.
 3. Nếu có sửa `doPost` hoặc bất kỳ hàm `crm…` nào thì phải Triển khai → Quản lý các bản triển khai → ✏️ → Phiên bản mới → Triển khai. Nếu chỉ sửa hàm chạy theo lịch thì Lưu là đủ.

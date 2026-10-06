@@ -1,0 +1,39 @@
+name: Apps Script – tự dán code và triển khai
+
+# Mỗi lần backend/google-apps-script.gs đổi trên main: đẩy code lên Apps Script và Triển khai phiên bản mới
+# (cùng link order_endpoint). Cài 1 lần: xem HUONG-DAN.md → "Tự triển khai Apps Script".
+on:
+  push:
+    branches: [main]
+    paths: [backend/google-apps-script.gs]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: apps-script
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Kiểm tra đã cài chưa
+        id: cfg
+        env:
+          CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+          APPS_SCRIPT_ID: ${{ secrets.APPS_SCRIPT_ID }}
+        run: |
+          if [ -n "$CLASPRC_JSON" ] && [ -n "$APPS_SCRIPT_ID" ]; then echo "ready=1" >> "$GITHUB_OUTPUT"
+          else echo "::warning::Chưa cài secrets CLASPRC_JSON / APPS_SCRIPT_ID nên bỏ qua. Dán code Apps Script bằng tay."; fi
+      - name: Đẩy code và triển khai
+        if: steps.cfg.outputs.ready == '1'
+        env:
+          CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+          APPS_SCRIPT_ID: ${{ secrets.APPS_SCRIPT_ID }}
+        run: scripts/apps-script-deploy.sh
