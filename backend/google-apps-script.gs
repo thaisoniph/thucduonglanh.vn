@@ -17,7 +17,7 @@ var TELEGRAM_TOKEN = PropertiesService.getScriptProperties().getProperty('TELEGR
 var TELEGRAM_CHAT_IDS = '-5318324525'; // nhóm "Đơn hàng Thực Dưỡng Lành" – thêm/bớt nhân viên trực tiếp trong nhóm
 var TZ = 'Asia/Ho_Chi_Minh';
 var CRM_URL = 'https://crm.thucduonglanh.vn';
-var CRM_VERSION = '2026-10-06a';
+var CRM_VERSION = '2026-10-06b';
 // Từ 10/2026 CRM chạy trên máy chủ Cloudflare (api.thucduonglanh.vn). Apps Script này chỉ còn làm "cầu nối" Google: gửi email, cấp quyền đọc Google Sheet.
 var API_URL = 'https://api.thucduonglanh.vn/api'; // CRM web so với số này để biết Apps Script đã được triển khai bản mới chưa
 
@@ -27,7 +27,7 @@ var MISS_DAYS = 7; // việc chăm sóc qua khung mà chưa làm: vẫn hiện t
 function recvBase(orderDate, recv) { if (recv && !isNaN(recv)) return recv; var d = new Date(orderDate); return new Date(d.getTime() + rulesCfg().shipDays * 864e5); }
 
 var ORDER_HEADERS = ['Thời gian', 'Mã đơn', 'Khách hàng', 'Điện thoại', 'Email', 'Tỉnh/TP', 'Phường/Xã', 'Địa chỉ', 'Sản phẩm', 'Tạm tính', 'Phí ship', 'Tổng', 'Thanh toán', 'Ghi chú', 'Trạng thái', 'Nguồn', 'Nguồn đầu tiên', 'Đồng ý nhận tin', 'Đã nhận tiền', 'Đơn vị vận chuyển', 'Mã vận đơn', 'NV bán', 'Ca', 'Dòng SP', 'Lên đơn', 'Ngày nhận', 'Ngày gửi', 'Loại đơn', 'Kiểm tra loại đơn', 'Hành trình VC', 'Cập nhật VC', 'Mã TT VC'];
-var CUS_HEADERS = ['Điện thoại', 'Tên', 'Địa chỉ', 'Tỉnh/TP', 'Phường/Xã', 'Số đơn', 'Tổng chi', 'Đơn đầu', 'Đơn gần nhất', 'Sản phẩm đã mua', 'Dự kiến hết hàng', 'Nhóm', 'Đồng ý nhận tin', 'Nguồn đầu tiên', 'Phụ trách', 'Lần CSKH gần nhất', 'Kết quả CSKH', 'Ghi chú CSKH', 'Hẹn gọi lại', 'Nhãn', 'Nhãn màu', 'Zalo', 'Nhận hàng', 'Cộng đồng'];
+var CUS_HEADERS = ['Điện thoại', 'Tên', 'Địa chỉ', 'Tỉnh/TP', 'Phường/Xã', 'Số đơn', 'Tổng chi', 'Đơn đầu', 'Đơn gần nhất', 'Sản phẩm đã mua', 'Dự kiến hết hàng', 'Nhóm', 'Đồng ý nhận tin', 'Nguồn đầu tiên', 'Phụ trách', 'Lần CSKH gần nhất', 'Kết quả CSKH', 'Ghi chú CSKH', 'Hẹn gọi lại', 'Nhãn', 'Nhãn màu', 'Zalo', 'Nhận hàng', 'Cộng đồng', 'Ngày sinh'];
 var CONTACT_HEADERS = ['Thời gian', 'Họ tên', 'Điện thoại', 'Email', 'Nội dung', 'Trang'];
 var C = {}; CUS_HEADERS.forEach(function (h, i) { C[h] = i; });
 
@@ -339,7 +339,7 @@ function rebuildCustomers(opt) {
   opt = opt || {};
   var ss = SpreadsheetApp.getActiveSpreadsheet(), os = ss.getSheetByName('Đơn hàng'); if (!os || os.getLastRow() < 2) return;
   var cs = sheet(ss, 'Khách hàng', CUS_HEADERS), cycles = cycleSheet(ss), keep = {};
-  var KEEP = ['Phụ trách', 'Lần CSKH gần nhất', 'Kết quả CSKH', 'Ghi chú CSKH', 'Hẹn gọi lại', 'Nhãn', 'Nhãn màu', 'Zalo', 'Cộng đồng'];
+  var KEEP = ['Phụ trách', 'Lần CSKH gần nhất', 'Kết quả CSKH', 'Ghi chú CSKH', 'Hẹn gọi lại', 'Nhãn', 'Nhãn màu', 'Zalo', 'Cộng đồng', 'Ngày sinh'];
   if (cs.getLastRow() > 1) cs.getRange(2, 1, cs.getLastRow() - 1, CUS_HEADERS.length).getValues().forEach(function (v) { var ph = normPhone(v[0]); if (ph) keep[ph] = v; });
   var H = os.getRange(1, 1, 1, os.getLastColumn()).getValues()[0], idx = function (n) { return H.indexOf(n); };
   var rows = os.getRange(2, 1, os.getLastRow() - 1, os.getLastColumn()).getValues();
@@ -921,9 +921,16 @@ function custObj(v, today, sm) {
       products: String(v[C['Sản phẩm đã mua']] || '').split('; ').filter(String), runout: ts(v[C['Dự kiến hết hàng']]),
       group: groupOf(Number(v[C['Số đơn']]), Number(v[C['Tổng chi']]), new Date(v[C['Đơn gần nhất']])),
       consent: v[C['Đồng ý nhận tin']] === 'Có', source: String(v[C['Nguồn đầu tiên']] || ''), owner: String(v[C['Phụ trách']] || ''),
-      careAt: ts(v[C['Lần CSKH gần nhất']]), careResult: String(v[C['Kết quả CSKH']] || ''), note: String(v[C['Ghi chú CSKH']] || '').slice(0, NOTE_MAX), noteCut: String(v[C['Ghi chú CSKH']] || '').length > NOTE_MAX, callback: ts(v[C['Hẹn gọi lại']]), flag: String(v[C['Nhãn']] || ''), tag: String(v[C['Nhãn màu']] || ''), zalo: v[C['Zalo']] === 'Có', community: String(v[C['Cộng đồng']] || ''), recv: ts(v[C['Nhận hàng']]),
+      careAt: ts(v[C['Lần CSKH gần nhất']]), careResult: String(v[C['Kết quả CSKH']] || ''), note: String(v[C['Ghi chú CSKH']] || '').slice(0, NOTE_MAX), noteCut: String(v[C['Ghi chú CSKH']] || '').length > NOTE_MAX, callback: ts(v[C['Hẹn gọi lại']]), flag: String(v[C['Nhãn']] || ''), tag: String(v[C['Nhãn màu']] || ''), zalo: v[C['Zalo']] === 'Có', community: String(v[C['Cộng đồng']] || ''), dob: dobText(v[C['Ngày sinh']]), recv: ts(v[C['Nhận hàng']]),
       fam: !!(sm && sm[phone] && sm[phone].fam), task: t
   };
+}
+/** Ngày sinh khách: lưu dạng chữ "dd/mm" hoặc "dd/mm/yyyy" (ô bị Sheet đổi thành ngày thì đọc lại). Sai định dạng → "". */
+function dobText(v) {
+  if (v instanceof Date && !isNaN(v)) return Utilities.formatDate(v, TZ, 'dd/MM/yyyy');
+  var m = String(v || '').trim().match(/^(\d{1,2})[\/.\-](\d{1,2})(?:[\/.\-](\d{4}))?$/); if (!m) return '';
+  var d = +m[1], mo = +m[2]; if (d < 1 || d > 31 || mo < 1 || mo > 12) return '';
+  return (d < 10 ? '0' : '') + d + '/' + (mo < 10 ? '0' : '') + mo + (m[3] ? '/' + m[3] : '');
 }
 /** Đọc toàn bộ dữ liệu từ Sheet (chậm, vài giây): chưa lọc theo người xem. */
 function readBase(ss) {
@@ -1197,6 +1204,7 @@ function crmCustomer(ss, u, d) {
     if (cm === 'Đã vào') wbQueue(ss, cv2[C['Phụ trách']], phone, cv2[C['Tên']], '👥 đã vào nhóm Zalo cộng đồng');
   }
   if (d.consent !== undefined) cs.getRange(row, C['Đồng ý nhận tin'] + 1).setValue(d.consent ? 'Có' : 'Không');
+  if (d.dob !== undefined) { var dob = dobText(d.dob); if (String(d.dob).trim() && !dob) return { ok: false, error: 'Ngày sinh không đúng, nhập dạng ngày/tháng hoặc ngày/tháng/năm (VD 15/08 hoặc 15/08/1975)' }; cs.getRange(row, C['Ngày sinh'] + 1).setValue(dob ? "'" + dob : ''); } // "'" = giữ dạng chữ, Sheet không tự đổi
   if (d.quick || d.zalo) { var cv = cs.getRange(row, 1, 1, CUS_HEADERS.length).getValues()[0]; if (d.quick) wbQueue(ss, cv[C['Phụ trách']], phone, cv[C['Tên']], d.quick); if (d.zalo) wbQueue(ss, cv[C['Phụ trách']], phone, cv[C['Tên']], WB_ZALO, true); } // ghi nhanh / đã kết bạn Zalo → cũng ghi vào file sale
   if (d.promo) { // đã gửi tin ưu đãi qua Zalo: thêm 1 dòng nhật ký (ghép vào ghi chú ở máy chủ, không đè), ghi file sale, ghi "Gửi ưu đãi" để đo ưu đãi ra đơn
     var pv = cs.getRange(row, 1, 1, CUS_HEADERS.length).getValues()[0], camp = String(d.promo).slice(0, 80), line = Utilities.formatDate(new Date(), TZ, 'dd/MM/yy') + ': 📣 Gửi ưu đãi: ' + camp, cur = String(pv[C['Ghi chú CSKH']] || '');
