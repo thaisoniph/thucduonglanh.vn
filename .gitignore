@@ -1,7 +1,9 @@
 # Không đưa lên GitHub
 dist/
 .publish/
-backend/
+# backend: chỉ đưa lên code Apps Script (đã bỏ token) + quy tắc chuyển hướng; bản backup cũ (còn token) và dữ liệu test (dữ liệu khách thật) ở máy
+backend/*.backup-*.gs
+backend/crm-test/
 .netlify_site
 __pycache__/
 .DS_Store

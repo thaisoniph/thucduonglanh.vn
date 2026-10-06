@@ -131,6 +131,8 @@ Sheet **Đơn hàng website Thực Dưỡng Lành**: https://docs.google.com/spr
 | `tidySheet` | Tạo trang "📖 Hướng dẫn" (chỉ sang CRM), xoá trang "✅ Việc hôm nay" cũ nếu còn, tô màu (xanh = máy điền, cam = nhân viên điền), ô chọn Trạng thái / Kết quả CSKH, định dạng tiền-ngày, khoá mềm cột tự động, thu gọn cột ít dùng. Chạy lại bất cứ lúc nào, không mất dữ liệu. Có trong menu 🌿 Thực Dưỡng Lành trên Sheet |
 | `testTelegram` | Kiểm tra bot Telegram |
 
+**Token Telegram** (từ 06/10/2026): không còn ghi trong code, mà nằm ở Apps Script → ⚙️ Cài đặt dự án → Thuộc tính tập lệnh → `TELEGRAM_TOKEN`. Nhờ vậy `backend/google-apps-script.gs` được đưa lên GitHub. Các bản `backend/*.backup-*.gs` cũ vẫn còn token nên chỉ để ở máy.
+
 **Sửa code Apps Script**: (phần CRM web nằm trong `doPost` → mọi thay đổi `crm…` đều phải Deploy phiên bản mới) dán đè toàn bộ `backend/google-apps-script.gs` → Lưu. Nếu sửa phần nhận đơn (`doPost`) thì thêm: Triển khai → Quản lý các bản triển khai → ✏️ → **Phiên bản mới** → Triển khai (link nhận đơn giữ nguyên). Lịch 8h luôn dùng bản đã lưu mới nhất.
 
 **Người nhận báo đơn**: thêm/xoá thành viên trong nhóm Telegram "Đơn hàng Thực Dưỡng Lành" – không cần sửa code.

@@ -1,0 +1,154 @@
+{
+ "rules": [
+  {
+   "description": "HTTPS + bỏ www → https://thucduonglanh.vn",
+   "expression": "(http.host in {\"thucduonglanh.vn\" \"www.thucduonglanh.vn\"} and (not ssl or http.host eq \"www.thucduonglanh.vn\") and not starts_with(http.request.uri.path, \"/.well-known/\"))",
+   "action": "redirect",
+   "action_parameters": {
+    "from_value": {
+     "status_code": 301,
+     "target_url": {
+      "expression": "concat(\"https://thucduonglanh.vn\", http.request.uri.path)"
+     },
+     "preserve_query_string": true
+    }
+   },
+   "enabled": true
+  },
+  {
+   "description": "story.thucduonglanh.vn → https://heyzine.com/flip-book/c72f36ee4e.html",
+   "expression": "(http.host eq \"story.thucduonglanh.vn\")",
+   "action": "redirect",
+   "action_parameters": {
+    "from_value": {
+     "status_code": 302,
+     "target_url": {
+      "value": "https://heyzine.com/flip-book/c72f36ee4e.html"
+     },
+     "preserve_query_string": false
+    }
+   },
+   "enabled": true
+  },
+  {
+   "description": "ld.thucduonglanh.vn → https://www.phuongdesign.online/demopage.thucduonglanh",
+   "expression": "(http.host eq \"ld.thucduonglanh.vn\")",
+   "action": "redirect",
+   "action_parameters": {
+    "from_value": {
+     "status_code": 302,
+     "target_url": {
+      "value": "https://www.phuongdesign.online/demopage.thucduonglanh"
+     },
+     "preserve_query_string": false
+    }
+   },
+   "enabled": true
+  },
+  {
+   "description": "shop.thucduonglanh.vn → https://s.shopee.vn/AKZsCRIYXR",
+   "expression": "(http.host eq \"shop.thucduonglanh.vn\")",
+   "action": "redirect",
+   "action_parameters": {
+    "from_value": {
+     "status_code": 302,
+     "target_url": {
+      "value": "https://s.shopee.vn/AKZsCRIYXR"
+     },
+     "preserve_query_string": false
+    }
+   },
+   "enabled": true
+  },
+  {
+   "description": "shopee.thucduonglanh.vn → https://shopee.vn/greeneats.official",
+   "expression": "(http.host eq \"shopee.thucduonglanh.vn\")",
+   "action": "redirect",
+   "action_parameters": {
+    "from_value": {
+     "status_code": 302,
+     "target_url": {
+      "value": "https://shopee.vn/greeneats.official"
+     },
+     "preserve_query_string": false
+    }
+   },
+   "enabled": true
+  },
+  {
+   "description": "family.thucduonglanh.vn → https://www.facebook.com/groups/thucduonglanhfamily",
+   "expression": "(http.host eq \"family.thucduonglanh.vn\")",
+   "action": "redirect",
+   "action_parameters": {
+    "from_value": {
+     "status_code": 302,
+     "target_url": {
+      "value": "https://www.facebook.com/groups/thucduonglanhfamily"
+     },
+     "preserve_query_string": false
+    }
+   },
+   "enabled": true
+  },
+  {
+   "description": "cauchuyen.thucduonglanh.vn → trang Hồ sơ thương hiệu",
+   "expression": "(http.host eq \"cauchuyen.thucduonglanh.vn\")",
+   "action": "redirect",
+   "action_parameters": {
+    "from_value": {
+     "status_code": 302,
+     "target_url": {
+      "value": "https://thucduonglanh.vn/ho-so-thuong-hieu/"
+     },
+     "preserve_query_string": false
+    }
+   },
+   "enabled": true
+  },
+  {
+   "description": "sotay.thucduonglanh.vn → https://heyzine.com/flip-book/6da49dde22.html",
+   "expression": "(http.host eq \"sotay.thucduonglanh.vn\")",
+   "action": "redirect",
+   "action_parameters": {
+    "from_value": {
+     "status_code": 302,
+     "target_url": {
+      "value": "https://heyzine.com/flip-book/6da49dde22.html"
+     },
+     "preserve_query_string": false
+    }
+   },
+   "enabled": true
+  },
+  {
+   "description": "mkt.thucduonglanh.vn → https://canva.link/mkt-vtg",
+   "expression": "(http.host eq \"mkt.thucduonglanh.vn\")",
+   "action": "redirect",
+   "action_parameters": {
+    "from_value": {
+     "status_code": 302,
+     "target_url": {
+      "value": "https://canva.link/mkt-vtg"
+     },
+     "preserve_query_string": false
+    }
+   },
+   "enabled": true
+  },
+  {
+   "description": "quacmadiamond.thucduonglanh.vn → https://dilvang-cma-diamond.dabo-social-7911.chatgpt.site/",
+   "expression": "(http.host eq \"quacmadiamond.thucduonglanh.vn\")",
+   "action": "redirect",
+   "action_parameters": {
+    "from_value": {
+     "status_code": 302,
+     "target_url": {
+      "value": "https://dilvang-cma-diamond.dabo-social-7911.chatgpt.site/"
+     },
+     "preserve_query_string": false
+    }
+   },
+   "enabled": true
+  }
+ ]
+}
