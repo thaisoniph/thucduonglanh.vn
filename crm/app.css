@@ -544,3 +544,14 @@ details.comm { border: 1px dashed #9cc3a8; background: #f3faf5; }
 .avg-k { display: inline-block; width: 2px; height: 12px; background: var(--ink); opacity: .55; vertical-align: -2px; margin-right: 4px; }
 .bars.cmp .bar-r { grid-template-columns: minmax(90px, 26%) 1fr 104px; } /* cột số cố định → vạch trung bình thẳng hàng */
 @media (max-width: 520px) { .bars.cmp .bar-r { grid-template-columns: minmax(70px, 28%) 1fr 84px; } }
+/* Hôm nay: tiến độ nhân sự (quản lý) */
+.team-wrap { overflow-x: auto; background: var(--card, #fff); border: 1px solid var(--line); border-radius: 12px; }
+.team { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.team th, .team td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: center; white-space: nowrap; }
+.team th { font-weight: 600; color: var(--muted); font-size: 12.5px; } .team th small { font-weight: 400; }
+.team th:first-child, .team td:first-child { text-align: left; }
+.team tbody tr { cursor: pointer; } .team tbody tr:hover { background: rgba(0,0,0,.03); } .team tbody tr:last-child td { border-bottom: 0; }
+.team td.bad { color: #b42318; font-weight: 700; }
+.tm-p { display: flex; align-items: center; gap: 8px; min-width: 120px; } .tm-p span { min-width: 44px; } .tm-p .bar { flex: 1; margin: 0; height: 8px; }
+.tag.bday { background: #fde8f0; color: #a3245b; border-color: #f6c3d7; }
+.rw-2 .sug { color: var(--primary); font-weight: 600; }

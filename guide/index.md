@@ -38,8 +38,9 @@ Bạn **không cần mở Google Sheet**. Mọi việc với đơn hàng và kh�
 ## Một ngày làm việc
 
 1. **8h sáng**: nhóm Telegram nhận tin tóm tắt **“CSKH hôm nay”** (số việc theo loại và theo từng người, khách VIP cần chú ý); ai đã kết nối Telegram riêng nhận thêm **danh sách khách của mình**.
-2. Mở **CRM → tab Hôm nay**. Làm lần lượt 3 phần:
+2. Mở **CRM → tab Hôm nay**. Làm lần lượt từ trên xuống:
     - **Đơn mới**: gọi khách xác nhận, xong bấm **✅ Xác nhận**.
+    - **🔥 Khách vừa hỏi** (nếu có): gọi hoặc nhắn ngay, khách mới hỏi là dễ chốt nhất.
     - **Chăm sóc khách**: bấm **💬 Chăm sóc** ở từng khách, gửi tin, chọn kết quả.
     - **Khách hỏi**: liên hệ người hỏi mua nhưng chưa mua.
 3. **Trong ngày**: có đơn mới, Telegram báo ngay. Mở CRM xác nhận đơn, gửi hàng thì nhập mã vận đơn.

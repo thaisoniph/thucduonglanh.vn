@@ -373,10 +373,10 @@
   function tasksAll() { return S.d.customers.filter(function (c) { return c.task; }); }
   function tasksShown() { return tasksAll().filter(function (c) { return mineOk(c) && !coldOf(c); }); } // khách lạnh không vào danh sách gọi
   /** Khách cũ lâu chưa gọi (không nằm trong lịch chăm sóc tự động): ưu tiên khách chi nhiều. */
-  function oldDueAll() {
+  function oldDueAll(own) {
     var t0 = today();
     return S.d.customers.filter(function (c) {
-      if (c.task || !c.last || c.flag || !mineOk(c) || (lvl() < 2 && c.owner !== S.user.name)) return false;
+      if (c.task || !c.last || c.flag || !(own ? c.owner === own : mineOk(c)) || (lvl() < 2 && c.owner !== S.user.name)) return false;
       if (c.callback && dayStart(c.callback) > t0) return false; // đã hẹn ngày khác
       var r = replyOf(c); return r.days >= OLD_DAYS && !coldOf(c);
     }).sort(function (a, b) { return b.spent - a.spent || (a.last || 0) - (b.last || 0); });
@@ -448,6 +448,9 @@
     return (today() - dayStart(l.lastAt)) / DAY >= 3 ? 'stale' : null;
   }
   function leadMine(l) { return whoOk(l.owner); }
+  /** Khách vừa hỏi (trong 48 giờ, chưa liên hệ lần nào): khách nóng nhất → đưa lên ngay sau Đơn mới. */
+  function isHotLead(l) { return leadDue(l) === 'new' && today() - dayStart(l.time || 0) <= DAY; }
+  function hotLeads() { return leadsDue().filter(isHotLead); }
   function leadsDue() { return (S.d.leads || []).filter(function (l) { return leadDue(l) && leadMine(l); }); }
   function findLead(id) { return (S.d.leads || []).filter(function (l) { return l.id === id; })[0]; }
 
@@ -482,7 +485,7 @@
   function setWho(v) { S.who = v || ''; store('crm_who', S.who); ['c', 'o', 't'].forEach(function (k) { if (S.f[k]) S.f[k].n = 60; }); navBadges(); render(); }
   function navBadges() {
     var fb = $('#fbBtn'); if (fb) { var fd = $('.dot', fb); if (fd) fd.remove(); if (lvl() >= 2 && S.d.fbNew) fb.insertAdjacentHTML('beforeend', '<span class="dot">' + S.d.fbNew + '</span>'); }
-    var ld = leadsDue().length, n = { 'hom-nay': newOrders().length + dayQueue().list.length + ld, 'don-hang': newOrders().length, 'tiem-nang': ld };
+    var ld = leadsDue().length, n = { 'hom-nay': newOrders().length + dayQueue().list.length + hotLeads().length, 'don-hang': newOrders().length, 'tiem-nang': ld };
     $$('.nav a').forEach(function (a) {
       var v = a.getAttribute('data-v'), d = $('.dot', a); if (d) d.remove();
       if (n[v]) a.insertAdjacentHTML('beforeend', '<span class="dot">' + (n[v] > 99 ? '99+' : n[v]) + '</span>');
@@ -545,11 +548,31 @@
   }
   function famTag(c) { return c.fam ? '<span class="tag fam" title="' + esc(TIP.fam()) + '">🌟 Khách quen SP</span>' : ''; } // chỉ hiện trong hồ sơ + hộp chăm sóc (danh sách đỡ rối)
   function stTag(s) { return '<span class="tag ' + (ST_CLS[s] || '') + '">' + esc(s) + '</span>'; }
-  function shortProducts(list, n) { return (list || []).slice(-(n || 2)).map(function (p) { return p.replace(/\s*\(.*\)\s*$/, ''); }).join(', '); }
+  var BRAND_W = { fucoidan: 'Fucoidan', progomax: 'Progomax', gafo: 'Gafo', dilvang: 'DILVANG', vitagreen: 'VitaGreen' };
+  function prettyProd(p) { p = String(p).replace(/\s*\(.*\)\s*$/, '').trim().replace(/[a-zà-ỹ]+/gi, function (w) { return BRAND_W[w.toLowerCase()] || w; }); return p.charAt(0).toUpperCase() + p.slice(1); } // tên nhập từ file sale hay viết thường
+  function pkey(p) { return norm(String(p).replace(/\s*\(.*\)\s*$/, '')).replace(/\b\d+([.,]\d+)?\s*(g|kg|ml|l|goi|hop|vien|tui|chai|lo)\b/g, '').replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim(); }
+  var coBuy = null, coBuyN = -1;
+  /** Khách mua A thì hay mua thêm B: đếm theo cặp sản phẩm trong lịch sử mua của mọi khách. */
+  function coBuyMap() {
+    if (coBuy && coBuyN === S.d.customers.length) return coBuy;
+    coBuy = { co: {}, name: {} }; coBuyN = S.d.customers.length;
+    S.d.customers.forEach(function (c) {
+      var ks = {}; (c.products || []).forEach(function (p) { if (/^🎁|tặng|quà/i.test(p)) return; var k = pkey(p); if (k) { ks[k] = 1; coBuy.name[k] = coBuy.name[k] || prettyProd(p).replace(/\s*[–-]?\s*\d+([.,]\d+)?\s*(g|kg|ml|gói|hộp|viên)\b.*$/i, ''); } });
+      var a = Object.keys(ks); a.forEach(function (x) { a.forEach(function (y) { if (x !== y) { var m = coBuy.co[x] || (coBuy.co[x] = {}); m[y] = (m[y] || 0) + 1; } }); });
+    });
+    return coBuy;
+  }
+  function suggestFor(c) {
+    var M = coBuyMap(), mine = {}, sc = {}; (c.products || []).forEach(function (p) { mine[pkey(p)] = 1; });
+    Object.keys(mine).forEach(function (k) { var m = M.co[k] || {}; Object.keys(m).forEach(function (y) { if (!mine[y]) sc[y] = (sc[y] || 0) + m[y]; }); });
+    var best = Object.keys(sc).sort(function (a, b) { return sc[b] - sc[a]; })[0];
+    return best && sc[best] >= 2 ? M.name[best] : '';
+  }
+  function shortProducts(list, n) { return (list || []).slice(-(n || 2)).map(prettyProd).join(', '); }
   function taskLine(c) {
     var t = c.task; if (!t) return '';
     if (t.type === 'callback') return '<span class="warn-line">📞 Hẹn gọi lại ' + (t.late ? '– đã quá ' + t.late + ' ngày' : 'hôm nay') + '</span>';
-    if (t.type === 'runout') return t.late ? '<span class="bad-line">Đã hết khoảng ' + t.late + ' ngày</span>' : '<span class="warn-line">' + (t.toRun === 0 ? 'Hết trong hôm nay' : 'Còn khoảng ' + t.toRun + ' ngày là hết') + '</span>';
+    if (t.type === 'runout') return t.late ? '<span class="bad-line">Đã hết khoảng ' + t.late + ' ngày</span>' : '<span class="warn-line">' + (t.toRun === 0 ? 'Hết trong hôm nay' : 'Còn khoảng ' + t.toRun + ' ngày là hết (' + fDate(today() + t.toRun * DAY).slice(0, 5) + ')') + '</span>';
     var late = t.late ? ' <span class="bad-line">· ⏳ trễ ' + t.late + ' ngày</span>' : '';
     if (t.type === 'd1') return (t.est ? 'Đặt ' + daysAgo(c.last) + ' · <span class="warn-line">chưa rõ khách đã nhận hàng chưa</span>' : 'Nhận hàng ' + (t.days === 0 ? 'hôm nay' : t.days + ' ngày trước')) + late;
     return (t.est ? 'Đặt ' + daysAgo(c.last) : 'Nhận hàng ' + t.days + ' ngày trước') + late;
@@ -709,7 +732,8 @@
   /* ================================================================ HÔM NAY */
   function viewToday() {
     var oOk = function (o) { return lvl() < 2 || whoOk(orderOwner(o)); }, wn = whoName();
-    var no = newOrders().filter(oOk).sort(function (a, b) { return b.time - a.time; }), ts = tasksShown(), ld = sortLeads(leadsDue()), od = oldDueAll();
+    var no = newOrders().filter(oOk).sort(function (a, b) { return b.time - a.time; }), ts = tasksShown(), ld = sortLeads(leadsDue()), hot = ld.filter(isHotLead);
+    ld = ld.filter(function (l) { return !isHotLead(l); });
     var up = unpaidOrders().filter(function (o) { return o.status !== 'Mới' && oOk(o); }).sort(function (a, b) { return a.time - b.time; });
     var t0 = today(), doneToday = S.d.log.filter(function (l) { return l.time >= t0 && l.what !== 'Cài đặt' && l.what !== 'Nhân sự' && (lvl() < 2 || !wn || l.by === wn); }).sort(function (a, b) { return b.time - a.time; });
     var h = '<div class="page-head"><h1>Chào ' + esc(S.user.name) + ' 👋</h1><div class="grow"></div>' + whoSel() + '</div>';
@@ -719,7 +743,7 @@
       (q.list.length && (!wn || wn === S.user.name) ? '<button class="btn pri lg block" data-flow>▶ Bắt đầu gọi lần lượt</button>' : '') +
       (q.rest ? '<p class="small muted" style="margin:8px 0 0">Còn ' + q.rest + ' khách để các ngày sau (tối đa ' + dayLimit() + ' khách/ngày, đổi ở <a href="#cai-dat">Cài đặt</a>).</p>' : '') +
       '<button class="btn block" data-daily="' + esc(lvl() >= 2 ? wn || '' : S.user.name) + '" style="margin-top:8px">📋 Báo cáo cuối ngày (gửi Zalo)</button></section>';
-    h += '<div class="minis">' + mini('🧾 Đơn mới', no.length, '#don-hang', no.length ? 'warn' : '') + mini('🙋 Khách hỏi', ld.length, '#tiem-nang', ld.length ? 'bad' : '') + mini('✅ Đã làm', doneToday.length, '', '') + miniGoal() + '</div>';
+    h += '<div class="minis">' + mini('🧾 Đơn mới', no.length, '#don-hang', no.length ? 'warn' : '') + mini('🙋 Khách hỏi', hot.length + ld.length, '#tiem-nang', hot.length + ld.length ? 'bad' : '') + mini('✅ Đã làm', doneToday.length, '', '') + miniGoal() + '</div>';
     if (lvl() >= 2 && wn) {
       var pm = perf(wn, monthRange(monthOf(Date.now())));
       h += '<div class="kpis">' + kpi('Doanh số tháng ' + (new Date().getMonth() + 1) + ' của ' + esc(wn), moneyShort(pm.sales), '', '', pm.orders + ' đơn · chốt ' + (pm.closePct === null ? '–' : pm.closePct + '%')) +
@@ -730,30 +754,54 @@
         kpi('Khách mới tháng ' + m.month, m.newCus, '', '', m.returning + ' khách mua lại') + '</div>';
     }
 
-    if (lvl() >= 2 && !wn) h += waitingBlock(); // đang xem 1 nhân viên → ẩn khách chưa ai phụ trách
+    if (lvl() >= 2 && !wn) h += teamBlock() + waitingBlock(); // đang xem 1 nhân viên → ẩn khách chưa ai phụ trách
     if (no.length || up.length) h += '<section class="section"><div class="section-h"><h2>1️⃣ Đơn mới – gọi khách xác nhận</h2>' + (no.length ? '<span class="count">' + no.length + '</span>' : '') + '<span class="tip">gọi xong bấm “Xác nhận”</span></div>' +
       (no.length ? '<div class="crows">' + no.map(orderRow).join('') + '</div>' : '') +
       (up.length ? '<div class="section-h" style="margin-top:12px"><h3>💳 Chuyển khoản chưa nhận tiền</h3><span class="count">' + up.length + '</span><span class="tip">xem tài khoản VCB, tiền về thì mở đơn bấm “Xác nhận đã nhận tiền”</span></div>' +
         '<div class="crows">' + up.map(orderRow).join('') + '</div>' : '') + '</section>';
+    if (hot.length) h += '<section class="section"><div class="section-h"><h2>2️⃣ 🔥 Khách vừa hỏi – liên hệ ngay</h2><span class="count">' + hot.length + '</span><span class="tip">hỏi trong 24 giờ qua, chưa ai liên hệ. Gọi càng sớm càng dễ chốt</span></div>' +
+      '<div class="list cols">' + hot.map(leadCard).join('') + '</div></section>';
 
-    h += '<section class="section"><div class="section-h"><h2>2️⃣ Chăm sóc khách</h2>' + (q.list.length ? '<span class="count">' + q.list.length + '</span>' : '') + '<span class="tip">bấm vào nhóm để mở danh sách</span></div>';
+    h += '<section class="section"><div class="section-h"><h2>' + (hot.length ? '3️⃣' : '2️⃣') + ' Chăm sóc khách</h2>' + (q.list.length ? '<span class="count">' + q.list.length + '</span>' : '') + '<span class="tip">bấm vào nhóm để mở danh sách</span></div>';
     if (!q.list.length) h += empty(lvl() >= 2 && S.who && tasksAll().length ? 'Khách của ' + (S.who === '-' ? 'mục “Chưa ai phụ trách”' : esc(S.who)) + ' đã chăm sóc xong. Chọn “Tất cả nhân sự” để xem các khách khác.' : 'Hôm nay không còn khách cần chăm sóc 🎉');
+    var firstG = true, go = S.f.gopen || {};
     GROUP_ORDER.forEach(function (k) {
-      var arr = q.list.filter(function (c) { return taskKey(c) === k; }); if (!arr.length) return;
-      var late = arr.filter(function (c) { return c.task && c.task.late && k !== 'callback' && k !== 'runout'; }).length;
-      h += '<details class="grp" data-grp="' + k + '"' + (S.f.gopen && S.f.gopen[k] ? ' open' : '') + '><summary><span class="g-t">' + TASKS[k].icon + ' ' + TASKS[k].title + '</span><span class="count">' + arr.length + '</span>' + (late ? '<span class="g-late">⏳ ' + late + ' trễ</span>' : '') + '<span class="g-tip">' + TASKS[k].tip + '</span></summary>' +
+      var arr = q.list.filter(function (c) { return (vipLate(c) ? 'viplate' : taskKey(c)) === k; }); if (!arr.length) return;
+      var late = k === 'viplate' ? 0 : arr.filter(function (c) { return c.task && c.task.late && k !== 'callback' && k !== 'runout'; }).length;
+      var G = k === 'viplate' ? { icon: '⚠️', title: 'Khách VIP trễ hạn', tip: 'khách VIP quá hạn chăm sóc từ 2 ngày – gọi trước' } : TASKS[k];
+      var op = k in go ? go[k] : firstG; firstG = false; // nhóm đầu tiên còn việc tự mở sẵn
+      h += '<details class="grp" data-grp="' + k + '"' + (op ? ' open' : '') + '><summary><span class="g-t">' + G.icon + ' ' + G.title + '</span><span class="count">' + arr.length + '</span>' + (late ? '<span class="g-late">⏳ ' + late + ' trễ</span>' : '') + '<span class="g-tip">' + G.tip + '</span></summary>' +
         '<div class="rows">' + arr.map(rowCard).join('') + '</div></details>';
     });
     h += '</section>';
 
-    h += '<section class="section"><div class="section-h"><h2>3️⃣ Khách hỏi cần liên hệ</h2>' + (ld.length ? '<span class="count">' + ld.length + '</span>' : '') + '<span class="tip">người hỏi mua nhưng chưa mua</span></div>' +
-      (ld.length ? '<details class="grp" data-grp="leads"' + (S.f.gopen && S.f.gopen.leads ? ' open' : '') + '><summary><span class="g-t">🙋 Người hỏi cần liên hệ</span><span class="count">' + ld.length + '</span><span class="g-tip">mới hỏi, đến hẹn hoặc 3 ngày chưa liên hệ</span></summary><div class="list cols" style="padding:10px">' + ld.map(leadCard).join('') + '</div></details>' : empty('Không có khách hỏi cần liên hệ 🎉')) +
+    h += '<section class="section"><div class="section-h"><h2>' + (hot.length ? '4️⃣' : '3️⃣') + ' Khách hỏi cần liên hệ</h2>' + (ld.length ? '<span class="count">' + ld.length + '</span>' : '') + '<span class="tip">người hỏi mua nhưng chưa mua</span></div>' +
+      (ld.length ? '<details class="grp" data-grp="leads"' + (S.f.gopen && S.f.gopen.leads ? ' open' : '') + '><summary><span class="g-t">🙋 Người hỏi cần liên hệ</span><span class="count">' + ld.length + '</span><span class="g-tip">' + (hot.length ? 'đến hẹn, 3 ngày chưa liên hệ, hoặc hỏi đã lâu mà chưa ai liên hệ' : 'mới hỏi, đến hẹn hoặc 3 ngày chưa liên hệ') + '</span></summary><div class="list cols" style="padding:10px">' + ld.map(leadCard).join('') + '</div></details>' : empty('Không có khách hỏi cần liên hệ 🎉')) +
       '<button class="btn" data-newlead style="margin-top:10px">＋ Thêm khách hỏi</button></section>';
 
     if (isPoolStaff()) h += poolBlock();
     if (doneToday.length) h += '<section class="section"><details class="grp" data-grp="done"' + (S.f.gopen && S.f.gopen.done ? ' open' : '') + '><summary><span class="g-t">✅ Đã làm hôm nay</span><span class="count">' + doneToday.length + '</span></summary><div class="timeline" style="padding:12px">' +
       doneToday.slice(0, 40).map(logItem).join('') + '</div></details></section>';
     return h;
+  }
+  /** Quản lý (đang xem Tất cả nhân sự): tiến độ hôm nay của từng người. Bấm 1 dòng → lọc theo người đó. */
+  function teamBlock() {
+    var names = userNames(); if (!names.length) return '';
+    var t0 = today(), lim = dayLimit(), st = {};
+    names.forEach(function (n) { st[n] = { done: {}, knm: 0, todo: 0, late: 0, vip: 0, leads: 0, newO: 0, sold: 0, rev: 0 }; });
+    S.d.log.forEach(function (l) { var x = st[l.by]; if (!x || l.time < t0 || !isCareLog(l)) return; x.done[String(l.ref).replace(/^'/, '')] = 1; if (l.result === NO_REPLY) x.knm++; });
+    S.d.customers.forEach(function (c) { var x = st[c.owner]; if (!x || !c.task || coldOf(c)) return; x.todo++; if (c.task.late && c.task.type !== 'runout') { x.late++; if (isVip(c)) x.vip++; } });
+    names.forEach(function (n) { var x = st[n]; x.todo += oldDueAll(n).length; x.doneN = Object.keys(x.done).length; x.todo = Math.min(x.todo, Math.max(0, lim - x.doneN)); });
+    (S.d.leads || []).forEach(function (l) { var x = st[l.owner]; if (x && leadDue(l)) x.leads++; });
+    S.d.orders.forEach(function (o) { var x = st[orderOwner(o)], y = st[o.seller]; if (x && o.status === 'Mới') x.newO++; if (y && o.time >= t0 && !isVoid(o.status)) { y.sold++; y.rev += Number(o.total) || 0; } });
+    var cell = function (v, bad) { return '<td' + (v && bad ? ' class="bad"' : '') + '>' + (v || '–') + '</td>'; };
+    return '<section class="section"><div class="section-h"><h2>👥 Tiến độ nhân sự hôm nay</h2><span class="tip">bấm vào tên để xem việc của người đó</span></div><div class="team-wrap"><table class="team"><thead><tr><th>Nhân sự</th><th>Chăm sóc<br><small>đã xong / cần làm</small></th><th>Trễ hạn</th><th>KNM</th><th>Khách hỏi chờ</th><th>Đơn chưa xác nhận</th><th>Chốt hôm nay</th></tr></thead><tbody>' +
+      names.map(function (n) {
+        var x = st[n], all = x.doneN + x.todo, p = all ? Math.round(x.doneN * 100 / all) : 100;
+        return '<tr data-who="' + esc(n) + '"><td><b>' + esc(n) + '</b></td><td><div class="tm-p"><span>' + x.doneN + ' / ' + all + '</span><div class="bar"><i style="width:' + p + '%"></i></div></div></td>' +
+          '<td' + (x.late ? ' class="bad"' : '') + '>' + (x.late ? x.late + (x.vip ? ' <small>(' + x.vip + ' VIP)</small>' : '') : '–') + '</td>' + cell(x.knm) + cell(x.leads, true) + cell(x.newO, true) +
+          '<td>' + (x.sold ? x.sold + ' đơn · ' + moneyShort(x.rev) : '–') + '</td></tr>';
+      }).join('') + '</tbody></table></div></section>';
   }
   /** Quản lý: khách / khách hỏi chưa có người phụ trách → giao ngay tại chỗ. */
   function waitingBlock() {
@@ -777,11 +825,12 @@
       cs.slice(0, 10).map(function (c) { return custCard(c, false); }).join('') + ls.slice(0, 10).map(leadCard).join('') + '</div></section>';
   }
   /* ---------- danh sách việc trong ngày: xếp theo mức quan trọng, giới hạn số khách/ngày (phần còn lại để mai, có “trễ N ngày”) */
-  var DAY_LIMIT_DEF = 30, GROUP_ORDER = ['callback', 'd1', 'runout', 'd7', 'd14', 'd30', 'winback', 'old'];
+  var DAY_LIMIT_DEF = 30, GROUP_ORDER = ['callback', 'viplate', 'd1', 'runout', 'd7', 'd14', 'd30', 'winback', 'old'];
   var PRIO = { callback: 0, d1: 1, runout: 2, d7: 3.5, d14: 4, d30: 5, winback: 6, old: 7 };
   function dayLimit() { var n = parseInt(store('crm_daylimit') || '', 10); return n > 0 ? n : DAY_LIMIT_DEF; }
   function taskKey(c) { return c.task ? c.task.type : 'old'; }
-  function prioOf(c) { var k = taskKey(c); return c.task && c.task.late && k !== 'callback' && k !== 'runout' ? 3 : PRIO[k]; }
+  function vipLate(c) { var k = taskKey(c); return !!(c.task && c.task.late >= 2 && k !== 'callback' && k !== 'runout' && isVip(c)); } // VIP bị bỏ sót ≥ 2 ngày
+  function prioOf(c) { var k = taskKey(c); return vipLate(c) ? 0.5 : c.task && c.task.late && k !== 'callback' && k !== 'runout' ? 3 : PRIO[k]; }
   function isCareLog(l) { if (!CARE_WHAT) { CARE_WHAT = {}; Object.keys(TASK_LOG).forEach(function (k) { CARE_WHAT[TASK_LOG[k]] = 1; }); } return !!CARE_WHAT[l.what]; }
   function doneCount() { var t0 = today(), o = {}, me = whoName() || S.user.name; S.d.log.forEach(function (l) { if (l.time >= t0 && l.by === me && isCareLog(l)) o[String(l.ref).replace(/^'/, '')] = 1; }); return Object.keys(o).length; }
   function dayQueue() {
@@ -856,9 +905,18 @@
   /** 1 dòng gọn cho danh sách việc: tên · việc cần làm · nút gọi / KNM / chăm sóc. */
   function rowCard(c) {
     var cat = custCat(c), k = taskKey(c);
-    return '<div class="rw click tinted" data-cust="' + c.phone + '"' + catAttr(cat) + '><div class="rw-m"><div class="rw-1"><b>' + esc(c.name || 'Khách') + '</b>' + (c.zalo ? '<span class="zl ic" title="Đã kết bạn Zalo">' + ZI + '</span>' : '') + (inComm(c) ? '<span class="comm-ic" title="Đã vào nhóm Zalo cộng đồng">👥</span>' : '') + custTags(c) + '<span class="end">' + moneyShort(c.spent) + '</span></div>' +
-      '<div class="rw-2">' + (c.task ? taskLine(c) : replyOf(c).days + ' ngày chưa phản hồi') + (c.products.length ? ' · ' + esc(shortProducts(c.products, 1)) : '') + '</div></div>' +
+    return '<div class="rw click tinted" data-cust="' + c.phone + '"' + catAttr(cat) + '><div class="rw-m"><div class="rw-1"><b>' + esc(c.name || 'Khách') + '</b>' + (c.zalo ? '<span class="zl ic" title="Đã kết bạn Zalo">' + ZI + '</span>' : '') + (inComm(c) ? '<span class="comm-ic" title="Đã vào nhóm Zalo cộng đồng">👥</span>' : '') + custTags(c) + (vipLate(c) ? '<span class="tag st-huy" title="Khách VIP đã quá hạn chăm sóc ' + c.task.late + ' ngày – ưu tiên gọi trước">⚠️ VIP trễ hạn</span>' : '') + bdayChip(c) + '<span class="end">' + (c.spent ? moneyShort(c.spent) : '<span class="muted" title="Đơn chưa ghi số tiền – mở hồ sơ kiểm tra lại đơn">chưa có tiền đơn</span>') + '</span></div>' +
+      '<div class="rw-2">' + (vipLate(c) ? '<b>' + TASKS[k].icon + ' ' + TASKS[k].title + '</b> · ' : '') + (c.task ? taskLine(c) : replyOf(c).days + ' ngày chưa phản hồi') + (c.products.length ? ' · ' + esc(shortProducts(c.products, 1)) : '') + sugLine(c) + '</div>' + lastTouch(c) + '</div>' +
       '<div class="rw-a"><a class="btn" href="tel:' + c.phone + '" aria-label="Gọi">📞</a><button class="btn" data-quick="' + c.phone + '|knm|' + k + '" title="Không nghe máy: 2 ngày sau tự nhắc" aria-label="KNM">📵</button><button class="btn pri" data-care="' + c.phone + '" data-task="' + k + '" aria-label="Chăm sóc">💬</button></div></div>';
+  }
+  /** Mốc 30 ngày / mời quay lại / khách cũ: gợi ý sản phẩm khách khác hay mua kèm. */
+  function sugLine(c) { var k = taskKey(c); if (k !== 'd30' && k !== 'winback' && k !== 'old' && k !== 'runout') return ''; var sg = suggestFor(c); return sg ? ' · <span class="sug" title="Khách mua sản phẩm giống khách này hay mua thêm sản phẩm này">💡 gợi ý: ' + esc(sg) + '</span>' : ''; }
+  /** Lần liên hệ gần nhất (CRM + ghi chú cũ) để sale biết bối cảnh trước khi gọi. */
+  function lastTouch(c) {
+    var h = recentHist(c, 1)[0], r = replyOf(c);
+    if (!h) return '<div class="rw-3 muted">🆕 Chưa liên hệ lần nào</div>';
+    var t = String(h.text || '').replace(/^:\s*/, '').trim(), d = daysAgo(h.time);
+    return '<div class="rw-3" title="' + esc(t) + '">🕘 ' + (d ? d.charAt(0).toUpperCase() + d.slice(1) : '') + ': ' + esc(t.length > 80 ? t.slice(0, 80) + '…' : t) + (r.missed > 1 ? ' <span class="bad-line">· 📵 ' + r.missed + ' lần KNM liền</span>' : '') + '</div>';
   }
   /* ---------- gọi lần lượt: mỗi lần 1 khách, ghi kết quả xong tự sang khách tiếp theo */
   function startFlow() { S.flow = { skip: {} }; nextFlow(); }
@@ -972,6 +1030,12 @@
   function bdayMonth(k) { var m = vnDate(Date.now()).m; return k === 'this' ? m : k === 'next' ? m % 12 + 1 : +k; }
   function bdayHit(c, k) { var b = dobOf(c); return k === 'none' ? !b : !!b && b.m === bdayMonth(k); }
   function bdayLabel(k) { return k === 'none' ? 'chưa có ngày sinh' : 'sinh nhật tháng ' + bdayMonth(k); }
+  function bdaySoon(c) { // số ngày tới sinh nhật (0 = hôm nay), null nếu xa hơn 7 ngày
+    var b = dobOf(c); if (!b) return null; var n = vnDate(Date.now());
+    for (var i = 0; i <= 7; i++) { var x = vnDate(Date.UTC(n.y, n.m - 1, n.d + i, 5) - 7 * 3600e3); if (x.d === b.d && x.m === b.m) return i; }
+    return null;
+  }
+  function bdayChip(c) { var i = bdaySoon(c); return i === null ? '' : '<span class="tag bday" title="Sinh nhật ' + pad(dobOf(c).d) + '/' + pad(dobOf(c).m) + ': nhắn chúc mừng, có thể tặng ưu đãi">🎂 ' + (i === 0 ? 'Sinh nhật hôm nay' : i === 1 ? 'SN ngày mai' : 'SN ' + pad(dobOf(c).d) + '/' + pad(dobOf(c).m)) + '</span>'; }
   function bdayTag(c) { var b = dobOf(c), n = vnDate(Date.now()); if (!b || b.m !== n.m) return ''; return b.d === n.d ? ' · <span class="warn-line">🎂 Sinh nhật hôm nay</span>' : ' · 🎂 SN ' + pad(b.d) + '/' + pad(b.m); }
   var SPEND = { lo: ['Dưới 500k', 0, 5e5], mid: ['500k – 2 triệu', 5e5, 2e6], hi: ['Trên 2 triệu', 2e6, 9e15] };
   /** Nguồn khách mua lần đầu (Facebook, Ladi, Zalo…), nhiều khách xếp trước. */
@@ -2692,7 +2756,7 @@
       '<h3 style="margin:14px 0 8px">Nhãn riêng của bạn</h3><div class="color-rows" id="tagRows">' + tg.map(function (t, i) { return '<div class="color-row" data-ti="' + i + '"><input type="color" data-tk="color" value="' + esc(t.color) + '"><input type="text" data-tk="name" value="' + esc(t.name) + '" placeholder="Tên nhãn (vd Khách thân)" maxlength="30"><button class="rm" data-deltag="' + i + '" aria-label="Xoá">✕</button></div>'; }).join('') + '</div>' +
       '<div class="steps" style="margin-top:10px"><button class="btn" data-addtag>＋ Thêm nhãn</button><button class="btn pri" id="prefSave">Lưu màu & nhãn</button><button class="btn ghost" id="prefReset">Về màu mặc định</button></div></div>';
     h += '<div class="box guide"><h3>Hướng dẫn nhanh</h3><ol>' +
-      '<li>Mỗi sáng mở tab <b>Hôm nay</b>. Làm lần lượt 3 phần: đơn mới, chăm sóc khách, khách hỏi.</li>' +
+      '<li>Mỗi sáng mở tab <b>Hôm nay</b>. Làm lần lượt từ trên xuống: đơn mới, khách vừa hỏi (nếu có), chăm sóc khách, khách hỏi. Dưới mỗi khách có dòng 🕘 lần liên hệ gần nhất để biết lần trước đã nói gì.</li>' +
       '<li><b>Đơn mới:</b> gọi khách xác nhận, xong bấm <b>✅ Xác nhận</b>. Gửi hàng thì bấm <b>🚚 Đang giao</b>, khách nhận thì <b>📬 Đã giao</b>.</li>' +
       '<li><b>Chăm sóc:</b> bấm <b>💬 Chăm sóc</b> → <b>Copy tin & mở Zalo</b> → dán tin gửi khách → quay lại chọn <b>Kết quả</b> → <b>Lưu</b>. Khách đó sẽ tự biến khỏi danh sách.</li>' +
       '<li>Khách hẹn gọi lại: chọn “Hẹn gọi lại” và chọn ngày. Đến ngày, khách tự hiện lại ở tab Hôm nay.</li>' +

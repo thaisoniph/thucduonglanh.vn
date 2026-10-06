@@ -54,8 +54,14 @@ Từ đó bạn nhận riêng: **đơn mới của khách mình phụ trách**, 
 - **Trên cùng:** số khách cần chăm sóc hôm nay, thanh tiến độ và nút **▶ Bắt đầu gọi lần lượt**. Mỗi ngày CRM đưa ra tối đa **30 khách** (đổi ở **Cài đặt → Số khách chăm sóc mỗi ngày**), khách quan trọng trước: hẹn gọi lại → hỏi nhận hàng → sắp hết hàng → việc bị trễ → các việc khác. Khách chưa tới lượt tự dời sang hôm sau.
 - **Ô nhỏ:** đơn mới, khách hỏi, việc đã làm, mục tiêu tháng. Bấm để mở đúng danh sách. Quản lý thấy thêm doanh thu và khách mới của tháng.
 - **1️⃣ Đơn mới – gọi khách xác nhận** (chỉ hiện khi có), kèm **Chuyển khoản chưa nhận tiền**.
-- **2️⃣ Chăm sóc khách:** chia nhóm theo loại việc (xem [bảng các loại việc](#cac-loai-viec-cham-soc)). Nhóm **thu gọn**, bấm vào mới mở. Mỗi khách 1 dòng với nút **📞 Gọi · 📵 KNM · 💬 Chăm sóc**.
-- **3️⃣ Khách hỏi cần liên hệ.**
+- **2️⃣ 🔥 Khách vừa hỏi – liên hệ ngay** (chỉ hiện khi có): người hỏi trong 24 giờ qua mà chưa ai liên hệ. Đây là khách nóng nhất, gọi càng sớm càng dễ chốt.
+- **3️⃣ Chăm sóc khách:** chia nhóm theo loại việc (xem [bảng các loại việc](#cac-loai-viec-cham-soc)). Nhóm đầu tiên tự mở sẵn, các nhóm khác bấm vào mới mở. Mỗi khách 1 dòng với nút **📞 Gọi · 📵 KNM · 💬 Chăm sóc**. Dưới tên khách có dòng **🕘 lần liên hệ gần nhất** (vd *“3 ngày trước: Đã hỏi thăm: chị bảo ngủ ngon hơn”*, kèm *📵 2 lần KNM liền* nếu gọi mãi không được) để biết lần trước đã nói gì trước khi gọi. Khách chưa ai liên hệ thì ghi *🆕 Chưa liên hệ lần nào*.
+    - **⚠️ Khách VIP trễ hạn**: khách VIP quá hạn chăm sóc từ 2 ngày được gom thành nhóm riêng ngay sau *Hẹn gọi lại*, dòng khách ghi rõ việc cần làm. Khi bấm *Bắt đầu gọi lần lượt*, các khách này cũng được gọi trước.
+    - **🎂 Sinh nhật**: khách có sinh nhật trong 7 ngày tới có nhãn hồng (*Sinh nhật hôm nay*, *SN ngày mai*, *SN 12/10*). Nhớ nhắn chúc mừng. Cần nhập ngày sinh trong hồ sơ khách thì nhãn mới hiện.
+    - **💡 Gợi ý sản phẩm**: ở các việc *Sắp hết*, *Giới thiệu sản phẩm phù hợp*, *Mời quay lại*, *Khách cũ lâu chưa gọi*, CRM gợi ý sản phẩm mà những khách mua giống khách này hay mua thêm. Đây chỉ là gợi ý, sale tự xem có hợp với khách không.
+    - Việc *Sắp hết sản phẩm* ghi luôn ngày dự kiến hết, ví dụ *Còn khoảng 5 ngày là hết (11/10)*.
+- **4️⃣ Khách hỏi cần liên hệ:** đến ngày hẹn, đã 3 ngày chưa liên hệ lại, hoặc hỏi đã lâu mà chưa ai liên hệ.
+- Số đỏ trên tab **Hôm nay** = đơn mới + khách cần chăm sóc + khách vừa hỏi. Tất cả khách hỏi cần liên hệ xem ở số đỏ của tab **Khách hỏi**.
 - Cuối trang: **✅ Đã làm hôm nay** (bấm để mở).
 
 ### Gọi lần lượt
@@ -369,6 +375,7 @@ Doanh số tính theo **Nhân viên bán** ghi trên từng đơn. Đơn khách 
 
 **Giao khách:**
 
+- Tab **Hôm nay** (chọn *Tất cả nhân sự*) có bảng **👥 Tiến độ nhân sự hôm nay**. Mỗi người 1 dòng: số khách chăm sóc đã xong / cần làm, số việc trễ hạn (trong đó bao nhiêu khách VIP), số lần không nghe máy, khách hỏi đang chờ, đơn chưa xác nhận, đơn chốt hôm nay. Bấm vào tên để xem danh sách việc của người đó.
 - Tab **Hôm nay** có mục **🧺 Chờ giao người phụ trách**: khách và khách hỏi chưa ai phụ trách. Chọn tên trong ô *Giao cho…* là xong.
 - Mở hồ sơ khách → ô **Người phụ trách** để đổi người.
 - **Cài đặt → 👥 Chia khách & phân quyền**:
