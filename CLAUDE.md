@@ -23,6 +23,8 @@ Chủ dự án: anh Sơn (thaisoniph@gmail.com). Anh Sơn không chuyên kỹ th
 - Phiên Claude trên web/điện thoại push lên nhánh riêng (`claude/...`), không vào thẳng `main`. Khi anh Sơn nói "đăng lên", "cho live", "deploy": pull/rebase `main`, build thử, push nhánh, tạo Pull Request vào `main` rồi gửi anh link PR. Nhắc anh: mở link → **Merge pull request** → **Confirm merge** (làm được trong app GitHub hoặc trình duyệt điện thoại). Nếu phiên có quyền merge thì tự merge luôn.
 - Sau khi đăng, báo anh link trang cần xem và nhắc anh chờ 1–2 phút.
 - Trên máy Mac có thêm script `deploy-github.sh` (cần GH_TOKEN). Phiên Claude trên web/điện thoại không cần script này.
+- Anh dùng cả Antigravity trên Mac (đẩy thẳng `main`) lẫn app Claude trên điện thoại. Lưu ý + cách quay lại bản trước: HUONG-DAN.md mục 8a, 8b.
+- Anh nói "quay lại bản trước" / web hoặc CRM lỗi sau khi đăng: `git revert` commit (hoặc merge commit, `-m 1`) gây lỗi trên nhánh mới, build thử, tạo PR và tự merge nếu có quyền. Revert có đổi Apps Script thì workflow tự triển khai lại.
 
 ## Khi sửa Apps Script (`backend/google-apps-script.gs`)
 Nếu đã cài **tự triển khai** (workflow `.github/workflows/apps-script.yml`, secrets `CLASPRC_JSON` + `APPS_SCRIPT_ID`, xem HUONG-DAN.md): merge vào `main` là GitHub tự Lưu + Triển khai phiên bản mới (~1–2 phút), báo anh xem tab Actions có ✅. Nếu chưa cài hoặc workflow báo bỏ qua/lỗi thì làm tay như dưới.

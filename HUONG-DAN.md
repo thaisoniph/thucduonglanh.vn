@@ -211,6 +211,37 @@ GH_TOKEN=ghp_xxx ./deploy-github.sh "ghi chú thay đổi"           # đẩy l�
 ```
 Script tự lấy các thay đổi nhân sự đã làm ở /admin trước khi đẩy.
 
+### 8a. Cập nhật từ máy tính (Antigravity) và từ điện thoại (app Claude)
+
+Hai cách đều đổ về nhánh `main` trên GitHub → GitHub tự đăng web + CRM (Cloudflare) và tự triển khai Apps Script (nếu `backend/google-apps-script.gs` đổi). Dùng được cả hai.
+
+| | Máy tính (Antigravity) | Điện thoại (app Claude) |
+|---|---|---|
+| Đường đi | Sửa thư mục trên Mac → `deploy-github.sh` đẩy **thẳng vào `main`** | Claude làm trên máy chủ đám mây → nhánh `claude/...` → Pull Request → Merge |
+| Ưu | Chạy thử trên máy trước; thấy ảnh/PDF gốc trên Mac | Có bước duyệt (PR); mỗi lần đăng có trang PR ghi rõ đổi gì, dễ Revert |
+| Nhược | Không có bước duyệt, đẩy là live | Không thấy file trên Mac; không bấm thử giao diện thật được |
+
+**Lưu ý khi dùng cả hai**
+1. Trên Mac, **`git pull` trước khi bắt đầu sửa**. `main` đổi liên tục (phiên điện thoại, nhân sự sửa /admin); sửa trên bản cũ dễ xung đột hoặc ghi đè mất thay đổi người khác.
+2. **Không sửa cùng một tính năng ở hai nơi cùng lúc.** Xong và đăng ở một nơi rồi mới sang nơi kia.
+3. Antigravity dùng AI khác (không phải Claude), có thể không tự đọc `CLAUDE.md`. Đầu mỗi phiên dặn: *"Đọc CLAUDE.md và HUONG-DAN.md trước khi sửa"* (repo công khai, không ghi token / dữ liệu khách, không dùng từ "chữa/điều trị"…).
+4. **Không sửa code trực tiếp trong trình soạn Apps Script nữa.** Lần merge sau có đổi `backend/google-apps-script.gs`, GitHub sẽ ghi đè và phần sửa tay bị mất. Mọi sửa đổi đi qua file trong repo. (Thuộc tính tập lệnh như `TELEGRAM_TOKEN`, `VTP_SECRET` và lịch chạy không bị ảnh hưởng.)
+5. `GH_TOKEN` trên Mac cần quyền **repo + workflow**. Không lưu token vào file trong thư mục dự án. Các file `backend/*.backup-*.gs` (còn token) đã nằm trong `.gitignore`, đừng đổi tên chúng.
+
+### 8b. Cập nhật làm hệ thống lỗi → quay lại bản trước
+
+**Cách chính (quay lại hẳn, cả web + CRM + Apps Script):**
+- Nhắn Claude *"quay lại bản trước"* (hoặc nêu thay đổi cần bỏ). Claude `git revert` trên GitHub → ~2 phút sau tự về bản cũ. Dùng được cho thay đổi từ Mac lẫn điện thoại.
+- Hoặc tự làm với thay đổi có Pull Request: mở trang PR → **Revert** → GitHub tạo PR mới → **Merge pull request**.
+- Thay đổi đẩy thẳng từ Mac (không có PR): nhờ Claude, hoặc trên Mac `git revert <mã commit>` rồi chạy `deploy-github.sh`.
+
+**Cấp cứu tức thì (vài giây), khi chưa kịp revert:**
+- *Web / CRM lỗi giao diện:* Cloudflare → Workers & Pages → `thucduonglanh` (web) hoặc `thucduonglanh-crm` (CRM) → Deployments → bản cũ chạy tốt → **Rollback to this deployment**.
+- *Nhận đơn / CRM báo lỗi máy chủ:* Apps Script → Triển khai → Quản lý các bản triển khai → ✏️ → chọn **phiên bản cũ** (số phiên bản + mô tả commit hiện trong danh sách; vd 45 = bản sinh nhật 06/10/2026) → Triển khai.
+- Đây chỉ là tạm: lần đăng sau sẽ đưa code lỗi lên lại, và **lịch chạy (tin 8h, tự nhập file sale…) luôn chạy code mới nhất**, không theo phiên bản triển khai. Sau khi cấp cứu vẫn phải revert trên GitHub.
+
+**Dữ liệu trong Sheet bị hỏng** (quay code không khôi phục dữ liệu): mở Sheet → Tệp → Lịch sử phiên bản → Xem lịch sử phiên bản → chọn thời điểm trước lỗi → **Khôi phục phiên bản này**. Cột mới do bản cập nhật thêm vào (vd "Ngày sinh") để nguyên không sao.
+
 ---
 
 ## 9. Việc nên làm tiếp
