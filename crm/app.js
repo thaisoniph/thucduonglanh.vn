@@ -206,7 +206,7 @@
       .then(function () { S.loading = false; var b2 = $('#refresh'); if (b2) b2.classList.remove('spin'); });
   }
   function softRender(silent) {
-    var ae = document.activeElement, editing = silent && ae && ae.closest && ae.closest('#view') && /INPUT|TEXTAREA|SELECT/.test(ae.tagName) && ae.type !== 'search';
+    var ae = document.activeElement, editing = silent && ae && ae.closest && ae.closest('#view') && /INPUT|TEXTAREA|SELECT/.test(ae.tagName);
     if (!editing) render(); else if ($('.updated')) $('.updated').outerHTML = updatedLine(); // đang gõ dở / đang mở hộp thì không vẽ lại, tránh mất chữ
   }
   function keepOld(j, prev) {
@@ -223,16 +223,44 @@
       var newL = S.d.log.filter(function (l) { return (l.time || 0) >= core.part.l || l.op; }); // l.op: việc vừa bấm trên máy này
       [r.orders, r.log].forEach(function (arr) { arr.forEach(function (x) { if (x.name && ZALO_X.test(x.name)) { ZALO_X.lastIndex = 0; x.name = x.name.replace(ZALO_X, '').trim(); } ZALO_X.lastIndex = 0; }); });
       S.d.orders = r.orders.concat(newO); S.d.log = r.log.concat(newL); S.d.partial = false;
+      preIndexData(S.d);
       if (S.perf) { S.perf.rest = Date.now() - t1; S.perf.kb2 = r.__kb; }
       idb('set', 'data', { tk: S.token.slice(-12), at: S.loadedAt, d: S.d }); // lần sau mở CRM hiện ngay
       softRender(true);
     }, function () { /* đợt 2 lỗi: vẫn dùng được, lần tải sau thử lại */ });
   }
   var ZALO_X = /\s*\(\s*[xX×]\s*\)/g; // "(x)" sau tên = sale đã kết bạn Zalo (cách ghi trên Sheet) → hiện bằng biểu tượng Zalo, không hiện trong tên
+  function preIndexData(j) {
+    if (!j) return;
+    if (j.customers) {
+      j.customers.forEach(function (c) {
+        c._phoneDigits = c.phone ? c.phone.replace(/\D/g, '') : '';
+        c._normName = norm(c.name);
+      });
+    }
+    if (j.orders) {
+      j.orders.forEach(function (o) {
+        o._phoneDigits = o.phone ? o.phone.replace(/\D/g, '') : '';
+        o._q = norm((o.name || '') + ' ' + (o.id || '') + ' ' + (o.items || '') + ' ' + (o.province || '') + ' ' + (o.source || '') + ' ' + (o.tracking || '') + ' ' + (o.seller || ''));
+      });
+    }
+    if (j.leads) {
+      j.leads.forEach(function (l) {
+        l._phoneDigits = l.phone ? l.phone.replace(/\D/g, '') : '';
+        l._q = norm((l.name || '') + ' ' + (l.channel || '') + ' ' + (l.interest || '') + ' ' + (l.province || '') + ' ' + (l.note || '') + ' ' + (l.owner || ''));
+      });
+    }
+  }
+  function invalidateCustomer(c) {
+    if (!c) return;
+    c._stage = undefined; c._vip = undefined; c._risky = undefined; c._cold = undefined;
+    c._reply = undefined; c._q = undefined; c._normName = undefined; c._phoneDigits = undefined;
+  }
   function setData(j, at) {
     S.d = j; S.user = j.user; S.loadedAt = at;
     [j.customers, j.orders, j.leads || [], j.log || []].forEach(function (arr) { arr.forEach(function (x) { if (x.name && ZALO_X.test(x.name)) { ZALO_X.lastIndex = 0; x.name = x.name.replace(ZALO_X, '').trim(); } ZALO_X.lastIndex = 0; }); });
     S.d.byPhone = {}; j.customers.forEach(function (c) { S.d.byPhone[c.phone] = c; });
+    preIndexData(j);
     S.outbox.forEach(applyOp); // việc vừa bấm nhưng máy chủ chưa nhận xong → vẫn hiện đúng
   }
   /** Khung trang hiện ngay lúc chờ máy chủ (thay cho màn hình trắng “Đang tải…”). */
@@ -279,7 +307,7 @@
   }
   function applyOp(op) {
     var p = op.p, c = cust(p.phone); if (!c) return;
-    c._q = undefined; // chuỗi tìm kiếm tính lại (tên / người phụ trách có thể vừa đổi)
+    invalidateCustomer(c); // xoá bộ nhớ đệm thuộc tính khách (tên / kết quả CSKH / người phụ trách vừa đổi)
     if (op.action === 'care') {
       c.careAt = op.at; c.careResult = p.result; if (!c.owner) c.owner = S.user.name;
       c.callback = p.callback ? new Date(p.callback + 'T09:00:00+07:00').getTime() : null; c.task = null;
@@ -475,13 +503,14 @@
   function groupTag(g) { return g ? '<span class="tag ' + (GROUP_CLS[g] || '') + '">' + esc(g) + '</span>' : ''; }
   /* ---------- nhóm khách: theo số ngày chưa mua (Đang dùng ≤60 · Sắp mất 61–180 · Lâu không mua >180) + VIP + khách lạnh */
   function daysSince(t) { return t ? Math.round((today() - dayStart(t)) / DAY) : 99999; }
-  function stageOf(c) { var d = daysSince(c.last); return d <= 60 ? 'live' : d <= 180 ? 'risk' : 'lost'; }
-  function isVip(c) { var R = S.d.rules || {}; return c.orders >= (R.vipOrders || 3) || c.spent >= (R.vipSpent || 2e6); }
-  function riskyReturn(c) { var b = c.backN || 0, ok = c.okN || 0; return b >= 1 && (ok === 0 || (b >= 2 && b >= ok)); } // hoàn 1 lần trong nhiều đơn nhận = khách vẫn tốt
+  function stageOf(c) { if (c._stage !== undefined) return c._stage; var d = daysSince(c.last); return (c._stage = (d <= 60 ? 'live' : d <= 180 ? 'risk' : 'lost')); }
+  function isVip(c) { if (c._vip !== undefined) return c._vip; var R = S.d.rules || {}; return (c._vip = (c.orders >= (R.vipOrders || 3) || c.spent >= (R.vipSpent || 2e6))); }
+  function riskyReturn(c) { if (c._risky !== undefined) return c._risky; var b = c.backN || 0, ok = c.okN || 0; return (c._risky = (b >= 1 && (ok === 0 || (b >= 2 && b >= ok)))); } // hoàn 1 lần trong nhiều đơn nhận = khách vẫn tốt
   function coldOf(c) { // khách lạnh: bom hàng / từ chối, hoặc đã nói "không dùng nữa" (sau 6 tháng tự ấm lại; đặt đơn mới cũng hết lạnh)
-    if (c.flag) return /bom/i.test(c.flag) ? 'Bom hàng' : c.flag;
-    var r = replyOf(c); if (r.result === 'Không có nhu cầu' && r.at && !((c.last || 0) > r.at) && today() - r.at < 180 * DAY) return 'Không dùng nữa';
-    return '';
+    if (c._cold !== undefined) return c._cold;
+    if (c.flag) return (c._cold = (/bom/i.test(c.flag) ? 'Bom hàng' : c.flag));
+    var r = replyOf(c); if (r.result === 'Không có nhu cầu' && r.at && !((c.last || 0) > r.at) && today() - r.at < 180 * DAY) return (c._cold = 'Không dùng nữa');
+    return (c._cold = '');
   }
   var TIP = {
     vip: function () { var R = S.d.rules || {}; return 'Khách mua từ ' + (R.vipOrders || 3) + ' đơn, hoặc tổng chi từ ' + money(R.vipSpent || 2e6); },
@@ -527,10 +556,11 @@
     return replyIdx;
   }
   function replyOf(c) {
+    if (c._reply !== undefined) return c._reply;
     var r = replyIndex()[c.phone] || { at: 0, missed: [] }, at = r.at, result = r.result, by = r.by;
     if (c.careAt && c.careResult && c.careResult !== NO_REPLY && c.careAt > at) { at = c.careAt; result = c.careResult; by = c.owner; } // ghi trong Sheet trước khi có CRM
     var from = at || c.first; // chưa chăm sóc lần nào → đếm từ ngày mua đầu tiên
-    return { at: at, never: !at, result: result, by: by, days: from ? Math.max(0, Math.round((today() - dayStart(from)) / DAY)) : 0, missed: r.missed.filter(function (t) { return t > at; }).length };
+    return (c._reply = { at: at, never: !at, result: result, by: by, days: from ? Math.max(0, Math.round((today() - dayStart(from)) / DAY)) : 0, missed: r.missed.filter(function (t) { return t > at; }).length });
   }
   function ageLevel(days) { return days <= 7 ? 'ok' : days <= 30 ? 'mid' : 'bad'; }
   function ageTag(c) {
@@ -928,10 +958,23 @@
     var n = {}; S.d.customers.forEach(function (c) { if (lvl() >= 2 || c.owner === S.user.name) { var k = c.source || 'Chưa rõ'; n[k] = (n[k] || 0) + 1; } });
     return Object.keys(n).sort(function (a, b) { return n[b] - n[a]; });
   }
-  function viewCustomers() {
+  function renderCustomerChips(base, cur) {
+    return CF.map(function (x) {
+      var n = base.filter(x.f).length, tp = { nocomm: 'Khách chưa vào nhóm Zalo “Sống khỏe cùng Thực Dưỡng Lành”: dùng 📣 Gửi ưu đãi lần lượt để mời hàng loạt', runout7: 'Dự kiến dùng hết trong 7 ngày tới (hoặc vừa hết trong 7 ngày qua): gọi mời mua lại ngay', vip: TIP.vip(), risk: TIP.risk, lost: TIP.lost, cold: TIP.cold, nozalo: TIP.nozalo, task: TIP.task, callback: TIP.callback, all: TIP.all }[x.k];
+      return '<button class="chip' + (x.k === cur.k ? ' on' : '') + '" data-cf="' + x.k + '"' + (tp ? ' title="' + esc(tp) + '"' : '') + '>' + x.l + ' <em>' + n + '</em></button>';
+    }).join('');
+  }
+  function renderCustomerList(list, n) {
+    if (!list.length) return empty('Không có khách nào khớp.');
+    return '<div class="crows">' + list.slice(0, n).map(custRow).join('') + '</div>' +
+      (list.length > n ? '<button class="btn more" data-more="c">Xem thêm ' + Math.min(60, list.length - n) + ' khách</button>' : '');
+  }
+  function renderCustomersPart(appendOnly) {
+    var cList = $('#cList');
+    if (!cList) { render(); return; }
     var f = S.f.c || (S.f.c = { q: '', k: 'all', sort: 'prio', n: 60 });
     var q = norm(f.q), qd = q.replace(/\D/g, ''), words = qWords(q);
-    var base = S.d.customers.filter(function (c) { return whoOk(c.owner) && (!q || custHit(c, words) || (qd.length >= 3 && c.phone.indexOf(qd) >= 0)); }); // sale: chỉ khách của mình (khách chưa ai nhận ở mục Kho chung tab Hôm nay)
+    var base = S.d.customers.filter(function (c) { return whoOk(c.owner) && (!q || custHit(c, words) || (qd.length >= 3 && (c._phoneDigits || c.phone).indexOf(qd) >= 0)); });
     if (f.cat) base = base.filter(function (c) { return custCat(c).key === f.cat; });
     var srcs = custSources(); if (f.src && srcs.indexOf(f.src) < 0) f.src = '';
     if (f.spend) base = base.filter(function (c) { var r = SPEND[f.spend]; return c.spent >= r[1] && c.spent < r[2]; });
@@ -939,19 +982,50 @@
     var chips = CF;
     var cur = chips.filter(function (x) { return x.k === f.k; })[0] || chips[0];
     var list = base.filter(cur.f).sort(SORTS[f.sort][1]);
-    if (q) list = list.filter(function (c) { return norm(c.name).indexOf(q) >= 0; }).concat(list.filter(function (c) { return norm(c.name).indexOf(q) < 0; })); // trùng tên lên đầu, rồi mới đến trùng tỉnh / địa chỉ / sản phẩm
+    if (q) list = list.filter(function (c) { return (c._normName || norm(c.name)).indexOf(q) >= 0; }).concat(list.filter(function (c) { return (c._normName || norm(c.name)).indexOf(q) < 0; }));
     S.promoPick = { list: list, label: cur.l + (lvl() >= 2 && S.who ? ' · ' + (S.who === '-' ? 'chưa ai phụ trách' : 'của ' + S.who) : '') + (f.spend ? ' · chi ' + SPEND[f.spend][0].toLowerCase() : '') + (f.src ? ' · nguồn ' + f.src : '') + (f.q ? ' · tìm “' + f.q + '”' : '') };
-    return '<div class="page-head"><h1>Khách đã mua</h1><span class="muted">' + base.length + ' khách</span><div class="grow"></div>' + whoSel() + '<button class="btn pri" data-promo title="Gửi tin ưu đãi qua Zalo cho từng khách trong danh sách đang lọc">📣 Gửi ưu đãi lần lượt</button></div>' +
+
+    if (appendOnly) {
+      var crows = $('.crows', cList);
+      var prevN = f.n - 60;
+      var nextSlice = list.slice(prevN, f.n);
+      if (crows && nextSlice.length) crows.insertAdjacentHTML('beforeend', nextSlice.map(custRow).join(''));
+      var btnMore = $('[data-more=c]', cList);
+      if (btnMore) {
+        if (list.length > f.n) btnMore.textContent = 'Xem thêm ' + Math.min(60, list.length - f.n) + ' khách';
+        else btnMore.remove();
+      }
+      return;
+    }
+
+    var cCount = $('#cCount'); if (cCount) cCount.textContent = base.length + ' khách';
+    var cChips = $('#cChips'); if (cChips) cChips.innerHTML = renderCustomerChips(base, cur);
+    var cArea = $('#cArea'); if (cArea) cArea.innerHTML = areaBox(q) + crossHint(q, qd, true);
+    cList.innerHTML = renderCustomerList(list, f.n);
+  }
+  function viewCustomers() {
+    var f = S.f.c || (S.f.c = { q: '', k: 'all', sort: 'prio', n: 60 });
+    var q = norm(f.q), qd = q.replace(/\D/g, ''), words = qWords(q);
+    var base = S.d.customers.filter(function (c) { return whoOk(c.owner) && (!q || custHit(c, words) || (qd.length >= 3 && (c._phoneDigits || c.phone).indexOf(qd) >= 0)); }); // sale: chỉ khách của mình (khách chưa ai nhận ở mục Kho chung tab Hôm nay)
+    if (f.cat) base = base.filter(function (c) { return custCat(c).key === f.cat; });
+    var srcs = custSources(); if (f.src && srcs.indexOf(f.src) < 0) f.src = '';
+    if (f.spend) base = base.filter(function (c) { var r = SPEND[f.spend]; return c.spent >= r[1] && c.spent < r[2]; });
+    if (f.src) base = base.filter(function (c) { return (c.source || 'Chưa rõ') === f.src; });
+    var chips = CF;
+    var cur = chips.filter(function (x) { return x.k === f.k; })[0] || chips[0];
+    var list = base.filter(cur.f).sort(SORTS[f.sort][1]);
+    if (q) list = list.filter(function (c) { return (c._normName || norm(c.name)).indexOf(q) >= 0; }).concat(list.filter(function (c) { return (c._normName || norm(c.name)).indexOf(q) < 0; })); // trùng tên lên đầu, rồi mới đến trùng tỉnh / địa chỉ / sản phẩm
+    S.promoPick = { list: list, label: cur.l + (lvl() >= 2 && S.who ? ' · ' + (S.who === '-' ? 'chưa ai phụ trách' : 'của ' + S.who) : '') + (f.spend ? ' · chi ' + SPEND[f.spend][0].toLowerCase() : '') + (f.src ? ' · nguồn ' + f.src : '') + (f.q ? ' · tìm “' + f.q + '”' : '') };
+    return '<div class="page-head"><h1>Khách đã mua</h1><span class="muted" id="cCount">' + base.length + ' khách</span><div class="grow"></div>' + whoSel() + '<button class="btn pri" data-promo title="Gửi tin ưu đãi qua Zalo cho từng khách trong danh sách đang lọc">📣 Gửi ưu đãi lần lượt</button></div>' +
       '<div class="tools"><div class="search">' + I.search + '<input type="search" id="cq" placeholder="Tìm tên, SĐT, tỉnh, huyện, sản phẩm…" value="' + esc(f.q) + '"></div>' +
       '<select id="csort" style="flex:0 0 auto;width:auto">' + Object.keys(SORTS).map(function (k) { return '<option value="' + k + '"' + (f.sort === k ? ' selected' : '') + '>' + SORTS[k][0] + '</option>'; }).join('') + '</select></div>' +
       '<div class="tools filt"><select id="cspend" class="' + (f.spend ? 'on' : '') + '" title="Lọc theo tổng tiền khách đã chi"><option value="">💰 Mọi mức chi</option>' + Object.keys(SPEND).map(function (k) { return '<option value="' + k + '"' + (f.spend === k ? ' selected' : '') + '>Đã chi ' + SPEND[k][0].toLowerCase() + '</option>'; }).join('') + '</select>' +
         '<select id="csrc" class="' + (f.src ? 'on' : '') + '" title="Lọc theo nguồn khách mua lần đầu"><option value="">🧭 Mọi nguồn</option>' + srcs.map(function (x) { return '<option' + (f.src === x ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('') + '</select>' +
         (f.spend || f.src ? '<button type="button" class="link small" data-cfclear>Bỏ lọc</button>' : '') + '</div>' +
       legend(S.d.customers.filter(function (c) { return whoOk(c.owner); }), f.cat) +
-      '<div class="chips">' + chips.map(function (x) { var n = base.filter(x.f).length, tp = { nocomm: 'Khách chưa vào nhóm Zalo “Sống khỏe cùng Thực Dưỡng Lành”: dùng 📣 Gửi ưu đãi lần lượt để mời hàng loạt', runout7: 'Dự kiến dùng hết trong 7 ngày tới (hoặc vừa hết trong 7 ngày qua): gọi mời mua lại ngay', vip: TIP.vip(), risk: TIP.risk, lost: TIP.lost, cold: TIP.cold, nozalo: TIP.nozalo, task: TIP.task, callback: TIP.callback, all: TIP.all }[x.k]; return '<button class="chip' + (x.k === cur.k ? ' on' : '') + '" data-cf="' + x.k + '"' + (tp ? ' title="' + esc(tp) + '"' : '') + '>' + x.l + ' <em>' + n + '</em></button>'; }).join('') + '</div>' +
-      areaBox(q) + crossHint(q, qd, true) +
-      (list.length ? '<div class="crows">' + list.slice(0, f.n).map(custRow).join('') + '</div>' +
-        (list.length > f.n ? '<button class="btn more" data-more="c">Xem thêm ' + Math.min(60, list.length - f.n) + ' khách</button>' : '') : empty('Không có khách nào khớp.'));
+      '<div class="chips" id="cChips">' + renderCustomerChips(base, cur) + '</div>' +
+      '<div id="cArea">' + (areaBox(q) + crossHint(q, qd, true)) + '</div>' +
+      '<div id="cList">' + renderCustomerList(list, f.n) + '</div>';
   }
 
   /* ---------- hồ sơ khách: giá trị khách → việc hôm nay → lịch sử (đơn + chăm sóc gộp) / đơn hàng / thông tin; ghi nhanh luôn ở đáy */
@@ -1241,6 +1315,59 @@
       '<div class="rw-3">' + (o.oflag ? '<span class="tag st-late" title="' + esc(o.oflag) + '">⚠️ Kiểm tra loại đơn</span> ' : '') + (o.tracking ? trackLink(o) + ' · ' : '') + '<span class="muted">' + esc(o.id) + ' · ' + esc(otLabel(otypeOf(o))) + '</span>' + (o.seller && (lvl() >= 2 || o.seller !== S.user.name) ? ' · 👤 ' + esc(o.seller) : '') + (o.note && !kn ? ' · 📝 ' + esc(o.note.length > 60 ? o.note.slice(0, 60) + '…' : o.note) : '') + '</div></div>' +
       '<div class="rw-a">' + act + '<a class="btn" href="tel:' + o.phone + '" aria-label="Gọi">📞</a></div></div>';
   }
+  function renderOrdersBody(f, OS, q, qd) {
+    if (f.tab === 'todo') {
+      var G = orderTodo(); if (OS !== S.d.orders) G.forEach(function (g) { g.list = g.list.filter(function (o) { return whoOk(orderOwner(o)); }); });
+      var any = false, h = '';
+      G.forEach(function (g) {
+        if (!g.list.length) return; any = true;
+        h += '<details class="grp" data-grp="o-' + g.k + '"' + (!S.f.gopen || S.f.gopen['o-' + g.k] !== false ? ' open' : '') + '><summary><span class="g-t">' + g.t + '</span><span class="count">' + g.list.length + '</span><span class="g-tip">' + g.tip + '</span></summary><div class="rows">' + g.list.slice(0, 50).map(orderRow).join('') + (g.list.length > 50 ? '<p class="small muted" style="padding:8px 12px">… và ' + (g.list.length - 50) + ' đơn khác (xem ở Tất cả đơn)</p>' : '') + '</div></details>';
+      });
+      if (!any) h += empty('🎉 Không có đơn nào cần xử lý. Xem lịch sử ở “Tất cả đơn”.');
+      return h;
+    }
+    var RG = perRange(f.p);
+    var base = OS.filter(function (o) { return o.time >= RG[0] && o.time < RG[1] && (!q || (o._q || norm(o.name + ' ' + o.id + ' ' + o.items + ' ' + o.province + ' ' + o.source + ' ' + o.tracking)).indexOf(q) >= 0 || (qd.length >= 3 && (o._phoneDigits || o.phone).indexOf(qd) >= 0)); }).sort(function (a, b) { return b.time - a.time; });
+    var list = f.st === 'all' ? base : base.filter(function (o) { return o.status === f.st; });
+    var sum = list.filter(function (o) { return !isVoid(o.status); }).reduce(function (s0, o) { return s0 + o.total; }, 0);
+    return perBtn('o', f.p) +
+      '<div class="chips">' + ['all'].concat(STATUS).map(function (s0) { var n = s0 === 'all' ? base.length : base.filter(function (o) { return o.status === s0; }).length; return n || s0 === 'all' || f.st === s0 ? '<button class="chip' + (f.st === s0 ? ' on' : '') + '" data-os="' + esc(s0) + '">' + (s0 === 'all' ? 'Tất cả' : s0) + ' <em>' + n + '</em></button>' : ''; }).join('') + '</div>' +
+      '<p class="small muted" style="margin:0 0 8px">' + list.length + ' đơn' + ' · ' + money(sum) + ' (không tính huỷ / hoàn)' + '</p>' +
+      (list.length ? '<div class="crows">' + list.slice(0, f.n).map(orderRow).join('') + '</div>' +
+        (list.length > f.n ? '<button class="btn more" data-more="o">Xem thêm ' + Math.min(60, list.length - f.n) + ' đơn</button>' : '') : empty('Không có đơn nào.'));
+  }
+  function renderOrdersPart(appendOnly) {
+    var oBody = $('#oBody');
+    if (!oBody) { render(); return; }
+    var f = S.f.o || (S.f.o = { q: '', st: 'all', n: 60, tab: 'todo', p: { k: 'all' } });
+    if (!f.tab) f.tab = 'todo'; if (!f.p) f.p = { k: 'all' };
+    var q = norm(f.q), qd = q.replace(/\D/g, '');
+    var OS = lvl() >= 2 && S.who ? S.d.orders.filter(function (o) { return whoOk(orderOwner(o)); }) : S.d.orders;
+
+    if (appendOnly && f.tab === 'all') {
+      var RG = perRange(f.p);
+      var base = OS.filter(function (o) { return o.time >= RG[0] && o.time < RG[1] && (!q || (o._q || norm(o.name + ' ' + o.id + ' ' + o.items + ' ' + o.province + ' ' + o.source + ' ' + o.tracking)).indexOf(q) >= 0 || (qd.length >= 3 && (o._phoneDigits || o.phone).indexOf(qd) >= 0)); }).sort(function (a, b) { return b.time - a.time; });
+      var list = f.st === 'all' ? base : base.filter(function (o) { return o.status === f.st; });
+      var crows = $('.crows', oBody);
+      var prevN = f.n - 60;
+      var nextSlice = list.slice(prevN, f.n);
+      if (crows && nextSlice.length) crows.insertAdjacentHTML('beforeend', nextSlice.map(orderRow).join(''));
+      var btnMore = $('[data-more=o]', oBody);
+      if (btnMore) {
+        if (list.length > f.n) btnMore.textContent = 'Xem thêm ' + Math.min(60, list.length - f.n) + ' đơn';
+        else btnMore.remove();
+      }
+      return;
+    }
+
+    oBody.innerHTML = renderOrdersBody(f, OS, q, qd);
+    var oTabs = $('#oTabs');
+    if (oTabs) {
+      var G = orderTodo(); if (OS !== S.d.orders) G.forEach(function (g) { g.list = g.list.filter(function (o) { return whoOk(orderOwner(o)); }); });
+      var todoN = G.reduce(function (s0, g) { return s0 + g.list.length; }, 0);
+      oTabs.innerHTML = '<button data-otab="todo" class="' + (f.tab === 'todo' ? 'on' : '') + '">⚡ Cần xử lý' + (todoN ? ' (' + todoN + ')' : '') + '</button><button data-otab="all" class="' + (f.tab === 'all' ? 'on' : '') + '">📋 Tất cả đơn</button>';
+    }
+  }
   function viewOrders() {
     var f = S.f.o || (S.f.o = { q: '', st: 'all', n: 60, tab: 'todo', p: { k: 'all' } });
     if (!f.tab) f.tab = 'todo'; if (!f.p) f.p = { k: 'all' };
@@ -1250,29 +1377,12 @@
     var mR = monthRange(monthOf(Date.now())), todayOs = OS.filter(function (o) { return o.time >= t0 && !isVoid(o.status); }), monthOs = OS.filter(function (o) { return o.time >= mR[0] && o.time < mR[1] && o.status !== 'Huỷ'; });
     var backM = monthOs.filter(function (o) { return /hoàn/i.test(o.status); }).length, shipOs = OS.filter(function (o) { return o.status === 'Đang giao'; }), shipping = shipOs.length, codOut = shipOs.reduce(function (s0, o) { return s0 + (isBank(o) ? 0 : o.total); }, 0);
     var h = '<div class="page-head"><h1>Đơn hàng</h1><div class="grow"></div>' + whoSel() + '<button class="btn pri" data-neworder="">＋ Tạo đơn (Zalo, điện thoại…)</button></div>' +
-      '<div class="minis">' + mini('🧾 Đơn hôm nay', todayOs.length, '', '') + mini('💰 Doanh thu hôm nay', moneyShort(todayOs.reduce(function (s0, o) { return s0 + o.total; }, 0)), '', 'good') + mini('🚚 Đang giao', shipping + (codOut ? '<small class="mini-sub" title="Tiền COD bưu cục đang giữ của các đơn đang giao">thu hộ ' + moneyShort(codOut) + '</small>' : ''), '', '') + mini('↩ Hoàn tháng này', monthOs.length ? pct(backM, monthOs.length) + '%' : '–', '', backM ? 'bad' : '') + '</div>' +
+      '<div class="minis" id="oMinis">' + mini('🧾 Đơn hôm nay', todayOs.length, '', '') + mini('💰 Doanh thu hôm nay', moneyShort(todayOs.reduce(function (s0, o) { return s0 + o.total; }, 0)), '', 'good') + mini('🚚 Đang giao', shipping + (codOut ? '<small class="mini-sub" title="Tiền COD bưu cục đang giữ của các đơn đang giao">thu hộ ' + moneyShort(codOut) + '</small>' : ''), '', '') + mini('↩ Hoàn tháng này', monthOs.length ? pct(backM, monthOs.length) + '%' : '–', '', backM ? 'bad' : '') + '</div>' +
       '<div class="tools"><div class="search">' + I.search + '<input type="search" id="oq" placeholder="Tìm tên, SĐT, mã đơn, sản phẩm…" value="' + esc(f.q) + '"></div></div>';
     var G = orderTodo(); if (OS !== S.d.orders) G.forEach(function (g) { g.list = g.list.filter(function (o) { return whoOk(orderOwner(o)); }); });
     var todoN = G.reduce(function (s0, g) { return s0 + g.list.length; }, 0);
-    h += '<div class="tabs" style="max-width:420px"><button data-otab="todo" class="' + (f.tab === 'todo' ? 'on' : '') + '">⚡ Cần xử lý' + (todoN ? ' (' + todoN + ')' : '') + '</button><button data-otab="all" class="' + (f.tab === 'all' ? 'on' : '') + '">📋 Tất cả đơn</button></div>';
-    if (f.tab === 'todo') {
-      var any = false;
-      G.forEach(function (g) {
-        if (!g.list.length) return; any = true;
-        h += '<details class="grp" data-grp="o-' + g.k + '"' + (!S.f.gopen || S.f.gopen['o-' + g.k] !== false ? ' open' : '') + '><summary><span class="g-t">' + g.t + '</span><span class="count">' + g.list.length + '</span><span class="g-tip">' + g.tip + '</span></summary><div class="rows">' + g.list.slice(0, 50).map(orderRow).join('') + (g.list.length > 50 ? '<p class="small muted" style="padding:8px 12px">… và ' + (g.list.length - 50) + ' đơn khác (xem ở Tất cả đơn)</p>' : '') + '</div></details>';
-      });
-      if (!any) h += empty('🎉 Không có đơn nào cần xử lý. Xem lịch sử ở “Tất cả đơn”.');
-      return h;
-    }
-    var RG = perRange(f.p);
-    var base = OS.filter(function (o) { return o.time >= RG[0] && o.time < RG[1] && (!q || norm(o.name + ' ' + o.id + ' ' + o.items + ' ' + o.province + ' ' + o.source + ' ' + o.tracking).indexOf(q) >= 0 || (qd.length >= 3 && o.phone.indexOf(qd) >= 0)); }).sort(function (a, b) { return b.time - a.time; });
-    var list = f.st === 'all' ? base : base.filter(function (o) { return o.status === f.st; });
-    var sum = list.filter(function (o) { return !isVoid(o.status); }).reduce(function (s0, o) { return s0 + o.total; }, 0);
-    h += perBtn('o', f.p) +
-      '<div class="chips">' + ['all'].concat(STATUS).map(function (s0) { var n = s0 === 'all' ? base.length : base.filter(function (o) { return o.status === s0; }).length; return n || s0 === 'all' || f.st === s0 ? '<button class="chip' + (f.st === s0 ? ' on' : '') + '" data-os="' + esc(s0) + '">' + (s0 === 'all' ? 'Tất cả' : s0) + ' <em>' + n + '</em></button>' : ''; }).join('') + '</div>' +
-      '<p class="small muted" style="margin:0 0 8px">' + list.length + ' đơn' + ' · ' + money(sum) + ' (không tính huỷ / hoàn)' + '</p>' +
-      (list.length ? '<div class="crows">' + list.slice(0, f.n).map(orderRow).join('') + '</div>' +
-        (list.length > f.n ? '<button class="btn more" data-more="o">Xem thêm ' + Math.min(60, list.length - f.n) + ' đơn</button>' : '') : empty('Không có đơn nào.'));
+    h += '<div class="tabs" id="oTabs" style="max-width:420px"><button data-otab="todo" class="' + (f.tab === 'todo' ? 'on' : '') + '">⚡ Cần xử lý' + (todoN ? ' (' + todoN + ')' : '') + '</button><button data-otab="all" class="' + (f.tab === 'all' ? 'on' : '') + '">📋 Tất cả đơn</button></div>' +
+      '<div id="oBody">' + renderOrdersBody(f, OS, q, qd) + '</div>';
     return h;
   }
   function findOrder(id) { return S.d.orders.filter(function (o) { return o.id === id; })[0]; }
@@ -1316,26 +1426,35 @@
     });
     if ($('#oShipCopy', m)) $('#oShipCopy', m).onclick = function () { copy(o.name + ' – ' + o.phone + '\n' + [o.address, o.ward, o.province].filter(Boolean).join(', ') + '\n' + o.ship + '\nThu: ' + money(o.total) + (isBank(o) ? ' (chuyển khoản)' : ' (COD)')).then(function () { toast('Đã copy nội dung lên đơn'); }); };
     if ($('#oSeller', m)) $('#oSeller', m).onchange = function () {
-      var sel = this, v = sel.value, old = o.seller; sel.disabled = true;
-      api('order_status', { id: o.id, row: o.row, seller: v }).then(function () { o.seller = v; sel.disabled = false; toast('Đã đổi nhân viên bán: ' + (v || 'chưa ai')); render(); },
-        function (e) { sel.value = old; sel.disabled = false; toast(e.message, true); });
+      var sel = this, v = sel.value, old = o.seller;
+      o.seller = v; toast('Đã đổi nhân viên bán: ' + (v || 'chưa ai') + ' ✓'); render();
+      api('order_status', { id: o.id, row: o.row, seller: v }).catch(function (e) {
+        o.seller = old; sel.value = old; toast(e.message, true); render();
+      });
     };
     if ($('#oPaid', m)) $('#oPaid', m).onclick = function () {
-      var btn = this, paid = !o.paid; btn.disabled = true;
-      api('order_status', { id: o.id, row: o.row, paid: paid }).then(function () {
-        o.paid = paid ? 'Có – ' + S.user.name + ' ' + fDateTime(Date.now()) : '';
-        S.d.log.push({ time: Date.now(), by: S.user.name, what: 'Đơn hàng', ref: o.id, name: o.name, result: paid ? 'Đã nhận tiền chuyển khoản' : 'Bỏ đánh dấu đã nhận tiền', note: '' });
-        toast(paid ? 'Đã ghi nhận tiền ✓' : 'Đã bỏ đánh dấu'); closeModal(true); openOrder(o.id, true); render();
-      }, function (e) { toast(e.message, true); btn.disabled = false; });
+      var paid = !o.paid, oldPaid = o.paid;
+      o.paid = paid ? 'Có – ' + S.user.name + ' ' + fDateTime(Date.now()) : '';
+      S.d.log.push({ time: Date.now(), by: S.user.name, what: 'Đơn hàng', ref: o.id, name: o.name, result: paid ? 'Đã nhận tiền chuyển khoản' : 'Bỏ đánh dấu đã nhận tiền', note: '' });
+      toast(paid ? 'Đã ghi nhận tiền ✓' : 'Đã bỏ đánh dấu ✓'); closeModal(true); openOrder(o.id, true); render();
+      api('order_status', { id: o.id, row: o.row, paid: paid }).catch(function (e) {
+        o.paid = oldPaid; toast(e.message, true); render();
+      });
     };
     $('#oTrackSave', m).onclick = function () {
-      var btn = this, carrier = $('#oCarrier', m).value, code = $('#oTrack', m).value.trim();
+      var carrier = $('#oCarrier', m).value, code = $('#oTrack', m).value.trim();
       if (code && !carrier) { toast('Chọn đơn vị vận chuyển giúp em nhé', true); return; }
-      btn.disabled = true;
+      var oldCarrier = o.carrier, oldTracking = o.tracking, oldStatus = o.status;
+      o.carrier = carrier; o.tracking = code;
+      if (code && (o.status === 'Mới' || o.status === 'Đã xác nhận')) o.status = 'Đang giao';
+      toast('Đã lưu vận đơn' + (o.status === 'Đang giao' ? ' – đơn chuyển sang Đang giao' : '') + ' ✓');
+      closeModal(true); openOrder(o.id, true); navBadges(); render();
       api('order_status', { id: o.id, row: o.row, carrier: carrier, tracking: code }).then(function (j) {
-        o.carrier = carrier; o.tracking = code; if (j.status) o.status = j.status;
-        toast('Đã lưu vận đơn' + (j.status === 'Đang giao' ? ' – đơn chuyển sang Đang giao' : '')); closeModal(true); openOrder(o.id, true); navBadges(); render();
-      }, function (e) { toast(e.message, true); btn.disabled = false; });
+        if (j && j.status) o.status = j.status;
+      }, function (e) {
+        o.carrier = oldCarrier; o.tracking = oldTracking; o.status = oldStatus;
+        toast(e.message, true); navBadges(); render();
+      });
     };
     if ($('#oTrackGo', m)) $('#oTrackGo', m).onclick = function () {
       var u = CARRIERS[o.carrier] || ''; copy(o.tracking);
@@ -1343,8 +1462,11 @@
       toast('Đã copy mã ' + o.tracking + (u.indexOf('{c}') < 0 ? ' – dán vào ô tra cứu' : '')); window.open(u.replace('{c}', encodeURIComponent(o.tracking)), '_blank', 'noopener');
     };
     $('#oNoteSave', m).onclick = function () {
-      var btn = this, note = $('#oNote', m).value.trim(); btn.disabled = true;
-      api('order_status', { id: o.id, row: o.row, note: note }).then(function () { o.note = note; toast('Đã lưu ghi chú'); btn.disabled = false; render(); }, function (e) { toast(e.message, true); btn.disabled = false; });
+      var note = $('#oNote', m).value.trim(), oldNote = o.note;
+      o.note = note; toast('Đã lưu ghi chú ✓'); render();
+      api('order_status', { id: o.id, row: o.row, note: note }).catch(function (e) {
+        o.note = oldNote; toast(e.message, true); render();
+      });
     };
   }
   function setStatus(o, st, done) {
@@ -1706,20 +1828,55 @@
   }
   /** Danh sách tên tỉnh (cũ + mới) để chọn nhanh. */
   function provNames() { var o = {}; Object.keys(PROV_MERGE).forEach(function (nw) { o[nw] = 1; PROV_MERGE[nw].forEach(function (x) { if (!/^(HCM|TPHCM|TP HCM|HN|HP|Kontum|Daklak|Đaklak|Đăk .*|Dak .*|Bắc Cạn)$/.test(x)) o[x] = 1; }); }); return Object.keys(o).sort(function (a, b) { return a.localeCompare(b, 'vi'); }); }
+  function renderLeadsChips(base, cur) {
+    return LF.filter(function (x) { return lvl() < 2 || x.k !== 'mine'; }).map(function (x) {
+      return '<button class="chip' + (x.k === cur.k ? ' on' : '') + '" data-tf="' + esc(x.k) + '">' + x.l + ' <em>' + base.filter(x.f).length + '</em></button>';
+    }).join('');
+  }
+  function renderLeadsList(list, n, curK) {
+    if (!list.length) return empty(curK === 'due' ? 'Không có khách hỏi cần liên hệ 🎉' : 'Chưa có khách nào ở mục này.');
+    return '<div class="list cols">' + list.slice(0, n).map(leadCard).join('') + '</div>' +
+      (list.length > n ? '<button class="btn more" data-more="t">Xem thêm ' + Math.min(60, list.length - n) + ' khách</button>' : '');
+  }
+  function renderLeadsPart(appendOnly) {
+    var tList = $('#tList');
+    if (!tList) { render(); return; }
+    var f = S.f.t || (S.f.t = { q: '', k: 'due', n: 60 });
+    var q = norm(f.q), qd = q.replace(/\D/g, ''), words = qWords(q), chs = leadChannels(); if (f.ch && chs.indexOf(f.ch) < 0) f.ch = '';
+    var base = (S.d.leads || []).filter(function (l) { return (lvl() < 2 || whoOk(l.owner)) && (!f.ch || (l.channel || 'Khác') === f.ch) && (!q || leadHit(l, words) || (qd.length >= 3 && (l._phoneDigits || l.phone).indexOf(qd) >= 0)); });
+    if (lvl() >= 2 && f.k === 'mine') f.k = 'due';
+    var cur = LF.filter(function (x) { return x.k === f.k; })[0] || LF[0], list = sortLeads(base.filter(cur.f));
+
+    if (appendOnly) {
+      var cols = $('.list.cols', tList);
+      var prevN = f.n - 60;
+      var nextSlice = list.slice(prevN, f.n);
+      if (cols && nextSlice.length) cols.insertAdjacentHTML('beforeend', nextSlice.map(leadCard).join(''));
+      var btnMore = $('[data-more=t]', tList);
+      if (btnMore) {
+        if (list.length > f.n) btnMore.textContent = 'Xem thêm ' + Math.min(60, list.length - f.n) + ' khách';
+        else btnMore.remove();
+      }
+      return;
+    }
+
+    var tCount = $('#tCount'); if (tCount) tCount.textContent = 'người hỏi mua nhưng chưa mua (' + base.length + ')';
+    var tChips = $('#tChips'); if (tChips) tChips.innerHTML = renderLeadsChips(base, cur);
+    var tArea = $('#tArea'); if (tArea) tArea.innerHTML = areaBox(q, 'lead') + crossHint(q, qd, false);
+    tList.innerHTML = renderLeadsList(list, f.n, f.k);
+  }
   function viewLeads() {
     var f = S.f.t || (S.f.t = { q: '', k: 'due', n: 60 });
     var q = norm(f.q), qd = q.replace(/\D/g, ''), words = qWords(q), chs = leadChannels(); if (f.ch && chs.indexOf(f.ch) < 0) f.ch = '';
-    var base = (S.d.leads || []).filter(function (l) { return (lvl() < 2 || whoOk(l.owner)) && (!f.ch || (l.channel || 'Khác') === f.ch) && (!q || leadHit(l, words) || (qd.length >= 3 && l.phone.indexOf(qd) >= 0)); });
+    var base = (S.d.leads || []).filter(function (l) { return (lvl() < 2 || whoOk(l.owner)) && (!f.ch || (l.channel || 'Khác') === f.ch) && (!q || leadHit(l, words) || (qd.length >= 3 && (l._phoneDigits || l.phone).indexOf(qd) >= 0)); });
     if (lvl() >= 2 && f.k === 'mine') f.k = 'due';
     var cur = LF.filter(function (x) { return x.k === f.k; })[0] || LF[0], list = sortLeads(base.filter(cur.f));
-    return '<div class="page-head"><h1>Khách hỏi</h1><span class="muted">người hỏi mua nhưng chưa mua</span><div class="grow"></div>' + whoSel() + '<button class="btn pri" data-newlead>＋ Thêm khách hỏi</button></div>' +
+    return '<div class="page-head"><h1>Khách hỏi</h1><span class="muted" id="tCount">người hỏi mua nhưng chưa mua (' + base.length + ')</span><div class="grow"></div>' + whoSel() + '<button class="btn pri" data-newlead>＋ Thêm khách hỏi</button></div>' +
       '<div class="tools"><div class="search">' + I.search + '<input type="search" id="tq" placeholder="Tìm tên, SĐT, tỉnh, sản phẩm quan tâm…" value="' + esc(f.q) + '"></div>' +
         '<select id="tch" class="' + (f.ch ? 'on' : '') + '" style="flex:0 0 auto;width:auto" title="Lọc theo kênh khách hỏi"><option value="">📣 Mọi kênh</option>' + chs.map(function (x) { return '<option' + (f.ch === x ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('') + '</select></div>' +
-      '<div class="chips">' + LF.filter(function (x) { return lvl() < 2 || x.k !== 'mine'; }).map(function (x) { return '<button class="chip' + (x.k === f.k ? ' on' : '') + '" data-tf="' + esc(x.k) + '">' + x.l + ' <em>' + base.filter(x.f).length + '</em></button>'; }).join('') + '</div>' +
-      areaBox(q, 'lead') + crossHint(q, qd, false) +
-      (list.length ? '<div class="list cols">' + list.slice(0, f.n).map(leadCard).join('') + '</div>' +
-        (list.length > f.n ? '<button class="btn more" data-more="t">Xem thêm ' + Math.min(60, list.length - f.n) + ' khách</button>' : '')
-        : empty(f.k === 'due' ? 'Không có khách hỏi cần liên hệ 🎉' : 'Chưa có khách nào ở mục này.'));
+      '<div class="chips" id="tChips">' + renderLeadsChips(base, cur) + '</div>' +
+      '<div id="tArea">' + (areaBox(q, 'lead') + crossHint(q, qd, false)) + '</div>' +
+      '<div id="tList">' + renderLeadsList(list, f.n, f.k) + '</div>';
   }
 
   function openLead(id, fromRoute) {
@@ -2663,7 +2820,7 @@
     if (t.hasAttribute('data-quick')) { e.stopPropagation(); var qk = a('data-quick').split('|'), qc = cust(qk[0]); if (qc) quickCare(qc, qk[1], qk[2], '', t); return; }
     if (t.hasAttribute('data-care')) { e.stopPropagation(); openCare(a('data-care'), a('data-task')); return; }
     if (t.hasAttribute('data-next')) { var o = findOrder(a('data-next')); if (o && NEXT[o.status]) setStatus(o, NEXT[o.status]); return; }
-    if (t.hasAttribute('data-cat')) { var ck = a('data-cat'); S.f.c = S.f.c || { q: '', k: 'all', sort: 'last', n: 60 }; S.f.c.cat = S.f.c.cat === ck ? '' : ck; S.f.c.n = 60; if (route().view !== 'khach-hang') location.hash = '#khach-hang'; else render(); return; }
+    if (t.hasAttribute('data-cat')) { var ck = a('data-cat'); S.f.c = S.f.c || { q: '', k: 'all', sort: 'last', n: 60 }; S.f.c.cat = S.f.c.cat === ck ? '' : ck; S.f.c.n = 60; if (route().view !== 'khach-hang') location.hash = '#khach-hang'; else if ($('#cList')) renderCustomersPart(); else render(); return; }
     if (t.hasAttribute('data-addtag')) { var cols = ['#dbeafe', '#dcfce7', '#fee2e2', '#ffedd5', '#fce7f3', '#e0f2fe']; S.f.tags.push({ name: '', color: cols[S.f.tags.length % cols.length] }); render(); var ins = $$('#tagRows input[type=text]'); if (ins.length) ins[ins.length - 1].focus(); return; }
     if (t.hasAttribute('data-deltag')) { S.f.tags.splice(+a('data-deltag'), 1); render(); return; }
     if (t.hasAttribute('data-bcdt')) { var bc = a('data-bcdt').split('|'); openBcdt(bc[0] || null, bc[1]); return; }
@@ -2674,11 +2831,21 @@
     if (t.hasAttribute('data-adsedit')) { openAds(); return; }
     if (t.hasAttribute('data-adssync')) { runAds(a('data-adssync') === 'dry', t); return; }
     if (t.hasAttribute('data-claim')) {
-      var cl = a('data-claim').split('|'), btn = t; btn.disabled = true; btn.textContent = 'Đang nhận…';
+      var cl = a('data-claim').split('|');
+      var prevOwner = cl[0] === 'c' ? (cust(cl[1]) || {}).owner : (findLead(cl[1]) || {}).owner;
+      if (cl[0] === 'c') { var c0 = cust(cl[1]); if (c0) c0.owner = S.user.name; }
+      else { var l0 = findLead(cl[1]); if (l0) l0.owner = S.user.name; }
+      toast('Đã nhận khách ✓'); closeModal(true); navBadges();
+      if (cl[0] === 'c' && $('#cList')) renderCustomersPart();
+      else if (cl[0] !== 'c' && $('#tList')) renderLeadsPart();
+      else render();
       api('claim', cl[0] === 'c' ? { phone: cl[1] } : { leadId: cl[1] }).then(function () {
-        if (cl[0] === 'c') { var c0 = cust(cl[1]); if (c0) c0.owner = S.user.name; } else { var l0 = findLead(cl[1]); if (l0) l0.owner = S.user.name; }
-        toast('Đã nhận khách ✓'); closeModal(true); navBadges(); render();
-      }, function (e) { toast(e.message, true); load(true); });
+        // thành công
+      }, function (e) {
+        if (cl[0] === 'c') { var c0 = cust(cl[1]); if (c0) c0.owner = prevOwner; }
+        else { var l0 = findLead(cl[1]); if (l0) l0.owner = prevOwner; }
+        toast(e.message, true); navBadges(); render();
+      });
       return;
     }
     if (t.hasAttribute('data-consult')) { openConsult(a('data-consult')); return; }
@@ -2686,22 +2853,34 @@
     if (t.hasAttribute('data-newlead')) { openLeadForm(); return; }
     if (t.hasAttribute('data-editlead')) { var L2 = findLead(a('data-editlead')); if (L2) openLeadForm(L2); return; }
     if (t.hasAttribute('data-neworder')) { openNewOrder(a('data-neworder')); return; }
-    if (t.hasAttribute('data-cf')) { S.f.c.k = a('data-cf'); S.f.c.n = 60; render(); return; }
-    if (t.hasAttribute('data-os')) { S.f.o.st = a('data-os'); S.f.o.n = 60; render(); return; }
-    if (t.hasAttribute('data-otab')) { S.f.o.tab = a('data-otab'); if (S.f.o.tab === 'todo') S.f.o.q = ''; S.f.o.n = 60; render(); return; }
+    if (t.hasAttribute('data-cf')) { S.f.c.k = a('data-cf'); S.f.c.n = 60; if ($('#cList')) renderCustomersPart(); else render(); return; }
+    if (t.hasAttribute('data-os')) { S.f.o.st = a('data-os'); S.f.o.n = 60; if ($('#oBody')) renderOrdersPart(); else render(); return; }
+    if (t.hasAttribute('data-otab')) { S.f.o.tab = a('data-otab'); if (S.f.o.tab === 'todo') S.f.o.q = ''; S.f.o.n = 60; if ($('#oBody')) renderOrdersPart(); else render(); return; }
     if (t.hasAttribute('data-per')) { openPer(a('data-per')); return; }
-    if (t.hasAttribute('data-tf')) { S.f.t.k = a('data-tf'); S.f.t.n = 60; render(); return; }
+    if (t.hasAttribute('data-tf')) { S.f.t.k = a('data-tf'); S.f.t.n = 60; if ($('#tList')) renderLeadsPart(); else render(); return; }
     if (t.hasAttribute('data-who')) { setWho(a('data-who') === 'team' ? '' : a('data-who')); window.scrollTo(0, 0); return; }
     if (t.hasAttribute('data-target')) { var tg = a('data-target').split('|'); openTarget(tg[0], tg[1]); return; }
     if (t.hasAttribute('data-myold')) { e.preventDefault(); if (lvl() >= 2) { S.who = S.user.name; store('crm_who', S.who); } S.f.c = { q: '', k: 'all', sort: 'age', n: 60 }; location.hash = '#khach-hang'; return; }
-    if (t.hasAttribute('data-more')) { S.f[a('data-more')].n += 60; render(); return; }
+    if (t.hasAttribute('data-more')) {
+      var mk = a('data-more'); S.f[mk].n += 60;
+      if (mk === 'c' && $('#cList')) renderCustomersPart(true);
+      else if (mk === 'o' && $('#oBody')) renderOrdersPart(true);
+      else if (mk === 't' && $('#tList')) renderLeadsPart(true);
+      else render();
+      return;
+    }
     if (t.hasAttribute('data-add')) { var k = a('data-add'); S.f[k].push(k === 'us' ? { email: '', name: '', role: 'Nhân viên', active: true, alias: '', prefix: '' } : k === 'tp' ? ['', '', ''] : ['', '', '', '']); render(); var rows = $$('#' + k + 'T .edit-row[data-i]'); if (rows.length) $('input', rows[rows.length - 1]).focus(); return; }
     if (t.hasAttribute('data-rm')) { var k2 = a('data-rm'); if (k2 === 'us' && S.f.us[+a('data-i')].email === S.user.email) { toast('Không tự xoá tài khoản của mình được.', true); return; } S.f[k2].splice(+a('data-i'), 1); render(); return; }
     if (t.hasAttribute('data-cust')) { closeModal(true); openCustomer(a('data-cust')); return; }
     if (t.hasAttribute('data-order')) { closeModal(true); openOrder(a('data-order')); return; }
     if (t.hasAttribute('data-lead')) { closeModal(true); openLead(a('data-lead')); return; }
   });
-  document.addEventListener('click', function (e) { if (S.d && e.target.closest('[data-cfclear]')) { S.f.c.spend = ''; S.f.c.src = ''; S.f.c.n = 60; render(); } });
+  document.addEventListener('click', function (e) {
+    if (S.d && e.target.closest('[data-cfclear]')) {
+      S.f.c.spend = ''; S.f.c.src = ''; S.f.c.n = 60;
+      if ($('#cList')) renderCustomersPart(); else render();
+    }
+  });
   document.addEventListener('click', function (e) { // mã vận đơn trên dòng đơn: copy mã (link thì mở trang tra cứu), không mở hộp đơn
     var tk = e.target.closest && e.target.closest('[data-trk]'); if (!tk) return;
     e.stopPropagation(); var code = tk.getAttribute('data-trk'), paste = tk.tagName === 'A' && tk.getAttribute('href').indexOf(encodeURIComponent(code)) < 0;
@@ -2712,21 +2891,40 @@
   document.addEventListener('input', function (e) {
     if (!S.d) return;
     if (e.target.id === 'cq' || e.target.id === 'oq' || e.target.id === 'tq') {
-      var key = { cq: 'c', oq: 'o', tq: 't' }[e.target.id], v = e.target.value;
-      clearTimeout(typing); typing = setTimeout(function () { S.f[key].q = v; S.f[key].n = 60; render(); }, 180);
+      var id = e.target.id, v = e.target.value;
+      clearTimeout(typing);
+      typing = setTimeout(function () {
+        if (id === 'cq') { S.f.c.q = v; S.f.c.n = 60; if ($('#cList')) renderCustomersPart(); else render(); }
+        else if (id === 'oq') { S.f.o.q = v; if (v) S.f.o.tab = 'all'; S.f.o.n = 60; if ($('#oBody')) renderOrdersPart(); else render(); }
+        else if (id === 'tq') { S.f.t.q = v; S.f.t.n = 60; if ($('#tList')) renderLeadsPart(); else render(); }
+      }, 70);
     }
   });
   document.addEventListener('change', function (e) {
     if (!S.d) return;
-    if (e.target.id === 'csort') { S.f.c.sort = e.target.value; render(); }
-    if (e.target.id === 'cspend' || e.target.id === 'csrc') { S.f.c[e.target.id === 'cspend' ? 'spend' : 'src'] = e.target.value; S.f.c.n = 60; render(); }
-    if (e.target.id === 'tch') { S.f.t.ch = e.target.value; S.f.t.n = 60; render(); }
+    if (e.target.id === 'csort') { S.f.c.sort = e.target.value; if ($('#cList')) renderCustomersPart(); else render(); }
+    if (e.target.id === 'cspend' || e.target.id === 'csrc') { S.f.c[e.target.id === 'cspend' ? 'spend' : 'src'] = e.target.value; S.f.c.n = 60; if ($('#cList')) renderCustomersPart(); else render(); }
+    if (e.target.id === 'tch') { S.f.t.ch = e.target.value; S.f.t.n = 60; if ($('#tList')) renderLeadsPart(); else render(); }
     if (e.target.hasAttribute && e.target.hasAttribute('data-assign') && e.target.value) {
-      var as = e.target.getAttribute('data-assign').split('|'), to = e.target.value, sel = e.target; sel.disabled = true;
+      var as = e.target.getAttribute('data-assign').split('|'), to = e.target.value;
+      var prevOwner = as[0] === 'c' ? (cust(as[1]) || {}).owner : (findLead(as[1]) || {}).owner;
+      if (as[0] === 'c') {
+        var c1 = cust(as[1]); if (c1) c1.owner = to;
+        (S.d.leads || []).forEach(function (l) { if (l.phone === as[1] && isOpenLead(l)) l.owner = to; });
+      } else {
+        var l1 = findLead(as[1]); if (l1) l1.owner = to;
+      }
+      toast('Đã giao cho ' + to + ' ✓'); navBadges();
+      if (as[0] === 'c' && $('#cList')) renderCustomersPart();
+      else if (as[0] !== 'c' && $('#tList')) renderLeadsPart();
+      else render();
       api('assign', as[0] === 'c' ? { phones: [as[1]], to: to, withLeads: true } : { leadIds: [as[1]], to: to }).then(function () {
-        if (as[0] === 'c') { var c1 = cust(as[1]); if (c1) c1.owner = to; (S.d.leads || []).forEach(function (l) { if (l.phone === as[1] && isOpenLead(l)) l.owner = to; }); } else { var l1 = findLead(as[1]); if (l1) l1.owner = to; }
-        toast('Đã giao cho ' + to + ' ✓'); render();
-      }, function (er) { sel.disabled = false; toast(er.message, true); });
+        // success
+      }, function (er) {
+        if (as[0] === 'c') { var c1 = cust(as[1]); if (c1) c1.owner = prevOwner; }
+        else { var l1 = findLead(as[1]); if (l1) l1.owner = prevOwner; }
+        toast(er.message, true); navBadges(); render();
+      });
       return;
     }
     if (e.target.id === 'who') { setWho(e.target.value); }
