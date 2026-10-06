@@ -46,8 +46,22 @@
   var LEAD_RESULTS = [{ v: 'Đã tư vấn, khách cân nhắc', days: 2 }, { v: 'Hẹn liên hệ lại', days: 2 }, { v: 'Không nghe máy', days: 1 }, { v: 'Khách chốt mua', close: true }, { v: 'Khách không mua', lost: true }];
   var LOST_REASONS = ['Giá cao', 'Chưa có nhu cầu', 'Đã mua nơi khác', 'Không liên lạc được', 'Khác'];
   // Đơn vị vận chuyển → link tra cứu ({c} = mã vận đơn). Hãng không có link thẳng thì mở trang tra cứu, mã được copy sẵn để dán.
-  var CARRIERS = { 'GHN': 'https://donhang.ghn.vn/?order_code={c}', 'GHTK': 'https://i.ghtk.vn/{c}', 'Viettel Post': 'https://viettelpost.com.vn/tra-cuu-hanh-trinh-don/', 'J&T Express': 'https://jtexpress.vn/vi/tracking?type=track&billcode={c}', 'SPX Express': 'https://spx.vn/track?{c}', 'VNPost': 'https://vnpost.vn/', 'Ahamove': '', 'Grab / Be': '', 'Tự giao': '' };
+  var CARRIERS = { 'Viettel Post': 'https://viettelpost.vn/viettelpost-iframe/tra-cuu-hanh-trinh-don-hang-v3-recaptcha?orderString={c}', 'BEST Express': 'https://www.best-inc.vn/track?bills={c}', 'GHN': 'https://donhang.ghn.vn/?order_code={c}', 'GHTK': 'https://i.ghtk.vn/{c}', 'J&T Express': 'https://jtexpress.vn/vi/tracking?type=track&billcode={c}', 'SPX Express': 'https://spx.vn/track?{c}', 'VNPost': 'https://vnpost.vn/', 'Ahamove': '', 'Grab / Be': '', 'Tự giao': '' };
 
+
+  /** Tên hãng chuẩn của đơn: khớp tên gõ tay (vd "viettelpost", "Best") với danh sách; chưa chọn hãng thì đoán theo mã (V… = Viettel Post, toàn số = BEST Express). */
+  function guessCarrier(code) {
+    code = String(code || '').trim();
+    return /^V/i.test(code) ? 'Viettel Post' : /^\d{10,15}$/.test(code) ? 'BEST Express' : '';
+  }
+  function carrierOf(o) {
+    var c = String(o.carrier || '').trim(), k = c.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (!c) return guessCarrier(o.tracking);
+    if (CARRIERS[c] !== undefined) return c;
+    if (k.indexOf('viettel') >= 0 || k === 'vtp') return 'Viettel Post';
+    if (k.indexOf('best') === 0) return 'BEST Express';
+    return c;
+  }
   var I = {
     today: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
     users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
@@ -682,7 +696,7 @@
     return '<div class="card click tinted" data-order="' + esc(o.id) + '"' + catAttr(oc) + '>' +
       '<div class="r1"><b>' + esc(o.name) + '</b>' + stTag(o.status) + (oc.key !== 'void' ? catChip(oc) : '') + '<span class="end">' + money(o.total) + '</span></div>' +
       '<div class="r2">' + fPhone(o.phone) + ' · ' + esc(o.payment) + ' ' + paidTag(o) + ' · <span class="muted">' + esc(o.id) + '</span></div>' +
-      (o.tracking ? '<div class="r3">🚚 ' + esc(o.carrier) + ' ' + esc(o.tracking) + '</div>' : '') +
+      (o.tracking ? '<div class="r3">' + trackLink(o) + '</div>' : '') +
       '<div class="r3 pre">' + esc(o.items.split('\n').map(function (l) { return l.replace(/\s*=\s*[\d.,]+\s*₫?$/, ''); }).join('\n')) + '</div>' +
       '<div class="r3">' + when(o.time) + (o.ca && o.ca !== 'Ngày' ? ' · ' + (o.ca === 'Lễ' ? '🎉 Lễ' : '🌙 Tối/CN') : '') + (o.seller && (lvl() >= 2 || o.seller !== S.user.name) ? ' · 👤 ' + esc(o.seller) : '') + (o.note ? ' · 📝 ' + esc(o.note.length > 80 ? o.note.slice(0, 80) + '…' : o.note) : '') + '</div>' +
       (withActs && next ? '<div class="acts"><button class="btn pri" data-next="' + esc(o.id) + '">' + NEXT_LABEL[o.status] + '</button><a class="btn" href="tel:' + o.phone + '">📞 Gọi</a><a class="btn zalo" href="' + zalo(o.phone) + '" target="_blank" rel="noopener">Zalo</a></div>' : '') +
@@ -1301,7 +1315,7 @@
   /** Mã vận đơn bấm được: copy mã + mở trang tra cứu của hãng. */
   function trackLink(o) {
     if (!o.tracking) return '';
-    var u = CARRIERS[o.carrier] || '', t = esc(o.carrier) + ' ' + esc(o.tracking);
+    var c = carrierOf(o), u = CARRIERS[c] || '', t = esc(c) + ' ' + esc(o.tracking);
     return u ? '<a class="trk" href="' + esc(u.replace('{c}', encodeURIComponent(o.tracking))) + '" target="_blank" rel="noopener" data-trk="' + esc(o.tracking) + '" title="Bấm để tra cứu (mã đã được copy sẵn)">🚚 ' + t + ' ↗</a>'
       : '<button type="button" class="trk link" data-trk="' + esc(o.tracking) + '" title="Bấm để copy mã vận đơn">🚚 ' + t + ' 📋</button>';
   }
@@ -1405,7 +1419,7 @@
           : '<p class="hint" style="margin:0 0 8px">Mở tài khoản VCB, thấy tiền về (nội dung có mã <b>' + esc(o.id) + '</b>, đúng ' + money(o.total) + ') thì mới bấm.</p><button class="btn pri" id="oPaid">💳 Xác nhận đã nhận tiền</button>')
         : '<p class="muted" style="margin:0">Khách trả tiền khi nhận hàng (COD).</p>') + '</div>' +
       '<div class="box"><h3>Vận chuyển</h3><div class="row2c"><label class="f"><span>Đơn vị vận chuyển</span><select id="oCarrier"><option value="">– Chọn –</option>' +
-      Object.keys(CARRIERS).map(function (k) { return '<option' + (k === o.carrier ? ' selected' : '') + '>' + esc(k) + '</option>'; }).join('') + '</select></label>' +
+      Object.keys(CARRIERS).map(function (k) { return '<option' + (k === (o.carrier || o.tracking ? carrierOf(o) : '') ? ' selected' : '') + '>' + esc(k) + '</option>'; }).join('') + '</select></label>' +
       '<label class="f"><span>Mã vận đơn</span><input type="text" id="oTrack" value="' + esc(o.tracking) + '" autocomplete="off"></label></div>' +
       '<div class="steps"><button class="btn" id="oTrackSave">Lưu vận đơn</button>' + (o.tracking ? '<button class="btn" id="oTrackGo">🔎 Tra cứu hành trình</button>' : '') + '</div>' +
       (o.tracking ? '' : '<p class="hint" style="margin:8px 0 0">Nhập mã vận đơn xong, đơn tự chuyển sang “Đang giao”.</p>') + '</div>' +
@@ -1441,8 +1455,9 @@
         o.paid = oldPaid; toast(e.message, true); render();
       });
     };
+    $('#oTrack', m).oninput = function () { var g = guessCarrier(this.value); if (g && !$('#oCarrier', m).value) $('#oCarrier', m).value = g; };
     $('#oTrackSave', m).onclick = function () {
-      var carrier = $('#oCarrier', m).value, code = $('#oTrack', m).value.trim();
+      var carrier = $('#oCarrier', m).value || guessCarrier($('#oTrack', m).value), code = $('#oTrack', m).value.trim();
       if (code && !carrier) { toast('Chọn đơn vị vận chuyển giúp em nhé', true); return; }
       var oldCarrier = o.carrier, oldTracking = o.tracking, oldStatus = o.status;
       o.carrier = carrier; o.tracking = code;
@@ -1457,7 +1472,7 @@
       });
     };
     if ($('#oTrackGo', m)) $('#oTrackGo', m).onclick = function () {
-      var u = CARRIERS[o.carrier] || ''; copy(o.tracking);
+      var u = CARRIERS[carrierOf(o)] || ''; copy(o.tracking);
       if (!u) { toast('Đã copy mã vận đơn ' + o.tracking); return; }
       toast('Đã copy mã ' + o.tracking + (u.indexOf('{c}') < 0 ? ' – dán vào ô tra cứu' : '')); window.open(u.replace('{c}', encodeURIComponent(o.tracking)), '_blank', 'noopener');
     };

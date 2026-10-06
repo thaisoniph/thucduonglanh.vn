@@ -79,7 +79,7 @@ Mỗi đơn 1 dòng: **📍 tỉnh giao đến**, ngày đặt, thanh toán, s�
 Trên mỗi dòng đơn còn có:
 - **⚠️ đã hoàn N lần** (nhãn đỏ): khách này từng hoàn đơn. Gọi xác nhận kỹ trước khi gửi, đơn lớn nên nhờ khách chuyển khoản trước.
 - **📌 Ghi chú giao hàng** (khung vàng): ghi chú có giờ giao, gọi trước, cho xem hàng… được hiện nổi bật để không bị sót.
-- **Mã vận đơn** bấm được: CRM copy sẵn mã và mở trang tra cứu của hãng vận chuyển (GHN, GHTK, J&T… mở thẳng kết quả; Viettel Post, VNPost thì dán mã vào ô tra cứu).
+- **Mã vận đơn** bấm được: CRM copy sẵn mã và mở trang tra cứu của hãng vận chuyển (Viettel Post, BEST Express, GHN, GHTK, J&T… mở trang tra cứu đã điền sẵn mã; Viettel Post và BEST chỉ cần tích/kéo ô xác minh "không phải người máy" là xem được hành trình; VNPost thì dán mã vào ô tra cứu).
 - Đơn COD đang giao ghi **thu hộ** trước số tiền. Ô **🚚 Đang giao** phía trên cho biết tổng tiền thu hộ bưu cục đang giữ.
 
 **Số ngày đang giao** tính từ **ngày gửi hàng**: CRM tự ghi ngày gửi khi bạn bấm **Đang giao** hoặc nhập mã vận đơn. Đơn cũ chưa có ngày gửi (vd đơn nhập từ file) thì tính từ ngày đặt; rê chuột vào ô số ngày để xem tính từ ngày nào. Khách đã nhận hàng thì nhớ bấm **📬 Đã giao** để đơn không còn bị báo giao lâu.
@@ -95,7 +95,7 @@ Bấm vào dòng để mở đơn (Zalo, sửa đơn, ghi chú…). Thẻ **📋
 
 1. **Gọi khách xác nhận.** Bấm **📞 Gọi** hoặc **Zalo** ngay trên thẻ đơn. Đơn có ghi chú **“Kiểm tra địa chỉ”** thì hỏi lại khách phường, xã cho chính xác. Xong bấm **✅ Xác nhận**.
 2. **Đơn chuyển khoản.** Mở tài khoản VCB, thấy tiền về **đúng số tiền**, nội dung có **mã đơn** (ví dụ TDL2609271234), thì mới mở đơn bấm **💳 Xác nhận đã nhận tiền**. Chưa thấy tiền thì đơn nằm ở mục *Chuyển khoản chưa nhận tiền* để nhắc.
-3. **Gửi hàng.** Mở đơn, mục **Vận chuyển**: chọn đơn vị vận chuyển, nhập **mã vận đơn**, bấm **Lưu vận đơn**. Đơn tự chuyển sang **Đang giao**. Nút **🔎 Tra cứu hành trình** mở trang của hãng vận chuyển (mã đã được copy sẵn).
+3. **Gửi hàng.** Mở đơn, mục **Vận chuyển**: nhập **mã vận đơn** (mã bắt đầu bằng **V** thì CRM tự chọn **Viettel Post**, mã toàn số thì tự chọn **BEST Express**; hãng khác thì chọn tay), bấm **Lưu vận đơn**. Đơn tự chuyển sang **Đang giao**. Nút **🔎 Tra cứu hành trình** mở trang của hãng vận chuyển (mã đã được copy sẵn).
 4. **Khách nhận hàng**: bấm **📬 Đã giao**.
 5. **Huỷ đơn**: mở đơn, chọn **Huỷ**, ghi lý do. Đơn huỷ không tính vào doanh số.
 
