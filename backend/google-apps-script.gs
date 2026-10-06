@@ -17,7 +17,7 @@ var TELEGRAM_TOKEN = PropertiesService.getScriptProperties().getProperty('TELEGR
 var TELEGRAM_CHAT_IDS = '-5318324525'; // nhóm "Đơn hàng Thực Dưỡng Lành" – thêm/bớt nhân viên trực tiếp trong nhóm
 var TZ = 'Asia/Ho_Chi_Minh';
 var CRM_URL = 'https://crm.thucduonglanh.vn';
-var CRM_VERSION = '2026-10-06b';
+var CRM_VERSION = '2026-10-06c';
 // Từ 10/2026 CRM chạy trên máy chủ Cloudflare (api.thucduonglanh.vn). Apps Script này chỉ còn làm "cầu nối" Google: gửi email, cấp quyền đọc Google Sheet.
 var API_URL = 'https://api.thucduonglanh.vn/api'; // CRM web so với số này để biết Apps Script đã được triển khai bản mới chưa
 
@@ -158,10 +158,18 @@ function vtpWebhook(raw) {
     var ss = SpreadsheetApp.getActiveSpreadsheet(), o = orderSheet(ss), sh = o.sh, H = o.H, n = sh.getLastRow() - 1;
     var col = function (h) { return H.indexOf(h) + 1; }, ref = String(D.ORDER_REFERENCE || '').trim();
     if (n < 1) return { ok: true, skip: 'Chưa có đơn' };
-    var trk = sh.getRange(2, col('Mã vận đơn'), n, 1).getValues(), ids = sh.getRange(2, col('Mã đơn'), n, 1).getValues(), row = -1;
-    for (var i = n - 1; i >= 0; i--) if (String(trk[i][0]).replace(/^'/, '').trim().toUpperCase() === code) { row = i + 2; break; } // đơn mới nhất có mã này
-    if (row < 0 && ref) for (var k = n - 1; k >= 0; k--) if (String(ids[k][0]) === ref) { row = k + 2; break; } // mã tham chiếu = mã đơn của mình
-    if (row < 0) return { ok: true, skip: 'Không có đơn nào mang mã ' + code };
+    var trk = sh.getRange(2, col('Mã vận đơn'), n, 1).getValues(), ids = sh.getRange(2, col('Mã đơn'), n, 1).getValues(), tms = sh.getRange(2, col('Thời gian'), n, 1).getValues(), sts = sh.getRange(2, col('Trạng thái'), n, 1).getValues();
+    // Tìm đơn: mã vận đơn = ORDER_NUMBER, hoặc mã đơn = ORDER_NUMBER / ORDER_REFERENCE (sale ghi mã đơn của mình, vd VPhuong060902, vào ô mã tham chiếu khi tạo đơn Viettel Post).
+    // Mã đơn của sale lặp lại qua các năm (Phuong060902 năm 2024 và 2026) → ưu tiên đơn còn đang xử lý, rồi đơn mới nhất.
+    var U = function (v) { return String(v).replace(/^'/, '').trim().toUpperCase(); }, R = ref.toUpperCase(), row = -1, best = null, byRef = false;
+    for (var i = 0; i < n; i++) {
+      var hitT = U(trk[i][0]) === code, hitI = U(ids[i][0]) === code || (R && U(ids[i][0]) === R); if (!hitT && !hitI) continue;
+      var sc = (hitT ? 4 : 0) + (/^(Mới|Đã xác nhận|Đang giao)$/.test(String(sts[i][0])) ? 2 : 0), tm = tms[i][0] instanceof Date ? tms[i][0].getTime() : 0;
+      if (!best || sc > best.sc || (sc === best.sc && tm > best.tm)) best = { sc: sc, tm: tm, row: i + 2, byRef: !hitT };
+    }
+    if (best) { row = best.row; byRef = best.byRef; }
+    if (row < 0) return { ok: true, skip: 'Không có đơn nào mang mã ' + code + (ref ? ' / ' + ref : '') };
+    if (byRef && !String(trk[row - 2][0]).trim()) sh.getRange(row, col('Mã vận đơn')).setValue("'" + code); // tìm theo mã đơn → điền luôn mã vận đơn thật
     var at = vtpDate(D.ORDER_STATUSDATE) || new Date(), prevAt = sh.getRange(row, col('Cập nhật VC')).getValue();
     if (prevAt instanceof Date && at < prevAt) return { ok: true, skip: 'Tin cũ hơn tin đã có' }; // tin đến trễ / gửi lại
     var prevCode = Number(sh.getRange(row, col('Mã TT VC')).getValue()) || 0, id = String(sh.getRange(row, col('Mã đơn')).getValue());
@@ -170,7 +178,7 @@ function vtpWebhook(raw) {
     var label = String(D.STATUS_NAME || VTP_ALERT[st] || ('Trạng thái ' + st)).trim(), place = vtpPlace(D.LOCATION_CURRENTLY || D.LOCALION_CURRENTLY), note = String(D.NOTE || '').trim();
     var line = Utilities.formatDate(at, TZ, 'dd/MM HH:mm') + ' · ' + (returning && st !== 504 ? '↩️ Đang hoàn · ' : '') + label + (place ? ' · ' + place : '') + (note && note !== label ? ' · ' + note : '');
     sh.getRange(row, col('Hành trình VC')).setValue(line.slice(0, 300)); sh.getRange(row, col('Cập nhật VC')).setValue(at); sh.getRange(row, col('Mã TT VC')).setValue(st);
-    if (!sh.getRange(row, col('Đơn vị vận chuyển')).getValue()) sh.getRange(row, col('Đơn vị vận chuyển')).setValue('Viettel Post');
+    if (!/viettel/i.test(String(sh.getRange(row, col('Đơn vị vận chuyển')).getValue()))) sh.getRange(row, col('Đơn vị vận chuyển')).setValue('Viettel Post');
     var to = st === 501 ? (/^(Mới|Đã xác nhận|Đang giao)$/.test(old) ? 'Đã giao' : '') : st === 504 ? (isVoid(old) ? '' : 'Hoàn')
       : st >= 200 && /^(Mới|Đã xác nhận)$/.test(old) && st !== 201 && st !== 503 ? 'Đang giao' : '';
     var res = to ? crmOrderStatus(ss, VTP_BOT, { id: id, row: row, status: to, reason: label }) : { ok: true, row: row };
@@ -1887,6 +1895,7 @@ function srcAutoTick(force) {
     out.push('📂 <b>' + esc(src.sale) + '</b> – ' + st.orders + ' đơn mới\n' + lines.map(function (l) { return '• ' + esc(l); }).join('\n'));
   });
   if (!out.length) return;
+  try { if (ganVanChuyenTuFile()) changed = true; } catch (e) { console.error('ganVanChuyen', e); }
   if (changed) dataChanged();
   var day = Utilities.formatDate(new Date(), TZ, 'yyMMdd'), first = pp.getProperty('auto_tg_day') !== day;
   if (first || errs) { var ad = crmUser(ss, SUPER_ADMIN); if (ad && ad.tg) telegramTo(ad.tg, (first ? '🕖 <b>Tự nhập file sale – lần đầu hôm nay</b> (sau đó tự chạy 30 phút/lần, xem tab "' + AUTO_TAB + '")' : '⚠️ <b>Tự nhập file sale có lỗi</b>') + '\n\n' + out.join('\n\n')); pp.setProperty('auto_tg_day', day); }
@@ -2155,6 +2164,43 @@ function customerOwners(ss) {
 }
 
 /** Sheet đơn hàng ("lên đơn", "VTG_lendon"…). */
+/** Đơn vị vận chuyển theo cách sale ghi ở cột MÃ ĐƠN: V… (VPhuong060902) = Viettel Post; "xe ôm…" / tự giao / tại kho = Xe ôm / Tự giao;
+ *  VP + 15–20 số = mã Viettel Post; GHTK… = GHTK; 10–15 chữ số = mã BEST; mã sale thường (Phuong240904) = BEST Express. File sale không có mã vận đơn → chỉ có mã khi sale gõ mã hãng vào cột này. */
+function shipFromCode(code) {
+  var raw = String(code || '').trim(), t = nrm(raw), d;
+  if (!t) return { carrier: '', tracking: '' };
+  if (/xe ?om|grab/.test(t)) return { carrier: 'Xe ôm', tracking: '' };
+  if (/tu giao|tai kho|^kho$/.test(t)) return { carrier: 'Tự giao', tracking: '' };
+  if (/^vp\d{15,20}$/.test(t)) return { carrier: 'Viettel Post', tracking: raw.toUpperCase() };
+  if (/^ghtk/.test(t)) { d = raw.replace(/\D/g, ''); return { carrier: 'GHTK', tracking: d.length >= 8 ? d : '' }; }
+  if (/^\d{10,15}$/.test(t)) return { carrier: 'BEST Express', tracking: raw };
+  if (/^v[a-z]/.test(t)) return { carrier: 'Viettel Post', tracking: '' };
+  if (/^[a-z.]{2,}\d{4,}/.test(t)) return { carrier: 'BEST Express', tracking: '' };
+  return { carrier: '', tracking: '' };
+}
+/** Đơn không có mã đơn hợp lệ (mã tự tạo NK…): chữ sale ghi ở cột MÃ ĐƠN nằm trong Ghi chú → chỉ nhận xe ôm / tự giao / mã GHTK / mã Viettel Post. */
+function noteShip(note) {
+  var parts = String(note || '').split(' · ');
+  for (var i = 0; i < parts.length; i++) { var vc = shipFromCode(parts[i].replace(/^.*?\(?((?:kc )?xe ?ôm)/i, '$1')); if (vc.carrier && (vc.carrier !== 'Viettel Post' || vc.tracking) && vc.carrier !== 'BEST Express') return vc; }
+  return { carrier: '', tracking: '' };
+}
+/** Đơn nhập từ file sale chưa có đơn vị vận chuyển → điền theo mã đơn (đơn "xe ôm…" lúc nhập được lưu chữ đó ở Ghi chú). Không đè ô đã có. Chạy sau mỗi lần tự nhập file sale. */
+function ganVanChuyenTuFile() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), o = orderSheet(ss), sh = o.sh, H = o.H, n = sh.getLastRow() - 1; if (n < 1) return 0;
+  var ci = H.indexOf('Đơn vị vận chuyển'), ti = H.indexOf('Mã vận đơn'), ii = H.indexOf('Mã đơn'), si = H.indexOf('Nguồn'), ni = H.indexOf('Ghi chú'); if (ci < 0 || ti !== ci + 1) return 0;
+  var lock = LockService.getScriptLock(); lock.waitLock(30000);
+  try {
+    var V = sh.getRange(2, 1, n, Math.max(ci, ti, ii, si, ni) + 1).getValues(), CT = sh.getRange(2, ci + 1, n, 2).getValues(), k = 0;
+    V.forEach(function (r, i) {
+      if (String(CT[i][0]).trim() || String(r[si]).indexOf('File ') !== 0) return;
+      var id = String(r[ii]), vc = /^NK[0-9a-f]{12}$/.test(id) ? noteShip(r[ni]) : shipFromCode(id);
+      if (!vc.carrier) return;
+      CT[i][0] = vc.carrier; if (vc.tracking && !String(CT[i][1]).trim()) CT[i][1] = "'" + vc.tracking; k++;
+    });
+    if (k) { sh.getRange(2, ci + 1, n, 2).setValues(CT.map(function (r) { return [r[0], r[1] && String(r[1]).charAt(0) !== "'" && /^\d+$/.test(String(r[1])) ? "'" + r[1] : r[1]]; })); dataChanged(); }
+    console.log('ganVanChuyenTuFile: ' + k + ' đơn'); return k;
+  } finally { lock.releaseLock(); }
+}
 function importOrders(ss, src, shCfg, data, dry) {
   var m = shCfg.map || {}, ex = existingOrders(ss), crmDay = crmOrderDays(ss), owners = customerOwners(ss), ctx = {}, sale = src.sale, out = [], seen = {}, skip = 0, dup = 0, revenue = 0, phones = {}, callbacks = {}, minD = null, maxD = null;
   var extra = (shCfg.extra || []).filter(function (i) { return i >= 0; }), H = data.headers, label = 'File ' + sale + ' – ' + shCfg.name, keys = ex;
@@ -2180,9 +2226,9 @@ function importOrders(ss, src, shCfg, data, dry) {
     if (ctype && !/^(kh|khach)? ?(moi|cu|cu mua lai)$/.test(nrm(ctype)) && !/toi|cn|le/.test(nrm(ctype))) notes.push('Phân loại: ' + ctype);
     extra.forEach(function (i) { if (r[i] !== '' && r[i] != null) notes.push(cellText(H[i]) + ': ' + cellText(r[i])); });
     var cb = cell(r, m, 'callback'); if (cb instanceof Date && cb.getTime() > Date.now()) callbacks[phone] = cb;
-    var status = mapStatus(cell(r, m, 'status'), when);
+    var status = mapStatus(cell(r, m, 'status'), when), vc = shipFromCode(codeRaw);
     out.push([when, key, String(cell(r, m, 'name') || '').trim(), "'" + phone, '', '', '', String(cell(r, m, 'address') || '').trim(), itemsText(items), amount, 0, amount, 'COD', notes.filter(String).join(' · '), status,
-      label, label, 'Không', '', '', '', sale, caFromText(ctype, when), normLine(cell(r, m, 'line'), product), String(cell(r, m, 'shipText') || '').trim() || shipText(items), '', '', otypeFromFile(ctype, when), '']);
+      label, label, 'Không', '', vc.carrier, vc.tracking ? "'" + vc.tracking : '', sale, caFromText(ctype, when), normLine(cell(r, m, 'line'), product), String(cell(r, m, 'shipText') || '').trim() || shipText(items), '', '', otypeFromFile(ctype, when), '', '', '', '']);
     if (!isVoid(status)) revenue += amount;
     phones[phone] = String(cell(r, m, 'name') || '');
     if (!minD || when < minD) minD = when; if (!maxD || when > maxD) maxD = when;
