@@ -346,7 +346,9 @@ Doanh số tính theo **Nhân viên bán** ghi trên từng đơn. Đơn khách 
 | **Quản lý** | Thấy toàn bộ khách. Thêm: giao / chuyển khách, chọn cách chia khách mới, xem doanh thu cả nhóm, hiệu quả từng nhân viên, đặt mục tiêu cho nhân viên, đổi *Nhân viên bán* trên đơn, sửa chu kỳ dùng và mẫu tin |
 | **Quản trị** | Thêm: thêm, khoá nhân sự và đổi quyền |
 
-**Tab Hiệu quả → 👥 Cả nhóm:** doanh thu, mục tiêu cả nhóm, bảng từng nhân viên. Bấm vào 1 người để xem chi tiết và đặt mục tiêu. Có mục **Vì sao khách hỏi không mua** và cảnh báo **đơn chưa có nhân viên bán** (mở đơn để gán).
+**Ô 👤 Người phụ trách** (góc phải, chỉ quản lý thấy) có ở cả 5 tab Hôm nay, Khách đã mua, Khách hỏi, Đơn hàng, Hiệu quả. Chọn **Tất cả nhân sự**, **Chưa ai phụ trách** hoặc tên 1 nhân viên. Chọn ở tab nào thì các tab khác cũng lọc theo, nên muốn xem hết việc của một người thì chọn tên người đó 1 lần rồi chuyển qua các tab. Đơn hàng lọc theo *Nhân viên bán*; đơn chưa ghi nhân viên bán thì lấy người phụ trách khách đó. Muốn bỏ lọc thì chọn lại **Tất cả nhân sự**.
+
+**Tab Hiệu quả → Tất cả nhân sự:** doanh thu, mục tiêu cả nhóm, biểu đồ **📊 So sánh nhân viên** và bảng từng nhân viên. Biểu đồ cho chọn chỉ số: Doanh số, Số đơn, TB/đơn, Tỷ lệ chốt, % mục tiêu, Lượt chăm sóc, Chăm sóc ra đơn, Từ khách cũ. Mỗi người là 1 thanh, xếp từ cao xuống thấp. Vạch đen là mức trung bình của nhóm, thanh xám là người chưa có số liệu. Bấm vào thanh hoặc thẻ của 1 người để xem chi tiết và đặt mục tiêu. Có mục **Vì sao khách hỏi không mua** và cảnh báo **đơn chưa có nhân viên bán** (mở đơn để gán).
 
 **Giao khách:**
 

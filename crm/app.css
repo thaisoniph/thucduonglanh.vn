@@ -532,3 +532,12 @@ details.comm { border: 1px dashed #9cc3a8; background: #f3faf5; }
 .per-custom { display: none; padding-top: 4px; }
 .per-custom.show { display: block; }
 .sheet-f .per-back { border: 1.5px solid var(--primary); color: var(--primary); background: #fff; }
+
+/* ---------- ô Người phụ trách (quản lý) & biểu đồ so sánh nhân viên */
+.page-head select.who { flex: 0 1 auto; width: auto; max-width: 220px; font-size: 14px; padding-top: 7px; padding-bottom: 7px; }
+.page-head select.who.on { border-color: var(--primary); color: var(--primary); font-weight: 700; background-color: var(--primary-light); }
+.bar-r.click { cursor: pointer; }
+.bar-t u.avg { position: absolute; top: -4px; bottom: -4px; width: 2px; margin-left: -1px; background: var(--ink); opacity: .55; border-radius: 1px; }
+.avg-k { display: inline-block; width: 2px; height: 12px; background: var(--ink); opacity: .55; vertical-align: -2px; margin-right: 4px; }
+.bars.cmp .bar-r { grid-template-columns: minmax(90px, 26%) 1fr 104px; } /* cột số cố định → vạch trung bình thẳng hàng */
+@media (max-width: 520px) { .bars.cmp .bar-r { grid-template-columns: minmax(70px, 28%) 1fr 84px; } }
