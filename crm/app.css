@@ -511,6 +511,9 @@ details.grp .g-tip { flex-basis: 100%; font-size: 12px; color: var(--muted); }
 .tag.st-late { background: #fff1e0; color: #b45309; }
 .rw .prov { font-weight: 600; color: var(--text); }
 .tag.st-back { background: #fde8e8; color: #b42318; }
+.trkl { margin: 3px 0 1px; font-size: 13px; color: #1f5f3a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.trkl.bad { padding: 4px 8px; background: #ffe9e3; border-left: 3px solid #d9480f; border-radius: 6px; color: #8a2a00; font-weight: 600; white-space: normal; }
+.trkl.full { white-space: normal; margin: 0 0 8px; }
 .keynote { margin: 4px 0 2px; padding: 4px 8px; background: #fff4d6; border-left: 3px solid #e0a100; border-radius: 6px; font-size: 13px; color: #6b4a00; font-weight: 600; }
 .trk { color: var(--primary); font-weight: 600; text-decoration: none; }
 a.trk:hover { text-decoration: underline; }

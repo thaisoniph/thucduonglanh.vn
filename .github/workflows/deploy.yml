@@ -42,7 +42,8 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist-crm --project-name=thucduonglanh-crm --branch=main --commit-dirty=true
+          workingDirectory: crm   # để Cloudflare thấy crm/functions (cổng nhận tin Viettel Post /vtp-webhook)
+          command: pages deploy ../dist-crm --project-name=thucduonglanh-crm --branch=main --commit-dirty=true
       - name: Gắn tên miền crm.thucduonglanh.vn (chỉ lần đầu)
         continue-on-error: true
         env:

@@ -116,7 +116,7 @@
   var ON_CF = !/script\.google/.test(CFG.endpoint || ''); // máy chủ Cloudflare (nhanh) hay Apps Script cũ
   function checkVersion(j) {
     if (j && j.v) S.srvV = j.v;
-    if (!j || S._vWarned || j.v === SERVER_V || j.v === '2026-10-02b' || j.v === '2026-10-02c' || j.v === '2026-10-04a' || j.v === '2026-10-04b' || j.v === '2026-10-04c' || j.v === '2026-10-05a' || j.v === '2026-10-05b' || j.v === '2026-10-05c' || j.v === '2026-10-05d' || j.v === 'moved') return;
+    if (!j || S._vWarned || j.v === SERVER_V || j.v === '2026-10-02b' || j.v === '2026-10-02c' || j.v === '2026-10-04a' || j.v === '2026-10-04b' || j.v === '2026-10-04c' || j.v === '2026-10-05a' || j.v === '2026-10-05b' || j.v === '2026-10-05c' || j.v === '2026-10-05d' || j.v === '2026-10-06a' || j.v === 'moved') return;
     S._vWarned = true;
     if (lvl() >= 2 || (j.user && j.user.level >= 2)) toast('⚠️ Máy chủ Apps Script đang chạy bản cũ (' + (j.v || 'chưa có số phiên bản') + '), cần bản ' + SERVER_V + '. Vào Apps Script → Triển khai → Quản lý các bản triển khai → ✏️ → Phiên bản: Phiên bản mới → Triển khai.', true);
   }
@@ -1296,12 +1296,21 @@
   var SHIP_LATE = 5; // đang giao quá 5 ngày → gọi giục để tránh hoàn
   /** Số ngày đơn đã đi đường: tính từ ngày gửi (cột “Ngày gửi”, tự ghi khi chuyển Đang giao / nhập mã vận đơn); đơn cũ chưa có thì tính từ ngày đặt. */
   function shipDays(o) { return daysSince(o.shipAt || o.time); }
+  // Mã trạng thái Viettel Post (máy chủ tự ghi từ tin báo của Viettel Post) cần gọi khách ngay: chuyển hoàn, khách vắng, hẹn ra bưu cục…
+  var VTP_WARN = { 502: 1, 503: 1, 505: 1, 506: 1, 507: 1, 515: 1 };
+  function trkWarn(o) { return o.status === 'Đang giao' && !!VTP_WARN[o.trkCode]; }
+  /** Dòng hành trình mới nhất từ hãng vận chuyển (chỉ có khi máy chủ nhận được tin báo của hãng). */
+  function trkLine(o) {
+    if (!o.trk || !(/^(Mới|Đã xác nhận|Đang giao)$/.test(o.status) || /hoàn/i.test(o.status))) return '';
+    return '<div class="trkl' + (trkWarn(o) ? ' bad' : '') + '" title="Viettel Post tự báo – cập nhật ' + esc(o.trkAt ? fDate(o.trkAt) : '') + '">' + (trkWarn(o) ? '⚠️ ' : '📦 ') + esc(o.trk) + '</div>';
+  }
   function orderTodo() {
     var t0 = today(), d = function (o) { return daysSince(o.time); };
     var G = [
       { k: 'new', t: '🆕 Chờ xác nhận', tip: 'gọi khách xác nhận đơn', f: function (o) { return o.status === 'Mới'; } },
       { k: 'pack', t: '📦 Chờ gửi hàng', tip: 'đã xác nhận, chưa có mã vận đơn – đóng hàng, nhập mã vận đơn', f: function (o) { return o.status === 'Đã xác nhận' && !o.tracking; } },
-      { k: 'late', t: '🚚 Giao lâu chưa tới', tip: 'đang giao quá ' + SHIP_LATE + ' ngày – gọi hỏi khách, giục bưu cục để tránh hoàn', f: function (o) { return o.status === 'Đang giao' && shipDays(o) > SHIP_LATE; } },
+      { k: 'fail', t: '📵 Giao chưa được', tip: 'Viettel Post báo khách vắng / hẹn ra bưu cục / sắp hoàn – gọi khách ngay để giữ đơn', f: trkWarn },
+      { k: 'late', t: '🚚 Giao lâu chưa tới', tip: 'đang giao quá ' + SHIP_LATE + ' ngày – gọi hỏi khách, giục bưu cục để tránh hoàn', f: function (o) { return o.status === 'Đang giao' && shipDays(o) > SHIP_LATE && !trkWarn(o); } },
       { k: 'pay', t: '💳 Chưa nhận tiền', tip: 'chuyển khoản chưa thấy tiền về – kiểm tra tài khoản VCB', f: function (o) { return isBank(o) && !o.paid && !isVoid(o.status) && o.status !== 'Mới'; } },
       { k: 'otype', t: '⚠️ Kiểm tra loại đơn', tip: 'sale chọn loại đơn khác gợi ý của CRM – mở đơn, bấm ✓ Đúng hoặc đổi loại để tính hoa hồng đúng', f: function (o) { return lvl() >= 2 && !!o.oflag; } },
       { k: 'back', t: '↩ Hoàn gần đây', tip: 'đơn hoàn (đặt trong 3 tuần) – gọi hỏi lý do, giữ khách', f: function (o) { return /hoàn/i.test(o.status) && d(o) <= 21; } }
@@ -1325,7 +1334,7 @@
     return '<div class="rw orw click tinted" data-order="' + esc(o.id) + '"' + catAttr(oc) + '><div class="rw-m">' +
       '<div class="rw-1"><b>' + esc(o.name) + '</b>' + stTag(o.status) + (shipping ? '<span class="tag ' + (dd > SHIP_LATE ? 'st-late' : 'st-giao') + '" title="' + (o.shipAt ? 'Đã gửi ' + dd + ' ngày (gửi ngày ' + fDate(o.shipAt).slice(0, 5) + ')' : 'Tính từ ngày đặt ' + fDate(o.time).slice(0, 5) + ' (đơn này chưa ghi ngày gửi)') + '">🚚 ' + dd + ' ngày' + (dd > SHIP_LATE ? ' ⚠️' : '') + '</span>' : '') + (oc.key !== 'void' ? catChip(oc) : '') + (backWarn ? '<span class="tag st-back" title="' + esc('Khách này đã hoàn ' + oc0.backN + ' đơn' + (oc0.lastBack ? ', gần nhất ' + fDate(oc0.lastBack) : '') + '. Gọi xác nhận kỹ trước khi gửi; đơn lớn nên nhờ chuyển khoản trước.') + '">⚠️ đã hoàn ' + oc0.backN + ' lần</span>' : '') + '<span class="end">' + (shipping && !isBank(o) ? '<small class="muted">thu hộ </small>' : '') + money(o.total) + '</span></div>' +
       '<div class="rw-2">' + (pv ? '<b class="prov">📍 ' + esc(pv.old) + '</b> · ' : '') + when(o.time) + ' · ' + esc(o.payment) + (isBank(o) && !isVoid(o.status) ? (o.paid ? ' ✓' : ' <span class="warn-line">chưa nhận tiền</span>') : '') + ' · ' + esc(itemNames(o.items).join(', ')) + '</div>' +
-      (kn ? '<div class="keynote">📌 ' + esc(o.note.length > 140 ? o.note.slice(0, 140) + '…' : o.note) + '</div>' : '') +
+      trkLine(o) + (kn ? '<div class="keynote">📌 ' + esc(o.note.length > 140 ? o.note.slice(0, 140) + '…' : o.note) + '</div>' : '') +
       '<div class="rw-3">' + (o.oflag ? '<span class="tag st-late" title="' + esc(o.oflag) + '">⚠️ Kiểm tra loại đơn</span> ' : '') + (o.tracking ? trackLink(o) + ' · ' : '') + '<span class="muted">' + esc(o.id) + ' · ' + esc(otLabel(otypeOf(o))) + '</span>' + (o.seller && (lvl() >= 2 || o.seller !== S.user.name) ? ' · 👤 ' + esc(o.seller) : '') + (o.note && !kn ? ' · 📝 ' + esc(o.note.length > 60 ? o.note.slice(0, 60) + '…' : o.note) : '') + '</div></div>' +
       '<div class="rw-a">' + act + '<a class="btn" href="tel:' + o.phone + '" aria-label="Gọi">📞</a></div></div>';
   }
@@ -1421,6 +1430,7 @@
       '<div class="box"><h3>Vận chuyển</h3><div class="row2c"><label class="f"><span>Đơn vị vận chuyển</span><select id="oCarrier"><option value="">– Chọn –</option>' +
       Object.keys(CARRIERS).map(function (k) { return '<option' + (k === (o.carrier || o.tracking ? carrierOf(o) : '') ? ' selected' : '') + '>' + esc(k) + '</option>'; }).join('') + '</select></label>' +
       '<label class="f"><span>Mã vận đơn</span><input type="text" id="oTrack" value="' + esc(o.tracking) + '" autocomplete="off"></label></div>' +
+      (o.trk ? trkLine(o).replace('class="trkl', 'class="trkl full') || '<div class="trkl full">📦 ' + esc(o.trk) + '</div>' : '') +
       '<div class="steps"><button class="btn" id="oTrackSave">Lưu vận đơn</button>' + (o.tracking ? '<button class="btn" id="oTrackGo">🔎 Tra cứu hành trình</button>' : '') + '</div>' +
       (o.tracking ? '' : '<p class="hint" style="margin:8px 0 0">Nhập mã vận đơn xong, đơn tự chuyển sang “Đang giao”.</p>') + '</div>' +
       '<div class="box"><label class="f" style="margin:0"><span>Ghi chú đơn</span><textarea id="oNote" rows="2">' + esc(o.note) + '</textarea></label><button class="btn" id="oNoteSave" style="margin-top:8px">Lưu ghi chú</button></div>' +

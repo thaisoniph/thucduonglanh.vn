@@ -70,6 +70,7 @@ Tab **Đơn hàng** mở sẵn mục **⚡ Cần xử lý**, chỉ gồm những
 | --- | --- | --- |
 | 🆕 **Chờ xác nhận** | Đơn mới | Gọi khách, bấm **✅ Xác nhận** |
 | 📦 **Chờ gửi hàng** | Đã xác nhận, chưa có mã vận đơn | Đóng hàng, bấm **📦 Nhập mã VĐ** |
+| 📵 **Giao chưa được** | Viettel Post báo khách vắng nhà, hẹn ra bưu cục, sắp hoàn | Gọi khách ngay, hẹn lại giờ giao để giữ đơn |
 | 🚚 **Giao lâu chưa tới** | Đã gửi quá 5 ngày mà vẫn Đang giao | Gọi hỏi khách, giục bưu cục để tránh hoàn |
 | 💳 **Chưa nhận tiền** | Chuyển khoản chưa thấy tiền về | Kiểm tra tài khoản, mở đơn bấm “đã nhận tiền” |
 | ↩ **Hoàn gần đây** | Đơn hoàn (đặt trong 3 tuần) | Gọi hỏi lý do, giữ khách |
@@ -80,6 +81,8 @@ Trên mỗi dòng đơn còn có:
 - **⚠️ đã hoàn N lần** (nhãn đỏ): khách này từng hoàn đơn. Gọi xác nhận kỹ trước khi gửi, đơn lớn nên nhờ khách chuyển khoản trước.
 - **📌 Ghi chú giao hàng** (khung vàng): ghi chú có giờ giao, gọi trước, cho xem hàng… được hiện nổi bật để không bị sót.
 - **Mã vận đơn** bấm được: CRM copy sẵn mã và mở trang tra cứu của hãng vận chuyển (Viettel Post, BEST Express, GHN, GHTK, J&T… mở trang tra cứu đã điền sẵn mã; Viettel Post và BEST chỉ cần tích/kéo ô xác minh "không phải người máy" là xem được hành trình; VNPost thì dán mã vào ô tra cứu).
+- **📦 Hành trình Viettel Post** (dòng chữ xanh): đơn Viettel Post tự cập nhật vị trí mới nhất, ví dụ "06/10 09:00 · Giao bưu tá đi phát · Bưu cục Thái Nguyên". Khi Viettel Post báo giao không được (khách vắng, hẹn, chuyển hoàn), dòng này chuyển **khung đỏ ⚠️**, đơn vào nhóm **📵 Giao chưa được** và Telegram báo nhóm + bạn (người bán).
+- Đơn Viettel Post **tự đổi trạng thái**: giao thành công → **Đã giao**, đã trả về shop → **Hoàn**. Không cần bấm tay; nhật ký ghi người làm là "Viettel Post (tự động)". Đơn hãng khác (BEST…) vẫn bấm tay như cũ.
 - Đơn COD đang giao ghi **thu hộ** trước số tiền. Ô **🚚 Đang giao** phía trên cho biết tổng tiền thu hộ bưu cục đang giữ.
 
 **Số ngày đang giao** tính từ **ngày gửi hàng**: CRM tự ghi ngày gửi khi bạn bấm **Đang giao** hoặc nhập mã vận đơn. Đơn cũ chưa có ngày gửi (vd đơn nhập từ file) thì tính từ ngày đặt; rê chuột vào ô số ngày để xem tính từ ngày nào. Khách đã nhận hàng thì nhớ bấm **📬 Đã giao** để đơn không còn bị báo giao lâu.
