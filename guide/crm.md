@@ -292,6 +292,8 @@ Dùng để chúc mừng sinh nhật và gửi ưu đãi sinh nhật cho khách.
 
 Trong danh sách, khách có sinh nhật trong tháng này hiện **🎂 SN ngày/tháng**, đúng ngày thì hiện **🎂 Sinh nhật hôm nay**.
 
+**Tin Telegram 8h sáng** có thêm mục **🎂 Sinh nhật khách**: khách sinh nhật **hôm nay** và **3 ngày tới** (để kịp chuẩn bị quà). Mỗi người nhận danh sách khách mình phụ trách; nhóm quản lý nhận đủ, kèm tên người phụ trách. Khách có nhãn (bom hàng…) không được nhắc.
+
 ### Tìm theo tỉnh khi đang tư vấn
 
 Đang tư vấn khách mới, hỏi khách ở tỉnh nào rồi gõ tên tỉnh vào ô tìm ở tab **Khách đã mua** (vd *Nam Định*). Phía trên danh sách hiện khung xanh:

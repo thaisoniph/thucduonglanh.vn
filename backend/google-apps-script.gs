@@ -469,7 +469,10 @@ function dailyCare() {
   dataChanged();
   var ss = SpreadsheetApp.getActiveSpreadsheet(), cs = ss.getSheetByName('Khách hàng'); if (!cs || cs.getLastRow() < 2) return;
   var today = startOfDay(new Date()), rg = cs.getRange(2, 1, cs.getLastRow() - 1, CUS_HEADERS.length), vals = rg.getValues(), items = [], sm = shipMapSheet(ss);
+  var bdays = [], bk = {}; for (var bi = 0; bi <= 3; bi++) bk[Utilities.formatDate(new Date(today.getTime() + bi * 864e5 + 12 * 3600e3), TZ, 'dd/MM')] = bi; // sinh nhật hôm nay + 3 ngày tới (kịp chuẩn bị quà)
   vals.forEach(function (v) {
+    var dob = dobText(v[C['Ngày sinh']]), bd = dob ? bk[dob.slice(0, 5)] : undefined;
+    if (bd !== undefined && normPhone(v[0]) && !v[C['Nhãn']]) bdays.push({ name: v[C['Tên']], phone: normPhone(v[0]), owner: String(v[C['Phụ trách']] || ''), dob: dob.slice(0, 5), inDays: bd, group: groupOf(Number(v[C['Số đơn']]), Number(v[C['Tổng chi']]), new Date(v[C['Đơn gần nhất']])) });
     if (!v[C['Đơn gần nhất']]) return;
     v[C['Nhóm']] = groupOf(Number(v[C['Số đơn']]), Number(v[C['Tổng chi']]), new Date(v[C['Đơn gần nhất']]));
     var t = careTask(v, today, sm[normPhone(v[0])]); if (!t) return;
@@ -478,11 +481,12 @@ function dailyCare() {
   });
   rg.setValues(vals.map(function (v) { if (v[0] !== '') v[0] = "'" + normPhone(v[0]); return v; }));
   var leads = leadsData(ss).filter(function (l) { return leadDueServer(l, today); });
-  telegram(groupDigest(items, leads, today));
+  bdays.sort(function (a, b) { return a.inDays - b.inDays; });
+  telegram(groupDigest(items, leads, today, bdays));
   crmUsers(ss).forEach(function (x) {
     if (!x.active || !x.tg) return;
-    var mine = items.filter(function (i) { return i.owner === x.name; }), ml = leads.filter(function (l) { return l.owner === x.name; });
-    if (mine.length || ml.length) telegramTo(x.tg, careMessage(mine, ml, today, false, x.name));
+    var mine = items.filter(function (i) { return i.owner === x.name; }), ml = leads.filter(function (l) { return l.owner === x.name; }), mb = bdays.filter(function (b) { return b.owner === x.name; });
+    if (mine.length || ml.length || mb.length) telegramTo(x.tg, careMessage(mine, ml, today, false, x.name, mb));
   });
 }
 function leadDueServer(l, today) {
@@ -491,7 +495,16 @@ function leadDueServer(l, today) {
   return !l.lastAt || l.lastAt < today.getTime() - 2 * 864e5;
 }
 /** Tin nhóm (quản lý): tóm tắt theo loại việc + theo từng sale + vài khách cần chú ý nhất; luôn ngắn. */
-function groupDigest(items, leads, today) {
+/** Khối "🎂 Sinh nhật" trong tin 8h: hôm nay trước, rồi 3 ngày tới. */
+function bdayBlock(bdays, isGroup) {
+  if (!bdays || !bdays.length) return '';
+  var now = bdays.filter(function (b) { return !b.inDays; }), soon = bdays.filter(function (b) { return b.inDays; });
+  var line = function (b) { return '• ' + esc(b.name) + ' – <a href="https://zalo.me/' + b.phone + '">' + b.phone + '</a>' + (b.group === 'VIP' ? ' [VIP]' : '') + (b.inDays ? ' · ' + b.dob : '') + (isGroup ? (b.owner ? ' 👤' + esc(b.owner) : ' ⚠️chưa ai phụ trách') : ''); };
+  return '\n\n<b>🎂 Sinh nhật khách</b> – nhắn Zalo chúc mừng, gửi ưu đãi sinh nhật' +
+    (now.length ? '\n<i>Hôm nay (' + now.length + ')</i>\n' + now.slice(0, 10).map(line).join('\n') + (now.length > 10 ? '\n   … và ' + (now.length - 10) + ' khách khác (xem CRM)' : '') : '') +
+    (soon.length ? '\n<i>3 ngày tới (' + soon.length + ')</i>\n' + soon.slice(0, 8).map(line).join('\n') + (soon.length > 8 ? '\n   … và ' + (soon.length - 8) + ' khách khác' : '') : '');
+}
+function groupDigest(items, leads, today, bdays) {
   var T = { callback: '📞 Hẹn gọi lại', d1: '📦 Hỏi nhận hàng', runout: '⏰ Sắp hết hàng', d7: '🤝 Hỏi thăm 1 tuần', d14: '💬 Xin cảm nhận', d30: '🌿 Giới thiệu SP', winback: '💌 Mời quay lại' };
   var byType = Object.keys(T).map(function (k) { var n = items.filter(function (i) { return i.type === k; }).length; return n ? T[k] + ': <b>' + n + '</b>' : ''; }).filter(String);
   var owners = {}; items.forEach(function (i) { var o = i.owner || '⚠️ chưa ai phụ trách'; owners[o] = owners[o] || { c: 0, l: 0, late: 0 }; owners[o].c++; if (i.late && i.type !== 'runout') owners[o].late++; });
@@ -500,11 +513,11 @@ function groupDigest(items, leads, today) {
   var hot = items.filter(function (i) { return i.group === 'VIP' && (i.type === 'runout' || i.type === 'callback' || i.late); }).slice(0, 6).map(function (x) { return '• ' + esc(x.name) + ' – ' + x.phone + (x.owner ? ' 👤' + esc(x.owner) : '') + ' · ' + (T[x.type] || '') + (x.late ? (x.type === 'runout' ? ' <b>đã hết ' + x.late + ' ngày</b>' : ' <b>trễ ' + x.late + ' ngày</b>') : ''); });
   return '📋 <b>CSKH hôm nay ' + Utilities.formatDate(today, TZ, 'dd/MM') + '</b> – ' + items.length + ' khách cần chăm sóc' + (leads.length ? ', ' + leads.length + ' khách hỏi cần liên hệ' : '') +
     (byType.length ? '\n' + byType.join(' · ') : '') + (per.length ? '\n\n<b>Theo người phụ trách</b>\n' + per.slice(0, 15).join('\n') : '') +
-    (hot.length ? '\n\n<b>⭐ VIP cần chú ý</b>\n' + hot.join('\n') : '') + '\n\n✍️ Chi tiết từng khách: ' + CRM_URL + (items.length + leads.length ? '' : '\n\nHôm nay không có khách đến lịch chăm sóc 🎉');
+    (hot.length ? '\n\n<b>⭐ VIP cần chú ý</b>\n' + hot.join('\n') : '') + bdayBlock(bdays, true) + '\n\n✍️ Chi tiết từng khách: ' + CRM_URL + (items.length + leads.length ? '' : '\n\nHôm nay không có khách đến lịch chăm sóc 🎉');
 }
 /** Chạy tay trong trình soạn Apps Script để gửi thử tin 8h sáng ngay. */
 function thuTinSang() { dailyCare(); Logger.log('Đã gửi. Nếu Telegram không nhận được, xem dòng lỗi "Telegram ..." trong Nhật ký thực thi.'); }
-function careMessage(items, leads, today, isGroup, who) {
+function careMessage(items, leads, today, isGroup, who, bdays) {
   function block(title, arr, tip) {
     if (!arr.length) return '';
     return '\n\n<b>' + title + ' (' + arr.length + ')</b> – ' + tip + '\n' + arr.slice(0, 8).map(function (x) {
@@ -524,8 +537,8 @@ function careMessage(items, leads, today, isGroup, who) {
     block('🤝 Hỏi thăm sau 1 tuần', by('d7'), 'dùng có khó khăn gì, cần hỗ trợ gì; mời vào nhóm Zalo cộng đồng') +
     block('💬 Xin cảm nhận', by('d14'), '14 ngày sau khi nhận hàng') +
     block('🌿 Giới thiệu sản phẩm phù hợp', by('d30'), '30 ngày sau khi nhận hàng') +
-    block('💌 Mời quay lại', by('winback'), rulesCfg().atRisk + ' ngày chưa mua') + lb +
-    (total ? '\n\n✍️ Làm trên CRM: ' + CRM_URL : '\n\nHôm nay không có khách đến lịch chăm sóc 🎉');
+    block('💌 Mời quay lại', by('winback'), rulesCfg().atRisk + ' ngày chưa mua') + lb + bdayBlock(bdays, isGroup) +
+    (total || (bdays && bdays.length) ? '\n\n✍️ Làm trên CRM: ' + CRM_URL : '\n\nHôm nay không có khách đến lịch chăm sóc 🎉');
 }
 
 function startOfDay(d) { var t = d instanceof Date ? d.getTime() : new Date(d).getTime(); return new Date(Math.floor((t + 7 * 3600e3) / 864e5) * 864e5 - 7 * 3600e3); } // 0h giờ Việt Nam (UTC+7), không dùng formatDate vì chậm
