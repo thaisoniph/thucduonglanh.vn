@@ -561,3 +561,10 @@ details.comm { border: 1px dashed #9cc3a8; background: #f3faf5; }
 .use-miles > div.done { color: var(--ink); border-color: #b7dfc3; background: #f3faf5; }
 .team tr.off td { color: var(--muted); background: #fafaf7; }
 .team.use td:last-child { white-space: normal; min-width: 170px; }
+/* Bấm để copy (tên, SĐT, địa chỉ, mã đơn…) */
+.cp { cursor: copy; border-bottom: 1px dashed rgba(31, 95, 58, .45); border-radius: 3px; transition: background .2s; -webkit-tap-highlight-color: transparent; }
+.cp::after { content: '⧉'; font-size: .78em; font-weight: 400; opacity: .45; margin-left: 3px; }
+.cp:hover { background: rgba(31, 95, 58, .08); }
+.cp.ok { background: #d7f0dd; }
+.pre .cp { border-bottom: 0; display: block; }
+.grid-info div b .cp { display: inline; font-size: inherit; color: inherit; }

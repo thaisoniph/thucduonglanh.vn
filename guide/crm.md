@@ -47,6 +47,13 @@ Vào **Cài đặt → 📲 Thông báo Telegram riêng** → bấm **Kết nố
 
 Từ đó bạn nhận riêng: **đơn mới của khách mình phụ trách**, **khách hỏi mới được giao**, và **danh sách việc lúc 8h sáng**. Nhóm Telegram chung chỉ dành cho quản lý.
 
+
+### 📋 Bấm để copy
+
+Thông tin có **gạch chân chấm và dấu ⧉** thì bấm vào là copy luôn, rồi dán sang Zalo, trang vận chuyển hay tin nhắn. Copy được tên khách, số điện thoại (copy liền số, ví dụ 0912345678), địa chỉ đầy đủ, mã đơn, email, danh sách sản phẩm và tổng tiền (copy số, ví dụ 310000). Copy xong CRM hiện dòng **“📋 Đã copy: …”** ở cuối màn hình.
+
+Trên danh sách đơn và khách hỏi, bấm vào mã đơn hoặc số điện thoại chỉ copy, không mở thẻ. Bấm chỗ khác trên thẻ thì vẫn mở như cũ.
+
 ## Tab Hôm nay
 
 ![Tab Hôm nay trên điện thoại](/huong-dan/img/crm-today.webp)
