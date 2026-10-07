@@ -47,6 +47,11 @@ export default {
     try {
       if (req.method === 'GET') {
         if (path === '/api/bridge-check') { const n = String(url.searchParams.get('n') || '').replace(/[^a-f0-9]/g, ''); return json({ ok: !!(n && await kvGet(x.db, 'bn_' + n)) }); }
+        if (path === '/api/test-google') {
+          const r = await fetch(env.BRIDGE_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ type: 'crm', action: 'ping' }), redirect: 'follow' });
+          const text = await r.text();
+          return json({ status: r.status, url: r.url, text: text.slice(0, 500) }, origin);
+        }
         if (path === '/api/status') {
           const n = async t => (await first(x.db, 'SELECT count(*) AS n FROM ' + t)).n;
           const mr = await kvGet(x.db, 'migrate_result');

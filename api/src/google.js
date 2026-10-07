@@ -11,7 +11,7 @@ export async function bridge(env, op, data) {
   try { r = await fetch(env.BRIDGE_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ type: 'bridge', op, nonce }, data || {})), redirect: 'follow' }); }
   finally { await kvDel(env.DB, 'bn_' + nonce); }
   const t = await r.text();
-  let j; try { j = JSON.parse(t); } catch (e) { throw new Error('Cầu nối Google trả lời lỗi (' + r.status + '). Kiểm tra Apps Script đã triển khai bản mới chưa.'); }
+  let j; try { j = JSON.parse(t); } catch (e) { throw new Error('Cầu nối Google trả lời lỗi (' + r.status + ', url=' + r.url + '): ' + t.slice(0, 300)); }
   if (!j.ok) throw new Error(j.error || 'Cầu nối Google báo lỗi');
   return j;
 }
