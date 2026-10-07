@@ -2,7 +2,7 @@
 title: Hướng dẫn dùng CRM
 nav: CRM
 order: 2
-updated: 2026-09-30
+updated: 2026-10-07
 description: Xử lý đơn hàng, chăm sóc khách, khách hỏi và theo dõi hiệu quả trên crm.thucduonglanh.vn.
 ---
 

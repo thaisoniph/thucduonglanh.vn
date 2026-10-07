@@ -388,6 +388,26 @@ export async function adsSync(x, u, dry) {
   return res;
 }
 
+export async function srcAutoTick(x, force) {
+  const now = Date.now(), vn = new Date(now + 7 * 3600e3), h = vn.getUTCHours();
+  if (force !== true && (h < 7 || h > 21)) return;
+  const sources = (await srcList(x)).filter(s => s.cfg && s.cfg.autoSync);
+  if (!sources.length) return;
+  const u = { name: 'Tự động', level: 3, email: '' };
+  for (const src of sources) {
+    const sheets = (src.cfg.sheets || []).filter(s => s.role && s.role !== 'skip');
+    for (let i = 0; i < sheets.length; i++) {
+      try {
+        await srcSync(x, u, { id: src.id, sheet: i });
+      } catch (e) {
+        console.error('srcAutoTick', src.sale, sheets[i].name, e.message);
+      }
+    }
+  }
+}
+
+export { srcSync };
+
 export const SYNC = {
   src_inspect: (x, u, d) => inspect(x, u, d, false), ads_inspect: (x, u, d) => inspect(x, u, d, true),
   src_save: srcSave, src_delete: srcDelete, src_sync: srcSync, src_finish: srcFinish,

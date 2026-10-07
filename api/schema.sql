@@ -7,13 +7,15 @@ CREATE TABLE IF NOT EXISTS orders (
   province TEXT DEFAULT '', ward TEXT DEFAULT '', address TEXT DEFAULT '', items TEXT DEFAULT '',
   subtotal INTEGER DEFAULT 0, shipping INTEGER DEFAULT 0, total INTEGER DEFAULT 0, payment TEXT DEFAULT '', note TEXT DEFAULT '',
   status TEXT DEFAULT 'Mới', source TEXT DEFAULT '', first_source TEXT DEFAULT '', consent INTEGER DEFAULT 0, paid TEXT DEFAULT '',
-  carrier TEXT DEFAULT '', tracking TEXT DEFAULT '', seller TEXT DEFAULT '', ca TEXT DEFAULT '', line TEXT DEFAULT '', ship TEXT DEFAULT ''
+  carrier TEXT DEFAULT '', tracking TEXT DEFAULT '', seller TEXT DEFAULT '', ca TEXT DEFAULT '', line TEXT DEFAULT '', ship TEXT DEFAULT '',
+  ship_at INTEGER, received_at INTEGER, otype TEXT DEFAULT '', oflag TEXT DEFAULT '', trk TEXT DEFAULT '', trk_at INTEGER, trk_code INTEGER DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS orders_id ON orders(id);
 CREATE INDEX IF NOT EXISTS orders_phone ON orders(phone, time);
 CREATE INDEX IF NOT EXISTS orders_time ON orders(time);
 CREATE INDEX IF NOT EXISTS orders_seller ON orders(seller);
 CREATE INDEX IF NOT EXISTS orders_status ON orders(status);
+CREATE INDEX IF NOT EXISTS orders_tracking ON orders(tracking);
 
 CREATE TABLE IF NOT EXISTS customers (
   phone TEXT PRIMARY KEY, name TEXT DEFAULT '', address TEXT DEFAULT '', province TEXT DEFAULT '', ward TEXT DEFAULT '',
@@ -65,3 +67,30 @@ CREATE TABLE IF NOT EXISTS sources (
 
 CREATE TABLE IF NOT EXISTS sessions (token TEXT PRIMARY KEY, email TEXT, exp INTEGER);
 CREATE TABLE IF NOT EXISTS kv (k TEXT PRIMARY KEY, v TEXT, exp INTEGER);
+
+CREATE TABLE IF NOT EXISTS perf (
+  rid INTEGER PRIMARY KEY AUTOINCREMENT,
+  time INTEGER, by_name TEXT DEFAULT '', role TEXT DEFAULT '', what TEXT DEFAULT '',
+  total REAL, server REAL, data TEXT DEFAULT '', kb REAL, dev TEXT DEFAULT ''
+);
+CREATE INDEX IF NOT EXISTS perf_time ON perf(time);
+
+CREATE TABLE IF NOT EXISTS usage (
+  rid INTEGER PRIMARY KEY AUTOINCREMENT,
+  day TEXT NOT NULL, email TEXT NOT NULL, name TEXT DEFAULT '',
+  opens INTEGER DEFAULT 0, mins REAL DEFAULT 0, screens TEXT DEFAULT '', dev TEXT DEFAULT '',
+  first_time INTEGER, last_time INTEGER,
+  UNIQUE(day, email)
+);
+CREATE INDEX IF NOT EXISTS usage_day ON usage(day);
+
+CREATE TABLE IF NOT EXISTS feedback (
+  id TEXT PRIMARY KEY, time INTEGER, by_name TEXT DEFAULT '', email TEXT DEFAULT '',
+  kind TEXT DEFAULT 'Góp ý', text TEXT DEFAULT '', route TEXT DEFAULT '', ua TEXT DEFAULT '',
+  ver TEXT DEFAULT '', imgs TEXT DEFAULT '', status TEXT DEFAULT 'Mới', reply TEXT DEFAULT '',
+  handler TEXT DEFAULT '', updated INTEGER
+);
+CREATE TABLE IF NOT EXISTS feedback_images (
+  id TEXT NOT NULL, idx INTEGER NOT NULL, data TEXT NOT NULL,
+  PRIMARY KEY (id, idx)
+);

@@ -1,8 +1,8 @@
-// Việc chạy theo lịch: 8h sáng gửi danh sách chăm sóc, 10 phút/lần lấy số quảng cáo, mỗi giờ chép bản sao dữ liệu sang Google Sheet.
+// Việc chạy theo lịch: 8h sáng gửi danh sách chăm sóc + báo mức dùng CRM, 10 phút/lần lấy số quảng cáo, 30 phút/lần tự nhập file sale, mỗi giờ chép bản sao dữ liệu sang Google Sheet.
 import { normPhone, esc, fmtDate, startOfDay, all, kvGet, kvSet, CRM_URL, DAY } from './lib.js';
 import { telegram, telegramTo, gInfo, sheetMeta, sheetClear, sheetWrite, sheetAddTabs, a1 } from './google.js';
-import { crmUsers, rulesCfg, careTask, groupOf, leadsData, leadDue, adsCfg } from './crm.js';
-import { adsSync } from './sync.js';
+import { crmUsers, rulesCfg, careTask, groupOf, leadsData, leadDue, adsCfg, usageAlert } from './crm.js';
+import { adsSync, srcAutoTick } from './sync.js';
 
 function careMessage(items, leads, today, isGroup, who, R) {
   const block = (title, arr, tip) => !arr.length ? '' : '\n\n<b>' + title + ' (' + arr.length + ')</b> – ' + tip + '\n' + arr.slice(0, 25).map(c =>
@@ -17,7 +17,7 @@ function careMessage(items, leads, today, isGroup, who, R) {
     (total ? '\n\n✍️ Làm trên CRM: ' + CRM_URL : '\n\nHôm nay không có khách đến lịch chăm sóc 🎉');
 }
 
-/** 8h sáng: danh sách cần chăm sóc vào nhóm Telegram (quản lý) và riêng cho từng nhân viên. */
+/** 8h sáng: danh sách cần chăm sóc vào nhóm Telegram (quản lý) và riêng cho từng nhân viên + cảnh báo mức dùng CRM. */
 export async function dailyCare(x) {
   const today = startOfDay(Date.now()), R = await rulesCfg(x), items = [];
   for (const v of await all(x.db, 'SELECT phone, name, orders, spent, last, runout, care_at, callback, products, consent, owner FROM customers WHERE orders > 0')) {
@@ -31,27 +31,34 @@ export async function dailyCare(x) {
     const mine = items.filter(i => i.owner === u.name), ml = leads.filter(l => l.owner === u.name);
     if (mine.length || ml.length) await telegramTo(x.env, u.tg, careMessage(mine, ml, today, false, u.name, R));
   }
+  try { await usageAlert(x); } catch (e) { console.error('usageAlert', e.message); }
   return { items: items.length, leads: leads.length };
 }
 
 /* ---------- bản sao sang Google Sheet (để xem, lọc, xuất báo cáo; sửa trên Sheet không có tác dụng) */
 const T = t => t ? fmtDate(t, 'yyyy-MM-dd HH:mm') : '';
 const MIRROR = [
-  ['CRM · Đơn hàng', ['Thời gian', 'Mã đơn', 'Khách hàng', 'Điện thoại', 'Email', 'Tỉnh/TP', 'Phường/Xã', 'Địa chỉ', 'Sản phẩm', 'Tạm tính', 'Phí ship', 'Tổng', 'Thanh toán', 'Ghi chú', 'Trạng thái', 'Nguồn', 'Nguồn đầu tiên', 'Đồng ý nhận tin', 'Đã nhận tiền', 'Đơn vị vận chuyển', 'Mã vận đơn', 'NV bán', 'Ca', 'Dòng SP', 'Lên đơn'],
-    'SELECT * FROM orders ORDER BY time, rid', r => [T(r.time), r.id, r.name, r.phone, r.email, r.province, r.ward, r.address, r.items, r.subtotal, r.shipping, r.total, r.payment, r.note, r.status, r.source, r.first_source, r.consent ? 'Có' : 'Không', r.paid, r.carrier, r.tracking, r.seller, r.ca, r.line, r.ship]],
+  ['CRM · Đơn hàng', ['Thời gian', 'Mã đơn', 'Khách hàng', 'Điện thoại', 'Email', 'Tỉnh/TP', 'Phường/Xã', 'Địa chỉ', 'Sản phẩm', 'Tạm tính', 'Phí ship', 'Tổng', 'Thanh toán', 'Ghi chú', 'Trạng thái', 'Nguồn', 'Nguồn đầu tiên', 'Đồng ý nhận tin', 'Đã nhận tiền', 'Đơn vị vận chuyển', 'Mã vận đơn', 'NV bán', 'Ca', 'Dòng SP', 'Lên đơn', 'Ngày nhận', 'Ngày gửi', 'Loại đơn', 'Kiểm tra loại đơn', 'Hành trình VC', 'Cập nhật VC', 'Mã TT VC'],
+    'SELECT * FROM orders ORDER BY time, rid', r => [T(r.time), r.id, r.name, r.phone, r.email, r.province, r.ward, r.address, r.items, r.subtotal, r.shipping, r.total, r.payment, r.note, r.status, r.source, r.first_source, r.consent ? 'Có' : 'Không', r.paid, r.carrier, r.tracking, r.seller, r.ca, r.line, r.ship, T(r.received_at), T(r.ship_at), r.otype || '', r.oflag || '', r.trk || '', T(r.trk_at), r.trk_code || '']],
   ['CRM · Khách hàng', ['Điện thoại', 'Tên', 'Địa chỉ', 'Tỉnh/TP', 'Phường/Xã', 'Số đơn', 'Tổng chi', 'Đơn đầu', 'Đơn gần nhất', 'Sản phẩm đã mua', 'Dự kiến hết hàng', 'Đồng ý nhận tin', 'Nguồn đầu tiên', 'Phụ trách', 'Lần CSKH gần nhất', 'Kết quả CSKH', 'Ghi chú CSKH', 'Hẹn gọi lại', 'Nhãn', 'Nhãn màu'],
     "SELECT * FROM customers WHERE orders > 0 OR flag != '' ORDER BY last", r => [r.phone, r.name, r.address, r.province, r.ward, r.orders, r.spent, T(r.first), T(r.last), r.products, T(r.runout), r.consent ? 'Có' : 'Không', r.source, r.owner, T(r.care_at), r.care_result, String(r.note || '').slice(0, 45000), T(r.callback), r.flag, r.tag]],
   ['CRM · Khách tiềm năng', ['Mã', 'Thời gian', 'Tên', 'Điện thoại', 'Kênh', 'Quan tâm', 'Trạng thái', 'Phụ trách', 'Lần liên hệ gần nhất', 'Hẹn liên hệ lại', 'Lý do không mua', 'Ghi chú', 'Mã đơn', 'Người tạo'],
     'SELECT * FROM leads ORDER BY rid', r => [r.id, T(r.time), r.name, r.phone, r.channel, r.interest, r.status, r.owner, T(r.last_at), T(r.callback), r.reason, String(r.note || '').slice(0, 45000), r.order_id, r.by_name]],
   ['CRM · Nhật ký CSKH', ['Thời gian', 'Người làm', 'Việc', 'SĐT / Mã đơn', 'Khách', 'Kết quả', 'Ghi chú'], 'SELECT * FROM logs ORDER BY rid', r => [T(r.time), r.by_name, r.what, r.ref, r.name, r.result, r.note]],
   ['CRM · Liên hệ', ['Thời gian', 'Họ tên', 'Điện thoại', 'Email', 'Nội dung', 'Trang', 'Đã trả lời', 'Ghi chú'], 'SELECT * FROM contacts ORDER BY rid', r => [T(r.time), r.name, r.phone, r.email, r.message, r.page, r.done ? 'Có' : '', r.note]],
-  ['CRM · Mục tiêu', ['Tháng', 'Nhân viên', 'Mục tiêu doanh số', 'Người đặt', 'Cập nhật lúc'], 'SELECT * FROM targets ORDER BY month, name', r => [r.month, r.name, r.amount, r.by_name, T(r.at)]]
+  ['CRM · Mục tiêu', ['Tháng', 'Nhân viên', 'Mục tiêu doanh số', 'Người đặt', 'Cập nhật lúc'], 'SELECT * FROM targets ORDER BY month, name', r => [r.month, r.name, r.amount, r.by_name, T(r.at)]],
+  ['CRM · Hoạt động CRM', ['Ngày', 'Email', 'Tên', 'Lần mở', 'Phút dùng', 'Màn hình đã xem', 'Thiết bị', 'Vào lúc', 'Lần cuối'],
+    'SELECT * FROM usage ORDER BY day DESC, last_time DESC', r => [r.day, r.email, r.name, r.opens, r.mins, r.screens, r.dev, T(r.first_time), T(r.last_time)]],
+  ['CRM · Đo tốc độ CRM', ['Thời gian', 'Người', 'Vai trò', 'Thao tác', 'Tổng (giây)', 'Máy chủ (giây)', 'Dữ liệu', 'KB', 'Thiết bị'],
+    'SELECT * FROM perf ORDER BY time DESC LIMIT 5000', r => [T(r.time), r.by_name, r.role, r.what, r.total, r.server, r.data, r.kb, r.dev]],
+  ['CRM · Góp ý', ['Mã', 'Thời gian', 'Người gửi', 'Email', 'Phân loại', 'Nội dung', 'Màn hình', 'Trình duyệt/Thiết bị', 'Phiên bản', 'Trạng thái', 'Phản hồi', 'Người xử lý', 'Cập nhật lúc'],
+    'SELECT * FROM feedback ORDER BY time DESC', r => [r.id, T(r.time), r.by_name, r.email, r.kind, r.text, r.route, r.ua, r.ver, r.status, r.reply, r.handler, T(r.updated)]]
 ];
 export async function mirror(x) {
   const info = await gInfo(x.env), id = info.sheetId; if (!id) throw new Error('Chưa biết file Sheet chính');
   const meta = await sheetMeta(x.env, id), have = (meta.sheets || []).map(s => s.properties.title);
   await sheetAddTabs(x.env, id, MIRROR.map(m => m[0]).filter(t => have.indexOf(t) < 0));
-  await sheetClear(x.env, id, MIRROR.map(m => a1(m[0], 'A:AA')));
+  await sheetClear(x.env, id, MIRROR.map(m => a1(m[0], 'A:AI')));
   const data = [], counts = {};
   for (const [tab, head, sql, row] of MIRROR) {
     const rows = (await all(x.db, sql)).map(r => row(r).map(v => v == null ? '' : v));
@@ -59,7 +66,7 @@ export async function mirror(x) {
     const all2 = [head, ...rows];
     for (let i = 0; i < all2.length; i += 2000) data.push({ range: a1(tab, 'A' + (i + 1)), values: all2.slice(i, i + 2000) }); // từng phần cho khỏi quá giới hạn Google
   }
-  data.push({ range: a1(MIRROR[0][0], 'AA1'), values: [['Bản sao tự động từ CRM lúc ' + fmtDate(Date.now(), 'HH:mm dd/MM/yyyy') + ' – sửa ở đây không có tác dụng, hãy sửa trên crm.thucduonglanh.vn']] });
+  data.push({ range: a1(MIRROR[0][0], 'AI1'), values: [['Bản sao tự động từ CRM lúc ' + fmtDate(Date.now(), 'HH:mm dd/MM/yyyy') + ' – sửa ở đây không có tác dụng, hãy sửa trên crm.thucduonglanh.vn']] });
   for (const d of data) await sheetWrite(x.env, id, [d]);
   await kvSet(x.db, 'mirror_last', String(Date.now()));
   return counts;
@@ -75,6 +82,11 @@ export async function scheduled(x, cron) {
   }
   const ads = await adsCfg(x);
   if (ads && ads.auto) { try { await adsSync(x, { name: 'Tự động', level: 3 }, false); } catch (e) { console.error('ads', e.message); } }
+  const lastAuto = Number(await kvGet(x.db, 'auto_tick_last') || 0);
+  if (now - lastAuto > 25 * 60e3 && vn.getUTCHours() >= 7 && vn.getUTCHours() <= 21) {
+    await kvSet(x.db, 'auto_tick_last', String(now));
+    try { await srcAutoTick(x); } catch (e) { console.error('srcAutoTick', e.message); }
+  }
   const last = Number(await kvGet(x.db, 'mirror_last') || 0);
   if (now - last > 55 * 60e3) { try { await mirror(x); } catch (e) { console.error('mirror', e.message); await kvSet(x.db, 'mirror_last', String(now - 30 * 60e3)); } }
 }

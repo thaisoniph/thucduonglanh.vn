@@ -1,13 +1,13 @@
 // Máy chủ CRM + nhận đơn Thực Dưỡng Lành trên Cloudflare Workers (api.thucduonglanh.vn), dữ liệu ở Cloudflare D1.
 // Giao diện gửi POST (text/plain, JSON) giống hệt Apps Script trước đây: {type:'crm', action, token, …} / {type:'order'} / {type:'contact'}.
 import { esc, run, first, kvGet, normPhone, CRM_URL } from './lib.js';
-import { crmApi, saveOrder, addLead, telegramUser } from './crm.js';
-import { telegram, sendMail, tgConf } from './google.js';
+import { crmApi, saveOrder, addLead, telegramUser, vtpWebhook, ensureSchema } from './crm.js';
+import { telegram, sendMail, tgConf, bridge } from './google.js';
 import { SYNC } from './sync.js';
 import { migrate } from './migrate.js';
 import { scheduled, mirror, dailyCare } from './cron.js';
 
-const API_VERSION ='2026-10-02a'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
+const API_VERSION = '2026-10-07d'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
 const ORIGINS = /^https:\/\/((www\.|crm\.)?thucduonglanh\.vn|[a-z0-9-]+\.thucduonglanh(-crm)?\.pages\.dev)$|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
 function ctxOf(env, ectx) { return { env, db: env.DB, later: p => ectx.waitUntil(Promise.resolve(p).catch(e => console.error('later', e && e.message))) }; }
@@ -20,11 +20,13 @@ function json(o, origin, status) {
 const ADMIN = Object.assign({}, SYNC, {
   migrate: (x, u, d) => d.confirm === 'CHEP LAI' ? migrate(x, { force: true }) : { ok: false, error: 'Cần xác nhận' },
   mirror: async x => ({ ok: true, counts: await mirror(x) }),
-  care_now: async x => ({ ok: true, sent: await dailyCare(x) })
+  care_now: async x => ({ ok: true, sent: await dailyCare(x) }),
+  clean_triggers: async x => bridge(x.env, 'clean_triggers')
 });
 
 async function website(x, data) {
   if (data.website) return { ok: true }; // chống spam (honeypot)
+  if (data.type === 'vtp') return await vtpWebhook(x, data.payload);
   if (data.type === 'order') { const r = await saveOrder(x, data, {}); return { ok: true, id: data.id, dup: !!r.dup }; }
   if (data.type === 'contact') {
     await run(x.db, 'INSERT INTO contacts (time, name, phone, email, message, page) VALUES (?, ?, ?, ?, ?, ?)', Date.now(), data.name || '', normPhone(data.phone), data.email || '', data.message || '', data.page || '');
@@ -64,14 +66,16 @@ export default {
         return json({ ok: true, service: 'Thực Dưỡng Lành orders + CRM', v: API_VERSION }, origin);
       }
       if (req.method !== 'POST') return json({ ok: false, error: 'method' }, origin, 405);
+      await ensureSchema(x.db);
       const text = await req.text(); if (text.length > 2e6) return json({ ok: false, error: 'Dữ liệu quá lớn' }, origin, 413);
       const d = JSON.parse(text || '{}');
       if (d.type === 'crm') { const out = await crmApi(x, d, ADMIN); out.v = API_VERSION; return json(out, origin); }
+      if (d.type === 'vtp') return json(await vtpWebhook(x, d.payload), origin);
       return json(await website(x, d), origin);
     } catch (err) {
       console.error('api', err && err.stack || err);
       return json({ ok: false, error: String(err && err.message || err), v: API_VERSION }, origin);
     }
   },
-  async scheduled(ev, env, ectx) { const x = ctxOf(env, ectx); ectx.waitUntil(scheduled(x, ev.cron)); }
+  async scheduled(ev, env, ectx) { const x = ctxOf(env, ectx); await ensureSchema(x.db); ectx.waitUntil(scheduled(x, ev.cron)); }
 };

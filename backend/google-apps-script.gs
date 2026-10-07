@@ -17,7 +17,7 @@ var TELEGRAM_TOKEN = PropertiesService.getScriptProperties().getProperty('TELEGR
 var TELEGRAM_CHAT_IDS = '-5318324525'; // nhóm "Đơn hàng Thực Dưỡng Lành" – thêm/bớt nhân viên trực tiếp trong nhóm
 var TZ = 'Asia/Ho_Chi_Minh';
 var CRM_URL = 'https://crm.thucduonglanh.vn';
-var CRM_VERSION = '2026-10-07c';
+var CRM_VERSION = '2026-10-07d';
 // Từ 10/2026 CRM chạy trên máy chủ Cloudflare (api.thucduonglanh.vn). Apps Script này chỉ còn làm "cầu nối" Google: gửi email, cấp quyền đọc Google Sheet.
 var API_URL = 'https://api.thucduonglanh.vn/api'; // CRM web so với số này để biết Apps Script đã được triển khai bản mới chưa
 
@@ -129,11 +129,26 @@ function bridgeOp(d) {
   if (d.op === 'token') return { ok: true, token: ScriptApp.getOAuthToken(), sheetId: SpreadsheetApp.getActiveSpreadsheet().getId(), account: Session.getEffectiveUser().getEmail(), tg: TELEGRAM_TOKEN, chats: TELEGRAM_CHAT_IDS, notify: NOTIFY_EMAIL };
   if (d.op === 'mail') { var m = d.mail || {}; MailApp.sendEmail({ to: m.to, subject: m.subject, body: m.body, name: m.name || 'Thực Dưỡng Lành' }); return { ok: true }; }
   if (d.op === 'props') return { ok: true, props: pp.getProperties() };
-  if (d.op === 'retire') { // tắt lịch chạy cũ (máy chủ mới tự gửi tin 8h, lấy số quảng cáo)
-    ScriptApp.getProjectTriggers().forEach(function (t) { if (['dailyCare', 'adsTick'].indexOf(t.getHandlerFunction()) >= 0) ScriptApp.deleteTrigger(t); });
+  if (d.op === 'retire' || d.op === 'clean_triggers') { // tắt các lịch chạy cũ đã chuyển sang máy chủ Worker (D1)
+    ScriptApp.getProjectTriggers().forEach(function (t) {
+      if (['dailyCare', 'adsTick', 'docSanCRM', 'writeBackTick', 'srcAutoTick'].indexOf(t.getHandlerFunction()) >= 0) ScriptApp.deleteTrigger(t);
+    });
     pp.setProperty('retired', String(Date.now())); return { ok: true };
   }
   return { ok: false, error: 'Không rõ yêu cầu' };
+}
+/** Tắt toàn bộ trigger cũ trong Apps Script (chạy tay hoặc tự động). */
+function tatTriggerCu() {
+  var pp = PropertiesService.getScriptProperties();
+  pp.setProperty('retired', String(Date.now()));
+  var del = [];
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    if (['dailyCare', 'adsTick', 'docSanCRM', 'writeBackTick', 'srcAutoTick'].indexOf(t.getHandlerFunction()) >= 0) {
+      del.push(t.getHandlerFunction());
+      ScriptApp.deleteTrigger(t);
+    }
+  });
+  Logger.log('Đã tắt các trigger cũ: ' + (del.join(', ') || 'không có trigger nào'));
 }
 /** Chạy tay trong trình soạn Apps Script nếu cần quay lại máy chủ cũ. */
 function quayLaiMayChuCu() { PropertiesService.getScriptProperties().deleteProperty('retired'); Logger.log('Đã bật lại máy chủ cũ. Nhớ chạy setupCRM để cài lại lịch 8h.'); }

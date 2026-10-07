@@ -14,7 +14,7 @@ Chủ dự án: anh Sơn (thaisoniph@gmail.com). Anh Sơn không chuyên kỹ th
   - CRM web: `crm/` → crm.thucduonglanh.vn.
   - Hướng dẫn nhân sự: `guide/*.md` → crm.thucduonglanh.vn/huong-dan/. **Đổi tính năng CRM hoặc /admin thì sửa luôn `guide/`.**
 - `backend/google-apps-script.gs`: code Apps Script (đơn hàng + CRM, gắn với Google Sheet). Token Telegram nằm trong Script Properties (`TELEGRAM_TOKEN`), không có trong code.
-- `api/`: máy chủ Cloudflare Workers + D1 (api.thucduonglanh.vn), đang chuẩn bị, **chưa chạy thật**. Đơn hàng và CRM vẫn chạy bằng Apps Script.
+- `api/`: máy chủ Cloudflare Workers + D1 (api.thucduonglanh.vn) chạy chính thức từ 10/2026 (bản `2026-10-07d`). Nhận đơn web, phục vụ toàn bộ CRM API (hôm nay, khách hàng, đơn hàng, khách hỏi, hiệu quả, mức dùng CRM, góp ý...), nhận webhook Viettel Post, và đồng bộ 2 chiều với Google Sheet / file sale qua cron. Apps Script (`backend/google-apps-script.gs`) làm cầu nối Google (gửi email, cấp quyền đọc Sheet, dọn trigger cũ).
 
 ## Đăng lên (deploy)
 - Push lên nhánh `main` → GitHub Actions build → Cloudflare Pages (website `thucduonglanh`, CRM `thucduonglanh-crm`). Khoảng 1–2 phút sau là live.

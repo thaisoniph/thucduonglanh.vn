@@ -1,6 +1,57 @@
 // CRM: đăng nhập, dữ liệu, đơn hàng, khách, tiềm năng, cài đặt. Chuyển từ Apps Script sang, giữ nguyên cách làm việc & dữ liệu trả về cho giao diện.
 import { normPhone, esc, fmt, startOfDay, fmtDate, dateOrBlank, slugName, isVoid, randHex, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, DAY, CRM_URL } from './lib.js';
-import { sendMail, telegram, telegramTo, tgUpdates, tgConf } from './google.js';
+import { sendMail, telegram, telegramTo, tgUpdates, tgConf, bridge } from './google.js';
+
+let schemaDone = false;
+export async function ensureSchema(db) {
+  if (schemaDone) return;
+  try {
+    const cols = (await all(db, "PRAGMA table_info(orders)")).map(r => r.name);
+    const addCol = async (col, def) => {
+      if (!cols.includes(col)) {
+        try { await run(db, `ALTER TABLE orders ADD COLUMN ${col} ${def}`); } catch (e) { }
+      }
+    };
+    await addCol('ship_at', 'INTEGER');
+    await addCol('received_at', 'INTEGER');
+    await addCol('otype', "TEXT DEFAULT ''");
+    await addCol('oflag', "TEXT DEFAULT ''");
+    await addCol('trk', "TEXT DEFAULT ''");
+    await addCol('trk_at', 'INTEGER');
+    await addCol('trk_code', 'INTEGER DEFAULT 0');
+
+    await run(db, `CREATE TABLE IF NOT EXISTS perf (
+      rid INTEGER PRIMARY KEY AUTOINCREMENT,
+      time INTEGER, by_name TEXT DEFAULT '', role TEXT DEFAULT '', what TEXT DEFAULT '',
+      total REAL, server REAL, data TEXT DEFAULT '', kb REAL, dev TEXT DEFAULT ''
+    )`);
+    await run(db, `CREATE INDEX IF NOT EXISTS perf_time ON perf(time)`);
+
+    await run(db, `CREATE TABLE IF NOT EXISTS usage (
+      rid INTEGER PRIMARY KEY AUTOINCREMENT,
+      day TEXT NOT NULL, email TEXT NOT NULL, name TEXT DEFAULT '',
+      opens INTEGER DEFAULT 0, mins REAL DEFAULT 0, screens TEXT DEFAULT '', dev TEXT DEFAULT '',
+      first_time INTEGER, last_time INTEGER,
+      UNIQUE(day, email)
+    )`);
+    await run(db, `CREATE INDEX IF NOT EXISTS usage_day ON usage(day)`);
+
+    await run(db, `CREATE TABLE IF NOT EXISTS feedback (
+      id TEXT PRIMARY KEY, time INTEGER, by_name TEXT DEFAULT '', email TEXT DEFAULT '',
+      kind TEXT DEFAULT 'Góp ý', text TEXT DEFAULT '', route TEXT DEFAULT '', ua TEXT DEFAULT '',
+      ver TEXT DEFAULT '', imgs TEXT DEFAULT '', status TEXT DEFAULT 'Mới', reply TEXT DEFAULT '',
+      handler TEXT DEFAULT '', updated INTEGER
+    )`);
+
+    await run(db, `CREATE TABLE IF NOT EXISTS feedback_images (
+      id TEXT NOT NULL, idx INTEGER NOT NULL, data TEXT NOT NULL,
+      PRIMARY KEY (id, idx)
+    )`);
+    schemaDone = true;
+  } catch (e) {
+    console.error('ensureSchema', e.message);
+  }
+}
 
 export const SUPER_ADMIN = 'thaisoniph@gmail.com'; // luôn có quyền Quản trị
 const ROLES = { 'Quản trị': 3, 'Quản lý': 2, 'Nhân viên': 1 };
@@ -174,7 +225,8 @@ export function leadDue(l, today) {
 /* ================================================================ đọc dữ liệu cho giao diện */
 const leadOut = r => ({ id: r.id, time: r.time, name: r.name || '', phone: r.phone || '', channel: r.channel || '', interest: r.interest || '', status: r.status || 'Mới hỏi', owner: r.owner || '', lastAt: r.last_at, callback: r.callback, reason: r.reason || '', note: r.note || '', orderId: r.order_id || '', by: r.by_name || '' });
 const orderOut = r => ({ row: r.rid, time: r.time, id: r.id, name: r.name || '', phone: r.phone || '', email: r.email || '', province: r.province || '', ward: r.ward || '', address: r.address || '', items: r.items || '', subtotal: r.subtotal || 0,
-  shipping: r.shipping || 0, total: r.total || 0, payment: r.payment || '', note: r.note || '', status: r.status || 'Mới', source: r.source || '', consent: !!r.consent, paid: r.paid || '', carrier: r.carrier || '', tracking: r.tracking || '', seller: r.seller || '', ca: r.ca || '', line: r.line || '', ship: r.ship || '' });
+  shipping: r.shipping || 0, total: r.total || 0, payment: r.payment || '', note: r.note || '', status: r.status || 'Mới', source: r.source || '', consent: !!r.consent, paid: r.paid || '', carrier: r.carrier || '', tracking: r.tracking || '', seller: r.seller || '', ca: r.ca || '', line: r.line || '', ship: r.ship || '',
+  shipAt: r.ship_at, receivedAt: r.received_at, otype: r.otype || '', oflag: r.oflag || '', trk: r.trk || '', trkAt: r.trk_at, trkCode: r.trk_code || 0 });
 export async function leadsData(x, where, ...args) { return (await all(x.db, 'SELECT * FROM leads' + (where ? ' WHERE ' + where : '') + ' ORDER BY rid DESC LIMIT 3000', ...args)).reverse().map(leadOut); }
 
 async function prefsOf(x, email) { return await kvJson(x.db, 'prefs_' + email, {}) || {}; }
@@ -215,8 +267,9 @@ async function crmLoad(x, u) {
   }));
   const users = (await crmUsers(x)).filter(y => y.active || u.level >= 3).map(y => u.level >= 3 ? { email: y.email, name: y.name, role: y.role, active: y.active, recv: y.recv, tg: !!y.tg, alias: y.alias, prefix: y.prefix || slugName(y.name) } : u.level >= 2 ? { name: y.name, role: y.role, recv: y.recv, tg: !!y.tg } : { name: y.name, role: y.role });
   const ca = await caCfg(x);
+  const fbNew = u.level >= 2 ? ((await first(x.db, "SELECT count(*) AS n FROM feedback WHERE status = 'Mới'")) || {}).n || 0 : 0;
   return {
-    ok: true, user: publicUser(u), now: Date.now(), today, customers, orders: os.reverse().map(orderOut),
+    ok: true, user: publicUser(u), now: Date.now(), today, customers, orders: os.reverse().map(orderOut), fbNew,
     contacts: staff ? [] : ct.reverse().map(r => ({ row: r.rid, time: r.time, name: r.name || '', phone: r.phone || '', email: r.email || '', message: r.message || '', page: r.page || '', done: !!r.done, note: r.note || '' })),
     leads: ls.reverse().map(leadOut), targets: tg.map(t => ({ month: t.month, name: t.name, amount: t.amount || 0, by: t.by_name || '', at: t.at })),
     cycles: cy.filter(r => r.name).map(r => [r.name, r.variant || '', Number(r.days) || 0, r.basis || '']), templates: tp.filter(r => r.text).map(r => [r.when_txt || '', r.purpose || '', r.text]),
@@ -453,7 +506,19 @@ async function crmOrderStatus(x, u, d) {
     await crmLog(x, u, 'Đơn hàng', d.id, o.name, 'Vận đơn: ' + [d.carrier, d.tracking].filter(Boolean).join(' '), '');
     if (String(d.tracking || '').trim() && (old === 'Mới' || old === 'Đã xác nhận') && !status) status = 'Đang giao'; // có mã vận đơn = đã gửi hàng
   }
-  if (status && status !== old) { set.status = status; await crmLog(x, u, 'Đơn hàng', d.id, o.name, old + ' → ' + status, d.reason || ''); }
+  if (d.ship_at !== undefined) set.ship_at = Number(d.ship_at) || null;
+  if (d.received_at !== undefined) set.received_at = Number(d.received_at) || null;
+  if (d.otype !== undefined) set.otype = String(d.otype);
+  if (d.oflag !== undefined) set.oflag = String(d.oflag);
+  if (d.trk !== undefined) set.trk = String(d.trk);
+  if (d.trk_at !== undefined) set.trk_at = Number(d.trk_at) || null;
+  if (d.trk_code !== undefined) set.trk_code = Number(d.trk_code) || 0;
+  if (status && status !== old) {
+    set.status = status;
+    if (status === 'Đang giao' && !o.ship_at && !set.ship_at) set.ship_at = Date.now();
+    if (status === 'Đã giao' && !o.received_at && !set.received_at) set.received_at = Date.now();
+    await crmLog(x, u, 'Đơn hàng', d.id, o.name, old + ' → ' + status, d.reason || '');
+  }
   const ks = Object.keys(set);
   if (ks.length) await run(x.db, 'UPDATE orders SET ' + ks.map(k => k + ' = ?').join(', ') + ' WHERE rid = ?', ...ks.map(k => set[k]), o.rid);
   if (set.status) await recalc(x, [o.phone]); // huỷ / hoàn / khôi phục đơn → tính lại khách (và màu khách)
@@ -471,6 +536,8 @@ async function crmOrderEdit(x, u, d) {
   const set = { name: String(c.name).trim(), phone, province: c.province || '', ward: c.ward || '', address: c.address || '', items: itemsText(items), subtotal: sub, shipping: ship, total: sub + ship, payment: d.payment === 'bank' ? 'Chuyển khoản' : 'COD',
     ship: shipText(items), line: lineOf(items.filter(i => !i.gift).map(i => i.name + ' ' + i.variant).join(' ')) };
   if (CA_LIST.indexOf(d.ca) >= 0) set.ca = d.ca;
+  if (d.otype !== undefined) set.otype = String(d.otype);
+  if (d.oflag !== undefined) set.oflag = String(d.oflag);
   const ks = Object.keys(set);
   await run(x.db, 'UPDATE orders SET ' + ks.map(k => k + ' = ?').join(', ') + ' WHERE rid = ?', ...ks.map(k => set[k]), o.rid);
   await crmLog(x, u, 'Sửa đơn', d.id, c.name, fmt(o.total) + ' → ' + fmt(sub + ship), d.reason || '');
@@ -512,6 +579,16 @@ async function crmCare(x, u, d) {
   const now = Date.now(), cb = dateOrBlank(d.callback), owner = c.owner || u.name;
   await run(x.db, 'UPDATE customers SET care_at = ?, care_result = ?, callback = ?, owner = ? WHERE phone = ?', now, String(d.result || ''), cb, owner, phone);
   const note = String(d.note || '').trim();
+  if (d.received) {
+    const lastOrd = await first(x.db, "SELECT rid, id, time, status, received_at FROM orders WHERE phone = ? AND status NOT IN ('Huỷ', 'Hoàn') ORDER BY time DESC LIMIT 1", phone);
+    if (lastOrd) {
+      const open = /^(Mới|Đã xác nhận|Đang giao)$/.test(lastOrd.status);
+      if (!lastOrd.received_at && (open || now - Number(lastOrd.time) <= 20 * DAY)) {
+        await run(x.db, "UPDATE orders SET received_at = ?, status = CASE WHEN status IN ('Mới', 'Đã xác nhận', 'Đang giao') THEN 'Đã giao' ELSE status END WHERE rid = ?", now, lastOrd.rid);
+        await recalc(x, [phone]);
+      }
+    }
+  }
   await crmLog(x, u, TASK_LABEL[d.task] || TASK_LABEL.other, phone, c.name, d.result, note + (d.callback ? (note ? ' – ' : '') + 'hẹn gọi lại ' + String(d.callback).split('-').reverse().join('/') : ''));
   return { ok: true, careAt: now, owner, callback: cb };
 }
@@ -650,8 +727,312 @@ async function crmLeadContact(x, u, d) {
   return { ok: true, status: st, at: now, owner: f.owner || ld.owner };
 }
 
+/* ================================================================ Viettel Post Webhook */
+const VTP_ALERT = { 502: 'Chuyển hoàn', 503: 'Huỷ theo yêu cầu', 505: 'Sắp chuyển hoàn', 506: 'Khách vắng nhà / không liên lạc được', 507: 'Khách hẹn đến bưu cục nhận', 515: 'Bưu cục duyệt hoàn' };
+const VTP_BOT = { name: 'Viettel Post (tự động)', email: '', level: 3, role: 'Hệ thống' };
+
+function vtpDate(s) {
+  const m = String(s || '').match(/(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+  if (!m) return null;
+  return Date.UTC(+m[3], +m[2] - 1, +m[1], +m[4] - 7, +m[5], +(m[6] || 0));
+}
+
+function vtpPlace(s) {
+  const p = String(s || '').split(/\s*,\s*/).filter(Boolean);
+  if (!p.length) return '';
+  const x = p.find(t => /bưu cục|buu cuc|kho|trung tâm|điểm|bưu điện/i.test(t)) || p[2] || p[0];
+  return String(x).slice(0, 80);
+}
+
+export async function vtpWebhook(x, raw) {
+  await ensureSchema(x.db);
+  let d;
+  try { d = typeof raw === 'string' ? JSON.parse(raw) : raw; } catch (e) { return { ok: false, error: 'Dữ liệu không đọc được' }; }
+  let secret = x.env.VTP_SECRET || (await kvGet(x.db, 'vtp_secret')) || '';
+  if (!secret) {
+    try {
+      const p = (await bridge(x.env, 'props')).props;
+      if (p && p.VTP_SECRET) { secret = p.VTP_SECRET; await kvSet(x.db, 'vtp_secret', secret, 86400e3); }
+    } catch (e) { }
+  }
+  if (!secret || String(d && d.TOKEN || '') !== secret) {
+    return { ok: false, denied: true, error: secret ? 'Sai mã bí mật' : 'Chưa cài VTP_SECRET' };
+  }
+  const D = d.DATA || {}, code = String(D.ORDER_NUMBER || '').trim().toUpperCase(), st = Number(D.ORDER_STATUS) || 0;
+  if (!code) return { ok: true, skip: 'Không có mã vận đơn' };
+  const ref = String(D.ORDER_REFERENCE || '').trim().toUpperCase();
+
+  const candidates = await all(x.db, 'SELECT * FROM orders WHERE upper(trim(tracking)) = ?1 OR upper(trim(id)) = ?1 OR (?2 != "" AND upper(trim(id)) = ?2) ORDER BY time DESC LIMIT 20', code, ref);
+  const U = v => String(v || '').replace(/^'/, '').trim().toUpperCase();
+  let best = null;
+  for (const o of candidates) {
+    const hitT = U(o.tracking) === code;
+    const hitI = U(o.id) === code || (ref && U(o.id) === ref);
+    if (!hitT && !hitI) continue;
+    const sc = (hitT ? 4 : 0) + (/^(Mới|Đã xác nhận|Đang giao)$/.test(String(o.status || '')) ? 2 : 0);
+    const tm = Number(o.time) || 0;
+    if (!best || sc > best.sc || (sc === best.sc && tm > best.tm)) best = { sc, tm, order: o, byRef: !hitT };
+  }
+  if (!best) return { ok: true, skip: 'Không có đơn nào mang mã ' + code + (ref ? ' / ' + ref : '') };
+  const o = best.order;
+  if (best.byRef && !o.tracking) {
+    await run(x.db, 'UPDATE orders SET tracking = ? WHERE rid = ?', code, o.rid);
+    o.tracking = code;
+  }
+  const at = vtpDate(D.ORDER_STATUSDATE) || Date.now();
+  if (o.trk_at && at < o.trk_at) return { ok: true, skip: 'Tin cũ hơn tin đã có' };
+  const prevCode = Number(o.trk_code) || 0;
+  const old = String(o.status || 'Mới'), returning = D.IS_RETURNING === true;
+  const label = String(D.STATUS_NAME || VTP_ALERT[st] || ('Trạng thái ' + st)).trim();
+  const place = vtpPlace(D.LOCATION_CURRENTLY || D.LOCALION_CURRENTLY);
+  const note = String(D.NOTE || '').trim();
+  const line = (fmtDate(at, 'dd/MM HH:mm') + ' · ' + (returning && st !== 504 ? '↩️ Đang hoàn · ' : '') + label + (place ? ' · ' + place : '') + (note && note !== label ? ' · ' + note : '')).slice(0, 300);
+
+  await run(x.db, "UPDATE orders SET trk = ?, trk_at = ?, trk_code = ?, carrier = CASE WHEN carrier LIKE '%viettel%' THEN carrier ELSE 'Viettel Post' END WHERE rid = ?", line, at, st, o.rid);
+
+  const to = st === 501 ? (/^(Mới|Đã xác nhận|Đang giao)$/.test(old) ? 'Đã giao' : '')
+           : st === 504 ? (isVoid(old) ? '' : 'Hoàn')
+           : st >= 200 && /^(Mới|Đã xác nhận)$/.test(old) && st !== 201 && st !== 503 ? 'Đang giao' : '';
+  let res = { ok: true };
+  if (to) {
+    res = await crmOrderStatus(x, VTP_BOT, { id: o.id, row: o.rid, status: to, reason: label });
+  }
+  const warn = st !== prevCode && (VTP_ALERT[st] || st === 504);
+  if (!to && warn) await crmLog(x, VTP_BOT, 'Đơn hàng', o.id, o.name, label, note);
+  if (warn) {
+    const msg = '🚚 <b>Viettel Post</b> · ' + esc(code) +
+      '\n👤 <b>' + esc(o.name) + '</b> (' + esc(o.id) + ')' +
+      '\n⚠️ ' + esc(label) + (to === 'Hoàn' ? ' → đơn chuyển sang <b>Hoàn</b>' : '') +
+      (note ? '\n📝 ' + esc(note) : '') +
+      (place ? '\n📍 ' + esc(place) : '') +
+      (o.seller ? '\n👤 NV bán: ' + esc(o.seller) : '') +
+      '\n👉 ' + (st === 504 ? 'Xem đơn' : 'Gọi khách giữ đơn') + ': ' + CRM_URL + '/#don-hang';
+    x.later(telegram(x.env, msg));
+    if (o.seller) x.later(telegramUser(x, o.seller, msg));
+  }
+  return { ok: true, id: o.id, status: (res && res.status) || to || old };
+}
+
+/* ================================================================ Đo tốc độ CRM (perf) */
+async function crmPerf(x, u, d) {
+  const sec = v => v === null || v === undefined || v === '' || isNaN(v) ? null : Math.round(Number(v) / 100) / 10;
+  const rows = (Array.isArray(d.rows) ? d.rows : []).slice(-60).map(r => {
+    r = Array.isArray(r) ? r : [];
+    return {
+      time: Number(r[0]) || Date.now(),
+      by_name: u.name,
+      role: u.role,
+      what: String(r[1] || '').slice(0, 40),
+      total: sec(r[2]),
+      server: sec(r[3]),
+      data: String(r[4] || '').slice(0, 40),
+      kb: Number(r[5]) || 0,
+      dev: String(d.dev || '').slice(0, 80)
+    };
+  });
+  if (!rows.length) return { ok: true };
+  await insertMany(x.db, 'perf', ['time', 'by_name', 'role', 'what', 'total', 'server', 'data', 'kb', 'dev'], rows);
+  const cnt = (await first(x.db, 'SELECT count(*) AS n FROM perf')).n;
+  if (cnt > 8000) await run(x.db, 'DELETE FROM perf WHERE rid IN (SELECT rid FROM perf ORDER BY rid ASC LIMIT ?)', cnt - 6000);
+  return { ok: true };
+}
+
+/* ================================================================ Mức độ dùng CRM (usage) */
+async function crmUsage(x, u, d) {
+  const opens = Math.min(50, Math.max(0, Math.round(Number(d.opens) || 0)));
+  const mins = Math.min(60, Math.max(0, Number(d.mins) || 0));
+  const scr = (Array.isArray(d.screens) ? d.screens : []).map(s => String(s).slice(0, 30)).filter(Boolean).slice(0, 20);
+  const dev = String(d.dev || '').slice(0, 40);
+  if (!opens && !mins && !scr.length) return { ok: true };
+  const now = Date.now(), key = fmtDate(now, 'yyyy-MM-dd');
+  const cur = await first(x.db, 'SELECT * FROM usage WHERE day = ? AND email = ?', key, u.email);
+  const join = (old, add) => {
+    const a = String(old || '').split(', ').filter(Boolean);
+    add.forEach(item => { if (item && a.indexOf(item) < 0) a.push(item); });
+    return a.join(', ');
+  };
+  if (!cur) {
+    await run(x.db, 'INSERT INTO usage (day, email, name, opens, mins, screens, dev, first_time, last_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      key, u.email, u.name, opens, Math.round(mins * 10) / 10, scr.join(', '), dev, now, now);
+  } else {
+    await run(x.db, 'UPDATE usage SET opens = opens + ?, mins = round((mins + ?) * 10) / 10, screens = ?, dev = ?, last_time = ? WHERE rid = ?',
+      opens, mins, join(cur.screens, scr), join(cur.dev, dev ? [dev] : []), now, cur.rid);
+  }
+  return { ok: true };
+}
+
+const USE_CARE = { 'Tư vấn': 1, 'Trả lời liên hệ': 1 };
+Object.keys(TASK_LABEL).forEach(k => { USE_CARE[TASK_LABEL[k]] = 1; });
+const USE_ORDER = { 'Tạo đơn': 1, 'Sửa đơn': 1, 'Đơn hàng': 1, 'Loại đơn': 1 };
+function useKind(what) { return USE_CARE[what] ? 'care' : USE_ORDER[what] ? 'order' : what === 'Gửi ưu đãi' ? 'promo' : 'other'; }
+const USE_MILES = [['login', 'Đăng nhập lần đầu'], ['tg', 'Kết nối Telegram'], ['care', 'Ghi chăm sóc đầu tiên'], ['promo', 'Gửi ưu đãi Zalo'], ['order', 'Tạo đơn đầu tiên'], ['steady', 'Dùng đều 5/7 ngày']];
+const USE_IDLE_DAYS = 2;
+
+export async function usageData(x, days) {
+  days = [7, 14, 30].indexOf(Number(days)) >= 0 ? Number(days) : 7;
+  const today = startOfDay(Date.now()), from = today - (days - 1) * DAY, w7 = today - 6 * DAY;
+  const users = (await crmUsers(x)).filter(u => u.active), P = {};
+  users.forEach(u => {
+    P[u.name] = { name: u.name, email: u.email, role: u.role, level: u.level, tg: !!u.tg, first: null, lastSeen: null, lastAct: null, opens: 0, mins: 0, actions: 0, acts: { care: 0, order: 0, promo: 0, other: 0 }, day: {}, act7: {}, miles: {}, screens: {}, dev: '' };
+  });
+  const byEmail = {}; users.forEach(u => { byEmail[u.email.toLowerCase()] = P[u.name]; });
+  const dayOf = (p, k) => p.day[k] || (p.day[k] = { opens: 0, mins: 0, actions: 0, care: 0, seen: false });
+  const seen = (p, t) => {
+    if (!t) return;
+    if (!p.first || t < p.first) p.first = t;
+    if (!p.lastSeen || t > p.lastSeen) p.lastSeen = t;
+    const k = fmtDate(t, 'yyyy-MM-dd');
+    if (t >= w7) p.act7[k] = 1;
+    if (t >= from) dayOf(p, k).seen = true;
+  };
+
+  for (const r of await all(x.db, 'SELECT * FROM usage WHERE last_time >= ? OR first_time >= ?', from - 30 * DAY, from - 30 * DAY)) {
+    const p = byEmail[String(r.email || '').trim().toLowerCase()]; if (!p) continue;
+    const k = r.day, t0 = r.first_time, t1 = r.last_time;
+    seen(p, t0); seen(p, t1);
+    if (r.dev && t1 >= from) p.dev = String(r.dev).split(', ').pop();
+    if (!t1 || t1 < from) continue;
+    const dd = dayOf(p, k);
+    dd.opens += Number(r.opens) || 0; dd.mins += Number(r.mins) || 0;
+    p.opens += Number(r.opens) || 0; p.mins += Number(r.mins) || 0;
+    String(r.screens || '').split(', ').filter(Boolean).forEach(s => { p.screens[s] = (p.screens[s] || 0) + 1; });
+  }
+
+  for (const r of await all(x.db, 'SELECT time, by_name FROM perf WHERE time >= ?', from - 30 * DAY)) {
+    const p = P[r.by_name]; if (p) seen(p, r.time);
+  }
+
+  for (const r of await all(x.db, 'SELECT time, by_name, what FROM logs WHERE time >= ?', from - 60 * DAY)) {
+    const p = P[r.by_name], t = r.time; if (!p || !t) continue;
+    seen(p, t);
+    if (!p.lastAct || t > p.lastAct) p.lastAct = t;
+    const kd = useKind(r.what);
+    if (kd !== 'other' && !p.miles[kd]) p.miles[kd] = t;
+    if (t < from) continue;
+    p.actions++; p.acts[kd]++;
+    const dd = dayOf(p, fmtDate(t, 'yyyy-MM-dd'));
+    dd.actions++; if (kd === 'care') dd.care++;
+  }
+
+  const out = users.map(u => {
+    const p = P[u.name], series = [];
+    for (let t = from; t <= today; t += DAY) {
+      const k = fmtDate(t + 12 * 3600e3, 'yyyy-MM-dd'), dd = p.day[k] || {};
+      series.push({ day: k, opens: dd.opens || 0, mins: Math.round((dd.mins || 0) * 10) / 10, actions: dd.actions || 0, care: dd.care || 0, seen: !!dd.seen });
+    }
+    const n7 = Object.keys(p.act7).length;
+    p.miles.login = p.first; p.miles.tg = p.tg ? true : null; p.miles.steady = n7 >= 5 ? true : null;
+    return {
+      name: p.name, email: p.email, role: p.role, level: p.level, tg: p.tg, lastSeen: p.lastSeen, lastAct: p.lastAct,
+      activeDays: series.filter(s => s.seen).length, days7: n7, opens: p.opens, mins: Math.round(p.mins), actions: p.actions,
+      acts: p.acts, dev: p.dev, screens: p.screens, series,
+      miles: USE_MILES.map(m => { const v = p.miles[m[0]]; return { k: m[0], label: m[1], done: !!v, at: typeof v === 'number' ? v : null }; })
+    };
+  });
+
+  return { days, from, today, since: '2026-10-07', people: out };
+}
+
+async function crmUsageReport(x, u, d) {
+  if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị xem được mức độ dùng CRM.' };
+  const r = await usageData(x, d.days);
+  r.ok = true;
+  return r;
+}
+
+export async function usageAlert(x) {
+  const now = Date.now(), vn = new Date(now + 7 * 3600e3);
+  const monday = vn.getUTCDay() === 1;
+  const r = await usageData(x, 7), today = r.today;
+  const staff = r.people.filter(p => p.level < 3);
+  if (!staff.length) return;
+  const ago = t => t ? Math.round((today - startOfDay(t)) / DAY) : null;
+  const idle = staff.filter(p => { const a = ago(p.lastSeen); return a === null || a >= USE_IDLE_DAYS; });
+  let msg = '';
+  if (idle.length) {
+    msg += '⚠️ <b>Nhân sự chưa vào CRM</b>\n' + idle.map(p => {
+      const a = ago(p.lastSeen);
+      return '• ' + esc(p.name) + ' – ' + (a === null ? 'chưa từng đăng nhập' : a + ' ngày (lần cuối ' + fmtDate(p.lastSeen, 'dd/MM HH:mm') + ')');
+    }).join('\n') + '\n👉 Gọi hỏi thăm xem bạn có vướng gì không.';
+  }
+  if (monday) {
+    msg += (msg ? '\n\n' : '') + '📈 <b>Mức dùng CRM 7 ngày qua</b>\n' + staff.map(p => {
+      const miss = p.miles.filter(m => !m.done).map(m => m.label);
+      return '• <b>' + esc(p.name) + '</b>: vào ' + p.activeDays + '/7 ngày · ' + p.mins + ' phút · ' + p.actions + ' thao tác (chăm sóc ' + p.acts.care + ', đơn ' + p.acts.order + ', ưu đãi ' + p.acts.promo + ')' + (miss.length ? '\n   Chưa: ' + miss.join(', ') : '\n   ✅ Đã qua đủ các mốc');
+    }).join('\n');
+  }
+  if (!msg) return;
+  msg += '\n\nChi tiết: ' + CRM_URL + '/#bao-cao → 📈 Mức dùng CRM';
+  const ad = (await crmUsers(x)).find(u => u.role === 'Quản trị' && u.tg);
+  if (ad && ad.tg) await telegramTo(x.env, ad.tg, msg);
+  else await telegram(x.env, msg);
+}
+
+/* ================================================================ Góp ý (Feedback) */
+const FB_STATUS = ['Mới', 'Đang làm', 'Đã xong', 'Không làm'];
+
+async function crmFeedback(x, u, d) {
+  const text = String(d.text || '').trim().slice(0, 5000);
+  const imgs = (Array.isArray(d.images) ? d.images : []).slice(0, 3);
+  if (!text && !imgs.length) return { ok: false, error: 'Bạn gõ vài chữ hoặc gửi kèm ảnh giúp nhé.' };
+  const now = Date.now(), id = 'GY' + fmtDate(now, 'yyMMddHHmmss');
+  const imgIdxs = [];
+  for (let i = 0; i < imgs.length; i++) {
+    const b64 = imgs[i];
+    if (typeof b64 === 'string' && b64.startsWith('data:image/')) {
+      await run(x.db, 'INSERT INTO feedback_images (id, idx, data) VALUES (?, ?, ?)', id, i, b64);
+      imgIdxs.push(i);
+    }
+  }
+  await run(x.db, 'INSERT INTO feedback (id, time, by_name, email, kind, text, route, ua, ver, imgs, status, reply, handler, updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    id, now, u.name, u.email, String(d.kind || 'Góp ý'), text, String(d.route || ''), String(d.ua || '').slice(0, 300), String(d.ver || ''), JSON.stringify(imgIdxs), 'Mới', '', '', now);
+  
+  const cap = '💡 <b>GÓP Ý CRM</b> – ' + esc(d.kind || 'Góp ý') + '\n👤 ' + esc(u.name) + ' · ' + esc(d.route || '') + '\n\n' + esc(text.slice(0, 800)) + (imgs.length ? '\n\n(' + imgs.length + ' ảnh, xem trong CRM → 💡 Góp ý)' : '') + '\n\n👉 ' + CRM_URL;
+  x.later(telegram(x.env, cap));
+  return { ok: true, id };
+}
+
+async function crmFbList(x, u) {
+  let rows = await all(x.db, 'SELECT * FROM feedback ORDER BY time DESC LIMIT 200');
+  if (u.level < 2) rows = rows.filter(r => r.email === u.email);
+  const items = rows.map(r => {
+    let imgs = [];
+    try { imgs = JSON.parse(r.imgs || '[]'); } catch (e) { }
+    return {
+      id: r.id, time: r.time, by: r.by_name, email: r.email, kind: r.kind, text: r.text,
+      route: r.route, ua: r.ua, ver: r.ver, imgs, imgNote: '', status: r.status || 'Mới',
+      reply: r.reply || '', handler: r.handler || '', updated: r.updated
+    };
+  });
+  return { ok: true, items, statuses: FB_STATUS };
+}
+
+async function crmFbImg(x, u, d) {
+  const it = await first(x.db, 'SELECT * FROM feedback WHERE id = ?', String(d.id));
+  if (!it) return { ok: false, error: 'Không tìm thấy góp ý.' };
+  if (u.level < 2 && it.email !== u.email) return { ok: false, error: 'Bạn không xem được góp ý này.' };
+  const row = await first(x.db, 'SELECT data FROM feedback_images WHERE id = ? AND idx = ?', String(d.id), Number(d.i) || 0);
+  if (!row) return { ok: false, error: 'Không có ảnh.' };
+  return { ok: true, src: row.data };
+}
+
+async function crmFbUpdate(x, u, d) {
+  if (u.level < 2) return { ok: false, error: 'Chỉ quản lý cập nhật được góp ý.' };
+  const it = await first(x.db, 'SELECT * FROM feedback WHERE id = ?', String(d.id));
+  if (!it) return { ok: false, error: 'Không tìm thấy góp ý.' };
+  const st = FB_STATUS.indexOf(d.status) >= 0 ? d.status : it.status;
+  const reply = String(d.reply == null ? it.reply : d.reply).slice(0, 3000);
+  const now = Date.now();
+  await run(x.db, 'UPDATE feedback SET status = ?, reply = ?, handler = ?, updated = ? WHERE id = ?', st, reply, u.name, now, it.id);
+  if (st !== it.status || reply !== it.reply) {
+    x.later(telegramUser(x, it.by_name, '💡 Góp ý của bạn (' + esc(it.text.slice(0, 60)) + '…) → <b>' + esc(st) + '</b>' + (reply ? '\n💬 ' + esc(u.name) + ': ' + esc(reply) : '') + '\n\nCảm ơn bạn đã góp ý! 🙏'));
+  }
+  return { ok: true };
+}
+
 /* ================================================================ điều phối */
 export async function crmApi(x, d, sync) {
+  await ensureSchema(x.db);
   const a = d.action;
   if (a === 'login') return crmLogin(x, d);
   if (a === 'verify') return crmVerify(x, d);
@@ -668,6 +1049,13 @@ export async function crmApi(x, d, sync) {
   if (a === 'tg_check') return crmTgCheck(x, u, d);
   if (a === 'prefs') return crmPrefs(x, u, d);
   if (a === 'tg_off') { await userSet(x, u.email, 'tg', ''); return { ok: true }; }
+  if (a === 'perf') return crmPerf(x, u, d);
+  if (a === 'usage') return crmUsage(x, u, d);
+  if (a === 'usage_report') return crmUsageReport(x, u, d);
+  if (a === 'feedback') return crmFeedback(x, u, d);
+  if (a === 'fb_list') return crmFbList(x, u);
+  if (a === 'fb_img') return crmFbImg(x, u, d);
+  if (a === 'fb_update') return crmFbUpdate(x, u, d);
   const need = { settings: 2, users: 3, assign: 2, bulk: 2, recv: 2 };
   if (need[a] && u.level < need[a]) return { ok: false, error: 'Bạn không có quyền làm việc này.' };
   const h = { care: crmCare, customer: crmCustomer, order_status: crmOrderStatus, contact: crmContact, settings: crmSettings, users: crmSaveUsers, order_edit: crmOrderEdit,

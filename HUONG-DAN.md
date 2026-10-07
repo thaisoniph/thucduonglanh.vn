@@ -54,8 +54,12 @@ website/
 ├── guide/                 Hướng dẫn nhân sự: index.md (Bắt đầu), crm.md, website.md, guide.css, img/ → dist-crm/huong-dan/
 ├── build.py               sinh web vào dist/ (tự nén ảnh sang WebP) + CRM vào dist-crm/
 ├── .github/workflows/deploy.yml   tự build + đăng lên Cloudflare mỗi khi có thay đổi
-└── backend/               CHỈ Ở MÁY (không đưa lên GitHub – có mã Telegram)
-    ├── google-apps-script.gs            code nhận đơn + CRM
+├── api/                   máy chủ CRM + nhận đơn: api.thucduonglanh.vn (Cloudflare Workers + D1)
+│   ├── schema.sql         cấu trúc bảng D1 (orders, customers, leads, logs, perf, usage, feedback...)
+│   ├── src/               code xử lý API, CRM, nhận đơn, webhook VTP, cron, đồng bộ Sheet
+│   └── wrangler.toml      cấu hình Cloudflare Worker
+└── backend/               cầu nối Google (Google Apps Script)
+    ├── google-apps-script.gs            cầu nối gửi email, cấp quyền đọc Sheet, dọn trigger cũ
     └── cloudflare-redirect-rules.json   bản sao 10 quy tắc chuyển hướng
 ```
 
@@ -96,11 +100,12 @@ Sheet **Đơn hàng website Thực Dưỡng Lành**: https://docs.google.com/spr
 
 **Việc chăm sóc mỗi ngày** (hàm `careTask`, dùng chung cho tin Telegram 8h và tab Hôm nay trên CRM web): hẹn gọi lại (cột "Hẹn gọi lại" đến ngày) · hỏi nhận hàng (D+1 đến D+3) · sắp hết / đã hết sản phẩm (–7 đến +2 ngày) · xin cảm nhận (D+14 đến D+17) · giới thiệu sản phẩm (D+30 đến D+33) · mời quay lại (D+60 đến D+67). Khách đã được chăm sóc sau mốc đó thì không nhắc nữa. **Khách quen sản phẩm** (bản 2026-10-05a): `shipMap` gắn `fam` cho đơn gần nhất khi `famOf` thấy mọi sản phẩm (khoá `prodKeys`: bỏ 🎁, số lượng, quy cách) khách đã nhận ≥ `rules_cfg.famMin` lần trước (mặc định 1, 0 = tắt), lần gần nhất ≤ 180 ngày (`FAM_GAP`), đơn liền trước không hoàn → `careTask` bỏ mốc d1/d7/d14 (`FAM_SKIP`); vẫn nhắc runout/d30/winback/callback. `custObj` gửi `fam` → nhãn 🌟 Khách quen SP trong hồ sơ + hộp chăm sóc; ô chỉnh ở Cài đặt → Nhóm khách. Chưa port sang api/ (Cloudflare).
 
-### CRM web – https://crm.thucduonglanh.vn
+### CRM web – https://crm.thucduonglanh.vn & Máy chủ API – https://api.thucduonglanh.vn
 
-- Trang tĩnh trong `crm/`, build ra `dist-crm/`, đăng lên Cloudflare Pages project **thucduonglanh-crm** (bước riêng trong `deploy.yml`, tự tạo project + gắn tên miền + bản ghi DNS `crm` lần đầu).
-- Dữ liệu vẫn nằm trong Google Sheet. Trang gọi thẳng link Apps Script (`order_endpoint`) với `type: 'crm'` (hàm `crmApi`). Không có máy chủ riêng.
-- **Đăng nhập**: nhập email → Apps Script gửi mã 6 số (10 phút, sai 5 lần phải xin mã mới, tối đa 5 lần xin mã / 15 phút) → phiên 30 ngày lưu trong Script Properties (`crm_s_…`). Chỉ email có trong trang **Nhân sự CRM** và "Đang dùng = Có" mới vào được. Bỏ tích "Đang dùng" là khoá ngay.
+- Trang tĩnh trong `crm/`, build ra `dist-crm/`, đăng lên Cloudflare Pages project **thucduonglanh-crm**.
+- Từ 10/2026 (bản `2026-10-07d`), toàn bộ dữ liệu đơn hàng và CRM chạy trên máy chủ **Cloudflare Workers + D1** tại `https://api.thucduonglanh.vn/api`. Dữ liệu được sao lưu định kỳ sang Google Sheet (mirror hàng giờ). Apps Script cũ đóng vai trò cầu nối Google (gửi email, cấp quyền đọc Sheet) và đã được tắt các trigger chạy ngầm cũ (`tatTriggerCu`).
+- Toàn bộ tính năng CRM đã được port đầy đủ sang Worker: tab Hiệu quả (`perf`), Mức dùng CRM (`usage`, `usage_report`), Góp ý (`feedback`, `fb_list`, `fb_img`, `fb_update`), Webhook Viettel Post (`vtp`), nhắc nhở không vào CRM (`usageAlert`), tự nhập file sale 30 phút/lần (`srcAutoTick`).
+- **Đăng nhập**: nhập email → máy chủ gửi mã 6 số qua email (10 phút, phiên 30 ngày lưu trong D1 `sessions`). Chỉ email có trong bảng `users` và đang kích hoạt mới vào được. Bỏ tích "Đang dùng" là khoá ngay.
 - **Quyền**: Nhân viên = Hôm nay, Khách hàng, Đơn hàng (đổi trạng thái, tạo đơn nhập tay), Liên hệ. Quản lý = thêm doanh thu, sửa Chu kỳ dùng và Mẫu tin nhắn. Quản trị = thêm quản lý nhân sự.
 - **Tạo đơn nhập tay** (Zalo, điện thoại…): ghi vào Đơn hàng với Nguồn "Nhập tay – …", cập nhật Khách hàng, báo Telegram (không gửi email).
 - **Số ngày chưa chăm sóc** (nhãn màu trên mỗi thẻ khách + ô lớn trong trang chi tiết): đếm từ lần gần nhất khách *có phản hồi* (mọi kết quả trừ "Không nghe máy"), lấy từ Nhật ký CSKH + cột Lần CSKH/Kết quả CSKH. Chưa chăm sóc lần nào thì đếm từ ngày mua đầu tiên. Xanh ≤ 7 ngày, cam 8–30, đỏ > 30. Có bộ lọc "Quá 30 ngày chưa chăm sóc" và cách sắp xếp "Lâu chưa chăm sóc nhất". Tính trên trình duyệt, không cần sửa Apps Script.
