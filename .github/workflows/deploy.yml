@@ -63,3 +63,24 @@ jobs:
           else
             curl -s "${H[@]}" -X POST "$API/zones/$CF_ZONE/dns_records" -d '{"type":"CNAME","name":"crm","content":"thucduonglanh-crm.pages.dev","proxied":true,"comment":"CRM nhân sự"}' | head -c 600; echo
           fi
+      # Máy chủ CRM + nhận đơn: api.thucduonglanh.vn (Cloudflare Workers + D1), code trong api/
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Đăng máy chủ CRM (Cloudflare Workers + D1)
+        continue-on-error: true
+        working-directory: api
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          W="npx --yes wrangler@4"
+          ID=$($W d1 list --json | python3 -c "import sys,json; print(next((d['uuid'] for d in json.load(sys.stdin) if d['name']=='thucduonglanh-crm'),''))")
+          if [ -z "$ID" ]; then
+            $W d1 create thucduonglanh-crm --location apac
+            ID=$($W d1 list --json | python3 -c "import sys,json; print(next((d['uuid'] for d in json.load(sys.stdin) if d['name']=='thucduonglanh-crm'),''))")
+          fi
+          echo "D1 ID: $ID"
+          sed -i -E "s/database_id = \".*\"/database_id = \"$ID\"/" wrangler.toml
+          $W d1 execute thucduonglanh-crm --remote --file=schema.sql
+          $W deploy

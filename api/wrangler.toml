@@ -1,0 +1,22 @@
+# Máy chủ CRM + nhận đơn: https://api.thucduonglanh.vn (Cloudflare Workers + D1)
+name = "thucduonglanh-api"
+main = "src/index.js"
+compatibility_date = "2025-09-01"
+workers_dev = false
+
+routes = [{ pattern = "api.thucduonglanh.vn", custom_domain = true }]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "thucduonglanh-crm"
+database_id = "__D1_ID__" # GitHub Actions tự điền khi triển khai
+
+[vars]
+# Apps Script (cầu nối Google: gửi email, mã truy cập Google Sheets). Cùng link với order_endpoint cũ.
+BRIDGE_URL = "https://script.google.com/macros/s/AKfycbylMjHmg2kXJZHcMSEzDWeI8YC_He35HcCrTTDgslYz8ftI9jMJ6fSFUx5qnPpTAnW-/exec"
+
+[triggers]
+crons = ["*/10 * * * *"]
+
+[observability]
+enabled = true

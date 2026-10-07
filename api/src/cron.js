@@ -1,0 +1,80 @@
+// Việc chạy theo lịch: 8h sáng gửi danh sách chăm sóc, 10 phút/lần lấy số quảng cáo, mỗi giờ chép bản sao dữ liệu sang Google Sheet.
+import { normPhone, esc, fmtDate, startOfDay, all, kvGet, kvSet, CRM_URL, DAY } from './lib.js';
+import { telegram, telegramTo, gInfo, sheetMeta, sheetClear, sheetWrite, sheetAddTabs, a1 } from './google.js';
+import { crmUsers, rulesCfg, careTask, groupOf, leadsData, leadDue, adsCfg } from './crm.js';
+import { adsSync } from './sync.js';
+
+function careMessage(items, leads, today, isGroup, who, R) {
+  const block = (title, arr, tip) => !arr.length ? '' : '\n\n<b>' + title + ' (' + arr.length + ')</b> – ' + tip + '\n' + arr.slice(0, 25).map(c =>
+    '• ' + esc(c.name) + ' – <a href="https://zalo.me/' + c.phone + '">' + c.phone + '</a>' + (c.group !== 'Mới' ? ' [' + c.group + ']' : '') + (isGroup ? (c.owner ? ' 👤' + esc(c.owner) : ' ⚠️chưa ai phụ trách') : '') +
+    '\n   ' + esc(c.products) + (c.late ? ' <b>– đã quá ' + c.late + ' ngày</b>' : '') + (c.ok ? '' : ' <i>(chưa đồng ý nhận tin – chỉ hỏi thăm)</i>')).join('\n') + (arr.length > 25 ? '\n   … và ' + (arr.length - 25) + ' khách khác (xem CRM)' : '');
+  const by = k => items.filter(i => i.type === k);
+  const lb = leads.length ? '\n\n<b>🙋 Khách tiềm năng cần liên hệ (' + leads.length + ')</b>\n' + leads.slice(0, 25).map(l => '• ' + esc(l.name) + ' – <a href="https://zalo.me/' + l.phone + '">' + l.phone + '</a>' + (l.interest ? ' · ' + esc(l.interest) : '') + (isGroup ? (l.owner ? ' 👤' + esc(l.owner) : ' ⚠️chưa ai phụ trách') : '')).join('\n') : '';
+  const total = items.length + leads.length;
+  return '📋 <b>' + (who ? 'Việc của ' + esc(who) + ' ' : 'CSKH hôm nay ') + fmtDate(today, 'dd/MM') + '</b> – ' + items.length + ' khách cần chăm sóc' + (leads.length ? ', ' + leads.length + ' khách tiềm năng' : '') +
+    block('📞 Hẹn gọi lại', by('callback'), 'khách đã hẹn') + block('📦 Hỏi nhận hàng, hướng dẫn dùng', by('d1'), 'đơn mới giao') + block('⏰ Sắp hết / đã hết sản phẩm', by('runout'), 'nhắc đặt lại, gợi ý đơn từ 300K được freeship') +
+    block('💬 Xin cảm nhận', by('d14'), '14 ngày sau khi mua') + block('🌿 Giới thiệu sản phẩm phù hợp', by('d30'), '30 ngày sau khi mua') + block('💌 Mời quay lại', by('winback'), R.atRisk + ' ngày chưa mua') + lb +
+    (total ? '\n\n✍️ Làm trên CRM: ' + CRM_URL : '\n\nHôm nay không có khách đến lịch chăm sóc 🎉');
+}
+
+/** 8h sáng: danh sách cần chăm sóc vào nhóm Telegram (quản lý) và riêng cho từng nhân viên. */
+export async function dailyCare(x) {
+  const today = startOfDay(Date.now()), R = await rulesCfg(x), items = [];
+  for (const v of await all(x.db, 'SELECT phone, name, orders, spent, last, runout, care_at, callback, products, consent, owner FROM customers WHERE orders > 0')) {
+    const t = careTask(v, today, R); if (!t) continue;
+    items.push({ type: t.type, name: v.name, phone: v.phone, products: String(v.products || '').split('; ').slice(-2).join(', '), group: groupOf(v.orders, v.spent, v.last, R), ok: !!v.consent, owner: v.owner || '', late: t.late });
+  }
+  const leads = (await leadsData(x, "status IN ('Mới hỏi', 'Đang tư vấn')")).filter(l => leadDue(l, today));
+  await telegram(x.env, careMessage(items, leads, today, true, '', R));
+  for (const u of await crmUsers(x)) {
+    if (!u.active || !u.tg) continue;
+    const mine = items.filter(i => i.owner === u.name), ml = leads.filter(l => l.owner === u.name);
+    if (mine.length || ml.length) await telegramTo(x.env, u.tg, careMessage(mine, ml, today, false, u.name, R));
+  }
+  return { items: items.length, leads: leads.length };
+}
+
+/* ---------- bản sao sang Google Sheet (để xem, lọc, xuất báo cáo; sửa trên Sheet không có tác dụng) */
+const T = t => t ? fmtDate(t, 'yyyy-MM-dd HH:mm') : '';
+const MIRROR = [
+  ['CRM · Đơn hàng', ['Thời gian', 'Mã đơn', 'Khách hàng', 'Điện thoại', 'Email', 'Tỉnh/TP', 'Phường/Xã', 'Địa chỉ', 'Sản phẩm', 'Tạm tính', 'Phí ship', 'Tổng', 'Thanh toán', 'Ghi chú', 'Trạng thái', 'Nguồn', 'Nguồn đầu tiên', 'Đồng ý nhận tin', 'Đã nhận tiền', 'Đơn vị vận chuyển', 'Mã vận đơn', 'NV bán', 'Ca', 'Dòng SP', 'Lên đơn'],
+    'SELECT * FROM orders ORDER BY time, rid', r => [T(r.time), r.id, r.name, r.phone, r.email, r.province, r.ward, r.address, r.items, r.subtotal, r.shipping, r.total, r.payment, r.note, r.status, r.source, r.first_source, r.consent ? 'Có' : 'Không', r.paid, r.carrier, r.tracking, r.seller, r.ca, r.line, r.ship]],
+  ['CRM · Khách hàng', ['Điện thoại', 'Tên', 'Địa chỉ', 'Tỉnh/TP', 'Phường/Xã', 'Số đơn', 'Tổng chi', 'Đơn đầu', 'Đơn gần nhất', 'Sản phẩm đã mua', 'Dự kiến hết hàng', 'Đồng ý nhận tin', 'Nguồn đầu tiên', 'Phụ trách', 'Lần CSKH gần nhất', 'Kết quả CSKH', 'Ghi chú CSKH', 'Hẹn gọi lại', 'Nhãn', 'Nhãn màu'],
+    "SELECT * FROM customers WHERE orders > 0 OR flag != '' ORDER BY last", r => [r.phone, r.name, r.address, r.province, r.ward, r.orders, r.spent, T(r.first), T(r.last), r.products, T(r.runout), r.consent ? 'Có' : 'Không', r.source, r.owner, T(r.care_at), r.care_result, String(r.note || '').slice(0, 45000), T(r.callback), r.flag, r.tag]],
+  ['CRM · Khách tiềm năng', ['Mã', 'Thời gian', 'Tên', 'Điện thoại', 'Kênh', 'Quan tâm', 'Trạng thái', 'Phụ trách', 'Lần liên hệ gần nhất', 'Hẹn liên hệ lại', 'Lý do không mua', 'Ghi chú', 'Mã đơn', 'Người tạo'],
+    'SELECT * FROM leads ORDER BY rid', r => [r.id, T(r.time), r.name, r.phone, r.channel, r.interest, r.status, r.owner, T(r.last_at), T(r.callback), r.reason, String(r.note || '').slice(0, 45000), r.order_id, r.by_name]],
+  ['CRM · Nhật ký CSKH', ['Thời gian', 'Người làm', 'Việc', 'SĐT / Mã đơn', 'Khách', 'Kết quả', 'Ghi chú'], 'SELECT * FROM logs ORDER BY rid', r => [T(r.time), r.by_name, r.what, r.ref, r.name, r.result, r.note]],
+  ['CRM · Liên hệ', ['Thời gian', 'Họ tên', 'Điện thoại', 'Email', 'Nội dung', 'Trang', 'Đã trả lời', 'Ghi chú'], 'SELECT * FROM contacts ORDER BY rid', r => [T(r.time), r.name, r.phone, r.email, r.message, r.page, r.done ? 'Có' : '', r.note]],
+  ['CRM · Mục tiêu', ['Tháng', 'Nhân viên', 'Mục tiêu doanh số', 'Người đặt', 'Cập nhật lúc'], 'SELECT * FROM targets ORDER BY month, name', r => [r.month, r.name, r.amount, r.by_name, T(r.at)]]
+];
+export async function mirror(x) {
+  const info = await gInfo(x.env), id = info.sheetId; if (!id) throw new Error('Chưa biết file Sheet chính');
+  const meta = await sheetMeta(x.env, id), have = (meta.sheets || []).map(s => s.properties.title);
+  await sheetAddTabs(x.env, id, MIRROR.map(m => m[0]).filter(t => have.indexOf(t) < 0));
+  await sheetClear(x.env, id, MIRROR.map(m => a1(m[0], 'A:AA')));
+  const data = [], counts = {};
+  for (const [tab, head, sql, row] of MIRROR) {
+    const rows = (await all(x.db, sql)).map(r => row(r).map(v => v == null ? '' : v));
+    counts[tab] = rows.length;
+    const all2 = [head, ...rows];
+    for (let i = 0; i < all2.length; i += 2000) data.push({ range: a1(tab, 'A' + (i + 1)), values: all2.slice(i, i + 2000) }); // từng phần cho khỏi quá giới hạn Google
+  }
+  data.push({ range: a1(MIRROR[0][0], 'AA1'), values: [['Bản sao tự động từ CRM lúc ' + fmtDate(Date.now(), 'HH:mm dd/MM/yyyy') + ' – sửa ở đây không có tác dụng, hãy sửa trên crm.thucduonglanh.vn']] });
+  for (const d of data) await sheetWrite(x.env, id, [d]);
+  await kvSet(x.db, 'mirror_last', String(Date.now()));
+  return counts;
+}
+
+/** Mỗi 10 phút. 1h sáng giờ UTC = 8h sáng giờ Việt Nam: gửi danh sách chăm sóc. */
+export async function scheduled(x, cron) {
+  if (!await kvGet(x.db, 'migrated')) return;
+  const now = Date.now(), vn = new Date(now + 7 * 3600e3);
+  if (vn.getUTCHours() === 8 && vn.getUTCMinutes() < 10) {
+    const key = 'care_' + fmtDate(now, 'yyyyMMdd');
+    if (!await kvGet(x.db, key)) { await kvSet(x.db, key, '1', 2 * DAY); try { await dailyCare(x); } catch (e) { console.error('dailyCare', e.message); } }
+  }
+  const ads = await adsCfg(x);
+  if (ads && ads.auto) { try { await adsSync(x, { name: 'Tự động', level: 3 }, false); } catch (e) { console.error('ads', e.message); } }
+  const last = Number(await kvGet(x.db, 'mirror_last') || 0);
+  if (now - last > 55 * 60e3) { try { await mirror(x); } catch (e) { console.error('mirror', e.message); await kvSet(x.db, 'mirror_last', String(now - 30 * 60e3)); } }
+}
