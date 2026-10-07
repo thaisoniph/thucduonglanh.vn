@@ -73,18 +73,18 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          set -x
-          npx wrangler whoami || echo "whoami failed"
-          W="npx wrangler"
-          ID=$($W d1 list --json 2>/dev/null | python3 -c "import sys,json; data=json.load(sys.stdin); print(next((d['uuid'] for d in data if d.get('name')=='thucduonglanh-crm'),''))" || echo "")
+          npm install -g wrangler
+          wrangler whoami
+          echo "account_id = \"$CLOUDFLARE_ACCOUNT_ID\"" >> wrangler.toml
+          ID=$(wrangler d1 list --json 2>/dev/null | python3 -c "import sys,json; data=json.load(sys.stdin); print(next((d['uuid'] for d in data if d.get('name')=='thucduonglanh-crm'),''))" || echo "")
           if [ -z "$ID" ]; then
             echo "Tạo D1 database thucduonglanh-crm..."
-            $W d1 create thucduonglanh-crm --location apac || true
-            ID=$($W d1 list --json 2>/dev/null | python3 -c "import sys,json; data=json.load(sys.stdin); print(next((d['uuid'] for d in data if d.get('name')=='thucduonglanh-crm'),''))" || echo "")
+            wrangler d1 create thucduonglanh-crm --location apac || true
+            ID=$(wrangler d1 list --json 2>/dev/null | python3 -c "import sys,json; data=json.load(sys.stdin); print(next((d['uuid'] for d in data if d.get('name')=='thucduonglanh-crm'),''))" || echo "")
           fi
           echo "D1 ID: $ID"
           if [ -n "$ID" ]; then
             sed -i -E "s/database_id = \".*\"/database_id = \"$ID\"/" wrangler.toml
-            $W d1 execute thucduonglanh-crm --remote --file=schema.sql
+            wrangler d1 execute thucduonglanh-crm --remote --file=schema.sql
           fi
-          $W deploy
+          wrangler deploy
