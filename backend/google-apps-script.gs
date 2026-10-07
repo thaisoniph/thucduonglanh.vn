@@ -17,7 +17,7 @@ var TELEGRAM_TOKEN = PropertiesService.getScriptProperties().getProperty('TELEGR
 var TELEGRAM_CHAT_IDS = '-5318324525'; // nhóm "Đơn hàng Thực Dưỡng Lành" – thêm/bớt nhân viên trực tiếp trong nhóm
 var TZ = 'Asia/Ho_Chi_Minh';
 var CRM_URL = 'https://crm.thucduonglanh.vn';
-var CRM_VERSION = '2026-10-07b';
+var CRM_VERSION = '2026-10-07c';
 // Từ 10/2026 CRM chạy trên máy chủ Cloudflare (api.thucduonglanh.vn). Apps Script này chỉ còn làm "cầu nối" Google: gửi email, cấp quyền đọc Google Sheet.
 var API_URL = 'https://api.thucduonglanh.vn/api'; // CRM web so với số này để biết Apps Script đã được triển khai bản mới chưa
 
@@ -902,21 +902,23 @@ function tableOf(sh) {
 
 /* ---------- nhớ tạm dữ liệu đã đọc từ Sheet (CacheService, 10 phút): mở CRM không phải đọc lại cả Sheet mỗi lần.
  * Lưu chăm sóc / sửa khách / tư vấn → cachePatch() sửa đúng dòng đó; việc khác (đơn web, tạo đơn, nhập file…) → dataChanged() bỏ bản nhớ.
- * docSanCRM() (5 phút/lần) đọc sẵn khi bản nhớ hết hạn. Sửa tay trên Sheet: tối đa 10 phút sau mới thấy (hoặc bấm ↻). */
-var LOAD_TTL = 600, CHUNK = 30000, CACHE_MAX = 3000000;
+ * docSanCRM() (5 phút/lần) đọc sẵn khi bản nhớ hết hạn. Sửa tay trên Sheet: tối đa 10 phút sau mới thấy (hoặc bấm ↻).
+ * Bản nhớ được NÉN (gzip → base64, nhỏ đi ~8–10 lần): trước đây ~6.000 đơn đã vượt 3 MB nên bản nhớ không được lưu, lần tải nào cũng đọc cả Sheet. */
+var LOAD_TTL = 600, CHUNK = 90000, CACHE_MAX = 5000000; // CHUNK: mỗi ô CacheService tối đa 100 KB; CACHE_MAX tính trên bản đã nén
 function dataChanged() { try { PropertiesService.getScriptProperties().setProperty('data_ver', Date.now().toString(36) + Math.random().toString(36).slice(2, 6)); } catch (e) { } }
-function cacheKey() { return 'ld_' + (PropertiesService.getScriptProperties().getProperty('data_ver') || '0') + '_' + Utilities.formatDate(new Date(), TZ, 'yyMMdd'); }
+function cacheKey() { return 'lz_' + (PropertiesService.getScriptProperties().getProperty('data_ver') || '0') + '_' + Utilities.formatDate(new Date(), TZ, 'yyMMdd'); }
 function cacheGet(key) {
   try {
     var c = CacheService.getScriptCache(), n = Number(c.get(key + '_n')); if (!n) return null;
     var ks = []; for (var i = 0; i < n; i++) ks.push(key + '_' + i);
     var got = c.getAll(ks), parts = []; for (var j = 0; j < n; j++) { if (got[ks[j]] == null) return null; parts.push(got[ks[j]]); }
-    return JSON.parse(parts.join(''));
-  } catch (e) { return null; }
+    return JSON.parse(Utilities.ungzip(Utilities.newBlob(Utilities.base64Decode(parts.join('')), 'application/x-gzip')).getDataAsString('UTF-8'));
+  } catch (e) { console.error('cacheGet', e); return null; }
 }
 function cachePut(key, obj) {
   try {
-    var str = JSON.stringify(obj), o = {}, n = Math.ceil(str.length / CHUNK); if (str.length > CACHE_MAX) return; // dữ liệu lớn: nhớ tạm tốn bộ nhớ hơn là đọc lại → bỏ
+    var raw = JSON.stringify(obj), str = Utilities.base64Encode(Utilities.gzip(Utilities.newBlob(raw, 'application/json')).getBytes()), o = {}, n = Math.ceil(str.length / CHUNK);
+    if (str.length > CACHE_MAX) { console.error('cachePut: quá lớn ' + Math.round(raw.length / 1024) + ' KB → nén ' + Math.round(str.length / 1024) + ' KB'); PropertiesService.getScriptProperties().setProperty('cache_skip', new Date().toISOString() + ' ' + Math.round(str.length / 1024) + ' KB'); return; } // vẫn quá lớn sau khi nén → bỏ (xem Script Properties "cache_skip")
     for (var i = 0; i < n; i++) o[key + '_' + i] = str.substr(i * CHUNK, CHUNK);
     var c = CacheService.getScriptCache(); c.putAll(o, LOAD_TTL); c.put(key + '_n', String(n), LOAD_TTL); // số phần ghi sau cùng: có đủ phần mới dùng
   } catch (e) { console.error('cachePut', e); }
@@ -1135,15 +1137,24 @@ function recentOrders(orders) {
 function crmCustOrders(ss, u, d) {
   var phone = normPhone(d.phone);
   if (u.level < 2 && ownerOf(ss, phone) !== u.name) return { ok: false, error: 'Khách này không do bạn phụ trách.' };
-  var t = tableOf(ss.getSheetByName('Đơn hàng')), H = t.H, g = function (r, n) { var k = H.indexOf(n); return k < 0 ? '' : r[k]; }, out = [];
-  t.rows.forEach(function (r, i) {
-    if (normPhone(g(r, 'Điện thoại')) !== phone) return;
-    out.push({ row: i + 2, time: ts(g(r, 'Thời gian')), id: String(g(r, 'Mã đơn')), name: String(g(r, 'Khách hàng')), phone: phone, items: String(g(r, 'Sản phẩm')), total: Number(g(r, 'Tổng')) || 0,
-      subtotal: Number(g(r, 'Tạm tính')) || 0, shipping: Number(g(r, 'Phí ship')) || 0, payment: String(g(r, 'Thanh toán')), note: String(g(r, 'Ghi chú')), status: String(g(r, 'Trạng thái') || ''), source: String(g(r, 'Nguồn')),
-      seller: String(g(r, 'NV bán') || ''), ca: String(g(r, 'Ca') || ''), line: String(g(r, 'Dòng SP') || ''), ship: String(g(r, 'Lên đơn') || ''), shipAt: ts(g(r, 'Ngày gửi')), otype: String(g(r, 'Loại đơn') || ''), oflag: String(g(r, 'Kiểm tra loại đơn') || ''), address: String(g(r, 'Địa chỉ')), province: String(g(r, 'Tỉnh/TP')), ward: String(g(r, 'Phường/Xã')), paid: String(g(r, 'Đã nhận tiền') || ''), carrier: String(g(r, 'Đơn vị vận chuyển') || ''), tracking: String(g(r, 'Mã vận đơn') || ''), trk: String(g(r, 'Hành trình VC') || ''), trkAt: ts(g(r, 'Cập nhật VC')), trkCode: Number(g(r, 'Mã TT VC')) || 0 });
-  });
+  var o = orderSheet(ss), H = o.H, out = null, b = cacheGet(cacheKey());
+  if (b) { // bản nhớ tạm biết đơn của khách nằm ở dòng nào → chỉ đọc mấy dòng đó, không đọc cả tab Đơn hàng
+    out = [];
+    b.orders.forEach(function (x) { if (out && x.phone === phone) { var r = o.sh.getRange(x.row, 1, 1, H.length).getValues()[0], y = custOrderObj(r, H, x.row); if (y.id !== x.id || y.phone !== phone) out = null; else out.push(y); } });
+  }
+  if (!out) { // không có bản nhớ / dòng đã xê dịch → đọc cả tab như cũ
+    var t = tableOf(o.sh); out = [];
+    t.rows.forEach(function (r, i) { if (normPhone(r[t.H.indexOf('Điện thoại')]) === phone) out.push(custOrderObj(r, t.H, i + 2)); });
+  }
   var cs = ss.getSheetByName('Khách hàng'), row = cs ? customerRow(cs, phone) : -1;
   return { ok: true, orders: out, note: row > 0 ? String(cs.getRange(row, C['Ghi chú CSKH'] + 1).getValue() || '') : '' };
+}
+/** 1 dòng tab Đơn hàng → đơn đầy đủ cho hồ sơ khách (thêm địa chỉ, hành trình vận chuyển…). */
+function custOrderObj(r, H, row) {
+  var g = function (r, n) { var k = H.indexOf(n); return k < 0 ? '' : r[k]; }, phone = normPhone(g(r, 'Điện thoại'));
+  return { row: row, time: ts(g(r, 'Thời gian')), id: String(g(r, 'Mã đơn')), name: String(g(r, 'Khách hàng')), phone: phone, items: String(g(r, 'Sản phẩm')), total: Number(g(r, 'Tổng')) || 0,
+      subtotal: Number(g(r, 'Tạm tính')) || 0, shipping: Number(g(r, 'Phí ship')) || 0, payment: String(g(r, 'Thanh toán')), note: String(g(r, 'Ghi chú')), status: String(g(r, 'Trạng thái') || ''), source: String(g(r, 'Nguồn')),
+      seller: String(g(r, 'NV bán') || ''), ca: String(g(r, 'Ca') || ''), line: String(g(r, 'Dòng SP') || ''), ship: String(g(r, 'Lên đơn') || ''), shipAt: ts(g(r, 'Ngày gửi')), otype: String(g(r, 'Loại đơn') || ''), oflag: String(g(r, 'Kiểm tra loại đơn') || ''), address: String(g(r, 'Địa chỉ')), province: String(g(r, 'Tỉnh/TP')), ward: String(g(r, 'Phường/Xã')), paid: String(g(r, 'Đã nhận tiền') || ''), carrier: String(g(r, 'Đơn vị vận chuyển') || ''), tracking: String(g(r, 'Mã vận đơn') || ''), trk: String(g(r, 'Hành trình VC') || ''), trkAt: ts(g(r, 'Cập nhật VC')), trkCode: Number(g(r, 'Mã TT VC')) || 0 };
 }
 
 /* ---------- ghi dữ liệu */
@@ -1852,6 +1863,7 @@ function crmSrcSave(ss, u, d) {
   var row = [id, d.sale || (cur && cur.sale) || '', d.url || (cur && cur.url) || '', d.fileName || (cur && cur.fileName) || '', JSON.stringify(cfg), cur ? cur.last ? new Date(cur.last) : '' : '', cur ? cur.result : ''];
   if (cur) sh.getRange(cur.row, 1, 1, SRC_HEADERS.length).setValues([row]); else sh.appendRow(row);
   crmLog(ss, u, 'Nguồn dữ liệu', id, row[1], cur ? 'Sửa cấu hình' : 'Thêm file ' + row[3], '');
+  PropertiesService.getScriptProperties().deleteProperty('auto_mod_' + id); // đổi cấu hình → lần tự nhập sau đọc lại file dù file không đổi
   wbTrigger(ss);
   return { ok: true, id: id };
 }
@@ -1962,6 +1974,7 @@ function wbTrigger(ss) {
   if (!au) { ha.forEach(function (t) { ScriptApp.deleteTrigger(t); }); pp.setProperty('auto_tick_v', '30m'); }
 }
 /** Tự nhập file sale 30 phút/lần (7h–21h): đơn mới, trạng thái đơn, ghi chú → CRM. Có thay đổi mới tính lại khách (đỡ chậm CRM).
+ *  File không ai sửa từ lần nhập trọn vẹn trước (giờ sửa cuối trên Drive) → bỏ qua, không ghi dòng đo. Chạy tay (force) luôn đọc.
  *  Mỗi lần chạy ghi 1 dòng vào tab "Tự nhập file sale" để đo; Telegram cho quản trị: bản tóm tắt lần đầu trong ngày + khi có lỗi. Chạy tay được để thử. */
 var AUTO_TAB = 'Tự nhập file sale', AUTO_HEADERS = ['Thời gian', 'Sale', 'Chạy (giây)', 'Đơn mới', 'Cập nhật trạng thái', 'Ghi chú mới (khách)', 'Khách hỏi mới', 'Chi tiết / lỗi'];
 function srcAutoTick(force) {
@@ -1970,6 +1983,9 @@ function srcAutoTick(force) {
   var ss = SpreadsheetApp.getActiveSpreadsheet(), u = { name: 'Tự động', level: 3, email: '' }, t0 = Date.now(), out = [], errs = 0, changed = false, ROLE_ORDER = { orders: 0, care: 1, reject: 2 };
   srcList(ss).filter(function (x) { return x.cfg.autoSync; }).forEach(function (src) {
     var lines = [], st = { orders: 0, upd: 0, notes: 0, leads: 0, err: [] }, t1 = Date.now();
+    var mk = 'auto_mod_' + src.id, mod = 0; // file không ai sửa từ lần nhập trước → bỏ qua (đọc file sale mất 30–50 giây)
+    try { mod = DriveApp.getFileById(fileIdOf(src.url)).getLastUpdated().getTime(); } catch (e) { console.error('auto mod', e); }
+    if (force !== true && mod && Number(pp.getProperty(mk)) === mod) return;
     (src.cfg.sheets || []).filter(function (s) { return s.role && s.role !== 'skip'; }).sort(function (a, b) { return ROLE_ORDER[a.role] - ROLE_ORDER[b.role]; }).forEach(function (sc) {
       if (Date.now() - t0 > 270e3) { lines.push(sc.name + ': để lượt sau (hết giờ)'); st.err.push(sc.name + ': hết giờ'); return; } // Apps Script chạy tối đa 6 phút
       try {
@@ -1982,6 +1998,7 @@ function srcAutoTick(force) {
     var any = st.orders || st.upd || st.notes || st.leads;
     if (any) { changed = true; try { crmSrcFinish(ss, u, { id: src.id }); } catch (e) { lines.push('Tính lại khách: LỖI ' + e.message); st.err.push('Tính lại khách: ' + e.message); } } // không có gì mới → không tính lại khách
     errs += st.err.length;
+    if (mod && !st.err.length) pp.setProperty(mk, String(mod)); // nhập trọn vẹn mới ghi mốc; lỗi / hết giờ → lượt sau đọc lại
     try { var lt = sheet(ss, AUTO_TAB, AUTO_HEADERS); lt.appendRow([new Date(), src.sale, Math.round((Date.now() - t1) / 100) / 10, st.orders, st.upd, st.notes, st.leads, st.err.join(' · ')]); if (lt.getLastRow() > 1500) lt.deleteRows(2, lt.getLastRow() - 1000); } catch (e) { console.error('auto log', e); }
     out.push('📂 <b>' + esc(src.sale) + '</b> – ' + st.orders + ' đơn mới\n' + lines.map(function (l) { return '• ' + esc(l); }).join('\n'));
   });
