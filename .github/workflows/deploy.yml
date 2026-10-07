@@ -68,19 +68,23 @@ jobs:
         with:
           node-version: "22"
       - name: Đăng máy chủ CRM (Cloudflare Workers + D1)
-        continue-on-error: true
         working-directory: api
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          W="npx --yes wrangler@4"
-          ID=$($W d1 list --json | python3 -c "import sys,json; print(next((d['uuid'] for d in json.load(sys.stdin) if d['name']=='thucduonglanh-crm'),''))")
+          set -x
+          npx wrangler whoami || echo "whoami failed"
+          W="npx wrangler"
+          ID=$($W d1 list --json 2>/dev/null | python3 -c "import sys,json; data=json.load(sys.stdin); print(next((d['uuid'] for d in data if d.get('name')=='thucduonglanh-crm'),''))" || echo "")
           if [ -z "$ID" ]; then
-            $W d1 create thucduonglanh-crm --location apac
-            ID=$($W d1 list --json | python3 -c "import sys,json; print(next((d['uuid'] for d in json.load(sys.stdin) if d['name']=='thucduonglanh-crm'),''))")
+            echo "Tạo D1 database thucduonglanh-crm..."
+            $W d1 create thucduonglanh-crm --location apac || true
+            ID=$($W d1 list --json 2>/dev/null | python3 -c "import sys,json; data=json.load(sys.stdin); print(next((d['uuid'] for d in data if d.get('name')=='thucduonglanh-crm'),''))" || echo "")
           fi
           echo "D1 ID: $ID"
-          sed -i -E "s/database_id = \".*\"/database_id = \"$ID\"/" wrangler.toml
-          $W d1 execute thucduonglanh-crm --remote --file=schema.sql
+          if [ -n "$ID" ]; then
+            sed -i -E "s/database_id = \".*\"/database_id = \"$ID\"/" wrangler.toml
+            $W d1 execute thucduonglanh-crm --remote --file=schema.sql
+          fi
           $W deploy
