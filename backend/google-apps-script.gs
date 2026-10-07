@@ -17,7 +17,7 @@ var TELEGRAM_TOKEN = PropertiesService.getScriptProperties().getProperty('TELEGR
 var TELEGRAM_CHAT_IDS = '-5318324525'; // nhóm "Đơn hàng Thực Dưỡng Lành" – thêm/bớt nhân viên trực tiếp trong nhóm
 var TZ = 'Asia/Ho_Chi_Minh';
 var CRM_URL = 'https://crm.thucduonglanh.vn';
-var CRM_VERSION = '2026-10-06c';
+var CRM_VERSION = '2026-10-07a';
 // Từ 10/2026 CRM chạy trên máy chủ Cloudflare (api.thucduonglanh.vn). Apps Script này chỉ còn làm "cầu nối" Google: gửi email, cấp quyền đọc Google Sheet.
 var API_URL = 'https://api.thucduonglanh.vn/api'; // CRM web so với số này để biết Apps Script đã được triển khai bản mới chưa
 
@@ -1747,11 +1747,14 @@ function crmSrcInspect(d, ads) {
 
 /* ---------- danh sách nguồn (file sale) */
 function srcSheet(ss) { return sheet(ss, SRC_TAB, SRC_HEADERS); }
+/** Khoá so tên không phụ thuộc kiểu bỏ dấu: "Thu Thuỷ" (dấu trên y) = "Thu Thủy" (dấu trên u), nhưng khác "Thu Thúy". */
+function nameKey(n) { return String(n || '').trim().toLowerCase().split(/\s+/).map(function (w) { var d = w.normalize('NFD'); return d.replace(/[\u0300-\u036f]/g, '') + (d.match(/[\u0300-\u036f]/g) || []).sort().join(''); }).join(' '); }
 function srcList(ss) {
   var sh = ss.getSheetByName(SRC_TAB); if (!sh || sh.getLastRow() < 2) return [];
+  var names = {}; crmUsers(ss).forEach(function (x) { names[nameKey(x.name)] = x.name; }); // tên sale trong tab nguồn gõ khác kiểu dấu → dùng đúng tên nhân sự CRM
   return sh.getRange(2, 1, sh.getLastRow() - 1, SRC_HEADERS.length).getValues().filter(function (r) { return r[0]; }).map(function (r, i) {
     var cfg = {}; try { cfg = JSON.parse(r[4] || '{}'); } catch (e) { }
-    return { id: String(r[0]), sale: String(r[1]), url: String(r[2]), fileName: String(r[3]), cfg: cfg, last: ts(r[5]), result: String(r[6] || ''), row: i + 2 };
+    return { id: String(r[0]), sale: names[nameKey(r[1])] || String(r[1]), url: String(r[2]), fileName: String(r[3]), cfg: cfg, last: ts(r[5]), result: String(r[6] || ''), row: i + 2 };
   });
 }
 function crmSrcSave(ss, u, d) {
