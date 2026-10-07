@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: deploy
@@ -98,3 +98,29 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: api
           command: deploy
+      - name: Ghi lại nhật ký triển khai
+        if: always()
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          API=https://api.cloudflare.com/client/v4
+          H=(-H "Authorization: Bearer $CF_TOKEN" -H "Content-Type: application/json")
+          {
+            echo "=== CLOUDFLARE TOKEN VERIFY ==="
+            curl -s "${H[@]}" "$API/user/tokens/verify"
+            echo ""
+            echo "=== D1 DATABASE LIST ==="
+            curl -s "${H[@]}" "$API/accounts/$CF_ACCOUNT/d1/database"
+            echo ""
+            echo "=== WRANGLER.TOML ==="
+            cat api/wrangler.toml 2>/dev/null || echo "no wrangler.toml"
+            echo ""
+          } > deploy-debug.log
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -B deploy-log
+          git add deploy-debug.log
+          git commit -m "debug: chi tiết trạng thái Cloudflare" || true
+          git push -f origin deploy-log || true
