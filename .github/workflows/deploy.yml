@@ -79,22 +79,28 @@ jobs:
             ID=$(echo "$CREATE" | python3 -c "import sys,json; d=json.load(sys.stdin); print((d.get('result') or {}).get('uuid',''))" 2>/dev/null || echo "")
           fi
           echo "D1 ID: $ID"
-          if [ -n "$ID" ]; then
-            sed -i -E "s/database_id = \".*\"/database_id = \"$ID\"/" api/wrangler.toml
+          if [ -z "$ID" ]; then
+            echo "::error::Lỗi D1: không tạo hoặc tìm thấy database. LIST=$LIST | CREATE=$CREATE"
+            exit 1
           fi
+          sed -i -E "s/database_id = \".*\"/database_id = \"$ID\"/" api/wrangler.toml
           cat api/wrangler.toml
-      - name: Khởi tạo bảng D1
-        continue-on-error: true
-        uses: cloudflare/wrangler-action@v3
+      - uses: actions/setup-node@v4
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: api
-          command: d1 execute thucduonglanh-crm --remote --file=schema.sql
-      - name: Đăng máy chủ CRM Worker
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: api
-          command: deploy
+          node-version: "22"
+      - name: Triển khai Worker và D1
+        working-directory: api
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npm install -g wrangler
+          wrangler d1 execute thucduonglanh-crm --remote --file=schema.sql 2>&1 | tee d1.log || {
+            ERR=$(cat d1.log)
+            echo "::warning::Lỗi d1 execute: $ERR"
+          }
+          wrangler deploy 2>&1 | tee deploy.log || {
+            ERR=$(cat deploy.log)
+            echo "::error::Lỗi wrangler deploy: $ERR"
+            exit 1
+          }
