@@ -114,7 +114,7 @@
   var ON_CF = !/script\.google/.test(CFG.endpoint || ''); // máy chủ Cloudflare (nhanh) hay Apps Script cũ
   function checkVersion(j) {
     if (j && j.v) S.srvV = j.v;
-    if (!j || S._vWarned || j.v === SERVER_V || j.v === '2026-10-02b' || j.v === '2026-10-02c' || j.v === '2026-10-04a' || j.v === '2026-10-04b' || j.v === '2026-10-04c' || j.v === '2026-10-05a' || j.v === '2026-10-05b' || j.v === '2026-10-05c' || j.v === '2026-10-05d' || j.v === '2026-10-06a' || j.v === '2026-10-06b' || j.v === '2026-10-06c' || j.v === '2026-10-07a' || j.v === 'moved') return;
+    if (!j || S._vWarned || j.v === SERVER_V || j.v === '2026-10-02b' || j.v === '2026-10-02c' || j.v === '2026-10-04a' || j.v === '2026-10-04b' || j.v === '2026-10-04c' || j.v === '2026-10-05a' || j.v === '2026-10-05b' || j.v === '2026-10-05c' || j.v === '2026-10-05d' || j.v === '2026-10-06a' || j.v === '2026-10-06b' || j.v === '2026-10-06c' || j.v === '2026-10-07a' || j.v === '2026-10-07b' || j.v === 'moved') return;
     S._vWarned = true;
     if (lvl() >= 2 || (j.user && j.user.level >= 2)) toast('⚠️ Máy chủ Apps Script đang chạy bản cũ (' + (j.v || 'chưa có số phiên bản') + '), cần bản ' + SERVER_V + '. Vào Apps Script → Triển khai → Quản lý các bản triển khai → ✏️ → Phiên bản: Phiên bản mới → Triển khai.', true);
   }
@@ -156,6 +156,19 @@
     var rows = S.pq, ua = navigator.userAgent, cn = navigator.connection; S.pq = []; S.pqAt = Date.now();
     var dev = (/iPhone|iPad/.test(ua) ? 'iPhone/iPad' : /Android/.test(ua) ? 'Android' : /Mac/.test(ua) ? 'Mac' : /Windows/.test(ua) ? 'Windows' : 'Khác') + (/Zalo/i.test(ua) ? ' · trong Zalo' : '') + (cn && cn.effectiveType ? ' · mạng ' + cn.effectiveType : '') + ' · ' + window.innerWidth + 'px';
     api('perf', { rows: rows, dev: dev }).catch(function () { });
+  }
+
+  /* ---------- mức độ dùng CRM: lượt mở, phút dùng (tab đang mở + có chạm / gõ / cuộn trong 2 phút qua), màn hình đã xem. 5 phút gửi 1 lần (hoặc khi ẩn tab) lên tab "Hoạt động CRM". Quản trị xem ở Hiệu quả → 📈 Mức dùng CRM */
+  var U = { opens: 0, sec: 0, scr: {}, act: Date.now(), tick: Date.now(), at: Date.now(), hid: 0 };
+  ['click', 'keydown', 'scroll', 'touchstart'].forEach(function (ev) { document.addEventListener(ev, function () { U.act = Date.now(); }, { passive: true, capture: true }); });
+  function useScreen() { var v = route().view, x = VIEWS.filter(function (y) { return y.id === v; })[0]; if (x) U.scr[x.label] = 1; }
+  function useTick(count) { var now = Date.now(); if (count && now - U.act < 120e3) U.sec += Math.min(now - U.tick, 60e3) / 1000; U.tick = now; }
+  function useDev() { var ua = navigator.userAgent; return (/iPhone|iPad/.test(ua) ? 'iPhone/iPad' : /Android/.test(ua) ? 'Android' : /Mac/.test(ua) ? 'Mac' : /Windows/.test(ua) ? 'Windows' : 'Khác') + (/Zalo/i.test(ua) ? ' (Zalo)' : ''); }
+  function useFlush() {
+    if (!S.token || !/^\d{4}-\d\d-\d\d[a-z]$/.test(S.srvV || '') || S.srvV < '2026-10-07b') return; // máy chủ cũ chưa có lệnh này
+    if (!U.opens && U.sec < 30 && !Object.keys(U.scr).length) return;
+    var p = { opens: U.opens, mins: Math.round(U.sec / 6) / 10, screens: Object.keys(U.scr), dev: useDev() }; U.opens = 0; U.sec = 0; U.scr = {}; U.at = Date.now();
+    api('usage', p).catch(function () { U.opens += p.opens; U.sec += p.mins * 60; p.screens.forEach(function (x) { U.scr[x] = 1; }); }); // gửi lỗi → giữ lại, lần sau gửi tiếp
   }
 
   /* ================================================================ đăng nhập */
@@ -283,6 +296,7 @@
       '<div class="sk-h"></div><div class="sk-kpis"><i></i><i></i><i></i></div>' + row + row + row + row + row + '</main>';
   }
   function start() {
+    U.opens++; useScreen();
     $('#app').innerHTML = skeleton();
     idb('get', 'data').then(function (c) {
       if (c && c.d && c.tk === String(S.token || '').slice(-12) && Date.now() - c.at < 7 * DAY && !S.d) { // dữ liệu lần trước trên máy này → hiện ngay, cập nhật ngầm
@@ -787,13 +801,7 @@
   /** Quản lý (đang xem Tất cả nhân sự): tiến độ hôm nay của từng người. Bấm 1 dòng → lọc theo người đó. */
   function teamBlock() {
     var names = userNames(); if (!names.length) return '';
-    var t0 = today(), lim = dayLimit(), st = {};
-    names.forEach(function (n) { st[n] = { done: {}, knm: 0, todo: 0, late: 0, vip: 0, leads: 0, newO: 0, sold: 0, rev: 0 }; });
-    S.d.log.forEach(function (l) { var x = st[l.by]; if (!x || l.time < t0 || !isCareLog(l)) return; x.done[String(l.ref).replace(/^'/, '')] = 1; if (l.result === NO_REPLY) x.knm++; });
-    S.d.customers.forEach(function (c) { var x = st[c.owner]; if (!x || !c.task || coldOf(c)) return; x.todo++; if (c.task.late && c.task.type !== 'runout') { x.late++; if (isVip(c)) x.vip++; } });
-    names.forEach(function (n) { var x = st[n]; x.todo += oldDueAll(n).length; x.doneN = Object.keys(x.done).length; x.todo = Math.min(x.todo, Math.max(0, lim - x.doneN)); });
-    (S.d.leads || []).forEach(function (l) { var x = st[l.owner]; if (x && leadDue(l)) x.leads++; });
-    S.d.orders.forEach(function (o) { var x = st[orderOwner(o)], y = st[o.seller]; if (x && o.status === 'Mới') x.newO++; if (y && o.time >= t0 && !isVoid(o.status)) { y.sold++; y.rev += Number(o.total) || 0; } });
+    var st = teamStats(names);
     var cell = function (v, bad) { return '<td' + (v && bad ? ' class="bad"' : '') + '>' + (v || '–') + '</td>'; };
     return '<section class="section"><div class="section-h"><h2>👥 Tiến độ nhân sự hôm nay</h2><span class="tip">bấm vào tên để xem việc của người đó</span></div><div class="team-wrap"><table class="team"><thead><tr><th>Nhân sự</th><th>Chăm sóc<br><small>đã xong / cần làm</small></th><th>Trễ hạn</th><th>KNM</th><th>Khách hỏi chờ</th><th>Đơn chưa xác nhận</th><th>Chốt hôm nay</th></tr></thead><tbody>' +
       names.map(function (n) {
@@ -802,6 +810,17 @@
           '<td' + (x.late ? ' class="bad"' : '') + '>' + (x.late ? x.late + (x.vip ? ' <small>(' + x.vip + ' VIP)</small>' : '') : '–') + '</td>' + cell(x.knm) + cell(x.leads, true) + cell(x.newO, true) +
           '<td>' + (x.sold ? x.sold + ' đơn · ' + moneyShort(x.rev) : '–') + '</td></tr>';
       }).join('') + '</tbody></table></div></section>';
+  }
+  /** Tiến độ hôm nay của từng người (bảng Tiến độ nhân sự + Mức dùng CRM). */
+  function teamStats(names) {
+    var t0 = today(), lim = dayLimit(), st = {};
+    names.forEach(function (n) { st[n] = { done: {}, knm: 0, todo: 0, late: 0, vip: 0, leads: 0, newO: 0, sold: 0, rev: 0 }; });
+    S.d.log.forEach(function (l) { var x = st[l.by]; if (!x || l.time < t0 || !isCareLog(l)) return; x.done[String(l.ref).replace(/^'/, '')] = 1; if (l.result === NO_REPLY) x.knm++; });
+    S.d.customers.forEach(function (c) { var x = st[c.owner]; if (!x || !c.task || coldOf(c)) return; x.todo++; if (c.task.late && c.task.type !== 'runout') { x.late++; if (isVip(c)) x.vip++; } });
+    names.forEach(function (n) { var x = st[n]; x.todo += oldDueAll(n).length; x.doneN = Object.keys(x.done).length; x.todo = Math.min(x.todo, Math.max(0, lim - x.doneN)); });
+    (S.d.leads || []).forEach(function (l) { var x = st[l.owner]; if (x && leadDue(l)) x.leads++; });
+    S.d.orders.forEach(function (o) { var x = st[orderOwner(o)], y = st[o.seller]; if (x && o.status === 'Mới') x.newO++; if (y && o.time >= t0 && !isVoid(o.status)) { y.sold++; y.rev += Number(o.total) || 0; } });
+    return st;
   }
   /** Quản lý: khách / khách hỏi chưa có người phụ trách → giao ngay tại chỗ. */
   function waitingBlock() {
@@ -2290,7 +2309,7 @@
     var month = cx.month, c = perf(name, cx.R), p = perf(name, cx.P), me = name === S.user.name;
     var h = (lvl() >= 2 && !me ? '<button class="btn ghost" data-who="team" style="margin-bottom:10px">← Quay lại cả nhóm</button>' : '') +
       targetBlock(name, month, cx.whole ? c.sales : perf(name, monthRange(month)).sales, me || lvl() >= 2) +
-      '<div class="steps" style="margin:0 0 16px"><button class="btn pri" data-daily="' + esc(name) + '">📋 Báo cáo ngày (gửi Zalo)</button><button class="btn" data-bcdt="' + esc(name) + '|' + month + '">📊 Bảng BCDT ' + monthLabel(month) + '</button></div>';
+      '<div class="steps" style="margin:0 0 16px"><button class="btn pri" data-daily="' + esc(name) + '">📋 Báo cáo ngày (gửi Zalo)</button><button class="btn" data-bcdt="' + esc(name) + '|' + month + '">📊 Bảng BCDT ' + monthLabel(month) + '</button>' + (lvl() >= 3 && !me ? '<button class="btn" data-usage="' + esc(name) + '">📈 Mức dùng CRM</button>' : '') + '</div>';
     h += '<section class="section"><div class="section-h"><h2>💰 Bán hàng</h2></div><div class="metrics">' +
       metric('Doanh số', moneyShort(c.sales), 'Tổng tiền ' + c.orders + ' đơn ' + (me ? 'bạn' : '') + ' bán (không tính đơn huỷ).', delta(c.sales, p.sales)) +
       metric('Giá trị trung bình / đơn', c.orders ? moneyShort(c.avg) : '–', 'Doanh số chia số đơn. Tư vấn mua kèm, mua combo thì số này tăng.', c.orders ? delta(c.avg, p.orders ? p.avg : 0) : '') +
@@ -2306,7 +2325,7 @@
   function viewTeam(cx) {
     var month = cx.month, R = cx.R, all = perf(null, R), tt = teamTarget(month);
     var names = userNames(); S.d.orders.forEach(function (o) { if (o.seller && names.indexOf(o.seller) < 0) names.push(o.seller); });
-    var h = targetBlockTeam(cx.whole ? all.sales : perf(null, monthRange(month)).sales, tt, month) + '<div class="steps" style="margin:0 0 16px"><button class="btn pri" data-daily="">📋 Báo cáo ngày (gửi Zalo)</button><button class="btn" data-bcdt="|' + month + '">📊 Bảng BCDT cả nhóm ' + monthLabel(month) + '</button></div>';
+    var h = targetBlockTeam(cx.whole ? all.sales : perf(null, monthRange(month)).sales, tt, month) + '<div class="steps" style="margin:0 0 16px"><button class="btn pri" data-daily="">📋 Báo cáo ngày (gửi Zalo)</button><button class="btn" data-bcdt="|' + month + '">📊 Bảng BCDT cả nhóm ' + monthLabel(month) + '</button>' + (lvl() >= 3 ? '<button class="btn" data-usage="">📈 Mức dùng CRM</button>' : '') + '</div>';
     h += '<div class="kpis">' + kpi('Doanh thu', moneyShort(all.sales), 'good', '', all.orders + ' đơn') + kpi('TB / đơn', all.orders ? moneyShort(all.avg) : '–', '', '', 'giá trị trung bình') +
       kpi('Tỷ lệ chốt', all.closePct === null ? '–' : all.closePct + '%', '', '', all.won + ' chốt · ' + all.lost + ' không mua') + kpi('Từ khách cũ', all.sales ? all.oldPct + '%' : '–', '', '', moneyShort(all.oldRev)) + '</div>';
     var rows = names.map(function (n) { var p = perf(n, R); p.n = n; p.t = targetOf(n, month); p.ms = cx.whole ? p.sales : perf(n, monthRange(month)).sales; return p; }).sort(function (a, b) { return b.sales - a.sales; });
@@ -2893,6 +2912,75 @@
 
   /* ================================================================ hộp thoại */
   var modalRoute = null, modalPushed = false;
+  /* ================================================================ Quản trị: mức độ dùng CRM của nhân sự (usage_report) */
+  function useAgo(t) { if (!t) return null; return Math.max(0, Math.round((today() - dayStart(t)) / DAY)); }
+  function useAgoText(t) { var a = useAgo(t); return a === null ? 'Chưa từng vào' : a === 0 ? 'Hôm nay ' + fDateTime(t).slice(0, 5) : a === 1 ? 'Hôm qua ' + fDateTime(t).slice(0, 5) : a + ' ngày trước'; }
+  function useStatus(p, days) {
+    var a = useAgo(p.lastSeen), next = p.miles.filter(function (m) { return !m.done; })[0];
+    if (a === null) return ['risk', '⛔ Chưa từng vào', 'Gọi hướng dẫn bạn đăng nhập lần đầu'];
+    if (a >= 3) return ['risk', '⛔ ' + a + ' ngày chưa vào', 'Gọi hỏi thăm xem bạn có vướng gì không'];
+    if (a >= 2) return ['noconsent', '⚠️ 2 ngày chưa vào', 'Nhắc bạn mở CRM mỗi sáng'];
+    if (!p.actions) return ['noconsent', '⚠️ Có vào, chưa thao tác', 'Có thể chưa biết dùng – kèm bạn làm 1–2 khách đầu tiên'];
+    if (p.activeDays < Math.ceil(days * 0.6)) return ['noconsent', '⚠️ Vào chưa đều', 'Mới vào ' + p.activeDays + '/' + days + ' ngày'];
+    return ['st-xong', '✅ Dùng tốt', next ? 'Bước tiếp theo: ' + next.label : 'Đã qua đủ các mốc'];
+  }
+  function openUsage(who, days) {
+    days = days || (S.f.use && S.f.use.days) || 7; S.f.use = { days: days };
+    var m = modal('📈 Mức dùng CRM' + (who ? ' – ' + esc(who) : ''), '<p class="muted">Đang tải số liệu…</p>');
+    api('usage_report', { days: days }).then(function (r) {
+      if (!$('.sheet-b', m) || !m.isConnected) return;
+      var chips = '<div class="chips">' + [7, 14, 30].map(function (n) { return '<button class="chip' + (n === r.days ? ' on' : '') + '" data-ud="' + n + '">' + n + ' ngày</button>'; }).join('') + '</div>';
+      var p = who && r.people.filter(function (x) { return x.name === who; })[0];
+      $('.sheet-b', m).innerHTML = chips + (who ? (p ? usagePerson(p, r) : empty('Không tìm thấy ' + esc(who) + ' trong danh sách nhân sự đang dùng.')) : usageTeam(r)) +
+        '<p class="small muted" style="margin-top:14px">Số lượt mở và phút dùng có từ ngày 07/10/2026. Những ngày trước đó, CRM tính “ngày có vào” theo lượt tải dữ liệu và nhật ký thao tác. Phút dùng chỉ tính lúc CRM đang mở trên màn hình và có chạm, gõ hoặc cuộn trong 2 phút gần nhất.</p>';
+      m.addEventListener('click', function (e) {
+        var b = e.target.closest('[data-ud],[data-uw]'); if (!b) return;
+        if (b.hasAttribute('data-ud')) openUsage(who, Number(b.getAttribute('data-ud')));
+        else openUsage(b.getAttribute('data-uw') || null, r.days);
+      });
+    }, function (e) { if ($('.sheet-b', m)) $('.sheet-b', m).innerHTML = '<p class="err">' + esc(e.message) + '</p>' + (/Không rõ thao tác/.test(e.message) ? '<p class="small">Máy chủ Apps Script chưa có bản 2026-10-07b. Đợi GitHub tự triển khai xong (vài phút) rồi thử lại.</p>' : ''); });
+  }
+  function usageTeam(r) {
+    var st = teamStats(r.people.map(function (p) { return p.name; })), rows = r.people.slice().sort(function (a, b) { return (a.level >= 3) - (b.level >= 3) || (b.lastSeen || 0) - (a.lastSeen || 0); });
+    return '<div class="team-wrap"><table class="team use"><thead><tr><th>Nhân sự</th><th>Lần cuối vào</th><th>Số ngày vào<br><small>' + r.days + ' ngày qua</small></th><th>Phút dùng</th><th>Thao tác<br><small>chăm sóc · đơn · ưu đãi</small></th><th>Chăm sóc hôm nay<br><small>đã xong / cần làm</small></th><th>Mốc</th><th>Đánh giá</th></tr></thead><tbody>' +
+      rows.map(function (p) {
+        var s = useStatus(p, r.days), x = st[p.name] || { doneN: 0, todo: 0 }, all = x.doneN + x.todo, pc = all ? Math.round(x.doneN * 100 / all) : 100, done = p.miles.filter(function (m) { return m.done; }).length;
+        return '<tr data-uw="' + esc(p.name) + '"><td><b>' + esc(p.name) + '</b>' + (p.level >= 2 ? ' <small class="muted">' + esc(p.role) + '</small>' : '') + '</td>' +
+          '<td' + (useAgo(p.lastSeen) === null || useAgo(p.lastSeen) >= 2 ? ' class="bad"' : '') + '>' + useAgoText(p.lastSeen) + '</td>' +
+          '<td>' + p.activeDays + '/' + r.days + '</td><td>' + (p.mins || '–') + '</td>' +
+          '<td><b>' + p.actions + '</b> <small class="muted">' + p.acts.care + ' · ' + p.acts.order + ' · ' + p.acts.promo + '</small></td>' +
+          '<td>' + (all ? '<div class="tm-p"><span>' + x.doneN + ' / ' + all + '</span><div class="bar"><i style="width:' + pc + '%"></i></div></div>' : '–') + '</td>' +
+          '<td>' + done + '/' + p.miles.length + '</td><td style="text-align:left"><span class="tag ' + s[0] + '">' + s[1] + '</span><br><small class="muted">' + esc(s[2]) + '</small></td></tr>';
+      }).join('') + '</tbody></table></div><p class="small muted" style="margin-top:8px">Bấm vào tên để xem chi tiết từng ngày, các mốc đã qua và thao tác gần đây.</p>';
+  }
+  function usagePerson(p, r) {
+    var s = useStatus(p, r.days), x = (teamStats([p.name]))[p.name], all = x.doneN + x.todo, maxM = Math.max.apply(null, p.series.map(function (d) { return d.mins; }).concat(1)), maxA = Math.max.apply(null, p.series.map(function (d) { return d.actions; }).concat(1));
+    var views = VIEWS.filter(function (v) { return !v.min || p.level >= v.min; }).map(function (v) { return v.label; }), unused = views.filter(function (v) { return !p.screens[v]; });
+    var h = '<button class="btn ghost" data-uw="" style="margin-bottom:10px">← Cả nhóm</button>' +
+      '<p><span class="tag ' + s[0] + '">' + s[1] + '</span> ' + esc(s[2]) + '</p><div class="metrics">' +
+      metric('Lần cuối vào', useAgoText(p.lastSeen), p.lastSeen ? fDateTime(p.lastSeen) + (p.dev ? ' · ' + esc(p.dev) : '') : 'Chưa đăng nhập lần nào') +
+      metric('Số ngày vào', p.activeDays + '/' + r.days, '7 ngày gần nhất: ' + p.days7 + '/7 ngày') +
+      metric('Thời gian dùng', p.mins + ' phút', p.opens + ' lượt mở CRM trong ' + r.days + ' ngày') +
+      metric('Thao tác', String(p.actions), 'Chăm sóc ' + p.acts.care + ' · đơn hàng ' + p.acts.order + ' · gửi ưu đãi ' + p.acts.promo + ' · khác ' + p.acts.other) +
+      metric('Chăm sóc hôm nay', all ? x.doneN + ' / ' + all : '–', all ? 'Đã xong / cần làm' + (x.late ? ' · ' + x.late + ' khách trễ hạn' : '') : 'Hôm nay không có khách đến lịch') +
+      '</div>';
+    h += '<section class="section"><div class="section-h"><h2>🪜 Các mốc làm quen</h2></div><div class="use-miles">' + p.miles.map(function (m) {
+      return '<div class="' + (m.done ? 'done' : '') + '"><b>' + (m.done ? '✅' : '⬜') + '</b> ' + esc(m.label) + (m.at ? ' <small class="muted">' + fDate(m.at) + '</small>' : '') + '</div>';
+    }).join('') + '</div></section>';
+    h += '<section class="section"><div class="section-h"><h2>📅 Từng ngày</h2></div><div class="team-wrap"><table class="team"><thead><tr><th>Ngày</th><th>Lượt mở</th><th>Phút dùng</th><th>Thao tác</th></tr></thead><tbody>' +
+      p.series.slice().reverse().map(function (d) {
+        var dd = d.day.split('-'), off = !d.seen && !d.actions;
+        return '<tr class="' + (off ? 'off' : '') + '"><td>' + dd[2] + '/' + dd[1] + '</td><td>' + (d.opens || (d.seen ? 'có vào' : '–')) + '</td>' +
+          '<td><div class="tm-p"><span>' + (d.mins || '–') + '</span><div class="bar"><i style="width:' + Math.round(d.mins * 100 / maxM) + '%"></i></div></div></td>' +
+          '<td><div class="tm-p"><span>' + (d.actions || '–') + (d.care ? ' <small class="muted">(' + d.care + ' CS)</small>' : '') + '</span><div class="bar"><i style="width:' + Math.round(d.actions * 100 / maxA) + '%"></i></div></div></td></tr>';
+      }).join('') + '</tbody></table></div></section>';
+    h += '<section class="section"><div class="section-h"><h2>🧭 Màn hình đã dùng</h2><span class="tip">số ngày có mở</span></div><div class="chips wrap">' +
+      views.map(function (v) { return '<span class="chip' + (p.screens[v] ? ' on' : '') + '">' + esc(v) + (p.screens[v] ? ' <em>' + p.screens[v] + '</em>' : '') + '</span>'; }).join('') + '</div>' +
+      (unused.length && p.opens ? '<p class="small muted">Chưa mở: ' + esc(unused.join(', ')) + '. Có thể bạn chưa biết phần này, nên chỉ thêm.</p>' : '') + '</section>';
+    var recent = S.d.log.filter(function (l) { return l.by === p.name; }).sort(function (a, b) { return b.time - a.time; }).slice(0, 20);
+    h += '<section class="section"><div class="section-h"><h2>🕘 Thao tác gần đây</h2></div>' + (recent.length ? '<div class="timeline">' + recent.map(logItem).join('') + '</div>' : empty('Chưa có thao tác nào.')) + '</section>';
+    return h;
+  }
   function modal(title, body, foot, opt) {
     closeModal(true);
     var m = document.createElement('div'); m.className = 'modal'; m.setAttribute('role', 'dialog'); m.setAttribute('aria-modal', 'true');
@@ -2912,7 +3000,7 @@
   /* ================================================================ sự kiện chung */
   document.addEventListener('toggle', function (e) { var d = e.target; if (d && d.matches && d.matches('details[data-grp]')) { S.f.gopen = S.f.gopen || {}; S.f.gopen[d.getAttribute('data-grp')] = d.open; } }, true);
   document.addEventListener('click', function (e) {
-    var t = e.target.closest('[data-otab],[data-per],[data-promo],[data-rf],[data-vipgo],[data-taghelp],[data-consent],[data-daily],[data-flow],[data-zalo],[data-quick],[data-care],[data-next],[data-neworder],[data-cf],[data-os],[data-tf],[data-cat],[data-addtag],[data-deltag],[data-claim],[data-bcdt],[data-srcadd],[data-srcedit],[data-srcsync],[data-srcdel],[data-adsedit],[data-adssync],[data-who],[data-target],[data-myold],[data-more],[data-add],[data-rm],[data-consult],[data-leadorder],[data-newlead],[data-editlead],[data-cust],[data-order],[data-lead]');
+    var t = e.target.closest('[data-otab],[data-per],[data-promo],[data-rf],[data-vipgo],[data-taghelp],[data-consent],[data-daily],[data-usage],[data-flow],[data-zalo],[data-quick],[data-care],[data-next],[data-neworder],[data-cf],[data-os],[data-tf],[data-cat],[data-addtag],[data-deltag],[data-claim],[data-bcdt],[data-srcadd],[data-srcedit],[data-srcsync],[data-srcdel],[data-adsedit],[data-adssync],[data-who],[data-target],[data-myold],[data-more],[data-add],[data-rm],[data-consult],[data-leadorder],[data-newlead],[data-editlead],[data-cust],[data-order],[data-lead]');
     if (!t || !S.d) return;
     if (e.target.closest('a[href]') && !t.hasAttribute('data-myold')) return; // nút gọi / Zalo bên trong thẻ
     var a = function (k) { return t.getAttribute(k); };
@@ -2923,6 +3011,7 @@
     if (t.hasAttribute('data-vipgo')) { e.preventDefault(); S.f.c = { q: '', k: 'risk', sort: 'spent', n: 60 }; location.hash = '#khach-hang'; return; }
     if (t.hasAttribute('data-consent')) { e.stopPropagation(); var cc = cust(a('data-consent')); if (cc) { sendOp('customer', { phone: cc.phone, consent: 1 }); t.outerHTML = consentTag(cc); toast('Đã ghi: khách đồng ý nhận ưu đãi ✓'); } return; }
     if (t.hasAttribute('data-daily')) { openDaily(a('data-daily') || null); return; }
+    if (t.hasAttribute('data-usage')) { openUsage(a('data-usage') || null); return; }
     if (t.hasAttribute('data-zalo')) { e.stopPropagation(); var zc = cust(a('data-zalo')); if (zc) { setZalo(zc, true); var zb = $('.modal [data-zalo]'); if (zb) zb.outerHTML = zaloTag(zc); } return; }
     if (t.hasAttribute('data-quick')) { e.stopPropagation(); var qk = a('data-quick').split('|'), qc = cust(qk[0]); if (qc) quickCare(qc, qk[1], qk[2], '', t); return; }
     if (t.hasAttribute('data-care')) { e.stopPropagation(); openCare(a('data-care'), a('data-task')); return; }
@@ -3037,11 +3126,13 @@
     if (e.target.id === 'who') { setWho(e.target.value); }
   });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && $('.modal')) closeModal(); });
-  window.addEventListener('hashchange', function () { if (!route().id) closeModal(true); render(); });
+  window.addEventListener('hashchange', function () { if (!route().id) closeModal(true); render(); if (S.d) useScreen(); });
   window.addEventListener('popstate', function () { if (!route().id && $('.modal')) closeModal(true); });
   // tự làm mới mỗi 3 phút khi đang mở trang, và khi quay lại tab
-  setInterval(function () { if (S.d && !document.hidden && !$('.modal') && Date.now() - S.loadedAt > 170e3) load(true); if (S.pq && S.pq.length && Date.now() - (S.pqAt || 0) > 120e3) perfFlush(); }, 30e3);
-  document.addEventListener('visibilitychange', function () { if (document.hidden) perfFlush(); if (!document.hidden && S.d && !$('.modal') && Date.now() - S.loadedAt > 60e3) load(true); });
+  setInterval(function () { if (S.d && !document.hidden && !$('.modal') && Date.now() - S.loadedAt > 170e3) load(true); if (S.pq && S.pq.length && Date.now() - (S.pqAt || 0) > 120e3) perfFlush(); useTick(!document.hidden); if (Date.now() - U.at > 300e3) useFlush(); }, 30e3);
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) { useTick(true); U.hid = Date.now(); useFlush(); } else { U.tick = Date.now(); if (S.token && U.hid && Date.now() - U.hid > 30 * 60e3) { U.opens++; useScreen(); } } // quay lại sau 30 phút = 1 lượt mở mới
+    if (document.hidden) perfFlush(); if (!document.hidden && S.d && !$('.modal') && Date.now() - S.loadedAt > 60e3) load(true); });
 
   /* ================================================================ chạy */
   if (S.token) start(); else renderLogin('email');

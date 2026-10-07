@@ -555,3 +555,9 @@ details.comm { border: 1px dashed #9cc3a8; background: #f3faf5; }
 .tm-p { display: flex; align-items: center; gap: 8px; min-width: 120px; } .tm-p span { min-width: 44px; } .tm-p .bar { flex: 1; margin: 0; height: 8px; }
 .tag.bday { background: #fde8f0; color: #a3245b; border-color: #f6c3d7; }
 .rw-2 .sug { color: var(--primary); font-weight: 600; }
+/* Mức dùng CRM (Quản trị) */
+.use-miles { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 6px; }
+.use-miles > div { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; font-size: 14px; color: var(--muted); }
+.use-miles > div.done { color: var(--ink); border-color: #b7dfc3; background: #f3faf5; }
+.team tr.off td { color: var(--muted); background: #fafaf7; }
+.team.use td:last-child { white-space: normal; min-width: 170px; }

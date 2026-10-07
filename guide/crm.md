@@ -373,6 +373,13 @@ Doanh số tính theo **Nhân viên bán** ghi trên từng đơn. Đơn khách 
 
 **Tab Hiệu quả → Tất cả nhân sự:** doanh thu, mục tiêu cả nhóm, biểu đồ **📊 So sánh nhân viên** và bảng từng nhân viên. Biểu đồ cho chọn chỉ số: Doanh số, Số đơn, TB/đơn, Tỷ lệ chốt, % mục tiêu, Lượt chăm sóc, Chăm sóc ra đơn, Từ khách cũ. Mỗi người là 1 thanh, xếp từ cao xuống thấp. Vạch đen là mức trung bình của nhóm, thanh xám là người chưa có số liệu. Bấm vào thanh hoặc thẻ của 1 người để xem chi tiết và đặt mục tiêu. Có mục **Vì sao khách hỏi không mua** và cảnh báo **đơn chưa có nhân viên bán** (mở đơn để gán).
 
+**📈 Mức dùng CRM** (chỉ Quản trị, tab **Hiệu quả** → nút *📈 Mức dùng CRM*). Trang này cho biết từng nhân sự dùng CRM thế nào, để kịp kèm những bạn còn vướng. Chọn xem 7, 14 hoặc 30 ngày.
+
+- **Bảng cả nhóm**: lần cuối vào, số ngày có vào, số phút dùng, số thao tác (chăm sóc · đơn · ưu đãi), việc chăm sóc hôm nay đã xong / cần làm, số mốc đã qua và **Đánh giá**. Ô đánh giá ghi *⛔ chưa vào*, *⚠️ có vào nhưng chưa thao tác*, *⚠️ vào chưa đều* hoặc *✅ dùng tốt*, kèm việc nên làm tiếp.
+- Bấm vào tên 1 người để xem **các mốc làm quen** (đăng nhập lần đầu → kết nối Telegram → ghi chăm sóc đầu tiên → gửi ưu đãi Zalo → tạo đơn đầu tiên → dùng đều 5/7 ngày), số liệu **từng ngày**, **màn hình đã dùng / chưa mở** và **20 thao tác gần nhất**.
+- **Tin Telegram 8h sáng** (gửi riêng Quản trị; chưa kết nối Telegram thì gửi email): báo tên những bạn đã **từ 2 ngày chưa vào CRM**. **Thứ Hai** gửi thêm tóm tắt 7 ngày của từng người.
+- Số lượt mở và phút dùng có từ 07/10/2026. Phút dùng chỉ tính lúc CRM đang mở trên màn hình và có chạm, gõ hoặc cuộn trong 2 phút gần nhất. Số liệu nằm ở tab **Hoạt động CRM** trong Sheet.
+
 **Giao khách:**
 
 - Tab **Hôm nay** (chọn *Tất cả nhân sự*) có bảng **👥 Tiến độ nhân sự hôm nay**. Mỗi người 1 dòng: số khách chăm sóc đã xong / cần làm, số việc trễ hạn (trong đó bao nhiêu khách VIP), số lần không nghe máy, khách hỏi đang chờ, đơn chưa xác nhận, đơn chốt hôm nay. Bấm vào tên để xem danh sách việc của người đó.
@@ -409,6 +416,8 @@ Máy tự ghi kèm bạn đang ở màn hình nào, dùng máy gì, nên bạn c
 **Không nhận được mã đăng nhập?** Xem mục Spam/Quảng cáo. Kiểm tra lại email đã gõ đúng chưa. Đợi 1–2 phút rồi bấm **Gửi lại mã**.
 
 **Báo “Phiên đăng nhập đã hết”?** Đăng nhập lại bằng email như lần đầu.
+
+**CRM có ghi lại việc mình dùng không?** Có. CRM ghi số lần bạn mở, thời gian dùng, màn hình bạn đã xem và các thao tác (đã ghi trong Nhật ký CSKH). Quản trị xem số liệu này để biết bạn đang vướng ở đâu mà hướng dẫn kịp thời. CRM không ghi nội dung gì khác trên máy bạn.
 
 **Đồng nghiệp đã sửa mà máy tôi chưa thấy?** Bấm nút **⟳** góc trên để tải lại.
 

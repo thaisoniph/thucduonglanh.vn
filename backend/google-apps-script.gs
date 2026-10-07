@@ -17,7 +17,7 @@ var TELEGRAM_TOKEN = PropertiesService.getScriptProperties().getProperty('TELEGR
 var TELEGRAM_CHAT_IDS = '-5318324525'; // nhóm "Đơn hàng Thực Dưỡng Lành" – thêm/bớt nhân viên trực tiếp trong nhóm
 var TZ = 'Asia/Ho_Chi_Minh';
 var CRM_URL = 'https://crm.thucduonglanh.vn';
-var CRM_VERSION = '2026-10-07a';
+var CRM_VERSION = '2026-10-07b';
 // Từ 10/2026 CRM chạy trên máy chủ Cloudflare (api.thucduonglanh.vn). Apps Script này chỉ còn làm "cầu nối" Google: gửi email, cấp quyền đọc Google Sheet.
 var API_URL = 'https://api.thucduonglanh.vn/api'; // CRM web so với số này để biết Apps Script đã được triển khai bản mới chưa
 
@@ -31,7 +31,7 @@ var CUS_HEADERS = ['Điện thoại', 'Tên', 'Địa chỉ', 'Tỉnh/TP', 'Phư
 var CONTACT_HEADERS = ['Thời gian', 'Họ tên', 'Điện thoại', 'Email', 'Nội dung', 'Trang'];
 var C = {}; CUS_HEADERS.forEach(function (h, i) { C[h] = i; });
 
-var READ_ONLY = { perf: 1, feedback: 1, fb_list: 1, fb_img: 1, fb_update: 1, load: 1, login: 1, verify: 1, logout: 1, check_phone: 1, cust_orders: 1, src_inspect: 1, ads_inspect: 1, tg_link: 1, prefs: 1 };
+var READ_ONLY = { perf: 1, usage: 1, usage_report: 1, feedback: 1, fb_list: 1, fb_img: 1, fb_update: 1, load: 1, login: 1, verify: 1, logout: 1, check_phone: 1, cust_orders: 1, src_inspect: 1, ads_inspect: 1, tg_link: 1, prefs: 1 };
 function doPost(e) {
   try {
     var data = JSON.parse(e.postData.contents);
@@ -496,6 +496,7 @@ function dailyCare() {
     var mine = items.filter(function (i) { return i.owner === x.name; }), ml = leads.filter(function (l) { return l.owner === x.name; }), mb = bdays.filter(function (b) { return b.owner === x.name; });
     if (mine.length || ml.length || mb.length) telegramTo(x.tg, careMessage(mine, ml, today, false, x.name, mb));
   });
+  try { usageAlert(ss); } catch (e) { console.error('usageAlert', e); }
 }
 function leadDueServer(l, today) {
   if (l.status !== 'Mới hỏi' && l.status !== 'Đang tư vấn') return false;
@@ -578,6 +579,8 @@ function crmApi(d) {
       return rc;
     }
     if (a === 'perf') return crmPerf(ss, u, d);
+    if (a === 'usage') return crmUsage(ss, u, d);
+    if (a === 'usage_report') return crmUsageReport(ss, u, d);
     if (a === 'check_phone') return crmCheckPhone(ss, u, d);
     if (a === 'cust_orders') return crmCustOrders(ss, u, d);
     var admin = { src_inspect: 1, src_save: 1, src_delete: 1, src_sync: 1, src_finish: 1, ads_inspect: 1, ads_save: 1, ads_sync: 1 };
@@ -1155,6 +1158,91 @@ function crmPerf(ss, u, d) {
   if (sh.getLastRow() > 8000) sh.deleteRows(2, sh.getLastRow() - 6000);
   return { ok: true };
 }
+/* ---------- mức độ dùng CRM: CRM gửi lượt mở / phút dùng / màn hình đã xem (5 phút 1 lần + khi ẩn tab) → tab "Hoạt động CRM", 1 dòng / người / ngày.
+   Quản trị xem ở Hiệu quả → 📈 Mức dùng CRM (usage_report). 8h sáng (dailyCare) báo Telegram quản trị ai ≥ 2 ngày chưa vào; thứ Hai gửi thêm tóm tắt tuần. */
+var USE_TAB = 'Hoạt động CRM', USE_HEADERS = ['Ngày', 'Email', 'Tên', 'Lần mở', 'Phút dùng', 'Màn hình đã xem', 'Thiết bị', 'Vào lúc', 'Lần cuối'];
+var USE_IDLE_DAYS = 2; // chưa vào CRM từ ngần này ngày → báo quản trị
+function dayKey(t) { return Utilities.formatDate(new Date(t), TZ, 'yyyy-MM-dd'); }
+function crmUsage(ss, u, d) {
+  var opens = Math.min(50, Math.max(0, Math.round(Number(d.opens) || 0))), mins = Math.min(60, Math.max(0, Number(d.mins) || 0));
+  var scr = (Array.isArray(d.screens) ? d.screens : []).map(function (s) { return String(s).slice(0, 30); }).filter(String).slice(0, 20), dev = String(d.dev || '').slice(0, 40);
+  if (!opens && !mins && !scr.length) return { ok: true };
+  var lock = LockService.getScriptLock(); if (!lock.tryLock(8000)) return { ok: false, error: 'Máy chủ đang bận.' }; // CRM giữ số liệu, lần sau gửi lại
+  try {
+    var now = new Date(), key = dayKey(now), sh = sheet(ss, USE_TAB, USE_HEADERS), last = sh.getLastRow(), row = -1;
+    if (last >= 2) { var n = Math.min(last - 1, 300), ks = sh.getRange(last - n + 1, 1, n, 2).getDisplayValues(); for (var i = n - 1; i >= 0; i--) if (ks[i][0] === key && ks[i][1] === u.email) { row = last - n + 1 + i; break; } }
+    var join = function (old, add) { var a = String(old || '').split(', ').filter(String); add.forEach(function (x) { if (x && a.indexOf(x) < 0) a.push(x); }); return a.join(', '); };
+    if (row < 0) sh.appendRow(["'" + key, u.email, u.name, opens, Math.round(mins * 10) / 10, scr.join(', '), dev, now, now]);
+    else { var v = sh.getRange(row, 4, 1, 4).getValues()[0]; sh.getRange(row, 4, 1, 6).setValues([[(Number(v[0]) || 0) + opens, Math.round(((Number(v[1]) || 0) + mins) * 10) / 10, join(v[2], scr), join(v[3], dev ? [dev] : []), sh.getRange(row, 8).getValue() || now, now]]); }
+    return { ok: true };
+  } finally { lock.releaseLock(); }
+}
+var USE_CARE = {}; Object.keys(TASK_LABEL).forEach(function (k) { USE_CARE[TASK_LABEL[k]] = 1; }); USE_CARE['Tư vấn'] = 1; USE_CARE['Trả lời liên hệ'] = 1;
+var USE_ORDER = { 'Tạo đơn': 1, 'Sửa đơn': 1, 'Đơn hàng': 1, 'Loại đơn': 1 };
+function useKind(what) { return USE_CARE[what] ? 'care' : USE_ORDER[what] ? 'order' : what === 'Gửi ưu đãi' ? 'promo' : 'other'; }
+var USE_MILES = [['login', 'Đăng nhập lần đầu'], ['tg', 'Kết nối Telegram'], ['care', 'Ghi chăm sóc đầu tiên'], ['promo', 'Gửi ưu đãi Zalo'], ['order', 'Tạo đơn đầu tiên'], ['steady', 'Dùng đều 5/7 ngày']];
+/** Số liệu dùng CRM của từng nhân sự trong `days` ngày gần đây. Nguồn: tab Hoạt động CRM (từ 07/10/2026), Đo tốc độ CRM (lượt tải, có từ 05/10/2026), Nhật ký CSKH (mọi thao tác). */
+function usageData(ss, days) {
+  days = [7, 14, 30].indexOf(Number(days)) >= 0 ? Number(days) : 7;
+  var today = startOfDay(new Date()).getTime(), from = today - (days - 1) * 864e5, w7 = today - 6 * 864e5;
+  var users = crmUsers(ss).filter(function (x) { return x.active; }), P = {};
+  users.forEach(function (x) { P[x.name] = { name: x.name, email: x.email, role: x.role, level: x.level, tg: !!x.tg, first: null, lastSeen: null, lastAct: null, opens: 0, mins: 0, actions: 0, acts: { care: 0, order: 0, promo: 0, other: 0 }, day: {}, act7: {}, miles: {}, screens: {}, dev: '' }; });
+  var byEmail = {}; users.forEach(function (x) { byEmail[x.email] = P[x.name]; });
+  var dayOf = function (p, k) { return p.day[k] || (p.day[k] = { opens: 0, mins: 0, actions: 0, care: 0, seen: false }); };
+  var seen = function (p, t) { if (!t) return; if (!p.first || t < p.first) p.first = t; if (!p.lastSeen || t > p.lastSeen) p.lastSeen = t; var k = dayKey(t); if (t >= w7) p.act7[k] = 1; if (t >= from) dayOf(p, k).seen = true; };
+  var us = ss.getSheetByName(USE_TAB);
+  if (us && us.getLastRow() > 1) us.getRange(2, 1, us.getLastRow() - 1, USE_HEADERS.length).getValues().forEach(function (r) {
+    var p = byEmail[String(r[1]).trim().toLowerCase()]; if (!p) return;
+    var k = String(r[0]).replace(/^'/, ''), t0 = ts(r[7]), t1 = ts(r[8]); seen(p, t0); seen(p, t1);
+    if (r[6] && t1 >= from) p.dev = String(r[6]).split(', ').pop();
+    if (!t1 || t1 < from) return;
+    var dd = dayOf(p, k); dd.opens += Number(r[3]) || 0; dd.mins += Number(r[4]) || 0; p.opens += Number(r[3]) || 0; p.mins += Number(r[4]) || 0;
+    String(r[5] || '').split(', ').filter(String).forEach(function (s) { p.screens[s] = (p.screens[s] || 0) + 1; });
+  });
+  var ps = ss.getSheetByName(PERF_TAB); // lượt tải / lưu từ trước khi có tab Hoạt động CRM
+  if (ps && ps.getLastRow() > 1) ps.getRange(2, 1, ps.getLastRow() - 1, 2).getValues().forEach(function (r) { var p = P[String(r[1])]; if (p) seen(p, ts(r[0])); });
+  var ls = ss.getSheetByName(LOG_TAB);
+  if (ls && ls.getLastRow() > 1) ls.getRange(2, 1, ls.getLastRow() - 1, 3).getValues().forEach(function (r) {
+    var p = P[String(r[1])], t = ts(r[0]); if (!p || !t) return;
+    seen(p, t); if (!p.lastAct || t > p.lastAct) p.lastAct = t;
+    var kd = useKind(String(r[2])); if (kd !== 'other' && !p.miles[kd]) p.miles[kd] = t;
+    if (t < from) return;
+    p.actions++; p.acts[kd]++; var dd = dayOf(p, dayKey(t)); dd.actions++; if (kd === 'care') dd.care++;
+  });
+  var out = users.map(function (x) {
+    var p = P[x.name], series = [];
+    for (var t = from; t <= today; t += 864e5) { var k = dayKey(t + 12 * 3600e3), dd = p.day[k] || {}; series.push({ day: k, opens: dd.opens || 0, mins: Math.round((dd.mins || 0) * 10) / 10, actions: dd.actions || 0, care: dd.care || 0, seen: !!dd.seen }); }
+    var n7 = Object.keys(p.act7).length;
+    p.miles.login = p.first; p.miles.tg = p.tg ? true : null; p.miles.steady = n7 >= 5 ? true : null;
+    return { name: p.name, email: p.email, role: p.role, level: p.level, tg: p.tg, lastSeen: p.lastSeen, lastAct: p.lastAct, activeDays: series.filter(function (s) { return s.seen; }).length, days7: n7, opens: p.opens, mins: Math.round(p.mins), actions: p.actions, acts: p.acts, dev: p.dev,
+      screens: p.screens, series: series, miles: USE_MILES.map(function (m) { var v = p.miles[m[0]]; return { k: m[0], label: m[1], done: !!v, at: typeof v === 'number' ? v : null }; }) };
+  });
+  return { days: days, from: from, today: today, since: '2026-10-07', people: out };
+}
+function crmUsageReport(ss, u, d) {
+  if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị xem được mức độ dùng CRM.' };
+  var r = usageData(ss, d.days); r.ok = true; return r;
+}
+/** 8h sáng: báo riêng cho quản trị (Telegram, chưa kết nối thì email) ai ≥ 2 ngày chưa vào CRM; thứ Hai thêm tóm tắt tuần. */
+function usageAlert(ss) {
+  var monday = Utilities.formatDate(new Date(), TZ, 'u') === '1', r = usageData(ss, 7), today = r.today;
+  var staff = r.people.filter(function (p) { return p.level < 3; }); if (!staff.length) return;
+  var ago = function (t) { return t ? Math.round((today - startOfDay(new Date(t)).getTime()) / 864e5) : null; };
+  var idle = staff.filter(function (p) { var a = ago(p.lastSeen); return a === null || a >= USE_IDLE_DAYS; });
+  var msg = '';
+  if (idle.length) msg += '⚠️ <b>Nhân sự chưa vào CRM</b>\n' + idle.map(function (p) { var a = ago(p.lastSeen); return '• ' + esc(p.name) + ' – ' + (a === null ? 'chưa từng đăng nhập' : a + ' ngày (lần cuối ' + Utilities.formatDate(new Date(p.lastSeen), TZ, 'dd/MM HH:mm') + ')'); }).join('\n') + '\n👉 Gọi hỏi thăm xem bạn có vướng gì không.';
+  if (monday) msg += (msg ? '\n\n' : '') + '📈 <b>Mức dùng CRM 7 ngày qua</b>\n' + staff.map(function (p) {
+    var miss = p.miles.filter(function (m) { return !m.done; }).map(function (m) { return m.label; });
+    return '• <b>' + esc(p.name) + '</b>: vào ' + p.activeDays + '/7 ngày · ' + p.mins + ' phút · ' + p.actions + ' thao tác (chăm sóc ' + p.acts.care + ', đơn ' + p.acts.order + ', ưu đãi ' + p.acts.promo + ')' + (miss.length ? '\n   Chưa: ' + miss.join(', ') : '\n   ✅ Đã qua đủ các mốc');
+  }).join('\n');
+  if (!msg) return;
+  msg += '\n\nChi tiết: ' + CRM_URL + '/#bao-cao → 📈 Mức dùng CRM';
+  var ad = crmUser(ss, SUPER_ADMIN);
+  if (ad && ad.tg) telegramTo(ad.tg, msg);
+  else MailApp.sendEmail({ to: SUPER_ADMIN, name: 'CRM Thực Dưỡng Lành', subject: 'Mức dùng CRM của nhân sự – ' + Utilities.formatDate(new Date(), TZ, 'dd/MM'), body: msg.replace(/<[^>]+>/g, '') });
+}
+/** Chạy tay trong trình soạn Apps Script để gửi thử tin mức dùng CRM (kể cả tóm tắt tuần nếu hôm nay là thứ Hai). */
+function thuMucDung() { usageAlert(SpreadsheetApp.getActiveSpreadsheet()); Logger.log('Đã gửi (nếu có người ≥ ' + USE_IDLE_DAYS + ' ngày chưa vào, hoặc hôm nay là thứ Hai).'); }
 function crmLog(ss, u, what, ref, name, result, note) {
   sheet(ss, LOG_TAB, LOG_HEADERS).appendRow([new Date(), u.name, what, "'" + ref, name || '', result || '', note || '']);
 }
