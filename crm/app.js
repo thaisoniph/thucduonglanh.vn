@@ -115,7 +115,7 @@
     function fallback() { var t = document.createElement('textarea'); t.value = text; t.style.position = 'fixed'; t.style.opacity = '0'; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); } catch (e) { } t.remove(); }
   }
 
-  var SERVER_V = '2026-10-07d'; // phải trùng số phiên bản máy chủ (api/src/index.js)
+  var SERVER_V = '2026-10-08a'; // phải trùng số phiên bản máy chủ (api/src/index.js)
   var ON_CF = !/script\.google/.test(CFG.endpoint || ''); // máy chủ Cloudflare (nhanh) hay Apps Script cũ
   function checkVersion(j) {
     if (j && j.v) S.srvV = j.v;
@@ -2824,6 +2824,8 @@
       '<p style="margin:0 0 8px">Có <b>' + noOwner + '</b> khách chưa ai phụ trách.</p><button class="btn" id="spreadBtn"' + (noOwner ? '' : ' disabled') + '>Chia đều cho những người đang “Nhận khách mới”</button>' +
       '<div class="row2c" style="margin-top:12px"><label class="f"><span>Chuyển toàn bộ khách của</span><select id="mvFrom">' + ownerOptions('', true) + '</select></label><label class="f"><span>sang</span><select id="mvTo">' + ownerOptions('', true) + '</select></label></div>' +
       '<button class="btn" id="moveBtn">Chuyển khách</button><p class="hint" style="margin:8px 0 0">Dùng khi nhân viên nghỉ việc hoặc đổi ca. Khách hỏi đang theo dõi cũng được chuyển theo.</p></div>';
+    h += '<div class="box"><h3>🔀 Khách trùng sale</h3><p class="hint" style="margin:0 0 10px">Khách có trong file Sheet của 2 sale trở lên (trước khi gộp văn phòng, mỗi bạn chăm riêng). Mỗi khách chỉ để <b>1 sale phụ trách chính</b>: chọn người giữ rồi bấm <b>Chốt</b>. Đã chốt thì CRM không báo trùng nữa, các bạn không cần xoá dòng trong file.</p>' +
+      '<button class="btn pri" id="dupOpen">Xem khách trùng sale</button></div>';
     var cy = S.f.cy || (S.f.cy = S.d.cycles.map(function (r) { return r.slice(); }));
     h += '<div class="box"><h3>Chu kỳ dùng sản phẩm</h3><p class="hint" style="margin:0 0 10px">Khách dùng hết 1 hộp/hũ trong bao nhiêu ngày → máy tính ngày “sắp hết hàng” để nhắc đặt lại. Tên chỉ cần chứa 1 phần (ví dụ “DILVANG”). Quy cách để trống = mọi quy cách.</p>' +
       '<div class="edit-table" id="cyT"><div class="edit-row head"><span>Tên sản phẩm (chứa chữ)</span><span>Quy cách</span><span>Số ngày</span><span>Căn cứ</span><span></span></div>' +
@@ -2898,6 +2900,7 @@
       if (!confirm('Chuyển toàn bộ khách của ' + from + ' sang ' + to + '?')) return; b.disabled = true;
       api('bulk', { from: from, to: to }).then(function (j) { toast('Đã chuyển ' + j.customers + ' khách, ' + j.leads + ' khách hỏi ✓'); load(true); }, function (e) { toast(e.message, true); b.disabled = false; });
     };
+    $('#dupOpen').onclick = function () { openDups(); };
     function sync(tableId, arr, isObj) {
       var t = $('#' + tableId); if (!t) return;
       t.addEventListener('input', function (e) { var r = e.target.closest('[data-i]'), k = e.target.getAttribute('data-k'); if (!r || k == null) return; var i = +r.getAttribute('data-i'); arr[i][isObj ? k : +k] = e.target.type === 'checkbox' ? e.target.checked : e.target.value; });
@@ -2987,6 +2990,71 @@
     h += '<section class="section"><div class="section-h"><h2>🕘 Thao tác gần đây</h2></div>' + (recent.length ? '<div class="timeline">' + recent.map(logItem).join('') + '</div>' : empty('Chưa có thao tác nào.')) + '</section>';
     return h;
   }
+  /* ---------- khách trùng sale: quản lý chốt 1 người giữ cho mỗi khách */
+  function openDups() {
+    var D = { items: null, tab: 'todo', sale: '', n: 60, pick: {} };
+    var m = modal('🔀 Khách trùng sale', '<div id="dupBox"><p class="muted">Đang tải…</p></div>', '<button class="btn" id="dupScan">🔄 Quét lại file sale</button><button class="btn ghost" data-close>Đóng</button>');
+    function guess(it) { // gợi ý người giữ: người đang phụ trách → sale có đơn gần nhất → sale ghi file gần nhất
+      if (it.owner) return it.owner;
+      var s = it.sales.slice().sort(function (a, b) { return (b.lastOrder || 0) - (a.lastOrder || 0) || (b.last || 0) - (a.last || 0); })[0];
+      return s ? s.sale : '';
+    }
+    function shown() { return D.items.filter(function (it) { return (D.tab === 'done' ? it.ok : !it.ok) && (!D.sale || it.sales.some(function (s) { return s.sale === D.sale; })); }); }
+    function opts(it) {
+      var sel = D.pick[it.phone] !== undefined ? D.pick[it.phone] : guess(it), names = it.sales.map(function (s) { return s.sale; });
+      userNames().forEach(function (n) { if (names.indexOf(n) < 0) names.push(n); });
+      return (sel ? '' : '<option value="">– Chọn người giữ –</option>') + names.map(function (n) { return '<option' + (n === sel ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('');
+    }
+    function draw() {
+      var box = $('#dupBox', m); if (!box) return;
+      var todo = D.items.filter(function (it) { return !it.ok; }).length, done = D.items.length - todo, list = shown(), sales = {};
+      D.items.forEach(function (it) { it.sales.forEach(function (s) { sales[s.sale] = 1; }); });
+      if (!D.items.length) { box.innerHTML = empty(D.tracked ? 'Không có khách nào trùng giữa các sale. 🎉' : 'Chưa có dữ liệu file sale. Bấm “🔄 Quét lại file sale” bên dưới.'); return; }
+      box.innerHTML = '<p class="hint" style="margin:0 0 10px">Chọn sale giữ khách rồi bấm <b>Chốt</b>. Sale được chọn thấy khách trong danh sách chăm sóc của mình; sale kia không thấy nữa. Đơn ai lên vẫn tính doanh số cho người đó.</p>' +
+        '<div class="chips" style="margin:0 0 10px"><button class="chip' + (D.tab === 'todo' ? ' on' : '') + '" data-dtab="todo">Cần chốt <em>' + todo + '</em></button><button class="chip' + (D.tab === 'done' ? ' on' : '') + '" data-dtab="done">Đã chốt <em>' + done + '</em></button></div>' +
+        '<label class="f"><span>Chỉ xem khách có trong file của</span><select id="dupSale"><option value="">Tất cả sale</option>' + Object.keys(sales).sort().map(function (n) { return '<option' + (n === D.sale ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('') + '</select></label>' +
+        (D.tab === 'todo' && list.length > 1 ? '<div class="steps" style="margin:0 0 10px"><button class="btn pri" id="dupAll">Chốt cả ' + list.length + ' khách theo lựa chọn đang hiện</button></div>' : '') +
+        (list.length ? '<div class="list">' + list.slice(0, D.n).map(function (it) {
+          return '<div class="card"><div class="r1"><b>' + esc(it.name || 'Khách') + '</b><span class="small muted" data-copy="' + esc(it.phone) + '">' + esc(fPhone(it.phone)) + '</span><span class="end small">' + (it.owner ? '<span class="tag owner">👤 ' + esc(it.owner) + '</span>' : '<span class="tag risk">Chưa ai giữ</span>') + '</span></div>' +
+            '<div class="r3">' + it.orders + ' đơn · ' + money(it.spent) + (it.last ? ' · mua gần nhất ' + fDate(it.last) : '') + (it.products.length ? ' · ' + esc(it.products.join(', ')) : '') + '</div>' +
+            it.sales.map(function (s) {
+              return '<div class="r2">• <b>' + esc(s.sale) + '</b>: ' + (s.sheets.length ? 'có trong file (' + esc(s.sheets.join(', ')) + ')' + (s.last ? ', ghi gần nhất ' + fDate(s.last) : '') : 'đang phụ trách trên CRM, không có trong file') +
+                (s.orders ? ' · bán ' + s.orders + ' đơn, ' + money(s.spent) : '') + '</div>';
+            }).join('') +
+            (it.done ? '<div class="r3">✓ ' + esc(it.done.by) + ' chốt ' + fDate(it.done.at) + ': ' + esc(it.done.owner) + ' giữ' + (it.ok ? '' : ' (sau đó có thay đổi, cần chốt lại)') + '</div>' : '') +
+            '<div class="acts"><select data-dpick="' + esc(it.phone) + '" style="flex:1;min-width:150px">' + opts(it) + '</select><button class="btn' + (it.ok ? '' : ' pri') + '" data-dset="' + esc(it.phone) + '">' + (it.ok ? 'Đổi' : 'Chốt') + '</button></div></div>';
+        }).join('') + '</div>' + (list.length > D.n ? '<button class="btn" id="dupMore" style="margin-top:10px">Xem thêm ' + (list.length - D.n) + ' khách</button>' : '')
+        : empty(D.tab === 'todo' ? 'Đã chốt hết khách trùng ✓' : 'Chưa chốt khách nào.'));
+      $$('[data-dtab]', box).forEach(function (b) { b.onclick = function () { D.tab = b.getAttribute('data-dtab'); D.n = 60; draw(); }; });
+      $('#dupSale', box).onchange = function () { D.sale = this.value; D.n = 60; draw(); };
+      $$('[data-dpick]', box).forEach(function (x) { x.onchange = function () { D.pick[x.getAttribute('data-dpick')] = x.value; }; });
+      if ($('#dupMore', box)) $('#dupMore', box).onclick = function () { D.n += 60; draw(); };
+      $$('[data-dset]', box).forEach(function (b) { b.onclick = function () { var ph = b.getAttribute('data-dset'), o = $('[data-dpick="' + ph + '"]', box).value; if (!o) { toast('Chọn người giữ khách', true); return; } save([{ phone: ph, owner: o }], b); }; });
+      if ($('#dupAll', box)) $('#dupAll', box).onclick = function () {
+        var items = list.map(function (it) { var x = $('[data-dpick="' + it.phone + '"]', box); return { phone: it.phone, owner: x ? x.value : (D.pick[it.phone] !== undefined ? D.pick[it.phone] : guess(it)) }; }), miss = items.filter(function (i) { return !i.owner; }).length;
+        if (miss) { toast(miss + ' khách chưa chọn người giữ', true); return; }
+        var per = {}; items.forEach(function (i) { per[i.owner] = (per[i.owner] || 0) + 1; });
+        if (!confirm('Chốt người giữ cho ' + items.length + ' khách?\n' + Object.keys(per).map(function (n) { return '• ' + n + ': ' + per[n] + ' khách'; }).join('\n'))) return;
+        save(items, this);
+      };
+    }
+    function save(items, b) {
+      b.disabled = true;
+      api('dup_set', { items: items }).then(function (j) {
+        var by = {}; items.forEach(function (i) { by[i.phone] = i.owner; });
+        D.items.forEach(function (it) { if (by[it.phone]) { it.owner = by[it.phone]; it.ok = true; it.done = { owner: it.owner, by: S.user.name, at: Date.now() }; delete D.pick[it.phone]; } });
+        toast('Đã chốt ' + j.n + ' khách' + (j.moved ? ', chuyển ' + j.moved + ' khách sang người mới' : '') + ' ✓'); draw(); load(true);
+      }, function (e) { toast(e.message, true); b.disabled = false; });
+    }
+    function got(j) { D.items = j.items || []; D.tracked = j.tracked; draw(); }
+    api('dups').then(got, function (e) { var bx = $('#dupBox', m); if (bx) bx.innerHTML = '<p class="err">' + esc(e.message) + '</p>'; });
+    $('#dupScan', m).onclick = function () {
+      var b = this; b.disabled = true; b.textContent = 'Đang đọc file các sale…';
+      api('dup_scan').then(function (j) { got(j); toast('Đã đọc ' + j.scanned + ' sheet' + (j.errors.length ? ', ' + j.errors.length + ' sheet lỗi: ' + j.errors[0] : '') + ' ✓', !!j.errors.length); b.disabled = false; b.textContent = '🔄 Quét lại file sale'; },
+        function (e) { toast(e.message, true); b.disabled = false; b.textContent = '🔄 Quét lại file sale'; });
+    };
+  }
+
   function modal(title, body, foot, opt) {
     closeModal(true);
     var m = document.createElement('div'); m.className = 'modal'; m.setAttribute('role', 'dialog'); m.setAttribute('aria-modal', 'true');

@@ -3,11 +3,11 @@
 import { esc, run, first, kvGet, normPhone, CRM_URL } from './lib.js';
 import { crmApi, saveOrder, addLead, telegramUser, vtpWebhook, ensureSchema } from './crm.js';
 import { telegram, sendMail, tgConf, bridge } from './google.js';
-import { SYNC } from './sync.js';
+import { SYNC, DUPS } from './sync.js';
 import { migrate } from './migrate.js';
 import { scheduled, mirror, dailyCare } from './cron.js';
 
-const API_VERSION = '2026-10-07d'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
+const API_VERSION = '2026-10-08a'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
 const ORIGINS = /^https:\/\/((www\.|crm\.)?thucduonglanh\.vn|[a-z0-9-]+\.thucduonglanh(-crm)?\.pages\.dev)$|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
 function ctxOf(env, ectx) { return { env, db: env.DB, later: p => ectx.waitUntil(Promise.resolve(p).catch(e => console.error('later', e && e.message))) }; }
@@ -69,7 +69,7 @@ export default {
       await ensureSchema(x.db);
       const text = await req.text(); if (text.length > 2e6) return json({ ok: false, error: 'Dữ liệu quá lớn' }, origin, 413);
       const d = JSON.parse(text || '{}');
-      if (d.type === 'crm') { const out = await crmApi(x, d, ADMIN); out.v = API_VERSION; return json(out, origin); }
+      if (d.type === 'crm') { const out = await crmApi(x, d, ADMIN, DUPS); out.v = API_VERSION; return json(out, origin); }
       if (d.type === 'vtp') return json(await vtpWebhook(x, d.payload), origin);
       return json(await website(x, d), origin);
     } catch (err) {

@@ -47,6 +47,13 @@ export async function ensureSchema(db) {
       id TEXT NOT NULL, idx INTEGER NOT NULL, data TEXT NOT NULL,
       PRIMARY KEY (id, idx)
     )`);
+
+    await run(db, `CREATE TABLE IF NOT EXISTS sale_phones (
+      phone TEXT NOT NULL, src TEXT NOT NULL, sheet TEXT NOT NULL, sale TEXT DEFAULT '', last INTEGER, rows INTEGER DEFAULT 1,
+      PRIMARY KEY (phone, src, sheet)
+    )`);
+    await run(db, `CREATE INDEX IF NOT EXISTS sale_phones_src ON sale_phones(src, sheet)`);
+    await run(db, `CREATE TABLE IF NOT EXISTS dup_done (phone TEXT PRIMARY KEY, owner TEXT DEFAULT '', sales TEXT DEFAULT '', by_name TEXT DEFAULT '', at INTEGER)`);
     schemaDone = true;
   } catch (e) {
     console.error('ensureSchema', e.message);
@@ -1031,7 +1038,7 @@ async function crmFbUpdate(x, u, d) {
 }
 
 /* ================================================================ điều phối */
-export async function crmApi(x, d, sync) {
+export async function crmApi(x, d, sync, mgr) {
   await ensureSchema(x.db);
   const a = d.action;
   if (a === 'login') return crmLogin(x, d);
@@ -1045,6 +1052,7 @@ export async function crmApi(x, d, sync) {
   if (a === 'check_phone') return crmCheckPhone(x, u, d);
   if (a === 'cust_orders') return crmCustOrders(x, u, d);
   if (sync[a]) { if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị làm được việc này.' }; return sync[a](x, u, d); }
+  if (mgr && mgr[a]) { if (u.level < 2) return { ok: false, error: 'Bạn không có quyền làm việc này.' }; return mgr[a](x, u, d); }
   if (a === 'tg_link') return crmTgLink(x, u);
   if (a === 'tg_check') return crmTgCheck(x, u, d);
   if (a === 'prefs') return crmPrefs(x, u, d);

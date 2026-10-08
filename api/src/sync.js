@@ -1,6 +1,6 @@
 // Đồng bộ dữ liệu từ file Google Sheet của sale (lên đơn, cop số, từ chối) và file số quảng cáo chung.
 // Đọc bằng Google Sheets API (nhanh, không phải mở cả file như Apps Script). Nhập nhiều lần không trùng.
-import { normPhone, esc, fmtDate, nrm, isVoid, hashKey, all, first, run, insertMany, allIn, kvGet, kvSet, kvJson, CRM_URL, DAY } from './lib.js';
+import { normPhone, esc, fmtDate, nrm, isVoid, hashKey, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, CRM_URL, DAY } from './lib.js';
 import { sheetMeta, sheetValues, sheetWrite, a1, serialToMs } from './google.js';
 import { crmUsers, crmLog, recalc, setCallbacks, caCfg, caOf, normLine, itemsText, shipText, ORDER_COLS, srcList, adsCfg, telegramUser } from './crm.js';
 
@@ -183,6 +183,7 @@ async function srcSync(x, u, d) {
   const sale = src.sale; if (!(await crmUsers(x)).some(y => y.name === sale)) return { ok: false, error: 'Chưa có nhân sự tên "' + sale + '" trong CRM. Thêm ở Cài đặt → Nhân sự trước.' };
   if (Number(d.offset) > 0) return { ok: true, role: shCfg.role, sheetName: shCfg.name, total: 0, newOrders: 0, dup: 0, skip: 0, customers: 0, newCustomers: 0, conflicts: [], conflictCount: 0, revenue: 0, summary: '' }; // bản cũ gửi từng phần: phần đầu đã xử lý hết
   const data = await srcRows(x, src, shCfg), total = data.rows.length; let res;
+  if (!d.dry && (shCfg.role === 'orders' || shCfg.role === 'care')) { try { await notePhones(x, src, shCfg, data.rows); } catch (e) { console.error('notePhones', sale, shCfg.name, e.message); } }
   if (shCfg.role === 'orders') res = await importOrders(x, src, shCfg, data, !!d.dry);
   else if (shCfg.role === 'care') res = await importCare(x, src, shCfg, data, !!d.dry, d.sheet);
   else if (shCfg.role === 'reject') res = await importReject(x, src, shCfg, data, !!d.dry);
@@ -239,7 +240,8 @@ async function importOrders(x, src, shCfg, data, dry) {
     if (!minD || when < minD) minD = when; if (!maxD || when > maxD) maxD = when;
   }
   const owners = await ownersOf(x, Object.keys(phones));
-  const conflicts = Object.keys(phones).filter(p => owners[p] && owners[p].owner && owners[p].owner !== sale).map(p => ({ phone: p, name: phones[p], owner: owners[p].owner }));
+  const settled = await settledOf(x, Object.keys(phones), sale);
+  const conflicts = Object.keys(phones).filter(p => owners[p] && owners[p].owner && owners[p].owner !== sale && settled[p] !== owners[p].owner).map(p => ({ phone: p, name: phones[p], owner: owners[p].owner }));
   const newCus = Object.keys(phones).filter(p => !owners[p]).length;
   const summary = out.length + ' đơn mới, ' + dup + ' đã có' + (upd.length ? ' (' + upd.length + ' cập nhật trạng thái)' : '') + (afterCut ? ', ' + afterCut + ' đơn sau ngày chốt bỏ qua' : '') + ', ' + skip + ' dòng bỏ qua';
   const res = { updated: upd.length, afterCut, rows: data.rows.length, newOrders: out.length, dup, skip, customers: Object.keys(phones).length, newCustomers: newCus, conflicts: conflicts.slice(0, 50), conflictCount: conflicts.length, revenue, from: minD, to: maxD, summary };
@@ -286,10 +288,11 @@ async function importCare(x, src, shCfg, data, dry, idx) {
   const ids = order.map(ph => 'CS' + hashKey(sale + '|' + ph));
   const have = {}; (await allIn(x.db, 'SELECT id FROM leads WHERE id IN (SELECT value FROM json_each(?))', ids)).forEach(r => { have[r.id] = 1; });
   const openP = {}; (await allIn(x.db, "SELECT phone FROM leads WHERE status IN ('Mới hỏi', 'Đang tư vấn') AND phone IN (SELECT value FROM json_each(?))", order)).forEach(r => { openP[r.phone] = 1; });
+  const settled = await settledOf(x, order, sale);
   const toNote = [], leads = [], conflicts = [], now = Date.now(), head = '— Nhật ký cũ (' + shCfg.name + ') —';
   order.forEach((ph, k) => {
     const p = per[ph];
-    if (owners[ph]) { if (owners[ph].owner && owners[ph].owner !== sale) conflicts.push({ phone: ph, name: p.name, owner: owners[ph].owner }); if (p.notes.length) toNote.push(ph); return; }
+    if (owners[ph]) { if (owners[ph].owner && owners[ph].owner !== sale && settled[ph] !== owners[ph].owner) conflicts.push({ phone: ph, name: p.name, owner: owners[ph].owner }); if (p.notes.length) toNote.push(ph); return; }
     const id = ids[k]; if (have[id] || openP[ph]) return;
     const st = nrm(p.status), recent = p.last && now - p.last <= 30 * DAY;
     const status = /huy/.test(st) ? 'Không mua' : /chot|len don/.test(st) ? 'Đã chốt' : recent ? 'Đang tư vấn' : 'Không mua';
@@ -398,7 +401,7 @@ export async function srcAutoTick(x, force) {
     const sheets = (src.cfg.sheets || []).filter(s => s.role && s.role !== 'skip');
     for (let i = 0; i < sheets.length; i++) {
       try {
-        await srcSync(x, u, { id: src.id, sheet: i });
+        await srcSync(x, u, { id: src.id, name: sheets[i].name });
       } catch (e) {
         console.error('srcAutoTick', src.sale, sheets[i].name, e.message);
       }
@@ -406,7 +409,93 @@ export async function srcAutoTick(x, force) {
   }
 }
 
+/* ---------- khách trùng sale: 1 khách có trong file của nhiều sale (trước khi gộp văn phòng mỗi người chăm riêng) → quản lý chốt 1 người giữ */
+/** Ghi lại các số có trong 1 sheet file sale. Chỉ ghi phần thay đổi; sheet không đổi thì bỏ qua. */
+async function notePhones(x, src, shCfg, rows) {
+  const m = shCfg.map || {}, ctx = {}, per = {};
+  for (const r of rows) {
+    const when = toDate(cell(r, m, 'date'), ctx), ph = toPhone(cell(r, m, 'phone')); if (!ph) continue;
+    const p = per[ph] || (per[ph] = { n: 0, last: null }); p.n++; if (when && (!p.last || when > p.last)) p.last = when;
+  }
+  const sheet = shCfg.name, keys = Object.keys(per).sort(), kk = 'sp_' + hashKey(src.id + '|' + sheet);
+  const sig = hashKey(src.sale + '#' + keys.map(k => k + ':' + per[k].n + ':' + (per[k].last || '')).join(','));
+  if (await kvGet(x.db, kk) === sig) return;
+  const cur = {}; (await all(x.db, 'SELECT phone, sale, rows, last FROM sale_phones WHERE src = ? AND sheet = ?', src.id, sheet)).forEach(r => { cur[r.phone] = r; });
+  const put = keys.filter(k => !cur[k] || cur[k].sale !== src.sale || cur[k].rows !== per[k].n || (cur[k].last || null) !== per[k].last).map(k => ({ phone: k, src: src.id, sheet, sale: src.sale, last: per[k].last, rows: per[k].n }));
+  const del = Object.keys(cur).filter(k => !per[k]); // sale đã xoá dòng khỏi file
+  await insertMany(x.db, 'sale_phones', ['phone', 'src', 'sheet', 'sale', 'last', 'rows'], put, 'ON CONFLICT(phone, src, sheet) DO UPDATE SET sale = excluded.sale, last = excluded.last, rows = excluded.rows');
+  for (let i = 0; i < del.length; i += 500) await run(x.db, 'DELETE FROM sale_phones WHERE src = ? AND sheet = ? AND phone IN (SELECT value FROM json_each(?))', src.id, sheet, JSON.stringify(del.slice(i, i + 500)));
+  await kvSet(x.db, kk, sig);
+}
+/** Khách quản lý đã chốt người giữ, có tính cả sale này: {sđt: người giữ}. Dùng để không báo trùng lại khi nhập file. */
+async function settledOf(x, phones, sale) {
+  const o = {}; (await allIn(x.db, 'SELECT phone, owner, sales FROM dup_done WHERE phone IN (SELECT value FROM json_each(?))', phones)).forEach(r => { if (String(r.sales || '').split('|').indexOf(sale) >= 0) o[r.phone] = r.owner; }); return o;
+}
+/** Đọc lại cột SĐT của mọi sheet đơn hàng / chăm sóc trong file sale (không nhập gì). */
+async function dupScan(x, u) {
+  const live = {}, errors = []; let n = 0;
+  for (const src of await srcList(x)) for (const sc of src.cfg.sheets || []) {
+    if (sc.role !== 'orders' && sc.role !== 'care') continue;
+    live[src.id + '|' + sc.name] = 1;
+    try { await notePhones(x, src, sc, (await srcRows(x, src, sc)).rows); n++; } catch (e) { errors.push(src.sale + ' – ' + sc.name + ': ' + e.message); }
+  }
+  for (const o of await all(x.db, 'SELECT DISTINCT src, sheet FROM sale_phones')) if (!live[o.src + '|' + o.sheet]) { // file / sheet không còn nhập
+    await run(x.db, 'DELETE FROM sale_phones WHERE src = ? AND sheet = ?', o.src, o.sheet); await kvDel(x.db, 'sp_' + hashKey(o.src + '|' + o.sheet));
+  }
+  await crmLog(x, u, 'Khách trùng sale', '-', '', 'Quét lại ' + n + ' sheet', errors.join('; '));
+  return Object.assign(await dupList(x), { scanned: n, errors });
+}
+/** Danh sách khách trùng: có trong file của ≥ 2 sale, hoặc trong file của 1 sale nhưng đang do người khác phụ trách. */
+async function dupList(x) {
+  const phones = (await all(x.db, `SELECT sp.phone FROM sale_phones sp JOIN customers c ON c.phone = sp.phone WHERE (c.orders > 0 OR c.flag != '')
+    GROUP BY sp.phone HAVING count(DISTINCT sp.sale) >= 2 OR sum(coalesce(c.owner, '') != '' AND sp.sale != c.owner) > 0`)).map(r => r.phone);
+  const tracked = (await first(x.db, 'SELECT count(DISTINCT src || sheet) AS n FROM sale_phones') || {}).n || 0;
+  if (!phones.length) return { ok: true, items: [], tracked };
+  const q = sql => allIn(x.db, sql, phones);
+  const [cs, sp, os, dn] = [await q('SELECT phone, name, owner, orders, spent, last, products FROM customers WHERE phone IN (SELECT value FROM json_each(?))'),
+    await q('SELECT phone, sale, sheet, last FROM sale_phones WHERE phone IN (SELECT value FROM json_each(?))'),
+    await q("SELECT phone, seller, count(*) AS n, sum(total) AS s, max(time) AS t FROM orders WHERE phone IN (SELECT value FROM json_each(?)) AND status NOT IN ('Huỷ', 'Hủy', 'Hoàn') GROUP BY phone, seller"),
+    await q('SELECT phone, owner, sales, by_name, at FROM dup_done WHERE phone IN (SELECT value FROM json_each(?))')];
+  const S = {}, O = {}, D = {};
+  sp.forEach(r => { const a = S[r.phone] = S[r.phone] || {}, s = a[r.sale] = a[r.sale] || { sheets: [], last: null }; if (s.sheets.indexOf(r.sheet) < 0) s.sheets.push(r.sheet); if (r.last && (!s.last || r.last > s.last)) s.last = r.last; });
+  os.forEach(r => { (O[r.phone] = O[r.phone] || {})[r.seller || ''] = { n: r.n, s: r.s || 0, t: r.t }; });
+  dn.forEach(r => { D[r.phone] = r; });
+  const items = cs.map(c => {
+    const inFile = S[c.phone] || {}, names = Object.keys(inFile); if (c.owner && names.indexOf(c.owner) < 0) names.unshift(c.owner);
+    const sales = names.map(n => { const f = inFile[n], o = (O[c.phone] || {})[n]; return { sale: n, sheets: f ? f.sheets : [], last: f ? f.last : null, orders: o ? o.n : 0, spent: o ? o.s : 0, lastOrder: o ? o.t : null }; });
+    const d = D[c.phone], ds = d ? String(d.sales || '').split('|') : [];
+    return { phone: c.phone, name: c.name || '', owner: c.owner || '', orders: c.orders || 0, spent: c.spent || 0, last: c.last, products: String(c.products || '').split('; ').filter(String).slice(0, 4), sales,
+      done: d ? { owner: d.owner, by: d.by_name, at: d.at } : null, ok: !!(d && d.owner === c.owner && names.every(n => ds.indexOf(n) >= 0)) };
+  }).sort((a, b) => (a.ok - b.ok) || ((b.last || 0) - (a.last || 0)));
+  return { ok: true, items, tracked };
+}
+/** Quản lý chốt người giữ: d.items = [{phone, owner}]. Khách hỏi đang theo dõi của số đó chuyển theo. */
+async function dupSet(x, u, d) {
+  const names = (await crmUsers(x)).filter(y => y.active).map(y => y.name);
+  const list = (d.items || []).map(i => ({ phone: String(i.phone || '').replace(/\D/g, ''), owner: String(i.owner || '') })).filter(i => i.phone && names.indexOf(i.owner) >= 0);
+  if (!list.length) return { ok: false, error: 'Chưa chọn người giữ khách.' };
+  const phones = list.map(i => i.phone), sales = {}, cur = {};
+  (await allIn(x.db, 'SELECT DISTINCT phone, sale FROM sale_phones WHERE phone IN (SELECT value FROM json_each(?))', phones)).forEach(r => { (sales[r.phone] = sales[r.phone] || []).push(r.sale); });
+  (await allIn(x.db, 'SELECT phone, owner, name FROM customers WHERE phone IN (SELECT value FROM json_each(?))', phones)).forEach(r => { cur[r.phone] = r; });
+  const now = Date.now(), ok = list.filter(i => cur[i.phone]), gain = {};
+  const done = ok.map(i => ({ phone: i.phone, owner: i.owner, sales: [...new Set((sales[i.phone] || []).concat(i.owner, cur[i.phone].owner || ''))].filter(String).join('|'), by_name: u.name, at: now }));
+  const logs = ok.map((i, k) => {
+    const was = cur[i.phone].owner || ''; if (was !== i.owner) gain[i.owner] = (gain[i.owner] || 0) + 1;
+    return { time: now, by_name: u.name, what: 'Giao khách', ref: i.phone, name: cur[i.phone].name || '', result: 'Khách trùng sale → ' + i.owner + (was === i.owner ? ' (giữ nguyên)' : was ? ' (trước: ' + was + ')' : ''), note: 'Có trong file: ' + done[k].sales.split('|').join(', ') };
+  });
+  for (let i = 0; i < ok.length; i += 300) {
+    const part = JSON.stringify(ok.slice(i, i + 300));
+    await run(x.db, "UPDATE customers SET owner = json_extract(j.value, '$.owner') FROM json_each(?) j WHERE customers.phone = json_extract(j.value, '$.phone')", part);
+    await run(x.db, "UPDATE leads SET owner = json_extract(j.value, '$.owner') FROM json_each(?) j WHERE leads.phone = json_extract(j.value, '$.phone') AND leads.status IN ('Mới hỏi', 'Đang tư vấn')", part);
+  }
+  await insertMany(x.db, 'dup_done', ['phone', 'owner', 'sales', 'by_name', 'at'], done, 'ON CONFLICT(phone) DO UPDATE SET owner = excluded.owner, sales = excluded.sales, by_name = excluded.by_name, at = excluded.at');
+  await insertMany(x.db, 'logs', ['time', 'by_name', 'what', 'ref', 'name', 'result', 'note'], logs);
+  for (const n of Object.keys(gain)) x.later(telegramUser(x, n, '👥 ' + esc(u.name) + ' vừa giao cho bạn <b>' + gain[n] + ' khách</b> (khách trước đây có trong file của nhiều sale). Từ nay bạn là người phụ trách chính.\n\n👉 ' + CRM_URL + '/#khach-hang'));
+  return { ok: true, n: ok.length, moved: Object.keys(gain).reduce((t, n) => t + gain[n], 0) };
+}
+
 export { srcSync };
+export const DUPS = { dups: x => dupList(x), dup_scan: dupScan, dup_set: dupSet };
 
 export const SYNC = {
   src_inspect: (x, u, d) => inspect(x, u, d, false), ads_inspect: (x, u, d) => inspect(x, u, d, true),

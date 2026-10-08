@@ -397,6 +397,13 @@ Doanh số tính theo **Nhân viên bán** ghi trên từng đơn. Đơn khách 
     - **Ai được nhận khách mới**: bật / tắt cho từng người, ví dụ khi nghỉ phép. Cột bên cạnh cho biết người đó đã kết nối Telegram chưa.
     - **Chia đều khách chưa ai phụ trách**: dùng 1 lần cho khách cũ.
     - **Chuyển toàn bộ khách của A sang B**: dùng khi nhân viên nghỉ việc. Khách hỏi đang theo dõi cũng chuyển theo.
+- **Cài đặt → 🔀 Khách trùng sale**: khách có trong file Sheet của 2 sale trở lên (thường do trước khi gộp văn phòng, mỗi bạn chăm riêng). Mỗi khách chỉ để **1 sale phụ trách chính**.
+    - Mỗi khách hiện rõ: có trong file của ai, sale nào đã bán bao nhiêu đơn, ai đang giữ. Ô chọn người giữ được điền sẵn theo gợi ý (người đang phụ trách, nếu chưa có thì sale bán đơn gần nhất).
+    - Chọn người giữ → **Chốt**. Hoặc bấm **Chốt cả … khách theo lựa chọn đang hiện**. Ô *Chỉ xem khách có trong file của* giúp xử lý từng cặp sale, ví dụ chỉ xem khách trùng của Phương.
+    - Đã chốt thì CRM **không báo trùng nữa**, kể cả khi bạn kia vẫn để dòng khách trong file. Không cần nhắc các bạn xoá dòng.
+    - Sale được giao thêm khách nhận tin Telegram. Khách hỏi đang theo dõi của số đó chuyển theo.
+    - Sau khi chốt, nếu sale kia vẫn lên đơn cho khách trong file của mình thì đơn đó vẫn tính doanh số cho người lên đơn. Riêng việc chăm sóc và nhắc việc thì chỉ người giữ khách thấy.
+    - Danh sách tự cập nhật mỗi lần máy nhập file sale (30 phút/lần). Muốn xem ngay thì bấm **🔄 Quét lại file sale**. Nếu sau khi chốt mà khách xuất hiện thêm trong file của một sale khác, khách sẽ hiện lại ở mục *Cần chốt*.
 
 **Tab Cài đặt:**
 
@@ -437,6 +444,8 @@ Máy tự ghi kèm bạn đang ở màn hình nào, dùng máy gì, nên bạn c
 **Sửa trực tiếp trên Google Sheet mà CRM chưa thấy?** Bấm **⟳** để đọc lại ngay. Nếu không bấm, khoảng 10 phút sau CRM tự thấy.
 
 **Khách đặt lại qua Zalo, tôi đã chọn “Đã đặt lại”, có cần tạo đơn không?** **Có.** Chọn kết quả chỉ ghi lại việc chăm sóc. Phải tạo đơn thì mới có đơn hàng và tính doanh số.
+
+**Khách của tôi cũng có trong file của bạn khác, 2 người cùng chăm được không?** Không. Mỗi khách chỉ có 1 người phụ trách chính để khách không bị gọi 2 lần. Quản lý chốt người giữ ở **Cài đặt → 🔀 Khách trùng sale**. Hai bạn đã thoả thuận ai giữ thì báo quản lý chốt, không cần xoá dòng trong file.
 
 **Một khách có 2 số điện thoại?** CRM nhận diện khách theo số điện thoại. Nên dùng 1 số chính, ghi số còn lại vào *Ghi chú về khách*.
 

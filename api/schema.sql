@@ -94,3 +94,11 @@ CREATE TABLE IF NOT EXISTS feedback_images (
   id TEXT NOT NULL, idx INTEGER NOT NULL, data TEXT NOT NULL,
   PRIMARY KEY (id, idx)
 );
+
+-- Khách trùng sale: số điện thoại có trong từng sheet file sale (cập nhật mỗi lần đồng bộ) + khách quản lý đã chốt người giữ
+CREATE TABLE IF NOT EXISTS sale_phones (
+  phone TEXT NOT NULL, src TEXT NOT NULL, sheet TEXT NOT NULL, sale TEXT DEFAULT '', last INTEGER, rows INTEGER DEFAULT 1,
+  PRIMARY KEY (phone, src, sheet)
+);
+CREATE INDEX IF NOT EXISTS sale_phones_src ON sale_phones(src, sheet);
+CREATE TABLE IF NOT EXISTS dup_done (phone TEXT PRIMARY KEY, owner TEXT DEFAULT '', sales TEXT DEFAULT '', by_name TEXT DEFAULT '', at INTEGER);
