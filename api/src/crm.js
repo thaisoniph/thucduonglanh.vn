@@ -53,6 +53,7 @@ export async function ensureSchema(db) {
       PRIMARY KEY (phone, src, sheet)
     )`);
     await run(db, `CREATE INDEX IF NOT EXISTS sale_phones_src ON sale_phones(src, sheet)`);
+    await run(db, `CREATE INDEX IF NOT EXISTS logs_time ON logs(time)`); // CRM tải nhật ký theo khoảng ngày
     await run(db, `CREATE TABLE IF NOT EXISTS dup_done (phone TEXT PRIMARY KEY, owner TEXT DEFAULT '', sales TEXT DEFAULT '', by_name TEXT DEFAULT '', at INTEGER)`);
     schemaDone = true;
   } catch (e) {
@@ -265,20 +266,37 @@ export async function srcList(x) {
 }
 export async function adsCfg(x) { return kvJson(x.db, 'ads_cfg', null); }
 
-async function crmLoad(x, u) {
-  const today = startOfDay(Date.now()), R = await rulesCfg(x), mode = await assignMode(x), staff = u.level < 2;
+/** Tải dữ liệu CRM. d.part = 'core': đợt 1 (đơn 100 ngày + đơn đang xử lý, nhật ký 60 ngày) – hiện màn hình ngay; 'rest': đợt 2 (đơn, nhật ký cũ hơn) – CRM tải ngầm.
+ * Không có d.part (CRM bản cũ): tải 1 lần đủ hết. */
+async function crmLoad(x, u, d) {
+  d = d || {};
+  const today = startOfDay(Date.now()), staff = u.level < 2, part = d.part === 'core' || d.part === 'rest' ? d.part : '';
+  const [R, mode] = await Promise.all([rulesCfg(x), assignMode(x)]); // hỏi song song cho nhanh
   const see = "(owner = ?1 OR (?2 = 'pool' AND (owner = '' OR owner IS NULL)))";
-  const cusSql = `SELECT phone, name, address, province, ward, orders, spent, first, last, products, runout, consent, source, owner, care_at, care_result, substr(note, 1, ${NOTE_MAX}) AS note, length(note) > ${NOTE_MAX} AS cut, callback, flag, tag, last_status, last_ca FROM customers WHERE (orders > 0 OR flag != '')` + (staff ? ' AND ' + see : '');
   const from = Date.now() - 400 * DAY, open = "status IN ('Mới', 'Đã xác nhận', 'Đang giao')";
-  const ordSql = `SELECT * FROM orders WHERE (time >= ?3 OR ${open})` + (staff ? ` AND (seller = ?1 OR phone IN (SELECT phone FROM customers WHERE ${see}))` : '') + ' ORDER BY time DESC, rid DESC LIMIT 6000';
-  const leadSql = 'SELECT * FROM leads' + (staff ? ' WHERE ' + see : '') + ' ORDER BY rid DESC LIMIT 3000';
-  const logSql = 'SELECT time, by_name, what, ref, name, result, note FROM logs' + (staff ? ` WHERE by_name = ?1 OR ref IN (SELECT phone FROM customers WHERE ${see}) OR ref IN (SELECT phone FROM leads WHERE ${see}) OR ref IN (SELECT id FROM orders WHERE seller = ?1 OR phone IN (SELECT phone FROM customers WHERE ${see}))` : '') + ' ORDER BY rid DESC LIMIT 6000';
+  const cutO = part === 'rest' ? Number(d.o) || 0 : Date.now() - 100 * DAY, cutL = part === 'rest' ? Number(d.l) || 0 : Date.now() - 60 * DAY;
+  const ordWhen = part === 'core' ? `(time >= ?4 OR ${open})` : part === 'rest' ? `time >= ?3 AND time < ?4 AND NOT ${open}` : `(time >= ?3 OR ${open})`;
+  const ordSql = `SELECT * FROM orders WHERE ${ordWhen}` + (staff ? ` AND (seller = ?1 OR phone IN (SELECT phone FROM customers WHERE ${see}))` : '') + ' ORDER BY time DESC, rid DESC LIMIT 6000';
+  const logWhen = part === 'core' ? 'time >= ?3' : part === 'rest' ? 'time < ?3' : '';
+  const logSee = staff ? `(by_name = ?1 OR ref IN (SELECT phone FROM customers WHERE ${see}) OR ref IN (SELECT phone FROM leads WHERE ${see}) OR ref IN (SELECT id FROM orders WHERE seller = ?1 OR phone IN (SELECT phone FROM customers WHERE ${see})))` : '';
+  const logSql = 'SELECT time, by_name, what, ref, name, result, note FROM logs' + (logSee || logWhen ? ' WHERE ' + [logSee, logWhen].filter(Boolean).join(' AND ') : '') + ' ORDER BY rid DESC LIMIT 6000';
   const b = (sql, ...a) => x.db.prepare(sql).bind(...a);
+  // Quản trị/Quản lý không có ?1 ?2 (tên, chế độ chia) → dồn số thứ tự tham số
+  const ordA = part ? [from, cutO] : [from]; // ?3 ?4 (bản tải 1 lần không có ?4)
+  const ordQ = staff ? b(ordSql, u.name, mode, ...ordA) : b(ordSql.replace(/\?4/g, '?2').replace(/\?3/g, '?1'), ...ordA);
+  const logQ = staff ? (logWhen ? b(logSql, u.name, mode, cutL) : b(logSql, u.name, mode)) : (logWhen ? b(logSql.replace('?3', '?1'), cutL) : b(logSql));
+  const logOut = l => ({ time: l.time, by: l.by_name || '', what: l.what || '', ref: l.ref || '', name: l.name || '', result: l.result || '', note: l.note || '' });
+  if (part === 'rest') {
+    const [ro, rl] = (await x.db.batch([ordQ, logQ])).map(r => r.results || []);
+    return { ok: true, orders: ro.reverse().map(orderOut), log: rl.reverse().map(logOut) };
+  }
+  const cusSql = `SELECT phone, name, address, province, ward, orders, spent, first, last, products, runout, consent, source, owner, care_at, care_result, substr(note, 1, ${NOTE_MAX}) AS note, length(note) > ${NOTE_MAX} AS cut, callback, flag, tag, last_status, last_ca FROM customers WHERE (orders > 0 OR flag != '')` + (staff ? ' AND ' + see : '');
+  const leadSql = 'SELECT * FROM leads' + (staff ? ' WHERE ' + see : '') + ' ORDER BY rid DESC LIMIT 3000';
   const res = await x.db.batch([
     staff ? b(cusSql, u.name, mode) : b(cusSql),
-    staff ? b(ordSql, u.name, mode, from) : b(ordSql.replace('?3', '?1'), from),
+    ordQ,
     staff ? b(leadSql, u.name, mode) : b(leadSql),
-    staff ? b(logSql, u.name, mode) : b(logSql),
+    logQ,
     b('SELECT * FROM contacts ORDER BY rid DESC LIMIT 1000'),
     b('SELECT * FROM targets' + (staff ? ' WHERE name = ?' : ''), ...(staff ? [u.name] : [])),
     b('SELECT name, variant, days, basis FROM cycles ORDER BY rid'),
@@ -291,17 +309,18 @@ async function crmLoad(x, u) {
     careAt: v.care_at, careResult: v.care_result || '', note: v.note || '', noteCut: !!v.cut, callback: v.callback, flag: v.flag || '', tag: v.tag || '', task: careTask(v, today, R), lastStatus: v.last_status || '', lastCa: v.last_ca || ''
   }));
   const users = (await crmUsers(x)).filter(y => y.active || u.level >= 3).map(y => u.level >= 3 ? { email: y.email, name: y.name, role: y.role, active: y.active, recv: y.recv, tg: !!y.tg, alias: y.alias, prefix: y.prefix || slugName(y.name) } : u.level >= 2 ? { name: y.name, role: y.role, recv: y.recv, tg: !!y.tg } : { name: y.name, role: y.role });
-  const ca = await caCfg(x);
-  const fbNew = u.level >= 2 ? ((await first(x.db, "SELECT count(*) AS n FROM feedback WHERE status = 'Mới'")) || {}).n || 0 : 0;
+  const [ca, fbNew, prefs, tagColors, sources, ads] = await Promise.all([caCfg(x), // hỏi song song: mỗi lần hỏi máy chủ dữ liệu mất một nhịp
+    u.level >= 2 ? first(x.db, "SELECT count(*) AS n FROM feedback WHERE status = 'Mới'").then(r => (r || {}).n || 0) : 0,
+    prefsOf(x, u.email), allTagColors(x), u.level >= 3 ? srcList(x) : [], u.level >= 3 ? adsCfg(x) : null]);
   return {
     ok: true, user: publicUser(u), now: Date.now(), today, customers, orders: os.reverse().map(orderOut), fbNew,
     contacts: staff ? [] : ct.reverse().map(r => ({ row: r.rid, time: r.time, name: r.name || '', phone: r.phone || '', email: r.email || '', message: r.message || '', page: r.page || '', done: !!r.done, note: r.note || '' })),
     leads: ls.reverse().map(leadOut), targets: tg.map(t => ({ month: t.month, name: t.name, amount: t.amount || 0, by: t.by_name || '', at: t.at })),
     cycles: cy.filter(r => r.name).map(r => [r.name, r.variant || '', Number(r.days) || 0, r.basis || '']), templates: tp.filter(r => r.text).map(r => [r.when_txt || '', r.purpose || '', r.text]),
-    log: lg.reverse().map(l => ({ time: l.time, by: l.by_name || '', what: l.what || '', ref: l.ref || '', name: l.name || '', result: l.result || '', note: l.note || '' })), users,
-    prefs: await prefsOf(x, u.email), tagColors: await allTagColors(x),
+    log: lg.reverse().map(logOut), users, part: part === 'core' ? { o: cutO, l: cutL } : undefined,
+    prefs, tagColors,
     rules: { vipOrders: R.vipOrders, vipSpent: R.vipSpent, atRisk: R.atRisk, statuses: ORDER_STATUS, results: CARE_RESULTS, leadStatus: LEAD_STATUS, assignMode: mode, bot: BOT_USERNAME, ca, lines: LINES.map(l => l[0]).concat(['Khác']) },
-    sources: u.level >= 3 ? await srcList(x) : [], ads: u.level >= 3 ? await adsCfg(x) : null
+    sources, ads
   };
 }
 /** Toàn bộ đơn của 1 khách (kể cả đơn cũ) + ghi chú đầy đủ. */
@@ -1068,7 +1087,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (!u) return { ok: false, auth: true, error: 'Phiên đăng nhập đã hết. Vui lòng đăng nhập lại.' };
   x.user = u;
   if (a === 'logout') { await run(x.db, 'DELETE FROM sessions WHERE token = ?', d.token); return { ok: true }; }
-  if (a === 'load') return crmLoad(x, u);
+  if (a === 'load') return crmLoad(x, u, d);
   if (a === 'order_create') return crmOrderCreate(x, u, d);
   if (a === 'check_phone') return crmCheckPhone(x, u, d);
   if (a === 'cust_orders') return crmCustOrders(x, u, d);
