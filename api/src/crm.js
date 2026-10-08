@@ -2,7 +2,8 @@
 import { normPhone, esc, fmt, startOfDay, fmtDate, dateOrBlank, slugName, isVoid, randHex, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, DAY, CRM_URL } from './lib.js';
 import { sendMail, telegram, telegramTo, tgUpdates, tgConf, bridge } from './google.js';
 
-let schemaDone = false;
+let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
+const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
 export async function ensureSchema(db) {
   if (schemaDone) return;
   try {
@@ -54,6 +55,15 @@ export async function ensureSchema(db) {
     )`);
     await run(db, `CREATE INDEX IF NOT EXISTS sale_phones_src ON sale_phones(src, sheet)`);
     await run(db, `CREATE INDEX IF NOT EXISTS logs_time ON logs(time)`); // CRM tải nhật ký theo khoảng ngày
+    // Cột upd = giờ đổi gần nhất (do máy chủ dữ liệu tự ghi) → CRM chỉ tải phần thay đổi từ lần trước
+    try { for (const [t, k] of [['orders', 'rid'], ['customers', 'rowid'], ['leads', 'rid']]) {
+      const cs = t === 'orders' ? cols : (await all(db, `PRAGMA table_info(${t})`)).map(r => r.name);
+      if (!cs.includes('upd')) { try { await run(db, `ALTER TABLE ${t} ADD COLUMN upd INTEGER`); } catch (e) { } }
+      await run(db, `CREATE INDEX IF NOT EXISTS ${t}_upd ON ${t}(upd)`);
+      await run(db, `CREATE TRIGGER IF NOT EXISTS ${t}_upd_i AFTER INSERT ON ${t} BEGIN UPDATE ${t} SET upd = ${NOW_MS} WHERE ${k} = NEW.${k}; END`);
+      await run(db, `CREATE TRIGGER IF NOT EXISTS ${t}_upd_u AFTER UPDATE ON ${t} WHEN NEW.upd IS OLD.upd BEGIN UPDATE ${t} SET upd = max(${NOW_MS}, coalesce(NEW.upd, 0) + 1) WHERE ${k} = NEW.${k}; END`); // luôn khác giá trị cũ → không tự gọi lại
+    }
+    deltaOk = true; } catch (e) { console.error('ensureSchema upd', e.message); } // lỗi thì CRM vẫn tải đủ như cũ
     await run(db, `CREATE TABLE IF NOT EXISTS dup_done (phone TEXT PRIMARY KEY, owner TEXT DEFAULT '', sales TEXT DEFAULT '', by_name TEXT DEFAULT '', at INTEGER)`);
     schemaDone = true;
   } catch (e) {
@@ -266,13 +276,47 @@ export async function srcList(x) {
 }
 export async function adsCfg(x) { return kvJson(x.db, 'ads_cfg', null); }
 
-/** Tải dữ liệu CRM. d.part = 'core': đợt 1 (đơn 100 ngày + đơn đang xử lý, nhật ký 60 ngày) – hiện màn hình ngay; 'rest': đợt 2 (đơn, nhật ký cũ hơn) – CRM tải ngầm.
+const CUS_SQL = `SELECT phone, name, address, province, ward, orders, spent, first, last, products, runout, consent, source, owner, care_at, care_result, substr(note, 1, ${NOTE_MAX}) AS note, length(note) > ${NOTE_MAX} AS cut, callback, flag, tag, last_status, last_ca FROM customers`;
+const cusOut = (v, today, R) => ({
+  phone: v.phone, name: v.name || '', address: v.address || '', province: v.province || '', ward: v.ward || '', orders: v.orders || 0, spent: v.spent || 0, first: v.first, last: v.last,
+  products: String(v.products || '').split('; ').filter(String), runout: v.runout, group: groupOf(v.orders || 0, v.spent || 0, v.last, R), consent: !!v.consent, source: v.source || '', owner: v.owner || '',
+  careAt: v.care_at, careResult: v.care_result || '', note: v.note || '', noteCut: !!v.cut, callback: v.callback, flag: v.flag || '', tag: v.tag || '', task: careTask(v, today, R), lastStatus: v.last_status || '', lastCa: v.last_ca || ''
+});
+const logOut = l => ({ time: l.time, by: l.by_name || '', what: l.what || '', ref: l.ref || '', name: l.name || '', result: l.result || '', note: l.note || '' });
+const contactOut = r => ({ row: r.rid, time: r.time, name: r.name || '', phone: r.phone || '', email: r.email || '', message: r.message || '', page: r.page || '', done: !!r.done, note: r.note || '' });
+
+/** Phần nhỏ đi kèm mọi lần tải (cấu hình, nhân sự, mục tiêu, mẫu tin…): vài chục dòng. */
+async function loadSmall(x, u, R, mode) {
+  const staff = u.level < 2, b = (sql, ...a) => x.db.prepare(sql).bind(...a);
+  const [ct, tg, cy, tp] = (await x.db.batch([
+    b('SELECT * FROM contacts ORDER BY rid DESC LIMIT ' + (staff ? 0 : 1000)),
+    b('SELECT * FROM targets' + (staff ? ' WHERE name = ?' : ''), ...(staff ? [u.name] : [])),
+    b('SELECT name, variant, days, basis FROM cycles ORDER BY rid'),
+    b('SELECT when_txt, purpose, text FROM templates ORDER BY rid')
+  ])).map(r => r.results || []);
+  const users = (await crmUsers(x)).filter(y => y.active || u.level >= 3).map(y => u.level >= 3 ? { email: y.email, name: y.name, role: y.role, active: y.active, recv: y.recv, tg: !!y.tg, alias: y.alias, prefix: y.prefix || slugName(y.name) } : u.level >= 2 ? { name: y.name, role: y.role, recv: y.recv, tg: !!y.tg } : { name: y.name, role: y.role });
+  const [ca, fbNew, prefs, tagColors, sources, ads] = await Promise.all([caCfg(x), // hỏi song song: mỗi lần hỏi máy chủ dữ liệu mất một nhịp
+    u.level >= 2 ? first(x.db, "SELECT count(*) AS n FROM feedback WHERE status = 'Mới'").then(r => (r || {}).n || 0) : 0,
+    prefsOf(x, u.email), allTagColors(x), u.level >= 3 ? srcList(x) : [], u.level >= 3 ? adsCfg(x) : null]);
+  return {
+    ok: true, user: publicUser(u), now: Date.now(), today: startOfDay(Date.now()), fbNew, users, prefs, tagColors, sources, ads,
+    contacts: ct.reverse().map(contactOut), targets: tg.map(t => ({ month: t.month, name: t.name, amount: t.amount || 0, by: t.by_name || '', at: t.at })),
+    cycles: cy.filter(r => r.name).map(r => [r.name, r.variant || '', Number(r.days) || 0, r.basis || '']), templates: tp.filter(r => r.text).map(r => [r.when_txt || '', r.purpose || '', r.text]),
+    rules: { vipOrders: R.vipOrders, vipSpent: R.vipSpent, atRisk: R.atRisk, statuses: ORDER_STATUS, results: CARE_RESULTS, leadStatus: LEAD_STATUS, assignMode: mode, bot: BOT_USERNAME, ca, lines: LINES.map(l => l[0]).concat(['Khác']) }
+  };
+}
+
+/** Tải dữ liệu CRM.
+ * d.part = 'core': đợt 1 (khách, đơn 100 ngày + đơn đang xử lý, nhật ký 60 ngày) – hiện màn hình ngay; 'rest': đợt 2 (đơn, nhật ký cũ hơn) – tải ngầm;
+ * 'delta': chỉ những dòng đổi từ lần tải trước (d.since = giờ máy chủ lần trước, d.lr = số dòng nhật ký cuối) – dùng khi tự làm mới.
  * Không có d.part (CRM bản cũ): tải 1 lần đủ hết. */
 async function crmLoad(x, u, d) {
   d = d || {};
+  if (d.part === 'delta') return crmDelta(x, u, d);
   const today = startOfDay(Date.now()), staff = u.level < 2, part = d.part === 'core' || d.part === 'rest' ? d.part : '';
   const [R, mode] = await Promise.all([rulesCfg(x), assignMode(x)]); // hỏi song song cho nhanh
-  const see = "(owner = ?1 OR (?2 = 'pool' AND (owner = '' OR owner IS NULL)))";
+  // khách của nhân viên: viết để dùng được chỉ mục customers(owner) → chỉ đọc khách của người đó, không quét cả bảng
+  const see = mode === 'pool' ? "(owner = ?1 OR owner = '' OR owner IS NULL)" : '(owner = ?1)';
   const from = Date.now() - 400 * DAY, open = "status IN ('Mới', 'Đã xác nhận', 'Đang giao')";
   const cutO = part === 'rest' ? Number(d.o) || 0 : Date.now() - 100 * DAY, cutL = part === 'rest' ? Number(d.l) || 0 : Date.now() - 60 * DAY;
   const ordWhen = part === 'core' ? `(time >= ?4 OR ${open})` : part === 'rest' ? `time >= ?3 AND time < ?4 AND NOT ${open}` : `(time >= ?3 OR ${open})`;
@@ -281,47 +325,65 @@ async function crmLoad(x, u, d) {
   const logSee = staff ? `(by_name = ?1 OR ref IN (SELECT phone FROM customers WHERE ${see}) OR ref IN (SELECT phone FROM leads WHERE ${see}) OR ref IN (SELECT id FROM orders WHERE seller = ?1 OR phone IN (SELECT phone FROM customers WHERE ${see})))` : '';
   const logSql = 'SELECT time, by_name, what, ref, name, result, note FROM logs' + (logSee || logWhen ? ' WHERE ' + [logSee, logWhen].filter(Boolean).join(' AND ') : '') + ' ORDER BY rid DESC LIMIT 6000';
   const b = (sql, ...a) => x.db.prepare(sql).bind(...a);
-  // Quản trị/Quản lý không có ?1 ?2 (tên, chế độ chia) → dồn số thứ tự tham số
+  // Quản trị/Quản lý không có ?1 (tên) → dồn số thứ tự tham số; ?2 bỏ trống
   const ordA = part ? [from, cutO] : [from]; // ?3 ?4 (bản tải 1 lần không có ?4)
-  const ordQ = staff ? b(ordSql, u.name, mode, ...ordA) : b(ordSql.replace(/\?4/g, '?2').replace(/\?3/g, '?1'), ...ordA);
-  const logQ = staff ? (logWhen ? b(logSql, u.name, mode, cutL) : b(logSql, u.name, mode)) : (logWhen ? b(logSql.replace('?3', '?1'), cutL) : b(logSql));
-  const logOut = l => ({ time: l.time, by: l.by_name || '', what: l.what || '', ref: l.ref || '', name: l.name || '', result: l.result || '', note: l.note || '' });
+  const ordQ = staff ? b(ordSql, u.name, '', ...ordA) : b(ordSql.replace(/\?4/g, '?2').replace(/\?3/g, '?1'), ...ordA);
+  const logQ = staff ? (logWhen ? b(logSql, u.name, '', cutL) : b(logSql, u.name)) : (logWhen ? b(logSql.replace('?3', '?1'), cutL) : b(logSql));
   if (part === 'rest') {
     const [ro, rl] = (await x.db.batch([ordQ, logQ])).map(r => r.results || []);
     return { ok: true, orders: ro.reverse().map(orderOut), log: rl.reverse().map(logOut) };
   }
-  const cusSql = `SELECT phone, name, address, province, ward, orders, spent, first, last, products, runout, consent, source, owner, care_at, care_result, substr(note, 1, ${NOTE_MAX}) AS note, length(note) > ${NOTE_MAX} AS cut, callback, flag, tag, last_status, last_ca FROM customers WHERE (orders > 0 OR flag != '')` + (staff ? ' AND ' + see : '');
+  const cusSql = CUS_SQL + " WHERE (orders > 0 OR flag != '')" + (staff ? ' AND ' + see : '');
   const leadSql = 'SELECT * FROM leads' + (staff ? ' WHERE ' + see : '') + ' ORDER BY rid DESC LIMIT 3000';
   const res = await x.db.batch([
-    staff ? b(cusSql, u.name, mode) : b(cusSql),
+    b(`SELECT ${NOW_MS} AS sv, (SELECT max(rid) FROM logs) AS lr`), // mốc cho lần tự làm mới sau chỉ lấy phần thay đổi
+    staff ? b(cusSql, u.name) : b(cusSql),
     ordQ,
-    staff ? b(leadSql, u.name, mode) : b(leadSql),
-    logQ,
-    b('SELECT * FROM contacts ORDER BY rid DESC LIMIT 1000'),
-    b('SELECT * FROM targets' + (staff ? ' WHERE name = ?' : ''), ...(staff ? [u.name] : [])),
-    b('SELECT name, variant, days, basis FROM cycles ORDER BY rid'),
-    b('SELECT when_txt, purpose, text FROM templates ORDER BY rid')
+    staff ? b(leadSql, u.name) : b(leadSql),
+    logQ
   ]);
-  const [cs, os, ls, lg, ct, tg, cy, tp] = res.map(r => r.results || []);
-  const customers = cs.map(v => ({
-    phone: v.phone, name: v.name || '', address: v.address || '', province: v.province || '', ward: v.ward || '', orders: v.orders || 0, spent: v.spent || 0, first: v.first, last: v.last,
-    products: String(v.products || '').split('; ').filter(String), runout: v.runout, group: groupOf(v.orders || 0, v.spent || 0, v.last, R), consent: !!v.consent, source: v.source || '', owner: v.owner || '',
-    careAt: v.care_at, careResult: v.care_result || '', note: v.note || '', noteCut: !!v.cut, callback: v.callback, flag: v.flag || '', tag: v.tag || '', task: careTask(v, today, R), lastStatus: v.last_status || '', lastCa: v.last_ca || ''
-  }));
-  const users = (await crmUsers(x)).filter(y => y.active || u.level >= 3).map(y => u.level >= 3 ? { email: y.email, name: y.name, role: y.role, active: y.active, recv: y.recv, tg: !!y.tg, alias: y.alias, prefix: y.prefix || slugName(y.name) } : u.level >= 2 ? { name: y.name, role: y.role, recv: y.recv, tg: !!y.tg } : { name: y.name, role: y.role });
-  const [ca, fbNew, prefs, tagColors, sources, ads] = await Promise.all([caCfg(x), // hỏi song song: mỗi lần hỏi máy chủ dữ liệu mất một nhịp
-    u.level >= 2 ? first(x.db, "SELECT count(*) AS n FROM feedback WHERE status = 'Mới'").then(r => (r || {}).n || 0) : 0,
-    prefsOf(x, u.email), allTagColors(x), u.level >= 3 ? srcList(x) : [], u.level >= 3 ? adsCfg(x) : null]);
-  return {
-    ok: true, user: publicUser(u), now: Date.now(), today, customers, orders: os.reverse().map(orderOut), fbNew,
-    contacts: staff ? [] : ct.reverse().map(r => ({ row: r.rid, time: r.time, name: r.name || '', phone: r.phone || '', email: r.email || '', message: r.message || '', page: r.page || '', done: !!r.done, note: r.note || '' })),
-    leads: ls.reverse().map(leadOut), targets: tg.map(t => ({ month: t.month, name: t.name, amount: t.amount || 0, by: t.by_name || '', at: t.at })),
-    cycles: cy.filter(r => r.name).map(r => [r.name, r.variant || '', Number(r.days) || 0, r.basis || '']), templates: tp.filter(r => r.text).map(r => [r.when_txt || '', r.purpose || '', r.text]),
-    log: lg.reverse().map(logOut), users, part: part === 'core' ? { o: cutO, l: cutL } : undefined,
-    prefs, tagColors,
-    rules: { vipOrders: R.vipOrders, vipSpent: R.vipSpent, atRisk: R.atRisk, statuses: ORDER_STATUS, results: CARE_RESULTS, leadStatus: LEAD_STATUS, assignMode: mode, bot: BOT_USERNAME, ca, lines: LINES.map(l => l[0]).concat(['Khác']) },
-    sources, ads
-  };
+  const [mk, cs, os, ls, lg] = res.map(r => r.results || []);
+  return Object.assign(await loadSmall(x, u, R, mode), {
+    today, customers: cs.map(v => cusOut(v, today, R)), orders: os.reverse().map(orderOut), leads: ls.reverse().map(leadOut), log: lg.reverse().map(logOut),
+    part: part === 'core' ? { o: cutO, l: cutL } : undefined, sv: deltaOk ? (mk[0] || {}).sv || 0 : 0, lr: (mk[0] || {}).lr || 0
+  });
+}
+
+/** Tự làm mới: chỉ đọc những dòng khách / đơn / khách hỏi đã đổi từ lần trước (theo cột upd, có chỉ mục) + nhật ký mới. Đổi quá nhiều → báo CRM tải lại đủ. */
+async function crmDelta(x, u, d) {
+  const since = Number(d.since) || 0, lr = Number(d.lr) || 0; if (!since || !deltaOk) return { ok: true, delta: true, full: true };
+  const today = startOfDay(Date.now()), staff = u.level < 2, MAX = 1500;
+  const [R, mode] = await Promise.all([rulesCfg(x), assignMode(x)]);
+  const mine = o => o === u.name || (mode === 'pool' && !o);
+  const b = (sql, ...a) => x.db.prepare(sql).bind(...a), since2 = since - 5000; // lùi 5 giây phòng ghi cùng lúc
+  const [mk, cs, os, ls, lg] = (await x.db.batch([
+    b(`SELECT ${NOW_MS} AS sv, (SELECT max(rid) FROM logs) AS lr`),
+    b(CUS_SQL + ' WHERE upd > ?1 LIMIT ' + (MAX + 1), since2),
+    b('SELECT o.*, c.owner AS c_owner FROM orders o LEFT JOIN customers c ON c.phone = o.phone WHERE o.upd > ?1 LIMIT ' + (MAX + 1), since2),
+    b('SELECT * FROM leads WHERE upd > ?1 LIMIT ' + (MAX + 1), since2),
+    b('SELECT rid, time, by_name, what, ref, name, result, note FROM logs WHERE rid > ?1 ORDER BY rid LIMIT ' + (MAX + 1), lr)
+  ])).map(r => r.results || []);
+  if (cs.length > MAX || os.length > MAX || ls.length > MAX || lg.length > MAX) return { ok: true, delta: true, full: true };
+  const cusOk = v => (v.orders > 0 || (v.flag || '') !== '') && (!staff || mine(v.owner || ''));
+  const ordOk = o => !staff || o.seller === u.name || (o.c_owner != null && mine(o.c_owner || ''));
+  const leadOk = l => !staff || mine(l.owner || '');
+  let logs = lg;
+  if (staff && logs.length) { // nhật ký mới: chỉ giữ dòng của khách / khách hỏi / đơn mình xem được
+    const refs = [...new Set(logs.map(l => l.ref).filter(Boolean))], vis = {};
+    if (refs.length) {
+      (await allIn(x.db, 'SELECT phone, owner FROM customers WHERE phone IN (SELECT value FROM json_each(?))', refs)).forEach(r => { if (mine(r.owner || '')) vis[r.phone] = 1; });
+      (await allIn(x.db, 'SELECT phone, owner FROM leads WHERE phone IN (SELECT value FROM json_each(?))', refs)).forEach(r => { if (mine(r.owner || '')) vis[r.phone] = 1; });
+      (await allIn(x.db, 'SELECT o.id, o.seller, c.owner AS c_owner FROM orders o LEFT JOIN customers c ON c.phone = o.phone WHERE o.id IN (SELECT value FROM json_each(?))', refs)).forEach(r => { if (ordOk(r)) vis[r.id] = 1; });
+    }
+    logs = logs.filter(l => l.by_name === u.name || vis[l.ref]);
+  }
+  return Object.assign(await loadSmall(x, u, R, mode), {
+    delta: true, today,
+    customers: cs.filter(cusOk).map(v => cusOut(v, today, R)), cusGone: cs.filter(v => !cusOk(v)).map(v => v.phone),
+    orders: os.filter(ordOk).map(orderOut), ordGone: os.filter(o => !ordOk(o)).map(o => o.rid),
+    leads: ls.filter(leadOk).map(leadOut), leadGone: ls.filter(l => !leadOk(l)).map(l => l.id),
+    log: logs.map(logOut), sv: (mk[0] || {}).sv || 0, lr: Math.max(lr, (mk[0] || {}).lr || 0)
+  });
 }
 /** Toàn bộ đơn của 1 khách (kể cả đơn cũ) + ghi chú đầy đủ. */
 async function crmCustOrders(x, u, d) {
@@ -830,6 +892,7 @@ export async function vtpWebhook(x, raw) {
   if (o.trk_at && at < o.trk_at) return { ok: true, skip: 'Tin cũ hơn tin đã có' };
   const prevCode = Number(o.trk_code) || 0;
   const old = String(o.status || 'Mới'), returning = D.IS_RETURNING === true;
+  if (st === prevCode && (old === 'Đã giao' || isVoid(old))) return { ok: true, skip: 'Đơn đã xong, trạng thái vận chuyển không đổi' }; // đơn đã giao / huỷ / hoàn: không ghi lại
   const label = String(D.STATUS_NAME || VTP_ALERT[st] || ('Trạng thái ' + st)).trim();
   const place = vtpPlace(D.LOCATION_CURRENTLY || D.LOCALION_CURRENTLY);
   const note = String(D.NOTE || '').trim();

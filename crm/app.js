@@ -220,8 +220,43 @@
 
   /* ================================================================ dữ liệu */
   /** Tải 2 đợt: đợt 1 = khách, việc hôm nay, đơn 100 ngày, nhật ký 60 ngày (đủ làm việc ngay); đợt 2 tải ngầm đơn + nhật ký cũ hơn. */
-  function load(silent) {
+  /** Tự làm mới nhẹ: chỉ hỏi máy chủ phần đổi từ lần trước. Mỗi tiếng (hoặc sang ngày mới, đổi quy tắc) vẫn tải đủ 1 lần cho chắc. */
+  function canDelta() { return S.d && S.d.sv && !S.d.partial && S.fullAt && Date.now() - S.fullAt < 3600e3 && S.d.today === startDay(Date.now()); }
+  function startDay(t) { return Math.floor((t + 7 * 3600e3) / DAY) * DAY - 7 * 3600e3; }
+  function loadDelta() {
+    S.loading = true; var t0 = Date.now(), d = S.d;
+    return api('load', { part: 'delta', since: d.sv, lr: d.lr }).then(function (j) {
+      if (S.d !== d) return 'skip'; // đã tải đủ lần khác trong lúc chờ
+      if (!j.delta || j.full || j.today !== d.today || JSON.stringify(j.rules) !== JSON.stringify(d.rules)) return 'full';
+      var key = function (arr, k) { var m = {}; arr.forEach(function (x, i) { m[x[k]] = i; }); return m; };
+      var merge = function (arr, add, gone, k) { // thay dòng cũ, thêm dòng mới, bỏ dòng không còn thuộc quyền xem
+        var g = {}; (gone || []).forEach(function (v) { g[v] = 1; }); var m = key(arr, k), fresh = [];
+        add.forEach(function (x) { if (m[x[k]] != null) arr[m[x[k]]] = x; else fresh.push(x); });
+        return arr.concat(fresh).filter(function (x) { return !g[x[k]]; });
+      };
+      var hadPhone = key(d.customers, 'phone');
+      d.customers = merge(d.customers, j.customers, j.cusGone, 'phone');
+      d.orders = merge(d.orders, j.orders, j.ordGone, 'row').sort(function (a, b) { return (a.time || 0) - (b.time || 0) || a.row - b.row; });
+      d.leads = merge(d.leads || [], j.leads, j.leadGone, 'id');
+      var pending = {}; S.outbox.forEach(function (o) { pending[o.id] = 1; });
+      d.log = (d.log || []).filter(function (l) { return !l.loc && (!l.op || pending[l.op]); }).concat(j.log); // dòng tạm hiện trên máy → thay bằng dòng thật từ máy chủ
+      // khách mới thuộc quyền xem mà trên máy chưa có đủ đơn cũ (vd vừa được giao khách) → tải đủ
+      var cnt = {}; d.orders.forEach(function (o) { if (!/Huỷ|Hủy|Hoàn/i.test(o.status)) cnt[o.phone] = (cnt[o.phone] || 0) + 1; });
+      if (j.customers.some(function (c) { return hadPhone[c.phone] == null && (cnt[c.phone] || 0) < c.orders; })) return 'full';
+      ['user', 'now', 'fbNew', 'users', 'prefs', 'tagColors', 'sources', 'ads', 'contacts', 'targets', 'cycles', 'templates', 'rules', 'sv', 'lr'].forEach(function (k) { if (j[k] !== undefined) d[k] = j[k]; });
+      setData(d, Date.now()); S.perf = { core: Date.now() - t0, srv: j.t, kb: j.__kb, delta: 1 };
+      idb('set', 'data', { tk: S.token.slice(-12), at: S.loadedAt, d: d });
+      if ($('.me')) { $('.me').innerHTML = meHTML(); navBadges(); }
+      softRender(true);
+      return 'ok';
+    }, function () { return 'full'; }).then(function (r) {
+      S.loading = false;
+      if (r === 'full') return load(true, true);
+    });
+  }
+  function load(silent, noDelta) {
     if (S.loading) return Promise.resolve();
+    if (silent && !noDelta && canDelta()) return loadDelta();
     S.loading = true; var b = $('#refresh'); if (b) b.classList.add('spin');
     var fresh = !silent && !!S.d, t0 = Date.now(), prev = S.d; // bấm ↻: đọc thẳng từ Sheet, không dùng bản máy chủ nhớ tạm
     var p = { part: 'core' }; if (fresh) p.fresh = 1;
@@ -229,7 +264,7 @@
       S.stale = false;
       if (j.part && prev && prev.orders) keepOld(j, prev); // đang có dữ liệu cũ trên máy → giữ phần cũ tới khi đợt 2 về, số liệu không bị hụt
       var keep = !!j.part && silent && prev && prev.orders && !prev.partial && Date.now() - (S.restAt || 0) < 3600e3; // tự làm mới: đơn, nhật ký cũ giữ bản trên máy (1 tiếng mới đọc lại) – nhanh hơn, đỡ tốn lượt đọc máy chủ
-      j.partial = !!j.part && !keep; setData(j, Date.now()); S.perf = { core: Date.now() - t0, srv: j.t, kb: j.__kb };
+      j.partial = !!j.part && !keep; setData(j, Date.now()); S.fullAt = Date.now(); S.perf = { core: Date.now() - t0, srv: j.t, kb: j.__kb };
       if (!j.part) idb('set', 'data', { tk: S.token.slice(-12), at: S.loadedAt, d: j }); // máy chủ cũ: 1 đợt
       if (!$('.me')) shell(); else { $('.me').innerHTML = meHTML(); navBadges(); } // .me chỉ có ở giao diện thật (khung chờ không có)
       softRender(silent);
@@ -1594,7 +1629,7 @@
     if ($('#oPaid', m)) $('#oPaid', m).onclick = function () {
       var paid = !o.paid, oldPaid = o.paid;
       o.paid = paid ? 'Có – ' + S.user.name + ' ' + fDateTime(Date.now()) : '';
-      S.d.log.push({ time: Date.now(), by: S.user.name, what: 'Đơn hàng', ref: o.id, name: o.name, result: paid ? 'Đã nhận tiền chuyển khoản' : 'Bỏ đánh dấu đã nhận tiền', note: '' });
+      S.d.log.push({ loc: 1, time: Date.now(), by: S.user.name, what: 'Đơn hàng', ref: o.id, name: o.name, result: paid ? 'Đã nhận tiền chuyển khoản' : 'Bỏ đánh dấu đã nhận tiền', note: '' });
       toast(paid ? 'Đã ghi nhận tiền ✓' : 'Đã bỏ đánh dấu ✓'); closeModal(true); openOrder(o.id, true); render();
       api('order_status', { id: o.id, row: o.row, paid: paid }).catch(function (e) {
         o.paid = oldPaid; toast(e.message, true); render();
@@ -1636,7 +1671,7 @@
     var old = o.status; o.status = st; if (st === 'Đang giao' && !o.shipAt) o.shipAt = Date.now(); navBadges(); render(); if (done) done();
     api('order_status', { id: o.id, row: o.row, status: st, reason: reason }).then(function (j) {
       if (j.row) o.row = j.row;
-      S.d.log.push({ time: Date.now(), by: S.user.name, what: 'Đơn hàng', ref: o.id, name: o.name, result: old + ' → ' + st, note: reason || '' });
+      S.d.log.push({ loc: 1, time: Date.now(), by: S.user.name, what: 'Đơn hàng', ref: o.id, name: o.name, result: old + ' → ' + st, note: reason || '' });
       toast('Đơn ' + o.id + ': ' + st);
       if (isVoid(old) !== isVoid(st)) load(true); else render();
     }, function (e) { o.status = old; navBadges(); render(); toast(e.message, true); });
@@ -2146,7 +2181,7 @@
         l.status = j.status; l.lastAt = j.at; l.owner = j.owner || l.owner; l.callback = p.callback ? new Date(p.callback + 'T09:00:00+07:00').getTime() : null;
         if (o.lost) l.reason = reason;
         if (p.note) l.note = (l.note ? l.note + '\n' : '') + '[' + fDate(j.at).slice(0, 5) + ' ' + S.user.name + '] ' + p.note;
-        S.d.log.push({ time: j.at, by: S.user.name, what: 'Tư vấn', ref: l.phone, name: l.name, result: o.v, note: p.note });
+        S.d.log.push({ loc: 1, time: j.at, by: S.user.name, what: 'Tư vấn', ref: l.phone, name: l.name, result: o.v, note: p.note });
         closeModal(true); if (route().id) history.replaceState(null, '', '#' + route().view);
         navBadges(); render();
         if (o.close) openOrderForm({ lead: l }); else toast('Đã lưu ✓');
