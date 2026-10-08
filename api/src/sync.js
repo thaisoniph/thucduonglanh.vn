@@ -167,6 +167,7 @@ async function srcDelete(x, u, d) {
   const cur = (await srcList(x)).find(s => s.id === d.id); if (!cur) return { ok: false, error: 'Không tìm thấy' };
   await run(x.db, 'DELETE FROM sources WHERE id = ?', d.id); await crmLog(x, u, 'Nguồn dữ liệu', d.id, cur.sale, 'Xoá nguồn (dữ liệu đã nhập vẫn giữ)', ''); return { ok: true };
 }
+async function sha1(t) { const h = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(t)); return [...new Uint8Array(h)].map(b => b.toString(16).padStart(2, '0')).join(''); }
 async function srcRows(x, src, shCfg) {
   const hr = shCfg.header || 1, lc = neededCols(shCfg); // chỉ đọc đúng số cột cần
   const vals = await sheetValues(x.env, fileIdOf(src.url), a1(shCfg.name, 'A' + hr + ':' + colLetter(lc - 1)), 'UNFORMATTED_VALUE');
@@ -183,6 +184,10 @@ async function srcSync(x, u, d) {
   const sale = src.sale; if (!(await crmUsers(x)).some(y => y.name === sale)) return { ok: false, error: 'Chưa có nhân sự tên "' + sale + '" trong CRM. Thêm ở Cài đặt → Nhân sự trước.' };
   if (Number(d.offset) > 0) return { ok: true, role: shCfg.role, sheetName: shCfg.name, total: 0, newOrders: 0, dup: 0, skip: 0, customers: 0, newCustomers: 0, conflicts: [], conflictCount: 0, revenue: 0, summary: '' }; // bản cũ gửi từng phần: phần đầu đã xử lý hết
   const data = await srcRows(x, src, shCfg), total = data.rows.length; let res;
+  // tự nhập 25 phút/lần: sheet không đổi chữ nào so với lần trước → bỏ qua, không đọc / ghi máy chủ dữ liệu
+  const auto = u.name === 'Tự động' && !d.dry, sigKey = 'ss_' + hashKey(src.id + '|' + shCfg.name);
+  const sig = auto ? await sha1(src.sale + '#' + (src.cfg.until || '') + '#' + JSON.stringify(shCfg) + '#' + JSON.stringify(data.rows)) : '';
+  if (auto && await kvGet(x.db, sigKey) === sig) return { ok: true, role: shCfg.role, sheetName: shCfg.name, total, skipped: true, summary: 'không đổi' };
   if (!d.dry && (shCfg.role === 'orders' || shCfg.role === 'care')) { try { await notePhones(x, src, shCfg, data.rows); } catch (e) { console.error('notePhones', sale, shCfg.name, e.message); } }
   if (shCfg.role === 'orders') res = await importOrders(x, src, shCfg, data, !!d.dry);
   else if (shCfg.role === 'care') res = await importCare(x, src, shCfg, data, !!d.dry, d.sheet);
@@ -192,6 +197,7 @@ async function srcSync(x, u, d) {
     const cfg = src.cfg; if (res.done !== undefined) { cfg.done = cfg.done || {}; cfg.done[d.sheet] = res.done; }
     await run(x.db, 'UPDATE sources SET cfg = ?, last = ?, result = ? WHERE id = ?', JSON.stringify(cfg), Date.now(), shCfg.name + ': ' + res.summary, src.id);
     await crmLog(x, u, 'Đồng bộ file', src.id, sale, shCfg.name, res.summary);
+    if (auto) await kvSet(x.db, sigKey, sig, 2 * 86400e3);
   }
   return Object.assign(res, { ok: true, role: shCfg.role, sheetName: shCfg.name, total });
 }
