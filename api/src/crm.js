@@ -788,7 +788,9 @@ export async function vtpWebhook(x, raw) {
   if (!code) return { ok: true, skip: 'Không có mã vận đơn' };
   const ref = String(D.ORDER_REFERENCE || '').trim().toUpperCase();
 
-  const candidates = await all(x.db, 'SELECT * FROM orders WHERE upper(trim(tracking)) = ?1 OR upper(trim(id)) = ?1 OR (?2 != "" AND upper(trim(id)) = ?2) ORDER BY time DESC LIMIT 20', code, ref);
+  // tìm nhanh theo chỉ mục trước; không thấy mới quét cả bảng đơn (quét mỗi tin báo VTP tốn hạn mức đọc)
+  let candidates = await all(x.db, "SELECT * FROM orders WHERE tracking IN (?1, '''' || ?1) OR id = ?1 OR (?2 != '' AND id = ?2) ORDER BY time DESC LIMIT 20", code, ref);
+  if (!candidates.length) candidates = await all(x.db, 'SELECT * FROM orders WHERE upper(trim(tracking)) = ?1 OR upper(trim(id)) = ?1 OR (?2 != "" AND upper(trim(id)) = ?2) ORDER BY time DESC LIMIT 20', code, ref);
   const U = v => String(v || '').replace(/^'/, '').trim().toUpperCase();
   let best = null;
   for (const o of candidates) {
@@ -858,7 +860,7 @@ async function crmPerf(x, u, d) {
   });
   if (!rows.length) return { ok: true };
   await insertMany(x.db, 'perf', ['time', 'by_name', 'role', 'what', 'total', 'server', 'data', 'kb', 'dev'], rows);
-  const cnt = (await first(x.db, 'SELECT count(*) AS n FROM perf')).n;
+  const cnt = (await first(x.db, 'SELECT coalesce(max(rid) - min(rid) + 1, 0) AS n FROM perf')).n; // không dùng count(*): đếm là đọc hết bảng
   if (cnt > 8000) await run(x.db, 'DELETE FROM perf WHERE rid IN (SELECT rid FROM perf ORDER BY rid ASC LIMIT ?)', cnt - 6000);
   return { ok: true };
 }

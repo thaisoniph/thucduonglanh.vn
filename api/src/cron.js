@@ -91,5 +91,5 @@ export async function scheduled(x, cron) {
   }
   const last = Number(await kvGet(x.db, 'mirror_last') || 0);
   if (now - last > 3 * 3600e3 - 5 * 60e3) { try { // đọc toàn bộ dữ liệu → 3 tiếng 1 lần
-     await mirror(x); } catch (e) { console.error('mirror', e.message); await kvSet(x.db, 'mirror_last', String(now - 150 * 60e3)); } }
+     await mirror(x); } catch (e) { console.error('mirror', e.message); await kvSet(x.db, 'mirror_last', String(now)); } } // lỗi thì 3 tiếng sau mới thử lại (mỗi lần thử đọc hết dữ liệu)
 }
