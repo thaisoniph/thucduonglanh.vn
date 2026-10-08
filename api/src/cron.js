@@ -72,10 +72,11 @@ export async function mirror(x) {
   return counts;
 }
 
-/** Mỗi 10 phút. 1h sáng giờ UTC = 8h sáng giờ Việt Nam: gửi danh sách chăm sóc. */
+/** Mỗi 10 phút từ 7h đến 22h (giờ VN), ban đêm nghỉ. 8h sáng: gửi danh sách chăm sóc. */
 export async function scheduled(x, cron) {
   if (!await kvGet(x.db, 'migrated')) return;
   const now = Date.now(), vn = new Date(now + 7 * 3600e3);
+  if (vn.getUTCHours() < 7 || vn.getUTCHours() >= 22) return; // ban đêm (22h–7h) không ai làm việc → nghỉ, đỡ tốn lượt đọc
   if (vn.getUTCHours() === 8 && vn.getUTCMinutes() < 10) {
     const key = 'care_' + fmtDate(now, 'yyyyMMdd');
     if (!await kvGet(x.db, key)) { await kvSet(x.db, key, '1', 2 * DAY); try { await dailyCare(x); } catch (e) { console.error('dailyCare', e.message); } }

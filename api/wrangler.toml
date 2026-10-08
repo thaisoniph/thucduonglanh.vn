@@ -16,7 +16,7 @@ database_id = "__D1_ID__" # GitHub Actions tự điền khi triển khai
 BRIDGE_URL = "https://script.google.com/macros/s/AKfycbylMjHmg2kXJZHcMSEzDWeI8YC_He35HcCrTTDgslYz8ftI9jMJ6fSFUx5qnPpTAnW-/exec"
 
 [triggers]
-crons = ["*/10 * * * *"]
+crons = ["*/10 0-14 * * *"] # giờ UTC: 0h–14h = 7h–21h59 giờ Việt Nam. Ban đêm không chạy lịch (đơn web, tin Viettel Post vẫn nhận bình thường)
 
 [observability]
 enabled = true
