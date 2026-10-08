@@ -73,7 +73,7 @@ Trên danh sách đơn và khách hỏi, bấm vào mã đơn hoặc số điệ
 
 ### Gọi lần lượt
 
-Bấm **▶ Bắt đầu gọi lần lượt**: CRM mở **từng khách một** (tên, sản phẩm, 2–3 lần chăm sóc gần nhất, tin nhắn mẫu). Gọi hoặc nhắn xong, bấm **1 nút kết quả**, CRM **tự sang khách tiếp theo** (“Khách 3 / 24”). **⏭ Để sau** bỏ qua khách đó trong lượt này; **✕** để dừng.
+Bấm **▶ Bắt đầu gọi lần lượt**: CRM mở **từng khách một** (tên, tổng chi / số đơn, sản phẩm hay mua và chu kỳ mua lại, ngày dự kiến hết hàng, lần cuối khách trả lời, ghi chú sức khoẻ, **lịch sử mua** từng đơn (bấm *Xem thêm* để xem đơn cũ), 3–4 lần chăm sóc gần nhất, tin nhắn mẫu). Gọi hoặc nhắn xong, bấm **1 nút kết quả**, CRM **tự sang khách tiếp theo** (“Khách 3 / 24”). **⏭ Để sau** bỏ qua khách đó trong lượt này; **✕** để dừng.
 
 ## Xử lý đơn hàng
 

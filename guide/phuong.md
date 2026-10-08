@@ -55,7 +55,7 @@ Biểu tượng **Zalo** (ô vuông xanh có chữ Zalo) cạnh tên = khách em
 
 ## 3. Gọi lần lượt: mỗi lần 1 khách
 
-Bấm **▶ Bắt đầu gọi lần lượt**, CRM mở **từng khách một**: tên, sản phẩm, **2–3 lần chăm sóc gần nhất**, tin nhắn mẫu đã điền tên khách. Em gọi (hoặc nhắn Zalo), rồi **bấm 1 nút kết quả**, CRM **tự chuyển sang khách tiếp theo**. Khách chưa tiện gọi thì bấm **⏭ Để sau**. Bấm **✕** để dừng.
+Bấm **▶ Bắt đầu gọi lần lượt**, CRM mở **từng khách một**: tên, **tổng chi và số đơn**, sản phẩm hay mua, ngày dự kiến hết hàng, lần cuối khách trả lời, **lịch sử mua từng đơn**, **3–4 lần chăm sóc gần nhất**, tin nhắn mẫu đã điền tên khách. Không cần mở hồ sơ khách nữa. Em gọi (hoặc nhắn Zalo), rồi **bấm 1 nút kết quả**, CRM **tự chuyển sang khách tiếp theo**. Khách chưa tiện gọi thì bấm **⏭ Để sau**. Bấm **✕** để dừng.
 
 ![Gọi lần lượt: mỗi lần 1 khách, bấm kết quả là sang khách tiếp](/huong-dan/img/ph-quick.webp)
 

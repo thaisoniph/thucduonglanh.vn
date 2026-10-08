@@ -415,7 +415,14 @@ details.grp .g-tip { flex-basis: 100%; font-size: 12px; color: var(--muted); }
 .flow-h { background: var(--primary-light, #e7f3ec); border-radius: 12px; padding: 10px 12px; margin: 0 0 10px; }
 .flow-h > div:first-child { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 6px; font-size: 14px; } .flow-h .bar { margin: 0; background: #fff; }
 .mini-hist { margin-top: 8px; border-top: 1px dashed var(--line); padding-top: 6px; font-size: 13px; color: var(--text); }
-.mini-hist div { padding: 2px 0; } .mini-hist span { color: var(--muted); font-size: 12px; margin-right: 4px; }
+.mini-hist div { padding: 2px 0; }
+.k-val { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 8px; padding: 8px 10px; background: var(--bg, #f5f5f0); border-radius: 10px; font-size: 13px; color: var(--muted); } .k-val b { color: var(--ink); font-size: 15px; }
+.k-lines { display: grid; gap: 3px; margin-top: 8px; font-size: 13px; color: var(--text); }
+.k-sec { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--line); font-size: 13px; font-weight: 700; color: var(--ink); }
+.k-sec + .mini-hist { margin-top: 2px; border-top: 0; padding-top: 0; }
+.k-ord > div { padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 13px; } .k-ord > div:last-child { border-bottom: 0; } .k-ord .void { opacity: .55; }
+.k-o1 { display: flex; gap: 6px; align-items: center; } .k-o1 > span:first-child { color: var(--muted); font-size: 12px; } .k-o1 b { margin-left: auto; color: var(--ink); }
+.k-o2 { margin-top: 2px; } .k-o3 { margin-top: 2px; font-size: 12px; color: var(--muted); } .mini-hist span { color: var(--muted); font-size: 12px; margin-right: 4px; }
 
 /* hồ sơ khách */
 .p-top { margin: 0 0 10px; } .p-sub { color: var(--muted); font-size: 14px; margin-bottom: 6px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
