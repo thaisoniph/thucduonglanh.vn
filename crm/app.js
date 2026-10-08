@@ -228,11 +228,14 @@
     return api('load', p).then(function (j) {
       S.stale = false;
       if (j.part && prev && prev.orders) keepOld(j, prev); // đang có dữ liệu cũ trên máy → giữ phần cũ tới khi đợt 2 về, số liệu không bị hụt
-      j.partial = !!j.part; setData(j, Date.now()); S.perf = { core: Date.now() - t0, srv: j.t, kb: j.__kb };
+      var keep = !!j.part && silent && prev && prev.orders && !prev.partial && Date.now() - (S.restAt || 0) < 3600e3; // tự làm mới: đơn, nhật ký cũ giữ bản trên máy (1 tiếng mới đọc lại) – nhanh hơn, đỡ tốn lượt đọc máy chủ
+      j.partial = !!j.part && !keep; setData(j, Date.now()); S.perf = { core: Date.now() - t0, srv: j.t, kb: j.__kb };
       if (!j.part) idb('set', 'data', { tk: S.token.slice(-12), at: S.loadedAt, d: j }); // máy chủ cũ: 1 đợt
       if (!$('.me')) shell(); else { $('.me').innerHTML = meHTML(); navBadges(); } // .me chỉ có ở giao diện thật (khung chờ không có)
       softRender(silent);
-      if (j.part) loadRest(j); // tải ngầm, không giữ S.loading → bấm ↻ lúc đợt 2 chưa xong vẫn tải lại được
+      if (j.part) { // đợt 2 tải ngầm, không giữ S.loading → bấm ↻ lúc đợt 2 chưa xong vẫn tải lại được
+        if (keep) idb('set', 'data', { tk: S.token.slice(-12), at: S.loadedAt, d: j }); else loadRest(j);
+      }
     }, function (e) { if (!silent && S.token) toast(e.message, true); if (!S.d && S.token && !$('.me')) { $('#app').innerHTML = '<div class="login"><div class="login-box"><h1>Chưa tải được dữ liệu</h1><p class="sub">' + esc(e.message) + '</p><button class="btn pri block" id="retry">Thử lại</button></div></div>'; $('#retry').onclick = function () { location.reload(); }; } })
       .then(function () { S.loading = false; var b2 = $('#refresh'); if (b2) b2.classList.remove('spin'); });
   }
@@ -253,7 +256,7 @@
       var newO = S.d.orders.filter(function (o) { return (o.time || 0) >= core.part.o || (!ids[o.id] && /^(Mới|Đã xác nhận|Đang giao)$/.test(o.status)); });
       var newL = S.d.log.filter(function (l) { return (l.time || 0) >= core.part.l || l.op; }); // l.op: việc vừa bấm trên máy này
       [r.orders, r.log].forEach(function (arr) { arr.forEach(function (x) { if (x.name && ZALO_X.test(x.name)) { ZALO_X.lastIndex = 0; x.name = x.name.replace(ZALO_X, '').trim(); } ZALO_X.lastIndex = 0; }); });
-      S.d.orders = r.orders.concat(newO); S.d.log = r.log.concat(newL); S.d.partial = false;
+      S.d.orders = r.orders.concat(newO); S.d.log = r.log.concat(newL); S.d.partial = false; S.restAt = Date.now();
       preIndexData(S.d);
       if (S.perf) { S.perf.rest = Date.now() - t1; S.perf.kb2 = r.__kb; }
       idb('set', 'data', { tk: S.token.slice(-12), at: S.loadedAt, d: S.d }); // lần sau mở CRM hiện ngay
