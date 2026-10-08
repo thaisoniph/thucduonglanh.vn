@@ -2,7 +2,7 @@
 // Đọc bằng Google Sheets API (nhanh, không phải mở cả file như Apps Script). Nhập nhiều lần không trùng.
 import { normPhone, esc, fmtDate, nrm, isVoid, hashKey, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, CRM_URL, DAY } from './lib.js';
 import { sheetMeta, sheetValues, sheetWrite, a1, serialToMs } from './google.js';
-import { crmUsers, crmLog, recalc, setCallbacks, caCfg, caOf, normLine, itemsText, shipText, ORDER_COLS, srcList, adsCfg, telegramUser } from './crm.js';
+import { crmUsers, crmLog, recalc, setCallbacks, caCfg, caOf, normLine, itemsText, shipText, ORDER_COLS, srcList, adsCfg, telegramUser, unifyNames } from './crm.js';
 
 const FIELD_LABEL = { date: 'Ngày', name: 'Tên khách', phone: 'SĐT', address: 'Địa chỉ', product: 'Sản phẩm', qty: 'Số lượng', gift1: 'Quà tặng 1', gift1qty: 'SL quà 1', gift2: 'Quà tặng 2', gift2qty: 'SL quà 2',
   status: 'Trạng thái', ctype: 'Phân loại khách / ca', line: 'Dòng SP (nguồn)', code: 'Mã đơn', amount: 'Số tiền', shipText: 'Lên đơn (mô tả)', callback: 'Lịch gọi lại', note: 'Ghi chú / nhật ký', health: 'Tình trạng sức khoẻ',
@@ -447,6 +447,7 @@ async function dupScan(x, u) {
 }
 /** Danh sách khách trùng: có trong file của ≥ 2 sale, hoặc trong file của 1 sale nhưng đang do người khác phụ trách. */
 async function dupList(x) {
+  await unifyNames(x);
   const phones = (await all(x.db, `SELECT sp.phone FROM sale_phones sp JOIN customers c ON c.phone = sp.phone WHERE (c.orders > 0 OR c.flag != '')
     GROUP BY sp.phone HAVING count(DISTINCT sp.sale) >= 2 OR sum(coalesce(c.owner, '') != '' AND sp.sale != c.owner) > 0`)).map(r => r.phone);
   const tracked = (await first(x.db, 'SELECT count(DISTINCT src || sheet) AS n FROM sale_phones') || {}).n || 0;

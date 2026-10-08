@@ -129,6 +129,24 @@ export async function crmUsers(x) {
   list.forEach(u => { u.level = ROLES[u.role]; });
   return (x._users = list);
 }
+/** Khoá so tên người: không phân biệt vị trí đặt dấu thanh (Thuỷ = Thủy), hoa thường, khoảng trắng. Vẫn phân biệt Thủy ≠ Thúy. */
+const TONES = /[̣̀́̃̉]/g;
+export function nameKey(s) { return String(s || '').normalize('NFD').toLowerCase().trim().split(/\s+/).map(w => w.replace(TONES, '') + (w.match(TONES) || []).join('')).join(' '); }
+/** Tên nhân sự gõ khác cách đặt dấu (dữ liệu cũ từ Sheet, đổi tên ở Nhân sự…) → đưa về đúng tên tài khoản, để khách không bị tách thành 2 người phụ trách. */
+const NAME_COLS = [['customers', 'owner'], ['customers', 'last_seller'], ['orders', 'seller'], ['leads', 'owner'], ['sources', 'sale'], ['sale_phones', 'sale'], ['dup_done', 'owner'], ['logs', 'by_name']];
+export async function unifyNames(x) {
+  const by = {}; (await crmUsers(x)).forEach(u => { const k = nameKey(u.name); (by[k] = by[k] || []).indexOf(u.name) < 0 && by[k].push(u.name); });
+  const fix = v => { const s = by[nameKey(v)]; return s && s.length === 1 && s[0] !== v ? s[0] : ''; }; // 2 tài khoản cùng khoá: không tự gộp
+  let n = 0;
+  for (const [t, c] of NAME_COLS) for (const r of await all(x.db, `SELECT DISTINCT ${c} AS v FROM ${t} WHERE ${c} != ''`)) {
+    const to = fix(r.v); if (to) n += (await run(x.db, `UPDATE ${t} SET ${c} = ? WHERE ${c} = ?`, to, r.v)).meta.changes;
+  }
+  for (const r of await all(x.db, "SELECT DISTINCT name AS v FROM targets WHERE name != ''")) { const to = fix(r.v); if (to) { n += (await run(x.db, 'UPDATE OR IGNORE targets SET name = ? WHERE name = ?', to, r.v)).meta.changes; await run(x.db, 'DELETE FROM targets WHERE name = ?', r.v); } } // tháng đã có mục tiêu theo tên đúng: giữ bản đó
+  for (const r of await all(x.db, "SELECT phone, sales FROM dup_done WHERE sales != ''")) {
+    const s = String(r.sales).split('|').map(v => fix(v) || v), j = [...new Set(s)].join('|'); if (j !== r.sales) { await run(x.db, 'UPDATE dup_done SET sales = ? WHERE phone = ?', j, r.phone); n++; }
+  }
+  return n;
+}
 async function crmUser(x, email) { email = String(email || '').trim().toLowerCase(); return (await crmUsers(x)).find(u => u.email === email && u.active) || null; }
 function publicUser(u) { return { email: u.email, name: u.name, role: u.role, level: u.level, tg: !!u.tg, prefix: u.prefix || slugName(u.name) }; }
 async function userSet(x, email, field, value) {
@@ -660,6 +678,7 @@ async function crmSaveUsers(x, u, d) {
   }).filter(r => { if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(r.email) || seen[r.email]) return false; seen[r.email] = 1; return true; });
   if (!seen[SUPER_ADMIN]) rows.unshift({ email: SUPER_ADMIN, name: 'Thái Sơn', role: 'Quản trị', active: 1, recv: 'Không', tg: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].tg || '' : '', alias: '', prefix: '', ord: -1 });
   await run(x.db, 'DELETE FROM users'); await insertMany(x.db, 'users', ['email', 'name', 'role', 'active', 'recv', 'tg', 'alias', 'prefix', 'ord'], rows); x._users = null;
+  try { await unifyNames(x); } catch (e) { console.error('unifyNames', e.message); }
   await crmLog(x, u, 'Nhân sự', '-', '', 'Cập nhật ' + rows.length + ' tài khoản', '');
   return { ok: true, users: await crmUsers(x) };
 }
