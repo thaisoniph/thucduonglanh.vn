@@ -24,12 +24,25 @@ const ADMIN = Object.assign({}, SYNC, {
   clean_triggers: async x => bridge(x.env, 'clean_triggers')
 });
 
+/** Máy chủ dữ liệu (D1) lỗi / hết hạn mức → chuyển đơn, liên hệ sang Apps Script báo thẳng Telegram + email để nhân sự nhập tay, không mất khách. */
+async function rescue(x, data, err) {
+  if (!x.env.BRIDGE_URL) return false;
+  try {
+    const r = await fetch(x.env.BRIDGE_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ type: 'rescue', data, error: String(err && err.message || err).slice(0, 300) }), redirect: 'follow' });
+    const j = await r.json(); return !!(j && j.ok);
+  } catch (e) { console.error('rescue', e.message); return false; }
+}
+
 async function website(x, data) {
   if (data.website) return { ok: true }; // chống spam (honeypot)
   if (data.type === 'vtp') return await vtpWebhook(x, data.payload);
-  if (data.type === 'order') { const r = await saveOrder(x, data, {}); return { ok: true, id: data.id, dup: !!r.dup }; }
+  if (data.type === 'order') {
+    try { const r = await saveOrder(x, data, {}); return { ok: true, id: data.id, dup: !!r.dup }; }
+    catch (e) { if (await rescue(x, data, e)) return { ok: true, id: data.id, rescued: true }; throw e; }
+  }
   if (data.type === 'contact') {
-    await run(x.db, 'INSERT INTO contacts (time, name, phone, email, message, page) VALUES (?, ?, ?, ?, ?, ?)', Date.now(), data.name || '', normPhone(data.phone), data.email || '', data.message || '', data.page || '');
+    try { await run(x.db, 'INSERT INTO contacts (time, name, phone, email, message, page) VALUES (?, ?, ?, ?, ?, ?)', Date.now(), data.name || '', normPhone(data.phone), data.email || '', data.message || '', data.page || ''); }
+    catch (e) { if (await rescue(x, data, e)) return { ok: true, rescued: true }; throw e; }
     let ld = null; try { ld = await addLead(x, { name: data.name, phone: data.phone, channel: 'Form website', note: data.message, by: 'Website', auto: true }); } catch (e) { console.error('lead', e.message); }
     const cmsg = '✉️ <b>LIÊN HỆ MỚI</b>\n👤 ' + esc(data.name) + ' – <b>' + esc(data.phone) + '</b>\n\n' + esc(data.message);
     x.later((async () => {

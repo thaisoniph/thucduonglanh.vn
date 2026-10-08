@@ -3233,11 +3233,11 @@
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && $('.modal')) closeModal(); });
   window.addEventListener('hashchange', function () { if (!route().id) closeModal(true); render(); if (S.d) useScreen(); });
   window.addEventListener('popstate', function () { if (!route().id && $('.modal')) closeModal(true); });
-  // tự làm mới mỗi 3 phút khi đang mở trang, và khi quay lại tab
-  setInterval(function () { if (S.d && !document.hidden && !$('.modal') && Date.now() - S.loadedAt > 170e3) load(true); if (S.pq && S.pq.length && Date.now() - (S.pqAt || 0) > 120e3) perfFlush(); useTick(!document.hidden); if (Date.now() - U.at > 300e3) useFlush(); }, 30e3);
+  // tự làm mới mỗi 15 phút khi đang mở trang, và khi quay lại tab sau 10 phút (mỗi lần tải đọc toàn bộ dữ liệu, tải dày sẽ vượt hạn mức đọc miễn phí của máy chủ)
+  setInterval(function () { if (S.d && !document.hidden && !$('.modal') && Date.now() - S.loadedAt > 15 * 60e3) load(true); if (S.pq && S.pq.length && Date.now() - (S.pqAt || 0) > 120e3) perfFlush(); useTick(!document.hidden); if (Date.now() - U.at > 300e3) useFlush(); }, 30e3);
   document.addEventListener('visibilitychange', function () {
     if (document.hidden) { useTick(true); U.hid = Date.now(); useFlush(); } else { U.tick = Date.now(); if (S.token && U.hid && Date.now() - U.hid > 30 * 60e3) { U.opens++; useScreen(); } } // quay lại sau 30 phút = 1 lượt mở mới
-    if (document.hidden) perfFlush(); if (!document.hidden && S.d && !$('.modal') && Date.now() - S.loadedAt > 60e3) load(true); });
+    if (document.hidden) perfFlush(); if (!document.hidden && S.d && !$('.modal') && Date.now() - S.loadedAt > 10 * 60e3) load(true); });
 
   /* ================================================================ chạy */
   if (S.token) start(); else renderLogin('email');

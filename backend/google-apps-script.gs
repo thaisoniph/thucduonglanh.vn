@@ -37,6 +37,7 @@ function doPost(e) {
     var data = JSON.parse(e.postData.contents);
     if (data.type === 'bridge') return json(bridgeOp(data));
     if (data.type === 'vtp') return json(vtpWebhook(data.payload)); // tin báo trạng thái đơn từ Viettel Post (qua crm.thucduonglanh.vn/vtp-webhook)
+    if (data.type === 'rescue') return json(rescueWeb(data)); // máy chủ mới lỗi / hết hạn mức đọc → báo thẳng để nhập tay
     if (PropertiesService.getScriptProperties().getProperty('retired')) { // đã chuyển sang máy chủ mới
       if (data.type === 'crm') return json({ ok: false, error: 'CRM đã chuyển sang máy chủ mới. Bấm ↻ (tải lại trang) để dùng tiếp.', v: 'moved' });
       var fw = UrlFetchApp.fetch(API_URL, { method: 'post', contentType: 'text/plain;charset=utf-8', payload: e.postData.contents, muteHttpExceptions: true }); // đơn / liên hệ từ trang web cũ còn lưu trong máy khách
@@ -2878,6 +2879,19 @@ function telegram(text) {
 /** Telegram nhận tối đa 4096 ký tự/tin → tự chia theo dòng; lỗi ghi vào Nhật ký thực thi (trước đây bị bỏ qua im lặng). */
 function tgChunks(text) {
   var out = [], cur = ''; String(text).split('\n').forEach(function (l) { if ((cur + '\n' + l).length > 3800 && cur) { out.push(cur); cur = l; } else cur = cur ? cur + '\n' + l : l; }); if (cur) out.push(cur); return out;
+}
+/** Đơn / liên hệ web mà máy chủ api.thucduonglanh.vn không lưu được: ghi tab "Đơn chưa vào CRM" + báo Telegram, email để nhân sự nhập tay vào CRM. */
+function rescueWeb(r) {
+  var d = r.data || {}, c = d.customer || {}, isOrder = d.type === 'order';
+  if (d.website || (d.type !== 'order' && d.type !== 'contact')) return { ok: false };
+  var name = isOrder ? c.name : d.name, phone = isOrder ? c.phone : d.phone;
+  var body = isOrder ? 'Mã đơn: ' + d.id + '\nKhách: ' + name + ' – ' + phone + (c.email ? ' – ' + c.email : '') + '\nĐịa chỉ: ' + [c.address, c.district, c.province].filter(String).join(', ') + '\n\n' + itemsText(d.items || []) +
+    '\n\nTạm tính: ' + fmt(d.subtotal) + '\nPhí ship: ' + fmt(d.shipping) + '\nTổng: ' + fmt(d.total) + '\nThanh toán: ' + (d.payment === 'bank' ? 'Chuyển khoản' : 'COD') + (c.note ? '\nGhi chú: ' + c.note : '') + (d.source ? '\nNguồn: ' + d.source : '')
+    : 'Khách: ' + name + ' – ' + phone + (d.email ? ' – ' + d.email : '') + '\n\n' + (d.message || '');
+  try { sheet(SpreadsheetApp.getActiveSpreadsheet(), 'Đơn chưa vào CRM', ['Thời gian', 'Loại', 'Mã đơn', 'Khách', 'Điện thoại', 'Nội dung', 'Lỗi máy chủ']).appendRow([new Date(), isOrder ? 'Đơn hàng' : 'Liên hệ', d.id || '', name || '', "'" + (phone || ''), body, r.error || '']); } catch (e) { }
+  telegram('🚨 <b>' + (isOrder ? 'ĐƠN WEB CHƯA VÀO CRM' : 'LIÊN HỆ WEB CHƯA VÀO CRM') + '</b> – máy chủ CRM đang lỗi, nhân sự <b>nhập tay</b> vào CRM khi CRM chạy lại (kiểm tra trước để khỏi trùng)\n\n' + esc(body));
+  try { MailApp.sendEmail(NOTIFY_EMAIL, '🚨 ' + (isOrder ? 'Đơn web ' + d.id : 'Liên hệ web') + ' chưa vào CRM – ' + name, body + '\n\nLỗi máy chủ: ' + (r.error || '')); } catch (e) { }
+  return { ok: true };
 }
 function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 // Chạy thử hàm này trong trình soạn Apps Script để kiểm tra Telegram
