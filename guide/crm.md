@@ -449,6 +449,8 @@ Máy tự ghi kèm bạn đang ở màn hình nào, dùng máy gì, nên bạn c
 
 **Một khách có 2 số điện thoại?** CRM nhận diện khách theo số điện thoại. Nên dùng 1 số chính, ghi số còn lại vào *Ghi chú về khách*.
 
+**Ban đêm CRM có cập nhật không?** Từ 22h đến 7h sáng, máy nghỉ các việc tự động (nhập file sale, lấy khách hỏi từ quảng cáo). Sáng ra 7h máy chạy lại và nhập bù. Đơn đặt trên website và tin báo của Viettel Post thì vẫn nhận ngay cả ban đêm. Muốn xem số mới nhất thì bấm nút ↻.
+
 ## File Google Sheet riêng của sale
 
 Nếu bạn vẫn có file Sheet riêng (được quản trị nối vào CRM), mọi việc làm trên CRM tự ghi lại vào file đó khoảng 5 phút sau: kết quả chăm sóc và ghi chú (sheet chăm sóc), dấu (x) đã kết bạn Zalo, **đơn tạo trên CRM** (thêm dòng vào sheet lên đơn), **đổi trạng thái đơn**, **tư vấn khách hỏi**. Ngược lại, đơn và ghi chú bạn viết trên file tự vào CRM khoảng 30 phút sau (máy tự nhập 30 phút/lần, 7h–21h). Máy nhận ra dòng do chính CRM ghi nên không bị trùng.
