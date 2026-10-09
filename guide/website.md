@@ -80,7 +80,7 @@ Gói = nhiều sản phẩm bán chung 1 giá, ví dụ **Gói Khởi Động 10
 
 1. Vào **/admin → Gói giải pháp → Tạo gói** (hoặc bấm vào gói có sẵn để sửa / nhân bản).
 2. **Sản phẩm trong gói**: bấm **Thêm**, chọn sản phẩm, gõ đúng tên **quy cách** như trong sản phẩm (ví dụ `Hộp 125g`; sản phẩm 1 quy cách thì để trống), nhập số lượng.
-3. **Giá gói**: nên **thấp hơn tổng giá mua lẻ trên web** (giá đã giảm %), nếu không khách mua lẻ còn rẻ hơn. Web tự tính và hiện: *"Tiết kiệm … so với giá gốc mua lẻ, rẻ hơn mua lẻ trên web …"*.
+3. **Giá gói**: nên **thấp hơn tổng giá mua lẻ trên web** (giá đã giảm %), nếu không khách mua lẻ còn rẻ hơn. Web tự tính và hiện: *"Mua lẻ … → Gói chỉ …, tiết kiệm …. Rẻ hơn cả khi mua lẻ trên web (…)"* – chỉ 1 mức tiết kiệm (so với giá gốc), khớp nhãn "Tiết kiệm" và "-%".
 4. **Miễn phí vận chuyển**: bật thì đơn có gói này được freeship.
 5. **Số ngày dùng hết gói** (ví dụ 10): CRM tự nhắc sale gọi khách trước khi khách dùng hết.
 6. Ảnh, mô tả, lịch dùng: chỉ mô tả **thói quen, thực đơn, cách dùng** – không hứa kết quả sức khỏe (không dùng "giảm cân, thải độc, chữa, khỏi…"). Gói có thực phẩm bổ sung phải có dòng *"không phải là thuốc…"*.
