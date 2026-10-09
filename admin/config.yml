@@ -126,6 +126,19 @@ collections:
         multiple: true
         required: false
         hint: "Sản phẩm hiện ở các thẻ “Chọn theo nhu cầu” nào."
+      - label: "Đánh giá khách hàng (chỉ nhập đánh giá thật)"
+        name: reviews
+        widget: list
+        required: false
+        summary: "{{fields.name}} – {{fields.rating}}★"
+        hint: "Hiện ở khối “Khách hàng nói gì” trên trang sản phẩm. Từ 3 đánh giá có chấm sao trở lên, web mới hiện sao trung bình trên thẻ sản phẩm và gửi cho Google. Không tự tạo đánh giá."
+        fields:
+          - { label: "Tên khách", name: name, widget: string, hint: "Có thể viết tắt: Chị Lan" }
+          - { label: "Nơi ở / nghề nghiệp", name: location, widget: string, required: false }
+          - { label: "Số sao (1–5)", name: rating, widget: number, value_type: int, min: 1, max: 5, required: false }
+          - { label: "Lời nhận xét", name: text, widget: text, required: false }
+          - { label: "Ảnh (ảnh chụp tin nhắn / ảnh khách gửi)", name: img, widget: image, required: false, hint: "Có video thì ảnh này làm ảnh bìa video." }
+          - { label: "Video (link YouTube hoặc file .mp4)", name: video, widget: string, required: false }
       - label: "Từ khóa tìm kiếm (không hiện ra web)"
         name: keywords
         widget: list
@@ -311,6 +324,19 @@ collections:
         multiple: true
         required: false
         hint: "Sản phẩm hiện ở các thẻ “Chọn theo nhu cầu” nào."
+      - label: "Đánh giá khách hàng (chỉ nhập đánh giá thật)"
+        name: reviews
+        widget: list
+        required: false
+        summary: "{{fields.name}} – {{fields.rating}}★"
+        hint: "Hiện ở khối “Khách hàng nói gì” trên trang sản phẩm. Từ 3 đánh giá có chấm sao trở lên, web mới hiện sao trung bình trên thẻ sản phẩm và gửi cho Google. Không tự tạo đánh giá."
+        fields:
+          - { label: "Tên khách", name: name, widget: string, hint: "Có thể viết tắt: Chị Lan" }
+          - { label: "Nơi ở / nghề nghiệp", name: location, widget: string, required: false }
+          - { label: "Số sao (1–5)", name: rating, widget: number, value_type: int, min: 1, max: 5, required: false }
+          - { label: "Lời nhận xét", name: text, widget: text, required: false }
+          - { label: "Ảnh (ảnh chụp tin nhắn / ảnh khách gửi)", name: img, widget: image, required: false, hint: "Có video thì ảnh này làm ảnh bìa video." }
+          - { label: "Video (link YouTube hoặc file .mp4)", name: video, widget: string, required: false }
       - label: "Từ khóa tìm kiếm (không hiện ra web)"
         name: keywords
         widget: list

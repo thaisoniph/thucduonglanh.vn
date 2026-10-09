@@ -543,7 +543,7 @@ def product_card(p, lazy=True):
   </a>
   <button class="pc-wish" data-wish="{p["slug"]}" aria-label="Yêu thích">{I["heart"]}</button>
   <div class="pc-body">
-    <h3 class="pc-title"><a href="/san-pham/{p["slug"]}/">{esc(p["name"])}</a></h3>
+    <h3 class="pc-title"><a href="/san-pham/{p["slug"]}/">{esc(p["name"])}</a></h3>{stars_html(p, "stars pc-stars")}
     {price_html(p, "price pc-price", from_=True)}
   </div>
   {action}
@@ -777,7 +777,7 @@ def page_home():
               ("feedback-khach-hang-3", "Khách hàng tin dùng", "Chia sẻ trải nghiệm sản phẩm")]
     vid = "".join(f'''<figure class="v-card"><div class="v-frame" data-video="/assets/video/{v}.mp4"><img src="/assets/img/brand/{v}.webp" alt="Video cảm nhận của {esc(n)}" loading="lazy" width="480" height="854"><button class="v-play" aria-label="Phát video">{I["play"]}</button></div><figcaption><b>{esc(n)}</b><span>{esc(r)}</span></figcaption></figure>''' for v, n, r in videos)
     bv_html, bv_ld = brand_video()
-    fb = "".join(f'<a class="fb-item" href="/assets/img/brand/feedback-{i}.webp" data-lightbox="fb"><img src="/assets/img/brand/feedback-{i}.webp" alt="Phản hồi khách hàng {i}" loading="lazy" width="900" height="900"></a>' for i in range(1, 6))
+    fb = "".join(f'<a class="fb-item" href="/assets/img/brand/feedback-{i}.webp" data-lightbox="fb"><img src="{img_url(f"/assets/img/brand/feedback-{i}.webp", 480)}" alt="Ảnh chụp tin nhắn phản hồi của khách hàng {i}" loading="lazy" decoding="async" width="480" height="480"></a>' for i in range(1, 6))  # ảnh nhỏ (~25KB) để kịp hiện khi cuộn tới
 
     tags = ["Dinh dưỡng từ hạt", "Sữa hạt Curcumin", "Fucoidan", "Bữa ăn dinh dưỡng", "Trà chè vằng", "Đinh lăng", "Trà thảo mộc hòa tan", "Ruốc chay", "Rong biển", "Xì dầu lên men", "Ngưu bàng", "Thực dưỡng", "Thuần chay", "Đạm thực vật", "Không đường tinh luyện"]
     from urllib.parse import quote
@@ -1141,7 +1141,7 @@ def page_product(p):
     if landing:
         info_top = combo_hero_info(p)
     else:
-        info_top = f'''<h1 class="p-title">{esc(p["name"])}</h1>
+        info_top = f'''<h1 class="p-title">{esc(p["name"])}</h1>{f'<a class="p-rating" href="#danh-gia">{stars_html(p)}</a>' if rating_of(p) else ""}
       <div class="p-summary">{p["summary"]}</div>
       {f'<div class="p-badges">{badges}</div>' if badges else ""}
       <div class="p-price" id="pPrice">{price_html(p, "price big", off=True)}<div class="p-per" id="pPer">{per_serving(v0, p)}</div></div>'''
@@ -1176,6 +1176,7 @@ def page_product(p):
       </div>
     </div>
   </div>
+  {reviews_html(p)}
   {combo_landing(p) if landing else ""}
 
   <div class="tabs" data-tabs>
@@ -1204,6 +1205,8 @@ def page_product(p):
           "brand": {"@type": "Brand", "name": BRAND}}
     if p.get("price") is not None:
         ld["offers"] = {"@type": "Offer", "priceCurrency": "VND", "price": p["price"], "availability": "https://schema.org/InStock", "url": DOMAIN + path}
+    if rating_of(p):  # chỉ khi có ≥ 3 đánh giá thật
+        ld["aggregateRating"] = {"@type": "AggregateRating", "ratingValue": rating_of(p)[0], "reviewCount": rating_of(p)[1], "bestRating": 5, "worstRating": 1}
     desc = strip_tags(p["summary"])[:158]
     return layout(path, p["name"], desc, body, og=pimg(p["images"][0]), jsonld=[ld, bld], body_class="page-product")
 
@@ -1216,6 +1219,46 @@ def satc_html(p):
   {f'<div class="satc-variants">{vs}</div>' if len(p.get("variants") or []) > 1 else ""}
   <div class="satc-actions"><button type="button" class="satc-add" id="satcAdd">Thêm vào giỏ</button><button type="button" class="satc-buy" id="satcBuy">{esc(p.get("cta_short") or "Mua ngay")}</button></div>
 </div>'''
+
+
+def reviews_of(p):
+    """Đánh giá thật của khách (ô "Đánh giá khách hàng" trong /admin). Không có thì không hiện gì."""
+    return [r for r in (p.get("reviews") or []) if r.get("name") and (r.get("text") or r.get("video") or r.get("img"))]
+
+
+def rating_of(p):
+    """Sao trung bình + số đánh giá: chỉ khi có từ 3 đánh giá thật có chấm sao."""
+    rs = [min(5, num(r.get("rating"))) for r in reviews_of(p) if num(r.get("rating"))]
+    return (round(sum(rs) / len(rs), 1), len(rs)) if len(rs) >= 3 else None
+
+
+def stars_html(p, cls="stars"):
+    r = rating_of(p)
+    if not r:
+        return ""
+    avg, n = r
+    return f'<span class="{cls}" aria-label="{avg} trên 5 sao, {n} đánh giá"><span class="st" style="--r:{avg / 5 * 100:.0f}%" aria-hidden="true"></span><b>{str(avg).replace(".", ",")}</b><small>({n}{"" if "pc-" in cls else " đánh giá"})</small></span>'
+
+
+def reviews_html(p):
+    """Khối "Khách hàng nói gì" trên trang sản phẩm – dùng lại thẻ video cảm nhận của trang chủ."""
+    rv = reviews_of(p)
+    if not rv:
+        return ""
+    cards = ""
+    for i, r in enumerate(rv):
+        who = f'<b>{esc(r["name"])}</b>' + (f'<span>{esc(r["location"])}</span>' if r.get("location") else "")
+        star = num(r.get("rating"))
+        star = f'<span class="st" style="--r:{min(5, star) * 20}%" aria-label="{min(5, star)} sao"></span>' if star else ""
+        vid, yt = r.get("video") or "", yt_id(r.get("video"))
+        if vid:
+            cover = r.get("img") or (f"https://i.ytimg.com/vi/{yt}/hqdefault.jpg" if yt else "")
+            frame = f'data-yt="{yt}" data-title="{esc(r["name"])}"' if yt else f'data-video="{esc(vid)}"'
+            cards += f'''<figure class="v-card rv-card"><div class="v-frame" {frame}>{f'<img src="{esc(img_url(cover, 480) if cover.startswith("/") else cover)}" alt="Video cảm nhận của {esc(r["name"])}" loading="lazy" width="480" height="854">' if cover else ""}<button class="v-play" aria-label="Phát video">{I["play"]}</button></div><figcaption>{who}{star}{f"<p>{esc(r['text'])}</p>" if r.get("text") else ""}</figcaption></figure>'''
+        else:
+            pic = f'<a class="rv-img" href="{esc(img_url(r["img"], 1000))}" data-lightbox="rv"><img src="{esc(img_url(r["img"], 480))}" alt="Ảnh khách {esc(r["name"])} gửi" loading="lazy" width="120" height="120"></a>' if r.get("img") else ""
+            cards += f'<figure class="rv-q">{star}<blockquote>“{esc(r.get("text", ""))}”</blockquote>{pic}<figcaption>{who}</figcaption></figure>'
+    return f'''<section class="rv-sec" id="danh-gia"><h2 class="sec-title left">Khách hàng nói gì {stars_html(p, "stars rv-sum")}</h2><div class="rv-grid">{cards}</div></section>'''
 
 
 def trust_line(p):

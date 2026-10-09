@@ -278,7 +278,7 @@ input,select,textarea{font-family:inherit;font-size:15px}
 .bv-about{margin:8px 0 52px}
 @media (max-width:640px){.bv{grid-template-columns:minmax(0,1fr);gap:18px;margin-bottom:30px}.bv-frame{width:min(78%,300px);margin:0 auto}.bv-text{text-align:center}.bv-text b{font-size:19px}.bv-text p{font-size:14.5px}}
 .fb-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:40px}
-.fb-item img{border-radius:12px;aspect-ratio:1/1;object-fit:cover;transition:transform .3s;box-shadow:var(--shadow)}
+.fb-item img{background:var(--primary-light);border-radius:12px;aspect-ratio:1/1;object-fit:cover;transition:transform .3s;box-shadow:var(--shadow)}
 .fb-item:hover img{transform:translateY(-4px)}
 
 /* posts */
@@ -626,6 +626,20 @@ label .invalid,input.invalid,textarea.invalid{border-color:var(--red)!important}
   .rail{grid-auto-columns:42%}.rl-nav{display:none}
 }
 @media (max-width:640px){.rail{grid-auto-columns:72%;gap:12px}.hero-static .slide-media img{max-width:240px}.hero-static .slide-title{font-size:32px}}
+
+/* đánh giá khách hàng (chỉ hiện khi có dữ liệu thật) */
+.st{--r:100%;display:inline-block;font-size:15px;line-height:1;letter-spacing:1px;background:linear-gradient(90deg,#f5a623 var(--r),#d9d6cc var(--r));-webkit-background-clip:text;background-clip:text;color:transparent}
+.st::before{content:"★★★★★"}
+.stars{display:inline-flex;align-items:center;gap:5px;font-size:14px;color:var(--ink)}.stars small{color:var(--muted);font-size:13px}
+.pc-stars{margin:2px 6px 4px;font-size:13px;white-space:nowrap}.pc-stars .st{font-size:13px}
+.p-rating{display:inline-block;margin:-6px 0 10px}
+.rv-sec{margin-top:8px}.rv-sec .sec-title{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
+.rv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+.rv-q{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;margin:0;display:flex;flex-direction:column;gap:8px}
+.rv-q blockquote{margin:0;font-size:15px;line-height:1.6;color:var(--text)}
+.rv-q figcaption b,.rv-card figcaption b{display:block;color:var(--ink)}.rv-q figcaption span,.rv-card figcaption span{font-size:13px;color:var(--muted)}
+.rv-img img{width:120px;height:120px;object-fit:cover;border-radius:10px}
+.rv-card figcaption p{font-size:14px;margin:6px 0 0}
 
 /* chọn theo nhu cầu */
 .nd-sec{padding-bottom:0}.nd-sec+.section{padding-top:28px}
