@@ -49,6 +49,8 @@ Bên dưới, khách được chia **nhóm thu gọn** (bấm vào nhóm mới m
 - **💬 / 🌿 / 💌**: xin cảm nhận, giới thiệu thêm, mời quay lại.
 - **🔁 Khách cũ lâu chưa gọi**: hơn 30 ngày chưa nói chuyện, khách chi nhiều nhất lên trước.
 
+Khách đã nói chuyện với bạn trong **14 ngày** gần đây thì CRM tự **chưa nhắc lại** (trừ khi bạn hẹn gọi lại, hoặc khách có đơn mới cần hỏi nhận hàng). Khách vừa đặt đơn hôm qua sẽ không hiện ra ngay hôm nay.
+
 Dòng **⏳ trễ N ngày** là việc đã qua ngày nên làm (vd em nghỉ vài hôm), vẫn giữ lại để em không sót khách.
 
 Biểu tượng **Zalo** (ô vuông xanh có chữ Zalo) cạnh tên = khách em **đã kết bạn Zalo** (chính là dấu **(x)** em vẫn đánh sau tên trong file). Khách chưa kết bạn: mở hồ sơ, bấm **➕ Đã kết bạn Zalo** khi kết bạn xong, máy tự thêm **(x)** vào tên trong file Sheet của em.

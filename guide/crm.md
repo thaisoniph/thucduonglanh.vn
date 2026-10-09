@@ -177,6 +177,8 @@ CRM tự tính ngày cần liên hệ từng khách, dựa vào **ngày khách n
 | 💌 **Mời quay lại** | 60 ngày sau khi nhận hàng, chưa mua lại | Hỏi thăm, gửi ưu đãi khách cũ |
 | 🔁 **Khách cũ lâu chưa gọi** | Quá 30 ngày khách chưa phản hồi (không tính các lần không nghe máy) | Hỏi thăm, hỏi còn hàng không, mời đặt lại |
 
+**🕑 Giãn cách chăm sóc:** khách đã **trả lời** bạn (không tính *Không nghe máy*) trong vòng **14 ngày** thì CRM **không nhắc** *Sắp hết hàng*, *Xin cảm nhận*, *Giới thiệu sản phẩm*, *Mời quay lại*, để khách không bị gọi dồn dập. Vẫn nhắc **hẹn gọi lại** và **hỏi nhận hàng** đơn mới. Khách vừa đặt đơn thì chưa tính là *Khách cũ lâu chưa gọi*. Quản lý đổi số ngày ở **Cài đặt → Nhóm khách** (ghi 0 = tắt).
+
 Việc nào **qua khung mà chưa làm** (ví dụ bạn nghỉ vài hôm) vẫn hiện thêm 7 ngày, kèm dòng **⏳ trễ N ngày**, để không sót khách. Khi đã tới mốc sau (vd đã tới ngày 14) thì mốc trước chưa làm tự bỏ qua, chỉ hiện mốc mới nhất.
 
 **🌟 Khách quen sản phẩm** (mua lại đúng sản phẩm đã dùng, lần mua trước trong 6 tháng, đơn trước không bị hoàn) đã biết cách dùng nên CRM **không nhắc** *Hỏi nhận hàng*, *Hỏi thăm sau 1 tuần*, *Xin cảm nhận*. Vẫn nhắc **Sắp hết hàng**, **Giới thiệu sản phẩm**, **Mời quay lại** và hẹn gọi lại. Đơn có **sản phẩm mới** thì vẫn đủ các mốc. Nhãn **🌟 Khách quen SP** hiện trong hồ sơ khách. Quản lý chỉnh số lần mua để tính là khách quen ở **Cài đặt → Nhóm khách** (mặc định 1 lần, ghi 0 = tắt).

@@ -82,7 +82,7 @@ const OPEN_STATUS = ['Mới', 'Đã xác nhận', 'Đang giao'];
 const CARE_RESULTS = ['Đã đặt lại', 'Hẹn gọi lại', 'Không nghe máy', 'Đã hỏi thăm', 'Không có nhu cầu'];
 export const LEAD_STATUS = ['Mới hỏi', 'Đang tư vấn', 'Đã chốt', 'Không mua'];
 const CA_LIST = ['Ngày', 'Tối/CN', 'Lễ'];
-export const VIP_ORDERS = 3, VIP_SPENT = 2000000, AT_RISK_DAYS = 60;
+export const VIP_ORDERS = 3, VIP_SPENT = 2000000, AT_RISK_DAYS = 60, COOL_DAYS = 14; // COOL_DAYS: khách vừa trả lời chăm sóc → bao nhiêu ngày sau mới nhắc lại (0 = tắt)
 const NOTE_MAX = 400; // nhật ký dài chỉ gửi phần đầu khi mở CRM; mở hồ sơ khách mới tải đủ (cust_orders)
 export const LINES = [['Fucoidan Pro', /progomax|fucoidan pro|fu ?pro/i], ['Curcumin', /curcumin|nghệ/i], ['BADD', /bữa ăn|badd|bua an/i]];
 export const DEFAULT_CYCLES = [
@@ -103,7 +103,7 @@ export const DEFAULT_TEMPLATES = [
 export async function rulesCfg(x) {
   if (x._rules) return x._rules;
   const r = await kvJson(x.db, 'rules_cfg', {}) || {};
-  return (x._rules = { vipOrders: Number(r.vipOrders) || VIP_ORDERS, vipSpent: Number(r.vipSpent) || VIP_SPENT, atRisk: Number(r.atRisk) || AT_RISK_DAYS });
+  return (x._rules = { vipOrders: Number(r.vipOrders) || VIP_ORDERS, vipSpent: Number(r.vipSpent) || VIP_SPENT, atRisk: Number(r.atRisk) || AT_RISK_DAYS, coolDays: r.coolDays !== undefined && r.coolDays !== '' ? Number(r.coolDays) : COOL_DAYS });
 }
 export async function caCfg(x) { if (!x._ca) x._ca = await kvJson(x.db, 'ca_cfg', {}) || {}; return x._ca; }
 export async function assignMode(x) { if (!x._mode) x._mode = (await kvGet(x.db, 'assign_mode')) || 'pool'; return x._mode; }
@@ -253,6 +253,7 @@ export async function setCallbacks(x, cb) {
 
 /* ================================================================ việc chăm sóc hôm nay */
 const CARE_STEPS = [{ key: 'd1', at: 1, win: 2 }, { key: 'runout' }, { key: 'd14', at: 14, win: 3 }, { key: 'd30', at: 30, win: 3 }, { key: 'winback', at: AT_RISK_DAYS, win: 7 }];
+const OPEN_ST = /^(Mới|Đã xác nhận|Đang giao)$/, D1_WAIT = 3, D1_END = 6;
 export function careTask(c, today, R) {
   const last = c.last ? startOfDay(c.last) : null; if (last == null) return null;
   const days = Math.round((today - last) / DAY);
@@ -260,7 +261,15 @@ export function careTask(c, today, R) {
   const toRun = runD != null ? Math.round((runD - today) / DAY) : null;
   const cb = c.callback ? startOfDay(c.callback) : null;
   if (cb != null && cb <= today) return { type: 'callback', days, late: Math.round((today - cb) / DAY), toRun };
+  // Khách vừa trả lời chăm sóc (không tính "Không nghe máy") trong coolDays ngày → chưa nhắc lại các mốc định kỳ (hẹn gọi lại, hỏi nhận hàng vẫn nhắc)
+  const cool = R.coolDays > 0 && care != null && c.care_result !== 'Không nghe máy' && today - care < R.coolDays * DAY;
   for (const s of CARE_STEPS) {
+    if (s.key === 'd1') { // hỏi nhận hàng: đơn đã giao thì từ hôm sau; đơn còn đang xử lý / đi đường thì chờ D1_WAIT ngày. Đã chăm sóc sau ngày đặt → coi như đã hỏi
+      const from = OPEN_ST.test(c.last_status || '') ? D1_WAIT : s.at;
+      if (days >= from && days <= D1_END && !(care != null && care > last)) return { type: 'd1', days, late: 0, toRun };
+      continue;
+    }
+    if (cool) continue;
     if (s.key === 'runout') { if (toRun !== null && toRun >= -7 && toRun <= 2 && days >= 2 && !(care != null && care >= runD - 3 * DAY)) return { type: 'runout', days, late: toRun < 0 ? -toRun : 0, toRun }; }
     else { const at = s.key === 'winback' ? R.atRisk : s.at; if (days >= at && days <= at + s.win && !(care != null && care >= last + at * DAY)) return { type: s.key, days, late: 0, toRun }; }
   }
@@ -316,7 +325,7 @@ async function loadSmall(x, u, R, mode) {
     ok: true, user: publicUser(u), now: Date.now(), today: startOfDay(Date.now()), fbNew, users, prefs, tagColors, sources, ads,
     contacts: ct.reverse().map(contactOut), targets: tg.map(t => ({ month: t.month, name: t.name, amount: t.amount || 0, by: t.by_name || '', at: t.at })),
     cycles: cy.filter(r => r.name).map(r => [r.name, r.variant || '', Number(r.days) || 0, r.basis || '']), templates: tp.filter(r => r.text).map(r => [r.when_txt || '', r.purpose || '', r.text]),
-    rules: { vipOrders: R.vipOrders, vipSpent: R.vipSpent, atRisk: R.atRisk, statuses: ORDER_STATUS, results: CARE_RESULTS, leadStatus: LEAD_STATUS, assignMode: mode, bot: BOT_USERNAME, ca, lines: LINES.map(l => l[0]).concat(['Khác']) }
+    rules: { vipOrders: R.vipOrders, vipSpent: R.vipSpent, atRisk: R.atRisk, coolDays: R.coolDays, statuses: ORDER_STATUS, results: CARE_RESULTS, leadStatus: LEAD_STATUS, assignMode: mode, bot: BOT_USERNAME, ca, lines: LINES.map(l => l[0]).concat(['Khác']) }
   };
 }
 
@@ -791,9 +800,10 @@ async function crmSettings(x, u, d) {
     return { ok: true };
   }
   if (d.rules) {
-    const R = { vipOrders: Math.max(1, Math.round(Number(d.rules.vipOrders) || VIP_ORDERS)), vipSpent: Math.max(0, Math.round(Number(d.rules.vipSpent) || VIP_SPENT)), atRisk: Math.max(7, Math.round(Number(d.rules.atRisk) || AT_RISK_DAYS)) };
+    const R = { vipOrders: Math.max(1, Math.round(Number(d.rules.vipOrders) || VIP_ORDERS)), vipSpent: Math.max(0, Math.round(Number(d.rules.vipSpent) || VIP_SPENT)), atRisk: Math.max(7, Math.round(Number(d.rules.atRisk) || AT_RISK_DAYS)),
+      coolDays: d.rules.coolDays === undefined || d.rules.coolDays === '' ? (await rulesCfg(x)).coolDays : Math.min(60, Math.max(0, Math.round(Number(d.rules.coolDays) || 0))) };
     await kvSet(x.db, 'rules_cfg', JSON.stringify(R)); x._rules = null;
-    await crmLog(x, u, 'Cài đặt', '-', '', 'VIP từ ' + R.vipOrders + ' đơn hoặc ' + fmt(R.vipSpent) + '; Sắp mất sau ' + R.atRisk + ' ngày', '');
+    await crmLog(x, u, 'Cài đặt', '-', '', 'VIP từ ' + R.vipOrders + ' đơn hoặc ' + fmt(R.vipSpent) + '; Sắp mất sau ' + R.atRisk + ' ngày; giãn cách chăm sóc ' + R.coolDays + ' ngày', '');
     return { ok: true, rules: R };
   }
   if (d.assignMode) {

@@ -20,7 +20,7 @@ function careMessage(items, leads, today, isGroup, who, R) {
 /** 8h sáng: danh sách cần chăm sóc vào nhóm Telegram (quản lý) và riêng cho từng nhân viên + cảnh báo mức dùng CRM. */
 export async function dailyCare(x) {
   const today = startOfDay(Date.now()), R = await rulesCfg(x), items = [];
-  for (const v of await all(x.db, 'SELECT phone, name, orders, spent, last, runout, care_at, callback, products, consent, owner FROM customers WHERE orders > 0')) {
+  for (const v of await all(x.db, 'SELECT phone, name, orders, spent, last, runout, care_at, care_result, last_status, callback, products, consent, owner FROM customers WHERE orders > 0')) {
     const t = careTask(v, today, R); if (!t) continue;
     items.push({ type: t.type, name: v.name, phone: v.phone, products: String(v.products || '').split('; ').slice(-2).join(', '), group: groupOf(v.orders, v.spent, v.last, R), ok: !!v.consent, owner: v.owner || '', late: t.late });
   }

@@ -488,6 +488,7 @@
     return S.d.customers.filter(function (c) {
       if (c.task || !c.last || c.flag || !(own ? c.owner === own : mineOk(c)) || (lvl() < 2 && c.owner !== S.user.name)) return false;
       if (c.callback && dayStart(c.callback) > t0) return false; // đã hẹn ngày khác
+      if (daysSince(c.last) < OLD_DAYS) return false; // vừa mua (vd sale lên đơn qua điện thoại, chưa ghi chăm sóc) → chưa phải khách cũ
       var r = replyOf(c); return r.days >= OLD_DAYS && !coldOf(c);
     }).sort(function (a, b) { return b.spent - a.spent || (a.last || 0) - (b.last || 0); });
   }
@@ -2964,6 +2965,8 @@
       '<div class="row2c"><label class="f"><span>VIP khi mua từ (số đơn)</span><input type="number" id="rVipN" min="1" value="' + esc(R.vipOrders || 3) + '"></label>' +
       '<label class="f"><span>hoặc tổng chi từ</span><input type="text" id="rVipS" inputmode="decimal" value="' + esc(R.vipSpent || 2000000) + '" placeholder="vd 5tr"></label></div>' +
       '<label class="f"><span>“Sắp mất” khi bao nhiêu ngày chưa mua lại</span><input type="number" id="rRisk" min="7" value="' + esc(R.atRisk || 60) + '"></label>' +
+      '<label class="f"><span>🕑 Khách vừa được chăm sóc thì bao nhiêu ngày sau mới nhắc lại</span><input type="number" id="rCool" min="0" max="60" value="' + esc(R.coolDays === undefined ? 14 : R.coolDays) + '"></label>' +
+      '<p class="hint">Khách đã trả lời (không tính “Không nghe máy”) trong số ngày này thì CRM <b>không</b> nhắc sắp hết hàng, xin cảm nhận, giới thiệu sản phẩm, mời quay lại. Vẫn nhắc <b>hẹn gọi lại</b> và <b>hỏi nhận hàng</b> đơn mới. Ghi <b>0</b> = tắt.</p>' +
       '<label class="f"><span>🚚 Số ngày giao hàng trung bình</span><input type="number" id="rShip" min="0" max="15" value="' + esc(R.shipDays === undefined ? 3 : R.shipDays) + '"></label>' +
       '<label class="f"><span>🌟 Khách quen sản phẩm khi đã mua sản phẩm đó từ (lần)</span><input type="number" id="rFam" min="0" max="10" value="' + esc(R.famMin === undefined ? 1 : R.famMin) + '"></label>' +
       '<p class="hint">Khách quen (mua lại đúng sản phẩm đã dùng, lần mua trước trong 6 tháng, đơn trước không bị hoàn) đã biết cách dùng: CRM <b>bỏ qua</b> hỏi nhận hàng, hỏi thăm 7 ngày, xin cảm nhận 14 ngày. Vẫn nhắc <b>sắp hết hàng</b>, giới thiệu sản phẩm 30 ngày, mời quay lại. Ghi <b>0</b> = tắt (ai cũng gọi đủ các mốc).</p>' +
@@ -3021,7 +3024,7 @@
     if ($('#rSave')) { var rh = function () { $('#rHint').textContent = 'Tổng chi = ' + money(moneyIn($('#rVipS').value)); }; $('#rVipS').addEventListener('input', rh); rh();
       $('#rSave').onclick = function () {
         var b = this; b.disabled = true;
-        api('settings', { rules: { vipOrders: $('#rVipN').value, vipSpent: moneyIn($('#rVipS').value), atRisk: $('#rRisk').value, shipDays: $('#rShip').value, famMin: $('#rFam').value } }).then(function (j) { Object.assign(S.d.rules, j.rules); toast('Đã lưu. Nhóm khách được tính lại ✓'); load(true); }, function (e) { toast(e.message, true); b.disabled = false; });
+        api('settings', { rules: { vipOrders: $('#rVipN').value, vipSpent: moneyIn($('#rVipS').value), atRisk: $('#rRisk').value, coolDays: $('#rCool').value, shipDays: $('#rShip').value, famMin: $('#rFam').value } }).then(function (j) { Object.assign(S.d.rules, j.rules); toast('Đã lưu. Nhóm khách được tính lại ✓'); load(true); }, function (e) { toast(e.message, true); b.disabled = false; });
       }; }
     if ($('#cmSave')) $('#cmSave').onclick = function () {
       var b = this, cm = {}; $$('[data-cm]').forEach(function (x) { cm[x.getAttribute('data-cm')] = x.value.trim(); }); b.disabled = true;
