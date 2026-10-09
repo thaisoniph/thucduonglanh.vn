@@ -264,26 +264,11 @@
     });
   }
 
-  /* ---------- hero slider ---------- */
-  function initHero() {
-    var hero = $('#hero'); if (!hero) return;
-    var slides = $$('.slide', hero), dots = $$('.dot', hero), i = 0, timer;
-    function go(n) {
-      i = (n + slides.length) % slides.length;
-      slides.forEach(function (s, k) { s.classList.toggle('is-active', k === i); });
-      dots.forEach(function (d, k) { d.classList.toggle('is-active', k === i); });
-    }
-    function play() { clearInterval(timer); timer = setInterval(function () { go(i + 1); }, 6000); }
-    hero.addEventListener('click', function (e) {
-      var t;
-      if ((t = e.target.closest('[data-go]'))) { go(+t.getAttribute('data-go')); play(); }
-      else if (e.target.closest('[data-next]')) { go(i + 1); play(); }
-      else if (e.target.closest('[data-prev]')) { go(i - 1); play(); }
+  /* ---------- băng chuyền sản phẩm trang chủ (không tự chạy) ---------- */
+  function initRail() {
+    $$('[data-rail]').forEach(function (b) {
+      b.addEventListener('click', function () { var box = $('[data-rail-box]'), c = box && box.firstElementChild; if (c) box.scrollBy({ left: (+b.getAttribute('data-rail')) * (c.offsetWidth + 16), behavior: 'smooth' }); });
     });
-    hero.addEventListener('mouseenter', function () { clearInterval(timer); });
-    hero.addEventListener('mouseleave', play);
-    swipe(hero, function () { go(i + 1); play(); }, function () { go(i - 1); play(); });
-    play();
   }
   function swipe(el, onLeft, onRight) {
     var x0 = null, y0 = null;
@@ -999,7 +984,7 @@
   function init() {
     captureSource(); initConsent(); trackPageEvents();
     renderCounts(); renderMini(); markWish();
-    initHeader(); initClicks(); initHero(); initLightbox(); initProduct(); initCerts(); initTabs(); initReadmore(); initSort();
+    initHeader(); initClicks(); initRail(); initLightbox(); initProduct(); initCerts(); initTabs(); initReadmore(); initSort();
     initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initEbook(); initFloat(); initFlipbook();
     window.addEventListener('storage', function (e) { if (e.key === 'tdl_cart') { cart = load('tdl_cart', []); cleanCart(); renderCounts(); renderMini(); } });
   }

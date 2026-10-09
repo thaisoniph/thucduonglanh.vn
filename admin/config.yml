@@ -484,11 +484,21 @@ collections:
           - { label: "Phí ship cố định (đồng, 0 = báo khi xác nhận đơn)", name: shipping_fee, widget: number, value_type: int, default: 0 }
 
       - name: home
-        label: "Trang chủ – Slider đầu trang"
+        label: "Trang chủ – Ảnh lớn đầu trang & băng chuyền"
         file: data/home.json
         format: json
         fields:
-          - label: "Các slide"
+          - label: "Ảnh lớn đầu trang (cố định, không tự chạy)"
+            name: hero
+            widget: object
+            fields:
+              - { label: "Dòng nhỏ phía trên", name: eyebrow, widget: string, required: false }
+              - { label: "Tiêu đề lớn", name: title, widget: string, hint: "Đặt chữ giữa hai dấu *sao* để hiện màu vàng nghiêng, ví dụ: Sống lành bắt đầu từ *10 ngày*" }
+              - { label: "Câu dẫn", name: sub, widget: text, required: false }
+              - { label: "Mã sản phẩm / gói khi bấm nút chính", name: product, widget: string, hint: "Phần cuối đường link sản phẩm, ví dụ thu-thach-10-ngay-song-lanh. Giá tự lấy theo sản phẩm." }
+              - { label: "Chữ trên nút chính", name: cta, widget: string, hint: "Web tự thêm giá phía sau, ví dụ: Bắt đầu 10 ngày – 349.000đ" }
+              - { label: "Ảnh (vuông)", name: image, widget: image }
+          - label: "Băng chuyền sản phẩm (dưới Danh mục)"
             name: slides
             widget: list
             summary: "{{fields.title}}"

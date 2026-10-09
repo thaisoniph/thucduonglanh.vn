@@ -456,7 +456,7 @@ def float_widget():
 </div>'''
 
 
-def layout(path, title, desc, body, og=None, jsonld=None, body_class="", noindex=False):
+def layout(path, title, desc, body, og=None, jsonld=None, body_class="", noindex=False, preload=""):
     full_title = title if BRAND in title else f"{title} | {BRAND}"
     url = DOMAIN + path
     og_img = DOMAIN + (og or "/assets/img/brand/og-image.jpg")
@@ -471,7 +471,7 @@ def layout(path, title, desc, body, og=None, jsonld=None, body_class="", noindex
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{esc(full_title)}</title>
 <meta name="description" content="{esc(desc)}">
-<link rel="canonical" href="{url}">{robots}
+<link rel="canonical" href="{url}">{robots}{f'<link rel="preload" as="image" href="{preload}" fetchpriority="high">' if preload else ""}
 <meta property="og:type" content="website"><meta property="og:site_name" content="{BRAND}">
 <meta property="og:title" content="{esc(full_title)}"><meta property="og:description" content="{esc(desc)}">
 <meta property="og:url" content="{url}"><meta property="og:image" content="{og_img}"><meta property="og:locale" content="vi_VN">
@@ -729,27 +729,32 @@ def brand_video():
 
 
 def page_home():
-    slides = []
-    for sd in HOME.get("slides", []):
-        title = md_inline(esc(sd.get("title", "")).replace("&#x27;", "'"))
-        slides.append((sd.get("product") or "", sd.get("eyebrow", ""), title, sd.get("subtitle", ""), img_url(sd.get("image"), 1024)))
-    sl = []
-    for i, (slug, eb, h, sub, img) in enumerate(slides):
-        tag = "h2"
-        lazy = "" if i == 0 else ' loading="lazy"'
-        sl.append(f'''<div class="slide{' is-active' if i == 0 else ''}" data-slide="{i}">
-  <div class="container slide-in">
-    <div class="slide-text"><span class="eyebrow">{eb}</span><{tag} class="slide-title">{h}</{tag}><p>{sub}</p>
-      <div class="slide-cta"><a class="btn btn-lg" href="{("/san-pham/" + slug + "/") if slug in PROD_BY else "/san-pham/"}">Mua ngay</a><a class="btn btn-lg btn-ghost" href="/san-pham/">Xem tất cả</a></div></div>
-    <div class="slide-media"><img src="{img}" alt="{esc(strip_tags(h))}" width="1024" height="1024"{lazy}></div>
-  </div></div>''')
-    dots = "".join(f'<button class="dot{" is-active" if i == 0 else ""}" data-go="{i}" aria-label="Slide {i+1}"></button>' for i in range(len(slides)))
-    hero = f'''<section class="hero" id="hero" aria-roledescription="carousel">
+    # Hero tĩnh: 1 thông điệp + lời mời bắt đầu (Cài đặt → Trang chủ). Các slide cũ thành băng chuyền sản phẩm bên dưới.
+    hh = HOME.get("hero") or {}
+    hp = PROD_BY.get(hh.get("product") or "")
+    h_url = f'/san-pham/{hp["slug"]}/' if hp else "/san-pham/"
+    h_img = img_url(hh.get("image") or (hp["images"][0] if hp else "/assets/img/brand/og-image.jpg"), 1000)
+    h_title = md_inline(esc(hh.get("title") or BRAND).replace("&#x27;", "'"))
+    h_cta = esc(hh.get("cta") or "Mua ngay") + (f' – {money(hp["price"]).replace(" ₫", "đ")}' if hp and hp.get("price") else "")
+    hero = f'''<section class="hero hero-static">
   <div class="hero-deco" aria-hidden="true"></div>
-  {''.join(sl)}
-  <button class="hero-nav prev" data-prev aria-label="Slide trước">{I["left"]}</button><button class="hero-nav next" data-next aria-label="Slide sau">{I["right"]}</button>
-  <div class="hero-dots">{dots}</div>
+  <div class="container slide-in">
+    <div class="slide-text">{f'<span class="eyebrow">{esc(hh["eyebrow"])}</span>' if hh.get("eyebrow") else ""}<h1 class="slide-title">{h_title}</h1>{f'<p>{esc(hh["sub"])}</p>' if hh.get("sub") else ""}
+      <div class="slide-cta"><a class="btn btn-lg" href="{h_url}" data-cta="hero_main">{h_cta}</a><a class="btn btn-lg btn-ghost" href="/san-pham/" data-cta="hero_all">Xem tất cả sản phẩm</a></div></div>
+    <div class="slide-media"><a href="{h_url}" tabindex="-1"><img src="{h_img}" alt="{esc(hp["name"] if hp else BRAND)}" width="1000" height="1000" fetchpriority="high"></a></div>
+  </div>
 </section>'''
+    rail = ""
+    for sd in HOME.get("slides", []):
+        slug = sd.get("product") or ""
+        href = f"/san-pham/{slug}/" if slug in PROD_BY else "/san-pham/"
+        t = md_inline(esc(sd.get("title", "")).replace("&#x27;", "'"))
+        rail += f'''<article class="rl-card"><a class="rl-media" href="{href}"><img src="{img_url(sd.get("image"), 600)}" alt="{esc(strip_tags(t))}" width="600" height="600" loading="lazy"></a>
+<div class="rl-body">{f'<span class="rl-eye">{esc(sd["eyebrow"])}</span>' if sd.get("eyebrow") else ""}<h3><a href="{href}">{t}</a></h3><p>{esc(sd.get("subtitle", ""))}</p><a class="btn btn-sm" href="{href}">Xem sản phẩm</a></div></article>'''
+    rail_html = f'''<section class="section pt-0"><div class="container">
+  <div class="rl-head"><h2 class="sec-title">Nổi bật tại {BRAND}</h2><div class="rl-nav"><button type="button" data-rail="-1" aria-label="Xem trước">{I["left"]}</button><button type="button" data-rail="1" aria-label="Xem tiếp">{I["right"]}</button></div></div>
+  <div class="rail" data-rail-box>{rail}</div>
+</div></section>''' if rail else ""
 
     cats = [("Toàn bộ sản phẩm", "/san-pham/", None)] + ([("Khuyến Mãi", "/khuyen-mai/", "sale")] if HAS_SALE else []) + [(c["name"], f"/danh-muc/{c['slug']}/", c["image"]) for c in CATS]
     cat_html = ""
@@ -786,6 +791,7 @@ def page_home():
   <h2 class="sec-title">Danh mục sản phẩm</h2>
   <div class="cat-grid">{cat_html}</div>
 </div></section>
+{rail_html}
 
 {combos_home()}
 <section class="section pt-0"><div class="container">
@@ -827,7 +833,7 @@ def page_home():
 </div></section>
 
 <section class="section seo-block"><div class="container">
-  <h1>{BRAND} – Dinh Dưỡng Thuần Tự Nhiên</h1>
+  <h2 class="seo-h">{BRAND} – Dinh Dưỡng Thuần Tự Nhiên</h2>
   <div class="readmore" data-readmore>
     <p><b>Thucduonglanh.vn</b> là website chính thức của thương hiệu {BRAND} thuộc {esc(SITE["company"].title())}, nơi cung cấp các sản phẩm dinh dưỡng từ hạt, trà thảo mộc và thực phẩm thuần chay có nguồn gốc rõ ràng, hồ sơ công bố đầy đủ.</p>
     <h3>SẢN PHẨM CHÍNH HÃNG, NGUỒN GỐC MINH BẠCH</h3>
@@ -847,7 +853,7 @@ def page_home():
     web = {"@context": "https://schema.org", "@type": "WebSite", "name": BRAND, "url": DOMAIN,
            "potentialAction": {"@type": "SearchAction", "target": DOMAIN + "/tim-kiem/?q={search_term_string}", "query-input": "required name=search_term_string"}}
     return layout("/", f"{BRAND} – {SITE['tagline']}", "Thực Dưỡng Lành – dinh dưỡng từ hạt, trà thảo mộc và thực phẩm thuần chay chính hãng, nguồn gốc rõ ràng. Giao hàng toàn quốc. Hotline " + SITE["hotline"],
-                  body, jsonld=[org, web] + ([bv_ld] if bv_ld else []), body_class="home")
+                  body, jsonld=[org, web] + ([bv_ld] if bv_ld else []), body_class="home", preload=h_img)
 
 
 def community_html():

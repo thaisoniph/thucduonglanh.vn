@@ -1,4 +1,12 @@
 {
+  "hero": {
+    "eyebrow": "Dinh dưỡng thuần tự nhiên",
+    "title": "Sống lành bắt đầu từ *10 ngày*",
+    "sub": "3 sản phẩm – 3 thói quen nhỏ. Nguồn gốc rõ ràng, giao toàn quốc, kiểm tra hàng trước khi trả tiền.",
+    "product": "thu-thach-10-ngay-song-lanh",
+    "cta": "Bắt đầu 10 ngày",
+    "image": "/assets/img/products/combo-khoi-dong-10-ngay.webp"
+  },
   "slides": [
     {
       "product": "tra-hoa-tan-dilvang-dinh-lang-che-vang",
