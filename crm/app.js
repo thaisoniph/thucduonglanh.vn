@@ -220,8 +220,10 @@
 
   /* ================================================================ dữ liệu */
   /** Tải 2 đợt: đợt 1 = khách, việc hôm nay, đơn 100 ngày, nhật ký 60 ngày (đủ làm việc ngay); đợt 2 tải ngầm đơn + nhật ký cũ hơn. */
-  /** Tự làm mới nhẹ: chỉ hỏi máy chủ phần đổi từ lần trước. Mỗi tiếng (hoặc sang ngày mới, đổi quy tắc) vẫn tải đủ 1 lần cho chắc. */
-  function canDelta() { return S.d && S.d.sv && !S.d.partial && S.fullAt && Date.now() - S.fullAt < 3600e3 && S.d.today === startDay(Date.now()); }
+  /** Tự làm mới nhẹ: chỉ hỏi máy chủ phần đổi từ lần trước. 6 tiếng (hoặc sang ngày mới, đổi quy tắc) mới tải đủ 1 lần cho chắc.
+   *  Trước đây 1 tiếng/lần × mỗi máy đang mở CRM → hết hạn mức đọc miễn phí của D1 (5 triệu dòng/ngày, 09/10/2026). */
+  var FULL_EVERY = 6 * 3600e3;
+  function canDelta() { return S.d && S.d.sv && !S.d.partial && S.fullAt && Date.now() - S.fullAt < FULL_EVERY && S.d.today === startDay(Date.now()); }
   function startDay(t) { return Math.floor((t + 7 * 3600e3) / DAY) * DAY - 7 * 3600e3; }
   function loadDelta() {
     S.loading = true; var t0 = Date.now(), d = S.d;
@@ -244,8 +246,8 @@
       var cnt = {}; d.orders.forEach(function (o) { if (!/Huỷ|Hủy|Hoàn/i.test(o.status)) cnt[o.phone] = (cnt[o.phone] || 0) + 1; });
       if (j.customers.some(function (c) { return hadPhone[c.phone] == null && (cnt[c.phone] || 0) < c.orders; })) return 'full';
       ['user', 'now', 'fbNew', 'users', 'prefs', 'tagColors', 'sources', 'ads', 'contacts', 'targets', 'cycles', 'templates', 'rules', 'sv', 'lr'].forEach(function (k) { if (j[k] !== undefined) d[k] = j[k]; });
-      setData(d, Date.now()); S.perf = { core: Date.now() - t0, srv: j.t, kb: j.__kb, delta: 1 };
-      idb('set', 'data', { tk: S.token.slice(-12), at: S.loadedAt, d: d });
+      S.stale = false; setData(d, Date.now()); S.perf = { core: Date.now() - t0, srv: j.t, kb: j.__kb, delta: 1 };
+      idb('set', 'data', { tk: S.token.slice(-12), at: S.loadedAt, fa: S.fullAt, d: d });
       if ($('.me')) { $('.me').innerHTML = meHTML(); navBadges(); }
       softRender(true);
       return 'ok';
@@ -265,11 +267,11 @@
       if (j.part && prev && prev.orders) keepOld(j, prev); // đang có dữ liệu cũ trên máy → giữ phần cũ tới khi đợt 2 về, số liệu không bị hụt
       var keep = !!j.part && silent && prev && prev.orders && !prev.partial && Date.now() - (S.restAt || 0) < 3600e3; // tự làm mới: đơn, nhật ký cũ giữ bản trên máy (1 tiếng mới đọc lại) – nhanh hơn, đỡ tốn lượt đọc máy chủ
       j.partial = !!j.part && !keep; setData(j, Date.now()); S.fullAt = Date.now(); S.perf = { core: Date.now() - t0, srv: j.t, kb: j.__kb };
-      if (!j.part) idb('set', 'data', { tk: S.token.slice(-12), at: S.loadedAt, d: j }); // máy chủ cũ: 1 đợt
+      if (!j.part) idb('set', 'data', { tk: S.token.slice(-12), at: S.loadedAt, fa: S.fullAt, d: j }); // máy chủ cũ: 1 đợt
       if (!$('.me')) shell(); else { $('.me').innerHTML = meHTML(); navBadges(); } // .me chỉ có ở giao diện thật (khung chờ không có)
       softRender(silent);
       if (j.part) { // đợt 2 tải ngầm, không giữ S.loading → bấm ↻ lúc đợt 2 chưa xong vẫn tải lại được
-        if (keep) idb('set', 'data', { tk: S.token.slice(-12), at: S.loadedAt, d: j }); else loadRest(j);
+        if (keep) idb('set', 'data', { tk: S.token.slice(-12), at: S.loadedAt, fa: S.fullAt, d: j }); else loadRest(j);
       }
     }, function (e) { if (!silent && S.token) toast(e.message, true); if (!S.d && S.token && !$('.me')) { $('#app').innerHTML = '<div class="login"><div class="login-box"><h1>Chưa tải được dữ liệu</h1><p class="sub">' + esc(e.message) + '</p><button class="btn pri block" id="retry">Thử lại</button></div></div>'; $('#retry').onclick = function () { location.reload(); }; } })
       .then(function () { S.loading = false; var b2 = $('#refresh'); if (b2) b2.classList.remove('spin'); });
@@ -294,7 +296,7 @@
       S.d.orders = r.orders.concat(newO); S.d.log = r.log.concat(newL); S.d.partial = false; S.restAt = Date.now();
       preIndexData(S.d);
       if (S.perf) { S.perf.rest = Date.now() - t1; S.perf.kb2 = r.__kb; }
-      idb('set', 'data', { tk: S.token.slice(-12), at: S.loadedAt, d: S.d }); // lần sau mở CRM hiện ngay
+      idb('set', 'data', { tk: S.token.slice(-12), at: S.loadedAt, fa: S.fullAt, d: S.d }); // lần sau mở CRM hiện ngay
       softRender(true);
     }, function () { /* đợt 2 lỗi: vẫn dùng được, lần tải sau thử lại */ });
   }
@@ -386,7 +388,7 @@
     $('#app').innerHTML = skeleton();
     idb('get', 'data').then(function (c) {
       if (c && c.d && c.tk === String(S.token || '').slice(-12) && Date.now() - c.at < 7 * DAY && !S.d) { // dữ liệu lần trước trên máy này → hiện ngay, cập nhật ngầm
-        S.stale = true; setData(c.d, c.at); shell(); render(); load(true); flush();
+        S.stale = true; setData(c.d, c.at); S.fullAt = c.fa || 0; shell(); render(); load(true); flush(); // cùng ngày + chưa quá 6 tiếng từ lần tải đủ → chỉ tải phần thay đổi
       } else load().then(flush);
     });
   }
