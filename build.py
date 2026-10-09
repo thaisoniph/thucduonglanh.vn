@@ -1496,7 +1496,8 @@ def main():
         "regular": p.get("regular_price"), "off": p.get("web_off") or 0, "fs": bool(p.get("free_ship")), "days": num(p.get("days")) or 0, "servings": p.get("servings"), "serving_unit": p.get("serving_unit") or "", "unit": p.get("unit", ""), "variants": p.get("variants", []),
         "img": pimg(p["images"][0], True), "url": f"/san-pham/{p['slug']}/", "cat": CAT_BY[p["category"]]["name"],
         "text": strip_tags(p["name"] + " " + p["summary"] + " " + " ".join(p.get("highlights", []))),
-        "featured": bool(p.get("featured")), "upsell": [x for x in (p.get("upsell") or []) if x],
+        "featured": bool(p.get("featured")), "upsell": [x for x in (p.get("upsell") or []) if x], "combo": bool(p.get("combo")),
+        "kw": [k for k in (p.get("keywords") or []) if k],  # từ khóa tìm kiếm nội bộ (không hiển thị)
     } for p in PRODUCTS]
     cfg = {"brand": BRAND, "hotline": SITE["hotline"], "zalo": tel(SITE["zalo"]), "email": SITE["email"], "zalo_oa": SITE.get("zalo_oa", ""), "zalo_group": SITE.get("zalo_group", ""), "gift": (WEB_OFFER.get("gift_title", "") + (" (trị giá " + WEB_OFFER["gift_value"] + ")" if WEB_OFFER.get("gift_value") else "")) if WEB_OFFER.get("gift_enabled") else "",
            "ga4_id": SITE.get("ga4_id", ""), "clarity_id": SITE.get("clarity_id", ""), "meta_pixel": SITE.get("meta_pixel", ""), "tiktok_pixel": SITE.get("tiktok_pixel", ""),

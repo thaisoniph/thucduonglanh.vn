@@ -115,6 +115,12 @@ collections:
         hint: "Chỉ ghi điều có giấy tờ thật, ví dụ: Kiểm nghiệm NIFC, GMP – ISO 22000:2018. Huy hiệu có chữ “kiểm nghiệm” bấm vào sẽ tới mục Tiêu chuẩn & kiểm nghiệm."
         field: { label: "Huy hiệu", name: badge, widget: string }
       - { label: "Ảnh phiếu kiểm nghiệm", name: test_cert_img, widget: image, required: false, hint: "Có ảnh thì bấm huy hiệu Kiểm nghiệm sẽ mở ảnh này." }
+      - label: "Từ khóa tìm kiếm (không hiện ra web)"
+        name: keywords
+        widget: list
+        required: false
+        hint: "Khách gõ các từ này (có dấu hay không dấu đều được) sẽ tìm ra sản phẩm. Ví dụ: ăn sáng, bữa phụ, ăn chay. Từ đứng trước ưu tiên hơn. Chỉ dùng để tìm, không hiện ra web."
+        field: { label: "Từ khóa", name: keyword, widget: string }
       - label: "Điểm nổi bật (dấu tích xanh)"
         name: highlights
         widget: list
@@ -283,6 +289,12 @@ collections:
         hint: "Ảnh đầu tiên là ảnh đại diện (vuông ≥1000px)."
         field: { label: "Ảnh", name: image, widget: image }
       - { label: "Mô tả ngắn (cạnh giá)", name: summary, widget: markdown, buttons: [bold, italic, link] }
+      - label: "Từ khóa tìm kiếm (không hiện ra web)"
+        name: keywords
+        widget: list
+        required: false
+        hint: "Khách gõ các từ này (có dấu hay không dấu đều được) sẽ tìm ra sản phẩm. Ví dụ: ăn sáng, bữa phụ, ăn chay. Từ đứng trước ưu tiên hơn. Chỉ dùng để tìm, không hiện ra web."
+        field: { label: "Từ khóa", name: keyword, widget: string }
       - label: "Điểm nổi bật (dấu tích xanh)"
         name: highlights
         widget: list

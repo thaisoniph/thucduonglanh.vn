@@ -86,7 +86,7 @@
   function sourceLabel() { var l = load('tdl_src_last', null), f = load('tdl_src_first', null); function fmt(x) { return x ? [x.source, x.medium, x.campaign].filter(Boolean).join(' / ') : ''; } return { last: fmt(l) || 'Truy cập trực tiếp', first: fmt(f) || '' }; }
   function trackPageEvents() {
     var wrap = $('[data-product]'); if (wrap) { var sl = wrap.getAttribute('data-product'), it = gaItem(sl, (BY[sl] && BY[sl].variants && BY[sl].variants.length) ? 0 : -1, 1); if (it) track('view_item', { currency: 'VND', value: it.price || 0, items: [it] }); }
-    if ($('#searchPage') && qs('q')) track('search', { search_term: qs('q') });
+    if ($('#searchPage') && qs('q')) trackSearch(qs('q'), searchProducts(qs('q')).length);
   }
 
   /* ---------- cart ---------- */
@@ -176,10 +176,12 @@
     var closeS = function () { layer.classList.remove('open'); layer.setAttribute('aria-hidden', 'true'); lock(false); };
     if ($('#searchOpen')) $('#searchOpen').addEventListener('click', openS);
     if (layer) layer.addEventListener('click', function (e) { if (e.target === layer || e.target.closest('[data-search-close]')) closeS(); });
+    var sT;
     function liveSearch() {
       var q = input.value.trim();
       var list = q ? searchProducts(q) : PRODUCTS.filter(function (p) { return p.featured; });
-      if (!list.length) { res.innerHTML = '<div class="sr-empty">Không tìm thấy sản phẩm phù hợp với “' + esc(q) + '”.</div>'; return; }
+      clearTimeout(sT); if (q.length >= 2) sT = setTimeout(function () { trackSearch(q, list.length); }, 1200);
+      if (!list.length) { res.innerHTML = searchEmptyHTML(q, true); return; }
       res.innerHTML = (q ? '' : '<div class="sr-empty" style="padding:12px 18px 4px">Gợi ý cho bạn</div>') + list.slice(0, 6).map(function (p) {
         return '<a class="sr-item" href="' + p.url + '"><img src="' + p.img + '" alt=""><div><b>' + esc(p.name) + '</b><small>' + money(p.price) + '</small></div></a>';
       }).join('') + (q ? '<a class="sr-all" href="/tim-kiem/?q=' + encodeURIComponent(q) + '">Xem tất cả kết quả</a>' : '');
@@ -191,13 +193,30 @@
       if (e.key === '/' && !/input|textarea/i.test(document.activeElement.tagName) && layer) { e.preventDefault(); openS(); }
     });
   }
+  /* tìm không dấu trên tên + từ khóa nhu cầu (kw, chỉ dùng nội bộ) + mô tả; khớp cả cụm ở tên/từ khóa thì chỉ lấy các sản phẩm đó */
+  function sq(s) { return ' ' + norm(s).replace(/[^a-z0-9]+/g, ' ').trim() + ' '; }
   function searchProducts(q) {
-    var words = norm(q).split(/\s+/).filter(Boolean);
-    return PRODUCTS.map(function (p) {
-      var name = norm(p.name), text = norm(p.text + ' ' + p.cat);
-      var score = 0, ok = words.every(function (w) { var inName = name.indexOf(w) >= 0; if (inName) score += 3; else if (text.indexOf(w) >= 0) score += 1; else return false; return true; });
-      return ok ? { p: p, s: score } : null;
-    }).filter(Boolean).sort(function (a, b) { return b.s - a.s; }).map(function (x) { return x.p; });
+    var phrase = sq(q).trim(), words = phrase.split(' ').filter(Boolean); if (!words.length) return [];
+    var has = function (hay, w) { return hay.indexOf(' ' + w) >= 0; }; // khớp đầu từ: "an" không khớp "lanh"
+    var rows = PRODUCTS.map(function (p) {
+      var name = sq(p.name + ' ' + (p.short || '')), kw = (p.kw || []).map(sq), text = sq(p.text + ' ' + p.cat);
+      var ki = -1; kw.some(function (k, i) { if (has(k, phrase)) { ki = i; return true; } return false; });
+      var ph = has(name, phrase) ? 30 : (ki >= 0 ? 20 - ki * 0.2 : 0), s = 0; // từ khóa đứng trước = liên quan hơn
+      var ok = words.every(function (w) { if (has(name, w)) s += 3; else if (kw.some(function (k) { return has(k, w); })) s += 2; else if (has(text, w)) s += 1; else return false; return true; });
+      return (ok || ph) ? { p: p, s: ph || s, ph: ph } : null;
+    }).filter(Boolean);
+    if (rows.some(function (r) { return r.ph; })) rows = rows.filter(function (r) { return r.ph; });
+    return rows.sort(function (a, b) { return b.s - a.s; }).map(function (x) { return x.p; });
+  }
+  var searched = {};
+  function trackSearch(q, n) { var k = norm(q).trim(); if (searched[k]) return; searched[k] = 1; track('search', { search_term: q }); if (!n) track('search_no_result', { search_term: q }); }
+  var NEED_CHIPS = [['🥣 Bữa sáng bận rộn', 'ăn sáng'], ['🥛 Bữa phụ từ hạt', 'bữa phụ'], ['🍵 Uống lành mỗi ngày', 'trà'], ['🥢 Ăn chay ngon miệng', 'ăn chay']];
+  function searchEmptyHTML(q, compact) {
+    var c = PRODUCTS.filter(function (p) { return p.combo && p.price != null; })[0];
+    return '<div class="s-empty' + (compact ? ' compact' : '') + '"><p class="s-empty-t">Chưa tìm thấy sản phẩm cho “' + esc(q) + '”</p>' +
+      '<div class="s-empty-chips">' + NEED_CHIPS.map(function (x) { return '<a href="/tim-kiem/?q=' + encodeURIComponent(x[1]) + '">' + x[0] + '</a>'; }).join('') + '</div>' +
+      (c ? '<p class="s-empty-s">Người mới bắt đầu thường chọn:</p><a class="sr-item s-empty-p" href="' + c.url + '"><img src="' + c.img + '" alt="" width="52" height="52"><div><b>' + esc(c.name) + '</b><small>' + money(c.price) + (c.fs ? ' · Miễn phí vận chuyển' : '') + '</small></div></a>' : '') +
+      (CFG.zalo ? '<a class="btn btn-zalo s-empty-z" href="https://zalo.me/' + CFG.zalo + '" target="_blank" rel="noopener">💬 Hỏi chuyên gia qua Zalo</a>' : '') + '</div>';
   }
 
   /* ---------- global clicks ---------- */
@@ -866,7 +885,7 @@
     var list = q ? searchProducts(q) : PRODUCTS;
     $('#searchSummary').textContent = q ? ('Tìm thấy ' + list.length + ' sản phẩm cho “' + q + '”') : 'Tất cả sản phẩm';
     el.innerHTML = list.length ? list.map(cardHTML).join('') : '';
-    if (!list.length) el.outerHTML = '<div class="empty">Không tìm thấy sản phẩm phù hợp. Hãy thử từ khóa khác hoặc <a href="/lien-he/">liên hệ tư vấn</a>.</div>';
+    if (!list.length) { $('#searchSummary').textContent = ''; el.outerHTML = searchEmptyHTML(q); }
     markWish();
   }
 
