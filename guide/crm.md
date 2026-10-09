@@ -2,7 +2,7 @@
 title: Hướng dẫn dùng CRM
 nav: CRM
 order: 2
-updated: 2026-10-07
+updated: 2026-10-09
 description: Xử lý đơn hàng, chăm sóc khách, khách hỏi và theo dõi hiệu quả trên crm.thucduonglanh.vn.
 ---
 
@@ -101,7 +101,7 @@ Trên mỗi dòng đơn còn có:
 
 **Số ngày đang giao** tính từ **ngày gửi hàng**: CRM tự ghi ngày gửi khi bạn bấm **Đang giao** hoặc nhập mã vận đơn. Đơn cũ chưa có ngày gửi (vd đơn nhập từ file) thì tính từ ngày đặt; rê chuột vào ô số ngày để xem tính từ ngày nào. Khách đã nhận hàng thì nhớ bấm **📬 Đã giao** để đơn không còn bị báo giao lâu.
 
-Bấm vào dòng để mở đơn (Zalo, sửa đơn, ghi chú…). Thẻ **📋 Tất cả đơn** để tra cứu: bấm nút **📅 thời gian** để chọn *Mọi lúc, Hôm nay, Hôm qua, 7 ngày qua, Tháng này, Tháng trước* hoặc **Tuỳ chỉnh** (tự chọn từ ngày – đến ngày), rồi lọc theo trạng thái. Đầu trang có số đơn và doanh thu hôm nay, số đơn đang giao, tỷ lệ hoàn tháng này.
+Bấm vào dòng để mở đơn (Zalo, sửa đơn, ghi chú…). Thẻ **📋 Tất cả đơn** để tra cứu: bấm nút **📅 thời gian** để chọn *Mọi lúc, Hôm nay, Hôm qua, 7 ngày qua, Tháng này, Tháng trước* hoặc **Tuỳ chỉnh** (tự chọn từ ngày – đến ngày), rồi lọc theo **kênh** (🌐 *Khách tự đặt trên web* hoặc 💬 *Sale lên đơn*) và theo trạng thái. Đơn khách tự đặt trên thucduonglanh.vn có nhãn **🌐 Web · Facebook / Google / Zalo / Vào thẳng web…** (khách vào web từ đâu). Đầu trang có số đơn và doanh thu hôm nay, số đơn đang giao, tỷ lệ hoàn tháng này.
 
 
 Đơn khách đặt trên web tự vào CRM và báo lên Telegram. Mỗi đơn đi qua các trạng thái:
@@ -142,7 +142,9 @@ Vào **Đơn hàng → ＋ Tạo đơn**, hoặc bấm **＋ Đơn** trong hồ 
 7. Bấm **Lưu & copy lên đơn**: đơn được lưu, nội dung lên đơn đã copy sẵn, dán sang bên vận chuyển. **Mã đơn** tự tạo theo kiểu cũ, ví dụ *Phuong300926-01*.
    - Nếu khách đã có đơn **cùng số tiền trong 1 giờ qua**, CRM hỏi lại trước khi lưu (tránh trùng khi lần trước mạng chập chờn nhưng đơn đã lưu). Bấm **Huỷ** để xem lại tab Đơn hàng; chỉ bấm **OK** khi khách thật sự đặt thêm đơn.
 
-**Quản lý kiểm tra loại đơn:** đơn sale chọn khác gợi ý có nhãn **⚠️ Kiểm tra loại đơn** và nằm trong **Đơn hàng → Cần xử lý → Kiểm tra loại đơn**. Mở đơn, bấm **✓ Đúng** (giữ lựa chọn của sale) hoặc **Đổi sang** loại khác. % hoa hồng từng loại đặt ở **Cài đặt → 💰 Hoa hồng theo loại đơn**; báo cáo **BCDT** có mục *Theo loại đơn* với doanh thu và hoa hồng tạm tính của từng sale.
+**Quản lý kiểm tra loại đơn:** đơn sale chọn khác gợi ý có nhãn **⚠️ Kiểm tra loại đơn** và nằm trong **Đơn hàng → Cần xử lý → Kiểm tra loại đơn**. Mở đơn, bấm **✓ Đúng** (giữ lựa chọn của sale) hoặc **Đổi sang** loại khác. % hoa hồng từng loại đặt ở **Cài đặt → 💰 Hoa hồng**; báo cáo **BCDT** có mục *Theo loại đơn* với doanh thu và hoa hồng tạm tính của từng sale.
+
+**Đơn khách tự đặt trên web** (🌐) tính hoa hồng **riêng**, theo ô *🌐 Đơn khách tự đặt trên web (%)* ở **Cài đặt → 💰 Hoa hồng**, không theo 4 loại đơn. Hoa hồng đơn web tính cho sale đang phụ trách khách lúc khách đặt. Để trống = chưa tính.
 
 Khách đặt qua Zalo, Facebook, điện thoại hay mua tại cửa hàng thì **luôn tạo đơn trên CRM**: khách sẽ được nhắc chăm sóc và tính doanh số cho bạn như đơn web.
 
@@ -158,7 +160,7 @@ Trong hồ sơ khách, ô **Ghi nhanh hôm nay** tự thêm ngày ở đầu dò
 
 Cuối ngày bấm **📋 Báo cáo cuối ngày (gửi Zalo)** ở tab **Hôm nay** (hoặc **Hiệu quả → 📋 Báo cáo ngày**). CRM tự làm báo cáo đúng mẫu nhóm đang dùng: số đơn và số mới từng dòng (Curcumin, BADD, Fucoidan Pro), sản phẩm khác, đơn từ khách cũ, **tổng doanh thu**, đơn ngoài giờ, đơn hoàn, **KH cũ đã chăm sóc (kết nối)**, **Không nghe máy**, **Lý do từ chối** (lấy từ ghi chú khi bấm *Hết tiền*, *Còn hàng*, *Không dùng nữa*…) và **luỹ kế tháng / % mục tiêu**. Sửa thêm nếu cần, bấm **📋 Copy để dán vào Zalo** rồi dán vào nhóm. Chọn ngày khác để làm báo cáo bù. Quản lý chọn được *Cả nhóm* hoặc từng người.
 
-Tab **Hiệu quả → 📊 Bảng BCDT** tự làm báo cáo doanh thu tháng: theo ngày, theo dòng sản phẩm, khách mới / cũ, đơn hoàn và doanh thu theo ca. Phía trên có sẵn **tỷ lệ chốt** (đơn mới / data mới), **trung bình mỗi đơn khách mới** và **khách cũ**, **% doanh thu từ khách cũ**, **doanh thu ngoài giờ**, **số khách cũ đã chăm sóc / không nghe máy** và **% tiến độ mục tiêu**. Cột nào cả tháng bằng 0 (dòng sản phẩm không bán) thì tự ẩn cho gọn. Bấm **Tải file Excel** để gửi báo cáo.
+Tab **Hiệu quả → 📊 Bảng BCDT** tự làm báo cáo doanh thu tháng: theo ngày, theo dòng sản phẩm, khách mới / cũ, đơn hoàn và doanh thu theo ca. Phía trên có sẵn **tỷ lệ chốt** (đơn mới / data mới), **trung bình mỗi đơn khách mới** và **khách cũ**, **% doanh thu từ khách cũ**, **doanh thu ngoài giờ**, **số khách cũ đã chăm sóc / không nghe máy** và **% tiến độ mục tiêu**. Mục **Theo kênh đơn** tách doanh thu *💬 Sale lên đơn* và *🌐 Khách tự đặt trên web* (kèm số đơn web theo nguồn: Facebook, Google…). Cột nào cả tháng bằng 0 (dòng sản phẩm không bán) thì tự ẩn cho gọn. Bấm **Tải file Excel** để gửi báo cáo.
 
 ## Chăm sóc khách
 

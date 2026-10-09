@@ -318,14 +318,14 @@ async function loadSmall(x, u, R, mode) {
     b('SELECT when_txt, purpose, text FROM templates ORDER BY rid')
   ])).map(r => r.results || []);
   const users = (await crmUsers(x)).filter(y => y.active || u.level >= 3).map(y => u.level >= 3 ? { email: y.email, name: y.name, role: y.role, active: y.active, recv: y.recv, tg: !!y.tg, alias: y.alias, prefix: y.prefix || slugName(y.name) } : u.level >= 2 ? { name: y.name, role: y.role, recv: y.recv, tg: !!y.tg } : { name: y.name, role: y.role });
-  const [ca, fbNew, prefs, tagColors, sources, ads] = await Promise.all([caCfg(x), // hỏi song song: mỗi lần hỏi máy chủ dữ liệu mất một nhịp
+  const [ca, fbNew, prefs, tagColors, sources, ads, commission] = await Promise.all([caCfg(x), // hỏi song song: mỗi lần hỏi máy chủ dữ liệu mất một nhịp
     u.level >= 2 ? first(x.db, "SELECT count(*) AS n FROM feedback WHERE status = 'Mới'").then(r => (r || {}).n || 0) : 0,
-    prefsOf(x, u.email), allTagColors(x), u.level >= 3 ? srcList(x) : [], u.level >= 3 ? adsCfg(x) : null]);
+    prefsOf(x, u.email), allTagColors(x), u.level >= 3 ? srcList(x) : [], u.level >= 3 ? adsCfg(x) : null, kvJson(x.db, 'commission_cfg', {}).then(r => r || {})]);
   return {
     ok: true, user: publicUser(u), now: Date.now(), today: startOfDay(Date.now()), fbNew, users, prefs, tagColors, sources, ads,
     contacts: ct.reverse().map(contactOut), targets: tg.map(t => ({ month: t.month, name: t.name, amount: t.amount || 0, by: t.by_name || '', at: t.at })),
     cycles: cy.filter(r => r.name).map(r => [r.name, r.variant || '', Number(r.days) || 0, r.basis || '']), templates: tp.filter(r => r.text).map(r => [r.when_txt || '', r.purpose || '', r.text]),
-    rules: { vipOrders: R.vipOrders, vipSpent: R.vipSpent, atRisk: R.atRisk, coolDays: R.coolDays, statuses: ORDER_STATUS, results: CARE_RESULTS, leadStatus: LEAD_STATUS, assignMode: mode, bot: BOT_USERNAME, ca, lines: LINES.map(l => l[0]).concat(['Khác']) }
+    rules: { vipOrders: R.vipOrders, vipSpent: R.vipSpent, atRisk: R.atRisk, coolDays: R.coolDays, commission, statuses: ORDER_STATUS, results: CARE_RESULTS, leadStatus: LEAD_STATUS, assignMode: mode, bot: BOT_USERNAME, ca, lines: LINES.map(l => l[0]).concat(['Khác']) }
   };
 }
 
@@ -791,6 +791,7 @@ async function crmContact(x, u, d) {
 }
 
 /* ================================================================ cài đặt, nhân sự, mục tiêu */
+const COMM_KEYS = ['Khách mới', 'Khách cũ', 'Ngoài giờ', 'Ngày lễ', 'Đơn web'];
 async function crmSettings(x, u, d) {
   if (d.ca) {
     const hol = String(d.ca.holidays || '').split(/[,;\s]+/).map(s => { const m = s.match(/^(\d{1,2})\/(\d{1,2})$/); return m ? ('0' + m[1]).slice(-2) + '/' + ('0' + m[2]).slice(-2) : ''; }).filter(String);
@@ -805,6 +806,13 @@ async function crmSettings(x, u, d) {
     await kvSet(x.db, 'rules_cfg', JSON.stringify(R)); x._rules = null;
     await crmLog(x, u, 'Cài đặt', '-', '', 'VIP từ ' + R.vipOrders + ' đơn hoặc ' + fmt(R.vipSpent) + '; Sắp mất sau ' + R.atRisk + ' ngày; giãn cách chăm sóc ' + R.coolDays + ' ngày', '');
     return { ok: true, rules: R };
+  }
+  if (d.commission) { // % hoa hồng theo loại đơn + riêng đơn khách tự đặt trên web; để trống = chưa tính
+    const CM = {};
+    COMM_KEYS.forEach(t => { const v = String(d.commission[t] == null ? '' : d.commission[t]).trim().replace(',', '.'), n = Number(v); CM[t] = v === '' || isNaN(n) ? '' : Math.min(100, Math.max(0, n)); });
+    await kvSet(x.db, 'commission_cfg', JSON.stringify(CM));
+    await crmLog(x, u, 'Cài đặt', '-', '', 'Hoa hồng: ' + COMM_KEYS.map(t => t + ' ' + (CM[t] === '' ? '–' : CM[t] + '%')).join(', '), '');
+    return { ok: true, commission: CM };
   }
   if (d.assignMode) {
     if (!ASSIGN_MODES[d.assignMode]) return { ok: false, error: 'Chế độ không hợp lệ' };
