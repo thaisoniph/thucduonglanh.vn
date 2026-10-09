@@ -374,11 +374,20 @@ Doanh số tính theo **Nhân viên bán** ghi trên từng đơn. Đơn khách 
 | --- | --- |
 | **Nhân viên** | Chỉ thấy và làm việc với khách mình phụ trách: chăm sóc, xử lý đơn, khách hỏi, xem hiệu quả của mình |
 | **Quản lý** | Thấy toàn bộ khách. Thêm: giao / chuyển khách, chọn cách chia khách mới, xem doanh thu cả nhóm, hiệu quả từng nhân viên, đặt mục tiêu cho nhân viên, đổi *Nhân viên bán* trên đơn, sửa chu kỳ dùng và mẫu tin |
-| **Quản trị** | Thêm: thêm, khoá nhân sự và đổi quyền |
+| **Quản trị** | Thêm: thêm, khoá nhân sự và đổi quyền; **xoá khách / đơn nhập thử** |
 
 **Ô 👤 Người phụ trách** (góc phải, chỉ quản lý thấy) có ở cả 5 tab Hôm nay, Khách đã mua, Khách hỏi, Đơn hàng, Hiệu quả. Chọn **Tất cả nhân sự**, **Chưa ai phụ trách** hoặc tên 1 nhân viên. Chọn ở tab nào thì các tab khác cũng lọc theo, nên muốn xem hết việc của một người thì chọn tên người đó 1 lần rồi chuyển qua các tab. Đơn hàng lọc theo *Nhân viên bán*; đơn chưa ghi nhân viên bán thì lấy người phụ trách khách đó. Muốn bỏ lọc thì chọn lại **Tất cả nhân sự**.
 
 **Tab Hiệu quả → Tất cả nhân sự:** doanh thu, mục tiêu cả nhóm, biểu đồ **📊 So sánh nhân viên** và bảng từng nhân viên. Biểu đồ cho chọn chỉ số: Doanh số, Số đơn, TB/đơn, Tỷ lệ chốt, % mục tiêu, Lượt chăm sóc, Chăm sóc ra đơn, Từ khách cũ. Mỗi người là 1 thanh, xếp từ cao xuống thấp. Vạch đen là mức trung bình của nhóm, thanh xám là người chưa có số liệu. Bấm vào thanh hoặc thẻ của 1 người để xem chi tiết và đặt mục tiêu. Có mục **Vì sao khách hỏi không mua** và cảnh báo **đơn chưa có nhân viên bán** (mở đơn để gán).
+
+**Tài khoản Quản trị không có trong thống kê nhân sự.** Bảng *👥 Tiến độ nhân sự hôm nay*, biểu đồ *📊 So sánh nhân viên*, mục *Theo nhân viên* và *📈 Mức dùng CRM* chỉ tính tài khoản quyền Quản lý và Nhân viên, cho gọn. Doanh thu cả nhóm vẫn tính đủ mọi đơn.
+
+**🗑 Xoá dữ liệu nhập thử** (chỉ Quản trị):
+
+- **Xoá đơn**: mở đơn → kéo xuống cuối → **🗑 Xoá đơn này**. Mất hẳn đơn và lịch sử của đơn; số liệu của khách (số đơn, tổng chi) tự tính lại.
+- **Xoá khách**: mở hồ sơ khách → mục **🗑 Xoá khách (chỉ Quản trị)** → **🗑 Xoá khách này**. Xoá hồ sơ khách cùng toàn bộ đơn, khách hỏi và nhật ký chăm sóc của số điện thoại đó.
+- CRM hỏi lại 2 lần (lần 2 phải gõ chữ **XOA**). Xoá rồi **không khôi phục được**. Đơn khách huỷ thật thì chọn trạng thái *Huỷ*, đừng xoá, để còn số liệu.
+- Đơn nhập từ file sale đã xoá thì lần đồng bộ sau không bị nhập lại. Bản sao trong Google Sheet cập nhật theo trong vòng 3 tiếng.
 
 **📈 Mức dùng CRM** (chỉ Quản trị, tab **Hiệu quả** → nút *📈 Mức dùng CRM*). Trang này cho biết từng nhân sự dùng CRM thế nào, để kịp kèm những bạn còn vướng. Chọn xem 7, 14 hoặc 30 ngày.
 

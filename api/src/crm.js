@@ -364,6 +364,7 @@ async function crmDelta(x, u, d) {
     b('SELECT rid, time, by_name, what, ref, name, result, note FROM logs WHERE rid > ?1 ORDER BY rid LIMIT ' + (MAX + 1), lr)
   ])).map(r => r.results || []);
   if (cs.length > MAX || os.length > MAX || ls.length > MAX || lg.length > MAX) return { ok: true, delta: true, full: true };
+  const dels = await delSince(x, since2); // dòng Quản trị vừa xoá → máy khác bỏ khỏi danh sách
   const cusOk = v => (v.orders > 0 || (v.flag || '') !== '') && (!staff || mine(v.owner || ''));
   const ordOk = o => !staff || o.seller === u.name || (o.c_owner != null && mine(o.c_owner || ''));
   const leadOk = l => !staff || mine(l.owner || '');
@@ -379,9 +380,9 @@ async function crmDelta(x, u, d) {
   }
   return Object.assign(await loadSmall(x, u, R, mode), {
     delta: true, today,
-    customers: cs.filter(cusOk).map(v => cusOut(v, today, R)), cusGone: cs.filter(v => !cusOk(v)).map(v => v.phone),
-    orders: os.filter(ordOk).map(orderOut), ordGone: os.filter(o => !ordOk(o)).map(o => o.rid),
-    leads: ls.filter(leadOk).map(leadOut), leadGone: ls.filter(l => !leadOk(l)).map(l => l.id),
+    customers: cs.filter(cusOk).map(v => cusOut(v, today, R)), cusGone: cs.filter(v => !cusOk(v)).map(v => v.phone).concat(dels.filter(e => e.c && !cs.some(v => v.phone === e.c)).map(e => e.c)), // xoá rồi lại có đơn mới → giữ
+    orders: os.filter(ordOk).map(orderOut), ordGone: os.filter(o => !ordOk(o)).map(o => o.rid).concat(dels.filter(e => e.o).map(e => e.o)),
+    leads: ls.filter(leadOk).map(leadOut), leadGone: ls.filter(l => !leadOk(l)).map(l => l.id).concat(dels.filter(e => e.l).map(e => e.l)),
     log: logs.map(logOut), sv: (mk[0] || {}).sv || 0, lr: Math.max(lr, (mk[0] || {}).lr || 0)
   });
 }
@@ -649,6 +650,50 @@ async function crmOrderEdit(x, u, d) {
   await crmLog(x, u, 'Sửa đơn', d.id, c.name, fmt(o.total) + ' → ' + fmt(sub + ship), d.reason || '');
   await recalc(x, [o.phone, phone]);
   return { ok: true, row: o.rid };
+}
+/* ---------- Quản trị xoá dữ liệu nhập thử / nhập nhầm (không hoàn tác được) */
+const DEL_KEY = 'del_log', DEL_IDS = 'del_order_ids';
+/** Ghi lại dòng đã xoá 3 ngày → CRM đang mở ở máy khác tự bỏ khi làm mới phần thay đổi. */
+async function delMark(x, orders, phones, leads) {
+  const now = Date.now(), list = ((await kvJson(x.db, DEL_KEY, [])) || []).filter(e => now - e.t < 3 * DAY);
+  orders.forEach(r => list.push({ t: now, o: r.rid })); phones.forEach(p => list.push({ t: now, c: p })); (leads || []).forEach(l => list.push({ t: now, l: l.id }));
+  await kvSet(x.db, DEL_KEY, JSON.stringify(list.slice(-3000)));
+  const fileIds = orders.filter(r => String(r.source || '').indexOf('File ') === 0).map(r => r.id); // đơn nhập từ file sale: nhớ mã để lần đồng bộ sau không nhập lại
+  if (fileIds.length) { const ids = (await kvJson(x.db, DEL_IDS, [])) || []; fileIds.forEach(i => { if (ids.indexOf(i) < 0) ids.push(i); }); await kvSet(x.db, DEL_IDS, JSON.stringify(ids.slice(-5000))); }
+}
+export async function deletedOrderIds(x) { return (await kvJson(x.db, DEL_IDS, [])) || []; }
+async function delSince(x, since) { return ((await kvJson(x.db, DEL_KEY, [])) || []).filter(e => e.t >= since); }
+async function crmOrderDelete(x, u, d) {
+  if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị xoá được đơn hàng.' };
+  const o = await first(x.db, 'SELECT * FROM orders WHERE rid = ? AND id = ?', Number(d.row) || 0, String(d.id || ''));
+  if (!o) return { ok: false, error: 'Không tìm thấy đơn ' + (d.id || '') + ' (có thể đã bị xoá).' };
+  await run(x.db, 'DELETE FROM orders WHERE rid = ?', o.rid);
+  if (!await first(x.db, 'SELECT rid FROM orders WHERE id = ?', o.id)) await run(x.db, 'DELETE FROM logs WHERE ref = ?', o.id); // còn đơn trùng mã thì giữ nhật ký
+  await recalc(x, [o.phone]);
+  await delMark(x, [o], []);
+  await crmLog(x, u, 'Xoá dữ liệu', '', o.name, 'Xoá đơn ' + o.id, fmt(o.total) + ' · ' + o.phone);
+  return { ok: true };
+}
+/** Xoá khách: hồ sơ khách + mọi đơn, khách hỏi, nhật ký của số điện thoại này. */
+async function crmCustomerDelete(x, u, d) {
+  if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị xoá được khách hàng.' };
+  const phone = normPhone(d.phone); if (!phone) return { ok: false, error: 'Thiếu số điện thoại.' };
+  const c = await first(x.db, 'SELECT name FROM customers WHERE phone = ?', phone);
+  const os = await all(x.db, 'SELECT rid, id, source, total FROM orders WHERE phone = ?', phone);
+  const ls = await all(x.db, 'SELECT id FROM leads WHERE phone = ?', phone);
+  if (!c && !os.length && !ls.length) return { ok: false, error: 'Không tìm thấy khách ' + phone + ' (có thể đã bị xoá).' };
+  const ids = [...new Set(os.map(o => o.id))], refs = [phone].concat(ids, ls.map(l => l.id));
+  await x.db.batch([
+    x.db.prepare('DELETE FROM orders WHERE phone = ?').bind(phone),
+    x.db.prepare('DELETE FROM leads WHERE phone = ?').bind(phone),
+    x.db.prepare('DELETE FROM customers WHERE phone = ?').bind(phone),
+    x.db.prepare('DELETE FROM sale_phones WHERE phone = ?').bind(phone),
+    x.db.prepare('DELETE FROM dup_done WHERE phone = ?').bind(phone)
+  ]);
+  for (let i = 0; i < refs.length; i += 500) await run(x.db, 'DELETE FROM logs WHERE ref IN (SELECT value FROM json_each(?))', JSON.stringify(refs.slice(i, i + 500)));
+  await delMark(x, os, [phone], ls);
+  await crmLog(x, u, 'Xoá dữ liệu', '', (c && c.name) || '', 'Xoá khách ' + phone, os.length + ' đơn (' + fmt(os.reduce((s0, o) => s0 + (Number(o.total) || 0), 0)) + ')' + (ls.length ? ' · ' + ls.length + ' khách hỏi' : ''));
+  return { ok: true, orders: os.length, leads: ls.length };
 }
 /** Mã đơn theo sale: <tiền tố><ddMMyy>-<số thứ tự>, ví dụ Phuong300926-01. */
 async function nextCode(x, u, now) {
@@ -1170,7 +1215,8 @@ export async function crmApi(x, d, sync, mgr) {
   const need = { settings: 2, users: 3, assign: 2, bulk: 2, recv: 2 };
   if (need[a] && u.level < need[a]) return { ok: false, error: 'Bạn không có quyền làm việc này.' };
   const h = { care: crmCare, customer: crmCustomer, order_status: crmOrderStatus, contact: crmContact, settings: crmSettings, users: crmSaveUsers, order_edit: crmOrderEdit,
-    lead_save: crmLeadSave, lead_contact: crmLeadContact, target: crmTarget, assign: crmAssign, bulk: crmBulk, recv: crmRecv, claim: crmClaim }[a];
+    lead_save: crmLeadSave, lead_contact: crmLeadContact, target: crmTarget, assign: crmAssign, bulk: crmBulk, recv: crmRecv, claim: crmClaim,
+    order_delete: crmOrderDelete, customer_delete: crmCustomerDelete }[a];
   if (h) return h(x, u, d);
   return { ok: false, error: 'Không rõ thao tác: ' + a };
 }
