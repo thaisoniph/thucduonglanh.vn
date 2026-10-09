@@ -225,9 +225,23 @@ export async function recalc(x, phones, opt) {
     if (zero.length) await run(x.db, "UPDATE customers SET orders = 0, spent = 0, products = '', runout = NULL, last_status = json_extract(j.value, '$.last_status'), last_ca = json_extract(j.value, '$.last_ca') FROM json_each(?) j WHERE customers.phone = json_extract(j.value, '$.phone')", JSON.stringify(zero));
     n += up.length;
   }
+  try { await autoCloseLeads(x, list); } catch (e) { console.error('autoCloseLeads', e.message); } // có đơn mới → khách hỏi cùng số tự "Đã chốt"
   return n;
 }
 /** Tính lại toàn bộ khách (đổi chu kỳ dùng, chuyển dữ liệu). */
+/** Khách hỏi (Mới hỏi / Đang tư vấn) có đơn trong 30 ngày kể từ lúc hỏi → tự chuyển "Đã chốt", dù đơn lên từ đâu (CRM, web, file Sheet của sale).
+ *  Tính từ 1 ngày trước lúc hỏi vì đơn trong file sale chỉ ghi ngày. phones = null → quét tất cả. */
+const LEAD_ORDER = "FROM orders o WHERE o.phone = leads.phone AND o.time >= leads.time - 86400000 AND o.time <= leads.time + 30 * 86400000" +
+  " AND o.status NOT LIKE '%uỷ%' AND o.status NOT LIKE '%ủy%' AND o.status NOT LIKE '%oàn%'";
+export async function autoCloseLeads(x, phones) {
+  const list = phones ? [...new Set(phones.map(normPhone).filter(Boolean))] : null; if (list && !list.length) return 0;
+  const r = await run(x.db, "UPDATE leads SET status = 'Đã chốt', callback = NULL," +
+    ` order_id = (SELECT o.id ${LEAD_ORDER} ORDER BY o.time LIMIT 1), last_at = (SELECT o.time ${LEAD_ORDER} ORDER BY o.time LIMIT 1),` +
+    ` owner = CASE WHEN coalesce(owner, '') = '' THEN coalesce((SELECT o.seller ${LEAD_ORDER} ORDER BY o.time LIMIT 1), '') ELSE owner END` +
+    ` WHERE status IN ('Mới hỏi', 'Đang tư vấn') AND phone != '' AND time IS NOT NULL` + (list ? ' AND phone IN (SELECT value FROM json_each(?))' : '') +
+    ` AND EXISTS (SELECT 1 ${LEAD_ORDER})`, ...(list ? [JSON.stringify(list)] : []));
+  return r.meta.changes || 0;
+}
 export async function recalcAll(x, opt) {
   const phones = (await all(x.db, "SELECT DISTINCT phone FROM orders WHERE phone != ''")).map(r => r.phone);
   return recalc(x, phones, opt);

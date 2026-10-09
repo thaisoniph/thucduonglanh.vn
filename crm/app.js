@@ -2332,6 +2332,7 @@
     var oldRev = old.reduce(function (s, o) { return s + o.total; }, 0);
     var leads = (S.d.leads || []).filter(function (l) { return me(l.owner); });
     var won = leads.filter(function (l) { return l.status === 'Đã chốt' && inR(l.lastAt); }).length, lost = leads.filter(function (l) { return l.status === 'Không mua' && inR(l.lastAt); }).length;
+    var pending = leads.filter(function (l) { return (l.status === 'Mới hỏi' || l.status === 'Đang tư vấn') && inR(l.time); }).length; // khách hỏi trong kỳ chưa có kết quả
     var care = S.d.log.filter(function (l) { return CW[l.what] && me(l.by) && inR(l.time); });
     var replied = care.filter(function (l) { return l.result && l.result !== NO_REPLY; }).length;
     var mine = S.d.customers.filter(function (c) { return name === null ? true : c.owner === name; }); // (dùng cho khách VIP sắp mất)
@@ -2342,7 +2343,7 @@
     var repeat = {}; old.forEach(function (o) { repeat[o.phone] = 1; });
     var vipRisk = mine.filter(function (c) { return isVip(c) && stageOf(c) === 'risk' && !coldOf(c) && replyOf(c).days > 30; }).length;
     return { contacted: Object.keys(firstCare).length, conv: conv, convRev: convRev, convPct: Object.keys(firstCare).length ? pct(conv, Object.keys(firstCare).length) : null, backN: back.length, backPct: allOs.length ? pct(back.length, allOs.length) : null, backV: back.reduce(function (s0, o) { return s0 + o.total; }, 0), repeat: Object.keys(repeat).length, vipRisk: vipRisk,
-      sales: sales, orders: os.length, avg: os.length ? Math.round(sales / os.length) : 0, oldRev: oldRev, oldPct: pct(oldRev, sales), won: won, lost: lost, closePct: won + lost ? pct(won, won + lost) : null,
+      sales: sales, orders: os.length, avg: os.length ? Math.round(sales / os.length) : 0, oldRev: oldRev, oldPct: pct(oldRev, sales), won: won, lost: lost, pending: pending, closePct: won + lost ? pct(won, won + lost) : null,
       care: care.length, replied: replied, replyPct: care.length ? pct(replied, care.length) : null, reorder: care.filter(function (l) { return l.result === 'Đã đặt lại'; }).length,
       stale: mine.filter(function (c) { return replyOf(c).days > 30; }).length, mine: mine.length };
   }
@@ -2408,7 +2409,7 @@
     h += '<section class="section"><div class="section-h"><h2>💰 Bán hàng</h2></div><div class="metrics">' +
       metric('Doanh số', moneyShort(c.sales), 'Tổng tiền ' + c.orders + ' đơn ' + (me ? 'bạn' : '') + ' bán (không tính đơn huỷ).', delta(c.sales, p.sales)) +
       metric('Giá trị trung bình / đơn', c.orders ? moneyShort(c.avg) : '–', 'Doanh số chia số đơn. Tư vấn mua kèm, mua combo thì số này tăng.', c.orders ? delta(c.avg, p.orders ? p.avg : 0) : '') +
-      metric('Tỷ lệ chốt', c.closePct === null ? '–' : c.closePct + '%', c.won + ' khách chốt / ' + (c.won + c.lost) + ' khách hỏi đã có kết quả.', delta(c.closePct, p.closePct, 'rate'), '#tiem-nang') +
+      metric('Tỷ lệ chốt khách hỏi', c.closePct === null ? '–' : c.closePct + '%', c.won + ' khách chốt / ' + (c.won + c.lost) + ' khách hỏi đã có kết quả' + (c.pending ? ' · <b>' + c.pending + ' khách hỏi chưa có kết quả</b> (bấm để cập nhật)' : '') + '. Chỉ tính khách mới ở tab Khách hỏi, không tính đơn khách cũ.', delta(c.closePct, p.closePct, 'rate'), '#tiem-nang') +
       metric('Doanh thu từ khách cũ', c.sales ? c.oldPct + '%' : '–', moneyShort(c.oldRev) + ' từ khách mua lại. Chăm sóc tốt thì số này tăng.', c.sales ? delta(c.oldPct, p.sales ? p.oldPct : null, 'rate') : '') +
       '</div></section>';
     h += careMetrics(c, p, me);
@@ -2422,7 +2423,7 @@
     var names = staffNames(); S.d.orders.forEach(function (o) { if (o.seller && names.indexOf(o.seller) < 0 && !isAdminName(o.seller)) names.push(o.seller); }); // không tính tài khoản Quản trị
     var h = targetBlockTeam(cx.whole ? all.sales : perf(null, monthRange(month)).sales, tt, month) + '<div class="steps" style="margin:0 0 16px"><button class="btn pri" data-daily="">📋 Báo cáo ngày (gửi Zalo)</button><button class="btn" data-bcdt="|' + month + '">📊 Bảng BCDT cả nhóm ' + monthLabel(month) + '</button>' + (lvl() >= 3 ? '<button class="btn" data-usage="">📈 Mức dùng CRM</button>' : '') + '</div>';
     h += '<div class="kpis">' + kpi('Doanh thu', moneyShort(all.sales), 'good', '', all.orders + ' đơn') + kpi('TB / đơn', all.orders ? moneyShort(all.avg) : '–', '', '', 'giá trị trung bình') +
-      kpi('Tỷ lệ chốt', all.closePct === null ? '–' : all.closePct + '%', '', '', all.won + ' chốt · ' + all.lost + ' không mua') + kpi('Từ khách cũ', all.sales ? all.oldPct + '%' : '–', '', '', moneyShort(all.oldRev)) + '</div>';
+      kpi('Tỷ lệ chốt khách hỏi', all.closePct === null ? '–' : all.closePct + '%', '', '', all.won + ' chốt · ' + all.lost + ' không mua' + (all.pending ? ' · ' + all.pending + ' chưa có kết quả' : '')) + kpi('Từ khách cũ', all.sales ? all.oldPct + '%' : '–', '', '', moneyShort(all.oldRev)) + '</div>';
     var rows = names.map(function (n) { var p = perf(n, R); p.n = n; p.t = targetOf(n, month); p.ms = cx.whole ? p.sales : perf(n, monthRange(month)).sales; return p; }).sort(function (a, b) { return b.sales - a.sales; });
     h += compareBlock(rows, cx);
     h += careMetrics(all, perf(null, cx.P), false) + geoBlock(null, cx) + whyBlock(null, cx);
@@ -2447,7 +2448,7 @@
     sales: ['Doanh số', function (r) { return r.sales; }, moneyShort, function (r) { return r.orders + ' đơn'; }],
     orders: ['Số đơn', function (r) { return r.orders; }, String, function (r) { return r.orders ? 'TB ' + moneyShort(r.avg) : ''; }],
     avg: ['TB / đơn', function (r) { return r.orders ? r.avg : null; }, moneyShort, function (r) { return r.orders + ' đơn'; }],
-    close: ['Tỷ lệ chốt', function (r) { return r.closePct; }, function (v) { return v + '%'; }, function (r) { return r.won + ' / ' + (r.won + r.lost) + ' khách hỏi'; }],
+    close: ['Tỷ lệ chốt khách hỏi', function (r) { return r.closePct; }, function (v) { return v + '%'; }, function (r) { return r.won + ' / ' + (r.won + r.lost) + ' khách hỏi'; }],
     target: ['% mục tiêu', function (r) { return r.t && r.t.amount ? Math.round(r.ms * 100 / r.t.amount) : null; }, function (v) { return v + '%'; }, function (r) { return r.t && r.t.amount ? moneyShort(r.ms) + ' / ' + moneyShort(r.t.amount) : 'chưa đặt mục tiêu'; }],
     care: ['Lượt chăm sóc', function (r) { return r.care; }, String, function (r) { return r.reorder + ' đặt lại'; }],
     conv: ['Chăm sóc ra đơn', function (r) { return r.convPct; }, function (v) { return v + '%'; }, function (r) { return r.conv + ' / ' + r.contacted + ' khách'; }],

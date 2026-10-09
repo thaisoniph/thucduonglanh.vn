@@ -1,7 +1,7 @@
 // Việc chạy theo lịch: 8h sáng gửi danh sách chăm sóc + báo mức dùng CRM, 10 phút/lần lấy số quảng cáo, 30 phút/lần tự nhập file sale, 3 tiếng 1 lần chép bản sao dữ liệu sang Google Sheet.
 import { normPhone, esc, fmtDate, startOfDay, all, kvGet, kvSet, CRM_URL, DAY } from './lib.js';
 import { telegram, telegramTo, gInfo, sheetMeta, sheetClear, sheetWrite, sheetAddTabs, a1 } from './google.js';
-import { crmUsers, unifyNames, rulesCfg, careTask, groupOf, leadsData, leadDue, adsCfg, usageAlert } from './crm.js';
+import { crmUsers, unifyNames, autoCloseLeads, rulesCfg, careTask, groupOf, leadsData, leadDue, adsCfg, usageAlert } from './crm.js';
 import { adsSync, srcAutoTick } from './sync.js';
 
 function careMessage(items, leads, today, isGroup, who, R) {
@@ -89,6 +89,7 @@ export async function scheduled(x, cron) {
     try { await srcAutoTick(x); } catch (e) { console.error('srcAutoTick', e.message); }
     const lastUni = Number(await kvGet(x.db, 'unify_last') || 0); // gộp tên đọc hết các bảng → 6 tiếng 1 lần là đủ
     if (now - lastUni > 6 * 3600e3) { await kvSet(x.db, 'unify_last', String(now)); try { await unifyNames(x); } catch (e) { console.error('unifyNames', e.message); } }
+    try { await autoCloseLeads(x, null); } catch (e) { console.error('autoCloseLeads', e.message); } // quét bù khách hỏi đã có đơn (25 phút 1 lần)
   }
   const last = Number(await kvGet(x.db, 'mirror_last') || 0);
   if (now - last > 3 * 3600e3 - 5 * 60e3) { try { // đọc toàn bộ dữ liệu → 3 tiếng 1 lần
