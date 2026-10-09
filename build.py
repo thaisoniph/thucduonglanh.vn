@@ -1171,8 +1171,7 @@ def page_product(p):
   <h2 class="sec-title left">Sản phẩm tương tự</h2>
   {grid(related[:4], "p-grid related-grid")}
 </div></section>
-<div class="sticky-buy" id="stickyBuy"><div class="sb-info"><img src="{pimg(p["images"][0], True)}" alt="" width="44" height="44"><div><b>{esc(p.get("short_name") or p["name"])}</b>{price_html(p, "price")}</div></div>
-{('<button class="btn" data-buy-now="' + p["slug"] + '">' + esc(p.get("cta_short") or "Mua ngay") + '</button>') if purchasable else f'<a class="btn" href="{zalo_link()}" target="_blank" rel="noopener">Tư vấn</a>'}</div>'''
+{satc_html(p) if purchasable else ""}'''
     ld = {"@context": "https://schema.org", "@type": "Product", "name": p["name"], "sku": p["sku"],
           "image": [DOMAIN + pimg(i) for i in p["images"]], "description": strip_tags(p["summary"]),
           "brand": {"@type": "Brand", "name": BRAND}}
@@ -1180,6 +1179,16 @@ def page_product(p):
         ld["offers"] = {"@type": "Offer", "priceCurrency": "VND", "price": p["price"], "availability": "https://schema.org/InStock", "url": DOMAIN + path}
     desc = strip_tags(p["summary"])[:158]
     return layout(path, p["name"], desc, body, og=pimg(p["images"][0]), jsonld=[ld, bld], body_class="page-product")
+
+
+def satc_html(p):
+    """Thanh mua nhanh dính đáy (điện thoại/máy tính bảng ≤ 960px): chọn quy cách + Thêm vào giỏ + Mua ngay. Logic trong main.js (initSatc)."""
+    vs = "".join(f'<button type="button" data-satc-v="{i}" aria-pressed="{"true" if i == 0 else "false"}">{esc(v["name"])}</button>' for i, v in enumerate(p.get("variants") or []))
+    return f'''<div class="satc" id="satc" role="region" aria-label="Thanh mua nhanh">
+  <div class="satc-top"><img src="{pimg(p["images"][0], True)}" alt="" width="44" height="44" loading="lazy"><div class="satc-txt"><div class="satc-name">{esc(p.get("short_name") or p["name"])}</div><div><span class="satc-price" id="satcPrice">{money(p["price"])}</span><span class="satc-trust" id="satcTrust"></span></div></div></div>
+  {f'<div class="satc-variants">{vs}</div>' if len(p.get("variants") or []) > 1 else ""}
+  <div class="satc-actions"><button type="button" class="satc-add" id="satcAdd">Thêm vào giỏ</button><button type="button" class="satc-buy" id="satcBuy">{esc(p.get("cta_short") or "Mua ngay")}</button></div>
+</div>'''
 
 
 def trust_line(p):

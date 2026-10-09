@@ -159,8 +159,6 @@
       var y = window.scrollY;
       if (h) h.classList.toggle('scrolled', y > 10);
       if (top) top.classList.toggle('show', y > 600);
-      var sb = $('#stickyBuy'), br = $('.buy-row');
-      if (sb && br) sb.classList.toggle('show', br.getBoundingClientRect().bottom < 0);
     };
     window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
     if (top) top.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
@@ -350,6 +348,36 @@
     var getQty = function () { return Math.max(1, Math.min(99, parseInt(qin && qin.value, 10) || 1)); };
     $$('[data-add-detail]').forEach(function (b) { b.addEventListener('click', function () { if (addToCart(slug, getQty(), vi)) openMini(); }); });
     $$('[data-buy-now]').forEach(function (b) { b.addEventListener('click', function () { var pr = (vi >= 0 && p.variants[vi]) ? p.variants[vi].price : p.price; if (pr == null) { toast('Sản phẩm đang cập nhật giá, vui lòng liên hệ tư vấn.', 'err'); return; } openQuickOrder(slug, vi, qin ? getQty() : 1); }); });
+    initSatc(p, function () { return vi; });
+  }
+  /* thanh mua nhanh dính đáy (≤ 960px): hiện khi khu nút mua gốc ra khỏi màn hình, ẩn khi tới chân trang; mọi nút bấm hộ nút gốc nên giỏ hàng / sự kiện y hệt */
+  function initSatc(p, curVi) {
+    var bar = $('#satc'), target = $('.p-info .cbl-main') || $('.p-info .buy-row'), foot = $('.site-footer');
+    if (!bar || !p || !target) return;
+    var seeBuy = true, seeFoot = false, mq = matchMedia('(max-width:960px)');
+    function fill() {
+      var vi = curVi(), it = vi >= 0 ? p.variants[vi] : p, th = +CFG.free_ship_threshold || 0;
+      $('#satcPrice').textContent = money(it.price);
+      $('#satcTrust').textContent = (p.fs || (th && it.price >= th)) ? ' · Freeship' : ' · Kiểm tra hàng trước khi trả tiền';
+      $$('[data-satc-v]', bar).forEach(function (b) { b.setAttribute('aria-pressed', +b.getAttribute('data-satc-v') === vi ? 'true' : 'false'); });
+    }
+    function upd() {
+      var on = !seeBuy && !seeFoot && mq.matches;
+      bar.classList.toggle('show', on); document.body.classList.toggle('satc-on', on);
+      if (on) document.documentElement.style.setProperty('--satc-h', bar.offsetHeight + 'px');
+    }
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (e) { seeBuy = e[0].isIntersecting; upd(); }).observe(target);
+      if (foot) new IntersectionObserver(function (e) { seeFoot = e[0].isIntersecting; upd(); }).observe(foot);
+    }
+    if (mq.addEventListener) mq.addEventListener('change', upd);
+    bar.addEventListener('click', function (e) {
+      var v = e.target.closest('[data-satc-v]'), o;
+      if (v) { o = $('.v-opt[data-variant="' + v.getAttribute('data-satc-v') + '"]'); if (o) o.click(); return; }
+      if (e.target.closest('#satcAdd')) { track('sticky_atc_click', { action: 'add_to_cart' }); o = $('.product [data-add-detail]'); if (o) o.click(); return; }
+      if (e.target.closest('#satcBuy')) { track('sticky_atc_click', { action: 'buy_now' }); o = $('.product [data-buy-now]'); if (o) o.click(); }
+    });
+    document.addEventListener('tdl:variant', fill); fill();
   }
 
   function initCerts() { // huy hiệu "Kiểm nghiệm …" → mở tab Mô tả, cuộn tới mục Tiêu chuẩn & kiểm nghiệm (+ ảnh phiếu nếu có)
