@@ -725,7 +725,12 @@ async function crmOrderCreate(x, u, d) {
   let items = cleanItems(d.items); if (!items.length) return { ok: false, error: 'Chưa chọn sản phẩm.' };
   const ship = Math.max(0, Math.round(Number(d.shipping) || 0)), sub = applyTotal(items, d.total, ship);
   items = items.concat(cleanItems(d.gifts).map(g => Object.assign(g, { gift: true, price: 0, subtotal: 0 })));
-  const now = Date.now(), id = await nextCode(x, u, now);
+  const now = Date.now();
+  if (!d.force) { // bấm Lưu 2 lần (lần đầu mạng chập chờn, đơn đã lưu nhưng máy không nhận được trả lời) → không tạo đơn trùng
+    const dup = await first(x.db, "SELECT id, time FROM orders WHERE phone = ? AND total = ? AND time > ? AND status NOT IN ('Huỷ', 'Hoàn') ORDER BY time DESC LIMIT 1", phone, sub + ship, now - 60 * 60e3);
+    if (dup) return { ok: false, dupOf: dup.id, error: 'Khách này vừa có đơn ' + dup.id + ' cùng số tiền ' + fmt(sub + ship) + ' lúc ' + fmtDate(Number(dup.time), 'HH:mm') + '. Có thể lần trước đã lưu rồi.' };
+  }
+  const id = await nextCode(x, u, now);
   const src = ld && ld.channel ? 'Tiềm năng – ' + ld.channel : 'Nhập tay – ' + (d.source || 'Khác');
   await saveOrder(x, { id, customer: { name: String(c.name).trim(), phone, email: c.email || '', province: c.province || '', district: c.ward || '', address: c.address || '', note: c.note || '' },
     items, subtotal: sub, shipping: ship, total: sub + ship, payment: d.payment === 'bank' ? 'bank' : 'cod', source: src, first_source: src, marketing_consent: !!d.consent },

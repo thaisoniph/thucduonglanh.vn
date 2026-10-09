@@ -144,7 +144,7 @@
         if (!j || !j.ok) {
           if (j && j.auth) { logout(true); }
           lastErr = action + ': ' + ((j && j.error) || '');
-          throw new Error((j && j.error) || 'Có lỗi, bạn thử lại nhé.');
+          var e2 = new Error((j && j.error) || 'Có lỗi, bạn thử lại nhé.'); e2.j = j; throw e2;
         }
         return j;
       });
@@ -1983,10 +1983,14 @@
       }
       cu.note = F.note.value.trim(); common.status = $('input[name=status]:checked', form).value; common.source = F.source ? F.source.value : ''; common.consent = F.consent.checked; var L0 = lead || autoLead; common.leadId = L0 ? L0.id : '';
       if (F.source) store('crm_osrc', F.source.value);
-      api('order_create', common).then(function (j) {
+      var create = function () { return api('order_create', common).catch(function (e) {
+        if (!e.j || !e.j.dupOf || !confirm(e.message + '\n\nBấm OK nếu khách thật sự đặt thêm 1 đơn nữa. Bấm Huỷ để xem lại tab Đơn hàng.')) { if (e.j && e.j.dupOf) { closeModal(); location.hash = '#don-hang'; load(true); e.handled = true; } throw e; }
+        common.force = true; return api('order_create', common);
+      }); };
+      create().then(function (j) {
         if (L0) { L0.status = 'Đã chốt'; L0.orderId = j.id; L0.callback = null; }
         closeModal(); toast('Đã tạo đơn ' + j.id + ' ✓ · nội dung lên đơn đã copy, dán sang bên vận chuyển'); if (j.oflag) toast('⚠️ Loại đơn khác gợi ý của CRM (' + j.oflag.replace(/^CRM gợi ý /, '') + '). Quản lý sẽ kiểm tra lại.', true); location.hash = '#don-hang'; load(true);
-      }, fail);
+      }, function (e) { if (!e.handled) fail(e); });
     };
   }
   function slugName(n) { var s = norm(n || 'NV').split(/\s+/).pop() || 'nv'; return s.charAt(0).toUpperCase() + s.slice(1); }

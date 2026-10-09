@@ -140,6 +140,7 @@ Vào **Đơn hàng → ＋ Tạo đơn**, hoặc bấm **＋ Đơn** trong hồ 
 5. **Số tiền thu khách**: gõ `1800000`, `1tr8` hoặc `1,8tr` đều được. Giá linh động, CRM chỉ nhắc giá niêm yết để tham khảo. Chọn **COD** hoặc **Chuyển khoản**, ghi **ghi chú giao hàng** nếu có.
 6. Dòng **⚙️ Tuỳ chọn khác** gồm các mục ít đổi (khách đặt qua, trạng thái, phí ship riêng, đồng ý nhận ưu đãi). Cần sửa thì bấm vào. *Khách đặt qua* nhớ lựa chọn lần trước của bạn.
 7. Bấm **Lưu & copy lên đơn**: đơn được lưu, nội dung lên đơn đã copy sẵn, dán sang bên vận chuyển. **Mã đơn** tự tạo theo kiểu cũ, ví dụ *Phuong300926-01*.
+   - Nếu khách đã có đơn **cùng số tiền trong 1 giờ qua**, CRM hỏi lại trước khi lưu (tránh trùng khi lần trước mạng chập chờn nhưng đơn đã lưu). Bấm **Huỷ** để xem lại tab Đơn hàng; chỉ bấm **OK** khi khách thật sự đặt thêm đơn.
 
 **Quản lý kiểm tra loại đơn:** đơn sale chọn khác gợi ý có nhãn **⚠️ Kiểm tra loại đơn** và nằm trong **Đơn hàng → Cần xử lý → Kiểm tra loại đơn**. Mở đơn, bấm **✓ Đúng** (giữ lựa chọn của sale) hoặc **Đổi sang** loại khác. % hoa hồng từng loại đặt ở **Cài đặt → 💰 Hoa hồng theo loại đơn**; báo cáo **BCDT** có mục *Theo loại đơn* với doanh thu và hoa hồng tạm tính của từng sale.
 
