@@ -348,6 +348,7 @@ Là người **hỏi mua nhưng chưa mua**: nhắn Fanpage, Zalo, gọi điện
     - **Đã tư vấn, khách cân nhắc** hoặc **Hẹn liên hệ lại**: máy hẹn sẵn 2 ngày sau, sửa được.
     - **Không nghe máy**: máy hẹn sẵn ngày mai.
     - **Khách chốt mua**: bấm Lưu thì form **tạo đơn mở ra luôn**. Lưu đơn xong, khách chuyển sang “Đã chốt”.
+    - Lên đơn đường khác (file Sheet của sale, đơn web, tạo đơn ở tab Khách đã mua) cũng được: khách hỏi có đơn trong **30 ngày** kể từ lúc hỏi thì CRM **tự chuyển “Đã chốt”** (khớp theo số điện thoại, vài phút sau là thấy).
     - **Khách không mua**: bắt buộc chọn **lý do** (giá cao, chưa có nhu cầu, đã mua nơi khác…). Quản lý dùng lý do này để cải thiện cách bán.
 3. Ghi chú lần này, bấm **Lưu**.
 
@@ -362,6 +363,7 @@ Bấm nút **📅 thời gian** ở đầu trang để xem số liệu *Hôm nay
 - **Đầu tháng**, bấm **🎯 Đặt mục tiêu** doanh số của bạn. Gõ số hoặc viết tắt, ví dụ `30tr`. Có nút lấy bằng tháng trước cộng 10%.
 - **Thanh tiến độ**: vạch đen là hôm nay. Thanh màu vượt vạch đen là đang **đúng tiến độ**. CRM cho biết còn thiếu bao nhiêu và **mỗi ngày cần bán khoảng bao nhiêu**.
 - **Bán hàng**: doanh số, giá trị trung bình mỗi đơn, tỷ lệ chốt khách hỏi, phần doanh thu từ khách cũ, so với kỳ trước.
+    - **Tỷ lệ chốt khách hỏi** = khách “Đã chốt” ÷ (“Đã chốt” + “Không mua”) trong kỳ, chỉ tính khách mới ở tab Khách hỏi. Đơn của khách cũ không tính vào đây (xem ở “Doanh thu từ khách cũ”). Khách còn “Mới hỏi / Đang tư vấn” chưa được tính, nên nhớ bấm kết quả cho khách hỏi; thẻ có ghi số khách hỏi chưa có kết quả.
 - **Chăm sóc khách**: số lượt chăm sóc, tỷ lệ khách trả lời, số khách đặt lại, số khách quá 30 ngày chưa chăm sóc (bấm vào để xem danh sách cần gọi).
 
 Doanh số tính theo **Nhân viên bán** ghi trên từng đơn. Đơn khách tự đặt trên web được tính cho **người đang phụ trách khách đó**.
