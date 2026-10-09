@@ -1025,7 +1025,7 @@ async function crmPerf(x, u, d) {
   if (!rows.length) return { ok: true };
   await insertMany(x.db, 'perf', ['time', 'by_name', 'role', 'what', 'total', 'server', 'data', 'kb', 'dev'], rows);
   const cnt = (await first(x.db, 'SELECT coalesce(max(rid) - min(rid) + 1, 0) AS n FROM perf')).n; // không dùng count(*): đếm là đọc hết bảng
-  if (cnt > 8000) await run(x.db, 'DELETE FROM perf WHERE rid IN (SELECT rid FROM perf ORDER BY rid ASC LIMIT ?)', cnt - 6000);
+  if (cnt > 3000) await run(x.db, 'DELETE FROM perf WHERE rid IN (SELECT rid FROM perf ORDER BY rid ASC LIMIT ?)', cnt - 2000);
   return { ok: true };
 }
 

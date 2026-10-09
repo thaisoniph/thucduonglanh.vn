@@ -1,4 +1,4 @@
-// Việc chạy theo lịch: 8h sáng gửi danh sách chăm sóc + báo mức dùng CRM, 10 phút/lần lấy số quảng cáo, 30 phút/lần tự nhập file sale, 3 tiếng 1 lần chép bản sao dữ liệu sang Google Sheet.
+// Việc chạy theo lịch: 8h sáng gửi danh sách chăm sóc + báo mức dùng CRM, 10 phút/lần lấy số quảng cáo, 30 phút/lần tự nhập file sale, 6 tiếng 1 lần chép bản sao dữ liệu sang Google Sheet.
 import { normPhone, esc, fmtDate, startOfDay, all, kvGet, kvSet, CRM_URL, DAY } from './lib.js';
 import { telegram, telegramTo, gInfo, sheetMeta, sheetClear, sheetWrite, sheetAddTabs, a1 } from './google.js';
 import { crmUsers, unifyNames, autoCloseLeads, rulesCfg, careTask, groupOf, leadsData, leadDue, adsCfg, usageAlert } from './crm.js';
@@ -50,7 +50,7 @@ const MIRROR = [
   ['CRM · Hoạt động CRM', ['Ngày', 'Email', 'Tên', 'Lần mở', 'Phút dùng', 'Màn hình đã xem', 'Thiết bị', 'Vào lúc', 'Lần cuối'],
     'SELECT * FROM usage ORDER BY day DESC, last_time DESC', r => [r.day, r.email, r.name, r.opens, r.mins, r.screens, r.dev, T(r.first_time), T(r.last_time)]],
   ['CRM · Đo tốc độ CRM', ['Thời gian', 'Người', 'Vai trò', 'Thao tác', 'Tổng (giây)', 'Máy chủ (giây)', 'Dữ liệu', 'KB', 'Thiết bị'],
-    'SELECT * FROM perf ORDER BY time DESC LIMIT 5000', r => [T(r.time), r.by_name, r.role, r.what, r.total, r.server, r.data, r.kb, r.dev]],
+    'SELECT * FROM perf ORDER BY time DESC LIMIT 500', r => [T(r.time), r.by_name, r.role, r.what, r.total, r.server, r.data, r.kb, r.dev]],
   ['CRM · Góp ý', ['Mã', 'Thời gian', 'Người gửi', 'Email', 'Phân loại', 'Nội dung', 'Màn hình', 'Trình duyệt/Thiết bị', 'Phiên bản', 'Trạng thái', 'Phản hồi', 'Người xử lý', 'Cập nhật lúc'],
     'SELECT * FROM feedback ORDER BY time DESC', r => [r.id, T(r.time), r.by_name, r.email, r.kind, r.text, r.route, r.ua, r.ver, r.status, r.reply, r.handler, T(r.updated)]]
 ];
@@ -92,6 +92,6 @@ export async function scheduled(x, cron) {
     try { await autoCloseLeads(x, null); } catch (e) { console.error('autoCloseLeads', e.message); } // quét bù khách hỏi đã có đơn (25 phút 1 lần)
   }
   const last = Number(await kvGet(x.db, 'mirror_last') || 0);
-  if (now - last > 3 * 3600e3 - 5 * 60e3) { try { // đọc toàn bộ dữ liệu → 3 tiếng 1 lần
-     await mirror(x); } catch (e) { console.error('mirror', e.message); await kvSet(x.db, 'mirror_last', String(now)); } } // lỗi thì 3 tiếng sau mới thử lại (mỗi lần thử đọc hết dữ liệu)
+  if (now - last > 6 * 3600e3 - 5 * 60e3) { try { // đọc toàn bộ dữ liệu → 6 tiếng 1 lần
+     await mirror(x); } catch (e) { console.error('mirror', e.message); await kvSet(x.db, 'mirror_last', String(now)); } } // lỗi thì 6 tiếng sau mới thử lại (mỗi lần thử đọc hết dữ liệu)
 }
