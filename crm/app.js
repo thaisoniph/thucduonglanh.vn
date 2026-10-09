@@ -140,7 +140,7 @@
         }
       })
       .then(function (j) {
-        perfRec(action, t0, j); checkVersion(j);
+        perfRec(action, t0, j, payload); checkVersion(j);
         if (!j || !j.ok) {
           if (j && j.auth) { logout(true); }
           lastErr = action + ': ' + ((j && j.error) || '');
@@ -152,9 +152,9 @@
 
   /* ---------- đo tốc độ: ghi thời gian mỗi lần tải / lưu, 2 phút gửi 1 lần lên tab "Đo tốc độ CRM" (để biết chậm do máy chủ hay do mạng) */
   var PERF_SKIP = { perf: 1, login: 1, verify: 1, logout: 1, fb_img: 1, fb_list: 1 };
-  function perfRec(action, t0, j) {
+  function perfRec(action, t0, j, p) {
     if (PERF_SKIP[action] || !j || !j.ok) return;
-    var src = action === 'load' ? (j.rest ? 'đợt 2 · ' : '') + (j.t && j.t.cached ? 'bản đọc sẵn' : 'đọc Sheet') : j.pc === true ? 'sửa bản đọc sẵn' : j.pc === false ? 'bỏ bản đọc sẵn' : '';
+    var part = p && p.part, src = !j.t && j.pc === undefined ? (action === 'load' ? ({ core: 'tải đầu', rest: 'đợt 2', delta: 'làm mới' })[part] || 'tải đủ' : '') : action === 'load' ? (j.rest ? 'đợt 2 · ' : '') + (j.t && j.t.cached ? 'bản đọc sẵn' : 'đọc Sheet') : j.pc === true ? 'sửa bản đọc sẵn' : j.pc === false ? 'bỏ bản đọc sẵn' : '';
     S.pq = S.pq || []; S.pq.push([t0, action, Date.now() - t0, j.sms, src, action === 'load' ? j.__kb || '' : '']); if (S.pq.length > 60) S.pq.shift();
   }
   function perfFlush() {

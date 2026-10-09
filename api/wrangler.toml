@@ -18,5 +18,9 @@ BRIDGE_URL = "https://script.google.com/macros/s/AKfycbylMjHmg2kXJZHcMSEzDWeI8YC
 [triggers]
 crons = ["*/10 0-14 * * *"] # giờ UTC: 0h–14h = 7h–21h59 giờ Việt Nam. Ban đêm không chạy lịch (đơn web, tin Viettel Post vẫn nhận bình thường)
 
+[placement]
+# Smart Placement: cho máy chủ chạy gần D1 (đặt ở Tây Bắc Mỹ). Trước đây máy chủ chạy ở Tokyo, mỗi lần hỏi dữ liệu phải qua Thái Bình Dương (0,15–0,3 giây/lần, 1 lần tải CRM hỏi nhiều lần).
+mode = "smart"
+
 [observability]
 enabled = true

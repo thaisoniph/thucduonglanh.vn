@@ -66,6 +66,8 @@ export async function sheetWrite(env, id, data) { // data: [{range, values}]
   return gFetch(env, SHEETS + id + '/values:batchUpdate', { method: 'POST', body: JSON.stringify({ valueInputOption: 'RAW', data }) });
 }
 export async function sheetClear(env, id, ranges) { return gFetch(env, SHEETS + id + '/values:batchClear', { method: 'POST', body: JSON.stringify({ ranges }) }); }
+/** Đổi cấu trúc file (thêm tab, nới số dòng / cột…): requests theo Sheets API spreadsheets.batchUpdate. */
+export async function sheetBatch(env, id, requests) { if (!requests.length) return; return gFetch(env, SHEETS + id + ':batchUpdate', { method: 'POST', body: JSON.stringify({ requests }) }); }
 export async function sheetAddTabs(env, id, titles) {
   if (!titles.length) return;
   return gFetch(env, SHEETS + id + ':batchUpdate', { method: 'POST', body: JSON.stringify({ requests: titles.map(t => ({ addSheet: { properties: { title: t } } })) }) });

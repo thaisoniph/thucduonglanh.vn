@@ -1,6 +1,6 @@
 // Việc chạy theo lịch: 8h sáng gửi danh sách chăm sóc + báo mức dùng CRM, 10 phút/lần lấy số quảng cáo, 30 phút/lần tự nhập file sale, 6 tiếng 1 lần chép bản sao dữ liệu sang Google Sheet.
-import { normPhone, esc, fmtDate, startOfDay, all, kvGet, kvSet, CRM_URL, DAY } from './lib.js';
-import { telegram, telegramTo, gInfo, sheetMeta, sheetClear, sheetWrite, sheetAddTabs, a1 } from './google.js';
+import { normPhone, esc, fmtDate, startOfDay, all, kvGet, kvSet, kvDel, CRM_URL, DAY } from './lib.js';
+import { telegram, telegramTo, gInfo, sheetMeta, sheetClear, sheetWrite, sheetAddTabs, sheetBatch, a1 } from './google.js';
 import { crmUsers, unifyNames, autoCloseLeads, rulesCfg, careTask, groupOf, leadsData, leadDue, adsCfg, usageAlert } from './crm.js';
 import { adsSync, srcAutoTick } from './sync.js';
 
@@ -54,21 +54,32 @@ const MIRROR = [
   ['CRM · Góp ý', ['Mã', 'Thời gian', 'Người gửi', 'Email', 'Phân loại', 'Nội dung', 'Màn hình', 'Trình duyệt/Thiết bị', 'Phiên bản', 'Trạng thái', 'Phản hồi', 'Người xử lý', 'Cập nhật lúc'],
     'SELECT * FROM feedback ORDER BY time DESC', r => [r.id, T(r.time), r.by_name, r.email, r.kind, r.text, r.route, r.ua, r.ver, r.status, r.reply, r.handler, T(r.updated)]]
 ];
+const MIRROR_COLS = 35; // A…AI (ô AI1 của tab đầu ghi giờ sao lưu)
+/** Chép toàn bộ dữ liệu sang các tab "CRM · …" của file Sheet chính.
+ *  Ghi đè lên bản cũ rồi mới xoá phần thừa (trước đây xoá trước → lỗi giữa chừng là mất sạch bản sao).
+ *  Nới số dòng / cột của tab trước khi ghi: Google không cho ghi bắt đầu từ dòng nằm ngoài khung tab (lỗi cũ: chỉ chép được 2.000 đơn đầu, các tab sau trống). */
 export async function mirror(x) {
   const info = await gInfo(x.env), id = info.sheetId; if (!id) throw new Error('Chưa biết file Sheet chính');
-  const meta = await sheetMeta(x.env, id), have = (meta.sheets || []).map(s => s.properties.title);
-  await sheetAddTabs(x.env, id, MIRROR.map(m => m[0]).filter(t => have.indexOf(t) < 0));
-  await sheetClear(x.env, id, MIRROR.map(m => a1(m[0], 'A:AI')));
-  const data = [], counts = {};
+  let meta = await sheetMeta(x.env, id);
+  const missing = MIRROR.map(m => m[0]).filter(t => !(meta.sheets || []).some(s => s.properties.title === t));
+  if (missing.length) { await sheetAddTabs(x.env, id, missing); meta = await sheetMeta(x.env, id); }
+  const prop = t => ((meta.sheets || []).find(s => s.properties.title === t) || {}).properties || {};
+  const tabs = [], counts = {};
   for (const [tab, head, sql, row] of MIRROR) {
     const rows = (await all(x.db, sql)).map(r => row(r).map(v => v == null ? '' : v));
-    counts[tab] = rows.length;
-    const all2 = [head, ...rows];
-    for (let i = 0; i < all2.length; i += 2000) data.push({ range: a1(tab, 'A' + (i + 1)), values: all2.slice(i, i + 2000) }); // từng phần cho khỏi quá giới hạn Google
+    counts[tab] = rows.length; tabs.push({ tab, values: [head, ...rows] });
   }
-  data.push({ range: a1(MIRROR[0][0], 'AI1'), values: [['Bản sao tự động từ CRM lúc ' + fmtDate(Date.now(), 'HH:mm dd/MM/yyyy') + ' – sửa ở đây không có tác dụng, hãy sửa trên crm.thucduonglanh.vn']] });
-  for (const d of data) await sheetWrite(x.env, id, [d]);
-  await kvSet(x.db, 'mirror_last', String(Date.now()));
+  const grow = [], extra = [];
+  for (const t of tabs) {
+    const p = prop(t.tab), g = p.gridProperties || {}, rowsHave = g.rowCount || 0, colsHave = g.columnCount || 0;
+    if (rowsHave < t.values.length || colsHave < MIRROR_COLS) grow.push({ updateSheetProperties: { properties: { sheetId: p.sheetId, gridProperties: { rowCount: Math.max(rowsHave, t.values.length), columnCount: Math.max(colsHave, MIRROR_COLS) } }, fields: 'gridProperties.rowCount,gridProperties.columnCount' } });
+    if (rowsHave > t.values.length) extra.push(a1(t.tab, 'A' + (t.values.length + 1) + ':AI' + rowsHave)); // dòng cũ thừa (dữ liệu đã bị xoá bớt)
+  }
+  await sheetBatch(x.env, id, grow);
+  for (const t of tabs) for (let i = 0; i < t.values.length; i += 2000) await sheetWrite(x.env, id, [{ range: a1(t.tab, 'A' + (i + 1)), values: t.values.slice(i, i + 2000) }]); // từng phần cho khỏi quá giới hạn Google
+  if (extra.length) await sheetClear(x.env, id, extra);
+  await sheetWrite(x.env, id, [{ range: a1(MIRROR[0][0], 'AI1'), values: [['Bản sao tự động từ CRM lúc ' + fmtDate(Date.now(), 'HH:mm dd/MM/yyyy') + ' – sửa ở đây không có tác dụng, hãy sửa trên crm.thucduonglanh.vn']] }]);
+  await kvSet(x.db, 'mirror_last', String(Date.now())); await kvDel(x.db, 'mirror_err');
   return counts;
 }
 
@@ -93,5 +104,5 @@ export async function scheduled(x, cron) {
   }
   const last = Number(await kvGet(x.db, 'mirror_last') || 0);
   if (now - last > 6 * 3600e3 - 5 * 60e3) { try { // đọc toàn bộ dữ liệu → 6 tiếng 1 lần
-     await mirror(x); } catch (e) { console.error('mirror', e.message); await kvSet(x.db, 'mirror_last', String(now)); } } // lỗi thì 6 tiếng sau mới thử lại (mỗi lần thử đọc hết dữ liệu)
+     await mirror(x); } catch (e) { console.error('mirror', e.message); await kvSet(x.db, 'mirror_last', String(now)); await kvSet(x.db, 'mirror_err', fmtDate(now, 'HH:mm dd/MM') + ': ' + String(e.message).slice(0, 300)); } } // lỗi thì 6 tiếng sau mới thử lại (mỗi lần thử đọc hết dữ liệu)
 }

@@ -4,8 +4,11 @@ import { sendMail, telegram, telegramTo, tgUpdates, tgConf, bridge } from './goo
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
+const SCHEMA_V = '2026-10-09e'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
 export async function ensureSchema(db) {
   if (schemaDone) return;
+  // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
+  try { const f = await db.prepare("SELECT v FROM kv WHERE k = 'schema_v'").first(); if (f && f.v === SCHEMA_V) { schemaDone = true; deltaOk = true; return; } } catch (e) { }
   try {
     const cols = (await all(db, "PRAGMA table_info(orders)")).map(r => r.name);
     const addCol = async (col, def) => {
@@ -66,6 +69,7 @@ export async function ensureSchema(db) {
     deltaOk = true; } catch (e) { console.error('ensureSchema upd', e.message); } // lỗi thì CRM vẫn tải đủ như cũ
     await run(db, `CREATE TABLE IF NOT EXISTS dup_done (phone TEXT PRIMARY KEY, owner TEXT DEFAULT '', sales TEXT DEFAULT '', by_name TEXT DEFAULT '', at INTEGER)`);
     schemaDone = true;
+    if (deltaOk) await run(db, "INSERT INTO kv (k, v) VALUES ('schema_v', ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v, exp = NULL", SCHEMA_V);
   } catch (e) {
     console.error('ensureSchema', e.message);
   }
@@ -129,7 +133,10 @@ export function normLine(v, fallbackText) { const t = String(v || '').trim(); if
 const no = v => /^(không|khong|no|0|false)$/i.test(String(v == null ? '' : v).trim());
 export async function crmUsers(x) {
   if (x._users) return x._users;
-  const rows = await all(x.db, 'SELECT * FROM users ORDER BY ord, rowid');
+  return usersFrom(x, await all(x.db, USERS_SQL));
+}
+const USERS_SQL = 'SELECT * FROM users ORDER BY ord, rowid';
+function usersFrom(x, rows) {
   const list = rows.map(r => {
     const e = String(r.email || '').trim().toLowerCase(), role = ROLES[r.role] ? r.role : 'Nhân viên';
     return { email: e, name: String(r.name || e.split('@')[0]).trim(), role, active: !!r.active, recv: String(r.recv || '').trim() === '' ? role === 'Nhân viên' : !no(r.recv), tg: String(r.tg || '').trim(), alias: String(r.alias || '').trim(), prefix: String(r.prefix || '').trim() };
@@ -311,16 +318,17 @@ const contactOut = r => ({ row: r.rid, time: r.time, name: r.name || '', phone: 
 /** Phần nhỏ đi kèm mọi lần tải (cấu hình, nhân sự, mục tiêu, mẫu tin…): vài chục dòng. */
 async function loadSmall(x, u, R, mode) {
   const staff = u.level < 2, b = (sql, ...a) => x.db.prepare(sql).bind(...a);
-  const [ct, tg, cy, tp] = (await x.db.batch([
+  const smallQ = x.db.batch([
     b('SELECT * FROM contacts ORDER BY rid DESC LIMIT ' + (staff ? 0 : 1000)),
     b('SELECT * FROM targets' + (staff ? ' WHERE name = ?' : ''), ...(staff ? [u.name] : [])),
     b('SELECT name, variant, days, basis FROM cycles ORDER BY rid'),
     b('SELECT when_txt, purpose, text FROM templates ORDER BY rid')
-  ])).map(r => r.results || []);
+  ]); smallQ.catch(() => { });
   const users = (await crmUsers(x)).filter(y => y.active || u.level >= 3).map(y => u.level >= 3 ? { email: y.email, name: y.name, role: y.role, active: y.active, recv: y.recv, tg: !!y.tg, alias: y.alias, prefix: y.prefix || slugName(y.name) } : u.level >= 2 ? { name: y.name, role: y.role, recv: y.recv, tg: !!y.tg } : { name: y.name, role: y.role });
   const [ca, fbNew, prefs, tagColors, sources, ads, commission] = await Promise.all([caCfg(x), // hỏi song song: mỗi lần hỏi máy chủ dữ liệu mất một nhịp
     u.level >= 2 ? first(x.db, "SELECT count(*) AS n FROM feedback WHERE status = 'Mới'").then(r => (r || {}).n || 0) : 0,
     prefsOf(x, u.email), allTagColors(x), u.level >= 3 ? srcList(x) : [], u.level >= 3 ? adsCfg(x) : null, kvJson(x.db, 'commission_cfg', {}).then(r => r || {})]);
+  const [ct, tg, cy, tp] = (await smallQ).map(r => r.results || []);
   return {
     ok: true, user: publicUser(u), now: Date.now(), today: startOfDay(Date.now()), fbNew, users, prefs, tagColors, sources, ads,
     contacts: ct.reverse().map(contactOut), targets: tg.map(t => ({ month: t.month, name: t.name, amount: t.amount || 0, by: t.by_name || '', at: t.at })),
@@ -358,6 +366,7 @@ async function crmLoad(x, u, d) {
   }
   const cusSql = CUS_SQL + " WHERE (orders > 0 OR flag != '')" + (staff ? ' AND ' + see : '');
   const leadSql = 'SELECT * FROM leads' + (staff ? ' WHERE ' + see : '') + ' ORDER BY rid DESC LIMIT 3000';
+  const smallP = loadSmall(x, u, R, mode); smallP.catch(() => { }); // chạy song song với lượt đọc chính
   const res = await x.db.batch([
     b(`SELECT ${NOW_MS} AS sv, (SELECT max(rid) FROM logs) AS lr`), // mốc cho lần tự làm mới sau chỉ lấy phần thay đổi
     staff ? b(cusSql, u.name) : b(cusSql),
@@ -366,7 +375,7 @@ async function crmLoad(x, u, d) {
     logQ
   ]);
   const [mk, cs, os, ls, lg] = res.map(r => r.results || []);
-  return Object.assign(await loadSmall(x, u, R, mode), {
+  return Object.assign(await smallP, {
     today, customers: cs.map(v => cusOut(v, today, R)), orders: os.reverse().map(orderOut), leads: ls.reverse().map(leadOut), log: lg.reverse().map(logOut),
     part: part === 'core' ? { o: cutO, l: cutL } : undefined, sv: deltaOk ? (mk[0] || {}).sv || 0 : 0, lr: (mk[0] || {}).lr || 0
   });
@@ -379,6 +388,7 @@ async function crmDelta(x, u, d) {
   const [R, mode] = await Promise.all([rulesCfg(x), assignMode(x)]);
   const mine = o => o === u.name || (mode === 'pool' && !o);
   const b = (sql, ...a) => x.db.prepare(sql).bind(...a), since2 = since - 5000; // lùi 5 giây phòng ghi cùng lúc
+  const smallP = loadSmall(x, u, R, mode); smallP.catch(() => { }); // chạy song song; lỗi thì báo ở chỗ await bên dưới
   const [mk, cs, os, ls, lg] = (await x.db.batch([
     b(`SELECT ${NOW_MS} AS sv, (SELECT max(rid) FROM logs) AS lr`),
     b(CUS_SQL + ' WHERE upd > ?1 LIMIT ' + (MAX + 1), since2),
@@ -401,7 +411,7 @@ async function crmDelta(x, u, d) {
     }
     logs = logs.filter(l => l.by_name === u.name || vis[l.ref]);
   }
-  return Object.assign(await loadSmall(x, u, R, mode), {
+  return Object.assign(await smallP, {
     delta: true, today,
     customers: cs.filter(cusOk).map(v => cusOut(v, today, R)), cusGone: cs.filter(v => !cusOk(v)).map(v => v.phone).concat(dels.filter(e => e.c && !cs.some(v => v.phone === e.c)).map(e => e.c)), // xoá rồi lại có đơn mới → giữ
     orders: os.filter(ordOk).map(orderOut), ordGone: os.filter(o => !ordOk(o)).map(o => o.rid).concat(dels.filter(e => e.o).map(e => e.o)),
@@ -558,9 +568,13 @@ async function crmVerify(x, d) {
   await run(x.db, 'INSERT INTO sessions (token, email, exp) VALUES (?, ?, ?)', token, email, Date.now() + SESSION_DAYS * DAY);
   return { ok: true, token, user: publicUser(u) };
 }
+/** Trang kiểm tra kỹ thuật (GET /api/status…) chỉ cho Quản trị: ?token=<phiên đăng nhập CRM>. */
+export async function adminByToken(x, token) { const u = await crmSession(x, token); return u && u.level >= 3 ? u : null; }
 async function crmSession(x, token) {
   if (!/^[a-f0-9]{64}$/.test(String(token || ''))) return null;
-  const s = await first(x.db, 'SELECT email, exp FROM sessions WHERE token = ?', token); if (!s) return null;
+  const [sr, ur] = await x.db.batch([x.db.prepare('SELECT email, exp FROM sessions WHERE token = ?').bind(token), x.db.prepare(USERS_SQL)]); // 1 lượt hỏi thay vì 2
+  const s = (sr.results || [])[0]; if (!s) return null;
+  if (!x._users) usersFrom(x, ur.results || []);
   if (s.exp < Date.now()) { await run(x.db, 'DELETE FROM sessions WHERE token = ?', token); return null; }
   const u = await crmUser(x, s.email); if (!u) { await run(x.db, 'DELETE FROM sessions WHERE token = ?', token); return null; }
   return u;

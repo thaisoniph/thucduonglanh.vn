@@ -1,13 +1,13 @@
 // Máy chủ CRM + nhận đơn Thực Dưỡng Lành trên Cloudflare Workers (api.thucduonglanh.vn), dữ liệu ở Cloudflare D1.
 // Giao diện gửi POST (text/plain, JSON) giống hệt Apps Script trước đây: {type:'crm', action, token, …} / {type:'order'} / {type:'contact'}.
 import { esc, run, first, kvGet, normPhone, CRM_URL } from './lib.js';
-import { crmApi, saveOrder, addLead, telegramUser, vtpWebhook, ensureSchema } from './crm.js';
+import { crmApi, saveOrder, addLead, telegramUser, vtpWebhook, ensureSchema, adminByToken } from './crm.js';
 import { telegram, sendMail, tgConf, bridge } from './google.js';
 import { SYNC, DUPS } from './sync.js';
 import { migrate } from './migrate.js';
 import { scheduled, mirror, dailyCare } from './cron.js';
 
-const API_VERSION = '2026-10-09d'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
+const API_VERSION = '2026-10-09e'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
 const ORIGINS = /^https:\/\/((www\.|crm\.)?thucduonglanh\.vn|[a-z0-9-]+\.thucduonglanh(-crm)?\.pages\.dev)$|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
 function ctxOf(env, ectx) { return { env, db: env.DB, later: p => ectx.waitUntil(Promise.resolve(p).catch(e => console.error('later', e && e.message))) }; }
@@ -62,6 +62,10 @@ export default {
     try {
       if (req.method === 'GET') {
         if (path === '/api/bridge-check') { const n = String(url.searchParams.get('n') || '').replace(/[^a-f0-9]/g, ''); return json({ ok: !!(n && await kvGet(x.db, 'bn_' + n)) }); }
+        if (path === '/api/test-google' || path === '/api/status') { // chỉ Quản trị (trước đây ai cũng gọi được)
+          await ensureSchema(x.db);
+          if (!await adminByToken(x, url.searchParams.get('token'))) return json({ ok: false, error: 'Chỉ Quản trị: thêm ?token=<mã phiên CRM>' }, origin, 403);
+        }
         if (path === '/api/test-google') {
           const r = await fetch(env.BRIDGE_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ type: 'crm', action: 'ping' }), redirect: 'follow' });
           const text = await r.text();
@@ -70,7 +74,7 @@ export default {
         if (path === '/api/status') {
           const n = async t => (await first(x.db, 'SELECT count(*) AS n FROM ' + t)).n;
           const mr = await kvGet(x.db, 'migrate_result');
-          return json({ ok: true, v: API_VERSION, migrated: Number(await kvGet(x.db, 'migrated')) || null, orders: await n('orders'), customers: await n('customers'), leads: await n('leads'), users: await n('users'), mirror: Number(await kvGet(x.db, 'mirror_last')) || null, migrate: mr ? JSON.parse(mr) : null }, origin);
+          return json({ ok: true, v: API_VERSION, migrated: Number(await kvGet(x.db, 'migrated')) || null, orders: await n('orders'), customers: await n('customers'), leads: await n('leads'), users: await n('users'), mirror: Number(await kvGet(x.db, 'mirror_last')) || null, mirrorErr: await kvGet(x.db, 'mirror_err'), migrate: mr ? JSON.parse(mr) : null }, origin);
         }
         if (path === '/api/setup') { // bước chuyển 1 lần: tắt máy chủ cũ (Apps Script chuyển đơn web sang đây) rồi chép dữ liệu
           if (await kvGet(x.db, 'migrated')) return json({ ok: true, already: true, result: JSON.parse(await kvGet(x.db, 'migrate_result') || 'null') }, origin);
@@ -79,10 +83,11 @@ export default {
         return json({ ok: true, service: 'Thực Dưỡng Lành orders + CRM', v: API_VERSION }, origin);
       }
       if (req.method !== 'POST') return json({ ok: false, error: 'method' }, origin, 405);
+      const t0 = Date.now();
       await ensureSchema(x.db);
       const text = await req.text(); if (text.length > 2e6) return json({ ok: false, error: 'Dữ liệu quá lớn' }, origin, 413);
       const d = JSON.parse(text || '{}');
-      if (d.type === 'crm') { const out = await crmApi(x, d, ADMIN, DUPS); out.v = API_VERSION; return json(out, origin); }
+      if (d.type === 'crm') { const out = await crmApi(x, d, ADMIN, DUPS); out.v = API_VERSION; out.sms = Date.now() - t0; return json(out, origin); } // sms: thời gian máy chủ xử lý → CRM ghi vào "Đo tốc độ CRM"
       if (d.type === 'vtp') return json(await vtpWebhook(x, d.payload), origin);
       return json(await website(x, d), origin);
     } catch (err) {
