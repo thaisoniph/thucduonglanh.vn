@@ -697,7 +697,7 @@ def benefits_banner():
     <p class="bb-sub">Hệ sinh thái sản phẩm thực dưỡng chất lượng – lành mạnh – bền vững cho gia đình Việt</p>
     <div class="bb-pills">{pills}</div>
   </div>
-  <div class="bb-mid">{"".join(f'<img src="{pimg(p["images"][0], True)}" alt="" loading="lazy">' for p in (PRODUCTS[2:3] + PRODUCTS[1:2] + PRODUCTS[3:4] or PRODUCTS[:3]))}</div>
+  <div class="bb-mid">{"".join(f'<img src="{pimg(p["images"][0], True)}" alt="" width="480" height="480" loading="lazy">' for p in (PRODUCTS[2:3] + PRODUCTS[1:2] + PRODUCTS[3:4] or PRODUCTS[:3]))}</div>
   <div class="bb-right">{feats}</div>
 </a>'''
 
@@ -760,11 +760,11 @@ def page_home():
     cat_html = ""
     for name, href, image in cats:
         if image is None:
-            media = '<div class="cat-stack">' + "".join(f'<img src="{pimg(p["images"][0], True)}" alt="" loading="lazy">' for p in PRODUCTS[:3]) + "</div>"
+            media = '<div class="cat-stack">' + "".join(f'<img src="{pimg(p["images"][0], True)}" alt="" width="480" height="480" loading="lazy">' for p in PRODUCTS[:3]) + "</div>"
         elif image == "sale":
             media = f'<div class="cat-sale"><span>%</span></div>'
         else:
-            media = f'<img src="{pimg(image, True)}" alt="" loading="lazy">'
+            media = f'<img src="{pimg(image, True)}" alt="" width="480" height="480" loading="lazy">'
         cat_html += f'<a class="cat-card" href="{href}"><div class="cat-media">{media}</div><span>{esc(name)}</span></a>'
 
     featured = [p for p in PRODUCTS if p.get("featured")][:8]

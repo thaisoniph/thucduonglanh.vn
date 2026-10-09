@@ -696,7 +696,7 @@
   /* ---------- form đặt hàng dùng chung (trang Thanh toán + khung Mua ngay) ---------- */
   function orderFieldsHTML() {
     var bank = CFG.bank;
-    var pay = (bank ? '<label class="pay-opt"><input type="radio" name="payment" value="bank" checked><span><b>Chuyển khoản ngân hàng</b><small>Đặt hàng xong sẽ hiện mã QR để quét – ' + esc(bank.bank_name) + '</small></span></label>' : '') +
+    var pay = (bank ? '<label class="pay-opt"><input type="radio" name="payment" value="bank" checked><span><b>Chuyển khoản ngân hàng</b><small>Đặt hàng xong sẽ hiện mã QR để quét – ' + esc(bank.bank_name) + '</small><small class="pay-qr">📱 Quét QR bằng app ngân hàng, MoMo hoặc ZaloPay</small></span></label>' : '') +
       '<label class="pay-opt"><input type="radio" name="payment" value="cod"' + (bank ? '' : ' checked') + '><span><b>Thanh toán khi nhận hàng (COD)</b><small>Nhận hàng, kiểm tra rồi trả tiền cho người giao</small></span></label>';
     return '<div class="of">' +
       '<div class="of-saved" hidden></div>' +

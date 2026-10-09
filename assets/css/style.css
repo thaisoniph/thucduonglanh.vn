@@ -443,7 +443,7 @@ input,select,textarea{font-family:inherit;font-size:15px}
 a.p-badge{text-decoration:underline dotted;text-underline-offset:3px}a.p-badge:hover{background:var(--primary);color:#fff}
 .p-trust{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;color:var(--muted);margin:-8px 0 18px}
 #kiem-nghiem{scroll-margin-top:calc(var(--header-h,80px) + 16px)}
-.v-opt{border:1.5px solid var(--line);background:#fff;border-radius:8px;padding:7px 16px;font-size:14px;color:var(--ink)}
+.v-opt{border:1.5px solid var(--line);background:#fff;border-radius:8px;padding:7px 16px;font-size:14px;color:var(--ink);min-height:44px}
 .v-opt.is-active{border-color:var(--primary-2);color:var(--primary);background:var(--primary-light);font-weight:600}
 .qty-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:12px}
 .qty{display:inline-flex;align-items:center;background:var(--soft);border-radius:999px;padding:4px}
@@ -529,6 +529,7 @@ label .invalid,input.invalid,textarea.invalid{border-color:var(--red)!important}
 .pay-opt input{width:18px;height:18px;margin:3px 0 0;accent-color:var(--primary)}
 .pay-opt b{display:block}
 .pay-opt small{color:var(--muted);font-weight:400}
+.pay-opt small.pay-qr{display:block;color:var(--primary-2);margin-top:2px}
 .pay-opt:has(input:checked){border-color:var(--primary-2);background:var(--primary-light)}
 .co-item{display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
 .co-item img{width:56px;height:56px;border-radius:8px;object-fit:cover;border:1px solid var(--line)}
@@ -715,6 +716,14 @@ body.satc-on .float-widget,body.satc-on .to-top{bottom:calc(var(--satc-h,150px) 
   .fb-strip{grid-template-columns:repeat(3,1fr)}
   .fb-strip .fb-item:nth-child(n+4){display:none}
 }
+/* vùng bấm tối thiểu 44px trên điện thoại / máy tính bảng */
+@media (max-width:960px){
+  .icon-btn,.g-nav{width:44px;height:44px}
+  .chip,.pc-add,.btn,.share .wish-lg,.up-add,.readmore-btn{min-height:44px}
+  .qty button,.qty.sm button,.mc-rm{width:44px;height:44px}
+  .pc-wish{width:40px;height:40px}
+  .share a,.share>button{min-width:44px;min-height:44px}
+}
 @media (max-width:640px){
   body{font-size:14.5px}
   .container{padding:0 16px}
@@ -743,7 +752,7 @@ body.satc-on .float-widget,body.satc-on .to-top{bottom:calc(var(--satc-h,150px) 
   .price del{font-size:12px}
   .pc-add span{display:none}
   .pc-add{padding:8px}
-  .pc-wish{opacity:1;transform:none;width:30px;height:30px}
+  .pc-wish{opacity:1;transform:none;width:40px;height:40px;top:6px;right:6px}
   .shop-grid .p-card{padding:6px}
   .brand-title{font-size:26px}.brand-sub{font-size:21px}
   .story-title{font-size:25px}
