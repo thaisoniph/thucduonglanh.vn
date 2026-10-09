@@ -2,7 +2,7 @@
 // Đọc bằng Google Sheets API (nhanh, không phải mở cả file như Apps Script). Nhập nhiều lần không trùng.
 import { normPhone, esc, fmtDate, nrm, isVoid, hashKey, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, CRM_URL, DAY } from './lib.js';
 import { sheetMeta, sheetValues, sheetWrite, a1, serialToMs } from './google.js';
-import { crmUsers, crmLog, recalc, setCallbacks, caCfg, caOf, normLine, itemsText, shipText, ORDER_COLS, srcList, adsCfg, telegramUser, unifyNames } from './crm.js';
+import { crmUsers, crmLog, recalc, deletedOrderIds, setCallbacks, caCfg, caOf, normLine, itemsText, shipText, ORDER_COLS, srcList, adsCfg, telegramUser, unifyNames } from './crm.js';
 
 const FIELD_LABEL = { date: 'Ngày', name: 'Tên khách', phone: 'SĐT', address: 'Địa chỉ', product: 'Sản phẩm', qty: 'Số lượng', gift1: 'Quà tặng 1', gift1qty: 'SL quà 1', gift2: 'Quà tặng 2', gift2qty: 'SL quà 2',
   status: 'Trạng thái', ctype: 'Phân loại khách / ca', line: 'Dòng SP (nguồn)', code: 'Mã đơn', amount: 'Số tiền', shipText: 'Lên đơn (mô tả)', callback: 'Lịch gọi lại', note: 'Ghi chú / nhật ký', health: 'Tình trạng sức khoẻ',
@@ -219,6 +219,7 @@ async function importOrders(x, src, shCfg, data, dry) {
     parsed.push({ r, phone, when, product, amount, codeRaw, valid, key });
   }
   const ex = {}; (await allIn(x.db, 'SELECT rid, id, status, source FROM orders WHERE id IN (SELECT value FROM json_each(?))', [...new Set(parsed.map(p => p.key))])).forEach(o => { ex[o.id] = o; });
+  const gone = {}; (await deletedOrderIds(x)).forEach(i => { gone[i] = 1; }); // đơn Quản trị đã xoá trên CRM → không nhập lại
   const out = [], seen = {}, phones = {}, callbacks = {}, upd = []; let dup = 0, revenue = 0, minD = null, maxD = null, afterCut = 0;
   for (const p of parsed) {
     const { r, phone, when, product, amount, codeRaw, valid, key } = p;
@@ -227,6 +228,7 @@ async function importOrders(x, src, shCfg, data, dry) {
       if (String(cur.source || '').indexOf('File ') === 0 && st1 !== cur.status && FINAL[st1] && !FINAL[cur.status]) { upd.push({ rid: cur.rid, status: st1 }); cur.status = st1; }
       dup++; continue;
     }
+    if (gone[key]) { dup++; continue; }
     if (seen[key]) { dup++; continue; } seen[key] = 1;
     if (until && when >= until) { afterCut++; continue; } // từ ngày này sale lên đơn trên CRM → không nhập để tránh trùng
     const items = [];
