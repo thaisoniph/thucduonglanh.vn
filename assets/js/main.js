@@ -870,10 +870,22 @@
   /* ---------- floating widget ---------- */
   function initFloat() {
     var w = $('#floatWidget'); if (!w) return;
-    var closed = false; try { closed = sessionStorage.getItem('tdl_fw') === '1'; } catch (e) { }
-    if (!closed && window.innerWidth >= 1200 && matchMedia('(hover:hover)').matches) setTimeout(function () { w.classList.add('open'); }, 4000);
-    $('#fwToggle').addEventListener('click', function () { w.classList.toggle('open'); });
-    $('#fwClose').addEventListener('click', function () { w.classList.remove('open'); try { sessionStorage.setItem('tdl_fw', '1'); } catch (e) { } });
+    // mặc định chỉ hiện nút tròn; tự bung lời chào 1 lần/phiên khi ở trang ≥ 25 giây hoặc cuộn ≥ 60%, trừ khi khách đã bấm ×
+    function ss(k, v) { try { if (v == null) return sessionStorage.getItem(k); sessionStorage.setItem(k, v); } catch (e) { return null; } }
+    var timer, onScroll;
+    function stopAuto() { clearTimeout(timer); window.removeEventListener('scroll', onScroll); }
+    function autoOpen(trigger) {
+      if (w.classList.contains('open') || ss('tdl_fw') === '1' || ss('tdl_fw_auto') === '1') return stopAuto();
+      if (document.body.classList.contains('satc-on')) return; // đang hiện thanh mua nhanh (trang sản phẩm, điện thoại): chờ lần sau
+      w.classList.add('open'); ss('tdl_fw_auto', '1'); stopAuto(); track('chat_widget_open', { trigger: trigger });
+    }
+    if (ss('tdl_fw') !== '1' && ss('tdl_fw_auto') !== '1') {
+      timer = setTimeout(function () { autoOpen('auto_time'); }, 25000);
+      onScroll = function () { var max = document.documentElement.scrollHeight - innerHeight; if (max > 0 && scrollY / max >= 0.6) autoOpen('auto_scroll'); };
+      window.addEventListener('scroll', onScroll, { passive: true });
+    }
+    $('#fwToggle').addEventListener('click', function () { if (w.classList.toggle('open')) track('chat_widget_open', { trigger: 'click' }); });
+    $('#fwClose').addEventListener('click', function () { w.classList.remove('open'); ss('tdl_fw', '1'); stopAuto(); });
   }
 
   function initFlipbook() {
