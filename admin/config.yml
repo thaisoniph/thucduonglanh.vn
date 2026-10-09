@@ -115,6 +115,17 @@ collections:
         hint: "Chỉ ghi điều có giấy tờ thật, ví dụ: Kiểm nghiệm NIFC, GMP – ISO 22000:2018. Huy hiệu có chữ “kiểm nghiệm” bấm vào sẽ tới mục Tiêu chuẩn & kiểm nghiệm."
         field: { label: "Huy hiệu", name: badge, widget: string }
       - { label: "Ảnh phiếu kiểm nghiệm", name: test_cert_img, widget: image, required: false, hint: "Có ảnh thì bấm huy hiệu Kiểm nghiệm sẽ mở ảnh này." }
+      - label: "Nhu cầu"
+        name: needs
+        widget: relation
+        collection: settings
+        file: needs
+        value_field: "needs.*.slug"
+        search_fields: ["needs.*.name"]
+        display_fields: ["needs.*.name"]
+        multiple: true
+        required: false
+        hint: "Sản phẩm hiện ở các thẻ “Chọn theo nhu cầu” nào."
       - label: "Từ khóa tìm kiếm (không hiện ra web)"
         name: keywords
         widget: list
@@ -289,6 +300,17 @@ collections:
         hint: "Ảnh đầu tiên là ảnh đại diện (vuông ≥1000px)."
         field: { label: "Ảnh", name: image, widget: image }
       - { label: "Mô tả ngắn (cạnh giá)", name: summary, widget: markdown, buttons: [bold, italic, link] }
+      - label: "Nhu cầu"
+        name: needs
+        widget: relation
+        collection: settings
+        file: needs
+        value_field: "needs.*.slug"
+        search_fields: ["needs.*.name"]
+        display_fields: ["needs.*.name"]
+        multiple: true
+        required: false
+        hint: "Sản phẩm hiện ở các thẻ “Chọn theo nhu cầu” nào."
       - label: "Từ khóa tìm kiếm (không hiện ra web)"
         name: keywords
         widget: list
@@ -527,6 +549,22 @@ collections:
               - { label: "Mã (không dấu, dùng trên đường link)", name: slug, widget: string, hint: "Ví dụ: tra-thao-moc. Không đổi mã của danh mục đang có sản phẩm." }
               - { label: "Ảnh", name: image, widget: image }
               - { label: "Mô tả", name: desc, widget: text, required: false }
+
+      - name: needs
+        label: "Chọn theo nhu cầu"
+        file: data/needs.json
+        format: json
+        fields:
+          - label: "Nhu cầu"
+            name: needs
+            widget: list
+            summary: "{{fields.icon}} {{fields.name}}"
+            hint: "Thẻ ở trang chủ (dưới ảnh lớn) và trang danh sách sản phẩm. Gắn sản phẩm vào nhu cầu ở ô “Nhu cầu” của từng sản phẩm. Nhu cầu chỉ có 1 sản phẩm thì bấm vào là tới thẳng sản phẩm đó. Không ghi tên bệnh hay công dụng chữa bệnh."
+            fields:
+              - { label: "Tên nhu cầu", name: name, widget: string, hint: "Ví dụ: Bữa sáng bận rộn" }
+              - { label: "Mã (không dấu, dùng trên đường link)", name: slug, widget: string, hint: "Ví dụ: bua-sang-ban-ron. Link: /nhu-cau/bua-sang-ban-ron/" }
+              - { label: "Biểu tượng (emoji)", name: icon, widget: string, required: false }
+              - { label: "Mô tả ngắn", name: desc, widget: string, required: false }
 
       - name: post_categories
         label: "Chuyên mục bài viết"

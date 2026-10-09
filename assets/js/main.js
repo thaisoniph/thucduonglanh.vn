@@ -210,11 +210,10 @@
   }
   var searched = {};
   function trackSearch(q, n) { var k = norm(q).trim(); if (searched[k]) return; searched[k] = 1; track('search', { search_term: q }); if (!n) track('search_no_result', { search_term: q }); }
-  var NEED_CHIPS = [['🥣 Bữa sáng bận rộn', 'ăn sáng'], ['🥛 Bữa phụ từ hạt', 'bữa phụ'], ['🍵 Uống lành mỗi ngày', 'trà'], ['🥢 Ăn chay ngon miệng', 'ăn chay']];
   function searchEmptyHTML(q, compact) {
     var c = PRODUCTS.filter(function (p) { return p.combo && p.price != null; })[0];
     return '<div class="s-empty' + (compact ? ' compact' : '') + '"><p class="s-empty-t">Chưa tìm thấy sản phẩm cho “' + esc(q) + '”</p>' +
-      '<div class="s-empty-chips">' + NEED_CHIPS.map(function (x) { return '<a href="/tim-kiem/?q=' + encodeURIComponent(x[1]) + '">' + x[0] + '</a>'; }).join('') + '</div>' +
+      ((CFG.needs || []).length ? '<div class="s-empty-chips">' + CFG.needs.map(function (n) { return '<a href="' + esc(n.url) + '">' + esc((n.icon ? n.icon + ' ' : '') + n.name) + '</a>'; }).join('') + '</div>' : '') +
       (c ? '<p class="s-empty-s">Người mới bắt đầu thường chọn:</p><a class="sr-item s-empty-p" href="' + c.url + '"><img src="' + c.img + '" alt="" width="52" height="52"><div><b>' + esc(c.name) + '</b><small>' + money(c.price) + (c.fs ? ' · Miễn phí vận chuyển' : '') + '</small></div></a>' : '') +
       (CFG.zalo ? '<a class="btn btn-zalo s-empty-z" href="https://zalo.me/' + CFG.zalo + '" target="_blank" rel="noopener">💬 Hỏi chuyên gia qua Zalo</a>' : '') + '</div>';
   }

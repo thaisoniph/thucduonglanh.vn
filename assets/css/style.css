@@ -602,6 +602,21 @@ label .invalid,input.invalid,textarea.invalid{border-color:var(--red)!important}
 .lightbox button svg{width:24px;height:24px}
 .lb-close{top:16px;right:16px}.lb-prev{left:16px;top:50%}.lb-next{right:16px;top:50%}
 
+/* chọn theo nhu cầu */
+.nd-sec{padding-bottom:0}.nd-sec+.section{padding-top:28px}
+.nd-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.nd-card{display:flex;gap:12px;align-items:center;background:#fff;border:1.5px solid #dfe9e1;border-radius:14px;padding:14px 16px;color:var(--ink);transition:all .25s;min-height:44px}
+.nd-card:hover,.nd-card.active{border-color:var(--primary-3);background:var(--primary-light);color:var(--primary-2)}
+.nd-ic{font-size:28px;line-height:1;flex:none}
+.nd-tx b{display:block;font-size:15.5px;color:var(--primary-2)}
+.nd-tx small{display:block;font-size:13px;color:var(--muted);line-height:1.4;margin-top:2px}
+.nd-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:-6px 0 22px}
+.nd-lbl{font-size:14px;color:var(--muted);margin-right:2px}
+.nd-row .nd-card{padding:6px 14px;border-radius:999px;gap:6px}
+.nd-row .nd-ic{font-size:18px}.nd-row .nd-tx b{font-size:14px;font-weight:500}
+@media (max-width:960px){.nd-grid{grid-template-columns:1fr 1fr;gap:10px}.nd-card{padding:12px}.nd-ic{font-size:24px}.nd-tx b{font-size:14.5px}.nd-tx small{font-size:12.5px}}
+@media (max-width:400px){.nd-tx small{display:none}}
+
 /* thanh mua nhanh dính đáy – chỉ ≤ 960px */
 .satc{display:none;position:fixed;left:0;right:0;bottom:0;z-index:78;background:#fff;border-top:1px solid #e6efe8;box-shadow:0 -6px 24px rgba(20,60,35,.12);padding:10px 12px calc(10px + env(safe-area-inset-bottom));transform:translateY(110%);transition:transform .25s ease}
 .satc.show{transform:none}

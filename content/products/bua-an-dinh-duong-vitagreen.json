@@ -149,5 +149,9 @@
     "dạ dày",
     "người lớn tuổi",
     "ăn chay"
+  ],
+  "needs": [
+    "bua-sang-ban-ron",
+    "bua-phu-tu-hat"
   ]
 }

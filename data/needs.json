@@ -1,0 +1,28 @@
+{
+  "needs": [
+    {
+      "slug": "bua-sang-ban-ron",
+      "name": "Bữa sáng bận rộn",
+      "icon": "🥣",
+      "desc": "Pha 1 phút, đủ chất từ 12 loại hạt và ngũ cốc."
+    },
+    {
+      "slug": "bua-phu-tu-hat",
+      "name": "Bữa phụ từ hạt",
+      "icon": "🥛",
+      "desc": "Sữa hạt, curcumin cho những lúc cần một bữa phụ tiện lợi."
+    },
+    {
+      "slug": "uong-lanh-moi-ngay",
+      "name": "Uống lành mỗi ngày",
+      "icon": "🍵",
+      "desc": "Trà thảo mộc hòa tan, pha nước ấm, không cần đun."
+    },
+    {
+      "slug": "an-chay-ngon-mieng",
+      "name": "Ăn chay ngon miệng",
+      "icon": "🥢",
+      "desc": "Ruốc chay, xì dầu lên men cho bữa cơm thuần thực vật."
+    }
+  ]
+}

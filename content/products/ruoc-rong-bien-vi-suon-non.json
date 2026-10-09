@@ -123,5 +123,8 @@
     "trẻ em",
     "cơm",
     "ăn kèm"
+  ],
+  "needs": [
+    "an-chay-ngon-mieng"
   ]
 }

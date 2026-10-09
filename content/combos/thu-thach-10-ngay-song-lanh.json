@@ -150,5 +150,8 @@
     "ăn sáng",
     "bữa phụ",
     "trà"
+  ],
+  "needs": [
+    "bua-sang-ban-ron"
   ]
 }

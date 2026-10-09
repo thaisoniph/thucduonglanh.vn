@@ -138,5 +138,8 @@
     "đồ uống",
     "giải nhiệt",
     "trà gói"
+  ],
+  "needs": [
+    "uong-lanh-moi-ngay"
   ]
 }

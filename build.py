@@ -175,6 +175,12 @@ for f in (CONTENT / "pages").glob("*.md"):
     PAGES.append({"slug": f.stem, "title": meta.get("title", f.stem), "order": meta.get("order", 99), "content": md(body)})
 PAGES.sort(key=lambda x: (x["order"], x["title"]))
 
+_nf = DATA / "needs.json"  # "Chọn theo nhu cầu" (Cài đặt → Chọn theo nhu cầu); sản phẩm gắn ở ô "Nhu cầu"
+NEEDS = [n for n in (json.loads(_nf.read_text("utf-8")).get("needs") or [] if _nf.exists() else []) if n.get("slug") and n.get("name")]
+for n in NEEDS:
+    n["items"] = [p for p in PRODUCTS if n["slug"] in (p.get("needs") or [])]
+    n["url"] = f'/san-pham/{n["items"][0]["slug"]}/' if len(n["items"]) == 1 else f'/nhu-cau/{n["slug"]}/'  # 1 sản phẩm → vào thẳng trang sản phẩm
+NEEDS = [n for n in NEEDS if n["items"]]
 CAT_BY = {c["slug"]: c for c in CATS}
 PROD_BY = {p["slug"]: p for p in PRODUCTS}
 PCATS = {c["slug"]: c for c in POSTS["categories"]}
@@ -773,6 +779,7 @@ def page_home():
     tag_html = "".join(f'<a href="/tim-kiem/?q={quote(t)}">{esc(t)}</a>' for t in tags)
 
     body = f'''{hero}
+{needs_html()}
 <section class="section section-tight"><div class="container">{benefits_banner()}{ebook_cta("home")}</div></section>
 
 <section class="section"><div class="container">
@@ -862,6 +869,19 @@ def post_card(p):
 <div class="post-body"><div class="post-meta"><span>{esc(cat)}</span> · <time datetime="{p["date"]}">{d}</time></div><h3><a href="/goc-song-lanh/{p["slug"]}/">{esc(p["title"])}</a></h3><p>{esc(p["excerpt"])}</p><a class="more" href="/goc-song-lanh/{p["slug"]}/">Đọc tiếp {I["right"]}</a></div></article>'''
 
 
+def needs_html(active="", compact=False):
+    """Khối "Chọn theo nhu cầu": trang chủ (thẻ lớn) và trang danh sách sản phẩm (gọn)."""
+    if not NEEDS:
+        return ""
+    cards = "".join(f'''<a class="nd-card{" active" if n["url"] == active else ""}" href="{n["url"]}" data-cta="need_{n["slug"]}"><span class="nd-ic" aria-hidden="true">{esc(n.get("icon") or "🌿")}</span><span class="nd-tx"><b>{esc(n["name"])}</b>{"" if compact else f'<small>{esc(n.get("desc") or "")}</small>'}</span></a>''' for n in NEEDS)
+    if compact:
+        return f'<div class="nd-row" aria-label="Chọn theo nhu cầu"><span class="nd-lbl">Theo nhu cầu:</span>{cards}</div>'
+    return f'''<section class="section section-tight nd-sec"><div class="container">
+  <h2 class="sec-title">Chọn theo nhu cầu</h2>
+  <div class="nd-grid">{cards}</div>
+</div></section>'''
+
+
 def page_listing(path, title, products, intro="", crumbs=None):
     bc, bld = breadcrumb(crumbs or [(title, None)])
     chips = '<a href="/san-pham/" class="chip{}">Tất cả</a>'.format(" active" if path == "/san-pham/" else "")
@@ -878,6 +898,7 @@ def page_listing(path, title, products, intro="", crumbs=None):
     <label class="sort">Sắp xếp <select data-sort><option value="default">Mặc định</option><option value="price-asc">Giá tăng dần</option><option value="price-desc">Giá giảm dần</option><option value="name">Tên A–Z</option></select></label></div></div>
   {f'<p class="shop-intro">{esc(intro)}</p>' if intro else ''}
   <div class="chips">{chips}</div>
+  {needs_html(path, compact=True)}
   {grid(products, "p-grid shop-grid")}
 </div></section>'''
     desc = intro or f"{title} chính hãng tại {BRAND}. Nguồn gốc rõ ràng, giao hàng toàn quốc."
@@ -1472,6 +1493,9 @@ def main():
     for c in CATS:
         items = [p for p in PRODUCTS if p["category"] == c["slug"]]
         routes.append(write(f"/danh-muc/{c['slug']}/", page_listing(f"/danh-muc/{c['slug']}/", c["name"], items, c.get("desc", ""), [("Sản phẩm", "/san-pham/"), (c["name"], None)])))
+    for n in NEEDS:
+        if n["url"].startswith("/nhu-cau/"):
+            routes.append(write(n["url"], page_listing(n["url"], n["name"], n["items"], n.get("desc", ""), [("Sản phẩm", "/san-pham/"), (n["name"], None)])))
     for p in PRODUCTS:
         routes.append(write(f"/san-pham/{p['slug']}/", page_product(p)))
     posts = sorted(POSTS["posts"], key=lambda x: x["date"], reverse=True)
@@ -1502,7 +1526,8 @@ def main():
     cfg = {"brand": BRAND, "hotline": SITE["hotline"], "zalo": tel(SITE["zalo"]), "email": SITE["email"], "zalo_oa": SITE.get("zalo_oa", ""), "zalo_group": SITE.get("zalo_group", ""), "gift": (WEB_OFFER.get("gift_title", "") + (" (trị giá " + WEB_OFFER["gift_value"] + ")" if WEB_OFFER.get("gift_value") else "")) if WEB_OFFER.get("gift_enabled") else "",
            "ga4_id": SITE.get("ga4_id", ""), "clarity_id": SITE.get("clarity_id", ""), "meta_pixel": SITE.get("meta_pixel", ""), "tiktok_pixel": SITE.get("tiktok_pixel", ""),
            "endpoint": (SITE.get("api_endpoint") or SITE.get("order_endpoint", "")), "bank": SITE["bank"] if SITE["bank"].get("enabled") else None,
-           "shipping_fee": SITE.get("shipping_fee", 0), "free_ship_threshold": SITE.get("free_ship_threshold", 0)}
+           "shipping_fee": SITE.get("shipping_fee", 0), "free_ship_threshold": SITE.get("free_ship_threshold", 0),
+           "needs": [{"name": n["name"], "icon": n.get("icon") or "", "url": n["url"]} for n in NEEDS]}
     (DIST / "assets/data").mkdir(parents=True, exist_ok=True)
     shutil.copy(DATA / "vn-units.json", DIST / "assets/data/vn-units.json")
     (DIST / "assets/js/data.js").write_text(

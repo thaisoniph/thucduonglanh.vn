@@ -76,5 +76,8 @@
     "ăn chay",
     "món chay",
     "nước chấm"
+  ],
+  "needs": [
+    "an-chay-ngon-mieng"
   ]
 }
