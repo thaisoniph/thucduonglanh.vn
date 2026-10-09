@@ -27,8 +27,8 @@ export async function gInfo(env, fresh) {
 export async function tgConf(env) {
   if (env.TELEGRAM_TOKEN) return { token: env.TELEGRAM_TOKEN, chats: env.TELEGRAM_CHAT_IDS || '', notify: env.NOTIFY_EMAIL || '' };
   let c = await kvJson(env.DB, 'g_info', null);
-  if (!c || !c.tg) { try { c = await gInfo(env, true); } catch (e) { return { token: '', chats: '', notify: '' }; } }
-  return { token: c.tg, chats: c.chats, notify: c.notify };
+  if (!c || !c.tg) { try { c = await gInfo(env, true); } catch (e) { return { token: '', chats: '', notify: '', err: 'Máy chủ CRM không nối được Apps Script (' + String(e.message || e).slice(0, 150) + ')' }; } }
+  return { token: c.tg, chats: c.chats, notify: c.notify, err: c.tg ? '' : 'Apps Script chưa có token bot. Quản trị vào Apps Script → ⚙️ Cài đặt dự án → Thuộc tính tập lệnh → thêm TELEGRAM_TOKEN' };
 }
 
 /* ---------- Google Sheets API */
@@ -111,7 +111,7 @@ export async function telegramTo(env, chatId, text) {
 }
 export async function telegram(env, text) { const c = await tgConf(env); for (const id of String(c.chats || '').split(',').map(s => s.trim()).filter(Boolean)) await telegramTo(env, id, text); }
 export async function tgUpdates(env) {
-  const c = await tgConf(env); if (!c.token) return { ok: false, description: 'Chưa cấu hình Telegram' };
+  const c = await tgConf(env); if (!c.token) return { ok: false, description: c.err || 'Chưa cấu hình Telegram' };
   const r = await fetch('https://api.telegram.org/bot' + c.token + '/getUpdates?allowed_updates=' + encodeURIComponent('["message"]'));
   return r.json();
 }
