@@ -952,15 +952,15 @@ def offer_box(p=None):
 def combo_parts_html(p):
     """Trang gói: danh sách sản phẩm trong gói + tiết kiệm + miễn phí ship."""
     rows = "".join(f'<li><a href="/san-pham/{x["p"]["slug"]}/"><img src="{pimg(x["p"]["images"][0], True)}" alt="" width="56" height="56" loading="lazy"><span><b>{x["qty"]} × {esc(x["p"]["name"])}</b><small>{esc(x["unit"])}</small></span></a><s>{money(x["base"])}</s></li>' for x in p["parts"])
-    save = []
+    save = []  # chỉ 1 mức "tiết kiệm" (so với giá gốc, khớp nhãn Tiết kiệm / -X%); giá mua lẻ trên web chỉ nêu để so sánh
     if p.get("price") and p["parts_base"] > p["price"]:
-        save.append(f'Tiết kiệm <b>{money(p["parts_base"] - p["price"])}</b> so với giá gốc mua lẻ ({money(p["parts_base"])})')
-    if p.get("price") and p["parts_web"] > p["price"] and p["parts_web"] != p["parts_base"]:
-        save.append(f'rẻ hơn mua lẻ trên web <b>{money(p["parts_web"] - p["price"])}</b>')
+        save.append(f'Mua lẻ {money(p["parts_base"])} → <b>Gói chỉ {money(p["price"])}, tiết kiệm {money(p["parts_base"] - p["price"])}</b>')
+        if p["parts_web"] > p["price"] and p["parts_web"] != p["parts_base"]:
+            save.append(f'Rẻ hơn cả khi mua lẻ trên web ({money(p["parts_web"])})')
     ship = '<span class="cb-ship">🚚 Miễn phí vận chuyển</span>' if p.get("free_ship") else ""
     days = f'<span class="cb-ship">📅 Dùng trong {num(p.get("days"))} ngày</span>' if num(p.get("days")) else ""
     return f'''<div class="cb-box"><b class="cb-head">Gói gồm {len(p["parts"])} sản phẩm</b><ul class="cb-parts">{rows}</ul>
-{f'<p class="cb-save">💰 {", ".join(save)}</p>' if save else ""}<div class="cb-tags">{ship}{days}</div></div>'''
+{f'<p class="cb-save">💰 {". ".join(save)}.</p>' if save else ""}<div class="cb-tags">{ship}{days}</div></div>'''
 
 
 def in_combos_html(p):
