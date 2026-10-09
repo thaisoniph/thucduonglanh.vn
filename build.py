@@ -1492,9 +1492,24 @@ def build_crm():
         shutil.rmtree(out)
     out.mkdir()
     import hashlib
-    ver = hashlib.md5(b"".join((src / f).read_bytes() for f in ("app.js", "app.css"))).hexdigest()[:8]
-    for f in ("app.js", "app.css"):
-        shutil.copy(src / f, out / f)
+    # Nén CSS
+    css_raw = (src / "app.css").read_text("utf-8")
+    css_min = re.sub(r'/\*[\s\S]*?\*/', '', css_raw)
+    css_min = re.sub(r'\s+', ' ', css_min)
+    css_min = re.sub(r'\s*([\{\}:;,>~+])\s*', r'\1', css_min)
+    css_min = re.sub(r';}', '}', css_min).strip()
+    (out / "app.css").write_text(css_min, "utf-8")
+
+    # Nén JS
+    js_raw = (src / "app.js").read_text("utf-8")
+    try:
+        import rjsmin
+        js_min = rjsmin.jsmin(js_raw)
+    except Exception:
+        js_min = js_raw
+    (out / "app.js").write_text(js_min, "utf-8")
+
+    ver = hashlib.md5((js_min + css_min).encode("utf-8")).hexdigest()[:8]
     (out / "index.html").write_text((src / "index.html").read_text("utf-8").replace("__V__", ver), "utf-8")
     brand = ROOT / "assets/img/brand"
     for f in ("logo.webp", "icon-32.png", "icon-180.png", "icon-512.png"):
