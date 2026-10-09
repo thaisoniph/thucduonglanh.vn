@@ -232,7 +232,7 @@ Hai cách đều đổ về nhánh `main` trên GitHub → GitHub tự đăng we
 | Nhược | Không có bước duyệt, đẩy là live | Không thấy file trên Mac; không bấm thử giao diện thật được |
 
 **Lưu ý khi dùng cả hai**
-1. Trên Mac, **`git pull` trước khi bắt đầu sửa**. `main` đổi liên tục (phiên điện thoại, nhân sự sửa /admin); sửa trên bản cũ dễ xung đột hoặc ghi đè mất thay đổi người khác.
+1. **Lấy bản mới nhất trước khi sửa.** `main` đổi liên tục (phiên điện thoại, nhân sự sửa /admin); sửa trên bản cũ dễ xung đột hoặc ghi đè mất thay đổi người khác. Script `scripts/sync-latest.sh` tải `main` từ GitHub: máy không có file sửa dở thì tự cập nhật (✅); có file dở hoặc commit chưa đẩy thì chỉ cảnh báo (⚠️), không đụng file. Script tự chạy khi mở phiên Claude Code (hook SessionStart trong `.claude/settings.json`; thư mục cha `Website TDL/.claude/settings.json` ở máy cũng có hook này). Gemini/Antigravity chạy theo quy tắc trong `GEMINI.md` và `.agent/rules/`.
 2. **Không sửa cùng một tính năng ở hai nơi cùng lúc.** Xong và đăng ở một nơi rồi mới sang nơi kia.
 3. Antigravity dùng AI khác (không phải Claude), có thể không tự đọc `CLAUDE.md`. Đầu mỗi phiên dặn: *"Đọc CLAUDE.md và HUONG-DAN.md trước khi sửa"* (repo công khai, không ghi token / dữ liệu khách, không dùng từ "chữa/điều trị"…).
 4. **Không sửa code trực tiếp trong trình soạn Apps Script nữa.** Lần merge sau có đổi `backend/google-apps-script.gs`, GitHub sẽ ghi đè và phần sửa tay bị mất. Mọi sửa đổi đi qua file trong repo. (Thuộc tính tập lệnh như `TELEGRAM_TOKEN`, `VTP_SECRET` và lịch chạy không bị ảnh hưởng.)

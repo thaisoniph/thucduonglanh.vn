@@ -5,6 +5,11 @@ Chủ dự án: anh Sơn (thaisoniph@gmail.com). Anh Sơn không chuyên kỹ th
 - Việc gì làm được thì chủ động làm. Chỉ hỏi khi thật sự cần anh quyết định hoặc cung cấp thông tin.
 - Đọc `HUONG-DAN.md` (tài liệu kỹ thuật đầy đủ) trước khi sửa.
 
+## Luôn làm trên bản mới nhất
+- Anh sửa từ nhiều nơi (Claude trên Mac, Claude trên điện thoại, Gemini/Antigravity), nhân sự sửa qua /admin. Bản trên GitHub `main` là bản gốc.
+- Đầu phiên, hook SessionStart tự chạy `scripts/sync-latest.sh` và báo ✅/⚠️. Nếu báo ⚠️ hoặc không thấy thông báo thì chạy lại script đó trước khi sửa file. Có file sửa dở không rõ của ai thì hỏi anh, không tự xoá.
+- Sửa xong thì đẩy lên ngay (Mac: push `main`; điện thoại: PR + nhắc anh Merge). Không để phần sửa dở nằm lại trên máy.
+
 ## Repo này là gì
 - GitHub `thaisoniph/thucduonglanh.vn`, **công khai**. Không bao giờ ghi token, mật khẩu, dữ liệu khách thật vào repo.
 - Site tĩnh, build bằng `build.py` (Python) ra `dist/` (website) và `dist-crm/` (CRM nhân sự).
