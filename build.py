@@ -1109,7 +1109,7 @@ def page_product(p):
     cat = CAT_BY.get(p["category"])
     bc, bld = breadcrumb([("Sản phẩm", "/san-pham/"), (cat["name"], f"/danh-muc/{cat['slug']}/"), (p["name"], None)])
     d = discount(p)
-    main_imgs = "".join(f'<a class="g-slide{" is-active" if i == 0 else ""}" href="{pimg(im)}" data-lightbox="product" data-index="{i}"><img src="{pimg(im)}" alt="{esc(p["name"])} – ảnh {i+1}" width="1000" height="1000"{"" if i == 0 else " loading=lazy"}></a>' for i, im in enumerate(p["images"]))
+    main_imgs = "".join(f'<a class="g-slide{" is-active" if i == 0 else ""}" href="{pimg(im)}" data-lightbox="product" data-index="{i}"><img src="{pimg(im)}" alt="{esc(p["name"])} – ảnh {i+1}" width="1000" height="1000"{" fetchpriority=high" if i == 0 else " loading=lazy"}></a>' for i, im in enumerate(p["images"]))
     thumbs = "".join(f'<button class="g-thumb{" is-active" if i == 0 else ""}" data-thumb="{i}" aria-label="Ảnh {i+1}"><img src="{pimg(im, True)}" alt="" width="120" height="120" loading="lazy"></button>' for i, im in enumerate(p["images"]))
     badge = f'<span class="badge-sale">-{d}%</span>' if d else ""
     variants = ""
@@ -1208,7 +1208,7 @@ def page_product(p):
     if rating_of(p):  # chỉ khi có ≥ 3 đánh giá thật
         ld["aggregateRating"] = {"@type": "AggregateRating", "ratingValue": rating_of(p)[0], "reviewCount": rating_of(p)[1], "bestRating": 5, "worstRating": 1}
     desc = strip_tags(p["summary"])[:158]
-    return layout(path, p["name"], desc, body, og=pimg(p["images"][0]), jsonld=[ld, bld], body_class="page-product")
+    return layout(path, p["name"], desc, body, og=pimg(p["images"][0]), jsonld=[ld, bld], body_class="page-product", preload=pimg(p["images"][0]))
 
 
 def satc_html(p):
