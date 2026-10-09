@@ -2,7 +2,7 @@
 title: Hướng dẫn sửa website
 nav: Website
 order: 3
-updated: 2026-09-30
+updated: 2026-10-09
 description: Đăng bài, sửa sản phẩm, giá, cài đặt website và tạo link theo dõi trên thucduonglanh.vn/admin.
 ---
 
@@ -53,8 +53,13 @@ Muốn ẩn bài mà không xoá: tắt **“Hiển thị trên web”**.
 4. **Hết hàng, ngừng bán**: tắt **“Hiển thị trên web”**.
 5. **Sản phẩm nổi bật**: bật để hiện ở mục “Sản phẩm được yêu thích nhất” trên trang chủ.
 6. **Nhãn trên ảnh**: ví dụ “Bán chạy”, “Mới”. Để trống nếu không cần.
-7. **Gợi ý mua kèm**: chọn các sản phẩm muốn gợi ý khi khách mua sản phẩm này (ví dụ Ruốc gợi ý Xì dầu). Để trống thì web tự gợi ý món giúp đơn đạt mức miễn phí ship.
-8. Bấm **Lưu**.
+7. **Gợi ý mua kèm**: chọn các sản phẩm muốn gợi ý khi khách mua sản phẩm này (ví dụ Ruốc gợi ý Xì dầu). Để trống thì web tự gợi ý món giúp đơn đạt mức miễn phí ship. Giỏ hàng đã đủ freeship thì web gợi ý 1 món trong danh sách này ("Thường mua kèm").
+8. **Số gói/phần**: ví dụ hộp 20 gói thì nhập 20 (sản phẩm nhiều quy cách nhập ở từng quy cách). Web hiện thêm dòng *"≈ 22.500đ/gói"* dưới giá. Ô **Đơn vị phần**: gói, bữa, ly… Không chắc số gói thì để trống.
+9. **Huy hiệu chứng nhận**: hiện thành hàng nhãn nhỏ dưới mô tả ngắn, ví dụ *Kiểm nghiệm NIFC*, *GMP – ISO 22000:2018*. **Chỉ ghi điều có giấy tờ thật.** Huy hiệu có chữ "kiểm nghiệm" bấm vào sẽ cuộn tới mục *Tiêu chuẩn & kiểm nghiệm*; có **Ảnh phiếu kiểm nghiệm** thì mở luôn ảnh đó.
+10. **Nhu cầu**: chọn sản phẩm thuộc thẻ nào trong khối *"Chọn theo nhu cầu"* (Bữa sáng bận rộn, Ăn chay ngon miệng…).
+11. **Từ khóa tìm kiếm**: các từ khách hay gõ (ăn sáng, bữa phụ, ăn chay, mẹ sau sinh…). Gõ có dấu hay không dấu đều tìm ra. Từ khóa **không hiện ra web**, chỉ dùng để tìm. Từ đứng trước được ưu tiên.
+12. **Đánh giá khách hàng**: chỉ nhập **đánh giá thật** (tên, nơi ở, số sao, lời nhận xét, ảnh tin nhắn hoặc video). Có đánh giá thì trang sản phẩm hiện khối *"Khách hàng nói gì"*. Từ **3 đánh giá có chấm sao** trở lên, web mới hiện sao trung bình trên thẻ sản phẩm và báo cho Google. Không tự viết đánh giá.
+13. Bấm **Lưu**.
 
 > Giá sửa trên website cũng tự cập nhật vào danh sách sản phẩm khi tạo đơn trên CRM.
 
@@ -96,7 +101,8 @@ Vào **Cài đặt website**:
 | Mục | Sửa được gì |
 | --- | --- |
 | **Thông tin liên hệ, mạng xã hội, ngân hàng** | Hotline, Zalo, email, địa chỉ, giờ làm việc. Link Facebook, TikTok, YouTube, Shopee, Zalo OA. Tài khoản nhận chuyển khoản (mã QR). Phí vận chuyển (hiện tại 30.000đ, miễn phí từ 300.000đ). Các kênh cộng đồng trên trang chủ. **Video thương hiệu** (link YouTube, tiêu đề, mô tả) hiện ở trang chủ (đầu phần "Khách hàng nói gì") và trang Giới thiệu; xoá link thì khối video tự ẩn. **Ebook quà tặng**: trang nhận ebook nằm ngay trên web tại **thucduonglanh.vn/ebook/** (dùng link này cho quảng cáo và bài đăng). Khách điền họ tên + số điện thoại là mở được ebook (sách lật Heyzine, có video thực đơn 7 ngày) và được mời vào nhóm Zalo Sống khỏe. Số khách vào thẳng CRM, tab **Khách hỏi**, kênh **"Ebook – quà tặng (Website)"**, kèm nguồn (Facebook, TikTok…) và báo Telegram cho người được giao. Trong ô cài đặt sửa được: **Link đọc ebook (Heyzine)** (đổi ebook thì dán link mới), tiêu đề, mô tả, ảnh bìa của khung mời ở trang chủ, cuối mỗi bài viết, menu điện thoại và hộp tư vấn. Xoá ô Link trang ebook thì ẩn toàn bộ lời mời. **Link nhóm Zalo Sống khỏe** hiện trong menu điện thoại và trang Đặt hàng thành công. **Ưu đãi chỉ có khi đặt trên website**: bật/tắt, mức giảm chung (%), **câu quảng bá chính** (hiện ở dòng trên cùng và khung ưu đãi, ví dụ "Giá tại website luôn tốt hơn mua trên sàn"), quà tặng (tên, trị giá, điều kiện). Giá trong từng sản phẩm vẫn nhập **giá gốc**; web tự giảm, gạch giá gốc, hiện nhãn −%, khung ưu đãi ở trang sản phẩm / thanh toán và dòng ưu đãi trên cùng. Muốn **mỗi sản phẩm giảm một mức khác**: vào **Sản phẩm → chọn sản phẩm → ô "Giảm khi đặt trên web (%)"**: để trống = theo mức chung, nhập **0 = không giảm** (sản phẩm giá thấp, lãi mỏng, ví dụ Ruốc Rong Biển), nhập số khác = giảm riêng. Sản phẩm nhiều quy cách có thể nhập riêng cho từng quy cách. CRM (đơn gọi điện, Zalo) vẫn dùng giá gốc. Biểu tượng Shopee không hiện trên web để khách đặt trực tiếp. |
-| **Trang chủ – Slider đầu trang** | Ảnh, tiêu đề, sản phẩm quảng bá ở đầu trang chủ |
+| **Trang chủ – Ảnh lớn đầu trang & băng chuyền** | **Ảnh lớn đầu trang** (cố định, không tự chạy): dòng nhỏ, tiêu đề, câu dẫn, mã sản phẩm/gói của nút chính (giá tự lấy), chữ trên nút, ảnh. **Băng chuyền sản phẩm**: các thẻ nằm dưới mục Danh mục, khách tự lướt. |
+| **Chọn theo nhu cầu** | Các thẻ *Bữa sáng bận rộn*, *Bữa phụ từ hạt*… ở trang chủ (ngay dưới ảnh lớn) và trang Sản phẩm. Gắn sản phẩm vào thẻ ở ô **Nhu cầu** của từng sản phẩm. Thẻ chỉ có 1 sản phẩm thì bấm vào là tới thẳng sản phẩm đó. Không ghi tên bệnh hay công dụng chữa bệnh. |
 | **Hồ sơ thương hiệu (brochure)** | Link sách lật, file PDF, ảnh bìa, các chương, số liệu, giải thưởng |
 | **Danh mục sản phẩm**, **Chuyên mục bài viết** | Thêm, đổi tên danh mục. **Không đổi “Mã”** của danh mục đang có sản phẩm, vì đường link sẽ bị đổi. |
 
