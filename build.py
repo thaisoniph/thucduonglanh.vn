@@ -62,7 +62,8 @@ for f in sorted((CONTENT / "products").glob("*.json")):
         continue
     p["slug"] = f.stem
     p["price"], p["regular_price"] = num(p.get("price")), num(p.get("regular_price"))
-    p["variants"] = [{**v, "price": num(v.get("price")), "regular_price": num(v.get("regular_price"))} for v in (p.get("variants") or []) if v.get("name")]
+    p["variants"] = [{**v, "price": num(v.get("price")), "regular_price": num(v.get("regular_price")), "servings": num(v.get("servings"))} for v in (p.get("variants") or []) if v.get("name")]
+    p["servings"] = num(p.get("servings"))  # số gói/phần trong 1 hộp → dòng "≈ …đ/gói" (để trống = không hiện)
     if p["variants"] and p["price"] is None:
         p["price"], p["regular_price"] = p["variants"][0]["price"], p["variants"][0]["regular_price"]
     p["images"] = [i for i in (p.get("images") or []) if i] or ["/assets/img/brand/og-image.jpg"]
@@ -490,18 +491,36 @@ def layout(path, title, desc, body, og=None, jsonld=None, body_class="", noindex
 
 
 # ---------------------------------------------------------------- components
-def price_html(p, cls="price", from_=False):
-    vs = [v["price"] for v in p.get("variants", []) if v.get("price") is not None]
-    if from_ and len(vs) > 1:
-        return f'<div class="{cls}"><span class="from">Từ</span><ins>{money(min(vs))}</ins></div>'
+def card_item(p):
+    """Giá hiện trên thẻ: quy cách rẻ nhất (thẻ ghi "Từ …") hoặc chính sản phẩm."""
+    vs = [v for v in p.get("variants", []) if v.get("price") is not None]
+    return min(vs, key=lambda v: v["price"]) if len(vs) > 1 else p
+
+
+def per_serving(it, p=None):
+    """Dòng neo giá "≈ 22.500đ/gói" khi biết số gói/phần trong hộp (làm tròn 500đ)."""
+    n, price = it.get("servings"), it.get("price")
+    if not n or not price:
+        return ""
+    unit = it.get("serving_unit") or (p or it).get("serving_unit") or "phần"
+    return f'≈ {money(round(price / n / 500) * 500).replace(" ₫", "đ")}/{esc(unit)}'
+
+
+def price_html(p, cls="price", from_=False, off=False):
+    if from_ and len([v for v in p.get("variants", []) if v.get("price") is not None]) > 1:
+        v = card_item(p)
+        old = f'<del>{money(v["regular_price"])}</del>' if discount(v) else ""
+        return f'<div class="{cls}"><span class="from">Từ</span>{old}<ins>{money(v["price"])}</ins></div>'
     if p.get("price") is None:
         return f'<div class="{cls}"><ins class="contact">Liên hệ</ins></div>'
-    old = f'<del>{money(p["regular_price"])}</del>' if discount(p) else ""
-    return f'<div class="{cls}">{old}<ins>{money(p["price"])}</ins></div>'
+    d = discount(p)
+    old = f'<del>{money(p["regular_price"])}</del>' if d else ""
+    tag = f'<span class="p-off">-{d}%</span>' if d and off else ""
+    return f'<div class="{cls}">{old}<ins>{money(p["price"])}</ins>{tag}</div>'
 
 
 def product_card(p, lazy=True):
-    d = discount(p)
+    d = discount(card_item(p))
     badge = f'<span class="badge-sale">-{d}%</span>' if d else (f'<span class="badge-tag">{esc(p["badge"])}</span>' if p.get("badge") else "")
     loading = ' loading="lazy"' if lazy else ""
     img2 = p["images"][1] if len(p["images"]) > 1 else p["images"][0]
@@ -661,7 +680,7 @@ def page_ebook():
 
 
 def benefits_banner():
-    items = [("truck", "Miễn phí ship", f"đơn từ {money(SITE.get('free_ship_threshold')).replace(' ₫', 'đ')}" if SITE.get("free_ship_threshold") else "toàn quốc"), ("return", "Đổi trả", "dễ dàng"), ("chat", "Tư vấn", "tận tâm"), ("wallet", "Thanh toán", "tiện lợi")]
+    items = [("truck", "Miễn phí ship", f"đơn từ {money(SITE.get('free_ship_threshold')).replace(' ₫', 'đ')}" if SITE.get("free_ship_threshold") else "toàn quốc"), ("return", "Đổi trả 7 ngày", "nếu lỗi NSX"), ("chat", "Tư vấn", "tận tâm"), ("wallet", "Thanh toán", "tiện lợi")]
     feats = "".join(f'<div class="bb-feat">{ic(i,"bb-ic")}<span>{a}<br><b>{b}</b></span></div>' for i, a, b in items)
     pills = "".join(f'<div class="bb-pill">{ic(i,"bb-pic")}<span>{a}<b>{b}</b></span></div>' for i, a, b in [
         ("leaf", "Sản phẩm", "thuần tự nhiên"), ("shield", "Nguồn gốc", "rõ ràng"), ("check", "Kiểm nghiệm", "đầy đủ")])
@@ -873,7 +892,8 @@ def section_html(i, s):
         inner = '<table class="nutri">' + "".join(f"<tr><th>{esc(r.get('label'))}</th><td>{esc(r.get('value'))}</td></tr>" for r in (s.get("rows") or [])) + "</table>"
     else:
         inner = md(s.get("text"))
-    return f'<div class="d-sec d-type-{style}"><h3>{i}. {esc(s.get("title"))}</h3><div class="d-box">{inner}</div></div>'
+    anchor = ' id="kiem-nghiem"' if "kiểm nghiệm" in (s.get("title") or "").lower() else ""
+    return f'<div class="d-sec d-type-{style}"{anchor}><h3>{i}. {esc(s.get("title"))}</h3><div class="d-box">{inner}</div></div>'
 
 
 def gift_text():
@@ -1086,12 +1106,18 @@ def page_product(p):
         buy = f'''<div class="qty-row"><div class="qty" data-qty><button type="button" data-qminus aria-label="Giảm">−</button><input type="number" min="1" value="1" aria-label="Số lượng" id="qtyInput"><button type="button" data-qplus aria-label="Tăng">+</button></div>
   <button class="btn btn-outline" data-add-detail="{p["slug"]}">Thêm vào giỏ hàng</button></div>
   <div class="buy-row"><a class="btn btn-zalo" href="{zalo_link()}" target="_blank" rel="noopener">{ic("zalo")} Tư vấn qua Zalo</a></div>'''
+    has_cert = any("kiểm nghiệm" in (s.get("title") or "").lower() for s in p.get("sections", []))
+    cert_img = f' data-cert-img="{esc(pimg(p["test_cert_img"]))}"' if p.get("test_cert_img") else ""
+    badges = "".join((f'<a class="p-badge" href="#kiem-nghiem" data-cert{cert_img}>✓ {esc(b)}</a>' if has_cert and ("kiểm nghiệm" in b.lower() or "nifc" in b.lower()) else f'<span class="p-badge">✓ {esc(b)}</span>')
+                     for b in (p.get("badges") or []) if b)
+    v0 = p["variants"][0] if p.get("variants") else p
     if landing:
         info_top = combo_hero_info(p)
     else:
         info_top = f'''<h1 class="p-title">{esc(p["name"])}</h1>
       <div class="p-summary">{p["summary"]}</div>
-      <div class="p-price" id="pPrice">{price_html(p, "price big")}</div>'''
+      {f'<div class="p-badges">{badges}</div>' if badges else ""}
+      <div class="p-price" id="pPrice">{price_html(p, "price big", off=True)}<div class="p-per" id="pPer">{per_serving(v0, p)}</div></div>'''
     share_url = DOMAIN + path
     sections = "".join(section_html(i, s) for i, s in enumerate(p.get("sections", []), 1))
     disc = f'<p class="disclaimer">{esc(p["disclaimer"])}</p>' if p.get("disclaimer") else ""
@@ -1109,6 +1135,7 @@ def page_product(p):
       {info_top}
       {"" if landing else (combo_parts_html(p) if p.get("combo") else unit)}{variants}
       {buy}
+      {trust_line(p) if purchasable else ""}
       {combo_parts_html(p) if landing else ""}
       {offer_box(p) if purchasable else ""}
       {"" if p.get("combo") else in_combos_html(p)}
@@ -1153,6 +1180,13 @@ def page_product(p):
         ld["offers"] = {"@type": "Offer", "priceCurrency": "VND", "price": p["price"], "availability": "https://schema.org/InStock", "url": DOMAIN + path}
     desc = strip_tags(p["summary"])[:158]
     return layout(path, p["name"], desc, body, og=pimg(p["images"][0]), jsonld=[ld, bld], body_class="page-product")
+
+
+def trust_line(p):
+    """Dòng cam kết nhỏ ngay dưới nút mua (khớp chính sách giao hàng / kiểm hàng)."""
+    th = SITE.get("free_ship_threshold")
+    ship = "🚚 Miễn phí vận chuyển" if p.get("free_ship") else (f"🚚 Freeship đơn từ {th // 1000}k" if th and SITE.get("shipping_fee") else "🚚 Giao toàn quốc")
+    return f'<p class="p-trust"><span>{ship}</span><span>📦 Giao Hà Nội 1–2 ngày</span><span>✅ Kiểm tra hàng trước khi trả tiền</span></p>'
 
 
 def brochure_promo():
@@ -1450,7 +1484,7 @@ def main():
     # dữ liệu cho JavaScript
     js_products = [{
         "slug": p["slug"], "name": p["name"], "short": p.get("short_name") or p["name"], "price": p.get("price"),
-        "regular": p.get("regular_price"), "off": p.get("web_off") or 0, "fs": bool(p.get("free_ship")), "days": num(p.get("days")) or 0, "unit": p.get("unit", ""), "variants": p.get("variants", []),
+        "regular": p.get("regular_price"), "off": p.get("web_off") or 0, "fs": bool(p.get("free_ship")), "days": num(p.get("days")) or 0, "servings": p.get("servings"), "serving_unit": p.get("serving_unit") or "", "unit": p.get("unit", ""), "variants": p.get("variants", []),
         "img": pimg(p["images"][0], True), "url": f"/san-pham/{p['slug']}/", "cat": CAT_BY[p["category"]]["name"],
         "text": strip_tags(p["name"] + " " + p["summary"] + " " + " ".join(p.get("highlights", []))),
         "featured": bool(p.get("featured")), "upsell": [x for x in (p.get("upsell") or []) if x],

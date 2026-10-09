@@ -99,12 +99,22 @@ collections:
           - { label: "Giá bán (đồng)", name: price, widget: number, value_type: int, required: false }
           - { label: "Giá gốc gạch ngang (đồng)", name: regular_price, widget: number, value_type: int, required: false }
           - { label: "Giảm khi đặt trên web (%) – riêng quy cách này", name: web_discount, widget: number, value_type: int, min: 0, max: 90, required: false, hint: "Để trống = theo mức của sản phẩm. Nhập 0 = quy cách này không giảm." }
+          - { label: "Số gói/phần trong quy cách này", name: servings, widget: number, value_type: int, required: false, hint: "Ví dụ hộp 20 gói → 20. Web hiện “≈ 22.500đ/gói”. Để trống = không hiện." }
       - label: "Ảnh sản phẩm"
         name: images
         widget: list
         hint: "Ảnh đầu tiên là ảnh đại diện. Nên dùng ảnh vuông ≥1000px. Web tự nén ảnh."
         field: { label: "Ảnh", name: image, widget: image }
       - { label: "Mô tả ngắn (cạnh giá)", name: summary, widget: markdown, buttons: [bold, italic, link] }
+      - { label: "Số gói/phần (sản phẩm 1 quy cách)", name: servings, widget: number, value_type: int, required: false, hint: "Ví dụ hộp 15 gói → 15. Có nhiều quy cách thì nhập ở từng quy cách." }
+      - { label: "Đơn vị phần", name: serving_unit, widget: string, required: false, hint: "Chữ sau giá mỗi phần: gói, bữa, ly… Để trống = phần." }
+      - label: "Huy hiệu chứng nhận (dưới mô tả ngắn)"
+        name: badges
+        widget: list
+        required: false
+        hint: "Chỉ ghi điều có giấy tờ thật, ví dụ: Kiểm nghiệm NIFC, GMP – ISO 22000:2018. Huy hiệu có chữ “kiểm nghiệm” bấm vào sẽ tới mục Tiêu chuẩn & kiểm nghiệm."
+        field: { label: "Huy hiệu", name: badge, widget: string }
+      - { label: "Ảnh phiếu kiểm nghiệm", name: test_cert_img, widget: image, required: false, hint: "Có ảnh thì bấm huy hiệu Kiểm nghiệm sẽ mở ảnh này." }
       - label: "Điểm nổi bật (dấu tích xanh)"
         name: highlights
         widget: list

@@ -119,5 +119,12 @@
     "ruoc-rong-bien-vi-suon-non",
     "bua-an-dinh-duong-vitagreen"
   ],
-  "disclaimer": "Thực phẩm. Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh."
+  "disclaimer": "Thực phẩm. Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh.",
+  "badges": [
+    "Nhà máy đạt GMP",
+    "Chè vằng Quảng Trị – Chỉ dẫn địa lý",
+    "Không chất bảo quản"
+  ],
+  "servings": 15,
+  "serving_unit": "gói"
 }
