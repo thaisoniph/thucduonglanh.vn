@@ -99,12 +99,52 @@ collections:
           - { label: "Giá bán (đồng)", name: price, widget: number, value_type: int, required: false }
           - { label: "Giá gốc gạch ngang (đồng)", name: regular_price, widget: number, value_type: int, required: false }
           - { label: "Giảm khi đặt trên web (%) – riêng quy cách này", name: web_discount, widget: number, value_type: int, min: 0, max: 90, required: false, hint: "Để trống = theo mức của sản phẩm. Nhập 0 = quy cách này không giảm." }
+          - { label: "Số gói/phần trong quy cách này", name: servings, widget: number, value_type: int, required: false, hint: "Ví dụ hộp 20 gói → 20. Web hiện “≈ 22.500đ/gói”. Để trống = không hiện." }
       - label: "Ảnh sản phẩm"
         name: images
         widget: list
         hint: "Ảnh đầu tiên là ảnh đại diện. Nên dùng ảnh vuông ≥1000px. Web tự nén ảnh."
         field: { label: "Ảnh", name: image, widget: image }
       - { label: "Mô tả ngắn (cạnh giá)", name: summary, widget: markdown, buttons: [bold, italic, link] }
+      - { label: "Số gói/phần (sản phẩm 1 quy cách)", name: servings, widget: number, value_type: int, required: false, hint: "Ví dụ hộp 15 gói → 15. Có nhiều quy cách thì nhập ở từng quy cách." }
+      - { label: "Đơn vị phần", name: serving_unit, widget: string, required: false, hint: "Chữ sau giá mỗi phần: gói, bữa, ly… Để trống = phần." }
+      - label: "Huy hiệu chứng nhận (dưới mô tả ngắn)"
+        name: badges
+        widget: list
+        required: false
+        hint: "Chỉ ghi điều có giấy tờ thật, ví dụ: Kiểm nghiệm NIFC, GMP – ISO 22000:2018. Huy hiệu có chữ “kiểm nghiệm” bấm vào sẽ tới mục Tiêu chuẩn & kiểm nghiệm."
+        field: { label: "Huy hiệu", name: badge, widget: string }
+      - { label: "Ảnh phiếu kiểm nghiệm", name: test_cert_img, widget: image, required: false, hint: "Có ảnh thì bấm huy hiệu Kiểm nghiệm sẽ mở ảnh này." }
+      - label: "Nhu cầu"
+        name: needs
+        widget: relation
+        collection: settings
+        file: needs
+        value_field: "needs.*.slug"
+        search_fields: ["needs.*.name"]
+        display_fields: ["needs.*.name"]
+        multiple: true
+        required: false
+        hint: "Sản phẩm hiện ở các thẻ “Chọn theo nhu cầu” nào."
+      - label: "Đánh giá khách hàng (chỉ nhập đánh giá thật)"
+        name: reviews
+        widget: list
+        required: false
+        summary: "{{fields.name}} – {{fields.rating}}★"
+        hint: "Hiện ở khối “Khách hàng nói gì” trên trang sản phẩm. Từ 3 đánh giá có chấm sao trở lên, web mới hiện sao trung bình trên thẻ sản phẩm và gửi cho Google. Không tự tạo đánh giá."
+        fields:
+          - { label: "Tên khách", name: name, widget: string, hint: "Có thể viết tắt: Chị Lan" }
+          - { label: "Nơi ở / nghề nghiệp", name: location, widget: string, required: false }
+          - { label: "Số sao (1–5)", name: rating, widget: number, value_type: int, min: 1, max: 5, required: false }
+          - { label: "Lời nhận xét", name: text, widget: text, required: false }
+          - { label: "Ảnh (ảnh chụp tin nhắn / ảnh khách gửi)", name: img, widget: image, required: false, hint: "Có video thì ảnh này làm ảnh bìa video." }
+          - { label: "Video (link YouTube hoặc file .mp4)", name: video, widget: string, required: false }
+      - label: "Từ khóa tìm kiếm (không hiện ra web)"
+        name: keywords
+        widget: list
+        required: false
+        hint: "Khách gõ các từ này (có dấu hay không dấu đều được) sẽ tìm ra sản phẩm. Ví dụ: ăn sáng, bữa phụ, ăn chay. Từ đứng trước ưu tiên hơn. Chỉ dùng để tìm, không hiện ra web."
+        field: { label: "Từ khóa", name: keyword, widget: string }
       - label: "Điểm nổi bật (dấu tích xanh)"
         name: highlights
         widget: list
@@ -273,6 +313,36 @@ collections:
         hint: "Ảnh đầu tiên là ảnh đại diện (vuông ≥1000px)."
         field: { label: "Ảnh", name: image, widget: image }
       - { label: "Mô tả ngắn (cạnh giá)", name: summary, widget: markdown, buttons: [bold, italic, link] }
+      - label: "Nhu cầu"
+        name: needs
+        widget: relation
+        collection: settings
+        file: needs
+        value_field: "needs.*.slug"
+        search_fields: ["needs.*.name"]
+        display_fields: ["needs.*.name"]
+        multiple: true
+        required: false
+        hint: "Sản phẩm hiện ở các thẻ “Chọn theo nhu cầu” nào."
+      - label: "Đánh giá khách hàng (chỉ nhập đánh giá thật)"
+        name: reviews
+        widget: list
+        required: false
+        summary: "{{fields.name}} – {{fields.rating}}★"
+        hint: "Hiện ở khối “Khách hàng nói gì” trên trang sản phẩm. Từ 3 đánh giá có chấm sao trở lên, web mới hiện sao trung bình trên thẻ sản phẩm và gửi cho Google. Không tự tạo đánh giá."
+        fields:
+          - { label: "Tên khách", name: name, widget: string, hint: "Có thể viết tắt: Chị Lan" }
+          - { label: "Nơi ở / nghề nghiệp", name: location, widget: string, required: false }
+          - { label: "Số sao (1–5)", name: rating, widget: number, value_type: int, min: 1, max: 5, required: false }
+          - { label: "Lời nhận xét", name: text, widget: text, required: false }
+          - { label: "Ảnh (ảnh chụp tin nhắn / ảnh khách gửi)", name: img, widget: image, required: false, hint: "Có video thì ảnh này làm ảnh bìa video." }
+          - { label: "Video (link YouTube hoặc file .mp4)", name: video, widget: string, required: false }
+      - label: "Từ khóa tìm kiếm (không hiện ra web)"
+        name: keywords
+        widget: list
+        required: false
+        hint: "Khách gõ các từ này (có dấu hay không dấu đều được) sẽ tìm ra sản phẩm. Ví dụ: ăn sáng, bữa phụ, ăn chay. Từ đứng trước ưu tiên hơn. Chỉ dùng để tìm, không hiện ra web."
+        field: { label: "Từ khóa", name: keyword, widget: string }
       - label: "Điểm nổi bật (dấu tích xanh)"
         name: highlights
         widget: list
@@ -440,11 +510,21 @@ collections:
           - { label: "Phí ship cố định (đồng, 0 = báo khi xác nhận đơn)", name: shipping_fee, widget: number, value_type: int, default: 0 }
 
       - name: home
-        label: "Trang chủ – Slider đầu trang"
+        label: "Trang chủ – Ảnh lớn đầu trang & băng chuyền"
         file: data/home.json
         format: json
         fields:
-          - label: "Các slide"
+          - label: "Ảnh lớn đầu trang (cố định, không tự chạy)"
+            name: hero
+            widget: object
+            fields:
+              - { label: "Dòng nhỏ phía trên", name: eyebrow, widget: string, required: false }
+              - { label: "Tiêu đề lớn", name: title, widget: string, hint: "Đặt chữ giữa hai dấu *sao* để hiện màu vàng nghiêng, ví dụ: Sống lành bắt đầu từ *10 ngày*" }
+              - { label: "Câu dẫn", name: sub, widget: text, required: false }
+              - { label: "Mã sản phẩm / gói khi bấm nút chính", name: product, widget: string, hint: "Phần cuối đường link sản phẩm, ví dụ thu-thach-10-ngay-song-lanh. Giá tự lấy theo sản phẩm." }
+              - { label: "Chữ trên nút chính", name: cta, widget: string, hint: "Web tự thêm giá phía sau, ví dụ: Bắt đầu 10 ngày – 349.000đ" }
+              - { label: "Ảnh (vuông)", name: image, widget: image }
+          - label: "Băng chuyền sản phẩm (dưới Danh mục)"
             name: slides
             widget: list
             summary: "{{fields.title}}"
@@ -505,6 +585,22 @@ collections:
               - { label: "Mã (không dấu, dùng trên đường link)", name: slug, widget: string, hint: "Ví dụ: tra-thao-moc. Không đổi mã của danh mục đang có sản phẩm." }
               - { label: "Ảnh", name: image, widget: image }
               - { label: "Mô tả", name: desc, widget: text, required: false }
+
+      - name: needs
+        label: "Chọn theo nhu cầu"
+        file: data/needs.json
+        format: json
+        fields:
+          - label: "Nhu cầu"
+            name: needs
+            widget: list
+            summary: "{{fields.icon}} {{fields.name}}"
+            hint: "Thẻ ở trang chủ (dưới ảnh lớn) và trang danh sách sản phẩm. Gắn sản phẩm vào nhu cầu ở ô “Nhu cầu” của từng sản phẩm. Nhu cầu chỉ có 1 sản phẩm thì bấm vào là tới thẳng sản phẩm đó. Không ghi tên bệnh hay công dụng chữa bệnh."
+            fields:
+              - { label: "Tên nhu cầu", name: name, widget: string, hint: "Ví dụ: Bữa sáng bận rộn" }
+              - { label: "Mã (không dấu, dùng trên đường link)", name: slug, widget: string, hint: "Ví dụ: bua-sang-ban-ron. Link: /nhu-cau/bua-sang-ban-ron/" }
+              - { label: "Biểu tượng (emoji)", name: icon, widget: string, required: false }
+              - { label: "Mô tả ngắn", name: desc, widget: string, required: false }
 
       - name: post_categories
         label: "Chuyên mục bài viết"

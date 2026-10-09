@@ -83,7 +83,15 @@ website/
 
 **Nội dung**: Góc Sống Lành, Giới thiệu, **Hồ sơ thương hiệu** (/ho-so-thuong-hieu/ – sách lật Heyzine + PDF), trang chính sách, Liên hệ (form gửi về Sheet/Telegram).
 
-**Liên hệ nhanh**: nút Gọi / Zalo nổi (điện thoại: 2 nút), hotline **0966 326 522**, Zalo OA ở chân trang.
+**Liên hệ nhanh**: nút Gọi / Zalo nổi (điện thoại: 2 nút), hotline **0966 326 522**, Zalo OA ở chân trang. Bong bóng lời chào của hộp tư vấn ẩn sẵn; tự bung 1 lần/phiên khi khách ở trang ≥ 25 giây hoặc cuộn ≥ 60% (`initFloat`, sessionStorage `tdl_fw_auto`; bấm × → `tdl_fw`, không bung lại; không bung khi đang hiện thanh mua nhanh).
+
+**Tối ưu chuyển đổi (CRO, 10/2026)**
+- Trang chủ: hero tĩnh (`data/home.json` → `hero`; preload ảnh, H1 duy nhất), khối **Chọn theo nhu cầu** (`data/needs.json` + ô `needs` của sản phẩm/gói; nhu cầu ≥ 2 sản phẩm có trang `/nhu-cau/<slug>/`, 1 sản phẩm thì dẫn thẳng PDP), băng chuyền từ `slides` (không tự chạy, `initRail`).
+- Trang sản phẩm: giá gạch + nhãn −X% + "≈ …đ/gói" theo quy cách (`servings`, `serving_unit` ở sản phẩm/quy cách; JS `renderPrice` → sự kiện `tdl:variant`), hàng huy hiệu `badges` (huy hiệu có chữ "kiểm nghiệm" → `#kiem-nghiem`, mở `test_cert_img` nếu có), dòng cam kết `trust_line`, khối đánh giá `reviews` (sao + `aggregateRating` chỉ khi ≥ 3 đánh giá có sao: `rating_of`).
+- Thanh mua nhanh dính đáy `#satc` (≤ 960px, `initSatc`): hiện khi khu nút mua gốc ra khỏi màn hình, ẩn khi chân trang hiện; nút trên thanh bấm hộ nút gốc nên cùng quy cách, số lượng, sự kiện. Thay `#stickyBuy` cũ.
+- Thẻ sản phẩm "Từ …": giá gạch + nhãn theo đúng quy cách rẻ nhất (`card_item`).
+- Tìm kiếm: `keywords` (nội bộ, không hiển thị) + tên + mô tả, không dấu, khớp đầu từ; khớp cả cụm ở tên/từ khóa thì chỉ lấy các sản phẩm đó. Không có kết quả → chip nhu cầu + gói khởi động + nút Zalo.
+- Giỏ hàng / minicart: `cartUpsell` (chưa đủ freeship: tối đa 2 món giá ≤ phần thiếu + 100k, ưu tiên `UP_FIRST` = Ruốc, DILVANG; đủ: 1 món trong `upsell` của sản phẩm trong giỏ).
 
 ---
 
@@ -185,6 +193,7 @@ Apps Script giới hạn 200 phiên bản/dự án: báo lỗi "Không tạo đ�
 - Mã trong `data/config.json`: `ga4_id` = **G-X40P3S7FZ8**, `clarity_id` = **yoto1kqbmx**, `meta_pixel` = **1342001937266392** (lấy từ trang Ladi ebook cũ, bật 2026-10-04), `tiktok_pixel` (để trống = chưa bật). Form ebook bắn `generate_lead` → Meta `Lead`.
 - Công cụ chỉ chạy **sau khi khách bấm "Đồng ý"** ở thông báo cookie (Nghị định 13/2023/NĐ-CP).
 - Sự kiện: `view_item`, `add_to_cart`, `begin_checkout`, `purchase` (doanh thu), `upsell_add`, `paste_fill`, `click_call`, `click_zalo`, `view_brochure`, `video_play`, `search`, `generate_lead`.
+- Sự kiện CRO (10/2026, nhánh `feat/cro-quickwins`): `chat_widget_open` (`trigger`: auto_time / auto_scroll / click), `sticky_atc_click` (`action`: add_to_cart / buy_now), `search` (`search_term`, gõ ở ô tìm nhanh: gửi sau 1,2 giây ngừng gõ, mỗi từ 1 lần), `search_no_result`, `cart_upsell_add` (`item_id`, `location`: minicart / gio_hang). Muốn xem trong báo cáo GA4 thì đăng ký tham số `trigger`, `action`, `location` làm chiều tuỳ chỉnh (Quản trị → Định nghĩa tuỳ chỉnh).
 - Nguồn khách (UTM / fbclid / ttclid / gclid / trang giới thiệu) lưu 30 ngày → cột **Nguồn** của đơn.
 - **Tạo link theo dõi**: https://thucduonglanh.vn/admin/utm – dùng cho mọi bài đăng/quảng cáo.
 - Báo cáo: analytics.google.com (Thời gian thực, Thu nạp người dùng, Kiếm tiền) · clarity.microsoft.com (Bản ghi, Bản đồ nhiệt).

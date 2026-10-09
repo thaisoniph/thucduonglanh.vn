@@ -15,7 +15,8 @@
     {
       "name": "Hộp 500g (20 gói x 25g)",
       "price": 450000,
-      "regular_price": null
+      "regular_price": null,
+      "servings": 20
     },
     {
       "name": "Hộp 125g",
@@ -122,5 +123,35 @@
   "upsell": [
     "tra-hoa-tan-dilvang-dinh-lang-che-vang",
     "dinh-duong-tu-hat-va-curcumin"
+  ],
+  "badges": [
+    "Kiểm nghiệm NIFC",
+    "GMP – ISO 22000:2018",
+    "Không đường tinh luyện"
+  ],
+  "serving_unit": "gói",
+  "keywords": [
+    "bữa sáng",
+    "ăn sáng",
+    "thay bữa",
+    "bữa phụ",
+    "người bận rộn",
+    "dân văn phòng",
+    "ngũ cốc",
+    "hạt",
+    "dinh dưỡng",
+    "fucoidan",
+    "spirulina",
+    "không đường",
+    "kiêng đường",
+    "tiểu đường",
+    "tiêu hóa",
+    "dạ dày",
+    "người lớn tuổi",
+    "ăn chay"
+  ],
+  "needs": [
+    "bua-sang-ban-ron",
+    "bua-phu-tu-hat"
   ]
 }

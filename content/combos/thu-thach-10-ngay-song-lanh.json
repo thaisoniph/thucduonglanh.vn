@@ -84,9 +84,18 @@
     "title": "10 ngày không phải để trở nên hoàn hảo",
     "sub": "10 ngày chỉ để bạn bắt đầu.",
     "steps": [
-      { "label": "Ngày 1 – 3", "text": "Làm quen với những lựa chọn mới." },
-      { "label": "Ngày 4 – 7", "text": "Đưa chúng vào nhịp sinh hoạt hàng ngày." },
-      { "label": "Ngày 8 – 10", "text": "Nhìn lại và lựa chọn những thói quen phù hợp nhất để tiếp tục duy trì." }
+      {
+        "label": "Ngày 1 – 3",
+        "text": "Làm quen với những lựa chọn mới."
+      },
+      {
+        "label": "Ngày 4 – 7",
+        "text": "Đưa chúng vào nhịp sinh hoạt hàng ngày."
+      },
+      {
+        "label": "Ngày 8 – 10",
+        "text": "Nhìn lại và lựa chọn những thói quen phù hợp nhất để tiếp tục duy trì."
+      }
     ],
     "quote": "Sống lành không bắt đầu bằng những thay đổi lớn.\nSống lành bắt đầu từ những lựa chọn nhỏ được lặp lại mỗi ngày."
   },
@@ -128,5 +137,21 @@
       "text": "Gói giúp bạn bắt đầu xây dựng thói quen ăn uống lành mạnh hơn; lượng sản phẩm trong gói không phải toàn bộ khẩu phần ăn trong 10 ngày. Người đang dùng thuốc, phụ nữ mang thai, cho con bú nên hỏi ý kiến bác sĩ trước khi dùng."
     }
   ],
-  "disclaimer": "Bữa Ăn Dinh Dưỡng VitaGreen và Dinh Dưỡng Từ Hạt & Curcumin là thực phẩm bổ sung. Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh."
+  "disclaimer": "Bữa Ăn Dinh Dưỡng VitaGreen và Dinh Dưỡng Từ Hạt & Curcumin là thực phẩm bổ sung. Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh.",
+  "keywords": [
+    "combo",
+    "gói",
+    "người mới",
+    "bắt đầu",
+    "dùng thử",
+    "quà tặng",
+    "tiết kiệm",
+    "10 ngày",
+    "ăn sáng",
+    "bữa phụ",
+    "trà"
+  ],
+  "needs": [
+    "bua-sang-ban-ron"
+  ]
 }
