@@ -1,19 +1,33 @@
-name: Dựng và đăng website
+name: Website – dựng và đăng
 
+# Website thucduonglanh.vn. Chỉ chạy khi đổi phần của website: sửa riêng CRM / api / Apps Script / tài liệu thì bỏ qua.
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - 'crm/**'
+      - 'guide/**'
+      - 'api/**'
+      - 'backend/**'
+      - 'scripts/**'
+      - 'output/**'
+      - '.agent/**'
+      - '.claude/**'
+      - '*.md'
+      - '.github/workflows/deploy-crm.yml'
+      - '.github/workflows/deploy-api.yml'
+      - '.github/workflows/apps-script.yml'
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: deploy
+  group: deploy-web
   cancel-in-progress: true
 
 jobs:
-  cloudflare:
+  web:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,78 +43,3 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy dist --project-name=thucduonglanh --branch=main --commit-dirty=true
-      # CRM cho nhân sự: crm.thucduonglanh.vn (thư mục crm/ → dist-crm/, project Pages riêng)
-      - name: Tạo project CRM (chỉ lần đầu)
-        continue-on-error: true
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages project create thucduonglanh-crm --production-branch=main
-      - name: Đăng CRM lên Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: crm   # để Cloudflare thấy crm/functions (cổng nhận tin Viettel Post /vtp-webhook)
-          command: pages deploy ../dist-crm --project-name=thucduonglanh-crm --branch=main --commit-dirty=true
-      - name: Gắn tên miền crm.thucduonglanh.vn (chỉ lần đầu)
-        continue-on-error: true
-        env:
-          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CF_ZONE: 5cee9541139ab9326026e0c7f0826d7e
-        run: |
-          API=https://api.cloudflare.com/client/v4
-          H=(-H "Authorization: Bearer $CF_TOKEN" -H "Content-Type: application/json")
-          if curl -s "${H[@]}" "$API/accounts/$CF_ACCOUNT/pages/projects/thucduonglanh-crm/domains" | grep -q '"name":"crm.thucduonglanh.vn"'; then
-            echo "Tên miền đã gắn"
-          else
-            curl -s "${H[@]}" -X POST "$API/accounts/$CF_ACCOUNT/pages/projects/thucduonglanh-crm/domains" -d '{"name":"crm.thucduonglanh.vn"}' | head -c 600; echo
-          fi
-          if curl -s "${H[@]}" "$API/zones/$CF_ZONE/dns_records?name=crm.thucduonglanh.vn" | grep -q '"name":"crm.thucduonglanh.vn"'; then
-            echo "Bản ghi DNS đã có"
-          else
-            curl -s "${H[@]}" -X POST "$API/zones/$CF_ZONE/dns_records" -d '{"type":"CNAME","name":"crm","content":"thucduonglanh-crm.pages.dev","proxied":true,"comment":"CRM nhân sự"}' | head -c 600; echo
-          fi
-      # Máy chủ CRM + nhận đơn: api.thucduonglanh.vn (Cloudflare Workers + D1), code trong api/
-      - name: Chuẩn bị cơ sở dữ liệu D1
-        env:
-          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          API=https://api.cloudflare.com/client/v4
-          H=(-H "Authorization: Bearer $CF_TOKEN" -H "Content-Type: application/json")
-          LIST=$(curl -s "${H[@]}" "$API/accounts/$CF_ACCOUNT/d1/database")
-          ID=$(echo "$LIST" | python3 -c "import sys,json; d=json.load(sys.stdin); res=d.get('result') or []; print(next((x['uuid'] for x in res if x.get('name')=='thucduonglanh-crm'),''))" 2>/dev/null || echo "")
-          if [ -z "$ID" ]; then
-            echo "Tạo D1 database thucduonglanh-crm..."
-            CREATE=$(curl -s "${H[@]}" -X POST "$API/accounts/$CF_ACCOUNT/d1/database" -d '{"name":"thucduonglanh-crm"}')
-            ID=$(echo "$CREATE" | python3 -c "import sys,json; d=json.load(sys.stdin); print((d.get('result') or {}).get('uuid',''))" 2>/dev/null || echo "")
-          fi
-          echo "D1 ID: $ID"
-          if [ -z "$ID" ]; then
-            echo "::error::Lỗi D1: không tạo hoặc tìm thấy database. LIST=$LIST | CREATE=$CREATE"
-            exit 1
-          fi
-          sed -i -E "s/database_id = \".*\"/database_id = \"$ID\"/" api/wrangler.toml
-          cat api/wrangler.toml
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-      - name: Triển khai Worker và D1
-        working-directory: api
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          npm install -g wrangler
-          wrangler d1 execute thucduonglanh-crm --remote --file=schema.sql 2>&1 | tee d1.log || {
-            ERR=$(cat d1.log)
-            echo "::warning::Lỗi d1 execute: $ERR"
-          }
-          wrangler deploy 2>&1 | tee deploy.log || {
-            ERR=$(cat deploy.log)
-            echo "::error::Lỗi wrangler deploy: $ERR"
-            exit 1
-          }

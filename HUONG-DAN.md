@@ -53,7 +53,11 @@ website/
 ├── crm/                   CRM cho nhân sự (index.html, app.js, app.css) → build ra dist-crm/ → crm.thucduonglanh.vn
 ├── guide/                 Hướng dẫn nhân sự: index.md (Bắt đầu), crm.md, website.md, guide.css, img/ → dist-crm/huong-dan/
 ├── build.py               sinh web vào dist/ (tự nén ảnh sang WebP) + CRM vào dist-crm/
-├── .github/workflows/deploy.yml   tự build + đăng lên Cloudflare mỗi khi có thay đổi
+├── .github/workflows/          tự đăng lên Cloudflare, mỗi phần một luồng riêng, chỉ chạy khi phần đó đổi:
+│   ├── deploy.yml        Website thucduonglanh.vn (bỏ qua khi chỉ đổi crm/, guide/, api/, backend/, scripts/, output/, file .md)
+│   ├── deploy-crm.yml    CRM + Hướng dẫn nội bộ: crm/, guide/, và dữ liệu CRM dùng chung (content/products, content/combos, data/, assets/img/brand, build.py)
+│   ├── deploy-api.yml    Máy chủ api (Worker + D1): chỉ khi api/ đổi; không huỷ giữa chừng để D1 không bị dở dang
+│   └── apps-script.yml   Apps Script: chỉ khi backend/google-apps-script.gs đổi
 ├── api/                   máy chủ CRM + nhận đơn: api.thucduonglanh.vn (Cloudflare Workers + D1)
 │   ├── schema.sql         cấu trúc bảng D1 (orders, customers, leads, logs, perf, usage, feedback...)
 │   ├── src/               code xử lý API, CRM, nhận đơn, webhook VTP, cron, đồng bộ Sheet
@@ -208,6 +212,7 @@ Apps Script giới hạn 200 phiên bản/dự án: báo lỗi "Không tạo đ�
 - `www` và `http://` tự chuyển về `https://thucduonglanh.vn`.
 - Link phụ = **Redirect Rules** (Cloudflare → thucduonglanh.vn → Rules → Redirect Rules), dùng đủ 10/10 quy tắc gói miễn phí: story, ld, shop, shopee, family, **cauchuyen → /ho-so-thuong-hieu/**, sotay, mkt, quacmadiamond + quy tắc HTTPS/www. `quatang` là CNAME tới LadiPage.
 - GitHub Actions dùng secrets `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` (GitHub → Settings → Secrets).
+- Muốn đăng lại một phần mà không sửa code: GitHub → Actions → chọn "Website – dựng và đăng" / "CRM – dựng và đăng" / "Máy chủ api – triển khai" → **Run workflow**. Thêm thư mục mới mà CRM hay web cần dùng thì nhớ thêm vào `paths` / `paths-ignore` của file workflow tương ứng.
 
 ---
 
@@ -223,7 +228,7 @@ Script tự lấy các thay đổi nhân sự đã làm ở /admin trước khi 
 
 ### 8a. Cập nhật từ máy tính (Antigravity) và từ điện thoại (app Claude)
 
-Hai cách đều đổ về nhánh `main` trên GitHub → GitHub tự đăng web + CRM (Cloudflare) và tự triển khai Apps Script (nếu `backend/google-apps-script.gs` đổi). Dùng được cả hai.
+Hai cách đều đổ về nhánh `main` trên GitHub → GitHub tự đăng phần nào đổi (web / CRM / api, Cloudflare) và tự triển khai Apps Script (nếu `backend/google-apps-script.gs` đổi). Dùng được cả hai.
 
 | | Máy tính (Antigravity) | Điện thoại (app Claude) |
 |---|---|---|

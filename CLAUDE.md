@@ -22,7 +22,7 @@ Chủ dự án: anh Sơn (thaisoniph@gmail.com). Anh Sơn không chuyên kỹ th
 - `api/`: máy chủ Cloudflare Workers + D1 (api.thucduonglanh.vn) chạy chính thức từ 10/2026 (bản `2026-10-07d`). Nhận đơn web, phục vụ toàn bộ CRM API (hôm nay, khách hàng, đơn hàng, khách hỏi, hiệu quả, mức dùng CRM, góp ý...), nhận webhook Viettel Post, và đồng bộ 2 chiều với Google Sheet / file sale qua cron. Apps Script (`backend/google-apps-script.gs`) làm cầu nối Google (gửi email, cấp quyền đọc Sheet, dọn trigger cũ).
 
 ## Đăng lên (deploy)
-- Push lên nhánh `main` → GitHub Actions build → Cloudflare Pages (website `thucduonglanh`, CRM `thucduonglanh-crm`). Khoảng 1–2 phút sau là live.
+- Push lên nhánh `main` → GitHub Actions build → Cloudflare (website `thucduonglanh`, CRM `thucduonglanh-crm`, máy chủ api Worker + D1). Mỗi phần một workflow riêng (`deploy.yml`, `deploy-crm.yml`, `deploy-api.yml`), chỉ chạy khi phần đó đổi. Khoảng 1–2 phút sau là live.
 - Trước khi push: chạy `pip install -r requirements.txt` (nếu chưa cài) rồi `python3 build.py`. Build lỗi thì không push.
 - Nhân sự sửa nội dung qua /admin cũng commit thẳng vào `main`, nên luôn `git pull --rebase origin main` trước khi push.
 - Phiên Claude trên web/điện thoại push lên nhánh riêng (`claude/...`), không vào thẳng `main`. Khi anh Sơn nói "đăng lên", "cho live", "deploy": pull/rebase `main`, build thử, push nhánh, tạo Pull Request vào `main` rồi gửi anh link PR. Nhắc anh: mở link → **Merge pull request** → **Confirm merge** (làm được trong app GitHub hoặc trình duyệt điện thoại). Nếu phiên có quyền merge thì tự merge luôn.
