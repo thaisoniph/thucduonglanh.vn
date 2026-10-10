@@ -43,7 +43,7 @@ async function fbAccounts(token, manual) {
   if (ids.length) return Promise.all(ids.map(id => fbGet(token, 'act_' + id, { fields: F.fields }).then(one).catch(e => { throw new Error('Không mở được tài khoản quảng cáo ' + id + ': ' + e.message); })));
   let me = {}; try { me = await fbGet(token, 'me', { fields: 'id,name', metadata: 1 }); } catch (e) { if (/hết hạn|quyền/.test(e.message)) throw e; }
   const type = me.metadata && me.metadata.type;
-  if (type === 'page') throw new Error('Mã này là mã của Trang “' + (me.name || '') + '”, không đọc được quảng cáo. Tạo mã ở Người dùng hệ thống (bước 2–4 bên dưới), hoặc nhập Mã tài khoản quảng cáo vào ô bên dưới rồi thử lại.');
+  if (type === 'page') throw new Error('Mã này là mã của Trang “' + (me.name || '') + '”, không đọc được quảng cáo. Tạo mã ở Người dùng hệ thống (bước 2–4 bên dưới), hoặc điền ô “Mã tài khoản quảng cáo” rồi thử lại.');
   if (type === 'application') throw new Error('Mã này là mã của ứng dụng, không đọc được quảng cáo. Tạo mã ở Người dùng hệ thống (bước 2–4 bên dưới).');
   for (const edge of ['adaccounts', 'assigned_ad_accounts']) {
     try {
@@ -110,7 +110,7 @@ async function mktFb(x, d) {
     const token = String(d.fbToken).trim();
     if (!/^[A-Za-z0-9_-]{40,}$/.test(token)) return { ok: false, error: 'Mã truy cập chưa đúng: là một dãy dài chữ và số, thường bắt đầu bằng EAA.' };
     const accs = await fbAccounts(token, d.fbAccount);
-    if (!accs.length) return { ok: false, error: 'Mã đúng nhưng Facebook không liệt kê được tài khoản quảng cáo. Nhập Mã tài khoản quảng cáo vào ô bên dưới rồi bấm Kết nối lại (xem ở Trình quản lý quảng cáo: dãy số cạnh tên tài khoản, hoặc số sau act= trên thanh địa chỉ).', needAcc: true };
+    if (!accs.length) return { ok: false, error: 'Mã đúng nhưng Facebook không liệt kê được tài khoản quảng cáo. Điền ô “Mã tài khoản quảng cáo” (ngay dưới ô mã truy cập) rồi bấm Kết nối lại (xem ở Trình quản lý quảng cáo: dãy số cạnh tên tài khoản, hoặc số sau act= trên thanh địa chỉ).', needAcc: true };
     c.fb = { token, all: accs, accounts: accs.filter(a => a.st === 1 || accs.length === 1).map(a => a.id), last: null, err: '' };
     if (!c.fb.accounts.length) c.fb.accounts = accs.map(a => a.id);
     await cfgSave(x, c);

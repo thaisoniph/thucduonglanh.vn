@@ -2766,7 +2766,7 @@
     // mã Facebook gửi bằng tên fbToken: tên token là mã phiên đăng nhập CRM, trùng sẽ bị đăng xuất
     if (tk) $('#fbTokGo', m).onclick = function () {
       var btn = this; busy(btn, true, 'Đang kiểm tra và lấy 90 ngày…');
-      api('mkt_fb', { fbToken: tk.value.trim(), fbAccount: ($('#fbAccId', m) || {}).value || '' }).then(function (j) { closeModal(true); done('✅ Đã kết nối Facebook Ads · ' + (j.rows || 0) + ' dòng · ' + moneyShort(j.spend || 0) + (j.warn ? ' · ' + j.warn : '')); openMkt('fb'); }, function (e) { busy(btn, false, 'Kết nối'); toast(e.message, true); });
+      api('mkt_fb', { fbToken: tk.value.trim(), fbAccount: ($('#fbAccId', m) || {}).value || '' }).then(function (j) { closeModal(true); done('✅ Đã kết nối Facebook Ads · ' + (j.rows || 0) + ' dòng · ' + moneyShort(j.spend || 0) + (j.warn ? ' · ' + j.warn : '')); openMkt('fb'); }, function (e) { busy(btn, false, 'Kết nối'); toast(e.message, true); var ai = $('#fbAccId', m); if (ai && e.j && e.j.needAcc) { ai.focus(); ai.scrollIntoView({ block: 'center' }); } });
     };
     if ($('#fbAccSave', m)) $('#fbAccSave', m).onclick = function () { var ids = $$('input[name=fbAcc]:checked', m).map(function (i) { return i.value; }); api('mkt_fb', { accounts: ids }).then(function () { toast('Đã lưu'); }, function (e) { toast(e.message, true); }); };
     ['#fbSync', '#fbSync90'].forEach(function (s0) { var btn = $(s0, m); if (btn) btn.onclick = function () { var t = btn.textContent; busy(btn, true, 'Đang lấy…'); api('mkt_fb', { sync: 1, days: +btn.getAttribute('data-days') }).then(function (j) { busy(btn, false, t); done('Đã lấy ' + j.rows + ' dòng · ' + moneyShort(j.spend) + (j.warn ? ' · ⚠️ ' + j.warn : '')); }, function (e) { busy(btn, false, t); toast(e.message, true); }); }; });
