@@ -257,7 +257,7 @@ async function importOrders(x, src, shCfg, data, dry) {
   out.sort((a, b) => a.time - b.time);
   await insertMany(x.db, 'orders', ORDER_COLS, out);
   for (let i = 0; i < upd.length; i += 500) await run(x.db, "UPDATE orders SET status = json_extract(j.value, '$.status') FROM json_each(?) j WHERE orders.rid = json_extract(j.value, '$.rid')", JSON.stringify(upd.slice(i, i + 500)));
-  const own = {}; Object.keys(phones).forEach(p => { own[p] = sale; });
+  const own = {}, keep = await keepOf(x); Object.keys(phones).forEach(p => { own[p] = keep[p] || sale; });
   const updPhones = upd.length ? (await allIn(x.db, 'SELECT DISTINCT phone FROM orders WHERE rid IN (SELECT value FROM json_each(?))', upd.map(u => u.rid))).map(r => r.phone) : [];
   await recalc(x, Object.keys(phones).concat(updPhones), { owners: own });
   await setCallbacks(x, callbacks);
@@ -296,7 +296,7 @@ async function importCare(x, src, shCfg, data, dry, idx) {
   const ids = order.map(ph => 'CS' + hashKey(sale + '|' + ph));
   const have = {}; (await allIn(x.db, 'SELECT id FROM leads WHERE id IN (SELECT value FROM json_each(?))', ids)).forEach(r => { have[r.id] = 1; });
   const openP = {}; (await allIn(x.db, "SELECT phone FROM leads WHERE status IN ('Mới hỏi', 'Đang tư vấn') AND phone IN (SELECT value FROM json_each(?))", order)).forEach(r => { openP[r.phone] = 1; });
-  const settled = await settledOf(x, order, sale);
+  const settled = await settledOf(x, order, sale), keep = await keepOf(x);
   const toNote = [], leads = [], conflicts = [], now = Date.now(), head = '— Nhật ký cũ (' + shCfg.name + ') —';
   order.forEach((ph, k) => {
     const p = per[ph];
@@ -305,7 +305,7 @@ async function importCare(x, src, shCfg, data, dry, idx) {
     const st = nrm(p.status), recent = p.last && now - p.last <= 30 * DAY;
     const status = /huy/.test(st) ? 'Không mua' : /chot|len don/.test(st) ? 'Đã chốt' : recent ? 'Đang tư vấn' : 'Không mua';
     const reason = status === 'Không mua' ? (/huy/.test(st) ? 'Huỷ' : 'Chưa mua (dữ liệu cũ)') : '';
-    leads.push({ id, time: p.last || now, name: p.name, phone: ph, channel: 'File cũ – ' + shCfg.name, interest: p.product, status, owner: sale, last_at: p.last || null, callback: null, reason, note: p.notes.join('\n').slice(0, 45000), order_id: '', by_name: 'Đồng bộ ' + sale });
+    leads.push({ id, time: p.last || now, name: p.name, phone: ph, channel: 'File cũ – ' + shCfg.name, interest: p.product, status, owner: keep[ph] || sale, last_at: p.last || null, callback: null, reason, note: p.notes.join('\n').slice(0, 45000), order_id: '', by_name: 'Đồng bộ ' + sale });
   });
   const open = leads.filter(l => l.status === 'Đang tư vấn').length;
   const summary = toNote.length + ' khách được thêm nhật ký cũ, ' + leads.length + ' người chưa mua → tiềm năng (' + open + ' còn theo dõi), ' + skip + ' dòng bỏ qua';
@@ -360,6 +360,35 @@ function adsDays(raw) {
   }
   let last = 0; return t.map(v => (last = v || last));
 }
+/** Cột "Trùng sale" của file số quảng cáo = sale phụ trách khách. keep = {sđt: tên CRM}. Đặt người phụ trách khách đã mua + khách hỏi đang mở theo cột này
+ *  (thay cho "file sale nào nhập trước thì giữ"), ghi nhận vào Khách trùng sale như quản lý đã chốt. Lưu kv ads_keep để màn hình Khách trùng sale biết. */
+async function applyKeep(x, keep, dry, force) {
+  const phones = Object.keys(keep), out = { phones: phones.length, customers: 0, leads: 0 }; if (!phones.length) return out;
+  const js = JSON.stringify(keep), v = hashKey(js), now = Date.now();
+  if (!dry && !force && (await kvGet(x.db, 'ads_keep_v')) === v && now - (+(await kvGet(x.db, 'ads_keep_at')) || 0) < 6 * 3600e3) return out; // cột không đổi: 6 tiếng đối chiếu lại 1 lần (nhập file sale đã tự theo ads_keep) → tiết kiệm lượt đọc D1
+  const cur = {}, done = {}, sales = {};
+  (await allIn(x.db, 'SELECT phone, owner, name FROM customers WHERE phone IN (SELECT value FROM json_each(?))', phones)).forEach(r => { cur[r.phone] = r; });
+  const leads = (await allIn(x.db, "SELECT id, phone, owner FROM leads WHERE status IN ('Mới hỏi', 'Đang tư vấn') AND phone IN (SELECT value FROM json_each(?))", phones)).filter(r => r.owner !== keep[r.phone]);
+  const cus = phones.filter(p => cur[p] && cur[p].owner !== keep[p]);
+  out.customers = cus.length; out.leads = leads.length;
+  if (dry) return out;
+  const has = Object.keys(cur);
+  (await allIn(x.db, 'SELECT phone, owner, sales FROM dup_done WHERE phone IN (SELECT value FROM json_each(?))', has)).forEach(r => { done[r.phone] = r; });
+  (await allIn(x.db, 'SELECT DISTINCT phone, sale FROM sale_phones WHERE phone IN (SELECT value FROM json_each(?))', has)).forEach(r => { (sales[r.phone] = sales[r.phone] || []).push(r.sale); });
+  const dd = [];
+  has.forEach(p => {
+    const want = keep[p], d = done[p], all = [...new Set((sales[p] || []).concat(want, cur[p].owner || ''))].filter(String), ds = d ? String(d.sales || '').split('|') : [];
+    if (!d || d.owner !== want || all.some(n => ds.indexOf(n) < 0)) dd.push({ phone: p, owner: want, sales: all.join('|'), by_name: 'Cột Trùng sale (file QC)', at: now });
+  });
+  for (let i = 0; i < cus.length; i += 300) await run(x.db, "UPDATE customers SET owner = json_extract(j.value, '$.o') FROM json_each(?) j WHERE customers.phone = json_extract(j.value, '$.p')", JSON.stringify(cus.slice(i, i + 300).map(p => ({ p, o: keep[p] }))));
+  for (let i = 0; i < leads.length; i += 300) await run(x.db, "UPDATE leads SET owner = json_extract(j.value, '$.o') FROM json_each(?) j WHERE leads.id = json_extract(j.value, '$.k')", JSON.stringify(leads.slice(i, i + 300).map(l => ({ k: l.id, o: keep[l.phone] }))));
+  await insertMany(x.db, 'dup_done', ['phone', 'owner', 'sales', 'by_name', 'at'], dd, 'ON CONFLICT(phone) DO UPDATE SET owner = excluded.owner, sales = excluded.sales, by_name = excluded.by_name, at = excluded.at');
+  await insertMany(x.db, 'logs', ['time', 'by_name', 'what', 'ref', 'name', 'result', 'note'], cus.map(p => ({ time: now, by_name: 'File QC', what: 'Giao khách', ref: p, name: cur[p].name || '',
+    result: 'Theo cột Trùng sale → ' + keep[p] + (cur[p].owner ? ' (trước: ' + cur[p].owner + ')' : ''), note: '' })));
+  if ((await kvGet(x.db, 'ads_keep_v')) !== v) { await kvSet(x.db, 'ads_keep', js); await kvSet(x.db, 'ads_keep_v', v); }
+  await kvSet(x.db, 'ads_keep_at', String(now));
+  return out;
+}
 /** Đầu ngày (giờ VN) của mốc thời gian, mili giây. */
 function dayOf(t) { return Math.floor((t + 7 * 3600e3) / DAY) * DAY - 7 * 3600e3; }
 /** Lấy số quảng cáo vào "Khách tiềm năng". Nhân sự chia: đọc tên sale ở cột Sale. CRM chia: số chưa có sale → giao theo lượt từng sheet (trùng số → sale cũ) và ghi tên vào cột Sale. */
@@ -367,17 +396,24 @@ export async function adsSync(x, u, dry) {
   const cfg = await adsCfg(x); if (!cfg || !cfg.fileId) return { ok: false, error: 'Chưa cài file số quảng cáo.' };
   const users = (await crmUsers(x)).filter(y => y.active), byAlias = {};
   users.forEach(y => { [y.name].concat(String(y.alias || '').split(',')).forEach(a => { a = nrm(a); if (a) byAlias[a] = y.name; }); });
+  const who = t => { t = nrm(t); return byAlias[t] || byAlias[t.replace(/\s+t\d+$/, '')] || ''; }; // "Phương T2" = Phương
   const since = cfg.since ? new Date(cfg.since + 'T00:00:00+07:00').getTime() : Date.now() - 3 * DAY;
   const rows = [], perSale = {}, perSheet = {}, writes = [], rr = {}; let skipped = 0, merged = 0;
   const nextFrom = async (pool, key) => { if (!(key in rr)) rr[key] = (await kvGet(x.db, key)) || ''; const n = pool[(pool.indexOf(rr[key]) + 1) % pool.length]; rr[key] = n; return n; };
   const scan = [], reg = [], regFrom = Date.now() - 100 * DAY; // reg: mọi dòng có SĐT trong 100 ngày → đếm data quảng cáo (tỷ lệ chốt), không phụ thuộc việc tạo khách hỏi
+  const keep = {}, keepRaw = {}; // cột Trùng sale: {sđt: sale phụ trách khách} (dòng dưới cùng có ghi thắng) – không phụ thuộc file sale nào nhập trước
+  const sheets = [];
   for (const sc of (cfg.sheets || []).filter(s => s.on)) {
     const m = sc.map || cfg.map || {}, hr = sc.header || 1;
     const vals = await sheetValues(x.env, cfg.fileId, a1(sc.name, 'A' + (hr + 1) + ':' + colLetter(neededCols({ map: m }) - 1)), 'UNFORMATTED_VALUE');
+    sheets.push({ sc, m, hr, vals });
+    if (m.dup !== undefined) vals.forEach(r => { const ph = toPhone(cell(r, m, 'phone')), t = String(cell(r, m, 'dup') || '').trim(); if (!ph || !t) return; const n = who(t); if (n) { keep[ph] = n; delete keepRaw[ph]; } else if (!keep[ph]) keepRaw[ph] = t; });
+  }
+  for (const { sc, m, hr, vals } of sheets) {
     const days = adsDays(vals.map(r => cell(r, m, 'date')));
     vals.forEach((r, i) => {
       const when = days[i], phone = toPhone(cell(r, m, 'phone')); if (!when || !phone) return;
-      if (when >= regFrom) { const st = String(cell(r, m, 'sale') || '').trim(); reg.push([dayOf(when), phone, byAlias[nrm(st)] || st, String(cell(r, m, 'src') || sc.name).trim()]); }
+      if (when >= regFrom) { const st = String(cell(r, m, 'sale') || '').trim(); reg.push([dayOf(when), phone, keep[phone] || who(st) || st, String(cell(r, m, 'src') || sc.name).trim()]); }
       if (when < since) return; scan.push({ sc, m, hr, r, i, when, phone, id: 'QC' + hashKey(sc.name + '|' + phone + '|' + fmtDate(when, 'yyyyMMdd')) });
     });
   }
@@ -390,8 +426,8 @@ export async function adsSync(x, u, dry) {
   for (const s of scan) {
     const { sc, m, hr, r, i, when, phone, id } = s; if (ids[id]) continue;
     if (openBy[phone] !== undefined && cfg.mode !== 'crm') { merged++; ids[id] = 1; continue; } // số này đang được chăm sóc (tiềm năng còn mở) → không tạo trùng
-    const saleTxt = String(cell(r, m, 'sale') || '').trim(); let owner = byAlias[nrm(saleTxt)] || '';
-    if (cfg.mode === 'crm' && !saleTxt) { // CRM chia
+    const saleTxt = String(cell(r, m, 'sale') || '').trim(); let owner = keep[phone] || who(saleTxt);
+    if (cfg.mode === 'crm' && !saleTxt && !keep[phone]) { // CRM chia
       const old = (owners[phone] && owners[phone].owner) || openBy[phone] || '';
       owner = old || (pool.length ? await nextFrom(pool, 'rr_ads_' + hashKey(sc.name)) : '');
       if (owner) { const ux = users.find(y => y.name === owner); writes.push({ sheet: sc.name, row: hr + 1 + i, col: m.sale, val: (String(ux.alias || '').split(',')[0].trim() || owner), dupCol: old ? m.dup : undefined }); }
@@ -404,6 +440,7 @@ export async function adsSync(x, u, dry) {
     ids[id] = 1; openBy[phone] = owner; perSale[owner] = (perSale[owner] || 0) + 1; perSheet[sc.name] = (perSheet[sc.name] || 0) + 1;
   }
   const res = { ok: true, newLeads: rows.length, merged, perSale, perSheet, skipped, writes: writes.length, mode: cfg.mode, since };
+  res.keep = await applyKeep(x, keep, dry, !!(u && u.email)); const odd = Object.values(keepRaw); if (odd.length) res.keep.unknown = [...new Set(odd)].slice(0, 20); // tên ở cột Trùng sale không khớp nhân sự nào
   if (dry || !rows.length) return res;
   await insertMany(x.db, 'leads', LEAD_COLS, rows, 'ON CONFLICT(id) DO NOTHING');
   const wd = []; writes.forEach(w => { if (w.col !== undefined) wd.push({ range: a1(w.sheet, colLetter(w.col) + w.row), values: [[w.val]] }); if (w.dupCol !== undefined) wd.push({ range: a1(w.sheet, colLetter(w.dupCol) + w.row), values: [[w.val]] }); });
@@ -454,9 +491,11 @@ async function notePhones(x, src, shCfg, rows) {
   for (let i = 0; i < del.length; i += 500) await run(x.db, 'DELETE FROM sale_phones WHERE src = ? AND sheet = ? AND phone IN (SELECT value FROM json_each(?))', src.id, sheet, JSON.stringify(del.slice(i, i + 500)));
   await kvSet(x.db, kk, sig);
 }
+/** Sale phụ trách theo cột Trùng sale của file số quảng cáo (applyKeep lưu): {sđt: tên}. */
+async function keepOf(x) { return (await kvJson(x.db, 'ads_keep')) || {}; }
 /** Khách quản lý đã chốt người giữ, có tính cả sale này: {sđt: người giữ}. Dùng để không báo trùng lại khi nhập file. */
 async function settledOf(x, phones, sale) {
-  const o = {}; (await allIn(x.db, 'SELECT phone, owner, sales FROM dup_done WHERE phone IN (SELECT value FROM json_each(?))', phones)).forEach(r => { if (String(r.sales || '').split('|').indexOf(sale) >= 0) o[r.phone] = r.owner; }); return o;
+  const o = {}, keep = await keepOf(x); phones.forEach(p => { if (keep[p]) o[p] = keep[p]; }); (await allIn(x.db, 'SELECT phone, owner, sales FROM dup_done WHERE phone IN (SELECT value FROM json_each(?))', phones)).forEach(r => { if (!o[r.phone] && String(r.sales || '').split('|').indexOf(sale) >= 0) o[r.phone] = r.owner; }); return o;
 }
 /** Đọc lại cột SĐT của mọi sheet đơn hàng / chăm sóc trong file sale (không nhập gì). */
 async function dupScan(x, u) {
@@ -484,7 +523,7 @@ async function dupList(x) {
     await q('SELECT phone, sale, sheet, last FROM sale_phones WHERE phone IN (SELECT value FROM json_each(?))'),
     await q("SELECT phone, seller, count(*) AS n, sum(total) AS s, max(time) AS t FROM orders WHERE phone IN (SELECT value FROM json_each(?)) AND status NOT IN ('Huỷ', 'Hủy', 'Hoàn') GROUP BY phone, seller"),
     await q('SELECT phone, owner, sales, by_name, at FROM dup_done WHERE phone IN (SELECT value FROM json_each(?))')];
-  const S = {}, O = {}, D = {};
+  const S = {}, O = {}, D = {}, keep = await keepOf(x);
   sp.forEach(r => { const a = S[r.phone] = S[r.phone] || {}, s = a[r.sale] = a[r.sale] || { sheets: [], last: null }; if (s.sheets.indexOf(r.sheet) < 0) s.sheets.push(r.sheet); if (r.last && (!s.last || r.last > s.last)) s.last = r.last; });
   os.forEach(r => { (O[r.phone] = O[r.phone] || {})[r.seller || ''] = { n: r.n, s: r.s || 0, t: r.t }; });
   dn.forEach(r => { D[r.phone] = r; });
@@ -493,15 +532,17 @@ async function dupList(x) {
     const sales = names.map(n => { const f = inFile[n], o = (O[c.phone] || {})[n]; return { sale: n, sheets: f ? f.sheets : [], last: f ? f.last : null, orders: o ? o.n : 0, spent: o ? o.s : 0, lastOrder: o ? o.t : null }; });
     const d = D[c.phone], ds = d ? String(d.sales || '').split('|') : [];
     return { phone: c.phone, name: c.name || '', owner: c.owner || '', orders: c.orders || 0, spent: c.spent || 0, last: c.last, products: String(c.products || '').split('; ').filter(String).slice(0, 4), sales,
-      done: d ? { owner: d.owner, by: d.by_name, at: d.at } : null, ok: !!(d && d.owner === c.owner && names.every(n => ds.indexOf(n) >= 0)) };
+      done: d ? { owner: d.owner, by: d.by_name, at: d.at } : null, qc: keep[c.phone] || '', ok: !!(d && d.owner === c.owner && names.every(n => ds.indexOf(n) >= 0)) };
   }).sort((a, b) => (a.ok - b.ok) || ((b.last || 0) - (a.last || 0)));
   return { ok: true, items, tracked };
 }
 /** Quản lý chốt người giữ: d.items = [{phone, owner}]. Khách hỏi đang theo dõi của số đó chuyển theo. */
 async function dupSet(x, u, d) {
   const names = (await crmUsers(x)).filter(y => y.active).map(y => y.name);
-  const list = (d.items || []).map(i => ({ phone: String(i.phone || '').replace(/\D/g, ''), owner: String(i.owner || '') })).filter(i => i.phone && names.indexOf(i.owner) >= 0);
-  if (!list.length) return { ok: false, error: 'Chưa chọn người giữ khách.' };
+  const keep = await keepOf(x); let locked = 0;
+  const list = (d.items || []).map(i => ({ phone: String(i.phone || '').replace(/\D/g, ''), owner: String(i.owner || '') })).filter(i => i.phone && names.indexOf(i.owner) >= 0)
+    .filter(i => { if (keep[i.phone] && keep[i.phone] !== i.owner) { locked++; return false; } return true; }); // file QC ghi Trùng sale người khác → sửa trong file
+  if (!list.length) return { ok: false, error: locked ? 'Khách đã ghi ở cột Trùng sale của file số quảng cáo. Muốn đổi người giữ thì sửa cột đó trong file.' : 'Chưa chọn người giữ khách.' };
   const phones = list.map(i => i.phone), sales = {}, cur = {};
   (await allIn(x.db, 'SELECT DISTINCT phone, sale FROM sale_phones WHERE phone IN (SELECT value FROM json_each(?))', phones)).forEach(r => { (sales[r.phone] = sales[r.phone] || []).push(r.sale); });
   (await allIn(x.db, 'SELECT phone, owner, name FROM customers WHERE phone IN (SELECT value FROM json_each(?))', phones)).forEach(r => { cur[r.phone] = r; });
@@ -519,7 +560,7 @@ async function dupSet(x, u, d) {
   await insertMany(x.db, 'dup_done', ['phone', 'owner', 'sales', 'by_name', 'at'], done, 'ON CONFLICT(phone) DO UPDATE SET owner = excluded.owner, sales = excluded.sales, by_name = excluded.by_name, at = excluded.at');
   await insertMany(x.db, 'logs', ['time', 'by_name', 'what', 'ref', 'name', 'result', 'note'], logs);
   for (const n of Object.keys(gain)) x.later(telegramUser(x, n, '👥 ' + esc(u.name) + ' vừa giao cho bạn <b>' + gain[n] + ' khách</b> (khách trước đây có trong file của nhiều sale). Từ nay bạn là người phụ trách chính.\n\n👉 ' + CRM_URL + '/#khach-hang'));
-  return { ok: true, n: ok.length, moved: Object.keys(gain).reduce((t, n) => t + gain[n], 0) };
+  return { ok: true, n: ok.length, locked, moved: Object.keys(gain).reduce((t, n) => t + gain[n], 0) };
 }
 
 export { srcSync };

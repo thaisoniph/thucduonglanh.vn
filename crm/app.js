@@ -3312,7 +3312,9 @@
       modal(dry ? '👀 Xem trước số quảng cáo' : '✅ Đã lấy số quảng cáo', '<div class="box"><p style="margin:0 0 8px"><b>' + r.newLeads + '</b> số mới' + (per ? ' (' + per + ')' : '') + '.</p>' +
         '<p class="small" style="margin:0 0 8px">Theo sheet: ' + Object.keys(r.perSheet).map(function (n) { return esc(n) + ' ' + r.perSheet[n]; }).join(' · ') + '</p>' +
         (r.merged ? '<p class="hint" style="margin:0 0 6px">' + r.merged + ' số đang được chăm sóc (đã có trong Khách hỏi) → không tạo trùng.</p>' : '') +
-        (r.skipped ? '<p class="hint" style="margin:0">' + r.skipped + ' số của sale chưa có trong CRM (hoặc chưa chia) → bỏ qua.</p>' : '') + (r.writes ? '<p class="hint">CRM đã ghi tên sale cho ' + r.writes + ' số.</p>' : '') + '</div>', '<button class="btn pri" data-close>Đóng</button>');
+        (r.skipped ? '<p class="hint" style="margin:0">' + r.skipped + ' số của sale chưa có trong CRM (hoặc chưa chia) → bỏ qua.</p>' : '') + (r.writes ? '<p class="hint">CRM đã ghi tên sale cho ' + r.writes + ' số.</p>' : '') +
+        (r.keep && r.keep.phones ? '<p class="hint" style="margin:6px 0 0">📋 Cột Trùng sale: ' + r.keep.phones + ' số có ghi sale phụ trách' + (r.keep.customers || r.keep.leads ? ' · ' + (dry ? 'sẽ chuyển' : 'đã chuyển') + ' ' + r.keep.customers + ' khách đã mua, ' + r.keep.leads + ' khách hỏi về đúng sale' : ' · tất cả đã đúng người') + '.</p>' : '') +
+        (r.keep && r.keep.unknown ? '<p class="hint" style="margin:0">Tên ở cột Trùng sale chưa khớp nhân sự nào (thêm vào “Tên trong file QC” nếu cần): ' + r.keep.unknown.map(esc).join(', ') + '</p>' : '') + '</div>', '<button class="btn pri" data-close>Đóng</button>');
       if (!dry) load(true);
     }, function (e) { btn.disabled = false; btn.textContent = t; toast(e.message, true); });
   }
@@ -3696,6 +3698,7 @@
               return '<div class="r2">• <b>' + esc(s.sale) + '</b>: ' + (s.sheets.length ? 'có trong file (' + esc(s.sheets.join(', ')) + ')' + (s.last ? ', ghi gần nhất ' + fDate(s.last) : '') : 'đang phụ trách trên CRM, không có trong file') +
                 (s.orders ? ' · bán ' + s.orders + ' đơn, ' + money(s.spent) : '') + '</div>';
             }).join('') +
+            (it.qc ? '<div class="r3">📋 File số quảng cáo ghi cột Trùng sale: <b>' + esc(it.qc) + '</b> phụ trách (muốn đổi thì sửa trong file)</div>' : '') +
             (it.done ? '<div class="r3">✓ ' + esc(it.done.by) + ' chốt ' + fDate(it.done.at) + ': ' + esc(it.done.owner) + ' giữ' + (it.ok ? '' : ' (sau đó có thay đổi, cần chốt lại)') + '</div>' : '') +
             '<div class="acts"><select data-dpick="' + esc(it.phone) + '" style="flex:1;min-width:150px">' + opts(it) + '</select><button class="btn' + (it.ok ? '' : ' pri') + '" data-dset="' + esc(it.phone) + '">' + (it.ok ? 'Đổi' : 'Chốt') + '</button></div></div>';
         }).join('') + '</div>' + (list.length > D.n ? '<button class="btn" id="dupMore" style="margin-top:10px">Xem thêm ' + (list.length - D.n) + ' khách</button>' : '')
@@ -3718,7 +3721,7 @@
       api('dup_set', { items: items }).then(function (j) {
         var by = {}; items.forEach(function (i) { by[i.phone] = i.owner; });
         D.items.forEach(function (it) { if (by[it.phone]) { it.owner = by[it.phone]; it.ok = true; it.done = { owner: it.owner, by: S.user.name, at: Date.now() }; delete D.pick[it.phone]; } });
-        toast('Đã chốt ' + j.n + ' khách' + (j.moved ? ', chuyển ' + j.moved + ' khách sang người mới' : '') + ' ✓'); draw(); load(true);
+        toast('Đã chốt ' + j.n + ' khách' + (j.moved ? ', chuyển ' + j.moved + ' khách sang người mới' : '') + ' ✓' + (j.locked ? ' · ' + j.locked + ' khách giữ theo cột Trùng sale file quảng cáo' : '')); draw(); load(true);
       }, function (e) { toast(e.message, true); b.disabled = false; });
     }
     function got(j) { D.items = j.items || []; D.tracked = j.tracked; draw(); }
