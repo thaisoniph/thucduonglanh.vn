@@ -27,6 +27,12 @@
   },
   "free_ship_threshold": 300000,
   "shipping_fee": 30000,
+  "aov_milestone": {
+    "enabled": false,
+    "amount": 500000,
+    "label": "Mốc 500K",
+    "reward": ""
+  },
   "zalo_oa": "https://zalo.me/4116030867157210870",
   "community": [
     {

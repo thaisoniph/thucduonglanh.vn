@@ -77,7 +77,7 @@ input,select,textarea{font-family:inherit;font-size:15px}
 .menu .sub a{display:block;padding:9px 14px;border-radius:8px;color:var(--text);font-size:14.5px}
 .menu .sub a:hover{background:var(--primary-light);color:var(--primary)}
 .header-icons{display:flex;align-items:center;gap:6px}
-.icon-btn{position:relative;display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:50%;background:none;border:0;color:var(--ink);padding:0}
+.icon-btn{position:relative;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:none;border:0;color:var(--ink);padding:0}
 .icon-btn:hover{background:var(--primary-light);color:var(--primary)}
 .icon-btn svg{width:23px;height:23px}
 .icon-btn .count{position:absolute;top:2px;right:0;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:var(--red);color:#fff;font-size:11px;font-weight:600;line-height:18px;text-align:center}
@@ -325,7 +325,7 @@ input,select,textarea{font-family:inherit;font-size:15px}
 .f-social{display:flex;align-items:center;justify-content:space-between;gap:20px;border-top:1px solid var(--line);margin-top:36px;padding-top:22px;padding-bottom:22px}
 .f-social h4{margin:0;color:var(--gold);font-size:20px}
 .socials{display:flex;gap:10px;flex-wrap:wrap}
-.socials a{width:40px;height:40px;border-radius:50%;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;transition:all .25s}
+.socials a{width:44px;height:44px;border-radius:50%;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;transition:all .25s}
 .socials a svg{width:21px;height:21px}
 .socials a:hover{background:var(--primary);color:#fff;transform:translateY(-2px)}
 .socials .s-shopee{background:#fff1ec;color:#ee4d2d}
@@ -421,7 +421,7 @@ input,select,textarea{font-family:inherit;font-size:15px}
 .g-main .badge-sale{top:12px;left:12px;font-size:14px}
 .g-zoom{position:absolute;right:12px;top:12px;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;color:var(--ink);pointer-events:none;z-index:2}
 .g-zoom svg{width:20px;height:20px}
-.g-nav{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.9);color:var(--primary);display:flex;align-items:center;justify-content:center;z-index:2;opacity:0;transition:opacity .25s}
+.g-nav{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;border:0;background:rgba(255,255,255,.9);color:var(--primary);display:flex;align-items:center;justify-content:center;z-index:2;opacity:0;transition:opacity .25s}
 .g-main:hover .g-nav{opacity:1}
 .g-nav svg{width:20px;height:20px}
 .g-nav.prev{left:10px}.g-nav.next{right:10px}
@@ -473,7 +473,7 @@ a.p-badge{text-decoration:underline dotted;text-underline-offset:3px}a.p-badge:h
 .share .wish-lg:hover{background:#fff;border-color:var(--red);color:var(--red)}
 .tabs{margin-top:60px}
 .tab-nav{display:flex;gap:6px;border-bottom:1px solid var(--line)}
-.tab-nav button{background:none;border:0;padding:14px 22px;font-weight:600;font-size:15px;color:var(--ink);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab-nav button{background:none;border:0;min-height:48px;padding:14px 22px;font-weight:600;font-size:15px;color:var(--ink);border-bottom:2px solid transparent;margin-bottom:-1px}
 .tab-nav button.is-active{color:var(--primary-2);border-color:var(--primary-2)}
 .tab-panel{display:none;padding:26px 0}
 .tab-panel.is-active{display:block}
@@ -658,24 +658,27 @@ label .invalid,input.invalid,textarea.invalid{border-color:var(--red)!important}
 @media (max-width:400px){.nd-tx small{display:none}}
 
 /* thanh mua nhanh dính đáy – chỉ ≤ 960px */
-.satc{display:none;position:fixed;left:0;right:0;bottom:0;z-index:78;background:#fff;border-top:1px solid #e6efe8;box-shadow:0 -6px 24px rgba(20,60,35,.12);padding:10px 12px calc(10px + env(safe-area-inset-bottom));transform:translateY(110%);transition:transform .25s ease}
-.satc.show{transform:none}
-.satc-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-.satc-top img{width:44px;height:44px;border-radius:8px;object-fit:cover;flex:none}
+/* thanh mua nhanh dính đáy – chỉ < 768px, chỉ hiện sau khi đã cuộn qua nút Mua ngay (main.js initSatc). 2 hàng, cao ~104px */
+.satc{display:none;position:fixed;left:0;right:0;bottom:0;z-index:78;background:#fff;border-top:1px solid #e6efe8;box-shadow:0 -6px 24px rgba(20,60,35,.12);padding:8px 16px calc(8px + env(safe-area-inset-bottom));transform:translateY(110%);transition:transform .25s ease;visibility:hidden}
+.satc.show{transform:none;visibility:visible}
+.satc-row{display:flex;align-items:center;gap:10px}
+.satc-row+.satc-row{margin-top:6px}
 .satc-txt{min-width:0;flex:1}
-.satc-name{font-weight:600;font-size:14px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
-.satc-price{color:var(--primary-2);font-weight:700;font-size:16px}
-.satc-trust{font-size:12px;color:var(--muted)}
-.satc-variants{display:flex;gap:6px;overflow-x:auto;margin-bottom:8px;scrollbar-width:none}
-.satc-variants::-webkit-scrollbar{display:none}
-.satc-variants button{flex:none;min-height:44px;padding:0 14px;border-radius:999px;border:1px solid #cfe3d4;background:#fff;font-size:13px;color:var(--ink)}
-.satc-variants button[aria-pressed="true"]{background:var(--primary-light);border-color:var(--primary-2);color:var(--primary-2);font-weight:600}
-.satc-actions{display:grid;grid-template-columns:1fr 1.25fr;gap:8px}
-.satc-actions button{min-height:48px;border-radius:12px;font-weight:700;font-size:15px;cursor:pointer}
-.satc-add{background:#fff;color:var(--primary-2);border:1.5px solid var(--primary-2)}
-.satc-buy{background:var(--primary);color:#fff;border:0}
-body.satc-on .float-widget,body.satc-on .to-top{bottom:calc(var(--satc-h,150px) + 12px)!important;transition:bottom .25s}
-@media (max-width:960px){.satc{display:block}}
+.satc-name{font-weight:600;font-size:14px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
+.satc-var{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.satc-sum{text-align:right;flex:none;line-height:1.2}
+.satc-price{display:block;color:var(--primary-2);font-weight:700;font-size:17px}
+.satc-sum small{font-size:12px;color:var(--muted)}
+.satc-qty{display:inline-flex;align-items:center;flex:none;background:var(--soft);border-radius:12px}
+.satc-qty button{width:44px;height:44px;border:0;background:none;font-size:22px;line-height:1;color:var(--ink);border-radius:12px;cursor:pointer}
+.satc-qty button:disabled{color:#bdbdb4;cursor:default}
+.satc-qty input{width:40px;height:44px;text-align:center;border:0;background:none;font-size:16px;font-weight:700;color:var(--ink);-moz-appearance:textfield;padding:0}
+.satc-qty input::-webkit-inner-spin-button,.satc-qty input::-webkit-outer-spin-button{-webkit-appearance:none}
+.satc-add{flex:1;min-height:48px;border-radius:12px;border:0;background:var(--primary);color:#fff;font-weight:700;font-size:16px;cursor:pointer}
+.satc-add:active{background:var(--primary-2)}
+body.satc-on{padding-bottom:var(--satc-h,104px)}
+body.satc-on .float-widget,body.satc-on .to-top{bottom:calc(var(--satc-h,104px) + 12px)!important;transition:bottom .25s}
+@media (max-width:767.98px){.satc{display:block}}
 
 /* responsive */
 @media (max-width:1100px){
@@ -721,7 +724,7 @@ body.satc-on .float-widget,body.satc-on .to-top{bottom:calc(var(--satc-h,150px) 
   .icon-btn,.g-nav{width:44px;height:44px}
   .chip,.pc-add,.btn,.share .wish-lg,.up-add,.readmore-btn{min-height:44px}
   .qty button,.qty.sm button,.mc-rm{width:44px;height:44px}
-  .pc-wish{width:40px;height:40px}
+  .pc-wish{width:44px;height:44px}
   .share a,.share>button{min-width:44px;min-height:44px}
 }
 @media (max-width:640px){
@@ -752,7 +755,7 @@ body.satc-on .float-widget,body.satc-on .to-top{bottom:calc(var(--satc-h,150px) 
   .price del{font-size:12px}
   .pc-add span{display:none}
   .pc-add{padding:8px}
-  .pc-wish{opacity:1;transform:none;width:40px;height:40px;top:6px;right:6px}
+  .pc-wish{opacity:1;transform:none;width:44px;height:44px;top:4px;right:4px}
   .shop-grid .p-card{padding:6px}
   .brand-title{font-size:26px}.brand-sub{font-size:21px}
   .story-title{font-size:25px}
@@ -767,7 +770,7 @@ body.satc-on .float-widget,body.satc-on .to-top{bottom:calc(var(--satc-h,150px) 
   .price.big ins{font-size:24px}
   .p-price{min-width:0;display:block}
   .buy-row .btn,.qty-row .btn{flex:1}
-  .tab-nav button{padding:12px 14px;font-size:14px}
+  .tab-nav button{padding:12px 14px;font-size:14px;min-height:46px}
   .d-box{padding:14px 14px}
   .f-row{grid-template-columns:1fr;gap:0}
   .card{padding:18px}
@@ -1410,3 +1413,64 @@ body.gp-lock{overflow:hidden}
 .gnext em{display:block;font-style:normal;font-size:13px;color:var(--primary);font-weight:600;margin-top:2px}
 .gf-got{box-shadow:none}
 .gf-got .gf-btn{background:#fff;color:var(--primary);border:1.5px solid var(--primary)}
+
+/* ---------- CRO 10/2026: thanh toán, tiến độ freeship, gợi ý có lý do, chip thuộc tính ---------- */
+.pay-tag{display:inline-block;vertical-align:2px;margin-left:6px;padding:2px 8px;border-radius:999px;background:var(--gold-light);color:#7c4a03;font-style:normal;font-size:12px;font-weight:600;white-space:nowrap}
+.pay-steps{list-style:none;counter-reset:ps;margin:8px 0 0;padding:0;display:grid;gap:4px}
+.pay-steps li{counter-increment:ps;display:flex;gap:8px;align-items:flex-start;font-size:14px;color:var(--text);line-height:1.4}
+.pay-steps li::before{content:counter(ps);flex:0 0 20px;height:20px;border-radius:50%;background:var(--primary-light);color:var(--primary-2);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.pay-note{margin:2px 2px 0;font-size:13.5px;color:var(--muted)}
+.sp{background:#fff7e6;border:1px solid #f5d8a0;border-radius:12px;padding:10px 12px;margin:0 0 4px;color:#7c4a03}
+.sp.ok{background:var(--primary-light);border-color:#cfe3d4;color:var(--primary-2)}
+.sp-msg{margin:0 0 8px;font-size:14.5px;line-height:1.4}
+.sp-track{height:8px;border-radius:4px;background:#f3e3c2;overflow:hidden}
+.sp.ok .sp-track{background:#d6eadc}
+.sp-track i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,#f59e0b,var(--primary-3));transition:width .35s ease}
+.sp.ok .sp-track i{background:var(--primary-3)}
+.sp-mks{position:relative;height:24px;margin-top:4px}
+.sp-mk{position:absolute;top:0;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center}
+.sp-mk:last-child{transform:translateX(-100%);align-items:flex-end}
+.sp-mk em{font-style:normal;font-size:12px;white-space:nowrap;color:var(--muted)}
+.sp-mk.on em{color:var(--primary-2);font-weight:600}
+.up-why{display:block;margin-top:2px;font-size:12.5px;line-height:1.35;color:#b45309}
+.up-i s{color:var(--muted);font-weight:400;font-size:12.5px}
+.up-save{font-size:12px;color:var(--primary-2);font-weight:600}
+.pc-chips{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 2px}
+.pc-chips span{font-size:11.5px;line-height:1.3;padding:2px 8px;border-radius:999px;background:var(--primary-light);color:var(--primary-2)}
+/* hero: dòng tin cậy; điện thoại: nút chính full-width, "Xem tất cả" thành link phụ */
+.hero-trust{list-style:none;margin:16px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px;color:var(--text)}
+.hero-trust li{display:flex;align-items:flex-start;gap:6px;line-height:1.4}
+.hero-trust a{color:var(--primary-2);text-decoration:underline;text-underline-offset:3px}
+.hero-trust a:hover{color:var(--primary-2)}
+.ht-ic{width:16px;height:16px;flex:0 0 16px;color:var(--primary);margin-top:2px}
+@media (max-width:767.98px){
+  .hero-cta{flex-direction:column;align-items:stretch;gap:4px}
+  .hero-cta .btn:first-child{width:100%}
+  .hero-cta .hero-all{background:none;border-color:transparent;font-size:15px;font-weight:600;padding:10px 16px;min-height:44px;text-decoration:underline;text-underline-offset:3px;box-shadow:none}
+  .hero-cta .hero-all:hover{transform:none;background:none;color:var(--primary-2)}
+  .hero-trust{flex-direction:column;gap:6px;font-size:13.5px;text-align:left;max-width:360px;margin-left:auto;margin-right:auto}
+}
+/* nút + khung "Hồ sơ chất lượng" trang sản phẩm */
+.pf-open{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;margin:-4px 0 14px;padding:8px 12px;border:1px dashed #b9d8c5;border-radius:10px;background:#fbfdfb;color:var(--primary-2);font-weight:600;font-size:14.5px;text-align:left;cursor:pointer}
+.pf-open:hover{background:var(--primary-light)}
+.pf-open span{flex:1}
+.pf-open i{font-style:normal;font-size:20px;line-height:1}
+.pf-ic{width:18px;height:18px;flex:0 0 18px}
+.pf{position:fixed;inset:0;z-index:120;background:rgba(20,30,20,.45);display:flex;justify-content:flex-end;opacity:0;transition:opacity .2s}
+.pf.on{opacity:1}
+.pf[hidden]{display:none}
+.pf-box{background:#fff;width:min(520px,100%);height:100%;display:flex;flex-direction:column;transform:translateX(30px);transition:transform .2s}
+.pf.on .pf-box{transform:none}
+.pf-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 12px 12px 18px;border-bottom:1px solid var(--line)}
+.pf-head h2{font-size:19px;margin:0;color:var(--primary-2)}
+.pf-body{overflow:auto;padding:14px 18px calc(24px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}
+.pf-lead{font-size:14px;color:var(--muted);margin:0 0 12px}
+.pf-doc{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:14.5px;line-height:1.55}
+.pf-doc h3{font-size:15.5px;margin:0 0 6px;color:var(--ink)}
+.pf-doc ul{margin:0;padding-left:18px}
+.pf-doc p{margin:0 0 8px}
+.pf-doc img,.pf-img img{display:block;width:100%;height:auto;border-radius:8px;border:1px solid var(--line);margin-top:8px}
+.pf-pdf{display:inline-flex;align-items:center;min-height:44px;font-weight:600}
+.pf-note{font-size:13px;color:var(--muted);font-style:italic;margin:4px 0 0}
+@media (max-width:767.98px){.pf{align-items:flex-end}.pf-box{width:100%;height:88vh;border-radius:16px 16px 0 0;transform:translateY(30px)}}
+.sr-fix{padding:10px 18px 2px;font-size:13.5px;color:var(--muted)}

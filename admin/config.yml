@@ -115,6 +115,25 @@ collections:
         hint: "Chỉ ghi điều có giấy tờ thật, ví dụ: Kiểm nghiệm NIFC, GMP – ISO 22000:2018. Huy hiệu có chữ “kiểm nghiệm” bấm vào sẽ tới mục Tiêu chuẩn & kiểm nghiệm."
         field: { label: "Huy hiệu", name: badge, widget: string }
       - { label: "Ảnh phiếu kiểm nghiệm", name: test_cert_img, widget: image, required: false, hint: "Có ảnh thì bấm huy hiệu Kiểm nghiệm sẽ mở ảnh này." }
+      - label: "Ảnh nhãn thật trên bao bì"
+        name: label_imgs
+        widget: list
+        required: false
+        hint: "Ảnh chụp rõ nhãn phụ / mặt sau bao bì thật. Hiện trong khung “Hồ sơ chất lượng” trên trang sản phẩm."
+        field: { label: "Ảnh nhãn", name: img, widget: image }
+      - label: "Hồ sơ chất lượng (phiếu kiểm nghiệm, chứng nhận…)"
+        name: proofs
+        widget: list
+        required: false
+        summary: "{{fields.title}} – {{fields.org}}"
+        hint: "Chỉ nhập giấy tờ có thật. Hiện trong khung “Hồ sơ chất lượng” khi khách bấm nút dưới huy hiệu."
+        fields:
+          - { label: "Tên giấy tờ", name: title, widget: string, hint: "Ví dụ: Phiếu kết quả kiểm nghiệm" }
+          - { label: "Đơn vị cấp / kiểm nghiệm", name: org, widget: string, required: false, hint: "Ví dụ: Viện Kiểm nghiệm ATVSTP Quốc gia (NIFC)" }
+          - { label: "Số hiệu", name: number, widget: string, required: false }
+          - { label: "Ngày cấp / ngày kiểm nghiệm", name: date, widget: string, required: false, hint: "Ví dụ: 12/03/2025" }
+          - { label: "Phạm vi áp dụng / chỉ tiêu", name: scope, widget: string, required: false, hint: "Ví dụ: hóa lý, vi sinh, kim loại nặng – lô sản xuất 03/2025" }
+          - { label: "Ảnh hoặc file PDF", name: file, widget: file, required: false }
       - label: "Nhu cầu"
         name: needs
         widget: relation
@@ -520,6 +539,17 @@ collections:
               - { label: "Chủ tài khoản (không dấu)", name: account_name, widget: string }
           - { label: "Miễn phí ship cho đơn từ (đồng, 0 = không áp dụng)", name: free_ship_threshold, widget: number, value_type: int, default: 0 }
           - { label: "Phí ship cố định (đồng, 0 = báo khi xác nhận đơn)", name: shipping_fee, widget: number, value_type: int, default: 0 }
+          - label: "Mốc đơn hàng thứ 2 trong giỏ (sau mốc miễn phí ship)"
+            name: aov_milestone
+            widget: object
+            collapsed: true
+            required: false
+            hint: "Giỏ hàng hiện thanh tiến độ tới mốc này. Chỉ bật khi đã có quyền lợi THẬT, được duyệt. Không ghi quyền lợi thì web chỉ hiện nhãn trung tính, không hứa quà."
+            fields:
+              - { label: "Bật mốc 2", name: enabled, widget: boolean, default: false }
+              - { label: "Số tiền mốc (đồng)", name: amount, widget: number, value_type: int, default: 500000 }
+              - { label: "Tên mốc", name: label, widget: string, default: "Mốc 500K" }
+              - { label: "Quyền lợi thật khi đạt mốc (để trống nếu chưa có)", name: reward, widget: string, required: false, hint: "Ví dụ chỉ khi đã duyệt: tặng 1 hộp trà DILVANG. Ghi đúng quyền lợi sẽ trao cho khách." }
 
       - name: home
         label: "Trang chủ – Ảnh lớn đầu trang & băng chuyền"
@@ -535,6 +565,15 @@ collections:
               - { label: "Câu dẫn", name: sub, widget: text, required: false }
               - { label: "Mã sản phẩm / gói khi bấm nút chính", name: product, widget: string, hint: "Phần cuối đường link sản phẩm, ví dụ thu-thach-10-ngay-song-lanh. Giá tự lấy theo sản phẩm." }
               - { label: "Chữ trên nút chính", name: cta, widget: string, hint: "Web tự thêm giá phía sau, ví dụ: Bắt đầu 10 ngày – 349.000đ" }
+              - label: "Dòng tin cậy dưới nút (tối đa 3 ý ngắn)"
+                name: trust
+                widget: list
+                required: false
+                summary: "{{fields.text}}"
+                hint: "Chỉ ghi điều có giấy tờ thật và nói rõ áp dụng cho sản phẩm nào; nên gắn link tới mục hồ sơ của sản phẩm đó."
+                fields:
+                  - { label: "Nội dung", name: text, widget: string }
+                  - { label: "Link bằng chứng", name: url, widget: string, required: false, hint: "Ví dụ: /san-pham/bua-an-dinh-duong-vitagreen/#kiem-nghiem" }
               - { label: "Ảnh (vuông)", name: image, widget: image }
           - label: "Băng chuyền sản phẩm (dưới Danh mục)"
             name: slides

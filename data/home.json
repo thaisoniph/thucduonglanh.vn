@@ -5,6 +5,20 @@
     "sub": "3 sản phẩm – 3 thói quen nhỏ. Nguồn gốc rõ ràng, giao toàn quốc, kiểm tra hàng trước khi trả tiền.",
     "product": "thu-thach-10-ngay-song-lanh",
     "cta": "Bắt đầu 10 ngày",
+    "trust": [
+      {
+        "text": "Bữa Ăn Dinh Dưỡng: kiểm nghiệm NIFC, GMP – ISO 22000",
+        "url": "/san-pham/bua-an-dinh-duong-vitagreen/#kiem-nghiem"
+      },
+      {
+        "text": "Trà DILVANG: nhà máy đạt GMP",
+        "url": "/san-pham/tra-hoa-tan-dilvang-dinh-lang-che-vang/#kiem-nghiem"
+      },
+      {
+        "text": "Kiểm tra hàng trước khi trả tiền",
+        "url": "/chinh-sach-kiem-hang/"
+      }
+    ],
     "image": "/assets/img/products/combo-khoi-dong-10-ngay.webp"
   },
   "slides": [

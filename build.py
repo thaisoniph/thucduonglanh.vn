@@ -364,11 +364,11 @@ def header(active):
   <div class="tb-right"><a href="{esc(SITE.get("community_group") or "/goc-song-lanh/")}"{' target="_blank" rel="noopener"' if SITE.get("community_group") else ""}>Cộng Đồng Sống Khỏe {ic("globe","ic ic-sm")}</a></div>
 </div></div>
 <header class="site-header" id="siteHeader"><div class="container header-in">
-  <button class="icon-btn burger" id="burger" aria-label="Mở menu">{I["menu"]}</button>
+  <button class="icon-btn burger" id="burger" aria-label="Mở menu" aria-expanded="false" aria-controls="offcanvas">{I["menu"]}</button>
   <a class="logo" href="/" aria-label="{BRAND} – Trang chủ"><img src="/assets/img/brand/logo.webp" srcset="/assets/img/brand/logo.webp 1x, /assets/img/brand/logo@2x.webp 2x" width="{LOGO_W}" height="180" alt="Logo {BRAND}"></a>
   <nav class="main-nav" aria-label="Menu chính">{nav_html(active, "menu")}</nav>
   <div class="header-icons">
-    <button class="icon-btn" id="searchOpen" aria-label="Tìm kiếm">{I["search"]}</button>
+    <button class="icon-btn" id="searchOpen" aria-label="Tìm kiếm" aria-expanded="false" aria-controls="searchLayer">{I["search"]}</button>
     <a class="icon-btn" href="/gio-hang/" id="cartOpen" aria-label="Giỏ hàng">{I["cart"]}<span class="count" data-cart-count>0</span></a>
     <a class="icon-btn hide-sm" href="/yeu-thich/" aria-label="Sản phẩm yêu thích">{I["heart"]}<span class="count" data-wish-count>0</span></a>
   </div>
@@ -528,6 +528,14 @@ def price_html(p, cls="price", from_=False, off=False):
     return f'<div class="{cls}">{old}<ins>{money(p["price"])}</ins>{tag}</div>'
 
 
+CHIP_RE = re.compile(r"^(không |thuần chay|đường cỏ ngọt|ít đường)", re.I)
+
+
+def card_chips(p):
+    """Chip thuộc tính trên thẻ sản phẩm: chỉ lấy từ "Huy hiệu chứng nhận" đã nhập trong /admin (vd Thuần chay, Không đường tinh luyện), tối đa 2."""
+    return [b.strip() for b in (p.get("badges") or []) if b and CHIP_RE.match(b.strip())][:2]
+
+
 def product_card(p, lazy=True):
     d = discount(card_item(p))
     badge = f'<span class="badge-sale">-{d}%</span>' if d else (f'<span class="badge-tag">{esc(p["badge"])}</span>' if p.get("badge") else "")
@@ -546,7 +554,7 @@ def product_card(p, lazy=True):
   </a>
   <button class="pc-wish" data-wish="{p["slug"]}" aria-label="Yêu thích">{I["heart"]}</button>
   <div class="pc-body">
-    <h3 class="pc-title"><a href="/san-pham/{p["slug"]}/">{esc(p["name"])}</a></h3>{stars_html(p, "stars pc-stars")}
+    <h3 class="pc-title"><a href="/san-pham/{p["slug"]}/">{esc(p["name"])}</a></h3>{stars_html(p, "stars pc-stars")}{"<p class=pc-chips>" + "".join(f"<span>{esc(c)}</span>" for c in card_chips(p)) + "</p>" if card_chips(p) else ""}
     {price_html(p, "price pc-price", from_=True)}
   </div>
   {action}
@@ -967,11 +975,14 @@ def page_home():
     h_img = img_url(hh.get("image") or (hp["images"][0] if hp else "/assets/img/brand/og-image.jpg"), 1000)
     h_title = md_inline(esc(hh.get("title") or BRAND).replace("&#x27;", "'"))
     h_cta = esc(hh.get("cta") or "Mua ngay") + (f' – {money(hp["price"]).replace(" ₫", "đ")}' if hp and hp.get("price") else "")
+    # dòng tin cậy dưới nút (Cài đặt → Trang chủ → Dòng tin cậy): mỗi ý ghi rõ áp dụng cho sản phẩm nào và dẫn tới bằng chứng
+    h_trust = "".join(f'<li>{ic("check", "ht-ic")}' + (f'<a href="{esc(t["url"])}" data-cta="hero_trust">{esc(t["text"])}</a>' if t.get("url") else esc(t["text"])) + "</li>" for t in (hh.get("trust") or []) if t.get("text"))
+    h_trust = f'<ul class="hero-trust" aria-label="Cam kết chất lượng">{h_trust}</ul>' if h_trust else ""
     hero = f'''<section class="hero hero-static">
   <div class="hero-deco" aria-hidden="true"></div>
   <div class="container slide-in">
     <div class="slide-text">{f'<span class="eyebrow">{esc(hh["eyebrow"])}</span>' if hh.get("eyebrow") else ""}<h1 class="slide-title">{h_title}</h1>{f'<p>{esc(hh["sub"])}</p>' if hh.get("sub") else ""}
-      <div class="slide-cta"><a class="btn btn-lg" href="{h_url}" data-cta="hero_main">{h_cta}</a><a class="btn btn-lg btn-ghost" href="/san-pham/" data-cta="hero_all">Xem tất cả sản phẩm</a></div></div>
+      <div class="slide-cta hero-cta"><a class="btn btn-lg" href="{h_url}" data-cta="hero_main">{h_cta}</a><a class="btn btn-lg btn-ghost hero-all" href="/san-pham/" data-cta="hero_all">Xem tất cả sản phẩm</a></div>{h_trust}</div>
     <div class="slide-media"><a href="{h_url}" tabindex="-1"><img src="{h_img}" alt="{esc(hp["name"] if hp else BRAND)}" width="1000" height="1000" fetchpriority="high"></a></div>
   </div>
 </section>'''
@@ -1142,7 +1153,7 @@ def page_listing(path, title, products, intro="", crumbs=None):
     return layout(path, title, desc, body, jsonld=[bld])
 
 
-def section_html(i, s):
+def section_html(i, s, anchor=None):
     style = s.get("style") or "box"
     if style == "list":
         inner = "<ul>" + "".join(f"<li>{md_inline(x)}</li>" for x in (s.get("items") or []) if x) + "</ul>"
@@ -1150,7 +1161,7 @@ def section_html(i, s):
         inner = '<table class="nutri">' + "".join(f"<tr><th>{esc(r.get('label'))}</th><td>{esc(r.get('value'))}</td></tr>" for r in (s.get("rows") or [])) + "</table>"
     else:
         inner = md(s.get("text"))
-    anchor = ' id="kiem-nghiem"' if "kiểm nghiệm" in (s.get("title") or "").lower() else ""
+    anchor = ' id="kiem-nghiem"' if (anchor if anchor is not None else "kiểm nghiệm" in (s.get("title") or "").lower()) else ""
     return f'<div class="d-sec d-type-{style}"{anchor}><h3>{i}. {esc(s.get("title"))}</h3><div class="d-box">{inner}</div></div>'
 
 
@@ -1351,7 +1362,7 @@ def page_product(p):
     highlights = "".join(f"<li>{ic('check','hl-ic')}{esc(h)}</li>" for h in p.get("highlights", []))
     purchasable = p.get("price") is not None or any(v.get("price") is not None for v in p.get("variants", []))
     if purchasable:
-        buy = f'''<div class="qty-row"><div class="qty" data-qty><button type="button" data-qminus aria-label="Giảm">−</button><input type="number" min="1" value="1" aria-label="Số lượng" id="qtyInput"><button type="button" data-qplus aria-label="Tăng">+</button></div>
+        buy = f'''<div class="qty-row"><div class="qty" data-qty><button type="button" data-qminus aria-label="Giảm">−</button><input type="number" inputmode="numeric" min="1" max="99" value="1" aria-label="Số lượng" id="qtyInput"><button type="button" data-qplus aria-label="Tăng">+</button></div>
   <button class="btn btn-outline btn-lg" data-add-detail="{p["slug"]}">Thêm vào giỏ hàng</button></div>
   <div class="buy-row"><button class="btn btn-lg btn-buy" data-buy-now="{p["slug"]}">{ic("bolt")} Mua ngay</button>
   <a class="btn btn-lg btn-zalo" href="{zalo_link()}" target="_blank" rel="noopener">{ic("zalo")} Tư vấn qua Zalo</a></div>'''
@@ -1361,7 +1372,7 @@ def page_product(p):
   <a class="btn btn-lg btn-zalo" href="{zalo_link()}" target="_blank" rel="noopener">{ic("zalo")} Tư vấn qua Zalo</a></div>'''
     landing = bool(p.get("combo") and p.get("hero"))  # gói "khởi động": hero + các phần thuyết phục, nút chính là lời mời bắt đầu
     if landing and purchasable:
-        buy = f'''<div class="qty-row"><div class="qty" data-qty><button type="button" data-qminus aria-label="Giảm">−</button><input type="number" min="1" value="1" aria-label="Số lượng" id="qtyInput"><button type="button" data-qplus aria-label="Tăng">+</button></div>
+        buy = f'''<div class="qty-row"><div class="qty" data-qty><button type="button" data-qminus aria-label="Giảm">−</button><input type="number" inputmode="numeric" min="1" max="99" value="1" aria-label="Số lượng" id="qtyInput"><button type="button" data-qplus aria-label="Tăng">+</button></div>
   <button class="btn btn-outline" data-add-detail="{p["slug"]}">Thêm vào giỏ hàng</button></div>
   <div class="buy-row"><a class="btn btn-zalo" href="{zalo_link()}" target="_blank" rel="noopener">{ic("zalo")} Tư vấn qua Zalo</a></div>'''
     has_cert = any("kiểm nghiệm" in (s.get("title") or "").lower() for s in p.get("sections", []))
@@ -1369,15 +1380,17 @@ def page_product(p):
     badges = "".join((f'<a class="p-badge" href="#kiem-nghiem" data-cert{cert_img}>✓ {esc(b)}</a>' if has_cert and ("kiểm nghiệm" in b.lower() or "nifc" in b.lower()) else f'<span class="p-badge">✓ {esc(b)}</span>')
                      for b in (p.get("badges") or []) if b)
     v0 = p["variants"][0] if p.get("variants") else p
+    proof_cta, proof_box = proof_drawer(p)
     if landing:
         info_top = combo_hero_info(p)
     else:
         info_top = f'''<h1 class="p-title">{esc(p["name"])}</h1>{f'<a class="p-rating" href="#danh-gia">{stars_html(p)}</a>' if rating_of(p) else ""}
       <div class="p-summary">{p["summary"]}</div>
-      {f'<div class="p-badges">{badges}</div>' if badges else ""}
+      {f'<div class="p-badges">{badges}</div>' if badges else ""}{proof_cta}
       <div class="p-price" id="pPrice">{price_html(p, "price big", off=True)}<div class="p-per" id="pPer">{per_serving(v0, p)}</div></div>'''
     share_url = DOMAIN + path
-    sections = "".join(section_html(i, s) for i, s in enumerate(p.get("sections", []), 1))
+    proof_i = next((i for i, s in enumerate(p.get("sections", []), 1) if PROOF_ANCHOR_RE.search(s.get("title") or "")), 0)
+    sections = "".join(section_html(i, s, i == proof_i) for i, s in enumerate(p.get("sections", []), 1))
     disc = f'<p class="disclaimer">{esc(p["disclaimer"])}</p>' if p.get("disclaimer") else ""
     related = [x for x in PRODUCTS if x["slug"] != p["slug"] and x["category"] == p["category"]]
     related += [x for x in PRODUCTS if x["slug"] != p["slug"] and x not in related]
@@ -1430,7 +1443,7 @@ def page_product(p):
   <h2 class="sec-title left">Sản phẩm tương tự</h2>
   {grid(related[:4], "p-grid related-grid")}
 </div></section>
-{satc_html(p) if purchasable else ""}'''
+{satc_html(p) if purchasable else ""}{proof_box}'''
     ld = {"@context": "https://schema.org", "@type": "Product", "name": p["name"], "sku": p["sku"],
           "image": [DOMAIN + pimg(i) for i in p["images"]], "description": strip_tags(p["summary"]),
           "brand": {"@type": "Brand", "name": BRAND}}
@@ -1442,13 +1455,61 @@ def page_product(p):
     return layout(path, p["name"], desc, body, og=pimg(p["images"][0]), jsonld=[ld, bld], body_class="page-product", preload=pimg(p["images"][0]))
 
 
+PROOF_ANCHOR_RE = re.compile(r"kiểm nghiệm|chứng nhận|pháp lý", re.I)
+PROOF_RE = re.compile(r"kiểm nghiệm|chứng nhận|pháp lý|tiêu chuẩn|xuất xứ", re.I)
+
+
+def proof_drawer(p):
+    """Nút "Xem hồ sơ chất lượng" + khung trượt: CHỈ hiện tài liệu có thật trong dữ liệu sản phẩm –
+    hồ sơ có cấu trúc (proofs: đơn vị, ngày, phạm vi, ảnh/PDF), ảnh phiếu kiểm nghiệm, ảnh nhãn thật, và các mục mô tả về tiêu chuẩn/kiểm nghiệm/pháp lý/xuất xứ.
+    Không có gì thì không hiện nút. Logic mở/đóng trong main.js (initProof)."""
+    if p.get("combo"):
+        return "", ""
+    secs = [s for s in p.get("sections", []) if PROOF_RE.search(s.get("title") or "")]
+    proofs = [x for x in (p.get("proofs") or []) if x.get("title") and (x.get("org") or x.get("file"))]
+    labels = [x for x in (p.get("label_imgs") or []) if x]
+    cert = p.get("test_cert_img")
+    if not (secs or proofs or labels or cert):
+        return "", ""
+    def doc(url, alt):
+        u = pimg(url) if not str(url).lower().endswith(".pdf") else url
+        if str(url).lower().endswith(".pdf"):
+            return f'<a class="pf-pdf" href="{esc(u)}" target="_blank" rel="noopener">📄 Mở tài liệu PDF: {esc(alt)}</a>'
+        return f'<a class="pf-img" href="{esc(u)}" target="_blank" rel="noopener"><img src="{esc(u)}" alt="{esc(alt)}" loading="lazy"></a>'
+    parts = []
+    for x in proofs:
+        meta = "".join(f"<li><b>{k}:</b> {esc(x[n])}</li>" for k, n in (("Đơn vị", "org"), ("Ngày", "date"), ("Phạm vi", "scope"), ("Số hiệu", "number")) if x.get(n))
+        parts.append(f'<div class="pf-doc"><h3>{esc(x["title"])}</h3>{f"<ul>{meta}</ul>" if meta else ""}{doc(x["file"], x["title"]) if x.get("file") else ""}</div>')
+    if cert:
+        parts.append(f'<div class="pf-doc"><h3>Phiếu kiểm nghiệm</h3>{doc(cert, "Phiếu kiểm nghiệm " + p["name"])}</div>')
+    if labels:
+        parts.append('<div class="pf-doc"><h3>Ảnh nhãn thật trên bao bì</h3>' + "".join(doc(u, f"Nhãn thật {p['name']} – ảnh {i}") for i, u in enumerate(labels, 1)) + "</div>")
+    for s in secs:
+        style = s.get("style") or "box"
+        inner = ("<ul>" + "".join(f"<li>{md_inline(x)}</li>" for x in (s.get("items") or []) if x) + "</ul>") if style == "list" else md(s.get("text"))
+        parts.append(f'<div class="pf-doc pf-sec"><h3>{esc(s.get("title"))}</h3>{inner}</div>')
+    has_docs = bool(cert or labels or any(x.get("file") for x in proofs))
+    label = ("Xem phiếu kiểm nghiệm & nhãn thật" if (cert or any(x.get("file") for x in proofs)) and labels else
+             "Xem phiếu kiểm nghiệm" if cert or any(x.get("file") for x in proofs) else
+             "Xem nhãn thật & hồ sơ chất lượng" if labels else "Xem hồ sơ chất lượng")
+    cta = f'<button type="button" class="pf-open" data-proof aria-haspopup="dialog" aria-controls="proofBox">{ic("check", "pf-ic")}<span>{label}</span><i aria-hidden="true">›</i></button>'
+    disc = f'<p class="pf-note">{esc(p["disclaimer"])}</p>' if p.get("disclaimer") else ""
+    box = f'''<div class="pf" id="proofBox" hidden><div class="pf-box" role="dialog" aria-modal="true" aria-labelledby="pfTitle">
+  <div class="pf-head"><h2 id="pfTitle">Hồ sơ chất lượng</h2><button type="button" class="icon-btn pf-x" data-proof-close aria-label="Đóng">{I["close"]}</button></div>
+  <div class="pf-body"><p class="pf-lead">{esc(p["name"])}{"" if has_docs else " · Thông tin dưới đây lấy từ hồ sơ công bố của sản phẩm."}</p>{"".join(parts)}{disc}</div>
+</div></div>'''
+    return cta, box
+
+
 def satc_html(p):
-    """Thanh mua nhanh dính đáy (điện thoại/máy tính bảng ≤ 960px): chọn quy cách + Thêm vào giỏ + Mua ngay. Logic trong main.js (initSatc)."""
-    vs = "".join(f'<button type="button" data-satc-v="{i}" aria-pressed="{"true" if i == 0 else "false"}">{esc(v["name"])}</button>' for i, v in enumerate(p.get("variants") or []))
-    return f'''<div class="satc" id="satc" role="region" aria-label="Thanh mua nhanh">
-  <div class="satc-top"><img src="{pimg(p["images"][0], True)}" alt="" width="44" height="44" loading="lazy"><div class="satc-txt"><div class="satc-name">{esc(p.get("short_name") or p["name"])}</div><div><span class="satc-price" id="satcPrice">{money(p["price"])}</span><span class="satc-trust" id="satcTrust"></span></div></div></div>
-  {f'<div class="satc-variants">{vs}</div>' if len(p.get("variants") or []) > 1 else ""}
-  <div class="satc-actions"><button type="button" class="satc-add" id="satcAdd">Thêm vào giỏ</button><button type="button" class="satc-buy" id="satcBuy">{esc(p.get("cta_short") or "Mua ngay")}</button></div>
+    """Thanh mua nhanh dính đáy (chỉ điện thoại < 768px): tên + quy cách, tổng tiền theo số lượng, − số lượng +, Thêm vào giỏ.
+    Chỉ hiện sau khi khách đã cuộn qua hẳn nút Mua ngay. Logic trong main.js (initSatc) – mọi thao tác dùng lại ô số lượng và nút Thêm vào giỏ gốc."""
+    v0 = (p.get("variants") or [p])[0]
+    return f'''<div class="satc" id="satc" role="region" aria-label="Thanh mua nhanh" aria-hidden="true" inert>
+  <div class="satc-row"><div class="satc-txt"><div class="satc-name">{esc(p.get("short_name") or p["name"])}</div><div class="satc-var" id="satcVar">{esc(v0.get("name") or p.get("unit") or "")}</div></div>
+  <div class="satc-sum" aria-live="polite" aria-atomic="true"><b class="satc-price" id="satcPrice">{money(v0.get("price"))}</b><small id="satcEach"></small></div></div>
+  <div class="satc-row satc-actions"><div class="satc-qty" role="group" aria-label="Số lượng"><button type="button" data-satc-q="-1" aria-label="Giảm số lượng">−</button><input id="satcQty" type="number" inputmode="numeric" min="1" max="99" value="1" aria-label="Số lượng"><button type="button" data-satc-q="1" aria-label="Tăng số lượng">+</button></div>
+  <button type="button" class="satc-add" id="satcAdd">Thêm vào giỏ</button></div>
 </div>'''
 
 
@@ -1811,12 +1872,16 @@ def main():
         "text": strip_tags(p["name"] + " " + p["summary"] + " " + " ".join(p.get("highlights", []))),
         "featured": bool(p.get("featured")), "upsell": [x for x in (p.get("upsell") or []) if x], "combo": bool(p.get("combo")),
         "kw": [k for k in (p.get("keywords") or []) if k],  # từ khóa tìm kiếm nội bộ (không hiển thị)
+        "ing": strip_tags(" ".join((x.get("text") or "") + " " + " ".join(x.get("items") or []) for x in p.get("sections", []) if (x.get("title") or "").lower().startswith("thành phần")))[:600],  # thành phần: tìm kiếm ưu tiên thấp
+        "needs": [x for x in (p.get("needs") or []) if x], "parts": [x["p"]["slug"] for x in p.get("parts") or []],
+        "chips": card_chips(p),
     } for p in PRODUCTS]
     cfg = {"brand": BRAND, "hotline": SITE["hotline"], "zalo": tel(SITE["zalo"]), "email": SITE["email"], "zalo_oa": SITE.get("zalo_oa", ""), "zalo_group": SITE.get("zalo_group", ""), "gift": (WEB_OFFER.get("gift_title", "") + (" (trị giá " + WEB_OFFER["gift_value"] + ")" if WEB_OFFER.get("gift_value") else "")) if WEB_OFFER.get("gift_enabled") else "",
            "ga4_id": SITE.get("ga4_id", ""), "clarity_id": SITE.get("clarity_id", ""), "meta_pixel": SITE.get("meta_pixel", ""), "tiktok_pixel": SITE.get("tiktok_pixel", ""),
            "endpoint": (SITE.get("api_endpoint") or SITE.get("order_endpoint", "")), "bank": SITE["bank"] if SITE["bank"].get("enabled") else None,
            "shipping_fee": SITE.get("shipping_fee", 0), "free_ship_threshold": SITE.get("free_ship_threshold", 0),
-           "needs": [{"name": n["name"], "icon": n.get("icon") or "", "url": n["url"]} for n in NEEDS]}
+           "aov_milestone": SITE.get("aov_milestone") or {},
+           "needs": [{"slug": n["slug"], "name": n["name"], "icon": n.get("icon") or "", "url": n["url"]} for n in NEEDS]}
     (DIST / "assets/data").mkdir(parents=True, exist_ok=True)
     shutil.copy(DATA / "vn-units.json", DIST / "assets/data/vn-units.json")
     (DIST / "assets/js/data.js").write_text(
