@@ -2496,7 +2496,7 @@
   function closeStats(name, R) {
     var B = buyMap(), seen = {}, r = { data: 0, won: 0, lost: 0, junk: 0, open: 0 };
     (S.d.leads || []).forEach(function (l) {
-      if (!l.time || l.time < R[0] || l.time >= R[1] || !l.phone || (name !== null && l.owner !== name) || seen[l.phone]) return;
+      if (!l.time || l.time < R[0] || l.time >= R[1] || !l.phone || (name !== null && l.owner !== name) || seen[l.phone] || /^file cũ/i.test(l.channel || '')) return; // File cũ: số chuyển từ file sale cũ, ngày = ngày đồng bộ, không phải data mới
       var f = B.first[l.phone]; if (f && f < l.time - 3600e3) return; // khách cũ hỏi lại → tính ở khách cũ
       seen[l.phone] = 1;
       var won = l.status === 'Đã chốt' || (B.any[l.phone] || []).some(function (t) { return t >= l.time - 3600e3; });
