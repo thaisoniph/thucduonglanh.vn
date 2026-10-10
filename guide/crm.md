@@ -457,7 +457,11 @@ Số website chỉ đếm khách đã bấm “Đồng ý” cookie nên thấp 
     - Chọn người giữ → **Chốt**. Hoặc bấm **Chốt cả … khách theo lựa chọn đang hiện**. Ô *Chỉ xem khách có trong file của* giúp xử lý từng cặp sale, ví dụ chỉ xem khách trùng của Phương.
     - Đã chốt thì CRM **không báo trùng nữa**, kể cả khi bạn kia vẫn để dòng khách trong file. Không cần nhắc các bạn xoá dòng.
     - Sale được giao thêm khách nhận tin Telegram. Khách hỏi đang theo dõi của số đó chuyển theo.
-    - **Cột “Trùng sale” trong file số quảng cáo** (4 sheet Gafo Fucoidan, Bữa Ăn VTG, Chè Vằng, Sữa Curcumin) là căn cứ chính: số nào có ghi tên ở cột này thì khách thuộc về sale đó, không phụ thuộc file sale nào được nhập trước. CRM đọc lại 10 phút/lần, tự chuyển khách (cả khách đã mua lẫn khách hỏi đang theo dõi) về đúng người và ghi Nhật ký *Giao khách – Theo cột Trùng sale*. Một số ghi ở nhiều dòng thì lấy dòng **dưới cùng**. Khách này hiện dòng 📋 trong màn hình Khách trùng sale; muốn đổi người giữ thì **sửa cột Trùng sale trong file**, chọn trên CRM sẽ không đổi được. Tên ghi ở cột phải khớp “Tên trong file QC” của nhân sự (ghi thêm “T2” vẫn nhận ra).
+    - **Cột “Trùng sale” trong file số quảng cáo** (4 sheet Gafo Fucoidan, Bữa Ăn VTG, Chè Vằng, Sữa Curcumin) và người phụ trách trên CRM luôn **khớp nhau, sửa ở đâu sau cùng thì lấy theo đó**:
+        - Sửa tên ở cột Trùng sale trong file → khoảng 10 phút sau CRM chuyển khách (cả khách đã mua lẫn khách hỏi đang theo dõi) về sale đó, ghi Nhật ký *Giao khách – Theo cột Trùng sale*.
+        - Đổi người phụ trách trên CRM (chuyển khách, chốt ở màn hình này…) → khoảng 10 phút sau CRM tự ghi tên mới vào cột Trùng sale trong file.
+        - Một số ghi ở nhiều dòng thì lấy dòng **dưới cùng**. Tên ghi ở cột phải khớp “Tên trong file QC” của nhân sự (viết hoa hay thêm “T2” vẫn nhận ra). Khách có ghi ở cột này hiện dòng 📋 trong màn hình Khách trùng sale.
+        - Không phụ thuộc file sale nào được nhập trước.
     - Sau khi chốt, nếu sale kia vẫn lên đơn cho khách trong file của mình thì đơn đó vẫn tính doanh số cho người lên đơn. Riêng việc chăm sóc và nhắc việc thì chỉ người giữ khách thấy.
     - Danh sách tự cập nhật mỗi lần máy nhập file sale (30 phút/lần). Muốn xem ngay thì bấm **🔄 Quét lại file sale**. Nếu sau khi chốt mà khách xuất hiện thêm trong file của một sale khác, khách sẽ hiện lại ở mục *Cần chốt*.
 

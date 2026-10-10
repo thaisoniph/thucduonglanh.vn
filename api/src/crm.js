@@ -6,7 +6,7 @@ import { crmMkt } from './mkt.js';
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-10-10m'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
+const SCHEMA_V = '2026-10-10n'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -69,6 +69,11 @@ export async function ensureSchema(db) {
       await run(db, `CREATE TRIGGER IF NOT EXISTS ${t}_upd_u AFTER UPDATE ON ${t} WHEN NEW.upd IS OLD.upd BEGIN UPDATE ${t} SET upd = max(${NOW_MS}, coalesce(NEW.upd, 0) + 1) WHERE ${k} = NEW.${k}; END`); // luôn khác giá trị cũ → không tự gọi lại
     }
     deltaOk = true; } catch (e) { console.error('ensureSchema upd', e.message); } // lỗi thì CRM vẫn tải đủ như cũ
+    // Đổi người phụ trách trên CRM (A → B, không tính lúc giao khách chưa ai giữ) → adsSync ghi lại vào cột Trùng sale của file số quảng cáo
+    await run(db, `CREATE TABLE IF NOT EXISTS owner_chg (id INTEGER PRIMARY KEY AUTOINCREMENT, phone TEXT, owner TEXT, at INTEGER)`);
+    for (const t of ['customers', 'leads']) await run(db, `CREATE TRIGGER IF NOT EXISTS ${t}_owner_chg AFTER UPDATE OF owner ON ${t}
+      WHEN coalesce(OLD.owner, '') != '' AND coalesce(NEW.owner, '') != '' AND OLD.owner != NEW.owner${t === 'leads' ? " AND NEW.status IN ('Mới hỏi', 'Đang tư vấn')" : ''}
+      BEGIN INSERT INTO owner_chg (phone, owner, at) VALUES (NEW.phone, NEW.owner, ${NOW_MS}); END`);
     await run(db, `CREATE TABLE IF NOT EXISTS dup_done (phone TEXT PRIMARY KEY, owner TEXT DEFAULT '', sales TEXT DEFAULT '', by_name TEXT DEFAULT '', at INTEGER)`);
     await run(db, `CREATE TABLE IF NOT EXISTS ad_spend (
         day TEXT NOT NULL, channel TEXT NOT NULL, account TEXT NOT NULL DEFAULT '', campaign TEXT NOT NULL DEFAULT '',

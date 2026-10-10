@@ -112,3 +112,6 @@ CREATE TABLE IF NOT EXISTS ad_spend (
   PRIMARY KEY (day, channel, account, campaign)
 );
 CREATE INDEX IF NOT EXISTS ad_spend_batch ON ad_spend(batch);
+
+-- Đổi người phụ trách trên CRM (trigger customers_owner_chg / leads_owner_chg, tạo trong ensureSchema) → ghi lại vào cột Trùng sale file số quảng cáo
+CREATE TABLE IF NOT EXISTS owner_chg (id INTEGER PRIMARY KEY AUTOINCREMENT, phone TEXT, owner TEXT, at INTEGER);
