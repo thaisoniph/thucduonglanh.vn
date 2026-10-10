@@ -2766,7 +2766,7 @@
     // mã Facebook gửi bằng tên fbToken: tên token là mã phiên đăng nhập CRM, trùng sẽ bị đăng xuất
     if (tk) $('#fbTokGo', m).onclick = function () {
       var btn = this; busy(btn, true, 'Đang kiểm tra và lấy 90 ngày…');
-      api('mkt_fb', { fbToken: tk.value.trim() }).then(function (j) { closeModal(true); done('✅ Đã kết nối Facebook Ads · ' + (j.rows || 0) + ' dòng · ' + moneyShort(j.spend || 0) + (j.warn ? ' · ' + j.warn : '')); openMkt('fb'); }, function (e) { busy(btn, false, 'Kết nối'); toast(e.message, true); });
+      api('mkt_fb', { fbToken: tk.value.trim(), fbAccount: ($('#fbAccId', m) || {}).value || '' }).then(function (j) { closeModal(true); done('✅ Đã kết nối Facebook Ads · ' + (j.rows || 0) + ' dòng · ' + moneyShort(j.spend || 0) + (j.warn ? ' · ' + j.warn : '')); openMkt('fb'); }, function (e) { busy(btn, false, 'Kết nối'); toast(e.message, true); });
     };
     if ($('#fbAccSave', m)) $('#fbAccSave', m).onclick = function () { var ids = $$('input[name=fbAcc]:checked', m).map(function (i) { return i.value; }); api('mkt_fb', { accounts: ids }).then(function () { toast('Đã lưu'); }, function (e) { toast(e.message, true); }); };
     ['#fbSync', '#fbSync90'].forEach(function (s0) { var btn = $(s0, m); if (btn) btn.onclick = function () { var t = btn.textContent; busy(btn, true, 'Đang lấy…'); api('mkt_fb', { sync: 1, days: +btn.getAttribute('data-days') }).then(function (j) { busy(btn, false, t); done('Đã lấy ' + j.rows + ' dòng · ' + moneyShort(j.spend) + (j.warn ? ' · ⚠️ ' + j.warn : '')); }, function (e) { busy(btn, false, t); toast(e.message, true); }); }; });
@@ -2781,7 +2781,7 @@
       $$('[data-mdel]', m).forEach(function (b0) { b0.onclick = function () { if (!confirm('Xoá lần nhập này?')) return; api('mkt_del', { batch: b0.getAttribute('data-mdel') }).then(function () { closeModal(true); done('Đã xoá'); openMkt('list'); }, function (e) { toast(e.message, true); }); }; });
     }, function (e) { $('#mlList', m).innerHTML = '<p class="err">' + esc(e.message) + '</p>'; });
   }
-  function fbTokenForm() { return '<label class="f"><span>Mã truy cập Facebook (access token)</span><input id="fbTok" type="password" autocomplete="off" placeholder="EAA…"></label><button class="btn pri" id="fbTokGo">Kết nối</button><p class="small muted">Mã chỉ lưu trên máy chủ CRM, không hiện lại ở đây.</p>'; }
+  function fbTokenForm() { return '<label class="f"><span>Mã truy cập Facebook (access token)</span><input id="fbTok" type="password" autocomplete="off" placeholder="EAA…"></label><label class="f"><span>Mã tài khoản quảng cáo (không bắt buộc)</span><input id="fbAccId" type="text" inputmode="numeric" autocomplete="off" placeholder="vd 1234567890123456 – nhiều tài khoản thì cách nhau dấu phẩy"></label><button class="btn pri" id="fbTokGo">Kết nối</button><p class="small muted">Mã chỉ lưu trên máy chủ CRM, không hiện lại ở đây.</p>'; }
   function fbGuide() {
     return '<details class="box" open><summary><b>Cách lấy mã truy cập (làm 1 lần, trên máy tính)</b></summary><ol class="small">' +
       '<li>Mở <a href="https://business.facebook.com/settings/system-users" target="_blank" rel="noopener">Cài đặt doanh nghiệp → Người dùng hệ thống</a> (Business Manager đang giữ tài khoản quảng cáo).</li>' +

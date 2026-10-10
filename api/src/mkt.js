@@ -34,14 +34,25 @@ async function fbGet(token, path, params) {
   }
   return j;
 }
-/** Các tài khoản quảng cáo mã truy cập xem được. */
-async function fbAccounts(token) {
-  const out = []; let j = await fbGet(token, 'me/adaccounts', { fields: 'name,account_id,currency,account_status', limit: 100 });
-  for (let i = 0; i < 10; i++) {
-    (j.data || []).forEach(a => out.push({ id: 'act_' + a.account_id, name: a.name || a.account_id, cur: a.currency || '', st: a.account_status }));
-    if (!j.paging || !j.paging.next) break; j = await fbGet(token, j.paging.next);
+/** Các tài khoản quảng cáo mã truy cập xem được. manual: mã tài khoản quản trị nhập tay (số, act_…, cách nhau dấu phẩy).
+ *  Mã người dùng thường: me/adaccounts. Mã người dùng hệ thống: có khi chỉ có me/assigned_ad_accounts. Mã Trang / ứng dụng: không có 2 nhánh này → báo rõ loại mã. */
+async function fbAccounts(token, manual) {
+  const one = a => ({ id: 'act_' + a.account_id, name: a.name || a.account_id, cur: a.currency || '', st: a.account_status });
+  const F = { fields: 'name,account_id,currency,account_status', limit: 100 };
+  const ids = String(manual || '').split(/[\s,;]+/).map(v => v.replace(/\D/g, '')).filter(Boolean);
+  if (ids.length) return Promise.all(ids.map(id => fbGet(token, 'act_' + id, { fields: F.fields }).then(one).catch(e => { throw new Error('Không mở được tài khoản quảng cáo ' + id + ': ' + e.message); })));
+  let me = {}; try { me = await fbGet(token, 'me', { fields: 'id,name', metadata: 1 }); } catch (e) { if (/hết hạn|quyền/.test(e.message)) throw e; }
+  const type = me.metadata && me.metadata.type;
+  if (type === 'page') throw new Error('Mã này là mã của Trang “' + (me.name || '') + '”, không đọc được quảng cáo. Tạo mã ở Người dùng hệ thống (bước 2–4 bên dưới), hoặc nhập Mã tài khoản quảng cáo vào ô bên dưới rồi thử lại.');
+  if (type === 'application') throw new Error('Mã này là mã của ứng dụng, không đọc được quảng cáo. Tạo mã ở Người dùng hệ thống (bước 2–4 bên dưới).');
+  for (const edge of ['adaccounts', 'assigned_ad_accounts']) {
+    try {
+      const out = []; let j = await fbGet(token, 'me/' + edge, F);
+      for (let i = 0; i < 10; i++) { (j.data || []).forEach(a => out.push(one(a))); if (!j.paging || !j.paging.next) break; j = await fbGet(token, j.paging.next); }
+      if (out.length) return out;
+    } catch (e) { if (!/nonexisting field|\(#100\)/i.test(e.message)) throw e; }
   }
-  return out;
+  return [];
 }
 const ACT = (acts, re) => (acts || []).filter(a => re.test(a.action_type)).reduce((s, a) => s + (Number(a.value) || 0), 0);
 /** Lấy chi phí theo ngày × chiến dịch của các tài khoản đã chọn, từ ngày since đến until (yyyy-mm-dd), ghi đè phần đó trong D1. */
@@ -98,8 +109,8 @@ async function mktFb(x, d) {
   if (d.fbToken) {
     const token = String(d.fbToken).trim();
     if (!/^[A-Za-z0-9_-]{40,}$/.test(token)) return { ok: false, error: 'Mã truy cập chưa đúng: là một dãy dài chữ và số, thường bắt đầu bằng EAA.' };
-    const accs = await fbAccounts(token);
-    if (!accs.length) return { ok: false, error: 'Mã truy cập đúng nhưng chưa xem được tài khoản quảng cáo nào. Khi tạo mã, nhớ gán tài khoản quảng cáo và chọn quyền ads_read.' };
+    const accs = await fbAccounts(token, d.fbAccount);
+    if (!accs.length) return { ok: false, error: 'Mã đúng nhưng Facebook không liệt kê được tài khoản quảng cáo. Nhập Mã tài khoản quảng cáo vào ô bên dưới rồi bấm Kết nối lại (xem ở Trình quản lý quảng cáo: dãy số cạnh tên tài khoản, hoặc số sau act= trên thanh địa chỉ).', needAcc: true };
     c.fb = { token, all: accs, accounts: accs.filter(a => a.st === 1 || accs.length === 1).map(a => a.id), last: null, err: '' };
     if (!c.fb.accounts.length) c.fb.accounts = accs.map(a => a.id);
     await cfgSave(x, c);
