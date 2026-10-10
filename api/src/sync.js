@@ -356,15 +356,25 @@ export async function adsSync(x, u, dry) {
   const since = cfg.since ? new Date(cfg.since + 'T00:00:00+07:00').getTime() : Date.now() - 3 * DAY;
   const rows = [], perSale = {}, perSheet = {}, writes = [], rr = {}; let skipped = 0, merged = 0;
   const nextFrom = async (pool, key) => { if (!(key in rr)) rr[key] = (await kvGet(x.db, key)) || ''; const n = pool[(pool.indexOf(rr[key]) + 1) % pool.length]; rr[key] = n; return n; };
-  const scan = [];
+  const scan = [], vn = new Date(Date.now() + 7 * 3600e3), today = Date.UTC(vn.getUTCFullYear(), vn.getUTCMonth(), vn.getUTCDate(), 2); // 9h sáng hôm nay giờ VN (như toDate)
   for (const sc of (cfg.sheets || []).filter(s => s.on)) {
     const m = sc.map || cfg.map || {}, hr = sc.header || 1;
     const vals = await sheetValues(x.env, cfg.fileId, a1(sc.name, 'A' + (hr + 1) + ':' + colLetter(neededCols({ map: m }) - 1)), 'UNFORMATTED_VALUE');
-    const ctx = {};
-    vals.forEach((r, i) => { const when = toDate(cell(r, m, 'date'), ctx), phone = toPhone(cell(r, m, 'phone')); if (!when || !phone || when < since) return; scan.push({ sc, m, hr, r, i, when, phone, id: 'QC' + hashKey(sc.name + '|' + phone + '|' + fmtDate(when, 'yyyyMMdd')) }); });
+    const ctx = {}; let lastDated = 0;
+    vals.forEach((r, i) => {
+      const raw = cell(r, m, 'date'), phone = toPhone(cell(r, m, 'phone')); let when = toDate(raw, ctx), undated = false;
+      if (when) lastDated = when;
+      // nhân sự quên ghi ngày → tính là số của hôm nay (cùng mã với dòng ghi ngày hôm nay nên ghi bù ngày sau không bị trùng).
+      // Chỉ khi dòng có ngày gần nhất phía trên trong 3 ngày, để dòng cũ thiếu ngày từ lâu không bị dồn vào hôm nay.
+      else if (phone && String(raw == null ? '' : raw).trim() === '' && lastDated >= today - 3 * DAY) { when = today; undated = true; }
+      if (!when || !phone || when < since) return; scan.push({ sc, m, hr, r, i, when, phone, undated, id: 'QC' + hashKey(sc.name + '|' + phone + '|' + fmtDate(when, 'yyyyMMdd')) });
+    });
   }
   const ids = {}, openBy = {};
   (await allIn(x.db, 'SELECT id FROM leads WHERE id IN (SELECT value FROM json_each(?))', scan.map(s => s.id))).forEach(r => { ids[r.id] = 1; });
+  // dòng thiếu ngày đã lấy vào hôm trước (vẫn chưa ghi ngày) → bỏ qua, không tính lại thành số của hôm nay
+  const und = [...new Set(scan.filter(s => s.undated).map(s => s.phone))];
+  if (und.length) { const had = {}; (await allIn(x.db, "SELECT phone FROM leads WHERE phone IN (SELECT value FROM json_each(?)) AND id LIKE 'QC%' AND time >= ? AND time < ?", und, today - 30 * DAY, today)).forEach(r => { had[r.phone] = 1; }); scan.forEach(s => { if (s.undated && had[s.phone]) ids[s.id] = 1; }); }
   const phones = [...new Set(scan.map(s => s.phone))];
   (await allIn(x.db, "SELECT phone, owner FROM leads WHERE status IN ('Mới hỏi', 'Đang tư vấn') AND phone IN (SELECT value FROM json_each(?))", phones)).forEach(r => { openBy[r.phone] = r.owner || ''; });
   const owners = await ownersOf(x, phones), pool = users.filter(y => y.recv && y.alias).map(y => y.name);

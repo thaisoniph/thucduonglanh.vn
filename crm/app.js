@@ -2485,7 +2485,7 @@
   }
   /** Tỷ lệ chốt = data quảng cáo (khách hỏi kênh "Quảng cáo – …", lấy từ file số quảng cáo, ngày trong kỳ, người phụ trách = name)
    *  đã ra đơn ÷ tổng data quảng cáo. 1 SĐT nhiều lần trong kỳ chỉ tính 1. Ra đơn = khách hỏi "Đã chốt" hoặc SĐT có đơn không huỷ / hoàn
-   *  từ ngày có số (kể cả đơn tạo ngoài CRM, khách tự đặt web). Data gần đây còn đang tư vấn nên tỷ lệ kỳ đó tăng dần. */
+   *  từ đầu ngày có số (kể cả đơn tạo ngoài CRM, khách tự đặt web). Data gần đây còn đang tư vấn nên tỷ lệ kỳ đó tăng dần. */
   function buyMap() {
     var o = S.d.orders; if (S.d._buyFor === o && S.d._buyLen === o.length) return S.d._buy;
     var any = {}; o.forEach(function (x) { if (x.time && x.phone && !isVoid(x.status)) (any[x.phone] = any[x.phone] || []).push(x.time); });
@@ -2496,7 +2496,7 @@
     (S.d.leads || []).forEach(function (l) {
       if (!l.time || l.time < R[0] || l.time >= R[1] || !l.phone || (name !== null && l.owner !== name) || seen[l.phone] || !/^quảng cáo/i.test(l.channel || '')) return;
       seen[l.phone] = 1;
-      var won = l.status === 'Đã chốt' || (B[l.phone] || []).some(function (t) { return t >= l.time - 3600e3; });
+      var won = l.status === 'Đã chốt' || (B[l.phone] || []).some(function (t) { return t >= dayStart(l.time); }); // số QC ghi ngày (9h sáng) → đơn từ đầu ngày đó
       var k = won ? 'won' : l.status === 'Không mua' ? (/rác/i.test(l.reason || '') ? 'junk' : 'lost') : 'open';
       r.data++; r[k]++;
     });
