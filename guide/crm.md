@@ -400,7 +400,7 @@ Tab đầu tiên trên menu, dành cho chủ doanh nghiệp. Bấm **📅 thời
 
 **📣 Marketing**: chi phí quảng cáo, 1đ chi phí thu về bao nhiêu (tổng doanh thu ÷ chi phí), chi phí / đơn, chi phí / khách để lại SĐT, chi phí có 1 khách mới, chi phí theo kênh và theo chiến dịch. Bấm **⚙️ Quản lý chi phí quảng cáo** để đưa số vào:
 
-- **📘 Facebook tự động**: dán mã truy cập (làm theo hướng dẫn ngay trong cửa sổ), CRM tự lấy chi phí từng chiến dịch 3 tiếng 1 lần.
+- **📘 Facebook tự động**: dán mã truy cập (làm theo hướng dẫn ngay trong cửa sổ), CRM tự lấy chi phí từng chiến dịch 3 tiếng 1 lần. Nhiều tài khoản quảng cáo: gán tất cả cho người dùng hệ thống trong Business Manager; CRM tự tìm tài khoản mới mỗi ngày, hoặc bấm **🔄 Tìm tài khoản mới** / **＋ Thêm** mã tài khoản.
 - **📄 Nhập file**: TikTok, Google Ads… xuất báo cáo CSV theo ngày + chiến dịch rồi chọn file. Nhập lại cùng khoảng ngày thì số mới thay số cũ.
 - **✍️ Nhập tay**: KOL / KOC, in ấn, sự kiện… nhập số tiền cho 1 khoảng ngày, CRM chia đều theo ngày.
 - **📋 Đã nhập**: xem lại, xoá lần nhập sai.

@@ -17,7 +17,7 @@ async function cfgSave(x, c) { await kvSet(x.db, 'mkt_cfg', JSON.stringify(c)); 
 /** Cấu hình gửi về CRM: không bao giờ gửi mã truy cập, chỉ 4 ký tự cuối. */
 function cfgPublic(c) {
   const fb = c.fb || {};
-  return { fb: { on: !!fb.token, tail: fb.token ? fb.token.slice(-4) : '', accounts: fb.accounts || [], all: fb.all || [], last: fb.last || null, err: fb.err || '', from: fb.from || '' } };
+  return { fb: { on: !!fb.token, tail: fb.token ? fb.token.slice(-4) : '', accounts: fb.accounts || [], all: fb.all || [], last: fb.last || null, err: fb.err || '', from: fb.from || '', listed: fb.listed || null } };
 }
 
 /* ---------------- Facebook Ads (Meta Marketing API) */
@@ -34,25 +34,38 @@ async function fbGet(token, path, params) {
   }
   return j;
 }
-/** Các tài khoản quảng cáo mã truy cập xem được. manual: mã tài khoản quản trị nhập tay (số, act_…, cách nhau dấu phẩy).
- *  Mã người dùng thường: me/adaccounts. Mã người dùng hệ thống: có khi chỉ có me/assigned_ad_accounts. Mã Trang / ứng dụng: không có 2 nhánh này → báo rõ loại mã. */
-async function fbAccounts(token, manual) {
+/** Các tài khoản quảng cáo mã truy cập xem được = tự tìm (me/adaccounts, me/assigned_ad_accounts, tài khoản của các Business Manager: owned + client)
+ *  ∪ mã nhập tay (manual: số / act_…, cách nhau dấu phẩy). strict: mã nhập tay mở không được thì báo lỗi (lúc kết nối), không thì bỏ qua (lúc tự tìm lại).
+ *  Mã Trang / ứng dụng: báo rõ loại mã. */
+async function fbAccounts(token, manual, strict) {
   const one = a => ({ id: 'act_' + a.account_id, name: a.name || a.account_id, cur: a.currency || '', st: a.account_status });
-  const F = { fields: 'name,account_id,currency,account_status', limit: 100 };
-  const ids = String(manual || '').split(/[\s,;]+/).map(v => v.replace(/\D/g, '')).filter(Boolean);
-  if (ids.length) return Promise.all(ids.map(id => fbGet(token, 'act_' + id, { fields: F.fields }).then(one).catch(e => { throw new Error('Không mở được tài khoản quảng cáo ' + id + ': ' + e.message); })));
+  const F = { fields: 'name,account_id,currency,account_status', limit: 100 }, seen = {}, out = [];
+  const add = a => { if (a && a.id && !seen[a.id]) { seen[a.id] = 1; out.push(a); } };
+  const list = async path => { let j = await fbGet(token, path, F); for (let i = 0; i < 10; i++) { (j.data || []).forEach(a => add(one(a))); if (!j.paging || !j.paging.next) break; j = await fbGet(token, j.paging.next); } };
+  const soft = async p => { try { await p; } catch (e) { if (/hết hạn/.test(e.message)) throw e; } }; // nhánh không có / thiếu quyền: bỏ qua, thử nhánh khác
   let me = {}; try { me = await fbGet(token, 'me', { fields: 'id,name', metadata: 1 }); } catch (e) { if (/hết hạn|quyền/.test(e.message)) throw e; }
   const type = me.metadata && me.metadata.type;
-  if (type === 'page') throw new Error('Mã này là mã của Trang “' + (me.name || '') + '”, không đọc được quảng cáo. Tạo mã ở Người dùng hệ thống (bước 2–4 bên dưới), hoặc điền ô “Mã tài khoản quảng cáo” rồi thử lại.');
+  if (type === 'page') throw new Error('Mã này là mã của Trang “' + (me.name || '') + '”, không đọc được quảng cáo. Tạo mã ở Người dùng hệ thống (bước 2–4 bên dưới).');
   if (type === 'application') throw new Error('Mã này là mã của ứng dụng, không đọc được quảng cáo. Tạo mã ở Người dùng hệ thống (bước 2–4 bên dưới).');
-  for (const edge of ['adaccounts', 'assigned_ad_accounts']) {
-    try {
-      const out = []; let j = await fbGet(token, 'me/' + edge, F);
-      for (let i = 0; i < 10; i++) { (j.data || []).forEach(a => out.push(one(a))); if (!j.paging || !j.paging.next) break; j = await fbGet(token, j.paging.next); }
-      if (out.length) return out;
-    } catch (e) { if (!/nonexisting field|\(#100\)/i.test(e.message)) throw e; }
+  await soft(list('me/adaccounts')); await soft(list('me/assigned_ad_accounts'));
+  await soft((async () => { const b = await fbGet(token, 'me/businesses', { fields: 'id,name', limit: 50 }); for (const x of b.data || []) { await soft(list(x.id + '/owned_ad_accounts')); await soft(list(x.id + '/client_ad_accounts')); } })()); // cần quyền business_management
+  for (const id of String(manual || '').split(/[\s,;]+/).map(v => v.replace(/\D/g, '')).filter(Boolean)) {
+    if (seen['act_' + id]) continue;
+    try { add(one(await fbGet(token, 'act_' + id, { fields: F.fields }))); } catch (e) { if (strict) throw new Error('Không mở được tài khoản quảng cáo ' + id + ': ' + e.message); }
   }
-  return [];
+  return out;
+}
+/** Tìm lại tài khoản (mỗi ngày 1 lần + nút "Tìm tài khoản mới"): tài khoản mới đang hoạt động tự được thêm vào danh sách lấy số. Trả về các tài khoản vừa thêm. */
+async function fbRefresh(x, addManual) {
+  const c = await cfgOf(x), fb = c.fb || {}; if (!fb.token) return [];
+  const manual = [fb.manual || '', addManual || ''].filter(Boolean).join(',');
+  const accs = await fbAccounts(fb.token, manual, !!addManual), had = {}, pick = {}, fresh = [];
+  (fb.all || []).forEach(a => { had[a.id] = 1; }); (fb.accounts || []).forEach(id => { pick[id] = 1; });
+  const typed = {}; String(addManual || '').split(/[\s,;]+/).map(v => v.replace(/\D/g, '')).filter(Boolean).forEach(id => { typed['act_' + id] = 1; });
+  accs.forEach(a => { if ((!had[a.id] && a.st === 1) || typed[a.id]) { if (!pick[a.id]) fresh.push(a.id); pick[a.id] = 1; } });
+  const c2 = await cfgOf(x); c2.fb = Object.assign({}, c2.fb, { all: accs.length ? accs : fb.all, accounts: Object.keys(pick), manual, listed: Date.now() });
+  await cfgSave(x, c2);
+  return fresh;
 }
 const ACT = (acts, re) => (acts || []).filter(a => re.test(a.action_type)).reduce((s, a) => s + (Number(a.value) || 0), 0);
 /** Lấy chi phí theo ngày × chiến dịch của các tài khoản đã chọn, từ ngày since đến until (yyyy-mm-dd), ghi đè phần đó trong D1. */
@@ -75,7 +88,7 @@ export async function fbSync(x, since, until) {
       await run(x.db, "DELETE FROM ad_spend WHERE channel = 'Facebook' AND account = ? AND src = 'auto' AND day BETWEEN ? AND ?", acc, since, until); // chiến dịch đã tắt / về 0 không còn trong kết quả
       await insertMany(x.db, 'ad_spend', COLS, rows, UPSERT);
       n += rows.length; spend += rows.reduce((s, r) => s + r.spend, 0);
-    } catch (e) { errs.push(e.message); }
+    } catch (e) { const nm = ((fb.all || []).find(a => a.id === acc) || {}).name || acc; errs.push(/quyền/.test(e.message) ? 'TK “' + nm + '” chưa gán cho người dùng hệ thống (Gán tài sản → Xem hiệu quả)' : 'TK “' + nm + '”: ' + e.message); }
   }
   const c2 = await cfgOf(x); c2.fb = Object.assign({}, c2.fb, { last: now, err: errs.join(' · ') });
   if (!errs.length && (!c2.fb.from || since < c2.fb.from)) c2.fb.from = since;
@@ -87,6 +100,7 @@ export async function mktTick(x) {
   const c = await cfgOf(x), fb = c.fb || {};
   if (!fb.token || Date.now() - (fb.last || 0) < 3 * 3600e3) return;
   const t = startOfDay(Date.now());
+  if (Date.now() - (fb.listed || 0) > DAY) { try { if ((await fbRefresh(x)).length) return void await syncDays(x, 90); } catch (e) { console.error('fbRefresh', e.message); } }
   await fbSync(x, iso(t - 2 * DAY), iso(t));
 }
 
@@ -102,6 +116,16 @@ async function mktLoad(x, d) {
   ]);
   return { ok: true, days: days.map(r => [r.day, r.channel, r.s]), camps: camps.map(r => [r.channel, r.campaign, r.src, r.s, r.i, r.c, r.m, r.l, r.p]), prev: prev.map(r => [r.channel, r.s, r.c, r.m, r.l]), cfg: cfgPublic(c) };
 }
+/** Lấy lại số days ngày gần nhất, mỗi lần 30 ngày cho nhẹ. */
+async function syncDays(x, days) {
+  const t = startOfDay(Date.now()); days = Math.min(400, Math.max(1, days)); const r = { ok: true, rows: 0, spend: 0 };
+  for (let k = 0; k < days; k += 30) {
+    const until = t - k * DAY, since = Math.max(t - (days - 1) * DAY, until - 29 * DAY);
+    const p = await fbSync(x, iso(since), iso(until)); if (!p.ok) return Object.assign(p, { cfg: cfgPublic(await cfgOf(x)) });
+    r.rows += p.rows; r.spend += p.spend; if (p.warn) r.warn = p.warn;
+  }
+  return Object.assign(r, { cfg: cfgPublic(await cfgOf(x)) });
+}
 /** mkt_fb: dán mã truy cập (fbToken – d.token là mã phiên CRM) → kiểm tra, liệt kê tài khoản; chọn tài khoản (accounts); đồng bộ (sync, days); ngắt (off). */
 async function mktFb(x, d) {
   const c = await cfgOf(x); c.fb = c.fb || {};
@@ -109,22 +133,19 @@ async function mktFb(x, d) {
   if (d.fbToken) {
     const token = String(d.fbToken).trim();
     if (!/^[A-Za-z0-9_-]{40,}$/.test(token)) return { ok: false, error: 'Mã truy cập chưa đúng: là một dãy dài chữ và số, thường bắt đầu bằng EAA.' };
-    const accs = await fbAccounts(token, d.fbAccount);
+    const accs = await fbAccounts(token, d.fbAccount, true);
     if (!accs.length) return { ok: false, error: 'Mã đúng nhưng Facebook không liệt kê được tài khoản quảng cáo. Điền ô “Mã tài khoản quảng cáo” (ngay dưới ô mã truy cập) rồi bấm Kết nối lại (xem ở Trình quản lý quảng cáo: dãy số cạnh tên tài khoản, hoặc số sau act= trên thanh địa chỉ).', needAcc: true };
-    c.fb = { token, all: accs, accounts: accs.filter(a => a.st === 1 || accs.length === 1).map(a => a.id), last: null, err: '' };
+    c.fb = { token, all: accs, accounts: accs.filter(a => a.st === 1 || accs.length === 1).map(a => a.id), manual: String(d.fbAccount || ''), listed: Date.now(), last: null, err: '' };
     if (!c.fb.accounts.length) c.fb.accounts = accs.map(a => a.id);
     await cfgSave(x, c);
   }
-  if (d.accounts) { const ok = (c.fb.all || []).map(a => a.id); c.fb.accounts = d.accounts.filter(a => ok.indexOf(a) >= 0); await cfgSave(x, c); }
-  if (d.fbToken || d.sync) { // lần đầu: lấy 90 ngày (3 lần × 30 ngày cho nhẹ); bấm "Lấy lại": d.days ngày
-    const t = startOfDay(Date.now()), days = Math.min(400, Math.max(1, Number(d.days) || (d.fbToken ? 90 : 7))); let r = { ok: true, rows: 0, spend: 0 };
-    for (let k = 0; k < days; k += 30) {
-      const until = t - k * DAY, since = Math.max(t - (days - 1) * DAY, until - 29 * DAY);
-      const p = await fbSync(x, iso(since), iso(until)); if (!p.ok) return Object.assign(p, { cfg: cfgPublic(await cfgOf(x)) });
-      r.rows += p.rows; r.spend += p.spend; if (p.warn) r.warn = p.warn;
-    }
-    return Object.assign(r, { cfg: cfgPublic(await cfgOf(x)) });
+  if (d.refresh || d.addAcc) { // tìm tài khoản mới / thêm mã tài khoản bằng tay → có tài khoản mới thì lấy 90 ngày
+    const fresh = await fbRefresh(x, d.addAcc);
+    if (!fresh.length) return { ok: true, fresh: 0, cfg: cfgPublic(await cfgOf(x)) };
+    return Object.assign(await syncDays(x, 90), { fresh: fresh.length });
   }
+  if (d.accounts) { const ok = (c.fb.all || []).map(a => a.id); c.fb.accounts = d.accounts.filter(a => ok.indexOf(a) >= 0); await cfgSave(x, c); }
+  if (d.fbToken || d.sync) return syncDays(x, Number(d.days) || (d.fbToken ? 90 : 7)); // lần đầu: 90 ngày; bấm "Lấy lại": d.days ngày
   return { ok: true, cfg: cfgPublic(await cfgOf(x)) };
 }
 function chName(s) { return String(s || '').trim().slice(0, 40) || 'Khác'; }
