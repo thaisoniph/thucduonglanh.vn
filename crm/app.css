@@ -639,3 +639,10 @@ details.gift summary::-webkit-details-marker{display:none}
 @media (min-width: 860px) { .fb-btn .fb-lbl { display: none; } .icon-btn.fb-btn { width: 38px; padding: 0; } }
 @media (min-width: 860px) and (max-width: 1279px) { .nav a svg { display: none; } }
 @media (min-width: 860px) and (max-width: 1023px) { .top-in { padding: 8px 12px; gap: 6px; } .nav a { padding: 8px 7px; font-size: 13px; } }
+/* Hộp chăm sóc: 2 nút lớn Gọi / Nhắn Zalo, tin nhắn & kết quả khác thu gọn */
+.k-go { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.k-go .btn { justify-content: center; min-height: 52px; font-size: 16px; }
+details.k-msg, details.k-more { margin-top: 10px; }
+details.k-msg summary, details.k-more summary { cursor: pointer; font-size: 13.5px; font-weight: 600; color: var(--primary); padding: 4px 0; }
+details.k-more { border-top: 1px dashed var(--line); padding-top: 6px; }
+input[type=date] { -webkit-appearance: none; appearance: none; display: block; min-width: 0; max-width: 100%; text-align: left; }

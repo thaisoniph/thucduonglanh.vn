@@ -819,9 +819,9 @@
     txt = fillTpl(txt, c); return /\[Link nhóm\]/i.test(txt) ? txt.replace(/\[Link nhóm\]/gi, CFG.zalo_group || '') : txt + (CFG.zalo_group && txt.indexOf(CFG.zalo_group) < 0 ? '\n' + CFG.zalo_group : '');
   }
   /** Khung mời cộng đồng trong hộp chăm sóc: mở sẵn ở mốc hỏi nhận hàng / hỏi thăm 1 tuần. */
-  function commBox(c, type) {
+  function commBox(c, type, shut) {
     if (inComm(c)) return '';
-    var open = (type === 'd1' || type === 'd7') && !invited(c);
+    var open = !shut && (type === 'd1' || type === 'd7') && !invited(c);
     return '<details class="box comm"' + (open ? ' open' : '') + '><summary><b>👥 Mời vào nhóm Zalo cộng đồng</b> <span class="small muted">' + (invited(c) ? esc(c.community) + ', khách chưa vào nhóm' : 'khách chưa vào nhóm') + '</span></summary>' +
       '<p class="small" style="margin:8px 0">Nhóm <b>“Sống khỏe cùng Thực Dưỡng Lành”</b>: kiến thức dinh dưỡng, thực đơn lành mạnh, <b>Zoom hỏi đáp miễn phí cùng chuyên gia dinh dưỡng</b>. Khách trong nhóm gắn bó và mua lại nhiều hơn.</p>' +
       '<div class="steps"><button type="button" class="btn zalo" data-comm="' + c.phone + '|zalo">📋 Copy lời mời & mở Zalo</button><button type="button" class="btn" data-comm="' + c.phone + '|copy">Copy lời mời</button><button type="button" class="btn" data-comm="' + c.phone + '|in">✅ Khách đã vào nhóm</button></div></details>';
@@ -873,10 +873,10 @@
     if (withZalo && CFG.zalo_group && p.community !== 'Đã vào') txt += GIFT_ZALO;
     return fillTpl(txt, p).replace(/\[Link quà\]/gi, g.link).replace(/\[Tên quà\]/gi, g.title).replace(/\[Link nhóm\]/gi, CFG.zalo_group || '');
   }
-  function giftBox(p, ctx) {
+  function giftBox(p, ctx, shut) {
     var list = giftList(); if (!p || !list.length) return '';
     var ord = giftOrder(p), left = ord.filter(function (g) { return !giftGot(p, g); }).length;
-    var open = !!GIFT_TIP[ctx] && (ctx === 'd1' || ctx === 'd7' || ctx === 'lead') && left > 0;
+    var open = !shut && !!GIFT_TIP[ctx] && (ctx === 'd1' || ctx === 'd7' || ctx === 'lead') && left > 0;
     return '<details class="box gift" data-gift-box="' + p.phone + '|' + (ctx || '') + '"' + (open ? ' open' : '') + '><summary><b>🎁 Tặng quà cho khách</b> <span class="small muted">' + (left ? left + ' quà chưa gửi' : 'đã gửi đủ quà') + '</span></summary>' +
       '<p class="small" style="margin:8px 0">' + esc(GIFT_TIP[ctx] || 'Quà tặng miễn phí, gửi để thêm giá trị cho khách. Mỗi khách gửi mỗi quà 1 lần là đủ.') + '</p>' +
       ord.map(function (g, i) {
@@ -1467,9 +1467,10 @@
   /* ---------- hộp chăm sóc: tin mẫu → Zalo → kết quả */
   function templateFor(type) {
     var key = TASKS[type === 'old' ? 'winback' : type] && TASKS[type === 'old' ? 'winback' : type].tpl, tp = S.d.templates; // khách cũ lâu chưa gọi → dùng mẫu "Mời quay lại"
-    if (!key) return -1;
-    for (var i = 0; i < tp.length; i++) if (norm(tp[i][0]).indexOf(norm(key)) >= 0) return i;
-    return -1;
+    var find = function (k) { for (var i = 0; i < tp.length; i++) if (norm(tp[i][0]).indexOf(norm(k)) >= 0) return i; return -1; };
+    var i = key ? find(key) : -1;
+    if (i < 0 && type !== 'callback') i = find('7 ngày'); // việc chưa có mẫu riêng (chăm sóc tự do…) → mẫu hỏi thăm, không để ô tin trống
+    return i;
   }
   function fillTpl(text, c) {
     var name = (c.name || '').replace(/\(.*?\)/g, ' ').trim().split(/\s+/).pop() || 'anh/chị';
@@ -1486,20 +1487,23 @@
       (c.flag ? '<div class="notice" style="background:var(--red-light);color:var(--red);margin:8px 0 0">⚠️ Khách có nhãn <b>' + esc(c.flag) + '</b>. Nên yêu cầu chuyển khoản trước khi gửi hàng.</div>' : '') +
       '<div id="kSum">' + careSum(c, null) + '</div>' +
       (hist.length ? '<div class="k-sec">💬 Chăm sóc gần đây</div><div class="mini-hist">' + hist.map(function (x) { return '<div><span>' + fDate(x.time).slice(0, 5) + '</span> ' + esc(x.text) + '</div>'; }).join('') + '</div>' : '') + '</div>' +
-      '<div class="box"><h3>Bước 1 · Gửi tin cho khách</h3>' +
-      '<label class="f"><span>Mẫu tin</span><select id="kTpl"><option value="-1">– Tự viết –</option>' + tp.map(function (t, i) { return '<option value="' + i + '"' + (i === ti ? ' selected' : '') + '>' + esc(t[0] + (t[1] ? ' – ' + t[1] : '')) + '</option>'; }).join('') + '</select></label>' +
-      '<label class="f"><span>Nội dung (sửa được, nhớ điền phần “…” nếu có)</span><textarea id="kMsg" rows="6">' + esc(ti >= 0 ? fillTpl(tp[ti][2], c) : '') + '</textarea></label>' +
-      (c.zalo ? '<div class="steps"><button class="btn zalo" id="kZalo">📋 Copy tin & mở Zalo</button><button class="btn" id="kCopy">Copy tin</button><a class="btn" href="tel:' + c.phone + '">📞 Gọi</a></div><p class="small muted" style="margin:8px 0 0">' + ZI + ' Khách đã kết bạn Zalo: nhắn tin trước, khách tiện trả lời lúc rảnh.</p></div>'
-        : '<div class="steps"><a class="btn pri" href="tel:' + c.phone + '">📞 Gọi</a><button class="btn zalo" id="kZalo">📋 Copy tin & mở Zalo</button><button class="btn" id="kCopy">Copy tin</button></div><p class="small" style="margin:8px 0 0">Khách <b>chưa kết bạn Zalo</b>: gọi xong nhớ xin kết bạn để lần sau nhắn tin chăm sóc. ' + (canEdit(c) ? zaloTag(c) : '') + '</p></div>') +
-      commBox(c, type) + giftBox(giftPerson(c.phone), type) +
-      '<div class="box"><h3>Bước 2 · Ghi kết quả</h3>' +
-      '<div class="f"><span style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--ink)">Bấm 1 lần là lưu (tự hẹn ngày gọi lại)</span><div class="quick">' + QUICK.filter(function (q) { return !q.only || q.only === type; }).sort(function (a, b) { return (b.only ? 1 : 0) - (a.only ? 1 : 0); }).map(function (q) { return '<button class="btn" data-q="' + q.k + '" title="' + esc(q.r + (q.d ? ', ' + q.d + ' ngày sau tự nhắc gọi lại' : '')) + '">' + q.l + '</button>'; }).join('') + '</div></div>' +
-      '<p class="small muted" style="margin:4px 0 10px">Hoặc tự chọn bên dưới:</p>' +
+      '<div class="box"><h3>Bước 1 · Gọi hoặc nhắn cho khách</h3>' +
+      (c.zalo ? '<div class="k-go"><button class="btn zalo" id="kZalo">💬 Nhắn Zalo</button><a class="btn" href="tel:' + c.phone + '">📞 Gọi</a></div><p class="small muted" style="margin:8px 0 0">' + ZI + ' Khách đã kết bạn Zalo: nhắn trước, khách tiện trả lời lúc rảnh. Bấm <b>Nhắn Zalo</b> là tin bên dưới được copy sẵn, chỉ cần dán và gửi.</p>'
+        : '<div class="k-go"><a class="btn pri" href="tel:' + c.phone + '">📞 Gọi</a><button class="btn zalo" id="kZalo">💬 Nhắn Zalo</button></div><p class="small" style="margin:8px 0 0">Khách <b>chưa kết bạn Zalo</b>: nên gọi trước, gọi xong xin kết bạn. ' + (canEdit(c) ? zaloTag(c) : '') + '</p>') +
+      '<details class="k-msg"' + (c.zalo ? ' open' : '') + '><summary>✏️ Tin nhắn sẽ gửi (sửa được)</summary>' +
+      '<label class="f" style="margin-top:8px"><span>Mẫu tin</span><select id="kTpl"><option value="-1">– Tự viết –</option>' + tp.map(function (t, i) { return '<option value="' + i + '"' + (i === ti ? ' selected' : '') + '>' + esc(t[0] + (t[1] ? ' – ' + t[1] : '')) + '</option>'; }).join('') + '</select></label>' +
+      '<label class="f"><span>Nội dung (nhớ điền phần “…” nếu có)</span><textarea id="kMsg" rows="5">' + esc(ti >= 0 ? fillTpl(tp[ti][2], c) : '') + '</textarea></label>' +
+      '<button type="button" class="link small" id="kCopy">Chỉ copy tin (không mở Zalo)</button></details></div>' +
+      commBox(c, type, true) + giftBox(giftPerson(c.phone), type, true) + // thu gọn: để Bước 2 không bị đẩy xuống xa
+      '<div class="box"><h3>Bước 2 · Khách thế nào? Bấm 1 nút là xong</h3>' +
+      '<label class="f"><span>Khách nói gì (không bắt buộc, gõ trước rồi bấm nút)</span><textarea id="kNote" rows="2" placeholder="vd: chị bảo ngủ ngon hơn, còn nửa hộp…"></textarea></label>' +
+      '<div class="f"><span style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px">Máy tự lưu và tự hẹn ngày gọi lại</span><div class="quick">' + QUICK.filter(function (q) { return !q.only || q.only === type; }).sort(function (a, b) { return (b.only ? 1 : 0) - (a.only ? 1 : 0); }).map(function (q) { return '<button class="btn" data-q="' + q.k + '" title="' + esc(q.r + (q.d ? ', ' + q.d + ' ngày sau tự nhắc gọi lại' : '')) + '">' + q.l + '</button>'; }).join('') + '</div></div>' +
+      '<details class="k-more"><summary>Kết quả khác / tự chọn ngày hẹn</summary><div style="margin-top:10px">' +
       '<label class="f"><span>Việc</span><select id="kTask">' + Object.keys(TASK_LOG).map(function (k) { return '<option value="' + k + '"' + (k === type ? ' selected' : '') + '>' + TASK_LOG[k] + '</option>'; }).join('') + '</select></label>' +
       '<div class="f"><span style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--ink)">Kết quả</span><div class="radios">' + RESULTS.map(function (r, i) { return '<label><input type="radio" name="kRes" value="' + esc(r) + '"' + '><span>' + esc(r) + '</span></label>'; }).join('') + '</div></div>' +
       '<label class="f" id="kCbWrap"><span>Hẹn gọi lại ngày (nếu có)</span><input type="date" id="kCb" min="' + isoDate(Date.now()) + '"></label>' +
-      '<label class="f"><span>Ghi chú lần này</span><textarea id="kNote" rows="2" placeholder="Khách nói gì, cần gì…"></textarea></label><p class="err" id="kErr"></p></div>';
-    var m = modal((opt.flow ? '📞 ' : 'Chăm sóc: ') + esc(c.name), body, opt.flow ? '<button class="btn" id="kSkip">⏭ Để sau</button><button class="btn pri" id="kSave">Lưu & sang khách tiếp</button>' : '<button class="btn" data-close>Để sau</button><button class="btn pri" id="kSave">Lưu kết quả</button>');
+      '<button class="btn pri" id="kSave" style="width:100%">' + (opt.flow ? 'Lưu & sang khách tiếp' : 'Lưu kết quả') + '</button></div></details><p class="err" id="kErr"></p></div>';
+    var m = modal((opt.flow ? '📞 ' : 'Chăm sóc: ') + esc(c.name), body, opt.flow ? '<button class="btn" id="kSkip">⏭ Để sau, sang khách tiếp</button>' : '<button class="btn" data-close>Để sau</button>');
     if (opt.flow) {
       m.addEventListener('click', function (e) { if (e.target === m || e.target.closest('[data-close]')) S.flow = null; }, true); // bấm ✕ = dừng gọi lần lượt
       $('#kSkip', m).onclick = function () { if (S.flow) S.flow.skip[c.phone] = 1; closeModal(true); nextFlow(); };
@@ -1518,14 +1522,14 @@
       if (!res) { err.textContent = 'Bạn chọn kết quả giúp nhé.'; return; }
       var p = { phone: c.phone, task: $('#kTask', m).value, result: res.value, note: $('#kNote', m).value.trim(), callback: $('#kCb', m).value };
       var btn = this; btn.disabled = true; btn.textContent = 'Đang lưu…';
-      saveCare(c, p).then(function () { closeModal(); toast('Đã lưu kết quả chăm sóc ✓'); navBadges(); render(); if (S.flow) setTimeout(nextFlow, 200); }, function (e) { btn.disabled = false; btn.textContent = 'Lưu kết quả'; err.textContent = e.message; });
+      saveCare(c, p).then(function () { closeModal(); toast('Đã lưu kết quả chăm sóc ✓'); navBadges(); render(); if (S.flow) setTimeout(nextFlow, 200); }, function (e) { btn.disabled = false; btn.textContent = opt.flow ? 'Lưu & sang khách tiếp' : 'Lưu kết quả'; err.textContent = e.message; });
     };
   }
   /** Tóm tắt khách trong hộp chăm sóc: giá trị, thói quen mua, lần cuối trả lời, lịch sử đơn – nhìn 1 màn hình là đủ để gọi. */
   function careSum(c, all, more) {
     var list = (all || ordersOf(c.phone)).slice().sort(function (a, b) { return (b.time || 0) - (a.time || 0); }), st = custStats(c, list), r = replyOf(c), pv = provOf(c);
     var health = noteExtras(c.note).filter(function (l) { return /^Sức khoẻ:/.test(l.trim()); }).map(function (l) { return l.replace(/^\s*Sức khoẻ:\s*/, ''); }).join('; ');
-    var sg = suggestFor(c), max = more ? list.length : 3;
+    var sg = suggestFor(c), max = more ? list.length : 2;
     return '<div class="k-val"><span><b>' + moneyShort(c.spent) + '</b> tổng chi</span><span><b>' + c.orders + '</b> đơn</span>' + (c.orders ? '<span><b>' + moneyShort(c.spent / c.orders) + '</b> TB/đơn</span>' : '') + (c.first ? '<span>khách từ <b>' + fDate(c.first).replace(/^\d+\//, '') + '</b></span>' : '') + '</div>' +
       '<div class="k-lines">' +
       (st.top ? '<div>🧺 Hay mua: <b>' + esc(st.top) + '</b>' + (st.topN > 1 ? ' (' + st.topN + ' lần)' : '') + (st.gap ? ' · 🔁 ~' + st.gap + ' ngày mua lại' : '') + '</div>' : '') +

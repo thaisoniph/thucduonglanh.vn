@@ -222,8 +222,8 @@ Công ty có 2 món quà miễn phí để **thêm giá trị cho khách**: cẩ
 ![Hộp chăm sóc khách](/huong-dan/img/crm-care.webp)
 
 1. Bấm nút **💬** trên dòng khách (hoặc **▶ Bắt đầu gọi lần lượt** ở tab Hôm nay).
-2. **Bước 1 – Gửi tin:** CRM chọn sẵn **mẫu tin** hợp với việc, tự điền tên khách và sản phẩm. Đọc lại, sửa cho tự nhiên. Bấm **📋 Copy tin & mở Zalo**, rồi dán tin vào khung chat Zalo của khách và gửi. Muốn gọi thì bấm **📞 Gọi**.
-3. Quay lại CRM. **Bước 2 – Ghi kết quả.** Cách nhanh nhất là **bấm 1 nút**, bấm xong là lưu luôn và máy tự hẹn ngày gọi lại:
+2. **Bước 1 – Gọi hoặc nhắn:** có 2 nút lớn **📞 Gọi** và **💬 Nhắn Zalo**. Bấm **Nhắn Zalo** thì CRM copy sẵn tin nhắn (đã chọn mẫu hợp với việc, điền tên khách và sản phẩm) và mở Zalo, bạn chỉ cần dán và gửi. Muốn xem hoặc sửa tin trước khi gửi thì bấm **✏️ Tin nhắn sẽ gửi** (khách đã kết bạn Zalo thì khung này mở sẵn).
+3. Quay lại CRM. **Bước 2 – Khách thế nào?** Khách có nói gì thì gõ vài chữ vào ô **Khách nói gì** trước (không bắt buộc), rồi **bấm 1 nút**. Bấm xong là lưu luôn và máy tự hẹn ngày gọi lại:
 
     | Nút | Máy ghi | Tự nhắc gọi lại |
     | --- | --- | --- |
@@ -236,15 +236,17 @@ Công ty có 2 món quà miễn phí để **thêm giá trị cho khách**: cẩ
     | 🛒 **Đặt lại** | kh đặt lại, rồi mở luôn form tạo đơn | không hẹn |
     | 🚫 **Không dùng nữa** | kh không dùng nữa | không hẹn |
 
-    Có gõ thêm vào **Ghi chú lần này** thì máy ghi kèm. Ở tab Hôm nay, thẻ khách có sẵn nút **📵 KNM**: gọi không được thì bấm ngay, không cần mở hộp chăm sóc.
+    Chữ gõ ở ô **Khách nói gì** được ghi kèm. Ở tab Hôm nay, thẻ khách có sẵn nút **📵 KNM**: gọi không được thì bấm ngay, không cần mở hộp chăm sóc.
 
-    Hoặc tự chọn 1 kết quả bên dưới:
+    Không có nút phù hợp, hoặc muốn hẹn đúng 1 ngày cụ thể: bấm **Kết quả khác / tự chọn ngày hẹn**, chọn 1 kết quả rồi bấm **Lưu kết quả**:
     - **Đã đặt lại**: khách đặt thêm. Nhớ tạo đơn nếu khách đặt qua Zalo.
     - **Hẹn gọi lại**: chọn ngày hẹn (máy gợi ý 2 ngày sau). Đến ngày, khách tự hiện lại ở tab Hôm nay.
     - **Không nghe máy**: gọi hoặc nhắn mà khách chưa trả lời.
     - **Đã hỏi thăm**: đã nói chuyện, khách chưa cần mua.
     - **Không có nhu cầu**: khách không muốn mua thêm.
-4. Ghi vài chữ vào **Ghi chú lần này** (khách nói gì, cần gì), bấm **Lưu kết quả**. Khách rời khỏi danh sách hôm nay.
+4. Lưu xong, khách rời khỏi danh sách hôm nay. Chưa gọi được mà muốn để lát nữa thì bấm **Để sau**.
+
+Khung **👥 Mời vào nhóm Zalo** và **🎁 Tặng quà** trong hộp chăm sóc được thu gọn thành 1 dòng; bấm vào dòng đó để mở. Nhớ gửi quà / lời mời **trước** khi bấm nút kết quả (bấm nút kết quả là hộp đóng lại).
 
 **Lịch sử chăm sóc** trong hồ sơ khách gồm cả các lần ghi trên CRM và các ghi chú cũ nhập từ Sheet (ví dụ “21/7 kh nhận hàng, 9/8 knm”), sắp theo ngày, mới nhất ở trên.
 
