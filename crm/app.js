@@ -497,7 +497,15 @@
       var r = replyOf(c); return r.days >= OLD_DAYS && !coldOf(c);
     }).sort(function (a, b) { return b.spent - a.spent || (a.last || 0) - (b.last || 0); });
   }
-  function newOrders() { return S.d.orders.filter(function (o) { return o.status === 'Mới'; }); }
+  // Đơn mới chờ xác nhận: Quản lý/Quản trị thấy hết; nhân viên chỉ thấy đơn quản lý đã giao cho mình (NV bán = mình)
+  function newOrders() { return S.d.orders.filter(function (o) { return o.status === 'Mới' && (lvl() >= 2 || o.seller === S.user.name); }); }
+  function assignOrder(o, v, sel) {
+    var old = o.seller; if (v === old) return;
+    o.seller = v; toast(v ? 'Đã giao đơn cho ' + v + ' ✓' : 'Đã bỏ giao đơn'); navBadges(); render();
+    api('order_status', { id: o.id, row: o.row, seller: v }).catch(function (e) {
+      o.seller = old; if (sel) sel.value = old; toast(e.message, true); navBadges(); render();
+    });
+  }
   function mode() { return (S.d && S.d.rules && S.d.rules.assignMode) || 'pool'; }
   function isPoolStaff() { return lvl() < 2 && mode() === 'pool'; }
   var MODE_INFO = {
@@ -1673,7 +1681,13 @@
       '<div class="rw-2">' + (pv ? '<b class="prov">📍 ' + esc(pv.old) + '</b> · ' : '') + when(o.time) + ' · ' + esc(o.payment) + (isBank(o) && !isVoid(o.status) ? (o.paid ? ' ✓' : ' <span class="warn-line">chưa nhận tiền</span>') : '') + ' · ' + esc(itemNames(o.items).join(', ')) + '</div>' +
       trkLine(o) + (kn ? '<div class="keynote">📌 ' + esc(o.note.length > 140 ? o.note.slice(0, 140) + '…' : o.note) + '</div>' : '') +
       '<div class="rw-3">' + (o.oflag ? '<span class="tag st-late" title="' + esc(o.oflag) + '">⚠️ Kiểm tra loại đơn</span> ' : '') + (o.tracking ? trackLink(o) + ' · ' : carrierOf(o) ? '<span class="muted">🚚 ' + esc(carrierOf(o)) + '</span> · ' : '') + '<span class="muted">' + cp(o.id) + ' · ' + (isWebOrder(o) ? '<span class="tag st-giao" title="' + esc('Khách tự đặt trên website · nguồn: ' + (o.source || 'Truy cập trực tiếp')) + '">🌐 Web · ' + esc(webSrc(o)) + '</span>' : esc(otLabel(otypeOf(o)))) + '</span>' + (o.seller && (lvl() >= 2 || o.seller !== S.user.name) ? ' · 👤 ' + esc(o.seller) : '') + (o.note && !kn ? ' · 📝 ' + esc(o.note.length > 60 ? o.note.slice(0, 60) + '…' : o.note) : '') + '</div></div>' +
-      '<div class="rw-a">' + act + '<a class="btn" href="tel:' + o.phone + '" aria-label="Gọi">📞</a></div></div>';
+      '<div class="rw-a">' + (lvl() >= 2 && o.status === 'Mới' ? oAssignSel(o) : '') + act + '<a class="btn" href="tel:' + o.phone + '" aria-label="Gọi">📞</a></div></div>';
+  }
+  /** Quản lý: giao đơn mới cho nhân sự (ghi vào NV bán) – nhân sự đó mới thấy đơn ở Hôm nay. */
+  function oAssignSel(o) {
+    var names = userNames(); if (o.seller && names.indexOf(o.seller) < 0) names.push(o.seller);
+    return '<select class="assign" data-oassign="' + esc(o.id) + '" title="Giao đơn cho nhân sự gọi xác nhận"><option value="">' + (o.seller ? 'Bỏ giao' : 'Giao cho…') + '</option>' +
+      names.map(function (n) { return '<option' + (n === o.seller ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('') + '</select>';
   }
   function renderOrdersBody(f, OS, q, qd) {
     if (f.tab === 'todo') {
@@ -1796,13 +1810,7 @@
       }, function (er) { toast(er.message, true); b.disabled = false; });
     });
     if ($('#oShipCopy', m)) $('#oShipCopy', m).onclick = function () { copy(o.name + ' – ' + o.phone + '\n' + [o.address, o.ward, o.province].filter(Boolean).join(', ') + '\n' + o.ship + '\nThu: ' + money(o.total) + (isBank(o) ? ' (chuyển khoản)' : ' (COD)')).then(function () { toast('Đã copy nội dung lên đơn'); }); };
-    if ($('#oSeller', m)) $('#oSeller', m).onchange = function () {
-      var sel = this, v = sel.value, old = o.seller;
-      o.seller = v; toast('Đã đổi nhân viên bán: ' + (v || 'chưa ai') + ' ✓'); render();
-      api('order_status', { id: o.id, row: o.row, seller: v }).catch(function (e) {
-        o.seller = old; sel.value = old; toast(e.message, true); render();
-      });
-    };
+    if ($('#oSeller', m)) $('#oSeller', m).onchange = function () { assignOrder(o, this.value, this); };
     if ($('#oPaid', m)) $('#oPaid', m).onclick = function () {
       var paid = !o.paid, oldPaid = o.paid;
       o.paid = paid ? 'Có – ' + S.user.name + ' ' + fDateTime(Date.now()) : '';
@@ -3767,6 +3775,7 @@
     var t = e.target.closest('[data-otab],[data-per],[data-promo],[data-rf],[data-vipgo],[data-taghelp],[data-consent],[data-daily],[data-usage],[data-flow],[data-zalo],[data-quick],[data-care],[data-next],[data-neworder],[data-cf],[data-os],[data-och],[data-tf],[data-cat],[data-addtag],[data-deltag],[data-claim],[data-bcdt],[data-srcadd],[data-srcedit],[data-srcsync],[data-srcdel],[data-adsedit],[data-adssync],[data-who],[data-target],[data-myold],[data-more],[data-add],[data-rm],[data-consult],[data-leadorder],[data-newlead],[data-editlead],[data-cust],[data-order],[data-lead]');
     if (!t || !S.d) return;
     if (e.target.closest('a[href]') && !t.hasAttribute('data-myold')) return; // nút gọi / Zalo bên trong thẻ
+    if (e.target.closest('select[data-oassign]')) return; // ô “Giao cho…” trên dòng đơn: không mở hộp đơn
     var a = function (k) { return t.getAttribute(k); };
     if (t.hasAttribute('data-flow')) { startFlow(); return; }
     if (t.hasAttribute('data-taghelp')) { openTagHelp(); return; }
@@ -3889,6 +3898,7 @@
       });
       return;
     }
+    if (e.target.hasAttribute && e.target.hasAttribute('data-oassign')) { var oa = findOrder(e.target.getAttribute('data-oassign')); if (oa) assignOrder(oa, e.target.value, e.target); return; }
     if (e.target.id === 'who') { setWho(e.target.value); }
   });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && $('.modal')) closeModal(); });
