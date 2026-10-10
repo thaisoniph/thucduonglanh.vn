@@ -2613,7 +2613,7 @@
   /** Cột theo ngày (1 chuỗi số, không 2 trục): hover / chạm để xem số từng ngày. */
   function colChart(items, fmt) {
     var mx = Math.max.apply(null, items.map(function (x) { return x.v; })) || 1, step = Math.ceil(items.length / 8);
-    return '<div class="cols" role="table">' + items.map(function (x, i) {
+    return '<div class="vcols" role="table">' + items.map(function (x, i) {
       return '<div class="col" role="row" tabindex="0" aria-label="' + esc(x.tip + ': ' + fmt(x.v)) + '"><i style="height:' + (x.v ? Math.max(2, x.v * 100 / mx) : 0) + '%"></i><span class="col-tip">' + esc(x.tip) + '<b>' + fmt(x.v) + '</b></span>' + (i % step === 0 ? '<small>' + esc(x.l) + '</small>' : '') + '</div>';
     }).join('') + '</div><p class="bar-legend">Cao nhất: <b>' + fmt(mx) + '</b> · rê chuột / chạm vào cột để xem từng ngày</p>';
   }
