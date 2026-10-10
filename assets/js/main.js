@@ -949,6 +949,69 @@
     });
   }
 
+  /* ---------- trang cẩm nang sống khỏe: tên + SĐT + vấn đề quan tâm → mở sách (camnangsongkhoe…?ma=… để trang sách cho đọc) ---------- */
+  function cnReader(box) { var u = box.getAttribute('data-reader') || ''; return u ? u + (u.indexOf('?') < 0 ? '?' : '&') + 'ma=' + Date.now().toString(36) : ''; }
+  function initCamNang() {
+    var box = $('#cnBox'); if (!box) return;
+    var form = $('#cnForm', box), done = $('.ebf-done', box), open = $('#cnOpen', box);
+    function show(isDone) { form.hidden = isDone; done.hidden = !isDone; if (isDone) open.href = cnReader(box); }
+    if (load('tdl_camnang', null)) show(true);
+    $('#cnAgain').addEventListener('click', function () { form.reset(); show(false); form.elements.name.focus(); });
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var msg = $('.form-msg', form); msg.className = 'form-msg';
+      if (form.elements.website.value) return;
+      var ok = validate(form), cs = $$('input[name=concern]:checked', form).map(function (c) { return c.value; }), fs = $('.cn-chips', form);
+      fs.classList.toggle('invalid', !cs.length);
+      if (!ok || !cs.length) { msg.className = 'form-msg err'; msg.textContent = !ok ? 'Vui lòng điền họ tên và số điện thoại đúng (10 số).' : 'Anh/chị chọn giúp ít nhất 1 vấn đề đang quan tâm nhé.'; if (ok) fs.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+      var f = form.elements, src = sourceLabel(), pos = qs('tu'), title = box.getAttribute('data-title') || 'Cẩm nang sống khỏe', ask = f.ask.value.trim();
+      var data = { type: 'contact', kind: 'ebook', book: 'cam-nang', book_title: 'Cẩm nang sống khỏe', concern: cs.join(', '), ask: ask, created: new Date().toISOString(), name: f.name.value.trim(), phone: f.phone.value.trim(), email: '', pos: pos, source: src.last,
+        message: '🎁 Đăng ký nhận ' + title + ' · Quan tâm: ' + cs.join(', ') + (ask ? ' · Hỏi thêm: ' + ask : '') + (pos ? ' · bấm từ web: ' + pos : '') + ' · Nguồn: ' + src.last, page: location.href };
+      send(data).catch(function () { });
+      track('generate_lead', { form: 'camnang', location: pos || 'direct' });
+      save('tdl_camnang', { t: Date.now() });
+      show(true);
+      box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      try { window.open(open.href, '_blank', 'noopener'); } catch (x) { } // mở sách ngay ở tab mới; trình duyệt chặn thì khách bấm nút Mở cẩm nang
+    });
+  }
+
+  /* ---------- popup tặng cẩm nang khi khách sắp rời web mà chưa mua ----------
+     Máy tính: chuột đi lên khỏi mép trên (định đóng tab / gõ link khác). Điện thoại: vuốt ngược nhanh lên sau khi đã đọc một lúc, hoặc rời sang app khác rồi quay lại.
+     Không hiện khi: có giỏ hàng, đã đặt đơn, đã nhận cẩm nang/ebook, đang ở trang mua hàng/quà tặng, đã đóng trong 7 ngày, mới vào < 12 giây. */
+  function initGiftPop() {
+    var pop = $('#giftPop'); if (!pop) return;
+    var path = location.pathname, href = pop.getAttribute('data-href') || '';
+    if (/^\/(gio-hang|thanh-toan|dat-hang-thanh-cong|qua-tang|ebook)\//.test(path) || (href && path.indexOf(href) === 0)) return;
+    function blocked() { return cart.length || load('tdl_last_order', null) || load('tdl_camnang', null) || load('tdl_ebook', null) || (Date.now() - (load('tdl_gp_off', 0) || 0) < 7 * 864e5) || sessionStorage.getItem('tdl_gp') === '1'; }
+    try { if (blocked()) return; } catch (e) { return; }
+    var t0 = Date.now(), armed = false, lastY = scrollY, lastT = Date.now(), maxY = 0;
+    setTimeout(function () { armed = true; }, 12000);
+    function show(trigger) {
+      try { if (!armed || blocked() || document.querySelector('.minicart.open,.offcanvas.open,.search-layer.open') ) return; sessionStorage.setItem('tdl_gp', '1'); } catch (e) { return; }
+      pop.hidden = false; requestAnimationFrame(function () { pop.classList.add('on'); }); document.body.classList.add('gp-lock');
+      track('gift_popup_view', { trigger: trigger, page: path });
+      off();
+    }
+    function hide(save7) { pop.classList.remove('on'); document.body.classList.remove('gp-lock'); setTimeout(function () { pop.hidden = true; }, 250); if (save7) save('tdl_gp_off', Date.now()); }
+    function onOut(e) { if (!e.relatedTarget && e.clientY <= 8) show('exit_intent'); }
+    function onScroll() { // điện thoại: đã cuộn xuống ≥ 1 màn hình rồi vuốt ngược nhanh lên
+      var y = scrollY, now = Date.now(), v = (lastY - y) / Math.max(now - lastT, 1); maxY = Math.max(maxY, y);
+      if (maxY > innerHeight * 1.2 && v > 1.6 && y < maxY - innerHeight * 0.6) show('scroll_up');
+      lastY = y; lastT = now;
+    }
+    var leftAt = 0; // điện thoại: khách chuyển sang app/tab khác rồi quay lại → mời ngay
+    function onHide() { if (document.visibilityState === 'hidden') leftAt = Date.now(); else if (leftAt && Date.now() - t0 > 30000) setTimeout(function () { show('return'); }, 1500); }
+    function off() { document.removeEventListener('mouseout', onOut); window.removeEventListener('scroll', onScroll); document.removeEventListener('visibilitychange', onHide); }
+    if (matchMedia('(hover:hover) and (pointer:fine)').matches) document.addEventListener('mouseout', onOut);
+    else window.addEventListener('scroll', onScroll, { passive: true });
+    document.addEventListener('visibilitychange', onHide);
+    $$('[data-gp-close]', pop).forEach(function (b) { b.addEventListener('click', function () { hide(true); track('gift_popup_close', {}); }); });
+    pop.addEventListener('click', function (e) { if (e.target === pop) hide(true); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !pop.hidden) hide(true); });
+    $('.gp-go', pop).addEventListener('click', function () { track('gift_popup_click', {}); });
+  }
+
   /* ---------- floating widget ---------- */
   function initFloat() {
     var w = $('#floatWidget'); if (!w) return;
@@ -985,7 +1048,7 @@
     captureSource(); initConsent(); trackPageEvents();
     renderCounts(); renderMini(); markWish();
     initHeader(); initClicks(); initRail(); initLightbox(); initProduct(); initCerts(); initTabs(); initReadmore(); initSort();
-    initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initEbook(); initFloat(); initFlipbook();
+    initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initEbook(); initCamNang(); initGiftPop(); initFloat(); initFlipbook();
     window.addEventListener('storage', function (e) { if (e.key === 'tdl_cart') { cart = load('tdl_cart', []); cleanCart(); renderCounts(); renderMini(); } });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();

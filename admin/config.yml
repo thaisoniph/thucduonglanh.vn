@@ -487,6 +487,18 @@ collections:
               - { label: "Mô tả ngắn", name: sub, widget: text, required: false }
               - { label: "Chữ trên nút", name: button, widget: string, required: false }
               - { label: "Ảnh bìa ebook", name: image, widget: image, required: false }
+          - label: "Cẩm nang sống khỏe (trang /cam-nang-song-khoe/ + trang /qua-tang/ + popup khi khách sắp rời web)"
+            name: camnang
+            widget: object
+            required: false
+            fields:
+              - { label: "Link trang giới thiệu", name: url, widget: string, required: false, hint: "Mặc định /cam-nang-song-khoe/ (khách điền tên, SĐT, vấn đề quan tâm → vào CRM). Để trống thì ẩn toàn bộ." }
+              - { label: "Link đọc cẩm nang", name: reader, widget: string, required: false, hint: "Mặc định https://camnangsongkhoe.thucduonglanh.vn/ – khách điền form xong mới được mở." }
+              - { label: "Tiêu đề", name: title, widget: string }
+              - { label: "Mô tả ngắn", name: sub, widget: text, required: false }
+              - { label: "Chữ trên nút", name: button, widget: string, required: false }
+              - { label: "Ảnh bìa", name: image, widget: image, required: false }
+              - { label: "Bật popup tặng cẩm nang khi khách sắp rời web", name: popup, widget: boolean, default: true, hint: "Chỉ hiện với khách chưa có giỏ hàng, chưa đặt đơn, chưa nhận cẩm nang; tối đa 1 lần/7 ngày." }
           - label: "Các kênh cộng đồng (trang chủ)"
             name: community
             widget: list

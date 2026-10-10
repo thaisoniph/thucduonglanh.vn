@@ -81,6 +81,12 @@ website/
 
 **Trang nhận ebook** `/ebook/` (thay LadiPage ebook.thucduonglanh.vn): họ tên + SĐT → mở ebook Heyzine + mời nhóm Zalo; nhớ trên máy khách (`tdl_ebook`) nên lần sau mở thẳng ebook.
 
+**Quà tặng & cẩm nang sống khỏe (10/10/2026)**
+- `data/site.json` → `camnang` (url `/cam-nang-song-khoe/`, reader = https://camnangsongkhoe.thucduonglanh.vn/, title, sub, button, image, popup). `build.py`: `page_camnang()`, `page_gifts()` (`/qua-tang/`, mục 🎁 Quà Tặng trong NAV), `gifts_block("home")` (thay khung ebook ở trang chủ), `cn_cta("post")` cuối bài viết, `gift_popup()` trong footer. Ảnh ở `assets/img/brand/cam-nang/`.
+- Form (`initCamNang`): tên + SĐT + chip "vấn đề quan tâm" (bắt buộc ≥ 1) + câu hỏi thêm → `{type:'contact', kind:'ebook', book:'cam-nang', book_title, concern, ask}`. api/ (bản 2026-10-10a) với `kind:'ebook'`: lead kênh "Ebook – quà tặng (Website)", interest = "<book_title> · Quan tâm: …", Telegram 🎁 ĐĂNG KÝ EBOOK, không gửi email. Xong mở sách ở tab mới với `?ma=<mã>`; localStorage `tdl_camnang`. GA4 `generate_lead` (form: camnang).
+- Khoá trang sách: index.html của camnangsongkhoe có script đầu trang: có `?ma=` → lưu localStorage `tdl_cn`; chưa có → chuyển về `/cam-nang-song-khoe/?tu=link_sach`. Trang sách là Cloudflare Pages tải tay (Direct Upload), nguồn ở máy Mac `Website TDL/cam-nang-song-khoe-ban-co-khoa/` (bản gốc trong thư mục Codex 2026-10-09). Khoá mềm (chặn người xem thường, không chặn người rành kỹ thuật); PDF `downloads/` vẫn mở trực tiếp được.
+- Popup (`initGiftPop`): máy tính = chuột ra mép trên; điện thoại = vuốt ngược nhanh sau khi cuộn > 1 màn hình, hoặc rời app rồi quay lại (sau 30 giây). Chỉ sau 12 giây trên trang; 1 lần/phiên; bấm đóng → không hiện 7 ngày (`tdl_gp_off`). Không hiện khi có giỏ hàng, có `tdl_last_order`, `tdl_camnang`, `tdl_ebook`, hoặc ở trang giỏ/thanh toán/cảm ơn/quà tặng. Sự kiện GA4: `gift_popup_view` (`trigger`), `gift_popup_click`, `gift_popup_close`.
+
 **Nội dung**: Góc Sống Lành, Giới thiệu, **Hồ sơ thương hiệu** (/ho-so-thuong-hieu/ – sách lật Heyzine + PDF), trang chính sách, Liên hệ (form gửi về Sheet/Telegram).
 
 **Liên hệ nhanh**: nút Gọi / Zalo nổi (điện thoại: 2 nút), hotline **0966 326 522**, Zalo OA ở chân trang. Bong bóng lời chào của hộp tư vấn ẩn sẵn; tự bung 1 lần/phiên khi khách ở trang ≥ 25 giây hoặc cuộn ≥ 60% (`initFloat`, sessionStorage `tdl_fw_auto`; bấm × → `tdl_fw`, không bung lại; không bung khi đang hiện thanh mua nhanh).

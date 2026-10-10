@@ -83,6 +83,15 @@
     "button": "Nhận ebook miễn phí",
     "image": "/assets/img/brand/ebook-co-xuong-khop.webp"
   },
+  "camnang": {
+    "url": "/cam-nang-song-khoe/",
+    "reader": "https://camnangsongkhoe.thucduonglanh.vn/",
+    "title": "Cẩm nang “Thực Dưỡng Lành – Sống khỏe chủ động”",
+    "sub": "32 trang sách lật có sách nói: mâm cơm Việt cân bằng, gạo lứt và ngũ cốc nguyên hạt, vận động sau tuổi 45, nhật ký 7 ngày thay đổi nhỏ.",
+    "button": "Đọc cẩm nang miễn phí",
+    "image": "/assets/img/brand/cam-nang/cover-art.webp",
+    "popup": true
+  },
   "web_offer": {
     "enabled": true,
     "percent": 15,
