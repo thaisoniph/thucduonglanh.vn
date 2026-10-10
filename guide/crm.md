@@ -69,6 +69,7 @@ Trên danh sách đơn và khách hỏi, bấm vào mã đơn hoặc số điệ
     - **💡 Gợi ý sản phẩm**: ở các việc *Sắp hết*, *Giới thiệu sản phẩm phù hợp*, *Mời quay lại*, *Khách cũ lâu chưa gọi*, CRM gợi ý sản phẩm mà những khách mua giống khách này hay mua thêm. Đây chỉ là gợi ý, sale tự xem có hợp với khách không.
     - Việc *Sắp hết sản phẩm* ghi luôn ngày dự kiến hết, ví dụ *Còn khoảng 5 ngày là hết (11/10)*.
 - **4️⃣ Khách hỏi cần liên hệ:** đến ngày hẹn, đã 3 ngày chưa liên hệ lại, hoặc hỏi đã lâu mà chưa ai liên hệ.
+- **Khách cũ hỏi lại** (thẻ có nhãn 🔁): khách đã từng mua nay để lại số qua quảng cáo / web. Mỗi khách chỉ có **1 thẻ**. Thẻ hiện tên, nhãn VIP và số đơn đã mua; bấm vào dòng *👤 … đơn* để mở hồ sơ khách. Khách này không hiện lặp lại ở mục *Chăm sóc khách*. Ở tab **Khách đã mua**, khách này có nhãn *🔁 Đang hỏi lại*.
 - Số đỏ trên tab **Hôm nay** = đơn mới + khách cần chăm sóc + khách vừa hỏi. Tất cả khách hỏi cần liên hệ xem ở số đỏ của tab **Khách hỏi**.
 - Cuối trang: **✅ Đã làm hôm nay** (bấm để mở).
 

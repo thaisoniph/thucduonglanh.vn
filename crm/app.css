@@ -235,6 +235,9 @@ input:focus, select:focus, textarea:focus { outline: 2px solid rgba(31, 95, 58, 
 .age.ok { background: #e3f4e7; color: #1f5f3a; }
 .age.mid { background: var(--orange-light); color: var(--orange); }
 .age.bad { background: var(--red-light); color: var(--red); }
+.tag.reask { background: #e6f0fb; color: #1f5a96; }
+button.age-miss.link-cust { border: 0; cursor: pointer; font-family: inherit; }
+button.age-miss.link-cust:hover { background: #e4e2d8; color: var(--ink, #222); }
 .age-miss { display: inline-block; font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 999px; background: #f0efe9; color: var(--muted); }
 .age-box { display: flex; align-items: center; gap: 14px; border-radius: var(--radius); padding: 12px 14px; margin-bottom: 12px; border: 1px solid transparent; }
 .age-box.ok { background: #e3f4e7; border-color: #c6e6cf; }
