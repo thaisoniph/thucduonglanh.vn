@@ -578,7 +578,7 @@
   var VIEWS = [
     { id: 'tong-quan', label: 'Tổng quan', icon: 'dash', min: 3 }, // chủ doanh nghiệp: kinh doanh + website
     { id: 'hom-nay', label: 'Hôm nay', icon: 'today' },
-    { id: 'khach-hang', label: 'Khách đã mua', icon: 'users' },
+    { id: 'khach-hang', label: 'Khách đã mua', short: 'Khách', icon: 'users' },
     { id: 'don-hang', label: 'Đơn hàng', icon: 'box' },
     { id: 'tiem-nang', label: 'Khách hỏi', icon: 'lead' },
     { id: 'bao-cao', label: 'Hiệu quả', icon: 'chart' },
@@ -593,10 +593,11 @@
   function shell() {
     $('#app').innerHTML = '<header class="top"><div class="top-in">' +
       '<a class="brand" href="#hom-nay"><img src="/icon-180.png" alt="">CRM</a>' +
-      '<nav class="nav">' + myViews().map(function (v) { return '<a href="#' + v.id + '" data-v="' + v.id + '">' + I[v.icon] + '<span>' + v.label + '</span></a>'; }).join('') + '</nav>' +
+      '<nav class="nav">' + myViews().map(function (v) { return '<a href="#' + v.id + '" data-v="' + v.id + '"' + (v.id === 'cai-dat' ? ' class="nav-set"' : '') + '>' + I[v.icon] + '<span' + (v.short ? ' data-short="' + v.short + '"' : '') + '>' + v.label + '</span></a>'; }).join('') + '</nav>' +
       '<div class="grow"></div><div class="me">' + meHTML() + '</div>' +
       '<button class="icon-btn fb-btn" id="fbBtn" title="Góp ý: báo lỗi, chỗ khó dùng, ý tưởng" aria-label="Góp ý">💡<span class="fb-lbl">Góp ý</span></button>' +
       '<a class="icon-btn" href="/huong-dan/crm/" target="_blank" rel="noopener" title="Hướng dẫn sử dụng" aria-label="Hướng dẫn sử dụng">' + I.help + '</a>' +
+      '<a class="icon-btn top-set" href="#cai-dat" title="Cài đặt" aria-label="Cài đặt">' + I.gear + '</a>' +
       '<button class="icon-btn" id="refresh" title="Tải lại dữ liệu" aria-label="Tải lại dữ liệu">' + I.refresh + '</button>' +
       '</div></header><main id="view"></main>';
     $('#refresh').onclick = function () { load(); };
@@ -617,7 +618,7 @@
   function render() {
     if (!S.d || !$('#view')) return;
     var r = route(), v = myViews().some(function (x) { return x.id === r.view; }) ? r.view : 'hom-nay';
-    $$('.nav a').forEach(function (a) { a.classList.toggle('on', a.getAttribute('data-v') === v); });
+    $$('.nav a').forEach(function (a) { a.classList.toggle('on', a.getAttribute('data-v') === v); }); var ts = $('.top-set'); if (ts) ts.classList.toggle('on', v === 'cai-dat');
     var keepScroll = lastView === v, y = window.scrollY;
     var el = $('#view');
     var focusId = document.activeElement && document.activeElement.id, selStart = document.activeElement && document.activeElement.selectionStart;

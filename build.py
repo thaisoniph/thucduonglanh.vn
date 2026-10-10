@@ -1873,7 +1873,7 @@ def build_crm():
     css_raw = (src / "app.css").read_text("utf-8")
     css_min = re.sub(r'/\*[\s\S]*?\*/', '', css_raw)
     css_min = re.sub(r'\s+', ' ', css_min)
-    css_min = re.sub(r'\s*([\{\}:;,>~+])\s*', r'\1', css_min)
+    css_min = re.sub(r'\s*([\{\};,>~])\s*', r'\1', css_min)  # không gộp quanh + và : – calc(a + b) bắt buộc có dấu cách, bỏ đi là trình duyệt bỏ cả dòng (lề trang CRM = 0)
     css_min = re.sub(r';}', '}', css_min).strip()
     (out / "app.css").write_text(css_min, "utf-8")
 
