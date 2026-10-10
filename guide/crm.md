@@ -397,7 +397,7 @@ Doanh số tính theo **Nhân viên bán** ghi trên từng đơn. Đơn khách 
 Tab đầu tiên trên menu, dành cho chủ doanh nghiệp. Bấm **📅 thời gian** để chọn kỳ; mỗi số tự so với kỳ trước.
 
 - **Điểm cần chú ý**: vài dòng CRM tự rút ra (doanh thu tăng / giảm, kênh ra nhiều tiền nhất, trang khách vào nhưng bỏ đi nhanh…).
-- **Kinh doanh** (lấy từ CRM, mọi kênh): doanh thu, số đơn, giá trị trung bình / đơn, khách mua lần đầu, % doanh thu từ khách cũ, khách để lại SĐT.
+- **Kinh doanh** (lấy từ CRM, mọi kênh): doanh thu, số đơn, giá trị trung bình / đơn, khách mua lần đầu, % doanh thu từ khách cũ, khách để lại SĐT (mỗi số điện thoại tính 1 lần trong kỳ; không tính khách cũ máy đồng bộ từ file sale).
 - **Website** (lấy từ Google Analytics): lượt truy cập, người xem, đơn đặt trên web, tỷ lệ ra đơn, % khách ở lại xem, thời gian xem.
 - **Theo ngày**, **Doanh thu theo kênh** (Website – nguồn / Sale / Khách hỏi), **Khách vào web từ đâu**, **Phễu mua hàng** (rơi nhiều nhất ở bước nào), **Khách liên hệ từ web** (bấm gọi, bấm Zalo, điền form), **Trang xem nhiều**, **Trang khách vào đầu tiên**, **Sản phẩm bán chạy**, **Khách hỏi theo kênh**.
 

@@ -2621,7 +2621,9 @@
       parseItems(o.items).forEach(function (i) { if (i.gift) return; var pk = prettyProd(i.name), p = s.prod[pk] || (s.prod[pk] = { q: 0, v: 0 }); p.q += i.qty; p.v += i.qty * i.price; });
     });
     s.avg = s.n ? Math.round(s.rev / s.n) : 0; s.oldPct = s.rev ? pct(s.oldRev, s.rev) : null;
-    var ls = (S.d.leads || []).filter(function (l) { return l.time >= R[0] && l.time < R[1]; });
+    // khách để lại SĐT: bỏ dòng "File cũ – …" (khách cũ đồng bộ từ file sale, thời gian = ngày đồng bộ), mỗi SĐT tính 1 lần (lần hỏi đầu trong kỳ)
+    var lp = {}, ls = (S.d.leads || []).filter(function (l) { return l.time >= R[0] && l.time < R[1] && !/^file cũ/i.test(l.channel || ''); })
+      .sort(function (a, b) { return a.time - b.time; }).filter(function (l) { var ph = normPhone(l.phone) || l.id; if (lp[ph]) return false; lp[ph] = 1; return true; });
     s.leads = ls.length; s.webLeads = ls.filter(isWebLead).length; s.leadCh = {};
     ls.forEach(function (l) { var k = l.channel || 'Khác'; s.leadCh[k] = (s.leadCh[k] || 0) + 1; });
     return s;
@@ -2656,7 +2658,7 @@
       metric('Giá trị trung bình / đơn', b.n ? moneyShort(b.avg) : '–', 'Tăng khi khách mua combo, mua kèm, đủ mức miễn phí ship.', b.n ? delta(b.avg, bp.n ? bp.avg : 0) : '') +
       metric('Khách mua lần đầu', b.firstN, 'Khách mới có đơn đầu tiên trong kỳ.', delta(b.firstN, bp.firstN)) +
       metric('Doanh thu từ khách cũ', b.oldPct === null ? '–' : b.oldPct + '%', moneyShort(b.oldRev) + ' từ khách đã từng mua. Cao = chăm sóc tốt, khách quay lại.', b.oldPct === null ? '' : delta(b.oldPct, bp.oldPct, 'rate')) +
-      metric('Khách để lại SĐT', b.leads, 'Khách hỏi mới mọi kênh, trong đó ' + b.webLeads + ' từ website (form, nhận quà).', delta(b.leads, bp.leads), '#tiem-nang') +
+      metric('Khách để lại SĐT', b.leads, 'Số SĐT khác nhau hỏi mới mọi kênh (không tính khách cũ đồng bộ từ file sale), trong đó ' + b.webLeads + ' từ website (form, nhận quà).', delta(b.leads, bp.leads), '#tiem-nang') +
       '</div></section>';
     h += mktBlock(key, R, b, bp);
     // ---- website
