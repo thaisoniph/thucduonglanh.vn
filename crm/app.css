@@ -614,3 +614,28 @@ details.gift summary::-webkit-details-marker{display:none}
 .gift-row{display:grid;grid-template-columns:48px minmax(0,1fr);gap:10px;align-items:start;padding:10px 0;border-top:1px dashed #ecd9b4}
 .gift-row img{width:48px;height:72px;object-fit:cover;border-radius:6px;box-shadow:0 3px 8px rgba(0,0,0,.15)}
 .gift-t .steps{margin-top:8px}
+
+/* ---------- điện thoại: menu dưới vừa màn hình, không tràn viền (10/10/2026) */
+.top-set { display: none; }
+@media (max-width: 859px) {
+  .top-in { padding: 8px 12px; gap: 8px; }
+  .top-set { display: grid; }
+  .top-set.on { background: rgba(255, 255, 255, .32); }
+  .nav a.nav-set { display: none; } /* Cài đặt chuyển lên nút ⚙ trên đầu, menu dưới còn tối đa 6 mục */
+  .nav a { min-width: 0; }
+  .nav a span:not(.dot) { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+  .nav a span[data-short] { font-size: 0; }
+  .nav a span[data-short]::before { content: attr(data-short); font-size: 10.5px; }
+  main { padding-left: 12px; padding-right: 12px; }
+  .btn { max-width: 100%; white-space: normal; text-align: center; line-height: 1.25; }
+}
+@media (max-width: 420px) { .fb-btn .fb-lbl { display: none; } .icon-btn.fb-btn { width: 40px; padding: 0; } }
+@media (max-width: 520px) { /* ô số nhỏ: chữ trên, số dưới – không bị bẻ dòng lộn xộn */
+  .mini { flex-direction: column; align-items: flex-start; justify-content: flex-start; gap: 2px; line-height: 1.3; }
+  .mini b { font-size: 18px; line-height: 1.2; }
+}
+/* máy tính: menu trên 1 dòng không tràn (đã đo 860–1600px). Tên người dùng đã có ở lời chào + Cài đặt nên ẩn khỏi thanh trên */
+@media (min-width: 860px) { .me { display: none; } }
+@media (min-width: 860px) { .fb-btn .fb-lbl { display: none; } .icon-btn.fb-btn { width: 38px; padding: 0; } }
+@media (min-width: 860px) and (max-width: 1279px) { .nav a svg { display: none; } }
+@media (min-width: 860px) and (max-width: 1023px) { .top-in { padding: 8px 12px; gap: 6px; } .nav a { padding: 8px 7px; font-size: 13px; } }
