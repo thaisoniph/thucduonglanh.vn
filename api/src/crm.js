@@ -805,6 +805,12 @@ async function crmCustomer(x, u, d) {
   if (ks.length) await run(x.db, 'UPDATE customers SET ' + ks.map(k => k + ' = ?').join(', ') + ' WHERE phone = ?', ...ks.map(k => set[k]), phone);
   return { ok: true };
 }
+/** 🎁 Nhân sự gửi quà tặng (cẩm nang, ebook) cho khách qua Zalo → ghi Nhật ký "Gửi quà tặng" (kết quả = tên quà). */
+async function crmGift(x, u, d) {
+  const phone = normPhone(d.phone); if (!/^0\d{9,10}$/.test(phone)) return { ok: false, error: 'Số điện thoại chưa đúng.' };
+  await crmLog(x, u, 'Gửi quà tặng', phone, String(d.name || '').slice(0, 100), String(d.gift || '').slice(0, 100), '');
+  return { ok: true };
+}
 async function crmContact(x, u, d) {
   const r = await first(x.db, 'SELECT * FROM contacts WHERE rid = ?', Number(d.row) || 0); if (!r) return { ok: false, error: 'Không tìm thấy liên hệ' };
   if (d.done !== undefined) await run(x.db, 'UPDATE contacts SET done = ? WHERE rid = ?', d.done ? 1 : 0, r.rid);
@@ -1281,7 +1287,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (need[a] && u.level < need[a]) return { ok: false, error: 'Bạn không có quyền làm việc này.' };
   const h = { care: crmCare, customer: crmCustomer, order_status: crmOrderStatus, contact: crmContact, settings: crmSettings, users: crmSaveUsers, order_edit: crmOrderEdit,
     lead_save: crmLeadSave, lead_contact: crmLeadContact, target: crmTarget, assign: crmAssign, bulk: crmBulk, recv: crmRecv, claim: crmClaim,
-    order_delete: crmOrderDelete, customer_delete: crmCustomerDelete }[a];
+    order_delete: crmOrderDelete, customer_delete: crmCustomerDelete, gift: crmGift }[a];
   if (h) return h(x, u, d);
   return { ok: false, error: 'Không rõ thao tác: ' + a };
 }

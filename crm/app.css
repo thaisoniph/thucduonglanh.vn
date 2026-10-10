@@ -603,3 +603,10 @@ details.box ol { margin: 6px 0; padding-left: 20px; } details.box li { margin: 5
 .metrics.m3 { grid-template-columns: repeat(3, 1fr); }
 @media (max-width: 760px) { .metrics.m3 { grid-template-columns: repeat(2, 1fr); } }
 .bar-q.sub { font-style: normal; padding: 0 4px 6px; }
+/* 🎁 Tặng quà cho khách */
+details.gift{border:1px dashed #e2c48c;background:#fffaf0}
+details.gift summary{cursor:pointer;list-style:none}
+details.gift summary::-webkit-details-marker{display:none}
+.gift-row{display:grid;grid-template-columns:48px minmax(0,1fr);gap:10px;align-items:start;padding:10px 0;border-top:1px dashed #ecd9b4}
+.gift-row img{width:48px;height:72px;object-fit:cover;border-radius:6px;box-shadow:0 3px 8px rgba(0,0,0,.15)}
+.gift-t .steps{margin-top:8px}

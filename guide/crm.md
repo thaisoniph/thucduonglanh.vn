@@ -199,6 +199,21 @@ Nhóm **“Sống khỏe cùng Thực Dưỡng Lành”** chia sẻ kiến thứ
 - Tab **Hiệu quả** có ô **Khách trong nhóm cộng đồng** (% khách đã vào nhóm).
 - Quản lý sửa câu mời ở tab **Mẫu tin nhắn CSKH** trong Sheet, dòng **“Mời vào cộng đồng”** (giữ chữ **[Link nhóm]** để CRM tự chèn link).
 
+### 🎁 Tặng quà cho khách (cẩm nang, ebook)
+
+Công ty có 2 món quà miễn phí để **thêm giá trị cho khách**: cẩm nang **“Sống khỏe chủ động”** (32 trang, có sách nói, hợp với mọi khách) và ebook **“Dinh Dưỡng cho Cơ Xương Khớp”** (kèm video thực đơn 7 ngày, hợp khách lớn tuổi, đau mỏi, gout). Mở lời bằng một món quà dễ được khách trả lời hơn là chào bán.
+
+![Khung tặng quà cho khách](img/crm-gift.webp)
+
+- Khung **🎁 Tặng quà cho khách** có ở: hộp **💬 Chăm sóc**, hồ sơ khách, hộp **Tư vấn** và trang chi tiết **khách hỏi**. Ở mốc **Hỏi nhận hàng**, **Hỏi thăm sau 1 tuần** và khi tư vấn khách mới hỏi, khung mở sẵn.
+- Quà có nhãn **Gợi ý** là quà hợp nhất với khách: CRM xem sản phẩm khách mua, điều khách quan tâm, ghi chú. Khách có nhắc tới khớp, xương, gout… thì gợi ý ebook, còn lại gợi ý cẩm nang.
+- Bấm **📋 Copy tin & mở Zalo**: CRM điền tên khách và link quà, copy sẵn, mở khung chat. Dán, gửi. Lời mời vào nhóm Zalo cộng đồng được kèm sẵn nếu khách chưa vào nhóm (bỏ tích nếu không muốn).
+- **🔗 Chỉ copy link** khi bạn muốn tự viết lời nhắn.
+- Gửi xong, quà hiện **✓ Đã gửi ngày… (tên người gửi)**, ghi vào Nhật ký là **“Gửi quà tặng”**. Khách đã tự nhận quà trên web thì hiện **✓ Khách đã tự nhận trên web**, không cần gửi lại.
+- Link gửi từ CRM mở thẳng sách, khách **không phải điền form** (khách đã có trong CRM rồi).
+- Gợi ý thời điểm: khách vừa nhận hàng; khách mới hỏi (tặng trước, tư vấn sau); khách lâu chưa liên lạc; khách hỏi về chế độ ăn.
+- Quản lý muốn sửa lời nhắn: **Cài đặt → Mẫu tin nhắn**, thêm dòng Thời điểm **“Quà tặng”**, Mục đích có chữ **“cẩm nang”** hoặc **“ebook”**, nội dung dùng **[Tên]** và **[Link quà]**.
+
 ### Cách chăm sóc 1 khách
 
 ![Hộp chăm sóc khách](/huong-dan/img/crm-care.webp)

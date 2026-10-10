@@ -421,7 +421,9 @@
     p.opId = op.id; S.outbox.push(op); saveOutbox(); applyOp(op); flush(); return op;
   }
   function applyOp(op) {
-    var p = op.p, c = cust(p.phone); if (!c) return;
+    var p = op.p, c = cust(p.phone);
+    if (op.action === 'gift') { if (!S.d.log.some(function (l) { return l.op === op.id; })) addLog({ op: op.id, time: op.at, by: S.user.name, what: 'Gửi quà tặng', ref: normPhone(p.phone), name: p.name, result: p.gift, note: '' }); return; }
+    if (!c) return;
     invalidateCustomer(c); // xoá bộ nhớ đệm thuộc tính khách (tên / kết quả CSKH / người phụ trách vừa đổi)
     if (op.action === 'care') {
       c.careAt = op.at; c.careResult = p.result; if (!c.owner) c.owner = S.user.name;
@@ -829,6 +831,70 @@
     copy(commText(c)).then(function () { toast('Đã copy lời mời – dán vào khung chat Zalo của khách'); });
     if (how === 'zalo') window.open(zalo(phone), '_blank', 'noopener');
     if (!invited(c)) sendOp('customer', { phone: phone, community: 'Đã mời' });
+  }
+  /* ---------- 🎁 tặng quà (cẩm nang, ebook) cho khách: thêm giá trị, mở lời bằng món quà thay vì chào bán ----------
+     Mẫu tin mặc định ở GIFT_TPL; quản lý sửa được ở Cài đặt → Mẫu tin: thêm dòng Thời điểm "Quà tặng", Mục đích có chữ "cẩm nang" hoặc "ebook". */
+  var GIFT_TPL = {
+    camnang: 'Dạ [Tên] ơi, em gửi [Tên] món quà nhỏ của Thực Dưỡng Lành: cuốn cẩm nang “Sống khỏe chủ động” 🎁\n32 trang có minh họa và có sách nói (bật nghe được), chia sẻ cách xếp mâm cơm cân bằng, chuyển sang gạo lứt từng bước, giữ sức sau tuổi 45 và nhật ký 7 ngày thay đổi nhỏ.\n[Tên] bấm vào đây đọc ngay trên điện thoại nhé: [Link quà]\nĐọc thấy chỗ nào cần hỏi, [Tên] cứ nhắn em ạ ❤️',
+    ebook: 'Dạ [Tên] ơi, em tặng [Tên] ebook “Dinh Dưỡng cho Cơ Xương Khớp” kèm video thực đơn 7 ngày ạ 🎁\nSách gợi ý nên ăn gì, nên hạn chế gì cho các vấn đề cơ xương khớp thường gặp, cùng hơn 20 món dễ nấu tại nhà.\n[Tên] xem ngay tại đây: [Link quà]\nCần hỏi thêm về chế độ ăn, [Tên] cứ nhắn em nhé ❤️'
+  };
+  var GIFT_ZALO = '\n\nNgoài ra [Tên] vào nhóm Zalo “Sống khỏe cùng Thực Dưỡng Lành” để cùng thực hành mỗi ngày và hỏi đáp miễn phí với chuyên gia dinh dưỡng nhé: [Link nhóm]';
+  var GIFT_TIP = {
+    d1: 'Khách vừa nhận hàng: gửi kèm 1 món quà kiến thức để khách thấy mình được chăm sóc, không chỉ được bán hàng.',
+    d7: 'Hỏi thăm sau 1 tuần: món quà là cái cớ tự nhiên để trò chuyện tiếp.',
+    lead: 'Khách mới hỏi: tặng quà trước để tạo thiện cảm, sau đó mới tư vấn sản phẩm.',
+    winback: 'Lâu chưa liên lạc: mở lời bằng một món quà thay vì chào bán, khách dễ trả lời hơn.',
+    old: 'Lâu chưa liên lạc: mở lời bằng một món quà thay vì chào bán, khách dễ trả lời hơn.',
+    runout: 'Nhắc đặt lại: gửi thêm quà để tin nhắn có giá trị với khách, không chỉ là lời mời mua.'
+  };
+  function giftList() { return CFG.gifts || []; }
+  function giftPerson(phone) {
+    var c = cust(phone); if (c) return { phone: c.phone, name: c.name, products: c.products || [], hint: (c.products || []).join(' ') + ' ' + (c.note || ''), community: c.community || '', isCust: true };
+    var l = (S.d.leads || []).filter(function (x) { return x.phone === normPhone(phone); }).sort(function (a, b) { return (b.time || 0) - (a.time || 0); })[0];
+    return l ? { phone: l.phone, name: l.name, products: [l.interest || 'sản phẩm bên em'], hint: (l.interest || '') + ' ' + (l.note || ''), community: '', lead: l } : null;
+  }
+  /** Đã gửi quà này chưa: nhật ký "Gửi quà tặng", hoặc khách tự nhận trên web (khách hỏi kênh Ebook có ghi tên quà). */
+  function giftGot(p, g) {
+    var lg = logOf(p.phone).filter(function (l) { return l.what === 'Gửi quà tặng' && l.result === g.title; })[0];
+    if (lg) return { time: lg.time, by: lg.by };
+    var web = (S.d.leads || []).filter(function (l) { return l.phone === normPhone(p.phone) && /^ebook/i.test(l.channel || '') && norm(l.interest || '').indexOf(g.key === 'camnang' ? 'cam nang' : 'xuong khop') >= 0; })[0];
+    return web ? { time: web.time, by: 'khách tự nhận trên web' } : null;
+  }
+  /** Gợi ý quà: khách có dấu hiệu quan tâm cơ xương khớp → ebook trước, còn lại cẩm nang trước; quà đã gửi xuống cuối. */
+  function giftOrder(p) {
+    var joint = /khop|xuong|gout|gut\b|loang|than kinh toa|thoai hoa|dau moi|cung co|dau lung|dau goi/.test(norm(p.hint || ''));
+    return giftList().slice().sort(function (a, b) { var ga = giftGot(p, a) ? 1 : 0, gb = giftGot(p, b) ? 1 : 0; if (ga !== gb) return ga - gb; return ((a.key === 'ebook') === joint ? 0 : 1) - ((b.key === 'ebook') === joint ? 0 : 1); });
+  }
+  function giftText(p, g, withZalo) {
+    var t = (S.d.templates || []).filter(function (x) { var k = norm(x[0] + ' ' + x[1]); return k.indexOf('qua tang') >= 0 && k.indexOf(g.key === 'camnang' ? 'cam nang' : 'ebook') >= 0; })[0];
+    var txt = (t ? t[2] : GIFT_TPL[g.key] || 'Dạ [Tên] ơi, em gửi [Tên] món quà nhỏ của Thực Dưỡng Lành: [Tên quà] 🎁 [Link quà]');
+    if (txt.indexOf('[Link quà]') < 0 && txt.indexOf(g.link) < 0) txt += '\n' + g.link;
+    if (withZalo && CFG.zalo_group && p.community !== 'Đã vào') txt += GIFT_ZALO;
+    return fillTpl(txt, p).replace(/\[Link quà\]/gi, g.link).replace(/\[Tên quà\]/gi, g.title).replace(/\[Link nhóm\]/gi, CFG.zalo_group || '');
+  }
+  function giftBox(p, ctx) {
+    var list = giftList(); if (!p || !list.length) return '';
+    var ord = giftOrder(p), left = ord.filter(function (g) { return !giftGot(p, g); }).length;
+    var open = !!GIFT_TIP[ctx] && (ctx === 'd1' || ctx === 'd7' || ctx === 'lead') && left > 0;
+    return '<details class="box gift" data-gift-box="' + p.phone + '|' + (ctx || '') + '"' + (open ? ' open' : '') + '><summary><b>🎁 Tặng quà cho khách</b> <span class="small muted">' + (left ? left + ' quà chưa gửi' : 'đã gửi đủ quà') + '</span></summary>' +
+      '<p class="small" style="margin:8px 0">' + esc(GIFT_TIP[ctx] || 'Quà tặng miễn phí, gửi để thêm giá trị cho khách. Mỗi khách gửi mỗi quà 1 lần là đủ.') + '</p>' +
+      ord.map(function (g, i) {
+        var got = giftGot(p, g);
+        return '<div class="gift-row"><img src="' + esc(g.image) + '" alt="" width="48" height="72" loading="lazy"><div class="gift-t"><b>' + esc(g.title) + '</b>' + (i === 0 && !got ? ' <span class="tag st-xong">Gợi ý</span>' : '') +
+          (got ? ' <span class="small muted">✓ ' + (got.by === 'khách tự nhận trên web' ? 'Khách đã tự nhận trên web ' : 'Đã gửi ') + fDate(got.time).slice(0, 5) + (got.by && got.by !== 'khách tự nhận trên web' ? ' (' + esc(got.by) + ')' : '') + '</span>' : '') +
+          '<div class="small muted">' + esc(g.desc) + '</div>' +
+          '<div class="steps"><button type="button" class="btn zalo" data-gift="' + p.phone + '|' + g.key + '|zalo">📋 Copy tin & mở Zalo</button><button type="button" class="btn" data-gift="' + p.phone + '|' + g.key + '|copy">Copy tin</button><button type="button" class="btn" data-gift="' + p.phone + '|' + g.key + '|link">🔗 Chỉ copy link</button></div></div></div>';
+      }).join('') +
+      (CFG.zalo_group && p.community !== 'Đã vào' ? '<label class="switch small" style="margin-top:6px"><input type="checkbox" data-giftz checked> Kèm lời mời vào nhóm Zalo cộng đồng</label>' : '') + '</details>';
+  }
+  function giftAct(el, phone, key, how) {
+    var p = giftPerson(phone), g = giftList().filter(function (x) { return x.key === key; })[0]; if (!p || !g) return;
+    var box = el.closest('[data-gift-box]'), z = box && $('[data-giftz]', box), txt = how === 'link' ? g.link : giftText(p, g, !!(z && z.checked));
+    copy(txt).then(function () { toast(how === 'link' ? 'Đã copy link quà' : 'Đã copy tin tặng quà – dán vào khung chat Zalo của khách'); });
+    if (how === 'zalo') window.open(zalo(phone), '_blank', 'noopener');
+    if (how === 'link') return;
+    if (!giftGot(p, g) || !giftGot(p, g).by || giftGot(p, g).by === 'khách tự nhận trên web' || Date.now() - giftGot(p, g).time > DAY) sendOp('gift', { phone: p.phone, name: p.name, gift: g.title });
+    if (box) { var ctx = box.getAttribute('data-gift-box').split('|')[1], wasOpen = box.open; box.outerHTML = giftBox(p, ctx); var nb = $('[data-gift-box="' + p.phone + '|' + ctx + '"]'); if (nb) nb.open = wasOpen; }
   }
   function setZalo(c, on) { sendOp('customer', { phone: c.phone, zalo: on ? 1 : 0 }); toast(on ? 'Đã đánh dấu kết bạn Zalo ✓' : 'Đã bỏ đánh dấu Zalo'); render(); }
   function orderCard(o, withActs) {
@@ -1287,6 +1353,7 @@
       (coldOf(c) ? '<div class="notice" style="background:#eef2f7;color:#334">❄️ <b>Khách lạnh</b> (' + esc(coldOf(c)) + '): không đưa vào danh sách gọi hằng ngày. ' + (coldOf(c) === 'Không dùng nữa' ? 'Sau 6 tháng tự quay lại để chào lại 1 lần; khách đặt đơn mới là hết lạnh.' : 'Nếu bán lại, nên nhờ khách chuyển khoản trước.') + '</div>' : '') +
       '<div class="p-now">' + (c.task ? '<div>' + TASKS[c.task.type].icon + ' Hôm nay: <b>' + TASKS[c.task.type].title + '</b> · ' + taskLine(c) + '</div>' : '') +
       '<div class="' + (r.never ? 'muted' : '') + '">💬 ' + (r.never ? 'Chưa ghi nhận lần nào khách trả lời' : 'Lần cuối khách trả lời: <b>' + fDate(r.at) + '</b>' + (r.result ? ' – ' + esc(r.result) : '') + (r.by ? ' (' + esc(r.by) + ')' : '') + ' · ' + r.days + ' ngày trước') + (r.missed ? ' · <span class="bad-line">sau đó ' + r.missed + ' lần không nghe máy</span>' : '') + '</div></div>' +
+      giftBox(giftPerson(c.phone), '') +
       '<div class="tabs" role="tablist"><button data-ptab="hist" class="on">Lịch sử</button><button data-ptab="orders">Đơn hàng (' + c.orders + ')</button><button data-ptab="info">Thông tin</button></div><div id="pTab"></div>' +
       '<details class="p-edit" id="pEdit"><summary>⚙️ Sửa thông tin (người phụ trách, hẹn gọi lại, ngày sinh, nhãn màu, ghi chú)</summary><div class="box" style="margin:8px 0 0"><div class="row2c">' +
       (lvl() >= 2 ? '<label class="f"><span>Người phụ trách</span><select id="cOwner"><option value="">– Chưa ai –</option>' + owners.map(function (n) { return '<option' + (n === c.owner ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('') + '</select></label>' : '') +
@@ -1422,7 +1489,7 @@
       '<label class="f"><span>Nội dung (sửa được, nhớ điền phần “…” nếu có)</span><textarea id="kMsg" rows="6">' + esc(ti >= 0 ? fillTpl(tp[ti][2], c) : '') + '</textarea></label>' +
       (c.zalo ? '<div class="steps"><button class="btn zalo" id="kZalo">📋 Copy tin & mở Zalo</button><button class="btn" id="kCopy">Copy tin</button><a class="btn" href="tel:' + c.phone + '">📞 Gọi</a></div><p class="small muted" style="margin:8px 0 0">' + ZI + ' Khách đã kết bạn Zalo: nhắn tin trước, khách tiện trả lời lúc rảnh.</p></div>'
         : '<div class="steps"><a class="btn pri" href="tel:' + c.phone + '">📞 Gọi</a><button class="btn zalo" id="kZalo">📋 Copy tin & mở Zalo</button><button class="btn" id="kCopy">Copy tin</button></div><p class="small" style="margin:8px 0 0">Khách <b>chưa kết bạn Zalo</b>: gọi xong nhớ xin kết bạn để lần sau nhắn tin chăm sóc. ' + (canEdit(c) ? zaloTag(c) : '') + '</p></div>') +
-      commBox(c, type) +
+      commBox(c, type) + giftBox(giftPerson(c.phone), type) +
       '<div class="box"><h3>Bước 2 · Ghi kết quả</h3>' +
       '<div class="f"><span style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--ink)">Bấm 1 lần là lưu (tự hẹn ngày gọi lại)</span><div class="quick">' + QUICK.filter(function (q) { return !q.only || q.only === type; }).sort(function (a, b) { return (b.only ? 1 : 0) - (a.only ? 1 : 0); }).map(function (q) { return '<button class="btn" data-q="' + q.k + '" title="' + esc(q.r + (q.d ? ', ' + q.d + ' ngày sau tự nhắc gọi lại' : '')) + '">' + q.l + '</button>'; }).join('') + '</div></div>' +
       '<p class="small muted" style="margin:4px 0 10px">Hoặc tự chọn bên dưới:</p>' +
@@ -2204,6 +2271,7 @@
       info('Phụ trách', l.owner || '– Chưa ai –') + info('Ngày hỏi', fDate(l.time)) + info('Lần liên hệ gần nhất', l.lastAt ? fDate(l.lastAt) + ' (' + daysAgo(l.lastAt) + ')' : 'chưa liên hệ') +
       info('Hẹn liên hệ lại', l.callback ? fDate(l.callback) : '–') + (l.reason ? info('Lý do không mua', l.reason, true) : '') + (l.orderId ? info('Mã đơn', l.orderId, true, true) : '') + '</div></div>' +
       '<div class="box"><h3>Ghi chú</h3><div class="pre">' + (l.note ? esc(l.note) : '<span class="muted">Chưa có ghi chú.</span>') + '</div></div>' +
+      (open ? giftBox(giftPerson(l.phone), '') : '') +
       '<div class="box"><h3>Lịch sử tư vấn (' + logs.length + ')</h3>' + (logs.length ? '<div class="timeline">' + logs.map(logItem).join('') + '</div>' : '<p class="muted">Chưa có.</p>') + '</div>';
     modal(cp(l.name, esc(l.name || 'Khách hỏi')) + ' ' + leadTag(l), body, null, { route: '#tiem-nang', pushed: !fromRoute });
   }
@@ -2265,6 +2333,7 @@
       '<label class="f"><span>Mẫu tin</span><select id="cTpl"><option value="-1">– Tự viết –</option>' + tp.map(function (t, i) { return '<option value="' + i + '"' + (i === ti ? ' selected' : '') + '>' + esc(t[0] + (t[1] ? ' – ' + t[1] : '')) + '</option>'; }).join('') + '</select></label>' +
       '<label class="f"><span>Nội dung (sửa được)</span><textarea id="cMsg" rows="5">' + esc(ti >= 0 ? fill(tp[ti][2]) : '') + '</textarea></label>' +
       '<div class="steps"><button class="btn zalo" id="cZalo">📋 Copy tin & mở Zalo</button><a class="btn" href="tel:' + l.phone + '">📞 Gọi</a></div></div>' +
+      giftBox(giftPerson(l.phone), 'lead') +
       '<div class="box"><h3>Bước 2 · Kết quả</h3><div class="radios" style="margin-bottom:12px">' + LEAD_RESULTS.map(function (r) { return '<label><input type="radio" name="cRes" value="' + esc(r.v) + '"><span>' + esc(r.v) + '</span></label>'; }).join('') + '</div>' +
       '<div id="cLost" hidden><label class="f"><span>Lý do không mua *</span><select id="cReason"><option value="">– Chọn –</option>' + LOST_REASONS.map(function (r) { return '<option>' + r + '</option>'; }).join('') + '</select></label></div>' +
       '<p class="notice info" id="cClose" hidden>Bấm <b>Lưu</b> → mở ngay form tạo đơn cho khách.</p>' +
@@ -3404,7 +3473,7 @@
       cy.map(function (r, i) { return '<div class="edit-row" data-i="' + i + '"><input type="text" data-k="0" value="' + esc(r[0]) + '" placeholder="Tên sản phẩm"><input type="text" data-k="1" value="' + esc(r[1]) + '" placeholder="vd 500g"><input type="number" data-k="2" min="1" value="' + esc(r[2]) + '" placeholder="Ngày"><input type="text" data-k="3" value="' + esc(r[3]) + '" placeholder="Căn cứ / ghi chú"><button class="rm" data-rm="cy" data-i="' + i + '" aria-label="Xoá">✕</button></div>'; }).join('') +
       '</div><div class="steps" style="margin-top:10px"><button class="btn" data-add="cy">＋ Thêm dòng</button><button class="btn pri" id="cySave">Lưu chu kỳ</button></div></div>';
     var tp = S.f.tp || (S.f.tp = S.d.templates.map(function (r) { return r.slice(); }));
-    h += '<div class="box"><h3>Mẫu tin nhắn chăm sóc</h3><p class="hint" style="margin:0 0 10px">Dùng <b>[Tên]</b> và <b>[Sản phẩm]</b>, máy tự thay khi nhắn. Cột “Thời điểm” cần chứa “1 ngày”, “hết”, “14”, “30”, “60” để tự chọn đúng mẫu cho từng việc.</p>' +
+    h += '<div class="box"><h3>Mẫu tin nhắn chăm sóc</h3><p class="hint" style="margin:0 0 10px">Dùng <b>[Tên]</b> và <b>[Sản phẩm]</b>, máy tự thay khi nhắn. Cột “Thời điểm” cần chứa “1 ngày”, “hết”, “14”, “30”, “60” để tự chọn đúng mẫu cho từng việc. Mẫu <b>tặng quà</b>: Thời điểm “Quà tặng”, Mục đích có chữ “cẩm nang” hoặc “ebook”, dùng <b>[Link quà]</b> (máy tự điền link); để trống thì CRM dùng mẫu có sẵn.</p>' +
       '<div class="edit-table" id="tpT">' + tp.map(function (r, i) { return '<div class="edit-row tpl" data-i="' + i + '"><input type="text" data-k="0" value="' + esc(r[0]) + '" placeholder="Thời điểm"><input type="text" data-k="1" value="' + esc(r[1]) + '" placeholder="Mục đích"><button class="rm" data-rm="tp" data-i="' + i + '" aria-label="Xoá">✕</button><textarea data-k="2" rows="3" placeholder="Nội dung tin">' + esc(r[2]) + '</textarea></div>'; }).join('') +
       '</div><div class="steps" style="margin-top:10px"><button class="btn" data-add="tp">＋ Thêm mẫu</button><button class="btn pri" id="tpSave">Lưu mẫu tin</button></div></div>';
     if (lvl() >= 3) {
@@ -3736,6 +3805,7 @@
     e.stopPropagation(); var code = tk.getAttribute('data-trk'), paste = tk.tagName === 'A' && tk.getAttribute('href').indexOf(encodeURIComponent(code)) < 0;
     copy(code).then(function () { toast('Đã copy mã vận đơn ' + code + (paste ? ' – dán vào ô tra cứu' : '')); });
   }, true);
+  document.addEventListener('click', function (e) { var gb = e.target.closest && e.target.closest('[data-gift]'); if (!gb || !S.d) return; e.stopPropagation(); var a = gb.getAttribute('data-gift').split('|'); giftAct(gb, a[0], a[1], a[2]); }, true);
   document.addEventListener('click', function (e) { var cm = e.target.closest && e.target.closest('[data-comm]'); if (!cm || !S.d) return; e.stopPropagation(); var a = cm.getAttribute('data-comm').split('|'); commAct(a[0], a[1]); }, true);
   var typing = null;
   document.addEventListener('input', function (e) {

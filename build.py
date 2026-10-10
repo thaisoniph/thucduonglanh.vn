@@ -1841,6 +1841,20 @@ def main():
     build_crm()
 
 
+def crm_gifts():
+    """Quà tặng cho nhân sự gửi khách trong CRM: link đọc thẳng (khách đã có trong CRM, không bắt điền form lại)."""
+    out = []
+    if CN_PATH:
+        r = CN["reader"]
+        out.append({"key": "camnang", "title": "Cẩm nang Sống khỏe chủ động", "link": r + ("&" if "?" in r else "?") + "ma=crm", "landing": DOMAIN + CN_PATH,
+                    "image": DOMAIN + (CN.get("image") or f"{CN_IMG}/cover-art.webp"), "desc": "32 trang có sách nói: mâm cơm cân bằng, gạo lứt, giữ sức sau tuổi 45, nhật ký 7 ngày. Hợp với mọi khách."})
+    eb = SITE.get("ebook") or {}
+    if eb.get("flipbook"):
+        out.append({"key": "ebook", "title": "Ebook Dinh Dưỡng cho Cơ Xương Khớp", "link": eb["flipbook"], "landing": DOMAIN + eb.get("url", "/ebook/"),
+                    "image": DOMAIN + (eb.get("image") or ""), "desc": "Nên ăn gì, tránh gì cho 6 vấn đề cơ xương khớp, 20+ món dễ nấu, video thực đơn 7 ngày. Hợp khách lớn tuổi, đau mỏi, gout."})
+    return out
+
+
 def build_crm():
     """CRM cho nhân sự tại crm.thucduonglanh.vn: trang tĩnh trong crm/, dữ liệu lấy qua Apps Script. Ra thư mục dist-crm/."""
     src, out = ROOT / "crm", ROOT / "dist-crm"
@@ -1877,7 +1891,7 @@ def build_crm():
                  "variants": [{"name": v["name"], "price": v["price"]} for v in p.get("base_variants", [])]} for p in PRODUCTS]
     cfg = {"endpoint": (SITE.get("api_endpoint") or SITE.get("order_endpoint", "")), "shipping_fee": SITE.get("shipping_fee", 0),
            "free_ship_threshold": SITE.get("free_ship_threshold", 0), "products": products,
-           "zalo_group": SITE.get("zalo_group", "")}
+           "zalo_group": SITE.get("zalo_group", ""), "gifts": crm_gifts()}
     (out / "crm-data.js").write_text("window.CRM_CONFIG=" + json.dumps(cfg, ensure_ascii=False) + ";\n", "utf-8")
     (out / "manifest.webmanifest").write_text(json.dumps({
         "name": "CRM Thực Dưỡng Lành", "short_name": "CRM TDL", "start_url": "/", "display": "standalone",
