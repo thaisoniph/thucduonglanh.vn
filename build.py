@@ -1860,6 +1860,11 @@ def build_crm():
     src, out = ROOT / "crm", ROOT / "dist-crm"
     if not src.exists():
         return
+    # Trùng tên hàm trong app.js → hàm sau đè hàm trước, cả tab hỏng (10/10/2026: webSrc làm tab Đơn hàng không mở được)
+    names = re.findall(r"^  function ([A-Za-z0-9_$]+)\(", (src / "app.js").read_text("utf-8"), re.M)
+    dup = sorted({n for n in names if names.count(n) > 1})
+    if dup:
+        raise SystemExit("❌ crm/app.js có hàm trùng tên: " + ", ".join(dup) + " – đổi tên hàm mới rồi build lại.")
     if out.exists():
         shutil.rmtree(out)
     out.mkdir()

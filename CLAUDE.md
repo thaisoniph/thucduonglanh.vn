@@ -61,3 +61,8 @@ Nếu CRM web (`crm/`) cần Apps Script bản mới mới chạy được thì 
 ## Ảnh từ điện thoại
 - Ảnh anh gửi trong cuộc trò chuyện được lưu ở `~/.claude/uploads/`. Ảnh chụp màn hình lỗi hay mẫu thiết kế thì chỉ cần xem. Ảnh cần đưa lên web thì nén WebP (rộng tối đa 1200px) rồi lưu vào `assets/uploads/`, đây cũng là thư mục ảnh của /admin.
 - Ảnh và PDF gốc của công ty nằm trên máy Mac, ngoài repo. Phiên trên cloud không thấy các file này.
+
+## Sửa CRM: không đặt trùng tên
+- `crm/app.js` và `crm/app.css` là file lớn dùng chung. Trước khi thêm hàm hoặc class CSS mới phải grep xem tên đã có chưa (`function tên(`, `.tên`). Trùng tên thì cái sau đè cái trước và làm hỏng tab khác (10/10/2026: `.cols` làm vỡ thẻ khách ở Hôm nay/Khách hỏi, `webSrc` làm tab Đơn hàng không mở được).
+- Đặt tên class mới theo tính năng (vd `dash-…`, `gift-…`), không dùng tên chung chung như `cols`, `row`, `box`, `sub`.
+- `build.py` tự dừng nếu `app.js` có hàm trùng tên. CSS thì không có bước kiểm tra tự động, phải tự kiểm tra.
