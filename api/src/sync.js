@@ -1,6 +1,6 @@
 // Đồng bộ dữ liệu từ file Google Sheet của sale (lên đơn, cop số, từ chối) và file số quảng cáo chung.
 // Đọc bằng Google Sheets API (nhanh, không phải mở cả file như Apps Script). Nhập nhiều lần không trùng.
-import { normPhone, esc, fmtDate, nrm, isVoid, hashKey, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, CRM_URL, DAY } from './lib.js';
+import { normPhone, esc, fmtDate, nrm, isVoid, hashKey, hashKeyLegacy, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, CRM_URL, DAY } from './lib.js';
 import { sheetMeta, sheetValues, sheetWrite, a1, serialToMs } from './google.js';
 import { crmUsers, crmLog, recalc, deletedOrderIds, setCallbacks, caCfg, caOf, normLine, itemsText, shipText, ORDER_COLS, srcList, adsCfg, telegramUser, unifyNames } from './crm.js';
 
@@ -215,20 +215,32 @@ async function importOrders(x, src, shCfg, data, dry) {
     const phone = toPhone(cell(r, m, 'phone')), when = toDate(cell(r, m, 'date'), ctx), product = String(cell(r, m, 'product') || '').trim(), amount = toMoney(cell(r, m, 'amount'));
     if (!phone || !when || (!product && !amount)) { if (nonEmpty(r)) skip++; continue; }
     const codeRaw = String(cell(r, m, 'code') || '').trim(), valid = /^[A-Za-z]{2,}\d{5,}/.test(codeRaw);
-    const key = valid ? codeRaw : 'NK' + hashKey(sale + '|' + fmtDate(when, 'yyyyMMdd') + '|' + phone + '|' + amount + '|' + nrm(product));
-    parsed.push({ r, phone, when, product, amount, codeRaw, valid, key });
+    const hk = sale + '|' + fmtDate(when, 'yyyyMMdd') + '|' + phone + '|' + amount + '|' + nrm(product), nk = 'NK' + hashKey(hk), old = 'NK' + hashKeyLegacy(hk);
+    const key = valid ? codeRaw : nk, alt = valid ? [nk, old] : [old]; // alt: mã NK… cùng dòng (Apps Script cũ băm chữ có dấu thành "?"; sale điền mã đơn sau khi đã nhập)
+    parsed.push({ r, phone, when, product, amount, codeRaw, valid, key, alt, sig: phone + '|' + fmtDate(when, 'yyyyMMdd') + '|' + amount + '|' + nrm(product || cell(r, m, 'gift1')) });
   }
-  const ex = {}; (await allIn(x.db, 'SELECT rid, id, status, source FROM orders WHERE id IN (SELECT value FROM json_each(?))', [...new Set(parsed.map(p => p.key))])).forEach(o => { ex[o.id] = o; });
+  const ex = {}; (await allIn(x.db, 'SELECT rid, id, status, source FROM orders WHERE id IN (SELECT value FROM json_each(?))', [...new Set(parsed.flatMap(p => [p.key].concat(p.alt)))])).forEach(o => { ex[o.id] = o; });
+  // Đơn NK… đã nhập nhưng mã tính lại không khớp (đổi tên nhân sự, cách băm cũ…): nhận lại theo SĐT + ngày + số tiền + sản phẩm của chính file này
+  const claimed = {}; parsed.forEach(p => [p.key].concat(p.alt).forEach(k => { if (ex[k]) claimed[ex[k].rid] = 1; }));
+  const bySig = {}; (await allIn(x.db, "SELECT rid, id, status, source, phone, time, total, items FROM orders WHERE phone IN (SELECT value FROM json_each(?)) AND id LIKE 'NK%' AND source LIKE 'File %'", [...new Set(parsed.map(p => p.phone))])).forEach(o => {
+    if (claimed[o.rid] || !String(o.source).endsWith(' – ' + shCfg.name)) return; // cùng sheet (tên sale trong nhãn có thể đã đổi)
+    const k = o.phone + '|' + fmtDate(o.time, 'yyyyMMdd') + '|' + o.total + '|' + nrm(String(o.items || '').split('\n')[0].replace(/^🎁\s*/, '').replace(/\s+x\d+\s*=.*$/, ''));
+    (bySig[k] = bySig[k] || []).push(o);
+  });
   const gone = {}; (await deletedOrderIds(x)).forEach(i => { gone[i] = 1; }); // đơn Quản trị đã xoá trên CRM → không nhập lại
-  const out = [], seen = {}, phones = {}, callbacks = {}, upd = []; let dup = 0, revenue = 0, minD = null, maxD = null, afterCut = 0;
+  const out = [], seen = {}, phones = {}, callbacks = {}, upd = [], ren = []; let dup = 0, revenue = 0, minD = null, maxD = null, afterCut = 0;
   for (const p of parsed) {
-    const { r, phone, when, product, amount, codeRaw, valid, key } = p;
+    const { r, phone, when, product, amount, codeRaw, valid, key, alt, sig } = p;
+    if (!ex[key]) { // tìm bản đã nhập dưới mã khác của cùng dòng
+      const a = alt.find(k => ex[k]), o = a ? ex[a] : (bySig[sig] || []).shift();
+      if (o) { ex[key] = o; if (valid && o.id !== key) ren.push({ rid: o.rid, from: o.id, to: key }); } // sale đã điền mã đơn → đổi mã NK… thành mã thật
+    }
     if (ex[key]) { // đã nhập: file cũ đổi sang Đã giao / Hoàn / Huỷ / Đổi hàng thì cập nhật theo (không đè thay đổi làm trên CRM)
       const st1 = mapStatus(cell(r, m, 'status'), when), cur = ex[key];
       if (String(cur.source || '').indexOf('File ') === 0 && st1 !== cur.status && FINAL[st1] && !FINAL[cur.status]) { upd.push({ rid: cur.rid, status: st1 }); cur.status = st1; }
       dup++; continue;
     }
-    if (gone[key]) { dup++; continue; }
+    if (gone[key] || alt.some(k => gone[k])) { dup++; continue; }
     if (seen[key]) { dup++; continue; } seen[key] = 1;
     if (until && when >= until) { afterCut++; continue; } // từ ngày này sale lên đơn trên CRM → không nhập để tránh trùng
     const items = [];
@@ -251,9 +263,10 @@ async function importOrders(x, src, shCfg, data, dry) {
   const settled = await settledOf(x, Object.keys(phones), sale);
   const conflicts = Object.keys(phones).filter(p => owners[p] && owners[p].owner && owners[p].owner !== sale && settled[p] !== owners[p].owner).map(p => ({ phone: p, name: phones[p], owner: owners[p].owner }));
   const newCus = Object.keys(phones).filter(p => !owners[p]).length;
-  const summary = out.length + ' đơn mới, ' + dup + ' đã có' + (upd.length ? ' (' + upd.length + ' cập nhật trạng thái)' : '') + (afterCut ? ', ' + afterCut + ' đơn sau ngày chốt bỏ qua' : '') + ', ' + skip + ' dòng bỏ qua';
-  const res = { updated: upd.length, afterCut, rows: data.rows.length, newOrders: out.length, dup, skip, customers: Object.keys(phones).length, newCustomers: newCus, conflicts: conflicts.slice(0, 50), conflictCount: conflicts.length, revenue, from: minD, to: maxD, summary };
-  if (dry || (!out.length && !upd.length)) return res;
+  const summary = out.length + ' đơn mới, ' + dup + ' đã có' + (upd.length ? ' (' + upd.length + ' cập nhật trạng thái)' : '') + (ren.length ? ', ' + ren.length + ' đơn nhận mã đơn mới' : '') + (afterCut ? ', ' + afterCut + ' đơn sau ngày chốt bỏ qua' : '') + ', ' + skip + ' dòng bỏ qua';
+  const res = { updated: upd.length, renamed: ren.length, afterCut, rows: data.rows.length, newOrders: out.length, dup, skip, customers: Object.keys(phones).length, newCustomers: newCus, conflicts: conflicts.slice(0, 50), conflictCount: conflicts.length, revenue, from: minD, to: maxD, summary };
+  if (dry || (!out.length && !upd.length && !ren.length)) return res;
+  for (const v of ren) { await run(x.db, 'UPDATE orders SET id = ? WHERE rid = ?', v.to, v.rid); await run(x.db, 'UPDATE logs SET ref = ? WHERE ref = ?', v.to, v.from); }
   out.sort((a, b) => a.time - b.time);
   await insertMany(x.db, 'orders', ORDER_COLS, out);
   for (let i = 0; i < upd.length; i += 500) await run(x.db, "UPDATE orders SET status = json_extract(j.value, '$.status') FROM json_each(?) j WHERE orders.rid = json_extract(j.value, '$.rid')", JSON.stringify(upd.slice(i, i + 500)));
@@ -293,15 +306,15 @@ async function importCare(x, src, shCfg, data, dry, idx) {
     if (sc.role !== 'orders') continue; const dd = await srcRows(x, src, sc), mm = sc.map || {};
     dd.rows.forEach(r => { const ph = toPhone(cell(r, mm, 'phone')); if (ph && !owners[ph] && per[ph]) owners[ph] = { owner: sale, name: '' }; });
   }
-  const ids = order.map(ph => 'CS' + hashKey(sale + '|' + ph));
-  const have = {}; (await allIn(x.db, 'SELECT id FROM leads WHERE id IN (SELECT value FROM json_each(?))', ids)).forEach(r => { have[r.id] = 1; });
+  const ids = order.map(ph => 'CS' + hashKey(sale + '|' + ph)), oldIds = order.map(ph => 'CS' + hashKeyLegacy(sale + '|' + ph)); // oldIds: mã do Apps Script cũ tạo
+  const have = {}; (await allIn(x.db, 'SELECT id FROM leads WHERE id IN (SELECT value FROM json_each(?))', ids.concat(oldIds))).forEach(r => { have[r.id] = 1; });
   const openP = {}; (await allIn(x.db, "SELECT phone FROM leads WHERE status IN ('Mới hỏi', 'Đang tư vấn') AND phone IN (SELECT value FROM json_each(?))", order)).forEach(r => { openP[r.phone] = 1; });
   const settled = await settledOf(x, order, sale), keep = await keepOf(x);
   const toNote = [], leads = [], conflicts = [], now = Date.now(), head = '— Nhật ký cũ (' + shCfg.name + ') —';
   order.forEach((ph, k) => {
     const p = per[ph];
     if (owners[ph]) { if (owners[ph].owner && owners[ph].owner !== sale && settled[ph] !== owners[ph].owner) conflicts.push({ phone: ph, name: p.name, owner: owners[ph].owner }); if (p.notes.length) toNote.push(ph); return; }
-    const id = ids[k]; if (have[id] || openP[ph]) return;
+    const id = ids[k]; if (have[id] || have[oldIds[k]] || openP[ph]) return;
     const st = nrm(p.status), recent = p.last && now - p.last <= 30 * DAY;
     const status = /huy/.test(st) ? 'Không mua' : /chot|len don/.test(st) ? 'Đã chốt' : recent ? 'Đang tư vấn' : 'Không mua';
     const reason = status === 'Không mua' ? (/huy/.test(st) ? 'Huỷ' : 'Chưa mua (dữ liệu cũ)') : '';
@@ -326,11 +339,11 @@ async function importReject(x, src, shCfg, data, dry) {
   const m = shCfg.map || {}, sale = src.sale, per = {};
   data.rows.forEach(r => { const ph = toPhone(cell(r, m, 'phone')); if (!ph) return; per[ph] = per[ph] || { name: String(cell(r, m, 'name') || ''), why: [] }; const n = String(cell(r, m, 'note') || cell(r, m, 'status') || '').trim(); if (n) per[ph].why.push(n); });
   const phs = Object.keys(per), owners = await ownersOf(x, phs), flags = [], leads = [];
-  const have = {}; (await allIn(x.db, 'SELECT id FROM leads WHERE id IN (SELECT value FROM json_each(?))', phs.map(ph => 'TC' + hashKey(sale + '|' + ph)))).forEach(r => { have[r.id] = 1; });
+  const have = {}; (await allIn(x.db, 'SELECT id FROM leads WHERE id IN (SELECT value FROM json_each(?))', phs.flatMap(ph => ['TC' + hashKey(sale + '|' + ph), 'TC' + hashKeyLegacy(sale + '|' + ph)]))).forEach(r => { have[r.id] = 1; });
   phs.forEach(ph => {
     const bom = /bom/i.test(per[ph].why.join(' '));
     if (owners[ph]) flags.push({ p: ph, f: bom ? 'Bom hàng' : 'Từ chối' });
-    else { const id = 'TC' + hashKey(sale + '|' + ph); if (!have[id]) leads.push({ id, time: Date.now(), name: per[ph].name, phone: ph, channel: 'File cũ – ' + shCfg.name, interest: '', status: 'Không mua', owner: sale, last_at: null, callback: null, reason: bom ? 'Bom hàng' : 'Từ chối', note: per[ph].why.join('\n'), order_id: '', by_name: 'Đồng bộ ' + sale }); }
+    else { const id = 'TC' + hashKey(sale + '|' + ph); if (!have[id] && !have['TC' + hashKeyLegacy(sale + '|' + ph)]) leads.push({ id, time: Date.now(), name: per[ph].name, phone: ph, channel: 'File cũ – ' + shCfg.name, interest: '', status: 'Không mua', owner: sale, last_at: null, callback: null, reason: bom ? 'Bom hàng' : 'Từ chối', note: per[ph].why.join('\n'), order_id: '', by_name: 'Đồng bộ ' + sale }); }
   });
   const res = { rows: data.rows.length, people: phs.length, flagged: flags.length, newLeads: leads.length, summary: flags.length + ' khách gắn nhãn cảnh báo, ' + leads.length + ' người vào danh sách "Không mua"' };
   if (dry) return res;

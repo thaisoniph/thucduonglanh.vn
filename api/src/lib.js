@@ -42,6 +42,9 @@ export function md5hex(str) {
   return [a0, b0, c0, d0].map(v => [0, 8, 16, 24].map(s => ((v >>> s) & 255).toString(16).padStart(2, '0')).join('')).join('');
 }
 export function hashKey(s) { return md5hex(s).slice(0, 12); } // 6 byte đầu, như bản Apps Script
+/** Mã băm như Apps Script cũ (trước 07/10/2026) thật sự tạo ra: Utilities.computeDigest đổi mọi chữ ngoài ASCII thành "?" ("Thu Phương" → "Thu Ph??ng").
+ *  Dùng để nhận ra đơn / khách hỏi đã nhập từ thời Apps Script, tránh nhập trùng. */
+export function hashKeyLegacy(s) { return hashKey(String(s).normalize('NFC').replace(/[^\x00-\x7f]/g, '?')); }
 
 /* ---------- D1 */
 export async function all(db, sql, ...args) { return (await db.prepare(sql).bind(...args).all()).results || []; }
