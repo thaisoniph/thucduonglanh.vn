@@ -1,6 +1,7 @@
 // CRM: đăng nhập, dữ liệu, đơn hàng, khách, tiềm năng, cài đặt. Chuyển từ Apps Script sang, giữ nguyên cách làm việc & dữ liệu trả về cho giao diện.
 import { normPhone, esc, fmt, startOfDay, fmtDate, dateOrBlank, slugName, isVoid, randHex, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, DAY, CRM_URL } from './lib.js';
 import { sendMail, telegram, telegramTo, tgUpdates, tgConf, bridge } from './google.js';
+import { crmGa, crmGaProp } from './ga.js';
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
@@ -1265,6 +1266,8 @@ export async function crmApi(x, d, sync, mgr) {
   if (a === 'fb_list') return crmFbList(x, u);
   if (a === 'fb_img') return crmFbImg(x, u, d);
   if (a === 'fb_update') return crmFbUpdate(x, u, d);
+  if (a === 'ga') return crmGa(x, u, d); // tab Tổng quan: số liệu Google Analytics
+  if (a === 'ga_prop') return crmGaProp(x, u, d);
   const need = { settings: 2, users: 3, assign: 2, bulk: 2, recv: 2 };
   if (need[a] && u.level < need[a]) return { ok: false, error: 'Bạn không có quyền làm việc này.' };
   const h = { care: crmCare, customer: crmCustomer, order_status: crmOrderStatus, contact: crmContact, settings: crmSettings, users: crmSaveUsers, order_edit: crmOrderEdit,

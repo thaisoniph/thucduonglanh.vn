@@ -2,7 +2,7 @@
 title: Hướng dẫn dùng CRM
 nav: CRM
 order: 2
-updated: 2026-10-09
+updated: 2026-10-10
 description: Xử lý đơn hàng, chăm sóc khách, khách hỏi và theo dõi hiệu quả trên crm.thucduonglanh.vn.
 ---
 
@@ -29,6 +29,7 @@ Mã dùng được trong **10 phút**. Đăng nhập xong, máy nhớ bạn tron
 
 | Tab | Dùng để |
 | --- | --- |
+| **Tổng quan** | Chỉ Quản trị thấy. Bức tranh kinh doanh và website trên 1 màn hình (xem mục *Tổng quan* bên dưới). |
 | **Hôm nay** | Danh sách việc cần làm trong ngày. Mở tab này đầu tiên mỗi sáng. |
 | **Khách đã mua** | Người đã mua ít nhất 1 đơn: chăm sóc sau bán, mời mua lại. Tìm khách, xem lịch sử mua và chăm sóc. |
 | **Đơn hàng** | Xác nhận, giao hàng, nhận tiền, sửa đơn, tạo đơn cho khách đặt qua Zalo hoặc điện thoại. |
@@ -372,6 +373,17 @@ Bấm nút **📅 thời gian** ở đầu trang để xem số liệu *Hôm nay
 - **Chăm sóc khách**: số lượt chăm sóc, tỷ lệ khách trả lời, số khách đặt lại, số khách quá 30 ngày chưa chăm sóc (bấm vào để xem danh sách cần gọi).
 
 Doanh số tính theo **Nhân viên bán** ghi trên từng đơn. Đơn khách tự đặt trên web được tính cho **người đang phụ trách khách đó**.
+
+## Tổng quan (chỉ Quản trị)
+
+Tab đầu tiên trên menu, dành cho chủ doanh nghiệp. Bấm **📅 thời gian** để chọn kỳ; mỗi số tự so với kỳ trước.
+
+- **Điểm cần chú ý**: vài dòng CRM tự rút ra (doanh thu tăng / giảm, kênh ra nhiều tiền nhất, trang khách vào nhưng bỏ đi nhanh…).
+- **Kinh doanh** (lấy từ CRM, mọi kênh): doanh thu, số đơn, giá trị trung bình / đơn, khách mua lần đầu, % doanh thu từ khách cũ, khách để lại SĐT.
+- **Website** (lấy từ Google Analytics): lượt truy cập, người xem, đơn đặt trên web, tỷ lệ ra đơn, % khách ở lại xem, thời gian xem.
+- **Theo ngày**, **Doanh thu theo kênh** (Website – nguồn / Sale / Khách hỏi), **Khách vào web từ đâu**, **Phễu mua hàng** (rơi nhiều nhất ở bước nào), **Khách liên hệ từ web** (bấm gọi, bấm Zalo, điền form), **Trang xem nhiều**, **Trang khách vào đầu tiên**, **Sản phẩm bán chạy**, **Khách hỏi theo kênh**.
+
+Số website chỉ đếm khách đã bấm “Đồng ý” cookie nên thấp hơn thực tế; số đơn và doanh thu thì đầy đủ. Muốn biết bài đăng / quảng cáo nào ra khách, luôn dùng link tạo ở [/admin/utm](https://thucduonglanh.vn/admin/utm).
 
 ## Dành cho quản lý
 

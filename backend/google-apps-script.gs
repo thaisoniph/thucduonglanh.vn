@@ -17,7 +17,7 @@ var TELEGRAM_TOKEN = PropertiesService.getScriptProperties().getProperty('TELEGR
 var TELEGRAM_CHAT_IDS = '-5318324525'; // nhóm "Đơn hàng Thực Dưỡng Lành" – thêm/bớt nhân viên trực tiếp trong nhóm
 var TZ = 'Asia/Ho_Chi_Minh';
 var CRM_URL = 'https://crm.thucduonglanh.vn';
-var CRM_VERSION = '2026-10-07d';
+var CRM_VERSION = '2026-10-10a';
 // Từ 10/2026 CRM chạy trên máy chủ Cloudflare (api.thucduonglanh.vn). Apps Script này chỉ còn làm "cầu nối" Google: gửi email, cấp quyền đọc Google Sheet.
 var API_URL = 'https://api.thucduonglanh.vn/api'; // CRM web so với số này để biết Apps Script đã được triển khai bản mới chưa
 
@@ -2896,5 +2896,18 @@ function rescueWeb(r) {
 function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 // Chạy thử hàm này trong trình soạn Apps Script để kiểm tra Telegram
 function testTelegram() { telegram('✅ Kết nối báo đơn Thực Dưỡng Lành thành công!'); }
+
+/**
+ * Cấp quyền đọc Google Analytics cho tab Tổng quan của CRM (chạy 1 lần, bản 2026-10-10a).
+ * Trước khi chạy: bên trái bấm Dịch vụ (+) → thêm "Google Analytics Data API", rồi thêm tiếp "Google Analytics Admin API".
+ * Sau đó chọn hàm ketNoiGA4 → ▶ Chạy → Xem xét quyền → chọn tài khoản → Cho phép.
+ */
+function ketNoiGA4() {
+  if (typeof AnalyticsData === 'undefined') throw new Error('Chưa thêm dịch vụ: bên trái bấm Dịch vụ (+) → chọn "Google Analytics Data API" → Thêm, rồi chạy lại hàm này.');
+  if (typeof AnalyticsAdmin === 'undefined') throw new Error('Còn thiếu 1 dịch vụ: bấm Dịch vụ (+) → chọn "Google Analytics Admin API" → Thêm, rồi chạy lại hàm này.');
+  var props = [];
+  (AnalyticsAdmin.AccountSummaries.list({ pageSize: 200 }).accountSummaries || []).forEach(function (a) { (a.propertySummaries || []).forEach(function (p) { props.push(p.displayName + ' (' + p.property + ')'); }); });
+  Logger.log(props.length ? '✅ Đã cấp quyền. Tài khoản này xem được: ' + props.join(', ') + '. Báo Claude triển khai lại Apps Script rồi mở CRM → Tổng quan.' : '⚠️ Đã cấp quyền nhưng tài khoản ' + Session.getEffectiveUser().getEmail() + ' chưa xem được thuộc tính GA4 nào. Vào Google Analytics → Quản trị → Quản lý quyền truy cập → thêm email này với vai trò Người xem.');
+}
 function fmt(n) { return (Number(n) || 0).toLocaleString('vi-VN') + ' ₫'; }
 function json(o) { return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
