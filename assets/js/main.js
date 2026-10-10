@@ -927,36 +927,33 @@
     });
   }
 
-  /* ---------- trang nhận ebook: để lại tên + SĐT → mở ebook ngay + mời vào nhóm Zalo ---------- */
-  function initEbook() {
-    var box = $('#ebookBox'); if (!box) return;
-    var form = $('#ebookForm', box), done = $('.ebf-done', box);
-    function show(isDone) { form.hidden = isDone; done.hidden = !isDone; }
-    if (load('tdl_ebook', null)) show(true);
-    $('#ebookAgain').addEventListener('click', function () { form.reset(); show(false); form.elements.name.focus(); });
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
-      var msg = $('.form-msg', form); msg.className = 'form-msg';
-      if (form.elements.website.value) return;
-      if (!validate(form)) { msg.className = 'form-msg err'; msg.textContent = 'Vui lòng điền họ tên và số điện thoại đúng (10 số).'; return; }
-      var f = form.elements, src = sourceLabel(), pos = qs('tu');
-      var data = { type: 'contact', kind: 'ebook', created: new Date().toISOString(), name: f.name.value.trim(), phone: f.phone.value.trim(), email: '', pos: pos, source: src.last,
-        message: '🎁 Đăng ký nhận ebook Dinh Dưỡng cho Cơ Xương Khớp' + (pos ? ' · bấm từ web: ' + pos : '') + ' · Nguồn: ' + src.last, page: location.href };
-      send(data).catch(function () { });
-      track('generate_lead', { form: 'ebook' });
-      save('tdl_ebook', { t: Date.now() });
-      show(true); box.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-  }
-
-  /* ---------- trang cẩm nang sống khỏe: tên + SĐT + vấn đề quan tâm → mở sách (camnangsongkhoe…?ma=… để trang sách cho đọc) ---------- */
-  function cnReader(box) { var u = box.getAttribute('data-reader') || ''; return u ? u + (u.indexOf('?') < 0 ? '?' : '&') + 'ma=' + Date.now().toString(36) : ''; }
-  function initCamNang() {
-    var box = $('#cnBox'); if (!box) return;
-    var form = $('#cnForm', box), done = $('.ebf-done', box), open = $('#cnOpen', box);
-    function show(isDone) { form.hidden = isDone; done.hidden = !isDone; if (isDone) open.href = cnReader(box); }
-    if (load('tdl_camnang', null)) show(true);
-    $('#cnAgain').addEventListener('click', function () { form.reset(); show(false); form.elements.name.focus(); });
+  /* ---------- form nhận quà (/cam-nang-song-khoe/, /ebook/): tên + SĐT + vấn đề quan tâm + câu hỏi thêm ----------
+     Khách đã nhận 1 quà (tdl_lead lưu tên, SĐT, quà đã nhận) → sang quà kia chỉ cần bấm 1 nút, vẫn báo về CRM để ghi thêm. */
+  var GIFT_KEY = { camnang: 'tdl_camnang', ebook: 'tdl_ebook' };
+  function giftUrl(key, url) { return key === 'camnang' && url ? url + (url.indexOf('?') < 0 ? '?' : '&') + 'ma=' + Date.now().toString(36) : url; } // trang sách cẩm nang cần ?ma= mới cho đọc
+  function giftLead() { var l = load('tdl_lead', null); return l && l.phone ? l : null; }
+  function initGiftForm() {
+    var box = $('#giftBox'); if (!box) return;
+    var key = box.getAttribute('data-key'), form = $('#giftForm', box), done = $('.ebf-done', box), quick = $('.gq', box), open = $('[data-gift-open]', box);
+    var openUrl = box.getAttribute('data-open') || '', title = box.getAttribute('data-title') || '', book = box.getAttribute('data-book') || title;
+    function show(state) { form.hidden = state !== 'form'; done.hidden = state !== 'done'; quick.hidden = state !== 'quick'; if (state === 'done') open.href = giftUrl(key, openUrl); }
+    function finish(lead, cs, ask, again) {
+      var src = sourceLabel(), pos = qs('tu');
+      send({ type: 'contact', kind: 'ebook', book: key, book_title: book, again: again, concern: cs.join(', '), ask: ask, created: new Date().toISOString(), name: lead.name, phone: lead.phone, email: '', pos: pos, source: src.last,
+        message: '🎁 ' + (again ? 'Nhận thêm ' : 'Đăng ký nhận ') + title + (cs.length ? ' · Quan tâm: ' + cs.join(', ') : '') + (ask ? ' · Hỏi thêm: ' + ask : '') + (pos ? ' · bấm từ web: ' + pos : '') + ' · Nguồn: ' + src.last, page: location.href }).catch(function () { });
+      track('generate_lead', { form: key, location: pos || 'direct', returning: again ? 1 : 0 });
+      save(GIFT_KEY[key], { t: Date.now() });
+      var gifts = (giftLead() || {}).gifts || []; if (gifts.indexOf(key) < 0) gifts.push(key);
+      save('tdl_lead', { name: lead.name, phone: lead.phone, concern: cs.length ? cs : (giftLead() || {}).concern || [], gifts: gifts, t: Date.now() });
+      show('done'); box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      try { window.open(open.href, '_blank', 'noopener'); } catch (x) { } // mở quà ngay ở tab mới; trình duyệt chặn thì khách bấm nút Mở
+    }
+    var lead = giftLead();
+    if (load(GIFT_KEY[key], null)) show('done');
+    else if (lead) { $('[data-gq-name]', quick).textContent = lead.name; $('[data-gq-phone]', quick).textContent = lead.phone.replace(/^(\d{4})\d+(\d{3})$/, '$1***$2'); show('quick'); }
+    $('[data-gq-go]', quick).addEventListener('click', function () { finish(lead, [], '', true); });
+    $('[data-gq-other]', quick).addEventListener('click', function () { show('form'); form.elements.name.focus(); });
+    $('[data-gift-again]', done).addEventListener('click', function () { form.reset(); show('form'); form.elements.name.focus(); });
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       var msg = $('.form-msg', form); msg.className = 'form-msg';
@@ -964,15 +961,17 @@
       var ok = validate(form), cs = $$('input[name=concern]:checked', form).map(function (c) { return c.value; }), fs = $('.cn-chips', form);
       fs.classList.toggle('invalid', !cs.length);
       if (!ok || !cs.length) { msg.className = 'form-msg err'; msg.textContent = !ok ? 'Vui lòng điền họ tên và số điện thoại đúng (10 số).' : 'Anh/chị chọn giúp ít nhất 1 vấn đề đang quan tâm nhé.'; if (ok) fs.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
-      var f = form.elements, src = sourceLabel(), pos = qs('tu'), title = box.getAttribute('data-title') || 'Cẩm nang sống khỏe', ask = f.ask.value.trim();
-      var data = { type: 'contact', kind: 'ebook', book: 'cam-nang', book_title: 'Cẩm nang sống khỏe', concern: cs.join(', '), ask: ask, created: new Date().toISOString(), name: f.name.value.trim(), phone: f.phone.value.trim(), email: '', pos: pos, source: src.last,
-        message: '🎁 Đăng ký nhận ' + title + ' · Quan tâm: ' + cs.join(', ') + (ask ? ' · Hỏi thêm: ' + ask : '') + (pos ? ' · bấm từ web: ' + pos : '') + ' · Nguồn: ' + src.last, page: location.href };
-      send(data).catch(function () { });
-      track('generate_lead', { form: 'camnang', location: pos || 'direct' });
-      save('tdl_camnang', { t: Date.now() });
-      show(true);
-      box.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      try { window.open(open.href, '_blank', 'noopener'); } catch (x) { } // mở sách ngay ở tab mới; trình duyệt chặn thì khách bấm nút Mở cẩm nang
+      finish({ name: form.elements.name.value.trim(), phone: normPhone(form.elements.phone.value) }, cs, form.elements.ask.value.trim(), false);
+    });
+  }
+  /* trang /qua-tang/ + khối quà trang chủ: quà đã nhận → "Đọc lại"; khách đã đăng ký → quà còn lại "Nhận ngay 1 chạm" */
+  function initGiftStatus() {
+    var lead = giftLead();
+    $$('.gf-card').forEach(function (c) {
+      var key = c.className.indexOf('gf-camnang') >= 0 ? 'camnang' : c.className.indexOf('gf-ebook') >= 0 ? 'ebook' : ''; if (!key) return;
+      var btn = $('.gf-btn', c); if (!btn) return;
+      if (load(GIFT_KEY[key], null)) { c.classList.add('gf-got'); btn.textContent = '✓ Đã nhận · Đọc lại →'; }
+      else if (lead) btn.textContent = 'Nhận ngay 1 chạm →';
     });
   }
 
@@ -1048,7 +1047,7 @@
     captureSource(); initConsent(); trackPageEvents();
     renderCounts(); renderMini(); markWish();
     initHeader(); initClicks(); initRail(); initLightbox(); initProduct(); initCerts(); initTabs(); initReadmore(); initSort();
-    initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initEbook(); initCamNang(); initGiftPop(); initFloat(); initFlipbook();
+    initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook();
     window.addEventListener('storage', function (e) { if (e.key === 'tdl_cart') { cart = load('tdl_cart', []); cleanCart(); renderCounts(); renderMini(); } });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();

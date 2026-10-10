@@ -475,7 +475,7 @@ collections:
               - { label: "Tên quà tặng", name: gift_title, widget: string, required: false }
               - { label: "Trị giá quà", name: gift_value, widget: string, required: false, hint: "Ví dụ: 999.000đ" }
               - { label: "Điều kiện nhận quà", name: gift_how, widget: string, required: false, hint: "Ví dụ: khi tham gia nhóm Zalo Cộng đồng Sống khỏe cùng Thực Dưỡng Lành" }
-          - { label: "Link nhóm Zalo Sống khỏe", name: zalo_group, widget: string, required: false, hint: "Hiện trong menu điện thoại và trang Đặt hàng thành công. Để trống thì ẩn." }
+          - { label: "Link nhóm Zalo Sống khỏe", name: zalo_group, widget: string, required: false, hint: "Nhóm đầy thì dán link nhóm mới vào đây: mọi nút trên web và link cố định thucduonglanh.vn/nhom-zalo/ (dùng cho QR, sách cẩm nang, bài đăng) tự chuyển sang nhóm mới. Để trống thì ẩn." }
           - label: "Ebook quà tặng (trang /ebook/ + lời mời ở trang chủ, cuối bài viết, hộp tư vấn, menu)"
             name: ebook
             widget: object

@@ -885,7 +885,9 @@ export async function addLead(x, o) {
   const cur = await first(x.db, "SELECT * FROM leads WHERE phone = ? AND status IN ('Mới hỏi', 'Đang tư vấn') ORDER BY rid DESC LIMIT 1", phone);
   if (cur) {
     const note = String(cur.note || '') + (o.note ? '\n[' + fmtDate(now, 'dd/MM') + '] ' + o.note : '');
-    await leadUpdate(x, cur.id, { note, interest: o.interest || cur.interest, owner: cur.owner || o.owner || '' });
+    const ci = String(cur.interest || ''), oi = String(o.interest || '');
+    const interest = o.addInterest && ci && oi && ci.indexOf(oi.split(' · ')[0]) < 0 ? ci + ' | ' + oi : (oi || ci); // addInterest: khách nhận thêm quà khác → giữ quan tâm cũ, ghi nối
+    await leadUpdate(x, cur.id, { note, interest, owner: cur.owner || o.owner || '' });
     return { id: cur.id, merged: true, owner: cur.owner || o.owner || '' };
   }
   let owner = o.owner || '';

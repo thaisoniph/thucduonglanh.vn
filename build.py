@@ -623,11 +623,6 @@ def page_ebook():
     pages = [("an-gi-khop", "Nên ăn gì, nên tránh gì cho từng vấn đề"), ("mon-an", "Món ăn có định lượng và cách làm từng bước"), ("gout", "Giải thích dễ hiểu theo Tây y và Đông y")]
     page_html = "".join(f'<figure><img src="/assets/img/brand/ebook-trang-{k}.webp" alt="Trang ebook: {esc(c)}" width="560" height="800" loading="lazy"><figcaption>{esc(c)}</figcaption></figure>' for k, c in pages)
     gift_li = f'<li><span>🎁</span><div><b>{esc(gift)}{gift_val}</b>Quà tặng thành viên nhóm.</div></li>' if gift else ""
-    zalo_box = f'''<div class="ebz">
-  <b>👥 Bước 2: Vào nhóm Zalo “Sống khỏe cùng {BRAND}”</b>
-  <p>{f"Nhận quà <strong>{esc(gift)}</strong>{gift_val}, " if gift else ""}thực đơn lành, ưu đãi riêng cho thành viên và được tư vấn trực tiếp.</p>
-  <a class="btn btn-lg btn-zalo" href="{esc(group)}" target="_blank" rel="noopener" data-cta="zalo_group_ebook">Vào nhóm Zalo miễn phí →</a>
-</div>''' if group else ""
     body = f'''<section class="ebh" id="nhan-ebook"><div class="container ebh-in">
   <div class="ebh-head">
     <span class="eyebrow">🎁 Quà tặng miễn phí</span>
@@ -641,25 +636,7 @@ def page_ebook():
     <li><b>Hơn 20 món</b> cháo, canh, trà, sinh tố dễ nấu, có định lượng và cách làm</li>
     <li><b>Video thực đơn 7 ngày</b> để làm theo ngay</li>
   </ul>
-  <div class="ebf card" id="ebookBox" data-flip="{esc(eb.get("flipbook", ""))}">
-    <form id="ebookForm" novalidate>
-      <h2>Nhận ebook ngay</h2>
-      <p class="ebf-note">Điền thông tin để mở ebook. Hoàn toàn miễn phí.</p>
-      <label>Họ và tên *<input name="name" required autocomplete="name" placeholder="Ví dụ: Nguyễn Thị Lan"></label>
-      <label>Số điện thoại (Zalo) *<input name="phone" type="tel" required autocomplete="tel" inputmode="tel" placeholder="Ví dụ: 0912 345 678"></label>
-      <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
-      <button class="btn btn-lg btn-buy" type="submit">📖 Nhận ebook miễn phí</button>
-      <p class="form-msg" role="status"></p>
-      <p class="ebf-legal">Khi bấm nhận ebook, anh/chị đồng ý để {BRAND} liên hệ qua điện thoại/Zalo để gửi tài liệu và tư vấn dinh dưỡng, theo <a href="/chinh-sach-bao-mat/" target="_blank">Chính sách bảo mật</a>. Không chia sẻ thông tin cho bên thứ ba.</p>
-    </form>
-    <div class="ebf-done" hidden>
-      <h2>✅ Ebook đã sẵn sàng!</h2>
-      <p class="ebf-note">Bước 1: bấm nút bên dưới để đọc ebook và xem video thực đơn 7 ngày.</p>
-      <a class="btn btn-lg btn-buy" href="{esc(eb.get("flipbook", ""))}" target="_blank" rel="noopener" data-cta="ebook_open">📖 Mở ebook & video 7 ngày</a>
-      {zalo_box}
-      <button type="button" class="ebf-again" id="ebookAgain">Đăng ký cho người thân</button>
-    </div>
-  </div>
+  {gift_form("ebook")}
 </div></section>
 
 <section class="section"><div class="container">
@@ -771,33 +748,59 @@ def gift_popup():
 </div>'''
 
 
-def cn_form():
-    chips = "".join(f'<label class="cn-chip"><input type="checkbox" name="concern" value="{esc(c)}"><span>{esc(c)}</span></label>' for c in CN_CONCERNS)
+EB_CONCERNS = ["Thoái hóa khớp", "Đau mỏi cơ – cứng cơ", "Gout", "Loãng xương", "Viêm khớp dạng thấp", "Đau thần kinh tọa", "Chăm sóc cha mẹ lớn tuổi", "Vấn đề khác"]
+
+
+def gift_form(key):
+    """Form nhận quà dùng chung (/cam-nang-song-khoe/, /ebook/): họ tên, SĐT, vấn đề quan tâm, câu hỏi thêm.
+    Khách đã nhận 1 quà (localStorage tdl_lead) → hiện ô "nhận ngay 1 chạm", không phải điền lại. Xong → mở quà + mời nhóm Zalo + gợi ý quà còn lại."""
+    if key == "camnang":
+        title, book, opener, concerns = CN.get("title", "Cẩm nang sống khỏe"), "Cẩm nang sống khỏe", CN.get("reader", ""), CN_CONCERNS
+        h2, sub, btn, open_lbl, done_note = "Nhận cẩm nang miễn phí", "Điền thông tin dưới đây để mở sách ngay. Không mất phí.", "📖 Mở cẩm nang miễn phí", "📖 Mở cẩm nang ngay", "Bước 1: bấm nút để mở sách. Bấm “Mở sách”, rồi bật 🎧 Sách nói nếu muốn nghe."
+        ph = "Ví dụ: Bố tôi 70 tuổi, đường huyết cao, nên ăn gạo lứt thế nào?"
+    else:
+        eb = SITE.get("ebook") or {}
+        title, book, opener, concerns = eb.get("title", "Ebook"), "Ebook Dinh Dưỡng cho Cơ Xương Khớp", eb.get("flipbook", ""), EB_CONCERNS
+        h2, sub, btn, open_lbl, done_note = "Nhận ebook ngay", "Điền thông tin dưới đây để mở ebook. Hoàn toàn miễn phí.", "📖 Nhận ebook miễn phí", "📖 Mở ebook & video 7 ngày", "Bước 1: bấm nút bên dưới để đọc ebook và xem video thực đơn 7 ngày."
+        ph = "Ví dụ: Mẹ tôi bị thoái hóa gối, nên ăn gì và tránh gì?"
+    chips = "".join(f'<label class="cn-chip"><input type="checkbox" name="concern" value="{esc(c)}"><span>{esc(c)}</span></label>' for c in concerns)
     group = SITE.get("zalo_group", "")
+    zg = WEB_OFFER.get("gift_title", "") if WEB_OFFER.get("gift_enabled") else ""
+    zg_val = f' (trị giá {esc(WEB_OFFER["gift_value"])})' if zg and WEB_OFFER.get("gift_value") else ""
     zalo_box = f'''<div class="ebz">
   <b>👥 Bước 2: Vào nhóm Zalo “Sống khỏe cùng {BRAND}”</b>
-  <p>Cùng thực hành mỗi ngày, nhận thực đơn lành và hỏi đáp trực tiếp với đội ngũ {BRAND}.</p>
-  <a class="btn btn-lg btn-zalo" href="{esc(group)}" target="_blank" rel="noopener" data-cta="zalo_group_camnang">Vào nhóm Zalo miễn phí →</a>
+  <p>{f"Nhận quà <strong>{esc(zg)}</strong>{zg_val}, " if zg else ""}thực đơn lành, ưu đãi riêng cho thành viên và hỏi đáp trực tiếp với đội ngũ {BRAND}.</p>
+  <a class="btn btn-lg btn-zalo" href="{esc(group)}" target="_blank" rel="noopener" data-cta="zalo_group_{key}">Vào nhóm Zalo miễn phí →</a>
 </div>''' if group else ""
-    return f'''<div class="ebf card cnf" id="cnBox" data-reader="{esc(CN.get("reader", ""))}" data-title="{esc(CN.get("title", "Cẩm nang sống khỏe"))}">
-    <form id="cnForm" novalidate>
-      <h2>Nhận cẩm nang miễn phí</h2>
-      <p class="ebf-note">Điền 3 thông tin dưới đây để mở sách ngay. Không mất phí.</p>
+    nxt = [g for g in gift_list() if g["key"] != key]
+    next_box = "".join(f'''<a class="gnext" href="{esc(gift_href(g, "next"))}" data-cta="gift_next_{g["key"]}">
+  <img src="{esc(g["image"])}" alt="" width="64" height="96" loading="lazy"><span><small>🎁 Anh/chị còn 1 quà nữa</small><b>{esc(g["title"])}</b><em>Nhận ngay 1 chạm, không cần điền lại →</em></span></a>''' for g in nxt)
+    return f'''<div class="ebf card cnf" id="giftBox" data-key="{key}" data-open="{esc(opener)}" data-title="{esc(title)}" data-book="{esc(book)}">
+    <div class="gq" hidden>
+      <h2>👋 Chào <span data-gq-name></span>!</h2>
+      <p class="ebf-note">Anh/chị đã đăng ký nhận quà của {BRAND} với số <b data-gq-phone></b>. Bấm nút dưới đây để nhận luôn, không cần điền lại.</p>
+      <button type="button" class="btn btn-lg btn-buy" data-gq-go>{esc(btn)}</button>
+      <button type="button" class="ebf-again" data-gq-other>Không phải tôi / dùng số khác</button>
+    </div>
+    <form id="giftForm" novalidate>
+      <h2>{esc(h2)}</h2>
+      <p class="ebf-note">{esc(sub)}</p>
       <label>Họ và tên *<input name="name" required autocomplete="name" placeholder="Ví dụ: Nguyễn Thị Lan"></label>
       <label>Số điện thoại (Zalo) *<input name="phone" type="tel" required autocomplete="tel" inputmode="tel" placeholder="Ví dụ: 0912 345 678"></label>
       <fieldset class="cn-chips"><legend>Anh/chị đang quan tâm điều gì? * <small>(chọn 1 hoặc nhiều)</small></legend>{chips}</fieldset>
-      <label class="cn-ask">Điều anh/chị muốn hỏi thêm <small>(không bắt buộc)</small><textarea name="ask" rows="2" maxlength="400" placeholder="Ví dụ: Bố tôi 70 tuổi, đường huyết cao, nên ăn gạo lứt thế nào?"></textarea></label>
+      <label class="cn-ask">Điều anh/chị muốn hỏi thêm <small>(không bắt buộc)</small><textarea name="ask" rows="2" maxlength="400" placeholder="{esc(ph)}"></textarea></label>
       <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
-      <button class="btn btn-lg btn-buy" type="submit">📖 Mở cẩm nang miễn phí</button>
+      <button class="btn btn-lg btn-buy" type="submit">{esc(btn)}</button>
       <p class="form-msg" role="status"></p>
-      <p class="ebf-legal">Khi bấm nhận cẩm nang, anh/chị đồng ý để {BRAND} liên hệ qua điện thoại/Zalo để gửi tài liệu và tư vấn dinh dưỡng, theo <a href="/chinh-sach-bao-mat/" target="_blank">Chính sách bảo mật</a>. Không chia sẻ thông tin cho bên thứ ba.</p>
+      <p class="ebf-legal">Khi bấm nhận quà, anh/chị đồng ý để {BRAND} liên hệ qua điện thoại/Zalo để gửi tài liệu và tư vấn dinh dưỡng, theo <a href="/chinh-sach-bao-mat/" target="_blank">Chính sách bảo mật</a>. Không chia sẻ thông tin cho bên thứ ba.</p>
     </form>
     <div class="ebf-done" hidden>
-      <h2>✅ Cẩm nang đã sẵn sàng!</h2>
-      <p class="ebf-note">Bước 1: bấm nút để mở sách. Bấm “Mở sách”, rồi bật 🎧 Sách nói nếu muốn nghe.</p>
-      <a class="btn btn-lg btn-buy" id="cnOpen" href="{esc(CN.get("reader", ""))}" target="_blank" rel="noopener" data-cta="camnang_open">📖 Mở cẩm nang ngay</a>
+      <h2>✅ Quà đã sẵn sàng!</h2>
+      <p class="ebf-note">{esc(done_note)}</p>
+      <a class="btn btn-lg btn-buy" data-gift-open href="{esc(opener)}" target="_blank" rel="noopener" data-cta="{key}_open">{esc(open_lbl)}</a>
       {zalo_box}
-      <button type="button" class="ebf-again" id="cnAgain">Đăng ký cho người thân</button>
+      {next_box}
+      <button type="button" class="ebf-again" data-gift-again>Đăng ký cho người thân</button>
     </div>
   </div>'''
 
@@ -854,7 +857,7 @@ def page_camnang():
     <li>Lưu ý riêng khi có <b>đường huyết cao, bệnh thận</b>, đang dùng thuốc</li>
     <li><b>Nhật ký 7 ngày</b>: mỗi ngày một thay đổi nhỏ, dễ duy trì</li>
   </ul>
-  {cn_form()}
+  {gift_form("camnang")}
 </div></section>
 
 <section class="cn-stats"><div class="container"><ul>
@@ -1768,6 +1771,11 @@ def main():
         routes.append(write(CN_PATH, page_camnang()))
     if gift_list():
         routes.append(write(GIFT_PATH, page_gifts()))
+    if SITE.get("zalo_group"):  # link cố định cho QR, sách, bài đăng: luôn chuyển tới nhóm Zalo đang cài ở /admin (nhóm đầy → đổi link ở /admin là xong)
+        zg = esc(SITE["zalo_group"])
+        write("/nhom-zalo/", f'''<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
+<title>Nhóm Zalo Sống khỏe cùng {BRAND}</title><meta http-equiv="refresh" content="0;url={zg}"><script>location.replace({json.dumps(SITE["zalo_group"])});</script></head>
+<body style="font-family:system-ui,sans-serif;text-align:center;padding:40px 16px">Đang mở nhóm Zalo… Nếu chưa tự mở, <a href="{zg}">bấm vào đây</a>.</body></html>''')
     routes.append(write("/san-pham/", page_listing("/san-pham/", "Toàn bộ sản phẩm", PRODUCTS, "", [("Toàn bộ sản phẩm", None)])))
     sale = [p for p in PRODUCTS if p["on_sale"]]
     if HAS_SALE: routes.append(write("/khuyen-mai/", page_listing("/khuyen-mai/", "Khuyến Mãi", sale, "Các sản phẩm đang có chương trình ưu đãi tại " + BRAND + ".", [("Sản phẩm", "/san-pham/"), ("Khuyến Mãi", None)])))
