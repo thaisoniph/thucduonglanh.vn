@@ -2562,9 +2562,9 @@
     if (/^File /.test(s)) return ['Sale', 'File sale'];
     var m = s.match(/^(Nhập tay|Tiềm năng)\s*[–-]\s*(.*)$/);
     if (m) return [m[1] === 'Nhập tay' ? 'Sale' : 'Khách hỏi', m[2] || 'Khác'];
-    return ['Website', webSrc(s)];
+    return ['Website', srcLabel(s)];
   }
-  function webSrc(s) {
+  function srcLabel(s) {
     var n = norm(s), paid = /\b(cpc|ppc|ads?|paid)\b/.test(n);
     if (!n || /truy cap truc tiep/.test(n)) return 'Vào thẳng';
     if (/facebook|\bfb\b|instagram|\big\b|messenger/.test(n)) return paid ? 'Facebook (quảng cáo)' : 'Facebook';
