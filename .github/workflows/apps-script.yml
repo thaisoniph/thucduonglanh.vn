@@ -5,7 +5,7 @@ name: Apps Script – tự dán code và triển khai
 on:
   push:
     branches: [main]
-    paths: [backend/google-apps-script.gs]
+    paths: [backend/google-apps-script.gs, backend/appsscript-services.json]
   workflow_dispatch:
 
 permissions:

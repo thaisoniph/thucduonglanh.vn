@@ -33,6 +33,25 @@ fi
 echo "Ghi đè file: $TARGET"
 cp "$SRC" "$TARGET"
 
+# 2b. Dịch vụ nâng cao (backend/appsscript-services.json): thêm vào appsscript.json nếu chưa có.
+#     Có dịch vụ mới mà chủ tài khoản chưa bấm Cho phép (authorized=false) → chỉ Lưu (push), KHÔNG triển khai:
+#     web app chạy bản cần quyền chưa cấp sẽ báo lỗi, cầu nối Google (mã đăng nhập CRM, Sheet) ngừng chạy.
+SVC="$ROOT/backend/appsscript-services.json"
+if [ -f "$SVC" ]; then
+  HEAD_ONLY="$(node -e '
+    const fs=require("fs"), want=JSON.parse(fs.readFileSync(process.argv[1],"utf8")), m=JSON.parse(fs.readFileSync("appsscript.json","utf8"));
+    const dep=m.dependencies=m.dependencies||{}, list=dep.enabledAdvancedServices=dep.enabledAdvancedServices||[]; let added=0;
+    for (const s of want.services||[]) if (!list.some(x=>x.userSymbol===s.userSymbol)) { list.push(s); added++; }
+    fs.writeFileSync("appsscript.json", JSON.stringify(m,null,2));
+    console.log(want.authorized===false ? "1" : "");
+  ' "$SVC")"
+  if [ -n "$HEAD_ONLY" ]; then
+    $CLASP push -f
+    echo "::warning::Đã Lưu code + dịch vụ mới, CHƯA triển khai: chờ chủ tài khoản mở Apps Script bấm ▶ Chạy → Cho phép, rồi đổi authorized=true trong backend/appsscript-services.json."
+    exit 0
+  fi
+fi
+
 # 3. Đẩy code (= Lưu), tạo phiên bản, cập nhật bản triển khai đang dùng
 $CLASP push -f
 MSG="$VER · $(git -C "$ROOT" log -1 --format=%h) $(node -e 'console.log(process.argv[1].slice(0, 60))' "$(git -C "$ROOT" log -1 --format=%s)")"

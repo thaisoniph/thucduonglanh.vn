@@ -1,0 +1,8 @@
+{
+  "_note": "Dịch vụ nâng cao Apps Script cần có (scripts/apps-script-deploy.sh tự thêm vào appsscript.json). authorized=false: chỉ Lưu code (chưa Triển khai) cho tới khi chủ tài khoản bấm Cho phép quyền mới, vì web app triển khai trước khi cấp quyền sẽ ngừng chạy.",
+  "authorized": false,
+  "services": [
+    { "userSymbol": "AnalyticsData", "serviceId": "analyticsdata", "version": "v1beta" },
+    { "userSymbol": "AnalyticsAdmin", "serviceId": "analyticsadmin", "version": "v1beta" }
+  ]
+}
