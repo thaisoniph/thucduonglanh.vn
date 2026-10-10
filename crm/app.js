@@ -2483,15 +2483,36 @@
       '<div class="box">' + barList(rows, function (v) { return v + ' lần' + (tot ? ' · ' + pct(v, tot) + '%' : ''); }, 'Chưa có ghi chú lý do nào. Khi chăm sóc, gõ vài chữ khách nói vào “Ghi chú lần này” (vd “kh hết tiền”, “dùng bên khác”) để máy gom.') +
       '<p class="small muted" style="margin:8px 0 0">Ngoài ra: <b>' + miss + '</b> lượt không nghe máy / thuê bao. Lý do nhiều nhất là chỗ cần chuẩn bị câu trả lời (vd hết tiền → gợi ý hộp nhỏ, chia đợt; còn hàng → hẹn đúng ngày sắp hết).</p></div></section>';
   }
+  /** Tỷ lệ chốt = data mới (khách hỏi mới tạo trong kỳ, mọi kênh, người phụ trách = name) đã ra đơn ÷ tổng data mới.
+   *  Không tính khách cũ hỏi lại (đã mua trước lúc hỏi); 1 SĐT hỏi nhiều lần trong kỳ chỉ tính 1. Ra đơn = khách hỏi "Đã chốt"
+   *  hoặc SĐT có đơn không huỷ / hoàn từ lúc hỏi (kể cả đơn tạo ngoài CRM, khách tự đặt web). Đơn khách tự đặt mà không qua
+   *  khách hỏi không tính, nên tỷ lệ không vượt 100%. Data mới gần đây còn đang tư vấn nên tỷ lệ kỳ đó tăng dần. */
+  function buyMap() {
+    var o = S.d.orders; if (S.d._buyFor === o && S.d._buyLen === o.length) return S.d._buy;
+    var first = {}, any = {}; // first: đơn đầu (kể cả huỷ) để biết khách cũ · any: các mốc đơn không huỷ / hoàn
+    o.forEach(function (x) { if (!x.time || !x.phone) return; if (!first[x.phone] || x.time < first[x.phone]) first[x.phone] = x.time; if (!isVoid(x.status)) (any[x.phone] = any[x.phone] || []).push(x.time); });
+    S.d._buyFor = o; S.d._buyLen = o.length; return (S.d._buy = { first: first, any: any });
+  }
+  function closeStats(name, R) {
+    var B = buyMap(), seen = {}, r = { data: 0, won: 0, lost: 0, junk: 0, open: 0 };
+    (S.d.leads || []).forEach(function (l) {
+      if (!l.time || l.time < R[0] || l.time >= R[1] || !l.phone || (name !== null && l.owner !== name) || seen[l.phone]) return;
+      var f = B.first[l.phone]; if (f && f < l.time - 3600e3) return; // khách cũ hỏi lại → tính ở khách cũ
+      seen[l.phone] = 1;
+      var won = l.status === 'Đã chốt' || (B.any[l.phone] || []).some(function (t) { return t >= l.time - 3600e3; });
+      var k = won ? 'won' : l.status === 'Không mua' ? (/rác/i.test(l.reason || '') ? 'junk' : 'lost') : 'open';
+      r.data++; r[k]++;
+    });
+    r.pct = r.data ? pct(r.won, r.data) : null; return r;
+  }
+  function closeTxt(c) { return c.data ? c.won + ' ra đơn / ' + c.data + ' data mới' + (c.lost ? ' · ' + c.lost + ' không mua' : '') + (c.junk ? ' · ' + c.junk + ' số rác' : '') + (c.pending ? ' · <b>' + c.pending + ' đang tư vấn</b> (bấm để cập nhật)' : '') : 'Chưa có data mới trong kỳ'; }
   function perf(name, R) {
     var CW = careWhat(), inR = function (t) { return t && t >= R[0] && t < R[1]; }, me = function (n) { return name === null || n === name; };
     var os = S.d.orders.filter(function (o) { return !isVoid(o.status) && inR(o.time) && me(o.seller); });
     var sales = os.reduce(function (s, o) { return s + o.total; }, 0);
     var old = os.filter(function (o) { var c = cust(o.phone); return c && c.first && c.first < o.time - 3600e3; });
     var oldRev = old.reduce(function (s, o) { return s + o.total; }, 0);
-    var leads = (S.d.leads || []).filter(function (l) { return me(l.owner); });
-    var won = leads.filter(function (l) { return l.status === 'Đã chốt' && inR(l.lastAt); }).length, lost = leads.filter(function (l) { return l.status === 'Không mua' && inR(l.lastAt); }).length;
-    var pending = leads.filter(function (l) { return (l.status === 'Mới hỏi' || l.status === 'Đang tư vấn') && inR(l.time); }).length; // khách hỏi trong kỳ chưa có kết quả
+    var cs = closeStats(name, R);
     var care = S.d.log.filter(function (l) { return CW[l.what] && me(l.by) && inR(l.time); });
     var replied = care.filter(function (l) { return l.result && l.result !== NO_REPLY; }).length;
     var mine = S.d.customers.filter(function (c) { return name === null ? true : c.owner === name; }); // (dùng cho khách VIP sắp mất)
@@ -2502,7 +2523,7 @@
     var repeat = {}; old.forEach(function (o) { repeat[o.phone] = 1; });
     var vipRisk = mine.filter(function (c) { return isVip(c) && stageOf(c) === 'risk' && !coldOf(c) && replyOf(c).days > 30; }).length;
     return { contacted: Object.keys(firstCare).length, conv: conv, convRev: convRev, convPct: Object.keys(firstCare).length ? pct(conv, Object.keys(firstCare).length) : null, backN: back.length, backPct: allOs.length ? pct(back.length, allOs.length) : null, backV: back.reduce(function (s0, o) { return s0 + o.total; }, 0), repeat: Object.keys(repeat).length, vipRisk: vipRisk,
-      sales: sales, orders: os.length, avg: os.length ? Math.round(sales / os.length) : 0, oldRev: oldRev, oldPct: pct(oldRev, sales), won: won, lost: lost, pending: pending, closePct: won + lost ? pct(won, won + lost) : null,
+      sales: sales, orders: os.length, avg: os.length ? Math.round(sales / os.length) : 0, oldRev: oldRev, oldPct: pct(oldRev, sales), won: cs.won, lost: cs.lost, junk: cs.junk, pending: cs.open, data: cs.data, closePct: cs.pct,
       care: care.length, replied: replied, replyPct: care.length ? pct(replied, care.length) : null, reorder: care.filter(function (l) { return l.result === 'Đã đặt lại'; }).length,
       stale: mine.filter(function (c) { return replyOf(c).days > 30; }).length, mine: mine.length };
   }
@@ -2957,7 +2978,7 @@
     h += '<section class="section"><div class="section-h"><h2>💰 Bán hàng</h2></div><div class="metrics">' +
       metric('Doanh số', moneyShort(c.sales), 'Tổng tiền ' + c.orders + ' đơn ' + (me ? 'bạn' : '') + ' bán (không tính đơn huỷ).', delta(c.sales, p.sales)) +
       metric('Giá trị trung bình / đơn', c.orders ? moneyShort(c.avg) : '–', 'Doanh số chia số đơn. Tư vấn mua kèm, mua combo thì số này tăng.', c.orders ? delta(c.avg, p.orders ? p.avg : 0) : '') +
-      metric('Tỷ lệ chốt khách hỏi', c.closePct === null ? '–' : c.closePct + '%', c.won + ' khách chốt / ' + (c.won + c.lost) + ' khách hỏi đã có kết quả' + (c.pending ? ' · <b>' + c.pending + ' khách hỏi chưa có kết quả</b> (bấm để cập nhật)' : '') + '. Chỉ tính khách mới ở tab Khách hỏi, không tính đơn khách cũ.', delta(c.closePct, p.closePct, 'rate'), '#tiem-nang') +
+      metric('Tỷ lệ chốt', c.closePct === null ? '–' : c.closePct + '%', closeTxt(c) + '. Data mới = khách hỏi mới trong kỳ (mọi kênh, không tính khách cũ hỏi lại).', delta(c.closePct, p.closePct, 'rate'), '#tiem-nang') +
       metric('Doanh thu từ khách cũ', c.sales ? c.oldPct + '%' : '–', moneyShort(c.oldRev) + ' từ khách mua lại. Chăm sóc tốt thì số này tăng.', c.sales ? delta(c.oldPct, p.sales ? p.oldPct : null, 'rate') : '') +
       '</div></section>';
     h += careMetrics(c, p, me);
@@ -2971,7 +2992,7 @@
     var names = staffNames(); S.d.orders.forEach(function (o) { if (o.seller && names.indexOf(o.seller) < 0 && !isAdminName(o.seller)) names.push(o.seller); }); // không tính tài khoản Quản trị
     var h = targetBlockTeam(cx.whole ? all.sales : perf(null, monthRange(month)).sales, tt, month) + '<div class="steps" style="margin:0 0 16px"><button class="btn pri" data-daily="">📋 Báo cáo ngày (gửi Zalo)</button><button class="btn" data-bcdt="|' + month + '">📊 Bảng BCDT cả nhóm ' + monthLabel(month) + '</button>' + (lvl() >= 3 ? '<button class="btn" data-usage="">📈 Mức dùng CRM</button>' : '') + '</div>';
     h += '<div class="kpis">' + kpi('Doanh thu', moneyShort(all.sales), 'good', '', all.orders + ' đơn') + kpi('TB / đơn', all.orders ? moneyShort(all.avg) : '–', '', '', 'giá trị trung bình') +
-      kpi('Tỷ lệ chốt khách hỏi', all.closePct === null ? '–' : all.closePct + '%', '', '', all.won + ' chốt · ' + all.lost + ' không mua' + (all.pending ? ' · ' + all.pending + ' chưa có kết quả' : '')) + kpi('Từ khách cũ', all.sales ? all.oldPct + '%' : '–', '', '', moneyShort(all.oldRev)) + '</div>';
+      kpi('Tỷ lệ chốt', all.closePct === null ? '–' : all.closePct + '%', '', '', all.won + ' ra đơn / ' + all.data + ' data mới' + (all.pending ? ' · ' + all.pending + ' đang tư vấn' : '')) + kpi('Từ khách cũ', all.sales ? all.oldPct + '%' : '–', '', '', moneyShort(all.oldRev)) + '</div>';
     var rows = names.map(function (n) { var p = perf(n, R); p.n = n; p.t = targetOf(n, month); p.ms = cx.whole ? p.sales : perf(n, monthRange(month)).sales; return p; }).sort(function (a, b) { return b.sales - a.sales; });
     h += compareBlock(rows, cx);
     h += careMetrics(all, perf(null, cx.P), false) + geoBlock(null, cx) + whyBlock(null, cx);
@@ -2996,7 +3017,7 @@
     sales: ['Doanh số', function (r) { return r.sales; }, moneyShort, function (r) { return r.orders + ' đơn'; }],
     orders: ['Số đơn', function (r) { return r.orders; }, String, function (r) { return r.orders ? 'TB ' + moneyShort(r.avg) : ''; }],
     avg: ['TB / đơn', function (r) { return r.orders ? r.avg : null; }, moneyShort, function (r) { return r.orders + ' đơn'; }],
-    close: ['Tỷ lệ chốt khách hỏi', function (r) { return r.closePct; }, function (v) { return v + '%'; }, function (r) { return r.won + ' / ' + (r.won + r.lost) + ' khách hỏi'; }],
+    close: ['Tỷ lệ chốt', function (r) { return r.closePct; }, function (v) { return v + '%'; }, function (r) { return r.won + ' / ' + r.data + ' data mới'; }],
     target: ['% mục tiêu', function (r) { return r.t && r.t.amount ? Math.round(r.ms * 100 / r.t.amount) : null; }, function (v) { return v + '%'; }, function (r) { return r.t && r.t.amount ? moneyShort(r.ms) + ' / ' + moneyShort(r.t.amount) : 'chưa đặt mục tiêu'; }],
     care: ['Lượt chăm sóc', function (r) { return r.care; }, String, function (r) { return r.reorder + ' đặt lại'; }],
     conv: ['Chăm sóc ra đơn', function (r) { return r.convPct; }, function (v) { return v + '%'; }, function (r) { return r.conv + ' / ' + r.contacted + ' khách'; }],
@@ -3313,6 +3334,7 @@
       var k = o.ca && ca[o.ca] ? o.ca : 'Ngày'; ca[k][0]++; ca[k][1] += o.total;
       if (k !== 'Ngày') [r, tot].forEach(function (x) { x.offN++; x.offR += o.total; });
     });
+    tot.close = closeStats(name, R); rows.forEach(function (r) { r.close = closeStats(name, [r.day, r.day + DAY]); });
     rows.forEach(function (r) { var cs = careStats(name, r.day, r.day + DAY); r.careOk = cs.ok; r.knm = cs.knm; tot.careOk += cs.ok; tot.knm += cs.knm; });
     (S.d.leads || []).forEach(function (ld) {
       if (!ld.time || ld.time < R[0] || ld.time >= R[1] || !/^quảng cáo/i.test(ld.channel) || (name !== null && ld.owner !== name)) return;
@@ -3372,7 +3394,7 @@
     c.push(['Số đơn hoàn', function (r) { return r.hoanN; }], ['Giá trị hoàn', function (r) { return r.hoanV; }, 1]);
     var sum = function (o) { return BC_LINES.reduce(function (s, l) { return s + o[l]; }, 0); };
     c.push(['DT khách mới', function (r) { return sum(r.newR); }, 1], ['DT khách cũ', function (r) { return sum(r.oldR); }, 1], ['TỔNG DT (đã trừ hoàn)', function (r) { return sum(r.newR) + sum(r.oldR); }, 1]);
-    c.push(['Tỷ lệ chốt', function (r) { var d = sum(r.newD); return d ? Math.round(sum(r.newN) / d * 100) + '%' : ''; }], ['TB/đơn mới', function (r) { var n = sum(r.newN); return n ? Math.round(sum(r.newR) / n) : 0; }, 1],
+    c.push(['Data mới (mọi kênh)', function (r) { return r.close.data; }], ['Data ra đơn', function (r) { return r.close.won; }], ['Tỷ lệ chốt', function (r) { return r.close.data ? r.close.pct + '%' : ''; }], ['TB/đơn mới', function (r) { var n = sum(r.newN); return n ? Math.round(sum(r.newR) / n) : 0; }, 1],
       ['% DT khách cũ', function (r) { var t = sum(r.newR) + sum(r.oldR); return t ? Math.round(sum(r.oldR) / t * 100) + '%' : ''; }],
       ['TB/đơn cũ', function (r) { var n = sum(r.oldN); return n ? Math.round(sum(r.oldR) / n) : 0; }, 1], ['DT ngoài giờ', function (r) { return r.offR; }, 1],
       ['KH cũ chăm sóc (kết nối)', function (r) { return r.careOk; }], ['Không nghe máy', function (r) { return r.knm; }]);
@@ -3383,7 +3405,7 @@
     var cols = bcdtCols().filter(function (c, i) { return i === 0 || c[1](d.tot); }); // ẩn cột cả tháng bằng 0 (dòng SP không bán) cho gọn
     var sumL = function (o) { return BC_LINES.reduce(function (s, l) { return s + o[l]; }, 0); }, T = d.tot, tRev = sumL(T.newR) + sumL(T.oldR), tg = name ? targetOf(name, month) : null;
     var sumKpi = kpi('Tổng doanh thu', moneyShort(tRev), '', '', (sumL(T.newN) + sumL(T.oldN)) + ' đơn · hoàn ' + T.hoanN) +
-      kpi('Tỷ lệ chốt', sumL(T.newD) ? Math.round(sumL(T.newN) / sumL(T.newD) * 100) + '%' : '–', '', '', sumL(T.newN) + ' đơn mới / ' + sumL(T.newD) + ' data mới') +
+      kpi('Tỷ lệ chốt', T.close.data ? T.close.pct + '%' : '–', '', '', T.close.won + ' ra đơn / ' + T.close.data + ' data mới' + (T.close.open ? ' · ' + T.close.open + ' đang tư vấn' : '')) +
       kpi('TB/đơn khách mới', sumL(T.newN) ? moneyShort(sumL(T.newR) / sumL(T.newN)) : '–') +
       kpi('Doanh thu khách cũ', tRev ? Math.round(sumL(T.oldR) / tRev * 100) + '%' : '–', '', '', moneyShort(sumL(T.oldR))) +
       kpi('TB/đơn khách cũ', sumL(T.oldN) ? moneyShort(sumL(T.oldR) / sumL(T.oldN)) : '–', '', '', sumL(T.oldN) + ' đơn khách cũ') +

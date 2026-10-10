@@ -163,7 +163,7 @@ Trong hồ sơ khách, ô **Ghi nhanh hôm nay** tự thêm ngày ở đầu dò
 
 Cuối ngày bấm **📋 Báo cáo cuối ngày (gửi Zalo)** ở tab **Hôm nay** (hoặc **Hiệu quả → 📋 Báo cáo ngày**). CRM tự làm báo cáo đúng mẫu nhóm đang dùng: số đơn và số mới từng dòng (Curcumin, BADD, Fucoidan Pro), sản phẩm khác, đơn từ khách cũ, **tổng doanh thu**, đơn ngoài giờ, đơn hoàn, **KH cũ đã chăm sóc (kết nối)**, **Không nghe máy**, **Lý do từ chối** (lấy từ ghi chú khi bấm *Hết tiền*, *Còn hàng*, *Không dùng nữa*…) và **luỹ kế tháng / % mục tiêu**. Sửa thêm nếu cần, bấm **📋 Copy để dán vào Zalo** rồi dán vào nhóm. Chọn ngày khác để làm báo cáo bù. Quản lý chọn được *Cả nhóm* hoặc từng người.
 
-Tab **Hiệu quả → 📊 Bảng BCDT** tự làm báo cáo doanh thu tháng: theo ngày, theo dòng sản phẩm, khách mới / cũ, đơn hoàn và doanh thu theo ca. Phía trên có sẵn **tỷ lệ chốt** (đơn mới / data mới), **trung bình mỗi đơn khách mới** và **khách cũ**, **% doanh thu từ khách cũ**, **doanh thu ngoài giờ**, **số khách cũ đã chăm sóc / không nghe máy** và **% tiến độ mục tiêu**. Mục **Theo kênh đơn** tách doanh thu *💬 Sale lên đơn* và *🌐 Khách tự đặt trên web* (kèm số đơn web theo nguồn: Facebook, Google…). Cột nào cả tháng bằng 0 (dòng sản phẩm không bán) thì tự ẩn cho gọn. Bấm **Tải file Excel** để gửi báo cáo.
+Tab **Hiệu quả → 📊 Bảng BCDT** tự làm báo cáo doanh thu tháng: theo ngày, theo dòng sản phẩm, khách mới / cũ, đơn hoàn và doanh thu theo ca. Phía trên có sẵn **tỷ lệ chốt** (data mới đã ra đơn / data mới, cách tính như tab Hiệu quả; bảng có thêm cột *Data mới (mọi kênh)*, *Data ra đơn* theo từng ngày), **trung bình mỗi đơn khách mới** và **khách cũ**, **% doanh thu từ khách cũ**, **doanh thu ngoài giờ**, **số khách cũ đã chăm sóc / không nghe máy** và **% tiến độ mục tiêu**. Mục **Theo kênh đơn** tách doanh thu *💬 Sale lên đơn* và *🌐 Khách tự đặt trên web* (kèm số đơn web theo nguồn: Facebook, Google…). Cột nào cả tháng bằng 0 (dòng sản phẩm không bán) thì tự ẩn cho gọn. Bấm **Tải file Excel** để gửi báo cáo.
 
 ## Chăm sóc khách
 
@@ -385,8 +385,8 @@ Bấm nút **📅 thời gian** ở đầu trang để xem số liệu *Hôm nay
 
 - **Đầu tháng**, bấm **🎯 Đặt mục tiêu** doanh số của bạn. Gõ số hoặc viết tắt, ví dụ `30tr`. Có nút lấy bằng tháng trước cộng 10%.
 - **Thanh tiến độ**: vạch đen là hôm nay. Thanh màu vượt vạch đen là đang **đúng tiến độ**. CRM cho biết còn thiếu bao nhiêu và **mỗi ngày cần bán khoảng bao nhiêu**.
-- **Bán hàng**: doanh số, giá trị trung bình mỗi đơn, tỷ lệ chốt khách hỏi, phần doanh thu từ khách cũ, so với kỳ trước.
-    - **Tỷ lệ chốt khách hỏi** = khách “Đã chốt” ÷ (“Đã chốt” + “Không mua”) trong kỳ, chỉ tính khách mới ở tab Khách hỏi. Đơn của khách cũ không tính vào đây (xem ở “Doanh thu từ khách cũ”). Khách còn “Mới hỏi / Đang tư vấn” chưa được tính, nên nhớ bấm kết quả cho khách hỏi; thẻ có ghi số khách hỏi chưa có kết quả.
+- **Bán hàng**: doanh số, giá trị trung bình mỗi đơn, tỷ lệ chốt, phần doanh thu từ khách cũ, so với kỳ trước.
+    - **Tỷ lệ chốt** = số data mới đã ra đơn ÷ tổng số data mới trong kỳ. *Data mới* là khách hỏi mới được tạo trong kỳ, mọi kênh (quảng cáo, Fanpage, Zalo, form web…), giao cho mình phụ trách. Khách cũ hỏi lại không tính (xem ở “Doanh thu từ khách cũ”); 1 số hỏi nhiều lần chỉ tính 1. *Ra đơn* = khách hỏi “Đã chốt”, hoặc số đó có đơn (không huỷ / hoàn) từ lúc hỏi, kể cả khách tự đặt trên web. Khách còn đang tư vấn, không mua, số rác **vẫn nằm trong mẫu số**, nên tỷ lệ phản ánh đúng chốt được bao nhiêu trên số data được giao. Data mới gần đây còn đang tư vấn nên tỷ lệ của tuần / tháng đang chạy sẽ tăng dần khi khách chốt.
 - **Chăm sóc khách**: số lượt chăm sóc, tỷ lệ khách trả lời, số khách đặt lại, số khách quá 30 ngày chưa chăm sóc (bấm vào để xem danh sách cần gọi).
 
 Doanh số tính theo **Nhân viên bán** ghi trên từng đơn. Đơn khách tự đặt trên web được tính cho **người đang phụ trách khách đó**.
