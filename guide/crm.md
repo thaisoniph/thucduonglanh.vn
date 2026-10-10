@@ -40,7 +40,7 @@ Mã dùng được trong **10 phút**. Đăng nhập xong, máy nhớ bạn tron
 - Chấm đỏ trên tab là số việc đang chờ.
 - Nút **⟳** góc trên bên phải: tải lại dữ liệu mới nhất, ví dụ khi đồng nghiệp vừa cập nhật.
 - **Bạn chỉ thấy khách mình phụ trách.** Quản lý thấy toàn bộ. Khi gõ số điện thoại của khách đang do người khác phụ trách, CRM chỉ báo tên người đó và không cho thao tác. Muốn đổi người phụ trách thì nhờ quản lý chuyển.
-- Danh sách việc ở tab Hôm nay **chỉ có khách của bạn**. Khi công ty dùng chế độ **Kho chung**, khách *chưa ai phụ trách* nằm riêng ở mục **🧺 Kho chung** cuối tab Hôm nay. Bấm **✋ Nhận khách này**, hoặc chăm sóc hay xác nhận đơn của khách đó, là khách thuộc về bạn.
+- Danh sách việc ở tab Hôm nay **chỉ có khách của bạn**. Khách *chưa ai phụ trách* nằm ở mục **🧺 Kho chung**, mục này chỉ quản lý và quản trị thấy, để quản lý chủ động giao khách cho từng người. Bạn xác nhận đơn hoặc chăm sóc khách chưa ai phụ trách trước thì khách đó thuộc về bạn.
 
 ### Nhận thông báo Telegram riêng
 
@@ -61,9 +61,10 @@ Trên danh sách đơn và khách hỏi, bấm vào mã đơn hoặc số điệ
 
 - **Trên cùng:** số khách cần chăm sóc hôm nay, thanh tiến độ và nút **▶ Bắt đầu gọi lần lượt**. Mỗi ngày CRM đưa ra tối đa **30 khách** (đổi ở **Cài đặt → Số khách chăm sóc mỗi ngày**), khách quan trọng trước: hẹn gọi lại → hỏi nhận hàng → sắp hết hàng → việc bị trễ → các việc khác. Khách chưa tới lượt tự dời sang hôm sau.
 - **Ô nhỏ:** đơn mới, khách hỏi, việc đã làm, mục tiêu tháng. Bấm để mở đúng danh sách. Quản lý thấy thêm doanh thu và khách mới của tháng.
+- **Gọn gàng khi mới mở:** chỉ **mục cần gọi đầu tiên** được mở sẵn (thường là *Đơn mới*, nếu không có thì *Khách vừa hỏi* hoặc nhóm chăm sóc đầu tiên) và chỉ hiện **5 khách đầu**. Bấm **Xem thêm … khách** để hiện tiếp. Các mục khác đều gập lại, bấm vào tên mục khi tới lượt gọi. CRM nhớ mục nào bạn đã mở hay gập trong lúc dùng.
 - **1️⃣ Đơn mới – gọi khách xác nhận** (chỉ hiện khi có), kèm **Chuyển khoản chưa nhận tiền**.
 - **2️⃣ 🔥 Khách vừa hỏi – liên hệ ngay** (chỉ hiện khi có): người hỏi trong 24 giờ qua mà chưa ai liên hệ. Đây là khách nóng nhất, gọi càng sớm càng dễ chốt.
-- **3️⃣ Chăm sóc khách:** chia nhóm theo loại việc (xem [bảng các loại việc](#cac-loai-viec-cham-soc)). Nhóm đầu tiên tự mở sẵn, các nhóm khác bấm vào mới mở. Mỗi khách 1 dòng với nút **📞 Gọi · 📵 KNM · 💬 Chăm sóc**. Dưới tên khách có dòng **🕘 lần liên hệ gần nhất** (vd *“3 ngày trước: Đã hỏi thăm: chị bảo ngủ ngon hơn”*, kèm *📵 2 lần KNM liền* nếu gọi mãi không được) để biết lần trước đã nói gì trước khi gọi. Khách chưa ai liên hệ thì ghi *🆕 Chưa liên hệ lần nào*.
+- **3️⃣ Chăm sóc khách:** chia nhóm theo loại việc (xem [bảng các loại việc](#cac-loai-viec-cham-soc)). Nhóm đầu tiên tự mở sẵn (nếu phía trên chưa có mục nào mở), các nhóm khác bấm vào mới mở. Mỗi khách 1 dòng với nút **📞 Gọi · 📵 KNM · 💬 Chăm sóc**. Dưới tên khách có dòng **🕘 lần liên hệ gần nhất** (vd *“3 ngày trước: Đã hỏi thăm: chị bảo ngủ ngon hơn”*, kèm *📵 2 lần KNM liền* nếu gọi mãi không được) để biết lần trước đã nói gì trước khi gọi. Khách chưa ai liên hệ thì ghi *🆕 Chưa liên hệ lần nào*.
     - **⚠️ Khách VIP trễ hạn**: khách VIP quá hạn chăm sóc từ 2 ngày được gom thành nhóm riêng ngay sau *Hẹn gọi lại*, dòng khách ghi rõ việc cần làm. Khi bấm *Bắt đầu gọi lần lượt*, các khách này cũng được gọi trước.
     - **🎂 Sinh nhật**: khách có sinh nhật trong 7 ngày tới có nhãn hồng (*Sinh nhật hôm nay*, *SN ngày mai*, *SN 12/10*). Nhớ nhắn chúc mừng. Cần nhập ngày sinh trong hồ sơ khách thì nhãn mới hiện.
     - **💡 Gợi ý sản phẩm**: ở các việc *Sắp hết*, *Giới thiệu sản phẩm phù hợp*, *Mời quay lại*, *Khách cũ lâu chưa gọi*, CRM gợi ý sản phẩm mà những khách mua giống khách này hay mua thêm. Đây chỉ là gợi ý, sale tự xem có hợp với khách không.
@@ -441,10 +442,10 @@ Số website chỉ đếm khách đã bấm “Đồng ý” cookie nên thấp 
 **Giao khách:**
 
 - Tab **Hôm nay** (chọn *Tất cả nhân sự*) có bảng **👥 Tiến độ nhân sự hôm nay**. Mỗi người 1 dòng: số khách chăm sóc đã xong / cần làm, số việc trễ hạn (trong đó bao nhiêu khách VIP), số lần không nghe máy, khách hỏi đang chờ, đơn chưa xác nhận, đơn chốt hôm nay. Bấm vào tên để xem danh sách việc của người đó.
-- Tab **Hôm nay** có mục **🧺 Chờ giao người phụ trách**: khách và khách hỏi chưa ai phụ trách. Chọn tên trong ô *Giao cho…* là xong.
+- Tab **Hôm nay** có mục **🧺 Kho chung – chờ giao người phụ trách** (chỉ quản lý và quản trị thấy, nhân viên sale không thấy): khách và khách hỏi chưa ai phụ trách. Bấm vào để mở, chọn tên trong ô *Giao cho…* là xong.
 - Mở hồ sơ khách → ô **Người phụ trách** để đổi người.
 - **Cài đặt → 👥 Chia khách & phân quyền**:
-    - **Khách mới được giao thế nào**: *Tự chia đều* (lần lượt cho những người bật “Nhận khách mới”), *Quản lý giao tay* (khách mới vào mục Chờ giao), *Kho chung* (ai nhận trước được khách). Đổi lúc nào cũng được.
+    - **Khách mới được giao thế nào**: *Tự chia đều* (lần lượt cho những người bật “Nhận khách mới”), *Quản lý giao tay* (khách mới vào mục Chờ giao), *Kho chung* (khách mới nằm ở mục Kho chung chỉ quản lý thấy để giao; nhân viên xác nhận đơn / chăm sóc trước thì được khách). Đổi lúc nào cũng được.
     - **Ai được nhận khách mới**: bật / tắt cho từng người, ví dụ khi nghỉ phép. Cột bên cạnh cho biết người đó đã kết nối Telegram chưa.
     - **Chia đều khách chưa ai phụ trách**: dùng 1 lần cho khách cũ.
     - **Chuyển toàn bộ khách của A sang B**: dùng khi nhân viên nghỉ việc. Khách hỏi đang theo dõi cũng chuyển theo.

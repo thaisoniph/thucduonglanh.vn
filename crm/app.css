@@ -407,6 +407,7 @@ details.grp > summary::-webkit-details-marker { display: none; }
 details.grp > summary::after { content: '▾'; position: absolute; right: 14px; top: 12px; font-size: 18px; color: var(--muted); transition: transform .2s; }
 details.grp[open] > summary::after { transform: rotate(180deg); }
 details.grp .g-t { font-weight: 700; color: var(--ink); } .g-late { font-size: 12px; font-weight: 700; color: var(--red); }
+details.grp .gm-rest:not([hidden]) { display: contents; } details.grp .gm-more { display: block; margin: 8px auto 10px; }
 details.grp .g-tip { flex-basis: 100%; font-size: 12px; color: var(--muted); }
 .rows { border-top: 1px solid var(--line); }
 .rw { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--line); cursor: pointer; }
