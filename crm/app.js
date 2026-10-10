@@ -2374,7 +2374,7 @@
     o = o || {}; var mx = Math.max.apply(null, items.map(function (x) { return x.v; }).concat(o.avg || 0)) || 1;
     var avg = o.avg ? '<u class="avg" style="left:' + (o.avg * 100 / mx).toFixed(1) + '%"></u>' : '';
     return '<div class="bars' + (o.avg !== undefined ? ' cmp' : '') + '" role="table">' + items.map(function (x) {
-      return '<div class="bar-r' + (x.muted ? ' mut' : '') + (x.who ? ' click' : '') + '" role="row" title="' + esc(x.tip || '') + '"' + (x.who ? ' data-who="' + esc(x.who) + '"' : '') + '><span class="bar-l" role="cell">' + esc(x.l) + '</span><span class="bar-t" role="cell"><i style="width:' + Math.max(1.5, x.v * 100 / mx) + '%"></i>' + avg + '</span><span class="bar-v" role="cell">' + (x.txt !== undefined ? x.txt : fmt(x.v)) + (x.sub ? '<small>' + esc(x.sub) + '</small>' : '') + '</span></div>' +
+      return '<div class="bar-r' + (x.muted ? ' mut' : '') + (x.who ? ' click' : '') + '" role="row" title="' + esc(x.tip || '') + '"' + (x.who ? ' data-who="' + esc(x.who) + '"' : '') + '><span class="bar-l" role="cell">' + esc(x.l) + '</span><span class="bar-t" role="cell"><i style="width:' + Math.max(1.5, x.v * 100 / mx) + '%"></i>' + avg + '</span><span class="bar-v" role="cell">' + (x.txt !== undefined ? x.txt : fmt(x.v)) + (x.sub && !o.below ? '<small>' + esc(x.sub) + '</small>' : '') + '</span></div>' + (x.sub && o.below ? '<div class="bar-q sub">' + esc(x.sub) + '</div>' : '') +
         (x.quotes && x.quotes.length ? '<div class="bar-q">' + x.quotes.map(function (q) { return '“' + esc(q) + '”'; }).join(' · ') + '</div>' : '');
     }).join('') + '</div>';
   }
@@ -2565,11 +2565,12 @@
       metric('Doanh thu từ khách cũ', b.oldPct === null ? '–' : b.oldPct + '%', moneyShort(b.oldRev) + ' từ khách đã từng mua. Cao = chăm sóc tốt, khách quay lại.', b.oldPct === null ? '' : delta(b.oldPct, bp.oldPct, 'rate')) +
       metric('Khách để lại SĐT', b.leads, 'Khách hỏi mới mọi kênh, trong đó ' + b.webLeads + ' từ website (form, nhận quà).', delta(b.leads, bp.leads), '#tiem-nang') +
       '</div></section>';
+    h += mktBlock(key, R, b, bp);
     // ---- website
     var conv = g && g.cur.sessions ? b.web * 100 / g.cur.sessions : null, convP = g && g.prev.sessions ? bp.web * 100 / g.prev.sessions : null;
     h += '<section class="section"><div class="section-h"><h2>🌐 Website thucduonglanh.vn</h2><span class="tip">' + (g ? 'Google Analytics · cập nhật ' + fDateTime(g.at) : 'Google Analytics') + '</span></div>';
     if (!g) h += gaSetupBox(gj);
-    else h += '<div class="metrics">' +
+    else h += '<div class="metrics m3">' +
       metric('Lượt truy cập', g.cur.sessions.toLocaleString('vi-VN'), g.cur.views.toLocaleString('vi-VN') + ' lượt xem trang · mỗi lượt xem TB ' + (g.cur.sessions ? oneDec(g.cur.views / g.cur.sessions) : 0) + ' trang.', noGaCmp ? '' : delta(g.cur.sessions, g.prev.sessions)) +
       metric('Người xem', g.cur.users.toLocaleString('vi-VN'), g.cur.newUsers.toLocaleString('vi-VN') + ' người lần đầu vào web.', noGaCmp ? '' : delta(g.cur.users, g.prev.users)) +
       metric('Đơn đặt trên web', b.web, moneyShort(b.webRev) + ' · đếm từ CRM, đủ cả khách không bấm đồng ý cookie.', delta(b.web, bp.web)) +
@@ -2589,19 +2590,212 @@
     // ---- kênh bán
     var tot = b.rev || 1, subs = Object.keys(b.sub).map(function (k) { return b.sub[k]; }).sort(function (x, y) { return y.v - x.v; });
     h += '<section class="section"><div class="section-h"><h2>🧭 Doanh thu theo kênh</h2><span class="tip">' + ['Website', 'Sale', 'Khách hỏi'].map(function (c) { return c + ' ' + (b.ch[c] ? pct(b.ch[c].v, tot) : 0) + '%'; }).join(' · ') + '</span></div><div class="box">' +
-      barList(subs.slice(0, 12).map(function (x) { return { l: x.g + ' – ' + x.l, v: x.v, sub: x.n + ' đơn · ' + pct(x.v, tot) + '%' }; }), moneyShort, 'Chưa có đơn trong kỳ.') +
+      barList(subs.slice(0, 12).map(function (x) { return { l: x.g + ' – ' + x.l, v: x.v, sub: x.n + ' đơn · ' + pct(x.v, tot) + '%' }; }), moneyShort, 'Chưa có đơn trong kỳ.', { below: 1 }) +
       '<p class="bar-legend">Website = khách tự đặt trên web (nguồn theo link UTM / Facebook / Google…). Sale = đơn nhân viên lên (nhập tay, file sale). Khách hỏi = chốt từ tab Khách hỏi.</p></div></section>';
     if (g) h += gaBlocks(g, b, noGaCmp);
     // ---- sản phẩm + khách hỏi
     var prods = Object.keys(b.prod).map(function (k) { return { l: k, v: b.prod[k].v, sub: b.prod[k].q + ' sản phẩm' }; }).sort(function (x, y) { return y.v - x.v; });
     var lch = Object.keys(b.leadCh).map(function (k) { return { l: k, v: b.leadCh[k] }; }).sort(function (x, y) { return y.v - x.v; });
-    h += '<div class="grid2"><section class="section"><div class="section-h"><h2>🏆 Sản phẩm bán chạy</h2><span class="tip">theo doanh thu</span></div><div class="box">' + barList(prods.slice(0, 10), moneyShort, 'Chưa có đơn trong kỳ.') + '</div></section>' +
-      '<section class="section"><div class="section-h"><h2>🙋 Khách hỏi theo kênh</h2><span class="tip">' + b.leads + ' khách để lại SĐT</span></div><div class="box">' + barList(lch.slice(0, 10), String, 'Chưa có khách hỏi trong kỳ.') + '</div></section></div>';
+    h += '<div class="grid2"><section class="section"><div class="section-h"><h2>🏆 Sản phẩm bán chạy</h2><span class="tip">theo doanh thu</span></div><div class="box">' + barList(prods.slice(0, 10), moneyShort, 'Chưa có đơn trong kỳ.', { below: 1 }) + '</div></section>' +
+      '<section class="section"><div class="section-h"><h2>🙋 Khách hỏi theo kênh</h2><span class="tip">' + b.leads + ' khách để lại SĐT</span></div><div class="box">' + barList(lch.slice(0, 10), String, 'Chưa có khách hỏi trong kỳ.', { below: 1 }) + '</div></section></div>';
     // ---- giai đoạn sau
-    h += '<section class="section"><div class="section-h"><h2>🔜 Sắp có</h2></div><div class="box soon"><p><b>Chi phí marketing &amp; hiệu quả quảng cáo:</b> chi phí Facebook / TikTok / Google, chi phí mỗi đơn, mỗi đồng quảng cáo thu về bao nhiêu (ROAS), chi phí có 1 khách mới.</p><p><b>Lợi nhuận:</b> lãi gộp theo sản phẩm, theo kênh (cần giá vốn từng sản phẩm).</p><p><b>Vận hành:</b> tỷ lệ giao thành công, khách mua lại sau 30 / 60 / 90 ngày, giá trị trọn đời của 1 khách.</p></div></section>';
+    h += '<section class="section"><div class="section-h"><h2>🔜 Sắp có</h2></div><div class="box soon"><p><b>Quảng cáo tự động thêm kênh:</b> TikTok Ads, Google Ads tự lấy chi phí như Facebook (hiện nhập bằng file CSV).</p><p><b>Lợi nhuận:</b> lãi gộp theo sản phẩm, theo kênh (cần giá vốn từng sản phẩm).</p><p><b>Vận hành:</b> tỷ lệ giao thành công, khách mua lại sau 30 / 60 / 90 ngày, giá trị trọn đời của 1 khách.</p></div></section>';
     h += '<p class="small muted">Doanh thu, đơn, khách lấy từ CRM (đơn 13 tháng gần nhất). Số website lấy từ Google Analytics, chỉ đếm khách đã bấm “Đồng ý” cookie (Nghị định 13/2023), nên thấp hơn số người vào thật.</p>';
     return h;
   }
+  /* ---------------- Chi phí marketing (lệnh mkt*, api/src/mkt.js). Thêm kênh quảng cáo mới: thêm 1 dòng vào MKT_CH.
+   * kw: từ khoá (không dấu) nhận ra đơn / khách hỏi đến từ kênh đó, dựa vào Nguồn đơn và Kênh của khách hỏi → tính “thu về” và ROAS của kênh. */
+  var MKT_CH = [
+    { k: 'Facebook', icon: '📘', kw: /facebook|\bfb\b|instagram|messenger|quang cao/ },
+    { k: 'TikTok', icon: '🎵', kw: /tiktok/ },
+    { k: 'Google', icon: '🔎', kw: /(google|youtube).*(cpc|ppc|paid|ads|quang cao)|google ads/ },
+    { k: 'Zalo', icon: '💬', kw: /zalo.*(ads|quang cao)/ },
+    { k: 'KOL / KOC', icon: '⭐', kw: /\bkol\b|\bkoc\b/ },
+    { k: 'Khác', icon: '📦', kw: null }
+  ];
+  var MK = { cache: {}, busy: '', err: '' };
+  function mkFetch(key) {
+    if (MK.busy === key) return; MK.busy = key; MK.err = '';
+    var k = key.split('_');
+    api('mkt', { from: k[0], to: k[1], pf: k[2], pt: k[3] }).then(function (j) { MK.cache[key] = j; }, function (e) { MK.err = /Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message; })
+      .then(function () { MK.busy = ''; if (route().view === 'tong-quan') softRender(true); });
+  }
+  /** Chi phí: giảm là tốt → đổi màu mũi tên (xanh khi giảm). */
+  function inv(h) { return String(h).replace(/class="delta (up|down)"/, function (_, c) { return 'class="delta ' + (c === 'up' ? 'down' : 'up') + '"'; }); }
+  function chInfo(k) { return MKT_CH.filter(function (c) { return c.k === k; })[0] || { k: k, icon: '📦', kw: null }; }
+  /** Đơn + khách hỏi trong kỳ đến từ 1 kênh (đoán theo nguồn): xấp xỉ, khách thấy quảng cáo rồi gọi điện thì không đếm được. */
+  function chAttr(c, R) {
+    var o = { n: 0, rev: 0, leads: 0 }; if (!c.kw) return o;
+    S.d.orders.forEach(function (x) { if (!isVoid(x.status) && x.time >= R[0] && x.time < R[1] && c.kw.test(norm(x.source))) { o.n++; o.rev += x.total || 0; } });
+    (S.d.leads || []).forEach(function (l) { if (l.time >= R[0] && l.time < R[1] && c.kw.test(norm(l.channel))) o.leads++; });
+    return o;
+  }
+  function mktBlock(key, R, b, bp) {
+    var mj = MK.cache[key];
+    if (!mj && !MK.err) setTimeout(function () { mkFetch(key); }, 0);
+    var h = '<section class="section"><div class="section-h"><h2>📣 Marketing</h2><span class="tip">chi phí quảng cáo &amp; hiệu quả</span><div class="grow"></div><button class="btn sm" data-dash="mkt">⚙️ Quản lý chi phí quảng cáo</button></div>';
+    if (!mj) return h + '<div class="box"><p class="muted">' + (MK.err ? '⚠️ ' + esc(MK.err) : '⏳ Đang tải chi phí…') + '</p></div></section>';
+    var ch = {}, chp = {}, tot = 0, totp = 0, day = {}; MK.fbOn = mj.cfg.fb.on;
+    mj.days.forEach(function (r) { ch[r[1]] = (ch[r[1]] || 0) + r[2]; tot += r[2]; day[r[0]] = (day[r[0]] || 0) + r[2]; });
+    mj.prev.forEach(function (r) { chp[r[0]] = r[1]; totp += r[1]; });
+    var fb = mj.cfg.fb, fbLine = fb.on ? '📘 Facebook Ads tự cập nhật' + (fb.last ? ' · lần gần nhất ' + fDateTime(fb.last) : '') + (fb.err ? ' · <span class="bad-line">⚠️ ' + esc(fb.err) + '</span>' : '') : '📘 Facebook Ads chưa kết nối tự động. Bấm <b>⚙️ Quản lý chi phí quảng cáo</b> để kết nối, hoặc nhập file / nhập tay.';
+    if (!tot && !totp) return h + '<div class="box"><p>Chưa có chi phí quảng cáo nào trong kỳ này.</p><p class="small muted">' + fbLine + '</p></div></section>';
+    var per = function (n, v) { return n && v ? moneyShort(Math.round(v / n)) : '–'; }, prevPer = function (n, v) { return n && v ? Math.round(v / n) : null; };
+    h += '<div class="metrics m3">' +
+      metric('Chi phí quảng cáo', moneyShort(tot), Object.keys(ch).sort(function (x, y) { return ch[y] - ch[x]; }).map(function (k) { return chInfo(k).icon + ' ' + esc(k) + ' ' + moneyShort(ch[k]); }).join(' · '), delta(tot, totp)) +
+      metric('1đ chi phí thu về', tot ? oneDec(b.rev / tot) + 'đ' : '–', 'Tổng doanh thu ÷ chi phí quảng cáo (mọi kênh). Trên 4đ là khá, dưới 2đ cần xem lại.', tot && totp ? dRate(b.rev / tot, bp.rev / totp).replace(/điểm/, 'đ') : '') +
+      metric('Chi phí / đơn', per(b.n, tot), 'Chi phí quảng cáo ÷ số đơn (mọi kênh).', b.n && tot ? inv(delta(Math.round(tot / b.n), prevPer(bp.n, totp))) : '') +
+      metric('Chi phí / khách để lại SĐT', per(b.leads, tot), b.leads + ' khách hỏi mới mọi kênh.', b.leads && tot ? inv(delta(Math.round(tot / b.leads), prevPer(bp.leads, totp))) : '') +
+      metric('Chi phí có 1 khách mới', per(b.firstN, tot), b.firstN + ' khách mua lần đầu. So với giá trị khách mua lại về sau để biết lãi lỗ.', b.firstN && tot ? inv(delta(Math.round(tot / b.firstN), prevPer(bp.firstN, totp))) : '') +
+      metric('Chi phí / doanh thu', b.rev ? oneDec(tot * 100 / b.rev) + '%' : '–', 'Phần doanh thu dùng cho quảng cáo. Thấp hơn là tốt.', b.rev && bp.rev && totp ? inv(dRate(tot * 100 / b.rev, totp * 100 / bp.rev)) : '') +
+      '</div>';
+    // theo kênh: chi phí + đơn / khách hỏi đoán từ nguồn
+    var rows = Object.keys(ch).sort(function (x, y) { return ch[y] - ch[x]; }).map(function (k) {
+      var c = chInfo(k), a = chAttr(c, R), roas = ch[k] && a.rev ? oneDec(a.rev / ch[k]) : null;
+      return { l: c.icon + ' ' + k, v: ch[k], sub: c.kw ? a.n + ' đơn · ' + a.leads + ' khách hỏi · thu ' + moneyShort(a.rev) + (roas ? ' (1đ → ' + roas + 'đ)' : '') + (chp[k] ? ' · kỳ trước ' + moneyShort(chp[k]) : '') : (chp[k] ? 'kỳ trước ' + moneyShort(chp[k]) : '') };
+    });
+    h += '<div class="grid2"><div class="box"><h3>Theo kênh</h3>' + barList(rows, moneyShort, '', { below: 1 }) + '<p class="bar-legend">Đơn và khách hỏi của kênh đoán theo Nguồn đơn / Kênh khách hỏi (link UTM, “Quảng cáo – …”). Khách xem quảng cáo rồi gọi điện, nhắn Zalo thì chưa đếm được, nên số thật thường cao hơn.</p></div>';
+    var days = dayKeys(R);
+    if (days.length >= 3) h += '<div class="box"><h3>Chi phí theo ngày</h3>' + colChart(days.map(function (k) { var l = k.slice(8) + '/' + k.slice(5, 7); return { l: l, tip: l, v: day[k] || 0 }; }), moneyShort) + '</div>';
+    h += '</div>';
+    var camps = mj.camps.map(function (r) { var bits = []; if (r[5]) bits.push(r[5].toLocaleString('vi-VN') + ' click'); if (r[6]) bits.push(r[6] + ' tin nhắn'); if (r[7]) bits.push(r[7] + ' SĐT'); if (r[8]) bits.push(r[8] + ' mua'); var res = r[6] + r[7]; if (res) bits.push(moneyShort(Math.round(r[3] / res)) + '/kết quả'); return { l: chInfo(r[0]).icon + ' ' + r[1], v: r[3], sub: bits.join(' · ') || (r[2] === 'manual' ? 'nhập tay' : '') }; });
+    h += '<div class="box"><h3>Chiến dịch tốn nhiều nhất</h3>' + barList(camps.slice(0, 12), moneyShort, '', { below: 1 }) + '<p class="bar-legend">Kết quả = tin nhắn + SĐT khách để lại (Facebook ghi nhận). Chi phí / kết quả càng thấp càng tốt.</p></div>';
+    return h + '<p class="small muted">' + fbLine + '</p></section>';
+  }
+
+  /* ---------- màn hình Quản lý chi phí quảng cáo */
+  function openMkt(tab) {
+    tab = tab || 'fb';
+    var key = gaKey(perRange(S.f.g.p), cmpRange(S.f.g.p)), mj = MK.cache[key], fb = mj ? mj.cfg.fb : { on: false, all: [], accounts: [] };
+    var tabs = [['fb', '📘 Facebook tự động'], ['file', '📄 Nhập file'], ['add', '✍️ Nhập tay'], ['list', '📋 Đã nhập']];
+    var chSel = function (id, v) { return '<select id="' + id + '">' + MKT_CH.map(function (c) { return '<option' + (c.k === v ? ' selected' : '') + '>' + esc(c.k) + '</option>'; }).join('') + '</select>'; };
+    var body = '<div class="chips wrap">' + tabs.map(function (t) { return '<button class="chip' + (t[0] === tab ? ' on' : '') + '" data-mt="' + t[0] + '">' + t[1] + '</button>'; }).join('') + '</div>';
+    if (tab === 'fb') {
+      body += fb.on ? '<div class="notice info">✅ Đã kết nối (mã …' + esc(fb.tail) + ')' + (fb.last ? ' · cập nhật ' + fDateTime(fb.last) : '') + (fb.from ? ' · có số từ ' + fDate(new Date(fb.from + 'T12:00:00+07:00').getTime()) : '') + '. CRM tự lấy chi phí 3 tiếng 1 lần (7h–22h).</div>' + (fb.err ? '<p class="err">⚠️ ' + esc(fb.err) + '</p>' : '') +
+        '<div class="box"><h3>Tài khoản quảng cáo lấy số</h3>' + fb.all.map(function (a) { return '<label class="chk"><input type="checkbox" name="fbAcc" value="' + esc(a.id) + '"' + (fb.accounts.indexOf(a.id) >= 0 ? ' checked' : '') + '> ' + esc(a.name) + ' <span class="muted small">' + esc(a.id) + ' · ' + esc(a.cur) + (a.st !== 1 ? ' · không hoạt động' : '') + '</span></label>'; }).join('') + '<button class="btn" id="fbAccSave">Lưu lựa chọn</button></div>' +
+        '<div class="steps"><button class="btn pri" id="fbSync" data-days="7">↻ Lấy số 7 ngày gần nhất</button><button class="btn" id="fbSync90" data-days="90">Lấy lại 90 ngày</button><button class="btn ghost" id="fbOff">Ngắt kết nối</button></div>' +
+        '<details class="box"><summary>Đổi mã truy cập</summary>' + fbTokenForm() + '</details>'
+        : '<p>Kết nối 1 lần, CRM tự lấy chi phí từng chiến dịch mỗi ngày từ Facebook Ads (Meta), kể cả số tin nhắn, số khách để lại SĐT.</p>' + fbTokenForm() + fbGuide();
+    } else if (tab === 'file') {
+      body += '<p>Xuất báo cáo từ trình quản lý quảng cáo dạng <b>CSV</b>, chia <b>theo ngày</b> và <b>theo chiến dịch</b>, rồi chọn file ở đây. Đọc được file của Facebook, TikTok, Google Ads (tiếng Việt hoặc tiếng Anh). Nhập lại cùng khoảng ngày thì số cũ của kênh đó được thay bằng số mới.</p>' +
+        '<div class="row2c"><label class="f"><span>Kênh</span>' + chSel('mfCh', 'TikTok') + '</label><label class="f"><span>File CSV</span><input type="file" id="mfFile" accept=".csv,.tsv,.txt,text/csv"></label></div>' +
+        '<div id="mfNoDay" hidden><p class="small">File không có cột ngày → chọn khoảng ngày của báo cáo, CRM chia đều chi phí theo ngày.</p><div class="row2c"><label class="f"><span>Từ ngày</span><input type="date" id="mfFrom"></label><label class="f"><span>Đến ngày</span><input type="date" id="mfTo"></label></div></div>' +
+        '<div id="mfPrev" class="small"></div><button class="btn pri" id="mfGo" disabled>Nhập</button>' +
+        '<details class="small" style="margin-top:12px"><summary>Cách xuất file từng kênh</summary><p><b>Facebook:</b> Trình quản lý quảng cáo → tab Chiến dịch → Phân tích → Theo thời gian → <b>Ngày</b> → Báo cáo → Xuất dữ liệu bảng → .csv.</p><p><b>TikTok:</b> TikTok Ads Manager → Báo cáo → Báo cáo tuỳ chỉnh → chiều: Ngày + Chiến dịch, chỉ số: Chi phí, Lượt hiển thị, Lượt nhấp → Xuất → CSV.</p><p><b>Google Ads:</b> Chiến dịch → Phân đoạn → Thời gian → <b>Ngày</b> → biểu tượng Tải xuống → .csv.</p></details>';
+    } else if (tab === 'add') {
+      var t0 = today();
+      body += '<p>Cho chi phí không có file: KOL / KOC, in tờ rơi, sự kiện, quảng cáo trả tiền mặt… Số tiền được chia đều cho các ngày trong khoảng.</p>' +
+        '<div class="row2c"><label class="f"><span>Kênh</span>' + chSel('maCh', 'KOL / KOC') + '</label><label class="f"><span>Số tiền</span><input type="text" id="maAmt" inputmode="numeric" placeholder="vd 5tr hoặc 5000000"></label></div>' +
+        '<div class="row2c"><label class="f"><span>Từ ngày</span><input type="date" id="maFrom" value="' + isoDate(monthRange(monthOf(t0))[0]) + '"></label><label class="f"><span>Đến ngày</span><input type="date" id="maTo" value="' + isoDate(monthRange(monthOf(t0))[1] - 1) + '"></label></div>' +
+        '<label class="f"><span>Ghi chú (tên chiến dịch, người nhận…)</span><input type="text" id="maLabel" maxlength="120" placeholder="vd KOC Lan review DILVANG"></label><button class="btn pri" id="maGo">Lưu</button>';
+    } else body += '<div id="mlList"><p class="muted">⏳ Đang tải…</p></div>';
+    var m = modal('📣 Chi phí quảng cáo', body, '<button class="btn" data-close>Đóng</button>');
+    $$('[data-mt]', m).forEach(function (b0) { b0.onclick = function () { closeModal(true); openMkt(b0.getAttribute('data-mt')); }; });
+    var done = function (msg) { toast(msg); MK.cache = {}; render(); };
+    var busy = function (btn, on, txt) { btn.disabled = on; if (txt) btn.textContent = txt; };
+    var tk = $('#fbTok', m);
+    if (tk) $('#fbTokGo', m).onclick = function () {
+      var btn = this; busy(btn, true, 'Đang kiểm tra và lấy 90 ngày…');
+      api('mkt_fb', { token: tk.value.trim() }).then(function (j) { closeModal(true); done('✅ Đã kết nối Facebook Ads · ' + (j.rows || 0) + ' dòng · ' + moneyShort(j.spend || 0) + (j.warn ? ' · ' + j.warn : '')); openMkt('fb'); }, function (e) { busy(btn, false, 'Kết nối'); toast(e.message, true); });
+    };
+    if ($('#fbAccSave', m)) $('#fbAccSave', m).onclick = function () { var ids = $$('input[name=fbAcc]:checked', m).map(function (i) { return i.value; }); api('mkt_fb', { accounts: ids }).then(function () { toast('Đã lưu'); }, function (e) { toast(e.message, true); }); };
+    ['#fbSync', '#fbSync90'].forEach(function (s0) { var btn = $(s0, m); if (btn) btn.onclick = function () { var t = btn.textContent; busy(btn, true, 'Đang lấy…'); api('mkt_fb', { sync: 1, days: +btn.getAttribute('data-days') }).then(function (j) { busy(btn, false, t); done('Đã lấy ' + j.rows + ' dòng · ' + moneyShort(j.spend) + (j.warn ? ' · ⚠️ ' + j.warn : '')); }, function (e) { busy(btn, false, t); toast(e.message, true); }); }; });
+    if ($('#fbOff', m)) $('#fbOff', m).onclick = function () { if (!confirm('Ngắt kết nối Facebook Ads? Số đã lấy vẫn giữ.')) return; api('mkt_fb', { off: 1 }).then(function () { closeModal(true); done('Đã ngắt kết nối'); }); };
+    if (tab === 'file') bindMktFile(m, done);
+    if (tab === 'add') $('#maGo', m).onclick = function () {
+      var btn = this, amt = parseMoney($('#maAmt', m).value);
+      busy(btn, true); api('mkt_add', { channel: $('#maCh', m).value, amount: amt, from: $('#maFrom', m).value, to: $('#maTo', m).value, label: $('#maLabel', m).value }).then(function () { closeModal(true); done('Đã lưu ' + money(amt)); }, function (e) { busy(btn, false); toast(e.message, true); });
+    };
+    if (tab === 'list') api('mkt_list').then(function (j) {
+      $('#mlList', m).innerHTML = j.list.length ? j.list.map(function (r) { return '<div class="card"><div class="r1"><b>' + chInfo(r.channel).icon + ' ' + esc(r.channel) + ' · ' + esc(r.label) + '</b><span class="end">' + money(r.spend) + '</span></div><div class="r3">' + (r.src === 'file' ? '📄 ' : '✍️ ') + fDate(new Date(r.from + 'T12:00:00+07:00').getTime()) + ' – ' + fDate(new Date(r.to + 'T12:00:00+07:00').getTime()) + ' · ' + esc(r.note || '') + ' · ' + fDateTime(r.at) + ' <button class="link" data-mdel="' + esc(r.batch) + '">Xoá</button></div></div>'; }).join('') : '<p class="muted">Chưa nhập tay / nhập file lần nào.</p>';
+      $$('[data-mdel]', m).forEach(function (b0) { b0.onclick = function () { if (!confirm('Xoá lần nhập này?')) return; api('mkt_del', { batch: b0.getAttribute('data-mdel') }).then(function () { closeModal(true); done('Đã xoá'); openMkt('list'); }, function (e) { toast(e.message, true); }); }; });
+    }, function (e) { $('#mlList', m).innerHTML = '<p class="err">' + esc(e.message) + '</p>'; });
+  }
+  function fbTokenForm() { return '<label class="f"><span>Mã truy cập Facebook (access token)</span><input id="fbTok" type="password" autocomplete="off" placeholder="EAA…"></label><button class="btn pri" id="fbTokGo">Kết nối</button><p class="small muted">Mã chỉ lưu trên máy chủ CRM, không hiện lại ở đây.</p>'; }
+  function fbGuide() {
+    return '<details class="box" open><summary><b>Cách lấy mã truy cập (làm 1 lần, trên máy tính)</b></summary><ol class="small">' +
+      '<li>Mở <a href="https://business.facebook.com/settings/system-users" target="_blank" rel="noopener">Cài đặt doanh nghiệp → Người dùng hệ thống</a> (Business Manager đang giữ tài khoản quảng cáo).</li>' +
+      '<li>Bấm <b>Thêm</b> → đặt tên “CRM Thực Dưỡng Lành” → vai trò <b>Nhân viên</b> → Tạo.</li>' +
+      '<li>Chọn người dùng vừa tạo → <b>Gán tài sản</b> → Tài khoản quảng cáo → chọn tài khoản → bật <b>Xem hiệu quả</b> → Lưu.</li>' +
+      '<li>Bấm <b>Tạo mã</b> → chọn ứng dụng (chưa có thì tạo nhanh ở <a href="https://developers.facebook.com/apps/creation/" target="_blank" rel="noopener">developers.facebook.com</a>, loại “Doanh nghiệp”, gắn với Business Manager) → hạn dùng <b>Không bao giờ</b> → tích quyền <b>ads_read</b> → Tạo mã.</li>' +
+      '<li>Copy mã (bắt đầu bằng EAA…), dán vào ô trên → <b>Kết nối</b>. CRM tự tìm tài khoản quảng cáo và lấy số 90 ngày gần nhất.</li></ol>' +
+      '<p class="small muted">Không tự làm được thì nhờ người chạy quảng cáo làm giúp, hoặc tạm dùng tab 📄 Nhập file.</p></details>';
+  }
+  function parseMoney(s) { s = String(s || '').trim().toLowerCase().replace(/\s/g, ''); var m = s.match(/^([\d.,]+)(tr|triệu|k|nghìn|ngàn|tỷ)?$/); if (!m) return 0; var n = parseFloat(m[1].replace(/[.,](?=\d{3}(\D|$))/g, '').replace(',', '.')) || 0; return Math.round(n * ({ tr: 1e6, 'triệu': 1e6, k: 1e3, 'nghìn': 1e3, 'ngàn': 1e3, 'tỷ': 1e9 }[m[2]] || 1)); }
+
+  /* ---------- đọc file CSV quảng cáo (Facebook / TikTok / Google, tiếng Việt / Anh, phẩy / chấm phẩy / tab, UTF-8 / UTF-16) */
+  function csvRows(text) {
+    var first = text.split(/\r?\n/).slice(0, 5).join('\n'), sep = [',', ';', '\t'].sort(function (a, b) { return first.split(b).length - first.split(a).length; })[0];
+    var rows = [], row = [], f = '', q = false;
+    for (var i = 0; i < text.length; i++) {
+      var ch = text[i];
+      if (q) { if (ch === '"') { if (text[i + 1] === '"') { f += '"'; i++; } else q = false; } else f += ch; continue; }
+      if (ch === '"') q = true; else if (ch === sep) { row.push(f); f = ''; } else if (ch === '\n' || ch === '\r') { if (ch === '\r' && text[i + 1] === '\n') i++; row.push(f); rows.push(row); row = []; f = ''; } else f += ch;
+    }
+    if (f || row.length) { row.push(f); rows.push(row); }
+    return rows;
+  }
+  var CSV_COL = {
+    day: /^(ngay|day|date|by day|ngay bat dau bao cao|bat dau bao cao|reporting starts|thoi gian|stat time day)$/,
+    campaign: /^(ten chien dich|chien dich|campaign name|campaign)$/,
+    spend: /^(so tien da chi tieu|amount spent|cost|chi phi|spend|tong chi phi|total cost)\b/,
+    impressions: /^(luot hien thi|impressions?|impr\.?|so lan hien thi)$/,
+    clicks: /^(luot click vao lien ket|so lan nhap vao lien ket|link clicks|clicks?( \(destination\)| \(all\))?|luot nhap|luot click|so lan nhap)$/,
+    msgs: /(luot bat dau cuoc tro chuyen|messaging conversations started|tin nhan)/,
+    leads: /^(khach hang tiem nang|leads?|luot gui bieu mau|form submissions?)$/
+  };
+  function csvDate(s) {
+    s = String(s || '').trim(); var m;
+    if ((m = s.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/))) return m[1] + '-' + pad(+m[2]) + '-' + pad(+m[3]);
+    if ((m = s.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})/))) return m[3] + '-' + pad(+m[2]) + '-' + pad(+m[1]); // file tiếng Việt: ngày/tháng/năm
+    if ((m = s.match(/^([A-Za-z]{3})\w* (\d{1,2}), (\d{4})/))) { var mo = 'janfebmaraprmayjunjulaugsepoctnovdec'.indexOf(m[1].toLowerCase()) / 3 + 1; if (mo > 0) return m[3] + '-' + pad(mo) + '-' + pad(+m[2]); } // Google Ads: "Oct 1, 2026"
+    return '';
+  }
+  function csvNum(s) { s = String(s == null ? '' : s).replace(/[^\d.,-]/g, ''); if (!s || s === '-') return 0; s = s.replace(/[.,](\d{1,2})$/, ''); return Math.round(Number(s.replace(/[.,]/g, '')) || 0); }
+  function parseAdsCsv(text) {
+    var rows = csvRows(text.replace(/^﻿/, '')), hi = -1, map = {};
+    for (var i = 0; i < Math.min(rows.length, 15) && hi < 0; i++) {
+      var mm = {}; rows[i].forEach(function (h, j) { var n = norm(h).replace(/\s*\(.*?\)\s*$/, '').trim(); Object.keys(CSV_COL).forEach(function (k) { if (mm[k] == null && CSV_COL[k].test(n)) mm[k] = j; }); });
+      if (mm.spend != null) { hi = i; map = mm; }
+    }
+    if (hi < 0) return { err: 'Không thấy cột chi phí (Số tiền đã chi tiêu / Amount spent / Cost) trong file.' };
+    var out = [];
+    rows.slice(hi + 1).forEach(function (r) {
+      var camp = map.campaign != null ? String(r[map.campaign] || '').trim() : '', sp = csvNum(r[map.spend]);
+      if (!sp || /^(tong|total|tổng)/i.test(camp) || (map.campaign != null && !camp)) return;
+      out.push({ day: map.day != null ? csvDate(r[map.day]) : '', campaign: camp || 'Không tên', spend: sp, impressions: map.impressions != null ? csvNum(r[map.impressions]) : 0, clicks: map.clicks != null ? csvNum(r[map.clicks]) : 0, msgs: map.msgs != null ? csvNum(r[map.msgs]) : 0, leads: map.leads != null ? csvNum(r[map.leads]) : 0 });
+    });
+    return { rows: out, noDay: map.day == null || out.every(function (x) { return !x.day; }), cols: Object.keys(map) };
+  }
+  function bindMktFile(m, done) {
+    var P = null, file = '';
+    var spread = function (rows, from, to) { // file không có ngày: chia đều theo ngày
+      var a = new Date(from + 'T12:00:00+07:00').getTime(), n = Math.round((new Date(to + 'T12:00:00+07:00').getTime() - a) / DAY) + 1, out = [];
+      rows.forEach(function (r) { for (var i = 0; i < n; i++) { var e = Math.floor(r.spend / n); out.push({ day: isoDate(a + i * DAY), campaign: r.campaign, spend: i === n - 1 ? r.spend - e * (n - 1) : e, impressions: i ? 0 : r.impressions, clicks: i ? 0 : r.clicks, msgs: i ? 0 : r.msgs, leads: i ? 0 : r.leads }); } });
+      return out;
+    };
+    $('#mfFile', m).onchange = function () {
+      var f0 = this.files[0]; if (!f0) return; file = f0.name;
+      f0.arrayBuffer().then(function (buf) {
+        var u8 = new Uint8Array(buf), enc = u8[0] === 0xFF && u8[1] === 0xFE ? 'utf-16le' : u8[0] === 0xFE && u8[1] === 0xFF ? 'utf-16be' : 'utf-8';
+        P = parseAdsCsv(new TextDecoder(enc).decode(buf));
+        var pv = $('#mfPrev', m);
+        if (P.err) { pv.innerHTML = '<p class="err">' + esc(P.err) + '</p>'; $('#mfGo', m).disabled = true; return; }
+        $('#mfNoDay', m).hidden = !P.noDay;
+        var sum = P.rows.reduce(function (s0, r) { return s0 + r.spend; }, 0), ds = P.rows.map(function (r) { return r.day; }).filter(Boolean).sort();
+        pv.innerHTML = '<div class="notice info">Đọc được <b>' + P.rows.length + '</b> dòng · tổng <b>' + money(sum) + '</b>' + (ds.length ? ' · từ ' + ds[0] + ' đến ' + ds[ds.length - 1] : '') + ' · cột: ' + P.cols.join(', ') + '</div>';
+        $('#mfGo', m).disabled = !P.rows.length;
+      });
+    };
+    $('#mfGo', m).onclick = function () {
+      var btn = this, rows = P.rows, ch = $('#mfCh', m).value;
+      if (P.noDay) { var a = $('#mfFrom', m).value, b = $('#mfTo', m).value; if (!a || !b || b < a) { toast('Chọn từ ngày – đến ngày của báo cáo.', true); return; } rows = spread(rows, a, b); }
+      if (ch === 'Facebook' && MK.fbOn && !confirm('Facebook đang tự lấy số từ API. Nhập thêm file Facebook có thể bị tính 2 lần. Vẫn nhập?')) return;
+      btn.disabled = true; btn.textContent = 'Đang nhập…';
+      api('mkt_import', { channel: ch, rows: rows, file: file }).then(function (j) { closeModal(true); done('Đã nhập ' + money(j.spend) + ' (' + j.from + ' → ' + j.to + ')'); }, function (e) { btn.disabled = false; btn.textContent = 'Nhập'; toast(e.message, true); });
+    };
+  }
+
   function fDur(sec) { sec = Math.round(sec || 0); return sec < 60 ? sec + ' giây' : Math.floor(sec / 60) + ' phút ' + pad(sec % 60) + ' giây'; }
   function gaSetupBox(gj) {
     if (!gj) return '<div class="box"><p class="muted">' + (GA.err ? '⚠️ ' + esc(GA.err) + ' <button class="link" data-dash="fresh">Thử lại</button>' : '⏳ Đang lấy số liệu Google Analytics…') + '</p></div>';
@@ -2610,7 +2804,7 @@
       : st === 'prop' ? ['Mở <a href="https://analytics.google.com/" target="_blank" rel="noopener">Google Analytics</a> → ⚙️ Quản trị → <b>Chi tiết thuộc tính</b>.', 'Copy <b>Mã thuộc tính</b> (dãy số ở góc phải, không phải mã G-…), dán vào ô dưới rồi bấm Lưu.']
       : ['Mở <a href="https://script.google.com/d/1xylCUALC-ny2iltgPPqiCSo2JaPqAGq5nSAYdePR2z1YmruWNK_1PNMP/edit" target="_blank" rel="noopener">Apps Script của CRM</a> bằng tài khoản thaisoniph@gmail.com (nên làm trên máy tính).', 'Bấm <b>▶ Chạy</b> ở thanh trên (hàm <b>ketNoiGA4</b> đã chọn sẵn) → <b>Xem xét quyền</b> → chọn tài khoản → nếu Google cảnh báo thì bấm <b>Nâng cao → Đi tới…</b> → <b>Cho phép</b>.', 'Báo Claude “đã cấp quyền GA4” để bật quyền mới, rồi bấm <b>Kiểm tra lại</b>.'];
     return '<div class="box setup"><h3>🔌 Kết nối Google Analytics (làm 1 lần)</h3><p class="small muted">' + esc(gj.msg || '') + '</p><ol>' + steps.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ol>' +
-      (st === 'prop' ? '<div class="row2c"><label class="f"><span>Mã thuộc tính GA4</span><input id="gaProp" inputmode="numeric" value="' + esc(gj.prop || '') + '" placeholder="ví dụ 412345678"></label></div><button class="btn pri" data-dash="prop">Lưu</button> ' : '') +
+      (st === 'prop' ? '<div class="row2c"><label class="f"><span>Mã thuộc tính GA4</span><input type="text" id="gaProp" inputmode="numeric" value="' + esc(gj.prop || '') + '" placeholder="ví dụ 412345678"></label></div><button class="btn pri" data-dash="prop">Lưu</button> ' : '') +
       '<button class="btn" data-dash="fresh">Kiểm tra lại</button><p class="small muted" style="margin-top:8px">Trong lúc chờ, phần kinh doanh ở trên vẫn đúng vì lấy từ CRM.</p></div>';
   }
   function gaBlocks(g, b, noCmp) {
@@ -2619,14 +2813,14 @@
     var ch = Object.keys(g.ch.cur).map(function (k) { var c = g.ch.cur[k], p = g.ch.prev[k]; return { l: GA_CH[k] || k, v: c[0], sub: pct(c[0], sess) + '% · ' + pct(c[1], c[0]) + '% ở lại xem' + (c[3] ? ' · ' + c[3] + ' đơn' : '') + (noCmp ? '' : p && p[0] ? ' · kỳ trước ' + p[0] : ' · kỳ trước 0') }; }).sort(function (x, y) { return y.v - x.v; });
     var src = g.src.map(function (r) { return { l: r[0] === '(direct) / (none)' ? 'Vào thẳng' : r[0], v: r[1], sub: pct(r[2], r[1]) + '% ở lại xem' + (r[3] ? ' · ' + r[3] + ' đơn' : '') }; });
     var webs = Object.keys(b.sub).filter(function (k) { return b.sub[k].g === 'Website'; }).map(function (k) { return { l: b.sub[k].l, v: b.sub[k].n, sub: moneyShort(b.sub[k].v) }; }).sort(function (x, y) { return y.v - x.v; });
-    h += '<section class="section"><div class="section-h"><h2>🚦 Khách vào web từ đâu</h2><span class="tip">lượt truy cập theo nguồn · % ở lại xem · đơn Analytics ghi nhận</span></div><div class="grid2"><div class="box"><h3>Theo nhóm nguồn</h3>' + barList(ch, function (v) { return v.toLocaleString('vi-VN'); }, 'Chưa có lượt truy cập.') + '</div>' +
-      '<div class="box"><h3>Chi tiết nguồn / kênh</h3>' + barList(src, function (v) { return v.toLocaleString('vi-VN'); }, 'Chưa có số liệu.') + '<p class="bar-legend">Tên do link UTM đặt (tạo ở <a href="https://thucduonglanh.vn/admin/utm" target="_blank" rel="noopener">/admin/utm</a>). Bài đăng nào cũng nên dùng link UTM để biết bài nào ra khách.</p></div></div>' +
-      '<div class="box"><h3>Đơn web theo nguồn (CRM ghi nhận)</h3>' + barList(webs, String, 'Chưa có đơn web trong kỳ.') + '</div></section>';
+    h += '<section class="section"><div class="section-h"><h2>🚦 Khách vào web từ đâu</h2><span class="tip">lượt truy cập theo nguồn · % ở lại xem · đơn Analytics ghi nhận</span></div><div class="grid2"><div class="box"><h3>Theo nhóm nguồn</h3>' + barList(ch, function (v) { return v.toLocaleString('vi-VN'); }, 'Chưa có lượt truy cập.', { below: 1 }) + '</div>' +
+      '<div class="box"><h3>Chi tiết nguồn / kênh</h3>' + barList(src, function (v) { return v.toLocaleString('vi-VN'); }, 'Chưa có số liệu.', { below: 1 }) + '<p class="bar-legend">Tên do link UTM đặt (tạo ở <a href="https://thucduonglanh.vn/admin/utm" target="_blank" rel="noopener">/admin/utm</a>). Bài đăng nào cũng nên dùng link UTM để biết bài nào ra khách.</p></div></div>' +
+      '<div class="box"><h3>Đơn web theo nguồn (CRM ghi nhận)</h3>' + barList(webs, String, 'Chưa có đơn web trong kỳ.', { below: 1 }) + '</div></section>';
     // phễu
     var ev = g.ev.cur, evp = g.ev.prev, users = function (e, o) { return (o || ev)[e] ? (o || ev)[e][1] : 0; }, steps = FUNNEL_STEPS.map(function (s, i) { return { k: s[0], l: s[1], v: i ? users(s[0]) : g.cur.users, pv: i ? users(s[0], evp) : g.prev.users }; });
     var worst = null; steps.forEach(function (s, i) { if (i < 2 || !steps[i - 1].v) return; s.rate = s.v / steps[i - 1].v; if (!worst || s.rate < worst.rate) worst = s; });
     h += '<section class="section"><div class="section-h"><h2>🔻 Phễu mua hàng trên web</h2><span class="tip">số người qua từng bước</span></div><div class="box">' +
-      barList(steps.map(function (s, i) { var r = i ? (steps[i - 1].v ? pct(s.v, steps[i - 1].v) + '% bước trước' : '') : ''; return { l: s.l, v: s.v, txt: s.v.toLocaleString('vi-VN'), sub: (r ? r + ' · ' : '') + pct(s.v, steps[0].v || 1) + '% tổng' + (noCmp ? '' : ' · kỳ trước ' + s.pv) }; }), String) +
+      barList(steps.map(function (s, i) { var r = i ? (steps[i - 1].v ? pct(s.v, steps[i - 1].v) + '% bước trước' : '') : ''; return { l: s.l, v: s.v, txt: s.v.toLocaleString('vi-VN'), sub: (r ? r + ' · ' : '') + pct(s.v, steps[0].v || 1) + '% tổng' + (noCmp ? '' : ' · kỳ trước ' + s.pv) }; }), String, '', { below: 1 }) +
       (worst ? '<p class="notice" style="margin:10px 0 0">Khách rơi nhiều nhất ở bước <b>' + esc(worst.l.toLowerCase()) + '</b>: chỉ ' + Math.round(worst.rate * 100) + '% người qua bước trước đi tiếp. Nên xem bản ghi phiên ở <a href="https://clarity.microsoft.com/" target="_blank" rel="noopener">Clarity</a> đúng trang này.</p>' : '') +
       '<p class="bar-legend">Analytics ghi nhận ' + users('purchase') + ' người đặt hàng, CRM có ' + b.web + ' đơn web (CRM đầy đủ hơn vì không cần khách đồng ý cookie).</p></div></section>';
     // hành động liên hệ
@@ -2636,8 +2830,8 @@
       kpi('Điền form nhận quà / liên hệ', act('generate_lead'), '', '', b.webLeads + ' khách hỏi web trong CRM') + kpi('Lượt tìm kiếm', act('search'), '', '', 'gõ ở ô tìm sản phẩm') + '</div></section>';
     // trang
     var trim = function (t) { return String(t || '').replace(/\s*[|–-]\s*Thực Dưỡng Lành.*$/i, '') || '(không tên)'; };
-    h += '<div class="grid2"><section class="section"><div class="section-h"><h2>📄 Trang xem nhiều</h2></div><div class="box">' + barList(g.pages.map(function (r) { return { l: trim(r[1]), v: r[2], sub: r[0] + ' · ' + r[3] + ' người', tip: r[0] }; }), function (v) { return v.toLocaleString('vi-VN'); }) + '</div></section>' +
-      '<section class="section"><div class="section-h"><h2>🚪 Trang khách vào đầu tiên</h2><span class="tip">% ở lại xem</span></div><div class="box">' + barList(g.land.map(function (r) { var e = pct(r[2], r[1]); return { l: r[0] === '/' ? 'Trang chủ' : r[0], v: r[1], sub: e + '% ở lại xem' + (r[3] ? ' · ' + r[3] + ' đơn' : ''), muted: r[1] >= 20 && e < 40 }; }), function (v) { return v.toLocaleString('vi-VN'); }) + '<p class="bar-legend">Thanh xám: nhiều người vào nhưng dưới 40% ở lại xem → nên sửa nội dung đầu trang hoặc kiểm tra quảng cáo dẫn về đây.</p></div></section></div>';
+    h += '<div class="grid2"><section class="section"><div class="section-h"><h2>📄 Trang xem nhiều</h2></div><div class="box">' + barList(g.pages.map(function (r) { return { l: trim(r[1]), v: r[2], sub: r[0] + ' · ' + r[3] + ' người', tip: r[0] }; }), function (v) { return v.toLocaleString('vi-VN'); }, '', { below: 1 }) + '</div></section>' +
+      '<section class="section"><div class="section-h"><h2>🚪 Trang khách vào đầu tiên</h2><span class="tip">% ở lại xem</span></div><div class="box">' + barList(g.land.map(function (r) { var e = pct(r[2], r[1]); return { l: r[0] === '/' ? 'Trang chủ' : r[0], v: r[1], sub: e + '% ở lại xem' + (r[3] ? ' · ' + r[3] + ' đơn' : ''), muted: r[1] >= 20 && e < 40 }; }), function (v) { return v.toLocaleString('vi-VN'); }, '', { below: 1 }) + '<p class="bar-legend">Thanh xám: nhiều người vào nhưng dưới 40% ở lại xem → nên sửa nội dung đầu trang hoặc kiểm tra quảng cáo dẫn về đây.</p></div></section></div>';
     var du = g.dev.reduce(function (s0, r) { return s0 + r[1]; }, 0) || 1;
     h += '<p class="small muted">Thiết bị: ' + g.dev.sort(function (x, y) { return y[1] - x[1]; }).map(function (r) { return (GA_DEV[r[0]] || r[0]) + ' ' + pct(r[1], du) + '%'; }).join(' · ') + '</p>';
     return h;
@@ -2662,7 +2856,8 @@
     $$('[data-dash]').forEach(function (el) {
       el.onclick = function () {
         var a = el.getAttribute('data-dash'), f = S.f.g, key = gaKey(perRange(f.p), cmpRange(f.p));
-        if (a === 'fresh') { delete GA.cache[key]; GA.err = ''; GA.busy = ''; gaFetch(key, true); render(); return; }
+        if (a === 'mkt') { openMkt(); return; }
+        if (a === 'fresh') { delete MK.cache[key]; MK.err = ''; delete GA.cache[key]; GA.err = ''; GA.busy = ''; gaFetch(key, true); render(); return; }
         if (a === 'prop') { el.disabled = true; api('ga_prop', { prop: ($('#gaProp') || {}).value || '' }).then(function () { GA.cache = {}; GA.err = ''; toast('Đã lưu mã thuộc tính'); render(); }, function (e) { el.disabled = false; toast(e.message, true); }); }
       };
     });

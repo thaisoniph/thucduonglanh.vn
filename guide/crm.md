@@ -383,6 +383,13 @@ Tab đầu tiên trên menu, dành cho chủ doanh nghiệp. Bấm **📅 thời
 - **Website** (lấy từ Google Analytics): lượt truy cập, người xem, đơn đặt trên web, tỷ lệ ra đơn, % khách ở lại xem, thời gian xem.
 - **Theo ngày**, **Doanh thu theo kênh** (Website – nguồn / Sale / Khách hỏi), **Khách vào web từ đâu**, **Phễu mua hàng** (rơi nhiều nhất ở bước nào), **Khách liên hệ từ web** (bấm gọi, bấm Zalo, điền form), **Trang xem nhiều**, **Trang khách vào đầu tiên**, **Sản phẩm bán chạy**, **Khách hỏi theo kênh**.
 
+**📣 Marketing**: chi phí quảng cáo, 1đ chi phí thu về bao nhiêu (tổng doanh thu ÷ chi phí), chi phí / đơn, chi phí / khách để lại SĐT, chi phí có 1 khách mới, chi phí theo kênh và theo chiến dịch. Bấm **⚙️ Quản lý chi phí quảng cáo** để đưa số vào:
+
+- **📘 Facebook tự động**: dán mã truy cập (làm theo hướng dẫn ngay trong cửa sổ), CRM tự lấy chi phí từng chiến dịch 3 tiếng 1 lần.
+- **📄 Nhập file**: TikTok, Google Ads… xuất báo cáo CSV theo ngày + chiến dịch rồi chọn file. Nhập lại cùng khoảng ngày thì số mới thay số cũ.
+- **✍️ Nhập tay**: KOL / KOC, in ấn, sự kiện… nhập số tiền cho 1 khoảng ngày, CRM chia đều theo ngày.
+- **📋 Đã nhập**: xem lại, xoá lần nhập sai.
+
 Số website chỉ đếm khách đã bấm “Đồng ý” cookie nên thấp hơn thực tế; số đơn và doanh thu thì đầy đủ. Muốn biết bài đăng / quảng cáo nào ra khách, luôn dùng link tạo ở [/admin/utm](https://thucduonglanh.vn/admin/utm).
 
 ## Dành cho quản lý

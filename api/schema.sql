@@ -103,3 +103,12 @@ CREATE TABLE IF NOT EXISTS sale_phones (
 );
 CREATE INDEX IF NOT EXISTS sale_phones_src ON sale_phones(src, sheet);
 CREATE TABLE IF NOT EXISTS dup_done (phone TEXT PRIMARY KEY, owner TEXT DEFAULT '', sales TEXT DEFAULT '', by_name TEXT DEFAULT '', at INTEGER);
+
+-- Chi phí quảng cáo theo ngày / kênh / tài khoản / chiến dịch (api/src/mkt.js). src: auto (Facebook API) | file (nhập file CSV) | manual (nhập tay, chia đều theo ngày)
+CREATE TABLE IF NOT EXISTS ad_spend (
+  day TEXT NOT NULL, channel TEXT NOT NULL, account TEXT NOT NULL DEFAULT '', campaign TEXT NOT NULL DEFAULT '',
+  spend INTEGER DEFAULT 0, impressions INTEGER DEFAULT 0, clicks INTEGER DEFAULT 0, msgs INTEGER DEFAULT 0, leads INTEGER DEFAULT 0, purchases INTEGER DEFAULT 0,
+  src TEXT DEFAULT '', batch TEXT DEFAULT '', note TEXT DEFAULT '', at INTEGER,
+  PRIMARY KEY (day, channel, account, campaign)
+);
+CREATE INDEX IF NOT EXISTS ad_spend_batch ON ad_spend(batch);

@@ -2,10 +2,11 @@
 import { normPhone, esc, fmt, startOfDay, fmtDate, dateOrBlank, slugName, isVoid, randHex, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, DAY, CRM_URL } from './lib.js';
 import { sendMail, telegram, telegramTo, tgUpdates, tgConf, bridge } from './google.js';
 import { crmGa, crmGaProp } from './ga.js';
+import { crmMkt } from './mkt.js';
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-10-09e'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
+const SCHEMA_V = '2026-10-10m'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -69,6 +70,13 @@ export async function ensureSchema(db) {
     }
     deltaOk = true; } catch (e) { console.error('ensureSchema upd', e.message); } // lỗi thì CRM vẫn tải đủ như cũ
     await run(db, `CREATE TABLE IF NOT EXISTS dup_done (phone TEXT PRIMARY KEY, owner TEXT DEFAULT '', sales TEXT DEFAULT '', by_name TEXT DEFAULT '', at INTEGER)`);
+    await run(db, `CREATE TABLE IF NOT EXISTS ad_spend (
+        day TEXT NOT NULL, channel TEXT NOT NULL, account TEXT NOT NULL DEFAULT '', campaign TEXT NOT NULL DEFAULT '',
+        spend INTEGER DEFAULT 0, impressions INTEGER DEFAULT 0, clicks INTEGER DEFAULT 0, msgs INTEGER DEFAULT 0, leads INTEGER DEFAULT 0, purchases INTEGER DEFAULT 0,
+        src TEXT DEFAULT '', batch TEXT DEFAULT '', note TEXT DEFAULT '', at INTEGER,
+        PRIMARY KEY (day, channel, account, campaign)
+      )`); // chi phí quảng cáo theo ngày (api/src/mkt.js)
+    await run(db, 'CREATE INDEX IF NOT EXISTS ad_spend_batch ON ad_spend(batch)');
     schemaDone = true;
     if (deltaOk) await run(db, "INSERT INTO kv (k, v) VALUES ('schema_v', ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v, exp = NULL", SCHEMA_V);
   } catch (e) {
@@ -1268,6 +1276,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (a === 'fb_update') return crmFbUpdate(x, u, d);
   if (a === 'ga') return crmGa(x, u, d); // tab Tổng quan: số liệu Google Analytics
   if (a === 'ga_prop') return crmGaProp(x, u, d);
+  if (/^mkt(_|$)/.test(a)) return crmMkt(x, u, d); // chi phí marketing
   const need = { settings: 2, users: 3, assign: 2, bulk: 2, recv: 2 };
   if (need[a] && u.level < need[a]) return { ok: false, error: 'Bạn không có quyền làm việc này.' };
   const h = { care: crmCare, customer: crmCustomer, order_status: crmOrderStatus, contact: crmContact, settings: crmSettings, users: crmSaveUsers, order_edit: crmOrderEdit,

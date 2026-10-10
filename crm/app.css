@@ -149,7 +149,7 @@ details.opts { margin-top: 4px; }
 /* ---------- form */
 label.f, div.f { display: block; margin-bottom: 12px; }
 label.f > span { display: block; font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
-input[type=text], input[type=email], input[type=tel], input[type=number], input[type=date], input[type=search], select, textarea {
+input[type=text], input[type=password], input[type=email], input[type=tel], input[type=number], input[type=date], input[type=search], select, textarea {
   width: 100%; min-height: 44px; padding: 9px 12px; border: 1px solid #d8d4c8; border-radius: 10px; background: #fff; font-size: 16px; }
 textarea { min-height: 88px; resize: vertical; line-height: 1.45; }
 input:focus, select:focus, textarea:focus { outline: 2px solid rgba(31, 95, 58, .25); border-color: var(--primary); }
@@ -595,3 +595,11 @@ details.comm { border: 1px dashed #9cc3a8; background: #f3faf5; }
 .col:first-child .col-tip { left: 0; transform: none; } .col:last-child .col-tip { left: auto; right: 0; transform: none; }
 .cols + .bar-legend { margin-top: 6px; }
 @media (max-width: 520px) { .grid2 { grid-template-columns: 1fr; } .cols { height: 120px; } }
+.section-h .grow { flex: 1; }
+label.chk { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 14px; }
+details.box summary { cursor: pointer; font-weight: 600; color: var(--ink); }
+details.box[open] summary { margin-bottom: 6px; }
+details.box ol { margin: 6px 0; padding-left: 20px; } details.box li { margin: 5px 0; }
+.metrics.m3 { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 760px) { .metrics.m3 { grid-template-columns: repeat(2, 1fr); } }
+.bar-q.sub { font-style: normal; padding: 0 4px 6px; }
