@@ -17,7 +17,7 @@ var TELEGRAM_TOKEN = PropertiesService.getScriptProperties().getProperty('TELEGR
 var TELEGRAM_CHAT_IDS = '-5318324525'; // nhóm "Đơn hàng Thực Dưỡng Lành" – thêm/bớt nhân viên trực tiếp trong nhóm
 var TZ = 'Asia/Ho_Chi_Minh';
 var CRM_URL = 'https://crm.thucduonglanh.vn';
-var CRM_VERSION = '2026-10-10a';
+var CRM_VERSION = '2026-10-10b';
 // Từ 10/2026 CRM chạy trên máy chủ Cloudflare (api.thucduonglanh.vn). Apps Script này chỉ còn làm "cầu nối" Google: gửi email, cấp quyền đọc Google Sheet.
 var API_URL = 'https://api.thucduonglanh.vn/api'; // CRM web so với số này để biết Apps Script đã được triển khai bản mới chưa
 
@@ -116,7 +116,7 @@ function ownerOf(ss, phone) {
   try { var cs = ss.getSheetByName('Khách hàng'); if (!cs) return ''; var row = customerRow(cs, normPhone(phone)); return row > 0 ? String(cs.getRange(row, C['Phụ trách'] + 1).getValue() || '') : ''; } catch (e) { return ''; }
 }
 
-function doGet() { return json({ ok: true, service: 'Thực Dưỡng Lành orders + CRM', v: CRM_VERSION, retired: !!PropertiesService.getScriptProperties().getProperty('retired') }); }
+function doGet() { return json({ ok: true, service: 'Thực Dưỡng Lành orders + CRM', v: CRM_VERSION, sid: ScriptApp.getScriptId(), retired: !!PropertiesService.getScriptProperties().getProperty('retired') }); }
 
 /**
  * Cầu nối cho máy chủ Cloudflare của mình. Mỗi yêu cầu kèm 1 mã dùng 1 lần; Apps Script hỏi lại api.thucduonglanh.vn để chắc chắn yêu cầu đến từ máy chủ đó.
