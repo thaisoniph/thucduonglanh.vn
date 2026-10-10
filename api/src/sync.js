@@ -348,6 +348,20 @@ async function adsSave(x, u, d) {
   await crmLog(x, u, 'Cài đặt', '-', '', 'File số QC: ' + (cfg.mode === 'crm' ? 'CRM tự chia' : 'nhân sự chia') + (cfg.auto ? ', tự đồng bộ 10 phút/lần' : ''), '');
   return { ok: true };
 }
+/** Ngày của từng dòng file số quảng cáo. Ngày ghi ở 1 dòng áp dụng cho các dòng bên dưới tới khi gặp ngày mới (nhân sự thường chỉ ghi ở dòng đầu,
+ *  hoặc quên ghi). Ngày tương lai hoặc gõ đảo (vd 10/2 thành 2/10, nằm giữa dữ liệu cũ) bị coi như ô trống: ngày coi là sai khi bên dưới có từ
+ *  5 dòng sớm hơn nó trên 2 ngày (file ghi theo thứ tự thời gian; 1–2 dòng gõ nhầm bên dưới không làm hỏng ngày đúng). Trả về mili giây hoặc 0. */
+function adsDays(raw) {
+  const ctx = {}, t = raw.map(v => toDate(v, ctx) || 0), lim = Date.now() + DAY, low = []; // low: 5 ngày sớm nhất ở các dòng bên dưới
+  for (let i = t.length - 1; i >= 0; i--) {
+    const v = t[i]; if (!v) continue;
+    if (v > lim || (low.length >= 5 && low[4] < v - 2 * DAY)) t[i] = 0;
+    low.push(v); low.sort((a, b) => a - b); if (low.length > 5) low.pop();
+  }
+  let last = 0; return t.map(v => (last = v || last));
+}
+/** Đầu ngày (giờ VN) của mốc thời gian, mili giây. */
+function dayOf(t) { return Math.floor((t + 7 * 3600e3) / DAY) * DAY - 7 * 3600e3; }
 /** Lấy số quảng cáo vào "Khách tiềm năng". Nhân sự chia: đọc tên sale ở cột Sale. CRM chia: số chưa có sale → giao theo lượt từng sheet (trùng số → sale cũ) và ghi tên vào cột Sale. */
 export async function adsSync(x, u, dry) {
   const cfg = await adsCfg(x); if (!cfg || !cfg.fileId) return { ok: false, error: 'Chưa cài file số quảng cáo.' };
@@ -356,25 +370,20 @@ export async function adsSync(x, u, dry) {
   const since = cfg.since ? new Date(cfg.since + 'T00:00:00+07:00').getTime() : Date.now() - 3 * DAY;
   const rows = [], perSale = {}, perSheet = {}, writes = [], rr = {}; let skipped = 0, merged = 0;
   const nextFrom = async (pool, key) => { if (!(key in rr)) rr[key] = (await kvGet(x.db, key)) || ''; const n = pool[(pool.indexOf(rr[key]) + 1) % pool.length]; rr[key] = n; return n; };
-  const scan = [], vn = new Date(Date.now() + 7 * 3600e3), today = Date.UTC(vn.getUTCFullYear(), vn.getUTCMonth(), vn.getUTCDate(), 2); // 9h sáng hôm nay giờ VN (như toDate)
+  const scan = [], reg = [], regFrom = Date.now() - 100 * DAY; // reg: mọi dòng có SĐT trong 100 ngày → đếm data quảng cáo (tỷ lệ chốt), không phụ thuộc việc tạo khách hỏi
   for (const sc of (cfg.sheets || []).filter(s => s.on)) {
     const m = sc.map || cfg.map || {}, hr = sc.header || 1;
     const vals = await sheetValues(x.env, cfg.fileId, a1(sc.name, 'A' + (hr + 1) + ':' + colLetter(neededCols({ map: m }) - 1)), 'UNFORMATTED_VALUE');
-    const ctx = {}; let lastDated = 0;
+    const days = adsDays(vals.map(r => cell(r, m, 'date')));
     vals.forEach((r, i) => {
-      const raw = cell(r, m, 'date'), phone = toPhone(cell(r, m, 'phone')); let when = toDate(raw, ctx), undated = false;
-      if (when) lastDated = when;
-      // nhân sự quên ghi ngày → tính là số của hôm nay (cùng mã với dòng ghi ngày hôm nay nên ghi bù ngày sau không bị trùng).
-      // Chỉ khi dòng có ngày gần nhất phía trên trong 3 ngày, để dòng cũ thiếu ngày từ lâu không bị dồn vào hôm nay.
-      else if (phone && String(raw == null ? '' : raw).trim() === '' && lastDated >= today - 3 * DAY) { when = today; undated = true; }
-      if (!when || !phone || when < since) return; scan.push({ sc, m, hr, r, i, when, phone, undated, id: 'QC' + hashKey(sc.name + '|' + phone + '|' + fmtDate(when, 'yyyyMMdd')) });
+      const when = days[i], phone = toPhone(cell(r, m, 'phone')); if (!when || !phone) return;
+      if (when >= regFrom) { const st = String(cell(r, m, 'sale') || '').trim(); reg.push([dayOf(when), phone, byAlias[nrm(st)] || st, String(cell(r, m, 'src') || sc.name).trim()]); }
+      if (when < since) return; scan.push({ sc, m, hr, r, i, when, phone, id: 'QC' + hashKey(sc.name + '|' + phone + '|' + fmtDate(when, 'yyyyMMdd')) });
     });
   }
+  if (!dry) { const js = JSON.stringify(reg), v = hashKey(js); if ((await kvGet(x.db, 'ads_rows_v')) !== v) { await kvSet(x.db, 'ads_rows', js); await kvSet(x.db, 'ads_rows_v', v); } }
   const ids = {}, openBy = {};
   (await allIn(x.db, 'SELECT id FROM leads WHERE id IN (SELECT value FROM json_each(?))', scan.map(s => s.id))).forEach(r => { ids[r.id] = 1; });
-  // dòng thiếu ngày đã lấy vào hôm trước (vẫn chưa ghi ngày) → bỏ qua, không tính lại thành số của hôm nay
-  const und = [...new Set(scan.filter(s => s.undated).map(s => s.phone))];
-  if (und.length) { const had = {}; (await allIn(x.db, "SELECT phone FROM leads WHERE phone IN (SELECT value FROM json_each(?)) AND id LIKE 'QC%' AND time >= ? AND time < ?", und, today - 30 * DAY, today)).forEach(r => { had[r.phone] = 1; }); scan.forEach(s => { if (s.undated && had[s.phone]) ids[s.id] = 1; }); }
   const phones = [...new Set(scan.map(s => s.phone))];
   (await allIn(x.db, "SELECT phone, owner FROM leads WHERE status IN ('Mới hỏi', 'Đang tư vấn') AND phone IN (SELECT value FROM json_each(?))", phones)).forEach(r => { openBy[r.phone] = r.owner || ''; });
   const owners = await ownersOf(x, phones), pool = users.filter(y => y.recv && y.alias).map(y => y.name);

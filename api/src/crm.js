@@ -324,8 +324,14 @@ const cusOut = (v, today, R) => ({
 const logOut = l => ({ time: l.time, by: l.by_name || '', what: l.what || '', ref: l.ref || '', name: l.name || '', result: l.result || '', note: l.note || '' });
 const contactOut = r => ({ row: r.rid, time: r.time, name: r.name || '', phone: r.phone || '', email: r.email || '', message: r.message || '', page: r.page || '', done: !!r.done, note: r.note || '' });
 
+/** Danh sách số trong file quảng cáo 100 ngày gần nhất ([đầu ngày, SĐT, sale, nguồn], adsSync ghi), để tính tỷ lệ chốt. Nhân viên chỉ nhận số của mình.
+ *  Máy đã có đúng bản (adV) thì không gửi lại. */
+async function adRowsOf(x, u, adV) {
+  const v = (await kvGet(x.db, 'ads_rows_v')) || ''; if (!v || v === adV) return { v, rows: undefined };
+  const rows = await kvJson(x.db, 'ads_rows', []); return { v, rows: u.level < 2 ? rows.filter(r => r[2] === u.name) : rows };
+}
 /** Phần nhỏ đi kèm mọi lần tải (cấu hình, nhân sự, mục tiêu, mẫu tin…): vài chục dòng. */
-async function loadSmall(x, u, R, mode) {
+async function loadSmall(x, u, R, mode, adV) {
   const staff = u.level < 2, b = (sql, ...a) => x.db.prepare(sql).bind(...a);
   const smallQ = x.db.batch([
     b('SELECT * FROM contacts ORDER BY rid DESC LIMIT ' + (staff ? 0 : 1000)),
@@ -334,12 +340,13 @@ async function loadSmall(x, u, R, mode) {
     b('SELECT when_txt, purpose, text FROM templates ORDER BY rid')
   ]); smallQ.catch(() => { });
   const users = (await crmUsers(x)).filter(y => y.active || u.level >= 3).map(y => u.level >= 3 ? { email: y.email, name: y.name, role: y.role, active: y.active, recv: y.recv, tg: !!y.tg, alias: y.alias, prefix: y.prefix || slugName(y.name) } : u.level >= 2 ? { name: y.name, role: y.role, recv: y.recv, tg: !!y.tg } : { name: y.name, role: y.role });
+  const adsP = adRowsOf(x, u, adV); adsP.catch(() => { });
   const [ca, fbNew, prefs, tagColors, sources, ads, commission] = await Promise.all([caCfg(x), // hỏi song song: mỗi lần hỏi máy chủ dữ liệu mất một nhịp
     u.level >= 2 ? first(x.db, "SELECT count(*) AS n FROM feedback WHERE status = 'Mới'").then(r => (r || {}).n || 0) : 0,
     prefsOf(x, u.email), allTagColors(x), u.level >= 3 ? srcList(x) : [], u.level >= 3 ? adsCfg(x) : null, kvJson(x.db, 'commission_cfg', {}).then(r => r || {})]);
-  const [ct, tg, cy, tp] = (await smallQ).map(r => r.results || []);
+  const [ct, tg, cy, tp] = (await smallQ).map(r => r.results || []), ar = await adsP;
   return {
-    ok: true, user: publicUser(u), now: Date.now(), today: startOfDay(Date.now()), fbNew, users, prefs, tagColors, sources, ads,
+    ok: true, user: publicUser(u), now: Date.now(), today: startOfDay(Date.now()), fbNew, users, prefs, tagColors, sources, ads, adV: ar.v, adRows: ar.rows,
     contacts: ct.reverse().map(contactOut), targets: tg.map(t => ({ month: t.month, name: t.name, amount: t.amount || 0, by: t.by_name || '', at: t.at })),
     cycles: cy.filter(r => r.name).map(r => [r.name, r.variant || '', Number(r.days) || 0, r.basis || '']), templates: tp.filter(r => r.text).map(r => [r.when_txt || '', r.purpose || '', r.text]),
     rules: { vipOrders: R.vipOrders, vipSpent: R.vipSpent, atRisk: R.atRisk, coolDays: R.coolDays, commission, statuses: ORDER_STATUS, results: CARE_RESULTS, leadStatus: LEAD_STATUS, assignMode: mode, bot: BOT_USERNAME, ca, lines: LINES.map(l => l[0]).concat(['Khác']) }
@@ -397,7 +404,7 @@ async function crmDelta(x, u, d) {
   const [R, mode] = await Promise.all([rulesCfg(x), assignMode(x)]);
   const mine = o => o === u.name || (mode === 'pool' && !o);
   const b = (sql, ...a) => x.db.prepare(sql).bind(...a), since2 = since - 5000; // lùi 5 giây phòng ghi cùng lúc
-  const smallP = loadSmall(x, u, R, mode); smallP.catch(() => { }); // chạy song song; lỗi thì báo ở chỗ await bên dưới
+  const smallP = loadSmall(x, u, R, mode, d.adV); smallP.catch(() => { }); // chạy song song; lỗi thì báo ở chỗ await bên dưới
   const [mk, cs, os, ls, lg] = (await x.db.batch([
     b(`SELECT ${NOW_MS} AS sv, (SELECT max(rid) FROM logs) AS lr`),
     b(CUS_SQL + ' WHERE upd > ?1 LIMIT ' + (MAX + 1), since2),

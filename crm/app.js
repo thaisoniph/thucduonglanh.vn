@@ -228,7 +228,7 @@
   function startDay(t) { return Math.floor((t + 7 * 3600e3) / DAY) * DAY - 7 * 3600e3; }
   function loadDelta() {
     S.loading = true; var t0 = Date.now(), d = S.d;
-    return api('load', { part: 'delta', since: d.sv, lr: d.lr }).then(function (j) {
+    return api('load', { part: 'delta', since: d.sv, lr: d.lr, adV: d.adV }).then(function (j) {
       if (S.d !== d) return 'skip'; // đã tải đủ lần khác trong lúc chờ
       if (!j.delta || j.full || j.today !== d.today || JSON.stringify(j.rules) !== JSON.stringify(d.rules)) return 'full';
       var key = function (arr, k) { var m = {}; arr.forEach(function (x, i) { m[x[k]] = i; }); return m; };
@@ -246,7 +246,7 @@
       // khách mới thuộc quyền xem mà trên máy chưa có đủ đơn cũ (vd vừa được giao khách) → tải đủ
       var cnt = {}; d.orders.forEach(function (o) { if (!/Huỷ|Hủy|Hoàn/i.test(o.status)) cnt[o.phone] = (cnt[o.phone] || 0) + 1; });
       if (j.customers.some(function (c) { return hadPhone[c.phone] == null && (cnt[c.phone] || 0) < c.orders; })) return 'full';
-      ['user', 'now', 'fbNew', 'users', 'prefs', 'tagColors', 'sources', 'ads', 'contacts', 'targets', 'cycles', 'templates', 'rules', 'sv', 'lr'].forEach(function (k) { if (j[k] !== undefined) d[k] = j[k]; });
+      ['user', 'now', 'fbNew', 'users', 'prefs', 'tagColors', 'sources', 'ads', 'adV', 'adRows', 'contacts', 'targets', 'cycles', 'templates', 'rules', 'sv', 'lr'].forEach(function (k) { if (j[k] !== undefined) d[k] = j[k]; });
       S.stale = false; setData(d, Date.now()); S.perf = { core: Date.now() - t0, srv: j.t, kb: j.__kb, delta: 1 };
       idb('set', 'data', { tk: S.token.slice(-12), at: S.loadedAt, fa: S.fullAt, d: d });
       if ($('.me')) { $('.me').innerHTML = meHTML(); navBadges(); }
@@ -2483,9 +2483,10 @@
       '<div class="box">' + barList(rows, function (v) { return v + ' lần' + (tot ? ' · ' + pct(v, tot) + '%' : ''); }, 'Chưa có ghi chú lý do nào. Khi chăm sóc, gõ vài chữ khách nói vào “Ghi chú lần này” (vd “kh hết tiền”, “dùng bên khác”) để máy gom.') +
       '<p class="small muted" style="margin:8px 0 0">Ngoài ra: <b>' + miss + '</b> lượt không nghe máy / thuê bao. Lý do nhiều nhất là chỗ cần chuẩn bị câu trả lời (vd hết tiền → gợi ý hộp nhỏ, chia đợt; còn hàng → hẹn đúng ngày sắp hết).</p></div></section>';
   }
-  /** Tỷ lệ chốt = data quảng cáo (khách hỏi kênh "Quảng cáo – …", lấy từ file số quảng cáo, ngày trong kỳ, người phụ trách = name)
-   *  đã ra đơn ÷ tổng data quảng cáo. 1 SĐT nhiều lần trong kỳ chỉ tính 1. Ra đơn = khách hỏi "Đã chốt" hoặc SĐT có đơn không huỷ / hoàn
-   *  từ đầu ngày có số (kể cả đơn tạo ngoài CRM, khách tự đặt web). Data gần đây còn đang tư vấn nên tỷ lệ kỳ đó tăng dần. */
+  /** Tỷ lệ chốt = data quảng cáo đã ra đơn ÷ tổng data quảng cáo. Data quảng cáo = từng dòng có SĐT trong file số quảng cáo (S.d.adRows, máy chủ đọc
+   *  khi lấy số: [đầu ngày, SĐT, sale, nguồn]; dòng quên ghi ngày theo ngày ghi gần nhất phía trên), ngày trong kỳ, sale = name; 1 SĐT nhiều lần trong
+   *  kỳ chỉ tính 1. Ra đơn = SĐT có đơn không huỷ / hoàn từ đầu ngày có số (kể cả đơn ngoài CRM, khách tự đặt web) hoặc khách hỏi của số đó "Đã chốt".
+   *  Không mua / số rác theo khách hỏi của số đó. Data gần đây còn đang tư vấn nên tỷ lệ kỳ đó tăng dần. */
   function buyMap() {
     var o = S.d.orders; if (S.d._buyFor === o && S.d._buyLen === o.length) return S.d._buy;
     var any = {}; o.forEach(function (x) { if (x.time && x.phone && !isVoid(x.status)) (any[x.phone] = any[x.phone] || []).push(x.time); });
@@ -2493,11 +2494,14 @@
   }
   function closeStats(name, R) {
     var B = buyMap(), seen = {}, r = { data: 0, won: 0, lost: 0, junk: 0, open: 0 };
-    (S.d.leads || []).forEach(function (l) {
-      if (!l.time || l.time < R[0] || l.time >= R[1] || !l.phone || (name !== null && l.owner !== name) || seen[l.phone] || !/^quảng cáo/i.test(l.channel || '')) return;
-      seen[l.phone] = 1;
-      var won = l.status === 'Đã chốt' || (B[l.phone] || []).some(function (t) { return t >= dayStart(l.time); }); // số QC ghi ngày (9h sáng) → đơn từ đầu ngày đó
-      var k = won ? 'won' : l.status === 'Không mua' ? (/rác/i.test(l.reason || '') ? 'junk' : 'lost') : 'open';
+    (S.d.adRows || []).forEach(function (a) {
+      var day = a[0], ph = a[1];
+      if (day < R[0] || day >= R[1] || (name !== null && a[2] !== name) || seen[ph]) return;
+      seen[ph] = 1;
+      var ls = leadsOf(ph).filter(function (l) { return (l.lastAt || l.time || 0) >= day; });
+      var won = (B[ph] || []).some(function (t) { return t >= day; }) || ls.some(function (l) { return l.status === 'Đã chốt'; });
+      var no = !won && ls.filter(function (l) { return l.status === 'Không mua'; })[0];
+      var k = won ? 'won' : no ? (/rác/i.test(no.reason || '') ? 'junk' : 'lost') : 'open';
       r.data++; r[k]++;
     });
     r.pct = r.data ? pct(r.won, r.data) : null; return r;
@@ -3333,9 +3337,9 @@
     });
     tot.close = closeStats(name, R); rows.forEach(function (r) { r.close = closeStats(name, [r.day, r.day + DAY]); });
     rows.forEach(function (r) { var cs = careStats(name, r.day, r.day + DAY); r.careOk = cs.ok; r.knm = cs.knm; tot.careOk += cs.ok; tot.knm += cs.knm; });
-    (S.d.leads || []).forEach(function (ld) {
-      if (!ld.time || ld.time < R[0] || ld.time >= R[1] || !/^quảng cáo/i.test(ld.channel) || (name !== null && ld.owner !== name)) return;
-      var l = lineOfTxt(ld.interest + ' ' + ld.channel); rows[Math.floor((ld.time - R[0]) / DAY)].newD[l]++; tot.newD[l]++;
+    var seenD = {}; (S.d.adRows || []).forEach(function (a) { // data mới theo dòng SP = số trong file quảng cáo (như tỷ lệ chốt)
+      if (a[0] < R[0] || a[0] >= R[1] || (name !== null && a[2] !== name) || seenD[a[0] + a[1]]) return;
+      seenD[a[0] + a[1]] = 1; var l = lineOfTxt(a[3]); rows[Math.floor((a[0] - R[0]) / DAY)].newD[l]++; tot.newD[l]++;
     });
     return { rows: rows, tot: tot, ca: ca, ot: ot, web: web };
   }
