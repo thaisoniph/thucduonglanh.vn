@@ -578,31 +578,31 @@ details.comm { border: 1px dashed #9cc3a8; background: #f3faf5; }
 .grid-info div b .cp { display: inline; font-size: inherit; color: inherit; }
 
 /* ---------- Tổng quan (chủ doanh nghiệp) */
-.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 0 12px; }
-.grid2 > .section { min-width: 0; }
-.box.notes { background: var(--primary-soft); border-color: #cfe3d5; }
-.box.notes p { margin: 4px 0; font-size: 14px; color: var(--ink); }
-.box.soon p { margin: 4px 0 8px; font-size: 14px; }
-.box.setup ol { margin: 8px 0 12px; padding-left: 22px; } .box.setup li { margin: 6px 0; font-size: 14px; }
+.dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 0 12px; }
+.dash-grid > .section { min-width: 0; }
+.box.dash-notes { background: var(--primary-soft); border-color: #cfe3d5; }
+.box.dash-notes p { margin: 4px 0; font-size: 14px; color: var(--ink); }
+.box.dash-soon p { margin: 4px 0 8px; font-size: 14px; }
+.box.dash-setup ol { margin: 8px 0 12px; padding-left: 22px; } .box.dash-setup li { margin: 6px 0; font-size: 14px; }
 .vcols { display: flex; align-items: flex-end; gap: 2px; height: 150px; padding: 0 0 20px; position: relative; border-bottom: 1px solid var(--line); }
-.col { flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; position: relative; cursor: default; outline: none; min-width: 0; }
-.col i { display: block; background: var(--primary); border-radius: 4px 4px 0 0; }
-.col:hover i, .col:focus i { background: var(--primary-2); }
-.col small { position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); font-size: 11px; color: var(--muted); white-space: nowrap; }
-.col-tip { display: none; position: absolute; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff; font-size: 12px; padding: 4px 8px; border-radius: 6px; white-space: nowrap; z-index: 3; pointer-events: none; }
-.col-tip b { display: block; font-size: 13px; }
-.col:hover .col-tip, .col:focus .col-tip { display: block; }
-.col:first-child .col-tip { left: 0; transform: none; } .col:last-child .col-tip { left: auto; right: 0; transform: none; }
+.dash-col { flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; position: relative; cursor: default; outline: none; min-width: 0; }
+.dash-col i { display: block; background: var(--primary); border-radius: 4px 4px 0 0; }
+.dash-col:hover i, .dash-col:focus i { background: var(--primary-2); }
+.dash-col small { position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); font-size: 11px; color: var(--muted); white-space: nowrap; }
+.dash-tip { display: none; position: absolute; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff; font-size: 12px; padding: 4px 8px; border-radius: 6px; white-space: nowrap; z-index: 3; pointer-events: none; }
+.dash-tip b { display: block; font-size: 13px; }
+.dash-col:hover .dash-tip, .dash-col:focus .dash-tip { display: block; }
+.dash-col:first-child .dash-tip { left: 0; transform: none; } .dash-col:last-child .dash-tip { left: auto; right: 0; transform: none; }
 .vcols + .bar-legend { margin-top: 6px; }
-@media (max-width: 520px) { .grid2 { grid-template-columns: 1fr; } .vcols { height: 120px; } }
+@media (max-width: 520px) { .dash-grid { grid-template-columns: 1fr; } .vcols { height: 120px; } }
 .section-h .grow { flex: 1; }
-label.chk { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 14px; }
+label.dash-chk { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 14px; }
 details.box summary { cursor: pointer; font-weight: 600; color: var(--ink); }
 details.box[open] summary { margin-bottom: 6px; }
 details.box ol { margin: 6px 0; padding-left: 20px; } details.box li { margin: 5px 0; }
-.metrics.m3 { grid-template-columns: repeat(3, 1fr); }
-@media (max-width: 760px) { .metrics.m3 { grid-template-columns: repeat(2, 1fr); } }
-.bar-q.sub { font-style: normal; padding: 0 4px 6px; }
+.metrics.dash-m3 { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 760px) { .metrics.dash-m3 { grid-template-columns: repeat(2, 1fr); } }
+.bar-q.dash-sub { font-style: normal; padding: 0 4px 6px; }
 /* 🎁 Tặng quà cho khách */
 details.gift{border:1px dashed #e2c48c;background:#fffaf0}
 details.gift summary{cursor:pointer;list-style:none}

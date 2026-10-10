@@ -91,12 +91,12 @@ async function mktLoad(x, d) {
   ]);
   return { ok: true, days: days.map(r => [r.day, r.channel, r.s]), camps: camps.map(r => [r.channel, r.campaign, r.src, r.s, r.i, r.c, r.m, r.l, r.p]), prev: prev.map(r => [r.channel, r.s, r.c, r.m, r.l]), cfg: cfgPublic(c) };
 }
-/** mkt_fb: dán mã truy cập (token) → kiểm tra, liệt kê tài khoản; chọn tài khoản (accounts); đồng bộ (sync, days); ngắt (off). */
+/** mkt_fb: dán mã truy cập (fbToken – d.token là mã phiên CRM) → kiểm tra, liệt kê tài khoản; chọn tài khoản (accounts); đồng bộ (sync, days); ngắt (off). */
 async function mktFb(x, d) {
   const c = await cfgOf(x); c.fb = c.fb || {};
   if (d.off) { c.fb = {}; await cfgSave(x, c); return { ok: true, cfg: cfgPublic(c) }; } // số đã lấy vẫn giữ
-  if (d.token) {
-    const token = String(d.token).trim();
+  if (d.fbToken) {
+    const token = String(d.fbToken).trim();
     if (!/^[A-Za-z0-9_-]{40,}$/.test(token)) return { ok: false, error: 'Mã truy cập chưa đúng: là một dãy dài chữ và số, thường bắt đầu bằng EAA.' };
     const accs = await fbAccounts(token);
     if (!accs.length) return { ok: false, error: 'Mã truy cập đúng nhưng chưa xem được tài khoản quảng cáo nào. Khi tạo mã, nhớ gán tài khoản quảng cáo và chọn quyền ads_read.' };
@@ -105,8 +105,8 @@ async function mktFb(x, d) {
     await cfgSave(x, c);
   }
   if (d.accounts) { const ok = (c.fb.all || []).map(a => a.id); c.fb.accounts = d.accounts.filter(a => ok.indexOf(a) >= 0); await cfgSave(x, c); }
-  if (d.token || d.sync) { // lần đầu: lấy 90 ngày (3 lần × 30 ngày cho nhẹ); bấm "Lấy lại": d.days ngày
-    const t = startOfDay(Date.now()), days = Math.min(400, Math.max(1, Number(d.days) || (d.token ? 90 : 7))); let r = { ok: true, rows: 0, spend: 0 };
+  if (d.fbToken || d.sync) { // lần đầu: lấy 90 ngày (3 lần × 30 ngày cho nhẹ); bấm "Lấy lại": d.days ngày
+    const t = startOfDay(Date.now()), days = Math.min(400, Math.max(1, Number(d.days) || (d.fbToken ? 90 : 7))); let r = { ok: true, rows: 0, spend: 0 };
     for (let k = 0; k < days; k += 30) {
       const until = t - k * DAY, since = Math.max(t - (days - 1) * DAY, until - 29 * DAY);
       const p = await fbSync(x, iso(since), iso(until)); if (!p.ok) return Object.assign(p, { cfg: cfgPublic(await cfgOf(x)) });

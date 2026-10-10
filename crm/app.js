@@ -2443,7 +2443,7 @@
     o = o || {}; var mx = Math.max.apply(null, items.map(function (x) { return x.v; }).concat(o.avg || 0)) || 1;
     var avg = o.avg ? '<u class="avg" style="left:' + (o.avg * 100 / mx).toFixed(1) + '%"></u>' : '';
     return '<div class="bars' + (o.avg !== undefined ? ' cmp' : '') + '" role="table">' + items.map(function (x) {
-      return '<div class="bar-r' + (x.muted ? ' mut' : '') + (x.who ? ' click' : '') + '" role="row" title="' + esc(x.tip || '') + '"' + (x.who ? ' data-who="' + esc(x.who) + '"' : '') + '><span class="bar-l" role="cell">' + esc(x.l) + '</span><span class="bar-t" role="cell"><i style="width:' + Math.max(1.5, x.v * 100 / mx) + '%"></i>' + avg + '</span><span class="bar-v" role="cell">' + (x.txt !== undefined ? x.txt : fmt(x.v)) + (x.sub && !o.below ? '<small>' + esc(x.sub) + '</small>' : '') + '</span></div>' + (x.sub && o.below ? '<div class="bar-q sub">' + esc(x.sub) + '</div>' : '') +
+      return '<div class="bar-r' + (x.muted ? ' mut' : '') + (x.who ? ' click' : '') + '" role="row" title="' + esc(x.tip || '') + '"' + (x.who ? ' data-who="' + esc(x.who) + '"' : '') + '><span class="bar-l" role="cell">' + esc(x.l) + '</span><span class="bar-t" role="cell"><i style="width:' + Math.max(1.5, x.v * 100 / mx) + '%"></i>' + avg + '</span><span class="bar-v" role="cell">' + (x.txt !== undefined ? x.txt : fmt(x.v)) + (x.sub && !o.below ? '<small>' + esc(x.sub) + '</small>' : '') + '</span></div>' + (x.sub && o.below ? '<div class="bar-q dash-sub">' + esc(x.sub) + '</div>' : '') +
         (x.quotes && x.quotes.length ? '<div class="bar-q">' + x.quotes.map(function (q) { return '“' + esc(q) + '”'; }).join(' · ') + '</div>' : '');
     }).join('') + '</div>';
   }
@@ -2614,7 +2614,7 @@
   function colChart(items, fmt) {
     var mx = Math.max.apply(null, items.map(function (x) { return x.v; })) || 1, step = Math.ceil(items.length / 8);
     return '<div class="vcols" role="table">' + items.map(function (x, i) {
-      return '<div class="col" role="row" tabindex="0" aria-label="' + esc(x.tip + ': ' + fmt(x.v)) + '"><i style="height:' + (x.v ? Math.max(2, x.v * 100 / mx) : 0) + '%"></i><span class="col-tip">' + esc(x.tip) + '<b>' + fmt(x.v) + '</b></span>' + (i % step === 0 ? '<small>' + esc(x.l) + '</small>' : '') + '</div>';
+      return '<div class="dash-col" role="row" tabindex="0" aria-label="' + esc(x.tip + ': ' + fmt(x.v)) + '"><i style="height:' + (x.v ? Math.max(2, x.v * 100 / mx) : 0) + '%"></i><span class="dash-tip">' + esc(x.tip) + '<b>' + fmt(x.v) + '</b></span>' + (i % step === 0 ? '<small>' + esc(x.l) + '</small>' : '') + '</div>';
     }).join('') + '</div><p class="bar-legend">Cao nhất: <b>' + fmt(mx) + '</b> · rê chuột / chạm vào cột để xem từng ngày</p>';
   }
   function dayKeys(R) { var out = [], end = Math.min(R[1], today() + DAY); for (var t = R[0]; t < end; t += DAY) out.push(isoDate(t)); return out; }
@@ -2639,7 +2639,7 @@
     var conv = g && g.cur.sessions ? b.web * 100 / g.cur.sessions : null, convP = g && g.prev.sessions ? bp.web * 100 / g.prev.sessions : null;
     h += '<section class="section"><div class="section-h"><h2>🌐 Website thucduonglanh.vn</h2><span class="tip">' + (g ? 'Google Analytics · cập nhật ' + fDateTime(g.at) : 'Google Analytics') + '</span></div>';
     if (!g) h += gaSetupBox(gj);
-    else h += '<div class="metrics m3">' +
+    else h += '<div class="metrics dash-m3">' +
       metric('Lượt truy cập', g.cur.sessions.toLocaleString('vi-VN'), g.cur.views.toLocaleString('vi-VN') + ' lượt xem trang · mỗi lượt xem TB ' + (g.cur.sessions ? oneDec(g.cur.views / g.cur.sessions) : 0) + ' trang.', noGaCmp ? '' : delta(g.cur.sessions, g.prev.sessions)) +
       metric('Người xem', g.cur.users.toLocaleString('vi-VN'), g.cur.newUsers.toLocaleString('vi-VN') + ' người lần đầu vào web.', noGaCmp ? '' : delta(g.cur.users, g.prev.users)) +
       metric('Đơn đặt trên web', b.web, moneyShort(b.webRev) + ' · đếm từ CRM, đủ cả khách không bấm đồng ý cookie.', delta(b.web, bp.web)) +
@@ -2652,7 +2652,7 @@
     var days = dayKeys(R);
     if (days.length >= 3) {
       var lbl = function (k) { return k.slice(8) + '/' + k.slice(5, 7); };
-      h += '<section class="section"><div class="section-h"><h2>📈 Theo ngày</h2></div><div class="grid2"><div class="box"><h3>Doanh thu</h3>' + colChart(days.map(function (k) { return { l: lbl(k), tip: lbl(k), v: b.day[k] || 0 }; }), moneyShort) + '</div>';
+      h += '<section class="section"><div class="section-h"><h2>📈 Theo ngày</h2></div><div class="dash-grid"><div class="box"><h3>Doanh thu</h3>' + colChart(days.map(function (k) { return { l: lbl(k), tip: lbl(k), v: b.day[k] || 0 }; }), moneyShort) + '</div>';
       if (g) { var gd = {}; g.days.forEach(function (x) { gd[x[0]] = x[1]; }); h += '<div class="box"><h3>Lượt truy cập website</h3>' + colChart(days.map(function (k) { return { l: lbl(k), tip: lbl(k), v: gd[k] || 0 }; }), function (v) { return v.toLocaleString('vi-VN'); }) + '</div>'; }
       h += '</div></section>';
     }
@@ -2665,10 +2665,10 @@
     // ---- sản phẩm + khách hỏi
     var prods = Object.keys(b.prod).map(function (k) { return { l: k, v: b.prod[k].v, sub: b.prod[k].q + ' sản phẩm' }; }).sort(function (x, y) { return y.v - x.v; });
     var lch = Object.keys(b.leadCh).map(function (k) { return { l: k, v: b.leadCh[k] }; }).sort(function (x, y) { return y.v - x.v; });
-    h += '<div class="grid2"><section class="section"><div class="section-h"><h2>🏆 Sản phẩm bán chạy</h2><span class="tip">theo doanh thu</span></div><div class="box">' + barList(prods.slice(0, 10), moneyShort, 'Chưa có đơn trong kỳ.', { below: 1 }) + '</div></section>' +
+    h += '<div class="dash-grid"><section class="section"><div class="section-h"><h2>🏆 Sản phẩm bán chạy</h2><span class="tip">theo doanh thu</span></div><div class="box">' + barList(prods.slice(0, 10), moneyShort, 'Chưa có đơn trong kỳ.', { below: 1 }) + '</div></section>' +
       '<section class="section"><div class="section-h"><h2>🙋 Khách hỏi theo kênh</h2><span class="tip">' + b.leads + ' khách để lại SĐT</span></div><div class="box">' + barList(lch.slice(0, 10), String, 'Chưa có khách hỏi trong kỳ.', { below: 1 }) + '</div></section></div>';
     // ---- giai đoạn sau
-    h += '<section class="section"><div class="section-h"><h2>🔜 Sắp có</h2></div><div class="box soon"><p><b>Quảng cáo tự động thêm kênh:</b> TikTok Ads, Google Ads tự lấy chi phí như Facebook (hiện nhập bằng file CSV).</p><p><b>Lợi nhuận:</b> lãi gộp theo sản phẩm, theo kênh (cần giá vốn từng sản phẩm).</p><p><b>Vận hành:</b> tỷ lệ giao thành công, khách mua lại sau 30 / 60 / 90 ngày, giá trị trọn đời của 1 khách.</p></div></section>';
+    h += '<section class="section"><div class="section-h"><h2>🔜 Sắp có</h2></div><div class="box dash-soon"><p><b>Quảng cáo tự động thêm kênh:</b> TikTok Ads, Google Ads tự lấy chi phí như Facebook (hiện nhập bằng file CSV).</p><p><b>Lợi nhuận:</b> lãi gộp theo sản phẩm, theo kênh (cần giá vốn từng sản phẩm).</p><p><b>Vận hành:</b> tỷ lệ giao thành công, khách mua lại sau 30 / 60 / 90 ngày, giá trị trọn đời của 1 khách.</p></div></section>';
     h += '<p class="small muted">Doanh thu, đơn, khách lấy từ CRM (đơn 13 tháng gần nhất). Số website lấy từ Google Analytics, chỉ đếm khách đã bấm “Đồng ý” cookie (Nghị định 13/2023), nên thấp hơn số người vào thật.</p>';
     return h;
   }
@@ -2710,7 +2710,7 @@
     var fb = mj.cfg.fb, fbLine = fb.on ? '📘 Facebook Ads tự cập nhật' + (fb.last ? ' · lần gần nhất ' + fDateTime(fb.last) : '') + (fb.err ? ' · <span class="bad-line">⚠️ ' + esc(fb.err) + '</span>' : '') : '📘 Facebook Ads chưa kết nối tự động. Bấm <b>⚙️ Quản lý chi phí quảng cáo</b> để kết nối, hoặc nhập file / nhập tay.';
     if (!tot && !totp) return h + '<div class="box"><p>Chưa có chi phí quảng cáo nào trong kỳ này.</p><p class="small muted">' + fbLine + '</p></div></section>';
     var per = function (n, v) { return n && v ? moneyShort(Math.round(v / n)) : '–'; }, prevPer = function (n, v) { return n && v ? Math.round(v / n) : null; };
-    h += '<div class="metrics m3">' +
+    h += '<div class="metrics dash-m3">' +
       metric('Chi phí quảng cáo', moneyShort(tot), Object.keys(ch).sort(function (x, y) { return ch[y] - ch[x]; }).map(function (k) { return chInfo(k).icon + ' ' + esc(k) + ' ' + moneyShort(ch[k]); }).join(' · '), delta(tot, totp)) +
       metric('1đ chi phí thu về', tot ? oneDec(b.rev / tot) + 'đ' : '–', 'Tổng doanh thu ÷ chi phí quảng cáo (mọi kênh). Trên 4đ là khá, dưới 2đ cần xem lại.', tot && totp ? dRate(b.rev / tot, bp.rev / totp).replace(/điểm/, 'đ') : '') +
       metric('Chi phí / đơn', per(b.n, tot), 'Chi phí quảng cáo ÷ số đơn (mọi kênh).', b.n && tot ? inv(delta(Math.round(tot / b.n), prevPer(bp.n, totp))) : '') +
@@ -2723,7 +2723,7 @@
       var c = chInfo(k), a = chAttr(c, R), roas = ch[k] && a.rev ? oneDec(a.rev / ch[k]) : null;
       return { l: c.icon + ' ' + k, v: ch[k], sub: c.kw ? a.n + ' đơn · ' + a.leads + ' khách hỏi · thu ' + moneyShort(a.rev) + (roas ? ' (1đ → ' + roas + 'đ)' : '') + (chp[k] ? ' · kỳ trước ' + moneyShort(chp[k]) : '') : (chp[k] ? 'kỳ trước ' + moneyShort(chp[k]) : '') };
     });
-    h += '<div class="grid2"><div class="box"><h3>Theo kênh</h3>' + barList(rows, moneyShort, '', { below: 1 }) + '<p class="bar-legend">Đơn và khách hỏi của kênh đoán theo Nguồn đơn / Kênh khách hỏi (link UTM, “Quảng cáo – …”). Khách xem quảng cáo rồi gọi điện, nhắn Zalo thì chưa đếm được, nên số thật thường cao hơn.</p></div>';
+    h += '<div class="dash-grid"><div class="box"><h3>Theo kênh</h3>' + barList(rows, moneyShort, '', { below: 1 }) + '<p class="bar-legend">Đơn và khách hỏi của kênh đoán theo Nguồn đơn / Kênh khách hỏi (link UTM, “Quảng cáo – …”). Khách xem quảng cáo rồi gọi điện, nhắn Zalo thì chưa đếm được, nên số thật thường cao hơn.</p></div>';
     var days = dayKeys(R);
     if (days.length >= 3) h += '<div class="box"><h3>Chi phí theo ngày</h3>' + colChart(days.map(function (k) { var l = k.slice(8) + '/' + k.slice(5, 7); return { l: l, tip: l, v: day[k] || 0 }; }), moneyShort) + '</div>';
     h += '</div>';
@@ -2741,7 +2741,7 @@
     var body = '<div class="chips wrap">' + tabs.map(function (t) { return '<button class="chip' + (t[0] === tab ? ' on' : '') + '" data-mt="' + t[0] + '">' + t[1] + '</button>'; }).join('') + '</div>';
     if (tab === 'fb') {
       body += fb.on ? '<div class="notice info">✅ Đã kết nối (mã …' + esc(fb.tail) + ')' + (fb.last ? ' · cập nhật ' + fDateTime(fb.last) : '') + (fb.from ? ' · có số từ ' + fDate(new Date(fb.from + 'T12:00:00+07:00').getTime()) : '') + '. CRM tự lấy chi phí 3 tiếng 1 lần (7h–22h).</div>' + (fb.err ? '<p class="err">⚠️ ' + esc(fb.err) + '</p>' : '') +
-        '<div class="box"><h3>Tài khoản quảng cáo lấy số</h3>' + fb.all.map(function (a) { return '<label class="chk"><input type="checkbox" name="fbAcc" value="' + esc(a.id) + '"' + (fb.accounts.indexOf(a.id) >= 0 ? ' checked' : '') + '> ' + esc(a.name) + ' <span class="muted small">' + esc(a.id) + ' · ' + esc(a.cur) + (a.st !== 1 ? ' · không hoạt động' : '') + '</span></label>'; }).join('') + '<button class="btn" id="fbAccSave">Lưu lựa chọn</button></div>' +
+        '<div class="box"><h3>Tài khoản quảng cáo lấy số</h3>' + fb.all.map(function (a) { return '<label class="dash-chk"><input type="checkbox" name="fbAcc" value="' + esc(a.id) + '"' + (fb.accounts.indexOf(a.id) >= 0 ? ' checked' : '') + '> ' + esc(a.name) + ' <span class="muted small">' + esc(a.id) + ' · ' + esc(a.cur) + (a.st !== 1 ? ' · không hoạt động' : '') + '</span></label>'; }).join('') + '<button class="btn" id="fbAccSave">Lưu lựa chọn</button></div>' +
         '<div class="steps"><button class="btn pri" id="fbSync" data-days="7">↻ Lấy số 7 ngày gần nhất</button><button class="btn" id="fbSync90" data-days="90">Lấy lại 90 ngày</button><button class="btn ghost" id="fbOff">Ngắt kết nối</button></div>' +
         '<details class="box"><summary>Đổi mã truy cập</summary>' + fbTokenForm() + '</details>'
         : '<p>Kết nối 1 lần, CRM tự lấy chi phí từng chiến dịch mỗi ngày từ Facebook Ads (Meta), kể cả số tin nhắn, số khách để lại SĐT.</p>' + fbTokenForm() + fbGuide();
@@ -2763,9 +2763,10 @@
     var done = function (msg) { toast(msg); MK.cache = {}; render(); };
     var busy = function (btn, on, txt) { btn.disabled = on; if (txt) btn.textContent = txt; };
     var tk = $('#fbTok', m);
+    // mã Facebook gửi bằng tên fbToken: tên token là mã phiên đăng nhập CRM, trùng sẽ bị đăng xuất
     if (tk) $('#fbTokGo', m).onclick = function () {
       var btn = this; busy(btn, true, 'Đang kiểm tra và lấy 90 ngày…');
-      api('mkt_fb', { token: tk.value.trim() }).then(function (j) { closeModal(true); done('✅ Đã kết nối Facebook Ads · ' + (j.rows || 0) + ' dòng · ' + moneyShort(j.spend || 0) + (j.warn ? ' · ' + j.warn : '')); openMkt('fb'); }, function (e) { busy(btn, false, 'Kết nối'); toast(e.message, true); });
+      api('mkt_fb', { fbToken: tk.value.trim() }).then(function (j) { closeModal(true); done('✅ Đã kết nối Facebook Ads · ' + (j.rows || 0) + ' dòng · ' + moneyShort(j.spend || 0) + (j.warn ? ' · ' + j.warn : '')); openMkt('fb'); }, function (e) { busy(btn, false, 'Kết nối'); toast(e.message, true); });
     };
     if ($('#fbAccSave', m)) $('#fbAccSave', m).onclick = function () { var ids = $$('input[name=fbAcc]:checked', m).map(function (i) { return i.value; }); api('mkt_fb', { accounts: ids }).then(function () { toast('Đã lưu'); }, function (e) { toast(e.message, true); }); };
     ['#fbSync', '#fbSync90'].forEach(function (s0) { var btn = $(s0, m); if (btn) btn.onclick = function () { var t = btn.textContent; busy(btn, true, 'Đang lấy…'); api('mkt_fb', { sync: 1, days: +btn.getAttribute('data-days') }).then(function (j) { busy(btn, false, t); done('Đã lấy ' + j.rows + ' dòng · ' + moneyShort(j.spend) + (j.warn ? ' · ⚠️ ' + j.warn : '')); }, function (e) { busy(btn, false, t); toast(e.message, true); }); }; });
@@ -2872,7 +2873,7 @@
     var steps = st === 'access' ? ['Mở <a href="https://analytics.google.com/" target="_blank" rel="noopener">Google Analytics</a> → ⚙️ Quản trị → <b>Quản lý quyền truy cập thuộc tính</b>.', 'Bấm ＋ → Thêm người dùng → nhập ' + acc + ' → vai trò <b>Người xem</b> → Thêm.', 'Quay lại đây bấm <b>Kiểm tra lại</b>.']
       : st === 'prop' ? ['Mở <a href="https://analytics.google.com/" target="_blank" rel="noopener">Google Analytics</a> → ⚙️ Quản trị → <b>Chi tiết thuộc tính</b>.', 'Copy <b>Mã thuộc tính</b> (dãy số ở góc phải, không phải mã G-…), dán vào ô dưới rồi bấm Lưu.']
       : ['Mở <a href="https://script.google.com/d/1xylCUALC-ny2iltgPPqiCSo2JaPqAGq5nSAYdePR2z1YmruWNK_1PNMP/edit" target="_blank" rel="noopener">Apps Script của CRM</a> bằng tài khoản thaisoniph@gmail.com (nên làm trên máy tính).', 'Bấm <b>▶ Chạy</b> ở thanh trên (hàm <b>ketNoiGA4</b> đã chọn sẵn) → <b>Xem xét quyền</b> → chọn tài khoản → nếu Google cảnh báo thì bấm <b>Nâng cao → Đi tới…</b> → <b>Cho phép</b>.', 'Báo Claude “đã cấp quyền GA4” để bật quyền mới, rồi bấm <b>Kiểm tra lại</b>.'];
-    return '<div class="box setup"><h3>🔌 Kết nối Google Analytics (làm 1 lần)</h3><p class="small muted">' + esc(gj.msg || '') + '</p><ol>' + steps.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ol>' +
+    return '<div class="box dash-setup"><h3>🔌 Kết nối Google Analytics (làm 1 lần)</h3><p class="small muted">' + esc(gj.msg || '') + '</p><ol>' + steps.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ol>' +
       (st === 'prop' ? '<div class="row2c"><label class="f"><span>Mã thuộc tính GA4</span><input type="text" id="gaProp" inputmode="numeric" value="' + esc(gj.prop || '') + '" placeholder="ví dụ 412345678"></label></div><button class="btn pri" data-dash="prop">Lưu</button> ' : '') +
       '<button class="btn" data-dash="fresh">Kiểm tra lại</button><p class="small muted" style="margin-top:8px">Trong lúc chờ, phần kinh doanh ở trên vẫn đúng vì lấy từ CRM.</p></div>';
   }
@@ -2882,7 +2883,7 @@
     var ch = Object.keys(g.ch.cur).map(function (k) { var c = g.ch.cur[k], p = g.ch.prev[k]; return { l: GA_CH[k] || k, v: c[0], sub: pct(c[0], sess) + '% · ' + pct(c[1], c[0]) + '% ở lại xem' + (c[3] ? ' · ' + c[3] + ' đơn' : '') + (noCmp ? '' : p && p[0] ? ' · kỳ trước ' + p[0] : ' · kỳ trước 0') }; }).sort(function (x, y) { return y.v - x.v; });
     var src = g.src.map(function (r) { return { l: r[0] === '(direct) / (none)' ? 'Vào thẳng' : r[0], v: r[1], sub: pct(r[2], r[1]) + '% ở lại xem' + (r[3] ? ' · ' + r[3] + ' đơn' : '') }; });
     var webs = Object.keys(b.sub).filter(function (k) { return b.sub[k].g === 'Website'; }).map(function (k) { return { l: b.sub[k].l, v: b.sub[k].n, sub: moneyShort(b.sub[k].v) }; }).sort(function (x, y) { return y.v - x.v; });
-    h += '<section class="section"><div class="section-h"><h2>🚦 Khách vào web từ đâu</h2><span class="tip">lượt truy cập theo nguồn · % ở lại xem · đơn Analytics ghi nhận</span></div><div class="grid2"><div class="box"><h3>Theo nhóm nguồn</h3>' + barList(ch, function (v) { return v.toLocaleString('vi-VN'); }, 'Chưa có lượt truy cập.', { below: 1 }) + '</div>' +
+    h += '<section class="section"><div class="section-h"><h2>🚦 Khách vào web từ đâu</h2><span class="tip">lượt truy cập theo nguồn · % ở lại xem · đơn Analytics ghi nhận</span></div><div class="dash-grid"><div class="box"><h3>Theo nhóm nguồn</h3>' + barList(ch, function (v) { return v.toLocaleString('vi-VN'); }, 'Chưa có lượt truy cập.', { below: 1 }) + '</div>' +
       '<div class="box"><h3>Chi tiết nguồn / kênh</h3>' + barList(src, function (v) { return v.toLocaleString('vi-VN'); }, 'Chưa có số liệu.', { below: 1 }) + '<p class="bar-legend">Tên do link UTM đặt (tạo ở <a href="https://thucduonglanh.vn/admin/utm" target="_blank" rel="noopener">/admin/utm</a>). Bài đăng nào cũng nên dùng link UTM để biết bài nào ra khách.</p></div></div>' +
       '<div class="box"><h3>Đơn web theo nguồn (CRM ghi nhận)</h3>' + barList(webs, String, 'Chưa có đơn web trong kỳ.', { below: 1 }) + '</div></section>';
     // phễu
@@ -2899,7 +2900,7 @@
       kpi('Điền form nhận quà / liên hệ', act('generate_lead'), '', '', b.webLeads + ' khách hỏi web trong CRM') + kpi('Lượt tìm kiếm', act('search'), '', '', 'gõ ở ô tìm sản phẩm') + '</div></section>';
     // trang
     var trim = function (t) { return String(t || '').replace(/\s*[|–-]\s*Thực Dưỡng Lành.*$/i, '') || '(không tên)'; };
-    h += '<div class="grid2"><section class="section"><div class="section-h"><h2>📄 Trang xem nhiều</h2></div><div class="box">' + barList(g.pages.map(function (r) { return { l: trim(r[1]), v: r[2], sub: r[0] + ' · ' + r[3] + ' người', tip: r[0] }; }), function (v) { return v.toLocaleString('vi-VN'); }, '', { below: 1 }) + '</div></section>' +
+    h += '<div class="dash-grid"><section class="section"><div class="section-h"><h2>📄 Trang xem nhiều</h2></div><div class="box">' + barList(g.pages.map(function (r) { return { l: trim(r[1]), v: r[2], sub: r[0] + ' · ' + r[3] + ' người', tip: r[0] }; }), function (v) { return v.toLocaleString('vi-VN'); }, '', { below: 1 }) + '</div></section>' +
       '<section class="section"><div class="section-h"><h2>🚪 Trang khách vào đầu tiên</h2><span class="tip">% ở lại xem</span></div><div class="box">' + barList(g.land.map(function (r) { var e = pct(r[2], r[1]); return { l: r[0] === '/' ? 'Trang chủ' : r[0], v: r[1], sub: e + '% ở lại xem' + (r[3] ? ' · ' + r[3] + ' đơn' : ''), muted: r[1] >= 20 && e < 40 }; }), function (v) { return v.toLocaleString('vi-VN'); }, '', { below: 1 }) + '<p class="bar-legend">Thanh xám: nhiều người vào nhưng dưới 40% ở lại xem → nên sửa nội dung đầu trang hoặc kiểm tra quảng cáo dẫn về đây.</p></div></section></div>';
     var du = g.dev.reduce(function (s0, r) { return s0 + r[1]; }, 0) || 1;
     h += '<p class="small muted">Thiết bị: ' + g.dev.sort(function (x, y) { return y[1] - x[1]; }).map(function (r) { return (GA_DEV[r[0]] || r[0]) + ' ' + pct(r[1], du) + '%'; }).join(' · ') + '</p>';
@@ -2919,7 +2920,7 @@
       var mob = g.dev.filter(function (r) { return r[0] === 'mobile'; })[0], du = g.dev.reduce(function (s0, r) { return s0 + r[1]; }, 0);
       if (mob && du && mob[1] / du >= 0.7) L.push('📱 ' + pct(mob[1], du) + '% khách xem bằng điện thoại: sửa web thì xem trên điện thoại trước.');
     }
-    return L.length ? '<div class="box notes"><h3>Điểm cần chú ý</h3>' + L.map(function (x) { return '<p>' + x + '</p>'; }).join('') + '</div>' : '';
+    return L.length ? '<div class="box dash-notes"><h3>Điểm cần chú ý</h3>' + L.map(function (x) { return '<p>' + x + '</p>'; }).join('') + '</div>' : '';
   }
   function bindDash() {
     $$('[data-dash]').forEach(function (el) {
