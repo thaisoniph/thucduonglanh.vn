@@ -108,7 +108,8 @@ collections:
       - { label: "Mô tả ngắn (cạnh giá)", name: summary, widget: markdown, buttons: [bold, italic, link] }
       - { label: "Số gói/phần (sản phẩm 1 quy cách)", name: servings, widget: number, value_type: int, required: false, hint: "Ví dụ hộp 15 gói → 15. Có nhiều quy cách thì nhập ở từng quy cách." }
       - { label: "Đơn vị phần", name: serving_unit, widget: string, required: false, hint: "Chữ sau giá mỗi phần: gói, bữa, ly… Để trống = phần." }
-      - label: "Huy hiệu chứng nhận (dưới mô tả ngắn)"
+      - { label: "Câu giới thiệu ngắn (gợi ý mua kèm)", name: pitch, widget: string, required: false, hint: "1 câu ≤ 70 chữ, nói điểm hay nhất, không ghi công dụng chữa bệnh. Hiện khi sản phẩm được gợi ý trong giỏ hàng / thanh toán. Ví dụ: 12 loại hạt, pha 1 phút cho bữa sáng bận rộn" }
+      - label: "Huy hiệu chứng nhận (khung “Vì sao nên chọn”)"
         name: badges
         widget: list
         required: false

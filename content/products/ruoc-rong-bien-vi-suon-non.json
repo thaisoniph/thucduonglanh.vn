@@ -111,7 +111,10 @@
   ],
   "badges": [
     "Thuần chay",
-    "Không chất bảo quản"
+    "Không chất bảo quản",
+    "39,2g đạm thực vật trong 100g (kiểm nghiệm AVATEK)",
+    "Không phát hiện Aflatoxin, Salmonella",
+    "Nhà máy đạt ISO 22000:2018"
   ],
   "keywords": [
     "ruốc chay",
@@ -126,5 +129,25 @@
   ],
   "needs": [
     "an-chay-ngon-mieng"
+  ],
+  "pitch": "Ruốc chay rong biển thơm lá chanh, rắc cơm là ngon",
+  "label_imgs": [
+    "/assets/uploads/ho-so/ruoc-nhan-va-giay-to.webp"
+  ],
+  "proofs": [
+    {
+      "title": "Phiếu kết quả kiểm nghiệm",
+      "org": "Trung tâm Kiểm nghiệm và Tư vấn UDKH AVATEK (ISO/IEC 17025)",
+      "number": "BEG6250800186-1",
+      "date": "25/08/2025",
+      "scope": "Trong 100g: 490 kcal, đạm 39,2g, béo 34,6g, natri 1.666mg. Không phát hiện Aflatoxin B1, Aflatoxin tổng, Salmonella"
+    },
+    {
+      "title": "Nhà máy đạt ISO 22000:2018",
+      "org": "Công ty CP Chứng nhận Quốc tế (ICB)",
+      "number": "250840.FMS.CN25",
+      "date": "06/10/2025 – hiệu lực đến 05/10/2028",
+      "scope": "Công ty TNHH Hương Sắc Vegan (Hải Phòng): sản xuất và kinh doanh thực phẩm chay"
+    }
   ]
 }

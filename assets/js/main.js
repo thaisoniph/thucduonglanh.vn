@@ -140,9 +140,10 @@
     } else {
       body.innerHTML = cart.map(function (it) {
         var p = BY[it.slug];
-        return '<div class="mc-item"><a href="' + p.url + '"><img src="' + p.img + '" alt=""></a><div><b>' + esc(p.name) + '</b><small>' + esc(variantName(it)) + '</small>' +
-          '<div class="price"><ins>' + it.qty + ' × ' + money(unitPrice(it)) + '</ins></div></div>' +
-          '<button class="mc-rm" data-rm="' + esc(it.key) + '" aria-label="Xóa">' + ICON.trash + '</button></div>';
+        return '<div class="mc-item"><a href="' + p.url + '"><img src="' + p.img + '" alt=""></a><div class="mc-info"><b>' + esc(p.name) + '</b><small>' + esc(variantName(it)) + ' · ' + money(unitPrice(it)) + '</small>' +
+          '<div class="mc-row"><div class="qty sm mc-qty" role="group" aria-label="Số lượng ' + esc(p.short || p.name) + '"><button type="button" data-mq="-1" data-key="' + esc(it.key) + '" aria-label="Bớt 1"' + (it.qty <= 1 ? ' disabled' : '') + '>−</button><span aria-live="polite">' + it.qty + '</span><button type="button" data-mq="1" data-key="' + esc(it.key) + '" aria-label="Thêm 1"' + (it.qty >= 99 ? ' disabled' : '') + '>+</button></div>' +
+          '<b class="mc-sub">' + money(unitPrice(it) * it.qty) + '</b>' +
+          '<button class="mc-rm" data-rm="' + esc(it.key) + '" aria-label="Xóa ' + esc(p.short || p.name) + ' khỏi giỏ">' + ICON.trash + '<span>Xóa</span></button></div></div></div>';
       }).join('') + cartUpHTML();
     }
     var t = $('#mcTotal'); if (t) t.textContent = money(cartTotal());
@@ -176,6 +177,7 @@
   function shipEv(lv) { return { currency: 'VND', value: lv.sub, milestone: lv.level >= 2 ? 'milestone_2' : (lv.level === 1 ? 'free_shipping' : 'none'), next_milestone: lv.next, gap: lv.gap, items: cart.map(function (it) { return gaItem(it.slug, it.vi, it.qty); }).filter(Boolean) }; }
   function shipProgressHTML(sub, items) {
     var fee = +CFG.shipping_fee || 0, lv = shipLevel(sub, items), th = lv.th, m2 = lv.m2; if (!th || !fee) return '';
+    if (lv.fs && !m2) return '<div class="sp ok sp-done"><p class="sp-msg">🎉 Đơn hàng được <b>miễn phí vận chuyển</b></p></div>'; // đã đủ, không còn mốc nào: 1 dòng gọn
     var max = m2 ? m2.amount : th, pct = Math.min(100, Math.max(lv.fs && !m2 ? 100 : 3, Math.round(sub / max * 100)));
     var msg;
     if (!lv.fs) msg = '🚚 Thêm <b>' + money(th - sub) + '</b> để được <b>miễn phí vận chuyển</b>';
@@ -300,6 +302,7 @@
       var t;
       if ((t = e.target.closest('[data-add]'))) { e.preventDefault(); if (addToCart(t.getAttribute('data-add'), 1)) openMini(); return; }
       if ((t = e.target.closest('[data-wish]'))) { e.preventDefault(); toggleWish(t.getAttribute('data-wish')); return; }
+      if ((t = e.target.closest('[data-mq]'))) { var mk = t.getAttribute('data-key'), mi = cart.filter(function (x) { return x.key === mk; })[0]; if (mi) { mi.qty = Math.max(1, Math.min(99, mi.qty + (+t.getAttribute('data-mq')))); saveCart(); var nb = $('#mcBody [data-mq="' + t.getAttribute('data-mq') + '"][data-key="' + mk + '"]'); if (nb && !nb.disabled) nb.focus(); if ($('#cartPage')) renderCartPage(); } return; }
       if ((t = e.target.closest('[data-rm]'))) { var k = t.getAttribute('data-rm'); cart = cart.filter(function (x) { return x.key !== k; }); saveCart(); if ($('#cartPage')) renderCartPage(); return; }
       if ((t = e.target.closest('#cartOpen'))) { if (!$('#cartPage') && !$('#checkoutForm')) { e.preventDefault(); openMini(); } return; }
       if ((t = e.target.closest('[data-mc-close]')) || e.target === $('#minicart')) { closeMini(); return; }
@@ -404,11 +407,15 @@
     $$('[data-qplus]').forEach(function (b) { b.addEventListener('click', function () { setQty((+qin.value || 1) + 1); }); });
     if (qin) { qin.addEventListener('change', function () { setQty(qin.value); }); qin.addEventListener('input', function () { if (qin.value !== '') document.dispatchEvent(new CustomEvent('tdl:qty', { detail: { qty: clampQ(qin.value) } })); }); }
 
+    function renderShip() { var el = $('#pShip'); if (el && p) el.innerHTML = shipHint(p, vi >= 0 ? p.variants[vi] : p, qin ? clampQ(qin.value) : 1); }
+    document.addEventListener('tdl:qty', renderShip);
     function renderPrice() {
+      renderShip();
       if (!p || vi < 0) return;
       var v = p.variants[vi], box = $('#pPrice .price');
       if (!box) return;
-      var d = offPct(v);
+      var d = offPct(v), sv = $('#pSave');
+      if (sv) sv.innerHTML = d && v.regular_price ? 'Tiết kiệm <b>' + money(v.regular_price - v.price) + '</b> so với giá gốc' : '';
       box.innerHTML = (d ? '<del>' + money(v.regular_price) + '</del>' : '') + '<ins' + (v.price == null ? ' class="contact"' : '') + '>' + money(v.price) + '</ins>' + (d ? '<span class="p-off">-' + d + '%</span>' : '');
       var per = $('#pPer'); if (per) per.textContent = perServing(v, p);
       var gm = $('.g-main'), gb = gm && $('.badge-sale', gm); // nhãn -X% trên ảnh theo quy cách đang chọn
@@ -418,7 +425,7 @@
     $$('[data-variant]').forEach(function (b) {
       b.addEventListener('click', function () {
         vi = +b.getAttribute('data-variant');
-        $$('[data-variant]').forEach(function (x) { x.classList.toggle('is-active', x === b); });
+        $$('[data-variant]').forEach(function (x) { x.classList.toggle('is-active', x === b); x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
         renderPrice();
       });
     });
@@ -426,7 +433,25 @@
     var getQty = function () { return Math.max(1, Math.min(99, parseInt(qin && qin.value, 10) || 1)); };
     $$('[data-add-detail]').forEach(function (b) { b.addEventListener('click', function () { if (addToCart(slug, getQty(), vi)) openMini(); }); });
     $$('[data-buy-now]').forEach(function (b) { b.addEventListener('click', function () { var pr = (vi >= 0 && p.variants[vi]) ? p.variants[vi].price : p.price; if (pr == null) { toast('Sản phẩm đang cập nhật giá, vui lòng liên hệ tư vấn.', 'err'); return; } openQuickOrder(slug, vi, qin ? getQty() : 1); }); });
-    initSatc(p, function () { return vi; }, getQty, setQty);
+    initSatc(p, function () { return vi; }, getQty, setQty); initBuyBoxFloat();
+  }
+  /* dòng ship trong khung giá (khớp ship_hint ở build.py): theo giá quy cách đang chọn và số lượng khách chọn */
+  var UNIT_WORDS = ['hộp', 'hũ', 'chai', 'gói', 'túi', 'lọ', 'bịch'];
+  function shipHint(p, v, q) {
+    var th = +CFG.free_ship_threshold || 0, fee = +CFG.shipping_fee || 0, price = v && v.price;
+    if (p.fs) return '🚚 Được <b>miễn phí vận chuyển</b>';
+    if (!th || !fee || !price) return '🚚 Giao hàng toàn quốc';
+    if (price * (q || 1) >= th) return '🚚 ' + ((q || 1) > 1 ? 'Số lượng này được' : 'Được') + ' <b>miễn phí vận chuyển</b>';
+    var w = String((v === p ? p.unit : v.name) || '').trim().split(' ')[0].toLowerCase(); if (UNIT_WORDS.indexOf(w) < 0) w = 'sản phẩm';
+    var n = Math.ceil(th / price);
+    return n <= 5 ? '🚚 Mua từ <b>' + n + ' ' + w + '</b> được miễn phí vận chuyển' : '🚚 Đơn từ <b>' + money(th).replace(' ₫', 'đ') + '</b> được miễn phí vận chuyển';
+  }
+  /* điện thoại, trang sản phẩm: ẩn nút Gọi/Zalo nổi khi khu nút mua đang trên màn hình (trong khu đã có nút Zalo) để nút nổi không che chữ */
+  function initBuyBoxFloat() {
+    var box = $('.product .buy-box'); if (!box) return;
+    var raf = 0, mq = matchMedia('(max-width:767.98px)');
+    function m() { raf = 0; var r = box.getBoundingClientRect(); document.body.classList.toggle('buy-vis', mq.matches && r.bottom > 0 && r.top < innerHeight); }
+    window.addEventListener('scroll', function () { if (!raf) raf = requestAnimationFrame(m); }, { passive: true }); window.addEventListener('resize', m, { passive: true }); m();
   }
   /* thanh mua nhanh dính đáy (chỉ < 768px): KHÔNG hiện lúc mới vào trang; chỉ trượt lên khi khách đã cuộn qua hẳn nút Mua ngay
      (nút nằm phía trên màn hình), ẩn khi tới chân trang. Nút Thêm vào giỏ bấm hộ nút gốc [data-add-detail] → giỏ hàng / add_to_cart y hệt, không có giỏ thứ hai. */
@@ -700,10 +725,10 @@
      Không gợi ý gói (combo) khi khách đã có sản phẩm nằm trong gói đó – tránh hiểu nhầm gói nhỏ hơn là bản rẻ hơn của món đang mua. */
   function needName(slug) { var n = (CFG.needs || []).filter(function (x) { return x.slug === slug; })[0]; return n ? n.name : ''; }
   function upWhy(p, items, gap, price) {
-    if (gap && price >= gap) return 'Thêm món này là đủ mức miễn phí vận chuyển';
-    if (gap) return 'Thêm món này, đơn chỉ còn thiếu ' + money(gap - price) + ' để được miễn phí vận chuyển';
+    if (gap && price >= gap) return 'Thêm món này là đơn được miễn phí ship (tiết kiệm ' + money(+CFG.shipping_fee || 0) + ')';
+    if (gap) return 'Thêm món này, đơn chỉ còn thiếu ' + money(gap - price) + ' là được miễn phí ship';
     var why = '';
-    items.some(function (i) { var b = BY[i.slug] || {}; if ((b.upsell || []).indexOf(p.slug) >= 0) { why = 'Hay dùng cùng ' + (b.short || b.name); return true; } return false; });
+    items.some(function (i) { var b = BY[i.slug] || {}; if ((b.upsell || []).indexOf(p.slug) >= 0) { why = 'Hợp dùng cùng ' + (b.short || b.name) + ' bạn đã chọn'; return true; } return false; });
     if (!why) items.some(function (i) { var b = BY[i.slug] || {}, n = (p.needs || []).filter(function (x) { return (b.needs || []).indexOf(x) >= 0; })[0]; if (n && needName(n)) { why = 'Cùng nhu cầu “' + needName(n) + '”'; return true; } return false; });
     return why;
   }
@@ -725,13 +750,19 @@
     return { gap: gap, list: cands.filter(function (c) { return c.why; }).sort(function (x, y) { return y.score - x.score; }).slice(0, max || 3) };
   }
   function upItemHTML(c, attr) {
-    var save = c.reg && c.reg > c.price ? ' <s>' + money(c.reg) + '</s> <span class="up-save">Tiết kiệm ' + money(c.reg - c.price) + '</span>' : '';
-    return '<div class="up-i"><img src="' + c.img + '" alt="" loading="lazy" width="52" height="52"><div><b>' + esc(c.name) + '</b><small>Quy cách: ' + esc(c.variant) + '</small><em>' + money(c.price) + save + '</em>' + (c.why ? '<span class="up-why">' + esc(c.why) + '</span>' : '') + '</div>' +
-      '<button type="button" class="up-add" ' + attr + '="' + c.slug + '|' + c.vi + '" data-reason="' + esc(c.why || '') + '" aria-label="Thêm ' + esc(c.name) + ' (' + esc(c.variant) + ')">+ Thêm</button></div>';
+    var p = BY[c.slug] || {}, save = c.reg && c.reg > c.price ? '<s class="up-old">' + money(c.reg) + '</s> ' : '';
+    return '<div class="up-i"><img src="' + c.img + '" alt="" loading="lazy" width="64" height="64"><div class="up-txt"><b>' + esc(c.name) + '</b>' + (p.pitch ? '<span class="up-pitch">' + esc(p.pitch) + '</span>' : '') +
+      '<span class="up-price"><em>' + money(c.price) + '</em> ' + save + '<small>· ' + esc(c.variant) + '</small></span>' + (c.why ? '<span class="up-why">✓ ' + esc(c.why) + '</span>' : '') + '</div>' +
+      '<button type="button" class="up-add" ' + attr + '="' + c.slug + '|' + c.vi + '" data-reason="' + esc(c.why || '') + '" aria-label="Thêm ' + esc(c.name) + ' (' + esc(c.variant) + ') vào giỏ">+ Thêm</button></div>';
+  }
+  function upHead(gap, fs) { // tiêu đề khối gợi ý theo tình huống thật của giỏ
+    if (gap) return '🚚 Thêm 1 món – được <b>miễn phí ship</b>';
+    if (fs) return '🌿 Đã freeship – thêm món này <b>không mất phí ship</b>';
+    return '🌿 Gợi ý dùng kèm cho bữa lành trọn vẹn';
   }
   function upsellHTML(items) {
     var u = upsellList(items, 3); if (!u.list.length) return '';
-    return '<div class="up"><div class="up-h"><b>Có thể bạn cần thêm</b>' + (u.gap ? '<span>Còn ' + money(u.gap) + ' nữa là được miễn phí vận chuyển</span>' : '') + '</div>' +
+    return '<div class="up"><div class="up-h"><b>' + upHead(u.gap, shipLevel(items.reduce(function (s, i) { return s + i.subtotal; }, 0), items).fs) + '</b>' + (u.gap ? '<span>Còn ' + money(u.gap) + ' nữa là được miễn phí vận chuyển</span>' : '') + '</div>' +
       u.list.map(function (c) { return upItemHTML(c, 'data-up'); }).join('') + '</div>';
   }
 
@@ -758,7 +789,7 @@
   function cartUpHTML(max) {
     if (!cart.length) return '';
     var u = cartUpsell(cart.map(function (it) { return itemLine(it.slug, it.vi, it.qty); }), max || 1); if (!u.list.length) return '';
-    return '<div class="up up-cart"><div class="up-h"><b>' + (u.gap ? 'Gợi ý để được miễn phí vận chuyển' : 'Có thể bạn cần thêm') + '</b></div>' +
+    return '<div class="up up-cart"><div class="up-h"><b>' + upHead(u.gap, shipLevel(cartTotal()).fs) + '</b></div>' +
       u.list.map(function (c) { return upItemHTML(c, 'data-cup'); }).join('') + '</div>';
   }
   function initCartUpsell() {

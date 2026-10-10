@@ -121,9 +121,11 @@
   ],
   "disclaimer": "Thực phẩm. Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh.",
   "badges": [
-    "Nhà máy đạt GMP",
-    "Chè vằng Quảng Trị – Chỉ dẫn địa lý",
-    "Không chất bảo quản"
+    "Nhà máy GMP do Cục An toàn thực phẩm – Bộ Y tế cấp",
+    "Thuộc bộ Trà hòa tan Gold Herbal – sản phẩm tiêu biểu tỉnh Quảng Trị 2026",
+    "NIFC xác nhận đúng chè vằng và đinh lăng",
+    "Không phát hiện Aflatoxin, Salmonella",
+    "Không chất bảo quản, pha nước ấm là uống"
   ],
   "servings": 15,
   "serving_unit": "gói",
@@ -141,5 +143,57 @@
   ],
   "needs": [
     "uong-lanh-moi-ngay"
+  ],
+  "pitch": "Chè vằng – đinh lăng Quảng Trị, pha nước ấm là uống",
+  "label_imgs": [
+    "/assets/uploads/ho-so/dilvang-nhan-hop.webp"
+  ],
+  "proofs": [
+    {
+      "title": "Phiếu kiểm nghiệm",
+      "org": "Viện Kiểm nghiệm ATVSTP Quốc gia (NIFC) – Bộ Y tế",
+      "number": "19395/PKN-VKNQG",
+      "date": "07/05/2025",
+      "scope": "Định tính chè vằng và đinh lăng: dương tính. Không phát hiện Coliforms, E. coli, Salmonella, nấm men-mốc, Aflatoxin B1 và tổng, thủy ngân",
+      "file": "/assets/uploads/ho-so/dilvang-nifc-19395-trang-1.webp"
+    },
+    {
+      "title": "Phiếu kiểm nghiệm (trang 2)",
+      "org": "NIFC – Bộ Y tế",
+      "number": "19395/PKN-VKNQG",
+      "date": "07/05/2025",
+      "file": "/assets/uploads/ho-so/dilvang-nifc-19395-trang-2.webp"
+    },
+    {
+      "title": "Chứng nhận sản phẩm công nghiệp nông thôn tiêu biểu cấp tỉnh 2026",
+      "org": "UBND tỉnh Quảng Trị",
+      "number": "QĐ 2663/QĐ-UBND",
+      "date": "08/07/2026 – giá trị đến 08/07/2029",
+      "scope": "Bộ sản phẩm Cao khô hòa tan – Trà hòa tan Gold Herbal",
+      "file": "/assets/uploads/ho-so/gold-herbal-sp-tieu-bieu-2026.webp"
+    },
+    {
+      "title": "Giấy chứng nhận cơ sở đủ điều kiện ATTP (GMP thực phẩm bảo vệ sức khỏe – dạng bột)",
+      "org": "Cục An toàn thực phẩm – Bộ Y tế",
+      "number": "09/2025/ATTP-CNGMP",
+      "date": "22/01/2025 – giá trị 3 năm",
+      "scope": "Nhà máy Gold Herbal, Cụm CN Quốc lộ 9D, Đông Hà, Quảng Trị",
+      "file": "/assets/img/brand/chung-nhan-attp-gold-herbal.webp"
+    },
+    {
+      "title": "Giấy chứng nhận cơ sở đủ điều kiện an toàn thực phẩm",
+      "org": "Chi cục QLCL Nông lâm sản và Thủy sản Quảng Trị",
+      "number": "62/2024/NNPTNT-QT",
+      "date": "06/12/2024 – hiệu lực đến 06/12/2027",
+      "file": "/assets/uploads/ho-so/gold-herbal-attp-62-2024.webp"
+    },
+    {
+      "title": "Phiếu kiểm nghiệm dinh dưỡng",
+      "org": "Trung tâm Kiểm nghiệm Thuốc, Mỹ phẩm, Thực phẩm – Sở Y tế TP Huế",
+      "number": "25DV865",
+      "date": "16/05/2025",
+      "scope": "Trong 100g: 378,1 kcal; carbohydrat 91,3g; đạm 1,46g; natri 111,44mg",
+      "file": "/assets/uploads/ho-so/dilvang-phieu-hue-25dv865.webp"
+    }
   ]
 }

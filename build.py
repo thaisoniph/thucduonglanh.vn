@@ -533,7 +533,12 @@ CHIP_RE = re.compile(r"^(không |thuần chay|đường cỏ ngọt|ít đườn
 
 def card_chips(p):
     """Chip thuộc tính trên thẻ sản phẩm: chỉ lấy từ "Huy hiệu chứng nhận" đã nhập trong /admin (vd Thuần chay, Không đường tinh luyện), tối đa 2."""
-    return [b.strip() for b in (p.get("badges") or []) if b and CHIP_RE.match(b.strip())][:2]
+    out = []
+    for b in p.get("badges") or []:
+        t = re.split(r"\s*[(,–]", (b or "").strip())[0].strip()  # chip ngắn: bỏ phần giải thích sau ( , –
+        if t and CHIP_RE.match(t) and not t.lower().startswith("không phát hiện") and len(t) <= 28:
+            out.append(t)
+    return out[:2]
 
 
 def product_card(p, lazy=True):
@@ -1356,16 +1361,19 @@ def page_product(p):
     badge = f'<span class="badge-sale">-{d}%</span>' if d else ""
     variants = ""
     if p.get("variants"):
-        opts = "".join(f'<button type="button" class="v-opt{" is-active" if i == 0 else ""}" data-variant="{i}">{esc(v["name"])}</button>' for i, v in enumerate(p["variants"]))
-        variants = f'<div class="variants"><span class="lbl">Quy cách:</span><div class="v-opts">{opts}</div></div>'
+        opts = "".join(v_opt(i, v) for i, v in enumerate(p["variants"]))
+        variants = f'<div class="variants"><span class="lbl">Chọn quy cách:</span><div class="v-opts">{opts}</div></div>'
     unit = f'<p class="unit"><span class="lbl">Quy cách:</span> {esc(p["unit"])}</p>' if p.get("unit") else ""
-    highlights = "".join(f"<li>{ic('check','hl-ic')}{esc(h)}</li>" for h in p.get("highlights", []))
+    _bset = {(b or "").strip().lower() for b in (p.get("badges") or [])}  # ý đã có trong khung "Vì sao nên chọn" thì không lặp lại
+    highlights = "".join(f"<li>{ic('check','hl-ic')}{esc(h)}</li>" for h in p.get("highlights", []) if h and h.strip().lower() not in _bset)
     purchasable = p.get("price") is not None or any(v.get("price") is not None for v in p.get("variants", []))
     if purchasable:
-        buy = f'''<div class="qty-row"><div class="qty" data-qty><button type="button" data-qminus aria-label="Giảm">−</button><input type="number" inputmode="numeric" min="1" max="99" value="1" aria-label="Số lượng" id="qtyInput"><button type="button" data-qplus aria-label="Tăng">+</button></div>
-  <button class="btn btn-outline btn-lg" data-add-detail="{p["slug"]}">Thêm vào giỏ hàng</button></div>
-  <div class="buy-row"><button class="btn btn-lg btn-buy" data-buy-now="{p["slug"]}">{ic("bolt")} Mua ngay</button>
-  <a class="btn btn-lg btn-zalo" href="{zalo_link()}" target="_blank" rel="noopener">{ic("zalo")} Tư vấn qua Zalo</a></div>'''
+        buy = f'''<div class="buy-box">
+  <div class="qty-line"><span class="lbl" id="qtyLbl">Số lượng</span><div class="qty" data-qty role="group" aria-labelledby="qtyLbl"><button type="button" data-qminus aria-label="Giảm số lượng">−</button><input type="number" inputmode="numeric" min="1" max="99" value="1" aria-label="Số lượng" id="qtyInput"><button type="button" data-qplus aria-label="Tăng số lượng">+</button></div></div>
+  <div class="buy-btns"><button class="btn btn-lg btn-buy" data-buy-now="{p["slug"]}">{ic("bolt")} Mua ngay</button>
+  <button class="btn btn-outline btn-lg" data-add-detail="{p["slug"]}">{ic("cart")} Thêm vào giỏ hàng</button></div>
+  <a class="btn btn-lg btn-zalo buy-zalo" href="{zalo_link()}" target="_blank" rel="noopener">{ic("zalo")} Hỏi tư vấn qua Zalo</a>
+</div>'''
     else:
         buy = f'''<div class="contact-price"><p>Sản phẩm đang cập nhật giá trên website. Anh/chị vui lòng liên hệ để được báo giá và ưu đãi tốt nhất.</p></div>
   <div class="buy-row"><a class="btn btn-lg btn-buy" href="tel:{tel(SITE["hotline"])}">{ic("phone")} Gọi {esc(SITE["hotline"])}</a>
@@ -1381,13 +1389,15 @@ def page_product(p):
                      for b in (p.get("badges") or []) if b)
     v0 = p["variants"][0] if p.get("variants") else p
     proof_cta, proof_box = proof_drawer(p)
+    unit_line = f'<p class="p-unit">Quy cách: <b>{esc(p["unit"])}</b></p>' if p.get("unit") and not p.get("variants") and not p.get("combo") else ""
+    why = "".join(f"<li>{ic('check', 'ic why-ic')}<span>{esc(b)}</span></li>" for b in (p.get("badges") or []) if b)
+    why_box = f'<div class="p-why"><b class="p-why-h">Vì sao nên chọn {esc(p.get("short_name") or p["name"])}?</b><ul>{why}</ul>{proof_cta}</div>' if (why or proof_cta) and not landing else ""
     if landing:
         info_top = combo_hero_info(p)
     else:
         info_top = f'''<h1 class="p-title">{esc(p["name"])}</h1>{f'<a class="p-rating" href="#danh-gia">{stars_html(p)}</a>' if rating_of(p) else ""}
       <div class="p-summary">{p["summary"]}</div>
-      {f'<div class="p-badges">{badges}</div>' if badges else ""}{proof_cta}
-      <div class="p-price" id="pPrice">{price_html(p, "price big", off=True)}<div class="p-per" id="pPer">{per_serving(v0, p)}</div></div>'''
+      <div class="p-price" id="pPrice">{price_html(p, "price big", off=True)}<div class="p-save" id="pSave">{save_text(v0)}</div><div class="p-per" id="pPer">{per_serving(v0, p)}</div>{unit_line}{f'<p class="p-ship" id="pShip">{ship_hint(p, v0)}</p>' if purchasable else ""}</div>'''
     share_url = DOMAIN + path
     proof_i = next((i for i, s in enumerate(p.get("sections", []), 1) if PROOF_ANCHOR_RE.search(s.get("title") or "")), 0)
     sections = "".join(section_html(i, s, i == proof_i) for i, s in enumerate(p.get("sections", []), 1))
@@ -1404,9 +1414,10 @@ def page_product(p):
     </div>
     <div class="p-info">
       {info_top}
-      {"" if landing else (combo_parts_html(p) if p.get("combo") else unit)}{variants}
+      {"" if landing else (combo_parts_html(p) if p.get("combo") else "")}{variants}
       {buy}
       {trust_line(p) if purchasable else ""}
+      {why_box}
       {combo_parts_html(p) if landing else ""}
       {offer_box(p) if purchasable else ""}
       {"" if p.get("combo") else in_combos_html(p)}
@@ -1492,13 +1503,48 @@ def proof_drawer(p):
     label = ("Xem phiếu kiểm nghiệm & nhãn thật" if (cert or any(x.get("file") for x in proofs)) and labels else
              "Xem phiếu kiểm nghiệm" if cert or any(x.get("file") for x in proofs) else
              "Xem nhãn thật & hồ sơ chất lượng" if labels else "Xem hồ sơ chất lượng")
-    cta = f'<button type="button" class="pf-open" data-proof aria-haspopup="dialog" aria-controls="proofBox">{ic("check", "pf-ic")}<span>{label}</span><i aria-hidden="true">›</i></button>'
+    cta = f'<button type="button" class="pf-open" data-proof aria-haspopup="dialog" aria-controls="proofBox"><span class="pf-ic" aria-hidden="true">📄</span><span>{label}</span><i aria-hidden="true">›</i></button>'
     disc = f'<p class="pf-note">{esc(p["disclaimer"])}</p>' if p.get("disclaimer") else ""
     box = f'''<div class="pf" id="proofBox" hidden><div class="pf-box" role="dialog" aria-modal="true" aria-labelledby="pfTitle">
   <div class="pf-head"><h2 id="pfTitle">Hồ sơ chất lượng</h2><button type="button" class="icon-btn pf-x" data-proof-close aria-label="Đóng">{I["close"]}</button></div>
   <div class="pf-body"><p class="pf-lead">{esc(p["name"])}{"" if has_docs else " · Thông tin dưới đây lấy từ hồ sơ công bố của sản phẩm."}</p>{"".join(parts)}{disc}</div>
 </div></div>'''
     return cta, box
+
+
+UNIT_WORDS = ("hộp", "hũ", "chai", "gói", "túi", "lọ", "bịch")
+
+
+def unit_word(p, v):
+    w = ((v.get("name") if v is not p else p.get("unit")) or "").strip().split(" ")[0].lower()
+    return w if w in UNIT_WORDS else "sản phẩm"
+
+
+def ship_hint(p, v):
+    """Dòng ship trong khung giá – tính theo giá quy cách: "Mua từ 2 chai được miễn phí vận chuyển". JS (shipHint) cập nhật theo số lượng."""
+    th, fee, price = SITE.get("free_ship_threshold") or 0, SITE.get("shipping_fee") or 0, v.get("price")
+    if p.get("free_ship"):
+        return "🚚 Được <b>miễn phí vận chuyển</b>"
+    if not th or not fee or not price:
+        return "🚚 Giao hàng toàn quốc"
+    n = -(-th // price)
+    if n <= 1:
+        return "🚚 Được <b>miễn phí vận chuyển</b>"
+    if n <= 5:
+        return f"🚚 Mua từ <b>{n} {unit_word(p, v)}</b> được miễn phí vận chuyển"
+    return f"🚚 Đơn từ <b>{money(th).replace(' ₫', 'đ')}</b> được miễn phí vận chuyển"
+
+
+def save_text(v):
+    d = discount(v)
+    return f'Tiết kiệm <b>{money(v["regular_price"] - v["price"])}</b> so với giá gốc' if d else ""
+
+
+def v_opt(i, v):
+    """Nút chọn quy cách: tên + giá (người lớn tuổi không phải bấm thử mới biết giá)."""
+    price = f"<small>{money(v['price'])}</small>" if v.get("price") is not None else ""
+    on = "true" if i == 0 else "false"
+    return f'<button type="button" class="v-opt{" is-active" if i == 0 else ""}" data-variant="{i}" aria-pressed="{on}"><span>{esc(v["name"])}</span>{price}</button>'
 
 
 def satc_html(p):
@@ -1554,10 +1600,8 @@ def reviews_html(p):
 
 
 def trust_line(p):
-    """Dòng cam kết nhỏ ngay dưới nút mua (khớp chính sách giao hàng / kiểm hàng)."""
-    th = SITE.get("free_ship_threshold")
-    ship = "🚚 Miễn phí vận chuyển" if p.get("free_ship") else (f"🚚 Freeship đơn từ {th // 1000}k" if th and SITE.get("shipping_fee") else "🚚 Giao toàn quốc")
-    return f'<p class="p-trust"><span>{ship}</span><span>📦 Giao Hà Nội 1–2 ngày</span><span>✅ Kiểm tra hàng trước khi trả tiền</span></p>'
+    """Cam kết ngay dưới nút mua (khớp chính sách giao hàng / kiểm hàng). Ý miễn phí ship nằm trong khung giá (ship_hint)."""
+    return f'<ul class="p-trust"><li>✅ Được kiểm tra hàng rồi mới trả tiền</li><li>📦 Giao Hà Nội 1–2 ngày, tỉnh khác 2–5 ngày</li><li>📞 Nhân viên gọi xác nhận trước khi giao</li></ul>'
 
 
 def brochure_promo():
@@ -1874,7 +1918,7 @@ def main():
         "kw": [k for k in (p.get("keywords") or []) if k],  # từ khóa tìm kiếm nội bộ (không hiển thị)
         "ing": strip_tags(" ".join((x.get("text") or "") + " " + " ".join(x.get("items") or []) for x in p.get("sections", []) if (x.get("title") or "").lower().startswith("thành phần")))[:600],  # thành phần: tìm kiếm ưu tiên thấp
         "needs": [x for x in (p.get("needs") or []) if x], "parts": [x["p"]["slug"] for x in p.get("parts") or []],
-        "chips": card_chips(p),
+        "chips": card_chips(p), "pitch": p.get("pitch") or "",
     } for p in PRODUCTS]
     cfg = {"brand": BRAND, "hotline": SITE["hotline"], "zalo": tel(SITE["zalo"]), "email": SITE["email"], "zalo_oa": SITE.get("zalo_oa", ""), "zalo_group": SITE.get("zalo_group", ""), "gift": (WEB_OFFER.get("gift_title", "") + (" (trị giá " + WEB_OFFER["gift_value"] + ")" if WEB_OFFER.get("gift_value") else "")) if WEB_OFFER.get("gift_enabled") else "",
            "ga4_id": SITE.get("ga4_id", ""), "clarity_id": SITE.get("clarity_id", ""), "meta_pixel": SITE.get("meta_pixel", ""), "tiktok_pixel": SITE.get("tiktok_pixel", ""),

@@ -109,8 +109,11 @@
     "bua-an-dinh-duong-vitagreen"
   ],
   "badges": [
-    "Curcumin 95%",
-    "Đường cỏ ngọt"
+    "Kiểm nghiệm tại QUATEST 3 (11/2025)",
+    "Không phát hiện kim loại nặng, Aflatoxin",
+    "Curcuminoid Viện Hóa học – NIFC đo 95,6%",
+    "Nhà máy đạt ISO 22000:2018 và GMP",
+    "Đường cỏ ngọt – ngọt dịu tự nhiên"
   ],
   "keywords": [
     "sữa hạt",
@@ -130,5 +133,55 @@
   ],
   "needs": [
     "bua-phu-tu-hat"
+  ],
+  "pitch": "15 loại hạt + Curcumin Viện Hóa học, ngọt dịu cỏ ngọt",
+  "proofs": [
+    {
+      "title": "Phiếu kết quả thử nghiệm thành phẩm",
+      "org": "Trung tâm Kỹ thuật Tiêu chuẩn Đo lường Chất lượng 3 (QUATEST 3)",
+      "number": "KT3-11736ATP5/1",
+      "date": "26/11/2025",
+      "scope": "Không phát hiện chì, cadimi, thiếc, thủy ngân, Aflatoxin M1, Salmonella. Trong 100g: 434 kcal, đạm 14,6g",
+      "file": "/assets/uploads/ho-so/curcumin-quatest3-trang-1.webp"
+    },
+    {
+      "title": "Phiếu kết quả thử nghiệm (trang 2 – chi tiết chỉ tiêu)",
+      "org": "QUATEST 3",
+      "number": "KT3-11736ATP5/1",
+      "date": "26/11/2025",
+      "file": "/assets/uploads/ho-so/curcumin-quatest3-trang-2.webp"
+    },
+    {
+      "title": "Phiếu kiểm nghiệm nguyên liệu Curcuminoid (trang 1)",
+      "org": "Viện Kiểm nghiệm ATVSTP Quốc gia (NIFC) – Bộ Y tế",
+      "number": "9092/PKN-VKNQG",
+      "date": "12/02/2026",
+      "scope": "Nguyên liệu Curcuminoid do Viện Hóa học Công nghiệp Việt Nam sản xuất: vi sinh không phát hiện",
+      "file": "/assets/uploads/ho-so/curcuminoid-nifc-9092-trang-1.webp"
+    },
+    {
+      "title": "Phiếu kiểm nghiệm nguyên liệu Curcuminoid (trang 2)",
+      "org": "NIFC – Bộ Y tế",
+      "number": "9092/PKN-VKNQG",
+      "date": "12/02/2026",
+      "scope": "Hàm lượng Curcuminoid 95,6% (đo trên nguyên liệu, không phải trên thành phẩm)",
+      "file": "/assets/uploads/ho-so/curcuminoid-nifc-9092-trang-2.webp"
+    },
+    {
+      "title": "Nhà máy đạt ISO 22000:2018 (quản lý an toàn thực phẩm)",
+      "org": "Công ty CP Chứng nhận Quốc gia GOOD Việt Nam (GOODVN)",
+      "number": "GOODVN40825.FSMS",
+      "date": "Cấp 22/09/2025 – hiệu lực đến 21/09/2028",
+      "scope": "Nhà máy Vitanuts (KCN Phú Nghĩa, Hà Nội): phối trộn, đóng gói bột ngũ cốc, bột dinh dưỡng",
+      "file": "/assets/uploads/ho-so/vitanuts-iso-22000.webp"
+    },
+    {
+      "title": "Nhà máy đạt GMP (TCVN 5603:2023)",
+      "org": "Công ty CP Chứng nhận Quốc gia GOOD Việt Nam (GOODVN)",
+      "number": "GOODVN12026.GMP",
+      "date": "Cấp 04/04/2026 – hiệu lực đến 03/04/2029",
+      "scope": "Nhà máy Vitanuts: sản xuất bột ngũ cốc, bột dinh dưỡng, sản phẩm từ hạt dạng bột",
+      "file": "/assets/uploads/ho-so/vitanuts-gmp.webp"
+    }
   ]
 }

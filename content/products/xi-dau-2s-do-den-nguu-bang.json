@@ -60,8 +60,9 @@
   "disclaimer": "",
   "badges": [
     "Lên men tự nhiên 99 ngày",
-    "Quy trình đạt HACCP",
-    "VNPS xác nhận 100% tự nhiên"
+    "Đỗ đen và ngưu bàng kiểm nghiệm tại NIFC",
+    "Đỗ đen: không phát hiện Aflatoxin, 3 hoạt chất thuốc BVTV đã kiểm",
+    "Ngưu bàng trồng tại Sóc Sơn"
   ],
   "keywords": [
     "xì dầu",
@@ -79,5 +80,16 @@
   ],
   "needs": [
     "an-chay-ngon-mieng"
+  ],
+  "pitch": "Lên men tự nhiên 99 ngày từ đỗ đen và ngưu bàng",
+  "proofs": [
+    {
+      "title": "Phiếu kiểm nghiệm nguyên liệu hạt đỗ đen và củ ngưu bàng",
+      "org": "Viện Kiểm nghiệm ATVSTP Quốc gia (NIFC) – Bộ Y tế",
+      "number": "75771/PKN-VKNQG (đỗ đen) · 24577/PKN-VKNQG (ngưu bàng)",
+      "date": "11/12/2025 · 30/05/2025",
+      "scope": "Đỗ đen: không phát hiện Aflatoxin B1, Aflatoxin tổng, Carbendazim, Propargite, Tebuconazole. Đây là kiểm nghiệm nguyên liệu",
+      "file": "/assets/uploads/ho-so/xi-dau-nifc-nguyen-lieu.webp"
+    }
   ]
 }

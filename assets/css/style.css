@@ -1453,9 +1453,9 @@ body.gp-lock{overflow:hidden}
 /* nút + khung "Hồ sơ chất lượng" trang sản phẩm */
 .pf-open{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;margin:-4px 0 14px;padding:8px 12px;border:1px dashed #b9d8c5;border-radius:10px;background:#fbfdfb;color:var(--primary-2);font-weight:600;font-size:14.5px;text-align:left;cursor:pointer}
 .pf-open:hover{background:var(--primary-light)}
-.pf-open span{flex:1}
+.pf-open>span:not(.pf-ic){flex:1}
 .pf-open i{font-style:normal;font-size:20px;line-height:1}
-.pf-ic{width:18px;height:18px;flex:0 0 18px}
+.pf-ic{display:inline-flex;width:20px;height:20px;flex:0 0 20px}.pf-ic svg{width:100%;height:100%}
 .pf{position:fixed;inset:0;z-index:120;background:rgba(20,30,20,.45);display:flex;justify-content:flex-end;opacity:0;transition:opacity .2s}
 .pf.on{opacity:1}
 .pf[hidden]{display:none}
@@ -1474,3 +1474,80 @@ body.gp-lock{overflow:hidden}
 .pf-note{font-size:13px;color:var(--muted);font-style:italic;margin:4px 0 0}
 @media (max-width:767.98px){.pf{align-items:flex-end}.pf-box{width:100%;height:88vh;border-radius:16px 16px 0 0;transform:translateY(30px)}}
 .sr-fix{padding:10px 18px 2px;font-size:13.5px;color:var(--muted)}
+
+/* ---------- 10/2026: trang sản phẩm & giỏ hàng dễ dùng cho người trung niên ---------- */
+/* khung giá: giá to, tiết kiệm, quy cách, dòng ship theo số lượng */
+.p-price{display:block;min-width:0;padding:14px 16px;border:1px solid #efdcb8}
+.p-price .price{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px}
+.p-price .price ins{order:-1;font-size:30px;line-height:1.15;flex:0 0 auto}
+.p-price .price del{font-size:15px;color:var(--muted)}
+.p-save{font-size:14.5px;color:#9a3412;margin-top:2px}.p-save:empty{display:none}
+.p-save b{color:#9a3412}
+.p-unit{margin:6px 0 0;font-size:15px;color:var(--text)}
+.p-unit b{color:var(--ink);font-weight:600}
+.p-ship{margin:8px 0 0;padding-top:8px;border-top:1px dashed #e7cf9f;font-size:15px;color:var(--ink)}
+.p-ship b{color:var(--primary-2)}
+/* chọn quy cách: nút có giá */
+.variants .lbl,.qty-line .lbl{font-weight:600;color:var(--ink);font-size:15.5px}
+.v-opt{display:flex;flex-direction:column;align-items:flex-start;gap:0;text-align:left;line-height:1.3;padding:8px 14px;min-height:52px}
+.v-opt small{font-size:13.5px;color:var(--primary-2);font-weight:600}
+.v-opt.is-active{box-shadow:0 0 0 1px var(--primary-2) inset}
+/* khu nút mua */
+.buy-box{display:grid;gap:12px;margin-bottom:16px}
+.qty-line{display:flex;align-items:center;gap:14px}
+.buy-btns{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.buy-btns .btn,.buy-zalo{width:100%;min-height:52px;font-size:16px}
+.buy-btns .ic{width:20px;height:20px}
+.buy-zalo{justify-self:start;width:auto;padding-left:22px;padding-right:22px}
+ul.p-trust{list-style:none;padding:0;margin:0 0 16px;display:grid;gap:4px;font-size:14.5px;color:var(--text)}
+/* Vì sao nên chọn */
+.p-why{border:1px solid #cfe3d4;background:#f6fbf7;border-radius:14px;padding:14px 16px;margin:0 0 18px}
+.p-why-h{display:block;font-size:16.5px;color:var(--primary-2);margin-bottom:6px;line-height:1.35}
+.p-why ul{list-style:none;padding:0;margin:0 0 10px;display:grid;gap:6px}
+.p-why li{display:flex;gap:8px;align-items:flex-start;font-size:15px;line-height:1.45;color:var(--ink)}
+.why-ic{flex:0 0 20px;width:20px;height:20px;color:#fff;background:var(--primary);border-radius:50%;padding:3px;margin-top:1px}
+.p-why .pf-open{margin:0;background:#fff;border-style:solid;font-size:15px;justify-content:flex-start}
+/* giỏ hàng nhỏ */
+.mc-item{grid-template-columns:60px 1fr;align-items:start;gap:10px}.mc-item img{width:60px;height:60px}
+.mc-info small{display:block;font-size:13.5px;margin-top:2px}
+.mc-row{display:flex;align-items:center;gap:10px;margin-top:6px}.mc-row .mc-sub{margin-left:auto}
+.mc-qty{background:var(--soft)}
+.mc-qty span{min-width:30px;text-align:center;font-weight:700;font-size:16px;color:var(--ink)}
+.mc-qty button:disabled{color:#c4c4bc}
+.mc-sub{font-size:15.5px;color:var(--primary-2)!important;font-weight:700}
+.mc-rm{flex-direction:column;width:auto!important;height:auto!important;min-width:44px;min-height:44px;gap:0;font-size:11.5px;line-height:1.1;border-radius:10px}
+.mc-rm span{font-size:11.5px}
+/* gợi ý mua kèm */
+.up-h b{font-size:15.5px;line-height:1.4;font-weight:600}
+.up-h b b{font-weight:700;color:var(--primary-2)}
+.up-i{grid-template-columns:64px 1fr;grid-template-areas:"img txt" "btn btn";row-gap:8px}
+.up-i>img{grid-area:img;width:64px;height:64px}
+.up-txt{grid-area:txt;min-width:0}
+.up-pitch{display:block;font-size:13.5px;line-height:1.4;color:var(--text);margin:1px 0 3px}
+.up-price{display:block}
+.up-price em{font-size:16px}
+.up-price small{display:inline;color:var(--muted);font-size:13px}
+.up-old{font-size:12.5px;color:var(--muted)}
+.up-why{color:var(--primary-2);font-weight:600}
+.up-add{grid-area:btn;width:100%;min-height:46px;font-size:15.5px}
+@media (min-width:768px){.up-i{grid-template-columns:64px 1fr auto;grid-template-areas:"img txt btn"}.up-add{width:auto}}
+@media (max-width:767.98px){
+  body{font-size:16px}
+  .p-summary{font-size:16px;line-height:1.65}
+  .p-title{font-size:25px;line-height:1.3}
+  .buy-btns{grid-template-columns:1fr}
+  .buy-btns .btn-buy{min-height:56px;font-size:17.5px}
+  .buy-zalo{width:100%}
+  .qty-line .qty button{width:48px;height:48px;font-size:24px}
+  .qty-line .qty input{width:52px;font-size:18px}
+  .v-opts{display:grid;grid-template-columns:1fr 1fr;width:100%}
+  .variants{flex-direction:column;align-items:stretch;gap:8px}
+  body.buy-vis .float-widget,body.buy-vis .to-top{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s,visibility .2s}
+  .mc-item b{font-size:15px}
+  .tab-panel,.d-box{font-size:16px}
+}
+.sp-done{padding:8px 12px}.sp-done .sp-msg{margin:0}
+#minicart .up-i{grid-template-columns:56px 1fr auto;grid-template-areas:"img txt btn";align-items:center}
+#minicart .up-i>img{width:56px;height:56px}
+#minicart .up-add{width:auto;padding:8px 14px}
+#minicart .up-pitch{font-size:13px}

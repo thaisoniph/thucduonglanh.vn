@@ -125,9 +125,11 @@
     "dinh-duong-tu-hat-va-curcumin"
   ],
   "badges": [
-    "Kiểm nghiệm NIFC",
-    "GMP – ISO 22000:2018",
-    "Không đường tinh luyện"
+    "Kiểm nghiệm tại Viện NIFC – Bộ Y tế",
+    "Không phát hiện Salmonella, Aflatoxin M1",
+    "Nhà máy đạt ISO 22000:2018 và GMP",
+    "Fucoidan từ tảo Mozuku Okinawa – Nhật Bản",
+    "Không đường tinh luyện (dùng đường cỏ ngọt)"
   ],
   "serving_unit": "gói",
   "keywords": [
@@ -153,5 +155,40 @@
   "needs": [
     "bua-sang-ban-ron",
     "bua-phu-tu-hat"
+  ],
+  "pitch": "12 loại hạt + Fucoidan Nhật, pha 1 phút cho bữa sáng",
+  "proofs": [
+    {
+      "title": "Phiếu kiểm nghiệm an toàn (vi sinh, độc tố, kim loại nặng)",
+      "org": "Viện Kiểm nghiệm ATVSTP Quốc gia (NIFC) – Bộ Y tế",
+      "number": "58635/PKN-VKNQG",
+      "date": "26/09/2025",
+      "scope": "Không phát hiện Listeria, Salmonella, Aflatoxin M1, thủy ngân; chì, thiếc dưới ngưỡng định lượng",
+      "file": "/assets/uploads/ho-so/bua-an-nifc-58635-vi-sinh.webp"
+    },
+    {
+      "title": "Phiếu kiểm nghiệm dinh dưỡng",
+      "org": "Viện Kiểm nghiệm ATVSTP Quốc gia (NIFC) – Bộ Y tế",
+      "number": "33332/PKN-VKNQG",
+      "date": "26/06/2025",
+      "scope": "Trong 100g: 436 kcal, đạm 11,2g, chất xơ 2,79g (FOS 1,20g), natri 171mg",
+      "file": "/assets/uploads/ho-so/bua-an-nifc-33332-dinh-duong.webp"
+    },
+    {
+      "title": "Nhà máy đạt ISO 22000:2018 (quản lý an toàn thực phẩm)",
+      "org": "Công ty CP Chứng nhận Quốc gia GOOD Việt Nam (GOODVN)",
+      "number": "GOODVN40825.FSMS",
+      "date": "Cấp 22/09/2025 – hiệu lực đến 21/09/2028",
+      "scope": "Nhà máy Vitanuts (KCN Phú Nghĩa, Hà Nội): phối trộn, đóng gói bột ngũ cốc, bột dinh dưỡng",
+      "file": "/assets/uploads/ho-so/vitanuts-iso-22000.webp"
+    },
+    {
+      "title": "Nhà máy đạt GMP (TCVN 5603:2023)",
+      "org": "Công ty CP Chứng nhận Quốc gia GOOD Việt Nam (GOODVN)",
+      "number": "GOODVN12026.GMP",
+      "date": "Cấp 04/04/2026 – hiệu lực đến 03/04/2029",
+      "scope": "Nhà máy Vitanuts: sản xuất bột ngũ cốc, bột dinh dưỡng, sản phẩm từ hạt dạng bột",
+      "file": "/assets/uploads/ho-so/vitanuts-gmp.webp"
+    }
   ]
 }
