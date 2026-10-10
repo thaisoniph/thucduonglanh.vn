@@ -64,7 +64,7 @@ Trên danh sách đơn và khách hỏi, bấm vào mã đơn hoặc số điệ
 - **Ô nhỏ:** đơn mới, khách hỏi, việc đã làm, mục tiêu tháng. Bấm để mở đúng danh sách. Quản lý thấy thêm doanh thu và khách mới của tháng.
 - **Gọn gàng khi mới mở:** chỉ **mục cần gọi đầu tiên** được mở sẵn (thường là *Đơn mới*, nếu không có thì *Khách vừa hỏi* hoặc nhóm chăm sóc đầu tiên) và chỉ hiện **5 khách đầu**. Bấm **Xem thêm … khách** để hiện tiếp. Các mục khác đều gập lại, bấm vào tên mục khi tới lượt gọi. CRM nhớ mục nào bạn đã mở hay gập trong lúc dùng.
 - **1️⃣ Đơn mới – gọi khách xác nhận** (chỉ hiện khi có), kèm **Chuyển khoản chưa nhận tiền**.
-  - **Ai thấy đơn mới:** Quản lý / Quản trị thấy tất cả. Nhân viên sale **chỉ thấy đơn đã giao cho mình**: đơn quản lý giao, hoặc đơn của khách mình đang phụ trách đặt lại. Đơn chưa giao thì không hiện với nhân viên nào.
+  - **Ai thấy đơn mới:** Quản lý / Quản trị thấy tất cả. Nhân viên sale **chỉ thấy đơn đã giao cho mình**: đơn quản lý giao, hoặc đơn của khách mình đang phụ trách đặt lại. Đơn chưa giao thì không hiện với nhân viên nào, ở cả **Hôm nay** lẫn tab **Đơn hàng**.
   - **Quản lý giao đơn:** trên mỗi đơn mới có ô **Giao cho…**, chọn tên nhân sự là xong. Người đó sẽ thấy đơn ở **Hôm nay**. Chọn **Bỏ giao** để rút lại. (Người được giao cũng là *NV bán* của đơn, tính vào doanh số.)
 - **2️⃣ 🔥 Khách vừa hỏi – liên hệ ngay** (chỉ hiện khi có): người hỏi trong 24 giờ qua mà chưa ai liên hệ. Đây là khách nóng nhất, gọi càng sớm càng dễ chốt.
 - **3️⃣ Chăm sóc khách:** chia nhóm theo loại việc (xem [bảng các loại việc](#cac-loai-viec-cham-soc)). Nhóm đầu tiên tự mở sẵn (nếu phía trên chưa có mục nào mở), các nhóm khác bấm vào mới mở. Mỗi khách 1 dòng với nút **📞 Gọi · 📵 KNM · 💬 Chăm sóc**. Dưới tên khách có dòng **🕘 lần liên hệ gần nhất** (vd *“3 ngày trước: Đã hỏi thăm: chị bảo ngủ ngon hơn”*, kèm *📵 2 lần KNM liền* nếu gọi mãi không được) để biết lần trước đã nói gì trước khi gọi. Khách chưa ai liên hệ thì ghi *🆕 Chưa liên hệ lần nào*.
@@ -87,7 +87,7 @@ Tab **Đơn hàng** mở sẵn mục **⚡ Cần xử lý**, chỉ gồm những
 
 | Nhóm | Đơn nào | Việc cần làm |
 | --- | --- | --- |
-| 🆕 **Chờ xác nhận** | Đơn mới | Gọi khách, bấm **✅ Xác nhận** |
+| 🆕 **Chờ xác nhận** | Đơn mới (nhân viên chỉ thấy đơn đã giao cho mình; quản lý giao bằng ô **Giao cho…**) | Gọi khách, bấm **✅ Xác nhận** |
 | 📦 **Chờ gửi hàng** | Đã xác nhận, chưa có mã vận đơn | Đóng hàng, bấm **📦 Nhập mã VĐ** |
 | 📵 **Giao chưa được** | Viettel Post báo khách vắng nhà, hẹn ra bưu cục, sắp hoàn | Gọi khách ngay, hẹn lại giờ giao để giữ đơn |
 | 🚚 **Giao lâu chưa tới** | Đã gửi quá 5 ngày mà vẫn Đang giao | Gọi hỏi khách, giục bưu cục để tránh hoàn |

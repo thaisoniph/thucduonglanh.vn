@@ -498,7 +498,10 @@
     }).sort(function (a, b) { return b.spent - a.spent || (a.last || 0) - (b.last || 0); });
   }
   // Đơn mới chờ xác nhận: Quản lý/Quản trị thấy hết; nhân viên chỉ thấy đơn quản lý đã giao cho mình (NV bán = mình)
-  function newOrders() { return S.d.orders.filter(function (o) { return o.status === 'Mới' && (lvl() >= 2 || o.seller === S.user.name); }); }
+  function newOrderSeen(o) { return o.status !== 'Mới' || lvl() >= 2 || o.seller === S.user.name; }
+  function newOrders() { return S.d.orders.filter(function (o) { return o.status === 'Mới' && newOrderSeen(o); }); }
+  /** Đơn hiện ở tab Đơn hàng: nhân viên không thấy đơn Mới chưa giao cho mình. */
+  function ordersSeen() { return lvl() >= 2 ? (S.who ? S.d.orders.filter(function (o) { return whoOk(orderOwner(o)); }) : S.d.orders) : S.d.orders.filter(newOrderSeen); }
   function assignOrder(o, v, sel) {
     var old = o.seller; if (v === old) return;
     o.seller = v; toast(v ? 'Đã giao đơn cho ' + v + ' ✓' : 'Đã bỏ giao đơn'); navBadges(); render();
@@ -1652,7 +1655,7 @@
   function orderTodo() {
     var t0 = today(), d = function (o) { return daysSince(o.time); };
     var G = [
-      { k: 'new', t: '🆕 Chờ xác nhận', tip: 'gọi khách xác nhận đơn', f: function (o) { return o.status === 'Mới'; } },
+      { k: 'new', t: '🆕 Chờ xác nhận', tip: lvl() >= 2 ? 'gọi khách xác nhận đơn · chọn “Giao cho…” để giao nhân sự' : 'đơn quản lý giao cho bạn – gọi khách xác nhận', f: function (o) { return o.status === 'Mới' && newOrderSeen(o); } },
       { k: 'pack', t: '📦 Chờ gửi hàng', tip: 'đã xác nhận, chưa có mã vận đơn – đóng hàng, nhập mã vận đơn', f: function (o) { return o.status === 'Đã xác nhận' && !o.tracking; } },
       { k: 'fail', t: '📵 Giao chưa được', tip: 'Viettel Post báo khách vắng / hẹn ra bưu cục / sắp hoàn – gọi khách ngay để giữ đơn', f: trkWarn },
       { k: 'late', t: '🚚 Giao lâu chưa tới', tip: 'đang giao quá ' + SHIP_LATE + ' ngày – gọi hỏi khách, giục bưu cục để tránh hoàn', f: function (o) { return o.status === 'Đang giao' && shipDays(o) > SHIP_LATE && !trkWarn(o); } },
@@ -1691,7 +1694,7 @@
   }
   function renderOrdersBody(f, OS, q, qd) {
     if (f.tab === 'todo') {
-      var G = orderTodo(); if (OS !== S.d.orders) G.forEach(function (g) { g.list = g.list.filter(function (o) { return whoOk(orderOwner(o)); }); });
+      var G = orderTodo(); if (lvl() >= 2 && S.who) G.forEach(function (g) { g.list = g.list.filter(function (o) { return whoOk(orderOwner(o)); }); });
       var any = false, h = '';
       G.forEach(function (g) {
         if (!g.list.length) return; any = true;
@@ -1719,7 +1722,7 @@
     var f = S.f.o || (S.f.o = { q: '', st: 'all', n: 60, tab: 'todo', p: { k: 'all' } });
     if (!f.tab) f.tab = 'todo'; if (!f.p) f.p = { k: 'all' };
     var q = norm(f.q), qd = q.replace(/\D/g, '');
-    var OS = lvl() >= 2 && S.who ? S.d.orders.filter(function (o) { return whoOk(orderOwner(o)); }) : S.d.orders;
+    var OS = ordersSeen();
 
     if (appendOnly && f.tab === 'all') {
       var RG = perRange(f.p);
@@ -1741,7 +1744,7 @@
     oBody.innerHTML = renderOrdersBody(f, OS, q, qd);
     var oTabs = $('#oTabs');
     if (oTabs) {
-      var G = orderTodo(); if (OS !== S.d.orders) G.forEach(function (g) { g.list = g.list.filter(function (o) { return whoOk(orderOwner(o)); }); });
+      var G = orderTodo(); if (lvl() >= 2 && S.who) G.forEach(function (g) { g.list = g.list.filter(function (o) { return whoOk(orderOwner(o)); }); });
       var todoN = G.reduce(function (s0, g) { return s0 + g.list.length; }, 0);
       oTabs.innerHTML = '<button data-otab="todo" class="' + (f.tab === 'todo' ? 'on' : '') + '">⚡ Cần xử lý' + (todoN ? ' (' + todoN + ')' : '') + '</button><button data-otab="all" class="' + (f.tab === 'all' ? 'on' : '') + '">📋 Tất cả đơn</button>';
     }
@@ -1751,13 +1754,13 @@
     if (!f.tab) f.tab = 'todo'; if (!f.p) f.p = { k: 'all' };
     var q = norm(f.q), qd = q.replace(/\D/g, ''), t0 = today();
     if (q && f.tab === 'todo') f.tab = 'all'; // đang tìm → xem trong tất cả đơn
-    var OS = lvl() >= 2 && S.who ? S.d.orders.filter(function (o) { return whoOk(orderOwner(o)); }) : S.d.orders;
+    var OS = ordersSeen();
     var mR = monthRange(monthOf(Date.now())), todayOs = OS.filter(function (o) { return o.time >= t0 && !isVoid(o.status); }), monthOs = OS.filter(function (o) { return o.time >= mR[0] && o.time < mR[1] && o.status !== 'Huỷ'; });
     var backM = monthOs.filter(function (o) { return /hoàn/i.test(o.status); }).length, shipOs = OS.filter(function (o) { return o.status === 'Đang giao'; }), shipping = shipOs.length, codOut = shipOs.reduce(function (s0, o) { return s0 + (isBank(o) ? 0 : o.total); }, 0);
     var h = '<div class="page-head"><h1>Đơn hàng</h1><div class="grow"></div>' + whoSel() + '<button class="btn pri" data-neworder="">＋ Tạo đơn (Zalo, điện thoại…)</button></div>' +
       '<div class="minis" id="oMinis">' + mini('🧾 Đơn hôm nay', todayOs.length, '', '') + mini('💰 Doanh thu hôm nay', moneyShort(todayOs.reduce(function (s0, o) { return s0 + o.total; }, 0)), '', 'good') + mini('🚚 Đang giao', shipping + (codOut ? '<small class="mini-sub" title="Tiền COD bưu cục đang giữ của các đơn đang giao">thu hộ ' + moneyShort(codOut) + '</small>' : ''), '', '') + mini('↩ Hoàn tháng này', monthOs.length ? pct(backM, monthOs.length) + '%' : '–', '', backM ? 'bad' : '') + '</div>' +
       '<div class="tools"><div class="search">' + I.search + '<input type="search" id="oq" placeholder="Tìm tên, SĐT, mã đơn, sản phẩm…" value="' + esc(f.q) + '"></div></div>';
-    var G = orderTodo(); if (OS !== S.d.orders) G.forEach(function (g) { g.list = g.list.filter(function (o) { return whoOk(orderOwner(o)); }); });
+    var G = orderTodo(); if (lvl() >= 2 && S.who) G.forEach(function (g) { g.list = g.list.filter(function (o) { return whoOk(orderOwner(o)); }); });
     var todoN = G.reduce(function (s0, g) { return s0 + g.list.length; }, 0);
     h += '<div class="tabs" id="oTabs" style="max-width:420px"><button data-otab="todo" class="' + (f.tab === 'todo' ? 'on' : '') + '">⚡ Cần xử lý' + (todoN ? ' (' + todoN + ')' : '') + '</button><button data-otab="all" class="' + (f.tab === 'all' ? 'on' : '') + '">📋 Tất cả đơn</button></div>' +
       '<div id="oBody">' + renderOrdersBody(f, OS, q, qd) + '</div>';
