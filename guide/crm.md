@@ -384,7 +384,7 @@ Khách hỏi hiện ở tab Hôm nay khi: **chưa liên hệ lần nào**, **đ�
 
 ## Hiệu quả và mục tiêu tháng
 
-Bấm nút **📅 thời gian** ở đầu trang để xem số liệu *Hôm nay, Hôm qua, 7 ngày qua, Tháng này, Tháng trước* hoặc **Tuỳ chỉnh** (tự chọn từ ngày – đến ngày). Mỗi chỉ số tự so với kỳ liền trước cùng độ dài (vd hôm nay so với cùng giờ hôm qua). Mục tiêu và bảng BCDT luôn tính theo tháng.
+Bấm nút **📅 thời gian** ở đầu trang để xem số liệu *Mọi lúc, Hôm nay, Hôm qua, 7 ngày qua, Tháng này, Tháng trước* hoặc **Tuỳ chỉnh** (tự chọn từ ngày – đến ngày). Chọn **Mọi lúc** để xem doanh số từng người từ trước tới nay, gồm cả đơn cũ nhập từ file sale (để đối chiếu với file). Mỗi chỉ số tự so với kỳ liền trước cùng độ dài (vd hôm nay so với cùng giờ hôm qua); *Mọi lúc* thì không so. Mục tiêu và bảng BCDT luôn tính theo tháng.
 
 ![Tab Hiệu quả](/huong-dan/img/crm-report.webp)
 

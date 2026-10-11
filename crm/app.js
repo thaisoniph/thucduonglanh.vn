@@ -2423,7 +2423,7 @@
     return '<div class="per-row"><button type="button" class="per-btn" data-per="' + slot + '">📅 <b>' + esc(perLabel(p)) + '</b>' + (d ? '<span>' + d + '</span>' : '') + ' ▾</button></div>';
   }
   function openPer(slot) {
-    var f = S.f[slot], p = f.p || { k: 'month' }, withAll = slot === 'o', R = p.k === 'custom' ? perRange(p) : null;
+    var f = S.f[slot], p = f.p || { k: 'month' }, withAll = slot === 'o' || slot === 'r', R = p.k === 'custom' ? perRange(p) : null;
     var opts = (withAll ? [['all', 'Mọi lúc']] : []).concat(PER);
     var body = '<div class="per-list">' + opts.map(function (o) { return '<button type="button" data-pk="' + o[0] + '"' + (p.k === o[0] ? ' class="on"' : '') + '>' + o[1] + '</button>'; }).join('') +
       '<button type="button" class="per-cus' + (p.k === 'custom' ? ' on' : '') + '" id="perCus">Tuỳ chỉnh</button></div>' +
@@ -2549,6 +2549,7 @@
   function prevRange(month) { var P = monthRange(shiftMonth(month, -1)), R = monthRange(month), now = Date.now(), part = now >= R[0] && now < R[1]; CMP_LABEL = part ? 'cùng kỳ tháng trước' : 'tháng trước'; return part ? [P[0], Math.min(P[1], P[0] + (now - R[0]))] : P; }
   /** Kỳ so sánh theo bộ lọc thời gian: tháng → như trên; còn lại → khoảng liền trước, cùng độ dài (đang chạy thì cắt tới cùng giờ). */
   function cmpRange(p) {
+    if (p.k === 'all') { CMP_LABEL = ''; return [0, 0]; } // mọi lúc: không có kỳ để so
     if (p.k === 'month') return prevRange(monthOf(Date.now()));
     if (p.k === 'lmonth') return prevRange(shiftMonth(monthOf(Date.now()), -1));
     var R = perRange(p), len = R[1] - R[0], now = Date.now();
@@ -2557,6 +2558,7 @@
   }
   /** Mũi tên so với tháng trước. kind: 'money' | 'count' | 'rate' (điểm %) */
   function delta(cur, prev, kind) {
+    if (!CMP_LABEL) return '';
     if (cur === null || prev === null || prev === undefined) return '<em class="delta">' + CMP_LABEL + ' chưa có số liệu</em>';
     if (kind === 'rate') { var d = cur - prev; return d === 0 ? '<em class="delta">bằng ' + CMP_LABEL + '</em>' : '<em class="delta ' + (d > 0 ? 'up' : 'down') + '">' + (d > 0 ? '▲ ' : '▼ ') + Math.abs(d) + ' điểm so với ' + CMP_LABEL + '</em>'; }
     if (!prev) return cur ? '<em class="delta up">▲ ' + CMP_LABEL + ' chưa có</em>' : '<em class="delta">' + CMP_LABEL + ' chưa có số liệu</em>';
@@ -2617,6 +2619,7 @@
   function oneDec(v) { return (Math.round(v * 10) / 10).toString().replace('.', ','); }
   /** Mũi tên cho tỷ lệ % có 1 số lẻ (delta 'rate' chỉ làm tròn số nguyên). */
   function dRate(cur, prev) {
+    if (!CMP_LABEL) return '';
     if (cur === null || prev === null || prev === undefined) return '<em class="delta">' + CMP_LABEL + ' chưa có số liệu</em>';
     var d = Math.round((cur - prev) * 10) / 10;
     return !d ? '<em class="delta">bằng ' + CMP_LABEL + '</em>' : '<em class="delta ' + (d > 0 ? 'up' : 'down') + '">' + (d > 0 ? '▲ ' : '▼ ') + oneDec(Math.abs(d)) + ' điểm so với ' + CMP_LABEL + '</em>';
@@ -2981,7 +2984,7 @@
 
   function viewReport() {
     var f = S.f.r || (S.f.r = {}), who = whoF();
-    if (!f.p || f.p.k === 'all') f.p = { k: 'month' };
+    if (!f.p) f.p = { k: 'month' }; // "Mọi lúc": doanh số từ trước tới nay (cả đơn cũ nhập từ file sale)
     var R = perRange(f.p), cx = { p: f.p, R: R, label: perLabel(f.p), month: monthOf(Math.min(R[1] - 1, Date.now())) };
     cx.whole = f.p.k === 'month' || f.p.k === 'lmonth'; // đúng trọn 1 tháng → mục tiêu dùng luôn số trong kỳ
     cx.P = cmpRange(f.p);
