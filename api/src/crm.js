@@ -6,7 +6,7 @@ import { crmMkt } from './mkt.js';
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-10-10n'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
+const SCHEMA_V = '2026-10-11a'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -25,6 +25,11 @@ export async function ensureSchema(db) {
     await addCol('trk', "TEXT DEFAULT ''");
     await addCol('trk_at', 'INTEGER');
     await addCol('trk_code', 'INTEGER DEFAULT 0');
+    // Khách: đã kết bạn Zalo, nhóm cộng đồng, ngày sinh (bản Apps Script có, lúc chuyển sang D1 bị thiếu)
+    const ccols = (await all(db, "PRAGMA table_info(customers)")).map(r => r.name);
+    for (const [col, def] of [['zalo', 'INTEGER DEFAULT 0'], ['community', "TEXT DEFAULT ''"], ['dob', "TEXT DEFAULT ''"]]) if (!ccols.includes(col)) { try { await run(db, `ALTER TABLE customers ADD COLUMN ${col} ${def}`); } catch (e) { } }
+    // 11/10/2026: khách đều nhập từ file sale (đã mua, đã liên hệ) → anh Sơn chọn mặc định tất cả đồng ý nhận ưu đãi. Chạy 1 lần.
+    if (!(await db.prepare("SELECT v FROM kv WHERE k = 'consent_all'").first())) { await run(db, 'UPDATE customers SET consent = 1 WHERE consent IS NOT 1'); await run(db, "INSERT INTO kv (k, v) VALUES ('consent_all', ?) ON CONFLICT(k) DO NOTHING", String(Date.now())); }
 
     await run(db, `CREATE TABLE IF NOT EXISTS perf (
       rid INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -241,7 +246,7 @@ export async function recalc(x, phones, opt) {
       up.push({ phone: ph, name: c.name || '', address: c.address || '', province: c.province || '', ward: c.ward || '', orders: c.orders, spent: c.spent, first: c.first, last: c.last, products: c.bought.join('; '), runout: c.run, consent: c.consent, source: c.src, owner, last_status: c.lastStatus, last_ca: c.lastCa, last_seller: c.seller });
     }
     await insertMany(x.db, 'customers', CUS_COLS, up, `ON CONFLICT(phone) DO UPDATE SET name = excluded.name, address = excluded.address, province = excluded.province, ward = excluded.ward, orders = excluded.orders, spent = excluded.spent,
-      first = excluded.first, last = excluded.last, products = excluded.products, runout = excluded.runout, consent = excluded.consent, source = excluded.source, last_status = excluded.last_status, last_ca = excluded.last_ca, last_seller = excluded.last_seller,
+      first = excluded.first, last = excluded.last, products = excluded.products, runout = excluded.runout, consent = max(coalesce(customers.consent, 0), excluded.consent), source = excluded.source, last_status = excluded.last_status, last_ca = excluded.last_ca, last_seller = excluded.last_seller,
       owner = CASE WHEN customers.owner IS NULL OR customers.owner = '' THEN excluded.owner ELSE customers.owner END`);
     if (zero.length) await run(x.db, "UPDATE customers SET orders = 0, spent = 0, products = '', runout = NULL, last_status = json_extract(j.value, '$.last_status'), last_ca = json_extract(j.value, '$.last_ca') FROM json_each(?) j WHERE customers.phone = json_extract(j.value, '$.phone')", JSON.stringify(zero));
     n += up.length;
@@ -320,11 +325,12 @@ export async function srcList(x) {
 }
 export async function adsCfg(x) { return kvJson(x.db, 'ads_cfg', null); }
 
-const CUS_SQL = `SELECT phone, name, address, province, ward, orders, spent, first, last, products, runout, consent, source, owner, care_at, care_result, substr(note, 1, ${NOTE_MAX}) AS note, length(note) > ${NOTE_MAX} AS cut, callback, flag, tag, last_status, last_ca FROM customers`;
+const CUS_SQL = `SELECT phone, name, address, province, ward, orders, spent, first, last, products, runout, consent, source, owner, care_at, care_result, substr(note, 1, ${NOTE_MAX}) AS note, length(note) > ${NOTE_MAX} AS cut, callback, flag, tag, last_status, last_ca, zalo, community, dob FROM customers`;
 const cusOut = (v, today, R) => ({
   phone: v.phone, name: v.name || '', address: v.address || '', province: v.province || '', ward: v.ward || '', orders: v.orders || 0, spent: v.spent || 0, first: v.first, last: v.last,
   products: String(v.products || '').split('; ').filter(String), runout: v.runout, group: groupOf(v.orders || 0, v.spent || 0, v.last, R), consent: !!v.consent, source: v.source || '', owner: v.owner || '',
-  careAt: v.care_at, careResult: v.care_result || '', note: v.note || '', noteCut: !!v.cut, callback: v.callback, flag: v.flag || '', tag: v.tag || '', task: careTask(v, today, R), lastStatus: v.last_status || '', lastCa: v.last_ca || ''
+  careAt: v.care_at, careResult: v.care_result || '', note: v.note || '', noteCut: !!v.cut, callback: v.callback, flag: v.flag || '', tag: v.tag || '', task: careTask(v, today, R), lastStatus: v.last_status || '', lastCa: v.last_ca || '',
+  zalo: !!v.zalo, community: v.community || '', dob: v.dob || ''
 });
 const logOut = l => ({ time: l.time, by: l.by_name || '', what: l.what || '', ref: l.ref || '', name: l.name || '', result: l.result || '', note: l.note || '' });
 const contactOut = r => ({ row: r.rid, time: r.time, name: r.name || '', phone: r.phone || '', email: r.email || '', message: r.message || '', page: r.page || '', done: !!r.done, note: r.note || '' });
@@ -813,9 +819,29 @@ async function crmCustomer(x, u, d) {
   const map = { owner: 'owner', note: 'note', name: 'name', address: 'address', province: 'province', ward: 'ward', tag: 'tag' }, set = {};
   Object.keys(map).forEach(k => { if (d[k] !== undefined) set[map[k]] = String(d[k]).slice(0, 45000); });
   if (d.callback !== undefined) set.callback = dateOrBlank(d.callback);
+  if (d.zalo !== undefined) set.zalo = d.zalo ? 1 : 0;
+  if (d.consent !== undefined) set.consent = d.consent ? 1 : 0;
+  if (d.dob !== undefined) { const dob = dobText(d.dob); if (String(d.dob).trim() && !dob) return { ok: false, error: 'Ngày sinh không đúng, nhập dạng ngày/tháng hoặc ngày/tháng/năm (VD 15/08 hoặc 15/08/1975)' }; set.dob = dob; }
+  const cm = d.community === undefined ? null : d.community === 'Đã vào' ? 'Đã vào' : d.community === 'Đã mời' ? 'Đã mời ' + fmtDate(Date.now(), 'dd/MM/yy') : '';
+  if (cm !== null) set.community = cm;
   const ks = Object.keys(set);
   if (ks.length) await run(x.db, 'UPDATE customers SET ' + ks.map(k => k + ' = ?').join(', ') + ' WHERE phone = ?', ...ks.map(k => set[k]), phone);
+  if (cm !== null || d.promo) {
+    const cv = await first(x.db, 'SELECT name, note FROM customers WHERE phone = ?', phone);
+    if (cm !== null) await crmLog(x, u, 'Cộng đồng', phone, cv.name, cm || 'Bỏ đánh dấu', '');
+    if (d.promo) { // đã gửi tin ưu đãi qua Zalo: thêm 1 dòng vào ghi chú (không đè) + nhật ký "Gửi ưu đãi" để đo ưu đãi ra đơn
+      const camp = String(d.promo).slice(0, 80), line = fmtDate(Date.now(), 'dd/MM/yy') + ': 📣 Gửi ưu đãi: ' + camp, cur = String(cv.note || '');
+      await run(x.db, 'UPDATE customers SET note = ? WHERE phone = ?', (line + (cur ? '\n' + cur : '')).slice(0, 45000), phone);
+      await crmLog(x, u, 'Gửi ưu đãi', phone, cv.name, camp, '');
+    }
+  }
   return { ok: true };
+}
+/** Ngày sinh → "dd/MM" hoặc "dd/MM/yyyy" ('' nếu sai). */
+export function dobText(v) {
+  const m = String(v || '').trim().match(/^(\d{1,2})[\/.\-](\d{1,2})(?:[\/.\-](\d{4}))?$/); if (!m) return '';
+  const dd = +m[1], mo = +m[2]; if (dd < 1 || dd > 31 || mo < 1 || mo > 12) return '';
+  return ('0' + dd).slice(-2) + '/' + ('0' + mo).slice(-2) + (m[3] ? '/' + m[3] : '');
 }
 /** 🎁 Nhân sự gửi quà tặng (cẩm nang, ebook) cho khách qua Zalo → ghi Nhật ký "Gửi quà tặng" (kết quả = tên quà). */
 async function crmGift(x, u, d) {

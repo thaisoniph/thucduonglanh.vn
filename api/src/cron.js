@@ -4,6 +4,7 @@ import { telegram, telegramTo, gInfo, sheetMeta, sheetClear, sheetWrite, sheetAd
 import { crmUsers, unifyNames, autoCloseLeads, rulesCfg, careTask, groupOf, leadsData, leadDue, adsCfg, usageAlert } from './crm.js';
 import { adsSync, srcAutoTick } from './sync.js';
 import { mktTick } from './mkt.js';
+import { backfillCustomerExtras } from './migrate.js';
 
 function careMessage(items, leads, today, isGroup, who, R) {
   const block = (title, arr, tip) => !arr.length ? '' : '\n\n<b>' + title + ' (' + arr.length + ')</b> – ' + tip + '\n' + arr.slice(0, 25).map(c =>
@@ -103,6 +104,7 @@ export async function scheduled(x, cron) {
     if (now - lastUni > 6 * 3600e3) { await kvSet(x.db, 'unify_last', String(now)); try { await unifyNames(x); } catch (e) { console.error('unifyNames', e.message); } }
     try { await autoCloseLeads(x, null); } catch (e) { console.error('autoCloseLeads', e.message); } // quét bù khách hỏi đã có đơn (25 phút 1 lần)
   }
+  try { await backfillCustomerExtras(x); } catch (e) { console.error('backfill', e.message); } // 1 lần: Zalo / cộng đồng / ngày sinh từ Sheet cũ
   try { await mktTick(x); } catch (e) { console.error('mktTick', e.message); } // chi phí Facebook Ads: 3 tiếng 1 lần
   const last = Number(await kvGet(x.db, 'mirror_last') || 0);
   if (now - last > 6 * 3600e3 - 5 * 60e3) { try { // đọc toàn bộ dữ liệu → 6 tiếng 1 lần

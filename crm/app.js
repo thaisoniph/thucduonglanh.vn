@@ -818,7 +818,7 @@
     $('#pmSkip', m).onclick = function () { P.skip++; P.i++; closeModal(true); promoStep(); };
     $('#pmDone', m).onclick = function () { sendOp('customer', { phone: c.phone, promo: P.name }); P.sent++; P.i++; closeModal(true); promoStep(); };
   }
-  function consentTag(c) { return c.consent ? '<span class="tag st-xong" title="Khách đồng ý nhận tin ưu đãi">✓ Nhận ưu đãi</span>' : canEdit(c) ? '<button type="button" class="zl add" data-consent="' + c.phone + '" title="Bấm khi khách đồng ý nhận tin ưu đãi / khuyến mãi">☐ Khách đồng ý nhận ưu đãi</button>' : ''; }
+  function consentTag(c) { return c.consent ? (canEdit(c) ? '<button type="button" class="tag st-xong" data-consent="' + c.phone + '" data-off="1" title="Khách đồng ý nhận tin ưu đãi. Bấm nếu khách không muốn nhận nữa">✓ Nhận ưu đãi</button>' : '<span class="tag st-xong" title="Khách đồng ý nhận tin ưu đãi">✓ Nhận ưu đãi</span>') : canEdit(c) ? '<button type="button" class="zl add" data-consent="' + c.phone + '" title="Bấm khi khách đồng ý nhận tin ưu đãi / khuyến mãi">☐ Khách đồng ý nhận ưu đãi</button>' : ''; }
   function canEdit(c) { return lvl() >= 2 || c.owner === S.user.name; }
   function zaloTag(c) { return c.zalo ? '<span class="zl on" title="Đã kết bạn Zalo: nhắn tin chăm sóc được">' + ZI + ' Zalo</span>' : canEdit(c) ? '<button type="button" class="zl add" data-zalo="' + c.phone + '" title="Bấm khi đã kết bạn Zalo với khách">➕ Đã kết bạn Zalo</button>' : ''; }
   /* ---------- 👥 mời khách vào nhóm Zalo cộng đồng “Sống khỏe cùng Thực Dưỡng Lành” (kiến thức dinh dưỡng, Zoom hỏi đáp cùng chuyên gia) */
@@ -3785,7 +3785,7 @@
     if (t.hasAttribute('data-promo')) { openPromo(); return; }
     if (t.hasAttribute('data-rf')) { var rf = a('data-rf').split('|'); S.f.r = S.f.r || {}; S.f.r[rf[0]] = rf[1]; render(); return; }
     if (t.hasAttribute('data-vipgo')) { e.preventDefault(); S.f.c = { q: '', k: 'risk', sort: 'spent', n: 60 }; location.hash = '#khach-hang'; return; }
-    if (t.hasAttribute('data-consent')) { e.stopPropagation(); var cc = cust(a('data-consent')); if (cc) { sendOp('customer', { phone: cc.phone, consent: 1 }); t.outerHTML = consentTag(cc); toast('Đã ghi: khách đồng ý nhận ưu đãi ✓'); } return; }
+    if (t.hasAttribute('data-consent')) { e.stopPropagation(); var cc = cust(a('data-consent')); if (cc) { var off = t.hasAttribute('data-off'); if (off && !confirm('Khách không muốn nhận tin ưu đãi nữa? CRM sẽ bỏ khách này khỏi 📣 Gửi ưu đãi lần lượt.')) return; sendOp('customer', { phone: cc.phone, consent: off ? 0 : 1 }); t.outerHTML = consentTag(cc); toast(off ? 'Đã bỏ: khách không nhận tin ưu đãi' : 'Đã ghi: khách đồng ý nhận ưu đãi ✓'); } return; }
     if (t.hasAttribute('data-daily')) { openDaily(a('data-daily') || null); return; }
     if (t.hasAttribute('data-usage')) { openUsage(a('data-usage') || null); return; }
     if (t.hasAttribute('data-zalo')) { e.stopPropagation(); var zc = cust(a('data-zalo')); if (zc) { setZalo(zc, true); var zb = $('.modal [data-zalo]'); if (zb) zb.outerHTML = zaloTag(zc); } return; }

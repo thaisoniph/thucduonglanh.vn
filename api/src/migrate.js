@@ -2,7 +2,7 @@
 // Các trang tính cũ giữ nguyên làm bản lưu. Chạy lại (force) sẽ xoá dữ liệu D1 và chép lại từ Sheet.
 import { normPhone, hashKey, all, first, run, insertMany, kvGet, kvSet, kvDel, fmtDate } from './lib.js';
 import { bridge, gInfo, sheetMeta, sheetValues, a1, serialToMs } from './google.js';
-import { recalcAll, ORDER_COLS, DEFAULT_CYCLES, DEFAULT_TEMPLATES } from './crm.js';
+import { recalcAll, ORDER_COLS, DEFAULT_CYCLES, DEFAULT_TEMPLATES, dobText } from './crm.js';
 
 /** Ngày giờ trong Sheet → mili giây: số sê-ri, hoặc chữ "30/09/2026 14:05:00", hoặc ISO. */
 function toMs(v) {
@@ -86,4 +86,21 @@ export async function migrate(x, opt) {
     await kvSet(x.db, 'migrate_result', JSON.stringify(res));
     return res;
   } finally { await kvDel(x.db, 'migrating'); }
+}
+
+/** 1 lần (11/10/2026): lúc chuyển sang D1 chưa chép cột Zalo / Cộng đồng / Ngày sinh của tab "Khách hàng" → chép bù, chỉ điền ô đang trống. */
+export async function backfillCustomerExtras(x) {
+  if (await kvGet(x.db, 'backfill_zcd')) return;
+  const id = (await gInfo(x.env, true)).sheetId;
+  const names = ((await sheetMeta(x.env, id)).sheets || []).map(s => s.properties.title);
+  const rows = (await tab(x, id, names, 'Khách hàng')).map(c => {
+    const b = c['Ngày sinh'], dob = typeof b === 'number' ? fmtDate(serialToMs(b), 'dd/MM/yyyy') : dobText(S(b));
+    return { phone: normPhone(c['Điện thoại']), zalo: S(c['Zalo']) === 'Có' ? 1 : 0, community: S(c['Cộng đồng']), dob };
+  }).filter(r => r.phone && (r.zalo || r.community || r.dob));
+  for (let i = 0; i < rows.length; i += 400) await run(x.db, `UPDATE customers SET
+      zalo = CASE WHEN coalesce(zalo, 0) = 0 THEN json_extract(j.value, '$.zalo') ELSE zalo END,
+      community = CASE WHEN coalesce(community, '') = '' THEN json_extract(j.value, '$.community') ELSE community END,
+      dob = CASE WHEN coalesce(dob, '') = '' THEN json_extract(j.value, '$.dob') ELSE dob END
+    FROM json_each(?) j WHERE customers.phone = json_extract(j.value, '$.phone')`, JSON.stringify(rows.slice(i, i + 400)));
+  await kvSet(x.db, 'backfill_zcd', String(Date.now()) + ' · ' + rows.length + ' khách');
 }

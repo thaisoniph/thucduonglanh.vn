@@ -253,7 +253,7 @@ async function importOrders(x, src, shCfg, data, dry) {
     const cb = cell(r, m, 'callback'); if (isSerial(cb) && serialToMs(cb) > Date.now()) callbacks[phone] = serialToMs(cb);
     const status = mapStatus(cell(r, m, 'status'), when);
     out.push({ id: key, time: when, name: String(cell(r, m, 'name') || '').trim(), phone, email: '', province: '', ward: '', address: String(cell(r, m, 'address') || '').trim(), items: itemsText(items), subtotal: amount, shipping: 0, total: amount,
-      payment: 'COD', note: notes.filter(String).join(' · '), status, source: label, first_source: label, consent: 0, paid: '', carrier: '', tracking: '', seller: sale, ca: caFromText(ctype, when, ca), line: normLine(cell(r, m, 'line'), product),
+      payment: 'COD', note: notes.filter(String).join(' · '), status, source: label, first_source: label, consent: 1 /* khách trong file sale: mặc định đồng ý nhận ưu đãi (anh Sơn chọn 11/10/2026) */, paid: '', carrier: '', tracking: '', seller: sale, ca: caFromText(ctype, when, ca), line: normLine(cell(r, m, 'line'), product),
       ship: String(cell(r, m, 'shipText') || '').trim() || shipText(items) });
     if (!isVoid(status)) revenue += amount;
     phones[phone] = String(cell(r, m, 'name') || '');

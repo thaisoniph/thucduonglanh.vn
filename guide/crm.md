@@ -267,7 +267,7 @@ Biểu tượng **Zalo** (ô vuông xanh có chữ Zalo) cạnh tên khách ngh�
 
 Ở tab **Khách đã mua**, lọc nhóm muốn gửi (vd **Đã kết bạn Zalo**, VIP, Sắp mất, hoặc gõ tên sản phẩm vào ô tìm), rồi bấm **📣 Gửi ưu đãi lần lượt**:
 
-1. Giữ tích **Chỉ khách đã kết bạn Zalo** và **Chỉ khách đồng ý nhận ưu đãi** (đúng Nghị định 13). Khách lạnh và khách đã nhận chương trình này tự được bỏ ra.
+1. Giữ tích **Chỉ khách đã kết bạn Zalo** và **Chỉ khách đồng ý nhận ưu đãi** (đúng Nghị định 13). Khách lạnh và khách đã nhận chương trình này tự được bỏ ra. Khách cũ (nhập từ file sale) đã được đặt sẵn là **đồng ý nhận ưu đãi**; khách nào nói không muốn nhận tin, mở hồ sơ khách, bấm nhãn **✓ Nhận ưu đãi** để bỏ.
 2. Đặt **tên chương trình** (vd “Ưu đãi 10/10”) và soạn tin. Viết **[Tên]**, **[Sản phẩm]** để máy tự điền cho từng khách; nhớ sửa phần “…”.
 3. Bấm **▶ Bắt đầu gửi**. Mỗi khách: bấm **📋 Copy tin & mở Zalo** → dán vào khung chat, gửi → quay lại bấm **✅ Đã gửi → khách tiếp**. Khách chưa tiện thì **⏭ Bỏ qua**; bấm **✕** để dừng, lần sau mở lại máy chỉ đưa ra khách chưa gửi.
 
