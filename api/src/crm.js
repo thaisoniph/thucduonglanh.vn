@@ -1,5 +1,5 @@
 // CRM: đăng nhập, dữ liệu, đơn hàng, khách, tiềm năng, cài đặt. Chuyển từ Apps Script sang, giữ nguyên cách làm việc & dữ liệu trả về cho giao diện.
-import { normPhone, nrm, esc, fmt, startOfDay, fmtDate, dateOrBlank, slugName, isVoid, randHex, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, DAY, CRM_URL } from './lib.js';
+import { normPhone, nrm, esc, fmt, startOfDay, TZ_MS, fmtDate, dateOrBlank, slugName, isVoid, randHex, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, DAY, CRM_URL } from './lib.js';
 import { sendMail, telegram, telegramTo, telegramPhoto, tgUpdates, tgConf, bridge } from './google.js';
 import { crmGa, crmGaProp } from './ga.js';
 import { crmMkt } from './mkt.js';
@@ -529,6 +529,46 @@ async function crmSalesAll(x, u) {
   const own = u.level < 2;
   const rows = await all(x.db, "SELECT seller, count(*) AS n, coalesce(sum(total), 0) AS s FROM orders WHERE time IS NOT NULL AND status NOT LIKE '%uỷ%' AND status NOT LIKE '%ủy%' AND status NOT LIKE '%oàn%'" + (own ? ' AND seller = ?' : '') + ' GROUP BY seller', ...(own ? [u.name] : []));
   return { ok: true, rows: rows.map(r => ({ seller: r.seller || '', n: r.n, s: r.s })) };
+}
+/** Bảng thi đua (tab Hôm nay của nhân viên): tuần này + tháng này, 4 hạng mục. Nhân viên chỉ nhận Top 3 + hạng của mình + khoảng cách tới người ngay trên;
+ *  không gửi số của người hạng 4 trở xuống. Quản lý / Quản trị nhận đủ bảng. Kèm tiến độ mục tiêu tháng của cả nhóm (thưởng nhóm). */
+async function crmRace(x, u) {
+  const now = Date.now(), t0 = startOfDay(now), dow = (new Date(t0 + TZ_MS).getUTCDay() + 6) % 7, w0 = t0 - dow * DAY; // tuần bắt đầu thứ Hai
+  const vn = new Date(now + TZ_MS), y = vn.getUTCFullYear(), mo = vn.getUTCMonth(), m0 = Date.UTC(y, mo, 1) - TZ_MS, m1 = Date.UTC(y, mo + 1, 1) - TZ_MS;
+  const pm0 = Date.UTC(y, mo - 1, 1) - TZ_MS, mk = y + '-' + (mo < 9 ? '0' : '') + (mo + 1), from = Math.min(w0 - 7 * DAY, pm0);
+  const VOID = "status NOT LIKE '%uỷ%' AND status NOT LIKE '%ủy%' AND status NOT LIKE '%oàn%'";
+  const [os, ls, tg] = await Promise.all([
+    all(x.db, `SELECT o.seller, o.time, o.total, o.phone, c.first FROM orders o LEFT JOIN customers c ON c.phone = o.phone WHERE o.time >= ? AND ${VOID.replace(/status/g, 'o.status')}`, from),
+    all(x.db, "SELECT owner, time, status, reason, order_id FROM leads WHERE time >= ? AND owner != ''", Math.min(w0, m0)),
+    all(x.db, 'SELECT name, amount FROM targets WHERE month = ?', mk)]);
+  const us = (await crmUsers(x)).filter(v => v.active && v.level < 3), names = us.map(v => v.name), tgt = {}; tg.forEach(t => { tgt[t.name] = Number(t.amount) || 0; });
+  const sum = (a, b, n) => os.filter(o => o.time >= a && o.time < b && (!n || o.seller === n)).reduce((s, o) => s + (Number(o.total) || 0), 0);
+  const period = (a, b, pa, pb, minLead) => {
+    const rows = names.map(n => {
+      const mine = os.filter(o => o.seller === n && o.time >= a && o.time < b), sales = mine.reduce((s, o) => s + (Number(o.total) || 0), 0);
+      const back = {}; mine.forEach(o => { if (o.first && o.first < o.time - 3600e3) back[o.phone] = 1; });
+      const ld = ls.filter(l => l.owner === n && l.time >= a && l.time < b && !(l.status === 'Không mua' && /rác/i.test(l.reason || '')));
+      const won = ld.filter(l => l.status === 'Đã chốt' || l.order_id).length, prev = sum(pa, pb, n);
+      return { n, sales, orders: mine.length, back: Object.keys(back).length, data: ld.length, won, close: ld.length >= minLead ? Math.round(won * 100 / ld.length) : null,
+        grow: prev >= 500000 ? Math.round((sales - prev) * 100 / prev) : null, prev };
+    }).filter(r => us.find(v => v.name === r.n).level === 1 || r.orders > 0); // quản lý không bán thì không đưa vào bảng
+    const cat = (k, f) => {
+      const ok = rows.filter(r => f(r) !== null).sort((p, q) => f(q) - f(p) || (p.n < q.n ? -1 : 1));
+      let rank = 0, last = null; const list = ok.map((r, i) => { const v = f(r); if (v !== last) { rank = i + 1; last = v; } return { n: r.n, v, r: rank }; });
+      const out = { k, top: list.filter(e => e.r <= 3 && e.v > 0), count: list.length };
+      if (u.level >= 2) out.all = list;
+      const me = list.find(e => e.n === u.name);
+      if (me) { out.me = { r: me.r, v: me.v }; const up = list.filter(e => e.v > me.v).pop(); if (up) out.me.gap = up.v - me.v; } // khoảng cách tới người ngay trên
+      return out;
+    };
+    const mine = rows.find(r => r.n === u.name);
+    return { from: a, to: b, n: rows.length, cats: [cat('sales', r => r.sales), cat('close', r => r.close), cat('back', r => r.back), cat('grow', r => r.grow)],
+      mine: mine ? { sales: mine.sales, orders: mine.orders, back: mine.back, data: mine.data, won: mine.won, close: mine.close, grow: mine.grow } : null };
+  };
+  const el = now - w0, mel = now - m0;
+  const teamTarget = names.reduce((s, n) => s + (tgt[n] || 0), 0);
+  return { ok: true, now, week: period(w0, w0 + 7 * DAY, w0 - 7 * DAY, w0 - 7 * DAY + el, 3), month: period(m0, m1, pm0, Math.min(m0, pm0 + mel), 5), // tiến bộ: so với cùng kỳ tuần / tháng trước
+    team: { month: mk, sales: sum(m0, m1), target: teamTarget, days: Math.round((m1 - m0) / DAY), day: Math.floor((t0 - m0) / DAY) + 1 } };
 }
 async function crmCustOrders(x, u, d) {
   const phone = normPhone(d.phone);
@@ -1428,6 +1468,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (a === 'check_phone') return crmCheckPhone(x, u, d);
   if (a === 'cust_orders') return crmCustOrders(x, u, d);
   if (a === 'sales_all') return crmSalesAll(x, u);
+  if (a === 'race') return crmRace(x, u);
   if (sync[a]) { if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị làm được việc này.' }; return sync[a](x, u, d); }
   if (mgr && mgr[a]) { if (u.level < 2) return { ok: false, error: 'Bạn không có quyền làm việc này.' }; return mgr[a](x, u, d); }
   if (a === 'tg_link') return crmTgLink(x, u);

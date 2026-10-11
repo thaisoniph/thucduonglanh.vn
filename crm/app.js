@@ -944,6 +944,7 @@
       (q.rest ? '<p class="small muted" style="margin:8px 0 0">Còn ' + q.rest + ' khách để các ngày sau (tối đa ' + dayLimit() + ' khách/ngày, đổi ở <a href="#cai-dat">Cài đặt</a>).</p>' : '') +
       '<button class="btn block" data-daily="' + esc(lvl() >= 2 ? wn || '' : S.user.name) + '" style="margin-top:8px">📋 Báo cáo cuối ngày (gửi Zalo)</button></section>';
     if (lvl() < 2) h += myGoalToday(); // nhân viên: mục tiêu tháng + tiến độ ngay đầu trang để mỗi ngày nhìn thấy
+    if (lvl() < 2) h += raceBlock(); // bảng thi đua: Top 3 + hạng của mình
     h += '<div class="minis' + (lvl() < 2 ? ' m3' : '') + '">' + mini('🧾 Đơn mới', no.length, '#don-hang', no.length ? 'warn' : '') + mini('🙋 Khách hỏi', hot.length + ld.length, '#tiem-nang', hot.length + ld.length ? 'bad' : '') + mini('✅ Đã làm', doneToday.length, '', '') + (lvl() < 2 ? '' : miniGoal()) + '</div>';
     if (lvl() >= 2 && wn) {
       var pm = perf(wn, monthRange(monthOf(Date.now())));
@@ -955,7 +956,7 @@
         kpi('Khách mới tháng ' + m.month, m.newCus, '', '', m.returning + ' khách mua lại') + '</div>';
     }
 
-    if (lvl() >= 2 && !wn) h += teamBlock() + waitingBlock(); // đang xem 1 nhân viên → ẩn khách chưa ai phụ trách
+    if (lvl() >= 2 && !wn) h += teamBlock() + raceBlock() + waitingBlock(); // đang xem 1 nhân viên → ẩn khách chưa ai phụ trách
     // Mở tab lần đầu: chỉ mục cần gọi đầu tiên mở sẵn (và chỉ hiện vài khách), các mục khác gập lại – sale tự bấm mở khi tới lượt
     var go = S.f.gopen || {}, firstG = true;
     var grp = function (k, title, n, tip, body, cls) { var op = k in go ? go[k] : firstG; firstG = false; return '<details class="grp" data-grp="' + k + '"' + (op ? ' open' : '') + '><summary><span class="g-t">' + title + '</span><span class="count">' + n + '</span>' + (tip ? '<span class="g-tip">' + tip + '</span>' : '') + '</summary><div class="' + cls + '">' + body + '</div></details>'; };
@@ -1056,6 +1057,47 @@
     var p = need ? Math.min(1, td.sales / need) : 1;
     return h.replace(/<button class="btn[^"]*" data-target=/, '<div class="goal-day"><div><b>📅 Hôm nay:</b> đã bán <b>' + moneyShort(td.sales) + '</b> (' + td.orders + ' đơn)' + (need ? ' / cần <b>' + moneyShort(need) + '</b>' : '') + '<span>' + (need ? (p >= 1 ? '✅ Đủ chỉ tiêu ngày' : 'còn ' + moneyShort(need - td.sales)) : '') + '</span></div>' +
       (need ? '<div class="bar sm"><i style="width:' + (p * 100).toFixed(1) + '%"></i></div>' : '') + '</div>$&');
+  }
+  /* ---------- Bảng thi đua: Top 3 mỗi hạng mục + hạng của mình + còn cách người ngay trên bao nhiêu. Hỏi máy chủ lệnh 'race' (nhớ 10 phút);
+   * máy chủ chỉ gửi cho nhân viên Top 3 và số của chính họ (người hạng 4 trở xuống không bị lộ). Máy chủ cũ chưa có lệnh này → ẩn khối. */
+  var RACE_CATS = { sales: ['🏆 Doanh số', 'tổng tiền đơn (không tính đơn huỷ / hoàn)'], close: ['🎯 Tỷ lệ chốt', 'khách hỏi được giao ra đơn'], back: ['💚 Khách cũ quay lại', 'số khách cũ mua thêm đơn'], grow: ['🚀 Tiến bộ nhất', 'doanh số so với cùng kỳ trước'] };
+  function raceGet() {
+    var c = S.race;
+    if ((!c || Date.now() - c.at > 600e3) && !S.raceBusy) {
+      S.raceBusy = true;
+      api('race', {}).then(function (j) { S.race = { at: Date.now(), d: j }; }, function () { S.race = { at: Date.now(), d: null }; })
+        .then(function () { S.raceBusy = false; if (route().view === 'hom-nay' && !$('.modal')) render(); });
+    }
+    return c ? c.d : undefined;
+  }
+  function raceVal(k, v) { return k === 'sales' ? moneyShort(v) : k === 'back' ? v + ' khách' : k === 'grow' ? (v > 0 ? '+' : '') + v + '%' : v + '%'; }
+  function raceGap(k, g) { return k === 'sales' ? moneyShort(g) : k === 'back' ? g + ' khách' : g + ' điểm %'; }
+  function raceCat(c, P, wk) {
+    var lb = RACE_CATS[c.k], md = ['🥇', '🥈', '🥉'], list = lvl() >= 2 && c.all ? c.all : c.top;
+    var rows = list.length ? list.map(function (e) { return '<li' + (e.n === S.user.name ? ' class="race-me"' : '') + '><span>' + (md[e.r - 1] || e.r + '.') + ' ' + esc(e.n) + '</span><b>' + raceVal(c.k, e.v) + '</b></li>'; }).join('') : '<li class="race-none">Chưa có ai trong kỳ này</li>';
+    var me = '';
+    if (lvl() < 2) {
+      if (!c.me) me = c.k === 'close' ? 'Cần ít nhất ' + (wk ? 3 : 5) + ' khách hỏi trong kỳ để xếp hạng' : c.k === 'grow' ? 'Cần doanh số kỳ trước từ 500k để so' : 'Chưa có số liệu';
+      else if (c.me.r === 1 && c.me.v > 0) me = '👑 Bạn đang dẫn đầu, giữ vững nhé!';
+      else me = 'Bạn: <b>hạng ' + c.me.r + '/' + c.count + '</b> · ' + raceVal(c.k, c.me.v) + (c.me.gap ? ' · còn cách người trên <b>' + raceGap(c.k, c.me.gap) + '</b>' : '');
+    }
+    return '<div class="race-cat"><div class="race-cat-h"><b>' + lb[0] + '</b><small>' + lb[1] + '</small></div><ol>' + rows + '</ol>' + (me ? '<p class="race-mine">' + me + '</p>' : '') + '</div>';
+  }
+  function raceBlock() {
+    var d = raceGet();
+    if (d === null || (d && !d.ok)) return '';
+    if (!d) return '<section class="race-box"><div class="race-h"><b>🏁 Bảng thi đua</b></div><p class="small muted">Đang tải…</p></section>';
+    var wk = (S.f.race || 'week') === 'week', P = wk ? d.week : d.month, t = d.team;
+    var tb = '';
+    if (t && t.target) {
+      var p = t.sales / t.target, tp = Math.min(1, t.day / t.days), left = Math.max(1, t.days - t.day + 1), rem = Math.max(0, t.target - t.sales);
+      tb = '<div class="race-team"><div class="race-team-h"><b>🤝 Cả nhóm ' + monthLabel(t.month) + '</b><span>' + Math.round(p * 100) + '%</span></div>' +
+        '<div class="race-bar"><i style="width:' + Math.min(100, p * 100).toFixed(1) + '%"></i><u style="left:' + (tp * 100).toFixed(1) + '%"></u></div>' +
+        '<p>' + moneyShort(t.sales) + ' / ' + moneyShort(t.target) + (p >= 1 ? ' · 🎉 Cả nhóm đã về đích!' : ' · còn <b>' + moneyShort(rem) + '</b> trong ' + left + ' ngày (≈ ' + moneyShort(Math.ceil(rem / left)) + '/ngày cả nhóm)') + '</p></div>';
+    }
+    return '<section class="race-box"><div class="race-h"><b>🏁 Bảng thi đua</b><div class="race-tabs"><button class="btn sm' + (wk ? ' pri' : '') + '" data-race="week">Tuần này</button><button class="btn sm' + (wk ? '' : ' pri') + '" data-race="month">Tháng này</button></div></div>' +
+      tb + '<div class="race-grid">' + P.cats.map(function (c) { return raceCat(c, P, wk); }).join('') + '</div>' +
+      '<p class="race-note">' + (wk ? 'Tuần tính từ thứ Hai, mỗi tuần bắt đầu lại từ 0. ' : '') + 'Mọi người thấy Top 3, hạng của mỗi người chỉ người đó thấy.</p></section>';
   }
   function miniGoal() {
     var mk = monthOf(Date.now()), t = targetOf(S.user.name, mk), sales = perf(S.user.name, monthRange(mk)).sales;
@@ -3808,7 +3850,7 @@
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-gmore]'); if (!b) return; var r = b.previousElementSibling; if (r) r.hidden = false; b.remove(); });
   document.addEventListener('toggle', function (e) { var d = e.target; if (d && d.matches && d.matches('details[data-grp]')) { S.f.gopen = S.f.gopen || {}; S.f.gopen[d.getAttribute('data-grp')] = d.open; } }, true);
   document.addEventListener('click', function (e) {
-    var t = e.target.closest('[data-otab],[data-per],[data-promo],[data-rf],[data-vipgo],[data-taghelp],[data-consent],[data-daily],[data-usage],[data-flow],[data-zalo],[data-quick],[data-care],[data-next],[data-neworder],[data-cf],[data-os],[data-och],[data-tf],[data-cat],[data-addtag],[data-deltag],[data-claim],[data-bcdt],[data-srcadd],[data-srcedit],[data-srcsync],[data-srcdel],[data-adsedit],[data-adssync],[data-who],[data-target],[data-myold],[data-more],[data-add],[data-rm],[data-consult],[data-leadorder],[data-newlead],[data-editlead],[data-cust],[data-order],[data-lead]');
+    var t = e.target.closest('[data-otab],[data-per],[data-promo],[data-rf],[data-vipgo],[data-taghelp],[data-consent],[data-daily],[data-usage],[data-flow],[data-zalo],[data-quick],[data-care],[data-next],[data-neworder],[data-cf],[data-os],[data-och],[data-tf],[data-cat],[data-addtag],[data-deltag],[data-claim],[data-bcdt],[data-srcadd],[data-srcedit],[data-srcsync],[data-srcdel],[data-adsedit],[data-adssync],[data-who],[data-target],[data-race],[data-myold],[data-more],[data-add],[data-rm],[data-consult],[data-leadorder],[data-newlead],[data-editlead],[data-cust],[data-order],[data-lead]');
     if (!t || !S.d) return;
     if (e.target.closest('a[href]') && !t.hasAttribute('data-myold')) return; // nút gọi / Zalo bên trong thẻ
     if (e.target.closest('select[data-oassign]')) return; // ô “Giao cho…” trên dòng đơn: không mở hộp đơn
@@ -3865,6 +3907,7 @@
     if (t.hasAttribute('data-per')) { openPer(a('data-per')); return; }
     if (t.hasAttribute('data-tf')) { S.f.t.k = a('data-tf'); S.f.t.n = 60; if ($('#tList')) renderLeadsPart(); else render(); return; }
     if (t.hasAttribute('data-who')) { setWho(a('data-who') === 'team' ? '' : a('data-who')); window.scrollTo(0, 0); return; }
+    if (t.hasAttribute('data-race')) { S.f.race = a('data-race'); render(); return; }
     if (t.hasAttribute('data-target')) { var tg = a('data-target').split('|'); openTarget(tg[0], tg[1]); return; }
     if (t.hasAttribute('data-myold')) { e.preventDefault(); if (lvl() >= 2) { S.who = S.user.name; store('crm_who', S.who); } S.f.c = { q: '', k: 'all', sort: 'age', n: 60 }; location.hash = '#khach-hang'; return; }
     if (t.hasAttribute('data-more')) {
