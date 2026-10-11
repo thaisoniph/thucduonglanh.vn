@@ -603,7 +603,7 @@
   }
   function shell() {
     $('#app').innerHTML = '<header class="top"><div class="top-in">' +
-      '<a class="brand" href="#hom-nay"><img src="/icon-180.png" alt="">CRM</a>' +
+      '<a class="brand" href="#' + homeView() + '"><img src="/icon-180.png" alt="">CRM</a>' +
       '<nav class="nav">' + myViews().map(function (v) { return '<a href="#' + v.id + '" data-v="' + v.id + '"' + (v.id === 'cai-dat' ? ' class="nav-set"' : '') + '>' + I[v.icon] + '<span' + (v.short ? ' data-short="' + v.short + '"' : '') + '>' + v.label + '</span></a>'; }).join('') + '</nav>' +
       '<div class="grow"></div><div class="me">' + meHTML() + '</div>' +
       '<button class="icon-btn fb-btn" id="fbBtn" title="Góp ý: báo lỗi, chỗ khó dùng, ý tưởng" aria-label="Góp ý">💡<span class="fb-lbl">Góp ý</span></button>' +
@@ -624,11 +624,13 @@
       if (n[v]) a.insertAdjacentHTML('beforeend', '<span class="dot">' + (n[v] > 99 ? '99+' : n[v]) + '</span>');
     });
   }
-  function route() { var h = (location.hash || '#hom-nay').slice(1).split('/'); return { view: h[0] === 'lien-he' ? 'tiem-nang' : h[0] || 'hom-nay', id: decodeURIComponent(h[1] || '') }; }
+  /** Tab mở mặc định theo quyền: Quản trị → Tổng quan, Quản lý → Hiệu quả, nhân viên → Hôm nay. */
+  function homeView() { return lvl() >= 3 ? 'tong-quan' : lvl() >= 2 ? 'bao-cao' : 'hom-nay'; }
+  function route() { var h = (location.hash || '').slice(1).split('/'); return { view: h[0] === 'lien-he' ? 'tiem-nang' : h[0] || homeView(), id: decodeURIComponent(h[1] || '') }; }
   var lastView = '';
   function render() {
     if (!S.d || !$('#view')) return;
-    var r = route(), v = myViews().some(function (x) { return x.id === r.view; }) ? r.view : 'hom-nay';
+    var r = route(), v = myViews().some(function (x) { return x.id === r.view; }) ? r.view : homeView();
     $$('.nav a').forEach(function (a) { a.classList.toggle('on', a.getAttribute('data-v') === v); }); var ts = $('.top-set'); if (ts) ts.classList.toggle('on', v === 'cai-dat');
     var keepScroll = lastView === v, y = window.scrollY;
     var el = $('#view');
@@ -941,7 +943,8 @@
       (q.list.length && (!wn || wn === S.user.name) ? '<button class="btn pri lg block" data-flow>▶ Bắt đầu gọi lần lượt</button>' : '') +
       (q.rest ? '<p class="small muted" style="margin:8px 0 0">Còn ' + q.rest + ' khách để các ngày sau (tối đa ' + dayLimit() + ' khách/ngày, đổi ở <a href="#cai-dat">Cài đặt</a>).</p>' : '') +
       '<button class="btn block" data-daily="' + esc(lvl() >= 2 ? wn || '' : S.user.name) + '" style="margin-top:8px">📋 Báo cáo cuối ngày (gửi Zalo)</button></section>';
-    h += '<div class="minis">' + mini('🧾 Đơn mới', no.length, '#don-hang', no.length ? 'warn' : '') + mini('🙋 Khách hỏi', hot.length + ld.length, '#tiem-nang', hot.length + ld.length ? 'bad' : '') + mini('✅ Đã làm', doneToday.length, '', '') + miniGoal() + '</div>';
+    if (lvl() < 2) h += myGoalToday(); // nhân viên: mục tiêu tháng + tiến độ ngay đầu trang để mỗi ngày nhìn thấy
+    h += '<div class="minis' + (lvl() < 2 ? ' m3' : '') + '">' + mini('🧾 Đơn mới', no.length, '#don-hang', no.length ? 'warn' : '') + mini('🙋 Khách hỏi', hot.length + ld.length, '#tiem-nang', hot.length + ld.length ? 'bad' : '') + mini('✅ Đã làm', doneToday.length, '', '') + (lvl() < 2 ? '' : miniGoal()) + '</div>';
     if (lvl() >= 2 && wn) {
       var pm = perf(wn, monthRange(monthOf(Date.now())));
       h += '<div class="kpis">' + kpi('Doanh số tháng ' + (new Date().getMonth() + 1) + ' của ' + esc(wn), moneyShort(pm.sales), '', '', pm.orders + ' đơn · chốt ' + (pm.closePct === null ? '–' : pm.closePct + '%')) +
@@ -1044,6 +1047,16 @@
     return { list: all.slice(0, room), rest: Math.max(0, all.length - room), done: done };
   }
   function mini(label, n, href, cls) { return '<' + (href ? 'a href="' + href + '"' : 'div') + ' class="mini ' + (cls || '') + '"><span>' + label + '</span><b>' + n + '</b></' + (href ? 'a' : 'div') + '>'; }
+  /** Tab Hôm nay của nhân viên: khối mục tiêu tháng (như tab Hiệu quả) + doanh số hôm nay so với mức cần bán mỗi ngày. */
+  function myGoalToday() {
+    var me = S.user.name, mk = monthOf(Date.now()), R = monthRange(mk), t = targetOf(me, mk), t0 = today();
+    var sales = perf(me, R).sales, td = perf(me, [t0, t0 + DAY]), h = targetBlock(me, mk, sales, true);
+    if (!t || !t.amount) return h;
+    var left = Math.round((R[1] - t0) / DAY), need = Math.max(0, Math.ceil((t.amount - (sales - td.sales)) / Math.max(1, left))); // mức cần/ngày tính từ đầu hôm nay
+    var p = need ? Math.min(1, td.sales / need) : 1;
+    return h.replace(/<button class="btn[^"]*" data-target=/, '<div class="goal-day"><div><b>📅 Hôm nay:</b> đã bán <b>' + moneyShort(td.sales) + '</b> (' + td.orders + ' đơn)' + (need ? ' / cần <b>' + moneyShort(need) + '</b>' : '') + '<span>' + (need ? (p >= 1 ? '✅ Đủ chỉ tiêu ngày' : 'còn ' + moneyShort(need - td.sales)) : '') + '</span></div>' +
+      (need ? '<div class="bar sm"><i style="width:' + (p * 100).toFixed(1) + '%"></i></div>' : '') + '</div>$&');
+  }
   function miniGoal() {
     var mk = monthOf(Date.now()), t = targetOf(S.user.name, mk), sales = perf(S.user.name, monthRange(mk)).sales;
     return t && t.amount ? mini('🎯 Mục tiêu', pct(sales, t.amount) + '%', '#bao-cao', pct(sales, t.amount) >= 100 ? 'good' : '') : mini('🎯 Mục tiêu', 'Chưa đặt', '#bao-cao', 'warn');
@@ -1585,7 +1598,7 @@
   }
   function openFeedback(tab) {
     tab = tab || 'send';
-    var mgr = lvl() >= 2, here = (location.hash || '#hom-nay').slice(1).split('/')[0] || 'hom-nay', imgs = [];
+    var mgr = lvl() >= 2, here = route().view, imgs = [];
     var tabs = '<div class="chips" style="margin:0 0 12px"><button class="chip' + (tab === 'send' ? ' on' : '') + '" data-fbtab="send">✍️ Gửi góp ý</button><button class="chip' + (tab === 'list' ? ' on' : '') + '" data-fbtab="list">' + (mgr ? '📥 Danh sách góp ý' + (S.d.fbNew ? ' <em>' + S.d.fbNew + ' mới</em>' : '') : '📋 Góp ý của tôi') + '</button></div>';
     var body = tabs + (tab === 'send' ?
       '<p class="small muted" style="margin:0 0 10px">Gặp lỗi, chỗ khó dùng hay có ý tưởng? <b>Chụp màn hình</b> chỗ đó, rồi gửi kèm vài chữ. Máy tự ghi bạn đang ở màn hình nào.</p>' +

@@ -38,6 +38,7 @@ Mã dùng được trong **10 phút**. Đăng nhập xong, máy nhớ bạn tron
 | **Cài đặt** | Đăng xuất. Quản lý sửa chu kỳ dùng, mẫu tin nhắn, nhân sự ở đây. Trên điện thoại, Cài đặt là nút **⚙** ở thanh trên cùng. |
 
 - Trên điện thoại các tab nằm ở thanh dưới cùng; tab Khách đã mua ghi gọn là **Khách**.
+- **Tab mở sẵn khi vào CRM:** nhân viên vào thẳng **Hôm nay**, quản lý vào **Hiệu quả**, quản trị vào **Tổng quan**. Bấm logo **CRM** góc trái để quay về tab này.
 - Chấm đỏ trên tab là số việc đang chờ.
 - Nút **⟳** góc trên bên phải: tải lại dữ liệu mới nhất, ví dụ khi đồng nghiệp vừa cập nhật.
 - **Bạn chỉ thấy khách mình phụ trách.** Quản lý thấy toàn bộ. Khi gõ số điện thoại của khách đang do người khác phụ trách, CRM chỉ báo tên người đó và không cho thao tác. Muốn đổi người phụ trách thì nhờ quản lý chuyển.
@@ -60,8 +61,9 @@ Trên danh sách đơn và khách hỏi, bấm vào mã đơn hoặc số điệ
 
 ![Tab Hôm nay trên điện thoại](/huong-dan/img/crm-today.webp)
 
+- **🎯 Mục tiêu tháng** (nhân viên): ngay đầu trang. Có doanh số đến nay / mục tiêu, thanh tiến độ (vạch đen = hôm nay), trạng thái *Đúng tiến độ / Hơi chậm / Đang chậm*, số còn thiếu và mỗi ngày cần bán bao nhiêu. Dòng **📅 Hôm nay** cho biết hôm nay đã bán được bao nhiêu so với mức cần bán trong ngày. Chưa đặt mục tiêu thì bấm **🎯 Đặt mục tiêu** ngay tại đây.
 - **Trên cùng:** số khách cần chăm sóc hôm nay, thanh tiến độ và nút **▶ Bắt đầu gọi lần lượt**. Mỗi ngày CRM đưa ra tối đa **30 khách** (đổi ở **Cài đặt → Số khách chăm sóc mỗi ngày**), khách quan trọng trước: hẹn gọi lại → hỏi nhận hàng → sắp hết hàng → việc bị trễ → các việc khác. Khách chưa tới lượt tự dời sang hôm sau.
-- **Ô nhỏ:** đơn mới, khách hỏi, việc đã làm, mục tiêu tháng. Bấm để mở đúng danh sách. Quản lý thấy thêm doanh thu và khách mới của tháng.
+- **Ô nhỏ:** đơn mới, khách hỏi, việc đã làm (quản lý có thêm ô mục tiêu tháng). Bấm để mở đúng danh sách. Quản lý thấy thêm doanh thu và khách mới của tháng.
 - **Gọn gàng khi mới mở:** chỉ **mục cần gọi đầu tiên** được mở sẵn (thường là *Đơn mới*, nếu không có thì *Khách vừa hỏi* hoặc nhóm chăm sóc đầu tiên) và chỉ hiện **5 khách đầu**. Bấm **Xem thêm … khách** để hiện tiếp. Các mục khác đều gập lại, bấm vào tên mục khi tới lượt gọi. CRM nhớ mục nào bạn đã mở hay gập trong lúc dùng.
 - **1️⃣ Đơn mới – gọi khách xác nhận** (chỉ hiện khi có), kèm **Chuyển khoản chưa nhận tiền**.
   - **Ai thấy đơn mới:** Quản lý / Quản trị thấy tất cả. Nhân viên sale **chỉ thấy đơn đã giao cho mình**: đơn quản lý giao, hoặc đơn của khách mình đang phụ trách đặt lại. Đơn chưa giao thì không hiện với nhân viên nào, ở cả **Hôm nay** lẫn tab **Đơn hàng**.
