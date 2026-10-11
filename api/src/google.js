@@ -65,6 +65,11 @@ export async function sheetWrite(env, id, data) { // data: [{range, values}]
   if (!data.length) return;
   return gFetch(env, SHEETS + id + '/values:batchUpdate', { method: 'POST', body: JSON.stringify({ valueInputOption: 'RAW', data }) });
 }
+/** Thêm dòng vào cuối bảng (như sale gõ tay: USER_ENTERED, chèn dòng mới). */
+export async function sheetAppend(env, id, range, values) {
+  if (!values.length) return;
+  return gFetch(env, SHEETS + id + '/values/' + encodeURIComponent(range) + ':append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS', { method: 'POST', body: JSON.stringify({ values }) });
+}
 export async function sheetClear(env, id, ranges) { return gFetch(env, SHEETS + id + '/values:batchClear', { method: 'POST', body: JSON.stringify({ ranges }) }); }
 /** Đổi cấu trúc file (thêm tab, nới số dòng / cột…): requests theo Sheets API spreadsheets.batchUpdate. */
 export async function sheetBatch(env, id, requests) { if (!requests.length) return; return gFetch(env, SHEETS + id + ':batchUpdate', { method: 'POST', body: JSON.stringify({ requests }) }); }
@@ -93,6 +98,7 @@ async function mockFetch(env, url, opt) {
   };
   const render = (rest.match(/valueRenderOption=([A-Z_]+)/) || [])[1];
   if (/values:batchGet/.test(rest)) return { valueRanges: [...rest.matchAll(/ranges=([^&]+)/g)].map(x => ({ values: pick(x[1], render) })) };
+  if (/:append/.test(rest)) { (env.__mockWrites = env.__mockWrites || []).push({ url, body: opt && opt.body }); return {}; }
   if (/\/values\//.test(rest)) return { values: pick(rest.match(/\/values\/([^?]+)/)[1], render) };
   if (/values:batchUpdate|values:batchClear|:batchUpdate/.test(rest)) { (env.__mockWrites = env.__mockWrites || []).push({ url, body: opt && opt.body }); return {}; }
   throw new Error('mock: ' + rest);
