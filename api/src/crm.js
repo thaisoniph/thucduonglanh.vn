@@ -3,10 +3,11 @@ import { normPhone, esc, fmt, startOfDay, fmtDate, dateOrBlank, slugName, isVoid
 import { sendMail, telegram, telegramTo, tgUpdates, tgConf, bridge } from './google.js';
 import { crmGa, crmGaProp } from './ga.js';
 import { crmMkt } from './mkt.js';
+import { wbQueue, wbOrderQueue, wbStatusQueue, WB_SHORT } from './wb.js';
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-10-11a'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
+const SCHEMA_V = '2026-10-11b'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -27,7 +28,8 @@ export async function ensureSchema(db) {
     await addCol('trk_code', 'INTEGER DEFAULT 0');
     // Khách: đã kết bạn Zalo, nhóm cộng đồng, ngày sinh (bản Apps Script có, lúc chuyển sang D1 bị thiếu)
     const ccols = (await all(db, "PRAGMA table_info(customers)")).map(r => r.name);
-    for (const [col, def] of [['zalo', 'INTEGER DEFAULT 0'], ['community', "TEXT DEFAULT ''"], ['dob', "TEXT DEFAULT ''"]]) if (!ccols.includes(col)) { try { await run(db, `ALTER TABLE customers ADD COLUMN ${col} ${def}`); } catch (e) { } }
+    for (const [col, def] of [['zalo', 'INTEGER DEFAULT 0'], ['community', "TEXT DEFAULT ''"], ['dob', "TEXT DEFAULT ''"], ['recv', 'INTEGER'], ['ok_n', 'INTEGER DEFAULT 0'], ['back_n', 'INTEGER DEFAULT 0'], ['last_back', 'INTEGER'], ['fam', 'INTEGER DEFAULT 0']]) if (!ccols.includes(col)) { try { await run(db, `ALTER TABLE customers ADD COLUMN ${col} ${def}`); } catch (e) { } }
+    if (!ccols.includes('recv')) await run(db, "INSERT INTO kv (k, v) VALUES ('recalc_all', '1') ON CONFLICT(k) DO UPDATE SET v = '1'"); // cột mới (ngày nhận, số đơn hoàn, khách quen) → cron tính lại mọi khách 1 lần
     // 11/10/2026: khách đều nhập từ file sale (đã mua, đã liên hệ) → anh Sơn chọn mặc định tất cả đồng ý nhận ưu đãi. Chạy 1 lần.
     if (!(await db.prepare("SELECT v FROM kv WHERE k = 'consent_all'").first())) { await run(db, 'UPDATE customers SET consent = 1 WHERE consent IS NOT 1'); await run(db, "INSERT INTO kv (k, v) VALUES ('consent_all', ?) ON CONFLICT(k) DO NOTHING", String(Date.now())); }
 
@@ -105,7 +107,22 @@ const OPEN_STATUS = ['Mới', 'Đã xác nhận', 'Đang giao'];
 const CARE_RESULTS = ['Đã đặt lại', 'Hẹn gọi lại', 'Không nghe máy', 'Đã hỏi thăm', 'Không có nhu cầu'];
 export const LEAD_STATUS = ['Mới hỏi', 'Đang tư vấn', 'Đã chốt', 'Không mua'];
 const CA_LIST = ['Ngày', 'Tối/CN', 'Lễ'];
-export const VIP_ORDERS = 3, VIP_SPENT = 2000000, AT_RISK_DAYS = 60, COOL_DAYS = 14; // COOL_DAYS: khách vừa trả lời chăm sóc → bao nhiêu ngày sau mới nhắc lại (0 = tắt)
+/* Loại đơn (tính hoa hồng): CRM gợi ý theo ca / khách quảng cáo / đã mua chưa; nhân viên chọn khác gợi ý → "Kiểm tra loại đơn" chờ quản lý */
+const OTYPES = ['Khách mới', 'Khách cũ', 'Ngoài giờ', 'Ngày lễ'], AD_LEAD_DAYS = 30, AD_CH = /^(quảng cáo|ebook|form website)/i;
+function otypeCa(t) { return t === 'Ngày lễ' ? 'Lễ' : t === 'Ngoài giờ' ? 'Tối/CN' : 'Ngày'; }
+async function otypeSuggest(x, phone, t) {
+  const ca = caOf(t, await caCfg(x)), dm = v => fmtDate(v, 'dd/MM');
+  if (ca === 'Lễ') return { t: 'Ngày lễ', why: 'đơn tạo ngày lễ ' + dm(t) };
+  if (ca === 'Tối/CN') return { t: 'Ngoài giờ', why: 'đơn tạo ' + (new Date(t + 7 * 3600e3).getUTCDay() === 0 ? 'Chủ nhật' : 'sau giờ ca tối') };
+  phone = normPhone(phone);
+  const ad = (await all(x.db, 'SELECT channel, time FROM leads WHERE phone = ? AND time >= ? AND time <= ? ORDER BY time DESC', phone, t - AD_LEAD_DAYS * DAY, t + DAY)).find(l => AD_CH.test(l.channel || ''));
+  if (ad) return { t: 'Khách mới', why: 'khách để lại số qua ' + ad.channel + ' ngày ' + dm(ad.time) };
+  const v = await first(x.db, 'SELECT first, orders FROM customers WHERE phone = ?', phone);
+  if (v && v.first && v.first < t - 3600e3) return { t: 'Khách cũ', why: 'đã mua từ ' + fmtDate(v.first, 'dd/MM/yy') + ' (' + (Number(v.orders) || 1) + ' đơn)' };
+  return { t: 'Khách mới', why: 'lần đầu mua' };
+}
+function otypeFlag(chosen, sug) { return chosen && chosen !== sug.t ? 'CRM gợi ý ' + sug.t + ': ' + sug.why : ''; }
+export const VIP_ORDERS = 3, VIP_SPENT = 2000000, AT_RISK_DAYS = 60, COOL_DAYS = 14, SHIP_DAYS = 3, FAM_MIN = 1, FAM_GAP = 180; // COOL_DAYS: khách vừa trả lời chăm sóc → bao nhiêu ngày sau mới nhắc lại (0 = tắt)
 const NOTE_MAX = 400; // nhật ký dài chỉ gửi phần đầu khi mở CRM; mở hồ sơ khách mới tải đủ (cust_orders)
 export const LINES = [['Fucoidan Pro', /progomax|fucoidan pro|fu ?pro/i], ['Curcumin', /curcumin|nghệ/i], ['BADD', /bữa ăn|badd|bua an/i]];
 export const DEFAULT_CYCLES = [
@@ -126,7 +143,8 @@ export const DEFAULT_TEMPLATES = [
 export async function rulesCfg(x) {
   if (x._rules) return x._rules;
   const r = await kvJson(x.db, 'rules_cfg', {}) || {};
-  return (x._rules = { vipOrders: Number(r.vipOrders) || VIP_ORDERS, vipSpent: Number(r.vipSpent) || VIP_SPENT, atRisk: Number(r.atRisk) || AT_RISK_DAYS, coolDays: r.coolDays !== undefined && r.coolDays !== '' ? Number(r.coolDays) : COOL_DAYS });
+  return (x._rules = { vipOrders: Number(r.vipOrders) || VIP_ORDERS, vipSpent: Number(r.vipSpent) || VIP_SPENT, atRisk: Number(r.atRisk) || AT_RISK_DAYS, coolDays: r.coolDays !== undefined && r.coolDays !== '' ? Number(r.coolDays) : COOL_DAYS,
+    shipDays: r.shipDays !== undefined && r.shipDays !== '' ? Number(r.shipDays) : SHIP_DAYS, famMin: r.famMin !== undefined && r.famMin !== '' ? Number(r.famMin) : FAM_MIN });
 }
 export async function caCfg(x) { if (!x._ca) x._ca = await kvJson(x.db, 'ca_cfg', {}) || {}; return x._ca; }
 export async function assignMode(x) { if (!x._mode) x._mode = (await kvGet(x.db, 'assign_mode')) || 'pool'; return x._mode; }
@@ -171,9 +189,11 @@ const TONES = /[̣̀́̃̉]/g;
 export function nameKey(s) { return String(s || '').normalize('NFD').toLowerCase().trim().split(/\s+/).map(w => w.replace(TONES, '') + (w.match(TONES) || []).join('')).join(' '); }
 /** Tên nhân sự gõ khác cách đặt dấu (dữ liệu cũ từ Sheet, đổi tên ở Nhân sự…) → đưa về đúng tên tài khoản, để khách không bị tách thành 2 người phụ trách. */
 const NAME_COLS = [['customers', 'owner'], ['customers', 'last_seller'], ['orders', 'seller'], ['leads', 'owner'], ['sources', 'sale'], ['sale_phones', 'sale'], ['dup_done', 'owner'], ['logs', 'by_name']];
-export async function unifyNames(x) {
-  const by = {}; (await crmUsers(x)).forEach(u => { const k = nameKey(u.name); (by[k] = by[k] || []).indexOf(u.name) < 0 && by[k].push(u.name); });
-  const fix = v => { const s = by[nameKey(v)]; return s && s.length === 1 && s[0] !== v ? s[0] : ''; }; // 2 tài khoản cùng khoá: không tự gộp
+export async function unifyNames(x, ren) {
+  ren = ren || {}; // { tên cũ: tên mới } – vừa đổi tên ở Cài đặt → Nhân sự
+  const us = await crmUsers(x), by = {}, al = {}; us.forEach(u => { const k = nameKey(u.name); (by[k] = by[k] || []).indexOf(u.name) < 0 && by[k].push(u.name); });
+  us.forEach(u => { const k = nameKey(u.alias); if (u.alias && !by[k]) (al[k] = al[k] || []).push(u.name); }); // tên gọi tắt ("Chang" của "Thu Chang") – file sale hay ghi tên này
+  const fix = v => { if (ren[v]) return ren[v]; const s = by[nameKey(v)] || al[nameKey(v)]; return s && s.length === 1 && s[0] !== v ? s[0] : ''; }; // 2 tài khoản cùng khoá: không tự gộp
   let n = 0;
   for (const [t, c] of NAME_COLS) for (const r of await all(x.db, `SELECT DISTINCT ${c} AS v FROM ${t} WHERE ${c} != ''`)) {
     const to = fix(r.v); if (to) n += (await run(x.db, `UPDATE ${t} SET ${c} = ? WHERE ${c} = ?`, to, r.v)).meta.changes;
@@ -212,21 +232,39 @@ function runOutDate(cycles, items, t) { let best = 0; (items || []).forEach(i =>
 /** Đọc dòng sản phẩm đã lưu: "Tên (quy cách) x2 = 280.000 ₫". Bỏ dòng quà tặng (🎁). */
 export function parseItemLines(text) { return String(text || '').split('\n').map(l => { if (/^🎁/.test(l)) return null; const m = l.match(/^(.*?)(?: \((.*?)\))? x(\d+) =/); return m ? { name: m[1], variant: m[2] || '', qty: +m[3] } : null; }).filter(Boolean); }
 
-const CUS_COLS = ['phone', 'name', 'address', 'province', 'ward', 'orders', 'spent', 'first', 'last', 'products', 'runout', 'consent', 'source', 'owner', 'last_status', 'last_ca', 'last_seller'];
+const CUS_COLS = ['phone', 'name', 'address', 'province', 'ward', 'orders', 'spent', 'first', 'last', 'products', 'runout', 'consent', 'source', 'owner', 'last_status', 'last_ca', 'last_seller', 'recv', 'ok_n', 'back_n', 'last_back', 'fam'];
 /**
  * Tính lại khách của các số điện thoại (từ toàn bộ đơn, bỏ đơn Huỷ / Hoàn). Giữ nguyên các cột nhân viên điền (ghi chú, hẹn, nhãn…).
  * opt.owners = {sđt: tên} gán người phụ trách cho khách chưa có; opt.sellerOwner = tên sale: khách chưa ai phụ trách mà đơn gần nhất do sale này bán → giao cho sale.
  */
+/** Tên sản phẩm trong ô "Sản phẩm" của đơn → khoá so sánh (bỏ quà 🎁, số lượng, giá, quy cách 400g/900g…). */
+function prodKeys(items) {
+  return String(items || '').split(/\n|;\s*/).map(l => l.trim()).filter(l => l && !/^🎁/.test(l)).map(l => l.replace(/=.*$/, '').replace(/\s*x\s*\d+\s*$/i, '').toLowerCase().replace(/\(.*?\)/g, ' ')
+    .replace(/\d+([.,]\d+)?\s*(g|gr|gram|kg|ml|l|gói|goi|hộp|hop|hũ|hu|lon)(?=\s|$)/g, ' ').replace(/[^0-9a-zà-ỹđ]+/g, ' ').replace(/\s+/g, ' ').trim()).filter(k => k.length >= 3);
+}
+/** Khách quen sản phẩm: mọi sản phẩm trong đơn gần nhất (không huỷ/hoàn) khách đã nhận ≥ min lần trước đó (lần gần nhất trong FAM_GAP ngày), đơn liền trước không bị hoàn.
+ *  → đã biết cách dùng: không nhắc hỏi nhận hàng / 14 ngày. min = 0: tắt. list: đơn của 1 khách, xếp theo thời gian. */
+function famOf(list, min) {
+  if (!min) return false;
+  let xi = -1; for (let i = list.length - 1; i >= 0; i--) if (!isVoid(list[i].status) && list[i].time) { xi = i; break; }
+  if (xi < 0) return false;
+  const x = list[xi], keys = prodKeys(x.items), t = x.time || 0; if (!keys.length) return false;
+  const prev = list.slice(0, xi).filter(o => (o.time || 0) < t); if (!prev.length) return false;
+  if (/hoàn/i.test(prev[prev.length - 1].status || '')) return false; // đơn trước bị hoàn: gọi lại cho chắc
+  const pk = prev.filter(o => !isVoid(o.status)).map(o => ({ time: o.time || 0, keys: prodKeys(o.items) })), same = (a, b) => a === b || a.indexOf(b) >= 0 || b.indexOf(a) >= 0;
+  return keys.every(k => { const hit = pk.filter(o => o.keys.some(q => same(k, q))); return hit.length >= min && t - hit[hit.length - 1].time <= FAM_GAP * DAY; });
+}
 export async function recalc(x, phones, opt) {
   opt = opt || {};
   const list = [...new Set((phones || []).map(normPhone).filter(Boolean))]; if (!list.length) return 0;
-  const cycles = await cyclesList(x); let n = 0;
+  const cycles = await cyclesList(x), R = await rulesCfg(x); let n = 0;
   for (let i = 0; i < list.length; i += 400) {
     const part = list.slice(i, i + 400);
-    const rows = await all(x.db, 'SELECT phone, time, status, items, total, consent, first_source, source, seller, name, address, province, ward, ca FROM orders WHERE phone IN (SELECT value FROM json_each(?)) ORDER BY time, rid', JSON.stringify(part));
+    const rows = await all(x.db, 'SELECT phone, time, status, items, total, consent, first_source, source, seller, name, address, province, ward, ca, received_at, ship_at FROM orders WHERE phone IN (SELECT value FROM json_each(?)) ORDER BY time, rid', JSON.stringify(part));
     const map = {};
     for (const r of rows) {
-      const c = map[r.phone] || (map[r.phone] = { orders: 0, spent: 0, first: null, last: null, bought: [], run: null, consent: 0, src: '', lastT: -1, lastStatus: '', lastCa: '', seller: '' });
+      const c = map[r.phone] || (map[r.phone] = { orders: 0, spent: 0, first: null, last: null, bought: [], run: null, consent: 0, src: '', lastT: -1, lastStatus: '', lastCa: '', seller: '', okN: 0, backN: 0, lastBack: null, recv: null, list: [] });
+      c.list.push(r); if (/hoàn/i.test(r.status || '')) { c.backN++; if ((r.time || 0) > (c.lastBack || 0)) c.lastBack = r.time || 0; } else if (!isVoid(r.status) && r.time) c.okN++;
       if ((r.time || 0) >= c.lastT) { c.lastT = r.time || 0; c.lastStatus = r.status || ''; if (!isVoid(r.status)) c.lastCa = r.ca || ''; }
       if (isVoid(r.status) || !r.time) continue;
       if (!c.orders) { c.first = r.time; c.src = String(r.first_source || r.source || ''); }
@@ -234,21 +272,24 @@ export async function recalc(x, phones, opt) {
       ['name', 'address', 'province', 'ward'].forEach(h => { if (r[h] !== '' && r[h] != null) c[h] = r[h]; });
       const items = parseItemLines(r.items);
       items.forEach(it => { const nm = it.name + (it.variant ? ' (' + it.variant + ')' : ''); if (c.bought.indexOf(nm) < 0) c.bought.push(nm); });
-      const ro = runOutDate(cycles, items, r.time); if (ro) c.run = ro;
+      c.recv = r.received_at || null; // ngày khách nhận đơn gần nhất (chưa biết thì để trống)
+      const ro = runOutDate(cycles, items, r.received_at || (r.ship_at ? r.ship_at + R.shipDays * DAY : r.time + R.shipDays * DAY)); if (ro) c.run = ro; // dùng hết tính từ ngày nhận hàng (chưa biết thì ngày gửi / ngày đặt + số ngày giao)
       if (r.consent) c.consent = 1;
     }
     const up = [], zero = [];
     for (const ph of part) {
       const c = map[ph];
-      if (!c || !c.orders) { zero.push({ phone: ph, last_status: c ? c.lastStatus : '', last_ca: c ? c.lastCa : '' }); continue; }
+      if (!c || !c.orders) { zero.push({ phone: ph, last_status: c ? c.lastStatus : '', last_ca: c ? c.lastCa : '', back_n: c ? c.backN : 0, last_back: c ? c.lastBack : null }); continue; }
       let owner = (opt.owners && opt.owners[ph]) || '';
       if (!owner && opt.sellerOwner && c.seller === opt.sellerOwner) owner = opt.sellerOwner;
-      up.push({ phone: ph, name: c.name || '', address: c.address || '', province: c.province || '', ward: c.ward || '', orders: c.orders, spent: c.spent, first: c.first, last: c.last, products: c.bought.join('; '), runout: c.run, consent: c.consent, source: c.src, owner, last_status: c.lastStatus, last_ca: c.lastCa, last_seller: c.seller });
+      up.push({ phone: ph, name: c.name || '', address: c.address || '', province: c.province || '', ward: c.ward || '', orders: c.orders, spent: c.spent, first: c.first, last: c.last, products: c.bought.join('; '), runout: c.run, consent: c.consent, source: c.src, owner, last_status: c.lastStatus, last_ca: c.lastCa, last_seller: c.seller,
+        recv: c.recv, ok_n: c.okN, back_n: c.backN, last_back: c.lastBack, fam: famOf(c.list, R.famMin) ? 1 : 0 });
     }
     await insertMany(x.db, 'customers', CUS_COLS, up, `ON CONFLICT(phone) DO UPDATE SET name = excluded.name, address = excluded.address, province = excluded.province, ward = excluded.ward, orders = excluded.orders, spent = excluded.spent,
       first = excluded.first, last = excluded.last, products = excluded.products, runout = excluded.runout, consent = max(coalesce(customers.consent, 0), excluded.consent), source = excluded.source, last_status = excluded.last_status, last_ca = excluded.last_ca, last_seller = excluded.last_seller,
+      recv = excluded.recv, ok_n = excluded.ok_n, back_n = excluded.back_n, last_back = excluded.last_back, fam = excluded.fam,
       owner = CASE WHEN customers.owner IS NULL OR customers.owner = '' THEN excluded.owner ELSE customers.owner END`);
-    if (zero.length) await run(x.db, "UPDATE customers SET orders = 0, spent = 0, products = '', runout = NULL, last_status = json_extract(j.value, '$.last_status'), last_ca = json_extract(j.value, '$.last_ca') FROM json_each(?) j WHERE customers.phone = json_extract(j.value, '$.phone')", JSON.stringify(zero));
+    if (zero.length) await run(x.db, "UPDATE customers SET orders = 0, spent = 0, products = '', runout = NULL, recv = NULL, ok_n = 0, fam = 0, last_status = json_extract(j.value, '$.last_status'), last_ca = json_extract(j.value, '$.last_ca'), back_n = json_extract(j.value, '$.back_n'), last_back = json_extract(j.value, '$.last_back') FROM json_each(?) j WHERE customers.phone = json_extract(j.value, '$.phone')", JSON.stringify(zero));
     n += up.length;
   }
   try { await autoCloseLeads(x, list); } catch (e) { console.error('autoCloseLeads', e.message); } // có đơn mới → khách hỏi cùng số tự "Đã chốt"
@@ -290,6 +331,7 @@ export function careTask(c, today, R) {
   // Khách vừa trả lời chăm sóc (không tính "Không nghe máy") trong coolDays ngày → chưa nhắc lại các mốc định kỳ (hẹn gọi lại, hỏi nhận hàng vẫn nhắc)
   const cool = R.coolDays > 0 && care != null && c.care_result !== 'Không nghe máy' && today - care < R.coolDays * DAY;
   for (const s of CARE_STEPS) {
+    if (c.fam && (s.key === 'd1' || s.key === 'd14')) continue; // khách quen sản phẩm: đã biết cách dùng
     if (s.key === 'd1') { // hỏi nhận hàng: đơn đã giao thì từ hôm sau; đơn còn đang xử lý / đi đường thì chờ D1_WAIT ngày. Đã chăm sóc sau ngày đặt → coi như đã hỏi
       const from = OPEN_ST.test(c.last_status || '') ? D1_WAIT : s.at;
       if (days >= from && days <= D1_END && !(care != null && care > last)) return { type: 'd1', days, late: 0, toRun };
@@ -325,12 +367,12 @@ export async function srcList(x) {
 }
 export async function adsCfg(x) { return kvJson(x.db, 'ads_cfg', null); }
 
-const CUS_SQL = `SELECT phone, name, address, province, ward, orders, spent, first, last, products, runout, consent, source, owner, care_at, care_result, substr(note, 1, ${NOTE_MAX}) AS note, length(note) > ${NOTE_MAX} AS cut, callback, flag, tag, last_status, last_ca, zalo, community, dob FROM customers`;
+const CUS_SQL = `SELECT phone, name, address, province, ward, orders, spent, first, last, products, runout, consent, source, owner, care_at, care_result, substr(note, 1, ${NOTE_MAX}) AS note, length(note) > ${NOTE_MAX} AS cut, callback, flag, tag, last_status, last_ca, zalo, community, dob, recv, ok_n, back_n, last_back, fam FROM customers`;
 const cusOut = (v, today, R) => ({
   phone: v.phone, name: v.name || '', address: v.address || '', province: v.province || '', ward: v.ward || '', orders: v.orders || 0, spent: v.spent || 0, first: v.first, last: v.last,
   products: String(v.products || '').split('; ').filter(String), runout: v.runout, group: groupOf(v.orders || 0, v.spent || 0, v.last, R), consent: !!v.consent, source: v.source || '', owner: v.owner || '',
   careAt: v.care_at, careResult: v.care_result || '', note: v.note || '', noteCut: !!v.cut, callback: v.callback, flag: v.flag || '', tag: v.tag || '', task: careTask(v, today, R), lastStatus: v.last_status || '', lastCa: v.last_ca || '',
-  zalo: !!v.zalo, community: v.community || '', dob: v.dob || ''
+  zalo: !!v.zalo, community: v.community || '', dob: v.dob || '', recv: v.recv || null, okN: v.ok_n || 0, backN: v.back_n || 0, lastBack: v.last_back || 0, fam: !!v.fam
 });
 const logOut = l => ({ time: l.time, by: l.by_name || '', what: l.what || '', ref: l.ref || '', name: l.name || '', result: l.result || '', note: l.note || '' });
 const contactOut = r => ({ row: r.rid, time: r.time, name: r.name || '', phone: r.phone || '', email: r.email || '', message: r.message || '', page: r.page || '', done: !!r.done, note: r.note || '' });
@@ -360,7 +402,7 @@ async function loadSmall(x, u, R, mode, adV) {
     ok: true, user: publicUser(u), now: Date.now(), today: startOfDay(Date.now()), fbNew, users, prefs, tagColors, sources, ads, adV: ar.v, adRows: ar.rows,
     contacts: ct.reverse().map(contactOut), targets: tg.map(t => ({ month: t.month, name: t.name, amount: t.amount || 0, by: t.by_name || '', at: t.at })),
     cycles: cy.filter(r => r.name).map(r => [r.name, r.variant || '', Number(r.days) || 0, r.basis || '']), templates: tp.filter(r => r.text).map(r => [r.when_txt || '', r.purpose || '', r.text]),
-    rules: { vipOrders: R.vipOrders, vipSpent: R.vipSpent, atRisk: R.atRisk, coolDays: R.coolDays, commission, statuses: ORDER_STATUS, results: CARE_RESULTS, leadStatus: LEAD_STATUS, assignMode: mode, bot: BOT_USERNAME, ca, lines: LINES.map(l => l[0]).concat(['Khác']) }
+    rules: { vipOrders: R.vipOrders, vipSpent: R.vipSpent, atRisk: R.atRisk, coolDays: R.coolDays, shipDays: R.shipDays, famMin: R.famMin, otypes: OTYPES, commission, statuses: ORDER_STATUS, results: CARE_RESULTS, leadStatus: LEAD_STATUS, assignMode: mode, bot: BOT_USERNAME, ca, lines: LINES.map(l => l[0]).concat(['Khác']) }
   };
 }
 
@@ -639,6 +681,7 @@ export async function saveOrder(x, data, opt) {
   const c = data.customer || {}, now = Date.now(), manual = !!opt.by, phone = normPhone(c.phone);
   if (!manual && data.id && await first(x.db, 'SELECT rid FROM orders WHERE id = ?', String(data.id))) return { dup: true }; // web gửi lại khi mạng chập chờn
   const items = itemsText(data.items || []), pay = data.payment === 'bank' ? 'Chuyển khoản' : 'COD', realItems = (data.items || []).filter(i => !i.gift);
+  if (!opt.otype) { try { opt.otype = (await otypeSuggest(x, phone, now)).t; } catch (e) { console.error('otype', e.message); } } // đơn web: loại đơn theo gợi ý (tính trước khi lưu)
   const ca = opt.ca || caOf(now, await caCfg(x)), line = opt.line || lineOf(realItems.map(i => i.name + ' ' + (i.variant || '')).join(' ')), ship = opt.shipText || shipText(data.items || []);
   let owner = await ownerOf(x, phone), assigned = '';
   if (!owner && !opt.by) owner = assigned = await autoOwner(x); // khách chưa ai phụ trách + chế độ "Tự chia đều"
@@ -646,6 +689,8 @@ export async function saveOrder(x, data, opt) {
   await insertMany(x.db, 'orders', ORDER_COLS, [{ id: String(data.id || ''), time: now, name: c.name || '', phone, email: c.email || '', province: c.province || '', ward: c.district || '', address: c.address || '', items,
     subtotal: Number(data.subtotal) || 0, shipping: Number(data.shipping) || 0, total: Number(data.total) || 0, payment: pay, note: c.note || '', status: opt.status || 'Mới', source: data.source || '', first_source: data.first_source || '',
     consent: data.marketing_consent ? 1 : 0, paid: '', carrier: '', tracking: '', seller: seller || '', ca, line, ship }]);
+  if (opt.otype || opt.oflag) await run(x.db, 'UPDATE orders SET otype = ?, oflag = ? WHERE id = ? AND phone = ?', opt.otype || '', opt.oflag || '', String(data.id || ''), phone);
+  try { await comboCycles(x, data.items || []); } catch (e) { console.error('comboCycles', e.message); }
   await recalc(x, [phone], assigned ? { owners: { [phone]: assigned } } : {});
   const notify = async () => {
     const tg = await tgConf(x.env);
@@ -660,6 +705,16 @@ export async function saveOrder(x, data, opt) {
   };
   x.later(notify());
   return { ok: true };
+}
+/** Gói giải pháp trên web có số ngày dùng (items[].days) → tự thêm chu kỳ dùng nếu chưa có. */
+async function comboCycles(x, items) {
+  const add = (items || []).filter(i => Number(i.days) > 0 && i.name); if (!add.length) return;
+  const cy = await cyclesList(x);
+  for (const i of add) {
+    const nm = String(i.name).toLowerCase();
+    if (cy.some(r => nm.indexOf(String(r[0]).toLowerCase()) >= 0 && !r[1] && Number(r[2]) === Number(i.days))) continue;
+    await run(x.db, "INSERT INTO cycles (name, variant, days, basis) VALUES (?, '', ?, 'Gói giải pháp – web tự thêm')", String(i.name), Number(i.days)); cy.push([String(i.name), '', Number(i.days), '']);
+  }
 }
 async function orderFind(x, d) {
   let o = await first(x.db, 'SELECT * FROM orders WHERE rid = ? AND id = ?', Number(d.row) || 0, String(d.id));
@@ -683,13 +738,12 @@ async function crmOrderStatus(x, u, d) {
     await crmLog(x, u, 'Đơn hàng', d.id, o.name, 'Vận đơn: ' + [d.carrier, d.tracking].filter(Boolean).join(' '), '');
     if (String(d.tracking || '').trim() && (old === 'Mới' || old === 'Đã xác nhận') && !status) status = 'Đang giao'; // có mã vận đơn = đã gửi hàng
   }
-  if (d.ship_at !== undefined) set.ship_at = Number(d.ship_at) || null;
-  if (d.received_at !== undefined) set.received_at = Number(d.received_at) || null;
-  if (d.otype !== undefined) set.otype = String(d.otype);
-  if (d.oflag !== undefined) set.oflag = String(d.oflag);
-  if (d.trk !== undefined) set.trk = String(d.trk);
-  if (d.trk_at !== undefined) set.trk_at = Number(d.trk_at) || null;
-  if (d.trk_code !== undefined) set.trk_code = Number(d.trk_code) || 0;
+  if (d.otype !== undefined || d.otypeOk) { // quản lý kiểm tra loại đơn: giữ (✓ Đúng) hoặc đổi
+    if (u.level < 2) return { ok: false, error: 'Chỉ quản lý xác nhận / đổi loại đơn.' };
+    const ot0 = String(o.otype || ''), ot1 = OTYPES.indexOf(d.otype) >= 0 ? d.otype : ot0;
+    set.otype = ot1; set.oflag = ''; if (ot1 !== ot0) set.ca = otypeCa(ot1);
+    await crmLog(x, u, 'Loại đơn', d.id, o.name, ot1 !== ot0 ? ot0 + ' → ' + ot1 : 'Xác nhận ' + ot1, o.oflag || '');
+  }
   if (status && status !== old) {
     set.status = status;
     if (status === 'Đang giao' && !o.ship_at && !set.ship_at) set.ship_at = Date.now();
@@ -699,6 +753,8 @@ async function crmOrderStatus(x, u, d) {
   const ks = Object.keys(set);
   if (ks.length) await run(x.db, 'UPDATE orders SET ' + ks.map(k => k + ' = ?').join(', ') + ' WHERE rid = ?', ...ks.map(k => set[k]), o.rid);
   if (set.status) await recalc(x, [o.phone]); // huỷ / hoàn / khôi phục đơn → tính lại khách (và màu khách)
+  if (set.status) await wbSafe(async () => { const ow = await ownerOf(x, o.phone), m = String(o.source || '').match(/^File .+? – (.+)$/);
+    await wbStatusQueue(x, [o.seller, ow], { id: o.id, sheet: m ? m[1] : '', phone: o.phone, name: o.name, time: Number(o.time) || 0, total: Number(o.total) || 0, status: set.status }); });
   return { ok: true, row: o.rid, status: status || old };
 }
 async function crmOrderEdit(x, u, d) {
@@ -712,9 +768,9 @@ async function crmOrderEdit(x, u, d) {
   items = items.concat(cleanItems(d.gifts).map(g => Object.assign(g, { gift: true, price: 0, subtotal: 0 })));
   const set = { name: String(c.name).trim(), phone, province: c.province || '', ward: c.ward || '', address: c.address || '', items: itemsText(items), subtotal: sub, shipping: ship, total: sub + ship, payment: d.payment === 'bank' ? 'Chuyển khoản' : 'COD',
     ship: shipText(items), line: lineOf(items.filter(i => !i.gift).map(i => i.name + ' ' + i.variant).join(' ')) };
-  if (CA_LIST.indexOf(d.ca) >= 0) set.ca = d.ca;
-  if (d.otype !== undefined) set.otype = String(d.otype);
-  if (d.oflag !== undefined) set.oflag = String(d.oflag);
+  if (OTYPES.indexOf(d.otype) >= 0 && d.otype !== o.otype) { // đổi loại đơn: quản lý → xong; nhân viên khác gợi ý → chờ quản lý kiểm tra
+    set.otype = d.otype; set.ca = otypeCa(d.otype); set.oflag = u.level >= 2 ? '' : otypeFlag(d.otype, await otypeSuggest(x, phone, Number(o.time) || Date.now()));
+  }
   const ks = Object.keys(set);
   await run(x.db, 'UPDATE orders SET ' + ks.map(k => k + ' = ?').join(', ') + ' WHERE rid = ?', ...ks.map(k => set[k]), o.rid);
   await crmLog(x, u, 'Sửa đơn', d.id, c.name, fmt(o.total) + ' → ' + fmt(sub + ship), d.reason || '');
@@ -786,15 +842,22 @@ async function crmOrderCreate(x, u, d) {
     const dup = await first(x.db, "SELECT id, time FROM orders WHERE phone = ? AND total = ? AND time > ? AND status NOT IN ('Huỷ', 'Hoàn') ORDER BY time DESC LIMIT 1", phone, sub + ship, now - 60 * 60e3);
     if (dup) return { ok: false, dupOf: dup.id, error: 'Khách này vừa có đơn ' + dup.id + ' cùng số tiền ' + fmt(sub + ship) + ' lúc ' + fmtDate(Number(dup.time), 'HH:mm') + '. Có thể lần trước đã lưu rồi.' };
   }
-  const id = await nextCode(x, u, now);
+  const id = await nextCode(x, u, now), sug = await otypeSuggest(x, phone, now); // gợi ý tính TRƯỚC khi lưu (lưu xong khách đã thành "đã mua")
+  const otype = OTYPES.indexOf(d.otype) >= 0 ? d.otype : sug.t, oflag = u.level >= 2 ? '' : otypeFlag(otype, sug);
   const src = ld && ld.channel ? 'Tiềm năng – ' + ld.channel : 'Nhập tay – ' + (d.source || 'Khác');
   await saveOrder(x, { id, customer: { name: String(c.name).trim(), phone, email: c.email || '', province: c.province || '', district: c.ward || '', address: c.address || '', note: c.note || '' },
     items, subtotal: sub, shipping: ship, total: sub + ship, payment: d.payment === 'bank' ? 'bank' : 'cod', source: src, first_source: src, marketing_consent: !!d.consent },
-    { by: u.name, status: ORDER_STATUS.indexOf(d.status) >= 0 ? d.status : 'Đã xác nhận', ca: CA_LIST.indexOf(d.ca) >= 0 ? d.ca : '' });
+    { by: u.name, status: ORDER_STATUS.indexOf(d.status) >= 0 ? d.status : 'Đã xác nhận', ca: otypeCa(otype), otype, oflag });
   await run(x.db, "UPDATE customers SET owner = ? WHERE phone = ? AND (owner = '' OR owner IS NULL)", u.name, phone);
   await crmLog(x, u, 'Tạo đơn', id, c.name, fmt(sub + ship), src);
+  await wbSafe(async () => { // ghi ngược vào sheet lên đơn của sale
+    const cv = await first(x.db, 'SELECT owner, orders FROM customers WHERE phone = ?', phone), real0 = items.filter(i => !i.gift), gift0 = items.filter(i => i.gift)[0];
+    await wbOrderQueue(x, (cv && cv.owner) || u.name, { id, time: now, name: String(c.name).trim(), phone, address: [c.address, c.ward, c.province].filter(Boolean).join(', '),
+      product: real0.map(i => i.name + (i.variant ? ' ' + i.variant : '') + (real0.length > 1 ? ' x' + i.qty : '')).join(', '), qty: real0.length === 1 ? real0[0].qty : '', gift: gift0 ? gift0.name : '', giftQty: gift0 ? gift0.qty : '',
+      total: sub + ship, status: ORDER_STATUS.indexOf(d.status) >= 0 ? d.status : 'Đã xác nhận', ship: shipText(items), note: c.note || '', ca: otypeCa(otype), otype, old: !!cv && Number(cv.orders) > 1 });
+  });
   if (d.leadId) await leadUpdate(x, d.leadId, { status: 'Đã chốt', order_id: id, last_at: now, callback: null });
-  return { ok: true, id };
+  return { ok: true, id, otype, oflag };
 }
 
 /* ================================================================ khách: chăm sóc, sửa thông tin */
@@ -806,7 +869,7 @@ async function crmCare(x, u, d) {
   await run(x.db, 'UPDATE customers SET care_at = ?, care_result = ?, callback = ?, owner = ? WHERE phone = ?', now, String(d.result || ''), cb, owner, phone);
   const note = String(d.note || '').trim();
   if (d.received) {
-    const lastOrd = await first(x.db, "SELECT rid, id, time, status, received_at FROM orders WHERE phone = ? AND status NOT IN ('Huỷ', 'Hoàn') ORDER BY time DESC LIMIT 1", phone);
+    const lastOrd = (await all(x.db, 'SELECT rid, id, time, status, received_at FROM orders WHERE phone = ? ORDER BY time DESC LIMIT 20', phone)).find(r => !isVoid(r.status));
     if (lastOrd) {
       const open = /^(Mới|Đã xác nhận|Đang giao)$/.test(lastOrd.status);
       if (!lastOrd.received_at && (open || now - Number(lastOrd.time) <= 20 * DAY)) {
@@ -815,6 +878,7 @@ async function crmCare(x, u, d) {
       }
     }
   }
+  await wbSafe(() => wbQueue(x, owner, phone, c.name, (note || WB_SHORT[d.result] || d.result) + cbTxt(d.callback)));
   await crmLog(x, u, TASK_LABEL[d.task] || TASK_LABEL.other, phone, c.name, d.result, note + (d.callback ? (note ? ' – ' : '') + 'hẹn gọi lại ' + String(d.callback).split('-').reverse().join('/') : ''));
   return { ok: true, careAt: now, owner, callback: cb };
 }
@@ -832,9 +896,15 @@ async function crmCustomer(x, u, d) {
   if (cm !== null) set.community = cm;
   const ks = Object.keys(set);
   if (ks.length) await run(x.db, 'UPDATE customers SET ' + ks.map(k => k + ' = ?').join(', ') + ' WHERE phone = ?', ...ks.map(k => set[k]), phone);
-  if (cm !== null || d.promo) {
-    const cv = await first(x.db, 'SELECT name, note FROM customers WHERE phone = ?', phone);
+  if (cm !== null || d.promo || d.quick || d.zalo) {
+    const cv = await first(x.db, 'SELECT name, note, owner FROM customers WHERE phone = ?', phone);
     if (cm !== null) await crmLog(x, u, 'Cộng đồng', phone, cv.name, cm || 'Bỏ đánh dấu', '');
+    await wbSafe(async () => { // ghi nhanh / đã kết bạn Zalo / vào nhóm / gửi ưu đãi → cũng ghi vào file sale của người phụ trách
+      if (d.quick) await wbQueue(x, cv.owner, phone, cv.name, String(d.quick));
+      if (d.zalo) await wbQueue(x, cv.owner, phone, cv.name, '@zalo', true);
+      if (cm === 'Đã vào') await wbQueue(x, cv.owner, phone, cv.name, '👥 đã vào nhóm Zalo cộng đồng');
+      if (d.promo) await wbQueue(x, cv.owner, phone, cv.name, '📣 ' + String(d.promo).slice(0, 80));
+    });
     if (d.promo) { // đã gửi tin ưu đãi qua Zalo: thêm 1 dòng vào ghi chú (không đè) + nhật ký "Gửi ưu đãi" để đo ưu đãi ra đơn
       const camp = String(d.promo).slice(0, 80), line = fmtDate(Date.now(), 'dd/MM/yy') + ': 📣 Gửi ưu đãi: ' + camp, cur = String(cv.note || '');
       await run(x.db, 'UPDATE customers SET note = ? WHERE phone = ?', (line + (cur ? '\n' + cur : '')).slice(0, 45000), phone);
@@ -843,6 +913,9 @@ async function crmCustomer(x, u, d) {
   }
   return { ok: true };
 }
+/** Ghi ngược vào file sale (wb.js): lỗi không chặn thao tác trên CRM. */
+async function wbSafe(fn) { try { await fn(); } catch (e) { console.error('wb', e.message); } }
+const cbTxt = cb => cb ? ' (hẹn gọi ' + String(cb).split('-').reverse().slice(0, 2).map(Number).join('/') + ')' : '';
 /** Ngày sinh → "dd/MM" hoặc "dd/MM/yyyy" ('' nếu sai). */
 export function dobText(v) {
   const m = String(v || '').trim().match(/^(\d{1,2})[\/.\-](\d{1,2})(?:[\/.\-](\d{4}))?$/); if (!m) return '';
@@ -875,7 +948,9 @@ async function crmSettings(x, u, d) {
   }
   if (d.rules) {
     const R = { vipOrders: Math.max(1, Math.round(Number(d.rules.vipOrders) || VIP_ORDERS)), vipSpent: Math.max(0, Math.round(Number(d.rules.vipSpent) || VIP_SPENT)), atRisk: Math.max(7, Math.round(Number(d.rules.atRisk) || AT_RISK_DAYS)),
-      coolDays: d.rules.coolDays === undefined || d.rules.coolDays === '' ? (await rulesCfg(x)).coolDays : Math.min(60, Math.max(0, Math.round(Number(d.rules.coolDays) || 0))) };
+      coolDays: d.rules.coolDays === undefined || d.rules.coolDays === '' ? (await rulesCfg(x)).coolDays : Math.min(60, Math.max(0, Math.round(Number(d.rules.coolDays) || 0))),
+      shipDays: d.rules.shipDays === undefined || d.rules.shipDays === '' ? (await rulesCfg(x)).shipDays : Math.min(15, Math.max(0, Math.round(Number(d.rules.shipDays) || 0))),
+      famMin: d.rules.famMin === undefined || d.rules.famMin === '' ? (await rulesCfg(x)).famMin : Math.min(10, Math.max(0, Math.round(Number(d.rules.famMin) || 0))) };
     await kvSet(x.db, 'rules_cfg', JSON.stringify(R)); x._rules = null;
     await crmLog(x, u, 'Cài đặt', '-', '', 'VIP từ ' + R.vipOrders + ' đơn hoặc ' + fmt(R.vipSpent) + '; Sắp mất sau ' + R.atRisk + ' ngày; giãn cách chăm sóc ' + R.coolDays + ' ngày', '');
     return { ok: true, rules: R };
@@ -913,8 +988,9 @@ async function crmSaveUsers(x, u, d) {
       alias: String(y.alias !== undefined ? y.alias : o.alias || '').trim(), prefix: String(y.prefix !== undefined ? y.prefix : o.prefix || '').replace(/[^A-Za-z0-9]/g, ''), ord: i };
   }).filter(r => { if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(r.email) || seen[r.email]) return false; seen[r.email] = 1; return true; });
   if (!seen[SUPER_ADMIN]) rows.unshift({ email: SUPER_ADMIN, name: 'Thái Sơn', role: 'Quản trị', active: 1, recv: 'Không', tg: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].tg || '' : '', alias: '', prefix: '', ord: -1 });
+  const ren = {}; rows.forEach(r => { const o = cur[r.email]; if (o && o.name && r.name && o.name !== r.name && !rows.some(z => z.name === o.name)) ren[o.name] = r.name; }); // đổi tên → đơn, khách, file sale theo tên mới
   await run(x.db, 'DELETE FROM users'); await insertMany(x.db, 'users', ['email', 'name', 'role', 'active', 'recv', 'tg', 'alias', 'prefix', 'ord'], rows); x._users = null;
-  try { await unifyNames(x); } catch (e) { console.error('unifyNames', e.message); }
+  try { await unifyNames(x, ren); } catch (e) { console.error('unifyNames', e.message); }
   await crmLog(x, u, 'Nhân sự', '-', '', 'Cập nhật ' + rows.length + ' tài khoản', '');
   return { ok: true, users: await crmUsers(x) };
 }
@@ -987,6 +1063,7 @@ async function crmLeadContact(x, u, d) {
   const note = String(d.note || '').trim();
   if (note) f.note = String(ld.note || '') + '\n[' + fmtDate(now, 'dd/MM') + ' ' + u.name + '] ' + note;
   await leadUpdate(x, d.id, f);
+  await wbSafe(() => wbQueue(x, f.owner || ld.owner, normPhone(ld.phone), ld.name, [note || WB_SHORT[d.result] || d.result || st, st === 'Không mua' && d.reason ? 'không mua: ' + d.reason : ''].filter(String).join(', ') + cbTxt(st === 'Không mua' ? '' : d.callback)));
   await crmLog(x, u, 'Tư vấn', ld.phone, ld.name, d.result || st, [note, st === 'Không mua' ? 'Lý do: ' + d.reason : '', d.callback ? 'hẹn ' + String(d.callback).split('-').reverse().join('/') : ''].filter(String).join(' – '));
   return { ok: true, status: st, at: now, owner: f.owner || ld.owner };
 }
@@ -1330,9 +1407,15 @@ export async function crmApi(x, d, sync, mgr) {
   if (/^mkt(_|$)/.test(a)) return crmMkt(x, u, d); // chi phí marketing
   const need = { settings: 2, users: 3, assign: 2, bulk: 2, recv: 2 };
   if (need[a] && u.level < need[a]) return { ok: false, error: 'Bạn không có quyền làm việc này.' };
+  const opKey = d.opId ? 'op_' + String(d.opId).slice(0, 40) : ''; // CRM gửi lại việc khi mạng chập chờn: việc đã làm rồi thì trả kết quả cũ, không ghi trùng
+  if (opKey) { const done = await kvGet(x.db, opKey); if (done) return JSON.parse(done); }
   const h = { care: crmCare, customer: crmCustomer, order_status: crmOrderStatus, contact: crmContact, settings: crmSettings, users: crmSaveUsers, order_edit: crmOrderEdit,
     lead_save: crmLeadSave, lead_contact: crmLeadContact, target: crmTarget, assign: crmAssign, bulk: crmBulk, recv: crmRecv, claim: crmClaim,
     order_delete: crmOrderDelete, customer_delete: crmCustomerDelete, gift: crmGift }[a];
-  if (h) return h(x, u, d);
+  if (h) {
+    const res = await h(x, u, d);
+    if (opKey && res && res.ok) { await kvSet(x.db, opKey, JSON.stringify(res), 6 * 3600e3); if (Math.random() < 0.02) await run(x.db, "DELETE FROM kv WHERE k LIKE 'op\\_%' ESCAPE '\\' AND exp < ?", Date.now()); }
+    return res;
+  }
   return { ok: false, error: 'Không rõ thao tác: ' + a };
 }
