@@ -126,7 +126,7 @@
     if (lvl() >= 2 || (j.user && j.user.level >= 2)) toast('⚠️ Máy chủ đang chạy bản cũ (' + (j.v || 'chưa có số phiên bản') + '), cần bản ' + SERVER_V + '.', true);
   }
   var lastErr = '';
-  var READ_ACTS = { load: 1, src_inspect: 1, ads_inspect: 1, cust_orders: 1, fb_list: 1, fb_img: 1, check_phone: 1 }; // chỉ đọc: Google trả lỗi tạm thời thì tự thử lại
+  var READ_ACTS = { load: 1, src_inspect: 1, ads_inspect: 1, cust_orders: 1, sales_all: 1, fb_list: 1, fb_img: 1, check_phone: 1 }; // chỉ đọc: Google trả lỗi tạm thời thì tự thử lại
   function api(action, payload, tries) {
     var body = Object.assign({ type: 'crm', action: action, token: S.token }, payload || {});
     if (!CFG.endpoint) return Promise.reject(new Error('Chưa cấu hình máy chủ.'));
@@ -2988,12 +2988,29 @@
     var R = perRange(f.p), cx = { p: f.p, R: R, label: perLabel(f.p), month: monthOf(Math.min(R[1] - 1, Date.now())) };
     cx.whole = f.p.k === 'month' || f.p.k === 'lmonth'; // đúng trọn 1 tháng → mục tiêu dùng luôn số trong kỳ
     cx.P = cmpRange(f.p);
+    if (f.p.k === 'all') { cx.all = salesAllGet(); if (!cx.all) cx.allNote = S.salesAll ? '' : '<div class="notice">⏳ Đang lấy doanh số từ trước tới nay trên máy chủ…</div>'; else cx.allNote = '<p class="small muted">Mọi lúc: <b>doanh số, số đơn</b> tính đủ mọi đơn từ trước tới nay (cả đơn cũ nhập từ file sale). Các chỉ số khác (chăm sóc, tỷ lệ chốt, khách cũ) tính trên dữ liệu khoảng 13 tháng gần nhất.</p>'; }
     return '<div class="page-head"><h1>Hiệu quả</h1><div class="grow"></div>' + whoSel() + '</div>' + perBtn('r', f.p) +
-      (!who ? viewTeam(cx) : who === '-' ? viewNoOwner(cx) : viewPerson(who, cx));
+      (cx.allNote || '') + (!who ? viewTeam(cx) : who === '-' ? viewNoOwner(cx) : viewPerson(who, cx));
+  }
+  /** Tổng doanh số từ trước tới nay theo nhân viên bán (hỏi máy chủ, nhớ 10 phút). null = đang tải / máy chủ cũ chưa có. */
+  function salesAllGet() {
+    var c = S.salesAll;
+    if ((!c || Date.now() - c.at > 600e3) && !S.salesAllBusy) {
+      S.salesAllBusy = true;
+      api('sales_all', {}).then(function (j) { var m = {}; (j.rows || []).forEach(function (r) { m[r.seller] = r; }); S.salesAll = { at: Date.now(), m: m }; }, function () { S.salesAll = { at: Date.now(), m: null }; })
+        .then(function () { S.salesAllBusy = false; if (route().view === 'bao-cao') render(); });
+    }
+    return c && c.m ? c.m : null;
+  }
+  /** Mọi lúc: thay doanh số / số đơn tính từ dữ liệu đã tải bằng số đủ từ máy chủ. name null = cả nhóm. */
+  function salesAllFix(p, name, cx) {
+    var m = cx.all; if (!m) return p;
+    var n = 0, s = 0; Object.keys(m).forEach(function (k) { if (name === null || k === name) { n += m[k].n; s += m[k].s; } });
+    p.orders = n; p.sales = s; p.avg = n ? Math.round(s / n) : 0; return p;
   }
 
   function viewPerson(name, cx) {
-    var month = cx.month, c = perf(name, cx.R), p = perf(name, cx.P), me = name === S.user.name;
+    var month = cx.month, c = salesAllFix(perf(name, cx.R), name, cx), p = perf(name, cx.P), me = name === S.user.name;
     var h = (lvl() >= 2 && !me ? '<button class="btn ghost" data-who="team" style="margin-bottom:10px">← Quay lại cả nhóm</button>' : '') +
       targetBlock(name, month, cx.whole ? c.sales : perf(name, monthRange(month)).sales, me || lvl() >= 2) +
       '<div class="steps" style="margin:0 0 16px"><button class="btn pri" data-daily="' + esc(name) + '">📋 Báo cáo ngày (gửi Zalo)</button><button class="btn" data-bcdt="' + esc(name) + '|' + month + '">📊 Bảng BCDT ' + monthLabel(month) + '</button>' + (lvl() >= 3 && !me ? '<button class="btn" data-usage="' + esc(name) + '">📈 Mức dùng CRM</button>' : '') + '</div>';
@@ -3010,12 +3027,12 @@
   }
 
   function viewTeam(cx) {
-    var month = cx.month, R = cx.R, all = perf(null, R), tt = teamTarget(month);
+    var month = cx.month, R = cx.R, all = salesAllFix(perf(null, R), null, cx), tt = teamTarget(month);
     var names = staffNames(); S.d.orders.forEach(function (o) { if (o.seller && names.indexOf(o.seller) < 0 && !isAdminName(o.seller)) names.push(o.seller); }); // không tính tài khoản Quản trị
     var h = targetBlockTeam(cx.whole ? all.sales : perf(null, monthRange(month)).sales, tt, month) + '<div class="steps" style="margin:0 0 16px"><button class="btn pri" data-daily="">📋 Báo cáo ngày (gửi Zalo)</button><button class="btn" data-bcdt="|' + month + '">📊 Bảng BCDT cả nhóm ' + monthLabel(month) + '</button>' + (lvl() >= 3 ? '<button class="btn" data-usage="">📈 Mức dùng CRM</button>' : '') + '</div>';
     h += '<div class="kpis">' + kpi('Doanh thu', moneyShort(all.sales), 'good', '', all.orders + ' đơn') + kpi('TB / đơn', all.orders ? moneyShort(all.avg) : '–', '', '', 'giá trị trung bình') +
       kpi('Tỷ lệ chốt', all.closePct === null ? '–' : all.closePct + '%', '', '', all.won + ' ra đơn / ' + all.data + ' data quảng cáo' + (all.pending ? ' · ' + all.pending + ' đang tư vấn' : '')) + kpi('Từ khách cũ', all.sales ? all.oldPct + '%' : '–', '', '', moneyShort(all.oldRev)) + '</div>';
-    var rows = names.map(function (n) { var p = perf(n, R); p.n = n; p.t = targetOf(n, month); p.ms = cx.whole ? p.sales : perf(n, monthRange(month)).sales; return p; }).sort(function (a, b) { return b.sales - a.sales; });
+    var rows = names.map(function (n) { var p = salesAllFix(perf(n, R), n, cx); p.n = n; p.t = targetOf(n, month); p.ms = cx.whole ? p.sales : perf(n, monthRange(month)).sales; return p; }).sort(function (a, b) { return b.sales - a.sales; });
     h += compareBlock(rows, cx);
     h += careMetrics(all, perf(null, cx.P), false) + geoBlock(null, cx) + whyBlock(null, cx);
     h += '<section class="section"><div class="section-h"><h2>Theo nhân viên</h2><span class="tip">bấm vào từng người để xem chi tiết, đặt mục tiêu</span></div><div class="list cols">' +

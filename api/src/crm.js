@@ -447,6 +447,12 @@ async function crmDelta(x, u, d) {
   });
 }
 /** Toàn bộ đơn của 1 khách (kể cả đơn cũ) + ghi chú đầy đủ. */
+/** Doanh số + số đơn từ trước tới nay theo nhân viên bán (tab Hiệu quả → Mọi lúc; CRM chỉ tải sẵn đơn 400 ngày). Nhân viên chỉ thấy số của mình. */
+async function crmSalesAll(x, u) {
+  const own = u.level < 2;
+  const rows = await all(x.db, "SELECT seller, count(*) AS n, coalesce(sum(total), 0) AS s FROM orders WHERE time IS NOT NULL AND status NOT LIKE '%uỷ%' AND status NOT LIKE '%ủy%' AND status NOT LIKE '%oàn%'" + (own ? ' AND seller = ?' : '') + ' GROUP BY seller', ...(own ? [u.name] : []));
+  return { ok: true, rows: rows.map(r => ({ seller: r.seller || '', n: r.n, s: r.s })) };
+}
 async function crmCustOrders(x, u, d) {
   const phone = normPhone(d.phone);
   if (u.level < 2 && await ownerOf(x, phone) !== u.name) return { ok: false, error: 'Khách này không do bạn phụ trách.' };
@@ -1305,6 +1311,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (a === 'order_create') return crmOrderCreate(x, u, d);
   if (a === 'check_phone') return crmCheckPhone(x, u, d);
   if (a === 'cust_orders') return crmCustOrders(x, u, d);
+  if (a === 'sales_all') return crmSalesAll(x, u);
   if (sync[a]) { if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị làm được việc này.' }; return sync[a](x, u, d); }
   if (mgr && mgr[a]) { if (u.level < 2) return { ok: false, error: 'Bạn không có quyền làm việc này.' }; return mgr[a](x, u, d); }
   if (a === 'tg_link') return crmTgLink(x, u);
