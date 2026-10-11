@@ -1,6 +1,6 @@
 // CRM: đăng nhập, dữ liệu, đơn hàng, khách, tiềm năng, cài đặt. Chuyển từ Apps Script sang, giữ nguyên cách làm việc & dữ liệu trả về cho giao diện.
-import { normPhone, esc, fmt, startOfDay, fmtDate, dateOrBlank, slugName, isVoid, randHex, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, DAY, CRM_URL } from './lib.js';
-import { sendMail, telegram, telegramTo, tgUpdates, tgConf, bridge } from './google.js';
+import { normPhone, nrm, esc, fmt, startOfDay, fmtDate, dateOrBlank, slugName, isVoid, randHex, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, DAY, CRM_URL } from './lib.js';
+import { sendMail, telegram, telegramTo, telegramPhoto, tgUpdates, tgConf, bridge } from './google.js';
 import { crmGa, crmGaProp } from './ga.js';
 import { crmMkt } from './mkt.js';
 import { wbQueue, wbOrderQueue, wbStatusQueue, WB_SHORT } from './wb.js';
@@ -384,6 +384,40 @@ async function adRowsOf(x, u, adV) {
   const rows = await kvJson(x.db, 'ads_rows', []); return { v, rows: u.level < 2 ? rows.filter(r => r[2] === u.name) : rows };
 }
 /** Phần nhỏ đi kèm mọi lần tải (cấu hình, nhân sự, mục tiêu, mẫu tin…): vài chục dòng. */
+/* Tỉnh của khách từ địa chỉ (giống PROV_MERGE trong crm/app.js): tỉnh cũ → tỉnh mới sau sáp nhập 07/2025 */
+const PROV_MERGE = { 'Tuyên Quang': ['Hà Giang', 'Tuyên Quang'], 'Lào Cai': ['Yên Bái', 'Lào Cai'], 'Thái Nguyên': ['Bắc Kạn', 'Bắc Cạn', 'Thái Nguyên'], 'Phú Thọ': ['Vĩnh Phúc', 'Hòa Bình', 'Phú Thọ'],
+  'Bắc Ninh': ['Bắc Giang', 'Bắc Ninh'], 'Hưng Yên': ['Thái Bình', 'Hưng Yên'], 'Hải Phòng': ['Hải Dương', 'Hải Phòng', 'HP'], 'Ninh Bình': ['Hà Nam', 'Nam Định', 'Ninh Bình'], 'Quảng Trị': ['Quảng Bình', 'Quảng Trị'],
+  'Đà Nẵng': ['Quảng Nam', 'Đà Nẵng'], 'Quảng Ngãi': ['Kon Tum', 'Kontum', 'Quảng Ngãi'], 'Gia Lai': ['Bình Định', 'Gia Lai', 'Quy Nhơn', 'Pleiku'], 'Khánh Hòa': ['Ninh Thuận', 'Khánh Hòa', 'Nha Trang', 'Phan Rang'],
+  'Lâm Đồng': ['Đắk Nông', 'Đăk Nông', 'Dak Nong', 'Bình Thuận', 'Lâm Đồng', 'Đà Lạt', 'Phan Thiết'], 'Đắk Lắk': ['Phú Yên', 'Đắk Lắk', 'Đăk Lăk', 'Dak Lak', 'Daklak', 'Đaklak', 'Buôn Ma Thuột', 'Buôn Mê Thuột', 'Tuy Hòa'],
+  'Hồ Chí Minh': ['Bà Rịa', 'Vũng Tàu', 'Bình Dương', 'Hồ Chí Minh', 'HCM', 'TPHCM', 'TP HCM', 'Sài Gòn', 'Thủ Đức', 'Thủ Dầu Một'], 'Đồng Nai': ['Bình Phước', 'Đồng Nai', 'Biên Hòa'],
+  'Tây Ninh': ['Long An', 'Tây Ninh'], 'Cần Thơ': ['Sóc Trăng', 'Hậu Giang', 'Cần Thơ'], 'Vĩnh Long': ['Bến Tre', 'Trà Vinh', 'Vĩnh Long'], 'Đồng Tháp': ['Tiền Giang', 'Đồng Tháp', 'Mỹ Tho'],
+  'Cà Mau': ['Bạc Liêu', 'Cà Mau'], 'An Giang': ['Kiên Giang', 'An Giang', 'Rạch Giá', 'Phú Quốc', 'Long Xuyên'],
+  'Hà Nội': ['Hà Nội', 'HN'], 'Huế': ['Thừa Thiên Huế', 'Huế'], 'Lai Châu': ['Lai Châu'], 'Điện Biên': ['Điện Biên'], 'Sơn La': ['Sơn La'], 'Lạng Sơn': ['Lạng Sơn'], 'Quảng Ninh': ['Quảng Ninh', 'Hạ Long'],
+  'Thanh Hóa': ['Thanh Hóa'], 'Nghệ An': ['Nghệ An'], 'Hà Tĩnh': ['Hà Tĩnh'], 'Cao Bằng': ['Cao Bằng'] };
+let PROV_KEYS = null;
+function provOfAddr(text) {
+  if (!PROV_KEYS) { PROV_KEYS = []; Object.keys(PROV_MERGE).forEach(nw => PROV_MERGE[nw].forEach(old => PROV_KEYS.push({ k: ' ' + nrm(old) + ' ', old, nw }))); PROV_KEYS.sort((a, b) => b.k.length - a.k.length); }
+  const t = ' ' + nrm(text).replace(/[.,;:\-–()/]/g, ' ').replace(/\s+/g, ' ') + ' '; let best = null, at = -1;
+  PROV_KEYS.forEach(p => { const i = t.lastIndexOf(p.k); if (i > at) { at = i; best = p; } });
+  return best ? { old: /^(HCM|TPHCM|TP HCM|HN|HP|Kontum|Daklak|Đaklak)$/.test(best.old) ? best.nw : best.old, nw: best.nw } : null;
+}
+/** Số khách cả công ty theo tỉnh / sản phẩm (chỉ con số, không tên / SĐT) cho khung 📍 khi nhân viên gõ tên tỉnh. Tính lại 6 tiếng 1 lần.
+ *  { p: { 'Nam Định': [tỉnh mới, số khách, mua ≥2 lần, mua trong 30 ngày, { sản phẩm: số khách }] }, s: { sản phẩm: [số khách, mua ≥2 lần] } } */
+async function areaStats(x) {
+  const c0 = await kvGet(x.db, 'areas'); if (c0) return JSON.parse(c0);
+  const p = {}, s = {}, d30 = Date.now() - 30 * DAY;
+  for (const c of await all(x.db, 'SELECT address, ward, province, products, orders, last FROM customers WHERE orders > 0')) {
+    const rep = c.orders >= 2 ? 1 : 0, seen = {};
+    String(c.products || '').split('; ').forEach(v => { const n = v.replace(/\s*\(.*\)\s*$/, '').trim(); if (n) seen[n] = 1; });
+    Object.keys(seen).forEach(n => { const r = s[n] || (s[n] = [0, 0]); r[0]++; r[1] += rep; });
+    const pv = provOfAddr([c.address, c.ward, c.province].join(' ')); if (!pv) continue;
+    const a = p[pv.old] || (p[pv.old] = [pv.nw, 0, 0, 0, {}]);
+    a[1]++; a[2] += rep; if (c.last && c.last >= d30) a[3]++;
+    Object.keys(seen).forEach(n => { a[4][n] = (a[4][n] || 0) + 1; });
+  }
+  Object.keys(p).forEach(k => { const t = p[k][4], top = {}; Object.keys(t).sort((a, b) => t[b] - t[a]).slice(0, 4).forEach(n => { top[n] = t[n]; }); p[k][4] = top; });
+  const v = { p, s }; await kvSet(x.db, 'areas', JSON.stringify(v), 6 * 3600e3); return v;
+}
 async function loadSmall(x, u, R, mode, adV) {
   const staff = u.level < 2, b = (sql, ...a) => x.db.prepare(sql).bind(...a);
   const smallQ = x.db.batch([
@@ -394,12 +428,13 @@ async function loadSmall(x, u, R, mode, adV) {
   ]); smallQ.catch(() => { });
   const users = (await crmUsers(x)).filter(y => y.active || u.level >= 3).map(y => u.level >= 3 ? { email: y.email, name: y.name, role: y.role, active: y.active, recv: y.recv, tg: !!y.tg, alias: y.alias, prefix: y.prefix || slugName(y.name) } : u.level >= 2 ? { name: y.name, role: y.role, recv: y.recv, tg: !!y.tg } : { name: y.name, role: y.role });
   const adsP = adRowsOf(x, u, adV); adsP.catch(() => { });
+  const areasP = u.level < 2 ? areaStats(x) : Promise.resolve(undefined); areasP.catch(() => { }); // quản lý đã có đủ khách → máy tự đếm
   const [ca, fbNew, prefs, tagColors, sources, ads, commission] = await Promise.all([caCfg(x), // hỏi song song: mỗi lần hỏi máy chủ dữ liệu mất một nhịp
     u.level >= 2 ? first(x.db, "SELECT count(*) AS n FROM feedback WHERE status = 'Mới'").then(r => (r || {}).n || 0) : 0,
     prefsOf(x, u.email), allTagColors(x), u.level >= 3 ? srcList(x) : [], u.level >= 3 ? adsCfg(x) : null, kvJson(x.db, 'commission_cfg', {}).then(r => r || {})]);
-  const [ct, tg, cy, tp] = (await smallQ).map(r => r.results || []), ar = await adsP;
+  const [ct, tg, cy, tp] = (await smallQ).map(r => r.results || []), ar = await adsP, areas = await areasP.catch(() => undefined);
   return {
-    ok: true, user: publicUser(u), now: Date.now(), today: startOfDay(Date.now()), fbNew, users, prefs, tagColors, sources, ads, adV: ar.v, adRows: ar.rows,
+    ok: true, user: publicUser(u), areas, now: Date.now(), today: startOfDay(Date.now()), fbNew, users, prefs, tagColors, sources, ads, adV: ar.v, adRows: ar.rows,
     contacts: ct.reverse().map(contactOut), targets: tg.map(t => ({ month: t.month, name: t.name, amount: t.amount || 0, by: t.by_name || '', at: t.at })),
     cycles: cy.filter(r => r.name).map(r => [r.name, r.variant || '', Number(r.days) || 0, r.basis || '']), templates: tp.filter(r => r.text).map(r => [r.when_txt || '', r.purpose || '', r.text]),
     rules: { vipOrders: R.vipOrders, vipSpent: R.vipSpent, atRisk: R.atRisk, coolDays: R.coolDays, shipDays: R.shipDays, famMin: R.famMin, otypes: OTYPES, commission, statuses: ORDER_STATUS, results: CARE_RESULTS, leadStatus: LEAD_STATUS, assignMode: mode, bot: BOT_USERNAME, ca, lines: LINES.map(l => l[0]).concat(['Khác']) }
@@ -1331,8 +1366,12 @@ async function crmFeedback(x, u, d) {
   await run(x.db, 'INSERT INTO feedback (id, time, by_name, email, kind, text, route, ua, ver, imgs, status, reply, handler, updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     id, now, u.name, u.email, String(d.kind || 'Góp ý'), text, String(d.route || ''), String(d.ua || '').slice(0, 300), String(d.ver || ''), JSON.stringify(imgIdxs), 'Mới', '', '', now);
   
-  const cap = '💡 <b>GÓP Ý CRM</b> – ' + esc(d.kind || 'Góp ý') + '\n👤 ' + esc(u.name) + ' · ' + esc(d.route || '') + '\n\n' + esc(text.slice(0, 800)) + (imgs.length ? '\n\n(' + imgs.length + ' ảnh, xem trong CRM → 💡 Góp ý)' : '') + '\n\n👉 ' + CRM_URL;
-  x.later(telegram(x.env, cap));
+  const cap = '💡 <b>GÓP Ý CRM</b> – ' + esc(d.kind || 'Góp ý') + '\n👤 ' + esc(u.name) + ' · ' + esc(d.route || '') + '\n\n' + esc(text.slice(0, 800)) + (imgs.length > 1 ? '\n\n(' + imgs.length + ' ảnh, xem đủ trong CRM → 💡 Góp ý)' : '') + '\n\n👉 ' + CRM_URL;
+  x.later((async () => { // như bản Apps Script: gửi riêng Telegram của Quản trị chính (chưa kết nối thì nhóm đầu tiên), kèm ảnh đầu tiên
+    const ad = (await crmUsers(x)).find(y => y.email === SUPER_ADMIN), chat = ad && ad.tg ? ad.tg : String((await tgConf(x.env)).chats || '').split(',')[0].trim();
+    const img = imgs.find(b => typeof b === 'string' && b.startsWith('data:image/'));
+    if (img) await telegramPhoto(x.env, chat, img, cap); else await telegramTo(x.env, chat, cap);
+  })());
   return { ok: true, id };
 }
 

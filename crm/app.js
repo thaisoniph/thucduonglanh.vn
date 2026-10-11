@@ -246,7 +246,7 @@
       // khách mới thuộc quyền xem mà trên máy chưa có đủ đơn cũ (vd vừa được giao khách) → tải đủ
       var cnt = {}; d.orders.forEach(function (o) { if (!/Huỷ|Hủy|Hoàn/i.test(o.status)) cnt[o.phone] = (cnt[o.phone] || 0) + 1; });
       if (j.customers.some(function (c) { return hadPhone[c.phone] == null && (cnt[c.phone] || 0) < c.orders; })) return 'full';
-      ['user', 'now', 'fbNew', 'users', 'prefs', 'tagColors', 'sources', 'ads', 'adV', 'adRows', 'contacts', 'targets', 'cycles', 'templates', 'rules', 'sv', 'lr'].forEach(function (k) { if (j[k] !== undefined) d[k] = j[k]; });
+      ['user', 'now', 'fbNew', 'users', 'prefs', 'tagColors', 'sources', 'ads', 'adV', 'adRows', 'contacts', 'targets', 'cycles', 'templates', 'rules', 'areas', 'sv', 'lr'].forEach(function (k) { if (j[k] !== undefined) d[k] = j[k]; });
       S.stale = false; setData(d, Date.now()); S.perf = { core: Date.now() - t0, srv: j.t, kb: j.__kb, delta: 1 };
       idb('set', 'data', { tk: S.token.slice(-12), at: S.loadedAt, fa: S.fullAt, d: d });
       if ($('.me')) { $('.me').innerHTML = meHTML(); navBadges(); }

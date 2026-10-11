@@ -112,6 +112,18 @@ export async function sendMail(env, msg) {
 }
 
 /* ---------- Telegram */
+/** Gửi 1 ảnh (data:image/...;base64) kèm chú thích vào 1 chat Telegram. Lỗi → gửi chữ. */
+export async function telegramPhoto(env, chatId, dataUrl, caption) {
+  const c = await tgConf(env); if (!c.token || !chatId) return;
+  const m = String(dataUrl || '').match(/^data:(image\/[a-z]+);base64,(.+)$/);
+  if (!m || env.MOCK_GOOGLE) return telegramTo(env, chatId, caption);
+  try {
+    const bin = Uint8Array.from(atob(m[2]), ch => ch.charCodeAt(0)), fd = new FormData();
+    fd.append('chat_id', String(chatId)); fd.append('caption', caption.slice(0, 1000)); fd.append('parse_mode', 'HTML'); fd.append('photo', new Blob([bin], { type: m[1] }), 'gop-y.jpg');
+    const r = await fetch('https://api.telegram.org/bot' + c.token + '/sendPhoto', { method: 'POST', body: fd });
+    if (!r.ok) await telegramTo(env, chatId, caption);
+  } catch (e) { console.error('telegramPhoto', e.message); await telegramTo(env, chatId, caption); }
+}
 export async function telegramTo(env, chatId, text) {
   const c = await tgConf(env); if (!c.token || !chatId) return;
   if (env.MOCK_GOOGLE) { console.log('TG', chatId, text.slice(0, 80)); return; }
