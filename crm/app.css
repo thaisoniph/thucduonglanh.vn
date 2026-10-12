@@ -817,3 +817,32 @@ details.set-g .dash-more-b { background: #fff; }
 .or-log { font-size: 13px; display: grid; gap: 2px; border-left: 3px solid var(--line); padding-left: 8px; }
 .or-d .steps { margin-top: 4px; }
 .p-lines .sug { color: var(--primary); font-weight: 600; }
+
+/* ---------- Tab 📣 Marketing: phễu, chấm điểm chiến dịch, sản phẩm, giá trị khách, ngân sách (13/10/2026) */
+.dash-notes .link { background: none; border: 0; padding: 0; color: var(--primary); font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer; }
+.mk-fun { display: flex; flex-direction: column; align-items: center; gap: 0; }
+.mk-fun-step { min-width: 240px; max-width: 100%; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: center; gap: 2px 10px; text-align: center; background: var(--primary-soft); border: 1px solid #cfe3d5; border-radius: 10px; padding: 8px 12px; }
+.mk-fun-step span { font-size: 14px; color: var(--ink); }
+.mk-fun-step b { font-size: 20px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.mk-fun-step small { flex-basis: 100%; font-size: 12px; color: var(--muted); }
+.mk-fun-arrow { font-size: 13px; color: var(--muted); padding: 5px 4px; text-align: center; }
+.mk-fun-arrow.ok { color: var(--primary); } .mk-fun-arrow.mid { color: var(--orange); } .mk-fun-arrow.bad { color: var(--red); font-weight: 700; }
+.mk-fun-arrow small { font-weight: 400; color: var(--muted); }
+.mk-fun-weak { margin: 12px 0 0; padding: 10px 12px; border-radius: 10px; background: var(--red-light); color: var(--ink); font-size: 14px; }
+.mk-fun-weak.ok { background: var(--primary-soft); }
+.mk-camps { display: grid; gap: 8px; }
+.mk-camp { background: #fff; border: 1px solid var(--line); border-left: 6px solid var(--line); border-radius: var(--radius); padding: 10px 12px; box-shadow: var(--shadow); }
+.mk-camp.ok { border-left-color: var(--primary); } .mk-camp.mid { border-left-color: #f0a030; } .mk-camp.bad { border-left-color: var(--red); }
+.mk-camp-h { display: flex; align-items: center; gap: 6px 8px; flex-wrap: wrap; }
+.mk-camp-h b { font-size: 15px; color: var(--ink); overflow-wrap: anywhere; }
+.mk-camp-v { margin-left: auto; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); }
+.mk-camp-why { margin: 6px 0 0; font-size: 14px; color: var(--ink); }
+.mk-camp-why.mid { color: var(--orange); }
+.mk-camp p.small { margin: 4px 0 0; }
+.mk-badge { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 999px; background: #eee; color: #555; white-space: nowrap; }
+.mk-badge.ok { background: #e6f4ea; color: #1f5f3a; } .mk-badge.mid { background: var(--orange-light); color: var(--orange); } .mk-badge.bad { background: var(--red-light); color: var(--red); }
+.dash-ch.mk-prod.ok { border-color: var(--primary); } .dash-ch.mk-prod.bad { border-color: #e9b38a; }
+.dash-ch-s b small { font-size: 12px; font-weight: 400; color: var(--muted); }
+.box.mk-ltv { border-left: 6px solid var(--line); } .box.mk-ltv.ok { border-left-color: var(--primary); } .box.mk-ltv.mid { border-left-color: #f0a030; } .box.mk-ltv.bad { border-left-color: var(--red); }
+.box.mk-ltv p { margin: 4px 0; font-size: 14px; }
+@media (max-width: 600px) { .mk-fun-step { min-width: 0; } }

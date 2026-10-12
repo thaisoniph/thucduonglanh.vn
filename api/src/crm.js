@@ -3,7 +3,7 @@ import { normPhone, nrm, esc, fmt, startOfDay, TZ_MS, fmtDate, dateOrBlank, slug
 import { sendMail, telegram, telegramTo, telegramPhoto, tgUpdates, tgConf, bridge } from './google.js';
 import { crmGa, crmGaProp } from './ga.js';
 import { crmMkt } from './mkt.js';
-import { mktView } from './mktv.js';
+import { mktView, mktBudgetSet } from './mktv.js';
 import { crmSan, sanSchema, sanAllowed } from './san.js';
 import { wbQueue, wbOrderQueue, wbStatusQueue, WB_SHORT } from './wb.js';
 
@@ -178,7 +178,7 @@ export async function crmUsers(x) {
 const USERS_SQL = 'SELECT * FROM users ORDER BY ord, rowid';
 function usersFrom(x, rows) {
   const list = rows.map(r => {
-    const e = String(r.email || '').trim().toLowerCase(), role = ROLES[r.role] ? r.role : 'Nhân viên';
+    const e = String(r.email || '').trim().toLowerCase(), role = Object.hasOwn(ROLES, r.role || '') ? r.role : 'Nhân viên';
     return { email: e, name: String(r.name || e.split('@')[0]).trim(), role, active: !!r.active, recv: role === 'Marketing' ? false : String(r.recv || '').trim() === '' ? role === 'Nhân viên' : !no(r.recv), tg: String(r.tg || '').trim(), alias: String(r.alias || '').trim(), prefix: String(r.prefix || '').trim() };
   }).filter(u => /@/.test(u.email));
   const sa = list.find(u => u.email === SUPER_ADMIN);
@@ -1093,7 +1093,7 @@ async function crmSettings(x, u, d) {
 async function crmSaveUsers(x, u, d) {
   const cur = {}; (await crmUsers(x)).forEach(y => { cur[y.email] = y; });
   const seen = {}, rows = (d.users || []).map((y, i) => {
-    const e = String(y.email || '').trim().toLowerCase(), o = cur[e] || {}, role = ROLES[y.role] ? y.role : 'Nhân viên';
+    const e = String(y.email || '').trim().toLowerCase(), o = cur[e] || {}, role = Object.hasOwn(ROLES, y.role || '') ? y.role : 'Nhân viên';
     return { email: e, name: String(y.name || '').trim(), role, active: y.active === false ? 0 : 1, recv: (y.recv !== undefined ? y.recv : o.recv !== undefined ? o.recv : role === 'Nhân viên') ? 'Có' : 'Không', tg: o.tg || '',
       alias: String(y.alias !== undefined ? y.alias : o.alias || '').trim(), prefix: String(y.prefix !== undefined ? y.prefix : o.prefix || '').replace(/[^A-Za-z0-9]/g, ''), ord: i };
   }).filter(r => { if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(r.email) || seen[r.email]) return false; seen[r.email] = 1; return true; });
@@ -1524,6 +1524,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (a === 'fb_update') return crmFbUpdate(x, u, d);
   if (a === 'ga') return crmGa(x, u, d); // tab Tổng quan: số liệu Google Analytics
   if (a === 'ga_prop') return crmGaProp(x, u, d);
+  if (a === 'mkt_budget') return u.level >= 3 ? mktBudgetSet(x, d) : { ok: false, error: 'Chỉ Quản trị đặt được ngân sách quảng cáo.' };
   if (/^mkt(_|$)/.test(a)) return crmMkt(x, u, d); // chi phí marketing
   if (/^san(_|$)/.test(a)) return crmSan(x, u, d); // doanh thu sàn TMĐT + mục tiêu theo mảng
   const need = { settings: 2, users: 3, assign: 2, bulk: 2, recv: 2 };
