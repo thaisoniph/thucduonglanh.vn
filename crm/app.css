@@ -547,15 +547,6 @@ details.comm summary::-webkit-details-marker { display: none; }
 details.comm { border: 1px dashed #9cc3a8; background: #f3faf5; }
 
 /* Bộ lọc thời gian (Hôm nay / Hôm qua / 7 ngày qua / Tháng này / Tháng trước / Tuỳ chỉnh) */
-.per-row { margin: 0 0 12px; }
-.per-btn { display: inline-flex; align-items: center; gap: 6px; border: 1.5px solid var(--primary); background: #fff; color: var(--primary); border-radius: 999px; padding: 8px 14px; font: inherit; font-size: 14px; cursor: pointer; max-width: 100%; }
-.per-btn b { font-weight: 700; }
-.per-btn span { color: var(--muted); font-size: 13px; white-space: nowrap; }
-.per-list button { display: flex; width: 100%; align-items: center; justify-content: space-between; padding: 15px 4px; border: 0; border-bottom: 1px solid var(--line); background: none; font: inherit; font-size: 17px; color: var(--ink); cursor: pointer; text-align: left; }
-.per-list button.on::after { content: '✓'; color: var(--primary); font-weight: 700; font-size: 20px; }
-.per-list .per-cus { color: var(--primary); border-bottom: 0; font-weight: 600; }
-.per-custom { display: none; padding-top: 4px; }
-.per-custom.show { display: block; }
 .sheet-f .per-back { border: 1.5px solid var(--primary); color: var(--primary); background: #fff; }
 
 /* ---------- ô Người phụ trách (quản lý) & biểu đồ so sánh nhân viên */
@@ -758,3 +749,10 @@ details.set-g .dash-more-b { background: #fff; }
 .per-q::-webkit-scrollbar { display: none; }
 .per-q .chip { flex: 0 0 auto; white-space: nowrap; }
 .per-q-d { margin: 0 0 12px; }
+
+/* 📅 Khác: mốc ít dùng (2 cột) + tự chọn ngày */
+.per-h { margin: 4px 0 8px; font-size: 14px; font-weight: 700; color: var(--ink); }
+.per-more { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 0 0 18px; }
+.per-more .chip { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 10px 12px; border-radius: 12px; font-size: 15px; white-space: normal; text-align: left; }
+.per-more .chip small { font-size: 12px; font-weight: 400; color: var(--muted); }
+.per-more .chip.on small { color: #e6f0e8; }

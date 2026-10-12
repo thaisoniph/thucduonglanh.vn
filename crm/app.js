@@ -1771,7 +1771,7 @@
     if (f.ch) base = base.filter(function (o) { return isWebOrder(o) === (f.ch === 'web'); });
     var list = f.st === 'all' ? base : base.filter(function (o) { return o.status === f.st; });
     var sum = list.filter(function (o) { return !isVoid(o.status); }).reduce(function (s0, o) { return s0 + o.total; }, 0);
-    return perBtn('o', f.p) +
+    return perChips('o', f.p, ['all'], true) +
       '<div class="chips">' + [['', 'Mọi kênh', chN.web + chN.sale], ['web', '🌐 Khách tự đặt trên web', chN.web], ['sale', '💬 Sale lên đơn', chN.sale]].map(function (c) { return '<button class="chip' + ((f.ch || '') === c[0] ? ' on' : '') + '" data-och="' + c[0] + '">' + c[1] + ' <em>' + c[2] + '</em></button>'; }).join('') + '</div>' +
       '<div class="chips">' + ['all'].concat(STATUS).map(function (s0) { var n = s0 === 'all' ? base.length : base.filter(function (o) { return o.status === s0; }).length; return n || s0 === 'all' || f.st === s0 ? '<button class="chip' + (f.st === s0 ? ' on' : '') + '" data-os="' + esc(s0) + '">' + (s0 === 'all' ? 'Tất cả' : s0) + ' <em>' + n + '</em></button>' : ''; }).join('') + '</div>' +
       '<p class="small muted" style="margin:0 0 8px">' + list.length + ' đơn' + ' · ' + money(sum) + ' (không tính huỷ / hoàn)' + '</p>' +
@@ -2465,16 +2465,16 @@
   /* ---------------- Bộ lọc thời gian dùng chung: Hôm nay / Hôm qua / 7 ngày qua / Tháng này / Tháng trước / Tuỳ chỉnh */
   var PER = [['today', 'Hôm nay'], ['yday', 'Hôm qua'], ['d7', '7 ngày qua'], ['month', 'Tháng này'], ['lmonth', 'Tháng trước']];
   /* Mốc thêm cho Tổng quan / Marketing (chủ doanh nghiệp xem theo tuần họp, tháng, quý, năm). Năm nay không so kỳ trước: CRM chỉ tải đơn 13 tháng gần nhất. */
-  var PER_X = [['week', 'Tuần này'], ['lweek', 'Tuần trước'], ['quarter', 'Quý này'], ['lquarter', 'Quý trước'], ['year', 'Năm nay']];
+  var PER_X = [['d30', '30 ngày qua'], ['week', 'Tuần này'], ['lweek', 'Tuần trước'], ['quarter', 'Quý này'], ['lquarter', 'Quý trước'], ['year', 'Năm nay']];
   var PER_CEO = ['today', 'yday', 'week', 'month', 'lmonth', 'quarter', 'year'];
   function weekStart(t) { var dow = new Date(t + 7 * 3600e3).getUTCDay(); return t - ((dow + 6) % 7) * DAY; } // thứ Hai
   function quarterOf(mk, n) { var y = +mk.slice(0, 4), m = +mk.slice(5, 7) - 1, q = Math.floor(m / 3) + (n || 0), yy = y + Math.floor(q / 4), qq = ((q % 4) + 4) % 4; return yy + '-' + pad(qq * 3 + 1); } // tháng đầu quý
   /** Nút chọn nhanh 1 chạm (Tổng quan, Marketing) + 📅 Khác (tự chọn ngày). Dưới là ngày cụ thể và đang so với kỳ nào. */
-  function perChips(slot, p, extra) { // extra: thêm nút cuối (Hiệu quả: 'all' = Mọi lúc)
+  function perChips(slot, p, extra, noCmp) { // extra: thêm nút cuối ('all' = Mọi lúc); noCmp: tab không so kỳ trước (Đơn hàng)
     var ks = PER_CEO.concat(extra || []), R = perRange(p), on = ks.indexOf(p.k) >= 0;
     return '<div class="per-q" role="group" aria-label="Thời gian">' + ks.map(function (k) { return '<button type="button" class="chip' + (p.k === k ? ' on' : '') + '" data-pq="' + slot + '|' + k + '">' + perLabel({ k: k }) + '</button>'; }).join('') +
       '<button type="button" class="chip' + (on ? '' : ' on') + '" data-per="' + slot + '">📅 ' + (on ? 'Khác' : esc(perLabel(p))) + '</button></div>' +
-      '<p class="small muted per-q-d">' + (p.k === 'all' ? 'Từ trước tới nay' : perDates(R)) + (CMP_LABEL ? ' · so với ' + CMP_LABEL : p.k === 'year' ? ' · năm nay chưa so với năm trước' : '') + '</p>';
+      '<p class="small muted per-q-d">' + (p.k === 'all' ? 'Từ trước tới nay' : perDates(R)) + (noCmp ? '' : CMP_LABEL ? ' · so với ' + CMP_LABEL : p.k === 'year' ? ' · năm nay chưa so với năm trước' : '') + '</p>';
   }
   /** Khoảng [từ, đến) theo giờ VN của 1 lựa chọn thời gian p = { k, from, to }. */
   function perRange(p) {
@@ -2484,6 +2484,7 @@
       case 'today': return [t0, t0 + DAY];
       case 'yday': return [t0 - DAY, t0];
       case 'd7': return [t0 - 6 * DAY, t0 + DAY];
+      case 'd30': return [t0 - 29 * DAY, t0 + DAY];
       case 'lmonth': return monthRange(shiftMonth(mk, -1));
       case 'week': return [weekStart(t0), weekStart(t0) + 7 * DAY];
       case 'lweek': return [weekStart(t0) - 7 * DAY, weekStart(t0)];
@@ -2496,22 +2497,16 @@
   }
   function perDates(R) { if (!R[0] && R[1] === Infinity) return ''; var a = fDate(R[0]), b = fDate(R[1] - 1); return a === b ? a : a.slice(0, 5) + ' – ' + b; }
   function perLabel(p) { if (p.k === 'all') return 'Mọi lúc'; if (p.k === 'custom') return perDates(perRange(p)); var x = PER.concat(PER_X).filter(function (z) { return z[0] === p.k; })[0]; return x ? x[1] : 'Tháng này'; }
-  /** Nút mở bộ lọc thời gian. slot = khoá trong S.f (r: Hiệu quả, o: Đơn hàng). */
-  function perBtn(slot, p) {
-    var R = perRange(p), d = p.k === 'custom' ? '' : perDates(R);
-    return '<div class="per-row"><button type="button" class="per-btn" data-per="' + slot + '">📅 <b>' + esc(perLabel(p)) + '</b>' + (d ? '<span>' + d + '</span>' : '') + ' ▾</button></div>';
-  }
+  /** 📅 Khác: chỉ các mốc KHÔNG có sẵn trên hàng nút (7 / 30 ngày qua, tuần trước, quý trước) + tự chọn từ ngày – đến ngày (hiện sẵn). */
+  var PER_MORE = [['d7', '7 ngày qua'], ['d30', '30 ngày qua'], ['lweek', 'Tuần trước'], ['lquarter', 'Quý trước']];
   function openPer(slot) {
-    var f = S.f[slot], p = f.p || { k: 'month' }, withAll = slot === 'o' || slot === 'r', R = p.k === 'custom' ? perRange(p) : null;
-    var opts = (withAll ? [['all', 'Mọi lúc']] : []).concat(PER);
-    var body = '<div class="per-list">' + opts.map(function (o) { return '<button type="button" data-pk="' + o[0] + '"' + (p.k === o[0] ? ' class="on"' : '') + '>' + o[1] + '</button>'; }).join('') +
-      '<button type="button" class="per-cus' + (p.k === 'custom' ? ' on' : '') + '" id="perCus">Tuỳ chỉnh</button></div>' +
-      '<div class="per-custom' + (p.k === 'custom' ? ' show' : '') + '" id="perBox"><div class="row2c"><label class="f"><span>Từ ngày</span><input type="date" id="perFrom" value="' + (R ? isoDate(R[0]) : isoDate(today() - 6 * DAY)) + '" max="' + isoDate(Date.now()) + '"></label>' +
-      '<label class="f"><span>Đến ngày</span><input type="date" id="perTo" value="' + (R ? isoDate(R[1] - 1) : isoDate(Date.now())) + '"></label></div><p class="err" id="perErr"></p><button type="button" class="btn pri" id="perOk" style="width:100%">Áp dụng</button></div>';
-    var m = modal('Thời gian', body, '<button class="btn per-back" data-close>Quay lại</button>');
+    var f = S.f[slot], p = f.p || { k: 'month' }, R = p.k === 'custom' ? perRange(p) : null;
+    var body = '<p class="per-h">Xem nhanh</p><div class="per-more">' + PER_MORE.map(function (o) { return '<button type="button" class="chip' + (p.k === o[0] ? ' on' : '') + '" data-pk="' + o[0] + '">' + o[1] + '<small>' + perDates(perRange({ k: o[0] })) + '</small></button>'; }).join('') + '</div>' +
+      '<p class="per-h">📆 Tự chọn ngày</p><div class="row2c"><label class="f"><span>Từ ngày</span><input type="date" id="perFrom" value="' + (R ? isoDate(R[0]) : isoDate(monthRange(monthOf(Date.now()))[0])) + '" max="' + isoDate(Date.now()) + '"></label>' +
+      '<label class="f"><span>Đến ngày</span><input type="date" id="perTo" value="' + (R ? isoDate(R[1] - 1) : isoDate(Date.now())) + '"></label></div><p class="err" id="perErr"></p><button type="button" class="btn pri" id="perOk" style="width:100%">Xem</button>';
+    var m = modal('Chọn thời gian khác', body, '<button class="btn per-back" data-close>Đóng</button>');
     var set = function (np) { f.p = np; if (slot === 'o') f.n = 60; closeModal(); render(); };
     $$('[data-pk]', m).forEach(function (b) { b.onclick = function () { set({ k: b.getAttribute('data-pk') }); }; });
-    $('#perCus', m).onclick = function () { $('#perBox', m).classList.add('show'); $('#perFrom', m).focus(); };
     $('#perOk', m).onclick = function () {
       var a = $('#perFrom', m).value, b = $('#perTo', m).value, err = $('#perErr', m);
       if (!a || !b) { err.textContent = 'Chọn đủ ngày bắt đầu và ngày kết thúc giúp em nhé.'; return; }
@@ -2640,7 +2635,7 @@
     }
     if (p.k === 'year') { CMP_LABEL = ''; return [R0[0] - 365 * DAY, Math.min(R0[1], now0) - 365 * DAY]; } // khoảng hợp lệ cho Analytics / quảng cáo, nhưng không hiện so sánh
     var R = perRange(p), len = R[1] - R[0], now = Date.now();
-    CMP_LABEL = p.k === 'today' ? 'cùng giờ hôm qua' : p.k === 'yday' ? 'hôm kia' : p.k === 'd7' ? '7 ngày trước đó' : 'kỳ trước (' + perDates([R[0] - len, R[1] - len]) + ')';
+    CMP_LABEL = p.k === 'today' ? 'cùng giờ hôm qua' : p.k === 'yday' ? 'hôm kia' : p.k === 'd7' ? '7 ngày trước đó' : p.k === 'd30' ? '30 ngày trước đó' : 'kỳ trước (' + perDates([R[0] - len, R[1] - len]) + ')';
     return [R[0] - len, Math.min(R[1], now) - len];
   }
   /** Mũi tên so với tháng trước. kind: 'money' | 'count' | 'rate' (điểm %) */
@@ -4581,7 +4576,7 @@
     if (t.hasAttribute('data-os')) { S.f.o.st = a('data-os'); S.f.o.n = 60; if ($('#oBody')) renderOrdersPart(); else render(); return; }
     if (t.hasAttribute('data-otab')) { S.f.o.tab = a('data-otab'); if (S.f.o.tab === 'todo') S.f.o.q = ''; S.f.o.n = 60; if ($('#oBody')) renderOrdersPart(); else render(); return; }
     if (t.hasAttribute('data-per')) { openPer(a('data-per')); return; }
-    if (t.hasAttribute('data-pq')) { var pq = a('data-pq').split('|'); S.f[pq[0]].p = { k: pq[1] }; render(); return; }
+    if (t.hasAttribute('data-pq')) { var pq = a('data-pq').split('|'); S.f[pq[0]].p = { k: pq[1] }; if (pq[0] === 'o') S.f.o.n = 60; render(); return; }
     if (t.hasAttribute('data-tf')) { S.f.t.k = a('data-tf'); S.f.t.n = 60; if ($('#tList')) renderLeadsPart(); else render(); return; }
     if (t.hasAttribute('data-who')) { setWho(a('data-who') === 'team' ? '' : a('data-who')); window.scrollTo(0, 0); return; }
     if (t.hasAttribute('data-race')) { S.f.race = a('data-race'); render(); return; }

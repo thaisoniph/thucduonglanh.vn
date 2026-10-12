@@ -112,7 +112,7 @@ Trên mỗi dòng đơn còn có:
 
 **Số ngày đang giao** tính từ **ngày gửi hàng**: CRM tự ghi ngày gửi khi bạn bấm **Đang giao** hoặc nhập mã vận đơn. Đơn cũ chưa có ngày gửi (vd đơn nhập từ file) thì tính từ ngày đặt; rê chuột vào ô số ngày để xem tính từ ngày nào. Khách đã nhận hàng thì nhớ bấm **📬 Đã giao** để đơn không còn bị báo giao lâu.
 
-Bấm vào dòng để mở đơn (Zalo, sửa đơn, ghi chú…). Thẻ **📋 Tất cả đơn** để tra cứu: bấm nút **📅 thời gian** để chọn *Mọi lúc, Hôm nay, Hôm qua, 7 ngày qua, Tháng này, Tháng trước* hoặc **Tuỳ chỉnh** (tự chọn từ ngày – đến ngày), rồi lọc theo **kênh** (🌐 *Khách tự đặt trên web* hoặc 💬 *Sale lên đơn*) và theo trạng thái. Đơn khách tự đặt trên thucduonglanh.vn có nhãn **🌐 Web · Facebook / Google / Zalo / Vào thẳng web…** (khách vào web từ đâu). Đầu trang có số đơn và doanh thu hôm nay, số đơn đang giao, tỷ lệ hoàn tháng này.
+Bấm vào dòng để mở đơn (Zalo, sửa đơn, ghi chú…). Thẻ **📋 Tất cả đơn** để tra cứu: bấm 1 chạm ở hàng nút thời gian (*Hôm nay · Hôm qua · Tuần này · Tháng này · Tháng trước · Quý này · Năm nay · Mọi lúc*) hoặc **📅 Khác**, rồi lọc theo **kênh** (🌐 *Khách tự đặt trên web* hoặc 💬 *Sale lên đơn*) và theo trạng thái. Đơn khách tự đặt trên thucduonglanh.vn có nhãn **🌐 Web · Facebook / Google / Zalo / Vào thẳng web…** (khách vào web từ đâu). Đầu trang có số đơn và doanh thu hôm nay, số đơn đang giao, tỷ lệ hoàn tháng này.
 
 
 Đơn khách đặt trên web tự vào CRM và báo lên Telegram. Mỗi đơn đi qua các trạng thái:
@@ -391,7 +391,7 @@ Khách hỏi hiện ở tab Hôm nay khi: **chưa liên hệ lần nào**, **đ�
 
 ## Hiệu quả và mục tiêu tháng
 
-Bấm **1 chạm** ở hàng nút thời gian đầu trang (trên điện thoại vuốt ngang): *Hôm nay · Hôm qua · Tuần này · Tháng này · Tháng trước · Quý này · Năm nay · Mọi lúc*, hoặc **📅 Khác** để tự chọn từ ngày – đến ngày. Dòng nhỏ bên dưới ghi ngày cụ thể và đang so với kỳ nào (tuần / tháng / quý đang chạy so với cùng số ngày của kỳ trước). Chọn **Mọi lúc** để xem doanh số từng người từ trước tới nay, gồm cả đơn cũ nhập từ file sale (để đối chiếu với file). Mỗi chỉ số tự so với kỳ liền trước cùng độ dài (vd hôm nay so với cùng giờ hôm qua); *Mọi lúc* thì không so. Mục tiêu và bảng BCDT luôn tính theo tháng.
+Bấm **1 chạm** ở hàng nút thời gian đầu trang (trên điện thoại vuốt ngang): *Hôm nay · Hôm qua · Tuần này · Tháng này · Tháng trước · Quý này · Năm nay · Mọi lúc*, hoặc **📅 Khác** (7 ngày qua, 30 ngày qua, tuần trước, quý trước, hoặc tự chọn từ ngày – đến ngày). Dòng nhỏ bên dưới ghi ngày cụ thể và đang so với kỳ nào (tuần / tháng / quý đang chạy so với cùng số ngày của kỳ trước). Chọn **Mọi lúc** để xem doanh số từng người từ trước tới nay, gồm cả đơn cũ nhập từ file sale (để đối chiếu với file). Mỗi chỉ số tự so với kỳ liền trước cùng độ dài (vd hôm nay so với cùng giờ hôm qua); *Mọi lúc* thì không so. Mục tiêu và bảng BCDT luôn tính theo tháng.
 
 ![Tab Hiệu quả](/huong-dan/img/crm-report.webp)
 
@@ -405,7 +405,7 @@ Doanh số tính theo **Nhân viên bán** ghi trên từng đơn. Đơn khách 
 
 ## Tổng quan (chỉ Quản trị)
 
-Tab đầu tiên trên menu, dành cho chủ doanh nghiệp. **Chọn thời gian 1 chạm** ở hàng nút trên cùng (trên điện thoại vuốt ngang): *Hôm nay · Hôm qua · Tuần này · Tháng này · Tháng trước · Quý này · Năm nay*, hoặc **📅 Khác** để tự chọn ngày. Dòng nhỏ bên dưới ghi ngày cụ thể và đang so với kỳ nào: tuần / tháng / quý đang chạy so với **cùng số ngày** của kỳ trước (vd 1–12/10 so với 1–12/9), cho công bằng. *Năm nay* chưa so với năm trước vì CRM chỉ giữ đơn 13 tháng gần nhất. Tab Marketing, Hiệu quả và Sàn có cùng hàng nút này.
+Tab đầu tiên trên menu, dành cho chủ doanh nghiệp. **Chọn thời gian 1 chạm** ở hàng nút trên cùng (trên điện thoại vuốt ngang): *Hôm nay · Hôm qua · Tuần này · Tháng này · Tháng trước · Quý này · Năm nay*, hoặc **📅 Khác** để tự chọn ngày. Dòng nhỏ bên dưới ghi ngày cụ thể và đang so với kỳ nào: tuần / tháng / quý đang chạy so với **cùng số ngày** của kỳ trước (vd 1–12/10 so với 1–12/9), cho công bằng. *Năm nay* chưa so với năm trước vì CRM chỉ giữ đơn 13 tháng gần nhất. Tab Marketing, Hiệu quả, Sàn và Đơn hàng (Tất cả đơn) có cùng hàng nút này; **📅 Khác** chỉ chứa các mốc chưa có trên hàng nút: 7 ngày qua, 30 ngày qua, tuần trước, quý trước và tự chọn ngày.
 
 **Màn hình đầu: nhìn 5 giây là nắm được tình hình**
 
