@@ -520,7 +520,13 @@ Tải lại đơn cũ không bị tính trùng: CRM nhận ra theo mã đơn và
 
 **Ô 👤 Người phụ trách** (góc phải, chỉ quản lý thấy) có ở cả 5 tab Hôm nay, Khách đã mua, Khách hỏi, Đơn hàng, Hiệu quả. Chọn **Tất cả nhân sự**, **Chưa ai phụ trách** hoặc tên 1 nhân viên. Chọn ở tab nào thì các tab khác cũng lọc theo, nên muốn xem hết việc của một người thì chọn tên người đó 1 lần rồi chuyển qua các tab. Đơn hàng lọc theo *Nhân viên bán*; đơn chưa ghi nhân viên bán thì lấy người phụ trách khách đó. Muốn bỏ lọc thì chọn lại **Tất cả nhân sự**.
 
-**Tab Hiệu quả → Tất cả nhân sự:** doanh thu, mục tiêu cả nhóm, biểu đồ **📊 So sánh nhân viên** và bảng từng nhân viên. Biểu đồ cho chọn chỉ số: Doanh số, Số đơn, TB/đơn, Tỷ lệ chốt, % mục tiêu, Lượt chăm sóc, Chăm sóc ra đơn, Từ khách cũ. Mỗi người là 1 thanh, xếp từ cao xuống thấp. Vạch đen là mức trung bình của nhóm, thanh xám là người chưa có số liệu. Bấm vào thanh hoặc thẻ của 1 người để xem chi tiết và đặt mục tiêu. Có mục **Vì sao khách hỏi không mua** và cảnh báo **đơn chưa có nhân viên bán** (mở đơn để gán).
+**Tab Hiệu quả → Tất cả nhân sự** (màn hình của quản lý), đọc từ trên xuống:
+- **🎯 Mục tiêu cả nhóm**: tổng mục tiêu các nhân viên, thanh tiến độ, cả nhóm mỗi ngày cần bán bao nhiêu, giữ nhịp thì cả tháng được bao nhiêu.
+- **4 ô lớn có đèn**: 💰 Tiền cả nhóm · 🎯 Chốt được · 🛒 Mỗi đơn · 🔁 Khách cũ mua lại (so với kỳ trước).
+- **📞 Khách hỏi từ quảng cáo đi về đâu?** của cả nhóm.
+- **👉 Quản lý nên làm ngay** (tối đa 5 việc): ai đang chậm mục tiêu, khách hỏi tồn chưa chốt (ai nhiều nhất), khách VIP chưa ai gọi, đơn chưa có nhân viên bán (nút **Gán**), ai chốt thấp hơn nhóm, ai chưa đặt mục tiêu, tỷ lệ hoàn cao. Bấm tên người để mở màn hình của người đó.
+- **👥 Từng nhân viên**: xếp theo tiền bán được (🥇🥈🥉), viền màu = tiến độ mục tiêu (🟢 đúng tiến độ · 🟠 hơi chậm · 🔴 đang chậm), số đơn, tỷ lệ chốt, tiền mỗi đơn, lượt chăm sóc, và dòng **Cần kèm** (tối đa 2 điểm yếu so với cả nhóm: khách hỏi tồn ≥ 5, chốt thấp hơn nhóm, đơn nhỏ, ít chăm sóc, khách VIP chưa gọi, hoàn nhiều). Bấm vào để xem chi tiết và đặt mục tiêu.
+- **Xem chi tiết** (bấm để mở): **📊 So sánh nhân viên** (chọn chỉ số: Doanh số, Số đơn, TB/đơn, Tỷ lệ chốt, % mục tiêu, Lượt chăm sóc…; vạch đậm = trung bình nhóm), 📈 Bán hàng theo ngày, 💬 Chăm sóc khách, 🙅 Vì sao khách chưa mua (gồm lý do “Không mua” của khách hỏi), 📍 Khách ở tỉnh nào.
 
 **Tài khoản Quản trị không có trong thống kê nhân sự.** Bảng *👥 Tiến độ nhân sự hôm nay*, biểu đồ *📊 So sánh nhân viên*, mục *Theo nhân viên* và *📈 Mức dùng CRM* chỉ tính tài khoản quyền Quản lý và Nhân viên, cho gọn. Doanh thu cả nhóm vẫn tính đủ mọi đơn.
 

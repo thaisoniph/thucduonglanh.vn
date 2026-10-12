@@ -4082,7 +4082,7 @@
     return '<div class="box rep-fun"><h3>📞 ' + c.data + ' khách hỏi từ quảng cáo đi về đâu?</h3><div class="rep-fun-bar">' +
       parts.map(function (x) { return '<i class="' + x[0] + '" style="width:' + (x[2] * 100 / c.data).toFixed(1) + '%" title="' + x[1] + ': ' + x[2] + '"></i>'; }).join('') + '</div>' +
       '<div class="rep-fun-leg">' + parts.map(function (x) { return '<span class="' + x[0] + '"><u></u>' + x[1] + ' <b>' + x[2] + '</b></span>'; }).join('') + '</div>' +
-      '<p>Cứ <b>10</b> khách hỏi thì bạn chốt được <b>' + per10 + '</b> khách.' + (c.pending ? ' Còn <b>' + c.pending + '</b> khách đang tư vấn, gọi lại sớm để chốt thêm. <a href="#tiem-nang">Mở Khách hỏi →</a>' : '') + '</p></div>';
+      '<p>Cứ <b>10</b> khách hỏi thì ' + esc(who) + ' chốt được <b>' + per10 + '</b> khách.' + (c.pending ? ' Còn <b>' + c.pending + '</b> khách đang tư vấn, gọi lại sớm để chốt thêm. <a href="#tiem-nang">Mở Khách hỏi →</a>' : '') + '</p></div>';
   }
   /** Tối đa 5 việc nên làm ngay, việc gấp lên trước. Chỉ dựa trên số liệu đã có trên máy. */
   function repTodo(c, p, me) {
@@ -4130,31 +4130,79 @@
     });
   }
 
-  function viewTeam(cx) {
-    var month = cx.month, R = cx.R, all = salesAllFix(perf(null, R), null, cx), tt = teamTarget(month);
-    var names = staffNames(); S.d.orders.forEach(function (o) { if (o.seller && names.indexOf(o.seller) < 0 && !isAdminName(o.seller)) names.push(o.seller); }); // không tính tài khoản Quản trị
-    var h = targetBlockTeam(cx.whole ? all.sales : perf(null, monthRange(month)).sales, tt, month) + '<div class="steps" style="margin:0 0 16px"><button class="btn pri" data-daily="">📋 Báo cáo ngày (gửi Zalo)</button><button class="btn" data-bcdt="|' + month + '">📊 Bảng BCDT cả nhóm ' + monthLabel(month) + '</button>' + (lvl() >= 3 ? '<button class="btn" data-usage="">📈 Mức dùng CRM</button>' : '') + '</div>';
-    h += '<div class="kpis">' + kpi('Doanh thu', moneyShort(all.sales), 'good', '', all.orders + ' đơn') + kpi('TB / đơn', all.orders ? moneyShort(all.avg) : '–', '', '', 'giá trị trung bình') +
-      kpi('Tỷ lệ chốt', all.closePct === null ? '–' : all.closePct + '%', '', '', all.won + ' ra đơn / ' + all.data + ' data quảng cáo' + (all.pending ? ' · ' + all.pending + ' đang tư vấn' : '')) + kpi('Từ khách cũ', all.sales ? all.oldPct + '%' : '–', '', '', moneyShort(all.oldRev)) + '</div>';
-    var act = staffNames(), rows = names.map(function (n) { var p = salesAllFix(perf(n, R), n, cx); p.n = n; p.t = targetOf(n, month); p.ms = cx.whole ? p.sales : perf(n, monthRange(month)).sales; return p; }).filter(function (p) { return act.indexOf(p.n) >= 0 || p.orders > 0; }).sort(function (a, b) { return b.sales - a.sales; });
-    h += repTrend(null, cx);
-    h += compareBlock(rows, cx);
-    var SB = trendBuckets(R);
-    h += careMetrics(all, perf(null, cx.P), false) + geoBlock(null, cx) + whyBlock(null, cx);
-    h += '<section class="section"><div class="section-h"><h2>Theo nhân viên</h2><span class="tip">bấm vào từng người để xem chi tiết, đặt mục tiêu</span></div><div class="list cols">' +
-      rows.map(function (r) {
-        var ms = cx.whole ? r.sales : perf(r.n, monthRange(month)).sales, p = r.t && r.t.amount ? ms / r.t.amount : null;
-        return '<div class="card click" data-who="' + esc(r.n) + '"><div class="r1"><b>' + esc(r.n) + '</b>' + sparkSvg(repSeries(r.n, SB, 0, 'sales'), SB.partial) + '<span class="end">' + money(r.sales) + '</span></div>' +
-          (p === null ? '<div class="r3">🎯 Chưa đặt mục tiêu</div>' : '<div class="bar sm"><i style="width:' + Math.min(100, p * 100).toFixed(1) + '%"></i></div><div class="r3">🎯 ' + Math.round(p * 100) + '% mục tiêu ' + monthLabel(month) + ' ' + moneyShort(r.t.amount) + '</div>') +
-          '<div class="r3">' + r.orders + ' đơn · TB ' + (r.orders ? moneyShort(r.avg) : '–') + ' · Chốt ' + (r.closePct === null ? '–' : r.closePct + '%') + ' · Khách cũ ' + (r.sales ? r.oldPct + '%' : '–') + '</div>' +
-          '<div class="r3">💬 ' + r.care + ' lượt chăm sóc · ' + r.reorder + ' đặt lại' + (r.stale ? ' · <span class="bad-line">' + r.stale + ' khách quá 30 ngày</span>' : '') + '</div></div>';
-      }).join('') + '</div></section>';
-    var noSeller = S.d.orders.filter(function (o) { return !isVoid(o.status) && o.time >= R[0] && o.time < R[1] && !o.seller; });
-    if (noSeller.length) h += '<div class="notice">' + noSeller.length + ' đơn (' + money(noSeller.reduce(function (s, o) { return s + o.total; }, 0)) + ') chưa có nhân viên bán, thường là khách mới tự đặt trên web. Mở đơn → mục “Nhân viên bán” để gán.</div>';
-    var leads = S.d.leads || [], reasons = {}, lostN = 0;
-    leads.forEach(function (l) { if (l.status === 'Không mua' && l.lastAt >= R[0] && l.lastAt < R[1]) { var r = l.reason || 'Không ghi'; reasons[r] = (reasons[r] || 0) + 1; lostN++; } });
+  /* Hiệu quả cả nhóm cho quản lý: mục tiêu nhóm → 4 ô lớn có đèn → bảng từng người (đèn tiến độ, huy chương, điểm cần kèm) → việc quản lý nên làm.
+   * Biểu đồ so sánh, xu hướng, chăm sóc, lý do, tỉnh: thu gọn (repMore), bấm mới mở. */
+  /** Điểm cần kèm của 1 người, so với cả nhóm (t = perf(null)). Trả tối đa 2 dòng, việc ảnh hưởng tiền nhiều lên trước. */
+  function repWeak(r, t, careAvg) {
+    var w = [];
+    if (r.pending >= 5) w.push('⏳ ' + r.pending + ' khách hỏi đang chờ gọi lại');
+    if (r.closePct !== null && t.closePct !== null && r.data >= 10 && r.closePct < t.closePct - 3) w.push('🎯 chốt ' + r.closePct + '%, nhóm ' + t.closePct + '%');
+    if (r.orders >= 3 && t.avg && r.avg < t.avg * 0.8) w.push('🛒 đơn nhỏ (' + moneyShort(r.avg) + ', nhóm ' + moneyShort(t.avg) + ')');
+    if (careAvg >= 10 && r.care < careAvg * 0.5) w.push('💬 ít chăm sóc (' + r.care + ' lượt, TB nhóm ' + Math.round(careAvg) + ')');
+    if (r.vipRisk) w.push('💎 ' + r.vipRisk + ' khách VIP chưa gọi');
+    if (r.backPct !== null && r.backPct >= 10 && r.backN >= 2) w.push('📦 hoàn ' + r.backPct + '%');
+    return w.slice(0, 2);
+  }
+  function repPeople(rows, t, cx) {
+    var careAvg = rows.length ? rows.reduce(function (s0, r) { return s0 + r.care; }, 0) / rows.length : 0, M = ['🥇', '🥈', '🥉'];
+    return '<div class="box rep-ppl"><h3>👥 Từng nhân viên <small class="muted">(bấm vào tên để xem chi tiết, đặt mục tiêu)</small></h3>' + (rows.length ? rows.map(function (r, i) {
+      var g = r.t && r.t.amount ? goalCalc(r.ms, r.t.amount, cx.month) : null, lv = g && g.isCur ? g.lv : dashTrend(r.sales, r.prev.sales), wk = repWeak(r, t, careAvg);
+      return '<div class="rep-ppl-r ' + (lv || '') + '" role="button" tabindex="0" data-who="' + esc(r.n) + '">' +
+        '<div class="rep-ppl-h"><b>' + (r.sales && i < 3 ? M[i] + ' ' : '') + esc(r.n) + '</b><span>' + (DASH_LV[lv] || '') + ' ' + moneyShort(r.sales) + '</span></div>' +
+        (g ? '<div class="bar sm"><i style="width:' + Math.min(100, g.p * 100).toFixed(1) + '%"></i>' + (g.isCur ? '<u style="left:' + (g.tp * 100).toFixed(1) + '%"></u>' : '') + '</div><div class="rep-ppl-s">🎯 ' + Math.round(g.p * 100) + '% mục tiêu ' + moneyShort(r.t.amount) + (g.isCur ? ' · ' + GOAL_LV[g.lv] : '') + '</div>' : '<div class="rep-ppl-s warn">🎯 Chưa đặt mục tiêu ' + monthLabel(cx.month) + '</div>') +
+        '<div class="rep-ppl-s">' + r.orders + ' đơn · chốt ' + (r.closePct === null ? '–' : r.closePct + '%') + ' · mỗi đơn ' + (r.orders ? moneyShort(r.avg) : '–') + ' · 💬 ' + r.care + ' lượt</div>' +
+        (wk.length ? '<div class="rep-ppl-w">Cần kèm: ' + wk.join(' · ') + '</div>' : (r.orders ? '<div class="rep-ppl-ok">👍 Đang ổn</div>' : '')) + '</div>';
+    }).join('') : '<p class="muted">Chưa có nhân viên nào.</p>') + '</div>';
+  }
+  /** Việc quản lý nên làm ngay: tối đa 5 dòng, gấp lên trước. */
+  function repMgrTodo(rows, t, cx, noSeller) {
+    var L = [], nm = function (a) { return a.map(function (r) { return '<button class="link" data-who="' + esc(r.n) + '">' + esc(r.n) + '</button>'; }).join(', '); };
+    var slow = rows.filter(function (r) { var g = r.t && r.t.amount ? goalCalc(r.ms, r.t.amount, cx.month) : null; return g && g.isCur && g.lv === 'bad'; });
+    if (slow.length) L.push({ p: 1, t: '🔴 Đang chậm mục tiêu: ' + nm(slow) + '. Ngồi cùng xem khách đang tư vấn và khách cũ sắp hết hàng.' });
+    var pend = rows.filter(function (r) { return r.pending >= 5; }).sort(function (a, b) { return b.pending - a.pending; });
+    if (t.pending >= 5) L.push({ p: 1, t: '⏳ Cả nhóm còn <b>' + t.pending + ' khách hỏi</b> đang tư vấn chưa chốt' + (pend.length ? ' (nhiều nhất: ' + nm(pend.slice(0, 2)) + ')' : '') + '. Nhắc gọi lại trong ngày.' });
+    var vip = rows.filter(function (r) { return r.vipRisk; });
+    if (t.vipRisk) L.push({ p: 2, t: '💎 <b>' + t.vipRisk + ' khách VIP</b> lâu chưa mua, chưa ai gọi' + (vip.length ? ' (' + nm(vip) + ')' : '') + '.' });
+    if (noSeller.n) L.push({ p: 2, t: '🧾 <b>' + noSeller.n + ' đơn</b> (' + moneyShort(noSeller.v) + ') chưa có nhân viên bán, doanh số chưa tính cho ai.', a: '<button class="btn sm" data-who="-">Gán</button>' });
+    var low = rows.filter(function (r) { return r.closePct !== null && t.closePct !== null && r.data >= 10 && r.closePct < t.closePct - 3; });
+    if (low.length) L.push({ p: 2, t: '🎯 Chốt thấp hơn nhóm (' + t.closePct + '%): ' + nm(low) + '. Nghe lại vài cuộc gọi, xem lý do khách từ chối.', a: '<button class="btn sm" data-rgo="why">Lý do</button>' });
+    var noT = rows.filter(function (r) { return !(r.t && r.t.amount); });
+    if (noT.length && cx.month === monthOf(Date.now())) L.push({ p: 3, t: '🎯 Chưa đặt mục tiêu ' + monthLabel(cx.month) + ': ' + nm(noT) + '.' });
+    if (t.backPct !== null && t.backPct >= 10 && t.backN >= 3) L.push({ p: 3, t: '📦 Tỷ lệ hoàn đơn ' + t.backPct + '% (' + t.backN + ' đơn, ' + moneyShort(t.backV) + '). Nhắc gọi xác nhận trước khi gửi.' });
+    L.sort(function (x, y) { return x.p - y.p; });
+    return '<div class="box rep-todo"><h3>👉 Quản lý nên làm ngay</h3>' + (L.length ? L.slice(0, 5).map(function (x) { return '<div class="rep-todo-r"><span>' + x.t + '</span>' + (x.a || '') + '</div>'; }).join('') : '<div class="rep-todo-r"><span>🎉 Cả nhóm đang ổn. Khen người dẫn đầu và giữ nhịp nhé!</span></div>') + '</div>';
+  }
+  /** Lý do khách hỏi không mua (chọn khi chốt "Không mua"), cả nhóm. */
+  function teamLostBlock(R) {
+    var reasons = {}, lostN = 0;
+    (S.d.leads || []).forEach(function (l) { if (l.status === 'Không mua' && l.lastAt >= R[0] && l.lastAt < R[1]) { var r = l.reason || 'Không ghi'; reasons[r] = (reasons[r] || 0) + 1; lostN++; } });
     var rk = Object.keys(reasons).sort(function (a, b) { return reasons[b] - reasons[a]; });
-    if (rk.length) h += '<section class="section"><div class="section-h"><h2>Vì sao khách hỏi không mua</h2></div><div class="box">' + rk.map(function (r) { return '<div class="reason"><span>' + esc(r) + '</span><b>' + reasons[r] + '</b><div class="bar sm"><i style="width:' + pct(reasons[r], lostN) + '%"></i></div></div>'; }).join('') + '</div></section>';
+    return rk.length ? '<section class="section"><div class="section-h"><h2>Khách hỏi chọn “Không mua” vì</h2></div><div class="box">' + rk.map(function (r) { return '<div class="reason"><span>' + esc(r) + '</span><b>' + reasons[r] + '</b><div class="bar sm"><i style="width:' + pct(reasons[r], lostN) + '%"></i></div></div>'; }).join('') + '</div></section>' : '';
+  }
+  function viewTeam(cx) {
+    var month = cx.month, R = cx.R, all = salesAllFix(perf(null, R), null, cx), prev = perf(null, cx.P), tt = teamTarget(month);
+    var names = staffNames(); S.d.orders.forEach(function (o) { if (o.seller && names.indexOf(o.seller) < 0 && !isAdminName(o.seller)) names.push(o.seller); }); // không tính tài khoản Quản trị
+    var act = staffNames(), rows = names.map(function (n) { var p = salesAllFix(perf(n, R), n, cx); p.n = n; p.prev = perf(n, cx.P); p.t = targetOf(n, month); p.ms = cx.whole ? p.sales : perf(n, monthRange(month)).sales; return p; }).filter(function (p) { return act.indexOf(p.n) >= 0 || p.orders > 0; }).sort(function (a, b) { return b.sales - a.sales; });
+    var ns = S.d.orders.filter(function (o) { return !isVoid(o.status) && o.time >= R[0] && o.time < R[1] && !o.seller; }), noSeller = { n: ns.length, v: ns.reduce(function (s0, o) { return s0 + o.total; }, 0) };
+    var ms = cx.whole ? all.sales : perf(null, monthRange(month)).sales, G = tt ? goalCalc(ms, tt, month) : null;
+    var h = targetBlockTeam(ms, tt, month);
+    h += '<section class="dash-hero"><div class="dash-tiles">' +
+      dashTile('rtrend', cx.whole && G && G.isCur ? G.lv : dashTrend(all.sales, prev.sales), '💰 Tiền cả nhóm', moneyShort(all.sales), delta(all.sales, prev.sales), all.orders + ' đơn') +
+      dashTile('cmp', repRateLv(all.closePct, prev.closePct), '🎯 Chốt được', all.closePct === null ? '–' : all.closePct + '%', all.closePct === null ? '' : delta(all.closePct, prev.closePct, 'rate'), all.data ? 'Cứ 10 khách hỏi chốt ' + Math.round(all.won * 10 / all.data) + ' khách' : 'Chưa có khách hỏi từ quảng cáo') +
+      dashTile('cmp', all.orders && prev.orders ? dashTrend(all.avg, prev.avg) : '', '🛒 Mỗi đơn', all.orders ? moneyShort(all.avg) : '–', all.orders ? delta(all.avg, prev.orders ? prev.avg : 0) : '', 'Tiền trung bình 1 đơn') +
+      dashTile('care', all.sales ? repRateLv(all.oldPct, prev.sales ? prev.oldPct : null) : '', '🔁 Khách cũ mua lại', all.repeat + ' khách', delta(all.repeat, prev.repeat), all.sales ? moneyShort(all.oldRev) + ' = ' + all.oldPct + '% tiền bán được' : 'Chăm sóc tốt thì số này tăng') +
+      '</div>' + repFunnel(all, 'cả nhóm') + repMgrTodo(rows, all, cx, noSeller) + repPeople(rows, all, cx) + '</section>';
+    h += '<div class="steps" style="margin:0 0 16px"><button class="btn pri" data-daily="">📋 Báo cáo ngày (gửi Zalo)</button><button class="btn" data-bcdt="|' + month + '">📊 Bảng BCDT cả nhóm ' + monthLabel(month) + '</button>' + (lvl() >= 3 ? '<button class="btn" data-usage="">📈 Mức dùng CRM</button>' : '') + '</div>';
+    h += '<h2 class="dash-more-h">Xem chi tiết <small class="muted">(bấm để mở)</small></h2>';
+    var lead = rows[0] && rows[0].sales ? rows[0] : null;
+    h += rows.length >= 2 ? repMore('cmp', '📊 So sánh nhân viên', 'Xếp hạng theo doanh số, số đơn, tỷ lệ chốt, % mục tiêu…' + (lead ? ' · dẫn đầu: ' + esc(lead.n) : ''), compareBlock(rows, cx)) : '';
+    h += repMore('rtrend', '📈 Bán hàng theo ngày', 'Doanh số, số đơn, lượt chăm sóc từng ngày, so với ' + (CMP_LABEL || 'kỳ trước'), repTrend(null, cx));
+    h += repMore('care', '💬 Chăm sóc khách', all.care + ' lượt' + (all.replyPct === null ? '' : ' · ' + all.replyPct + '% khách nghe máy') + (all.convPct === null ? '' : ' · ' + all.convPct + '% chăm sóc ra đơn'), careMetrics(all, prev, false));
+    var why = whyBlock(null, cx), wt = (why.match(/<span class="bar-l" role="cell">([^<]*)</) || [])[1];
+    h += repMore('why', '🙅 Vì sao khách chưa mua', wt ? 'Nhiều nhất: ' + wt : 'Ghi lý do khi chăm sóc để máy gom', why + teamLostBlock(R));
+    var geo = geoBlock(null, cx), gt = (geo.match(/Nhiều nhất: <b>([^<]*)</) || [])[1];
+    h += repMore('geo', '📍 Khách ở tỉnh nào', gt ? 'Nhiều nhất: ' + gt : 'Chưa có địa chỉ', geo);
+    h += '<p class="small muted">🟢 đúng tiến độ mục tiêu / tốt hơn ' + (CMP_LABEL || 'kỳ trước') + ' · 🟠 hơi chậm / giảm nhẹ · 🔴 đang chậm / giảm nhiều. 🥇🥈🥉 xếp theo tiền bán được trong kỳ đang chọn.</p>';
     return h;
   }
   /** Biểu đồ so sánh nhân viên: chọn 1 chỉ số, mỗi người 1 thanh (xếp từ cao xuống), vạch đậm = trung bình nhóm, bấm vào thanh để xem chi tiết người đó. */
@@ -4198,7 +4246,7 @@
     var p = sales / tt, tp = el / days, lv = p >= 1 ? 'done' : p >= tp ? 'ok' : p >= tp * 0.8 ? 'mid' : 'bad';
     return '<div class="goal ' + lv + '"><div class="goal-h"><b>🎯 Mục tiêu cả nhóm ' + monthLabel(month) + '</b><span class="goal-st">' + { done: '🎉 Đã đạt', ok: '🟢 Đúng tiến độ', mid: '🟠 Hơi chậm', bad: '🔴 Đang chậm' }[lv] + '</span></div>' +
       '<div class="goal-num"><b>' + moneyShort(sales) + '</b> / ' + moneyShort(tt) + '<span>' + Math.round(p * 100) + '%</span></div>' +
-      '<div class="bar"><i style="width:' + Math.min(100, p * 100).toFixed(1) + '%"></i>' + (isCur ? '<u style="left:' + (tp * 100).toFixed(1) + '%"></u>' : '') + '</div><p class="small muted">Tổng mục tiêu của các nhân viên.</p></div>';
+      '<div class="bar"><i style="width:' + Math.min(100, p * 100).toFixed(1) + '%"></i>' + (isCur ? '<u style="left:' + (tp * 100).toFixed(1) + '%"></u>' : '') + '</div>' + (isCur ? '<div class="bar-legend"><span>Vạch đen = hôm nay (ngày ' + el + '/' + days + ')</span></div>' : '') + (isCur && p < 1 ? '<p>Còn thiếu <b>' + moneyShort(tt - sales) + '</b> trong <b>' + (days - el + 1) + ' ngày</b> → cả nhóm mỗi ngày cần khoảng <b>' + moneyShort(Math.ceil((tt - sales) / (days - el + 1))) + '</b>.' + (el >= 3 ? ' Giữ nhịp hiện nay thì cả tháng được khoảng ' + moneyShort(Math.round(sales / el * days)) + ' (' + pct(Math.round(sales / el * days), tt) + '%).' : '') + '</p>' : '') + '<p class="small muted">Tổng mục tiêu của các nhân viên.</p></div>';
   }
 
   /** Đặt / sửa mục tiêu doanh số tháng. */

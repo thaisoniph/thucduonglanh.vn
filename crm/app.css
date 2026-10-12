@@ -861,3 +861,17 @@ details.set-g .dash-more-b { background: #fff; }
 .rep-todo-r:first-of-type { border-top: 0; padding-top: 0; }
 .rep-todo-r > span { flex: 1; }
 .rep-todo-r .btn { flex: none; }
+/* Hiệu quả cả nhóm: bảng từng nhân viên */
+.box.rep-ppl { margin: 10px 0 0; }
+.rep-ppl h3 { margin: 0 0 6px; font-size: 16px; }
+.rep-ppl h3 small { font-size: 12px; font-weight: 400; }
+.rep-ppl-r { padding: 10px 10px 10px 12px; margin: 8px 0 0; border: 1px solid var(--line); border-left: 5px solid var(--line); border-radius: 8px; cursor: pointer; background: #fff; }
+.rep-ppl-r:hover { border-color: #cfd8cc; }
+.rep-ppl-r.ok, .rep-ppl-r.done { border-left-color: var(--primary); } .rep-ppl-r.mid { border-left-color: #f0a030; } .rep-ppl-r.bad { border-left-color: var(--red); }
+.rep-ppl-h { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.rep-ppl-h b { font-size: 16px; } .rep-ppl-h span { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.rep-ppl-r .bar { margin: 6px 0 2px; }
+.rep-ppl-s { font-size: 13.5px; color: var(--muted); margin-top: 3px; } .rep-ppl-s.warn { color: #b26a00; }
+.rep-ppl-w { font-size: 13.5px; margin-top: 5px; color: #9a3b1b; background: #fff4ec; border-radius: 6px; padding: 4px 8px; }
+.rep-ppl-ok { font-size: 13.5px; margin-top: 5px; color: var(--primary); }
+.rep-todo .link { background: none; border: 0; padding: 0; color: var(--primary); font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer; }
