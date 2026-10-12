@@ -2739,8 +2739,9 @@
   }
   /* Tổng quan theo góc nhìn chủ doanh nghiệp: màn hình đầu chỉ có 4 con số chính (đèn xanh / cam / đỏ), mục tiêu tháng và vài điều cần chú ý.
    * Mọi số liệu chi tiết xếp trong các mục thu gọn (dashMore), bấm vào mới mở; mục đang mở được nhớ trên máy (localStorage dash_open). */
-  var DASH_ADS = [30, 40]; // quảng cáo (anh Sơn chốt 12/10/2026): chi phí / doanh thu khách mới dưới 30% = xanh, 30–40% = cam, trên 40% = đỏ
-  function adsLv(sp, rev) { if (!sp) return ''; var c = rev ? sp * 100 / rev : Infinity; return c < DASH_ADS[0] ? 'ok' : c <= DASH_ADS[1] ? 'mid' : 'bad'; }
+  /** Mức đèn quảng cáo: chi phí / doanh thu khách mới dưới [0]% = xanh, tới [1]% = cam, trên = đỏ. Quản trị sửa ở Cài đặt → 🚦 Mức đèn Tổng quan (kv dash_cfg); mặc định 30 / 40 (anh Sơn chốt 12/10/2026). */
+  function dashAds() { var c = (S.d && S.d.rules && S.d.rules.dash) || {}; return [Number(c.adsGood) || 30, Number(c.adsBad) || 40]; }
+  function adsLv(sp, rev) { if (!sp) return ''; var c = rev ? sp * 100 / rev : Infinity, A = dashAds(); return c < A[0] ? 'ok' : c <= A[1] ? 'mid' : 'bad'; }
   var DASH_LV = { ok: '🟢', done: '🟢', mid: '🟠', bad: '🔴' };
   /** Đèn theo xu hướng so với kỳ trước: tăng = xanh, giảm dưới 10% = cam, giảm từ 10% = đỏ. */
   function dashTrend(cur, prev) { if (!CMP_LABEL || !prev) return ''; var d = (cur - prev) / prev; return d >= 0 ? 'ok' : d > -0.1 ? 'mid' : 'bad'; }
@@ -3548,7 +3549,7 @@
       var rated = Object.keys(M.ch).filter(function (k) { return M.ch[k] > 0; }).map(function (k) { var e = M.E[k] || { newRev: 0 }; return { k: k, sp: M.ch[k], r: e.newRev / M.ch[k] }; }).sort(function (x, y) { return y.r - x.r; });
       var zero = rated.filter(function (x) { return !x.r && x.sp >= 1e6; })[0], low = rated.filter(function (x) { return x.r && adsLv(x.sp, x.sp * x.r) === 'bad'; }).pop();
       if (zero) L.push('⚠️ Quảng cáo <b>' + esc(zero.k) + '</b> đã chi ' + moneyShort(zero.sp) + ' nhưng chưa có khách mới nào mua.');
-      else if (low) L.push('⚠️ Quảng cáo <b>' + esc(low.k) + '</b> chưa hiệu quả: chi phí bằng ' + Math.round(100 / low.r) + '% tiền khách mới mua (nên dưới ' + DASH_ADS[0] + '%).');
+      else if (low) L.push('⚠️ Quảng cáo <b>' + esc(low.k) + '</b> chưa hiệu quả: chi phí bằng ' + Math.round(100 / low.r) + '% tiền khách mới mua (nên dưới ' + dashAds()[0] + '%).');
       if (rated.length > 1 && adsLv(rated[0].sp, rated[0].sp * rated[0].r) === 'ok') L.push('🏆 Quảng cáo hiệu quả nhất: <b>' + esc(rated[0].k) + '</b> (chi phí bằng ' + Math.round(100 / rated[0].r) + '% tiền khách mới mua). Nên dồn thêm tiền cho kênh này.');
     }
     if (sj) { var by = {}; sj.files.forEach(function (x) { if (x[1] === 'orders') by[x[0]] = x[2]; }); Object.keys(by).forEach(function (k) { var d = Math.floor((Date.now() - by[k]) / DAY); if (d > 3) L.push('⏰ ' + esc(k) + ' đã ' + d + ' ngày chưa tải file đơn mới, số sàn có thể đang thiếu.'); }); }
@@ -4119,6 +4120,11 @@
       OTYPES.map(function (t) { return '<label class="f"><span>' + OT[t][0] + ' ' + t + ' (%)</span><input type="text" inputmode="decimal" data-cm="' + esc(t) + '" value="' + esc(CMc[t] === undefined ? '' : CMc[t]) + '" placeholder="vd 5"></label>'; }).join('') +
       '<label class="f"><span>🌐 Đơn khách tự đặt trên web (%)</span><input type="text" inputmode="decimal" data-cm="' + CH_WEB + '" value="' + esc(CMc[CH_WEB] === undefined ? '' : CMc[CH_WEB]) + '" placeholder="vd 2"></label>' +
       '</div><p class="hint">Đơn web (khách tự đặt trên thucduonglanh.vn) tính <b>riêng</b> theo % này, không theo 4 loại đơn. Hoa hồng đơn web tính cho sale đang phụ trách khách lúc khách đặt. Xem ở <b>Đơn hàng → Tất cả đơn → 🌐 Khách tự đặt trên web</b> và báo cáo BCDT.</p><p class="hint">Loại đơn do sale chọn khi lên đơn (CRM chọn sẵn theo gợi ý: Lễ → Ngoài giờ → Khách mới / cũ; khách để lại số qua quảng cáo trong 30 ngày tính là Khách mới). Đơn sale chọn khác gợi ý hiện ở <b>Đơn hàng → Cần xử lý → Kiểm tra loại đơn</b>.</p><button class="btn pri" id="cmSave">Lưu hoa hồng</button></div>';
+    if (lvl() >= 3) { var DA = dashAds();
+      h += '<div class="box"><h3>🚦 Mức đèn Tổng quan</h3><p class="hint" style="margin:0 0 10px">Ô <b>📣 Quảng cáo</b> ở tab Tổng quan và mục <b>Cần chú ý</b> tô màu theo <b>chi phí quảng cáo ÷ tiền khách mới mua</b>. Áp dụng cho mọi Quản trị.</p><div class="row2c">' +
+        '<label class="f"><span>🟢 Xanh khi dưới (%)</span><input type="text" inputmode="decimal" id="daGood" value="' + DA[0] + '"></label>' +
+        '<label class="f"><span>🔴 Đỏ khi trên (%)</span><input type="text" inputmode="decimal" id="daBad" value="' + DA[1] + '"></label></div>' +
+        '<p class="hint" id="daHint"></p><button class="btn pri" id="daSave">Lưu mức đèn</button></div>'; }
     h += caBox();
     var md = mode(), staff = (S.d.users || []).filter(function (u) { return u.active !== false; }), noOwner = S.d.customers.filter(function (c) { return !c.owner; }).length;
     h += '<div class="box"><h3>👥 Chia khách & phân quyền</h3><p class="hint" style="margin:0 0 10px">Nhân viên chỉ thấy khách mình phụ trách. Quản lý thấy tất cả.</p>' +
@@ -4173,6 +4179,14 @@
       var b = this, cm = {}; $$('[data-cm]').forEach(function (x) { cm[x.getAttribute('data-cm')] = x.value.trim(); }); b.disabled = true;
       api('settings', { commission: cm }).then(function (j) { S.d.rules.commission = j.commission; toast('Đã lưu % hoa hồng ✓'); b.disabled = false; }, function (e) { toast(e.message, true); b.disabled = false; });
     };
+    if ($('#daSave')) { var dh = function () { var g = $('#daGood').value || '?', b = $('#daBad').value || '?'; $('#daHint').innerHTML = '🟢 dưới ' + esc(g) + '% · 🟠 từ ' + esc(g) + '% đến ' + esc(b) + '% · 🔴 trên ' + esc(b) + '%. Ví dụ chi 10 tr quảng cáo, khách mới mua 40 tr → 25%.'; };
+      $('#daGood').addEventListener('input', dh); $('#daBad').addEventListener('input', dh); dh();
+      $('#daSave').onclick = function () {
+        var b = this, g = Number($('#daGood').value.replace(',', '.')), r = Number($('#daBad').value.replace(',', '.'));
+        if (!(g > 0) || !(r >= g)) { toast('Mức đỏ phải lớn hơn hoặc bằng mức xanh, và đều lớn hơn 0.', true); return; }
+        b.disabled = true;
+        api('settings', { dash: { adsGood: g, adsBad: r } }).then(function (j) { if (!j.dash) { toast('Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.', true); b.disabled = false; return; } S.d.rules.dash = j.dash; toast('Đã lưu mức đèn ✓'); b.disabled = false; }, function (e) { toast(e.message, true); b.disabled = false; });
+      }; }
     if ($('#tgOff')) $('#tgOff').onclick = function () { if (!confirm('Ngắt thông báo Telegram riêng?')) return; api('tg_off').then(function () { S.user.tg = false; toast('Đã ngắt'); render(); }, function (e) { toast(e.message, true); }); };
     if ($('#tgLink')) $('#tgLink').onclick = function () {
       var b = this; b.disabled = true; b.textContent = 'Đang tạo link…';

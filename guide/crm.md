@@ -409,7 +409,7 @@ Tab đầu tiên trên menu, dành cho chủ doanh nghiệp. Bấm **📅 thời
 **Màn hình đầu: nhìn 5 giây là nắm được tình hình**
 
 - **4 ô lớn**: 💰 **Tiền bán được** (văn phòng + sàn), 🧾 **Số đơn hàng**, 🙋 **Khách mới mua**, 📣 **Quảng cáo** (bỏ 1 đồng quảng cáo thì khách mới mua lại bao nhiêu đồng). Mũi tên ▲ xanh / ▼ đỏ là so với kỳ trước.
-- **Đèn trên mỗi ô**: 🟢 tốt, 🟠 cần để ý, 🔴 cần xử lý. Tiền bán được (xem theo tháng): theo tiến độ mục tiêu. Số đơn, khách mới: tăng = 🟢, giảm dưới 10% = 🟠, giảm từ 10% = 🔴. Quảng cáo: chi phí dưới 30% tiền khách mới mua = 🟢, từ 30% đến 40% = 🟠, trên 40% = 🔴.
+- **Đèn trên mỗi ô**: 🟢 tốt, 🟠 cần để ý, 🔴 cần xử lý. Tiền bán được (xem theo tháng): theo tiến độ mục tiêu. Số đơn, khách mới: tăng = 🟢, giảm dưới 10% = 🟠, giảm từ 10% = 🔴. Quảng cáo: chi phí dưới 30% tiền khách mới mua = 🟢, từ 30% đến 40% = 🟠, trên 40% = 🔴 (mặc định; Quản trị đổi mức ở **Cài đặt → 🚦 Mức đèn Tổng quan**).
 - **🎯 Mục tiêu tháng**: thanh tiến độ cả văn phòng (vạch đen = hôm nay, thanh màu vượt vạch đen là đúng tiến độ), mỗi ngày còn cần bán bao nhiêu.
 - **📌 Cần chú ý**: tối đa 5 dòng CRM tự rút ra: chậm mục tiêu, kênh quảng cáo tốn tiền mà chưa ra khách, kênh hiệu quả nhất nên dồn tiền, sàn lâu chưa tải file, doanh thu tăng / giảm mạnh…
 - Bấm vào ô hoặc thanh mục tiêu để mở phần chi tiết tương ứng.
