@@ -862,7 +862,7 @@ async function crmOrderEdit(x, u, d) {
 /* ---------- Quản trị xoá dữ liệu nhập thử / nhập nhầm (không hoàn tác được) */
 const DEL_KEY = 'del_log', DEL_IDS = 'del_order_ids';
 /** Ghi lại dòng đã xoá 3 ngày → CRM đang mở ở máy khác tự bỏ khi làm mới phần thay đổi. */
-async function delMark(x, orders, phones, leads) {
+export async function delMark(x, orders, phones, leads) {
   const now = Date.now(), list = ((await kvJson(x.db, DEL_KEY, [])) || []).filter(e => now - e.t < 3 * DAY);
   orders.forEach(r => list.push({ t: now, o: r.rid })); phones.forEach(p => list.push({ t: now, c: p })); (leads || []).forEach(l => list.push({ t: now, l: l.id }));
   await kvSet(x.db, DEL_KEY, JSON.stringify(list.slice(-3000)));
