@@ -2610,7 +2610,7 @@
     o = o || {}; var mx = Math.max.apply(null, items.map(function (x) { return x.v; }).concat(o.avg || 0)) || 1;
     var avg = o.avg ? '<u class="avg" style="left:' + (o.avg * 100 / mx).toFixed(1) + '%"></u>' : '';
     return '<div class="bars' + (o.avg !== undefined ? ' cmp' : '') + '" role="table">' + items.map(function (x) {
-      return '<div class="bar-r' + (x.muted ? ' mut' : '') + (x.who ? ' click' : '') + '" role="row" title="' + esc(x.tip || '') + '"' + (x.who ? ' data-who="' + esc(x.who) + '"' : '') + '><span class="bar-l" role="cell">' + esc(x.l) + '</span><span class="bar-t" role="cell"><i style="width:' + Math.max(1.5, x.v * 100 / mx) + '%"></i>' + avg + '</span><span class="bar-v" role="cell">' + (x.txt !== undefined ? x.txt : fmt(x.v)) + (x.sub && !o.below ? '<small>' + esc(x.sub) + '</small>' : '') + '</span></div>' + (x.sub && o.below ? '<div class="bar-q dash-sub">' + esc(x.sub) + '</div>' : '') +
+      return '<div class="bar-r' + (x.muted ? ' mut' : '') + (x.who ? ' click' : '') + '" role="row" title="' + esc(x.tip || '') + '"' + (x.who ? ' data-who="' + esc(x.who) + '"' : '') + '><span class="bar-l" role="cell">' + esc(x.l) + '</span><span class="bar-t" role="cell"><i style="width:' + Math.max(1.5, x.v * 100 / mx) + '%"></i>' + avg + '</span><span class="bar-v" role="cell">' + (x.txt !== undefined ? x.txt : fmt(x.v)) + (x.sub && !o.below ? '<small>' + esc(x.sub) + '</small>' : '') + '</span></div>' + ((x.sub || x.subH) && o.below ? '<div class="bar-q dash-sub">' + (x.subH || esc(x.sub)) + '</div>' : '') +
         (x.quotes && x.quotes.length ? '<div class="bar-q">' + x.quotes.map(function (q) { return '“' + esc(q) + '”'; }).join(' · ') + '</div>' : '');
     }).join('') + '</div>';
   }
@@ -3133,6 +3133,17 @@
     Object.keys(M.E).forEach(function (k) { M.newN += M.E[k].newN; }); Object.keys(M.Ep).forEach(function (k) { M.newNp += M.Ep[k].newN; });
     return M;
   }
+  /** Dòng chiến dịch cho barList (mục 📣 Tổng quan + tab Marketing). r = [kênh, chiến dịch, src, chi phí, hiển thị, click, tin nhắn, SĐT, mua, [tên tài khoản, mã act_…]].
+   *  Dòng dưới: tài khoản quảng cáo (Facebook có link mở thẳng Trình quản lý quảng cáo) + click / kết quả / chi phí mỗi kết quả. */
+  function campRows(list) {
+    return list.map(function (r) {
+      var bits = [], acc = r[9] || ['', ''], res = r[6] + r[7];
+      if (r[5]) bits.push(r[5].toLocaleString('vi-VN') + ' click'); if (r[6]) bits.push(r[6] + ' tin nhắn'); if (r[7]) bits.push(r[7] + ' SĐT'); if (r[8]) bits.push(r[8] + ' mua');
+      if (res) bits.push(moneyShort(Math.round(r[3] / res)) + '/kết quả');
+      var tk = acc[0] ? (acc[1] ? '<a href="https://adsmanager.facebook.com/adsmanager/manage/campaigns?act=' + esc(acc[1].replace(/^act_/, '')) + '" target="_blank" rel="noopener" title="Mở tài khoản này trong Trình quản lý quảng cáo Facebook">🏷 ' + esc(acc[0]) + ' ↗</a>' : '🏷 ' + esc(acc[0])) : '';
+      return { l: chInfo(r[0]).icon + ' ' + r[1], v: r[3], acc: acc[0] || '', subH: [tk, esc(bits.join(' · '))].filter(Boolean).join(' · ') };
+    });
+  }
   function mktBlock(M, R, b, bp, sj) {
     var h = '<section class="section"><div class="section-h"><h2>📣 Marketing</h2><span class="tip">chi phí quảng cáo &amp; hiệu quả</span><div class="grow"></div><a class="btn sm" href="#marketing" title="Đúng màn hình bộ phận marketing đang xem">👁 Tab Marketing</a><button class="btn sm" data-dash="mkt">⚙️ Quản lý chi phí quảng cáo</button></div>';
     if (!M) return h + '<div class="box"><p class="muted">' + (MK.err ? '⚠️ ' + esc(MK.err) : '⏳ Đang tải chi phí…') + '</p></div></section>';
@@ -3154,7 +3165,7 @@
     h += '<div class="dash-grid">';
     var BM = trendBuckets(R); if (BM.L.length >= 2) h += '<div class="box"><h3>📈 Chi phí quảng cáo</h3>' + trendChart({ B: BM, fmt: moneyShort, what: 'Chi phí quảng cáo', series: [{ v: trendSum(BM, Object.keys(day).map(function (k) { return [k, day[k]]; }), function (r) { return dayMs(r[0]); }, function (r) { return r[1]; }), name: 'Chi phí', cls: 'alt' }] }) + '</div>';
     h += '</div>';
-    var camps = mj.camps.map(function (r) { var bits = []; if (r[5]) bits.push(r[5].toLocaleString('vi-VN') + ' click'); if (r[6]) bits.push(r[6] + ' tin nhắn'); if (r[7]) bits.push(r[7] + ' SĐT'); if (r[8]) bits.push(r[8] + ' mua'); var res = r[6] + r[7]; if (res) bits.push(moneyShort(Math.round(r[3] / res)) + '/kết quả'); return { l: chInfo(r[0]).icon + ' ' + r[1], v: r[3], sub: bits.join(' · ') || (r[2] === 'manual' ? 'nhập tay' : '') }; });
+    var camps = campRows(mj.camps);
     h += '<div class="box"><h3>Chiến dịch tốn nhiều nhất</h3>' + barList(camps.slice(0, 12), moneyShort, '', { below: 1 }) + '<p class="bar-legend">Kết quả = tin nhắn + SĐT khách để lại (Facebook ghi nhận). Chi phí / kết quả càng thấp càng tốt.</p></div>';
     return h + '<p class="small muted">' + fbLine + '</p></section>';
   }
@@ -3222,8 +3233,11 @@
       metric('Số rác', ad.junk, 'Sai số, không liên lạc được, không có nhu cầu thật.', ad.junk && adp ? inv(delta(ad.junk, adp.junk)) : '') +
       metric('Đang tư vấn', Math.max(0, ad.n - ad.won - ad.lost - ad.junk), 'Chưa có kết quả.', '') + '</div></section>';
     // theo ngày + chiến dịch
-    var camps = mj.camps.map(function (r) { var bits = []; if (r[5]) bits.push(r[5].toLocaleString('vi-VN') + ' click'); if (r[6]) bits.push(r[6] + ' tin nhắn'); if (r[7]) bits.push(r[7] + ' SĐT'); if (r[8]) bits.push(r[8] + ' mua'); var res = r[6] + r[7]; if (res) bits.push(moneyShort(Math.round(r[3] / res)) + '/kết quả'); return { l: chInfo(r[0]).icon + ' ' + r[1], v: r[3], sub: bits.join(' · ') || (r[2] === 'manual' ? 'nhập tay' : '') }; });
-    h += '<section class="section"><div class="section-h"><h2>🎬 Chiến dịch tốn nhiều nhất</h2></div><div class="box">' + barList(camps.slice(0, 15), moneyShort, 'Chưa có chiến dịch trong kỳ.', { below: 1 }) + '<p class="bar-legend">Kết quả = tin nhắn + SĐT khách để lại (Facebook ghi nhận). Chi phí / kết quả càng thấp càng tốt, nhưng kênh tốt là kênh ra <b>tiền khách mới</b> (bảng từng kênh ở trên).</p></div></section>';
+    var camps = campRows(mj.camps), accs = {}; camps.forEach(function (c) { if (c.acc) accs[c.acc] = (accs[c.acc] || 0) + c.v; });
+    var accL = Object.keys(accs).sort(function (x, y) { return accs[y] - accs[x]; }); if (accL.indexOf(f.acc) < 0) f.acc = '';
+    if (f.acc) camps = camps.filter(function (c) { return c.acc === f.acc; });
+    var accChips = accL.length > 1 ? '<div class="chips wrap"><button class="chip' + (f.acc ? '' : ' on') + '" data-mka="">Mọi tài khoản</button>' + accL.map(function (a) { return '<button class="chip' + (f.acc === a ? ' on' : '') + '" data-mka="' + esc(a) + '">🏷 ' + esc(a) + ' · ' + moneyShort(accs[a]) + '</button>'; }).join('') + '</div>' : '';
+    h += '<section class="section"><div class="section-h"><h2>🎬 Chiến dịch tốn nhiều nhất</h2><span class="tip">🏷 tài khoản quảng cáo · bấm tên tài khoản để mở trong Trình quản lý quảng cáo</span></div>' + accChips + '<div class="box">' + barList(camps.slice(0, 15), moneyShort, 'Chưa có chiến dịch trong kỳ.', { below: 1 }) + '<p class="bar-legend">Kết quả = tin nhắn + SĐT khách để lại (Facebook ghi nhận). Chi phí / kết quả càng thấp càng tốt, nhưng kênh tốt là kênh ra <b>tiền khách mới</b> (bảng từng kênh ở trên).</p></div></section>';
     h += '<p class="small muted">' + (mj.fb.on ? '📘 Facebook Ads tự cập nhật' + (mj.fb.last ? ' · lần gần nhất ' + fDateTime(mj.fb.last) : '') + ' · ' : '') + 'Số tính lúc ' + fDateTime(mj.at) + (mj.cached ? ' (bấm ↻ để tính lại)' : '') + '. Tiền khách mới = tiền khách mua lần đầu mang về trong kỳ (cả các đơn sau của họ trong kỳ), gắn theo kênh đã đưa khách tới.</p>';
     return h;
   }
@@ -3231,6 +3245,7 @@
     $$('[data-mkv]').forEach(function (el) { el.onclick = function () { var a = el.getAttribute('data-mkv'); if (a === 'cost') openMkt(); else if (a === 'fresh') { var k = mvKey(); delete MV.cache[k]; MV.err = ''; MV.busy = ''; mvFetch(k, true); render(); } }; });
     $$('#view [data-dash="sfb"]').forEach(function (el) { el.onclick = function () { var f = S.f.m; f.sfb = !f.sfb; store('dash_sfb', f.sfb ? '' : '0'); render(); }; });
     $$('[data-dgo]').forEach(function (el) { el.onclick = function () { var t = $('#' + el.getAttribute('data-dgo')); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }; });
+    $$('[data-mka]').forEach(function (el) { el.onclick = function () { S.f.m.acc = el.getAttribute('data-mka'); render(); }; });
   }
 
   /* ---------- màn hình Quản lý chi phí quảng cáo */

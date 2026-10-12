@@ -106,17 +106,25 @@ export async function mktTick(x) {
   await fbSync(x, iso(t - 2 * DAY), iso(t));
 }
 
+/** Tài khoản quảng cáo của 1 dòng chiến dịch: [tên hiện, mã act_… (Facebook, để mở Trình quản lý quảng cáo) hoặc '']. Dùng chung cho lệnh mkt và mktv. */
+export function accOf(c, r) {
+  if (r.src === 'file') return ['File CSV', ''];
+  if (r.src === 'manual') return ['Nhập tay', ''];
+  const a = (((c || {}).fb || {}).all || []).filter(o => o.id === r.account)[0];
+  return [a ? a.name : String(r.account || '').replace(/^act_/, 'TK '), /^act_\d+$/.test(r.account || '') ? r.account : ''];
+}
+
 /* ---------------- lệnh CRM (chỉ Quản trị) */
 /** mkt: chi phí trong kỳ (from–to) + kỳ so sánh (pf–pt): theo ngày × kênh, theo chiến dịch, tổng kỳ trước theo kênh. */
 async function mktLoad(x, d) {
   if (![d.from, d.to, d.pf, d.pt].every(s => DAY_RE.test(String(s || '')))) return { ok: false, error: 'Khoảng thời gian chưa đúng.' };
   const [days, camps, prev, c] = await Promise.all([
     all(x.db, 'SELECT day, channel, SUM(spend) AS s FROM ad_spend WHERE day BETWEEN ? AND ? GROUP BY day, channel', d.from, d.to),
-    all(x.db, 'SELECT channel, campaign, src, SUM(spend) AS s, SUM(impressions) AS i, SUM(clicks) AS c, SUM(msgs) AS m, SUM(leads) AS l, SUM(purchases) AS p FROM ad_spend WHERE day BETWEEN ? AND ? GROUP BY channel, campaign ORDER BY s DESC LIMIT 40', d.from, d.to),
+    all(x.db, 'SELECT channel, account, campaign, src, SUM(spend) AS s, SUM(impressions) AS i, SUM(clicks) AS c, SUM(msgs) AS m, SUM(leads) AS l, SUM(purchases) AS p FROM ad_spend WHERE day BETWEEN ? AND ? GROUP BY channel, account, campaign ORDER BY s DESC LIMIT 40', d.from, d.to),
     all(x.db, 'SELECT channel, SUM(spend) AS s, SUM(clicks) AS c, SUM(msgs) AS m, SUM(leads) AS l FROM ad_spend WHERE day BETWEEN ? AND ? GROUP BY channel', d.pf, d.pt),
     cfgOf(x)
   ]);
-  return { ok: true, days: days.map(r => [r.day, r.channel, r.s]), camps: camps.map(r => [r.channel, r.campaign, r.src, r.s, r.i, r.c, r.m, r.l, r.p]), prev: prev.map(r => [r.channel, r.s, r.c, r.m, r.l]), cfg: cfgPublic(c) };
+  return { ok: true, days: days.map(r => [r.day, r.channel, r.s]), camps: camps.map(r => [r.channel, r.campaign, r.src, r.s, r.i, r.c, r.m, r.l, r.p, accOf(c, r)]), prev: prev.map(r => [r.channel, r.s, r.c, r.m, r.l]), cfg: cfgPublic(c) };
 }
 /** Lấy lại số days ngày gần nhất, mỗi lần 30 ngày cho nhẹ. */
 async function syncDays(x, days) {

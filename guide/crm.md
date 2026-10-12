@@ -462,6 +462,7 @@ Số website chỉ đếm khách đã bấm “Đồng ý” cookie nên thấp 
 - **4 ô lớn:** 💸 chi phí quảng cáo · 💰 tiền khách mới mua (chỉ khách đến từ kênh có chạy quảng cáo) · 🚦 chi phí ÷ tiền khách mới, có đèn xanh / cam / đỏ theo mức Quản trị đặt ở Cài đặt · 📇 số data quảng cáo, chi phí mỗi data, % data ra đơn.
 - **📌 Cần chú ý:** kênh đã chi tiền mà chưa có khách mới, kênh vượt mức đỏ, kênh hiệu quả nhất nên dồn tiền, tỷ lệ số rác cao.
 - **Hiệu quả từng kênh**, **Data quảng cáo** (số mới, khách cũ, ra đơn, không mua, số rác, đang tư vấn), **Chi phí theo ngày**, **Chiến dịch tốn nhiều nhất**.
+- **Chiến dịch tốn nhiều nhất** ghi rõ chiến dịch thuộc **🏷 tài khoản quảng cáo** nào. Bấm tên tài khoản (Facebook) để mở thẳng tài khoản đó trong Trình quản lý quảng cáo, xem chi tiết nhóm quảng cáo, mẫu quảng cáo. Có từ 2 tài khoản trở lên thì có hàng nút lọc theo tài khoản. Chi phí nhập file ghi *File CSV*, nhập tay ghi *Nhập tay*.
 - **⚙️ Nhập chi phí:** marketing tự nhập file CSV (TikTok, Google Ads…) hoặc nhập tay (KOL / KOC, in ấn…), xem lại và xoá lần nhập sai. Facebook tự cập nhật, kết nối mã Facebook chỉ Quản trị làm.
 - Số tính lại 30 phút 1 lần; bấm **↻** để tính lại ngay.
 

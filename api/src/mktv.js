@@ -1,6 +1,7 @@
 // Tab 📣 Marketing (quyền "Marketing" + Quản trị): hiệu quả quảng cáo tính sẵn trên máy chủ, chỉ gửi về CON SỐ TỔNG theo kênh / chiến dịch.
 // Bộ phận marketing không nhận tên, SĐT, danh sách khách hay doanh thu toàn công ty (Nghị định 13/2023) – chỉ phần doanh thu do khách mới mang về.
 // Cách tính giống hệt tab Tổng quan (chanEff / orderChan / closeStats trong crm/app.js) để 2 nơi luôn ra cùng số. Sửa cách tính thì sửa cả 2 nơi.
+import { accOf } from './mkt.js';
 import { all, allIn, kvGet, kvSet, kvJson, normPhone, nrm, isVoid, startOfDay, fmtDate, DAY } from './lib.js';
 
 const DAY_RE = /^\d{4}-\d\d-\d\d$/;
@@ -13,12 +14,12 @@ const dayMs = s => new Date(s + 'T00:00:00+07:00').getTime();
 /** mktv: { from, to, pf, pt (yyyy-mm-dd), sfb } → chi phí theo kênh / ngày / chiến dịch + doanh thu khách mới từng kênh + data quảng cáo, kỳ này và kỳ trước. */
 export async function mktView(x, u, d) {
   if (![d.from, d.to, d.pf, d.pt].every(s => DAY_RE.test(String(s || '')))) return { ok: false, error: 'Khoảng thời gian chưa đúng.' };
-  const sfb = d.sfb !== false && d.sfb !== 0, key = 'mktv2_' + [d.from, d.to, d.pf, d.pt, sfb ? 1 : 0].join('_') + '_' + ((await kvGet(x.db, 'ads_rows_v')) || '');
+  const sfb = d.sfb !== false && d.sfb !== 0, key = 'mktv3_' + [d.from, d.to, d.pf, d.pt, sfb ? 1 : 0].join('_') + '_' + ((await kvGet(x.db, 'ads_rows_v')) || '');
   if (!d.fresh) { const c = await kvJson(x.db, key, null); if (c) return Object.assign(c, { cached: true }); }
   const R = [dayMs(d.from), dayMs(d.to) + DAY], P = [dayMs(d.pf), dayMs(d.pt) + DAY];
   const [spDays, camps, spPrev, ordAll, sanR, sanP, adRows, cfg] = await Promise.all([
     all(x.db, 'SELECT day, channel, SUM(spend) AS s FROM ad_spend WHERE day BETWEEN ? AND ? GROUP BY day, channel', d.from, d.to),
-    all(x.db, 'SELECT channel, campaign, src, SUM(spend) AS s, SUM(impressions) AS i, SUM(clicks) AS c, SUM(msgs) AS m, SUM(leads) AS l, SUM(purchases) AS p FROM ad_spend WHERE day BETWEEN ? AND ? GROUP BY channel, campaign ORDER BY s DESC LIMIT 40', d.from, d.to),
+    all(x.db, 'SELECT channel, account, campaign, src, SUM(spend) AS s, SUM(impressions) AS i, SUM(clicks) AS c, SUM(msgs) AS m, SUM(leads) AS l, SUM(purchases) AS p FROM ad_spend WHERE day BETWEEN ? AND ? GROUP BY channel, account, campaign ORDER BY s DESC LIMIT 40', d.from, d.to),
     all(x.db, 'SELECT channel, SUM(spend) AS s FROM ad_spend WHERE day BETWEEN ? AND ? GROUP BY channel', d.pf, d.pt),
     all(x.db, 'SELECT phone, time, total, status, source FROM orders WHERE time >= ? AND time < ? ORDER BY time', Math.min(R[0], P[0]), Math.max(R[1], P[1])),
     all(x.db, "SELECT day, shop, SUM(CASE WHEN state = 'ok' THEN gmv - refund ELSE 0 END) AS g FROM san_orders WHERE day BETWEEN ? AND ? GROUP BY day, shop", d.from, d.to).catch(() => []),
@@ -79,7 +80,7 @@ export async function mktView(x, u, d) {
   const out = {
     ok: true, at: Date.now(),
     days: spDays.map(r => [r.day, r.channel, r.s]), prev: spPrev.map(r => [r.channel, r.s]),
-    camps: camps.map(r => [r.channel, r.campaign, r.src, r.s, r.i, r.c, r.m, r.l, r.p]),
+    camps: camps.map(r => [r.channel, r.campaign, r.src, r.s, r.i, r.c, r.m, r.l, r.p, accOf(cfg, r)]),
     eff: onlyPaid(EF), effPrev: onlyPaid(EP), newDay: byDay(EF, spDays), newDayPrev: byDay(EP, spPrev), ad: ads.length ? adStat(R) : null, adPrev: ads.length ? adStat(P) : null,
     fb: { on: !!fb.token, last: fb.last || null }
   };
