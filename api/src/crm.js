@@ -257,20 +257,41 @@ function famOf(list, min) {
   const pk = prev.filter(o => !isVoid(o.status)).map(o => ({ time: o.time || 0, keys: prodKeys(o.items) })), same = (a, b) => a === b || a.indexOf(b) >= 0 || b.indexOf(a) >= 0;
   return keys.every(k => { const hit = pk.filter(o => o.keys.some(q => same(k, q))); return hit.length >= min && t - hit[hit.length - 1].time <= FAM_GAP * DAY; });
 }
+/** Nguồn khách (theo đơn đầu tiên): Website (khách tự đặt trên web) hoặc kênh sale chọn khi lên đơn / kênh khách hỏi.
+ *  Anh Sơn 12/10/2026: trước ngày 13/10/2026 mọi khách đều từ quảng cáo Facebook, trừ khách tự đặt web (chị Vân là khách web đầu tiên). */
+const SRC_CUT = Date.parse('2026-10-13T00:00:00+07:00'), FB_ADS = 'Quảng cáo Facebook';
+/** Đơn khách tự đặt trên web: mã TDL…, hoặc đã đổi sang mã sale gõ trong file (ghi chú "Mã web TDL…"). */
+export function isWebId(o) { return /^TDL\d/.test(o.id || '') || /Mã web TDL\d/.test(o.note || ''); }
+export function custSource(o) {
+  const s = String(o.source || '').trim(), m = s.match(/^(Nhập tay|Tiềm năng)\s*[–-]\s*(.*)$/);
+  if (!/^File /.test(s) && !m && isWebId(o)) return 'Website';
+  if ((o.time || 0) < SRC_CUT || /^File /.test(s) || !m) return FB_ADS; // file sale = số từ quảng cáo Facebook
+  const k = nrm(m[2]);
+  if (/facebook|\bfb\b|messenger|instagram|quang cao/.test(k)) return FB_ADS;
+  if (/website|web/.test(k)) return 'Website';
+  if (/zalo/.test(k)) return 'Zalo';
+  if (/tiktok/.test(k)) return 'TikTok';
+  if (/shopee|lazada/.test(k)) return m[2].trim();
+  if (/gioi thieu|nguoi quen|khach quen/.test(k)) return 'Người quen giới thiệu';
+  if (/dien thoai|hotline/.test(k)) return 'Gọi hotline';
+  if (/su kien|hoi thao/.test(k)) return 'Sự kiện / hội thảo';
+  if (/cua hang/.test(k)) return 'Tại cửa hàng';
+  return m[2].trim() || 'Khác';
+}
 export async function recalc(x, phones, opt) {
   opt = opt || {};
   const list = [...new Set((phones || []).map(normPhone).filter(Boolean))]; if (!list.length) return 0;
   const cycles = await cyclesList(x), R = await rulesCfg(x); let n = 0;
   for (let i = 0; i < list.length; i += 400) {
     const part = list.slice(i, i + 400);
-    const rows = await all(x.db, 'SELECT phone, time, status, items, total, consent, first_source, source, seller, name, address, province, ward, ca, received_at, ship_at FROM orders WHERE phone IN (SELECT value FROM json_each(?)) ORDER BY time, rid', JSON.stringify(part));
+    const rows = await all(x.db, 'SELECT id, note, phone, time, status, items, total, consent, first_source, source, seller, name, address, province, ward, ca, received_at, ship_at FROM orders WHERE phone IN (SELECT value FROM json_each(?)) ORDER BY time, rid', JSON.stringify(part));
     const map = {};
     for (const r of rows) {
       const c = map[r.phone] || (map[r.phone] = { orders: 0, spent: 0, first: null, last: null, bought: [], run: null, consent: 0, src: '', lastT: -1, lastStatus: '', lastCa: '', seller: '', okN: 0, backN: 0, lastBack: null, recv: null, list: [] });
       c.list.push(r); if (/hoàn/i.test(r.status || '')) { c.backN++; if ((r.time || 0) > (c.lastBack || 0)) c.lastBack = r.time || 0; } else if (!isVoid(r.status) && r.time) c.okN++;
       if ((r.time || 0) >= c.lastT) { c.lastT = r.time || 0; c.lastStatus = r.status || ''; if (!isVoid(r.status)) c.lastCa = r.ca || ''; }
       if (isVoid(r.status) || !r.time) continue;
-      if (!c.orders) { c.first = r.time; c.src = String(r.first_source || r.source || ''); }
+      if (!c.orders) { c.first = r.time; c.src = custSource(r); }
       c.orders++; c.spent += Number(r.total) || 0; c.last = r.time; if (r.seller) c.seller = r.seller;
       ['name', 'address', 'province', 'ward'].forEach(h => { if (r[h] !== '' && r[h] != null) c[h] = r[h]; });
       const items = parseItemLines(r.items);
@@ -1195,11 +1216,12 @@ export async function vtpWebhook(x, raw) {
   // tìm nhanh theo chỉ mục trước; không thấy mới quét cả bảng đơn (quét mỗi tin báo VTP tốn hạn mức đọc)
   let candidates = await all(x.db, "SELECT * FROM orders WHERE tracking IN (?1, '''' || ?1) OR id = ?1 OR (?2 != '' AND id = ?2) ORDER BY time DESC LIMIT 20", code, ref);
   if (!candidates.length) candidates = await all(x.db, 'SELECT * FROM orders WHERE upper(trim(tracking)) = ?1 OR upper(trim(id)) = ?1 OR (?2 != "" AND upper(trim(id)) = ?2) ORDER BY time DESC LIMIT 20', code, ref);
+  if (!candidates.length && /^TDL\d/.test(ref)) candidates = await all(x.db, 'SELECT * FROM orders WHERE note LIKE ?1 ORDER BY time DESC LIMIT 5', '%Mã web ' + ref + '%'); // đơn web đã đổi sang mã sale gõ trong file
   const U = v => String(v || '').replace(/^'/, '').trim().toUpperCase();
   let best = null;
   for (const o of candidates) {
     const hitT = U(o.tracking) === code;
-    const hitI = U(o.id) === code || (ref && U(o.id) === ref);
+    const hitI = U(o.id) === code || (ref && (U(o.id) === ref || String(o.note || '').indexOf('Mã web ' + ref) >= 0));
     if (!hitT && !hitI) continue;
     const sc = (hitT ? 4 : 0) + (/^(Mới|Đã xác nhận|Đang giao)$/.test(String(o.status || '')) ? 2 : 0);
     const tm = Number(o.time) || 0;

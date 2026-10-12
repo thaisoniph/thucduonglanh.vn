@@ -330,7 +330,7 @@ async function importOrders(x, src, shCfg, data, dry) {
   // đơn file đã ghép có mã đơn thật: sale sửa ngày / tiền / sản phẩm trong file (đơn 60 ngày gần đây, chưa ai sửa đơn trên CRM) → CRM theo file
   const chkIds = parsed.filter(p => p.o && !p.edited && String(p.o.source || '').indexOf('File ') === 0 && (p.when > Date.now() - 60 * DAY || p.o.time > Date.now() - 60 * DAY || p.sw) && (prodOf(p.o.items) !== p.prod || (p.amount > 0 && Number(p.o.total) !== p.amount) || fmtDate(p.o.time, 'yyyyMMdd') !== p.day)).map(p => p.o.id);
   const handEdit = {}; if (chkIds.length) (await allIn(x.db, "SELECT DISTINCT ref FROM logs WHERE what = 'Sửa đơn' AND ref IN (SELECT value FROM json_each(?))", [...new Set(chkIds)])).forEach(l => { handEdit[l.ref] = 1; });
-  const crmDay = {}, webOf = {}, webRid = {}; (await allIn(x.db, "SELECT rid, id, phone, time, total, subtotal, status, seller, name, source FROM orders WHERE phone IN (SELECT value FROM json_each(?)) AND source NOT LIKE 'File %'", [...new Set(parsed.map(p => p.phone))])).forEach(o => { crmDay[o.phone + '|' + fmtDate(o.time, 'yyyyMMdd') + '|' + (Number(o.total) || 0)] = 1; (webOf[o.phone] = webOf[o.phone] || []).push(o); webRid[o.rid] = o; }); // đơn tạo trên CRM / web (đã ghi ngược vào file)
+  const crmDay = {}, webOf = {}, webRid = {}; (await allIn(x.db, "SELECT rid, id, phone, time, total, subtotal, status, seller, name, source, note FROM orders WHERE phone IN (SELECT value FROM json_each(?)) AND source NOT LIKE 'File %'", [...new Set(parsed.map(p => p.phone))])).forEach(o => { crmDay[o.phone + '|' + fmtDate(o.time, 'yyyyMMdd') + '|' + (Number(o.total) || 0)] = 1; (webOf[o.phone] = webOf[o.phone] || []).push(o); webRid[o.rid] = o; }); // đơn tạo trên CRM / web (đã ghi ngược vào file)
   // Đơn web / CRM chưa giao mà sale lên lại trong file vài ngày sau (12/10/2026: chị Vân đặt web 05/10, Phương lên đơn trong file 07/10 → bị tính 2 đơn).
   // Dòng file cùng SĐT + cùng tiền, ngày từ 1 ngày trước tới 10 ngày sau đơn web → là đơn web đó: không tạo đơn file (đơn file đã nhập thì xoá), trạng thái theo file.
   // Đã ghép thì nhớ ở kv wlink {mã dòng file: rid đơn web} để sau khi đơn web đã giao vẫn nhận ra.
@@ -344,7 +344,7 @@ async function importOrders(x, src, shCfg, data, dry) {
   const wMerge = [], wDel = [];
   parsed.forEach(p => {
     if (!p.web) return; const o = p.web;
-    if (!wlink[p.key]) { wlink[p.key] = o.rid; wlDirty = 1; wMerge.push(p); }
+    p.webId0 = o.id; if (!wlink[p.key]) { wlink[p.key] = o.rid; wlDirty = 1; wMerge.push(p); }
     const f = p.o || ex[p.key]; if (f && String(f.source || '').indexOf('File ') === 0 && !wDel.some(d => d.rid === f.rid)) wDel.push(f); // đơn file trùng đã nhập trước đây
   });
   const out = [], seen = {}, phones = {}, callbacks = {}, upd = [], ren = [], fix = [], chg = [], chgPh = {}; let dup = 0, revenue = 0, minD = null, maxD = null, afterCut = 0;
@@ -354,14 +354,15 @@ async function importOrders(x, src, shCfg, data, dry) {
     [['gift1', 'gift1qty'], ['gift2', 'gift2qty']].forEach(g => { const n = String(cell(r, m, g[0]) || '').trim(); if (n) items.push({ name: n, variant: '', qty: toQty(cell(r, m, g[1])) || 1, gift: true, subtotal: 0 }); });
     return items;
   };
-  const wUpd = []; // đơn web ghép với dòng file: cập nhật trạng thái theo file, gán sale nếu đơn chưa có người bán
+  const wUpd = []; // đơn web ghép với dòng file: cập nhật trạng thái theo file, gán sale nếu đơn chưa có người bán; dòng có mã đơn sale (tên + ngày + số) → đơn đổi sang mã đó, giữ nguồn Website, mã web cũ ghi vào ghi chú
   for (const p of parsed) {
     const { r, phone, when, product, amount, codeRaw, valid, key, alt } = p;
     if (p.web) {
       const o = p.web, st1 = mapStatus(cell(r, m, 'status'), when), set = {};
       if (FINAL[st1] && st1 !== o.status && !FINAL[o.status]) set.status = st1;
       if (!o.seller) set.seller = sale;
-      if (Object.keys(set).length && !seen['w' + o.rid]) { seen['w' + o.rid] = 1; wUpd.push(Object.assign({ rid: o.rid, id: o.id, name: o.name, from: o.status, status: o.status, seller: o.seller || sale, phone }, set)); Object.assign(o, set); }
+      if (valid && o.id !== key && !String(o.source || '').match(/^(Nhập tay|Tiềm năng)/)) { set.id = key; set.from_id = o.id; if (/^TDL\d/.test(o.id) && String(o.note || '').indexOf('Mã web ' + o.id) < 0) set.note = (o.note ? o.note + ' · ' : '') + 'Mã web ' + o.id; }
+      if (Object.keys(set).length && !seen['w' + o.rid]) { seen['w' + o.rid] = 1; wUpd.push(Object.assign({ rid: o.rid, id: o.id, name: o.name, from: o.status, status: o.status, seller: o.seller || sale, note: o.note || '', phone }, set)); delete set.from_id; Object.assign(o, set); }
       dup++; continue;
     }
     if (p.o && !ex[key]) { ex[key] = p.o; if (p.o.id !== key && (valid || p.edited)) ren.push({ rid: p.o.rid, from: p.o.id, to: key }); } // sale đã điền mã đơn / sửa dòng → đổi mã cũ thành mã hiện tại
@@ -408,16 +409,20 @@ async function importOrders(x, src, shCfg, data, dry) {
   const orphan = []; Object.keys(pool).forEach(ph => pool[ph].forEach(o => { if (o.time > Date.now() - 30 * DAY && parsed.some(p => p.phone === ph && Math.abs(p.when - o.time) <= 3 * DAY && (!p.o || p.o.rid !== o.rid))) orphan.push(o); }));
   const summary = out.length + ' đơn mới, ' + dup + ' đã có' + (upd.length ? ' (' + upd.length + ' cập nhật trạng thái)' : '') + (ren.length ? ', ' + ren.length + ' đơn nhận mã đơn mới' : '') + (chg.length ? ', ' + chg.length + ' đơn sửa theo file' : '') + (orphan.length ? ', xoá ' + orphan.length + ' đơn trùng' : '') + (afterCut ? ', ' + afterCut + ' đơn sau ngày chốt bỏ qua' : '') + ', ' + skip + ' dòng bỏ qua' + (far.length ? ', ' + far.length + ' mã đơn lệch ô ngày quá 45 ngày (lấy theo mã)' : '');
   const res = { updated: upd.length, renamed: ren.length, changed: chg.length, removed: orphan.length, afterCut, rows: data.rows.length, newOrders: out.length, dup, skip, customers: Object.keys(phones).length, newCustomers: newCus, conflicts: conflicts.slice(0, 50), conflictCount: conflicts.length, revenue, from: minD, to: maxD, far, summary };
-  res.merged = wMerge.length + wDel.length; if (res.merged) res.summary += ', ' + wDel.length + ' đơn trùng với đơn web/CRM đã gộp';
+  res.merged = wMerge.length; res.mergedDel = wDel.length; if (wMerge.length) res.summary += ', ' + wMerge.length + ' dòng là đơn web/CRM sale lên lại (không tính thêm đơn' + (wDel.length ? ', xoá ' + wDel.length + ' đơn trùng' : '') + ')';
   if (dry || (!out.length && !upd.length && !ren.length && !chg.length && !orphan.length && !wDel.length && !wUpd.length && !wlDirty)) return res;
   if (wlDirty) { const ks = Object.keys(wlink); ks.slice(0, Math.max(0, ks.length - 5000)).forEach(k => { delete wlink[k]; }); await kvSet(x.db, 'wlink', JSON.stringify(wlink)); }
   if (wDel.length) {
     await run(x.db, 'DELETE FROM orders WHERE rid IN (SELECT value FROM json_each(?))', JSON.stringify(wDel.map(o => o.rid)));
-    await delMark(x, wDel, []);
-    for (const o of wDel) { const p = parsed.find(q => (q.o && q.o.rid === o.rid) || ex[q.key] === o); chgPh[o.phone] = 1; await crmLog(x, { name: FILE_BY }, 'Xoá dữ liệu', '', o.name, 'Xoá đơn trùng ' + o.id, (Number(o.total) || 0).toLocaleString('vi-VN') + 'đ · ' + o.phone + ' · là đơn ' + (p ? p.web.id : 'web') + ' (' + (p ? fmtDate(p.web.time, 'dd/MM') : '') + ') sale lên lại trong file ' + shCfg.name); }
+    await delMark(x, wDel.map(o => Object.assign({}, o, { source: '' })), []); // không ghi mã vào danh sách "đã xoá": đơn web nhận lại chính mã này
+    for (const o of wDel) { const p = parsed.find(q => (q.o && q.o.rid === o.rid) || ex[q.key] === o); chgPh[o.phone] = 1; await crmLog(x, { name: FILE_BY }, 'Xoá dữ liệu', '', o.name, 'Xoá đơn trùng ' + o.id, (Number(o.total) || 0).toLocaleString('vi-VN') + 'đ · ' + o.phone + ' · là đơn ' + (p ? p.webId0 : 'web') + ' (' + (p ? fmtDate(p.web.time, 'dd/MM') : '') + ') sale lên lại trong file ' + shCfg.name); }
   }
   for (const p of wMerge) if (!wDel.some(o => p.o && o.rid === p.o.rid)) await crmLog(x, { name: FILE_BY }, 'Đơn hàng', p.web.id, p.web.name, 'Ghép dòng file ' + (p.codeRaw || fmtDate(p.when, 'dd/MM')) + ' vào đơn này', 'Sale lên lại đơn trong file ' + shCfg.name + ', không tính thêm đơn');
-  for (const u of wUpd) { chgPh[u.phone] = 1; await run(x.db, 'UPDATE orders SET status = ?, seller = ? WHERE rid = ?', u.status, u.seller, u.rid); if (u.status !== u.from) await crmLog(x, { name: FILE_BY }, 'Đơn hàng', u.id, u.name, u.from + ' → ' + u.status, 'Theo dòng sale lên trong file ' + shCfg.name); }
+  for (const u of wUpd) {
+    chgPh[u.phone] = 1; await run(x.db, 'UPDATE orders SET id = ?, status = ?, seller = ?, note = ? WHERE rid = ?', u.id, u.status, u.seller, u.note, u.rid);
+    if (u.from_id) { await run(x.db, 'UPDATE logs SET ref = ? WHERE ref = ?', u.id, u.from_id); await crmLog(x, { name: FILE_BY }, 'Đơn hàng', u.id, u.name, 'Đổi mã đơn ' + u.from_id + ' → ' + u.id, 'Khách đặt web, sale lên đơn trong file ' + shCfg.name + ' (vẫn tính là đơn Website)'); }
+    if (u.status !== u.from) await crmLog(x, { name: FILE_BY }, 'Đơn hàng', u.id, u.name, u.from + ' → ' + u.status, 'Theo dòng sale lên trong file ' + shCfg.name);
+  }
   for (let i = 0; i < ren.length; i += 300) { // gộp: lần đầu đọc mã có dấu / khoảng trắng ("Lương 010401") → hàng trăm đơn đổi mã 1 lượt
     const part = JSON.stringify(ren.slice(i, i + 300));
     await run(x.db, "UPDATE orders SET id = json_extract(j.value, '$.to') FROM json_each(?) j WHERE orders.rid = json_extract(j.value, '$.rid')", part);

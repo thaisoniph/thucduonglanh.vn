@@ -115,6 +115,7 @@ export async function scheduled(x, cron) {
     try { await autoCloseLeads(x, null); } catch (e) { console.error('autoCloseLeads', e.message); } // quét bù khách hỏi đã có đơn (25 phút 1 lần)
   }
   try { await wbTick(x); } catch (e) { console.error('wbTick', e.message); } // ghi ngược vào file sale (hàng trống: 1 câu đọc theo chỉ mục)
+  if (!await kvGet(x.db, 'cus_src_v1')) { await kvSet(x.db, 'cus_src_v1', '1'); await kvSet(x.db, 'recalc_all', '1'); } // 12/10/2026: tính lại Nguồn khách cho mọi khách (custSource)
   if (await kvGet(x.db, 'recalc_all') === '1') { await kvSet(x.db, 'recalc_all', '0'); try { await recalcAll(x); } catch (e) { console.error('recalcAll', e.message); } } // 1 lần sau khi thêm cột ngày nhận / đơn hoàn / khách quen
   try { await backfillCustomerExtras(x); } catch (e) { console.error('backfill', e.message); } // 1 lần: Zalo / cộng đồng / ngày sinh từ Sheet cũ
   try { await mktTick(x); } catch (e) { console.error('mktTick', e.message); } // chi phí Facebook Ads: 3 tiếng 1 lần

@@ -320,7 +320,7 @@
       var sortedOrders = j.orders.slice().sort(function (a, b) { return (b.time || 0) - (a.time || 0) || (b.row || 0) - (a.row || 0); });
       sortedOrders.forEach(function (o) {
         o._phoneDigits = o.phone ? o.phone.replace(/\D/g, '') : '';
-        o._q = norm((o.name || '') + ' ' + (o.id || '') + ' ' + (o.items || '') + ' ' + (o.province || '') + ' ' + (o.source || '') + ' ' + (o.tracking || '') + ' ' + (o.seller || ''));
+        o._q = norm((o.name || '') + ' ' + (o.id || '') + ' ' + (o.items || '') + ' ' + (o.province || '') + ' ' + (o.source || '') + ' ' + (o.tracking || '') + ' ' + (o.seller || '') + ' ' + ((o.note || '').match(/Mã web TDL\w+/) || [''])[0]);
         if (o.id) j.orderById[o.id] = o;
         if (o.phone) {
           var ph = normPhone(o.phone);
@@ -1418,7 +1418,7 @@
     if (c.owner && owners.indexOf(c.owner) < 0) owners.push(c.owner);
     var r = replyOf(c), avg = c.orders ? c.spent / c.orders : 0;
     var habit = function () { return '<span>🧺 Hay mua: <b>' + esc(st.top || '–') + '</b>' + (st.topN > 1 ? ' (' + st.topN + ' lần)' : '') + '</span>' + (st.gap ? '<span>🔁 Khoảng <b>' + st.gap + ' ngày</b> mua lại 1 lần</span>' : '') + (c.runout ? '<span>⏰ Dự kiến hết: <b>' + fDate(c.runout).slice(0, 5) + '</b> (' + daysAgo(c.runout) + ')</span>' : ''); };
-    var body = '<div class="p-top"><div class="p-sub">' + cpPhone(c.phone) + ' · ' + (c.owner ? '👤 ' + esc(c.owner) : (isPoolStaff() ? claimBtn('c', c.phone) : 'Chưa ai phụ trách')) + '</div>' +
+    var body = '<div class="p-top"><div class="p-sub">' + cpPhone(c.phone) + ' · ' + (c.owner ? '👤 ' + esc(c.owner) : (isPoolStaff() ? claimBtn('c', c.phone) : 'Chưa ai phụ trách')) + (c.source ? ' · <span title="Nguồn khách (theo đơn đầu tiên)">' + (c.source === 'Website' ? '🌐 ' : c.source === 'Quảng cáo Facebook' ? '📘 ' : '📍 ') + esc(c.source) + '</span>' : '') + '</div>' +
       '<div class="p-tags">' + zaloTag(c) + consentTag(c) + '</div>' +
       '<div class="acts steps p-acts"><a class="btn" href="tel:' + c.phone + '">📞 Gọi</a><a class="btn zalo" href="' + zalo(c.phone) + '" target="_blank" rel="noopener">Zalo</a><button class="btn pri" data-care="' + c.phone + '" data-task="' + (c.task ? c.task.type : 'other') + '">💬 Chăm sóc</button><button class="btn" data-neworder="' + c.phone + '">＋ Đơn</button></div></div>' +
       (c.flag ? '<div class="notice" style="background:var(--red-light);color:var(--red)">⚠️ Khách có nhãn <b>' + esc(c.flag) + '</b>. Nên yêu cầu chuyển khoản trước khi gửi hàng.</div>' : '') +
@@ -1990,7 +1990,7 @@
   var OTYPES = ['Khách mới', 'Khách cũ', 'Ngoài giờ', 'Ngày lễ'];
   var OT = { 'Khách mới': ['🆕', 'Lần đầu mua, hoặc vừa để lại số qua quảng cáo'], 'Khách cũ': ['🔁', 'Đã mua trước đó, tự liên hệ lại / được chăm sóc'], 'Ngoài giờ': ['🌙', 'Tối (sau giờ ca tối) hoặc Chủ nhật'], 'Ngày lễ': ['🎉', 'Đơn chốt vào ngày lễ'] };
   /* ---------- kênh đơn: Web = khách tự đặt trên thucduonglanh.vn (mã TDL…); Sale = sale lên đơn trong CRM / nhập từ file sale */
-  function isWebOrder(o) { return /^TDL\d/.test(o.id || '') && !/^(nhập tay|tiềm năng|file )/i.test(o.source || ''); }
+  function isWebOrder(o) { return (/^TDL\d/.test(o.id || '') || /Mã web TDL\d/.test(o.note || '')) && !/^(nhập tay|tiềm năng|file )/i.test(o.source || ''); } // đơn web sale lên lại trong file: đổi sang mã sale, ghi chú "Mã web TDL…"
   function webSrc(o) { // khách vào web từ đâu (lấy từ cột Nguồn: UTM / fbclid / trang giới thiệu)
     var s = String(o.source || '').split(' / ')[0].trim().toLowerCase();
     return !s || /trực tiếp/.test(s) ? 'Vào thẳng web' : /facebook|^fb$|instagram|messenger/.test(s) ? 'Facebook' : /google/.test(s) ? 'Google' : /tiktok/.test(s) ? 'TikTok' : /zalo/.test(s) ? 'Zalo' : /youtube/.test(s) ? 'YouTube' : s;
