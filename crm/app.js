@@ -2702,6 +2702,7 @@
     var lp = {}, ls = (S.d.leads || []).filter(function (l) { return l.time >= R[0] && l.time < R[1] && !/^file cũ/i.test(l.channel || ''); })
       .sort(function (a, b) { return a.time - b.time; }).filter(function (l) { var ph = normPhone(l.phone) || l.id; if (lp[ph]) return false; lp[ph] = 1; return true; });
     s.leads = ls.length; s.webLeads = ls.filter(isWebLead).length; s.leadCh = {};
+    s.ad = dashAdData(R);
     ls.forEach(function (l) { var k = l.channel || 'Khác'; s.leadCh[k] = (s.leadCh[k] || 0) + 1; });
     return s;
   }
@@ -2722,6 +2723,20 @@
   }
   function dayKeys(R) { var out = [], end = Math.min(R[1], today() + DAY); for (var t = R[0]; t < end; t += DAY) out.push(isoDate(t)); return out; }
 
+  /** Data quảng cáo trong kỳ = cùng cách đếm "data quảng cáo" ở tab Hiệu quả (closeStats: số trong file số quảng cáo, mỗi SĐT 1 lần),
+   *  tách thêm: khách cũ (đã mua trước ngày có số) · từng hỏi (khách hỏi tạo trước ngày có số) · số mới. Không có file số quảng cáo → null. */
+  function dashAdData(R) {
+    if (!(S.d.adRows || []).length) return null;
+    var c = closeStats(null, R), seen = {}, o = { n: c.data, won: c.won, pct: c.pct, old: 0, again: 0, fresh: 0 };
+    S.d.adRows.forEach(function (a) {
+      var day = a[0], ph = a[1]; if (day < R[0] || day >= R[1] || seen[ph]) return; seen[ph] = 1;
+      var cu = S.d.byPhone && S.d.byPhone[normPhone(ph)];
+      if (cu && cu.first && cu.first < day) o.old++;
+      else if (leadsOf(ph).some(function (l) { return (l.time || 0) < day; })) o.again++;
+      else o.fresh++;
+    });
+    return o;
+  }
   function viewDash() {
     var f = S.f.g || (S.f.g = {}); if (!f.p || f.p.k === 'all') f.p = { k: 'month' };
     var R = perRange(f.p), P = cmpRange(f.p), b = bizStats(R), bp = bizStats(P), key = gaKey(R, P), gj = GA.cache[key], g = gj && gj.ga, noGaCmp = f.p.k === 'today';
@@ -2737,7 +2752,8 @@
       metric('Giá trị trung bình / đơn', b.n ? moneyShort(b.avg) : '–', 'Tăng khi khách mua combo, mua kèm, đủ mức miễn phí ship.', b.n ? delta(b.avg, bp.n ? bp.avg : 0) : '') +
       metric('Khách mua lần đầu', b.firstN, 'Khách mới có đơn đầu tiên trong kỳ.', delta(b.firstN, bp.firstN)) +
       metric('Doanh thu từ khách cũ', b.oldPct === null ? '–' : b.oldPct + '%', moneyShort(b.oldRev) + ' từ khách đã từng mua. Cao = chăm sóc tốt, khách quay lại.', b.oldPct === null ? '' : delta(b.oldPct, bp.oldPct, 'rate')) +
-      metric('Khách để lại SĐT', b.leads, 'Số SĐT khác nhau hỏi mới mọi kênh (không tính khách cũ đồng bộ từ file sale), trong đó ' + b.webLeads + ' từ website (form, nhận quà).', delta(b.leads, bp.leads), '#tiem-nang') +
+      (b.ad ? metric('Data quảng cáo', b.ad.n, b.ad.fresh + ' số mới · ' + b.ad.old + ' khách cũ · ' + b.ad.again + ' từng hỏi trước đây. ' + b.ad.won + ' ra đơn (chốt ' + (b.ad.pct === null ? '–' : b.ad.pct + '%') + '). Cùng cách đếm với tab Hiệu quả.', delta(b.ad.n, bp.ad ? bp.ad.n : null), '#bao-cao') : '') +
+      metric('Khách hỏi mới', b.leads, 'Số chưa từng có trong CRM, mọi kênh (quảng cáo, website, nhập tay), trong đó ' + b.webLeads + ' từ website. Khách cũ / khách hỏi lại không tính.', delta(b.leads, bp.leads), '#tiem-nang') +
       '</div></section>';
     h += mktBlock(key, R, b, bp);
     h += sanDashBlock(sj, R);
@@ -2820,7 +2836,8 @@
       metric('Chi phí quảng cáo', moneyShort(tot), Object.keys(ch).sort(function (x, y) { return ch[y] - ch[x]; }).map(function (k) { return chInfo(k).icon + ' ' + esc(k) + ' ' + moneyShort(ch[k]); }).join(' · '), delta(tot, totp)) +
       metric('1đ chi phí thu về', tot ? oneDec(b.rev / tot) + 'đ' : '–', 'Tổng doanh thu ÷ chi phí quảng cáo (mọi kênh). Trên 4đ là khá, dưới 2đ cần xem lại.', tot && totp ? dRate(b.rev / tot, bp.rev / totp).replace(/điểm/, 'đ') : '') +
       metric('Chi phí / đơn', per(b.n, tot), 'Chi phí quảng cáo ÷ số đơn (mọi kênh).', b.n && tot ? inv(delta(Math.round(tot / b.n), prevPer(bp.n, totp))) : '') +
-      metric('Chi phí / khách để lại SĐT', per(b.leads, tot), b.leads + ' khách hỏi mới mọi kênh.', b.leads && tot ? inv(delta(Math.round(tot / b.leads), prevPer(bp.leads, totp))) : '') +
+      (b.ad ? metric('Chi phí / data quảng cáo', per(b.ad.n, tot), 'Chi phí ÷ ' + b.ad.n + ' data quảng cáo (gồm cả khách cũ nhắn qua quảng cáo).' + (b.ad.won ? ' Mỗi data ra đơn tốn ' + per(b.ad.won, tot) + '.' : ''), b.ad.n && tot ? inv(delta(Math.round(tot / b.ad.n), bp.ad ? prevPer(bp.ad.n, totp) : null)) : '')
+        : metric('Chi phí / khách hỏi mới', per(b.leads, tot), b.leads + ' khách hỏi mới mọi kênh (chưa có file số quảng cáo).', b.leads && tot ? inv(delta(Math.round(tot / b.leads), prevPer(bp.leads, totp))) : '')) +
       metric('Chi phí có 1 khách mới', per(b.firstN, tot), b.firstN + ' khách mua lần đầu. So với giá trị khách mua lại về sau để biết lãi lỗ.', b.firstN && tot ? inv(delta(Math.round(tot / b.firstN), prevPer(bp.firstN, totp))) : '') +
       metric('Chi phí / doanh thu', b.rev ? oneDec(tot * 100 / b.rev) + '%' : '–', 'Phần doanh thu dùng cho quảng cáo. Thấp hơn là tốt.', b.rev && bp.rev && totp ? inv(dRate(tot * 100 / b.rev, totp * 100 / bp.rev)) : '') +
       '</div>';
