@@ -805,3 +805,4 @@ details.set-g .dash-more-b { background: #fff; }
 .dash-tile-v b { margin-top: 0 !important; }
 .box.dash-trd { margin: 10px 0 0; }
 .box.dash-trd h3 { margin: 0 0 10px; }
+.src-chip { font-size: 12px; color: var(--muted); white-space: nowrap; } /* nguồn khách lần đầu (📘 Facebook Ads, 🌐 Website…) */
