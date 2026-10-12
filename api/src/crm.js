@@ -259,7 +259,7 @@ function famOf(list, min) {
 }
 /** Nguồn khách (theo đơn đầu tiên): Website (khách tự đặt trên web) hoặc kênh sale chọn khi lên đơn / kênh khách hỏi.
  *  Anh Sơn 12/10/2026: trước ngày 13/10/2026 mọi khách đều từ quảng cáo Facebook, trừ khách tự đặt web (chị Vân là khách web đầu tiên). */
-const SRC_CUT = Date.parse('2026-10-13T00:00:00+07:00'), FB_ADS = 'Quảng cáo Facebook';
+const SRC_CUT = Date.parse('2026-10-13T00:00:00+07:00'), FB_ADS = 'Facebook Ads';
 /** Đơn khách tự đặt trên web: mã TDL…, hoặc đã đổi sang mã sale gõ trong file (ghi chú "Mã web TDL…"). */
 export function isWebId(o) { return /^TDL\d/.test(o.id || '') || /Mã web TDL\d/.test(o.note || ''); }
 export function custSource(o) {
