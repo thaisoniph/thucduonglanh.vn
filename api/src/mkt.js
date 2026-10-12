@@ -5,6 +5,7 @@
 //   manual – nhập tay 1 khoản cho 1 khoảng ngày (KOL, in ấn…), chia đều theo ngày để xem theo kỳ nào cũng đúng.
 import { all, first, run, insertMany, kvJson, kvSet, randHex, startOfDay, fmtDate, DAY } from './lib.js';
 
+const FX_USD = 26500; // tỷ giá USD mặc định, Quản trị sửa ở CRM (cfg.fb.fx) theo giá agency tính
 const FB_API = 'https://graph.facebook.com/v23.0/';
 const DAY_RE = /^\d{4}-\d\d-\d\d$/;
 const COLS = ['day', 'channel', 'account', 'campaign', 'spend', 'impressions', 'clicks', 'msgs', 'leads', 'purchases', 'src', 'batch', 'note', 'at'];
@@ -17,7 +18,7 @@ async function cfgSave(x, c) { await kvSet(x.db, 'mkt_cfg', JSON.stringify(c)); 
 /** Cấu hình gửi về CRM: không bao giờ gửi mã truy cập, chỉ 4 ký tự cuối. */
 function cfgPublic(c) {
   const fb = c.fb || {};
-  return { fb: { on: !!fb.token, tail: fb.token ? fb.token.slice(-4) : '', accounts: fb.accounts || [], all: fb.all || [], last: fb.last || null, err: fb.err || '', from: fb.from || '', listed: fb.listed || null } };
+  return { fb: { on: !!fb.token, tail: fb.token ? fb.token.slice(-4) : '', accounts: fb.accounts || [], all: fb.all || [], last: fb.last || null, err: fb.err || '', from: fb.from || '', listed: fb.listed || null, fx: fb.fx || FX_USD, usd: (fb.all || []).some(a => (fb.accounts || []).indexOf(a.id) >= 0 && a.cur === 'USD') } };
 }
 
 /* ---------------- Facebook Ads (Meta Marketing API) */
@@ -76,11 +77,12 @@ export async function fbSync(x, since, until) {
   for (const acc of fb.accounts) {
     try {
       const info = (fb.all || []).find(a => a.id === acc) || {};
-      if (info.cur && info.cur !== 'VND') throw new Error('Tài khoản ' + (info.name || acc) + ' dùng tiền ' + info.cur + ', CRM mới tính được VND.');
+      const rate = !info.cur || info.cur === 'VND' ? 1 : info.cur === 'USD' ? (fb.fx || FX_USD) : 0; // tài khoản thuê (agency) hay dùng USD → quy đổi theo tỷ giá anh nhập
+      if (!rate) throw new Error('dùng tiền ' + info.cur + ', CRM mới tính được VND và USD.');
       const rows = [];
       let j = await fbGet(fb.token, acc + '/insights', { level: 'campaign', time_increment: 1, time_range: JSON.stringify({ since, until }), fields: 'campaign_name,spend,impressions,inline_link_clicks,actions', limit: 500 });
       for (let i = 0; i < 40; i++) {
-        (j.data || []).forEach(d => rows.push({ day: d.date_start, channel: 'Facebook', account: acc, campaign: String(d.campaign_name || '').slice(0, 200), spend: num(d.spend), impressions: num(d.impressions), clicks: num(d.inline_link_clicks),
+        (j.data || []).forEach(d => rows.push({ day: d.date_start, channel: 'Facebook', account: acc, campaign: String(d.campaign_name || '').slice(0, 200), spend: num(Number(d.spend) * rate), impressions: num(d.impressions), clicks: num(d.inline_link_clicks),
           msgs: num(ACT(d.actions, /messaging_conversation_started_7d$/)), leads: num(ACT(d.actions, /^(lead|onsite_conversion\.lead_grouped|offsite_conversion\.fb_pixel_lead)$/)), purchases: num(ACT(d.actions, /^(purchase|offsite_conversion\.fb_pixel_purchase|onsite_web_purchase)$/)),
           src: 'auto', batch: '', note: '', at: now }));
         if (!j.paging || !j.paging.next) break; j = await fbGet(fb.token, j.paging.next);
@@ -138,6 +140,10 @@ async function mktFb(x, d) {
     c.fb = { token, all: accs, accounts: accs.filter(a => a.st === 1 || accs.length === 1).map(a => a.id), manual: String(d.fbAccount || ''), listed: Date.now(), last: null, err: '' };
     if (!c.fb.accounts.length) c.fb.accounts = accs.map(a => a.id);
     await cfgSave(x, c);
+  }
+  if (d.fx) { // đổi tỷ giá USD → tính lại 90 ngày
+    const fx = Math.round(Number(d.fx)); if (!(fx >= 10000 && fx <= 60000)) return { ok: false, error: 'Tỷ giá USD chưa đúng (vd 26500).' };
+    c.fb.fx = fx; await cfgSave(x, c); return syncDays(x, 90);
   }
   if (d.refresh || d.addAcc) { // tìm tài khoản mới / thêm mã tài khoản bằng tay → có tài khoản mới thì lấy 90 ngày
     const fresh = await fbRefresh(x, d.addAcc);
