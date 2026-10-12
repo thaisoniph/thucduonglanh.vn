@@ -617,6 +617,21 @@ async function syncKeep(x, keep, rowsOf, users, dry) {
 }
 /** Đầu ngày (giờ VN) của mốc thời gian, mili giây. */
 function dayOf(t) { return Math.floor((t + 7 * 3600e3) / DAY) * DAY - 7 * 3600e3; }
+/** Sửa 1 lần khách hỏi cũ (anh Sơn đồng ý 12/10/2026): (1) ngày hỏi ở tương lai (nhập trước khi adsDays lọc ngày sai, vd 11/3 gõ đảo thành 3/11)
+ *  → đảo ngày/tháng, vẫn tương lai thì lấy hôm nay; (2) khách hỏi file QC có số tiền đơn ("Đơn: 900000") mà vẫn Mới hỏi / Đang tư vấn → Đã chốt.
+ *  Chạy trước autoCloseLeads (gắn mã đơn khi ngày khớp). */
+export async function fixAdsLeads(x) {
+  if (await kvGet(x.db, 'fix_qc_1012')) return;
+  const lim = Date.now() + DAY, today = dayOf(Date.now()), fix = [];
+  (await all(x.db, 'SELECT id, time FROM leads WHERE time > ?', lim)).forEach(r => {
+    const d = new Date(r.time + 7 * 3600e3), dd = d.getUTCDate(), mm = d.getUTCMonth() + 1;
+    let t = dd <= 12 ? Date.UTC(d.getUTCFullYear(), dd - 1, mm) - 7 * 3600e3 : 0; if (!t || t > lim) t = today;
+    fix.push({ k: r.id, t });
+  });
+  if (fix.length) await run(x.db, "UPDATE leads SET time = json_extract(j.value, '$.t') FROM json_each(?) j WHERE leads.id = json_extract(j.value, '$.k')", JSON.stringify(fix));
+  const r = await run(x.db, "UPDATE leads SET status = 'Đã chốt', last_at = coalesce(last_at, time), callback = NULL WHERE by_name = 'File QC' AND status IN ('Mới hỏi', 'Đang tư vấn') AND note GLOB '*Đơn: [1-9]*'");
+  await kvSet(x.db, 'fix_qc_1012', JSON.stringify({ at: Date.now(), dates: fix.length, closed: r.meta.changes || 0 }));
+}
 /** Lấy số quảng cáo vào "Khách tiềm năng". Nhân sự chia: đọc tên sale ở cột Sale. CRM chia: số chưa có sale → giao theo lượt từng sheet (trùng số → sale cũ) và ghi tên vào cột Sale. */
 export async function adsSync(x, u, dry) {
   const cfg = await adsCfg(x); if (!cfg || !cfg.fileId) return { ok: false, error: 'Chưa cài file số quảng cáo.' };
