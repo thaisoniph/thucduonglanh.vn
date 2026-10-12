@@ -2470,11 +2470,11 @@
   function weekStart(t) { var dow = new Date(t + 7 * 3600e3).getUTCDay(); return t - ((dow + 6) % 7) * DAY; } // thứ Hai
   function quarterOf(mk, n) { var y = +mk.slice(0, 4), m = +mk.slice(5, 7) - 1, q = Math.floor(m / 3) + (n || 0), yy = y + Math.floor(q / 4), qq = ((q % 4) + 4) % 4; return yy + '-' + pad(qq * 3 + 1); } // tháng đầu quý
   /** Nút chọn nhanh 1 chạm (Tổng quan, Marketing) + 📅 Khác (tự chọn ngày). Dưới là ngày cụ thể và đang so với kỳ nào. */
-  function perChips(slot, p) {
-    var R = perRange(p), on = PER_CEO.indexOf(p.k) >= 0;
-    return '<div class="per-q" role="group" aria-label="Thời gian">' + PER_CEO.map(function (k) { return '<button type="button" class="chip' + (p.k === k ? ' on' : '') + '" data-pq="' + slot + '|' + k + '">' + perLabel({ k: k }) + '</button>'; }).join('') +
+  function perChips(slot, p, extra) { // extra: thêm nút cuối (Hiệu quả: 'all' = Mọi lúc)
+    var ks = PER_CEO.concat(extra || []), R = perRange(p), on = ks.indexOf(p.k) >= 0;
+    return '<div class="per-q" role="group" aria-label="Thời gian">' + ks.map(function (k) { return '<button type="button" class="chip' + (p.k === k ? ' on' : '') + '" data-pq="' + slot + '|' + k + '">' + perLabel({ k: k }) + '</button>'; }).join('') +
       '<button type="button" class="chip' + (on ? '' : ' on') + '" data-per="' + slot + '">📅 ' + (on ? 'Khác' : esc(perLabel(p))) + '</button></div>' +
-      '<p class="small muted per-q-d">' + perDates(R) + (CMP_LABEL ? ' · so với ' + CMP_LABEL : p.k === 'year' ? ' · năm nay chưa so với năm trước' : '') + '</p>';
+      '<p class="small muted per-q-d">' + (p.k === 'all' ? 'Từ trước tới nay' : perDates(R)) + (CMP_LABEL ? ' · so với ' + CMP_LABEL : p.k === 'year' ? ' · năm nay chưa so với năm trước' : '') + '</p>';
   }
   /** Khoảng [từ, đến) theo giờ VN của 1 lựa chọn thời gian p = { k, from, to }. */
   function perRange(p) {
@@ -3323,7 +3323,7 @@
   function viewSan() {
     var f = S.f.s || (S.f.s = {}); if (!f.p || f.p.k === 'all') f.p = { k: 'month' };
     var R = perRange(f.p), P = cmpRange(f.p), month = monthOf(Math.min(R[1] - 1, Date.now())), sj = snGet(R, P, month);
-    var h = '<div class="page-head"><h1>Sàn TMĐT</h1><div class="grow"></div><button class="btn pri" data-san="up">📤 Tải file từ sàn</button></div>' + perBtn('s', f.p);
+    var h = '<div class="page-head"><h1>Sàn TMĐT</h1><div class="grow"></div><button class="btn pri" data-san="up">📤 Tải file từ sàn</button></div>' + perChips('s', f.p);
     if (!sj) return h + '<div class="box"><p class="muted">' + (SN.err ? '⚠️ ' + esc(SN.err) : '⏳ Đang tải số liệu sàn…') + '</p></div>';
     h += sanFresh(sj);
     var rows = goalRows(month, sj, true), cur = 0, tt = 0; rows.forEach(function (x) { cur += x.v; tt += x.t; });
@@ -3676,7 +3676,7 @@
     cx.whole = f.p.k === 'month' || f.p.k === 'lmonth'; // đúng trọn 1 tháng → mục tiêu dùng luôn số trong kỳ
     cx.P = cmpRange(f.p);
     if (f.p.k === 'all') { cx.all = salesAllGet(); if (!cx.all) cx.allNote = S.salesAll ? '' : '<div class="notice">⏳ Đang lấy doanh số từ trước tới nay trên máy chủ…</div>'; else cx.allNote = '<p class="small muted">Mọi lúc: <b>doanh số, số đơn</b> tính đủ mọi đơn từ trước tới nay (cả đơn cũ nhập từ file sale). Các chỉ số khác (chăm sóc, tỷ lệ chốt, khách cũ) tính trên dữ liệu khoảng 13 tháng gần nhất.</p>'; }
-    return '<div class="page-head"><h1>Hiệu quả</h1><div class="grow"></div>' + whoSel() + '</div>' + perBtn('r', f.p) +
+    return '<div class="page-head"><h1>Hiệu quả</h1><div class="grow"></div>' + whoSel() + '</div>' + perChips('r', f.p, ['all']) +
       (cx.allNote || '') + (!who ? viewTeam(cx) : who === '-' ? viewNoOwner(cx) : viewPerson(who, cx));
   }
   /** Tổng doanh số từ trước tới nay theo nhân viên bán (hỏi máy chủ, nhớ 10 phút). null = đang tải / máy chủ cũ chưa có. */

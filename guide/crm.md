@@ -391,7 +391,7 @@ Khách hỏi hiện ở tab Hôm nay khi: **chưa liên hệ lần nào**, **đ�
 
 ## Hiệu quả và mục tiêu tháng
 
-Bấm nút **📅 thời gian** ở đầu trang để xem số liệu *Mọi lúc, Hôm nay, Hôm qua, 7 ngày qua, Tháng này, Tháng trước* hoặc **Tuỳ chỉnh** (tự chọn từ ngày – đến ngày). Chọn **Mọi lúc** để xem doanh số từng người từ trước tới nay, gồm cả đơn cũ nhập từ file sale (để đối chiếu với file). Mỗi chỉ số tự so với kỳ liền trước cùng độ dài (vd hôm nay so với cùng giờ hôm qua); *Mọi lúc* thì không so. Mục tiêu và bảng BCDT luôn tính theo tháng.
+Bấm **1 chạm** ở hàng nút thời gian đầu trang (trên điện thoại vuốt ngang): *Hôm nay · Hôm qua · Tuần này · Tháng này · Tháng trước · Quý này · Năm nay · Mọi lúc*, hoặc **📅 Khác** để tự chọn từ ngày – đến ngày. Dòng nhỏ bên dưới ghi ngày cụ thể và đang so với kỳ nào (tuần / tháng / quý đang chạy so với cùng số ngày của kỳ trước). Chọn **Mọi lúc** để xem doanh số từng người từ trước tới nay, gồm cả đơn cũ nhập từ file sale (để đối chiếu với file). Mỗi chỉ số tự so với kỳ liền trước cùng độ dài (vd hôm nay so với cùng giờ hôm qua); *Mọi lúc* thì không so. Mục tiêu và bảng BCDT luôn tính theo tháng.
 
 ![Tab Hiệu quả](/huong-dan/img/crm-report.webp)
 
@@ -405,7 +405,7 @@ Doanh số tính theo **Nhân viên bán** ghi trên từng đơn. Đơn khách 
 
 ## Tổng quan (chỉ Quản trị)
 
-Tab đầu tiên trên menu, dành cho chủ doanh nghiệp. **Chọn thời gian 1 chạm** ở hàng nút trên cùng (trên điện thoại vuốt ngang): *Hôm nay · Hôm qua · Tuần này · Tháng này · Tháng trước · Quý này · Năm nay*, hoặc **📅 Khác** để tự chọn ngày. Dòng nhỏ bên dưới ghi ngày cụ thể và đang so với kỳ nào: tuần / tháng / quý đang chạy so với **cùng số ngày** của kỳ trước (vd 1–12/10 so với 1–12/9), cho công bằng. *Năm nay* chưa so với năm trước vì CRM chỉ giữ đơn 13 tháng gần nhất. Tab Marketing có cùng hàng nút này.
+Tab đầu tiên trên menu, dành cho chủ doanh nghiệp. **Chọn thời gian 1 chạm** ở hàng nút trên cùng (trên điện thoại vuốt ngang): *Hôm nay · Hôm qua · Tuần này · Tháng này · Tháng trước · Quý này · Năm nay*, hoặc **📅 Khác** để tự chọn ngày. Dòng nhỏ bên dưới ghi ngày cụ thể và đang so với kỳ nào: tuần / tháng / quý đang chạy so với **cùng số ngày** của kỳ trước (vd 1–12/10 so với 1–12/9), cho công bằng. *Năm nay* chưa so với năm trước vì CRM chỉ giữ đơn 13 tháng gần nhất. Tab Marketing, Hiệu quả và Sàn có cùng hàng nút này.
 
 **Màn hình đầu: nhìn 5 giây là nắm được tình hình**
 
