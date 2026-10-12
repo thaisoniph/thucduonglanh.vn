@@ -405,6 +405,15 @@ Bấm **1 chạm** ở hàng nút thời gian đầu trang (trên điện thoạ
 
 Doanh số tính theo **Nhân viên bán** ghi trên từng đơn. Đơn khách tự đặt trên web được tính cho **người đang phụ trách khách đó**.
 
+## Đọc biểu đồ xu hướng (Tổng quan, Hiệu quả, Marketing, Sàn)
+
+- **Đường xanh** = kỳ đang xem. **Đường xám nét đứt** = kỳ trước, đặt chồng lên để so (ngày 1 với ngày 1, ngày 2 với ngày 2…). Đường xanh nằm trên đường xám là đang làm tốt hơn kỳ trước.
+- **Nhãn trên biểu đồ**: 📈 *Đang đi lên* · ➡️ *Đi ngang* · 📉 *Đang đi xuống*, kèm 1 câu giải thích (vd "cuối kỳ cao hơn đầu kỳ khoảng 18%. Cả kỳ cao hơn kỳ trước 12%"). Chênh dưới 10% là đi ngang. Cần ít nhất 3 ngày có số mới kết luận.
+- **Mỗi điểm** = 1 ngày (xem tới 45 ngày), 1 tuần (tới khoảng 6 tháng) hoặc 1 tháng (Quý / Năm dài hơn). Đoạn mờ ở cuối là ngày / tuần đang chạy, chưa trọn nên không tính vào kết luận.
+- Rê chuột (máy tính) hoặc chạm (điện thoại) vào biểu đồ để xem số từng ngày.
+- **Đường nhỏ ↗ → ↘** cạnh con số (ô lớn ở Tổng quan, thẻ từng nhân viên ở Hiệu quả): xem nhanh đang lên hay xuống mà không cần mở biểu đồ.
+- Tab **Hiệu quả** có mục **📈 Xu hướng**: chọn *Doanh số / Số đơn / Lượt chăm sóc*, cho cả nhóm hoặc từng người. Tab **Marketing** có biểu đồ **chi phí (vàng) và tiền khách mới (xanh)**: đường xanh càng cao trên đường vàng là quảng cáo càng có lời; dòng dưới cho biết hiệu quả nửa sau kỳ tốt lên hay kém đi.
+
 ## Tổng quan (chỉ Quản trị)
 
 Tab đầu tiên trên menu, dành cho chủ doanh nghiệp. **Chọn thời gian 1 chạm** ở hàng nút trên cùng (trên điện thoại vuốt ngang): *Hôm nay · Hôm qua · Tuần này · Tháng này · Tháng trước · Quý này · Năm nay*, hoặc **📅 Khác** để tự chọn ngày. Dòng nhỏ bên dưới ghi ngày cụ thể và đang so với kỳ nào: tuần / tháng / quý đang chạy so với **cùng số ngày** của kỳ trước (vd 1–12/10 so với 1–12/9), cho công bằng. *Năm nay* chưa so với năm trước vì CRM chỉ giữ đơn 13 tháng gần nhất. Tab Marketing, Hiệu quả, Sàn và Đơn hàng (Tất cả đơn) có cùng hàng nút này; **📅 Khác** chỉ chứa các mốc chưa có trên hàng nút: 7 ngày qua, 30 ngày qua, tuần trước, quý trước và tự chọn ngày.

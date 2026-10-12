@@ -756,3 +756,52 @@ details.set-g .dash-more-b { background: #fff; }
 .per-more .chip { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 10px 12px; border-radius: 12px; font-size: 15px; white-space: normal; text-align: left; }
 .per-more .chip small { font-size: 12px; font-weight: 400; color: var(--muted); }
 .per-more .chip.on small { color: #e6f0e8; }
+
+/* Biểu đồ xu hướng (trendChart): đường xanh kỳ này, xám nét đứt kỳ trước, vàng = chuỗi thứ 2 (chi phí); nhãn 📈 / ➡️ / 📉 */
+.trd-h { display: flex; align-items: center; gap: 6px 10px; flex-wrap: wrap; margin: 0 0 10px; }
+.trd-h small { color: var(--text); font-size: 13.5px; }
+.trd-v { font-weight: 700; font-size: 14px; padding: 4px 10px; border-radius: 999px; background: var(--bg); color: var(--muted); white-space: nowrap; }
+.trd-v.up { background: var(--primary-light); color: var(--primary); }
+.trd-v.down { background: var(--red-light); color: var(--red); }
+.trd-c { display: flex; gap: 6px; }
+.trd-y { position: relative; width: 46px; flex: none; height: 170px; }
+.trd-y span { position: absolute; right: 0; transform: translateY(50%); font-size: 11px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.trd-p { position: relative; flex: 1; min-width: 0; height: 170px; }
+.trd-p svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.trd-g { stroke: var(--line); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.trd-g.base { stroke: #cfccc2; }
+.trd-a { fill: var(--primary); opacity: .08; }
+.trd-l { fill: none; stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.trd-l.cur { stroke: var(--primary); }
+.trd-l.prev { stroke: #a3a59a; stroke-dasharray: 5 4; stroke-width: 2; }
+.trd-l.alt { stroke: var(--gold); }
+.trd-l.part { opacity: .4; stroke-dasharray: 3 4; }
+.trd-dot { position: absolute; width: 9px; height: 9px; margin: 0 0 -4.5px -4.5px; border-radius: 50%; border: 2px solid #fff; pointer-events: none; }
+.trd-dot.cur { background: var(--primary); } .trd-dot.alt { background: var(--gold); }
+.trd-hits { position: absolute; inset: 0; display: flex; }
+.trd-hit { flex: 1; position: relative; outline: none; cursor: default; }
+.trd-hit:hover, .trd-hit:focus { background: linear-gradient(to right, transparent calc(50% - 0.5px), rgba(31,35,27,.35) calc(50% - 0.5px), rgba(31,35,27,.35) calc(50% + 0.5px), transparent calc(50% + 0.5px)); }
+.trd-tip { display: none; position: absolute; top: -6px; left: 50%; transform: translate(-50%, -100%); background: var(--ink); color: #fff; font-size: 12px; padding: 6px 9px; border-radius: 8px; white-space: nowrap; z-index: 4; pointer-events: none; line-height: 1.5; }
+.trd-tip > b { display: block; }
+.trd-tip span { display: block; }
+.trd-hit:hover .trd-tip, .trd-hit:focus .trd-tip { display: block; }
+.trd-hit:nth-child(-n+3) .trd-tip { left: 0; transform: translate(0, -100%); }
+.trd-hit:nth-last-child(-n+3) .trd-tip { left: auto; right: 0; transform: translate(0, -100%); }
+.trd-x { display: flex; margin: 4px 0 0 52px; }
+.trd-x span { flex: 1; min-width: 0; font-size: 11px; color: var(--muted); white-space: nowrap; overflow: visible; }
+.trd-lg { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 10px 0 0; font-size: 12.5px; color: var(--text); }
+.trd-lg span { display: inline-flex; align-items: center; gap: 5px; }
+.trd-k { display: inline-block; width: 16px; height: 0; border-top: 2.5px solid var(--primary); vertical-align: middle; margin-right: 2px; }
+.trd-k.prev { border-top: 2px dashed #a3a59a; } .trd-k.alt { border-color: var(--gold); }
+.trd-tip .trd-k.prev { border-top-color: #cfd0c8; }
+@media (max-width: 520px) { .trd-y, .trd-p { height: 140px; } .trd-y { width: 40px; } .trd-x { margin-left: 46px; } }
+/* Đường nhỏ (sparkline) trong ô số / thẻ nhân viên */
+.spk { display: inline-flex; align-items: center; gap: 3px; vertical-align: middle; color: var(--muted); }
+.spk svg { width: 56px; height: 18px; overflow: visible; }
+.spk polyline { fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.spk em { font-style: normal; font-weight: 800; font-size: 14px; }
+.spk.up { color: var(--primary); } .spk.down { color: var(--red); }
+.dash-tile-v { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px; }
+.dash-tile-v b { margin-top: 0 !important; }
+.box.dash-trd { margin: 10px 0 0; }
+.box.dash-trd h3 { margin: 0 0 10px; }

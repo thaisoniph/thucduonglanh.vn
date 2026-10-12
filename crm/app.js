@@ -2737,14 +2737,94 @@
       GA.err = /Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, anh/chị thử lại sau 2 phút.' : e.message;
     }).then(function () { GA.busy = ''; if (route().view === 'tong-quan') softRender(true); });
   }
-  /** Cột theo ngày (1 chuỗi số, không 2 trục): hover / chạm để xem số từng ngày. */
-  function colChart(items, fmt) {
-    var mx = Math.max.apply(null, items.map(function (x) { return x.v; })) || 1, step = Math.ceil(items.length / 8);
-    return '<div class="vcols" role="table">' + items.map(function (x, i) {
-      return '<div class="dash-col" role="row" tabindex="0" aria-label="' + esc(x.tip + ': ' + fmt(x.v)) + '"><i style="height:' + (x.v ? Math.max(2, x.v * 100 / mx) : 0) + '%"></i><span class="dash-tip">' + esc(x.tip) + '<b>' + fmt(x.v) + '</b></span>' + (i % step === 0 ? '<small>' + esc(x.l) + '</small>' : '') + '</div>';
-    }).join('') + '</div><p class="bar-legend">Cao nhất: <b>' + fmt(mx) + '</b> · rê chuột / chạm vào cột để xem từng ngày</p>';
+
+  /* ================================================================ Biểu đồ xu hướng (Hiệu quả, Tổng quan, Marketing, Sàn).
+   * Đường xanh = kỳ đang xem, đường xám nét đứt = kỳ trước (đặt chồng theo thứ tự ngày / tuần / tháng). 1 trục, rê chuột / chạm để xem số.
+   * Nhãn 📈 / ➡️ / 📉 theo đường xu hướng (hồi quy tuyến tính) của các điểm đã trọn: bỏ ngày / tuần / tháng đang chạy dở để khỏi báo "đi xuống" oan. */
+  /** Chia khoảng R thành các điểm: ≤ 45 ngày → từng ngày, ≤ 190 ngày → từng 7 ngày, dài hơn → từng tháng. Chỉ tới hôm nay. "Mọi lúc" → 13 tháng gần nhất. */
+  function trendBuckets(R) {
+    var now = Date.now(), r0 = R[0] || monthRange(shiftMonth(monthOf(now), -12))[0], end = Math.min(R[1], today() + DAY), days = Math.round((end - r0) / DAY), L = [];
+    var unit = days <= 45 ? 'day' : days <= 190 ? 'week' : 'month', d5 = function (t) { return fDate(t).slice(0, 5); };
+    if (unit === 'day') for (var t = r0; t < end; t += DAY) L.push({ a: t, b: t + DAY, l: d5(t), tip: fDate(t) });
+    else if (unit === 'week') for (var w = r0; w < end; w += 7 * DAY) L.push({ a: w, b: Math.min(w + 7 * DAY, end), l: d5(w), tip: 'Tuần ' + d5(w) + ' – ' + d5(Math.min(w + 7 * DAY, end) - 1) });
+    else for (var mk = monthOf(r0 + 1); monthRange(mk)[0] < end; mk = shiftMonth(mk, 1)) { var mr = monthRange(mk); L.push({ a: Math.max(r0, mr[0]), b: Math.min(mr[1], end), l: 'T' + (+mk.slice(5)), tip: 'Tháng ' + monthLabel(mk).replace(/^tháng /i, '') }); }
+    var last = L[L.length - 1], full = unit === 'day' ? DAY : unit === 'week' ? 7 * DAY : 0;
+    return { unit: unit, L: L, r0: r0, partial: !!last && (unit === 'month' ? monthRange(monthOf(last.a))[1] > now : last.a + full > now) && last.a <= now };
   }
-  function dayKeys(R) { var out = [], end = Math.min(R[1], today() + DAY); for (var t = R[0]; t < end; t += DAY) out.push(isoDate(t)); return out; }
+  /** Cộng giá trị vào từng điểm. off = lùi về kỳ trước (ms); timeFn / valFn lấy thời điểm, giá trị của 1 dòng. */
+  function trendSum(B, items, timeFn, valFn, off) {
+    var v = B.L.map(function () { return 0; }); off = off || 0;
+    items.forEach(function (it) { var t = timeFn(it) + off; if (!t) return; for (var i = 0; i < B.L.length; i++) if (t >= B.L[i].a && t < B.L[i].b) { v[i] += valFn(it); return; } });
+    return v;
+  }
+  function dayMs(d) { return new Date(d + 'T12:00:00+07:00').getTime(); }
+  /** Đi lên / ngang / xuống: độ dốc đường xu hướng × số điểm ÷ trung bình. Dưới ±10% = đi ngang. Cần ≥ 3 điểm trọn. */
+  function trendVerdict(vals, partial) {
+    var p = partial ? vals.slice(0, -1) : vals.slice(), n = p.length; if (n < 3 || p.filter(function (x) { return x > 0; }).length < 3) return null; // ít hơn 3 điểm có số: chưa kết luận
+    var mx = 0, my = 0; p.forEach(function (y, x) { mx += x; my += y; }); mx /= n; my /= n; if (!my) return null;
+    var sxy = 0, sxx = 0; p.forEach(function (y, x) { sxy += (x - mx) * (y - my); sxx += (x - mx) * (x - mx); });
+    var ch = (sxy / sxx) * (n - 1) / my;
+    var a = my - (sxy / sxx) * mx, b = a + (sxy / sxx) * (n - 1); // điểm đầu / cuối đường xu hướng
+    return { k: ch >= 0.1 ? 'up' : ch <= -0.1 ? 'down' : 'flat', pct: Math.round(Math.abs(ch) * 100), x: a > 0 && b > 0 ? Math.max(a, b) / Math.min(a, b) : 0 };
+  }
+  var TRD_WORD = { up: '📈 Đang đi lên', flat: '➡️ Đi ngang', down: '📉 Đang đi xuống' };
+  function trendSay(v, what, unit) {
+    if (!v) return 'Chưa đủ số liệu để biết xu hướng (cần ít nhất 3 ' + unit + ' có số).';
+    if (v.k !== 'flat' && v.x >= 2) return 'Tính theo đường xu hướng, ' + what.toLowerCase() + ' cuối kỳ ' + (v.k === 'up' ? 'gấp khoảng ' + oneDec(v.x) + ' lần đầu kỳ.' : 'chỉ còn khoảng ' + Math.round(100 / v.x) + '% so với đầu kỳ.');
+    return v.k === 'flat' ? what + ' gần như giữ nguyên từ đầu tới cuối kỳ (chênh dưới 10%).' : 'Tính theo đường xu hướng, ' + what.toLowerCase() + ' cuối kỳ ' + (v.k === 'up' ? 'cao' : 'thấp') + ' hơn đầu kỳ khoảng ' + v.pct + '%.';
+  }
+  /** Biểu đồ đường. o = { B, series: [{ v: [..], name, cls: 'cur' | 'prev' | 'alt' }], fmt, what (tên số đang xem, cho câu kết luận), vIdx (series để kết luận, mặc định 0), note } */
+  function trendChart(o) {
+    var B = o.B, n = B.L.length, S0 = o.series.filter(function (s) { return s && s.v; }), fmt = o.fmt || String;
+    if (n < 2) return '<p class="muted small">Chọn khoảng thời gian từ 2 ngày trở lên để xem biểu đồ.</p>';
+    var mx = 0; S0.forEach(function (s) { s.v.forEach(function (x) { if (x > mx) mx = x; }); }); mx = mx || 1;
+    var nice = function (x) { var p = Math.pow(10, Math.floor(Math.log10(x))), r = x / p; return (r <= 1 ? 1 : r <= 2 ? 2 : r <= 2.5 ? 2.5 : r <= 5 ? 5 : 10) * p; }; mx = nice(mx);
+    var X = function (i) { return ((i + 0.5) / n * 1000).toFixed(1); }, Y = function (v) { return (300 - v / mx * 288).toFixed(1); };
+    var path = function (v, a, b) { var d = ''; for (var i = a; i <= b; i++) d += (i === a ? 'M' : 'L') + X(i) + ' ' + Y(v[i]); return d; };
+    var main = S0[o.vIdx || 0], V = trendVerdict(main.v, B.partial), unitW = { day: 'ngày', week: 'tuần', month: 'tháng' }[B.unit];
+    var svg = '<svg viewBox="0 0 1000 300" preserveAspectRatio="none" aria-hidden="true">' + [0.5, 1].map(function (g) { return '<line class="trd-g" x1="0" x2="1000" y1="' + Y(mx * g) + '" y2="' + Y(mx * g) + '"/>'; }).join('') + '<line class="trd-g base" x1="0" x2="1000" y1="300" y2="300"/>';
+    S0.slice().reverse().forEach(function (s) {
+      var lastFull = B.partial && s.cls !== 'prev' ? n - 2 : n - 1;
+      if (s.cls === 'cur') svg += '<path class="trd-a" d="' + path(s.v, 0, n - 1) + 'L' + X(n - 1) + ' 300L' + X(0) + ' 300Z"/>';
+      svg += '<path class="trd-l ' + s.cls + '" d="' + path(s.v, 0, Math.max(0, lastFull)) + '"/>';
+      if (lastFull < n - 1) svg += '<path class="trd-l ' + s.cls + ' part" d="' + path(s.v, n - 2, n - 1) + '"/>';
+    });
+    svg += '</svg>';
+    var step = Math.ceil(n / 7), hits = B.L.map(function (b, i) {
+      return '<div class="trd-hit" tabindex="0"><span class="trd-tip"><b>' + esc(b.tip) + (B.partial && i === n - 1 ? ' (đang chạy)' : '') + '</b>' + S0.map(function (s) { return '<span><i class="trd-k ' + s.cls + '"></i>' + esc(s.name) + ': <b>' + fmt(s.v[i]) + '</b></span>'; }).join('') + '</span></div>';
+    }).join('');
+    var dots = S0.filter(function (s) { return s.cls !== 'prev'; }).map(function (s) { return '<i class="trd-dot ' + s.cls + '" style="left:' + (X(n - 1) / 10) + '%;bottom:' + (s.v[n - 1] / mx * 96).toFixed(1) + '%"></i>'; }).join('');
+    var pv = S0.filter(function (s) { return s.cls === 'prev'; })[0], sum = function (a) { return a.reduce(function (x, y) { return x + y; }, 0); }, cmp = '';
+    if (pv && sum(pv.v) > 0) { var dP = Math.round((sum(main.v) - sum(pv.v)) * 100 / sum(pv.v)); cmp = ' Cả kỳ ' + (Math.abs(dP) < 3 ? 'gần bằng kỳ trước.' : (dP > 0 ? 'cao hơn' : 'thấp hơn') + ' kỳ trước ' + Math.abs(dP) + '% (đường xám).'); }
+    return '<div class="trd">' + (o.noVerdict ? '' : '<div class="trd-h"><span class="trd-v ' + (V ? V.k : 'none') + '">' + (V ? TRD_WORD[V.k] : '… Chưa rõ') + '</span><small>' + trendSay(V, o.what || 'Số liệu', unitW) + cmp + '</small></div>') +
+      '<div class="trd-c"><div class="trd-y"><span style="bottom:96%">' + fmt(mx) + '</span><span style="bottom:48%">' + fmt(mx / 2) + '</span><span style="bottom:0">0</span></div>' +
+      '<div class="trd-p">' + svg + dots + '<div class="trd-hits">' + hits + '</div></div></div>' +
+      '<div class="trd-x">' + B.L.map(function (b, i) { return '<span>' + (i % step === 0 ? esc(b.l) : '') + '</span>'; }).join('') + '</div>' +
+      '<p class="trd-lg">' + S0.map(function (s) { return '<span><i class="trd-k ' + s.cls + '"></i>' + esc(s.name) + '</span>'; }).join('') + '<span class="muted">· mỗi điểm = 1 ' + unitW + (B.partial ? ' · đoạn mờ cuối = ' + unitW + ' đang chạy' : '') + '</span></p>' + (o.note ? '<p class="bar-legend">' + o.note + '</p>' : '') + '</div>';
+  }
+  /** Đường nhỏ trong ô số / thẻ nhân viên: thấy ngay lên hay xuống. */
+  function sparkSvg(vals, partial) {
+    var n = vals.length; if (n < 2) return '';
+    var mx = Math.max.apply(null, vals) || 1, V = trendVerdict(vals, partial), pts = vals.map(function (v, i) { return (i / (n - 1) * 100).toFixed(1) + ',' + (22 - v / mx * 20).toFixed(1); });
+    return '<span class="spk ' + (V ? V.k : 'none') + '" title="' + (V ? TRD_WORD[V.k].slice(3) : 'Chưa đủ số liệu') + '"><svg viewBox="0 0 100 24" preserveAspectRatio="none" aria-hidden="true"><polyline points="' + pts.join(' ') + '"/></svg>' + (V ? '<em>' + { up: '↗', flat: '→', down: '↘' }[V.k] + '</em>' : '') + '</span>';
+  }
+  /** Kỳ trước cùng độ dài để đặt chồng: lùi off ms. Không có kỳ so sánh (Năm nay, Mọi lúc) → null. */
+  function trendOff(R, P) { return CMP_LABEL && P && P[1] > P[0] && R[0] ? R[0] - P[0] : null; }
+
+  /* ---------- tab Hiệu quả: xu hướng doanh số / số đơn / lượt chăm sóc của cả nhóm hoặc 1 người */
+  var REP_TM = { sales: ['Doanh số', moneyShort], orders: ['Số đơn', String], care: ['Lượt chăm sóc', String] };
+  function repSeries(name, B, off, k) {
+    var me = function (n) { return name === null || n === name; };
+    if (k === 'care') { var CW = careWhat(); return trendSum(B, S.d.log.filter(function (l) { return CW[l.what] && me(l.by); }), function (l) { return l.time; }, function () { return 1; }, off); }
+    return trendSum(B, S.d.orders.filter(function (o) { return !isVoid(o.status) && me(o.seller); }), function (o) { return o.time; }, k === 'orders' ? function () { return 1; } : function (o) { return o.total || 0; }, off);
+  }
+  function repTrend(name, cx) {
+    var f = S.f.r, k = REP_TM[f.tm] ? f.tm : 'sales', B = trendBuckets(cx.R), off = trendOff(cx.R, cx.P);
+    var cur = repSeries(name, B, 0, k), prev = off === null ? null : repSeries(name, B, off, k);
+    return '<section class="section"><div class="section-h"><h2>📈 Xu hướng</h2><span class="tip">' + (name ? esc(name) : 'cả nhóm') + ' · ' + esc(cx.p.k === 'all' ? '13 tháng gần nhất' : cx.label) + '</span></div>' +
+      '<div class="chips">' + Object.keys(REP_TM).map(function (x) { return '<button class="chip' + (x === k ? ' on' : '') + '" data-rf="tm|' + x + '">' + REP_TM[x][0] + '</button>'; }).join('') + '</div><div class="box">' +
+      trendChart({ B: B, fmt: REP_TM[k][1], what: REP_TM[k][0], series: [{ v: cur, name: 'Kỳ này', cls: 'cur' }, prev && { v: prev, name: 'Kỳ trước (' + CMP_LABEL + ')', cls: 'prev' }] }) + '</div></section>';
+  }
 
   /** Data quảng cáo trong kỳ = cùng cách đếm "data quảng cáo" ở tab Hiệu quả (closeStats: số trong file số quảng cáo, mỗi SĐT 1 lần),
    *  tách thêm: khách cũ (đã mua trước ngày có số) · từng hỏi (khách hỏi tạo trước ngày có số) · số mới. Không có file số quảng cáo → null. */
@@ -2768,8 +2848,8 @@
   var DASH_LV = { ok: '🟢', done: '🟢', mid: '🟠', bad: '🔴' };
   /** Đèn theo xu hướng so với kỳ trước: tăng = xanh, giảm dưới 10% = cam, giảm từ 10% = đỏ. */
   function dashTrend(cur, prev) { if (!CMP_LABEL || !prev) return ''; var d = (cur - prev) / prev; return d >= 0 ? 'ok' : d > -0.1 ? 'mid' : 'bad'; }
-  function dashTile(go, lv, label, value, d, sub) {
-    return '<button type="button" class="dash-tile ' + (lv || '') + '" data-dgo="' + go + '"><span class="dash-tile-l">' + label + (DASH_LV[lv] ? '<i>' + DASH_LV[lv] + '</i>' : '') + '</span><b>' + value + '</b>' + (d || '') + '<small>' + sub + '</small></button>';
+  function dashTile(go, lv, label, value, d, sub, spark) {
+    return '<button type="button" class="dash-tile ' + (lv || '') + '" data-dgo="' + go + '"><span class="dash-tile-l">' + label + (DASH_LV[lv] ? '<i>' + DASH_LV[lv] + '</i>' : '') + '</span><span class="dash-tile-v"><b>' + value + '</b>' + (spark || '') + '</span>' + (d || '') + '<small>' + sub + '</small></button>';
   }
   /** Mục tiêu tháng cả văn phòng = cộng các mảng (Sale, Website, sàn…). */
   function dashGoal(month, sj) {
@@ -2785,10 +2865,10 @@
     var ads = M && M.tot ? M.nr / M.tot : null, adLv = ads === null ? '' : adsLv(M.tot, M.nr);
     var h = '<section class="dash-hero"><div class="dash-tiles">' +
       dashTile('biz', whole && G && G.isCur ? G.lv : dashTrend(T.rev, T.revP), '💰 Tiền bán được', moneyShort(T.rev), delta(T.rev, T.revP),
-        !sj ? (SN.err ? 'Chưa gồm sàn (chưa tải được)' : '⏳ đang cộng số sàn…') : T.san ? 'Văn phòng ' + moneyShort(b.rev) + ' · Sàn ' + moneyShort(T.san) : 'Đơn sale, website, khách hỏi') +
-      dashTile('biz', dashTrend(T.n, T.nP), '🧾 Số đơn hàng', T.n.toLocaleString('vi-VN'), delta(T.n, T.nP), T.n ? 'Trung bình 1 đơn ' + moneyShort(Math.round(T.rev / T.n)) : 'Chưa có đơn') +
+        !sj ? (SN.err ? 'Chưa gồm sàn (chưa tải được)' : '⏳ đang cộng số sàn…') : T.san ? 'Văn phòng ' + moneyShort(b.rev) + ' · Sàn ' + moneyShort(T.san) : 'Đơn sale, website, khách hỏi', sparkSvg(T.tr.rev, T.tr.B.partial)) +
+      dashTile('biz', dashTrend(T.n, T.nP), '🧾 Số đơn hàng', T.n.toLocaleString('vi-VN'), delta(T.n, T.nP), T.n ? 'Trung bình 1 đơn ' + moneyShort(Math.round(T.rev / T.n)) : 'Chưa có đơn', sparkSvg(T.tr.n, T.tr.B.partial)) +
       dashTile('biz', dashTrend(b.firstN, bp.firstN), '🙋 Khách mới mua', b.firstN.toLocaleString('vi-VN'), delta(b.firstN, bp.firstN),
-        b.oldPct === null ? 'Khách mua lần đầu' : 'Khách cũ quay lại mua: ' + b.oldPct + '% tiền văn phòng') +
+        b.oldPct === null ? 'Khách mua lần đầu' : 'Khách cũ quay lại mua: ' + b.oldPct + '% tiền văn phòng', sparkSvg(T.tr.nw, T.tr.B.partial)) +
       dashTile('mkt', adLv, '📣 Quảng cáo', ads === null ? '–' : '1đ → ' + oneDec(ads) + 'đ', ads !== null && M.totp && M.nrp ? dRate(ads, M.nrp / M.totp).replace(/điểm/, 'đ') : '',
         !M ? (MK.err ? '⚠️ Chưa tải được chi phí' : '⏳ đang tải…') : M.tot ? 'Chi ' + moneyShort(M.tot) + (M.nr ? ' = ' + Math.round(M.tot * 100 / M.nr) + '% tiền khách mới mua' : ', chưa có khách mới mua') : 'Chưa có chi phí quảng cáo trong kỳ') +
       '</div>';
@@ -2799,7 +2879,22 @@
         '<div class="ogoal-bar big"><i style="width:' + Math.min(100, G.p * 100).toFixed(1) + '%"></i>' + (G.isCur ? '<u style="left:' + (G.tp * 100).toFixed(1) + '%"></u>' : '') + '</div>' +
         (G.isCur ? '<div class="bar-legend"><span>Vạch đen = hôm nay (ngày ' + G.el + '/' + G.days + '). Thanh màu vượt vạch đen là đúng tiến độ.</span></div>' : '') + '<p>' + say + '</p></div>';
     } else h += '<div class="notice dash-goal-none">🎯 Chưa đặt mục tiêu ' + monthLabel(month) + '.' + (sj ? ' <button class="btn sm pri" data-san="goals" data-month="' + month + '">Đặt mục tiêu</button>' : '') + '</div>';
+    var TR = T.tr, uw = { day: 'ngày', week: 'tuần', month: 'tháng' }[TR.B.unit];
+    if (TR.B.L.length >= 2) h += '<div class="box dash-trd"><h3>📈 Tiền bán được theo ' + uw + (sj ? '' : ' <small class="muted">(⏳ chưa gồm sàn)</small>') + '</h3>' +
+      trendChart({ B: TR.B, fmt: moneyShort, what: 'Tiền bán được', series: [{ v: TR.rev, name: 'Kỳ này', cls: 'cur' }, TR.revP && { v: TR.revP, name: 'Kỳ trước (' + CMP_LABEL + ')', cls: 'prev' }], note: 'Văn phòng + sàn, không tính đơn huỷ / hoàn. Rê chuột / chạm vào biểu đồ để xem số từng ' + uw + '.' }) + '</div>';
     return h + '</section>';
+  }
+  /** Chuỗi theo ngày / tuần / tháng cho biểu đồ Tổng quan: tiền bán được, số đơn (văn phòng + sàn), khách mới; kỳ trước đặt chồng (sàn cần máy chủ có pdays). */
+  function dashSeries(R, P, sj) {
+    var B = trendBuckets(R), off = trendOff(R, P), os = S.d.orders.filter(function (o) { return !isVoid(o.status); }), t = function (o) { return o.time; };
+    var add = function (a, c) { return c ? a.map(function (x, i) { return x + c[i]; }) : a; }, sd = function (r) { return dayMs(r[0]); };
+    var pOk = off !== null && (!sj || sj.pdays), cs = S.d.customers.filter(function (c) { return c.first; });
+    return { B: B,
+      rev: add(trendSum(B, os, t, function (o) { return o.total || 0; }), sj && trendSum(B, sj.days, sd, function (r) { return r[2] || 0; })),
+      revP: pOk ? add(trendSum(B, os, t, function (o) { return o.total || 0; }, off), sj && trendSum(B, sj.pdays, sd, function (r) { return r[1] || 0; }, off)) : null,
+      n: add(trendSum(B, os, t, function () { return 1; }), sj && trendSum(B, sj.days, sd, function (r) { return r[3] || 0; })),
+      nP: pOk ? add(trendSum(B, os, t, function () { return 1; }, off), sj && trendSum(B, sj.pdays, sd, function (r) { return r[2] || 0; }, off)) : null,
+      nw: trendSum(B, cs, function (c) { return c.first; }, function () { return 1; }), nwP: off === null ? null : trendSum(B, cs, function (c) { return c.first; }, function () { return 1; }, off) };
   }
   function viewDash() {
     var f = S.f.g || (S.f.g = {}); if (!f.p || f.p.k === 'all') f.p = { k: 'month' }; if (f.sfb === undefined) f.sfb = store('dash_sfb') !== '0';
@@ -2808,7 +2903,7 @@
     if (!gj && !GA.err) setTimeout(function () { gaFetch(key); }, 0);
     var month = monthOf(Math.min(R[1] - 1, Date.now())), sj = snGet(R, P, month), M = mktCalc(key, R, P, sj), gl = dashGoal(month, sj);
     var sn = sj ? sanSum(sj.days, 2) : null, snp = sj ? sanSum(sj.prev, 1) : null;
-    var T = { san: sn ? sn.g : 0, rev: b.rev + (sn ? sn.g : 0), revP: bp.rev + (snp ? snp.g : 0), n: b.n + (sn ? sn.n : 0), nP: bp.n + (snp ? snp.n : 0) };
+    var T = { san: sn ? sn.g : 0, rev: b.rev + (sn ? sn.g : 0), revP: bp.rev + (snp ? snp.g : 0), n: b.n + (sn ? sn.n : 0), nP: bp.n + (snp ? snp.n : 0), tr: dashSeries(R, P, sj) };
     var h = '<div class="page-head"><h1>Tổng quan</h1><div class="grow"></div><button class="btn ghost" data-dash="fresh" title="Lấy số mới nhất (quảng cáo, website)">↻ Cập nhật số</button></div>' + perChips('g', f.p);
     h += dashHero(T, b, bp, M, gl, month, sj, f.p);
     h += dashNotes(T, b, g, f.p, M, sj, gl);
@@ -2830,12 +2925,14 @@
     h += dashMore('mkt', '📣 Quảng cáo & hiệu quả từng kênh', mLine, mktBlock(M, R, b, bp, sj));
     // ---- sàn
     h += dashMore('san', '🛒 Sàn TMĐT', sn ? (sn.g || sn.n ? moneyShort(sn.g) + ' · ' + sn.n + ' đơn' : 'Chưa có đơn sàn trong kỳ') : SN.err ? '⚠️ chưa tải được' : '⏳ đang tải…', sanDashBlock(sj, R));
-    // ---- theo ngày
-    var days = dayKeys(R), lbl = function (k) { return k.slice(8) + '/' + k.slice(5, 7); };
-    if (days.length >= 3) {
-      var topD = days.slice().sort(function (x, y) { return (b.day[y] || 0) - (b.day[x] || 0); })[0], dh = '<div class="dash-grid"><div class="box"><h3>Doanh thu văn phòng</h3>' + colChart(days.map(function (k) { return { l: lbl(k), tip: lbl(k), v: b.day[k] || 0 }; }), moneyShort) + '</div>';
-      if (g) { var gd = {}; g.days.forEach(function (x) { gd[x[0]] = x[1]; }); dh += '<div class="box"><h3>Lượt truy cập website</h3>' + colChart(days.map(function (k) { return { l: lbl(k), tip: lbl(k), v: gd[k] || 0 }; }), function (v) { return v.toLocaleString('vi-VN'); }) + '</div>'; }
-      h += dashMore('day', '📈 Theo ngày', b.day[topD] ? 'Ngày bán nhiều nhất: ' + lbl(topD) + ' · ' + moneyShort(b.day[topD]) : 'Doanh thu, lượt vào web từng ngày', dh + '</div>');
+    // ---- xu hướng khác: số đơn, khách mới, lượt vào web
+    var TR = T.tr;
+    if (TR.B.L.length >= 2) {
+      var dh = '<div class="dash-grid"><div class="box"><h3>🧾 Số đơn hàng</h3>' + trendChart({ B: TR.B, what: 'Số đơn', series: [{ v: TR.n, name: 'Kỳ này', cls: 'cur' }, TR.nP && { v: TR.nP, name: 'Kỳ trước', cls: 'prev' }] }) + '</div>' +
+        '<div class="box"><h3>🙋 Khách mới mua</h3>' + trendChart({ B: TR.B, what: 'Khách mới', series: [{ v: TR.nw, name: 'Kỳ này', cls: 'cur' }, TR.nwP && { v: TR.nwP, name: 'Kỳ trước', cls: 'prev' }] }) + '</div>';
+      if (g) dh += '<div class="box"><h3>🌐 Lượt vào website</h3>' + trendChart({ B: TR.B, what: 'Lượt vào web', fmt: function (v) { return Math.round(v).toLocaleString('vi-VN'); }, series: [{ v: trendSum(TR.B, g.days, function (x) { return dayMs(x[0]); }, function (x) { return x[1]; }), name: 'Kỳ này', cls: 'cur' }] }) + '</div>';
+      var vs = [['Số đơn', trendVerdict(TR.n, TR.B.partial)], ['khách mới', trendVerdict(TR.nw, TR.B.partial)]].filter(function (x) { return x[1]; });
+      h += dashMore('day', '📈 Xu hướng khác', vs.length ? vs.map(function (x) { return x[0] + ' ' + TRD_WORD[x[1].k].toLowerCase(); }).join(' · ') : 'Số đơn, khách mới, lượt vào web', dh + '</div>');
     }
     // ---- kênh bán
     var tot = b.rev || 1, subs = Object.keys(b.sub).map(function (k) { return b.sub[k]; }).sort(function (x, y) { return y.v - x.v; });
@@ -2979,8 +3076,7 @@
       '</div>';
     h += effBlock(E, Ep, ch, chp, sfb, sj);
     h += '<div class="dash-grid">';
-    var days = dayKeys(R);
-    if (days.length >= 3) h += '<div class="box"><h3>Chi phí theo ngày</h3>' + colChart(days.map(function (k) { var l = k.slice(8) + '/' + k.slice(5, 7); return { l: l, tip: l, v: day[k] || 0 }; }), moneyShort) + '</div>';
+    var BM = trendBuckets(R); if (BM.L.length >= 2) h += '<div class="box"><h3>📈 Chi phí quảng cáo</h3>' + trendChart({ B: BM, fmt: moneyShort, what: 'Chi phí quảng cáo', series: [{ v: trendSum(BM, Object.keys(day).map(function (k) { return [k, day[k]]; }), function (r) { return dayMs(r[0]); }, function (r) { return r[1]; }), name: 'Chi phí', cls: 'alt' }] }) + '</div>';
     h += '</div>';
     var camps = mj.camps.map(function (r) { var bits = []; if (r[5]) bits.push(r[5].toLocaleString('vi-VN') + ' click'); if (r[6]) bits.push(r[6] + ' tin nhắn'); if (r[7]) bits.push(r[7] + ' SĐT'); if (r[8]) bits.push(r[8] + ' mua'); var res = r[6] + r[7]; if (res) bits.push(moneyShort(Math.round(r[3] / res)) + '/kết quả'); return { l: chInfo(r[0]).icon + ' ' + r[1], v: r[3], sub: bits.join(' · ') || (r[2] === 'manual' ? 'nhập tay' : '') }; });
     h += '<div class="box"><h3>Chiến dịch tốn nhiều nhất</h3>' + barList(camps.slice(0, 12), moneyShort, '', { below: 1 }) + '<p class="bar-legend">Kết quả = tin nhắn + SĐT khách để lại (Facebook ghi nhận). Chi phí / kết quả càng thấp càng tốt.</p></div>';
@@ -3031,6 +3127,14 @@
     if (ad && ad.n >= 20 && ad.junk * 100 / ad.n >= 15) L.push('🗑 ' + pct(ad.junk, ad.n) + '% data là số rác (sale ghi "Không mua – số rác"): xem lại đối tượng / mẫu form quảng cáo.');
     if (!tot) L.push('ℹ️ Kỳ này chưa có chi phí quảng cáo. Facebook tự cập nhật' + (mj.fb.on ? '' : ' khi Quản trị kết nối') + '; TikTok, Google, KOL… bấm <b>⚙️ Nhập chi phí</b>.');
     if (L.length) h += '<div class="box dash-notes"><h3>📌 Cần chú ý</h3>' + L.slice(0, 5).map(function (x) { return '<p>' + x + '</p>'; }).join('') + '</div>';
+    var BM = trendBuckets(R), dser = function (o) { return trendSum(BM, Object.keys(o || {}).map(function (k) { return [k, o[k]]; }), function (r) { return dayMs(r[0]); }, function (r) { return r[1]; }); };
+    if (BM.L.length >= 2) {
+      var nv = dser(mj.newDay), sv = dser(day), full = BM.partial ? BM.L.length - 1 : BM.L.length, hf = Math.floor(full / 2), part = function (a, i, j) { return a.slice(i, j).reduce(function (x, y) { return x + y; }, 0); };
+      var r1 = part(nv, 0, hf) ? part(sv, 0, hf) * 100 / part(nv, 0, hf) : null, r2 = part(nv, hf, full) ? part(sv, hf, full) * 100 / part(nv, hf, full) : null;
+      var eff = r1 !== null && r2 !== null && hf >= 2 ? (Math.abs(r2 - r1) < 3 ? '➡️ Hiệu quả giữ nguyên: chi phí bằng khoảng ' + Math.round(r2) + '% tiền khách mới cả nửa đầu lẫn nửa sau kỳ.' : (r2 < r1 ? '✅ Hiệu quả đang tốt lên' : '⚠️ Hiệu quả đang kém đi') + ': chi phí bằng ' + Math.round(r1) + '% tiền khách mới ở nửa đầu kỳ, ' + Math.round(r2) + '% ở nửa sau.') : '';
+      h += '<section class="section" id="mk-tr"><div class="section-h"><h2>📈 Chi phí và tiền khách mới</h2></div><div class="box">' + (mj.newDay ? '' : '<p class="small muted">⏳ Máy chủ đang cập nhật, bấm ↻ sau 2 phút để có đường tiền khách mới.</p>') +
+        trendChart({ B: BM, fmt: moneyShort, what: 'Tiền khách mới', series: [{ v: nv, name: 'Tiền khách mới mua', cls: 'cur' }, { v: sv, name: 'Chi phí quảng cáo', cls: 'alt' }], note: (eff ? '<b>' + eff + '</b> ' : '') + 'Đường xanh nằm càng cao trên đường vàng là quảng cáo càng có lời.' }) + '</div></section>';
+    }
     // từng kênh
     h += '<div id="mk-ch">' + effBlock(E, Ep, ch, chp, f.sfb) + '</div>';
     // data quảng cáo
@@ -3042,8 +3146,6 @@
       metric('Số rác', ad.junk, 'Sai số, không liên lạc được, không có nhu cầu thật.', ad.junk && adp ? inv(delta(ad.junk, adp.junk)) : '') +
       metric('Đang tư vấn', Math.max(0, ad.n - ad.won - ad.lost - ad.junk), 'Chưa có kết quả.', '') + '</div></section>';
     // theo ngày + chiến dịch
-    var days = dayKeys(R);
-    if (days.length >= 3) h += '<section class="section"><div class="section-h"><h2>📈 Chi phí theo ngày</h2></div><div class="box">' + colChart(days.map(function (k) { var l = k.slice(8) + '/' + k.slice(5, 7); return { l: l, tip: l, v: day[k] || 0 }; }), moneyShort) + '</div></section>';
     var camps = mj.camps.map(function (r) { var bits = []; if (r[5]) bits.push(r[5].toLocaleString('vi-VN') + ' click'); if (r[6]) bits.push(r[6] + ' tin nhắn'); if (r[7]) bits.push(r[7] + ' SĐT'); if (r[8]) bits.push(r[8] + ' mua'); var res = r[6] + r[7]; if (res) bits.push(moneyShort(Math.round(r[3] / res)) + '/kết quả'); return { l: chInfo(r[0]).icon + ' ' + r[1], v: r[3], sub: bits.join(' · ') || (r[2] === 'manual' ? 'nhập tay' : '') }; });
     h += '<section class="section"><div class="section-h"><h2>🎬 Chiến dịch tốn nhiều nhất</h2></div><div class="box">' + barList(camps.slice(0, 15), moneyShort, 'Chưa có chiến dịch trong kỳ.', { below: 1 }) + '<p class="bar-legend">Kết quả = tin nhắn + SĐT khách để lại (Facebook ghi nhận). Chi phí / kết quả càng thấp càng tốt, nhưng kênh tốt là kênh ra <b>tiền khách mới</b> (bảng từng kênh ở trên).</p></div></section>';
     h += '<p class="small muted">' + (mj.fb.on ? '📘 Facebook Ads tự cập nhật' + (mj.fb.last ? ' · lần gần nhất ' + fDateTime(mj.fb.last) : '') + ' · ' : '') + 'Số tính lúc ' + fDateTime(mj.at) + (mj.cached ? ' (bấm ↻ để tính lại)' : '') + '. Tiền khách mới = tiền khách mua lần đầu mang về trong kỳ (cả các đơn sau của họ trong kỳ), gắn theo kênh đã đưa khách tới.</p>';
@@ -3288,7 +3390,7 @@
     });
     return s;
   }
-  function sanStats(sj, R, compact) {
+  function sanStats(sj, R, compact, P) {
     var s = sanSum(sj.days, 2), p = sanSum(sj.prev, 1), rate = function (a, b) { return b ? oneDec(a * 100 / b) + '%' : '–'; };
     if (!s.t && !p.t) return '<div class="box"><p class="muted">Chưa có đơn sàn nào đặt trong kỳ này.</p></div>';
     var shops = Object.keys(s.shop).sort(function (a, b) { return s.shop[b].g - s.shop[a].g; });
@@ -3303,9 +3405,9 @@
       metric('Tỷ lệ hoàn', rate(s.r, s.t), s.r + ' đơn trả hàng / hoàn tiền / giao không thành công.', s.t && p.t ? inv(dRate(s.r * 100 / s.t, p.r * 100 / p.t)) : '') + '</div>';
     if (compact) return h;
     if (shops.length > 1) h += '<div class="box"><h3>Theo sàn</h3>' + barList(shops.map(function (k) { var x = s.shop[k]; return { l: sanIcon(k) + ' ' + k, v: x.g, sub: x.n + ' đơn · huỷ ' + x.c + ' · hoàn ' + x.r }; }), moneyShort, '', { below: 1 }) + '</div>';
-    var days = dayKeys(R), lbl = function (k) { return k.slice(8) + '/' + k.slice(5, 7); };
     h += '<div class="dash-grid">';
-    if (days.length >= 3) h += '<div class="box"><h3>Doanh thu sàn theo ngày</h3>' + colChart(days.map(function (k) { return { l: lbl(k), tip: lbl(k), v: s.day[k] || 0 }; }), moneyShort) + '</div>';
+    var BS = trendBuckets(R), offS = trendOff(R, P), sd = function (r) { return dayMs(r[0]); };
+    if (BS.L.length >= 2) h += '<div class="box"><h3>📈 Doanh thu sàn</h3>' + trendChart({ B: BS, fmt: moneyShort, what: 'Doanh thu sàn', series: [{ v: trendSum(BS, sj.days, sd, function (r) { return r[2] || 0; }), name: 'Kỳ này', cls: 'cur' }, offS !== null && sj.pdays && { v: trendSum(BS, sj.pdays, sd, function (r) { return r[1] || 0; }, offS), name: 'Kỳ trước (' + CMP_LABEL + ')', cls: 'prev' }] }) + '</div>';
     h += '<div class="box"><h3>🏆 Sản phẩm bán chạy trên sàn</h3>' + barList(sj.prods.map(function (r) { return { l: sanIcon(r[0]) + ' ' + (r[1].length > 70 ? r[1].slice(0, 68) + '…' : r[1]), v: r[3], sub: r[2] + ' sản phẩm', tip: r[1] }; }), moneyShort, 'Chưa có.', { below: 1 }) + '</div></div>';
     return h;
   }
@@ -3325,7 +3427,7 @@
     h += '<section class="section"><div class="section-h"><h2>🎯 Mục tiêu ' + monthLabel(month) + ' · sàn</h2><div class="grow"></div>' + (sj.admin ? '<button class="btn sm" data-san="goals" data-month="' + month + '">🎯 Đặt mục tiêu</button>' : '') + '</div>' +
       (tt && rows.length > 1 ? goalTotalHTML('Tổng các sàn', cur, tt, month) : '') + '<div class="box ogoal">' + rows.map(function (x) { return goalRowHTML(x, month); }).join('') +
       (tt ? '' : '<p class="small muted">Chưa có mục tiêu sàn tháng này' + (sj.admin ? '. Bấm 🎯 Đặt mục tiêu.' : ', Quản trị đặt ở tab Tổng quan.') + '</p>') + '</div></section>';
-    h += '<section class="section"><div class="section-h"><h2>📊 Kết quả ' + esc(perLabel(f.p).toLowerCase()) + '</h2></div>' + sanStats(sj, R, false) + '</section>';
+    h += '<section class="section"><div class="section-h"><h2>📊 Kết quả ' + esc(perLabel(f.p).toLowerCase()) + '</h2></div>' + sanStats(sj, R, false, P) + '</section>';
     h += '<div class="steps"><button class="btn" data-san="list">📋 Các lần tải file</button>' + (sj.admin ? '<button class="btn" data-san="people">👤 Người phụ trách sàn' + (sj.people.length ? ': ' + esc(sj.people.join(', ')) : '') + '</button>' : '') + '</div>';
     return h + sanHowTo(false);
   }
@@ -3702,6 +3804,7 @@
       metric('Tỷ lệ chốt', c.closePct === null ? '–' : c.closePct + '%', closeTxt(c) + '. Chỉ tính số từ file quảng cáo, theo ngày có số.', delta(c.closePct, p.closePct, 'rate'), '#tiem-nang') +
       metric('Doanh thu từ khách cũ', c.sales ? c.oldPct + '%' : '–', moneyShort(c.oldRev) + ' từ khách mua lại. Chăm sóc tốt thì số này tăng.', c.sales ? delta(c.oldPct, p.sales ? p.oldPct : null, 'rate') : '') +
       '</div></section>';
+    h += repTrend(name, cx);
     h += careMetrics(c, p, me);
     h += geoBlock(name, cx) + whyBlock(name, cx);
     h += '<p class="small muted">Doanh số tính theo “Nhân viên bán” ghi trên từng đơn. Đơn khách tự đặt trên web được tính cho người đang phụ trách khách đó.</p>';
@@ -3715,12 +3818,14 @@
     h += '<div class="kpis">' + kpi('Doanh thu', moneyShort(all.sales), 'good', '', all.orders + ' đơn') + kpi('TB / đơn', all.orders ? moneyShort(all.avg) : '–', '', '', 'giá trị trung bình') +
       kpi('Tỷ lệ chốt', all.closePct === null ? '–' : all.closePct + '%', '', '', all.won + ' ra đơn / ' + all.data + ' data quảng cáo' + (all.pending ? ' · ' + all.pending + ' đang tư vấn' : '')) + kpi('Từ khách cũ', all.sales ? all.oldPct + '%' : '–', '', '', moneyShort(all.oldRev)) + '</div>';
     var act = staffNames(), rows = names.map(function (n) { var p = salesAllFix(perf(n, R), n, cx); p.n = n; p.t = targetOf(n, month); p.ms = cx.whole ? p.sales : perf(n, monthRange(month)).sales; return p; }).filter(function (p) { return act.indexOf(p.n) >= 0 || p.orders > 0; }).sort(function (a, b) { return b.sales - a.sales; });
+    h += repTrend(null, cx);
     h += compareBlock(rows, cx);
+    var SB = trendBuckets(R);
     h += careMetrics(all, perf(null, cx.P), false) + geoBlock(null, cx) + whyBlock(null, cx);
     h += '<section class="section"><div class="section-h"><h2>Theo nhân viên</h2><span class="tip">bấm vào từng người để xem chi tiết, đặt mục tiêu</span></div><div class="list cols">' +
       rows.map(function (r) {
         var ms = cx.whole ? r.sales : perf(r.n, monthRange(month)).sales, p = r.t && r.t.amount ? ms / r.t.amount : null;
-        return '<div class="card click" data-who="' + esc(r.n) + '"><div class="r1"><b>' + esc(r.n) + '</b><span class="end">' + money(r.sales) + '</span></div>' +
+        return '<div class="card click" data-who="' + esc(r.n) + '"><div class="r1"><b>' + esc(r.n) + '</b>' + sparkSvg(repSeries(r.n, SB, 0, 'sales'), SB.partial) + '<span class="end">' + money(r.sales) + '</span></div>' +
           (p === null ? '<div class="r3">🎯 Chưa đặt mục tiêu</div>' : '<div class="bar sm"><i style="width:' + Math.min(100, p * 100).toFixed(1) + '%"></i></div><div class="r3">🎯 ' + Math.round(p * 100) + '% mục tiêu ' + monthLabel(month) + ' ' + moneyShort(r.t.amount) + '</div>') +
           '<div class="r3">' + r.orders + ' đơn · TB ' + (r.orders ? moneyShort(r.avg) : '–') + ' · Chốt ' + (r.closePct === null ? '–' : r.closePct + '%') + ' · Khách cũ ' + (r.sales ? r.oldPct + '%' : '–') + '</div>' +
           '<div class="r3">💬 ' + r.care + ' lượt chăm sóc · ' + r.reorder + ' đặt lại' + (r.stale ? ' · <span class="bad-line">' + r.stale + ' khách quá 30 ngày</span>' : '') + '</div></div>';

@@ -40,20 +40,21 @@ async function sanLoad(x, u, d) {
   const month = MONTH_RE.test(d.month || '') ? d.month : String(d.to).slice(0, 7), mf = month + '-01', mt = month + '-31';
   const AGG = "SUM(CASE WHEN state = 'ok' THEN gmv - refund ELSE 0 END) AS g, SUM(state = 'ok') AS n, SUM(state = 'cancel') AS c, SUM(state = 'return') AS r, COUNT(*) AS t, " +
     "SUM(CASE WHEN state = 'ok' AND net IS NOT NULL THEN net ELSE 0 END) AS nv, SUM(state = 'ok' AND net IS NOT NULL) AS nn, SUM(state = 'ok' AND net_real = 1) AS nr";
-  const [days, prev, mon, items, files, tg, cfg] = await Promise.all([
+  const [days, prev, mon, items, files, tg, cfg, pdays] = await Promise.all([
     all(x.db, `SELECT day, shop, ${AGG} FROM san_orders WHERE day BETWEEN ? AND ? GROUP BY day, shop`, d.from, d.to),
     all(x.db, `SELECT shop, ${AGG} FROM san_orders WHERE day BETWEEN ? AND ? GROUP BY shop`, d.pf, d.pt),
     all(x.db, "SELECT shop, SUM(CASE WHEN state = 'ok' THEN gmv - refund ELSE 0 END) AS g FROM san_orders WHERE day BETWEEN ? AND ? GROUP BY shop", mf, mt),
     all(x.db, "SELECT shop, items FROM san_orders WHERE state = 'ok' AND day BETWEEN ? AND ? LIMIT 20000", d.from, d.to),
     all(x.db, "SELECT shop, kind, MAX(at) AS at, MAX(d_to) AS dt FROM san_files GROUP BY shop, kind"),
-    kvJson(x.db, 'san_targets', {}), cfgOf(x)
+    kvJson(x.db, 'san_targets', {}), cfgOf(x),
+    all(x.db, "SELECT day, SUM(CASE WHEN state = 'ok' THEN gmv - refund ELSE 0 END) AS g, SUM(state = 'ok') AS n FROM san_orders WHERE day BETWEEN ? AND ? GROUP BY day", d.pf, d.pt) // kỳ trước theo ngày: đường so sánh trên biểu đồ
   ]);
   const P = {}; // sản phẩm bán chạy: items = JSON [[tên, số lượng, tiền], …]
   items.forEach(r => { let a = []; try { a = JSON.parse(r.items || '[]'); } catch (e) { } a.forEach(i => { const k = r.shop + '|' + i[0], p = P[k] || (P[k] = [r.shop, i[0], 0, 0]); p[2] += Number(i[1]) || 0; p[3] += Number(i[2]) || 0; }); });
   const agg = r => [r.g || 0, r.n || 0, r.c || 0, r.r || 0, r.t || 0, r.nv || 0, r.nn || 0, r.nr || 0];
   const tgs = tg || {}, pm = prevMonth(month);
   return {
-    ok: true, month, days: days.map(r => [r.day, r.shop].concat(agg(r))), prev: prev.map(r => [r.shop].concat(agg(r))), mon: mon.map(r => [r.shop, r.g || 0]),
+    ok: true, month, days: days.map(r => [r.day, r.shop].concat(agg(r))), prev: prev.map(r => [r.shop].concat(agg(r))), pdays: pdays.map(r => [r.day, r.g || 0, r.n || 0]), mon: mon.map(r => [r.shop, r.g || 0]),
     prods: Object.values(P).sort((a, b) => b[3] - a[3]).slice(0, 15), files: files.map(r => [r.shop, r.kind, r.at, r.dt]),
     targets: { [month]: tgs[month] || {}, [pm]: tgs[pm] || {} }, people: cfg.people || [], admin: u.level >= 3
   };
