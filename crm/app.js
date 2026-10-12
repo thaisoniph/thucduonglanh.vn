@@ -648,6 +648,7 @@
     document.title = VIEWS.filter(function (x) { return x.id === v; })[0].label + ' – CRM Thực Dưỡng Lành';
     if (v === 'cai-dat') bindSettings();
     if (v === 'tong-quan') bindDash();
+    if (v === 'bao-cao') bindRep();
     if (v === 'marketing') bindMkv();
     if (v === 'tong-quan' || v === 'san') bindSan();
     if (r.id && !$('.modal')) {
@@ -4065,22 +4066,68 @@
     p.orders = n; p.sales = s; p.avg = n ? Math.round(s / n) : 0; return p;
   }
 
+  /* Hiệu quả của 1 sale, viết cho người không rành công nghệ: màn hình đầu chỉ có mục tiêu tháng, 4 ô lớn có đèn 🟢🟠🔴 (so với chính mình kỳ trước),
+   * thanh "10 khách hỏi thì đi đâu" và tối đa 5 việc nên làm ngay. Số liệu chi tiết (xu hướng, chăm sóc, lý do, tỉnh) thu gọn, bấm mới mở; mục đang mở nhớ trên máy (localStorage rep_open). */
+  /** Đèn cho tỷ lệ %: bằng / tăng = xanh, giảm dưới 3 điểm = cam, giảm từ 3 điểm = đỏ. */
+  function repRateLv(cur, prev) { if (!CMP_LABEL || cur === null || prev === null || prev === undefined) return ''; var d = cur - prev; return d >= 0 ? 'ok' : d > -3 ? 'mid' : 'bad'; }
+  function repMore(k, title, line, body) {
+    var o = S.f.r.open || (S.f.r.open = (function () { try { return JSON.parse(store('rep_open') || '{}') || {}; } catch (e) { return {}; } })());
+    return '<details class="dash-more" data-rk="' + k + '" id="rm-' + k + '"' + (o[k] ? ' open' : '') + '><summary><b>' + title + '</b><span>' + line + '</span></summary><div class="dash-more-b">' + body + '</div></details>';
+  }
+  /** Data quảng cáo trong kỳ đi về đâu: 1 thanh chia màu (đã mua / đang tư vấn / không mua / số rác). */
+  function repFunnel(c, who) {
+    if (!c.data) return '';
+    var parts = [['won', '✅ Đã mua', c.won], ['open', '⏳ Đang tư vấn', c.pending], ['lost', '❌ Không mua', c.lost], ['junk', '🗑 Số rác', c.junk]].filter(function (x) { return x[2]; });
+    var per10 = Math.round(c.won * 10 / c.data);
+    return '<div class="box rep-fun"><h3>📞 ' + c.data + ' khách hỏi từ quảng cáo đi về đâu?</h3><div class="rep-fun-bar">' +
+      parts.map(function (x) { return '<i class="' + x[0] + '" style="width:' + (x[2] * 100 / c.data).toFixed(1) + '%" title="' + x[1] + ': ' + x[2] + '"></i>'; }).join('') + '</div>' +
+      '<div class="rep-fun-leg">' + parts.map(function (x) { return '<span class="' + x[0] + '"><u></u>' + x[1] + ' <b>' + x[2] + '</b></span>'; }).join('') + '</div>' +
+      '<p>Cứ <b>10</b> khách hỏi thì bạn chốt được <b>' + per10 + '</b> khách.' + (c.pending ? ' Còn <b>' + c.pending + '</b> khách đang tư vấn, gọi lại sớm để chốt thêm. <a href="#tiem-nang">Mở Khách hỏi →</a>' : '') + '</p></div>';
+  }
+  /** Tối đa 5 việc nên làm ngay, việc gấp lên trước. Chỉ dựa trên số liệu đã có trên máy. */
+  function repTodo(c, p, me) {
+    var L = [], you = me ? 'bạn' : '';
+    if (c.pending) L.push({ p: 1, t: '⏳ <b>' + c.pending + ' khách hỏi</b> đang tư vấn chưa chốt. Gọi lại ngay hôm nay.', a: '<a class="btn sm pri" href="#tiem-nang">Gọi</a>' });
+    if (c.vipRisk) L.push({ p: 1, t: '💎 <b>' + c.vipRisk + ' khách VIP</b> lâu chưa mua, hơn 30 ngày chưa ai gọi. Gọi hỏi thăm trước tiên.', a: me ? '<a class="btn sm pri" href="#khach-hang" data-vipgo="1">Xem</a>' : '' });
+    if (c.stale) L.push({ p: 2, t: '📵 <b>' + c.stale + ' khách</b> ' + you + ' phụ trách đã hơn 30 ngày chưa nói chuyện. Mỗi ngày gọi vài người.', a: me ? '<a class="btn sm" href="#hom-nay">Hôm nay</a>' : '' });
+    if (c.closePct !== null && p.closePct !== null && c.closePct < p.closePct - 2) L.push({ p: 2, t: '📉 Chốt được ' + c.closePct + '%, thấp hơn ' + CMP_LABEL + ' (' + p.closePct + '%). Xem khách hay từ chối vì sao để chuẩn bị câu trả lời.', a: '<button class="btn sm" data-rgo="why">Xem lý do</button>' });
+    if (c.orders >= 3 && p.orders && c.avg < p.avg * 0.9) L.push({ p: 3, t: '🛒 Mỗi đơn đang nhỏ hơn ' + CMP_LABEL + ' (' + moneyShort(c.avg) + ' so với ' + moneyShort(p.avg) + '). Gợi ý khách mua combo hoặc 2–3 hộp.' });
+    if (c.backPct !== null && c.backPct >= 10 && c.backN >= 2) L.push({ p: 2, t: '📦 ' + c.backN + ' đơn bị hoàn (' + c.backPct + '%). Gọi xác nhận kỹ trước khi gửi, đơn lớn nhờ khách chuyển khoản trước.' });
+    if (c.care && c.replyPct !== null && c.replyPct < 40) L.push({ p: 3, t: '☎️ Chỉ ' + c.replyPct + '% lượt gọi có khách nghe máy. Thử gọi giờ khác (12h–13h, sau 19h) hoặc nhắn Zalo trước.' });
+    L.sort(function (x, y) { return x.p - y.p; });
+    var body = L.length ? L.slice(0, 5).map(function (x) { return '<div class="rep-todo-r"><span>' + x.t + '</span>' + (x.a || '') + '</div>'; }).join('') : '<div class="rep-todo-r"><span>🎉 Mọi thứ đang ổn. Giữ nhịp chăm sóc khách cũ mỗi ngày nhé!</span></div>';
+    return '<div class="box rep-todo"><h3>👉 Việc nên làm ngay</h3>' + body + '</div>';
+  }
   function viewPerson(name, cx) {
     var month = cx.month, c = salesAllFix(perf(name, cx.R), name, cx), p = perf(name, cx.P), me = name === S.user.name;
+    var ms = cx.whole ? c.sales : perf(name, monthRange(month)).sales, t = targetOf(name, month), G = t && t.amount ? goalCalc(ms, t.amount, month) : null;
     var h = (lvl() >= 2 && !me ? '<button class="btn ghost" data-who="team" style="margin-bottom:10px">← Quay lại cả nhóm</button>' : '') +
-      targetBlock(name, month, cx.whole ? c.sales : perf(name, monthRange(month)).sales, me || lvl() >= 2) +
-      '<div class="steps" style="margin:0 0 16px"><button class="btn pri" data-daily="' + esc(name) + '">📋 Báo cáo ngày (gửi Zalo)</button><button class="btn" data-bcdt="' + esc(name) + '|' + month + '">📊 Bảng BCDT ' + monthLabel(month) + '</button>' + (lvl() >= 3 && !me ? '<button class="btn" data-usage="' + esc(name) + '">📈 Mức dùng CRM</button>' : '') + '</div>';
-    h += '<section class="section"><div class="section-h"><h2>💰 Bán hàng</h2></div><div class="metrics">' +
-      metric('Doanh số', moneyShort(c.sales), 'Tổng tiền ' + c.orders + ' đơn ' + (me ? 'bạn' : '') + ' bán (không tính đơn huỷ).', delta(c.sales, p.sales)) +
-      metric('Giá trị trung bình / đơn', c.orders ? moneyShort(c.avg) : '–', 'Doanh số chia số đơn. Tư vấn mua kèm, mua combo thì số này tăng.', c.orders ? delta(c.avg, p.orders ? p.avg : 0) : '') +
-      metric('Tỷ lệ chốt', c.closePct === null ? '–' : c.closePct + '%', closeTxt(c) + '. Chỉ tính số từ file quảng cáo, theo ngày có số.', delta(c.closePct, p.closePct, 'rate'), '#tiem-nang') +
-      metric('Doanh thu từ khách cũ', c.sales ? c.oldPct + '%' : '–', moneyShort(c.oldRev) + ' từ khách mua lại. Chăm sóc tốt thì số này tăng.', c.sales ? delta(c.oldPct, p.sales ? p.oldPct : null, 'rate') : '') +
-      '</div></section>';
-    h += repTrend(name, cx);
-    h += careMetrics(c, p, me);
-    h += geoBlock(name, cx) + whyBlock(name, cx);
-    h += '<p class="small muted">Doanh số tính theo “Nhân viên bán” ghi trên từng đơn. Đơn khách tự đặt trên web được tính cho người đang phụ trách khách đó.</p>';
+      targetBlock(name, month, ms, me || lvl() >= 2);
+    var per10 = c.data ? Math.round(c.won * 10 / c.data) : null;
+    h += '<section class="dash-hero"><div class="dash-tiles">' +
+      dashTile('rtrend', cx.whole && G && G.isCur ? G.lv : dashTrend(c.sales, p.sales), '💰 Tiền bán được', moneyShort(c.sales), delta(c.sales, p.sales), c.orders + ' đơn' + (c.orders ? ' (không tính đơn huỷ)' : '')) +
+      dashTile('why', repRateLv(c.closePct, p.closePct), '🎯 Chốt được', c.closePct === null ? '–' : c.closePct + '%', c.closePct === null ? '' : delta(c.closePct, p.closePct, 'rate'), c.data ? 'Cứ 10 khách hỏi chốt ' + per10 + ' khách' : 'Chưa có khách hỏi từ quảng cáo') +
+      dashTile('rtrend', c.orders && p.orders ? dashTrend(c.avg, p.avg) : '', '🛒 Mỗi đơn', c.orders ? moneyShort(c.avg) : '–', c.orders ? delta(c.avg, p.orders ? p.avg : 0) : '', 'Bán combo, 2–3 hộp thì số này tăng') +
+      dashTile('care', c.sales ? repRateLv(c.oldPct, p.sales ? p.oldPct : null) : '', '🔁 Khách cũ mua lại', c.repeat + ' khách', delta(c.repeat, p.repeat), c.sales ? moneyShort(c.oldRev) + ' = ' + c.oldPct + '% tiền bán được' : 'Chăm sóc tốt thì số này tăng') +
+      '</div>' + repFunnel(c, me ? 'bạn' : name) + repTodo(c, p, me) + '</section>';
+    h += '<div class="steps" style="margin:0 0 16px"><button class="btn pri" data-daily="' + esc(name) + '">📋 Báo cáo ngày (gửi Zalo)</button><button class="btn" data-bcdt="' + esc(name) + '|' + month + '">📊 Bảng BCDT ' + monthLabel(month) + '</button>' + (lvl() >= 3 && !me ? '<button class="btn" data-usage="' + esc(name) + '">📈 Mức dùng CRM</button>' : '') + '</div>';
+    h += '<h2 class="dash-more-h">Xem chi tiết <small class="muted">(bấm để mở)</small></h2>';
+    h += repMore('rtrend', '📈 Bán hàng theo ngày', 'Doanh số, số đơn, lượt chăm sóc từng ngày, so với ' + (CMP_LABEL || 'kỳ trước'), repTrend(name, cx));
+    h += repMore('care', '💬 Chăm sóc khách', c.care + ' lượt' + (c.replyPct === null ? '' : ' · ' + c.replyPct + '% khách nghe máy') + (c.convPct === null ? '' : ' · ' + c.convPct + '% chăm sóc ra đơn'), careMetrics(c, p, me));
+    var why = whyBlock(name, cx), wt = (why.match(/<span class="bar-l" role="cell">([^<]*)</) || [])[1];
+    h += repMore('why', '🙅 Vì sao khách chưa mua', wt ? 'Nhiều nhất: ' + wt : 'Ghi lý do khi chăm sóc để máy gom', why);
+    var geo = geoBlock(name, cx), gt = (geo.match(/Nhiều nhất: <b>([^<]*)</) || [])[1];
+    h += repMore('geo', '📍 Khách ở tỉnh nào', gt ? 'Nhiều nhất: ' + gt : 'Chưa có địa chỉ', geo);
+    h += '<p class="small muted">🟢 tốt hơn / bằng ' + (CMP_LABEL || 'kỳ trước') + ' · 🟠 giảm nhẹ · 🔴 giảm nhiều. Doanh số tính theo “Nhân viên bán” ghi trên từng đơn; đơn khách tự đặt trên web tính cho người đang phụ trách khách đó.</p>';
     return h;
+  }
+  function bindRep() {
+    $$('details[data-rk]').forEach(function (d) {
+      d.addEventListener('toggle', function () { var o = S.f.r.open || (S.f.r.open = {}), k = d.getAttribute('data-rk'); if (d.open) o[k] = 1; else delete o[k]; store('rep_open', JSON.stringify(o)); });
+    });
+    $$('#view [data-dgo], #view [data-rgo]').forEach(function (el) {
+      el.onclick = function () { var d = $('#rm-' + (el.getAttribute('data-dgo') || el.getAttribute('data-rgo'))); if (!d) return; d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+    });
   }
 
   function viewTeam(cx) {

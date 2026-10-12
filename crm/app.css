@@ -846,3 +846,18 @@ details.set-g .dash-more-b { background: #fff; }
 .box.mk-ltv { border-left: 6px solid var(--line); } .box.mk-ltv.ok { border-left-color: var(--primary); } .box.mk-ltv.mid { border-left-color: #f0a030; } .box.mk-ltv.bad { border-left-color: var(--red); }
 .box.mk-ltv p { margin: 4px 0; font-size: 14px; }
 @media (max-width: 600px) { .mk-fun-step { min-width: 0; } }
+
+/* Hiệu quả của 1 sale: thanh "khách hỏi đi về đâu" + việc nên làm ngay */
+.box.rep-fun, .box.rep-todo { margin: 10px 0 0; }
+.rep-fun h3, .rep-todo h3 { margin: 0 0 10px; font-size: 16px; }
+.rep-fun-bar { display: flex; height: 22px; border-radius: 6px; overflow: hidden; background: var(--line); gap: 2px; }
+.rep-fun-bar i { display: block; min-width: 4px; }
+.rep-fun .won { --c: var(--primary); } .rep-fun .open { --c: #f0a030; } .rep-fun .lost { --c: var(--red); } .rep-fun .junk { --c: #b9bfb6; }
+.rep-fun-bar i { background: var(--c); }
+.rep-fun-leg { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 8px 0 0; font-size: 14px; }
+.rep-fun-leg u { display: inline-block; width: 11px; height: 11px; border-radius: 3px; background: var(--c); margin-right: 5px; vertical-align: -1px; }
+.rep-fun p { margin: 10px 0 0; font-size: 15px; }
+.rep-todo-r { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--line); font-size: 15px; line-height: 1.45; }
+.rep-todo-r:first-of-type { border-top: 0; padding-top: 0; }
+.rep-todo-r > span { flex: 1; }
+.rep-todo-r .btn { flex: none; }

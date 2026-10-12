@@ -163,7 +163,7 @@ Khách **đã tự đặt trên website** mà bạn lên lại đơn trong file 
 
 Trong hồ sơ khách, ô **Ghi nhanh hôm nay** tự thêm ngày ở đầu dòng, giống cách ghi trên Sheet: *“30/09: kh dùng ok, hẹn cuối tháng lấy tiếp”*. Nhật ký chăm sóc cũ từ file của bạn nằm ngay bên dưới.
 
-### Chăm sóc, tỉnh thành và lý do từ chối (tab Hiệu quả)
+### Chăm sóc, tỉnh thành và lý do từ chối (tab Hiệu quả → Xem chi tiết)
 
 - **💬 Chăm sóc khách:** lượt chăm sóc và **% kết nối** (khách nghe máy / trả lời), **chăm sóc ra đơn** (khách được chăm sóc đã mua trong 14 ngày sau đó), **khách quay lại mua**, **tỷ lệ hoàn đơn**, **VIP sắp mất chưa gọi** (bấm để mở danh sách).
 - **📍 Khách theo tỉnh / thành:** biểu đồ tỉnh nào nhiều khách / doanh thu nhất, gộp theo 34 tỉnh mới (rê chuột để xem tỉnh cũ, vd Hưng Yên gồm cả Thái Bình). Chọn *Khách mới tháng này* để xem khách mới đến từ đâu.
@@ -400,9 +400,15 @@ Bấm **1 chạm** ở hàng nút thời gian đầu trang (trên điện thoạ
 
 - **Đầu tháng**, bấm **🎯 Đặt mục tiêu** doanh số của bạn. Gõ số hoặc viết tắt, ví dụ `30tr`. Có nút lấy bằng tháng trước cộng 10%.
 - **Thanh tiến độ**: vạch đen là hôm nay. Thanh màu vượt vạch đen là đang **đúng tiến độ**. CRM cho biết còn thiếu bao nhiêu và **mỗi ngày cần bán khoảng bao nhiêu**.
-- **Bán hàng**: doanh số, giá trị trung bình mỗi đơn, tỷ lệ chốt, phần doanh thu từ khách cũ, so với kỳ trước.
+- **4 ô lớn** ngay dưới mục tiêu, mỗi ô có đèn so với **chính bạn kỳ trước**: 🟢 bằng hoặc tốt hơn · 🟠 giảm nhẹ · 🔴 giảm nhiều. Bấm vào ô để mở phần chi tiết.
+    - **💰 Tiền bán được** (kèm số đơn). Tháng này mà đã đặt mục tiêu thì đèn theo tiến độ mục tiêu.
+    - **🎯 Chốt được**: tỷ lệ chốt, đọc là “cứ 10 khách hỏi chốt được mấy khách”.
+    - **🛒 Mỗi đơn**: tiền trung bình 1 đơn. Tư vấn combo, 2–3 hộp thì số này tăng.
+    - **🔁 Khách cũ mua lại**: số khách cũ quay lại mua và phần tiền từ họ.
+- **📞 Khách hỏi từ quảng cáo đi về đâu?**: 1 thanh màu chia ✅ đã mua · ⏳ đang tư vấn · ❌ không mua · 🗑 số rác.
+- **👉 Việc nên làm ngay**: tối đa 5 việc, việc gấp lên đầu (khách đang tư vấn chưa chốt, khách VIP lâu chưa gọi, khách quá 30 ngày chưa nói chuyện, tỷ lệ chốt / tiền mỗi đơn giảm, đơn hoàn nhiều, ít khách nghe máy). Không có việc gì thì hiện 🎉.
+- **Xem chi tiết** (bấm để mở, CRM nhớ mục bạn hay mở): 📈 Bán hàng theo ngày · 💬 Chăm sóc khách · 🙅 Vì sao khách chưa mua · 📍 Khách ở tỉnh nào.
     - **Tỷ lệ chốt** = số data quảng cáo đã ra đơn ÷ tổng số data quảng cáo trong kỳ. *Data quảng cáo* là **từng dòng có số điện thoại trong file số quảng cáo**, tính theo ngày và tên sale ghi trong file; 1 số có nhiều lần trong kỳ chỉ tính 1. Ngày ghi ở 1 dòng áp dụng cho các dòng bên dưới **cho tới khi gặp ngày mới**, nên dòng quên ghi ngày vẫn được tính đúng ngày; sang ngày mới nhớ ghi ngày mới ở dòng đầu tiên của ngày. *Ra đơn* = số đó có đơn (không huỷ / hoàn) từ ngày có số, kể cả khách tự đặt trên web, hoặc khách hỏi của số đó “Đã chốt”. Số đang tư vấn, không mua, số rác **vẫn nằm trong mẫu số**. Tên sale trong file cần khớp “Tên trong file QC” của nhân sự thì số mới được tính cho người đó. Số liệu cập nhật mỗi lần CRM đọc file quảng cáo. Data gần đây còn đang tư vấn nên tỷ lệ của tuần / tháng đang chạy sẽ tăng dần.
-- **Chăm sóc khách**: số lượt chăm sóc, tỷ lệ khách trả lời, số khách đặt lại, số khách quá 30 ngày chưa chăm sóc (bấm vào để xem danh sách cần gọi).
 
 Doanh số tính theo **Nhân viên bán** ghi trên từng đơn. Đơn khách tự đặt trên web được tính cho **người đang phụ trách khách đó**.
 
