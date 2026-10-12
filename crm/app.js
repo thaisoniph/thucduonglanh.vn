@@ -1374,7 +1374,7 @@
     if (q) list = list.filter(function (c) { return (c._normName || norm(c.name)).indexOf(q) >= 0; }).concat(list.filter(function (c) { return (c._normName || norm(c.name)).indexOf(q) < 0; })); // trùng tên lên đầu, rồi mới đến trùng tỉnh / địa chỉ / sản phẩm
     S.promoPick = { list: list, label: cur.l + (lvl() >= 2 && S.who ? ' · ' + (S.who === '-' ? 'chưa ai phụ trách' : 'của ' + S.who) : '') + (f.spend ? ' · chi ' + SPEND[f.spend][0].toLowerCase() : '') + (f.src ? ' · nguồn ' + f.src : '') + (f.bday ? ' · ' + bdayLabel(f.bday) : '') + (f.q ? ' · tìm “' + f.q + '”' : '') };
     return '<div class="page-head"><h1>Khách đã mua</h1><span class="muted" id="cCount">' + base.length + ' khách</span><div class="grow"></div>' + whoSel() + '<button class="btn pri" data-promo title="Gửi tin ưu đãi qua Zalo cho từng khách trong danh sách đang lọc">📣 Gửi ưu đãi lần lượt</button></div>' +
-      '<div class="tools"><div class="search">' + I.search + '<input type="search" id="cq" placeholder="Tìm tên, SĐT, tỉnh, huyện, sản phẩm…" value="' + esc(f.q) + '"></div>' +
+      '<div class="tools"><div class="search">' + I.search + '<input type="search" id="cq" placeholder="Tìm tên, SĐT, tỉnh, huyện, sản phẩm…" value="' + esc(f.q) + '"><button type="button" class="search-x" aria-label="Xoá chữ tìm kiếm" title="Xoá">✕</button></div>' +
       '<select id="csort" style="flex:0 0 auto;width:auto">' + Object.keys(SORTS).map(function (k) { return '<option value="' + k + '"' + (f.sort === k ? ' selected' : '') + '>' + SORTS[k][0] + '</option>'; }).join('') + '</select></div>' +
       '<div class="tools filt"><select id="cspend" class="' + (f.spend ? 'on' : '') + '" title="Lọc theo tổng tiền khách đã chi"><option value="">💰 Mọi mức chi</option>' + Object.keys(SPEND).map(function (k) { return '<option value="' + k + '"' + (f.spend === k ? ' selected' : '') + '>Đã chi ' + SPEND[k][0].toLowerCase() + '</option>'; }).join('') + '</select>' +
         '<select id="csrc" class="' + (f.src ? 'on' : '') + '" title="Lọc theo nguồn khách mua lần đầu"><option value="">🧭 Mọi nguồn</option>' + srcs.map(function (x) { return '<option' + (f.src === x ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('') + '</select>' +
@@ -1818,7 +1818,7 @@
     var backM = monthOs.filter(function (o) { return /hoàn/i.test(o.status); }).length, shipOs = OS.filter(function (o) { return o.status === 'Đang giao'; }), shipping = shipOs.length, codOut = shipOs.reduce(function (s0, o) { return s0 + (isBank(o) ? 0 : o.total); }, 0);
     var h = '<div class="page-head"><h1>Đơn hàng</h1><div class="grow"></div>' + whoSel() + '<button class="btn pri" data-neworder="">＋ Tạo đơn (Zalo, điện thoại…)</button></div>' +
       '<div class="minis" id="oMinis">' + mini('🧾 Đơn hôm nay', todayOs.length, '', '') + mini('💰 Doanh thu hôm nay', moneyShort(todayOs.reduce(function (s0, o) { return s0 + o.total; }, 0)), '', 'good') + mini('🚚 Đang giao', shipping + (codOut ? '<small class="mini-sub" title="Tiền COD bưu cục đang giữ của các đơn đang giao">thu hộ ' + moneyShort(codOut) + '</small>' : ''), '', '') + mini('↩ Hoàn tháng này', monthOs.length ? pct(backM, monthOs.length) + '%' : '–', '', backM ? 'bad' : '') + '</div>' +
-      '<div class="tools"><div class="search">' + I.search + '<input type="search" id="oq" placeholder="Tìm tên, SĐT, mã đơn, sản phẩm…" value="' + esc(f.q) + '"></div></div>';
+      '<div class="tools"><div class="search">' + I.search + '<input type="search" id="oq" placeholder="Tìm tên, SĐT, mã đơn, sản phẩm…" value="' + esc(f.q) + '"><button type="button" class="search-x" aria-label="Xoá chữ tìm kiếm" title="Xoá">✕</button></div></div>';
     var G = orderTodo(); if (lvl() >= 2 && S.who) G.forEach(function (g) { g.list = g.list.filter(function (o) { return whoOk(orderOwner(o)); }); });
     var todoN = G.reduce(function (s0, g) { return s0 + g.list.length; }, 0);
     h += '<div class="tabs" id="oTabs" style="max-width:420px"><button data-otab="todo" class="' + (f.tab === 'todo' ? 'on' : '') + '">⚡ Cần xử lý' + (todoN ? ' (' + todoN + ')' : '') + '</button><button data-otab="all" class="' + (f.tab === 'all' ? 'on' : '') + '">📋 Tất cả đơn</button></div>' +
@@ -2325,7 +2325,7 @@
     if (lvl() >= 2 && f.k === 'mine') f.k = 'due';
     var cur = LF.filter(function (x) { return x.k === f.k; })[0] || LF[0], list = sortLeads(base.filter(cur.f));
     return '<div class="page-head"><h1>Khách hỏi</h1><span class="muted" id="tCount">người hỏi mua nhưng chưa mua (' + base.length + ')</span><div class="grow"></div>' + whoSel() + '<button class="btn pri" data-newlead>＋ Thêm khách hỏi</button></div>' +
-      '<div class="tools"><div class="search">' + I.search + '<input type="search" id="tq" placeholder="Tìm tên, SĐT, tỉnh, sản phẩm quan tâm…" value="' + esc(f.q) + '"></div>' +
+      '<div class="tools"><div class="search">' + I.search + '<input type="search" id="tq" placeholder="Tìm tên, SĐT, tỉnh, sản phẩm quan tâm…" value="' + esc(f.q) + '"><button type="button" class="search-x" aria-label="Xoá chữ tìm kiếm" title="Xoá">✕</button></div>' +
         '<select id="tch" class="' + (f.ch ? 'on' : '') + '" style="flex:0 0 auto;width:auto" title="Lọc theo kênh khách hỏi"><option value="">📣 Mọi kênh</option>' + chs.map(function (x) { return '<option' + (f.ch === x ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('') + '</select></div>' +
       '<div class="chips" id="tChips">' + renderLeadsChips(base, cur) + '</div>' +
       '<div id="tArea">' + (areaBox(q, 'lead') + crossHint(q, qd, false)) + '</div>' +
@@ -4339,6 +4339,11 @@
   }, true);
   document.addEventListener('click', function (e) { var gb = e.target.closest && e.target.closest('[data-gift]'); if (!gb || !S.d) return; e.stopPropagation(); var a = gb.getAttribute('data-gift').split('|'); giftAct(gb, a[0], a[1], a[2]); }, true);
   document.addEventListener('click', function (e) { var cm = e.target.closest && e.target.closest('[data-comm]'); if (!cm || !S.d) return; e.stopPropagation(); var a = cm.getAttribute('data-comm').split('|'); commAct(a[0], a[1]); }, true);
+  document.addEventListener('click', function (e) { // nút ✕ trong ô tìm kiếm: xoá chữ, giữ con trỏ để gõ tìm mới
+    var bx = e.target.closest && e.target.closest('.search-x'); if (!bx) return;
+    var inp = bx.parentNode.querySelector('input'); if (!inp) return;
+    e.preventDefault(); inp.value = ''; inp.focus(); inp.dispatchEvent(new Event('input', { bubbles: true }));
+  });
   var typing = null;
   document.addEventListener('input', function (e) {
     if (!S.d) return;

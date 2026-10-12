@@ -327,6 +327,8 @@ Quên nghĩa nhãn nào thì bấm **ⓘ Giải thích nhãn** cạnh hàng nhã
 
 Dưới ô tìm có thêm 3 ô lọc: **💰 Mức chi** (dưới 500k / 500k – 2 triệu / trên 2 triệu), **🧭 Nguồn** (khách đến từ đâu lần đầu: Facebook, Ladi, website…) và **🎂 Sinh nhật** (xem mục bên dưới). Các ô lọc dùng chung được với nút lọc nhanh và ô tìm, vd *Trên 2 triệu* + *Sắp mất* = khách chi nhiều sắp mất. **📣 Gửi ưu đãi lần lượt** chỉ gửi cho đúng danh sách đang lọc. Bấm **Bỏ lọc** để xem lại tất cả.
 
+Muốn tìm khách khác: bấm nút **✕** ở cuối ô tìm để xoá chữ cũ rồi gõ luôn (có ở ô tìm của Khách đã mua, Đơn hàng, Khách hỏi).
+
 ### 🎂 Khách sinh nhật trong tháng
 
 Dùng để chúc mừng sinh nhật và gửi ưu đãi sinh nhật cho khách.
