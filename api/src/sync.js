@@ -665,9 +665,10 @@ export async function adsSync(x, u, dry) {
     }
     if (!owner) { skipped++; continue; } // sale chưa có trong CRM (giai đoạn thử nghiệm) → bỏ qua
     const type = String(cell(r, m, 'ctype') || ''), note = String(cell(r, m, 'note') || '').trim(), nn = nrm(note + ' ' + type), srcName = String(cell(r, m, 'src') || sc.name).trim();
-    const status = /rac/.test(nn) ? 'Không mua' : /chot/.test(nn) ? 'Đã chốt' : /knm|khong nghe|thue bao|tb/.test(nn) ? 'Đang tư vấn' : 'Mới hỏi';
+    const amt = toMoney(cell(r, m, 'amount')); // dòng có số tiền đơn = sale đã chốt (12/10/2026: trước để "Mới hỏi" → nhân sự bị nhắc gọi khách đã mua)
+    const status = /rac/.test(nn) ? 'Không mua' : amt > 0 || /chot/.test(nn) ? 'Đã chốt' : /knm|khong nghe|thue bao|tb/.test(nn) ? 'Đang tư vấn' : 'Mới hỏi';
     rows.push({ id, time: when, name: String(cell(r, m, 'name') || '').trim(), phone, channel: 'Quảng cáo – ' + srcName, interest: srcName, status, owner, last_at: status === 'Mới hỏi' ? null : when, callback: null, reason: status === 'Không mua' ? 'Số rác' : '',
-      note: [note, type ? 'Phân loại: ' + type : '', cell(r, m, 'amount') ? 'Đơn: ' + cellText(cell(r, m, 'amount')) : ''].filter(String).join(' · '), order_id: '', by_name: 'File QC' });
+      note: [note, type ? 'Phân loại: ' + type : '', amt > 0 ? 'Đơn: ' + String(amt).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + 'đ' : cell(r, m, 'amount') ? 'Đơn: ' + cellText(cell(r, m, 'amount')) : ''].filter(String).join(' · '), order_id: '', by_name: 'File QC' });
     ids[id] = 1; openBy[phone] = owner; perSale[owner] = (perSale[owner] || 0) + 1; perSheet[sc.name] = (perSheet[sc.name] || 0) + 1;
   }
   const res = { ok: true, newLeads: rows.length, merged, perSale, perSheet, skipped, writes: writes.length, mode: cfg.mode, since };

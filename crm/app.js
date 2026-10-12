@@ -2284,6 +2284,10 @@
 
   /* ================================================================ KHÁCH TIỀM NĂNG (hỏi mua nhưng chưa mua) */
   function leadDays(l) { var t = l.lastAt || l.time; return t ? Math.max(0, Math.round((today() - dayStart(t)) / DAY)) : 0; }
+  /** Tên sản phẩm quan tâm: số từ file QC để tên sheet / chiến dịch thô (“N1_GafoFucoidan”) → “Gafo Fucoidan”. */
+  function intLabel(s) { s = String(s || '').trim(); return /^N\d+_/i.test(s) ? s.replace(/^N\d+_+/i, '').replace(/_+/g, ' ').replace(/([a-zà-ỹ])([A-ZÀ-Ỹ])/g, '$1 $2').trim() || s : s; }
+  /** Ghi chú khách hỏi: số tiền file QC ghi thô (“Đơn: 900000”) → “Đơn: 900.000đ”. */
+  function leadNoteFmt(s) { return String(s || '').replace(/Đơn: (\d{4,})(?![\d.,])/g, function (a, n) { return 'Đơn: ' + money(+n); }); }
   /** Kênh khách hỏi để hiện: số từ file quảng cáo / file sale cũ đều là quảng cáo Facebook (anh Sơn 12/10/2026) → “Facebook Ads”; tên chiến dịch vẫn ở “Quan tâm”. */
   function chLabel(ch) { ch = String(ch || '').trim(); return /^(quảng cáo|file cũ)\s*[–-]/i.test(ch) ? 'Facebook Ads' : ch || 'Khác'; }
   /** Biểu tượng + tên nguồn khách (lần đầu biết đến / mua lần đầu). */
@@ -2303,6 +2307,7 @@
   function leadAge(l) {
     if (l.status === 'Đã chốt') return '<span class="age ok">🛒 Đã chốt đơn' + (l.orderId ? ' ' + esc(l.orderId) : '') + '</span>';
     if (l.status === 'Không mua') return '<span class="age-miss">✕ Không mua' + (l.reason ? ': ' + esc(l.reason) : '') + '</span>';
+    if (l.time && dayStart(l.time) > today() + DAY) return '<span class="age bad" title="Ngày hỏi sau hôm nay: file số quảng cáo gõ nhầm ngày (vd 11/3 thành 3/11). Bấm Sửa nếu cần.">⚠️ Ngày hỏi sai (' + fDate(l.time) + ')</span>';
     var d = leadDays(l), lv = d <= 2 ? 'ok' : d <= 7 ? 'mid' : 'bad';
     return '<span class="age ' + lv + '">🕑 ' + (l.lastAt ? (d === 0 ? 'Vừa liên hệ hôm nay' : d + ' ngày chưa liên hệ') : (d === 0 ? 'Mới hỏi hôm nay' : 'Hỏi ' + d + ' ngày, chưa liên hệ')) + '</span>';
   }
@@ -2314,12 +2319,12 @@
     if (isOpenLead(l) && l.callback) return 'Hẹn liên hệ lại ' + fDate(l.callback);
     return '';
   }
-  function lastNote(l) { var n = String(l.note || '').trim().split('\n').filter(Boolean); return n.length ? n[n.length - 1].replace(/^\[[^\]]*\]\s*/, '') : ''; }
+  function lastNote(l) { var n = leadNoteFmt(l.note).trim().split('\n').filter(Boolean); return n.length ? n[n.length - 1].replace(/^\[[^\]]*\]\s*/, '') : ''; }
   function leadCard(l) {
     var open = isOpenLead(l), due = leadDueLine(l), note = lastNote(l), c = cust(l.phone);
     return '<div class="card click" data-lead="' + esc(l.id) + '">' +
       '<div class="r1"><b>' + esc((c && c.name) || l.name || 'Khách') + '</b>' + (c ? '<span class="tag reask" title="Khách đã mua trước đây, nay hỏi lại">🔁 Khách cũ hỏi lại</span>' + custTags(c) : leadTag(l)) + (l.owner ? (lvl() >= 2 || l.owner !== S.user.name ? '<span class="tag owner">👤 ' + esc(l.owner) + '</span>' : '') : '<span class="tag noconsent">Chưa ai phụ trách</span>') + '<span class="end small muted" title="' + esc(l.channel) + '">' + srcIcon(chLabel(l.channel)) + esc(chLabel(l.channel)) + '</span></div>' +
-      '<div class="r2">' + cpPhone(l.phone) + (leadProv(l) ? ' · 📍 ' + esc(leadProv(l).old) : '') + (l.interest ? ' · Quan tâm: ' + esc(l.interest) : '') + '</div>' +
+      '<div class="r2">' + cpPhone(l.phone) + (leadProv(l) ? ' · 📍 ' + esc(leadProv(l).old) : '') + (l.interest ? ' · Quan tâm: ' + esc(intLabel(l.interest)) : '') + '</div>' +
       '<div class="r-age">' + leadAge(l) + (c ? '<button type="button" class="age-miss link-cust" data-cust="' + c.phone + '" title="Mở hồ sơ khách đã mua">👤 ' + c.orders + ' đơn · ' + moneyShort(c.spent) + ' · mua gần nhất ' + daysAgo(c.last) + ' ›</button>' : '') + '</div>' +
       (due || note ? '<div class="r3">' + due + (due && note ? '<br>' : '') + (note ? '📝 ' + esc(note.length > 90 ? note.slice(0, 90) + '…' : note) : '') + '</div>' : '') +
       (open ? '<div class="acts"><button class="btn pri" data-consult="' + esc(l.id) + '">💬 Tư vấn</button><a class="btn" href="tel:' + l.phone + '">📞 Gọi</a><button class="btn" data-leadorder="' + esc(l.id) + '">🛒 Chốt đơn</button>' + (!l.owner && isPoolStaff() ? claimBtn('l', l.id) : '') + '</div>' : '') +
@@ -2417,13 +2422,13 @@
       (c ? '<div class="notice info">👤 Số này đã là khách hàng: <b>' + esc(c.name) + '</b> · ' + c.orders + ' đơn, ' + money(c.spent) + ' <button class="btn" data-cust="' + c.phone + '" style="margin-left:6px">Xem khách</button></div>' : '') + (leadProv(l) ? areaBox(norm(leadProv(l).old), 'lead') : '') +
       (open && leadDueLine(l) ? '<div class="notice">' + leadDueLine(l) + '</div>' : '') +
       '<div class="r-age" style="margin:0 0 12px">' + leadAge(l) + '</div>' +
-      '<div class="box"><div class="grid-info">' + info('Điện thoại', fPhone(l.phone), false, normPhone(l.phone)) + info('Trạng thái', l.status) + info('Kênh', chLabel(l.channel) + (chLabel(l.channel) !== l.channel ? ' (' + l.channel + ')' : '')) + info('Quan tâm', l.interest || '–') +
+      '<div class="box"><div class="grid-info">' + info('Điện thoại', fPhone(l.phone), false, normPhone(l.phone)) + info('Trạng thái', l.status) + info('Kênh', chLabel(l.channel) + (chLabel(l.channel) !== l.channel ? ' (' + l.channel + ')' : '')) + info('Quan tâm', intLabel(l.interest) || '–') +
       info('Phụ trách', l.owner || '– Chưa ai –') + info('Ngày hỏi', fDate(l.time)) + info('Lần liên hệ gần nhất', l.lastAt ? fDate(l.lastAt) + ' (' + daysAgo(l.lastAt) + ')' : 'chưa liên hệ') +
       info('Hẹn liên hệ lại', l.callback ? fDate(l.callback) : '–') + (l.reason ? info('Lý do không mua', l.reason, true) : '') + (l.orderId ? info('Mã đơn', l.orderId, true, true) : '') + '</div></div>' +
-      '<div class="box"><h3>Ghi chú</h3><div class="pre">' + (l.note ? esc(l.note) : '<span class="muted">Chưa có ghi chú.</span>') + '</div></div>' +
+      '<div class="box"><h3>Ghi chú</h3><div class="pre">' + (l.note ? esc(leadNoteFmt(l.note)) : '<span class="muted">Chưa có ghi chú.</span>') + '</div></div>' +
       (open ? giftBox(giftPerson(l.phone), '') : '') +
       '<div class="box"><h3>Lịch sử tư vấn (' + logs.length + ')</h3>' + (logs.length ? '<div class="timeline">' + logs.map(logItem).join('') + '</div>' : '<p class="muted">Chưa có.</p>') + '</div>';
-    modal(cp(l.name, esc(l.name || 'Khách hỏi')) + ' ' + leadTag(l), body, null, { route: '#tiem-nang', pushed: !fromRoute });
+    modal(cp(l.name, esc(l.name || 'Khách hỏi')) + ' ' + leadTag(l) + (c ? ' <span class="tag reask" title="Khách đã mua trước đây, nay hỏi lại">🔁 Khách cũ hỏi lại</span>' : ''), body, null, { route: '#tiem-nang', pushed: !fromRoute });
   }
 
   function ownerOptions(sel, withEmpty) {
