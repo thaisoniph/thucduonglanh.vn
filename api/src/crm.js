@@ -3,11 +3,12 @@ import { normPhone, nrm, esc, fmt, startOfDay, TZ_MS, fmtDate, dateOrBlank, slug
 import { sendMail, telegram, telegramTo, telegramPhoto, tgUpdates, tgConf, bridge } from './google.js';
 import { crmGa, crmGaProp } from './ga.js';
 import { crmMkt } from './mkt.js';
+import { crmSan, sanSchema, sanAllowed } from './san.js';
 import { wbQueue, wbOrderQueue, wbStatusQueue, WB_SHORT } from './wb.js';
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-10-11b'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
+const SCHEMA_V = '2026-10-12a'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -89,6 +90,7 @@ export async function ensureSchema(db) {
         PRIMARY KEY (day, channel, account, campaign)
       )`); // chi phí quảng cáo theo ngày (api/src/mkt.js)
     await run(db, 'CREATE INDEX IF NOT EXISTS ad_spend_batch ON ad_spend(batch)');
+    await sanSchema(db); // đơn sàn TMĐT (api/src/san.js)
     schemaDone = true;
     if (deltaOk) await run(db, "INSERT INTO kv (k, v) VALUES ('schema_v', ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v, exp = NULL", SCHEMA_V);
   } catch (e) {
@@ -429,12 +431,12 @@ async function loadSmall(x, u, R, mode, adV) {
   const users = (await crmUsers(x)).filter(y => y.active || u.level >= 3).map(y => u.level >= 3 ? { email: y.email, name: y.name, role: y.role, active: y.active, recv: y.recv, tg: !!y.tg, alias: y.alias, prefix: y.prefix || slugName(y.name) } : u.level >= 2 ? { name: y.name, role: y.role, recv: y.recv, tg: !!y.tg } : { name: y.name, role: y.role });
   const adsP = adRowsOf(x, u, adV); adsP.catch(() => { });
   const areasP = u.level < 2 ? areaStats(x) : Promise.resolve(undefined); areasP.catch(() => { }); // quản lý đã có đủ khách → máy tự đếm
-  const [ca, fbNew, prefs, tagColors, sources, ads, commission] = await Promise.all([caCfg(x), // hỏi song song: mỗi lần hỏi máy chủ dữ liệu mất một nhịp
+  const [ca, fbNew, prefs, tagColors, sources, ads, commission, sanOk] = await Promise.all([caCfg(x), // hỏi song song: mỗi lần hỏi máy chủ dữ liệu mất một nhịp
     u.level >= 2 ? first(x.db, "SELECT count(*) AS n FROM feedback WHERE status = 'Mới'").then(r => (r || {}).n || 0) : 0,
-    prefsOf(x, u.email), allTagColors(x), u.level >= 3 ? srcList(x) : [], u.level >= 3 ? adsCfg(x) : null, kvJson(x.db, 'commission_cfg', {}).then(r => r || {})]);
+    prefsOf(x, u.email), allTagColors(x), u.level >= 3 ? srcList(x) : [], u.level >= 3 ? adsCfg(x) : null, kvJson(x.db, 'commission_cfg', {}).then(r => r || {}), sanAllowed(x, u).catch(() => false)]);
   const [ct, tg, cy, tp] = (await smallQ).map(r => r.results || []), ar = await adsP, areas = await areasP.catch(() => undefined);
   return {
-    ok: true, user: publicUser(u), areas, now: Date.now(), today: startOfDay(Date.now()), fbNew, users, prefs, tagColors, sources, ads, adV: ar.v, adRows: ar.rows,
+    ok: true, user: publicUser(u), areas, sanOk, now: Date.now(), today: startOfDay(Date.now()), fbNew, users, prefs, tagColors, sources, ads, adV: ar.v, adRows: ar.rows,
     contacts: ct.reverse().map(contactOut), targets: tg.map(t => ({ month: t.month, name: t.name, amount: t.amount || 0, by: t.by_name || '', at: t.at })),
     cycles: cy.filter(r => r.name).map(r => [r.name, r.variant || '', Number(r.days) || 0, r.basis || '']), templates: tp.filter(r => r.text).map(r => [r.when_txt || '', r.purpose || '', r.text]),
     rules: { vipOrders: R.vipOrders, vipSpent: R.vipSpent, atRisk: R.atRisk, coolDays: R.coolDays, shipDays: R.shipDays, famMin: R.famMin, otypes: OTYPES, commission, statuses: ORDER_STATUS, results: CARE_RESULTS, leadStatus: LEAD_STATUS, assignMode: mode, bot: BOT_USERNAME, ca, lines: LINES.map(l => l[0]).concat(['Khác']) }
@@ -1485,6 +1487,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (a === 'ga') return crmGa(x, u, d); // tab Tổng quan: số liệu Google Analytics
   if (a === 'ga_prop') return crmGaProp(x, u, d);
   if (/^mkt(_|$)/.test(a)) return crmMkt(x, u, d); // chi phí marketing
+  if (/^san(_|$)/.test(a)) return crmSan(x, u, d); // doanh thu sàn TMĐT + mục tiêu theo mảng
   const need = { settings: 2, users: 3, assign: 2, bulk: 2, recv: 2 };
   if (need[a] && u.level < need[a]) return { ok: false, error: 'Bạn không có quyền làm việc này.' };
   const opKey = d.opId ? 'op_' + String(d.opId).slice(0, 40) : ''; // CRM gửi lại việc khi mạng chập chờn: việc đã làm rồi thì trả kết quả cũ, không ghi trùng

@@ -71,7 +71,8 @@
     dash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>',
     chart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M8 17V10M13 17V6M18 17v-4"/></svg>',
     help: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg>',
-    search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>'
+    search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>',
+    shop: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>'
   };
 
   /* ================================================================ tiện ích */
@@ -269,7 +270,7 @@
       var keep = !!j.part && silent && prev && prev.orders && !prev.partial && Date.now() - (S.restAt || 0) < 3600e3; // tự làm mới: đơn, nhật ký cũ giữ bản trên máy (1 tiếng mới đọc lại) – nhanh hơn, đỡ tốn lượt đọc máy chủ
       j.partial = !!j.part && !keep; setData(j, Date.now()); S.fullAt = Date.now(); S.perf = { core: Date.now() - t0, srv: j.t, kb: j.__kb };
       if (!j.part) idb('set', 'data', { tk: S.token.slice(-12), at: S.loadedAt, fa: S.fullAt, d: j }); // máy chủ cũ: 1 đợt
-      if (!$('.me')) shell(); else { $('.me').innerHTML = meHTML(); navBadges(); } // .me chỉ có ở giao diện thật (khung chờ không có)
+      if (!$('.me') || $$('.nav a').length !== navViews().length) shell(); else { $('.me').innerHTML = meHTML(); navBadges(); } // .me chỉ có ở giao diện thật (khung chờ không có)
       softRender(silent);
       if (j.part) { // đợt 2 tải ngầm, không giữ S.loading → bấm ↻ lúc đợt 2 chưa xong vẫn tải lại được
         if (keep) idb('set', 'data', { tk: S.token.slice(-12), at: S.loadedAt, fa: S.fullAt, d: j }); else loadRest(j);
@@ -593,9 +594,11 @@
     { id: 'don-hang', label: 'Đơn hàng', icon: 'box' },
     { id: 'tiem-nang', label: 'Khách hỏi', icon: 'lead' },
     { id: 'bao-cao', label: 'Hiệu quả', icon: 'chart' },
+    { id: 'san', label: 'Sàn', icon: 'shop', san: 1 }, // doanh thu Shopee / TikTok Shop: Quản trị + người phụ trách sàn (Quản trị vào từ Tổng quan, không chiếm chỗ trên menu)
     { id: 'cai-dat', label: 'Cài đặt', icon: 'gear' }
   ];
-  function myViews() { return VIEWS.filter(function (v) { return !v.min || lvl() >= v.min; }); }
+  function myViews() { return VIEWS.filter(function (v) { return (!v.min || lvl() >= v.min) && (!v.san || (S.d && S.d.sanOk) || lvl() >= 3); }); }
+  function navViews() { return myViews().filter(function (v) { return !(v.san && lvl() >= 3); }); }
   function meHTML() { return '<b>' + esc(S.user.name) + '</b>'; } // chỉ tên: mỗi người là chủ công việc của mình
   function updatedLine() {
     var pf = S.perf, sp = pf && lvl() >= 3 ? ' · tải ' + (pf.core / 1000).toFixed(1) + 's' + (pf.srv ? ' (máy chủ ' + (pf.srv.ms / 1000).toFixed(1) + 's' + (pf.srv.cached ? ', bản đọc sẵn' : ', đọc Sheet') + ')' : '') + (pf.kb ? ', ' + pf.kb + ' KB' : '') + (pf.rest ? ' + đợt 2 ' + (pf.rest / 1000).toFixed(1) + 's' + (pf.kb2 ? '/' + pf.kb2 + ' KB' : '') : '') : '';
@@ -604,7 +607,7 @@
   function shell() {
     $('#app').innerHTML = '<header class="top"><div class="top-in">' +
       '<a class="brand" href="#' + homeView() + '"><img src="/icon-180.png" alt="">CRM</a>' +
-      '<nav class="nav">' + myViews().map(function (v) { return '<a href="#' + v.id + '" data-v="' + v.id + '"' + (v.id === 'cai-dat' ? ' class="nav-set"' : '') + '>' + I[v.icon] + '<span' + (v.short ? ' data-short="' + v.short + '"' : '') + '>' + v.label + '</span></a>'; }).join('') + '</nav>' +
+      '<nav class="nav">' + navViews().map(function (v) { return '<a href="#' + v.id + '" data-v="' + v.id + '"' + (v.id === 'cai-dat' ? ' class="nav-set"' : '') + '>' + I[v.icon] + '<span' + (v.short ? ' data-short="' + v.short + '"' : '') + '>' + v.label + '</span></a>'; }).join('') + '</nav>' +
       '<div class="grow"></div><div class="me">' + meHTML() + '</div>' +
       '<button class="icon-btn fb-btn" id="fbBtn" title="Góp ý: báo lỗi, chỗ khó dùng, ý tưởng" aria-label="Góp ý">💡<span class="fb-lbl">Góp ý</span></button>' +
       '<a class="icon-btn" href="/huong-dan/crm/" target="_blank" rel="noopener" title="Hướng dẫn sử dụng" aria-label="Hướng dẫn sử dụng">' + I.help + '</a>' +
@@ -635,7 +638,7 @@
     var keepScroll = lastView === v, y = window.scrollY;
     var el = $('#view');
     var focusId = document.activeElement && document.activeElement.id, selStart = document.activeElement && document.activeElement.selectionStart;
-    el.innerHTML = ({ 'hom-nay': viewToday, 'khach-hang': viewCustomers, 'don-hang': viewOrders, 'tiem-nang': viewLeads, 'bao-cao': viewReport, 'cai-dat': viewSettings, 'tong-quan': viewDash })[v]();
+    el.innerHTML = ({ 'hom-nay': viewToday, 'khach-hang': viewCustomers, 'don-hang': viewOrders, 'tiem-nang': viewLeads, 'bao-cao': viewReport, 'cai-dat': viewSettings, 'tong-quan': viewDash, san: viewSan })[v]();
     el.insertAdjacentHTML('beforeend', updatedLine());
     if (focusId && $('#' + focusId)) { var f = $('#' + focusId); f.focus(); try { f.setSelectionRange(selStart, selStart); } catch (e) { } }
     if (keepScroll) window.scrollTo(0, y); else window.scrollTo(0, 0);
@@ -643,6 +646,7 @@
     document.title = VIEWS.filter(function (x) { return x.id === v; })[0].label + ' – CRM Thực Dưỡng Lành';
     if (v === 'cai-dat') bindSettings();
     if (v === 'tong-quan') bindDash();
+    if (v === 'tong-quan' || v === 'san') bindSan();
     if (r.id && !$('.modal')) {
       if (v === 'khach-hang' && cust(r.id)) openCustomer(r.id, true);
       if (v === 'don-hang') { var o = S.d.orders.filter(function (x) { return x.id === r.id; })[0]; if (o) openOrder(o.id, true); }
@@ -2724,8 +2728,10 @@
     if (!gj && !GA.err) setTimeout(function () { gaFetch(key); }, 0);
     var h = '<div class="page-head"><h1>Tổng quan</h1><div class="grow"></div><button class="btn ghost" data-dash="fresh" title="Lấy số mới nhất từ Google Analytics">↻ Số website mới nhất</button></div>' + perBtn('g', f.p);
     h += dashNotes(b, bp, g, f.p);
+    var month = monthOf(Math.min(R[1] - 1, Date.now())), sj = snGet(R, P, month);
+    h += officeGoalBlock(month, sj);
     // ---- kinh doanh
-    h += '<section class="section"><div class="section-h"><h2>💰 Kinh doanh</h2><span class="tip">mọi kênh: website, sale, khách hỏi · không tính đơn huỷ / hoàn</span></div><div class="metrics">' +
+    h += '<section class="section"><div class="section-h"><h2>💰 Kinh doanh</h2><span class="tip">đơn trong CRM: website, sale, khách hỏi (sàn ở mục 🛒 bên dưới) · không tính đơn huỷ / hoàn</span></div><div class="metrics">' +
       metric('Doanh thu', moneyShort(b.rev), money(b.rev) + ' từ ' + b.n + ' đơn.', delta(b.rev, bp.rev)) +
       metric('Số đơn', b.n, 'Website ' + b.web + ' · Sale & khách hỏi ' + (b.n - b.web) + '.', delta(b.n, bp.n)) +
       metric('Giá trị trung bình / đơn', b.n ? moneyShort(b.avg) : '–', 'Tăng khi khách mua combo, mua kèm, đủ mức miễn phí ship.', b.n ? delta(b.avg, bp.n ? bp.avg : 0) : '') +
@@ -2734,6 +2740,7 @@
       metric('Khách để lại SĐT', b.leads, 'Số SĐT khác nhau hỏi mới mọi kênh (không tính khách cũ đồng bộ từ file sale), trong đó ' + b.webLeads + ' từ website (form, nhận quà).', delta(b.leads, bp.leads), '#tiem-nang') +
       '</div></section>';
     h += mktBlock(key, R, b, bp);
+    h += sanDashBlock(sj, R);
     // ---- website
     var conv = g && g.cur.sessions ? b.web * 100 / g.cur.sessions : null, convP = g && g.prev.sessions ? bp.web * 100 / g.prev.sessions : null;
     h += '<section class="section"><div class="section-h"><h2>🌐 Website thucduonglanh.vn</h2><span class="tip">' + (g ? 'Google Analytics · cập nhật ' + fDateTime(g.at) : 'Google Analytics') + '</span></div>';
@@ -2968,6 +2975,401 @@
       btn.disabled = true; btn.textContent = 'Đang nhập…';
       api('mkt_import', { channel: ch, rows: rows, file: file }).then(function (j) { closeModal(true); done('Đã nhập ' + money(j.spend) + ' (' + j.from + ' → ' + j.to + ')'); }, function (e) { btn.disabled = false; btn.textContent = 'Nhập'; toast(e.message, true); });
     };
+  }
+
+  /* ================================================================ Sàn TMĐT + mục tiêu tháng theo mảng của cả văn phòng (lệnh san*, api/src/san.js).
+   * Đơn sàn không có trong CRM: người phụ trách sàn tải file đơn hàng xuất từ Seller Center (.xlsx / .csv), CRM đọc file ngay trên máy (sanParse) rồi gửi các đơn lên.
+   * Tải lại file mới (cùng mã đơn) → trạng thái huỷ / hoàn được cập nhật, doanh thu luôn tính theo ngày đặt.
+   * Thêm sàn: thêm vào SAN_SHOPS + GOAL_CH ở đây và SHOPS trong api/src/san.js. Thêm mảng mục tiêu: GOAL_CH + GOAL_KEYS (san.js). */
+  var SAN_SHOPS = [{ k: 'Shopee', icon: '🟠' }, { k: 'TikTok Shop', icon: '🎵' }, { k: 'Lazada', icon: '🔷' }];
+  var GOAL_CH = [
+    { k: 'Sale', icon: '📞', tip: 'đơn sale lên + chốt từ khách hỏi' },
+    { k: 'Website', icon: '🌐', tip: 'khách tự đặt trên web' },
+    { k: 'Shopee', icon: '🟠', san: 1 }, { k: 'TikTok Shop', icon: '🎵', san: 1 }, { k: 'Lazada', icon: '🔷', san: 1 },
+    { k: 'Khác', icon: '📦', tip: 'sỉ, đại lý, CTV… chưa có số tự động' }
+  ];
+  var GOAL_LV = { done: '🎉 Đã đạt', ok: '🟢 Đúng tiến độ', mid: '🟠 Hơi chậm', bad: '🔴 Đang chậm', none: '' };
+  var SN = { cache: {}, busy: '', err: '' };
+  function sanIcon(k) { return (SAN_SHOPS.filter(function (x) { return x.k === k; })[0] || { icon: '🛒' }).icon; }
+  function snKey(R, P, month) { return gaKey(R, P) + '_' + month; }
+  function snFetch(key) {
+    if (SN.busy === key) return; SN.busy = key; SN.err = '';
+    var k = key.split('_');
+    api('san', { from: k[0], to: k[1], pf: k[2], pt: k[3], month: k[4] }).then(function (j) { SN.cache[key] = j; }, function (e) { SN.err = /Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message; })
+      .then(function () { SN.busy = ''; var v = route().view; if (v === 'tong-quan' || v === 'san') softRender(true); });
+  }
+  /** Số liệu sàn của kỳ đang xem (tự tải nếu chưa có). */
+  function snGet(R, P, month) { var key = snKey(R, P, month), sj = SN.cache[key]; if (!sj && !SN.err) setTimeout(function () { snFetch(key); }, 0); return sj; }
+
+  /** Tiến độ mục tiêu tháng: đúng tiến độ nếu % đạt ≥ % số ngày đã qua; hơi chậm ≥ 80% mức đó (như khối Mục tiêu tháng ở Hiệu quả). */
+  function goalCalc(cur, tgt, month) {
+    var R = monthRange(month), isCur = month === monthOf(Date.now()), days = Math.round((R[1] - R[0]) / DAY), el = isCur ? Math.min(days, Math.floor((today() - R[0]) / DAY) + 1) : days;
+    var p = tgt ? cur / tgt : 0, tp = el / days, left = days - el + 1, remain = Math.max(0, tgt - cur);
+    return { p: p, tp: tp, isCur: isCur, el: el, days: days, left: left, perDay: isCur && left ? Math.ceil(remain / left) : 0, remain: remain, fc: el ? Math.round(cur / el * days) : 0,
+      lv: !tgt ? 'none' : p >= 1 ? 'done' : p >= tp ? 'ok' : p >= tp * 0.8 ? 'mid' : 'bad' };
+  }
+  /** Doanh thu đơn trong CRM theo mảng: Website = khách tự đặt trên web, Sale = còn lại (nhập tay, file sale, chốt từ khách hỏi). */
+  function crmChanRev(R) {
+    var r = { Sale: 0, Website: 0 };
+    S.d.orders.forEach(function (o) { if (isVoid(o.status) || o.time < R[0] || o.time >= R[1]) return; r[chanOf(o)[0] === 'Website' ? 'Website' : 'Sale'] += o.total || 0; });
+    return r;
+  }
+  /** Các dòng mục tiêu tháng: mảng có mục tiêu hoặc có doanh thu (Sale, Shopee luôn hiện). Mục tiêu Sale để trống = tổng mục tiêu các nhân viên. */
+  function goalRows(month, sj, onlySan) {
+    var tg = (sj && sj.targets && sj.targets[month]) || {}, act = onlySan ? {} : crmChanRev(monthRange(month)), staffT = teamTarget(month);
+    (sj ? sj.mon : []).forEach(function (r) { act[r[0]] = r[1]; });
+    return GOAL_CH.filter(function (c) { return !onlySan || c.san; }).map(function (c) {
+      return { c: c, t: c.k === 'Sale' ? (tg.Sale || staffT) : (tg[c.k] || 0), v: act[c.k] || 0, auto: c.k === 'Sale' && !tg.Sale && staffT > 0, wait: c.san && !sj };
+    }).filter(function (x) { return x.t || x.v || x.c.k === 'Shopee' || (!onlySan && x.c.k === 'Sale'); });
+  }
+  function goalRowHTML(x, month) {
+    var g = goalCalc(x.v, x.t, month);
+    var num = x.wait ? '⏳ đang tải…' : x.t ? '<b>' + moneyShort(x.v) + '</b> / ' + moneyShort(x.t) + ' · <b>' + Math.round(g.p * 100) + '%</b>' : '<b>' + moneyShort(x.v) + '</b> · chưa đặt mục tiêu';
+    var more = !x.t || x.wait ? '' : g.p >= 1 ? 'vượt ' + moneyShort(x.v - x.t) : g.isCur ? 'cần ~' + moneyShort(g.perDay) + '/ngày · giữ nhịp này cả tháng đạt ' + pct(g.fc, x.t) + '%' : 'cả tháng đạt ' + Math.round(g.p * 100) + '%';
+    return '<div class="ogoal-r ' + g.lv + '"><div class="ogoal-h"><b>' + x.c.icon + ' ' + esc(x.c.k) + '</b>' + (x.c.tip ? '<small>' + esc(x.c.tip) + (x.auto ? ' · mục tiêu = tổng mục tiêu nhân viên' : '') + '</small>' : '') + '<span class="ogoal-st">' + GOAL_LV[g.lv] + '</span></div>' +
+      '<div class="ogoal-bar"><i style="width:' + Math.min(100, g.p * 100).toFixed(1) + '%"></i>' + (g.isCur && x.t ? '<u style="left:' + (g.tp * 100).toFixed(1) + '%"></u>' : '') + '</div>' +
+      '<div class="ogoal-m"><span>' + num + '</span><span>' + more + '</span></div></div>';
+  }
+  /** Khối tổng: thanh lớn + còn thiếu / mỗi ngày cần / dự báo. */
+  function goalTotalHTML(title, cur, tgt, month) {
+    var g = goalCalc(cur, tgt, month), L = [];
+    if (g.isCur && g.p < 1) L.push('Còn thiếu <b>' + money(g.remain) + '</b> trong <b>' + g.left + ' ngày</b> → mỗi ngày cần khoảng <b>' + moneyShort(g.perDay) + '</b>.');
+    if (g.isCur && g.p < 1 && g.el >= 3) L.push('Nếu giữ nhịp như hiện nay, cả tháng đạt khoảng <b>' + moneyShort(g.fc) + '</b> (' + pct(g.fc, tgt) + '% mục tiêu).');
+    if (g.p >= 1) L.push('Vượt mục tiêu <b>' + money(cur - tgt) + '</b>. Tuyệt vời!');
+    return '<div class="goal ' + g.lv + '"><div class="goal-h"><b>' + title + '</b><span class="goal-st">' + GOAL_LV[g.lv] + '</span></div>' +
+      '<div class="goal-num"><b>' + moneyShort(cur) + '</b> / ' + moneyShort(tgt) + '<span>' + Math.round(g.p * 100) + '%</span></div>' +
+      '<div class="ogoal-bar big"><i style="width:' + Math.min(100, g.p * 100).toFixed(1) + '%"></i>' + (g.isCur ? '<u style="left:' + (g.tp * 100).toFixed(1) + '%"></u>' : '') + '</div>' +
+      (g.isCur ? '<div class="bar-legend"><span>Vạch đen = hôm nay (ngày ' + g.el + '/' + g.days + ')</span></div>' : '') + L.map(function (x) { return '<p>' + x + '</p>'; }).join('') + '</div>';
+  }
+  /** Tổng quan: mục tiêu tháng của cả văn phòng = cộng các mảng. */
+  function officeGoalBlock(month, sj) {
+    var rows = goalRows(month, sj, false), cur = 0, tt = 0; rows.forEach(function (x) { cur += x.v; tt += x.t; });
+    var h = '<section class="section"><div class="section-h"><h2>🎯 Mục tiêu ' + monthLabel(month) + ' · cả văn phòng</h2><div class="grow"></div>' + (sj ? '<button class="btn sm" data-san="goals" data-month="' + month + '">🎯 Đặt mục tiêu</button>' : '') + '</div>';
+    if (!tt) h += '<div class="notice">Chưa đặt mục tiêu theo mảng. Bấm <b>🎯 Đặt mục tiêu</b> để chia mục tiêu tháng cho Sale, Website, Shopee, TikTok Shop…</div>';
+    else h += goalTotalHTML('Tổng văn phòng' + (sj ? '' : ' <small class="muted">(⏳ chưa gồm sàn)</small>'), cur, tt, month);
+    return h + '<div class="box ogoal">' + rows.map(function (x) { return goalRowHTML(x, month); }).join('') +
+      '<p class="bar-legend">Vạch đen = hôm nay. Sale, Website lấy từ đơn trong CRM; sàn lấy từ file tải lên ở tab Sàn (theo ngày đặt, đã trừ đơn huỷ / hoàn).</p></div></section>';
+  }
+  /** Lần tải file gần nhất của từng sàn: quá 3 ngày chưa tải → nhắc. */
+  function sanFresh(sj, compact) {
+    var by = {}; sj.files.forEach(function (f) { if (f[1] === 'orders') by[f[0]] = f; });
+    var ks = Object.keys(by);
+    if (!ks.length) return '<div class="notice">Chưa có số liệu sàn. Người phụ trách sàn vào tab <b>Sàn</b> → <b>📤 Tải file từ sàn</b> (file đơn hàng xuất từ Shopee / TikTok Shop).</div>';
+    return '<p class="small san-fresh">' + ks.map(function (k) {
+      var f = by[k], old = Date.now() - f[2] > 3 * DAY;
+      return '<span class="' + (old ? 'bad-line' : 'muted') + '">' + sanIcon(k) + ' ' + esc(k) + ': tải file ' + fDateTime(f[2]) + (f[3] ? ', đơn đến ' + fDate(new Date(f[3] + 'T12:00:00+07:00').getTime()) : '') + (old ? ' · ⚠️ quá 3 ngày chưa cập nhật' : '') + '</span>';
+    }).join(compact ? ' · ' : '<br>') + '</p>';
+  }
+  /** Cộng các dòng [.., sàn, g, n, c, r, t, nv, nn, nr] (off = vị trí g). */
+  function sanSum(rows, off) {
+    var F = ['g', 'n', 'c', 'r', 't', 'nv', 'nn', 'nr'], s = { shop: {}, day: {} }; F.forEach(function (f) { s[f] = 0; });
+    rows.forEach(function (r) {
+      var x = s.shop[r[off - 1]] || (s.shop[r[off - 1]] = {}); F.forEach(function (f, i) { s[f] += r[off + i] || 0; x[f] = (x[f] || 0) + (r[off + i] || 0); });
+      if (off === 2) s.day[r[0]] = (s.day[r[0]] || 0) + (r[2] || 0);
+    });
+    return s;
+  }
+  function sanStats(sj, R, compact) {
+    var s = sanSum(sj.days, 2), p = sanSum(sj.prev, 1), rate = function (a, b) { return b ? oneDec(a * 100 / b) + '%' : '–'; };
+    if (!s.t && !p.t) return '<div class="box"><p class="muted">Chưa có đơn sàn nào đặt trong kỳ này.</p></div>';
+    var shops = Object.keys(s.shop).sort(function (a, b) { return s.shop[b].g - s.shop[a].g; });
+    var netNote = !s.nn ? 'Chưa có số. Tải file Thu nhập / Đối soát của sàn để có tiền thật về tài khoản.' :
+      (s.nr ? s.nr + ' đơn số thật (file Thu nhập)' : '') + (s.nn > s.nr ? (s.nr ? ', ' : '') + (s.nn - s.nr) + ' đơn ước tính (đã trừ voucher shop, phí sàn)' : '') + (s.n > s.nn ? ', ' + (s.n - s.nn) + ' đơn chưa có số' : '') + '.';
+    var h = '<div class="metrics dash-m3">' +
+      metric('Doanh thu sàn', moneyShort(s.g), money(s.g) + ' · ' + shops.map(function (k) { return sanIcon(k) + ' ' + esc(k) + ' ' + moneyShort(s.shop[k].g); }).join(' · ') + '. Theo ngày đặt, không tính đơn huỷ / hoàn.', delta(s.g, p.g)) +
+      metric('Số đơn', s.n, shops.map(function (k) { return esc(k) + ' ' + s.shop[k].n; }).join(' · ') + ' (không tính huỷ / hoàn).', delta(s.n, p.n)) +
+      metric('Giá trị TB / đơn', s.n ? moneyShort(Math.round(s.g / s.n)) : '–', 'Doanh thu ÷ số đơn.', s.n && p.n ? delta(Math.round(s.g / s.n), Math.round(p.g / p.n)) : '') +
+      metric('Tiền thực về', s.nn ? moneyShort(s.nv) : '–', netNote, s.nn && p.nn ? delta(s.nv, p.nv) : '') +
+      metric('Tỷ lệ huỷ', rate(s.c, s.t), s.c + ' / ' + s.t + ' đơn đặt bị huỷ.', s.t && p.t ? inv(dRate(s.c * 100 / s.t, p.c * 100 / p.t)) : '') +
+      metric('Tỷ lệ hoàn', rate(s.r, s.t), s.r + ' đơn trả hàng / hoàn tiền / giao không thành công.', s.t && p.t ? inv(dRate(s.r * 100 / s.t, p.r * 100 / p.t)) : '') + '</div>';
+    if (compact) return h;
+    if (shops.length > 1) h += '<div class="box"><h3>Theo sàn</h3>' + barList(shops.map(function (k) { var x = s.shop[k]; return { l: sanIcon(k) + ' ' + k, v: x.g, sub: x.n + ' đơn · huỷ ' + x.c + ' · hoàn ' + x.r }; }), moneyShort, '', { below: 1 }) + '</div>';
+    var days = dayKeys(R), lbl = function (k) { return k.slice(8) + '/' + k.slice(5, 7); };
+    h += '<div class="dash-grid">';
+    if (days.length >= 3) h += '<div class="box"><h3>Doanh thu sàn theo ngày</h3>' + colChart(days.map(function (k) { return { l: lbl(k), tip: lbl(k), v: s.day[k] || 0 }; }), moneyShort) + '</div>';
+    h += '<div class="box"><h3>🏆 Sản phẩm bán chạy trên sàn</h3>' + barList(sj.prods.map(function (r) { return { l: sanIcon(r[0]) + ' ' + (r[1].length > 70 ? r[1].slice(0, 68) + '…' : r[1]), v: r[3], sub: r[2] + ' sản phẩm', tip: r[1] }; }), moneyShort, 'Chưa có.', { below: 1 }) + '</div></div>';
+    return h;
+  }
+  /** Tổng quan: khối sàn gọn, bấm sang tab Sàn xem chi tiết. */
+  function sanDashBlock(sj, R) {
+    var h = '<section class="section"><div class="section-h"><h2>🛒 Sàn TMĐT</h2><span class="tip">Shopee, TikTok Shop · theo ngày đặt</span><div class="grow"></div><a class="btn sm" href="#san">Chi tiết sàn →</a></div>';
+    if (!sj) return h + '<div class="box"><p class="muted">' + (SN.err ? '⚠️ ' + esc(SN.err) : '⏳ Đang tải số liệu sàn…') + '</p></div></section>';
+    return h + sanFresh(sj, true) + (sj.files.length ? sanStats(sj, R, true) : '') + '</section>';
+  }
+  function viewSan() {
+    var f = S.f.s || (S.f.s = {}); if (!f.p || f.p.k === 'all') f.p = { k: 'month' };
+    var R = perRange(f.p), P = cmpRange(f.p), month = monthOf(Math.min(R[1] - 1, Date.now())), sj = snGet(R, P, month);
+    var h = '<div class="page-head"><h1>Sàn TMĐT</h1><div class="grow"></div><button class="btn pri" data-san="up">📤 Tải file từ sàn</button></div>' + perBtn('s', f.p);
+    if (!sj) return h + '<div class="box"><p class="muted">' + (SN.err ? '⚠️ ' + esc(SN.err) : '⏳ Đang tải số liệu sàn…') + '</p></div>';
+    h += sanFresh(sj);
+    var rows = goalRows(month, sj, true), cur = 0, tt = 0; rows.forEach(function (x) { cur += x.v; tt += x.t; });
+    h += '<section class="section"><div class="section-h"><h2>🎯 Mục tiêu ' + monthLabel(month) + ' · sàn</h2><div class="grow"></div>' + (sj.admin ? '<button class="btn sm" data-san="goals" data-month="' + month + '">🎯 Đặt mục tiêu</button>' : '') + '</div>' +
+      (tt && rows.length > 1 ? goalTotalHTML('Tổng các sàn', cur, tt, month) : '') + '<div class="box ogoal">' + rows.map(function (x) { return goalRowHTML(x, month); }).join('') +
+      (tt ? '' : '<p class="small muted">Chưa có mục tiêu sàn tháng này' + (sj.admin ? '. Bấm 🎯 Đặt mục tiêu.' : ', Quản trị đặt ở tab Tổng quan.') + '</p>') + '</div></section>';
+    h += '<section class="section"><div class="section-h"><h2>📊 Kết quả ' + esc(perLabel(f.p).toLowerCase()) + '</h2></div>' + sanStats(sj, R, false) + '</section>';
+    h += '<div class="steps"><button class="btn" data-san="list">📋 Các lần tải file</button>' + (sj.admin ? '<button class="btn" data-san="people">👤 Người phụ trách sàn' + (sj.people.length ? ': ' + esc(sj.people.join(', ')) : '') + '</button>' : '') + '</div>';
+    return h + sanHowTo(false);
+  }
+  function sanHowTo(open) {
+    return '<details class="box san-how"' + (open ? ' open' : '') + '><summary><b>Cách xuất file trên sàn</b></summary><div class="small">' +
+      '<p><b>Nên làm:</b> mỗi ngày (hoặc 2–3 ngày 1 lần) xuất đơn <b>30 ngày gần nhất</b> rồi tải lên. Đơn cũ bị huỷ / hoàn sau đó sẽ tự được cập nhật, không bị tính trùng.</p>' +
+      '<p><b>🟠 Shopee – file đơn hàng:</b> Kênh Người Bán → <b>Đơn hàng</b> → Tất cả → bấm <b>Xuất</b> → chọn khoảng <b>ngày đặt hàng</b> → đợi file tạo xong → <b>Tải về</b> (file .xlsx).</p>' +
+      '<p><b>🟠 Shopee – tiền về (không bắt buộc):</b> Kênh Người Bán → <b>Tài Chính → Doanh Thu</b> → tab Đã thanh toán → <b>Xuất</b>. File này cho số tiền thật Shopee chuyển về, thay cho số ước tính.</p>' +
+      '<p><b>🎵 TikTok Shop – file đơn hàng:</b> Seller Center → <b>Đơn hàng → Quản lý đơn hàng</b> → <b>Xuất</b> → chọn khoảng ngày tạo đơn → tải file (Excel hoặc CSV) trong mục Lịch sử xuất.</p>' +
+      '<p><b>🎵 TikTok Shop – tiền về (không bắt buộc):</b> <b>Tài chính → Đối soát / Bảng sao kê</b> → xuất chi tiết theo đơn.</p>' +
+      '<p class="muted">Tên nút trên sàn có thể đổi theo thời gian. File không đọc được thì CRM sẽ báo các cột đang có, chụp màn hình gửi Quản trị.</p></div></details>';
+  }
+  function bindSan() {
+    $$('[data-san]').forEach(function (el) {
+      el.onclick = function () {
+        var a = el.getAttribute('data-san');
+        if (a === 'up') openSanUp(); else if (a === 'list') openSanList(); else if (a === 'people') openSanPeople(); else if (a === 'goals') openGoals(el.getAttribute('data-month'));
+      };
+    });
+  }
+  function sanDone(msg) { SN.cache = {}; SN.err = ''; toast(msg); render(); }
+
+  /* ---------- Quản trị đặt mục tiêu tháng từng mảng */
+  function sanTargetsOf(month) { for (var k in SN.cache) { var t = SN.cache[k].targets; if (t && Object.prototype.hasOwnProperty.call(t, month)) return t[month] || {}; } return null; }
+  function openGoals(month) {
+    var tg = sanTargetsOf(month);
+    if (!tg) { // tháng chưa tải (vd tháng sau): hỏi máy chủ rồi mở lại
+      var d0 = isoDate(today()); api('san', { from: d0, to: d0, pf: d0, pt: d0, month: month }).then(function (j) { SN.cache['_goal_' + month] = j; openGoals(month); }, function (e) { toast(e.message, true); });
+      return;
+    }
+    var staffT = teamTarget(month), last = crmChanRev(monthRange(shiftMonth(month, -1))), next = shiftMonth(monthOf(Date.now()), 1);
+    var body = '<p>Mục tiêu doanh thu <b>' + monthLabel(month) + '</b> cho từng mảng. Tổng văn phòng = cộng các mảng. Ô để trống = mảng đó không đặt mục tiêu.</p>' +
+      GOAL_CH.map(function (c) {
+        return '<label class="f"><span>' + c.icon + ' ' + esc(c.k) + (c.tip ? ' <small class="muted">(' + esc(c.tip) + ')</small>' : '') + '</span><input type="text" inputmode="decimal" autocomplete="off" data-gk="' + esc(c.k) + '" value="' + (tg[c.k] || '') + '" placeholder="' + (c.k === 'Sale' && staffT ? 'trống = tổng mục tiêu NV ' + moneyShort(staffT) : 'vd 150tr') + '"></label>' +
+          (last[c.k] ? '<p class="hint">Tháng trước đạt ' + moneyShort(last[c.k]) + '</p>' : '');
+      }).join('') + '<p class="hint" id="ogSum"></p>' + (tg._by ? '<p class="small muted">Lần sửa gần nhất: ' + esc(tg._by) + ', ' + fDateTime(tg._at) + '</p>' : '') +
+      (month !== next ? '<p><button class="link" id="ogNext" type="button">Đặt mục tiêu ' + monthLabel(next) + ' →</button></p>' : '') + '<p class="err" id="ogErr"></p>';
+    var m = modal('🎯 Mục tiêu ' + monthLabel(month), body, '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="ogSave">Lưu</button>');
+    var vals = function () { var o = {}; $$('[data-gk]', m).forEach(function (i) { var v = moneyIn(i.value); if (v) o[i.getAttribute('data-gk')] = v; }); return o; };
+    var upd = function () { var o = vals(), s0 = 0; Object.keys(o).forEach(function (k) { s0 += o[k]; }); if (!o.Sale && staffT) s0 += staffT; $('#ogSum', m).innerHTML = 'Tổng văn phòng: <b>' + money(s0) + '</b>' + (!o.Sale && staffT ? ' (Sale = tổng mục tiêu nhân viên)' : ''); };
+    $$('[data-gk]', m).forEach(function (i) { i.addEventListener('input', upd); }); upd();
+    if ($('#ogNext', m)) $('#ogNext', m).onclick = function () { closeModal(true); openGoals(next); };
+    $('#ogSave', m).onclick = function () {
+      var btn = this; btn.disabled = true; btn.textContent = 'Đang lưu…';
+      api('san_target', { month: month, goals: vals() }).then(function () { closeModal(true); sanDone('Đã lưu mục tiêu ' + monthLabel(month) + ' ✓'); }, function (e) { btn.disabled = false; btn.textContent = 'Lưu'; $('#ogErr', m).textContent = e.message; });
+    };
+  }
+  /* ---------- Quản trị chọn người phụ trách sàn */
+  function openSanPeople() {
+    var cur = null; for (var k in SN.cache) if (SN.cache[k].people) { cur = SN.cache[k].people; break; }
+    cur = cur || []; var ck = function (n) { return cur.some(function (c) { return norm(c) === norm(n); }); };
+    var us = (S.d.users || []).filter(function (u) { return u.active !== false && u.role !== 'Quản trị'; });
+    var body = '<p>Người được chọn thấy tab <b>Sàn</b>: xem doanh thu sàn, mục tiêu sàn và tải file đơn hàng lên. Quản trị luôn có quyền.</p>' +
+      us.map(function (u) { return '<label class="dash-chk"><input type="checkbox" name="sanP" value="' + esc(u.name) + '"' + (ck(u.name) ? ' checked' : '') + '> ' + esc(u.name) + ' <span class="muted small">' + esc(u.role) + '</span></label>'; }).join('');
+    var m = modal('👤 Người phụ trách sàn', body, '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="spSave">Lưu</button>');
+    $('#spSave', m).onclick = function () {
+      var btn = this; btn.disabled = true;
+      api('san_people', { people: $$('input[name=sanP]:checked', m).map(function (i) { return i.value; }) }).then(function () { closeModal(true); sanDone('Đã lưu. Người được chọn mở lại CRM là thấy tab Sàn.'); }, function (e) { btn.disabled = false; toast(e.message, true); });
+    };
+  }
+  /* ---------- các lần tải file */
+  function openSanList() {
+    var m = modal('📋 Các lần tải file sàn', '<div id="slList"><p class="muted">⏳ Đang tải…</p></div>', '<button class="btn" data-close>Đóng</button>');
+    api('san_list').then(function (j) {
+      var fd = function (d) { return d ? fDate(new Date(d + 'T12:00:00+07:00').getTime()) : ''; };
+      $('#slList', m).innerHTML = j.list.length ? j.list.map(function (r) {
+        return '<div class="card"><div class="r1"><b>' + sanIcon(r.shop) + ' ' + esc(r.shop) + ' · ' + (r.kind === 'income' ? '💵 tiền về' : '📦 đơn hàng') + '</b><span class="end">' + moneyShort(r.gmv) + '</span></div>' +
+          '<div class="r3">' + esc(r.file) + '<br>' + (r.kind === 'income' ? r.n + ' đơn, khớp ' + r.fresh : r.n + ' đơn (' + r.fresh + ' mới) · đặt ' + fd(r.from) + ' – ' + fd(r.to)) + ' · ' + esc(r.by || '') + ' · ' + fDateTime(r.at) + ' <button class="link" data-sdel="' + esc(r.batch) + '">Xoá</button></div></div>';
+      }).join('') : '<p class="muted">Chưa tải file nào.</p>';
+      $$('[data-sdel]', m).forEach(function (b0) {
+        b0.onclick = function () {
+          if (!confirm(b0.getAttribute('data-sdel')[0] === 'o' ? 'Xoá lần tải này? Các đơn lấy từ file này (chưa có ở file tải sau) sẽ bị xoá khỏi số liệu sàn.' : 'Xoá lần tải này? Tiền về của các đơn trong file quay lại số ước tính.')) return;
+          api('san_del', { batch: b0.getAttribute('data-sdel') }).then(function () { closeModal(true); sanDone('Đã xoá'); openSanList(); }, function (e) { toast(e.message, true); });
+        };
+      });
+    }, function (e) { $('#slList', m).innerHTML = '<p class="err">' + esc(e.message) + '</p>'; });
+  }
+  /* ---------- tải file */
+  function openSanUp() {
+    var body = '<p>Chọn file xuất từ Shopee / TikTok Shop (Excel .xlsx hoặc .csv). CRM tự nhận ra sàn và loại file (đơn hàng hay tiền về), đọc ngay trên máy rồi mới gửi lên.</p>' +
+      '<label class="f"><span>File</span><input type="file" id="suFile" accept=".xlsx,.csv,.txt"></label>' +
+      '<label class="f"><span>Sàn</span><select id="suShop">' + SAN_SHOPS.map(function (o) { return '<option>' + esc(o.k) + '</option>'; }).join('') + '</select></label>' +
+      '<div id="suPrev" class="small"></div><button class="btn pri" id="suGo" disabled>Nhập</button>' + sanHowTo(false);
+    var m = modal('📤 Tải file từ sàn', body, '<button class="btn" data-close>Đóng</button>'), P = null, file = '';
+    $('#suFile', m).onchange = function () {
+      var f0 = this.files[0], pv = $('#suPrev', m); if (!f0) return; file = f0.name; P = null; $('#suGo', m).disabled = true; pv.innerHTML = '<p>⏳ Đang đọc file…</p>';
+      sanReadFile(f0).then(function (sheets) {
+        P = sanParse(sheets);
+        if (P.err) { pv.innerHTML = '<p class="err">' + P.err + '</p>'; P = null; return; }
+        $('#suShop', m).value = P.shop; pv.innerHTML = sanPreview(P); $('#suGo', m).disabled = false;
+      }).catch(function (e) { pv.innerHTML = '<p class="err">' + esc(e.message) + '</p>'; });
+    };
+    $('#suGo', m).onclick = function () {
+      if (!P) return; var btn = this; btn.disabled = true; btn.textContent = 'Đang nhập…';
+      api('san_import', { shop: $('#suShop', m).value, kind: P.kind, file: file, rows: P.rows }).then(function (j) {
+        closeModal(true);
+        sanDone(P.kind === 'income' ? 'Đã cập nhật tiền về ' + j.hit + ' đơn' + (j.miss ? ' · ' + j.miss + ' đơn chưa có (tải file đơn hàng trước rồi tải lại file này)' : '') : 'Đã nhập ' + j.rows + ' đơn (' + j.fresh + ' mới, ' + j.upd + ' cập nhật) · ' + moneyShort(j.gmv));
+      }, function (e) { btn.disabled = false; btn.textContent = 'Nhập'; toast(e.message, true); });
+    };
+  }
+  function sanPreview(P) {
+    var fd = function (d) { return fDate(new Date(d + 'T12:00:00+07:00').getTime()); };
+    if (P.kind === 'income') return '<div class="notice info">💵 File <b>tiền về</b> ' + esc(P.shop) + ': <b>' + P.rows.length + '</b> đơn · tổng ' + money(P.sum) + '. CRM ghi số tiền thật vào các đơn đã có, thay cho số ước tính.</div>';
+    var n = P.n, st = Object.keys(P.st).sort(function (a, b) { return P.st[b][0] - P.st[a][0]; });
+    var NM = { ok: 'tính doanh thu', cancel: 'huỷ', 'return': 'hoàn', wait: 'chờ thanh toán (chưa tính)' };
+    return '<div class="notice info">📦 File <b>đơn hàng</b> ' + esc(P.shop) + ': <b>' + P.rows.length + '</b> đơn, đặt từ ' + fd(P.from) + ' đến ' + fd(P.to) + '.<br>' +
+      'Tính doanh thu <b>' + n.ok + '</b> đơn · <b>' + money(P.sum) + '</b><br>Huỷ ' + n.cancel + ' · Hoàn ' + n['return'] + (n.wait ? ' · Chờ thanh toán ' + n.wait : '') + '</div>' +
+      '<details><summary>Trạng thái đọc được trong file</summary>' + st.slice(0, 15).map(function (k) { return '<div>' + esc(k || '(trống)') + ': ' + P.st[k][0] + ' đơn → ' + NM[P.st[k][1]] + '</div>'; }).join('') + '</details>' +
+      (P.noNet ? '<p class="muted">File không có cột phí sàn nên chưa ước tính được tiền về. Muốn có số tiền về, tải thêm file Thu nhập / Đối soát.</p>' : '');
+  }
+
+  /* ---------- đọc file sàn: .xlsx (giải nén ngay trên trình duyệt, không cần thư viện ngoài) hoặc .csv */
+  function sanReadFile(f) {
+    return f.arrayBuffer().then(function (buf) {
+      var u8 = new Uint8Array(buf);
+      if (u8[0] === 0x50 && u8[1] === 0x4B) return xlsxSheets(u8);
+      if (u8[0] === 0xD0 && u8[1] === 0xCF) throw new Error('Đây là file Excel đời cũ (.xls). Mở file bằng Excel hoặc Google Sheets → Lưu dưới dạng .xlsx rồi tải lại.');
+      var enc = u8[0] === 0xFF && u8[1] === 0xFE ? 'utf-16le' : u8[0] === 0xFE && u8[1] === 0xFF ? 'utf-16be' : 'utf-8';
+      return [csvRows(new TextDecoder(enc).decode(buf).replace(/^﻿/, ''))];
+    });
+  }
+  function zipDir(u8) {
+    var dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength), e = -1, out = {};
+    for (var i = u8.length - 22; i >= Math.max(0, u8.length - 70000); i--) if (dv.getUint32(i, true) === 0x06054b50) { e = i; break; }
+    if (e < 0) throw new Error('File Excel bị lỗi hoặc chưa tải xong. Tải lại file từ sàn.');
+    var n = dv.getUint16(e + 10, true), p = dv.getUint32(e + 16, true), td = new TextDecoder();
+    for (var k = 0; k < n && dv.getUint32(p, true) === 0x02014b50; k++) {
+      var nl = dv.getUint16(p + 28, true), xl = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true);
+      out[td.decode(u8.subarray(p + 46, p + 46 + nl))] = { m: dv.getUint16(p + 10, true), cs: dv.getUint32(p + 20, true), lo: dv.getUint32(p + 42, true) };
+      p += 46 + nl + xl + cl;
+    }
+    return out;
+  }
+  function zipText(u8, z, name) {
+    var e = z[name]; if (!e) return Promise.resolve('');
+    var dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength), st = e.lo + 30 + dv.getUint16(e.lo + 26, true) + dv.getUint16(e.lo + 28, true), data = u8.subarray(st, st + e.cs);
+    if (e.m === 0) return Promise.resolve(new TextDecoder().decode(data));
+    if (typeof DecompressionStream === 'undefined') return Promise.reject(new Error('Trình duyệt này chưa đọc được file Excel. Cập nhật trình duyệt (Chrome, Safari mới), hoặc lưu file thành .csv rồi tải lên.'));
+    return new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text();
+  }
+  function xmlDec(s) { return s.indexOf('&') < 0 ? s : s.replace(/&(lt|gt|quot|apos|amp|#\d+|#x[0-9a-f]+);/gi, function (_, e) { var k = e.toLowerCase(); return { lt: '<', gt: '>', quot: '"', apos: "'", amp: '&' }[k] || String.fromCodePoint(k[1] === 'x' ? parseInt(k.slice(2), 16) : +k.slice(1)); }); }
+  function xmlTxt(x) { var out = ''; x.replace(/<t(?:\s[^>]*)?>([\s\S]*?)<\/t>/g, function (_, t) { out += t; return ''; }); return xmlDec(out); }
+  function xlsxCol(s) { var n = 0; for (var i = 0; i < s.length; i++) n = n * 26 + s.charCodeAt(i) - 64; return n - 1; }
+  /** Các dòng của 1 trang tính: chữ → chuỗi, số → Number (để phân biệt 150.000 chữ với 150000.5 số). */
+  function xlsxRows(x, ss) {
+    var rows = [];
+    x.replace(/<row\b[^>]*?(?:\/>|>([\s\S]*?)<\/row>)/g, function (_, inner) {
+      var row = [];
+      if (inner) inner.replace(/<c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g, function (_, at, body) {
+        var ref = (at.match(/\br="([A-Z]+)/) || [])[1], t = (at.match(/\bt="(\w+)"/) || [])[1] || '', v = '';
+        if (body) {
+          if (t === 'inlineStr') v = xmlTxt(body);
+          else { var mv = body.match(/<v>([\s\S]*?)<\/v>/); v = mv ? xmlDec(mv[1]) : ''; if (t === 's') v = ss[+v] || ''; else if ((t === '' || t === 'n') && v !== '' && !isNaN(+v)) v = +v; }
+        }
+        row[ref ? xlsxCol(ref) : row.length] = v; return '';
+      });
+      for (var i = 0; i < row.length; i++) if (row[i] === undefined) row[i] = '';
+      rows.push(row); return '';
+    });
+    return rows;
+  }
+  function xlsxSheets(u8) {
+    var z = zipDir(u8);
+    return Promise.all([zipText(u8, z, 'xl/workbook.xml'), zipText(u8, z, 'xl/_rels/workbook.xml.rels'), zipText(u8, z, 'xl/sharedStrings.xml')]).then(function (a) {
+      var rel = {}, paths = [], ss = [];
+      a[1].replace(/<Relationship\b([^>]*)>/g, function (_, at) { var id = (at.match(/\bId="([^"]+)"/) || [])[1], tg = (at.match(/\bTarget="([^"]+)"/) || [])[1]; if (id && tg) rel[id] = tg.replace(/^\//, '').replace(/^(?!xl\/)/, 'xl/'); return ''; });
+      a[0].replace(/<sheet\b([^>]*)>/g, function (_, at) { var id = (at.match(/\br:id="([^"]+)"/) || [])[1]; if (rel[id]) paths.push(rel[id]); return ''; });
+      if (!paths.length) paths = Object.keys(z).filter(function (n) { return /^xl\/worksheets\/[^/]+\.xml$/.test(n); }).sort();
+      a[2].replace(/<si(?:\s[^>]*)?>([\s\S]*?)<\/si>|<si\/>/g, function (_, inner) { ss.push(inner ? xmlTxt(inner.replace(/<rPh\b[\s\S]*?<\/rPh>/g, '')) : ''); return ''; });
+      return Promise.all(paths.slice(0, 8).map(function (p) { return zipText(u8, z, p).then(function (x) { return xlsxRows(x, ss); }); }));
+    });
+  }
+  /* Tên cột trong file các sàn (không dấu, chữ thường). Shopee: 1 dòng = 1 sản phẩm của đơn, cột cấp đơn lặp lại. TikTok: tương tự, có thêm 1 dòng giải thích dưới tiêu đề (tự bỏ qua). */
+  var SAN_COL = {
+    id: /^(ma don hang|id don hang|order id|order\/adjustment id|ma don hang\/dieu chinh|ordernumber|order number|so don hang)$/,
+    day: /^(ngay dat hang|thoi gian dat hang|ngay tao don|ngay tao don hang|thoi gian tao|thoi gian tao don|thoi gian tao don hang|created time|order created time|order creation time|createtime|created at|order date)$/,
+    status: /^(trang thai don hang|order status|status|trang thai)$/,
+    sub: /^(order substatus|trang thai phu|trang thai con)$/,
+    ret: /^(trang thai tra hang\/hoan tien|trang thai tra hang|cancelation\/return type|cancellation\/return type|loai huy\/tra hang|loai huy \/ tra hang)$/,
+    name: /^(ten san pham|product name|itemname|item name)$/,
+    qty: /^(so luong|quantity|qty)$/,
+    rqty: /^(returned quantity|so luong san pham duoc hoan tra|so luong tra hang|sku quantity of return|so luong hoan tra)$/,
+    line: /^(tong gia ban \(san pham\)|tong gia ban san pham)$/,
+    before: /^(sku subtotal before discount|tong phu sku truoc giam gia|tong tien sku truoc giam gia)$/,
+    sdisc: /^(sku seller discount|giam gia cua nguoi ban cho sku|giam gia sku cua nguoi ban)$/,
+    after: /^(sku subtotal after discount|tong phu sku sau giam gia|tong tien sku sau giam gia)$/,
+    price1: /^(gia uu dai|unitprice|unit price|don gia)$/,
+    price0: /^(gia goc|sku unit original price)$/,
+    voucher: /^(ma giam gia cua shop|voucher cua shop|shop voucher)$/,
+    fee: /^(phi co dinh|phi dich vu|phi thanh toan)$/,
+    refund: /^(order refund amount|so tien hoan tra|so tien hoan lai|so tien hoan tien)$/,
+    net: /^(tong tien da thanh toan|tong so tien da thanh toan|so tien thanh toan|tong thu nhap|so tien quyet toan|total settlement amount|settlement amount|so tien da nhan|tong so tien nguoi ban nhan duoc|so tien nguoi ban nhan duoc|thanh toan cho nguoi ban)$/
+  };
+  function sanCols(row) {
+    var mm = { fee: [] };
+    (row || []).forEach(function (h, j) { var n = norm(h).replace(/[*:]/g, '').replace(/\s+/g, ' ').trim(); Object.keys(SAN_COL).forEach(function (k) { if (!SAN_COL[k].test(n)) return; if (k === 'fee') mm.fee.push(j); else if (mm[k] == null) mm[k] = j; }); });
+    return mm;
+  }
+  function sanNum(v) { return typeof v === 'number' ? Math.round(v) : csvNum(v); }
+  function sanId(v) { var s = String(v == null ? '' : v).trim().replace(/^'/, ''); return /\d/.test(s) && /^[\w-]{5,40}$/.test(s) ? s : ''; }
+  /** Ngày dạng a/b/yyyy: ngày trước hay tháng trước? Có số > 12 ở vị trí 2 mà không có ở vị trí 1 → tháng/ngày (file tiếng Anh), còn lại ngày/tháng. */
+  function sanDmy(vals) { var d = 0, mo = 0; vals.forEach(function (v) { var m = String(v || '').match(/^(\d{1,2})[-/.](\d{1,2})[-/.]\d{4}/); if (!m) return; if (+m[1] > 12) d++; if (+m[2] > 12) mo++; }); return !(mo > 0 && d === 0); }
+  function sanDay(v, dmy) {
+    var y, mo, d, m;
+    if (typeof v === 'number') { if (v < 20000 || v > 80000) return ''; var t = new Date(Math.round((v - 25569) * DAY)); y = t.getUTCFullYear(); mo = t.getUTCMonth() + 1; d = t.getUTCDate(); } // số ngày kiểu Excel
+    else {
+      var s = String(v || '').trim();
+      if ((m = s.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/))) { y = +m[1]; mo = +m[2]; d = +m[3]; }
+      else if ((m = s.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})/))) { y = +m[3]; mo = dmy ? +m[2] : +m[1]; d = dmy ? +m[1] : +m[2]; }
+      else { var c = csvDate(s); return c; }
+    }
+    return y > 2000 && mo >= 1 && mo <= 12 && d >= 1 && d <= 31 ? y + '-' + pad(mo) + '-' + pad(d) : '';
+  }
+  /** Đọc các trang tính đã lấy từ file → { kind: 'orders' | 'income', shop, rows, … } hoặc { err }. */
+  function sanParse(sheets) {
+    var best = null;
+    sheets.forEach(function (rows) {
+      for (var i = 0; !best && i < Math.min(rows.length, 25); i++) { var mm = sanCols(rows[i]); if (mm.id != null && (mm.day != null || mm.net != null)) best = { rows: rows, hi: i, mm: mm }; }
+    });
+    if (!best) {
+      var hd = (sheets[0] || []).slice(0, 3).map(function (r) { return r.filter(function (v) { return v !== ''; }).slice(0, 12).join(', '); }).join(' | ');
+      return { err: 'Không nhận ra file. Cần file <b>đơn hàng</b> (có cột Mã đơn hàng + Ngày đặt hàng) hoặc file <b>tiền về</b> (Mã đơn hàng + số tiền thanh toán).<br><span class="muted">Đầu file: ' + esc(hd.slice(0, 300)) + '</span>' };
+    }
+    var mm = best.mm, R = best.rows.slice(best.hi + 1), hn = norm(best.rows[best.hi].join('|'));
+    var g = function (r, k) { return mm[k] == null ? '' : r[mm[k]]; }, nb = function (r, k) { return mm[k] == null ? 0 : sanNum(r[mm[k]]); };
+    var shop = /order id|id don hang|sku id|order\/adjustment id|tiktok/.test(hn) ? 'TikTok Shop' : /ordernumber|orderitemid|lazada/.test(hn) ? 'Lazada' : 'Shopee';
+    var kind = mm.status == null && mm.net != null ? 'income' : 'orders';
+    if (kind === 'income') {
+      var I = {}, sum = 0; R.forEach(function (r) { var id = sanId(g(r, 'id')); if (!id) return; var v = nb(r, 'net'); I[id] = (I[id] || 0) + v; sum += v; });
+      var ir = Object.keys(I).map(function (id) { return { id: id, net: I[id] }; });
+      return ir.length ? { kind: kind, shop: shop, rows: ir, sum: sum } : { err: 'File tiền về không có dòng nào có mã đơn.' };
+    }
+    if (mm.day == null) return { err: 'File không có cột Ngày đặt hàng.' };
+    var dmy = sanDmy(R.map(function (r) { return g(r, 'day'); })), O = {}, list = [];
+    R.forEach(function (r) {
+      var id = sanId(g(r, 'id')), day = sanDay(g(r, 'day'), dmy); if (!id || !day) return;
+      var o = O[id];
+      if (!o) { o = O[id] = { id: id, day: day, status: String(g(r, 'status') || '').trim(), sub: String(g(r, 'sub') || '').trim(), ret: '', gmv: 0, rv: 0, qty: 0, items: {}, voucher: Math.abs(nb(r, 'voucher')), fee: mm.fee.reduce(function (s0, j) { return s0 + Math.abs(sanNum(r[j])); }, 0), rf: Math.abs(nb(r, 'refund')) }; list.push(o); }
+      var rt = String(g(r, 'ret') || '').trim(); if (rt) o.ret = rt;
+      var q = nb(r, 'qty') || 1, val = mm.line != null ? nb(r, 'line') : mm.before != null ? nb(r, 'before') - nb(r, 'sdisc') : mm.after != null ? nb(r, 'after') : (nb(r, 'price1') || nb(r, 'price0')) * q, rq = Math.min(q, nb(r, 'rqty'));
+      o.gmv += val; o.qty += q; if (rq > 0) o.rv += val * rq / q;
+      var nm = String(g(r, 'name') || '').trim(); if (nm) { var it = o.items[nm] || (o.items[nm] = [nm, 0, 0]); it[1] += q; it[2] += val; }
+    });
+    if (!list.length) return { err: 'Không đọc được đơn nào (cột Mã đơn hàng / Ngày đặt hàng trống hoặc sai định dạng).' };
+    var n = { ok: 0, cancel: 0, 'return': 0, wait: 0 }, st = {}, sum2 = 0, days = [];
+    var rows = list.map(function (o) {
+      var s = norm(o.status + ' ' + o.sub), rt = norm(o.ret), state = 'ok', refund = 0;
+      if (/huy|cancel/.test(s)) state = 'cancel';
+      else if (/cho thanh toan|chua thanh toan|unpaid|awaiting payment/.test(s)) state = 'wait';
+      else if (/khong thanh cong|that bai|failed|tra hang|hoan hang|returned|da hoan/.test(s)) state = 'return';
+      if (state === 'ok') {
+        if (o.rf > 0) refund = o.rf;
+        else if (rt && !/tu choi|rejected|huy|cancel|dong yeu cau|closed/.test(rt) && /chap nhan|dong y|hoan tien thanh cong|da hoan tien|da tra hang|accepted|approved|refunded|completed/.test(rt)) refund = o.rv > 0 ? o.rv : o.gmv; // yêu cầu đang xem xét: chưa trừ
+        if (o.gmv > 0 && refund >= o.gmv) { state = 'return'; refund = 0; }
+      }
+      n[state]++; var sk = o.status + (o.ret ? ' · ' + o.ret : ''); (st[sk] = st[sk] || [0, state])[0]++;
+      if (state === 'ok') sum2 += o.gmv - refund; days.push(o.day);
+      return { id: o.id, day: o.day, status: sk, state: state, gmv: Math.round(o.gmv), refund: Math.round(refund), qty: o.qty,
+        net: mm.fee.length ? Math.round(o.gmv - refund - o.voucher - o.fee) : null,
+        items: Object.keys(o.items).map(function (k) { var it = o.items[k]; return [it[0], it[1], Math.round(it[2])]; }) };
+    });
+    days.sort();
+    return { kind: kind, shop: shop, rows: rows, n: n, st: st, sum: sum2, from: days[0], to: days[days.length - 1], noNet: !mm.fee.length };
   }
 
   function fDur(sec) { sec = Math.round(sec || 0); return sec < 60 ? sec + ' giây' : Math.floor(sec / 60) + ' phút ' + pad(sec % 60) + ' giây'; }

@@ -62,7 +62,9 @@ const MIRROR = [
   ['CRM · Chu kỳ dùng', ['Sản phẩm', 'Quy cách', 'Số ngày dùng', 'Ghi chú'], 'SELECT * FROM cycles ORDER BY rid', r => [r.name, r.variant, r.days, r.basis]],
   ['CRM · Mẫu tin nhắn', ['Khi nào', 'Mục đích', 'Nội dung'], 'SELECT * FROM templates ORDER BY rid', r => [r.when_txt, r.purpose, r.text]],
   ['CRM · Chi phí marketing', ['Ngày', 'Kênh', 'Tài khoản', 'Chiến dịch', 'Chi phí', 'Hiển thị', 'Lượt bấm', 'Tin nhắn', 'Khách để lại số', 'Đơn (theo kênh)', 'Nguồn', 'Ghi chú'],
-    'SELECT * FROM ad_spend ORDER BY day DESC, channel, campaign', r => [r.day, r.channel, r.account, r.campaign, r.spend, r.impressions, r.clicks, r.msgs, r.leads, r.purchases, r.src, r.note]]
+    'SELECT * FROM ad_spend ORDER BY day DESC, channel, campaign', r => [r.day, r.channel, r.account, r.campaign, r.spend, r.impressions, r.clicks, r.msgs, r.leads, r.purchases, r.src, r.note]],
+  ['CRM · Đơn sàn TMĐT', ['Ngày đặt', 'Sàn', 'Mã đơn', 'Trạng thái trên sàn', 'Tính doanh thu', 'Doanh thu đặt hàng', 'Hoàn tiền', 'Tiền về', 'Tiền về là số thật', 'Số lượng', 'Sản phẩm'],
+    'SELECT * FROM san_orders ORDER BY day DESC, shop, id', r => [r.day, r.shop, r.id, r.status, { ok: 'Có', cancel: 'Huỷ', 'return': 'Hoàn', wait: 'Chờ thanh toán' }[r.state] || r.state, r.gmv, r.refund, r.net, r.net_real ? 'Có' : 'Ước tính', r.qty, (() => { try { return JSON.parse(r.items || '[]').map(i => i[0] + ' x' + i[1]).join('; '); } catch (e) { return ''; } })()]]
 ];
 const MIRROR_COLS = 35; // A…AI (ô AI1 của tab đầu ghi giờ sao lưu)
 /** Chép toàn bộ dữ liệu sang các tab "CRM · …" của file Sheet chính.

@@ -2,7 +2,7 @@
 title: Hướng dẫn dùng CRM
 nav: CRM
 order: 2
-updated: 2026-10-10
+updated: 2026-10-12
 description: Xử lý đơn hàng, chăm sóc khách, khách hỏi và theo dõi hiệu quả trên crm.thucduonglanh.vn.
 ---
 
@@ -35,6 +35,7 @@ Mã dùng được trong **10 phút**. Đăng nhập xong, máy nhớ bạn tron
 | **Đơn hàng** | Xác nhận, giao hàng, nhận tiền, sửa đơn, tạo đơn cho khách đặt qua Zalo hoặc điện thoại. |
 | **Khách hỏi** | Người **hỏi nhưng chưa mua** (số quảng cáo, trang nhận ebook, form web, nhắn Zalo hỏi giá): tư vấn để chốt đơn đầu tiên. Chốt đơn xong, khách tự sang tab Khách đã mua. |
 | **Hiệu quả** | Doanh số, mục tiêu tháng, kết quả chăm sóc của bạn. |
+| **Sàn** | Chỉ người phụ trách sàn thấy (Quản trị vào từ Tổng quan). Doanh thu Shopee, TikTok Shop và tải file đơn hàng từ sàn (xem mục *Sàn TMĐT* bên dưới). |
 | **Cài đặt** | Đăng xuất. Quản lý sửa chu kỳ dùng, mẫu tin nhắn, nhân sự ở đây. Trên điện thoại, Cài đặt là nút **⚙** ở thanh trên cùng. |
 
 - Trên điện thoại các tab nằm ở thanh dưới cùng; tab Khách đã mua ghi gọn là **Khách**.
@@ -403,8 +404,9 @@ Doanh số tính theo **Nhân viên bán** ghi trên từng đơn. Đơn khách 
 
 Tab đầu tiên trên menu, dành cho chủ doanh nghiệp. Bấm **📅 thời gian** để chọn kỳ; mỗi số tự so với kỳ trước.
 
+- **🎯 Mục tiêu tháng · cả văn phòng**: mục tiêu từng mảng (Sale, Website, Shopee, TikTok Shop…) và tổng văn phòng = cộng các mảng. Mỗi mảng có thanh tiến độ (vạch đen = hôm nay), trạng thái *Đúng tiến độ / Hơi chậm / Đang chậm*, mỗi ngày còn cần bao nhiêu, dự báo cả tháng. Bấm **🎯 Đặt mục tiêu** để nhập; ô Sale để trống = tổng mục tiêu các nhân viên. Trong cửa sổ có nút đặt trước cho tháng sau. Sale = đơn sale lên và chốt từ khách hỏi; Website = khách tự đặt trên web; sàn = số từ tab Sàn.
 - **Điểm cần chú ý**: vài dòng CRM tự rút ra (doanh thu tăng / giảm, kênh ra nhiều tiền nhất, trang khách vào nhưng bỏ đi nhanh…).
-- **Kinh doanh** (lấy từ CRM, mọi kênh): doanh thu, số đơn, giá trị trung bình / đơn, khách mua lần đầu, % doanh thu từ khách cũ, khách để lại SĐT (mỗi số điện thoại tính 1 lần trong kỳ; không tính khách cũ máy đồng bộ từ file sale).
+- **Kinh doanh** (đơn trong CRM: website, sale, khách hỏi; chưa gồm sàn): doanh thu, số đơn, giá trị trung bình / đơn, khách mua lần đầu, % doanh thu từ khách cũ, khách để lại SĐT (mỗi số điện thoại tính 1 lần trong kỳ; không tính khách cũ máy đồng bộ từ file sale).
 - **Website** (lấy từ Google Analytics): lượt truy cập, người xem, đơn đặt trên web, tỷ lệ ra đơn, % khách ở lại xem, thời gian xem.
 - **Theo ngày**, **Doanh thu theo kênh** (Website – nguồn / Sale / Khách hỏi), **Khách vào web từ đâu**, **Phễu mua hàng** (rơi nhiều nhất ở bước nào), **Khách liên hệ từ web** (bấm gọi, bấm Zalo, điền form), **Trang xem nhiều**, **Trang khách vào đầu tiên**, **Sản phẩm bán chạy**, **Khách hỏi theo kênh**.
 
@@ -415,7 +417,28 @@ Tab đầu tiên trên menu, dành cho chủ doanh nghiệp. Bấm **📅 thời
 - **✍️ Nhập tay**: KOL / KOC, in ấn, sự kiện… nhập số tiền cho 1 khoảng ngày, CRM chia đều theo ngày.
 - **📋 Đã nhập**: xem lại, xoá lần nhập sai.
 
+**🛒 Sàn TMĐT**: doanh thu, số đơn, tiền thực về, tỷ lệ huỷ / hoàn của Shopee, TikTok Shop. Bấm **Chi tiết sàn →** để mở tab Sàn.
+
 Số website chỉ đếm khách đã bấm “Đồng ý” cookie nên thấp hơn thực tế; số đơn và doanh thu thì đầy đủ. Muốn biết bài đăng / quảng cáo nào ra khách, luôn dùng link tạo ở [/admin/utm](https://thucduonglanh.vn/admin/utm).
+
+## Sàn TMĐT (Shopee, TikTok Shop)
+
+Đơn trên sàn không đi qua CRM, nên người phụ trách sàn **tải file đơn hàng từ sàn lên** để CRM tính doanh thu và so với mục tiêu. Tab **Sàn** chỉ hiện với người được Quản trị giao (Quản trị chọn ở tab Sàn → **👤 Người phụ trách sàn**; người được chọn mở lại CRM là thấy tab).
+
+**Mỗi ngày (hoặc 2–3 ngày 1 lần)**
+
+1. Trên Shopee: Kênh Người Bán → **Đơn hàng** → Tất cả → **Xuất** → chọn ngày đặt hàng **30 ngày gần nhất** → Tải về file .xlsx. TikTok Shop: Seller Center → **Đơn hàng → Quản lý đơn hàng** → **Xuất** → tải file.
+2. Vào CRM → tab **Sàn** → **📤 Tải file từ sàn** → chọn file. CRM tự nhận ra sàn, đọc file ngay trên máy và cho xem trước: bao nhiêu đơn, bao nhiêu huỷ / hoàn, doanh thu.
+3. Bấm **Nhập**.
+
+Tải lại đơn cũ không bị tính trùng: CRM nhận ra theo mã đơn và cập nhật trạng thái mới (đơn bị huỷ / hoàn sau đó sẽ được trừ). Vì vậy nên xuất luôn 30 ngày gần nhất, không chỉ hôm nay. Quá 3 ngày chưa tải file, CRM hiện dòng nhắc màu đỏ.
+
+**Cách CRM tính**
+
+- **Doanh thu sàn** = tiền hàng theo giá shop bán (đã trừ giảm giá của shop trên sản phẩm), tính theo **ngày khách đặt**. Không tính đơn huỷ, đơn hoàn, đơn chờ thanh toán; hoàn tiền 1 phần thì trừ phần đó.
+- **Tiền thực về**: Shopee có cột phí trong file đơn hàng nên CRM ước tính = doanh thu − voucher của shop − phí cố định, phí dịch vụ, phí thanh toán. Muốn có **số thật**, tải thêm file tiền về (Shopee: **Tài Chính → Doanh Thu → Đã thanh toán → Xuất**; TikTok: **Tài chính → Đối soát**) bằng cùng nút 📤. Số thật thay cho số ước tính và không bị file đơn sau ghi đè.
+- **📋 Các lần tải file**: xem lại, xoá lần tải nhầm.
+- File không đọc được: CRM báo các cột đang có. Chụp màn hình gửi Quản trị. File .xls đời cũ thì mở bằng Excel / Google Sheets rồi lưu lại thành .xlsx.
 
 ## Dành cho quản lý
 
