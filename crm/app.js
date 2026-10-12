@@ -4162,17 +4162,17 @@
       '<li>Tab <b>Hiệu quả</b>: đầu tháng bấm <b>🎯 Đặt mục tiêu</b> doanh số của mình. Thanh tiến độ cho biết đang nhanh hay chậm (vạch đen = hôm nay), và mỗi ngày cần bán thêm bao nhiêu. Bên dưới là doanh số, giá trị trung bình mỗi đơn, tỷ lệ chốt, phần doanh thu từ khách cũ và kết quả chăm sóc, so với kỳ trước. Bấm nút <b>📅</b> để chọn thời gian (hôm nay, 7 ngày, tháng trước hoặc tự chọn ngày).</li>' +
       '<li><b>Đơn chuyển khoản</b>: tiền về tài khoản thì mở đơn bấm <b>💳 Xác nhận đã nhận tiền</b>. Gửi hàng thì nhập <b>mã vận đơn</b>, đơn tự chuyển sang “Đang giao”.</li>' +
       '<li>Bạn chỉ thấy <b>khách mình phụ trách</b>. Gõ số của khách người khác đang phụ trách, CRM sẽ báo tên người đó. Muốn đổi người phụ trách thì nhờ quản lý chuyển.</li>' +
-      '<li>Nên bấm <b>📲 Kết nối Telegram</b> (ngay trên) để nhận riêng đơn mới và việc hằng ngày của mình.</li>' +
-      '<li><b>Màu thẻ khách</b>: trắng = khách mới, vàng = khách cũ, tím = ngoài giờ (tối / CN / lễ), xám = hoàn / bom. Bấm vào ô màu ở trang Khách hàng để lọc. Đổi màu hoặc tạo nhãn riêng ở mục 🎨 bên trên.</li>' +
+      '<li>Nên bấm <b>📲 Kết nối Telegram</b> (mục ngay dưới) để nhận riêng đơn mới và việc hằng ngày của mình.</li>' +
+      '<li><b>Màu thẻ khách</b>: trắng = khách mới, vàng = khách cũ, tím = ngoài giờ (tối / CN / lễ), xám = hoàn / bom. Bấm vào ô màu ở trang Khách hàng để lọc. Đổi màu hoặc tạo nhãn riêng ở mục 🎨 bên dưới.</li>' +
       '<li><b>☐ Khách đồng ý nhận ưu đãi</b> (trong hồ sơ): bấm khi khách đồng ý nhận tin khuyến mãi. Khách chưa đồng ý thì chỉ hỏi thăm, hướng dẫn dùng.</li>' +
       '<li>Nhãn <span class="age ok">💬 5 ngày chưa chăm sóc</span>: đếm từ lần gần nhất khách <b>có trả lời</b> (gọi không nghe máy thì vẫn đếm tiếp). <b>Xanh</b> ≤ 7 ngày · <b>Cam</b> 8–30 ngày · <b>Đỏ</b> trên 30 ngày, nên liên hệ lại.</li>' +
       '</ol><p style="margin:10px 0"><a class="btn" href="/huong-dan/crm/" target="_blank" rel="noopener">📖 Xem hướng dẫn đầy đủ</a></p><p class="small muted" style="margin:6px 0 0">Không chụp màn hình, không gửi danh sách khách ra ngoài: đây là dữ liệu cá nhân, pháp luật yêu cầu giữ kín (Nghị định 13/2023).</p></div>';
     h += '<p class="small muted set-intro">Bấm vào từng mục để mở. Dòng nhỏ dưới tên mục là đang cài thế nào; có <b>⚠️</b> là nên làm.</p>';
-    h += setSec('🙋 Của tôi', setGroup('acc', '👤 Tài khoản của tôi', esc(S.user.name) + ' · ' + esc(S.user.role), G.acc) +
-      setGroup('tg', '📲 Nhận thông báo qua Telegram', S.user.tg ? '✅ Đã kết nối' : '⚠️ Chưa kết nối · bấm để kết nối (30 giây)', G.tg) +
+    h += setSec('🙋 Của tôi', setGroup('guide', '📖 Hướng dẫn nhanh', 'Những điều cần biết khi dùng CRM hằng ngày', G.guide, true) +
+      setGroup('tg', '📲 Nhận thông báo qua Telegram', S.user.tg ? '✅ Đã kết nối' : '⚠️ Chưa kết nối · bấm để kết nối (30 giây)', G.tg, !S.user.tg) +
+      setGroup('acc', '👤 Tài khoản của tôi', esc(S.user.name) + ' · ' + esc(S.user.role), G.acc) +
       setGroup('lim', '🎯 Số khách chăm sóc mỗi ngày', 'Tối đa ' + dayLimit() + ' khách / ngày', G.lim) +
-      setGroup('color', '🎨 Màu thẻ khách & nhãn riêng', myTags().length ? myTags().length + ' nhãn riêng' : 'Đổi màu, tạo nhãn riêng', G.color) +
-      setGroup('guide', '📖 Hướng dẫn nhanh', 'Những điều cần biết khi dùng CRM hằng ngày', G.guide));
+      setGroup('color', '🎨 Màu thẻ khách & nhãn riêng', myTags().length ? myTags().length + ' nhãn riêng' : 'Đổi màu, tạo nhãn riêng', G.color));
     if (lvl() < 2) return h;
     var R = S.d.rules || {};
     G.rules = '<div class="box"><h3>⭐ Nhóm khách (VIP, Sắp mất)</h3><p class="hint" style="margin:0 0 10px">Máy tự xếp nhóm cho khách theo các mức dưới đây.</p>' +
@@ -4249,13 +4249,14 @@
   }
   /** Cài đặt: 1 nhóm (tiêu đề nhỏ + các mục thu gọn). */
   function setSec(title, body) { return '<section class="set-sec"><h2>' + title + '</h2>' + body + '</section>'; }
-  /** 1 mục cài đặt thu gọn: tên + dòng tóm tắt đang cài thế nào; bấm mở ra phần sửa. Mục đang mở được nhớ trên máy (localStorage set_open). */
-  function setGroup(k, title, line, body) {
+  /** 1 mục cài đặt thu gọn: tên + dòng tóm tắt đang cài thế nào; bấm mở ra phần sửa. Mở / đóng được nhớ trên máy (localStorage set_open: 1 mở, 0 đóng).
+   *  def = mở sẵn khi người dùng chưa từng bấm mục này (Hướng dẫn nhanh; Telegram khi chưa kết nối). */
+  function setGroup(k, title, line, body, def) {
     var o = S.f.setOpen || (S.f.setOpen = (function () { try { return JSON.parse(store('set_open') || '{}') || {}; } catch (e) { return {}; } })());
-    return '<details class="dash-more set-g" data-setk="' + k + '"' + (o[k] ? ' open' : '') + '><summary><b>' + title + '</b><span>' + line + '</span></summary><div class="dash-more-b">' + body + '</div></details>';
+    return '<details class="dash-more set-g" data-setk="' + k + '"' + (o[k] === 1 || (o[k] === undefined && def) ? ' open' : '') + '><summary><b>' + title + '</b><span>' + line + '</span></summary><div class="dash-more-b">' + body + '</div></details>';
   }
   function bindSettings() {
-    $$('details[data-setk]').forEach(function (d) { d.addEventListener('toggle', function () { var o = S.f.setOpen || (S.f.setOpen = {}), k = d.getAttribute('data-setk'); if (d.open) o[k] = 1; else delete o[k]; store('set_open', JSON.stringify(o)); }); });
+    $$('details[data-setk]').forEach(function (d) { d.addEventListener('toggle', function () { var o = S.f.setOpen || (S.f.setOpen = {}), k = d.getAttribute('data-setk'); o[k] = d.open ? 1 : 0; store('set_open', JSON.stringify(o)); }); });
     if ($('#dayLimSave')) $('#dayLimSave').onclick = function () { var n = Math.max(5, Math.min(200, parseInt($('#dayLim').value, 10) || DAY_LIMIT_DEF)); store('crm_daylimit', String(n)); toast('Mỗi ngày tối đa ' + n + ' khách ✓'); navBadges(); };
     $('#logout').onclick = function () { if (confirm('Đăng xuất khỏi CRM?')) logout(); };
     var syncTags = function () { $$('#tagRows [data-ti]').forEach(function (r) { var i = +r.getAttribute('data-ti'); $$('[data-tk]', r).forEach(function (x) { S.f.tags[i][x.getAttribute('data-tk')] = x.value; }); }); };
