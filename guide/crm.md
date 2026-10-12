@@ -37,7 +37,7 @@ Mã dùng được trong **10 phút**. Đăng nhập xong, máy nhớ bạn tron
 | **Hiệu quả** | Doanh số, mục tiêu tháng, kết quả chăm sóc của bạn. |
 | **Marketing** | Chỉ tài khoản quyền **Marketing** (và Quản trị, vào từ Tổng quan) thấy. Chi phí và hiệu quả quảng cáo từng kênh, data quảng cáo, chiến dịch (xem mục *Marketing* bên dưới). |
 | **Sàn** | Chỉ người phụ trách sàn thấy (Quản trị vào từ Tổng quan). Doanh thu Shopee, TikTok Shop và tải file đơn hàng từ sàn (xem mục *Sàn TMĐT* bên dưới). |
-| **Cài đặt** | Đăng xuất. Quản lý sửa chu kỳ dùng, mẫu tin nhắn, nhân sự ở đây. Trên điện thoại, Cài đặt là nút **⚙** ở thanh trên cùng. |
+| **Cài đặt** | Chia theo nhóm: *Của tôi* (tài khoản, Telegram, số khách mỗi ngày, màu thẻ, hướng dẫn nhanh) · *Nhân sự* · *Chia khách* · *Bán hàng & chăm sóc* (nhóm khách, chu kỳ dùng, mẫu tin, hoa hồng, ca tối) · *Kết nối & báo cáo*. Mỗi mục thu gọn 1 dòng ghi đang cài thế nào, có ⚠️ là nên làm; bấm vào để mở ra sửa. Nhân viên chỉ thấy nhóm *Của tôi*. Trên điện thoại, Cài đặt là nút **⚙** ở thanh trên cùng. |
 
 - Trên điện thoại các tab nằm ở thanh dưới cùng; tab Khách đã mua ghi gọn là **Khách**.
 - **Tab mở sẵn khi vào CRM:** nhân viên vào thẳng **Hôm nay**, quản lý vào **Hiệu quả**, quản trị vào **Tổng quan**. Bấm logo **CRM** góc trái để quay về tab này.
