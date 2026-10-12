@@ -1204,7 +1204,7 @@
   function monthStats() {
     var now = vnDate(Date.now()), ym = now.y * 12 + now.m, rev = 0, prev = 0, cnt = 0;
     S.d.orders.forEach(function (o) {
-      if (o.status === 'Huỷ' || !o.time) return; var x = vnDate(o.time), k = x.y * 12 + x.m;
+      if (isVoid(o.status) || !o.time) return; var x = vnDate(o.time), k = x.y * 12 + x.m; // bỏ đơn huỷ/hoàn – cùng cách tính với tab Hiệu quả
       if (k === ym) { rev += o.total; cnt++; } else if (k === ym - 1) prev += o.total;
     });
     var nc = 0, ret = 0;
