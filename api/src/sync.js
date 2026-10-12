@@ -53,8 +53,51 @@ function usDates(vals) {
   return ser >= 3 && txt >= 3 && big <= ser * 0.02;
 }
 function dateCtx(rows, m) { return { us: usDates(rows.map(r => cell(r, m, 'date'))) }; }
-/** Ngày trong mã đơn: tên + ngày + tháng + số thứ tự trong ngày ("Chang090601" = 09/06 đơn 01). */
-function codeDay(code) { const m = String(code || '').trim().match(/^[A-Za-z]+(\d{2})(\d{2})\d{1,3}$/); return m && +m[1] >= 1 && +m[1] <= 31 && +m[2] >= 1 && +m[2] <= 12 ? +m[1] + '/' + +m[2] : ''; }
+/** Ngày trong mã đơn: tên + ngày + tháng + số thứ tự trong ngày ("Chang090601" = 09/06 đơn 01). Tên có thể có dấu, dấu chấm, khoảng trắng
+ *  ("Lương 010401", "T.THUY240701"), sau số có thể có chữ ("Chang250401A", "THU120501 - 1 GAFO 500G"). 7 chữ số: ddMM + 3 số hoặc 0 + ddMM + 2 số
+ *  ("TUAN0141101"), hoặc gõ thừa số → trả mọi cách đọc hợp lệ [[ngày, tháng]]. */
+const CODE_RE = /^[\p{L}.\s]{2,16}?(\d{5,7})(?!\d)/u;
+function codeDays(code) {
+  const m = String(code || '').trim().match(CODE_RE); if (!m) return [];
+  const D = m[1], out = [];
+  for (const i of D.length === 7 ? [0, 1] : [0]) { const d = +D.substr(i, 2), mo = +D.substr(i + 2, 2); if (d >= 1 && d <= 31 && mo >= 1 && mo <= 12) out.push([d, mo]); }
+  return out;
+}
+function codeDay(code) { const c = codeDays(code)[0]; return c ? c[0] + '/' + c[1] : ''; }
+/** Ngày của từng dòng sheet đơn hàng. Có mã đơn đọc được ngày → ngày/tháng theo mã đơn (anh Sơn chọn 12/10/2026, mã do sale điền khi lên đơn).
+ *  Năm: ô ngày có năm (ô ngày thật / "30/9/2025") → năm làm ngày gần ô đó nhất; ô trống / không có năm → suy từ dưới lên (đơn mới ở dưới):
+ *  năm của các dòng bên dưới (`anchor`), ngày sau anchor quá 20 ngày thì lùi 1 năm.
+ *  Mã lệch ô ngày quá 45 ngày (1 trong 2 gõ nhầm): lấy bên nào gần các dòng xung quanh hơn (`far`).
+ *  Trả về [{ t, sw (ô bị đảo kiểu Mỹ), old (ngày theo ô như bản cũ), code (1 = ngày đổi theo mã), far }]. */
+function orderDates(rows, m) {
+  const ctx = dateCtx(rows, m), now = Date.now(), out = rows.map(r => {
+    const raw = cell(r, m, 'date'), code = String(cell(r, m, 'code') || '').trim(), t = toDate(raw, ctx, code);
+    const full = !!t && (isSerial(raw) || /^\s*\d{1,2}\/\d{1,2}\/\d{2,4}/.test(String(raw)) || /^\d{4}-\d{2}-\d{2}/.test(String(raw).trim()));
+    return { t, sw: ctx.sw, old: t, cds: codeDays(code), full };
+  });
+  const day = t => fmtDate(t, 'yyyyMMdd');
+  // anchor: ngày của các dòng bên dưới. 1 dòng gõ nhầm không được kéo lệch năm các dòng trên: ngày sớm hơn anchor quá 60 ngày
+  // chỉ nhận làm anchor khi 3 dòng liền nhau đều như vậy (sheet thật sự lùi về quá khứ).
+  let anchor = now + 2 * DAY, low = [];
+  const byAnchor = ([d, mo]) => { let y = vnYear(anchor), c = vnMs(y, mo, d); if (c > anchor + 20 * DAY) c = vnMs(--y, mo, d); if (c > now + 2 * DAY) c = vnMs(y - 1, mo, d); return c; };
+  const nearest = (L, ref) => L.slice().sort((a, b) => Math.abs(a - ref) - Math.abs(b - ref))[0];
+  for (let i = out.length - 1; i >= 0; i--) {
+    const o = out[i]; if (!o.cds.length && !o.t) continue;
+    let t = o.t;
+    if (o.cds.length) {
+      if (o.t) { // có ô ngày: mã gần ô ngày (≤ 45 ngày) → theo mã
+        const y0 = vnYear(o.t), c = nearest(o.cds.flatMap(([d, mo]) => [y0 - 1, y0, y0 + 1].map(y => vnMs(y, mo, d))), o.t);
+        if (Math.abs(c - o.t) <= 45 * DAY) t = o.full ? c : byAnchor(fmtDate(c, 'dd/MM').split('/').map(Number));
+        else { o.far = 1; const cand = o.cds.map(byAnchor).concat([o.full ? o.t : byAnchor(fmtDate(o.t, 'dd/MM').split('/').map(Number))]); t = nearest(cand, anchor); }
+      } else t = nearest(o.cds.map(byAnchor), anchor); // ô ngày trống
+    } else if (!o.full) t = byAnchor(fmtDate(o.t, 'dd/MM').split('/').map(Number));
+    if (!o.t || day(t) !== day(o.t)) { o.t = t; o.code = 1; o.byCode = o.cds.length > 0; }
+    if (o.t > now + 30 * DAY) { o.t = null; continue; }
+    if (o.t >= anchor - 60 * DAY) { anchor = Math.min(Math.max(o.t, anchor - 60 * DAY), now + 2 * DAY); low = []; }
+    else if (low.push(o.t) >= 3) { anchor = low[low.length - 1]; low = []; }
+  }
+  return out;
+}
 function codeNear(code, day, mon) { // ngày trong mã đơn cách ngày/tháng này ≤ 4 ngày (trong năm)
   const c = codeDay(code); if (!c) return false; const [d, m] = c.split('/').map(Number);
   return Math.abs(Date.UTC(2001, m - 1, d) - Date.UTC(2001, mon - 1, day)) <= 4 * DAY;
@@ -210,7 +253,7 @@ async function srcSync(x, u, d) {
   const data = await srcRows(x, src, shCfg), total = data.rows.length; let res;
   // tự nhập 25 phút/lần: sheet không đổi chữ nào so với lần trước → bỏ qua, không đọc / ghi máy chủ dữ liệu
   const auto = u.name === 'Tự động' && !d.dry, sigKey = 'ss_' + hashKey(src.id + '|' + shCfg.name);
-  const sig = auto ? await sha1('d2#' + src.sale + '#' + (src.cfg.until || '') + '#' + JSON.stringify(shCfg) + '#' + JSON.stringify(data.rows)) : '';
+  const sig = auto ? await sha1('d4#' + src.sale + '#' + (src.cfg.until || '') + '#' + JSON.stringify(shCfg) + '#' + JSON.stringify(data.rows)) : '';
   if (auto && await kvGet(x.db, sigKey) === sig) return { ok: true, role: shCfg.role, sheetName: shCfg.name, total, skipped: true, summary: 'không đổi' };
   if (!d.dry && (shCfg.role === 'orders' || shCfg.role === 'care')) { try { await notePhones(x, src, shCfg, data.rows); } catch (e) { console.error('notePhones', sale, shCfg.name, e.message); } }
   if (shCfg.role === 'orders') res = await importOrders(x, src, shCfg, data, !!d.dry);
@@ -231,18 +274,20 @@ async function ownersOf(x, phones) {
 
 /** Sheet đơn hàng ("lên đơn", "VTG_lendon"…). */
 async function importOrders(x, src, shCfg, data, dry) {
-  const m = shCfg.map || {}, ctx = dateCtx(data.rows, shCfg.map || {}), sale = src.sale, extra = (shCfg.extra || []).filter(i => i >= 0), H = data.headers, label = 'File ' + sale + ' – ' + shCfg.name, ca = await caCfg(x);
+  const m = shCfg.map || {}, sale = src.sale, extra = (shCfg.extra || []).filter(i => i >= 0), H = data.headers, label = 'File ' + sale + ' – ' + shCfg.name, ca = await caCfg(x);
   const until = src.cfg.until ? new Date(src.cfg.until + 'T00:00:00+07:00').getTime() : 0, FINAL = { 'Đã giao': 1, 'Hoàn': 1, 'Huỷ': 1, 'Đổi hàng': 1 };
-  const parsed = [];
+  const parsed = [], days = orderDates(data.rows, m), far = [];
   let skip = 0;
-  for (const r of data.rows) {
-    const phone = toPhone(cell(r, m, 'phone')), codeRaw = String(cell(r, m, 'code') || '').trim(), dRaw = cell(r, m, 'date'), product = String(cell(r, m, 'product') || '').trim(), amount = toMoney(cell(r, m, 'amount'));
-    const when = toDate(dRaw === '' && codeDay(codeRaw) ? codeDay(codeRaw) : dRaw, ctx, codeRaw), sw = ctx.sw; // ô ngày trống: lấy ngày trong mã đơn (12/10/2026: sheet VTG_lendon của Chang bỏ trống ngày 260 dòng)
+  for (const [ri, r] of data.rows.entries()) {
+    const phone = toPhone(cell(r, m, 'phone')), codeRaw = String(cell(r, m, 'code') || '').trim(), product = String(cell(r, m, 'product') || '').trim(), amount = toMoney(cell(r, m, 'amount'));
+    const D = days[ri], when = D.t, sw = D.sw || D.code; // ngày theo mã đơn (ô trống / lệch ô ngày); 12/10/2026: sheet VTG_lendon của Chang bỏ trống ngày 260 dòng
     if (!phone || !when || (!product && !amount)) { if (nonEmpty(r)) skip++; continue; }
-    const valid = /^[A-Za-z]{2,}\d{5,}/.test(codeRaw);
-    const hk = sale + '|' + fmtDate(when, 'yyyyMMdd') + '|' + phone + '|' + amount + '|' + nrm(product), nk = 'NK' + hashKey(hk), old = 'NK' + hashKeyLegacy(hk);
-    const key = valid ? codeRaw : nk, alt = valid ? [nk, old] : [old]; // alt: mã NK… cùng dòng (Apps Script cũ băm chữ có dấu thành "?"; sale điền mã đơn sau khi đã nhập)
-    parsed.push({ r, phone, when, sw, product, amount, codeRaw, valid, key, alt, yk: valid ? codeRaw + '-' + phone.slice(-4) : '', sig: phone + '|' + fmtDate(when, 'yyyyMMdd') + '|' + amount + '|' + nrm(product || cell(r, m, 'gift1')) });
+    if (D.far && far.length < 30) far.push({ row: ri + (shCfg.header || 1) + 1, code: codeRaw, date: fmtDate(D.old, 'dd/MM/yyyy') });
+    const valid = CODE_RE.test(codeRaw) || /^[A-Za-z]{2,}\d{5,}/.test(codeRaw);
+    const nkOf = t => { const hk = sale + '|' + fmtDate(t, 'yyyyMMdd') + '|' + phone + '|' + amount + '|' + nrm(product); return ['NK' + hashKey(hk), 'NK' + hashKeyLegacy(hk)]; };
+    const [nk, old] = nkOf(when), prev = D.old && fmtDate(D.old, 'yyyyMMdd') !== fmtDate(when, 'yyyyMMdd') ? nkOf(D.old) : [];
+    const key = valid ? codeRaw : nk, alt = (valid ? [nk, old] : [old]).concat(prev); // alt: mã NK… cùng dòng (Apps Script cũ băm chữ có dấu thành "?"; sale điền mã đơn sau khi đã nhập; ngày cũ theo ô trước khi lấy theo mã)
+    parsed.push({ r, phone, when, sw, dc: D.code && D.old ? (D.byCode ? 1 : 2) : 0, product, amount, codeRaw, valid, key, alt, yk: valid ? codeRaw + '-' + phone.slice(-4) : '', sig: phone + '|' + fmtDate(when, 'yyyyMMdd') + '|' + amount + '|' + nrm(product || cell(r, m, 'gift1')) });
   }
   const ex = {}; (await allIn(x.db, 'SELECT rid, id, status, source, name, phone, time, total, items FROM orders WHERE id IN (SELECT value FROM json_each(?))', [...new Set(parsed.flatMap(p => [p.key, p.yk].concat(p.alt)).filter(String))])).forEach(o => { ex[o.id] = o; });
   // Mã đơn không có năm → trùng giữa các năm / giữa các sheet ("Chang101001" năm 2025 và 2026 là 2 khách khác nhau). Mã đã thuộc đơn của khách khác
@@ -264,10 +309,15 @@ async function importOrders(x, src, shCfg, data, dry) {
     o.day = fmtDate(o.time, 'yyyyMMdd'); o.prod = prodOf(o.items); (pool[o.phone] = pool[o.phone] || []).push(o);
   });
   const take = (p, ok) => { const L = pool[p.phone] || [], i = L.findIndex(ok); return i < 0 ? null : L.splice(i, 1)[0]; };
+  // 1 đơn cũ chỉ cho 1 dòng nhận qua mã NK… (sale tách 1 lần mua thành nhiều dòng cùng ngày / tiền / sản phẩm, mỗi dòng 1 mã đơn: trước đây mã NK
+  // giống nhau nên chỉ nhập 1 đơn; nay mỗi mã 1 đơn, dòng thứ 2 trở đi là đơn mới). Dòng trùng hẳn mã đơn vẫn coi là 1 đơn.
+  const used = {};
+  parsed.forEach(p => { p.day = fmtDate(p.when, 'yyyyMMdd'); p.prod = nrm(p.product || cell(p.r, m, 'gift1')); if (ex[p.key]) { p.o = ex[p.key]; used[p.o.rid] = 1; } });
   parsed.forEach(p => {
-    p.day = fmtDate(p.when, 'yyyyMMdd'); p.prod = nrm(p.product || cell(p.r, m, 'gift1'));
-    const a = [p.key].concat(p.alt).find(k => ex[k]);
+    if (p.o) return;
+    const a = p.alt.find(k => ex[k] && !used[ex[k].rid]);
     p.o = a ? ex[a] : take(p, o => o.day === p.day && o.total === p.amount && o.prod === p.prod); // khớp hẳn (mã băm cũ, đổi tên nhân sự…)
+    if (p.o) used[p.o.rid] = 1;
   });
   // Lượt 2: dòng chưa ghép (dòng mới, hoặc dòng đã sửa) nhận đơn NK… còn thừa của cùng SĐT, giống nhất trước
   const rest = parsed.filter(p => !p.o && !gone[p.key] && !p.alt.some(k => gone[k]));
@@ -295,7 +345,7 @@ async function importOrders(x, src, shCfg, data, dry) {
       const st1 = mapStatus(cell(r, m, 'status'), when), cur = ex[key];
       if (String(cur.source || '').indexOf('File ') === 0 && (p.edited || chkIds.indexOf(cur.id) >= 0) && !handEdit[cur.id] && !seen['c' + cur.rid]) {
         seen['c' + cur.rid] = 1; const amt = amount || Number(cur.total) || 0, items = rowItems(r, product, amt); // ô tiền trống: giữ số tiền cũ
-        chg.push({ why: p.sw ? 'Ngày trong file ' + shCfg.name + ' bị đảo ngày/tháng (định dạng Mỹ)' : String(cur.source || '').endsWith(' – ' + shCfg.name) ? '' : 'Mã đơn trùng với dòng sheet khác (' + String(cur.source).replace(/^File .* – /, '') + ')', rid: cur.rid, time: when, total: amt, subtotal: amt, items: itemsText(items), line: normLine(cell(r, m, 'line'), product), ship: String(cell(r, m, 'shipText') || '').trim() || shipText(items), name: cur.name, id: key, from: fmtDate(cur.time, 'dd/MM') + ' ' + (Number(cur.total) || 0).toLocaleString('vi-VN') + 'đ ' + String(cur.items || '').split('\n')[0].replace(/\s+x\d+\s*=.*$/, ''), to: fmtDate(when, 'dd/MM') + ' ' + amt.toLocaleString('vi-VN') + 'đ ' + product });
+        chg.push({ why: p.dc === 1 ? 'Ngày theo mã đơn ' + p.codeRaw + ' (file ' + shCfg.name + ')' : p.dc === 2 ? 'Năm của ngày ' + fmtDate(when, 'dd/MM') + ' suy theo các dòng xung quanh (file ' + shCfg.name + ')' : p.sw ? 'Ngày trong file ' + shCfg.name + ' bị đảo ngày/tháng (định dạng Mỹ)' : String(cur.source || '').endsWith(' – ' + shCfg.name) ? '' : 'Mã đơn trùng với dòng sheet khác (' + String(cur.source).replace(/^File .* – /, '') + ')', rid: cur.rid, time: when, total: amt, subtotal: amt, items: itemsText(items), line: normLine(cell(r, m, 'line'), product), ship: String(cell(r, m, 'shipText') || '').trim() || shipText(items), name: cur.name, id: key, from: fmtDate(cur.time, 'dd/MM') + ' ' + (Number(cur.total) || 0).toLocaleString('vi-VN') + 'đ ' + String(cur.items || '').split('\n')[0].replace(/\s+x\d+\s*=.*$/, ''), to: fmtDate(when, 'dd/MM') + ' ' + amt.toLocaleString('vi-VN') + 'đ ' + product });
         chgPh[phone] = 1;
       }
       if (String(cur.source || '').indexOf('File ') === 0 && st1 !== cur.status && FINAL[st1]) {
@@ -332,12 +382,16 @@ async function importOrders(x, src, shCfg, data, dry) {
   }
   // Đơn NK… của sheet này (30 ngày gần đây) không còn dòng nào trong file nhận, mà cùng SĐT có dòng khác cách ≤ 3 ngày: bản cũ của dòng đã sửa (nhập trước khi có lượt 2) → xoá cho khỏi tính 2 lần
   const orphan = []; Object.keys(pool).forEach(ph => pool[ph].forEach(o => { if (o.time > Date.now() - 30 * DAY && parsed.some(p => p.phone === ph && Math.abs(p.when - o.time) <= 3 * DAY && (!p.o || p.o.rid !== o.rid))) orphan.push(o); }));
-  const summary = out.length + ' đơn mới, ' + dup + ' đã có' + (upd.length ? ' (' + upd.length + ' cập nhật trạng thái)' : '') + (ren.length ? ', ' + ren.length + ' đơn nhận mã đơn mới' : '') + (chg.length ? ', ' + chg.length + ' đơn sửa theo file' : '') + (orphan.length ? ', xoá ' + orphan.length + ' đơn trùng' : '') + (afterCut ? ', ' + afterCut + ' đơn sau ngày chốt bỏ qua' : '') + ', ' + skip + ' dòng bỏ qua';
-  const res = { updated: upd.length, renamed: ren.length, changed: chg.length, removed: orphan.length, afterCut, rows: data.rows.length, newOrders: out.length, dup, skip, customers: Object.keys(phones).length, newCustomers: newCus, conflicts: conflicts.slice(0, 50), conflictCount: conflicts.length, revenue, from: minD, to: maxD, summary };
+  const summary = out.length + ' đơn mới, ' + dup + ' đã có' + (upd.length ? ' (' + upd.length + ' cập nhật trạng thái)' : '') + (ren.length ? ', ' + ren.length + ' đơn nhận mã đơn mới' : '') + (chg.length ? ', ' + chg.length + ' đơn sửa theo file' : '') + (orphan.length ? ', xoá ' + orphan.length + ' đơn trùng' : '') + (afterCut ? ', ' + afterCut + ' đơn sau ngày chốt bỏ qua' : '') + ', ' + skip + ' dòng bỏ qua' + (far.length ? ', ' + far.length + ' mã đơn lệch ô ngày quá 45 ngày (lấy theo mã)' : '');
+  const res = { updated: upd.length, renamed: ren.length, changed: chg.length, removed: orphan.length, afterCut, rows: data.rows.length, newOrders: out.length, dup, skip, customers: Object.keys(phones).length, newCustomers: newCus, conflicts: conflicts.slice(0, 50), conflictCount: conflicts.length, revenue, from: minD, to: maxD, far, summary };
   if (dry || (!out.length && !upd.length && !ren.length && !chg.length && !orphan.length)) return res;
-  for (const v of ren) { await run(x.db, 'UPDATE orders SET id = ? WHERE rid = ?', v.to, v.rid); await run(x.db, 'UPDATE logs SET ref = ? WHERE ref = ?', v.to, v.from); }
+  for (let i = 0; i < ren.length; i += 300) { // gộp: lần đầu đọc mã có dấu / khoảng trắng ("Lương 010401") → hàng trăm đơn đổi mã 1 lượt
+    const part = JSON.stringify(ren.slice(i, i + 300));
+    await run(x.db, "UPDATE orders SET id = json_extract(j.value, '$.to') FROM json_each(?) j WHERE orders.rid = json_extract(j.value, '$.rid')", part);
+    await run(x.db, "UPDATE logs SET ref = json_extract(j.value, '$.to') FROM json_each(?) j WHERE logs.ref = json_extract(j.value, '$.from')", part);
+  }
   for (let i = 0; i < chg.length; i += 200) await run(x.db, "UPDATE orders SET time = json_extract(j.value, '$.time'), total = json_extract(j.value, '$.total'), subtotal = json_extract(j.value, '$.subtotal'), items = json_extract(j.value, '$.items'), line = json_extract(j.value, '$.line'), ship = json_extract(j.value, '$.ship') FROM json_each(?) j WHERE orders.rid = json_extract(j.value, '$.rid')", JSON.stringify(chg.slice(i, i + 200)));
-  for (const c of chg) await crmLog(x, { name: FILE_BY }, 'Đơn hàng', c.id, c.name, 'Sửa theo file: ' + c.from + ' → ' + c.to, c.why || 'Sale sửa dòng trong file ' + shCfg.name);
+  const now0 = Date.now(); await insertMany(x.db, 'logs', ['time', 'by_name', 'what', 'ref', 'name', 'result', 'note'], chg.map(c => ({ time: now0, by_name: FILE_BY, what: 'Đơn hàng', ref: String(c.id), name: c.name || '', result: 'Sửa theo file: ' + c.from + ' → ' + c.to, note: c.why || 'Sale sửa dòng trong file ' + shCfg.name })));
   if (orphan.length) {
     await run(x.db, 'DELETE FROM orders WHERE rid IN (SELECT value FROM json_each(?))', JSON.stringify(orphan.map(o => o.rid)));
     await delMark(x, orphan, []);
@@ -679,7 +733,7 @@ async function dupSet(x, u, d) {
 }
 
 export { srcSync };
-export const SRC_UTIL = { toPhone, toDate, usDates, codeDay, toMoney, splitNote, neededCols, colLetter }; // cho wb.js (ghi ngược file sale)
+export const SRC_UTIL = { toPhone, toDate, usDates, codeDay, orderDates, toMoney, splitNote, neededCols, colLetter }; // cho wb.js (ghi ngược file sale)
 export const DUPS = { dups: x => dupList(x), dup_scan: dupScan, dup_set: dupSet };
 
 export const SYNC = {
