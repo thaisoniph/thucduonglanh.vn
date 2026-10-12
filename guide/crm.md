@@ -35,6 +35,7 @@ Mã dùng được trong **10 phút**. Đăng nhập xong, máy nhớ bạn tron
 | **Đơn hàng** | Xác nhận, giao hàng, nhận tiền, sửa đơn, tạo đơn cho khách đặt qua Zalo hoặc điện thoại. |
 | **Khách hỏi** | Người **hỏi nhưng chưa mua** (số quảng cáo, trang nhận ebook, form web, nhắn Zalo hỏi giá): tư vấn để chốt đơn đầu tiên. Chốt đơn xong, khách tự sang tab Khách đã mua. |
 | **Hiệu quả** | Doanh số, mục tiêu tháng, kết quả chăm sóc của bạn. |
+| **Marketing** | Chỉ tài khoản quyền **Marketing** (và Quản trị, vào từ Tổng quan) thấy. Chi phí và hiệu quả quảng cáo từng kênh, data quảng cáo, chiến dịch (xem mục *Marketing* bên dưới). |
 | **Sàn** | Chỉ người phụ trách sàn thấy (Quản trị vào từ Tổng quan). Doanh thu Shopee, TikTok Shop và tải file đơn hàng từ sàn (xem mục *Sàn TMĐT* bên dưới). |
 | **Cài đặt** | Đăng xuất. Quản lý sửa chu kỳ dùng, mẫu tin nhắn, nhân sự ở đây. Trên điện thoại, Cài đặt là nút **⚙** ở thanh trên cùng. |
 
@@ -437,6 +438,22 @@ Tab đầu tiên trên menu, dành cho chủ doanh nghiệp. Bấm **📅 thời
 **🛒 Sàn TMĐT**: doanh thu, số đơn, tiền thực về, tỷ lệ huỷ / hoàn của Shopee, TikTok Shop. Bấm **Chi tiết sàn →** để mở tab Sàn.
 
 Số website chỉ đếm khách đã bấm “Đồng ý” cookie nên thấp hơn thực tế; số đơn và doanh thu thì đầy đủ. Muốn biết bài đăng / quảng cáo nào ra khách, luôn dùng link tạo ở [/admin/utm](https://thucduonglanh.vn/admin/utm).
+
+## Marketing (bộ phận marketing)
+
+**Thêm người:** Quản trị vào **Cài đặt → Nhân sự được vào CRM → ＋ Thêm người**, nhập email, chọn quyền **Marketing** → **Lưu nhân sự**. Người đó đăng nhập bằng mã gửi về email như các bạn sale. Nghỉ việc thì bỏ tích *Đang dùng*.
+
+**Tài khoản Marketing chỉ thấy tab 📣 Marketing**, không thấy khách, đơn, số điện thoại hay doanh thu toàn công ty. Máy chủ tính sẵn và chỉ gửi con số tổng (Nghị định 13/2023). Tài khoản này không được giao khách, không có trong bảng hiệu quả của sale.
+
+**Trong tab Marketing:**
+
+- **4 ô lớn:** 💸 chi phí quảng cáo · 💰 tiền khách mới mua (chỉ khách đến từ kênh có chạy quảng cáo) · 🚦 chi phí ÷ tiền khách mới, có đèn xanh / cam / đỏ theo mức Quản trị đặt ở Cài đặt · 📇 số data quảng cáo, chi phí mỗi data, % data ra đơn.
+- **📌 Cần chú ý:** kênh đã chi tiền mà chưa có khách mới, kênh vượt mức đỏ, kênh hiệu quả nhất nên dồn tiền, tỷ lệ số rác cao.
+- **Hiệu quả từng kênh**, **Data quảng cáo** (số mới, khách cũ, ra đơn, không mua, số rác, đang tư vấn), **Chi phí theo ngày**, **Chiến dịch tốn nhiều nhất**.
+- **⚙️ Nhập chi phí:** marketing tự nhập file CSV (TikTok, Google Ads…) hoặc nhập tay (KOL / KOC, in ấn…), xem lại và xoá lần nhập sai. Facebook tự cập nhật, kết nối mã Facebook chỉ Quản trị làm.
+- Số tính lại 30 phút 1 lần; bấm **↻** để tính lại ngay.
+
+Số ở tab Marketing khớp với mục 📣 ở Tổng quan theo từng kênh. Riêng ô *tiền khách mới* ở tab Marketing chỉ cộng kênh có chạy quảng cáo, còn Tổng quan cộng mọi khách mới.
 
 ## Sàn TMĐT (Shopee, TikTok Shop)
 

@@ -190,7 +190,7 @@ async function mktDel(x, d) {
 }
 
 export async function crmMkt(x, u, d) {
-  if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị xem / sửa được chi phí marketing.' };
+  if (u.level < 3 && !(u.role === 'Marketing' && /^mkt_(import|add|list|del)$/.test(d.action))) return { ok: false, error: 'Chỉ Quản trị xem / sửa được chi phí marketing.' }; // Marketing: tự nhập chi phí (file / nhập tay), không đụng mã Facebook
   switch (d.action) {
     case 'mkt': return mktLoad(x, d);
     case 'mkt_fb': return mktFb(x, d);

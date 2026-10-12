@@ -3,6 +3,7 @@ import { normPhone, nrm, esc, fmt, startOfDay, TZ_MS, fmtDate, dateOrBlank, slug
 import { sendMail, telegram, telegramTo, telegramPhoto, tgUpdates, tgConf, bridge } from './google.js';
 import { crmGa, crmGaProp } from './ga.js';
 import { crmMkt } from './mkt.js';
+import { mktView } from './mktv.js';
 import { crmSan, sanSchema, sanAllowed } from './san.js';
 import { wbQueue, wbOrderQueue, wbStatusQueue, WB_SHORT } from './wb.js';
 
@@ -99,7 +100,7 @@ export async function ensureSchema(db) {
 }
 
 export const SUPER_ADMIN = 'thaisoniph@gmail.com'; // luôn có quyền Quản trị
-const ROLES = { 'Quản trị': 3, 'Quản lý': 2, 'Nhân viên': 1 };
+const ROLES = { 'Quản trị': 3, 'Quản lý': 2, 'Nhân viên': 1, 'Marketing': 0 }; // Marketing: chỉ thấy tab 📣 Marketing (MKT_ACTIONS), không thấy khách / đơn / doanh thu công ty
 const BOT_USERNAME = 'thucduonglanh_donhang_bot';
 const ASSIGN_MODES = { auto: 'Tự chia đều', manager: 'Quản lý giao tay', pool: 'Kho chung' };
 const SESSION_DAYS = 30;
@@ -178,7 +179,7 @@ const USERS_SQL = 'SELECT * FROM users ORDER BY ord, rowid';
 function usersFrom(x, rows) {
   const list = rows.map(r => {
     const e = String(r.email || '').trim().toLowerCase(), role = ROLES[r.role] ? r.role : 'Nhân viên';
-    return { email: e, name: String(r.name || e.split('@')[0]).trim(), role, active: !!r.active, recv: String(r.recv || '').trim() === '' ? role === 'Nhân viên' : !no(r.recv), tg: String(r.tg || '').trim(), alias: String(r.alias || '').trim(), prefix: String(r.prefix || '').trim() };
+    return { email: e, name: String(r.name || e.split('@')[0]).trim(), role, active: !!r.active, recv: role === 'Marketing' ? false : String(r.recv || '').trim() === '' ? role === 'Nhân viên' : !no(r.recv), tg: String(r.tg || '').trim(), alias: String(r.alias || '').trim(), prefix: String(r.prefix || '').trim() };
   }).filter(u => /@/.test(u.email));
   const sa = list.find(u => u.email === SUPER_ADMIN);
   if (!sa) list.unshift({ email: SUPER_ADMIN, name: 'Thái Sơn', role: 'Quản trị', active: true, recv: false, tg: '', alias: '', prefix: '' });
@@ -430,10 +431,10 @@ async function loadSmall(x, u, R, mode, adV) {
   ]); smallQ.catch(() => { });
   const users = (await crmUsers(x)).filter(y => y.active || u.level >= 3).map(y => u.level >= 3 ? { email: y.email, name: y.name, role: y.role, active: y.active, recv: y.recv, tg: !!y.tg, alias: y.alias, prefix: y.prefix || slugName(y.name) } : u.level >= 2 ? { name: y.name, role: y.role, recv: y.recv, tg: !!y.tg } : { name: y.name, role: y.role });
   const adsP = adRowsOf(x, u, adV); adsP.catch(() => { });
-  const areasP = u.level < 2 ? areaStats(x) : Promise.resolve(undefined); areasP.catch(() => { }); // quản lý đã có đủ khách → máy tự đếm
+  const areasP = u.level === 1 ? areaStats(x) : Promise.resolve(undefined); areasP.catch(() => { }); // quản lý đã có đủ khách → máy tự đếm
   const [ca, fbNew, prefs, tagColors, sources, ads, commission, sanOk, dash] = await Promise.all([caCfg(x), // hỏi song song: mỗi lần hỏi máy chủ dữ liệu mất một nhịp
     u.level >= 2 ? first(x.db, "SELECT count(*) AS n FROM feedback WHERE status = 'Mới'").then(r => (r || {}).n || 0) : 0,
-    prefsOf(x, u.email), allTagColors(x), u.level >= 3 ? srcList(x) : [], u.level >= 3 ? adsCfg(x) : null, kvJson(x.db, 'commission_cfg', {}).then(r => r || {}), sanAllowed(x, u).catch(() => false), u.level >= 3 ? kvJson(x.db, 'dash_cfg', {}).then(r => r || {}) : null]);
+    prefsOf(x, u.email), allTagColors(x), u.level >= 3 ? srcList(x) : [], u.level >= 3 ? adsCfg(x) : null, kvJson(x.db, 'commission_cfg', {}).then(r => r || {}), sanAllowed(x, u).catch(() => false), u.level >= 3 || u.role === 'Marketing' ? kvJson(x.db, 'dash_cfg', {}).then(r => r || {}) : null]);
   const [ct, tg, cy, tp] = (await smallQ).map(r => r.results || []), ar = await adsP, areas = await areasP.catch(() => undefined);
   return {
     ok: true, user: publicUser(u), areas, sanOk, now: Date.now(), today: startOfDay(Date.now()), fbNew, users, prefs, tagColors, sources, ads, adV: ar.v, adRows: ar.rows,
@@ -449,6 +450,10 @@ async function loadSmall(x, u, R, mode, adV) {
  * Không có d.part (CRM bản cũ): tải 1 lần đủ hết. */
 async function crmLoad(x, u, d) {
   d = d || {};
+  if (u.role === 'Marketing') { // chỉ phần khung (tên, cài đặt màu…), không 1 dòng khách / đơn / khách hỏi / nhật ký nào
+    const [R0, mode0] = await Promise.all([rulesCfg(x), assignMode(x)]), s0 = await loadSmall(x, u, R0, mode0, '');
+    return Object.assign(s0, { today: startOfDay(Date.now()), customers: [], orders: [], leads: [], log: [], contacts: [], targets: [], users: [], sources: [], areas: undefined, ads: null, adRows: [], adV: '', fbNew: 0, sanOk: false, sv: 0, lr: 0 });
+  }
   if (d.part === 'delta') return crmDelta(x, u, d);
   const today = startOfDay(Date.now()), staff = u.level < 2, part = d.part === 'core' || d.part === 'rest' ? d.part : '';
   const [R, mode] = await Promise.all([rulesCfg(x), assignMode(x)]); // hỏi song song cho nhanh
@@ -543,7 +548,7 @@ async function crmRace(x, u) {
     all(x.db, `SELECT o.seller, o.time, o.total, o.phone, c.first FROM orders o LEFT JOIN customers c ON c.phone = o.phone WHERE o.time >= ? AND ${VOID.replace(/status/g, 'o.status')}`, from),
     all(x.db, "SELECT owner, time, status, reason, order_id FROM leads WHERE time >= ? AND owner != ''", Math.min(w0, m0)),
     all(x.db, 'SELECT name, amount FROM targets WHERE month = ?', mk)]);
-  const us = (await crmUsers(x)).filter(v => v.active && v.level < 3), names = us.map(v => v.name), tgt = {}; tg.forEach(t => { tgt[t.name] = Number(t.amount) || 0; });
+  const us = (await crmUsers(x)).filter(v => v.active && v.level >= 1 && v.level < 3), names = us.map(v => v.name), tgt = {}; tg.forEach(t => { tgt[t.name] = Number(t.amount) || 0; });
   const sum = (a, b, n) => os.filter(o => o.time >= a && o.time < b && (!n || o.seller === n)).reduce((s, o) => s + (Number(o.total) || 0), 0);
   const period = (a, b, pa, pb, minLead) => {
     const rows = names.map(n => {
@@ -1372,7 +1377,7 @@ export async function usageAlert(x) {
   const now = Date.now(), vn = new Date(now + 7 * 3600e3);
   const monday = vn.getUTCDay() === 1;
   const r = await usageData(x, 7), today = r.today;
-  const staff = r.people.filter(p => p.level < 3);
+  const staff = r.people.filter(p => p.level >= 1 && p.level < 3); // không tính Quản trị, Marketing
   if (!staff.length) return;
   const ago = t => t ? Math.round((today - startOfDay(t)) / DAY) : null;
   const idle = staff.filter(p => { const a = ago(p.lastSeen); return a === null || a >= USE_IDLE_DAYS; });
@@ -1463,6 +1468,8 @@ async function crmFbUpdate(x, u, d) {
 }
 
 /* ================================================================ điều phối */
+/** Việc tài khoản Marketing được làm: xem tab Marketing, nhập chi phí (file / nhập tay), góp ý, Telegram, cài đặt màu, đo tốc độ. Mọi việc khác máy chủ từ chối. */
+const MKT_ACTIONS = { load: 1, mktv: 1, mkt_import: 1, mkt_add: 1, mkt_list: 1, mkt_del: 1, prefs: 1, tg_link: 1, tg_check: 1, tg_off: 1, perf: 1, usage: 1, feedback: 1, fb_list: 1, fb_img: 1 };
 export async function crmApi(x, d, sync, mgr) {
   await ensureSchema(x.db);
   const a = d.action;
@@ -1472,7 +1479,9 @@ export async function crmApi(x, d, sync, mgr) {
   if (!u) return { ok: false, auth: true, error: 'Phiên đăng nhập đã hết. Vui lòng đăng nhập lại.' };
   x.user = u;
   if (a === 'logout') { await run(x.db, 'DELETE FROM sessions WHERE token = ?', d.token); return { ok: true }; }
+  if (u.role === 'Marketing' && !MKT_ACTIONS[a]) return { ok: false, error: 'Tài khoản Marketing chỉ xem được phần quảng cáo.' };
   if (a === 'load') return crmLoad(x, u, d);
+  if (a === 'mktv') return u.level >= 3 || u.role === 'Marketing' ? mktView(x, u, d) : { ok: false, error: 'Chỉ Marketing và Quản trị xem được mục này.' };
   if (a === 'order_create') return crmOrderCreate(x, u, d);
   if (a === 'check_phone') return crmCheckPhone(x, u, d);
   if (a === 'cust_orders') return crmCustOrders(x, u, d);
