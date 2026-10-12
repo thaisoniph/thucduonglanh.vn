@@ -952,7 +952,7 @@
       (q.rest ? '<p class="small muted" style="margin:8px 0 0">Còn ' + q.rest + ' khách để các ngày sau (tối đa ' + dayLimit() + ' khách/ngày, đổi ở <a href="#cai-dat">Cài đặt</a>).</p>' : '') +
       '<button class="btn block" data-daily="' + esc(lvl() >= 2 ? wn || '' : S.user.name) + '" style="margin-top:8px">📋 Báo cáo cuối ngày (gửi Zalo)</button></section>';
     if (lvl() < 2) h += myGoalToday(); // nhân viên: mục tiêu tháng + tiến độ ngay đầu trang để mỗi ngày nhìn thấy
-    if (lvl() < 2) h += raceBlock(); // bảng thi đua: Top 3 + hạng của mình
+    h += raceBlock(); // bảng thi đua: Top 3 + hạng của mình (quản lý thấy cả bảng, kể cả khi đang lọc 1 nhân viên)
     h += '<div class="minis' + (lvl() < 2 ? ' m3' : '') + '">' + mini('🧾 Đơn mới', no.length, '#don-hang', no.length ? 'warn' : '') + mini('🙋 Khách hỏi', hot.length + ld.length, '#tiem-nang', hot.length + ld.length ? 'bad' : '') + mini('✅ Đã làm', doneToday.length, '', '') + (lvl() < 2 ? '' : miniGoal()) + '</div>';
     if (lvl() >= 2 && wn) {
       var pm = perf(wn, monthRange(monthOf(Date.now())));
@@ -964,7 +964,7 @@
         kpi('Khách mới tháng ' + m.month, m.newCus, '', '', m.returning + ' khách mua lại') + '</div>';
     }
 
-    if (lvl() >= 2 && !wn) h += teamBlock() + raceBlock() + waitingBlock(); // đang xem 1 nhân viên → ẩn khách chưa ai phụ trách
+    if (lvl() >= 2 && !wn) h += teamBlock() + waitingBlock(); // đang xem 1 nhân viên → ẩn khách chưa ai phụ trách
     // Mở tab lần đầu: chỉ mục cần gọi đầu tiên mở sẵn (và chỉ hiện vài khách), các mục khác gập lại – sale tự bấm mở khi tới lượt
     var go = S.f.gopen || {}, firstG = true;
     var grp = function (k, title, n, tip, body, cls) { var op = k in go ? go[k] : firstG; firstG = false; return '<details class="grp" data-grp="' + k + '"' + (op ? ' open' : '') + '><summary><span class="g-t">' + title + '</span><span class="count">' + n + '</span>' + (tip ? '<span class="g-tip">' + tip + '</span>' : '') + '</summary><div class="' + cls + '">' + body + '</div></details>'; };
@@ -1073,7 +1073,7 @@
     var c = S.race;
     if ((!c || Date.now() - c.at > 600e3) && !S.raceBusy) {
       S.raceBusy = true;
-      api('race', {}).then(function (j) { S.race = { at: Date.now(), d: j }; }, function () { S.race = { at: Date.now(), d: null }; })
+      api('race', {}).then(function (j) { S.race = { at: Date.now(), d: j }; }, function (e) { S.race = { at: Date.now(), d: { ok: false, error: e && e.message } }; })
         .then(function () { S.raceBusy = false; if (route().view === 'hom-nay' && !$('.modal')) render(); });
     }
     return c ? c.d : undefined;
@@ -1093,7 +1093,7 @@
   }
   function raceBlock() {
     var d = raceGet();
-    if (d === null || (d && !d.ok)) return '';
+    if (d === null || (d && !d.ok)) return '<section class="race-box"><div class="race-h"><b>🏁 Bảng thi đua</b><button class="btn sm" data-race="retry">🔄 Thử lại</button></div><p class="small muted">Chưa tải được bảng thi đua' + (d && d.error ? ' (' + esc(d.error) + ')' : '') + '. Bấm Thử lại sau ít phút.</p></section>';
     if (!d) return '<section class="race-box"><div class="race-h"><b>🏁 Bảng thi đua</b></div><p class="small muted">Đang tải…</p></section>';
     var wk = (S.f.race || 'week') === 'week', P = wk ? d.week : d.month, t = d.team;
     var tb = '';
@@ -5051,7 +5051,7 @@
     if (t.hasAttribute('data-pq')) { var pq = a('data-pq').split('|'); S.f[pq[0]].p = { k: pq[1] }; if (pq[0] === 'o') S.f.o.n = 60; render(); return; }
     if (t.hasAttribute('data-tf')) { S.f.t.k = a('data-tf'); S.f.t.n = 60; if ($('#tList')) renderLeadsPart(); else render(); return; }
     if (t.hasAttribute('data-who')) { setWho(a('data-who') === 'team' ? '' : a('data-who')); window.scrollTo(0, 0); return; }
-    if (t.hasAttribute('data-race')) { S.f.race = a('data-race'); render(); return; }
+    if (t.hasAttribute('data-race')) { if (a('data-race') === 'retry') S.race = null; else S.f.race = a('data-race'); render(); return; }
     if (t.hasAttribute('data-target')) { var tg = a('data-target').split('|'); openTarget(tg[0], tg[1]); return; }
     if (t.hasAttribute('data-myold')) { e.preventDefault(); if (lvl() >= 2) { S.who = S.user.name; store('crm_who', S.who); } S.f.c = { q: '', k: 'all', sort: 'age', n: 60 }; location.hash = '#khach-hang'; return; }
     if (t.hasAttribute('data-more')) {
