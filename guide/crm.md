@@ -405,7 +405,7 @@ Doanh số tính theo **Nhân viên bán** ghi trên từng đơn. Đơn khách 
 
 ## Tổng quan (chỉ Quản trị)
 
-Tab đầu tiên trên menu, dành cho chủ doanh nghiệp. Bấm **📅 thời gian** để chọn kỳ; mỗi số tự so với kỳ trước.
+Tab đầu tiên trên menu, dành cho chủ doanh nghiệp. **Chọn thời gian 1 chạm** ở hàng nút trên cùng (trên điện thoại vuốt ngang): *Hôm nay · Hôm qua · Tuần này · Tháng này · Tháng trước · Quý này · Năm nay*, hoặc **📅 Khác** để tự chọn ngày. Dòng nhỏ bên dưới ghi ngày cụ thể và đang so với kỳ nào: tuần / tháng / quý đang chạy so với **cùng số ngày** của kỳ trước (vd 1–12/10 so với 1–12/9), cho công bằng. *Năm nay* chưa so với năm trước vì CRM chỉ giữ đơn 13 tháng gần nhất. Tab Marketing có cùng hàng nút này.
 
 **Màn hình đầu: nhìn 5 giây là nắm được tình hình**
 

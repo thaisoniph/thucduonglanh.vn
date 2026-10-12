@@ -85,7 +85,7 @@
     return null;
   }
   function money(n) { return (Number(n) || 0).toLocaleString('vi-VN') + 'đ'; }
-  function moneyShort(n) { n = Number(n) || 0; if (n >= 1e9) return (n / 1e9).toFixed(1).replace('.0', '') + ' tỷ'; if (n >= 1e6) return (n / 1e6).toFixed(1).replace('.0', '').replace('.', ',') + ' tr'; return money(n); }
+  function moneyShort(n) { n = Number(n) || 0; if (n >= 1e9) return (n / 1e9).toFixed(1).replace('.0', '').replace('.', ',') + ' tỷ'; if (n >= 1e6) return (n / 1e6).toFixed(1).replace('.0', '').replace('.', ',') + ' tr'; return money(n); }
   function pad(n) { return (n < 10 ? '0' : '') + n; }
   function vnDate(t) { // Date theo giờ Việt Nam, không phụ thuộc máy
     var d = new Date(t + 7 * 3600e3); return { y: d.getUTCFullYear(), m: d.getUTCMonth() + 1, d: d.getUTCDate(), h: d.getUTCHours(), mi: d.getUTCMinutes() };
@@ -2464,6 +2464,18 @@
 
   /* ---------------- Bộ lọc thời gian dùng chung: Hôm nay / Hôm qua / 7 ngày qua / Tháng này / Tháng trước / Tuỳ chỉnh */
   var PER = [['today', 'Hôm nay'], ['yday', 'Hôm qua'], ['d7', '7 ngày qua'], ['month', 'Tháng này'], ['lmonth', 'Tháng trước']];
+  /* Mốc thêm cho Tổng quan / Marketing (chủ doanh nghiệp xem theo tuần họp, tháng, quý, năm). Năm nay không so kỳ trước: CRM chỉ tải đơn 13 tháng gần nhất. */
+  var PER_X = [['week', 'Tuần này'], ['lweek', 'Tuần trước'], ['quarter', 'Quý này'], ['lquarter', 'Quý trước'], ['year', 'Năm nay']];
+  var PER_CEO = ['today', 'yday', 'week', 'month', 'lmonth', 'quarter', 'year'];
+  function weekStart(t) { var dow = new Date(t + 7 * 3600e3).getUTCDay(); return t - ((dow + 6) % 7) * DAY; } // thứ Hai
+  function quarterOf(mk, n) { var y = +mk.slice(0, 4), m = +mk.slice(5, 7) - 1, q = Math.floor(m / 3) + (n || 0), yy = y + Math.floor(q / 4), qq = ((q % 4) + 4) % 4; return yy + '-' + pad(qq * 3 + 1); } // tháng đầu quý
+  /** Nút chọn nhanh 1 chạm (Tổng quan, Marketing) + 📅 Khác (tự chọn ngày). Dưới là ngày cụ thể và đang so với kỳ nào. */
+  function perChips(slot, p) {
+    var R = perRange(p), on = PER_CEO.indexOf(p.k) >= 0;
+    return '<div class="per-q" role="group" aria-label="Thời gian">' + PER_CEO.map(function (k) { return '<button type="button" class="chip' + (p.k === k ? ' on' : '') + '" data-pq="' + slot + '|' + k + '">' + perLabel({ k: k }) + '</button>'; }).join('') +
+      '<button type="button" class="chip' + (on ? '' : ' on') + '" data-per="' + slot + '">📅 ' + (on ? 'Khác' : esc(perLabel(p))) + '</button></div>' +
+      '<p class="small muted per-q-d">' + perDates(R) + (CMP_LABEL ? ' · so với ' + CMP_LABEL : p.k === 'year' ? ' · năm nay chưa so với năm trước' : '') + '</p>';
+  }
   /** Khoảng [từ, đến) theo giờ VN của 1 lựa chọn thời gian p = { k, from, to }. */
   function perRange(p) {
     var t0 = today(), mk = monthOf(Date.now());
@@ -2473,12 +2485,17 @@
       case 'yday': return [t0 - DAY, t0];
       case 'd7': return [t0 - 6 * DAY, t0 + DAY];
       case 'lmonth': return monthRange(shiftMonth(mk, -1));
+      case 'week': return [weekStart(t0), weekStart(t0) + 7 * DAY];
+      case 'lweek': return [weekStart(t0) - 7 * DAY, weekStart(t0)];
+      case 'quarter': return [monthRange(quarterOf(mk))[0], monthRange(shiftMonth(quarterOf(mk), 2))[1]];
+      case 'lquarter': return [monthRange(quarterOf(mk, -1))[0], monthRange(quarterOf(mk))[0]];
+      case 'year': return [monthRange(mk.slice(0, 4) + '-01')[0], monthRange(mk.slice(0, 4) + '-12')[1]];
       case 'custom': return [p.from, p.to];
       default: return monthRange(mk);
     }
   }
   function perDates(R) { if (!R[0] && R[1] === Infinity) return ''; var a = fDate(R[0]), b = fDate(R[1] - 1); return a === b ? a : a.slice(0, 5) + ' – ' + b; }
-  function perLabel(p) { if (p.k === 'all') return 'Mọi lúc'; if (p.k === 'custom') return perDates(perRange(p)); var x = PER.filter(function (z) { return z[0] === p.k; })[0]; return x ? x[1] : 'Tháng này'; }
+  function perLabel(p) { if (p.k === 'all') return 'Mọi lúc'; if (p.k === 'custom') return perDates(perRange(p)); var x = PER.concat(PER_X).filter(function (z) { return z[0] === p.k; })[0]; return x ? x[1] : 'Tháng này'; }
   /** Nút mở bộ lọc thời gian. slot = khoá trong S.f (r: Hiệu quả, o: Đơn hàng). */
   function perBtn(slot, p) {
     var R = perRange(p), d = p.k === 'custom' ? '' : perDates(R);
@@ -2614,6 +2631,14 @@
     if (p.k === 'all') { CMP_LABEL = ''; return [0, 0]; } // mọi lúc: không có kỳ để so
     if (p.k === 'month') return prevRange(monthOf(Date.now()));
     if (p.k === 'lmonth') return prevRange(shiftMonth(monthOf(Date.now()), -1));
+    var now0 = Date.now(), R0 = perRange(p);
+    if (p.k === 'week') { CMP_LABEL = 'cùng kỳ tuần trước'; return [R0[0] - 7 * DAY, Math.min(R0[1], now0) - 7 * DAY]; }
+    if (p.k === 'lweek') { CMP_LABEL = 'tuần trước nữa'; return [R0[0] - 7 * DAY, R0[0]]; }
+    if (p.k === 'quarter' || p.k === 'lquarter') { // quý đang chạy: cùng số ngày của quý trước; quý đã qua: cả quý trước
+      var qs = monthOf(R0[0] + DAY), P0 = monthRange(quarterOf(qs, -1))[0], part = now0 < R0[1];
+      CMP_LABEL = part ? 'cùng kỳ quý trước' : 'quý trước'; return [P0, part ? P0 + (now0 - R0[0]) : R0[0]];
+    }
+    if (p.k === 'year') { CMP_LABEL = ''; return [R0[0] - 365 * DAY, Math.min(R0[1], now0) - 365 * DAY]; } // khoảng hợp lệ cho Analytics / quảng cáo, nhưng không hiện so sánh
     var R = perRange(p), len = R[1] - R[0], now = Date.now();
     CMP_LABEL = p.k === 'today' ? 'cùng giờ hôm qua' : p.k === 'yday' ? 'hôm kia' : p.k === 'd7' ? '7 ngày trước đó' : 'kỳ trước (' + perDates([R[0] - len, R[1] - len]) + ')';
     return [R[0] - len, Math.min(R[1], now) - len];
@@ -2789,7 +2814,7 @@
     var month = monthOf(Math.min(R[1] - 1, Date.now())), sj = snGet(R, P, month), M = mktCalc(key, R, P, sj), gl = dashGoal(month, sj);
     var sn = sj ? sanSum(sj.days, 2) : null, snp = sj ? sanSum(sj.prev, 1) : null;
     var T = { san: sn ? sn.g : 0, rev: b.rev + (sn ? sn.g : 0), revP: bp.rev + (snp ? snp.g : 0), n: b.n + (sn ? sn.n : 0), nP: bp.n + (snp ? snp.n : 0) };
-    var h = '<div class="page-head"><h1>Tổng quan</h1><div class="grow"></div><button class="btn ghost" data-dash="fresh" title="Lấy số mới nhất (quảng cáo, website)">↻ Cập nhật số</button></div>' + perBtn('g', f.p);
+    var h = '<div class="page-head"><h1>Tổng quan</h1><div class="grow"></div><button class="btn ghost" data-dash="fresh" title="Lấy số mới nhất (quảng cáo, website)">↻ Cập nhật số</button></div>' + perChips('g', f.p);
     h += dashHero(T, b, bp, M, gl, month, sj, f.p);
     h += dashNotes(T, b, g, f.p, M, sj, gl);
     h += '<div class="section-h dash-more-h"><h2>🔎 Xem chi tiết</h2><span class="tip">bấm vào từng mục để mở / đóng</span></div>';
@@ -2992,7 +3017,7 @@
     var f = S.f.m || (S.f.m = {}); if (!f.p || f.p.k === 'all') f.p = { k: 'month' }; if (f.sfb === undefined) f.sfb = store('dash_sfb') !== '0';
     var R = perRange(f.p), key = mvKey(), mj = MV.cache[key];
     if (!mj && !MV.err) setTimeout(function () { mvFetch(key); }, 0);
-    var h = '<div class="page-head"><h1>📣 Marketing</h1><div class="grow"></div><button class="btn" data-mkv="cost">⚙️ Nhập chi phí</button><button class="btn ghost" data-mkv="fresh" title="Tính lại số mới nhất">↻</button></div>' + perBtn('m', f.p);
+    var h = '<div class="page-head"><h1>📣 Marketing</h1><div class="grow"></div><button class="btn" data-mkv="cost">⚙️ Nhập chi phí</button><button class="btn ghost" data-mkv="fresh" title="Tính lại số mới nhất">↻</button></div>' + perChips('m', f.p);
     if (!mj) return h + '<div class="box"><p class="muted">' + (MV.err ? '⚠️ ' + esc(MV.err) + ' <button class="link" data-mkv="fresh">Thử lại</button>' : '⏳ Đang tính hiệu quả quảng cáo…') + '</p></div>';
     MK.fbOn = mj.fb.on;
     var ch = {}, chp = {}, tot = 0, totp = 0, day = {}, A = dashAds(), per = function (n, v) { return n && v ? moneyShort(Math.round(v / n)) : '–'; };
@@ -3618,7 +3643,7 @@
     if (G && G.p >= 1) L.push('🎉 <b>Đã đạt mục tiêu ' + monthLabel(monthOf(Math.min(perRange(p)[1] - 1, Date.now()))) + '.</b>');
     if (M && M.tot) L = L.concat(adsNotes(M.ch, M.E));
     if (sj) { var by = {}; sj.files.forEach(function (x) { if (x[1] === 'orders') by[x[0]] = x[2]; }); Object.keys(by).forEach(function (k) { var d = Math.floor((Date.now() - by[k]) / DAY); if (d > 3) L.push('⏰ ' + esc(k) + ' đã ' + d + ' ngày chưa tải file đơn mới, số sàn có thể đang thiếu.'); }); }
-    if (T.revP && p.k !== 'today') { var d = Math.round((T.rev - T.revP) * 100 / T.revP); if (Math.abs(d) >= 10) L.push((d > 0 ? '📈 Tiền bán được tăng ' : '📉 Tiền bán được giảm ') + Math.abs(d) + '% so với ' + CMP_LABEL + ' (' + moneyShort(T.rev) + ' so với ' + moneyShort(T.revP) + ').'); }
+    if (T.revP && CMP_LABEL && p.k !== 'today') { var d = Math.round((T.rev - T.revP) * 100 / T.revP); if (Math.abs(d) >= 10) L.push((d > 0 ? '📈 Tiền bán được tăng ' : '📉 Tiền bán được giảm ') + Math.abs(d) + '% so với ' + CMP_LABEL + ' (' + moneyShort(T.rev) + ' so với ' + moneyShort(T.revP) + ').'); }
     var top = Object.keys(b.sub).map(function (k) { return b.sub[k]; }).sort(function (x, y) { return y.v - x.v; })[0];
     if (top && b.rev) L.push('🏅 Kênh văn phòng ra nhiều tiền nhất: <b>' + esc(top.g + ' – ' + top.l) + '</b>, ' + pct(top.v, b.rev) + '% tiền văn phòng.');
     if (g) { var bad = g.land.filter(function (r) { return r[1] >= 20 && pct(r[2], r[1]) < 40; })[0]; if (bad) L.push('🌐 Trang <b>' + esc(bad[0] === '/' ? 'Trang chủ' : bad[0]) + '</b> có ' + bad[1] + ' lượt vào nhưng chỉ ' + pct(bad[2], bad[1]) + '% ở lại xem: nên sửa đầu trang.'); }
@@ -4501,7 +4526,7 @@
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-gmore]'); if (!b) return; var r = b.previousElementSibling; if (r) r.hidden = false; b.remove(); });
   document.addEventListener('toggle', function (e) { var d = e.target; if (d && d.matches && d.matches('details[data-grp]')) { S.f.gopen = S.f.gopen || {}; S.f.gopen[d.getAttribute('data-grp')] = d.open; } }, true);
   document.addEventListener('click', function (e) {
-    var t = e.target.closest('[data-otab],[data-per],[data-promo],[data-rf],[data-vipgo],[data-taghelp],[data-consent],[data-daily],[data-usage],[data-flow],[data-zalo],[data-quick],[data-care],[data-next],[data-neworder],[data-cf],[data-os],[data-och],[data-tf],[data-cat],[data-addtag],[data-deltag],[data-claim],[data-bcdt],[data-srcadd],[data-srcedit],[data-srcsync],[data-srcdel],[data-adsedit],[data-adssync],[data-who],[data-target],[data-race],[data-myold],[data-more],[data-add],[data-rm],[data-consult],[data-leadorder],[data-newlead],[data-editlead],[data-cust],[data-order],[data-lead]');
+    var t = e.target.closest('[data-otab],[data-per],[data-pq],[data-promo],[data-rf],[data-vipgo],[data-taghelp],[data-consent],[data-daily],[data-usage],[data-flow],[data-zalo],[data-quick],[data-care],[data-next],[data-neworder],[data-cf],[data-os],[data-och],[data-tf],[data-cat],[data-addtag],[data-deltag],[data-claim],[data-bcdt],[data-srcadd],[data-srcedit],[data-srcsync],[data-srcdel],[data-adsedit],[data-adssync],[data-who],[data-target],[data-race],[data-myold],[data-more],[data-add],[data-rm],[data-consult],[data-leadorder],[data-newlead],[data-editlead],[data-cust],[data-order],[data-lead]');
     if (!t || !S.d) return;
     if (e.target.closest('a[href]') && !t.hasAttribute('data-myold')) return; // nút gọi / Zalo bên trong thẻ
     if (e.target.closest('select[data-oassign]')) return; // ô “Giao cho…” trên dòng đơn: không mở hộp đơn
@@ -4556,6 +4581,7 @@
     if (t.hasAttribute('data-os')) { S.f.o.st = a('data-os'); S.f.o.n = 60; if ($('#oBody')) renderOrdersPart(); else render(); return; }
     if (t.hasAttribute('data-otab')) { S.f.o.tab = a('data-otab'); if (S.f.o.tab === 'todo') S.f.o.q = ''; S.f.o.n = 60; if ($('#oBody')) renderOrdersPart(); else render(); return; }
     if (t.hasAttribute('data-per')) { openPer(a('data-per')); return; }
+    if (t.hasAttribute('data-pq')) { var pq = a('data-pq').split('|'); S.f[pq[0]].p = { k: pq[1] }; render(); return; }
     if (t.hasAttribute('data-tf')) { S.f.t.k = a('data-tf'); S.f.t.n = 60; if ($('#tList')) renderLeadsPart(); else render(); return; }
     if (t.hasAttribute('data-who')) { setWho(a('data-who') === 'team' ? '' : a('data-who')); window.scrollTo(0, 0); return; }
     if (t.hasAttribute('data-race')) { S.f.race = a('data-race'); render(); return; }

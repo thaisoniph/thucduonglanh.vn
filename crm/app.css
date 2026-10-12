@@ -752,3 +752,9 @@ details.set-g .dash-more-b > .box { background: transparent; border: 0; box-shad
 details.set-g .dash-more-b > .box + .box { margin-top: 14px; }
 details.set-g .dash-more-b > .box > h3:first-child { display: none; }
 details.set-g .dash-more-b { background: #fff; }
+
+/* Chọn thời gian 1 chạm (Tổng quan, Marketing): 1 hàng nút, trên điện thoại vuốt ngang */
+.per-q { display: flex; gap: 6px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding: 2px 0 4px; margin: 0 0 2px; }
+.per-q::-webkit-scrollbar { display: none; }
+.per-q .chip { flex: 0 0 auto; white-space: nowrap; }
+.per-q-d { margin: 0 0 12px; }
