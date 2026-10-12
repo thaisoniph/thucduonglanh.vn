@@ -3433,13 +3433,24 @@
       '<p class="bar-legend">Vạch đen = hôm nay. Sale, Website lấy từ đơn trong CRM; sàn lấy từ file tải lên ở tab Sàn (theo ngày đặt, đã trừ đơn huỷ / hoàn).</p></div></section>';
   }
   /** Lần tải file gần nhất của từng sàn: quá 3 ngày chưa tải → nhắc. */
+  /** Nguồn số mới nhất của từng sàn: file đơn tải lên hoặc Google Sheet báo cáo (Sheet: tính theo ngày cuối đã gõ số). → {sàn: {f, sheet, late (số ngày chưa cập nhật)}} */
+  function sanLatest(sj) {
+    var by = {};
+    sj.files.forEach(function (f) {
+      if (f[1] !== 'orders' && f[1] !== 'sheet') return;
+      var sheet = f[1] === 'sheet', ref = sheet ? (f[3] ? new Date(f[3] + 'T23:59:00+07:00').getTime() : 0) : f[2], o = by[f[0]];
+      if (!o || ref > o.ref) by[f[0]] = { f: f, sheet: sheet, ref: ref, late: Math.floor((Date.now() - ref) / DAY) };
+    });
+    return by;
+  }
   function sanFresh(sj, compact) {
-    var by = {}; sj.files.forEach(function (f) { if (f[1] === 'orders') by[f[0]] = f; });
-    var ks = Object.keys(by);
-    if (!ks.length) return '<div class="notice">Chưa có số liệu sàn. Người phụ trách sàn vào tab <b>Sàn</b> → <b>📤 Tải file từ sàn</b> (file đơn hàng xuất từ Shopee / TikTok Shop).</div>';
-    return '<p class="small san-fresh">' + ks.map(function (k) {
-      var f = by[k], old = Date.now() - f[2] > 3 * DAY;
-      return '<span class="' + (old ? 'bad-line' : 'muted') + '">' + sanIcon(k) + ' ' + esc(k) + ': tải file ' + fDateTime(f[2]) + (f[3] ? ', đơn đến ' + fDate(new Date(f[3] + 'T12:00:00+07:00').getTime()) : '') + (old ? ' · ⚠️ quá 3 ngày chưa cập nhật' : '') + '</span>';
+    var by = sanLatest(sj), ks = Object.keys(by), err = sj.sheet && sj.sheet.err ? '<div class="notice">⚠️ Chưa đọc được Google Sheet báo cáo sàn: ' + esc(sj.sheet.err) + '</div>' : '';
+    if (!ks.length) return err + '<div class="notice">Chưa có số liệu sàn. Người phụ trách sàn gõ số hằng ngày vào Google Sheet báo cáo (CRM tự lấy 30 phút/lần), hoặc vào tab <b>Sàn</b> → <b>📤 Tải file từ sàn</b>.</div>';
+    var fd = function (d) { return fDate(new Date(d + 'T12:00:00+07:00').getTime()); };
+    return err + '<p class="small san-fresh">' + ks.map(function (k) {
+      var o = by[k], f = o.f, old = o.sheet ? o.late > 2 : o.late > 3;
+      return '<span class="' + (old ? 'bad-line' : 'muted') + '">' + sanIcon(k) + ' ' + esc(k) + ': ' + (o.sheet ? '📗 Google Sheet, có số đến ngày ' + (f[3] ? fd(f[3]) : '–') + ' (CRM lấy lúc ' + fDateTime(f[2]) + ')' : 'tải file ' + fDateTime(f[2]) + (f[3] ? ', đơn đến ' + fd(f[3]) : '')) +
+        (old ? ' · ⚠️ ' + (o.sheet ? o.late + ' ngày chưa gõ số' : 'quá 3 ngày chưa cập nhật') : '') + '</span>';
     }).join(compact ? ' · ' : '<br>') + '</p>';
   }
   /** Cộng các dòng [.., sàn, g, n, c, r, t, nv, nn, nr] (off = vị trí g). */
@@ -3489,11 +3500,13 @@
       (tt && rows.length > 1 ? goalTotalHTML('Tổng các sàn', cur, tt, month) : '') + '<div class="box ogoal">' + rows.map(function (x) { return goalRowHTML(x, month); }).join('') +
       (tt ? '' : '<p class="small muted">Chưa có mục tiêu sàn tháng này' + (sj.admin ? '. Bấm 🎯 Đặt mục tiêu.' : ', Quản trị đặt ở tab Tổng quan.') + '</p>') + '</div></section>';
     h += '<section class="section"><div class="section-h"><h2>📊 Kết quả ' + esc(perLabel(f.p).toLowerCase()) + '</h2></div>' + sanStats(sj, R, false, P) + '</section>';
-    h += '<div class="steps"><button class="btn" data-san="list">📋 Các lần tải file</button>' + (sj.admin ? '<button class="btn" data-san="people">👤 Người phụ trách sàn' + (sj.people.length ? ': ' + esc(sj.people.join(', ')) : '') + '</button>' : '') + '</div>';
+    h += '<div class="steps">' + (sj.sheet && sj.sheet.id ? '<button class="btn" data-san="sheet">🔄 Lấy số từ Google Sheet</button><a class="btn" target="_blank" rel="noopener" href="https://docs.google.com/spreadsheets/d/' + esc(sj.sheet.id) + '/edit">📗 Mở Sheet báo cáo</a>' : '') +
+      (sj.admin ? '<button class="btn" data-san="sheetcfg">⚙️ Link Sheet báo cáo</button>' : '') + '<button class="btn" data-san="list">📋 Các lần tải file</button>' + (sj.admin ? '<button class="btn" data-san="people">👤 Người phụ trách sàn' + (sj.people.length ? ': ' + esc(sj.people.join(', ')) : '') + '</button>' : '') + '</div>';
     return h + sanHowTo(false);
   }
   function sanHowTo(open) {
     return '<details class="box san-how"' + (open ? ' open' : '') + '><summary><b>Cách xuất file trên sàn</b></summary><div class="small">' +
+      '<p><b>📗 Đang dùng Google Sheet báo cáo:</b> người phụ trách sàn gõ số mỗi ngày vào Sheet, CRM tự lấy 30 phút/lần (hoặc bấm 🔄 Lấy số từ Google Sheet). Không bắt buộc tải file. Tải file đơn hàng thì những ngày trong file dùng số của file (có thêm sản phẩm bán chạy, tiền thực về).</p>' +
       '<p><b>Nên làm:</b> mỗi ngày (hoặc 2–3 ngày 1 lần) xuất đơn <b>30 ngày gần nhất</b> rồi tải lên. Đơn cũ bị huỷ / hoàn sau đó sẽ tự được cập nhật, không bị tính trùng.</p>' +
       '<p><b>🟠 Shopee – file đơn hàng:</b> Kênh Người Bán → <b>Đơn hàng</b> → Tất cả → bấm <b>Xuất</b> → chọn khoảng <b>ngày đặt hàng</b> → đợi file tạo xong → <b>Tải về</b> (file .xlsx).</p>' +
       '<p><b>🟠 Shopee – tiền về (không bắt buộc):</b> Kênh Người Bán → <b>Tài Chính → Doanh Thu</b> → tab Đã thanh toán → <b>Xuất</b>. File này cho số tiền thật Shopee chuyển về, thay cho số ước tính.</p>' +
@@ -3505,11 +3518,30 @@
     $$('[data-san]').forEach(function (el) {
       el.onclick = function () {
         var a = el.getAttribute('data-san');
-        if (a === 'up') openSanUp(); else if (a === 'list') openSanList(); else if (a === 'people') openSanPeople(); else if (a === 'goals') openGoals(el.getAttribute('data-month'));
+        if (a === 'sheet') sanSheetNow(el); else if (a === 'sheetcfg') openSanSheet(); else if (a === 'up') openSanUp(); else if (a === 'list') openSanList(); else if (a === 'people') openSanPeople(); else if (a === 'goals') openGoals(el.getAttribute('data-month'));
       };
     });
   }
   function sanDone(msg) { SN.cache = {}; SN.err = ''; toast(msg); render(); }
+  function sanSheetMsg(j) { return j.off ? 'Đã tắt đọc Google Sheet.' : 'Đã lấy số từ Google Sheet: ' + j.tabs.map(function (t) { return t.shop + ' ' + t.days + ' ngày (' + t.n + ' đơn · ' + moneyShort(t.gmv) + ')'; }).join(' · '); }
+  /** 🔄 Lấy số ngay từ Google Sheet báo cáo (bình thường CRM tự lấy 30 phút/lần). */
+  function sanSheetNow(btn) {
+    btn.disabled = true; btn.textContent = '⏳ Đang lấy số…';
+    api('san_sheet', {}).then(function (j) { sanDone(sanSheetMsg(j)); }, function (e) { btn.disabled = false; btn.textContent = '🔄 Lấy số từ Google Sheet'; toast(e.message, true); });
+  }
+  /* ---------- Quản trị: link Google Sheet báo cáo sàn */
+  function openSanSheet() {
+    var cur = ''; for (var k in SN.cache) if (SN.cache[k].sheet) { cur = SN.cache[k].sheet.id; break; }
+    var body = '<p>Người phụ trách sàn gõ số mỗi ngày vào Google Sheet (mỗi sàn 1 tab tên <b>Shopee</b> / <b>TikTok</b> / <b>Lazada</b>, cột Ngày, Số đơn hàng, Số lượng sản phẩm, Doanh số, Số đơn hoàn/huỷ, Doanh số hoàn huỷ). CRM tự lấy số 30 phút/lần.</p>' +
+      '<p class="small muted">File phải chia sẻ cho <b>thaisoniph@gmail.com</b> (Người xem). Doanh thu = Doanh số − Doanh số hoàn huỷ. Ngày nào đã tải file đơn hàng từ sàn thì dùng số trong file (chi tiết hơn).</p>' +
+      '<label class="f"><span>Link Google Sheet</span><input type="text" id="ssUrl" autocomplete="off" value="' + (cur ? 'https://docs.google.com/spreadsheets/d/' + esc(cur) + '/edit' : '') + '" placeholder="https://docs.google.com/spreadsheets/d/…"></label>' +
+      '<p class="hint">Xoá trắng ô = dùng file mặc định. Gõ dấu <b>-</b> = tắt, không đọc Sheet nữa (xoá số đã lấy từ Sheet).</p><p class="err" id="ssErr"></p>';
+    var m = modal('📗 Google Sheet báo cáo sàn', body, '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="ssSave">Lưu &amp; lấy số</button>');
+    $('#ssSave', m).onclick = function () {
+      var btn = this; btn.disabled = true; btn.textContent = 'Đang lấy số…';
+      api('san_sheet', { sheet: $('#ssUrl', m).value.trim() }).then(function (j) { closeModal(true); sanDone(sanSheetMsg(j)); }, function (e) { btn.disabled = false; btn.textContent = 'Lưu & lấy số'; $('#ssErr', m).textContent = e.message; });
+    };
+  }
 
   /* ---------- Quản trị đặt mục tiêu tháng từng mảng */
   function sanTargetsOf(month) { for (var k in SN.cache) { var t = SN.cache[k].targets; if (t && Object.prototype.hasOwnProperty.call(t, month)) return t[month] || {}; } return null; }
@@ -3555,8 +3587,9 @@
     api('san_list').then(function (j) {
       var fd = function (d) { return d ? fDate(new Date(d + 'T12:00:00+07:00').getTime()) : ''; };
       $('#slList', m).innerHTML = j.list.length ? j.list.map(function (r) {
-        return '<div class="card"><div class="r1"><b>' + sanIcon(r.shop) + ' ' + esc(r.shop) + ' · ' + (r.kind === 'income' ? '💵 tiền về' : '📦 đơn hàng') + '</b><span class="end">' + moneyShort(r.gmv) + '</span></div>' +
-          '<div class="r3">' + esc(r.file) + '<br>' + (r.kind === 'income' ? r.n + ' đơn, khớp ' + r.fresh : r.n + ' đơn (' + r.fresh + ' mới) · đặt ' + fd(r.from) + ' – ' + fd(r.to)) + ' · ' + esc(r.by || '') + ' · ' + fDateTime(r.at) + ' <button class="link" data-sdel="' + esc(r.batch) + '">Xoá</button></div></div>';
+        var sh = r.kind === 'sheet';
+        return '<div class="card"><div class="r1"><b>' + sanIcon(r.shop) + ' ' + esc(r.shop) + ' · ' + (sh ? '📗 Google Sheet báo cáo' : r.kind === 'income' ? '💵 tiền về' : '📦 đơn hàng') + '</b><span class="end">' + moneyShort(r.gmv) + '</span></div>' +
+          '<div class="r3">' + esc(r.file) + '<br>' + (sh ? r.n + ' đơn' + (r.from ? ' · ngày ' + fd(r.from) + ' – ' + fd(r.to) : '') + ' · lấy tự động lúc ' + fDateTime(r.at) : (r.kind === 'income' ? r.n + ' đơn, khớp ' + r.fresh : r.n + ' đơn (' + r.fresh + ' mới) · đặt ' + fd(r.from) + ' – ' + fd(r.to)) + ' · ' + esc(r.by || '') + ' · ' + fDateTime(r.at) + ' <button class="link" data-sdel="' + esc(r.batch) + '">Xoá</button>') + '</div></div>';
       }).join('') : '<p class="muted">Chưa tải file nào.</p>';
       $$('[data-sdel]', m).forEach(function (b0) {
         b0.onclick = function () {
@@ -3800,7 +3833,7 @@
     if (G && G.isCur && G.p < 1 && (G.lv === 'bad' || G.lv === 'mid')) L.push((G.lv === 'bad' ? '🔴' : '🟠') + ' <b>Đang chậm mục tiêu tháng.</b> Mỗi ngày cần bán khoảng <b>' + moneyShort(G.perDay) + '</b>, hiện mới bán trung bình ' + moneyShort(Math.round(gl.cur / G.el)) + ' / ngày.');
     if (G && G.p >= 1) L.push('🎉 <b>Đã đạt mục tiêu ' + monthLabel(monthOf(Math.min(perRange(p)[1] - 1, Date.now()))) + '.</b>');
     if (M && M.tot) L = L.concat(adsNotes(M.ch, M.E));
-    if (sj) { var by = {}; sj.files.forEach(function (x) { if (x[1] === 'orders') by[x[0]] = x[2]; }); Object.keys(by).forEach(function (k) { var d = Math.floor((Date.now() - by[k]) / DAY); if (d > 3) L.push('⏰ ' + esc(k) + ' đã ' + d + ' ngày chưa tải file đơn mới, số sàn có thể đang thiếu.'); }); }
+    if (sj) { var by = sanLatest(sj); Object.keys(by).forEach(function (k) { var o = by[k]; if (o.late > (o.sheet ? 2 : 3)) L.push('⏰ ' + esc(k) + ' đã ' + o.late + (o.sheet ? ' ngày chưa gõ số vào Google Sheet báo cáo' : ' ngày chưa tải file đơn mới') + ', số sàn có thể đang thiếu.'); }); }
     if (T.revP && CMP_LABEL && p.k !== 'today') { var d = Math.round((T.rev - T.revP) * 100 / T.revP); if (Math.abs(d) >= 10) L.push((d > 0 ? '📈 Tiền bán được tăng ' : '📉 Tiền bán được giảm ') + Math.abs(d) + '% so với ' + CMP_LABEL + ' (' + moneyShort(T.rev) + ' so với ' + moneyShort(T.revP) + ').'); }
     var top = Object.keys(b.sub).map(function (k) { return b.sub[k]; }).sort(function (x, y) { return y.v - x.v; })[0];
     if (top && b.rev) L.push('🏅 Kênh văn phòng ra nhiều tiền nhất: <b>' + esc(top.g + ' – ' + top.l) + '</b>, ' + pct(top.v, b.rev) + '% tiền văn phòng.');

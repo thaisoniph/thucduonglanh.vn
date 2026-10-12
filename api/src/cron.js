@@ -1,8 +1,9 @@
-// Việc chạy theo lịch: 8h sáng gửi danh sách chăm sóc + báo mức dùng CRM, 10 phút/lần lấy số quảng cáo, 30 phút/lần tự nhập file sale, 6 tiếng 1 lần chép bản sao dữ liệu sang Google Sheet.
+// Việc chạy theo lịch: 8h sáng gửi danh sách chăm sóc + báo mức dùng CRM, 10 phút/lần lấy số quảng cáo, 30 phút/lần tự nhập file sale + Google Sheet báo cáo sàn, 6 tiếng 1 lần chép bản sao dữ liệu sang Google Sheet.
 import { normPhone, esc, fmtDate, startOfDay, all, kvGet, kvSet, kvDel, CRM_URL, DAY } from './lib.js';
 import { telegram, telegramTo, gInfo, sheetMeta, sheetClear, sheetWrite, sheetAddTabs, sheetBatch, a1 } from './google.js';
 import { recalcAll, crmUsers, unifyNames, autoCloseLeads, rulesCfg, careTask, groupOf, leadsData, leadDue, adsCfg, usageAlert } from './crm.js';
 import { adsSync, srcAutoTick } from './sync.js';
+import { sanSheetTick } from './san.js';
 import { mktTick } from './mkt.js';
 import { wbTick } from './wb.js';
 import { backfillCustomerExtras } from './migrate.js';
@@ -114,6 +115,7 @@ export async function scheduled(x, cron) {
     if (now - lastUni > 6 * 3600e3) { await kvSet(x.db, 'unify_last', String(now)); try { await unifyNames(x); } catch (e) { console.error('unifyNames', e.message); } }
     try { await autoCloseLeads(x, null); } catch (e) { console.error('autoCloseLeads', e.message); } // quét bù khách hỏi đã có đơn (25 phút 1 lần)
   }
+  try { await sanSheetTick(x); } catch (e) { console.error('sanSheet', e.message); } // Google Sheet báo cáo sàn, 30 phút/lần
   try { await wbTick(x); } catch (e) { console.error('wbTick', e.message); } // ghi ngược vào file sale (hàng trống: 1 câu đọc theo chỉ mục)
   if (!await kvGet(x.db, 'cus_src_v2')) { await kvSet(x.db, 'cus_src_v2', '1'); await kvSet(x.db, 'recalc_all', '1'); } // 12/10/2026: tính lại Nguồn khách cho mọi khách (custSource)
   if (await kvGet(x.db, 'recalc_all') === '1') { await kvSet(x.db, 'recalc_all', '0'); try { await recalcAll(x); } catch (e) { console.error('recalcAll', e.message); } } // 1 lần sau khi thêm cột ngày nhận / đơn hoàn / khách quen

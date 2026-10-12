@@ -5,8 +5,12 @@
 //   Tiền thực về (net): ước tính từ cột phí trong file đơn (Shopee có), hoặc số thật từ file Thu nhập / Đối soát (net_real = 1, không bị file đơn ghi đè).
 // Mục tiêu theo mảng: kv san_targets { 'yyyy-MM': { Sale, Website, Shopee, 'TikTok Shop', Lazada, Khác } }. Mục tiêu Sale để trống = tổng mục tiêu các nhân viên (bảng targets).
 // Quyền: Quản trị + người có tên trong kv san_cfg.people (Quản trị chọn ở tab Sàn → ⚙️).
-import { all, first, run, insertMany, kvJson, kvSet, randHex } from './lib.js';
+// Google Sheet báo cáo sàn (người phụ trách sàn gõ số mỗi ngày, 1 tab / sàn, 1 dòng / ngày): sanSheetSync đọc 30 phút/lần (cron) hoặc khi bấm 🔄,
+//   mỗi ngày tách thành các "đơn" giả mã S:yyyy-MM-dd:n (đơn thường + đơn hoàn/huỷ, tiền chia đều) để số đơn / tỷ lệ huỷ / doanh thu tính chung với đơn từ file.
+//   Ngày đã có file đơn hàng của sàn đó (san_files kind 'orders') thì bỏ dòng Sheet (file chi tiết hơn). Link Sheet: kv san_cfg.sheet (trống = SHEET_DEFAULT, '-' = tắt).
+import { all, first, run, insertMany, kvJson, kvSet, kvDel, kvGet, randHex, nrm, md5hex, fmtDate } from './lib.js';
 import { nameKey } from './crm.js';
+import { sheetMeta, sheetBatchGet, a1 } from './google.js';
 
 export const SHOPS = ['Shopee', 'TikTok Shop', 'Lazada'];
 const GOAL_KEYS = ['Sale', 'Website', 'Shopee', 'TikTok Shop', 'Lazada', 'Khác'];
@@ -56,7 +60,8 @@ async function sanLoad(x, u, d) {
   return {
     ok: true, month, days: days.map(r => [r.day, r.shop].concat(agg(r))), prev: prev.map(r => [r.shop].concat(agg(r))), pdays: pdays.map(r => [r.day, r.g || 0, r.n || 0]), mon: mon.map(r => [r.shop, r.g || 0]),
     prods: Object.values(P).sort((a, b) => b[3] - a[3]).slice(0, 15), files: files.map(r => [r.shop, r.kind, r.at, r.dt]),
-    targets: { [month]: tgs[month] || {}, [pm]: tgs[pm] || {} }, people: cfg.people || [], admin: u.level >= 3
+    targets: { [month]: tgs[month] || {}, [pm]: tgs[pm] || {} }, people: cfg.people || [], admin: u.level >= 3,
+    sheet: { id: sheetIdOf(cfg), err: await kvGet(x.db, 'san_sheet_err') || '' }
   };
 }
 function prevMonth(m) { const y = +m.slice(0, 4), mo = +m.slice(5, 7); return mo === 1 ? (y - 1) + '-12' : y + '-' + String(mo - 1).padStart(2, '0'); }
@@ -88,7 +93,9 @@ async function sanImport(x, u, d) {
   const known = {}; // đơn đã có từ lần tải trước → để báo "mới / cập nhật"
   for (let i = 0; i < rows.length; i += 500) (await all(x.db, 'SELECT id FROM san_orders WHERE shop = ? AND id IN (SELECT value FROM json_each(?))', shop, JSON.stringify(rows.slice(i, i + 500).map(r => r.id)))).forEach(r => { known[r.id] = 1; });
   await insertMany(x.db, 'san_orders', COLS, rows, UPSERT);
-  const days = rows.map(r => r.day).sort(), gmv = rows.reduce((s, r) => s + (r.state === 'ok' ? r.gmv - r.refund : 0), 0), fresh = rows.filter(r => !known[r.id]).length;
+  const days = rows.map(r => r.day).sort();
+  await run(x.db, "DELETE FROM san_orders WHERE shop = ? AND id LIKE 'S:%' AND day BETWEEN ? AND ?", shop, days[0], days[days.length - 1]); // file đơn chi tiết thay số Sheet các ngày đó
+  const gmv = rows.reduce((s, r) => s + (r.state === 'ok' ? r.gmv - r.refund : 0), 0), fresh = rows.filter(r => !known[r.id]).length;
   await run(x.db, 'INSERT INTO san_files (batch, shop, kind, file, n, fresh, d_from, d_to, gmv, by_name, at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', batch, shop, 'orders', file, rows.length, fresh, days[0], days[days.length - 1], gmv, u.name, now);
   return { ok: true, rows: rows.length, fresh, upd: rows.length - fresh, from: days[0], to: days[days.length - 1], gmv };
 }
@@ -117,10 +124,90 @@ async function sanList(x) {
 async function sanDel(x, u, d) {
   const b = String(d.batch || '');
   if (!/^[oi][a-f0-9]{10}$/.test(b)) return { ok: false, error: 'Không rõ lần tải.' };
-  if (b[0] === 'o') await run(x.db, 'DELETE FROM san_orders WHERE batch = ?', b);
+  if (b[0] === 'o') { await run(x.db, 'DELETE FROM san_orders WHERE batch = ?', b); await kvDel(x.db, 'san_sheet_h'); } // lần đồng bộ Sheet sau lấy lại số các ngày đó
   else await run(x.db, 'UPDATE san_orders SET net = NULL, net_real = 0, ibatch = \'\' WHERE ibatch = ?', b);
   await run(x.db, 'DELETE FROM san_files WHERE batch = ?', b);
   return { ok: true };
+}
+
+/* ---------- Google Sheet báo cáo sàn */
+export const SHEET_DEFAULT = '1ZAGIl4X31Yzcnps9zVoZ7ghZNLdW6tQi-U6xxJP_w_k'; // "BC KQKD Sàn TMĐT" của người phụ trách sàn (tab Shope)
+// Doanh số trên Sheet đã gồm đơn hoàn/huỷ (như số "Đơn đã đặt" của Shopee) → doanh thu = Doanh số − Doanh số hoàn huỷ.
+const SHEET_COL = { day: /^ngay$/, buyers: /nguoi mua/, n: /^so don( hang)?$/, qty: /so luong/, gmv: /^doanh so$/, cn: /don.*(hoan|huy)/, cv: /doanh so.*(hoan|huy)/ };
+function sheetIdOf(c) { const v = String(c.sheet == null ? '' : c.sheet).trim(); if (v === '-') return ''; const m = v.match(/\/d\/([a-zA-Z0-9_-]{20,})/) || v.match(/^([a-zA-Z0-9_-]{25,})$/); return m ? m[1] : SHEET_DEFAULT; }
+function tabShop(t) { const n = nrm(t); return /shop(e|ee)?\b|shopee/.test(n) && !/tik/.test(n) ? 'Shopee' : /tik ?tok/.test(n) ? 'TikTok Shop' : /lazada/.test(n) ? 'Lazada' : ''; }
+function sheetDay(v) {
+  if (typeof v === 'number' && v > 40000 && v < 60000) return fmtDate(Math.round((v - 25569) * 864e5 - 7 * 3600e3), 'yyyy-MM-dd'); // số sê-ri ngày
+  const m = String(v == null ? '' : v).trim().match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);
+  return m && +m[2] >= 1 && +m[2] <= 12 && +m[1] >= 1 && +m[1] <= 31 ? m[3] + '-' + m[2].padStart(2, '0') + '-' + m[1].padStart(2, '0') : '';
+}
+const cellNum = v => typeof v === 'number' ? v : Number(String(v == null ? '' : v).replace(/[^\d-]/g, '')) || 0;
+/** Đọc 1 tab: dòng tiêu đề có ô "Ngày" (có thể lặp lại mỗi tháng), các dòng có ngày + số → {day: {n, cn, gmv, cv, qty}}. */
+export function sheetParse(values) {
+  let M = null; const out = {};
+  for (const row of values) {
+    const h = row.map(c => nrm(c).replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim());
+    if (h.some(c => SHEET_COL.day.test(c)) && h.some(c => SHEET_COL.gmv.test(c))) {
+      M = {}; h.forEach((c, j) => { for (const k in SHEET_COL) if (M[k] == null && SHEET_COL[k].test(c)) M[k] = j; });
+      continue;
+    }
+    if (!M || M.day == null) continue;
+    const day = sheetDay(row[M.day]); if (!day) continue;
+    const g = k => M[k] == null ? 0 : Math.max(0, Math.round(cellNum(row[M[k]])));
+    const r = { n: g('n'), cn: g('cn'), gmv: g('gmv'), cv: g('cv'), qty: g('qty') };
+    if (r.n || r.gmv) out[day] = r;
+  }
+  return out;
+}
+/** 1 ngày trên Sheet → các đơn giả: (n − cn) đơn tính doanh thu chia đều (Doanh số − hoàn huỷ), cn đơn huỷ chia đều tiền hoàn huỷ. */
+function sheetOrders(shop, day, r, at) {
+  const okG = Math.max(0, r.gmv - r.cv), nBad = r.cn, nOk = Math.max(r.n - r.cn, okG ? 1 : 0), qOk = Math.max(r.qty - nBad, 0), out = [];
+  const split = (tot, k, i) => Math.floor(tot / k) + (i < tot % k ? 1 : 0);
+  for (let i = 0; i < nOk; i++) out.push({ shop, id: 'S:' + day + ':' + (i + 1), day, status: 'Theo Google Sheet báo cáo', state: 'ok', gmv: split(okG, nOk, i), refund: 0, net: null, net_real: 0, qty: split(qOk, nOk, i), items: '[]', batch: 'sheet', at });
+  for (let i = 0; i < nBad; i++) out.push({ shop, id: 'S:' + day + ':h' + (i + 1), day, status: 'Hoàn / huỷ (Google Sheet)', state: 'cancel', gmv: split(r.cv, nBad, i), refund: 0, net: null, net_real: 0, qty: 1, items: '[]', batch: 'sheet', at });
+  return out;
+}
+/** Đọc Google Sheet báo cáo sàn, ghi lại những ngày thay đổi. force: bỏ qua so sánh (bấm 🔄). */
+export async function sanSheetSync(x, force) {
+  const c = await cfgOf(x), id = sheetIdOf(c); if (!id) return { ok: true, off: true };
+  const meta = await sheetMeta(x.env, id);
+  const tabs = (meta.sheets || []).map(s => s.properties.title).map(t => ({ t, shop: tabShop(t) })).filter(o => o.shop);
+  if (!tabs.length) throw new Error('File "' + ((meta.properties || {}).title || '') + '" không có tab nào tên Shopee / TikTok / Lazada.');
+  const vals = await sheetBatchGet(x.env, id, tabs.map(o => a1(o.t, 'A1:Z1200')));
+  const st = (force ? null : await kvJson(x.db, 'san_sheet_h', null)) || {}, h1 = {}, now = Date.now(), res = [];
+  const files = await all(x.db, "SELECT shop, d_from, d_to FROM san_files WHERE kind = 'orders'");
+  for (let i = 0; i < tabs.length; i++) {
+    const shop = tabs[i].shop, D = sheetParse(vals[i] || []);
+    const fileDay = d => files.some(f => f.shop === shop && f.d_from <= d && d <= f.d_to); // ngày đã có file đơn chi tiết
+    const days = Object.keys(D).filter(d => !fileDay(d)).sort(), rows = [], gone = [];
+    days.forEach(d => { const k = shop + '|' + d, hv = md5hex(JSON.stringify(D[d])).slice(0, 8); h1[k] = hv; if (st[k] !== hv) rows.push(...sheetOrders(shop, d, D[d], now)), gone.push(d); });
+    Object.keys(st).forEach(k => { const [s0, d] = k.split('|'); if (s0 === shop && !h1[k]) gone.push(d); }); // ngày bị xoá khỏi Sheet
+    for (let j = 0; j < gone.length; j += 90) await run(x.db, "DELETE FROM san_orders WHERE shop = ? AND id LIKE 'S:%' AND day IN (SELECT value FROM json_each(?))", shop, JSON.stringify(gone.slice(j, j + 90)));
+    await insertMany(x.db, 'san_orders', COLS, rows, UPSERT);
+    const tot = days.reduce((a, d) => (a.n += D[d].n, a.g += Math.max(0, D[d].gmv - D[d].cv), a), { n: 0, g: 0 });
+    await run(x.db, 'INSERT INTO san_files (batch, shop, kind, file, n, fresh, d_from, d_to, gmv, by_name, at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(batch) DO UPDATE SET file = excluded.file, n = excluded.n, fresh = excluded.fresh, d_from = excluded.d_from, d_to = excluded.d_to, gmv = excluded.gmv, at = excluded.at',
+      'gs_' + SHOPS.indexOf(shop), shop, 'sheet', ((meta.properties || {}).title || 'Google Sheet') + ' · tab ' + tabs[i].t, tot.n, gone.length, days[0] || '', days[days.length - 1] || '', tot.g, 'Tự động từ Google Sheet', now);
+    res.push({ shop, tab: tabs[i].t, days: days.length, changed: gone.length, from: days[0] || '', to: days[days.length - 1] || '', n: tot.n, gmv: tot.g });
+  }
+  await kvSet(x.db, 'san_sheet_h', JSON.stringify(h1)); await kvSet(x.db, 'san_sheet_last', String(now)); await kvDel(x.db, 'san_sheet_err');
+  return { ok: true, id, title: (meta.properties || {}).title || '', tabs: res };
+}
+/** Cron: 30 phút 1 lần. Lỗi (chưa chia sẻ file…) ghi lại để tab Sàn báo. */
+export async function sanSheetTick(x) {
+  if (Date.now() - Number(await kvGet(x.db, 'san_sheet_last') || 0) < 28 * 60e3) return;
+  await kvSet(x.db, 'san_sheet_last', String(Date.now()));
+  try { await sanSheetSync(x, false); } catch (e) { await kvSet(x.db, 'san_sheet_err', String(e.message || e).slice(0, 300)); }
+}
+async function sanSheetCmd(x, u, d) {
+  const c = await cfgOf(x);
+  if (d.sheet != null) { // Quản trị đổi link Sheet
+    if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị đổi được link Sheet.' };
+    const v = String(d.sheet).trim(); if (v && v !== '-' && !/\/d\/[a-zA-Z0-9_-]{20,}|^[a-zA-Z0-9_-]{25,}$/.test(v)) return { ok: false, error: 'Link Google Sheet chưa đúng.' };
+    c.sheet = v; await kvSet(x.db, 'san_cfg', JSON.stringify(c)); await kvDel(x.db, 'san_sheet_h');
+    if (!sheetIdOf(c)) { await run(x.db, "DELETE FROM san_orders WHERE id LIKE 'S:%'"); await run(x.db, "DELETE FROM san_files WHERE kind = 'sheet'"); return { ok: true, off: true }; }
+  }
+  try { return await sanSheetSync(x, true); }
+  catch (e) { const m = String(e.message || e); await kvSet(x.db, 'san_sheet_err', m.slice(0, 300)); return { ok: false, error: /403|404|permission|not found/i.test(m) ? 'Máy chủ chưa mở được file Sheet. Nhờ người tạo file bấm Chia sẻ → thêm thaisoniph@gmail.com (Người xem). (' + m.slice(0, 120) + ')' : m }; }
 }
 
 export async function crmSan(x, u, d) {
@@ -132,6 +219,7 @@ export async function crmSan(x, u, d) {
     case 'san_people': return sanPeople(x, u, d);
     case 'san_list': return sanList(x);
     case 'san_del': return sanDel(x, u, d);
+    case 'san_sheet': return sanSheetCmd(x, u, d);
   }
   return { ok: false, error: 'Không rõ thao tác: ' + d.action };
 }

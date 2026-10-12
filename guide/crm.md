@@ -471,7 +471,18 @@ Số ở tab Marketing khớp với mục 📣 ở Tổng quan theo từng kênh
 
 Đơn trên sàn không đi qua CRM, nên người phụ trách sàn **tải file đơn hàng từ sàn lên** để CRM tính doanh thu và so với mục tiêu. Tab **Sàn** chỉ hiện với người được Quản trị giao (Quản trị chọn ở tab Sàn → **👤 Người phụ trách sàn**; người được chọn mở lại CRM là thấy tab).
 
-**Mỗi ngày (hoặc 2–3 ngày 1 lần)**
+**Cách 1 – Google Sheet báo cáo (đang dùng cho Shopee)**
+
+Người phụ trách sàn gõ số **mỗi ngày** vào Google Sheet "BC KQKD Sàn TMĐT" (tab **Shope**): Ngày, Số người mua, Số đơn hàng, Số lượng sản phẩm, Doanh số, Số đơn hoàn/huỷ, Doanh số hoàn huỷ. CRM tự lấy số **30 phút/lần** (7h–22h). Muốn thấy ngay thì vào tab Sàn → **🔄 Lấy số từ Google Sheet**.
+
+- Gõ số **trong ngày hôm sau** là được. Quá 2 ngày chưa gõ, CRM hiện dòng nhắc màu đỏ.
+- Đơn hoàn / huỷ ghi vào **đúng dòng ngày khách đặt** đơn đó. Nếu ghi vào ngày phát hiện hoàn/huỷ thì tỷ lệ huỷ từng ngày sẽ lệch.
+- **Doanh số** gõ tổng tiền của tất cả đơn đã đặt trong ngày, **gồm cả đơn sau đó bị hoàn/huỷ**. CRM tự lấy Doanh số − Doanh số hoàn huỷ.
+- Mở sàn mới (TikTok Shop, Lazada): thêm tab mới tên **TikTok** / **Lazada**, cột giống tab Shope. CRM tự nhận.
+- Đừng đổi tên dòng tiêu đề (Ngày, Doanh số…). File phải chia sẻ cho thaisoniph@gmail.com.
+- Sheet chỉ có số tổng theo ngày, nên chưa có *Sản phẩm bán chạy* và *Tiền thực về*. Muốn có 2 mục này thì tải thêm file theo cách 2. Ngày nào đã có file thì CRM dùng số trong file.
+
+**Cách 2 – Tải file đơn hàng từ sàn (mỗi ngày hoặc 2–3 ngày 1 lần)**
 
 1. Trên Shopee: Kênh Người Bán → **Đơn hàng** → Tất cả → **Xuất** → chọn ngày đặt hàng **30 ngày gần nhất** → Tải về file .xlsx. TikTok Shop: Seller Center → **Đơn hàng → Quản lý đơn hàng** → **Xuất** → tải file.
 2. Vào CRM → tab **Sàn** → **📤 Tải file từ sàn** → chọn file. CRM tự nhận ra sàn, đọc file ngay trên máy và cho xem trước: bao nhiêu đơn, bao nhiêu huỷ / hoàn, doanh thu.
