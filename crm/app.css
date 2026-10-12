@@ -128,6 +128,10 @@ button.tag { border: 0; cursor: pointer; font-family: inherit; line-height: inhe
 .search { flex: 1 1 240px; position: relative; }
 .search input[type=search] { padding-left: 38px; }
 .search svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--muted); }
+.search input[type=search] { padding-right: 44px; }
+.search input[type=search]::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; display: none; }
+.search-x { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 34px; height: 34px; border: 0; border-radius: 50%; background: var(--line, #e5e5e5); color: var(--muted, #666); font-size: 16px; line-height: 34px; padding: 0; cursor: pointer; }
+.search input:placeholder-shown ~ .search-x { display: none; }
 .chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 10px; scrollbar-width: none; }
 .chips::-webkit-scrollbar { display: none; }
 .chip { flex: none; border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 6px 12px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--text); white-space: nowrap; }
