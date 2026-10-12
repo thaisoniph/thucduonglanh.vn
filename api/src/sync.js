@@ -249,7 +249,7 @@ async function importOrders(x, src, shCfg, data, dry) {
     (p, o) => o.day === p.day && cnt(pool[p.phone] || [], q => q.day === p.day) === 1 && cnt(rest, q => !q.o && q.phone === p.phone && q.day === p.day) === 1] // cùng ngày chỉ có 1 đơn cũ và 1 dòng
     .forEach(rule => rest.forEach(p => { if (!p.o) { const o = take(p, o => rule(p, o)); if (o) { p.o = o; p.edited = 1; } } }));
   // đơn file đã ghép có mã đơn thật: sale sửa ngày / tiền / sản phẩm trong file (đơn 60 ngày gần đây, chưa ai sửa đơn trên CRM) → CRM theo file
-  const chkIds = parsed.filter(p => p.o && !p.edited && String(p.o.source || '').indexOf('File ') === 0 && p.when > Date.now() - 60 * DAY && (prodOf(p.o.items) !== p.prod || Number(p.o.total) !== p.amount || fmtDate(p.o.time, 'yyyyMMdd') !== p.day)).map(p => p.o.id);
+  const chkIds = parsed.filter(p => p.o && !p.edited && String(p.o.source || '').indexOf('File ') === 0 && p.when > Date.now() - 60 * DAY && (prodOf(p.o.items) !== p.prod || (p.amount > 0 && Number(p.o.total) !== p.amount) || fmtDate(p.o.time, 'yyyyMMdd') !== p.day)).map(p => p.o.id);
   const handEdit = {}; if (chkIds.length) (await allIn(x.db, "SELECT DISTINCT ref FROM logs WHERE what = 'Sửa đơn' AND ref IN (SELECT value FROM json_each(?))", [...new Set(chkIds)])).forEach(l => { handEdit[l.ref] = 1; });
   const crmDay = {}; (await allIn(x.db, "SELECT phone, time, total FROM orders WHERE phone IN (SELECT value FROM json_each(?)) AND source NOT LIKE 'File %'", [...new Set(parsed.map(p => p.phone))])).forEach(o => { crmDay[o.phone + '|' + fmtDate(o.time, 'yyyyMMdd') + '|' + (Number(o.total) || 0)] = 1; }); // đơn tạo trên CRM / web (đã ghi ngược vào file)
   const out = [], seen = {}, phones = {}, callbacks = {}, upd = [], ren = [], fix = [], chg = [], chgPh = {}; let dup = 0, revenue = 0, minD = null, maxD = null, afterCut = 0;
@@ -265,8 +265,8 @@ async function importOrders(x, src, shCfg, data, dry) {
     if (ex[key]) { // đã nhập: file cũ đổi sang Đã giao / Hoàn / Huỷ / Đổi hàng thì cập nhật theo (không đè thay đổi làm trên CRM)
       const st1 = mapStatus(cell(r, m, 'status'), when), cur = ex[key];
       if (String(cur.source || '').indexOf('File ') === 0 && (p.edited || chkIds.indexOf(cur.id) >= 0) && !handEdit[cur.id] && !seen['c' + cur.rid]) {
-        seen['c' + cur.rid] = 1; const items = rowItems(r, product, amount);
-        chg.push({ rid: cur.rid, time: when, total: amount, subtotal: amount, items: itemsText(items), line: normLine(cell(r, m, 'line'), product), ship: String(cell(r, m, 'shipText') || '').trim() || shipText(items), name: cur.name, id: key, from: fmtDate(cur.time, 'dd/MM') + ' ' + (Number(cur.total) || 0).toLocaleString('vi-VN') + 'đ ' + String(cur.items || '').split('\n')[0].replace(/\s+x\d+\s*=.*$/, ''), to: fmtDate(when, 'dd/MM') + ' ' + amount.toLocaleString('vi-VN') + 'đ ' + product });
+        seen['c' + cur.rid] = 1; const amt = amount || Number(cur.total) || 0, items = rowItems(r, product, amt); // ô tiền trống: giữ số tiền cũ
+        chg.push({ rid: cur.rid, time: when, total: amt, subtotal: amt, items: itemsText(items), line: normLine(cell(r, m, 'line'), product), ship: String(cell(r, m, 'shipText') || '').trim() || shipText(items), name: cur.name, id: key, from: fmtDate(cur.time, 'dd/MM') + ' ' + (Number(cur.total) || 0).toLocaleString('vi-VN') + 'đ ' + String(cur.items || '').split('\n')[0].replace(/\s+x\d+\s*=.*$/, ''), to: fmtDate(when, 'dd/MM') + ' ' + amt.toLocaleString('vi-VN') + 'đ ' + product });
         chgPh[phone] = 1;
       }
       if (String(cur.source || '').indexOf('File ') === 0 && st1 !== cur.status && FINAL[st1]) {
@@ -298,7 +298,7 @@ async function importOrders(x, src, shCfg, data, dry) {
   const conflicts = Object.keys(phones).filter(p => owners[p] && owners[p].owner && owners[p].owner !== sale && settled[p] !== owners[p].owner).map(p => ({ phone: p, name: phones[p], owner: owners[p].owner }));
   const newCus = Object.keys(phones).filter(p => !owners[p]).length;
   if (fix.length) {
-    const hand = {}; (await allIn(x.db, "SELECT ref, result FROM logs WHERE what = 'Đơn hàng' AND by_name != ? AND ref IN (SELECT value FROM json_each(?))", FILE_BY, [...new Set(fix.map(f => f.cur.id))])).forEach(l => { if (/→ (Mới|Đã xác nhận|Đang giao|Đã giao|Huỷ|Hoàn|Đổi hàng)$/.test(l.result || '')) hand[l.ref] = 1; });
+    const hand = {}; (await allIn(x.db, "SELECT ref, result FROM logs WHERE what = 'Đơn hàng' AND ref IN (SELECT value FROM json_each(?)) AND by_name != ?", [...new Set(fix.map(f => f.cur.id))], FILE_BY)).forEach(l => { if (/→ (Mới|Đã xác nhận|Đang giao|Đã giao|Huỷ|Hoàn|Đổi hàng)$/.test(l.result || '')) hand[l.ref] = 1; });
     fix.forEach(f => { if (hand[f.cur.id] || f.cur.status === f.status) return; upd.push({ rid: f.cur.rid, status: f.status, id: f.cur.id, name: f.cur.name, from: f.cur.status }); f.cur.status = f.status; });
   }
   // Đơn NK… của sheet này (30 ngày gần đây) không còn dòng nào trong file nhận, mà cùng SĐT có dòng khác cách ≤ 3 ngày: bản cũ của dòng đã sửa (nhập trước khi có lượt 2) → xoá cho khỏi tính 2 lần
