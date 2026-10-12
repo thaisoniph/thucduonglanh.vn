@@ -77,8 +77,10 @@ function nameMarks(name) {
   });
   return out;
 }
+const EXPLICIT = /hoan|huy|bom|doi|giao thanh cong|da giao|thanh cong/, FILE_BY = 'File sale'; // trạng thái sale ghi rõ trong file (không phải để trống)
 function mapStatus(v, when) {
   const s = nrm(v);
+  if (/hoan (thanh|tat)/.test(s)) return 'Đã giao'; // "Hoàn thành" / "Hoàn tất" = giao xong, không phải hoàn hàng
   if (/hoan/.test(s)) return 'Hoàn';
   if (/huy|bom/.test(s)) return 'Huỷ';
   if (/doi/.test(s)) return 'Đổi hàng';
@@ -220,7 +222,7 @@ async function importOrders(x, src, shCfg, data, dry) {
     const key = valid ? codeRaw : nk, alt = valid ? [nk, old] : [old]; // alt: mã NK… cùng dòng (Apps Script cũ băm chữ có dấu thành "?"; sale điền mã đơn sau khi đã nhập)
     parsed.push({ r, phone, when, product, amount, codeRaw, valid, key, alt, sig: phone + '|' + fmtDate(when, 'yyyyMMdd') + '|' + amount + '|' + nrm(product || cell(r, m, 'gift1')) });
   }
-  const ex = {}; (await allIn(x.db, 'SELECT rid, id, status, source FROM orders WHERE id IN (SELECT value FROM json_each(?))', [...new Set(parsed.flatMap(p => [p.key].concat(p.alt)))])).forEach(o => { ex[o.id] = o; });
+  const ex = {}; (await allIn(x.db, 'SELECT rid, id, status, source, name FROM orders WHERE id IN (SELECT value FROM json_each(?))', [...new Set(parsed.flatMap(p => [p.key].concat(p.alt)))])).forEach(o => { ex[o.id] = o; });
   // Đơn NK… đã nhập nhưng mã tính lại không khớp (đổi tên nhân sự, cách băm cũ…): nhận lại theo SĐT + ngày + số tiền + sản phẩm của chính file này
   const claimed = {}; parsed.forEach(p => [p.key].concat(p.alt).forEach(k => { if (ex[k]) claimed[ex[k].rid] = 1; }));
   const bySig = {}; (await allIn(x.db, "SELECT rid, id, status, source, seller, phone, time, total, items FROM orders WHERE phone IN (SELECT value FROM json_each(?)) AND id LIKE 'NK%' AND source LIKE 'File %'", [...new Set(parsed.map(p => p.phone))])).forEach(o => {
@@ -230,7 +232,7 @@ async function importOrders(x, src, shCfg, data, dry) {
   });
   const gone = {}; (await deletedOrderIds(x)).forEach(i => { gone[i] = 1; }); // đơn Quản trị đã xoá trên CRM → không nhập lại
   const crmDay = {}; (await allIn(x.db, "SELECT phone, time, total FROM orders WHERE phone IN (SELECT value FROM json_each(?)) AND source NOT LIKE 'File %'", [...new Set(parsed.map(p => p.phone))])).forEach(o => { crmDay[o.phone + '|' + fmtDate(o.time, 'yyyyMMdd') + '|' + (Number(o.total) || 0)] = 1; }); // đơn tạo trên CRM / web (đã ghi ngược vào file)
-  const out = [], seen = {}, phones = {}, callbacks = {}, upd = [], ren = []; let dup = 0, revenue = 0, minD = null, maxD = null, afterCut = 0;
+  const out = [], seen = {}, phones = {}, callbacks = {}, upd = [], ren = [], fix = []; let dup = 0, revenue = 0, minD = null, maxD = null, afterCut = 0;
   for (const p of parsed) {
     const { r, phone, when, product, amount, codeRaw, valid, key, alt, sig } = p;
     if (!ex[key]) { // tìm bản đã nhập dưới mã khác của cùng dòng
@@ -239,7 +241,10 @@ async function importOrders(x, src, shCfg, data, dry) {
     }
     if (ex[key]) { // đã nhập: file cũ đổi sang Đã giao / Hoàn / Huỷ / Đổi hàng thì cập nhật theo (không đè thay đổi làm trên CRM)
       const st1 = mapStatus(cell(r, m, 'status'), when), cur = ex[key];
-      if (String(cur.source || '').indexOf('File ') === 0 && st1 !== cur.status && FINAL[st1] && !FINAL[cur.status]) { upd.push({ rid: cur.rid, status: st1 }); cur.status = st1; }
+      if (String(cur.source || '').indexOf('File ') === 0 && st1 !== cur.status && FINAL[st1]) {
+        if (!FINAL[cur.status]) { upd.push({ rid: cur.rid, status: st1 }); cur.status = st1; }
+        else if (EXPLICIT.test(nrm(cell(r, m, 'status')))) fix.push({ cur, status: st1 }); // sale sửa trạng thái đã chốt (vd nhập nhầm Hoàn → Đã giao): chỉ theo file nếu chưa ai đổi trên CRM / Viettel Post
+      }
       dup++; continue;
     }
     if (gone[key] || alt.some(k => gone[k])) { dup++; continue; }
@@ -266,12 +271,17 @@ async function importOrders(x, src, shCfg, data, dry) {
   const settled = await settledOf(x, Object.keys(phones), sale);
   const conflicts = Object.keys(phones).filter(p => owners[p] && owners[p].owner && owners[p].owner !== sale && settled[p] !== owners[p].owner).map(p => ({ phone: p, name: phones[p], owner: owners[p].owner }));
   const newCus = Object.keys(phones).filter(p => !owners[p]).length;
+  if (fix.length) {
+    const hand = {}; (await allIn(x.db, "SELECT ref, result FROM logs WHERE what = 'Đơn hàng' AND by_name != ? AND ref IN (SELECT value FROM json_each(?))", FILE_BY, [...new Set(fix.map(f => f.cur.id))])).forEach(l => { if (/→ (Mới|Đã xác nhận|Đang giao|Đã giao|Huỷ|Hoàn|Đổi hàng)$/.test(l.result || '')) hand[l.ref] = 1; });
+    fix.forEach(f => { if (hand[f.cur.id] || f.cur.status === f.status) return; upd.push({ rid: f.cur.rid, status: f.status, id: f.cur.id, name: f.cur.name, from: f.cur.status }); f.cur.status = f.status; });
+  }
   const summary = out.length + ' đơn mới, ' + dup + ' đã có' + (upd.length ? ' (' + upd.length + ' cập nhật trạng thái)' : '') + (ren.length ? ', ' + ren.length + ' đơn nhận mã đơn mới' : '') + (afterCut ? ', ' + afterCut + ' đơn sau ngày chốt bỏ qua' : '') + ', ' + skip + ' dòng bỏ qua';
   const res = { updated: upd.length, renamed: ren.length, afterCut, rows: data.rows.length, newOrders: out.length, dup, skip, customers: Object.keys(phones).length, newCustomers: newCus, conflicts: conflicts.slice(0, 50), conflictCount: conflicts.length, revenue, from: minD, to: maxD, summary };
   if (dry || (!out.length && !upd.length && !ren.length)) return res;
   for (const v of ren) { await run(x.db, 'UPDATE orders SET id = ? WHERE rid = ?', v.to, v.rid); await run(x.db, 'UPDATE logs SET ref = ? WHERE ref = ?', v.to, v.from); }
   out.sort((a, b) => a.time - b.time);
   await insertMany(x.db, 'orders', ORDER_COLS, out);
+  for (const u of upd) if (u.from) await crmLog(x, { name: FILE_BY }, 'Đơn hàng', u.id, u.name, u.from + ' → ' + u.status, 'Sale sửa trong file ' + shCfg.name);
   for (let i = 0; i < upd.length; i += 500) await run(x.db, "UPDATE orders SET status = json_extract(j.value, '$.status') FROM json_each(?) j WHERE orders.rid = json_extract(j.value, '$.rid')", JSON.stringify(upd.slice(i, i + 500)));
   const own = {}, keep = await keepOf(x); Object.keys(phones).forEach(p => { own[p] = keep[p] || sale; });
   const updPhones = upd.length ? (await allIn(x.db, 'SELECT DISTINCT phone FROM orders WHERE rid IN (SELECT value FROM json_each(?))', upd.map(u => u.rid))).map(r => r.phone) : [];
