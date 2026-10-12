@@ -406,11 +406,21 @@ Doanh số tính theo **Nhân viên bán** ghi trên từng đơn. Đơn khách 
 
 Tab đầu tiên trên menu, dành cho chủ doanh nghiệp. Bấm **📅 thời gian** để chọn kỳ; mỗi số tự so với kỳ trước.
 
-- **🎯 Mục tiêu tháng · cả văn phòng**: mục tiêu từng mảng (Sale, Website, Shopee, TikTok Shop…) và tổng văn phòng = cộng các mảng. Mỗi mảng có thanh tiến độ (vạch đen = hôm nay), trạng thái *Đúng tiến độ / Hơi chậm / Đang chậm*, mỗi ngày còn cần bao nhiêu, dự báo cả tháng. Bấm **🎯 Đặt mục tiêu** để nhập; ô Sale để trống = tổng mục tiêu các nhân viên. Trong cửa sổ có nút đặt trước cho tháng sau. Sale = đơn sale lên và chốt từ khách hỏi; Website = khách tự đặt trên web; sàn = số từ tab Sàn.
-- **Điểm cần chú ý**: vài dòng CRM tự rút ra (doanh thu tăng / giảm, kênh ra nhiều tiền nhất, trang khách vào nhưng bỏ đi nhanh…).
-- **Kinh doanh** (đơn trong CRM: website, sale, khách hỏi; chưa gồm sàn): doanh thu, số đơn, giá trị trung bình / đơn, khách mua lần đầu, % doanh thu từ khách cũ, **data quảng cáo** (số trong file số quảng cáo, cùng cách đếm với tab Hiệu quả; ghi rõ bao nhiêu số mới, khách cũ, khách từng hỏi) và **khách hỏi mới** (số chưa từng có trong CRM, mọi kênh, gồm cả website).
-- **Website** (lấy từ Google Analytics): lượt truy cập, người xem, đơn đặt trên web, tỷ lệ ra đơn, % khách ở lại xem, thời gian xem.
-- **Theo ngày**, **Doanh thu theo kênh** (Website – nguồn / Sale / Khách hỏi), **Khách vào web từ đâu**, **Phễu mua hàng** (rơi nhiều nhất ở bước nào), **Khách liên hệ từ web** (bấm gọi, bấm Zalo, điền form), **Trang xem nhiều**, **Trang khách vào đầu tiên**, **Sản phẩm bán chạy**, **Khách hỏi theo kênh**.
+**Màn hình đầu: nhìn 5 giây là nắm được tình hình**
+
+- **4 ô lớn**: 💰 **Tiền bán được** (văn phòng + sàn), 🧾 **Số đơn hàng**, 🙋 **Khách mới mua**, 📣 **Quảng cáo** (bỏ 1 đồng quảng cáo thì khách mới mua lại bao nhiêu đồng). Mũi tên ▲ xanh / ▼ đỏ là so với kỳ trước.
+- **Đèn trên mỗi ô**: 🟢 tốt, 🟠 cần để ý, 🔴 cần xử lý. Tiền bán được (xem theo tháng): theo tiến độ mục tiêu. Số đơn, khách mới: tăng = 🟢, giảm dưới 10% = 🟠, giảm từ 10% = 🔴. Quảng cáo: 1đ thu về từ 4đ trở lên = 🟢, từ 2,5đ = 🟠, dưới 2,5đ = 🔴.
+- **🎯 Mục tiêu tháng**: thanh tiến độ cả văn phòng (vạch đen = hôm nay, thanh màu vượt vạch đen là đúng tiến độ), mỗi ngày còn cần bán bao nhiêu.
+- **📌 Cần chú ý**: tối đa 5 dòng CRM tự rút ra: chậm mục tiêu, kênh quảng cáo tốn tiền mà chưa ra khách, kênh hiệu quả nhất nên dồn tiền, sàn lâu chưa tải file, doanh thu tăng / giảm mạnh…
+- Bấm vào ô hoặc thanh mục tiêu để mở phần chi tiết tương ứng.
+
+**🔎 Xem chi tiết** (bấm vào từng mục để mở / đóng; mục đang mở được nhớ cho lần sau)
+
+- **🎯 Mục tiêu từng mảng**: Sale, Website, Shopee, TikTok Shop… mỗi mảng có thanh tiến độ, trạng thái *Đúng tiến độ / Hơi chậm / Đang chậm*, mỗi ngày còn cần bao nhiêu, dự báo cả tháng. Bấm **🎯 Đặt mục tiêu** để nhập; ô Sale để trống = tổng mục tiêu các nhân viên. Sale = đơn sale lên và chốt từ khách hỏi; Website = khách tự đặt trên web; sàn = số từ tab Sàn.
+- **💰 Bán hàng văn phòng** (đơn trong CRM, chưa gồm sàn): doanh thu, số đơn, giá trị trung bình / đơn, khách mua lần đầu, % doanh thu từ khách cũ, **data quảng cáo** (cùng cách đếm với tab Hiệu quả) và **khách hỏi mới**.
+- **📣 Quảng cáo & hiệu quả từng kênh**, **🛒 Sàn TMĐT**: xem bên dưới.
+- **📈 Theo ngày**, **🧭 Tiền đến từ kênh nào**, **🏆 Sản phẩm bán chạy**, **🙋 Khách hỏi theo kênh**.
+- **🌐 Website** (Google Analytics): lượt truy cập, người xem, đơn web, tỷ lệ ra đơn, % khách ở lại xem, khách vào từ đâu, phễu mua hàng, khách liên hệ từ web, trang xem nhiều, trang vào đầu tiên.
 
 **📣 Marketing**: chi phí quảng cáo, **chi phí / doanh thu khách mới** (chỉ số chính để đánh giá quảng cáo), 1đ chi phí thu về bao nhiêu doanh thu khách mới, chi phí có 1 khách mới, chi phí / data quảng cáo, chi phí / doanh thu tổng (tham khảo).
 

@@ -713,3 +713,33 @@ input[type=date] { -webkit-appearance: none; appearance: none; display: block; m
 .dash-ch-s b { display: block; font-size: 20px; color: var(--ink); font-variant-numeric: tabular-nums; line-height: 1.25; }
 .dash-ch-s .delta { font-size: 11.5px; }
 .dash-ch p { margin: 8px 0 0; }
+
+/* Tổng quan – màn hình đầu cho chủ doanh nghiệp: 4 ô lớn có đèn xanh / cam / đỏ, thanh mục tiêu, mục chi tiết thu gọn */
+.dash-hero { margin: 0 0 14px; }
+.dash-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 0 0 10px; }
+@media (max-width: 760px) { .dash-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.dash-tile { display: block; width: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer; background: #fff; border: 1px solid var(--line); border-top: 5px solid var(--line); border-radius: var(--radius); padding: 12px 14px; box-shadow: var(--shadow); }
+.dash-tile:hover { border-color: #cfd8cc; }
+.dash-tile.ok, .dash-tile.done { border-top-color: var(--primary); }
+.dash-tile.mid { border-top-color: #f0a030; }
+.dash-tile.bad { border-top-color: var(--red); }
+.dash-tile-l { display: flex; justify-content: space-between; gap: 6px; font-size: 14px; font-weight: 700; color: var(--ink); }
+.dash-tile-l i { font-style: normal; }
+.dash-tile b { display: block; font-size: 30px; line-height: 1.2; margin-top: 4px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.dash-tile small { display: block; font-size: 13px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+@media (max-width: 520px) { .dash-tile { padding: 10px 12px; } .dash-tile b { font-size: 23px; } .dash-tile .delta { font-size: 12px; } }
+.goal.dash-goal { margin: 0; cursor: pointer; }
+.goal.dash-goal p { margin: 6px 0 0; }
+.dash-goal-none { margin: 0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.dash-more-h { margin-top: 18px; }
+details.dash-more { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); margin: 0 0 8px; box-shadow: var(--shadow); scroll-margin-top: 12px; }
+details.dash-more > summary { list-style: none; cursor: pointer; padding: 12px 40px 12px 14px; position: relative; display: flex; flex-direction: column; gap: 2px; }
+details.dash-more > summary::-webkit-details-marker { display: none; }
+details.dash-more > summary::after { content: '▾'; position: absolute; right: 14px; top: 50%; margin-top: -12px; font-size: 18px; color: var(--muted); transition: transform .2s; }
+details.dash-more[open] > summary::after { transform: rotate(180deg); }
+details.dash-more > summary b { font-size: 16px; color: var(--ink); }
+details.dash-more > summary span { font-size: 13px; color: var(--muted); }
+.dash-more-b { padding: 10px 12px 12px; border-top: 1px solid var(--line); background: var(--bg); border-radius: 0 0 var(--radius) var(--radius); }
+.dash-more-b > .section { margin: 0; }
+.dash-more-b > .section:first-child > .section-h > h2 { display: none; }
+.dash-more-b > .section + .section { margin-top: 14px; }
