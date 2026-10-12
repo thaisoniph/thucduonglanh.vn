@@ -1311,7 +1311,7 @@
   var SPEND = { lo: ['Dưới 500k', 0, 5e5], mid: ['500k – 2 triệu', 5e5, 2e6], hi: ['Trên 2 triệu', 2e6, 9e15] };
   /** Nguồn khách mua lần đầu (Facebook, Ladi, Zalo…), nhiều khách xếp trước. */
   function custSources() {
-    var n = {}; S.d.customers.forEach(function (c) { if (lvl() >= 2 || c.owner === S.user.name) { var k = c.source || 'Chưa rõ'; n[k] = (n[k] || 0) + 1; } });
+    var n = {}; S.d.customers.forEach(function (c) { if (lvl() >= 2 || c.owner === S.user.name) { var k = custSrc(c) || 'Chưa rõ'; n[k] = (n[k] || 0) + 1; } });
     return Object.keys(n).sort(function (a, b) { return n[b] - n[a]; });
   }
   function renderCustomerChips(base, cur) {
@@ -1334,7 +1334,7 @@
     if (f.cat) base = base.filter(function (c) { return custCat(c).key === f.cat; });
     var srcs = custSources(); if (f.src && srcs.indexOf(f.src) < 0) f.src = '';
     if (f.spend) base = base.filter(function (c) { var r = SPEND[f.spend]; return c.spent >= r[1] && c.spent < r[2]; });
-    if (f.src) base = base.filter(function (c) { return (c.source || 'Chưa rõ') === f.src; });
+    if (f.src) base = base.filter(function (c) { return (custSrc(c) || 'Chưa rõ') === f.src; });
     if (f.bday) base = base.filter(function (c) { return bdayHit(c, f.bday); });
     var chips = CF;
     var cur = chips.filter(function (x) { return x.k === f.k; })[0] || chips[0];
@@ -1368,7 +1368,7 @@
     if (f.cat) base = base.filter(function (c) { return custCat(c).key === f.cat; });
     var srcs = custSources(); if (f.src && srcs.indexOf(f.src) < 0) f.src = '';
     if (f.spend) base = base.filter(function (c) { var r = SPEND[f.spend]; return c.spent >= r[1] && c.spent < r[2]; });
-    if (f.src) base = base.filter(function (c) { return (c.source || 'Chưa rõ') === f.src; });
+    if (f.src) base = base.filter(function (c) { return (custSrc(c) || 'Chưa rõ') === f.src; });
     if (f.bday) base = base.filter(function (c) { return bdayHit(c, f.bday); });
     var chips = CF;
     var cur = chips.filter(function (x) { return x.k === f.k; })[0] || chips[0];
@@ -1446,7 +1446,7 @@
     if (c.owner && owners.indexOf(c.owner) < 0) owners.push(c.owner);
     var r = replyOf(c), avg = c.orders ? c.spent / c.orders : 0;
     var habit = function () { return '<span>🧺 Hay mua: <b>' + esc(st.top || '–') + '</b>' + (st.topN > 1 ? ' (' + st.topN + ' lần)' : '') + '</span>' + (st.gap ? '<span>🔁 Khoảng <b>' + st.gap + ' ngày</b> mua lại 1 lần</span>' : '') + (c.runout ? '<span>⏰ Dự kiến hết: <b>' + fDate(c.runout).slice(0, 5) + '</b> (' + daysAgo(c.runout) + ')</span>' : ''); };
-    var body = '<div class="p-top"><div class="p-sub">' + cpPhone(c.phone) + ' · ' + (c.owner ? '👤 ' + esc(c.owner) : (isPoolStaff() ? claimBtn('c', c.phone) : 'Chưa ai phụ trách')) + (c.source ? ' · <span title="Nguồn khách (theo đơn đầu tiên)">' + srcIcon(c.source) + esc(c.source) + '</span>' : '') + '</div>' +
+    var body = '<div class="p-top"><div class="p-sub">' + cpPhone(c.phone) + ' · ' + (c.owner ? '👤 ' + esc(c.owner) : (isPoolStaff() ? claimBtn('c', c.phone) : 'Chưa ai phụ trách')) + (custSrc(c) ? ' · <span title="Nguồn khách (theo đơn đầu tiên)">' + srcIcon(custSrc(c)) + esc(custSrc(c)) + '</span>' : '') + '</div>' +
       '<div class="p-tags">' + zaloTag(c) + consentTag(c) + '</div>' +
       '<div class="acts steps p-acts"><a class="btn" href="tel:' + c.phone + '">📞 Gọi</a><a class="btn zalo" href="' + zalo(c.phone) + '" target="_blank" rel="noopener">Zalo</a><button class="btn pri" data-care="' + c.phone + '" data-task="' + (c.task ? c.task.type : 'other') + '">💬 Chăm sóc</button><button class="btn" data-neworder="' + c.phone + '">＋ Đơn</button></div></div>' +
       (c.flag ? '<div class="notice" style="background:var(--red-light);color:var(--red)">⚠️ Khách có nhãn <b>' + esc(c.flag) + '</b>. Nên yêu cầu chuyển khoản trước khi gửi hàng.</div>' : '') +
@@ -1486,7 +1486,7 @@
           (op ? custOrderDetail(o, c) : '<div class="or-3">' + cp(o.id) + (o.seller ? ' · 👤 ' + esc(o.seller) : '') + (o.note ? ' · 📝 ' + esc(o.note.length > 80 ? o.note.slice(0, 80) + '…' : o.note) : '') + '</div>') + '</div>';
       }).join('') + '</div><p class="small muted" style="margin:6px 0 0">Bấm vào đơn để xem chi tiết, đặt lại đơn cũ.</p>' : '<p class="muted">Chưa có đơn.</p>') + (all ? '' : '<p class="small muted">Đang tải đơn cũ…</p>');
       if (tab === 'info') box.innerHTML = '<div class="box" style="margin:0"><div class="grid-info">' + info('Điện thoại', fPhone(c.phone), false, normPhone(c.phone)) + info('Zalo', c.zalo ? '✓ Đã kết bạn' : 'Chưa kết bạn') + info('Cộng đồng', inComm(c) ? '👥 Đã vào nhóm' : c.community || 'Chưa mời') +
-        info('Ngày sinh', c.dob ? '🎂 ' + c.dob : 'chưa có') + info('Đơn đầu', fDate(c.first)) + info('Nhận hàng gần nhất', c.recv ? fDate(c.recv) : 'chưa rõ') + info('Nhóm', c.group) + info('Nguồn', c.source || '–') +
+        info('Ngày sinh', c.dob ? '🎂 ' + c.dob : 'chưa có') + info('Đơn đầu', fDate(c.first)) + info('Nhận hàng gần nhất', c.recv ? fDate(c.recv) : 'chưa rõ') + info('Nhóm', c.group) + info('Nguồn', custSrc(c) || '–') +
         (function () { var ld = leadsOf(c.phone)[0]; return ld ? info('Biết đến qua', chLabel(ld.channel) + ' · hỏi ' + fDate(ld.time) + (c.first && c.first >= (ld.time || 0) ? ' · chốt sau ' + Math.max(0, Math.round((c.first - ld.time) / DAY)) + ' ngày' : ''), true) : ''; })() + info('Tỉnh / thành', provOf(c) ? provOf(c).old + (provOf(c).old !== provOf(c).nw ? ' (nay thuộc ' + provOf(c).nw + ')' : '') : 'chưa rõ') + info('Địa chỉ', fullAddr(c), true, true) + info('Đã mua', c.products.join('; '), true) +
         noteExtras(c.note).map(function (l) { var i = l.indexOf(':'); return info(l.slice(0, i), l.slice(i + 1).trim(), true); }).join('') + '</div></div>';
       var mo = $('[data-tlmore]', m); if (mo) mo.onclick = function () { tlMax += 50; draw(); };
@@ -2288,7 +2288,17 @@
   function chLabel(ch) { ch = String(ch || '').trim(); return /^(quảng cáo|file cũ)\s*[–-]/i.test(ch) ? 'Facebook Ads' : ch || 'Khác'; }
   /** Biểu tượng + tên nguồn khách (lần đầu biết đến / mua lần đầu). */
   function srcIcon(s) { return s === 'Website' ? '🌐 ' : s === 'Facebook Ads' ? '📘 ' : /^ebook/i.test(s) ? '🎁 ' : /zalo/i.test(s) ? '💬 ' : /tiktok/i.test(s) ? '🎵 ' : '📍 '; }
-  function srcChip(c) { return c && c.source ? '<span class="src-chip" title="Nguồn khách: nơi khách đến lần đầu (theo đơn đầu tiên)">' + srcIcon(c.source) + esc(c.source) + '</span>' : ''; }
+  /** Nguồn khách để hiện (giống custSource ở api/): máy chủ tính lại theo lịch ban ngày, dữ liệu cũ còn ghi nguồn thô của đơn đầu
+   *  (“File Thu Phương – lên đơn”, “chatgpt.com”…) → quy đổi luôn ở đây. Anh Sơn 12/10/2026: khách nhập từ file sale / trước 13/10 = Facebook Ads. */
+  var SRC_CUT = Date.parse('2026-10-13T00:00:00+07:00');
+  function custSrc(c) {
+    var s = String((c && c.source) || '').trim(), m = s.match(/^(Nhập tay|Tiềm năng)\s*[–-]\s*(.*)$/), k; if (!s) return '';
+    if (/^file /i.test(s) || (m && (c.first || 0) < SRC_CUT)) return 'Facebook Ads';
+    if (m) { k = norm(m[2]); return /facebook|\bfb\b|messenger|instagram|quang cao/.test(k) ? 'Facebook Ads' : /web/.test(k) ? 'Website' : /zalo/.test(k) ? 'Zalo' : /tiktok/.test(k) ? 'TikTok' : m[2].trim() || 'Khác'; }
+    if (/\.|\s\/\s|truy cập trực tiếp/i.test(s)) return 'Website'; // nguồn thô của đơn web (utm / trang giới thiệu)
+    return s;
+  }
+  function srcChip(c) { var s = custSrc(c); return s ? '<span class="src-chip" title="Nguồn khách: nơi khách đến lần đầu (theo đơn đầu tiên)">' + srcIcon(s) + esc(s) + '</span>' : ''; }
   function leadTag(l) { return '<span class="tag ' + (LEAD_CLS[l.status] || '') + '">' + esc(l.status) + '</span>'; }
   function leadAge(l) {
     if (l.status === 'Đã chốt') return '<span class="age ok">🛒 Đã chốt đơn' + (l.orderId ? ' ' + esc(l.orderId) : '') + '</span>';
