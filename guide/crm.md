@@ -289,14 +289,15 @@ Bấm vào tên khách ở bất kỳ đâu để mở hồ sơ.
 Từ trên xuống:
 
 - **Phần đầu:** số điện thoại, người phụ trách, nhãn (Zalo, ✓ Nhận ưu đãi, ⚠️ hay hoàn…) và 4 nút **Gọi · Zalo · Chăm sóc · ＋ Đơn**.
-- **Giá trị khách (chữ to):** **Tổng chi · Số đơn · Trung bình mỗi đơn**. Bên dưới: **mua gần nhất** bao lâu rồi, **hay mua** sản phẩm gì, khoảng **bao nhiêu ngày khách mua lại 1 lần**, **ngày dự kiến hết hàng**.
-- **Khung vàng:** việc cần làm hôm nay với khách (nếu có) và **lần cuối khách trả lời** (ngày, kết quả, ai gọi). Nếu sau đó gọi mà khách không nghe máy thì ghi rõ số lần.
+- **Giá trị khách (chữ to):** **Tổng chi · Số đơn · Trung bình mỗi đơn**. Bên dưới: **mua gần nhất** bao lâu rồi, **hay mua** sản phẩm gì, khoảng **bao nhiêu ngày khách mua lại 1 lần**, **ngày dự kiến hết hàng**. Có thêm các dòng **🎯 Dùng cho** (khách mua cho ai, để làm gì), 🩺 sức khoẻ, 🤝 người giới thiệu nếu đã ghi, và **💡 Gợi ý giới thiệu** (sản phẩm mà khách mua giống khách này hay mua thêm).
+- **Khung xanh 🚚** (nếu có): khách đang có đơn chưa giao xong. Hỏi thăm đơn đó trước, chưa nên chào thêm. Bấm vào khung để xem đơn.
+- **Khung vàng:** việc cần làm hôm nay với khách (nếu có) và **lần cuối khách trả lời** (ngày, kết quả, ai gọi). Nếu sau đó gọi mà khách không nghe máy thì ghi rõ số lần. Có thêm **📝 Ghi lần trước** (nội dung lần chăm sóc gần nhất, đọc trước khi gọi để nói tiếp chuyện cũ) và **🕐 Khách hay nghe máy buổi nào** (máy tự tính khi khách đã trả lời từ 2 lần).
 - **3 thẻ:**
     - **Lịch sử** (mở sẵn): **đơn hàng 🛒 và các lần chăm sóc gộp chung 1 dòng thời gian**, mới nhất ở trên. 📵 = không nghe máy, 📒 = ghi chú cũ từ Sheet.
-    - **Đơn hàng:** toàn bộ đơn của khách, kể cả đơn cũ.
+    - **Đơn hàng:** toàn bộ đơn của khách, kể cả đơn cũ. **Bấm vào 1 đơn** để xem ngay chi tiết: sản phẩm và quà kèm, tiền ship, thanh toán (đã nhận tiền chưa), địa chỉ giao (báo nếu khác địa chỉ hiện tại), vận chuyển, ghi chú đầy đủ. Ngay đó có nút **🔁 Đặt lại đơn này** (mở form lên đơn đã điền sẵn như đơn đó), **📋 Copy**, **✏️ Mở đơn để sửa**. Bấm dòng đơn 🛒 ở thẻ Lịch sử cũng mở chi tiết đơn đó.
     - **Thông tin:** ngày sinh, địa chỉ, nguồn, đơn đầu, ngày nhận hàng gần nhất, người giới thiệu, số điện thoại khác, tình trạng sức khoẻ.
 - **Ô ✏️ Ghi nhanh** luôn ở đáy màn hình: gõ vài chữ (vd “kh dùng ok, hẹn cuối tháng”) rồi bấm **Lưu** hoặc Enter. Máy tự thêm ngày.
-- **⚙️ Sửa thông tin** (bấm để mở): đổi người phụ trách (quản lý), hẹn gọi lại ngày, **🎂 ngày sinh**, nhãn màu, sửa ghi chú dài.
+- **⚙️ Sửa thông tin** (bấm để mở): đổi người phụ trách (quản lý), hẹn gọi lại ngày, **🎂 ngày sinh**, **🎯 khách dùng cho ai / để làm gì** (vd “mua cho mẹ 70 tuổi, ăn ngủ kém”, hiện ở đầu hồ sơ và trong hộp Chăm sóc), nhãn màu, sửa ghi chú dài.
 
 **Nhóm khách** (máy tự xếp theo số ngày chưa mua):
 

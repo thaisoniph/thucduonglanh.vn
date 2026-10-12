@@ -806,3 +806,14 @@ details.set-g .dash-more-b { background: #fff; }
 .box.dash-trd { margin: 10px 0 0; }
 .box.dash-trd h3 { margin: 0 0 10px; }
 .src-chip { font-size: 12px; color: var(--muted); white-space: nowrap; } /* nguồn khách lần đầu (📘 Facebook Ads, 🌐 Website…) */
+/* hồ sơ khách: bấm đơn → xem chi tiết ngay tại chỗ */
+.or.click, .tl.o.click, .notice.click { cursor: pointer; } .or.click:hover .or-2 { text-decoration: underline; }
+.or-tg { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 4px; }
+.or.open { background: #f6faf7; margin: 0 -12px; padding: 10px 12px; border-radius: 10px; }
+.or-d { display: grid; gap: 6px; font-size: 14px; margin-top: 8px; cursor: default; }
+.or-d .pre { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+.or-sum { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--muted); } .or-sum b { color: var(--text); }
+.or-note { white-space: pre-wrap; background: #fff8e6; border-radius: 8px; padding: 6px 10px; }
+.or-log { font-size: 13px; display: grid; gap: 2px; border-left: 3px solid var(--line); padding-left: 8px; }
+.or-d .steps { margin-top: 4px; }
+.p-lines .sug { color: var(--primary); font-weight: 600; }
