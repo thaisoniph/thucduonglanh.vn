@@ -79,8 +79,9 @@ async function wbOrderSheet(x, src) {
   for (const sc of os) {
     if (!has(sc.map, 'date')) continue;
     try {
-      const col = SRC_UTIL.colLetter(+sc.map.date), hr = sc.header || 1, ctx = {}; let t = 0;
-      (await sheetValues(x.env, fileIdOf(src.url), a1(sc.name, col + (hr + 1) + ':' + col), 'UNFORMATTED_VALUE')).forEach(r => { const d = SRC_UTIL.toDate(r[0], ctx); if (d && d > t) t = d; });
+      const col = SRC_UTIL.colLetter(+sc.map.date), hr = sc.header || 1; let t = 0;
+      const vals = (await sheetValues(x.env, fileIdOf(src.url), a1(sc.name, col + (hr + 1) + ':' + col), 'UNFORMATTED_VALUE')).map(r => r[0]), ctx = { us: SRC_UTIL.usDates(vals) };
+      vals.forEach(v => { const d = SRC_UTIL.toDate(v, ctx); if (d && d > t) t = d; });
       if (t > bt) { bt = t; best = sc; }
     } catch (e) { console.error('wbOrderSheet', sc.name, e.message); }
   }
