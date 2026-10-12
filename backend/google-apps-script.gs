@@ -2817,7 +2817,7 @@ function guideSheet(ss) {
   var rows = [
     ['📖 HƯỚNG DẪN DÙNG FILE NÀY', '(đọc 1 phút)', 'title'],
     ['', '', ''],
-    ['FILE NÀY LÀ GÌ?', 'Đây là KHO DỮ LIỆU của CRM: đơn web, đơn và ghi chú nhập từ file sale, khách hàng, khách hỏi, nhật ký chăm sóc. Máy tự ghi vào file này.', 'h'],
+    ['FILE NÀY LÀ GÌ?', 'Đây là BẢN SAO dữ liệu CRM (đơn hàng, khách hàng, khách hỏi, nhật ký chăm sóc…). Máy chủ CRM tự chép sang 6 tiếng/lần để xem, lọc, xuất báo cáo. Sửa trên file này KHÔNG có tác dụng: mọi thay đổi làm trên CRM.', 'h'],
     ['', '', ''],
     ['HẰNG NGÀY LÀM VIỆC Ở ĐÂU?', 'Trên CRM: https://crm.thucduonglanh.vn (đăng nhập bằng mã gửi về email).', 'h'],
     ['Việc hôm nay', 'Tab "Hôm nay" trên CRM cho biết hôm nay cần gọi ai, đơn nào cần xác nhận, khách nào sắp hết hàng.', ''],
@@ -2826,17 +2826,17 @@ function guideSheet(ss) {
     ['Hướng dẫn chi tiết', 'https://crm.thucduonglanh.vn/huong-dan/', ''],
     ['', '', ''],
     ['CÁC TRANG TRONG FILE', '', 'h'],
-    ['Đơn hàng', 'Tất cả đơn. Đơn mới nhất ở DƯỚI CÙNG.', ''],
-    ['Khách hàng', 'Mỗi khách 1 dòng (gộp theo số điện thoại). Máy tự tính lại từ trang Đơn hàng.', ''],
-    ['Khách tiềm năng', 'Khách hỏi (số quảng cáo, liên hệ web, ebook…). Trên CRM là tab "Khách hỏi".', ''],
-    ['Nhật ký CSKH', 'Mọi thao tác trên CRM: ai làm, lúc nào, kết quả gì.', ''],
-    ['Mẫu tin nhắn CSKH', 'Tin mẫu hiện trong hộp Chăm sóc. Quản lý sửa được trên CRM (Cài đặt) hoặc tại đây.', ''],
-    ['Chu kỳ dùng', 'Khách dùng hết 1 hộp trong mấy ngày, để tính ngày sắp hết hàng. Chỉ quản lý sửa.', ''],
-    ['Nhân sự CRM', 'Ai được đăng nhập CRM và quyền gì. Chỉ quản trị sửa.', ''],
-    ['Các trang khác', 'Nguồn dữ liệu sale, Ghi ngược file sale, Tự nhập file sale, Mục tiêu, Góp ý, Đo tốc độ CRM: máy tự ghi, không cần sửa.', ''],
+    ['CRM · Đơn hàng', 'Tất cả đơn (web, sale, nhập từ file sale). Đơn mới nhất ở DƯỚI CÙNG.', ''],
+    ['CRM · Khách hàng', 'Mỗi khách 1 dòng (gộp theo số điện thoại).', ''],
+    ['CRM · Khách tiềm năng', 'Khách hỏi (số quảng cáo, liên hệ web, ebook…). Trên CRM là tab "Khách hỏi".', ''],
+    ['CRM · Nhật ký CSKH', 'Mọi thao tác trên CRM: ai làm, lúc nào, kết quả gì.', ''],
+    ['CRM · Liên hệ', 'Lời nhắn khách gửi từ form Liên hệ trên website.', ''],
+    ['CRM · Chi phí marketing', 'Chi phí quảng cáo theo ngày, kênh, chiến dịch.', ''],
+    ['CRM · Đơn sàn TMĐT', 'Đơn Shopee / TikTok Shop / Lazada tải lên CRM.', ''],
+    ['Các trang khác', 'CRM · Mục tiêu, Nhân sự, Chu kỳ dùng, Mẫu tin nhắn, Góp ý, Hoạt động CRM, Đo tốc độ CRM: cài đặt và số liệu của CRM, sửa trên CRM (Cài đặt).', ''],
     ['', '', ''],
     ['KHÔNG ĐƯỢC LÀM', '', 'h'],
-    ['❌', 'Không xoá dòng, không đổi tên trang, không sửa chữ ở dòng tiêu đề, không thêm cột. (Đơn không lấy thì chọn "Huỷ", đừng xoá.)', ''],
+    ['❌', 'Không đổi tên, không xoá các trang "CRM · …" (máy chủ cần đúng tên trang để chép dữ liệu sang). Muốn sửa dữ liệu thì sửa trên CRM.', ''],
     ['❌', 'Không chụp, gửi file hay danh sách khách ra ngoài. Đây là thông tin cá nhân của khách, pháp luật bắt buộc phải giữ kín.', ''],
     ['❌', 'Khách "Đồng ý nhận tin: Không" thì chỉ hỏi thăm, không gửi quảng cáo.', ''],
     ['', '', ''],
@@ -2853,6 +2853,19 @@ function guideSheet(ss) {
     else if (r[0]) a.setFontWeight('bold');
   });
   sh.setFrozenRows(1); sh.setHiddenGridlines(true);
+}
+
+/** Chạy 1 lần trong trình soạn Apps Script (12/10/2026): xoá các trang tính cũ của thời Apps Script. Từ 07/10/2026 dữ liệu chạy trên máy chủ mới (D1),
+ *  Sheet chỉ còn các trang "CRM · …" (bản sao 6 tiếng/lần) + Hướng dẫn. Bản lưu nguyên file trước khi xoá: "Bản lưu 12-10-2026 trước khi dọn tab – …" trên Drive.
+ *  Sau khi xoá, quayLaiMayChuCu() không dùng được nữa (máy chủ cũ cần các trang này). Chạy lại nhiều lần cũng không sao. */
+var OLD_TABS = ['Đơn hàng', 'Khách hàng', 'Khách tiềm năng', 'Nhật ký CSKH', 'Liên hệ', 'Mẫu tin nhắn CSKH', 'Chu kỳ dùng', 'Nhân sự CRM', 'Mục tiêu',
+  'Nguồn dữ liệu sale', 'Ghi ngược file sale', 'Tự nhập file sale', 'Hoạt động CRM', 'Đo tốc độ CRM', 'Góp ý', '✅ Việc hôm nay'];
+function donTabCu() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), del = [];
+  guideSheet(ss);
+  OLD_TABS.forEach(function (n) { var t = ss.getSheetByName(n); if (t && ss.getSheets().length > 1) { ss.deleteSheet(t); del.push(n); } });
+  var g = ss.getSheetByName(GUIDE); if (g) { g.setTabColor('#e53935'); ss.setActiveSheet(g); ss.moveActiveSheet(1); }
+  console.log('Đã xoá ' + del.length + ' trang cũ: ' + (del.join(', ') || 'không còn trang nào') + '. Đã viết lại trang Hướng dẫn.');
 }
 
 function dropTodayTab(ss) { var t = ss.getSheetByName(TODAY_TAB); if (t && ss.getSheets().length > 1) ss.deleteSheet(t); }

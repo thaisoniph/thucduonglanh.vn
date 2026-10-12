@@ -42,9 +42,9 @@ Mỗi lần sửa, nói rõ cho anh: lần này "chỉ cần Lưu" hay "phải T
 Nếu CRM web (`crm/`) cần Apps Script bản mới mới chạy được thì phải báo trước khi anh merge. Code CRM web cũng phải chạy được với Apps Script bản cũ, vì anh có thể chưa kịp dán code (thường dán khi về tới máy tính).
 
 ## Đơn hàng & CRM
-- Sheet "Đơn hàng website Thực Dưỡng Lành": các tab Đơn hàng, Khách hàng, Chu kỳ dùng, Mẫu tin nhắn CSKH, Liên hệ, Nhân sự CRM, Nhật ký CSKH.
+- Sheet "Đơn hàng website Thực Dưỡng Lành": từ 12/10/2026 chỉ còn "📖 Hướng dẫn" + các tab "CRM · …" (bản sao từ D1, 6 tiếng/lần, sửa trên Sheet không có tác dụng). Dữ liệu thật nằm ở D1.
 - Báo đơn qua email và Telegram (bot @thucduonglanh_donhang_bot, nhóm "Đơn hàng Thực Dưỡng Lành"). Tin "CSKH hôm nay" gửi lúc 8h sáng.
-- CRM: đăng nhập bằng mã email; quyền lấy từ tab "Nhân sự CRM" (thaisoniph@gmail.com luôn là Quản trị).
+- CRM: đăng nhập bằng mã email; quyền lấy từ bảng `users` trong D1, sửa ở CRM → Cài đặt (thaisoniph@gmail.com luôn là Quản trị).
 - Phí ship 30.000đ, miễn phí từ 300.000đ. Chuyển khoản qua QR VCB. Hotline/Zalo: 0966 326 522.
 
 ## Đo lường
