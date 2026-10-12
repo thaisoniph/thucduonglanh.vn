@@ -109,7 +109,7 @@ export async function scheduled(x, cron) {
   const lastAuto = Number(await kvGet(x.db, 'auto_tick_last') || 0);
   if (now - lastAuto > 25 * 60e3 && vn.getUTCHours() >= 7 && vn.getUTCHours() <= 21) {
     await kvSet(x.db, 'auto_tick_last', String(now));
-    try { await srcAutoTick(x); } catch (e) { console.error('srcAutoTick', e.message); }
+    try { if (await srcAutoTick(x)) await kvSet(x.db, 'auto_tick_last', String(now - 20 * 60e3)); } catch (e) { console.error('srcAutoTick', e.message); } // chưa hết sheet → 10 phút sau làm tiếp
     const lastUni = Number(await kvGet(x.db, 'unify_last') || 0); // gộp tên đọc hết các bảng → 6 tiếng 1 lần là đủ
     if (now - lastUni > 6 * 3600e3) { await kvSet(x.db, 'unify_last', String(now)); try { await unifyNames(x); } catch (e) { console.error('unifyNames', e.message); } }
     try { await autoCloseLeads(x, null); } catch (e) { console.error('autoCloseLeads', e.message); } // quét bù khách hỏi đã có đơn (25 phút 1 lần)

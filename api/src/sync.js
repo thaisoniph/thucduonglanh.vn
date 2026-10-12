@@ -670,16 +670,18 @@ export async function srcAutoTick(x, force) {
   const sources = (await srcList(x)).filter(s => s.cfg && s.cfg.autoSync);
   if (!sources.length) return;
   const u = { name: 'Tự động', level: 3, email: '' };
-  for (const src of sources) {
-    const sheets = (src.cfg.sheets || []).filter(s => s.role && s.role !== 'skip');
-    for (let i = 0; i < sheets.length; i++) {
-      try {
-        await srcSync(x, u, { id: src.id, name: sheets[i].name });
-      } catch (e) {
-        console.error('srcAutoTick', src.sale, sheets[i].name, e.message);
-      }
-    }
+  // Mỗi lượt chạy tối đa ~20 giây rồi dừng, lượt sau làm tiếp từ sheet kế (12/10/2026: lần đầu lấy ngày theo mã đơn sửa hàng nghìn đơn,
+  // 1 lượt chạy hết mọi file thì máy chủ dừng giữa chừng ở file Lương → các file sau không bao giờ tới lượt).
+  const list = sources.flatMap(src => (src.cfg.sheets || []).filter(s => s.role && s.role !== 'skip').map(s => ({ id: src.id, sale: src.sale, name: s.name })));
+  let pos = Number(await kvGet(x.db, 'src_tick_pos') || 0) % (list.length || 1), done = 0;
+  while (done < list.length) {
+    if (done && Date.now() - now > 20e3) break;
+    const it = list[pos]; await kvSet(x.db, 'src_tick_pos', String(pos)); // sheet làm máy chủ dừng: lượt sau chạy lại đúng sheet đó
+    try { await srcSync(x, u, { id: it.id, name: it.name }); } catch (e) { console.error('srcAutoTick', it.sale, it.name, e.message); }
+    pos = (pos + 1) % list.length; done++;
   }
+  await kvSet(x.db, 'src_tick_pos', String(pos));
+  return done < list.length; // còn sheet chưa tới lượt → cron chạy tiếp ở lần 10 phút sau
 }
 
 /* ---------- khách trùng sale: 1 khách có trong file của nhiều sale (trước khi gộp văn phòng mỗi người chăm riêng) → quản lý chốt 1 người giữ */
