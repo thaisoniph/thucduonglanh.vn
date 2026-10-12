@@ -63,6 +63,25 @@ function codeDays(code) {
   for (const i of D.length === 7 ? [0, 1] : [0]) { const d = +D.substr(i, 2), mo = +D.substr(i + 2, 2); if (d >= 1 && d <= 31 && mo >= 1 && mo <= 12) out.push([d, mo]); }
   return out;
 }
+/** Mã đơn của người khác (nhân sự cũ đã bàn giao khách, sale khác) → ghi chú "Đơn của TUAN (bàn giao)" (anh Sơn chọn 12/10/2026: đơn vẫn tính
+ *  cho sale giữ file, chỉ ghi chú để xem lịch sử biết đơn từ ai). Tên trong mã gần giống tên sale (gõ thiếu chữ "PHUOG", "TRANG" của Chang,
+ *  thêm chữ "TPPHUOG", "THUYVP", "T.THUY") coi là của chính sale. Mã Viettel Post / GHTK ("VP…", "GHTK…") bỏ qua. */
+const CODE_NAMES = { HIEU: 'Văn Hiếu', TUAN: '', LAN: '', THAO: '' }; // tên trong mã của nhân sự cũ (gõ thừa / sai 1 chữ: "TTUAN", "HIEUU" → TUAN, HIEU)
+const OWN_ALIAS = { CHANG: ['TRANG'] }; // sale ghi mã bằng tên khác (anh Sơn xác nhận 12/10/2026: TRANG trong file Chang là Chang)
+const unsign = v => String(v || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'D').replace(/[^A-Za-z]/g, '').toUpperCase();
+function lev(a, b) { const d = Array.from({ length: b.length + 1 }, (_, j) => j); for (let i = 1; i <= a.length; i++) { let p = d[0]; d[0] = i; for (let j = 1; j <= b.length; j++) { const t = d[j]; d[j] = Math.min(d[j] + 1, d[j - 1] + 1, p + (a[i - 1] === b[j - 1] ? 0 : 1)); p = t; } } return d[b.length]; }
+function codeOwner(code, sale) {
+  const m = String(code || '').trim().match(/^([\p{L}.\s]{2,16}?)\s*\d{5,7}(?!\d)/u); if (!m) return '';
+  let pre = unsign(m[1]).replace(/^V(?=[A-Z]{3})/, ''); // "VTrang…", "VLuong…": đơn gửi lại
+  if (!pre || /VP|GHTK|DOI/.test(pre)) return ''; // mã Viettel Post / GHTK / "đã đổi VP"
+  const last = unsign(String(sale || '').trim().split(/\s+/).pop()); if (!last) return '';
+  if ((OWN_ALIAS[last] || []).some(a => pre.indexOf(a) >= 0)) return '';
+  const near = w => lev(w, last) <= (last.length >= 5 ? 1 : 0);
+  for (let i = 0; i < pre.length; i++) for (let L = last.length - 1; L <= last.length + 1; L++) if (L >= 3 && i + L <= pre.length && near(pre.substr(i, L))) return '';
+  if (pre.length < last.length - 1 && near(pre)) return '';
+  const known = Object.keys(CODE_NAMES).find(k => k === pre || (pre.length > 3 && lev(k, pre) <= 1)); if (known) pre = known;
+  return 'Đơn của ' + (CODE_NAMES[pre] || pre) + ' (bàn giao)';
+}
 function codeDay(code) { const c = codeDays(code)[0]; return c ? c[0] + '/' + c[1] : ''; }
 /** Ngày của từng dòng sheet đơn hàng. Có mã đơn đọc được ngày → ngày/tháng theo mã đơn (anh Sơn chọn 12/10/2026, mã do sale điền khi lên đơn).
  *  Năm: ô ngày có năm (ô ngày thật / "30/9/2025") → năm làm ngày gần ô đó nhất; ô trống / không có năm → suy từ dưới lên (đơn mới ở dưới):
@@ -253,7 +272,7 @@ async function srcSync(x, u, d) {
   const data = await srcRows(x, src, shCfg), total = data.rows.length; let res;
   // tự nhập 25 phút/lần: sheet không đổi chữ nào so với lần trước → bỏ qua, không đọc / ghi máy chủ dữ liệu
   const auto = u.name === 'Tự động' && !d.dry, sigKey = 'ss_' + hashKey(src.id + '|' + shCfg.name);
-  const sig = auto ? await sha1('d4#' + src.sale + '#' + (src.cfg.until || '') + '#' + JSON.stringify(shCfg) + '#' + JSON.stringify(data.rows)) : '';
+  const sig = auto ? await sha1('d5#' + src.sale + '#' + (src.cfg.until || '') + '#' + JSON.stringify(shCfg) + '#' + JSON.stringify(data.rows)) : '';
   if (auto && await kvGet(x.db, sigKey) === sig) return { ok: true, role: shCfg.role, sheetName: shCfg.name, total, skipped: true, summary: 'không đổi' };
   if (!d.dry && (shCfg.role === 'orders' || shCfg.role === 'care')) { try { await notePhones(x, src, shCfg, data.rows); } catch (e) { console.error('notePhones', sale, shCfg.name, e.message); } }
   if (shCfg.role === 'orders') res = await importOrders(x, src, shCfg, data, !!d.dry);
@@ -289,7 +308,7 @@ async function importOrders(x, src, shCfg, data, dry) {
     const key = valid ? codeRaw : nk, alt = (valid ? [nk, old] : [old]).concat(prev); // alt: mã NK… cùng dòng (Apps Script cũ băm chữ có dấu thành "?"; sale điền mã đơn sau khi đã nhập; ngày cũ theo ô trước khi lấy theo mã)
     parsed.push({ r, phone, when, sw, dc: D.code && D.old ? (D.byCode ? 1 : 2) : 0, product, amount, codeRaw, valid, key, alt, yk: valid ? codeRaw + '-' + phone.slice(-4) : '', sig: phone + '|' + fmtDate(when, 'yyyyMMdd') + '|' + amount + '|' + nrm(product || cell(r, m, 'gift1')) });
   }
-  const ex = {}; (await allIn(x.db, 'SELECT rid, id, status, source, name, phone, time, total, items FROM orders WHERE id IN (SELECT value FROM json_each(?))', [...new Set(parsed.flatMap(p => [p.key, p.yk].concat(p.alt)).filter(String))])).forEach(o => { ex[o.id] = o; });
+  const ex = {}; (await allIn(x.db, 'SELECT rid, id, status, source, name, phone, time, total, items, note FROM orders WHERE id IN (SELECT value FROM json_each(?))', [...new Set(parsed.flatMap(p => [p.key, p.yk].concat(p.alt)).filter(String))])).forEach(o => { ex[o.id] = o; });
   // Mã đơn không có năm → trùng giữa các năm / giữa các sheet ("Chang101001" năm 2025 và 2026 là 2 khách khác nhau). Mã đã thuộc đơn của khách khác
   // (khác SĐT) → đơn này dùng mã + 4 số cuối SĐT. 12/10/2026: 64 đơn VTG_lendon của Chang bị coi là "đã có", 8 đơn cũ bị ghi đè.
   const owner = {}; Object.keys(ex).forEach(k => { owner[k] = ex[k]; });
@@ -304,7 +323,7 @@ async function importOrders(x, src, shCfg, data, dry) {
   // phải nhận lại đơn cũ, không tạo đơn thứ 2 (12/10/2026: Phương sửa 900g → 400g lúc điền mã đơn → đơn Đào Văn Nhật bị tính 2 lần).
   const claimed = {}; parsed.forEach(p => [p.key].concat(p.alt).forEach(k => { if (ex[k]) claimed[ex[k].rid] = 1; }));
   const pool = {}; // đơn NK… của chính sheet này chưa dòng nào nhận, theo SĐT
-  (await allIn(x.db, "SELECT rid, id, status, source, seller, name, phone, time, total, items FROM orders WHERE phone IN (SELECT value FROM json_each(?)) AND id LIKE 'NK%' AND source LIKE 'File %'", [...new Set(parsed.map(p => p.phone))])).forEach(o => {
+  (await allIn(x.db, "SELECT rid, id, status, source, seller, name, phone, time, total, items, note FROM orders WHERE phone IN (SELECT value FROM json_each(?)) AND id LIKE 'NK%' AND source LIKE 'File %'", [...new Set(parsed.map(p => p.phone))])).forEach(o => {
     if (claimed[o.rid] || o.seller !== sale || !String(o.source).endsWith(' – ' + shCfg.name)) return; // cùng sheet (tên sale trong nhãn có thể đã đổi)
     o.day = fmtDate(o.time, 'yyyyMMdd'); o.prod = prodOf(o.items); (pool[o.phone] = pool[o.phone] || []).push(o);
   });
@@ -347,7 +366,7 @@ async function importOrders(x, src, shCfg, data, dry) {
     p.webId0 = o.id; if (!wlink[p.key]) { wlink[p.key] = o.rid; wlDirty = 1; wMerge.push(p); }
     const f = p.o || ex[p.key]; if (f && String(f.source || '').indexOf('File ') === 0 && !wDel.some(d => d.rid === f.rid)) wDel.push(f); // đơn file trùng đã nhập trước đây
   });
-  const out = [], seen = {}, phones = {}, callbacks = {}, upd = [], ren = [], fix = [], chg = [], chgPh = {}; let dup = 0, revenue = 0, minD = null, maxD = null, afterCut = 0;
+  const out = [], seen = {}, noteAdd = [], phones = {}, callbacks = {}, upd = [], ren = [], fix = [], chg = [], chgPh = {}; let dup = 0, revenue = 0, minD = null, maxD = null, afterCut = 0;
   const rowItems = (r, product, amount) => {
     const items = [];
     if (product) items.push({ name: product, variant: '', qty: toQty(cell(r, m, 'qty')) || 1, price: 0, subtotal: amount });
@@ -366,6 +385,7 @@ async function importOrders(x, src, shCfg, data, dry) {
       dup++; continue;
     }
     if (p.o && !ex[key]) { ex[key] = p.o; if (p.o.id !== key && (valid || p.edited)) ren.push({ rid: p.o.rid, from: p.o.id, to: key }); } // sale đã điền mã đơn / sửa dòng → đổi mã cũ thành mã hiện tại
+    if (ex[key] && !seen['n' + ex[key].rid]) { const co = codeOwner(codeRaw, sale), cur = ex[key]; seen['n' + cur.rid] = 1; if (co && String(cur.note || '').indexOf(co) < 0) noteAdd.push({ rid: cur.rid, note: co + (cur.note ? ' · ' + cur.note : '') }); }
     if (ex[key]) { // đã nhập: file cũ đổi sang Đã giao / Hoàn / Huỷ / Đổi hàng thì cập nhật theo (không đè thay đổi làm trên CRM)
       const st1 = mapStatus(cell(r, m, 'status'), when), cur = ex[key];
       if (String(cur.source || '').indexOf('File ') === 0 && (p.edited || chkIds.indexOf(cur.id) >= 0) && !handEdit[cur.id] && !seen['c' + cur.rid]) {
@@ -386,6 +406,7 @@ async function importOrders(x, src, shCfg, data, dry) {
     const items = rowItems(r, product, amount);
     const ctype = String(cell(r, m, 'ctype') || '').trim(), notes = [String(cell(r, m, 'note') || '').trim()];
     if (!valid && codeRaw) notes.push(codeRaw);
+    const co = codeOwner(codeRaw, sale); if (co) notes.unshift(co);
     if (ctype && !/^(kh|khach)? ?(moi|cu|cu mua lai)$/.test(nrm(ctype)) && !/toi|cn|le/.test(nrm(ctype))) notes.push('Phân loại: ' + ctype);
     extra.forEach(i => { if (r[i] !== '' && r[i] != null) notes.push(cellText(H[i]) + ': ' + (isSerial(r[i]) && /ngay|lich|hen/.test(nrm(H[i])) ? fmtDate(serialToMs(r[i]), 'dd/MM/yyyy') : cellText(r[i]))); });
     const cb = cell(r, m, 'callback'); if (isSerial(cb) && serialToMs(cb) > Date.now()) callbacks[phone] = serialToMs(cb);
@@ -410,7 +431,8 @@ async function importOrders(x, src, shCfg, data, dry) {
   const summary = out.length + ' đơn mới, ' + dup + ' đã có' + (upd.length ? ' (' + upd.length + ' cập nhật trạng thái)' : '') + (ren.length ? ', ' + ren.length + ' đơn nhận mã đơn mới' : '') + (chg.length ? ', ' + chg.length + ' đơn sửa theo file' : '') + (orphan.length ? ', xoá ' + orphan.length + ' đơn trùng' : '') + (afterCut ? ', ' + afterCut + ' đơn sau ngày chốt bỏ qua' : '') + ', ' + skip + ' dòng bỏ qua' + (far.length ? ', ' + far.length + ' mã đơn lệch ô ngày quá 45 ngày (lấy theo mã)' : '');
   const res = { updated: upd.length, renamed: ren.length, changed: chg.length, removed: orphan.length, afterCut, rows: data.rows.length, newOrders: out.length, dup, skip, customers: Object.keys(phones).length, newCustomers: newCus, conflicts: conflicts.slice(0, 50), conflictCount: conflicts.length, revenue, from: minD, to: maxD, far, summary };
   res.merged = wMerge.length; res.mergedDel = wDel.length; if (wMerge.length) res.summary += ', ' + wMerge.length + ' dòng là đơn web/CRM sale lên lại (không tính thêm đơn' + (wDel.length ? ', xoá ' + wDel.length + ' đơn trùng' : '') + ')';
-  if (dry || (!out.length && !upd.length && !ren.length && !chg.length && !orphan.length && !wDel.length && !wUpd.length && !wlDirty)) return res;
+  if (dry || (!out.length && !upd.length && !ren.length && !chg.length && !orphan.length && !wDel.length && !wUpd.length && !wlDirty && !noteAdd.length)) return res;
+  for (let i = 0; i < noteAdd.length; i += 300) await run(x.db, "UPDATE orders SET note = json_extract(j.value, '$.note') FROM json_each(?) j WHERE orders.rid = json_extract(j.value, '$.rid')", JSON.stringify(noteAdd.slice(i, i + 300)));
   if (wlDirty) { const ks = Object.keys(wlink); ks.slice(0, Math.max(0, ks.length - 5000)).forEach(k => { delete wlink[k]; }); await kvSet(x.db, 'wlink', JSON.stringify(wlink)); }
   if (wDel.length) {
     await run(x.db, 'DELETE FROM orders WHERE rid IN (SELECT value FROM json_each(?))', JSON.stringify(wDel.map(o => o.rid)));
@@ -773,7 +795,7 @@ async function dupSet(x, u, d) {
 }
 
 export { srcSync };
-export const SRC_UTIL = { toPhone, toDate, usDates, codeDay, orderDates, toMoney, splitNote, neededCols, colLetter }; // cho wb.js (ghi ngược file sale)
+export const SRC_UTIL = { toPhone, toDate, usDates, codeDay, codeOwner, orderDates, toMoney, splitNote, neededCols, colLetter }; // cho wb.js (ghi ngược file sale)
 export const DUPS = { dups: x => dupList(x), dup_scan: dupScan, dup_set: dupSet };
 
 export const SYNC = {
