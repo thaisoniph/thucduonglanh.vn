@@ -412,7 +412,12 @@ Tab đầu tiên trên menu, dành cho chủ doanh nghiệp. Bấm **📅 thời
 - **Website** (lấy từ Google Analytics): lượt truy cập, người xem, đơn đặt trên web, tỷ lệ ra đơn, % khách ở lại xem, thời gian xem.
 - **Theo ngày**, **Doanh thu theo kênh** (Website – nguồn / Sale / Khách hỏi), **Khách vào web từ đâu**, **Phễu mua hàng** (rơi nhiều nhất ở bước nào), **Khách liên hệ từ web** (bấm gọi, bấm Zalo, điền form), **Trang xem nhiều**, **Trang khách vào đầu tiên**, **Sản phẩm bán chạy**, **Khách hỏi theo kênh**.
 
-**📣 Marketing**: chi phí quảng cáo, 1đ chi phí thu về bao nhiêu (tổng doanh thu ÷ chi phí), chi phí / đơn, chi phí / data quảng cáo (chia cho data quảng cáo, gồm cả khách cũ nhắn qua quảng cáo), chi phí có 1 khách mới, chi phí theo kênh và theo chiến dịch. Bấm **⚙️ Quản lý chi phí quảng cáo** để đưa số vào:
+**📣 Marketing**: chi phí quảng cáo, **chi phí / doanh thu khách mới** (chỉ số chính để đánh giá quảng cáo), 1đ chi phí thu về bao nhiêu doanh thu khách mới, chi phí có 1 khách mới, chi phí / data quảng cáo, chi phí / doanh thu tổng (tham khảo).
+
+**🎯 Hiệu quả từng kênh**: mỗi kênh (Facebook, TikTok, Google, KOL, Shopee, TikTok Shop…) một thẻ: chi phí, doanh thu khách mới, % chi phí / doanh thu khách mới, 1đ thu về bao nhiêu, chi phí / khách mới. Kênh rẻ nhất có nhãn 🏆, tốn nhất có ⚠️ → dồn ngân sách cho kênh 🏆.
+- Đơn được gắn kênh theo: số có trong file số quảng cáo → Facebook; không có thì theo Kênh khách hỏi, rồi Nguồn đơn (link UTM). Nút **Đơn sale chưa rõ nguồn tính vào Facebook** bật / tắt được.
+- Khách mới = mua lần đầu trong kỳ (tính cả các đơn sau của họ trong kỳ). Khách cũ quay lại không tính vào hiệu quả kênh.
+- Sàn: doanh thu lấy từ tab Sàn (chưa tách được khách mới / cũ). Chi phí quảng cáo trên sàn nhập ở **⚙️ Quản lý chi phí quảng cáo**, chọn kênh Shopee / TikTok Shop.
 
 - **📘 Facebook tự động**: dán mã truy cập (làm theo hướng dẫn ngay trong cửa sổ), CRM tự lấy chi phí từng chiến dịch 3 tiếng 1 lần. Nhiều tài khoản quảng cáo: gán tất cả cho người dùng hệ thống trong Business Manager; CRM tự tìm tài khoản mới mỗi ngày, hoặc bấm **🔄 Tìm tài khoản mới** / **＋ Thêm** mã tài khoản.
 - **📄 Nhập file**: TikTok, Google Ads… xuất báo cáo CSV theo ngày + chiến dịch rồi chọn file. Nhập lại cùng khoảng ngày thì số mới thay số cũ.

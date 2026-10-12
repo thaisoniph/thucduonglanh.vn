@@ -2738,7 +2738,7 @@
     return o;
   }
   function viewDash() {
-    var f = S.f.g || (S.f.g = {}); if (!f.p || f.p.k === 'all') f.p = { k: 'month' };
+    var f = S.f.g || (S.f.g = {}); if (!f.p || f.p.k === 'all') f.p = { k: 'month' }; if (f.sfb === undefined) f.sfb = store('dash_sfb') !== '0';
     var R = perRange(f.p), P = cmpRange(f.p), b = bizStats(R), bp = bizStats(P), key = gaKey(R, P), gj = GA.cache[key], g = gj && gj.ga, noGaCmp = f.p.k === 'today';
     if (!gj && !GA.err) setTimeout(function () { gaFetch(key); }, 0);
     var h = '<div class="page-head"><h1>Tổng quan</h1><div class="grow"></div><button class="btn ghost" data-dash="fresh" title="Lấy số mới nhất từ Google Analytics">↻ Số website mới nhất</button></div>' + perBtn('g', f.p);
@@ -2755,7 +2755,7 @@
       (b.ad ? metric('Data quảng cáo', b.ad.n, b.ad.fresh + ' số mới · ' + b.ad.old + ' khách cũ · ' + b.ad.again + ' từng hỏi trước đây. ' + b.ad.won + ' ra đơn (chốt ' + (b.ad.pct === null ? '–' : b.ad.pct + '%') + '). Cùng cách đếm với tab Hiệu quả.', delta(b.ad.n, bp.ad ? bp.ad.n : null), '#bao-cao') : '') +
       metric('Khách hỏi mới', b.leads, 'Số chưa từng có trong CRM, mọi kênh (quảng cáo, website, nhập tay), trong đó ' + b.webLeads + ' từ website. Khách cũ / khách hỏi lại không tính.', delta(b.leads, bp.leads), '#tiem-nang') +
       '</div></section>';
-    h += mktBlock(key, R, b, bp);
+    h += mktBlock(key, R, b, bp, sj, P);
     h += sanDashBlock(sj, R);
     // ---- website
     var conv = g && g.cur.sessions ? b.web * 100 / g.cur.sessions : null, convP = g && g.prev.sessions ? bp.web * 100 / g.prev.sessions : null;
@@ -2798,6 +2798,9 @@
    * kw: từ khoá (không dấu) nhận ra đơn / khách hỏi đến từ kênh đó, dựa vào Nguồn đơn và Kênh của khách hỏi → tính “thu về” và ROAS của kênh. */
   var MKT_CH = [
     { k: 'Facebook', icon: '📘', kw: /facebook|\bfb\b|instagram|messenger|quang cao/ },
+    { k: 'Shopee', icon: '🟠', kw: /shopee/, san: 1 }, // kênh sàn: doanh thu lấy từ tab Sàn, chi phí = quảng cáo trên sàn (nhập file / nhập tay)
+    { k: 'TikTok Shop', icon: '🛍️', kw: /tiktok ?shop/, san: 1 },
+    { k: 'Lazada', icon: '🔷', kw: /lazada/, san: 1 },
     { k: 'TikTok', icon: '🎵', kw: /tiktok/ },
     { k: 'Google', icon: '🔎', kw: /(google|youtube).*(cpc|ppc|paid|ads|quang cao)|google ads/ },
     { k: 'Zalo', icon: '💬', kw: /zalo.*(ads|quang cao)/ },
@@ -2814,14 +2817,66 @@
   /** Chi phí: giảm là tốt → đổi màu mũi tên (xanh khi giảm). */
   function inv(h) { return String(h).replace(/class="delta (up|down)"/, function (_, c) { return 'class="delta ' + (c === 'up' ? 'down' : 'up') + '"'; }); }
   function chInfo(k) { return MKT_CH.filter(function (c) { return c.k === k; })[0] || { k: k, icon: '📦', kw: null }; }
-  /** Đơn + khách hỏi trong kỳ đến từ 1 kênh (đoán theo nguồn): xấp xỉ, khách thấy quảng cáo rồi gọi điện thì không đếm được. */
-  function chAttr(c, R) {
-    var o = { n: 0, rev: 0, leads: 0 }; if (!c.kw) return o;
-    S.d.orders.forEach(function (x) { if (!isVoid(x.status) && x.time >= R[0] && x.time < R[1] && c.kw.test(norm(x.source))) { o.n++; o.rev += x.total || 0; } });
-    (S.d.leads || []).forEach(function (l) { if (l.time >= R[0] && l.time < R[1] && c.kw.test(norm(l.channel))) o.leads++; });
-    return o;
+  /* ---------- Hiệu quả từng kênh: chi phí quảng cáo ↔ doanh thu KHÁCH MỚI của kênh đó.
+   * Khách mới = khách mua lần đầu trong kỳ (cả các đơn sau của khách đó trong kỳ); kênh của khách = kênh của đơn đầu tiên. Gắn đơn về kênh theo thứ tự:
+   * 1) SĐT có trong file số quảng cáo từ trước ngày đặt → Facebook  2) khách hỏi của SĐT đó (Kênh) → theo kw  3) Nguồn đơn (link UTM web…) → theo kw
+   * 4) đơn sale (File / Nhập tay) chưa rõ nguồn → Facebook nếu bật "coi đơn sale chưa rõ là Facebook" (S.f.g.sfb), không thì "Chưa rõ nguồn".
+   * Sàn: doanh thu từ tab Sàn (không có SĐT nên không tách khách mới / cũ, tính cả). Khách cũ quay lại không tính vào hiệu quả kênh (chỉ hiện để tham khảo). */
+  function adFirstMap() {
+    var rows = S.d.adRows || []; if (S.d._admFor === rows) return S.d._adm;
+    var m = {}; rows.forEach(function (a) { var ph = normPhone(a[1]); if (ph && (!m[ph] || a[0] < m[ph])) m[ph] = a[0]; });
+    S.d._admFor = rows; return (S.d._adm = m);
   }
-  function mktBlock(key, R, b, bp) {
+  function kwChan(text) { var n = norm(text); for (var i = 0; i < MKT_CH.length; i++) if (MKT_CH[i].kw && MKT_CH[i].kw.test(n)) return MKT_CH[i].k; return ''; }
+  function orderChan(o, sfb) {
+    var ph = normPhone(o.phone), ad = adFirstMap()[ph], k;
+    if (ad && ad <= o.time) return 'Facebook';
+    var ls = leadsOf(ph).filter(function (l) { return (l.time || 0) <= o.time && !/^file cũ/i.test(l.channel || ''); });
+    for (var i = 0; i < ls.length; i++) if ((k = kwChan(ls[i].channel))) return k;
+    if ((k = kwChan(o.source))) return k;
+    return sfb && /^(File |Nhập tay)/.test(o.source || '') ? 'Facebook' : '';
+  }
+  function chanEff(R, sj, prev, sfb) {
+    var C = {}, get = function (k) { return C[k] || (C[k] = { k: k, newN: 0, newRev: 0, oldRev: 0, oldN: 0 }); }, who = {};
+    S.d.orders.filter(function (o) { return !isVoid(o.status) && o.time >= R[0] && o.time < R[1]; }).sort(function (a, b) { return a.time - b.time; }).forEach(function (o) {
+      var ph = normPhone(o.phone) || o.id, cu = S.d.byPhone && S.d.byPhone[ph], t = o.total || 0;
+      var isNew = !cu || !cu.first || cu.first >= R[0];
+      if (!who[ph]) who[ph] = get(orderChan(o, sfb) || '?');
+      var c = isNew ? who[ph] : get(orderChan(o, sfb) || '?');
+      if (isNew) { if (!c['_' + ph]) { c['_' + ph] = 1; c.newN++; } c.newRev += t; } else { c.oldRev += t; c.oldN++; }
+    });
+    if (sj) (prev ? sj.prev.map(function (r) { return [r[0], r[1]]; }) : sj.days.map(function (r) { return [r[1], r[2]]; })).forEach(function (r) { var c = get(r[0]); c.san = 1; c.newRev += r[1] || 0; });
+    return C;
+  }
+  /** Thẻ từng kênh: chi phí, doanh thu khách mới, % chi phí / doanh thu khách mới, 1đ → bao nhiêu, chi phí / khách mới; đánh dấu kênh hiệu quả nhất / tốn nhất. */
+  function effBlock(E, Ep, ch, chp, sfb, sj) {
+    var keys = {}; Object.keys(ch).forEach(function (k) { keys[k] = 1; }); Object.keys(E).forEach(function (k) { if (k !== '?' && E[k].newRev) keys[k] = 1; });
+    var Z = { newN: 0, newRev: 0, oldRev: 0, oldN: 0 }, rows = Object.keys(keys).map(function (k) {
+      var e = E[k] || Z, ep = Ep[k] || Z, sp = ch[k] || 0, spp = chp[k] || 0;
+      return { k: k, c: chInfo(k), e: e, ep: ep, sp: sp, spp: spp, rate: sp && e.newRev ? sp * 100 / e.newRev : null, ratep: spp && ep.newRev ? spp * 100 / ep.newRev : null };
+    }).sort(function (x, y) { return y.sp - x.sp || y.e.newRev - x.e.newRev; });
+    var rated = rows.filter(function (r) { return r.rate !== null; }).sort(function (x, y) { return x.rate - y.rate; });
+    var best = rated.length > 1 ? rated[0].k : '', worst = rated.length > 1 ? rated[rated.length - 1].k : '';
+    var stat = function (l, v, d) { return '<div class="dash-ch-s"><span>' + l + '</span><b>' + v + '</b>' + (d || '') + '</div>'; };
+    var h = '<section class="section"><div class="section-h"><h2>🎯 Hiệu quả từng kênh</h2><span class="tip">chi phí so với doanh thu khách mới · bỏ 1đ thu về bao nhiêu</span></div>' +
+      '<div class="chips wrap"><button class="chip' + (sfb ? ' on' : '') + '" data-dash="sfb">' + (sfb ? '✓ ' : '') + 'Đơn sale chưa rõ nguồn tính vào Facebook</button></div><div class="dash-chs">';
+    rows.forEach(function (r) {
+      var e = r.e, tag = r.k === best ? '<span class="tag vip">🏆 Hiệu quả nhất</span>' : r.k === worst ? '<span class="tag risk">⚠️ Tốn nhất</span>' : '';
+      h += '<div class="dash-ch' + (r.k === best ? ' best' : r.k === worst ? ' worst' : '') + '"><div class="dash-ch-h"><b>' + r.c.icon + ' ' + esc(r.k) + '</b>' + tag + '</div><div class="dash-ch-g">' +
+        stat('Chi phí', r.sp ? moneyShort(r.sp) : '–', r.sp && r.spp ? inv(delta(r.sp, r.spp)) : '') +
+        stat(e.san ? 'Doanh thu sàn' : 'DT khách mới', moneyShort(e.newRev), e.newRev ? delta(e.newRev, r.ep.newRev || null) : '') +
+        stat('Chi phí / DT mới', r.rate === null ? '–' : oneDec(r.rate) + '%', r.rate !== null && r.ratep !== null ? inv(dRate(r.rate, r.ratep)) : '') +
+        stat('1đ → thu về', r.sp && e.newRev ? oneDec(e.newRev / r.sp) + 'đ' : '–') +
+        '</div><p class="small muted">' + [e.san ? 'Sàn không có SĐT khách nên tính cả doanh thu, chưa tách khách mới / cũ' : e.newN + ' khách mới' + (r.sp && e.newN ? ' · ' + moneyShort(Math.round(r.sp / e.newN)) + ' / khách mới' : ''),
+          e.oldRev ? 'khách cũ quay lại ' + moneyShort(e.oldRev) + ' (không tính vào hiệu quả)' : '',
+          !r.sp ? 'chưa có chi phí: bấm ⚙️ Quản lý chi phí quảng cáo để nhập' : ''].filter(Boolean).join(' · ') + '</p></div>';
+    });
+    var u = E['?'];
+    if (u && u.newRev) h += '<div class="dash-ch dash-ch-mut"><div class="dash-ch-h"><b>❔ Chưa rõ nguồn / không qua quảng cáo</b></div><p class="small">' + u.newN + ' khách mới · ' + moneyShort(u.newRev) + ' doanh thu khách mới chưa gắn được kênh (khách quen giới thiệu, vào thẳng web, đơn nhập tay không ghi nguồn…). Ghi đúng nguồn khi lên đơn và dùng link UTM thì số này giảm, các kênh chính xác hơn.</p></div>';
+    h += '</div><p class="bar-legend">Kênh của đơn: số có trong file số quảng cáo → Facebook; không có thì theo Kênh của khách hỏi, Nguồn đơn (link UTM). Khách mới = mua lần đầu trong kỳ, tính cả các đơn sau của họ trong kỳ, gắn theo kênh của đơn đầu tiên. Sàn: doanh thu từ tab Sàn, chi phí = quảng cáo trên sàn (nhập file / nhập tay, kênh Shopee / TikTok Shop).</p></section>';
+    return h;
+  }
+  function mktBlock(key, R, b, bp, sj, P) {
     var mj = MK.cache[key];
     if (!mj && !MK.err) setTimeout(function () { mkFetch(key); }, 0);
     var h = '<section class="section"><div class="section-h"><h2>📣 Marketing</h2><span class="tip">chi phí quảng cáo &amp; hiệu quả</span><div class="grow"></div><button class="btn sm" data-dash="mkt">⚙️ Quản lý chi phí quảng cáo</button></div>';
@@ -2832,21 +2887,20 @@
     var fb = mj.cfg.fb, fbLine = fb.on ? '📘 Facebook Ads tự cập nhật' + (fb.last ? ' · lần gần nhất ' + fDateTime(fb.last) : '') + (fb.err ? ' · <span class="bad-line">⚠️ ' + esc(fb.err) + '</span>' : '') : '📘 Facebook Ads chưa kết nối tự động. Bấm <b>⚙️ Quản lý chi phí quảng cáo</b> để kết nối, hoặc nhập file / nhập tay.';
     if (!tot && !totp) return h + '<div class="box"><p>Chưa có chi phí quảng cáo nào trong kỳ này.</p><p class="small muted">' + fbLine + '</p></div></section>';
     var per = function (n, v) { return n && v ? moneyShort(Math.round(v / n)) : '–'; }, prevPer = function (n, v) { return n && v ? Math.round(v / n) : null; };
+    var sfb = S.f.g.sfb !== false, E = chanEff(R, sj, false, sfb), Ep = chanEff(P, sj, true, sfb);
+    var newRev = function (E0, sp) { var v = 0; Object.keys(E0).forEach(function (k) { if (!E0[k].san || sp[k]) v += E0[k].newRev; }); return v; }; // sàn chỉ tính khi có chi phí quảng cáo sàn
+    var nr = newRev(E, ch), nrp = newRev(Ep, chp), newN = 0, newNp = 0; Object.keys(E).forEach(function (k) { newN += E[k].newN; }); Object.keys(Ep).forEach(function (k) { newNp += Ep[k].newN; });
     h += '<div class="metrics dash-m3">' +
       metric('Chi phí quảng cáo', moneyShort(tot), Object.keys(ch).sort(function (x, y) { return ch[y] - ch[x]; }).map(function (k) { return chInfo(k).icon + ' ' + esc(k) + ' ' + moneyShort(ch[k]); }).join(' · '), delta(tot, totp)) +
-      metric('1đ chi phí thu về', tot ? oneDec(b.rev / tot) + 'đ' : '–', 'Tổng doanh thu ÷ chi phí quảng cáo (mọi kênh). Trên 4đ là khá, dưới 2đ cần xem lại.', tot && totp ? dRate(b.rev / tot, bp.rev / totp).replace(/điểm/, 'đ') : '') +
-      metric('Chi phí / đơn', per(b.n, tot), 'Chi phí quảng cáo ÷ số đơn (mọi kênh).', b.n && tot ? inv(delta(Math.round(tot / b.n), prevPer(bp.n, totp))) : '') +
+      metric('Chi phí / doanh thu khách mới', nr ? oneDec(tot * 100 / nr) + '%' : '–', 'Chi phí quảng cáo ÷ ' + moneyShort(nr) + ' doanh thu khách mua lần đầu trong kỳ' + (sj && Object.keys(ch).some(function (k) { return chInfo(k).san; }) ? ' (gồm doanh thu sàn có chạy quảng cáo)' : '') + '. Thấp hơn là tốt.', nr && nrp && totp ? inv(dRate(tot * 100 / nr, totp * 100 / nrp)) : '') +
+      metric('1đ chi phí → doanh thu khách mới', nr ? oneDec(nr / tot) + 'đ' : '–', 'Doanh thu khách mới ÷ chi phí quảng cáo.', nr && nrp && totp ? dRate(nr / tot, nrp / totp).replace(/điểm/, 'đ') : '') +
+      metric('Chi phí có 1 khách mới', per(newN, tot), newN + ' khách mua lần đầu. So với số tiền 1 khách mua trong cả năm để biết lãi lỗ.', newN && tot ? inv(delta(Math.round(tot / newN), prevPer(newNp, totp))) : '') +
       (b.ad ? metric('Chi phí / data quảng cáo', per(b.ad.n, tot), 'Chi phí ÷ ' + b.ad.n + ' data quảng cáo (gồm cả khách cũ nhắn qua quảng cáo).' + (b.ad.won ? ' Mỗi data ra đơn tốn ' + per(b.ad.won, tot) + '.' : ''), b.ad.n && tot ? inv(delta(Math.round(tot / b.ad.n), bp.ad ? prevPer(bp.ad.n, totp) : null)) : '')
         : metric('Chi phí / khách hỏi mới', per(b.leads, tot), b.leads + ' khách hỏi mới mọi kênh (chưa có file số quảng cáo).', b.leads && tot ? inv(delta(Math.round(tot / b.leads), prevPer(bp.leads, totp))) : '')) +
-      metric('Chi phí có 1 khách mới', per(b.firstN, tot), b.firstN + ' khách mua lần đầu. So với giá trị khách mua lại về sau để biết lãi lỗ.', b.firstN && tot ? inv(delta(Math.round(tot / b.firstN), prevPer(bp.firstN, totp))) : '') +
-      metric('Chi phí / doanh thu', b.rev ? oneDec(tot * 100 / b.rev) + '%' : '–', 'Phần doanh thu dùng cho quảng cáo. Thấp hơn là tốt.', b.rev && bp.rev && totp ? inv(dRate(tot * 100 / b.rev, totp * 100 / bp.rev)) : '') +
+      metric('Chi phí / doanh thu tổng', b.rev ? oneDec(tot * 100 / b.rev) + '%' : '–', 'Chi phí ÷ toàn bộ doanh thu CRM (cả khách cũ). Chỉ để tham khảo, đánh giá quảng cáo thì xem ô doanh thu khách mới.', b.rev && bp.rev && totp ? inv(dRate(tot * 100 / b.rev, totp * 100 / bp.rev)) : '') +
       '</div>';
-    // theo kênh: chi phí + đơn / khách hỏi đoán từ nguồn
-    var rows = Object.keys(ch).sort(function (x, y) { return ch[y] - ch[x]; }).map(function (k) {
-      var c = chInfo(k), a = chAttr(c, R), roas = ch[k] && a.rev ? oneDec(a.rev / ch[k]) : null;
-      return { l: c.icon + ' ' + k, v: ch[k], sub: c.kw ? a.n + ' đơn · ' + a.leads + ' khách hỏi · thu ' + moneyShort(a.rev) + (roas ? ' (1đ → ' + roas + 'đ)' : '') + (chp[k] ? ' · kỳ trước ' + moneyShort(chp[k]) : '') : (chp[k] ? 'kỳ trước ' + moneyShort(chp[k]) : '') };
-    });
-    h += '<div class="dash-grid"><div class="box"><h3>Theo kênh</h3>' + barList(rows, moneyShort, '', { below: 1 }) + '<p class="bar-legend">Đơn và khách hỏi của kênh đoán theo Nguồn đơn / Kênh khách hỏi (link UTM, “Quảng cáo – …”). Khách xem quảng cáo rồi gọi điện, nhắn Zalo thì chưa đếm được, nên số thật thường cao hơn.</p></div>';
+    h += effBlock(E, Ep, ch, chp, sfb, sj);
+    h += '<div class="dash-grid">';
     var days = dayKeys(R);
     if (days.length >= 3) h += '<div class="box"><h3>Chi phí theo ngày</h3>' + colChart(days.map(function (k) { var l = k.slice(8) + '/' + k.slice(5, 7); return { l: l, tip: l, v: day[k] || 0 }; }), moneyShort) + '</div>';
     h += '</div>';
@@ -3452,6 +3506,7 @@
       el.onclick = function () {
         var a = el.getAttribute('data-dash'), f = S.f.g, key = gaKey(perRange(f.p), cmpRange(f.p));
         if (a === 'mkt') { openMkt(); return; }
+        if (a === 'sfb') { f.sfb = f.sfb === false; store('dash_sfb', f.sfb ? '' : '0'); render(); return; }
         if (a === 'fresh') { delete MK.cache[key]; MK.err = ''; delete GA.cache[key]; GA.err = ''; GA.busy = ''; gaFetch(key, true); render(); return; }
         if (a === 'prop') { el.disabled = true; api('ga_prop', { prop: ($('#gaProp') || {}).value || '' }).then(function () { GA.cache = {}; GA.err = ''; toast('Đã lưu mã thuộc tính'); render(); }, function (e) { el.disabled = false; toast(e.message, true); }); }
       };

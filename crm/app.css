@@ -700,3 +700,16 @@ input[type=date] { -webkit-appearance: none; appearance: none; display: block; m
 .ogoal-m b { color: var(--ink); }
 .san-fresh { margin: 0 0 10px; line-height: 1.6; }
 .san-how p { margin: 6px 0; }
+/* Tổng quan · Hiệu quả từng kênh */
+.dash-chs { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 10px; }
+.dash-ch { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; box-shadow: var(--shadow); }
+.dash-ch.best { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary) inset, var(--shadow); }
+.dash-ch.worst { border-color: #e9b38a; }
+.dash-ch-mut { background: var(--bg); box-shadow: none; }
+.dash-ch-h { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.dash-ch-h b { font-size: 16px; color: var(--ink); }
+.dash-ch-g { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; }
+.dash-ch-s span { display: block; font-size: 12px; color: var(--muted); }
+.dash-ch-s b { display: block; font-size: 20px; color: var(--ink); font-variant-numeric: tabular-nums; line-height: 1.25; }
+.dash-ch-s .delta { font-size: 11.5px; }
+.dash-ch p { margin: 8px 0 0; }
