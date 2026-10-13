@@ -2316,8 +2316,22 @@
     return out;
   }
   function leadTag(l) { return '<span class="tag ' + (LEAD_CLS[l.status] || '') + '">' + esc(l.status) + '</span>'; }
+  /** Khách hỏi "Đã chốt" mà chưa thấy đơn thật: chỉ ghi "chốt" trong file quảng cáo, hoặc đơn đã huỷ / hoàn.
+   *  Có đơn thật = hồ sơ khách đã mua có đơn (không huỷ / hoàn) từ ngày hỏi. Sale chỉ thấy khách của mình nên không có hồ sơ thì không kết luận. */
+  function leadNoOrder(l) {
+    if (l.status !== 'Đã chốt') return '';
+    var c = cust(l.phone); if (!c && lvl() < 2) return '';
+    if (c && (c.last || 0) >= dayStart(l.time || 0)) return '';
+    var o = l.orderId && findOrder(l.orderId);
+    return o && isVoid(o.status) ? 'void' : 'none';
+  }
   function leadAge(l) {
-    if (l.status === 'Đã chốt') return '<span class="age ok">🛒 Đã chốt đơn' + (l.orderId ? ' ' + esc(l.orderId) : '') + '</span>';
+    if (l.status === 'Đã chốt') {
+      var no = leadNoOrder(l);
+      return '<span class="age ok">🛒 Đã chốt đơn' + (l.orderId ? ' ' + esc(l.orderId) : '') + '</span>' +
+        (no === 'void' ? '<span class="age bad" title="Đơn này đã huỷ / hoàn nên khách chưa được tính là khách đã mua. Mở đơn để kiểm tra, khách còn mua thì lên đơn mới.">⚠️ Đơn đã huỷ / hoàn</span>'
+          : no ? '<span class="age bad" title="Khách được ghi “chốt” nhưng chưa có đơn nào trong CRM từ ngày hỏi, nên chưa nằm ở tab Khách đã mua. Bấm thẻ → Chốt đơn hoặc tạo đơn cho số này.">⚠️ Chưa có đơn trong hệ thống</span>' : '');
+    }
     if (l.status === 'Không mua') return '<span class="age-miss">✕ Không mua' + (l.reason ? ': ' + esc(l.reason) : '') + '</span>';
     if (l.time && dayStart(l.time) > today() + DAY) return '<span class="age bad" title="Ngày hỏi sau hôm nay: file số quảng cáo gõ nhầm ngày (vd 11/3 thành 3/11). Bấm Sửa nếu cần.">⚠️ Ngày hỏi sai (' + fDate(l.time) + ')</span>';
     var d = leadDays(l), lv = d <= 2 ? 'ok' : d <= 7 ? 'mid' : 'bad';
@@ -2339,7 +2353,8 @@
       '<div class="r2">' + cpPhone(l.phone) + (leadProv(l) ? ' · 📍 ' + esc(leadProv(l).old) : '') + (l.interest ? ' · Quan tâm: ' + esc(intLabel(l.interest)) : '') + '</div>' +
       '<div class="r-age">' + leadAge(l) + (c ? '<button type="button" class="age-miss link-cust" data-cust="' + c.phone + '" title="Mở hồ sơ khách đã mua">👤 ' + c.orders + ' đơn · ' + moneyShort(c.spent) + ' · mua gần nhất ' + daysAgo(c.last) + ' ›</button>' : '') + '</div>' +
       (due || note ? '<div class="r3">' + due + (due && note ? '<br>' : '') + (note ? '📝 ' + esc(note.length > 90 ? note.slice(0, 90) + '…' : note) : '') + '</div>' : '') +
-      (open ? '<div class="acts"><button class="btn pri" data-consult="' + esc(l.id) + '">💬 Tư vấn</button><a class="btn" href="tel:' + l.phone + '">📞 Gọi</a><button class="btn" data-leadorder="' + esc(l.id) + '">🛒 Chốt đơn</button>' + (!l.owner && isPoolStaff() ? claimBtn('l', l.id) : '') + '</div>' : '') +
+      (open ? '<div class="acts"><button class="btn pri" data-consult="' + esc(l.id) + '">💬 Tư vấn</button><a class="btn" href="tel:' + l.phone + '">📞 Gọi</a><button class="btn" data-leadorder="' + esc(l.id) + '">🛒 Chốt đơn</button>' + (!l.owner && isPoolStaff() ? claimBtn('l', l.id) : '') + '</div>'
+        : leadNoOrder(l) ? '<div class="acts"><button class="btn" data-leadorder="' + esc(l.id) + '">🛒 Lên đơn</button><a class="btn" href="tel:' + l.phone + '">📞 Gọi</a></div>' : '') +
       '</div>';
   }
   var DUE_RANK = { 'new': 0, 'callback': 1, 'stale': 2 };
@@ -2357,6 +2372,7 @@
     { k: 'Đang tư vấn', l: 'Đang tư vấn', f: function (l) { return l.status === 'Đang tư vấn'; } },
     { k: 'Đã chốt', l: 'Đã chốt', f: function (l) { return l.status === 'Đã chốt'; } },
     { k: 'Không mua', l: 'Không mua', f: function (l) { return l.status === 'Không mua'; } },
+    { k: 'noorder', l: '⚠️ Chốt chưa có đơn', f: function (l) { return !!leadNoOrder(l); } },
     { k: 'all', l: 'Tất cả', f: function () { return true; } }
   ];
   function leadChannels() { var n = {}; (S.d.leads || []).forEach(function (l) { var k = chLabel(l.channel); n[k] = (n[k] || 0) + 1; }); return Object.keys(n).sort(function (a, b) { return n[b] - n[a]; }); }
@@ -2372,9 +2388,11 @@
   }
   /** Danh sách tên tỉnh (cũ + mới) để chọn nhanh. */
   function provNames() { var o = {}; Object.keys(PROV_MERGE).forEach(function (nw) { o[nw] = 1; PROV_MERGE[nw].forEach(function (x) { if (!/^(HCM|TPHCM|TP HCM|HN|HP|Kontum|Daklak|Đaklak|Đăk .*|Dak .*|Bắc Cạn)$/.test(x)) o[x] = 1; }); }); return Object.keys(o).sort(function (a, b) { return a.localeCompare(b, 'vi'); }); }
+  function leadsCountText(base) { return base.length + ' lượt hỏi · ' + base.filter(isOpenLead).length + ' người đang theo dõi (chưa mua)'; }
   function renderLeadsChips(base, cur) {
     return LF.filter(function (x) { return lvl() < 2 || x.k !== 'mine'; }).map(function (x) {
-      return '<button class="chip' + (x.k === cur.k ? ' on' : '') + '" data-tf="' + esc(x.k) + '">' + x.l + ' <em>' + base.filter(x.f).length + '</em></button>';
+      var n = base.filter(x.f).length; if (x.k === 'noorder' && !n && cur.k !== x.k) return '';
+      return '<button class="chip' + (x.k === cur.k ? ' on' : '') + '" data-tf="' + esc(x.k) + '">' + x.l + ' <em>' + n + '</em></button>';
     }).join('');
   }
   function renderLeadsList(list, n, curK) {
@@ -2404,7 +2422,7 @@
       return;
     }
 
-    var tCount = $('#tCount'); if (tCount) tCount.textContent = 'người hỏi mua nhưng chưa mua (' + base.length + ')';
+    var tCount = $('#tCount'); if (tCount) tCount.textContent = leadsCountText(base);
     var tChips = $('#tChips'); if (tChips) tChips.innerHTML = renderLeadsChips(base, cur);
     var tArea = $('#tArea'); if (tArea) tArea.innerHTML = areaBox(q, 'lead') + crossHint(q, qd, false);
     tList.innerHTML = renderLeadsList(list, f.n, f.k);
@@ -2415,7 +2433,7 @@
     var base = dedupLeads((S.d.leads || []).filter(function (l) { return (lvl() < 2 || whoOk(l.owner)) && (!f.ch || chLabel(l.channel) === f.ch) && (!q || leadHit(l, words) || (qd.length >= 3 && (l._phoneDigits || l.phone).indexOf(qd) >= 0)); }));
     if (lvl() >= 2 && f.k === 'mine') f.k = 'due';
     var cur = LF.filter(function (x) { return x.k === f.k; })[0] || LF[0], list = sortLeads(base.filter(cur.f));
-    return '<div class="page-head"><h1>Khách hỏi</h1><span class="muted" id="tCount">người hỏi mua nhưng chưa mua (' + base.length + ')</span><div class="grow"></div>' + whoSel() + '<button class="btn pri" data-newlead>＋ Thêm khách hỏi</button></div>' +
+    return '<div class="page-head"><h1>Khách hỏi</h1><span class="muted" id="tCount">' + leadsCountText(base) + '</span><div class="grow"></div>' + whoSel() + '<button class="btn pri" data-newlead>＋ Thêm khách hỏi</button></div>' +
       '<div class="tools"><div class="search">' + I.search + '<input type="search" id="tq" placeholder="Tìm tên, SĐT, tỉnh, sản phẩm quan tâm…" value="' + esc(f.q) + '"><button type="button" class="search-x" aria-label="Xoá chữ tìm kiếm" title="Xoá">✕</button></div>' +
         '<select id="tch" class="' + (f.ch ? 'on' : '') + '" style="flex:0 0 auto;width:auto" title="Lọc theo kênh khách hỏi"><option value="">📣 Mọi kênh</option>' + chs.map(function (x) { return '<option' + (f.ch === x ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('') + '</select></div>' +
       offerBanner() + '<div class="chips" id="tChips">' + renderLeadsChips(base, cur) + '</div>' +
@@ -2430,7 +2448,7 @@
     var logs = logOf(l.phone).filter(function (x) { return x.what === 'Tư vấn' || x.what === 'Thêm tiềm năng'; });
     var body = '<div class="acts steps" style="margin-bottom:12px">' + (open ? '<button class="btn pri" data-consult="' + esc(l.id) + '">💬 Tư vấn</button>' : '') +
       '<a class="btn" href="tel:' + l.phone + '">📞 Gọi</a><a class="btn zalo" href="' + zalo(l.phone) + '" target="_blank" rel="noopener">Zalo</a>' +
-      (open ? '<button class="btn" data-leadorder="' + esc(l.id) + '">🛒 Chốt đơn</button>' : '') + '<button class="btn" data-editlead="' + esc(l.id) + '">✏️ Sửa</button></div>' +
+      (open || leadNoOrder(l) ? '<button class="btn" data-leadorder="' + esc(l.id) + '">🛒 ' + (open ? 'Chốt đơn' : 'Lên đơn') + '</button>' : '') + '<button class="btn" data-editlead="' + esc(l.id) + '">✏️ Sửa</button></div>' +
       (c ? '<div class="notice info">👤 Số này đã là khách hàng: <b>' + esc(c.name) + '</b> · ' + c.orders + ' đơn, ' + money(c.spent) + ' <button class="btn" data-cust="' + c.phone + '" style="margin-left:6px">Xem khách</button></div>' : '') + (leadProv(l) ? areaBox(norm(leadProv(l).old), 'lead') : '') +
       (open && leadDueLine(l) ? '<div class="notice">' + leadDueLine(l) + '</div>' : '') +
       '<div class="r-age" style="margin:0 0 12px">' + leadAge(l) + '</div>' +

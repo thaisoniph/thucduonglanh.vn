@@ -33,7 +33,7 @@ Mã dùng được trong **10 phút**. Đăng nhập xong, máy nhớ bạn tron
 | **Hôm nay** | Danh sách việc cần làm trong ngày. Mở tab này đầu tiên mỗi sáng. |
 | **Khách đã mua** | Người đã mua ít nhất 1 đơn: chăm sóc sau bán, mời mua lại. Tìm khách, xem lịch sử mua và chăm sóc. |
 | **Đơn hàng** | Xác nhận, giao hàng, nhận tiền, sửa đơn, tạo đơn cho khách đặt qua Zalo hoặc điện thoại. |
-| **Khách hỏi** | Người **hỏi nhưng chưa mua** (số quảng cáo, trang nhận ebook, form web, nhắn Zalo hỏi giá): tư vấn để chốt đơn đầu tiên. Chốt đơn xong, khách tự sang tab Khách đã mua. |
+| **Khách hỏi** | Các **lượt khách để lại số hỏi** (người đang tư vấn chưa mua, kèm lịch sử Đã chốt / Không mua để tính tỷ lệ chốt) (số quảng cáo, trang nhận ebook, form web, nhắn Zalo hỏi giá): tư vấn để chốt đơn đầu tiên. Chốt đơn xong, khách tự sang tab Khách đã mua. |
 | **Hiệu quả** | Doanh số, mục tiêu tháng, kết quả chăm sóc của bạn. |
 | **Marketing** | Chỉ tài khoản quyền **Marketing** (và Quản trị, vào từ Tổng quan) thấy. Chi phí và hiệu quả quảng cáo từng kênh, data quảng cáo, chiến dịch (xem mục *Marketing* bên dưới). |
 | **Sàn** | Chỉ người phụ trách sàn thấy (Quản trị vào từ Tổng quan). Doanh thu Shopee, TikTok Shop và tải file đơn hàng từ sàn (xem mục *Sàn TMĐT* bên dưới). |
@@ -389,6 +389,7 @@ Là người **hỏi mua nhưng chưa mua**: nhắn Fanpage, Zalo, gọi điện
     - **Khách chốt mua**: bấm Lưu thì form **tạo đơn mở ra luôn**. Lưu đơn xong, khách chuyển sang “Đã chốt”.
     - Lên đơn đường khác (file Sheet của sale, đơn web, tạo đơn ở tab Khách đã mua) cũng được: khách hỏi có đơn trong **30 ngày** kể từ lúc hỏi thì CRM **tự chuyển “Đã chốt”** (khớp theo số điện thoại, vài phút sau là thấy).
     - Thẻ ở mục **Đã chốt** ghi mã đơn đã chốt. Khách hỏi rồi mua lần đầu có nhãn **🆕 Khách mới**. Nhãn **🔁 Khách cũ hỏi lại** chỉ dành cho khách **đã mua trước lúc hỏi**. Nếu khách để lại số nhiều lần mà cùng ra 1 đơn thì CRM chỉ hiện 1 thẻ.
+    - Thẻ **Đã chốt** có nhãn đỏ **⚠️ Chưa có đơn trong hệ thống** (ghi “chốt” trong file quảng cáo nhưng chưa lên đơn) hoặc **⚠️ Đơn đã huỷ / hoàn**: khách **chưa** được tính là khách đã mua. Bấm **🛒 Lên đơn** để tạo đơn cho khách. Mục **⚠️ Chốt chưa có đơn** gom các thẻ này (chỉ hiện khi có).
     - **Khách không mua**: bắt buộc chọn **lý do** (giá cao, chưa có nhu cầu, đã mua nơi khác…). Quản lý dùng lý do này để cải thiện cách bán.
 3. Ghi chú lần này, bấm **Lưu**.
 
