@@ -3041,6 +3041,7 @@
    * kw: từ khoá (không dấu) nhận ra đơn / khách hỏi đến từ kênh đó, dựa vào Nguồn đơn và Kênh của khách hỏi → tính “thu về” và ROAS của kênh. */
   var MKT_CH = [
     { k: 'Facebook', icon: '📘', kw: /facebook|\bfb\b|instagram|messenger|quang cao/ },
+    { k: 'Website', icon: '🌐', kw: null }, // đơn đặt trên web không rõ quảng cáo nào (vào thẳng, Google tự nhiên, link KOC…); mục tiêu Website = cả khách mới + cũ (mktv.revAll)
     { k: 'Shopee', icon: '🟠', kw: /shopee/, san: 1 }, // kênh sàn: doanh thu lấy từ tab Sàn, chi phí = quảng cáo trên sàn (nhập file / nhập tay)
     { k: 'TikTok Shop', icon: '🛍️', kw: /tiktok ?shop/, san: 1 },
     { k: 'Lazada', icon: '🔷', kw: /lazada/, san: 1 },
@@ -3078,6 +3079,7 @@
     var ls = leadsOf(ph).filter(function (l) { return (l.time || 0) <= o.time && !/^file cũ/i.test(l.channel || ''); });
     for (var i = 0; i < ls.length; i++) if ((k = kwChan(ls[i].channel))) return k;
     if ((k = kwChan(o.source))) return k;
+    if (chanOf(o)[0] === 'Website') return 'Website'; // giống api/src/mktv.js orderChan
     return sfb && /^(File |Nhập tay)/.test(o.source || '') ? 'Facebook' : '';
   }
   function chanEff(R, sj, prev, sfb) {
@@ -3433,7 +3435,7 @@
   /** → { h, todo } */
   var MK_COMM = 'Cộng đồng Zalo';
   /** 🏆 Bảng thi đua marketing: gộp kênh theo người phụ trách, xếp theo % mục tiêu đạt; vượt mức chi phí thì không đứng hạng 1 (giống mktRank ở api/src/mktv.js). */
-  function mkBoard(G, revOf, sp, month, people) {
+  function mkBoard(G, revOf, sp, month, people, web) {
     var P = {}, team = { rev: 0, tgt: 0, sp: 0, cap: 0 };
     Object.keys(G).forEach(function (k) {
       var g = G[k]; if (k.charAt(0) === '_' || !g || !g.rev) return;
@@ -3450,6 +3452,14 @@
     if (!rows.length) return { h: '', todo: [] };
     var h = '<div class="mk-team ' + team.C.lv + '"><div class="mk-team-h"><b>🏢 Cả đội Marketing</b><span>' + (ST[team.C.lv] || '') + '</span></div><div class="goal-num"><b>' + moneyShort(team.rev) + '</b> / ' + moneyShort(team.tgt) + '<span>' + Math.round(team.p * 100) + '%</span></div>' + bar(team.C) +
       '<p class="small">' + cost(team) + (team.C.isCur && team.p < 1 ? ' · mỗi ngày cả đội cần ' + moneyShort(team.C.perDay) : '') + ' · tháng đã qua ' + Math.round(team.C.tp * 100) + '%</p></div>';
+    if (web && web.share !== null) {
+      var wt = G._web || 0, wl = wt ? (web.share >= wt ? 'ok' : web.share >= wt * 0.8 ? 'mid' : 'bad') : '', wsum = web.newRev + web.oldRev + web.fb;
+      h += '<div class="mk-team mk-web ' + wl + '"><div class="mk-team-h"><b>🌐 Tiền qua website</b><span>' + (wl ? DASH_LV[wl] + ' mục tiêu ' + wt + '%' : 'chưa đặt mục tiêu') + '</span></div><div class="goal-num"><b>' + oneDec(web.share) + '%</b>' + (wt ? ' / ' + wt + '%' : '') + ' <small>tổng doanh thu</small></div>' +
+        (wt ? '<div class="bar"><i style="width:' + Math.min(100, web.share * 100 / wt).toFixed(1) + '%"></i></div>' : '') +
+        (wsum ? '<div class="mk-stack mk-web-st"><i class="won" style="width:' + (web.newRev * 100 / wsum).toFixed(1) + '%"></i><i class="talk" style="width:' + (web.oldRev * 100 / wsum).toFixed(1) + '%"></i><i class="idle" style="width:' + (web.fb * 100 / wsum).toFixed(1) + '%"></i></div>' +
+          '<p class="small"><span class="mk-dot won"></span>khách mới ' + pct(web.newRev, wsum) + '% (' + moneyShort(web.newRev) + ') <span class="mk-dot talk"></span>khách cũ ' + pct(web.oldRev, wsum) + '% (' + moneyShort(web.oldRev) + ')' + (web.fb ? ' <span class="mk-dot idle"></span>từ quảng cáo Facebook ' + pct(web.fb, wsum) + '%' : '') + '</p>' : '<p class="small muted">Chưa có đơn web trong tháng.</p>') + '</div>';
+      if (wt && web.share < wt) T.push({ p: 2, t: '🌐 Tiền qua website mới ' + oneDec(web.share) + '% (mục tiêu ' + wt + '%): gắn link web (tạo ở /admin/utm) vào mọi bài đăng, KOC, nhóm Zalo; bỏ thẻ "đặt web lần sau giảm giá" vào đơn sàn.' });
+    }
     h += '<div class="mk-board">' + rows.map(function (o, i) {
       var me = isMkt() && sameWho(o.who, S.user.name);
       if (me && o.C.isCur && o.C.lv === 'bad') T.push({ p: 0, t: '🏆 Bạn đang hạng ' + (i + 1) + '/' + rows.length + ', đạt ' + Math.round(o.p * 100) + '% mục tiêu (tháng đã qua ' + Math.round(o.C.tp * 100) + '%): mỗi ngày cần ' + moneyShort(o.C.perDay) + '.' });
@@ -3472,7 +3482,7 @@
     var sp = {}; gm.days.forEach(function (r) { sp[r[1]] = (sp[r[1]] || 0) + r[2]; });
     var revOf = function (k) { return (gm.revAll && gm.revAll[k] !== undefined) ? gm.revAll[k] : (gm.eff && gm.eff[k] ? gm.eff[k].newRev : 0); };
     var T = [], sumR = 0, sumT = 0, cards = keys.map(function (k) {
-      var w = k === MK_COMM ? 'tiền mua lại' : 'tiền khách mới', g = G[k], c = chInfo(k), rev = revOf(k), s = sp[k] || 0, C = goalCalc(rev, g.rev || 0, month), cp = rev ? s * 100 / rev : null;
+      var w = k === MK_COMM ? 'tiền mua lại' : k === 'Website' ? 'tiền đơn web' : chInfo(k).san ? 'doanh thu sàn' : 'tiền khách mới', g = G[k], c = chInfo(k), rev = revOf(k), s = sp[k] || 0, C = goalCalc(rev, g.rev || 0, month), cp = rev ? s * 100 / rev : null;
       if (g.rev) { sumR += rev; sumT += g.rev; }
       var clv = g.pct && s ? (cp === null ? 'bad' : cp <= g.pct ? 'ok' : cp <= g.pct * 1.15 ? 'mid' : 'bad') : '';
       var lv = C.lv === 'none' ? (clv || 'none') : C.lv, label = { done: '🎉 Đã đạt!', ok: '🟢 Đúng tiến độ', mid: '🟠 Hơi chậm', bad: '🔴 Đang chậm', none: '' }[C.lv] || '';
@@ -3488,7 +3498,7 @@
         (g.rev ? '<div class="goal-num"><b>' + moneyShort(rev) + '</b> / ' + moneyShort(g.rev) + '<span>' + Math.round(C.p * 100) + '%</span></div><div class="bar"><i style="width:' + Math.min(100, C.p * 100).toFixed(1) + '%"></i>' + (C.isCur ? '<u style="left:' + (C.tp * 100).toFixed(1) + '%" title="Hôm nay"></u>' : '') + '</div>' : '<div class="goal-num"><b>' + moneyShort(rev) + '</b> tiền khách mới</div>') +
         L.map(function (x) { return '<p>' + x + '</p>'; }).join('') + '</div>';
     });
-    var BD = mkBoard(G, revOf, sp, month, live.people || []);
+    var BD = mkBoard(G, revOf, sp, month, live.people || [], gm.web);
     return { todo: T.concat(BD.todo), gch: keys.filter(function (k) { return G[k].pct; }), h: head + BD.h + '</section>', line: keys.map(function (k) { return chInfo(k).icon + ' ' + esc(k) + ' ' + (G[k].rev ? pct(revOf(k), G[k].rev) + '%' : moneyShort(revOf(k))); }).join(' · '),
       body: '<div class="mk-goal-g">' + cards.join('') + '</div><p class="bar-legend">Vạch đen = hôm nay. Thanh xanh vượt vạch đen là đang nhanh hơn tiến độ. Tiền khách mới = tiền khách mua lần đầu do kênh mang về (sàn: doanh thu sàn; 👥 Cộng đồng Zalo: tiền mua lại của khách đã vào nhóm). Chi phí = chi phí của kênh đó trong tháng.</p>' };
   }
@@ -3499,24 +3509,27 @@
     var adm = lvl() >= 3, me = S.user.name, mineOf = function (k) { var g = G[k]; return adm || !g || !(g.rev || g.pct) || !g.who || sameWho(g.who, me); };
     var row = function (c) { var g = G[c.k] || {}, ok = mineOf(c.k), dis = ok ? '' : ' disabled';
       return '<div class="mk-gr' + (ok ? '' : ' lock') + '" data-ch="' + esc(c.k) + '"><b>' + c.icon + ' ' + esc(c.k) + (!ok ? '<small>🔒 ' + esc(g.who) + ' phụ trách</small>' : '') + '</b>' +
-      '<label class="f"><span>' + (c.k === MK_COMM ? 'Tiền mua lại mục tiêu' : 'Tiền khách mới mục tiêu') + '</span><input type="text" inputmode="decimal" data-g="rev" value="' + (g.rev || '') + '" placeholder="vd 450tr"' + dis + '></label>' +
+      '<label class="f"><span>' + (c.k === MK_COMM ? 'Tiền mua lại mục tiêu' : c.k === 'Website' ? 'Tiền đơn web mục tiêu (khách mới + cũ)' : c.san ? 'Doanh thu sàn mục tiêu' : 'Tiền khách mới mục tiêu') + '</span><input type="text" inputmode="decimal" data-g="rev" value="' + (g.rev || '') + '" placeholder="vd 450tr"' + dis + '></label>' +
       '<label class="f"><span>Chi phí tối đa (%)</span><input type="number" min="0" max="100" step="1" data-g="pct" value="' + (g.pct || '') + '" placeholder="vd 30"' + dis + '></label>' +
       (adm ? '<label class="f"><span>Người phụ trách</span><input type="text" data-g="who" list="mkWho" value="' + esc(g.who || '') + '" placeholder="tên bạn marketing"></label>' : '<div class="f mk-gr-who"><span>Người phụ trách</span><b>' + (g.who ? esc(g.who) : ok ? '<span class="muted">Bạn, khi đặt mục tiêu</span>' : '') + '</b></div>') +
       '<small class="mk-gr-hint"></small>' + (g.by ? '<small class="mk-gr-by">' + esc(g.by) + ' sửa' + (g.at ? ' ' + fDateTime(g.at) : '') + '</small>' : '') + '</div>'; };
-    var chs = mkGoalCh(); if (!adm) chs = chs.filter(function (c) { return G[c.k] && G[c.k].who && sameWho(G[c.k].who, me); }).concat(chs.filter(function (c) { return !(G[c.k] && G[c.k].who && sameWho(G[c.k].who, me)); }));
+    var MAIN = ['Facebook', 'Website', 'Shopee', 'TikTok Shop', MK_COMM], chs = mkGoalCh(); if (!adm) chs = chs.filter(function (c) { return G[c.k] && G[c.k].who && sameWho(G[c.k].who, me); }).concat(chs.filter(function (c) { return !(G[c.k] && G[c.k].who && sameWho(G[c.k].who, me)); }));
     var body = '<div class="chips">' + [m0, m1].filter(Boolean).map(function (m) { return '<button class="chip' + (m === month ? ' on' : '') + '" data-gm="' + m + '">' + monthLabel(m) + '</button>'; }).join('') + (prev ? '<button class="chip" id="mgPrev">↺ Lấy theo tháng trước</button>' : '') + '</div>' +
       (adm ? '' : '<p class="notice info">Bạn tự đặt mục tiêu cho <b>kênh mình phụ trách</b> hoặc kênh chưa ai nhận (đặt xong kênh đó ghi tên bạn). Kênh của người khác chỉ xem.</p>') + '<p class="small muted">Kênh nào không chạy thì để trống. Tiền khách mới = tiền khách mua lần đầu do kênh mang về (Shopee, TikTok Shop: doanh thu sàn). Chi phí tối đa: chi phí quảng cáo ÷ tiền khách mới, vượt mức này thì đèn đỏ.</p>' +
       '<datalist id="mkWho">' + staff.map(function (n) { return '<option value="' + esc(n) + '">'; }).join('') + '</datalist>' +
-      '<div class="mk-grs">' + chs.map(row).join('') + '</div><p class="err" id="mgErr"></p>' + (G._by ? '<p class="small muted">Lần sửa gần nhất: ' + esc(G._by) + (G._at ? ', ' + fDateTime(G._at) : '') + '</p>' : '');
+      (adm ? '<div class="mk-gr mk-gr-web"><b>🌐 Mục tiêu chung cả đội</b><label class="f"><span>% tiền qua website</span><input type="number" min="0" max="100" step="1" id="mgWeb" value="' + (G._web || '') + '" placeholder="vd 25"></label><small class="mk-gr-hint">Tiền khách đặt trên web ÷ toàn bộ doanh thu (sale + web + sàn). Cả 4 bạn cùng góp: kéo khách về web thay vì sàn.</small></div>' : '') +
+      '<div class="mk-grs">' + chs.filter(function (c) { return MAIN.indexOf(c.k) >= 0; }).map(row).join('') + '</div>' +
+      '<details class="mk-gr-more"' + (chs.some(function (c) { return MAIN.indexOf(c.k) < 0 && G[c.k] && (G[c.k].rev || G[c.k].pct); }) ? ' open' : '') + '><summary>Kênh khác (TikTok, Google, Zalo Ads, KOL / KOC, Lazada) – thường không cần đặt</summary><div class="mk-grs">' + chs.filter(function (c) { return MAIN.indexOf(c.k) < 0; }).map(row).join('') + '</div></details>' +
+      '<div><p class="err" id="mgErr"></p>' + (G._by ? '<p class="small muted">Lần sửa gần nhất: ' + esc(G._by) + (G._at ? ', ' + fDateTime(G._at) : '') + '</p>' : '');
     var m = modal('🎯 ' + (adm ? 'Mục tiêu marketing ' : 'Mục tiêu của tôi ') + monthLabel(month), body, '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="mgSave">Lưu mục tiêu</button>');
     var hint = function (r) { var v = moneyIn($('[data-g=rev]', r).value), p = Number($('[data-g=pct]', r).value) || 0; $('.mk-gr-hint', r).innerHTML = v ? '= ' + money(v) + (p ? ' · được chi tối đa <b>' + moneyShort(Math.round(v * p / 100)) + '</b> cả tháng' : '') : ''; };
-    $$('.mk-gr', m).forEach(function (r) { $$('input', r).forEach(function (i) { i.addEventListener('input', function () { hint(r); }); }); hint(r); });
+    $$('.mk-gr[data-ch]', m).forEach(function (r) { $$('input', r).forEach(function (i) { i.addEventListener('input', function () { hint(r); }); }); hint(r); });
     $$('[data-gm]', m).forEach(function (b) { b.onclick = function () { openMkGoal(live, b.getAttribute('data-gm')); }; });
-    if ($('#mgPrev', m)) $('#mgPrev', m).onclick = function () { $$('.mk-gr:not(.lock)', m).forEach(function (r) { var g = prev[r.getAttribute('data-ch')] || {}; $('[data-g=rev]', r).value = g.rev || ''; $('[data-g=pct]', r).value = g.pct || ''; if ($('[data-g=who]', r)) $('[data-g=who]', r).value = g.who || ''; hint(r); }); };
+    if ($('#mgPrev', m)) $('#mgPrev', m).onclick = function () { $$('.mk-gr[data-ch]:not(.lock)', m).forEach(function (r) { var g = prev[r.getAttribute('data-ch')] || {}; $('[data-g=rev]', r).value = g.rev || ''; $('[data-g=pct]', r).value = g.pct || ''; if ($('[data-g=who]', r)) $('[data-g=who]', r).value = g.who || ''; hint(r); }); };
     $('#mgSave', m).onclick = function () {
-      var goals = {}, btn = this; $$('.mk-gr', m).forEach(function (r) { var v = moneyIn($('[data-g=rev]', r).value), p = Number($('[data-g=pct]', r).value) || 0; if (v || p) goals[r.getAttribute('data-ch')] = { rev: v, pct: p, who: $('[data-g=who]', r) ? $('[data-g=who]', r).value.trim() : '' }; });
+      var goals = {}, btn = this; $$('.mk-gr[data-ch]', m).forEach(function (r) { var v = moneyIn($('[data-g=rev]', r).value), p = Number($('[data-g=pct]', r).value) || 0; if (v || p) goals[r.getAttribute('data-ch')] = { rev: v, pct: p, who: $('[data-g=who]', r) ? $('[data-g=who]', r).value.trim() : '' }; });
       btn.disabled = true; btn.textContent = 'Đang lưu…';
-      api('mkt_goal', { month: month, goals: goals }).then(function (j) {
+      var wv = $('#mgWeb', m); api('mkt_goal', wv ? { month: month, goals: goals, web: Number(wv.value) || 0 } : { month: month, goals: goals }).then(function (j) {
         Object.keys(MV.cache).forEach(function (k) { MV.cache[k].goals = j.goals; MV.cache[k].budget = j.budget; }); closeModal(); toast(j.changes && !j.changes.length ? 'Không có gì thay đổi' : '🎯 Đã lưu mục tiêu'); render();
       }, function (e) { btn.disabled = false; btn.textContent = 'Lưu mục tiêu'; $('#mgErr', m).textContent = /Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message; });
     };
@@ -3551,6 +3564,17 @@
     // ---- chi tiết: thu gọn, bấm mới mở (xếp theo mức quan trọng)
     h += '<h2 class="mk-more-h">Xem chi tiết <span class="tip">bấm vào từng mục để mở</span></h2>';
     if (GB.body) h += mkMore('goal', '🎯 Mục tiêu từng kênh', GB.line, GB.body);
+    var wb = mj.web, wbp = mj.webPrev;
+    if (wb && wb.share !== null) {
+      var wsum = wb.newRev + wb.oldRev + wb.fb, wsp = wbp ? wbp.newRev + wbp.oldRev + wbp.fb : null;
+      h += mkMore('web', '🌐 Website: khách mới & khách cũ', oneDec(wb.share) + '% tổng doanh thu · khách mới ' + pct(wb.newRev, wsum) + '% · khách cũ ' + pct(wb.oldRev, wsum) + '%', '<div class="metrics dash-m3">' +
+        metric('Tiền đơn web', moneyShort(wsum), (wb.newN + wb.oldN) + ' khách đặt trên web.', delta(wsum, wsp)) +
+        metric('% tiền qua website', oneDec(wb.share) + '%', 'Tiền đơn web ÷ toàn bộ doanh thu (sale + web + sàn). Càng cao càng đỡ phí sàn.', wbp && wbp.share !== null ? dRate(wb.share, wbp.share) : '') +
+        metric('🆕 Khách mới đặt web', moneyShort(wb.newRev) + ' <small>(' + pct(wb.newRev, wsum) + '%)</small>', wb.newN + ' khách mua lần đầu trên web' + (wb.newN ? ' · trung bình ' + moneyShort(Math.round(wb.newRev / wb.newN)) : '') + '.', delta(wb.newRev, wbp ? wbp.newRev : null)) +
+        metric('🔁 Khách cũ đặt lại trên web', moneyShort(wb.oldRev) + ' <small>(' + pct(wb.oldRev, wsum) + '%)</small>', wb.oldN + ' khách từng mua trước đó nay đặt trên web.', delta(wb.oldRev, wbp ? wbp.oldRev : null)) +
+        (wb.fb ? metric('📘 Khách mới từ quảng cáo Facebook', moneyShort(wb.fb) + ' <small>(' + pct(wb.fb, wsum) + '%)</small>', 'Đặt trên web nhưng đến từ quảng cáo Facebook → tính cho kênh Facebook, không tính vào mục tiêu Website.', '') : '') +
+        '</div><p class="bar-legend">Mục tiêu Website = tiền khách mới + khách cũ đặt trên web (không gồm phần quảng cáo Facebook). Khách cũ = đã từng mua trước kỳ này. Muốn tăng khách cũ đặt web: gửi link web trong nhóm Zalo, tin nhắn CSKH, thẻ trong đơn sàn.</p>');
+    }
     var cm = mj.comm, cmp = mj.commPrev, csp = 0; mj.days.forEach(function (r) { if (r[1] === MK_COMM) csp += r[2]; });
     if (cm && (cm.rev || csp)) h += mkMore('comm', '👥 Cộng đồng Zalo', moneyShort(cm.rev) + ' tiền mua lại · ' + cm.buyers + ' khách', '<div class="metrics dash-m3">' +
       metric('Tiền mua lại', moneyShort(cm.rev), 'Đơn mua lại (không tính đơn đầu) của khách đã vào nhóm Zalo cộng đồng.', delta(cm.rev, cmp ? cmp.rev : null)) +

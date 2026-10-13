@@ -940,3 +940,8 @@ details.set-g .dash-more-b { background: #fff; }
 .mk-br-p { margin-left: auto; font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .mk-br.bad .mk-br-p { color: var(--red); } .mk-br.mid .mk-br-p { color: var(--orange); } .mk-br.ok .mk-br-p, .mk-br.done .mk-br-p { color: var(--primary); }
 .mk-br .bar, .mk-team .bar { margin: 4px 0; }
+.mk-web .goal-num small { font-size: 13px; font-weight: 400; color: var(--muted); }
+.mk-web-st { margin: 8px 0 2px; }
+.mk-gr-web { background: var(--primary-soft); grid-template-columns: 130px 1fr; }
+.mk-gr-more { margin-top: 10px; } .mk-gr-more > summary { cursor: pointer; color: var(--primary); font-weight: 600; font-size: 14px; padding: 6px 0; }
+.metric b small { font-size: 13px; font-weight: 400; color: var(--muted); }

@@ -11,7 +11,10 @@ const CH_KW = [['Facebook', /facebook|\bfb\b|instagram|messenger|quang cao/], ['
 /** Kênh "👥 Cộng đồng Zalo" (giữ khách cũ): tiền = đơn MUA LẠI (không phải đơn đầu) của khách có ô Cộng đồng = "Đã vào". Không dùng để gắn kênh cho đơn. */
 const COMM = 'Cộng đồng Zalo';
 /** Kênh đặt được mục tiêu marketing (giống MKT_CH trong crm/app.js, trừ Khác). */
-const GOAL_CH = CH_KW.map(c => c[0]).concat(COMM);
+const WEB = 'Website';
+const GOAL_CH = CH_KW.map(c => c[0]).concat(WEB, COMM);
+/** Đơn đặt trên website (giống chanOf trong crm/app.js): không phải đơn file sale / nhập tay / chốt từ khách hỏi. */
+const isWebO = o => { const s = String(o.source || ''); return !/^File /.test(s) && !/^(Nhập tay|Tiềm năng)\s*[–-]/.test(s); };
 const kwChan = t => { const n = nrm(t); for (const [k, re] of CH_KW) if (re.test(n)) return k; return ''; };
 /* Sản phẩm: nhận ra từ tên chiến dịch, cột Nguồn quảng cáo của file số, dòng sản phẩm của đơn (chữ không dấu). Thêm sản phẩm mới: thêm 1 dòng.
    Đặt tên chiến dịch có tên sản phẩm (vd "7-10-PROGOMAX - SỮA") thì chi phí mới chia đúng sản phẩm. */
@@ -42,7 +45,7 @@ function orderProds(items, total) {
  *  thêm: phễu (tot / totPrev), giá trung bình 1 kết quả mỗi kênh (cpr), theo sản phẩm (prod), giá trị khách mới 90 ngày (ltv), ngân sách tháng (budget). */
 export async function mktView(x, u, d) {
   if (![d.from, d.to, d.pf, d.pt].every(s => DAY_RE.test(String(s || '')))) return { ok: false, error: 'Khoảng thời gian chưa đúng.' };
-  const sfb = d.sfb !== false && d.sfb !== 0, key = 'mktv7_' + [d.from, d.to, d.pf, d.pt, sfb ? 1 : 0, u.level >= 3 ? 'a' : 'm'].join('_') + '_' + ((await kvGet(x.db, 'ads_rows_v')) || '');
+  const sfb = d.sfb !== false && d.sfb !== 0, key = 'mktv8_' + [d.from, d.to, d.pf, d.pt, sfb ? 1 : 0, u.level >= 3 ? 'a' : 'm'].join('_') + '_' + ((await kvGet(x.db, 'ads_rows_v')) || '');
   if (!d.fresh) { const c = await kvJson(x.db, key, null); if (c) return Object.assign(c, { cached: true }, await budgetOf(x)); }
   const R = [dayMs(d.from), dayMs(d.to) + DAY], P = [dayMs(d.pf), dayMs(d.pt) + DAY];
   const mid = iso(Math.floor((R[0] + R[1]) / 2 / DAY) * DAY); // chia đôi kỳ: tỷ lệ bấm nửa đầu ↔ nửa sau (quảng cáo có bị nhàm không)
@@ -77,23 +80,25 @@ export async function mktView(x, u, d) {
     const ad = adFirst[o.ph]; if (ad && ad <= o.time) return 'Facebook';
     for (const l of leadsBy[o.ph] || []) { if ((l.time || 0) > o.time || /^file cũ/i.test(l.channel || '')) continue; const k = kwChan(l.channel); if (k) return k; }
     const k = kwChan(o.source); if (k) return k;
+    if (isWebO(o)) return WEB; // đơn web không rõ quảng cáo nào (vào thẳng, Google tự nhiên, link KOC…) → kênh Website
     return sfb && /^(File |Nhập tay)/.test(o.source) ? 'Facebook' : '';
   };
   /** Doanh thu khách mới theo kênh (khách mua lần đầu trong kỳ, mọi đơn của họ trong kỳ, kênh = kênh đơn đầu). Khách cũ quay lại: chỉ để tham khảo.
    *  po (kỳ này): các đơn khách mới [kênh, sản phẩm, tiền] để chia theo sản phẩm. */
-  const eff = (Rg, san, po) => {
+  const eff = (Rg, san, po, wb) => {
     const C = {}, get = k => C[k] || (C[k] = { newN: 0, newRev: 0, oldRev: 0, oldN: 0, dd: {} }), who = {}, seen = {};
     ords.filter(o => o.time >= Rg[0] && o.time < Rg[1]).forEach(o => {
       const ph = o.ph || ('?' + o.time), f = firstOf[o.ph], isNew = !f || f >= Rg[0];
       if (!who[ph]) who[ph] = orderChan(o) || '?';
       const k = isNew ? who[ph] : orderChan(o) || '?', c = get(k);
+      if (wb) { wb.tot += o.total; if (isWebO(o)) { if (isNew && who[ph] === 'Facebook') wb.fb += o.total; else if (isNew) { wb.newRev += o.total; wb.nw[ph] = 1; } else { wb.oldRev += o.total; wb.od[ph] = 1; } } }
       if (isNew) {
         const fresh = !seen[k + ph]; if (fresh) { seen[k + ph] = 1; c.newN++; }
         c.newRev += o.total; const dk = iso(o.time); c.dd[dk] = (c.dd[dk] || 0) + o.total;
         if (po) orderProds(o.items, o.total).forEach(([p, v], i) => po.push([k, p, v, fresh && !i ? ph : '']));
       } else { c.oldRev += o.total; c.oldN++; }
     });
-    san.forEach(r => { const c = get(r.shop), g = Number(r.g) || 0; c.san = 1; c.newRev += g; c.dd[r.day] = (c.dd[r.day] || 0) + g; });
+    san.forEach(r => { const c = get(r.shop), g = Number(r.g) || 0; c.san = 1; if (wb) wb.tot += g; c.newRev += g; c.dd[r.day] = (c.dd[r.day] || 0) + g; });
     return C;
   };
   /** Data quảng cáo (số trong file số quảng cáo, mỗi SĐT 1 lần trong kỳ) – giống closeStats / dashAdData.
@@ -156,7 +161,10 @@ export async function mktView(x, u, d) {
 
   // theo sản phẩm (kỳ này): chi phí theo tên chiến dịch, data + ra đơn theo file số, tiền khách mới (chỉ kênh có chạy quảng cáo) theo dòng sản phẩm của đơn
   const PR = {}, pget = k => PR[k] || (PR[k] = { k, sp: 0, res: 0, n: 0, won: 0, rev: 0, newN: 0 }), po = [];
-  const fb = (cfg || {}).fb || {}, EF = eff(R, sanR, po), EP = eff(P, sanP);
+  const WB = () => ({ tot: 0, fb: 0, newRev: 0, oldRev: 0, nw: {}, od: {} }), wbR = WB(), wbP = WB();
+  const fb = (cfg || {}).fb || {}, EF = eff(R, sanR, po, wbR), EP = eff(P, sanP, null, wbP);
+  /** 🌐 Website: tiền đơn web chia khách mới / khách cũ; fb = đơn web của khách mới đến từ quảng cáo Facebook (tính cho kênh Facebook). share = % tiền qua web trên toàn bộ doanh thu (CRM + sàn), chỉ gửi %. */
+  const webOut = w => ({ newRev: w.newRev, oldRev: w.oldRev, fb: w.fb, newN: Object.keys(w.nw).length, oldN: Object.keys(w.od).length, share: w.tot ? Math.round((w.newRev + w.oldRev + w.fb) * 1000 / w.tot) / 10 : null });
   const on = {}; spDays.forEach(r => { if (r.s > 0) on[r.channel] = 1; });
   campAll.forEach(r => { const p = pget(prodOf(r.campaign)); p.sp += r.s || 0; p.res += r.r || 0; });
   po.forEach(([k, p, v, ph]) => { if (!on[k]) return; const b = pget(p); b.rev += v; if (ph) b.newN++; });
@@ -176,7 +184,7 @@ export async function mktView(x, u, d) {
     prod: Object.values(PR).filter(p => p.sp || p.n || p.rev).sort((a, b) => b.sp - a.sp || b.rev - a.rev),
     sale: saleFb(R, u.level >= 3), ltv: await ltvOf(x),
     // tiền khách mới mọi kênh marketing (kể cả kênh chưa có chi phí, vd sàn) → tiến độ mục tiêu từng kênh
-    revAll: Object.assign(Object.fromEntries(Object.keys(EF).filter(k => GOAL_CH.indexOf(k) >= 0).map(k => [k, EF[k].newRev])), { [COMM]: commOf(R).rev }), comm: commOf(R), commPrev: commOf(P),
+    revAll: Object.assign(Object.fromEntries(Object.keys(EF).filter(k => GOAL_CH.indexOf(k) >= 0).map(k => [k, EF[k].newRev])), { [COMM]: commOf(R).rev, [WEB]: wbR.newRev + wbR.oldRev }), comm: commOf(R), commPrev: commOf(P), web: webOut(wbR), webPrev: webOut(wbP),
     fb: { on: !!fb.token, last: fb.last || null }
   };
   const live = dayMs(d.to) + DAY > startOfDay(Date.now()); // kỳ có hôm nay: lưu tạm 30 phút, kỳ đã qua: 12 tiếng
@@ -243,6 +251,9 @@ export async function mktGoalSet(x, u, d) {
     if (nv) g[k] = Object.assign(nv, { by: u.name, at: now });
     changes.push([k, txt(e), txt(nv)]);
   });
+  const web = own && d.web !== undefined ? Math.min(100, Math.max(0, Number(d.web) || 0)) : Number(cur._web) || 0;
+  if (own && web !== (Number(cur._web) || 0)) changes.push(['% tiền qua website', cur._web ? cur._web + '%' : 'trống', web ? web + '%' : 'trống']);
+  if (web) g._web = web;
   if (!own && !changes.length) return Object.assign({ ok: true, changes }, await budgetOf(x));
   if (Object.keys(g).length) all0[d.month] = Object.assign(g, { _by: u.name, _at: now }); else delete all0[d.month];
   await kvSet(x.db, 'mkt_goals', JSON.stringify(all0));
@@ -251,7 +262,7 @@ export async function mktGoalSet(x, u, d) {
 
 /* ---------------- 8h sáng: tin Telegram "📣 Marketing sáng nay" cho từng bạn Marketing (đã kết nối Telegram) + Quản trị.
  * Dùng lại mktView (cùng cách tính với tab Marketing): tiến độ mục tiêu tháng từng kênh, hôm qua, việc nên làm. Kênh có "người phụ trách" trùng tên người nhận đứng đầu. */
-const CH_ICON = { [COMM]: '👥', Facebook: '📘', Shopee: '🟠', 'TikTok Shop': '🛍️', Lazada: '🔷', TikTok: '🎵', Google: '🔎', Zalo: '💬', 'KOL / KOC': '⭐' };
+const CH_ICON = { [COMM]: '👥', [WEB]: '🌐', Facebook: '📘', Shopee: '🟠', 'TikTok Shop': '🛍️', Lazada: '🔷', TikTok: '🎵', Google: '🔎', Zalo: '💬', 'KOL / KOC': '⭐' };
 const ms = n => { n = Number(n) || 0; return n >= 1e9 ? (n / 1e9).toFixed(1).replace('.0', '').replace('.', ',') + ' tỷ' : n >= 1e6 ? (n / 1e6).toFixed(1).replace('.0', '').replace('.', ',') + ' tr' : Math.round(n).toLocaleString('vi-VN') + 'đ'; };
 const pc = (a, b) => b ? Math.round(a * 100 / b) : 0;
 /** 🏆 Thi đua marketing: gộp các kênh theo người phụ trách. Xếp theo % mục tiêu đạt; người vượt mức chi phí không đứng hạng 1.
@@ -283,7 +294,7 @@ export async function mktDailyMsgs(x, users) {
   const rev = k => (M.revAll && M.revAll[k]) || 0;
   const line = k => {
     const g = G[k], r = rev(k), s = sp[k] || 0, p = g.rev ? r / g.rev : 0, lv = !g.rev ? '' : p >= 1 ? '🎉' : p >= tp ? '🟢' : p >= tp * 0.8 ? '🟠' : '🔴', cp = r ? s * 100 / r : null;
-    const word = k === COMM ? 'tiền mua lại' : 'tiền khách mới', clv = g.pct && s ? (cp === null || cp > g.pct * 1.15 ? '🔴' : cp > g.pct ? '🟠' : '🟢') : '';
+    const word = k === COMM ? 'tiền mua lại' : k === WEB ? 'tiền đơn web' : ['Shopee', 'TikTok Shop', 'Lazada'].indexOf(k) >= 0 ? 'doanh thu sàn' : 'tiền khách mới', clv = g.pct && s ? (cp === null || cp > g.pct * 1.15 ? '🔴' : cp > g.pct ? '🟠' : '🟢') : '';
     return (CH_ICON[k] || '📦') + ' <b>' + esc(k) + '</b>' + (g.who ? ' (' + esc(g.who) + ')' : '') + ': ' + (g.rev ? ms(r) + ' / ' + ms(g.rev) + ' – <b>' + Math.round(p * 100) + '%</b> ' + lv : ms(r) + ' ' + word) +
       (g.rev && p < 1 ? '\n   Mỗi ngày cần ' + ms(Math.ceil(Math.max(0, g.rev - r) / left)) + ' ' + word : '') +
       (g.pct ? '\n   ' + (!s ? 'Chưa có chi phí (mức tối đa ' + g.pct + '%)' : 'Chi phí ' + (cp !== null ? Math.round(cp) + '%' : ms(s) + ' chưa ra khách') + ' (mức tối đa ' + g.pct + '%) ' + clv) : '');
@@ -311,6 +322,7 @@ export async function mktDailyMsgs(x, users) {
   return to.map(y => {
     const ri = RK.rows.findIndex(o => sameWho(o.who, y.name)), me = RK.rows[ri];
     const rankTxt = RK.rows.length ? '🏆 <b>Thi đua</b>: ' + (me ? 'bạn đang <b>hạng ' + (ri + 1) + '/' + RK.rows.length + '</b> ' + (MED[ri] || '') + ' · đạt ' + Math.round(me.p * 100) + '% mục tiêu' + (me.bad ? ' · ⚠️ chi phí vượt mức' : '') : RK.rows.map((o, i) => (MED[i] || (i + 1) + '.') + ' ' + esc(o.who) + ' ' + Math.round(o.p * 100) + '%').join(' · ')) +
+      (M.web && M.web.share !== null ? '\n🌐 <b>Tiền qua website</b>: ' + String(M.web.share).replace('.', ',') + '%' + (G._web ? ' (mục tiêu ' + G._web + '%) ' + (M.web.share >= G._web ? '🟢' : '🔴') : '') + ' · khách mới ' + ms(M.web.newRev) + ', khách cũ ' + ms(M.web.oldRev) : '') +
       '\n🏢 <b>Cả đội</b>: ' + ms(team.rev) + ' / ' + ms(team.tgt) + ' (' + Math.round(team.p * 100) + '%)' + (team.cp !== null && team.sp ? ' · chi phí ' + Math.round(team.cp) + '% (mức ' + team.maxPct + '%)' : '') : '';
     const mine = keys.filter(k => sameWho(G[k].who, y.name)), rest = keys.filter(k => mine.indexOf(k) < 0);
     const goalTxt = keys.length ? '🎯 <b>Mục tiêu tháng ' + Number(b.m.slice(5)) + '</b> (tháng đã qua ' + Math.round(tp * 100) + '%)' + (mine.length ? '\n<i>Kênh của bạn:</i>\n' + mine.map(line).join('\n') + (rest.length ? '\n<i>Kênh khác:</i> ' + rest.map(k => (CH_ICON[k] || '📦') + ' ' + esc(k) + ' ' + (G[k].rev ? pc(rev(k), G[k].rev) + '%' : ms(rev(k)))).join(' · ') : '') : (rest.length ? '\n' + rest.map(line).join('\n') : '')) : '🎯 Chưa có mục tiêu tháng này (Quản trị đặt ở tab Marketing).';
