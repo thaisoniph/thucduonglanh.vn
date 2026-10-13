@@ -3,7 +3,7 @@ import { normPhone, nrm, esc, fmt, startOfDay, TZ_MS, fmtDate, dateOrBlank, slug
 import { sendMail, telegram, telegramTo, telegramPhoto, tgUpdates, tgConf, bridge } from './google.js';
 import { crmGa, crmGaProp } from './ga.js';
 import { crmMkt } from './mkt.js';
-import { mktView, mktBudgetSet } from './mktv.js';
+import { mktView, mktBudgetSet, mktGoalSet } from './mktv.js';
 import { crmSan, sanSchema, sanAllowed } from './san.js';
 import { wbQueue, wbOrderQueue, wbStatusQueue, WB_SHORT } from './wb.js';
 
@@ -1524,6 +1524,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (a === 'fb_update') return crmFbUpdate(x, u, d);
   if (a === 'ga') return crmGa(x, u, d); // tab Tổng quan: số liệu Google Analytics
   if (a === 'ga_prop') return crmGaProp(x, u, d);
+  if (a === 'mkt_goal') return u.level >= 3 ? mktGoalSet(x, u, d) : { ok: false, error: 'Chỉ Quản trị đặt được mục tiêu marketing.' };
   if (a === 'mkt_budget') return u.level >= 3 ? mktBudgetSet(x, d) : { ok: false, error: 'Chỉ Quản trị đặt được ngân sách quảng cáo.' };
   if (/^mkt(_|$)/.test(a)) return crmMkt(x, u, d); // chi phí marketing
   if (/^san(_|$)/.test(a)) return crmSan(x, u, d); // doanh thu sàn TMĐT + mục tiêu theo mảng

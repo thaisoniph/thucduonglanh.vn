@@ -904,3 +904,14 @@ details.set-g .dash-more-b { background: #fff; }
 .mk-pair em { margin-left: auto; font-style: normal; color: var(--muted); font-size: 13px; }
 .mk-sb h3 .tip { font-weight: 400; font-size: 12.5px; color: var(--muted); margin-left: 4px; }
 .mk-sb h3 .tip::before { content: '· '; }
+/* 🎯 Mục tiêu marketing từng kênh */
+.mk-goal-g { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 10px; }
+.goal.mk-goal { margin: 0; }
+.goal.mk-goal p { margin: 6px 0 0; font-size: 14px; }
+.mk-goal-sum { margin: 0 0 8px; font-size: 14px; }
+.mk-grs { display: grid; gap: 10px; margin-top: 10px; }
+.mk-gr { display: grid; grid-template-columns: 130px 1fr 110px 1fr; gap: 6px 10px; align-items: end; padding: 10px; border: 1px solid var(--line); border-radius: 10px; }
+.mk-gr > b { align-self: center; }
+.mk-gr .f { margin: 0; }
+.mk-gr-hint { grid-column: 1 / -1; color: var(--muted); font-size: 12.5px; }
+@media (max-width: 640px) { .mk-gr { grid-template-columns: 1fr 1fr; } .mk-gr > b { grid-column: 1 / -1; } .mk-gr label:last-of-type { grid-column: 1 / -1; } }

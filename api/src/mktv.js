@@ -8,6 +8,8 @@ const DAY_RE = /^\d{4}-\d\d-\d\d$/;
 /* Từ khoá nhận ra kênh (giống MKT_CH trong crm/app.js – thêm kênh thì thêm cả 2 nơi). Kênh cụ thể (TikTok Shop) đứng trước kênh chung (TikTok). */
 const CH_KW = [['Facebook', /facebook|\bfb\b|instagram|messenger|quang cao/], ['Shopee', /shopee/], ['TikTok Shop', /tiktok ?shop/], ['Lazada', /lazada/], ['TikTok', /tiktok/],
   ['Google', /(google|youtube).*(cpc|ppc|paid|ads|quang cao)|google ads/], ['Zalo', /zalo.*(ads|quang cao)/], ['KOL / KOC', /\bkol\b|\bkoc\b/]];
+/** Kênh đặt được mục tiêu marketing (giống MKT_CH trong crm/app.js, trừ Khác). */
+const GOAL_CH = CH_KW.map(c => c[0]);
 const kwChan = t => { const n = nrm(t); for (const [k, re] of CH_KW) if (re.test(n)) return k; return ''; };
 /* Sản phẩm: nhận ra từ tên chiến dịch, cột Nguồn quảng cáo của file số, dòng sản phẩm của đơn (chữ không dấu). Thêm sản phẩm mới: thêm 1 dòng.
    Đặt tên chiến dịch có tên sản phẩm (vd "7-10-PROGOMAX - SỮA") thì chi phí mới chia đúng sản phẩm. */
@@ -38,7 +40,7 @@ function orderProds(items, total) {
  *  thêm: phễu (tot / totPrev), giá trung bình 1 kết quả mỗi kênh (cpr), theo sản phẩm (prod), giá trị khách mới 90 ngày (ltv), ngân sách tháng (budget). */
 export async function mktView(x, u, d) {
   if (![d.from, d.to, d.pf, d.pt].every(s => DAY_RE.test(String(s || '')))) return { ok: false, error: 'Khoảng thời gian chưa đúng.' };
-  const sfb = d.sfb !== false && d.sfb !== 0, key = 'mktv5_' + [d.from, d.to, d.pf, d.pt, sfb ? 1 : 0, u.level >= 3 ? 'a' : 'm'].join('_') + '_' + ((await kvGet(x.db, 'ads_rows_v')) || '');
+  const sfb = d.sfb !== false && d.sfb !== 0, key = 'mktv6_' + [d.from, d.to, d.pf, d.pt, sfb ? 1 : 0, u.level >= 3 ? 'a' : 'm'].join('_') + '_' + ((await kvGet(x.db, 'ads_rows_v')) || '');
   if (!d.fresh) { const c = await kvJson(x.db, key, null); if (c) return Object.assign(c, { cached: true }, await budgetOf(x)); }
   const R = [dayMs(d.from), dayMs(d.to) + DAY], P = [dayMs(d.pf), dayMs(d.pt) + DAY];
   const mid = iso(Math.floor((R[0] + R[1]) / 2 / DAY) * DAY); // chia đôi kỳ: tỷ lệ bấm nửa đầu ↔ nửa sau (quảng cáo có bị nhàm không)
@@ -169,6 +171,8 @@ export async function mktView(x, u, d) {
     tot, totPrev: sumT(spPrev), cpr, mid,
     prod: Object.values(PR).filter(p => p.sp || p.n || p.rev).sort((a, b) => b.sp - a.sp || b.rev - a.rev),
     sale: saleFb(R, u.level >= 3), ltv: await ltvOf(x),
+    // tiền khách mới mọi kênh marketing (kể cả kênh chưa có chi phí, vd sàn) → tiến độ mục tiêu từng kênh
+    revAll: Object.fromEntries(Object.keys(EF).filter(k => GOAL_CH.indexOf(k) >= 0).map(k => [k, EF[k].newRev])),
     fb: { on: !!fb.token, last: fb.last || null }
   };
   const live = dayMs(d.to) + DAY > startOfDay(Date.now()); // kỳ có hôm nay: lưu tạm 30 phút, kỳ đã qua: 12 tiếng
@@ -203,7 +207,8 @@ async function budgetOf(x) {
   const now = Date.now(), m = fmtDate(now, 'yyyy-MM'), all0 = await kvJson(x.db, 'mkt_budget', {});
   const r = await first(x.db, 'SELECT SUM(spend) AS s FROM ad_spend WHERE day BETWEEN ? AND ?', m + '-01', m + '-31');
   const [y, mo] = m.split('-').map(Number), dim = new Date(Date.UTC(y, mo, 0)).getUTCDate(), day = Number(fmtDate(now, 'dd'));
-  return { budget: { m, amt: Number(all0[m]) || 0, spent: (r && r.s) || 0, day, dim } };
+  const G = await kvJson(x.db, 'mkt_goals', {}), m2 = fmtDate(Date.UTC(y, mo, 1, 12), 'yyyy-MM');
+  return { budget: { m, amt: Number(all0[m]) || 0, spent: (r && r.s) || 0, day, dim }, goals: { [m]: G[m] || null, [m2]: G[m2] || null, prev: G[fmtDate(Date.UTC(y, mo - 2, 1, 12), 'yyyy-MM')] || null } };
 }
 /** mkt_budget (Quản trị): { month: yyyy-MM, amount } → đặt ngân sách quảng cáo tháng (0 = bỏ). */
 export async function mktBudgetSet(x, d) {
@@ -211,5 +216,17 @@ export async function mktBudgetSet(x, d) {
   const b = await kvJson(x.db, 'mkt_budget', {}), v = Math.max(0, Math.round(Number(d.amount) || 0));
   if (v) b[d.month] = v; else delete b[d.month];
   await kvSet(x.db, 'mkt_budget', JSON.stringify(b));
+  return Object.assign({ ok: true }, await budgetOf(x));
+}
+/** mkt_goal (Quản trị): { month, goals: { kênh: { rev (tiền khách mới mục tiêu), pct (chi phí tối đa %), who (người phụ trách) } } } → kv mkt_goals. */
+export async function mktGoalSet(x, u, d) {
+  if (!/^\d{4}-\d\d$/.test(String(d.month || ''))) return { ok: false, error: 'Tháng chưa đúng.' };
+  const all0 = await kvJson(x.db, 'mkt_goals', {}), g = {};
+  Object.keys(d.goals || {}).forEach(k => {
+    if (GOAL_CH.indexOf(k) < 0) return; const v = d.goals[k] || {}, rev = Math.max(0, Math.round(Number(v.rev) || 0)), pct = Math.min(100, Math.max(0, Number(v.pct) || 0));
+    if (rev || pct) g[k] = { rev, pct, who: String(v.who || '').trim().slice(0, 60) };
+  });
+  if (Object.keys(g).length) all0[d.month] = Object.assign(g, { _by: u.name, _at: Date.now() }); else delete all0[d.month];
+  await kvSet(x.db, 'mkt_goals', JSON.stringify(all0));
   return Object.assign({ ok: true }, await budgetOf(x));
 }

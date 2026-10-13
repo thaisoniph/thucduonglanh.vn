@@ -467,6 +467,7 @@ Số website chỉ đếm khách đã bấm “Đồng ý” cookie nên thấp 
 
 **Màn hình đầu:**
 - **4 ô lớn:** 💸 chi phí quảng cáo · 💰 tiền khách mới mua (chỉ khách đến từ kênh có chạy quảng cáo) · 🚦 chi phí ÷ tiền khách mới, có đèn xanh / cam / đỏ theo mức Quản trị đặt ở Cài đặt · 📇 data → mua hàng (cứ 100 data có bao nhiêu người mua). Bấm vào ô là mở mục chi tiết liên quan.
+- **🎯 Mục tiêu tháng từng kênh:** mỗi kênh (Facebook, Shopee, TikTok…) có thẻ riêng giống mục tiêu của sale: tiền khách mới đạt được / mục tiêu, thanh tiến độ có vạch đen = hôm nay (thanh xanh vượt vạch là đang nhanh hơn tiến độ), còn thiếu bao nhiêu, mỗi ngày cần bao nhiêu, và chi phí đang bằng bao nhiêu % tiền khách mới so với mức tối đa (đèn đỏ khi vượt). Luôn tính cho **tháng này**, dù đang xem kỳ khác. **Quản trị** bấm **✏️ Đặt / Sửa mục tiêu** để nhập cho tháng này hoặc tháng sau: tiền khách mới mục tiêu, chi phí tối đa (%), người phụ trách (có nút lấy theo tháng trước). Kênh sàn tính theo doanh thu sàn.
 - **💰 Thanh ngân sách tháng:** đã chi / ngân sách, vạch dọc là hôm nay, đang chi nhanh hay chậm, mỗi ngày còn lại nên chi bao nhiêu. Chỉ **Quản trị** đặt được ngân sách (bấm ✏️).
 - **✅ Nên làm gì:** tối đa 5 việc quan trọng nhất, gom từ mọi mục bên dưới.
 
