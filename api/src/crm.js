@@ -3,7 +3,7 @@ import { normPhone, nrm, esc, fmt, startOfDay, TZ_MS, fmtDate, dateOrBlank, slug
 import { sendMail, telegram, telegramTo, telegramPhoto, tgUpdates, tgConf, bridge } from './google.js';
 import { crmGa, crmGaProp } from './ga.js';
 import { crmMkt } from './mkt.js';
-import { mktView, mktBudgetSet, mktGoalSet } from './mktv.js';
+import { mktView, mktBudgetSet, mktGoalSet, mktDailyMsgs } from './mktv.js';
 import { crmSan, sanSchema, sanAllowed } from './san.js';
 import { wbQueue, wbOrderQueue, wbStatusQueue, WB_SHORT } from './wb.js';
 
@@ -1491,7 +1491,7 @@ async function crmFbUpdate(x, u, d) {
 
 /* ================================================================ điều phối */
 /** Việc tài khoản Marketing được làm: xem tab Marketing, nhập chi phí (file / nhập tay), góp ý, Telegram, cài đặt màu, đo tốc độ. Mọi việc khác máy chủ từ chối. */
-const MKT_ACTIONS = { load: 1, mktv: 1, mkt_import: 1, mkt_add: 1, mkt_list: 1, mkt_del: 1, prefs: 1, tg_link: 1, tg_check: 1, tg_off: 1, perf: 1, usage: 1, feedback: 1, fb_list: 1, fb_img: 1 };
+const MKT_ACTIONS = { load: 1, mktv: 1, mkt_tg_test: 1, mkt_import: 1, mkt_add: 1, mkt_list: 1, mkt_del: 1, prefs: 1, tg_link: 1, tg_check: 1, tg_off: 1, perf: 1, usage: 1, feedback: 1, fb_list: 1, fb_img: 1 };
 export async function crmApi(x, d, sync, mgr) {
   await ensureSchema(x.db);
   const a = d.action;
@@ -1524,6 +1524,12 @@ export async function crmApi(x, d, sync, mgr) {
   if (a === 'fb_update') return crmFbUpdate(x, u, d);
   if (a === 'ga') return crmGa(x, u, d); // tab Tổng quan: số liệu Google Analytics
   if (a === 'ga_prop') return crmGaProp(x, u, d);
+  if (a === 'mkt_tg_test') { // gửi thử tin 📣 Marketing 8h sáng cho chính mình
+    if (u.role !== 'Marketing' && u.level < 3) return { ok: false, error: 'Chỉ Marketing và Quản trị.' };
+    if (!u.tg) return { ok: false, error: 'Bạn chưa kết nối Telegram: vào Cài đặt → 📲 Thông báo Telegram riêng.' };
+    const m = (await mktDailyMsgs(x, [u]))[0]; if (!m) return { ok: false, error: 'Chưa tạo được tin.' };
+    await telegramTo(x.env, u.tg, m.text); return { ok: true };
+  }
   if (a === 'mkt_goal') return u.level >= 3 ? mktGoalSet(x, u, d) : { ok: false, error: 'Chỉ Quản trị đặt được mục tiêu marketing.' };
   if (a === 'mkt_budget') return u.level >= 3 ? mktBudgetSet(x, d) : { ok: false, error: 'Chỉ Quản trị đặt được ngân sách quảng cáo.' };
   if (/^mkt(_|$)/.test(a)) return crmMkt(x, u, d); // chi phí marketing

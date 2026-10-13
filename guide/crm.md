@@ -483,6 +483,7 @@ Số website chỉ đếm khách đã bấm “Đồng ý” cookie nên thấp 
 - **🪜 Quảng cáo đi tới đâu thì rơi rụng?** Lượt thấy → bấm → nhắn tin / SĐT → data → mua → tiền, kèm câu "cứ 100 … thì … " và đèn so với kỳ trước, chỉ ra khâu yếu nhất.
 - **🧴 Quảng cáo từng sản phẩm:** có lời / hoà vốn / đang lỗ. Chi phí chia theo **tên chiến dịch**, nên đặt tên có tên sản phẩm (vd *7-10-PROGOMAX-SỮA*).
 - **🎯 Hiệu quả từng kênh**, **💎 1 khách mới đáng giá bao nhiêu?** (mức tối đa nên chi cho 1 khách mới), **📇 Data quảng cáo**, **📈 Chi phí và tiền khách mới theo ngày**.
+- **📲 Tin Telegram 8h sáng "📣 Marketing sáng nay":** gửi riêng cho từng bạn Marketing (và Quản trị) đã kết nối Telegram ở **Cài đặt → 📲 Thông báo Telegram riêng**. Tin có: tiến độ mục tiêu tháng (kênh bạn phụ trách đứng đầu), mỗi ngày cần bao nhiêu tiền khách mới, % chi phí so với mức tối đa, số hôm qua (chi phí, tiền khách mới, data, đã mua) và tối đa 5 việc nên làm. Muốn xem ngay: cuối tab Marketing bấm **Gửi thử cho tôi**.
 - **⚙️ Nhập chi phí:** marketing tự nhập file CSV (TikTok, Google Ads…) hoặc nhập tay (KOL / KOC, in ấn…), xem lại và xoá lần nhập sai. Facebook tự cập nhật, kết nối mã Facebook chỉ Quản trị làm.
 - Số tính lại 30 phút 1 lần; bấm **↻** để tính lại ngay.
 

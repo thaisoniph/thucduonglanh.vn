@@ -2,7 +2,7 @@
 // Bộ phận marketing không nhận tên, SĐT, danh sách khách hay doanh thu toàn công ty (Nghị định 13/2023) – chỉ phần doanh thu do khách mới mang về.
 // Cách tính giống hệt tab Tổng quan (chanEff / orderChan / closeStats trong crm/app.js) để 2 nơi luôn ra cùng số. Sửa cách tính thì sửa cả 2 nơi.
 import { accOf } from './mkt.js';
-import { all, allIn, first, kvGet, kvSet, kvJson, normPhone, nrm, isVoid, startOfDay, fmtDate, DAY } from './lib.js';
+import { all, allIn, first, kvGet, kvSet, kvJson, normPhone, nrm, esc, isVoid, startOfDay, fmtDate, DAY, CRM_URL } from './lib.js';
 
 const DAY_RE = /^\d{4}-\d\d-\d\d$/;
 /* Từ khoá nhận ra kênh (giống MKT_CH trong crm/app.js – thêm kênh thì thêm cả 2 nơi). Kênh cụ thể (TikTok Shop) đứng trước kênh chung (TikTok). */
@@ -229,4 +229,55 @@ export async function mktGoalSet(x, u, d) {
   if (Object.keys(g).length) all0[d.month] = Object.assign(g, { _by: u.name, _at: Date.now() }); else delete all0[d.month];
   await kvSet(x.db, 'mkt_goals', JSON.stringify(all0));
   return Object.assign({ ok: true }, await budgetOf(x));
+}
+
+/* ---------------- 8h sáng: tin Telegram "📣 Marketing sáng nay" cho từng bạn Marketing (đã kết nối Telegram) + Quản trị.
+ * Dùng lại mktView (cùng cách tính với tab Marketing): tiến độ mục tiêu tháng từng kênh, hôm qua, việc nên làm. Kênh có "người phụ trách" trùng tên người nhận đứng đầu. */
+const CH_ICON = { Facebook: '📘', Shopee: '🟠', 'TikTok Shop': '🛍️', Lazada: '🔷', TikTok: '🎵', Google: '🔎', Zalo: '💬', 'KOL / KOC': '⭐' };
+const ms = n => { n = Number(n) || 0; return n >= 1e9 ? (n / 1e9).toFixed(1).replace('.0', '').replace('.', ',') + ' tỷ' : n >= 1e6 ? (n / 1e6).toFixed(1).replace('.0', '').replace('.', ',') + ' tr' : Math.round(n).toLocaleString('vi-VN') + 'đ'; };
+const pc = (a, b) => b ? Math.round(a * 100 / b) : 0;
+/** → [{ who: tên người nhận, text }] ; users = danh sách nhân sự (crmUsers), chỉ người có tg. */
+export async function mktDailyMsgs(x, users) {
+  const to = users.filter(y => y.active && y.tg && (y.role === 'Marketing' || y.level >= 3)); if (!to.length) return [];
+  const now = Date.now(), t0 = startOfDay(now), m0 = dayMs(fmtDate(now, 'yyyy-MM') + '-01'), yd = t0 - DAY;
+  const pm0 = dayMs(fmtDate(m0 - DAY, 'yyyy-MM') + '-01'), pTo = Math.min(m0 - DAY, pm0 + (t0 - m0));
+  const sys = { name: 'Tự động', level: 3 };
+  const M = await mktView(x, sys, { from: iso(m0), to: iso(t0), pf: iso(pm0), pt: iso(pTo), sfb: true });
+  const Y = await mktView(x, sys, { from: iso(yd), to: iso(yd), pf: iso(yd - DAY), pt: iso(yd - DAY), sfb: true });
+  if (!M.ok) return [];
+  const G = (M.goals && M.goals[M.budget.m]) || {}, b = M.budget, tp = b.day / b.dim, left = b.dim - b.day + 1;
+  const sp = {}; M.days.forEach(r => { sp[r[1]] = (sp[r[1]] || 0) + r[2]; });
+  const rev = k => (M.revAll && M.revAll[k]) || 0;
+  const line = k => {
+    const g = G[k], r = rev(k), s = sp[k] || 0, p = g.rev ? r / g.rev : 0, lv = !g.rev ? '' : p >= 1 ? '🎉' : p >= tp ? '🟢' : p >= tp * 0.8 ? '🟠' : '🔴', cp = r ? s * 100 / r : null;
+    const clv = g.pct && s ? (cp === null || cp > g.pct * 1.15 ? '🔴' : cp > g.pct ? '🟠' : '🟢') : '';
+    return (CH_ICON[k] || '📦') + ' <b>' + esc(k) + '</b>' + (g.who ? ' (' + esc(g.who) + ')' : '') + ': ' + (g.rev ? ms(r) + ' / ' + ms(g.rev) + ' – <b>' + Math.round(p * 100) + '%</b> ' + lv : ms(r) + ' tiền khách mới') +
+      (g.rev && p < 1 ? '\n   Mỗi ngày cần ' + ms(Math.ceil(Math.max(0, g.rev - r) / left)) + ' tiền khách mới' : '') +
+      (g.pct ? '\n   ' + (!s ? 'Chưa có chi phí quảng cáo (mức tối đa ' + g.pct + '%)' : 'Chi phí ' + (cp !== null ? Math.round(cp) + '%' : ms(s) + ' chưa ra khách') + ' (mức tối đa ' + g.pct + '%) ' + clv) : '');
+  };
+  const keys = Object.keys(G).filter(k => k.charAt(0) !== '_' && G[k] && (G[k].rev || G[k].pct)).sort((a, c) => (G[c].rev || 0) - (G[a].rev || 0));
+  // việc nên làm (giống mkScore / mkTodo, rút gọn)
+  const todo = [], cs = (M.camps || []).filter(r => { const last = (r[10] || [])[2]; return !last || dayMs(last) >= yd; }).map(r => {
+    const A = M.cpr && M.cpr[r[0]], res = (r[6] || 0) + (r[7] || 0), s = r[3] || 0; if (!A) return null;
+    if (!res) return s >= 1.5 * A ? { r, lv: 'bad' } : null;
+    if (s < 1.5 * A && res < 3) return null;
+    const c = s / res; return { r, lv: c <= 0.8 * A ? 'ok' : c >= 1.4 * A ? 'bad' : '' };
+  }).filter(Boolean);
+  const nm = a => a.slice(0, 2).map(c => esc(c.r[1])).join(', ') + (a.length > 2 ? ' +' + (a.length - 2) : '');
+  const bad = cs.filter(c => c.lv === 'bad'), good = cs.filter(c => c.lv === 'ok');
+  if (bad.length) todo.push('🔴 Giảm / tắt: ' + nm(bad));
+  if (good.length) todo.push('🟢 Tăng tiền: ' + nm(good));
+  if (M.ad && M.ad.idle >= 3) todo.push('⏳ ' + M.ad.idle + ' data chưa có kết quả tư vấn: nhắc sale gọi');
+  if (b.amt && b.day) { const fc = b.spent / b.day * b.dim; if (fc > b.amt * 1.1) todo.push('💰 Ngân sách đang chi nhanh: mỗi ngày còn lại nên chi khoảng ' + ms(Math.max(0, b.amt - b.spent) / left)); else if (fc < b.amt * 0.8) todo.push('💰 Ngân sách đang chi chậm (cứ đà này cuối tháng ' + ms(fc) + ' / ' + ms(b.amt) + ')'); }
+  const why = (M.sale && M.sale.why) || {}, wk = Object.keys(why).filter(k => !/^(Không ghi|Lý do khác)/.test(k)).sort((a, c) => why[c] - why[a])[0];
+  if (wk && why[wk] >= 3) todo.push('🙅 Khách không mua nhiều nhất vì: ' + wk.toLowerCase());
+  // hôm qua
+  let ys = 0; (Y.days || []).forEach(r => { ys += r[2]; }); let yr = 0; Object.keys(Y.eff || {}).forEach(k => { yr += Y.eff[k].newRev || 0; });
+  const yline = Y.ok ? '📅 <b>Hôm qua</b>: chi ' + ms(ys) + ' · tiền khách mới ' + ms(yr) + (ys && yr ? ' (' + pc(ys, yr) + '%)' : '') + (Y.ad ? ' · ' + Y.ad.n + ' data, ' + Y.ad.won + ' đã mua' : '') : '';
+  return to.map(y => {
+    const mine = keys.filter(k => G[k].who && (nrm(G[k].who) === nrm(y.name) || nrm(y.name).indexOf(nrm(G[k].who)) >= 0 || nrm(G[k].who).indexOf(nrm(y.name)) >= 0)), rest = keys.filter(k => mine.indexOf(k) < 0);
+    const goalTxt = keys.length ? '🎯 <b>Mục tiêu tháng ' + Number(b.m.slice(5)) + '</b> (tháng đã qua ' + Math.round(tp * 100) + '%)' + (mine.length ? '\n<i>Kênh của bạn:</i>\n' + mine.map(line).join('\n') + (rest.length ? '\n<i>Kênh khác:</i>' : '') : '') + (rest.length ? '\n' + rest.map(line).join('\n') : '') : '🎯 Chưa có mục tiêu tháng này (Quản trị đặt ở tab Marketing).';
+    return { who: y.name, tg: y.tg, text: '📣 <b>Marketing sáng ' + fmtDate(now, 'dd/MM') + '</b>\n\n' + goalTxt + (yline ? '\n\n' + yline : '') +
+      (todo.length ? '\n\n✅ <b>Nên làm hôm nay</b>\n' + todo.slice(0, 5).map(t => '• ' + t).join('\n') : '') + '\n\n👉 Xem chi tiết: ' + CRM_URL + '/#marketing' };
+  });
 }

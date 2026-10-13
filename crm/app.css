@@ -915,3 +915,5 @@ details.set-g .dash-more-b { background: #fff; }
 .mk-gr .f { margin: 0; }
 .mk-gr-hint { grid-column: 1 / -1; color: var(--muted); font-size: 12.5px; }
 @media (max-width: 640px) { .mk-gr { grid-template-columns: 1fr 1fr; } .mk-gr > b { grid-column: 1 / -1; } .mk-gr label:last-of-type { grid-column: 1 / -1; } }
+.mk-tgline { margin: 14px 0 0; padding: 10px 12px; border-radius: 10px; background: var(--primary-soft); }
+.mk-tgline .link { background: none; border: 0; padding: 0; color: var(--primary); font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer; }
