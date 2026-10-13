@@ -965,3 +965,7 @@ details.set-g .dash-more-b { background: #fff; }
 .offer-h b { font-size: 15px; }
 .offer-card .link { background: none; border: 0; padding: 0; color: var(--primary); font: inherit; font-size: 13px; font-weight: 600; text-decoration: underline; cursor: pointer; }
 details.offer-bn { margin: 0 0 10px; border-color: #f3d9a4; background: #fffaf0; }
+/* Tab Marketing: 2 hàng ô số (Tiền · Data & khách) */
+.mk-hero .mk-row-l { margin: 4px 0 6px; font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; }
+.dash-tiles.mk3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 760px) { .dash-tiles.mk3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .dash-tiles.mk3 > :last-child:nth-child(odd) { grid-column: 1 / -1; } }

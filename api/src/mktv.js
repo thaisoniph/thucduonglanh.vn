@@ -317,12 +317,14 @@ export async function mktDailyMsgs(x, users) {
   if (wk && why[wk] >= 3) todo.push('🙅 Khách không mua nhiều nhất vì: ' + wk.toLowerCase());
   // hôm qua
   let ys = 0; (Y.days || []).forEach(r => { ys += r[2]; }); let yr = 0; Object.keys(Y.eff || {}).forEach(k => { yr += Y.eff[k].newRev || 0; });
-  const yline = Y.ok ? '📅 <b>Hôm qua</b>: chi ' + ms(ys) + ' · tiền khách mới ' + ms(yr) + (ys && yr ? ' (' + pc(ys, yr) + '%)' : '') + (Y.ad ? ' · ' + Y.ad.n + ' data, ' + Y.ad.won + ' đã mua' : '') : '';
+  const yline = Y.ok ? '📅 <b>Hôm qua</b>: chi ' + ms(ys) + ' · tiền khách mới ' + ms(yr) + (ys && yr ? ' (' + pc(ys, yr) + '%)' : '') + (Y.ad ? ' · ' + Y.ad.n + ' data' + (Y.ad.n && ys ? ' (' + ms(ys / Y.ad.n) + '/data)' : '') + ', ' + Y.ad.won + ' đã mua' : '') : '';
   const RK = mktRank(G, rev, sp), team = RK.team, MED = ['🥇', '🥈', '🥉'];
+  const mAd = M.ad; let mSp = 0; M.days.forEach(r => { if (r[1] !== COMM) mSp += r[2]; });
   return to.map(y => {
     const ri = RK.rows.findIndex(o => sameWho(o.who, y.name)), me = RK.rows[ri];
     const rankTxt = RK.rows.length ? '🏆 <b>Thi đua</b>: ' + (me ? 'bạn đang <b>hạng ' + (ri + 1) + '/' + RK.rows.length + '</b> ' + (MED[ri] || '') + ' · đạt ' + Math.round(me.p * 100) + '% mục tiêu' + (me.bad ? ' · ⚠️ chi phí vượt mức' : '') : RK.rows.map((o, i) => (MED[i] || (i + 1) + '.') + ' ' + esc(o.who) + ' ' + Math.round(o.p * 100) + '%').join(' · ')) +
       (M.web && M.web.share !== null ? '\n🌐 <b>Tiền qua website</b>: ' + String(M.web.share).replace('.', ',') + '%' + (G._web ? ' (mục tiêu ' + G._web + '%) ' + (M.web.share >= G._web ? '🟢' : '🔴') : '') + ' · khách mới ' + ms(M.web.newRev) + ', khách cũ ' + ms(M.web.oldRev) : '') +
+      (mAd && mAd.n ? '\n📇 <b>Data tháng này</b>: ' + mAd.n + ' data · <b>' + ms(mSp / mAd.n) + ' / data</b> · ' + pc(mAd.won, mAd.n) + '% đã mua' : '') +
       '\n🏢 <b>Cả đội</b>: ' + ms(team.rev) + ' / ' + ms(team.tgt) + ' (' + Math.round(team.p * 100) + '%)' + (team.cp !== null && team.sp ? ' · chi phí ' + Math.round(team.cp) + '% (mức ' + team.maxPct + '%)' : '') : '';
     const mine = keys.filter(k => sameWho(G[k].who, y.name)), rest = keys.filter(k => mine.indexOf(k) < 0);
     const goalTxt = keys.length ? '🎯 <b>Mục tiêu tháng ' + Number(b.m.slice(5)) + '</b> (tháng đã qua ' + Math.round(tp * 100) + '%)' + (mine.length ? '\n<i>Kênh của bạn:</i>\n' + mine.map(line).join('\n') + (rest.length ? '\n<i>Kênh khác:</i> ' + rest.map(k => (CH_ICON[k] || '📦') + ' ' + esc(k) + ' ' + (G[k].rev ? pc(rev(k), G[k].rev) + '%' : ms(rev(k)))).join(' · ') : '') : (rest.length ? '\n' + rest.map(line).join('\n') : '')) : '🎯 Chưa có mục tiêu tháng này (Quản trị đặt ở tab Marketing).';

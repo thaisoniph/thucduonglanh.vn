@@ -3578,16 +3578,22 @@
     var E = mj.eff, Ep = mj.effPrev, nrOf = function (E0, sp) { var v = 0; Object.keys(E0).forEach(function (k) { if (!E0[k].san || sp[k]) v += E0[k].newRev; }); return v; };
     var nr = nrOf(E, ch), nrp = nrOf(Ep, chp), newN = 0, newNp = 0; Object.keys(E).forEach(function (k) { newN += E[k].newN; }); Object.keys(Ep).forEach(function (k) { newNp += Ep[k].newN; });
     var rate = tot && nr ? tot * 100 / nr : null, ad = mj.ad, adp = mj.adPrev;
-    // ---- màn hình đầu: 4 ô lớn + ngân sách + Nên làm gì
-    h += '<section class="dash-hero"><div class="dash-tiles">' +
-      dashTile('ch', '', '💸 Chi phí quảng cáo', moneyShort(tot), inv(delta(tot, totp)), Object.keys(ch).sort(function (x, y) { return ch[y] - ch[x]; }).slice(0, 3).map(function (k) { return chInfo(k).icon + ' ' + esc(k) + ' ' + moneyShort(ch[k]); }).join(' · ') || 'Chưa có chi phí trong kỳ') +
-      dashTile('ch', dashTrend(nr, nrp), '💰 Tiền khách mới mua', moneyShort(nr), delta(nr, nrp), newN + ' khách mới từ quảng cáo' + (newN && tot ? ' · ' + per(newN, tot) + ' / khách' : '')) +
-      dashTile('camp', tot ? adsLv(tot, nr) : '', '🚦 Chi phí / tiền khách mới', rate === null ? '–' : oneDec(rate) + '%', rate !== null && totp && nrp ? inv(dRate(rate, totp * 100 / nrp)) : '', 'Xanh dưới ' + A[0] + '% · đỏ trên ' + A[1] + '%' + (rate !== null ? ' · 1đ → ' + oneDec(nr / tot) + 'đ' : '')) +
-      dashTile('sale', ad ? (pct(ad.won, ad.n) >= 25 ? 'ok' : pct(ad.won, ad.n) >= 15 ? 'mid' : 'bad') : '', '📇 Data → mua hàng', ad ? pct(ad.won, ad.n) + '%' : '–', ad ? delta(pct(ad.won, ad.n), adp && adp.n ? pct(adp.won, adp.n) : null, 'rate') : '', ad ? ad.won + ' / ' + ad.n + ' data đã mua · ' + per(ad.n, tot) + ' / data' : 'Chưa có file số quảng cáo') +
+    // ---- màn hình đầu: 2 hàng ô số (Tiền · Data & khách) + thi đua + ngân sách + Nên làm gì
+    var cpd = ad && ad.n && tot ? Math.round(tot / ad.n) : 0, cpdP = adp && adp.n && totp ? Math.round(totp / adp.n) : 0, cpn = newN && tot ? Math.round(tot / newN) : 0, LT = mkLtvBlock(mj, cpn);
+    var up = function (c, p0) { return !c || !p0 ? '' : c <= p0 * 1.05 ? 'ok' : c <= p0 * 1.2 ? 'mid' : 'bad'; }; // chi phí / đơn vị: tăng là xấu
+    var wr = ad && ad.n ? pct(ad.won, ad.n) : null;
+    h += '<section class="dash-hero mk-hero"><p class="mk-row-l">💵 Tiền</p><div class="dash-tiles mk3">' +
+      dashTile('ch', '', '💸 Tiền bỏ ra quảng cáo', moneyShort(tot), inv(delta(tot, totp)), Object.keys(ch).sort(function (x, y) { return ch[y] - ch[x]; }).slice(0, 3).map(function (k) { return chInfo(k).icon + ' ' + esc(k) + ' ' + moneyShort(ch[k]); }).join(' · ') || 'Chưa có chi phí trong kỳ') +
+      dashTile('ch', dashTrend(nr, nrp), '💰 Tiền khách mới mua', moneyShort(nr), delta(nr, nrp), newN + ' khách mới từ quảng cáo') +
+      dashTile('camp', tot ? adsLv(tot, nr) : '', '🚦 Chi phí / tiền khách mới', rate === null ? '–' : oneDec(rate) + '%', rate !== null && totp && nrp ? inv(dRate(rate, totp * 100 / nrp)) : '', 'Xanh dưới ' + A[0] + '% · đỏ trên ' + A[1] + '%' + (rate !== null ? ' · bỏ 1đ thu ' + oneDec(nr / tot) + 'đ' : '')) +
+      '</div><p class="mk-row-l">📇 Data &amp; khách</p><div class="dash-tiles mk3">' +
+      dashTile('data', up(cpd, cpdP), '📇 Chi phí 1 data', cpd ? moneyShort(cpd) : '–', cpd && cpdP ? inv(delta(cpd, cpdP)) : '', ad ? ad.n.toLocaleString('vi-VN') + ' data (số khách để lại)' + (adp && adp.n ? ' · ' + CMP_LABEL + ' ' + moneyShort(cpdP) + ' / data' : '') : 'Chưa có file số quảng cáo') +
+      dashTile('sale', wr === null ? '' : wr >= 25 ? 'ok' : wr >= 15 ? 'mid' : 'bad', '🛒 Data → mua hàng', wr === null ? '–' : wr + '%', ad ? delta(wr, adp && adp.n ? pct(adp.won, adp.n) : null, 'rate') : '', ad ? 'Cứ 100 data có ' + wr + ' người mua · ' + ad.won + ' / ' + ad.n : 'Chưa có file số quảng cáo') +
+      dashTile('ltv', LT.cap && cpn ? LT.lv : up(cpn, newNp && totp ? Math.round(totp / newNp) : 0), '👤 Chi phí có 1 khách mới', cpn ? moneyShort(cpn) : '–', cpn && newNp && totp ? inv(delta(cpn, Math.round(totp / newNp))) : '', LT.cap ? 'Nên dưới ' + moneyShort(LT.cap) + ' (= ' + A[0] + '% tiền 1 khách mua trong 3 tháng)' : newN + ' khách mới') +
       '</div></section>';
     var GB = mkGoalBlock(gKey === key ? mj : gm, mj); h += GB.h;
     h += mkBudgetBlock(mj.budget);
-    var FN = mkFunnel(mj, nr, newN), LT = mkLtvBlock(mj, newN && tot ? Math.round(tot / newN) : 0), BC = mkBudgetCalc(mj.budget), SB = mkSaleBlock(mj), CB = mkCampBlock(mj, f), PB = mkProdBlock(mj);
+    var FN = mkFunnel(mj, nr, newN), BC = mkBudgetCalc(mj.budget), SB = mkSaleBlock(mj), CB = mkCampBlock(mj, f), PB = mkProdBlock(mj);
     var L = mkTodo(mj, ch, E, { weak: FN.weak, ltv: LT, bud: BC, more: GB.todo.concat(SB.todo), gch: GB.gch });
     if (L.length) h += '<div class="box dash-notes"><h3>✅ Nên làm gì</h3>' + L.map(function (x) { return '<p>' + x + '</p>'; }).join('') + '</div>';
     h += offerAdmin();
