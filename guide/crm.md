@@ -388,6 +388,7 @@ Là người **hỏi mua nhưng chưa mua**: nhắn Fanpage, Zalo, gọi điện
     - **Không nghe máy**: máy hẹn sẵn ngày mai.
     - **Khách chốt mua**: bấm Lưu thì form **tạo đơn mở ra luôn**. Lưu đơn xong, khách chuyển sang “Đã chốt”.
     - Lên đơn đường khác (file Sheet của sale, đơn web, tạo đơn ở tab Khách đã mua) cũng được: khách hỏi có đơn trong **30 ngày** kể từ lúc hỏi thì CRM **tự chuyển “Đã chốt”** (khớp theo số điện thoại, vài phút sau là thấy).
+    - Thẻ ở mục **Đã chốt** ghi mã đơn đã chốt. Khách hỏi rồi mua lần đầu có nhãn **🆕 Khách mới**. Nhãn **🔁 Khách cũ hỏi lại** chỉ dành cho khách **đã mua trước lúc hỏi**. Nếu khách để lại số nhiều lần mà cùng ra 1 đơn thì CRM chỉ hiện 1 thẻ.
     - **Khách không mua**: bắt buộc chọn **lý do** (giá cao, chưa có nhu cầu, đã mua nơi khác…). Quản lý dùng lý do này để cải thiện cách bán.
 3. Ghi chú lần này, bấm **Lưu**.
 

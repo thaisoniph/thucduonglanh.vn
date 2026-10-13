@@ -2304,6 +2304,17 @@
     return s;
   }
   function srcChip(c) { var s = custSrc(c); return s ? '<span class="src-chip" title="Nguồn khách: nơi khách đến lần đầu (theo đơn đầu tiên)">' + srcIcon(s) + esc(s) + '</span>' : ''; }
+  /** Khách hỏi là khách cũ thật: đã mua trước lúc hỏi. Khách hỏi rồi mua lần đầu thì vẫn là khách mới. */
+  function leadIsReask(l, c) { return !!(c && c.first && c.first < (l.time || 0) - 3600e3); }
+  var REASK_TAG = '<span class="tag reask" title="Khách đã mua trước lúc hỏi, nay hỏi lại">🔁 Khách cũ hỏi lại</span>';
+  function leadTags(l, c) { return leadIsReask(l, c) ? REASK_TAG : leadTag(l) + (c && l.status === 'Đã chốt' ? '<span class="tag" title="Lần hỏi này là lần đầu khách mua">🆕 Khách mới</span>' : ''); }
+  /** Cùng 1 số + cùng 1 mã đơn đã chốt (khách để lại số 2 lần / file nhập trùng) → chỉ giữ 1 thẻ, lượt hỏi gần nhất. */
+  function dedupLeads(arr) {
+    var keep = {}, out = [];
+    arr.forEach(function (l) { if (l.status !== 'Đã chốt' || !l.orderId) return; var k = normPhone(l.phone) + '|' + l.orderId, o = keep[k]; if (!o || (l.time || 0) > (o.time || 0)) keep[k] = l; });
+    arr.forEach(function (l) { if (l.status !== 'Đã chốt' || !l.orderId || keep[normPhone(l.phone) + '|' + l.orderId] === l) out.push(l); });
+    return out;
+  }
   function leadTag(l) { return '<span class="tag ' + (LEAD_CLS[l.status] || '') + '">' + esc(l.status) + '</span>'; }
   function leadAge(l) {
     if (l.status === 'Đã chốt') return '<span class="age ok">🛒 Đã chốt đơn' + (l.orderId ? ' ' + esc(l.orderId) : '') + '</span>';
@@ -2324,7 +2335,7 @@
   function leadCard(l) {
     var open = isOpenLead(l), due = leadDueLine(l), note = lastNote(l), c = cust(l.phone);
     return '<div class="card click" data-lead="' + esc(l.id) + '">' +
-      '<div class="r1"><b>' + esc((c && c.name) || l.name || 'Khách') + '</b>' + (c ? '<span class="tag reask" title="Khách đã mua trước đây, nay hỏi lại">🔁 Khách cũ hỏi lại</span>' + custTags(c) : leadTag(l)) + (l.owner ? (lvl() >= 2 || l.owner !== S.user.name ? '<span class="tag owner">👤 ' + esc(l.owner) + '</span>' : '') : '<span class="tag noconsent">Chưa ai phụ trách</span>') + '<span class="end small muted" title="' + esc(l.channel) + '">' + srcIcon(chLabel(l.channel)) + esc(chLabel(l.channel)) + '</span></div>' +
+      '<div class="r1"><b>' + esc((c && c.name) || l.name || 'Khách') + '</b>' + leadTags(l, c) + (c ? custTags(c) : '') + (l.owner ? (lvl() >= 2 || l.owner !== S.user.name ? '<span class="tag owner">👤 ' + esc(l.owner) + '</span>' : '') : '<span class="tag noconsent">Chưa ai phụ trách</span>') + '<span class="end small muted" title="' + esc(l.channel) + '">' + srcIcon(chLabel(l.channel)) + esc(chLabel(l.channel)) + '</span></div>' +
       '<div class="r2">' + cpPhone(l.phone) + (leadProv(l) ? ' · 📍 ' + esc(leadProv(l).old) : '') + (l.interest ? ' · Quan tâm: ' + esc(intLabel(l.interest)) : '') + '</div>' +
       '<div class="r-age">' + leadAge(l) + (c ? '<button type="button" class="age-miss link-cust" data-cust="' + c.phone + '" title="Mở hồ sơ khách đã mua">👤 ' + c.orders + ' đơn · ' + moneyShort(c.spent) + ' · mua gần nhất ' + daysAgo(c.last) + ' ›</button>' : '') + '</div>' +
       (due || note ? '<div class="r3">' + due + (due && note ? '<br>' : '') + (note ? '📝 ' + esc(note.length > 90 ? note.slice(0, 90) + '…' : note) : '') + '</div>' : '') +
@@ -2376,7 +2387,7 @@
     if (!tList) { render(); return; }
     var f = S.f.t || (S.f.t = { q: '', k: 'due', n: 60 });
     var q = norm(f.q), qd = q.replace(/\D/g, ''), words = qWords(q), chs = leadChannels(); if (f.ch && chs.indexOf(f.ch) < 0) f.ch = '';
-    var base = (S.d.leads || []).filter(function (l) { return (lvl() < 2 || whoOk(l.owner)) && (!f.ch || chLabel(l.channel) === f.ch) && (!q || leadHit(l, words) || (qd.length >= 3 && (l._phoneDigits || l.phone).indexOf(qd) >= 0)); });
+    var base = dedupLeads((S.d.leads || []).filter(function (l) { return (lvl() < 2 || whoOk(l.owner)) && (!f.ch || chLabel(l.channel) === f.ch) && (!q || leadHit(l, words) || (qd.length >= 3 && (l._phoneDigits || l.phone).indexOf(qd) >= 0)); }));
     if (lvl() >= 2 && f.k === 'mine') f.k = 'due';
     var cur = LF.filter(function (x) { return x.k === f.k; })[0] || LF[0], list = sortLeads(base.filter(cur.f));
 
@@ -2401,7 +2412,7 @@
   function viewLeads() {
     var f = S.f.t || (S.f.t = { q: '', k: 'due', n: 60 });
     var q = norm(f.q), qd = q.replace(/\D/g, ''), words = qWords(q), chs = leadChannels(); if (f.ch && chs.indexOf(f.ch) < 0) f.ch = '';
-    var base = (S.d.leads || []).filter(function (l) { return (lvl() < 2 || whoOk(l.owner)) && (!f.ch || chLabel(l.channel) === f.ch) && (!q || leadHit(l, words) || (qd.length >= 3 && (l._phoneDigits || l.phone).indexOf(qd) >= 0)); });
+    var base = dedupLeads((S.d.leads || []).filter(function (l) { return (lvl() < 2 || whoOk(l.owner)) && (!f.ch || chLabel(l.channel) === f.ch) && (!q || leadHit(l, words) || (qd.length >= 3 && (l._phoneDigits || l.phone).indexOf(qd) >= 0)); }));
     if (lvl() >= 2 && f.k === 'mine') f.k = 'due';
     var cur = LF.filter(function (x) { return x.k === f.k; })[0] || LF[0], list = sortLeads(base.filter(cur.f));
     return '<div class="page-head"><h1>Khách hỏi</h1><span class="muted" id="tCount">người hỏi mua nhưng chưa mua (' + base.length + ')</span><div class="grow"></div>' + whoSel() + '<button class="btn pri" data-newlead>＋ Thêm khách hỏi</button></div>' +
@@ -2429,7 +2440,7 @@
       '<div class="box"><h3>Ghi chú</h3><div class="pre">' + (l.note ? esc(leadNoteFmt(l.note)) : '<span class="muted">Chưa có ghi chú.</span>') + '</div></div>' +
       (open ? giftBox(giftPerson(l.phone), '') : '') +
       '<div class="box"><h3>Lịch sử tư vấn (' + logs.length + ')</h3>' + (logs.length ? '<div class="timeline">' + logs.map(logItem).join('') + '</div>' : '<p class="muted">Chưa có.</p>') + '</div>';
-    modal(cp(l.name, esc(l.name || 'Khách hỏi')) + ' ' + leadTag(l) + (c ? ' <span class="tag reask" title="Khách đã mua trước đây, nay hỏi lại">🔁 Khách cũ hỏi lại</span>' : ''), body, null, { route: '#tiem-nang', pushed: !fromRoute });
+    modal(cp(l.name, esc(l.name || 'Khách hỏi')) + ' ' + leadTag(l) + (leadIsReask(l, c) ? ' ' + REASK_TAG : ''), body, null, { route: '#tiem-nang', pushed: !fromRoute });
   }
 
   function ownerOptions(sel, withEmpty) {
