@@ -1491,7 +1491,7 @@ async function crmFbUpdate(x, u, d) {
 
 /* ================================================================ điều phối */
 /** Việc tài khoản Marketing được làm: xem tab Marketing, nhập chi phí (file / nhập tay), góp ý, Telegram, cài đặt màu, đo tốc độ. Mọi việc khác máy chủ từ chối. */
-const MKT_ACTIONS = { load: 1, mktv: 1, mkt_tg_test: 1, mkt_import: 1, mkt_add: 1, mkt_list: 1, mkt_del: 1, prefs: 1, tg_link: 1, tg_check: 1, tg_off: 1, perf: 1, usage: 1, feedback: 1, fb_list: 1, fb_img: 1 };
+const MKT_ACTIONS = { load: 1, mktv: 1, mkt_tg_test: 1, mkt_goal: 1, mkt_import: 1, mkt_add: 1, mkt_list: 1, mkt_del: 1, prefs: 1, tg_link: 1, tg_check: 1, tg_off: 1, perf: 1, usage: 1, feedback: 1, fb_list: 1, fb_img: 1 };
 export async function crmApi(x, d, sync, mgr) {
   await ensureSchema(x.db);
   const a = d.action;
@@ -1530,7 +1530,12 @@ export async function crmApi(x, d, sync, mgr) {
     const m = (await mktDailyMsgs(x, [u]))[0]; if (!m) return { ok: false, error: 'Chưa tạo được tin.' };
     await telegramTo(x.env, u.tg, m.text); return { ok: true };
   }
-  if (a === 'mkt_goal') return u.level >= 3 ? mktGoalSet(x, u, d) : { ok: false, error: 'Chỉ Quản trị đặt được mục tiêu marketing.' };
+  if (a === 'mkt_goal') { // Quản trị: mọi kênh; Marketing: kênh mình phụ trách / chưa ai nhận
+    if (u.level < 3 && u.role !== 'Marketing') return { ok: false, error: 'Chỉ Marketing và Quản trị đặt được mục tiêu marketing.' };
+    const r = await mktGoalSet(x, u, d);
+    for (const c of r.changes || []) await crmLog(x, u, 'Mục tiêu marketing', d.month, c[0], c[1] + ' → ' + c[2], '');
+    return r;
+  }
   if (a === 'mkt_budget') return u.level >= 3 ? mktBudgetSet(x, d) : { ok: false, error: 'Chỉ Quản trị đặt được ngân sách quảng cáo.' };
   if (/^mkt(_|$)/.test(a)) return crmMkt(x, u, d); // chi phí marketing
   if (/^san(_|$)/.test(a)) return crmSan(x, u, d); // doanh thu sàn TMĐT + mục tiêu theo mảng

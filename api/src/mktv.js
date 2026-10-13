@@ -218,17 +218,30 @@ export async function mktBudgetSet(x, d) {
   await kvSet(x.db, 'mkt_budget', JSON.stringify(b));
   return Object.assign({ ok: true }, await budgetOf(x));
 }
-/** mkt_goal (Quản trị): { month, goals: { kênh: { rev (tiền khách mới mục tiêu), pct (chi phí tối đa %), who (người phụ trách) } } } → kv mkt_goals. */
+/** Tên người phụ trách kênh có phải người này không (không dấu, cho phép "Lan" = "Lan MKT"). */
+export function sameWho(a, b) { a = nrm(a); b = nrm(b); return !!a && !!b && (a === b || a.indexOf(b) >= 0 || b.indexOf(a) >= 0); }
+/** mkt_goal: { month, goals: { kênh: { rev (tiền khách mới mục tiêu), pct (chi phí tối đa %), who (người phụ trách) } } } → kv mkt_goals.
+ *  Quản trị: sửa mọi kênh. Marketing (như sale tự đặt mục tiêu): chỉ kênh mình phụ trách hoặc kênh chưa ai nhận (đặt xong ghi tên mình); kênh người khác giữ nguyên.
+ *  Mỗi kênh lưu thêm by / at (ai sửa, lúc nào). Trả changes [[kênh, cũ, mới]] để crm.js ghi Nhật ký. */
 export async function mktGoalSet(x, u, d) {
   if (!/^\d{4}-\d\d$/.test(String(d.month || ''))) return { ok: false, error: 'Tháng chưa đúng.' };
-  const all0 = await kvJson(x.db, 'mkt_goals', {}), g = {};
-  Object.keys(d.goals || {}).forEach(k => {
-    if (GOAL_CH.indexOf(k) < 0) return; const v = d.goals[k] || {}, rev = Math.max(0, Math.round(Number(v.rev) || 0)), pct = Math.min(100, Math.max(0, Number(v.pct) || 0));
-    if (rev || pct) g[k] = { rev, pct, who: String(v.who || '').trim().slice(0, 60) };
+  const own = u.level >= 3, all0 = await kvJson(x.db, 'mkt_goals', {}), cur = all0[d.month] || {}, g = {}, changes = [], now = Date.now(), in0 = d.goals || {};
+  const txt = v => v ? (v.rev ? ms(v.rev) : '–') + ' / ' + (v.pct ? v.pct + '%' : '–') + (v.who ? ' (' + v.who + ')' : '') : 'trống';
+  GOAL_CH.forEach(k => {
+    const e = cur[k] && (cur[k].rev || cur[k].pct) ? cur[k] : null, mine = own || !e || !e.who || sameWho(e.who, u.name);
+    if (!mine) { if (e) g[k] = e; return; }
+    const v = in0[k] || {}, rev = Math.max(0, Math.round(Number(v.rev) || 0)), pct = Math.min(100, Math.max(0, Number(v.pct) || 0));
+    const who = own ? String(v.who || '').trim().slice(0, 60) : (e && e.who) || u.name;
+    const nv = rev || pct ? { rev, pct, who } : null;
+    if (!nv && !e) return;
+    if (nv && e && e.rev === nv.rev && e.pct === nv.pct && (e.who || '') === nv.who) { g[k] = e; return; }
+    if (nv) g[k] = Object.assign(nv, { by: u.name, at: now });
+    changes.push([k, txt(e), txt(nv)]);
   });
-  if (Object.keys(g).length) all0[d.month] = Object.assign(g, { _by: u.name, _at: Date.now() }); else delete all0[d.month];
+  if (!own && !changes.length) return Object.assign({ ok: true, changes }, await budgetOf(x));
+  if (Object.keys(g).length) all0[d.month] = Object.assign(g, { _by: u.name, _at: now }); else delete all0[d.month];
   await kvSet(x.db, 'mkt_goals', JSON.stringify(all0));
-  return Object.assign({ ok: true }, await budgetOf(x));
+  return Object.assign({ ok: true, changes }, await budgetOf(x));
 }
 
 /* ---------------- 8h sáng: tin Telegram "📣 Marketing sáng nay" cho từng bạn Marketing (đã kết nối Telegram) + Quản trị.
@@ -275,7 +288,7 @@ export async function mktDailyMsgs(x, users) {
   let ys = 0; (Y.days || []).forEach(r => { ys += r[2]; }); let yr = 0; Object.keys(Y.eff || {}).forEach(k => { yr += Y.eff[k].newRev || 0; });
   const yline = Y.ok ? '📅 <b>Hôm qua</b>: chi ' + ms(ys) + ' · tiền khách mới ' + ms(yr) + (ys && yr ? ' (' + pc(ys, yr) + '%)' : '') + (Y.ad ? ' · ' + Y.ad.n + ' data, ' + Y.ad.won + ' đã mua' : '') : '';
   return to.map(y => {
-    const mine = keys.filter(k => G[k].who && (nrm(G[k].who) === nrm(y.name) || nrm(y.name).indexOf(nrm(G[k].who)) >= 0 || nrm(G[k].who).indexOf(nrm(y.name)) >= 0)), rest = keys.filter(k => mine.indexOf(k) < 0);
+    const mine = keys.filter(k => sameWho(G[k].who, y.name)), rest = keys.filter(k => mine.indexOf(k) < 0);
     const goalTxt = keys.length ? '🎯 <b>Mục tiêu tháng ' + Number(b.m.slice(5)) + '</b> (tháng đã qua ' + Math.round(tp * 100) + '%)' + (mine.length ? '\n<i>Kênh của bạn:</i>\n' + mine.map(line).join('\n') + (rest.length ? '\n<i>Kênh khác:</i>' : '') : '') + (rest.length ? '\n' + rest.map(line).join('\n') : '') : '🎯 Chưa có mục tiêu tháng này (Quản trị đặt ở tab Marketing).';
     return { who: y.name, tg: y.tg, text: '📣 <b>Marketing sáng ' + fmtDate(now, 'dd/MM') + '</b>\n\n' + goalTxt + (yline ? '\n\n' + yline : '') +
       (todo.length ? '\n\n✅ <b>Nên làm hôm nay</b>\n' + todo.slice(0, 5).map(t => '• ' + t).join('\n') : '') + '\n\n👉 Xem chi tiết: ' + CRM_URL + '/#marketing' };
