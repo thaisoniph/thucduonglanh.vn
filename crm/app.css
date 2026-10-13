@@ -945,3 +945,23 @@ details.set-g .dash-more-b { background: #fff; }
 .mk-gr-web { background: var(--primary-soft); grid-template-columns: 130px 1fr; }
 .mk-gr-more { margin-top: 10px; } .mk-gr-more > summary { cursor: pointer; color: var(--primary); font-weight: 600; font-size: 14px; padding: 6px 0; }
 .metric b small { font-size: 13px; font-weight: 400; color: var(--muted); }
+/* 📣 Từ quảng cáo (tab Hiệu quả) + ưu đãi đang chạy */
+.box.smk-inv { margin: 10px 0 0; border-left: 6px solid var(--line); }
+.box.smk-inv.ok { border-left-color: var(--primary); } .box.smk-inv.mid { border-left-color: #f0a030; } .box.smk-inv.bad { border-left-color: var(--red); }
+.smk-inv h3 { margin: 0 0 8px; font-size: 16px; } .smk-inv h3 small { font-weight: 400; font-size: 13px; }
+.smk-big { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.smk-big > b { font-size: 30px; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.smk-big span { font-size: 14px; color: var(--muted); }
+.smk-inv p { margin: 8px 0 0; font-size: 15px; line-height: 1.45; }
+.smk-inv .link { background: none; border: 0; padding: 0; margin-top: 8px; color: var(--primary); font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer; }
+.smk-prod { padding: 8px 0 8px 10px; border-left: 4px solid var(--line); margin: 6px 0; }
+.smk-prod.ok { border-left-color: var(--primary); } .smk-prod.mid { border-left-color: #f0a030; } .smk-prod.bad { border-left-color: var(--red); }
+.smk-prod-h { display: flex; justify-content: space-between; gap: 8px; } .smk-prod-h span { font-weight: 700; white-space: nowrap; }
+.rep-fun .s-same { --c: var(--primary); } .rep-fun .s-next { --c: #8fbf5a; } .rep-fun .s-late { --c: #f0a030; } .rep-fun .s-none { --c: var(--red); }
+.offer-card { padding: 10px 0; border-top: 1px solid var(--line); } .offer-card:first-of-type { border-top: 0; padding-top: 4px; }
+.offer-card.old { opacity: .55; }
+.offer-card p { margin: 4px 0; font-size: 14.5px; line-height: 1.45; }
+.offer-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.offer-h b { font-size: 15px; }
+.offer-card .link { background: none; border: 0; padding: 0; color: var(--primary); font: inherit; font-size: 13px; font-weight: 600; text-decoration: underline; cursor: pointer; }
+details.offer-bn { margin: 0 0 10px; border-color: #f3d9a4; background: #fffaf0; }

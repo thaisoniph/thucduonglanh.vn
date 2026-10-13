@@ -365,6 +365,7 @@ Trong danh sách, khách có sinh nhật trong tháng này hiện **🎂 SN ngà
 
 **Khách hỏi** và **Khách đã mua** là 2 tab riêng vì cách làm khác nhau: khách hỏi cần **tư vấn để chốt đơn đầu tiên** (đo bằng tỷ lệ chốt), khách đã mua cần **chăm sóc để dùng đều và mua lại** (đo bằng tỷ lệ mua lại). Việc hằng ngày của cả 2 nhóm đều gom ở tab **Hôm nay**.
 
+- **🎁 Ưu đãi đang chạy** (khung vàng đầu tab Khách hỏi, bấm để mở): ưu đãi / thông điệp quảng cáo marketing đang chạy, giá, quà, điều kiện, hạn. Đọc trước khi gọi để nói đúng điều khách đã thấy trên quảng cáo.
 - **Ô tìm ở tab Khách hỏi** tìm theo tên, số điện thoại, sản phẩm quan tâm, ghi chú và **tỉnh** (tỉnh đã ghi lúc tư vấn). Gõ tên tỉnh hay tên sản phẩm cũng hiện khung số liệu khách đã mua như tab Khách đã mua. Ô **📣 Kênh** lọc theo nơi khách hỏi (Form website, Facebook, Zalo…).
 - **Tìm ở tab nào cũng được:** gõ tên hoặc số điện thoại, nếu người đó nằm ở tab kia CRM hiện dòng gợi ý, bấm vào để mở.
 - Hồ sơ khách đã mua có cả **lịch sử lúc còn là khách hỏi** (🙋 hỏi qua kênh nào, quan tâm gì) và dòng **Biết đến qua … · chốt sau N ngày** ở thẻ Thông tin.
@@ -407,7 +408,12 @@ Bấm **1 chạm** ở hàng nút thời gian đầu trang (trên điện thoạ
     - **🔁 Khách cũ mua lại**: số khách cũ quay lại mua và phần tiền từ họ.
 - **📞 Khách hỏi từ quảng cáo đi về đâu?**: 1 thanh màu chia ✅ đã mua · ⏳ đang tư vấn · ❌ không mua · 🗑 số rác.
 - **👉 Việc nên làm ngay**: tối đa 5 việc, việc gấp lên đầu (khách đang tư vấn chưa chốt, khách VIP lâu chưa gọi, khách quá 30 ngày chưa nói chuyện, tỷ lệ chốt / tiền mỗi đơn giảm, đơn hoàn nhiều, ít khách nghe máy). Không có việc gì thì hiện 🎉.
-- **Xem chi tiết** (bấm để mở, CRM nhớ mục bạn hay mở): 📈 Bán hàng theo ngày · 💬 Chăm sóc khách · 🙅 Vì sao khách chưa mua · 📍 Khách ở tỉnh nào.
+- **💸 Công ty đã đầu tư cho bạn**: tiền quảng cáo công ty đã chi để đem về các số khách hỏi giao cho bạn trong kỳ, mỗi số tốn khoảng bao nhiêu, bạn đã mang về bao nhiêu tiền từ các số đó (*cứ 1đ công ty chi, bạn mang về …đ*, đèn theo cùng mức đèn quảng cáo ở Tổng quan), còn bao nhiêu số chưa có kết quả (= bao nhiêu tiền đang chờ bạn gọi), và **% số được gọi ngay trong ngày nhận** (so với cả nhóm).
+- **📣 Từ quảng cáo** (trong Xem chi tiết): 🎁 ưu đãi / thông điệp quảng cáo đang chạy (để nói đúng điều khách đã đọc), tỷ lệ chốt **theo từng sản phẩm** của bạn so với cả nhóm và chi phí mỗi số của sản phẩm đó, thanh **gọi lại số mới nhanh hay chậm** (trong ngày · hôm sau · sau 2 ngày · chưa gọi).
+    - *Chi phí mỗi số* = tiền các chiến dịch có tên sản phẩm ÷ số khách hỏi sản phẩm đó (theo cột Nguồn của file số quảng cáo); chiến dịch không ghi tên sản phẩm chia đều cho mọi số. Không tính quảng cáo trên sàn và KOL. Marketing chưa nhập chi phí thì chỉ hiện số lượng.
+    - *Gọi lại* tính theo lần đầu có ghi trên CRM (tư vấn, chăm sóc, đổi trạng thái khách hỏi, lên đơn). File số quảng cáo chỉ ghi ngày nên tính theo ngày, không theo giờ. **Gọi xong nhớ ghi lên CRM**, nếu không CRM coi như chưa gọi.
+    - Số quảng cáo từ hôm qua trở về trước chưa gọi lần nào hiện đầu **👉 Việc nên làm ngay**.
+- **Xem chi tiết** (bấm để mở, CRM nhớ mục bạn hay mở): 📈 Bán hàng theo ngày · 📣 Từ quảng cáo · 💬 Chăm sóc khách · 🙅 Vì sao khách chưa mua · 📍 Khách ở tỉnh nào.
     - **Tỷ lệ chốt** = số data quảng cáo đã ra đơn ÷ tổng số data quảng cáo trong kỳ. *Data quảng cáo* là **từng dòng có số điện thoại trong file số quảng cáo**, tính theo ngày và tên sale ghi trong file; 1 số có nhiều lần trong kỳ chỉ tính 1. Ngày ghi ở 1 dòng áp dụng cho các dòng bên dưới **cho tới khi gặp ngày mới**, nên dòng quên ghi ngày vẫn được tính đúng ngày; sang ngày mới nhớ ghi ngày mới ở dòng đầu tiên của ngày. *Ra đơn* = số đó có đơn (không huỷ / hoàn) từ ngày có số, kể cả khách tự đặt trên web, hoặc khách hỏi của số đó “Đã chốt”. Số đang tư vấn, không mua, số rác **vẫn nằm trong mẫu số**. Tên sale trong file cần khớp “Tên trong file QC” của nhân sự thì số mới được tính cho người đó. Số liệu cập nhật mỗi lần CRM đọc file quảng cáo. Data gần đây còn đang tư vấn nên tỷ lệ của tuần / tháng đang chạy sẽ tăng dần.
 
 Doanh số tính theo **Nhân viên bán** ghi trên từng đơn. Đơn khách tự đặt trên web được tính cho **người đang phụ trách khách đó**.
@@ -464,6 +470,8 @@ Số website chỉ đếm khách đã bấm “Đồng ý” cookie nên thấp 
 **Tài khoản Marketing chỉ thấy tab 📣 Marketing**, không thấy khách, đơn, số điện thoại hay doanh thu toàn công ty. Máy chủ tính sẵn và chỉ gửi con số tổng (Nghị định 13/2023). Tài khoản này không được giao khách, không có trong bảng hiệu quả của sale.
 
 **Trong tab Marketing:** màn hình đầu chỉ có số quan trọng nhất, phần chi tiết thu gọn, bấm tiêu đề mới mở (CRM nhớ mục bạn hay mở).
+
+**🎁 Ưu đãi / thông điệp đang chạy** (dưới *Nên làm gì*, Marketing và Quản trị sửa được): bấm **＋ Thêm**, ghi tên ưu đãi, sản phẩm, nội dung sale cần nói đúng (giá, quà, điều kiện, câu quảng cáo chính) và ngày hết hạn. Sale thấy ngay ở đầu tab **Khách hỏi** và trong **Hiệu quả → 📣 Từ quảng cáo**. Hết hạn thì tự ẩn với sale. Bấm **Sửa** để sửa hoặc xoá.
 
 **Màn hình đầu:**
 - **4 ô lớn:** 💸 chi phí quảng cáo · 💰 tiền khách mới mua (chỉ khách đến từ kênh có chạy quảng cáo) · 🚦 chi phí ÷ tiền khách mới, có đèn xanh / cam / đỏ theo mức Quản trị đặt ở Cài đặt · 📇 data → mua hàng (cứ 100 data có bao nhiêu người mua). Bấm vào ô là mở mục chi tiết liên quan.
@@ -540,7 +548,8 @@ Tải lại đơn cũ không bị tính trùng: CRM nhận ra theo mã đơn và
 - **4 ô lớn có đèn**: 💰 Tiền cả nhóm · 🎯 Chốt được · 🛒 Mỗi đơn · 🔁 Khách cũ mua lại (so với kỳ trước).
 - **📞 Khách hỏi từ quảng cáo đi về đâu?** của cả nhóm.
 - **👉 Quản lý nên làm ngay** (tối đa 5 việc): ai đang chậm mục tiêu, khách hỏi tồn chưa chốt (ai nhiều nhất), khách VIP chưa ai gọi, đơn chưa có nhân viên bán (nút **Gán**), ai chốt thấp hơn nhóm, ai chưa đặt mục tiêu, tỷ lệ hoàn cao. Bấm tên người để mở màn hình của người đó.
-- **👥 Từng nhân viên**: xếp theo tiền bán được (🥇🥈🥉), viền màu = tiến độ mục tiêu (🟢 đúng tiến độ · 🟠 hơi chậm · 🔴 đang chậm), số đơn, tỷ lệ chốt, tiền mỗi đơn, lượt chăm sóc, và dòng **Cần kèm** (tối đa 2 điểm yếu so với cả nhóm: khách hỏi tồn ≥ 5, chốt thấp hơn nhóm, đơn nhỏ, ít chăm sóc, khách VIP chưa gọi, hoàn nhiều). Bấm vào để xem chi tiết và đặt mục tiêu.
+- **💸 Công ty đã đầu tư cho cả nhóm**: tổng tiền quảng cáo đem về số, mỗi số bao nhiêu, cả nhóm mang về bao nhiêu, % số gọi trong ngày. **Quản lý nên làm ngay** báo số quảng cáo chưa ai gọi (ai nhiều nhất).
+- **👥 Từng nhân viên**: xếp theo tiền bán được (🥇🥈🥉), dòng 📣 số quảng cáo nhận · công ty chi bao nhiêu → mang về bao nhiêu · % gọi trong ngày, viền màu = tiến độ mục tiêu (🟢 đúng tiến độ · 🟠 hơi chậm · 🔴 đang chậm), số đơn, tỷ lệ chốt, tiền mỗi đơn, lượt chăm sóc, và dòng **Cần kèm** (tối đa 2 điểm yếu so với cả nhóm: số quảng cáo chưa gọi ≥ 3, gọi chậm (dưới 60% số gọi trong ngày, từ 10 số), khách hỏi tồn ≥ 5, chốt thấp hơn nhóm, đơn nhỏ, ít chăm sóc, khách VIP chưa gọi, hoàn nhiều). Bấm vào để xem chi tiết và đặt mục tiêu.
 - **Xem chi tiết** (bấm để mở): **📊 So sánh nhân viên** (chọn chỉ số: Doanh số, Số đơn, TB/đơn, Tỷ lệ chốt, % mục tiêu, Lượt chăm sóc…; vạch đậm = trung bình nhóm), 📈 Bán hàng theo ngày, 💬 Chăm sóc khách, 🙅 Vì sao khách chưa mua (gồm lý do “Không mua” của khách hỏi), 📍 Khách ở tỉnh nào.
 
 **Tài khoản Quản trị không có trong thống kê nhân sự.** Bảng *👥 Tiến độ nhân sự hôm nay*, biểu đồ *📊 So sánh nhân viên*, mục *Theo nhân viên* và *📈 Mức dùng CRM* chỉ tính tài khoản quyền Quản lý và Nhân viên, cho gọn. Doanh thu cả nhóm vẫn tính đủ mọi đơn.

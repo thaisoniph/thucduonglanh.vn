@@ -2407,7 +2407,7 @@
     return '<div class="page-head"><h1>Khách hỏi</h1><span class="muted" id="tCount">người hỏi mua nhưng chưa mua (' + base.length + ')</span><div class="grow"></div>' + whoSel() + '<button class="btn pri" data-newlead>＋ Thêm khách hỏi</button></div>' +
       '<div class="tools"><div class="search">' + I.search + '<input type="search" id="tq" placeholder="Tìm tên, SĐT, tỉnh, sản phẩm quan tâm…" value="' + esc(f.q) + '"><button type="button" class="search-x" aria-label="Xoá chữ tìm kiếm" title="Xoá">✕</button></div>' +
         '<select id="tch" class="' + (f.ch ? 'on' : '') + '" style="flex:0 0 auto;width:auto" title="Lọc theo kênh khách hỏi"><option value="">📣 Mọi kênh</option>' + chs.map(function (x) { return '<option' + (f.ch === x ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('') + '</select></div>' +
-      '<div class="chips" id="tChips">' + renderLeadsChips(base, cur) + '</div>' +
+      offerBanner() + '<div class="chips" id="tChips">' + renderLeadsChips(base, cur) + '</div>' +
       '<div id="tArea">' + (areaBox(q, 'lead') + crossHint(q, qd, false)) + '</div>' +
       '<div id="tList">' + renderLeadsList(list, f.n, f.k) + '</div>';
   }
@@ -3561,6 +3561,7 @@
     var FN = mkFunnel(mj, nr, newN), LT = mkLtvBlock(mj, newN && tot ? Math.round(tot / newN) : 0), BC = mkBudgetCalc(mj.budget), SB = mkSaleBlock(mj), CB = mkCampBlock(mj, f), PB = mkProdBlock(mj);
     var L = mkTodo(mj, ch, E, { weak: FN.weak, ltv: LT, bud: BC, more: GB.todo.concat(SB.todo), gch: GB.gch });
     if (L.length) h += '<div class="box dash-notes"><h3>✅ Nên làm gì</h3>' + L.map(function (x) { return '<p>' + x + '</p>'; }).join('') + '</div>';
+    h += offerAdmin();
     // ---- chi tiết: thu gọn, bấm mới mở (xếp theo mức quan trọng)
     h += '<h2 class="mk-more-h">Xem chi tiết <span class="tip">bấm vào từng mục để mở</span></h2>';
     if (GB.body) h += mkMore('goal', '🎯 Mục tiêu từng kênh', GB.line, GB.body);
@@ -4286,6 +4287,103 @@
     p.orders = n; p.sales = s; p.avg = n ? Math.round(s / n) : 0; return p;
   }
 
+  /* ---------- 📣 Từ quảng cáo: chi phí mỗi số, công ty đã chi cho từng sale, chốt theo sản phẩm, tốc độ gọi lại, ưu đãi đang chạy.
+   * Máy chủ tính (lệnh 'sale_mkt', api/src/salemkt.js), nhớ 10 phút. Máy chủ cũ / kỳ "Mọi lúc" → không hiện. */
+  function smkGet(name, cx) {
+    if (cx.p.k === 'all') return null;
+    var from = isoDate(cx.R[0]), to = isoDate(Math.min(cx.R[1], Date.now() + DAY) - 1), k = (name || '') + '|' + from + '|' + to, C = S.smk || (S.smk = {}), c = C[k];
+    if ((!c || Date.now() - c.at > 600e3) && !c0busy(k)) {
+      S.smkBusy = S.smkBusy || {}; S.smkBusy[k] = 1;
+      api('sale_mkt', { from: from, to: to, name: name || '' }).then(function (j) { C[k] = { at: Date.now(), d: j && j.ok ? j : null }; }, function () { C[k] = { at: Date.now(), d: null }; })
+        .then(function () { delete S.smkBusy[k]; if (route().view === 'bao-cao') render(); });
+    }
+    return c ? c.d : undefined;
+  }
+  function c0busy(k) { return !!(S.smkBusy && S.smkBusy[k]); }
+  /** Gọi trong ngày: % số đã liên hệ ngay ngày nhận (bỏ số hôm nay chưa gọi vì còn trong ngày). */
+  function smkSpeed(b) { var n = b.same + b.next + b.late + b.none; return n ? pct(b.same, n) : null; }
+  function smkSpeedLv(v) { return v === null ? '' : v >= 80 ? 'ok' : v >= 60 ? 'mid' : 'bad'; }
+  /** Khung "Công ty đã đầu tư cho bạn": tiền quảng cáo đem về số cho người này, tiền họ mang về từ các số đó, tốc độ gọi lại. */
+  function smkInvest(d, b, who, label) {
+    if (d === undefined) return '<div class="box smk-inv"><p class="muted">⏳ Đang tính tiền quảng cáo công ty đã chi…</p></div>';
+    if (!d || !b || !b.n) return '';
+    var me = who === 'bạn', T = d.team, roi = b.cost ? b.rev / b.cost : null, troi = T.cost ? T.rev / T.cost : null;
+    var lv = roi === null ? '' : adsLv(b.cost, b.rev); // cùng mức đèn quảng cáo ở Tổng quan (chi phí / tiền mang về)
+    var sp = smkSpeed(b), tsp = smkSpeed(T), spLv = smkSpeedLv(sp);
+    var h = '<div class="box smk-inv ' + lv + '"><h3>💸 ' + (me ? 'Công ty đã đầu tư cho bạn' : b === T ? 'Công ty đã đầu tư cho cả nhóm' : 'Công ty đã đầu tư cho ' + esc(who)) + ' <small class="muted">' + esc(label.toLowerCase()) + '</small></h3>';
+    if (b.cost) {
+      h += '<div class="smk-big"><b>' + moneyShort(b.cost) + '</b><span>tiền quảng cáo để đem về <b>' + b.n + ' số</b> khách hỏi · mỗi số khoảng <b>' + moneyShort(Math.round(b.cost / b.n)) + '</b></span></div>';
+      h += '<p>' + (me ? 'Bạn' : b === T ? 'Cả nhóm' : esc(who)) + ' đã mang về <b>' + moneyShort(b.rev) + '</b> từ các số này' + (roi !== null ? ' → cứ <b>1đ</b> công ty chi, ' + (me ? 'bạn' : 'mang') + ' về <b>' + oneDec(roi) + 'đ</b> ' + (DASH_LV[lv] || '') : '') +
+        (troi !== null && b !== T ? ' <small class="muted">(cả nhóm ' + oneDec(troi) + 'đ)</small>' : '') + '.</p>';
+      if (me && b.open) h += '<p>Còn <b>' + b.open + ' số</b> chưa có kết quả, tương đương <b>' + moneyShort(Math.round(b.cost / b.n * b.open)) + '</b> công ty đã trả. Gọi lại để không phí tiền nhé!</p>';
+    } else h += '<p><b>' + b.n + ' số</b> khách hỏi từ quảng cáo. Chưa có số chi phí quảng cáo trong kỳ (marketing chưa nhập) nên chưa tính được tiền mỗi số.</p>';
+    if (sp !== null) h += '<p>📞 Gọi ngay trong ngày nhận số: <b>' + sp + '%</b> ' + (DASH_LV[spLv] || '') + (b !== T && tsp !== null ? ' <small class="muted">(cả nhóm ' + tsp + '%)</small>' : '') + (b.none ? ' · <b class="bad-line">' + b.none + ' số chưa gọi</b>' : '') + '</p>';
+    return h + '<button class="link" data-rgo="mkt">Xem theo từng sản phẩm, ưu đãi đang chạy →</button></div>';
+  }
+  /** Mục chi tiết 📣 Từ quảng cáo: từng sản phẩm (của người này so với cả nhóm), tốc độ gọi lại, ưu đãi đang chạy. */
+  function smkDetail(d, b) {
+    if (!d) return '<p class="muted">' + (d === undefined ? '⏳ Đang tải…' : 'Chưa có số liệu (máy chủ chưa cập nhật hoặc đang chọn Mọi lúc).') + '</p>';
+    var T = d.team, h = '';
+    h += '<div class="box"><h3>🎁 Ưu đãi / thông điệp quảng cáo đang chạy</h3>' + offerList(d.offers, false) + '</div>';
+    var ks = Object.keys((b || T).prod).sort(function (x, y) { return (b || T).prod[y].n - (b || T).prod[x].n; });
+    if (ks.length) h += '<div class="box"><h3>📦 Theo sản phẩm khách hỏi</h3>' + ks.map(function (k) {
+      var p = (b || T).prod[k], tp = T.prod[k] || p, c = pct(p.won, p.n), tc = pct(tp.won, tp.n), lv = b && b !== T ? (c >= tc ? 'ok' : c >= tc - 5 ? 'mid' : 'bad') : '';
+      return '<div class="smk-prod ' + lv + '"><div class="smk-prod-h"><b>' + esc(k) + '</b><span>' + (DASH_LV[lv] || '') + ' chốt ' + c + '%</span></div><div class="rep-ppl-s">' + p.n + ' số · ' + p.won + ' ra đơn' + (p.junk ? ' · ' + p.junk + ' số rác' : '') +
+        (b && b !== T ? ' · cả nhóm chốt ' + tc + '%' : '') + (p.cost ? ' · mỗi số ~' + moneyShort(Math.round(p.cost / p.n)) : '') + '</div></div>';
+    }).join('') + '<p class="small muted" style="margin:8px 0 0">Sản phẩm theo cột Nguồn của file số quảng cáo. Chi phí mỗi số: tiền các chiến dịch có tên sản phẩm đó ÷ số khách hỏi sản phẩm đó; chiến dịch không ghi tên sản phẩm chia đều cho mọi số.</p></div>';
+    var B = b || T, parts = [['s-same', 'Gọi trong ngày', B.same], ['s-next', 'Hôm sau', B.next], ['s-late', 'Sau 2 ngày trở lên', B.late], ['s-none', 'Chưa gọi', B.none]].filter(function (x) { return x[2]; }), n = B.same + B.next + B.late + B.none;
+    if (n) h += '<div class="box rep-fun"><h3>📞 Gọi lại số mới nhanh hay chậm?</h3><div class="rep-fun-bar">' + parts.map(function (x) { return '<i class="' + x[0] + '" style="width:' + (x[2] * 100 / n).toFixed(1) + '%" title="' + x[1] + ': ' + x[2] + '"></i>'; }).join('') + '</div>' +
+      '<div class="rep-fun-leg">' + parts.map(function (x) { return '<span class="' + x[0] + '"><u></u>' + x[1] + ' <b>' + x[2] + '</b></span>'; }).join('') + '</div>' +
+      '<p>Khách vừa để số còn nhớ quảng cáo, gọi ngay trong ngày chốt dễ hơn nhiều. Tính theo lần đầu có ghi trên CRM (tư vấn, chăm sóc, đổi trạng thái khách hỏi, lên đơn). Gọi mà không ghi thì CRM không biết.' + (B.wait ? ' ' + B.wait + ' số nhận hôm nay chưa gọi chưa tính.' : '') + '</p></div>';
+    h += '<p class="small muted">Chi phí quảng cáo: tổng ' + moneyShort(d.spend) + ' cho ' + d.n + ' số khách hỏi cả công ty (mỗi số ~' + moneyShort(d.cpl) + '), không tính quảng cáo trên sàn và KOL. Cập nhật khoảng 30 phút một lần.</p>';
+    return h;
+  }
+  /* ---------- Ưu đãi đang chạy: Marketing / Quản trị ghi ở tab Marketing, sale xem ở Khách hỏi và Hiệu quả */
+  function offerList(L, edit) {
+    L = L || []; var t0 = isoDate(Date.now());
+    if (!L.length) return '<p class="muted">' + (edit ? 'Chưa có ưu đãi nào. Bấm ＋ để thêm, sale sẽ thấy ngay ở tab Khách hỏi.' : 'Marketing chưa ghi ưu đãi nào.') + '</p>';
+    return L.map(function (o) {
+      var old = o.until && o.until < t0;
+      return '<div class="offer-card' + (old ? ' old' : '') + '"><div class="offer-h"><b>🎁 ' + esc(o.title) + '</b>' + (o.prod ? '<span class="tag">' + esc(o.prod) + '</span>' : '') + '</div>' +
+        (o.text ? '<p>' + esc(o.text).replace(/\n/g, '<br>') + '</p>' : '') +
+        '<small class="muted">' + (o.until ? (old ? 'Đã hết hạn ' : 'Đến hết ') + o.until.split('-').reverse().join('/') : 'Không ghi hạn') + (o.by ? ' · ' + esc(o.by) : '') + '</small>' +
+        (edit ? ' <button class="link" data-offer="' + esc(o.id) + '">Sửa</button>' : '') + '</div>';
+    }).join('');
+  }
+  function offersGet() {
+    var c = S.offers;
+    if ((!c || Date.now() - c.at > 600e3) && !S.offersBusy) {
+      S.offersBusy = true;
+      api('offers', {}).then(function (j) { S.offers = { at: Date.now(), list: j && j.ok ? j.list : null }; }, function () { S.offers = { at: Date.now(), list: null }; })
+        .then(function () { S.offersBusy = false; var v = route().view; if ((v === 'tiem-nang' || v === 'marketing') && !$('.modal')) render(); });
+    }
+    return c ? c.list : undefined;
+  }
+  /** Khối ưu đãi đầu tab Khách hỏi (thu gọn, chỉ hiện khi có ưu đãi còn hạn). */
+  function offerBanner() {
+    var L = offersGet(); if (!L) return ''; var t0 = isoDate(Date.now()); L = L.filter(function (o) { return !o.until || o.until >= t0; });
+    if (!L.length) return '';
+    return '<details class="dash-more offer-bn"><summary><b>🎁 ' + L.length + ' ưu đãi đang chạy</b><span>' + esc(L.map(function (o) { return o.title; }).join(' · ')) + '</span></summary><div class="dash-more-b">' + offerList(L, false) + '</div></details>';
+  }
+  /** Khối quản lý ưu đãi ở tab Marketing. */
+  function offerAdmin() {
+    if (!isMkt() && lvl() < 3) return '';
+    var L = offersGet();
+    return '<div class="box"><div class="offer-h"><h3 style="margin:0">🎁 Ưu đãi / thông điệp đang chạy <small class="muted">(sale xem ở tab Khách hỏi)</small></h3><button class="btn sm pri" data-offer="new">＋ Thêm</button></div>' +
+      (L === undefined ? '<p class="muted">⏳ Đang tải…</p>' : L === null ? '<p class="muted">⚠️ Chưa tải được (máy chủ chưa cập nhật?).</p>' : offerList(L, true)) + '</div>';
+  }
+  function offerEdit(id) {
+    var o = id === 'new' ? {} : ((S.offers && S.offers.list) || []).filter(function (x) { return x.id === id; })[0] || {};
+    var body = '<div class="box"><label class="f"><span>Tên ưu đãi / thông điệp (khách đã thấy trên quảng cáo)</span><input type="text" id="ofT" maxlength="120" value="' + esc(o.title || '') + '" placeholder="vd Mua 2 tặng 1 Gafo Fucoidan"></label>' +
+      '<label class="f"><span>Sản phẩm</span><input type="text" id="ofP" maxlength="60" value="' + esc(o.prod || '') + '" placeholder="vd Gafo Fucoidan"></label>' +
+      '<label class="f"><span>Nội dung sale cần nói đúng (giá, quà, điều kiện, câu quảng cáo chính)</span><textarea id="ofX" rows="5" maxlength="800">' + esc(o.text || '') + '</textarea></label>' +
+      '<label class="f"><span>Áp dụng đến hết ngày (bỏ trống = chưa có hạn)</span><input type="date" id="ofU" value="' + esc(o.until || '') + '"></label><p class="err" id="ofE"></p></div>';
+    var m = modal(id === 'new' ? '🎁 Thêm ưu đãi' : '🎁 Sửa ưu đãi', body, (id !== 'new' ? '<button class="btn ghost" id="ofDel">Xoá</button>' : '') + '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="ofSave">Lưu</button>');
+    var done = function (j) { S.offers = { at: Date.now(), list: j.list }; closeModal(); toast('Đã lưu'); render(); }, fail = function (e) { $('#ofE', m).textContent = e.message; };
+    $('#ofSave', m).onclick = function () { api('offer_save', { id: o.id || '', title: $('#ofT', m).value, prod: $('#ofP', m).value, text: $('#ofX', m).value, until: $('#ofU', m).value }).then(done, fail); };
+    if ($('#ofDel', m)) $('#ofDel', m).onclick = function () { if (confirm('Xoá ưu đãi này?')) api('offer_del', { id: o.id }).then(done, fail); };
+  }
+
   /* Hiệu quả của 1 sale, viết cho người không rành công nghệ: màn hình đầu chỉ có mục tiêu tháng, 4 ô lớn có đèn 🟢🟠🔴 (so với chính mình kỳ trước),
    * thanh "10 khách hỏi thì đi đâu" và tối đa 5 việc nên làm ngay. Số liệu chi tiết (xu hướng, chăm sóc, lý do, tỉnh) thu gọn, bấm mới mở; mục đang mở nhớ trên máy (localStorage rep_open). */
   /** Đèn cho tỷ lệ %: bằng / tăng = xanh, giảm dưới 3 điểm = cam, giảm từ 3 điểm = đỏ. */
@@ -4305,8 +4403,9 @@
       '<p>Cứ <b>10</b> khách hỏi thì ' + esc(who) + ' chốt được <b>' + per10 + '</b> khách.' + (c.pending ? ' Còn <b>' + c.pending + '</b> khách đang tư vấn, gọi lại sớm để chốt thêm. <a href="#tiem-nang">Mở Khách hỏi →</a>' : '') + '</p></div>';
   }
   /** Tối đa 5 việc nên làm ngay, việc gấp lên trước. Chỉ dựa trên số liệu đã có trên máy. */
-  function repTodo(c, p, me) {
+  function repTodo(c, p, me, mb) {
     var L = [], you = me ? 'bạn' : '';
+    if (mb && mb.none) L.push({ p: 0, t: '📵 <b>' + mb.none + ' số quảng cáo</b> nhận từ hôm qua trở về trước chưa gọi lần nào' + (mb.cost && mb.n ? ' (công ty đã trả ~' + moneyShort(Math.round(mb.cost / mb.n * mb.none)) + ')' : '') + '. Gọi ngay hôm nay.', a: '<a class="btn sm pri" href="#tiem-nang">Gọi</a>' });
     if (c.pending) L.push({ p: 1, t: '⏳ <b>' + c.pending + ' khách hỏi</b> đang tư vấn chưa chốt. Gọi lại ngay hôm nay.', a: '<a class="btn sm pri" href="#tiem-nang">Gọi</a>' });
     if (c.vipRisk) L.push({ p: 1, t: '💎 <b>' + c.vipRisk + ' khách VIP</b> lâu chưa mua, hơn 30 ngày chưa ai gọi. Gọi hỏi thăm trước tiên.', a: me ? '<a class="btn sm pri" href="#khach-hang" data-vipgo="1">Xem</a>' : '' });
     if (c.stale) L.push({ p: 2, t: '📵 <b>' + c.stale + ' khách</b> ' + you + ' phụ trách đã hơn 30 ngày chưa nói chuyện. Mỗi ngày gọi vài người.', a: me ? '<a class="btn sm" href="#hom-nay">Hôm nay</a>' : '' });
@@ -4323,16 +4422,17 @@
     var ms = cx.whole ? c.sales : perf(name, monthRange(month)).sales, t = targetOf(name, month), G = t && t.amount ? goalCalc(ms, t.amount, month) : null;
     var h = (lvl() >= 2 && !me ? '<button class="btn ghost" data-who="team" style="margin-bottom:10px">← Quay lại cả nhóm</button>' : '') +
       targetBlock(name, month, ms, me || lvl() >= 2);
-    var per10 = c.data ? Math.round(c.won * 10 / c.data) : null;
+    var per10 = c.data ? Math.round(c.won * 10 / c.data) : null, mk = smkGet(me && lvl() < 2 ? '' : name, cx);
     h += '<section class="dash-hero"><div class="dash-tiles">' +
       dashTile('rtrend', cx.whole && G && G.isCur ? G.lv : dashTrend(c.sales, p.sales), '💰 Tiền bán được', moneyShort(c.sales), delta(c.sales, p.sales), c.orders + ' đơn' + (c.orders ? ' (không tính đơn huỷ)' : '')) +
       dashTile('why', repRateLv(c.closePct, p.closePct), '🎯 Chốt được', c.closePct === null ? '–' : c.closePct + '%', c.closePct === null ? '' : delta(c.closePct, p.closePct, 'rate'), c.data ? 'Cứ 10 khách hỏi chốt ' + per10 + ' khách' : 'Chưa có khách hỏi từ quảng cáo') +
       dashTile('rtrend', c.orders && p.orders ? dashTrend(c.avg, p.avg) : '', '🛒 Mỗi đơn', c.orders ? moneyShort(c.avg) : '–', c.orders ? delta(c.avg, p.orders ? p.avg : 0) : '', 'Bán combo, 2–3 hộp thì số này tăng') +
       dashTile('care', c.sales ? repRateLv(c.oldPct, p.sales ? p.oldPct : null) : '', '🔁 Khách cũ mua lại', c.repeat + ' khách', delta(c.repeat, p.repeat), c.sales ? moneyShort(c.oldRev) + ' = ' + c.oldPct + '% tiền bán được' : 'Chăm sóc tốt thì số này tăng') +
-      '</div>' + repFunnel(c, me ? 'bạn' : name) + repTodo(c, p, me) + '</section>';
+      '</div>' + smkInvest(mk, mk && mk.me, me ? 'bạn' : name, cx.label) + repFunnel(c, me ? 'bạn' : name) + repTodo(c, p, me, mk && mk.me) + '</section>';
     h += '<div class="steps" style="margin:0 0 16px"><button class="btn pri" data-daily="' + esc(name) + '">📋 Báo cáo ngày (gửi Zalo)</button><button class="btn" data-bcdt="' + esc(name) + '|' + month + '">📊 Bảng BCDT ' + monthLabel(month) + '</button>' + (lvl() >= 3 && !me ? '<button class="btn" data-usage="' + esc(name) + '">📈 Mức dùng CRM</button>' : '') + '</div>';
     h += '<h2 class="dash-more-h">Xem chi tiết <small class="muted">(bấm để mở)</small></h2>';
     h += repMore('rtrend', '📈 Bán hàng theo ngày', 'Doanh số, số đơn, lượt chăm sóc từng ngày, so với ' + (CMP_LABEL || 'kỳ trước'), repTrend(name, cx));
+    h += smkMore(mk, mk && mk.me);
     h += repMore('care', '💬 Chăm sóc khách', c.care + ' lượt' + (c.replyPct === null ? '' : ' · ' + c.replyPct + '% khách nghe máy') + (c.convPct === null ? '' : ' · ' + c.convPct + '% chăm sóc ra đơn'), careMetrics(c, p, me));
     var why = whyBlock(name, cx), wt = (why.match(/<span class="bar-l" role="cell">([^<]*)</) || [])[1];
     h += repMore('why', '🙅 Vì sao khách chưa mua', wt ? 'Nhiều nhất: ' + wt : 'Ghi lý do khi chăm sóc để máy gom', why);
@@ -4340,6 +4440,11 @@
     h += repMore('geo', '📍 Khách ở tỉnh nào', gt ? 'Nhiều nhất: ' + gt : 'Chưa có địa chỉ', geo);
     h += '<p class="small muted">🟢 tốt hơn / bằng ' + (CMP_LABEL || 'kỳ trước') + ' · 🟠 giảm nhẹ · 🔴 giảm nhiều. Doanh số tính theo “Nhân viên bán” ghi trên từng đơn; đơn khách tự đặt trên web tính cho người đang phụ trách khách đó.</p>';
     return h;
+  }
+  function smkMore(d, b) {
+    if (d === null) return '';
+    var B = d && (b || d.team);
+    return repMore('mkt', '📣 Từ quảng cáo', !d ? '⏳ đang tải…' : (B ? B.n + ' số' + (B.cost ? ' · công ty chi ' + moneyShort(B.cost) : '') + (smkSpeed(B) !== null ? ' · gọi trong ngày ' + smkSpeed(B) + '%' : '') : 'chưa có số') + ' · ưu đãi đang chạy', smkDetail(d, b));
   }
   function bindRep() {
     $$('details[data-rk]').forEach(function (d) {
@@ -4355,6 +4460,8 @@
   /** Điểm cần kèm của 1 người, so với cả nhóm (t = perf(null)). Trả tối đa 2 dòng, việc ảnh hưởng tiền nhiều lên trước. */
   function repWeak(r, t, careAvg) {
     var w = [];
+    if (r.mk && r.mk.none >= 3) w.push('📵 ' + r.mk.none + ' số quảng cáo chưa gọi');
+    var sp0 = r.mk ? smkSpeed(r.mk) : null; if (sp0 !== null && r.mk.n >= 10 && sp0 < 60) w.push('📞 gọi chậm (' + sp0 + '% trong ngày)');
     if (r.pending >= 5) w.push('⏳ ' + r.pending + ' khách hỏi đang chờ gọi lại');
     if (r.closePct !== null && t.closePct !== null && r.data >= 10 && r.closePct < t.closePct - 3) w.push('🎯 chốt ' + r.closePct + '%, nhóm ' + t.closePct + '%');
     if (r.orders >= 3 && t.avg && r.avg < t.avg * 0.8) w.push('🛒 đơn nhỏ (' + moneyShort(r.avg) + ', nhóm ' + moneyShort(t.avg) + ')');
@@ -4370,6 +4477,7 @@
       return '<div class="rep-ppl-r ' + (lv || '') + '" role="button" tabindex="0" data-who="' + esc(r.n) + '">' +
         '<div class="rep-ppl-h"><b>' + (r.sales && i < 3 ? M[i] + ' ' : '') + esc(r.n) + '</b><span>' + (DASH_LV[lv] || '') + ' ' + moneyShort(r.sales) + '</span></div>' +
         (g ? '<div class="bar sm"><i style="width:' + Math.min(100, g.p * 100).toFixed(1) + '%"></i>' + (g.isCur ? '<u style="left:' + (g.tp * 100).toFixed(1) + '%"></u>' : '') + '</div><div class="rep-ppl-s">🎯 ' + Math.round(g.p * 100) + '% mục tiêu ' + moneyShort(r.t.amount) + (g.isCur ? ' · ' + GOAL_LV[g.lv] : '') + '</div>' : '<div class="rep-ppl-s warn">🎯 Chưa đặt mục tiêu ' + monthLabel(cx.month) + '</div>') +
+        (r.mk && r.mk.n ? '<div class="rep-ppl-s">📣 ' + r.mk.n + ' số' + (r.mk.cost ? ' · công ty chi ' + moneyShort(r.mk.cost) + ' → mang về ' + moneyShort(r.mk.rev) : '') + (smkSpeed(r.mk) !== null ? ' · gọi trong ngày ' + smkSpeed(r.mk) + '%' : '') + '</div>' : '') +
         '<div class="rep-ppl-s">' + r.orders + ' đơn · chốt ' + (r.closePct === null ? '–' : r.closePct + '%') + ' · mỗi đơn ' + (r.orders ? moneyShort(r.avg) : '–') + ' · 💬 ' + r.care + ' lượt</div>' +
         (wk.length ? '<div class="rep-ppl-w">Cần kèm: ' + wk.join(' · ') + '</div>' : (r.orders ? '<div class="rep-ppl-ok">👍 Đang ổn</div>' : '')) + '</div>';
     }).join('') : '<p class="muted">Chưa có nhân viên nào.</p>') + '</div>';
@@ -4381,6 +4489,8 @@
     if (slow.length) L.push({ p: 1, t: '🔴 Đang chậm mục tiêu: ' + nm(slow) + '. Ngồi cùng xem khách đang tư vấn và khách cũ sắp hết hàng.' });
     var pend = rows.filter(function (r) { return r.pending >= 5; }).sort(function (a, b) { return b.pending - a.pending; });
     if (t.pending >= 5) L.push({ p: 1, t: '⏳ Cả nhóm còn <b>' + t.pending + ' khách hỏi</b> đang tư vấn chưa chốt' + (pend.length ? ' (nhiều nhất: ' + nm(pend.slice(0, 2)) + ')' : '') + '. Nhắc gọi lại trong ngày.' });
+    var nc = rows.filter(function (r) { return r.mk && r.mk.none; }).sort(function (a, b) { return b.mk.none - a.mk.none; }), ncN = nc.reduce(function (s0, r) { return s0 + r.mk.none; }, 0);
+    if (ncN) L.push({ p: 0, t: '📵 <b>' + ncN + ' số quảng cáo</b> từ hôm qua trở về trước chưa ai gọi (' + nc.slice(0, 3).map(function (r) { return '<button class="link" data-who="' + esc(r.n) + '">' + esc(r.n) + '</button> ' + r.mk.none; }).join(', ') + '). Tiền quảng cáo đang bị bỏ phí.' });
     var vip = rows.filter(function (r) { return r.vipRisk; });
     if (t.vipRisk) L.push({ p: 2, t: '💎 <b>' + t.vipRisk + ' khách VIP</b> lâu chưa mua, chưa ai gọi' + (vip.length ? ' (' + nm(vip) + ')' : '') + '.' });
     if (noSeller.n) L.push({ p: 2, t: '🧾 <b>' + noSeller.n + ' đơn</b> (' + moneyShort(noSeller.v) + ') chưa có nhân viên bán, doanh số chưa tính cho ai.', a: '<button class="btn sm" data-who="-">Gán</button>' });
@@ -4404,19 +4514,21 @@
     var names = staffNames(); S.d.orders.forEach(function (o) { if (o.seller && names.indexOf(o.seller) < 0 && !isAdminName(o.seller)) names.push(o.seller); }); // không tính tài khoản Quản trị
     var act = staffNames(), rows = names.map(function (n) { var p = salesAllFix(perf(n, R), n, cx); p.n = n; p.prev = perf(n, cx.P); p.t = targetOf(n, month); p.ms = cx.whole ? p.sales : perf(n, monthRange(month)).sales; return p; }).filter(function (p) { return act.indexOf(p.n) >= 0 || p.orders > 0; }).sort(function (a, b) { return b.sales - a.sales; });
     var ns = S.d.orders.filter(function (o) { return !isVoid(o.status) && o.time >= R[0] && o.time < R[1] && !o.seller; }), noSeller = { n: ns.length, v: ns.reduce(function (s0, o) { return s0 + o.total; }, 0) };
-    var ms = cx.whole ? all.sales : perf(null, monthRange(month)).sales, G = tt ? goalCalc(ms, tt, month) : null;
+    var ms = cx.whole ? all.sales : perf(null, monthRange(month)).sales, G = tt ? goalCalc(ms, tt, month) : null, mk = smkGet('', cx);
+    rows.forEach(function (r) { r.mk = mk && mk.people ? mk.people[r.n] || null : null; });
     var h = targetBlockTeam(ms, tt, month);
     h += '<section class="dash-hero"><div class="dash-tiles">' +
       dashTile('rtrend', cx.whole && G && G.isCur ? G.lv : dashTrend(all.sales, prev.sales), '💰 Tiền cả nhóm', moneyShort(all.sales), delta(all.sales, prev.sales), all.orders + ' đơn') +
       dashTile('cmp', repRateLv(all.closePct, prev.closePct), '🎯 Chốt được', all.closePct === null ? '–' : all.closePct + '%', all.closePct === null ? '' : delta(all.closePct, prev.closePct, 'rate'), all.data ? 'Cứ 10 khách hỏi chốt ' + Math.round(all.won * 10 / all.data) + ' khách' : 'Chưa có khách hỏi từ quảng cáo') +
       dashTile('cmp', all.orders && prev.orders ? dashTrend(all.avg, prev.avg) : '', '🛒 Mỗi đơn', all.orders ? moneyShort(all.avg) : '–', all.orders ? delta(all.avg, prev.orders ? prev.avg : 0) : '', 'Tiền trung bình 1 đơn') +
       dashTile('care', all.sales ? repRateLv(all.oldPct, prev.sales ? prev.oldPct : null) : '', '🔁 Khách cũ mua lại', all.repeat + ' khách', delta(all.repeat, prev.repeat), all.sales ? moneyShort(all.oldRev) + ' = ' + all.oldPct + '% tiền bán được' : 'Chăm sóc tốt thì số này tăng') +
-      '</div>' + repFunnel(all, 'cả nhóm') + repMgrTodo(rows, all, cx, noSeller) + repPeople(rows, all, cx) + '</section>';
+      '</div>' + smkInvest(mk, mk && mk.team, 'cả nhóm', cx.label) + repFunnel(all, 'cả nhóm') + repMgrTodo(rows, all, cx, noSeller) + repPeople(rows, all, cx) + '</section>';
     h += '<div class="steps" style="margin:0 0 16px"><button class="btn pri" data-daily="">📋 Báo cáo ngày (gửi Zalo)</button><button class="btn" data-bcdt="|' + month + '">📊 Bảng BCDT cả nhóm ' + monthLabel(month) + '</button>' + (lvl() >= 3 ? '<button class="btn" data-usage="">📈 Mức dùng CRM</button>' : '') + '</div>';
     h += '<h2 class="dash-more-h">Xem chi tiết <small class="muted">(bấm để mở)</small></h2>';
     var lead = rows[0] && rows[0].sales ? rows[0] : null;
     h += rows.length >= 2 ? repMore('cmp', '📊 So sánh nhân viên', 'Xếp hạng theo doanh số, số đơn, tỷ lệ chốt, % mục tiêu…' + (lead ? ' · dẫn đầu: ' + esc(lead.n) : ''), compareBlock(rows, cx)) : '';
     h += repMore('rtrend', '📈 Bán hàng theo ngày', 'Doanh số, số đơn, lượt chăm sóc từng ngày, so với ' + (CMP_LABEL || 'kỳ trước'), repTrend(null, cx));
+    h += smkMore(mk, null);
     h += repMore('care', '💬 Chăm sóc khách', all.care + ' lượt' + (all.replyPct === null ? '' : ' · ' + all.replyPct + '% khách nghe máy') + (all.convPct === null ? '' : ' · ' + all.convPct + '% chăm sóc ra đơn'), careMetrics(all, prev, false));
     var why = whyBlock(null, cx), wt = (why.match(/<span class="bar-l" role="cell">([^<]*)</) || [])[1];
     h += repMore('why', '🙅 Vì sao khách chưa mua', wt ? 'Nhiều nhất: ' + wt : 'Ghi lý do khi chăm sóc để máy gom', why + teamLostBlock(R));
@@ -5213,7 +5325,7 @@
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-gmore]'); if (!b) return; var r = b.previousElementSibling; if (r) r.hidden = false; b.remove(); });
   document.addEventListener('toggle', function (e) { var d = e.target; if (d && d.matches && d.matches('details[data-grp]')) { S.f.gopen = S.f.gopen || {}; S.f.gopen[d.getAttribute('data-grp')] = d.open; } }, true);
   document.addEventListener('click', function (e) {
-    var t = e.target.closest('[data-otab],[data-per],[data-pq],[data-promo],[data-rf],[data-vipgo],[data-taghelp],[data-consent],[data-daily],[data-usage],[data-flow],[data-zalo],[data-quick],[data-care],[data-next],[data-neworder],[data-cf],[data-os],[data-och],[data-tf],[data-cat],[data-addtag],[data-deltag],[data-claim],[data-bcdt],[data-srcadd],[data-srcedit],[data-srcsync],[data-srcdel],[data-adsedit],[data-adssync],[data-who],[data-target],[data-race],[data-myold],[data-more],[data-add],[data-rm],[data-consult],[data-leadorder],[data-newlead],[data-editlead],[data-cust],[data-order],[data-lead]');
+    var t = e.target.closest('[data-otab],[data-per],[data-pq],[data-promo],[data-rf],[data-vipgo],[data-taghelp],[data-consent],[data-daily],[data-usage],[data-flow],[data-zalo],[data-quick],[data-care],[data-next],[data-neworder],[data-cf],[data-os],[data-och],[data-tf],[data-cat],[data-addtag],[data-deltag],[data-claim],[data-bcdt],[data-srcadd],[data-srcedit],[data-srcsync],[data-srcdel],[data-adsedit],[data-adssync],[data-who],[data-target],[data-race],[data-offer],[data-myold],[data-more],[data-add],[data-rm],[data-consult],[data-leadorder],[data-newlead],[data-editlead],[data-cust],[data-order],[data-lead]');
     if (!t || !S.d) return;
     if (e.target.closest('a[href]') && !t.hasAttribute('data-myold')) return; // nút gọi / Zalo bên trong thẻ
     if (e.target.closest('select[data-oassign]')) return; // ô “Giao cho…” trên dòng đơn: không mở hộp đơn
@@ -5271,6 +5383,7 @@
     if (t.hasAttribute('data-pq')) { var pq = a('data-pq').split('|'); S.f[pq[0]].p = { k: pq[1] }; if (pq[0] === 'o') S.f.o.n = 60; render(); return; }
     if (t.hasAttribute('data-tf')) { S.f.t.k = a('data-tf'); S.f.t.n = 60; if ($('#tList')) renderLeadsPart(); else render(); return; }
     if (t.hasAttribute('data-who')) { setWho(a('data-who') === 'team' ? '' : a('data-who')); window.scrollTo(0, 0); return; }
+    if (t.hasAttribute('data-offer')) { offerEdit(a('data-offer')); return; }
     if (t.hasAttribute('data-race')) { if (a('data-race') === 'retry') S.race = null; else S.f.race = a('data-race'); render(); return; }
     if (t.hasAttribute('data-target')) { var tg = a('data-target').split('|'); openTarget(tg[0], tg[1]); return; }
     if (t.hasAttribute('data-myold')) { e.preventDefault(); if (lvl() >= 2) { S.who = S.user.name; store('crm_who', S.who); } S.f.c = { q: '', k: 'all', sort: 'age', n: 60 }; location.hash = '#khach-hang'; return; }

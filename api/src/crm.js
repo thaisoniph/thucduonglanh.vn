@@ -5,6 +5,7 @@ import { crmGa, crmGaProp } from './ga.js';
 import { crmMkt } from './mkt.js';
 import { mktView, mktBudgetSet, mktGoalSet, mktDailyMsgs } from './mktv.js';
 import { crmSan, sanSchema, sanAllowed } from './san.js';
+import { crmSaleMkt, crmOffers } from './salemkt.js';
 import { wbQueue, wbOrderQueue, wbStatusQueue, WB_SHORT } from './wb.js';
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
@@ -1491,7 +1492,7 @@ async function crmFbUpdate(x, u, d) {
 
 /* ================================================================ điều phối */
 /** Việc tài khoản Marketing được làm: xem tab Marketing, nhập chi phí (file / nhập tay), góp ý, Telegram, cài đặt màu, đo tốc độ. Mọi việc khác máy chủ từ chối. */
-const MKT_ACTIONS = { load: 1, mktv: 1, mkt_tg_test: 1, mkt_goal: 1, mkt_import: 1, mkt_add: 1, mkt_list: 1, mkt_del: 1, prefs: 1, tg_link: 1, tg_check: 1, tg_off: 1, perf: 1, usage: 1, feedback: 1, fb_list: 1, fb_img: 1 };
+const MKT_ACTIONS = { load: 1, mktv: 1, mkt_tg_test: 1, mkt_goal: 1, mkt_import: 1, mkt_add: 1, mkt_list: 1, mkt_del: 1, prefs: 1, tg_link: 1, tg_check: 1, tg_off: 1, perf: 1, usage: 1, feedback: 1, fb_list: 1, fb_img: 1, offers: 1, offer_save: 1, offer_del: 1 };
 export async function crmApi(x, d, sync, mgr) {
   await ensureSchema(x.db);
   const a = d.action;
@@ -1509,6 +1510,8 @@ export async function crmApi(x, d, sync, mgr) {
   if (a === 'cust_orders') return crmCustOrders(x, u, d);
   if (a === 'sales_all') return crmSalesAll(x, u);
   if (a === 'race') return crmRace(x, u);
+  if (a === 'sale_mkt') return crmSaleMkt(x, u, d); // 📣 Từ quảng cáo ở tab Hiệu quả
+  if (a === 'offers' || a === 'offer_save' || a === 'offer_del') return crmOffers(x, u, d); // ưu đãi đang chạy (Marketing ghi, sale đọc)
   if (sync[a]) { if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị làm được việc này.' }; return sync[a](x, u, d); }
   if (mgr && mgr[a]) { if (u.level < 2) return { ok: false, error: 'Bạn không có quyền làm việc này.' }; return mgr[a](x, u, d); }
   if (a === 'tg_link') return crmTgLink(x, u);
