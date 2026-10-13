@@ -463,16 +463,25 @@ Số website chỉ đếm khách đã bấm “Đồng ý” cookie nên thấp 
 
 **Tài khoản Marketing chỉ thấy tab 📣 Marketing**, không thấy khách, đơn, số điện thoại hay doanh thu toàn công ty. Máy chủ tính sẵn và chỉ gửi con số tổng (Nghị định 13/2023). Tài khoản này không được giao khách, không có trong bảng hiệu quả của sale.
 
-**Trong tab Marketing:**
+**Trong tab Marketing:** màn hình đầu chỉ có số quan trọng nhất, phần chi tiết thu gọn, bấm tiêu đề mới mở (CRM nhớ mục bạn hay mở).
 
-- **4 ô lớn:** 💸 chi phí quảng cáo · 💰 tiền khách mới mua (chỉ khách đến từ kênh có chạy quảng cáo) · 🚦 chi phí ÷ tiền khách mới, có đèn xanh / cam / đỏ theo mức Quản trị đặt ở Cài đặt · 📇 số data quảng cáo, chi phí mỗi data, % data ra đơn.
-- **✅ Nên làm gì:** tối đa 6 việc, việc gấp đứng trước. Ví dụ: tắt / giảm tiền chiến dịch đắt, tăng tiền chiến dịch rẻ, làm hình / video mới khi khách bấm ít dần, nhắc sale gọi data còn tồn, ngân sách đang chi nhanh / chậm, sản phẩm đang chạy lỗ.
-- **💰 Ngân sách tháng:** thanh đã chi / ngân sách, vạch dọc là hôm nay. CRM tính "cứ đà này cuối tháng chi bao nhiêu" và mỗi ngày còn lại nên chi bao nhiêu. Chỉ **Quản trị** đặt được ngân sách (nút ✏️).
-- **🪜 Phễu "quảng cáo đi tới đâu thì rơi rụng":** lượt thấy → lượt bấm → tin nhắn / SĐT → data về tới sale → data mua hàng → tiền khách mới. Giữa các bước là câu "cứ 100 … thì có … " kèm đèn so với kỳ trước. Bước có đèn 🔴 là **khâu yếu nhất**, kèm lời khuyên nên sửa gì.
-- **🎬 Chiến dịch: nên tăng, giữ hay tắt?** Mỗi chiến dịch được chấm theo giá 1 kết quả (tin nhắn + SĐT) so với mức trung bình: 🟢 *Nên tăng tiền* (rẻ hơn từ 20%), 🟠 *Giữ nguyên*, 🔴 *Nên giảm / tắt* (đắt hơn từ 40%, hoặc tiêu nhiều mà chưa có kết quả), ⚪ *Chưa đủ số* (tiêu còn ít, chờ thêm). Có dòng 🎨 khi khách bấm ít dần (mẫu quảng cáo đã nhàm). Ghi rõ **🏷 tài khoản quảng cáo**, bấm vào là mở tài khoản đó trong Trình quản lý quảng cáo Facebook. Lọc được theo tài khoản và theo lời khuyên.
-- **🧴 Quảng cáo từng sản phẩm:** chi phí, data, tỷ lệ data mua, tiền khách mới, đèn có lời / hoà vốn / đang lỗ của từng sản phẩm. Chi phí chia theo **tên chiến dịch**, nên đặt tên chiến dịch có tên sản phẩm (vd *7-10-PROGOMAX-SỮA*). Chiến dịch tặng ebook là chiến dịch xin số nên không chấm lỗ lãi.
-- **Hiệu quả từng kênh**, **📈 Chi phí và tiền khách mới**, **📇 Data quảng cáo** (số mới, khách cũ, ra đơn, không mua, số rác, đang tư vấn, **⏳ chưa có kết quả tư vấn** = data từ hôm qua trở về trước mà sale chưa ghi kết quả).
-- **💎 1 khách mới đáng giá bao nhiêu?** Tiền 1 khách mới mua trong 3 tháng đầu (cả lần mua lại), tỷ lệ mua lại, và **mức tối đa nên chi để có 1 khách mới** (= 30% số tiền đó, theo mức đèn xanh). So với số đang chi thực tế để biết nên tăng hay giảm ngân sách.
+**Màn hình đầu:**
+- **4 ô lớn:** 💸 chi phí quảng cáo · 💰 tiền khách mới mua (chỉ khách đến từ kênh có chạy quảng cáo) · 🚦 chi phí ÷ tiền khách mới, có đèn xanh / cam / đỏ theo mức Quản trị đặt ở Cài đặt · 📇 data → mua hàng (cứ 100 data có bao nhiêu người mua). Bấm vào ô là mở mục chi tiết liên quan.
+- **💰 Thanh ngân sách tháng:** đã chi / ngân sách, vạch dọc là hôm nay, đang chi nhanh hay chậm, mỗi ngày còn lại nên chi bao nhiêu. Chỉ **Quản trị** đặt được ngân sách (bấm ✏️).
+- **✅ Nên làm gì:** tối đa 5 việc quan trọng nhất, gom từ mọi mục bên dưới.
+
+**Xem chi tiết** (mỗi mục có 1 dòng tóm tắt, bấm để mở):
+- **🎬 Chiến dịch: nên tăng, giữ hay tắt?** Mỗi chiến dịch được chấm theo giá 1 kết quả (tin nhắn + SĐT) so với mức trung bình: 🟢 *Nên tăng tiền* (rẻ hơn từ 20%), 🟠 *Giữ nguyên*, 🔴 *Nên giảm / tắt* (đắt hơn từ 40%, hoặc tiêu nhiều mà chưa có kết quả), ⚪ *Chưa đủ số*. Dòng 🎨 báo khách bấm ít dần (mẫu quảng cáo đã nhàm). Có **🏷 tài khoản quảng cáo**: bấm vào là mở tài khoản đó trong Trình quản lý quảng cáo Facebook. Lọc theo tài khoản và theo lời khuyên.
+- **🤝 Phản hồi từ sale:** 6 phần giúp marketing và sale phối hợp:
+  - *📇 Chất lượng data theo nguồn* (cột Nguồn quảng cáo của file số): thanh màu đã mua / đang tư vấn / chưa có kết quả / không mua / số rác. Nguồn tốt là nhiều xanh, ít đỏ.
+  - *🙅 Vì sao khách không mua:* gom lý do sale ghi thành nhóm (chê giá, chưa tin, chưa cần, đã mua nơi khác, người nhà không đồng ý, không liên lạc được, số rác, bom hàng) và gợi ý marketing nên sửa gì. **Sale ghi đủ lý do khi chuyển "Không mua" thì số này mới đúng.**
+  - *⏱ Data bao lâu thì mua:* trong ngày, 1–2 ngày, 3–7 ngày… Từ đó biết nên chờ bao lâu rồi mới đánh giá / tắt chiến dịch.
+  - *↩️ Đơn hoàn / huỷ* của khách từ quảng cáo (dưới 5% là tốt).
+  - *🛍 Khách hỏi gì, mua gì:* hỏi sản phẩm A nhưng mua B, tỷ lệ mua từ 2 sản phẩm, đơn đầu trung bình.
+  - *🧑‍💼 Sale xử lý data:* tỷ lệ ra đơn cao nhất / thấp nhất / trung bình giữa các sale. Tài khoản Marketing chỉ thấy số chung, Quản trị thấy từng tên. Nếu các sale chênh nhau nhiều thì vấn đề nằm ở khâu tư vấn, chưa nên kết luận do quảng cáo.
+- **🪜 Quảng cáo đi tới đâu thì rơi rụng?** Lượt thấy → bấm → nhắn tin / SĐT → data → mua → tiền, kèm câu "cứ 100 … thì … " và đèn so với kỳ trước, chỉ ra khâu yếu nhất.
+- **🧴 Quảng cáo từng sản phẩm:** có lời / hoà vốn / đang lỗ. Chi phí chia theo **tên chiến dịch**, nên đặt tên có tên sản phẩm (vd *7-10-PROGOMAX-SỮA*).
+- **🎯 Hiệu quả từng kênh**, **💎 1 khách mới đáng giá bao nhiêu?** (mức tối đa nên chi cho 1 khách mới), **📇 Data quảng cáo**, **📈 Chi phí và tiền khách mới theo ngày**.
 - **⚙️ Nhập chi phí:** marketing tự nhập file CSV (TikTok, Google Ads…) hoặc nhập tay (KOL / KOC, in ấn…), xem lại và xoá lần nhập sai. Facebook tự cập nhật, kết nối mã Facebook chỉ Quản trị làm.
 - Số tính lại 30 phút 1 lần; bấm **↻** để tính lại ngay.
 

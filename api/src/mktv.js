@@ -15,6 +15,13 @@ const PROD_KW = [['Fucoidan Progomax', /progomax/], ['Gafo Fucoidan', /gafo/], [
   ['Xì dầu 2S', /xi dau|nguu bang/], ['Dinh dưỡng từ hạt', /curcumin|tu hat/], ['Bữa ăn dinh dưỡng', /bua an/], ['Trà Mâm Xôi', /mam xoi/],
   ['Bột Đậu Xanh Rau Má', /rau ma|dau xanh/], ['Ebook / Cẩm nang', /ebook|cam nang/]];
 const prodOf = t => { const n = nrm(String(t || '').replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2')); for (const [k, re] of PROD_KW) if (re.test(n)) return k; return ''; };
+/** Lý do không mua (sale gõ tự do) → nhóm dễ hiểu. Thứ tự quan trọng: nhóm cụ thể trước. */
+const WHY = [['Số rác / sai số', /rac|sai so|nham so|so ao|khong co that|khong phai/], ['Bom hàng', /\bbom\b/], ['Không liên lạc được', /khong nghe|khong bat|thue bao|khong lien lac|tat may|chan so|khong goi duoc/],
+  ['Người nhà không đồng ý', /nguoi nha|\bchong\b|\bvo\b|\bcon\b|bo me|gia dinh|hoi y kien/], ['Chê giá cao', /\bgia\b|\bdat\b|\bmac\b|tien/],
+  ['Chưa tin / sợ không hợp', /chua tin|khong tin|lua dao|hang gia|tac dung|hieu qua|nghi ngo|phan ung|so khong/],
+  ['Đã mua / đang dùng nơi khác', /noi khac|cho khac|da mua|dang dung|ben khac|hang khac|da co/],
+  ['Chưa cần / để sau', /chua can|de sau|suy nghi|tham khao|nhu cau|khong can|bao sau|hen sau|chua muon|chua mua/]];
+const whyOf = t => { const n = nrm(t); for (const [k, re] of WHY) if (re.test(n)) return k; return n ? 'Lý do khác' : 'Không ghi lý do'; };
 const dayMs = s => new Date(s + 'T00:00:00+07:00').getTime();
 const iso = t => fmtDate(t, 'yyyy-MM-dd');
 
@@ -31,7 +38,7 @@ function orderProds(items, total) {
  *  thêm: phễu (tot / totPrev), giá trung bình 1 kết quả mỗi kênh (cpr), theo sản phẩm (prod), giá trị khách mới 90 ngày (ltv), ngân sách tháng (budget). */
 export async function mktView(x, u, d) {
   if (![d.from, d.to, d.pf, d.pt].every(s => DAY_RE.test(String(s || '')))) return { ok: false, error: 'Khoảng thời gian chưa đúng.' };
-  const sfb = d.sfb !== false && d.sfb !== 0, key = 'mktv4_' + [d.from, d.to, d.pf, d.pt, sfb ? 1 : 0].join('_') + '_' + ((await kvGet(x.db, 'ads_rows_v')) || '');
+  const sfb = d.sfb !== false && d.sfb !== 0, key = 'mktv5_' + [d.from, d.to, d.pf, d.pt, sfb ? 1 : 0, u.level >= 3 ? 'a' : 'm'].join('_') + '_' + ((await kvGet(x.db, 'ads_rows_v')) || '');
   if (!d.fresh) { const c = await kvJson(x.db, key, null); if (c) return Object.assign(c, { cached: true }, await budgetOf(x)); }
   const R = [dayMs(d.from), dayMs(d.to) + DAY], P = [dayMs(d.pf), dayMs(d.pt) + DAY];
   const mid = iso(Math.floor((R[0] + R[1]) / 2 / DAY) * DAY); // chia đôi kỳ: tỷ lệ bấm nửa đầu ↔ nửa sau (quảng cáo có bị nhàm không)
@@ -47,7 +54,7 @@ export async function mktView(x, u, d) {
     all(x.db, "SELECT day, shop, SUM(CASE WHEN state = 'ok' THEN gmv - refund ELSE 0 END) AS g FROM san_orders WHERE day BETWEEN ? AND ? GROUP BY day, shop", d.pf, d.pt).catch(() => []),
     kvJson(x.db, 'ads_rows', []), kvJson(x.db, 'mkt_cfg', {})
   ]);
-  const ads = (adRows || []).map(a => [Number(a[0]) || 0, normPhone(a[1]), String(a[3] || '')]).filter(a => a[1]);
+  const ads = (adRows || []).map(a => [Number(a[0]) || 0, normPhone(a[1]), String(a[3] || ''), String(a[2] || '')]).filter(a => a[1]);
   const adFirst = {}; ads.forEach(a => { if (!adFirst[a[1]] || a[0] < adFirst[a[1]]) adFirst[a[1]] = a[0]; });
   const ords = ordAll.filter(o => !isVoid(o.status)).map(o => ({ ph: normPhone(o.phone), time: Number(o.time) || 0, total: Number(o.total) || 0, source: o.source || '', items: o.items || '' }));
   const adIn = ads.filter(a => (a[0] >= R[0] && a[0] < R[1]) || (a[0] >= P[0] && a[0] < P[1]));
@@ -55,12 +62,12 @@ export async function mktView(x, u, d) {
   const [cus, lds, buys] = phones.length ? await Promise.all([
     allIn(x.db, 'SELECT phone, first FROM customers WHERE phone IN (SELECT value FROM json_each(?))', phones),
     allIn(x.db, 'SELECT phone, time, last_at, channel, status, reason FROM leads WHERE phone IN (SELECT value FROM json_each(?))', phones),
-    allIn(x.db, 'SELECT phone, time, status FROM orders WHERE phone IN (SELECT value FROM json_each(?)) AND time >= ?', adIn.map(a => a[1]), Math.min(R[0], P[0]))
+    allIn(x.db, 'SELECT phone, time, status, total, items FROM orders WHERE phone IN (SELECT value FROM json_each(?)) AND time >= ?', adIn.map(a => a[1]), Math.min(R[0], P[0]))
   ]) : [[], [], []];
-  const firstOf = {}, leadsBy = {}, buyBy = {};
+  const firstOf = {}, leadsBy = {}, buyBy = {}, ordBy = {};
   cus.forEach(c => { firstOf[normPhone(c.phone)] = Number(c.first) || 0; });
   lds.sort((a, b) => (a.time || 0) - (b.time || 0)).forEach(l => { const p = normPhone(l.phone); (leadsBy[p] = leadsBy[p] || []).push(l); });
-  buys.forEach(o => { if (!isVoid(o.status)) { const p = normPhone(o.phone); (buyBy[p] = buyBy[p] || []).push(Number(o.time) || 0); } });
+  buys.sort((a, b) => (a.time || 0) - (b.time || 0)).forEach(o => { const p = normPhone(o.phone); (ordBy[p] = ordBy[p] || []).push(o); if (!isVoid(o.status)) (buyBy[p] = buyBy[p] || []).push(Number(o.time) || 0); });
 
   const orderChan = o => {
     const ad = adFirst[o.ph]; if (ad && ad <= o.time) return 'Facebook';
@@ -101,6 +108,40 @@ export async function mktView(x, u, d) {
     });
     return o;
   };
+  /** 🤝 Phản hồi từ sale (data trong kỳ R): chất lượng data theo nguồn, lý do không mua, bao lâu thì mua, hoàn / huỷ, hỏi gì mua gì, mức xử lý data của từng sale.
+   *  Chỉ số tổng; tên sale chỉ gửi cho Quản trị (own), Marketing nhận danh sách không tên. */
+  const saleFb = (Rg, own) => {
+    const src = {}, why = {}, wait = [0, 0, 0, 0, 0], pair = {}, sale = {}, seen = {}, o = { ord: 0, voidN: 0, ret: 0, cancel: 0, voidRev: 0, combo: 0, first: 0, firstRev: 0, ch: {} };
+    const sget = k => src[k] || (src[k] = { k, n: 0, won: 0, junk: 0, lost: 0, idle: 0 }), uget = k => sale[k] || (sale[k] = { k, n: 0, won: 0, idle: 0, lost: 0, junk: 0 });
+    ads.forEach(([day, ph, sr, sl]) => {
+      if (day < Rg[0] || day >= Rg[1] || seen[ph]) return; seen[ph] = 1;
+      const ls = (leadsBy[ph] || []).filter(l => (l.last_at || l.time || 0) >= day), od = (ordBy[ph] || []).filter(x => (Number(x.time) || 0) >= day), ok = od.filter(x => !isVoid(x.status));
+      const won = ok.length > 0 || ls.some(l => l.status === 'Đã chốt'), no = !won && ls.find(l => l.status === 'Không mua'), junk = no && /rác/i.test(no.reason || '');
+      const idle = !won && !no && day < today0 && !ls.some(l => l.status && l.status !== 'Mới hỏi');
+      const a = sget(sr || 'Không ghi nguồn'), b = uget(sl || 'Chưa chia');
+      [a, b].forEach(c => { c.n++; if (won) c.won++; else if (junk) c.junk++; else if (no) c.lost++; else if (idle) c.idle++; });
+      if (no) { const k = whyOf(no.reason); why[k] = (why[k] || 0) + 1; }
+      od.forEach(x => { o.ord++; if (isVoid(x.status)) { o.voidN++; o.voidRev += Number(x.total) || 0; if (/hoàn/i.test(x.status)) o.ret++; else o.cancel++; } });
+      if (ok.length) {
+        const f0 = ok[0], dd = Math.floor((startOfDay(Number(f0.time) || 0) - startOfDay(day)) / DAY);
+        wait[dd <= 0 ? 0 : dd <= 2 ? 1 : dd <= 7 ? 2 : dd <= 30 ? 3 : 4]++;
+        const got = [...new Set(orderProds(f0.items, Number(f0.total) || 0).map(r => r[0]).filter(String))], ask = prodOf(sr) || 'Chưa rõ sản phẩm';
+        o.first++; o.firstRev += Number(f0.total) || 0; if (got.length > 1) o.combo++;
+        (got.length ? got : ['Chưa rõ sản phẩm']).forEach(g => { const k = ask + '|' + g; pair[k] = (pair[k] || 0) + 1; });
+      }
+    });
+    // hoàn / huỷ theo kênh (mọi đơn trong kỳ của kênh có chạy quảng cáo)
+    ordAll.filter(x => (Number(x.time) || 0) >= Rg[0] && (Number(x.time) || 0) < Rg[1]).forEach(x => {
+      const k = orderChan({ ph: normPhone(x.phone), time: Number(x.time) || 0, source: x.source || '' }); if (!k || !paid[k]) return;
+      const c = o.ch[k] || (o.ch[k] = { n: 0, v: 0 }); c.n++; if (isVoid(x.status)) c.v++;
+    });
+    const sl = Object.values(sale).filter(x => x.k !== 'Chưa chia' && x.n >= 5).sort((a, b) => b.won / b.n - a.won / a.n);
+    return Object.assign(o, {
+      src: Object.values(src).sort((a, b) => b.n - a.n).slice(0, 20), why, wait,
+      pairs: Object.keys(pair).map(k => k.split('|').concat(pair[k])).sort((a, b) => b[2] - a[2]).slice(0, 12),
+      sales: sl.map(x => own ? x : Object.assign({}, x, { k: '' })), unassigned: (sale['Chưa chia'] || { n: 0 }).n
+    });
+  };
   // chỉ giữ kênh có chạy quảng cáo (kỳ này hoặc kỳ trước): marketing không thấy doanh thu khách tự tìm đến, sàn không chạy quảng cáo, khách chưa rõ nguồn
   const paid = {}; spDays.concat(spPrev).forEach(r => { if (r.s > 0) paid[r.channel] = 1; });
   const onlyPaid = C => { const o = {}; Object.keys(C).forEach(k => { if (paid[k]) o[k] = C[k]; }); return o; };
@@ -127,7 +168,7 @@ export async function mktView(x, u, d) {
     eff: onlyPaid(EF), effPrev: onlyPaid(EP), newDay: byDay(EF, spDays), newDayPrev: byDay(EP, spPrev), ad, adPrev: ads.length ? adStat(P) : null,
     tot, totPrev: sumT(spPrev), cpr, mid,
     prod: Object.values(PR).filter(p => p.sp || p.n || p.rev).sort((a, b) => b.sp - a.sp || b.rev - a.rev),
-    ltv: await ltvOf(x),
+    sale: saleFb(R, u.level >= 3), ltv: await ltvOf(x),
     fb: { on: !!fb.token, last: fb.last || null }
   };
   const live = dayMs(d.to) + DAY > startOfDay(Date.now()); // kỳ có hôm nay: lưu tạm 30 phút, kỳ đã qua: 12 tiếng
