@@ -8,8 +8,10 @@ const DAY_RE = /^\d{4}-\d\d-\d\d$/;
 /* Từ khoá nhận ra kênh (giống MKT_CH trong crm/app.js – thêm kênh thì thêm cả 2 nơi). Kênh cụ thể (TikTok Shop) đứng trước kênh chung (TikTok). */
 const CH_KW = [['Facebook', /facebook|\bfb\b|instagram|messenger|quang cao/], ['Shopee', /shopee/], ['TikTok Shop', /tiktok ?shop/], ['Lazada', /lazada/], ['TikTok', /tiktok/],
   ['Google', /(google|youtube).*(cpc|ppc|paid|ads|quang cao)|google ads/], ['Zalo', /zalo.*(ads|quang cao)/], ['KOL / KOC', /\bkol\b|\bkoc\b/]];
+/** Kênh "👥 Cộng đồng Zalo" (giữ khách cũ): tiền = đơn MUA LẠI (không phải đơn đầu) của khách có ô Cộng đồng = "Đã vào". Không dùng để gắn kênh cho đơn. */
+const COMM = 'Cộng đồng Zalo';
 /** Kênh đặt được mục tiêu marketing (giống MKT_CH trong crm/app.js, trừ Khác). */
-const GOAL_CH = CH_KW.map(c => c[0]);
+const GOAL_CH = CH_KW.map(c => c[0]).concat(COMM);
 const kwChan = t => { const n = nrm(t); for (const [k, re] of CH_KW) if (re.test(n)) return k; return ''; };
 /* Sản phẩm: nhận ra từ tên chiến dịch, cột Nguồn quảng cáo của file số, dòng sản phẩm của đơn (chữ không dấu). Thêm sản phẩm mới: thêm 1 dòng.
    Đặt tên chiến dịch có tên sản phẩm (vd "7-10-PROGOMAX - SỮA") thì chi phí mới chia đúng sản phẩm. */
@@ -40,7 +42,7 @@ function orderProds(items, total) {
  *  thêm: phễu (tot / totPrev), giá trung bình 1 kết quả mỗi kênh (cpr), theo sản phẩm (prod), giá trị khách mới 90 ngày (ltv), ngân sách tháng (budget). */
 export async function mktView(x, u, d) {
   if (![d.from, d.to, d.pf, d.pt].every(s => DAY_RE.test(String(s || '')))) return { ok: false, error: 'Khoảng thời gian chưa đúng.' };
-  const sfb = d.sfb !== false && d.sfb !== 0, key = 'mktv6_' + [d.from, d.to, d.pf, d.pt, sfb ? 1 : 0, u.level >= 3 ? 'a' : 'm'].join('_') + '_' + ((await kvGet(x.db, 'ads_rows_v')) || '');
+  const sfb = d.sfb !== false && d.sfb !== 0, key = 'mktv7_' + [d.from, d.to, d.pf, d.pt, sfb ? 1 : 0, u.level >= 3 ? 'a' : 'm'].join('_') + '_' + ((await kvGet(x.db, 'ads_rows_v')) || '');
   if (!d.fresh) { const c = await kvJson(x.db, key, null); if (c) return Object.assign(c, { cached: true }, await budgetOf(x)); }
   const R = [dayMs(d.from), dayMs(d.to) + DAY], P = [dayMs(d.pf), dayMs(d.pt) + DAY];
   const mid = iso(Math.floor((R[0] + R[1]) / 2 / DAY) * DAY); // chia đôi kỳ: tỷ lệ bấm nửa đầu ↔ nửa sau (quảng cáo có bị nhàm không)
@@ -62,12 +64,12 @@ export async function mktView(x, u, d) {
   const adIn = ads.filter(a => (a[0] >= R[0] && a[0] < R[1]) || (a[0] >= P[0] && a[0] < P[1]));
   const phones = [...new Set(ords.map(o => o.ph).concat(adIn.map(a => a[1])).filter(Boolean))];
   const [cus, lds, buys] = phones.length ? await Promise.all([
-    allIn(x.db, 'SELECT phone, first FROM customers WHERE phone IN (SELECT value FROM json_each(?))', phones),
+    allIn(x.db, 'SELECT phone, first, community FROM customers WHERE phone IN (SELECT value FROM json_each(?))', phones),
     allIn(x.db, 'SELECT phone, time, last_at, channel, status, reason FROM leads WHERE phone IN (SELECT value FROM json_each(?))', phones),
     allIn(x.db, 'SELECT phone, time, status, total, items FROM orders WHERE phone IN (SELECT value FROM json_each(?)) AND time >= ?', adIn.map(a => a[1]), Math.min(R[0], P[0]))
   ]) : [[], [], []];
-  const firstOf = {}, leadsBy = {}, buyBy = {}, ordBy = {};
-  cus.forEach(c => { firstOf[normPhone(c.phone)] = Number(c.first) || 0; });
+  const firstOf = {}, leadsBy = {}, buyBy = {}, ordBy = {}, inComm = {};
+  cus.forEach(c => { const p = normPhone(c.phone); firstOf[p] = Number(c.first) || 0; if (c.community === 'Đã vào') inComm[p] = 1; });
   lds.sort((a, b) => (a.time || 0) - (b.time || 0)).forEach(l => { const p = normPhone(l.phone); (leadsBy[p] = leadsBy[p] || []).push(l); });
   buys.sort((a, b) => (a.time || 0) - (b.time || 0)).forEach(o => { const p = normPhone(o.phone); (ordBy[p] = ordBy[p] || []).push(o); if (!isVoid(o.status)) (buyBy[p] = buyBy[p] || []).push(Number(o.time) || 0); });
 
@@ -110,6 +112,8 @@ export async function mktView(x, u, d) {
     });
     return o;
   };
+  /** 👥 Cộng đồng Zalo trong kỳ: đơn mua lại (sau đơn đầu) của khách đã vào nhóm. → { rev, n (đơn), buyers (khách) } */
+  const commOf = Rg => { const o = { rev: 0, n: 0, buyers: 0 }, seen = {}; ords.forEach(d0 => { if (d0.time < Rg[0] || d0.time >= Rg[1] || !inComm[d0.ph] || !firstOf[d0.ph] || d0.time <= firstOf[d0.ph]) return; o.rev += d0.total; o.n++; if (!seen[d0.ph]) { seen[d0.ph] = 1; o.buyers++; } }); return o; };
   /** 🤝 Phản hồi từ sale (data trong kỳ R): chất lượng data theo nguồn, lý do không mua, bao lâu thì mua, hoàn / huỷ, hỏi gì mua gì, mức xử lý data của từng sale.
    *  Chỉ số tổng; tên sale chỉ gửi cho Quản trị (own), Marketing nhận danh sách không tên. */
   const saleFb = (Rg, own) => {
@@ -172,7 +176,7 @@ export async function mktView(x, u, d) {
     prod: Object.values(PR).filter(p => p.sp || p.n || p.rev).sort((a, b) => b.sp - a.sp || b.rev - a.rev),
     sale: saleFb(R, u.level >= 3), ltv: await ltvOf(x),
     // tiền khách mới mọi kênh marketing (kể cả kênh chưa có chi phí, vd sàn) → tiến độ mục tiêu từng kênh
-    revAll: Object.fromEntries(Object.keys(EF).filter(k => GOAL_CH.indexOf(k) >= 0).map(k => [k, EF[k].newRev])),
+    revAll: Object.assign(Object.fromEntries(Object.keys(EF).filter(k => GOAL_CH.indexOf(k) >= 0).map(k => [k, EF[k].newRev])), { [COMM]: commOf(R).rev }), comm: commOf(R), commPrev: commOf(P),
     fb: { on: !!fb.token, last: fb.last || null }
   };
   const live = dayMs(d.to) + DAY > startOfDay(Date.now()); // kỳ có hôm nay: lưu tạm 30 phút, kỳ đã qua: 12 tiếng
@@ -207,8 +211,9 @@ async function budgetOf(x) {
   const now = Date.now(), m = fmtDate(now, 'yyyy-MM'), all0 = await kvJson(x.db, 'mkt_budget', {});
   const r = await first(x.db, 'SELECT SUM(spend) AS s FROM ad_spend WHERE day BETWEEN ? AND ?', m + '-01', m + '-31');
   const [y, mo] = m.split('-').map(Number), dim = new Date(Date.UTC(y, mo, 0)).getUTCDate(), day = Number(fmtDate(now, 'dd'));
+  const people = (await all(x.db, "SELECT name FROM users WHERE role = 'Marketing' AND active = 1 ORDER BY ord, rowid")).map(r => r.name);
   const G = await kvJson(x.db, 'mkt_goals', {}), m2 = fmtDate(Date.UTC(y, mo, 1, 12), 'yyyy-MM');
-  return { budget: { m, amt: Number(all0[m]) || 0, spent: (r && r.s) || 0, day, dim }, goals: { [m]: G[m] || null, [m2]: G[m2] || null, prev: G[fmtDate(Date.UTC(y, mo - 2, 1, 12), 'yyyy-MM')] || null } };
+  return { budget: { m, amt: Number(all0[m]) || 0, spent: (r && r.s) || 0, day, dim }, people, goals: { [m]: G[m] || null, [m2]: G[m2] || null, prev: G[fmtDate(Date.UTC(y, mo - 2, 1, 12), 'yyyy-MM')] || null } };
 }
 /** mkt_budget (Quản trị): { month: yyyy-MM, amount } → đặt ngân sách quảng cáo tháng (0 = bỏ). */
 export async function mktBudgetSet(x, d) {
@@ -246,9 +251,24 @@ export async function mktGoalSet(x, u, d) {
 
 /* ---------------- 8h sáng: tin Telegram "📣 Marketing sáng nay" cho từng bạn Marketing (đã kết nối Telegram) + Quản trị.
  * Dùng lại mktView (cùng cách tính với tab Marketing): tiến độ mục tiêu tháng từng kênh, hôm qua, việc nên làm. Kênh có "người phụ trách" trùng tên người nhận đứng đầu. */
-const CH_ICON = { Facebook: '📘', Shopee: '🟠', 'TikTok Shop': '🛍️', Lazada: '🔷', TikTok: '🎵', Google: '🔎', Zalo: '💬', 'KOL / KOC': '⭐' };
+const CH_ICON = { [COMM]: '👥', Facebook: '📘', Shopee: '🟠', 'TikTok Shop': '🛍️', Lazada: '🔷', TikTok: '🎵', Google: '🔎', Zalo: '💬', 'KOL / KOC': '⭐' };
 const ms = n => { n = Number(n) || 0; return n >= 1e9 ? (n / 1e9).toFixed(1).replace('.0', '').replace('.', ',') + ' tỷ' : n >= 1e6 ? (n / 1e6).toFixed(1).replace('.0', '').replace('.', ',') + ' tr' : Math.round(n).toLocaleString('vi-VN') + 'đ'; };
 const pc = (a, b) => b ? Math.round(a * 100 / b) : 0;
+/** 🏆 Thi đua marketing: gộp các kênh theo người phụ trách. Xếp theo % mục tiêu đạt; người vượt mức chi phí không đứng hạng 1.
+ *  Giống mkBoard trong crm/app.js. G = mục tiêu tháng, rev(k) = tiền của kênh, sp = {kênh: chi phí}. → { rows: [{who, ch[], rev, tgt, sp, cap, p, bad}], team } */
+export function mktRank(G, rev, sp) {
+  const P = {}, team = { rev: 0, tgt: 0, sp: 0, cap: 0 };
+  Object.keys(G || {}).forEach(k => {
+    const g = G[k]; if (k.charAt(0) === '_' || !g || !g.rev) return;
+    const who = String(g.who || '').trim() || 'Chưa giao', o = P[nrm(who)] || (P[nrm(who)] = { who, ch: [], rev: 0, tgt: 0, sp: 0, cap: 0 });
+    const r = rev(k) || 0, s = (sp && sp[k]) || 0; o.ch.push(k); o.rev += r; o.tgt += g.rev; o.sp += s; o.cap += g.rev * (g.pct || 100) / 100;
+    team.rev += r; team.tgt += g.rev; team.sp += s; team.cap += g.rev * (g.pct || 100) / 100;
+  });
+  const fix = o => { o.p = o.tgt ? o.rev / o.tgt : 0; o.maxPct = o.tgt ? Math.round(o.cap * 100 / o.tgt) : 0; o.cp = o.rev ? o.sp * 100 / o.rev : null; o.bad = o.sp > 0 && (o.cp === null || o.cp > o.maxPct); return o; };
+  const rows = Object.values(P).map(fix).sort((a, b) => b.p - a.p);
+  const i = rows.findIndex(o => !o.bad); if (i > 0 && rows[0].bad) rows.unshift(rows.splice(i, 1)[0]);
+  return { rows, team: fix(team) };
+}
 /** → [{ who: tên người nhận, text }] ; users = danh sách nhân sự (crmUsers), chỉ người có tg. */
 export async function mktDailyMsgs(x, users) {
   const to = users.filter(y => y.active && y.tg && (y.role === 'Marketing' || y.level >= 3)); if (!to.length) return [];
@@ -263,10 +283,10 @@ export async function mktDailyMsgs(x, users) {
   const rev = k => (M.revAll && M.revAll[k]) || 0;
   const line = k => {
     const g = G[k], r = rev(k), s = sp[k] || 0, p = g.rev ? r / g.rev : 0, lv = !g.rev ? '' : p >= 1 ? '🎉' : p >= tp ? '🟢' : p >= tp * 0.8 ? '🟠' : '🔴', cp = r ? s * 100 / r : null;
-    const clv = g.pct && s ? (cp === null || cp > g.pct * 1.15 ? '🔴' : cp > g.pct ? '🟠' : '🟢') : '';
-    return (CH_ICON[k] || '📦') + ' <b>' + esc(k) + '</b>' + (g.who ? ' (' + esc(g.who) + ')' : '') + ': ' + (g.rev ? ms(r) + ' / ' + ms(g.rev) + ' – <b>' + Math.round(p * 100) + '%</b> ' + lv : ms(r) + ' tiền khách mới') +
-      (g.rev && p < 1 ? '\n   Mỗi ngày cần ' + ms(Math.ceil(Math.max(0, g.rev - r) / left)) + ' tiền khách mới' : '') +
-      (g.pct ? '\n   ' + (!s ? 'Chưa có chi phí quảng cáo (mức tối đa ' + g.pct + '%)' : 'Chi phí ' + (cp !== null ? Math.round(cp) + '%' : ms(s) + ' chưa ra khách') + ' (mức tối đa ' + g.pct + '%) ' + clv) : '');
+    const word = k === COMM ? 'tiền mua lại' : 'tiền khách mới', clv = g.pct && s ? (cp === null || cp > g.pct * 1.15 ? '🔴' : cp > g.pct ? '🟠' : '🟢') : '';
+    return (CH_ICON[k] || '📦') + ' <b>' + esc(k) + '</b>' + (g.who ? ' (' + esc(g.who) + ')' : '') + ': ' + (g.rev ? ms(r) + ' / ' + ms(g.rev) + ' – <b>' + Math.round(p * 100) + '%</b> ' + lv : ms(r) + ' ' + word) +
+      (g.rev && p < 1 ? '\n   Mỗi ngày cần ' + ms(Math.ceil(Math.max(0, g.rev - r) / left)) + ' ' + word : '') +
+      (g.pct ? '\n   ' + (!s ? 'Chưa có chi phí (mức tối đa ' + g.pct + '%)' : 'Chi phí ' + (cp !== null ? Math.round(cp) + '%' : ms(s) + ' chưa ra khách') + ' (mức tối đa ' + g.pct + '%) ' + clv) : '');
   };
   const keys = Object.keys(G).filter(k => k.charAt(0) !== '_' && G[k] && (G[k].rev || G[k].pct)).sort((a, c) => (G[c].rev || 0) - (G[a].rev || 0));
   // việc nên làm (giống mkScore / mkTodo, rút gọn)
@@ -287,10 +307,14 @@ export async function mktDailyMsgs(x, users) {
   // hôm qua
   let ys = 0; (Y.days || []).forEach(r => { ys += r[2]; }); let yr = 0; Object.keys(Y.eff || {}).forEach(k => { yr += Y.eff[k].newRev || 0; });
   const yline = Y.ok ? '📅 <b>Hôm qua</b>: chi ' + ms(ys) + ' · tiền khách mới ' + ms(yr) + (ys && yr ? ' (' + pc(ys, yr) + '%)' : '') + (Y.ad ? ' · ' + Y.ad.n + ' data, ' + Y.ad.won + ' đã mua' : '') : '';
+  const RK = mktRank(G, rev, sp), team = RK.team, MED = ['🥇', '🥈', '🥉'];
   return to.map(y => {
+    const ri = RK.rows.findIndex(o => sameWho(o.who, y.name)), me = RK.rows[ri];
+    const rankTxt = RK.rows.length ? '🏆 <b>Thi đua</b>: ' + (me ? 'bạn đang <b>hạng ' + (ri + 1) + '/' + RK.rows.length + '</b> ' + (MED[ri] || '') + ' · đạt ' + Math.round(me.p * 100) + '% mục tiêu' + (me.bad ? ' · ⚠️ chi phí vượt mức' : '') : RK.rows.map((o, i) => (MED[i] || (i + 1) + '.') + ' ' + esc(o.who) + ' ' + Math.round(o.p * 100) + '%').join(' · ')) +
+      '\n🏢 <b>Cả đội</b>: ' + ms(team.rev) + ' / ' + ms(team.tgt) + ' (' + Math.round(team.p * 100) + '%)' + (team.cp !== null && team.sp ? ' · chi phí ' + Math.round(team.cp) + '% (mức ' + team.maxPct + '%)' : '') : '';
     const mine = keys.filter(k => sameWho(G[k].who, y.name)), rest = keys.filter(k => mine.indexOf(k) < 0);
-    const goalTxt = keys.length ? '🎯 <b>Mục tiêu tháng ' + Number(b.m.slice(5)) + '</b> (tháng đã qua ' + Math.round(tp * 100) + '%)' + (mine.length ? '\n<i>Kênh của bạn:</i>\n' + mine.map(line).join('\n') + (rest.length ? '\n<i>Kênh khác:</i>' : '') : '') + (rest.length ? '\n' + rest.map(line).join('\n') : '') : '🎯 Chưa có mục tiêu tháng này (Quản trị đặt ở tab Marketing).';
-    return { who: y.name, tg: y.tg, text: '📣 <b>Marketing sáng ' + fmtDate(now, 'dd/MM') + '</b>\n\n' + goalTxt + (yline ? '\n\n' + yline : '') +
+    const goalTxt = keys.length ? '🎯 <b>Mục tiêu tháng ' + Number(b.m.slice(5)) + '</b> (tháng đã qua ' + Math.round(tp * 100) + '%)' + (mine.length ? '\n<i>Kênh của bạn:</i>\n' + mine.map(line).join('\n') + (rest.length ? '\n<i>Kênh khác:</i> ' + rest.map(k => (CH_ICON[k] || '📦') + ' ' + esc(k) + ' ' + (G[k].rev ? pc(rev(k), G[k].rev) + '%' : ms(rev(k)))).join(' · ') : '') : (rest.length ? '\n' + rest.map(line).join('\n') : '')) : '🎯 Chưa có mục tiêu tháng này (Quản trị đặt ở tab Marketing).';
+    return { who: y.name, tg: y.tg, text: '📣 <b>Marketing sáng ' + fmtDate(now, 'dd/MM') + '</b>\n\n' + (rankTxt ? rankTxt + '\n\n' : '') + goalTxt + (yline ? '\n\n' + yline : '') +
       (todo.length ? '\n\n✅ <b>Nên làm hôm nay</b>\n' + todo.slice(0, 5).map(t => '• ' + t).join('\n') : '') + '\n\n👉 Xem chi tiết: ' + CRM_URL + '/#marketing' };
   });
 }

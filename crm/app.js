@@ -3048,6 +3048,7 @@
     { k: 'Google', icon: '🔎', kw: /(google|youtube).*(cpc|ppc|paid|ads|quang cao)|google ads/ },
     { k: 'Zalo', icon: '💬', kw: /zalo.*(ads|quang cao)/ },
     { k: 'KOL / KOC', icon: '⭐', kw: /\bkol\b|\bkoc\b/ },
+    { k: 'Cộng đồng Zalo', icon: '👥', kw: null, ret: 1 }, // giữ khách cũ: tiền = đơn mua lại của khách đã vào nhóm (mktv.comm); chi phí quà / minigame nhập tay, không tính vào hiệu quả quảng cáo
     { k: 'Khác', icon: '📦', kw: null }
   ];
   var MK = { cache: {}, busy: '', err: '' };
@@ -3127,8 +3128,8 @@
     if (!mj && !MK.err) setTimeout(function () { mkFetch(key); }, 0);
     if (!mj) return null;
     var M = { mj: mj, ch: {}, chp: {}, tot: 0, totp: 0, day: {}, sfb: S.f.g.sfb !== false, newN: 0, newNp: 0 }; MK.fbOn = mj.cfg.fb.on;
-    mj.days.forEach(function (r) { M.ch[r[1]] = (M.ch[r[1]] || 0) + r[2]; M.tot += r[2]; M.day[r[0]] = (M.day[r[0]] || 0) + r[2]; });
-    mj.prev.forEach(function (r) { M.chp[r[0]] = r[1]; M.totp += r[1]; });
+    mj.days.forEach(function (r) { if (chInfo(r[1]).ret) return; M.ch[r[1]] = (M.ch[r[1]] || 0) + r[2]; M.tot += r[2]; M.day[r[0]] = (M.day[r[0]] || 0) + r[2]; });
+    mj.prev.forEach(function (r) { if (chInfo(r[0]).ret) return; M.chp[r[0]] = r[1]; M.totp += r[1]; });
     M.E = chanEff(R, sj, false, M.sfb); M.Ep = chanEff(P, sj, true, M.sfb);
     var newRev = function (E0, sp) { var v = 0; Object.keys(E0).forEach(function (k) { if (!E0[k].san || sp[k]) v += E0[k].newRev; }); return v; }; // sàn chỉ tính khi có chi phí quảng cáo sàn
     M.nr = newRev(M.E, M.ch); M.nrp = newRev(M.Ep, M.chp);
@@ -3430,35 +3431,66 @@
   function sameWho(a, b) { a = norm(a); b = norm(b); return !!a && !!b && (a === b || a.indexOf(b) >= 0 || b.indexOf(a) >= 0); }
   function mkGoalCh() { return MKT_CH.filter(function (c) { return c.k !== 'Khác'; }); }
   /** → { h, todo } */
+  var MK_COMM = 'Cộng đồng Zalo';
+  /** 🏆 Bảng thi đua marketing: gộp kênh theo người phụ trách, xếp theo % mục tiêu đạt; vượt mức chi phí thì không đứng hạng 1 (giống mktRank ở api/src/mktv.js). */
+  function mkBoard(G, revOf, sp, month, people) {
+    var P = {}, team = { rev: 0, tgt: 0, sp: 0, cap: 0 };
+    Object.keys(G).forEach(function (k) {
+      var g = G[k]; if (k.charAt(0) === '_' || !g || !g.rev) return;
+      var who = String(g.who || '').trim() || 'Chưa giao', key = norm(who), o = P[key] || (P[key] = { who: who, ch: [], rev: 0, tgt: 0, sp: 0, cap: 0 }), r = revOf(k) || 0, s0 = sp[k] || 0;
+      o.ch.push(k); o.rev += r; o.tgt += g.rev; o.sp += s0; o.cap += g.rev * (g.pct || 100) / 100; team.rev += r; team.tgt += g.rev; team.sp += s0; team.cap += g.rev * (g.pct || 100) / 100;
+    });
+    var fix = function (o) { o.C = goalCalc(o.rev, o.tgt, month); o.p = o.C.p; o.maxPct = o.tgt ? Math.round(o.cap * 100 / o.tgt) : 0; o.cp = o.rev ? o.sp * 100 / o.rev : null; o.bad = o.sp > 0 && (o.cp === null || o.cp > o.maxPct); return o; };
+    var rows = Object.keys(P).map(function (k) { return fix(P[k]); }).sort(function (a, b) { return b.p - a.p; });
+    var gi = -1; rows.some(function (o, i) { if (!o.bad) { gi = i; return true; } return false; }); if (gi > 0 && rows[0].bad) rows.unshift(rows.splice(gi, 1)[0]);
+    fix(team);
+    var MED = ['🥇', '🥈', '🥉'], ST = { done: '🎉 Đã đạt', ok: '🟢 Đúng tiến độ', mid: '🟠 Hơi chậm', bad: '🔴 Đang chậm' }, T = [];
+    var bar = function (C) { return '<div class="bar"><i style="width:' + Math.min(100, C.p * 100).toFixed(1) + '%"></i>' + (C.isCur ? '<u style="left:' + (C.tp * 100).toFixed(1) + '%" title="Hôm nay"></u>' : '') + '</div>'; };
+    var cost = function (o) { return o.sp ? (o.bad ? '🔴' : '🟢') + ' chi phí ' + (o.cp !== null ? Math.round(o.cp) + '%' : moneyShort(o.sp) + ' chưa ra tiền') + ' (mức ' + o.maxPct + '%)' : 'chưa có chi phí'; };
+    if (!rows.length) return { h: '', todo: [] };
+    var h = '<div class="mk-team ' + team.C.lv + '"><div class="mk-team-h"><b>🏢 Cả đội Marketing</b><span>' + (ST[team.C.lv] || '') + '</span></div><div class="goal-num"><b>' + moneyShort(team.rev) + '</b> / ' + moneyShort(team.tgt) + '<span>' + Math.round(team.p * 100) + '%</span></div>' + bar(team.C) +
+      '<p class="small">' + cost(team) + (team.C.isCur && team.p < 1 ? ' · mỗi ngày cả đội cần ' + moneyShort(team.C.perDay) : '') + ' · tháng đã qua ' + Math.round(team.C.tp * 100) + '%</p></div>';
+    h += '<div class="mk-board">' + rows.map(function (o, i) {
+      var me = isMkt() && sameWho(o.who, S.user.name);
+      if (me && o.C.isCur && o.C.lv === 'bad') T.push({ p: 0, t: '🏆 Bạn đang hạng ' + (i + 1) + '/' + rows.length + ', đạt ' + Math.round(o.p * 100) + '% mục tiêu (tháng đã qua ' + Math.round(o.C.tp * 100) + '%): mỗi ngày cần ' + moneyShort(o.C.perDay) + '.' });
+      return '<div class="mk-br ' + o.C.lv + (me ? ' me' : '') + '"><span class="mk-br-rk">' + (MED[i] || (i + 1)) + '</span><div class="mk-br-m"><div class="mk-br-h"><b>' + esc(o.who) + '</b>' + (me ? '<span class="tag new">Bạn</span>' : '') +
+        '<span class="mk-br-ch">' + o.ch.map(function (k) { return chInfo(k).icon + ' ' + esc(k); }).join(' · ') + '</span><span class="mk-br-p">' + Math.round(o.p * 100) + '%</span></div>' + bar(o.C) +
+        '<p class="small">' + moneyShort(o.rev) + ' / ' + moneyShort(o.tgt) + ' · ' + (ST[o.C.lv] || '') + ' · ' + cost(o) + '</p></div></div>';
+    }).join('') + '</div>';
+    var none = (people || []).filter(function (n) { return !rows.some(function (o) { return sameWho(o.who, n); }); });
+    if (none.length) h += '<p class="small muted">Chưa có mục tiêu: ' + none.map(esc).join(', ') + (lvl() >= 3 ? ' (bấm ✏️ Sửa mục tiêu, ghi tên bạn ấy ở ô Người phụ trách của 1 kênh)' : '') + '.</p>';
+    h += '<p class="bar-legend">Xếp theo % mục tiêu đạt (kênh lớn, kênh nhỏ đều công bằng). Vạch đen = hôm nay: thanh vượt vạch là nhanh hơn tiến độ. Vượt mức chi phí (🔴) thì không đứng hạng 1. Mục tiêu từng kênh xem ở mục 🎯 bên dưới.</p>';
+    return { h: h, todo: T };
+  }
   function mkGoalBlock(gm, live) {
     var own = lvl() >= 3 || isMkt(), month = live && live.budget ? live.budget.m : monthOf(Date.now()), G = live && live.goals ? live.goals[month] : null;
     var btn = own ? '<button class="btn sm" data-mkv="goal">' + (isMkt() ? '🎯 Đặt mục tiêu của tôi' : '✏️ ' + (G ? 'Sửa' : 'Đặt') + ' mục tiêu') + '</button>' : '';
-    var head = '<section class="section mk-goals"><div class="section-h"><h2>🎯 Mục tiêu ' + monthLabel(month) + '</h2><span class="tip">tiền khách mới & chi phí từng kênh</span><div class="grow"></div>' + btn + '</div>';
+    var head = '<section class="section mk-goals"><div class="section-h"><h2>🏆 Thi đua Marketing ' + monthLabel(month) + '</h2><span class="tip">xếp theo % mục tiêu đạt</span><div class="grow"></div>' + btn + '</div>';
     var keys = G ? Object.keys(G).filter(function (k) { return k.charAt(0) !== '_' && G[k] && (G[k].rev || G[k].pct); }).sort(function (a, b) { return (G[b].rev || 0) - (G[a].rev || 0); }) : [];
     if (!keys.length) return { gch: [], h: own ? head + '<div class="box"><p class="muted">' + (isMkt() ? 'Chưa có mục tiêu tháng này. Bấm <b>🎯 Đặt mục tiêu của tôi</b> để tự đặt mục tiêu tiền khách mới và mức chi phí tối đa cho kênh bạn phụ trách, rồi theo dõi tiến độ mỗi ngày.' : 'Chưa đặt mục tiêu marketing tháng này. Bấm <b>✏️ Đặt mục tiêu</b>: mỗi kênh 1 mục tiêu tiền khách mới + mức chi phí tối đa. Bạn marketing cũng tự đặt được cho kênh mình phụ trách.') + '</p></div></section>' : '', todo: [] };
     if (!gm) return { gch: [], h: head + '<div class="box"><p class="muted">' + (MV.err ? '⚠️ ' + esc(MV.err) : '⏳ Đang tính tiến độ mục tiêu…') + '</p></div></section>', todo: [] };
     var sp = {}; gm.days.forEach(function (r) { sp[r[1]] = (sp[r[1]] || 0) + r[2]; });
     var revOf = function (k) { return (gm.revAll && gm.revAll[k] !== undefined) ? gm.revAll[k] : (gm.eff && gm.eff[k] ? gm.eff[k].newRev : 0); };
     var T = [], sumR = 0, sumT = 0, cards = keys.map(function (k) {
-      var g = G[k], c = chInfo(k), rev = revOf(k), s = sp[k] || 0, C = goalCalc(rev, g.rev || 0, month), cp = rev ? s * 100 / rev : null;
+      var w = k === MK_COMM ? 'tiền mua lại' : 'tiền khách mới', g = G[k], c = chInfo(k), rev = revOf(k), s = sp[k] || 0, C = goalCalc(rev, g.rev || 0, month), cp = rev ? s * 100 / rev : null;
       if (g.rev) { sumR += rev; sumT += g.rev; }
       var clv = g.pct && s ? (cp === null ? 'bad' : cp <= g.pct ? 'ok' : cp <= g.pct * 1.15 ? 'mid' : 'bad') : '';
       var lv = C.lv === 'none' ? (clv || 'none') : C.lv, label = { done: '🎉 Đã đạt!', ok: '🟢 Đúng tiến độ', mid: '🟠 Hơi chậm', bad: '🔴 Đang chậm', none: '' }[C.lv] || '';
       var L = [];
-      if (g.rev && C.isCur && C.p < 1) L.push('Còn thiếu <b>' + moneyShort(C.remain) + '</b> trong ' + C.left + ' ngày → mỗi ngày cần <b>' + moneyShort(C.perDay) + '</b> tiền khách mới.');
+      if (g.rev && C.isCur && C.p < 1) L.push('Còn thiếu <b>' + moneyShort(C.remain) + '</b> trong ' + C.left + ' ngày → mỗi ngày cần <b>' + moneyShort(C.perDay) + '</b> ' + w + '.');
       if (g.rev && C.isCur && C.p < 1 && C.el >= 3) L.push('Giữ nhịp này cả tháng đạt khoảng ' + moneyShort(C.fc) + ' (' + pct(C.fc, g.rev) + '%).');
       if (g.rev && C.p >= 1) L.push('Vượt mục tiêu ' + moneyShort(rev - g.rev) + '. Tuyệt vời!');
-      if (g.pct) L.push((clv ? DASH_LV[clv] + ' ' : '') + 'Chi phí ' + moneyShort(s) + (cp !== null ? ' = <b>' + Math.round(cp) + '%</b> tiền khách mới' : s ? ' mà chưa có tiền khách mới' : '') + ' (mục tiêu dưới ' + g.pct + '%).');
+      if (g.pct) L.push((clv ? DASH_LV[clv] + ' ' : '') + 'Chi phí ' + moneyShort(s) + (cp !== null ? ' = <b>' + Math.round(cp) + '%</b> ' + w : s ? ' mà chưa có ' + w : '') + ' (mục tiêu dưới ' + g.pct + '%).');
       if (g.pct && g.rev) L.push('<span class="muted">Đạt mục tiêu thì được chi tối đa ' + moneyShort(Math.round(g.rev * g.pct / 100)) + ' cả tháng · đã chi ' + pct(s, g.rev * g.pct / 100) + '%.</span>');
-      if (g.rev && C.isCur && C.lv === 'bad') T.push({ p: 1, t: '🎯 <b>' + esc(k) + '</b> mới đạt ' + Math.round(C.p * 100) + '% mục tiêu (tháng đã qua ' + Math.round(C.tp * 100) + '%): mỗi ngày cần ' + moneyShort(C.perDay) + ' tiền khách mới.' });
-      if (clv === 'bad') T.push({ p: 1, t: '💸 <b>' + esc(k) + '</b>: chi phí ' + (cp !== null ? 'bằng ' + Math.round(cp) + '%' : moneyShort(s) + ' chưa ra') + ' tiền khách mới, vượt mức ' + g.pct + '%. Giảm chiến dịch 🔴, dồn tiền chiến dịch 🟢.' });
+      if (g.rev && C.isCur && C.lv === 'bad') T.push({ p: 1, t: '🎯 <b>' + esc(k) + '</b> mới đạt ' + Math.round(C.p * 100) + '% mục tiêu (tháng đã qua ' + Math.round(C.tp * 100) + '%): mỗi ngày cần ' + moneyShort(C.perDay) + ' ' + w + '.' });
+      if (clv === 'bad') T.push({ p: 1, t: '💸 <b>' + esc(k) + '</b>: chi phí ' + (cp !== null ? 'bằng ' + Math.round(cp) + '%' : moneyShort(s) + ' chưa ra') + ' ' + w + ', vượt mức ' + g.pct + '%. Giảm chiến dịch 🔴, dồn tiền chiến dịch 🟢.' });
       return '<div class="goal mk-goal ' + lv + '"><div class="goal-h"><b>' + c.icon + ' ' + esc(k) + '</b>' + (g.who ? '<span class="tag owner">' + esc(g.who) + '</span>' : '') + '<span class="goal-st">' + label + '</span></div>' +
         (g.rev ? '<div class="goal-num"><b>' + moneyShort(rev) + '</b> / ' + moneyShort(g.rev) + '<span>' + Math.round(C.p * 100) + '%</span></div><div class="bar"><i style="width:' + Math.min(100, C.p * 100).toFixed(1) + '%"></i>' + (C.isCur ? '<u style="left:' + (C.tp * 100).toFixed(1) + '%" title="Hôm nay"></u>' : '') + '</div>' : '<div class="goal-num"><b>' + moneyShort(rev) + '</b> tiền khách mới</div>') +
         L.map(function (x) { return '<p>' + x + '</p>'; }).join('') + '</div>';
     });
-    var C0 = sumT ? goalCalc(sumR, sumT, month) : null;
-    return { todo: T, gch: keys.filter(function (k) { return G[k].pct; }), h: head + (C0 && keys.length > 1 ? '<p class="mk-goal-sum">Tổng các kênh: <b>' + moneyShort(sumR) + '</b> / ' + moneyShort(sumT) + ' (' + Math.round(C0.p * 100) + '%) · tháng đã qua ' + Math.round(C0.tp * 100) + '% ' + DASH_LV[C0.lv === 'done' ? 'ok' : C0.lv] + '</p>' : '') +
-      '<div class="mk-goal-g">' + cards.join('') + '</div><p class="bar-legend">Vạch đen = hôm nay. Thanh xanh vượt vạch đen là đang nhanh hơn tiến độ. Tiền khách mới = tiền khách mua lần đầu do kênh mang về (sàn: doanh thu sàn). Chi phí = quảng cáo của kênh đó trong tháng.</p></section>' };
+    var BD = mkBoard(G, revOf, sp, month, live.people || []);
+    return { todo: T.concat(BD.todo), gch: keys.filter(function (k) { return G[k].pct; }), h: head + BD.h + '</section>', line: keys.map(function (k) { return chInfo(k).icon + ' ' + esc(k) + ' ' + (G[k].rev ? pct(revOf(k), G[k].rev) + '%' : moneyShort(revOf(k))); }).join(' · '),
+      body: '<div class="mk-goal-g">' + cards.join('') + '</div><p class="bar-legend">Vạch đen = hôm nay. Thanh xanh vượt vạch đen là đang nhanh hơn tiến độ. Tiền khách mới = tiền khách mua lần đầu do kênh mang về (sàn: doanh thu sàn; 👥 Cộng đồng Zalo: tiền mua lại của khách đã vào nhóm). Chi phí = chi phí của kênh đó trong tháng.</p>' };
   }
   function openMkGoal(live, month) {
     var m0 = live.budget.m, m1 = Object.keys(live.goals || {}).filter(function (k) { return /^\d{4}-\d\d$/.test(k) && k !== m0; })[0];
@@ -3467,7 +3499,7 @@
     var adm = lvl() >= 3, me = S.user.name, mineOf = function (k) { var g = G[k]; return adm || !g || !(g.rev || g.pct) || !g.who || sameWho(g.who, me); };
     var row = function (c) { var g = G[c.k] || {}, ok = mineOf(c.k), dis = ok ? '' : ' disabled';
       return '<div class="mk-gr' + (ok ? '' : ' lock') + '" data-ch="' + esc(c.k) + '"><b>' + c.icon + ' ' + esc(c.k) + (!ok ? '<small>🔒 ' + esc(g.who) + ' phụ trách</small>' : '') + '</b>' +
-      '<label class="f"><span>Tiền khách mới mục tiêu</span><input type="text" inputmode="decimal" data-g="rev" value="' + (g.rev || '') + '" placeholder="vd 450tr"' + dis + '></label>' +
+      '<label class="f"><span>' + (c.k === MK_COMM ? 'Tiền mua lại mục tiêu' : 'Tiền khách mới mục tiêu') + '</span><input type="text" inputmode="decimal" data-g="rev" value="' + (g.rev || '') + '" placeholder="vd 450tr"' + dis + '></label>' +
       '<label class="f"><span>Chi phí tối đa (%)</span><input type="number" min="0" max="100" step="1" data-g="pct" value="' + (g.pct || '') + '" placeholder="vd 30"' + dis + '></label>' +
       (adm ? '<label class="f"><span>Người phụ trách</span><input type="text" data-g="who" list="mkWho" value="' + esc(g.who || '') + '" placeholder="tên bạn marketing"></label>' : '<div class="f mk-gr-who"><span>Người phụ trách</span><b>' + (g.who ? esc(g.who) : ok ? '<span class="muted">Bạn, khi đặt mục tiêu</span>' : '') + '</b></div>') +
       '<small class="mk-gr-hint"></small>' + (g.by ? '<small class="mk-gr-by">' + esc(g.by) + ' sửa' + (g.at ? ' ' + fDateTime(g.at) : '') + '</small>' : '') + '</div>'; };
@@ -3499,8 +3531,8 @@
     if (!mj) return h + '<div class="box"><p class="muted">' + (MV.err ? '⚠️ ' + esc(MV.err) + ' <button class="link" data-mkv="fresh">Thử lại</button>' : '⏳ Đang tính hiệu quả quảng cáo…') + '</p></div>';
     MK.fbOn = mj.fb.on;
     var ch = {}, chp = {}, tot = 0, totp = 0, day = {}, A = dashAds(), per = function (n, v) { return n && v ? moneyShort(Math.round(v / n)) : '–'; };
-    mj.days.forEach(function (r) { ch[r[1]] = (ch[r[1]] || 0) + r[2]; tot += r[2]; day[r[0]] = (day[r[0]] || 0) + r[2]; });
-    mj.prev.forEach(function (r) { chp[r[0]] = r[1]; totp += r[1]; });
+    mj.days.forEach(function (r) { if (chInfo(r[1]).ret) return; ch[r[1]] = (ch[r[1]] || 0) + r[2]; tot += r[2]; day[r[0]] = (day[r[0]] || 0) + r[2]; }); // 👥 cộng đồng: không phải quảng cáo tìm khách mới
+    mj.prev.forEach(function (r) { if (chInfo(r[0]).ret) return; chp[r[0]] = r[1]; totp += r[1]; });
     var E = mj.eff, Ep = mj.effPrev, nrOf = function (E0, sp) { var v = 0; Object.keys(E0).forEach(function (k) { if (!E0[k].san || sp[k]) v += E0[k].newRev; }); return v; };
     var nr = nrOf(E, ch), nrp = nrOf(Ep, chp), newN = 0, newNp = 0; Object.keys(E).forEach(function (k) { newN += E[k].newN; }); Object.keys(Ep).forEach(function (k) { newNp += Ep[k].newN; });
     var rate = tot && nr ? tot * 100 / nr : null, ad = mj.ad, adp = mj.adPrev;
@@ -3518,6 +3550,13 @@
     if (L.length) h += '<div class="box dash-notes"><h3>✅ Nên làm gì</h3>' + L.map(function (x) { return '<p>' + x + '</p>'; }).join('') + '</div>';
     // ---- chi tiết: thu gọn, bấm mới mở (xếp theo mức quan trọng)
     h += '<h2 class="mk-more-h">Xem chi tiết <span class="tip">bấm vào từng mục để mở</span></h2>';
+    if (GB.body) h += mkMore('goal', '🎯 Mục tiêu từng kênh', GB.line, GB.body);
+    var cm = mj.comm, cmp = mj.commPrev, csp = 0; mj.days.forEach(function (r) { if (r[1] === MK_COMM) csp += r[2]; });
+    if (cm && (cm.rev || csp)) h += mkMore('comm', '👥 Cộng đồng Zalo', moneyShort(cm.rev) + ' tiền mua lại · ' + cm.buyers + ' khách', '<div class="metrics dash-m3">' +
+      metric('Tiền mua lại', moneyShort(cm.rev), 'Đơn mua lại (không tính đơn đầu) của khách đã vào nhóm Zalo cộng đồng.', delta(cm.rev, cmp ? cmp.rev : null)) +
+      metric('Khách trong nhóm đã mua lại', cm.buyers, cm.n + ' đơn' + (cm.buyers ? ' · trung bình ' + moneyShort(Math.round(cm.rev / cm.buyers)) + ' / khách' : '') + '.', delta(cm.buyers, cmp ? cmp.buyers : null)) +
+      metric('Chi phí cộng đồng', csp ? moneyShort(csp) : '–', csp && cm.rev ? 'Bằng ' + Math.round(csp * 100 / cm.rev) + '% tiền mua lại. Quà tặng, minigame… nhập ở ⚙️ Nhập chi phí → kênh Cộng đồng Zalo.' : 'Quà tặng, minigame… nhập ở ⚙️ Nhập chi phí → kênh Cộng đồng Zalo.', '') +
+      '</div><p class="bar-legend">Khách được tính là trong nhóm khi sale / CSKH bấm "Đã vào" ở ô Cộng đồng trên hồ sơ khách. Đánh dấu đủ thì số này mới đúng.</p>');
     h += mkMore('camp', '🎬 Chiến dịch: nên tăng, giữ hay tắt?', CB.line, CB.h);
     h += mkMore('sale', '🤝 Phản hồi từ sale', SB.line, SB.h);
     h += mkMore('fun', '🪜 Quảng cáo đi tới đâu thì rơi rụng?', FN.weak ? '🔴 Khâu yếu nhất: ' + FN.weak.l : 'Từ lúc khách thấy quảng cáo đến lúc trả tiền', FN.h);
