@@ -970,3 +970,7 @@ details.offer-bn { margin: 0 0 10px; border-color: #f3d9a4; background: #fffaf0;
 .mk-hero .mk-row-l { margin: 4px 0 6px; font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; }
 .dash-tiles.mk3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 @media (max-width: 760px) { .dash-tiles.mk3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .dash-tiles.mk3 > :last-child:nth-child(odd) { grid-column: 1 / -1; } }
+/* gộp khách nhiều số: chọn số chính */
+.mg-row{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--line,#e5e7eb);cursor:pointer}
+.mg-row:first-of-type{border-top:0}
+.mg-row input{margin-top:4px;flex:none}

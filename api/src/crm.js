@@ -638,7 +638,7 @@ async function guardLead(x, u, ld) {
 }
 /** Số điện thoại này của ai? Nhân viên chỉ biết tên người phụ trách, không thấy thông tin khách. */
 async function crmCheckPhone(x, u, d) {
-  const phone = normPhone(d.phone); if (!/^0\d{9,10}$/.test(phone)) return { ok: true, status: 'none' };
+  const phone = await mainPhone(x, d.phone); if (!/^0\d{9,10}$/.test(phone)) return { ok: true, status: 'none' };
   const c = await first(x.db, 'SELECT owner FROM customers WHERE phone = ?', phone);
   if (!c) {
     const ol = await first(x.db, "SELECT owner FROM leads WHERE phone = ? AND status IN ('Mới hỏi', 'Đang tư vấn') ORDER BY rid LIMIT 1", phone);
@@ -785,7 +785,8 @@ export { ORDER_COLS };
 
 /** Ghi 1 đơn (web hoặc nhập tay), tính lại khách, báo email/Telegram. opt.by = tên nhân viên nhập tay. */
 export async function saveOrder(x, data, opt) {
-  const c = data.customer || {}, now = Date.now(), manual = !!opt.by, phone = normPhone(c.phone);
+  const c = Object.assign({}, data.customer || {}), now = Date.now(), manual = !!opt.by, raw = normPhone(c.phone), phone = await mainPhone(x, raw);
+  if (raw !== phone) c.note = (c.note ? c.note + ' · ' : '') + 'SĐT khách ghi: ' + raw; // số phụ của khách đã gộp → đơn vào hồ sơ số chính, giữ số khách ghi để giao hàng
   if (!manual && data.id && await first(x.db, 'SELECT rid FROM orders WHERE id = ?', String(data.id))) return { dup: true }; // web gửi lại khi mạng chập chờn
   const items = itemsText(data.items || []), pay = data.payment === 'bank' ? 'Chuyển khoản' : 'COD', realItems = (data.items || []).filter(i => !i.gift);
   if (!opt.otype) { try { opt.otype = (await otypeSuggest(x, phone, now)).t; } catch (e) { console.error('otype', e.message); } } // đơn web: loại đơn theo gợi ý (tính trước khi lưu)
@@ -928,6 +929,95 @@ async function crmCustomerDelete(x, u, d) {
   await crmLog(x, u, 'Xoá dữ liệu', '', (c && c.name) || '', 'Xoá khách ' + phone, os.length + ' đơn (' + fmt(os.reduce((s0, o) => s0 + (Number(o.total) || 0), 0)) + ')' + (ls.length ? ' · ' + ls.length + ' khách hỏi' : ''));
   return { ok: true, orders: os.length, leads: ls.length };
 }
+
+/* ---------- gộp khách dùng nhiều số điện thoại (14/10/2026: chị Trịnh Thị Thu có 3 số → 3 hồ sơ, đơn và tổng chi bị chia nhỏ) */
+const ALIAS_KEY = 'ph_alias', MSKIP_KEY = 'merge_skip';
+/** {số phụ: số chính}. File sale, đơn web, đơn nhập tay, khách hỏi có số phụ → tính vào số chính, không tách lại. */
+export async function phoneAlias(x) {
+  if (!x._pal) { const m = (await kvJson(x.db, ALIAS_KEY, {})) || {}; x._pal = {}; Object.keys(m).forEach(k => { x._pal[k] = m[k].m; }); }
+  return x._pal;
+}
+export async function mainPhone(x, p) { p = normPhone(p); return (await phoneAlias(x))[p] || p; }
+async function crmMerge(x, u, d) {
+  if (u.level < 2) return { ok: false, error: 'Chỉ Quản lý trở lên gộp được khách.' };
+  const main = normPhone(d.main), others = [...new Set((d.phones || []).map(normPhone))].filter(p => p && p !== main);
+  if (!/^0\d{9,10}$/.test(main) || !others.length) return { ok: false, error: 'Chọn số chính và ít nhất 1 số cần gộp.' };
+  if (others.length > 10) return { ok: false, error: 'Mỗi lần gộp tối đa 10 số.' };
+  const cs = await allIn(x.db, 'SELECT * FROM customers WHERE phone IN (SELECT value FROM json_each(?))', [main].concat(others));
+  const M = cs.find(c => c.phone === main); if (!M) return { ok: false, error: 'Không tìm thấy khách ' + main + ' (có thể đã được gộp).' };
+  const O = others.map(p => cs.find(c => c.phone === p)), miss = others.filter((p, i) => !O[i]);
+  if (miss.length) return { ok: false, error: 'Không tìm thấy khách ' + miss.join(', ') + ' (có thể đã được gộp).' };
+  // ghi chú: số phụ thành dòng "SĐT khác" (hiện 📱 trong hồ sơ, tìm được theo số), ghi chú của số phụ nối xuống dưới
+  let note = String(M.note || '');
+  const head = others.filter(p => !new RegExp('^\\s*SĐT khác:\\s*' + p, 'm').test(note)).map(p => 'SĐT khác: ' + p);
+  note = head.concat(note ? [note] : []).join('\n');
+  O.forEach(c => {
+    const n = String(c.note || '').split('\n').filter(l => !(/^\s*SĐT khác:/.test(l) && [main].concat(others).some(p => l.indexOf(p) >= 0))).join('\n').trim();
+    if (n) note += '\n— Gộp từ số ' + c.phone + ' —\n' + n;
+  });
+  const A = [M].concat(O), lastCare = A.filter(c => c.care_at).sort((a, b) => b.care_at - a.care_at)[0], today = startOfDay(Date.now());
+  const cbs = A.map(c => c.callback).filter(Boolean), cb = cbs.filter(t => t >= today).sort((a, b) => a - b)[0] || (cbs.length ? Math.max(...cbs) : null);
+  const pick = k => { const v = A.map(c => c[k]).find(v => v !== '' && v != null); return v == null ? '' : v; };
+  const rids = (await allIn(x.db, 'SELECT rid FROM orders WHERE phone IN (SELECT value FROM json_each(?))', others)).map(r => r.rid);
+  const js = JSON.stringify(others), p = (sql, ...a) => x.db.prepare(sql).bind(...a);
+  await x.db.batch([
+    p('UPDATE orders SET phone = ? WHERE phone IN (SELECT value FROM json_each(?))', main, js),
+    p('UPDATE leads SET phone = ? WHERE phone IN (SELECT value FROM json_each(?))', main, js),
+    p('UPDATE logs SET ref = ? WHERE ref IN (SELECT value FROM json_each(?))', main, js),
+    p('UPDATE OR IGNORE sale_phones SET phone = ? WHERE phone IN (SELECT value FROM json_each(?))', main, js),
+    p('DELETE FROM sale_phones WHERE phone IN (SELECT value FROM json_each(?))', js),
+    p('DELETE FROM dup_done WHERE phone IN (SELECT value FROM json_each(?))', js),
+    p('DELETE FROM customers WHERE phone IN (SELECT value FROM json_each(?))', js),
+    p('UPDATE customers SET note = ?, care_at = ?, care_result = ?, callback = ?, owner = ?, flag = ?, tag = ?, zalo = ?, community = ?, dob = ?, consent = ? WHERE phone = ?',
+      note.slice(0, 45000), lastCare ? lastCare.care_at : null, lastCare ? lastCare.care_result || '' : '', cb, pick('owner'), pick('flag'), pick('tag'),
+      A.some(c => c.zalo) ? 1 : 0, pick('community'), pick('dob'), A.some(c => c.consent) ? 1 : 0, main)
+  ]);
+  const al = (await kvJson(x.db, ALIAS_KEY, {})) || {}, now = Date.now();
+  Object.keys(al).forEach(k => { if (others.indexOf(al[k].m) >= 0) al[k].m = main; }); // số đã gộp vào 1 số phụ trước đây → trỏ về số chính mới
+  others.forEach(ph => { al[ph] = { m: main, by: u.name, at: now, o: rids.length <= 200 ? rids : [] }; }); // o: đơn đã chuyển (để tách lại bằng tay nếu gộp nhầm)
+  delete al[main];
+  await kvSet(x.db, ALIAS_KEY, JSON.stringify(al)); x._pal = null;
+  await recalc(x, [main]);
+  await delMark(x, [], others, []); // CRM đang mở ở máy khác bỏ hồ sơ số phụ
+  await crmLog(x, u, 'Gộp khách', main, M.name, 'Gộp ' + others.join(', ') + ' vào ' + main, rids.length + ' đơn chuyển sang số chính');
+  return { ok: true, main, moved: rids.length };
+}
+/** Tên để so khách trùng: bỏ dấu, bỏ "(x)" và số điện thoại sale ghi kèm trong tên. */
+function mergeName(n) { return nrm(n).replace(/\(\s*[x×]\s*\)/g, ' ').replace(/0\d{9,10}/g, ' ').replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim(); }
+/** Gợi ý khách nghi là 1 người: cùng tên + cùng địa chỉ, hoặc sale ghi số kia trong tên / dòng "SĐT khác". */
+async function crmMergeSuggest(x, u) {
+  if (u.level < 2) return { ok: false, error: 'Chỉ Quản lý trở lên.' };
+  const cs = await all(x.db, "SELECT phone, name, address, orders, spent, first, last, owner, products, substr(note, 1, 3000) AS note FROM customers WHERE orders > 0 OR coalesce(flag, '') != ''");
+  const by = {}, par = {}, why = {}; cs.forEach(c => { by[c.phone] = c; });
+  const f = q => par[q] && par[q] !== q ? (par[q] = f(par[q])) : q;
+  const join = (a, b, w) => { const ra = f(a), rb = f(b); if (ra !== rb) par[rb] = ra; (why[a] = why[a] || {})[w] = 1; (why[b] = why[b] || {})[w] = 1; };
+  const seen = {};
+  cs.forEach(c => {
+    const a = nrm(c.address).replace(/[^a-z0-9]/g, ''), n = mergeName(c.name); if (a.length < 12 || !n) return;
+    const k = n + '|' + a; if (seen[k]) join(seen[k], c.phone, 'Cùng tên, cùng địa chỉ'); else seen[k] = c.phone;
+  });
+  cs.forEach(c => {
+    (c.name.match(/0\d{9,10}/g) || []).forEach(q => { if (q !== c.phone && by[q]) join(c.phone, q, 'Sale ghi số kia trong tên'); });
+    String(c.note || '').split('\n').filter(l => /^\s*SĐT khác:/.test(l)).forEach(l => (l.match(/0\d{9,10}/g) || []).forEach(q => { if (q !== c.phone && by[q]) join(c.phone, q, 'Ghi chú có “SĐT khác” là số kia'); }));
+  });
+  const skip = (await kvJson(x.db, MSKIP_KEY, [])) || [], G = {};
+  Object.keys(why).forEach(ph => { (G[f(ph)] = G[f(ph)] || []).push(ph); });
+  const groups = Object.values(G).filter(g => g.length > 1).map(g => {
+    const items = g.map(ph => { const c = by[ph]; return { phone: ph, name: c.name, address: c.address, orders: c.orders, spent: c.spent, first: c.first, last: c.last, owner: c.owner || '', products: c.products || '' }; })
+      .sort((a, b) => b.orders - a.orders || b.spent - a.spent);
+    return { key: g.slice().sort().join('|'), items, why: [...new Set(g.flatMap(ph => Object.keys(why[ph])))], spent: items.reduce((s, i) => s + (Number(i.spent) || 0), 0) };
+  }).filter(g => skip.indexOf(g.key) < 0).sort((a, b) => b.spent - a.spent);
+  return { ok: true, groups: groups.slice(0, 300), total: groups.length, skipped: skip.length };
+}
+/** "Không phải 1 người": ẩn nhóm gợi ý này. */
+async function crmMergeSkip(x, u, d) {
+  if (u.level < 2) return { ok: false, error: 'Chỉ Quản lý trở lên.' };
+  const k = String(d.key || ''); if (!k) return { ok: false, error: 'Thiếu nhóm.' };
+  const skip = (await kvJson(x.db, MSKIP_KEY, [])) || []; if (skip.indexOf(k) < 0) skip.push(k);
+  await kvSet(x.db, MSKIP_KEY, JSON.stringify(skip.slice(-2000)));
+  await crmLog(x, u, 'Gộp khách', '-', '', 'Không phải 1 người', k.split('|').join(', '));
+  return { ok: true };
+}
 /** Mã đơn theo sale: <tiền tố><ddMMyy>-<số thứ tự>, ví dụ Phuong300926-01. */
 async function nextCode(x, u, now) {
   const y = (await crmUsers(x)).find(z => z.email === u.email) || u, pre = (y.prefix || slugName(u.name)) + fmtDate(now, 'ddMMyy') + '-';
@@ -935,7 +1025,7 @@ async function nextCode(x, u, now) {
   return pre + (n + 1 < 10 ? '0' : '') + (n + 1);
 }
 async function crmOrderCreate(x, u, d) {
-  const c = d.customer || {}, phone = normPhone(c.phone);
+  const c = d.customer || {}, raw = normPhone(c.phone), phone = await mainPhone(x, raw);
   if (!/^0\d{9,10}$/.test(phone)) return { ok: false, error: 'Số điện thoại chưa đúng.' };
   if (u.level < 2) { const ow = await ownerOf(x, phone); if (ow && ow !== u.name) return { ok: false, error: 'Khách này do ' + ow + ' phụ trách. Nhờ ' + ow + ' lên đơn, hoặc nhờ quản lý chuyển khách.' }; }
   let ld = null;
@@ -952,14 +1042,14 @@ async function crmOrderCreate(x, u, d) {
   const id = await nextCode(x, u, now), sug = await otypeSuggest(x, phone, now); // gợi ý tính TRƯỚC khi lưu (lưu xong khách đã thành "đã mua")
   const otype = OTYPES.indexOf(d.otype) >= 0 ? d.otype : sug.t, oflag = u.level >= 2 ? '' : otypeFlag(otype, sug);
   const src = ld && ld.channel ? 'Tiềm năng – ' + ld.channel : 'Nhập tay – ' + (d.source || 'Khác');
-  await saveOrder(x, { id, customer: { name: String(c.name).trim(), phone, email: c.email || '', province: c.province || '', district: c.ward || '', address: c.address || '', note: c.note || '' },
+  await saveOrder(x, { id, customer: { name: String(c.name).trim(), phone: raw, email: c.email || '', province: c.province || '', district: c.ward || '', address: c.address || '', note: c.note || '' },
     items, subtotal: sub, shipping: ship, total: sub + ship, payment: d.payment === 'bank' ? 'bank' : 'cod', source: src, first_source: src, marketing_consent: !!d.consent },
     { by: u.name, status: ORDER_STATUS.indexOf(d.status) >= 0 ? d.status : 'Đã xác nhận', ca: otypeCa(otype), otype, oflag });
   await run(x.db, "UPDATE customers SET owner = ? WHERE phone = ? AND (owner = '' OR owner IS NULL)", u.name, phone);
   await crmLog(x, u, 'Tạo đơn', id, c.name, fmt(sub + ship), src);
   await wbSafe(async () => { // ghi ngược vào sheet lên đơn của sale
     const cv = await first(x.db, 'SELECT owner, orders FROM customers WHERE phone = ?', phone), real0 = items.filter(i => !i.gift), gift0 = items.filter(i => i.gift)[0];
-    await wbOrderQueue(x, (cv && cv.owner) || u.name, { id, time: now, name: String(c.name).trim(), phone, address: [c.address, c.ward, c.province].filter(Boolean).join(', '),
+    await wbOrderQueue(x, (cv && cv.owner) || u.name, { id, time: now, name: String(c.name).trim(), phone: raw, address: [c.address, c.ward, c.province].filter(Boolean).join(', '),
       product: real0.map(i => i.name + (i.variant ? ' ' + i.variant : '') + (real0.length > 1 ? ' x' + i.qty : '')).join(', '), qty: real0.length === 1 ? real0[0].qty : '', gift: gift0 ? gift0.name : '', giftQty: gift0 ? gift0.qty : '',
       total: sub + ship, status: ORDER_STATUS.indexOf(d.status) >= 0 ? d.status : 'Đã xác nhận', ship: shipText(items), note: c.note || '', ca: otypeCa(otype), otype, old: !!cv && Number(cv.orders) > 1 });
   });
@@ -1130,7 +1220,7 @@ export async function leadUpdate(x, id, f) {
 }
 /** Thêm khách tiềm năng. Số này đang có 1 lượt đang mở (Mới hỏi / Đang tư vấn) thì ghi nối vào đó, không tạo trùng. */
 export async function addLead(x, o) {
-  const phone = normPhone(o.phone), now = Date.now();
+  const phone = await mainPhone(x, o.phone), now = Date.now();
   const cur = await first(x.db, "SELECT * FROM leads WHERE phone = ? AND status IN ('Mới hỏi', 'Đang tư vấn') ORDER BY rid DESC LIMIT 1", phone);
   if (cur) {
     const note = String(cur.note || '') + (o.note ? '\n[' + fmtDate(now, 'dd/MM') + '] ' + o.note : '');
@@ -1546,6 +1636,9 @@ export async function crmApi(x, d, sync, mgr) {
   if (a === 'mkt_budget') return u.level >= 3 ? mktBudgetSet(x, d) : { ok: false, error: 'Chỉ Quản trị đặt được ngân sách quảng cáo.' };
   if (/^mkt(_|$)/.test(a)) return crmMkt(x, u, d); // chi phí marketing
   if (/^san(_|$)/.test(a)) return crmSan(x, u, d); // doanh thu sàn TMĐT + mục tiêu theo mảng
+  if (a === 'merge_suggest') return crmMergeSuggest(x, u); // gộp khách nhiều số (Quản lý trở lên)
+  if (a === 'merge_skip') return crmMergeSkip(x, u, d);
+  if (a === 'merge') return crmMerge(x, u, d);
   const need = { settings: 2, users: 3, assign: 2, bulk: 2, recv: 2 };
   if (need[a] && u.level < need[a]) return { ok: false, error: 'Bạn không có quyền làm việc này.' };
   const opKey = d.opId ? 'op_' + String(d.opId).slice(0, 40) : ''; // CRM gửi lại việc khi mạng chập chờn: việc đã làm rồi thì trả kết quả cũ, không ghi trùng

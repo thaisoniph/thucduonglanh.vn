@@ -118,7 +118,7 @@
     function fallback() { var t = document.createElement('textarea'); t.value = text; t.style.position = 'fixed'; t.style.opacity = '0'; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); } catch (e) { } t.remove(); }
   }
 
-  var SERVER_V = '2026-10-09a'; // phải trùng số phiên bản máy chủ (api/src/index.js)
+  var SERVER_V = '2026-10-14b'; // phải trùng số phiên bản máy chủ (api/src/index.js)
   var ON_CF = !/script\.google/.test(CFG.endpoint || ''); // máy chủ Cloudflare (nhanh) hay Apps Script cũ
   function checkVersion(j) {
     if (j && j.v) S.srvV = j.v;
@@ -309,7 +309,7 @@
     j.byPhone = {};
     if (j.customers) {
       j.customers.forEach(function (c) {
-        c._phoneDigits = c.phone ? c.phone.replace(/\D/g, '') : '';
+        c._phoneDigits = (c.phone ? c.phone.replace(/\D/g, '') : '') + altPhones(c.note).map(function (p) { return ' ' + p; }).join(''); // tìm được theo số phụ (khách đã gộp nhiều số)
         c._normName = norm(c.name);
         if (c.phone) j.byPhone[normPhone(c.phone)] = c;
       });
@@ -1402,6 +1402,7 @@
     var top = Object.keys(cnt).sort(function (a, b) { return cnt[b] - cnt[a]; })[0] || (c.products[0] || '');
     return { gap: gaps.length ? gaps[Math.floor(gaps.length / 2)] : 0, top: top, topN: cnt[top] || 0 };
   }
+  function altPhones(note) { var out = []; String(note || '').split('\n').forEach(function (l) { if (/^\s*SĐT khác:/.test(l)) out = out.concat(l.match(/0\d{9,10}/g) || []); }); return out; }
   function noteExtras(note) { return String(note || '').split('\n').filter(function (l) { return /^(Dùng cho|SĐT khác|Người giới thiệu|Sức khoẻ):/.test(l.trim()); }); }
   var EXTRA_IC = { 'Dùng cho': '🎯', 'Sức khoẻ': '🩺', 'Người giới thiệu': '🤝', 'SĐT khác': '📱' };
   function useForOf(note) { var l = noteExtras(note).filter(function (x) { return /^Dùng cho:/.test(x.trim()); })[0]; return l ? l.replace(/^\s*Dùng cho:\s*/, '') : ''; }
@@ -1474,6 +1475,8 @@
       '<label class="f"><span>Ghi chú về khách / nhật ký (mỗi dòng “ngày: nội dung”)</span><textarea id="cNote" rows="6">' + esc(c.note) + '</textarea></label>' +
       (canEdit(c) ? commBox(c, '') : '') + (canEdit(c) && c.zalo ? '<p style="margin:0 0 10px"><button type="button" class="link small" id="cUnZalo">Bỏ đánh dấu đã kết bạn Zalo</button></p>' : '') +
       '<button class="btn pri" id="cSave">Lưu thay đổi</button></div></details>' +
+      (lvl() >= 2 ? '<details class="p-edit"><summary>🔗 Gộp với số khác của khách này</summary><div class="box" style="margin:8px 0 0"><p class="small muted" style="margin:0 0 8px">Khách mua bằng 2–3 số điện thoại thì CRM tách thành nhiều hồ sơ. Nhập số còn lại: đơn hàng, nhật ký, ghi chú của số đó chuyển hết về hồ sơ này (' + fPhone(c.phone) + ' là số chính). Sau này file sale / đơn web có số kia cũng tự vào đây.</p>' +
+        '<label class="f"><span>Số cần gộp vào (nhiều số cách nhau dấu phẩy)</span><input type="text" id="cMgPh" inputmode="tel" placeholder="VD 0399766607" value="' + esc(altPhones(c.note).filter(function (p) { return p !== c.phone && cust(p); }).join(', ')) + '"></label><button class="btn" id="cMg">🔗 Gộp vào hồ sơ này</button></div></details>' : '') +
       (lvl() >= 3 ? '<details class="p-edit"><summary>🗑 Xoá khách (chỉ Quản trị)</summary><div class="box" style="margin:8px 0 0"><p class="small muted" style="margin:0 0 8px">Dùng cho khách nhập thử / nhập nhầm. Xoá hồ sơ khách cùng <b>toàn bộ đơn hàng</b> (kể cả đơn huỷ/hoàn), khách hỏi và nhật ký chăm sóc của số ' + fPhone(c.phone) + '. Không khôi phục được.</p><button class="btn danger" id="cDel">🗑 Xoá khách này</button></div></details>' : '');
     var foot = '<div class="p-quick"><input type="text" id="cQuick" placeholder="✏️ Ghi nhanh: kh dùng ok, hẹn cuối tháng…" enterkeyhint="send"><button class="btn pri" id="cQSave">Lưu</button></div>';
     var m = modal(cp(c.name, esc(c.name || 'Khách')) + ' ' + custTags(c) + famTag(c), body, foot, { route: '#khach-hang', pushed: !fromRoute });
@@ -1516,6 +1519,12 @@
       all = j.orders; if (c.noteCut || j.note !== undefined) { c.note = j.note; c.noteCut = false; ta.value = j.note; }
       qs.disabled = false; sv.disabled = false; ta.disabled = false; cu.disabled = false; if (!cu.value) cu.value = useForOf(c.note); st = custStats(c, all); var hb = $('#pHabit', m); if (hb) hb.innerHTML = habit(); draw();
     }, function (e) { all = ordersOf(c.phone); qs.disabled = false; sv.disabled = !!c.noteCut; ta.disabled = !!c.noteCut; draw(); if (c.owner) toast(e.message, true); });
+    if ($('#cMg', m)) $('#cMg', m).onclick = function () {
+      var ps = ($('#cMgPh', m).value.match(/[\d\s.+]{9,}/g) || []).map(function (p) { return normPhone(p.replace(/\s|\./g, '')); }).filter(function (p) { return p && p !== c.phone; });
+      if (!ps.length) { toast('Nhập số điện thoại cần gộp', true); return; }
+      var miss = ps.filter(function (p) { return !cust(p); }); // số chưa có trong danh sách (chưa mua / nhân viên không thấy): máy chủ kiểm tra lại
+      mergeCust(c.phone, ps, this, miss.length ? '\n(Số ' + miss.join(', ') + ' chưa thấy trong danh sách khách đã mua trên máy này.)' : '');
+    };
     if ($('#cUnZalo', m)) $('#cUnZalo', m).onclick = function () { setZalo(c, false); this.remove(); };
     if ($('#cDel', m)) $('#cDel', m).onclick = function () { adminDelete('c', c, 'khách ' + (c.name || '') + ' – ' + fPhone(c.phone) + ' cùng ' + c.orders + ' đơn', this); };
     var quick = function () {
@@ -5069,6 +5078,8 @@
       '<button class="btn" id="moveBtn">Chuyển khách</button><p class="hint" style="margin:8px 0 0">Dùng khi nhân viên nghỉ việc hoặc đổi ca. Khách hỏi đang theo dõi cũng được chuyển theo.</p></div>';
     G.dup = '<div class="box"><h3>🔀 Khách trùng sale</h3><p class="hint" style="margin:0 0 10px">Khách có trong file Sheet của 2 sale trở lên (trước khi gộp văn phòng, mỗi bạn chăm riêng). Mỗi khách chỉ để <b>1 sale phụ trách chính</b>: chọn người giữ rồi bấm <b>Chốt</b>. Đã chốt thì CRM không báo trùng nữa, các bạn không cần xoá dòng trong file.</p>' +
       '<button class="btn pri" id="dupOpen">Xem khách trùng sale</button></div>';
+    G.mrg = '<div class="box"><h3>🔗 Khách dùng nhiều số</h3><p class="hint" style="margin:0 0 10px">Khách mua bằng 2–3 số điện thoại bị CRM tách thành nhiều hồ sơ. CRM tự tìm hồ sơ nghi cùng 1 người (cùng tên + địa chỉ, hoặc sale ghi số kia trong tên / dòng “SĐT khác”) để gộp lại. Cũng gộp được trong hồ sơ khách → 🔗 Gộp với số khác.</p>' +
+      '<button class="btn pri" id="mrgOpen">Xem khách nghi trùng</button></div>';
     var cy = S.f.cy || (S.f.cy = S.d.cycles.map(function (r) { return r.slice(); }));
     G.cy = '<div class="box"><h3>Chu kỳ dùng sản phẩm</h3><p class="hint" style="margin:0 0 10px">Khách dùng hết 1 hộp/hũ trong bao nhiêu ngày → máy tính ngày “sắp hết hàng” để nhắc đặt lại. Tên chỉ cần chứa 1 phần (ví dụ “DILVANG”). Quy cách để trống = mọi quy cách.</p>' +
       '<div class="edit-table" id="cyT"><div class="edit-row head"><span>Tên sản phẩm (chứa chữ)</span><span>Quy cách</span><span>Số ngày</span><span>Căn cứ</span><span></span></div>' +
@@ -5092,7 +5103,8 @@
     var act = (S.d.users || []).filter(function (u) { return u.active !== false; }), mk = act.filter(function (u) { return u.role === 'Marketing'; }).length, recvN = staff.filter(function (u) { return u.recv; }).length;
     if (G.us) h += setSec('👥 Nhân sự', setGroup('us', '🧑‍💼 Ai được vào CRM', act.length + ' người đang dùng' + (mk ? ' · ' + mk + ' marketing' : '') + ' · thêm / khoá người, đổi quyền', G.us));
     h += setSec(G.us ? '🤝 Chia khách' : '👥 Chia khách', setGroup('mode', '🔀 Khách mới giao cho ai', MODE_INFO[md][0] + ' · ' + recvN + ' người nhận khách mới' + (noOwner ? ' · ⚠️ ' + noOwner + ' khách chưa ai phụ trách' : ''), G.mode) +
-      setGroup('dup', '👯 Khách trùng sale', 'Khách có ở file của 2 sale: chọn 1 người giữ', G.dup));
+      setGroup('dup', '👯 Khách trùng sale', 'Khách có ở file của 2 sale: chọn 1 người giữ', G.dup) +
+      setGroup('mrg', '🔗 Khách dùng nhiều số', '1 khách mua bằng 2–3 số: gộp về 1 hồ sơ', G.mrg));
     h += setSec('🛒 Bán hàng & chăm sóc', setGroup('rules', '⭐ Nhóm khách & lịch nhắc', 'VIP từ ' + (R.vipOrders || 3) + ' đơn hoặc ' + moneyShort(R.vipSpent || 2000000) + ' · Sắp mất sau ' + (R.atRisk || 60) + ' ngày · nhắc lại sau ' + (R.coolDays === undefined ? 14 : R.coolDays) + ' ngày', G.rules) +
       setGroup('cy', '📦 Bao lâu khách dùng hết 1 hộp', cy.length + ' sản phẩm · để nhắc khách đặt lại đúng lúc', G.cy) +
       setGroup('tp', '💬 Mẫu tin nhắn chăm sóc', tp.length + ' mẫu', G.tp) +
@@ -5204,6 +5216,7 @@
       api('bulk', { from: from, to: to }).then(function (j) { toast('Đã chuyển ' + j.customers + ' khách, ' + j.leads + ' khách hỏi ✓'); load(true); }, function (e) { toast(e.message, true); b.disabled = false; });
     };
     $('#dupOpen').onclick = function () { openDups(); };
+    if ($('#mrgOpen')) $('#mrgOpen').onclick = function () { openMerges(); };
     function sync(tableId, arr, isObj) {
       var t = $('#' + tableId); if (!t) return;
       t.addEventListener('input', function (e) { var r = e.target.closest('[data-i]'), k = e.target.getAttribute('data-k'); if (!r || k == null) return; var i = +r.getAttribute('data-i'); arr[i][isObj ? k : +k] = e.target.type === 'checkbox' ? e.target.checked : e.target.value; });
@@ -5293,6 +5306,49 @@
     var recent = S.d.log.filter(function (l) { return l.by === p.name; }).sort(function (a, b) { return b.time - a.time; }).slice(0, 20);
     h += '<section class="section"><div class="section-h"><h2>🕘 Thao tác gần đây</h2></div>' + (recent.length ? '<div class="timeline">' + recent.map(logItem).join('') + '</div>' : empty('Chưa có thao tác nào.')) + '</section>';
     return h;
+  }
+  /* ---------- gộp khách dùng nhiều số điện thoại (Quản lý trở lên) */
+  function mergeCust(main, phones, btn, extra, done) {
+    var lines = phones.map(function (p) { var o = cust(p); return '• ' + fPhone(p) + (o ? ' – ' + o.name + ' (' + o.orders + ' đơn, ' + moneyShort(o.spent) + ')' : ''); });
+    var mc = cust(main);
+    if (!confirm('Gộp vào hồ sơ ' + fPhone(main) + (mc ? ' – ' + mc.name : '') + ':\n' + lines.join('\n') + (extra || '') + '\n\nĐơn hàng, nhật ký, ghi chú của các số trên chuyển hết sang số chính. Hồ sơ số phụ bị bỏ. Tiếp tục?')) return;
+    if (btn) btn.disabled = true;
+    api('merge', { main: main, phones: phones }).then(function (j) {
+      var d = S.d; d.customers = d.customers.filter(function (x) { return phones.indexOf(x.phone) < 0; });
+      d.orders.forEach(function (o) { if (phones.indexOf(o.phone) >= 0) o.phone = main; });
+      (d.leads || []).forEach(function (l) { if (phones.indexOf(l.phone) >= 0) l.phone = main; });
+      setData(d, S.loadedAt); toast('Đã gộp ✓ ' + j.moved + ' đơn chuyển sang ' + fPhone(main));
+      if (done) done(j); else { closeModal(true); render(); }
+      load(true, true); // tải lại để số đơn, tổng chi, nhãn khách đúng
+    }, function (e) { toast(e.message, true); if (btn) btn.disabled = false; });
+  }
+  function openMerges() {
+    var D = { groups: null, n: 40, pick: {} };
+    var m = modal('🔗 Khách dùng nhiều số', '<div id="mgBox"><p class="muted">Đang tìm khách nghi trùng…</p></div>', '<button class="btn ghost" data-close>Đóng</button>');
+    function draw() {
+      var box = $('#mgBox', m); if (!box) return;
+      if (!D.groups.length) { box.innerHTML = empty('Không còn khách nào nghi dùng nhiều số. 🎉'); return; }
+      box.innerHTML = '<p class="hint" style="margin:0 0 10px">CRM nhận khách theo số điện thoại, nên khách mua bằng 2–3 số bị tách thành nhiều hồ sơ (số đơn, tổng chi bị chia nhỏ, có thể bị gọi nhiều lần). Dưới đây là các hồ sơ nghi cùng 1 người. Chọn <b>số chính</b> (thường là số khách hay dùng nhất) rồi bấm <b>Gộp</b>. Không phải 1 người thì bấm <b>Không phải</b>.</p>' +
+        '<p class="small muted" style="margin:0 0 10px">' + D.total + ' nhóm' + (D.skipped ? ' · ' + D.skipped + ' nhóm đã đánh dấu không phải' : '') + '</p><div class="list">' +
+        D.groups.slice(0, D.n).map(function (g, gi) {
+          var sel = D.pick[g.key] || g.items[0].phone;
+          return '<div class="card"><div class="r3">🔎 ' + esc(g.why.join(' · ')) + '</div>' + g.items.map(function (it) {
+            return '<label class="mg-row"><input type="radio" name="mg' + gi + '" value="' + esc(it.phone) + '"' + (it.phone === sel ? ' checked' : '') + ' data-mgk="' + esc(g.key) + '"><span><b>' + esc(it.name || 'Khách') + '</b> · <span data-copy="' + esc(it.phone) + '">' + esc(fPhone(it.phone)) + '</span>' + (it.owner ? ' · 👤 ' + esc(it.owner) : '') +
+              '<br><span class="small muted">' + it.orders + ' đơn · ' + money(it.spent) + (it.last ? ' · mua gần nhất ' + fDate(it.last) : '') + (it.products ? ' · ' + esc(String(it.products).slice(0, 80)) : '') + (it.address ? '<br>📍 ' + esc(String(it.address).slice(0, 120)) : '') + '</span></span></label>';
+          }).join('') + '<div class="acts"><button class="btn pri" data-mgdo="' + gi + '">🔗 Gộp vào số đã chọn</button><button class="btn ghost" data-mgno="' + gi + '">Không phải 1 người</button></div></div>';
+        }).join('') + '</div>' + (D.groups.length > D.n ? '<button class="btn" id="mgMore" style="margin-top:10px">Xem thêm ' + (D.groups.length - D.n) + ' nhóm</button>' : '');
+      $$('[data-mgk]', box).forEach(function (x) { x.onchange = function () { D.pick[x.getAttribute('data-mgk')] = x.value; }; });
+      if ($('#mgMore', box)) $('#mgMore', box).onclick = function () { D.n += 40; draw(); };
+      $$('[data-mgdo]', box).forEach(function (b) { b.onclick = function () {
+        var g = D.groups[+b.getAttribute('data-mgdo')], main = D.pick[g.key] || g.items[0].phone;
+        mergeCust(main, g.items.map(function (i) { return i.phone; }).filter(function (p) { return p !== main; }), b, '', function () { D.groups = D.groups.filter(function (x) { return x !== g; }); D.total--; draw(); });
+      }; });
+      $$('[data-mgno]', box).forEach(function (b) { b.onclick = function () {
+        var g = D.groups[+b.getAttribute('data-mgno')]; b.disabled = true;
+        api('merge_skip', { key: g.key }).then(function () { D.groups = D.groups.filter(function (x) { return x !== g; }); D.total--; D.skipped = (D.skipped || 0) + 1; draw(); toast('Đã ẩn nhóm này'); }, function (e) { toast(e.message, true); b.disabled = false; });
+      }; });
+    }
+    api('merge_suggest').then(function (j) { D.groups = j.groups || []; D.total = j.total || 0; D.skipped = j.skipped || 0; draw(); }, function (e) { var bx = $('#mgBox', m); if (bx) bx.innerHTML = '<p class="err">' + esc(e.message) + '</p>'; });
   }
   /* ---------- khách trùng sale: quản lý chốt 1 người giữ cho mỗi khách */
   function openDups() {

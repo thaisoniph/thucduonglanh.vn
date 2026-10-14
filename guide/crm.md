@@ -592,6 +592,12 @@ Tải lại đơn cũ không bị tính trùng: CRM nhận ra theo mã đơn và
         - Không phụ thuộc file sale nào được nhập trước.
     - Sau khi chốt, nếu sale kia vẫn lên đơn cho khách trong file của mình thì đơn đó vẫn tính doanh số cho người lên đơn. Riêng việc chăm sóc và nhắc việc thì chỉ người giữ khách thấy.
     - Danh sách tự cập nhật mỗi lần máy nhập file sale (30 phút/lần). Muốn xem ngay thì bấm **🔄 Quét lại file sale**. Nếu sau khi chốt mà khách xuất hiện thêm trong file của một sale khác, khách sẽ hiện lại ở mục *Cần chốt*.
+- **Cài đặt → 🔗 Khách dùng nhiều số** (Quản lý trở lên): CRM nhận khách theo số điện thoại, nên 1 khách mua bằng 2–3 số bị tách thành nhiều hồ sơ (số đơn, tổng chi bị chia nhỏ, có thể bị gọi nhiều lần).
+    - Bấm **Xem khách nghi trùng**: CRM tự tìm các hồ sơ nghi là 1 người (cùng tên + cùng địa chỉ, hoặc sale ghi số kia trong tên / dòng “SĐT khác”).
+    - Chọn **số chính** (thường là số có nhiều đơn nhất, đã chọn sẵn) → **🔗 Gộp vào số đã chọn**. Không phải cùng 1 người thì bấm **Không phải 1 người**, nhóm đó không hiện lại.
+    - Gộp từ hồ sơ khách: mở khách → **🔗 Gộp với số khác của khách này** → nhập số còn lại → **Gộp vào hồ sơ này**. Số đang mở là số chính.
+    - Sau khi gộp: đơn hàng, nhật ký, ghi chú của số phụ chuyển hết về số chính; hồ sơ hiện dòng 📱 *SĐT khác*; gõ số phụ vào ô tìm kiếm vẫn ra khách. Về sau file sale, đơn web, đơn nhập tay hay số quảng cáo có số phụ cũng **tự vào hồ sơ số chính**. Đơn mới đặt bằng số phụ có ghi chú *SĐT khách ghi: …* để giao hàng đúng số.
+    - Gộp nhầm thì báo anh Sơn để tách lại (CRM có lưu danh sách đơn đã chuyển).
 
 **Tab Cài đặt:**
 

@@ -6,6 +6,7 @@
 import { normPhone, nrm, fmtDate, all, run, allIn, kvGet, kvSet, TZ_MS, DAY } from './lib.js';
 import { sheetValues, sheetBatchGet, sheetWrite, sheetAppend, a1 } from './google.js';
 import { fileIdOf, SRC_UTIL } from './sync.js';
+import { phoneAlias } from './crm.js';
 
 const WB_ORDER = '@order ', WB_OST = '@ost ', WB_ZALO = '@zalo';
 export const WB_SHORT = { 'Không nghe máy': 'knm', 'Đã hỏi thăm': 'đã hỏi thăm', 'Hẹn gọi lại': 'hẹn gọi lại', 'Đã đặt lại': 'kh đặt lại', 'Không có nhu cầu': 'kh không có nhu cầu' }; // chữ viết tắt sale quen dùng
@@ -124,7 +125,7 @@ async function wbOrderWriteSheet(x, src, sc, items) {
     if (added[o.id]) { added[o.id][+m.status] = st; out.push('Đã ghi trạng thái (đơn vừa thêm): ' + st); continue; } // đơn thêm cùng lượt
     const R = await readRows(); let hit = -1;
     if (has(m, 'code')) for (let i = R.length - 1; i >= 0 && hit < 0; i--) if (String(R[i][+m.code]).trim() === String(o.id)) hit = i;
-    if (hit < 0) for (let j = R.length - 1; j >= 0 && hit < 0; j--) { const r2 = R[j]; if (U.toPhone(r2[+m.phone]) === normPhone(o.phone) && day(has(m, 'date') ? r2[+m.date] : '') === day(Number(o.time)) && (!has(m, 'amount') || !o.total || U.toMoney(r2[+m.amount]) === Number(o.total))) hit = j; }
+    if (hit < 0) { const AL = await phoneAlias(x), mo = p => AL[p] || p; for (let j = R.length - 1; j >= 0 && hit < 0; j--) { const r2 = R[j]; if (mo(U.toPhone(r2[+m.phone])) === mo(normPhone(o.phone)) && day(has(m, 'date') ? r2[+m.date] : '') === day(Number(o.time)) && (!has(m, 'amount') || !o.total || U.toMoney(r2[+m.amount]) === Number(o.total))) hit = j; } }
     if (hit < 0) { out.push('Bỏ qua: không thấy đơn ' + o.id + ' trong file'); continue; }
     upd[hit] = st; out.push('Đã ghi trạng thái dòng ' + (hr + 1 + hit) + ': ' + st);
   }
@@ -147,13 +148,15 @@ async function wbNoteWrite(x, src, items) {
   const rgs = [a1(sc.name, pc + (hr + 1) + ':' + pc), a1(sc.name, nc + (hr + 1) + ':' + nc)]; if (hasName) rgs.push(a1(sc.name, mc + (hr + 1) + ':' + mc));
   const got = await sheetBatchGet(x.env, id, rgs, 'UNFORMATTED_VALUE'), col = v => (v || []).map(r => r[0]);
   const phones = col(got[0]), notes = col(got[1]), names = hasName ? col(got[2]) : [];
-  const lastRow = {}; phones.forEach((p, i) => { const ph = U.toPhone(p); if (ph) lastRow[ph] = i; });
+  const AL = await phoneAlias(x), mainOf = p => AL[p] || p; // khách đã gộp nhiều số: dòng của số phụ trong file = dòng của khách
+  const lastRow = {}, aliasRow = {}; phones.forEach((p, i) => { const ph = U.toPhone(p); if (ph) { lastRow[ph] = i; if (AL[ph]) aliasRow[AL[ph]] = i; } });
+  Object.keys(aliasRow).forEach(ph => { if (lastRow[ph] === undefined) lastRow[ph] = aliasRow[ph]; });
   const nameUpd = {}, cellUpd = {}, add = [], newRow = {}, out = [], width = U.neededCols(sc), today = dM(Date.now());
   for (const it of items) {
     const i = lastRow[it.phone];
     if (it.text === WB_ZALO) { // đã kết bạn Zalo: thêm "(x)" vào tên ở mọi dòng của khách (dòng nào chưa có)
       if (!hasName) { out.push('Bỏ qua: sheet chưa chọn cột tên'); continue; }
-      let cnt = 0; phones.forEach((p, j) => { if (U.toPhone(p) !== it.phone) return; const nm = String(nameUpd[j] !== undefined ? nameUpd[j] : names[j] == null ? '' : names[j]); if (!/\(\s*[xX×]\s*\)/.test(nm)) { nameUpd[j] = nm.replace(/\s+$/, '') + '(x)'; cnt++; } });
+      let cnt = 0; phones.forEach((p, j) => { if (mainOf(U.toPhone(p)) !== mainOf(it.phone)) return; const nm = String(nameUpd[j] !== undefined ? nameUpd[j] : names[j] == null ? '' : names[j]); if (!/\(\s*[xX×]\s*\)/.test(nm)) { nameUpd[j] = nm.replace(/\s+$/, '') + '(x)'; cnt++; } });
       out.push(cnt ? 'Đã thêm (x) vào ' + cnt + ' dòng' : (i === undefined ? 'Bỏ qua: không thấy khách trong file' : 'Tên đã có (x)')); continue;
     }
     if (i === undefined && newRow[it.phone]) { const row = newRow[it.phone]; row[+m.note] += ', ' + it.text; out.push('Đã ghi vào dòng mới thêm'); continue; } // khách mới thêm cùng lượt: gộp vào 1 dòng

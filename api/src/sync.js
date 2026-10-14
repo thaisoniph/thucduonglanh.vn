@@ -3,7 +3,7 @@
 import { normPhone, esc, fmtDate, nrm, isVoid, hashKey, hashKeyLegacy, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, CRM_URL, DAY } from './lib.js';
 import { sheetMeta, sheetValues, sheetWrite, a1, serialToMs } from './google.js';
 import { wbKeys, wbHas } from './wb.js';
-import { crmUsers, crmLog, recalc, deletedOrderIds, delMark, setCallbacks, caCfg, caOf, normLine, itemsText, shipText, ORDER_COLS, srcList, adsCfg, telegramUser, unifyNames } from './crm.js';
+import { phoneAlias, crmUsers, crmLog, recalc, deletedOrderIds, delMark, setCallbacks, caCfg, caOf, normLine, itemsText, shipText, ORDER_COLS, srcList, adsCfg, telegramUser, unifyNames } from './crm.js';
 
 const FIELD_LABEL = { date: 'Ngày', name: 'Tên khách', phone: 'SĐT', address: 'Địa chỉ', product: 'Sản phẩm', qty: 'Số lượng', gift1: 'Quà tặng 1', gift1qty: 'SL quà 1', gift2: 'Quà tặng 2', gift2qty: 'SL quà 2',
   status: 'Trạng thái', ctype: 'Phân loại khách / ca', line: 'Dòng SP (nguồn)', code: 'Mã đơn', amount: 'Số tiền', shipText: 'Lên đơn (mô tả)', callback: 'Lịch gọi lại', note: 'Ghi chú / nhật ký', health: 'Tình trạng sức khoẻ',
@@ -295,18 +295,18 @@ async function ownersOf(x, phones) {
 async function importOrders(x, src, shCfg, data, dry) {
   const m = shCfg.map || {}, sale = src.sale, extra = (shCfg.extra || []).filter(i => i >= 0), H = data.headers, label = 'File ' + sale + ' – ' + shCfg.name, ca = await caCfg(x);
   const until = src.cfg.until ? new Date(src.cfg.until + 'T00:00:00+07:00').getTime() : 0, FINAL = { 'Đã giao': 1, 'Hoàn': 1, 'Huỷ': 1, 'Đổi hàng': 1 };
-  const parsed = [], days = orderDates(data.rows, m), far = [];
+  const parsed = [], days = orderDates(data.rows, m), far = [], AL = await phoneAlias(x);
   let skip = 0;
   for (const [ri, r] of data.rows.entries()) {
-    const phone = toPhone(cell(r, m, 'phone')), codeRaw = String(cell(r, m, 'code') || '').trim(), product = String(cell(r, m, 'product') || '').trim(), amount = toMoney(cell(r, m, 'amount'));
+    const fp = toPhone(cell(r, m, 'phone')), phone = AL[fp] || fp, codeRaw = String(cell(r, m, 'code') || '').trim(), product = String(cell(r, m, 'product') || '').trim(), amount = toMoney(cell(r, m, 'amount'));
     const D = days[ri], when = D.t, sw = D.sw || D.code; // ngày theo mã đơn (ô trống / lệch ô ngày); 12/10/2026: sheet VTG_lendon của Chang bỏ trống ngày 260 dòng
     if (!phone || !when || (!product && !amount)) { if (nonEmpty(r)) skip++; continue; }
     if (D.far && far.length < 30) far.push({ row: ri + (shCfg.header || 1) + 1, code: codeRaw, date: fmtDate(D.old, 'dd/MM/yyyy') });
     const valid = CODE_RE.test(codeRaw) || /^[A-Za-z]{2,}\d{5,}/.test(codeRaw);
-    const nkOf = t => { const hk = sale + '|' + fmtDate(t, 'yyyyMMdd') + '|' + phone + '|' + amount + '|' + nrm(product); return ['NK' + hashKey(hk), 'NK' + hashKeyLegacy(hk)]; };
+    const nkOf = t => { const hk = sale + '|' + fmtDate(t, 'yyyyMMdd') + '|' + fp + '|' + amount + '|' + nrm(product); return ['NK' + hashKey(hk), 'NK' + hashKeyLegacy(hk)]; };
     const [nk, old] = nkOf(when), prev = D.old && fmtDate(D.old, 'yyyyMMdd') !== fmtDate(when, 'yyyyMMdd') ? nkOf(D.old) : [];
     const key = valid ? codeRaw : nk, alt = (valid ? [nk, old] : [old]).concat(prev); // alt: mã NK… cùng dòng (Apps Script cũ băm chữ có dấu thành "?"; sale điền mã đơn sau khi đã nhập; ngày cũ theo ô trước khi lấy theo mã)
-    parsed.push({ r, phone, when, sw, dc: D.code && D.old ? (D.byCode ? 1 : 2) : 0, product, amount, codeRaw, valid, key, alt, yk: valid ? codeRaw + '-' + phone.slice(-4) : '', sig: phone + '|' + fmtDate(when, 'yyyyMMdd') + '|' + amount + '|' + nrm(product || cell(r, m, 'gift1')) });
+    parsed.push({ r, phone, when, sw, dc: D.code && D.old ? (D.byCode ? 1 : 2) : 0, product, amount, codeRaw, valid, key, alt, yk: valid ? codeRaw + '-' + fp.slice(-4) : '', sig: fp + '|' + fmtDate(when, 'yyyyMMdd') + '|' + amount + '|' + nrm(product || cell(r, m, 'gift1')) });
   }
   const ex = {}; (await allIn(x.db, 'SELECT rid, id, status, source, name, phone, time, total, items, note FROM orders WHERE id IN (SELECT value FROM json_each(?))', [...new Set(parsed.flatMap(p => [p.key, p.yk].concat(p.alt)).filter(String))])).forEach(o => { ex[o.id] = o; });
   // Mã đơn không có năm → trùng giữa các năm / giữa các sheet ("Chang101001" năm 2025 và 2026 là 2 khách khác nhau). Mã đã thuộc đơn của khách khác
@@ -476,14 +476,14 @@ async function srcFinish(x, u, d) {
 
 /** Sheet khách & nhật ký chăm sóc ("cop số"…): ghép nhật ký vào hồ sơ khách; người chưa mua → khách tiềm năng. */
 async function importCare(x, src, shCfg, data, dry, idx) {
-  const m = shCfg.map || {}, sale = src.sale, start = (src.cfg.done && src.cfg.done[idx]) || 0, ctx = dateCtx(data.rows, shCfg.map || {}), per = {}, order = [], nowMs = Date.now(), wbk = await wbKeys(x, src.id); let skip = 0;
+  const m = shCfg.map || {}, sale = src.sale, start = (src.cfg.done && src.cfg.done[idx]) || 0, ctx = dateCtx(data.rows, shCfg.map || {}), per = {}, order = [], nowMs = Date.now(), wbk = await wbKeys(x, src.id), AL = await phoneAlias(x); let skip = 0;
   data.rows.forEach((r, i) => {
     const when = toDate(cell(r, m, 'date'), ctx); if (i < start) return; // ngày vẫn đọc để biết năm của các dòng sau
-    const phone = toPhone(cell(r, m, 'phone')); if (!phone) { if (nonEmpty(r)) skip++; return; }
+    const fp = toPhone(cell(r, m, 'phone')), phone = AL[fp] || fp; if (!phone) { if (nonEmpty(r)) skip++; return; }
     let p = per[phone]; if (!p) { p = per[phone] = { name: '', entries: [], seen: {}, extra: [], last: null, status: '', product: '', amount: 0 }; order.push(phone); }
     p.name = String(cell(r, m, 'name') || p.name).trim(); if (when && (!p.last || when > p.last)) p.last = when;
     const n = String(cell(r, m, 'note') || '').trim(), hl = String(cell(r, m, 'health') || '').trim();
-    splitNote(n, when || null, nowMs).forEach(e => { const key = e.t + '|' + e.text; if (!p.seen[key] && !wbHas(wbk, phone, e.text)) { p.seen[key] = 1; p.entries.push(e); } }); // dòng do CRM ghi ngược: bỏ
+    splitNote(n, when || null, nowMs).forEach(e => { const key = e.t + '|' + e.text; if (!p.seen[key] && !wbHas(wbk, phone, e.text) && !wbHas(wbk, fp, e.text)) { p.seen[key] = 1; p.entries.push(e); } }); // dòng do CRM ghi ngược: bỏ
     nameMarks(cell(r, m, 'name')).concat(hl ? ['Sức khoẻ: ' + hl] : []).forEach(v => { if (p.extra.indexOf(v) < 0) p.extra.push(v); });
     p.status = String(cell(r, m, 'status') || p.status); p.product = String(cell(r, m, 'product') || p.product); p.amount = p.amount || toMoney(cell(r, m, 'amount'));
   });
@@ -495,7 +495,7 @@ async function importCare(x, src, shCfg, data, dry, idx) {
   const owners = await ownersOf(x, order);
   if (dry) for (const sc of src.cfg.sheets || []) { // xem trước: coi như các sheet đơn hàng đã được nhập
     if (sc.role !== 'orders') continue; const dd = await srcRows(x, src, sc), mm = sc.map || {};
-    dd.rows.forEach(r => { const ph = toPhone(cell(r, mm, 'phone')); if (ph && !owners[ph] && per[ph]) owners[ph] = { owner: sale, name: '' }; });
+    dd.rows.forEach(r => { const f0 = toPhone(cell(r, mm, 'phone')), ph = AL[f0] || f0; if (ph && !owners[ph] && per[ph]) owners[ph] = { owner: sale, name: '' }; });
   }
   const ids = order.map(ph => 'CS' + hashKey(sale + '|' + ph)), oldIds = order.map(ph => 'CS' + hashKeyLegacy(sale + '|' + ph)); // oldIds: mã do Apps Script cũ tạo
   const have = {}; (await allIn(x.db, 'SELECT id FROM leads WHERE id IN (SELECT value FROM json_each(?))', ids.concat(oldIds))).forEach(r => { have[r.id] = 1; });
@@ -528,8 +528,8 @@ async function importCare(x, src, shCfg, data, dry, idx) {
 
 /** Sheet khách từ chối / bom hàng: gắn nhãn ⚠️ cho khách, người chưa mua → tiềm năng "Không mua". */
 async function importReject(x, src, shCfg, data, dry) {
-  const m = shCfg.map || {}, sale = src.sale, per = {};
-  data.rows.forEach(r => { const ph = toPhone(cell(r, m, 'phone')); if (!ph) return; per[ph] = per[ph] || { name: String(cell(r, m, 'name') || ''), why: [] }; const n = String(cell(r, m, 'note') || cell(r, m, 'status') || '').trim(); if (n) per[ph].why.push(n); });
+  const m = shCfg.map || {}, sale = src.sale, per = {}, AL = await phoneAlias(x);
+  data.rows.forEach(r => { const f0 = toPhone(cell(r, m, 'phone')), ph = AL[f0] || f0; if (!ph) return; per[ph] = per[ph] || { name: String(cell(r, m, 'name') || ''), why: [] }; const n = String(cell(r, m, 'note') || cell(r, m, 'status') || '').trim(); if (n) per[ph].why.push(n); });
   const phs = Object.keys(per), owners = await ownersOf(x, phs), flags = [], leads = [];
   const have = {}; (await allIn(x.db, 'SELECT id FROM leads WHERE id IN (SELECT value FROM json_each(?))', phs.flatMap(ph => ['TC' + hashKey(sale + '|' + ph), 'TC' + hashKeyLegacy(sale + '|' + ph)]))).forEach(r => { have[r.id] = 1; });
   (await allIn(x.db, "SELECT phone FROM leads WHERE id LIKE 'TC%' AND phone IN (SELECT value FROM json_each(?))", phs)).forEach(r => { have['p' + r.phone] = 1; }); // đã nhập (tên sale lúc đó có thể khác)
@@ -642,14 +642,14 @@ export async function adsSync(x, u, dry) {
   const rows = [], perSale = {}, perSheet = {}, writes = [], rr = {}; let skipped = 0, merged = 0;
   const nextFrom = async (pool, key) => { if (!(key in rr)) rr[key] = (await kvGet(x.db, key)) || ''; const n = pool[(pool.indexOf(rr[key]) + 1) % pool.length]; rr[key] = n; return n; };
   const scan = [], reg = [], regFrom = Date.now() - 100 * DAY; // reg: mọi dòng có SĐT trong 100 ngày → đếm data quảng cáo (tỷ lệ chốt), không phụ thuộc việc tạo khách hỏi
-  const keep = {}, keepRaw = {}, rowsOf = {}; // cột Trùng sale: {sđt: sale phụ trách khách} (dòng dưới cùng có ghi thắng) – không phụ thuộc file sale nào nhập trước
+  const keep = {}, keepRaw = {}, rowsOf = {}, AL = await phoneAlias(x), mp = p => AL[p] || p; // mp: số phụ của khách đã gộp → số chính. Cột Trùng sale: {sđt: sale phụ trách khách} (dòng dưới cùng có ghi thắng) – không phụ thuộc file sale nào nhập trước
   const sheets = [];
   for (const sc of (cfg.sheets || []).filter(s => s.on)) {
     const m = sc.map || cfg.map || {}, hr = sc.header || 1;
     const vals = await sheetValues(x.env, cfg.fileId, a1(sc.name, 'A' + (hr + 1) + ':' + colLetter(neededCols({ map: m }) - 1)), 'UNFORMATTED_VALUE');
     sheets.push({ sc, m, hr, vals });
     if (m.dup !== undefined) vals.forEach((r, i) => {
-      const ph = toPhone(cell(r, m, 'phone')), t = String(cell(r, m, 'dup') || '').trim(); if (!ph) return;
+      const ph = mp(toPhone(cell(r, m, 'phone'))), t = String(cell(r, m, 'dup') || '').trim(); if (!ph) return;
       (rowsOf[ph] = rowsOf[ph] || []).push({ sheet: sc.name, row: hr + 1 + i, col: m.dup, has: !!t }); if (!t) return;
       const n = who(t); if (n) { keep[ph] = n; delete keepRaw[ph]; } else if (!keep[ph]) keepRaw[ph] = t;
     });
@@ -658,9 +658,9 @@ export async function adsSync(x, u, dry) {
   for (const { sc, m, hr, vals } of sheets) {
     const days = adsDays(vals.map(r => cell(r, m, 'date')));
     vals.forEach((r, i) => {
-      const when = days[i], phone = toPhone(cell(r, m, 'phone')); if (!when || !phone) return;
+      const when = days[i], fp = toPhone(cell(r, m, 'phone')), phone = mp(fp); if (!when || !phone) return;
       if (when >= regFrom) { const st = String(cell(r, m, 'sale') || '').trim(); reg.push([dayOf(when), phone, keep[phone] || who(st) || st, String(cell(r, m, 'src') || sc.name).trim()]); }
-      if (when < since) return; scan.push({ sc, m, hr, r, i, when, phone, id: 'QC' + hashKey(sc.name + '|' + phone + '|' + fmtDate(when, 'yyyyMMdd')) });
+      if (when < since) return; scan.push({ sc, m, hr, r, i, when, phone, id: 'QC' + hashKey(sc.name + '|' + fp + '|' + fmtDate(when, 'yyyyMMdd')) });
     });
   }
   if (!dry) { const js = JSON.stringify(reg), v = hashKey(js); if ((await kvGet(x.db, 'ads_rows_v')) !== v) { await kvSet(x.db, 'ads_rows', js); await kvSet(x.db, 'ads_rows_v', v); } }
@@ -725,9 +725,9 @@ export async function srcAutoTick(x, force) {
 /* ---------- khách trùng sale: 1 khách có trong file của nhiều sale (trước khi gộp văn phòng mỗi người chăm riêng) → quản lý chốt 1 người giữ */
 /** Ghi lại các số có trong 1 sheet file sale. Chỉ ghi phần thay đổi; sheet không đổi thì bỏ qua. */
 async function notePhones(x, src, shCfg, rows) {
-  const m = shCfg.map || {}, ctx = dateCtx(rows, shCfg.map || {}), per = {};
+  const m = shCfg.map || {}, ctx = dateCtx(rows, shCfg.map || {}), per = {}, AL = await phoneAlias(x);
   for (const r of rows) {
-    const when = toDate(cell(r, m, 'date'), ctx), ph = toPhone(cell(r, m, 'phone')); if (!ph) continue;
+    const when = toDate(cell(r, m, 'date'), ctx), f0 = toPhone(cell(r, m, 'phone')), ph = AL[f0] || f0; if (!ph) continue;
     const p = per[ph] || (per[ph] = { n: 0, last: null }); p.n++; if (when && (!p.last || when > p.last)) p.last = when;
   }
   const sheet = shCfg.name, keys = Object.keys(per).sort(), kk = 'sp_' + hashKey(src.id + '|' + sheet);
