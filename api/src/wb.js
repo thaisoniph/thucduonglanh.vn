@@ -129,7 +129,7 @@ async function wbOrderWriteSheet(x, src, sc, items) {
     upd[hit] = st; out.push('Đã ghi trạng thái dòng ' + (hr + 1 + hit) + ': ' + st);
   }
   await sheetWrite(x.env, id, Object.keys(upd).map(i => ({ range: a1(sc.name, U.colLetter(+m.status) + (hr + 1 + +i)), values: [[upd[i]]] })));
-  await sheetAppend(x.env, id, a1(sc.name, 'A' + hr), add);
+  if (add.length) await appendAt(x, id, sc.name, hr + 1 + (await readRows()).length, width, add);
   return out;
 }
 /** Ghi 1 lượt vào 1 file: lệnh đơn → sheet lên đơn; ghi chú → nối vào ô ghi chú dòng cuối của khách (chưa có dòng → thêm dòng mới). Trả về kết quả từng dòng, không ném lỗi. */
@@ -162,8 +162,13 @@ async function wbNoteWrite(x, src, items) {
     cellUpd[i] = cur ? cur + ', ' + it.text : it.text; out.push('Đã ghi dòng ' + (hr + 1 + i));
   }
   await sheetWrite(x.env, id, Object.keys(cellUpd).map(i => ({ range: a1(sc.name, nc + (hr + 1 + +i)), values: [[cellUpd[i]]] })).concat(Object.keys(nameUpd).map(i => ({ range: a1(sc.name, mc + (hr + 1 + +i)), values: [[nameUpd[i]]] }))));
-  await sheetAppend(x.env, id, a1(sc.name, 'A' + hr), add);
+  if (add.length) await appendAt(x, id, sc.name, hr + 1 + Math.max(phones.length, notes.length, names.length), width, add);
   return out;
+}
+/** Thêm dòng vào CUỐI sheet. Trước đây gọi append từ ô A<dòng tiêu đề>: ô A tiêu đề để trống (vd "cop số" của Phương) thì Google không nhận ra bảng
+ *  → chèn dòng mới lên TRÊN CÙNG, đẩy cả bảng xuống (13/10/2026). Nay chỉ thẳng dòng ngay sau dòng có dữ liệu cuối cùng. */
+async function appendAt(x, id, name, row, width, add) {
+  await sheetAppend(x.env, id, a1(name, 'A' + row + ':' + SRC_UTIL.colLetter(width - 1) + row), add);
 }
 
 /** Lịch 10 phút/lần: ghi các dòng đang chờ, gom theo file (mỗi file 1–3 lần gọi Google). Hàng trống → 1 câu SELECT theo chỉ mục rồi thôi. Không bao giờ ném lỗi ra ngoài. */
