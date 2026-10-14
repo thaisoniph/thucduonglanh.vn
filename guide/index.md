@@ -31,7 +31,7 @@ Trang này dành cho toàn bộ nhân sự. Đọc phần **Bắt đầu** trư�
 | --- | --- | --- |
 | **CRM** | Mọi nhân viên kinh doanh, CSKH | Gửi **email bạn dùng hằng ngày** (Gmail hoặc email công ty) cho anh Sơn hoặc quản lý. Được thêm xong là đăng nhập được, không cần mật khẩu. |
 | **Telegram** | Mọi nhân viên kinh doanh, CSKH | Cài Telegram, nhờ anh Sơn thêm vào nhóm “Đơn hàng Thực Dưỡng Lành” để nhận báo đơn và danh sách chăm sóc mỗi sáng. |
-| **GitHub** | Chỉ người sửa website | Xem mục [Chuẩn bị tài khoản sửa website](/huong-dan/website/#chuan-bi-tai-khoan-sua-website). |
+| **Sửa website** | Chỉ người đăng bài, sửa sản phẩm | Dùng email CRM, nhờ anh Sơn bật ô 🌐 Sửa website. Xem [Chuẩn bị tài khoản sửa website](/huong-dan/website/#chuan-bi-tai-khoan-sua-website). |
 
 Bạn **không cần mở Google Sheet**. Mọi việc với đơn hàng và khách hàng đều làm trên CRM, CRM tự ghi vào Sheet.
 
@@ -55,8 +55,8 @@ Làm đầy đủ trên CRM thì hệ thống biết khách nào đã được c
 1. **Công dụng sản phẩm**: chỉ nói và viết đúng theo hồ sơ công bố. **Không** dùng các từ “chữa bệnh”, “điều trị”, “khỏi bệnh”. Với thực phẩm bổ sung, luôn giữ câu: *“Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh.”*
 2. **Bảo mật dữ liệu khách hàng** (Nghị định 13/2023): không chụp màn hình, không gửi hay chia sẻ danh sách khách ra ngoài, không dùng số điện thoại của khách cho việc cá nhân.
 3. **Khách chưa đồng ý nhận tin ưu đãi**: vẫn hỏi thăm, hướng dẫn cách dùng bình thường, nhưng không gửi quảng cáo / ưu đãi. Khi khách đồng ý, mở hồ sơ bấm **☐ Khách đồng ý nhận ưu đãi**.
-4. **Không đưa mã đăng nhập** (mã 6 số của CRM, mã ghp_ của trang quản trị) cho bất kỳ ai, kể cả đồng nghiệp.
-5. **Nghỉ việc hoặc đổi máy**: báo quản lý để khoá tài khoản CRM, và tự xoá mã ghp_ trên GitHub.
+4. **Không đưa mã đăng nhập** (mã 6 số của CRM và trang quản trị website) cho bất kỳ ai, kể cả đồng nghiệp.
+5. **Nghỉ việc hoặc đổi máy**: báo quản lý để khoá tài khoản CRM (khoá luôn quyền sửa website).
 
 ## Cần hỗ trợ
 

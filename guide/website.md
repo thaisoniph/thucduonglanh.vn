@@ -2,7 +2,7 @@
 title: Hướng dẫn sửa website
 nav: Website
 order: 3
-updated: 2026-10-09
+updated: 2026-10-14
 description: Đăng bài, sửa sản phẩm, giá, cài đặt website và tạo link theo dõi trên thucduonglanh.vn/admin.
 ---
 
@@ -12,20 +12,19 @@ Trang quản trị: **[thucduonglanh.vn/admin](https://thucduonglanh.vn/admin/)*
 
 ## Chuẩn bị tài khoản sửa website
 
-Chỉ làm 1 lần.
+Không cần tài khoản GitHub. Bạn dùng **đúng email đăng nhập CRM**.
 
-1. **Tạo tài khoản GitHub** miễn phí tại [github.com/signup](https://github.com/signup). Gửi **tên đăng nhập GitHub** cho anh Sơn.
-2. Mở email mời từ GitHub, bấm **Accept invitation**.
-3. **Tạo mã đăng nhập trang quản trị**: đăng nhập GitHub, mở [link tạo mã này](https://github.com/settings/tokens/new?scopes=public_repo&description=Quan%20tri%20thucduonglanh).
-    - Ô **Expiration** chọn **No expiration**.
-    - Bấm **Generate token**, copy mã bắt đầu bằng **ghp_**, lưu vào nơi an toàn.
-    - **Không gửi mã cho bất kỳ ai.** Mất mã thì tạo mã mới theo link trên.
+- Nhờ anh Sơn bật ô **🌐 Sửa website** cho email của bạn (CRM → Cài đặt → Nhân sự).
+- Chưa có tài khoản CRM: gửi email bạn dùng hằng ngày cho anh Sơn để được thêm.
 
 ## Đăng nhập trang quản trị
 
 1. Mở [thucduonglanh.vn/admin](https://thucduonglanh.vn/admin/) trên máy tính.
-2. Bấm **“Đăng nhập bằng mã truy cập”**. Không bấm “Đăng nhập bằng GitHub”.
-3. Dán mã **ghp_…**, đăng nhập. Máy nhớ cho lần sau.
+2. Bấm **“Đăng nhập bằng GitHub”**. Một cửa sổ nhỏ hiện ra (trình duyệt chặn cửa sổ thì bấm cho phép).
+3. Nhập email, bấm **Gửi mã về email**. Mở email (xem cả mục Spam / Quảng cáo), nhập **mã 6 số**, bấm **Đăng nhập**.
+4. Cửa sổ nhỏ tự đóng, trang quản trị mở ra. Máy nhớ đăng nhập 30 ngày.
+
+Mỗi lần bạn lưu, tên bạn được ghi lại trong lịch sử website và Nhật ký CRM.
 
 Bấm **Lưu** xong, khoảng **1–2 phút** sau thay đổi mới hiện trên website. Chưa thấy thì tải lại trang bằng **Ctrl + F5** (Windows) hoặc **Cmd + Shift + R** (Mac).
 

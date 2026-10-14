@@ -5079,12 +5079,12 @@
       '<div class="edit-table" id="tpT">' + tp.map(function (r, i) { return '<div class="edit-row tpl" data-i="' + i + '"><input type="text" data-k="0" value="' + esc(r[0]) + '" placeholder="Thời điểm"><input type="text" data-k="1" value="' + esc(r[1]) + '" placeholder="Mục đích"><button class="rm" data-rm="tp" data-i="' + i + '" aria-label="Xoá">✕</button><textarea data-k="2" rows="3" placeholder="Nội dung tin">' + esc(r[2]) + '</textarea></div>'; }).join('') +
       '</div><div class="steps" style="margin-top:10px"><button class="btn" data-add="tp">＋ Thêm mẫu</button><button class="btn pri" id="tpSave">Lưu mẫu tin</button></div></div>';
     if (lvl() >= 3) {
-      var us = S.f.us || (S.f.us = S.d.users.map(function (u) { return { email: u.email, name: u.name, role: u.role, active: u.active !== false, alias: u.alias || '', prefix: u.prefix || '' }; }));
+      var us = S.f.us || (S.f.us = S.d.users.map(function (u) { return { email: u.email, name: u.name, role: u.role, active: u.active !== false, alias: u.alias || '', prefix: u.prefix || '', web: !!u.web }; }));
       G.us = '<div class="box"><h3>Nhân sự được vào CRM</h3><p class="hint" style="margin:0 0 10px"><b>Quản trị</b>: toàn quyền. <b>Quản lý</b>: thêm xem doanh thu, sửa chu kỳ & mẫu tin. <b>Nhân viên</b>: chăm sóc khách, xử lý đơn. <b>Marketing</b>: chỉ thấy tab 📣 Marketing (chi phí, hiệu quả quảng cáo, tự nhập chi phí), không thấy khách, đơn, doanh thu công ty. Nhân viên nghỉ việc: bỏ tích “Đang dùng” là không vào được nữa.</p>' +
         '<p class="hint" style="margin:0 0 10px"><b>Tên trong file QC</b>: tên sale như đang ghi ở cột Sale của file số quảng cáo (nhiều cách viết thì cách nhau dấu phẩy, vd “Phương, PHƯƠNG”). <b>Tiền tố mã đơn</b>: vd “Phuong” → mã đơn Phuong300926-01.</p>' +
         '<div class="edit-table" id="usT"><div class="edit-row usr head"><span>Email</span><span>Tên hiển thị</span><span>Quyền</span><span>Đang dùng</span><span></span></div>' +
         us.map(function (u, i) { return '<div class="edit-row usr" data-i="' + i + '"><input type="email" data-k="email" value="' + esc(u.email) + '" placeholder="email@gmail.com"><input type="text" data-k="name" value="' + esc(u.name) + '" placeholder="Tên"><select data-k="role">' + ['Nhân viên', 'Quản lý', 'Quản trị', 'Marketing'].map(function (r) { return '<option' + (r === u.role ? ' selected' : '') + '>' + r + '</option>'; }).join('') + '</select><label class="switch"><input type="checkbox" data-k="active"' + (u.active ? ' checked' : '') + '> Có</label><button class="rm" data-rm="us" data-i="' + i + '" aria-label="Xoá">✕</button>' +
-          '<input type="text" data-k="alias" value="' + esc(u.alias || '') + '" placeholder="Tên trong file QC (vd Phương)" class="usr-x"><input type="text" data-k="prefix" value="' + esc(u.prefix || '') + '" placeholder="Tiền tố mã đơn (vd Phuong)" class="usr-x"></div>'; }).join('') +
+          '<input type="text" data-k="alias" value="' + esc(u.alias || '') + '" placeholder="Tên trong file QC (vd Phương)" class="usr-x"><input type="text" data-k="prefix" value="' + esc(u.prefix || '') + '" placeholder="Tiền tố mã đơn (vd Phuong)" class="usr-x"><label class="switch usr-w"><input type="checkbox" data-k="web"' + (u.web || u.role === 'Quản trị' ? ' checked' : '') + (u.role === 'Quản trị' ? ' disabled' : '') + '> 🌐 Sửa website (đăng bài, sửa sản phẩm ở thucduonglanh.vn/admin)</label></div>'; }).join('') +
         '</div><div class="steps" style="margin-top:10px"><button class="btn" data-add="us">＋ Thêm người</button><button class="btn pri" id="usSave">Lưu nhân sự</button></div></div>';
     }
     // ---- gom thành nhóm, mỗi mục 1 dòng tóm tắt
@@ -5102,9 +5102,34 @@
       var src = S.d.sources || [], ads = S.d.ads, SB = syncBoxes(), cut = SB.indexOf('<div class="box"><h3>📣');
       h += setSec('🔌 Kết nối & báo cáo', setGroup('src', '📂 File Google Sheet của sale', src.length ? src.length + ' file' : '⚠️ Chưa có file nào', SB.slice(0, cut)) +
         setGroup('ads', '📣 File số quảng cáo chung', ads && ads.fileId ? '✅ ' + (ads.auto ? 'Tự lấy số 10 phút / lần' : 'Lấy số bằng tay') + (ads.last ? ' · lần cuối ' + when(ads.last) : '') : '⚠️ Chưa kết nối', SB.slice(cut)) +
-        setGroup('da', '🚦 Mức đèn quảng cáo ở Tổng quan', '🟢 dưới ' + DA[0] + '% · 🔴 trên ' + DA[1] + '%', G.da));
+        setGroup('da', '🚦 Mức đèn quảng cáo ở Tổng quan', '🟢 dưới ' + DA[0] + '% · 🔴 trên ' + DA[1] + '%', G.da) +
+        setGroup('cms', '🌐 Trang quản trị website', cmsLine(), cmsBox()));
     }
     return h;
+  }
+  /** 🌐 Trang quản trị website (Quản trị): mã GitHub của công ty để nhân sự đăng nhập thucduonglanh.vn/admin bằng email (api/src/cms.js). Trạng thái tải khi mở Cài đặt. */
+  function cmsLine() {
+    var c = S.f.cms; if (!c) return 'Đang kiểm tra…';
+    var webN = (S.d.users || []).filter(function (u) { return u.active !== false && u.web; }).length;
+    if (!c.has) return '⚠️ Chưa kết nối GitHub · nhân sự chưa đăng nhập bằng email được';
+    var left = c.exp ? Math.round((new Date(c.exp) - Date.now()) / 864e5) : null;
+    return (left !== null && left < 14 ? '⚠️ Mã GitHub hết hạn ' + (left < 0 ? 'rồi' : 'sau ' + left + ' ngày') : '✅ Đã kết nối' + (c.exp ? ' · mã hết hạn ' + fDate(new Date(c.exp).getTime()) : '')) + ' · ' + webN + ' người được sửa website';
+  }
+  function cmsBox() {
+    var c = S.f.cms || {};
+    return '<div class="box"><p class="small">Nhân sự vào <a href="https://thucduonglanh.vn/admin/" target="_blank" rel="noopener">thucduonglanh.vn/admin</a> → <b>Đăng nhập bằng GitHub</b> → nhập email → mã 6 số gửi về email. Không cần tài khoản GitHub. Ai được vào: bật ô <b>🌐 Sửa website</b> ở mục Nhân sự (Quản trị luôn được).</p>' +
+      '<p class="small">Máy chủ dùng 1 mã GitHub của công ty để lưu bài. ' + (c.has ? '<b>Đang dùng mã hết hạn ' + (c.exp ? esc(c.exp.split('-').reverse().join('/')) : 'không rõ') + '.</b> Dán mã mới vào đây khi gần hết hạn.' : '<b>Chưa có mã.</b>') + '</p>' +
+      '<details class="small"><summary>Cách tạo mã (3 phút)</summary><ol><li>Mở <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens/new</a> (tài khoản thaisoniph).</li><li><b>Token name</b>: Trang quản trị website. <b>Expiration</b>: 1 năm (Custom).</li><li><b>Repository access</b>: Only select repositories → <b>thaisoniph/thucduonglanh.vn</b>.</li><li><b>Permissions</b> → Repository permissions → <b>Contents: Read and write</b>.</li><li>Bấm <b>Generate token</b>, sao chép mã (bắt đầu bằng github_pat_) rồi dán vào ô dưới.</li></ol></details>' +
+      '<div class="steps" style="margin-top:8px"><input type="password" id="cmsPat" placeholder="github_pat_…" autocomplete="off" style="flex:1;min-width:200px"><button class="btn pri" id="cmsSave">Lưu mã</button></div></div>';
+  }
+  function bindCms() {
+    if (!$('#cmsSave')) return;
+    if (!S.f.cms && !S.f.cmsAsk) { S.f.cmsAsk = 1; api('cms_pat').then(function (j) { S.f.cms = j.status || { has: false }; render(); }, function () { S.f.cmsAsk = 0; }); }
+    $('#cmsSave').onclick = function () {
+      var b = this, v = $('#cmsPat').value.trim(); if (!v) { toast('Dán mã GitHub vào ô trước', true); return; }
+      b.disabled = true; b.textContent = 'Đang kiểm tra…';
+      api('cms_pat', { pat: v }).then(function (j) { S.f.cms = j.status; toast('Đã lưu mã ✓ Nhân sự đăng nhập /admin bằng email được rồi'); render(); }, function (e) { toast(e.message, true); b.disabled = false; b.textContent = 'Lưu mã'; });
+    };
   }
   /** Cài đặt: 1 nhóm (tiêu đề nhỏ + các mục thu gọn). */
   function setSec(title, body) { return '<section class="set-sec"><h2>' + title + '</h2>' + body + '</section>'; }
@@ -5154,6 +5179,7 @@
         };
       }, function (e) { toast(e.message, true); b.disabled = false; b.textContent = 'Kết nối Telegram'; });
     };
+    if (lvl() >= 3) bindCms();
     if (lvl() < 2) return;
     bindSync();
     $('#modeSave').onclick = function () {
@@ -5430,7 +5456,7 @@
       else render();
       return;
     }
-    if (t.hasAttribute('data-add')) { var k = a('data-add'); S.f[k].push(k === 'us' ? { email: '', name: '', role: 'Nhân viên', active: true, alias: '', prefix: '' } : k === 'tp' ? ['', '', ''] : ['', '', '', '']); render(); var rows = $$('#' + k + 'T .edit-row[data-i]'); if (rows.length) $('input', rows[rows.length - 1]).focus(); return; }
+    if (t.hasAttribute('data-add')) { var k = a('data-add'); S.f[k].push(k === 'us' ? { email: '', name: '', role: 'Nhân viên', active: true, alias: '', prefix: '', web: false } : k === 'tp' ? ['', '', ''] : ['', '', '', '']); render(); var rows = $$('#' + k + 'T .edit-row[data-i]'); if (rows.length) $('input', rows[rows.length - 1]).focus(); return; }
     if (t.hasAttribute('data-rm')) { var k2 = a('data-rm'); if (k2 === 'us' && S.f.us[+a('data-i')].email === S.user.email) { toast('Không tự xoá tài khoản của mình được.', true); return; } S.f[k2].splice(+a('data-i'), 1); render(); return; }
     if (t.hasAttribute('data-cust')) { closeModal(true); openCustomer(a('data-cust')); return; }
     if (t.hasAttribute('data-order')) { closeModal(true); openOrder(a('data-order')); return; }

@@ -3,6 +3,11 @@ backend:
   name: github
   repo: thaisoniph/thucduonglanh.vn
   branch: main
+  # Đăng nhập bằng email như CRM (không cần tài khoản GitHub): nút "Đăng nhập bằng GitHub" mở cửa sổ của máy chủ api,
+  # máy chủ lưu bài bằng mã GitHub của công ty (CRM → Cài đặt → 🌐 Trang quản trị website). Xem api/src/cms.js.
+  base_url: https://api.thucduonglanh.vn
+  auth_endpoint: cms/auth
+  api_root: https://api.thucduonglanh.vn/gh/api/v3
   commit_messages:
     create: "Thêm {{collection}}: {{slug}}"
     update: "Cập nhật {{collection}}: {{slug}}"

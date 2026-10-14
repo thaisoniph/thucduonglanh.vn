@@ -328,6 +328,7 @@ details.addr-more summary, .sheet-cfg summary { cursor: pointer; color: var(--pr
 .map-s { display: block; font-style: normal; font-size: 12px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .extra { display: flex; flex-wrap: wrap; gap: 6px 14px; }
 .edit-row.usr .usr-x { grid-column: span 2; }
+.edit-row.usr .usr-w { grid-column: 1 / -1; font-size: 13px; }
 @media (max-width: 700px) { .edit-row.usr .usr-x { grid-column: 1 / -1; } }
 
 /* ---------- bảng BCDT */

@@ -247,8 +247,11 @@ Apps Script giới hạn 200 phiên bản/dự án: báo lỗi "Không tạo đ�
 
 ## 6. Trang quản trị & nhân sự
 
-- Cấp quyền: https://github.com/thaisoniph/thucduonglanh.vn/settings/access → **Add people** → quyền **Write**. Nghỉ việc → **Remove**.
-- Nhân sự đăng nhập /admin bằng **mã truy cập GitHub** (quyền `public_repo`), chọn "Đăng nhập bằng mã truy cập".
+- **Đăng nhập bằng email (từ 14/10/2026, api `2026-10-14a`)**: nhân sự không cần tài khoản GitHub (GitHub hay khoá nhầm tài khoản mới tạo). Cấp quyền: CRM → Cài đặt → Nhân sự → ô **🌐 Sửa website** (cột `users.web` = 'Có'; Quản trị luôn được). Nghỉ việc → tắt ô hoặc khoá tài khoản CRM, phiên /admin mất hiệu lực trong ≤ 1 phút.
+  - `admin/config.yml` backend có `base_url: https://api.thucduonglanh.vn`, `auth_endpoint: cms/auth`, `api_root: https://api.thucduonglanh.vn/gh/api/v3`. Nút "Đăng nhập bằng GitHub" của Sveltia mở cửa sổ `GET /cms/auth` (api/src/cms.js): email → mã 6 số (`/cms/login`, `/cms/verify`, kv `cotp_<email>`, giới hạn `rl_<email>` dùng chung CRM) → mã phiên 64 hex (kv `cms_<mã>`, 30 ngày) gửi về /admin bằng postMessage (giao thức Decap: `authorizing:github` ↔ `authorization:github:success:{token}`, chỉ nguồn thucduonglanh.vn / *.thucduonglanh.pages.dev / localhost).
+  - Cổng trung gian `/gh/api/v3/*` và `/gh/api/graphql` → api.github.com: đổi mã phiên thành **mã GitHub của công ty** (fine-grained, chỉ repo này, Contents: Read and write; kv `gh_cms_token` + `gh_cms_exp`, Quản trị dán ở CRM → Cài đặt → 🔌 → 🌐 Trang quản trị website, lệnh `cms_pat`; hoặc secret Worker `GH_CMS_TOKEN`). REST chỉ cho `/repos/thaisoniph/thucduonglanh.vn…`, `/rate_limit`; `/user` trả hồ sơ giả từ CRM (tên nhân sự). GraphQL `createCommitOnBranch`: chặn repo khác, thêm " · <tên>" vào tiêu đề commit + dòng "Sửa qua trang quản trị bởi …", commit thành công thì ghi Nhật ký CRM (what = Website). Mã GitHub công ty hết hạn → cổng trả 503 kèm lời nhắc (không trả 401 để Sveltia không bắt nhân sự đăng nhập lại).
+  - Vẫn đăng nhập kiểu cũ được: "Đăng nhập bằng mã truy cập" + mã GitHub cá nhân (ghp_/github_pat_) → cổng chuyển thẳng mã đó sang GitHub, GitHub tự kiểm quyền collaborator.
+  - Thử trên máy: `npx wrangler dev --local` trong bản sao `api/` + `admin/config.yml` đổi 2 địa chỉ sang localhost (đã thử 14/10 bằng Chrome headless: đăng nhập, mở bài, lưu lên nhánh thử).
 - Trong /admin: Bài viết · Sản phẩm (giá, quy cách, ảnh, mô tả, **Gợi ý mua kèm**, ẩn/hiện) · Trang chính sách · Cài đặt (liên hệ, mạng xã hội, ngân hàng, **phí ship**, kênh cộng đồng, **video thương hiệu**, **mời ebook**, **nhóm Zalo**, slider, danh mục, **Hồ sơ thương hiệu**).
 - Mọi lần lưu có lịch sử trên GitHub → khôi phục được.
 
