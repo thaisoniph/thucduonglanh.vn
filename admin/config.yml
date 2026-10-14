@@ -15,6 +15,7 @@ backend:
     uploadMedia: "Tải ảnh {{path}}"
     deleteMedia: "Xoá ảnh {{path}}"
 
+app_title: Quản trị website Thực Dưỡng Lành
 site_url: https://thucduonglanh.vn
 display_url: https://thucduonglanh.vn
 logo_url: /assets/img/brand/icon-180.png

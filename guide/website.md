@@ -20,7 +20,7 @@ Không cần tài khoản GitHub. Bạn dùng **đúng email đăng nhập CRM**
 ## Đăng nhập trang quản trị
 
 1. Mở [thucduonglanh.vn/admin](https://thucduonglanh.vn/admin/) trên máy tính.
-2. Bấm **“Đăng nhập bằng GitHub”**. Một cửa sổ nhỏ hiện ra (trình duyệt chặn cửa sổ thì bấm cho phép).
+2. Bấm **“Đăng nhập bằng email”**. Một cửa sổ nhỏ hiện ra (trình duyệt chặn cửa sổ thì bấm cho phép).
 3. Nhập email, bấm **Gửi mã về email**. Mở email (xem cả mục Spam / Quảng cáo), nhập **mã 6 số**, bấm **Đăng nhập**.
 4. Cửa sổ nhỏ tự đóng, trang quản trị mở ra. Máy nhớ đăng nhập 30 ngày.
 
