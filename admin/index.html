@@ -11,9 +11,8 @@
   <script src="https://unpkg.com/@sveltia/cms@0/dist/sveltia-cms.js"></script>
   <script>
     // Màn hình đăng nhập: nút "Đăng nhập bằng GitHub" thật ra mở cửa sổ đăng nhập bằng email (api/src/cms.js) → đổi chữ cho nhân sự khỏi nhầm.
-    // Ẩn nút "Đăng nhập bằng mã truy cập" (mã GitHub cá nhân, cách cũ); cần dùng thì mở /admin/?ma=1
+    // Ẩn nút "Đăng nhập bằng mã truy cập": máy chủ chỉ nhận đăng nhập bằng email.
     (function () {
-      var showPat = /[?&]ma=1/.test(location.search);
       function fix() {
         document.querySelectorAll('button').forEach(function (b) {
           var t = (b.textContent || '').trim();
@@ -21,7 +20,7 @@
             b.textContent = 'Đăng nhập bằng email';
             if (!b.parentNode.querySelector('.tdl-hint')) { var p = document.createElement('p'); p.className = 'tdl-hint'; p.textContent = 'Dùng email đăng nhập CRM. Mã 6 số sẽ gửi về email của bạn.'; p.style.cssText = 'margin:8px 0 0;font-size:14px;color:#555;text-align:center'; b.insertAdjacentElement('afterend', p); }
           }
-          if (!showPat && /^(Đăng nhập bằng mã truy cập|Sign In Using Access Token)/i.test(t)) b.style.display = 'none';
+          if (/^(Đăng nhập bằng mã truy cập|Sign In Using Access Token)/i.test(t)) b.style.display = 'none';
         });
       }
       new MutationObserver(fix).observe(document.documentElement, { childList: true, subtree: true });

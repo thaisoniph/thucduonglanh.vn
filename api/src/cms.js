@@ -3,7 +3,7 @@
 // - POST /cms/login|verify  : xin mã / kiểm tra mã (cùng nguồn với trang trên, không cần CORS)
 // - /gh/api/v3/*, /gh/api/graphql : cổng trung gian tới api.github.com. Đổi mã phiên của nhân sự thành mã GitHub của công ty
 //   (kv gh_cms_token, Quản trị dán ở CRM → Cài đặt), chỉ cho đọc/ghi repo website, ghi tên người sửa vào commit + Nhật ký CRM.
-// Mã GitHub cá nhân (ghp_…, github_pat_…) vẫn đăng nhập được như trước: chuyển thẳng sang GitHub, GitHub tự kiểm quyền.
+// Chỉ nhận mã phiên đăng nhập bằng email (từ 14/10/2026 bỏ cách cũ đăng nhập bằng mã GitHub cá nhân).
 import { kvGet, kvSet, kvDel, randHex, DAY } from './lib.js';
 import { sendMail } from './google.js';
 import { crmUsers, crmLog, SUPER_ADMIN } from './crm.js';
@@ -102,8 +102,7 @@ async function ghProxy(x, req, sub) {
   const h = { Accept: req.headers.get('Accept') || 'application/vnd.github+json', 'User-Agent': 'thucduonglanh-cms', 'X-GitHub-Api-Version': '2022-11-28' };
   ['Content-Type', 'If-None-Match', 'If-Modified-Since'].forEach(k => { const v = req.headers.get(k); if (v) h[k] = v; });
   let body = ['GET', 'HEAD'].includes(req.method) ? undefined : await req.arrayBuffer(), u = null, logAs = '';
-  if (/^(ghp|gho|ghu|ghs|github_pat)_/.test(auth)) h.Authorization = 'token ' + auth; // đăng nhập kiểu cũ bằng mã GitHub cá nhân
-  else {
+  {
     u = /^[a-f0-9]{64}$/.test(auth) ? await sessionUser(x, auth) : null;
     if (!u) return jres(req, { message: 'Bad credentials', documentation_url: ADMIN_URL }, 401); // Sveltia hiểu 401 = đăng nhập lại
     const t = await cmsToken(x); if (!t) return jres(req, { message: 'Trang quản trị chưa được kết nối GitHub (CRM → Cài đặt → Trang quản trị website).' }, 503);
