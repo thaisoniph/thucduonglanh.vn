@@ -539,7 +539,8 @@ Tải lại đơn cũ không bị tính trùng: CRM nhận ra theo mã đơn và
 
 | Quyền | Làm được |
 | --- | --- |
-| **Nhân viên** | Chỉ thấy và làm việc với khách mình phụ trách: chăm sóc, xử lý đơn, khách hỏi, xem hiệu quả của mình |
+| **Sale & CSKH** | Bán hàng và chăm sóc khách. Chỉ thấy và làm việc với khách mình phụ trách: chăm sóc, xử lý đơn, khách hỏi, xem hiệu quả của mình |
+| **Marketing** | Chỉ thấy tab 📣 Marketing (chi phí, hiệu quả quảng cáo, tự nhập chi phí). Không thấy khách, đơn, doanh thu công ty |
 | **Quản lý** | Thấy toàn bộ khách. Thêm: giao / chuyển khách, chọn cách chia khách mới, xem doanh thu cả nhóm, hiệu quả từng nhân viên, đặt mục tiêu cho nhân viên, đổi *Nhân viên bán* trên đơn, sửa chu kỳ dùng và mẫu tin |
 | **Quản trị** | Thêm: thêm, khoá nhân sự và đổi quyền; **xoá khách / đơn nhập thử** |
 
@@ -554,7 +555,7 @@ Tải lại đơn cũ không bị tính trùng: CRM nhận ra theo mã đơn và
 - **👥 Từng nhân viên**: xếp theo tiền bán được (🥇🥈🥉), dòng 📣 số quảng cáo nhận · công ty chi bao nhiêu → mang về bao nhiêu · % gọi trong ngày, viền màu = tiến độ mục tiêu (🟢 đúng tiến độ · 🟠 hơi chậm · 🔴 đang chậm), số đơn, tỷ lệ chốt, tiền mỗi đơn, lượt chăm sóc, và dòng **Cần kèm** (tối đa 2 điểm yếu so với cả nhóm: số quảng cáo chưa gọi ≥ 3, gọi chậm (dưới 60% số gọi trong ngày, từ 10 số), khách hỏi tồn ≥ 5, chốt thấp hơn nhóm, đơn nhỏ, ít chăm sóc, khách VIP chưa gọi, hoàn nhiều). Bấm vào để xem chi tiết và đặt mục tiêu.
 - **Xem chi tiết** (bấm để mở): **📊 So sánh nhân viên** (chọn chỉ số: Doanh số, Số đơn, TB/đơn, Tỷ lệ chốt, % mục tiêu, Lượt chăm sóc…; vạch đậm = trung bình nhóm), 📈 Bán hàng theo ngày, 💬 Chăm sóc khách, 🙅 Vì sao khách chưa mua (gồm lý do “Không mua” của khách hỏi), 📍 Khách ở tỉnh nào.
 
-**Tài khoản Quản trị không có trong thống kê nhân sự.** Bảng *👥 Tiến độ nhân sự hôm nay*, biểu đồ *📊 So sánh nhân viên*, mục *Theo nhân viên* và *📈 Mức dùng CRM* chỉ tính tài khoản quyền Quản lý và Nhân viên, cho gọn. Doanh thu cả nhóm vẫn tính đủ mọi đơn.
+**Tài khoản Quản trị không có trong thống kê nhân sự.** Bảng *👥 Tiến độ nhân sự hôm nay*, biểu đồ *📊 So sánh nhân viên*, mục *Theo nhân viên* và *📈 Mức dùng CRM* chỉ tính tài khoản quyền Quản lý và Sale & CSKH, cho gọn. Doanh thu cả nhóm vẫn tính đủ mọi đơn.
 
 **🗑 Xoá dữ liệu nhập thử** (chỉ Quản trị):
 

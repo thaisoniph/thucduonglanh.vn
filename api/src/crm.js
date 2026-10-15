@@ -11,7 +11,7 @@ import { wbQueue, wbOrderQueue, wbStatusQueue, WB_SHORT } from './wb.js';
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-10-14a'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
+const SCHEMA_V = '2026-10-15b'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -35,6 +35,7 @@ export async function ensureSchema(db) {
     for (const [col, def] of [['zalo', 'INTEGER DEFAULT 0'], ['community', "TEXT DEFAULT ''"], ['dob', "TEXT DEFAULT ''"], ['recv', 'INTEGER'], ['ok_n', 'INTEGER DEFAULT 0'], ['back_n', 'INTEGER DEFAULT 0'], ['last_back', 'INTEGER'], ['fam', 'INTEGER DEFAULT 0']]) if (!ccols.includes(col)) { try { await run(db, `ALTER TABLE customers ADD COLUMN ${col} ${def}`); } catch (e) { } }
     const ucols = (await all(db, "PRAGMA table_info(users)")).map(r => r.name);
     if (!ucols.includes('web')) { try { await run(db, "ALTER TABLE users ADD COLUMN web TEXT DEFAULT ''"); } catch (e) { } } // Sửa website: đăng nhập /admin bằng email (api/src/cms.js)
+    await run(db, "UPDATE users SET role = 'Sale & CSKH' WHERE role = 'Nhân viên'"); // 15/10/2026: đổi tên quyền
     if (!ccols.includes('recv')) await run(db, "INSERT INTO kv (k, v) VALUES ('recalc_all', '1') ON CONFLICT(k) DO UPDATE SET v = '1'"); // cột mới (ngày nhận, số đơn hoàn, khách quen) → cron tính lại mọi khách 1 lần
     // 11/10/2026: khách đều nhập từ file sale (đã mua, đã liên hệ) → anh Sơn chọn mặc định tất cả đồng ý nhận ưu đãi. Chạy 1 lần.
     if (!(await db.prepare("SELECT v FROM kv WHERE k = 'consent_all'").first())) { await run(db, 'UPDATE customers SET consent = 1 WHERE consent IS NOT 1'); await run(db, "INSERT INTO kv (k, v) VALUES ('consent_all', ?) ON CONFLICT(k) DO NOTHING", String(Date.now())); }
@@ -104,7 +105,9 @@ export async function ensureSchema(db) {
 }
 
 export const SUPER_ADMIN = 'thaisoniph@gmail.com'; // luôn có quyền Quản trị
-const ROLES = { 'Quản trị': 3, 'Quản lý': 2, 'Nhân viên': 1, 'Marketing': 0 }; // Marketing: chỉ thấy tab 📣 Marketing (MKT_ACTIONS), không thấy khách / đơn / doanh thu công ty
+const ROLES = { 'Quản trị': 3, 'Quản lý': 2, 'Sale & CSKH': 1, 'Marketing': 0 }; // Marketing: chỉ thấy tab 📣 Marketing (MKT_ACTIONS), không thấy khách / đơn / doanh thu công ty
+const SALE = 'Sale & CSKH'; // 15/10/2026: đổi tên từ "Nhân viên" (tên cũ vẫn nhận, tự quy về tên mới)
+const roleOf = r => r === 'Nhân viên' ? SALE : Object.hasOwn(ROLES, r || '') ? r : SALE;
 const BOT_USERNAME = 'thucduonglanh_donhang_bot';
 const ASSIGN_MODES = { auto: 'Tự chia đều', manager: 'Quản lý giao tay', pool: 'Kho chung' };
 const SESSION_DAYS = 30;
@@ -182,8 +185,8 @@ export async function crmUsers(x) {
 const USERS_SQL = 'SELECT * FROM users ORDER BY ord, rowid';
 function usersFrom(x, rows) {
   const list = rows.map(r => {
-    const e = String(r.email || '').trim().toLowerCase(), role = Object.hasOwn(ROLES, r.role || '') ? r.role : 'Nhân viên';
-    return { email: e, name: String(r.name || e.split('@')[0]).trim(), role, active: !!r.active, recv: role === 'Marketing' ? false : String(r.recv || '').trim() === '' ? role === 'Nhân viên' : !no(r.recv), tg: String(r.tg || '').trim(), alias: String(r.alias || '').trim(), prefix: String(r.prefix || '').trim(), web: String(r.web || '').trim() === 'Có' };
+    const e = String(r.email || '').trim().toLowerCase(), role = roleOf(r.role);
+    return { email: e, name: String(r.name || e.split('@')[0]).trim(), role, active: !!r.active, recv: role === 'Marketing' ? false : String(r.recv || '').trim() === '' ? role === SALE : !no(r.recv), tg: String(r.tg || '').trim(), alias: String(r.alias || '').trim(), prefix: String(r.prefix || '').trim(), web: String(r.web || '').trim() === 'Có' };
   }).filter(u => /@/.test(u.email));
   const sa = list.find(u => u.email === SUPER_ADMIN);
   if (!sa) list.unshift({ email: SUPER_ADMIN, name: 'Thái Sơn', role: 'Quản trị', active: true, recv: false, tg: '', alias: '', prefix: '', web: true });
@@ -1190,8 +1193,8 @@ async function crmSettings(x, u, d) {
 async function crmSaveUsers(x, u, d) {
   const cur = {}; (await crmUsers(x)).forEach(y => { cur[y.email] = y; });
   const seen = {}, rows = (d.users || []).map((y, i) => {
-    const e = String(y.email || '').trim().toLowerCase(), o = cur[e] || {}, role = Object.hasOwn(ROLES, y.role || '') ? y.role : 'Nhân viên';
-    return { email: e, name: String(y.name || '').trim(), role, active: y.active === false ? 0 : 1, recv: (y.recv !== undefined ? y.recv : o.recv !== undefined ? o.recv : role === 'Nhân viên') ? 'Có' : 'Không', tg: o.tg || '',
+    const e = String(y.email || '').trim().toLowerCase(), o = cur[e] || {}, role = roleOf(y.role);
+    return { email: e, name: String(y.name || '').trim(), role, active: y.active === false ? 0 : 1, recv: (y.recv !== undefined ? y.recv : o.recv !== undefined ? o.recv : role === SALE) ? 'Có' : 'Không', tg: o.tg || '',
       alias: String(y.alias !== undefined ? y.alias : o.alias || '').trim(), prefix: String(y.prefix !== undefined ? y.prefix : o.prefix || '').replace(/[^A-Za-z0-9]/g, ''), web: (y.web !== undefined ? y.web : o.web) ? 'Có' : '', ord: i };
   }).filter(r => { if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(r.email) || seen[r.email]) return false; seen[r.email] = 1; return true; });
   if (!seen[SUPER_ADMIN]) rows.unshift({ email: SUPER_ADMIN, name: 'Thái Sơn', role: 'Quản trị', active: 1, recv: 'Không', tg: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].tg || '' : '', alias: '', prefix: '', web: 'Có', ord: -1 });
