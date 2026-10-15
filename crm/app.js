@@ -5109,7 +5109,7 @@
       setGroup('tp', '💬 Mẫu tin nhắn chăm sóc', tp.length + ' mẫu', G.tp) +
       setGroup('cm', '💰 Hoa hồng', cmOn.length ? cmOn.map(function (k) { return esc(k) + ' ' + CMc[k] + '%'; }).join(' · ') : '⚠️ Chưa đặt % hoa hồng', G.cm) +
       setGroup('ca', '🕘 Ca tối & ngày lễ', 'Ca tối từ ' + esc(ca.evening || '17:30') + ' · ' + hol.length + ' ngày lễ', caBox()) +
-      (lvl() >= 3 ? setGroup('vc', '🎟 Mã ưu đãi đặt hàng web', 'Tạo mã giảm giá gửi riêng khách cũ, đối tác', vcBox()) : ''));
+      setGroup('vc', '🎟 Mã ưu đãi đặt hàng web', 'Tạo mã giảm giá gửi riêng khách cũ, đối tác', vcBox()));
     if (lvl() >= 3) {
       var src = S.d.sources || [], ads = S.d.ads, SB = syncBoxes(), cut = SB.indexOf('<div class="box"><h3>📣');
       h += setSec('🔌 Kết nối & báo cáo', setGroup('src', '📂 File Google Sheet của sale', src.length ? src.length + ' file' : '⚠️ Chưa có file nào', SB.slice(0, cut)) +
@@ -5323,7 +5323,7 @@
       load(true, true); // tải lại để số đơn, tổng chi, nhãn khách đúng
     }, function (e) { toast(e.message, true); if (btn) btn.disabled = false; });
   }
-  /* ---------- 🎟 Mã ưu đãi đặt hàng web (Quản trị, api/src/voucher.js). Khách nhập ở dòng nhỏ "Có mã ưu đãi?" lúc thanh toán, hoặc mở link ?uudai=MÃ */
+  /* ---------- 🎟 Mã ưu đãi đặt hàng web (Quản lý trở lên, api/src/voucher.js). Khách nhập ở dòng nhỏ "Có mã ưu đãi?" lúc thanh toán, hoặc mở link ?uudai=MÃ */
   function vcBox() {
     return '<div class="box"><h3>🎟 Mã ưu đãi đặt hàng web</h3><p class="hint" style="margin:0 0 10px">Mã giảm giá gửi riêng cho khách cũ, đối tác. Trên web chỉ có dòng chữ nhỏ <b>“Có mã ưu đãi?”</b> ở trang thanh toán, khách mua bình thường gần như không để ý. Cách gửi tiện nhất: bấm <b>📋 Copy tin gửi khách</b> → dán vào Zalo. Khách bấm link là mã tự áp dụng khi đặt hàng.</p>' +
       '<p class="hint" style="margin:0 0 10px">Mỗi đơn dùng 1 mã. Freeship vẫn tính theo tiền hàng <b>trước</b> khi giảm. Đơn huỷ / hoàn thì mã được trả lại lượt dùng.</p><button class="btn pri" id="vcOpen">Quản lý mã ưu đãi</button></div>';

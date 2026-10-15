@@ -1650,7 +1650,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (a === 'merge_suggest') return crmMergeSuggest(x, u); // gộp khách nhiều số (Quản lý trở lên)
   if (a === 'merge_skip') return crmMergeSkip(x, u, d);
   if (a === 'merge') return crmMerge(x, u, d);
-  if (/^voucher_/.test(a)) return crmVoucher(x, u, d, crmLog); // 🎟 Mã ưu đãi (Quản trị)
+  if (/^voucher_/.test(a)) return crmVoucher(x, u, d, crmLog); // 🎟 Mã ưu đãi (Quản lý trở lên)
   const need = { settings: 2, users: 3, assign: 2, bulk: 2, recv: 2 };
   if (need[a] && u.level < need[a]) return { ok: false, error: 'Bạn không có quyền làm việc này.' };
   const opKey = d.opId ? 'op_' + String(d.opId).slice(0, 40) : ''; // CRM gửi lại việc khi mạng chập chờn: việc đã làm rồi thì trả kết quả cũ, không ghi trùng

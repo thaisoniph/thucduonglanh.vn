@@ -1,4 +1,4 @@
-// Mã ưu đãi khi khách đặt hàng trên web (gửi riêng cho khách cũ, đối tác). Quản trị tạo mã ở CRM → Cài đặt → 🎟 Mã ưu đãi.
+// Mã ưu đãi khi khách đặt hàng trên web (gửi riêng cho khách cũ, đối tác). Quản lý / Quản trị tạo mã ở CRM → Cài đặt → 🎟 Mã ưu đãi.
 // Web: khách bấm "Có mã ưu đãi?" ở trang thanh toán, hoặc mở link ?uudai=MÃ (web tự nhớ, tự áp dụng).
 // Máy chủ luôn tự tính lại tiền giảm lúc chốt đơn, không tin số trình duyệt gửi lên.
 import { all, first, run, kvGet, kvSet, normPhone, fmt, nrm, isVoid } from './lib.js';
@@ -68,7 +68,7 @@ export async function voucherApply(x, data) {
   return { ok: true };
 }
 
-/* ---------------------------------------------------------------- CRM: Quản trị tạo / sửa / tắt mã */
+/* ---------------------------------------------------------------- CRM: Quản lý / Quản trị tạo / sửa / tắt mã */
 async function vcList(x) {
   const rows = await all(x.db, 'SELECT * FROM vouchers ORDER BY active DESC, created DESC LIMIT 500');
   const used = {}; (await all(x.db, "SELECT voucher, status, discount, total FROM orders WHERE voucher != ''")).forEach(o => {
@@ -77,7 +77,7 @@ async function vcList(x) {
   return rows.map(v => Object.assign({ code: v.code, kind: v.kind, value: v.value, max_off: v.max_off || 0, min_sub: v.min_sub || 0, exp: v.exp || '', max_uses: v.max_uses || 0, once: !!v.once, phone: v.phone || '', note: v.note || '', active: !!v.active, created: v.created, by: v.by_name || '', label: vcLabel(v) }, { used: used[v.code] || { n: 0, off: 0, sales: 0 } }));
 }
 export async function crmVoucher(x, u, d, log) {
-  if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị quản lý được mã ưu đãi.' };
+  if (u.level < 2) return { ok: false, error: 'Chỉ Quản lý và Quản trị quản lý được mã ưu đãi.' };
   const a = d.action;
   if (a === 'voucher_list') return { ok: true, list: await vcList(x) };
   const code = vcNorm(d.code);

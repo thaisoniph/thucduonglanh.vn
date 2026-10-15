@@ -541,7 +541,7 @@ Tải lại đơn cũ không bị tính trùng: CRM nhận ra theo mã đơn và
 | --- | --- |
 | **Sale & CSKH** | Bán hàng và chăm sóc khách. Chỉ thấy và làm việc với khách mình phụ trách: chăm sóc, xử lý đơn, khách hỏi, xem hiệu quả của mình |
 | **Marketing** | Chỉ thấy tab 📣 Marketing (chi phí, hiệu quả quảng cáo, tự nhập chi phí). Không thấy khách, đơn, doanh thu công ty |
-| **Quản lý** | Thấy toàn bộ khách. Thêm: giao / chuyển khách, chọn cách chia khách mới, xem doanh thu cả nhóm, hiệu quả từng nhân viên, đặt mục tiêu cho nhân viên, đổi *Nhân viên bán* trên đơn, sửa chu kỳ dùng và mẫu tin |
+| **Quản lý** | Thấy toàn bộ khách. Thêm: giao / chuyển khách, chọn cách chia khách mới, xem doanh thu cả nhóm, hiệu quả từng nhân viên, đặt mục tiêu cho nhân viên, đổi *Nhân viên bán* trên đơn, sửa chu kỳ dùng và mẫu tin, tạo mã ưu đãi đặt hàng web |
 | **Quản trị** | Thêm: thêm, khoá nhân sự và đổi quyền; **xoá khách / đơn nhập thử** |
 
 **Ô 👤 Người phụ trách** (góc phải, chỉ quản lý thấy) có ở cả 5 tab Hôm nay, Khách đã mua, Khách hỏi, Đơn hàng, Hiệu quả. Chọn **Tất cả nhân sự**, **Chưa ai phụ trách** hoặc tên 1 nhân viên. Chọn ở tab nào thì các tab khác cũng lọc theo, nên muốn xem hết việc của một người thì chọn tên người đó 1 lần rồi chuyển qua các tab. Đơn hàng lọc theo *Nhân viên bán*; đơn chưa ghi nhân viên bán thì lấy người phụ trách khách đó. Muốn bỏ lọc thì chọn lại **Tất cả nhân sự**.
@@ -609,7 +609,7 @@ Tải lại đơn cũ không bị tính trùng: CRM nhận ra theo mã đơn và
 - **📂 File của sale** (chỉ Quản trị): nhập đơn và nhật ký chăm sóc từ file Google Sheet sale đang dùng. Ô ghi chú kiểu “21/7 kh nhận hàng, 9/8 knm, 16/5 kh hết tiền” được tách thành từng lần chăm sóc có ngày, máy tự đoán năm. Tích **✍️ Ghi kết quả chăm sóc ngược vào file này** thì mỗi lần sale bấm kết quả trên CRM, máy tự viết thêm vào ô ghi chú của khách trong file, ví dụ “, 30/9 knm (hẹn gọi 2/10)”, khoảng 5 phút một lần. Sale vẫn xem đầy đủ trên file của mình. Để dùng được, sale cần **chia sẻ quyền Chỉnh sửa** file cho tài khoản chạy CRM. Kết quả từng lần ghi xem ở tab *Ghi ngược file sale* trong Sheet.
 - **Nhân sự được vào CRM** (chỉ Quản trị): thêm email, tên hiển thị, quyền. Nhân viên nghỉ việc thì **bỏ tích “Đang dùng”**, không cần xoá. Đổi tên hiển thị thì đơn, khách, file sale và mục tiêu của người đó tự chuyển theo tên mới. Dữ liệu cũ ghi theo **tên gọi tắt** (vd file sale ghi “Chang” cho tài khoản “Thu Chang”) cũng tự gộp về đúng người khi bấm Lưu.
 
-## Mã ưu đãi đặt hàng web (chỉ Quản trị)
+## Mã ưu đãi đặt hàng web (Quản lý, Quản trị)
 
 Mã giảm giá gửi riêng cho **khách cũ, đối tác**. Trên web không quảng cáo mã: ở trang thanh toán chỉ có dòng chữ nhỏ **“Có mã ưu đãi?”** dưới phí vận chuyển. Khách mua bình thường gần như không để ý.
 
