@@ -3572,13 +3572,38 @@
       }, function (e) { btn.disabled = false; btn.textContent = 'Lưu mục tiêu'; $('#mgErr', m).textContent = /Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message; });
     };
   }
+  /* ---------- 👥 tệp khách cho Facebook (Đối tượng tuỳ chỉnh): chỉ Quản trị; chỉ khách đồng ý nhận ưu đãi, bỏ khách lạnh */
+  var FBAUD_G = [['all', 'Tất cả khách đã mua'], ['live', '🟢 Đang dùng'], ['risk', '🟠 Sắp mất'], ['lost', '⚪ Lâu không mua'], ['vip', '⭐ VIP']];
+  function fbAudList(g) {
+    return (S.d.customers || []).filter(function (c) { return c.orders > 0 && c.consent && !coldOf(c) && (g === 'all' || (g === 'vip' ? isVip(c) : stageOf(c) === g)); });
+  }
+  function openFbAud() {
+    var g = 'all', cnt = {}; FBAUD_G.forEach(function (x) { cnt[x[0]] = fbAudList(x[0]).length; });
+    var m = modal('👥 Tệp khách cho Facebook',
+      '<p style="margin:0 0 8px">Tải file số điện thoại khách cũ lên Facebook (Trình quản lý quảng cáo → Đối tượng → Tạo đối tượng → Đối tượng tuỳ chỉnh → Danh sách khách hàng) để:</p>' +
+      '<p class="small muted" style="margin:0 0 12px">• Quảng cáo nhắc khách cũ mua lại<br>• Loại khách cũ ra khỏi quảng cáo tìm khách mới<br>• Làm nguồn cho Đối tượng tương tự (tìm người giống khách đang mua)</p>' +
+      '<div class="chips wrap">' + FBAUD_G.map(function (x) { return '<button type="button" class="chip' + (x[0] === g ? ' on' : '') + '" data-fag="' + x[0] + '">' + x[1] + ' <em>' + cnt[x[0]] + '</em></button>'; }).join('') + '</div>' +
+      '<p class="small muted" style="margin:10px 0 0">Chỉ lấy khách <b>đồng ý nhận tin ưu đãi</b>, đã bỏ khách lạnh (bom hàng, không dùng nữa). Khách gộp nhiều số thì lấy cả số phụ. Facebook mã hoá số ngay trên máy trước khi tải lên.</p>' +
+      '<p class="small muted" style="margin:6px 0 0">⚠️ File có số điện thoại khách: tải lên Facebook xong thì xoá khỏi máy, không gửi qua Zalo / email.</p>',
+      '<button class="btn" data-close>Đóng</button><button class="btn pri" id="faDl"></button>');
+    var dl = $('#faDl', m), upd = function () { dl.textContent = '⬇️ Tải file (' + cnt[g] + ' khách)'; dl.disabled = !cnt[g]; };
+    $$('[data-fag]', m).forEach(function (b) { b.onclick = function () { g = b.getAttribute('data-fag'); $$('[data-fag]', m).forEach(function (x) { x.classList.toggle('on', x === b); }); upd(); }; });
+    upd();
+    dl.onclick = function () {
+      var seen = {}, rows = [];
+      fbAudList(g).forEach(function (c) { [c.phone].concat(altPhones(c.note)).forEach(function (p) { p = normPhone(p); if (!/^0\d{9}$/.test(p) || seen[p]) return; seen[p] = 1; rows.push('84' + p.slice(1) + ',VN'); }); });
+      var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['phone,country\n' + rows.join('\n') + '\n'], { type: 'text/csv;charset=utf-8' }));
+      a.download = 'facebook-khach-' + g + '-' + isoDate(Date.now()) + '.csv'; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+      toast('⬇️ Đã tải ' + rows.length + ' số');
+    };
+  }
   function viewMkt() {
     var f = S.f.m || (S.f.m = {}); if (!f.p || f.p.k === 'all') f.p = { k: 'month' }; if (f.sfb === undefined) f.sfb = store('dash_sfb') !== '0';
     if (!f.open) { try { f.open = JSON.parse(store('mkt_open') || '{}'); } catch (e) { f.open = {}; } }
     var gKey = mvMonthKey(), R = perRange(f.p), key = mvKey(), mj = MV.cache[key], gm = MV.cache[gKey];
     if (gKey !== key && !gm && !MV.err) setTimeout(function () { mvFetch(gKey); }, 0);
     if (!mj && !MV.err) setTimeout(function () { mvFetch(key); }, 0);
-    var h = '<div class="page-head"><h1>📣 Marketing</h1><div class="grow"></div><button class="btn" data-mkv="cost">⚙️ Nhập chi phí</button><button class="btn ghost" data-mkv="fresh" title="Tính lại số mới nhất">↻</button></div>' + perChips('m', f.p);
+    var h = '<div class="page-head"><h1>📣 Marketing</h1><div class="grow"></div>' + (lvl() >= 3 ? '<button class="btn ghost" data-mkv="aud" title="File số điện thoại khách cũ để tải lên Facebook">👥 Tệp khách FB</button>' : '') + '<button class="btn" data-mkv="cost">⚙️ Nhập chi phí</button><button class="btn ghost" data-mkv="fresh" title="Tính lại số mới nhất">↻</button></div>' + perChips('m', f.p);
     if (!mj) return h + '<div class="box"><p class="muted">' + (MV.err ? '⚠️ ' + esc(MV.err) + ' <button class="link" data-mkv="fresh">Thử lại</button>' : '⏳ Đang tính hiệu quả quảng cáo…') + '</p></div>';
     MK.fbOn = mj.fb.on;
     var ch = {}, chp = {}, tot = 0, totp = 0, day = {}, A = dashAds(), per = function (n, v) { return n && v ? moneyShort(Math.round(v / n)) : '–'; };
@@ -3654,7 +3679,7 @@
     return h;
   }
   function bindMkv() {
-    $$('[data-mkv]').forEach(function (el) { el.onclick = function () { var a = el.getAttribute('data-mkv'); if (a === 'cost') openMkt(); else if (a === 'budget') { var bj = MV.cache[mvKey()]; if (bj) openBudget(bj.budget); } else if (a === 'call') { S.f.m.call = 1; render(); } else if (a === 'tgtest') { el.disabled = true; api('mkt_tg_test').then(function () { toast('📲 Đã gửi, mở Telegram để xem'); }, function (e) { toast(/Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message, true); }).then(function () { el.disabled = false; }); } else if (a === 'goal') { var gj = MV.cache[mvKey()]; if (gj) openMkGoal(gj); } else if (a === 'fresh') { var mk0 = mvMonthKey(), k = mvKey(); delete MV.cache[k]; MV.err = ''; delete MV.pend[k]; mvFetch(k, true); if (mk0 !== k) { delete MV.cache[mk0]; delete MV.pend[mk0]; mvFetch(mk0, true); } render(); } }; });
+    $$('[data-mkv]').forEach(function (el) { el.onclick = function () { var a = el.getAttribute('data-mkv'); if (a === 'aud') openFbAud(); else if (a === 'cost') openMkt(); else if (a === 'budget') { var bj = MV.cache[mvKey()]; if (bj) openBudget(bj.budget); } else if (a === 'call') { S.f.m.call = 1; render(); } else if (a === 'tgtest') { el.disabled = true; api('mkt_tg_test').then(function () { toast('📲 Đã gửi, mở Telegram để xem'); }, function (e) { toast(/Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message, true); }).then(function () { el.disabled = false; }); } else if (a === 'goal') { var gj = MV.cache[mvKey()]; if (gj) openMkGoal(gj); } else if (a === 'fresh') { var mk0 = mvMonthKey(), k = mvKey(); delete MV.cache[k]; MV.err = ''; delete MV.pend[k]; mvFetch(k, true); if (mk0 !== k) { delete MV.cache[mk0]; delete MV.pend[mk0]; mvFetch(mk0, true); } render(); } }; });
     $$('#view [data-dash="sfb"]').forEach(function (el) { el.onclick = function () { var f = S.f.m; f.sfb = !f.sfb; store('dash_sfb', f.sfb ? '' : '0'); render(); }; });
     $$('#view [data-dgo]').forEach(function (el) { el.onclick = function () { var g = el.getAttribute('data-dgo').replace(/^mk-/, ''), t = $('#mk-' + g); if (!t) return; if (t.tagName === 'DETAILS') t.open = true; t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }; });
     $$('details[data-mk]').forEach(function (d) { d.addEventListener('toggle', function () { var o = S.f.m.open || (S.f.m.open = {}), k = d.getAttribute('data-mk'); if (d.open) o[k] = 1; else delete o[k]; store('mkt_open', JSON.stringify(o)); }); });

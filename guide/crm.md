@@ -500,6 +500,7 @@ Số website chỉ đếm khách đã bấm “Đồng ý” cookie nên thấp 
 - **📲 Tin Telegram 8h sáng "📣 Marketing sáng nay":** gửi riêng cho từng bạn Marketing (và Quản trị) đã kết nối Telegram ở **Cài đặt → 📲 Thông báo Telegram riêng**. Tin có: **hạng của bạn trong bảng thi đua**, % tiền qua website, **chi phí 1 data** tháng này và tiến độ cả đội, tiến độ mục tiêu tháng (kênh bạn phụ trách đứng đầu), mỗi ngày cần bao nhiêu tiền khách mới, % chi phí so với mức tối đa, số hôm qua (chi phí, tiền khách mới, data, đã mua) và tối đa 5 việc nên làm. Muốn xem ngay: cuối tab Marketing bấm **Gửi thử cho tôi**.
 - **⚙️ Nhập chi phí:** marketing tự nhập file CSV (TikTok, Google Ads…) hoặc nhập tay (KOL / KOC, in ấn…), xem lại và xoá lần nhập sai. Facebook tự cập nhật, kết nối mã Facebook chỉ Quản trị làm.
 - Số tính lại 30 phút 1 lần; bấm **↻** để tính lại ngay.
+- **👥 Tệp khách FB** (chỉ Quản trị): tải file số điện thoại khách cũ để đưa lên Facebook (Trình quản lý quảng cáo → Đối tượng → Đối tượng tuỳ chỉnh → Danh sách khách hàng). Dùng để quảng cáo nhắc khách cũ mua lại, loại khách cũ khỏi quảng cáo tìm khách mới, hoặc làm nguồn cho Đối tượng tương tự. Chọn nhóm: tất cả / Đang dùng / Sắp mất / Lâu không mua / VIP. File chỉ có khách **đồng ý nhận tin ưu đãi** và đã bỏ khách lạnh. Đây là số điện thoại thật của khách: tải lên Facebook xong thì xoá file khỏi máy, không gửi qua Zalo hay email.
 
 Số ở tab Marketing khớp với mục 📣 ở Tổng quan theo từng kênh. Riêng ô *tiền khách mới* ở tab Marketing chỉ cộng kênh có chạy quảng cáo, còn Tổng quan cộng mọi khách mới.
 

@@ -5,7 +5,7 @@ url_slug: privacy-policy
 
 ## 1. Purpose of collecting information
 
-{brand} collects your full name, phone number, email and delivery address in order to process orders, deliver goods, provide customer care and send notices of promotions (with your consent), in accordance with Decree 13/2023/NĐ-CP on personal data protection.
+{brand} collects your full name, phone number, email and delivery address in order to process orders, deliver goods, provide customer care and send notices of promotions (with your consent), in accordance with Law No. 91/2025/QH15 on Personal Data Protection.
 
 ## 2. Scope of use
 
@@ -13,11 +13,13 @@ Your information is used internally only and is shared with shipping carriers on
 
 ## 3. Cookies and analytics tools
 
-With your consent (given through the cookie notice on the website), {brand} uses Google Analytics and Microsoft Clarity, and may use tracking codes from advertising platforms (Meta, TikTok, Google), to measure website traffic, improve the site's design and show relevant ads. You can choose "Necessary cookies only" to keep these tools turned off, or delete cookies in your browser at any time.
+{brand} uses Cloudflare Web Analytics to count total website visits. This tool does not use cookies and does not collect personally identifiable information.
+
+Only when you click "Accept" on the cookie notice does {brand} turn on Google Analytics, Microsoft Clarity and tracking codes from advertising platforms (Meta, TikTok, Google), to measure website traffic, improve the site's design and show you relevant products and offers on those platforms. If you choose "No, thanks", these tools do not run. You can <a href="#" data-cookie-reset>change your cookie choice</a> at any time.
 
 ## 4. Customer care and promotional messages
 
-When you tick "I agree to receive advice, product usage reminders and promotions", {brand} may contact you by phone or Zalo to give usage instructions, send usage reminders and share promotions. You can ask us to stop at any time by telling our staff or calling {hotline}.
+When you tick "I agree to receive advice, product usage reminders and promotions", {brand} may contact you by phone or Zalo to give usage instructions, send usage reminders and share promotions, and may show you relevant offers on Facebook. For Facebook, your phone number is encrypted on {brand}'s own device before being sent for matching, so Facebook never receives the original number. You can ask us to stop at any time by telling our staff or calling {hotline}.
 
 ## 5. Retention period
 

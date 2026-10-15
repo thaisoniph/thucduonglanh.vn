@@ -5,7 +5,7 @@ order: 5
 
 ## 1. Mục đích thu thập thông tin
 
-{brand} thu thập họ tên, số điện thoại, email, địa chỉ nhận hàng nhằm xử lý đơn hàng, giao hàng, chăm sóc khách hàng và thông báo chương trình ưu đãi (khi quý khách đồng ý), theo Nghị định 13/2023/NĐ-CP về bảo vệ dữ liệu cá nhân.
+{brand} thu thập họ tên, số điện thoại, email, địa chỉ nhận hàng nhằm xử lý đơn hàng, giao hàng, chăm sóc khách hàng và thông báo chương trình ưu đãi (khi quý khách đồng ý), theo Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15.
 
 ## 2. Phạm vi sử dụng
 
@@ -13,11 +13,13 @@ Thông tin chỉ được sử dụng nội bộ và chia sẻ cho đơn vị v�
 
 ## 3. Cookie và công cụ đo lường
 
-Với sự đồng ý của quý khách (qua thông báo cookie trên website), {brand} sử dụng Google Analytics, Microsoft Clarity và có thể sử dụng mã theo dõi của các nền tảng quảng cáo (Meta, TikTok, Google) để thống kê lượt truy cập, cải thiện giao diện và hiển thị quảng cáo phù hợp. Quý khách có thể chọn "Chỉ cookie cần thiết" để không bật các công cụ này, hoặc xóa cookie trên trình duyệt bất kỳ lúc nào.
+{brand} dùng Cloudflare Web Analytics để đếm tổng lượt truy cập. Công cụ này không dùng cookie và không thu thập thông tin nhận dạng cá nhân.
+
+Chỉ khi quý khách bấm "Đồng ý" ở thông báo cookie, {brand} mới bật Google Analytics, Microsoft Clarity và mã theo dõi của các nền tảng quảng cáo (Meta, TikTok, Google) để thống kê lượt truy cập, cải thiện giao diện và hiển thị sản phẩm, ưu đãi phù hợp trên các nền tảng đó. Nếu quý khách chọn "Không, cảm ơn" thì các công cụ này không chạy. Quý khách có thể <a href="#" data-cookie-reset>đổi lựa chọn cookie</a> bất kỳ lúc nào.
 
 ## 4. Chăm sóc khách hàng và nhận thông tin ưu đãi
 
-Khi quý khách đánh dấu "Đồng ý nhận tư vấn, nhắc lịch dùng sản phẩm và ưu đãi", {brand} có thể liên hệ qua điện thoại hoặc Zalo để hướng dẫn sử dụng, nhắc lịch dùng và gửi ưu đãi. Quý khách có thể yêu cầu ngừng nhận bất kỳ lúc nào bằng cách báo cho nhân viên hoặc gọi {hotline}.
+Khi quý khách đánh dấu "Đồng ý nhận tư vấn, nhắc lịch dùng sản phẩm và ưu đãi", {brand} có thể liên hệ qua điện thoại hoặc Zalo để hướng dẫn sử dụng, nhắc lịch dùng và gửi ưu đãi, và có thể hiển thị ưu đãi phù hợp cho quý khách trên Facebook. Khi dùng cho Facebook, số điện thoại được mã hóa ngay trên máy của {brand} trước khi gửi đi để đối chiếu, Facebook không nhận được số gốc. Quý khách có thể yêu cầu ngừng nhận bất kỳ lúc nào bằng cách báo cho nhân viên hoặc gọi {hotline}.
 
 ## 5. Thời gian lưu trữ
 

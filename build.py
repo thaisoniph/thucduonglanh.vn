@@ -614,7 +614,7 @@ def footer():
   <a href="/gio-hang/" class="btn btn-outline btn-block">{t("Xem giỏ hàng")}</a><a href="/thanh-toan/" class="btn btn-block">{t("Thanh toán")}</a></div>
 </div></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<div class="cookie-bar" id="cookieBar" hidden role="dialog" aria-label="{t("Thông báo cookie")}"><p>{t('🍪 Website dùng cookie để đo lường lượt truy cập và cải thiện trải nghiệm mua hàng. Xem <a href="/chinh-sach-bao-mat/">chính sách bảo mật</a>.')}</p><div><button type="button" class="btn btn-sm" data-consent="yes">{t("Đồng ý")}</button><button type="button" class="btn btn-sm btn-ghost" data-consent="no">{t("Chỉ cookie cần thiết")}</button></div></div>
+<div class="cookie-bar" id="cookieBar" hidden role="dialog" aria-label="{t("Thông báo cookie")}"><p>{t('🍪 Anh/chị cho phép dùng cookie nhé? Nhờ đó Thực Dưỡng Lành gợi ý sản phẩm, ưu đãi hợp với anh/chị (cả trên Facebook, Google) và làm website tốt hơn. <a href="/chinh-sach-bao-mat/">Chi tiết</a>')}</p><div><button type="button" class="btn btn-sm cb-yes" data-consent="yes">{t("Đồng ý")}</button><button type="button" class="cb-no" data-consent="no">{t("Không, cảm ơn")}</button></div></div>
 <button class="to-top" id="toTop" aria-label="{t("Lên đầu trang")}">{I["up"]}</button>'''
 
 

@@ -74,7 +74,19 @@
     bar.addEventListener('click', function (e) {
       var b = e.target.closest('[data-consent]'); if (!b) return;
       var v = b.getAttribute('data-consent'); try { localStorage.setItem(CONSENT_KEY, v); } catch (x) { }
-      bar.hidden = true; if (v === 'yes') { loadTrackers(); trackPageEvents(); }
+      bar.hidden = true;
+      if (v === 'yes' && !loaded) { loadTrackers(); trackPageEvents(); }
+      else if (v !== 'yes' && loaded) { dropTrackCookies(); location.reload(); } // rút lại đồng ý: xoá cookie đo lường, tải lại trang để tắt công cụ
+    });
+    document.addEventListener('click', function (e) { // link "đổi lựa chọn cookie" ở chính sách bảo mật
+      if (!e.target.closest('[data-cookie-reset]')) return; e.preventDefault(); bar.hidden = false;
+    });
+  }
+  function dropTrackCookies() {
+    var h = location.hostname, doms = ['', h, '.' + h, '.' + h.split('.').slice(-2).join('.')];
+    document.cookie.split(';').forEach(function (x) {
+      var n = x.split('=')[0].trim(); if (!/^(_ga|_gid|_gat|_gcl|_fbp|_fbc|_clck|_clsk|_ttp|_tt_)/.test(n)) return;
+      doms.forEach(function (d) { document.cookie = n + '=; Max-Age=0; path=/' + (d ? '; domain=' + d : ''); });
     });
   }
   /* nguồn khách: UTM / Facebook / TikTok / Google / trang giới thiệu – lưu 30 ngày để gắn vào đơn */
@@ -886,7 +898,7 @@
       '<input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">' +
       '<div class="of-f"><span class="of-lbl">' + T('Thanh toán||payment') + '</span><div class="pay-opts">' + pay + '</div></div>' +
       '<label class="of-save"><input type="checkbox" name="remember" checked> ' + T('Lưu thông tin cho lần mua sau') + '</label>' +
-      '<label class="of-save"><input type="checkbox" name="marketing"> ' + T('Tôi đồng ý nhận tư vấn, nhắc lịch dùng sản phẩm và ưu đãi qua Zalo/điện thoại') + '</label>' +
+      '<label class="of-save"><input type="checkbox" name="marketing"> ' + T('Tôi đồng ý nhận tư vấn, nhắc lịch dùng sản phẩm và ưu đãi qua Zalo, điện thoại, Facebook') + '</label>' +
       '</div>';
   }
   /* phương thức thanh toán: chỉ lưu khi khách TỰ bấm chọn (tdl_pay); chưa từng chọn → COD */
