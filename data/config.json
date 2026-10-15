@@ -10,5 +10,5 @@
   "clarity_id": "yoto1kqbmx",
   "meta_pixel": "1342001937266392",
   "tiktok_pixel": "",
-  "_ghi_chu_do_luong": "ga4_id dạng G-XXXXXXX; clarity_id dạng chuỗi 10 ký tự; meta_pixel / tiktok_pixel: mã pixel quảng cáo. Để trống = không bật."
+  "_ghi_chu_do_luong": "ga4_id dạng G-XXXXXXX; clarity_id dạng chuỗi 10 ký tự; meta_pixel / tiktok_pixel: mã pixel quảng cáo. Để trống = không bật. Cloudflare Web Analytics (đếm lượt truy cập, không cookie): bật ở Cloudflare → Workers & Pages → thucduonglanh → Metrics (15/10/2026), Cloudflare tự chèn mã mỗi lần deploy, không cần mã ở đây."
 }
