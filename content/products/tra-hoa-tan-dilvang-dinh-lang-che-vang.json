@@ -63,6 +63,22 @@
       "file": "/assets/uploads/ho-so/dilvang-nifc-19395-trang-2.webp"
     },
     {
+      "title": "Phiếu kiểm nghiệm dinh dưỡng",
+      "org": "Trung tâm Kiểm nghiệm Thuốc, Mỹ phẩm, Thực phẩm – Sở Y tế TP Huế",
+      "number": "25DV865",
+      "date": "16/05/2025",
+      "scope": "Trong 100g: 378,1 kcal; carbohydrat 91,3g; đạm 1,46g; natri 111,44mg",
+      "file": "/assets/uploads/ho-so/dilvang-phieu-hue-25dv865.webp"
+    },
+    {
+      "title": "Giấy chứng nhận GMP – nhà máy đạt thực hành sản xuất tốt (dạng bột)",
+      "org": "Cục An toàn thực phẩm – Bộ Y tế",
+      "number": "09/2025/ATTP-CNGMP",
+      "date": "22/01/2025 – giá trị 3 năm",
+      "scope": "Nhà máy Gold Herbal, Cụm CN Quốc lộ 9D, Đông Hà, Quảng Trị",
+      "file": "/assets/img/brand/chung-nhan-attp-gold-herbal.webp"
+    },
+    {
       "title": "Giấy chứng nhận Doanh nghiệp Khoa học và Công nghệ",
       "org": "Sở Khoa học và Công nghệ tỉnh Quảng Trị",
       "number": "08/DNKHCN",
@@ -79,28 +95,12 @@
       "file": "/assets/uploads/ho-so/gold-herbal-sp-tieu-bieu-2026.webp"
     },
     {
-      "title": "Giấy chứng nhận cơ sở đủ điều kiện ATTP (GMP thực phẩm bảo vệ sức khỏe – dạng bột)",
-      "org": "Cục An toàn thực phẩm – Bộ Y tế",
-      "number": "09/2025/ATTP-CNGMP",
-      "date": "22/01/2025 – giá trị 3 năm",
-      "scope": "Nhà máy Gold Herbal, Cụm CN Quốc lộ 9D, Đông Hà, Quảng Trị",
-      "file": "/assets/img/brand/chung-nhan-attp-gold-herbal.webp"
-    },
-    {
       "title": "Giấy chứng nhận cơ sở đủ điều kiện an toàn thực phẩm",
       "org": "Chi cục QLCL Nông lâm sản và Thủy sản Quảng Trị",
       "number": "62/2024/NNPTNT-QT",
       "date": "06/12/2024 – hiệu lực đến 06/12/2027",
       "scope": "",
       "file": "/assets/uploads/ho-so/gold-herbal-attp-62-2024.webp"
-    },
-    {
-      "title": "Phiếu kiểm nghiệm dinh dưỡng",
-      "org": "Trung tâm Kiểm nghiệm Thuốc, Mỹ phẩm, Thực phẩm – Sở Y tế TP Huế",
-      "number": "25DV865",
-      "date": "16/05/2025",
-      "scope": "Trong 100g: 378,1 kcal; carbohydrat 91,3g; đạm 1,46g; natri 111,44mg",
-      "file": "/assets/uploads/ho-so/dilvang-phieu-hue-25dv865.webp"
     }
   ],
   "needs": [

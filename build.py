@@ -1705,6 +1705,7 @@ def page_product(p):
 
 
 PROOF_ANCHOR_RE = re.compile(r"kiểm nghiệm|chứng nhận|pháp lý|testing|tested|certif|legal", re.I)
+LEGAL_RE = re.compile(r"pháp lý|legal", re.I)
 PROOF_RE = re.compile(r"kiểm nghiệm|chứng nhận|pháp lý|tiêu chuẩn|xuất xứ|testing|tested|certif|legal|standard|origin", re.I)
 TEST_RE = re.compile(r"kiểm nghiệm|testing|tested|lab test", re.I)  # mục / huy hiệu "Kiểm nghiệm" (bản dịch: "Lab testing"…)
 
@@ -1717,6 +1718,8 @@ def proof_drawer(p):
         return "", ""
     secs = [s for s in p.get("sections", []) if PROOF_RE.search(s.get("title") or "")]
     proofs = [x for x in (p.get("proofs") or []) if x.get("title") and (x.get("org") or x.get("file"))]
+    if proofs:  # đã có danh sách giấy tờ (kèm ảnh) thì bỏ mục "Hồ sơ pháp lý" của phần mô tả để không lặp giấy/ảnh
+        secs = [s for s in secs if not LEGAL_RE.search(s.get("title") or "")]
     labels = [x for x in (p.get("label_imgs") or []) if x]
     cert = p.get("test_cert_img")
     if not (secs or proofs or labels or cert):
@@ -1737,7 +1740,8 @@ def proof_drawer(p):
     for s in secs:
         style = s.get("style") or "box"
         inner = ("<ul>" + "".join(f"<li>{md_inline(x)}</li>" for x in (s.get("items") or []) if x) + "</ul>") if style == "list" else md(s.get("text"))
-        inner = inner.replace('data-lightbox="', 'data-lightbox="pd-')  # ảnh trong khung hồ sơ: nhóm riêng, không lặp với ảnh ở trang
+        inner = re.sub(r'<p class="hs-grid">.*?</p>', "", inner, flags=re.S)  # lưới ảnh giấy tờ đã có ở danh sách giấy tờ
+        inner = inner.replace('data-lightbox="', 'data-lightbox="pd-')  # ảnh còn lại: nhóm riêng, không lặp với ảnh ở trang
         parts.append(f'<div class="pf-doc pf-sec"><h3>{esc(s.get("title"))}</h3>{inner}</div>')
     has_docs = bool(cert or labels or any(x.get("file") for x in proofs))
     label = t("Xem phiếu kiểm nghiệm & nhãn thật" if (cert or any(x.get("file") for x in proofs)) and labels else
