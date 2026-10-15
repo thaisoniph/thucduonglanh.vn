@@ -184,7 +184,7 @@ CRM tự tính ngày cần liên hệ từng khách, dựa vào **ngày khách n
 | Việc | Khi nào | Nên làm gì |
 | --- | --- | --- |
 | 📞 **Hẹn gọi lại** | Đến ngày khách đã hẹn | Gọi lại đúng hẹn |
-| 📦 **Hỏi nhận hàng, hướng dẫn dùng** | Ngày khách nhận hàng đến 2 ngày sau (chưa rõ ngày nhận: từ ngày gửi + 3 ngày) | Hỏi đã nhận hàng chưa, gửi cách dùng. Bấm **📦 Đã nhận, đã HD dùng** hoặc **🚚 Chưa nhận hàng** (2 ngày sau tự nhắc lại) |
+| 📦 **Hỏi nhận hàng, hướng dẫn dùng** | Ngày khách nhận hàng đến 2 ngày sau. Đơn còn **Mới / Đã xác nhận / Đang giao** thì chờ quá số ngày giao hàng + 2 ngày (mặc định 5 ngày sau ngày đặt) mới nhắc, thẻ khách ghi rõ "đơn vẫn Đang giao" | Hỏi đã nhận hàng chưa, gửi cách dùng. Bấm **📦 Đã nhận, đã HD dùng** hoặc **🚚 Chưa nhận hàng** (2 ngày sau tự nhắc lại) |
 | ⏰ **Sắp hết / đã hết sản phẩm** | Gần ngày khách dùng hết | Nhắc đặt lại, gợi ý thêm món để đơn từ 300.000đ được miễn phí ship |
 | 🤝 **Hỏi thăm sau 1 tuần** | 7 ngày sau khi nhận hàng (đến 2 ngày sau) | Hỏi khách dùng có khó khăn gì, cần hỗ trợ gì. Mời vào nhóm Zalo cộng đồng nếu khách chưa vào |
 | 💬 **Xin cảm nhận** | 14 ngày sau khi nhận hàng | Hỏi cảm nhận, xin phép chia sẻ |
