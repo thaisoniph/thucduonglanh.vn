@@ -561,6 +561,10 @@ label .invalid,input.invalid,textarea.invalid{border-color:var(--red)!important}
 .vm-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px}
 .vm-card{background:#fff;border-radius:var(--radius);padding:32px;box-shadow:var(--shadow);border-top:4px solid var(--gold)}
 .vm-card h3{font-size:24px;color:var(--primary)}
+.mf-lines{max-width:790px;text-wrap:balance;margin:0 auto;text-align:center;font-size:18px;line-height:1.85;color:var(--ink)}
+.mf-lines p{margin:0 0 22px}.mf-lines p:last-child{margin-bottom:0}
+.mf-lines b{font-family:var(--serif);font-style:italic;font-weight:600;color:var(--gold)}
+@media (max-width:600px){.mf-lines{font-size:16px}}
 .val-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:18px}
 .val-card{background:var(--cream);border-radius:var(--radius);padding:24px 20px;border:1px solid #efe6cc;transition:all .3s}
 .val-card:hover{background:var(--primary);color:#fff;transform:translateY(-4px)}

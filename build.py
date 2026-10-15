@@ -1987,6 +1987,18 @@ def page_about():
     bc, bld = breadcrumb([(t("Giới thiệu"), None)])
     bv_html, bv_ld = brand_video()
     story3 = tf("Từ đó, VitaGreen được xây dựng trên triết lý: <b>Sống xanh – sống lành – sống có giá trị</b>. Thương hiệu con <b>{brand}</b> ra đời không chỉ để bán sản phẩm, mà là lời xin lỗi muộn với những người ta không kịp chăm sóc, lời hứa sớm với những người ta vẫn còn được đồng hành, và lời cam kết với chính mình: <b>“Tôi chọn sống lành – để sống đáng.”</b>", brand=BRAND)
+    # Tuyên ngôn theo khung "eat happy" của Candylicious: mỗi nhóm là 1 khổ, mỗi phần tử là 1 dòng
+    stanzas = [[tf("Ở {brand}, sứ mệnh của chúng tôi rất giản dị: <b>sống lành, để sống đáng.</b>", brand=BRAND),
+                t("Qua từng bữa ăn lành, chúng tôi mong mỗi ngày của người Việt là một ngày đáng sống.")],
+               [t("Pha một ly sữa hạt cho mình, bạn có một buổi sáng nhẹ nhàng."),
+                t("Pha thêm một ly cho mẹ, mẹ sẽ mỉm cười thật dịu dàng."),
+                t("Suy cho cùng, sống lành cũng như yêu thương: trao đi là lan khắp mọi nẻo đường.")],
+               [t("<b>Sống lành, để sống đáng.</b> Chúng tôi giữ điều đó trong mọi việc mình làm."),
+                t("Mỗi ngày, không ngoại lệ, chúng tôi chọn từng sản phẩm như chọn cho chính bố mẹ mình,"),
+                t("để mỗi người khách ghé qua, khi về mang theo chút an lòng, chút nghĩa tình.")],
+               [t("Và trong mọi việc, chúng tôi luôn nhắc nhau: điều giản dị nhất thường là điều quý nhất."),
+                t("Mà điều giản dị nhất, chính là một bữa cơm lành, ăn thật chậm, bên người mình thương.")]]
+    manifesto = "".join("<p>" + "<br>".join(s) + "</p>" for s in stanzas)
     body = f'''{page_hero(tf("Giới thiệu {brand}", brand=BRAND), esc(SITE["slogan"]))}
 <section class="section"><div class="container">{bc}
   {f'<div class="bv-about">{bv_html}</div>' if bv_html else ""}
@@ -1999,6 +2011,10 @@ def page_about():
     </div>
     <div class="story-media"><img src="/assets/img/brand/logo-gold.webp" alt="{BRAND} – {esc(SITE["slogan"])}" class="about-logo about-logo-gold" width="900" height="900" loading="lazy"></div>
   </div>
+</div></section>
+<section class="section manifesto"><div class="container narrow">
+  <h2 class="sec-title">{t("Điều chúng tôi tin")}</h2>
+  <div class="mf-lines">{manifesto}</div>
 </div></section>
 <section class="section bg-soft"><div class="container vm-grid">
   <div class="vm-card"><h3>{t("Tầm nhìn")}</h3><p>{t("Trở thành hệ sinh thái sản phẩm thực dưỡng uy tín hàng đầu Việt Nam — một biểu tượng uy tín được tin chọn trong từng gia đình. Không ngừng kiến tạo hệ sinh thái sản phẩm chất lượng – lành mạnh – bền vững, giúp người Việt sống khỏe từ THÂN đến TÂM, để mỗi ngày sống là một ngày thật sự đáng sống.")}</p></div>
