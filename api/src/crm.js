@@ -367,9 +367,13 @@ export function careTask(c, today, R) {
   const cool = R.coolDays > 0 && care != null && c.care_result !== 'Không nghe máy' && today - care < R.coolDays * DAY;
   for (const s of CARE_STEPS) {
     if (c.fam && (s.key === 'd1' || s.key === 'd14')) continue; // khách quen sản phẩm: đã biết cách dùng
-    if (s.key === 'd1') { // hỏi nhận hàng: đơn đã giao thì từ hôm sau; đơn còn đang xử lý / đi đường thì chờ D1_WAIT ngày. Đã chăm sóc sau ngày đặt → coi như đã hỏi
-      const from = OPEN_ST.test(c.last_status || '') ? D1_WAIT : s.at;
-      if (days >= from && days <= D1_END && !(care != null && care > last)) return { type: 'd1', days, late: 0, toRun };
+    if (s.key === 'd1') { // hỏi nhận hàng. Đã chăm sóc sau ngày đặt → coi như đã hỏi
+      if (care != null && care > last) continue;
+      const recv = c.recv ? startOfDay(c.recv) : null;
+      if (recv != null && recv >= last) { const rd = Math.round((today - recv) / DAY); if (rd >= 0 && rd <= 2) return { type: 'd1', days: rd, late: 0, toRun }; continue; } // biết ngày nhận: từ hôm nhận đến 2 ngày sau
+      // chưa rõ ngày nhận: đơn còn đang xử lý / đi đường thì chờ quá số ngày giao (Cài đặt) + D1_WAIT ngày mới hỏi; đã giao thì từ D+1
+      const open = OPEN_ST.test(c.last_status || ''), from = open ? Math.max(D1_WAIT, (R.shipDays || 0) + 2) : s.at;
+      if (days >= from && days <= from + D1_END - D1_WAIT) return { type: 'd1', days, late: 0, toRun, est: 1 };
       continue;
     }
     if (cool) continue;

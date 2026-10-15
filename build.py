@@ -508,7 +508,7 @@ def header(active):
     if SITE.get('free_ship_threshold') and SITE.get('shipping_fee'):
         free = f'<span class="tb-free">🚚 <span class="tb-long">{t("Miễn phí vận chuyển đơn")}</span><span class="tb-short">Freeship</span> {t("từ")} ' + money(SITE['free_ship_threshold']).replace(' ₫', 'đ') + '</span><span class="tb-hot">&nbsp;·&nbsp;</span>'
     blank = ' target="_blank" rel="noopener"' if SITE.get("community_group") else ""
-    community = f'<a href="{esc(SITE.get("community_group") or "/goc-song-lanh/")}"{blank}>{t("Cộng Đồng Sống Khỏe")} {ic("globe","ic ic-sm")}</a>' if IS_VI or SITE.get("community_group") or POSTS["posts"] else ""
+    community = f'<a href="{esc(SITE.get("community_group") or "/goc-song-lanh/")}"{blank}>{t("Cộng Đồng Sống Khỏe")} {ic("globe","ic ic-sm")}</a>' if IS_VI or SITE.get("community_group") else ""
     return f'''
 <div class="topbar"><div class="container topbar-in">
   <div class="tb-left">{offer}{free}<span class="tb-hot">Hotline {BRAND}: {ic("phone","ic ic-sm")} <a href="tel:{tel(SITE["hotline"])}">{esc(SITE["hotline"])}</a>{hot2}</span></div>
