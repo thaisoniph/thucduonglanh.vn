@@ -142,30 +142,56 @@ async function wbWrite(x, src, items) {
   if (ni.length) { try { rn = await wbNoteWrite(x, src, ni); } catch (e) { rn = ni.map(() => err(e)); } }
   let a = 0, b = 0; return items.map(it => isOrd(it) ? ro[a++] : rn[b++]);
 }
+/** Sheet chăm sóc phụ: sheet khác (không nhập) cùng kiểu cop số, có cột SĐT + ghi chú (vd "cop so2" của Phương: khách cũ chưa chép sang "cop số"). */
+const careSheets2 = (src, sc) => (src.cfg.sheets || []).filter(s => s !== sc && (s.role === 'care' || s.role === 'skip') && s.map && s.map.phone !== undefined && s.map.note !== undefined);
+/** Thông tin khách trên CRM để điền dòng mới / ô địa chỉ trống: địa chỉ + mô tả đơn gần nhất. */
+async function custInfo(x, phones) {
+  const out = {}; if (!phones.length) return out;
+  (await allIn(x.db, "SELECT c.phone, c.address, (SELECT o.ship FROM orders o WHERE o.phone = c.phone ORDER BY o.time DESC LIMIT 1) ship FROM customers c WHERE c.phone IN (SELECT value FROM json_each(?))", phones))
+    .forEach(r => { out[r.phone] = { address: String(r.address || '').trim(), ship: String(r.ship || '').trim() }; });
+  return out;
+}
 async function wbNoteWrite(x, src, items) {
   const sc = careSheet(src); if (!sc) return items.map(() => 'Bỏ qua: chưa chọn sheet chăm sóc');
   const U = SRC_UTIL, id = fileIdOf(src.url), m = sc.map, hr = sc.header || 1, pc = U.colLetter(+m.phone), nc = U.colLetter(+m.note), hasName = has(m, 'name'), mc = hasName ? U.colLetter(+m.name) : '';
-  const rgs = [a1(sc.name, pc + (hr + 1) + ':' + pc), a1(sc.name, nc + (hr + 1) + ':' + nc)]; if (hasName) rgs.push(a1(sc.name, mc + (hr + 1) + ':' + mc));
+  const hasAddr = has(m, 'address'), ac = hasAddr ? U.colLetter(+m.address) : '', sc2 = careSheets2(src, sc);
+  const rgs = [a1(sc.name, pc + (hr + 1) + ':' + pc), a1(sc.name, nc + (hr + 1) + ':' + nc), hasName ? a1(sc.name, mc + (hr + 1) + ':' + mc) : '', hasAddr ? a1(sc.name, ac + (hr + 1) + ':' + ac) : ''].filter(String);
+  sc2.forEach(s => { const h = s.header || 1, c = U.colLetter(+s.map.phone), n = U.colLetter(+s.map.note); rgs.push(a1(s.name, c + (h + 1) + ':' + c), a1(s.name, n + (h + 1) + ':' + n)); });
   const got = await sheetBatchGet(x.env, id, rgs, 'UNFORMATTED_VALUE'), col = v => (v || []).map(r => r[0]);
-  const phones = col(got[0]), notes = col(got[1]), names = hasName ? col(got[2]) : [];
+  let gi = 0; const phones = col(got[gi++]), notes = col(got[gi++]), names = hasName ? col(got[gi++]) : [], addrs = hasAddr ? col(got[gi++]) : [];
   const AL = await phoneAlias(x), mainOf = p => AL[p] || p; // khách đã gộp nhiều số: dòng của số phụ trong file = dòng của khách
-  const lastRow = {}, aliasRow = {}; phones.forEach((p, i) => { const ph = U.toPhone(p); if (ph) { lastRow[ph] = i; if (AL[ph]) aliasRow[AL[ph]] = i; } });
-  Object.keys(aliasRow).forEach(ph => { if (lastRow[ph] === undefined) lastRow[ph] = aliasRow[ph]; });
-  const nameUpd = {}, cellUpd = {}, add = [], newRow = {}, out = [], width = U.neededCols(sc), today = dM(Date.now());
+  const rowsOf = ph => { const last = {}, alias = {}; ph.forEach((p, i) => { const v = U.toPhone(p); if (v) { last[v] = i; if (AL[v]) alias[AL[v]] = i; } }); Object.keys(alias).forEach(v => { if (last[v] === undefined) last[v] = alias[v]; }); return last; };
+  const lastRow = rowsOf(phones);
+  // khách không có trong sheet chăm sóc chính → tìm ở sheet phụ (15/10/2026: Phương chăm khách cũ nằm ở "cop so2", CRM lại thêm dòng trống ở cuối "cop số")
+  const alt = sc2.map(s => { const p = col(got[gi++]), n = col(got[gi++]); return { s, notes: n, last: rowsOf(p), upd: {} }; });
+  const info = await custInfo(x, [...new Set(items.map(it => it.phone))]);
+  const nameUpd = {}, cellUpd = {}, addrUpd = {}, add = [], newRow = {}, out = [], width = U.neededCols(sc), today = dM(Date.now());
+  const append = (cur, t) => { cur = String(cur == null ? '' : cur).replace(/[\s,]+$/, ''); return cur ? cur + ', ' + t : t; };
   for (const it of items) {
-    const i = lastRow[it.phone];
+    const i = lastRow[it.phone], ci = info[it.phone] || info[mainOf(it.phone)] || {};
     if (it.text === WB_ZALO) { // đã kết bạn Zalo: thêm "(x)" vào tên ở mọi dòng của khách (dòng nào chưa có)
       if (!hasName) { out.push('Bỏ qua: sheet chưa chọn cột tên'); continue; }
       let cnt = 0; phones.forEach((p, j) => { if (mainOf(U.toPhone(p)) !== mainOf(it.phone)) return; const nm = String(nameUpd[j] !== undefined ? nameUpd[j] : names[j] == null ? '' : names[j]); if (!/\(\s*[xX×]\s*\)/.test(nm)) { nameUpd[j] = nm.replace(/\s+$/, '') + '(x)'; cnt++; } });
       out.push(cnt ? 'Đã thêm (x) vào ' + cnt + ' dòng' : (i === undefined ? 'Bỏ qua: không thấy khách trong file' : 'Tên đã có (x)')); continue;
     }
-    if (i === undefined && newRow[it.phone]) { const row = newRow[it.phone]; row[+m.note] += ', ' + it.text; out.push('Đã ghi vào dòng mới thêm'); continue; } // khách mới thêm cùng lượt: gộp vào 1 dòng
-    if (i === undefined) { const row = Array(width).fill(''); if (has(m, 'date')) row[+m.date] = today; if (hasName) row[+m.name] = it.name; row[+m.phone] = "'" + it.phone; row[+m.note] = it.text; add.push(row); newRow[it.phone] = row; out.push('Đã thêm dòng mới'); continue; }
-    const cur = cellUpd[i] !== undefined ? cellUpd[i] : String(notes[i] == null ? '' : notes[i]).replace(/[\s,]+$/, '');
-    cellUpd[i] = cur ? cur + ', ' + it.text : it.text; out.push('Đã ghi dòng ' + (hr + 1 + i));
+    if (i !== undefined) {
+      cellUpd[i] = append(cellUpd[i] !== undefined ? cellUpd[i] : notes[i], it.text); out.push('Đã ghi dòng ' + (hr + 1 + i));
+      if (hasAddr && ci.address && !String(addrs[i] == null ? '' : addrs[i]).trim()) addrUpd[i] = ci.address; // dòng CRM thêm trước đây chưa có địa chỉ → bổ sung
+      continue;
+    }
+    const a = alt.find(A => A.last[it.phone] !== undefined);
+    if (a) { const j = a.last[it.phone]; a.upd[j] = append(a.upd[j] !== undefined ? a.upd[j] : a.notes[j], it.text); out.push('Đã ghi sheet ' + a.s.name + ' dòng ' + ((a.s.header || 1) + 1 + j)); continue; }
+    if (newRow[it.phone]) { const row = newRow[it.phone]; row[+m.note] += ', ' + it.text; out.push('Đã ghi vào dòng mới thêm'); continue; } // khách mới thêm cùng lượt: gộp vào 1 dòng
+    const row = Array(width).fill(''); if (has(m, 'date')) row[+m.date] = today; if (hasName) row[+m.name] = it.name; row[+m.phone] = "'" + it.phone; row[+m.note] = it.text;
+    if (hasAddr) row[+m.address] = ci.address || ''; if (has(m, 'shipText') && +m.shipText < width) row[+m.shipText] = ci.ship || ''; // khách đã mua: điền địa chỉ + đơn gần nhất cho đủ thông tin
+    add.push(row); newRow[it.phone] = row; out.push('Đã thêm dòng mới');
   }
-  await sheetWrite(x.env, id, Object.keys(cellUpd).map(i => ({ range: a1(sc.name, nc + (hr + 1 + +i)), values: [[cellUpd[i]]] })).concat(Object.keys(nameUpd).map(i => ({ range: a1(sc.name, mc + (hr + 1 + +i)), values: [[nameUpd[i]]] }))));
-  if (add.length) await appendAt(x, id, sc.name, hr + 1 + Math.max(phones.length, notes.length, names.length), width, add);
+  const wr = Object.keys(cellUpd).map(i => ({ range: a1(sc.name, nc + (hr + 1 + +i)), values: [[cellUpd[i]]] }))
+    .concat(Object.keys(nameUpd).map(i => ({ range: a1(sc.name, mc + (hr + 1 + +i)), values: [[nameUpd[i]]] })))
+    .concat(Object.keys(addrUpd).map(i => ({ range: a1(sc.name, ac + (hr + 1 + +i)), values: [[addrUpd[i]]] })));
+  alt.forEach(A => { const h = A.s.header || 1, n = U.colLetter(+A.s.map.note); Object.keys(A.upd).forEach(j => wr.push({ range: a1(A.s.name, n + (h + 1 + +j)), values: [[A.upd[j]]] })); });
+  await sheetWrite(x.env, id, wr);
+  if (add.length) await appendAt(x, id, sc.name, hr + 1 + Math.max(phones.length, notes.length, names.length, addrs.length), width, add);
   return out;
 }
 /** Thêm dòng vào CUỐI sheet. Trước đây gọi append từ ô A<dòng tiêu đề>: ô A tiêu đề để trống (vd "cop số" của Phương) thì Google không nhận ra bảng
