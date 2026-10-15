@@ -100,9 +100,9 @@ See all documents under **Quality documents** on the [DILVANG Instant Tea produc
 
 Thực Dưỡng Lành was born from a question that came too late: *“If only I had taken better care…”*. So before we introduce any product, we ask ourselves: would we make this for our own parents every day?
 
-With DILVANG, we did not stop at paperwork. Before deciding to distribute it, the Thực Dưỡng Lành team travelled to the factory in Dong Ha to visit and work with Gold Herbal. We saw with our own eyes where the tea is made and met the people who make it, then checked every document.
+With DILVANG, we did not stop at paperwork. In July 2026, before deciding to distribute it, the Thực Dưỡng Lành team travelled to the factory in Dong Ha to visit and work with Gold Herbal. We saw with our own eyes where the tea is made and met the people who make it, then checked every document.
 
-![The Thực Dưỡng Lành team meeting with Gold Herbal at the factory in Dong Ha](/assets/uploads/cau-chuyen/dilvang-tdl-lam-viec-nha-may.webp)
+![The Thực Dưỡng Lành team meeting with Gold Herbal at the factory in Dong Ha (July 2026)](/assets/uploads/cau-chuyen/dilvang-tdl-lam-viec-nha-may.webp)
 
 ![The Thực Dưỡng Lành team in protective coats, touring the GMP cleanroom area](/assets/uploads/cau-chuyen/dilvang-tdl-tham-phong-sach.webp)
  But what kept us was more than paperwork. It was the feeling that every sachet has a homeland, the people who grow it and the people who make it.
