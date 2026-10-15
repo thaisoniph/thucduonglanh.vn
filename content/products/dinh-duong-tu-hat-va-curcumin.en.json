@@ -1,0 +1,139 @@
+{
+  "name": "Seed Nutrition with Curcumin",
+  "short_name": "Curcumin Seed Milk",
+  "badge": "Customer favorite",
+  "variants": [
+    {
+      "name": "Box 400g"
+    },
+    {
+      "name": "Box 125g"
+    }
+  ],
+  "summary": "A seed milk powder combining **95% pure Curcumin**, seaweed and **15 macrobiotic seeds and grains**. Sweetened with stevia, with a rich, nutty taste that is easy to drink – a gentle snack for the whole family.",
+  "highlights": [
+    "95% pure Curcumin",
+    "15 macrobiotic seeds & grains",
+    "With added seaweed",
+    "Sweetened with stevia",
+    "Box 400g / 125g"
+  ],
+  "sections": [
+    {
+      "title": "Ingredients",
+      "text": "95% pure Curcumin, seaweed, 15 seeds/grains: macadamia, lotus seeds, oats, walnuts, chia seeds, pumpkin seeds, corn, green peas, sacha inchi, brown rice, black sesame, almonds, mung beans, red beans, chickpeas. Plus non-dairy creamer, maltodextrin, Stevinten fresh (stevia) and vanilla flavor."
+    },
+    {
+      "title": "Nutrition facts (per 100g)",
+      "rows": [
+        {
+          "label": "Energy",
+          "value": "434 kcal"
+        },
+        {
+          "label": "Protein",
+          "value": "14.6 g"
+        },
+        {
+          "label": "Carbohydrate",
+          "value": "55.8 g"
+        },
+        {
+          "label": "Fat",
+          "value": "16.9 g"
+        },
+        {
+          "label": "Sodium",
+          "value": "245 mg"
+        }
+      ]
+    },
+    {
+      "title": "Why choose it",
+      "items": [
+        "Curcumin extracted from Vietnamese turmeric using technology from the Vietnam Institute of Industrial Chemistry.",
+        "A blend of seeds rich in plant protein, healthy fats, vitamins and minerals.",
+        "Adds nutrition to your snack, supports digestion and provides antioxidants.",
+        "Genuine Vietnamese product with quality documents, verifiable via iCheck."
+      ]
+    },
+    {
+      "title": "Who it's for",
+      "text": "Children aged 3 and up; older adults; people with sensitive digestion; people who want to rebuild their strength, including after being unwell; people watching their weight; vegetarians and vegans."
+    },
+    {
+      "title": "How to use",
+      "text": "**To prepare:** stir 3 scoops of powder (about 30g) into 150–180ml of warm water at 60–70°C.\n\n**Serving:** one 180ml glass, 2–3 times a day.\n\nIf you're new to it, start with half a serving and increase gradually so your body can get used to the fiber."
+    },
+    {
+      "title": "Storage",
+      "items": [
+        "Unopened: keep in a cool place away from sunlight. Shelf life 24 months.",
+        "Opened: close tightly and use within 30 days."
+      ]
+    },
+    {
+      "title": "Origin",
+      "text": "Genuine product of Vietnam. Responsible for quality: Vitanuts Green Nutrition JSC. The factory meets food hygiene and safety standards."
+    }
+  ],
+  "disclaimer": "This product is not a medicine and does not replace medical treatment.",
+  "badges": [
+    "Lab-tested at QUATEST 3 (11/2025)",
+    "Not detected: heavy metals, Aflatoxin",
+    "Curcuminoid from the Institute of Chemistry – 95.6% per NIFC testing",
+    "Factory certified ISO 22000:2018 and GMP",
+    "Stevia – naturally mild sweetness"
+  ],
+  "keywords": [
+    "seed milk",
+    "nut milk",
+    "curcumin",
+    "turmeric",
+    "turmeric powder",
+    "snack",
+    "breakfast",
+    "digestion",
+    "seniors",
+    "sugar-free",
+    "no sugar",
+    "low sugar",
+    "stevia",
+    "vegan",
+    "plant protein"
+  ],
+  "pitch": "15 seeds + Institute-made Curcumin, gently sweetened with stevia",
+  "proofs": [
+    {
+      "title": "Finished product test report",
+      "org": "Quality Assurance and Testing Center 3 (QUATEST 3)",
+      "scope": "Lead, cadmium, tin, mercury, Aflatoxin M1 and Salmonella not detected. Per 100g: 434 kcal, protein 14.6g"
+    },
+    {
+      "title": "Test report (page 2 – detailed indicators)",
+      "org": "QUATEST 3"
+    },
+    {
+      "title": "Curcuminoid raw material test report (page 1)",
+      "org": "National Institute for Food Control (NIFC) – Ministry of Health",
+      "scope": "Curcuminoid raw material produced by the Vietnam Institute of Industrial Chemistry: no microorganisms detected"
+    },
+    {
+      "title": "Curcuminoid raw material test report (page 2)",
+      "org": "NIFC – Ministry of Health",
+      "scope": "Curcuminoid content 95.6% (measured on the raw material, not on the finished product)"
+    },
+    {
+      "title": "Factory certified ISO 22000:2018 (food safety management)",
+      "org": "GOOD Vietnam National Certification JSC (GOODVN)",
+      "scope": "Vitanuts factory (Phu Nghia Industrial Park, Hanoi): blending and packing of cereal and nutrition powders",
+      "date": "Issued 22/09/2025 – valid until 21/09/2028"
+    },
+    {
+      "title": "Factory certified GMP (TCVN 5603:2023)",
+      "org": "GOOD Vietnam National Certification JSC (GOODVN)",
+      "scope": "Vitanuts factory: production of cereal powders, nutrition powders and powdered seed products",
+      "date": "Issued 04/04/2026 – valid until 03/04/2029"
+    }
+  ]
+}

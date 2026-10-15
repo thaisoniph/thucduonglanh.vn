@@ -22,6 +22,16 @@ logo_url: /assets/img/brand/icon-180.png
 media_folder: assets/uploads
 public_folder: /assets/uploads
 
+# Đa ngôn ngữ: Tiếng Việt là bản chính (file gốc), bản dịch nằm cạnh file gốc với đuôi .en (vd content/products/abc.en.json).
+# Ô có "i18n: true" = mỗi ngôn ngữ một nội dung; ô khác (giá, ảnh, mã…) chỉ sửa ở bản Tiếng Việt, bản dịch tự dùng chung.
+# Thêm ngôn ngữ: thêm mã vào locales (và LANGS trong build.py + data/i18n/<mã>.json). Xem HUONG-DAN.md mục "Đa ngôn ngữ".
+i18n:
+  structure: multiple_files
+  locales: [vi, en]
+  default_locale: vi
+  omit_default_locale_from_file_path: true
+  initial_locales: default
+
 slug:
   encoding: ascii
   clean_accents: true
@@ -34,6 +44,7 @@ collections:
     label_singular: "bài viết"
     description: "Bài viết hiển thị ở mục Góc Sống Lành. Bấm “Xuất bản” – khoảng 2 phút sau bài xuất hiện trên web."
     folder: content/posts
+    i18n: true
     extension: md
     format: frontmatter
     create: true
@@ -44,7 +55,7 @@ collections:
     sortable_fields: [date, title]
     preview_path: "goc-song-lanh/{{slug}}/"
     fields:
-      - { label: "Tiêu đề bài viết", name: title, widget: string }
+      - { label: "Tiêu đề bài viết", name: title, i18n: true, widget: string }
       - { label: "Ngày đăng", name: date, widget: datetime, format: "YYYY-MM-DD", time_format: false }
       - label: "Chuyên mục"
         name: category
@@ -55,9 +66,9 @@ collections:
         search_fields: ["categories.*.name"]
         display_fields: ["categories.*.name"]
       - { label: "Ảnh đại diện", name: image, widget: image, hint: "Ảnh vuông hoặc ngang, tối thiểu 1000px. Web tự nén ảnh." }
-      - { label: "Mô tả ngắn", name: excerpt, widget: text, hint: "1–2 câu, hiện ở danh sách bài và khi chia sẻ Facebook/Zalo." }
+      - { label: "Mô tả ngắn", name: excerpt, i18n: true, widget: text, hint: "1–2 câu, hiện ở danh sách bài và khi chia sẻ Facebook/Zalo." }
       - { label: "Hiển thị trên web", name: published, widget: boolean, default: true, hint: "Tắt để ẩn bài mà không xoá." }
-      - { label: "Nội dung", name: body, widget: markdown }
+      - { label: "Nội dung", name: body, i18n: true, widget: markdown }
 
   # ------------------------------------------------------------ SẢN PHẨM
   - name: products
@@ -65,6 +76,7 @@ collections:
     label_singular: "sản phẩm"
     description: "Thông tin, giá, ảnh và mô tả sản phẩm. Giá nhập bằng số, ví dụ 140000."
     folder: content/products
+    i18n: true
     extension: json
     format: json
     create: true
@@ -75,8 +87,8 @@ collections:
     sortable_fields: [order, name]
     preview_path: "san-pham/{{slug}}/"
     fields:
-      - { label: "Tên sản phẩm", name: name, widget: string }
-      - { label: "Tên ngắn", name: short_name, widget: string, required: false, hint: "Dùng ở nút tư vấn nổi, ví dụ: Trà DILVANG" }
+      - { label: "Tên sản phẩm", name: name, i18n: true, widget: string }
+      - { label: "Tên ngắn", name: short_name, i18n: true, widget: string, required: false, hint: "Dùng ở nút tư vấn nổi, ví dụ: Trà DILVANG" }
       - label: "Danh mục"
         name: category
         widget: relation
@@ -88,20 +100,21 @@ collections:
       - { label: "Hiển thị trên web", name: published, widget: boolean, default: true, hint: "Tắt để tạm ẩn sản phẩm (hết hàng, ngừng bán)." }
       - { label: "Sản phẩm nổi bật", name: featured, widget: boolean, default: false, hint: "Hiện ở mục “Sản phẩm được yêu thích nhất” trên trang chủ." }
       - { label: "Thứ tự hiển thị", name: order, widget: number, value_type: int, default: 50, hint: "Số nhỏ đứng trước." }
-      - { label: "Nhãn trên ảnh", name: badge, widget: string, required: false, hint: "Ví dụ: Bán chạy, Mới, Thuần chay. Để trống nếu không cần." }
+      - { label: "Nhãn trên ảnh", name: badge, i18n: true, widget: string, required: false, hint: "Ví dụ: Bán chạy, Mới, Thuần chay. Để trống nếu không cần." }
       - { label: "Mã SKU", name: sku, widget: string, required: false }
       - { label: "Giá bán (đồng)", name: price, widget: number, value_type: int, required: false, hint: "Để trống = hiện “Liên hệ”. Nếu có nhiều quy cách thì nhập giá ở phần Quy cách bên dưới." }
       - { label: "Giá gốc gạch ngang (đồng)", name: regular_price, widget: number, value_type: int, required: false, hint: "Chỉ nhập khi đang giảm giá, phải lớn hơn Giá bán." }
       - { label: "Giảm khi đặt trên web (%)", name: web_discount, widget: number, value_type: int, min: 0, max: 90, required: false, hint: "Để trống = theo mức chung trong Cài đặt → Ưu đãi chỉ có khi đặt trên website. Nhập 0 = không giảm (sản phẩm giá thấp, lãi mỏng). Áp dụng cho mọi quy cách, trừ quy cách có ô riêng." }
-      - { label: "Quy cách (1 loại)", name: unit, widget: string, required: false, hint: "Ví dụ: Chai 500ml. Bỏ qua nếu dùng nhiều quy cách." }
+      - { label: "Quy cách (1 loại)", name: unit, i18n: true, widget: string, required: false, hint: "Ví dụ: Chai 500ml. Bỏ qua nếu dùng nhiều quy cách." }
       - label: "Nhiều quy cách / nhiều giá"
         name: variants
+        i18n: true
         widget: list
         required: false
         summary: "{{fields.name}} – {{fields.price}}đ"
         hint: "Ví dụ: Hộp 400g – 450000, Hộp 125g – 140000. Loại đầu tiên được chọn sẵn."
         fields:
-          - { label: "Tên quy cách", name: name, widget: string }
+          - { label: "Tên quy cách", name: name, i18n: true, widget: string }
           - { label: "Giá bán (đồng)", name: price, widget: number, value_type: int, required: false }
           - { label: "Giá gốc gạch ngang (đồng)", name: regular_price, widget: number, value_type: int, required: false }
           - { label: "Giảm khi đặt trên web (%) – riêng quy cách này", name: web_discount, widget: number, value_type: int, min: 0, max: 90, required: false, hint: "Để trống = theo mức của sản phẩm. Nhập 0 = quy cách này không giảm." }
@@ -111,16 +124,17 @@ collections:
         widget: list
         hint: "Ảnh đầu tiên là ảnh đại diện. Nên dùng ảnh vuông ≥1000px. Web tự nén ảnh."
         field: { label: "Ảnh", name: image, widget: image }
-      - { label: "Mô tả ngắn (cạnh giá)", name: summary, widget: markdown, buttons: [bold, italic, link] }
+      - { label: "Mô tả ngắn (cạnh giá)", name: summary, i18n: true, widget: markdown, buttons: [bold, italic, link] }
       - { label: "Số gói/phần (sản phẩm 1 quy cách)", name: servings, widget: number, value_type: int, required: false, hint: "Ví dụ hộp 15 gói → 15. Có nhiều quy cách thì nhập ở từng quy cách." }
-      - { label: "Đơn vị phần", name: serving_unit, widget: string, required: false, hint: "Chữ sau giá mỗi phần: gói, bữa, ly… Để trống = phần." }
-      - { label: "Câu giới thiệu ngắn (gợi ý mua kèm)", name: pitch, widget: string, required: false, hint: "1 câu ≤ 70 chữ, nói điểm hay nhất, không ghi công dụng chữa bệnh. Hiện khi sản phẩm được gợi ý trong giỏ hàng / thanh toán. Ví dụ: 12 loại hạt, pha 1 phút cho bữa sáng bận rộn" }
+      - { label: "Đơn vị phần", name: serving_unit, i18n: true, widget: string, required: false, hint: "Chữ sau giá mỗi phần: gói, bữa, ly… Để trống = phần." }
+      - { label: "Câu giới thiệu ngắn (gợi ý mua kèm)", name: pitch, i18n: true, widget: string, required: false, hint: "1 câu ≤ 70 chữ, nói điểm hay nhất, không ghi công dụng chữa bệnh. Hiện khi sản phẩm được gợi ý trong giỏ hàng / thanh toán. Ví dụ: 12 loại hạt, pha 1 phút cho bữa sáng bận rộn" }
       - label: "Huy hiệu chứng nhận (khung “Vì sao nên chọn”)"
         name: badges
+        i18n: true
         widget: list
         required: false
         hint: "Chỉ ghi điều có giấy tờ thật, ví dụ: Kiểm nghiệm NIFC, GMP – ISO 22000:2018. Huy hiệu có chữ “kiểm nghiệm” bấm vào sẽ tới mục Tiêu chuẩn & kiểm nghiệm."
-        field: { label: "Huy hiệu", name: badge, widget: string }
+        field: { label: "Huy hiệu", name: badge, i18n: true, widget: string }
       - { label: "Ảnh phiếu kiểm nghiệm", name: test_cert_img, widget: image, required: false, hint: "Có ảnh thì bấm huy hiệu Kiểm nghiệm sẽ mở ảnh này." }
       - label: "Ảnh nhãn thật trên bao bì"
         name: label_imgs
@@ -130,16 +144,17 @@ collections:
         field: { label: "Ảnh nhãn", name: img, widget: image }
       - label: "Hồ sơ chất lượng (phiếu kiểm nghiệm, chứng nhận…)"
         name: proofs
+        i18n: true
         widget: list
         required: false
         summary: "{{fields.title}} – {{fields.org}}"
         hint: "Chỉ nhập giấy tờ có thật. Hiện trong khung “Hồ sơ chất lượng” khi khách bấm nút dưới huy hiệu."
         fields:
-          - { label: "Tên giấy tờ", name: title, widget: string, hint: "Ví dụ: Phiếu kết quả kiểm nghiệm" }
-          - { label: "Đơn vị cấp / kiểm nghiệm", name: org, widget: string, required: false, hint: "Ví dụ: Viện Kiểm nghiệm ATVSTP Quốc gia (NIFC)" }
-          - { label: "Số hiệu", name: number, widget: string, required: false }
-          - { label: "Ngày cấp / ngày kiểm nghiệm", name: date, widget: string, required: false, hint: "Ví dụ: 12/03/2025" }
-          - { label: "Phạm vi áp dụng / chỉ tiêu", name: scope, widget: string, required: false, hint: "Ví dụ: hóa lý, vi sinh, kim loại nặng – lô sản xuất 03/2025" }
+          - { label: "Tên giấy tờ", name: title, i18n: true, widget: string, hint: "Ví dụ: Phiếu kết quả kiểm nghiệm" }
+          - { label: "Đơn vị cấp / kiểm nghiệm", name: org, i18n: true, widget: string, required: false, hint: "Ví dụ: Viện Kiểm nghiệm ATVSTP Quốc gia (NIFC)" }
+          - { label: "Số hiệu", name: number, i18n: true, widget: string, required: false }
+          - { label: "Ngày cấp / ngày kiểm nghiệm", name: date, i18n: true, widget: string, required: false, hint: "Ví dụ: 12/03/2025" }
+          - { label: "Phạm vi áp dụng / chỉ tiêu", name: scope, i18n: true, widget: string, required: false, hint: "Ví dụ: hóa lý, vi sinh, kim loại nặng – lô sản xuất 03/2025" }
           - { label: "Ảnh hoặc file PDF", name: file, widget: file, required: false }
       - label: "Nhu cầu"
         name: needs
@@ -154,36 +169,40 @@ collections:
         hint: "Sản phẩm hiện ở các thẻ “Chọn theo nhu cầu” nào."
       - label: "Đánh giá khách hàng (chỉ nhập đánh giá thật)"
         name: reviews
+        i18n: true
         widget: list
         required: false
         summary: "{{fields.name}} – {{fields.rating}}★"
         hint: "Hiện ở khối “Khách hàng nói gì” trên trang sản phẩm. Từ 3 đánh giá có chấm sao trở lên, web mới hiện sao trung bình trên thẻ sản phẩm và gửi cho Google. Không tự tạo đánh giá."
         fields:
           - { label: "Tên khách", name: name, widget: string, hint: "Có thể viết tắt: Chị Lan" }
-          - { label: "Nơi ở / nghề nghiệp", name: location, widget: string, required: false }
+          - { label: "Nơi ở / nghề nghiệp", name: location, i18n: true, widget: string, required: false }
           - { label: "Số sao (1–5)", name: rating, widget: number, value_type: int, min: 1, max: 5, required: false }
-          - { label: "Lời nhận xét", name: text, widget: text, required: false }
+          - { label: "Lời nhận xét", name: text, i18n: true, widget: text, required: false }
           - { label: "Ảnh (ảnh chụp tin nhắn / ảnh khách gửi)", name: img, widget: image, required: false, hint: "Có video thì ảnh này làm ảnh bìa video." }
           - { label: "Video (link YouTube hoặc file .mp4)", name: video, widget: string, required: false }
       - label: "Từ khóa tìm kiếm (không hiện ra web)"
         name: keywords
+        i18n: true
         widget: list
         required: false
         hint: "Khách gõ các từ này (có dấu hay không dấu đều được) sẽ tìm ra sản phẩm. Ví dụ: ăn sáng, bữa phụ, ăn chay. Từ đứng trước ưu tiên hơn. Chỉ dùng để tìm, không hiện ra web."
-        field: { label: "Từ khóa", name: keyword, widget: string }
+        field: { label: "Từ khóa", name: keyword, i18n: true, widget: string }
       - label: "Điểm nổi bật (dấu tích xanh)"
         name: highlights
+        i18n: true
         widget: list
         required: false
-        field: { label: "Điểm nổi bật", name: text, widget: string }
+        field: { label: "Điểm nổi bật", name: text, i18n: true, widget: string }
       - label: "Các mục mô tả chi tiết"
         name: sections
+        i18n: true
         widget: list
         required: false
         summary: "{{fields.title}}"
         hint: "Mỗi mục là 1 khối: Thành phần, Công dụng, Cách dùng, Bảo quản…"
         fields:
-          - { label: "Tiêu đề mục", name: title, widget: string }
+          - { label: "Tiêu đề mục", name: title, i18n: true, widget: string }
           - label: "Kiểu trình bày"
             name: style
             widget: select
@@ -193,20 +212,22 @@ collections:
               - { label: "Đoạn văn có viền xanh bên trái", value: quote }
               - { label: "Danh sách gạch đầu dòng", value: list }
               - { label: "Bảng thông số (2 cột)", value: table }
-          - { label: "Nội dung (khi chọn Đoạn văn)", name: text, widget: markdown, required: false }
+          - { label: "Nội dung (khi chọn Đoạn văn)", name: text, i18n: true, widget: markdown, required: false }
           - label: "Các dòng (khi chọn Danh sách)"
             name: items
+            i18n: true
             widget: list
             required: false
-            field: { label: "Dòng", name: item, widget: string }
+            field: { label: "Dòng", name: item, i18n: true, widget: string }
           - label: "Các dòng bảng (khi chọn Bảng)"
             name: rows
+            i18n: true
             widget: list
             required: false
             summary: "{{fields.label}}: {{fields.value}}"
             fields:
-              - { label: "Tên", name: label, widget: string }
-              - { label: "Giá trị", name: value, widget: string }
+              - { label: "Tên", name: label, i18n: true, widget: string }
+              - { label: "Giá trị", name: value, i18n: true, widget: string }
       - label: "Gợi ý mua kèm"
         name: upsell
         widget: relation
@@ -217,7 +238,7 @@ collections:
         multiple: true
         required: false
         hint: "Sản phẩm ưu tiên gợi ý khi khách mua sản phẩm này. Để trống thì web tự gợi ý món giúp đơn đạt mức miễn phí vận chuyển."
-      - { label: "Dòng lưu ý cuối trang", name: disclaimer, widget: text, required: false, hint: "Ví dụ: Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh." }
+      - { label: "Dòng lưu ý cuối trang", name: disclaimer, i18n: true, widget: text, required: false, hint: "Ví dụ: Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh." }
 
   # ------------------------------------------------------------ GÓI GIẢI PHÁP (COMBO)
   - name: combos
@@ -225,6 +246,7 @@ collections:
     label_singular: "gói"
     description: "Combo nhiều sản phẩm bán theo 1 giá (ví dụ Gói Khởi Động 10 Ngày Sống Lành). Web tự hiện ở trang chủ, danh mục Gói Giải Pháp, và gợi ý ở trang các sản phẩm có trong gói."
     folder: content/combos
+    i18n: true
     extension: json
     format: json
     create: true
@@ -235,14 +257,15 @@ collections:
     sortable_fields: [order, name]
     preview_path: "san-pham/{{slug}}/"
     fields:
-      - { label: "Tên gói", name: name, widget: string, hint: "Ví dụ: Gói Khởi Động 10 Ngày Sống Lành. Tên đầy đủ dùng trong giỏ hàng, đơn hàng, CRM." }
-      - { label: "Tên ngắn", name: short_name, widget: string, required: false }
+      - { label: "Tên gói", name: name, i18n: true, widget: string, hint: "Ví dụ: Gói Khởi Động 10 Ngày Sống Lành. Tên đầy đủ dùng trong giỏ hàng, đơn hàng, CRM." }
+      - { label: "Tên ngắn", name: short_name, i18n: true, widget: string, required: false }
       - { label: "Hiển thị trên web", name: published, widget: boolean, default: true }
       - { label: "Nổi bật (hiện ở hộp tư vấn)", name: featured, widget: boolean, default: true }
       - { label: "Thứ tự hiển thị", name: order, widget: number, value_type: int, default: 1, hint: "Số nhỏ đứng trước." }
-      - { label: "Nhãn trên ảnh", name: badge, widget: string, required: false, default: "Gói giải pháp" }
+      - { label: "Nhãn trên ảnh", name: badge, i18n: true, widget: string, required: false, default: "Gói giải pháp" }
       - label: "Sản phẩm trong gói"
         name: items
+        i18n: true
         widget: list
         summary: "{{fields.qty}} × {{fields.product}} {{fields.variant}}"
         hint: "Chọn từng sản phẩm, gõ đúng tên quy cách (ví dụ: Hộp 125g). Sản phẩm 1 quy cách thì để trống ô quy cách. Web tự cộng giá gốc để hiện số tiền tiết kiệm."
@@ -251,94 +274,101 @@ collections:
           - { label: "Quy cách", name: variant, widget: string, required: false, hint: "Ví dụ: Hộp 125g. Để trống = quy cách đầu tiên." }
           - { label: "Số lượng", name: qty, widget: number, value_type: int, default: 1, min: 1 }
           - { label: "Biểu tượng", name: icon, widget: string, required: false, hint: "1 emoji, ví dụ 🥣 🥛 🍵" }
-          - { label: "Lợi ích (chữ to)", name: benefit, widget: string, required: false, hint: "Ví dụ: Ăn lành hơn. Có ô này thì sản phẩm hiện thành 1 lợi ích ở thẻ gói trang chủ và trang gói." }
-          - { label: "Tên hiển thị (chữ nhỏ)", name: title, widget: string, required: false, hint: "Ví dụ: Trà DILVANG. Để trống = tên sản phẩm." }
-          - { label: "Câu ngắn (trang chủ)", name: note, widget: string, required: false }
-          - { label: "Mô tả (trang gói)", name: detail, widget: text, required: false }
-          - { label: "Thông điệp ngắn (trang gói)", name: quote, widget: string, required: false }
+          - { label: "Lợi ích (chữ to)", name: benefit, i18n: true, widget: string, required: false, hint: "Ví dụ: Ăn lành hơn. Có ô này thì sản phẩm hiện thành 1 lợi ích ở thẻ gói trang chủ và trang gói." }
+          - { label: "Tên hiển thị (chữ nhỏ)", name: title, i18n: true, widget: string, required: false, hint: "Ví dụ: Trà DILVANG. Để trống = tên sản phẩm." }
+          - { label: "Câu ngắn (trang chủ)", name: note, i18n: true, widget: string, required: false }
+          - { label: "Mô tả (trang gói)", name: detail, i18n: true, widget: text, required: false }
+          - { label: "Thông điệp ngắn (trang gói)", name: quote, i18n: true, widget: string, required: false }
       - { label: "Giá gói (đồng)", name: price, widget: number, value_type: int, hint: "Nên thấp hơn tổng giá mua lẻ trên web (đã giảm %) để khách thấy lợi khi mua gói. Web hiện cả 2 mức tiết kiệm." }
       - { label: "Miễn phí vận chuyển", name: free_ship, widget: boolean, default: true, hint: "Bật: đơn có gói này được miễn phí ship." }
       - { label: "Số ngày dùng hết gói", name: days, widget: number, value_type: int, required: false, hint: "CRM dùng để nhắc sale gọi khách trước khi dùng hết (ví dụ 10)." }
       - { label: "Giảm thêm khi đặt trên web (%)", name: web_discount, widget: number, value_type: int, min: 0, max: 90, required: false, hint: "Thường để trống (= không giảm thêm, vì giá gói đã là giá ưu đãi)." }
-      - { label: "Nhãn nhỏ trên tiêu đề", name: eyebrow, widget: string, required: false, hint: "Thẻ gói ở trang chủ. Ví dụ: Gói khởi động. Có ô Tiêu đề lớn thì thẻ gói dùng bố cục mới (lợi ích, nút lớn)." }
-      - { label: "Tiêu đề lớn (trang chủ)", name: headline, widget: string, required: false, hint: "Ví dụ: 10 Ngày Sống Lành" }
-      - { label: "Câu chính", name: tagline, widget: string, required: false, hint: "Ví dụ: Không cần thay đổi tất cả. Chỉ cần 10 ngày để bắt đầu." }
-      - { label: "Câu phụ", name: subline, widget: string, required: false, hint: "Ví dụ: 3 sản phẩm – 3 thói quen nhỏ – 1 khởi đầu dễ dàng hơn." }
-      - { label: "Chữ trên nút mua", name: cta, widget: string, required: false, hint: "Ví dụ: Bắt đầu 10 ngày Sống Lành. Để trống = Mua ngay." }
-      - { label: "Chữ nút mua ngắn (thanh dưới đáy điện thoại)", name: cta_short, widget: string, required: false, hint: "Ví dụ: Bắt đầu ngay" }
-      - { label: "Câu nhỏ dưới nút mua", name: cta_note, widget: string, required: false }
+      - { label: "Nhãn nhỏ trên tiêu đề", name: eyebrow, i18n: true, widget: string, required: false, hint: "Thẻ gói ở trang chủ. Ví dụ: Gói khởi động. Có ô Tiêu đề lớn thì thẻ gói dùng bố cục mới (lợi ích, nút lớn)." }
+      - { label: "Tiêu đề lớn (trang chủ)", name: headline, i18n: true, widget: string, required: false, hint: "Ví dụ: 10 Ngày Sống Lành" }
+      - { label: "Câu chính", name: tagline, i18n: true, widget: string, required: false, hint: "Ví dụ: Không cần thay đổi tất cả. Chỉ cần 10 ngày để bắt đầu." }
+      - { label: "Câu phụ", name: subline, i18n: true, widget: string, required: false, hint: "Ví dụ: 3 sản phẩm – 3 thói quen nhỏ – 1 khởi đầu dễ dàng hơn." }
+      - { label: "Chữ trên nút mua", name: cta, i18n: true, widget: string, required: false, hint: "Ví dụ: Bắt đầu 10 ngày Sống Lành. Để trống = Mua ngay." }
+      - { label: "Chữ nút mua ngắn (thanh dưới đáy điện thoại)", name: cta_short, i18n: true, widget: string, required: false, hint: "Ví dụ: Bắt đầu ngay" }
+      - { label: "Câu nhỏ dưới nút mua", name: cta_note, i18n: true, widget: string, required: false }
       - { label: "Link tài liệu lộ trình", name: roadmap_link, widget: string, required: false, hint: "CHỈ điền khi đã có tài liệu lộ trình thật gửi cho khách. Có link thì web tự hiện nhãn 🎁 Lộ trình đồng hành, dòng quyền lợi và nút Xem lộ trình." }
       - label: "Trang gói – Phần đầu (hero)"
         name: hero
+        i18n: true
         widget: object
         required: false
         collapsed: true
         hint: "Có phần này thì trang gói dùng bố cục thuyết phục: hero → vấn đề → giải pháp → 10 ngày → nhận được gì → nút cuối. Xuống dòng = ngắt dòng trên web."
         fields:
-          - { label: "Nhãn nhỏ", name: eyebrow, widget: string, required: false }
-          - { label: "Tiêu đề (H1)", name: title, widget: text, required: false }
-          - { label: "Câu dẫn", name: sub, widget: text, required: false }
-          - { label: "Mô tả", name: desc, widget: text, required: false }
+          - { label: "Nhãn nhỏ", name: eyebrow, i18n: true, widget: string, required: false }
+          - { label: "Tiêu đề (H1)", name: title, i18n: true, widget: text, required: false }
+          - { label: "Câu dẫn", name: sub, i18n: true, widget: text, required: false }
+          - { label: "Mô tả", name: desc, i18n: true, widget: text, required: false }
       - label: "Trang gói – Chạm đúng vấn đề"
         name: pains
+        i18n: true
         widget: object
         required: false
         collapsed: true
         fields:
-          - { label: "Tiêu đề", name: title, widget: string, required: false }
-          - { label: "Các vấn đề", name: items, widget: list, required: false, field: { label: "Dòng", name: item, widget: string } }
-          - { label: "Đoạn nổi bật", name: callout, widget: text, required: false }
+          - { label: "Tiêu đề", name: title, i18n: true, widget: string, required: false }
+          - { label: "Các vấn đề", name: items, i18n: true, widget: list, required: false, field: { label: "Dòng", name: item, i18n: true, widget: string } }
+          - { label: "Đoạn nổi bật", name: callout, i18n: true, widget: text, required: false }
       - label: "Trang gói – Giới thiệu giải pháp"
         name: solution
+        i18n: true
         widget: object
         required: false
         collapsed: true
         hint: "Các thẻ giải pháp lấy từ ô Lợi ích / Mô tả / Thông điệp của từng sản phẩm trong gói."
         fields:
-          - { label: "Tiêu đề", name: title, widget: text, required: false }
-          - { label: "Đoạn mở đầu", name: intro, widget: text, required: false }
+          - { label: "Tiêu đề", name: title, i18n: true, widget: text, required: false }
+          - { label: "Đoạn mở đầu", name: intro, i18n: true, widget: text, required: false }
       - label: "Trang gói – Các chặng (Cách trải nghiệm)"
         name: journey
+        i18n: true
         widget: object
         required: false
         collapsed: true
         hint: "Nút Xem cách trải nghiệm ở trang chủ dẫn tới phần này."
         fields:
-          - { label: "Tiêu đề", name: title, widget: string, required: false }
-          - { label: "Câu phụ", name: sub, widget: string, required: false }
+          - { label: "Tiêu đề", name: title, i18n: true, widget: string, required: false }
+          - { label: "Câu phụ", name: sub, i18n: true, widget: string, required: false }
           - label: "Các chặng"
             name: steps
+            i18n: true
             widget: list
             required: false
             summary: "{{fields.label}}"
             fields:
-              - { label: "Nhãn", name: label, widget: string, hint: "Ví dụ: Ngày 1 – 3" }
-              - { label: "Nội dung", name: text, widget: string }
-          - { label: "Câu trích dẫn", name: quote, widget: text, required: false }
+              - { label: "Nhãn", name: label, i18n: true, widget: string, hint: "Ví dụ: Ngày 1 – 3" }
+              - { label: "Nội dung", name: text, i18n: true, widget: string }
+          - { label: "Câu trích dẫn", name: quote, i18n: true, widget: text, required: false }
       - label: "Trang gói – Bạn nhận được gì"
         name: receive
+        i18n: true
         widget: object
         required: false
         collapsed: true
         hint: "Web tự liệt kê sản phẩm trong gói + Miễn phí vận chuyển. Chỉ thêm quyền lợi khách THẬT SỰ nhận được."
         fields:
-          - { label: "Tiêu đề", name: title, widget: text, required: false }
-          - { label: "Quyền lợi thêm", name: extras, widget: list, required: false, field: { label: "Dòng", name: item, widget: string } }
+          - { label: "Tiêu đề", name: title, i18n: true, widget: text, required: false }
+          - { label: "Quyền lợi thêm", name: extras, i18n: true, widget: list, required: false, field: { label: "Dòng", name: item, i18n: true, widget: string } }
       - label: "Trang gói – Khối giá & nút cuối trang"
         name: final
+        i18n: true
         widget: object
         required: false
         collapsed: true
         fields:
-          - { label: "Tiêu đề", name: title, widget: text, required: false }
-          - { label: "Câu phụ", name: sub, widget: string, required: false }
-          - { label: "Câu nhỏ dưới nút", name: note, widget: string, required: false }
+          - { label: "Tiêu đề", name: title, i18n: true, widget: text, required: false }
+          - { label: "Câu phụ", name: sub, i18n: true, widget: string, required: false }
+          - { label: "Câu nhỏ dưới nút", name: note, i18n: true, widget: string, required: false }
       - label: "Ảnh gói"
         name: images
         widget: list
         hint: "Ảnh đầu tiên là ảnh đại diện (vuông ≥1000px)."
         field: { label: "Ảnh", name: image, widget: image }
-      - { label: "Mô tả ngắn (cạnh giá)", name: summary, widget: markdown, buttons: [bold, italic, link] }
+      - { label: "Mô tả ngắn (cạnh giá)", name: summary, i18n: true, widget: markdown, buttons: [bold, italic, link] }
       - label: "Nhu cầu"
         name: needs
         widget: relation
@@ -352,36 +382,40 @@ collections:
         hint: "Sản phẩm hiện ở các thẻ “Chọn theo nhu cầu” nào."
       - label: "Đánh giá khách hàng (chỉ nhập đánh giá thật)"
         name: reviews
+        i18n: true
         widget: list
         required: false
         summary: "{{fields.name}} – {{fields.rating}}★"
         hint: "Hiện ở khối “Khách hàng nói gì” trên trang sản phẩm. Từ 3 đánh giá có chấm sao trở lên, web mới hiện sao trung bình trên thẻ sản phẩm và gửi cho Google. Không tự tạo đánh giá."
         fields:
           - { label: "Tên khách", name: name, widget: string, hint: "Có thể viết tắt: Chị Lan" }
-          - { label: "Nơi ở / nghề nghiệp", name: location, widget: string, required: false }
+          - { label: "Nơi ở / nghề nghiệp", name: location, i18n: true, widget: string, required: false }
           - { label: "Số sao (1–5)", name: rating, widget: number, value_type: int, min: 1, max: 5, required: false }
-          - { label: "Lời nhận xét", name: text, widget: text, required: false }
+          - { label: "Lời nhận xét", name: text, i18n: true, widget: text, required: false }
           - { label: "Ảnh (ảnh chụp tin nhắn / ảnh khách gửi)", name: img, widget: image, required: false, hint: "Có video thì ảnh này làm ảnh bìa video." }
           - { label: "Video (link YouTube hoặc file .mp4)", name: video, widget: string, required: false }
       - label: "Từ khóa tìm kiếm (không hiện ra web)"
         name: keywords
+        i18n: true
         widget: list
         required: false
         hint: "Khách gõ các từ này (có dấu hay không dấu đều được) sẽ tìm ra sản phẩm. Ví dụ: ăn sáng, bữa phụ, ăn chay. Từ đứng trước ưu tiên hơn. Chỉ dùng để tìm, không hiện ra web."
-        field: { label: "Từ khóa", name: keyword, widget: string }
+        field: { label: "Từ khóa", name: keyword, i18n: true, widget: string }
       - label: "Điểm nổi bật (dấu tích xanh)"
         name: highlights
+        i18n: true
         widget: list
         required: false
-        field: { label: "Điểm nổi bật", name: text, widget: string }
+        field: { label: "Điểm nổi bật", name: text, i18n: true, widget: string }
       - label: "Các mục mô tả chi tiết"
         name: sections
+        i18n: true
         widget: list
         required: false
         summary: "{{fields.title}}"
         hint: "Ví dụ: Lịch dùng 10 ngày, Phù hợp với ai, Lưu ý. Chỉ mô tả thói quen, thực đơn – không hứa kết quả sức khỏe."
         fields:
-          - { label: "Tiêu đề mục", name: title, widget: string }
+          - { label: "Tiêu đề mục", name: title, i18n: true, widget: string }
           - label: "Kiểu trình bày"
             name: style
             widget: select
@@ -390,19 +424,21 @@ collections:
               - { label: "Đoạn văn trong khung xám", value: box }
               - { label: "Đoạn văn có viền xanh bên trái", value: quote }
               - { label: "Danh sách gạch đầu dòng", value: list }
-          - { label: "Nội dung (khi chọn Đoạn văn)", name: text, widget: markdown, required: false }
+          - { label: "Nội dung (khi chọn Đoạn văn)", name: text, i18n: true, widget: markdown, required: false }
           - label: "Các dòng (khi chọn Danh sách)"
             name: items
+            i18n: true
             widget: list
             required: false
-            field: { label: "Dòng", name: item, widget: string }
-      - { label: "Dòng lưu ý cuối trang", name: disclaimer, widget: text, required: false, hint: "Gói có thực phẩm bổ sung thì phải có câu: Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh." }
+            field: { label: "Dòng", name: item, i18n: true, widget: string }
+      - { label: "Dòng lưu ý cuối trang", name: disclaimer, i18n: true, widget: text, required: false, hint: "Gói có thực phẩm bổ sung thì phải có câu: Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh." }
 
   # ------------------------------------------------------------ TRANG CHÍNH SÁCH
   - name: pages
     label: "Trang chính sách / hỗ trợ"
     label_singular: "trang"
     folder: content/pages
+    i18n: true
     extension: md
     format: frontmatter
     create: true
@@ -412,9 +448,10 @@ collections:
     sortable_fields: [order, title]
     preview_path: "{{slug}}/"
     fields:
-      - { label: "Tiêu đề", name: title, widget: string }
+      - { label: "Tiêu đề", name: title, i18n: true, widget: string }
+      - { label: "Đường dẫn bản dịch", name: url_slug, i18n: true, widget: string, required: false, hint: "Chỉ điền ở bản English (vd privacy-policy → thucduonglanh.vn/en/privacy-policy/). Bản Tiếng Việt để trống." }
       - { label: "Thứ tự ở chân trang", name: order, widget: number, value_type: int, default: 50 }
-      - { label: "Nội dung", name: body, widget: markdown, hint: "Có thể dùng {brand}, {hotline}, {email}, {address}, {company} – web tự thay bằng thông tin công ty." }
+      - { label: "Nội dung", name: body, i18n: true, widget: markdown, hint: "Có thể dùng {brand}, {hotline}, {email}, {address}, {company} – web tự thay bằng thông tin công ty." }
 
   # ------------------------------------------------------------ HƯỚNG DẪN NỘI BỘ (crm.thucduonglanh.vn/huong-dan/)
   - name: guide
@@ -444,15 +481,17 @@ collections:
   # ------------------------------------------------------------ CÀI ĐẶT
   - name: settings
     label: "Cài đặt website"
+    i18n: true
     editor: { preview: false }
     files:
       - name: site
         label: "Thông tin liên hệ, mạng xã hội, ngân hàng"
-        file: data/site.json
+        file: data/site.{{locale}}.json
+        i18n: true
         format: json
         fields:
-          - { label: "Slogan", name: slogan, widget: string }
-          - { label: "Câu giới thiệu ngắn (tiêu đề trang chủ)", name: tagline, widget: string }
+          - { label: "Slogan", name: slogan, i18n: true, widget: string }
+          - { label: "Câu giới thiệu ngắn (tiêu đề trang chủ)", name: tagline, i18n: true, widget: string }
           - { label: "Tên công ty", name: company, widget: string }
           - { label: "Mã số doanh nghiệp", name: tax_code, widget: string }
           - { label: "Ngày cấp", name: tax_date, widget: string }
@@ -460,8 +499,8 @@ collections:
           - { label: "Hotline 2", name: hotline2, widget: string, required: false }
           - { label: "Số Zalo tư vấn (viết liền)", name: zalo, widget: string }
           - { label: "Email", name: email, widget: string }
-          - { label: "Địa chỉ", name: address, widget: string }
-          - { label: "Giờ làm việc", name: opening_hours, widget: string }
+          - { label: "Địa chỉ", name: address, i18n: true, widget: string }
+          - { label: "Giờ làm việc", name: opening_hours, i18n: true, widget: string }
           - label: "Mạng xã hội (chân trang)"
             name: socials
             widget: object
@@ -476,17 +515,19 @@ collections:
           - { label: "Link nhóm cộng đồng (góc trên cùng)", name: community_group, widget: string, required: false }
           - label: "Video thương hiệu (trang chủ + Giới thiệu)"
             name: brand_video
+            i18n: true
             widget: object
             required: false
             fields:
               - { label: "Link YouTube", name: youtube, widget: string, required: false, hint: "Dán link video YouTube. Để trống thì ẩn khối video." }
-              - { label: "Tiêu đề", name: title, widget: string }
-              - { label: "Mô tả ngắn", name: caption, widget: text, required: false }
+              - { label: "Tiêu đề", name: title, i18n: true, widget: string }
+              - { label: "Mô tả ngắn", name: caption, i18n: true, widget: text, required: false }
               - { label: "Ảnh bìa", name: image, widget: image, required: false, hint: "Để trống thì dùng ảnh bìa của YouTube." }
               - { label: "Ngày đăng video (YYYY-MM-DD)", name: upload_date, widget: string, required: false }
               - { label: "Thời lượng (ví dụ PT2M9S = 2 phút 9 giây)", name: duration, widget: string, required: false }
           - label: "Ưu đãi chỉ có khi đặt trên website"
             name: web_offer
+            i18n: true
             widget: object
             required: false
             hint: "Giá trong từng sản phẩm vẫn nhập GIÁ GỐC. Web tự giảm theo % dưới đây, gạch giá gốc và hiện nhãn -%. CRM (đơn gọi điện/Zalo) vẫn dùng giá gốc."
@@ -494,9 +535,9 @@ collections:
               - { label: "Bật giảm giá trên web", name: enabled, widget: boolean, default: true }
               - { label: "Mức giảm chung (%)", name: percent, widget: number, value_type: int, min: 0, max: 90, default: 15, hint: "Áp dụng cho sản phẩm để trống ô \"Giảm khi đặt trên web (%)\". Muốn giảm khác nhau thì vào từng Sản phẩm để nhập." }
               - { label: "Cộng dồn với sản phẩm đang có giá khuyến mãi riêng", name: stack_sale, widget: boolean, default: false, hint: "Tắt: sản phẩm đang có giá khuyến mãi riêng thì giữ giá khuyến mãi đó, không giảm thêm." }
-              - { label: "Tiêu đề khung ưu đãi", name: label, widget: string, default: "Ưu đãi chỉ có khi đặt tại website" }
-              - { label: "Câu quảng bá chính (dòng trên cùng + khung ưu đãi)", name: headline, widget: string, required: false, hint: "Ví dụ: Giá tại website luôn tốt hơn mua trên sàn. Để trống thì hiện “Giảm đến X% khi đặt trên web”." }
-              - { label: "Câu quảng bá bản ngắn (điện thoại)", name: headline_short, widget: string, required: false, hint: "Tối đa khoảng 25 ký tự, ví dụ: Giá web tốt hơn trên sàn" }
+              - { label: "Tiêu đề khung ưu đãi", name: label, i18n: true, widget: string, default: "Ưu đãi chỉ có khi đặt tại website" }
+              - { label: "Câu quảng bá chính (dòng trên cùng + khung ưu đãi)", name: headline, i18n: true, widget: string, required: false, hint: "Ví dụ: Giá tại website luôn tốt hơn mua trên sàn. Để trống thì hiện “Giảm đến X% khi đặt trên web”." }
+              - { label: "Câu quảng bá bản ngắn (điện thoại)", name: headline_short, i18n: true, widget: string, required: false, hint: "Tối đa khoảng 25 ký tự, ví dụ: Giá web tốt hơn trên sàn" }
               - { label: "Bật quà tặng", name: gift_enabled, widget: boolean, default: true }
               - { label: "Tên quà tặng", name: gift_title, widget: string, required: false }
               - { label: "Trị giá quà", name: gift_value, widget: string, required: false, hint: "Ví dụ: 999.000đ" }
@@ -560,30 +601,34 @@ collections:
 
       - name: home
         label: "Trang chủ – Ảnh lớn đầu trang & băng chuyền"
-        file: data/home.json
+        file: data/home.{{locale}}.json
+        i18n: true
         format: json
         fields:
           - label: "Ảnh lớn đầu trang (cố định, không tự chạy)"
             name: hero
+            i18n: true
             widget: object
             fields:
-              - { label: "Dòng nhỏ phía trên", name: eyebrow, widget: string, required: false }
-              - { label: "Tiêu đề lớn", name: title, widget: string, hint: "Đặt chữ giữa hai dấu *sao* để hiện màu vàng nghiêng, ví dụ: Sống lành bắt đầu từ *10 ngày*" }
-              - { label: "Câu dẫn", name: sub, widget: text, required: false }
+              - { label: "Dòng nhỏ phía trên", name: eyebrow, i18n: true, widget: string, required: false }
+              - { label: "Tiêu đề lớn", name: title, i18n: true, widget: string, hint: "Đặt chữ giữa hai dấu *sao* để hiện màu vàng nghiêng, ví dụ: Sống lành bắt đầu từ *10 ngày*" }
+              - { label: "Câu dẫn", name: sub, i18n: true, widget: text, required: false }
               - { label: "Mã sản phẩm / gói khi bấm nút chính", name: product, widget: string, hint: "Phần cuối đường link sản phẩm, ví dụ thu-thach-10-ngay-song-lanh. Giá tự lấy theo sản phẩm." }
-              - { label: "Chữ trên nút chính", name: cta, widget: string, hint: "Web tự thêm giá phía sau, ví dụ: Bắt đầu 10 ngày – 349.000đ" }
+              - { label: "Chữ trên nút chính", name: cta, i18n: true, widget: string, hint: "Web tự thêm giá phía sau, ví dụ: Bắt đầu 10 ngày – 349.000đ" }
               - label: "Dòng tin cậy dưới nút (tối đa 3 ý ngắn)"
                 name: trust
+                i18n: true
                 widget: list
                 required: false
                 summary: "{{fields.text}}"
                 hint: "Chỉ ghi điều có giấy tờ thật và nói rõ áp dụng cho sản phẩm nào; nên gắn link tới mục hồ sơ của sản phẩm đó."
                 fields:
-                  - { label: "Nội dung", name: text, widget: string }
+                  - { label: "Nội dung", name: text, i18n: true, widget: string }
                   - { label: "Link bằng chứng", name: url, widget: string, required: false, hint: "Ví dụ: /san-pham/bua-an-dinh-duong-vitagreen/#kiem-nghiem" }
               - { label: "Ảnh (vuông)", name: image, widget: image }
           - label: "Băng chuyền sản phẩm (dưới Danh mục)"
             name: slides
+            i18n: true
             widget: list
             summary: "{{fields.title}}"
             fields:
@@ -594,9 +639,9 @@ collections:
                 value_field: "{{slug}}"
                 search_fields: [name]
                 display_fields: [name]
-              - { label: "Dòng nhỏ phía trên", name: eyebrow, widget: string }
-              - { label: "Tiêu đề", name: title, widget: string, hint: "Đặt chữ giữa hai dấu *sao* để hiện màu vàng nghiêng, ví dụ: Trà Hòa Tan *DILVANG*" }
-              - { label: "Mô tả", name: subtitle, widget: text }
+              - { label: "Dòng nhỏ phía trên", name: eyebrow, i18n: true, widget: string }
+              - { label: "Tiêu đề", name: title, i18n: true, widget: string, hint: "Đặt chữ giữa hai dấu *sao* để hiện màu vàng nghiêng, ví dụ: Trà Hòa Tan *DILVANG*" }
+              - { label: "Mô tả", name: subtitle, i18n: true, widget: text }
               - { label: "Ảnh (vuông)", name: image, widget: image }
 
       - name: brochure
@@ -631,44 +676,50 @@ collections:
           - { label: "Ghi chú giải thưởng", name: award_note, widget: text, required: false }
       - name: categories
         label: "Danh mục sản phẩm"
-        file: data/categories.json
+        file: data/categories.{{locale}}.json
+        i18n: true
         format: json
         fields:
           - label: "Danh mục"
             name: categories
+            i18n: true
             widget: list
             summary: "{{fields.name}}"
             fields:
-              - { label: "Tên danh mục", name: name, widget: string }
+              - { label: "Tên danh mục", name: name, i18n: true, widget: string }
               - { label: "Mã (không dấu, dùng trên đường link)", name: slug, widget: string, hint: "Ví dụ: tra-thao-moc. Không đổi mã của danh mục đang có sản phẩm." }
               - { label: "Ảnh", name: image, widget: image }
-              - { label: "Mô tả", name: desc, widget: text, required: false }
+              - { label: "Mô tả", name: desc, i18n: true, widget: text, required: false }
 
       - name: needs
         label: "Chọn theo nhu cầu"
-        file: data/needs.json
+        file: data/needs.{{locale}}.json
+        i18n: true
         format: json
         fields:
           - label: "Nhu cầu"
             name: needs
+            i18n: true
             widget: list
             summary: "{{fields.icon}} {{fields.name}}"
             hint: "Thẻ ở trang chủ (dưới ảnh lớn) và trang danh sách sản phẩm. Gắn sản phẩm vào nhu cầu ở ô “Nhu cầu” của từng sản phẩm. Nhu cầu chỉ có 1 sản phẩm thì bấm vào là tới thẳng sản phẩm đó. Không ghi tên bệnh hay công dụng chữa bệnh."
             fields:
-              - { label: "Tên nhu cầu", name: name, widget: string, hint: "Ví dụ: Bữa sáng bận rộn" }
+              - { label: "Tên nhu cầu", name: name, i18n: true, widget: string, hint: "Ví dụ: Bữa sáng bận rộn" }
               - { label: "Mã (không dấu, dùng trên đường link)", name: slug, widget: string, hint: "Ví dụ: bua-sang-ban-ron. Link: /nhu-cau/bua-sang-ban-ron/" }
               - { label: "Biểu tượng (emoji)", name: icon, widget: string, required: false }
-              - { label: "Mô tả ngắn", name: desc, widget: string, required: false }
+              - { label: "Mô tả ngắn", name: desc, i18n: true, widget: string, required: false }
 
       - name: post_categories
         label: "Chuyên mục bài viết"
-        file: data/post-categories.json
+        file: data/post-categories.{{locale}}.json
+        i18n: true
         format: json
         fields:
           - label: "Chuyên mục"
             name: categories
+            i18n: true
             widget: list
             summary: "{{fields.name}}"
             fields:
-              - { label: "Tên chuyên mục", name: name, widget: string }
+              - { label: "Tên chuyên mục", name: name, i18n: true, widget: string }
               - { label: "Mã (không dấu)", name: slug, widget: string }

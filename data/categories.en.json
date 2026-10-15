@@ -1,0 +1,20 @@
+{
+  "categories": [
+    {
+      "name": "Solution Packs",
+      "desc": "Multi-product bundles built around healthy living goals, at a better price than buying separately."
+    },
+    {
+      "name": "Seed & Grain Nutrition",
+      "desc": "Nutrition powders from macrobiotic seeds and grains – soy-free, no refined sugar."
+    },
+    {
+      "name": "Herbal Teas",
+      "desc": "Convenient instant herbal teas made from Vietnamese herbs."
+    },
+    {
+      "name": "Seasonings & Vegan Foods",
+      "desc": "Naturally fermented seasonings and plant-based dishes for family meals."
+    }
+  ]
+}

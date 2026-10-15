@@ -1,0 +1,20 @@
+{
+  "needs": [
+    {
+      "name": "Busy breakfasts",
+      "desc": "Ready in 1 minute, nourishing with 12 seeds and grains."
+    },
+    {
+      "name": "Seed-based snacks",
+      "desc": "Seed milk with curcumin for when you need a convenient snack."
+    },
+    {
+      "name": "Healthy daily drinks",
+      "desc": "Instant herbal tea – just add warm water, no boiling."
+    },
+    {
+      "name": "Tasty vegan meals",
+      "desc": "Vegan floss and fermented soy sauce for plant-based meals."
+    }
+  ]
+}

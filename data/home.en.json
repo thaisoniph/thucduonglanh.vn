@@ -1,0 +1,46 @@
+{
+  "hero": {
+    "eyebrow": "Pure natural nutrition",
+    "title": "Healthy living starts with *10 days*",
+    "sub": "3 products – 3 small habits. Clear origins, nationwide delivery, and you can check your order before paying.",
+    "cta": "Start your 10 days",
+    "trust": [
+      {
+        "text": "Nutritious Meal: NIFC lab-tested, GMP – ISO 22000"
+      },
+      {
+        "text": "DILVANG Tea: GMP-certified factory"
+      },
+      {
+        "text": "Check your order before you pay"
+      }
+    ]
+  },
+  "slides": [
+    {
+      "eyebrow": "The Essence of Quang Tri",
+      "title": "*DILVANG* Instant Herbal Tea",
+      "subtitle": "Polyscias and Chè Vằng extract from a chè vằng region protected by a Geographical Indication. Just add warm water – no boiling needed."
+    },
+    {
+      "eyebrow": "Starter pack · Free shipping",
+      "title": "*10-Day* Healthy Living Starter",
+      "subtitle": "You don't have to change everything. Just give it 10 days to start 3 small habits: eat better, snack smarter, drink better."
+    },
+    {
+      "eyebrow": "Complete nutrition",
+      "title": "VitaGreen *Nutritious* Meal",
+      "subtitle": "12 seeds & grains with Fucoidan, 95% Curcumin and Spirulina – a balanced meal for busy people."
+    },
+    {
+      "eyebrow": "Macrobiotic seed milk",
+      "title": "Seed Nutrition with *Curcumin*",
+      "subtitle": "95% pure Curcumin, seaweed and 15 seeds and grains. Sweetened with stevia, rich and easy to drink – a gentle snack for the whole family."
+    },
+    {
+      "eyebrow": "Traditionally fermented for 99 days",
+      "title": "2S *Black Bean & Burdock* Soy Sauce",
+      "subtitle": "Naturally fermented from green-kernel black beans and Soc Son burdock root. Flavorful and wholesome for both regular and plant-based diets."
+    }
+  ]
+}

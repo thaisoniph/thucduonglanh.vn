@@ -2,7 +2,7 @@
 title: Hướng dẫn sửa website
 nav: Website
 order: 3
-updated: 2026-10-14
+updated: 2026-10-15
 description: Đăng bài, sửa sản phẩm, giá, cài đặt website và tạo link theo dõi trên thucduonglanh.vn/admin.
 ---
 
@@ -109,6 +109,26 @@ Vào **Cài đặt website**:
 | **Danh mục sản phẩm**, **Chuyên mục bài viết** | Thêm, đổi tên danh mục. **Không đổi “Mã”** của danh mục đang có sản phẩm, vì đường link sẽ bị đổi. |
 
 Mục **Trang chính sách / hỗ trợ** ở cột trái: nội dung chính sách giao hàng, đổi trả, bảo mật… Có thể gõ {hotline}, {email}, {address}, web tự thay bằng thông tin công ty.
+
+## Bản tiếng Anh (English)
+
+Từ 15/10/2026 website có thêm bản tiếng Anh tại **[thucduonglanh.vn/en/](https://thucduonglanh.vn/en/)**, dành cho khách nước ngoài sống ở Việt Nam. Trên web có nút **EN / VI** cạnh giỏ hàng để khách đổi ngôn ngữ. Giá, ảnh, phí ship, cách đặt hàng giống hệt bản tiếng Việt.
+
+**Sửa nội dung tiếng Anh trong trang quản trị**
+
+1. Mở sản phẩm, gói, trang chính sách hay mục Cài đặt (Trang chủ, Danh mục, Chọn theo nhu cầu…) như bình thường.
+2. Góc trên bên phải khung soạn có nút chọn ngôn ngữ **Tiếng Việt / English**: bấm **English** để sửa bản tiếng Anh, hoặc chọn xem 2 cột cạnh nhau để dịch cho dễ.
+3. Bản English chỉ có các ô chữ (tên, mô tả, huy hiệu, các mục mô tả…). **Giá, ảnh, quy cách, danh mục chỉ sửa ở bản Tiếng Việt**, bản tiếng Anh tự dùng chung, nên đổi giá một lần là cả 2 bản cùng đổi.
+4. Bấm **Lưu** như bình thường.
+
+**Lưu ý**
+
+- Sản phẩm / bài viết **mới** mặc định chỉ có tiếng Việt. Muốn có tiếng Anh: trong khung soạn, bấm nút **⋮** (góc trên bên phải) → bật **English** rồi điền bản dịch. Chưa dịch thì bản tiếng Anh tạm **ẩn** sản phẩm / bài đó (không hiện chữ Việt lẫn vào trang tiếng Anh).
+- Danh sách trong bản English (quy cách, các mục mô tả, huy hiệu…) phải **cùng số dòng, cùng thứ tự** với bản Tiếng Việt. Thêm một quy cách mới ở bản Việt thì nhớ thêm tên tiếng Anh tương ứng.
+- Công dụng tiếng Anh cũng phải đúng hồ sơ công bố: không dùng *treat, cure, heal, prevent disease*. Thực phẩm bổ sung giữ câu *This product is not a medicine and does not replace medical treatment.*
+- Trang chính sách bản English có ô **Đường dẫn bản dịch** (ví dụ `privacy-policy` → thucduonglanh.vn/en/privacy-policy/). Bản Tiếng Việt để trống ô này.
+- Đơn khách đặt ở bản tiếng Anh vẫn về CRM như thường, **tên sản phẩm vẫn bằng tiếng Việt**; ghi chú đơn có dòng **🌐 Khách đặt từ web tiếng Anh – tư vấn bằng ngôn ngữ này**. Form liên hệ bản tiếng Anh có chữ **🌐 [Web EN]** ở đầu lời nhắn. Gặp đơn này, ưu tiên người nói được tiếng Anh gọi xác nhận.
+- Các phần chỉ có tiếng Việt (ebook, cẩm nang, nhóm Zalo, hồ sơ thương hiệu) không hiện ở bản tiếng Anh.
 
 ## Tạo link theo dõi khi đăng bài, chạy quảng cáo
 

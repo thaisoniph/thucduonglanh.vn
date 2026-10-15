@@ -1,0 +1,128 @@
+{
+  "name": "10-Day Healthy Living Starter Pack",
+  "short_name": "10-Day Starter",
+  "badge": "Starter pack",
+  "eyebrow": "Starter pack",
+  "headline": "10 Days of Healthy Living",
+  "tagline": "You don't have to change everything. Just give it 10 days to get started.",
+  "subline": "3 products – 3 small habits – 1 easier start.",
+  "cta": "Start your 10 healthy days",
+  "cta_short": "Start now",
+  "cta_note": "Begin with small changes that are easy to make and easy to keep.",
+  "items": [
+    {
+      "benefit": "Eat better",
+      "title": "VitaGreen Nutritious Meal",
+      "note": "A convenient option for busy mornings.",
+      "detail": "A convenient option for busy mornings that makes preparing a seed-based nutritious choice much simpler.",
+      "quote": "Even a busy morning can start in a more intentional way."
+    },
+    {
+      "benefit": "Smarter snacks",
+      "title": "Seed Nutrition with Curcumin",
+      "note": "One more seed-based option for when you need a convenient snack.",
+      "detail": "A convenient seed-based option for mid-morning, mid-afternoon or whenever you need a snack.",
+      "quote": "Instead of grabbing whatever is around when you're hungry, have a better choice ready."
+    },
+    {
+      "benefit": "Drink better",
+      "title": "DILVANG Tea",
+      "note": "A convenient herbal tea to help you build a healthier drinking habit every day.",
+      "detail": "A convenient herbal tea that is easy to make and easy to fit into your daily routine.",
+      "quote": "A cup of tea can be the first step toward cutting back on drinks you'd rather not have so often."
+    }
+  ],
+  "summary": "For busy people who want to eat and drink healthier but aren't sure where to start.",
+  "hero": {
+    "eyebrow": "Healthy living starter pack",
+    "title": "10 days to start\nliving healthier",
+    "sub": "You don't need to change your whole life in a day.\nStart with 3 small choices: eat better, pick a smarter snack and drink better.",
+    "desc": "The 10-Day Healthy Living Starter Pack is designed for busy people who want to take better care of themselves but aren't sure where to begin."
+  },
+  "pains": {
+    "title": "You want to live healthier, but…",
+    "items": [
+      "Busy mornings mean you often grab something quick or skip breakfast?",
+      "You get hungry mid-morning but don't know what's convenient and still a better choice?",
+      "You're used to soft drinks, milk tea or other sugary drinks?",
+      "You want to eat better, but there are too many rules and you don't know where to start?",
+      "You've tried to change many times, but it's hard to stick with because everything feels too complicated?"
+    ],
+    "callout": "You don't need to start with a strict diet.\nStart with small choices you can make right away in your everyday life."
+  },
+  "solution": {
+    "title": "3 small changes\nfor a fresh start",
+    "intro": "The 10-Day Healthy Living Starter Pack doesn't ask you to change everything at once. We start with 3 very familiar moments in your day:"
+  },
+  "journey": {
+    "title": "10 days isn't about being perfect",
+    "sub": "10 days is just for getting started.",
+    "steps": [
+      {
+        "label": "Days 1 – 3",
+        "text": "Get to know your new options."
+      },
+      {
+        "label": "Days 4 – 7",
+        "text": "Make them part of your daily routine."
+      },
+      {
+        "label": "Days 8 – 10",
+        "text": "Look back and choose the habits that suit you best to keep going."
+      }
+    ],
+    "quote": "Healthy living doesn't start with big changes.\nIt starts with small choices repeated every day."
+  },
+  "receive": {
+    "title": "A small pack\nfor an easier start",
+    "extras": [
+      "Join the Healthy Living community on Zalo to share and stay motivated together"
+    ]
+  },
+  "final": {
+    "title": "Healthy living doesn't have to start with big changes",
+    "sub": "Give yourself 10 days to get started.",
+    "note": "3 products • 3 small habits • One first step"
+  },
+  "sections": [
+    {
+      "title": "Suggested use over 10 days",
+      "items": [
+        "**On busy mornings:** mix 1 sachet of VitaGreen Nutritious Meal instead of a rushed breakfast.",
+        "**When you're hungry mid-morning:** have Seed Nutrition with Curcumin as a ready-made snack.",
+        "**When you crave a sweet drink:** mix 1 sachet of DILVANG Tea with 300–400ml of warm water.",
+        "You don't need to use all 3 products every day – pick the moments that fit your routine. See the package or each product page for preparation instructions."
+      ]
+    },
+    {
+      "title": "Who it's for",
+      "items": [
+        "Busy people who often rush breakfast or skip it.",
+        "People who want to cut back on soft drinks, milk tea and sugary drinks.",
+        "People who want to try all 3 product lines before choosing a large box."
+      ]
+    },
+    {
+      "title": "Please note",
+      "text": "This pack helps you start building healthier eating habits; the amount of product in the pack is not your entire diet for 10 days. If you are taking medication, pregnant or breastfeeding, please consult your doctor before use."
+    }
+  ],
+  "disclaimer": "VitaGreen Nutritious Meal and Seed Nutrition with Curcumin are dietary supplements. This product is not a medicine and does not replace medical treatment.",
+  "keywords": [
+    "combo",
+    "bundle",
+    "pack",
+    "starter",
+    "beginners",
+    "trial",
+    "gift",
+    "save",
+    "value",
+    "10 days",
+    "breakfast",
+    "snack",
+    "tea",
+    "free shipping"
+  ],
+  "pitch": "3 products for your first 10 healthy days, free shipping"
+}

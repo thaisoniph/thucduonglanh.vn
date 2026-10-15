@@ -1,6 +1,6 @@
 # Website Thực Dưỡng Lành – Hướng dẫn kỹ thuật & vận hành
 
-Cập nhật: 27/09/2026 · Web: https://thucduonglanh.vn · Quản trị: https://thucduonglanh.vn/admin/ · Kho mã: https://github.com/thaisoniph/thucduonglanh.vn
+Cập nhật: 15/10/2026 · Web: https://thucduonglanh.vn · Quản trị: https://thucduonglanh.vn/admin/ · Kho mã: https://github.com/thaisoniph/thucduonglanh.vn
 
 > Tài liệu dành cho chủ web / người phụ trách kỹ thuật. Hướng dẫn cho nhân sự (CRM + sửa website) nằm tại **https://crm.thucduonglanh.vn/huong-dan/**, nguồn ở thư mục `guide/`. Google Doc cũ không dùng nữa.
 
@@ -48,7 +48,8 @@ website/
 │   ├── post-categories.json
 │   ├── brochure.json      trang Hồ sơ thương hiệu
 │   ├── vn-units.json      34 tỉnh/thành + 3.321 phường/xã (sau 1/7/2025) – dùng nhận diện địa chỉ
-│   └── config.json        kỹ thuật: tên miền, link nhận đơn, mã GA4/Clarity/Pixel (không có trong /admin)
+│   ├── config.json        kỹ thuật: tên miền, link nhận đơn, mã GA4/Clarity/Pixel (không có trong /admin)
+│   └── i18n/<mã>.json     bản dịch chữ cố định của web (xem mục 3b Đa ngôn ngữ); *.en.json cạnh file dữ liệu = bản dịch nội dung
 ├── assets/                CSS, JS, ảnh, video, PDF; ảnh tải từ /admin nằm ở assets/uploads/
 ├── crm/                   CRM cho nhân sự (index.html, app.js, app.css) → build ra dist-crm/ → crm.thucduonglanh.vn
 ├── guide/                 Hướng dẫn nhân sự: index.md (Bắt đầu), crm.md, website.md, guide.css, img/ → dist-crm/huong-dan/
@@ -111,6 +112,16 @@ website/
 - Giỏ hàng / minicart: `cartUpsell` (chưa đủ freeship: món giá ≤ phần thiếu + 100k, ưu tiên `UP_FIRST` = Ruốc, DILVANG; đủ: món trong `upsell` của sản phẩm trong giỏ). Minicart tối đa **1** gợi ý, trang Giỏ hàng tối đa 2, Thanh toán/Mua ngay tối đa 3. Mọi gợi ý có lý do (`upWhy`: đủ/gần freeship, "Hay dùng cùng …", "Cùng nhu cầu …"); không có lý do thì không gợi ý. Không gợi ý gói combo khi giỏ đã có sản phẩm nằm trong gói (`comboClash`).
 
 ---
+
+## 3b. Đa ngôn ngữ (tiếng Anh, 15/10/2026)
+
+- **Đường dẫn**: tiếng Việt giữ nguyên ở gốc (`/…`). Ngôn ngữ khác ở `/<mã>/…`, tên mục dịch theo `SEGMENTS` trong build.py (`/en/products/<slug>/`, `/en/category/…`, `/en/cart/`, `/en/checkout/`, `/en/order-success/`, `/en/about/`, `/en/contact/`, `/en/needs/…`, `/en/blog/…`). Slug sản phẩm/bài viết giữ nguyên; trang chính sách dùng ô `url_slug` của bản dịch (`PAGE_SLUGS`). Hàm `lp(path)` đổi đường dẫn.
+- **Dựng**: `python3 build.py` (tiếng Việt) chạy lại chính nó với `--lang en` trước (mỗi ngôn ngữ trong `LANGS` 1 lượt), bản đó giữ trang trong `PENDING`, `finish_lang()` đổi mọi link nội bộ / URL tuyệt đối sang bản dịch **nếu trang đó có bản dịch** (chưa có thì giữ link tiếng Việt), ghi `dist/en/…` và `dist/_routes_en.json` (bản Việt đọc rồi xoá) để thêm `<link hreflang>` (vi, en, x-default) + nút **EN/VI** (`alt_switch`: `.lang-btn` cạnh giỏ hàng + dòng trong menu điện thoại) + sitemap + robots. Không tự chuyển hướng theo ngôn ngữ trình duyệt.
+- **Chữ cố định trong code**: `t("câu tiếng Việt")` / `tf("…{x}…", x=…)` trong build.py, `T('…')` / `TF('…{0}…', a)` trong main.js. Bản dịch: `data/i18n/<mã>.json` (khoá = câu tiếng Việt). Cùng chữ Việt nhưng khác nghĩa: khoá `"Thanh toán||payment"` (tiếng Việt hiện phần trước `||`). Thêm/sửa câu → chạy `python3 scripts/i18n-keys.py` (thêm khoá mới với giá trị rỗng, câu bỏ đi vào `_unused`), rồi điền bản dịch. Câu chưa dịch tạm hiện tiếng Việt; build in số câu thiếu + ghi `output/i18n-missing-<mã>.txt`. Không đặt biến cục bộ tên `t` trong hàm có gọi `t()`. Python máy Mac là 3.9: không lồng f-string cùng loại nháy / có `\` trong biểu thức.
+- **Nội dung soạn ở /admin**: file dịch nằm cạnh file gốc `abc.en.json` / `abc.en.md` (Sveltia `i18n: multiple_files` + `omit_default_locale_from_file_path`; file Cài đặt dùng `file: data/x.{{locale}}.json`). build.py `load_json` / `load_front` phủ bản dịch lên bản Việt bằng `overlay()`: chỉ ô chữ có nội dung; giá, ảnh, mã… (`TRANSLATABLE_SKIP`) luôn lấy bản Việt; danh sách object ghép theo thứ tự. Sản phẩm/gói/bài/trang **chưa có file dịch thì không có ở bản tiếng Anh** (`PRODUCTS` chỉ gồm bản đã dịch, `PRODUCTS_ALL` vẫn đủ cho giỏ hàng: `data-en.js` có cờ `hide`).
+- **Phần chỉ tiếng Việt**: ebook, cẩm nang, quà tặng, popup, nhóm Zalo, cộng đồng, hồ sơ thương hiệu, tag tìm kiếm (build.py tắt khi `not IS_VI`). Quy đổi tiền tiếng Anh: `189,000 ₫`.
+- **Đơn hàng**: `assets/js/data-en.js` có `name_vi`, `unit_vi`, `variants[].name_vi`; `placeOrder` gửi tên tiếng Việt về api/CRM (chu kỳ dùng, thống kê không đổi), thêm ghi chú `🌐 Khách đặt từ web tiếng Anh…`; `order.view` giữ tên tiếng Anh cho trang cảm ơn. Form liên hệ thêm `🌐 [Web EN]`. Không cần đổi api/ hay Apps Script.
+- **Thêm ngôn ngữ mới** (vd `zh`): thêm vào `LANGS` + `SEGMENTS` trong build.py, tạo `data/i18n/zh.json` (`{}` rồi chạy `scripts/i18n-keys.py`, dịch), thêm `zh` vào `i18n.locales` trong `admin/config.yml`, dịch nội dung ở /admin.
 
 ## 4. Đơn hàng & CRM (Google Sheet)
 

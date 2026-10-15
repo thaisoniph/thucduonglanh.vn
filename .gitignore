@@ -12,3 +12,4 @@ dist-crm/
 api/.dev.vars
 api/.wrangler/
 api/node_modules/
+output/i18n-missing-*.txt

@@ -1,0 +1,150 @@
+{
+  "name": "VitaGreen Nutritious Meal",
+  "short_name": "Nutritious Meal",
+  "badge": "Best seller",
+  "variants": [
+    {
+      "name": "Box 500g (20 sachets × 25g)"
+    },
+    {
+      "name": "Box 125g"
+    }
+  ],
+  "summary": "A nutritious meal made from **12 seeds and grains** (soy-free) combined with **Okinawa Mozuku Fucoidan, 95% Curcumin, Spirulina, Pea Protein** and FOS fiber. Sweetened with stevia, no refined sugar – easy to mix, easy to drink, and handy for busy people.",
+  "highlights": [
+    "12 seeds & grains, soy-free",
+    "Okinawa Mozuku Fucoidan – Japan",
+    "95% Curcumin from Vietnamese turmeric",
+    "Sweetened with stevia, no refined sugar",
+    "Made to GMP and ISO 22000:2018 standards"
+  ],
+  "sections": [
+    {
+      "title": "Ingredients",
+      "text": "**Grains & seeds:** Oats, Brown rice, Green peas, Chickpeas, Black beans, White beans, Macadamia nuts, Walnuts, Almonds, Black sesame, Lotus seeds, Cocoa.\n\n**Key ingredients:** 95% Curcumin, Spirulina (blue-green algae), Fucoidan extracted from Okinawa Mozuku brown seaweed, Red dates (jujube), Goji berries, Pea Protein (plant protein), FOS (soluble fiber), stevia, Vitamin B1."
+    },
+    {
+      "title": "Highlights",
+      "items": [
+        "**12 seeds and grains:** the base of a balanced meal – good carbs, healthy fats, plant protein, plus natural vitamins and minerals.",
+        "**Okinawa Mozuku Fucoidan:** a Japanese brown seaweed extract that helps support immune health and provides antioxidants.",
+        "**95% Curcumin:** extracted from Vietnamese turmeric; provides antioxidants and helps support digestive balance.",
+        "**Spirulina:** a micro-algae rich in plant protein, vitamins and minerals.",
+        "**Pea Protein:** high-quality plant protein that is gentle on digestion.",
+        "**FOS:** soluble fiber that supports digestion and a healthy gut microbiome.",
+        "**Stevia:** no refined sugar, suitable for people who need to limit sugar."
+      ]
+    },
+    {
+      "title": "Benefits",
+      "text": "Provides nutrition from grains and seeds; adds vitamins, minerals, plant protein and fiber; supports healthy digestion; helps support overall health and resilience. Can be used as a snack meal or to complement your daily meals."
+    },
+    {
+      "title": "Nutrition facts (per 100g)",
+      "rows": [
+        {
+          "label": "Energy",
+          "value": "436 kcal"
+        },
+        {
+          "label": "Carbohydrate",
+          "value": "68.5 g"
+        },
+        {
+          "label": "Fat",
+          "value": "13.6 g"
+        },
+        {
+          "label": "Protein",
+          "value": "11.2 g"
+        },
+        {
+          "label": "Sodium",
+          "value": "171 mg"
+        },
+        {
+          "label": "FOS",
+          "value": "1.20 g"
+        }
+      ]
+    },
+    {
+      "title": "Who it's for",
+      "text": "Children aged 3 and up; adults who want extra nutrition; older adults with a small appetite; vegetarians and vegans; busy people; anyone who wants more plant protein and fiber."
+    },
+    {
+      "title": "How to use",
+      "text": "**Quick mix:** stir 25–30g (3 level scoops) into 150–180ml of water at about 60°C and drink right away. 2–3 times a day.\n\n**Standard mix:** stir 25–30g into 100ml of cool water, let it soak for a moment, then add about 100ml of hot water at 70°C.\n\n**Smoothie:** blend 100ml of cool water + 1 sachet (25g) + fruit of your choice (add milk or ice if you like)."
+    },
+    {
+      "title": "Storage",
+      "items": [
+        "Store in a cool, dry place away from direct sunlight.",
+        "Use within 30 days of opening.",
+        "Shelf life: 24 months from the manufacturing date."
+      ]
+    },
+    {
+      "title": "Standards & lab testing",
+      "text": "Made at the factory of Vitanuts Green Nutrition JSC under GMP standards and an ISO 22000:2018 system, manufacturer's standard TCCS/012/VITANUTS/2025. Tested at the National Institute for Food Control (NIFC): physicochemical, microbiological, heavy metal and Aflatoxin M1 indicators all meet requirements.\n\nRegistered by: VitaGreen Nutrition Group Co., Ltd."
+    }
+  ],
+  "disclaimer": "Dietary supplement. This product is not a medicine and does not replace medical treatment.",
+  "badges": [
+    "Lab-tested at NIFC – Ministry of Health",
+    "Not detected: Salmonella, Aflatoxin M1",
+    "Factory certified ISO 22000:2018 and GMP",
+    "Fucoidan from Okinawa Mozuku seaweed – Japan",
+    "No refined sugar (sweetened with stevia)"
+  ],
+  "serving_unit": "sachet",
+  "keywords": [
+    "breakfast",
+    "meal replacement",
+    "snack",
+    "busy",
+    "office workers",
+    "cereal",
+    "grains",
+    "seeds",
+    "nutrition",
+    "nutrition powder",
+    "fucoidan",
+    "spirulina",
+    "curcumin",
+    "sugar-free",
+    "no sugar",
+    "low sugar",
+    "digestion",
+    "plant protein",
+    "soy-free",
+    "seniors",
+    "vegan",
+    "vegetarian"
+  ],
+  "pitch": "12 seeds + Japanese Fucoidan, a 1-minute breakfast",
+  "proofs": [
+    {
+      "title": "Safety test report (microbiology, toxins, heavy metals)",
+      "org": "National Institute for Food Control (NIFC) – Ministry of Health",
+      "scope": "Listeria, Salmonella, Aflatoxin M1 and mercury not detected; lead and tin below the quantification limit"
+    },
+    {
+      "title": "Nutrition test report",
+      "org": "National Institute for Food Control (NIFC) – Ministry of Health",
+      "scope": "Per 100g: 436 kcal, protein 11.2g, fiber 2.79g (FOS 1.20g), sodium 171mg"
+    },
+    {
+      "title": "Factory certified ISO 22000:2018 (food safety management)",
+      "org": "GOOD Vietnam National Certification JSC (GOODVN)",
+      "scope": "Vitanuts factory (Phu Nghia Industrial Park, Hanoi): blending and packing of cereal and nutrition powders",
+      "date": "Issued 22/09/2025 – valid until 21/09/2028"
+    },
+    {
+      "title": "Factory certified GMP (TCVN 5603:2023)",
+      "org": "GOOD Vietnam National Certification JSC (GOODVN)",
+      "scope": "Vitanuts factory: production of cereal powders, nutrition powders and powdered seed products",
+      "date": "Issued 04/04/2026 – valid until 03/04/2029"
+    }
+  ]
+}

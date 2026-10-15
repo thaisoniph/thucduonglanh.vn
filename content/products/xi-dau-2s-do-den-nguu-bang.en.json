@@ -1,0 +1,62 @@
+{
+  "name": "2S Black Bean & Burdock Soy Sauce",
+  "short_name": "2S Soy Sauce",
+  "badge": "Fermented 99 days",
+  "unit": "Bottle 500ml",
+  "summary": "The first soy sauce **naturally fermented from Vietnamese green-kernel black beans and burdock root** grown in Soc Son. After **99 days of traditional fermentation**, it becomes a flavorful, wholesome sauce for everyone – whether you eat a regular or a plant-based diet.",
+  "highlights": [
+    "Naturally fermented for 99 days",
+    "Green-kernel black beans & Soc Son burdock",
+    "Certified 100% natural by VNPS",
+    "Hanoi Creative Science Award 2025",
+    "HACCP-certified process"
+  ],
+  "sections": [
+    {
+      "title": "Ingredients",
+      "text": "Water, black beans (200g/l), burdock (60g/l), salt, palm sugar, golden camellia tea, preservative, natural flavor enhancers from fermentation (no industrial additives)."
+    },
+    {
+      "title": "Certification & awards",
+      "items": [
+        "All-natural product – certified 100% natural by VNPS (code TN.TP.23.01.01).",
+        "Hanoi Creative Science Award 2025.",
+        "HACCP-certified production process.",
+        "Producer: Soc Son Medicinal Herb Conservation and Development Cooperative – certified to Vietnam Organic and Japan Organic (J.A.S.) standards."
+      ]
+    },
+    {
+      "title": "How to use",
+      "text": "Use as a dipping sauce, in dressings, or as a seasoning for marinating, braising and stir-frying. Suitable for both regular and plant-based diets."
+    }
+  ],
+  "badges": [
+    "Naturally fermented for 99 days",
+    "Black beans & burdock lab-tested at NIFC",
+    "Black beans: Aflatoxin not detected; 3 pesticide residues tested",
+    "Burdock grown in Soc Son"
+  ],
+  "keywords": [
+    "soy sauce",
+    "tamari",
+    "seasoning",
+    "vegan seasoning",
+    "black bean",
+    "burdock",
+    "fermented",
+    "vegan",
+    "vegetarian",
+    "plant-based",
+    "dipping sauce",
+    "condiment"
+  ],
+  "pitch": "Naturally fermented for 99 days from black beans and burdock",
+  "proofs": [
+    {
+      "title": "Raw material test reports for black beans and burdock root",
+      "org": "National Institute for Food Control (NIFC) – Ministry of Health",
+      "number": "75771/PKN-VKNQG (black beans) · 24577/PKN-VKNQG (burdock)",
+      "scope": "Black beans: Aflatoxin B1, total Aflatoxin, Carbendazim, Propargite and Tebuconazole not detected. These are raw material tests"
+    }
+  ]
+}
