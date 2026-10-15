@@ -135,10 +135,33 @@ def load_front(path):
     return overlay(meta, m2), (b2 or body)
 
 
+_A_TAG = re.compile(r"<a\b[^>]*>", re.I)
+_A_HREF = re.compile(r'\bhref="([^"]*)"', re.I)
+
+
+def new_tab(html_text, internal=False):
+    """Thêm target="_blank" cho link: luôn với link ra trang ngoài; internal=True thì cả link nội bộ
+    (dùng cho nội dung bài viết / mô tả). Bỏ qua link #neo, tel:, mailto:, link đã có target."""
+    def fix(m):
+        tag = m.group(0)
+        h = _A_HREF.search(tag)
+        if not h or re.search(r"\btarget=", tag, re.I):
+            return tag
+        href = h.group(1)
+        if not href or href.startswith(("#", "tel:", "mailto:", "sms:", "javascript:")):
+            return tag
+        external = href.startswith(("http://", "https://", "//")) and not href.split("//", 1)[1].startswith(globals().get("DOMAIN", "https://thucduonglanh.vn").split("//", 1)[-1])
+        if not (external or internal):
+            return tag
+        extra = ' target="_blank"' + ("" if re.search(r"\brel=", tag, re.I) else ' rel="noopener"')
+        return tag[:-1] + extra + ">"
+    return _A_TAG.sub(fix, html_text)
+
+
 def md(text):
-    """Markdown -> HTML (dùng cho nội dung soạn trong trang quản trị)."""
+    """Markdown -> HTML (dùng cho nội dung soạn trong trang quản trị). Link trong nội dung mở tab mới."""
     out = _md.markdown(text or "", extensions=["extra", "sane_lists"])
-    return out.replace("<img ", '<img loading="lazy" ')
+    return new_tab(out.replace("<img ", '<img loading="lazy" '), internal=True)
 
 
 def md_inline(text):
@@ -2114,6 +2137,8 @@ PENDING = {}  # ngôn ngữ khác: giữ trang trong bộ nhớ, đổi đườn
 
 
 def write(rel, content):
+    if rel.endswith("/") or rel.endswith(".html"):
+        content = new_tab(content)  # link ra trang ngoài luôn mở tab mới
     if not IS_VI:
         PENDING[rel] = content
         return rel
