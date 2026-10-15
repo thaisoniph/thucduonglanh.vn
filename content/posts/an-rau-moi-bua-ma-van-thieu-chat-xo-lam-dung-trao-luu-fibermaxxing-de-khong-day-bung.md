@@ -2,7 +2,7 @@
 title: Ăn rau mỗi bữa mà vẫn thiếu chất xơ? Làm đúng trào lưu fibermaxxing để không đầy bụng
 date: 2026-10-28
 category: kien-thuc-dinh-duong
-image: /assets/uploads/chat-xo-mam-com-viet.jpg
+image: /assets/uploads/bia-bai2-day-bung-truoc-to-salad.jpg
 excerpt: Trào lưu tối đa hóa chất xơ đang phủ khắp mạng xã hội. Cần bao nhiêu chất xơ mỗi ngày, tăng thế nào để không đầy bụng, áp dụng vào mâm cơm Việt ra sao.
 published: true
 ---
