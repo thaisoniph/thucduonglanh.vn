@@ -145,7 +145,7 @@
     "title": "From the chè vằng hills of Quang Tri to your warm cup of tea",
     "intro": "The name **DILVANG** joins two plants: **DIL** for *Đinh lăng* (Polyscias) and **VANG** for *Chè vằng*. Both have been part of daily life in Quang Tri for generations.\n\nEvery sachet starts on sun-baked, windswept hillsides and in the home gardens of farming families in Vinh Linh, Cam Lo and Hai Lang. The herbs then travel to a GMP-certified factory in Dong Ha. There, people from Quang Tri extract and pack them, so the taste of their homeland can reach more families.",
     "home_title": "From the herb fields of Quang Tri to your cup",
-    "home_text": "We want our customers to know where each product comes from and who makes it.\n\nDILVANG tea begins on windswept chè vằng hills and with the polyscias plants in local family gardens. The herbs are extracted at a GMP-certified factory in Dong Ha, whose opening was covered by VTV, Vietnam's national broadcaster.",
+    "home_text": "We want our customers to know where each product comes from and who makes it.\n\nDILVANG tea begins on windswept chè vằng hills and with the polyscias plants in local family gardens. The herbs are extracted at the province's first GMP-standard herbal factory, covered by VTV, Tien Phong and Quang Tri Radio & Television.",
     "steps": [
       {
         "alt": "Chè vằng hills in Quang Tri under the sun",
@@ -160,7 +160,7 @@
       {
         "alt": "Farmers delivering polyscias to the factory",
         "title": "From the growers' hands",
-        "text": "The herbs come from cooperatives and farming households in Cam Lo, Hai Lang and Vinh Linh. Every delivery to the factory brings income to local families, so these native herbs keep growing on their home soil."
+        "text": "The herbs come from cooperatives and farming households in Cam Lo, Hai Lang and Vinh Linh, including the Cam Hieu Cooperative. Every delivery to the factory brings income to local families, so these native herbs keep growing on their home soil."
       },
       {
         "alt": "Staff checking herb drying racks at the factory",
@@ -170,12 +170,12 @@
       {
         "alt": "Staff recording and checking each batch",
         "title": "EECV vacuum extraction",
-        "text": "The herbs are extracted and concentrated in a closed vacuum system at low temperature. Each 5g sachet contains extract equivalent to about **3.5g of dried chè vằng and 1.5g of dried polyscias**. The technology was transferred from a science project managed by the Quang Tri Department of Science and Technology."
+        "text": "The herbs are extracted and concentrated in a closed vacuum system at low temperature, then vacuum-dried into a fine powder. This keeps the characteristic color, aroma and taste of chè vằng and polyscias. The technology was transferred from a science project managed by the Quang Tri Department of Science and Technology."
       },
       {
         "alt": "Pouring DILVANG tea into a cup",
         "title": "Your warm cup of tea",
-        "text": "No boiling, no simmering, no leaves left behind. One sachet and 300–400ml of warm water make a fragrant, gentle cup of tea, bringing the taste of the Quang Tri hills to your family."
+        "text": "No boiling, no simmering, no leaves left behind. One sachet and 300–400ml of warm water make a fragrant, gentle cup. Make one for yourself after work, or for your parents each morning, and the taste of the Quang Tri hills comes home to your family."
       }
     ],
     "facts": [
@@ -188,8 +188,8 @@
         "label": "of fresh herbs processed every day"
       },
       {
-        "value": "≈ 5g",
-        "label": "of dried herbs concentrated into every 5g sachet"
+        "value": "The first",
+        "label": "GMP-standard herbal factory in Quang Tri (per Tien Phong, QRTV)"
       },
       {
         "value": "2026",
@@ -208,8 +208,29 @@
         "date": "17/05/2025",
         "title": "Gold Herbal medicinal herb factory aims for community health (in Vietnamese)",
         "summary": "VTV covered the factory's opening ceremony. The factory covers 4,750 m², with phase-one investment of over 25 billion VND. Provincial leaders hope the company will keep expanding clean herb-growing areas."
+      },
+      {
+        "org": "Tien Phong newspaper",
+        "date": "17/05/2025",
+        "title": "Opening of the first GMP-standard herbal factory in Quang Tri (in Vietnamese)",
+        "summary": "Coverage of the opening ceremony. The province asked the company to expand clean herb-growing areas and provide a stable market for growers."
+      },
+      {
+        "org": "Organic Agriculture (Nông nghiệp Hữu cơ)",
+        "date": "18/05/2025",
+        "title": "Quang Tri: Gold Herbal herbal factory opens (in Vietnamese)",
+        "summary": "Vice Chairman of the Provincial People's Committee Le Duc Tien called the factory “a strategic step to develop a high-quality herbal industry using modern technology”."
       }
     ],
-    "link_text": "Read the full DILVANG journey"
+    "link_text": "Read the full DILVANG journey",
+    "quote": {
+      "text": "DILVANG is not just a blend of two herbs; it is where folk wisdom meets science and technology.",
+      "by": "Gold Herbal Joint Stock Company – the makers of DILVANG"
+    },
+    "pledge": {
+      "title": "Why Thực Dưỡng Lành chose DILVANG",
+      "text": "Thực Dưỡng Lành was born from a question that came too late: *“If only I had taken better care…”*. So before we introduce any product, we ask ourselves: would we make this for our own parents every day?\n\nFor DILVANG, we went through every document: the product declaration, the test report from Vietnam's National Institute for Food Control, the GMP certificate from the Ministry of Health, and the Science and Technology Enterprise certificate. We looked at every photo of the polyscias gardens, the chè vằng hills and the drying trays in the factory. But what kept us was more than paperwork. It was the feeling that every sachet has a homeland, the people who grow it and the people who make it.\n\nWe chose DILVANG to bring a little of Quang Tri's sun and wind to kitchens far away. May each cup be a moment to pause, slow down and care for the people you love.",
+      "sign": "The Thực Dưỡng Lành team"
+    }
   }
 }

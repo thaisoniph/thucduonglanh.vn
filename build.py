@@ -1801,11 +1801,31 @@ def origin_story(p):
     press = "".join(f'''<a class="ogs-press-card" href="{esc(x["url"])}" target="_blank" rel="noopener"><span class="ogs-press-org">{esc(x.get("org"))}{f' · {esc(x["date"])}' if x.get("date") else ""}</span>
 <b>{esc(x.get("title"))}</b>{f'<span class="ogs-press-sum">{esc(x["summary"])}</span>' if x.get("summary") else ""}<span class="ogs-press-go">{t("Xem bài gốc")} ›</span></a>''' for x in (s.get("press") or []) if x.get("url"))
     press = f'<div class="ogs-press"><h3 class="ogs-press-h">{t("Báo chí nói về nơi làm ra sản phẩm")}</h3>{press}</div>' if press else ""
+    n_press = len([x for x in (s.get("press") or []) if x.get("url")])
+    if n_press > 1:
+        press = press.replace('<div class="ogs-press">', '<div class="ogs-press ogs-press-2">', 1)
     more = f'<p class="ogs-more"><a class="btn btn-outline" href="{esc(s["link"])}">{esc(s.get("link_text") or t("Đọc trọn câu chuyện"))}</a></p>' if s.get("link") else ""
+    q = s.get("quote") or {}
+    cite = f'<cite>{esc(q["by"])}</cite>' if q.get("by") else ""
+    quote = f'<blockquote class="ogs-quote"><p>{esc(q["text"])}</p>{cite}</blockquote>' if q.get("text") else ""
+    v = s.get("video") or {}
+    vid = yt_id(v.get("youtube"))
+    video = ""
+    if vid:  # ảnh bìa, bấm mới tải YouTube (dùng chung xử lý .v-frame[data-yt] trong main.js)
+        vt = esc(v.get("title") or "")
+        vimg = img_url(v["image"], 1200) if v.get("image") else f"https://i.ytimg.com/vi/{vid}/hqdefault.jpg"
+        vcap = f'<span>{esc(v["caption"])}</span>' if v.get("caption") else ""
+        vfig = f'<figcaption><b>{vt}</b>{vcap}</figcaption>' if vt else ""
+        video = f'''<figure class="ogs-video"><div class="v-frame" data-yt="{vid}" data-title="{vt}"><img src="{esc(vimg)}" alt="{vt}" loading="lazy" width="1200" height="675"><button class="v-play" aria-label="{t("Phát video:")} {vt}">{I["play"]}</button></div>{vfig}</figure>'''
+    pl = s.get("pledge") or {}
+    pl_h = f'<h3>{esc(pl["title"])}</h3>' if pl.get("title") else ""
+    pl_s = f'<p class="ogs-sign">{esc(pl["sign"])}</p>' if pl.get("sign") else ""
+    pledge = f'<div class="ogs-pledge">{pl_h}{md(pl.get("text"))}{pl_s}</div>' if pl.get("text") else ""
     return f'''<section class="ogs" id="cau-chuyen" aria-labelledby="ogsTitle">
   <div class="ogs-head">{f'<span class="ogs-eye">{esc(s["eyebrow"])}</span>' if s.get("eyebrow") else ""}<h2 class="ogs-title" id="ogsTitle">{esc(s.get("title") or t("Câu chuyện sản phẩm"))}</h2>{f'<div class="ogs-intro">{md(s["intro"])}</div>' if s.get("intro") else ""}</div>
+  {video}
   <ol class="ogs-steps">{items}</ol>
-  {facts}{press}{more}
+  {quote}{facts}{press}{pledge}{more}
 </section>'''
 
 

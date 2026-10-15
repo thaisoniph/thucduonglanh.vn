@@ -121,7 +121,7 @@
     "title": "Từ đồi chè vằng Quảng Trị đến tách trà ấm của bạn",
     "intro": "Cái tên **DILVANG** ghép từ hai loại cây: **DIL** là *Đinh lăng*, **VANG** là *Chè vằng*. Đây là hai loại dược liệu gắn bó với đời sống người Quảng Trị từ bao đời nay.\n\nMỗi gói trà bắt đầu từ những triền đồi nắng gió và từ vườn nhà của bà con Vĩnh Linh, Cam Lộ, Hải Lăng. Nguyên liệu sau đó về nhà máy đạt GMP ở Đông Hà. Ở đó, những người con Quảng Trị chiết xuất, đóng gói, để hương vị quê nhà đến được với nhiều gia đình hơn.",
     "home_title": "Từ vùng nguyên liệu Quảng Trị đến tách trà của bạn",
-    "home_text": "Chúng tôi muốn khách hàng biết rõ mỗi sản phẩm đến từ đâu và do ai làm ra.\n\nTrà DILVANG bắt đầu từ đồi chè vằng nắng gió và những gốc đinh lăng trong vườn nhà bà con Quảng Trị. Nguyên liệu được chiết xuất tại nhà máy đạt GMP ở Đông Hà. Ngày nhà máy khánh thành, VTV đã đưa tin.",
+    "home_text": "Chúng tôi muốn khách hàng biết rõ mỗi sản phẩm đến từ đâu và do ai làm ra.\n\nTrà DILVANG bắt đầu từ đồi chè vằng nắng gió và những gốc đinh lăng trong vườn nhà bà con Quảng Trị. Nguyên liệu được chiết xuất tại nhà máy dược liệu đạt chuẩn GMP đầu tiên của tỉnh. VTV, Tiền Phong và Đài PTTH Quảng Trị đều đã đưa tin.",
     "steps": [
       {
         "image": "/assets/uploads/cau-chuyen/dilvang-doi-che-vang.webp",
@@ -139,7 +139,7 @@
         "image": "/assets/uploads/cau-chuyen/dilvang-thu-mua.webp",
         "alt": "Bà con giao đinh lăng cho nhà máy",
         "title": "Từ tay người trồng",
-        "text": "Nguyên liệu đến từ các hợp tác xã và hộ dân ở Cam Lộ, Hải Lăng, Vĩnh Linh. Mỗi chuyến hàng về nhà máy là thêm một nguồn thu cho bà con. Nhờ vậy, cây thuốc quê nhà tiếp tục được trồng trên đất quê."
+        "text": "Nguyên liệu đến từ các hợp tác xã và hộ dân ở Cam Lộ, Hải Lăng, Vĩnh Linh, trong đó có Hợp tác xã Cam Hiếu. Mỗi chuyến hàng về nhà máy là thêm một nguồn thu cho bà con. Nhờ vậy, cây thuốc quê nhà tiếp tục được trồng trên đất quê."
       },
       {
         "image": "/assets/uploads/cau-chuyen/dilvang-say.webp",
@@ -151,13 +151,13 @@
         "image": "/assets/uploads/cau-chuyen/dilvang-kiem-soat.webp",
         "alt": "Nhân viên ghi chép, kiểm soát từng mẻ dược liệu",
         "title": "Chiết xuất chân không EECV",
-        "text": "Dược liệu được chiết xuất và cô đặc trong điều kiện chân không, nhiệt độ thấp, khép kín. Mỗi gói 5g có cao chiết tương đương khoảng **3,5g chè vằng khô và 1,5g đinh lăng khô**. Công nghệ này được chuyển giao từ đề tài khoa học do Sở KH&CN Quảng Trị quản lý."
+        "text": "Dược liệu được chiết xuất và cô đặc trong hệ thống chân không khép kín, ở nhiệt độ thấp, rồi sấy chân không thành bột mịn. Cách làm này giữ lại màu, mùi và vị đặc trưng của chè vằng, đinh lăng. Công nghệ được chuyển giao từ đề tài khoa học do Sở KH&CN Quảng Trị quản lý."
       },
       {
         "image": "/assets/img/products/tra-dilvang-5.webp",
         "alt": "Rót trà DILVANG ra tách",
         "title": "Tách trà ấm của bạn",
-        "text": "Không cần đun, không cần sắc, cũng không có bã. Chỉ cần 1 gói trà và 300–400ml nước ấm là có một tách trà thơm dịu. Hương vị đồi chè quê nhà theo đó về với gia đình bạn."
+        "text": "Không cần đun, không cần sắc, cũng không có bã. Chỉ cần 1 gói trà và 300–400ml nước ấm là có một tách trà thơm dịu. Pha cho mình sau giờ làm, hay pha cho cha mẹ mỗi sáng, hương vị đồi chè quê nhà theo đó về với gia đình bạn."
       }
     ],
     "facts": [
@@ -170,8 +170,8 @@
         "label": "dược liệu tươi được chế biến mỗi ngày"
       },
       {
-        "value": "≈ 5g",
-        "label": "dược liệu khô được cô lại trong mỗi gói trà 5g"
+        "value": "Đầu tiên",
+        "label": "nhà máy dược liệu đạt chuẩn GMP tại Quảng Trị (theo Tiền Phong, QRTV)"
       },
       {
         "value": "2026",
@@ -192,10 +192,33 @@
         "title": "Nhà máy Dược liệu Gold Herbal hướng đến sức khỏe cộng đồng",
         "url": "https://vtv.vn/xa-hoi/nha-may-duoc-lieu-gold-herbal-huong-den-suc-khoe-cong-dong-20250517092627856.htm",
         "summary": "VTV đưa tin lễ khánh thành nhà máy. Nhà máy rộng 4.750 m², vốn đầu tư giai đoạn 1 hơn 25 tỷ đồng. Lãnh đạo tỉnh Quảng Trị kỳ vọng doanh nghiệp tiếp tục mở rộng vùng trồng dược liệu sạch."
+      },
+      {
+        "org": "Báo Tiền Phong",
+        "date": "17/05/2025",
+        "title": "Khánh thành nhà máy sản xuất dược liệu đạt chuẩn GMP đầu tiên tại Quảng Trị",
+        "url": "https://tienphong.vn/khanh-thanh-nha-may-san-xuat-duoc-lieu-dat-chuan-gmp-dau-tien-tai-quang-tri-post1743076.tpo",
+        "summary": "Bài báo đưa tin lễ khánh thành. Tỉnh đề nghị doanh nghiệp mở rộng vùng nguyên liệu sạch, ổn định đầu ra cho người trồng dược liệu."
+      },
+      {
+        "org": "Nông nghiệp Hữu cơ",
+        "date": "18/05/2025",
+        "title": "Quảng Trị: Khánh thành Nhà máy sản xuất dược liệu Gold Herbal",
+        "url": "https://nongnghiephuuco.vn/quang-tri-khanh-thanh-nha-may-san-xuat-duoc-lieu-gold-herbal-6772.html",
+        "summary": "Phó Chủ tịch UBND tỉnh Lê Đức Tiến nhận định nhà máy “đánh dấu bước tiến chiến lược nhằm phát triển ngành dược liệu chất lượng cao, ứng dụng công nghệ hiện đại”."
       }
     ],
     "link": "/goc-song-lanh/hanh-trinh-tra-dilvang-tu-doi-che-vang-quang-tri/",
-    "link_text": "Đọc trọn hành trình DILVANG"
+    "link_text": "Đọc trọn hành trình DILVANG",
+    "quote": {
+      "text": "DILVANG không chỉ là sự kết hợp của hai loại thảo mộc, mà còn là sự gặp gỡ giữa tri thức dân gian và khoa học công nghệ.",
+      "by": "Công ty Cổ phần Dược liệu Gold Herbal – nơi làm ra DILVANG"
+    },
+    "pledge": {
+      "title": "Vì sao Thực Dưỡng Lành chọn DILVANG",
+      "text": "Thực Dưỡng Lành ra đời từ một câu hỏi chưa kịp có lời đáp: *“Giá như mình chăm sóc tốt hơn…”*. Vì vậy, trước khi giới thiệu một sản phẩm, chúng tôi luôn tự hỏi: mình có dám pha nó cho chính cha mẹ mình mỗi ngày không?\n\nVới DILVANG, chúng tôi đã xem từng trang hồ sơ: bản tự công bố, phiếu kiểm nghiệm của Viện Kiểm nghiệm ATVSTP Quốc gia, giấy GMP của Bộ Y tế, giấy chứng nhận Doanh nghiệp Khoa học và Công nghệ. Chúng tôi xem từng tấm ảnh vườn đinh lăng, đồi chè vằng, từng khay sấy trong nhà máy. Nhưng điều giữ chúng tôi lại không chỉ là giấy tờ. Đó là cảm giác mỗi gói trà đều có quê hương, có người trồng và có người làm ra.\n\nChúng tôi chọn DILVANG để mang chút nắng gió Quảng Trị về những gian bếp xa quê. Mong mỗi tách trà là một lần dừng lại, sống chậm và chăm sóc người mình thương.",
+      "sign": "Đội ngũ Thực Dưỡng Lành"
+    }
   },
   "upsell": [
     "ruoc-rong-bien-vi-suon-non",

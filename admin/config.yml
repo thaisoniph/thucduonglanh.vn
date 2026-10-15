@@ -275,6 +275,38 @@ collections:
               - { label: "Tiêu đề bài", name: title, i18n: true, widget: string }
               - { label: "Link bài", name: url, widget: string }
               - { label: "Tóm tắt ngắn", name: summary, i18n: true, widget: text, required: false }
+          - label: "Video câu chuyện (YouTube)"
+            name: video
+            i18n: true
+            widget: object
+            required: false
+            collapsed: true
+            hint: "Hiện khung video 16:9 ngay dưới đoạn mở đầu. Chỉ tải YouTube khi khách bấm xem."
+            fields:
+              - { label: "Link YouTube", name: youtube, widget: string, required: false }
+              - { label: "Tiêu đề video", name: title, i18n: true, widget: string, required: false }
+              - { label: "Mô tả ngắn", name: caption, i18n: true, widget: string, required: false }
+              - { label: "Ảnh bìa (để trống = ảnh của YouTube)", name: image, widget: image, required: false }
+          - label: "Câu trích dẫn"
+            name: quote
+            i18n: true
+            widget: object
+            required: false
+            collapsed: true
+            fields:
+              - { label: "Câu nói (không cần ngoặc kép)", name: text, i18n: true, widget: text, required: false }
+              - { label: "Người nói / nguồn", name: by, i18n: true, widget: string, required: false }
+          - label: "Lời của Thực Dưỡng Lành"
+            name: pledge
+            i18n: true
+            widget: object
+            required: false
+            collapsed: true
+            hint: "Khung thư ngắn: vì sao công ty chọn sản phẩm này."
+            fields:
+              - { label: "Tiêu đề", name: title, i18n: true, widget: string, required: false }
+              - { label: "Nội dung", name: text, i18n: true, widget: markdown, required: false }
+              - { label: "Ký tên", name: sign, i18n: true, widget: string, required: false }
           - { label: "Link đọc thêm", name: link, widget: string, required: false, hint: "Ví dụ link bài viết: /goc-song-lanh/ten-bai/" }
           - { label: "Chữ trên nút đọc thêm", name: link_text, i18n: true, widget: string, required: false }
       - label: "Gợi ý mua kèm"

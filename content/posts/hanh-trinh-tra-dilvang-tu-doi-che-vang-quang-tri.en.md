@@ -35,7 +35,7 @@ Old plants grow large, golden roots, the result of many seasons of care by local
 
 ![Farmers delivering polyscias to the factory](/assets/uploads/cau-chuyen/dilvang-thu-mua.webp)
 
-DILVANG's herbs come from cooperatives and farming households in **Cam Lo, Hai Lang and Vinh Linh**. Truckloads of polyscias and chè vằng are brought to the factory. Every delivery means income for local families, so these native herbs keep their place on home soil.
+DILVANG's herbs come from cooperatives and farming households in **Cam Lo, Hai Lang and Vinh Linh**, including the Cam Hieu Cooperative. Truckloads of polyscias and chè vằng are brought to the factory. Every delivery means income for local families, so these native herbs keep their place on home soil.
 
 ## Stage 4: A factory built by people from Quang Tri
 
@@ -45,6 +45,8 @@ On **17 May 2025**, the Gold Herbal medicinal herb factory opened in the Nationa
 - It processes **2–4 tonnes of fresh herbs** per day.
 - Equipment includes heat-pump dryers, vacuum dryers, a vacuum circulation extraction system, grinders and automatic packing machines.
 - Provincial leaders hope the company will keep expanding clean herb-growing areas and play a bigger role in the herbal value chain.
+
+[Tien Phong newspaper](https://tienphong.vn/khanh-thanh-nha-may-san-xuat-duoc-lieu-dat-chuan-gmp-dau-tien-tai-quang-tri-post1743076.tpo) headlined it *“Opening of the first GMP-standard herbal factory in Quang Tri”*. According to [Nông nghiệp Hữu cơ](https://nongnghiephuuco.vn/quang-tri-khanh-thanh-nha-may-san-xuat-duoc-lieu-gold-herbal-6772.html), Vice Chairman of the Provincial People's Committee Le Duc Tien called it *“a strategic step to develop a high-quality herbal industry using modern technology”* (both in Vietnamese).
 
 ![Aerial view of the Gold Herbal factory](/assets/uploads/cau-chuyen/dilvang-nha-may.webp)
 
@@ -68,7 +70,7 @@ They are then laid on trays and dried at low temperature. Staff monitor temperat
 
 Next comes **EECV** extraction (Extract – Evaporate – Concentrate – Vacuum). The herbs are extracted and concentrated in a closed vacuum system at low temperature, then cold-dried into powder. This technology was transferred from a science project managed by the Quang Tri Department of Science and Technology.
 
-According to the product declaration, each 5g sachet contains **820mg of chè vằng dry extract** (equivalent to 3.5g of dried chè vằng) and **180mg of polyscias dry extract** (equivalent to 1.5g of dried polyscias).
+According to the product declaration, each 5g sachet contains **820mg of chè vằng dry extract** and **180mg of polyscias dry extract**, with maltodextrin as the only excipient. No preservatives, anti-caking agents, synthetic flavors or artificial colors.
 
 ![Checking the aroma of the herbs](/assets/uploads/cau-chuyen/dilvang-thu-nem.webp)
 
@@ -87,6 +89,15 @@ In the old days, making chè vằng meant drying leaves and simmering them for a
 - No preservatives, no artificial colors, no synthetic flavors.
 
 See all documents under **Quality documents** on the [DILVANG Instant Tea product page](/san-pham/tra-hoa-tan-dilvang-dinh-lang-che-vang/).
+
+## Why Thực Dưỡng Lành chose DILVANG
+
+> *“DILVANG is not just a blend of two herbs; it is where folk wisdom meets science and technology.”*
+> — Gold Herbal, the makers of DILVANG
+
+Thực Dưỡng Lành was born from a question that came too late: *“If only I had taken better care…”*. So before we introduce any product, we ask ourselves: would we make this for our own parents every day?
+
+For DILVANG, we went through every document and every photo of the growing areas and the factory. But what kept us was more than paperwork. It was the feeling that every sachet has a homeland, the people who grow it and the people who make it.
 
 ## Closing
 

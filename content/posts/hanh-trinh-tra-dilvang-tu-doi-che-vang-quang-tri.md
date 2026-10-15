@@ -39,7 +39,7 @@ Những gốc đinh lăng lâu năm cho bộ rễ to, vàng óng. Đây là thà
 
 ![Bà con giao đinh lăng cho nhà máy](/assets/uploads/cau-chuyen/dilvang-thu-mua.webp)
 
-Nguyên liệu của DILVANG đến từ các hợp tác xã và hộ dân ở **Cam Lộ, Hải Lăng, Vĩnh Linh**. Từng xe đinh lăng, chè vằng được chở về nhà máy. Mỗi chuyến hàng là một khoản thu cho bà con. Nhờ vậy, cây thuốc quê nhà tiếp tục có chỗ đứng trên đất quê.
+Nguyên liệu của DILVANG đến từ các hợp tác xã và hộ dân ở **Cam Lộ, Hải Lăng, Vĩnh Linh**, trong đó có Hợp tác xã Cam Hiếu. Từng xe đinh lăng, chè vằng được chở về nhà máy. Mỗi chuyến hàng là một khoản thu cho bà con. Nhờ vậy, cây thuốc quê nhà tiếp tục có chỗ đứng trên đất quê.
 
 ## Chặng 4: Nhà máy của người Quảng Trị
 
@@ -49,6 +49,8 @@ Ngày **17/5/2025**, Nhà máy Dược liệu Gold Herbal khánh thành tại C�
 - Mỗi ngày chế biến **2–4 tấn dược liệu tươi**.
 - Thiết bị gồm máy sấy bơm nhiệt, sấy chân không, hệ thống chiết xuất tuần hoàn chân không, máy nghiền và máy đóng gói tự động.
 - Lãnh đạo tỉnh Quảng Trị kỳ vọng doanh nghiệp tiếp tục mở rộng vùng trồng dược liệu sạch và tham gia sâu hơn vào chuỗi giá trị dược liệu.
+
+Báo [Tiền Phong](https://tienphong.vn/khanh-thanh-nha-may-san-xuat-duoc-lieu-dat-chuan-gmp-dau-tien-tai-quang-tri-post1743076.tpo) đặt tiêu đề: *“Khánh thành nhà máy sản xuất dược liệu đạt chuẩn GMP đầu tiên tại Quảng Trị”*. Theo báo [Nông nghiệp Hữu cơ](https://nongnghiephuuco.vn/quang-tri-khanh-thanh-nha-may-san-xuat-duoc-lieu-gold-herbal-6772.html), ông Lê Đức Tiến, Phó Chủ tịch UBND tỉnh, nhận định nhà máy *“đánh dấu bước tiến chiến lược nhằm phát triển ngành dược liệu chất lượng cao, ứng dụng công nghệ hiện đại”*. Tỉnh cũng đề nghị doanh nghiệp mở rộng vùng nguyên liệu sạch và ổn định đầu ra cho người dân.
 
 ![Toàn cảnh nhà máy Gold Herbal nhìn từ trên cao](/assets/uploads/cau-chuyen/dilvang-nha-may.webp)
 
@@ -72,7 +74,7 @@ Sau đó dược liệu được xếp lên khay để sấy ở nhiệt độ t
 
 Tiếp theo là bước chiết xuất bằng công nghệ **EECV** (chiết xuất – bay hơi – cô đặc – chân không). Dược liệu được chiết và cô đặc trong hệ thống chân không khép kín, ở nhiệt độ thấp, rồi sấy lạnh thành bột. Công nghệ này được chuyển giao từ đề tài khoa học do Sở KH&CN Quảng Trị quản lý.
 
-Theo hồ sơ công bố, mỗi gói 5g có **820mg cao khô chè vằng**, tương đương 3,5g chè vằng khô, và **180mg cao khô đinh lăng**, tương đương 1,5g đinh lăng khô.
+Theo hồ sơ công bố, mỗi gói 5g có **820mg cao khô chè vằng** và **180mg cao khô đinh lăng**, phụ liệu duy nhất là maltodextrin. Sản phẩm không có chất bảo quản, chất chống đông vón, hương liệu tổng hợp hay phẩm màu nhân tạo.
 
 ![Kiểm tra mùi hương của dược liệu](/assets/uploads/cau-chuyen/dilvang-thu-nem.webp)
 
@@ -91,6 +93,15 @@ Ngày xưa, muốn có nồi nước chè vằng, các bà, các mẹ phải ph�
 - Sản phẩm không có chất bảo quản, không có phẩm màu nhân tạo, không có hương liệu tổng hợp.
 
 Bạn có thể xem đầy đủ các giấy tờ ở mục **Hồ sơ chất lượng** trên [trang sản phẩm Trà hòa tan DILVANG](/san-pham/tra-hoa-tan-dilvang-dinh-lang-che-vang/).
+
+## Vì sao Thực Dưỡng Lành chọn DILVANG
+
+> *“DILVANG không chỉ là sự kết hợp của hai loại thảo mộc, mà còn là sự gặp gỡ giữa tri thức dân gian và khoa học công nghệ.”*
+> — Gold Herbal, nơi làm ra DILVANG
+
+Thực Dưỡng Lành ra đời từ một câu hỏi chưa kịp có lời đáp: *“Giá như mình chăm sóc tốt hơn…”*. Vì vậy, trước khi giới thiệu một sản phẩm, chúng tôi luôn tự hỏi: mình có dám pha nó cho chính cha mẹ mình mỗi ngày không?
+
+Với DILVANG, chúng tôi đã xem từng trang hồ sơ và từng tấm ảnh vùng trồng, nhà máy. Nhưng điều giữ chúng tôi lại không chỉ là giấy tờ. Đó là cảm giác mỗi gói trà đều có quê hương, có người trồng và có người làm ra.
 
 ## Lời kết
 
