@@ -56,7 +56,7 @@ Nếu CRM web (`crm/`) cần Apps Script bản mới mới chạy được thì 
 
 ## Nguyên tắc nội dung
 - Chỉ ghi công dụng đúng hồ sơ công bố. Không dùng các từ "chữa/điều trị/khỏi bệnh". Thực phẩm bổ sung phải có dòng "không phải là thuốc…".
-- Thông tin sản phẩm lấy từ skill vitagreen-company-info, nếu phiên làm việc có skill này. Nếu không có thì dựa vào `content/products/*.json` và không tự bịa thông tin.
+- Thông tin sản phẩm lấy từ skill vtg (trước tên là vitagreen-company-info), nếu phiên làm việc có skill này. Nếu không có thì dựa vào `content/products/*.json` và không tự bịa thông tin.
 
 ## Ảnh từ điện thoại
 - Ảnh anh gửi trong cuộc trò chuyện được lưu ở `~/.claude/uploads/`. Ảnh chụp màn hình lỗi hay mẫu thiết kế thì chỉ cần xem. Ảnh cần đưa lên web thì nén WebP (rộng tối đa 1200px) rồi lưu vào `assets/uploads/`, đây cũng là thư mục ảnh của /admin.
