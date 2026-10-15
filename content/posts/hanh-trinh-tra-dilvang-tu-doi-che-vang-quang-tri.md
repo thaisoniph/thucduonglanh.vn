@@ -43,6 +43,9 @@ Nguyên liệu của DILVANG đến từ các hợp tác xã và hộ dân ở *
 
 ## Chặng 4: Nhà máy của người Quảng Trị
 
+<figure class="ogs-video"><div class="v-frame" data-yt="9FavikG8PGc" data-title="Video: Hành trình trà DILVANG – từ đồi chè vằng đến nhà máy GMP đầu tiên của Quảng Trị"><img src="/assets/uploads/cau-chuyen/dilvang-say.webp" alt="Video: Hành trình trà DILVANG – từ đồi chè vằng đến nhà máy GMP đầu tiên của Quảng Trị" loading="lazy" width="1200" height="675"><button class="v-play" aria-label="Phát video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button></div><figcaption><b>Video: Hành trình trà DILVANG – từ đồi chè vằng đến nhà máy GMP đầu tiên của Quảng Trị</b><span>Bấm để xem video giới thiệu nhà máy Gold Herbal</span></figcaption></figure>
+
+
 Ngày **17/5/2025**, Nhà máy Dược liệu Gold Herbal khánh thành tại Cụm công nghiệp Quốc lộ 9D, Đông Hà. Nhà máy được khởi công từ tháng 4/2024. Theo [VTV đưa tin](https://vtv.vn/xa-hoi/nha-may-duoc-lieu-gold-herbal-huong-den-suc-khoe-cong-dong-20250517092627856.htm):
 
 - Nhà máy rộng **4.750 m²**, vốn đầu tư giai đoạn 1 hơn **25 tỷ đồng**.
@@ -101,7 +104,7 @@ Bạn có thể xem đầy đủ các giấy tờ ở mục **Hồ sơ chất l�
 
 Thực Dưỡng Lành ra đời từ một câu hỏi chưa kịp có lời đáp: *“Giá như mình chăm sóc tốt hơn…”*. Vì vậy, trước khi giới thiệu một sản phẩm, chúng tôi luôn tự hỏi: mình có dám pha nó cho chính cha mẹ mình mỗi ngày không?
 
-Với DILVANG, chúng tôi đã xem từng trang hồ sơ và từng tấm ảnh vùng trồng, nhà máy. Nhưng điều giữ chúng tôi lại không chỉ là giấy tờ. Đó là cảm giác mỗi gói trà đều có quê hương, có người trồng và có người làm ra.
+Với DILVANG, chúng tôi không chỉ đọc hồ sơ qua giấy tờ. Trước khi quyết định phân phối, đội ngũ Thực Dưỡng Lành đã về tận nhà máy ở Đông Hà để thăm và làm việc cùng Gold Herbal. Chúng tôi tận mắt xem nơi trà được làm ra, gặp những người làm ra nó, rồi mới đối chiếu từng trang hồ sơ. Nhưng điều giữ chúng tôi lại không chỉ là giấy tờ. Đó là cảm giác mỗi gói trà đều có quê hương, có người trồng và có người làm ra.
 
 ## Lời kết
 

@@ -39,6 +39,9 @@ DILVANG's herbs come from cooperatives and farming households in **Cam Lo, Hai L
 
 ## Stage 4: A factory built by people from Quang Tri
 
+<figure class="ogs-video"><div class="v-frame" data-yt="9FavikG8PGc" data-title="Video: The DILVANG journey – from the chè vằng hills to Quang Tri's first GMP factory (in Vietnamese)"><img src="/assets/uploads/cau-chuyen/dilvang-say.webp" alt="Video: The DILVANG journey – from the chè vằng hills to Quang Tri's first GMP factory (in Vietnamese)" loading="lazy" width="1200" height="675"><button class="v-play" aria-label="Play video"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button></div><figcaption><b>Video: The DILVANG journey – from the chè vằng hills to Quang Tri's first GMP factory (in Vietnamese)</b><span>Tap to watch the film about the Gold Herbal factory</span></figcaption></figure>
+
+
 On **17 May 2025**, the Gold Herbal medicinal herb factory opened in the National Road 9D Industrial Cluster, Dong Ha. Construction started in April 2024. According to [VTV's report](https://vtv.vn/xa-hoi/nha-may-duoc-lieu-gold-herbal-huong-den-suc-khoe-cong-dong-20250517092627856.htm) (in Vietnamese):
 
 - The factory covers **4,750 m²**, with phase-one investment of over **25 billion VND**.
@@ -97,7 +100,7 @@ See all documents under **Quality documents** on the [DILVANG Instant Tea produc
 
 Thực Dưỡng Lành was born from a question that came too late: *“If only I had taken better care…”*. So before we introduce any product, we ask ourselves: would we make this for our own parents every day?
 
-For DILVANG, we went through every document and every photo of the growing areas and the factory. But what kept us was more than paperwork. It was the feeling that every sachet has a homeland, the people who grow it and the people who make it.
+With DILVANG, we did not stop at paperwork. Before deciding to distribute it, the Thực Dưỡng Lành team travelled to the factory in Dong Ha to visit and work with Gold Herbal. We saw with our own eyes where the tea is made and met the people who make it, then checked every document. But what kept us was more than paperwork. It was the feeling that every sachet has a homeland, the people who grow it and the people who make it.
 
 ## Closing
 

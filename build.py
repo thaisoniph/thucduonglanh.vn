@@ -1692,7 +1692,16 @@ def page_product(p):
     if rating_of(p):  # chỉ khi có ≥ 3 đánh giá thật
         ld["aggregateRating"] = {"@type": "AggregateRating", "ratingValue": rating_of(p)[0], "reviewCount": rating_of(p)[1], "bestRating": 5, "worstRating": 1}
     desc = strip_tags(p["summary"])[:158]
-    return layout(path, p["name"], desc, body, og=pimg(p["images"][0]), jsonld=[ld, bld], body_class="page-product", preload=pimg(p["images"][0]))
+    lds = [ld, bld]
+    sv = (p.get("story") or {}).get("video") or {}
+    if yt_id(sv.get("youtube")):  # video câu chuyện → VideoObject cho Google
+        vid = yt_id(sv["youtube"])
+        thumb = (DOMAIN + img_url(sv["image"], 1200)) if sv.get("image") else f"https://i.ytimg.com/vi/{vid}/hqdefault.jpg"
+        lds.append({"@context": "https://schema.org", "@type": "VideoObject", "name": sv.get("title") or p["name"],
+                    "description": sv.get("caption") or sv.get("title") or p["name"], "thumbnailUrl": [thumb],
+                    "uploadDate": sv.get("upload_date") or "2026-10-16", "embedUrl": f"https://www.youtube-nocookie.com/embed/{vid}",
+                    "contentUrl": f"https://www.youtube.com/watch?v={vid}"})
+    return layout(path, p["name"], desc, body, og=pimg(p["images"][0]), jsonld=lds, body_class="page-product", preload=pimg(p["images"][0]))
 
 
 PROOF_ANCHOR_RE = re.compile(r"kiểm nghiệm|chứng nhận|pháp lý|testing|tested|certif|legal", re.I)
