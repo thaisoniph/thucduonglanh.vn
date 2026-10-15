@@ -13,7 +13,7 @@
   "unit": "Hộp 75g (15 gói x 5g)",
   "variants": [],
   "images": [
-    "/assets/img/products/tra-dilvang-1.webp",
+    "/assets/uploads/dilvang-01.png",
     "/assets/img/products/tra-dilvang-2.webp",
     "/assets/img/products/tra-dilvang-3.webp",
     "/assets/img/products/tra-dilvang-4.webp",
@@ -23,6 +23,96 @@
     "/assets/img/products/tra-dilvang-7.webp"
   ],
   "summary": "Tinh chất chiết xuất từ **Chè Vằng và Đinh Lăng Quảng Trị** – vùng chè vằng được Nhà nước bảo hộ **Chỉ dẫn địa lý**. Sản xuất bằng công nghệ chiết xuất chân không EECV tại nhà máy đạt GMP. Pha bằng nước ấm, không cần đun sắc, không bã.",
+  "servings": 15,
+  "serving_unit": "gói",
+  "pitch": "Chè vằng – đinh lăng Quảng Trị, pha nước ấm là uống",
+  "badges": [
+    "Nhà máy GMP do Cục An toàn thực phẩm – Bộ Y tế cấp",
+    "Doanh nghiệp Khoa học & Công nghệ – Sở KH&CN Quảng Trị (2025)",
+    "Thuộc bộ Trà hòa tan Gold Herbal – sản phẩm tiêu biểu tỉnh Quảng Trị 2026",
+    "Nhà máy Gold Herbal được VTV đưa tin ngày khánh thành (17/5/2025)",
+    "NIFC xác nhận đúng chè vằng và đinh lăng",
+    "Không phát hiện Aflatoxin, Salmonella",
+    "Không chất bảo quản, pha nước ấm là uống"
+  ],
+  "test_cert_img": "",
+  "label_imgs": [
+    "/assets/uploads/ho-so/dilvang-nhan-hop.webp"
+  ],
+  "proofs": [
+    {
+      "title": "Phiếu kiểm nghiệm",
+      "org": "Viện Kiểm nghiệm ATVSTP Quốc gia (NIFC) – Bộ Y tế",
+      "number": "19395/PKN-VKNQG",
+      "date": "07/05/2025",
+      "scope": "Định tính chè vằng và đinh lăng: dương tính. Không phát hiện Coliforms, E. coli, Salmonella, nấm men-mốc, Aflatoxin B1 và tổng, thủy ngân",
+      "file": "/assets/uploads/ho-so/dilvang-nifc-19395-trang-1.webp"
+    },
+    {
+      "title": "Phiếu kiểm nghiệm (trang 2)",
+      "org": "NIFC – Bộ Y tế",
+      "number": "19395/PKN-VKNQG",
+      "date": "07/05/2025",
+      "scope": "",
+      "file": "/assets/uploads/ho-so/dilvang-nifc-19395-trang-2.webp"
+    },
+    {
+      "title": "Giấy chứng nhận Doanh nghiệp Khoa học và Công nghệ",
+      "org": "Sở Khoa học và Công nghệ tỉnh Quảng Trị",
+      "number": "08/DNKHCN",
+      "date": "09/05/2025",
+      "scope": "Ứng dụng công nghệ sấy tiên tiến để sản xuất nông sản, dược liệu đạt chuẩn GMP, giúp tiết kiệm điện, giảm phát thải và nâng cao chất lượng bảo quản. Sản phẩm: chè vằng, đinh lăng, cà gai leo, an xoa sấy khô GOLDHERBAL",
+      "file": "/assets/uploads/ho-so/gold-herbal-dn-khcn-08-2025.webp"
+    },
+    {
+      "title": "Chứng nhận sản phẩm công nghiệp nông thôn tiêu biểu cấp tỉnh 2026",
+      "org": "UBND tỉnh Quảng Trị",
+      "number": "QĐ 2663/QĐ-UBND",
+      "date": "08/07/2026 – giá trị đến 08/07/2029",
+      "scope": "Bộ sản phẩm Cao khô hòa tan – Trà hòa tan Gold Herbal",
+      "file": "/assets/uploads/ho-so/gold-herbal-sp-tieu-bieu-2026.webp"
+    },
+    {
+      "title": "Giấy chứng nhận cơ sở đủ điều kiện ATTP (GMP thực phẩm bảo vệ sức khỏe – dạng bột)",
+      "org": "Cục An toàn thực phẩm – Bộ Y tế",
+      "number": "09/2025/ATTP-CNGMP",
+      "date": "22/01/2025 – giá trị 3 năm",
+      "scope": "Nhà máy Gold Herbal, Cụm CN Quốc lộ 9D, Đông Hà, Quảng Trị",
+      "file": "/assets/img/brand/chung-nhan-attp-gold-herbal.webp"
+    },
+    {
+      "title": "Giấy chứng nhận cơ sở đủ điều kiện an toàn thực phẩm",
+      "org": "Chi cục QLCL Nông lâm sản và Thủy sản Quảng Trị",
+      "number": "62/2024/NNPTNT-QT",
+      "date": "06/12/2024 – hiệu lực đến 06/12/2027",
+      "scope": "",
+      "file": "/assets/uploads/ho-so/gold-herbal-attp-62-2024.webp"
+    },
+    {
+      "title": "Phiếu kiểm nghiệm dinh dưỡng",
+      "org": "Trung tâm Kiểm nghiệm Thuốc, Mỹ phẩm, Thực phẩm – Sở Y tế TP Huế",
+      "number": "25DV865",
+      "date": "16/05/2025",
+      "scope": "Trong 100g: 378,1 kcal; carbohydrat 91,3g; đạm 1,46g; natri 111,44mg",
+      "file": "/assets/uploads/ho-so/dilvang-phieu-hue-25dv865.webp"
+    }
+  ],
+  "needs": [
+    "uong-lanh-moi-ngay"
+  ],
+  "reviews": [],
+  "keywords": [
+    "trà",
+    "thảo mộc",
+    "đinh lăng",
+    "chè vằng",
+    "mẹ sau sinh",
+    "sau sinh",
+    "uống hằng ngày",
+    "đồ uống",
+    "giải nhiệt",
+    "trà gói"
+  ],
   "highlights": [
     "Chè vằng Quảng Trị – Chỉ dẫn địa lý",
     "Công nghệ chiết xuất chân không EECV",
@@ -208,8 +298,7 @@
         "summary": "Phó Chủ tịch UBND tỉnh Lê Đức Tiến nhận định nhà máy “đánh dấu bước tiến chiến lược nhằm phát triển ngành dược liệu chất lượng cao, ứng dụng công nghệ hiện đại”."
       }
     ],
-    "link": "/goc-song-lanh/hanh-trinh-tra-dilvang-tu-doi-che-vang-quang-tri/",
-    "link_text": "Đọc trọn hành trình DILVANG",
+    "video": null,
     "quote": {
       "text": "DILVANG không chỉ là sự kết hợp của hai loại thảo mộc, mà còn là sự gặp gỡ giữa tri thức dân gian và khoa học công nghệ.",
       "by": "Công ty Cổ phần Dược liệu Gold Herbal – nơi làm ra DILVANG"
@@ -218,97 +307,13 @@
       "title": "Vì sao Thực Dưỡng Lành chọn DILVANG",
       "text": "Thực Dưỡng Lành ra đời từ một câu hỏi chưa kịp có lời đáp: *“Giá như mình chăm sóc tốt hơn…”*. Vì vậy, trước khi giới thiệu một sản phẩm, chúng tôi luôn tự hỏi: mình có dám pha nó cho chính cha mẹ mình mỗi ngày không?\n\nVới DILVANG, chúng tôi đã xem từng trang hồ sơ: bản tự công bố, phiếu kiểm nghiệm của Viện Kiểm nghiệm ATVSTP Quốc gia, giấy GMP của Bộ Y tế, giấy chứng nhận Doanh nghiệp Khoa học và Công nghệ. Chúng tôi xem từng tấm ảnh vườn đinh lăng, đồi chè vằng, từng khay sấy trong nhà máy. Nhưng điều giữ chúng tôi lại không chỉ là giấy tờ. Đó là cảm giác mỗi gói trà đều có quê hương, có người trồng và có người làm ra.\n\nChúng tôi chọn DILVANG để mang chút nắng gió Quảng Trị về những gian bếp xa quê. Mong mỗi tách trà là một lần dừng lại, sống chậm và chăm sóc người mình thương.",
       "sign": "Đội ngũ Thực Dưỡng Lành"
-    }
+    },
+    "link": "/goc-song-lanh/hanh-trinh-tra-dilvang-tu-doi-che-vang-quang-tri/",
+    "link_text": "Đọc trọn hành trình DILVANG"
   },
   "upsell": [
     "ruoc-rong-bien-vi-suon-non",
     "bua-an-dinh-duong-vitagreen"
   ],
-  "disclaimer": "Thực phẩm. Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh.",
-  "badges": [
-    "Nhà máy GMP do Cục An toàn thực phẩm – Bộ Y tế cấp",
-    "Doanh nghiệp Khoa học & Công nghệ – Sở KH&CN Quảng Trị (2025)",
-    "Thuộc bộ Trà hòa tan Gold Herbal – sản phẩm tiêu biểu tỉnh Quảng Trị 2026",
-    "Nhà máy Gold Herbal được VTV đưa tin ngày khánh thành (17/5/2025)",
-    "NIFC xác nhận đúng chè vằng và đinh lăng",
-    "Không phát hiện Aflatoxin, Salmonella",
-    "Không chất bảo quản, pha nước ấm là uống"
-  ],
-  "servings": 15,
-  "serving_unit": "gói",
-  "keywords": [
-    "trà",
-    "thảo mộc",
-    "đinh lăng",
-    "chè vằng",
-    "mẹ sau sinh",
-    "sau sinh",
-    "uống hằng ngày",
-    "đồ uống",
-    "giải nhiệt",
-    "trà gói"
-  ],
-  "needs": [
-    "uong-lanh-moi-ngay"
-  ],
-  "pitch": "Chè vằng – đinh lăng Quảng Trị, pha nước ấm là uống",
-  "label_imgs": [
-    "/assets/uploads/ho-so/dilvang-nhan-hop.webp"
-  ],
-  "proofs": [
-    {
-      "title": "Phiếu kiểm nghiệm",
-      "org": "Viện Kiểm nghiệm ATVSTP Quốc gia (NIFC) – Bộ Y tế",
-      "number": "19395/PKN-VKNQG",
-      "date": "07/05/2025",
-      "scope": "Định tính chè vằng và đinh lăng: dương tính. Không phát hiện Coliforms, E. coli, Salmonella, nấm men-mốc, Aflatoxin B1 và tổng, thủy ngân",
-      "file": "/assets/uploads/ho-so/dilvang-nifc-19395-trang-1.webp"
-    },
-    {
-      "title": "Phiếu kiểm nghiệm (trang 2)",
-      "org": "NIFC – Bộ Y tế",
-      "number": "19395/PKN-VKNQG",
-      "date": "07/05/2025",
-      "file": "/assets/uploads/ho-so/dilvang-nifc-19395-trang-2.webp"
-    },
-    {
-      "title": "Giấy chứng nhận Doanh nghiệp Khoa học và Công nghệ",
-      "org": "Sở Khoa học và Công nghệ tỉnh Quảng Trị",
-      "number": "08/DNKHCN",
-      "date": "09/05/2025",
-      "scope": "Ứng dụng công nghệ sấy tiên tiến để sản xuất nông sản, dược liệu đạt chuẩn GMP, giúp tiết kiệm điện, giảm phát thải và nâng cao chất lượng bảo quản. Sản phẩm: chè vằng, đinh lăng, cà gai leo, an xoa sấy khô GOLDHERBAL",
-      "file": "/assets/uploads/ho-so/gold-herbal-dn-khcn-08-2025.webp"
-    },
-    {
-      "title": "Chứng nhận sản phẩm công nghiệp nông thôn tiêu biểu cấp tỉnh 2026",
-      "org": "UBND tỉnh Quảng Trị",
-      "number": "QĐ 2663/QĐ-UBND",
-      "date": "08/07/2026 – giá trị đến 08/07/2029",
-      "scope": "Bộ sản phẩm Cao khô hòa tan – Trà hòa tan Gold Herbal",
-      "file": "/assets/uploads/ho-so/gold-herbal-sp-tieu-bieu-2026.webp"
-    },
-    {
-      "title": "Giấy chứng nhận cơ sở đủ điều kiện ATTP (GMP thực phẩm bảo vệ sức khỏe – dạng bột)",
-      "org": "Cục An toàn thực phẩm – Bộ Y tế",
-      "number": "09/2025/ATTP-CNGMP",
-      "date": "22/01/2025 – giá trị 3 năm",
-      "scope": "Nhà máy Gold Herbal, Cụm CN Quốc lộ 9D, Đông Hà, Quảng Trị",
-      "file": "/assets/img/brand/chung-nhan-attp-gold-herbal.webp"
-    },
-    {
-      "title": "Giấy chứng nhận cơ sở đủ điều kiện an toàn thực phẩm",
-      "org": "Chi cục QLCL Nông lâm sản và Thủy sản Quảng Trị",
-      "number": "62/2024/NNPTNT-QT",
-      "date": "06/12/2024 – hiệu lực đến 06/12/2027",
-      "file": "/assets/uploads/ho-so/gold-herbal-attp-62-2024.webp"
-    },
-    {
-      "title": "Phiếu kiểm nghiệm dinh dưỡng",
-      "org": "Trung tâm Kiểm nghiệm Thuốc, Mỹ phẩm, Thực phẩm – Sở Y tế TP Huế",
-      "number": "25DV865",
-      "date": "16/05/2025",
-      "scope": "Trong 100g: 378,1 kcal; carbohydrat 91,3g; đạm 1,46g; natri 111,44mg",
-      "file": "/assets/uploads/ho-so/dilvang-phieu-hue-25dv865.webp"
-    }
-  ]
+  "disclaimer": "Thực phẩm. Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh."
 }

@@ -3,7 +3,86 @@
   "short_name": "DILVANG Tea",
   "badge": "New",
   "unit": "Box 75g (15 sachets × 5g)",
+  "variants": [],
   "summary": "Extract of **Chè Vằng and Polyscias from Quang Tri** – a chè vằng growing area protected by a state-registered **Geographical Indication**. Made with EECV vacuum extraction technology at a GMP-certified factory. Just stir into warm water – no boiling, no steeping, no leaves left behind.",
+  "serving_unit": "sachet",
+  "pitch": "Quang Tri chè vằng & polyscias – just add warm water",
+  "badges": [
+    "GMP factory certified by the Vietnam Food Administration – Ministry of Health",
+    "Science & Technology Enterprise – Quang Tri Dept. of Science and Technology (2025)",
+    "Part of the Gold Herbal instant tea line – Quang Tri Featured Product 2026",
+    "Gold Herbal factory opening covered by VTV (17 May 2025)",
+    "NIFC testing confirms genuine chè vằng and polyscias",
+    "Not detected: Aflatoxin, Salmonella",
+    "No preservatives – just add warm water"
+  ],
+  "proofs": [
+    {
+      "title": "Test report",
+      "org": "National Institute for Food Control (NIFC) – Ministry of Health",
+      "number": "",
+      "date": "",
+      "scope": "Identification of chè vằng and polyscias: positive. Coliforms, E. coli, Salmonella, yeast and mold, Aflatoxin B1 and total Aflatoxin, and mercury not detected"
+    },
+    {
+      "title": "Test report (page 2)",
+      "org": "NIFC – Ministry of Health",
+      "number": "",
+      "date": "",
+      "scope": ""
+    },
+    {
+      "title": "Science and Technology Enterprise Certificate",
+      "org": "Quang Tri Department of Science and Technology",
+      "number": "",
+      "date": "",
+      "scope": "Advanced drying technology for GMP-standard agricultural and herbal products, saving energy and reducing emissions. Products: dried chè vằng, polyscias, cà gai leo and an xoa (GOLDHERBAL)"
+    },
+    {
+      "title": "Provincial Featured Rural Industrial Product Certificate 2026",
+      "org": "Quang Tri Provincial People's Committee",
+      "number": "",
+      "date": "08/07/2026 – valid until 08/07/2029",
+      "scope": "Instant dry extract product line – Gold Herbal Instant Teas"
+    },
+    {
+      "title": "Food safety eligibility certificate (GMP for health supplements – powder form)",
+      "org": "Vietnam Food Administration – Ministry of Health",
+      "number": "",
+      "date": "22/01/2025 – valid for 3 years",
+      "scope": "Gold Herbal factory, National Highway 9D Industrial Cluster, Dong Ha, Quang Tri"
+    },
+    {
+      "title": "Food safety eligibility certificate",
+      "org": "Quang Tri Sub-Department of Agro-Forestry-Fishery Quality Management",
+      "number": "",
+      "date": "06/12/2024 – valid until 06/12/2027",
+      "scope": ""
+    },
+    {
+      "title": "Nutrition test report",
+      "org": "Center for Drug, Cosmetic and Food Testing – Hue City Department of Health",
+      "number": "",
+      "date": "",
+      "scope": "Per 100g: 378.1 kcal; carbohydrate 91.3g; protein 1.46g; sodium 111.44mg"
+    }
+  ],
+  "reviews": [],
+  "keywords": [
+    "tea",
+    "herbal tea",
+    "instant tea",
+    "polyscias",
+    "che vang",
+    "jasminum",
+    "postpartum",
+    "new mothers",
+    "daily drink",
+    "drink",
+    "refreshing",
+    "tea sachets",
+    "caffeine-free"
+  ],
   "highlights": [
     "Quang Tri chè vằng – Geographical Indication",
     "EECV vacuum extraction technology",
@@ -14,27 +93,37 @@
   "sections": [
     {
       "title": "Ingredients (per 5g sachet)",
-      "text": "Chè Vằng (Jasminum subtriplinerve) dry extract 820 mg · Polyscias (Polyscias fruticosa) dry extract 180 mg · Excipient: Maltodextrin.\n\n**Four commitments:** no preservatives · no anti-caking agents · no synthetic flavors · no artificial colors."
+      "text": "Chè Vằng (Jasminum subtriplinerve) dry extract 820 mg · Polyscias (Polyscias fruticosa) dry extract 180 mg · Excipient: Maltodextrin.\n\n**Four commitments:** no preservatives · no anti-caking agents · no synthetic flavors · no artificial colors.",
+      "items": [],
+      "rows": []
     },
     {
       "title": "The Essence of Quang Tri – Origin",
-      "text": "Quang Tri chè vằng is protected by a state-registered **Geographical Indication**, managed by the Quang Tri Department of Science and Technology. The raw material comes from partner cooperatives and farming households in Cam Lo, Hai Lang and Vinh Linh. Thanks to the local sun, wind and soil, small-leaf chè vằng has a gentle aroma, a light bitterness and a naturally refreshing taste."
+      "text": "Quang Tri chè vằng is protected by a state-registered **Geographical Indication**, managed by the Quang Tri Department of Science and Technology. The raw material comes from partner cooperatives and farming households in Cam Lo, Hai Lang and Vinh Linh. Thanks to the local sun, wind and soil, small-leaf chè vằng has a gentle aroma, a light bitterness and a naturally refreshing taste.",
+      "items": [],
+      "rows": []
     },
     {
       "title": "EECV extraction technology",
+      "text": "",
       "items": [
         "**E**xtractive, **E**vaporate, **C**oncentrates, **V**acuum.",
         "Extracted and concentrated under vacuum at low temperature in a closed system, then freeze-dried.",
         "Retains the natural active compounds (polyphenols, saponins, flavonoids), with color and aroma close to the fresh leaves.",
         "Developed and transferred from a science and technology project managed by the Quang Tri Department of Science and Technology."
-      ]
+      ],
+      "rows": []
     },
     {
       "title": "How to use",
-      "text": "**Step 1:** Pour 1 sachet into a cup. **Step 2:** Add 300–400ml of warm water at 40–50°C. **Step 3:** Stir well and enjoy.\n\n**Suggested:** 2–3 sachets a day. No boiling water, no steeping, no leaves to strain."
+      "text": "**Step 1:** Pour 1 sachet into a cup. **Step 2:** Add 300–400ml of warm water at 40–50°C. **Step 3:** Stir well and enjoy.\n\n**Suggested:** 2–3 sachets a day. No boiling water, no steeping, no leaves to strain.",
+      "items": [],
+      "rows": []
     },
     {
       "title": "Sensory profile & nutrition (per 100g)",
+      "text": "",
+      "items": [],
       "rows": [
         {
           "label": "Appearance & taste",
@@ -64,80 +153,19 @@
     },
     {
       "title": "Packaging & storage",
+      "text": "",
       "items": [
         "Net weight 75g: 15 sachets × 5g.",
         "Shelf life 24 months from the manufacturing date.",
         "Store in a cool, dry place away from direct sunlight."
-      ]
+      ],
+      "rows": []
     },
     {
       "title": "Legal documents & Certification",
-      "text": "Self-declaration No. 14.1/GOLDHERBAL/2025 · Manufacturer's standard TCCS 14.1:2025/GOLDHERBAL · Food safety eligibility certificate No. 62/2024/NNPTNT-QT · GMP-certified factory (powder form) under certificate No. 09/2025/ATTP-CNGMP issued by the Vietnam Food Administration – Ministry of Health.\n\n**Manufacturer:** Gold Herbal Pharmaceutical Materials JSC – National Highway 9D Industrial Cluster, Dong Ha Ward, Quang Tri Province.\n\n![Gold Herbal food safety eligibility certificate](/assets/img/brand/chung-nhan-attp-gold-herbal.webp)"
-    }
-  ],
-  "disclaimer": "Food product. This product is not a medicine and does not replace medical treatment.",
-  "badges": [
-    "GMP factory certified by the Vietnam Food Administration – Ministry of Health",
-    "Science & Technology Enterprise – Quang Tri Dept. of Science and Technology (2025)",
-    "Part of the Gold Herbal instant tea line – Quang Tri Featured Product 2026",
-    "Gold Herbal factory opening covered by VTV (17 May 2025)",
-    "NIFC testing confirms genuine chè vằng and polyscias",
-    "Not detected: Aflatoxin, Salmonella",
-    "No preservatives – just add warm water"
-  ],
-  "serving_unit": "sachet",
-  "keywords": [
-    "tea",
-    "herbal tea",
-    "instant tea",
-    "polyscias",
-    "che vang",
-    "jasminum",
-    "postpartum",
-    "new mothers",
-    "daily drink",
-    "drink",
-    "refreshing",
-    "tea sachets",
-    "caffeine-free"
-  ],
-  "pitch": "Quang Tri chè vằng & polyscias – just add warm water",
-  "proofs": [
-    {
-      "title": "Test report",
-      "org": "National Institute for Food Control (NIFC) – Ministry of Health",
-      "scope": "Identification of chè vằng and polyscias: positive. Coliforms, E. coli, Salmonella, yeast and mold, Aflatoxin B1 and total Aflatoxin, and mercury not detected"
-    },
-    {
-      "title": "Test report (page 2)",
-      "org": "NIFC – Ministry of Health"
-    },
-    {
-      "title": "Science and Technology Enterprise Certificate",
-      "org": "Quang Tri Department of Science and Technology",
-      "scope": "Advanced drying technology for GMP-standard agricultural and herbal products, saving energy and reducing emissions. Products: dried chè vằng, polyscias, cà gai leo and an xoa (GOLDHERBAL)"
-    },
-    {
-      "title": "Provincial Featured Rural Industrial Product Certificate 2026",
-      "org": "Quang Tri Provincial People's Committee",
-      "scope": "Instant dry extract product line – Gold Herbal Instant Teas",
-      "date": "08/07/2026 – valid until 08/07/2029"
-    },
-    {
-      "title": "Food safety eligibility certificate (GMP for health supplements – powder form)",
-      "org": "Vietnam Food Administration – Ministry of Health",
-      "scope": "Gold Herbal factory, National Highway 9D Industrial Cluster, Dong Ha, Quang Tri",
-      "date": "22/01/2025 – valid for 3 years"
-    },
-    {
-      "title": "Food safety eligibility certificate",
-      "org": "Quang Tri Sub-Department of Agro-Forestry-Fishery Quality Management",
-      "date": "06/12/2024 – valid until 06/12/2027"
-    },
-    {
-      "title": "Nutrition test report",
-      "org": "Center for Drug, Cosmetic and Food Testing – Hue City Department of Health",
-      "scope": "Per 100g: 378.1 kcal; carbohydrate 91.3g; protein 1.46g; sodium 111.44mg"
+      "text": "Self-declaration No. 14.1/GOLDHERBAL/2025 · Manufacturer's standard TCCS 14.1:2025/GOLDHERBAL · Food safety eligibility certificate No. 62/2024/NNPTNT-QT · GMP-certified factory (powder form) under certificate No. 09/2025/ATTP-CNGMP issued by the Vietnam Food Administration – Ministry of Health.\n\n**Manufacturer:** Gold Herbal Pharmaceutical Materials JSC – National Highway 9D Industrial Cluster, Dong Ha Ward, Quang Tri Province.\n\n![Gold Herbal food safety eligibility certificate](/assets/img/brand/chung-nhan-attp-gold-herbal.webp)",
+      "items": [],
+      "rows": []
     }
   ],
   "story": {
@@ -222,7 +250,7 @@
         "summary": "Vice Chairman of the Provincial People's Committee Le Duc Tien called the factory “a strategic step to develop a high-quality herbal industry using modern technology”."
       }
     ],
-    "link_text": "Read the full DILVANG journey",
+    "video": null,
     "quote": {
       "text": "DILVANG is not just a blend of two herbs; it is where folk wisdom meets science and technology.",
       "by": "Gold Herbal Joint Stock Company – the makers of DILVANG"
@@ -231,6 +259,8 @@
       "title": "Why Thực Dưỡng Lành chose DILVANG",
       "text": "Thực Dưỡng Lành was born from a question that came too late: *“If only I had taken better care…”*. So before we introduce any product, we ask ourselves: would we make this for our own parents every day?\n\nFor DILVANG, we went through every document: the product declaration, the test report from Vietnam's National Institute for Food Control, the GMP certificate from the Ministry of Health, and the Science and Technology Enterprise certificate. We looked at every photo of the polyscias gardens, the chè vằng hills and the drying trays in the factory. But what kept us was more than paperwork. It was the feeling that every sachet has a homeland, the people who grow it and the people who make it.\n\nWe chose DILVANG to bring a little of Quang Tri's sun and wind to kitchens far away. May each cup be a moment to pause, slow down and care for the people you love.",
       "sign": "The Thực Dưỡng Lành team"
-    }
-  }
+    },
+    "link_text": "Read the full DILVANG journey"
+  },
+  "disclaimer": "Food product. This product is not a medicine and does not replace medical treatment."
 }
