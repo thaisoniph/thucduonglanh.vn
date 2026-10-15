@@ -7,11 +7,12 @@ import { mktView, mktBudgetSet, mktGoalSet, mktDailyMsgs } from './mktv.js';
 import { crmSan, sanSchema, sanAllowed } from './san.js';
 import { crmSaleMkt, crmOffers } from './salemkt.js';
 import { cmsTokenSet } from './cms.js';
+import { crmVoucher, voucherSchema } from './voucher.js';
 import { wbQueue, wbOrderQueue, wbStatusQueue, WB_SHORT } from './wb.js';
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-10-15b'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
+const SCHEMA_V = '2026-10-15c'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -30,6 +31,8 @@ export async function ensureSchema(db) {
     await addCol('trk', "TEXT DEFAULT ''");
     await addCol('trk_at', 'INTEGER');
     await addCol('trk_code', 'INTEGER DEFAULT 0');
+    await addCol('voucher', "TEXT DEFAULT ''"); // mã ưu đãi khách nhập khi đặt web (api/src/voucher.js)
+    await addCol('discount', 'INTEGER DEFAULT 0');
     // Khách: đã kết bạn Zalo, nhóm cộng đồng, ngày sinh (bản Apps Script có, lúc chuyển sang D1 bị thiếu)
     const ccols = (await all(db, "PRAGMA table_info(customers)")).map(r => r.name);
     for (const [col, def] of [['zalo', 'INTEGER DEFAULT 0'], ['community', "TEXT DEFAULT ''"], ['dob', "TEXT DEFAULT ''"], ['recv', 'INTEGER'], ['ok_n', 'INTEGER DEFAULT 0'], ['back_n', 'INTEGER DEFAULT 0'], ['last_back', 'INTEGER'], ['fam', 'INTEGER DEFAULT 0']]) if (!ccols.includes(col)) { try { await run(db, `ALTER TABLE customers ADD COLUMN ${col} ${def}`); } catch (e) { } }
@@ -97,6 +100,7 @@ export async function ensureSchema(db) {
       )`); // chi phí quảng cáo theo ngày (api/src/mkt.js)
     await run(db, 'CREATE INDEX IF NOT EXISTS ad_spend_batch ON ad_spend(batch)');
     await sanSchema(db); // đơn sàn TMĐT (api/src/san.js)
+    await voucherSchema(db); // mã ưu đãi (api/src/voucher.js)
     schemaDone = true;
     if (deltaOk) await run(db, "INSERT INTO kv (k, v) VALUES ('schema_v', ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v, exp = NULL", SCHEMA_V);
   } catch (e) {
@@ -801,6 +805,7 @@ export async function saveOrder(x, data, opt) {
     subtotal: Number(data.subtotal) || 0, shipping: Number(data.shipping) || 0, total: Number(data.total) || 0, payment: pay, note: c.note || '', status: opt.status || 'Mới', source: data.source || '', first_source: data.first_source || '',
     consent: data.marketing_consent ? 1 : 0, paid: '', carrier: '', tracking: '', seller: seller || '', ca, line, ship }]);
   if (opt.otype || opt.oflag) await run(x.db, 'UPDATE orders SET otype = ?, oflag = ? WHERE id = ? AND phone = ?', opt.otype || '', opt.oflag || '', String(data.id || ''), phone);
+  if (data.voucher) await run(x.db, 'UPDATE orders SET voucher = ?, discount = ? WHERE id = ? AND phone = ?', String(data.voucher), Math.round(Number(data.discount) || 0), String(data.id || ''), phone);
   try { await comboCycles(x, data.items || []); } catch (e) { console.error('comboCycles', e.message); }
   await recalc(x, [phone], assigned ? { owners: { [phone]: assigned } } : {});
   const notify = async () => {
@@ -1645,6 +1650,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (a === 'merge_suggest') return crmMergeSuggest(x, u); // gộp khách nhiều số (Quản lý trở lên)
   if (a === 'merge_skip') return crmMergeSkip(x, u, d);
   if (a === 'merge') return crmMerge(x, u, d);
+  if (/^voucher_/.test(a)) return crmVoucher(x, u, d, crmLog); // 🎟 Mã ưu đãi (Quản trị)
   const need = { settings: 2, users: 3, assign: 2, bulk: 2, recv: 2 };
   if (need[a] && u.level < need[a]) return { ok: false, error: 'Bạn không có quyền làm việc này.' };
   const opKey = d.opId ? 'op_' + String(d.opId).slice(0, 40) : ''; // CRM gửi lại việc khi mạng chập chờn: việc đã làm rồi thì trả kết quả cũ, không ghi trùng

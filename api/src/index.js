@@ -7,8 +7,9 @@ import { SYNC, DUPS } from './sync.js';
 import { migrate } from './migrate.js';
 import { scheduled, mirror, dailyCare } from './cron.js';
 import { cmsRoute } from './cms.js';
+import { voucherCheck, voucherApply } from './voucher.js';
 
-const API_VERSION = '2026-10-15b'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
+const API_VERSION = '2026-10-15c'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
 const ORIGINS = /^https:\/\/((www\.|crm\.)?thucduonglanh\.vn|[a-z0-9-]+\.thucduonglanh(-crm)?\.pages\.dev)$|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
 function ctxOf(env, ectx) { return { env, db: env.DB, later: p => ectx.waitUntil(Promise.resolve(p).catch(e => console.error('later', e && e.message))) }; }
@@ -37,8 +38,15 @@ async function rescue(x, data, err) {
 async function website(x, data) {
   if (data.website) return { ok: true }; // chống spam (honeypot)
   if (data.type === 'vtp') return await vtpWebhook(x, data.payload);
+  if (data.type === 'voucher') return await voucherCheck(x, data); // khách bấm "Áp dụng" mã ưu đãi
   if (data.type === 'order') {
-    try { const r = await saveOrder(x, data, {}); return { ok: true, id: data.id, dup: !!r.dup }; }
+    try {
+      if (data.voucher) { // đơn gửi lại (mạng chập chờn) đã lưu rồi thì không kiểm tra lại mã (mã 1 lần sẽ báo "đã dùng")
+        if (data.id && await first(x.db, 'SELECT rid FROM orders WHERE id = ?', String(data.id))) return { ok: true, id: data.id, dup: true };
+        const v = await voucherApply(x, data); if (!v.ok) return { ok: false, voucher_error: v.error, error: v.error };
+      } else { data.discount = 0; }
+      const r = await saveOrder(x, data, {}); return { ok: true, id: data.id, dup: !!r.dup, total: data.total };
+    }
     catch (e) { if (await rescue(x, data, e)) return { ok: true, id: data.id, rescued: true }; throw e; }
   }
   if (data.type === 'contact') {
@@ -62,6 +70,7 @@ async function website(x, data) {
 export default {
   async fetch(req, env, ectx) {
     const url = new URL(req.url), origin = req.headers.get('Origin') || '', x = ctxOf(env, ectx), path = url.pathname.replace(/\/+$/, '') || '/';
+    x.ip = req.headers.get('CF-Connecting-IP') || ''; // chống dò mã ưu đãi (voucher.js)
     if (path.startsWith('/gh/') || path.startsWith('/cms/')) { // trang quản trị website đăng nhập bằng email (cms.js)
       try { await ensureSchema(x.db); const r = await cmsRoute(x, req, path); if (r) return r; }
       catch (err) { console.error('cms', err && err.stack || err); return json({ ok: false, message: String(err && err.message || err) }, origin, 500); }

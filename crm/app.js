@@ -5108,7 +5108,8 @@
       setGroup('cy', '📦 Bao lâu khách dùng hết 1 hộp', cy.length + ' sản phẩm · để nhắc khách đặt lại đúng lúc', G.cy) +
       setGroup('tp', '💬 Mẫu tin nhắn chăm sóc', tp.length + ' mẫu', G.tp) +
       setGroup('cm', '💰 Hoa hồng', cmOn.length ? cmOn.map(function (k) { return esc(k) + ' ' + CMc[k] + '%'; }).join(' · ') : '⚠️ Chưa đặt % hoa hồng', G.cm) +
-      setGroup('ca', '🕘 Ca tối & ngày lễ', 'Ca tối từ ' + esc(ca.evening || '17:30') + ' · ' + hol.length + ' ngày lễ', caBox()));
+      setGroup('ca', '🕘 Ca tối & ngày lễ', 'Ca tối từ ' + esc(ca.evening || '17:30') + ' · ' + hol.length + ' ngày lễ', caBox()) +
+      (lvl() >= 3 ? setGroup('vc', '🎟 Mã ưu đãi đặt hàng web', 'Tạo mã giảm giá gửi riêng khách cũ, đối tác', vcBox()) : ''));
     if (lvl() >= 3) {
       var src = S.d.sources || [], ads = S.d.ads, SB = syncBoxes(), cut = SB.indexOf('<div class="box"><h3>📣');
       h += setSec('🔌 Kết nối & báo cáo', setGroup('src', '📂 File Google Sheet của sale', src.length ? src.length + ' file' : '⚠️ Chưa có file nào', SB.slice(0, cut)) +
@@ -5192,6 +5193,7 @@
     };
     if (lvl() >= 3) bindCms();
     if ($('#mrgOpen')) $('#mrgOpen').onclick = function () { openMerges(); };
+    if ($('#vcOpen')) $('#vcOpen').onclick = function () { openVouchers(); };
     if (lvl() < 2) return;
     bindSync();
     $('#modeSave').onclick = function () {
@@ -5320,6 +5322,75 @@
       if (done) done(j); else { closeModal(true); render(); }
       load(true, true); // tải lại để số đơn, tổng chi, nhãn khách đúng
     }, function (e) { toast(e.message, true); if (btn) btn.disabled = false; });
+  }
+  /* ---------- 🎟 Mã ưu đãi đặt hàng web (Quản trị, api/src/voucher.js). Khách nhập ở dòng nhỏ "Có mã ưu đãi?" lúc thanh toán, hoặc mở link ?uudai=MÃ */
+  function vcBox() {
+    return '<div class="box"><h3>🎟 Mã ưu đãi đặt hàng web</h3><p class="hint" style="margin:0 0 10px">Mã giảm giá gửi riêng cho khách cũ, đối tác. Trên web chỉ có dòng chữ nhỏ <b>“Có mã ưu đãi?”</b> ở trang thanh toán, khách mua bình thường gần như không để ý. Cách gửi tiện nhất: bấm <b>📋 Copy tin gửi khách</b> → dán vào Zalo. Khách bấm link là mã tự áp dụng khi đặt hàng.</p>' +
+      '<p class="hint" style="margin:0 0 10px">Mỗi đơn dùng 1 mã. Freeship vẫn tính theo tiền hàng <b>trước</b> khi giảm. Đơn huỷ / hoàn thì mã được trả lại lượt dùng.</p><button class="btn pri" id="vcOpen">Quản lý mã ưu đãi</button></div>';
+  }
+  function vcLink(c) { return 'https://thucduonglanh.vn/?uudai=' + encodeURIComponent(c); }
+  function vcMsgText(v) {
+    return 'Thực Dưỡng Lành gửi anh/chị mã ưu đãi riêng: ' + v.code + ' (' + v.label.replace(' ₫', 'đ') + (v.min_sub ? ', đơn từ ' + money(v.min_sub) : '') + (v.exp ? ', dùng đến ' + v.exp.split('-').reverse().join('/') : '') + ').\nBấm link để đặt hàng, mã tự áp dụng: ' + vcLink(v.code);
+  }
+  function openVouchers() {
+    var D = { list: null, edit: null };
+    var m = modal('🎟 Mã ưu đãi đặt hàng web', '<div id="vcMain"><p class="muted">Đang tải…</p></div>', '<button class="btn pri" id="vcNew">＋ Tạo mã mới</button><button class="btn ghost" data-close>Đóng</button>');
+    function rand() { var a = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', r = ''; for (var i = 0; i < 6; i++) r += a[Math.floor(Math.random() * a.length)]; return 'TDL' + r; }
+    function cond(v) {
+      var c = [];
+      if (v.min_sub) c.push('đơn từ ' + money(v.min_sub));
+      if (v.exp) c.push('đến ' + v.exp.split('-').reverse().join('/'));
+      c.push(v.max_uses ? 'tối đa ' + v.max_uses + ' đơn' : 'không giới hạn lượt');
+      if (v.once) c.push('mỗi SĐT 1 lần');
+      if (v.phone) c.push('chỉ SĐT ' + fPhone(v.phone));
+      return c.join(' · ');
+    }
+    function list() {
+      var box = $('#vcMain', m); if (!box) return; $('#vcNew').hidden = false;
+      if (!D.list.length) { box.innerHTML = empty('Chưa có mã nào. Bấm ＋ Tạo mã mới.'); return; }
+      box.innerHTML = '<div class="list">' + D.list.map(function (v, i) {
+        var exp = v.exp && v.exp < new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10);
+        return '<div class="card"' + (v.active && !exp ? '' : ' style="opacity:.6"') + '><div class="r1"><b>' + esc(v.code) + '</b><span class="small">' + esc(v.label) + '</span>' + (!v.active ? '<span class="small muted">· đã tắt</span>' : exp ? '<span class="small muted">· hết hạn</span>' : '') + '</div>' +
+          '<div class="small muted" style="margin:4px 0">' + esc(cond(v)) + (v.note ? '<br>📝 ' + esc(v.note) : '') + '</div>' +
+          '<div class="small">🛒 Đã dùng <b>' + v.used.n + '</b> đơn' + (v.used.n ? ' · giảm ' + money(v.used.off) + ' · thu ' + money(v.used.sales) : '') + '</div>' +
+          '<div class="acts" style="margin-top:8px"><button class="btn" data-vccp="' + i + '">📋 Copy tin gửi khách</button><button class="btn ghost" data-vced="' + i + '">✏️ Sửa</button><button class="btn ghost" data-vcdel="' + i + '">' + (v.used.n ? '⏸ Tắt' : '🗑 Xoá') + '</button></div></div>';
+      }).join('') + '</div>';
+      $$('[data-vccp]', box).forEach(function (b) { b.onclick = function () { var t = vcMsgText(D.list[+b.getAttribute('data-vccp')]); (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { toast('Đã copy – dán vào Zalo gửi khách'); }, function () { window.prompt('Copy tin này gửi khách:', t); }); }; });
+      $$('[data-vced]', box).forEach(function (b) { b.onclick = function () { form(D.list[+b.getAttribute('data-vced')]); }; });
+      $$('[data-vcdel]', box).forEach(function (b) { b.onclick = function () {
+        var v = D.list[+b.getAttribute('data-vcdel')]; if (!confirm((v.used.n ? 'Tắt' : 'Xoá') + ' mã ' + v.code + '? Khách sẽ không dùng được mã này nữa.')) return; b.disabled = true;
+        api('voucher_del', { code: v.code }).then(function (j) { D.list = j.list; list(); toast(j.off ? 'Đã tắt mã (giữ lại để xem thống kê)' : 'Đã xoá mã'); }, function (e) { toast(e.message, true); b.disabled = false; });
+      }; });
+    }
+    function form(v) {
+      var isNew = !v; v = v || { code: rand(), kind: 'amount', value: '', max_off: 0, min_sub: 0, exp: '', max_uses: 0, once: true, phone: '', note: '', active: true };
+      $('#vcNew').hidden = true;
+      $('#vcMain', m).innerHTML = '<div class="row2c"><label class="f"><span>Mã (chữ không dấu, số)</span><input type="text" id="vcCode" value="' + esc(v.code) + '" maxlength="30"' + (isNew ? '' : ' disabled') + ' style="text-transform:uppercase"></label>' +
+        '<label class="f"><span>Loại ưu đãi</span><select id="vcKind"><option value="amount">Giảm số tiền</option><option value="percent">Giảm %</option><option value="ship">Miễn phí ship</option></select></label></div>' +
+        '<div class="row2c"><label class="f" id="vcValF"><span id="vcValL">Số tiền giảm</span><input type="text" inputmode="decimal" id="vcVal" value="' + esc(v.kind === 'ship' ? '' : v.value) + '" placeholder="vd 50k"></label>' +
+        '<label class="f" id="vcMaxF"><span>Giảm tối đa (để trống = không giới hạn)</span><input type="text" inputmode="decimal" id="vcMax" value="' + esc(v.max_off || '') + '" placeholder="vd 100k"></label></div>' +
+        '<div class="row2c"><label class="f"><span>Áp dụng cho đơn từ (tiền hàng)</span><input type="text" inputmode="decimal" id="vcMin" value="' + esc(v.min_sub || '') + '" placeholder="để trống = mọi đơn"></label>' +
+        '<label class="f"><span>Dùng đến hết ngày</span><input type="date" id="vcExp" value="' + esc(v.exp) + '"></label></div>' +
+        '<div class="row2c"><label class="f"><span>Tổng số đơn được dùng</span><input type="number" min="0" id="vcUses" value="' + esc(v.max_uses || '') + '" placeholder="để trống = không giới hạn"></label>' +
+        '<label class="f"><span>Chỉ cho 1 số điện thoại (mã riêng)</span><input type="tel" id="vcPhone" value="' + esc(v.phone) + '" placeholder="để trống = ai có mã cũng dùng được"></label></div>' +
+        '<label class="f"><span>Ghi chú (gửi cho ai, dịp gì)</span><input type="text" id="vcNote" value="' + esc(v.note) + '" maxlength="200" placeholder="vd Đối tác chị Lan, tri ân khách cũ tháng 10"></label>' +
+        '<label class="switch"><input type="checkbox" id="vcOnce"' + (v.once ? ' checked' : '') + '> Mỗi số điện thoại chỉ dùng 1 lần</label><br>' +
+        '<label class="switch"><input type="checkbox" id="vcAct"' + (v.active ? ' checked' : '') + '> Đang dùng</label>' +
+        '<div class="steps" style="margin-top:12px"><button class="btn pri" id="vcSave">' + (isNew ? 'Tạo mã' : 'Lưu') + '</button><button class="btn ghost" id="vcBack">Quay lại</button></div>';
+      var k = $('#vcKind', m); k.value = v.kind;
+      function kindUi() { var x = k.value; $('#vcValF', m).hidden = x === 'ship'; $('#vcMaxF', m).hidden = x !== 'percent'; $('#vcValL', m).textContent = x === 'percent' ? 'Phần trăm giảm (%)' : 'Số tiền giảm'; $('#vcVal', m).placeholder = x === 'percent' ? 'vd 10' : 'vd 50k'; }
+      k.onchange = kindUi; kindUi();
+      $('#vcBack', m).onclick = list;
+      $('#vcSave', m).onclick = function () {
+        var b = this, x = k.value, val = $('#vcVal', m).value;
+        var p = { isNew: isNew, code: $('#vcCode', m).value, kind: x, value: x === 'percent' ? parseFloat(String(val).replace(',', '.')) || 0 : x === 'ship' ? 0 : parseMoney(val), max_off: x === 'percent' ? parseMoney($('#vcMax', m).value) : 0,
+          min_sub: parseMoney($('#vcMin', m).value), exp: $('#vcExp', m).value, max_uses: +$('#vcUses', m).value || 0, phone: $('#vcPhone', m).value.trim(), note: $('#vcNote', m).value.trim(), once: $('#vcOnce', m).checked, active: $('#vcAct', m).checked };
+        b.disabled = true;
+        api('voucher_save', p).then(function (j) { D.list = j.list; list(); toast(isNew ? 'Đã tạo mã – bấm 📋 để copy tin gửi khách' : 'Đã lưu'); }, function (e) { toast(e.message, true); b.disabled = false; });
+      };
+    }
+    $('#vcNew').onclick = function () { form(null); };
+    api('voucher_list').then(function (j) { D.list = j.list || []; list(); }, function (e) { var bx = $('#vcMain', m); if (bx) bx.innerHTML = '<p class="err">' + esc(e.message) + '</p>'; });
   }
   function mrgBox() {
     return '<div class="box"><h3>🔗 Khách dùng nhiều số</h3><p class="hint" style="margin:0 0 10px">Khách mua bằng 2–3 số điện thoại bị CRM tách thành nhiều hồ sơ. CRM tự tìm hồ sơ nghi cùng 1 người (cùng tên + địa chỉ, hoặc sale ghi số kia trong tên / dòng “SĐT khác”) để gộp lại. Cũng gộp được trong hồ sơ khách → 🔗 Gộp với số khác.' +

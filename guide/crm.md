@@ -2,7 +2,7 @@
 title: Hướng dẫn dùng CRM
 nav: CRM
 order: 2
-updated: 2026-10-12
+updated: 2026-10-15
 description: Xử lý đơn hàng, chăm sóc khách, khách hỏi và theo dõi hiệu quả trên crm.thucduonglanh.vn.
 ---
 
@@ -608,6 +608,30 @@ Tải lại đơn cũ không bị tính trùng: CRM nhận ra theo mã đơn và
 - **⭐ Nhóm khách**: đặt mức để máy xếp khách **VIP** (mua từ bao nhiêu đơn, hoặc tổng chi từ bao nhiêu tiền) và **Sắp mất** (bao nhiêu ngày chưa mua lại). Bấm **Lưu nhóm khách**, cả nhóm cùng áp dụng.
 - **📂 File của sale** (chỉ Quản trị): nhập đơn và nhật ký chăm sóc từ file Google Sheet sale đang dùng. Ô ghi chú kiểu “21/7 kh nhận hàng, 9/8 knm, 16/5 kh hết tiền” được tách thành từng lần chăm sóc có ngày, máy tự đoán năm. Tích **✍️ Ghi kết quả chăm sóc ngược vào file này** thì mỗi lần sale bấm kết quả trên CRM, máy tự viết thêm vào ô ghi chú của khách trong file, ví dụ “, 30/9 knm (hẹn gọi 2/10)”, khoảng 5 phút một lần. Sale vẫn xem đầy đủ trên file của mình. Để dùng được, sale cần **chia sẻ quyền Chỉnh sửa** file cho tài khoản chạy CRM. Kết quả từng lần ghi xem ở tab *Ghi ngược file sale* trong Sheet.
 - **Nhân sự được vào CRM** (chỉ Quản trị): thêm email, tên hiển thị, quyền. Nhân viên nghỉ việc thì **bỏ tích “Đang dùng”**, không cần xoá. Đổi tên hiển thị thì đơn, khách, file sale và mục tiêu của người đó tự chuyển theo tên mới. Dữ liệu cũ ghi theo **tên gọi tắt** (vd file sale ghi “Chang” cho tài khoản “Thu Chang”) cũng tự gộp về đúng người khi bấm Lưu.
+
+## Mã ưu đãi đặt hàng web (chỉ Quản trị)
+
+Mã giảm giá gửi riêng cho **khách cũ, đối tác**. Trên web không quảng cáo mã: ở trang thanh toán chỉ có dòng chữ nhỏ **“Có mã ưu đãi?”** dưới phí vận chuyển. Khách mua bình thường gần như không để ý.
+
+**Tạo mã:** Cài đặt → 🛒 Bán hàng & chăm sóc → **🎟 Mã ưu đãi đặt hàng web** → **Quản lý mã ưu đãi** → **＋ Tạo mã mới**.
+- **Loại:** giảm số tiền (vd 50k), giảm % (có thể đặt *giảm tối đa*), hoặc miễn phí ship.
+- **Điều kiện (không bắt buộc):** đơn từ bao nhiêu tiền hàng, dùng đến ngày nào, tổng số đơn được dùng.
+- **Mỗi số điện thoại chỉ dùng 1 lần:** bật sẵn.
+- **Chỉ cho 1 số điện thoại:** mã riêng cho 1 khách. Người khác có mã cũng không dùng được.
+- **Ghi chú:** gửi cho ai, dịp gì, để sau này biết mã từ đâu ra.
+
+**Gửi cho khách:** bấm **📋 Copy tin gửi khách**, rồi dán vào Zalo. Tin có sẵn link dạng `thucduonglanh.vn/?uudai=MÃ`. Khách bấm link thì web tự nhớ mã và tự áp dụng khi đặt hàng, khách không phải gõ.
+
+**Cách tính:**
+- Mỗi đơn dùng 1 mã.
+- Mã giảm trên tiền hàng. Freeship vẫn tính theo tiền hàng **trước** khi giảm (đơn 320k dùng mã giảm 50k vẫn được freeship).
+- Máy chủ kiểm tra lại mã lúc khách bấm Đặt hàng. Mã hết hạn, hết lượt hoặc sai số điện thoại thì web báo khách và bỏ mã. Đơn không được gửi đi với giá sai.
+- Đơn có mã: ghi chú đơn có dòng **🎟 Mã ưu đãi … −…đ**, tin báo Telegram cũng có dòng này. **Tổng tiền** của đơn là số đã trừ ưu đãi.
+- Đơn huỷ / hoàn thì mã được trả lại lượt dùng.
+
+**Theo dõi:** mỗi mã hiện số đơn đã dùng, tổng tiền đã giảm, tổng tiền thu được. **🗑 Xoá** chỉ hiện khi mã chưa có đơn nào dùng. Mã đã có đơn thì chỉ **⏸ Tắt** được, để giữ lại số liệu.
+
+**An toàn:** ai nhập sai mã 8 lần sẽ bị khoá thử mã 15 phút, để không ai dò được mã. Mã nên khó đoán. Nút tạo mã mới đã điền sẵn 1 mã ngẫu nhiên, nhưng anh/chị đổi được thành mã dễ nhớ như `TRIAN50`.
 
 ## Góp ý cho CRM
 
