@@ -228,6 +228,55 @@ collections:
             fields:
               - { label: "Tên", name: label, i18n: true, widget: string }
               - { label: "Giá trị", name: value, i18n: true, widget: string }
+      - label: "Câu chuyện sản phẩm (từ vùng nguyên liệu đến tay khách)"
+        name: story
+        i18n: true
+        widget: object
+        required: false
+        collapsed: true
+        hint: "Khối kể hành trình có ảnh, hiện dưới phần mua hàng (trang sản phẩm, mục #cau-chuyen). Để trống các chặng thì không hiện. Chỉ ghi điều có thật, có ảnh/giấy tờ chứng minh."
+        fields:
+          - { label: "Hiện ở trang chủ", name: home, widget: boolean, default: false, required: false, hint: "Bật cho 1 sản phẩm: trang chủ có khối 'Từ vùng nguyên liệu' lấy 3 ảnh đầu." }
+          - { label: "Chữ nhỏ phía trên", name: eyebrow, i18n: true, widget: string, required: false, hint: "Ví dụ: Câu chuyện DILVANG" }
+          - { label: "Tiêu đề", name: title, i18n: true, widget: string, required: false }
+          - { label: "Đoạn mở đầu", name: intro, i18n: true, widget: markdown, required: false }
+          - { label: "Tiêu đề ở trang chủ", name: home_title, i18n: true, widget: string, required: false }
+          - { label: "Đoạn văn ở trang chủ", name: home_text, i18n: true, widget: markdown, required: false }
+          - label: "Các chặng hành trình"
+            name: steps
+            i18n: true
+            widget: list
+            required: false
+            summary: "{{fields.title}}"
+            hint: "Nên 3 hoặc 6 chặng (máy tính hiện 3 cột). Ảnh ngang, rộng ≥ 1000px."
+            fields:
+              - { label: "Ảnh", name: image, widget: image, required: false }
+              - { label: "Mô tả ảnh (cho người khiếm thị, Google)", name: alt, i18n: true, widget: string, required: false }
+              - { label: "Tiêu đề chặng", name: title, i18n: true, widget: string }
+              - { label: "Nội dung", name: text, i18n: true, widget: markdown, required: false }
+          - label: "Con số nổi bật"
+            name: facts
+            i18n: true
+            widget: list
+            required: false
+            summary: "{{fields.value}} – {{fields.label}}"
+            fields:
+              - { label: "Con số", name: value, i18n: true, widget: string, hint: "Ví dụ: 4.750 m²" }
+              - { label: "Ý nghĩa", name: label, i18n: true, widget: string }
+          - label: "Báo chí đưa tin"
+            name: press
+            i18n: true
+            widget: list
+            required: false
+            summary: "{{fields.org}} – {{fields.title}}"
+            fields:
+              - { label: "Tên báo / kênh", name: org, i18n: true, widget: string }
+              - { label: "Ngày đăng", name: date, i18n: true, widget: string, required: false }
+              - { label: "Tiêu đề bài", name: title, i18n: true, widget: string }
+              - { label: "Link bài", name: url, widget: string }
+              - { label: "Tóm tắt ngắn", name: summary, i18n: true, widget: text, required: false }
+          - { label: "Link đọc thêm", name: link, widget: string, required: false, hint: "Ví dụ link bài viết: /goc-song-lanh/ten-bai/" }
+          - { label: "Chữ trên nút đọc thêm", name: link_text, i18n: true, widget: string, required: false }
       - label: "Gợi ý mua kèm"
         name: upsell
         widget: relation

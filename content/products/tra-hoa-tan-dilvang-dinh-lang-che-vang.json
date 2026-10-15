@@ -115,6 +115,88 @@
       "rows": []
     }
   ],
+  "story": {
+    "home": true,
+    "eyebrow": "Câu chuyện DILVANG",
+    "title": "Từ đồi chè vằng Quảng Trị đến tách trà ấm của bạn",
+    "intro": "Cái tên **DILVANG** ghép từ hai loại cây: **DIL** là *Đinh lăng*, **VANG** là *Chè vằng*. Đây là hai loại dược liệu gắn bó với đời sống người Quảng Trị từ bao đời nay.\n\nMỗi gói trà bắt đầu từ những triền đồi nắng gió và từ vườn nhà của bà con Vĩnh Linh, Cam Lộ, Hải Lăng. Nguyên liệu sau đó về nhà máy đạt GMP ở Đông Hà. Ở đó, những người con Quảng Trị chiết xuất, đóng gói, để hương vị quê nhà đến được với nhiều gia đình hơn.",
+    "home_title": "Từ vùng nguyên liệu Quảng Trị đến tách trà của bạn",
+    "home_text": "Chúng tôi muốn khách hàng biết rõ mỗi sản phẩm đến từ đâu và do ai làm ra.\n\nTrà DILVANG bắt đầu từ đồi chè vằng nắng gió và những gốc đinh lăng trong vườn nhà bà con Quảng Trị. Nguyên liệu được chiết xuất tại nhà máy đạt GMP ở Đông Hà. Ngày nhà máy khánh thành, VTV đã đưa tin.",
+    "steps": [
+      {
+        "image": "/assets/uploads/cau-chuyen/dilvang-doi-che-vang.webp",
+        "alt": "Đồi chè vằng ở Quảng Trị dưới nắng",
+        "title": "Đất nắng gió, cây bền bỉ",
+        "text": "Quảng Trị nắng gắt, mùa hè có gió Lào. Trên những triền đồi đất sỏi ấy, cây chè vằng vẫn xanh tốt. Người Quảng Trị xem chè vằng là biểu tượng của sức sống bền bỉ. **Chè vằng Quảng Trị** đã được Nhà nước bảo hộ Chỉ dẫn địa lý."
+      },
+      {
+        "image": "/assets/uploads/cau-chuyen/dilvang-re-dinh-lang.webp",
+        "alt": "Rễ đinh lăng vàng óng vừa thu hoạch",
+        "title": "Gốc đinh lăng trong vườn nhà",
+        "text": "Đinh lăng được người Việt trân quý, nhiều người vẫn gọi là “nhân sâm của người Việt”. Ở Vĩnh Linh, đinh lăng được trồng trong vườn nhà, trên đất đỏ màu mỡ. Những gốc đinh lăng lâu năm cho bộ rễ vàng óng như trong ảnh."
+      },
+      {
+        "image": "/assets/uploads/cau-chuyen/dilvang-thu-mua.webp",
+        "alt": "Bà con giao đinh lăng cho nhà máy",
+        "title": "Từ tay người trồng",
+        "text": "Nguyên liệu đến từ các hợp tác xã và hộ dân ở Cam Lộ, Hải Lăng, Vĩnh Linh. Mỗi chuyến hàng về nhà máy là thêm một nguồn thu cho bà con. Nhờ vậy, cây thuốc quê nhà tiếp tục được trồng trên đất quê."
+      },
+      {
+        "image": "/assets/uploads/cau-chuyen/dilvang-say.webp",
+        "alt": "Nhân viên kiểm tra khay sấy dược liệu tại nhà máy",
+        "title": "Sơ chế và sấy ở nhiệt độ thấp",
+        "text": "Ở nhà máy, dược liệu tươi được nhặt và làm sạch. Sau đó dược liệu được sấy bằng máy sấy bơm nhiệt và sấy chân không, nhiệt độ thấp. Nhờ công nghệ sấy này, Gold Herbal được Sở KH&CN Quảng Trị công nhận là **Doanh nghiệp Khoa học và Công nghệ** (2025). Chè vằng và đinh lăng sấy khô nằm trong danh mục sản phẩm của chứng nhận."
+      },
+      {
+        "image": "/assets/uploads/cau-chuyen/dilvang-kiem-soat.webp",
+        "alt": "Nhân viên ghi chép, kiểm soát từng mẻ dược liệu",
+        "title": "Chiết xuất chân không EECV",
+        "text": "Dược liệu được chiết xuất và cô đặc trong điều kiện chân không, nhiệt độ thấp, khép kín. Mỗi gói 5g có cao chiết tương đương khoảng **3,5g chè vằng khô và 1,5g đinh lăng khô**. Công nghệ này được chuyển giao từ đề tài khoa học do Sở KH&CN Quảng Trị quản lý."
+      },
+      {
+        "image": "/assets/img/products/tra-dilvang-5.webp",
+        "alt": "Rót trà DILVANG ra tách",
+        "title": "Tách trà ấm của bạn",
+        "text": "Không cần đun, không cần sắc, cũng không có bã. Chỉ cần 1 gói trà và 300–400ml nước ấm là có một tách trà thơm dịu. Hương vị đồi chè quê nhà theo đó về với gia đình bạn."
+      }
+    ],
+    "facts": [
+      {
+        "value": "4.750 m²",
+        "label": "nhà máy đạt GMP ở Đông Hà, khánh thành 17/5/2025"
+      },
+      {
+        "value": "2–4 tấn",
+        "label": "dược liệu tươi được chế biến mỗi ngày"
+      },
+      {
+        "value": "≈ 5g",
+        "label": "dược liệu khô được cô lại trong mỗi gói trà 5g"
+      },
+      {
+        "value": "2026",
+        "label": "Sản phẩm công nghiệp nông thôn tiêu biểu tỉnh Quảng Trị"
+      }
+    ],
+    "press": [
+      {
+        "org": "Đài PTTH Quảng Trị (QRTV)",
+        "date": "2025",
+        "title": "Lễ khánh thành nhà máy sản xuất dược liệu đạt chuẩn GMP đầu tiên tại Quảng Trị",
+        "url": "https://www.facebook.com/reel/670986042495838",
+        "summary": "Các phóng sự của QRTV được đăng trên fanpage Sở Khoa học và Công nghệ Quảng Trị. Nội dung gồm lễ khánh thành nhà máy, nghiệm thu dự án hệ thống phòng sạch đạt chuẩn GMP và việc đưa khoa học công nghệ vào sản xuất ở Quảng Trị."
+      },
+      {
+        "org": "VTV.vn – Đài Truyền hình Việt Nam",
+        "date": "17/05/2025",
+        "title": "Nhà máy Dược liệu Gold Herbal hướng đến sức khỏe cộng đồng",
+        "url": "https://vtv.vn/xa-hoi/nha-may-duoc-lieu-gold-herbal-huong-den-suc-khoe-cong-dong-20250517092627856.htm",
+        "summary": "VTV đưa tin lễ khánh thành nhà máy. Nhà máy rộng 4.750 m², vốn đầu tư giai đoạn 1 hơn 25 tỷ đồng. Lãnh đạo tỉnh Quảng Trị kỳ vọng doanh nghiệp tiếp tục mở rộng vùng trồng dược liệu sạch."
+      }
+    ],
+    "link": "/goc-song-lanh/hanh-trinh-tra-dilvang-tu-doi-che-vang-quang-tri/",
+    "link_text": "Đọc trọn hành trình DILVANG"
+  },
   "upsell": [
     "ruoc-rong-bien-vi-suon-non",
     "bua-an-dinh-duong-vitagreen"
@@ -122,7 +204,9 @@
   "disclaimer": "Thực phẩm. Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh.",
   "badges": [
     "Nhà máy GMP do Cục An toàn thực phẩm – Bộ Y tế cấp",
+    "Doanh nghiệp Khoa học & Công nghệ – Sở KH&CN Quảng Trị (2025)",
     "Thuộc bộ Trà hòa tan Gold Herbal – sản phẩm tiêu biểu tỉnh Quảng Trị 2026",
+    "Nhà máy Gold Herbal được VTV đưa tin ngày khánh thành (17/5/2025)",
     "NIFC xác nhận đúng chè vằng và đinh lăng",
     "Không phát hiện Aflatoxin, Salmonella",
     "Không chất bảo quản, pha nước ấm là uống"
@@ -163,6 +247,14 @@
       "number": "19395/PKN-VKNQG",
       "date": "07/05/2025",
       "file": "/assets/uploads/ho-so/dilvang-nifc-19395-trang-2.webp"
+    },
+    {
+      "title": "Giấy chứng nhận Doanh nghiệp Khoa học và Công nghệ",
+      "org": "Sở Khoa học và Công nghệ tỉnh Quảng Trị",
+      "number": "08/DNKHCN",
+      "date": "09/05/2025",
+      "scope": "Ứng dụng công nghệ sấy tiên tiến để sản xuất nông sản, dược liệu đạt chuẩn GMP, giúp tiết kiệm điện, giảm phát thải và nâng cao chất lượng bảo quản. Sản phẩm: chè vằng, đinh lăng, cà gai leo, an xoa sấy khô GOLDHERBAL",
+      "file": "/assets/uploads/ho-so/gold-herbal-dn-khcn-08-2025.webp"
     },
     {
       "title": "Chứng nhận sản phẩm công nghiệp nông thôn tiêu biểu cấp tỉnh 2026",

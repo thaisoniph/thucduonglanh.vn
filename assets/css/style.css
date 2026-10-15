@@ -1566,3 +1566,53 @@ ul.p-trust{list-style:none;padding:0;margin:0 0 16px;display:grid;gap:4px;font-s
 .vc-rm{background:none;border:0;padding:0 0 0 6px;font:inherit;font-size:12.5px;color:var(--muted);text-decoration:underline;cursor:pointer}
 .vc-low{color:#b54708;font-size:13px}
 .co-sum del{color:var(--muted);font-weight:400;margin-right:4px}
+
+/* Câu chuyện sản phẩm: từ vùng nguyên liệu tới tách trà (ô story của sản phẩm, 15/10/2026) */
+.ogs{margin:48px 0 8px;padding:44px 0 8px;border-top:1px solid var(--line)}
+.ogs-head{max-width:760px;margin:0 auto 32px;text-align:center}
+.ogs-eye{display:inline-block;font-size:12.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+.ogs-title{font-family:var(--serif);font-size:34px;line-height:1.3;margin-bottom:16px}
+.ogs-intro p{font-size:16px;line-height:1.8;margin:0 0 .8em}
+.ogs-intro strong{color:var(--primary-2)}
+.ogs-steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.ogs-step{background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column}
+.ogs-fig{margin:0;aspect-ratio:4/3;overflow:hidden;background:var(--soft)}
+.ogs-fig img{width:100%;height:100%;object-fit:cover;transition:transform .6s}
+.ogs-step:hover .ogs-fig img{transform:scale(1.04)}
+.ogs-body{padding:16px 18px 18px;position:relative}
+.ogs-n{font-family:var(--serif);font-size:15px;font-weight:700;color:var(--gold);letter-spacing:.05em}
+.ogs-body h3{font-size:17.5px;margin:2px 0 8px;color:var(--ink)}
+.ogs-body p{margin:0;font-size:14.5px;line-height:1.7}
+.ogs-facts{list-style:none;margin:32px 0 0;padding:22px 18px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;background:var(--primary-light);border-radius:var(--radius);text-align:center}
+.ogs-facts b{display:block;font-family:var(--serif);font-size:26px;color:var(--primary-2);line-height:1.2}
+.ogs-facts span{font-size:13.5px;color:var(--text);line-height:1.5;display:block;margin-top:4px}
+.ogs-press{margin-top:28px}
+.ogs-press-h{font-size:17px;text-align:center;margin-bottom:14px}
+.ogs-press-card{display:flex;flex-direction:column;gap:4px;max-width:760px;margin:0 auto;padding:18px 20px;border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:var(--radius-sm);background:var(--cream);color:var(--text)}
+.ogs-press-card+.ogs-press-card{margin-top:12px}
+.ogs-press-card:hover{border-color:var(--gold);color:var(--text)}
+.ogs-press-org{font-size:12.5px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--brown)}
+.ogs-press-card b{font-size:16px;color:var(--ink)}
+.ogs-press-sum{font-size:14px;line-height:1.65}
+.ogs-press-go{font-size:13.5px;font-weight:600;color:var(--primary)}
+.ogs-more{text-align:center;margin:26px 0 0}
+.ogs-home-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:48px;align-items:center}
+.ogs-home-pics{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;gap:12px}
+.ogs-home-pics img{width:100%;height:100%;object-fit:cover;border-radius:var(--radius);aspect-ratio:4/3}
+.ogs-home-pics img:first-child{grid-column:1/3;aspect-ratio:16/9}
+.ogs-home-text p{text-align:justify}
+@media (max-width:960px){
+  .ogs-steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ogs-facts{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ogs-home-grid{grid-template-columns:minmax(0,1fr);gap:28px}
+}
+@media (max-width:600px){
+  .ogs{margin-top:32px;padding-top:32px}
+  .ogs-title{font-size:26px}
+  .ogs-intro p{font-size:15px;text-align:left}
+  .ogs-steps{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:14px;margin:0 -20px;padding:0 20px 8px;scrollbar-width:none}
+  .ogs-steps::-webkit-scrollbar{display:none}
+  .ogs-step{flex:0 0 82%;scroll-snap-align:start}
+  .ogs-facts b{font-size:22px}
+  .ogs-home-text p{text-align:left}
+}

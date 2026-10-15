@@ -78,7 +78,9 @@
   "disclaimer": "Food product. This product is not a medicine and does not replace medical treatment.",
   "badges": [
     "GMP factory certified by the Vietnam Food Administration – Ministry of Health",
+    "Science & Technology Enterprise – Quang Tri Dept. of Science and Technology (2025)",
     "Part of the Gold Herbal instant tea line – Quang Tri Featured Product 2026",
+    "Gold Herbal factory opening covered by VTV (17 May 2025)",
     "NIFC testing confirms genuine chè vằng and polyscias",
     "Not detected: Aflatoxin, Salmonella",
     "No preservatives – just add warm water"
@@ -111,6 +113,11 @@
       "org": "NIFC – Ministry of Health"
     },
     {
+      "title": "Science and Technology Enterprise Certificate",
+      "org": "Quang Tri Department of Science and Technology",
+      "scope": "Advanced drying technology for GMP-standard agricultural and herbal products, saving energy and reducing emissions. Products: dried chè vằng, polyscias, cà gai leo and an xoa (GOLDHERBAL)"
+    },
+    {
       "title": "Provincial Featured Rural Industrial Product Certificate 2026",
       "org": "Quang Tri Provincial People's Committee",
       "scope": "Instant dry extract product line – Gold Herbal Instant Teas",
@@ -132,5 +139,77 @@
       "org": "Center for Drug, Cosmetic and Food Testing – Hue City Department of Health",
       "scope": "Per 100g: 378.1 kcal; carbohydrate 91.3g; protein 1.46g; sodium 111.44mg"
     }
-  ]
+  ],
+  "story": {
+    "eyebrow": "The DILVANG story",
+    "title": "From the chè vằng hills of Quang Tri to your warm cup of tea",
+    "intro": "The name **DILVANG** joins two plants: **DIL** for *Đinh lăng* (Polyscias) and **VANG** for *Chè vằng*. Both have been part of daily life in Quang Tri for generations.\n\nEvery sachet starts on sun-baked, windswept hillsides and in the home gardens of farming families in Vinh Linh, Cam Lo and Hai Lang. The herbs then travel to a GMP-certified factory in Dong Ha. There, people from Quang Tri extract and pack them, so the taste of their homeland can reach more families.",
+    "home_title": "From the herb fields of Quang Tri to your cup",
+    "home_text": "We want our customers to know where each product comes from and who makes it.\n\nDILVANG tea begins on windswept chè vằng hills and with the polyscias plants in local family gardens. The herbs are extracted at a GMP-certified factory in Dong Ha, whose opening was covered by VTV, Vietnam's national broadcaster.",
+    "steps": [
+      {
+        "alt": "Chè vằng hills in Quang Tri under the sun",
+        "title": "Harsh sun, resilient plants",
+        "text": "Quang Tri has fierce sun and the hot Lao wind in summer. Yet chè vằng stays green on these gravelly hillsides. Locals see it as a symbol of resilience. **Quang Tri chè vằng** is protected by a state-registered Geographical Indication."
+      },
+      {
+        "alt": "Freshly harvested golden polyscias roots",
+        "title": "Polyscias from family gardens",
+        "text": "Vietnamese people treasure polyscias; many call it “Vietnam's ginseng”. In Vinh Linh it grows in home gardens on rich red soil. Old plants grow golden roots like the ones in this photo."
+      },
+      {
+        "alt": "Farmers delivering polyscias to the factory",
+        "title": "From the growers' hands",
+        "text": "The herbs come from cooperatives and farming households in Cam Lo, Hai Lang and Vinh Linh. Every delivery to the factory brings income to local families, so these native herbs keep growing on their home soil."
+      },
+      {
+        "alt": "Staff checking herb drying racks at the factory",
+        "title": "Cleaned and dried at low temperature",
+        "text": "At the factory, fresh herbs are sorted and cleaned, then dried at low temperature with heat-pump and vacuum dryers. For this drying technology, Gold Herbal was recognised as a **Science and Technology Enterprise** by the Quang Tri Department of Science and Technology (2025). Dried chè vằng and polyscias are listed in the certificate."
+      },
+      {
+        "alt": "Staff recording and checking each batch",
+        "title": "EECV vacuum extraction",
+        "text": "The herbs are extracted and concentrated in a closed vacuum system at low temperature. Each 5g sachet contains extract equivalent to about **3.5g of dried chè vằng and 1.5g of dried polyscias**. The technology was transferred from a science project managed by the Quang Tri Department of Science and Technology."
+      },
+      {
+        "alt": "Pouring DILVANG tea into a cup",
+        "title": "Your warm cup of tea",
+        "text": "No boiling, no simmering, no leaves left behind. One sachet and 300–400ml of warm water make a fragrant, gentle cup of tea, bringing the taste of the Quang Tri hills to your family."
+      }
+    ],
+    "facts": [
+      {
+        "value": "4,750 m²",
+        "label": "GMP-certified factory in Dong Ha, opened 17 May 2025"
+      },
+      {
+        "value": "2–4 tonnes",
+        "label": "of fresh herbs processed every day"
+      },
+      {
+        "value": "≈ 5g",
+        "label": "of dried herbs concentrated into every 5g sachet"
+      },
+      {
+        "value": "2026",
+        "label": "Outstanding Rural Industrial Product of Quang Tri Province"
+      }
+    ],
+    "press": [
+      {
+        "org": "Quang Tri Radio & Television (QRTV)",
+        "date": "2025",
+        "title": "Opening of Quang Tri's first GMP-standard herbal factory (in Vietnamese)",
+        "summary": "QRTV reports shared on the Quang Tri Department of Science and Technology fanpage: the factory opening, the acceptance of the GMP cleanroom project, and bringing science and technology into local production."
+      },
+      {
+        "org": "VTV.vn – Vietnam Television",
+        "date": "17/05/2025",
+        "title": "Gold Herbal medicinal herb factory aims for community health (in Vietnamese)",
+        "summary": "VTV covered the factory's opening ceremony. The factory covers 4,750 m², with phase-one investment of over 25 billion VND. Provincial leaders hope the company will keep expanding clean herb-growing areas."
+      }
+    ],
+    "link_text": "Read the full DILVANG journey"
+  }
 }

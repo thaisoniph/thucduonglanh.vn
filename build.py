@@ -1270,7 +1270,7 @@ def page_home():
   </div>
   <div class="story-media"><img src="/assets/img/brand/story-tea.webp" alt="{t("Tách trà thảo mộc Thực Dưỡng Lành")}" loading="lazy" width="1200" height="1200"></div>
 </div></section>
-
+{home_origin()}
 <section class="parallax" style="background-image:url('/assets/img/brand/parallax-tea.webp')"><div class="container"><h2>{t("Dưỡng Thân – Tâm An<br>Bền Sức Khoẻ")}</h2></div></section>
 
 <section class="section"><div class="container">
@@ -1636,6 +1636,7 @@ def page_product(p):
       </div>
     </div>
   </div>
+  {origin_story(p)}
   {reviews_html(p)}
   {combo_landing(p) if landing else ""}
 
@@ -1784,6 +1785,48 @@ def stars_html(p, cls="stars"):
         return ""
     avg, n = r
     return f'<span class="{cls}" aria-label="{tf("{avg} trên 5 sao, {n} đánh giá", avg=avg, n=n)}"><span class="st" style="--r:{avg / 5 * 100:.0f}%" aria-hidden="true"></span><b>{str(avg).replace(".", "," if IS_VI else ".")}</b><small>({n}{"" if "pc-" in cls else t(" đánh giá")})</small></span>'
+
+
+def origin_story(p):
+    """Khối "Câu chuyện sản phẩm" trên trang sản phẩm (ô `story`): hành trình từ vùng nguyên liệu tới tách trà,
+    con số thật, báo chí đưa tin. Không có chặng nào thì không hiện."""
+    s = p.get("story") or {}
+    steps = [x for x in (s.get("steps") or []) if x.get("title")]
+    if not steps:
+        return ""
+    items = "".join(f'''<li class="ogs-step">{f'<figure class="ogs-fig"><img src="{img_url(x["image"], 700)}" alt="{esc(x.get("alt") or x["title"])}" width="700" height="525" loading="lazy" decoding="async"></figure>' if x.get("image") else ""}
+<div class="ogs-body"><span class="ogs-n">{i:02d}</span><h3>{esc(x["title"])}</h3>{md(x.get("text"))}</div></li>''' for i, x in enumerate(steps, 1))
+    facts = "".join(f'<li><b>{esc(f["value"])}</b><span>{esc(f.get("label"))}</span></li>' for f in (s.get("facts") or []) if f.get("value"))
+    facts = f'<ul class="ogs-facts">{facts}</ul>' if facts else ""
+    press = "".join(f'''<a class="ogs-press-card" href="{esc(x["url"])}" target="_blank" rel="noopener"><span class="ogs-press-org">{esc(x.get("org"))}{f' · {esc(x["date"])}' if x.get("date") else ""}</span>
+<b>{esc(x.get("title"))}</b>{f'<span class="ogs-press-sum">{esc(x["summary"])}</span>' if x.get("summary") else ""}<span class="ogs-press-go">{t("Xem bài gốc")} ›</span></a>''' for x in (s.get("press") or []) if x.get("url"))
+    press = f'<div class="ogs-press"><h3 class="ogs-press-h">{t("Báo chí nói về nơi làm ra sản phẩm")}</h3>{press}</div>' if press else ""
+    more = f'<p class="ogs-more"><a class="btn btn-outline" href="{esc(s["link"])}">{esc(s.get("link_text") or t("Đọc trọn câu chuyện"))}</a></p>' if s.get("link") else ""
+    return f'''<section class="ogs" id="cau-chuyen" aria-labelledby="ogsTitle">
+  <div class="ogs-head">{f'<span class="ogs-eye">{esc(s["eyebrow"])}</span>' if s.get("eyebrow") else ""}<h2 class="ogs-title" id="ogsTitle">{esc(s.get("title") or t("Câu chuyện sản phẩm"))}</h2>{f'<div class="ogs-intro">{md(s["intro"])}</div>' if s.get("intro") else ""}</div>
+  <ol class="ogs-steps">{items}</ol>
+  {facts}{press}{more}
+</section>'''
+
+
+def home_origin():
+    """Trang chủ: khối "Từ vùng nguyên liệu" lấy từ câu chuyện của sản phẩm có bật `story.home`."""
+    p = next((x for x in PRODUCTS if (x.get("story") or {}).get("home") and (x["story"].get("steps"))), None)
+    if not p:
+        return ""
+    s = p["story"]
+    imgs = [x for x in s["steps"] if x.get("image")][:3]
+    pics = "".join(f'<img src="{img_url(x["image"], 600)}" alt="{esc(x.get("alt") or x["title"])}" width="600" height="450" loading="lazy" decoding="async">' for x in imgs)
+    href = s.get("link") or f'/san-pham/{p["slug"]}/#cau-chuyen'
+    return f'''<section class="section ogs-home"><div class="container">
+  <div class="ogs-home-grid">
+    <div class="ogs-home-pics">{pics}</div>
+    <div class="ogs-home-text">{f'<span class="ogs-eye">{esc(s["eyebrow"])}</span>' if s.get("eyebrow") else ""}<h2 class="story-title">{esc(s.get("home_title") or s.get("title") or "")}</h2>
+      {md(s.get("home_text") or s.get("intro") or "")}
+      <div class="slide-cta"><a class="btn btn-lg" href="{esc(href)}">{esc(s.get("link_text") or t("Đọc trọn câu chuyện"))}</a><a class="btn btn-lg btn-ghost" href="/san-pham/{p["slug"]}/">{t("Xem sản phẩm")}</a></div>
+    </div>
+  </div>
+</div></section>'''
 
 
 def reviews_html(p):
