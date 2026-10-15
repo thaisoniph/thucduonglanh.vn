@@ -1261,7 +1261,18 @@ def page_home():
     seo_p4 = tf('Đặt hàng dễ dàng ngay trên website, giao hàng toàn quốc, kiểm tra hàng trước khi thanh toán. Đội ngũ tư vấn luôn sẵn sàng hỗ trợ qua hotline <a href="tel:{tel}">{hotline}</a> và Zalo. Thông tin khách hàng được bảo mật theo <a href="/chinh-sach-bao-mat/">chính sách bảo mật</a>.', tel=tel(SITE["hotline"]), hotline=esc(SITE["hotline"]))
     brochure_btn = f'<a class="btn btn-lg btn-ghost" href="{BR_PATH}">📖 Đọc hồ sơ thương hiệu</a>' if BROCHURE else ""
     tag_box = f'<div class="tag-cloud">{tag_html}</div>' if tag_html else ""
-    body = f'''{hero}
+    # Khối niềm tin đứng đầu trang: trả lời "vì sao" trước khi nói đến sản phẩm (câu treo ở văn phòng)
+    belief = f'''<section class="blf"><div class="container blf-in">
+  <h2 class="blf-eye">{t("Điều chúng tôi tin")}</h2>
+  <figure class="blf-fig">
+    <blockquote class="blf-q"><p>{tf("Chúng tôi mơ một ngày {brand} không chỉ là cách ăn — mà là cách sống.", brand=BRAND)}<em>{t("Đủ sâu, đủ chậm và đủ thương.")}</em></p></blockquote>
+    <figcaption>{tf("Câu treo trên tường văn phòng {brand}", brand=BRAND)}</figcaption>
+  </figure>
+  <p class="blf-why">{tf("{brand} ra đời từ một câu hỏi chưa kịp có lời đáp: <i>“Giá như mình chăm sóc tốt hơn…”</i> Vì vậy chúng tôi chọn <b>sống lành, để sống đáng</b>: chăm sóc sớm hơn những người mình thương, từ mỗi bữa ăn lành.", brand=BRAND)}</p>
+  <a class="blf-link" href="/gioi-thieu/" data-cta="belief_story">{t("Đọc câu chuyện của chúng tôi")} →</a>
+</div></section>'''
+    body = f'''{belief}
+{hero}
 {needs_html()}
 <section class="section section-tight"><div class="container">{benefits_banner()}{gifts_block("home")}</div></section>
 

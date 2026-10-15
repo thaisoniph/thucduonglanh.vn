@@ -565,6 +565,22 @@ label .invalid,input.invalid,textarea.invalid{border-color:var(--red)!important}
 .mf-lines p{margin:0 0 22px}.mf-lines p:last-child{margin-bottom:0}
 .mf-lines b{font-family:var(--serif);font-style:italic;font-weight:600;color:var(--gold)}
 @media (max-width:600px){.mf-lines{font-size:16px}}
+/* Khối "Điều chúng tôi tin" đầu trang chủ */
+.blf{position:relative;overflow:hidden;background:var(--primary-2);color:rgba(255,255,255,.86);text-align:center;padding:56px 0 50px}
+.blf::before{content:"";position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cpath d='M80 20c-22 14-30 34-22 56 18-4 30-20 22-56zM30 110c18-2 32 6 38 22-18 6-32-2-38-22zM130 96c-14 2-24 12-24 26 14 0 24-10 24-26z' fill='%23E2C08F' fill-opacity='.07'/%3E%3C/svg%3E");pointer-events:none}
+.blf-in{position:relative;max-width:860px}
+.blf-eye{display:inline-block;margin:0 0 14px;font-size:13px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:var(--gold-2)}
+.blf-fig{margin:0}
+.blf-q{margin:0;font-family:var(--serif);font-weight:600;font-size:34px;line-height:1.4;color:#fff}
+.blf-q::before{content:"“";display:block;font-size:72px;line-height:.7;color:var(--gold)}
+.blf-q p{margin:0}
+.blf-q em{display:block;margin-top:10px;font-style:italic;font-weight:500;color:var(--gold-2)}
+.blf-fig figcaption{margin-top:12px;font-size:13px;color:rgba(255,255,255,.55)}
+.blf-why{max-width:640px;margin:22px auto 0;font-size:16px;line-height:1.75}
+.blf-why b{color:#fff}
+.blf-link{display:inline-block;margin-top:16px;color:var(--gold-2);font-weight:600;text-decoration:none;border-bottom:1px solid rgba(226,192,143,.5)}
+.blf-link:hover{color:#fff;border-color:#fff}
+@media (max-width:600px){.blf{padding:40px 0 36px}.blf-q{font-size:24px}.blf-q::before{font-size:56px}.blf-why{font-size:15px}}
 .val-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:18px}
 .val-card{background:var(--cream);border-radius:var(--radius);padding:24px 20px;border:1px solid #efe6cc;transition:all .3s}
 .val-card:hover{background:var(--primary);color:#fff;transform:translateY(-4px)}
