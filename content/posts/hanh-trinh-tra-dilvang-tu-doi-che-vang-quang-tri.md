@@ -104,7 +104,12 @@ Bạn có thể xem đầy đủ các giấy tờ ở mục **Hồ sơ chất l�
 
 Thực Dưỡng Lành ra đời từ một câu hỏi chưa kịp có lời đáp: *“Giá như mình chăm sóc tốt hơn…”*. Vì vậy, trước khi giới thiệu một sản phẩm, chúng tôi luôn tự hỏi: mình có dám pha nó cho chính cha mẹ mình mỗi ngày không?
 
-Với DILVANG, chúng tôi không chỉ đọc hồ sơ qua giấy tờ. Trước khi quyết định phân phối, đội ngũ Thực Dưỡng Lành đã về tận nhà máy ở Đông Hà để thăm và làm việc cùng Gold Herbal. Chúng tôi tận mắt xem nơi trà được làm ra, gặp những người làm ra nó, rồi mới đối chiếu từng trang hồ sơ. Nhưng điều giữ chúng tôi lại không chỉ là giấy tờ. Đó là cảm giác mỗi gói trà đều có quê hương, có người trồng và có người làm ra.
+Với DILVANG, chúng tôi không chỉ đọc hồ sơ qua giấy tờ. Trước khi quyết định phân phối, đội ngũ Thực Dưỡng Lành đã về tận nhà máy ở Đông Hà để thăm và làm việc cùng Gold Herbal. Chúng tôi tận mắt xem nơi trà được làm ra, gặp những người làm ra nó, rồi mới đối chiếu từng trang hồ sơ.
+
+![Đội ngũ Thực Dưỡng Lành ngồi làm việc cùng Gold Herbal tại nhà máy ở Đông Hà](/assets/uploads/cau-chuyen/dilvang-tdl-lam-viec-nha-may.webp)
+
+![Đội ngũ Thực Dưỡng Lành mặc áo bảo hộ đi thăm khu phòng sạch đạt chuẩn GMP](/assets/uploads/cau-chuyen/dilvang-tdl-tham-phong-sach.webp)
+ Nhưng điều giữ chúng tôi lại không chỉ là giấy tờ. Đó là cảm giác mỗi gói trà đều có quê hương, có người trồng và có người làm ra.
 
 ## Lời kết
 

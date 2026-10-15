@@ -1612,6 +1612,10 @@ ul.p-trust{list-style:none;padding:0;margin:0 0 16px;display:grid;gap:4px;font-s
 .ogs-pledge{max-width:760px;margin:36px auto 0;padding:28px 30px;background:var(--cream);border-radius:var(--radius);border:1px solid var(--line)}
 .ogs-pledge h3{font-family:var(--serif);font-size:22px;margin-bottom:12px;color:var(--ink)}
 .ogs-pledge p{font-size:15.5px;line-height:1.8;margin:0 0 .8em}
+.ogs-pledge-imgs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:4px 0 18px}
+.ogs-pledge-imgs figure{margin:0}
+.ogs-pledge-imgs img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px}
+.ogs-pledge-imgs figcaption{font-size:13px;color:var(--muted);line-height:1.5;margin-top:6px}
 .ogs-sign{font-style:italic;color:var(--brown);text-align:right;margin-bottom:0!important}
 .ogs-home-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:48px;align-items:center}
 .ogs-home-pics{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;gap:12px}

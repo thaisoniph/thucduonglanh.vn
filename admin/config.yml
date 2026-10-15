@@ -308,6 +308,15 @@ collections:
               - { label: "Tiêu đề", name: title, i18n: true, widget: string, required: false }
               - { label: "Nội dung", name: text, i18n: true, widget: markdown, required: false }
               - { label: "Ký tên", name: sign, i18n: true, widget: string, required: false }
+              - label: "Ảnh thật (đội ngũ, chuyến thăm…)"
+                name: images
+                i18n: true
+                widget: list
+                required: false
+                summary: "{{fields.caption}}"
+                fields:
+                  - { label: "Ảnh", name: image, widget: image }
+                  - { label: "Chú thích", name: caption, i18n: true, widget: string, required: false }
           - { label: "Link đọc thêm", name: link, widget: string, required: false, hint: "Ví dụ link bài viết: /goc-song-lanh/ten-bai/" }
           - { label: "Chữ trên nút đọc thêm", name: link_text, i18n: true, widget: string, required: false }
       - label: "Gợi ý mua kèm"

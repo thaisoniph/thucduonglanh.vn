@@ -1852,7 +1852,13 @@ def origin_story(p):
     pl = s.get("pledge") or {}
     pl_h = f'<h3>{esc(pl["title"])}</h3>' if pl.get("title") else ""
     pl_s = f'<p class="ogs-sign">{esc(pl["sign"])}</p>' if pl.get("sign") else ""
-    pledge = f'<div class="ogs-pledge">{pl_h}{md(pl.get("text"))}{pl_s}</div>' if pl.get("text") else ""
+    def pl_fig(x):
+        cap = esc(x.get("caption") or "")
+        fc = f"<figcaption>{cap}</figcaption>" if cap else ""
+        return f'<figure><a href="{esc(x["image"])}" data-lightbox="ogs-pledge"><img src="{img_url(x["image"], 800)}" alt="{cap}" width="800" height="600" loading="lazy" decoding="async"></a>{fc}</figure>'
+    pl_imgs = "".join(pl_fig(x) for x in (pl.get("images") or []) if x.get("image"))
+    pl_imgs = f'<div class="ogs-pledge-imgs">{pl_imgs}</div>' if pl_imgs else ""
+    pledge = f'<div class="ogs-pledge">{pl_h}{pl_imgs}{md(pl.get("text"))}{pl_s}</div>' if pl.get("text") else ""
     return f'''<section class="ogs" id="cau-chuyen" aria-labelledby="ogsTitle">
   <div class="ogs-head">{f'<span class="ogs-eye">{esc(s["eyebrow"])}</span>' if s.get("eyebrow") else ""}<h2 class="ogs-title" id="ogsTitle">{esc(s.get("title") or t("Câu chuyện sản phẩm"))}</h2>{f'<div class="ogs-intro">{md(s["intro"])}</div>' if s.get("intro") else ""}</div>
   {video}

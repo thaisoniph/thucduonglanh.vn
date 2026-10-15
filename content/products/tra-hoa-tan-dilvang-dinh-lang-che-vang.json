@@ -310,7 +310,17 @@
     "pledge": {
       "title": "Vì sao Thực Dưỡng Lành chọn DILVANG",
       "text": "Thực Dưỡng Lành ra đời từ một câu hỏi chưa kịp có lời đáp: *“Giá như mình chăm sóc tốt hơn…”*. Vì vậy, trước khi giới thiệu một sản phẩm, chúng tôi luôn tự hỏi: mình có dám pha nó cho chính cha mẹ mình mỗi ngày không?\n\nVới DILVANG, chúng tôi không chỉ đọc hồ sơ qua giấy tờ. Trước khi quyết định phân phối, đội ngũ Thực Dưỡng Lành đã về tận nhà máy ở Đông Hà để thăm và làm việc cùng Gold Herbal. Chúng tôi tận mắt xem nơi trà được làm ra, gặp những người làm ra nó, rồi mới đối chiếu từng trang hồ sơ: bản tự công bố, phiếu kiểm nghiệm của Viện Kiểm nghiệm ATVSTP Quốc gia, giấy GMP của Bộ Y tế, giấy chứng nhận Doanh nghiệp Khoa học và Công nghệ.\n\nĐiều giữ chúng tôi lại không chỉ là giấy tờ. Đó là cảm giác mỗi gói trà đều có quê hương, có người trồng và có người làm ra. Chúng tôi chọn DILVANG để mang chút nắng gió Quảng Trị về những gian bếp xa quê. Mong mỗi tách trà là một lần dừng lại, sống chậm và chăm sóc người mình thương.",
-      "sign": "Đội ngũ Thực Dưỡng Lành"
+      "sign": "Đội ngũ Thực Dưỡng Lành",
+      "images": [
+        {
+          "image": "/assets/uploads/cau-chuyen/dilvang-tdl-lam-viec-nha-may.webp",
+          "caption": "Đội ngũ Thực Dưỡng Lành ngồi làm việc cùng Gold Herbal tại nhà máy ở Đông Hà"
+        },
+        {
+          "image": "/assets/uploads/cau-chuyen/dilvang-tdl-tham-phong-sach.webp",
+          "caption": "Mặc áo bảo hộ, đi thăm khu phòng sạch đạt chuẩn GMP"
+        }
+      ]
     },
     "link": "/goc-song-lanh/hanh-trinh-tra-dilvang-tu-doi-che-vang-quang-tri/",
     "link_text": "Đọc trọn hành trình DILVANG"
