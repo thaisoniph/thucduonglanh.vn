@@ -118,7 +118,7 @@
     function fallback() { var t = document.createElement('textarea'); t.value = text; t.style.position = 'fixed'; t.style.opacity = '0'; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); } catch (e) { } t.remove(); }
   }
 
-  var SERVER_V = '2026-10-14b'; // phải trùng số phiên bản máy chủ (api/src/index.js)
+  var SERVER_V = '2026-10-15a'; // phải trùng số phiên bản máy chủ (api/src/index.js)
   var ON_CF = !/script\.google/.test(CFG.endpoint || ''); // máy chủ Cloudflare (nhanh) hay Apps Script cũ
   function checkVersion(j) {
     if (j && j.v) S.srvV = j.v;
@@ -1475,7 +1475,7 @@
       '<label class="f"><span>Ghi chú về khách / nhật ký (mỗi dòng “ngày: nội dung”)</span><textarea id="cNote" rows="6">' + esc(c.note) + '</textarea></label>' +
       (canEdit(c) ? commBox(c, '') : '') + (canEdit(c) && c.zalo ? '<p style="margin:0 0 10px"><button type="button" class="link small" id="cUnZalo">Bỏ đánh dấu đã kết bạn Zalo</button></p>' : '') +
       '<button class="btn pri" id="cSave">Lưu thay đổi</button></div></details>' +
-      (lvl() >= 2 ? '<details class="p-edit"><summary>🔗 Gộp với số khác của khách này</summary><div class="box" style="margin:8px 0 0"><p class="small muted" style="margin:0 0 8px">Khách mua bằng 2–3 số điện thoại thì CRM tách thành nhiều hồ sơ. Nhập số còn lại: đơn hàng, nhật ký, ghi chú của số đó chuyển hết về hồ sơ này (' + fPhone(c.phone) + ' là số chính). Sau này file sale / đơn web có số kia cũng tự vào đây.</p>' +
+      (canEdit(c) ? '<details class="p-edit"><summary>🔗 Gộp với số khác của khách này</summary><div class="box" style="margin:8px 0 0"><p class="small muted" style="margin:0 0 8px">Khách mua bằng 2–3 số điện thoại thì CRM tách thành nhiều hồ sơ. Nhập số còn lại: đơn hàng, nhật ký, ghi chú của số đó chuyển hết về hồ sơ này (' + fPhone(c.phone) + ' là số chính). Sau này file sale / đơn web có số kia cũng tự vào đây.</p>' +
         '<label class="f"><span>Số cần gộp vào (nhiều số cách nhau dấu phẩy)</span><input type="text" id="cMgPh" inputmode="tel" placeholder="VD 0399766607" value="' + esc(altPhones(c.note).filter(function (p) { return p !== c.phone && cust(p); }).join(', ')) + '"></label><button class="btn" id="cMg">🔗 Gộp vào hồ sơ này</button></div></details>' : '') +
       (lvl() >= 3 ? '<details class="p-edit"><summary>🗑 Xoá khách (chỉ Quản trị)</summary><div class="box" style="margin:8px 0 0"><p class="small muted" style="margin:0 0 8px">Dùng cho khách nhập thử / nhập nhầm. Xoá hồ sơ khách cùng <b>toàn bộ đơn hàng</b> (kể cả đơn huỷ/hoàn), khách hỏi và nhật ký chăm sóc của số ' + fPhone(c.phone) + '. Không khôi phục được.</p><button class="btn danger" id="cDel">🗑 Xoá khách này</button></div></details>' : '');
     var foot = '<div class="p-quick"><input type="text" id="cQuick" placeholder="✏️ Ghi nhanh: kh dùng ok, hẹn cuối tháng…" enterkeyhint="send"><button class="btn pri" id="cQSave">Lưu</button></div>';
@@ -5041,7 +5041,7 @@
       setGroup('acc', '👤 Tài khoản của tôi', esc(S.user.name) + ' · ' + esc(S.user.role), G.acc) +
       setGroup('lim', '🎯 Số khách chăm sóc mỗi ngày', 'Tối đa ' + dayLimit() + ' khách / ngày', G.lim) +
       setGroup('color', '🎨 Màu thẻ khách & nhãn riêng', myTags().length ? myTags().length + ' nhãn riêng' : 'Đổi màu, tạo nhãn riêng', G.color));
-    if (lvl() < 2) return h;
+    if (lvl() < 2) return h + setSec('🔗 Khách của tôi', setGroup('mrg', '🔗 Khách dùng nhiều số', '1 khách mua bằng 2–3 số: gộp về 1 hồ sơ', mrgBox()));
     var R = S.d.rules || {};
     G.rules = '<div class="box"><h3>⭐ Nhóm khách (VIP, Sắp mất)</h3><p class="hint" style="margin:0 0 10px">Máy tự xếp nhóm cho khách theo các mức dưới đây.</p>' +
       '<div class="row2c"><label class="f"><span>VIP khi mua từ (số đơn)</span><input type="number" id="rVipN" min="1" value="' + esc(R.vipOrders || 3) + '"></label>' +
@@ -5078,8 +5078,7 @@
       '<button class="btn" id="moveBtn">Chuyển khách</button><p class="hint" style="margin:8px 0 0">Dùng khi nhân viên nghỉ việc hoặc đổi ca. Khách hỏi đang theo dõi cũng được chuyển theo.</p></div>';
     G.dup = '<div class="box"><h3>🔀 Khách trùng sale</h3><p class="hint" style="margin:0 0 10px">Khách có trong file Sheet của 2 sale trở lên (trước khi gộp văn phòng, mỗi bạn chăm riêng). Mỗi khách chỉ để <b>1 sale phụ trách chính</b>: chọn người giữ rồi bấm <b>Chốt</b>. Đã chốt thì CRM không báo trùng nữa, các bạn không cần xoá dòng trong file.</p>' +
       '<button class="btn pri" id="dupOpen">Xem khách trùng sale</button></div>';
-    G.mrg = '<div class="box"><h3>🔗 Khách dùng nhiều số</h3><p class="hint" style="margin:0 0 10px">Khách mua bằng 2–3 số điện thoại bị CRM tách thành nhiều hồ sơ. CRM tự tìm hồ sơ nghi cùng 1 người (cùng tên + địa chỉ, hoặc sale ghi số kia trong tên / dòng “SĐT khác”) để gộp lại. Cũng gộp được trong hồ sơ khách → 🔗 Gộp với số khác.</p>' +
-      '<button class="btn pri" id="mrgOpen">Xem khách nghi trùng</button></div>';
+    G.mrg = mrgBox();
     var cy = S.f.cy || (S.f.cy = S.d.cycles.map(function (r) { return r.slice(); }));
     G.cy = '<div class="box"><h3>Chu kỳ dùng sản phẩm</h3><p class="hint" style="margin:0 0 10px">Khách dùng hết 1 hộp/hũ trong bao nhiêu ngày → máy tính ngày “sắp hết hàng” để nhắc đặt lại. Tên chỉ cần chứa 1 phần (ví dụ “DILVANG”). Quy cách để trống = mọi quy cách.</p>' +
       '<div class="edit-table" id="cyT"><div class="edit-row head"><span>Tên sản phẩm (chứa chữ)</span><span>Quy cách</span><span>Số ngày</span><span>Căn cứ</span><span></span></div>' +
@@ -5192,6 +5191,7 @@
       }, function (e) { toast(e.message, true); b.disabled = false; b.textContent = 'Kết nối Telegram'; });
     };
     if (lvl() >= 3) bindCms();
+    if ($('#mrgOpen')) $('#mrgOpen').onclick = function () { openMerges(); };
     if (lvl() < 2) return;
     bindSync();
     $('#modeSave').onclick = function () {
@@ -5216,7 +5216,6 @@
       api('bulk', { from: from, to: to }).then(function (j) { toast('Đã chuyển ' + j.customers + ' khách, ' + j.leads + ' khách hỏi ✓'); load(true); }, function (e) { toast(e.message, true); b.disabled = false; });
     };
     $('#dupOpen').onclick = function () { openDups(); };
-    if ($('#mrgOpen')) $('#mrgOpen').onclick = function () { openMerges(); };
     function sync(tableId, arr, isObj) {
       var t = $('#' + tableId); if (!t) return;
       t.addEventListener('input', function (e) { var r = e.target.closest('[data-i]'), k = e.target.getAttribute('data-k'); if (!r || k == null) return; var i = +r.getAttribute('data-i'); arr[i][isObj ? k : +k] = e.target.type === 'checkbox' ? e.target.checked : e.target.value; });
@@ -5321,6 +5320,10 @@
       if (done) done(j); else { closeModal(true); render(); }
       load(true, true); // tải lại để số đơn, tổng chi, nhãn khách đúng
     }, function (e) { toast(e.message, true); if (btn) btn.disabled = false; });
+  }
+  function mrgBox() {
+    return '<div class="box"><h3>🔗 Khách dùng nhiều số</h3><p class="hint" style="margin:0 0 10px">Khách mua bằng 2–3 số điện thoại bị CRM tách thành nhiều hồ sơ. CRM tự tìm hồ sơ nghi cùng 1 người (cùng tên + địa chỉ, hoặc sale ghi số kia trong tên / dòng “SĐT khác”) để gộp lại. Cũng gộp được trong hồ sơ khách → 🔗 Gộp với số khác.' +
+      (lvl() < 2 ? ' Bạn gộp được khách <b>do mình phụ trách</b>; số của bạn khác phụ trách thì nhờ quản lý.' : '') + '</p><button class="btn pri" id="mrgOpen">Xem khách nghi trùng</button></div>';
   }
   function openMerges() {
     var D = { groups: null, n: 40, pick: {} };

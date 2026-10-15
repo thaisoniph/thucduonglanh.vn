@@ -939,7 +939,6 @@ export async function phoneAlias(x) {
 }
 export async function mainPhone(x, p) { p = normPhone(p); return (await phoneAlias(x))[p] || p; }
 async function crmMerge(x, u, d) {
-  if (u.level < 2) return { ok: false, error: 'Chỉ Quản lý trở lên gộp được khách.' };
   const main = normPhone(d.main), others = [...new Set((d.phones || []).map(normPhone))].filter(p => p && p !== main);
   if (!/^0\d{9,10}$/.test(main) || !others.length) return { ok: false, error: 'Chọn số chính và ít nhất 1 số cần gộp.' };
   if (others.length > 10) return { ok: false, error: 'Mỗi lần gộp tối đa 10 số.' };
@@ -947,6 +946,10 @@ async function crmMerge(x, u, d) {
   const M = cs.find(c => c.phone === main); if (!M) return { ok: false, error: 'Không tìm thấy khách ' + main + ' (có thể đã được gộp).' };
   const O = others.map(p => cs.find(c => c.phone === p)), miss = others.filter((p, i) => !O[i]);
   if (miss.length) return { ok: false, error: 'Không tìm thấy khách ' + miss.join(', ') + ' (có thể đã được gộp).' };
+  if (u.level < 2) { // sale (15/10/2026): chỉ gộp khách mình phụ trách (hoặc chưa ai nhận) – không đụng khách của người khác
+    const other = [M].concat(O).find(c => c.owner && c.owner !== u.name);
+    if (other) return { ok: false, error: 'Số ' + other.phone + ' do ' + other.owner + ' phụ trách. Nhờ quản lý gộp, hoặc nhờ quản lý chuyển khách về bạn trước.' };
+  }
   // ghi chú: số phụ thành dòng "SĐT khác" (hiện 📱 trong hồ sơ, tìm được theo số), ghi chú của số phụ nối xuống dưới
   let note = String(M.note || '');
   const head = others.filter(p => !new RegExp('^\\s*SĐT khác:\\s*' + p, 'm').test(note)).map(p => 'SĐT khác: ' + p);
@@ -980,13 +983,13 @@ async function crmMerge(x, u, d) {
   await recalc(x, [main]);
   await delMark(x, [], others, []); // CRM đang mở ở máy khác bỏ hồ sơ số phụ
   await crmLog(x, u, 'Gộp khách', main, M.name, 'Gộp ' + others.join(', ') + ' vào ' + main, rids.length + ' đơn chuyển sang số chính');
+  if (u.level < 2) x.later(telegram(x.env, '🔗 <b>' + esc(u.name) + ' gộp khách</b> ' + esc(M.name) + ': ' + others.join(', ') + ' → ' + main + ' (' + rids.length + ' đơn chuyển sang số chính)')); // báo nhóm để quản lý biết, gộp nhầm thì tách
   return { ok: true, main, moved: rids.length };
 }
 /** Tên để so khách trùng: bỏ dấu, bỏ "(x)" và số điện thoại sale ghi kèm trong tên. */
 function mergeName(n) { return nrm(n).replace(/\(\s*[x×]\s*\)/g, ' ').replace(/0\d{9,10}/g, ' ').replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim(); }
 /** Gợi ý khách nghi là 1 người: cùng tên + cùng địa chỉ, hoặc sale ghi số kia trong tên / dòng "SĐT khác". */
 async function crmMergeSuggest(x, u) {
-  if (u.level < 2) return { ok: false, error: 'Chỉ Quản lý trở lên.' };
   const cs = await all(x.db, "SELECT phone, name, address, orders, spent, first, last, owner, products, substr(note, 1, 3000) AS note FROM customers WHERE orders > 0 OR coalesce(flag, '') != ''");
   const by = {}, par = {}, why = {}; cs.forEach(c => { by[c.phone] = c; });
   const f = q => par[q] && par[q] !== q ? (par[q] = f(par[q])) : q;
@@ -1006,12 +1009,12 @@ async function crmMergeSuggest(x, u) {
     const items = g.map(ph => { const c = by[ph]; return { phone: ph, name: c.name, address: c.address, orders: c.orders, spent: c.spent, first: c.first, last: c.last, owner: c.owner || '', products: c.products || '' }; })
       .sort((a, b) => b.orders - a.orders || b.spent - a.spent);
     return { key: g.slice().sort().join('|'), items, why: [...new Set(g.flatMap(ph => Object.keys(why[ph])))], spent: items.reduce((s, i) => s + (Number(i.spent) || 0), 0) };
-  }).filter(g => skip.indexOf(g.key) < 0).sort((a, b) => b.spent - a.spent);
+  }).filter(g => skip.indexOf(g.key) < 0 && (u.level >= 2 || (g.items.some(i => i.owner === u.name) && g.items.every(i => !i.owner || i.owner === u.name)))) // sale: chỉ nhóm toàn khách của mình
+    .sort((a, b) => b.spent - a.spent);
   return { ok: true, groups: groups.slice(0, 300), total: groups.length, skipped: skip.length };
 }
 /** "Không phải 1 người": ẩn nhóm gợi ý này. */
 async function crmMergeSkip(x, u, d) {
-  if (u.level < 2) return { ok: false, error: 'Chỉ Quản lý trở lên.' };
   const k = String(d.key || ''); if (!k) return { ok: false, error: 'Thiếu nhóm.' };
   const skip = (await kvJson(x.db, MSKIP_KEY, [])) || []; if (skip.indexOf(k) < 0) skip.push(k);
   await kvSet(x.db, MSKIP_KEY, JSON.stringify(skip.slice(-2000)));
