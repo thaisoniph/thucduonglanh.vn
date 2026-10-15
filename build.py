@@ -145,7 +145,7 @@ def new_tab(html_text, internal=False):
     def fix(m):
         tag = m.group(0)
         h = _A_HREF.search(tag)
-        if not h or re.search(r"\btarget=", tag, re.I):
+        if not h or re.search(r"\b(target|data-lightbox)=", tag, re.I):
             return tag
         href = h.group(1)
         if not href or href.startswith(("#", "tel:", "mailto:", "sms:", "javascript:")):
@@ -1737,6 +1737,7 @@ def proof_drawer(p):
     for s in secs:
         style = s.get("style") or "box"
         inner = ("<ul>" + "".join(f"<li>{md_inline(x)}</li>" for x in (s.get("items") or []) if x) + "</ul>") if style == "list" else md(s.get("text"))
+        inner = inner.replace('data-lightbox="', 'data-lightbox="pd-')  # ảnh trong khung hồ sơ: nhóm riêng, không lặp với ảnh ở trang
         parts.append(f'<div class="pf-doc pf-sec"><h3>{esc(s.get("title"))}</h3>{inner}</div>')
     has_docs = bool(cert or labels or any(x.get("file") for x in proofs))
     label = t("Xem phiếu kiểm nghiệm & nhãn thật" if (cert or any(x.get("file") for x in proofs)) and labels else
