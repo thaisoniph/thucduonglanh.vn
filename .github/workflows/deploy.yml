@@ -31,6 +31,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # cần lịch sử git để ghi ngày sửa thật của từng trang vào sitemap (lastmod)
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -43,3 +45,6 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy dist --project-name=thucduonglanh --branch=main --commit-dirty=true
+      - name: Báo Bing (IndexNow) các trang mới sửa
+        continue-on-error: true
+        run: python scripts/indexnow.py

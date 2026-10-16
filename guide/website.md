@@ -75,7 +75,9 @@ Muốn ẩn bài mà không xoá: tắt **“Hiển thị trên web”**.
     - **Danh sách gạch đầu dòng**.
     - **Bảng thông số 2 cột**, dùng cho bảng dinh dưỡng.
 4. **Công dụng** chỉ ghi đúng hồ sơ công bố. Giữ dòng lưu ý cuối trang: *“Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh.”*
-5. Bấm **Lưu**.
+5. **Nhà sản xuất**: ghi đúng tên trên nhãn / hồ sơ công bố (không hiện trên trang, dùng cho Google).
+6. **Hỏi đáp**: thêm 5–8 câu khách hay hỏi thật (cách dùng, ai dùng được, bảo quản, hồ sơ chất lượng…). Mỗi câu trả lời 1–4 câu, trả lời thẳng ngay câu đầu, có số liệu. Chỉ ghi đúng hồ sơ công bố, không dùng chữ *chữa / điều trị / khỏi bệnh*. Câu *“Mua ở đâu, phí ship bao nhiêu”* web tự thêm, không cần nhập. Khung hỏi đáp giúp khách hỏi Google, ChatGPT, Gemini dễ ra trang của mình.
+7. Bấm **Lưu**.
 
 ## Tạo gói giải pháp (combo)
 
@@ -107,7 +109,7 @@ Vào **Cài đặt website**:
 | **Trang chủ – Ảnh lớn đầu trang & băng chuyền** | **Ảnh lớn đầu trang** (cố định, không tự chạy): dòng nhỏ, tiêu đề, câu dẫn, mã sản phẩm/gói của nút chính (giá tự lấy), chữ trên nút, ảnh, **Dòng tin cậy dưới nút** (tối đa 3 ý ngắn, mỗi ý ghi rõ áp dụng cho sản phẩm nào và gắn link tới mục hồ sơ, ví dụ *Bữa Ăn Dinh Dưỡng: kiểm nghiệm NIFC…* → /san-pham/bua-an-dinh-duong-vitagreen/#kiem-nghiem). **Băng chuyền sản phẩm**: các thẻ nằm dưới mục Danh mục, khách tự lướt. |
 | **Chọn theo nhu cầu** | Các thẻ *Bữa sáng bận rộn*, *Bữa phụ từ hạt*… ở trang chủ (ngay dưới ảnh lớn) và trang Sản phẩm. Gắn sản phẩm vào thẻ ở ô **Nhu cầu** của từng sản phẩm. Thẻ chỉ có 1 sản phẩm thì bấm vào là tới thẳng sản phẩm đó. Không ghi tên bệnh hay công dụng chữa bệnh. |
 | **Hồ sơ thương hiệu (brochure)** | Link sách lật, file PDF, ảnh bìa, các chương, số liệu, giải thưởng |
-| **Danh mục sản phẩm**, **Chuyên mục bài viết** | Thêm, đổi tên danh mục. **Không đổi “Mã”** của danh mục đang có sản phẩm, vì đường link sẽ bị đổi. |
+| **Danh mục sản phẩm**, **Chuyên mục bài viết** | Thêm, đổi tên danh mục. **Không đổi “Mã”** của danh mục đang có sản phẩm, vì đường link sẽ bị đổi. Ô **Giới thiệu chi tiết** (100–200 chữ) hiện dưới danh sách sản phẩm, giúp trang danh mục lên Google. |
 
 Mục **Trang chính sách / hỗ trợ** ở cột trái: nội dung chính sách giao hàng, đổi trả, bảo mật… Có thể gõ {hotline}, {email}, {address}, web tự thay bằng thông tin công ty.
 

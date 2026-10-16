@@ -190,5 +190,40 @@
       "scope": "Nhà máy Vitanuts: sản xuất bột ngũ cốc, bột dinh dưỡng, sản phẩm từ hạt dạng bột",
       "file": "/assets/uploads/ho-so/vitanuts-gmp.webp"
     }
-  ]
+  ],
+  "faq": [
+    {
+      "q": "Bữa Ăn Dinh Dưỡng VitaGreen là gì?",
+      "a": "Là thực phẩm bổ sung dạng bột từ **12 loại hạt và ngũ cốc** (không đậu nành) kết hợp Fucoidan Okinawa Mozuku, Curcumin 95%, Spirulina, Pea Protein và chất xơ FOS. Sản phẩm dùng đường cỏ ngọt, không dùng đường tinh luyện. Sản xuất tại nhà máy Công ty Cổ phần Dinh dưỡng Xanh Vitanuts (GMP, ISO 22000:2018); đơn vị công bố là Công ty TNHH Tập đoàn VitaGreen Nutrition."
+    },
+    {
+      "q": "Có dùng thay bữa ăn được không?",
+      "a": "Sản phẩm dùng **thay bữa phụ hoặc bổ sung cho bữa ăn hằng ngày**, tiện cho người bận rộn, người lớn tuổi ăn uống kém. Trong 100g có 436 kcal, 11,2g chất đạm, 68,5g carbohydrate, 13,6g chất béo, 1,2g FOS."
+    },
+    {
+      "q": "Pha Bữa Ăn Dinh Dưỡng VitaGreen thế nào?",
+      "a": "**Pha nhanh:** 25–30g (3 thìa gạt ngang) với 150–180ml nước khoảng 60°C, khuấy đều, dùng ngay; ngày 2–3 lần. **Pha chuẩn:** 25–30g với 100ml nước nguội, khuấy đều, để ngấm rồi thêm khoảng 100ml nước nóng 70°C. Có thể xay sinh tố cùng hoa quả."
+    },
+    {
+      "q": "Ai dùng được? Trẻ em dùng được không?",
+      "a": "Dùng được cho người **từ 3 tuổi trở lên**: người cần bổ sung dinh dưỡng, người lớn tuổi ăn uống kém, người ăn chay, người bận rộn, người cần thêm đạm thực vật và chất xơ."
+    },
+    {
+      "q": "Người kiêng đường, người tiểu đường dùng được không?",
+      "a": "Sản phẩm dùng đường cỏ ngọt, **không dùng đường tinh luyện**. Tuy vậy sản phẩm vẫn có tinh bột từ ngũ cốc (68,5g carbohydrate trong 100g), nên người tiểu đường cần theo dõi đường huyết và hỏi ý kiến bác sĩ về lượng dùng phù hợp."
+    },
+    {
+      "q": "Mới uống thấy đầy bụng thì làm sao?",
+      "a": "Sản phẩm có nhiều chất xơ nên người mới dùng có thể thấy đầy hơi. Anh/chị giảm còn nửa liều vài ngày đầu rồi tăng dần để cơ thể làm quen."
+    },
+    {
+      "q": "Sản phẩm đã được kiểm nghiệm chưa?",
+      "a": "Đã kiểm nghiệm tại Viện Kiểm nghiệm An toàn Vệ sinh Thực phẩm Quốc gia (NIFC): chỉ tiêu hóa lý, vi sinh, kim loại nặng, Aflatoxin M1 đều đạt yêu cầu. Xem thêm ở mục [Tiêu chuẩn & kiểm nghiệm](#kiem-nghiem)."
+    },
+    {
+      "q": "Bảo quản thế nào, hạn dùng bao lâu?",
+      "a": "Hạn sử dụng 24 tháng kể từ ngày sản xuất. Bảo quản nơi khô ráo, thoáng mát, tránh nắng; sau khi mở nắp nên dùng trong 30 ngày. Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh."
+    }
+  ],
+  "manufacturer": "Công ty Cổ phần Dinh dưỡng Xanh Vitanuts"
 }

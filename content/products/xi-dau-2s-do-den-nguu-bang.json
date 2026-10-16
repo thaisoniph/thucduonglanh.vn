@@ -91,5 +91,32 @@
       "scope": "Đỗ đen: không phát hiện Aflatoxin B1, Aflatoxin tổng, Carbendazim, Propargite, Tebuconazole. Đây là kiểm nghiệm nguyên liệu",
       "file": "/assets/uploads/ho-so/xi-dau-nifc-nguyen-lieu.webp"
     }
-  ]
+  ],
+  "faq": [
+    {
+      "q": "Xì dầu 2S đỗ đen ngưu bàng khác xì dầu thường thế nào?",
+      "a": "Xì dầu 2S được **lên men tự nhiên 99 ngày** theo cách thủ công từ đậu đen xanh lòng Việt Nam và củ ngưu bàng trồng tại Sóc Sơn. Vị đậm đà đến từ chất điều vị tự nhiên trong quá trình lên men, không dùng phụ gia công nghiệp."
+    },
+    {
+      "q": "Thành phần xì dầu 2S gồm những gì?",
+      "a": "Nước, đỗ đen (200g/l), ngưu bàng (60g/l), muối, đường thốt nốt, trà hoa vàng, chất bảo quản, chất điều vị tự nhiên từ lên men."
+    },
+    {
+      "q": "Người ăn chay dùng được không?",
+      "a": "Được. Xì dầu 2S làm từ nguyên liệu thực vật, phù hợp cả người ăn thông thường và người ăn thuần thực vật."
+    },
+    {
+      "q": "Xì dầu 2S dùng để nấu món gì?",
+      "a": "Dùng chấm, trộn trực tiếp hoặc làm gia vị tẩm ướp, kho, xào."
+    },
+    {
+      "q": "Ai sản xuất xì dầu 2S, có chứng nhận gì?",
+      "a": "Nhà sản xuất là HTX Bảo tồn và Phát triển Dược liệu Sóc Sơn (đạt chuẩn hữu cơ Việt Nam và chuẩn hữu cơ Nhật Bản J.A.S). Quy trình sản xuất đạt HACCP; sản phẩm được VNPS xác nhận 100% tự nhiên (mã TN.TP.23.01.01) và đạt Giải Khoa học Sáng tạo TP Hà Nội năm 2025."
+    },
+    {
+      "q": "Một chai bao nhiêu ml?",
+      "a": "Chai 500ml."
+    }
+  ],
+  "manufacturer": "HTX Bảo tồn và Phát triển Dược liệu Sóc Sơn"
 }

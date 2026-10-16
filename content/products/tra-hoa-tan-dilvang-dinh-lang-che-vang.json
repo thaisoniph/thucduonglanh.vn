@@ -337,5 +337,40 @@
     "ruoc-rong-bien-vi-suon-non",
     "bua-an-dinh-duong-vitagreen"
   ],
-  "disclaimer": "Thực phẩm. Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh."
+  "disclaimer": "Thực phẩm. Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh.",
+  "faq": [
+    {
+      "q": "Trà DILVANG là gì?",
+      "a": "Trà hòa tan DILVANG là tinh chất chiết xuất từ **chè vằng và đinh lăng Quảng Trị**, do Công ty Cổ phần Dược liệu Gold Herbal sản xuất tại nhà máy đạt GMP ở Đông Hà, Quảng Trị. Tên DILVANG ghép từ \"Đi\" trong Đinh lăng và \"Vang\" trong Chè vằng."
+    },
+    {
+      "q": "Trà DILVANG gồm những thành phần gì? Có chất bảo quản không?",
+      "a": "Mỗi gói 5g gồm cao khô chè vằng 820mg, cao khô đinh lăng 180mg và phụ liệu maltodextrin. Sản phẩm **không chất bảo quản, không chất chống đông vón, không hương liệu tổng hợp, không phẩm màu nhân tạo**."
+    },
+    {
+      "q": "Pha trà DILVANG thế nào? Mỗi ngày uống mấy gói?",
+      "a": "Cho 1 gói vào cốc, thêm 300–400ml nước ấm 40–50°C, khuấy đều là uống được. Khuyến nghị **2–3 gói mỗi ngày**. Không cần đun sắc, không cần hãm, không có bã."
+    },
+    {
+      "q": "Một hộp trà DILVANG dùng được bao lâu?",
+      "a": "Hộp 75g gồm 15 gói x 5g. Uống 2–3 gói mỗi ngày thì một hộp dùng khoảng 5–7 ngày. Nếu uống đều hằng ngày, anh/chị có thể mua 2–3 hộp một lần cho tiện."
+    },
+    {
+      "q": "Chè vằng Quảng Trị có gì đặc biệt?",
+      "a": "Chè vằng Quảng Trị được Nhà nước bảo hộ **Chỉ dẫn địa lý**, quyền quản lý thuộc Sở Khoa học và Công nghệ tỉnh Quảng Trị. Vùng nguyên liệu của Gold Herbal liên kết với hợp tác xã và hộ dân tại Cam Lộ, Hải Lăng, Vĩnh Linh. Đọc thêm: [Chè vằng Quảng Trị – vì sao được bảo hộ Chỉ dẫn địa lý?](/goc-song-lanh/che-vang-quang-tri-chi-dan-dia-ly/)"
+    },
+    {
+      "q": "Trà DILVANG có hồ sơ chất lượng gì?",
+      "a": "Bản tự công bố sản phẩm số 14.1/GOLDHERBAL/2025; tiêu chuẩn cơ sở TCCS 14.1:2025/GOLDHERBAL; nhà máy đạt GMP theo Giấy chứng nhận số 09/2025/ATTP-CNGMP do Cục An toàn thực phẩm – Bộ Y tế cấp; phiếu kiểm nghiệm số 19395/PKN-VKNQG của Viện Kiểm nghiệm ATVSTP Quốc gia. Xem ảnh bản gốc ở mục [Hồ sơ pháp lý & chất lượng](#kiem-nghiem)."
+    },
+    {
+      "q": "Trà DILVANG có phải là thuốc không?",
+      "a": "Không. Trà DILVANG là thực phẩm. Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh. Nếu đang điều trị bệnh hoặc đang mang thai, anh/chị nên hỏi ý kiến bác sĩ trước khi dùng."
+    },
+    {
+      "q": "Bảo quản trà DILVANG thế nào, hạn dùng bao lâu?",
+      "a": "Hạn sử dụng 24 tháng kể từ ngày sản xuất. Bảo quản nơi khô ráo, thoáng mát, tránh ánh nắng trực tiếp."
+    }
+  ],
+  "manufacturer": "Công ty Cổ phần Dược liệu Gold Herbal (Đông Hà, Quảng Trị)"
 }

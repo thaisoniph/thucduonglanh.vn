@@ -110,5 +110,27 @@
       "scope": "Huong Sac Vegan Co., Ltd. (Hai Phong): production and trading of vegetarian foods",
       "date": "06/10/2025 – valid until 05/10/2028"
     }
+  ],
+  "faq": [
+    {
+      "q": "Is the seaweed floss with vegan ribs really vegan?",
+      "a": "Yes. It is **fully plant-based**: vegan ribs (80%), seaweed (12%), sesame, lime leaves, vegetable oil and vegan seasonings. No preservatives."
+    },
+    {
+      "q": "What do I eat it with?",
+      "a": "Straight on hot rice, congee, sticky rice, bread, rice balls, lunch boxes or sprinkled over salad. Nutty and savoury with lime leaf and toasted sesame."
+    },
+    {
+      "q": "Can children eat it? Is it salty?",
+      "a": "It suits the whole family, including students, older adults and vegetarians. Sodium is 1,200–1,800mg per 100g, so enjoy it in moderation as a side."
+    },
+    {
+      "q": "What sizes are available?",
+      "a": "Two sizes: a **215g jar** and a **165g jar**."
+    },
+    {
+      "q": "How do I store it after opening?",
+      "a": "Keep in a dry, cool place away from sunlight. Close tightly after each use; best within 7 days of opening."
+    }
   ]
 }

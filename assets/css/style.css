@@ -1670,3 +1670,17 @@ ul.p-trust{list-style:none;padding:0;margin:0 0 16px;display:grid;gap:4px;font-s
 .d-box .hs-grid a:hover{box-shadow:var(--shadow);transform:translateY(-2px)}
 .d-box .hs-grid img{display:block;width:100%;aspect-ratio:3/4;object-fit:contain;background:#fff;padding:4px}
 @media (max-width:760px){.d-box .hs-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Hỏi đáp trang sản phẩm (#hoi-dap) + đoạn giới thiệu cuối trang danh mục (SEO) */
+.pfaq-wrap{display:grid;gap:10px;max-width:860px}
+.pfaq-wrap .sec-title{margin-bottom:12px}
+.pfaq-q{background:#fff;border:1px solid var(--line);border-radius:14px;padding:0 18px}
+.pfaq-q summary{cursor:pointer;font-weight:600;color:var(--ink);padding:15px 28px 15px 0;list-style:none;position:relative}
+.pfaq-q summary::-webkit-details-marker{display:none}
+.pfaq-q summary::after{content:"+";position:absolute;right:0;top:12px;font-size:22px;color:var(--primary)}
+.pfaq-q[open] summary::after{content:"–"}
+.pfaq-a{font-size:14.5px;line-height:1.65}
+.pfaq-a p{margin:0 0 14px}
+.cat-about{max-width:860px;margin:40px 0 0;font-size:15px;line-height:1.7;color:var(--ink)}
+.cat-about h2{font-size:22px;margin:0 0 12px}
+.cat-about h3{font-size:17px;margin:20px 0 8px}

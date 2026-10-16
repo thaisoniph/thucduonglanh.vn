@@ -183,5 +183,35 @@
       "scope": "Nhà máy Vitanuts: sản xuất bột ngũ cốc, bột dinh dưỡng, sản phẩm từ hạt dạng bột",
       "file": "/assets/uploads/ho-so/vitanuts-gmp.webp"
     }
+  ],
+  "faq": [
+    {
+      "q": "Dinh Dưỡng Từ Hạt và Curcumin là gì?",
+      "a": "Là sữa hạt dạng bột kết hợp **Curcumin tinh khiết 95%**, tảo biển và **15 loại hạt, ngũ cốc** (hạt macca, hạt sen, yến mạch, óc chó, hạt chia, hạt bí, ngô, đậu Hà Lan, hạt sachi, gạo lứt, mè đen, hạnh nhân, đậu xanh, đậu đỏ, đậu gà). Curcumin chiết tách từ nghệ vàng Việt Nam bằng công nghệ của Viện Hoá học Công nghiệp Việt Nam. Chịu trách nhiệm chất lượng: Công ty CP Dinh dưỡng Xanh Vitanuts."
+    },
+    {
+      "q": "Pha thế nào, mỗi ngày uống mấy ly?",
+      "a": "Pha 3 muỗng bột (khoảng 30g) với 150–180ml nước ấm 60–70°C, khuấy đều. Uống 1 ly 180ml, **2–3 lần mỗi ngày**. Người mới dùng có thể bắt đầu với nửa liều rồi tăng dần."
+    },
+    {
+      "q": "Ai nên dùng? Trẻ em dùng được không?",
+      "a": "Dùng được cho **trẻ từ 3 tuổi trở lên**, người cao tuổi, người có hệ tiêu hóa nhạy cảm, người cần bồi bổ hoặc mới ốm dậy, người muốn kiểm soát cân nặng và người ăn chay."
+    },
+    {
+      "q": "Người tiểu đường, kiêng đường dùng được không?",
+      "a": "Sản phẩm dùng đường cỏ ngọt, **không dùng đường tinh luyện**. Sản phẩm vẫn có tinh bột từ hạt và ngũ cốc (55,8g carbohydrate trong 100g), nên người tiểu đường cần theo dõi đường huyết và hỏi ý kiến bác sĩ về lượng dùng phù hợp."
+    },
+    {
+      "q": "Người đang điều trị bệnh có dùng được không?",
+      "a": "Đây là thực phẩm dùng để bổ sung dinh dưỡng, không thay thế phác đồ điều trị. Người đang điều trị bệnh có thể dùng song song và nên hỏi ý kiến bác sĩ điều trị. Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh."
+    },
+    {
+      "q": "Mới uống thấy đầy bụng thì làm sao?",
+      "a": "Do sản phẩm có nhiều chất xơ từ hạt. Anh/chị tạm dừng 1–2 hôm hoặc giảm còn nửa liều rồi tăng dần để cơ thể làm quen."
+    },
+    {
+      "q": "Bảo quản thế nào, hạn dùng bao lâu?",
+      "a": "Chưa mở: để nơi thoáng mát, tránh ánh nắng, hạn sử dụng 24 tháng. Đã mở: đậy kín, dùng trong 30 ngày."
+    }
   ]
 }

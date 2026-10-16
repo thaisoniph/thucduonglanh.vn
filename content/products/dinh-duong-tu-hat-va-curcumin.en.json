@@ -135,5 +135,35 @@
       "scope": "Vitanuts factory: production of cereal powders, nutrition powders and powdered seed products",
       "date": "Issued 04/04/2026 – valid until 03/04/2029"
     }
+  ],
+  "faq": [
+    {
+      "q": "What is Seed Nutrition with Curcumin?",
+      "a": "A powdered seed milk combining **95% pure Curcumin**, seaweed and **15 seeds and grains** (macadamia, lotus seed, oats, walnut, chia, pumpkin seed, corn, green peas, sacha inchi, brown rice, black sesame, almond, mung bean, red bean, chickpea). The Curcumin is extracted from Vietnamese turmeric using technology from the Vietnam Institute of Industrial Chemistry. Quality responsibility: Vitanuts Green Nutrition JSC."
+    },
+    {
+      "q": "How do I prepare it, and how many glasses a day?",
+      "a": "Mix 3 scoops (about 30g) with 150–180ml warm water at 60–70°C and stir. Drink a 180ml glass **2–3 times a day**. New users can start with half a serving and increase gradually."
+    },
+    {
+      "q": "Who should use it? Is it suitable for children?",
+      "a": "Suitable for **children aged 3 and up**, older adults, people with sensitive digestion, those recovering from illness, people managing their weight and vegetarians."
+    },
+    {
+      "q": "Is it suitable for people with diabetes or avoiding sugar?",
+      "a": "It is sweetened with stevia and contains **no refined sugar**. It still contains starch from seeds and grains (55.8g carbohydrate per 100g), so people with diabetes should monitor their blood sugar and ask their doctor about a suitable amount."
+    },
+    {
+      "q": "Can people under medical treatment use it?",
+      "a": "It is a food for extra nutrition and does not replace any treatment plan. People under treatment can use it alongside and should consult their doctor. This product is not a medicine and does not replace medical treatment."
+    },
+    {
+      "q": "I feel bloated when I first drink it. What should I do?",
+      "a": "This comes from the fibre in the seeds. Pause for 1–2 days or drop to half a serving, then increase gradually."
+    },
+    {
+      "q": "How should I store it and what is the shelf life?",
+      "a": "Unopened: keep in a cool place away from sunlight, shelf life 24 months. Opened: close tightly and use within 30 days."
+    }
   ]
 }
