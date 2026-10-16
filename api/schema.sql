@@ -118,3 +118,13 @@ CREATE TABLE IF NOT EXISTS owner_chg (id INTEGER PRIMARY KEY AUTOINCREMENT, phon
 
 -- Lượt quét mã QR / mở link ngắn thucduonglanh.vn/q/<mã>/ (data/links.json): 1 lượt / máy / ngày, không lưu thông tin khách
 CREATE TABLE IF NOT EXISTS qr_hits (code TEXT NOT NULL, day TEXT NOT NULL, n INTEGER DEFAULT 0, PRIMARY KEY (code, day));
+
+-- 📍 Link & mã QR (api/src/links.js, CRM tab 📍 Link & QR): mã không đổi / không xoá (đã in thì phải luôn chạy), active = 0 chỉ ẩn khỏi danh sách
+CREATE TABLE IF NOT EXISTS links (code TEXT PRIMARY KEY, name TEXT NOT NULL, kind TEXT DEFAULT 'khac', dest TEXT DEFAULT '/', note TEXT DEFAULT '', active INTEGER DEFAULT 1, by_name TEXT DEFAULT '', at INTEGER, upd_by TEXT DEFAULT '', upd_at INTEGER);
+-- 3 link đầu tiên (16/10/2026, chuyển từ data/links.json của /admin). OR IGNORE: không ghi đè chỗ đã sửa trong CRM
+INSERT OR IGNORE INTO links (code, name, kind, dest, note, active, by_name, at) VALUES
+  ('sk', 'Tờ rơi phát ở sự kiện', 'to-roi', 'https://thucduonglanh.vn/', 'Phát ở các chương trình offline (chương trình thầy Tư, hội chợ…). Xem từng sự kiện bằng cách chọn ngày diễn ra sự kiện trong CRM.', 1, 'Thái Sơn', 1792138276354),
+  ('st', 'Standee mang đi sự kiện', 'standee', '/', 'Standee của công ty mang đi các chương trình offline.', 1, 'Thái Sơn', 1792138276354),
+  ('goi', 'Tờ rơi gửi kèm đơn hàng', 'goi-hang', '/', 'Bỏ vào hộp khi đóng gói đơn (đơn sàn, đơn sale): kéo khách cũ về đặt lại trên web.', 1, 'Thái Sơn', 1792138276354);
+-- chống đếm trùng lượt quét: 1 lượt / máy / mã / ngày (khoá = ngày:mã:băm IP+trình duyệt, xoá sau 2 ngày)
+CREATE TABLE IF NOT EXISTS qr_seen (k TEXT PRIMARY KEY, day TEXT);
