@@ -88,7 +88,8 @@ function codeDay(code) { const c = codeDays(code)[0]; return c ? c[0] + '/' + c[
  *  năm của các dòng bên dưới (`anchor`), ngày sau anchor quá 20 ngày thì lùi 1 năm.
  *  Mã lệch ô ngày quá 45 ngày (1 trong 2 gõ nhầm): lấy bên nào gần các dòng xung quanh hơn (`far`).
  *  Trả về [{ t, sw (ô bị đảo kiểu Mỹ), old (ngày theo ô như bản cũ), code (1 = ngày đổi theo mã), far }]. */
-function orderDates(rows, m) {
+function orderDates(rows, m, rule) {
+  const cellFirst = rule !== 'code', dm = t => fmtDate(t, 'dd/MM').split('/').map(Number), dn = t => Math.floor((t + 7 * 3600e3) / DAY);
   const ctx = dateCtx(rows, m), now = Date.now(), out = rows.map(r => {
     const raw = cell(r, m, 'date'), code = String(cell(r, m, 'code') || '').trim(), t = toDate(raw, ctx, code);
     const full = !!t && (isSerial(raw) || /^\s*\d{1,2}\/\d{1,2}\/\d{2,4}/.test(String(raw)) || /^\d{4}-\d{2}-\d{2}/.test(String(raw).trim()));
@@ -102,18 +103,29 @@ function orderDates(rows, m) {
   const nearest = (L, ref) => L.slice().sort((a, b) => Math.abs(a - ref) - Math.abs(b - ref))[0];
   for (let i = out.length - 1; i >= 0; i--) {
     const o = out[i]; if (!o.cds.length && !o.t) continue;
+    if (cellFirst && !o.t) { o.blank = 1; continue; } // ô ngày trống: lấy theo dòng trên (lượt sau)
     let t = o.t;
     if (o.cds.length) {
       if (o.t) { // có ô ngày: mã gần ô ngày (≤ 45 ngày) → theo mã
         const y0 = vnYear(o.t), c = nearest(o.cds.flatMap(([d, mo]) => [y0 - 1, y0, y0 + 1].map(y => vnMs(y, mo, d))), o.t);
-        if (Math.abs(c - o.t) <= 45 * DAY) t = o.full ? c : byAnchor(fmtDate(c, 'dd/MM').split('/').map(Number));
-        else { o.far = 1; const cand = o.cds.map(byAnchor).concat([o.full ? o.t : byAnchor(fmtDate(o.t, 'dd/MM').split('/').map(Number))]); t = nearest(cand, anchor); }
+        if (Math.abs(c - o.t) <= 45 * DAY) t = cellFirst ? (o.full ? o.t : byAnchor(dm(o.t))) : o.full ? c : byAnchor(dm(c));
+        else { o.far = 1; const own = o.full ? o.t : byAnchor(dm(o.t)), cand = o.cds.map(byAnchor).concat([own]); t = nearest(cand, anchor); o.farCode = t !== own; }
       } else t = nearest(o.cds.map(byAnchor), anchor); // ô ngày trống
     } else if (!o.full) t = byAnchor(fmtDate(o.t, 'dd/MM').split('/').map(Number));
-    if (!o.t || day(t) !== day(o.t)) { o.t = t; o.code = 1; o.byCode = o.cds.length > 0; }
+    if (!o.t || day(t) !== day(o.t)) { o.t = t; o.code = 1; o.byCode = cellFirst ? !!o.farCode : o.cds.length > 0; }
     if (o.t > now + 30 * DAY) { o.t = null; continue; }
     if (o.t >= anchor - 60 * DAY) { anchor = Math.min(Math.max(o.t, anchor - 60 * DAY), now + 2 * DAY); low = []; }
     else if (low.push(o.t) >= 3) { anchor = low[low.length - 1]; low = []; }
+  }
+  if (cellFirst) { // ô ngày trống → ngày của dòng có ngày gần nhất phía trên. Mã đơn cùng ngày / sau 1 ngày (chốt tối, gửi sáng) vẫn theo dòng trên;
+    let prev = null; // mã lệch xa hơn (dòng trên đã cách nhiều ngày, sheet không theo thứ tự) → theo mã đơn. Không có dòng trên → theo mã.
+    for (const o of out) {
+      if (!o.blank) { if (o.t) prev = o.t; continue; }
+      const ref = prev || now, cd = o.cds.length ? nearest(o.cds.flatMap(([d, mo]) => [vnYear(ref) - 1, vnYear(ref), vnYear(ref) + 1].map(y => vnMs(y, mo, d))).filter(c => c <= now + 2 * DAY), ref) : null;
+      let t = null;
+      if (prev && (cd == null || (dn(cd) - dn(prev) >= 0 && dn(cd) - dn(prev) <= 1))) t = prev; else if (cd != null) { t = cd; o.byCode = 1; }
+      o.t = t && t <= now + 30 * DAY ? t : null; o.fill = 1; if (o.t) prev = o.t;
+    }
   }
   return out;
 }
@@ -262,11 +274,13 @@ async function srcRows(x, src, shCfg) {
 }
 
 /** Đồng bộ 1 sheet của 1 file sale. d = { id, name (tên sheet), dry }. */
+const DATE_RULE = 'code'; // 'cell': ngày theo cột ngày, ô trống theo dòng trên · 'code': ngày theo mã đơn (12/10/2026)
 async function srcSync(x, u, d) {
   const src = (await srcList(x)).find(s => s.id === d.id); if (!src) return { ok: false, error: 'Không tìm thấy nguồn.' };
   const sheets = src.cfg.sheets || [];
   if (d.name) { d.sheet = -1; sheets.forEach((s, i) => { if (s.name === d.name) d.sheet = i; }); }
-  const shCfg = sheets[d.sheet]; if (!shCfg || shCfg.role === 'skip') return { ok: false, error: 'Sheet "' + (d.name || d.sheet) + '" không được chọn để nhập.' };
+  let shCfg = sheets[d.sheet]; if (d.dry && /^(cell|code)$/.test(d.rule || '') && shCfg) shCfg = Object.assign({}, shCfg, { rule: d.rule }); // xem trước quy tắc ngày khác
+  if (!shCfg || shCfg.role === 'skip') return { ok: false, error: 'Sheet "' + (d.name || d.sheet) + '" không được chọn để nhập.' };
   const sale = src.sale; if (!(await crmUsers(x)).some(y => y.name === sale)) return { ok: false, error: 'Chưa có nhân sự tên "' + sale + '" trong CRM. Thêm ở Cài đặt → Nhân sự trước.' };
   if (Number(d.offset) > 0) return { ok: true, role: shCfg.role, sheetName: shCfg.name, total: 0, newOrders: 0, dup: 0, skip: 0, customers: 0, newCustomers: 0, conflicts: [], conflictCount: 0, revenue: 0, summary: '' }; // bản cũ gửi từng phần: phần đầu đã xử lý hết
   const data = await srcRows(x, src, shCfg), total = data.rows.length; let res;
@@ -295,7 +309,7 @@ async function ownersOf(x, phones) {
 async function importOrders(x, src, shCfg, data, dry) {
   const m = shCfg.map || {}, sale = src.sale, extra = (shCfg.extra || []).filter(i => i >= 0), H = data.headers, label = 'File ' + sale + ' – ' + shCfg.name, ca = await caCfg(x);
   const until = src.cfg.until ? new Date(src.cfg.until + 'T00:00:00+07:00').getTime() : 0, FINAL = { 'Đã giao': 1, 'Hoàn': 1, 'Huỷ': 1, 'Đổi hàng': 1 };
-  const parsed = [], days = orderDates(data.rows, m), far = [], AL = await phoneAlias(x);
+  const parsed = [], rule = shCfg.rule || DATE_RULE, days = orderDates(data.rows, m, rule), far = [], AL = await phoneAlias(x);
   let skip = 0;
   for (const [ri, r] of data.rows.entries()) {
     const fp = toPhone(cell(r, m, 'phone')), phone = AL[fp] || fp, codeRaw = String(cell(r, m, 'code') || '').trim(), product = String(cell(r, m, 'product') || '').trim(), amount = toMoney(cell(r, m, 'amount'));
@@ -306,7 +320,7 @@ async function importOrders(x, src, shCfg, data, dry) {
     const nkOf = t => { const hk = sale + '|' + fmtDate(t, 'yyyyMMdd') + '|' + fp + '|' + amount + '|' + nrm(product); return ['NK' + hashKey(hk), 'NK' + hashKeyLegacy(hk)]; };
     const [nk, old] = nkOf(when), prev = D.old && fmtDate(D.old, 'yyyyMMdd') !== fmtDate(when, 'yyyyMMdd') ? nkOf(D.old) : [];
     const key = valid ? codeRaw : nk, alt = (valid ? [nk, old] : [old]).concat(prev); // alt: mã NK… cùng dòng (Apps Script cũ băm chữ có dấu thành "?"; sale điền mã đơn sau khi đã nhập; ngày cũ theo ô trước khi lấy theo mã)
-    parsed.push({ r, phone, when, sw, dc: D.code && D.old ? (D.byCode ? 1 : 2) : 0, product, amount, codeRaw, valid, key, alt, yk: valid ? codeRaw + '-' + fp.slice(-4) : '', sig: fp + '|' + fmtDate(when, 'yyyyMMdd') + '|' + amount + '|' + nrm(product || cell(r, m, 'gift1')) });
+    parsed.push({ r, phone, when, sw, fill: D.fill, dc: D.code && D.old ? (D.byCode ? 1 : 2) : 0, product, amount, codeRaw, valid, key, alt, yk: valid ? codeRaw + '-' + fp.slice(-4) : '', sig: fp + '|' + fmtDate(when, 'yyyyMMdd') + '|' + amount + '|' + nrm(product || cell(r, m, 'gift1')) });
   }
   const ex = {}; (await allIn(x.db, 'SELECT rid, id, status, source, name, phone, time, total, items, note FROM orders WHERE id IN (SELECT value FROM json_each(?))', [...new Set(parsed.flatMap(p => [p.key, p.yk].concat(p.alt)).filter(String))])).forEach(o => { ex[o.id] = o; });
   // Mã đơn không có năm → trùng giữa các năm / giữa các sheet ("Chang101001" năm 2025 và 2026 là 2 khách khác nhau). Mã đã thuộc đơn của khách khác
@@ -356,7 +370,8 @@ async function importOrders(x, src, shCfg, data, dry) {
     (p, o) => o.day === p.day && cnt(pool[p.phone] || [], q => q.day === p.day) === 1 && cnt(rest, q => !q.o && q.phone === p.phone && q.day === p.day) === 1] // cùng ngày chỉ có 1 đơn cũ và 1 dòng
     .forEach(rule => rest.forEach(p => { if (!p.o) { const o = take(p, o => rule(p, o)); if (o) { p.o = o; p.edited = 1; } } }));
   // đơn file đã ghép có mã đơn thật: sale sửa ngày / tiền / sản phẩm trong file (đơn 60 ngày gần đây, chưa ai sửa đơn trên CRM) → CRM theo file
-  const chkIds = parsed.filter(p => p.o && !p.edited && String(p.o.source || '').indexOf('File ') === 0 && (p.when > Date.now() - 60 * DAY || p.o.time > Date.now() - 60 * DAY || p.sw) && (prodOf(p.o.items) !== p.prod || (p.amount > 0 && Number(p.o.total) !== p.amount) || fmtDate(p.o.time, 'yyyyMMdd') !== p.day)).map(p => p.o.id);
+  // Ngày theo cột ngày (rule 'cell', anh Sơn chọn 16/10/2026): ngày lệch file thì sửa theo file ở mọi đơn file, kể cả đơn cũ
+  const chkIds = parsed.filter(p => p.o && !p.edited && String(p.o.source || '').indexOf('File ') === 0 && ((rule !== 'code' && fmtDate(p.o.time, 'yyyyMMdd') !== p.day) || ((p.when > Date.now() - 60 * DAY || p.o.time > Date.now() - 60 * DAY || p.sw) && (prodOf(p.o.items) !== p.prod || (p.amount > 0 && Number(p.o.total) !== p.amount) || fmtDate(p.o.time, 'yyyyMMdd') !== p.day)))).map(p => p.o.id);
   const handEdit = {}; if (chkIds.length) (await allIn(x.db, "SELECT DISTINCT ref FROM logs WHERE what = 'Sửa đơn' AND ref IN (SELECT value FROM json_each(?))", [...new Set(chkIds)])).forEach(l => { handEdit[l.ref] = 1; });
   const crmDay = {}, webOf = {}, webRid = {}; (await allIn(x.db, "SELECT rid, id, phone, time, total, subtotal, status, seller, name, source, note FROM orders WHERE phone IN (SELECT value FROM json_each(?)) AND source NOT LIKE 'File %'", [...new Set(parsed.map(p => p.phone))])).forEach(o => { crmDay[o.phone + '|' + fmtDate(o.time, 'yyyyMMdd') + '|' + (Number(o.total) || 0)] = 1; (webOf[o.phone] = webOf[o.phone] || []).push(o); webRid[o.rid] = o; }); // đơn tạo trên CRM / web (đã ghi ngược vào file)
   // Đơn web / CRM chưa giao mà sale lên lại trong file vài ngày sau (12/10/2026: chị Vân đặt web 05/10, Phương lên đơn trong file 07/10 → bị tính 2 đơn).
@@ -399,7 +414,7 @@ async function importOrders(x, src, shCfg, data, dry) {
       const st1 = mapStatus(cell(r, m, 'status'), when), cur = ex[key];
       if (String(cur.source || '').indexOf('File ') === 0 && (p.edited || chkIds.indexOf(cur.id) >= 0) && !handEdit[cur.id] && !seen['c' + cur.rid]) {
         seen['c' + cur.rid] = 1; const amt = amount || Number(cur.total) || 0, items = rowItems(r, product, amt); // ô tiền trống: giữ số tiền cũ
-        chg.push({ why: p.dc === 1 ? 'Ngày theo mã đơn ' + p.codeRaw + ' (file ' + shCfg.name + ')' : p.dc === 2 ? 'Năm của ngày ' + fmtDate(when, 'dd/MM') + ' suy theo các dòng xung quanh (file ' + shCfg.name + ')' : p.sw ? 'Ngày trong file ' + shCfg.name + ' bị đảo ngày/tháng (định dạng Mỹ)' : String(cur.source || '').endsWith(' – ' + shCfg.name) ? '' : 'Mã đơn trùng với dòng sheet khác (' + String(cur.source).replace(/^File .* – /, '') + ')', rid: cur.rid, time: when, total: amt, subtotal: amt, items: itemsText(items), line: normLine(cell(r, m, 'line'), product), ship: String(cell(r, m, 'shipText') || '').trim() || shipText(items), name: cur.name, id: key, from: fmtDate(cur.time, 'dd/MM') + ' ' + (Number(cur.total) || 0).toLocaleString('vi-VN') + 'đ ' + String(cur.items || '').split('\n')[0].replace(/\s+x\d+\s*=.*$/, ''), to: fmtDate(when, 'dd/MM') + ' ' + amt.toLocaleString('vi-VN') + 'đ ' + product });
+        chg.push({ why: rule !== 'code' && fmtDate(cur.time, 'yyyyMMdd') !== p.day && !p.dc && !p.sw ? (p.fill ? 'Ô ngày trống: lấy ngày dòng trên (file ' + shCfg.name + ')' : 'Ngày theo cột ngày trong file ' + shCfg.name + ' (trước đây theo mã đơn)') : p.dc === 1 ? 'Ngày theo mã đơn ' + p.codeRaw + ' (file ' + shCfg.name + ')' : p.dc === 2 ? 'Năm của ngày ' + fmtDate(when, 'dd/MM') + ' suy theo các dòng xung quanh (file ' + shCfg.name + ')' : p.sw ? 'Ngày trong file ' + shCfg.name + ' bị đảo ngày/tháng (định dạng Mỹ)' : String(cur.source || '').endsWith(' – ' + shCfg.name) ? '' : 'Mã đơn trùng với dòng sheet khác (' + String(cur.source).replace(/^File .* – /, '') + ')', rid: cur.rid, time: when, total: amt, subtotal: amt, items: itemsText(items), line: normLine(cell(r, m, 'line'), product), ship: String(cell(r, m, 'shipText') || '').trim() || shipText(items), name: cur.name, id: key, from: fmtDate(cur.time, 'dd/MM') + ' ' + (Number(cur.total) || 0).toLocaleString('vi-VN') + 'đ ' + String(cur.items || '').split('\n')[0].replace(/\s+x\d+\s*=.*$/, ''), to: fmtDate(when, 'dd/MM') + ' ' + amt.toLocaleString('vi-VN') + 'đ ' + product });
         chgPh[phone] = 1;
       }
       if (String(cur.source || '').indexOf('File ') === 0 && st1 !== cur.status && FINAL[st1]) {
@@ -440,6 +455,7 @@ async function importOrders(x, src, shCfg, data, dry) {
   const summary = out.length + ' đơn mới, ' + dup + ' đã có' + (upd.length ? ' (' + upd.length + ' cập nhật trạng thái)' : '') + (ren.length ? ', ' + ren.length + ' đơn nhận mã đơn mới' : '') + (chg.length ? ', ' + chg.length + ' đơn sửa theo file' : '') + (orphan.length ? ', xoá ' + orphan.length + ' đơn trùng' : '') + (afterCut ? ', ' + afterCut + ' đơn sau ngày chốt bỏ qua' : '') + ', ' + skip + ' dòng bỏ qua' + (far.length ? ', ' + far.length + ' mã đơn lệch ô ngày quá 45 ngày (lấy theo mã)' : '');
   const res = { updated: upd.length, renamed: ren.length, changed: chg.length, removed: orphan.length, afterCut, rows: data.rows.length, newOrders: out.length, dup, skip, customers: Object.keys(phones).length, newCustomers: newCus, conflicts: conflicts.slice(0, 50), conflictCount: conflicts.length, revenue, from: minD, to: maxD, far, summary };
   if (phChg.length) { res.phChg = phChg.slice(0, 50); res.summary += ', ' + phChg.length + ' đơn file ghi SĐT khác CRM (giữ đơn cũ, đã báo Quản trị)'; if (!dry) await phChgAlert(x, sale, shCfg.name, phChg); }
+  if (dry && shCfg.rule) res.chgList = chg.map(c => ({ id: c.id, name: c.name, from: c.from, to: c.to, why: c.why, t0: Number((ex[c.id] || {}).time) || 0, t1: c.time, total: c.total })); // xem trước quy tắc ngày
   res.merged = wMerge.length; res.mergedDel = wDel.length; if (wMerge.length) res.summary += ', ' + wMerge.length + ' dòng là đơn web/CRM sale lên lại (không tính thêm đơn' + (wDel.length ? ', xoá ' + wDel.length + ' đơn trùng' : '') + ')';
   if (dry || (!out.length && !upd.length && !ren.length && !chg.length && !orphan.length && !wDel.length && !wUpd.length && !wlDirty && !noteAdd.length)) return res;
   for (let i = 0; i < noteAdd.length; i += 300) await run(x.db, "UPDATE orders SET note = json_extract(j.value, '$.note') FROM json_each(?) j WHERE orders.rid = json_extract(j.value, '$.rid')", JSON.stringify(noteAdd.slice(i, i + 300)));
