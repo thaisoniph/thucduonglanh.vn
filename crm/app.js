@@ -712,6 +712,24 @@
     out.addEventListener('click', function (e) { if (e.target.closest('.gs-it')) closeModal(true); });
     setTimeout(function () { qi.focus(); }, 60);
   }
+  /* ---------- ✨ AI (Đợt 3, 16/10/2026): tóm tắt hồ sơ khách / viết tin nhắn. Chỉ hiện khi máy chủ có khoá AI (rules.ai). Tên khách không gửi đi: AI viết [Tên], máy này điền lại. */
+  function aiBox(c) {
+    if (!S.d.rules || !S.d.rules.ai) return '';
+    return '<div class="ai-box"><button type="button" class="btn sm" data-ai="sum" data-aiph="' + c.phone + '">✨ Tóm tắt khách bằng AI</button><div class="ai-out" hidden></div></div>';
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-ai]'); if (!b || !S.d) return;
+    e.preventDefault(); e.stopPropagation();
+    var kind = b.getAttribute('data-ai'), c = cust(b.getAttribute('data-aiph')); if (!c) return;
+    var box = b.closest('.ai-box'), out = box && $('.ai-out', box), m = b.closest('.modal'), txt = b.textContent;
+    b.disabled = true; b.textContent = '⏳ AI đang đọc hồ sơ…';
+    api('ai_sum', { phone: c.phone, kind: kind, task: b.getAttribute('data-aitask') || '' }).then(function (j) {
+      var t = String(j.text || '').split('[Tên]').join(c.name || 'anh/chị');
+      if (kind === 'msg') { var ta = m && $('#kMsg', m); if (ta) { ta.value = t; ta.focus(); } toast('AI đã viết tin, bạn đọc lại và sửa trước khi gửi'); }
+      else if (out) { out.hidden = false; out.innerHTML = '<p class="small muted" style="margin:0 0 4px">✨ AI tóm tắt' + (j.cached ? ' (đã có sẵn hôm nay)' : '') + ' · chỉ để tham khảo, kiểm tra lại trước khi nói với khách</p>' + esc(t).replace(/\n/g, '<br>'); }
+      b.disabled = false; b.textContent = txt;
+    }, function (er) { b.disabled = false; b.textContent = txt; toast(er.message, true); });
+  }, true);
   function setWho(v) { S.who = v || ''; store('crm_who', S.who); ['c', 'o', 't'].forEach(function (k) { if (S.f[k]) S.f[k].n = 60; }); navBadges(); render(); }
   function navBadges() {
     var fb = $('#fbBtn'); if (fb) { var fd = $('.dot', fb); if (fd) fd.remove(); if (lvl() >= 2 && S.d.fbNew) fb.insertAdjacentHTML('beforeend', '<span class="dot">' + S.d.fbNew + '</span>'); }
@@ -1562,7 +1580,7 @@
       '<div class="p-lines"><span>🛒 Mua gần nhất: <b>' + daysAgo(c.last) + '</b> (' + fDate(c.last) + ')</span><span id="pHabit">' + habit() + '</span>' +
       (c.backN ? '<span>↩ ' + c.backN + ' lần hoàn' + (c.lastBack ? ' (gần nhất ' + fDate(c.lastBack) + ')' : '') + (riskyReturn(c) ? ' · <span class="bad-line">hay hoàn: nên nhờ khách chuyển khoản trước</span>' : ' · vẫn là khách tốt') + '</span>' : '') +
       noteExtras(c.note).map(function (l) { var i = l.indexOf(':'), k = l.slice(0, i).trim(); return '<span>' + (EXTRA_IC[k] || '•') + ' ' + esc(k) + ': <b>' + esc(l.slice(i + 1).trim()) + '</b></span>'; }).join('') +
-      (sg ? '<span><span class="sug" title="Khách mua sản phẩm giống khách này hay mua thêm sản phẩm này">💡 Gợi ý giới thiệu: ' + esc(sg) + '</span></span>' : '') + '</div>' +
+      (sg ? '<span><span class="sug" title="Khách mua sản phẩm giống khách này hay mua thêm sản phẩm này">💡 Gợi ý giới thiệu: ' + esc(sg) + '</span></span>' : '') + '</div>' + aiBox(c) +
       (live ? '<div class="notice click" data-poid="' + esc(live.id) + '">' + (trkWarn(live) ? '⚠️' : '🚚') + ' Khách đang có đơn <b>' + fDate(live.time).slice(0, 5) + '</b> (' + esc(live.status) + (live.trk ? ': ' + esc(live.trk) : '') + ') chưa giao xong. Hỏi thăm đơn này trước, chưa nên chào thêm. <u>Xem đơn</u></div>' : '') +
       (coldOf(c) ? '<div class="notice" style="background:#eef2f7;color:#334">❄️ <b>Khách lạnh</b> (' + esc(coldOf(c)) + '): không đưa vào danh sách gọi hằng ngày. ' + (coldOf(c) === 'Không dùng nữa' ? 'Sau 6 tháng tự quay lại để chào lại 1 lần; khách đặt đơn mới là hết lạnh.' : 'Nếu bán lại, nên nhờ khách chuyển khoản trước.') + '</div>' : '') +
       '<div class="p-now">' + (c.task ? '<div>' + TASKS[c.task.type].icon + ' Hôm nay: <b>' + TASKS[c.task.type].title + '</b> · ' + taskLine(c) + '</div>' : '') +
@@ -1729,7 +1747,7 @@
       '<div class="box"><div class="r1" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>' + cp(c.name) + '</b> ' + custTags(c) + famTag(c) + ' <span class="muted">' + cpPhone(c.phone) + '</span><button class="btn sm" data-relink="' + c.phone + '" style="margin-left:auto" title="Link web có sẵn giỏ hàng như đơn trước">🔗 Link đặt lại</button></div>' +
       '<div class="small muted" style="margin-top:4px">' + esc(shortProducts(c.products, 3)) + ' · mua ' + daysAgo(c.last) + (c.task ? ' · ' + taskLine(c) : '') + '</div>' +
       (c.flag ? '<div class="notice" style="background:var(--red-light);color:var(--red);margin:8px 0 0">⚠️ Khách có nhãn <b>' + esc(c.flag) + '</b>. Nên yêu cầu chuyển khoản trước khi gửi hàng.</div>' : '') +
-      '<div id="kSum">' + careSum(c, null) + '</div>' +
+      '<div id="kSum">' + careSum(c, null) + '</div>' + aiBox(c) +
       (hist.length ? '<div class="k-sec">💬 Chăm sóc gần đây</div><div class="mini-hist">' + hist.map(function (x) { return '<div><span>' + fDate(x.time).slice(0, 5) + '</span> ' + esc(x.text) + '</div>'; }).join('') + '</div>' : '') + '</div>' +
       '<div class="box"><h3>Bước 1 · Gọi hoặc nhắn cho khách</h3>' +
       (c.zalo ? '<div class="k-go"><button class="btn zalo" id="kZalo">💬 Nhắn Zalo</button><a class="btn" href="tel:' + c.phone + '">📞 Gọi</a></div><p class="small muted" style="margin:8px 0 0">' + ZI + ' Khách đã kết bạn Zalo: nhắn trước, khách tiện trả lời lúc rảnh. Bấm <b>Nhắn Zalo</b> là tin bên dưới được copy sẵn, chỉ cần dán và gửi.</p>'
@@ -1737,7 +1755,7 @@
       '<details class="k-msg"' + (c.zalo ? ' open' : '') + '><summary>✏️ Tin nhắn sẽ gửi (sửa được)</summary>' +
       '<label class="f" style="margin-top:8px"><span>Mẫu tin</span><select id="kTpl"><option value="-1">– Tự viết –</option>' + tp.map(function (t, i) { return '<option value="' + i + '"' + (i === ti ? ' selected' : '') + '>' + esc(t[0] + (t[1] ? ' – ' + t[1] : '')) + '</option>'; }).join('') + '</select></label>' +
       '<label class="f"><span>Nội dung (nhớ điền phần “…” nếu có)</span><textarea id="kMsg" rows="5">' + esc(ti >= 0 ? fillTpl(tp[ti][2], c) : '') + '</textarea></label>' +
-      '<button type="button" class="link small" id="kCopy">Chỉ copy tin (không mở Zalo)</button></details></div>' +
+      '<button type="button" class="link small" id="kCopy">Chỉ copy tin (không mở Zalo)</button>' + (S.d.rules && S.d.rules.ai ? ' · <button type="button" class="link small" data-ai="msg" data-aiph="' + c.phone + '" data-aitask="' + esc(type || 'other') + '">✨ Nhờ AI viết tin</button>' : '') + '</details></div>' +
       commBox(c, type, true) + giftBox(giftPerson(c.phone), type, true) + // thu gọn: để Bước 2 không bị đẩy xuống xa
       '<div class="box"><h3>Bước 2 · Khách thế nào? Bấm 1 nút là xong</h3>' +
       '<label class="f"><span>Khách nói gì (không bắt buộc, gõ trước rồi bấm nút)</span><textarea id="kNote" rows="2" placeholder="vd: chị bảo ngủ ngon hơn, còn nửa hộp…"></textarea></label>' +
@@ -2643,17 +2661,32 @@
       '<label class="f"><span>Nội dung (sửa được)</span><textarea id="cMsg" rows="5">' + esc(ti >= 0 ? fill(tp[ti][2]) : '') + '</textarea></label>' +
       '<div class="steps"><button class="btn zalo" id="cZalo">📋 Copy tin & mở Zalo</button><a class="btn" href="tel:' + l.phone + '">📞 Gọi</a></div></div>' +
       giftBox(giftPerson(l.phone), 'lead') +
-      '<div class="box"><h3>Bước 2 · Kết quả</h3><div class="radios" style="margin-bottom:12px">' + LEAD_RESULTS.map(function (r) { return '<label><input type="radio" name="cRes" value="' + esc(r.v) + '"><span>' + esc(r.v) + '</span></label>'; }).join('') + '</div>' +
+      '<div class="box"><h3>Bước 2 · Khách thế nào? Bấm 1 nút là xong</h3>' +
+      '<label class="f"><span>Ghi chú lần này (không bắt buộc, gõ trước rồi bấm nút)</span><textarea id="cNote" rows="2" placeholder="Khách nói gì, băn khoăn gì…"></textarea></label>' +
+      '<div class="quick">' + [['📵 Không nghe máy', 'Không nghe máy'], ['🤔 Đang cân nhắc', 'Đã tư vấn, khách cân nhắc'], ['🛒 Chốt mua', 'Khách chốt mua']].map(function (x) { return '<button type="button" class="btn" data-cq="' + esc(x[1]) + '">' + x[0] + '</button>'; }).join('') + '</div>' +
+      '<div class="k-cb"><span>📅 Hẹn liên hệ lại:</span>' + [[1, 'Mai'], [3, '3 ngày'], [7, '1 tuần']].map(function (x) { return '<button type="button" class="chip" data-cqd="' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div>' +
+      '<div class="k-cb"><span>🚫 Không mua vì:</span>' + LOST_REASONS.map(function (r) { return '<button type="button" class="chip" data-cqr="' + esc(r) + '">' + esc(r) + '</button>'; }).join('') + '</div>' +
+      '<details class="k-more"><summary>Chọn kết quả khác / tự chọn ngày</summary><div style="margin-top:10px"><div class="radios" style="margin-bottom:12px">' + LEAD_RESULTS.map(function (r) { return '<label><input type="radio" name="cRes" value="' + esc(r.v) + '"><span>' + esc(r.v) + '</span></label>'; }).join('') + '</div>' +
       '<div id="cLost" hidden><label class="f"><span>Lý do không mua *</span><select id="cReason"><option value="">– Chọn –</option>' + LOST_REASONS.map(function (r) { return '<option>' + r + '</option>'; }).join('') + '</select></label></div>' +
       '<p class="notice info" id="cClose" hidden>Bấm <b>Lưu</b> → mở ngay form tạo đơn cho khách.</p>' +
       '<label class="f" id="cCbWrap"><span>Hẹn liên hệ lại ngày</span><input type="date" id="cCb" min="' + isoDate(Date.now()) + '"></label>' +
-      '<label class="f"><span>Ghi chú lần này</span><textarea id="cNote" rows="2" placeholder="Khách nói gì, băn khoăn gì…"></textarea></label><p class="err" id="cErr"></p></div>';
-    var m = modal('Tư vấn: ' + esc(l.name), body, '<button class="btn" data-close>Để sau</button><button class="btn pri" id="cSave">Lưu</button>');
+      '<button class="btn pri" id="cSave" style="width:100%">Lưu</button></div></details><p class="err" id="cErr"></p></div>';
+    var m = modal('Tư vấn: ' + esc(l.name), body, '<button class="btn" data-close>Để sau</button>');
     var msg = $('#cMsg', m), lnD = 'draft_l_' + l.id; draftKeep($('#cNote', m), lnD);
     $('#cTpl', m).onchange = function () { var i = +this.value; msg.value = i >= 0 ? fill(tp[i][2]) : ''; };
     $('#cZalo', m).onclick = function () { copy(msg.value).then(function () { toast('Đã copy – dán vào khung chat Zalo'); }); window.open(zalo(l.phone), '_blank', 'noopener'); };
     var provIn = $('#cProv', m), showArea = function () { var v = provIn.value.trim(), pv = v && provOf({ address: v }); $('#cArea', m).innerHTML = pv ? areaBox(norm(pv.old), 'consult') : v.length >= 3 ? '<p class="small muted" style="margin:0">Chưa nhận ra tỉnh – chọn trong danh sách gợi ý nhé.</p>' : ''; };
     provIn.oninput = showArea; showArea();
+    // Đợt 3: nút 1 chạm giống cửa sổ Chăm sóc – chọn sẵn kết quả (+ ngày hẹn / lý do) rồi lưu luôn
+    var pick = function (v, days, reason) {
+      var r = $('input[name=cRes][value="' + v + '"]', m); if (!r) return; r.checked = true; r.onchange();
+      if (days) $('#cCb', m).value = isoDate(Date.now() + days * DAY);
+      if (reason) { var sel = $('#cReason', m); if (![].some.call(sel.options, function (o) { return o.value === reason; })) sel.insertAdjacentHTML('beforeend', '<option>' + esc(reason) + '</option>'); sel.value = reason; }
+      $('#cSave', m).click();
+    };
+    $$('[data-cq]', m).forEach(function (b) { b.onclick = function () { pick(b.getAttribute('data-cq')); }; });
+    $$('[data-cqd]', m).forEach(function (b) { b.onclick = function () { pick('Hẹn liên hệ lại', +b.getAttribute('data-cqd')); }; });
+    $$('[data-cqr]', m).forEach(function (b) { b.onclick = function () { pick('Khách không mua', 0, b.getAttribute('data-cqr')); }; });
     $$('input[name=cRes]', m).forEach(function (r) {
       r.onchange = function () {
         var o = LEAD_RESULTS.filter(function (x) { return x.v === r.value; })[0];
@@ -5901,6 +5934,13 @@
     var v = t.getAttribute('data-copy'); copy(v).then(function () { toast('📋 Đã copy: ' + (v.length > 60 ? v.slice(0, 60) + '…' : v)); });
     t.classList.add('ok'); setTimeout(function () { t.classList.remove('ok'); }, 900);
   }, true);
+  /* Bàn phím (Đợt 3, 16/10/2026): thẻ khách / đơn / khách hỏi (div .click) và chữ bấm-để-copy nhận được phím Tab, Enter / Space = bấm. */
+  var KB_SEL = '.click:not(button):not(a):not([tabindex]), span[data-copy]:not([tabindex])', kbQ = 0;
+  if (window.MutationObserver) new MutationObserver(function () { if (kbQ) return; kbQ = requestAnimationFrame(function () { kbQ = 0; $$(KB_SEL).forEach(function (el) { el.tabIndex = 0; el.setAttribute('role', 'button'); }); }); }).observe(document.body, { childList: true, subtree: true });
+  document.addEventListener('keydown', function (e) {
+    if (e.defaultPrevented || (e.key !== 'Enter' && e.key !== ' ') || !e.target || e.target.getAttribute('role') !== 'button' || /^(BUTTON|A|INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+    e.preventDefault(); e.target.click();
+  });
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-refcode],[data-refgift]'); if (!b || !S.d) return; e.preventDefault(); e.stopPropagation(); if (b.hasAttribute('data-refcode')) openRefCode(b.getAttribute('data-refcode')); else openRefGift(b.getAttribute('data-refgift')); }, true);
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-relink]'); if (!b || !S.d) return; e.preventDefault(); e.stopPropagation(); openRelink(b.getAttribute('data-relink')); }, true);
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-copyref]'); if (!b) return; e.preventDefault(); copy(b.getAttribute('data-copyref')).then(function () { toast('Đã copy link ✓'); }); });

@@ -45,6 +45,8 @@ Mã dùng được trong **10 phút**. Đăng nhập xong, máy nhớ bạn tron
 - Nút **⟳** góc trên bên phải: tải lại dữ liệu mới nhất, ví dụ khi đồng nghiệp vừa cập nhật.
 - Nút **🔍** góc trên: **tìm nhanh** trên mọi tab. Gõ số điện thoại (từ 3 số), tên khách hoặc mã đơn → hiện khách đã mua, đơn hàng, khách hỏi; bấm là mở. Chỉ tìm được khách bạn được xem.
 - Thứ tự tab (từ 16/10/2026): **Hôm nay · Khách hỏi · Khách đã mua · Đơn hàng · Hiệu quả**. Khách hỏi lên thứ 2 vì khách mới cần gọi sớm nhất.
+- **Dùng bàn phím (máy tính):** phím **Tab** đi qua các thẻ khách, đơn, khách hỏi; **Enter** để mở.
+- **✨ AI** (chỉ hiện khi công ty đã bật): trong hồ sơ khách và cửa sổ Chăm sóc có nút **✨ Tóm tắt khách bằng AI** (3–4 dòng: khách mua gì, lần trước nói gì, lần này nên nói gì); trong *Tin nhắn sẽ gửi* có **✨ Nhờ AI viết tin**. AI không nhận tên và số điện thoại khách. Đây chỉ là gợi ý: **đọc lại và sửa trước khi gửi**, không gửi câu nào hứa chữa bệnh. Mỗi ngày cả công ty dùng tối đa 300 lượt.
 - **Chữ đang gõ không mất:** ô *Khách nói gì* (Chăm sóc), *Ghi chú lần này* (Tư vấn khách hỏi) và *✏️ Ghi nhanh* được giữ trên máy 2 ngày. Lỡ đóng cửa sổ thì mở lại khách đó, chữ vẫn còn.
 - **Bạn chỉ thấy khách mình phụ trách.** Quản lý thấy toàn bộ. Khi gõ số điện thoại của khách đang do người khác phụ trách, CRM chỉ báo tên người đó và không cho thao tác. Muốn đổi người phụ trách thì nhờ quản lý chuyển.
 - Danh sách việc ở tab Hôm nay **chỉ có khách của bạn**. Khách *chưa ai phụ trách* nằm ở mục **🧺 Kho chung**, mục này chỉ quản lý và quản trị thấy, để quản lý chủ động giao khách cho từng người. Bạn xác nhận đơn hoặc chăm sóc khách chưa ai phụ trách trước thì khách đó thuộc về bạn.
@@ -425,6 +427,7 @@ Là người **hỏi mua nhưng chưa mua**: nhắn Fanpage, Zalo, gọi điện
 2. Chọn kết quả:
     - **Đã tư vấn, khách cân nhắc** hoặc **Hẹn liên hệ lại**: máy hẹn sẵn 2 ngày sau, sửa được.
     - **Không nghe máy**: máy hẹn sẵn ngày mai.
+    - **Bấm 1 nút là xong** (từ 16/10/2026, giống cửa sổ Chăm sóc): **📵 Không nghe máy** (mai nhắc lại) · **🤔 Đang cân nhắc** (2 ngày sau nhắc) · **🛒 Chốt mua** (mở form tạo đơn) · **📅 Hẹn liên hệ lại: Mai / 3 ngày / 1 tuần** · **🚫 Không mua vì: Giá cao / Chưa có nhu cầu / …**. Gõ *Ghi chú lần này* trước rồi bấm nút. Kết quả khác thì mở **Chọn kết quả khác / tự chọn ngày**.
     - **Khách chốt mua**: bấm Lưu thì form **tạo đơn mở ra luôn**. Lưu đơn xong, khách chuyển sang “Đã chốt”. Sale không chọn tay được “Đã chốt” khi khách chưa có đơn (để tỷ lệ chốt và thi đua công bằng); quản lý vẫn sửa được.
     - Lên đơn đường khác (file Sheet của sale, đơn web, tạo đơn ở tab Khách đã mua) cũng được: khách hỏi có đơn trong **30 ngày** kể từ lúc hỏi thì CRM **tự chuyển “Đã chốt”** (khớp theo số điện thoại, vài phút sau là thấy).
     - Thẻ ở mục **Đã chốt** ghi mã đơn đã chốt. Khách hỏi rồi mua lần đầu có nhãn **🆕 Khách mới**. Nhãn **🔁 Khách cũ hỏi lại** chỉ dành cho khách **đã mua trước lúc hỏi**. Nếu khách để lại số nhiều lần mà cùng ra 1 đơn thì CRM chỉ hiện 1 thẻ.

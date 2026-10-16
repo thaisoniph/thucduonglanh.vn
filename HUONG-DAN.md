@@ -145,6 +145,11 @@ Sheet **Đơn hàng website Thực Dưỡng Lành**: https://docs.google.com/spr
 
 ### CRM web – https://crm.thucduonglanh.vn & Máy chủ API – https://api.thucduonglanh.vn
 
+- **Đợt 3 cải tiến UX (16/10/2026, api `2026-10-16j`)**:
+  - **Tư vấn khách hỏi 1 chạm** (`openConsult`): nút `data-cq` (Không nghe máy / Đang cân nhắc / Chốt mua), `data-cqd` (hẹn Mai / 3 ngày / 1 tuần), `data-cqr` (Không mua + lý do) → chọn sẵn radio cũ rồi bấm `#cSave` (nằm trong mục "Chọn kết quả khác"). Không dùng `data-lq` (trang Link & QR đã dùng).
+  - **Bàn phím**: MutationObserver gắn `tabindex=0 role=button` cho `.click` và `span[data-copy]`; Enter / Space = bấm (bỏ qua nếu sự kiện đã `preventDefault`).
+  - **Màu**: thêm token `--mid` (#f0a030, đèn cam) và `--zalo` (#0068ff); các mã cứng trùng token đổi sang `var(--…)`; bỏ màu dự phòng trong `var(--line,#…)`. So ảnh 9 tab trước / sau: giống hệt (chỉ khác giờ cập nhật).
+  - **✨ AI** (`api/src/ai.js`, lệnh `ai_sum` { phone, kind: sum | msg, task }): thư viện `@anthropic-ai/sdk` 0.135.0 (ghim trong package-lock; workflow `deploy-api.yml` chạy `npm ci --omit=dev`; wrangler đóng gói theo trường `browser` của thư viện nên không cần nodejs_compat, gói ~281 KB gzip). Mô hình `claude-opus-5-5`, effort `low`, `fallbacks: 'default'` (beta `server-side-fallback-2026-07-01`). **Chỉ chạy khi có secret `ANTHROPIC_API_KEY`** (Cloudflare → Workers → thucduonglanh-api → Settings → Variables and Secrets); `rules.ai` báo cho giao diện hiện nút. Dữ liệu gửi đi: sản phẩm, đơn (ngày, hàng, tiền, trạng thái), 12 lần chăm sóc, ghi chú (tối đa 3000 ký tự); **không gửi tên, số điện thoại** (tên trong ghi chú thay bằng [Tên], SĐT / email bị che). Sale chỉ dùng cho khách mình phụ trách. Giới hạn `AI_DAY_MAX` = 300 lượt / ngày cả công ty (kv `ai_n_yyMMdd`); cùng khách + dữ liệu không đổi trong ngày thì trả kết quả cũ (kv `ai_sum_<sđt>`). Lọc chữ "chữa / điều trị / khỏi bệnh" trước khi trả về.
 - **Đợt 2 cải tiến UX (16/10/2026, chỉ giao diện `crm/`)**:
   - **Hôm nay (sale)**: khung đầu = số khách + thanh tiến độ + ▶ Gọi lần lượt + `todayGoalLine()` (1 dòng mục tiêu); `myGoalToday()` + `raceBlock()` + 📋 Báo cáo cuối ngày chuyển xuống cuối (`.td-tail`). Quản lý giữ thi đua + ô số ở đầu.
   - **Cửa sổ Chăm sóc**: hàng `.k-cb` hẹn nhanh Mai / 3 ngày / 1 tuần / 2 tuần (`data-kcb`, lưu `Hẹn gọi lại` + callback qua `saveCare`).

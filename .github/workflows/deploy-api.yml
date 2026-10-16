@@ -54,6 +54,7 @@ jobs:
         run: |
           set -o pipefail # "wrangler deploy | tee" phải báo lỗi khi build hỏng (16/10/2026: lỗi build bị che, Actions vẫn ✅)
           npm install -g wrangler
+          npm ci --omit=dev # thư viện @anthropic-ai/sdk cho ✨ AI (api/src/ai.js), ghim bản trong package-lock.json
           wrangler d1 execute thucduonglanh-crm --remote --file=schema.sql 2>&1 | tee d1.log || {
             ERR=$(cat d1.log)
             echo "::warning::Lỗi d1 execute: $ERR"
