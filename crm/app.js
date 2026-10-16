@@ -2183,6 +2183,19 @@
     if (new Date(t + 7 * 3600e3).getUTCDay() === 0 || x.h * 60 + x.mi >= (+ev[0]) * 60 + (+ev[1] || 0)) return 'Tối/CN';
     return 'Ngày';
   }
+  /* ---------- giờ lên đơn (đúng giờ đồng hồ, khác Loại đơn do sale chọn để tính hoa hồng). Ngày lễ → Ngoài giờ (Chủ nhật, trước 8:00, từ giờ ca tối) → Trong giờ; đơn nhập file chỉ có ngày → Không rõ giờ */
+  var HR_KEYS = ['Trong giờ', 'Ngoài giờ', 'Ngày lễ', 'Không rõ giờ'];
+  var HR_ICON = { 'Trong giờ': '🏢', 'Ngoài giờ': '🌙', 'Ngày lễ': '🎉', 'Không rõ giờ': '❔' };
+  function evTime() { return ((S.d.rules || {}).ca || {}).evening || '17:30'; }
+  function hourBucket(t) {
+    if (!t) return 'Không rõ giờ';
+    var c = caNow(t), x = vnDate(t);
+    if (c === 'Lễ') return 'Ngày lễ';
+    if (c === 'Tối/CN') return 'Ngoài giờ';
+    if (!x.h && !x.mi) return 'Không rõ giờ';
+    return x.h < 8 ? 'Ngoài giờ' : 'Trong giờ';
+  }
+  function hourTip(k) { return k === 'Trong giờ' ? 'Thứ 2 – thứ 7, 8:00 – ' + evTime() : k === 'Ngoài giờ' ? 'từ ' + evTime() + ', trước 8:00 và cả ngày Chủ nhật' : k === 'Ngày lễ' ? 'ngày lễ trong Cài đặt (kể cả Chủ nhật)' : 'đơn nhập từ file sale, chỉ có ngày'; }
   /* ---------- loại đơn (tính hoa hồng). Ưu tiên Lễ → Ngoài giờ → Mới/Cũ; khách để lại số qua quảng cáo / form web / ebook trong 30 ngày = Khách mới dù đã từng mua */
   var OTYPES = ['Khách mới', 'Khách cũ', 'Ngoài giờ', 'Ngày lễ'];
   var OT = { 'Khách mới': ['🆕', 'Lần đầu mua, hoặc vừa để lại số qua quảng cáo'], 'Khách cũ': ['🔁', 'Đã mua trước đó, tự liên hệ lại / được chăm sóc'], 'Ngoài giờ': ['🌙', 'Tối (sau giờ ca tối) hoặc Chủ nhật'], 'Ngày lễ': ['🎉', 'Đơn chốt vào ngày lễ'] };
@@ -5173,7 +5186,7 @@
   function bcdtData(name, month) {
     var R = monthRange(month), days = Math.round((R[1] - R[0]) / DAY), rows = [], tot = null, ca = { 'Ngày': [0, 0], 'Tối/CN': [0, 0], 'Lễ': [0, 0] }, ot = {}, web = { n: 0, r: 0, c: 0, src: {} }; OTYPES.forEach(function (t) { ot[t] = [0, 0, 0]; }); // [số đơn, doanh số, tiền tính hoa hồng = tiền hàng không gồm phí ship]
     var mine = function (o) { return name === null || o.seller === name; };
-    var blank = function () { var r = { newN: {}, newD: {}, newR: {}, oldN: {}, oldR: {}, hoanN: 0, hoanV: 0, offN: 0, offR: 0, careOk: 0, knm: 0 }; BC_LINES.forEach(function (l) { r.newN[l] = 0; r.newD[l] = 0; r.newR[l] = 0; r.oldN[l] = 0; r.oldR[l] = 0; }); return r; };
+    var blank = function () { var r = { newN: {}, newD: {}, newR: {}, oldN: {}, oldR: {}, hoanN: 0, hoanV: 0, offN: 0, offR: 0, careOk: 0, knm: 0, hrN: {}, hrR: {} }; BC_LINES.forEach(function (l) { r.newN[l] = 0; r.newD[l] = 0; r.newR[l] = 0; r.oldN[l] = 0; r.oldR[l] = 0; }); HR_KEYS.forEach(function (k) { r.hrN[k] = 0; r.hrR[k] = 0; }); return r; };
     tot = blank();
     for (var d = 0; d < days; d++) rows.push(Object.assign(blank(), { day: R[0] + d * DAY }));
     S.d.orders.forEach(function (o) {
@@ -5187,6 +5200,8 @@
       [r, tot].forEach(function (x) { if (isNew) { x.newN[l]++; x.newR[l] += o.total; } else { x.oldN[l]++; x.oldR[l] += o.total; } });
       var k = o.ca && ca[o.ca] ? o.ca : 'Ngày'; ca[k][0]++; ca[k][1] += o.total;
       if (k !== 'Ngày') [r, tot].forEach(function (x) { x.offN++; x.offR += o.total; });
+      var hb = hourBucket(o.time);
+      [r, tot].forEach(function (x) { x.hrN[hb]++; x.hrR[hb] += o.total; });
     });
     tot.close = closeStats(name, R); rows.forEach(function (r) { r.close = closeStats(name, [r.day, r.day + DAY]); });
     rows.forEach(function (r) { var cs = careStats(name, r.day, r.day + DAY); r.careOk = cs.ok; r.knm = cs.knm; tot.careOk += cs.ok; tot.knm += cs.knm; });
@@ -5222,6 +5237,8 @@
     lines.push('Số đơn từ khách cũ: ' + sum(r.oldN) + (sum(r.oldR) ? ' · ' + mf(sum(r.oldR)) : ''));
     lines.push('💰 TỔNG DT: ' + mf(sum(r.newR) + sum(r.oldR)));
     if (r.offN) lines.push('   (trong đó ngoài giờ: ' + r.offN + ' đơn · ' + mf(r.offR) + ')');
+    var hrL = HR_KEYS.filter(function (k) { return r.hrN[k] || k === 'Trong giờ' || k === 'Ngoài giờ'; }).map(function (k) { return HR_ICON[k] + ' ' + (k === 'Trong giờ' ? 'Giờ hành chính (8:00–' + evTime() + ')' : k === 'Ngoài giờ' ? 'Buổi tối / Chủ nhật' : k) + ': ' + r.hrN[k] + ' đơn · ' + mf(r.hrR[k]); });
+    lines.push('🕘 Theo giờ lên đơn:'); hrL.forEach(function (t) { lines.push('   ' + t); });
     if (r.hoanN) lines.push('Đơn hoàn: ' + r.hoanN + ' · ' + mf(r.hoanV));
     var cs = careStats(name, dayStart(day), dayStart(day) + DAY);
     lines.push('KH cũ đã chăm sóc (kết nối): ' + cs.ok, 'Không nghe máy: ' + cs.knm);
@@ -5235,11 +5252,20 @@
     var opts = lvl() >= 2 ? '<label class="f"><span>Của ai</span><select id="dyWho"><option value="">Cả nhóm</option>' + userNames().map(function (n) { return '<option' + (n === name ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('') + '</select></label>' : '';
     var body = '<div class="row2c">' + opts + '<label class="f"><span>Ngày</span><input type="date" id="dyDay" value="' + isoDate(day) + '" max="' + isoDate(Date.now()) + '"></label></div>' +
       '<p class="small muted" style="margin:0 0 6px">Máy tự tính từ đơn hàng và các lần bạn bấm kết quả chăm sóc. Sửa được trước khi copy (vd thêm lý do từ chối).</p>' +
-      '<textarea id="dyText" rows="18" style="font-family:inherit;font-size:14px;line-height:1.5">' + esc(dailyText(name, day)) + '</textarea>';
+      '<textarea id="dyText" rows="18" style="font-family:inherit;font-size:14px;line-height:1.5">' + esc(dailyText(name, day)) + '</textarea>' +
+      '<div id="dyList">' + dayOrdersHtml(name, day) + '</div>';
     var m = modal('📋 Báo cáo ngày', body, '<button class="btn" data-close>Đóng</button><button class="btn zalo" id="dyCopy">📋 Copy để dán vào Zalo</button>');
-    var redraw = function () { var w = $('#dyWho', m), dv = $('#dyDay', m).value; $('#dyText', m).value = dailyText(w ? (w.value || null) : name, dv ? new Date(dv + 'T12:00:00+07:00').getTime() : Date.now()); };
+    var redraw = function () { var w = $('#dyWho', m), dv = $('#dyDay', m).value, nm = w ? (w.value || null) : name, dy = dv ? new Date(dv + 'T12:00:00+07:00').getTime() : Date.now(); $('#dyText', m).value = dailyText(nm, dy); $('#dyList', m).innerHTML = dayOrdersHtml(nm, dy); };
     if ($('#dyWho', m)) $('#dyWho', m).onchange = redraw; $('#dyDay', m).onchange = redraw;
     $('#dyCopy', m).onclick = function () { copy($('#dyText', m).value).then(function () { toast('Đã copy – mở nhóm Zalo và dán vào nhé'); }); };
+  }
+  /** Đơn trong ngày xếp theo giờ lên đơn (chỉ xem, không copy vào Zalo). Đơn huỷ / hoàn không tính. */
+  function dayOrdersHtml(name, day) {
+    var d0 = dayStart(day), L = (S.d.orders || []).filter(function (o) { return o.time >= d0 && o.time < d0 + DAY && (name === null || o.seller === name) && !isVoid(o.status); }).sort(function (a, b) { return a.time - b.time || (a.row || 0) - (b.row || 0); });
+    if (!L.length) return '';
+    return '<h3 style="margin:12px 0 6px">🕘 Đơn trong ngày theo giờ lên đơn</h3><div class="bcdt-wrap"><table class="bcdt"><thead><tr><th>Giờ</th><th>Mã đơn</th><th>Khách</th>' + (name === null ? '<th>Sale</th>' : '') + '<th>Số tiền</th><th>Ca</th></tr></thead><tbody>' +
+      L.map(function (o) { var hb = hourBucket(o.time), x = vnDate(o.time); return '<tr><td>' + (hb === 'Không rõ giờ' ? '–' : pad(x.h) + ':' + pad(x.mi)) + '</td><td>' + esc(o.id || '') + '</td><td>' + esc(o.name || '') + '</td>' + (name === null ? '<td>' + esc(o.seller || '') + '</td>' : '') + '<td>' + (Number(o.total) || 0).toLocaleString('vi-VN') + '</td><td>' + HR_ICON[hb] + ' ' + hb + '</td></tr>'; }).join('') +
+      '</tbody></table></div><p class="small muted" style="margin:6px 0 0">Giờ hành chính: thứ 2 – thứ 7, 8:00 – ' + esc(evTime()) + '. Chủ nhật tính ngoài giờ, trừ khi là ngày lễ. Đơn nhập từ file sale chỉ có ngày nên ghi “Không rõ giờ”.</p>';
   }
   function bcdtCols() {
     var c = [['Ngày', function (r) { return r.day ? fDate(r.day).slice(0, 5) : 'TỔNG'; }]];
@@ -5251,6 +5277,7 @@
     c.push(['Data quảng cáo', function (r) { return r.close.data; }], ['Data ra đơn', function (r) { return r.close.won; }], ['Tỷ lệ chốt', function (r) { return r.close.data ? r.close.pct + '%' : ''; }], ['TB/đơn mới', function (r) { var n = sum(r.newN); return n ? Math.round(sum(r.newR) / n) : 0; }, 1],
       ['% DT khách cũ', function (r) { var t = sum(r.newR) + sum(r.oldR); return t ? Math.round(sum(r.oldR) / t * 100) + '%' : ''; }],
       ['TB/đơn cũ', function (r) { var n = sum(r.oldN); return n ? Math.round(sum(r.oldR) / n) : 0; }, 1], ['DT ngoài giờ', function (r) { return r.offR; }, 1],
+      ['DT giờ hành chính', function (r) { return r.hrR['Trong giờ']; }, 1], ['DT tối / CN (theo giờ)', function (r) { return r.hrR['Ngoài giờ']; }, 1], ['DT ngày lễ (theo giờ)', function (r) { return r.hrR['Ngày lễ']; }, 1], ['DT không rõ giờ', function (r) { return r.hrR['Không rõ giờ']; }, 1],
       ['KH cũ chăm sóc (kết nối)', function (r) { return r.careOk; }], ['Không nghe máy', function (r) { return r.knm; }]);
     return c;
   }
@@ -5263,7 +5290,7 @@
       kpi('TB/đơn khách mới', sumL(T.newN) ? moneyShort(sumL(T.newR) / sumL(T.newN)) : '–') +
       kpi('Doanh số khách cũ', tRev ? Math.round(sumL(T.oldR) / tRev * 100) + '%' : '–', '', '', moneyShort(sumL(T.oldR))) +
       kpi('TB/đơn khách cũ', sumL(T.oldN) ? moneyShort(sumL(T.oldR) / sumL(T.oldN)) : '–', '', '', sumL(T.oldN) + ' đơn khách cũ') +
-      kpi('DT ngoài giờ', moneyShort(T.offR), '', '', T.offN + ' đơn tối / CN / lễ') +
+      kpi('DT ngoài giờ (loại đơn)', moneyShort(T.offR), '', '', T.offN + ' đơn sale chọn Ngoài giờ / Ngày lễ (tính hoa hồng)') +
       kpi('KH cũ đã chăm sóc', T.careOk, '', '', 'kết nối được · ' + T.knm + ' lượt không nghe máy') +
       (tg && tg.amount ? kpi('% tiến độ mục tiêu', pct(tRev, tg.amount) + '%', pct(tRev, tg.amount) >= 100 ? 'good' : '', '', 'mục tiêu ' + moneyShort(tg.amount)) : '');
     var head = '<tr>' + cols.map(function (c) { return '<th>' + esc(c[0]) + '</th>'; }).join('') + '</tr>';
@@ -5273,6 +5300,7 @@
     var chKpi = kpi('💬 Sale lên đơn', moneyShort(saleR), '', '', saleN + ' đơn · ' + (saleR + W.r ? Math.round(saleR / (saleR + W.r) * 100) : 0) + '% doanh số') +
       kpi('🌐 Khách tự đặt trên web', moneyShort(W.r), '', '', W.n + ' đơn' + (W.n ? ' · ' + Object.keys(W.src).sort(function (a, b) { return W.src[b] - W.src[a]; }).map(function (k) { return esc(k) + ' ' + W.src[k]; }).join(', ') : '') + (wP ? ' · hoa hồng ' + wP + '% = <b>' + money(wCm) + '</b>' : ''));
     var body = '<div class="box"><div class="kpis" style="margin:0 0 10px">' + sumKpi + '</div><h3 style="margin:4px 0 8px">Theo kênh đơn</h3><div class="kpis" style="margin:0 0 10px">' + chKpi + '</div>' +
+      '<h3 style="margin:4px 0 8px">🕘 Theo giờ lên đơn</h3><div class="kpis" style="margin:0 0 10px">' + HR_KEYS.filter(function (k) { return T.hrN[k] || k === 'Trong giờ' || k === 'Ngoài giờ'; }).map(function (k) { var tt = HR_KEYS.reduce(function (s0, j) { return s0 + T.hrR[j]; }, 0); return kpi(HR_ICON[k] + ' ' + (k === 'Trong giờ' ? 'Giờ hành chính' : k === 'Ngoài giờ' ? 'Tối / Chủ nhật' : k), moneyShort(T.hrR[k]), '', '', T.hrN[k] + ' đơn' + (tt ? ' · ' + Math.round(T.hrR[k] / tt * 100) + '%' : '') + ' · ' + esc(hourTip(k))); }).join('') + '</div>' +
       '<h3 style="margin:4px 0 8px">Đơn sale lên – theo loại đơn (tính hoa hồng)</h3><div class="kpis" style="margin:0">' + OTYPES.map(function (t) { var p = cmP(t), x = d.ot[t]; return kpi(OT[t][0] + ' ' + t, moneyShort(x[1]), '', '', x[0] + ' đơn' + (p ? ' · hoa hồng ' + p + '% = <b>' + money(Math.round((x[2] != null ? x[2] : x[1]) * p / 100)) + '</b>' : '')); }).join('') +
       (OTYPES.concat([CH_WEB]).some(cmP) ? kpi('💰 Tổng hoa hồng', moneyShort(saleCm + wCm), 'good', '', 'đơn sale ' + moneyShort(saleCm) + ' + đơn web ' + moneyShort(wCm) + ' · tạm tính, đơn chờ kiểm tra loại vẫn tính') : '') + '</div>' +
       '<p class="small muted" style="margin:8px 0 0">Đơn web = khách tự đặt trên thucduonglanh.vn, tính cho sale đang phụ trách khách lúc đặt. Đơn web không tính vào 4 loại đơn ở trên mà tính theo % hoa hồng đơn web.</p></div>' +
