@@ -490,7 +490,36 @@ Tab đầu tiên trên menu, dành cho chủ doanh nghiệp. **Chọn thời gia
 
 **🛒 Sàn TMĐT**: doanh thu, số đơn, tiền thực về, tỷ lệ huỷ / hoàn của Shopee, TikTok Shop. Bấm **Chi tiết sàn →** để mở tab Sàn.
 
-Số website chỉ đếm khách đã bấm “Đồng ý” cookie nên thấp hơn thực tế; số đơn và doanh thu thì đầy đủ. Muốn biết bài đăng / quảng cáo nào ra khách, luôn dùng link tạo ở [/admin/utm](https://thucduonglanh.vn/admin/utm). Tờ rơi, standee, gói hàng, quảng cáo Google / YouTube thì dùng **📍 Link & mã QR** (Hướng dẫn tab Website). Kết quả xem ở 📣 Marketing → **📍 Link & mã QR**: lượt quét (mỗi điện thoại 1 lần / ngày, đếm cả khách chưa đồng ý cookie), số đơn, tiền, khách mới từng link, và số đơn sale lên với nguồn **Tờ rơi / Sự kiện**.
+Số website chỉ đếm khách đã bấm “Đồng ý” cookie nên thấp hơn thực tế; số đơn và doanh thu thì đầy đủ. Muốn biết bài đăng / quảng cáo nào ra khách, luôn dùng link tạo ở [/admin/utm](https://thucduonglanh.vn/admin/utm). Tờ rơi, standee, gói hàng, quảng cáo Google / YouTube thì dùng tab **📍 Link & QR** (mục ngay dưới).
+
+## 📍 Link & mã QR (Marketing, Quản lý, Quản trị)
+
+Mỗi **điểm chạm** với khách dùng **1 link riêng**: tờ rơi phát ở sự kiện, standee, tờ rơi bỏ vào hộp hàng, standee ở từng đối tác, từng quảng cáo Google / YouTube, bài PR… Khách quét QR → vào web → đơn tự ghi nguồn. Tab này cho biết từng link có bao nhiêu người quét, ra bao nhiêu đơn, bao nhiêu tiền.
+
+**Mở tab**: Marketing, Quản lý bấm **QR** trên thanh menu. Quản trị vào từ **Tổng quan → 📣 Marketing → 📍 Link & QR** hoặc nút trong tab Marketing.
+
+**Tạo link mới**
+1. Bấm **＋ Tạo link mới**.
+2. **Mã ngắn**: càng ngắn QR càng thưa, dễ quét. Gõ có dấu, viết hoa cũng được, CRM tự đổi thành chữ thường không dấu, ví dụ “DT An Lạc” → `dt-an-lac`. Tạo xong **không đổi được mã**.
+3. **Tên**: để nhận ra trong báo cáo. **Loại**: tờ rơi, standee, đối tác, Google…
+4. **Trang đích**: `/` là trang chủ. Trang sản phẩm: mở web, chép phần sau tên miền, ví dụ `/san-pham/tra-dilvang/`.
+5. Bấm **Lưu**. Link chạy ngay, không phải chờ.
+
+**Các nút trên mỗi link**
+- **⬇ Tải QR**: **PNG** (ảnh 2000px, có dòng link bên dưới) để dán Canva, gửi Zalo cho bên thiết kế. **SVG** gửi nhà in, in to cỡ nào cũng nét. Nên in QR rộng từ 2,5 cm, nền trắng.
+- **📋 Link in**: link ngắn `thucduonglanh.vn/q/<mã>/` (chính là nội dung mã QR).
+- **📋 Link quảng cáo**: link dài có UTM, dán vào Google Ads, YouTube, bài đăng. Không cần QR.
+- **✏️ Sửa**: đổi tên, loại, trang đích, ghi chú. Đổi trang đích thì mã QR đã in tự dẫn sang trang mới, không phải in lại (ví dụ đang có khuyến mãi thì trỏ về trang khuyến mãi).
+- Link không dùng nữa: ✏️ Sửa → **⏸ Ngừng dùng**. Link ẩn khỏi danh sách nhưng QR đã in vẫn dẫn khách vào web. **Không có nút xoá**, để tờ rơi đã phát không thành mã chết.
+
+**Đọc số liệu** (chọn kỳ ở hàng nút: Hôm nay, Tuần này, Tháng này… hoặc 📅 tự chọn ngày)
+- **👀 Lượt quét**: mỗi điện thoại tính 1 lần / ngày / link. Đếm cả khách chưa đồng ý cookie. Máy đọc link xem trước của Zalo / Facebook không tính.
+- **🛒 Đơn, 💰 Tiền**: khách vào web qua link rồi đặt trong 30 ngày (hôm sau mới đặt vẫn tính). Đơn huỷ / hoàn không tính.
+- **🆕 Khách mới**: khách mua lần đầu.
+- Xem riêng 1 sự kiện: chọn 📅 đúng ngày diễn ra sự kiện.
+- **☎️ Khách gọi / nhắn Zalo** sau khi nhận tờ rơi: sale lên đơn chọn **Khách đặt qua: Tờ rơi / Sự kiện**, số đơn hiện riêng ở dòng này.
+
+Trên đơn web, nguồn đến từ link hiện **📍 <tên link>**.
 
 ## Marketing (bộ phận marketing)
 

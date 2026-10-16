@@ -978,3 +978,20 @@ details.offer-bn { margin: 0 0 10px; border-color: #f3d9a4; background: #fffaf0;
 .ref-row { display: flex; gap: 8px; align-items: center; margin-top: 6px; flex-wrap: wrap; }
 .ref-row > span { min-width: 110px; }
 .ref-row input { flex: 1; min-width: 0; font-size: 13px; }
+
+/* 📍 Link & mã QR (tab #link-qr) */
+.lq-intro { margin: -4px 0 12px; line-height: 1.5; }
+.lq-list { margin-top: 12px; }
+.lq-card.lq-off { opacity: .7; }
+.lq-top { display: flex; gap: 12px; margin-bottom: 10px; }
+.lq-qr { flex: none; width: 84px; height: 84px; padding: 0; border: 1px solid var(--line); border-radius: 8px; background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.lq-qr svg { width: 100%; height: 100%; display: block; }
+.lq-info { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.lq-info > b { font-size: 15px; }
+.lq-dest, .lq-note { overflow-wrap: anywhere; }
+.lq-btns { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.lq-by { margin: 8px 0 0; }
+.lq-offs { margin-top: 14px; }
+.lq-offs summary { cursor: pointer; font-weight: 600; padding: 6px 0; }
+.lq-big { max-width: 280px; margin: 0 auto; }
+.lq-big svg { width: 100%; height: auto; display: block; }

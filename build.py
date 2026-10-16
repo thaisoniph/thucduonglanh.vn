@@ -350,32 +350,6 @@ VERSION = datetime.datetime.now().strftime("%Y%m%d%H%M")
 DOMAIN = SITE["domain"].rstrip("/")
 BRAND = SITE["brand"]
 
-# Link & mã QR theo dõi nguồn khách (/admin → Cài đặt → Link & mã QR): mỗi điểm chạm (tờ rơi, standee, gói hàng, quảng cáo…) 1 mã ngắn
-# → /q/<mã>/ chuyển tới trang đích kèm UTM (utm_campaign = mã) + ảnh /q/<mã>.svg|.png. Mã đã in thì không đổi, không xoá.
-LINK_KINDS = {  # loại → (utm_source, utm_medium, tên hiện ở CRM)
-    "standee": ("offline", "standee", "Standee"), "to-roi": ("offline", "to-roi", "Tờ rơi sự kiện"), "goi-hang": ("offline", "goi-hang", "Tờ rơi trong gói hàng"),
-    "doi-tac": ("offline", "doi-tac", "Điểm bán / đối tác"), "danh-thiep": ("offline", "danh-thiep", "Danh thiếp, ấn phẩm khác"),
-    "google": ("google", "cpc", "Quảng cáo Google"), "youtube": ("youtube", "video", "YouTube"), "facebook": ("facebook", "social", "Facebook"),
-    "tiktok": ("tiktok", "social", "TikTok"), "zalo": ("zalo", "message", "Zalo"), "kol": ("kol", "social", "KOL / cộng tác viên"),
-    "bao-chi": ("pr", "article", "Báo chí / bài PR"), "email": ("email", "email", "Email / SMS"), "khac": ("other", "link", "Khác"),
-}
-_lf = DATA / "links.json"
-LINKS = []
-for _l in (json.loads(_lf.read_text("utf-8")).get("links") or [] if _lf.exists() else []):
-    _c = re.sub(r"[^a-z0-9-]", "", str(_l.get("code") or "").strip().lower())[:30]
-    if not _c or any(x["code"] == _c for x in LINKS):
-        continue
-    _k = _l.get("kind") if _l.get("kind") in LINK_KINDS else "khac"
-    _to = str(_l.get("to") or "/").strip()
-    _to = _to if _to.startswith("http") else DOMAIN + "/" + _to.lstrip("/")
-    _src, _med, _kl = LINK_KINDS[_k]
-    _sep = "&" if "?" in _to else "?"
-    _h = ""
-    if "#" in _to:
-        _to, _h = _to.split("#", 1); _h = "#" + _h
-    LINKS.append({"code": _c, "name": str(_l.get("name") or _c), "kind": _k, "kind_label": _kl, "note": str(_l.get("note") or ""),
-                  "short": f"{DOMAIN}/q/{_c}/", "target": f"{_to}{_sep}utm_source={_src}&utm_medium={_med}&utm_campaign={_c}{_h}"})
-
 _IMG_CACHE = {}
 
 
@@ -2308,8 +2282,6 @@ def main():
         write("/nhom-zalo/", f'''<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
 <title>Nhóm Zalo Sống khỏe cùng {BRAND}</title><meta http-equiv="refresh" content="0;url={zg}"><script>location.replace({json.dumps(SITE["zalo_group"])});</script></head>
 <body style="font-family:system-ui,sans-serif;text-align:center;padding:40px 16px">Đang mở nhóm Zalo… Nếu chưa tự mở, <a href="{zg}">bấm vào đây</a>.</body></html>''')
-    if IS_VI:
-        build_links()
     routes.append(write("/san-pham/", page_listing("/san-pham/", t("Toàn bộ sản phẩm"), PRODUCTS, "", [(t("Toàn bộ sản phẩm"), None)])))
     sale =[p for p in PRODUCTS if p["on_sale"]]
     if HAS_SALE and sale: routes.append(write("/khuyen-mai/", page_listing("/khuyen-mai/", t("Khuyến Mãi"), sale, t("Các sản phẩm đang có chương trình ưu đãi tại ") + BRAND + ".", [(t("Sản phẩm"), "/san-pham/"), (t("Khuyến Mãi"), None)])))
@@ -2397,6 +2369,8 @@ def main():
     (DIST / "robots.txt").write_text("User-agent: *\nAllow: /\n" + "".join(f"Disallow: {r}\n" for r in private) + f"Disallow: /admin/\n\nSitemap: {DOMAIN}/sitemap.xml\n", "utf-8")
     (DIST / "CNAME").write_text(DOMAIN.replace("https://", "").replace("http://", "") + "\n", "utf-8")
     (DIST / ".nojekyll").write_text("", "utf-8")
+    # 📍 mã QR / link ngắn /q/<mã>/: máy chủ api đếm lượt quét rồi chuyển tới trang đích kèm UTM (link quản lý ở CRM → 📍 Link & QR, api/src/links.js)
+    (DIST / "_redirects").write_text("/q/*  https://api.thucduonglanh.vn/q/:splat  302\n/admin/qr  https://crm.thucduonglanh.vn/#link-qr  302\n/admin/qr/  https://crm.thucduonglanh.vn/#link-qr  302\n", "utf-8")
     (DIST / "_headers").write_text(
         "/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n  X-Frame-Options: SAMEORIGIN\n"
         "/assets/css/*\n  Cache-Control: public, max-age=31536000, immutable\n"
@@ -2419,44 +2393,6 @@ def crm_gifts():
         out.append({"key": "ebook", "title": "Ebook Dinh Dưỡng cho Cơ Xương Khớp", "link": eb["flipbook"], "landing": DOMAIN + eb.get("url", "/ebook/"),
                     "image": DOMAIN + (eb.get("image") or ""), "desc": "Nên ăn gì, tránh gì cho 6 vấn đề cơ xương khớp, 20+ món dễ nấu, video thực đơn 7 ngày. Hợp khách lớn tuổi, đau mỏi, gout."})
     return out
-
-
-def build_links():
-    """Link & mã QR (data/links.json): trang chuyển /q/<mã>/ (đếm 1 lượt quét / máy / ngày rồi chuyển kèm UTM), ảnh QR, trang /admin/qr/ để tải ảnh."""
-    if not LINKS:
-        return
-    try:
-        import segno
-    except ImportError:
-        segno = None
-        print("⚠️ Chưa cài segno (pip install -r requirements.txt): bỏ qua ảnh mã QR")
-    ep = SITE.get("api_endpoint") or ""
-    for l in LINKS:
-        tg = l["target"]
-        write(f"/q/{l['code']}/", f'''<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
-<title>{esc(BRAND)}</title><noscript><meta http-equiv="refresh" content="0;url={esc(tg)}"></noscript>
-<script>(function(){{var u={json.dumps(tg)},c={json.dumps(l["code"])},ep={json.dumps(ep)},go=1;try{{var k="tdl_q_"+c,d=new Date().toISOString().slice(0,10);if(localStorage.getItem(k)===d)go=0;else localStorage.setItem(k,d)}}catch(e){{}}try{{if(go&&ep&&navigator.sendBeacon)navigator.sendBeacon(ep,JSON.stringify({{type:"qr",code:c}}))}}catch(e){{}}location.replace(u)}})();</script></head>
-<body style="font-family:system-ui,sans-serif;text-align:center;padding:40px 16px">Đang mở {esc(BRAND)}… Nếu chưa tự mở, <a href="{esc(tg)}">bấm vào đây</a>.</body></html>''')
-        if segno:
-            q = segno.make(l["short"], error="m", micro=False)
-            q.save(str(DIST / "q" / f"{l['code']}.svg"), scale=10, border=4, dark="#000")
-            q.save(str(DIST / "q" / f"{l['code']}.png"), scale=40, border=4, dark="#000")
-    cards = "".join(f'''<article class="c"><img src="/q/{l["code"]}.svg" alt="Mã QR {esc(l["name"])}" width="150" height="150"><div>
-<h2>{esc(l["name"])} <small>{esc(l["kind_label"])} · mã <b>{esc(l["code"])}</b></small></h2>{f'<p class="n">{esc(l["note"])}</p>' if l["note"] else ""}
-<p><b>In lên ấn phẩm:</b> <code>{esc(l["short"])}</code> <button data-c="{esc(l["short"])}">Chép</button></p>
-<p><b>Dán vào quảng cáo / bài đăng:</b> <code>{esc(l["target"])}</code> <button data-c="{esc(l["target"])}">Chép</button></p>
-<p><a class="b" href="/q/{l["code"]}.svg" download="QR-{l["code"]}.svg">⬇ Tải SVG (gửi nhà in)</a> <a class="b" href="/q/{l["code"]}.png" download="QR-{l["code"]}.png">⬇ Tải PNG</a></p></div></article>''' for l in LINKS)
-    p = DIST / "admin" / "qr" / "index.html"
-    p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(f'''<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Link &amp; mã QR – {esc(BRAND)}</title>
-<style>body{{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#f7f6f2;color:#262a1f;margin:0;padding:16px}}main{{max-width:860px;margin:0 auto}}h1{{color:#1f5f3a;font-size:24px;margin:8px 0 6px}}.s{{color:#555;margin:0 0 16px;line-height:1.5}}.c{{display:flex;gap:16px;background:#fff;border-radius:14px;padding:16px;margin:0 0 12px;box-shadow:0 4px 16px rgba(0,0,0,.05)}}.c img{{flex:none;width:150px;height:150px}}.c h2{{font-size:18px;margin:0 0 6px;color:#1f5f3a}}.c h2 small{{display:block;font-size:13px;color:#777;font-weight:400;margin-top:2px}}.c p{{margin:6px 0;font-size:14px;line-height:1.5;word-break:break-all}}.c>div{{min-width:0}}.n{{color:#555}}code{{background:#eaf3ec;padding:2px 6px;border-radius:6px;word-break:break-all}}button,.b{{display:inline-block;background:#fff;border:1.5px solid #1f5f3a;color:#1f5f3a;border-radius:999px;padding:4px 12px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;margin:2px 0}}.top{{display:inline-block;background:#1f5f3a;color:#fff;border-radius:999px;padding:10px 18px;text-decoration:none;font-weight:600}}@media(max-width:560px){{.c{{flex-direction:column;align-items:center}}.c div{{width:100%}}}}</style></head><body><main>
-<h1>Link &amp; mã QR theo dõi nguồn khách</h1>
-<p class="s">Mỗi tờ rơi, standee, gói hàng, quảng cáo dùng 1 link riêng. Khách quét QR → vào web → đơn hàng tự ghi nguồn. Xem lượt quét, số đơn, doanh thu từng link ở <b>CRM → 📣 Marketing → 📍 Link &amp; mã QR</b>.<br>
-⚠️ Link đã in thì <b>không đổi mã, không xoá</b>. Được đổi tên, ghi chú và trang đích (đổi xong khoảng 2 phút là mã QR đã in tự trỏ sang trang mới).</p>
-<p><a class="top" href="/admin/#/collections/settings/entries/links">＋ Thêm / sửa link</a></p>
-{cards}
-<script>document.addEventListener("click",function(e){{var b=e.target.closest("[data-c]");if(!b)return;navigator.clipboard.writeText(b.getAttribute("data-c")).then(function(){{b.textContent="Đã chép ✓";setTimeout(function(){{b.textContent="Chép"}},1500)}})}});</script>
-</main></body></html>''', "utf-8")
 
 
 def build_crm():
@@ -2489,6 +2425,14 @@ def build_crm():
     except Exception:
         js_min = js_raw
     (out / "app.js").write_text(js_min, "utf-8")
+    if (src / "qrcode.js").exists():  # thư viện vẽ mã QR (qrcode-generator, MIT) cho tab 📍 Link & QR, chỉ tải khi mở tab
+        q = (src / "qrcode.js").read_text("utf-8")
+        try:
+            import rjsmin
+            q = rjsmin.jsmin(q, keep_bang_comments=True)
+        except Exception:
+            pass
+        (out / "qrcode.js").write_text("/* qrcode-generator 1.4.4 · (c) Kazuhiko Arase · MIT */\n" + q, "utf-8")
 
     ver = hashlib.md5((js_min + css_min).encode("utf-8")).hexdigest()[:8]
     (out / "index.html").write_text((src / "index.html").read_text("utf-8").replace("__V__", ver), "utf-8")
@@ -2501,7 +2445,6 @@ def build_crm():
     cfg = {"endpoint": (SITE.get("api_endpoint") or SITE.get("order_endpoint", "")), "shipping_fee": SITE.get("shipping_fee", 0),
            "free_ship_threshold": SITE.get("free_ship_threshold", 0), "products": products,
            "zalo_group": SITE.get("zalo_group", ""), "gifts": crm_gifts(),
-           "links": [{k: l[k] for k in ("code", "name", "kind_label", "short", "target")} for l in LINKS],
            "web_gift": (WEB_OFFER.get("gift_title", "") + (" (trị giá " + WEB_OFFER["gift_value"] + ")" if WEB_OFFER.get("gift_value") else "")) if WEB_OFFER.get("gift_enabled") else ""}
     (out / "crm-data.js").write_text("window.CRM_CONFIG=" + json.dumps(cfg, ensure_ascii=False) + ";\n", "utf-8")
     (out / "manifest.webmanifest").write_text(json.dumps({
@@ -2513,6 +2456,7 @@ def build_crm():
         "/*\n  X-Robots-Tag: noindex, nofollow\n  X-Content-Type-Options: nosniff\n  X-Frame-Options: DENY\n  Referrer-Policy: no-referrer\n"
         "  Content-Security-Policy: default-src 'self'; connect-src 'self' https://api.thucduonglanh.vn https://script.google.com https://script.googleusercontent.com; img-src 'self' data: https://thucduonglanh.vn; style-src 'self' 'unsafe-inline'; script-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'\n"
         "/\n  Cache-Control: no-cache\n/index.html\n  Cache-Control: no-cache\n/crm-data.js\n  Cache-Control: no-cache\n"
+        "/qrcode.js\n  Cache-Control: public, max-age=86400\n"
         "/app.js\n  Cache-Control: public, max-age=31536000, immutable\n/app.css\n  Cache-Control: public, max-age=31536000, immutable\n", "utf-8")
     build_guide(out / "huong-dan")
     print(f"Đã tạo CRM vào {out}")

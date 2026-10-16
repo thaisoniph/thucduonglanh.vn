@@ -72,6 +72,7 @@
     chart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M8 17V10M13 17V6M18 17v-4"/></svg>',
     help: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg>',
     search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>',
+    qr: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></svg>',
     mega: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a1 1 0 0 0 1 1h3l6 4V6L7 10H4a1 1 0 0 0-1 1z"/><path d="M17 9a4 4 0 0 1 0 6"/><path d="M8 14l1.5 5h2.5l-1.5-5"/></svg>',
     shop: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>'
   };
@@ -163,7 +164,7 @@
     function fallback() { var t = document.createElement('textarea'); t.value = text; t.style.position = 'fixed'; t.style.opacity = '0'; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); } catch (e) { } t.remove(); }
   }
 
-  var SERVER_V = '2026-10-15b'; // phải trùng số phiên bản máy chủ (api/src/index.js)
+  var SERVER_V = '2026-10-16d'; // phải trùng số phiên bản máy chủ (api/src/index.js)
   var ON_CF = !/script\.google/.test(CFG.endpoint || ''); // máy chủ Cloudflare (nhanh) hay Apps Script cũ
   function checkVersion(j) {
     if (j && j.v) S.srvV = j.v;
@@ -641,11 +642,12 @@
     { id: 'tiem-nang', label: 'Khách hỏi', icon: 'lead' },
     { id: 'bao-cao', label: 'Hiệu quả', icon: 'chart' },
     { id: 'marketing', label: 'Marketing', icon: 'mega', mkt: 1 }, // quyền Marketing: chỉ thấy tab này + Cài đặt; Quản trị vào từ Tổng quan (không chiếm chỗ trên menu)
+    { id: 'link-qr', label: 'Link & QR', short: 'QR', icon: 'qr', lq: 1 }, // 📍 link / mã QR theo dõi nguồn khách: Marketing, Quản lý, Quản trị (Quản trị vào từ Tổng quan / Marketing)
     { id: 'san', label: 'Sàn', icon: 'shop', san: 1 }, // doanh thu Shopee / TikTok Shop: Quản trị + người phụ trách sàn (Quản trị vào từ Tổng quan, không chiếm chỗ trên menu)
     { id: 'cai-dat', label: 'Cài đặt', icon: 'gear' }
   ];
-  function myViews() { if (isMkt()) return VIEWS.filter(function (v) { return v.mkt || v.id === 'cai-dat'; }); return VIEWS.filter(function (v) { return (!v.min || lvl() >= v.min) && (!v.san || (S.d && S.d.sanOk) || lvl() >= 3) && (!v.mkt || lvl() >= 3); }); }
-  function navViews() { return myViews().filter(function (v) { return !((v.san || v.mkt) && lvl() >= 3); }); }
+  function myViews() { if (isMkt()) return VIEWS.filter(function (v) { return v.mkt || v.lq || v.id === 'cai-dat'; }); return VIEWS.filter(function (v) { return (!v.min || lvl() >= v.min) && (!v.lq || lvl() >= 2) && (!v.san || (S.d && S.d.sanOk) || lvl() >= 3) && (!v.mkt || lvl() >= 3); }); }
+  function navViews() { return myViews().filter(function (v) { return !((v.san || v.mkt || v.lq) && lvl() >= 3); }); }
   function meHTML() { return '<b>' + esc(S.user.name) + '</b>'; } // chỉ tên: mỗi người là chủ công việc của mình
   function updatedLine() {
     var pf = S.perf, sp = pf && lvl() >= 3 ? ' · tải ' + (pf.core / 1000).toFixed(1) + 's' + (pf.srv ? ' (máy chủ ' + (pf.srv.ms / 1000).toFixed(1) + 's' + (pf.srv.cached ? ', bản đọc sẵn' : ', đọc Sheet') + ')' : '') + (pf.kb ? ', ' + pf.kb + ' KB' : '') + (pf.rest ? ' + đợt 2 ' + (pf.rest / 1000).toFixed(1) + 's' + (pf.kb2 ? '/' + pf.kb2 + ' KB' : '') : '') : '';
@@ -685,7 +687,7 @@
     var keepScroll = lastView === v, y = window.scrollY;
     var el = $('#view');
     var focusId = document.activeElement && document.activeElement.id, selStart = document.activeElement && document.activeElement.selectionStart;
-    el.innerHTML = ({ 'hom-nay': viewToday, 'khach-hang': viewCustomers, 'don-hang': viewOrders, 'tiem-nang': viewLeads, 'bao-cao': viewReport, 'cai-dat': viewSettings, 'tong-quan': viewDash, san: viewSan, marketing: viewMkt })[v]();
+    el.innerHTML = ({ 'hom-nay': viewToday, 'khach-hang': viewCustomers, 'don-hang': viewOrders, 'tiem-nang': viewLeads, 'bao-cao': viewReport, 'cai-dat': viewSettings, 'tong-quan': viewDash, san: viewSan, marketing: viewMkt, 'link-qr': viewLinks })[v]();
     el.insertAdjacentHTML('beforeend', updatedLine());
     if (focusId && $('#' + focusId)) { var f = $('#' + focusId); f.focus(); try { f.setSelectionRange(selStart, selStart); } catch (e) { } }
     if (keepScroll) window.scrollTo(0, y); else window.scrollTo(0, 0);
@@ -2106,7 +2108,7 @@
     var a = String(o.source || '').split(' / '), s = a[0].trim().toLowerCase(), L = linkByCode(a[2]); if (L) return '📍 ' + L.name;
     return !s || /trực tiếp/.test(s) ? 'Vào thẳng web' : /facebook|^fb$|instagram|messenger/.test(s) ? 'Facebook' : /google/.test(s) ? 'Google' : /tiktok/.test(s) ? 'TikTok' : /zalo/.test(s) ? 'Zalo' : /youtube/.test(s) ? 'YouTube' : s;
   }
-  function linkByCode(c) { c = String(c || '').trim().toLowerCase(); return c ? (CFG.links || []).filter(function (l) { return l.code === c; })[0] || null : null; } // data/links.json (/admin → 📍 Link & mã QR)
+  function linkByCode(c) { c = String(c || '').trim().toLowerCase(); var r = c ? ((S.d && S.d.qrLinks) || []).filter(function (l) { return l[0] === c; })[0] : null; return r ? { code: r[0], name: r[1] } : null; } // 📍 tab Link & QR (máy chủ trả qrLinks khi tải CRM)
   var CH_WEB = 'Đơn web'; // khoá % hoa hồng riêng cho đơn web
   function otLabel(t) { return t ? (OT[t] ? OT[t][0] + ' ' : '') + t : '–'; }
   function otypeOf(o) { if (o.otype) return o.otype; if (o.ca === 'Lễ') return 'Ngày lễ'; if (o.ca === 'Tối/CN') return 'Ngoài giờ'; var c = cust(o.phone); return !c || !c.first || c.first >= o.time - 3600e3 ? 'Khách mới' : 'Khách cũ'; } // đơn cũ chưa có cột Loại đơn: suy ra
@@ -3236,7 +3238,7 @@
     });
   }
   function mktBlock(M, R, b, bp, sj) {
-    var h = '<section class="section"><div class="section-h"><h2>📣 Marketing</h2><span class="tip">chi phí quảng cáo &amp; hiệu quả</span><div class="grow"></div><a class="btn sm" href="#marketing" title="Đúng màn hình bộ phận marketing đang xem">👁 Tab Marketing</a><button class="btn sm" data-dash="mkt">⚙️ Quản lý chi phí quảng cáo</button></div>';
+    var h = '<section class="section"><div class="section-h"><h2>📣 Marketing</h2><span class="tip">chi phí quảng cáo &amp; hiệu quả</span><div class="grow"></div><a class="btn sm" href="#marketing" title="Đúng màn hình bộ phận marketing đang xem">👁 Tab Marketing</a><a class="btn sm" href="#link-qr">📍 Link &amp; QR</a><button class="btn sm" data-dash="mkt">⚙️ Quản lý chi phí quảng cáo</button></div>';
     if (!M) return h + '<div class="box"><p class="muted">' + (MK.err ? '⚠️ ' + esc(MK.err) : '⏳ Đang tải chi phí…') + '</p></div></section>';
     var mj = M.mj, ch = M.ch, chp = M.chp, tot = M.tot, totp = M.totp, day = M.day;
     var fb = mj.cfg.fb, fbLine = fb.on ? '📘 Facebook Ads tự cập nhật' + (fb.last ? ' · lần gần nhất ' + fDateTime(fb.last) : '') + (fb.err ? ' · <span class="bad-line">⚠️ ' + esc(fb.err) + '</span>' : '') : '📘 Facebook Ads chưa kết nối tự động. Bấm <b>⚙️ Quản lý chi phí quảng cáo</b> để kết nối, hoặc nhập file / nhập tay.';
@@ -3371,22 +3373,102 @@
     return { line: [lvs.ok.length ? '🟢 Có lời: ' + lvs.ok.join(', ') : '', lvs.bad.length ? '🔴 Đang lỗ: ' + lvs.bad.join(', ') : '', lvs.mid.length ? '🟠 Hoà vốn: ' + lvs.mid.join(', ') : ''].filter(Boolean).join(' · ') || named.length + ' sản phẩm',
       h: h + '<p class="bar-legend">Chi phí: theo tên chiến dịch. Data: theo cột Nguồn quảng cáo của file số. Tiền khách mới: các dòng sản phẩm trong đơn của khách mua lần đầu (kênh có chạy quảng cáo). Đèn giống ô 🚦: dưới ' + dashAds()[0] + '% là có lời.</p>' };
   }
-  /** 📍 Link & mã QR: lượt quét, đơn, tiền, khách mới theo từng link (mj.qr: {mã: [quét, đơn, tiền, khách mới]}). */
-  function mkQrBlock(mj) {
-    var L = CFG.links || []; if (!L.length) return null;
-    var Q = mj.qr || {}, Qp = mj.qrPrev || {}, z = [0, 0, 0, 0], tS = 0, tN = 0, tR = 0;
-    var rows = L.map(function (l) { return { l: l, q: Q[l.code] || z, p: Qp[l.code] || z }; }).sort(function (a, b) { return b.q[2] - a.q[2] || b.q[0] - a.q[0]; });
-    var h = '<div class="dash-chs">';
-    rows.forEach(function (r) {
-      var q = r.q, st = function (k, v) { return '<div class="dash-ch-s"><span>' + k + '</span><b>' + v + '</b></div>'; }; tS += q[0]; tN += q[1]; tR += q[2];
-      h += '<div class="dash-ch"><div class="dash-ch-h"><b>' + esc(r.l.name) + '</b><span class="muted small">' + esc(r.l.kind_label) + ' · ' + esc(r.l.code) + '</span></div><div class="dash-ch-g">' +
-        st('👀 Lượt quét / mở link', q[0] + (r.p[0] ? ' <small>(' + (CMP_LABEL || 'kỳ trước') + ' ' + r.p[0] + ')</small>' : '')) + st('🛒 Đơn', q[1] + (q[0] && q[1] ? ' <small>(' + oneDec(q[1] * 100 / q[0]) + '% lượt quét)</small>' : '')) +
-        st('💰 Tiền', q[2] ? moneyShort(q[2]) : '–') + st('🆕 Khách mới', q[3]) + '</div></div>';
-    });
-    var T = Q._tay; if (T && T[1]) { tN += T[1]; tR += T[2]; }
-    h += '</div>' + (T && T[1] ? '<p>☎️ Khách gọi / nhắn Zalo đặt sau khi nhận tờ rơi, gặp ở sự kiện: <b>' + T[1] + ' đơn · ' + moneyShort(T[2]) + '</b> · ' + T[3] + ' khách mới</p>' : '') + '<p class="small"><a href="https://thucduonglanh.vn/admin/qr/" target="_blank" rel="noopener">⬇ Tải mã QR</a> · <a href="https://thucduonglanh.vn/admin/#/collections/settings/entries/links" target="_blank" rel="noopener">＋ Thêm link mới</a></p>';
-    return { line: tS + ' lượt quét · ' + tN + ' đơn' + (tR ? ' · ' + moneyShort(tR) : ''), h: h + '<p class="bar-legend">Lượt quét: mỗi điện thoại tính 1 lần / ngày (đếm cả khách chưa đồng ý cookie). Đơn: khách vào web qua link này rồi đặt trong 30 ngày, kể cả hôm sau mới đặt. Khách gọi điện / nhắn Zalo đặt thì sale lên đơn chọn “Khách đặt qua: Tờ rơi / Sự kiện”. Xem từng sự kiện: chọn đúng ngày diễn ra ở ô kỳ phía trên.</p>' };
+  /* ---------------------------------------------------------------- 📍 Link & mã QR (api/src/links.js)
+   * Mỗi điểm chạm (tờ rơi, standee, gói hàng, đối tác, quảng cáo…) 1 mã: in QR thucduonglanh.vn/q/<mã>/ → máy chủ đếm lượt quét → trang đích kèm UTM.
+   * Marketing, Quản lý, Quản trị tạo / sửa được. Mã không đổi, không xoá (đã in phải luôn chạy); "Ngừng dùng" chỉ ẩn khỏi danh sách. */
+  var LQ = { cache: {}, err: '', busy: '', lib: 0 };
+  function lqLib() { // thư viện vẽ QR (crm/qrcode.js, MIT) chỉ tải khi mở tab này
+    if (window.qrcode || LQ.lib) return; LQ.lib = 1;
+    var sc = document.createElement('script'); sc.src = '/qrcode.js?v=1'; sc.onload = function () { render(); }; sc.onerror = function () { LQ.lib = 0; }; document.head.appendChild(sc);
   }
+  function lqMake(text) { var q = window.qrcode(0, 'M'); q.addData(text); q.make(); return q; }
+  function lqSvg(text, cell) { return window.qrcode ? lqMake(text).createSvgTag({ cellSize: cell || 4, margin: 4, scalable: true }) : ''; }
+  function lqFetch(key) {
+    var k = key.split('_'); LQ.busy = key; LQ.err = '';
+    api('link_list', { from: k[0], to: k[1], pf: k[2], pt: k[3] }).then(function (j) { LQ.cache[key] = j; if (S.d) S.d.qrLinks = j.links.map(function (l) { return [l.code, l.name]; }); }, function (e) { LQ.err = /Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message; })
+      .then(function () { LQ.busy = ''; if (route().view === 'link-qr') render(); });
+  }
+  function lqKey() { var f = S.f.q; return gaKey(perRange(f.p), cmpRange(f.p)); }
+  function lqCur() { return LQ.cache[lqKey()]; }
+  function viewLinks() {
+    var f = S.f.q || (S.f.q = { p: { k: 'month' } }), key = lqKey(), j = LQ.cache[key]; lqLib();
+    if (!j && !LQ.err && LQ.busy !== key) setTimeout(function () { lqFetch(key); }, 0);
+    var h = '<div class="page-head"><h1>📍 Link &amp; mã QR</h1><div class="grow"></div><button class="btn pri" data-lq="new">＋ Tạo link mới</button></div>' +
+      '<p class="muted small lq-intro">Mỗi tờ rơi, standee, gói hàng, đối tác, quảng cáo dùng <b>1 link riêng</b>. Khách quét QR → vào web → đơn tự ghi nguồn. ⚠️ Link đã in thì không xoá được, chỉ đổi được tên và trang đích (QR đã in tự dẫn sang trang mới).</p>' +
+      perChips('q', f.p);
+    if (!j) return h + '<div class="box"><p class="muted">' + (LQ.err ? '⚠️ ' + esc(LQ.err) + ' <button class="link" data-lq="reload">Thử lại</button>' : '⏳ Đang tải…') + '</p></div>';
+    var z = [0, 0, 0, 0], st = j.stats || {}, pv = j.prev || {}, T = [0, 0, 0, 0], Tp = [0, 0, 0, 0];
+    j.links.forEach(function (l) { var a = st[l.code] || z, b = pv[l.code] || z; for (var i = 0; i < 4; i++) { T[i] += a[i]; Tp[i] += b[i]; } });
+    var tay = st._tay || z; T[1] += tay[1]; T[2] += tay[2]; T[3] += tay[3]; var tp = pv._tay || z; Tp[1] += tp[1]; Tp[2] += tp[2]; Tp[3] += tp[3];
+    h += '<div class="metrics dash-m3">' + metric('👀 Lượt quét / mở link', T[0], 'Mỗi điện thoại tính 1 lần / ngày / link. Đếm cả khách chưa đồng ý cookie.', delta(T[0], Tp[0])) +
+      metric('🛒 Đơn', T[1], (T[0] && T[1] - tay[1] ? 'Cứ 100 lượt quét có ' + oneDec((T[1] - tay[1]) * 100 / T[0]) + ' đơn. ' : '') + 'Gồm khách quét rồi vài hôm sau mới đặt (trong 30 ngày).', delta(T[1], Tp[1])) +
+      metric('💰 Tiền', moneyShort(T[2]), 'Đơn huỷ / hoàn không tính.', delta(T[2], Tp[2])) + metric('🆕 Khách mới', T[3], 'Khách mua lần đầu trong kỳ.', delta(T[3], Tp[3])) + '</div>';
+    if (tay[1]) h += '<p class="small">☎️ Khách gọi / nhắn Zalo đặt sau khi nhận tờ rơi, gặp ở sự kiện (sale lên đơn chọn “Tờ rơi / Sự kiện”): <b>' + tay[1] + ' đơn · ' + moneyShort(tay[2]) + '</b></p>';
+    var on = j.links.filter(function (l) { return l.active; }).sort(function (a, b) { var x = st[a.code] || z, y = st[b.code] || z; return y[2] - x[2] || y[0] - x[0] || (b.at || 0) - (a.at || 0); }), off = j.links.filter(function (l) { return !l.active; });
+    var kn = {}; (j.kinds || []).forEach(function (k) { kn[k[0]] = k[1]; });
+    var card = function (l) {
+      var a = st[l.code] || z, b = pv[l.code] || z, s = function (k, v) { return '<div class="dash-ch-s"><span>' + k + '</span><b>' + v + '</b></div>'; };
+      return '<div class="dash-ch lq-card' + (l.active ? '' : ' lq-off') + '"><div class="lq-top"><button type="button" class="lq-qr" data-lq="qr|' + esc(l.code) + '" title="Tải mã QR">' + (lqSvg(l.short, 3) || '<span class="muted small">QR</span>') + '</button><div class="lq-info">' +
+        '<b>' + esc(l.name) + '</b><span class="muted small lq-meta">' + esc(kn[l.kind] || l.kind) + ' · mã <b>' + esc(l.code) + '</b>' + (l.active ? '' : ' · ⏸ đã ngừng dùng') + '</span>' +
+        '<span class="small muted lq-dest">→ ' + esc(/^(\/|https:\/\/(www\.)?thucduonglanh\.vn\/?)$/.test(l.dest) ? 'Trang chủ' : l.dest) + '</span>' + (l.note ? '<span class="small lq-note">' + esc(l.note) + '</span>' : '') + '</div></div>' +
+        '<div class="dash-ch-g">' + s('👀 Lượt quét', a[0] + (b[0] ? ' <small>(' + (CMP_LABEL || 'kỳ trước') + ' ' + b[0] + ')</small>' : '')) + s('🛒 Đơn', a[1] + (a[0] && a[1] ? ' <small>(' + oneDec(a[1] * 100 / a[0]) + '%)</small>' : '')) +
+        s('💰 Tiền', a[2] ? moneyShort(a[2]) : '–') + s('🆕 Khách mới', a[3]) + '</div>' +
+        '<div class="lq-btns"><button class="btn sm" data-lq="qr|' + esc(l.code) + '">⬇ Tải QR</button><button class="btn sm ghost" data-lq="cs|' + esc(l.code) + '">📋 Link in</button><button class="btn sm ghost" data-lq="ct|' + esc(l.code) + '">📋 Link quảng cáo</button><button class="btn sm ghost" data-lq="ed|' + esc(l.code) + '">✏️ Sửa</button></div>' +
+        '<p class="small muted lq-by">Tạo bởi ' + esc(l.by_name || '–') + (l.at ? ' · ' + fDate(l.at) : '') + (l.upd_by ? ' · sửa lần cuối: ' + esc(l.upd_by) + (l.upd_at ? ' ' + fDate(l.upd_at) : '') : '') + '</p></div>';
+    };
+    h += on.length ? '<div class="dash-chs lq-list">' + on.map(card).join('') + '</div>' : '<div class="box"><p>Chưa có link nào. Bấm <b>＋ Tạo link mới</b>.</p></div>';
+    if (off.length) h += '<details class="lq-offs"><summary>⏸ Link đã ngừng dùng (' + off.length + ')</summary><div class="dash-chs lq-list">' + off.map(card).join('') + '</div></details>';
+    return h + '<p class="bar-legend"><b>Link in</b> (thucduonglanh.vn/q/…): dùng làm mã QR trên tờ rơi, standee, gói hàng. <b>Link quảng cáo</b> (link dài có UTM): dán vào Google Ads, YouTube, bài đăng, không cần QR. Muốn xem riêng 1 sự kiện: chọn 📅 đúng ngày diễn ra sự kiện.</p>';
+  }
+  function lqFind(code) { var j = lqCur(); return j ? j.links.filter(function (l) { return l.code === code; })[0] : null; }
+  function lqDl(name, blob) { var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000); }
+  function lqPng(text, code) { // ảnh PNG ~2000px để in, kèm dòng link bên dưới cho khách không quét được
+    var q = lqMake(text), n = q.getModuleCount(), cell = Math.ceil(2000 / (n + 8)), w = cell * (n + 8), cap = Math.round(cell * 3.2), cv = document.createElement('canvas'), c = cv.getContext('2d');
+    cv.width = w; cv.height = w + cap; c.fillStyle = '#fff'; c.fillRect(0, 0, cv.width, cv.height); c.fillStyle = '#000';
+    for (var r = 0; r < n; r++) for (var k = 0; k < n; k++) if (q.isDark(r, k)) c.fillRect((k + 4) * cell, (r + 4) * cell, cell, cell);
+    c.font = '600 ' + Math.round(cell * 1.6) + 'px system-ui, -apple-system, sans-serif'; c.textAlign = 'center'; c.fillText(text.replace(/^https:\/\//, '').replace(/\/$/, ''), w / 2, w + Math.round(cap * 0.35));
+    cv.toBlob(function (b) { lqDl('QR-' + code + '.png', b); }, 'image/png');
+  }
+  function lqQrOpen(l) {
+    if (!window.qrcode) { toast('Đang tải công cụ vẽ QR, bạn bấm lại sau 1 giây.'); lqLib(); return; }
+    var m = modal('⬇ Mã QR · ' + esc(l.name), '<div class="lq-big">' + lqSvg(l.short, 8) + '</div><p class="small" style="text-align:center"><b>' + esc(l.short.replace(/^https:\/\//, '')) + '</b></p>' +
+      '<p class="small muted">• <b>PNG</b>: ảnh 2000px có dòng link bên dưới, dán vào Canva hoặc gửi Zalo cho bên thiết kế.<br>• <b>SVG</b>: gửi nhà in, in to cỡ nào cũng nét.<br>• Nên in QR rộng từ 2,5 cm trở lên, nền trắng, có chữ “Quét để xem ưu đãi”.</p>',
+      '<button class="btn" data-close>Đóng</button><button class="btn" id="lqSvgBtn">⬇ SVG</button><button class="btn pri" id="lqPngBtn">⬇ PNG</button>');
+    $('#lqPngBtn', m).onclick = function () { lqPng(l.short, l.code); };
+    $('#lqSvgBtn', m).onclick = function () { lqDl('QR-' + l.code + '.svg', new Blob([lqMake(l.short).createSvgTag({ cellSize: 10, margin: 4 })], { type: 'image/svg+xml' })); };
+  }
+  function lqForm(l) {
+    var j = lqCur() || {}, isNew = !l; l = l || { code: '', name: '', kind: 'to-roi', dest: '/', note: '' };
+    var m = modal(isNew ? '＋ Tạo link mới' : '✏️ Sửa link · ' + esc(l.code),
+      '<label class="f"><span>Mã ngắn</span><input type="text" id="lqCode" value="' + esc(l.code) + '"' + (isNew ? '' : ' disabled') + ' maxlength="30" autocapitalize="off" autocomplete="off" placeholder="vd: dt-anlac"></label>' +
+      '<p class="hint">' + (isNew ? 'Chữ thường không dấu, số, dấu gạch ngang. Càng ngắn QR càng dễ quét. Link in: thucduonglanh.vn/q/<b id="lqPrev">' + esc(l.code || '…') + '</b>/. ⚠️ Tạo xong không đổi được mã.' : 'Mã đã tạo thì không đổi được (QR đã in phải luôn chạy).') + '</p>' +
+      '<label class="f"><span>Tên (để nhận ra trong báo cáo)</span><input type="text" id="lqName" value="' + esc(l.name) + '" maxlength="120" placeholder="vd: Standee cửa hàng chay An Lạc"></label>' +
+      '<label class="f"><span>Loại</span><select id="lqKind">' + (j.kinds || []).map(function (k) { return '<option value="' + k[0] + '"' + (k[0] === l.kind ? ' selected' : '') + '>' + esc(k[1]) + '</option>'; }).join('') + '</select></label>' +
+      '<label class="f"><span>Trang đích</span><input type="text" id="lqDest" value="' + esc(l.dest) + '" maxlength="500" autocapitalize="off" placeholder="/"></label>' +
+      '<p class="hint"><b>/</b> = trang chủ. Trang sản phẩm: mở web, chép phần sau tên miền, vd <b>/san-pham/tra-dilvang/</b>. Đổi được bất cứ lúc nào.</p>' +
+      '<label class="f"><span>Ghi chú (đặt ở đâu, in bao nhiêu, ngày nào)</span><textarea id="lqNote" rows="3" maxlength="1000">' + esc(l.note || '') + '</textarea></label>' +
+      (isNew ? '' : '<p class="hint">' + (l.active ? '<button type="button" class="link" id="lqOff">⏸ Ngừng dùng link này</button> (ẩn khỏi danh sách; QR đã in vẫn dẫn khách vào web bình thường)' : '<button type="button" class="link" id="lqOn">▶️ Dùng lại link này</button>') + '</p>'),
+      '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="lqSave">Lưu</button>');
+    var cd = $('#lqCode', m); if (isNew) cd.oninput = function () { var v = cd.value.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/[^a-z0-9-]+/g, '-').replace(/^-+/, '').slice(0, 30); if (v !== cd.value) cd.value = v; $('#lqPrev', m).textContent = v || '…'; };
+    var done = function (msg) { toast(msg); closeModal(); LQ.cache = {}; render(); };
+    $('#lqSave', m).onclick = function () {
+      var b = this, d = { code: isNew ? cd.value.replace(/-+$/, '') : l.code, name: $('#lqName', m).value.trim(), kind: $('#lqKind', m).value, dest: $('#lqDest', m).value.trim() || '/', note: $('#lqNote', m).value.trim(), isNew: isNew ? 1 : 0 };
+      if (!d.code) return toast('Bạn chưa nhập mã ngắn.', true); if (!d.name) return toast('Bạn chưa đặt tên cho link.', true);
+      b.disabled = true; api('link_save', d).then(function () { done(isNew ? 'Đã tạo link ' + d.code + ' ✓ Bấm ⬇ Tải QR để lấy mã.' : 'Đã lưu ✓'); }, function (e) { b.disabled = false; toast(e.message, true); });
+    };
+    var tg = function (onv) { return function () { if (!onv && !confirm('Ngừng dùng link “' + l.name + '”? Link ẩn khỏi danh sách, QR đã in vẫn dẫn khách vào web.')) return; api('link_active', { code: l.code, on: onv ? 1 : 0 }).then(function () { done(onv ? 'Đã dùng lại ✓' : 'Đã ngừng dùng ✓'); }, function (e) { toast(e.message, true); }); }; };
+    if ($('#lqOff', m)) $('#lqOff', m).onclick = tg(false); if ($('#lqOn', m)) $('#lqOn', m).onclick = tg(true);
+  }
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-lq]'); if (!t) return;
+    var v = t.getAttribute('data-lq').split('|'), l = v[1] ? lqFind(v[1]) : null;
+    if (v[0] === 'new') return lqForm(null);
+    if (v[0] === 'reload') { LQ.err = ''; LQ.cache = {}; return render(); }
+    if (!l) return;
+    if (v[0] === 'qr') return lqQrOpen(l);
+    if (v[0] === 'ed') return lqForm(l);
+    if (v[0] === 'cs' || v[0] === 'ct') { copy(v[0] === 'cs' ? l.short : l.target).then(function () { toast(v[0] === 'cs' ? 'Đã chép link in QR ✓' : 'Đã chép link quảng cáo ✓'); }); }
+  });
   /** 💎 Giá trị 1 khách mới (90 ngày đầu) → nên chi tối đa bao nhiêu để có 1 khách mới. */
   function mkLtvBlock(mj, cpn) {
     var L = mj.ltv; if (!L || !L.n) return { h: '' };
@@ -3667,7 +3749,7 @@
     var gKey = mvMonthKey(), R = perRange(f.p), key = mvKey(), mj = MV.cache[key], gm = MV.cache[gKey];
     if (gKey !== key && !gm && !MV.err) setTimeout(function () { mvFetch(gKey); }, 0);
     if (!mj && !MV.err) setTimeout(function () { mvFetch(key); }, 0);
-    var h = '<div class="page-head"><h1>📣 Marketing</h1><div class="grow"></div>' + (lvl() >= 3 ? '<button class="btn ghost" data-mkv="aud" title="File số điện thoại khách cũ để tải lên Facebook">👥 Tệp khách FB</button>' : '') + '<button class="btn" data-mkv="cost">⚙️ Nhập chi phí</button><button class="btn ghost" data-mkv="fresh" title="Tính lại số mới nhất">↻</button></div>' + perChips('m', f.p);
+    var h = '<div class="page-head"><h1>📣 Marketing</h1><div class="grow"></div>' + '<a class="btn ghost" href="#link-qr" title="Tạo link, mã QR cho tờ rơi, standee, quảng cáo và xem hiệu quả">📍 Link &amp; QR</a>' + (lvl() >= 3 ? '<button class="btn ghost" data-mkv="aud" title="File số điện thoại khách cũ để tải lên Facebook">👥 Tệp khách FB</button>' : '') + '<button class="btn" data-mkv="cost">⚙️ Nhập chi phí</button><button class="btn ghost" data-mkv="fresh" title="Tính lại số mới nhất">↻</button></div>' + perChips('m', f.p);
     if (!mj) return h + '<div class="box"><p class="muted">' + (MV.err ? '⚠️ ' + esc(MV.err) + ' <button class="link" data-mkv="fresh">Thử lại</button>' : '⏳ Đang tính hiệu quả quảng cáo…') + '</p></div>';
     MK.fbOn = mj.fb.on;
     var ch = {}, chp = {}, tot = 0, totp = 0, day = {}, A = dashAds(), per = function (n, v) { return n && v ? moneyShort(Math.round(v / n)) : '–'; };
@@ -3709,7 +3791,6 @@
         (wb.fb ? metric('📘 Khách mới từ quảng cáo Facebook', moneyShort(wb.fb) + ' <small>(' + pct(wb.fb, wsum) + '%)</small>', 'Đặt trên web nhưng đến từ quảng cáo Facebook → tính cho kênh Facebook, không tính vào mục tiêu Website.', '') : '') +
         '</div><p class="bar-legend">Mục tiêu Website = tiền khách mới + khách cũ đặt trên web (không gồm phần quảng cáo Facebook). Khách cũ = đã từng mua trước kỳ này. Muốn tăng khách cũ đặt web: gửi link web trong nhóm Zalo, tin nhắn CSKH, thẻ trong đơn sàn.</p>');
     }
-    var QB = mkQrBlock(mj); if (QB) h += mkMore('qr', '📍 Link & mã QR (tờ rơi, standee…)', QB.line, QB.h);
     var cm = mj.comm, cmp = mj.commPrev, csp = 0; mj.days.forEach(function (r) { if (r[1] === MK_COMM) csp += r[2]; });
     if (cm && (cm.rev || csp)) h += mkMore('comm', '👥 Cộng đồng Zalo', moneyShort(cm.rev) + ' tiền mua lại · ' + cm.buyers + ' khách', '<div class="metrics dash-m3">' +
       metric('Tiền mua lại', moneyShort(cm.rev), 'Đơn mua lại (không tính đơn đầu) của khách đã vào nhóm Zalo cộng đồng.', delta(cm.rev, cmp ? cmp.rev : null)) +
