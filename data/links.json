@@ -4,7 +4,7 @@
       "code": "sk",
       "name": "Tờ rơi phát ở sự kiện",
       "kind": "to-roi",
-      "to": "/",
+      "to": "https://thucduonglanh.vn/",
       "note": "Phát ở các chương trình offline (chương trình thầy Tư, hội chợ…). Xem từng sự kiện bằng cách chọn ngày diễn ra sự kiện trong CRM."
     },
     {
