@@ -16,6 +16,8 @@ export function fmtDate(t, f) {
 }
 /** "2026-09-30" → 9h sáng ngày đó (giờ VN), '' nếu trống. */
 export function dateOrBlank(s) { if (!s) return null; const t = new Date(String(s) + 'T09:00:00+07:00').getTime(); return isNaN(t) ? null : t; }
+/** Mã link giới thiệu (?ref=…): tên bỏ dấu, viết liền (Thủy → thuy, Văn Hiếu → vanhieu). Trùng công thức refCode trong crm/app.js. */
+export const refCode = name => nrm(name).replace(/[^a-z0-9]/g, '');
 export function nrm(s) { return String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/\s+/g, ' ').trim(); }
 export function slugName(n) { const s = String(n || 'NV').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').split(/\s+/).pop(); return s.charAt(0).toUpperCase() + s.slice(1); }
 export function isVoid(st) { return /huỷ|hủy|hoàn/i.test(String(st || '')); } // đơn huỷ / hoàn: không tính doanh thu, không tính vào khách

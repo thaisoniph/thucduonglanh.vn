@@ -295,6 +295,18 @@ Mỗi bạn có một link web riêng, ví dụ `thucduonglanh.vn/?ref=thuy`. L�
 
 Đơn web có ghi chú **🔗 Đặt qua link của …**. Tab **Hiệu quả** có số đơn qua web và % so với tổng đơn của bạn. Quản lý xem xếp hạng ở **📊 So sánh nhân viên → Đơn qua web**.
 
+### 🎁 Khách cũ giới thiệu bạn bè
+
+Khách hài lòng (vừa khen sản phẩm, khách quen, VIP): mở hồ sơ khách, bấm **🎁 Mã giới thiệu**.
+
+- CRM tạo mã riêng cho khách (tên + 3 số cuối điện thoại, ví dụ `AN111`) và soạn sẵn tin. Bấm **📋 Copy tin & mở Zalo** rồi gửi. Trong tin có sẵn một đoạn để khách chuyển tiếp cho bạn bè.
+- Bạn bè **đặt lần đầu** trên web bằng mã (hoặc bấm link) được giảm 10%. Khách không dùng được mã của chính mình, người đã từng mua cũng không dùng được.
+- Bạn bè đặt qua link trong tin thì tự được giao cho bạn phụ trách.
+- Khi có người đặt bằng mã, bạn nhận tin Telegram, và tab **Hôm nay** hiện mục **🎁 Cảm ơn khách giới thiệu**. Nên chờ đơn **đã giao** rồi bấm **🎁 Tặng quà / voucher**, chọn:
+  - **Tặng quà**: ghi quà là gì (ví dụ 1 hũ ruốc gửi kèm đơn sau).
+  - **Tặng voucher**: chọn mức giảm, CRM tạo mã riêng cho số của khách, dùng trong 90 ngày.
+- Lưu xong, CRM soạn tin cảm ơn để bạn gửi khách qua Zalo.
+
 ### Hồ sơ khách hàng
 
 Bấm vào tên khách ở bất kỳ đâu để mở hồ sơ.
@@ -624,6 +636,18 @@ Tải lại đơn cũ không bị tính trùng: CRM nhận ra theo mã đơn và
 - **⭐ Nhóm khách**: đặt mức để máy xếp khách **VIP** (mua từ bao nhiêu đơn, hoặc tổng chi từ bao nhiêu tiền) và **Sắp mất** (bao nhiêu ngày chưa mua lại). Bấm **Lưu nhóm khách**, cả nhóm cùng áp dụng.
 - **📂 File của sale** (chỉ Quản trị): nhập đơn và nhật ký chăm sóc từ file Google Sheet sale đang dùng. Ô ghi chú kiểu “21/7 kh nhận hàng, 9/8 knm, 16/5 kh hết tiền” được tách thành từng lần chăm sóc có ngày, máy tự đoán năm. Tích **✍️ Ghi kết quả chăm sóc ngược vào file này** thì mỗi lần sale bấm kết quả trên CRM, máy tự viết thêm vào ô ghi chú của khách trong file, ví dụ “, 30/9 knm (hẹn gọi 2/10)”, khoảng 5 phút một lần. Sale vẫn xem đầy đủ trên file của mình. Để dùng được, sale cần **chia sẻ quyền Chỉnh sửa** file cho tài khoản chạy CRM. Kết quả từng lần ghi xem ở tab *Ghi ngược file sale* trong Sheet.
 - **Nhân sự được vào CRM** (chỉ Quản trị): thêm email, tên hiển thị, quyền. Nhân viên nghỉ việc thì **bỏ tích “Đang dùng”**, không cần xoá. Đổi tên hiển thị thì đơn, khách, file sale và mục tiêu của người đó tự chuyển theo tên mới. Dữ liệu cũ ghi theo **tên gọi tắt** (vd file sale ghi “Chang” cho tài khoản “Thu Chang”) cũng tự gộp về đúng người khi bấm Lưu.
+
+## 🤝 Cộng tác viên & đối tác (Quản lý, Quản trị)
+
+Vào **Cài đặt → 🤝 Cộng tác viên & khách giới thiệu → Quản lý cộng tác viên**.
+
+- **＋ Thêm CTV**: nhập tên, CRM tự tạo mã link (ví dụ `thucduonglanh.vn/?ref=huong`). Có thể thêm **mã giảm giá cho khách mới của CTV** (ví dụ `HUONG10` giảm 10%), số tài khoản nhận tiền và CCCD (để khấu trừ thuế).
+- Bấm **📋 Tin gửi CTV** để gửi link, mã và quy định cho CTV. Trong tin có sẵn nhắc nhở không ghi "chữa / điều trị / khỏi bệnh".
+- **Cách tính**: khách **mới** đặt qua link hoặc mã của CTV thì khách thuộc CTV. **Mọi đơn của khách trong 6 tháng** (kể cả đơn sale lên lại qua điện thoại / file) được tính **10% tiền hàng** (tổng tiền trừ phí ship). Khách cũ bấm link CTV thì không tính.
+- Khách mới gọi điện / nhắn Zalo nói "chị Hương giới thiệu": mở CTV đó → ✏️ Sửa → **＋ Gắn khách cho CTV này**.
+- **Đối soát**: bấm **💰 Đơn & đối soát**. Chỉ đơn **đã giao và qua 7 ngày** mới đủ điều kiện. Trả từ 2 triệu / lần thì CRM tự trừ **10% thuế TNCN**. Chuyển khoản xong thì bấm **✅ Đã chuyển tiền**. Bấm **📋 Copy bảng đối soát** để gửi CTV (tên và số khách đã được che).
+- **⚙️ Cài đặt chung**: % hoa hồng mặc định, số tháng tính đơn mua lại, % giảm cho bạn bè được khách cũ giới thiệu. Đổi % của một CTV chỉ áp dụng cho đơn mới.
+- Chỉ trả hoa hồng **1 tầng**: không trả cho người "giới thiệu ra CTV". Trả nhiều tầng là bán hàng đa cấp, phải có giấy phép.
 
 ## Mã ưu đãi đặt hàng web (Quản lý, Quản trị)
 

@@ -1,5 +1,6 @@
 // CRM: đăng nhập, dữ liệu, đơn hàng, khách, tiềm năng, cài đặt. Chuyển từ Apps Script sang, giữ nguyên cách làm việc & dữ liệu trả về cho giao diện.
-import { normPhone, nrm, esc, fmt, startOfDay, TZ_MS, fmtDate, dateOrBlank, slugName, isVoid, randHex, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, DAY, CRM_URL } from './lib.js';
+import { normPhone, nrm, esc, fmt, startOfDay, TZ_MS, fmtDate, dateOrBlank, slugName, isVoid, randHex, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, DAY, CRM_URL, refCode } from './lib.js';
+import { crmPartner, partnerSchema, orderAttrib } from './partner.js';
 import { sendMail, telegram, telegramTo, telegramPhoto, tgUpdates, tgConf, bridge } from './google.js';
 import { crmGa, crmGaProp } from './ga.js';
 import { crmMkt } from './mkt.js';
@@ -12,7 +13,7 @@ import { wbQueue, wbOrderQueue, wbStatusQueue, WB_SHORT } from './wb.js';
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-10-15c'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
+const SCHEMA_V = '2026-10-16a'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -101,6 +102,7 @@ export async function ensureSchema(db) {
     await run(db, 'CREATE INDEX IF NOT EXISTS ad_spend_batch ON ad_spend(batch)');
     await sanSchema(db); // đơn sàn TMĐT (api/src/san.js)
     await voucherSchema(db); // mã ưu đãi (api/src/voucher.js)
+    await partnerSchema(db); // 🤝 CTV / đối tác + 🎁 khách giới thiệu (api/src/partner.js)
     schemaDone = true;
     if (deltaOk) await run(db, "INSERT INTO kv (k, v) VALUES ('schema_v', ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v, exp = NULL", SCHEMA_V);
   } catch (e) {
@@ -392,7 +394,7 @@ export function leadDue(l, today) {
 const leadOut = r => ({ id: r.id, time: r.time, name: r.name || '', phone: r.phone || '', channel: r.channel || '', interest: r.interest || '', status: r.status || 'Mới hỏi', owner: r.owner || '', lastAt: r.last_at, callback: r.callback, reason: r.reason || '', note: r.note || '', orderId: r.order_id || '', by: r.by_name || '' });
 const orderOut = r => ({ row: r.rid, time: r.time, id: r.id, name: r.name || '', phone: r.phone || '', email: r.email || '', province: r.province || '', ward: r.ward || '', address: r.address || '', items: r.items || '', subtotal: r.subtotal || 0,
   shipping: r.shipping || 0, total: r.total || 0, payment: r.payment || '', note: r.note || '', status: r.status || 'Mới', source: r.source || '', consent: !!r.consent, paid: r.paid || '', carrier: r.carrier || '', tracking: r.tracking || '', seller: r.seller || '', ca: r.ca || '', line: r.line || '', ship: r.ship || '',
-  shipAt: r.ship_at, receivedAt: r.received_at, otype: r.otype || '', oflag: r.oflag || '', trk: r.trk || '', trkAt: r.trk_at, trkCode: r.trk_code || 0 });
+  shipAt: r.ship_at, receivedAt: r.received_at, otype: r.otype || '', oflag: r.oflag || '', trk: r.trk || '', trkAt: r.trk_at, trkCode: r.trk_code || 0, voucher: r.voucher || '', refPhone: r.ref_phone || '', refGift: r.ref_gift || '', partner: r.partner || '' });
 export async function leadsData(x, where, ...args) { return (await all(x.db, 'SELECT * FROM leads' + (where ? ' WHERE ' + where : '') + ' ORDER BY rid DESC LIMIT 3000', ...args)).reverse().map(leadOut); }
 
 async function prefsOf(x, email) { return await kvJson(x.db, 'prefs_' + email, {}) || {}; }
@@ -622,8 +624,7 @@ async function crmCustOrders(x, u, d) {
 }
 
 /* ================================================================ chia khách & phạm vi dữ liệu */
-/** Mã link giới thiệu của nhân sự (thucduonglanh.vn/?ref=…): tên bỏ dấu, viết liền (Thủy → thuy, Văn Hiếu → vanhieu). Trùng công thức refCode trong crm/app.js. */
-export const refCode = name => nrm(name).replace(/[^a-z0-9]/g, '');
+export { refCode };
 /** Khách vào web qua link của sale → tên sale (đang dùng, không phải Marketing); không khớp → ''. */
 async function refUser(x, ref) {
   const k = refCode(ref); if (!k) return '';
@@ -810,6 +811,7 @@ export async function saveOrder(x, data, opt) {
   const items = itemsText(data.items || []), pay = data.payment === 'bank' ? 'Chuyển khoản' : 'COD', realItems = (data.items || []).filter(i => !i.gift);
   if (!opt.otype) { try { opt.otype = (await otypeSuggest(x, phone, now)).t; } catch (e) { console.error('otype', e.message); } } // đơn web: loại đơn theo gợi ý (tính trước khi lưu)
   const ca = opt.ca || caOf(now, await caCfg(x)), line = opt.line || lineOf(realItems.map(i => i.name + ' ' + (i.variant || '')).join(' ')), ship = opt.shipText || shipText(data.items || []);
+  const isNew = !manual && !(await first(x.db, "SELECT rid FROM orders WHERE phone = ? AND status NOT LIKE '%uỷ%' AND status NOT LIKE '%ủy%' AND status NOT LIKE '%oàn%' LIMIT 1", phone)); // khách mua lần đầu (để gắn CTV)
   let owner = await ownerOf(x, phone), assigned = '', refBy = '';
   if (!opt.by && data.ref) refBy = await refUser(x, String(data.ref).slice(0, 40)); // khách đặt qua link riêng của sale
   if (refBy) c.note = (c.note ? c.note + ' · ' : '') + '🔗 Đặt qua link của ' + refBy + (owner && owner !== refBy ? ' (khách do ' + owner + ' phụ trách)' : '');
@@ -822,6 +824,10 @@ export async function saveOrder(x, data, opt) {
   if (data.voucher) await run(x.db, 'UPDATE orders SET voucher = ?, discount = ? WHERE id = ? AND phone = ?', String(data.voucher), Math.round(Number(data.discount) || 0), String(data.id || ''), phone);
   try { await comboCycles(x, data.items || []); } catch (e) { console.error('comboCycles', e.message); }
   await recalc(x, [phone], assigned ? { owners: { [phone]: assigned } } : {});
+  let at = {}; // 🎁 khách cũ giới thiệu (mã giới thiệu) / 🤝 khách của CTV (link ?ref= hoặc mã của CTV)
+  if (!manual) { try { at = await orderAttrib(x, { id: data.id, phone, ref: data.ref, voucher: data.voucher, isNew }); } catch (e) { console.error('orderAttrib', e.message); } }
+  const atNote = [at.refPhone ? '🎁 Được ' + (at.refName || at.refPhone) + ' giới thiệu' : '', at.partner ? '🤝 Khách của CTV ' + at.partner : ''].filter(Boolean).join(' · ');
+  if (atNote) await run(x.db, "UPDATE orders SET note = CASE WHEN coalesce(note, '') = '' THEN ? ELSE note || ' · ' || ? END WHERE id = ? AND phone = ?", atNote, atNote, String(data.id || ''), phone);
   const notify = async () => {
     const tg = await tgConf(x.env);
     if (!manual && tg.notify) await sendMail(x.env, { to: tg.notify, subject: '🛒 Đơn hàng mới ' + data.id + ' – ' + c.name + ' – ' + fmt(data.total),
@@ -830,8 +836,10 @@ export async function saveOrder(x, data, opt) {
     const omsg = (manual ? '📝 <b>ĐƠN NHẬP TAY ' + esc(data.id) + '</b> – bởi ' + esc(opt.by) : '🛒 <b>ĐƠN HÀNG MỚI ' + esc(data.id) + '</b>') + '\n👤 ' + esc(c.name) + ' – <b>' + esc(c.phone) + '</b>' +
       '\n📍 ' + esc([c.address, c.district, c.province].filter(Boolean).join(', ')) + '\n\n' + esc(items) + '\n\n💰 <b>Tổng: ' + fmt(data.total) + '</b> (ship ' + fmt(data.shipping) + ') – ' + pay +
       (c.note ? '\n📝 ' + esc(c.note) : '') + (data.source ? '\n🔗 Nguồn: ' + esc(data.source) : '');
+    if (atNote) omsg += '\n' + esc(atNote);
     await telegram(x.env, omsg + (manual ? '' : owner ? '\n👤 Phụ trách: ' + esc(owner) + (assigned ? (assigned === refBy ? ' (khách đặt qua link của ' + esc(refBy) + ')' : ' (vừa tự chia)') : '') : '\n⚠️ Khách chưa có người phụ trách – vào CRM để giao'));
     if (!manual && owner) await telegramUser(x, owner, omsg + '\n\n👉 Đơn của khách bạn phụ trách – gọi xác nhận: ' + CRM_URL + '/#don-hang');
+    if (at.refOwner && at.refOwner !== owner) await telegramUser(x, at.refOwner, '🎁 Khách ' + esc(at.refName || at.refPhone) + ' (bạn phụ trách) vừa giới thiệu ' + esc(c.name) + ' đặt đơn ' + esc(data.id) + ' – ' + fmt(data.total) + '. Giao xong nhớ tặng quà / voucher cảm ơn ở tab Hôm nay: ' + CRM_URL);
   };
   x.later(notify());
   return { ok: true };
@@ -1665,6 +1673,11 @@ export async function crmApi(x, d, sync, mgr) {
   if (a === 'merge_skip') return crmMergeSkip(x, u, d);
   if (a === 'merge') return crmMerge(x, u, d);
   if (/^voucher_/.test(a)) return crmVoucher(x, u, d, crmLog); // 🎟 Mã ưu đãi (Quản lý trở lên)
+  if (a === 'ref_code' || a === 'ref_gift' || /^partner_/.test(a)) { // 🎁 mã giới thiệu / quà cảm ơn (sale làm cho khách mình) · 🤝 CTV (Quản lý trở lên)
+    if (a === 'ref_code') { const g = await guardPhone(x, u, d.phone); if (g) return { ok: false, error: g }; }
+    if (a === 'ref_gift') { const o = await first(x.db, 'SELECT ref_phone FROM orders WHERE id = ? ORDER BY rid LIMIT 1', String(d.id || '')); const g = o && o.ref_phone ? await guardPhone(x, u, o.ref_phone) : ''; if (g) return { ok: false, error: g }; }
+    return crmPartner(x, u, d, crmLog, (await crmUsers(x)).map(z => z.name));
+  }
   const need = { settings: 2, users: 3, assign: 2, bulk: 2, recv: 2 };
   if (need[a] && u.level < need[a]) return { ok: false, error: 'Bạn không có quyền làm việc này.' };
   const opKey = d.opId ? 'op_' + String(d.opId).slice(0, 40) : ''; // CRM gửi lại việc khi mạng chập chờn: việc đã làm rồi thì trả kết quả cũ, không ghi trùng

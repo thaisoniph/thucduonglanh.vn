@@ -39,6 +39,10 @@ async function vcCheck(x, code, sub, phone) {
     if (!phone) return { ok: false, needPhone: true, error: 'Mã này dành riêng cho 1 số điện thoại. Bạn nhập số điện thoại nhận hàng trước rồi bấm Áp dụng nhé.' };
     if (normPhone(v.phone) !== phone) return { ok: false, error: 'Mã này không dành cho số điện thoại ' + phone + '.' };
   }
+  if (v.new_only && phone) { // mã giới thiệu của khách cũ / mã của CTV: chỉ khách mua lần đầu. Chưa có SĐT (mở link ?uudai=) thì cho áp dụng thử, lúc đặt hàng kiểm tra lại
+    if (v.ref_phone && normPhone(v.ref_phone) === phone) return { ok: false, error: 'Đây là mã giới thiệu của bạn, để tặng bạn bè, người thân. Bạn không dùng được mã của chính mình nhé.' };
+    if ((await first(x.db, 'SELECT count(*) AS n FROM orders WHERE phone = ? AND ' + LIVE, phone)).n) return { ok: false, error: 'Mã này dành cho khách mua lần đầu. Số ' + phone + ' đã từng đặt hàng nên không dùng được, bạn thông cảm nhé.' };
+  }
   if (v.max_uses > 0 && (await first(x.db, 'SELECT count(*) AS n FROM orders WHERE voucher = ? AND ' + LIVE, code)).n >= v.max_uses) return { ok: false, error: 'Mã ưu đãi đã hết lượt dùng.' };
   if (v.once && phone && (await first(x.db, 'SELECT count(*) AS n FROM orders WHERE voucher = ? AND phone = ? AND ' + LIVE, code, phone)).n) return { ok: false, error: 'Số điện thoại này đã dùng mã ưu đãi này rồi.' };
   return { ok: true, v };
@@ -74,7 +78,7 @@ async function vcList(x) {
   const used = {}; (await all(x.db, "SELECT voucher, status, discount, total FROM orders WHERE voucher != ''")).forEach(o => {
     if (isVoid(o.status)) return; const u = used[o.voucher] || (used[o.voucher] = { n: 0, off: 0, sales: 0 }); u.n++; u.off += Number(o.discount) || 0; u.sales += Number(o.total) || 0;
   });
-  return rows.map(v => Object.assign({ code: v.code, kind: v.kind, value: v.value, max_off: v.max_off || 0, min_sub: v.min_sub || 0, exp: v.exp || '', max_uses: v.max_uses || 0, once: !!v.once, phone: v.phone || '', note: v.note || '', active: !!v.active, created: v.created, by: v.by_name || '', label: vcLabel(v) }, { used: used[v.code] || { n: 0, off: 0, sales: 0 } }));
+  return rows.map(v => Object.assign({ code: v.code, kind: v.kind, value: v.value, max_off: v.max_off || 0, min_sub: v.min_sub || 0, exp: v.exp || '', max_uses: v.max_uses || 0, once: !!v.once, phone: v.phone || '', note: v.note || '', active: !!v.active, created: v.created, by: v.by_name || '', label: vcLabel(v), refPhone: v.ref_phone || '', partner: v.partner || '', newOnly: !!v.new_only }, { used: used[v.code] || { n: 0, off: 0, sales: 0 } }));
 }
 export async function crmVoucher(x, u, d, log) {
   if (u.level < 2) return { ok: false, error: 'Chỉ Quản lý và Quản trị quản lý được mã ưu đãi.' };
