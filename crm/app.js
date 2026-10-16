@@ -101,6 +101,41 @@
   /** Link riêng của sale: thucduonglanh.vn/?ref=thuy. Khách vào qua link rồi đặt trong 30 ngày → đơn tính cho sale (khách chưa ai phụ trách thì giao luôn). Trùng refCode trong api/src/crm.js. */
   function refCode(n) { return norm(n).replace(/[^a-z0-9]/g, ''); }
   function refLink(n, path) { return 'https://thucduonglanh.vn' + (path || '/') + '?ref=' + refCode(n); }
+  /** Món trong đơn → sản phẩm đang bán trên web. Nhận theo chữ chỉ có trong tên đúng 1 sản phẩm (vitagreen, curcumin, dilvang, ruoc…), nên thêm sản phẩm mới không phải sửa code. */
+  function webMatch(it) {
+    var ps = (CFG.products || []).filter(function (p) { return p.slug; }), cnt = {}, words = function (t) { return norm(t).split(/[^a-z0-9]+/).filter(function (w) { return w.length >= 3; }); };
+    ps.forEach(function (p) { words(p.name).filter(function (w, i, a) { return a.indexOf(w) === i; }).forEach(function (w) { cnt[w] = (cnt[w] || 0) + 1; }); });
+    var t = ' ' + words(it.name).join(' ') + ' ', best = null, bs = 0;
+    ps.forEach(function (p) { var sc = words(p.name).filter(function (w) { return cnt[w] === 1 && t.indexOf(' ' + w + ' ') >= 0; }).length; if (sc > bs) { bs = sc; best = p; } });
+    if (!best) return null;
+    var vi = -1, vs = best.variants || [];
+    if (vs.length) {
+      var vt = ' ' + words(it.variant + ' ' + it.name).join(' ') + ' ';
+      vs.forEach(function (v, i) { if (vi < 0 && words(v.name).some(function (w) { return /\d/.test(w) && vt.indexOf(' ' + w + ' ') >= 0; })) vi = i; }); // 500g, 125g, 215g…
+      if (vi < 0 && it.price) vs.forEach(function (v, i) { if (vi < 0 && Math.abs(v.price - it.price) <= v.price * 0.15) vi = i; });
+      if (vi < 0) vi = 0;
+    }
+    return { p: best, vi: vi, qty: it.qty || 1 };
+  }
+  /** 🔗 Link đặt lại: giỏ hàng web điền sẵn như đơn gần nhất + mã ?ref= của người phụ trách (đơn tính cho người đó). */
+  function openRelink(phone) {
+    var c = cust(phone); if (!c) return;
+    var lo = ordersOf(c.phone).filter(function (o) { return !isVoid(o.status) && parseItems(o.items).length; }).sort(function (a, b) { return (b.time || 0) - (a.time || 0); })[0];
+    var got = [], miss = [];
+    (lo ? parseItems(lo.items) : []).forEach(function (it) { if (it.gift) return; var w = webMatch(it); if (!w) { miss.push(it.name); return; } var same = got.filter(function (g) { return g.p.slug === w.p.slug && g.vi === w.vi; })[0]; if (same) same.qty += w.qty; else got.push(w); });
+    var who = c.owner || S.user.name, url = got.length ? 'https://thucduonglanh.vn/thanh-toan/?add=' + got.map(function (g) { return g.p.slug + '.' + (g.vi >= 0 ? g.vi : '') + '.' + g.qty; }).join(',') + '&ref=' + refCode(who) : refLink(who, '/san-pham/');
+    var list = got.map(function (g) { return g.qty + ' ' + g.p.name + (g.vi >= 0 ? ' (' + g.p.variants[g.vi].name + ')' : ''); }).join(', ');
+    var txt = fillTpl(got.length ? 'Dạ [Tên] ơi, em gửi [Tên] link đặt lại ' + list + ' trên web Thực Dưỡng Lành ạ. Giỏ hàng đã có sẵn, [Tên] chỉ cần xem lại địa chỉ rồi bấm Đặt hàng: ' + url : 'Dạ [Tên] ơi, em gửi [Tên] link xem và đặt sản phẩm trên web Thực Dưỡng Lành ạ: ' + url, c) +
+      '\nĐặt trên web giá tốt hơn trên sàn' + (CFG.web_gift ? ', kèm quà ' + CFG.web_gift : '') + '. Cần đổi số lượng hay hỏi gì, [Tên] cứ nhắn em nhé ❤️';
+    txt = fillTpl(txt, c);
+    var body = (lo ? '<p class="small muted" style="margin:0 0 8px">Theo đơn ' + fDate(lo.time) + ': ' + esc(parseItems(lo.items).filter(function (i) { return !i.gift; }).map(function (i) { return i.qty + ' ' + i.name; }).join(', ')) + '</p>' : '<p class="small muted" style="margin:0 0 8px">Khách chưa có đơn: gửi link trang sản phẩm.</p>') +
+      (miss.length ? '<div class="notice">⚠️ Chưa bán trên web: <b>' + esc(miss.join(', ')) + '</b>. Món này khách đặt qua bạn (＋ Đơn) như cũ.</div>' : '') +
+      '<label class="f"><span>Tin gửi khách (sửa được)</span><textarea id="rlText" rows="6">' + esc(txt) + '</textarea></label>' +
+      '<p class="small muted" style="margin:6px 0 0">Khách đặt qua link này: đơn tính cho <b>' + esc(who) + '</b>' + (got.length ? ', giỏ hàng có sẵn ' + esc(list) + ' (khách đổi số lượng được)' : '') + '.</p>';
+    var foot = '<button class="btn ghost" data-copyref="' + esc(url) + '">📋 Chỉ copy link</button><button class="btn pri" id="rlGo">📋 Copy tin & mở Zalo</button>';
+    var m = modal('🔗 Link đặt lại – ' + esc(c.name || c.phone), body, foot);
+    $('#rlGo', m).onclick = function () { copy($('#rlText', m).value).then(function () { toast('Đã copy tin ✓ Dán vào Zalo rồi gửi'); window.open(zalo(c.phone), '_blank', 'noopener'); }); };
+  }
   function refRow(label, url) { return '<div class="ref-row"><span class="small muted">' + label + '</span><input type="text" readonly value="' + esc(url) + '"><button class="btn" data-copyref="' + esc(url) + '">📋 Copy</button></div>'; }
   function refLinks(n) { return refRow('Trang chủ', refLink(n)) + refRow('Tất cả sản phẩm', refLink(n, '/san-pham/')) + '<p class="small muted" style="margin:6px 0 0">Gửi link sản phẩm cụ thể: mở sản phẩm trên web, copy link rồi thêm <b>?ref=' + esc(refCode(n)) + '</b> vào cuối.</p>'; }
   /** Hộp 🌐 ở tab Hiệu quả: bao nhiêu đơn khách tự đặt trên web (đơn của mình), kèm link riêng để gửi khách. */
@@ -1460,7 +1495,7 @@
     var habit = function () { return '<span>🧺 Hay mua: <b>' + esc(st.top || '–') + '</b>' + (st.topN > 1 ? ' (' + st.topN + ' lần)' : '') + '</span>' + (st.gap ? '<span>🔁 Khoảng <b>' + st.gap + ' ngày</b> mua lại 1 lần</span>' : '') + (c.runout ? '<span>⏰ Dự kiến hết: <b>' + fDate(c.runout).slice(0, 5) + '</b> (' + daysAgo(c.runout) + ')</span>' : ''); };
     var body = '<div class="p-top"><div class="p-sub">' + cpPhone(c.phone) + ' · ' + (c.owner ? '👤 ' + esc(c.owner) : (isPoolStaff() ? claimBtn('c', c.phone) : 'Chưa ai phụ trách')) + (custSrc(c) ? ' · <span title="Nguồn khách (theo đơn đầu tiên)">' + srcIcon(custSrc(c)) + esc(custSrc(c)) + '</span>' : '') + '</div>' +
       '<div class="p-tags">' + zaloTag(c) + consentTag(c) + '</div>' +
-      '<div class="acts steps p-acts"><a class="btn" href="tel:' + c.phone + '">📞 Gọi</a><a class="btn zalo" href="' + zalo(c.phone) + '" target="_blank" rel="noopener">Zalo</a><button class="btn pri" data-care="' + c.phone + '" data-task="' + (c.task ? c.task.type : 'other') + '">💬 Chăm sóc</button><button class="btn" data-neworder="' + c.phone + '">＋ Đơn</button></div></div>' +
+      '<div class="acts steps p-acts"><a class="btn" href="tel:' + c.phone + '">📞 Gọi</a><a class="btn zalo" href="' + zalo(c.phone) + '" target="_blank" rel="noopener">Zalo</a><button class="btn pri" data-care="' + c.phone + '" data-task="' + (c.task ? c.task.type : 'other') + '">💬 Chăm sóc</button><button class="btn" data-neworder="' + c.phone + '">＋ Đơn</button><button class="btn" data-relink="' + c.phone + '" title="Link web có sẵn giỏ hàng như đơn trước, gửi khách tự đặt">🔗 Link đặt lại</button></div></div>' +
       (c.flag ? '<div class="notice" style="background:var(--red-light);color:var(--red)">⚠️ Khách có nhãn <b>' + esc(c.flag) + '</b>. Nên yêu cầu chuyển khoản trước khi gửi hàng.</div>' : '') +
       '<div class="p-val"><div><b>' + moneyShort(c.spent) + '</b><span>Tổng chi</span></div><div><b>' + c.orders + '</b><span>đơn</span></div><div><b>' + moneyShort(avg) + '</b><span>TB/đơn</span></div></div>' +
       '<div class="p-lines"><span>🛒 Mua gần nhất: <b>' + daysAgo(c.last) + '</b> (' + fDate(c.last) + ')</span><span id="pHabit">' + habit() + '</span>' +
@@ -1629,7 +1664,7 @@
     var ti = templateFor(type), tp = S.d.templates;
     var hist = recentHist(c, 4), all = null;
     var body = (opt.flow ? '<div class="flow-h"><div><b>Khách ' + opt.n + ' / ' + opt.total + '</b><span>' + (TASKS[type] ? TASKS[type].icon + ' ' + TASKS[type].title : 'Chăm sóc') + '</span></div><div class="bar"><i style="width:' + Math.round((opt.n - 1) * 100 / Math.max(1, opt.total)) + '%"></i></div></div>' : '') +
-      '<div class="box"><div class="r1" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>' + cp(c.name) + '</b> ' + custTags(c) + famTag(c) + ' <span class="muted">' + cpPhone(c.phone) + '</span></div>' +
+      '<div class="box"><div class="r1" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>' + cp(c.name) + '</b> ' + custTags(c) + famTag(c) + ' <span class="muted">' + cpPhone(c.phone) + '</span><button class="btn sm" data-relink="' + c.phone + '" style="margin-left:auto" title="Link web có sẵn giỏ hàng như đơn trước">🔗 Link đặt lại</button></div>' +
       '<div class="small muted" style="margin-top:4px">' + esc(shortProducts(c.products, 3)) + ' · mua ' + daysAgo(c.last) + (c.task ? ' · ' + taskLine(c) : '') + '</div>' +
       (c.flag ? '<div class="notice" style="background:var(--red-light);color:var(--red);margin:8px 0 0">⚠️ Khách có nhãn <b>' + esc(c.flag) + '</b>. Nên yêu cầu chuyển khoản trước khi gửi hàng.</div>' : '') +
       '<div id="kSum">' + careSum(c, null) + '</div>' +
@@ -5551,6 +5586,7 @@
     var v = t.getAttribute('data-copy'); copy(v).then(function () { toast('📋 Đã copy: ' + (v.length > 60 ? v.slice(0, 60) + '…' : v)); });
     t.classList.add('ok'); setTimeout(function () { t.classList.remove('ok'); }, 900);
   }, true);
+  document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-relink]'); if (!b || !S.d) return; e.preventDefault(); e.stopPropagation(); openRelink(b.getAttribute('data-relink')); }, true);
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-copyref]'); if (!b) return; e.preventDefault(); copy(b.getAttribute('data-copyref')).then(function () { toast('Đã copy link ✓'); }); });
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-gmore]'); if (!b) return; var r = b.previousElementSibling; if (r) r.hidden = false; b.remove(); });
   document.addEventListener('toggle', function (e) { var d = e.target; if (d && d.matches && d.matches('details[data-grp]')) { S.f.gopen = S.f.gopen || {}; S.f.gopen[d.getAttribute('data-grp')] = d.open; } }, true);

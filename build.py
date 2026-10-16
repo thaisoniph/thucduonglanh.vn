@@ -2430,11 +2430,12 @@ def build_crm():
     for f in ("logo.webp", "icon-32.png", "icon-180.png", "icon-512.png"):
         shutil.copy(brand / f, out / f)
     shutil.copy(DATA / "vn-units.json", out / "vn-units.json")
-    products = [{"name": p["name"], "price": p.get("base_price"), "unit": p.get("unit", ""),
+    products = [{"name": p["name"], "slug": p["slug"], "price": p.get("base_price"), "unit": p.get("unit", ""),
                  "variants": [{"name": v["name"], "price": v["price"]} for v in p.get("base_variants", [])]} for p in PRODUCTS]
     cfg = {"endpoint": (SITE.get("api_endpoint") or SITE.get("order_endpoint", "")), "shipping_fee": SITE.get("shipping_fee", 0),
            "free_ship_threshold": SITE.get("free_ship_threshold", 0), "products": products,
-           "zalo_group": SITE.get("zalo_group", ""), "gifts": crm_gifts()}
+           "zalo_group": SITE.get("zalo_group", ""), "gifts": crm_gifts(),
+           "web_gift": (WEB_OFFER.get("gift_title", "") + (" (trị giá " + WEB_OFFER["gift_value"] + ")" if WEB_OFFER.get("gift_value") else "")) if WEB_OFFER.get("gift_enabled") else ""}
     (out / "crm-data.js").write_text("window.CRM_CONFIG=" + json.dumps(cfg, ensure_ascii=False) + ";\n", "utf-8")
     (out / "manifest.webmanifest").write_text(json.dumps({
         "name": "CRM Thực Dưỡng Lành", "short_name": "CRM TDL", "start_url": "/", "display": "standalone",

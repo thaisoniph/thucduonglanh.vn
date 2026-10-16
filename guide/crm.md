@@ -291,6 +291,8 @@ Mỗi bạn có một link web riêng, ví dụ `thucduonglanh.vn/?ref=thuy`. L�
 - Lý do để khách đặt web: **giá rẻ hơn Shopee**, kèm quà **ebook hoặc 4 buổi Zoom cùng chuyên gia (trị giá 990.000đ)**.
 - Không nhắn khách mua trên Shopee rủ sang web, vì Shopee cấm và có thể phạt shop.
 
+**🔗 Link đặt lại (giỏ hàng có sẵn):** trong hồ sơ khách hoặc hộp 💬 Chăm sóc, bấm **🔗 Link đặt lại**. CRM tạo link web đã có sẵn các sản phẩm của đơn gần nhất, kèm tin nhắn soạn sẵn. Bấm **📋 Copy tin & mở Zalo**, dán rồi gửi. Khách chỉ cần xem lại địa chỉ rồi bấm Đặt hàng, và đổi được số lượng. Sản phẩm chưa bán trên web (Gafo, Progomax…) thì CRM báo, món đó bạn lên đơn cho khách như cũ. Nên dùng ở mốc **sắp hết hàng** và **30 ngày**.
+
 Đơn web có ghi chú **🔗 Đặt qua link của …**. Tab **Hiệu quả** có số đơn qua web và % so với tổng đơn của bạn. Quản lý xem xếp hạng ở **📊 So sánh nhân viên → Đơn qua web**.
 
 ### Hồ sơ khách hàng

@@ -119,6 +119,19 @@
     return p.price;
   }
   function cleanCart() { cart = cart.filter(function (it) { return BY[it.slug] && unitPrice(it) != null && it.qty > 0; }); }
+  /* link "đặt lại" sale gửi từ CRM: /thanh-toan/?add=slug.vi.sl,slug2.vi.sl&ref=… → giỏ hàng thay bằng đúng các món đó (bấm lại link không bị cộng dồn) */
+  (function () {
+    try {
+      var q = new URLSearchParams(location.search), a = q.get('add'), list = []; if (!a) return;
+      a.split(',').forEach(function (s) {
+        var x = s.split('.'), p = BY[x[0]]; if (!p) return;
+        var vi = x[1] === '' || x[1] == null ? -1 : +x[1], has = p.variants && p.variants.length; if (!has) vi = -1; else if (!(vi >= 0 && p.variants[vi])) vi = 0;
+        list.push({ key: x[0] + '|' + vi, slug: x[0], vi: vi, qty: Math.max(1, Math.min(99, Math.round(+x[2]) || 1)) });
+      });
+      if (list.length) { cart = list; save('tdl_cart', cart); }
+      q.delete('add'); history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash);
+    } catch (e) { }
+  })();
   cleanCart();
   function saveCart() { save('tdl_cart', cart); renderCounts(); renderMini(); }
   function cartQty() { return cart.reduce(function (s, it) { return s + it.qty; }, 0); }
