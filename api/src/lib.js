@@ -59,6 +59,13 @@ export async function insertMany(db, table, cols, rows, extra) {
   const sql = `INSERT INTO ${table} (${cols.join(',')}) SELECT ${sel} FROM json_each(?) WHERE true ${extra || ''}`;
   for (let i = 0; i < rows.length; i += 300) await db.prepare(sql).bind(JSON.stringify(rows.slice(i, i + 300))).run();
 }
+/** Thay toàn bộ bảng (xoá + ghi lại) trong 1 lần batch của D1 = 1 giao dịch: lỗi giữa chừng thì không mất dữ liệu cũ (16/10/2026, trước đây xoá xong mới ghi). */
+export async function replaceRows(db, table, cols, rows) {
+  const sel = cols.map(c => `json_extract(value,'$.${c}')`).join(',');
+  const sql = `INSERT INTO ${table} (${cols.join(',')}) SELECT ${sel} FROM json_each(?) WHERE true`, st = [db.prepare(`DELETE FROM ${table}`)];
+  for (let i = 0; i < rows.length; i += 300) st.push(db.prepare(sql).bind(JSON.stringify(rows.slice(i, i + 300))));
+  await db.batch(st);
+}
 /** Chạy câu lệnh có "IN (danh sách)" theo từng phần. */
 export async function allIn(db, sql, list, ...args) {
   const out = [];

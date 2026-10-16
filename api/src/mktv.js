@@ -294,7 +294,7 @@ export async function mktDailyMsgs(x, users) {
   const rev = k => (M.revAll && M.revAll[k]) || 0;
   const line = k => {
     const g = G[k], r = rev(k), s = sp[k] || 0, p = g.rev ? r / g.rev : 0, lv = !g.rev ? '' : p >= 1 ? '🎉' : p >= tp ? '🟢' : p >= tp * 0.8 ? '🟠' : '🔴', cp = r ? s * 100 / r : null;
-    const word = k === COMM ? 'tiền mua lại' : k === WEB ? 'tiền đơn web' : ['Shopee', 'TikTok Shop', 'Lazada'].indexOf(k) >= 0 ? 'doanh thu sàn' : 'tiền khách mới', clv = g.pct && s ? (cp === null || cp > g.pct * 1.15 ? '🔴' : cp > g.pct ? '🟠' : '🟢') : '';
+    const word = k === COMM ? 'tiền mua lại' : k === WEB ? 'tiền đơn web' : ['Shopee', 'TikTok Shop', 'Lazada'].indexOf(k) >= 0 ? 'doanh số sàn' : 'tiền khách mới', clv = g.pct && s ? (cp === null || cp > g.pct * 1.15 ? '🔴' : cp > g.pct ? '🟠' : '🟢') : '';
     return (CH_ICON[k] || '📦') + ' <b>' + esc(k) + '</b>' + (g.who ? ' (' + esc(g.who) + ')' : '') + ': ' + (g.rev ? ms(r) + ' / ' + ms(g.rev) + ' – <b>' + Math.round(p * 100) + '%</b> ' + lv : ms(r) + ' ' + word) +
       (g.rev && p < 1 ? '\n   Mỗi ngày cần ' + ms(Math.ceil(Math.max(0, g.rev - r) / left)) + ' ' + word : '') +
       (g.pct ? '\n   ' + (!s ? 'Chưa có chi phí (mức tối đa ' + g.pct + '%)' : 'Chi phí ' + (cp !== null ? Math.round(cp) + '%' : ms(s) + ' chưa ra khách') + ' (mức tối đa ' + g.pct + '%) ' + clv) : '');

@@ -36,7 +36,7 @@ Mã dùng được trong **10 phút**. Đăng nhập xong, máy nhớ bạn tron
 | **Khách hỏi** | Các **lượt khách để lại số hỏi** (người đang tư vấn chưa mua, kèm lịch sử Đã chốt / Không mua để tính tỷ lệ chốt) (số quảng cáo, trang nhận ebook, form web, nhắn Zalo hỏi giá): tư vấn để chốt đơn đầu tiên. Chốt đơn xong, khách tự sang tab Khách đã mua. |
 | **Hiệu quả** | Doanh số, mục tiêu tháng, kết quả chăm sóc của bạn. |
 | **Marketing** | Chỉ tài khoản quyền **Marketing** (và Quản trị, vào từ Tổng quan) thấy. Chi phí và hiệu quả quảng cáo từng kênh, data quảng cáo, chiến dịch (xem mục *Marketing* bên dưới). |
-| **Sàn** | Chỉ người phụ trách sàn thấy (Quản trị vào từ Tổng quan). Doanh thu Shopee, TikTok Shop và tải file đơn hàng từ sàn (xem mục *Sàn TMĐT* bên dưới). |
+| **Sàn** | Chỉ người phụ trách sàn thấy (Quản trị vào từ Tổng quan). Doanh số Shopee, TikTok Shop và tải file đơn hàng từ sàn (xem mục *Sàn TMĐT* bên dưới). |
 | **Cài đặt** | Chia theo nhóm: *Của tôi* (tài khoản, Telegram, số khách mỗi ngày, màu thẻ, hướng dẫn nhanh) · *Nhân sự* · *Chia khách* · *Bán hàng & chăm sóc* (nhóm khách, chu kỳ dùng, mẫu tin, hoa hồng, ca tối) · *Kết nối & báo cáo*. Mỗi mục thu gọn 1 dòng ghi đang cài thế nào, có ⚠️ là nên làm; bấm vào để mở ra sửa. Lần đầu vào, **Hướng dẫn nhanh** mở sẵn (cả **Telegram** nếu chưa kết nối); đóng lại thì lần sau CRM nhớ. Nhân viên chỉ thấy nhóm *Của tôi*. Trên điện thoại, Cài đặt là nút **⚙** ở thanh trên cùng. |
 
 - Trên điện thoại các tab nằm ở thanh dưới cùng; tab Khách đã mua ghi gọn là **Khách**.
@@ -66,7 +66,7 @@ Trên danh sách đơn và khách hỏi, bấm vào mã đơn hoặc số điệ
 - **🎯 Mục tiêu tháng** (nhân viên): ngay đầu trang. Có doanh số đến nay / mục tiêu, thanh tiến độ (vạch đen = hôm nay), trạng thái *Đúng tiến độ / Hơi chậm / Đang chậm*, số còn thiếu và mỗi ngày cần bán bao nhiêu. Dòng **📅 Hôm nay** cho biết hôm nay đã bán được bao nhiêu so với mức cần bán trong ngày. Chưa đặt mục tiêu thì bấm **🎯 Đặt mục tiêu** ngay tại đây.
 - **🏁 Bảng thi đua**: ngay dưới mục tiêu tháng. Bấm **Tuần này** / **Tháng này** để đổi kỳ (tuần tính từ thứ Hai, mỗi tuần bắt đầu lại từ 0). Thanh **🤝 Cả nhóm** cho biết cả nhóm đạt bao nhiêu % tổng mục tiêu tháng và mỗi ngày cả nhóm cần bán thêm bao nhiêu. Có 4 hạng mục: **🏆 Doanh số**, **🎯 Tỷ lệ chốt** (khách hỏi được giao đã ra đơn, cần ít nhất 3 khách hỏi trong tuần hoặc 5 trong tháng), **💚 Khách cũ quay lại** (số khách cũ mua thêm), **🚀 Tiến bộ nhất** (doanh số so với cùng kỳ tuần / tháng trước, cần kỳ trước từ 500k). Ai cũng thấy **Top 3** của từng hạng mục. Dòng dưới cùng là **hạng của bạn** và còn cách người ngay trên bao nhiêu. Hạng của mỗi người chỉ người đó thấy. Quản lý thấy đủ bảng ở đầu tab Hôm nay, kể cả khi đang lọc 1 nhân viên. Số liệu cập nhật khoảng 10 phút một lần. Nếu bảng báo *Chưa tải được* thì bấm **🔄 Thử lại** sau ít phút.
 - **Trên cùng:** số khách cần chăm sóc hôm nay, thanh tiến độ và nút **▶ Bắt đầu gọi lần lượt**. Mỗi ngày CRM đưa ra tối đa **30 khách** (đổi ở **Cài đặt → Số khách chăm sóc mỗi ngày**), khách quan trọng trước: hẹn gọi lại → hỏi nhận hàng → sắp hết hàng → việc bị trễ → các việc khác. Khách chưa tới lượt tự dời sang hôm sau.
-- **Ô nhỏ:** đơn mới, khách hỏi, việc đã làm (quản lý có thêm ô mục tiêu tháng). Bấm để mở đúng danh sách. Quản lý thấy thêm doanh thu và khách mới của tháng.
+- **Ô nhỏ:** đơn mới, khách hỏi, việc đã làm (quản lý có thêm ô mục tiêu tháng). Bấm để mở đúng danh sách. Quản lý thấy thêm doanh số và khách mới của tháng.
 - **Gọn gàng khi mới mở:** chỉ **mục cần gọi đầu tiên** được mở sẵn (thường là *Đơn mới*, nếu không có thì *Khách vừa hỏi* hoặc nhóm chăm sóc đầu tiên) và chỉ hiện **5 khách đầu**. Bấm **Xem thêm … khách** để hiện tiếp. Các mục khác đều gập lại, bấm vào tên mục khi tới lượt gọi. CRM nhớ mục nào bạn đã mở hay gập trong lúc dùng.
 - **1️⃣ Đơn mới – gọi khách xác nhận** (chỉ hiện khi có), kèm **Chuyển khoản chưa nhận tiền**.
   - **Ai thấy đơn mới:** Quản lý / Quản trị thấy tất cả. Nhân viên sale **chỉ thấy đơn đã giao cho mình**: đơn quản lý giao, hoặc đơn của khách mình đang phụ trách đặt lại. Đơn chưa giao thì không hiện với nhân viên nào, ở cả **Hôm nay** lẫn tab **Đơn hàng**.
@@ -112,7 +112,7 @@ Trên mỗi dòng đơn còn có:
 
 **Số ngày đang giao** tính từ **ngày gửi hàng**: CRM tự ghi ngày gửi khi bạn bấm **Đang giao** hoặc nhập mã vận đơn. Đơn cũ chưa có ngày gửi (vd đơn nhập từ file) thì tính từ ngày đặt; rê chuột vào ô số ngày để xem tính từ ngày nào. Khách đã nhận hàng thì nhớ bấm **📬 Đã giao** để đơn không còn bị báo giao lâu.
 
-Bấm vào dòng để mở đơn (Zalo, sửa đơn, ghi chú…). Thẻ **📋 Tất cả đơn** để tra cứu: bấm 1 chạm ở hàng nút thời gian (*Hôm nay · Hôm qua · Tuần này · Tháng này · Tháng trước · Quý này · Năm nay · Mọi lúc*) hoặc **📅 Khác**, rồi lọc theo **kênh** (🌐 *Khách tự đặt trên web* hoặc 💬 *Sale lên đơn*) và theo trạng thái. Đơn khách tự đặt trên thucduonglanh.vn có nhãn **🌐 Web · Facebook / Google / Zalo / Vào thẳng web…** (khách vào web từ đâu). Đầu trang có số đơn và doanh thu hôm nay, số đơn đang giao, tỷ lệ hoàn tháng này.
+Bấm vào dòng để mở đơn (Zalo, sửa đơn, ghi chú…). Thẻ **📋 Tất cả đơn** để tra cứu: bấm 1 chạm ở hàng nút thời gian (*Hôm nay · Hôm qua · Tuần này · Tháng này · Tháng trước · Quý này · Năm nay · Mọi lúc*) hoặc **📅 Khác**, rồi lọc theo **kênh** (🌐 *Khách tự đặt trên web* hoặc 💬 *Sale lên đơn*) và theo trạng thái. Đơn khách tự đặt trên thucduonglanh.vn có nhãn **🌐 Web · Facebook / Google / Zalo / Vào thẳng web…** (khách vào web từ đâu). Đầu trang có số đơn và doanh số hôm nay, số đơn đang giao, tỷ lệ hoàn tháng này.
 
 
 Đơn khách đặt trên web tự vào CRM và báo lên Telegram. Mỗi đơn đi qua các trạng thái:
@@ -153,7 +153,7 @@ Vào **Đơn hàng → ＋ Tạo đơn**, hoặc bấm **＋ Đơn** trong hồ 
 7. Bấm **Lưu & copy lên đơn**: đơn được lưu, nội dung lên đơn đã copy sẵn, dán sang bên vận chuyển. **Mã đơn** tự tạo theo kiểu cũ, ví dụ *Phuong300926-01*.
    - Nếu khách đã có đơn **cùng số tiền trong 1 giờ qua**, CRM hỏi lại trước khi lưu (tránh trùng khi lần trước mạng chập chờn nhưng đơn đã lưu). Bấm **Huỷ** để xem lại tab Đơn hàng; chỉ bấm **OK** khi khách thật sự đặt thêm đơn.
 
-**Quản lý kiểm tra loại đơn:** đơn sale chọn khác gợi ý có nhãn **⚠️ Kiểm tra loại đơn** và nằm trong **Đơn hàng → Cần xử lý → Kiểm tra loại đơn**. Mở đơn, bấm **✓ Đúng** (giữ lựa chọn của sale) hoặc **Đổi sang** loại khác. % hoa hồng từng loại đặt ở **Cài đặt → 💰 Hoa hồng**; báo cáo **BCDT** có mục *Theo loại đơn* với doanh thu và hoa hồng tạm tính của từng sale.
+**Quản lý kiểm tra loại đơn:** đơn sale chọn khác gợi ý có nhãn **⚠️ Kiểm tra loại đơn** và nằm trong **Đơn hàng → Cần xử lý → Kiểm tra loại đơn**. Mở đơn, bấm **✓ Đúng** (giữ lựa chọn của sale) hoặc **Đổi sang** loại khác. % hoa hồng từng loại đặt ở **Cài đặt → 💰 Hoa hồng**; báo cáo **BCDT** có mục *Theo loại đơn* với doanh số và hoa hồng tạm tính của từng sale.
 
 **Đơn khách tự đặt trên web** (🌐) tính hoa hồng **riêng**, theo ô *🌐 Đơn khách tự đặt trên web (%)* ở **Cài đặt → 💰 Hoa hồng**, không theo 4 loại đơn. Hoa hồng đơn web tính cho sale đang phụ trách khách lúc khách đặt. Để trống = chưa tính.
 
@@ -161,7 +161,7 @@ Khách đặt qua Zalo, Facebook, điện thoại hay mua tại cửa hàng thì
 
 Khách **đã tự đặt trên website** mà bạn lên lại đơn trong file sale (mã đơn của bạn: tên + ngày + số thứ tự) thì CRM **không tạo thêm đơn**: đơn web tự đổi sang mã bạn gõ, trạng thái theo file, vẫn ghi là đơn 🌐 Web (mã web cũ TDL… vẫn tìm được). Điều kiện: cùng số điện thoại, cùng số tiền, lên trong vòng 10 ngày sau khi khách đặt web.
 
-**Ngày của đơn trong file** (từ 16/10/2026): CRM tính doanh thu theo **cột ngày** (ngày chốt), không theo ngày trong mã đơn. Mã đơn vẫn ghi ngày gửi hàng cho bộ phận đóng đơn như bình thường. Ô ngày để trống thì CRM lấy ngày của dòng gần nhất phía trên, nên hãy ghi ngày ở dòng đầu mỗi ngày. Ô ngày lệch mã đơn quá 7 ngày (thường do gõ nhầm tháng) thì CRM chọn ngày khớp với các dòng xung quanh.
+**Ngày của đơn trong file** (từ 16/10/2026): CRM tính doanh số theo **cột ngày** (ngày chốt), không theo ngày trong mã đơn. Mã đơn vẫn ghi ngày gửi hàng cho bộ phận đóng đơn như bình thường. Ô ngày để trống thì CRM lấy ngày của dòng gần nhất phía trên, nên hãy ghi ngày ở dòng đầu mỗi ngày. Ô ngày lệch mã đơn quá 7 ngày (thường do gõ nhầm tháng) thì CRM chọn ngày khớp với các dòng xung quanh.
 
 **Sửa số điện thoại của đơn đã lên trong file**: CRM **không tạo thêm đơn**, giữ đơn cũ (số cũ) và báo Quản trị qua Telegram + Nhật ký. Điều kiện: cùng mã đơn, cùng số tiền, cách nhau không quá 7 ngày, và cùng tên khách hoặc số chỉ khác 1–2 chữ số. Số mới đúng thì Quản trị mở đơn trên CRM sửa số điện thoại; số mới sai thì bạn sửa lại file. Đổi số trên đơn đã có thì tốt nhất báo quản lý sửa luôn trên CRM.
 
@@ -170,14 +170,14 @@ Trong hồ sơ khách, ô **Ghi nhanh hôm nay** tự thêm ngày ở đầu dò
 ### Chăm sóc, tỉnh thành và lý do từ chối (tab Hiệu quả → Xem chi tiết)
 
 - **💬 Chăm sóc khách:** lượt chăm sóc và **% kết nối** (khách nghe máy / trả lời), **chăm sóc ra đơn** (khách được chăm sóc đã mua trong 14 ngày sau đó), **khách quay lại mua**, **tỷ lệ hoàn đơn**, **VIP sắp mất chưa gọi** (bấm để mở danh sách).
-- **📍 Khách theo tỉnh / thành:** biểu đồ tỉnh nào nhiều khách / doanh thu nhất, gộp theo 34 tỉnh mới (rê chuột để xem tỉnh cũ, vd Hưng Yên gồm cả Thái Bình). Chọn *Khách mới tháng này* để xem khách mới đến từ đâu.
+- **📍 Khách theo tỉnh / thành:** biểu đồ tỉnh nào nhiều khách / doanh số nhất, gộp theo 34 tỉnh mới (rê chuột để xem tỉnh cũ, vd Hưng Yên gồm cả Thái Bình). Chọn *Khách mới tháng này* để xem khách mới đến từ đâu.
 - **🙅 Lý do khách chưa mua / từ chối:** máy tự gom ghi chú khi chăm sóc thành các nhóm (hết tiền, còn hàng, dùng sản phẩm khác, người nhà quyết định, sức khoẻ / đi vắng, chưa thấy hợp, chê giá, bận…) kèm câu khách nói. Chọn *Toàn bộ* để xem cả ghi chú cũ từ file Sheet. Muốn số liệu đúng, khi gọi nhớ gõ vài chữ khách nói vào **Ghi chú lần này**.
 
 ### Báo cáo ngày gửi nhóm Zalo
 
-Cuối ngày bấm **📋 Báo cáo cuối ngày (gửi Zalo)** ở tab **Hôm nay** (hoặc **Hiệu quả → 📋 Báo cáo ngày**). CRM tự làm báo cáo đúng mẫu nhóm đang dùng: số đơn và số mới từng dòng (Curcumin, BADD, Fucoidan Pro), sản phẩm khác, đơn từ khách cũ, **tổng doanh thu**, đơn ngoài giờ, đơn hoàn, **KH cũ đã chăm sóc (kết nối)**, **Không nghe máy**, **Lý do từ chối** (lấy từ ghi chú khi bấm *Hết tiền*, *Còn hàng*, *Không dùng nữa*…) và **luỹ kế tháng / % mục tiêu**. Sửa thêm nếu cần, bấm **📋 Copy để dán vào Zalo** rồi dán vào nhóm. Chọn ngày khác để làm báo cáo bù. Quản lý chọn được *Cả nhóm* hoặc từng người.
+Cuối ngày bấm **📋 Báo cáo cuối ngày (gửi Zalo)** ở tab **Hôm nay** (hoặc **Hiệu quả → 📋 Báo cáo ngày**). CRM tự làm báo cáo đúng mẫu nhóm đang dùng: số đơn và số mới từng dòng (Curcumin, BADD, Fucoidan Pro), sản phẩm khác, đơn từ khách cũ, **tổng doanh số**, đơn ngoài giờ, đơn hoàn, **KH cũ đã chăm sóc (kết nối)**, **Không nghe máy**, **Lý do từ chối** (lấy từ ghi chú khi bấm *Hết tiền*, *Còn hàng*, *Không dùng nữa*…) và **luỹ kế tháng / % mục tiêu**. Sửa thêm nếu cần, bấm **📋 Copy để dán vào Zalo** rồi dán vào nhóm. Chọn ngày khác để làm báo cáo bù. Quản lý chọn được *Cả nhóm* hoặc từng người.
 
-Tab **Hiệu quả → 📊 Bảng BCDT** tự làm báo cáo doanh thu tháng: theo ngày, theo dòng sản phẩm, khách mới / cũ, đơn hoàn và doanh thu theo ca. Phía trên có sẵn **tỷ lệ chốt** (data mới đã ra đơn / data mới, cách tính như tab Hiệu quả; bảng có thêm cột *Data quảng cáo*, *Data ra đơn* theo từng ngày), **trung bình mỗi đơn khách mới** và **khách cũ**, **% doanh thu từ khách cũ**, **doanh thu ngoài giờ**, **số khách cũ đã chăm sóc / không nghe máy** và **% tiến độ mục tiêu**. Mục **Theo kênh đơn** tách doanh thu *💬 Sale lên đơn* và *🌐 Khách tự đặt trên web* (kèm số đơn web theo nguồn: Facebook, Google…). Cột nào cả tháng bằng 0 (dòng sản phẩm không bán) thì tự ẩn cho gọn. Bấm **Tải file Excel** để gửi báo cáo.
+Tab **Hiệu quả → 📊 Bảng BCDT** tự làm báo cáo doanh số tháng: theo ngày, theo dòng sản phẩm, khách mới / cũ, đơn hoàn và doanh số theo ca. Phía trên có sẵn **tỷ lệ chốt** (data mới đã ra đơn / data mới, cách tính như tab Hiệu quả; bảng có thêm cột *Data quảng cáo*, *Data ra đơn* theo từng ngày), **trung bình mỗi đơn khách mới** và **khách cũ**, **% doanh số từ khách cũ**, **doanh số ngoài giờ**, **số khách cũ đã chăm sóc / không nghe máy** và **% tiến độ mục tiêu**. Mục **Theo kênh đơn** tách doanh số *💬 Sale lên đơn* và *🌐 Khách tự đặt trên web* (kèm số đơn web theo nguồn: Facebook, Google…). Cột nào cả tháng bằng 0 (dòng sản phẩm không bán) thì tự ẩn cho gọn. Bấm **Tải file Excel** để gửi báo cáo.
 
 ## Chăm sóc khách
 
@@ -190,13 +190,13 @@ CRM tự tính ngày cần liên hệ từng khách, dựa vào **ngày khách n
 | 📞 **Hẹn gọi lại** | Đến ngày khách đã hẹn | Gọi lại đúng hẹn |
 | 📦 **Hỏi nhận hàng, hướng dẫn dùng** | Ngày khách nhận hàng đến 2 ngày sau. Đơn còn **Mới / Đã xác nhận / Đang giao** thì chờ quá số ngày giao hàng + 2 ngày (mặc định 5 ngày sau ngày đặt) mới nhắc, thẻ khách ghi rõ "đơn vẫn Đang giao" | Hỏi đã nhận hàng chưa, gửi cách dùng. Bấm **📦 Đã nhận, đã HD dùng** hoặc **🚚 Chưa nhận hàng** (2 ngày sau tự nhắc lại) |
 | ⏰ **Sắp hết / đã hết sản phẩm** | Gần ngày khách dùng hết | Nhắc đặt lại, gợi ý thêm món để đơn từ 300.000đ được miễn phí ship |
-| 🤝 **Hỏi thăm sau 1 tuần** | 7 ngày sau khi nhận hàng (đến 2 ngày sau) | Hỏi khách dùng có khó khăn gì, cần hỗ trợ gì. Mời vào nhóm Zalo cộng đồng nếu khách chưa vào |
+| 🤝 **Hỏi thăm sau 1 tuần** | Chỉ khách **mua lần đầu**: 7 ngày sau khi nhận hàng (đến 3 ngày sau). Đã chăm sóc khách từ ngày thứ 4 sau khi nhận thì thôi | Hỏi khách dùng có khó khăn gì, cần hỗ trợ gì. Mời vào nhóm Zalo cộng đồng nếu khách chưa vào |
 | 💬 **Xin cảm nhận** | 14 ngày sau khi nhận hàng | Hỏi cảm nhận, xin phép chia sẻ |
 | 🌿 **Giới thiệu sản phẩm phù hợp** | 30 ngày sau khi nhận hàng | Giới thiệu sản phẩm khác hợp với khách |
 | 💌 **Mời quay lại** | 60 ngày sau khi nhận hàng, chưa mua lại | Hỏi thăm, gửi ưu đãi khách cũ |
 | 🔁 **Khách cũ lâu chưa gọi** | Quá 30 ngày khách chưa phản hồi (không tính các lần không nghe máy) | Hỏi thăm, hỏi còn hàng không, mời đặt lại |
 
-**🕑 Giãn cách chăm sóc:** khách đã **trả lời** bạn (không tính *Không nghe máy*) trong vòng **14 ngày** thì CRM **không nhắc** *Sắp hết hàng*, *Xin cảm nhận*, *Giới thiệu sản phẩm*, *Mời quay lại*, để khách không bị gọi dồn dập. Vẫn nhắc **hẹn gọi lại** và **hỏi nhận hàng** đơn mới. Khách vừa đặt đơn thì chưa tính là *Khách cũ lâu chưa gọi*. Quản lý đổi số ngày ở **Cài đặt → Nhóm khách** (ghi 0 = tắt).
+**🕑 Giãn cách chăm sóc:** khách đã **trả lời** bạn (không tính *Không nghe máy*) trong vòng **14 ngày** thì CRM **không nhắc** *Sắp hết hàng*, *Xin cảm nhận*, *Giới thiệu sản phẩm*, *Mời quay lại*, để khách không bị gọi dồn dập. Vẫn nhắc **hẹn gọi lại**, **hỏi nhận hàng** đơn mới và **hỏi thăm sau 1 tuần** (khách mua lần đầu). Khách vừa đặt đơn thì chưa tính là *Khách cũ lâu chưa gọi*. Quản lý đổi số ngày ở **Cài đặt → Nhóm khách** (ghi 0 = tắt).
 
 Việc nào **qua khung mà chưa làm** (ví dụ bạn nghỉ vài hôm) vẫn hiện thêm 7 ngày, kèm dòng **⏳ trễ N ngày**, để không sót khách. Khi đã tới mốc sau (vd đã tới ngày 14) thì mốc trước chưa làm tự bỏ qua, chỉ hiện mốc mới nhất.
 
@@ -327,7 +327,9 @@ Từ trên xuống:
     - **Lịch sử** (mở sẵn): **đơn hàng 🛒 và các lần chăm sóc gộp chung 1 dòng thời gian**, mới nhất ở trên. 📵 = không nghe máy, 📒 = ghi chú cũ từ Sheet.
     - **Đơn hàng:** toàn bộ đơn của khách, kể cả đơn cũ. **Bấm vào 1 đơn** để xem ngay chi tiết: sản phẩm và quà kèm, tiền ship, thanh toán (đã nhận tiền chưa), địa chỉ giao (báo nếu khác địa chỉ hiện tại), vận chuyển, ghi chú đầy đủ. Ngay đó có nút **🔁 Đặt lại đơn này** (mở form lên đơn đã điền sẵn như đơn đó), **📋 Copy**, **✏️ Mở đơn để sửa**. Bấm dòng đơn 🛒 ở thẻ Lịch sử cũng mở chi tiết đơn đó.
     - **Thông tin:** ngày sinh, địa chỉ, nguồn, đơn đầu, ngày nhận hàng gần nhất, người giới thiệu, số điện thoại khác, tình trạng sức khoẻ.
-- **Ô ✏️ Ghi nhanh** luôn ở đáy màn hình: gõ vài chữ (vd “kh dùng ok, hẹn cuối tháng”) rồi bấm **Lưu** hoặc Enter. Máy tự thêm ngày.
+- **Ô ✏️ Ghi nhanh** luôn ở đáy màn hình: gõ vài chữ (vd “kh dùng ok, hẹn cuối tháng”) rồi bấm **Lưu** hoặc Enter. Máy tự thêm ngày. Mỗi lần ghi nhanh được tính là **1 lượt chăm sóc**: có trong nhật ký, khách rời danh sách việc hôm nay, hẹn gọi lại đã tới hạn được xoá (muốn hẹn ngày mới thì dùng 💬 Chăm sóc).
+- Hai người cùng sửa ghi chú một khách: CRM giữ cả phần người kia vừa thêm, không đè mất.
+- Đổi người phụ trách hoặc sửa tên, địa chỉ, ghi chú, nhãn, hẹn gọi đều được ghi vào nhật ký (ai sửa, lúc nào).
 - **⚙️ Sửa thông tin** (bấm để mở): đổi người phụ trách (quản lý), hẹn gọi lại ngày, **🎂 ngày sinh**, **🎯 khách dùng cho ai / để làm gì** (vd “mua cho mẹ 70 tuổi, ăn ngủ kém”, hiện ở đầu hồ sơ và trong hộp Chăm sóc), nhãn màu, sửa ghi chú dài.
 
 **Nhóm khách** (máy tự xếp theo số ngày chưa mua):
@@ -417,7 +419,7 @@ Là người **hỏi mua nhưng chưa mua**: nhắn Fanpage, Zalo, gọi điện
 2. Chọn kết quả:
     - **Đã tư vấn, khách cân nhắc** hoặc **Hẹn liên hệ lại**: máy hẹn sẵn 2 ngày sau, sửa được.
     - **Không nghe máy**: máy hẹn sẵn ngày mai.
-    - **Khách chốt mua**: bấm Lưu thì form **tạo đơn mở ra luôn**. Lưu đơn xong, khách chuyển sang “Đã chốt”.
+    - **Khách chốt mua**: bấm Lưu thì form **tạo đơn mở ra luôn**. Lưu đơn xong, khách chuyển sang “Đã chốt”. Sale không chọn tay được “Đã chốt” khi khách chưa có đơn (để tỷ lệ chốt và thi đua công bằng); quản lý vẫn sửa được.
     - Lên đơn đường khác (file Sheet của sale, đơn web, tạo đơn ở tab Khách đã mua) cũng được: khách hỏi có đơn trong **30 ngày** kể từ lúc hỏi thì CRM **tự chuyển “Đã chốt”** (khớp theo số điện thoại, vài phút sau là thấy).
     - Thẻ ở mục **Đã chốt** ghi mã đơn đã chốt. Khách hỏi rồi mua lần đầu có nhãn **🆕 Khách mới**. Nhãn **🔁 Khách cũ hỏi lại** chỉ dành cho khách **đã mua trước lúc hỏi**. Nếu khách để lại số nhiều lần mà cùng ra 1 đơn thì CRM chỉ hiện 1 thẻ.
     - Thẻ **Đã chốt** có nhãn đỏ **⚠️ Chưa có đơn trong hệ thống** (ghi “chốt” trong file quảng cáo nhưng chưa lên đơn) hoặc **⚠️ Đơn đã huỷ / hoàn**: khách **chưa** được tính là khách đã mua. Bấm **🛒 Lên đơn** để tạo đơn cho khách. Mục **⚠️ Chốt chưa có đơn** gom các thẻ này (chỉ hiện khi có).
@@ -435,13 +437,13 @@ Bấm **1 chạm** ở hàng nút thời gian đầu trang (trên điện thoạ
 - **Đầu tháng**, bấm **🎯 Đặt mục tiêu** doanh số của bạn. Gõ số hoặc viết tắt, ví dụ `30tr`. Có nút lấy bằng tháng trước cộng 10%.
 - **Thanh tiến độ**: vạch đen là hôm nay. Thanh màu vượt vạch đen là đang **đúng tiến độ**. CRM cho biết còn thiếu bao nhiêu và **mỗi ngày cần bán khoảng bao nhiêu**.
 - **4 ô lớn** ngay dưới mục tiêu, mỗi ô có đèn so với **chính bạn kỳ trước**: 🟢 bằng hoặc tốt hơn · 🟠 giảm nhẹ · 🔴 giảm nhiều. Bấm vào ô để mở phần chi tiết.
-    - **💰 Tiền bán được** (kèm số đơn). Tháng này mà đã đặt mục tiêu thì đèn theo tiến độ mục tiêu.
+    - **💰 Doanh số** (kèm số đơn) và dòng **💵 Doanh thu** (tiền đã thu). Tháng này mà đã đặt mục tiêu thì đèn theo tiến độ mục tiêu.
     - **🎯 Chốt được**: tỷ lệ chốt, đọc là “cứ 10 khách hỏi chốt được mấy khách”.
     - **🛒 Mỗi đơn**: tiền trung bình 1 đơn. Tư vấn combo, 2–3 hộp thì số này tăng.
     - **🔁 Khách cũ mua lại**: số khách cũ quay lại mua và phần tiền từ họ.
 - **📞 Khách hỏi từ quảng cáo đi về đâu?**: 1 thanh màu chia ✅ đã mua · ⏳ đang tư vấn · ❌ không mua · 🗑 số rác.
 - **👉 Việc nên làm ngay**: tối đa 5 việc, việc gấp lên đầu (khách đang tư vấn chưa chốt, khách VIP lâu chưa gọi, khách quá 30 ngày chưa nói chuyện, tỷ lệ chốt / tiền mỗi đơn giảm, đơn hoàn nhiều, ít khách nghe máy). Không có việc gì thì hiện 🎉.
-- **💸 Công ty đã đầu tư cho bạn**: tiền quảng cáo công ty đã chi để đem về các số khách hỏi giao cho bạn trong kỳ, mỗi số tốn khoảng bao nhiêu, bạn đã mang về bao nhiêu tiền từ các số đó (*cứ 1đ công ty chi, bạn mang về …đ*, đèn theo cùng mức đèn quảng cáo ở Tổng quan), còn bao nhiêu số chưa có kết quả (= bao nhiêu tiền đang chờ bạn gọi), và **% số được gọi ngay trong ngày nhận** (so với cả nhóm).
+- **💸 Công ty đã đầu tư cho bạn**: tiền quảng cáo công ty đã chi để đem về các số khách hỏi giao cho bạn trong kỳ, mỗi số tốn khoảng bao nhiêu, bạn đã mang về bao nhiêu tiền từ các số đó (*cứ 1đ công ty chi, bạn mang về …đ*, đèn theo cùng mức đèn quảng cáo ở Tổng quan), còn bao nhiêu số chưa có kết quả (= bao nhiêu tiền đang chờ bạn gọi), và **% số được gọi ngay trong ngày nhận** (so với cả nhóm). Sale chỉ thấy chi phí quảng cáo **dành cho mình**; phần cả nhóm chỉ có tỷ lệ để so sánh (1đ thu về bao nhiêu, tỷ lệ chốt, % gọi trong ngày), không có tổng tiền quảng cáo của công ty.
 - **📣 Từ quảng cáo** (trong Xem chi tiết): 🎁 ưu đãi / thông điệp quảng cáo đang chạy (để nói đúng điều khách đã đọc), tỷ lệ chốt **theo từng sản phẩm** của bạn so với cả nhóm và chi phí mỗi số của sản phẩm đó, thanh **gọi lại số mới nhanh hay chậm** (trong ngày · hôm sau · sau 2 ngày · chưa gọi).
     - *Chi phí mỗi số* = tiền các chiến dịch có tên sản phẩm ÷ số khách hỏi sản phẩm đó (theo cột Nguồn của file số quảng cáo); chiến dịch không ghi tên sản phẩm chia đều cho mọi số. Không tính quảng cáo trên sàn và KOL. Marketing chưa nhập chi phí thì chỉ hiện số lượng.
     - *Gọi lại* tính theo lần đầu có ghi trên CRM (tư vấn, chăm sóc, đổi trạng thái khách hỏi, lên đơn). File số quảng cáo chỉ ghi ngày nên tính theo ngày, không theo giờ. **Gọi xong nhớ ghi lên CRM**, nếu không CRM coi như chưa gọi.
@@ -466,35 +468,38 @@ Tab đầu tiên trên menu, dành cho chủ doanh nghiệp. **Chọn thời gia
 
 **Màn hình đầu: nhìn 5 giây là nắm được tình hình**
 
-- **4 ô lớn**: 💰 **Tiền bán được** (văn phòng + sàn), 🧾 **Số đơn hàng**, 🙋 **Khách mới mua**, 📣 **Quảng cáo** (bỏ 1 đồng quảng cáo thì khách mới mua lại bao nhiêu đồng). Mũi tên ▲ xanh / ▼ đỏ là so với kỳ trước.
-- **Đèn trên mỗi ô**: 🟢 tốt, 🟠 cần để ý, 🔴 cần xử lý. Tiền bán được (xem theo tháng): theo tiến độ mục tiêu. Số đơn, khách mới: tăng = 🟢, giảm dưới 10% = 🟠, giảm từ 10% = 🔴. Quảng cáo: chi phí dưới 30% tiền khách mới mua = 🟢, từ 30% đến 40% = 🟠, trên 40% = 🔴 (mặc định; Quản trị đổi mức ở **Cài đặt → 🚦 Mức đèn Tổng quan**).
+- **Hai con số tiền** (anh Sơn chốt 16/10/2026), cả hai đều **không tính đơn huỷ, đơn hoàn**:
+    - **💰 Doanh số** = tổng tiền các đơn đã đặt.
+    - **💵 Doanh thu** = tiền các đơn **đã thu**: đơn **Đã giao** / **Đổi hàng** (tiền thu hộ đã thu) hoặc đơn đã bấm **Đã nhận tiền chuyển khoản**. Đơn đang giao, chuyển khoản chưa nhận thì chưa tính. Sàn chỉ tính khi đã tải file Thu nhập hoặc đơn báo hoàn thành.
+- **4 ô lớn**: 💵 **Doanh thu** (kèm % so với doanh số, còn bao nhiêu đang giao / chờ thu), 💰 **Doanh số** (văn phòng + sàn, kèm số đơn và trung bình 1 đơn), 🙋 **Khách mới mua**, 📣 **Quảng cáo** (bỏ 1 đồng quảng cáo thì khách mới mua lại bao nhiêu đồng). Mũi tên ▲ xanh / ▼ đỏ là so với kỳ trước.
+- **Đèn trên mỗi ô**: 🟢 tốt, 🟠 cần để ý, 🔴 cần xử lý. Doanh số (xem theo tháng): theo tiến độ mục tiêu. Doanh thu không có đèn (đơn mới chưa kịp giao nên so với kỳ trước sẽ luôn thấp hơn). Khách mới: tăng = 🟢, giảm dưới 10% = 🟠, giảm từ 10% = 🔴. Quảng cáo: chi phí dưới 30% tiền khách mới mua = 🟢, từ 30% đến 40% = 🟠, trên 40% = 🔴 (mặc định; Quản trị đổi mức ở **Cài đặt → 🚦 Mức đèn Tổng quan**).
 - **🎯 Mục tiêu tháng**: thanh tiến độ cả văn phòng (vạch đen = hôm nay, thanh màu vượt vạch đen là đúng tiến độ), mỗi ngày còn cần bán bao nhiêu.
-- **📌 Cần chú ý**: tối đa 5 dòng CRM tự rút ra: chậm mục tiêu, kênh quảng cáo tốn tiền mà chưa ra khách, kênh hiệu quả nhất nên dồn tiền, sàn lâu chưa tải file, doanh thu tăng / giảm mạnh…
+- **📌 Cần chú ý**: tối đa 5 dòng CRM tự rút ra: chậm mục tiêu, kênh quảng cáo tốn tiền mà chưa ra khách, kênh hiệu quả nhất nên dồn tiền, sàn lâu chưa tải file, doanh số tăng / giảm mạnh…
 - Bấm vào ô hoặc thanh mục tiêu để mở phần chi tiết tương ứng.
 
 **🔎 Xem chi tiết** (bấm vào từng mục để mở / đóng; mục đang mở được nhớ cho lần sau)
 
 - **🎯 Mục tiêu từng mảng**: Sale, Website, Shopee, TikTok Shop… mỗi mảng có thanh tiến độ, trạng thái *Đúng tiến độ / Hơi chậm / Đang chậm*, mỗi ngày còn cần bao nhiêu, dự báo cả tháng. Bấm **🎯 Đặt mục tiêu** để nhập; ô Sale để trống = tổng mục tiêu các nhân viên. Sale = đơn sale lên và chốt từ khách hỏi; Website = khách tự đặt trên web; sàn = số từ tab Sàn.
-- **💰 Bán hàng văn phòng** (đơn trong CRM, chưa gồm sàn): doanh thu, số đơn, giá trị trung bình / đơn, khách mua lần đầu, % doanh thu từ khách cũ, **data quảng cáo** (cùng cách đếm với tab Hiệu quả) và **khách hỏi mới**.
+- **💰 Bán hàng văn phòng** (đơn trong CRM, chưa gồm sàn): doanh số, số đơn, giá trị trung bình / đơn, khách mua lần đầu, % doanh số từ khách cũ, **data quảng cáo** (cùng cách đếm với tab Hiệu quả) và **khách hỏi mới**.
 - **📣 Quảng cáo & hiệu quả từng kênh**, **🛒 Sàn TMĐT**: xem bên dưới.
 - **📈 Theo ngày**, **🧭 Tiền đến từ kênh nào**, **🏆 Sản phẩm bán chạy**, **🙋 Khách hỏi theo kênh**.
 - **🌐 Website** (Google Analytics): lượt truy cập, người xem, đơn web, tỷ lệ ra đơn, % khách ở lại xem, khách vào từ đâu, phễu mua hàng, khách liên hệ từ web, trang xem nhiều, trang vào đầu tiên.
 
-**📣 Marketing**: chi phí quảng cáo, **chi phí / doanh thu khách mới** (chỉ số chính để đánh giá quảng cáo), 1đ chi phí thu về bao nhiêu doanh thu khách mới, chi phí có 1 khách mới, chi phí / data quảng cáo, chi phí / doanh thu tổng (tham khảo).
+**📣 Marketing**: chi phí quảng cáo, **chi phí / doanh số khách mới** (chỉ số chính để đánh giá quảng cáo), 1đ chi phí thu về bao nhiêu doanh số khách mới, chi phí có 1 khách mới, chi phí / data quảng cáo, chi phí / doanh số tổng (tham khảo).
 
-**🎯 Hiệu quả từng kênh**: mỗi kênh (Facebook, TikTok, Google, KOL, Shopee, TikTok Shop…) một thẻ: chi phí, doanh thu khách mới, % chi phí / doanh thu khách mới, 1đ thu về bao nhiêu, chi phí / khách mới. Kênh rẻ nhất có nhãn 🏆, tốn nhất có ⚠️ → dồn ngân sách cho kênh 🏆.
-- Đơn được gắn kênh theo: số có trong file số quảng cáo → Facebook; không có thì theo Kênh khách hỏi, rồi Nguồn đơn (link UTM). Nút **Đơn sale chưa rõ nguồn tính vào Facebook** bật / tắt được.
+**🎯 Hiệu quả từng kênh**: mỗi kênh (Facebook, TikTok, Google, KOL, Shopee, TikTok Shop…) một thẻ: chi phí, doanh số khách mới, % chi phí / doanh số khách mới, 1đ thu về bao nhiêu, chi phí / khách mới. Kênh rẻ nhất có nhãn 🏆, tốn nhất có ⚠️ → dồn ngân sách cho kênh 🏆.
+- Đơn được gắn kênh theo: số có trong file số quảng cáo → Facebook; không có thì theo Kênh khách hỏi, rồi Nguồn đơn (link UTM). Nút **Đơn sale chưa rõ nguồn tính vào Facebook** bật / tắt được, **mặc định tắt** (từ 16/10/2026) để hiệu quả Facebook không bị cộng thêm đơn không chắc đến từ quảng cáo.
 - Khách mới = mua lần đầu trong kỳ (tính cả các đơn sau của họ trong kỳ). Khách cũ quay lại không tính vào hiệu quả kênh.
-- Sàn: doanh thu lấy từ tab Sàn (chưa tách được khách mới / cũ). Chi phí quảng cáo trên sàn nhập ở **⚙️ Quản lý chi phí quảng cáo**, chọn kênh Shopee / TikTok Shop.
+- Sàn: doanh số lấy từ tab Sàn (chưa tách được khách mới / cũ). Chi phí quảng cáo trên sàn nhập ở **⚙️ Quản lý chi phí quảng cáo**, chọn kênh Shopee / TikTok Shop.
 
 - **📘 Facebook tự động**: dán mã truy cập (làm theo hướng dẫn ngay trong cửa sổ), CRM tự lấy chi phí từng chiến dịch 3 tiếng 1 lần. Nhiều tài khoản quảng cáo: gán tất cả cho người dùng hệ thống trong Business Manager; CRM tự tìm tài khoản mới mỗi ngày, hoặc bấm **🔄 Tìm tài khoản mới** / **＋ Thêm** mã tài khoản.
 - **📄 Nhập file**: TikTok, Google Ads… xuất báo cáo CSV theo ngày + chiến dịch rồi chọn file. Nhập lại cùng khoảng ngày thì số mới thay số cũ.
 - **✍️ Nhập tay**: KOL / KOC, in ấn, sự kiện… nhập số tiền cho 1 khoảng ngày, CRM chia đều theo ngày.
 - **📋 Đã nhập**: xem lại, xoá lần nhập sai.
 
-**🛒 Sàn TMĐT**: doanh thu, số đơn, tiền thực về, tỷ lệ huỷ / hoàn của Shopee, TikTok Shop. Bấm **Chi tiết sàn →** để mở tab Sàn.
+**🛒 Sàn TMĐT**: doanh số, số đơn, tiền thực về, tỷ lệ huỷ / hoàn của Shopee, TikTok Shop. Bấm **Chi tiết sàn →** để mở tab Sàn.
 
-Số website chỉ đếm khách đã bấm “Đồng ý” cookie nên thấp hơn thực tế; số đơn và doanh thu thì đầy đủ. Muốn biết bài đăng / quảng cáo nào ra khách, luôn dùng link tạo ở [/admin/utm](https://thucduonglanh.vn/admin/utm). Tờ rơi, standee, gói hàng, quảng cáo Google / YouTube thì dùng tab **📍 Link & QR** (mục ngay dưới).
+Số website chỉ đếm khách đã bấm “Đồng ý” cookie nên thấp hơn thực tế; số đơn và doanh số thì đầy đủ. Muốn biết bài đăng / quảng cáo nào ra khách, luôn dùng link tạo ở [/admin/utm](https://thucduonglanh.vn/admin/utm). Tờ rơi, standee, gói hàng, quảng cáo Google / YouTube thì dùng tab **📍 Link & QR** (mục ngay dưới).
 
 ## 📍 Link & mã QR (Marketing, Quản lý, Quản trị)
 
@@ -529,7 +534,7 @@ Trên đơn web, nguồn đến từ link hiện **📍 <tên link>**.
 
 **Thêm người:** Quản trị vào **Cài đặt → Nhân sự được vào CRM → ＋ Thêm người**, nhập email, chọn quyền **Marketing** → **Lưu nhân sự**. Người đó đăng nhập bằng mã gửi về email như các bạn sale. Nghỉ việc thì bỏ tích *Đang dùng*.
 
-**Tài khoản Marketing chỉ thấy tab 📣 Marketing**, không thấy khách, đơn, số điện thoại hay doanh thu toàn công ty. Máy chủ tính sẵn và chỉ gửi con số tổng (Nghị định 13/2023). Tài khoản này không được giao khách, không có trong bảng hiệu quả của sale.
+**Tài khoản Marketing chỉ thấy tab 📣 Marketing**, không thấy khách, đơn, số điện thoại hay doanh số toàn công ty. Máy chủ tính sẵn và chỉ gửi con số tổng (Nghị định 13/2023). Tài khoản này không được giao khách, không có trong bảng hiệu quả của sale.
 
 **Trong tab Marketing:** màn hình đầu chỉ có số quan trọng nhất, phần chi tiết thu gọn, bấm tiêu đề mới mở (CRM nhớ mục bạn hay mở).
 
@@ -538,10 +543,10 @@ Trên đơn web, nguồn đến từ link hiện **📍 <tên link>**.
 **Màn hình đầu:**
 - **6 ô số, 2 hàng (đọc từ trái sang phải):** hàng **💵 Tiền**: 💸 tiền bỏ ra quảng cáo → 💰 tiền khách mới mua → 🚦 chi phí ÷ tiền khách mới (đèn theo mức Quản trị đặt). Hàng **📇 Data & khách**: 📇 **chi phí 1 data** (đèn xanh khi rẻ hơn hoặc bằng kỳ trước) → 🛒 data → mua hàng (cứ 100 data có bao nhiêu người mua) → 👤 chi phí có 1 khách mới (so với mức nên chi tối đa). Bấm vào ô là mở mục chi tiết liên quan.
 - **🏆 Thi đua Marketing:** giống bảng thi đua của sale. Trên cùng là **🏢 Cả đội Marketing** (tổng tiền mang về / tổng mục tiêu, chi phí chung). Dưới là từng bạn, gộp các kênh mình phụ trách (vd Thu: Shopee + TikTok Shop), **xếp theo % mục tiêu đạt** để kênh lớn, kênh nhỏ đều công bằng. 🥇🥈🥉, thanh tiến độ có vạch hôm nay, đèn chi phí. **Vượt mức chi phí thì không đứng hạng 1.** Dòng của bạn có khung xanh. Bạn nào chưa có kênh / mục tiêu thì ghi ở dòng "Chưa có mục tiêu".
-- **Cách tính tiền cho từng người (dễ nhớ):** *khách trả tiền ở đâu thì tiền tính cho người lo chỗ đó; riêng khách mới đến từ quảng cáo Facebook thì tính cho người chạy Facebook.* 📘 Facebook = khách mới từ quảng cáo Facebook (mua qua sale hay trên web). 🌐 Website = mọi đơn đặt trên web, **cả khách mới lẫn khách cũ**, trừ khách mới từ quảng cáo Facebook. 🟠 Shopee / 🛍️ TikTok Shop = doanh thu sàn. 👥 Cộng đồng Zalo = đơn mua lại của khách trong nhóm. Các kênh TikTok, Google, KOL / KOC… vẫn nhập chi phí bình thường, nhưng thường không cần đặt mục tiêu riêng (khách bấm link về web thì tính vào Website, về sàn thì tính vào sàn). **Luôn dùng link tạo ở /admin/utm** để CRM biết khách đến từ đâu.
-- **🌐 Tiền qua website** (dưới dòng Cả đội): % doanh thu đến từ đơn web trên toàn bộ doanh thu (sale + web + sàn), so với mục tiêu chung Quản trị đặt (ô "% tiền qua website" trong ✏️ Sửa mục tiêu). Thanh màu chia **khách mới / khách cũ** đặt web. Chi tiết ở mục **🌐 Website: khách mới & khách cũ**: tiền và số khách mới đặt web, khách cũ đặt lại trên web, phần khách mới từ quảng cáo Facebook.
+- **Cách tính tiền cho từng người (dễ nhớ):** *khách trả tiền ở đâu thì tiền tính cho người lo chỗ đó; riêng khách mới đến từ quảng cáo Facebook thì tính cho người chạy Facebook.* 📘 Facebook = khách mới từ quảng cáo Facebook (mua qua sale hay trên web). 🌐 Website = mọi đơn đặt trên web, **cả khách mới lẫn khách cũ**, trừ khách mới từ quảng cáo Facebook. 🟠 Shopee / 🛍️ TikTok Shop = doanh số sàn. 👥 Cộng đồng Zalo = đơn mua lại của khách trong nhóm. Các kênh TikTok, Google, KOL / KOC… vẫn nhập chi phí bình thường, nhưng thường không cần đặt mục tiêu riêng (khách bấm link về web thì tính vào Website, về sàn thì tính vào sàn). **Luôn dùng link tạo ở /admin/utm** để CRM biết khách đến từ đâu.
+- **🌐 Tiền qua website** (dưới dòng Cả đội): % doanh số đến từ đơn web trên toàn bộ doanh số (sale + web + sàn), so với mục tiêu chung Quản trị đặt (ô "% tiền qua website" trong ✏️ Sửa mục tiêu). Thanh màu chia **khách mới / khách cũ** đặt web. Chi tiết ở mục **🌐 Website: khách mới & khách cũ**: tiền và số khách mới đặt web, khách cũ đặt lại trên web, phần khách mới từ quảng cáo Facebook.
 - **👥 Cộng đồng Zalo:** kênh giữ khách cũ. Tiền = **đơn mua lại** (không tính đơn đầu) của khách có ô Cộng đồng = "Đã vào" trên hồ sơ khách. Chi phí quà tặng, minigame nhập ở ⚙️ Nhập chi phí → kênh *Cộng đồng Zalo* (không tính vào hiệu quả quảng cáo). Xem chi tiết ở mục 👥 bên dưới.
- mỗi kênh (Facebook, Shopee, TikTok…) có thẻ riêng giống mục tiêu của sale: tiền khách mới đạt được / mục tiêu, thanh tiến độ có vạch đen = hôm nay (thanh xanh vượt vạch là đang nhanh hơn tiến độ), còn thiếu bao nhiêu, mỗi ngày cần bao nhiêu, và chi phí đang bằng bao nhiêu % tiền khách mới so với mức tối đa (đèn đỏ khi vượt). Luôn tính cho **tháng này**, dù đang xem kỳ khác. **Bạn marketing tự đặt mục tiêu** như bên sale: bấm **🎯 Đặt mục tiêu của tôi**, nhập tiền khách mới mục tiêu và chi phí tối đa (%) cho tháng này hoặc tháng sau. Bạn đặt được cho **kênh mình phụ trách** hoặc kênh chưa ai nhận (đặt xong kênh đó ghi tên bạn); kênh của người khác có 🔒, chỉ xem. **Quản trị** bấm **✏️ Đặt / Sửa mục tiêu** để sửa mọi kênh và đổi người phụ trách (có nút lấy theo tháng trước). Mỗi kênh ghi ai sửa lần cuối, lúc nào; mọi lần sửa được ghi vào Nhật ký. Kênh sàn tính theo doanh thu sàn.
+ mỗi kênh (Facebook, Shopee, TikTok…) có thẻ riêng giống mục tiêu của sale: tiền khách mới đạt được / mục tiêu, thanh tiến độ có vạch đen = hôm nay (thanh xanh vượt vạch là đang nhanh hơn tiến độ), còn thiếu bao nhiêu, mỗi ngày cần bao nhiêu, và chi phí đang bằng bao nhiêu % tiền khách mới so với mức tối đa (đèn đỏ khi vượt). Luôn tính cho **tháng này**, dù đang xem kỳ khác. **Bạn marketing tự đặt mục tiêu** như bên sale: bấm **🎯 Đặt mục tiêu của tôi**, nhập tiền khách mới mục tiêu và chi phí tối đa (%) cho tháng này hoặc tháng sau. Bạn đặt được cho **kênh mình phụ trách** hoặc kênh chưa ai nhận (đặt xong kênh đó ghi tên bạn); kênh của người khác có 🔒, chỉ xem. **Quản trị** bấm **✏️ Đặt / Sửa mục tiêu** để sửa mọi kênh và đổi người phụ trách (có nút lấy theo tháng trước). Mỗi kênh ghi ai sửa lần cuối, lúc nào; mọi lần sửa được ghi vào Nhật ký. Kênh sàn tính theo doanh số sàn.
 - **💰 Thanh ngân sách tháng:** đã chi / ngân sách, vạch dọc là hôm nay, đang chi nhanh hay chậm, mỗi ngày còn lại nên chi bao nhiêu. Chỉ **Quản trị** đặt được ngân sách (bấm ✏️).
 - **✅ Nên làm gì:** tối đa 5 việc quan trọng nhất, gom từ mọi mục bên dưới.
 
@@ -566,7 +571,7 @@ Số ở tab Marketing khớp với mục 📣 ở Tổng quan theo từng kênh
 
 ## Sàn TMĐT (Shopee, TikTok Shop)
 
-Đơn trên sàn không đi qua CRM, nên người phụ trách sàn **tải file đơn hàng từ sàn lên** để CRM tính doanh thu và so với mục tiêu. Tab **Sàn** chỉ hiện với người được Quản trị giao (Quản trị chọn ở tab Sàn → **👤 Người phụ trách sàn**; người được chọn mở lại CRM là thấy tab).
+Đơn trên sàn không đi qua CRM, nên người phụ trách sàn **tải file đơn hàng từ sàn lên** để CRM tính doanh số và so với mục tiêu. Tab **Sàn** chỉ hiện với người được Quản trị giao (Quản trị chọn ở tab Sàn → **👤 Người phụ trách sàn**; người được chọn mở lại CRM là thấy tab).
 
 **Cách 1 – Google Sheet báo cáo (đang dùng cho Shopee)**
 
@@ -582,15 +587,15 @@ Người phụ trách sàn gõ số **mỗi ngày** vào Google Sheet "BC KQKD S
 **Cách 2 – Tải file đơn hàng từ sàn (mỗi ngày hoặc 2–3 ngày 1 lần)**
 
 1. Trên Shopee: Kênh Người Bán → **Đơn hàng** → Tất cả → **Xuất** → chọn ngày đặt hàng **30 ngày gần nhất** → Tải về file .xlsx. TikTok Shop: Seller Center → **Đơn hàng → Quản lý đơn hàng** → **Xuất** → tải file.
-2. Vào CRM → tab **Sàn** → **📤 Tải file từ sàn** → chọn file. CRM tự nhận ra sàn, đọc file ngay trên máy và cho xem trước: bao nhiêu đơn, bao nhiêu huỷ / hoàn, doanh thu.
+2. Vào CRM → tab **Sàn** → **📤 Tải file từ sàn** → chọn file. CRM tự nhận ra sàn, đọc file ngay trên máy và cho xem trước: bao nhiêu đơn, bao nhiêu huỷ / hoàn, doanh số.
 3. Bấm **Nhập**.
 
 Tải lại đơn cũ không bị tính trùng: CRM nhận ra theo mã đơn và cập nhật trạng thái mới (đơn bị huỷ / hoàn sau đó sẽ được trừ). Vì vậy nên xuất luôn 30 ngày gần nhất, không chỉ hôm nay. Quá 3 ngày chưa tải file, CRM hiện dòng nhắc màu đỏ.
 
 **Cách CRM tính**
 
-- **Doanh thu sàn** = tiền hàng theo giá shop bán (đã trừ giảm giá của shop trên sản phẩm), tính theo **ngày khách đặt**. Không tính đơn huỷ, đơn hoàn, đơn chờ thanh toán; hoàn tiền 1 phần thì trừ phần đó.
-- **Tiền thực về**: Shopee có cột phí trong file đơn hàng nên CRM ước tính = doanh thu − voucher của shop − phí cố định, phí dịch vụ, phí thanh toán. Muốn có **số thật**, tải thêm file tiền về (Shopee: **Tài Chính → Doanh Thu → Đã thanh toán → Xuất**; TikTok: **Tài chính → Đối soát**) bằng cùng nút 📤. Số thật thay cho số ước tính và không bị file đơn sau ghi đè.
+- **Doanh số sàn** = tiền hàng theo giá shop bán (đã trừ giảm giá của shop trên sản phẩm), tính theo **ngày khách đặt**. Không tính đơn huỷ, đơn hoàn, đơn chờ thanh toán; hoàn tiền 1 phần thì trừ phần đó.
+- **Tiền thực về**: Shopee có cột phí trong file đơn hàng nên CRM ước tính = doanh số − voucher của shop − phí cố định, phí dịch vụ, phí thanh toán. Muốn có **số thật**, tải thêm file tiền về (Shopee: **Tài Chính → Doanh Thu → Đã thanh toán → Xuất**; TikTok: **Tài chính → Đối soát**) bằng cùng nút 📤. Số thật thay cho số ước tính và không bị file đơn sau ghi đè.
 - **📋 Các lần tải file**: xem lại, xoá lần tải nhầm.
 - File không đọc được: CRM báo các cột đang có. Chụp màn hình gửi Quản trị. File .xls đời cũ thì mở bằng Excel / Google Sheets rồi lưu lại thành .xlsx.
 
@@ -601,8 +606,8 @@ Tải lại đơn cũ không bị tính trùng: CRM nhận ra theo mã đơn và
 | Quyền | Làm được |
 | --- | --- |
 | **Sale & CSKH** | Bán hàng và chăm sóc khách. Chỉ thấy và làm việc với khách mình phụ trách: chăm sóc, xử lý đơn, khách hỏi, xem hiệu quả của mình |
-| **Marketing** | Chỉ thấy tab 📣 Marketing (chi phí, hiệu quả quảng cáo, tự nhập chi phí). Không thấy khách, đơn, doanh thu công ty |
-| **Quản lý** | Thấy toàn bộ khách. Thêm: giao / chuyển khách, chọn cách chia khách mới, xem doanh thu cả nhóm, hiệu quả từng nhân viên, đặt mục tiêu cho nhân viên, đổi *Nhân viên bán* trên đơn, sửa chu kỳ dùng và mẫu tin, tạo mã ưu đãi đặt hàng web |
+| **Marketing** | Chỉ thấy tab 📣 Marketing (chi phí, hiệu quả quảng cáo, tự nhập chi phí). Không thấy khách, đơn, doanh số công ty |
+| **Quản lý** | Thấy toàn bộ khách. Thêm: giao / chuyển khách, chọn cách chia khách mới, xem doanh số cả nhóm, hiệu quả từng nhân viên, đặt mục tiêu cho nhân viên, đổi *Nhân viên bán* trên đơn, sửa chu kỳ dùng và mẫu tin, tạo mã ưu đãi đặt hàng web |
 | **Quản trị** | Thêm: thêm, khoá nhân sự và đổi quyền; **xoá khách / đơn nhập thử** |
 
 **Ô 👤 Người phụ trách** (góc phải, chỉ quản lý thấy) có ở cả 5 tab Hôm nay, Khách đã mua, Khách hỏi, Đơn hàng, Hiệu quả. Chọn **Tất cả nhân sự**, **Chưa ai phụ trách** hoặc tên 1 nhân viên. Chọn ở tab nào thì các tab khác cũng lọc theo, nên muốn xem hết việc của một người thì chọn tên người đó 1 lần rồi chuyển qua các tab. Đơn hàng lọc theo *Nhân viên bán*; đơn chưa ghi nhân viên bán thì lấy người phụ trách khách đó. Muốn bỏ lọc thì chọn lại **Tất cả nhân sự**.
@@ -613,10 +618,10 @@ Tải lại đơn cũ không bị tính trùng: CRM nhận ra theo mã đơn và
 - **📞 Khách hỏi từ quảng cáo đi về đâu?** của cả nhóm.
 - **👉 Quản lý nên làm ngay** (tối đa 5 việc): ai đang chậm mục tiêu, khách hỏi tồn chưa chốt (ai nhiều nhất), khách VIP chưa ai gọi, đơn chưa có nhân viên bán (nút **Gán**), ai chốt thấp hơn nhóm, ai chưa đặt mục tiêu, tỷ lệ hoàn cao. Bấm tên người để mở màn hình của người đó.
 - **💸 Công ty đã đầu tư cho cả nhóm**: tổng tiền quảng cáo đem về số, mỗi số bao nhiêu, cả nhóm mang về bao nhiêu, % số gọi trong ngày. **Quản lý nên làm ngay** báo số quảng cáo chưa ai gọi (ai nhiều nhất).
-- **👥 Từng nhân viên**: xếp theo tiền bán được (🥇🥈🥉), dòng 📣 số quảng cáo nhận · công ty chi bao nhiêu → mang về bao nhiêu · % gọi trong ngày, viền màu = tiến độ mục tiêu (🟢 đúng tiến độ · 🟠 hơi chậm · 🔴 đang chậm), số đơn, tỷ lệ chốt, tiền mỗi đơn, lượt chăm sóc, và dòng **Cần kèm** (tối đa 2 điểm yếu so với cả nhóm: số quảng cáo chưa gọi ≥ 3, gọi chậm (dưới 60% số gọi trong ngày, từ 10 số), khách hỏi tồn ≥ 5, chốt thấp hơn nhóm, đơn nhỏ, ít chăm sóc, khách VIP chưa gọi, hoàn nhiều). Bấm vào để xem chi tiết và đặt mục tiêu.
+- **👥 Từng nhân viên**: xếp theo doanh số (🥇🥈🥉), dòng 📣 số quảng cáo nhận · công ty chi bao nhiêu → mang về bao nhiêu · % gọi trong ngày, viền màu = tiến độ mục tiêu (🟢 đúng tiến độ · 🟠 hơi chậm · 🔴 đang chậm), số đơn, tỷ lệ chốt, tiền mỗi đơn, lượt chăm sóc, và dòng **Cần kèm** (tối đa 2 điểm yếu so với cả nhóm: số quảng cáo chưa gọi ≥ 3, gọi chậm (dưới 60% số gọi trong ngày, từ 10 số), khách hỏi tồn ≥ 5, chốt thấp hơn nhóm, đơn nhỏ, ít chăm sóc, khách VIP chưa gọi, hoàn nhiều). Bấm vào để xem chi tiết và đặt mục tiêu.
 - **Xem chi tiết** (bấm để mở): **📊 So sánh nhân viên** (chọn chỉ số: Doanh số, Số đơn, TB/đơn, Tỷ lệ chốt, % mục tiêu, Lượt chăm sóc…; vạch đậm = trung bình nhóm), 📈 Bán hàng theo ngày, 💬 Chăm sóc khách, 🙅 Vì sao khách chưa mua (gồm lý do “Không mua” của khách hỏi), 📍 Khách ở tỉnh nào.
 
-**Tài khoản Quản trị không có trong thống kê nhân sự.** Bảng *👥 Tiến độ nhân sự hôm nay*, biểu đồ *📊 So sánh nhân viên*, mục *Theo nhân viên* và *📈 Mức dùng CRM* chỉ tính tài khoản quyền Quản lý và Sale & CSKH, cho gọn. Doanh thu cả nhóm vẫn tính đủ mọi đơn.
+**Tài khoản Quản trị không có trong thống kê nhân sự.** Bảng *👥 Tiến độ nhân sự hôm nay*, biểu đồ *📊 So sánh nhân viên*, mục *Theo nhân viên* và *📈 Mức dùng CRM* chỉ tính tài khoản quyền Quản lý và Sale & CSKH, cho gọn. Doanh số cả nhóm vẫn tính đủ mọi đơn.
 
 **🗑 Xoá dữ liệu nhập thử** (chỉ Quản trị):
 

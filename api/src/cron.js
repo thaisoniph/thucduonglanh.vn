@@ -18,6 +18,7 @@ function careMessage(items, leads, today, isGroup, who, R) {
   const total = items.length + leads.length;
   return '📋 <b>' + (who ? 'Việc của ' + esc(who) + ' ' : 'CSKH hôm nay ') + fmtDate(today, 'dd/MM') + '</b> – ' + items.length + ' khách cần chăm sóc' + (leads.length ? ', ' + leads.length + ' khách tiềm năng' : '') +
     block('📞 Hẹn gọi lại', by('callback'), 'khách đã hẹn') + block('📦 Hỏi nhận hàng, hướng dẫn dùng', by('d1'), 'đơn mới giao') + block('⏰ Sắp hết / đã hết sản phẩm', by('runout'), 'nhắc đặt lại, gợi ý đơn từ 300K được freeship') +
+    block('🤝 Hỏi thăm sau 1 tuần', by('d7'), 'khách mua lần đầu, 7 ngày sau khi nhận hàng') +
     block('💬 Xin cảm nhận', by('d14'), '14 ngày sau khi mua') + block('🌿 Giới thiệu sản phẩm phù hợp', by('d30'), '30 ngày sau khi mua') + block('💌 Mời quay lại', by('winback'), R.atRisk + ' ngày chưa mua') + lb +
     (total ? '\n\n✍️ Làm trên CRM: ' + CRM_URL : '\n\nHôm nay không có khách đến lịch chăm sóc 🎉');
 }
@@ -25,7 +26,7 @@ function careMessage(items, leads, today, isGroup, who, R) {
 /** 8h sáng: danh sách cần chăm sóc vào nhóm Telegram (quản lý) và riêng cho từng nhân viên + cảnh báo mức dùng CRM. */
 export async function dailyCare(x) {
   const today = startOfDay(Date.now()), R = await rulesCfg(x), items = [];
-  for (const v of await all(x.db, 'SELECT phone, name, orders, spent, last, runout, care_at, care_result, last_status, callback, products, consent, owner, fam FROM customers WHERE orders > 0')) {
+  for (const v of await all(x.db, 'SELECT phone, name, orders, spent, last, runout, care_at, care_result, last_status, callback, products, consent, owner, fam, recv FROM customers WHERE orders > 0')) {
     const t = careTask(v, today, R); if (!t) continue;
     items.push({ type: t.type, name: v.name, phone: v.phone, products: String(v.products || '').split('; ').slice(-2).join(', '), group: groupOf(v.orders, v.spent, v.last, R), ok: !!v.consent, owner: v.owner || '', late: t.late });
   }

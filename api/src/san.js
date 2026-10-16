@@ -43,7 +43,9 @@ async function sanLoad(x, u, d) {
   if (![d.from, d.to, d.pf, d.pt].every(s => DAY_RE.test(String(s || '')))) return { ok: false, error: 'Khoảng thời gian chưa đúng.' };
   const month = MONTH_RE.test(d.month || '') ? d.month : String(d.to).slice(0, 7), mf = month + '-01', mt = month + '-31';
   const AGG = "SUM(CASE WHEN state = 'ok' THEN gmv - refund ELSE 0 END) AS g, SUM(state = 'ok') AS n, SUM(state = 'cancel') AS c, SUM(state = 'return') AS r, COUNT(*) AS t, " +
-    "SUM(CASE WHEN state = 'ok' AND net IS NOT NULL THEN net ELSE 0 END) AS nv, SUM(state = 'ok' AND net IS NOT NULL) AS nn, SUM(state = 'ok' AND net_real = 1) AS nr";
+    "SUM(CASE WHEN state = 'ok' AND net IS NOT NULL THEN net ELSE 0 END) AS nv, SUM(state = 'ok' AND net IS NOT NULL) AS nn, SUM(state = 'ok' AND net_real = 1) AS nr, " +
+    // gp = doanh thu sàn (đơn đã thu tiền, 16/10/2026): đã có tiền về (file Thu nhập) hoặc sàn báo hoàn thành / đã giao
+    "SUM(CASE WHEN state = 'ok' AND (net_real = 1 OR status LIKE '%hoàn thành%' OR status LIKE '%hoàn tất%' OR status LIKE '%đã giao%' OR status LIKE '%complete%' OR status LIKE '%deliver%') THEN gmv - refund ELSE 0 END) AS gp";
   const [days, prev, mon, items, files, tg, cfg, pdays] = await Promise.all([
     all(x.db, `SELECT day, shop, ${AGG} FROM san_orders WHERE day BETWEEN ? AND ? GROUP BY day, shop`, d.from, d.to),
     all(x.db, `SELECT shop, ${AGG} FROM san_orders WHERE day BETWEEN ? AND ? GROUP BY shop`, d.pf, d.pt),
@@ -55,7 +57,7 @@ async function sanLoad(x, u, d) {
   ]);
   const P = {}; // sản phẩm bán chạy: items = JSON [[tên, số lượng, tiền], …]
   items.forEach(r => { let a = []; try { a = JSON.parse(r.items || '[]'); } catch (e) { } a.forEach(i => { const k = r.shop + '|' + i[0], p = P[k] || (P[k] = [r.shop, i[0], 0, 0]); p[2] += Number(i[1]) || 0; p[3] += Number(i[2]) || 0; }); });
-  const agg = r => [r.g || 0, r.n || 0, r.c || 0, r.r || 0, r.t || 0, r.nv || 0, r.nn || 0, r.nr || 0];
+  const agg = r => [r.g || 0, r.n || 0, r.c || 0, r.r || 0, r.t || 0, r.nv || 0, r.nn || 0, r.nr || 0, r.gp || 0];
   const tgs = tg || {}, pm = prevMonth(month);
   return {
     ok: true, month, days: days.map(r => [r.day, r.shop].concat(agg(r))), prev: prev.map(r => [r.shop].concat(agg(r))), pdays: pdays.map(r => [r.day, r.g || 0, r.n || 0]), mon: mon.map(r => [r.shop, r.g || 0]),

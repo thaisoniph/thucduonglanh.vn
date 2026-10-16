@@ -1,5 +1,5 @@
 // CRM: đăng nhập, dữ liệu, đơn hàng, khách, tiềm năng, cài đặt. Chuyển từ Apps Script sang, giữ nguyên cách làm việc & dữ liệu trả về cho giao diện.
-import { normPhone, nrm, esc, fmt, startOfDay, TZ_MS, fmtDate, dateOrBlank, slugName, isVoid, randHex, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, DAY, CRM_URL, refCode } from './lib.js';
+import { normPhone, nrm, esc, fmt, startOfDay, TZ_MS, fmtDate, dateOrBlank, slugName, replaceRows, isVoid, randHex, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, DAY, CRM_URL, refCode } from './lib.js';
 import { crmPartner, partnerSchema, orderAttrib } from './partner.js';
 import { sendMail, telegram, telegramTo, telegramPhoto, tgUpdates, tgConf, bridge } from './google.js';
 import { crmGa, crmGaProp } from './ga.js';
@@ -118,7 +118,7 @@ const roleOf = r => r === 'Nhân viên' ? SALE : Object.hasOwn(ROLES, r || '') ?
 const BOT_USERNAME = 'thucduonglanh_donhang_bot';
 const ASSIGN_MODES = { auto: 'Tự chia đều', manager: 'Quản lý giao tay', pool: 'Kho chung' };
 const SESSION_DAYS = 30;
-const TASK_LABEL = { callback: 'Gọi lại theo hẹn', d1: 'Hỏi nhận hàng', runout: 'Nhắc đặt lại', d14: 'Xin cảm nhận', d30: 'Giới thiệu sản phẩm', winback: 'Mời quay lại', old: 'Gọi khách cũ', other: 'Chăm sóc' };
+const TASK_LABEL = { callback: 'Gọi lại theo hẹn', d1: 'Hỏi nhận hàng', runout: 'Nhắc đặt lại', d7: 'Hỏi thăm sau 1 tuần', d14: 'Xin cảm nhận', d30: 'Giới thiệu sản phẩm', winback: 'Mời quay lại', old: 'Gọi khách cũ', other: 'Chăm sóc' };
 export const ORDER_STATUS = ['Mới', 'Đã xác nhận', 'Đang giao', 'Đã giao', 'Huỷ', 'Hoàn', 'Đổi hàng'];
 const OPEN_STATUS = ['Mới', 'Đã xác nhận', 'Đang giao'];
 const CARE_RESULTS = ['Đã đặt lại', 'Hẹn gọi lại', 'Không nghe máy', 'Đã hỏi thăm', 'Không có nhu cầu'];
@@ -357,8 +357,18 @@ export async function setCallbacks(x, cb) {
 }
 
 /* ================================================================ việc chăm sóc hôm nay */
-const CARE_STEPS = [{ key: 'd1', at: 1, win: 2 }, { key: 'runout' }, { key: 'd14', at: 14, win: 3 }, { key: 'd30', at: 30, win: 3 }, { key: 'winback', at: AT_RISK_DAYS, win: 7 }];
+const CARE_STEPS = [{ key: 'd1', at: 1, win: 2 }, { key: 'runout' }, { key: 'd7', at: 7, win: 3 }, { key: 'd14', at: 14, win: 3 }, { key: 'd30', at: 30, win: 3 }, { key: 'winback', at: AT_RISK_DAYS, win: 7 }];
 const OPEN_ST = /^(Mới|Đã xác nhận|Đang giao)$/, D1_WAIT = 3, D1_END = 6;
+/** D+7 "Hỏi thăm sau 1 tuần" (anh Sơn chốt 16/10/2026): chỉ khách mua lần đầu, tính từ ngày nhận hàng (chưa rõ ngày nhận mà đơn đã giao → ngày đặt + số ngày giao).
+ *  Không bị giãn cách chăm sóc chặn (khách vừa được hỏi nhận hàng ở D+1); đã chăm sóc từ ngày nhận + 4 trở đi thì thôi. */
+function d7Task(c, today, R, last, care, toRun) {
+  if (Number(c.orders) !== 1) return null;
+  let recv = c.recv ? startOfDay(c.recv) : null, est = 0;
+  if (recv == null || recv < last) { if (OPEN_ST.test(c.last_status || '')) return null; recv = last + (R.shipDays || 0) * DAY; est = 1; }
+  const rd = Math.round((today - recv) / DAY);
+  if (rd < 7 || rd > 10 || (care != null && care >= recv + 4 * DAY)) return null;
+  return { type: 'd7', days: rd, late: 0, toRun, est };
+}
 export function careTask(c, today, R) {
   const last = c.last ? startOfDay(c.last) : null; if (last == null) return null;
   const days = Math.round((today - last) / DAY);
@@ -379,6 +389,7 @@ export function careTask(c, today, R) {
       if (days >= from && days <= from + D1_END - D1_WAIT) return { type: 'd1', days, late: 0, toRun, est: 1 };
       continue;
     }
+    if (s.key === 'd7') { const t7 = d7Task(c, today, R, last, care, toRun); if (t7) return t7; continue; }
     if (cool) continue;
     if (s.key === 'runout') { if (toRun !== null && toRun >= -7 && toRun <= 2 && days >= 2 && !(care != null && care >= runD - 3 * DAY)) return { type: 'runout', days, late: toRun < 0 ? -toRun : 0, toRun }; }
     else { const at = s.key === 'winback' ? R.atRisk : s.at; if (days >= at && days <= at + s.win && !(care != null && care >= last + at * DAY)) return { type: s.key, days, late: 0, toRun }; }
@@ -1119,7 +1130,12 @@ async function crmCustomer(x, u, d) {
   if (u.level < 2) delete d.owner; // nhân viên không tự đổi người phụ trách
   const phone = normPhone(d.phone); if (!await first(x.db, 'SELECT phone FROM customers WHERE phone = ?', phone)) return { ok: false, error: 'Không tìm thấy khách ' + phone };
   const map = { owner: 'owner', note: 'note', name: 'name', address: 'address', province: 'province', ward: 'ward', tag: 'tag' }, set = {};
+  if (d.quick) delete d.note; // ghi nhanh: máy chủ tự chèn dòng (bên dưới)
   Object.keys(map).forEach(k => { if (d[k] !== undefined) set[map[k]] = String(d[k]).slice(0, 45000); });
+  if (set.note !== undefined && d.noteWas !== undefined) { // người khác vừa thêm dòng vào ghi chú trong lúc mình sửa → giữ các dòng đó (đặt lên đầu), không đè mất (16/10/2026)
+    const cur = String((await first(x.db, 'SELECT note FROM customers WHERE phone = ?', phone) || {}).note || ''), base = String(d.noteWas);
+    if (cur !== base) { const bl = new Set(base.split('\n')), mine = new Set(set.note.split('\n')), add = cur.split('\n').filter(l => l.trim() && !bl.has(l) && !mine.has(l)); if (add.length) set.note = (add.join('\n') + '\n' + set.note).slice(0, 45000); }
+  }
   if (d.callback !== undefined) set.callback = dateOrBlank(d.callback);
   if (d.zalo !== undefined) set.zalo = d.zalo ? 1 : 0;
   if (d.consent !== undefined) set.consent = d.consent ? 1 : 0;
@@ -1127,7 +1143,18 @@ async function crmCustomer(x, u, d) {
   const cm = d.community === undefined ? null : d.community === 'Đã vào' ? 'Đã vào' : d.community === 'Đã mời' ? 'Đã mời ' + fmtDate(Date.now(), 'dd/MM/yy') : '';
   if (cm !== null) set.community = cm;
   const ks = Object.keys(set);
-  if (ks.length) await run(x.db, 'UPDATE customers SET ' + ks.map(k => k + ' = ?').join(', ') + ' WHERE phone = ?', ...ks.map(k => set[k]), phone);
+  if (ks.length) {
+    const was = await first(x.db, 'SELECT ' + ks.join(', ') + ', name AS nm FROM customers WHERE phone = ?', phone) || {};
+    await run(x.db, 'UPDATE customers SET ' + ks.map(k => k + ' = ?').join(', ') + ' WHERE phone = ?', ...ks.map(k => set[k]), phone);
+    await custEditLog(x, u, phone, was, set);
+  }
+  if (d.quick) { // ✏️ Ghi nhanh (16/10/2026): máy chủ tự chèn 1 dòng lên đầu ghi chú (không đè ghi chú người khác vừa sửa), tính là 1 lượt chăm sóc + nhật ký, xoá hẹn gọi lại đã tới hạn
+    const q = String(d.quick).trim().slice(0, 500), now = Date.now(), cq = await first(x.db, 'SELECT name, note, owner, callback FROM customers WHERE phone = ?', phone);
+    const line = fmtDate(now, 'dd/MM') + ': ' + q, cur = String(cq.note || ''), cbDue = cq.callback && Number(cq.callback) < startOfDay(now) + DAY;
+    await run(x.db, 'UPDATE customers SET note = ?, care_at = ?, care_result = ?, owner = CASE WHEN owner IS NULL OR owner = \'\' THEN ? ELSE owner END' + (cbDue ? ', callback = NULL' : '') + ' WHERE phone = ?',
+      (line + (cur ? '\n' + cur : '')).slice(0, 45000), now, 'Ghi nhanh', u.name, phone);
+    await crmLog(x, u, 'Ghi nhanh', phone, cq.name, '', q);
+  }
   if (cm !== null || d.promo || d.quick || d.zalo) {
     const cv = await first(x.db, 'SELECT name, note, owner FROM customers WHERE phone = ?', phone);
     if (cm !== null) await crmLog(x, u, 'Cộng đồng', phone, cv.name, cm || 'Bỏ đánh dấu', '');
@@ -1145,6 +1172,14 @@ async function crmCustomer(x, u, d) {
   }
   return { ok: true };
 }
+/** Nhật ký sửa thông tin khách (16/10/2026): đổi người phụ trách → "Đổi phụ trách" (A → B); sửa tên, địa chỉ, ghi chú, nhãn, hẹn gọi, ngày sinh… → "Sửa thông tin khách" (liệt kê mục đã đổi). */
+const CUS_FIELD = { name: 'tên', address: 'địa chỉ', province: 'tỉnh', ward: 'phường/xã', note: 'ghi chú', tag: 'nhãn', callback: 'hẹn gọi lại', zalo: 'Zalo', consent: 'đồng ý nhận tin', dob: 'ngày sinh' };
+async function custEditLog(x, u, phone, was, set) {
+  const nm = set.name || was.nm || '', same = (a, b) => String(a == null ? '' : a) === String(b == null ? '' : b);
+  if (set.owner !== undefined && !same(was.owner, set.owner)) await crmLog(x, u, 'Đổi phụ trách', phone, nm, (was.owner || 'Chưa ai') + ' → ' + (set.owner || 'Chưa ai'), '');
+  const ch = Object.keys(CUS_FIELD).filter(k => set[k] !== undefined && !same(was[k], set[k])).map(k => CUS_FIELD[k]);
+  if (ch.length) await crmLog(x, u, 'Sửa thông tin khách', phone, nm, 'Sửa ' + ch.join(', '), '');
+}
 /** Ghi ngược vào file sale (wb.js): lỗi không chặn thao tác trên CRM. */
 async function wbSafe(fn) { try { await fn(); } catch (e) { console.error('wb', e.message); } }
 const cbTxt = cb => cb ? ' (hẹn gọi ' + String(cb).split('-').reverse().slice(0, 2).map(Number).join('/') + ')' : '';
@@ -1157,10 +1192,12 @@ export function dobText(v) {
 /** 🎁 Nhân sự gửi quà tặng (cẩm nang, ebook) cho khách qua Zalo → ghi Nhật ký "Gửi quà tặng" (kết quả = tên quà). */
 async function crmGift(x, u, d) {
   const phone = normPhone(d.phone); if (!/^0\d{9,10}$/.test(phone)) return { ok: false, error: 'Số điện thoại chưa đúng.' };
+  if (u.level < 2) { const ow = await ownerOf(x, phone); if (ow && ow !== u.name) return { ok: false, error: 'Khách này do ' + ow + ' phụ trách.' }; } // không ghi nhật ký vào khách của người khác (16/10/2026)
   await crmLog(x, u, 'Gửi quà tặng', phone, String(d.name || '').slice(0, 100), String(d.gift || '').slice(0, 100), '');
   return { ok: true };
 }
 async function crmContact(x, u, d) {
+  if (u.level < 2) return { ok: false, error: 'Chỉ quản lý xử lý liên hệ từ website.' }; // sale không thấy tab Liên hệ (16/10/2026)
   const r = await first(x.db, 'SELECT * FROM contacts WHERE rid = ?', Number(d.row) || 0); if (!r) return { ok: false, error: 'Không tìm thấy liên hệ' };
   if (d.done !== undefined) await run(x.db, 'UPDATE contacts SET done = ? WHERE rid = ?', d.done ? 1 : 0, r.rid);
   if (d.note !== undefined) await run(x.db, 'UPDATE contacts SET note = ? WHERE rid = ?', String(d.note), r.rid);
@@ -1209,12 +1246,12 @@ async function crmSettings(x, u, d) {
   }
   if (d.cycles) {
     const rows = d.cycles.filter(r => r && String(r[0]).trim() && Number(r[2]) > 0).map(r => ({ name: String(r[0]).trim(), variant: String(r[1] || '').trim(), days: Number(r[2]), basis: String(r[3] || '') }));
-    await x.db.batch([x.db.prepare('DELETE FROM cycles')]); await insertMany(x.db, 'cycles', ['name', 'variant', 'days', 'basis'], rows); x._cycles = null;
+    await replaceRows(x.db, 'cycles', ['name', 'variant', 'days', 'basis'], rows); x._cycles = null;
     await recalcAll(x); // tính lại ngày dự kiến hết hàng theo chu kỳ mới
   }
   if (d.templates) {
     const rows = d.templates.filter(r => r && String(r[2]).trim()).map(r => ({ when_txt: String(r[0] || ''), purpose: String(r[1] || ''), text: String(r[2]) }));
-    await run(x.db, 'DELETE FROM templates'); await insertMany(x.db, 'templates', ['when_txt', 'purpose', 'text'], rows);
+    await replaceRows(x.db, 'templates', ['when_txt', 'purpose', 'text'], rows);
   }
   await crmLog(x, u, 'Cài đặt', '-', '', d.cycles ? 'Sửa chu kỳ dùng' : 'Sửa mẫu tin nhắn', '');
   return { ok: true };
@@ -1228,7 +1265,7 @@ async function crmSaveUsers(x, u, d) {
   }).filter(r => { if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(r.email) || seen[r.email]) return false; seen[r.email] = 1; return true; });
   if (!seen[SUPER_ADMIN]) rows.unshift({ email: SUPER_ADMIN, name: 'Thái Sơn', role: 'Quản trị', active: 1, recv: 'Không', tg: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].tg || '' : '', alias: '', prefix: '', web: 'Có', ord: -1 });
   const ren = {}; rows.forEach(r => { const o = cur[r.email]; if (o && o.name && r.name && o.name !== r.name && !rows.some(z => z.name === o.name)) ren[o.name] = r.name; }); // đổi tên → đơn, khách, file sale theo tên mới
-  await run(x.db, 'DELETE FROM users'); await insertMany(x.db, 'users', ['email', 'name', 'role', 'active', 'recv', 'tg', 'alias', 'prefix', 'web', 'ord'], rows); x._users = null;
+  await replaceRows(x.db, 'users', ['email', 'name', 'role', 'active', 'recv', 'tg', 'alias', 'prefix', 'web', 'ord'], rows); x._users = null;
   try { await unifyNames(x, ren); } catch (e) { console.error('unifyNames', e.message); }
   await crmLog(x, u, 'Nhân sự', '-', '', 'Cập nhật ' + rows.length + ' tài khoản', '');
   return { ok: true, users: await crmUsers(x) };
@@ -1287,6 +1324,10 @@ async function crmLeadSave(x, u, d) {
   }
   const f = { name: String(d.name || '').trim(), phone, channel: d.channel || 'Khác', interest: d.interest || '', owner: d.owner || '', note: d.note || '', callback: dateOrBlank(d.callback) };
   if (d.status && LEAD_STATUS.indexOf(d.status) >= 0) f.status = d.status;
+  if (f.status === 'Đã chốt' && u.level < 2) { // sale không tự đặt "Đã chốt" khi chưa có đơn (tỷ lệ chốt, thi đua công bằng – 16/10/2026)
+    const ld1 = await leadGet(x, d.id);
+    if (ld1 && ld1.status !== 'Đã chốt' && !ld1.order_id) return { ok: false, error: 'Muốn chuyển “Đã chốt” thì bấm 🛒 Chốt đơn và lưu đơn cho khách, khách tự chuyển sang Đã chốt.' };
+  }
   if (d.reason !== undefined) f.reason = d.reason;
   if (!await leadUpdate(x, d.id, f)) return { ok: false, error: 'Không tìm thấy khách tiềm năng.' };
   return { ok: true, id: d.id };
@@ -1445,7 +1486,7 @@ async function crmUsage(x, u, d) {
   return { ok: true };
 }
 
-const USE_CARE = { 'Tư vấn': 1, 'Trả lời liên hệ': 1 };
+const USE_CARE = { 'Tư vấn': 1, 'Trả lời liên hệ': 1, 'Ghi nhanh': 1 };
 Object.keys(TASK_LABEL).forEach(k => { USE_CARE[TASK_LABEL[k]] = 1; });
 const USE_ORDER = { 'Tạo đơn': 1, 'Sửa đơn': 1, 'Đơn hàng': 1, 'Loại đơn': 1 };
 function useKind(what) { return USE_CARE[what] ? 'care' : USE_ORDER[what] ? 'order' : what === 'Gửi ưu đãi' ? 'promo' : 'other'; }
