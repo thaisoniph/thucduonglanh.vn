@@ -284,7 +284,7 @@ async function srcRows(x, src, shCfg) {
 }
 
 /** Đồng bộ 1 sheet của 1 file sale. d = { id, name (tên sheet), dry }. */
-const DATE_RULE = 'code'; // 'cell': ngày theo cột ngày, ô trống theo dòng trên · 'code': ngày theo mã đơn (12/10/2026)
+const DATE_RULE = 'cell'; // 'cell': ngày theo cột ngày, ô trống theo dòng trên · 'code': ngày theo mã đơn (12/10/2026)
 async function srcSync(x, u, d) {
   const src = (await srcList(x)).find(s => s.id === d.id); if (!src) return { ok: false, error: 'Không tìm thấy nguồn.' };
   const sheets = src.cfg.sheets || [];
@@ -296,7 +296,7 @@ async function srcSync(x, u, d) {
   const data = await srcRows(x, src, shCfg), total = data.rows.length; let res;
   // tự nhập 25 phút/lần: sheet không đổi chữ nào so với lần trước → bỏ qua, không đọc / ghi máy chủ dữ liệu
   const auto = u.name === 'Tự động' && !d.dry, sigKey = 'ss_' + hashKey(src.id + '|' + shCfg.name);
-  const sig = auto ? await sha1('d5#' + src.sale + '#' + (src.cfg.until || '') + '#' + JSON.stringify(shCfg) + '#' + JSON.stringify(data.rows)) : '';
+  const sig = auto ? await sha1('d6#' + src.sale + '#' + (src.cfg.until || '') + '#' + JSON.stringify(shCfg) + '#' + JSON.stringify(data.rows)) : '';
   if (auto && await kvGet(x.db, sigKey) === sig) return { ok: true, role: shCfg.role, sheetName: shCfg.name, total, skipped: true, summary: 'không đổi' };
   if (!d.dry && (shCfg.role === 'orders' || shCfg.role === 'care')) { try { await notePhones(x, src, shCfg, data.rows); } catch (e) { console.error('notePhones', sale, shCfg.name, e.message); } }
   if (shCfg.role === 'orders') res = await importOrders(x, src, shCfg, data, !!d.dry);
