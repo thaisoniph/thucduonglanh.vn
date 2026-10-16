@@ -115,3 +115,6 @@ CREATE INDEX IF NOT EXISTS ad_spend_batch ON ad_spend(batch);
 
 -- Đổi người phụ trách trên CRM (trigger customers_owner_chg / leads_owner_chg, tạo trong ensureSchema) → ghi lại vào cột Trùng sale file số quảng cáo
 CREATE TABLE IF NOT EXISTS owner_chg (id INTEGER PRIMARY KEY AUTOINCREMENT, phone TEXT, owner TEXT, at INTEGER);
+
+-- Lượt quét mã QR / mở link ngắn thucduonglanh.vn/q/<mã>/ (data/links.json): 1 lượt / máy / ngày, không lưu thông tin khách
+CREATE TABLE IF NOT EXISTS qr_hits (code TEXT NOT NULL, day TEXT NOT NULL, n INTEGER DEFAULT 0, PRIMARY KEY (code, day));

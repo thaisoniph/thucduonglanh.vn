@@ -1,6 +1,6 @@
 // Máy chủ CRM + nhận đơn Thực Dưỡng Lành trên Cloudflare Workers (api.thucduonglanh.vn), dữ liệu ở Cloudflare D1.
 // Giao diện gửi POST (text/plain, JSON) giống hệt Apps Script trước đây: {type:'crm', action, token, …} / {type:'order'} / {type:'contact'}.
-import { esc, run, first, kvGet, normPhone, CRM_URL } from './lib.js';
+import { esc, run, first, kvGet, normPhone, fmtDate, CRM_URL } from './lib.js';
 import { crmApi, saveOrder, addLead, telegramUser, vtpWebhook, ensureSchema, adminByToken } from './crm.js';
 import { telegram, sendMail, tgConf, bridge } from './google.js';
 import { SYNC, DUPS } from './sync.js';
@@ -9,7 +9,7 @@ import { scheduled, mirror, dailyCare } from './cron.js';
 import { cmsRoute } from './cms.js';
 import { voucherCheck, voucherApply } from './voucher.js';
 
-const API_VERSION = '2026-10-16b'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
+const API_VERSION = '2026-10-16c'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
 const ORIGINS = /^https:\/\/((www\.|crm\.)?thucduonglanh\.vn|[a-z0-9-]+\.thucduonglanh(-crm)?\.pages\.dev)$|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
 function ctxOf(env, ectx) { return { env, db: env.DB, later: p => ectx.waitUntil(Promise.resolve(p).catch(e => console.error('later', e && e.message))) }; }
@@ -39,6 +39,11 @@ async function website(x, data) {
   if (data.website) return { ok: true }; // chống spam (honeypot)
   if (data.type === 'vtp') return await vtpWebhook(x, data.payload);
   if (data.type === 'voucher') return await voucherCheck(x, data); // khách bấm "Áp dụng" mã ưu đãi
+  if (data.type === 'qr') { // khách quét mã QR / mở link ngắn /q/<mã>/ (build.py build_links): đếm 1 lượt / máy / ngày, báo cáo ở CRM → Marketing
+    const c = String(data.code || '').toLowerCase(); if (!/^[a-z0-9-]{1,30}$/.test(c)) return { ok: false };
+    await run(x.db, 'INSERT INTO qr_hits (code, day, n) VALUES (?, ?, 1) ON CONFLICT(code, day) DO UPDATE SET n = n + 1', c, fmtDate(Date.now(), 'yyyy-MM-dd'));
+    return { ok: true };
+  }
   if (data.type === 'order') {
     try {
       if (data.voucher) { // đơn gửi lại (mạng chập chờn) đã lưu rồi thì không kiểm tra lại mã (mã 1 lần sẽ báo "đã dùng")

@@ -141,6 +141,29 @@ Mỗi lần đăng bài hoặc chạy quảng cáo dẫn khách về website, d�
 4. Gõ **Tên chiến dịch** không dấu, ví dụ `dilvang-combo`, `trungthu2026`. Ô **Nội dung / người đăng** không bắt buộc, ví dụ `video-co-lan`.
 5. Bấm **📋 Sao chép link**, dùng link này khi đăng bài.
 
+## Link & mã QR cho tờ rơi, standee, gói hàng, quảng cáo
+
+Mỗi **điểm chạm** với khách dùng **1 link riêng**: tờ rơi phát ở sự kiện, standee, tờ rơi bỏ vào hộp hàng, standee ở từng đối tác, từng quảng cáo Google / YouTube… Khách quét mã → vào web → đơn hàng tự ghi nguồn. CRM đếm được bao nhiêu người quét, bao nhiêu đơn, bao nhiêu tiền từ từng link.
+
+**Thêm link mới**
+1. Trang quản trị → **Cài đặt website** → **📍 Link & mã QR** → **Thêm**.
+2. **Mã ngắn**: chữ thường không dấu, càng ngắn càng tốt, ví dụ `dt-anlac` (standee ở đối tác An Lạc), `gg-dilvang` (quảng cáo Google trà DILVANG).
+3. **Tên**: để nhận ra trong báo cáo. **Loại**: tờ rơi, standee, đối tác, Google… **Trang đích**: `/` là trang chủ, hoặc link trang sản phẩm.
+4. Bấm **Lưu**, chờ khoảng 2 phút.
+
+**Lấy mã QR**: mở [thucduonglanh.vn/admin/qr](https://thucduonglanh.vn/admin/qr/). Mỗi link có:
+- Ảnh QR: **Tải SVG** để gửi nhà in (in to bao nhiêu cũng nét), **Tải PNG** để dán vào Canva.
+- **Link in lên ấn phẩm** (dạng `thucduonglanh.vn/q/sk/`): dùng làm mã QR.
+- **Link dán vào quảng cáo / bài đăng** (link dài có UTM): dùng cho Google Ads, YouTube, bài Facebook. Không cần QR.
+
+**Quy tắc**
+- ⚠️ Link **đã in** thì **không đổi mã, không xoá dòng**: tờ rơi đã phát sẽ thành mã chết.
+- Được đổi **trang đích** bất cứ lúc nào, ví dụ đang có khuyến mãi thì trỏ về trang khuyến mãi. Mã QR đã in tự dẫn sang trang mới, không phải in lại.
+- Tờ rơi dùng chung cho nhiều sự kiện (mã `sk`) vẫn tách được từng sự kiện: xem báo cáo theo đúng ngày diễn ra sự kiện.
+- Khách cầm tờ rơi rồi **gọi điện / nhắn Zalo** đặt hàng: khi lên đơn trong CRM, chọn **Khách đặt qua: Tờ rơi / Sự kiện**.
+
+**Xem kết quả**: CRM → **📣 Marketing** → **📍 Link & mã QR** (lượt quét, đơn, tiền, khách mới của từng link).
+
 ## Sửa trang hướng dẫn này
 
 Quản lý có thể sửa chính trang hướng dẫn này: trong trang quản trị, chọn **Hướng dẫn nội bộ**, bấm vào phần cần sửa, sửa xong bấm **Lưu**. Khoảng 2 phút sau trang hướng dẫn được cập nhật.

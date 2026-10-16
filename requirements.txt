@@ -2,3 +2,4 @@ Pillow>=10
 Markdown>=3.5
 PyYAML>=6
 rjsmin>=1.2.0
+segno>=1.6

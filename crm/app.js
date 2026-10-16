@@ -38,7 +38,7 @@
     { k: 'nhan', l: '📦 Đã nhận, đã HD dùng', r: 'Đã hỏi thăm', n: 'kh đã nhận hàng, đã hướng dẫn dùng', d: 0, received: 1, only: 'd1' },
     { k: 'chuanhan', l: '🚚 Chưa nhận hàng', r: 'Hẹn gọi lại', n: 'kh chưa nhận được hàng', d: 2, only: 'd1' }
   ];
-  var SOURCES = ['Zalo', 'Điện thoại', 'Facebook', 'TikTok', 'Shopee', 'Khách quen giới thiệu', 'Tại cửa hàng', 'Khác'];
+  var SOURCES = ['Zalo', 'Điện thoại', 'Facebook', 'TikTok', 'Shopee', 'Khách quen giới thiệu', 'Tại cửa hàng', 'Tờ rơi / Sự kiện', 'Khác'];
   var GROUP_CLS = { 'VIP': 'vip', 'Quay lại': 'back', 'Mới': 'new', 'Sắp mất': 'risk' };
   var LEAD_ST = ['Mới hỏi', 'Đang tư vấn', 'Đã chốt', 'Không mua'];
   var LEAD_CLS = { 'Mới hỏi': 'st-moi', 'Đang tư vấn': 'st-xn', 'Đã chốt': 'st-xong', 'Không mua': 'st-huy' };
@@ -2103,9 +2103,10 @@
   /* ---------- kênh đơn: Web = khách tự đặt trên thucduonglanh.vn (mã TDL…); Sale = sale lên đơn trong CRM / nhập từ file sale */
   function isWebOrder(o) { return (/^TDL\d/.test(o.id || '') || /Mã web TDL\d/.test(o.note || '')) && !/^(nhập tay|tiềm năng|file )/i.test(o.source || ''); } // đơn web sale lên lại trong file: đổi sang mã sale, ghi chú "Mã web TDL…"
   function webSrc(o) { // khách vào web từ đâu (lấy từ cột Nguồn: UTM / fbclid / trang giới thiệu)
-    var s = String(o.source || '').split(' / ')[0].trim().toLowerCase();
+    var a = String(o.source || '').split(' / '), s = a[0].trim().toLowerCase(), L = linkByCode(a[2]); if (L) return '📍 ' + L.name;
     return !s || /trực tiếp/.test(s) ? 'Vào thẳng web' : /facebook|^fb$|instagram|messenger/.test(s) ? 'Facebook' : /google/.test(s) ? 'Google' : /tiktok/.test(s) ? 'TikTok' : /zalo/.test(s) ? 'Zalo' : /youtube/.test(s) ? 'YouTube' : s;
   }
+  function linkByCode(c) { c = String(c || '').trim().toLowerCase(); return c ? (CFG.links || []).filter(function (l) { return l.code === c; })[0] || null : null; } // data/links.json (/admin → 📍 Link & mã QR)
   var CH_WEB = 'Đơn web'; // khoá % hoa hồng riêng cho đơn web
   function otLabel(t) { return t ? (OT[t] ? OT[t][0] + ' ' : '') + t : '–'; }
   function otypeOf(o) { if (o.otype) return o.otype; if (o.ca === 'Lễ') return 'Ngày lễ'; if (o.ca === 'Tối/CN') return 'Ngoài giờ'; var c = cust(o.phone); return !c || !c.first || c.first >= o.time - 3600e3 ? 'Khách mới' : 'Khách cũ'; } // đơn cũ chưa có cột Loại đơn: suy ra
@@ -3370,6 +3371,22 @@
     return { line: [lvs.ok.length ? '🟢 Có lời: ' + lvs.ok.join(', ') : '', lvs.bad.length ? '🔴 Đang lỗ: ' + lvs.bad.join(', ') : '', lvs.mid.length ? '🟠 Hoà vốn: ' + lvs.mid.join(', ') : ''].filter(Boolean).join(' · ') || named.length + ' sản phẩm',
       h: h + '<p class="bar-legend">Chi phí: theo tên chiến dịch. Data: theo cột Nguồn quảng cáo của file số. Tiền khách mới: các dòng sản phẩm trong đơn của khách mua lần đầu (kênh có chạy quảng cáo). Đèn giống ô 🚦: dưới ' + dashAds()[0] + '% là có lời.</p>' };
   }
+  /** 📍 Link & mã QR: lượt quét, đơn, tiền, khách mới theo từng link (mj.qr: {mã: [quét, đơn, tiền, khách mới]}). */
+  function mkQrBlock(mj) {
+    var L = CFG.links || []; if (!L.length) return null;
+    var Q = mj.qr || {}, Qp = mj.qrPrev || {}, z = [0, 0, 0, 0], tS = 0, tN = 0, tR = 0;
+    var rows = L.map(function (l) { return { l: l, q: Q[l.code] || z, p: Qp[l.code] || z }; }).sort(function (a, b) { return b.q[2] - a.q[2] || b.q[0] - a.q[0]; });
+    var h = '<div class="dash-chs">';
+    rows.forEach(function (r) {
+      var q = r.q, st = function (k, v) { return '<div class="dash-ch-s"><span>' + k + '</span><b>' + v + '</b></div>'; }; tS += q[0]; tN += q[1]; tR += q[2];
+      h += '<div class="dash-ch"><div class="dash-ch-h"><b>' + esc(r.l.name) + '</b><span class="muted small">' + esc(r.l.kind_label) + ' · ' + esc(r.l.code) + '</span></div><div class="dash-ch-g">' +
+        st('👀 Lượt quét / mở link', q[0] + (r.p[0] ? ' <small>(' + (CMP_LABEL || 'kỳ trước') + ' ' + r.p[0] + ')</small>' : '')) + st('🛒 Đơn', q[1] + (q[0] && q[1] ? ' <small>(' + oneDec(q[1] * 100 / q[0]) + '% lượt quét)</small>' : '')) +
+        st('💰 Tiền', q[2] ? moneyShort(q[2]) : '–') + st('🆕 Khách mới', q[3]) + '</div></div>';
+    });
+    var T = Q._tay; if (T && T[1]) { tN += T[1]; tR += T[2]; }
+    h += '</div>' + (T && T[1] ? '<p>☎️ Khách gọi / nhắn Zalo đặt sau khi nhận tờ rơi, gặp ở sự kiện: <b>' + T[1] + ' đơn · ' + moneyShort(T[2]) + '</b> · ' + T[3] + ' khách mới</p>' : '') + '<p class="small"><a href="https://thucduonglanh.vn/admin/qr/" target="_blank" rel="noopener">⬇ Tải mã QR</a> · <a href="https://thucduonglanh.vn/admin/#/collections/settings/entries/links" target="_blank" rel="noopener">＋ Thêm link mới</a></p>';
+    return { line: tS + ' lượt quét · ' + tN + ' đơn' + (tR ? ' · ' + moneyShort(tR) : ''), h: h + '<p class="bar-legend">Lượt quét: mỗi điện thoại tính 1 lần / ngày (đếm cả khách chưa đồng ý cookie). Đơn: khách vào web qua link này rồi đặt trong 30 ngày, kể cả hôm sau mới đặt. Khách gọi điện / nhắn Zalo đặt thì sale lên đơn chọn “Khách đặt qua: Tờ rơi / Sự kiện”. Xem từng sự kiện: chọn đúng ngày diễn ra ở ô kỳ phía trên.</p>' };
+  }
   /** 💎 Giá trị 1 khách mới (90 ngày đầu) → nên chi tối đa bao nhiêu để có 1 khách mới. */
   function mkLtvBlock(mj, cpn) {
     var L = mj.ltv; if (!L || !L.n) return { h: '' };
@@ -3692,6 +3709,7 @@
         (wb.fb ? metric('📘 Khách mới từ quảng cáo Facebook', moneyShort(wb.fb) + ' <small>(' + pct(wb.fb, wsum) + '%)</small>', 'Đặt trên web nhưng đến từ quảng cáo Facebook → tính cho kênh Facebook, không tính vào mục tiêu Website.', '') : '') +
         '</div><p class="bar-legend">Mục tiêu Website = tiền khách mới + khách cũ đặt trên web (không gồm phần quảng cáo Facebook). Khách cũ = đã từng mua trước kỳ này. Muốn tăng khách cũ đặt web: gửi link web trong nhóm Zalo, tin nhắn CSKH, thẻ trong đơn sàn.</p>');
     }
+    var QB = mkQrBlock(mj); if (QB) h += mkMore('qr', '📍 Link & mã QR (tờ rơi, standee…)', QB.line, QB.h);
     var cm = mj.comm, cmp = mj.commPrev, csp = 0; mj.days.forEach(function (r) { if (r[1] === MK_COMM) csp += r[2]; });
     if (cm && (cm.rev || csp)) h += mkMore('comm', '👥 Cộng đồng Zalo', moneyShort(cm.rev) + ' tiền mua lại · ' + cm.buyers + ' khách', '<div class="metrics dash-m3">' +
       metric('Tiền mua lại', moneyShort(cm.rev), 'Đơn mua lại (không tính đơn đầu) của khách đã vào nhóm Zalo cộng đồng.', delta(cm.rev, cmp ? cmp.rev : null)) +

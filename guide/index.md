@@ -20,6 +20,7 @@ Trang này dành cho toàn bộ nhân sự. Đọc phần **Bắt đầu** trư�
 | Website bán hàng | [thucduonglanh.vn](https://thucduonglanh.vn) |
 | Trang quản trị website (đăng bài, sửa sản phẩm) | [thucduonglanh.vn/admin](https://thucduonglanh.vn/admin/) |
 | Tạo link theo dõi khi đăng bài, chạy quảng cáo | [thucduonglanh.vn/admin/utm](https://thucduonglanh.vn/admin/utm) |
+| Tải mã QR cho tờ rơi, standee, gói hàng | [thucduonglanh.vn/admin/qr](https://thucduonglanh.vn/admin/qr/) |
 | Nhóm báo đơn | Telegram “Đơn hàng Thực Dưỡng Lành” |
 | Hotline / Zalo tư vấn của công ty | 0966 326 522 |
 

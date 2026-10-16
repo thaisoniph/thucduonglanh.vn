@@ -1,0 +1,25 @@
+{
+  "links": [
+    {
+      "code": "sk",
+      "name": "Tờ rơi phát ở sự kiện",
+      "kind": "to-roi",
+      "to": "/",
+      "note": "Phát ở các chương trình offline (chương trình thầy Tư, hội chợ…). Xem từng sự kiện bằng cách chọn ngày diễn ra sự kiện trong CRM."
+    },
+    {
+      "code": "st",
+      "name": "Standee mang đi sự kiện",
+      "kind": "standee",
+      "to": "/",
+      "note": "Standee của công ty mang đi các chương trình offline."
+    },
+    {
+      "code": "goi",
+      "name": "Tờ rơi gửi kèm đơn hàng",
+      "kind": "goi-hang",
+      "to": "/",
+      "note": "Bỏ vào hộp khi đóng gói đơn (đơn sàn, đơn sale): kéo khách cũ về đặt lại trên web."
+    }
+  ]
+}

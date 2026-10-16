@@ -45,7 +45,7 @@ function orderProds(items, total) {
  *  thêm: phễu (tot / totPrev), giá trung bình 1 kết quả mỗi kênh (cpr), theo sản phẩm (prod), giá trị khách mới 90 ngày (ltv), ngân sách tháng (budget). */
 export async function mktView(x, u, d) {
   if (![d.from, d.to, d.pf, d.pt].every(s => DAY_RE.test(String(s || '')))) return { ok: false, error: 'Khoảng thời gian chưa đúng.' };
-  const sfb = d.sfb !== false && d.sfb !== 0, key = 'mktv8_' + [d.from, d.to, d.pf, d.pt, sfb ? 1 : 0, u.level >= 3 ? 'a' : 'm'].join('_') + '_' + ((await kvGet(x.db, 'ads_rows_v')) || '');
+  const sfb = d.sfb !== false && d.sfb !== 0, key = 'mktv9_' + [d.from, d.to, d.pf, d.pt, sfb ? 1 : 0, u.level >= 3 ? 'a' : 'm'].join('_') + '_' + ((await kvGet(x.db, 'ads_rows_v')) || '');
   if (!d.fresh) { const c = await kvJson(x.db, key, null); if (c) return Object.assign(c, { cached: true }, await budgetOf(x)); }
   const R = [dayMs(d.from), dayMs(d.to) + DAY], P = [dayMs(d.pf), dayMs(d.pt) + DAY];
   const mid = iso(Math.floor((R[0] + R[1]) / 2 / DAY) * DAY); // chia đôi kỳ: tỷ lệ bấm nửa đầu ↔ nửa sau (quảng cáo có bị nhàm không)
@@ -56,14 +56,14 @@ export async function mktView(x, u, d) {
       'FROM ad_spend WHERE day BETWEEN ? AND ? GROUP BY channel, account, campaign ORDER BY s DESC LIMIT 60', mid, mid, d.from, d.to),
     all(x.db, 'SELECT channel, campaign, SUM(spend) AS s, SUM(msgs) + SUM(leads) AS r FROM ad_spend WHERE day BETWEEN ? AND ? GROUP BY channel, campaign', d.from, d.to),
     all(x.db, 'SELECT channel, SUM(spend) AS s, SUM(impressions) AS i, SUM(clicks) AS c, SUM(msgs) AS m, SUM(leads) AS l, SUM(purchases) AS p FROM ad_spend WHERE day BETWEEN ? AND ? GROUP BY channel', d.pf, d.pt),
-    all(x.db, 'SELECT phone, time, total, status, source, items FROM orders WHERE time >= ? AND time < ? ORDER BY time', Math.min(R[0], P[0]), Math.max(R[1], P[1])),
+    all(x.db, 'SELECT phone, time, total, status, source, first_source, items FROM orders WHERE time >= ? AND time < ? ORDER BY time', Math.min(R[0], P[0]), Math.max(R[1], P[1])),
     all(x.db, "SELECT day, shop, SUM(CASE WHEN state = 'ok' THEN gmv - refund ELSE 0 END) AS g FROM san_orders WHERE day BETWEEN ? AND ? GROUP BY day, shop", d.from, d.to).catch(() => []),
     all(x.db, "SELECT day, shop, SUM(CASE WHEN state = 'ok' THEN gmv - refund ELSE 0 END) AS g FROM san_orders WHERE day BETWEEN ? AND ? GROUP BY day, shop", d.pf, d.pt).catch(() => []),
     kvJson(x.db, 'ads_rows', []), kvJson(x.db, 'mkt_cfg', {})
   ]);
   const ads = (adRows || []).map(a => [Number(a[0]) || 0, normPhone(a[1]), String(a[3] || ''), String(a[2] || '')]).filter(a => a[1]);
   const adFirst = {}; ads.forEach(a => { if (!adFirst[a[1]] || a[0] < adFirst[a[1]]) adFirst[a[1]] = a[0]; });
-  const ords = ordAll.filter(o => !isVoid(o.status)).map(o => ({ ph: normPhone(o.phone), time: Number(o.time) || 0, total: Number(o.total) || 0, source: o.source || '', items: o.items || '' }));
+  const ords = ordAll.filter(o => !isVoid(o.status)).map(o => ({ ph: normPhone(o.phone), time: Number(o.time) || 0, total: Number(o.total) || 0, source: o.source || '', fsrc: o.first_source || '', items: o.items || '' }));
   const adIn = ads.filter(a => (a[0] >= R[0] && a[0] < R[1]) || (a[0] >= P[0] && a[0] < P[1]));
   const phones = [...new Set(ords.map(o => o.ph).concat(adIn.map(a => a[1])).filter(Boolean))];
   const [cus, lds, buys] = phones.length ? await Promise.all([
@@ -174,8 +174,21 @@ export async function mktView(x, u, d) {
   Object.keys(cs).forEach(k => { if (cs[k].r) cpr[k] = Math.round(cs[k].s / cs[k].r); });
   const sumT = rows => { const t = { s: 0, i: 0, c: 0, m: 0, l: 0, p: 0 }; rows.forEach(r => { Object.keys(t).forEach(f => { t[f] += Number(r[f]) || 0; }); }); return t; };
   const tot = sumT(camps.length < 60 ? camps : await all(x.db, 'SELECT SUM(spend) AS s, SUM(impressions) AS i, SUM(clicks) AS c, SUM(msgs) AS m, SUM(leads) AS l, SUM(purchases) AS p FROM ad_spend WHERE day BETWEEN ? AND ?', d.from, d.to));
+  /** 📍 Link & mã QR (data/links.json, /q/<mã>/): lượt quét (qr_hits) + đơn có utm_campaign = mã ở nguồn lần cuối hoặc lần đầu (30 ngày).
+   *  → { mã: [lượt quét, số đơn, tiền, khách mới] }. Trả cả chiến dịch UTM khác; CRM chỉ hiện mã có trong danh sách link. */
+  const campOf = v => { const a = String(v || '').split(' / '); return a.length >= 3 && !/^(sale|nhập tay|tiềm năng|file )/i.test(a[0]) ? a[2].trim().toLowerCase() : ''; };
+  const qrOf = async Rg => {
+    const o = {}, g = c => o[c] || (o[c] = [0, 0, 0, 0]);
+    (await all(x.db, 'SELECT code, SUM(n) AS n FROM qr_hits WHERE day BETWEEN ? AND ? GROUP BY code', iso(Rg[0]), iso(Rg[1] - DAY)).catch(() => [])).forEach(h => { g(h.code)[0] += Number(h.n) || 0; });
+    const seen = {};
+    ords.forEach(r => {
+      if (r.time < Rg[0] || r.time >= Rg[1]) return; const c = campOf(r.source) || campOf(r.fsrc) || (/^nhập tay – tờ rơi/i.test(r.source) ? '_tay' : ''); if (!c || c.length > 40) return; // _tay: sale lên đơn chọn "Khách đặt qua: Tờ rơi / Sự kiện"
+      const a = g(c), f = firstOf[r.ph]; a[1]++; a[2] += r.total; if (r.ph && !seen[c + r.ph] && (!f || f >= Rg[0])) { seen[c + r.ph] = 1; a[3]++; }
+    });
+    return o;
+  };
   const out = {
-    ok: true, at: Date.now(),
+    ok: true, at: Date.now(), qr: await qrOf(R), qrPrev: await qrOf(P),
     days: spDays.map(r => [r.day, r.channel, r.s]), prev: spPrev.map(r => [r.channel, r.s]),
     // [kênh, chiến dịch, src, chi phí, hiển thị, click, tin nhắn, SĐT, mua, [tài khoản], [hiển thị nửa đầu, click nửa đầu, ngày cuối có chi]]
     camps: camps.map(r => [r.channel, r.campaign, r.src, r.s, r.i, r.c, r.m, r.l, r.p, accOf(cfg, r), [r.i1 || 0, r.c1 || 0, r.last || '']]),

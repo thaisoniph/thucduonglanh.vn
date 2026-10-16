@@ -490,7 +490,7 @@ Tab đầu tiên trên menu, dành cho chủ doanh nghiệp. **Chọn thời gia
 
 **🛒 Sàn TMĐT**: doanh thu, số đơn, tiền thực về, tỷ lệ huỷ / hoàn của Shopee, TikTok Shop. Bấm **Chi tiết sàn →** để mở tab Sàn.
 
-Số website chỉ đếm khách đã bấm “Đồng ý” cookie nên thấp hơn thực tế; số đơn và doanh thu thì đầy đủ. Muốn biết bài đăng / quảng cáo nào ra khách, luôn dùng link tạo ở [/admin/utm](https://thucduonglanh.vn/admin/utm).
+Số website chỉ đếm khách đã bấm “Đồng ý” cookie nên thấp hơn thực tế; số đơn và doanh thu thì đầy đủ. Muốn biết bài đăng / quảng cáo nào ra khách, luôn dùng link tạo ở [/admin/utm](https://thucduonglanh.vn/admin/utm). Tờ rơi, standee, gói hàng, quảng cáo Google / YouTube thì dùng **📍 Link & mã QR** (Hướng dẫn tab Website). Kết quả xem ở 📣 Marketing → **📍 Link & mã QR**: lượt quét (mỗi điện thoại 1 lần / ngày, đếm cả khách chưa đồng ý cookie), số đơn, tiền, khách mới từng link, và số đơn sale lên với nguồn **Tờ rơi / Sự kiện**.
 
 ## Marketing (bộ phận marketing)
 

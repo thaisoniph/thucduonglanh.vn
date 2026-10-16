@@ -765,6 +765,40 @@ collections:
           - { label: "Ghi chú số liệu", name: stats_note, widget: string, required: false }
           - { label: "Giải thưởng / ghi nhận", name: award, widget: string, required: false }
           - { label: "Ghi chú giải thưởng", name: award_note, widget: text, required: false }
+      - name: links
+        label: "📍 Link & mã QR (tờ rơi, standee, quảng cáo)"
+        file: data/links.json
+        format: json
+        fields:
+          - label: "Link theo dõi"
+            name: links
+            widget: list
+            summary: "{{fields.code}} – {{fields.name}}"
+            hint: "Mỗi điểm chạm 1 dòng: tờ rơi, standee, gói hàng, từng đối tác, từng quảng cáo… Lưu xong 2 phút, xem & tải mã QR ở thucduonglanh.vn/admin/qr/ · số liệu ở CRM → Marketing → 📍 Link & mã QR. ⚠️ Mã đã in thì KHÔNG đổi mã, KHÔNG xoá dòng."
+            fields:
+              - { label: "Mã ngắn", name: code, widget: string, pattern: ['^[a-z0-9-]{1,30}$', "Chỉ chữ thường không dấu, số và dấu gạch ngang"], hint: "Ngắn để mã QR thưa, dễ quét: vd sk, st, goi, dt-anlac, gg-dilvang. Link in: thucduonglanh.vn/q/<mã>/" }
+              - { label: "Tên (để nhận ra trong báo cáo)", name: name, widget: string, hint: "Vd: Standee ở cửa hàng chay An Lạc" }
+              - label: "Loại"
+                name: kind
+                widget: select
+                default: "to-roi"
+                options:
+                  - { label: "Tờ rơi phát ở sự kiện", value: "to-roi" }
+                  - { label: "Standee", value: "standee" }
+                  - { label: "Tờ rơi gửi kèm đơn hàng", value: "goi-hang" }
+                  - { label: "Điểm bán / đối tác", value: "doi-tac" }
+                  - { label: "Danh thiếp, ấn phẩm khác", value: "danh-thiep" }
+                  - { label: "Quảng cáo Google", value: "google" }
+                  - { label: "YouTube", value: "youtube" }
+                  - { label: "Facebook (bài đăng, nhóm)", value: "facebook" }
+                  - { label: "TikTok", value: "tiktok" }
+                  - { label: "Zalo", value: "zalo" }
+                  - { label: "KOL / cộng tác viên", value: "kol" }
+                  - { label: "Báo chí / bài PR", value: "bao-chi" }
+                  - { label: "Email / SMS", value: "email" }
+                  - { label: "Khác", value: "khac" }
+              - { label: "Trang đích", name: to, widget: string, default: "/", hint: "/ = trang chủ. Vd /san-pham/tra-dilvang/ hoặc /qua-tang/. Đổi được bất cứ lúc nào, QR đã in tự trỏ sang trang mới." }
+              - { label: "Ghi chú (đặt ở đâu, in bao nhiêu, ngày nào)", name: note, widget: text, required: false }
       - name: categories
         label: "Danh mục sản phẩm"
         file: data/categories.{{locale}}.json
