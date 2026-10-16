@@ -161,6 +161,8 @@ Khách đặt qua Zalo, Facebook, điện thoại hay mua tại cửa hàng thì
 
 Khách **đã tự đặt trên website** mà bạn lên lại đơn trong file sale (mã đơn của bạn: tên + ngày + số thứ tự) thì CRM **không tạo thêm đơn**: đơn web tự đổi sang mã bạn gõ, trạng thái theo file, vẫn ghi là đơn 🌐 Web (mã web cũ TDL… vẫn tìm được). Điều kiện: cùng số điện thoại, cùng số tiền, lên trong vòng 10 ngày sau khi khách đặt web.
 
+**Sửa số điện thoại của đơn đã lên trong file**: CRM **không tạo thêm đơn**, giữ đơn cũ (số cũ) và báo Quản trị qua Telegram + Nhật ký. Điều kiện: cùng mã đơn, cùng số tiền, cách nhau không quá 7 ngày, và cùng tên khách hoặc số chỉ khác 1–2 chữ số. Số mới đúng thì Quản trị mở đơn trên CRM sửa số điện thoại; số mới sai thì bạn sửa lại file. Đổi số trên đơn đã có thì tốt nhất báo quản lý sửa luôn trên CRM.
+
 Trong hồ sơ khách, ô **Ghi nhanh hôm nay** tự thêm ngày ở đầu dòng, giống cách ghi trên Sheet: *“30/09: kh dùng ok, hẹn cuối tháng lấy tiếp”*. Nhật ký chăm sóc cũ từ file của bạn nằm ngay bên dưới.
 
 ### Chăm sóc, tỉnh thành và lý do từ chối (tab Hiệu quả → Xem chi tiết)

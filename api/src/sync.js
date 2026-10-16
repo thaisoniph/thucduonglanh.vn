@@ -311,9 +311,18 @@ async function importOrders(x, src, shCfg, data, dry) {
   const ex = {}; (await allIn(x.db, 'SELECT rid, id, status, source, name, phone, time, total, items, note FROM orders WHERE id IN (SELECT value FROM json_each(?))', [...new Set(parsed.flatMap(p => [p.key, p.yk].concat(p.alt)).filter(String))])).forEach(o => { ex[o.id] = o; });
   // Mã đơn không có năm → trùng giữa các năm / giữa các sheet ("Chang101001" năm 2025 và 2026 là 2 khách khác nhau). Mã đã thuộc đơn của khách khác
   // (khác SĐT) → đơn này dùng mã + 4 số cuối SĐT. 12/10/2026: 64 đơn VTG_lendon của Chang bị coi là "đã có", 8 đơn cũ bị ghi đè.
-  const owner = {}; Object.keys(ex).forEach(k => { owner[k] = ex[k]; });
+  // Nhưng sale sửa SĐT của chính đơn đó (16/10/2026: Phương sửa số Thầy Chùa An 0395045379 → 0395045179 → CRM tạo thêm Phuong051004-5179, doanh số dư 1,8 triệu):
+  // cùng mã + cùng tiền + cách ≤ 7 ngày + cùng tên khách hoặc SĐT chỉ khác ≤ 2 chữ số → cùng đơn: giữ đơn cũ, không tạo đơn mới, báo Quản trị (phChg).
+  // Chỉ cùng mã + ngày + tiền thì chưa đủ: Lương 080804 là 2 khách khác nhau, cùng ngày, cùng 900.000đ.
+  const owner = {}, phChg = []; Object.keys(ex).forEach(k => { owner[k] = ex[k]; });
   parsed.forEach(p => {
-    if (!p.valid) return; if (ex[p.yk]) { p.key = p.yk; return; }
+    if (!p.valid) return;
+    const o0 = ex[p.codeRaw];
+    if (o0 && o0.phone !== p.phone && sameOrder(o0, p, cell(p.r, m, 'name'))) {
+      if (!phChg.some(c => c.rid === o0.rid)) phChg.push({ rid: o0.rid, id: o0.id, name: o0.name, from: o0.phone, to: p.phone, dup: ex[p.yk] ? ex[p.yk].id : '' });
+      if (!ex[p.yk]) return; // giữ mã cũ (p.key = mã đơn) → dòng này là đơn đã có
+    }
+    if (ex[p.yk]) { p.key = p.yk; return; } // đơn trùng tạo trước đây: để nguyên, chờ Quản trị xoá (đã báo ở trên)
     const o = owner[p.codeRaw];
     if (!o) { owner[p.codeRaw] = { phone: p.phone }; return; }
     if (o.phone !== p.phone) p.key = p.yk;
@@ -430,6 +439,7 @@ async function importOrders(x, src, shCfg, data, dry) {
   const orphan = []; Object.keys(pool).forEach(ph => pool[ph].forEach(o => { if (o.time > Date.now() - 30 * DAY && parsed.some(p => p.phone === ph && Math.abs(p.when - o.time) <= 3 * DAY && (!p.o || p.o.rid !== o.rid))) orphan.push(o); }));
   const summary = out.length + ' đơn mới, ' + dup + ' đã có' + (upd.length ? ' (' + upd.length + ' cập nhật trạng thái)' : '') + (ren.length ? ', ' + ren.length + ' đơn nhận mã đơn mới' : '') + (chg.length ? ', ' + chg.length + ' đơn sửa theo file' : '') + (orphan.length ? ', xoá ' + orphan.length + ' đơn trùng' : '') + (afterCut ? ', ' + afterCut + ' đơn sau ngày chốt bỏ qua' : '') + ', ' + skip + ' dòng bỏ qua' + (far.length ? ', ' + far.length + ' mã đơn lệch ô ngày quá 45 ngày (lấy theo mã)' : '');
   const res = { updated: upd.length, renamed: ren.length, changed: chg.length, removed: orphan.length, afterCut, rows: data.rows.length, newOrders: out.length, dup, skip, customers: Object.keys(phones).length, newCustomers: newCus, conflicts: conflicts.slice(0, 50), conflictCount: conflicts.length, revenue, from: minD, to: maxD, far, summary };
+  if (phChg.length) { res.phChg = phChg.slice(0, 50); res.summary += ', ' + phChg.length + ' đơn file ghi SĐT khác CRM (giữ đơn cũ, đã báo Quản trị)'; if (!dry) await phChgAlert(x, sale, shCfg.name, phChg); }
   res.merged = wMerge.length; res.mergedDel = wDel.length; if (wMerge.length) res.summary += ', ' + wMerge.length + ' dòng là đơn web/CRM sale lên lại (không tính thêm đơn' + (wDel.length ? ', xoá ' + wDel.length + ' đơn trùng' : '') + ')';
   if (dry || (!out.length && !upd.length && !ren.length && !chg.length && !orphan.length && !wDel.length && !wUpd.length && !wlDirty && !noteAdd.length)) return res;
   for (let i = 0; i < noteAdd.length; i += 300) await run(x.db, "UPDATE orders SET note = json_extract(j.value, '$.note') FROM json_each(?) j WHERE orders.rid = json_extract(j.value, '$.rid')", JSON.stringify(noteAdd.slice(i, i + 300)));
@@ -467,6 +477,29 @@ async function importOrders(x, src, shCfg, data, dry) {
   await setCallbacks(x, callbacks);
   return res;
 }
+const nameKey = n => nrm(n).replace(/\(\s*[x×]\s*\)/g, ' ').replace(/\([^)]*\)/g, ' ').replace(/0\d{9,10}/g, ' ').replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+const digitDiff = (a, b) => a.length === b.length ? [...a].filter((c, i) => c !== b[i]).length : 99;
+/** Đơn đã nhập (o) và dòng file (p) cùng mã đơn nhưng khác SĐT: có phải cùng 1 đơn, sale chỉ sửa số? */
+function sameOrder(o, p, name) {
+  if (String(o.source || '').indexOf('File ') !== 0 || Math.abs(Number(o.time) - p.when) > 7 * DAY || (p.amount && Number(o.total) !== p.amount)) return false;
+  const a = nameKey(o.name), b = nameKey(name);
+  return digitDiff(o.phone, p.phone) <= 2 || (!!a && a === b);
+}
+/** Báo Quản trị (Telegram + Nhật ký) đơn file đổi SĐT. Mỗi mã đơn + số mới chỉ báo 1 lần. */
+async function phChgAlert(x, sale, sheet, list) {
+  try {
+    const K = 'ph_chg_seen', seen = (await kvJson(x.db, K, {})) || {}, now = Date.now(), fresh = list.filter(c => !seen[c.id + '|' + c.to]);
+    if (!fresh.length) return;
+    fresh.forEach(c => { seen[c.id + '|' + c.to] = now; }); Object.keys(seen).forEach(k => { if (now - seen[k] > 90 * DAY) delete seen[k]; });
+    await kvSet(x.db, K, JSON.stringify(seen));
+    for (const c of fresh) await crmLog(x, { name: FILE_BY }, 'Đơn hàng', c.id, c.name, 'File ghi SĐT ' + c.to + ' (CRM: ' + c.from + ')', 'Cùng mã đơn trong file ' + sheet + ' của ' + sale + ': không tạo đơn mới' + (c.dup ? '; đang có đơn trùng ' + c.dup : ''));
+    const msg = '⚠️ <b>File ' + esc(sale) + ' (' + esc(sheet) + '): ' + fresh.length + ' đơn đổi số điện thoại</b>\n' +
+      fresh.slice(0, 15).map(c => '• ' + esc(c.id) + ' – ' + esc(c.name) + ': CRM ' + c.from + ' → file ' + c.to + (c.dup ? ' (có đơn trùng <b>' + esc(c.dup) + '</b>, nên xoá)' : '')).join('\n') + (fresh.length > 15 ? '\n…' : '') +
+      '\n\nCRM giữ đơn cũ, không tạo đơn mới.\n• Số trong file đúng → mở đơn trên CRM, sửa SĐT.\n• Số trong file sai → nhắc sale sửa lại file.\n' + CRM_URL + '/#don-hang';
+    for (const u of (await crmUsers(x)).filter(u => u.active && u.role === 'Quản trị' && u.tg)) await telegramUser(x, u.name, msg);
+  } catch (e) { console.log('phChgAlert', e && e.message); }
+}
+
 /** Sau khi nhập các sheet đơn hàng: khách chưa ai phụ trách mà đơn gần nhất do sale này bán → giao cho sale. */
 async function srcFinish(x, u, d) {
   const src = (await srcList(x)).find(s => s.id === d.id); if (!src) return { ok: false, error: 'Không tìm thấy nguồn.' };
