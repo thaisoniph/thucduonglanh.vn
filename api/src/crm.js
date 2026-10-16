@@ -833,7 +833,7 @@ export async function saveOrder(x, data, opt) {
     if (!manual && tg.notify) await sendMail(x.env, { to: tg.notify, subject: '🛒 Đơn hàng mới ' + data.id + ' – ' + c.name + ' – ' + fmt(data.total),
       body: 'Mã đơn: ' + data.id + '\nKhách: ' + c.name + ' – ' + c.phone + (c.email ? ' – ' + c.email : '') + '\nĐịa chỉ: ' + c.address + ', ' + c.district + ', ' + c.province + '\n\n' + items +
         '\n\nTạm tính: ' + fmt(data.subtotal) + '\nPhí ship: ' + fmt(data.shipping) + '\nTổng: ' + fmt(data.total) + '\nThanh toán: ' + pay + (c.note ? '\nGhi chú: ' + c.note : '') + '\nNguồn: ' + (data.source || '') + '\n\nXem đơn: ' + CRM_URL + '/#don-hang' }).catch(() => {});
-    const omsg = (manual ? '📝 <b>ĐƠN NHẬP TAY ' + esc(data.id) + '</b> – bởi ' + esc(opt.by) : '🛒 <b>ĐƠN HÀNG MỚI ' + esc(data.id) + '</b>') + '\n👤 ' + esc(c.name) + ' – <b>' + esc(c.phone) + '</b>' +
+    let omsg = (manual ? '📝 <b>ĐƠN NHẬP TAY ' + esc(data.id) + '</b> – bởi ' + esc(opt.by) : '🛒 <b>ĐƠN HÀNG MỚI ' + esc(data.id) + '</b>') + '\n👤 ' + esc(c.name) + ' – <b>' + esc(c.phone) + '</b>' +
       '\n📍 ' + esc([c.address, c.district, c.province].filter(Boolean).join(', ')) + '\n\n' + esc(items) + '\n\n💰 <b>Tổng: ' + fmt(data.total) + '</b> (ship ' + fmt(data.shipping) + ') – ' + pay +
       (c.note ? '\n📝 ' + esc(c.note) : '') + (data.source ? '\n🔗 Nguồn: ' + esc(data.source) : '');
     if (atNote) omsg += '\n' + esc(atNote);
