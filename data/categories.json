@@ -4,25 +4,29 @@
       "slug": "goi-giai-phap",
       "name": "Gói Giải Pháp",
       "image": "/assets/img/products/combo-khoi-dong-10-ngay.webp",
-      "desc": "Combo nhiều sản phẩm theo mục tiêu sống lành, giá ưu đãi hơn mua lẻ."
+      "desc": "Combo nhiều sản phẩm theo mục tiêu sống lành, giá ưu đãi hơn mua lẻ.",
+      "about": "## Gói giải pháp sống lành là gì?\n\nGói giải pháp là các combo nhiều sản phẩm của Thực Dưỡng Lành, ghép theo một mục tiêu cụ thể như **Gói Khởi Động 10 Ngày Sống Lành**. Mua theo gói tiết kiệm hơn mua lẻ từng món, và gói đi kèm lộ trình dùng theo ngày để anh/chị dễ duy trì.\n\n### Vì sao nên bắt đầu bằng một gói?\n\n- Có sẵn lộ trình, không phải tự chọn từng món.\n- Giá gói đã là giá ưu đãi; gói có ghi \"Miễn phí vận chuyển\" thì không mất phí ship.\n- Mọi sản phẩm trong gói đều có hồ sơ công bố, thông tin thành phần ghi rõ trên từng trang sản phẩm.\n\nCần tư vấn chọn gói, anh/chị nhắn Zalo hoặc gọi hotline để được hỗ trợ."
     },
     {
       "slug": "dinh-duong-tu-hat",
       "name": "Dinh Dưỡng Từ Hạt",
       "image": "/assets/img/products/bua-an-dinh-duong-2.webp",
-      "desc": "Bột dinh dưỡng từ hạt và ngũ cốc thực dưỡng, không đậu nành, không đường tinh luyện."
+      "desc": "Bột dinh dưỡng từ hạt và ngũ cốc thực dưỡng, không đậu nành, không đường tinh luyện.",
+      "about": "## Dinh dưỡng từ hạt: bữa phụ tiện lợi cho người bận rộn\n\nNhóm sản phẩm bột dinh dưỡng từ hạt và ngũ cốc thực dưỡng của Thực Dưỡng Lành gồm **Bữa Ăn Dinh Dưỡng VitaGreen** (12 loại hạt và ngũ cốc, Fucoidan Okinawa Mozuku, Curcumin 95%, Spirulina, Pea Protein, FOS) và **Dinh Dưỡng Từ Hạt và Curcumin** (15 loại hạt, ngũ cốc, Curcumin tinh khiết 95%, tảo biển).\n\n### Điểm chung\n\n- Không đậu nành, dùng đường cỏ ngọt thay đường tinh luyện.\n- Pha nhanh với nước ấm, hợp làm bữa phụ hoặc bổ sung cho bữa ăn hằng ngày.\n- Dùng được cho người từ 3 tuổi trở lên, người lớn tuổi, người ăn chay.\n- Có hồ sơ chất lượng ghi rõ trên từng trang sản phẩm.\n\nĐây là thực phẩm bổ sung, không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh."
     },
     {
       "slug": "tra-thao-moc",
       "name": "Trà Thảo Mộc",
       "image": "/assets/img/products/tra-dilvang-1.webp",
-      "desc": "Trà thảo mộc hòa tan tiện lợi từ dược liệu Việt Nam."
+      "desc": "Trà thảo mộc hòa tan tiện lợi từ dược liệu Việt Nam.",
+      "about": "## Trà thảo mộc hòa tan từ dược liệu Việt Nam\n\nSản phẩm chính của nhóm là **Trà hòa tan DILVANG** chiết xuất từ chè vằng và đinh lăng Quảng Trị, nơi chè vằng được Nhà nước bảo hộ **Chỉ dẫn địa lý**. Trà do Công ty Cổ phần Dược liệu Gold Herbal sản xuất tại nhà máy đạt GMP ở Đông Hà, bằng công nghệ chiết xuất chân không nhiệt độ thấp EECV.\n\n### Vì sao chọn trà hòa tan?\n\n- Pha bằng nước ấm 40–50°C, không cần đun sắc, không hãm, không bã.\n- Mỗi gói 5g pha được một cốc 300–400ml, tiện mang đi làm.\n- Không chất bảo quản, không hương liệu tổng hợp, không phẩm màu nhân tạo.\n\nTìm hiểu thêm về vùng nguyên liệu trong bài [Chè vằng Quảng Trị – vì sao được bảo hộ Chỉ dẫn địa lý?](/goc-song-lanh/che-vang-quang-tri-chi-dan-dia-ly/)"
     },
     {
       "slug": "gia-vi-mon-chay",
       "name": "Gia Vị & Món Chay",
       "image": "/assets/img/products/ruoc-chay-rong-bien-1.webp",
-      "desc": "Gia vị lên men tự nhiên và món chay thuần thực vật cho bữa cơm gia đình."
+      "desc": "Gia vị lên men tự nhiên và món chay thuần thực vật cho bữa cơm gia đình.",
+      "about": "## Gia vị lên men tự nhiên và món chay thuần thực vật\n\nNhóm sản phẩm cho bữa cơm gia đình, hợp cả người ăn thường lẫn người ăn chay, theo thực dưỡng:\n\n- **Xì Dầu 2S Đỗ Đen Ngưu Bàng**: lên men tự nhiên 99 ngày từ đậu đen xanh lòng và củ ngưu bàng Sóc Sơn, do HTX Bảo tồn và Phát triển Dược liệu Sóc Sơn sản xuất (quy trình đạt HACCP).\n- **Ruốc Rong Biển Vị Sườn Non**: thuần chay từ sườn non chay và rong biển, thơm lá chanh, mè rang, không chất bảo quản.\n\nDùng để chấm, kho, xào, tẩm ướp hoặc ăn kèm cơm, cháo, xôi, bánh mì."
     }
   ]
 }

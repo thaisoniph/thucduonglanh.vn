@@ -146,5 +146,39 @@
       "scope": "Vitanuts factory: production of cereal powders, nutrition powders and powdered seed products",
       "date": "Issued 04/04/2026 – valid until 03/04/2029"
     }
+  ],
+  "faq": [
+    {
+      "q": "What is VitaGreen Nutritious Meal?",
+      "a": "A powdered dietary supplement made from **12 seeds and grains** (soy-free) with Okinawa Mozuku Fucoidan, 95% Curcumin, Spirulina, Pea Protein and FOS fibre. It is sweetened with stevia, no refined sugar. Made at the Vitanuts Green Nutrition JSC factory (GMP, ISO 22000:2018); registered by VitaGreen Nutrition Group Co., Ltd."
+    },
+    {
+      "q": "Can it replace a meal?",
+      "a": "It is meant **as a snack meal or to supplement your daily meals**, handy for busy people and older adults with a small appetite. Per 100g: 436 kcal, 11.2g protein, 68.5g carbohydrate, 13.6g fat, 1.2g FOS."
+    },
+    {
+      "q": "How do I prepare it?",
+      "a": "**Quick:** 25–30g (3 level spoons) with 150–180ml water at about 60°C, stir and drink; 2–3 times a day. **Standard:** mix 25–30g with 100ml cool water, let it soak, then add about 100ml hot water at 70°C. You can also blend it into a smoothie with fruit."
+    },
+    {
+      "q": "Who can use it? Is it suitable for children?",
+      "a": "Suitable for **ages 3 and up**: anyone needing extra nutrition, older adults with a poor appetite, vegetarians, busy people, and those who want more plant protein and fibre."
+    },
+    {
+      "q": "Is it suitable for people avoiding sugar or with diabetes?",
+      "a": "It is sweetened with stevia and contains **no refined sugar**. It still contains starch from grains (68.5g carbohydrate per 100g), so people with diabetes should monitor their blood sugar and ask their doctor about a suitable amount."
+    },
+    {
+      "q": "I feel bloated when I first drink it. What should I do?",
+      "a": "The product is rich in fibre, so new users may feel bloated at first. Start with half a serving for a few days and increase gradually."
+    },
+    {
+      "q": "Has it been lab tested?",
+      "a": "Yes, at Vietnam's National Institute for Food Control (NIFC): physicochemical, microbiological, heavy metal and Aflatoxin M1 criteria all met requirements. See [Standards & testing](#kiem-nghiem)."
+    },
+    {
+      "q": "How should I store it and what is the shelf life?",
+      "a": "Shelf life is 24 months from the production date. Store in a dry, cool place away from sunlight; use within 30 days after opening. This product is not a medicine and does not replace medical treatment."
+    }
   ]
 }

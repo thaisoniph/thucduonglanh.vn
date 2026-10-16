@@ -276,5 +276,39 @@
     },
     "link_text": "Read the full DILVANG journey"
   },
-  "disclaimer": "Food product. This product is not a medicine and does not replace medical treatment."
+  "disclaimer": "Food product. This product is not a medicine and does not replace medical treatment.",
+  "faq": [
+    {
+      "q": "What is DILVANG tea?",
+      "a": "DILVANG instant tea is an extract of **Quang Tri Jasminum subtriplinerve (chè vằng) and Polyscias fruticosa (đinh lăng)**, made by Gold Herbal Pharmaceutical JSC at its GMP-certified factory in Dong Ha, Quang Tri. The name joins \"Di\" from Đinh lăng and \"Vang\" from Chè vằng."
+    },
+    {
+      "q": "What is in DILVANG tea? Does it contain preservatives?",
+      "a": "Each 5g sachet contains 820mg dried chè vằng extract, 180mg dried đinh lăng extract and maltodextrin as an excipient. It has **no preservatives, no anti-caking agents, no synthetic flavourings and no artificial colours**."
+    },
+    {
+      "q": "How do I prepare DILVANG tea? How many sachets a day?",
+      "a": "Empty 1 sachet into a cup, add 300–400ml of warm water at 40–50°C and stir. The recommended amount is **2–3 sachets a day**. No boiling, no steeping, no leftover leaves."
+    },
+    {
+      "q": "How long does one box last?",
+      "a": "A 75g box holds 15 sachets x 5g. At 2–3 sachets a day, one box lasts about 5–7 days, so regular drinkers often buy 2–3 boxes at a time."
+    },
+    {
+      "q": "What is special about Quang Tri chè vằng?",
+      "a": "Quang Tri chè vằng is protected by a state **Geographical Indication**, managed by the Quang Tri Department of Science and Technology. Gold Herbal sources its raw herbs from cooperatives and farming households in Cam Lo, Hai Lang and Vinh Linh."
+    },
+    {
+      "q": "What quality documents does DILVANG have?",
+      "a": "Product self-declaration No. 14.1/GOLDHERBAL/2025; company standard TCCS 14.1:2025/GOLDHERBAL; GMP certificate No. 09/2025/ATTP-CNGMP issued to the factory by the Vietnam Food Administration (Ministry of Health); test report No. 19395/PKN-VKNQG from the National Institute for Food Control. See the originals in the [Legal & quality documents](#kiem-nghiem) section."
+    },
+    {
+      "q": "Is DILVANG tea a medicine?",
+      "a": "No. DILVANG tea is a food product. This product is not a medicine and does not replace medical treatment. If you are under treatment or pregnant, please ask your doctor before use."
+    },
+    {
+      "q": "How should I store it and what is the shelf life?",
+      "a": "Shelf life is 24 months from the production date. Store in a dry, cool place away from direct sunlight."
+    }
+  ]
 }

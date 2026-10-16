@@ -330,6 +330,17 @@ collections:
         required: false
         hint: "Sản phẩm ưu tiên gợi ý khi khách mua sản phẩm này. Để trống thì web tự gợi ý món giúp đơn đạt mức miễn phí vận chuyển."
       - { label: "Dòng lưu ý cuối trang", name: disclaimer, i18n: true, widget: text, required: false, hint: "Ví dụ: Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh." }
+      - { label: "Nhà sản xuất", name: manufacturer, widget: string, required: false, hint: "Tên đơn vị sản xuất đúng như trên nhãn / hồ sơ công bố. Dùng cho Google và công cụ AI, không hiện trên trang." }
+      - label: "Hỏi đáp (câu hỏi thường gặp)"
+        name: faq
+        i18n: true
+        widget: list
+        required: false
+        summary: "{{fields.q}}"
+        hint: "Hiện cuối trang sản phẩm, giúp Google và ChatGPT/Gemini trả lời đúng khi khách hỏi. Chỉ ghi đúng hồ sơ công bố, không dùng chữ chữa/điều trị/khỏi bệnh. Câu \"Mua ở đâu, phí ship bao nhiêu\" web tự thêm, không cần nhập."
+        fields:
+          - { label: "Câu hỏi", name: q, i18n: true, widget: string, hint: "Viết như khách hỏi thật, ví dụ: Pha trà thế nào? Mỗi ngày uống mấy gói?" }
+          - { label: "Trả lời", name: a, i18n: true, widget: markdown, hint: "Trả lời thẳng ngay câu đầu, 1–4 câu, có số liệu cụ thể." }
 
   # ------------------------------------------------------------ GÓI GIẢI PHÁP (COMBO)
   - name: combos
@@ -781,6 +792,7 @@ collections:
               - { label: "Mã (không dấu, dùng trên đường link)", name: slug, widget: string, hint: "Ví dụ: tra-thao-moc. Không đổi mã của danh mục đang có sản phẩm." }
               - { label: "Ảnh", name: image, widget: image }
               - { label: "Mô tả", name: desc, i18n: true, widget: text, required: false }
+              - { label: "Giới thiệu chi tiết (cuối trang)", name: about, i18n: true, widget: markdown, required: false, hint: "Đoạn 100–200 chữ hiện dưới danh sách sản phẩm: danh mục gồm gì, khác biệt, ai nên dùng. Giúp trang danh mục lên Google." }
 
       - name: needs
         label: "Chọn theo nhu cầu"

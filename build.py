@@ -188,6 +188,33 @@ def num(v):
         return None
 
 
+def _git_dates():
+    """Ngày sửa gần nhất của từng file theo lịch sử git (đường dẫn tương đối → "YYYY-MM-DD"), dùng cho lastmod trong sitemap
+    và ngày cập nhật bài viết. Bản sao git rút gọn (shallow, chỉ 1 commit) không biết ngày thật → trả {} (bỏ lastmod)."""
+    try:
+        if subprocess.run(["git", "rev-parse", "--is-shallow-repository"], cwd=ROOT, capture_output=True, text=True, timeout=10).stdout.strip() != "false":
+            return {}
+        out = subprocess.run(["git", "log", "--format=@%cs", "--name-only", "--no-renames"], cwd=ROOT, capture_output=True, text=True, timeout=60).stdout
+    except Exception:
+        return {}
+    dates, cur = {}, None
+    for line in out.splitlines():
+        if line.startswith("@"):
+            cur = line[1:]
+        elif line and cur and line not in dates:
+            dates[line] = cur
+    return dates
+
+
+GIT_DATES = _git_dates()
+
+
+def src_date(*paths):
+    """Ngày sửa mới nhất trong các file nguồn (Path hoặc đường dẫn tương đối); không biết thì None."""
+    ds = [GIT_DATES.get(str(Path(x).resolve().relative_to(ROOT)) if Path(x).is_absolute() else str(x)) for x in paths]
+    return max([d for d in ds if d], default=None)
+
+
 SITE = {**json.loads((DATA / "config.json").read_text("utf-8")), **load_json(DATA / "site.json")[0]}
 HOME = load_json(DATA / "home.json")[0]
 _bf = DATA / "brochure.json"
@@ -323,7 +350,7 @@ for f in sorted((CONTENT / "posts").glob("*.md")):
     d = meta.get("date") or datetime.date.today()
     d = d.date() if isinstance(d, datetime.datetime) else d
     d = d.isoformat() if isinstance(d, datetime.date) else str(d)[:10]
-    _posts.append({"slug": f.stem, "title": meta.get("title", f.stem), "date": d, "category": meta.get("category", ""),
+    _posts.append({"slug": f.stem, "title": meta.get("title", f.stem), "date": d, "category": meta.get("category", ""), "modified": max(d, src_date(f, tr_path(f)) or d),
                    "image": meta.get("image") or "/assets/img/brand/og-image.jpg", "excerpt": meta.get("excerpt", ""), "content": md(body)})
 POSTS = {"categories": load_json(DATA / "post-categories.json")[0]["categories"], "posts": _posts}
 
@@ -634,7 +661,7 @@ def float_widget():
 </div>'''
 
 
-def layout(path, title, desc, body, og=None, jsonld=None, body_class="", noindex=False, preload=""):
+def layout(path, title, desc, body, og=None, jsonld=None, body_class="", noindex=False, preload="", og_type="website", extra_head=""):
     full_title = title if BRAND in title else f"{title} | {BRAND}"
     url = DOMAIN + path
     og_img = DOMAIN + (og or "/assets/img/brand/og-image.jpg")
@@ -651,9 +678,10 @@ def layout(path, title, desc, body, og=None, jsonld=None, body_class="", noindex
 <title>{esc(full_title)}</title>
 <meta name="description" content="{esc(desc)}">
 <link rel="canonical" href="{url}">{alt_links}{robots}{f'<link rel="preload" as="image" href="{preload}" fetchpriority="high">' if preload else ""}
-<meta property="og:type" content="website"><meta property="og:site_name" content="{BRAND}">
+<meta property="og:type" content="{og_type}"><meta property="og:site_name" content="{BRAND}">{extra_head}
 <meta property="og:title" content="{esc(full_title)}"><meta property="og:description" content="{esc(desc)}">
 <meta property="og:url" content="{url}"><meta property="og:image" content="{og_img}"><meta property="og:locale" content="{LANGS[LANG]["locale"]}">
+{f'<meta name="google-site-verification" content="{esc(SITE["google_site_verification"])}">' if SITE.get("google_site_verification") and path == "/" else ""}{f'<meta name="msvalidate.01" content="{esc(SITE["bing_site_verification"])}">' if SITE.get("bing_site_verification") and path == "/" else ""}
 <meta name="theme-color" content="#24805B">
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/brand/icon-32.png">
 <link rel="apple-touch-icon" href="/assets/img/brand/icon-180.png">
@@ -1331,14 +1359,26 @@ def page_home():
   <button class="btn btn-sm btn-outline readmore-btn" data-readmore-btn>{t("Xem thêm")}</button>
   {tag_box}
 </div></section>'''
-    org = {"@context": "https://schema.org", "@type": "Organization", "name": BRAND, "legalName": SITE["company"], "url": DOMAIN,
-           "logo": DOMAIN + "/assets/img/brand/logo@2x.png", "email": SITE["email"], "telephone": SITE["hotline"],
-           "address": {"@type": "PostalAddress", "streetAddress": SITE["address"], "addressCountry": "VN"},
-           "sameAs": [u for u in SITE["socials"].values() if u]}
+    org = org_ld()
     web = {"@context": "https://schema.org", "@type": "WebSite", "name": BRAND, "url": DOMAIN,
            "potentialAction": {"@type": "SearchAction", "target": DOMAIN + "/tim-kiem/?q={search_term_string}", "query-input": "required name=search_term_string"}}
     return layout("/", f"{BRAND} – {SITE['tagline']}", t("Thực Dưỡng Lành – dinh dưỡng từ hạt, trà thảo mộc và thực phẩm thuần chay chính hãng, nguồn gốc rõ ràng. Giao hàng toàn quốc. Hotline ") + SITE["hotline"],
                   body, jsonld=[org, web] + ([bv_ld] if bv_ld else []), body_class="home", preload=h_img)
+
+
+def org_ld():
+    """Thông tin doanh nghiệp cho Google / công cụ AI: tên, tên khác, pháp nhân, MST, liên hệ, mạng xã hội – lấy từ data/site.json."""
+    d = (SITE.get("tax_date") or "").split("/")
+    org = {"@context": "https://schema.org", "@type": "Organization", "@id": DOMAIN + "/#org", "name": BRAND,
+           "alternateName": ["Thuc Duong Lanh", "VitaGreen Nutrition"], "legalName": SITE["company"], "url": DOMAIN,
+           "logo": DOMAIN + "/assets/img/brand/logo@2x.png", "image": DOMAIN + "/assets/img/brand/og-image.jpg",
+           "description": t("Thực Dưỡng Lành (VitaGreen Nutrition) – thương hiệu dinh dưỡng từ hạt, trà thảo mộc và thực phẩm thuần chay có hồ sơ công bố rõ ràng, giao hàng toàn quốc."),
+           "slogan": SITE.get("slogan") or None, "email": SITE["email"], "telephone": SITE["hotline"],
+           "taxID": SITE.get("tax_code") or None, "foundingDate": f"{d[2]}-{d[1]}-{d[0]}" if len(d) == 3 else None,
+           "address": {"@type": "PostalAddress", "streetAddress": SITE["address"], "addressLocality": "Gia Lâm", "addressRegion": "Hà Nội", "addressCountry": "VN"},
+           "contactPoint": {"@type": "ContactPoint", "telephone": SITE["hotline"], "contactType": "customer service", "areaServed": "VN", "availableLanguage": ["vi"]},
+           "sameAs": [u for u in SITE["socials"].values() if u]}
+    return {k: v for k, v in org.items() if v}
 
 
 def community_html():
@@ -1373,7 +1413,7 @@ def needs_html(active="", compact=False):
 </div></section>'''
 
 
-def page_listing(path, title, products, intro="", crumbs=None):
+def page_listing(path, title, products, intro="", crumbs=None, about=""):
     bc, bld = breadcrumb(crumbs or [(title, None)])
     chips = '<a href="/san-pham/" class="chip{}">{}</a>'.format(" active" if path == "/san-pham/" else "", t("Tất cả"))
     for c in CATS:
@@ -1391,6 +1431,7 @@ def page_listing(path, title, products, intro="", crumbs=None):
   <div class="chips">{chips}</div>
   {needs_html(path, compact=True)}
   {grid(products, "p-grid shop-grid")}
+  {f'<div class="cat-about prose">{md(about)}</div>' if about else ""}
 </div></section>'''
     desc = intro or tf("{title} chính hãng tại {brand}. Nguồn gốc rõ ràng, giao hàng toàn quốc.", title=title, brand=BRAND)
     return layout(path, title, desc, body, jsonld=[bld])
@@ -1643,6 +1684,9 @@ def page_product(p):
     disc = f'<p class="disclaimer">{esc(p["disclaimer"])}</p>' if p.get("disclaimer") else ""
     related = [x for x in PRODUCTS if x["slug"] != p["slug"] and x["category"] == p["category"]]
     related += [x for x in PRODUCTS if x["slug"] != p["slug"] and x not in related]
+    faqs = product_faqs(p, purchasable)
+    faq_box = f'<section class="pfaq-wrap" id="hoi-dap"><h2 class="sec-title left">{t("Câu hỏi thường gặp")}</h2>' + "".join(
+        f'<details class="pfaq-q"><summary>{esc(q)}</summary><div class="pfaq-a">{md(a)}</div></details>' for q, a in faqs) + "</section>" if faqs else ""
     body = f'''<section class="section pt-2"><div class="container">
   {bc}
   <div class="product{" product-cbl" if landing else ""}" data-product="{p["slug"]}">
@@ -1691,19 +1735,27 @@ def page_product(p):
     </div>
   </div>
 
+  {faq_box}
   <h2 class="sec-title left">{t("Sản phẩm tương tự")}</h2>
   {grid(related[:4], "p-grid related-grid")}
 </div></section>
 {satc_html(p) if purchasable else ""}{proof_box}'''
-    ld = {"@context": "https://schema.org", "@type": "Product", "name": p["name"], "sku": p["sku"],
-          "image": [DOMAIN + pimg(i) for i in p["images"]], "description": strip_tags(p["summary"]),
-          "brand": {"@type": "Brand", "name": BRAND}}
-    if p.get("price") is not None:
-        ld["offers"] = {"@type": "Offer", "priceCurrency": "VND", "price": p["price"], "availability": "https://schema.org/InStock", "url": DOMAIN + path}
+    ld = {"@context": "https://schema.org", "@type": "Product", "name": p["name"], "sku": p["sku"], "url": DOMAIN + path,
+          "image": [DOMAIN + pimg(i) for i in p["images"]], "description": strip_tags(md_inline(p["summary"])),
+          "brand": {"@type": "Brand", "name": BRAND}, "category": cat["name"]}
+    if p.get("manufacturer"):
+        ld["manufacturer"] = {"@type": "Organization", "name": p["manufacturer"]}
+    prices = [v["price"] for v in p.get("variants", []) if v.get("price") is not None] or ([p["price"]] if p.get("price") is not None else [])
+    if prices:
+        ld["offers"] = [offer_ld(p, v.get("price"), DOMAIN + path, v.get("name")) for v in p["variants"] if v.get("price") is not None] \
+            if len(prices) > 1 else offer_ld(p, prices[0], DOMAIN + path)
     if rating_of(p):  # chỉ khi có ≥ 3 đánh giá thật
         ld["aggregateRating"] = {"@type": "AggregateRating", "ratingValue": rating_of(p)[0], "reviewCount": rating_of(p)[1], "bestRating": 5, "worstRating": 1}
     desc = strip_tags(p["summary"])[:158]
     lds = [ld, bld]
+    if faqs:  # Google ít khi hiện khung hỏi đáp cho web bán hàng, nhưng ChatGPT / Gemini / Perplexity đọc dạng này rất tốt
+        lds.append({"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [
+            {"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": strip_tags(md(a)).strip()}} for q, a in faqs]})
     sv = (p.get("story") or {}).get("video") or {}
     if yt_id(sv.get("youtube")):  # video câu chuyện → VideoObject cho Google
         vid = yt_id(sv["youtube"])
@@ -1713,6 +1765,45 @@ def page_product(p):
                     "uploadDate": sv.get("upload_date") or "2026-10-16", "embedUrl": f"https://www.youtube-nocookie.com/embed/{vid}",
                     "contentUrl": f"https://www.youtube.com/watch?v={vid}"})
     return layout(path, p["name"], desc, body, og=pimg(p["images"][0]), jsonld=lds, body_class="page-product", preload=pimg(p["images"][0]))
+
+
+def ship_fee_for(price, p=None):
+    """Phí ship khi mua 1 món giá price (theo cài đặt chung ở /admin)."""
+    th, fee = SITE.get("free_ship_threshold") or 0, SITE.get("shipping_fee") or 0
+    return 0 if (p and p.get("free_ship")) or (th and price >= th) else fee
+
+
+def offer_ld(p, price, url, name=None):
+    """Offer cho Google (giá, còn hàng, phí ship, đổi trả 7 ngày khi lỗi NSX – theo /chinh-sach-doi-tra/)."""
+    o = {"@type": "Offer", "priceCurrency": "VND", "price": price, "availability": "https://schema.org/InStock", "url": url,
+         "itemCondition": "https://schema.org/NewCondition", "seller": {"@type": "Organization", "name": BRAND},
+         "shippingDetails": {"@type": "OfferShippingDetails",
+                             "shippingRate": {"@type": "MonetaryAmount", "value": ship_fee_for(price, p), "currency": "VND"},
+                             "shippingDestination": {"@type": "DefinedRegion", "addressCountry": "VN"},
+                             "deliveryTime": {"@type": "ShippingDeliveryTime",
+                                              "handlingTime": {"@type": "QuantitativeValue", "minValue": 0, "maxValue": 1, "unitCode": "DAY"},
+                                              "transitTime": {"@type": "QuantitativeValue", "minValue": 1, "maxValue": 5, "unitCode": "DAY"}}},
+         "hasMerchantReturnPolicy": {"@type": "MerchantReturnPolicy", "applicableCountry": "VN",
+                                     "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow", "merchantReturnDays": 7,
+                                     "returnMethod": "https://schema.org/ReturnByMail", "itemDefectReturnFees": "https://schema.org/FreeReturn",
+                                     "merchantReturnLink": DOMAIN + lp("/chinh-sach-doi-tra/")}}
+    if name:
+        o["name"] = name
+    return o
+
+
+def product_faqs(p, purchasable=True):
+    """Hỏi đáp của sản phẩm: các câu soạn ở /admin (ô "Hỏi đáp") + 1 câu "mua ở đâu, phí ship" tự tạo từ cài đặt chung (luôn đúng số mới nhất)."""
+    out = [((x.get("q") or "").strip(), (x.get("a") or "").strip()) for x in (p.get("faq") or []) if isinstance(x, dict)]
+    out = [(q, a) for q, a in out if q and a]
+    if purchasable and not p.get("combo"):
+        th, fee = SITE.get("free_ship_threshold") or 0, SITE.get("shipping_fee") or 0
+        ship = t("miễn phí vận chuyển") if p.get("free_ship") else (tf("phí giao hàng {fee}, miễn phí cho đơn từ {th}", fee=money(fee), th=money(th)) if th and fee else "")
+        out.append((tf("Mua {name} chính hãng ở đâu? Phí giao hàng bao nhiêu?", name=p.get("short_name") or p["name"]),
+                    tf("Anh/chị đặt trực tiếp trên website {site} (bấm **Mua ngay** hoặc **Thêm vào giỏ hàng**), hoặc nhắn Zalo / gọi hotline **{hotline}**. "
+                       "Giao hàng toàn quốc{ship}. Được kiểm tra hàng trước khi thanh toán; đổi trả trong 7 ngày nếu sản phẩm lỗi do nhà sản xuất.",
+                       site=DOMAIN.split("//")[-1], hotline=SITE["hotline"], ship=(", " + ship) if ship else "")))
+    return out
 
 
 PROOF_ANCHOR_RE = re.compile(r"kiểm nghiệm|chứng nhận|pháp lý|testing|tested|certif|legal", re.I)
@@ -2047,7 +2138,9 @@ def page_about():
   </ul>
   <div class="center mt-2"><a class="btn btn-lg" href="/san-pham/">{t("Khám phá sản phẩm")}</a></div>
 </div></section>'''
-    return layout("/gioi-thieu/", tf("Giới thiệu {brand}", brand=BRAND), tf("Câu chuyện thương hiệu {brand} – Sống xanh, sống lành, sống có giá trị. Tầm nhìn, sứ mệnh và giá trị cốt lõi của VitaGreen Nutrition.", brand=BRAND), body, jsonld=[bld] + ([bv_ld] if bv_ld else []))
+    about_ld = {"@context": "https://schema.org", "@type": "AboutPage", "url": DOMAIN + "/gioi-thieu/", "inLanguage": LANG,
+                "about": {k: v for k, v in org_ld().items() if k != "@context"}}
+    return layout("/gioi-thieu/", tf("Giới thiệu {brand}", brand=BRAND), tf("Câu chuyện thương hiệu {brand} – Sống xanh, sống lành, sống có giá trị. Tầm nhìn, sứ mệnh và giá trị cốt lõi của VitaGreen Nutrition.", brand=BRAND), body, jsonld=[about_ld, bld] + ([bv_ld] if bv_ld else []))
 
 
 def page_contact():
@@ -2112,9 +2205,13 @@ def page_post(p):
 </article>
 {cn_cta("post")}</div></section>
 <section class="section bg-soft"><div class="container"><h2 class="sec-title">{t("Bài viết khác")}</h2><div class="post-grid">{"".join(post_card(x) for x in others)}</div></div></section>'''
-    ld = {"@context": "https://schema.org", "@type": "Article", "headline": p["title"], "datePublished": p["date"], "image": DOMAIN + p["image"],
-          "author": {"@type": "Organization", "name": BRAND}, "publisher": {"@type": "Organization", "name": BRAND, "logo": {"@type": "ImageObject", "url": DOMAIN + "/assets/img/brand/logo@2x.png"}}}
-    return layout(path, p["title"], p["excerpt"], body, og=img_url(p["image"], 1200), jsonld=[ld, bld])
+    org = {"@type": "Organization", "name": BRAND, "url": DOMAIN + "/", "logo": {"@type": "ImageObject", "url": DOMAIN + "/assets/img/brand/logo@2x.png"}}
+    ld = {"@context": "https://schema.org", "@type": "Article", "headline": p["title"], "description": p["excerpt"], "inLanguage": LANG,
+          "datePublished": p["date"], "dateModified": p["modified"], "image": DOMAIN + img_url(p["image"], 1200),
+          "mainEntityOfPage": DOMAIN + path, "articleSection": cat["name"] or None, "author": org, "publisher": org}
+    ld = {k: v for k, v in ld.items() if v}
+    meta = f'<meta property="article:published_time" content="{p["date"]}"><meta property="article:modified_time" content="{p["modified"]}">'
+    return layout(path, p["title"], p["excerpt"], body, og=img_url(p["image"], 1200), jsonld=[ld, bld], og_type="article", extra_head=meta)
 
 
 def page_cart():
@@ -2288,7 +2385,7 @@ def main():
     for c in CATS:
         items = [p for p in PRODUCTS if p["category"] == c["slug"]]
         if items or IS_VI:
-            routes.append(write(f"/danh-muc/{c['slug']}/", page_listing(f"/danh-muc/{c['slug']}/", c["name"], items, c.get("desc", ""), [(t("Sản phẩm"), "/san-pham/"), (c["name"], None)])))
+            routes.append(write(f"/danh-muc/{c['slug']}/", page_listing(f"/danh-muc/{c['slug']}/", c["name"], items, c.get("desc", ""), [(t("Sản phẩm"), "/san-pham/"), (c["name"], None)], c.get("about", ""))))
     for n in NEEDS:
         if n["url"].startswith("/nhu-cau/"):
             routes.append(write(n["url"], page_listing(n["url"], n["name"], n["items"], n.get("desc", ""), [(t("Sản phẩm"), "/san-pham/"), (n["name"], None)])))
@@ -2355,18 +2452,22 @@ def main():
     (DIST / "assets/data").mkdir(parents=True, exist_ok=True)
     shutil.copy(DATA / "vn-units.json", DIST / "assets/data/vn-units.json")
 
-    today = datetime.date.today().isoformat()
+    # lastmod = ngày nội dung trang đó thật sự đổi (theo git). Trước đây ghi "hôm nay" cho mọi trang → Google bỏ qua tín hiệu này.
+    def sm_url(loc, r, lang=None):
+        d = route_date(r, lang)
+        return f"<url><loc>{DOMAIN}{loc}</loc>" + (f"<lastmod>{d}</lastmod>" if d else "") + "</url>"
     sm = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
-    for r in routes:
-        sm.append(f"<url><loc>{DOMAIN}{r}</loc><lastmod>{today}</lastmod></url>")
+    sm += [sm_url(r, r) for r in routes]
     for lang, pub in alt_public.items():
-        for r in pub:
-            sm.append(f"<url><loc>{DOMAIN}{ALT_ROUTES[lang][r]}</loc><lastmod>{today}</lastmod></url>")
+        sm += [sm_url(ALT_ROUTES[lang][r], r, lang) for r in pub]
     sm.append("</urlset>")
     (DIST / "sitemap.xml").write_text("\n".join(sm), "utf-8")
     private = ["/gio-hang/", "/thanh-toan/", "/dat-hang-thanh-cong/"]
     private += [ALT_ROUTES[lang][r] for lang in ALT_ROUTES for r in private if r in ALT_ROUTES[lang]]
     (DIST / "robots.txt").write_text("User-agent: *\nAllow: /\n" + "".join(f"Disallow: {r}\n" for r in private) + f"Disallow: /admin/\n\nSitemap: {DOMAIN}/sitemap.xml\n", "utf-8")
+    (DIST / "llms.txt").write_text(llms_txt(), "utf-8")
+    if SITE.get("indexnow_key"):  # file xác minh IndexNow (Bing, Yandex…): workflow deploy.yml báo các trang mới sửa sau mỗi lần đăng
+        (DIST / f'{SITE["indexnow_key"]}.txt').write_text(SITE["indexnow_key"], "utf-8")
     (DIST / "CNAME").write_text(DOMAIN.replace("https://", "").replace("http://", "") + "\n", "utf-8")
     (DIST / ".nojekyll").write_text("", "utf-8")
     # 📍 mã QR / link ngắn /q/<mã>/: máy chủ api đếm lượt quét rồi chuyển tới trang đích kèm UTM (link quản lý ở CRM → 📍 Link & QR, api/src/links.js)
@@ -2379,6 +2480,65 @@ def main():
         "/assets/video/*\n  Cache-Control: public, max-age=604800\n", "utf-8")
     print(f"Đã tạo {len(routes)} trang công khai + 6 trang chức năng vào {DIST}")
     build_crm()
+
+
+def route_date(r, lang=None):
+    """Ngày sửa gần nhất (git) của file nội dung làm ra trang r (đường dẫn tiếng Việt). Trang tổng hợp: ngày mới nhất của các file con."""
+    def files(folder, stem):
+        base = [CONTENT / folder / f"{stem}{ext}" for ext in (".json", ".md")]
+        return [f for b in base for f in (b, b.with_name(f"{b.stem}.{lang}{b.suffix}") if lang else b) if f.exists()]
+    segs = [x for x in r.split("/") if x]
+    if not segs:
+        return src_date(*[k for k in GIT_DATES if k.startswith(("content/", "data/home", "data/site"))])  # trang chủ: lần sửa nội dung mới nhất
+    if segs[0] == "san-pham" and len(segs) == 2:
+        return src_date(*(files("products", segs[1]) + files("combos", segs[1])))
+    if segs[0] == "goc-song-lanh" and len(segs) == 2:
+        return src_date(*files("posts", segs[1]))
+    if len(segs) == 1 and (CONTENT / "pages" / f"{segs[0]}.md").exists():
+        return src_date(*files("pages", segs[0]))
+    if segs[0] in ("san-pham", "danh-muc", "nhu-cau"):
+        return src_date(*[k for k in GIT_DATES if k.startswith(("content/products/", "content/combos/", "data/categories", "data/needs"))])
+    if segs[0] == "goc-song-lanh":
+        return src_date(*[k for k in GIT_DATES if k.startswith(("content/posts/", "data/post-categories"))])
+    return None
+
+
+def llms_txt():
+    """/llms.txt: bản tóm tắt dạng chữ cho ChatGPT, Claude, Gemini, Perplexity… (thương hiệu, sản phẩm, giá, chính sách, bài viết).
+    Tự sinh từ dữ liệu web nên luôn khớp với trang. Chuẩn đề xuất tại llmstxt.org."""
+    def price_of(p):
+        ps = [v["price"] for v in p.get("variants", []) if v.get("price") is not None] or ([p["price"]] if p.get("price") is not None else [])
+        return ("giá từ " if len(ps) > 1 else "giá ") + money(min(ps)) if ps else "liên hệ báo giá"
+    def line(p):
+        x = f'- [{p["name"]}]({DOMAIN}/san-pham/{p["slug"]}/): {strip_tags(md_inline(p["summary"])).strip()} ('
+        vs = [v for v in p.get("variants", []) if v.get("price") is not None]
+        x += "; ".join(f'{v["name"]}: {money(v["price"])}' for v in vs) if len(vs) > 1 else price_of(p)
+        x += f', {p["unit"]}' if p.get("unit") and not p.get("combo") and len(vs) <= 1 else ""
+        x += f'; nhà sản xuất: {p["manufacturer"]}' if p.get("manufacturer") else ""
+        return x + ")"
+    th, fee = SITE.get("free_ship_threshold") or 0, SITE.get("shipping_fee") or 0
+    out = [f"# {BRAND} (VitaGreen Nutrition)", "",
+           f"> {BRAND} là thương hiệu dinh dưỡng từ hạt, trà thảo mộc và thực phẩm thuần chay của Công ty TNHH Tập đoàn VitaGreen Nutrition (MST {SITE.get('tax_code', '')}), "
+           f"trụ sở {SITE['address']}. Website chính thức: {DOMAIN.split('//')[-1]}. Bán online, giao hàng toàn quốc.", "",
+           f"Khẩu hiệu: {SITE.get('slogan', '')}. Triết lý: Sống xanh – sống lành – sống có giá trị.",
+           "Các sản phẩm là thực phẩm hoặc thực phẩm bổ sung, không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh. Công dụng chỉ theo hồ sơ công bố ghi trên từng trang sản phẩm.", "",
+           "## Liên hệ & mua hàng", "",
+           f"- Hotline / Zalo: {SITE['hotline']} ({SITE.get('opening_hours', '')})", f"- Email: {SITE['email']}",
+           f"- Đặt hàng: trên từng trang sản phẩm (Mua ngay / Thêm vào giỏ hàng), thanh toán khi nhận hàng (COD) hoặc chuyển khoản QR.",
+           f"- Phí giao hàng {money(fee)}, miễn phí cho đơn từ {money(th)}. Được kiểm tra hàng trước khi thanh toán; đổi trả 7 ngày nếu lỗi do nhà sản xuất." if th and fee else "",
+           f"- [Giới thiệu thương hiệu]({DOMAIN}/gioi-thieu/) · [Liên hệ]({DOMAIN}/lien-he/)", "",
+           "## Sản phẩm", ""]
+    out += [line(p) for p in PRODUCTS if not p.get("combo")]
+    combos = [p for p in PRODUCTS if p.get("combo")]
+    if combos:
+        out += ["", "## Gói giải pháp (combo)", ""] + [line(p) for p in combos]
+    out += ["", "## Danh mục", ""] + [f'- [{c["name"]}]({DOMAIN}/danh-muc/{c["slug"]}/): {c.get("desc", "")}' for c in CATS]
+    posts = sorted(POSTS["posts"], key=lambda x: x["date"], reverse=True)
+    if posts:
+        out += ["", "## Bài viết (Góc Sống Lành)", ""] + [f'- [{x["title"]}]({DOMAIN}/goc-song-lanh/{x["slug"]}/): {x["excerpt"]}' for x in posts]
+    out += ["", "## Chính sách", ""] + [f'- [{pg["title"]}]({DOMAIN}/{pg["slug"]}/)' for pg in PAGES]
+    out += ["", "## English", "", f"- [English version]({DOMAIN}/en/)", ""]
+    return "\n".join(x for x in out if x is not None)
 
 
 def crm_gifts():

@@ -350,6 +350,19 @@ Hai cách đều đổ về nhánh `main` trên GitHub → GitHub tự đăng ph
 
 **Dữ liệu trong Sheet bị hỏng** (quay code không khôi phục dữ liệu): mở Sheet → Tệp → Lịch sử phiên bản → Xem lịch sử phiên bản → chọn thời điểm trước lỗi → **Khôi phục phiên bản này**. Cột mới do bản cập nhật thêm vào (vd "Ngày sinh") để nguyên không sao.
 
+## 5b. SEO & hiển thị trên công cụ AI (16/10/2026)
+
+- **Trang sản phẩm**: ô **Hỏi đáp** (`faq: [{q, a}]` trong `content/products/*.json`, sửa ở /admin) hiện thành khung `#hoi-dap` cuối trang (CSS `.pfaq-…`) + JSON-LD `FAQPage`. `product_faqs()` tự thêm câu "Mua … ở đâu, phí ship bao nhiêu" từ `data/site.json` (không nhập tay). Nội dung hỏi đáp chỉ ghi đúng hồ sơ công bố.
+- **Schema sản phẩm** (`page_product` → `offer_ld()`): giá từng quy cách (nhiều quy cách → nhiều Offer), phí ship theo `ship_fee_for()` (0đ khi giá ≥ mức freeship), thời gian giao 1–5 ngày, đổi trả 7 ngày khi lỗi NSX (`hasMerchantReturnPolicy`, khớp /chinh-sach-doi-tra/), `manufacturer` từ ô **Nhà sản xuất**, `category`. Có ≥ 3 đánh giá thật thì thêm `aggregateRating`.
+- **Doanh nghiệp**: `org_ld()` (trang chủ + `AboutPage` ở /gioi-thieu/): tên khác, pháp nhân, MST, ngày thành lập (từ `tax_code`, `tax_date`), liên hệ, mạng xã hội.
+- **Bài viết**: `og:type=article`, `article:published_time/modified_time`, Article có `dateModified` (ngày git của file bài), `description`, `mainEntityOfPage`.
+- **Trang danh mục**: ô **Giới thiệu chi tiết** (`about` trong `data/categories*.json`) hiện dưới danh sách (`.cat-about`).
+- **sitemap.xml**: `lastmod` = ngày git gần nhất của file nội dung làm ra trang (`route_date`, `_git_dates`). Trang không gắn file (liên hệ, ebook…) bỏ lastmod. Cần lịch sử git đầy đủ: `deploy.yml` checkout `fetch-depth: 0`; bản sao rút gọn (shallow) thì sitemap không có lastmod (không lỗi). Trước đây ghi "hôm nay" cho mọi trang nên Google bỏ qua.
+- **/llms.txt**: bản tóm tắt chữ cho ChatGPT / Claude / Gemini / Perplexity (thương hiệu, sản phẩm + giá, ship, chính sách, bài viết), `llms_txt()` tự sinh mỗi lần build.
+- **IndexNow** (Bing; ChatGPT tìm kiếm dựa nhiều vào Bing): mã `indexnow_key` trong `data/config.json` (công khai, file `/<mã>.txt`). Bước cuối `deploy.yml` chạy `scripts/indexnow.py`: báo các URL có lastmod trong 2 ngày gần nhất; lỗi thì bỏ qua, không hỏng lần đăng.
+- `google_site_verification` / `bing_site_verification` trong `data/config.json`: chỉ dùng khi xác minh bằng thẻ HTML (thẻ chỉ gắn ở trang chủ). Xác minh qua DNS ở Cloudflare thì để trống.
+- **Việc anh Sơn làm trên tài khoản** (không làm được bằng code): Cloudflare → AI Crawl Control / Bots: cho phép bot AI (GPTBot, OAI-SearchBot, ChatGPT-User, ClaudeBot, Claude-SearchBot, PerplexityBot, Google-Extended), tắt "Block AI bots" và "Managed robots.txt" chặn AI nếu đang bật. Google Search Console + Bing Webmaster (nhập từ GSC), gửi sitemap. Google Business Profile.
+
 ---
 
 ## 9. Việc nên làm tiếp
