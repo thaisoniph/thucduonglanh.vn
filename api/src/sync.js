@@ -88,8 +88,7 @@ function codeDay(code) { const c = codeDays(code)[0]; return c ? c[0] + '/' + c[
  *  năm của các dòng bên dưới (`anchor`), ngày sau anchor quá 20 ngày thì lùi 1 năm.
  *  Mã lệch ô ngày quá 45 ngày (1 trong 2 gõ nhầm): lấy bên nào gần các dòng xung quanh hơn (`far`).
  *  Trả về [{ t, sw (ô bị đảo kiểu Mỹ), old (ngày theo ô như bản cũ), code (1 = ngày đổi theo mã), far }]. */
-function orderDates(rows, m, rule) {
-  const cellFirst = rule !== 'code', dm = t => fmtDate(t, 'dd/MM').split('/').map(Number), dn = t => Math.floor((t + 7 * 3600e3) / DAY);
+function orderDatesByCode(rows, m) {
   const ctx = dateCtx(rows, m), now = Date.now(), out = rows.map(r => {
     const raw = cell(r, m, 'date'), code = String(cell(r, m, 'code') || '').trim(), t = toDate(raw, ctx, code);
     const full = !!t && (isSerial(raw) || /^\s*\d{1,2}\/\d{1,2}\/\d{2,4}/.test(String(raw)) || /^\d{4}-\d{2}-\d{2}/.test(String(raw).trim()));
@@ -103,30 +102,41 @@ function orderDates(rows, m, rule) {
   const nearest = (L, ref) => L.slice().sort((a, b) => Math.abs(a - ref) - Math.abs(b - ref))[0];
   for (let i = out.length - 1; i >= 0; i--) {
     const o = out[i]; if (!o.cds.length && !o.t) continue;
-    if (cellFirst && !o.t) { o.blank = 1; continue; } // ô ngày trống: lấy theo dòng trên (lượt sau)
     let t = o.t;
     if (o.cds.length) {
       if (o.t) { // có ô ngày: mã gần ô ngày (≤ 45 ngày) → theo mã
         const y0 = vnYear(o.t), c = nearest(o.cds.flatMap(([d, mo]) => [y0 - 1, y0, y0 + 1].map(y => vnMs(y, mo, d))), o.t);
-        if (Math.abs(c - o.t) <= 45 * DAY) t = cellFirst ? (o.full ? o.t : byAnchor(dm(o.t))) : o.full ? c : byAnchor(dm(c));
-        else { o.far = 1; const own = o.full ? o.t : byAnchor(dm(o.t)), cand = o.cds.map(byAnchor).concat([own]); t = nearest(cand, anchor); o.farCode = t !== own; }
+        if (Math.abs(c - o.t) <= 45 * DAY) t = o.full ? c : byAnchor(fmtDate(c, 'dd/MM').split('/').map(Number));
+        else { o.far = 1; const cand = o.cds.map(byAnchor).concat([o.full ? o.t : byAnchor(fmtDate(o.t, 'dd/MM').split('/').map(Number))]); t = nearest(cand, anchor); }
       } else t = nearest(o.cds.map(byAnchor), anchor); // ô ngày trống
     } else if (!o.full) t = byAnchor(fmtDate(o.t, 'dd/MM').split('/').map(Number));
-    if (!o.t || day(t) !== day(o.t)) { o.t = t; o.code = 1; o.byCode = cellFirst ? !!o.farCode : o.cds.length > 0; }
+    if (!o.t || day(t) !== day(o.t)) { o.t = t; o.code = 1; o.byCode = o.cds.length > 0; }
     if (o.t > now + 30 * DAY) { o.t = null; continue; }
     if (o.t >= anchor - 60 * DAY) { anchor = Math.min(Math.max(o.t, anchor - 60 * DAY), now + 2 * DAY); low = []; }
     else if (low.push(o.t) >= 3) { anchor = low[low.length - 1]; low = []; }
   }
-  if (cellFirst) { // ô ngày trống → ngày của dòng có ngày gần nhất phía trên. Mã đơn cùng ngày / sau 1 ngày (chốt tối, gửi sáng) vẫn theo dòng trên;
-    let prev = null; // mã lệch xa hơn (dòng trên đã cách nhiều ngày, sheet không theo thứ tự) → theo mã đơn. Không có dòng trên → theo mã.
-    for (const o of out) {
-      if (!o.blank) { if (o.t) prev = o.t; continue; }
-      const ref = prev || now, cd = o.cds.length ? nearest(o.cds.flatMap(([d, mo]) => [vnYear(ref) - 1, vnYear(ref), vnYear(ref) + 1].map(y => vnMs(y, mo, d))).filter(c => c <= now + 2 * DAY), ref) : null;
-      let t = null;
-      if (prev && (cd == null || (dn(cd) - dn(prev) >= 0 && dn(cd) - dn(prev) <= 1))) t = prev; else if (cd != null) { t = cd; o.byCode = 1; }
-      o.t = t && t <= now + 30 * DAY ? t : null; o.fill = 1; if (o.t) prev = o.t;
-    }
-  }
+  return out;
+}
+/** Ngày theo cột ngày (rule 'cell', anh Sơn chọn 16/10/2026: marketing đo doanh thu theo ngày chốt; Phương chốt tối 14/10 nhưng mã đơn ghi 15 = ngày gửi).
+ *  Gốc là ngày theo mã đơn (orderDatesByCode, đã suy đúng năm). Ô ngày có ngày/tháng → ngày đó (ô không có năm: năm gần ngày gốc nhất).
+ *  Lệch ngày gốc > 7 ngày (gõ nhầm tháng ở ô ngày hoặc ở mã) → bên nào gần ngày các dòng xung quanh hơn.
+ *  Ô ngày trống → ngày của dòng gần nhất phía trên; mã đơn lệch dòng trên ngoài 0–1 ngày (sheet nhảy ngày, nhiều dòng trống liền) → theo mã. */
+function orderDates(rows, m, rule) {
+  const out = orderDatesByCode(rows, m); if (rule === 'code') return out;
+  const dn = t => Math.floor((t + 7 * 3600e3) / DAY), base = out.map(o => o.t);
+  const nearY = (d, mo, ref) => { const y = vnYear(ref); return [y - 1, y, y + 1].map(v => vnMs(v, mo, d)).sort((a, b) => Math.abs(a - ref) - Math.abs(b - ref))[0]; };
+  const around = i => { const L = []; for (let k = i - 1; k >= 0 && L.length < 3; k--) if (base[k]) L.push(base[k]); for (let k = i + 1; k < out.length && L.length < 6; k++) if (base[k]) L.push(base[k]); L.sort((a, b) => a - b); return L.length ? L[L.length >> 1] : null; };
+  out.forEach((o, i) => {
+    if (!o.old || !o.t) return;
+    const [d, mo] = fmtDate(o.old, 'dd/MM').split('/').map(Number); let c = o.full ? o.old : nearY(d, mo, o.t);
+    if (Math.abs(c - o.t) > 7 * DAY) { const a = around(i); if (a != null && Math.abs(o.t - a) < Math.abs(c - a)) return; } // ô ngày gõ nhầm → giữ ngày theo mã
+    if (dn(c) !== dn(o.t)) { o.t = c; o.byCode = false; o.code = dn(c) !== dn(o.old) ? 1 : 0; }
+  });
+  let prev = null;
+  out.forEach(o => {
+    if (!o.old) { const cd = o.t; if (prev && (cd == null || (dn(cd) - dn(prev) >= 0 && dn(cd) - dn(prev) <= 1))) { o.t = prev; o.fill = 1; o.code = 0; } }
+    if (o.t) prev = o.t;
+  });
   return out;
 }
 function codeNear(code, day, mon) { // ngày trong mã đơn cách ngày/tháng này ≤ 4 ngày (trong năm)
