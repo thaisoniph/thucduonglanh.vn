@@ -23,6 +23,8 @@
   var ST_CLS = { 'Mới': 'st-moi', 'Đã xác nhận': 'st-xn', 'Đang giao': 'st-giao', 'Đã giao': 'st-xong', 'Huỷ': 'st-huy', 'Hoàn': 'st-huy', 'Đổi hàng': 'st-giao' };
   function isVoid(st) { return /huỷ|hủy|hoàn/i.test(String(st || '')); } // huỷ / hoàn: không tính doanh số
   /** Doanh thu = tiền đơn đã thu (anh Sơn chốt 16/10/2026): không huỷ / hoàn và (Đã giao / Đổi hàng = COD đã thu, hoặc đã đánh dấu nhận chuyển khoản). Doanh số = tổng đơn không huỷ / hoàn. */
+  /** Tiền tính hoa hồng = tiền hàng, không gồm phí ship (anh Sơn chốt 16/10/2026). Đơn nhập từ file sale không tách được ship (shipping = 0) thì tính cả số tiền. */
+  function commBase(o) { return Math.max(0, (o.total || 0) - (o.shipping || 0)); }
   function isPaidOrder(o) { return !isVoid(o.status) && (/^(Đã giao|Đổi hàng)$/.test(o.status || '') || !!o.paid); }
   function paidLine(paid, sales) { return sales ? 'Đã thu ' + moneyShort(paid) + ' (' + pct(paid, sales) + '%)' + (sales > paid ? ' · còn ' + moneyShort(sales - paid) + ' đang giao / chờ thu' : '') : ''; }
   var NEXT = { 'Mới': 'Đã xác nhận', 'Đã xác nhận': 'Đang giao', 'Đang giao': 'Đã giao' };
@@ -4088,7 +4090,8 @@
   }
   /** Cộng các dòng [.., sàn, g, n, c, r, t, nv, nn, nr] (off = vị trí g). */
   function sanSum(rows, off) {
-    var F = ['g', 'n', 'c', 'r', 't', 'nv', 'nn', 'nr', 'gp'], s = { shop: {}, day: {} }; // gp = tiền đơn sàn đã thu (máy chủ mới; cũ = 0) F.forEach(function (f) { s[f] = 0; });
+    // gp = tiền đơn sàn đã thu (máy chủ mới; cũ = 0)
+    var F = ['g', 'n', 'c', 'r', 't', 'nv', 'nn', 'nr', 'gp'], s = { shop: {}, day: {} }; F.forEach(function (f) { s[f] = 0; });
     rows.forEach(function (r) {
       var x = s.shop[r[off - 1]] || (s.shop[r[off - 1]] = {}); F.forEach(function (f, i) { s[f] += r[off + i] || 0; x[f] = (x[f] || 0) + (r[off + i] || 0); });
       if (off === 2) s.day[r[0]] = (s.day[r[0]] || 0) + (r[2] || 0);
@@ -5079,7 +5082,7 @@
   function lineOfTxt(t) { t = String(t || ''); return /progomax|fucoidan pro|fu ?pro/i.test(t) ? 'Fucoidan Pro' : /curcumin|nghệ/i.test(t) ? 'Curcumin' : /bữa ăn|badd|bua an/i.test(t) ? 'BADD' : 'Khác'; }
   var BC_LINES = ['Curcumin', 'BADD', 'Fucoidan Pro', 'Khác'];
   function bcdtData(name, month) {
-    var R = monthRange(month), days = Math.round((R[1] - R[0]) / DAY), rows = [], tot = null, ca = { 'Ngày': [0, 0], 'Tối/CN': [0, 0], 'Lễ': [0, 0] }, ot = {}, web = { n: 0, r: 0, src: {} }; OTYPES.forEach(function (t) { ot[t] = [0, 0]; });
+    var R = monthRange(month), days = Math.round((R[1] - R[0]) / DAY), rows = [], tot = null, ca = { 'Ngày': [0, 0], 'Tối/CN': [0, 0], 'Lễ': [0, 0] }, ot = {}, web = { n: 0, r: 0, c: 0, src: {} }; OTYPES.forEach(function (t) { ot[t] = [0, 0, 0]; }); // [số đơn, doanh số, tiền tính hoa hồng = tiền hàng không gồm phí ship]
     var mine = function (o) { return name === null || o.seller === name; };
     var blank = function () { var r = { newN: {}, newD: {}, newR: {}, oldN: {}, oldR: {}, hoanN: 0, hoanV: 0, offN: 0, offR: 0, careOk: 0, knm: 0 }; BC_LINES.forEach(function (l) { r.newN[l] = 0; r.newD[l] = 0; r.newR[l] = 0; r.oldN[l] = 0; r.oldR[l] = 0; }); return r; };
     tot = blank();
@@ -5091,7 +5094,7 @@
       if (/hoàn/i.test(o.status)) { r.hoanN++; r.hoanV += o.total; tot.hoanN++; tot.hoanV += o.total; return; }
       if (isVoid(o.status)) return;
       var c = cust(o.phone), t0 = otypeOf(o), isNew = t0 === 'Khách mới' ? true : t0 === 'Khách cũ' ? false : !c || !c.first || c.first >= o.time - 3600e3;
-      if (isWebOrder(o)) { var ws = webSrc(o); web.n++; web.r += o.total; web.src[ws] = (web.src[ws] || 0) + 1; } else { ot[t0][0]++; ot[t0][1] += o.total; } // đơn web tính hoa hồng riêng
+      if (isWebOrder(o)) { var ws = webSrc(o); web.n++; web.r += o.total; web.c += commBase(o); web.src[ws] = (web.src[ws] || 0) + 1; } else { ot[t0][0]++; ot[t0][1] += o.total; ot[t0][2] += commBase(o); } // đơn web tính hoa hồng riêng
       [r, tot].forEach(function (x) { if (isNew) { x.newN[l]++; x.newR[l] += o.total; } else { x.oldN[l]++; x.oldR[l] += o.total; } });
       var k = o.ca && ca[o.ca] ? o.ca : 'Ngày'; ca[k][0]++; ca[k][1] += o.total;
       if (k !== 'Ngày') [r, tot].forEach(function (x) { x.offN++; x.offR += o.total; });
@@ -5176,12 +5179,12 @@
       (tg && tg.amount ? kpi('% tiến độ mục tiêu', pct(tRev, tg.amount) + '%', pct(tRev, tg.amount) >= 100 ? 'good' : '', '', 'mục tiêu ' + moneyShort(tg.amount)) : '');
     var head = '<tr>' + cols.map(function (c) { return '<th>' + esc(c[0]) + '</th>'; }).join('') + '</tr>';
     var tr = function (r, cls) { return '<tr' + (cls ? ' class="' + cls + '"' : '') + '>' + cols.map(function (c) { return '<td>' + fmtv(c[1](r), c[2]) + '</td>'; }).join('') + '</tr>'; };
-    var CMr = S.d.rules.commission || {}, cmP = function (k) { return Number(CMr[k]) || 0; }, W = d.web, wP = cmP(CH_WEB), wCm = Math.round(W.r * wP / 100);
-    var saleN = OTYPES.reduce(function (s0, t) { return s0 + d.ot[t][0]; }, 0), saleR = OTYPES.reduce(function (s0, t) { return s0 + d.ot[t][1]; }, 0), saleCm = OTYPES.reduce(function (s0, t) { return s0 + Math.round(d.ot[t][1] * cmP(t) / 100); }, 0);
+    var CMr = S.d.rules.commission || {}, cmP = function (k) { return Number(CMr[k]) || 0; }, W = d.web, wP = cmP(CH_WEB), wCm = Math.round((W.c != null ? W.c : W.r) * wP / 100);
+    var saleN = OTYPES.reduce(function (s0, t) { return s0 + d.ot[t][0]; }, 0), saleR = OTYPES.reduce(function (s0, t) { return s0 + d.ot[t][1]; }, 0), saleCm = OTYPES.reduce(function (s0, t) { return s0 + Math.round((d.ot[t][2] != null ? d.ot[t][2] : d.ot[t][1]) * cmP(t) / 100); }, 0);
     var chKpi = kpi('💬 Sale lên đơn', moneyShort(saleR), '', '', saleN + ' đơn · ' + (saleR + W.r ? Math.round(saleR / (saleR + W.r) * 100) : 0) + '% doanh số') +
       kpi('🌐 Khách tự đặt trên web', moneyShort(W.r), '', '', W.n + ' đơn' + (W.n ? ' · ' + Object.keys(W.src).sort(function (a, b) { return W.src[b] - W.src[a]; }).map(function (k) { return esc(k) + ' ' + W.src[k]; }).join(', ') : '') + (wP ? ' · hoa hồng ' + wP + '% = <b>' + money(wCm) + '</b>' : ''));
     var body = '<div class="box"><div class="kpis" style="margin:0 0 10px">' + sumKpi + '</div><h3 style="margin:4px 0 8px">Theo kênh đơn</h3><div class="kpis" style="margin:0 0 10px">' + chKpi + '</div>' +
-      '<h3 style="margin:4px 0 8px">Đơn sale lên – theo loại đơn (tính hoa hồng)</h3><div class="kpis" style="margin:0">' + OTYPES.map(function (t) { var p = cmP(t), x = d.ot[t]; return kpi(OT[t][0] + ' ' + t, moneyShort(x[1]), '', '', x[0] + ' đơn' + (p ? ' · hoa hồng ' + p + '% = <b>' + money(Math.round(x[1] * p / 100)) + '</b>' : '')); }).join('') +
+      '<h3 style="margin:4px 0 8px">Đơn sale lên – theo loại đơn (tính hoa hồng)</h3><div class="kpis" style="margin:0">' + OTYPES.map(function (t) { var p = cmP(t), x = d.ot[t]; return kpi(OT[t][0] + ' ' + t, moneyShort(x[1]), '', '', x[0] + ' đơn' + (p ? ' · hoa hồng ' + p + '% = <b>' + money(Math.round((x[2] != null ? x[2] : x[1]) * p / 100)) + '</b>' : '')); }).join('') +
       (OTYPES.concat([CH_WEB]).some(cmP) ? kpi('💰 Tổng hoa hồng', moneyShort(saleCm + wCm), 'good', '', 'đơn sale ' + moneyShort(saleCm) + ' + đơn web ' + moneyShort(wCm) + ' · tạm tính, đơn chờ kiểm tra loại vẫn tính') : '') + '</div>' +
       '<p class="small muted" style="margin:8px 0 0">Đơn web = khách tự đặt trên thucduonglanh.vn, tính cho sale đang phụ trách khách lúc đặt. Đơn web không tính vào 4 loại đơn ở trên mà tính theo % hoa hồng đơn web.</p></div>' +
       '<div class="box"><div class="bcdt-wrap"><table class="bcdt"><thead>' + head + '</thead><tbody>' + tr(d.tot, 'tot') + d.rows.map(function (r) { return tr(r); }).join('') + '</tbody></table></div>' +
@@ -5246,7 +5249,7 @@
       '<p class="hint">Các mốc chăm sóc (hỏi nhận hàng, sắp hết hàng, xin cảm nhận…) tính từ <b>ngày khách nhận hàng</b>: ngày đơn chuyển “Đã giao”, hoặc ngày sale bấm “Đã nhận hàng” khi gọi. Chưa biết ngày nhận thì máy ước tính = <b>ngày gửi</b> + số ngày này (đơn chưa ghi ngày gửi: ngày đặt + số ngày này). Đơn còn chờ xác nhận / chờ gửi thì chưa nhắc hỏi nhận hàng.</p>' +
       '<p class="hint" id="rHint"></p><button class="btn pri" id="rSave">Lưu nhóm khách</button></div>';
     var CMc = R.commission || {};
-    G.cm = '<div class="box"><h3>💰 Hoa hồng</h3><p class="hint" style="margin:0 0 10px">% hoa hồng trên doanh số đơn (đã trừ huỷ / hoàn). Báo cáo BCDT tự tính hoa hồng tháng cho từng sale. Để trống = chưa tính.</p><div class="row2c">' +
+    G.cm = '<div class="box"><h3>💰 Hoa hồng</h3><p class="hint" style="margin:0 0 10px">% hoa hồng trên tiền hàng của đơn (không gồm phí ship, đã trừ huỷ / hoàn). Báo cáo BCDT tự tính hoa hồng tháng cho từng sale. Để trống = chưa tính.</p><div class="row2c">' +
       OTYPES.map(function (t) { return '<label class="f"><span>' + OT[t][0] + ' ' + t + ' (%)</span><input type="text" inputmode="decimal" data-cm="' + esc(t) + '" value="' + esc(CMc[t] === undefined ? '' : CMc[t]) + '" placeholder="vd 5"></label>'; }).join('') +
       '<label class="f"><span>🌐 Đơn khách tự đặt trên web (%)</span><input type="text" inputmode="decimal" data-cm="' + CH_WEB + '" value="' + esc(CMc[CH_WEB] === undefined ? '' : CMc[CH_WEB]) + '" placeholder="vd 2"></label>' +
       '</div><p class="hint">Đơn web (khách tự đặt trên thucduonglanh.vn) tính <b>riêng</b> theo % này, không theo 4 loại đơn. Hoa hồng đơn web tính cho sale đang phụ trách khách lúc khách đặt. Xem ở <b>Đơn hàng → Tất cả đơn → 🌐 Khách tự đặt trên web</b> và báo cáo BCDT.</p><p class="hint">Loại đơn do sale chọn khi lên đơn (CRM chọn sẵn theo gợi ý: Lễ → Ngoài giờ → Khách mới / cũ; khách để lại số qua quảng cáo trong 30 ngày tính là Khách mới). Đơn sale chọn khác gợi ý hiện ở <b>Đơn hàng → Cần xử lý → Kiểm tra loại đơn</b>.</p><button class="btn pri" id="cmSave">Lưu hoa hồng</button></div>';
