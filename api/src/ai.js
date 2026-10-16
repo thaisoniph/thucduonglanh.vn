@@ -8,7 +8,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { normPhone, fmtDate, all, first, kvGet, kvSet, isVoid, DAY } from './lib.js';
 
-const AI_MODEL = 'claude-opus-5-5';
+const AI_MODEL = 'claude-haiku-5-5'; // anh Sơn chọn 16/10/2026: rẻ (~17đ/lượt), đủ cho tóm tắt 4 dòng / tin 60 chữ. Cần hay hơn thì đổi 'claude-opus-5-5' (~680đ/lượt)
 const AI_DAY_MAX = 300;
 const TASK_WORD = { callback: 'gọi lại theo hẹn', d1: 'hỏi đã nhận hàng chưa, hướng dẫn cách dùng', runout: 'sắp dùng hết sản phẩm, nhắc đặt lại', d7: 'hỏi thăm sau 1 tuần dùng (khách mua lần đầu)', d14: 'xin cảm nhận sau 2 tuần', d30: 'giới thiệu sản phẩm phù hợp', winback: 'lâu chưa mua, mời quay lại', old: 'khách cũ lâu chưa liên lạc', other: 'chăm sóc chung' };
 const SYSTEM = [
@@ -60,9 +60,8 @@ export async function crmAi(x, u, d) {
     : 'Viết 1 tin nhắn Zalo ngắn (dưới 60 chữ) nhân viên gửi cho khách, mục đích: ' + TASK_WORD[task] + '. Xưng "em", gọi khách là [Tên], giọng thân thiện, không quảng cáo quá đà, không dùng emoji quá 2 cái. Chỉ trả về nội dung tin nhắn.';
   let res;
   try {
-    res = await ai(x.env).beta.messages.create({
+    res = await ai(x.env).messages.create({ // Haiku 5.5: không có mô hình dự phòng phía máy chủ; bị từ chối thì báo sale (stop_reason refusal bên dưới)
       model: AI_MODEL, max_tokens: 2000, output_config: { effort: 'low' },
-      betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default', // bị từ chối vì chính sách → máy chủ Anthropic tự chạy lại bằng mô hình dự phòng
       system: SYSTEM,
       messages: [{ role: 'user', content: 'Dữ liệu khách:\n' + data + '\n\n' + ask }]
     });
