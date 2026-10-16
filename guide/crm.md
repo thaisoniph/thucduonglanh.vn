@@ -280,6 +280,19 @@ Biểu tượng **Zalo** (ô vuông xanh có chữ Zalo) cạnh tên khách ngh�
 
 Mỗi lần gửi được ghi vào lịch sử khách và file Sheet của bạn (“📣 Ưu đãi 10/10”). Mở lại **📣 Gửi ưu đãi lần lượt** để xem **📊 kết quả từng chương trình**: đã gửi bao nhiêu khách, bao nhiêu khách mua trong 14 ngày sau đó. **Không dùng phần mềm tự gửi Zalo hàng loạt** (dễ bị khoá tài khoản); gửi rải trong ngày, không dồn vài trăm tin liên tục.
 
+### 🌐 Link đặt hàng riêng của bạn
+
+Mỗi bạn có một link web riêng, ví dụ `thucduonglanh.vn/?ref=thuy`. Lấy link ở **Cài đặt → 🌐 Link đặt hàng của tôi**, hoặc ở tab **Hiệu quả** (hộp 🌐 Đơn khách tự đặt trên web). Bấm **📋 Copy** để lấy link.
+
+- Khách bấm link của bạn rồi đặt hàng trên web **trong vòng 30 ngày**: đơn **tự tính cho bạn**. Nếu là khách mới, khách được giao luôn cho bạn phụ trách.
+- Khách cũ bạn đang phụ trách đặt trên web (bằng link nào cũng được) thì đơn vẫn tính cho bạn.
+- Muốn gửi link một sản phẩm: mở sản phẩm trên web, copy link rồi thêm `?ref=<mã của bạn>` vào cuối.
+- Nên gửi link vào tin chăm sóc (mốc 30 ngày, sắp hết hàng), trong nhóm Zalo, và lúc khách đã đồng ý mua (để khách tự điền địa chỉ, ít sai hơn).
+- Lý do để khách đặt web: **giá rẻ hơn Shopee**, kèm quà **ebook hoặc 4 buổi Zoom cùng chuyên gia (trị giá 990.000đ)**.
+- Không nhắn khách mua trên Shopee rủ sang web, vì Shopee cấm và có thể phạt shop.
+
+Đơn web có ghi chú **🔗 Đặt qua link của …**. Tab **Hiệu quả** có số đơn qua web và % so với tổng đơn của bạn. Quản lý xem xếp hạng ở **📊 So sánh nhân viên → Đơn qua web**.
+
 ### Hồ sơ khách hàng
 
 Bấm vào tên khách ở bất kỳ đâu để mở hồ sơ.

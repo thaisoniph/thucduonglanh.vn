@@ -622,6 +622,14 @@ async function crmCustOrders(x, u, d) {
 }
 
 /* ================================================================ chia khách & phạm vi dữ liệu */
+/** Mã link giới thiệu của nhân sự (thucduonglanh.vn/?ref=…): tên bỏ dấu, viết liền (Thủy → thuy, Văn Hiếu → vanhieu). Trùng công thức refCode trong crm/app.js. */
+export const refCode = name => nrm(name).replace(/[^a-z0-9]/g, '');
+/** Khách vào web qua link của sale → tên sale (đang dùng, không phải Marketing); không khớp → ''. */
+async function refUser(x, ref) {
+  const k = refCode(ref); if (!k) return '';
+  const u = (await crmUsers(x)).find(r => r.active && r.role !== 'Marketing' && refCode(r.name) === k);
+  return u ? u.name : '';
+}
 export async function ownerOf(x, phone) { const r = await first(x.db, 'SELECT owner FROM customers WHERE phone = ?', normPhone(phone)); return r ? r.owner || '' : ''; }
 async function setOwner(x, phone, name) { const r = await run(x.db, 'UPDATE customers SET owner = ? WHERE phone = ?', name, normPhone(phone)); return r.meta.changes > 0; }
 export async function nextAssignee(x) {
@@ -802,8 +810,10 @@ export async function saveOrder(x, data, opt) {
   const items = itemsText(data.items || []), pay = data.payment === 'bank' ? 'Chuyển khoản' : 'COD', realItems = (data.items || []).filter(i => !i.gift);
   if (!opt.otype) { try { opt.otype = (await otypeSuggest(x, phone, now)).t; } catch (e) { console.error('otype', e.message); } } // đơn web: loại đơn theo gợi ý (tính trước khi lưu)
   const ca = opt.ca || caOf(now, await caCfg(x)), line = opt.line || lineOf(realItems.map(i => i.name + ' ' + (i.variant || '')).join(' ')), ship = opt.shipText || shipText(data.items || []);
-  let owner = await ownerOf(x, phone), assigned = '';
-  if (!owner && !opt.by) owner = assigned = await autoOwner(x); // khách chưa ai phụ trách + chế độ "Tự chia đều"
+  let owner = await ownerOf(x, phone), assigned = '', refBy = '';
+  if (!opt.by && data.ref) refBy = await refUser(x, String(data.ref).slice(0, 40)); // khách đặt qua link riêng của sale
+  if (refBy) c.note = (c.note ? c.note + ' · ' : '') + '🔗 Đặt qua link của ' + refBy + (owner && owner !== refBy ? ' (khách do ' + owner + ' phụ trách)' : '');
+  if (!owner && !opt.by) owner = assigned = refBy || await autoOwner(x); // khách mới: giao cho sale gửi link, không thì theo chế độ "Tự chia đều"
   const seller = opt.by || owner;
   await insertMany(x.db, 'orders', ORDER_COLS, [{ id: String(data.id || ''), time: now, name: c.name || '', phone, email: c.email || '', province: c.province || '', ward: c.district || '', address: c.address || '', items,
     subtotal: Number(data.subtotal) || 0, shipping: Number(data.shipping) || 0, total: Number(data.total) || 0, payment: pay, note: c.note || '', status: opt.status || 'Mới', source: data.source || '', first_source: data.first_source || '',
@@ -820,7 +830,7 @@ export async function saveOrder(x, data, opt) {
     const omsg = (manual ? '📝 <b>ĐƠN NHẬP TAY ' + esc(data.id) + '</b> – bởi ' + esc(opt.by) : '🛒 <b>ĐƠN HÀNG MỚI ' + esc(data.id) + '</b>') + '\n👤 ' + esc(c.name) + ' – <b>' + esc(c.phone) + '</b>' +
       '\n📍 ' + esc([c.address, c.district, c.province].filter(Boolean).join(', ')) + '\n\n' + esc(items) + '\n\n💰 <b>Tổng: ' + fmt(data.total) + '</b> (ship ' + fmt(data.shipping) + ') – ' + pay +
       (c.note ? '\n📝 ' + esc(c.note) : '') + (data.source ? '\n🔗 Nguồn: ' + esc(data.source) : '');
-    await telegram(x.env, omsg + (manual ? '' : owner ? '\n👤 Phụ trách: ' + esc(owner) + (assigned ? ' (vừa tự chia)' : '') : '\n⚠️ Khách chưa có người phụ trách – vào CRM để giao'));
+    await telegram(x.env, omsg + (manual ? '' : owner ? '\n👤 Phụ trách: ' + esc(owner) + (assigned ? (assigned === refBy ? ' (khách đặt qua link của ' + esc(refBy) + ')' : ' (vừa tự chia)') : '') : '\n⚠️ Khách chưa có người phụ trách – vào CRM để giao'));
     if (!manual && owner) await telegramUser(x, owner, omsg + '\n\n👉 Đơn của khách bạn phụ trách – gọi xác nhận: ' + CRM_URL + '/#don-hang');
   };
   x.later(notify());

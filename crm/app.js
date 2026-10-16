@@ -98,6 +98,16 @@
   function daysAgo(t) { if (!t) return ''; var n = Math.round((today() - dayStart(t)) / DAY); if (n === 0) return 'hôm nay'; if (n === 1) return 'hôm qua'; if (n < 0) return 'còn ' + (-n) + ' ngày'; return n + ' ngày trước'; }
   function when(t) { if (!t) return ''; var n = Math.round((today() - dayStart(t)) / DAY), x = vnDate(t), noTime = !x.h && !x.mi; return n === 0 ? 'Hôm nay' + (noTime ? '' : ' ' + fDateTime(t).slice(0, 5)) : n === 1 ? 'Hôm qua' + (noTime ? '' : ' ' + fDateTime(t).slice(0, 5)) : noTime ? fDate(t).slice(0, 5) : fDateTime(t); } // đơn nhập từ file không có giờ → chỉ hiện ngày
   function norm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd'); }
+  /** Link riêng của sale: thucduonglanh.vn/?ref=thuy. Khách vào qua link rồi đặt trong 30 ngày → đơn tính cho sale (khách chưa ai phụ trách thì giao luôn). Trùng refCode trong api/src/crm.js. */
+  function refCode(n) { return norm(n).replace(/[^a-z0-9]/g, ''); }
+  function refLink(n, path) { return 'https://thucduonglanh.vn' + (path || '/') + '?ref=' + refCode(n); }
+  function refRow(label, url) { return '<div class="ref-row"><span class="small muted">' + label + '</span><input type="text" readonly value="' + esc(url) + '"><button class="btn" data-copyref="' + esc(url) + '">📋 Copy</button></div>'; }
+  function refLinks(n) { return refRow('Trang chủ', refLink(n)) + refRow('Tất cả sản phẩm', refLink(n, '/san-pham/')) + '<p class="small muted" style="margin:6px 0 0">Gửi link sản phẩm cụ thể: mở sản phẩm trên web, copy link rồi thêm <b>?ref=' + esc(refCode(n)) + '</b> vào cuối.</p>'; }
+  /** Hộp 🌐 ở tab Hiệu quả: bao nhiêu đơn khách tự đặt trên web (đơn của mình), kèm link riêng để gửi khách. */
+  function refBox(c, p, n) {
+    return '<div class="box ref-box"><h3>🌐 Đơn khách tự đặt trên web</h3><p style="margin:0 0 6px"><b>' + c.web + '</b> / ' + c.orders + ' đơn' + (c.orders ? ' (' + c.webPct + '%)' : '') + (c.webRev ? ' · ' + moneyShort(c.webRev) : '') + ' ' + delta(c.web, p.web) + '</p>' +
+      (n ? '<p class="small muted" style="margin:0 0 8px">Gửi link riêng cho khách (tin chăm sóc, nhóm Zalo, lúc chốt đơn). Khách đặt trên web trong 30 ngày, đơn tự tính cho ' + (n === S.user.name ? 'bạn' : esc(n)) + ', khách mới tự giao cho ' + (n === S.user.name ? 'bạn' : esc(n)) + ' phụ trách. Giá web rẻ hơn Shopee, có quà tặng.</p>' + refLinks(n) : '<p class="small muted" style="margin:0">Mỗi bạn có link riêng ở tab Hiệu quả của mình hoặc Cài đặt → 🌐 Link đặt hàng của tôi. Xếp hạng: 📊 So sánh nhân viên → Đơn qua web.</p>') + '</div>';
+  }
   function normPhone(p) { p = String(p || '').replace(/\D/g, ''); if (p.indexOf('84') === 0 && p.length >= 11) p = '0' + p.slice(2); if (p.length === 9 && /^[35789]/.test(p)) p = '0' + p; return p; } // số copy từ Google Sheet hay mất số 0 đầu
   /** Bấm là copy: tên, SĐT (copy liền số), địa chỉ, mã đơn, sản phẩm, số tiền… (bắt ở sự kiện chung, không mở thẻ bên dưới). */
   function cp(v, html) { v = String(v == null ? '' : v).trim(); if (!v || v === '–') return html != null ? html : ''; return '<span class="cp" data-copy="' + esc(v) + '" title="Bấm để copy">' + (html != null ? html : esc(v)) + '</span>'; }
@@ -2727,8 +2737,9 @@
     var conv = 0, convRev = 0; Object.keys(firstCare).forEach(function (ph) { var t = firstCare[ph], hit = S.d.orders.filter(function (o) { return o.phone === ph && !isVoid(o.status) && o.time > t && o.time <= t + 14 * DAY; }); if (hit.length) { conv++; convRev += hit.reduce(function (s0, o) { return s0 + o.total; }, 0); } });
     var allOs = S.d.orders.filter(function (o) { return inR(o.time) && me(o.seller) && o.status !== 'Huỷ'; }), back = allOs.filter(function (o) { return /hoàn/i.test(o.status); });
     var repeat = {}; old.forEach(function (o) { repeat[o.phone] = 1; });
+    var webOs = os.filter(isWebOrder), webRev = webOs.reduce(function (s0, o) { return s0 + o.total; }, 0);
     var vipRisk = mine.filter(function (c) { return isVip(c) && stageOf(c) === 'risk' && !coldOf(c) && replyOf(c).days > 30; }).length;
-    return { contacted: Object.keys(firstCare).length, conv: conv, convRev: convRev, convPct: Object.keys(firstCare).length ? pct(conv, Object.keys(firstCare).length) : null, backN: back.length, backPct: allOs.length ? pct(back.length, allOs.length) : null, backV: back.reduce(function (s0, o) { return s0 + o.total; }, 0), repeat: Object.keys(repeat).length, vipRisk: vipRisk,
+    return { contacted: Object.keys(firstCare).length, conv: conv, convRev: convRev, convPct: Object.keys(firstCare).length ? pct(conv, Object.keys(firstCare).length) : null, backN: back.length, backPct: allOs.length ? pct(back.length, allOs.length) : null, backV: back.reduce(function (s0, o) { return s0 + o.total; }, 0), repeat: Object.keys(repeat).length, vipRisk: vipRisk, web: webOs.length, webOf: os.length, webRev: webRev, webPct: pct(webOs.length, os.length),
       sales: sales, orders: os.length, avg: os.length ? Math.round(sales / os.length) : 0, oldRev: oldRev, oldPct: pct(oldRev, sales), won: cs.won, lost: cs.lost, junk: cs.junk, pending: cs.open, data: cs.data, closePct: cs.pct,
       care: care.length, replied: replied, replyPct: care.length ? pct(replied, care.length) : null, reorder: care.filter(function (l) { return l.result === 'Đã đặt lại'; }).length,
       stale: mine.filter(function (c) { return replyOf(c).days > 30; }).length, mine: mine.length };
@@ -4497,7 +4508,7 @@
       dashTile('why', repRateLv(c.closePct, p.closePct), '🎯 Chốt được', c.closePct === null ? '–' : c.closePct + '%', c.closePct === null ? '' : delta(c.closePct, p.closePct, 'rate'), c.data ? 'Cứ 10 khách hỏi chốt ' + per10 + ' khách' : 'Chưa có khách hỏi từ quảng cáo') +
       dashTile('rtrend', c.orders && p.orders ? dashTrend(c.avg, p.avg) : '', '🛒 Mỗi đơn', c.orders ? moneyShort(c.avg) : '–', c.orders ? delta(c.avg, p.orders ? p.avg : 0) : '', 'Bán combo, 2–3 hộp thì số này tăng') +
       dashTile('care', c.sales ? repRateLv(c.oldPct, p.sales ? p.oldPct : null) : '', '🔁 Khách cũ mua lại', c.repeat + ' khách', delta(c.repeat, p.repeat), c.sales ? moneyShort(c.oldRev) + ' = ' + c.oldPct + '% tiền bán được' : 'Chăm sóc tốt thì số này tăng') +
-      '</div>' + smkInvest(mk, mk && mk.me, me ? 'bạn' : name, cx.label) + repFunnel(c, me ? 'bạn' : name) + repTodo(c, p, me, mk && mk.me) + '</section>';
+      '</div>' + smkInvest(mk, mk && mk.me, me ? 'bạn' : name, cx.label) + repFunnel(c, me ? 'bạn' : name) + repTodo(c, p, me, mk && mk.me) + '</section>' + refBox(c, p, name);
     h += '<div class="steps" style="margin:0 0 16px"><button class="btn pri" data-daily="' + esc(name) + '">📋 Báo cáo ngày (gửi Zalo)</button><button class="btn" data-bcdt="' + esc(name) + '|' + month + '">📊 Bảng BCDT ' + monthLabel(month) + '</button>' + (lvl() >= 3 && !me ? '<button class="btn" data-usage="' + esc(name) + '">📈 Mức dùng CRM</button>' : '') + '</div>';
     h += '<h2 class="dash-more-h">Xem chi tiết <small class="muted">(bấm để mở)</small></h2>';
     h += repMore('rtrend', '📈 Bán hàng theo ngày', 'Doanh số, số đơn, lượt chăm sóc từng ngày, so với ' + (CMP_LABEL || 'kỳ trước'), repTrend(name, cx));
@@ -4591,7 +4602,7 @@
       dashTile('cmp', repRateLv(all.closePct, prev.closePct), '🎯 Chốt được', all.closePct === null ? '–' : all.closePct + '%', all.closePct === null ? '' : delta(all.closePct, prev.closePct, 'rate'), all.data ? 'Cứ 10 khách hỏi chốt ' + Math.round(all.won * 10 / all.data) + ' khách' : 'Chưa có khách hỏi từ quảng cáo') +
       dashTile('cmp', all.orders && prev.orders ? dashTrend(all.avg, prev.avg) : '', '🛒 Mỗi đơn', all.orders ? moneyShort(all.avg) : '–', all.orders ? delta(all.avg, prev.orders ? prev.avg : 0) : '', 'Tiền trung bình 1 đơn') +
       dashTile('care', all.sales ? repRateLv(all.oldPct, prev.sales ? prev.oldPct : null) : '', '🔁 Khách cũ mua lại', all.repeat + ' khách', delta(all.repeat, prev.repeat), all.sales ? moneyShort(all.oldRev) + ' = ' + all.oldPct + '% tiền bán được' : 'Chăm sóc tốt thì số này tăng') +
-      '</div>' + smkInvest(mk, mk && mk.team, 'cả nhóm', cx.label) + repFunnel(all, 'cả nhóm') + repMgrTodo(rows, all, cx, noSeller) + repPeople(rows, all, cx) + '</section>';
+      '</div>' + smkInvest(mk, mk && mk.team, 'cả nhóm', cx.label) + repFunnel(all, 'cả nhóm') + repMgrTodo(rows, all, cx, noSeller) + repPeople(rows, all, cx) + '</section>' + refBox(all, prev, '');
     h += '<div class="steps" style="margin:0 0 16px"><button class="btn pri" data-daily="">📋 Báo cáo ngày (gửi Zalo)</button><button class="btn" data-bcdt="|' + month + '">📊 Bảng BCDT cả nhóm ' + monthLabel(month) + '</button>' + (lvl() >= 3 ? '<button class="btn" data-usage="">📈 Mức dùng CRM</button>' : '') + '</div>';
     h += '<h2 class="dash-more-h">Xem chi tiết <small class="muted">(bấm để mở)</small></h2>';
     var lead = rows[0] && rows[0].sales ? rows[0] : null;
@@ -4615,6 +4626,7 @@
     target: ['% mục tiêu', function (r) { return r.t && r.t.amount ? Math.round(r.ms * 100 / r.t.amount) : null; }, function (v) { return v + '%'; }, function (r) { return r.t && r.t.amount ? moneyShort(r.ms) + ' / ' + moneyShort(r.t.amount) : 'chưa đặt mục tiêu'; }],
     care: ['Lượt chăm sóc', function (r) { return r.care; }, String, function (r) { return r.reorder + ' đặt lại'; }],
     conv: ['Chăm sóc ra đơn', function (r) { return r.convPct; }, function (v) { return v + '%'; }, function (r) { return r.conv + ' / ' + r.contacted + ' khách'; }],
+    web: ['Đơn qua web', function (r) { return r.webOf ? r.webPct : null; }, function (v) { return v + '%'; }, function (r) { return r.web + ' / ' + r.webOf + ' đơn'; }],
     old: ['Từ khách cũ', function (r) { return r.sales ? r.oldPct : null; }, function (v) { return v + '%'; }, function (r) { return moneyShort(r.oldRev); }]
   };
   function compareBlock(rows, cx) {
@@ -5063,6 +5075,7 @@
     h += '<p class="small muted set-intro">Bấm vào từng mục để mở. Dòng nhỏ dưới tên mục là đang cài thế nào; có <b>⚠️</b> là nên làm.</p>';
     h += setSec('🙋 Của tôi', setGroup('guide', '📖 Hướng dẫn nhanh', 'Những điều cần biết khi dùng CRM hằng ngày', G.guide, true) +
       setGroup('tg', '📲 Nhận thông báo qua Telegram', S.user.tg ? '✅ Đã kết nối' : '⚠️ Chưa kết nối · bấm để kết nối (30 giây)', G.tg, !S.user.tg) +
+      setGroup('ref', '🌐 Link đặt hàng của tôi', 'Gửi khách tự đặt trên web, đơn vẫn tính cho bạn', '<div class="box ref-box"><p class="small muted" style="margin:0 0 8px">Khách bấm link rồi đặt trên web trong 30 ngày: đơn tự tính cho bạn (khách mới tự giao cho bạn phụ trách). Khách cũ đang do bạn phụ trách thì đặt bằng link nào cũng tính cho bạn. Web rẻ hơn Shopee, có quà ebook / 4 buổi Zoom cùng chuyên gia.</p>' + refLinks(S.user.name) + '</div>') +
       setGroup('acc', '👤 Tài khoản của tôi', esc(S.user.name) + ' · ' + esc(S.user.role), G.acc) +
       setGroup('lim', '🎯 Số khách chăm sóc mỗi ngày', 'Tối đa ' + dayLimit() + ' khách / ngày', G.lim) +
       setGroup('color', '🎨 Màu thẻ khách & nhãn riêng', myTags().length ? myTags().length + ' nhãn riêng' : 'Đổi màu, tạo nhãn riêng', G.color));
@@ -5538,6 +5551,7 @@
     var v = t.getAttribute('data-copy'); copy(v).then(function () { toast('📋 Đã copy: ' + (v.length > 60 ? v.slice(0, 60) + '…' : v)); });
     t.classList.add('ok'); setTimeout(function () { t.classList.remove('ok'); }, 900);
   }, true);
+  document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-copyref]'); if (!b) return; e.preventDefault(); copy(b.getAttribute('data-copyref')).then(function () { toast('Đã copy link ✓'); }); });
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-gmore]'); if (!b) return; var r = b.previousElementSibling; if (r) r.hidden = false; b.remove(); });
   document.addEventListener('toggle', function (e) { var d = e.target; if (d && d.matches && d.matches('details[data-grp]')) { S.f.gopen = S.f.gopen || {}; S.f.gopen[d.getAttribute('data-grp')] = d.open; } }, true);
   document.addEventListener('click', function (e) {
