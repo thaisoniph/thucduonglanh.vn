@@ -145,6 +145,15 @@ Sheet **Đơn hàng website Thực Dưỡng Lành**: https://docs.google.com/spr
 
 ### CRM web – https://crm.thucduonglanh.vn & Máy chủ API – https://api.thucduonglanh.vn
 
+- **Đợt 2 cải tiến UX (16/10/2026, chỉ giao diện `crm/`)**:
+  - **Hôm nay (sale)**: khung đầu = số khách + thanh tiến độ + ▶ Gọi lần lượt + `todayGoalLine()` (1 dòng mục tiêu); `myGoalToday()` + `raceBlock()` + 📋 Báo cáo cuối ngày chuyển xuống cuối (`.td-tail`). Quản lý giữ thi đua + ô số ở đầu.
+  - **Cửa sổ Chăm sóc**: hàng `.k-cb` hẹn nhanh Mai / 3 ngày / 1 tuần / 2 tuần (`data-kcb`, lưu `Hẹn gọi lại` + callback qua `saveCare`).
+  - **Giữ chữ đang gõ** (`draftKeep(el, key)`, localStorage 2 ngày): `draft_k_<sđt>` (Chăm sóc), `draft_l_<id>` (Tư vấn khách hỏi), `draft_q_<sđt>` (Ghi nhanh); xoá khi lưu xong.
+  - **🔍 Tìm nhanh** (`openGlobalSearch`, nút `#gsBtn` trên thanh trên, không có với Marketing): tìm trong `S.d.customers / orders / leads` đã tải (máy chủ đã lọc theo quyền), mở bằng hash `#khach-hang/<sđt>`, `#don-hang/<mã>`, `#tiem-nang/<id>`.
+  - **Tổng quan**: 6 ô (`.dash-tiles.dt6`): Doanh thu, Doanh số, Khách mới, 🔁 Khách mua lại (`b.oldPct`), Quảng cáo, ↩️ Hoàn / huỷ (`voidStats`, đơn văn phòng); hàng nút `.dash-go` (Bán hàng / Marketing / Sàn / Link & QR); `dashNotes` có nút **Xem →** (`xem(go)`: `#tab` hoặc `data-dgo`) + cảnh báo trễ hạn chăm sóc và hoàn / huỷ ≥ 10%.
+  - **Hiệu quả (cả nhóm)**: thêm `teamBlock()` (Tiến độ nhân sự hôm nay) trước Từng nhân viên.
+  - **Menu**: Khách hỏi lên ngay sau Hôm nay (`VIEWS`). Dòng cập nhật cuối trang: "dữ liệu lưu trên máy chủ CRM".
+  - **Hoa hồng** (`commBase`): tiền hàng = `total − shipping` (đơn file sale shipping = 0 nên tính cả số tiền); chỉ ảnh hưởng BCDT / hoa hồng.
 - **Đợt 1 cải tiến UX (16/10/2026, api `2026-10-16i`)**, theo báo cáo đánh giá UX/UI được anh Sơn duyệt (Phương án B):
   - **Doanh số / Doanh thu**: Doanh số = tổng đơn không huỷ / hoàn (`isVoid`); Doanh thu = đơn đã thu tiền (`isPaidOrder` trong app.js: Đã giao / Đổi hàng hoặc `paid` đã đánh dấu chuyển khoản). Tổng quan: ô 💵 Doanh thu (không đèn) + 💰 Doanh số (gộp số đơn, TB/đơn; bỏ ô Số đơn hàng); Hiệu quả: dòng 💵 dưới ô Doanh số (`paidLine`). Sàn: `san.js` thêm cột `gp` (đơn ok có `net_real` hoặc trạng thái hoàn thành / đã giao) ở cuối mảng `agg`; `sanSum` đọc `gp`. Mọi chữ "Tiền bán được"/"doanh thu" (nghĩa tổng đơn) trên CRM đổi thành "doanh số".
   - **D+7** (`d7Task`, crm.js): chỉ khách `orders = 1`, tính từ `recv` (chưa có mà đơn đã giao → ngày đặt + shipDays), cửa sổ 7–10 ngày, không bị `coolDays` chặn, bỏ nếu đã chăm sóc từ ngày nhận + 4. Tin 8h có khối 🤝; `dailyCare` đọc thêm `recv`.

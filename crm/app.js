@@ -86,6 +86,11 @@
   function $(s, r) { return (r || document).querySelector(s); }
   function $$(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  /** Giữ chữ đang gõ trong ô (lưu trên máy này, tối đa 2 ngày): mở lại cửa sổ thì điền lại (Đợt 2, 16/10/2026). */
+  function draftKeep(el, k) {
+    if (!el) return; try { var d = JSON.parse(store(k) || 'null'); if (d && d.t > Date.now() - 2 * DAY && d.v && !el.value) el.value = d.v; } catch (e) { }
+    el.addEventListener('input', function () { store(k, el.value.trim() ? JSON.stringify({ v: el.value, t: Date.now() }) : null); });
+  }
   function store(k, v) {
     try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { }
     return null;
@@ -653,9 +658,9 @@
   var VIEWS = [
     { id: 'tong-quan', label: 'Tổng quan', icon: 'dash', min: 3 }, // chủ doanh nghiệp: kinh doanh + website
     { id: 'hom-nay', label: 'Hôm nay', icon: 'today' },
+    { id: 'tiem-nang', label: 'Khách hỏi', icon: 'lead' }, // Đợt 2: khách hỏi lên ngay sau Hôm nay (khách mới cần gọi sớm)
     { id: 'khach-hang', label: 'Khách đã mua', short: 'Khách', icon: 'users' },
     { id: 'don-hang', label: 'Đơn hàng', icon: 'box' },
-    { id: 'tiem-nang', label: 'Khách hỏi', icon: 'lead' },
     { id: 'bao-cao', label: 'Hiệu quả', icon: 'chart' },
     { id: 'marketing', label: 'Marketing', icon: 'mega', mkt: 1 }, // quyền Marketing: chỉ thấy tab này + Cài đặt; Quản trị vào từ Tổng quan (không chiếm chỗ trên menu)
     { id: 'link-qr', label: 'Link & QR', short: 'QR', icon: 'qr', lq: 1 }, // 📍 link / mã QR theo dõi nguồn khách: Marketing, Quản lý, Quản trị (Quản trị vào từ Tổng quan / Marketing)
@@ -667,13 +672,14 @@
   function meHTML() { return '<b>' + esc(S.user.name) + '</b>'; } // chỉ tên: mỗi người là chủ công việc của mình
   function updatedLine() {
     var pf = S.perf, sp = pf && lvl() >= 3 ? ' · tải ' + (pf.core / 1000).toFixed(1) + 's' + (pf.srv ? ' (máy chủ ' + (pf.srv.ms / 1000).toFixed(1) + 's' + (pf.srv.cached ? ', bản đọc sẵn' : ', đọc Sheet') + ')' : '') + (pf.kb ? ', ' + pf.kb + ' KB' : '') + (pf.rest ? ' + đợt 2 ' + (pf.rest / 1000).toFixed(1) + 's' + (pf.kb2 ? '/' + pf.kb2 + ' KB' : '') : '') : '';
-    return '<p class="updated">' + (S.stale ? '⏳ Đang cập nhật… (đang xem dữ liệu lúc ' + fDateTime(S.loadedAt) + ')' : 'Cập nhật lúc ' + fDateTime(S.loadedAt)) + (S.d && S.d.partial ? ' · ⏳ đang tải thêm đơn & nhật ký cũ…' : '') + ' · dữ liệu lưu trong Google Sheet' + sp + '</p>';
+    return '<p class="updated">' + (S.stale ? '⏳ Đang cập nhật… (đang xem dữ liệu lúc ' + fDateTime(S.loadedAt) + ')' : 'Cập nhật lúc ' + fDateTime(S.loadedAt)) + (S.d && S.d.partial ? ' · ⏳ đang tải thêm đơn & nhật ký cũ…' : '') + ' · dữ liệu lưu trên máy chủ CRM (bản sao ở Google Sheet)' + sp + '</p>';
   }
   function shell() {
     $('#app').innerHTML = '<header class="top"><div class="top-in">' +
       '<a class="brand" href="#' + homeView() + '"><img src="/icon-180.png" alt="">CRM</a>' +
       '<nav class="nav">' + navViews().map(function (v) { return '<a href="#' + v.id + '" data-v="' + v.id + '"' + (v.id === 'cai-dat' ? ' class="nav-set"' : '') + '>' + I[v.icon] + '<span' + (v.short ? ' data-short="' + v.short + '"' : '') + '>' + v.label + '</span></a>'; }).join('') + '</nav>' +
       '<div class="grow"></div><div class="me">' + meHTML() + '</div>' +
+      (isMkt() ? '' : '<button class="icon-btn" id="gsBtn" title="Tìm khách, đơn, khách hỏi" aria-label="Tìm khách, đơn, khách hỏi">🔍</button>') +
       '<button class="icon-btn fb-btn" id="fbBtn" title="Góp ý: báo lỗi, chỗ khó dùng, ý tưởng" aria-label="Góp ý">💡<span class="fb-lbl">Góp ý</span></button>' +
       '<a class="icon-btn" href="/huong-dan/crm/" target="_blank" rel="noopener" title="Hướng dẫn sử dụng" aria-label="Hướng dẫn sử dụng">' + I.help + '</a>' +
       '<a class="icon-btn top-set" href="#cai-dat" title="Cài đặt" aria-label="Cài đặt">' + I.gear + '</a>' +
@@ -681,7 +687,30 @@
       '</div></header><main id="view"></main>';
     $('#refresh').onclick = function () { load(); };
     $('#fbBtn').onclick = function () { openFeedback(); };
+    if ($('#gsBtn')) $('#gsBtn').onclick = function () { openGlobalSearch(); };
     navBadges(); pendingBadge();
+  }
+  /** 🔍 Tìm nhanh trên mọi tab (Đợt 2, 16/10/2026): gõ SĐT / tên / mã đơn → khách đã mua, đơn hàng, khách hỏi; bấm là mở. Chỉ tìm trong dữ liệu người dùng được xem (máy chủ đã lọc). */
+  function openGlobalSearch() {
+    var m = modal('🔍 Tìm nhanh', '<input type="search" id="gsQ" placeholder="Số điện thoại, tên khách hoặc mã đơn" autocomplete="off" inputmode="search"><div id="gsRes" class="gs-res"><p class="muted small">Gõ ít nhất 2 chữ hoặc 3 số.</p></div>', '');
+    var qi = $('#gsQ', m), out = $('#gsRes', m), tm = null;
+    var it = function (href, title, sub) { return '<a class="gs-it" href="' + href + '"><b>' + title + '</b><span>' + sub + '</span></a>'; };
+    var find = function () {
+      var raw = qi.value.trim(), q = norm(raw), dg = raw.replace(/\D/g, ''), byPh = dg.length >= 3;
+      if (q.length < 2 && !byPh) { out.innerHTML = '<p class="muted small">Gõ ít nhất 2 chữ hoặc 3 số.</p>'; return; }
+      var hit = function (name, phone) { return (byPh && String(phone || '').indexOf(dg) >= 0) || (!byPh && norm(name).indexOf(q) >= 0); };
+      var cs = (S.d.customers || []).filter(function (c) { return c.orders > 0 && hit(c.name, c.phone); }).slice(0, 8);
+      var os = (S.d.orders || []).filter(function (o) { return norm(o.id).indexOf(q) >= 0 || hit(o.name, o.phone); }).sort(function (a, b) { return (b.time || 0) - (a.time || 0); }).slice(0, 6);
+      var ls = (S.d.leads || []).filter(function (l) { return hit(l.name, l.phone); }).sort(function (a, b) { return (b.time || 0) - (a.time || 0); }).slice(0, 6);
+      var h = '';
+      if (cs.length) h += '<h3>👤 Khách đã mua</h3>' + cs.map(function (c) { return it('#khach-hang/' + c.phone, esc(c.name || 'Khách') + ' · ' + fPhone(c.phone), c.orders + ' đơn · ' + moneyShort(c.spent || 0) + (c.owner ? ' · ' + esc(c.owner) : '')); }).join('');
+      if (os.length) h += '<h3>📦 Đơn hàng</h3>' + os.map(function (o) { return it('#don-hang/' + encodeURIComponent(o.id), esc(o.id) + ' · ' + esc(o.name || ''), fDate(o.time).slice(0, 5) + ' · ' + moneyShort(o.total || 0) + ' · ' + esc(o.status || '')); }).join('');
+      if (ls.length) h += '<h3>🙋 Khách hỏi</h3>' + ls.map(function (l) { return it('#tiem-nang/' + encodeURIComponent(l.id), esc(l.name || 'Khách') + ' · ' + fPhone(l.phone), esc(l.status || '') + ' · hỏi ' + fDate(l.time).slice(0, 5) + (l.owner ? ' · ' + esc(l.owner) : '')); }).join('');
+      out.innerHTML = h || '<p class="muted small">Không thấy. Khách do người khác phụ trách thì bạn không thấy được, nhờ quản lý tra giúp.</p>';
+    };
+    qi.addEventListener('input', function () { clearTimeout(tm); tm = setTimeout(find, 150); });
+    out.addEventListener('click', function (e) { if (e.target.closest('.gs-it')) closeModal(true); });
+    setTimeout(function () { qi.focus(); }, 60);
   }
   function setWho(v) { S.who = v || ''; store('crm_who', S.who); ['c', 'o', 't'].forEach(function (k) { if (S.f[k]) S.f[k].n = 60; }); navBadges(); render(); }
   function navBadges() {
@@ -1015,10 +1044,12 @@
       '<div class="bar"><i style="width:' + pc + '%"></i></div>' +
       (q.list.length && (!wn || wn === S.user.name) ? '<button class="btn pri lg block" data-flow>▶ Bắt đầu gọi lần lượt</button>' : '') +
       (q.rest ? '<p class="small muted" style="margin:8px 0 0">Còn ' + q.rest + ' khách để các ngày sau (tối đa ' + dayLimit() + ' khách/ngày, đổi ở <a href="#cai-dat">Cài đặt</a>).</p>' : '') +
-      '<button class="btn block" data-daily="' + esc(lvl() >= 2 ? wn || '' : S.user.name) + '" style="margin-top:8px">📋 Báo cáo cuối ngày (gửi Zalo)</button></section>';
-    if (lvl() < 2) h += myGoalToday(); // nhân viên: mục tiêu tháng + tiến độ ngay đầu trang để mỗi ngày nhìn thấy
-    h += raceBlock(); // bảng thi đua: Top 3 + hạng của mình (quản lý thấy cả bảng, kể cả khi đang lọc 1 nhân viên)
-    h += '<div class="minis' + (lvl() < 2 ? ' m3' : '') + '">' + mini('🧾 Đơn mới', no.length, '#don-hang', no.length ? 'warn' : '') + mini('🙋 Khách hỏi', hot.length + ld.length, '#tiem-nang', hot.length + ld.length ? 'bad' : '') + mini('✅ Đã làm', doneToday.length, '', '') + (lvl() < 2 ? '' : miniGoal()) + '</div>';
+      (lvl() < 2 ? todayGoalLine() : '') + '</section>';
+    // Đợt 2 (16/10/2026): sale mở máy thấy ngay khách cần gọi; mục tiêu chi tiết + thi đua + báo cáo cuối ngày chuyển xuống cuối trang. Quản lý giữ thi đua + ô số ở đầu.
+    if (lvl() >= 2) {
+      h += raceBlock(); // bảng thi đua: quản lý thấy cả bảng, kể cả khi đang lọc 1 nhân viên
+      h += '<div class="minis">' + mini('🧾 Đơn mới', no.length, '#don-hang', no.length ? 'warn' : '') + mini('🙋 Khách hỏi', hot.length + ld.length, '#tiem-nang', hot.length + ld.length ? 'bad' : '') + mini('✅ Đã làm', doneToday.length, '', '') + miniGoal() + '</div>';
+    }
     if (lvl() >= 2 && wn) {
       var pm = perf(wn, monthRange(monthOf(Date.now())));
       h += '<div class="kpis">' + kpi('Doanh số tháng ' + (new Date().getMonth() + 1) + ' của ' + esc(wn), moneyShort(pm.sales), '', '', pm.orders + ' đơn · chốt ' + (pm.closePct === null ? '–' : pm.closePct + '%')) +
@@ -1058,7 +1089,16 @@
 
     if (doneToday.length) h += '<section class="section"><details class="grp" data-grp="done"' + (S.f.gopen && S.f.gopen.done ? ' open' : '') + '><summary><span class="g-t">✅ Đã làm hôm nay</span><span class="count">' + doneToday.length + '</span></summary><div class="timeline" style="padding:12px">' +
       doneToday.slice(0, 40).map(logItem).join('') + '</div></details></section>';
+    if (lvl() < 2) h += '<section class="section td-tail"><div class="section-h"><h2>🏁 Mục tiêu & thi đua</h2></div>' + myGoalToday() + raceBlock() + '</section>';
+    h += '<button class="btn block" data-daily="' + esc(lvl() >= 2 ? wn || '' : S.user.name) + '" style="margin-top:12px">📋 Báo cáo cuối ngày (gửi Zalo)</button>';
     return h;
+  }
+  /** Sale: 1 dòng mục tiêu tháng + hôm nay trong khung đầu trang Hôm nay (chi tiết ở cuối trang). */
+  function todayGoalLine() {
+    var me = S.user.name, mk = monthOf(Date.now()), R = monthRange(mk), t = targetOf(me, mk), t0 = today(), sales = perf(me, R).sales, td = perf(me, [t0, t0 + DAY]);
+    if (!t || !t.amount) return '<p class="td-goal">🎯 Doanh số tháng: <b>' + moneyShort(sales) + '</b> · chưa đặt mục tiêu (đặt ở cuối trang)</p>';
+    var left = Math.round((R[1] - t0) / DAY), need = Math.max(0, Math.ceil((t.amount - (sales - td.sales)) / Math.max(1, left)));
+    return '<p class="td-goal">🎯 Tháng: <b>' + moneyShort(sales) + '</b> / ' + moneyShort(t.amount) + ' (' + pct(sales, t.amount) + '%) · Hôm nay: <b>' + moneyShort(td.sales) + '</b>' + (need ? ' / cần ' + moneyShort(need) : '') + '</p>';
   }
   /** Quản lý (đang xem Tất cả nhân sự): tiến độ hôm nay của từng người. Bấm 1 dòng → lọc theo người đó. */
   function teamBlock() {
@@ -1579,7 +1619,7 @@
     });
     draw();
     var qs = $('#cQSave', m), qi = $('#cQuick', m), sv = $('#cSave', m), ta = $('#cNote', m);
-    var cu = $('#cUse', m), noteBase = c.note || ''; // ghi chú lúc mở: máy chủ so với bản hiện tại để giữ dòng người khác vừa thêm
+    var cu = $('#cUse', m), noteBase = c.note || '', qD = 'draft_q_' + c.phone; draftKeep(qi, qD); // ghi chú lúc mở: máy chủ so với bản hiện tại để giữ dòng người khác vừa thêm
     if (c.noteCut) { qs.disabled = true; sv.disabled = true; ta.disabled = true; cu.disabled = true; }
     api('cust_orders', { phone: c.phone }).then(function (j) { // toàn bộ đơn (kể cả đơn cũ) + ghi chú đầy đủ
       all = j.orders; if (c.noteCut || j.note !== undefined) { c.note = j.note; c.noteCut = false; ta.value = j.note; noteBase = j.note || ''; }
@@ -1596,7 +1636,7 @@
     var quick = function () {
       var q = qi.value.trim(); if (!q || qs.disabled) return;
       var note = fDate(Date.now()).slice(0, 5) + ': ' + q + (c.note ? '\n' + c.note : '');
-      sendOp('customer', { phone: c.phone, note: note, quick: q }); ta.value = note; noteBase = note; qi.value = ''; tab = 'hist'; draw(); toast('Đã ghi ✓'); render();
+      sendOp('customer', { phone: c.phone, note: note, quick: q }); ta.value = note; noteBase = note; store(qD, null); qi.value = ''; tab = 'hist'; draw(); toast('Đã ghi ✓'); render();
     };
     qs.onclick = quick; qi.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); quick(); } });
     sv.onclick = function () {
@@ -1702,6 +1742,7 @@
       '<div class="box"><h3>Bước 2 · Khách thế nào? Bấm 1 nút là xong</h3>' +
       '<label class="f"><span>Khách nói gì (không bắt buộc, gõ trước rồi bấm nút)</span><textarea id="kNote" rows="2" placeholder="vd: chị bảo ngủ ngon hơn, còn nửa hộp…"></textarea></label>' +
       '<div class="f"><span style="display:block;font-size:13px;color:var(--muted);margin-bottom:6px">Máy tự lưu và tự hẹn ngày gọi lại</span><div class="quick">' + QUICK.filter(function (q) { return !q.only || q.only === type; }).sort(function (a, b) { return (b.only ? 1 : 0) - (a.only ? 1 : 0); }).map(function (q) { return '<button class="btn" data-q="' + q.k + '" title="' + esc(q.r + (q.d ? ', ' + q.d + ' ngày sau tự nhắc gọi lại' : '')) + '">' + q.l + '</button>'; }).join('') + '</div></div>' +
+      '<div class="k-cb"><span>📅 Khách hẹn gọi lại:</span>' + [[1, 'Mai'], [3, '3 ngày'], [7, '1 tuần'], [14, '2 tuần']].map(function (x) { return '<button type="button" class="chip" data-kcb="' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div>' +
       '<details class="k-more"><summary>Kết quả khác / tự chọn ngày hẹn</summary><div style="margin-top:10px">' +
       '<label class="f"><span>Việc</span><select id="kTask">' + Object.keys(TASK_LOG).map(function (k) { return '<option value="' + k + '"' + (k === type ? ' selected' : '') + '>' + TASK_LOG[k] + '</option>'; }).join('') + '</select></label>' +
       '<div class="f"><span style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--ink)">Kết quả</span><div class="radios">' + RESULTS.map(function (r, i) { return '<label><input type="radio" name="kRes" value="' + esc(r) + '"' + '><span>' + esc(r) + '</span></label>'; }).join('') + '</div></div>' +
@@ -1721,12 +1762,18 @@
     $('#kZalo', m).onclick = function () { copy(msg.value).then(function () { toast('Đã copy – dán vào khung chat Zalo'); }); window.open(zalo(c.phone), '_blank', 'noopener'); };
     $$('input[name=kRes]', m).forEach(function (r) { r.onchange = function () { if (r.value === 'Hẹn gọi lại' && !$('#kCb', m).value) { $('#kCb', m).value = isoDate(Date.now() + 2 * DAY); $('#kCb', m).focus(); } }; });
     $$('[data-q]', m).forEach(function (b) { b.onclick = function () { quickCare(c, b.getAttribute('data-q'), $('#kTask', m).value, $('#kNote', m).value.trim(), b, $('#kErr', m)); }; });
+    var kn = $('#kNote', m), dk = 'draft_k_' + c.phone; draftKeep(kn, dk); // chữ đang gõ: lỡ đóng cửa sổ thì lần mở sau vẫn còn
+    $$('[data-kcb]', m).forEach(function (b) { b.onclick = function () { // hẹn nhanh 1 chạm (Đợt 2): lưu "Hẹn gọi lại" + ngày
+      var n = +b.getAttribute('data-kcb'), p = { phone: c.phone, task: $('#kTask', m).value, result: 'Hẹn gọi lại', note: kn.value.trim(), callback: isoDate(Date.now() + n * DAY) };
+      $$('[data-kcb]', m).forEach(function (x) { x.disabled = true; });
+      saveCare(c, p).then(function () { store(dk, null); closeModal(); toast('Đã hẹn gọi lại ' + fDate(Date.now() + n * DAY).slice(0, 5) + ' ✓'); navBadges(); render(); if (S.flow) setTimeout(nextFlow, 200); }, function (e) { $$('[data-kcb]', m).forEach(function (x) { x.disabled = false; }); $('#kErr', m).textContent = e.message; });
+    }; });
     $('#kSave', m).onclick = function () {
       var res = $('input[name=kRes]:checked', m), err = $('#kErr', m);
       if (!res) { err.textContent = 'Bạn chọn kết quả giúp nhé.'; return; }
       var p = { phone: c.phone, task: $('#kTask', m).value, result: res.value, note: $('#kNote', m).value.trim(), callback: $('#kCb', m).value };
       var btn = this; btn.disabled = true; btn.textContent = 'Đang lưu…';
-      saveCare(c, p).then(function () { closeModal(); toast('Đã lưu kết quả chăm sóc ✓'); navBadges(); render(); if (S.flow) setTimeout(nextFlow, 200); }, function (e) { btn.disabled = false; btn.textContent = opt.flow ? 'Lưu & sang khách tiếp' : 'Lưu kết quả'; err.textContent = e.message; });
+      saveCare(c, p).then(function () { store(dk, null); closeModal(); toast('Đã lưu kết quả chăm sóc ✓'); navBadges(); render(); if (S.flow) setTimeout(nextFlow, 200); }, function (e) { btn.disabled = false; btn.textContent = opt.flow ? 'Lưu & sang khách tiếp' : 'Lưu kết quả'; err.textContent = e.message; });
     };
   }
   /** Tóm tắt khách trong hộp chăm sóc: giá trị, thói quen mua, lần cuối trả lời, lịch sử đơn – nhìn 1 màn hình là đủ để gọi. */
@@ -1758,7 +1805,7 @@
     if (q.received) p.received = 1;
     var txt = btn ? btn.textContent : ''; if (btn) { btn.disabled = true; btn.textContent = 'Đang lưu…'; }
     saveCare(c, p).then(function () {
-      if ($('.modal')) closeModal();
+      store('draft_k_' + c.phone, null); if ($('.modal')) closeModal();
       toast('Đã ghi “' + q.n + '”' + (q.d ? ' · ' + q.d + ' ngày sau tự nhắc gọi lại' : '') + ' ✓'); navBadges(); render();
       if (q.order) { S.flow = null; openNewOrder(c.phone); } else if (S.flow) setTimeout(nextFlow, 200);
     }, function (e) { if (btn) { btn.disabled = false; btn.textContent = txt; } if (errEl) errEl.textContent = e.message; else toast(e.message, true); });
@@ -2602,7 +2649,7 @@
       '<label class="f" id="cCbWrap"><span>Hẹn liên hệ lại ngày</span><input type="date" id="cCb" min="' + isoDate(Date.now()) + '"></label>' +
       '<label class="f"><span>Ghi chú lần này</span><textarea id="cNote" rows="2" placeholder="Khách nói gì, băn khoăn gì…"></textarea></label><p class="err" id="cErr"></p></div>';
     var m = modal('Tư vấn: ' + esc(l.name), body, '<button class="btn" data-close>Để sau</button><button class="btn pri" id="cSave">Lưu</button>');
-    var msg = $('#cMsg', m);
+    var msg = $('#cMsg', m), lnD = 'draft_l_' + l.id; draftKeep($('#cNote', m), lnD);
     $('#cTpl', m).onchange = function () { var i = +this.value; msg.value = i >= 0 ? fill(tp[i][2]) : ''; };
     $('#cZalo', m).onclick = function () { copy(msg.value).then(function () { toast('Đã copy – dán vào khung chat Zalo'); }); window.open(zalo(l.phone), '_blank', 'noopener'); };
     var provIn = $('#cProv', m), showArea = function () { var v = provIn.value.trim(), pv = v && provOf({ address: v }); $('#cArea', m).innerHTML = pv ? areaBox(norm(pv.old), 'consult') : v.length >= 3 ? '<p class="small muted" style="margin:0">Chưa nhận ra tỉnh – chọn trong danh sách gợi ý nhé.</p>' : ''; };
@@ -2624,7 +2671,7 @@
       var p = { id: l.id, result: o.v, note: note0, callback: o.lost || o.close ? '' : $('#cCb', m).value, status: o.lost ? 'Không mua' : 'Đang tư vấn', reason: reason };
       var btn = this; btn.disabled = true; btn.textContent = 'Đang lưu…';
       api('lead_contact', p).then(function (j) {
-        l.status = j.status; l.lastAt = j.at; l.owner = j.owner || l.owner; l.callback = p.callback ? new Date(p.callback + 'T09:00:00+07:00').getTime() : null;
+        store(lnD, null); l.status = j.status; l.lastAt = j.at; l.owner = j.owner || l.owner; l.callback = p.callback ? new Date(p.callback + 'T09:00:00+07:00').getTime() : null;
         if (o.lost) l.reason = reason;
         if (p.note) l.note = (l.note ? l.note + '\n' : '') + '[' + fDate(j.at).slice(0, 5) + ' ' + S.user.name + '] ' + p.note;
         addLog({ loc: 1, time: j.at, by: S.user.name, what: 'Tư vấn', ref: l.phone, name: l.name, result: o.v, note: p.note });
@@ -3047,15 +3094,18 @@
   function dashHero(T, b, bp, M, gl, month, sj, p) {
     var G = gl.G, whole = p.k === 'month' || p.k === 'lmonth';
     var ads = M && M.tot ? M.nr / M.tot : null, adLv = ads === null ? '' : adsLv(M.tot, M.nr);
-    var h = '<section class="dash-hero"><div class="dash-tiles">' +
+    var h = '<section class="dash-hero"><div class="dash-tiles dt6">' +
       dashTile('biz', '', '💵 Doanh thu', moneyShort(T.paid), '', T.rev ? 'Tiền đơn đã thu: ' + pct(T.paid, T.rev) + '% doanh số' + (T.rev > T.paid ? ' · còn ' + moneyShort(T.rev - T.paid) + ' đang giao / chờ thu' : '') + (T.san ? ' · sàn đã thu ' + moneyShort(T.sanPaid) + ' (tính khi có file Thu nhập hoặc đơn hoàn thành)' : '') : 'Chưa có đơn') +
       dashTile('biz', whole && G && G.isCur ? G.lv : dashTrend(T.rev, T.revP), '💰 Doanh số', moneyShort(T.rev), delta(T.rev, T.revP),
         T.n.toLocaleString('vi-VN') + ' đơn' + (T.n ? ' · TB ' + moneyShort(Math.round(T.rev / T.n)) : '') + (!sj ? (SN.err ? ' · chưa gồm sàn (chưa tải được)' : ' · ⏳ đang cộng số sàn…') : T.san ? ' · sàn ' + moneyShort(T.san) : ''), sparkSvg(T.tr.rev, T.tr.B.partial)) +
-      dashTile('biz', dashTrend(b.firstN, bp.firstN), '🙋 Khách mới mua', b.firstN.toLocaleString('vi-VN'), delta(b.firstN, bp.firstN),
-        b.oldPct === null ? 'Khách mua lần đầu' : 'Khách cũ quay lại mua: ' + b.oldPct + '% tiền văn phòng', sparkSvg(T.tr.nw, T.tr.B.partial)) +
+      dashTile('biz', dashTrend(b.firstN, bp.firstN), '🙋 Khách mới mua', b.firstN.toLocaleString('vi-VN'), delta(b.firstN, bp.firstN), 'Khách mua lần đầu trong kỳ', sparkSvg(T.tr.nw, T.tr.B.partial)) +
+      dashTile('biz', b.oldPct === null || bp.oldPct === null ? '' : dashTrend(b.oldPct, bp.oldPct), '🔁 Khách mua lại', b.oldPct === null ? '–' : b.oldPct + '%', b.oldPct === null ? '' : delta(b.oldPct, bp.oldPct, 'rate'),
+        b.oldPct === null ? 'Chưa có đơn văn phòng trong kỳ' : moneyShort(b.oldRev) + ' doanh số từ khách đã từng mua') +
       dashTile('mkt', adLv, '📣 Quảng cáo', ads === null ? '–' : '1đ → ' + oneDec(ads) + 'đ', ads !== null && M.totp && M.nrp ? dRate(ads, M.nrp / M.totp).replace(/điểm/, 'đ') : '',
         !M ? (MK.err ? '⚠️ Chưa tải được chi phí' : '⏳ đang tải…') : M.tot ? 'Chi ' + moneyShort(M.tot) + (M.nr ? ' = ' + Math.round(M.tot * 100 / M.nr) + '% tiền khách mới mua' : ', chưa có khách mới mua') : 'Chưa có chi phí quảng cáo trong kỳ') +
-      '</div>';
+      dashTile('biz', T.vs.pct === null ? '' : T.vs.pct < 5 ? 'ok' : T.vs.pct < 10 ? 'mid' : 'bad', '↩️ Hoàn / huỷ', T.vs.pct === null ? '–' : T.vs.pct + '%', T.vs.pct !== null && T.vsp.pct !== null ? inv(delta(T.vs.pct, T.vsp.pct, 'rate')) : '',
+        T.vs.n ? T.vs.v + ' / ' + T.vs.n + ' đơn văn phòng · dưới 5% là tốt' : 'Chưa có đơn văn phòng trong kỳ') +
+      '</div><div class="dash-go"><a class="btn" href="#bao-cao">📊 Bán hàng</a><a class="btn" href="#marketing">📣 Marketing</a><a class="btn" href="#san">🛒 Sàn</a><a class="btn" href="#link-qr">📍 Link & QR</a></div>';
     if (G) {
       var say = G.p >= 1 ? '🎉 Đã đạt mục tiêu, vượt <b>' + moneyShort(gl.cur - gl.tt) + '</b>.' : G.isCur ? 'Còn <b>' + G.left + ' ngày</b>, mỗi ngày cần bán khoảng <b>' + moneyShort(G.perDay) + '</b>' + (G.el >= 3 ? ' · giữ nhịp hiện nay thì cả tháng được khoảng ' + moneyShort(G.fc) + ' (' + pct(G.fc, gl.tt) + '%)' : '') + '.' : 'Cả tháng đạt ' + Math.round(G.p * 100) + '% mục tiêu.';
       h += '<div class="goal dash-goal ' + G.lv + '" role="button" tabindex="0" data-dgo="goal"><div class="goal-h"><b>🎯 Mục tiêu ' + monthLabel(month) + (sj ? '' : ' <small class="muted">(⏳ chưa gồm sàn)</small>') + '</b><span class="goal-st">' + GOAL_LV[G.lv] + '</span></div>' +
@@ -3080,6 +3130,8 @@
       nP: pOk ? add(trendSum(B, os, t, function () { return 1; }, off), sj && trendSum(B, sj.pdays, sd, function (r) { return r[2] || 0; }, off)) : null,
       nw: trendSum(B, cs, function (c) { return c.first; }, function () { return 1; }), nwP: off === null ? null : trendSum(B, cs, function (c) { return c.first; }, function () { return 1; }, off) };
   }
+  /** Tỷ lệ hoàn / huỷ đơn văn phòng (đơn trong CRM) trong khoảng R: số đơn huỷ + hoàn ÷ mọi đơn. */
+  function voidStats(R) { var n = 0, v = 0; S.d.orders.forEach(function (o) { if (o.time >= R[0] && o.time < R[1]) { n++; if (isVoid(o.status)) v++; } }); return { n: n, v: v, pct: n ? Math.round(v * 100 / n) : null }; }
   function viewDash() {
     var f = S.f.g || (S.f.g = {}); if (!f.p || f.p.k === 'all') f.p = { k: 'month' }; if (f.sfb === undefined) f.sfb = store('dash_sfb') === '1'; // mặc định TẮT (16/10/2026): đơn chưa rõ nguồn không tự tính cho Facebook
     if (!f.open) { try { f.open = JSON.parse(store('dash_open') || '{}') || {}; } catch (e) { f.open = {}; } }
@@ -3087,7 +3139,7 @@
     if (!gj && !GA.err) setTimeout(function () { gaFetch(key); }, 0);
     var month = monthOf(Math.min(R[1] - 1, Date.now())), sj = snGet(R, P, month), M = mktCalc(key, R, P, sj), gl = dashGoal(month, sj);
     var sn = sj ? sanSum(sj.days, 2) : null, snp = sj ? sanSum(sj.prev, 1) : null;
-    var T = { san: sn ? sn.g : 0, paid: b.paid + (sn ? sn.gp || 0 : 0), sanPaid: sn ? sn.gp || 0 : 0, rev: b.rev + (sn ? sn.g : 0), revP: bp.rev + (snp ? snp.g : 0), n: b.n + (sn ? sn.n : 0), nP: bp.n + (snp ? snp.n : 0), tr: dashSeries(R, P, sj) };
+    var T = { san: sn ? sn.g : 0, paid: b.paid + (sn ? sn.gp || 0 : 0), sanPaid: sn ? sn.gp || 0 : 0, rev: b.rev + (sn ? sn.g : 0), revP: bp.rev + (snp ? snp.g : 0), n: b.n + (sn ? sn.n : 0), nP: bp.n + (snp ? snp.n : 0), tr: dashSeries(R, P, sj), vs: voidStats(R), vsp: voidStats(P) };
     var h = '<div class="page-head"><h1>Tổng quan</h1><div class="grow"></div><button class="btn ghost" data-dash="fresh" title="Lấy số mới nhất (quảng cáo, website)">↻ Cập nhật số</button></div>' + perChips('g', f.p);
     h += dashHero(T, b, bp, M, gl, month, sj, f.p);
     h += dashNotes(T, b, g, f.p, M, sj, gl);
@@ -4465,14 +4517,18 @@
   }
   /** "Cần chú ý": tối đa 5 dòng tự rút ra từ số liệu, viết như lời nhắc cho người bận. Việc gấp (chậm mục tiêu, quảng cáo lỗ, thiếu số sàn) xếp trước. */
   function dashNotes(T, b, g, p, M, sj, gl) {
-    var L = [], G = gl.G;
+    var L = [], G = gl.G, xem = function (go) { return ' ' + (go.charAt(0) === '#' ? '<a class="link small" href="' + go + '">Xem →</a>' : '<button type="button" class="link small" data-dgo="' + go + '">Xem →</button>'); }; // Đợt 2: mỗi dòng có lối đi tới chỗ cần xử lý
     if (G && G.isCur && G.p < 1 && (G.lv === 'bad' || G.lv === 'mid')) L.push((G.lv === 'bad' ? '🔴' : '🟠') + ' <b>Đang chậm mục tiêu tháng.</b> Mỗi ngày cần bán khoảng <b>' + moneyShort(G.perDay) + '</b>, hiện mới bán trung bình ' + moneyShort(Math.round(gl.cur / G.el)) + ' / ngày.');
     if (G && G.p >= 1) L.push('🎉 <b>Đã đạt mục tiêu ' + monthLabel(monthOf(Math.min(perRange(p)[1] - 1, Date.now()))) + '.</b>');
-    if (M && M.tot) L = L.concat(adsNotes(M.ch, M.E));
-    if (sj) { var by = sanLatest(sj); Object.keys(by).forEach(function (k) { var o = by[k]; if (o.late > (o.sheet ? 2 : 3)) L.push('⏰ ' + esc(k) + ' đã ' + o.late + (o.sheet ? ' ngày chưa gõ số vào Google Sheet báo cáo' : ' ngày chưa tải file đơn mới') + ', số sàn có thể đang thiếu.'); }); }
-    if (T.revP && CMP_LABEL && p.k !== 'today') { var d = Math.round((T.rev - T.revP) * 100 / T.revP); if (Math.abs(d) >= 10) L.push((d > 0 ? '📈 Doanh số tăng ' : '📉 Doanh số giảm ') + Math.abs(d) + '% so với ' + CMP_LABEL + ' (' + moneyShort(T.rev) + ' so với ' + moneyShort(T.revP) + ').'); }
+    var nG = L.length; if (nG) L[nG - 1] += xem('#bao-cao');
+    if (T.vs.pct !== null && T.vs.n >= 10 && T.vs.pct >= 10) L.push('↩️ <b>Hoàn / huỷ ' + T.vs.pct + '%</b> đơn văn phòng (' + T.vs.v + '/' + T.vs.n + ' đơn), mức tốt là dưới 5%. Xem đơn hoàn gần đây và lý do.' + xem('#don-hang'));
+    var lateN = tasksAll().filter(function (c) { return c.task && c.task.late >= 2; }).length;
+    if (lateN) L.push('⏳ <b>' + lateN + ' khách trễ hạn chăm sóc</b> từ 2 ngày trở lên.' + xem('#hom-nay'));
+    if (M && M.tot) L = L.concat(adsNotes(M.ch, M.E).map(function (x) { return x + xem('mkt'); }));
+    if (sj) { var by = sanLatest(sj); Object.keys(by).forEach(function (k) { var o = by[k]; if (o.late > (o.sheet ? 2 : 3)) L.push('⏰ ' + esc(k) + ' đã ' + o.late + (o.sheet ? ' ngày chưa gõ số vào Google Sheet báo cáo' : ' ngày chưa tải file đơn mới') + ', số sàn có thể đang thiếu.' + xem('#san')); }); }
+    if (T.revP && CMP_LABEL && p.k !== 'today') { var d = Math.round((T.rev - T.revP) * 100 / T.revP); if (Math.abs(d) >= 10) L.push((d > 0 ? '📈 Doanh số tăng ' : '📉 Doanh số giảm ') + Math.abs(d) + '% so với ' + CMP_LABEL + ' (' + moneyShort(T.rev) + ' so với ' + moneyShort(T.revP) + ').' + xem('day')); }
     var top = Object.keys(b.sub).map(function (k) { return b.sub[k]; }).sort(function (x, y) { return y.v - x.v; })[0];
-    if (top && b.rev) L.push('🏅 Kênh văn phòng ra nhiều tiền nhất: <b>' + esc(top.g + ' – ' + top.l) + '</b>, ' + pct(top.v, b.rev) + '% tiền văn phòng.');
+    if (top && b.rev) L.push('🏅 Kênh văn phòng ra nhiều tiền nhất: <b>' + esc(top.g + ' – ' + top.l) + '</b>, ' + pct(top.v, b.rev) + '% tiền văn phòng.' + xem('chan'));
     if (g) { var bad = g.land.filter(function (r) { return r[1] >= 20 && pct(r[2], r[1]) < 40; })[0]; if (bad) L.push('🌐 Trang <b>' + esc(bad[0] === '/' ? 'Trang chủ' : bad[0]) + '</b> có ' + bad[1] + ' lượt vào nhưng chỉ ' + pct(bad[2], bad[1]) + '% ở lại xem: nên sửa đầu trang.'); }
     return L.length ? '<div class="box dash-notes"><h3>📌 Cần chú ý</h3>' + L.slice(0, 5).map(function (x) { return '<p>' + x + '</p>'; }).join('') + '</div>' : '';
   }
@@ -4758,7 +4814,7 @@
       dashTile('cmp', repRateLv(all.closePct, prev.closePct), '🎯 Chốt được', all.closePct === null ? '–' : all.closePct + '%', all.closePct === null ? '' : delta(all.closePct, prev.closePct, 'rate'), all.data ? 'Cứ 10 khách hỏi chốt ' + Math.round(all.won * 10 / all.data) + ' khách' : 'Chưa có khách hỏi từ quảng cáo') +
       dashTile('cmp', all.orders && prev.orders ? dashTrend(all.avg, prev.avg) : '', '🛒 Mỗi đơn', all.orders ? moneyShort(all.avg) : '–', all.orders ? delta(all.avg, prev.orders ? prev.avg : 0) : '', 'Tiền trung bình 1 đơn') +
       dashTile('care', all.sales ? repRateLv(all.oldPct, prev.sales ? prev.oldPct : null) : '', '🔁 Khách cũ mua lại', all.repeat + ' khách', delta(all.repeat, prev.repeat), all.sales ? moneyShort(all.oldRev) + ' = ' + all.oldPct + '% doanh số' : 'Chăm sóc tốt thì số này tăng') +
-      '</div>' + smkInvest(mk, mk && mk.team, 'cả nhóm', cx.label) + repFunnel(all, 'cả nhóm') + repMgrTodo(rows, all, cx, noSeller) + repPeople(rows, all, cx) + '</section>' + refBox(all, prev, '');
+      '</div>' + smkInvest(mk, mk && mk.team, 'cả nhóm', cx.label) + repFunnel(all, 'cả nhóm') + repMgrTodo(rows, all, cx, noSeller) + teamBlock() /* Đợt 2: tiến độ hôm nay (việc trễ, đơn chưa xác nhận…) ngay trong Hiệu quả, quản lý không phải sang tab Hôm nay */ + repPeople(rows, all, cx) + '</section>' + refBox(all, prev, '');
     h += '<div class="steps" style="margin:0 0 16px"><button class="btn pri" data-daily="">📋 Báo cáo ngày (gửi Zalo)</button><button class="btn" data-bcdt="|' + month + '">📊 Bảng BCDT cả nhóm ' + monthLabel(month) + '</button>' + (lvl() >= 3 ? '<button class="btn" data-usage="">📈 Mức dùng CRM</button>' : '') + '</div>';
     h += '<h2 class="dash-more-h">Xem chi tiết <small class="muted">(bấm để mở)</small></h2>';
     var lead = rows[0] && rows[0].sales ? rows[0] : null;

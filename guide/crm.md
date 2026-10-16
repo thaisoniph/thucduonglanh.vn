@@ -43,6 +43,9 @@ Mã dùng được trong **10 phút**. Đăng nhập xong, máy nhớ bạn tron
 - **Tab mở sẵn khi vào CRM:** nhân viên vào thẳng **Hôm nay**, quản lý vào **Hiệu quả**, quản trị vào **Tổng quan**. Bấm logo **CRM** góc trái để quay về tab này.
 - Chấm đỏ trên tab là số việc đang chờ.
 - Nút **⟳** góc trên bên phải: tải lại dữ liệu mới nhất, ví dụ khi đồng nghiệp vừa cập nhật.
+- Nút **🔍** góc trên: **tìm nhanh** trên mọi tab. Gõ số điện thoại (từ 3 số), tên khách hoặc mã đơn → hiện khách đã mua, đơn hàng, khách hỏi; bấm là mở. Chỉ tìm được khách bạn được xem.
+- Thứ tự tab (từ 16/10/2026): **Hôm nay · Khách hỏi · Khách đã mua · Đơn hàng · Hiệu quả**. Khách hỏi lên thứ 2 vì khách mới cần gọi sớm nhất.
+- **Chữ đang gõ không mất:** ô *Khách nói gì* (Chăm sóc), *Ghi chú lần này* (Tư vấn khách hỏi) và *✏️ Ghi nhanh* được giữ trên máy 2 ngày. Lỡ đóng cửa sổ thì mở lại khách đó, chữ vẫn còn.
 - **Bạn chỉ thấy khách mình phụ trách.** Quản lý thấy toàn bộ. Khi gõ số điện thoại của khách đang do người khác phụ trách, CRM chỉ báo tên người đó và không cho thao tác. Muốn đổi người phụ trách thì nhờ quản lý chuyển.
 - Danh sách việc ở tab Hôm nay **chỉ có khách của bạn**. Khách *chưa ai phụ trách* nằm ở mục **🧺 Kho chung**, mục này chỉ quản lý và quản trị thấy, để quản lý chủ động giao khách cho từng người. Bạn xác nhận đơn hoặc chăm sóc khách chưa ai phụ trách trước thì khách đó thuộc về bạn.
 
@@ -63,10 +66,11 @@ Trên danh sách đơn và khách hỏi, bấm vào mã đơn hoặc số điệ
 
 ![Tab Hôm nay trên điện thoại](/huong-dan/img/crm-today.webp)
 
-- **🎯 Mục tiêu tháng** (nhân viên): ngay đầu trang. Có doanh số đến nay / mục tiêu, thanh tiến độ (vạch đen = hôm nay), trạng thái *Đúng tiến độ / Hơi chậm / Đang chậm*, số còn thiếu và mỗi ngày cần bán bao nhiêu. Dòng **📅 Hôm nay** cho biết hôm nay đã bán được bao nhiêu so với mức cần bán trong ngày. Chưa đặt mục tiêu thì bấm **🎯 Đặt mục tiêu** ngay tại đây.
-- **🏁 Bảng thi đua**: ngay dưới mục tiêu tháng. Bấm **Tuần này** / **Tháng này** để đổi kỳ (tuần tính từ thứ Hai, mỗi tuần bắt đầu lại từ 0). Thanh **🤝 Cả nhóm** cho biết cả nhóm đạt bao nhiêu % tổng mục tiêu tháng và mỗi ngày cả nhóm cần bán thêm bao nhiêu. Có 4 hạng mục: **🏆 Doanh số**, **🎯 Tỷ lệ chốt** (khách hỏi được giao đã ra đơn, cần ít nhất 3 khách hỏi trong tuần hoặc 5 trong tháng), **💚 Khách cũ quay lại** (số khách cũ mua thêm), **🚀 Tiến bộ nhất** (doanh số so với cùng kỳ tuần / tháng trước, cần kỳ trước từ 500k). Ai cũng thấy **Top 3** của từng hạng mục. Dòng dưới cùng là **hạng của bạn** và còn cách người ngay trên bao nhiêu. Hạng của mỗi người chỉ người đó thấy. Quản lý thấy đủ bảng ở đầu tab Hôm nay, kể cả khi đang lọc 1 nhân viên. Số liệu cập nhật khoảng 10 phút một lần. Nếu bảng báo *Chưa tải được* thì bấm **🔄 Thử lại** sau ít phút.
+- **Từ 16/10/2026 (đợt 2 cải tiến):** sale mở Hôm nay là thấy ngay **khách cần gọi**. Đầu trang chỉ còn số khách cần chăm sóc, thanh tiến độ, nút **▶ Bắt đầu gọi lần lượt** và **1 dòng mục tiêu** (*🎯 Tháng: đã bán / mục tiêu (%) · Hôm nay: đã bán / cần*). **🎯 Mục tiêu tháng** chi tiết, **🏁 Bảng thi đua** và nút **📋 Báo cáo cuối ngày** nằm ở **cuối trang**. Quản lý vẫn thấy bảng thi đua và các ô số ở đầu trang.
+- **🎯 Mục tiêu tháng** (nhân viên): ở cuối trang (mục *🏁 Mục tiêu & thi đua*). Có doanh số đến nay / mục tiêu, thanh tiến độ (vạch đen = hôm nay), trạng thái *Đúng tiến độ / Hơi chậm / Đang chậm*, số còn thiếu và mỗi ngày cần bán bao nhiêu. Dòng **📅 Hôm nay** cho biết hôm nay đã bán được bao nhiêu so với mức cần bán trong ngày. Chưa đặt mục tiêu thì bấm **🎯 Đặt mục tiêu** ngay tại đây.
+- **🏁 Bảng thi đua**: ngay dưới mục tiêu tháng (cuối trang với sale). Bấm **Tuần này** / **Tháng này** để đổi kỳ (tuần tính từ thứ Hai, mỗi tuần bắt đầu lại từ 0). Thanh **🤝 Cả nhóm** cho biết cả nhóm đạt bao nhiêu % tổng mục tiêu tháng và mỗi ngày cả nhóm cần bán thêm bao nhiêu. Có 4 hạng mục: **🏆 Doanh số**, **🎯 Tỷ lệ chốt** (khách hỏi được giao đã ra đơn, cần ít nhất 3 khách hỏi trong tuần hoặc 5 trong tháng), **💚 Khách cũ quay lại** (số khách cũ mua thêm), **🚀 Tiến bộ nhất** (doanh số so với cùng kỳ tuần / tháng trước, cần kỳ trước từ 500k). Ai cũng thấy **Top 3** của từng hạng mục. Dòng dưới cùng là **hạng của bạn** và còn cách người ngay trên bao nhiêu. Hạng của mỗi người chỉ người đó thấy. Quản lý thấy đủ bảng ở đầu tab Hôm nay, kể cả khi đang lọc 1 nhân viên. Số liệu cập nhật khoảng 10 phút một lần. Nếu bảng báo *Chưa tải được* thì bấm **🔄 Thử lại** sau ít phút.
 - **Trên cùng:** số khách cần chăm sóc hôm nay, thanh tiến độ và nút **▶ Bắt đầu gọi lần lượt**. Mỗi ngày CRM đưa ra tối đa **30 khách** (đổi ở **Cài đặt → Số khách chăm sóc mỗi ngày**), khách quan trọng trước: hẹn gọi lại → hỏi nhận hàng → sắp hết hàng → việc bị trễ → các việc khác. Khách chưa tới lượt tự dời sang hôm sau.
-- **Ô nhỏ:** đơn mới, khách hỏi, việc đã làm (quản lý có thêm ô mục tiêu tháng). Bấm để mở đúng danh sách. Quản lý thấy thêm doanh số và khách mới của tháng.
+- **Ô nhỏ** (quản lý): đơn mới, khách hỏi, việc đã làm, mục tiêu tháng. Bấm để mở đúng danh sách. Quản lý thấy thêm doanh số và khách mới của tháng.
 - **Gọn gàng khi mới mở:** chỉ **mục cần gọi đầu tiên** được mở sẵn (thường là *Đơn mới*, nếu không có thì *Khách vừa hỏi* hoặc nhóm chăm sóc đầu tiên) và chỉ hiện **5 khách đầu**. Bấm **Xem thêm … khách** để hiện tiếp. Các mục khác đều gập lại, bấm vào tên mục khi tới lượt gọi. CRM nhớ mục nào bạn đã mở hay gập trong lúc dùng.
 - **1️⃣ Đơn mới – gọi khách xác nhận** (chỉ hiện khi có), kèm **Chuyển khoản chưa nhận tiền**.
   - **Ai thấy đơn mới:** Quản lý / Quản trị thấy tất cả. Nhân viên sale **chỉ thấy đơn đã giao cho mình**: đơn quản lý giao, hoặc đơn của khách mình đang phụ trách đặt lại. Đơn chưa giao thì không hiện với nhân viên nào, ở cả **Hôm nay** lẫn tab **Đơn hàng**.
@@ -251,7 +255,9 @@ Công ty có 2 món quà miễn phí để **thêm giá trị cho khách**: cẩ
 
     Chữ gõ ở ô **Khách nói gì** được ghi kèm. Ở tab Hôm nay, thẻ khách có sẵn nút **📵 KNM**: gọi không được thì bấm ngay, không cần mở hộp chăm sóc.
 
-    Không có nút phù hợp, hoặc muốn hẹn đúng 1 ngày cụ thể: bấm **Kết quả khác / tự chọn ngày hẹn**, chọn 1 kết quả rồi bấm **Lưu kết quả**:
+    **📅 Khách hẹn gọi lại** (từ 16/10/2026): khách bảo *gọi lại sau* thì bấm 1 nút **Mai · 3 ngày · 1 tuần · 2 tuần** là lưu luôn kết quả *Hẹn gọi lại* kèm ngày, ghi chú đang gõ cũng được lưu.
+
+    Không có nút phù hợp, hoặc muốn hẹn đúng 1 ngày cụ thể khác: bấm **Kết quả khác / tự chọn ngày hẹn**, chọn 1 kết quả rồi bấm **Lưu kết quả**:
     - **Đã đặt lại**: khách đặt thêm. Nhớ tạo đơn nếu khách đặt qua Zalo.
     - **Hẹn gọi lại**: chọn ngày hẹn (máy gợi ý 2 ngày sau). Đến ngày, khách tự hiện lại ở tab Hôm nay.
     - **Không nghe máy**: gọi hoặc nhắn mà khách chưa trả lời.
@@ -468,10 +474,11 @@ Tab đầu tiên trên menu, dành cho chủ doanh nghiệp. **Chọn thời gia
 
 **Màn hình đầu: nhìn 5 giây là nắm được tình hình**
 
+- **6 ô lớn** (từ 16/10/2026): 💵 **Doanh thu**, 💰 **Doanh số**, 🙋 **Khách mới mua**, 🔁 **Khách mua lại** (% doanh số văn phòng đến từ khách đã từng mua), 📣 **Quảng cáo**, ↩️ **Hoàn / huỷ** (% đơn văn phòng bị huỷ hoặc hoàn; dưới 5% = 🟢, dưới 10% = 🟠, từ 10% = 🔴). Dưới các ô có 4 nút đi thẳng: **📊 Bán hàng · 📣 Marketing · 🛒 Sàn · 📍 Link & QR**.
+- **📌 Cần chú ý**: mỗi dòng có nút **Xem →** mở đúng chỗ cần xử lý. Có thêm 2 cảnh báo: khách trễ hạn chăm sóc từ 2 ngày, và hoàn / huỷ từ 10% (khi có từ 10 đơn).
 - **Hai con số tiền** (anh Sơn chốt 16/10/2026), cả hai đều **không tính đơn huỷ, đơn hoàn**:
     - **💰 Doanh số** = tổng tiền các đơn đã đặt.
     - **💵 Doanh thu** = tiền các đơn **đã thu**: đơn **Đã giao** / **Đổi hàng** (tiền thu hộ đã thu) hoặc đơn đã bấm **Đã nhận tiền chuyển khoản**. Đơn đang giao, chuyển khoản chưa nhận thì chưa tính. Sàn chỉ tính khi đã tải file Thu nhập hoặc đơn báo hoàn thành.
-- **4 ô lớn**: 💵 **Doanh thu** (kèm % so với doanh số, còn bao nhiêu đang giao / chờ thu), 💰 **Doanh số** (văn phòng + sàn, kèm số đơn và trung bình 1 đơn), 🙋 **Khách mới mua**, 📣 **Quảng cáo** (bỏ 1 đồng quảng cáo thì khách mới mua lại bao nhiêu đồng). Mũi tên ▲ xanh / ▼ đỏ là so với kỳ trước.
 - **Đèn trên mỗi ô**: 🟢 tốt, 🟠 cần để ý, 🔴 cần xử lý. Doanh số (xem theo tháng): theo tiến độ mục tiêu. Doanh thu không có đèn (đơn mới chưa kịp giao nên so với kỳ trước sẽ luôn thấp hơn). Khách mới: tăng = 🟢, giảm dưới 10% = 🟠, giảm từ 10% = 🔴. Quảng cáo: chi phí dưới 30% tiền khách mới mua = 🟢, từ 30% đến 40% = 🟠, trên 40% = 🔴 (mặc định; Quản trị đổi mức ở **Cài đặt → 🚦 Mức đèn Tổng quan**).
 - **🎯 Mục tiêu tháng**: thanh tiến độ cả văn phòng (vạch đen = hôm nay, thanh màu vượt vạch đen là đúng tiến độ), mỗi ngày còn cần bán bao nhiêu.
 - **📌 Cần chú ý**: tối đa 5 dòng CRM tự rút ra: chậm mục tiêu, kênh quảng cáo tốn tiền mà chưa ra khách, kênh hiệu quả nhất nên dồn tiền, sàn lâu chưa tải file, doanh số tăng / giảm mạnh…
@@ -600,6 +607,8 @@ Tải lại đơn cũ không bị tính trùng: CRM nhận ra theo mã đơn và
 - File không đọc được: CRM báo các cột đang có. Chụp màn hình gửi Quản trị. File .xls đời cũ thì mở bằng Excel / Google Sheets rồi lưu lại thành .xlsx.
 
 ## Dành cho quản lý
+
+- **Tab Hiệu quả (cả nhóm)** có thêm bảng **👥 Tiến độ nhân sự hôm nay** (từ 16/10/2026): mỗi người đã chăm sóc bao nhiêu / cần làm, việc trễ hạn, không nghe máy, khách hỏi chờ, đơn chưa xác nhận, chốt hôm nay. Bấm tên để xem riêng người đó. Không cần sang tab Hôm nay để xem ai đang chậm việc.
 
 **Quyền trong CRM:**
 
