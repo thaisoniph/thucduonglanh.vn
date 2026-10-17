@@ -1335,24 +1335,85 @@ def yt_id(url):
     return m.group(1) if m else ""
 
 
-def brand_video():
-    """Video thương hiệu (YouTube): chỉ hiện ảnh bìa, bấm mới tải YouTube (nhẹ trang, không cookie trước khi xem)."""
+def bv_info():
+    """Video thương hiệu (data/site.json → brand_video, /admin → Cài đặt): id YouTube, chữ, ảnh bìa, thời lượng "2:09" (từ PT2M9S)."""
     bv = SITE.get("brand_video") or {}
     vid = yt_id(bv.get("youtube"))
     if not vid:
+        return None
+    m = re.match(r"PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$", bv.get("duration") or "")
+    dur = ""
+    if m and any(m.groups()):
+        h, mi, se = (int(x or 0) for x in m.groups())
+        dur = f"{h}:{mi:02d}:{se:02d}" if h else f"{mi}:{se:02d}"
+    return {"vid": vid, "title": bv.get("title", ""), "cap": bv.get("caption", ""), "hook": bv.get("hook", ""), "dur": dur,
+            "img": bv.get("image") or f"https://i.ytimg.com/vi/{vid}/hqdefault.jpg", "bubble": bv.get("bubble", True) is not False, "hero": bv.get("hero_button", True) is not False}
+
+
+def bv_nw(text):
+    """Câu gợi tò mò: giữ các cụm có nghĩa trên cùng 1 dòng (không ngắt "đồng / hành", "Thực Dưỡng / Lành")."""
+    h = esc(text)
+    for x in ("Thực Dưỡng Lành", "đồng hành", "lâu dài", "khắt khe", "nghệ sĩ", "Vì sao"):
+        h = h.replace(x, f'<span class="nw">{x}</span>')
+    return h
+
+
+def bv_frame(v, where, lazy=True):
+    """Khung video dọc (ảnh bìa + nút ▶ + nhãn thời lượng). data-from = vị trí trên trang, để đo khách bấm xem ở chỗ nào (main.js → sự kiện bv_<vị trí>)."""
+    lz = ' loading="lazy"' if lazy else ""
+    return (f'<div class="v-frame bv-frame" data-yt="{v["vid"]}" data-from="{where}" data-title="{esc(v["title"])}"><img src="{esc(v["img"])}" alt="{esc(v["title"])}"{lz} width="540" height="960">'
+            f'<button class="v-play bv-play" aria-label="{t("Phát video:")} {esc(v["title"])}">{I["play"]}</button>'
+            + (f'<span class="bv-dur">{I["play"]}{v["dur"]}</span>' if v["dur"] else "") + "</div>")
+
+
+def brand_video(where="bottom"):
+    """Video thương hiệu (YouTube): chỉ hiện ảnh bìa, bấm mới tải YouTube (nhẹ trang, không cookie trước khi xem)."""
+    v = bv_info()
+    if not v:
         return "", None
-    title, cap = bv.get("title", ""), bv.get("caption", "")
-    img = bv.get("image") or f"https://i.ytimg.com/vi/{vid}/hqdefault.jpg"
+    vid, title, cap = v["vid"], v["title"], v["cap"]
+    dd = " · " + v["dur"] if v["dur"] else ""
+    head = f'<b class="bv-hook">{bv_nw(v["hook"])}</b><span class="bv-sub">{esc(title)}</span>' if v["hook"] else f"<b>{esc(title)}</b>"
     html = f'''<figure class="bv">
-  <div class="v-frame bv-frame" data-yt="{vid}" data-title="{esc(title)}"><img src="{esc(img)}" alt="{esc(title)}" loading="lazy" width="540" height="960"><button class="v-play" aria-label="{t("Phát video:")} {esc(title)}">{I["play"]}</button></div>
-  <figcaption class="bv-text"><span class="bv-kicker">{t("Câu chuyện đồng hành")}</span><b>{esc(title)}</b>{f"<p>{esc(cap)}</p>" if cap else ""}<a class="bv-yt" href="https://www.youtube.com/watch?v={vid}" target="_blank" rel="noopener">{t("Xem trên YouTube ↗")}</a></figcaption>
+  {bv_frame(v, where)}
+  <figcaption class="bv-text"><span class="bv-kicker">{t("Câu chuyện đồng hành")}{dd}</span>{head}{f"<p>{esc(cap)}</p>" if cap else ""}<a class="bv-yt" href="https://www.youtube.com/watch?v={vid}" target="_blank" rel="noopener">{t("Xem trên YouTube ↗")}</a></figcaption>
 </figure>'''
+    img = v["img"]
     ld = {"@context": "https://schema.org", "@type": "VideoObject", "name": title, "description": cap or title,
-          "thumbnailUrl": [(DOMAIN + img) if img.startswith("/") else img], "uploadDate": bv.get("upload_date") or "2026-08-18",
+          "thumbnailUrl": [(DOMAIN + img) if img.startswith("/") else img], "uploadDate": (SITE.get("brand_video") or {}).get("upload_date") or "2026-08-18",
           "embedUrl": f"https://www.youtube-nocookie.com/embed/{vid}", "contentUrl": f"https://www.youtube.com/watch?v={vid}"}
-    if bv.get("duration"):
-        ld["duration"] = bv["duration"]
+    if (SITE.get("brand_video") or {}).get("duration"):
+        ld["duration"] = SITE["brand_video"]["duration"]
     return html, ld
+
+
+def bv_hero_btn():
+    """Nút "▶ Xem câu chuyện" ở khối đầu trang chủ ("Chúng tôi có một ước mơ"): bấm mở video giữa màn hình (khung #bvModal)."""
+    v = bv_info()
+    if not v or not v["hero"]:
+        return ""
+    dd = " · " + v["dur"] if v["dur"] else ""
+    return (f'<button type="button" class="hero-vid" data-bv-open="hero"><span class="hv-th"><img src="{esc(v["img"])}" alt="" width="54" height="54">{I["play"]}</span>'
+            f'<span class="hv-tx"><b>{t("Xem câu chuyện đồng hành")}</b><small>{"Video " + v["dur"] + " · " if v["dur"] else ""}{esc(v["title"].split(":")[0])}</small></span></button>')
+
+
+def bv_float():
+    """Khung xem video giữa màn hình + bong bóng video tròn góc trái dưới (trang chủ, Giới thiệu, bài viết).
+    main.js initBrandVideo: bong bóng hiện sau vài giây, ẩn khi thông báo cookie đang mở hoặc khung video trên trang đang trong màn hình;
+    khách bấm × → ẩn 3 ngày; đã xem video → ẩn 30 ngày. (18/10/2026)"""
+    v = bv_info()
+    if not v:
+        return ""
+    dd = " · " + v["dur"] if v["dur"] else ""
+    bub = (f'<div class="bvb" id="bvBubble" hidden><button type="button" class="bvb-main" data-bv-open="bubble" aria-label="{t("Xem video:")} {esc(v["title"])}">'
+           f'<span class="bvb-ring"><img src="{esc(v["img"])}" alt="" width="80" height="80" loading="lazy"></span><span class="bvb-tag">{I["play"]}{v["dur"] or t("Xem")}</span>'
+           f'<span class="bvb-tx"><b>{t("Câu chuyện đồng hành")}</b><small>{t("Bấm để xem")}{dd}</small></span></button>'
+           f'<button type="button" class="bvb-x" data-bv-hide aria-label="{t("Ẩn video")}">{I["close"]}</button></div>') if v["bubble"] else ""
+    return f'''<div class="bvm" id="bvModal" hidden role="dialog" aria-modal="true" aria-label="{esc(v["title"])}"><div class="bvm-box">
+  <button type="button" class="bvm-x" data-bv-close aria-label="{t("Đóng video")}">{I["close"]}</button>
+  {bv_frame(v, "modal")}
+  <p class="bvm-cap"><b>{bv_nw(v["hook"] or v["title"])}</b></p>
+</div></div>{bub}'''
 
 
 def page_home():
@@ -1406,7 +1467,10 @@ def page_home():
               ("feedback-vu-tan", t("Anh Vũ Tân"), t("Giám đốc văn phòng bảo hiểm – Khâm Thiên, Hà Nội")),
               ("feedback-khach-hang-3", t("Khách hàng tin dùng"), t("Chia sẻ trải nghiệm sản phẩm"))]
     vid = "".join(f'''<figure class="v-card"><div class="v-frame" data-video="/assets/video/{v}.mp4"><img src="/assets/img/brand/{v}.webp" alt="{tf("Video cảm nhận của {name}", name=esc(n))}" loading="lazy" width="480" height="854"><button class="v-play" aria-label="{t("Phát video")}">{I["play"]}</button></div><figcaption><b>{esc(n)}</b><span>{esc(r)}</span></figcaption></figure>''' for v, n, r in videos)
-    bv_html, bv_ld = brand_video()
+    bv_html, bv_ld = brand_video("bottom")
+    bvi = bv_info()  # khối Câu chuyện thương hiệu: có video thì thay ảnh tách trà bằng video (khách đang đọc câu chuyện → bấm xem ngay)
+    story_media = (f'<div class="story-media story-vid">{bv_frame(bvi, "story")}<p class="sv-cap"><b>{bv_nw(bvi["hook"] or bvi["title"])}</b></p></div>' if bvi else
+                   f'<div class="story-media"><img src="/assets/img/brand/story-tea.webp" alt="{t("Tách trà thảo mộc Thực Dưỡng Lành")}" loading="lazy" width="1200" height="1200"></div>')
     fb = "".join(f'<a class="fb-item" href="/assets/img/brand/feedback-{i}.webp" data-lightbox="fb"><img src="{img_url(f"/assets/img/brand/feedback-{i}.webp", 480)}" alt="{tf("Ảnh chụp tin nhắn phản hồi của khách hàng {i}", i=i)}" loading="lazy" decoding="async" width="480" height="480"></a>' for i in range(1, 6))  # ảnh nhỏ (~25KB) để kịp hiện khi cuộn tới
 
     tags = ["Dinh dưỡng từ hạt", "Sữa hạt Curcumin", "Fucoidan", "Bữa ăn dinh dưỡng", "Trà chè vằng", "Đinh lăng", "Trà thảo mộc hòa tan", "Ruốc chay", "Rong biển", "Xì dầu lên men", "Ngưu bàng", "Thực dưỡng", "Thuần chay", "Đạm thực vật", "Không đường tinh luyện"]
@@ -1438,10 +1502,10 @@ def page_home():
   <h2 class="blf-eye">{t("Chúng tôi có một ước mơ")}</h2>
   <blockquote class="blf-q"><p>{blf_q}<em>{blf_em}</em></p></blockquote>
   <p class="blf-join">{blf_join}</p>
-  <div class="blf-acts">{join_btn}<a class="blf-link" href="/gioi-thieu/" data-cta="belief_story">{t("Đọc câu chuyện của chúng tôi")} →</a></div>
+  <div class="blf-acts">{join_btn}<a class="blf-link" href="/gioi-thieu/" data-cta="belief_story">{t("Đọc câu chuyện của chúng tôi")} →</a></div>{bv_hero_btn()}
 </div></section>'''
     body = f'''{belief}
-{hero}
+{hero}{bv_float()}
 {hub_strip("home_top")}
 {needs_html()}
 <section class="section section-tight"><div class="container">{benefits_banner()}{gifts_block("home")}</div></section>
@@ -1472,7 +1536,7 @@ def page_home():
     <p>{tf("{brand} ra đời không chỉ để bán sản phẩm – mà là lời xin lỗi muộn với những người ta không kịp chăm sóc, lời hứa sớm với những người ta vẫn còn được đồng hành, và lời cam kết với chính mình: <b>“Tôi chọn sống lành – để sống đáng.”</b>", brand=BRAND)}</p>
     <div class="slide-cta"><a class="btn btn-lg" href="/gioi-thieu/">{t("Xem thêm")}</a>{brochure_btn}</div>
   </div>
-  <div class="story-media"><img src="/assets/img/brand/story-tea.webp" alt="{t("Tách trà thảo mộc Thực Dưỡng Lành")}" loading="lazy" width="1200" height="1200"></div>
+  {story_media}
 </div></section>
 {home_origin()}
 <section class="parallax" style="background-image:url('/assets/img/brand/parallax-tea.webp')"><div class="container"><h2>{t("Dưỡng Thân – Tâm An<br>Bền Sức Khoẻ")}</h2></div></section>
@@ -2391,7 +2455,7 @@ def page_about():
               (t("Sống tỉnh thức"), t("Nuôi dưỡng lòng biết ơn, yêu thương cuộc sống")), (t("Lan tỏa cộng đồng"), t("Gắn kết – chia sẻ – đồng hành")), (t("Phát triển bền vững"), t("Dẫn đầu bằng sự kiên định và chất lượng"))]
     vals = "".join(f'<div class="val-card"><span class="val-no">0{i}</span><h3>{esc(a)}</h3><p>{esc(b)}</p></div>' for i, (a, b) in enumerate(values, 1))
     bc, bld = breadcrumb([(t("Giới thiệu"), None)])
-    bv_html, bv_ld = brand_video()
+    bv_html, bv_ld = brand_video("about")
     story3 = tf("Từ đó, VitaGreen được xây dựng trên triết lý: <b>Sống xanh – sống lành – sống có giá trị</b>. Thương hiệu con <b>{brand}</b> ra đời không chỉ để bán sản phẩm, mà là lời xin lỗi muộn với những người ta không kịp chăm sóc, lời hứa sớm với những người ta vẫn còn được đồng hành, và lời cam kết với chính mình: <b>“Tôi chọn sống lành – để sống đáng.”</b>", brand=BRAND)
     # Tuyên ngôn theo khung "eat happy" của Candylicious: mỗi nhóm là 1 khổ, mỗi phần tử là 1 dòng
     stanzas = [[tf("Ở {brand}, sứ mệnh của chúng tôi rất giản dị: <b>sống lành, để sống đáng.</b>", brand=BRAND),
@@ -2444,7 +2508,7 @@ def page_about():
 </div></section>'''
     about_ld = {"@context": "https://schema.org", "@type": "AboutPage", "url": DOMAIN + "/gioi-thieu/", "inLanguage": LANG,
                 "about": {k: v for k, v in org_ld().items() if k != "@context"}}
-    return layout("/gioi-thieu/", tf("Giới thiệu {brand}", brand=BRAND), tf("Câu chuyện thương hiệu {brand} – Sống xanh, sống lành, sống có giá trị. Tầm nhìn, sứ mệnh và giá trị cốt lõi của VitaGreen Nutrition.", brand=BRAND), body, jsonld=[about_ld, bld] + ([bv_ld] if bv_ld else []))
+    return layout("/gioi-thieu/", tf("Giới thiệu {brand}", brand=BRAND), tf("Câu chuyện thương hiệu {brand} – Sống xanh, sống lành, sống có giá trị. Tầm nhìn, sứ mệnh và giá trị cốt lõi của VitaGreen Nutrition.", brand=BRAND), body + bv_float(), jsonld=[about_ld, bld] + ([bv_ld] if bv_ld else []))
 
 
 def page_contact():
@@ -2515,7 +2579,7 @@ def page_post(p):
           "mainEntityOfPage": DOMAIN + path, "articleSection": cat["name"] or None, "author": org, "publisher": org}
     ld = {k: v for k, v in ld.items() if v}
     meta = f'<meta property="article:published_time" content="{p["date"]}"><meta property="article:modified_time" content="{p["modified"]}">'
-    return layout(path, p["title"], p["excerpt"], body, og=img_url(p["image"], 1200), jsonld=[ld, bld], og_type="article", extra_head=meta)
+    return layout(path, p["title"], p["excerpt"], body + bv_float(), og=img_url(p["image"], 1200), jsonld=[ld, bld], og_type="article", extra_head=meta)
 
 
 def page_cart():

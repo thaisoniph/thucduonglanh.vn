@@ -174,7 +174,7 @@
     function fallback() { var t = document.createElement('textarea'); t.value = text; t.style.position = 'fixed'; t.style.opacity = '0'; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); } catch (e) { } t.remove(); }
   }
 
-  var SERVER_V = '2026-10-18a'; // phải trùng số phiên bản máy chủ (api/src/index.js)
+  var SERVER_V = '2026-10-18b'; // phải trùng số phiên bản máy chủ (api/src/index.js)
   var ON_CF = !/script\.google/.test(CFG.endpoint || ''); // máy chủ Cloudflare (nhanh) hay Apps Script cũ
   function checkVersion(j) {
     if (j && j.v) S.srvV = j.v;
@@ -4587,6 +4587,12 @@
     h += '<section class="section"><div class="section-h"><h2>📞 Khách liên hệ từ web</h2></div><div class="kpis">' +
       kpi('Bấm gọi', act('click_call'), '', '', noCmp ? '' : 'kỳ trước ' + actp('click_call')) + kpi('Bấm Zalo', act('click_zalo'), '', '', noCmp ? '' : 'kỳ trước ' + actp('click_zalo')) +
       kpi('Điền form nhận quà / liên hệ', act('generate_lead'), '', '', b.webLeads + ' khách hỏi web trong CRM') + kpi('Lượt tìm kiếm', act('search'), '', '', 'gõ ở ô tìm sản phẩm') + '</div></section>';
+    // video câu chuyện đồng hành: khách bấm xem ở vị trí nào (bắt đầu đo 18/10/2026)
+    var BV_POS = [['bv_hero', 'Nút đầu trang chủ'], ['bv_bubble', 'Bong bóng góc màn hình'], ['bv_story', 'Khối Câu chuyện (giữa trang chủ)'], ['bv_bottom', 'Khối Khách hàng nói gì (cuối trang chủ)'], ['bv_about', 'Trang Giới thiệu']];
+    var bvN = BV_POS.reduce(function (s0, x) { return s0 + act(x[0]); }, 0), bvP = BV_POS.reduce(function (s0, x) { return s0 + actp(x[0]); }, 0);
+    h += '<section class="section"><div class="section-h"><h2>🎬 Video câu chuyện đồng hành</h2><span class="tip">lượt bấm xem theo vị trí · đo từ 18/10/2026</span></div><div class="box">' +
+      barList(BV_POS.map(function (x) { return { l: x[1], v: act(x[0]), sub: (bvN ? pct(act(x[0]), bvN) + '% lượt xem' : '') + (noCmp ? '' : (bvN ? ' · ' : '') + 'kỳ trước ' + actp(x[0])) }; }).sort(function (x, y) { return y.v - x.v; }), String, 'Chưa có lượt xem trong kỳ.', { below: 1 }) +
+      '<p class="bar-legend">Tổng ' + bvN + ' lượt xem' + (noCmp ? '' : ' (kỳ trước ' + bvP + ')') + ', khoảng ' + pct(bvN, g.cur.users || 1) + '% người vào web. Chỉ đếm khách đã đồng ý cookie. Vị trí nào gần như không ai bấm thì có thể bỏ cho trang gọn.</p></div></section>';
     // trang
     var trim = function (t) { return String(t || '').replace(/\s*[|–-]\s*Thực Dưỡng Lành.*$/i, '') || '(không tên)'; };
     h += '<div class="dash-grid"><section class="section"><div class="section-h"><h2>📄 Trang xem nhiều</h2></div><div class="box">' + barList(g.pages.map(function (r) { return { l: trim(r[1]), v: r[2], sub: r[0] + ' · ' + r[3] + ' người', tip: r[0] }; }), function (v) { return v.toLocaleString('vi-VN'); }, '', { below: 1 }) + '</div></section>' +

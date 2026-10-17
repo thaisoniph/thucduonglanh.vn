@@ -361,6 +361,7 @@
         f.title = t.getAttribute('data-title') || 'Video'; f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen'; f.allowFullscreen = true;
         f.addEventListener('load', function () { ytListen(f); }); // nghe trạng thái video: xem xong → nhạc nền phát tiếp
         muVideo(true); t.innerHTML = ''; t.appendChild(f); track('video_play', { video: 'youtube:' + id });
+        var vf = t.getAttribute('data-from'); if (vf) { track('bv_' + vf); bvSeen(); } // video câu chuyện: đếm lượt xem theo vị trí (hero, bubble, story, bottom, about)
         return;
       }
       if ((t = e.target.closest('.v-frame'))) {
@@ -1321,7 +1322,7 @@
     captureSource(); initConsent(); trackPageEvents();
     renderCounts(); renderMini(); markWish();
     initHeader(); initClicks(); initRail(); initLightbox(); initProduct(); initCerts(); initProof(); initTabs(); initReadmore(); initSort();
-    initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initPledge(); initQuiz(); initGiftDock(); initZaloGate(); initMusic();
+    initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initPledge(); initQuiz(); initGiftDock(); initZaloGate(); initMusic(); initBrandVideo();
     window.addEventListener('storage', function (e) { if (e.key === 'tdl_cart') { cart = load('tdl_cart', []); cleanCart(); renderCounts(); renderMini(); } });
   }
   // ===== Hành trình 10 triệu người Việt sống khỏe hơn: bộ đếm [data-jr] + trang ký cam kết /cam-ket-song-lanh/ (api journey.js) =====
@@ -1657,6 +1658,53 @@
     show();
     if (cb && window.MutationObserver) new MutationObserver(show).observe(cb, { attributes: true, attributeFilter: ['hidden'] });
   }
+  // ===== Video câu chuyện đồng hành (data/site.json → brand_video; build.py bv_hero_btn, bv_float; 18/10/2026) =====
+  // [data-bv-open] (nút đầu trang chủ, bong bóng) → khung #bvModal giữa màn hình, phát ngay bằng xử lý .v-frame[data-yt] ở initClicks
+  // (data-from = vị trí mở → sự kiện GA4 bv_hero / bv_bubble…, CRM Tổng quan đếm). Bong bóng #bvBubble: hiện sau 2,5 giây; ẩn khi
+  // thông báo cookie đang mở hoặc khung video trên trang đang trong màn hình; bấm × → ẩn 3 ngày (tdl_bvb_x), đã xem → ẩn 30 ngày (tdl_bv_seen).
+  var BVB = null;
+  function bvSeen() { try { localStorage.setItem('tdl_bv_seen', String(Date.now())); } catch (e) { } if (BVB) BVB.off(); }
+  function initBrandVideo() {
+    var m = $('#bvModal'); if (!m) return;
+    var fr = m.querySelector('.v-frame'), orig = fr.innerHTML, last = null;
+    function close() {
+      if (m.hidden) return;
+      m.hidden = true; document.body.classList.remove('bvm-lock');
+      if (fr.querySelector('iframe')) { fr.innerHTML = orig; muVideo(false); }
+      if (BVB) BVB.check();
+      if (last) try { last.focus(); } catch (e) { }
+    }
+    document.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-bv-open]');
+      if (b) {
+        e.preventDefault(); last = b;
+        fr.setAttribute('data-from', b.getAttribute('data-bv-open') || 'modal'); fr.innerHTML = orig;
+        m.hidden = false; document.body.classList.add('bvm-lock');
+        if (BVB) BVB.hide();
+        fr.click(); var x = m.querySelector('[data-bv-close]'); if (x) x.focus();
+        return;
+      }
+      if (e.target.closest('[data-bv-close]') || e.target === m) { close(); return; }
+      if (e.target.closest('[data-bv-hide]')) { try { localStorage.setItem('tdl_bvb_x', String(Date.now())); } catch (x) { } if (BVB) BVB.off(); }
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    var bub = $('#bvBubble'); if (!bub) return;
+    var ago = function (k, days) { var v = 0; try { v = +localStorage.getItem(k) || 0; } catch (e) { } return Date.now() - v < days * 864e5; };
+    if (ago('tdl_bvb_x', 3) || ago('tdl_bv_seen', 30)) return;
+    var ready = false, dead = false, inView = 0, ck = $('#cookieBar');
+    BVB = {
+      check: function () { var on = ready && !dead && !inView && m.hidden && !(ck && !ck.hidden); bub.hidden = !on; document.body.classList.toggle('bvb-on', on); },
+      hide: function () { bub.hidden = true; document.body.classList.remove('bvb-on'); },
+      off: function () { dead = true; BVB.hide(); }
+    };
+    if (ck && window.MutationObserver) new MutationObserver(BVB.check).observe(ck, { attributes: true, attributeFilter: ['hidden'] });
+    if (window.IntersectionObserver) {
+      var io = new IntersectionObserver(function (es) { es.forEach(function (x) { inView += x.isIntersecting ? 1 : (x.target._bvIn ? -1 : 0); x.target._bvIn = x.isIntersecting; }); inView = Math.max(0, inView); BVB.check(); }, { threshold: 0.35 });
+      $$('.v-frame[data-from], .hero-vid').forEach(function (f) { if (!m.contains(f)) io.observe(f); }); // đang thấy nút/khung video khác thì không cần bong bóng
+    }
+    setTimeout(function () { ready = true; BVB.check(); }, 2500);
+  }
+
   // ===== Nhạc nền (data/site.json → music, sửa ở /admin → Cài đặt; 18/10/2026) =====
   // Nút ♪ (#muBtn) trên đầu trang bật/tắt. Trình duyệt không cho phát tiếng trước khi khách chạm trang → nhạc bắt đầu ở lần chạm đầu tiên (nếu bật "tự phát").
   // Khách bấm tắt → nhớ trên máy (localStorage tdl_music = off), không tự phát lại; bấm bật → on. Sang trang khác phát tiếp đúng đoạn (sessionStorage tdl_music_pos).
@@ -1728,7 +1776,7 @@
     // tự phát: chờ lần chạm / bấm phím đầu tiên (không tính chạm vào nút ♪ hay khung video)
     var EV = ['click', 'touchend', 'keydown'];
     function kick(e) {
-      if (vidOn || (e && e.target && e.target.closest && e.target.closest('#muBtn, .v-frame, video, iframe, [data-cn-read]'))) return;
+      if (vidOn || (e && e.target && e.target.closest && e.target.closest('#muBtn, .v-frame, video, iframe, [data-cn-read], [data-bv-open]'))) return;
       unkick(); if (a.paused) play().catch(function () { });
     }
     function unkick() { EV.forEach(function (n) { document.removeEventListener(n, kick, true); }); }

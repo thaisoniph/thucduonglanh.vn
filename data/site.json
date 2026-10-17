@@ -23,10 +23,13 @@
   "brand_video": {
     "youtube": "https://youtu.be/PuFPITQe3R4",
     "title": "Đồng hành cùng Thực Dưỡng Lành: Vì sự tử tế và sứ mệnh cộng đồng",
+    "hook": "Vì sao một nghệ sĩ khắt khe lại chọn đồng hành lâu dài cùng Thực Dưỡng Lành?",
     "caption": "Câu chuyện của chú Sơn – người nghệ sĩ luôn khắt khe khi chọn sản phẩm cho sức khỏe của bản thân và gia đình – và lý do chú chọn đồng hành lâu dài cùng Thực Dưỡng Lành.",
     "image": "/assets/img/brand/video-thuong-hieu.webp",
     "upload_date": "2026-08-18",
-    "duration": "PT2M9S"
+    "duration": "PT2M9S",
+    "hero_button": true,
+    "bubble": true
   },
   "music": {
     "enabled": true,

@@ -623,8 +623,11 @@ collections:
             fields:
               - { label: "Link YouTube", name: youtube, widget: string, required: false, hint: "Dán link video YouTube. Để trống thì ẩn khối video." }
               - { label: "Tiêu đề", name: title, i18n: true, widget: string }
+              - { label: "Câu gợi tò mò", name: hook, i18n: true, widget: string, required: false, hint: "Câu chữ to trên video để khách muốn bấm xem, nên là 1 câu hỏi. Ví dụ: Vì sao một nghệ sĩ khắt khe lại chọn đồng hành lâu dài cùng Thực Dưỡng Lành?" }
               - { label: "Mô tả ngắn", name: caption, i18n: true, widget: text, required: false }
               - { label: "Ảnh bìa", name: image, widget: image, required: false, hint: "Để trống thì dùng ảnh bìa của YouTube." }
+              - { label: "Nút ▶ Xem câu chuyện ở đầu trang chủ", name: hero_button, widget: boolean, default: true, required: false, hint: "Bấm nút thì video mở to giữa màn hình." }
+              - { label: "Bong bóng video tròn ở góc trái màn hình", name: bubble, widget: boolean, default: true, required: false, hint: "Hiện ở trang chủ, Giới thiệu và các bài viết. Khách bấm × thì ẩn 3 ngày, khách đã xem video thì ẩn 30 ngày." }
               - { label: "Ngày đăng video (YYYY-MM-DD)", name: upload_date, widget: string, required: false }
               - { label: "Thời lượng (ví dụ PT2M9S = 2 phút 9 giây)", name: duration, widget: string, required: false }
           - label: "Nhạc nền website"

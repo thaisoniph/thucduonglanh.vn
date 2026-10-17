@@ -8,7 +8,8 @@ import { gInfo } from './google.js';
 const DATA = 'https://analyticsdata.googleapis.com/v1beta/';
 const ADMIN = 'https://analyticsadmin.googleapis.com/v1beta/';
 const MEASUREMENT_ID = 'G-X40P3S7FZ8'; // data/config.json → ga4_id
-const FUNNEL = ['page_view', 'view_item', 'add_to_cart', 'begin_checkout', 'purchase', 'generate_lead', 'click_call', 'click_zalo', 'search'];
+const FUNNEL = ['page_view', 'view_item', 'add_to_cart', 'begin_checkout', 'purchase', 'generate_lead', 'click_call', 'click_zalo', 'search',
+  'bv_hero', 'bv_bubble', 'bv_story', 'bv_bottom', 'bv_about']; // bv_… = lượt bấm xem video câu chuyện theo vị trí (main.js initBrandVideo, 18/10/2026)
 
 /** Lỗi cần Quản trị làm thêm bước cài đặt (setup = mã bước để CRM hiện hướng dẫn đúng chỗ). */
 function setupErr(step, msg, account) { const e = new Error(msg); e.setup = step; e.account = account || ''; return e; }
