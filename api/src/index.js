@@ -9,8 +9,9 @@ import { scheduled, mirror, dailyCare } from './cron.js';
 import { cmsRoute } from './cms.js';
 import { voucherCheck, voucherApply } from './voucher.js';
 import { qrGo } from './links.js';
+import { journeyCounts, pledge } from './journey.js';
 
-const API_VERSION = '2026-10-17a'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
+const API_VERSION = '2026-10-17b'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
 const ORIGINS = /^https:\/\/((www\.|crm\.)?thucduonglanh\.vn|[a-z0-9-]+\.thucduonglanh(-crm)?\.pages\.dev)$|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
 function ctxOf(env, ectx) { return { env, db: env.DB, later: p => ectx.waitUntil(Promise.resolve(p).catch(e => console.error('later', e && e.message))) }; }
@@ -39,6 +40,7 @@ async function rescue(x, data, err) {
 async function website(x, data) {
   if (data.website) return { ok: true }; // chống spam (honeypot)
   if (data.type === 'vtp') return await vtpWebhook(x, data.payload);
+  if (data.type === 'pledge') return await pledge(x, data); // lời cam kết "Tôi chọn sống lành" (journey.js)
   if (data.type === 'voucher') return await voucherCheck(x, data); // khách bấm "Áp dụng" mã ưu đãi
   if (data.type === 'order') {
     try {
@@ -80,6 +82,13 @@ export default {
     try {
       if (req.method === 'GET') {
         if (/^\/q\/[^/]+$/.test(path)) return await qrGo(x, req, path.slice(3)); // mã QR / link ngắn thucduonglanh.vn/q/<mã>/ (links.js)
+        if (path === '/api/journey') { // bộ đếm hành trình 10 triệu người (journey.js): lưu đệm 5 phút ở Cloudflare để ít đọc D1
+          const ck = new Request('https://api.thucduonglanh.vn/api/journey'), cache = caches.default;
+          let r = await cache.match(ck);
+          if (!r) { await ensureSchema(x.db); r = new Response(JSON.stringify(await journeyCounts(x)), { headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=300' } }); x.later(cache.put(ck, r.clone())); }
+          const h = new Headers(r.headers); h.set('Access-Control-Allow-Origin', '*');
+          return new Response(r.body, { headers: h });
+        }
         if (path === '/api/bridge-check') { const n = String(url.searchParams.get('n') || '').replace(/[^a-f0-9]/g, ''); return json({ ok: !!(n && await kvGet(x.db, 'bn_' + n)) }); }
         if (path === '/api/test-google' || path === '/api/status') { // chỉ Quản trị (trước đây ai cũng gọi được)
           await ensureSchema(x.db);

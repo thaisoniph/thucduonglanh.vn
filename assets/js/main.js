@@ -1317,8 +1317,112 @@
     captureSource(); initConsent(); trackPageEvents();
     renderCounts(); renderMini(); markWish();
     initHeader(); initClicks(); initRail(); initLightbox(); initProduct(); initCerts(); initProof(); initTabs(); initReadmore(); initSort();
-    initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook();
+    initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initPledge();
     window.addEventListener('storage', function (e) { if (e.key === 'tdl_cart') { cart = load('tdl_cart', []); cleanCart(); renderCounts(); renderMini(); } });
+  }
+  // ===== Hành trình 10 triệu người Việt sống khỏe hơn: bộ đếm [data-jr] + trang ký cam kết /cam-ket-song-lanh/ (api journey.js) =====
+  function jrApi() { return CFG.endpoint && /\/api$/.test(CFG.endpoint) ? CFG.endpoint + '/journey' : ''; }
+  function vn(n) { return Number(n || 0).toLocaleString('vi-VN'); }
+  function initJourney() {
+    var boxes = document.querySelectorAll('[data-jr]'), u = jrApi();
+    if (!boxes.length || !u) return;
+    fetch(u).then(function (r) { return r.json(); }).then(function (j) {
+      if (!j || !j.ok || !j.total) return;
+      boxes.forEach(function (b) {
+        var tot = b.querySelector('[data-jr-total]');
+        b.querySelector('[data-jr-buyers]').textContent = vn(j.buyers);
+        if (j.pledges > 0) { b.querySelector('[data-jr-pledges]').textContent = vn(j.pledges); b.querySelector('[data-jr-pl]').hidden = false; }
+        b.hidden = false;
+        var run = function () { // đếm tăng dần cho sinh động
+          var t0 = performance.now(), d = 1200;
+          (function step(now) { var k = Math.min(1, (now - t0) / d); tot.textContent = vn(Math.round(j.total * (1 - Math.pow(1 - k, 3)))); if (k < 1) requestAnimationFrame(step); })(t0);
+        };
+        if (!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) { tot.textContent = vn(j.total); return; }
+        var io = new IntersectionObserver(function (es) { if (es[0].isIntersecting) { io.disconnect(); run(); } }); io.observe(b);
+      });
+    }).catch(function () { });
+  }
+  function pledgeCard(name, no, cb) { // ảnh chứng nhận 1080×1350 vẽ ngay trên máy khách
+    var W = 1080, H = 1350, c = document.createElement('canvas'), x = c.getContext('2d'), logo = new Image();
+    c.width = W; c.height = H;
+    var green = '#0C5233', gold = '#906540', ink = '#262a1f', SERIF = '"Playfair Display", Georgia, serif', SANS = '"Be Vietnam Pro", system-ui, sans-serif';
+    function fit(txt, font, size, max) { do { x.font = font.replace('#', size); size -= 2; } while (x.measureText(txt).width > max && size > 20); }
+    function wrap(txt, X, y, max, lh) { var w = txt.split(' '), line = ''; w.forEach(function (word) { var t = line ? line + ' ' + word : word; if (x.measureText(t).width > max && line) { x.fillText(line, X, y); y += lh; line = word; } else line = t; }); x.fillText(line, X, y); return y + lh; }
+    function draw() {
+      x.fillStyle = '#F8EEDC'; x.fillRect(0, 0, W, H);
+      x.strokeStyle = green; x.lineWidth = 6; x.strokeRect(40, 40, W - 80, H - 80);
+      x.strokeStyle = '#C79666'; x.lineWidth = 2; x.strokeRect(58, 58, W - 116, H - 116);
+      if (logo.naturalWidth) x.drawImage(logo, (W - 254) / 2, 92, 254, 180);
+      x.textAlign = 'center'; x.fillStyle = gold; x.font = '600 28px ' + SANS;
+      if ('letterSpacing' in x) x.letterSpacing = '6px';
+      x.fillText('LỜI CAM KẾT', W / 2, 330);
+      if ('letterSpacing' in x) x.letterSpacing = '0px';
+      x.fillStyle = green; x.font = '600 84px ' + SERIF; x.fillText('Tôi chọn sống lành', W / 2, 435);
+      x.fillStyle = gold; fit('Tôi, ' + name, 'italic 500 #px ' + SERIF, 58, 900); x.fillText('Tôi, ' + name, W / 2, 530);
+      x.fillStyle = ink; x.font = '400 32px ' + SANS; x.fillText('chọn sống lành, để sống đáng. Từ hôm nay, tôi cam kết:', W / 2, 600);
+      x.textAlign = 'left'; var y = 680;
+      [].map.call(document.querySelectorAll('.plg-list li'), function (li) { return li.textContent; }).forEach(function (it) {
+        x.fillStyle = green; x.font = '700 34px ' + SANS; x.fillText('✓', 130, y);
+        x.fillStyle = ink; x.font = '400 32px ' + SANS; y = wrap(it, 180, y, 770, 46) + 22;
+      });
+      x.textAlign = 'center';
+      var by = Math.max(y + 10, 960);
+      x.fillStyle = '#fff'; x.beginPath(); if (x.roundRect) x.roundRect(110, by, W - 220, 200, 24); else x.rect(110, by, W - 220, 200); x.fill();
+      x.fillStyle = ink; x.font = '400 30px ' + SANS; x.fillText('Người thứ', W / 2, by + 52);
+      x.fillStyle = green; x.font = '700 72px ' + SANS; x.fillText(vn(no), W / 2, by + 128);
+      x.fillStyle = ink; x.font = '400 28px ' + SANS; x.fillText('trên hành trình 10 triệu người Việt sống khỏe hơn', W / 2, by + 176);
+      var d = new Date(); x.fillStyle = gold; x.font = '500 26px ' + SANS;
+      x.fillText('Ngày ' + ('0' + d.getDate()).slice(-2) + '/' + ('0' + (d.getMonth() + 1)).slice(-2) + '/' + d.getFullYear() + '  ·  thucduonglanh.vn/cam-ket-song-lanh', W / 2, H - 100);
+      c.toBlob(cb, 'image/png');
+    }
+    var fonts = document.fonts && document.fonts.load ? Promise.all(['600 84px "Playfair Display"', 'italic 500 58px "Playfair Display"', '400 32px "Be Vietnam Pro"', '700 72px "Be Vietnam Pro"'].map(function (f) { return document.fonts.load(f, 'Tôi chọn sống lành'); })).catch(function () { }) : Promise.resolve();
+    var img = new Promise(function (ok) { logo.onload = logo.onerror = ok; logo.src = '/assets/img/brand/logo@2x.png'; });
+    Promise.all([fonts, img]).then(draw);
+  }
+  function initPledge() {
+    var form = document.querySelector('[data-pledge]'); if (!form) return;
+    var done = document.querySelector('[data-plg-done]'), msg = form.querySelector('[data-plg-msg]'), btn = form.querySelector('button[type=submit]');
+    var shareUrl = location.origin + location.pathname, blob = null, imgUrl = '';
+    function show(p) {
+      done.querySelector('[data-plg-name]').textContent = p.name; done.querySelector('[data-plg-no]').textContent = vn(p.no);
+      form.hidden = true; done.hidden = false;
+      pledgeCard(p.name, p.no, function (b) {
+        blob = b; if (imgUrl) URL.revokeObjectURL(imgUrl); imgUrl = URL.createObjectURL(b);
+        done.querySelector('[data-plg-img]').src = imgUrl; done.querySelector('[data-plg-dl]').href = imgUrl;
+      });
+    }
+    var saved = load('tdl_pledge', null); if (saved && saved.name && saved.no) show(saved);
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var name = form.elements.name.value.trim(), u = CFG.endpoint;
+      if (name.length < 2) { msg.className = 'form-msg err'; msg.textContent = 'Bạn ghi giúp tên của mình nhé.'; form.elements.name.focus(); return; }
+      if (!u) return;
+      btn.disabled = true; msg.className = 'form-msg'; msg.textContent = 'Đang ghi lời cam kết…';
+      fetch(u, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ type: 'pledge', name: name, province: form.elements.province.value.trim(), website: form.elements.website.value, src: sourceLabel().last }) })
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          btn.disabled = false;
+          if (!j || !j.ok) { msg.className = 'form-msg err'; msg.textContent = (j && j.error) || 'Chưa gửi được, bạn thử lại giúp nhé.'; return; }
+          var p = { name: j.name || name, no: j.no, at: Date.now() }; save('tdl_pledge', p); msg.textContent = '';
+          track('pledge', {}); show(p); done.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        })
+        .catch(function () { btn.disabled = false; msg.className = 'form-msg err'; msg.textContent = 'Mạng đang chập chờn, bạn thử lại giúp nhé.'; });
+    });
+    var text = 'Mình vừa ký lời cam kết "Tôi chọn sống lành" cùng Thực Dưỡng Lành, trên hành trình 10 triệu người Việt sống khỏe hơn. Cùng ký với mình nhé:';
+    function copyInvite() { var t = text + ' ' + shareUrl; if (navigator.clipboard) navigator.clipboard.writeText(t).then(function () { toast('Đã sao chép lời mời – dán vào Zalo/Facebook để gửi', 'ok'); }); }
+    done.querySelector('[data-plg-share]').addEventListener('click', function () {
+      track('pledge_share', {});
+      var f = blob && window.File ? new File([blob], 'cam-ket-song-lanh.png', { type: 'image/png' }) : null;
+      if (f && navigator.canShare && navigator.canShare({ files: [f] })) navigator.share({ files: [f], text: text + ' ' + shareUrl }).catch(function () { });
+      else if (navigator.share) navigator.share({ title: 'Tôi chọn sống lành', text: text, url: shareUrl }).catch(function () { });
+      else copyInvite();
+    });
+    done.querySelector('[data-plg-invite]').addEventListener('click', function () {
+      track('pledge_invite', {});
+      if (navigator.share) navigator.share({ title: 'Tôi chọn sống lành', text: text, url: shareUrl }).catch(function () { }); else copyInvite();
+    });
+    done.querySelector('[data-plg-dl]').addEventListener('click', function () { track('pledge_download', {}); });
+    done.querySelector('[data-plg-again]').addEventListener('click', function () { form.reset(); done.hidden = true; form.hidden = false; form.elements.name.focus(); });
   }
   // Nút "Cùng đồng hành" (khối Điều chúng tôi tin) → #dong-hanh ở cuối trang: ảnh phía trên tải dần làm trang dài thêm, nên cuộn lại cho trúng
   document.addEventListener('click', function (e) {

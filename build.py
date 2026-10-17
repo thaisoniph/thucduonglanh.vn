@@ -1390,13 +1390,64 @@ def community_html(start_url="/san-pham/"):
     total = sum(int(re.sub(r"\D", "", m)) for c in items for m in re.findall(r"\d[\d.]*", c.get("stat", "")[:12]))
     total = total // 10000 * 10000
     sub = tf("Hơn <b>{n}</b> người đang theo dõi {brand} trên các kênh. Chọn một nơi để cùng sống lành mỗi ngày, hoàn toàn miễn phí.", n=f"{total:,}".replace(",", "."), brand=BRAND) if total >= 10000 else t("Chọn một nơi để cùng sống lành mỗi ngày, hoàn toàn miễn phí.")
+    pledge_btn = f'<a class="btn btn-lg" href="{PLEDGE_PATH}" data-cta="join_pledge">✍️ {t("Ký lời cam kết “Tôi chọn sống lành”")}</a>' if IS_VI else ""
     return f'''<section class="section join" id="dong-hanh"><div class="container">
   <p class="join-eye">{t("Lời mời đồng hành")}</p>
   <h2 class="sec-title big">{t("Cùng chúng tôi đi hành trình")}<br><span class="accent">{t("10 triệu người Việt sống khỏe hơn")}</span></h2>
   <p class="join-sub">{sub}</p>
+  {journey_counter()}
   <div class="cm-grid">{cards}</div>
-  <div class="join-self"><p>{t("Hoặc bắt đầu từ chính mình, từ hôm nay:")}</p><a class="btn btn-lg" href="{start_url}" data-cta="join_start">{t("Bắt đầu 10 ngày sống lành")}</a></div>
+  <div class="join-self"><p>{t("Hoặc bắt đầu từ chính mình, từ hôm nay:")}</p><div class="join-btns">{pledge_btn}<a class="btn btn-lg{" btn-ghost" if pledge_btn else ""}" href="{start_url}" data-cta="join_start">{t("Bắt đầu 10 ngày sống lành")}</a></div></div>
 </div></section>'''
+
+
+PLEDGE_PATH = "/cam-ket-song-lanh/"
+PLEDGE_ITEMS = ["Ăn chậm hơn, chọn bữa ăn lành hơn cho mình và gia đình.",
+                "Lắng nghe cơ thể: ngủ đủ, uống đủ nước, vận động mỗi ngày.",
+                "Chăm sóc sớm hơn những người mình thương."]
+
+
+def journey_counter():
+    """Bộ đếm hành trình 10 triệu người: số thật lấy từ api /api/journey (khách đã mua + lời cam kết); lỗi mạng thì giữ ẩn."""
+    if not IS_VI:
+        return ""
+    return '''<div class="jr" data-jr hidden><p class="jr-num"><b data-jr-total>0</b><span>người đã cùng Thực Dưỡng Lành sống lành</span></p>
+<p class="jr-meta"><span data-jr-buyers></span> khách hàng tin dùng<span data-jr-pl hidden> · <span data-jr-pledges></span> lời cam kết</span> · Mục tiêu <b>10.000.000</b> người Việt</p></div>'''
+
+
+def page_pledge():
+    """Trang /cam-ket-song-lanh/: ký lời cam kết "Tôi chọn sống lành" → ảnh chứng nhận để chia sẻ (main.js initPledge, api journey.js)."""
+    items = "".join(f"<li>{esc(x)}</li>" for x in PLEDGE_ITEMS)
+    hh = HOME.get("hero") or {}
+    hp = PROD_BY.get(hh.get("product") or "")
+    start = f'/san-pham/{hp["slug"]}/' if hp else "/san-pham/"
+    body = f'''<section class="section plg-page"><div class="container plg-in">
+  <p class="join-eye">Hành trình 10 triệu người Việt sống khỏe hơn</p>
+  <h1 class="plg-h">Tôi chọn sống lành</h1>
+  <p class="plg-lead">Hành trình nào cũng bắt đầu từ một lời hứa nhỏ với chính mình. Ký lời cam kết để cùng {BRAND} lan tỏa lối sống lành tới 10 triệu người Việt, rồi nhận ảnh chứng nhận để chia sẻ với người thân.</p>
+  {journey_counter()}
+  <div class="plg-card">
+    <form class="plg-form" data-pledge novalidate>
+      <h2>Lời cam kết</h2>
+      <p class="plg-intro">Tôi chọn sống lành, để sống đáng. Từ hôm nay, tôi cam kết:</p>
+      <ol class="plg-list">{items}</ol>
+      <label class="plg-f"><span>Tên của bạn *</span><input name="name" maxlength="40" autocomplete="name" placeholder="Ví dụ: Nguyễn Thu Hà" required></label>
+      <label class="plg-f"><span>Tỉnh / thành phố</span><input name="province" maxlength="40" autocomplete="address-level1" placeholder="Không bắt buộc"></label>
+      <input type="text" name="website" tabindex="-1" autocomplete="off" class="hp" aria-hidden="true">
+      <button class="btn btn-lg plg-submit" type="submit">✍️ Tôi cam kết</button>
+      <p class="form-msg" data-plg-msg role="status"></p>
+      <p class="plg-note">Chúng tôi chỉ lưu tên và tỉnh/thành để đếm số người cùng cam kết. Không hiện công khai, không dùng để gọi điện hay nhắn tin. Xem <a href="/chinh-sach-bao-mat/">chính sách bảo mật</a>.</p>
+    </form>
+    <div class="plg-done" data-plg-done hidden>
+      <p class="plg-thanks">Cảm ơn <b data-plg-name></b>! Bạn là người thứ <b data-plg-no></b> trên hành trình 10 triệu người Việt sống khỏe hơn.</p>
+      <img class="plg-img" data-plg-img alt="Ảnh chứng nhận lời cam kết Tôi chọn sống lành" width="1080" height="1350">
+      <div class="plg-acts"><a class="btn" data-plg-dl download="cam-ket-song-lanh.png" href="#">⬇️ Tải ảnh</a><button class="btn btn-ghost" type="button" data-plg-share>📤 Chia sẻ</button><button class="btn btn-ghost" type="button" data-plg-invite>💌 Mời người thân cùng ký</button></div>
+      <p class="plg-again"><button type="button" class="link-btn" data-plg-again>Ký thêm cho một người thân</button></p>
+    </div>
+  </div>
+  <div class="plg-next"><p>Lời hứa nhỏ, bắt đầu từ bữa ăn hôm nay:</p><a class="btn btn-lg btn-ghost" href="{start}" data-cta="pledge_start">Bắt đầu 10 ngày sống lành</a></div>
+</div></section>'''
+    return layout(PLEDGE_PATH, "Tôi chọn sống lành – Lời cam kết", f"Ký lời cam kết “Tôi chọn sống lành”, cùng {BRAND} đi hành trình giúp 10 triệu người Việt sống khỏe hơn và nhận ảnh chứng nhận để chia sẻ.", body, body_class="page-pledge")
 
 
 def post_card(p):
@@ -2380,6 +2431,8 @@ def main():
         routes.append(write(CN_PATH, page_camnang()))
     if gift_list():
         routes.append(write(GIFT_PATH, page_gifts()))
+    if IS_VI:
+        routes.append(write(PLEDGE_PATH, page_pledge()))
     if SITE.get("zalo_group"):  # link cố định cho QR, sách, bài đăng: luôn chuyển tới nhóm Zalo đang cài ở /admin (nhóm đầy → đổi link ở /admin là xong)
         zg = esc(SITE["zalo_group"])
         write("/nhom-zalo/", f'''<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">

@@ -9,13 +9,14 @@ import { crmSan, sanSchema, sanAllowed } from './san.js';
 import { crmSaleMkt, crmOffers } from './salemkt.js';
 import { cmsTokenSet } from './cms.js';
 import { crmVoucher, voucherSchema } from './voucher.js';
+import { journeySchema } from './journey.js';
 import { crmLinks } from './links.js';
 import { crmAi } from './ai.js';
 import { wbQueue, wbOrderQueue, wbStatusQueue, WB_SHORT } from './wb.js';
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-10-16a'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
+const SCHEMA_V = '2026-10-17a'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -104,6 +105,7 @@ export async function ensureSchema(db) {
     await run(db, 'CREATE INDEX IF NOT EXISTS ad_spend_batch ON ad_spend(batch)');
     await sanSchema(db); // đơn sàn TMĐT (api/src/san.js)
     await voucherSchema(db); // mã ưu đãi (api/src/voucher.js)
+    await journeySchema(db); // lời cam kết sống lành (api/src/journey.js)
     await partnerSchema(db); // 🤝 CTV / đối tác + 🎁 khách giới thiệu (api/src/partner.js)
     schemaDone = true;
     if (deltaOk) await run(db, "INSERT INTO kv (k, v) VALUES ('schema_v', ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v, exp = NULL", SCHEMA_V);
