@@ -772,3 +772,10 @@ Nếu bạn vẫn có file Sheet riêng (được quản trị nối vào CRM), 
 
 Lỡ ghi nhầm trạng thái trong file (vd ghi Hoàn nhưng khách đã nhận) thì sửa lại trong file. CRM đổi theo ở lần nhập sau, **trừ khi** đơn đã được đổi trạng thái trên CRM hoặc Viettel Post báo về. Khi đó nhờ quản lý sửa trên CRM. Ghi "Hoàn thành" / "Hoàn tất" được hiểu là **Đã giao**; muốn báo hoàn hàng thì ghi "Hoàn" hoặc "Hoàn hàng".
 
+
+
+### 👥 Khách xin vào nhóm Zalo từ website (17/10/2026)
+Trên website, ai muốn vào nhóm Zalo "Sống khỏe cùng Thực Dưỡng Lành" phải để lại **tên + số Zalo** trước (trang thucduonglanh.vn/nhom-zalo/, cả mã QR in trên tài liệu). Khách để số xong mới thấy nút vào nhóm. Khách mới vào **Khách hỏi** với kênh **"Nhóm Zalo (Website)"**, Telegram báo 👥 XIN VÀO NHÓM ZALO.
+- Việc của sale / CSKH: trong 24 giờ kết bạn Zalo, nhắn chào mừng, hỏi khách quan tâm gì (ghi chú có thể có sẵn điểm trò chơi "còn 6/10 ngón").
+- Nếu nhóm bật **Duyệt thành viên**: người quản trị nhóm đối chiếu tên trong yêu cầu với Khách hỏi kênh "Nhóm Zalo (Website)" rồi duyệt. Người không có trong CRM thì có thể nhắn hỏi trước khi duyệt.
+- Khách cũ: link nhóm sale gửi trong tin nhắn chăm sóc vẫn vào thẳng như trước.

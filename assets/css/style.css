@@ -1918,3 +1918,14 @@ body.gd-lock{overflow:hidden}
 .gd-it.done em{color:var(--muted)}
 .gd-it.here{border-color:#c9b48a}
 @media (max-width:860px){.gd-btn{left:12px;bottom:12px;height:46px;font-size:14px}.to-top{left:12px;bottom:68px}.gd-sheet{justify-content:center}.gd-box{max-width:none;margin:0;border-radius:20px 20px 0 0;padding-bottom:calc(18px + env(safe-area-inset-bottom))}.gd-sheet .gd-box{transform:translateY(100%)}.gd-sheet.on .gd-box{transform:none}}
+/* Cổng vào nhóm Zalo /nhom-zalo/ (build.py page_zalo_gate, main.js initZaloGate, 17/10/2026) */
+.zg-in{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start;max-width:1040px}
+.zg-intro .plg-h{text-align:left;font-size:40px;line-height:1.2}
+.zg-ben{list-style:none;padding:0;margin:18px 0 0;display:grid;gap:10px}
+.zg-ben li{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:15.5px}
+.zg-card{background:#fff;grid-area:auto}
+.zg-intro{grid-area:auto;min-width:0}
+.zg-card .btn-zalo{width:100%;background:#0068ff;border-color:#0068ff;color:#fff}
+.zg-card .btn-zalo:hover{background:#0052cc;color:#fff}
+.zg-gift{display:flex;width:100%;margin-top:12px;white-space:normal;border-radius:14px;text-align:center;line-height:1.4}
+@media (max-width:860px){.zg-in{grid-template-columns:1fr;gap:20px}.zg-intro .plg-h{font-size:30px}.zg-ben{gap:2px;margin-top:10px}.zg-ben li{padding:4px 0;font-size:14.5px;background:none;border:0}}

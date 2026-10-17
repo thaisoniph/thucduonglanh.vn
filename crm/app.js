@@ -174,7 +174,7 @@
     function fallback() { var t = document.createElement('textarea'); t.value = text; t.style.position = 'fixed'; t.style.opacity = '0'; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); } catch (e) { } t.remove(); }
   }
 
-  var SERVER_V = '2026-10-17e'; // phải trùng số phiên bản máy chủ (api/src/index.js)
+  var SERVER_V = '2026-10-17f'; // phải trùng số phiên bản máy chủ (api/src/index.js)
   var ON_CF = !/script\.google/.test(CFG.endpoint || ''); // máy chủ Cloudflare (nhanh) hay Apps Script cũ
   function checkVersion(j) {
     if (j && j.v) S.srvV = j.v;

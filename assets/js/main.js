@@ -1319,7 +1319,7 @@
     captureSource(); initConsent(); trackPageEvents();
     renderCounts(); renderMini(); markWish();
     initHeader(); initClicks(); initRail(); initLightbox(); initProduct(); initCerts(); initProof(); initTabs(); initReadmore(); initSort();
-    initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initPledge(); initQuiz(); initGiftDock();
+    initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initPledge(); initQuiz(); initGiftDock(); initZaloGate();
     window.addEventListener('storage', function (e) { if (e.key === 'tdl_cart') { cart = load('tdl_cart', []); cleanCart(); renderCounts(); renderMini(); } });
   }
   // ===== Hành trình 10 triệu người Việt sống khỏe hơn: bộ đếm [data-jr] + trang ký cam kết /cam-ket-song-lanh/ (api journey.js) =====
@@ -1594,6 +1594,36 @@
       l.innerHTML = 'Lần trước bạn còn <b>' + st.last.score + '/' + n + '</b> ngón' + (st.ch ? ' · đang thử thách: ' + esc(st.ch.habit) : '') + '. <button type="button" class="link-btn" data-qz-show>Xem lại kết quả</button>';
       if (st.ch) { cur = st.last; }
     }
+  }
+  // ===== Cổng vào nhóm Zalo /nhom-zalo/ (build.py page_zalo_gate): để lại tên + số Zalo → CRM khách hỏi "Nhóm Zalo (Website)" → mới hiện nút vào nhóm =====
+  function initZaloGate() {
+    var box = $('#zgBox'); if (!box) return;
+    var form = $('#zgForm', box), done = $('.ebf-done', box), quick = $('.zg-quick', box), lead = giftLead();
+    function show(st) { form.hidden = st !== 'form'; done.hidden = st !== 'done'; quick.hidden = st !== 'quick'; }
+    function ctx() { var q = (load('tdl_quiz', {}) || {}).last; return [q ? '🖐 Trò chơi: còn ' + q.score + ' ngón' : '', load('tdl_pledge', null) ? '✍️ Đã ký cam kết' : ''].filter(Boolean).join(' · '); }
+    function report(l, cs, again) {
+      var src = sourceLabel(), pos = qs('tu');
+      send({ type: 'contact', kind: 'zalo', again: again, name: l.name, phone: l.phone, email: '', concern: cs.join(', '), ctx: ctx(), pos: pos, source: src.last, created: new Date().toISOString(), page: location.href,
+        message: '👥 ' + (again ? 'Bấm vào nhóm Zalo (đã có số)' : 'Xin vào nhóm Zalo') + (cs.length ? ' · Quan tâm: ' + cs.join(', ') : '') + (pos ? ' · bấm từ web: ' + pos : '') + ' · Nguồn: ' + src.last }).catch(function () { });
+      track('generate_lead', { form: 'zalo_group', location: pos || 'direct', returning: again ? 1 : 0 });
+      save('tdl_zalo', { t: Date.now() });
+    }
+    var g = $('[data-zg-gift]', box); if (g) g.addEventListener('click', function () { g.href = giftUrl('camnang', g.getAttribute('href').split('?')[0]); save('tdl_camnang', { t: Date.now() }); });
+    if (load('tdl_zalo', null) && lead) show('done');
+    else if (lead) { $('[data-zg-name]', quick).textContent = lead.name; $('[data-zg-phone]', quick).textContent = lead.phone.replace(/^(\d{4})\d+(\d{3})$/, '$1***$2'); show('quick'); }
+    $('[data-zg-quick]', quick).addEventListener('click', function () { report(lead, [], true); setTimeout(function () { show('done'); }, 300); }); // link mở nhóm luôn (1 chạm)
+    $('[data-zg-other]', quick).addEventListener('click', function () { show('form'); form.elements.name.focus(); });
+    $('[data-zg-join]', done).addEventListener('click', function () { track('zalo_group_join', { location: qs('tu') || 'direct' }); });
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var msg = $('.form-msg', form); msg.className = 'form-msg';
+      if (form.elements.website.value) return;
+      if (!validate(form)) { msg.className = 'form-msg err'; msg.textContent = 'Vui lòng điền họ tên và số điện thoại đúng (10 số).'; return; }
+      var l = { name: form.elements.name.value.trim(), phone: normPhone(form.elements.phone.value) }, cs = $$('input[name=concern]:checked', form).map(function (c) { return c.value; });
+      report(l, cs, false);
+      var old = giftLead() || {}; save('tdl_lead', { name: l.name, phone: l.phone, concern: cs.length ? cs : old.concern || [], gifts: old.gifts || [], t: Date.now() });
+      show('done'); box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
   }
   // ===== Nút nổi "🎁 Quà & Trò chơi" (build.py gift_dock): luôn thấy ở góc trái dưới, bấm mở bảng chọn từ dưới lên =====
   function initGiftDock() {

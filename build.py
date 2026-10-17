@@ -456,7 +456,7 @@ def uu_dai_html():
     if WEB_OFF_MAX:
         out.append(f"<li><strong>{t('Một số sản phẩm giảm thêm ') if w.get('headline') else t('Giảm ')}{upto(WEB_OFF_MAX)}</strong>{t(' khi đặt trên website (mức giảm ghi ở từng sản phẩm, đã trừ trực tiếp vào giá).')}</li>")
     if w.get("gift_enabled") and w.get("gift_title"):
-        link = f' – <a href="{esc(SITE["zalo_group"])}" target="_blank" rel="noopener">{t("tham gia tại đây")}</a>' if SITE.get("zalo_group") and w.get("gift_how") else ""
+        link = f' – <a href="{ZALO_GATE}?tu=uu_dai">{t("tham gia tại đây")}</a>' if SITE.get("zalo_group") and w.get("gift_how") else ""
         out.append(f"<li><strong>{t('Tặng')} {esc(w['gift_title'])}</strong>" + (f" {t('trị giá')} {esc(w['gift_value'])}" if w.get("gift_value") else "") + (f" {esc(w['gift_how'])}" if w.get("gift_how") else "") + link + ".</li>")
     return f'<ul class="uu-dai">{"".join(out)}</ul>' if out else ""
 
@@ -579,7 +579,7 @@ def header(active):
 <div class="offcanvas" id="offcanvas" aria-hidden="true"><div class="oc-panel">
   <div class="oc-head"><img src="/assets/img/brand/logo.webp" alt="{BRAND}" height="56"><button class="icon-btn" data-oc-close aria-label="{t("Đóng")}">{I["close"]}</button></div>
   {nav_html(active, "oc-menu")}
-  {f'<a class="oc-zalo" href="{esc(SITE["zalo_group"])}" target="_blank" rel="noopener" data-cta="zalo_group_menu">{I["zalo"]}<span><b>Nhóm Zalo Sống khỏe</b>{(esc(WEB_OFFER["gift_title"]) + (" – trị giá " + esc(WEB_OFFER["gift_value"]) if WEB_OFFER.get("gift_value") else "") + " 🎁 tặng thành viên") if WEB_OFFER.get("gift_enabled") and WEB_OFFER.get("gift_title") else "Tham gia miễn phí – chia sẻ món lành, ưu đãi thành viên"}</span></a>' if SITE.get("zalo_group") else ""}
+  {f'<a class="oc-zalo" href="{ZALO_GATE}?tu=menu" data-cta="zalo_group_menu">{I["zalo"]}<span><b>Nhóm Zalo Sống khỏe</b>{(esc(WEB_OFFER["gift_title"]) + (" – trị giá " + esc(WEB_OFFER["gift_value"]) if WEB_OFFER.get("gift_value") else "") + " 🎁 tặng thành viên") if WEB_OFFER.get("gift_enabled") and WEB_OFFER.get("gift_title") else "Tham gia miễn phí – chia sẻ món lành, ưu đãi thành viên"}</span></a>' if SITE.get("zalo_group") else ""}
   <div class="oc-foot">{f'<a href="/qua-tang/?tu=menu" data-cta="gift_menu">🎁 Nhận quà tặng miễn phí</a>' if gift_list() else ""}<a href="/yeu-thich/">{ic("heart")} {t("Sản phẩm yêu thích")}</a><a href="tel:{tel(SITE["hotline"])}">{ic("phone")} {esc(SITE["hotline"])}</a><!--ALT-OC--></div>
 </div></div>
 <div class="search-layer" id="searchLayer" aria-hidden="true"><div class="search-box">
@@ -1202,13 +1202,58 @@ def gift_dock():
     if not its:
         return ""
     rows = "".join(f'''<a class="gd-it" data-gd="{k}" href="{esc(h)}{"&" if "?" in h else "?"}tu=dock" data-cta="dock_{k}"><span class="gd-iic">{ic}</span><span class="gd-itx"><b>{esc(tt)}</b><small data-gd-sub>{esc(sub)}</small></span><em data-gd-st>{"Chơi" if k == "quiz" else "Ký" if k == "pledge" else "Nhận"} →</em></a>''' for k, ic, tt, sub, h in its)
-    zg = f'<a class="gd-it gd-zalo" href="/nhom-zalo/" target="_blank" rel="noopener" data-cta="dock_zalo"><span class="gd-iic">👥</span><span class="gd-itx"><b>Nhóm Zalo “Sống khỏe cùng {BRAND}”</b><small>Thực đơn lành, ưu đãi thành viên, hỏi đáp mỗi ngày.</small></span><em>Vào →</em></a>' if SITE.get("zalo_group") else ""
+    zg = f'<a class="gd-it gd-zalo" href="{ZALO_GATE}?tu=dock" data-cta="dock_zalo"><span class="gd-iic">👥</span><span class="gd-itx"><b>Nhóm Zalo “Sống khỏe cùng {BRAND}”</b><small>Thực đơn lành, ưu đãi thành viên, hỏi đáp mỗi ngày.</small></span><em>Vào →</em></a>' if SITE.get("zalo_group") else ""
     return f'''
 <button class="gd-btn" id="gdBtn" type="button" aria-expanded="false" aria-controls="gdSheet" hidden><span class="gd-ic" aria-hidden="true">🎁</span><span class="gd-tx">Quà & Trò chơi</span><span class="gd-badge" data-gd-n hidden></span></button>
 <div class="gd-sheet" id="gdSheet" hidden role="dialog" aria-modal="true" aria-labelledby="gdTitle"><div class="gd-box">
   <div class="gd-head"><div><b id="gdTitle">🎁 Miễn phí cho bạn</b><small>Quà tặng, trò chơi và hành trình sống lành</small></div><button type="button" class="gd-x" data-gd-close aria-label="Đóng">{I["close"]}</button></div>
   <div class="gd-list">{rows}{zg}</div>
 </div></div>'''
+
+
+ZALO_GATE = "/nhom-zalo/"
+
+
+def page_zalo_gate():
+    """Cổng vào nhóm Zalo (/nhom-zalo/, link cố định trên QR, sách, web): khách để tên + số Zalo → CRM khách hỏi kênh "Nhóm Zalo (Website)" → mới hiện nút vào nhóm.
+    Khách đã để số trước đó (tdl_lead) → 1 chạm vào nhóm. Quà chào mừng: cẩm nang. main.js initZaloGate. Nhóm đầy → đổi link ở /admin, link cổng giữ nguyên."""
+    group = SITE.get("zalo_group", "")
+    chips = "".join(f'<label class="cn-chip"><input type="checkbox" name="concern" value="{esc(c)}"><span>{esc(c)}</span></label>' for c in CN_CONCERNS)
+    stat = next((c.get("stat") for c in SITE.get("community") or [] if c.get("url") == group and re.search(r"\d", c.get("stat", ""))), "")
+    gift = f'<a class="btn btn-lg btn-ghost zg-gift" data-zg-gift href="{esc(CN.get("reader", ""))}" target="_blank" rel="noopener" data-cta="zalo_gate_gift">🎁 Mở quà chào mừng: cẩm nang Sống khỏe chủ động</a>' if CN_PATH else ""
+    body = f'''<section class="section zg-page"><div class="container zg-in">
+  <div class="zg-intro">
+    <p class="join-eye">👥 Cộng đồng miễn phí{f" · {esc(stat)}" if stat else ""}</p>
+    <h1 class="plg-h">Nhóm Zalo <span class="nw">Sống khỏe</span> <span class="nw">cùng {BRAND}</span></h1>
+    <ul class="zg-ben"><li>🥗 Thực đơn lành, mẹo sống khỏe mỗi tuần</li><li>💬 Hỏi đáp trực tiếp với đội ngũ {BRAND}</li><li>🎯 Được nhắc thử thách 7 ngày sống lành</li><li>🎁 Ưu đãi riêng cho thành viên{f" + {esc(WEB_OFFER['gift_title'])}" if WEB_OFFER.get("gift_enabled") and WEB_OFFER.get("gift_title") else ""}</li>{"<li>📖 Quà chào mừng: cẩm nang “Sống khỏe chủ động” 32 trang, có sách nói</li>" if CN_PATH else ""}</ul>
+  </div>
+  <div class="ebf card cnf zg-card" id="zgBox" data-g="{esc(group)}">
+    <div class="zg-quick" hidden>
+      <h2>👋 Chào <span data-zg-name></span>!</h2>
+      <p class="ebf-note">Anh/chị đã để số <b data-zg-phone></b> với {BRAND}. Bấm nút dưới đây để vào nhóm luôn.</p>
+      <a class="btn btn-lg btn-zalo" data-zg-quick href="{esc(group)}" target="_blank" rel="noopener">👥 Vào nhóm Zalo ngay →</a>
+      <button type="button" class="ebf-again" data-zg-other>Không phải tôi / dùng số khác</button>
+    </div>
+    <form id="zgForm" novalidate>
+      <h2>Nhận link vào nhóm</h2>
+      <p class="ebf-note">Để giữ nhóm toàn người thật, cùng quan tâm sống khỏe, anh/chị để lại tên và số Zalo nhé. Bấm xong là vào nhóm ngay.</p>
+      <label>Họ và tên *<input name="name" required autocomplete="name" placeholder="Ví dụ: Nguyễn Thị Lan"></label>
+      <label>Số điện thoại (Zalo) *<input name="phone" type="tel" required autocomplete="tel" inputmode="tel" placeholder="Ví dụ: 0912 345 678"></label>
+      <fieldset class="cn-chips"><legend>Anh/chị quan tâm điều gì? <small>(không bắt buộc)</small></legend>{chips}</fieldset>
+      <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <button class="btn btn-lg btn-zalo" type="submit">👥 Nhận link vào nhóm</button>
+      <p class="form-msg" role="status"></p>
+      <p class="ebf-legal">Khi bấm, anh/chị đồng ý để {BRAND} liên hệ qua điện thoại/Zalo để chào mừng, gửi tài liệu và tư vấn dinh dưỡng, theo <a href="/chinh-sach-bao-mat/" target="_blank">Chính sách bảo mật</a>. Không chia sẻ thông tin cho bên thứ ba.</p>
+    </form>
+    <div class="ebf-done" hidden>
+      <h2>✅ Xong rồi, mời anh/chị vào nhóm!</h2>
+      <p class="ebf-note">Bấm nút để mở nhóm trong Zalo. Nhóm có bật duyệt thì đội ngũ {BRAND} sẽ duyệt trong ngày.</p>
+      <a class="btn btn-lg btn-zalo" data-zg-join href="{esc(group)}" target="_blank" rel="noopener" data-cta="zalo_gate_join">👥 Vào nhóm Zalo ngay →</a>
+      {gift}
+    </div>
+  </div>
+</div></section>'''
+    return layout(ZALO_GATE, f"Nhóm Zalo Sống khỏe cùng {BRAND}", f"Tham gia miễn phí nhóm Zalo Sống khỏe cùng {BRAND}: thực đơn lành, hỏi đáp với đội ngũ, ưu đãi thành viên và quà chào mừng.", body, body_class="page-zalo", noindex=True)
 
 
 def hub_cards(medium):
@@ -1452,7 +1497,7 @@ def org_ld():
 
 def community_html(start_url="/san-pham/"):
     """Lời mời đồng hành (#dong-hanh, nút ở khối Chúng tôi có một ước mơ dẫn tới): các kênh cộng đồng + bắt đầu 10 ngày."""
-    items = SITE.get("community") or []
+    items = [dict(c, url=f"{ZALO_GATE}?tu=dong_hanh") if SITE.get("zalo_group") and c.get("url") == SITE["zalo_group"] else c for c in (SITE.get("community") or [])]  # nhóm Zalo: qua cổng để lại số trước
     if not items:
         return ""
     cards = "".join(f'''<article class="cm-card"><a class="cm-media" href="{esc(c["url"])}" target="_blank" rel="noopener" data-cta="join_{i}"><img src="{esc(img_url(c["image"], 600))}" alt="{esc(c["name"])}" loading="lazy" width="600" height="600"><span class="cm-stat">{esc(c.get("stat",""))}</span></a>
@@ -1582,7 +1627,7 @@ def page_quiz():
     <div class="qz-box qz-ch" data-qz-ch><h2>Thử thách 7 ngày: dựng lại 1 ngón tay</h2>
       <div data-qz-ch-pick><p class="qz-sub">Chọn <b>một</b> thói quen bạn muốn sửa trước. Mỗi ngày làm được thì vào đây tích ✓. Sau 7 ngày, chơi lại để xem mình còn mấy ngón nhé!</p><div class="qz-picks" data-qz-picks></div></div>
       <div data-qz-ch-run hidden><p class="qz-sub">Thói quen của bạn: <b data-qz-ch-name></b></p><div class="qz-days" data-qz-days></div><p class="qz-ch-msg" data-qz-ch-msg></p><p class="qz-ch-acts"><button type="button" class="link-btn" data-qz-ch-reset>Đổi thói quen khác</button></p></div>
-      {f'<a class="qz-zalo" href="/nhom-zalo/" target="_blank" rel="noopener" data-cta="quiz_zalo">👥 Vào nhóm Zalo để được nhắc thử thách mỗi ngày →</a>' if SITE.get("zalo_group") else ""}
+      {f'<a class="qz-zalo" href="{ZALO_GATE}?tu=quiz" target="_blank" rel="noopener" data-cta="quiz_zalo">👥 Vào nhóm Zalo để được nhắc thử thách mỗi ngày →</a>' if SITE.get("zalo_group") else ""}
       <p class="qz-note">Bảng tích ✓ chỉ lưu trên máy của bạn, không gửi đi đâu.</p>
     </div>
     <div class="qz-box qz-prods" data-qz-prods hidden><h2>Gợi ý nhỏ từ {BRAND}</h2><div data-qz-prod-list></div><p class="qz-disc">Sản phẩm là thực phẩm, không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh.</p></div>
@@ -1699,7 +1744,7 @@ def offer_box(p=None):
     elif p is None and WEB_OFF_MAX and not w.get("headline"):
         items.append(f'<li>{ic("check","wo-ic")}<span>{tf("Giá trên web đã giảm <b>{pct}</b> – trừ trực tiếp vào giá", pct=upto(WEB_OFF_MAX))}</span></li>')
     if gift_text():
-        join = f' <a href="{esc(SITE["zalo_group"])}" target="_blank" rel="noopener" data-cta="zalo_group_offer">Tham gia nhóm →</a>' if SITE.get("zalo_group") and not compact else ""
+        join = f' <a href="{ZALO_GATE}?tu=uu_dai_sp" data-cta="zalo_group_offer">Tham gia nhóm →</a>' if SITE.get("zalo_group") and not compact else ""
         items.append(f'<li>{ic("check","wo-ic")}<span>{gift_text()}{join}</span></li>')
     if not items:
         return ""
@@ -2611,10 +2656,7 @@ def main():
             routes.append(write(QUIZ_PATH, page_quiz()))
             write(QUIZ_GROUP_PATH, page_quiz_group())  # màn hình chơi nhóm: không vào sitemap
     if SITE.get("zalo_group"):  # link cố định cho QR, sách, bài đăng: luôn chuyển tới nhóm Zalo đang cài ở /admin (nhóm đầy → đổi link ở /admin là xong)
-        zg = esc(SITE["zalo_group"])
-        write("/nhom-zalo/", f'''<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
-<title>Nhóm Zalo Sống khỏe cùng {BRAND}</title><meta http-equiv="refresh" content="0;url={zg}"><script>location.replace({json.dumps(SITE["zalo_group"])});</script></head>
-<body style="font-family:system-ui,sans-serif;text-align:center;padding:40px 16px">Đang mở nhóm Zalo… Nếu chưa tự mở, <a href="{zg}">bấm vào đây</a>.</body></html>''')
+        write(ZALO_GATE, page_zalo_gate())  # 17/10/2026: cổng để lại tên + số Zalo rồi mới vào nhóm (không vào sitemap)
     routes.append(write("/san-pham/", page_listing("/san-pham/", t("Toàn bộ sản phẩm"), PRODUCTS, "", [(t("Toàn bộ sản phẩm"), None)])))
     sale =[p for p in PRODUCTS if p["on_sale"]]
     if HAS_SALE and sale: routes.append(write("/khuyen-mai/", page_listing("/khuyen-mai/", t("Khuyến Mãi"), sale, t("Các sản phẩm đang có chương trình ưu đãi tại ") + BRAND + ".", [(t("Sản phẩm"), "/san-pham/"), (t("Khuyến Mãi"), None)])))
