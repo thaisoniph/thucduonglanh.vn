@@ -22,7 +22,7 @@
     "/assets/img/products/tra-dilvang-8.webp",
     "/assets/img/products/tra-dilvang-7.webp"
   ],
-  "summary": "Tinh chất chiết xuất từ **Chè Vằng và Đinh Lăng Quảng Trị** – vùng chè vằng được Nhà nước bảo hộ **Chỉ dẫn địa lý**. Sản xuất bằng công nghệ chiết xuất chân không EECV tại nhà máy đạt GMP. Pha bằng nước ấm, không cần đun sắc, không bã.",
+  "summary": "Trà hòa tan chè vằng Quảng Trị và đinh lăng (chè vằng sẻ), chiết xuất chân không tại nhà máy đạt GMP. Chè vằng Quảng Trị có chỉ dẫn địa lý. Pha nước ấm, không bã.",
   "servings": 15,
   "serving_unit": "gói",
   "pitch": "Chè vằng – đinh lăng Quảng Trị, pha nước ấm là uống",
@@ -338,6 +338,7 @@
     "bua-an-dinh-duong-vitagreen"
   ],
   "disclaimer": "Thực phẩm. Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh.",
+  "manufacturer": "Công ty Cổ phần Dược liệu Gold Herbal (Đông Hà, Quảng Trị)",
   "faq": [
     {
       "q": "Trà DILVANG là gì?",
@@ -371,6 +372,5 @@
       "q": "Bảo quản trà DILVANG thế nào, hạn dùng bao lâu?",
       "a": "Hạn sử dụng 24 tháng kể từ ngày sản xuất. Bảo quản nơi khô ráo, thoáng mát, tránh ánh nắng trực tiếp."
     }
-  ],
-  "manufacturer": "Công ty Cổ phần Dược liệu Gold Herbal (Đông Hà, Quảng Trị)"
+  ]
 }
