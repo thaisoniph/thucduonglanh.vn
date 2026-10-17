@@ -651,7 +651,16 @@ def music_tracks():
     m = SITE.get("music") or {}
     if not m.get("enabled"):
         return []
-    return [{"t": x.get("title") or "", "src": x["file"]} for x in m.get("tracks") or [] if x.get("file") and x.get("on", True) is not False]
+    out = []
+    for x in m.get("tracks") or []:
+        f = (x.get("file") or "").strip()
+        if not f or x.get("on", True) is False:
+            continue
+        if re.search(r"drive\.google\.com|docs\.google\.com", f):  # Drive không cho web khác phát thẳng → bỏ qua để khỏi mất nhạc
+            print(f"⚠️ Nhạc nền: bỏ qua bài '{x.get('title')}' vì là link Google Drive (phải tải file lên /admin)")
+            continue
+        out.append({"t": x.get("title") or "", "src": f})
+    return out
 
 
 def music_btn():

@@ -641,7 +641,7 @@ collections:
                 widget: list
                 required: false
                 summary: "{{fields.title}}"
-                hint: "Bài ĐẦU TIÊN đang bật ô Phát sẽ phát trước; có nhiều bài thì phát lần lượt. Đổi bài: kéo bài muốn phát lên đầu, hoặc tắt ô Phát của bài cũ. File .mp3 hoặc .m4a, nên dưới 5 MB. Chỉ dùng nhạc công ty có quyền sử dụng: bài hát của ca sĩ/nhạc sĩ phải xin phép đơn vị giữ quyền, nếu không dễ bị khiếu nại bản quyền."
+                hint: "Bài ĐẦU TIÊN đang bật ô Phát sẽ phát trước; có nhiều bài thì phát lần lượt. Đổi bài: kéo bài muốn phát lên đầu, hoặc tắt ô Phát của bài cũ. Bấm nút tải file lên (KHÔNG dán link Google Drive: Drive không cho web phát, bài đó sẽ bị bỏ qua). File .mp3 hoặc .m4a, nên dưới 5 MB; bài nặng hơn (ví dụ 30 MB) hoặc lặp nhiều lần thì gửi Claude cắt và nén trước. Chỉ dùng nhạc công ty có quyền sử dụng: bài hát của ca sĩ/nhạc sĩ phải xin phép đơn vị giữ quyền, nếu không dễ bị khiếu nại bản quyền."
                 fields:
                   - { label: "Tên bài", name: title, widget: string }
                   - { label: "File nhạc (.mp3, .m4a)", name: file, widget: file }
