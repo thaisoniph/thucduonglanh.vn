@@ -654,7 +654,10 @@ input[type=date] { -webkit-appearance: none; appearance: none; display: block; m
 .race-h { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
 .race-h > b { font-size: 16px; color: var(--ink); }
 .race-tabs { margin-left: auto; display: flex; gap: 6px; }
-.race-team { background: var(--bg); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; }
+.race-team { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; }
+.race-team-h b { font-size: 15px; }
+.race-team-tip { font-style: italic; }
+.race-money { font-weight: 400; color: var(--muted); font-size: 12px; }
 .race-team-h { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 6px; }
 .race-team-h span { font-weight: 700; color: var(--primary); }
 .race-team p { margin: 6px 0 0; font-size: 13px; color: var(--muted); }

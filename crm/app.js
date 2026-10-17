@@ -174,7 +174,7 @@
     function fallback() { var t = document.createElement('textarea'); t.value = text; t.style.position = 'fixed'; t.style.opacity = '0'; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); } catch (e) { } t.remove(); }
   }
 
-  var SERVER_V = '2026-10-16d'; // phải trùng số phiên bản máy chủ (api/src/index.js)
+  var SERVER_V = '2026-10-17a'; // phải trùng số phiên bản máy chủ (api/src/index.js)
   var ON_CF = !/script\.google/.test(CFG.endpoint || ''); // máy chủ Cloudflare (nhanh) hay Apps Script cũ
   function checkVersion(j) {
     if (j && j.v) S.srvV = j.v;
@@ -1192,7 +1192,8 @@
   }
   /* ---------- Bảng thi đua: Top 3 mỗi hạng mục + hạng của mình + còn cách người ngay trên bao nhiêu. Hỏi máy chủ lệnh 'race' (nhớ 10 phút);
    * máy chủ chỉ gửi cho nhân viên Top 3 và số của chính họ (người hạng 4 trở xuống không bị lộ). Máy chủ cũ chưa có lệnh này → ẩn khối. */
-  var RACE_CATS = { sales: ['🏆 Doanh số', 'tổng tiền đơn (không tính đơn huỷ / hoàn)'], close: ['🎯 Tỷ lệ chốt', 'khách hỏi được giao ra đơn'], back: ['💚 Khách cũ quay lại', 'số khách cũ mua thêm đơn'], grow: ['🚀 Tiến bộ nhất', 'doanh số so với cùng kỳ trước'] };
+  // 17/10/2026: Doanh số xếp theo % mục tiêu (máy chủ gửi c.pct = 1); số tiền của người khác chỉ quản lý thấy. Máy chủ cũ (không có c.pct) vẫn hiện tiền như trước.
+  var RACE_CATS = { sales: ['🏆 Doanh số', '% mục tiêu đạt (không tính đơn huỷ / hoàn)'], close: ['🎯 Tỷ lệ chốt', 'khách hỏi được giao ra đơn'], back: ['💚 Khách cũ quay lại', 'số khách cũ mua thêm đơn'], grow: ['🚀 Tiến bộ nhất', 'doanh số so với cùng kỳ trước'] };
   function raceGet() {
     var c = S.race;
     if ((!c || Date.now() - c.at > 600e3) && !S.raceBusy) {
@@ -1202,16 +1203,18 @@
     }
     return c ? c.d : undefined;
   }
-  function raceVal(k, v) { return k === 'sales' ? moneyShort(v) : k === 'back' ? v + ' khách' : k === 'grow' ? (v > 0 ? '+' : '') + v + '%' : v + '%'; }
-  function raceGap(k, g) { return k === 'sales' ? moneyShort(g) : k === 'back' ? g + ' khách' : g + ' điểm %'; }
+  function raceVal(k, v, pc) { return k === 'sales' && !pc ? moneyShort(v) : k === 'sales' ? v + '%' : k === 'back' ? v + ' khách' : k === 'grow' ? (v > 0 ? '+' : '') + v + '%' : v + '%'; }
+  function raceGap(k, g, pc) { return k === 'sales' && !pc ? moneyShort(g) : k === 'back' ? g + ' khách' : g + ' điểm %'; }
   function raceCat(c, P, wk) {
     var lb = RACE_CATS[c.k], md = ['🥇', '🥈', '🥉'], list = lvl() >= 2 && c.all ? c.all : c.top;
-    var rows = list.length ? list.map(function (e) { return '<li' + (e.n === S.user.name ? ' class="race-me"' : '') + '><span>' + (md[e.r - 1] || e.r + '.') + ' ' + esc(e.n) + '</span><b>' + raceVal(c.k, e.v) + '</b></li>'; }).join('') : '<li class="race-none">Chưa có ai trong kỳ này</li>';
+    var money = function (s) { return s != null && c.pct ? ' <small class="race-money">' + moneyShort(s) + '</small>' : ''; }; // máy chủ chỉ gửi tiền của mình (hoặc của mọi người cho quản lý)
+    var rows = list.length ? list.map(function (e) { return '<li' + (e.n === S.user.name ? ' class="race-me"' : '') + '><span>' + (md[e.r - 1] || e.r + '.') + ' ' + esc(e.n) + '</span><b>' + raceVal(c.k, e.v, c.pct) + money(e.s) + '</b></li>'; }).join('') : '<li class="race-none">Chưa có ai trong kỳ này</li>';
+    if (c.none && c.none.length) rows += '<li class="race-none">Chưa đặt mục tiêu: ' + c.none.map(function (e) { return esc(e.n) + (e.s ? ' (' + moneyShort(e.s) + ')' : ''); }).join(', ') + '</li>';
     var me = '';
     if (lvl() < 2) {
-      if (!c.me) me = c.k === 'close' ? 'Cần ít nhất ' + (wk ? 3 : 5) + ' khách hỏi trong kỳ để xếp hạng' : c.k === 'grow' ? 'Cần doanh số kỳ trước từ 500k để so' : 'Chưa có số liệu';
-      else if (c.me.r === 1 && c.me.v > 0) me = '👑 Bạn đang dẫn đầu, giữ vững nhé!';
-      else me = 'Bạn: <b>hạng ' + c.me.r + '/' + c.count + '</b> · ' + raceVal(c.k, c.me.v) + (c.me.gap ? ' · còn cách người trên <b>' + raceGap(c.k, c.me.gap) + '</b>' : '');
+      if (!c.me) me = c.k === 'sales' && c.pct ? 'Đặt 🎯 mục tiêu tháng để vào bảng xếp hạng' : c.k === 'close' ? 'Cần ít nhất ' + (wk ? 3 : 5) + ' khách hỏi trong kỳ để xếp hạng' : c.k === 'grow' ? 'Cần doanh số kỳ trước từ 500k để so' : 'Chưa có số liệu';
+      else if (c.me.r === 1 && c.me.v > 0) me = '👑 Bạn đang dẫn đầu, giữ vững nhé!' + (c.me.s != null ? ' · ' + moneyShort(c.me.s) : '');
+      else me = 'Bạn: <b>hạng ' + c.me.r + '/' + c.count + '</b> · ' + raceVal(c.k, c.me.v, c.pct) + (c.me.s != null ? ' (' + moneyShort(c.me.s) + ')' : '') + (c.me.gap ? ' · còn cách người trên <b>' + raceGap(c.k, c.me.gap, c.pct) + '</b>' : '');
     }
     return '<div class="race-cat"><div class="race-cat-h"><b>' + lb[0] + '</b><small>' + lb[1] + '</small></div><ol>' + rows + '</ol>' + (me ? '<p class="race-mine">' + me + '</p>' : '') + '</div>';
   }
@@ -1223,13 +1226,15 @@
     var tb = '';
     if (t && t.target) {
       var p = t.sales / t.target, tp = Math.min(1, t.day / t.days), left = Math.max(1, t.days - t.day + 1), rem = Math.max(0, t.target - t.sales);
-      tb = '<div class="race-team"><div class="race-team-h"><b>🤝 Cả nhóm ' + monthLabel(t.month) + '</b><span>' + Math.round(p * 100) + '%</span></div>' +
+      tb = '<div class="race-team"><div class="race-team-h"><b>🤝 Mục tiêu chung cả nhóm ' + monthLabel(t.month) + '</b><span>' + Math.round(p * 100) + '%</span></div>' +
         '<div class="race-bar"><i style="width:' + Math.min(100, p * 100).toFixed(1) + '%"></i><u style="left:' + (tp * 100).toFixed(1) + '%"></u></div>' +
-        '<p>' + moneyShort(t.sales) + ' / ' + moneyShort(t.target) + (p >= 1 ? ' · 🎉 Cả nhóm đã về đích!' : ' · còn <b>' + moneyShort(rem) + '</b> trong ' + left + ' ngày (≈ ' + moneyShort(Math.ceil(rem / left)) + '/ngày cả nhóm)') + '</p></div>';
+        '<p>' + moneyShort(t.sales) + ' / ' + moneyShort(t.target) + (p >= 1 ? ' · 🎉 Cả nhóm đã về đích!' : ' · còn <b>' + moneyShort(rem) + '</b> trong ' + left + ' ngày (≈ ' + moneyShort(Math.ceil(rem / left)) + '/ngày cả nhóm)') + '</p>' +
+        '<p class="race-team-tip">Cả nhóm cùng về đích là thắng lớn nhất. Bảng bên dưới để mỗi người nhìn mình tiến bộ.</p></div>';
     }
-    return '<section class="race-box"><div class="race-h"><b>🏁 Bảng thi đua</b><div class="race-tabs"><button class="btn sm' + (wk ? ' pri' : '') + '" data-race="week">Tuần này</button><button class="btn sm' + (wk ? '' : ' pri') + '" data-race="month">Tháng này</button></div></div>' +
-      tb + '<div class="race-grid">' + P.cats.map(function (c) { return raceCat(c, P, wk); }).join('') + '</div>' +
-      '<p class="race-note">' + (wk ? 'Tuần tính từ thứ Hai, mỗi tuần bắt đầu lại từ 0. ' : '') + 'Mọi người thấy Top 3, hạng của mỗi người chỉ người đó thấy.</p></section>';
+    // 🤝 Cả nhóm đứng trên cả tiêu đề bảng thi đua: nhìn mục tiêu chung trước, hạng cá nhân sau (17/10/2026)
+    return '<section class="race-box">' + tb + '<div class="race-h"><b>🏁 Bảng thi đua</b><div class="race-tabs"><button class="btn sm' + (wk ? ' pri' : '') + '" data-race="week">Tuần này</button><button class="btn sm' + (wk ? '' : ' pri') + '" data-race="month">Tháng này</button></div></div>' +
+      '<div class="race-grid">' + P.cats.map(function (c) { return raceCat(c, P, wk); }).join('') + '</div>' +
+      '<p class="race-note">' + (wk ? 'Tuần tính từ thứ Hai, mỗi tuần bắt đầu lại từ 0. ' : '') + (P.cats[0] && P.cats[0].pct ? 'Doanh số xếp theo % mục tiêu' + (wk ? ' (mục tiêu tuần = mục tiêu tháng chia theo ngày)' : '') + ', số tiền chỉ bạn và quản lý thấy. ' : '') + 'Mọi người thấy Top 3, hạng của mỗi người chỉ người đó thấy.</p></section>';
   }
   function miniGoal() {
     var mk = monthOf(Date.now()), t = targetOf(S.user.name, mk), sales = perf(S.user.name, monthRange(mk)).sales;
