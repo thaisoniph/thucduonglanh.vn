@@ -1208,10 +1208,11 @@
     var openUrl = box.getAttribute('data-open') || '', title = box.getAttribute('data-title') || '', book = box.getAttribute('data-book') || title;
     function show(state) { form.hidden = state !== 'form'; done.hidden = state !== 'done'; quick.hidden = state !== 'quick'; if (state === 'done') open.href = giftUrl(key, openUrl); }
     function finish(lead, cs, ask, again) {
-      var src = sourceLabel(), pos = qs('tu');
-      send({ type: 'contact', kind: 'ebook', book: key, book_title: book, again: again, concern: cs.join(', '), ask: ask, created: new Date().toISOString(), name: lead.name, phone: lead.phone, email: '', pos: pos, source: src.last,
-        message: '🎁 ' + (again ? 'Nhận thêm ' : 'Đăng ký nhận ') + title + (cs.length ? ' · Quan tâm: ' + cs.join(', ') : '') + (ask ? ' · Hỏi thêm: ' + ask : '') + (pos ? ' · bấm từ web: ' + pos : '') + ' · Nguồn: ' + src.last, page: location.href }).catch(function () { });
+      var src = sourceLabel(), bp = box.getAttribute('data-pos') || '', pos = qs('tu') || bp, ctx = box.getAttribute('data-ctx') || ''; // ctx: kết quả trò chơi / lời cam kết → sale đọc trong CRM
+      send({ type: 'contact', kind: 'ebook', book: key, book_title: book, again: again, concern: cs.join(', '), ask: ask, ctx: ctx, created: new Date().toISOString(), name: lead.name, phone: lead.phone, email: '', pos: pos, source: src.last,
+        message: '🎁 ' + (again ? 'Nhận thêm ' : 'Đăng ký nhận ') + title + (bp === 'quiz' ? ' (từ trò chơi Bạn còn mấy ngón tay)' : bp === 'pledge' ? ' (sau khi ký cam kết sống lành)' : '') + (cs.length ? ' · Quan tâm: ' + cs.join(', ') : '') + (ctx ? ' · ' + ctx : '') + (ask ? ' · Hỏi thêm: ' + ask : '') + (pos ? ' · bấm từ web: ' + pos : '') + ' · Nguồn: ' + src.last, page: location.href }).catch(function () { });
       track('generate_lead', { form: key, location: pos || 'direct', returning: again ? 1 : 0 });
+      if (bp === 'quiz') track('quiz_lead', {}); else if (bp === 'pledge') track('pledge_lead', {});
       save(GIFT_KEY[key], { t: Date.now() });
       var gifts = (giftLead() || {}).gifts || []; if (gifts.indexOf(key) < 0) gifts.push(key);
       save('tdl_lead', { name: lead.name, phone: lead.phone, concern: cs.length ? cs : (giftLead() || {}).concern || [], gifts: gifts, t: Date.now() });
@@ -1229,8 +1230,9 @@
       var msg = $('.form-msg', form); msg.className = 'form-msg';
       if (form.elements.website.value) return;
       var ok = validate(form), cs = $$('input[name=concern]:checked', form).map(function (c) { return c.value; }), fs = $('.cn-chips', form);
-      fs.classList.toggle('invalid', !cs.length);
-      if (!ok || !cs.length) { msg.className = 'form-msg err'; msg.textContent = !ok ? 'Vui lòng điền họ tên và số điện thoại đúng (10 số).' : 'Anh/chị chọn giúp ít nhất 1 vấn đề đang quan tâm nhé.'; if (ok) fs.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+      var needCs = !box.getAttribute('data-pos'); // dưới trò chơi / lời cam kết: không bắt chọn vấn đề (đã có kết quả trò chơi)
+      fs.classList.toggle('invalid', needCs && !cs.length);
+      if (!ok || (needCs && !cs.length)) { msg.className = 'form-msg err'; msg.textContent = !ok ? 'Vui lòng điền họ tên và số điện thoại đúng (10 số).' : 'Anh/chị chọn giúp ít nhất 1 vấn đề đang quan tâm nhé.'; if (ok) fs.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
       finish({ name: form.elements.name.value.trim(), phone: normPhone(form.elements.phone.value) }, cs, form.elements.ask.value.trim(), false);
     });
   }
@@ -1384,6 +1386,8 @@
     var done = document.querySelector('[data-plg-done]'), msg = form.querySelector('[data-plg-msg]'), btn = form.querySelector('button[type=submit]');
     var shareUrl = location.origin + location.pathname + '?utm_source=cam_ket&utm_medium=chia_se', blob = null, imgUrl = ''; // UTM: CRM Marketing đếm được người ký nhờ bạn bè mời
     function show(p) {
+      var gb = document.getElementById('giftBox'), gn = gb && gb.querySelector('#giftForm input[name=name]');
+      if (gb && gb.getAttribute('data-pos') === 'pledge') { gb.setAttribute('data-ctx', '✍️ Đã ký cam kết “Tôi chọn sống lành”'); if (gn && !gn.value) gn.value = p.name; }
       done.querySelector('[data-plg-name]').textContent = p.name; done.querySelector('[data-plg-no]').textContent = vn(p.no);
       form.hidden = true; done.hidden = false;
       pledgeCard(p.name, p.no, function (b) {
@@ -1517,6 +1521,8 @@
       $q('[data-qz-prods]').hidden = !P.length;
       $q('[data-qz-prod-list]').innerHTML = P.map(function (q) { var p = D.products[q.product]; return '<a class="qz-prod" href="' + p.url + '" data-cta="quiz_product">' + (p.img ? '<img src="' + p.img + '" alt="" width="72" height="72" loading="lazy">' : '') + '<span><small>' + esc(q.product_lead || q.habit || '') + '</small><b>' + esc(p.name) + '</b>' + esc(p.pitch) + '</span><em>Xem →</em></a>'; }).join('');
       renderCh();
+      var gb = document.getElementById('giftBox');
+      if (gb && gb.getAttribute('data-pos') === 'quiz') gb.setAttribute('data-ctx', '🖐 Trò chơi: còn ' + s + '/' + n + ' ngón' + (r.miss.length ? ' · cần cải thiện: ' + r.miss.map(function (k) { return Q[k] ? Q[k].habit || Q[k].q : ''; }).filter(Boolean).join(', ') : ''));
       // ảnh kết quả
       blob = null;
       quizCard(s, n, tier, function (b) {

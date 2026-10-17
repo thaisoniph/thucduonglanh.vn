@@ -7,7 +7,7 @@ import { crmMkt } from './mkt.js';
 import { mktView, mktBudgetSet, mktGoalSet, mktDailyMsgs } from './mktv.js';
 import { crmSan, sanSchema, sanAllowed } from './san.js';
 import { crmSaleMkt, crmOffers } from './salemkt.js';
-import { cmsTokenSet } from './cms.js';
+import { cmsTokenSet, quizCms } from './cms.js';
 import { crmVoucher, voucherSchema } from './voucher.js';
 import { journeySchema } from './journey.js';
 import { crmLinks } from './links.js';
@@ -1668,7 +1668,7 @@ async function crmFbUpdate(x, u, d) {
 
 /* ================================================================ điều phối */
 /** Việc tài khoản Marketing được làm: xem tab Marketing, nhập chi phí (file / nhập tay), góp ý, Telegram, cài đặt màu, đo tốc độ. Mọi việc khác máy chủ từ chối. */
-const MKT_ACTIONS = { link_list: 1, link_save: 1, link_active: 1, load: 1, mktv: 1, mkt_tg_test: 1, mkt_goal: 1, mkt_import: 1, mkt_add: 1, mkt_list: 1, mkt_del: 1, prefs: 1, tg_link: 1, tg_check: 1, tg_off: 1, perf: 1, usage: 1, feedback: 1, fb_list: 1, fb_img: 1, offers: 1, offer_save: 1, offer_del: 1 };
+const MKT_ACTIONS = { link_list: 1, link_save: 1, link_active: 1, load: 1, mktv: 1, mkt_tg_test: 1, mkt_goal: 1, mkt_import: 1, mkt_add: 1, mkt_list: 1, quiz_cms: 1, mkt_del: 1, prefs: 1, tg_link: 1, tg_check: 1, tg_off: 1, perf: 1, usage: 1, feedback: 1, fb_list: 1, fb_img: 1, offers: 1, offer_save: 1, offer_del: 1 };
 export async function crmApi(x, d, sync, mgr) {
   await ensureSchema(x.db);
   const a = d.action;
@@ -1682,6 +1682,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (a === 'load') return crmLoad(x, u, d);
   if (a === 'ai_sum') return crmAi(x, u, d); // ✨ AI tóm tắt hồ sơ / gợi ý tin nhắn (chỉ khi có ANTHROPIC_API_KEY)
   if (a === 'mktv') return u.level >= 3 || u.role === 'Marketing' ? mktView(x, u, d) : { ok: false, error: 'Chỉ Marketing và Quản trị xem được mục này.' };
+  if (a === 'quiz_cms') return quizCms(x, u, d); // 🖐 sửa trò chơi Bạn còn mấy ngón tay (cms.js)
   if (a === 'order_create') return crmOrderCreate(x, u, d);
   if (a === 'check_phone') return crmCheckPhone(x, u, d);
   if (a === 'cust_orders') return crmCustOrders(x, u, d);

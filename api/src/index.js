@@ -11,7 +11,7 @@ import { voucherCheck, voucherApply } from './voucher.js';
 import { qrGo } from './links.js';
 import { journeyCounts, pledge, quiz } from './journey.js';
 
-const API_VERSION = '2026-10-17d'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
+const API_VERSION = '2026-10-17e'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
 const ORIGINS = /^https:\/\/((www\.|crm\.)?thucduonglanh\.vn|[a-z0-9-]+\.thucduonglanh(-crm)?\.pages\.dev)$|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
 function ctxOf(env, ectx) { return { env, db: env.DB, later: p => ectx.waitUntil(Promise.resolve(p).catch(e => console.error('later', e && e.message))) }; }
@@ -57,9 +57,9 @@ async function website(x, data) {
     try { await run(x.db, 'INSERT INTO contacts (time, name, phone, email, message, page) VALUES (?, ?, ?, ?, ?, ?)', Date.now(), data.name || '', normPhone(data.phone), data.email || '', data.message || '', data.page || ''); }
     catch (e) { if (await rescue(x, data, e)) return { ok: true, rescued: true }; throw e; }
     // kind 'ebook': trang quà tặng trên web (/ebook/, /cam-nang-song-khoe/) → kênh "Ebook – quà tặng (Website)", không gửi email
-    const isEb = data.kind === 'ebook', book = String(data.book_title || 'Ebook quà tặng').slice(0, 80), concern = String(data.concern || '').slice(0, 300), ask = String(data.ask || '').slice(0, 500);
-    let ld = null; try { ld = await addLead(x, isEb ? { name: data.name, phone: data.phone, channel: 'Ebook – quà tặng (Website)', interest: book + (concern ? ' · Quan tâm: ' + concern : '') + (data.pos ? ' · từ web (' + data.pos + ')' : ''), addInterest: true, note: (data.again ? 'Nhận thêm ' : 'Đăng ký ') + book + ' trên web' + (ask ? ' · Hỏi thêm: ' + ask : '') + ' · Nguồn: ' + (data.source || ''), by: 'Website', auto: true } : { name: data.name, phone: data.phone, channel: 'Form website', note: data.message, by: 'Website', auto: true }); } catch (e) { console.error('lead', e.message); }
-    const cmsg = isEb ? (data.again ? '🎁 <b>NHẬN THÊM EBOOK</b> (khách đã đăng ký trước) – ' : '🎁 <b>ĐĂNG KÝ EBOOK</b> – ') + esc(book) + '\n👤 ' + esc(data.name) + ' – <b>' + esc(data.phone) + '</b>' + (concern ? '\n🩺 Quan tâm: ' + esc(concern) : '') + (ask ? '\n💬 ' + esc(ask) : '') + '\n📍 Nguồn: ' + esc(data.source || '') + (data.pos ? ' · bấm từ web: ' + esc(data.pos) : '') + '\n👉 Kết bạn Zalo, mời vào nhóm Sống khỏe'
+    const isEb = data.kind === 'ebook', book = String(data.book_title || 'Ebook quà tặng').slice(0, 80), concern = String(data.concern || '').slice(0, 300), ask = String(data.ask || '').slice(0, 500), ctx = String(data.ctx || '').slice(0, 300); // ctx: kết quả trò chơi Bạn còn mấy ngón tay / đã ký cam kết
+    let ld = null; try { ld = await addLead(x, isEb ? { name: data.name, phone: data.phone, channel: 'Ebook – quà tặng (Website)', interest: book + (concern ? ' · Quan tâm: ' + concern : '') + (data.pos ? ' · từ web (' + data.pos + ')' : ''), addInterest: true, note: (data.again ? 'Nhận thêm ' : 'Đăng ký ') + book + ' trên web' + (ctx ? ' · ' + ctx : '') + (ask ? ' · Hỏi thêm: ' + ask : '') + ' · Nguồn: ' + (data.source || ''), by: 'Website', auto: true } : { name: data.name, phone: data.phone, channel: 'Form website', note: data.message, by: 'Website', auto: true }); } catch (e) { console.error('lead', e.message); }
+    const cmsg = isEb ? (data.again ? '🎁 <b>NHẬN THÊM EBOOK</b> (khách đã đăng ký trước) – ' : '🎁 <b>ĐĂNG KÝ EBOOK</b> – ') + esc(book) + '\n👤 ' + esc(data.name) + ' – <b>' + esc(data.phone) + '</b>' + (concern ? '\n🩺 Quan tâm: ' + esc(concern) : '') + (ctx ? '\n' + esc(ctx) : '') + (ask ? '\n💬 ' + esc(ask) : '') + '\n📍 Nguồn: ' + esc(data.source || '') + (data.pos ? ' · bấm từ web: ' + esc(data.pos) : '') + '\n👉 Kết bạn Zalo, mời vào nhóm Sống khỏe'
       : '✉️ <b>LIÊN HỆ MỚI</b>\n👤 ' + esc(data.name) + ' – <b>' + esc(data.phone) + '</b>\n\n' + esc(data.message);
     x.later((async () => {
       await telegram(x.env, cmsg + (ld && ld.owner ? '\n\n👤 Giao cho: ' + esc(ld.owner) : '\n\n⚠️ Chưa có người phụ trách – vào CRM để giao'));

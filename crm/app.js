@@ -174,7 +174,7 @@
     function fallback() { var t = document.createElement('textarea'); t.value = text; t.style.position = 'fixed'; t.style.opacity = '0'; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); } catch (e) { } t.remove(); }
   }
 
-  var SERVER_V = '2026-10-17d'; // phải trùng số phiên bản máy chủ (api/src/index.js)
+  var SERVER_V = '2026-10-17e'; // phải trùng số phiên bản máy chủ (api/src/index.js)
   var ON_CF = !/script\.google/.test(CFG.endpoint || ''); // máy chủ Cloudflare (nhanh) hay Apps Script cũ
   function checkVersion(j) {
     if (j && j.v) S.srvV = j.v;
@@ -3948,7 +3948,7 @@
       metric('Chi phí cộng đồng', csp ? moneyShort(csp) : '–', csp && cm.rev ? 'Bằng ' + Math.round(csp * 100 / cm.rev) + '% tiền mua lại. Quà tặng, minigame… nhập ở ⚙️ Nhập chi phí → kênh Cộng đồng Zalo.' : 'Quà tặng, minigame… nhập ở ⚙️ Nhập chi phí → kênh Cộng đồng Zalo.', '') +
       '</div><p class="bar-legend">Khách được tính là trong nhóm khi sale / CSKH bấm "Đã vào" ở ô Cộng đồng trên hồ sơ khách. Đánh dấu đủ thì số này mới đúng.</p>');
     var PL = mkPledgeBlock(mj.pledge); if (PL) h += mkMore('pledge', '✍️ Lời cam kết sống lành (website)', PL.line, PL.h);
-    var QZ = mkQuizBlock(mj.quiz); if (QZ) h += mkMore('quiz', '🖐 Trò chơi Bạn còn mấy ngón tay (website)', QZ.line, QZ.h);
+    var QZ = mkQuizBlock(mj.quiz) || { line: 'Chưa có lượt chơi trong kỳ', h: '' }; h += mkMore('quiz', '🖐 Trò chơi Bạn còn mấy ngón tay (website)', QZ.line, QZ.h + qzeBox());
     h += mkMore('camp', '🎬 Chiến dịch: nên tăng, giữ hay tắt?', CB.line, CB.h);
     h += mkMore('sale', '🤝 Phản hồi từ sale', SB.line, SB.h);
     h += mkMore('fun', '🪜 Quảng cáo đi tới đâu thì rơi rụng?', FN.weak ? '🔴 Khâu yếu nhất: ' + FN.weak.l : 'Từ lúc khách thấy quảng cáo đến lúc trả tiền', FN.h);
@@ -5355,7 +5355,7 @@
     G.tg = '<div class="box"><h3>📲 Thông báo Telegram riêng</h3>' + (S.user.tg
       ? '<p style="margin:0 0 10px">✅ Đã kết nối. ' + (isMkt() ? 'Bạn nhận tin <b>📣 Marketing sáng nay</b> lúc 8h: tiến độ mục tiêu kênh của bạn, hôm qua, việc nên làm.' : 'Bạn nhận riêng: đơn mới của khách mình phụ trách, khách hỏi mới được giao, danh sách việc lúc 8h sáng.') + '</p><button class="btn ghost" id="tgOff">Ngắt kết nối</button>'
       : '<p style="margin:0 0 10px">' + (isMkt() ? 'Nhận tin <b>📣 Marketing sáng nay</b> lúc 8h qua Telegram (tiến độ mục tiêu, việc nên làm).' : 'Nhận thông báo về khách <b>của riêng bạn</b> qua Telegram.') + ' Làm 1 lần, mất 30 giây:</p><ol style="margin:0 0 10px;padding-left:20px"><li>Bấm <b>“Kết nối Telegram”</b>.</li><li>Bấm <b>“Mở Telegram”</b> → trong Telegram bấm <b>Start / Bắt đầu</b>.</li><li>Quay lại đây bấm <b>“Tôi đã bấm Start”</b>.</li></ol><div class="steps" id="tgSteps"><button class="btn pri" id="tgLink">Kết nối Telegram</button></div>') + '</div>';
-    if (isMkt()) return h + setGroup('acc', '👤 Tài khoản của tôi', esc(S.user.name) + ' · ' + esc(S.user.email), G.acc) + G.tg + '<div class="box"><h3>📣 Tài khoản Marketing</h3><p style="margin:0 0 8px">Bạn xem được tab <b>Marketing</b>: chi phí quảng cáo, khách mới và tiền khách mới mỗi kênh mang về, data quảng cáo, chiến dịch. Chi phí TikTok, Google, KOL… bấm <b>⚙️ Nhập chi phí</b> để nhập file hoặc nhập tay.</p><p class="small muted" style="margin:0 0 10px">Số liệu chỉ là con số tổng, không có thông tin khách hàng (Nghị định 13/2023).</p><a class="btn" href="/huong-dan/crm/" target="_blank" rel="noopener">📖 Xem hướng dẫn</a></div>';
+    if (isMkt()) return h + setGroup('acc', '👤 Tài khoản của tôi', esc(S.user.name) + ' · ' + esc(S.user.email), G.acc) + G.tg + setGroup('qz', '🖐 Trò chơi “Bạn còn mấy ngón tay?”', 'Sửa câu hỏi trò chơi trên web · màn hình chơi nhóm', qzeBox()) + '<div class="box"><h3>📣 Tài khoản Marketing</h3><p style="margin:0 0 8px">Bạn xem được tab <b>Marketing</b>: chi phí quảng cáo, khách mới và tiền khách mới mỗi kênh mang về, data quảng cáo, chiến dịch. Chi phí TikTok, Google, KOL… bấm <b>⚙️ Nhập chi phí</b> để nhập file hoặc nhập tay.</p><p class="small muted" style="margin:0 0 10px">Số liệu chỉ là con số tổng, không có thông tin khách hàng (Nghị định 13/2023).</p><a class="btn" href="/huong-dan/crm/" target="_blank" rel="noopener">📖 Xem hướng dẫn</a></div>';
     G.lim = '<div class="box"><h3>🎯 Số khách chăm sóc mỗi ngày</h3><p class="small muted" style="margin:0 0 8px">Tab Hôm nay chỉ đưa ra tối đa bấy nhiêu khách mỗi ngày (khách quan trọng trước). Khách chưa tới lượt tự dời sang hôm sau. Cài trên máy này.</p>' +
       '<div style="display:flex;gap:8px;align-items:center"><input type="number" id="dayLim" min="5" max="200" value="' + dayLimit() + '" style="max-width:110px"><button class="btn" id="dayLimSave">Lưu</button></div></div>';
     var cc = {}; CAT_ORDER.forEach(function (k) { cc[k] = catColor(k); });
@@ -5455,7 +5455,8 @@
       setGroup('cm', '💰 Hoa hồng', cmOn.length ? cmOn.map(function (k) { return esc(k) + ' ' + CMc[k] + '%'; }).join(' · ') : '⚠️ Chưa đặt % hoa hồng', G.cm) +
       setGroup('ca', '🕘 Ca tối & ngày lễ', 'Ca tối từ ' + esc(ca.evening || '17:30') + ' · ' + hol.length + ' ngày lễ', caBox()) +
       setGroup('vc', '🎟 Mã ưu đãi đặt hàng web', 'Tạo mã giảm giá gửi riêng khách cũ, đối tác', vcBox()) +
-      setGroup('pt', '🤝 Cộng tác viên & khách giới thiệu', 'Link, mã giảm giá, hoa hồng, đối soát CTV', ptBox()));
+      setGroup('pt', '🤝 Cộng tác viên & khách giới thiệu', 'Link, mã giảm giá, hoa hồng, đối soát CTV', ptBox()) +
+      setGroup('qz', '🖐 Trò chơi “Bạn còn mấy ngón tay?”', 'Sửa câu hỏi trò chơi trên web · màn hình chơi nhóm', qzeBox()));
     if (lvl() >= 3) {
       var src = S.d.sources || [], ads = S.d.ads, SB = syncBoxes(), cut = SB.indexOf('<div class="box"><h3>📣');
       h += setSec('🔌 Kết nối & báo cáo', setGroup('src', '📂 File Google Sheet của sale', src.length ? src.length + ' file' : '⚠️ Chưa có file nào', SB.slice(0, cut)) +
@@ -5671,6 +5672,67 @@
     }, function (e) { toast(e.message, true); if (btn) btn.disabled = false; });
   }
   /* ---------- 🎟 Mã ưu đãi đặt hàng web (Quản lý trở lên, api/src/voucher.js). Khách nhập ở dòng nhỏ "Có mã ưu đãi?" lúc thanh toán, hoặc mở link ?uudai=MÃ */
+  /* ---------- 🖐 Sửa trò chơi "Bạn còn mấy ngón tay?" (thucduonglanh.vn/ngon-tay-song-lanh/) ngay trong CRM.
+   * api quiz_cms (api/src/cms.js) đọc / ghi data/quiz.json trên GitHub; lưu xong web tự đăng lại sau 1–2 phút. Quyền: Quản lý+, Marketing, người có ô 🌐 Sửa website. */
+  function qzeBox() { return '<div class="box"><p class="small muted" style="margin:0 0 10px">Sửa câu hỏi, câu đùa, việc nhỏ gợi ý, sản phẩm gợi ý và danh hiệu của trò chơi trên web. Lưu xong khoảng 1–2 phút web tự cập nhật. Màn hình lớn chơi nhóm ở sự kiện: <a href="https://thucduonglanh.vn/ngon-tay-song-lanh/nhom/" target="_blank" rel="noopener">thucduonglanh.vn/ngon-tay-song-lanh/nhom/</a></p><button class="btn" type="button" data-quiz-edit>✏️ Sửa câu hỏi trò chơi</button> <a class="btn ghost" href="https://thucduonglanh.vn/ngon-tay-song-lanh/" target="_blank" rel="noopener">Xem trò chơi ↗</a></div>'; }
+  var QZE = null;
+  function openQuizEdit() {
+    var m = modal('🖐 Sửa trò chơi “Bạn còn mấy ngón tay?”', '<p class="muted">Đang tải nội dung trò chơi…</p>');
+    api('quiz_cms', { op: 'get' }).then(function (j) {
+      if (!j || !j.ok) { $('.sheet-b', m).innerHTML = '<div class="notice">' + esc((j && j.error) || 'Chưa tải được.') + '</div>'; return; }
+      QZE = { q: j.quiz, sha: j.sha }; qzeRender(m);
+    }, function (e) { $('.sheet-b', m).innerHTML = '<div class="notice">' + esc(e.message) + '</div>'; });
+  }
+  function qzeProds(v) {
+    var seen = {}, o = '<option value="">— Không gợi ý sản phẩm —</option>';
+    (CFG.products || []).forEach(function (p) { if (!p.slug || seen[p.slug]) return; seen[p.slug] = 1; o += '<option value="' + esc(p.slug) + '"' + (p.slug === v ? ' selected' : '') + '>' + esc(p.name) + '</option>'; });
+    return o;
+  }
+  function qzeRender(m) {
+    var Q = QZE.q, qs = Q.questions || [], rs = Q.results || [];
+    var f = function (lbl, k, v, big, ph) { return '<label class="qze-f"><span>' + lbl + '</span>' + (big ? '<textarea rows="2" data-k="' + k + '" placeholder="' + esc(ph || '') + '">' + esc(v == null ? '' : v) + '</textarea>' : '<input type="text" data-k="' + k + '" value="' + esc(v == null ? '' : v) + '" placeholder="' + esc(ph || '') + '">') + '</label>'; };
+    var h = '<div class="qze-top">' + f('Tiêu đề', 'title', Q.title) + f('Lời giới thiệu', 'lead', Q.lead, 1) + '</div>' +
+      '<p class="small muted">Nên giữ đúng <b>10 câu</b> (10 ngón tay). Hỏi sao cho trả lời <b>Có</b> = thói quen tốt. Không dùng chữ chữa / điều trị / khỏi bệnh. Hiện có <b>' + qs.length + '</b> câu.</p>' +
+      qs.map(function (q, i) {
+        return '<details class="qze-q" data-i="' + i + '"' + (QZE.open === i ? ' open' : '') + '><summary><b>' + (i + 1) + '.</b> ' + esc((q.icon || '') + ' ' + q.q) + (q.product ? ' <small>🛍</small>' : '') + '</summary><div class="qze-b">' +
+          '<div class="qze-row">' + f('Biểu tượng', 'icon', q.icon, 0, '🌙') + f('Câu hỏi', 'q', q.q, 0, 'Bạn thường đi ngủ trước 23h?') + '</div>' +
+          f('Câu đùa nhỏ dưới câu hỏi', 'fun', q.fun) + f('Tên thói quen (ngắn, hiện ở gợi ý & thống kê)', 'habit', q.habit, 0, 'Ngủ trước 23h') +
+          f('Việc nhỏ gợi ý khi khách hạ ngón', 'tip', q.tip, 1) +
+          '<div class="qze-row qze-pr"><label class="qze-f"><span>Gợi ý sản phẩm (không bắt buộc)</span><select data-k="product">' + qzeProds(q.product) + '</select></label>' + f('Câu dẫn trước tên sản phẩm', 'product_lead', q.product_lead, 0, 'Sáng nào cũng vội?') + '</div>' +
+          '<div class="qze-acts"><button type="button" class="btn ghost sm" data-qze="up">↑ Lên</button><button type="button" class="btn ghost sm" data-qze="down">↓ Xuống</button><button type="button" class="btn ghost sm danger" data-qze="del">🗑 Xoá câu này</button></div></div></details>';
+      }).join('') +
+      '<p><button type="button" class="btn ghost" data-qze="add">＋ Thêm câu hỏi</button></p>' +
+      '<h3 class="qze-h">Danh hiệu theo số ngón còn lại</h3>' +
+      rs.map(function (r, i) { return '<div class="qze-r" data-r="' + i + '"><div class="qze-row">' + f('Từ … ngón trở lên', 'min', r.min) + f('Biểu tượng', 'icon', r.icon) + f('Danh hiệu', 'title', r.title) + '</div>' + f('Lời nhắn', 'text', r.text, 1) + '</div>'; }).join('');
+    $('.sheet-b', m).innerHTML = h;
+    var ft = $('.sheet-f', m);
+    if (!ft) { ft = document.createElement('div'); ft.className = 'sheet-f'; $('.sheet', m).appendChild(ft); }
+    ft.innerHTML = '<span class="small muted qze-note">Lưu xong 1–2 phút web tự cập nhật</span><button class="btn pri" type="button" data-qze="save">💾 Lưu & đăng lên web</button>';
+    m.onclick = function (e) {
+      var b = e.target.closest('[data-qze]'); if (!b) return;
+      var act = b.getAttribute('data-qze'); qzeCollect(m);
+      var d = b.closest('[data-i]'), i = d ? Number(d.getAttribute('data-i')) : -1, L = QZE.q.questions;
+      if (act === 'add') { L.push({ icon: '', q: '', fun: '', habit: '', tip: '' }); QZE.open = L.length - 1; return qzeRender(m); }
+      if (act === 'del') { if (!confirm('Xoá câu này?')) return; L.splice(i, 1); QZE.open = -1; return qzeRender(m); }
+      if (act === 'up' && i > 0) { L.splice(i - 1, 0, L.splice(i, 1)[0]); QZE.open = i - 1; return qzeRender(m); }
+      if (act === 'down' && i < L.length - 1) { L.splice(i + 1, 0, L.splice(i, 1)[0]); QZE.open = i + 1; return qzeRender(m); }
+      if (act === 'save') {
+        b.disabled = true; b.textContent = 'Đang lưu…';
+        api('quiz_cms', { op: 'save', quiz: QZE.q, sha: QZE.sha }).then(function (j) {
+          b.disabled = false; b.textContent = '💾 Lưu & đăng lên web';
+          if (!j || !j.ok) return toast((j && j.error) || 'Chưa lưu được.', true);
+          QZE.sha = j.sha; closeModal(); toast('Đã lưu. Khoảng 1–2 phút nữa trò chơi trên web sẽ cập nhật.');
+        }, function (er) { b.disabled = false; b.textContent = '💾 Lưu & đăng lên web'; toast(er.message, true); });
+      }
+    };
+  }
+  function qzeCollect(m) {
+    var Q = QZE.q, val = function (box, k) { var el = box.querySelector('[data-k="' + k + '"]'); return el ? el.value.trim() : ''; };
+    var top = $('.qze-top', m); if (top) { Q.title = val(top, 'title'); Q.lead = val(top, 'lead'); }
+    $$('.qze-q', m).forEach(function (d) { var q = Q.questions[Number(d.getAttribute('data-i'))]; if (!q) return; ['icon', 'q', 'fun', 'habit', 'tip', 'product', 'product_lead'].forEach(function (k) { q[k] = val(d, k); }); if (!q.product) { delete q.product; delete q.product_lead; } if (d.open) QZE.open = Number(d.getAttribute('data-i')); });
+    $$('.qze-r', m).forEach(function (d) { var r = Q.results[Number(d.getAttribute('data-r'))]; if (!r) return; r.min = Number(val(d, 'min')) || 0; ['icon', 'title', 'text'].forEach(function (k) { r[k] = val(d, k); }); });
+  }
+  document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('[data-quiz-edit]')) { e.preventDefault(); openQuizEdit(); } });
   function vcBox() {
     return '<div class="box"><h3>🎟 Mã ưu đãi đặt hàng web</h3><p class="hint" style="margin:0 0 10px">Mã giảm giá gửi riêng cho khách cũ, đối tác. Trên web chỉ có dòng chữ nhỏ <b>“Có mã ưu đãi?”</b> ở trang thanh toán, khách mua bình thường gần như không để ý. Cách gửi tiện nhất: bấm <b>📋 Copy tin gửi khách</b> → dán vào Zalo. Khách bấm link là mã tự áp dụng khi đặt hàng.</p>' +
       '<p class="hint" style="margin:0 0 10px">Mỗi đơn dùng 1 mã. Freeship vẫn tính theo tiền hàng <b>trước</b> khi giảm. Đơn huỷ / hoàn thì mã được trả lại lượt dùng.</p><button class="btn pri" id="vcOpen">Quản lý mã ưu đãi</button></div>';

@@ -199,3 +199,42 @@ if(op)op.postMessage('authorizing:github','*');send()},
 function(){b.disabled=false;b.textContent='Đăng nhập';$('e2').textContent='Mất kết nối, thử lại.'})};
 })();
 </script></body></html>`;
+
+/* ---------- 🖐 Sửa trò chơi "Bạn còn mấy ngón tay?" ngay trong CRM (17/10/2026): đọc / ghi data/quiz.json trên GitHub bằng mã công ty.
+ * Ai được sửa: Quản lý trở lên, Marketing, hoặc người có ô 🌐 Sửa website. Ghi xong GitHub tự đăng lại web (~1–2 phút). */
+const QUIZ_FILE = 'data/quiz.json';
+export function canQuiz(u) { return !!u && u.active && (u.level >= 2 || u.role === 'Marketing' || u.web); }
+const b64dec = s => new TextDecoder().decode(Uint8Array.from(atob(String(s).replace(/\s/g, '')), c => c.charCodeAt(0)));
+const b64enc = s => { const b = new TextEncoder().encode(s); let o = ''; for (let i = 0; i < b.length; i += 0x8000) o += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); return btoa(o); };
+const qtxt = (v, n) => String(v == null ? '' : v).replace(/[<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, n);
+export async function quizCms(x, u, d) {
+  if (!canQuiz(u)) return { ok: false, error: 'Bạn chưa có quyền sửa trò chơi. Nhờ Quản trị bật ô 🌐 Sửa website ở Cài đặt → Nhân sự.' };
+  const t = await cmsToken(x); if (!t) return { ok: false, error: NO_TOKEN };
+  const url = GH + '/repos/' + REPO + '/contents/' + QUIZ_FILE;
+  if (d.op !== 'save') {
+    const r = await fetch(url + '?ref=main', { headers: ghHeaders(t) });
+    if (!r.ok) return { ok: false, error: 'Chưa đọc được nội dung trò chơi (GitHub trả ' + r.status + ').' };
+    const j = await r.json();
+    return { ok: true, quiz: JSON.parse(b64dec(j.content)), sha: j.sha };
+  }
+  const q = d.quiz || {};
+  const qs = (Array.isArray(q.questions) ? q.questions : []).map(a => {
+    const o = { icon: qtxt(a.icon, 8), q: qtxt(a.q, 160), fun: qtxt(a.fun, 160), habit: qtxt(a.habit, 50), tip: qtxt(a.tip, 300) };
+    if (qtxt(a.product, 80)) { o.product = qtxt(a.product, 80); o.product_lead = qtxt(a.product_lead, 80); }
+    return o;
+  }).filter(a => a.q);
+  if (qs.length < 3 || qs.length > 15) return { ok: false, error: 'Trò chơi cần từ 3 đến 15 câu hỏi (nên giữ 10 câu = 10 ngón tay).' };
+  const miss = qs.find(a => !a.habit || !a.tip); if (miss) return { ok: false, error: 'Câu "' + miss.q + '" còn thiếu Tên thói quen hoặc Việc nhỏ gợi ý.' };
+  const bad = qs.map(a => a.q + ' ' + a.fun + ' ' + a.tip).join(' ').match(/chữa|điều trị|khỏi bệnh|đặc trị/i);
+  if (bad) return { ok: false, error: 'Nội dung có chữ "' + bad[0] + '": không được dùng với thực phẩm. Bạn sửa lại giúp nhé.' };
+  const res = (Array.isArray(q.results) ? q.results : []).map(a => ({ min: Math.max(0, Math.min(15, Math.round(Number(a.min) || 0))), icon: qtxt(a.icon, 8), title: qtxt(a.title, 60), text: qtxt(a.text, 300) })).filter(a => a.title).sort((a, b) => b.min - a.min);
+  if (!res.length || res[res.length - 1].min !== 0) return { ok: false, error: 'Phần Kết quả cần có 1 mức "từ 0 ngón" để ai cũng có danh hiệu.' };
+  const out = { title: qtxt(q.title, 80) || 'Bạn còn mấy ngón tay?', lead: qtxt(q.lead, 500), questions: qs, results: res };
+  const body = JSON.stringify({ message: 'CRM: ' + u.name + ' sửa trò chơi Bạn còn mấy ngón tay', content: b64enc(JSON.stringify(out, null, 2) + '\n'), sha: String(d.sha || ''), branch: 'main' });
+  const r = await fetch(url, { method: 'PUT', headers: Object.assign({ 'Content-Type': 'application/json' }, ghHeaders(t)), body });
+  if (r.status === 409 || r.status === 422) return { ok: false, error: 'Vừa có người khác sửa trò chơi. Bạn đóng lại, mở lại rồi sửa tiếp nhé.' };
+  if (!r.ok) return { ok: false, error: 'Chưa lưu được (GitHub trả ' + r.status + ').' };
+  const j = await r.json();
+  await crmLog(x, u, 'Website', '-', '', 'Sửa trò chơi Bạn còn mấy ngón tay', qs.length + ' câu');
+  return { ok: true, sha: j.content && j.content.sha };
+}

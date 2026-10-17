@@ -526,7 +526,8 @@ NAV = [
 if not POSTS["posts"] and not IS_VI:
     NAV = [x for x in NAV if x[1] != "/goc-song-lanh/"]  # ngôn ngữ khác chưa có bài viết nào thì ẩn mục
 if (SITE.get("camnang") or {}).get("url") or (SITE.get("ebook") or {}).get("url"):
-    NAV.insert(-1, ("Quà Tặng", "/qua-tang/", []))  # trang gom quà tặng (cẩm nang, ebook)
+    NAV.insert(-1, ("Quà Tặng", "/qua-tang/", [("🎁 Tất cả quà tặng", "/qua-tang/", [])] + ([("📖 Cẩm nang sống khỏe", SITE["camnang"]["url"], [])] if (SITE.get("camnang") or {}).get("url") else []) + ([("🦴 Ebook cơ xương khớp", SITE["ebook"]["url"], [])] if (SITE.get("ebook") or {}).get("url") else [])
+                    + ([("🖐 Trò chơi: Bạn còn mấy ngón tay?", "/ngon-tay-song-lanh/", []), ("✍️ Ký cam kết sống lành", "/cam-ket-song-lanh/", [])] if IS_VI else [])))  # trang gom quà tặng + trò chơi + lời cam kết (17/10/2026)
 
 
 def nav_html(active, cls):
@@ -1003,6 +1004,7 @@ def gift_popup():
       <ul><li>Mâm cơm Việt cân bằng: ăn đủ, đa dạng, không ăn kiêng cực đoan</li><li>Gạo lứt, ngũ cốc nguyên hạt và cách chuyển đổi từng bước</li><li>Vận động, giữ cơ sau tuổi 45 + nhật ký 7 ngày</li></ul>
       <p class="gp-meta">32 trang có minh họa · nghe sách nói · tải PDF in cho cha mẹ</p>
       <a class="btn btn-lg btn-buy gp-go" href="{esc(CN_PATH)}?tu=popup" data-cta="camnang_popup">Xem cẩm nang & nhận miễn phí →</a>
+      {f'<a class="gp-quiz" href="{QUIZ_PATH}?tu=popup" data-cta="quiz_popup">Hoặc chơi thử 1 phút: 🖐 Bạn còn mấy ngón tay? →</a>' if QUIZ.get("questions") else ""}
       <button type="button" class="gp-no" data-gp-close>Để sau</button>
     </div>
   </div>
@@ -1012,7 +1014,7 @@ def gift_popup():
 EB_CONCERNS = ["Thoái hóa khớp", "Đau mỏi cơ – cứng cơ", "Gout", "Loãng xương", "Viêm khớp dạng thấp", "Đau thần kinh tọa", "Chăm sóc cha mẹ lớn tuổi", "Vấn đề khác"]
 
 
-def gift_form(key):
+def gift_form(key, ctx=""):
     """Form nhận quà dùng chung (/cam-nang-song-khoe/, /ebook/): họ tên, SĐT, vấn đề quan tâm, câu hỏi thêm.
     Khách đã nhận 1 quà (localStorage tdl_lead) → hiện ô "nhận ngay 1 chạm", không phải điền lại. Xong → mở quà + mời nhóm Zalo + gợi ý quà còn lại."""
     if key == "camnang":
@@ -1024,6 +1026,12 @@ def gift_form(key):
         title, book, opener, concerns = eb.get("title", "Ebook"), "Ebook Dinh Dưỡng cho Cơ Xương Khớp", eb.get("flipbook", ""), EB_CONCERNS
         h2, sub, btn, open_lbl, done_note = "Nhận ebook ngay", "Điền thông tin dưới đây để mở ebook. Hoàn toàn miễn phí.", "📖 Nhận ebook miễn phí", "📖 Mở ebook & video 7 ngày", "Bước 1: bấm nút bên dưới để đọc ebook và xem video thực đơn 7 ngày."
         ph = "Ví dụ: Mẹ tôi bị thoái hóa gối, nên ăn gì và tránh gì?"
+    if ctx == "quiz":  # dưới kết quả trò chơi: quà = cẩm nang + nhắc thử thách 7 ngày qua nhóm Zalo
+        h2, sub = "🎁 Nhận quà để dựng lại từng ngón tay", f"Để lại tên và số Zalo: nhận ngay cẩm nang “Sống khỏe chủ động” (32 trang, có sách nói, nhật ký 7 ngày) và lời mời vào nhóm Zalo để được nhắc thử thách mỗi ngày."
+        btn = "🎁 Nhận quà miễn phí"
+    elif ctx == "pledge":
+        h2, sub = "🎁 Quà cho người giữ lời hứa", "Để lời cam kết thành thói quen: nhận cẩm nang “Sống khỏe chủ động” (32 trang, có sách nói, nhật ký 7 ngày thay đổi nhỏ) và vào nhóm Zalo cùng mọi người giữ lời hứa mỗi ngày."
+        btn = "🎁 Nhận quà miễn phí"
     chips = "".join(f'<label class="cn-chip"><input type="checkbox" name="concern" value="{esc(c)}"><span>{esc(c)}</span></label>' for c in concerns)
     group = SITE.get("zalo_group", "")
     zg = WEB_OFFER.get("gift_title", "") if WEB_OFFER.get("gift_enabled") else ""
@@ -1034,9 +1042,12 @@ def gift_form(key):
   <a class="btn btn-lg btn-zalo" href="{esc(group)}" target="_blank" rel="noopener" data-cta="zalo_group_{key}">Vào nhóm Zalo miễn phí →</a>
 </div>''' if group else ""
     nxt = [g for g in gift_list() if g["key"] != key]
-    next_box = "".join(f'''<a class="gnext" href="{esc(gift_href(g, "next"))}" data-cta="gift_next_{g["key"]}">
+    fun = "".join(f'<a class="gnext gfun" href="{h}?tu=gift_{key}" data-cta="gift_next_{k}"><span class="gfun-ic">{i}</span><span><small>{sm}</small><b>{b}</b><em>{e} →</em></span></a>' for k, h, i, sm, b, e in [
+        ("quiz", QUIZ_PATH, "🖐", "Trò chơi 1 phút", "Bạn còn mấy ngón tay?", "Kiểm tra lối sống, nhận thử thách 7 ngày"),
+        ("pledge", PLEDGE_PATH, "✍️", "Hành trình 10 triệu người", "Ký cam kết “Tôi chọn sống lành”", "Nhận ảnh chứng nhận để chia sẻ")] if k != ctx and IS_VI)
+    next_box = fun + "".join(f'''<a class="gnext" href="{esc(gift_href(g, "next"))}" data-cta="gift_next_{g["key"]}">
   <img src="{esc(g["image"])}" alt="" width="64" height="96" loading="lazy"><span><small>🎁 Anh/chị còn 1 quà nữa</small><b>{esc(g["title"])}</b><em>Nhận ngay 1 chạm, không cần điền lại →</em></span></a>''' for g in nxt)
-    return f'''<div class="ebf card cnf" id="giftBox" data-key="{key}" data-open="{esc(opener)}" data-title="{esc(title)}" data-book="{esc(book)}">
+    return f'''<div class="ebf card cnf{" gift-" + ctx if ctx else ""}" id="giftBox" data-key="{key}" data-open="{esc(opener)}" data-title="{esc(title)}" data-book="{esc(book)}"{f' data-pos="{ctx}"' if ctx else ""}>
     <div class="gq" hidden>
       <h2>👋 Chào <span data-gq-name></span>!</h2>
       <p class="ebf-note">Anh/chị đã đăng ký nhận quà của {BRAND} với số <b data-gq-phone></b>. Bấm nút dưới đây để nhận luôn, không cần điền lại.</p>
@@ -1048,7 +1059,7 @@ def gift_form(key):
       <p class="ebf-note">{esc(sub)}</p>
       <label>Họ và tên *<input name="name" required autocomplete="name" placeholder="Ví dụ: Nguyễn Thị Lan"></label>
       <label>Số điện thoại (Zalo) *<input name="phone" type="tel" required autocomplete="tel" inputmode="tel" placeholder="Ví dụ: 0912 345 678"></label>
-      <fieldset class="cn-chips"><legend>Anh/chị đang quan tâm điều gì? * <small>(chọn 1 hoặc nhiều)</small></legend>{chips}</fieldset>
+      <fieldset class="cn-chips"><legend>Anh/chị đang quan tâm điều gì?{" <small>(không bắt buộc)</small>" if ctx else " * <small>(chọn 1 hoặc nhiều)</small>"}</legend>{chips}</fieldset>
       <label class="cn-ask">Điều anh/chị muốn hỏi thêm <small>(không bắt buộc)</small><textarea name="ask" rows="2" maxlength="400" placeholder="{esc(ph)}"></textarea></label>
       <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
       <button class="btn btn-lg btn-buy" type="submit">{esc(btn)}</button>
@@ -1166,12 +1177,42 @@ def page_camnang():
     return layout(CN_PATH, "Tặng cẩm nang Sống khỏe chủ động – Thực Dưỡng Lành", desc, body, og=f"{CN_IMG}/og.jpg", body_class="page-ebook page-camnang", preload=f"{CN_IMG}/bia-3d.webp")
 
 
+def hub_items():
+    """3 cách bắt đầu miễn phí: quà cẩm nang, trò chơi 1 phút, ký cam kết (dải dưới hero trang chủ + /qua-tang/)."""
+    if not IS_VI:
+        return []
+    out = []
+    if CN_PATH:
+        out.append({"k": "gift", "ic": "🎁", "eye": "Quà tặng miễn phí", "t": "Cẩm nang Sống khỏe chủ động", "s": "32 trang có sách nói: mâm cơm cân bằng, gạo lứt, vận động sau 45 tuổi.", "href": CN_PATH, "btn": "Nhận cẩm nang"})
+    if QUIZ.get("questions"):
+        out.append({"k": "quiz", "ic": "🖐", "eye": "Trò chơi 1 phút", "t": "Bạn còn mấy ngón tay?", "s": "10 câu về thói quen hằng ngày. Xem lối sống của bạn được mấy điểm.", "href": QUIZ_PATH, "btn": "Chơi ngay"})
+    out.append({"k": "pledge", "ic": "✍️", "eye": "Hành trình 10 triệu người", "t": "Tôi chọn sống lành", "s": "Ký lời hứa nhỏ với chính mình, nhận ảnh chứng nhận để chia sẻ.", "href": PLEDGE_PATH, "btn": "Ký cam kết"})
+    return out
+
+
+def hub_cards(medium):
+    sep = lambda h: "&" if "?" in h else "?"
+    return "".join(f'''<a class="hub-card hub-{x["k"]}" href="{esc(x["href"])}{sep(x["href"])}tu={medium}" data-cta="hub_{x["k"]}_{medium}"><span class="hub-ic" aria-hidden="true">{x["ic"]}</span>
+<span class="hub-tx"><small>{esc(x["eye"])}</small><b>{esc(x["t"])}</b><span>{esc(x["s"])}</span></span><span class="hub-btn">{esc(x["btn"])} →</span></a>''' for x in hub_items())
+
+
+def hub_strip(medium):
+    """Dải nổi bật ngay dưới hero trang chủ: khách thấy ngay quà, trò chơi, lời cam kết."""
+    if len(hub_items()) < 2:
+        return ""
+    return f'''<section class="section section-tight hub-sec"><div class="container">
+  <p class="hub-head"><b>Bắt đầu sống lành từ hôm nay</b><span>3 món miễn phí dành cho bạn</span></p>
+  <div class="hub-grid">{hub_cards(medium)}</div>
+</div></section>'''
+
+
 def page_gifts():
     """Trang /qua-tang/: gom các quà tặng để khách chọn."""
     body = f'''<section class="section pt-2 gifts-page"><div class="container">
   <div class="gifts-head center"><span class="gifts-eye">🎁 Quà tặng sức khỏe miễn phí</span><h1>Chọn món quà anh/chị cần</h1>
   <p>Tài liệu do {BRAND} biên soạn, đọc ngay trên điện thoại. Chỉ cần để lại tên và số điện thoại.</p></div>
   <div class="gf-grid gf-n{len(gift_list())}">{gift_cards("qua_tang")}</div>
+  {f'<div class="gifts-head center hub-more"><span class="gifts-eye">🎲 Thêm niềm vui sống lành</span><h2>Chơi thử, ký cam kết cùng mọi người</h2></div><div class="hub-grid hub-n2">{hub_cards("qua_tang").split("</a>", 1)[1] if CN_PATH else hub_cards("qua_tang")}</div>' if IS_VI else ""}
   <p class="eb-disc center">Tài liệu tham khảo về dinh dưỡng và lối sống, không thay thế chẩn đoán hay tư vấn của bác sĩ.</p>
 </div></section>'''
     return layout(GIFT_PATH, "Quà tặng sức khỏe miễn phí", f"Nhận miễn phí cẩm nang Sống khỏe chủ động và ebook Dinh Dưỡng cho Cơ Xương Khớp từ {BRAND}.", body, og=f"{CN_IMG}/og.jpg", body_class="page-gifts")
@@ -1307,6 +1348,7 @@ def page_home():
 </div></section>'''
     body = f'''{belief}
 {hero}
+{hub_strip("home_top")}
 {needs_html()}
 <section class="section section-tight"><div class="container">{benefits_banner()}{gifts_block("home")}</div></section>
 
@@ -1453,6 +1495,7 @@ def page_pledge():
       <img class="plg-img" data-plg-img alt="Ảnh chứng nhận lời cam kết Tôi chọn sống lành" width="1080" height="1350">
       <div class="plg-acts"><a class="btn" data-plg-dl download="cam-ket-song-lanh.png" href="#">⬇️ Tải ảnh</a><button class="btn btn-ghost" type="button" data-plg-share>📤 Chia sẻ</button><button class="btn btn-ghost" type="button" data-plg-invite>💌 Mời người thân cùng ký</button></div>
       <p class="plg-again"><button type="button" class="link-btn" data-plg-again>Ký thêm cho một người thân</button></p>
+      {f'<div class="plg-gift">{gift_form("camnang", "pledge")}</div>' if CN_PATH else ""}
     </div>
   </div>
   <div class="plg-next"><p>Lời hứa nhỏ, bắt đầu từ bữa ăn hôm nay:</p><a class="btn btn-lg btn-ghost" href="{start}" data-cta="pledge_start">Bắt đầu 10 ngày sống lành</a>{f'<p class="plg-quiz">Hoặc chơi thử trò 1 phút: <a href="{QUIZ_PATH}" data-cta="pledge_quiz">🖐 Bạn còn mấy ngón tay?</a></p>' if QUIZ.get("questions") else ""}</div>
@@ -1514,9 +1557,11 @@ def page_quiz():
   </div>
   <div class="qz-more" data-qz-more hidden>
     <div class="qz-box" data-qz-tips-box><h2>Việc nhỏ để dựng lại từng ngón tay</h2><p class="qz-sub">Không cần đổi hết một lần. Mỗi thói quen chỉ cần một việc nhỏ làm được ngay hôm nay:</p><ul class="qz-tips" data-qz-tips></ul></div>
+    {f'<div class="qz-gift" data-qz-gift>{gift_form("camnang", "quiz")}</div>' if CN_PATH else ""}
     <div class="qz-box qz-ch" data-qz-ch><h2>Thử thách 7 ngày: dựng lại 1 ngón tay</h2>
       <div data-qz-ch-pick><p class="qz-sub">Chọn <b>một</b> thói quen bạn muốn sửa trước. Mỗi ngày làm được thì vào đây tích ✓. Sau 7 ngày, chơi lại để xem mình còn mấy ngón nhé!</p><div class="qz-picks" data-qz-picks></div></div>
       <div data-qz-ch-run hidden><p class="qz-sub">Thói quen của bạn: <b data-qz-ch-name></b></p><div class="qz-days" data-qz-days></div><p class="qz-ch-msg" data-qz-ch-msg></p><p class="qz-ch-acts"><button type="button" class="link-btn" data-qz-ch-reset>Đổi thói quen khác</button></p></div>
+      {f'<a class="qz-zalo" href="/nhom-zalo/" target="_blank" rel="noopener" data-cta="quiz_zalo">👥 Vào nhóm Zalo để được nhắc thử thách mỗi ngày →</a>' if SITE.get("zalo_group") else ""}
       <p class="qz-note">Bảng tích ✓ chỉ lưu trên máy của bạn, không gửi đi đâu.</p>
     </div>
     <div class="qz-box qz-prods" data-qz-prods hidden><h2>Gợi ý nhỏ từ {BRAND}</h2><div data-qz-prod-list></div><p class="qz-disc">Sản phẩm là thực phẩm, không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh.</p></div>
@@ -1527,6 +1572,35 @@ def page_quiz():
 </div></section>
 <script type="application/json" id="qz-data">{data_js}</script>'''
     return layout(QUIZ_PATH, f'{QUIZ.get("title") or "Bạn còn mấy ngón tay?"} – Trò chơi lối sống lành', f"Trò chơi 1 phút: trả lời {n} câu về thói quen hằng ngày, xem bạn còn mấy ngón tay, nhận gợi ý nhỏ và thử thách 7 ngày sống lành cùng {BRAND}.", body, og="/assets/img/og-ngon-tay.jpg" if (ROOT / "assets/img/og-ngon-tay.jpg").exists() else None, body_class="page-quiz")
+
+
+QUIZ_GROUP_PATH = QUIZ_PATH + "nhom/"
+
+
+def page_quiz_group():
+    """Màn hình lớn chơi nhóm (trà đàm, hội thảo, sự kiện): người dẫn chiếu lên TV/máy chiếu, bấm → / Space / bút trình chiếu để sang câu.
+    Cuối buổi hiện mã QR: nhận quà cẩm nang, chơi lại trên điện thoại (thử thách 7 ngày), vào nhóm Zalo; link gắn utm_campaign = tên buổi để CRM đếm khách từ sự kiện.
+    JS riêng assets/js/quiz-nhom.js (+ qrcode.js), không tải main.js / đo lường. noindex."""
+    qs = [q for q in QUIZ.get("questions") or [] if q.get("q")]
+    data = {"questions": qs, "results": sorted(QUIZ.get("results") or [], key=lambda r: -int(r.get("min") or 0)), "title": QUIZ.get("title") or "Bạn còn mấy ngón tay?",
+            "gift": {"url": CN_PATH, "title": CN.get("title", "")} if CN_PATH else None, "zalo": "/nhom-zalo/" if SITE.get("zalo_group") else "", "quiz": QUIZ_PATH, "domain": DOMAIN}
+    data_js = json.dumps(data, ensure_ascii=False).replace("</", "<\\/")
+    return f'''<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
+<title>Chơi nhóm – {esc(data["title"])} | {BRAND}</title>
+<link rel="icon" href="/favicon.ico">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/style.css?v={VERSION}">
+</head><body class="gm-body">
+<main class="gm" id="gm">
+  <header class="gm-top"><img src="/assets/img/brand/logo.webp" alt="{BRAND}" height="56"><span class="gm-step" data-gm-step></span>
+    <span class="gm-tools"><button type="button" data-gm-fs title="Toàn màn hình (phím F)">⛶</button></span></header>
+  <section class="gm-stage" data-gm-stage></section>
+  <footer class="gm-nav"><button type="button" class="gm-btn gm-prev" data-gm-prev>◀ Quay lại</button><span class="gm-hint">Phím → hoặc Space để sang tiếp · F: toàn màn hình</span><button type="button" class="gm-btn gm-next" data-gm-next>Tiếp ▶</button></footer>
+</main>
+<script type="application/json" id="gm-data">{data_js}</script>
+<script src="/assets/js/qrcode.js?v={VERSION}" defer></script>
+<script src="/assets/js/quiz-nhom.js?v={VERSION}" defer></script>
+</body></html>'''
 
 
 def post_card(p):
@@ -2339,7 +2413,7 @@ def page_post(p):
   <img class="post-cover" src="{img_url(p["image"], 1400)}" alt="{esc(p["title"])}" width="1200" height="1200">
   {p["content"]}
 </article>
-{cn_cta("post")}</div></section>
+{cn_cta("post")}{f'<p class="post-quiz">🖐 Bạn sống lành tới đâu? <a href="{QUIZ_PATH}?tu=post" data-cta="post_quiz">Chơi thử 1 phút: Bạn còn mấy ngón tay? →</a></p>' if IS_VI and QUIZ.get("questions") else ""}</div></section>
 <section class="section bg-soft"><div class="container"><h2 class="sec-title">{t("Bài viết khác")}</h2><div class="post-grid">{"".join(post_card(x) for x in others)}</div></div></section>'''
     org = {"@type": "Organization", "name": BRAND, "url": DOMAIN + "/", "logo": {"@type": "ImageObject", "url": DOMAIN + "/assets/img/brand/logo@2x.png"}}
     ld = {"@context": "https://schema.org", "@type": "Article", "headline": p["title"], "description": p["excerpt"], "inLanguage": LANG,
@@ -2514,6 +2588,7 @@ def main():
         routes.append(write(PLEDGE_PATH, page_pledge()))
         if QUIZ.get("questions"):
             routes.append(write(QUIZ_PATH, page_quiz()))
+            write(QUIZ_GROUP_PATH, page_quiz_group())  # màn hình chơi nhóm: không vào sitemap
     if SITE.get("zalo_group"):  # link cố định cho QR, sách, bài đăng: luôn chuyển tới nhóm Zalo đang cài ở /admin (nhóm đầy → đổi link ở /admin là xong)
         zg = esc(SITE["zalo_group"])
         write("/nhom-zalo/", f'''<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">

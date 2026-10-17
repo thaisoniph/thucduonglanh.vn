@@ -1019,3 +1019,18 @@ button:focus-visible, a:focus-visible, summary:focus-visible, [role="button"]:fo
 .gs-it span { display: block; font-size: 13px; color: var(--muted); } .gs-it:hover { border-color: var(--primary); }
 /* ✨ AI tóm tắt hồ sơ (Đợt 3) */
 .ai-box { margin: 10px 0; } .ai-out { margin-top: 8px; padding: 10px 12px; background: var(--primary-soft); border: 1px solid var(--primary-light); border-radius: var(--radius-sm); font-size: 14px; line-height: 1.5; color: var(--ink); }
+
+/* 🖐 Sửa trò chơi Bạn còn mấy ngón tay (openQuizEdit) */
+.qze-f{display:block;margin:0 0 10px;flex:1;min-width:0}
+.qze-f span{display:block;font-size:13px;font-weight:600;margin-bottom:4px}
+.qze-f input,.qze-f textarea,.qze-f select{width:100%;box-sizing:border-box}
+.qze-row{display:flex;gap:10px;flex-wrap:wrap}
+.qze-row .qze-f:first-child{flex:0 0 110px}
+.qze-pr .qze-f{flex:1 1 220px!important}
+.qze-q{border:1px solid var(--line,#e5e5e5);border-radius:10px;margin:0 0 8px;background:#fff}
+.qze-q summary{padding:10px 12px;cursor:pointer;font-size:14.5px}
+.qze-b{padding:4px 12px 12px}
+.qze-acts{display:flex;gap:8px;flex-wrap:wrap}
+.qze-h{margin:18px 0 8px}
+.qze-r{border-top:1px dashed var(--line,#e5e5e5);padding-top:10px}
+.qze-note{margin-right:auto}
