@@ -1,13 +1,15 @@
 ---
-title: Vì sao chè vằng Quảng Trị phải có "giấy khai sinh"? Cách chọn chè vằng cho khỏi nhầm
+title: 'Cách chọn chè vằng thật: xem giấy tờ nào để khỏi mua nhầm'
 date: 2026-10-17
 category: kien-thuc-dinh-duong
 image: /assets/uploads/che-vang-bia.jpg
-excerpt: Chè vằng Quảng Trị được bảo hộ chỉ dẫn địa lý năm 2023. Tìm hiểu nguồn gốc, cách chọn chè vằng thật và cách pha trà chè vằng đinh lăng hòa tan DILVANG đúng cách.
+excerpt: 'Cách chọn chè vằng thật khi mua: đọc giấy chỉ dẫn địa lý, nhãn và hồ sơ sản phẩm để khỏi nhầm. Có bảng kiểm tra và hướng dẫn pha DILVANG đúng cách.'
 published: true
 ---
 
 Chè vằng bán ở khắp nơi. Nhưng cái tên "chè vằng Quảng Trị" có giấy chứng nhận chỉ dẫn địa lý do Cục Sở hữu trí tuệ cấp năm 2023. Giấy đó có ý nghĩa gì với người mua, và bạn nên nhìn vào đâu khi chọn?
+
+Bài này tập trung vào việc đọc giấy tờ và nhãn khi mua chè vằng. Muốn xem tổng hợp đầy đủ về chè vằng Quảng Trị (tên gọi, cách phân biệt với lá ngón, liều thông thường), đọc bài [chè vằng Quảng Trị: chỉ dẫn địa lý, cách chọn, cách pha](/goc-song-lanh/che-vang-quang-tri-chi-dan-dia-ly-cach-chon-cach-pha-va-nhung-dieu-can-biet/).
 
 ## Chè vằng Quảng Trị và chỉ dẫn địa lý
 
@@ -57,3 +59,5 @@ Bạn cho 1 gói 5g vào cốc, thêm 300 đến 400ml nước ấm 40 đến 50
 DILVANG là thực phẩm thường, tự công bố. Chúng tôi không ghi công dụng chữa bệnh hay giảm cân cho sản phẩm này, và bạn cũng nên dè chừng với những lời hứa như vậy ở bất cứ sản phẩm thảo mộc nào.
 
 *Sản phẩm này là thực phẩm, không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh.*
+
+**Đọc thêm:** [phân tích giấy chứng nhận chỉ dẫn địa lý chè vằng Quảng Trị](/goc-song-lanh/che-vang-quang-tri-chi-dan-dia-ly/); [vằng sẻ là gì](/goc-song-lanh/vang-se-la-gi-cach-phan-biet-cac-loai-che-vang-va-tranh-nham-voi-la-ngon/); [trà đinh lăng: dùng lá hay dùng rễ](/goc-song-lanh/tra-dinh-lang-dung-la-hay-dung-re-pha-the-nao-va-ai-can-hoi-bac-si-truoc/).
