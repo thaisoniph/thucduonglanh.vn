@@ -2,6 +2,7 @@
 // Bộ phận marketing không nhận tên, SĐT, danh sách khách hay doanh thu toàn công ty (Nghị định 13/2023) – chỉ phần doanh thu do khách mới mang về.
 // Cách tính giống hệt tab Tổng quan (chanEff / orderChan / closeStats trong crm/app.js) để 2 nơi luôn ra cùng số. Sửa cách tính thì sửa cả 2 nơi.
 import { accOf } from './mkt.js';
+import { pledgeStats } from './journey.js';
 import { all, allIn, first, kvGet, kvSet, kvJson, normPhone, nrm, esc, isVoid, startOfDay, fmtDate, DAY, CRM_URL } from './lib.js';
 
 const DAY_RE = /^\d{4}-\d\d-\d\d$/;
@@ -45,7 +46,7 @@ function orderProds(items, total) {
  *  thêm: phễu (tot / totPrev), giá trung bình 1 kết quả mỗi kênh (cpr), theo sản phẩm (prod), giá trị khách mới 90 ngày (ltv), ngân sách tháng (budget). */
 export async function mktView(x, u, d) {
   if (![d.from, d.to, d.pf, d.pt].every(s => DAY_RE.test(String(s || '')))) return { ok: false, error: 'Khoảng thời gian chưa đúng.' };
-  const sfb = d.sfb !== false && d.sfb !== 0, key = 'mktv9_' + [d.from, d.to, d.pf, d.pt, sfb ? 1 : 0, u.level >= 3 ? 'a' : 'm'].join('_') + '_' + ((await kvGet(x.db, 'ads_rows_v')) || '');
+  const sfb = d.sfb !== false && d.sfb !== 0, key = 'mktv10_' + [d.from, d.to, d.pf, d.pt, sfb ? 1 : 0, u.level >= 3 ? 'a' : 'm'].join('_') + '_' + ((await kvGet(x.db, 'ads_rows_v')) || '');
   if (!d.fresh) { const c = await kvJson(x.db, key, null); if (c) return Object.assign(c, { cached: true }, await budgetOf(x)); }
   const R = [dayMs(d.from), dayMs(d.to) + DAY], P = [dayMs(d.pf), dayMs(d.pt) + DAY];
   const mid = iso(Math.floor((R[0] + R[1]) / 2 / DAY) * DAY); // chia đôi kỳ: tỷ lệ bấm nửa đầu ↔ nửa sau (quảng cáo có bị nhàm không)
@@ -185,7 +186,8 @@ export async function mktView(x, u, d) {
     sale: saleFb(R, u.level >= 3), ltv: await ltvOf(x),
     // tiền khách mới mọi kênh marketing (kể cả kênh chưa có chi phí, vd sàn) → tiến độ mục tiêu từng kênh
     revAll: Object.assign(Object.fromEntries(Object.keys(EF).filter(k => GOAL_CH.indexOf(k) >= 0).map(k => [k, EF[k].newRev])), { [COMM]: commOf(R).rev, [WEB]: wbR.newRev + wbR.oldRev }), comm: commOf(R), commPrev: commOf(P), web: webOut(wbR), webPrev: webOut(wbP),
-    fb: { on: !!fb.token, last: fb.last || null }
+    fb: { on: !!fb.token, last: fb.last || null },
+    pledge: await pledgeStats(x, R, P) // ✍️ lời cam kết sống lành trên website (journey.js)
   };
   const live = dayMs(d.to) + DAY > startOfDay(Date.now()); // kỳ có hôm nay: lưu tạm 30 phút, kỳ đã qua: 12 tiếng
   await kvSet(x.db, key, JSON.stringify(out), live ? 30 * 60e3 : 12 * 3600e3);

@@ -1418,6 +1418,7 @@ def journey_counter():
 def page_pledge():
     """Trang /cam-ket-song-lanh/: ký lời cam kết "Tôi chọn sống lành" → ảnh chứng nhận để chia sẻ (main.js initPledge, api journey.js)."""
     items = "".join(f"<li>{esc(x)}</li>" for x in PLEDGE_ITEMS)
+    prov_opts = "".join(f"<option>{esc(n)}</option>" for n in sorted((u["n"] for u in json.loads((DATA / "vn-units.json").read_text(encoding="utf-8"))), key=lambda v: v.replace("Đ", "D~")))
     hh = HOME.get("hero") or {}
     hp = PROD_BY.get(hh.get("product") or "")
     start = f'/san-pham/{hp["slug"]}/' if hp else "/san-pham/"
@@ -1432,11 +1433,11 @@ def page_pledge():
       <p class="plg-intro">Tôi chọn sống lành, để sống đáng. Từ hôm nay, tôi cam kết:</p>
       <ol class="plg-list">{items}</ol>
       <label class="plg-f"><span>Tên của bạn *</span><input name="name" maxlength="40" autocomplete="name" placeholder="Ví dụ: Nguyễn Thu Hà" required></label>
-      <label class="plg-f"><span>Tỉnh / thành phố</span><input name="province" maxlength="40" autocomplete="address-level1" placeholder="Không bắt buộc"></label>
+      <label class="plg-f"><span>Tỉnh / thành phố</span><select name="province"><option value="">Không bắt buộc</option>{prov_opts}<option>Ở nước ngoài</option></select></label>
       <input type="text" name="website" tabindex="-1" autocomplete="off" class="hp" aria-hidden="true">
       <button class="btn btn-lg plg-submit" type="submit">✍️ Tôi cam kết</button>
       <p class="form-msg" data-plg-msg role="status"></p>
-      <p class="plg-note">Chúng tôi chỉ lưu tên và tỉnh/thành để đếm số người cùng cam kết. Không hiện công khai, không dùng để gọi điện hay nhắn tin. Xem <a href="/chinh-sach-bao-mat/">chính sách bảo mật</a>.</p>
+      <p class="plg-note">Chúng tôi không lưu tên của bạn: tên chỉ dùng để in lên ảnh chứng nhận ngay trên máy bạn. Website chỉ đếm số người cùng cam kết (kèm tỉnh/thành nếu bạn chọn). Xem <a href="/chinh-sach-bao-mat/">chính sách bảo mật</a>.</p>
     </form>
     <div class="plg-done" data-plg-done hidden>
       <p class="plg-thanks">Cảm ơn <b data-plg-name></b>! Bạn là người thứ <b data-plg-no></b> trên hành trình 10 triệu người Việt sống khỏe hơn.</p>

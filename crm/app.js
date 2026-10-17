@@ -174,7 +174,7 @@
     function fallback() { var t = document.createElement('textarea'); t.value = text; t.style.position = 'fixed'; t.style.opacity = '0'; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); } catch (e) { } t.remove(); }
   }
 
-  var SERVER_V = '2026-10-17a'; // phải trùng số phiên bản máy chủ (api/src/index.js)
+  var SERVER_V = '2026-10-17c'; // phải trùng số phiên bản máy chủ (api/src/index.js)
   var ON_CF = !/script\.google/.test(CFG.endpoint || ''); // máy chủ Cloudflare (nhanh) hay Apps Script cũ
   function checkVersion(j) {
     if (j && j.v) S.srvV = j.v;
@@ -3728,6 +3728,19 @@
     return { h: h + '<p class="bar-legend">Tính từ data trong file số quảng cáo của kỳ này và kết quả sale ghi (khách hỏi, đơn hàng). Chỉ có con số tổng, không có thông tin khách.</p>', line: line, todo: T };
   }
   /** Mục thu gọn của tab Marketing: tiêu đề + 1 dòng tóm tắt, bấm mới mở. Nhớ mục đang mở (mkt_open). */
+  /** ✍️ Người ký lời cam kết "Tôi chọn sống lành" trên thucduonglanh.vn/cam-ket-song-lanh/ (api/src/journey.js): chỉ có số đếm theo nguồn / tỉnh, không có tên hay SĐT. */
+  function mkPledgeBlock(pl) {
+    if (!pl || (!pl.n && !pl.prev)) return null;
+    var rows = function (L, empty) { return L.slice(0, 10).map(function (r) { return { l: r[0] || empty, v: r[1], muted: !r[0] }; }); };
+    var cnt = function (v) { return v + ' người'; }, top = pl.src[0];
+    return {
+      line: pl.n + ' người ký' + (top ? ' · nhiều nhất từ ' + esc(top[0] || 'Truy cập trực tiếp') : ''),
+      h: '<div class="metrics dash-m3">' + metric('Người ký trong kỳ', pl.n, 'Số người ký lời cam kết "Tôi chọn sống lành" trên website.', delta(pl.n, pl.prev)) + '</div>' +
+        '<div class="dash-grid"><div class="box"><h3>Đến từ đâu</h3>' + barList(rows(pl.src, 'Truy cập trực tiếp'), cnt) + '</div>' +
+        '<div class="box"><h3>Tỉnh / thành</h3>' + barList(rows(pl.prov, 'Không chọn tỉnh'), cnt) + '</div></div>' +
+        '<p class="bar-legend">Nguồn = nguồn / kênh / chiến dịch của lần vào web gần nhất (link UTM, mã QR ở 📍 Link &amp; QR, link sale). "cam_ket / chia_se" = người được bạn bè mời qua nút Chia sẻ / Mời người thân. Muốn biết bài đăng, sự kiện nào mang nhiều người ký: gắn link UTM hoặc mã QR riêng cho từng nơi. Website không lưu tên hay số điện thoại người ký.</p>'
+    };
+  }
   function mkMore(k, title, line, body) {
     if (!body) return '';
     var o = S.f.m.open || {};
@@ -3920,6 +3933,7 @@
       metric('Khách trong nhóm đã mua lại', cm.buyers, cm.n + ' đơn' + (cm.buyers ? ' · trung bình ' + moneyShort(Math.round(cm.rev / cm.buyers)) + ' / khách' : '') + '.', delta(cm.buyers, cmp ? cmp.buyers : null)) +
       metric('Chi phí cộng đồng', csp ? moneyShort(csp) : '–', csp && cm.rev ? 'Bằng ' + Math.round(csp * 100 / cm.rev) + '% tiền mua lại. Quà tặng, minigame… nhập ở ⚙️ Nhập chi phí → kênh Cộng đồng Zalo.' : 'Quà tặng, minigame… nhập ở ⚙️ Nhập chi phí → kênh Cộng đồng Zalo.', '') +
       '</div><p class="bar-legend">Khách được tính là trong nhóm khi sale / CSKH bấm "Đã vào" ở ô Cộng đồng trên hồ sơ khách. Đánh dấu đủ thì số này mới đúng.</p>');
+    var PL = mkPledgeBlock(mj.pledge); if (PL) h += mkMore('pledge', '✍️ Lời cam kết sống lành (website)', PL.line, PL.h);
     h += mkMore('camp', '🎬 Chiến dịch: nên tăng, giữ hay tắt?', CB.line, CB.h);
     h += mkMore('sale', '🤝 Phản hồi từ sale', SB.line, SB.h);
     h += mkMore('fun', '🪜 Quảng cáo đi tới đâu thì rơi rụng?', FN.weak ? '🔴 Khâu yếu nhất: ' + FN.weak.l : 'Từ lúc khách thấy quảng cáo đến lúc trả tiền', FN.h);

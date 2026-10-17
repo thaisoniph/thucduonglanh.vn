@@ -604,8 +604,8 @@ label .invalid,input.invalid,textarea.invalid{border-color:var(--red)!important}
 .plg-list li{margin-bottom:6px}
 .plg-f{display:block;margin-bottom:14px}
 .plg-f span{display:block;font-size:14px;font-weight:600;margin-bottom:6px;color:var(--ink)}
-.plg-f input{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:var(--radius-sm);font:inherit;font-size:16px;background:#fff}
-.plg-f input:focus{outline:2px solid var(--primary);border-color:var(--primary)}
+.plg-f input,.plg-f select{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:var(--radius-sm);font:inherit;font-size:16px;background:#fff}
+.plg-f input:focus,.plg-f select:focus{outline:2px solid var(--primary);border-color:var(--primary)}
 .plg-submit{width:100%;margin-top:4px}
 .plg-note{font-size:13px;color:var(--muted);margin:12px 0 0;line-height:1.6}
 .plg-thanks{text-align:center;font-size:17px;margin:0 0 18px}

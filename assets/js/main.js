@@ -1382,7 +1382,7 @@
   function initPledge() {
     var form = document.querySelector('[data-pledge]'); if (!form) return;
     var done = document.querySelector('[data-plg-done]'), msg = form.querySelector('[data-plg-msg]'), btn = form.querySelector('button[type=submit]');
-    var shareUrl = location.origin + location.pathname, blob = null, imgUrl = '';
+    var shareUrl = location.origin + location.pathname + '?utm_source=cam_ket&utm_medium=chia_se', blob = null, imgUrl = ''; // UTM: CRM Marketing đếm được người ký nhờ bạn bè mời
     function show(p) {
       done.querySelector('[data-plg-name]').textContent = p.name; done.querySelector('[data-plg-no]').textContent = vn(p.no);
       form.hidden = true; done.hidden = false;
@@ -1398,12 +1398,12 @@
       if (name.length < 2) { msg.className = 'form-msg err'; msg.textContent = 'Bạn ghi giúp tên của mình nhé.'; form.elements.name.focus(); return; }
       if (!u) return;
       btn.disabled = true; msg.className = 'form-msg'; msg.textContent = 'Đang ghi lời cam kết…';
-      fetch(u, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ type: 'pledge', name: name, province: form.elements.province.value.trim(), website: form.elements.website.value, src: sourceLabel().last }) })
+      fetch(u, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ type: 'pledge', province: form.elements.province.value.trim(), website: form.elements.website.value, src: sourceLabel().last }) })
         .then(function (r) { return r.json(); })
         .then(function (j) {
           btn.disabled = false;
           if (!j || !j.ok) { msg.className = 'form-msg err'; msg.textContent = (j && j.error) || 'Chưa gửi được, bạn thử lại giúp nhé.'; return; }
-          var p = { name: j.name || name, no: j.no, at: Date.now() }; save('tdl_pledge', p); msg.textContent = '';
+          var p = { name: name, no: j.no, at: Date.now() }; save('tdl_pledge', p); msg.textContent = '';
           track('pledge', {}); show(p); done.scrollIntoView({ behavior: 'smooth', block: 'start' });
         })
         .catch(function () { btn.disabled = false; msg.className = 'form-msg err'; msg.textContent = 'Mạng đang chập chờn, bạn thử lại giúp nhé.'; });
