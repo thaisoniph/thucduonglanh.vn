@@ -1292,7 +1292,7 @@ def page_home():
     # Khối niềm tin đứng đầu trang: trả lời "vì sao" trước khi nói đến sản phẩm (câu treo ở văn phòng) + lời mời đồng hành
     join_btn = f'<a class="blf-btn" href="#dong-hanh" data-cta="belief_join">{t("Cùng đồng hành")} ↓</a>' if SITE.get("community") else ""  # bản EN chưa có khối cộng đồng
     belief = f'''<section class="blf"><div class="container blf-in">
-  <h2 class="blf-eye">{t("Điều chúng tôi tin")}</h2>
+  <h2 class="blf-eye">{t("Chúng tôi có một ước mơ")}</h2>
   <blockquote class="blf-q"><p>{tf("Chúng tôi mơ một ngày {brand} không chỉ là cách ăn — mà là cách sống.", brand=BRAND)}<em>{t("Đủ sâu, đủ chậm và đủ thương.")}</em></p></blockquote>
   <p class="blf-join">{t("Mời bạn cùng chúng tôi trên hành trình giúp <b>10 triệu người Việt</b> sống khỏe hơn.")}</p>
   <div class="blf-acts">{join_btn}<a class="blf-link" href="/gioi-thieu/" data-cta="belief_story">{t("Đọc câu chuyện của chúng tôi")} →</a></div>
@@ -1380,7 +1380,7 @@ def org_ld():
 
 
 def community_html(start_url="/san-pham/"):
-    """Lời mời đồng hành (#dong-hanh, nút ở khối Điều chúng tôi tin dẫn tới): các kênh cộng đồng + bắt đầu 10 ngày."""
+    """Lời mời đồng hành (#dong-hanh, nút ở khối Chúng tôi có một ước mơ dẫn tới): các kênh cộng đồng + bắt đầu 10 ngày."""
     items = SITE.get("community") or []
     if not items:
         return ""
