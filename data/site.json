@@ -18,22 +18,63 @@
     "tiktok_shop": "",
     "lazada": ""
   },
-  "bank": {
-    "enabled": true,
-    "bank_id": "VCB",
-    "bank_name": "Vietcombank – CN Đông Hà Nội",
-    "account_no": "1064130558",
-    "account_name": "CT TNHH TAP DOAN VITAGREEN NUTRITION"
-  },
-  "free_ship_threshold": 300000,
-  "shipping_fee": 30000,
-  "aov_milestone": {
-    "enabled": false,
-    "amount": 500000,
-    "label": "Mốc 500K",
-    "reward": ""
-  },
   "zalo_oa": "https://zalo.me/4116030867157210870",
+  "community_group": "https://www.facebook.com/share/g/19NHcqWCUR/",
+  "brand_video": {
+    "youtube": "https://youtu.be/PuFPITQe3R4",
+    "title": "Đồng hành cùng Thực Dưỡng Lành: Vì sự tử tế và sứ mệnh cộng đồng",
+    "caption": "Câu chuyện của chú Sơn – người nghệ sĩ luôn khắt khe khi chọn sản phẩm cho sức khỏe của bản thân và gia đình – và lý do chú chọn đồng hành lâu dài cùng Thực Dưỡng Lành.",
+    "image": "/assets/img/brand/video-thuong-hieu.webp",
+    "upload_date": "2026-08-18",
+    "duration": "PT2M9S"
+  },
+  "music": {
+    "enabled": true,
+    "autoplay": true,
+    "volume": 25,
+    "tracks": [
+      {
+        "title": "Thư thái – sáo trúc & chuông (không lời)",
+        "file": "/assets/uploads/nhac/thu-thai-sao-truc.m4a",
+        "on": false
+      },
+      {
+        "title": "Sống tử tế",
+        "file": "https://drive.google.com/open?id=129kr3f78vcKFYyM43pqw0Ygtb_LFBt7A&usp=drive_fs",
+        "on": true
+      }
+    ]
+  },
+  "web_offer": {
+    "enabled": true,
+    "percent": 15,
+    "stack_sale": false,
+    "label": "Ưu đãi chỉ có khi đặt tại website",
+    "headline": "Giá tại website luôn tốt hơn mua trên sàn",
+    "headline_short": "Giá web tốt hơn trên sàn",
+    "gift_enabled": true,
+    "gift_title": "Khóa Zoom 4 buổi cùng chuyên gia dinh dưỡng",
+    "gift_value": "999.000đ",
+    "gift_how": "khi tham gia nhóm Zalo Cộng đồng Sống khỏe cùng Thực Dưỡng Lành"
+  },
+  "zalo_group": "https://zalo.me/g/tvepjg478",
+  "ebook": {
+    "url": "/ebook/",
+    "flipbook": "https://heyzine.com/flip-book/62a2fb55d0.html",
+    "title": "Tặng ebook “Dinh Dưỡng cho Cơ Xương Khớp”",
+    "sub": "Nên ăn gì, nên tránh gì cho 6 vấn đề cơ xương khớp thường gặp, kèm hơn 20 món dễ nấu tại nhà và video thực đơn 7 ngày.",
+    "button": "Nhận ebook miễn phí",
+    "image": "/assets/img/brand/ebook-co-xuong-khop.webp"
+  },
+  "camnang": {
+    "url": "/cam-nang-song-khoe/",
+    "reader": "https://camnangsongkhoe.thucduonglanh.vn/",
+    "title": "Cẩm nang “Thực Dưỡng Lành – Sống khỏe chủ động”",
+    "sub": "32 trang sách lật có sách nói: mâm cơm Việt cân bằng, gạo lứt và ngũ cốc nguyên hạt, vận động sau tuổi 45, nhật ký 7 ngày thay đổi nhỏ.",
+    "button": "Đọc cẩm nang miễn phí",
+    "image": "/assets/img/brand/cam-nang/cover-art.webp",
+    "popup": true
+  },
   "community": [
     {
       "name": "Nhóm Zalo Sống khỏe cùng Thực Dưỡng Lành",
@@ -71,55 +112,19 @@
       "desc": "Video hướng dẫn cách dùng sản phẩm, câu chuyện thương hiệu, chia sẻ kiến thức thực dưỡng và hành trình sống lành cùng cộng đồng."
     }
   ],
-  "community_group": "https://www.facebook.com/share/g/19NHcqWCUR/",
-  "brand_video": {
-    "youtube": "https://youtu.be/PuFPITQe3R4",
-    "title": "Đồng hành cùng Thực Dưỡng Lành: Vì sự tử tế và sứ mệnh cộng đồng",
-    "caption": "Câu chuyện của chú Sơn – người nghệ sĩ luôn khắt khe khi chọn sản phẩm cho sức khỏe của bản thân và gia đình – và lý do chú chọn đồng hành lâu dài cùng Thực Dưỡng Lành.",
-    "image": "/assets/img/brand/video-thuong-hieu.webp",
-    "upload_date": "2026-08-18",
-    "duration": "PT2M9S"
-  },
-  "zalo_group": "https://zalo.me/g/tvepjg478",
-  "ebook": {
-    "url": "/ebook/",
-    "flipbook": "https://heyzine.com/flip-book/62a2fb55d0.html",
-    "title": "Tặng ebook “Dinh Dưỡng cho Cơ Xương Khớp”",
-    "sub": "Nên ăn gì, nên tránh gì cho 6 vấn đề cơ xương khớp thường gặp, kèm hơn 20 món dễ nấu tại nhà và video thực đơn 7 ngày.",
-    "button": "Nhận ebook miễn phí",
-    "image": "/assets/img/brand/ebook-co-xuong-khop.webp"
-  },
-  "camnang": {
-    "url": "/cam-nang-song-khoe/",
-    "reader": "https://camnangsongkhoe.thucduonglanh.vn/",
-    "title": "Cẩm nang “Thực Dưỡng Lành – Sống khỏe chủ động”",
-    "sub": "32 trang sách lật có sách nói: mâm cơm Việt cân bằng, gạo lứt và ngũ cốc nguyên hạt, vận động sau tuổi 45, nhật ký 7 ngày thay đổi nhỏ.",
-    "button": "Đọc cẩm nang miễn phí",
-    "image": "/assets/img/brand/cam-nang/cover-art.webp",
-    "popup": true
-  },
-  "web_offer": {
+  "bank": {
     "enabled": true,
-    "percent": 15,
-    "stack_sale": false,
-    "label": "Ưu đãi chỉ có khi đặt tại website",
-    "headline": "Giá tại website luôn tốt hơn mua trên sàn",
-    "headline_short": "Giá web tốt hơn trên sàn",
-    "gift_enabled": true,
-    "gift_title": "Khóa Zoom 4 buổi cùng chuyên gia dinh dưỡng",
-    "gift_value": "999.000đ",
-    "gift_how": "khi tham gia nhóm Zalo Cộng đồng Sống khỏe cùng Thực Dưỡng Lành"
+    "bank_id": "VCB",
+    "bank_name": "Vietcombank – CN Đông Hà Nội",
+    "account_no": "1064130558",
+    "account_name": "CT TNHH TAP DOAN VITAGREEN NUTRITION"
   },
-  "music": {
-    "enabled": true,
-    "autoplay": true,
-    "volume": 25,
-    "tracks": [
-      {
-        "title": "Thư thái – sáo trúc & chuông (không lời)",
-        "file": "/assets/uploads/nhac/thu-thai-sao-truc.m4a",
-        "on": true
-      }
-    ]
+  "free_ship_threshold": 300000,
+  "shipping_fee": 30000,
+  "aov_milestone": {
+    "enabled": false,
+    "amount": 500000,
+    "label": "Mốc 500K",
+    "reward": ""
   }
 }
