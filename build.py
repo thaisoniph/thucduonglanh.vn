@@ -1291,10 +1291,18 @@ def page_home():
     tag_box = f'<div class="tag-cloud">{tag_html}</div>' if tag_html else ""
     # Khối niềm tin đứng đầu trang: trả lời "vì sao" trước khi nói đến sản phẩm (câu treo ở văn phòng) + lời mời đồng hành
     join_btn = f'<a class="blf-btn" href="#dong-hanh" data-cta="belief_join">{t("Cùng đồng hành")} ↓</a>' if SITE.get("community") else ""  # bản EN chưa có khối cộng đồng
+    def nw(s, *parts):
+        """Giữ các cụm có nghĩa trên cùng 1 dòng (không ngắt "cách / ăn", "Thực Dưỡng / Lành"). Cụm không có trong câu (bản dịch) thì bỏ qua."""
+        for x in parts:
+            s = s.replace(x, f'<span class="nw">{x}</span>', 1)
+        return s
+    blf_q = nw(tf("Chúng tôi mơ một ngày {brand} không chỉ là cách ăn — mà là cách sống.", brand=BRAND), "Chúng tôi mơ một ngày", BRAND, "không chỉ là cách ăn —", "mà là cách sống.")
+    blf_em = nw(t("Đủ sâu, đủ chậm và đủ thương."), "Đủ sâu,", "đủ chậm", "và đủ thương.")
+    blf_join = nw(t("Mời bạn cùng chúng tôi trên hành trình giúp <b>10 triệu người Việt</b> sống khỏe hơn."), "Mời bạn", "cùng chúng tôi", "trên hành trình", "<b>10 triệu người Việt</b>", "sống khỏe hơn.")
     belief = f'''<section class="blf"><div class="container blf-in">
   <h2 class="blf-eye">{t("Chúng tôi có một ước mơ")}</h2>
-  <blockquote class="blf-q"><p>{tf("Chúng tôi mơ một ngày {brand} không chỉ là cách ăn — mà là cách sống.", brand=BRAND)}<em>{t("Đủ sâu, đủ chậm và đủ thương.")}</em></p></blockquote>
-  <p class="blf-join">{t("Mời bạn cùng chúng tôi trên hành trình giúp <b>10 triệu người Việt</b> sống khỏe hơn.")}</p>
+  <blockquote class="blf-q"><p>{blf_q}<em>{blf_em}</em></p></blockquote>
+  <p class="blf-join">{blf_join}</p>
   <div class="blf-acts">{join_btn}<a class="blf-link" href="/gioi-thieu/" data-cta="belief_story">{t("Đọc câu chuyện của chúng tôi")} →</a></div>
 </div></section>'''
     body = f'''{belief}
