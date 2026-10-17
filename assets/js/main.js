@@ -1239,11 +1239,12 @@
   /* trang /qua-tang/ + khối quà trang chủ: quà đã nhận → "Đọc lại"; khách đã đăng ký → quà còn lại "Nhận ngay 1 chạm" */
   function initGiftStatus() {
     var lead = giftLead();
+    if (lead) $$('a[data-cn-read]').forEach(function (a) { a.href = giftUrl('camnang', a.getAttribute('href')); }); // khách đã để số trên web → trang sách mở trọn bộ, không hỏi lại
     $$('.gf-card').forEach(function (c) {
       var key = c.className.indexOf('gf-camnang') >= 0 ? 'camnang' : c.className.indexOf('gf-ebook') >= 0 ? 'ebook' : ''; if (!key) return;
       var btn = $('.gf-btn', c); if (!btn) return;
       if (load(GIFT_KEY[key], null)) { c.classList.add('gf-got'); btn.textContent = '✓ Đã nhận · Đọc lại →'; }
-      else if (lead) btn.textContent = 'Nhận ngay 1 chạm →';
+      else if (lead) btn.textContent = key === 'camnang' ? 'Đọc trọn bộ →' : 'Nhận ngay 1 chạm →';
     });
   }
 

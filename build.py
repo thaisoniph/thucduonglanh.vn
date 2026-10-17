@@ -930,6 +930,7 @@ def page_ebook():
 # ---------------------------------------------------------------- quà tặng: cẩm nang sống khỏe + trang /qua-tang/
 CN = SITE.get("camnang") or {}
 CN_PATH = CN["url"] if str(CN.get("url", "")).startswith("/") and CN.get("reader") else ""
+CN_READ = CN["reader"] if CN_PATH else ""  # trang sách: ai cũng đọc thử 5 trang đầu, sang trang 6 mới xin tên + số Zalo (18/10/2026). Link có data-cn-read: khách đã để số → main.js thêm ?ma= để mở trọn bộ
 GIFT_PATH = "/qua-tang/"
 CN_IMG = "/assets/img/brand/cam-nang"
 CN_CONCERNS = ["Ăn uống lành mạnh cho cả nhà", "Đường huyết", "Huyết áp – tim mạch", "Cơ xương khớp", "Tiêu hóa – dạ dày", "Giấc ngủ – căng thẳng",
@@ -940,7 +941,7 @@ def gift_list():
     """Các món quà đang bật, cẩm nang (mới) đứng trước."""
     out = []
     if CN_PATH:
-        out.append({"key": "camnang", "href": CN_PATH, "title": CN.get("title") or "Cẩm nang sống khỏe", "sub": CN.get("sub", ""), "button": CN.get("button") or "Đọc cẩm nang miễn phí",
+        out.append({"key": "camnang", "href": CN_READ, "title": CN.get("title") or "Cẩm nang sống khỏe", "sub": CN.get("sub", ""), "button": "Đọc thử 5 trang miễn phí",
                     "image": CN.get("image") or f"{CN_IMG}/cover-art.webp", "tag": "Mới · 32 trang · có sách nói", "for": "Ăn uống & sống khỏe cho cả nhà, nhất là từ tuổi 45"})
     eb = SITE.get("ebook") or {}
     if ebook_href("x"):
@@ -958,7 +959,7 @@ def gift_cards(medium, skip=""):
     for g in gift_list():
         if g["key"] == skip:
             continue
-        cards += f'''<a class="gf-card gf-{g["key"]}" href="{esc(gift_href(g, medium))}" data-cta="gift_{g["key"]}_{medium}">
+        cards += f'''<a class="gf-card gf-{g["key"]}" href="{esc(gift_href(g, medium))}" data-cta="gift_{g["key"]}_{medium}"{" data-cn-read" if g["key"] == "camnang" else ""}>
   <span class="gf-img"><img src="{esc(g["image"])}" alt="Bìa {esc(g["title"])}" width="240" height="360" loading="lazy"></span>
   <span class="gf-body"><span class="gf-tag">{esc(g["tag"])}</span><b>{esc(g["title"])}</b><span class="gf-sub">{esc(g["sub"])}</span>
   <span class="gf-for">👤 Phù hợp: {esc(g["for"])}</span><span class="btn gf-btn">{esc(g["button"])} →</span></span>
@@ -983,7 +984,7 @@ def cn_cta(medium):
     """Khung mời đọc cẩm nang (cuối bài viết)."""
     if not CN_PATH:
         return ebook_cta(medium)
-    return f'''<a class="eb-cta" href="{esc(CN_PATH)}?tu={medium}" data-cta="camnang_{medium}">
+    return f'''<a class="eb-cta" href="{esc(CN_READ)}?tu={medium}" data-cta="camnang_{medium}" data-cn-read>
   <span class="eb-img"><img src="{esc(CN.get("image") or f"{CN_IMG}/cover-art.webp")}" alt="" width="240" height="360" loading="lazy"></span>
   <span class="eb-text"><span class="eb-tag">🎁 Quà tặng miễn phí</span><b>{esc(CN.get("title", ""))}</b><span class="eb-sub">{esc(CN.get("sub", ""))}</span></span>
   <span class="btn eb-btn">{esc(CN.get("button") or "Đọc cẩm nang miễn phí")}</span>
@@ -1003,7 +1004,7 @@ def gift_popup():
       <h2 id="gpTitle">Tặng miễn phí cẩm nang “Sống khỏe chủ động”</h2>
       <ul><li>Mâm cơm Việt cân bằng: ăn đủ, đa dạng, không ăn kiêng cực đoan</li><li>Gạo lứt, ngũ cốc nguyên hạt và cách chuyển đổi từng bước</li><li>Vận động, giữ cơ sau tuổi 45 + nhật ký 7 ngày</li></ul>
       <p class="gp-meta">32 trang có minh họa · nghe sách nói · tải PDF in cho cha mẹ</p>
-      <a class="btn btn-lg btn-buy gp-go" href="{esc(CN_PATH)}?tu=popup" data-cta="camnang_popup">Xem cẩm nang & nhận miễn phí →</a>
+      <a class="btn btn-lg btn-buy gp-go" href="{esc(CN_READ)}?tu=popup" data-cta="camnang_popup" data-cn-read>📖 Đọc thử 5 trang miễn phí →</a>
       {f'<a class="gp-quiz" href="{QUIZ_PATH}?tu=popup" data-cta="quiz_popup">Hoặc chơi thử 1 phút: 🖐 Bạn còn mấy ngón tay? →</a>' if QUIZ.get("questions") else ""}
       <button type="button" class="gp-no" data-gp-close>Để sau</button>
     </div>
@@ -1108,7 +1109,7 @@ def page_camnang():
              ("consult", "Tự nhiên không có nghĩa là không tương tác – khi nào cần hỏi bác sĩ"),
              ("evening", "Nhật ký 7 ngày: mỗi ngày một thay đổi nhỏ, đều đặn hơn hoàn hảo")]
     peek_html = "".join(f'<figure><img src="{CN_IMG}/{k}.webp" alt="Trang cẩm nang: {esc(c)}" width="480" height="720" loading="lazy"><figcaption>{esc(c)}</figcaption></figure>' for k, c in peeks)
-    faqs = [("Cẩm nang có mất phí không?", "Hoàn toàn miễn phí. Anh/chị chỉ cần để lại tên, số điện thoại và vấn đề đang quan tâm để mở sách."),
+    faqs = [("Cẩm nang có mất phí không?", "Hoàn toàn miễn phí. Anh/chị đọc thử ngay 5 trang đầu, không cần đăng ký. Muốn đọc tiếp trọn bộ 32 trang, nghe sách nói và tải PDF thì để lại tên và số Zalo."),
             ("Đọc bằng gì? Có cần cài ứng dụng không?", "Không cần cài gì. Sách mở ngay trên trình duyệt điện thoại hoặc máy tính, có nút nghe sách nói và tải PDF."),
             ("Thông tin của tôi được dùng để làm gì?", f"Để {BRAND} gửi lại link sách khi cần và tư vấn dinh dưỡng đúng vấn đề anh/chị quan tâm qua điện thoại/Zalo. Không chia sẻ cho bên thứ ba."),
             ("Đây có phải tài liệu bán hàng?", f"Cẩm nang chủ yếu là kiến thức sống khỏe có nguồn rõ ràng. Chỉ có 1 trang cuối giới thiệu Gói Khởi Động 10 Ngày Sống Lành của {BRAND} như một gợi ý, anh/chị không cần mua gì."),
@@ -1119,6 +1120,7 @@ def page_camnang():
   <div class="ebh-head">
     <span class="eyebrow">🎁 Quà tặng miễn phí · 32 trang · có sách nói</span>
     <h1>Sống khỏe chủ động sau tuổi 45, bắt đầu từ mâm cơm mỗi ngày</h1>
+    <a class="btn btn-lg cn-try" href="{esc(CN_READ)}?tu=landing" data-cta="camnang_try" data-cn-read>📖 Đọc thử 5 trang đầu, không cần đăng ký →</a>
     <p class="ebh-sub">Cẩm nang <b>“Thực Dưỡng Lành – Từ hạt gạo Việt đến nếp sống khỏe và an yên”</b>: ăn đủ, cân đối, đa dạng theo khuyến nghị của <b>WHO và Bộ Y tế</b>, kể qua câu chuyện gần gũi của cô An và chú Minh.</p>
   </div>
   <div class="ebh-cover"><img src="{CN_IMG}/bia-3d.webp" alt="Bìa cẩm nang Thực Dưỡng Lành – Sống khỏe chủ động" width="640" height="721" fetchpriority="high"></div>
@@ -1183,7 +1185,7 @@ def hub_items():
         return []
     out = []
     if CN_PATH:
-        out.append({"k": "gift", "ic": "🎁", "eye": "Quà tặng miễn phí", "t": "Cẩm nang Sống khỏe chủ động", "s": "32 trang có sách nói: mâm cơm cân bằng, gạo lứt, vận động sau 45 tuổi.", "href": CN_PATH, "btn": "Nhận cẩm nang"})
+        out.append({"k": "gift", "ic": "🎁", "eye": "Quà tặng miễn phí", "t": "Cẩm nang Sống khỏe chủ động", "s": "32 trang có sách nói: mâm cơm cân bằng, gạo lứt, vận động sau 45 tuổi. Đọc thử ngay, không cần đăng ký.", "href": CN_READ, "btn": "Đọc thử miễn phí"})
     if QUIZ.get("questions"):
         out.append({"k": "quiz", "ic": "🖐", "eye": "Trò chơi 1 phút", "t": "Bạn còn mấy ngón tay?", "s": "10 câu về thói quen hằng ngày. Xem lối sống của bạn được mấy điểm.", "href": QUIZ_PATH, "btn": "Chơi ngay"})
     out.append({"k": "pledge", "ic": "✍️", "eye": "Hành trình 10 triệu người", "t": "Tôi chọn sống lành", "s": "Ký lời hứa nhỏ với chính mình, nhận ảnh chứng nhận để chia sẻ.", "href": PLEDGE_PATH, "btn": "Ký cam kết"})
@@ -1201,7 +1203,7 @@ def gift_dock():
         its.insert(1, ("ebook", "🦴", eb.get("title", "Ebook miễn phí").replace("Tặng ebook ", "Ebook "), "Ăn gì cho cơ xương khớp + video thực đơn 7 ngày.", eb["url"]))
     if not its:
         return ""
-    rows = "".join(f'''<a class="gd-it" data-gd="{k}" href="{esc(h)}{"&" if "?" in h else "?"}tu=dock" data-cta="dock_{k}"><span class="gd-iic">{ic}</span><span class="gd-itx"><b>{esc(tt)}</b><small data-gd-sub>{esc(sub)}</small></span><em data-gd-st>{"Chơi" if k == "quiz" else "Ký" if k == "pledge" else "Nhận"} →</em></a>''' for k, ic, tt, sub, h in its)
+    rows = "".join(f'''<a class="gd-it" data-gd="{k}" href="{esc(h)}{"&" if "?" in h else "?"}tu=dock" data-cta="dock_{k}"{" data-cn-read" if k == "gift" else ""}><span class="gd-iic">{ic}</span><span class="gd-itx"><b>{esc(tt)}</b><small data-gd-sub>{esc(sub)}</small></span><em data-gd-st>{"Chơi" if k == "quiz" else "Ký" if k == "pledge" else "Đọc thử" if k == "gift" else "Nhận"} →</em></a>''' for k, ic, tt, sub, h in its)
     zg = f'<a class="gd-it gd-zalo" href="{ZALO_GATE}?tu=dock" data-cta="dock_zalo"><span class="gd-iic">👥</span><span class="gd-itx"><b>Nhóm Zalo “Sống khỏe cùng {BRAND}”</b><small>Thực đơn lành, ưu đãi thành viên, hỏi đáp mỗi ngày.</small></span><em>Vào →</em></a>' if SITE.get("zalo_group") else ""
     return f'''
 <button class="gd-btn" id="gdBtn" type="button" aria-expanded="false" aria-controls="gdSheet" hidden><span class="gd-ic" aria-hidden="true">🎁</span><span class="gd-tx">Quà & Trò chơi</span><span class="gd-badge" data-gd-n hidden></span></button>
@@ -1258,7 +1260,7 @@ def page_zalo_gate():
 
 def hub_cards(medium):
     sep = lambda h: "&" if "?" in h else "?"
-    return "".join(f'''<a class="hub-card hub-{x["k"]}" href="{esc(x["href"])}{sep(x["href"])}tu={medium}" data-cta="hub_{x["k"]}_{medium}"><span class="hub-ic" aria-hidden="true">{x["ic"]}</span>
+    return "".join(f'''<a class="hub-card hub-{x["k"]}" href="{esc(x["href"])}{sep(x["href"])}tu={medium}" data-cta="hub_{x["k"]}_{medium}"{" data-cn-read" if x["k"] == "gift" else ""}><span class="hub-ic" aria-hidden="true">{x["ic"]}</span>
 <span class="hub-tx"><small>{esc(x["eye"])}</small><b>{esc(x["t"])}</b><span>{esc(x["s"])}</span></span><span class="hub-btn">{esc(x["btn"])} →</span></a>''' for x in hub_items())
 
 

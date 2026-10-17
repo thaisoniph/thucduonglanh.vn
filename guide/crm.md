@@ -779,3 +779,6 @@ Trên website, ai muốn vào nhóm Zalo "Sống khỏe cùng Thực Dưỡng L�
 - Việc của sale / CSKH: trong 24 giờ kết bạn Zalo, nhắn chào mừng, hỏi khách quan tâm gì (ghi chú có thể có sẵn điểm trò chơi "còn 6/10 ngón").
 - Nếu nhóm bật **Duyệt thành viên**: người quản trị nhóm đối chiếu tên trong yêu cầu với Khách hỏi kênh "Nhóm Zalo (Website)" rồi duyệt. Người không có trong CRM thì có thể nhắn hỏi trước khi duyệt.
 - Khách cũ: link nhóm sale gửi trong tin nhắn chăm sóc vẫn vào thẳng như trước.
+
+### 📖 Khách đọc thử cẩm nang rồi để số (18/10/2026)
+Cẩm nang "Sống khỏe chủ động" giờ cho đọc thử 5 trang đầu không cần đăng ký. Muốn đọc tiếp, nghe sách nói, tải PDF thì khách điền tên + số Zalo. Khách này về **Khách hỏi**, kênh "Ebook – quà tặng (Website)", ghi chú "📖 Đọc thử 5 trang rồi để lại số để đọc tiếp", nơi bấm ghi "doc_thu_…" (ví dụ doc_thu_dock = từ nút 🎁 Quà & Trò chơi). Khách đã đọc 5 trang và muốn đọc tiếp nên thường quan tâm thật, sale gọi / nhắn chào sớm, hỏi khách thấy phần nào hữu ích.
