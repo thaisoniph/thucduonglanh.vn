@@ -1289,15 +1289,13 @@ def page_home():
     seo_p4 = tf('Đặt hàng dễ dàng ngay trên website, giao hàng toàn quốc, kiểm tra hàng trước khi thanh toán. Đội ngũ tư vấn luôn sẵn sàng hỗ trợ qua hotline <a href="tel:{tel}">{hotline}</a> và Zalo. Thông tin khách hàng được bảo mật theo <a href="/chinh-sach-bao-mat/">chính sách bảo mật</a>.', tel=tel(SITE["hotline"]), hotline=esc(SITE["hotline"]))
     brochure_btn = f'<a class="btn btn-lg btn-ghost" href="{BR_PATH}">📖 Đọc hồ sơ thương hiệu</a>' if BROCHURE else ""
     tag_box = f'<div class="tag-cloud">{tag_html}</div>' if tag_html else ""
-    # Khối niềm tin đứng đầu trang: trả lời "vì sao" trước khi nói đến sản phẩm (câu treo ở văn phòng)
+    # Khối niềm tin đứng đầu trang: trả lời "vì sao" trước khi nói đến sản phẩm (câu treo ở văn phòng) + lời mời đồng hành
+    join_btn = f'<a class="blf-btn" href="#dong-hanh" data-cta="belief_join">{t("Cùng đồng hành")} ↓</a>' if SITE.get("community") else ""  # bản EN chưa có khối cộng đồng
     belief = f'''<section class="blf"><div class="container blf-in">
   <h2 class="blf-eye">{t("Điều chúng tôi tin")}</h2>
-  <figure class="blf-fig">
-    <blockquote class="blf-q"><p>{tf("Chúng tôi mơ một ngày {brand} không chỉ là cách ăn — mà là cách sống.", brand=BRAND)}<em>{t("Đủ sâu, đủ chậm và đủ thương.")}</em></p></blockquote>
-    <figcaption>{tf("Câu treo trên tường văn phòng {brand}", brand=BRAND)}</figcaption>
-  </figure>
-  <p class="blf-why">{tf("{brand} ra đời từ một câu hỏi chưa kịp có lời đáp: <i>“Giá như mình chăm sóc tốt hơn…”</i> Vì vậy chúng tôi chọn <b>sống lành, để sống đáng</b>: chăm sóc sớm hơn những người mình thương, từ mỗi bữa ăn lành.", brand=BRAND)}</p>
-  <a class="blf-link" href="/gioi-thieu/" data-cta="belief_story">{t("Đọc câu chuyện của chúng tôi")} →</a>
+  <blockquote class="blf-q"><p>{tf("Chúng tôi mơ một ngày {brand} không chỉ là cách ăn — mà là cách sống.", brand=BRAND)}<em>{t("Đủ sâu, đủ chậm và đủ thương.")}</em></p></blockquote>
+  <p class="blf-join">{t("Mời bạn cùng chúng tôi trên hành trình giúp <b>10 triệu người Việt</b> sống khỏe hơn.")}</p>
+  <div class="blf-acts">{join_btn}<a class="blf-link" href="/gioi-thieu/" data-cta="belief_story">{t("Đọc câu chuyện của chúng tôi")} →</a></div>
 </div></section>'''
     body = f'''{belief}
 {hero}
@@ -1342,7 +1340,7 @@ def page_home():
   <div class="fb-strip">{fb}</div>
 </div></section>
 
-{community_html()}
+{community_html(h_url)}
 {blog_html}
 
 <section class="section seo-block"><div class="container">
@@ -1381,15 +1379,23 @@ def org_ld():
     return {k: v for k, v in org.items() if v}
 
 
-def community_html():
+def community_html(start_url="/san-pham/"):
+    """Lời mời đồng hành (#dong-hanh, nút ở khối Điều chúng tôi tin dẫn tới): các kênh cộng đồng + bắt đầu 10 ngày."""
     items = SITE.get("community") or []
     if not items:
         return ""
-    cards = "".join(f'''<article class="cm-card"><a class="cm-media" href="{esc(c["url"])}" target="_blank" rel="noopener"><img src="{esc(img_url(c["image"], 600))}" alt="{esc(c["name"])}" loading="lazy" width="600" height="600"><span class="cm-stat">{esc(c.get("stat",""))}</span></a>
-<h3><a href="{esc(c["url"])}" target="_blank" rel="noopener">{esc(c["name"])}</a></h3><p>{esc(c.get("desc",""))}</p><a class="more" href="{esc(c["url"])}" target="_blank" rel="noopener">Tham gia ngay {I["right"]}</a></article>''' for c in items)
-    return f'''<section class="section"><div class="container">
-  <h2 class="sec-title big">Các Kênh Cộng Đồng<br><span class="accent">{BRAND}</span></h2>
+    cards = "".join(f'''<article class="cm-card"><a class="cm-media" href="{esc(c["url"])}" target="_blank" rel="noopener" data-cta="join_{i}"><img src="{esc(img_url(c["image"], 600))}" alt="{esc(c["name"])}" loading="lazy" width="600" height="600"><span class="cm-stat">{esc(c.get("stat",""))}</span></a>
+<h3><a href="{esc(c["url"])}" target="_blank" rel="noopener">{esc(c["name"])}</a></h3><p>{esc(c.get("desc",""))}</p><a class="more" href="{esc(c["url"])}" target="_blank" rel="noopener">{t("Tham gia ngay")} {I["right"]}</a></article>''' for i, c in enumerate(items))
+    # tổng số người theo dõi lấy từ ô "stat" (98.000+ …), làm tròn xuống chục nghìn để không nói quá
+    total = sum(int(re.sub(r"\D", "", m)) for c in items for m in re.findall(r"\d[\d.]*", c.get("stat", "")[:12]))
+    total = total // 10000 * 10000
+    sub = tf("Hơn <b>{n}</b> người đang theo dõi {brand} trên các kênh. Chọn một nơi để cùng sống lành mỗi ngày, hoàn toàn miễn phí.", n=f"{total:,}".replace(",", "."), brand=BRAND) if total >= 10000 else t("Chọn một nơi để cùng sống lành mỗi ngày, hoàn toàn miễn phí.")
+    return f'''<section class="section join" id="dong-hanh"><div class="container">
+  <p class="join-eye">{t("Lời mời đồng hành")}</p>
+  <h2 class="sec-title big">{t("Cùng chúng tôi đi hành trình")}<br><span class="accent">{t("10 triệu người Việt sống khỏe hơn")}</span></h2>
+  <p class="join-sub">{sub}</p>
   <div class="cm-grid">{cards}</div>
+  <div class="join-self"><p>{t("Hoặc bắt đầu từ chính mình, từ hôm nay:")}</p><a class="btn btn-lg" href="{start_url}" data-cta="join_start">{t("Bắt đầu 10 ngày sống lành")}</a></div>
 </div></section>'''
 
 

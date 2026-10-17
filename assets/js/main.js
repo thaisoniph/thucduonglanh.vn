@@ -1320,5 +1320,15 @@
     initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook();
     window.addEventListener('storage', function (e) { if (e.key === 'tdl_cart') { cart = load('tdl_cart', []); cleanCart(); renderCounts(); renderMini(); } });
   }
+  // Nút "Cùng đồng hành" (khối Điều chúng tôi tin) → #dong-hanh ở cuối trang: ảnh phía trên tải dần làm trang dài thêm, nên cuộn lại cho trúng
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[href="#dong-hanh"]'), sec = document.getElementById('dong-hanh');
+    if (!a || !sec) return;
+    e.preventDefault();
+    var go = function (smooth) { sec.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' }); };
+    go(true);
+    [900, 1800].forEach(function (ms) { setTimeout(function () { if (Math.abs(sec.getBoundingClientRect().top - 80) > 40) go(false); }, ms); });
+    if (history.replaceState) history.replaceState(null, '', '#dong-hanh');
+  });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
