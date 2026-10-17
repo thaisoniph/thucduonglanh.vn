@@ -1398,6 +1398,7 @@ def community_html(start_url="/san-pham/"):
     total = sum(int(re.sub(r"\D", "", m)) for c in items for m in re.findall(r"\d[\d.]*", c.get("stat", "")[:12]))
     total = total // 10000 * 10000
     sub = tf("Hơn <b>{n}</b> người đang theo dõi {brand} trên các kênh. Chọn một nơi để cùng sống lành mỗi ngày, hoàn toàn miễn phí.", n=f"{total:,}".replace(",", "."), brand=BRAND) if total >= 10000 else t("Chọn một nơi để cùng sống lành mỗi ngày, hoàn toàn miễn phí.")
+    quiz_btn = f'<a class="btn btn-lg btn-ghost" href="{QUIZ_PATH}" data-cta="join_quiz">🖐 Chơi thử: Bạn còn mấy ngón tay?</a>' if IS_VI and QUIZ.get("questions") else ""
     pledge_btn = f'<a class="btn btn-lg" href="{PLEDGE_PATH}" data-cta="join_pledge">✍️ {t("Ký lời cam kết “Tôi chọn sống lành”")}</a>' if IS_VI else ""
     return f'''<section class="section join" id="dong-hanh"><div class="container">
   <p class="join-eye">{t("Lời mời đồng hành")}</p>
@@ -1405,7 +1406,7 @@ def community_html(start_url="/san-pham/"):
   <p class="join-sub">{sub}</p>
   {journey_counter()}
   <div class="cm-grid">{cards}</div>
-  <div class="join-self"><p>{t("Hoặc bắt đầu từ chính mình, từ hôm nay:")}</p><div class="join-btns">{pledge_btn}<a class="btn btn-lg{" btn-ghost" if pledge_btn else ""}" href="{start_url}" data-cta="join_start">{t("Bắt đầu 10 ngày sống lành")}</a></div></div>
+  <div class="join-self"><p>{t("Hoặc bắt đầu từ chính mình, từ hôm nay:")}</p><div class="join-btns">{pledge_btn}{quiz_btn}<a class="btn btn-lg{" btn-ghost" if pledge_btn else ""}" href="{start_url}" data-cta="join_start">{t("Bắt đầu 10 ngày sống lành")}</a></div></div>
 </div></section>'''
 
 
@@ -1454,9 +1455,78 @@ def page_pledge():
       <p class="plg-again"><button type="button" class="link-btn" data-plg-again>Ký thêm cho một người thân</button></p>
     </div>
   </div>
-  <div class="plg-next"><p>Lời hứa nhỏ, bắt đầu từ bữa ăn hôm nay:</p><a class="btn btn-lg btn-ghost" href="{start}" data-cta="pledge_start">Bắt đầu 10 ngày sống lành</a></div>
+  <div class="plg-next"><p>Lời hứa nhỏ, bắt đầu từ bữa ăn hôm nay:</p><a class="btn btn-lg btn-ghost" href="{start}" data-cta="pledge_start">Bắt đầu 10 ngày sống lành</a>{f'<p class="plg-quiz">Hoặc chơi thử trò 1 phút: <a href="{QUIZ_PATH}" data-cta="pledge_quiz">🖐 Bạn còn mấy ngón tay?</a></p>' if QUIZ.get("questions") else ""}</div>
 </div></section>'''
     return layout(PLEDGE_PATH, "Tôi chọn sống lành – Lời cam kết", f"Ký lời cam kết “Tôi chọn sống lành”, cùng {BRAND} đi hành trình giúp 10 triệu người Việt sống khỏe hơn và nhận ảnh chứng nhận để chia sẻ.", body, body_class="page-pledge")
+
+
+QUIZ_PATH = "/ngon-tay-song-lanh/"
+_qf = DATA / "quiz.json"
+QUIZ = json.loads(_qf.read_text("utf-8")) if _qf.exists() else {}
+
+
+def hands_html(cls="qz-hands"):
+    """2 bàn tay xòe 10 ngón (CSS .qz-…); ngón bị hạ: main.js thêm class .down vào [data-qz-f]."""
+    hand = lambda side, base: f'<div class="qz-hand qz-{side}">' + "".join(f'<span class="qz-f qz-f{i}" data-qz-f="{base + i}"></span>' for i in range(5)) + '<span class="qz-palm"></span></div>'
+    return f'<div class="{cls}" aria-hidden="true">{hand("l", 0)}{hand("r", 5)}</div>'
+
+
+def page_quiz():
+    """Trò chơi "Bạn còn mấy ngón tay?" (data/quiz.json, sửa ở /admin): 10 câu thói quen → điểm + gợi ý + thử thách 7 ngày + ảnh chia sẻ.
+    main.js initQuiz; gửi điểm (không tên/SĐT) về api journey.js → thống kê CRM 📣 Marketing."""
+    qs = [q for q in QUIZ.get("questions") or [] if q.get("q")]
+    prods = {}
+    for q in qs:
+        p = PROD_BY.get(q.get("product") or "")
+        if p:
+            prods[p["slug"]] = {"name": p.get("short_name") or p["name"], "pitch": p.get("pitch") or "", "url": f'/san-pham/{p["slug"]}/', "img": img_url(p["images"][0], 200) if p.get("images") else ""}
+    data = {"questions": qs, "results": sorted(QUIZ.get("results") or [], key=lambda r: -int(r.get("min") or 0)), "products": prods}
+    n = len(qs)
+    data_js = json.dumps(data, ensure_ascii=False).replace("</", "<\\/")
+    body = f'''<section class="section qz-page"><div class="container qz-in">
+  <p class="join-eye">Trò chơi 1 phút · Hành trình 10 triệu người Việt sống khỏe hơn</p>
+  <h1 class="plg-h">{esc(QUIZ.get("title") or "Bạn còn mấy ngón tay?")}</h1>
+  <div class="qz-card" data-quiz>
+    {hands_html()}
+    <div class="qz-start" data-qz-start>
+      <p class="qz-lead">{esc(QUIZ.get("lead") or "")}</p>
+      <ul class="qz-rules"><li>✋ Thói quen tốt: <b>giữ ngón tay</b></li><li>👇 Chưa làm được: <b>hạ một ngón</b></li></ul>
+      <button class="btn btn-lg qz-go" type="button" data-qz-go>Bắt đầu chơi</button>
+      <p class="qz-note">{n} câu · khoảng 1 phút · không cần đăng ký</p>
+      <p class="qz-last" data-qz-last hidden></p>
+    </div>
+    <div class="qz-play" data-qz-play hidden>
+      <div class="qz-prog"><span data-qz-step></span><span class="qz-bar"><i data-qz-bar></i></span><span class="qz-left">Còn <b data-qz-left>10</b> ngón</span></div>
+      <p class="qz-ic" data-qz-ic></p>
+      <h2 class="qz-q" data-qz-q tabindex="-1"></h2>
+      <p class="qz-fun" data-qz-fun></p>
+      <div class="qz-btns"><button class="btn btn-lg qz-yes" type="button" data-qz-a="1">✋ Có, giữ ngón tay</button><button class="btn btn-lg btn-ghost qz-no" type="button" data-qz-a="0">👇 Chưa, hạ một ngón</button></div>
+      <p class="qz-back"><button type="button" class="link-btn" data-qz-back>← Câu trước</button></p>
+    </div>
+    <div class="qz-done" data-qz-done hidden>
+      <p class="qz-score">Bạn còn <b data-qz-score></b><span>/{n} ngón tay</span></p>
+      <p class="qz-tier"><span data-qz-tic></span> <b data-qz-title></b></p>
+      <p class="qz-msg" data-qz-msg></p>
+      <p class="qz-cmp" data-qz-cmp hidden></p>
+      <div class="plg-acts"><button class="btn" type="button" data-qz-share>📤 Khoe kết quả</button><button class="btn btn-ghost" type="button" data-qz-invite>🤝 Thách bạn bè chơi</button><a class="btn btn-ghost" data-qz-dl download="ngon-tay-song-lanh.png" href="#">⬇️ Tải ảnh</a></div>
+      <img class="qz-img" data-qz-img alt="Ảnh kết quả trò chơi Bạn còn mấy ngón tay" width="1080" height="1080" hidden>
+    </div>
+  </div>
+  <div class="qz-more" data-qz-more hidden>
+    <div class="qz-box" data-qz-tips-box><h2>Việc nhỏ để dựng lại từng ngón tay</h2><p class="qz-sub">Không cần đổi hết một lần. Mỗi thói quen chỉ cần một việc nhỏ làm được ngay hôm nay:</p><ul class="qz-tips" data-qz-tips></ul></div>
+    <div class="qz-box qz-ch" data-qz-ch><h2>Thử thách 7 ngày: dựng lại 1 ngón tay</h2>
+      <div data-qz-ch-pick><p class="qz-sub">Chọn <b>một</b> thói quen bạn muốn sửa trước. Mỗi ngày làm được thì vào đây tích ✓. Sau 7 ngày, chơi lại để xem mình còn mấy ngón nhé!</p><div class="qz-picks" data-qz-picks></div></div>
+      <div data-qz-ch-run hidden><p class="qz-sub">Thói quen của bạn: <b data-qz-ch-name></b></p><div class="qz-days" data-qz-days></div><p class="qz-ch-msg" data-qz-ch-msg></p><p class="qz-ch-acts"><button type="button" class="link-btn" data-qz-ch-reset>Đổi thói quen khác</button></p></div>
+      <p class="qz-note">Bảng tích ✓ chỉ lưu trên máy của bạn, không gửi đi đâu.</p>
+    </div>
+    <div class="qz-box qz-prods" data-qz-prods hidden><h2>Gợi ý nhỏ từ {BRAND}</h2><div data-qz-prod-list></div><p class="qz-disc">Sản phẩm là thực phẩm, không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh.</p></div>
+    <div class="qz-next"><p>Muốn đi xa hơn? Ký một lời hứa nhỏ với chính mình:</p><a class="btn btn-lg" href="{PLEDGE_PATH}" data-cta="quiz_pledge">✍️ Ký lời cam kết “Tôi chọn sống lành”</a>
+      <p class="qz-again"><button type="button" class="link-btn" data-qz-again>🔁 Chơi lại từ đầu</button></p></div>
+  </div>
+  <p class="qz-foot">Trò chơi chỉ để tham khảo vui, không thay thế lời khuyên của bác sĩ hay chuyên gia y tế. Website chỉ đếm số điểm chung, không lưu tên hay số điện thoại của bạn.</p>
+</div></section>
+<script type="application/json" id="qz-data">{data_js}</script>'''
+    return layout(QUIZ_PATH, f'{QUIZ.get("title") or "Bạn còn mấy ngón tay?"} – Trò chơi lối sống lành', f"Trò chơi 1 phút: trả lời {n} câu về thói quen hằng ngày, xem bạn còn mấy ngón tay, nhận gợi ý nhỏ và thử thách 7 ngày sống lành cùng {BRAND}.", body, og="/assets/img/og-ngon-tay.jpg" if (ROOT / "assets/img/og-ngon-tay.jpg").exists() else None, body_class="page-quiz")
 
 
 def post_card(p):
@@ -2442,6 +2512,8 @@ def main():
         routes.append(write(GIFT_PATH, page_gifts()))
     if IS_VI:
         routes.append(write(PLEDGE_PATH, page_pledge()))
+        if QUIZ.get("questions"):
+            routes.append(write(QUIZ_PATH, page_quiz()))
     if SITE.get("zalo_group"):  # link cố định cho QR, sách, bài đăng: luôn chuyển tới nhóm Zalo đang cài ở /admin (nhóm đầy → đổi link ở /admin là xong)
         zg = esc(SITE["zalo_group"])
         write("/nhom-zalo/", f'''<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">

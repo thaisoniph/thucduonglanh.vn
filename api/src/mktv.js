@@ -2,7 +2,7 @@
 // Bộ phận marketing không nhận tên, SĐT, danh sách khách hay doanh thu toàn công ty (Nghị định 13/2023) – chỉ phần doanh thu do khách mới mang về.
 // Cách tính giống hệt tab Tổng quan (chanEff / orderChan / closeStats trong crm/app.js) để 2 nơi luôn ra cùng số. Sửa cách tính thì sửa cả 2 nơi.
 import { accOf } from './mkt.js';
-import { pledgeStats } from './journey.js';
+import { pledgeStats, quizStats } from './journey.js';
 import { all, allIn, first, kvGet, kvSet, kvJson, normPhone, nrm, esc, isVoid, startOfDay, fmtDate, DAY, CRM_URL } from './lib.js';
 
 const DAY_RE = /^\d{4}-\d\d-\d\d$/;
@@ -187,7 +187,8 @@ export async function mktView(x, u, d) {
     // tiền khách mới mọi kênh marketing (kể cả kênh chưa có chi phí, vd sàn) → tiến độ mục tiêu từng kênh
     revAll: Object.assign(Object.fromEntries(Object.keys(EF).filter(k => GOAL_CH.indexOf(k) >= 0).map(k => [k, EF[k].newRev])), { [COMM]: commOf(R).rev, [WEB]: wbR.newRev + wbR.oldRev }), comm: commOf(R), commPrev: commOf(P), web: webOut(wbR), webPrev: webOut(wbP),
     fb: { on: !!fb.token, last: fb.last || null },
-    pledge: await pledgeStats(x, R, P) // ✍️ lời cam kết sống lành trên website (journey.js)
+    pledge: await pledgeStats(x, R, P), // ✍️ lời cam kết sống lành trên website (journey.js)
+    quiz: await quizStats(x, R, P) // 🖐 trò chơi Bạn còn mấy ngón tay (journey.js)
   };
   const live = dayMs(d.to) + DAY > startOfDay(Date.now()); // kỳ có hôm nay: lưu tạm 30 phút, kỳ đã qua: 12 tiếng
   await kvSet(x.db, key, JSON.stringify(out), live ? 30 * 60e3 : 12 * 3600e3);

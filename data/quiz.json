@@ -1,0 +1,86 @@
+{
+  "title": "Bạn còn mấy ngón tay?",
+  "lead": "Trò chơi 1 phút từ buổi trà đàm của đội Thực Dưỡng Lành: xòe đủ 10 ngón tay, trả lời 10 câu về thói quen hằng ngày. Thói quen nào đang “lệch nhịp” thì hạ một ngón. Xem cuối cùng bạn còn mấy ngón nhé!",
+  "questions": [
+    {
+      "icon": "🌙",
+      "q": "Bạn thường đi ngủ trước 23h?",
+      "fun": "“Xem thêm một video nữa thôi”… rồi nhìn đồng hồ đã 1 giờ sáng 😅",
+      "habit": "Ngủ trước 23h",
+      "tip": "Tối nay đặt báo thức “đi ngủ” lúc 22h30. Chuông kêu thì tắt đèn, cất điện thoại."
+    },
+    {
+      "icon": "🍳",
+      "q": "Bạn ăn sáng đều đặn, không bỏ bữa?",
+      "fun": "Một ly cà phê không được tính là bữa sáng đâu nha ☕",
+      "habit": "Ăn sáng mỗi ngày",
+      "tip": "Chuẩn bị sẵn bữa sáng từ tối hôm trước: hộp xôi, quả chuối hay một ly sữa hạt pha nhanh đều được.",
+      "product": "bua-an-dinh-duong-vitagreen",
+      "product_lead": "Sáng nào cũng vội?"
+    },
+    {
+      "icon": "💧",
+      "q": "Bạn uống đủ khoảng 2 lít nước mỗi ngày?",
+      "fun": "Trà sữa không tính nha 🧋",
+      "habit": "Uống đủ 2 lít nước",
+      "tip": "Để sẵn một chai nước 500ml trên bàn, mỗi buổi uống hết một chai là gần đủ 2 lít."
+    },
+    {
+      "icon": "🥬",
+      "q": "Ngày nào bữa ăn của bạn cũng có rau xanh?",
+      "fun": "Mấy cọng hành lá trên bát phở chưa đủ đâu 🌿",
+      "habit": "Bữa nào cũng có rau",
+      "tip": "Bữa nào cũng thêm một đĩa rau, luộc hay xào đều được. Cố cho rau chiếm khoảng nửa đĩa."
+    },
+    {
+      "icon": "🏃",
+      "q": "Bạn vận động từ 30 phút trở lên, ít nhất 5 ngày mỗi tuần?",
+      "fun": "Đi bộ từ giường ra tủ lạnh không tính 😄",
+      "habit": "Vận động 30 phút",
+      "tip": "Bắt đầu bằng 15 phút đi bộ sau bữa tối. Tuần sau tăng lên 30 phút."
+    },
+    {
+      "icon": "🍟",
+      "q": "Đồ chiên rán, nước ngọt, đồ ăn nhanh chỉ góp mặt tối đa 2 lần mỗi tuần?",
+      "fun": "Gà rán tối thứ Sáu có tính đấy nhé 🍗",
+      "habit": "Bớt chiên rán, nước ngọt",
+      "tip": "Lần tới thèm nước ngọt, thử đổi sang nước lọc, nước chanh không đường hoặc một tách trà thảo mộc.",
+      "product": "tra-hoa-tan-dilvang-dinh-lang-che-vang",
+      "product_lead": "Muốn đổi vị cho ly nước mỗi ngày?"
+    },
+    {
+      "icon": "🥢",
+      "q": "Bạn ăn chậm, nhai kỹ và ăn tối trước 20h?",
+      "fun": "Ăn xong trong 5 phút để kịp xem phim là hạ ngón nhé 📺",
+      "habit": "Ăn chậm, ăn tối sớm",
+      "tip": "Đặt đũa xuống giữa mỗi miếng, nhai chậm. Tan làm muộn thì ăn nhẹ một bữa phụ lúc 17h để tối không ăn quá no."
+    },
+    {
+      "icon": "📱",
+      "q": "Bạn rời điện thoại 30 phút trước khi ngủ?",
+      "fun": "“Lướt thêm 5 phút nữa thôi” mà tối nào cũng vậy thì hạ ngón 📲",
+      "habit": "Rời điện thoại trước khi ngủ",
+      "tip": "Sạc điện thoại ngoài phòng ngủ. Dành 30 phút cuối ngày để đọc sách, trò chuyện hoặc giãn cơ."
+    },
+    {
+      "icon": "🚭",
+      "q": "Bạn không hút thuốc và hạn chế rượu bia?",
+      "fun": "“Một lon thôi” mà 11 giờ đêm mới về nhà… 🍻",
+      "habit": "Bớt rượu bia, thuốc lá",
+      "tip": "Chọn ra 2 ngày mỗi tuần không rượu bia. Nếu đang hút thuốc, bớt 1 điếu mỗi ngày."
+    },
+    {
+      "icon": "😊",
+      "q": "Mỗi ngày bạn có lúc thư giãn, cười vui hoặc ra nắng sớm?",
+      "fun": "Cười gượng khi đọc tin nhắn sếp không tính đâu 😆",
+      "habit": "Thư giãn, ra nắng sớm",
+      "tip": "Ra nắng sớm 10 phút trước 9h, hoặc mỗi ngày gọi điện hỏi thăm một người mình quý."
+    }
+  ],
+  "results": [
+    { "min": 9, "icon": "🏆", "title": "Chiến binh sống lành", "text": "Bạn đang làm rất tốt! Giữ phong độ này và rủ thêm người thân cùng chơi nhé." },
+    { "min": 7, "icon": "🌿", "title": "Sắp về đích", "text": "Lối sống của bạn khá ổn rồi. Chỉnh thêm vài thói quen nhỏ là đủ 10 ngón." },
+    { "min": 4, "icon": "📩", "title": "Cơ thể đang nhắn tin cho bạn", "text": "Vài thói quen đang lệch nhịp, đến lúc đọc tin nhắn rồi đó. Không cần đổi hết một lần, sửa từng ngón một thôi." },
+    { "min": 0, "icon": "🚨", "title": "Báo động vui", "text": "Không sao cả, ai cũng bắt đầu từ đây! Chọn một thói quen dễ nhất và thử trong 7 ngày nhé." }
+  ]
+}

@@ -812,6 +812,37 @@ collections:
               - { label: "Biểu tượng (emoji)", name: icon, widget: string, required: false }
               - { label: "Mô tả ngắn", name: desc, i18n: true, widget: string, required: false }
 
+      - name: quiz
+        label: "Trò chơi Bạn còn mấy ngón tay"
+        file: data/quiz.json
+        format: json
+        description: "Trang thucduonglanh.vn/ngon-tay-song-lanh/: khách trả lời từng câu, thói quen chưa làm được thì hạ một ngón tay. Chỉ có bản tiếng Việt."
+        fields:
+          - { label: "Tiêu đề", name: title, widget: string }
+          - { label: "Lời giới thiệu", name: lead, widget: text }
+          - label: "Câu hỏi"
+            name: questions
+            widget: list
+            summary: "{{fields.icon}} {{fields.q}}"
+            hint: "Nên giữ đúng 10 câu (10 ngón tay). Hỏi sao cho trả lời CÓ = thói quen tốt. Không ghi tên bệnh hay công dụng chữa bệnh."
+            fields:
+              - { label: "Biểu tượng (emoji)", name: icon, widget: string, required: false }
+              - { label: "Câu hỏi", name: q, widget: string, hint: "Ví dụ: Bạn thường đi ngủ trước 23h?" }
+              - { label: "Câu đùa nhỏ dưới câu hỏi", name: fun, widget: string, required: false }
+              - { label: "Tên thói quen (ngắn)", name: habit, widget: string, hint: "Hiện ở gợi ý, thử thách 7 ngày và thống kê CRM. Ví dụ: Ngủ trước 23h. Đổi tên thì CRM tính là thói quen mới." }
+              - { label: "Việc nhỏ gợi ý (khi khách hạ ngón)", name: tip, widget: text, hint: "Một việc cụ thể làm được ngay hôm nay." }
+              - { label: "Gợi ý sản phẩm (không bắt buộc)", name: product, widget: relation, collection: products, value_field: "{{slug}}", search_fields: [name], display_fields: [name], required: false, hint: "Chỉ gắn khi sản phẩm thật sự liên quan. Mỗi lần chơi hiện tối đa 2 sản phẩm." }
+              - { label: "Câu dẫn trước tên sản phẩm", name: product_lead, widget: string, required: false, hint: "Ví dụ: Sáng nào cũng vội?" }
+          - label: "Kết quả theo số ngón còn lại"
+            name: results
+            widget: list
+            summary: "{{fields.min}}+ ngón: {{fields.icon}} {{fields.title}}"
+            fields:
+              - { label: "Từ bao nhiêu ngón trở lên", name: min, widget: number, value_type: int, min: 0, max: 10 }
+              - { label: "Biểu tượng", name: icon, widget: string, required: false }
+              - { label: "Danh hiệu", name: title, widget: string }
+              - { label: "Lời nhắn", name: text, widget: text }
+
       - name: post_categories
         label: "Chuyên mục bài viết"
         file: data/post-categories.{{locale}}.json

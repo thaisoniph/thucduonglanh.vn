@@ -174,7 +174,7 @@
     function fallback() { var t = document.createElement('textarea'); t.value = text; t.style.position = 'fixed'; t.style.opacity = '0'; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); } catch (e) { } t.remove(); }
   }
 
-  var SERVER_V = '2026-10-17c'; // phải trùng số phiên bản máy chủ (api/src/index.js)
+  var SERVER_V = '2026-10-17d'; // phải trùng số phiên bản máy chủ (api/src/index.js)
   var ON_CF = !/script\.google/.test(CFG.endpoint || ''); // máy chủ Cloudflare (nhanh) hay Apps Script cũ
   function checkVersion(j) {
     if (j && j.v) S.srvV = j.v;
@@ -3741,6 +3741,20 @@
         '<p class="bar-legend">Nguồn = nguồn / kênh / chiến dịch của lần vào web gần nhất (link UTM, mã QR ở 📍 Link &amp; QR, link sale). "cam_ket / chia_se" = người được bạn bè mời qua nút Chia sẻ / Mời người thân. Muốn biết bài đăng, sự kiện nào mang nhiều người ký: gắn link UTM hoặc mã QR riêng cho từng nơi. Website không lưu tên hay số điện thoại người ký.</p>'
     };
   }
+  /** 🖐 Trò chơi "Bạn còn mấy ngón tay?" trên thucduonglanh.vn/ngon-tay-song-lanh/ (api/src/journey.js quizStats): số lượt chơi, điểm trung bình (thang 10), thói quen khách hay "hạ ngón" nhất. Không có tên hay SĐT. */
+  function mkQuizBlock(qz) {
+    if (!qz || (!qz.n && !qz.prev)) return null;
+    var cnt = function (v) { return v + ' lượt'; }, pc = function (v) { return Math.round(v * 100 / (qz.n || 1)) + '% người chơi'; };
+    var top = qz.miss[0], T = ['🏆 9–10 ngón', '🌿 7–8 ngón', '📩 4–6 ngón', '🚨 0–3 ngón'];
+    return {
+      line: qz.n + ' lượt chơi · trung bình ' + String(qz.avg).replace('.', ',') + '/10 ngón' + (top ? ' · hay hạ ngón nhất: ' + esc(top[0]) : ''),
+      h: '<div class="metrics dash-m3">' + metric('Lượt chơi trong kỳ', qz.n, 'Số lượt chơi xong 10 câu trên website.', delta(qz.n, qz.prev)) +
+        metric('Điểm trung bình', String(qz.avg).replace('.', ',') + ' <small>/10 ngón</small>', qz.prevAvg != null ? 'Kỳ trước: ' + String(qz.prevAvg).replace('.', ',') + '/10.' : 'Càng cao = khách có lối sống càng lành.', '') + '</div>' +
+        '<div class="dash-grid"><div class="box"><h3>Thói quen khách hay "hạ ngón" nhất</h3>' + barList(qz.miss.slice(0, 10).map(function (r) { return { l: r[0], v: r[1] }; }), pc) + '</div>' +
+        '<div class="box"><h3>Kết quả</h3>' + barList(qz.tiers.map(function (v, i) { return { l: T[i], v: v }; }), cnt) + '<h3 style="margin-top:16px">Đến từ đâu</h3>' + barList(qz.src.slice(0, 8).map(function (r) { return { l: r[0] || 'Truy cập trực tiếp', v: r[1], muted: !r[0] }; }), cnt) + '</div></div>' +
+        '<p class="bar-legend">Thói quen hạ ngón nhiều nhất = điều khách đang thấy khó nhất: nên viết bài, làm video, chạy quảng cáo đúng chỗ đó. "ngon_tay / chia_se" = người được bạn bè rủ chơi qua nút Khoe kết quả / Thách bạn bè. Website không lưu tên hay số điện thoại người chơi.</p>'
+    };
+  }
   function mkMore(k, title, line, body) {
     if (!body) return '';
     var o = S.f.m.open || {};
@@ -3934,6 +3948,7 @@
       metric('Chi phí cộng đồng', csp ? moneyShort(csp) : '–', csp && cm.rev ? 'Bằng ' + Math.round(csp * 100 / cm.rev) + '% tiền mua lại. Quà tặng, minigame… nhập ở ⚙️ Nhập chi phí → kênh Cộng đồng Zalo.' : 'Quà tặng, minigame… nhập ở ⚙️ Nhập chi phí → kênh Cộng đồng Zalo.', '') +
       '</div><p class="bar-legend">Khách được tính là trong nhóm khi sale / CSKH bấm "Đã vào" ở ô Cộng đồng trên hồ sơ khách. Đánh dấu đủ thì số này mới đúng.</p>');
     var PL = mkPledgeBlock(mj.pledge); if (PL) h += mkMore('pledge', '✍️ Lời cam kết sống lành (website)', PL.line, PL.h);
+    var QZ = mkQuizBlock(mj.quiz); if (QZ) h += mkMore('quiz', '🖐 Trò chơi Bạn còn mấy ngón tay (website)', QZ.line, QZ.h);
     h += mkMore('camp', '🎬 Chiến dịch: nên tăng, giữ hay tắt?', CB.line, CB.h);
     h += mkMore('sale', '🤝 Phản hồi từ sale', SB.line, SB.h);
     h += mkMore('fun', '🪜 Quảng cáo đi tới đâu thì rơi rụng?', FN.weak ? '🔴 Khâu yếu nhất: ' + FN.weak.l : 'Từ lúc khách thấy quảng cáo đến lúc trả tiền', FN.h);

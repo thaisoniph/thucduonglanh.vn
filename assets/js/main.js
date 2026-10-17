@@ -1317,7 +1317,7 @@
     captureSource(); initConsent(); trackPageEvents();
     renderCounts(); renderMini(); markWish();
     initHeader(); initClicks(); initRail(); initLightbox(); initProduct(); initCerts(); initProof(); initTabs(); initReadmore(); initSort();
-    initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initPledge();
+    initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initPledge(); initQuiz();
     window.addEventListener('storage', function (e) { if (e.key === 'tdl_cart') { cart = load('tdl_cart', []); cleanCart(); renderCounts(); renderMini(); } });
   }
   // ===== Hành trình 10 triệu người Việt sống khỏe hơn: bộ đếm [data-jr] + trang ký cam kết /cam-ket-song-lanh/ (api journey.js) =====
@@ -1423,6 +1423,171 @@
     });
     done.querySelector('[data-plg-dl]').addEventListener('click', function () { track('pledge_download', {}); });
     done.querySelector('[data-plg-again]').addEventListener('click', function () { form.reset(); done.hidden = true; form.hidden = false; form.elements.name.focus(); });
+  }
+  // ===== Trò chơi "Bạn còn mấy ngón tay?" /ngon-tay-song-lanh/ (build.py page_quiz, data/quiz.json) =====
+  // Gửi về api chỉ điểm + tên thói quen bị hạ ngón + nguồn (journey.js quiz), không tên/SĐT. Kết quả, thử thách 7 ngày lưu tdl_quiz trên máy khách.
+  function quizCard(score, n, tier, cb) { // ảnh kết quả 1080×1080 vẽ trên máy khách
+    var W = 1080, c = document.createElement('canvas'), x = c.getContext('2d'), logo = new Image();
+    c.width = W; c.height = W;
+    var green = '#0C5233', gold = '#906540', ink = '#262a1f', SERIF = '"Playfair Display", Georgia, serif', SANS = '"Be Vietnam Pro", system-ui, sans-serif';
+    function rr(X, Y, w, h, r) { x.beginPath(); if (x.roundRect) x.roundRect(X, Y, w, h, r); else x.rect(X, Y, w, h); x.fill(); }
+    function hand(cx, flip, down) { // giống .qz-hand (CSS): ngón 0 = ngón cái
+      x.save(); x.translate(cx, 430); if (flip) x.scale(-1, 1); x.translate(-112, 0);
+      var F = [[0, 0, 0, 0], [48, 116, 36, 116], [90, 132, 36, 132], [132, 120, 36, 120], [174, 96, 34, 96]];
+      for (var i = 1; i < 5; i++) { var d = down[i]; x.fillStyle = d ? '#E2CBAE' : '#F3CFA8'; var h = d ? 64 : F[i][1]; rr(F[i][0], 124 - h + 28, F[i][2], h, 18); }
+      x.save(); x.translate(62, 250); x.rotate(-0.7); x.fillStyle = down[0] ? '#E2CBAE' : '#F3CFA8'; var th = down[0] ? 70 : 118; rr(-18, -th, 36, th, 18); x.restore();
+      x.fillStyle = '#F3CFA8'; rr(44, 124, 172, 160, 52);
+      x.restore();
+    }
+    function draw() {
+      x.fillStyle = '#F8EEDC'; x.fillRect(0, 0, W, W);
+      x.strokeStyle = green; x.lineWidth = 6; x.strokeRect(36, 36, W - 72, W - 72);
+      if (logo.naturalWidth) x.drawImage(logo, (W - 198) / 2, 70, 198, 140);
+      x.textAlign = 'center'; x.fillStyle = gold; x.font = '600 28px ' + SANS;
+      if ('letterSpacing' in x) x.letterSpacing = '5px';
+      x.fillText('BẠN CÒN MẤY NGÓN TAY?', W / 2, 262);
+      if ('letterSpacing' in x) x.letterSpacing = '0px';
+      x.fillStyle = green; x.font = '600 66px ' + SERIF; x.fillText('Mình còn ' + score + '/' + n + ' ngón tay', W / 2, 350);
+      var dn = []; for (var k = 0; k < 10; k++) dn.push(k >= score); // ngón hạ: từ ngón út tay phải vào trong
+      hand(W / 2 - 150, true, dn.slice(0, 5)); hand(W / 2 + 150, false, dn.slice(5));
+      x.fillStyle = '#fff'; rr(150, 790, W - 300, 110, 24);
+      x.fillStyle = green; x.font = '700 44px ' + SANS; x.fillText((tier.icon || '') + ' ' + (tier.title || ''), W / 2, 862);
+      x.fillStyle = ink; x.font = '400 30px ' + SANS; x.fillText('Bạn còn mấy ngón? Chơi thử 1 phút tại', W / 2, 960);
+      x.fillStyle = gold; x.font = '600 30px ' + SANS; x.fillText('thucduonglanh.vn/ngon-tay-song-lanh', W / 2, 1002);
+      c.toBlob(cb, 'image/png');
+    }
+    var fonts = document.fonts && document.fonts.load ? Promise.all(['600 66px "Playfair Display"', '400 30px "Be Vietnam Pro"', '700 44px "Be Vietnam Pro"'].map(function (f) { return document.fonts.load(f, 'Mình còn ngón tay'); })).catch(function () { }) : Promise.resolve();
+    var img = new Promise(function (ok) { logo.onload = logo.onerror = ok; logo.src = '/assets/img/brand/logo@2x.png'; });
+    Promise.all([fonts, img]).then(draw);
+  }
+  function initQuiz() {
+    var box = document.querySelector('[data-quiz]'), dataEl = document.getElementById('qz-data'); if (!box || !dataEl) return;
+    var D; try { D = JSON.parse(dataEl.textContent); } catch (e) { return; }
+    var Q = D.questions || [], n = Q.length, ans = [], i = 0, blob = null, imgUrl = '', cur = null;
+    var $q = function (s) { return document.querySelector(s); };
+    var start = $q('[data-qz-start]'), play = $q('[data-qz-play]'), done = $q('[data-qz-done]'), more = $q('[data-qz-more]');
+    var fingers = [].slice.call(box.querySelectorAll('[data-qz-f]'));
+    var st = load('tdl_quiz', {}) || {};
+    var shareUrl = location.origin + location.pathname + '?utm_source=ngon_tay&utm_medium=chia_se';
+    function today() { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+    function addDay(s, k) { var d = new Date(s + 'T00:00:00'); d.setDate(d.getDate() + k); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+    function setHands(left) { // left = số ngón còn giữ trên tổng 10 ngón (n câu ≠ 10 thì quy đổi)
+      var keep = Math.round(left * 10 / (n || 10));
+      fingers.forEach(function (f) { f.classList.toggle('down', Number(f.getAttribute('data-qz-f')) >= keep); });
+    }
+    function scoreOf(a) { return a.reduce(function (t, v) { return t + (v ? 1 : 0); }, 0); }
+    function render() {
+      var q = Q[i], left = n - (ans.length - scoreOf(ans));
+      $q('[data-qz-step]').textContent = 'Câu ' + (i + 1) + '/' + n;
+      $q('[data-qz-bar]').style.width = (i / n * 100) + '%';
+      $q('[data-qz-left]').textContent = left;
+      $q('[data-qz-ic]').textContent = q.icon || '';
+      $q('[data-qz-q]').textContent = q.q; $q('[data-qz-fun]').textContent = q.fun || '';
+      $q('[data-qz-back]').hidden = i === 0;
+      setHands(left);
+    }
+    function go() {
+      ans = []; i = 0; start.hidden = true; done.hidden = true; more.hidden = true; play.hidden = false; render();
+      track('quiz_start', {}); box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    function tierOf(s) { var R = D.results || []; for (var k = 0; k < R.length; k++) if (s >= (Number(R[k].min) || 0)) return R[k]; return R[R.length - 1] || {}; }
+    function finish() {
+      var s = scoreOf(ans), miss = []; ans.forEach(function (v, k) { if (!v) miss.push(k); });
+      var r = { score: s, miss: miss, at: Date.now() };
+      st.prev = st.last || null; st.last = r; save('tdl_quiz', st);
+      track('quiz_complete', { score: s });
+      var u = CFG.endpoint;
+      if (u) fetch(u, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ type: 'quiz', score: s, total: n, miss: miss.map(function (k) { return Q[k].habit || Q[k].q; }), src: sourceLabel().last }) }).catch(function () { });
+      show(r, st.prev);
+    }
+    function show(r, prev) {
+      cur = r; var s = r.score, tier = tierOf(s);
+      start.hidden = true; play.hidden = true; done.hidden = false; more.hidden = false;
+      setHands(s);
+      $q('[data-qz-score]').textContent = s; $q('[data-qz-tic]').textContent = tier.icon || ''; $q('[data-qz-title]').textContent = tier.title || ''; $q('[data-qz-msg]').textContent = tier.text || '';
+      var cmp = $q('[data-qz-cmp]');
+      if (prev && prev.at !== r.at) { var d = s - prev.score; cmp.hidden = false; cmp.textContent = d > 0 ? '🎉 Lần trước bạn còn ' + prev.score + ' ngón, lần này dựng lại được thêm ' + d + ' ngón. Tuyệt quá!' : d === 0 ? 'Lần trước bạn cũng còn ' + prev.score + ' ngón. Thử thách 7 ngày bên dưới sẽ giúp bạn dựng thêm một ngón đấy!' : 'Lần trước bạn còn ' + prev.score + ' ngón. Không sao, tuần này mình làm lại nhé!'; }
+      else cmp.hidden = true;
+      // việc nhỏ cho từng ngón bị hạ
+      var tips = $q('[data-qz-tips]');
+      tips.innerHTML = r.miss.map(function (k) { var q = Q[k]; return q ? '<li><span class="qz-tic">' + esc(q.icon || '') + '</span><div><b>' + esc(q.habit || q.q) + '</b><p>' + esc(q.tip || '') + '</p></div></li>' : ''; }).join('');
+      $q('[data-qz-tips-box]').hidden = !r.miss.length;
+      // gợi ý sản phẩm: tối đa 2, chỉ ở câu có gắn sản phẩm
+      var seen = {}, P = r.miss.map(function (k) { return Q[k]; }).filter(function (q) { var p = q && q.product && D.products[q.product]; if (!p || seen[q.product]) return false; seen[q.product] = 1; return true; }).slice(0, 2);
+      $q('[data-qz-prods]').hidden = !P.length;
+      $q('[data-qz-prod-list]').innerHTML = P.map(function (q) { var p = D.products[q.product]; return '<a class="qz-prod" href="' + p.url + '" data-cta="quiz_product">' + (p.img ? '<img src="' + p.img + '" alt="" width="72" height="72" loading="lazy">' : '') + '<span><small>' + esc(q.product_lead || q.habit || '') + '</small><b>' + esc(p.name) + '</b>' + esc(p.pitch) + '</span><em>Xem →</em></a>'; }).join('');
+      renderCh();
+      // ảnh kết quả
+      blob = null;
+      quizCard(s, n, tier, function (b) {
+        blob = b; if (imgUrl) URL.revokeObjectURL(imgUrl); imgUrl = URL.createObjectURL(b);
+        var im = $q('[data-qz-img]'); im.src = imgUrl; im.hidden = false; $q('[data-qz-dl]').href = imgUrl;
+      });
+    }
+    // thử thách 7 ngày (chỉ trên máy khách)
+    function renderCh() {
+      var miss = (cur && cur.miss) || [], ch = st.ch, chBox = $q('[data-qz-ch]');
+      var pick = $q('[data-qz-ch-pick]'), run = $q('[data-qz-ch-run]');
+      if (!ch && !miss.length) { chBox.hidden = true; return; }
+      chBox.hidden = false;
+      if (!ch) {
+        pick.hidden = false; run.hidden = true;
+        $q('[data-qz-picks]').innerHTML = miss.map(function (k) { var q = Q[k]; return '<button type="button" class="qz-pick" data-qz-pick="' + k + '">' + esc(q.icon || '') + ' ' + esc(q.habit || q.q) + '</button>'; }).join('');
+        return;
+      }
+      pick.hidden = true; run.hidden = false;
+      $q('[data-qz-ch-name]').textContent = (ch.icon ? ch.icon + ' ' : '') + ch.habit;
+      var t = today(), cnt = 0, h = '';
+      for (var k = 0; k < 7; k++) {
+        var dd = addDay(ch.start, k), on = ch.done.indexOf(dd) >= 0, fut = dd > t; if (on) cnt++;
+        h += '<button type="button" class="qz-day' + (on ? ' on' : '') + (dd === t ? ' now' : '') + '" data-qz-day="' + dd + '"' + (fut ? ' disabled' : '') + ' aria-pressed="' + on + '"><small>Ngày ' + (k + 1) + '</small><b>' + (on ? '✓' : dd.slice(8) + '/' + dd.slice(5, 7)) + '</b></button>';
+      }
+      $q('[data-qz-days]').innerHTML = h;
+      var end = addDay(ch.start, 6), msg = $q('[data-qz-ch-msg]');
+      msg.innerHTML = t > end || cnt === 7 ? (cnt >= 5 ? '🎉 Bạn làm được ' + cnt + '/7 ngày. ' : 'Bạn làm được ' + cnt + '/7 ngày, vậy là đã bắt đầu rồi! ') + '<button type="button" class="link-btn" data-qz-again>Chơi lại để xem mình còn mấy ngón</button>'
+        : cnt ? 'Đã làm được <b>' + cnt + '/7</b> ngày. Cố lên, ngón tay đang dựng dần lên đấy! 💪' : 'Hôm nay làm được thì bấm vào ô <b>Ngày 1</b> để tích ✓ nhé.';
+    }
+    box.addEventListener('click', function (e) {
+      if (e.target.closest('[data-qz-go]')) return go();
+      if (e.target.closest('[data-qz-show]')) return show(st.last, null);
+      var a = e.target.closest('[data-qz-a]');
+      if (a && !play.hidden) {
+        ans[i] = a.getAttribute('data-qz-a') === '1'; i++;
+        if (i >= n) { setHands(scoreOf(ans)); setTimeout(finish, 350); } else render();
+        var qe = $q('[data-qz-q]'); if (qe && i < n) qe.focus({ preventScroll: true });
+        return;
+      }
+      if (e.target.closest('[data-qz-back]') && i > 0) { i--; ans.length = i; render(); }
+    });
+    document.addEventListener('click', function (e) {
+      var p = e.target.closest('[data-qz-pick]');
+      if (p) { var q = Q[Number(p.getAttribute('data-qz-pick'))]; st.ch = { habit: q.habit || q.q, icon: q.icon || '', start: today(), done: [] }; save('tdl_quiz', st); track('quiz_challenge', {}); renderCh(); return; }
+      var d = e.target.closest('[data-qz-day]');
+      if (d && st.ch) { var v = d.getAttribute('data-qz-day'), L = st.ch.done, j = L.indexOf(v); if (j >= 0) L.splice(j, 1); else L.push(v); save('tdl_quiz', st); renderCh(); return; }
+      if (e.target.closest('[data-qz-ch-reset]')) { if (confirm('Bỏ thử thách đang làm và chọn thói quen khác?')) { delete st.ch; save('tdl_quiz', st); renderCh(); } return; }
+      if (e.target.closest('[data-qz-again]')) { if (st.ch && addDay(st.ch.start, 6) < today()) { delete st.ch; save('tdl_quiz', st); } go(); }
+    });
+    var text = function () { return 'Mình còn ' + (cur ? cur.score : 0) + '/' + n + ' ngón tay trong trò chơi "Bạn còn mấy ngón tay?" của Thực Dưỡng Lành 😄 Bạn còn mấy ngón? Chơi thử 1 phút:'; };
+    function copy(t) { if (navigator.clipboard) navigator.clipboard.writeText(t).then(function () { toast('Đã sao chép – dán vào Zalo/Facebook để gửi', 'ok'); }); }
+    $q('[data-qz-share]').addEventListener('click', function () {
+      track('quiz_share', {});
+      var f = blob && window.File ? new File([blob], 'ngon-tay-song-lanh.png', { type: 'image/png' }) : null;
+      if (f && navigator.canShare && navigator.canShare({ files: [f] })) navigator.share({ files: [f], text: text() + ' ' + shareUrl }).catch(function () { });
+      else if (navigator.share) navigator.share({ title: 'Bạn còn mấy ngón tay?', text: text(), url: shareUrl }).catch(function () { });
+      else copy(text() + ' ' + shareUrl);
+    });
+    $q('[data-qz-invite]').addEventListener('click', function () {
+      track('quiz_invite', {});
+      var t = 'Thử chơi trò "Bạn còn mấy ngón tay?" xem lối sống của bạn được mấy điểm nhé, mình còn ' + (cur ? cur.score : 0) + ' ngón đó 😄';
+      if (navigator.share) navigator.share({ title: 'Bạn còn mấy ngón tay?', text: t, url: shareUrl }).catch(function () { }); else copy(t + ' ' + shareUrl);
+    });
+    $q('[data-qz-dl]').addEventListener('click', function () { track('quiz_download', {}); });
+    // đã chơi trước đó: hiện lời nhắc + nút xem lại kết quả, thử thách
+    if (st.last) {
+      var l = $q('[data-qz-last]'); l.hidden = false;
+      l.innerHTML = 'Lần trước bạn còn <b>' + st.last.score + '/' + n + '</b> ngón' + (st.ch ? ' · đang thử thách: ' + esc(st.ch.habit) : '') + '. <button type="button" class="link-btn" data-qz-show>Xem lại kết quả</button>';
+      if (st.ch) { cur = st.last; }
+    }
   }
   // Nút "Cùng đồng hành" (khối Điều chúng tôi tin) → #dong-hanh ở cuối trang: ảnh phía trên tải dần làm trang dài thêm, nên cuộn lại cho trúng
   document.addEventListener('click', function (e) {

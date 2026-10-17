@@ -8,6 +8,9 @@ export async function journeySchema(db) {
   await run(db, `CREATE TABLE IF NOT EXISTS pledges (id INTEGER PRIMARY KEY AUTOINCREMENT, time INTEGER, name TEXT DEFAULT '', province TEXT DEFAULT '', src TEXT DEFAULT '', ip TEXT DEFAULT '')`);
   await run(db, 'CREATE INDEX IF NOT EXISTS pledges_time ON pledges(time)');
   await run(db, "UPDATE pledges SET name = '', ip = '' WHERE name != '' OR ip != ''"); // xoá tên / IP của bản đầu (17/10/2026), cột name, ip bỏ trống từ nay
+  // trò chơi "Bạn còn mấy ngón tay?" (/ngon-tay-song-lanh/, 17/10/2026): chỉ lưu điểm, thói quen bị hạ ngón (cách nhau dấu |), nguồn
+  await run(db, `CREATE TABLE IF NOT EXISTS quizzes (id INTEGER PRIMARY KEY AUTOINCREMENT, time INTEGER, score INTEGER, total INTEGER, miss TEXT DEFAULT '', src TEXT DEFAULT '')`);
+  await run(db, 'CREATE INDEX IF NOT EXISTS quizzes_time ON quizzes(time)');
 }
 
 /** Số khách đã mua: đếm cả bảng khách (đọc nhiều dòng) nên lưu kv 6 tiếng để tiết kiệm lượt đọc D1. */
@@ -47,4 +50,35 @@ export async function pledgeStats(x, R, P) {
   ]);
   const by = f => { const m = {}; rows.forEach(r => { const k = String(r[f] || '').trim(); m[k] = (m[k] || 0) + (Number(r.n) || 0); }); return Object.entries(m).sort((a, b) => b[1] - a[1]); };
   return { n: rows.reduce((t, r) => t + (Number(r.n) || 0), 0), prev: Number(prev && prev.n) || 0, src: by('src'), prov: by('province') };
+}
+
+/** Khách chơi xong "Bạn còn mấy ngón tay?" → lưu điểm để biết thói quen nào khách hay "hạ ngón" nhất. Không tên, SĐT, IP. */
+export async function quiz(x, d) {
+  const total = Math.max(1, Math.min(30, Math.round(Number(d.total) || 10)));
+  const score = Math.max(0, Math.min(total, Math.round(Number(d.score) || 0)));
+  // miss = tên thói quen bị hạ ngón (không dùng số thứ tự câu: sửa / đổi thứ tự câu hỏi ở /admin thì số liệu cũ vẫn đúng)
+  const miss = [...new Set((Array.isArray(d.miss) ? d.miss : []).map(v => clean(v, 50).replace(/\|/g, '/')).filter(Boolean))].slice(0, total).join('|');
+  const k = x.ip ? 'qz_ip_' + await sha(x.ip + '|qz') : ''; // chống spam: 60 lượt/ngày/mạng
+  const used = Number(k ? await kvGet(x.db, k) : 0) || 0;
+  if (used >= 60) return { ok: true, skip: true };
+  await run(x.db, 'INSERT INTO quizzes (time, score, total, miss, src) VALUES (?, ?, ?, ?, ?)', Date.now(), score, total, miss, clean(d.src, 80));
+  if (k) await kvSet(x.db, k, used + 1, 24 * 3600e3);
+  return { ok: true };
+}
+
+/** Thống kê trò chơi cho CRM tab 📣 Marketing: số lượt chơi, điểm trung bình, mỗi thói quen bị hạ ngón bao nhiêu lần, nguồn. */
+export async function quizStats(x, R, P) {
+  const [rows, prev] = await Promise.all([
+    all(x.db, 'SELECT score, total, miss, src FROM quizzes WHERE time >= ? AND time < ? LIMIT 20000', R[0], R[1]).catch(() => []),
+    first(x.db, 'SELECT COUNT(*) AS n, AVG(score * 10.0 / total) AS a FROM quizzes WHERE time >= ? AND time < ?', P[0], P[1]).catch(() => null)
+  ]);
+  const miss = {}, src = {}, tiers = [0, 0, 0, 0]; let sum = 0;
+  rows.forEach(r => {
+    const s10 = (Number(r.score) || 0) * 10 / (Number(r.total) || 10); sum += s10;
+    tiers[s10 >= 9 ? 0 : s10 >= 7 ? 1 : s10 >= 4 ? 2 : 3]++;
+    String(r.miss || '').split('|').filter(Boolean).forEach(h => { miss[h] = (miss[h] || 0) + 1; });
+    const k = String(r.src || '').trim(); src[k] = (src[k] || 0) + 1;
+  });
+  return { n: rows.length, avg: rows.length ? Math.round(sum / rows.length * 10) / 10 : 0, prev: Number(prev && prev.n) || 0, prevAvg: prev && prev.a != null ? Math.round(prev.a * 10) / 10 : null,
+    tiers, miss: Object.entries(miss).sort((a, b) => b[1] - a[1]), src: Object.entries(src).sort((a, b) => b[1] - a[1]) };
 }
