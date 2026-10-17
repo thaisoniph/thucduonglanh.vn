@@ -1878,3 +1878,43 @@ ul.p-trust{list-style:none;padding:0;margin:0 0 16px;display:grid;gap:4px;font-s
 .post-quiz{text-align:center;margin:14px 0 0;font-size:15.5px}
 .post-quiz a{font-weight:600}
 .gp-quiz{display:block;text-align:center;margin:12px 0 0;font-weight:600;font-size:14.5px}
+/* Nút nổi "🎁 Quà & Trò chơi" + bảng chọn từ dưới lên (build.py gift_dock, main.js initGiftDock, 17/10/2026) */
+.gd-btn{position:fixed;left:18px;bottom:18px;z-index:81;display:flex;align-items:center;gap:7px;height:48px;padding:0 16px 0 12px;border:0;border-radius:999px;background:linear-gradient(135deg,#c58a1c,#a86b00);color:#fff;font:inherit;font-weight:700;font-size:14.5px;box-shadow:0 6px 18px rgba(120,77,0,.35);cursor:pointer;transition:bottom .25s,opacity .2s,transform .2s}
+.gd-btn[hidden]{display:none}
+.gd-btn:active{transform:scale(.96)}
+.gd-ic{font-size:22px;line-height:1}
+.gd-badge{position:absolute;top:-6px;right:-4px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:#e5322d;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-sizing:border-box}
+.gd-badge[hidden]{display:none}
+.gd-btn.wiggle{animation:gdWig 1.1s ease 2}
+@keyframes gdWig{0%,100%{transform:none}15%{transform:rotate(-6deg) scale(1.06)}30%{transform:rotate(5deg) scale(1.06)}45%{transform:rotate(-3deg)}60%{transform:rotate(2deg)}}
+@media (prefers-reduced-motion:reduce){.gd-btn.wiggle{animation:none}}
+.to-top{bottom:78px}
+body.satc-on .gd-btn{bottom:calc(var(--satc-h,104px) + 12px)!important}
+body.satc-on .to-top{bottom:calc(var(--satc-h,104px) + 72px)!important}
+body.buy-vis .gd-btn{opacity:0;visibility:hidden;pointer-events:none}
+body.gd-lock{overflow:hidden}
+.gd-sheet{position:fixed;inset:0;z-index:130;background:rgba(20,30,20,0);display:flex;align-items:flex-end;justify-content:flex-start;transition:background .22s}
+.gd-sheet[hidden]{display:none}
+.gd-sheet.on{background:rgba(20,30,20,.45)}
+.gd-box{width:100%;max-width:440px;margin:0 0 18px 18px;background:#fff;border-radius:20px;box-shadow:var(--shadow-lg);padding:16px 16px 18px;transform:translateY(24px);opacity:0;transition:transform .22s,opacity .22s;max-height:85vh;overflow:auto}
+.gd-sheet.on .gd-box{transform:none;opacity:1}
+.gd-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}
+.gd-head b{display:block;font-size:18px;color:var(--primary-2)}
+.gd-head small{color:var(--muted);font-size:13px}
+.gd-x{border:0;background:var(--soft);width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 36px;color:var(--ink)}
+.gd-x svg{width:18px;height:18px}
+.gd-list{display:grid;gap:8px}
+.gd-it{display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;background:var(--soft);color:var(--ink);text-decoration:none;border:1.5px solid transparent}
+@media (hover:hover){.gd-it:hover{border-color:var(--primary);color:var(--ink)}}
+.gd-it[data-gd="gift"]{background:#FFF4DC}
+.gd-it[data-gd="quiz"]{background:#E7F3EA}
+.gd-it[data-gd="pledge"]{background:#F6EADF}
+.gd-zalo{background:#E8F1FF}
+.gd-iic{font-size:28px;line-height:1;flex:0 0 36px;text-align:center}
+.gd-itx{flex:1;min-width:0}
+.gd-itx b{display:block;font-size:15px;line-height:1.35;color:var(--primary-2)}
+.gd-itx small{display:block;font-size:13px;line-height:1.45;color:var(--text);margin-top:2px}
+.gd-it em{font-style:normal;font-weight:700;font-size:13.5px;color:var(--primary);white-space:nowrap}
+.gd-it.done em{color:var(--muted)}
+.gd-it.here{border-color:#c9b48a}
+@media (max-width:860px){.gd-btn{left:12px;bottom:12px;height:46px;font-size:14px}.to-top{left:12px;bottom:68px}.gd-sheet{justify-content:center}.gd-box{max-width:none;margin:0;border-radius:20px 20px 0 0;padding-bottom:calc(18px + env(safe-area-inset-bottom))}.gd-sheet .gd-box{transform:translateY(100%)}.gd-sheet.on .gd-box{transform:none}}

@@ -643,7 +643,7 @@ def footer():
 </div></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <div class="cookie-bar" id="cookieBar" hidden role="dialog" aria-label="{t("Thông báo cookie")}"><p>{t('🍪 Anh/chị cho phép dùng cookie nhé? Nhờ đó Thực Dưỡng Lành gợi ý sản phẩm, ưu đãi hợp với anh/chị (cả trên Facebook, Google) và làm website tốt hơn. <a href="/chinh-sach-bao-mat/">Chi tiết</a>')}</p><div><button type="button" class="btn btn-sm cb-yes" data-consent="yes">{t("Đồng ý")}</button><button type="button" class="cb-no" data-consent="no">{t("Không, cảm ơn")}</button></div></div>
-<button class="to-top" id="toTop" aria-label="{t("Lên đầu trang")}">{I["up"]}</button>'''
+<button class="to-top" id="toTop" aria-label="{t("Lên đầu trang")}">{I["up"]}</button>{gift_dock()}'''
 
 
 def float_widget():
@@ -1188,6 +1188,27 @@ def hub_items():
         out.append({"k": "quiz", "ic": "🖐", "eye": "Trò chơi 1 phút", "t": "Bạn còn mấy ngón tay?", "s": "10 câu về thói quen hằng ngày. Xem lối sống của bạn được mấy điểm.", "href": QUIZ_PATH, "btn": "Chơi ngay"})
     out.append({"k": "pledge", "ic": "✍️", "eye": "Hành trình 10 triệu người", "t": "Tôi chọn sống lành", "s": "Ký lời hứa nhỏ với chính mình, nhận ảnh chứng nhận để chia sẻ.", "href": PLEDGE_PATH, "btn": "Ký cam kết"})
     return out
+
+
+def gift_dock():
+    """Nút nổi "🎁 Quà & Trò chơi" góc trái dưới (mọi trang, nhất là điện thoại) → bảng chọn từ dưới lên: cẩm nang, ebook, trò chơi, cam kết, nhóm Zalo.
+    JS initGiftDock: đánh dấu món đã nhận / đã chơi / đã ký (localStorage), số trên nút = món chưa thử; ẩn ở giỏ hàng / thanh toán. (17/10/2026)"""
+    if not IS_VI:
+        return ""
+    its = [(x["k"], x["ic"], x["t"], x["s"], x["href"]) for x in hub_items()]
+    eb = SITE.get("ebook") or {}
+    if ebook_href("x"):
+        its.insert(1, ("ebook", "🦴", eb.get("title", "Ebook miễn phí").replace("Tặng ebook ", "Ebook "), "Ăn gì cho cơ xương khớp + video thực đơn 7 ngày.", eb["url"]))
+    if not its:
+        return ""
+    rows = "".join(f'''<a class="gd-it" data-gd="{k}" href="{esc(h)}{"&" if "?" in h else "?"}tu=dock" data-cta="dock_{k}"><span class="gd-iic">{ic}</span><span class="gd-itx"><b>{esc(tt)}</b><small data-gd-sub>{esc(sub)}</small></span><em data-gd-st>{"Chơi" if k == "quiz" else "Ký" if k == "pledge" else "Nhận"} →</em></a>''' for k, ic, tt, sub, h in its)
+    zg = f'<a class="gd-it gd-zalo" href="/nhom-zalo/" target="_blank" rel="noopener" data-cta="dock_zalo"><span class="gd-iic">👥</span><span class="gd-itx"><b>Nhóm Zalo “Sống khỏe cùng {BRAND}”</b><small>Thực đơn lành, ưu đãi thành viên, hỏi đáp mỗi ngày.</small></span><em>Vào →</em></a>' if SITE.get("zalo_group") else ""
+    return f'''
+<button class="gd-btn" id="gdBtn" type="button" aria-expanded="false" aria-controls="gdSheet" hidden><span class="gd-ic" aria-hidden="true">🎁</span><span class="gd-tx">Quà & Trò chơi</span><span class="gd-badge" data-gd-n hidden></span></button>
+<div class="gd-sheet" id="gdSheet" hidden role="dialog" aria-modal="true" aria-labelledby="gdTitle"><div class="gd-box">
+  <div class="gd-head"><div><b id="gdTitle">🎁 Miễn phí cho bạn</b><small>Quà tặng, trò chơi và hành trình sống lành</small></div><button type="button" class="gd-x" data-gd-close aria-label="Đóng">{I["close"]}</button></div>
+  <div class="gd-list">{rows}{zg}</div>
+</div></div>'''
 
 
 def hub_cards(medium):

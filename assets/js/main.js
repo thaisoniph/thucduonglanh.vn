@@ -1319,7 +1319,7 @@
     captureSource(); initConsent(); trackPageEvents();
     renderCounts(); renderMini(); markWish();
     initHeader(); initClicks(); initRail(); initLightbox(); initProduct(); initCerts(); initProof(); initTabs(); initReadmore(); initSort();
-    initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initPledge(); initQuiz();
+    initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initPledge(); initQuiz(); initGiftDock();
     window.addEventListener('storage', function (e) { if (e.key === 'tdl_cart') { cart = load('tdl_cart', []); cleanCart(); renderCounts(); renderMini(); } });
   }
   // ===== Hành trình 10 triệu người Việt sống khỏe hơn: bộ đếm [data-jr] + trang ký cam kết /cam-ket-song-lanh/ (api journey.js) =====
@@ -1594,6 +1594,36 @@
       l.innerHTML = 'Lần trước bạn còn <b>' + st.last.score + '/' + n + '</b> ngón' + (st.ch ? ' · đang thử thách: ' + esc(st.ch.habit) : '') + '. <button type="button" class="link-btn" data-qz-show>Xem lại kết quả</button>';
       if (st.ch) { cur = st.last; }
     }
+  }
+  // ===== Nút nổi "🎁 Quà & Trò chơi" (build.py gift_dock): luôn thấy ở góc trái dưới, bấm mở bảng chọn từ dưới lên =====
+  function initGiftDock() {
+    var btn = $('#gdBtn'), sh = $('#gdSheet'); if (!btn || !sh) return;
+    if (/^\/(gio-hang|thanh-toan|dat-hang-thanh-cong)\//.test(location.pathname)) return; // đang mua hàng: không làm phân tâm
+    function st() { // trạng thái từng món trên máy khách
+      var q = load('tdl_quiz', {}) || {};
+      return { camnang: !!load('tdl_camnang', null), ebook: !!load('tdl_ebook', null), quiz: q.last ? q.last.score : null, pledge: !!load('tdl_pledge', null), ch: q.ch || null };
+    }
+    function paint() {
+      var s = st(), left = 0;
+      $$('[data-gd]', sh).forEach(function (a) {
+        var k = a.getAttribute('data-gd'), em = $('[data-gd-st]', a), sub = $('[data-gd-sub]', a), done = k === 'quiz' ? s.quiz != null : !!s[k === 'gift' ? 'camnang' : k];
+        a.classList.toggle('done', done); a.classList.toggle('here', location.pathname.indexOf(a.getAttribute('href').split('?')[0]) === 0);
+        if (k === 'quiz' && done) { em.textContent = 'Chơi lại →'; sub.textContent = 'Lần trước bạn còn ' + s.quiz + ' ngón' + (s.ch ? ' · đang thử thách: ' + s.ch.habit : '') + '.'; }
+        else if (done) em.textContent = k === 'pledge' ? '✓ Đã ký' : '✓ Đọc lại';
+        if (!done && k !== 'ebook') left++;
+      });
+      var n = $('[data-gd-n]', btn); n.textContent = left; n.hidden = !left;
+    }
+    function open() { paint(); sh.hidden = false; requestAnimationFrame(function () { sh.classList.add('on'); }); btn.setAttribute('aria-expanded', 'true'); document.body.classList.add('gd-lock'); track('gift_dock_open', { page: location.pathname }); }
+    function close() { sh.classList.remove('on'); btn.setAttribute('aria-expanded', 'false'); document.body.classList.remove('gd-lock'); setTimeout(function () { sh.hidden = true; }, 220); }
+    btn.addEventListener('click', function () { if (sh.hidden) open(); else close(); });
+    sh.addEventListener('click', function (e) { if (e.target === sh || e.target.closest('[data-gd-close]')) close(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !sh.hidden) close(); });
+    // thông báo cookie đang hiện ở đáy màn hình → chờ khách chọn xong mới hiện nút
+    var cb = $('#cookieBar');
+    function show() { if (cb && !cb.hidden) return; btn.hidden = false; paint(); try { if (!sessionStorage.getItem('tdl_gd')) { sessionStorage.setItem('tdl_gd', '1'); setTimeout(function () { btn.classList.add('wiggle'); }, 6000); } } catch (e) { } }
+    show();
+    if (cb && window.MutationObserver) new MutationObserver(show).observe(cb, { attributes: true, attributeFilter: ['hidden'] });
   }
   // Nút "Cùng đồng hành" (khối Điều chúng tôi tin) → #dong-hanh ở cuối trang: ảnh phía trên tải dần làm trang dài thêm, nên cuộn lại cho trúng
   document.addEventListener('click', function (e) {
