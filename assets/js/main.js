@@ -357,9 +357,10 @@
         if (t.querySelector('iframe')) return;
         $$('.v-frame video').forEach(function (o) { o.pause(); });
         var f = document.createElement('iframe'), id = t.getAttribute('data-yt');
-        f.src = 'https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&rel=0&playsinline=1&modestbranding=1';
+        f.src = 'https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&rel=0&playsinline=1&modestbranding=1&enablejsapi=1&origin=' + encodeURIComponent(location.origin);
         f.title = t.getAttribute('data-title') || 'Video'; f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen'; f.allowFullscreen = true;
-        t.innerHTML = ''; t.appendChild(f); track('video_play', { video: 'youtube:' + id });
+        f.addEventListener('load', function () { ytListen(f); }); // nghe trạng thái video: xem xong → nhạc nền phát tiếp
+        muVideo(true); t.innerHTML = ''; t.appendChild(f); track('video_play', { video: 'youtube:' + id });
         return;
       }
       if ((t = e.target.closest('.v-frame'))) {
@@ -1320,7 +1321,7 @@
     captureSource(); initConsent(); trackPageEvents();
     renderCounts(); renderMini(); markWish();
     initHeader(); initClicks(); initRail(); initLightbox(); initProduct(); initCerts(); initProof(); initTabs(); initReadmore(); initSort();
-    initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initPledge(); initQuiz(); initGiftDock(); initZaloGate();
+    initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initPledge(); initQuiz(); initGiftDock(); initZaloGate(); initMusic();
     window.addEventListener('storage', function (e) { if (e.key === 'tdl_cart') { cart = load('tdl_cart', []); cleanCart(); renderCounts(); renderMini(); } });
   }
   // ===== Hành trình 10 triệu người Việt sống khỏe hơn: bộ đếm [data-jr] + trang ký cam kết /cam-ket-song-lanh/ (api journey.js) =====
@@ -1655,6 +1656,87 @@
     function show() { if (cb && !cb.hidden) return; btn.hidden = false; paint(); try { if (!sessionStorage.getItem('tdl_gd')) { sessionStorage.setItem('tdl_gd', '1'); setTimeout(function () { btn.classList.add('wiggle'); }, 6000); } } catch (e) { } }
     show();
     if (cb && window.MutationObserver) new MutationObserver(show).observe(cb, { attributes: true, attributeFilter: ['hidden'] });
+  }
+  // ===== Nhạc nền (data/site.json → music, sửa ở /admin → Cài đặt; 18/10/2026) =====
+  // Nút ♪ (#muBtn) trên đầu trang bật/tắt. Trình duyệt không cho phát tiếng trước khi khách chạm trang → nhạc bắt đầu ở lần chạm đầu tiên (nếu bật "tự phát").
+  // Khách bấm tắt → nhớ trên máy (localStorage tdl_music = off), không tự phát lại; bấm bật → on. Sang trang khác phát tiếp đúng đoạn (sessionStorage tdl_music_pos).
+  // Video YouTube / mp4 trên trang phát → nhạc tạm dừng; video hết → nhạc phát tiếp. Rời tab / chuyển app → dừng, quay lại → phát tiếp.
+  var MU = null;
+  function muVideo(on) { if (MU) MU.video(on); }
+  function ytListen(f) { // giao thức postMessage của YouTube (không cần tải thư viện iframe API)
+    try {
+      f.contentWindow.postMessage(JSON.stringify({ event: 'listening', id: 1, channel: 'widget' }), '*');
+      f.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'addEventListener', args: ['onStateChange'], id: 1, channel: 'widget' }), '*');
+    } catch (e) { }
+  }
+  window.addEventListener('message', function (e) {
+    if (!/^https:\/\/www\.youtube(-nocookie)?\.com$/.test(e.origin) || typeof e.data !== 'string') return;
+    var d; try { d = JSON.parse(e.data); } catch (x) { return; }
+    var st = d.event === 'onStateChange' ? d.info : d.event === 'infoDelivery' && d.info ? d.info.playerState : null;
+    if (st === 1 || st === 3) muVideo(true); else if (st === 0) muVideo(false); // 1 đang phát, 3 đang tải, 0 hết video
+  });
+  function initMusic() {
+    var M = CFG.music, btn = $('#muBtn'); if (!M || !M.tracks || !M.tracks.length || !btn) return;
+    var pref = null, pos = {};
+    try { pref = localStorage.getItem('tdl_music'); } catch (e) { }
+    try { pos = JSON.parse(sessionStorage.getItem('tdl_music_pos') || '{}') || {}; } catch (e) { }
+    var i = 0; M.tracks.forEach(function (x, k) { if (x.src === pos.src) i = k; });
+    var a = new Audio(), seek = M.tracks[i].src === pos.src ? +pos.t || 0 : 0, byVideo = false, vidOn = false, byHide = false, fadeT = 0;
+    a.preload = 'none'; a.loop = M.tracks.length === 1;
+    function setPref(v) { pref = v; try { localStorage.setItem('tdl_music', v); } catch (e) { } }
+    function paint() {
+      var on = !a.paused, lb = on ? T('Tắt nhạc nền') : T('Bật nhạc nền');
+      btn.classList.toggle('on', on); btn.setAttribute('aria-pressed', on ? 'true' : 'false'); btn.setAttribute('aria-label', lb);
+      btn.title = lb + (M.tracks[i].t ? ' · ' + M.tracks[i].t : '');
+    }
+    function play() {
+      if (!a.src) a.src = M.tracks[i].src + (seek > 1 ? '#t=' + Math.floor(seek) : '');
+      clearInterval(fadeT); try { a.volume = 0; } catch (e) { }
+      var p = a.play(); p = p && p.then ? p : Promise.resolve();
+      return p.then(function () { // tăng dần âm lượng trong ~1,5 giây cho êm tai
+        var v = 0; fadeT = setInterval(function () { v = Math.min(M.vol, v + M.vol / 15); try { a.volume = v; } catch (e) { } if (v >= M.vol) clearInterval(fadeT); }, 100);
+      });
+    }
+    function next() { i = (i + 1) % M.tracks.length; seek = 0; a.src = M.tracks[i].src; play().catch(function () { }); }
+    a.addEventListener('play', paint); a.addEventListener('pause', paint);
+    a.addEventListener('ended', function () { if (M.tracks.length > 1) next(); });
+    a.addEventListener('error', function () { if (M.tracks.length > 1 && !a.paused) next(); });
+    btn.addEventListener('click', function () {
+      unkick();
+      if (a.paused) { setPref('on'); byVideo = false; play().catch(function () { }); track('music_on', { track: M.tracks[i].t }); }
+      else { setPref('off'); a.pause(); track('music_off', { track: M.tracks[i].t }); }
+    });
+    MU = {
+      video: function (on) {
+        vidOn = on;
+        if (on && !a.paused) { byVideo = true; a.pause(); }
+        else if (!on && byVideo) { byVideo = false; play().catch(function () { }); }
+      }
+    };
+    document.addEventListener('play', function (e) { if (e.target !== a && e.target.tagName === 'VIDEO') muVideo(true); }, true); // video mp4 trên trang
+    document.addEventListener('ended', function (e) { if (e.target !== a && e.target.tagName === 'VIDEO') muVideo(false); }, true);
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) { if (!a.paused) { byHide = true; a.pause(); } }
+      else if (byHide) { byHide = false; if (!vidOn) play().catch(function () { }); }
+    });
+    window.addEventListener('pagehide', function () { // sang trang khác: nhớ bài + đoạn đang nghe
+      try {
+        if (!a.paused || byVideo || byHide) sessionStorage.setItem('tdl_music_pos', JSON.stringify({ src: M.tracks[i].src, t: a.currentTime || 0 }));
+        else sessionStorage.removeItem('tdl_music_pos');
+      } catch (e) { }
+    });
+    // tự phát: chờ lần chạm / bấm phím đầu tiên (không tính chạm vào nút ♪ hay khung video)
+    var EV = ['click', 'touchend', 'keydown'];
+    function kick(e) {
+      if (vidOn || (e && e.target && e.target.closest && e.target.closest('#muBtn, .v-frame, video, iframe, [data-cn-read]'))) return;
+      unkick(); if (a.paused) play().catch(function () { });
+    }
+    function unkick() { EV.forEach(function (n) { document.removeEventListener(n, kick, true); }); }
+    if (pref === 'on' || (M.auto && pref !== 'off')) {
+      EV.forEach(function (n) { document.addEventListener(n, kick, true); });
+      if (pos.src) play().catch(function () { }); // đang nghe ở trang trước: thử phát luôn (Chrome máy tính thường cho), không được thì chờ lần chạm
+    }
+    paint();
   }
   // Nút "Cùng đồng hành" (khối Điều chúng tôi tin) → #dong-hanh ở cuối trang: ảnh phía trên tải dần làm trang dài thêm, nên cuộn lại cho trúng
   document.addEventListener('click', function (e) {

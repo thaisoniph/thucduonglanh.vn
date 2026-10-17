@@ -627,6 +627,25 @@ collections:
               - { label: "Ảnh bìa", name: image, widget: image, required: false, hint: "Để trống thì dùng ảnh bìa của YouTube." }
               - { label: "Ngày đăng video (YYYY-MM-DD)", name: upload_date, widget: string, required: false }
               - { label: "Thời lượng (ví dụ PT2M9S = 2 phút 9 giây)", name: duration, widget: string, required: false }
+          - label: "Nhạc nền website"
+            name: music
+            widget: object
+            required: false
+            hint: "Nút ♪ trên đầu trang để khách bật/tắt. Trình duyệt không cho phát tiếng ngay khi vừa mở trang, nên nhạc bắt đầu khi khách chạm vào trang lần đầu. Khách bấm tắt thì web nhớ, lần sau không tự phát. Khách bật video YouTube trên trang thì nhạc tự dừng, xem hết video nhạc phát tiếp."
+            fields:
+              - { label: "Bật nhạc nền", name: enabled, widget: boolean, default: true, hint: "Tắt: ẩn nút ♪, web không phát nhạc." }
+              - { label: "Tự phát khi khách chạm trang lần đầu", name: autoplay, widget: boolean, default: true, hint: "Tắt: nhạc chỉ phát khi khách tự bấm nút ♪." }
+              - { label: "Âm lượng (%)", name: volume, widget: number, value_type: int, min: 5, max: 100, default: 25, hint: "Nên để 20–30% để khách đọc không bị át." }
+              - label: "Danh sách bài hát"
+                name: tracks
+                widget: list
+                required: false
+                summary: "{{fields.title}}"
+                hint: "Bài ĐẦU TIÊN đang bật ô Phát sẽ phát trước; có nhiều bài thì phát lần lượt. Đổi bài: kéo bài muốn phát lên đầu, hoặc tắt ô Phát của bài cũ. File .mp3 hoặc .m4a, nên dưới 5 MB. Chỉ dùng nhạc công ty có quyền sử dụng: bài hát của ca sĩ/nhạc sĩ phải xin phép đơn vị giữ quyền, nếu không dễ bị khiếu nại bản quyền."
+                fields:
+                  - { label: "Tên bài", name: title, widget: string }
+                  - { label: "File nhạc (.mp3, .m4a)", name: file, widget: file }
+                  - { label: "Phát", name: on, widget: boolean, default: true }
           - label: "Ưu đãi chỉ có khi đặt trên website"
             name: web_offer
             i18n: true

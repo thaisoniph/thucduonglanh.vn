@@ -570,7 +570,7 @@ def header(active):
   <a class="logo" href="/" aria-label="{BRAND} – {t("Trang chủ")}"><img src="/assets/img/brand/logo.webp" srcset="/assets/img/brand/logo.webp 1x, /assets/img/brand/logo@2x.webp 2x" width="{LOGO_W}" height="180" alt="Logo {BRAND}"></a>
   <nav class="main-nav" aria-label="{t("Menu chính")}">{nav_html(active, "menu")}</nav>
   <div class="header-icons">
-    <button class="icon-btn" id="searchOpen" aria-label="{t("Tìm kiếm")}" aria-expanded="false" aria-controls="searchLayer">{I["search"]}</button>
+    {music_btn()}<button class="icon-btn" id="searchOpen" aria-label="{t("Tìm kiếm")}" aria-expanded="false" aria-controls="searchLayer">{I["search"]}</button>
     <a class="icon-btn" href="/gio-hang/" id="cartOpen" aria-label="{t("Giỏ hàng")}">{I["cart"]}<span class="count" data-cart-count>0</span></a>
     <a class="icon-btn hide-sm" href="/yeu-thich/" aria-label="{t("Sản phẩm yêu thích")}">{I["heart"]}<span class="count" data-wish-count>0</span></a>
     <!--ALT-SW-->
@@ -644,6 +644,23 @@ def footer():
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <div class="cookie-bar" id="cookieBar" hidden role="dialog" aria-label="{t("Thông báo cookie")}"><p>{t('🍪 Anh/chị cho phép dùng cookie nhé? Nhờ đó Thực Dưỡng Lành gợi ý sản phẩm, ưu đãi hợp với anh/chị (cả trên Facebook, Google) và làm website tốt hơn. <a href="/chinh-sach-bao-mat/">Chi tiết</a>')}</p><div><button type="button" class="btn btn-sm cb-yes" data-consent="yes">{t("Đồng ý")}</button><button type="button" class="cb-no" data-consent="no">{t("Không, cảm ơn")}</button></div></div>
 <button class="to-top" id="toTop" aria-label="{t("Lên đầu trang")}">{I["up"]}</button>{gift_dock()}'''
+
+
+def music_tracks():
+    """Nhạc nền (data/site.json → music, /admin → Cài đặt): các bài đang bật, theo thứ tự trong danh sách. Tắt cả mục → rỗng."""
+    m = SITE.get("music") or {}
+    if not m.get("enabled"):
+        return []
+    return [{"t": x.get("title") or "", "src": x["file"]} for x in m.get("tracks") or [] if x.get("file") and x.get("on", True) is not False]
+
+
+def music_btn():
+    """Nút ♪ bật/tắt nhạc nền trên đầu trang (main.js initMusic). Không có bài → không có nút."""
+    if not music_tracks():
+        return ""
+    note = '<svg class="mu-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/><path d="M3 3l18 18"/></svg>'
+    eq = '<span class="mu-on" aria-hidden="true"><i></i><i></i><i></i><i></i></span>'
+    return f'<button class="icon-btn mu-btn" id="muBtn" type="button" aria-pressed="false" aria-label="{t("Bật nhạc nền")}" title="{t("Nhạc nền")}">{note}{eq}</button>'
 
 
 def float_widget():
@@ -2716,6 +2733,7 @@ def main():
            "endpoint": (SITE.get("api_endpoint") or SITE.get("order_endpoint", "")), "bank": SITE["bank"] if SITE["bank"].get("enabled") else None,
            "shipping_fee": SITE.get("shipping_fee", 0), "free_ship_threshold": SITE.get("free_ship_threshold", 0),
            "aov_milestone": SITE.get("aov_milestone") or {},
+           "music": {"tracks": music_tracks(), "auto": (SITE.get("music") or {}).get("autoplay", True) is not False, "vol": max(5, min(100, num((SITE.get("music") or {}).get("volume")) or 25)) / 100} if music_tracks() else None,
            "needs": [{"slug": n["slug"], "name": n["name"], "icon": n.get("icon") or "", "url": lp(n["url"])} for n in NEEDS]}
     js = "window.TDL_PRODUCTS=" + json.dumps(js_products, ensure_ascii=False) + ";\nwindow.TDL_CONFIG=" + json.dumps(cfg, ensure_ascii=False) + ";\n"
     if not IS_VI:
