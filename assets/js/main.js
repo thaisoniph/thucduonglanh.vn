@@ -1661,7 +1661,7 @@
   // ===== Video câu chuyện đồng hành (data/site.json → brand_video; build.py bv_hero_btn, bv_float; 18/10/2026) =====
   // [data-bv-open] (nút đầu trang chủ, bong bóng) → khung #bvModal giữa màn hình, phát ngay bằng xử lý .v-frame[data-yt] ở initClicks
   // (data-from = vị trí mở → sự kiện GA4 bv_hero / bv_bubble…, CRM Tổng quan đếm). Bong bóng #bvBubble: hiện sau 2,5 giây; ẩn khi
-  // thông báo cookie đang mở hoặc khung video trên trang đang trong màn hình; bấm × → ẩn 3 ngày (tdl_bvb_x), đã xem → ẩn 30 ngày (tdl_bv_seen).
+  // thông báo cookie đang mở hoặc có khung video bất kỳ trên màn hình; bấm × → ẩn 3 ngày (tdl_bvb_x), đã xem → ẩn 30 ngày (tdl_bv_seen).
   var BVB = null;
   function bvSeen() { try { localStorage.setItem('tdl_bv_seen', String(Date.now())); } catch (e) { } if (BVB) BVB.off(); }
   function initBrandVideo() {
@@ -1700,7 +1700,7 @@
     if (ck && window.MutationObserver) new MutationObserver(BVB.check).observe(ck, { attributes: true, attributeFilter: ['hidden'] });
     if (window.IntersectionObserver) {
       var io = new IntersectionObserver(function (es) { es.forEach(function (x) { inView += x.isIntersecting ? 1 : (x.target._bvIn ? -1 : 0); x.target._bvIn = x.isIntersecting; }); inView = Math.max(0, inView); BVB.check(); }, { threshold: 0.35 });
-      $$('.v-frame[data-from], .hero-vid').forEach(function (f) { if (!m.contains(f)) io.observe(f); }); // đang thấy nút/khung video khác thì không cần bong bóng
+      $$('.v-frame, .hero-vid').forEach(function (f) { if (!m.contains(f)) io.observe(f); }); // đang thấy nút/khung video (kể cả video khách hàng) thì không cần bong bóng, tránh che tên khách
     }
     setTimeout(function () { ready = true; BVB.check(); }, 2500);
   }

@@ -4588,7 +4588,7 @@
       kpi('Bấm gọi', act('click_call'), '', '', noCmp ? '' : 'kỳ trước ' + actp('click_call')) + kpi('Bấm Zalo', act('click_zalo'), '', '', noCmp ? '' : 'kỳ trước ' + actp('click_zalo')) +
       kpi('Điền form nhận quà / liên hệ', act('generate_lead'), '', '', b.webLeads + ' khách hỏi web trong CRM') + kpi('Lượt tìm kiếm', act('search'), '', '', 'gõ ở ô tìm sản phẩm') + '</div></section>';
     // video câu chuyện đồng hành: khách bấm xem ở vị trí nào (bắt đầu đo 18/10/2026)
-    var BV_POS = [['bv_hero', 'Nút đầu trang chủ'], ['bv_bubble', 'Bong bóng góc màn hình'], ['bv_story', 'Khối Câu chuyện (giữa trang chủ)'], ['bv_bottom', 'Khối Khách hàng nói gì (cuối trang chủ)'], ['bv_about', 'Trang Giới thiệu']];
+    var BV_POS = [['bv_hero', 'Nút đầu trang chủ'], ['bv_bubble', 'Bong bóng góc màn hình'], ['bv_story', 'Khối Câu chuyện (giữa trang chủ)'], ['bv_about', 'Trang Giới thiệu']];
     var bvN = BV_POS.reduce(function (s0, x) { return s0 + act(x[0]); }, 0), bvP = BV_POS.reduce(function (s0, x) { return s0 + actp(x[0]); }, 0);
     h += '<section class="section"><div class="section-h"><h2>🎬 Video câu chuyện đồng hành</h2><span class="tip">lượt bấm xem theo vị trí · đo từ 18/10/2026</span></div><div class="box">' +
       barList(BV_POS.map(function (x) { return { l: x[1], v: act(x[0]), sub: (bvN ? pct(act(x[0]), bvN) + '% lượt xem' : '') + (noCmp ? '' : (bvN ? ' · ' : '') + 'kỳ trước ' + actp(x[0])) }; }).sort(function (x, y) { return y.v - x.v; }), String, 'Chưa có lượt xem trong kỳ.', { below: 1 }) +

@@ -493,7 +493,7 @@ Tab đầu tiên trên menu, dành cho chủ doanh nghiệp. **Chọn thời gia
 - **💰 Bán hàng văn phòng** (đơn trong CRM, chưa gồm sàn): doanh số, số đơn, giá trị trung bình / đơn, khách mua lần đầu, % doanh số từ khách cũ, **data quảng cáo** (cùng cách đếm với tab Hiệu quả) và **khách hỏi mới**.
 - **📣 Quảng cáo & hiệu quả từng kênh**, **🛒 Sàn TMĐT**: xem bên dưới.
 - **📈 Theo ngày**, **🧭 Tiền đến từ kênh nào**, **🏆 Sản phẩm bán chạy**, **🙋 Khách hỏi theo kênh**.
-- **🌐 Website** (Google Analytics): lượt truy cập, người xem, đơn web, tỷ lệ ra đơn, % khách ở lại xem, khách vào từ đâu, phễu mua hàng, khách liên hệ từ web, **🎬 video câu chuyện đồng hành** (khách bấm xem video ở vị trí nào: nút đầu trang chủ, bong bóng góc màn hình, khối Câu chuyện, cuối trang chủ, trang Giới thiệu; đo từ 18/10/2026), trang xem nhiều, trang vào đầu tiên.
+- **🌐 Website** (Google Analytics): lượt truy cập, người xem, đơn web, tỷ lệ ra đơn, % khách ở lại xem, khách vào từ đâu, phễu mua hàng, khách liên hệ từ web, **🎬 video câu chuyện đồng hành** (khách bấm xem video ở vị trí nào: nút đầu trang chủ, bong bóng góc màn hình, khối Câu chuyện, trang Giới thiệu; đo từ 18/10/2026), trang xem nhiều, trang vào đầu tiên.
 
 **📣 Marketing**: chi phí quảng cáo, **chi phí / doanh số khách mới** (chỉ số chính để đánh giá quảng cáo), 1đ chi phí thu về bao nhiêu doanh số khách mới, chi phí có 1 khách mới, chi phí / data quảng cáo, chi phí / doanh số tổng (tham khảo).
 

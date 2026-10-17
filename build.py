@@ -1467,7 +1467,7 @@ def page_home():
               ("feedback-vu-tan", t("Anh Vũ Tân"), t("Giám đốc văn phòng bảo hiểm – Khâm Thiên, Hà Nội")),
               ("feedback-khach-hang-3", t("Khách hàng tin dùng"), t("Chia sẻ trải nghiệm sản phẩm"))]
     vid = "".join(f'''<figure class="v-card"><div class="v-frame" data-video="/assets/video/{v}.mp4"><img src="/assets/img/brand/{v}.webp" alt="{tf("Video cảm nhận của {name}", name=esc(n))}" loading="lazy" width="480" height="854"><button class="v-play" aria-label="{t("Phát video")}">{I["play"]}</button></div><figcaption><b>{esc(n)}</b><span>{esc(r)}</span></figcaption></figure>''' for v, n, r in videos)
-    bv_html, bv_ld = brand_video("bottom")
+    bv_ld = brand_video()[1]  # trang chủ: video câu chuyện đã ở khối Câu chuyện (giữa trang) → bỏ bản lặp ở "Khách hàng nói gì" (18/10/2026), giữ dữ liệu VideoObject cho Google
     bvi = bv_info()  # khối Câu chuyện thương hiệu: có video thì thay ảnh tách trà bằng video (khách đang đọc câu chuyện → bấm xem ngay)
     story_media = (f'<div class="story-media story-vid">{bv_frame(bvi, "story")}<p class="sv-cap"><b>{bv_nw(bvi["hook"] or bvi["title"])}</b></p></div>' if bvi else
                    f'<div class="story-media"><img src="/assets/img/brand/story-tea.webp" alt="{t("Tách trà thảo mộc Thực Dưỡng Lành")}" loading="lazy" width="1200" height="1200"></div>')
@@ -1543,7 +1543,6 @@ def page_home():
 
 <section class="section"><div class="container">
   <h2 class="sec-title big">{fb_h}</h2>
-  {bv_html}
   <div class="v-grid">{vid}</div>
   <div class="fb-strip">{fb}</div>
 </div></section>
