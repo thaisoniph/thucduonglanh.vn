@@ -34,14 +34,14 @@
     "volume": 25,
     "tracks": [
       {
-        "title": "Thư thái – sáo trúc & chuông (không lời)",
-        "file": "/assets/uploads/nhac/thu-thai-sao-truc.m4a",
-        "on": false
-      },
-      {
         "title": "Sống tử tế",
         "file": "https://drive.google.com/open?id=129kr3f78vcKFYyM43pqw0Ygtb_LFBt7A&usp=drive_fs",
         "on": true
+      },
+      {
+        "title": "Thư thái – sáo trúc & chuông (không lời)",
+        "file": "/assets/uploads/nhac/thu-thai-sao-truc.m4a",
+        "on": false
       }
     ]
   },
