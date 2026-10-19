@@ -2,65 +2,68 @@
 title: Hướng dẫn cho nhân sự Thực Dưỡng Lành
 nav: Bắt đầu
 order: 1
-updated: 2026-09-30
-description: Các đường link cần dùng, chuẩn bị tài khoản, việc hằng ngày và quy định chung.
+updated: 2026-10-19
+description: Đọc trang này trước. Mất khoảng 3 phút.
 ---
 
-Trang này dành cho toàn bộ nhân sự. Đọc phần **Bắt đầu** trước, sau đó mở phần đúng với việc của bạn:
+Chào bạn! Trang này giúp bạn biết **mình cần đọc phần nào**. Bạn không cần đọc hết. Chỉ đọc phần đúng với việc của mình.
 
-- **[CRM (bán hàng, chăm sóc khách)](/huong-dan/crm/)**: dành cho mọi nhân viên kinh doanh, CSKH. Dùng hằng ngày, **trên điện thoại** là tiện nhất.
-- **[Website (sửa nội dung)](/huong-dan/website/)**: dành cho người đăng bài, sửa giá, sửa sản phẩm. Dùng **trên máy tính**.
+## Bạn làm việc gì?
 
-## Các đường link cần dùng
-
-| Việc | Link |
+| Bạn là… | Đọc phần này |
 | --- | --- |
-| **CRM**: đơn hàng, chăm sóc khách, khách hỏi | [crm.thucduonglanh.vn](https://crm.thucduonglanh.vn) |
-| **Trang Marketing** (nhân sự marketing): chi phí, hiệu quả quảng cáo, Link & QR | [mkt.thucduonglanh.vn](https://mkt.thucduonglanh.vn) |
-| Trang hướng dẫn này | [crm.thucduonglanh.vn/huong-dan](https://crm.thucduonglanh.vn/huong-dan/) |
+| **Bán hàng, chăm sóc khách** | [CRM](/huong-dan/crm/) (đọc trước), rồi [CRM thêm](/huong-dan/crm-them/) khi cần |
+| **Quản lý nhóm bán hàng** | [CRM](/huong-dan/crm/), rồi [Quản lý](/huong-dan/quan-ly/) |
+| **Marketing, phụ trách sàn** | [Marketing](/huong-dan/marketing/) |
+| **Đăng bài, sửa sản phẩm trên web** | [Website](/huong-dan/website/) |
+
+> **CRM là gì?** Là một trang web giống **cuốn sổ ghi khách hàng**. Mọi khách, mọi đơn hàng đều nằm trong đó. Bạn gọi khách xong thì bấm vào CRM. Máy tự nhớ, tự nhắc bạn hôm nào gọi lại.
+
+## Các địa chỉ cần nhớ
+
+| Để làm gì | Địa chỉ |
+| --- | --- |
+| **CRM** (bán hàng, chăm sóc khách) | [crm.thucduonglanh.vn](https://crm.thucduonglanh.vn) |
+| **Trang Marketing** | [mkt.thucduonglanh.vn](https://mkt.thucduonglanh.vn) |
 | Website bán hàng | [thucduonglanh.vn](https://thucduonglanh.vn) |
-| Trang quản trị website (đăng bài, sửa sản phẩm) | [thucduonglanh.vn/admin](https://thucduonglanh.vn/admin/) |
-| Tạo link theo dõi khi đăng bài, chạy quảng cáo | [thucduonglanh.vn/admin/utm](https://thucduonglanh.vn/admin/utm) |
-| Tạo link, mã QR cho tờ rơi, standee, gói hàng, quảng cáo | CRM → [📍 Link & QR](https://crm.thucduonglanh.vn/#link-qr) (Marketing, Quản lý, Quản trị) |
-| Nhóm báo đơn | Telegram “Đơn hàng Thực Dưỡng Lành” |
-| Hotline / Zalo tư vấn của công ty | 0966 326 522 |
+| Sửa website (đăng bài, sửa sản phẩm) | [thucduonglanh.vn/admin](https://thucduonglanh.vn/admin/) |
+| Trang hướng dẫn này | [crm.thucduonglanh.vn/huong-dan](https://crm.thucduonglanh.vn/huong-dan/) |
+| Hotline / Zalo của công ty | 0966 326 522 |
 
-> **Mẹo:** trên điện thoại, mở CRM rồi chọn **Thêm vào màn hình chính** để CRM hiện như một ứng dụng. Cách làm có ở mục [Đăng nhập CRM](/huong-dan/crm/#dang-nhap).
+> **Mẹo:** đưa CRM ra màn hình điện thoại để mở nhanh như một ứng dụng. Cách làm ở mục [Đăng nhập](/huong-dan/crm/#dang-nhap).
 
-## Chuẩn bị tài khoản (làm 1 lần)
+## Ngày đầu tiên: chuẩn bị (làm 1 lần)
 
-| Tài khoản | Ai cần | Cách làm |
-| --- | --- | --- |
-| **CRM** | Mọi nhân viên kinh doanh, CSKH | Gửi **email bạn dùng hằng ngày** (Gmail hoặc email công ty) cho anh Sơn hoặc quản lý. Được thêm xong là đăng nhập được, không cần mật khẩu. |
-| **Telegram** | Mọi nhân viên kinh doanh, CSKH | Cài Telegram, nhờ anh Sơn thêm vào nhóm “Đơn hàng Thực Dưỡng Lành” để nhận báo đơn và danh sách chăm sóc mỗi sáng. |
-| **Sửa website** | Chỉ người đăng bài, sửa sản phẩm | Dùng email CRM, nhờ anh Sơn bật ô 🌐 Sửa website. Xem [Chuẩn bị tài khoản sửa website](/huong-dan/website/#chuan-bi-tai-khoan-sua-website). |
+1. **Gửi email** bạn dùng hằng ngày cho anh Sơn hoặc quản lý. Được thêm xong là bạn vào được CRM. Không cần mật khẩu.
+2. **Cài Telegram** trên điện thoại. Telegram là ứng dụng nhắn tin. CRM dùng nó để báo bạn khi có đơn mới.
+3. **Đăng nhập CRM** và **nối Telegram**. Làm theo mục [Đăng nhập](/huong-dan/crm/#dang-nhap).
+4. Bạn cần **sửa website**? Nhờ anh Sơn bật quyền cho email của bạn. Xem [phần Website](/huong-dan/website/#chuan-bi-tai-khoan-sua-website).
 
-Bạn **không cần mở Google Sheet**. Mọi việc với đơn hàng và khách hàng đều làm trên CRM, CRM tự ghi vào Sheet.
+Bạn **không cần mở Google Sheet**. Mọi việc làm trên CRM. CRM tự ghi lại hết.
 
-## Một ngày làm việc
+## Một ngày làm việc (bán hàng)
 
-1. **8h sáng**: nhóm Telegram nhận tin tóm tắt **“CSKH hôm nay”** (số việc theo loại và theo từng người, khách VIP cần chú ý); ai đã kết nối Telegram riêng nhận thêm **danh sách khách của mình**.
-2. Mở **CRM → tab Hôm nay**. Làm lần lượt từ trên xuống:
-    - **Đơn mới**: gọi khách xác nhận, xong bấm **✅ Xác nhận**.
-    - **🔥 Khách vừa hỏi** (nếu có): gọi hoặc nhắn ngay, khách mới hỏi là dễ chốt nhất.
-    - **Chăm sóc khách**: bấm **💬 Chăm sóc** ở từng khách, gửi tin, chọn kết quả.
-    - **Khách hỏi**: liên hệ người hỏi mua nhưng chưa mua.
-3. **Trong ngày**: có đơn mới, Telegram báo ngay. Mở CRM xác nhận đơn, gửi hàng thì nhập mã vận đơn.
-4. **Khách nhắn Zalo, Facebook hoặc gọi điện đặt hàng**: tạo đơn trên CRM (**Đơn hàng → ＋ Tạo đơn**) để khách được chăm sóc tự động như đơn web.
-5. **Người hỏi mà chưa mua**: thêm vào **Khách hỏi** để không bỏ quên.
-6. **Đăng bài, chạy quảng cáo**: luôn dùng link theo dõi (UTM), xem [mục này](/huong-dan/website/#tao-link-theo-doi-khi-dang-bai-chay-quang-cao).
+1. **8 giờ sáng:** Telegram gửi bạn danh sách việc hôm nay.
+2. **Mở CRM, tab Hôm nay.** Gọi khách theo danh sách. Gọi xong bấm 1 nút kết quả.
+3. **Có đơn mới:** gọi khách xác nhận. Gửi hàng xong thì nhập mã vận đơn.
+4. **Khách nhắn Zalo hoặc gọi điện đặt hàng:** tạo đơn trên CRM.
+5. **Có người hỏi mà chưa mua:** thêm vào tab Khách hỏi.
+6. **Cuối ngày:** bấm Báo cáo cuối ngày, dán vào nhóm Zalo.
 
-Làm đầy đủ trên CRM thì hệ thống biết khách nào đã được chăm sóc, không nhắc trùng, và tính đúng doanh số của bạn.
+Từng việc được hướng dẫn kỹ ở [phần CRM](/huong-dan/crm/).
 
-## Quy định chung
+> **Nhớ 1 câu:** **Gọi xong là bấm.** Không bấm thì máy coi như bạn chưa gọi. Doanh số của bạn cũng không được tính đúng.
 
-1. **Công dụng sản phẩm**: chỉ nói và viết đúng theo hồ sơ công bố. **Không** dùng các từ “chữa bệnh”, “điều trị”, “khỏi bệnh”. Với thực phẩm bổ sung, luôn giữ câu: *“Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh.”*
-2. **Bảo mật dữ liệu khách hàng** (Nghị định 13/2023): không chụp màn hình, không gửi hay chia sẻ danh sách khách ra ngoài, không dùng số điện thoại của khách cho việc cá nhân.
-3. **Khách chưa đồng ý nhận tin ưu đãi**: vẫn hỏi thăm, hướng dẫn cách dùng bình thường, nhưng không gửi quảng cáo / ưu đãi. Khi khách đồng ý, mở hồ sơ bấm **☐ Khách đồng ý nhận ưu đãi**.
-4. **Không đưa mã đăng nhập** (mã 6 số của CRM và trang quản trị website) cho bất kỳ ai, kể cả đồng nghiệp.
-5. **Nghỉ việc hoặc đổi máy**: báo quản lý để khoá tài khoản CRM (khoá luôn quyền sửa website).
+## 5 điều không được làm
 
-## Cần hỗ trợ
+1. **Không nói sản phẩm "chữa bệnh", "điều trị", "khỏi bệnh".** Chỉ nói đúng công dụng công ty đã đăng ký. Thực phẩm bổ sung luôn kèm câu: *"Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh."*
+2. **Không chụp, không gửi danh sách khách ra ngoài.** Không dùng số điện thoại của khách cho việc riêng. Đây là quy định của pháp luật (Nghị định 13/2023).
+3. **Không gửi quảng cáo cho khách chưa đồng ý.** Vẫn hỏi thăm, hướng dẫn cách dùng bình thường. Khách đồng ý nhận ưu đãi thì mở hồ sơ khách, bấm **☐ Khách đồng ý nhận ưu đãi**.
+4. **Không đưa mã đăng nhập 6 số cho ai.** Kể cả đồng nghiệp.
+5. **Nghỉ việc hoặc đổi máy thì báo quản lý** để khoá tài khoản.
 
-- Hỏi quản lý trực tiếp, hoặc nhắn anh Sơn.
-- Khi báo lỗi, gửi kèm: bạn đang làm gì, ở tab nào, máy báo chữ gì. Chụp màn hình được, nhưng **che số điện thoại và tên khách** trước khi gửi.
+## Cần giúp đỡ?
+
+- Hỏi quản lý, hoặc nhắn anh Sơn.
+- Hoặc bấm nút **💡 Góp ý** trên đầu trang CRM. Gõ vài chữ, gửi kèm ảnh chụp màn hình.
+- Khi gửi ảnh ra ngoài CRM, nhớ **che tên và số điện thoại khách**.

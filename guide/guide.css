@@ -52,6 +52,10 @@ li { margin: 4px 0; }
 li > ul, li > ol { margin: 4px 0 6px; }
 strong { color: var(--ink); }
 code { background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; font-size: .92em; }
+/* các bước làm (danh sách số ở cấp ngoài cùng): số tròn to, dễ dò theo */
+main > ol { list-style: none; counter-reset: g-step; padding-left: 0; }
+main > ol > li { counter-increment: g-step; position: relative; padding-left: 42px; margin: 10px 0; min-height: 30px; }
+main > ol > li::before { content: counter(g-step); position: absolute; left: 0; top: 0; width: 30px; height: 30px; border-radius: 50%; background: var(--primary); color: #fff; font-weight: 700; font-size: 15px; line-height: 30px; text-align: center; }
 blockquote { margin: 16px 0; padding: 12px 16px; background: var(--gold-light); border-left: 4px solid #d8b25a; border-radius: 0 10px 10px 0; }
 blockquote p:last-child { margin-bottom: 0; }
 

@@ -1,0 +1,177 @@
+---
+title: Hướng dẫn cho Marketing và phụ trách sàn
+nav: Marketing
+order: 5
+updated: 2026-10-19
+description: Xem hiệu quả quảng cáo, nhập chi phí, tạo link và mã QR, cập nhật số liệu sàn.
+---
+
+Trang này dành cho bạn **làm marketing** và bạn **phụ trách sàn** (Shopee, TikTok Shop).
+
+## Đăng nhập trang Marketing
+
+Địa chỉ của bạn: **[mkt.thucduonglanh.vn](https://mkt.thucduonglanh.vn)**. Chỉ cần nhớ địa chỉ này.
+
+1. Mở **mkt.thucduonglanh.vn**.
+2. Gõ email, bấm **Gửi mã đăng nhập**.
+3. Mở email, lấy **mã 6 số**, gõ vào.
+4. Trên điện thoại: chọn **Thêm vào màn hình chính** để có biểu tượng **Marketing TDL** như một ứng dụng.
+
+Chưa vào được? Nhờ Quản trị thêm email của bạn với quyền **Marketing**.
+
+Tài khoản Marketing **chỉ thấy tab 📣 Marketing**. Bạn không thấy tên, số điện thoại khách hay doanh số toàn công ty. Đây là quy định bảo vệ dữ liệu khách (Nghị định 13/2023).
+
+## Màn hình Marketing có gì?
+
+Màn hình đầu chỉ có **số quan trọng nhất**. Phần chi tiết thu gọn, bấm vào tiêu đề mới mở.
+
+**6 ô số, chia 2 hàng, đọc từ trái sang phải:**
+
+- **Hàng 💵 Tiền:** 💸 tiền bỏ ra quảng cáo → 💰 tiền khách mới mua → 🚦 chi phí so với tiền khách mới.
+- **Hàng 📇 Data & khách:** 📇 chi phí có 1 data → 🛒 cứ 100 data có mấy người mua → 👤 chi phí có 1 khách mới.
+
+**"Data"** = 1 số điện thoại khách để lại khi xem quảng cáo.
+
+- **✅ Nên làm gì**: tối đa 5 việc quan trọng nhất. Làm theo từ trên xuống.
+- **🏆 Thi đua Marketing**: xếp hạng theo **% mục tiêu** đạt được. Vượt mức chi phí thì không được đứng hạng 1.
+- **💰 Thanh ngân sách tháng**: đã chi bao nhiêu so với ngân sách. Chỉ Quản trị đặt ngân sách.
+- **🗺 Hệ thống Marketing** (nút góc trên): sơ đồ hệ thống marketing của công ty.
+
+**Đèn:** 🟢 tốt · 🟠 cần để ý · 🔴 cần xử lý. Với ô chi phí, *đang xuống* là tốt (màu xanh).
+
+**Biểu đồ:** **đường xanh** là tiền khách mới, **đường vàng** là chi phí. Đường xanh càng cao hơn đường vàng thì quảng cáo càng có lời.
+
+Số tính lại 30 phút một lần. Bấm **↻** để tính lại ngay.
+
+## Đặt mục tiêu của bạn
+
+1. Bấm **🎯 Đặt mục tiêu của tôi**.
+2. Nhập **tiền khách mới** muốn đạt và **chi phí tối đa (%)** cho tháng này hoặc tháng sau.
+3. Bấm **Lưu**.
+
+Bạn đặt được cho **kênh mình phụ trách**, hoặc kênh chưa ai nhận. Kênh của người khác có 🔒, chỉ xem được.
+
+**Tiền tính cho ai?** *Khách trả tiền ở đâu thì tính cho người lo chỗ đó. Riêng khách mới đến từ quảng cáo Facebook thì tính cho người chạy Facebook.*
+
+- 📘 **Facebook**: khách mới từ quảng cáo Facebook (mua qua sale hay trên web).
+- 🌐 **Website**: mọi đơn đặt trên web, trừ khách mới từ quảng cáo Facebook.
+- 🟠 **Shopee**, 🛍️ **TikTok Shop**: doanh số sàn.
+- 👥 **Cộng đồng Zalo**: đơn mua lại của khách trong nhóm Zalo.
+
+## Nhập chi phí quảng cáo
+
+Bấm **⚙️ Nhập chi phí**:
+
+- **📘 Facebook**: tự cập nhật 3 tiếng một lần. Chỉ Quản trị kết nối.
+- **📄 Nhập file**: TikTok, Google Ads… Xuất báo cáo CSV theo ngày và chiến dịch, rồi chọn file. Nhập lại cùng ngày thì số mới thay số cũ.
+- **✍️ Nhập tay**: KOL, in ấn, sự kiện, quà tặng nhóm Zalo… Nhập số tiền cho một khoảng ngày. Máy chia đều theo ngày.
+- **📋 Đã nhập**: xem lại, xoá lần nhập sai.
+
+> **Đặt tên chiến dịch có tên sản phẩm**, ví dụ *7-10-PROGOMAX-SỮA*. Máy dựa vào tên để biết quảng cáo của sản phẩm nào lời hay lỗ.
+
+## Báo ưu đãi đang chạy cho sale
+
+Sale cần biết quảng cáo đang hứa gì, để nói đúng với khách.
+
+1. Trong tab Marketing, tìm mục **🎁 Ưu đãi / thông điệp đang chạy**. Bấm **＋ Thêm**.
+2. Ghi tên ưu đãi, sản phẩm, nội dung sale cần nói đúng (giá, quà, điều kiện) và ngày hết hạn.
+3. Bấm **Lưu**.
+
+Sale thấy ngay ở đầu tab **Khách hỏi**. Hết hạn thì tự ẩn.
+
+## Xem chi tiết: quảng cáo nào tốt, nào nên tắt
+
+Bấm vào từng mục để mở:
+
+- **🎬 Chiến dịch: nên tăng, giữ hay tắt?** 🟢 *Nên tăng tiền* (rẻ hơn trung bình từ 20%) · 🟠 *Giữ nguyên* · 🔴 *Nên giảm / tắt* (đắt hơn từ 40%, hoặc tiêu nhiều mà chưa có kết quả) · ⚪ *Chưa đủ số*. Dòng 🎨 báo mẫu quảng cáo đã nhàm.
+- **🤝 Phản hồi từ sale**: số khách từ nguồn nào tốt, vì sao khách không mua, bao lâu thì khách mua, tỷ lệ trả hàng.
+- **🪜 Quảng cáo rơi rụng ở đâu?** Thấy → bấm → để số → mua → tiền. Chỉ ra khâu yếu nhất.
+- **🧴 Quảng cáo từng sản phẩm**: lời, hoà vốn hay lỗ.
+- **💎 1 khách mới đáng giá bao nhiêu?**: mức tối đa nên chi để có 1 khách mới.
+
+Nếu các sale chênh nhau nhiều, vấn đề có thể nằm ở khâu tư vấn, chưa chắc do quảng cáo.
+
+## Trò chơi và lời cam kết trên website
+
+- **✍️ Lời cam kết sống lành**: số người ký cam kết ở thucduonglanh.vn/cam-ket-song-lanh/, đến từ đâu, ở tỉnh nào.
+- **🖐 Trò chơi "Bạn còn mấy ngón tay"**: số lượt chơi, điểm trung bình, **thói quen khách thấy khó nhất**. Nên làm bài viết, video, quảng cáo đúng chỗ khó đó.
+
+**Sửa câu hỏi trò chơi:**
+
+1. Bấm **Sửa câu hỏi trò chơi** (cuối mục 🖐, hoặc trong **⚙ Cài đặt**).
+2. Bấm vào từng câu để sửa. Dùng ↑ ↓ để đổi thứ tự, 🗑 để xoá, ＋ để thêm.
+3. Bấm **💾 Lưu & đăng lên web**. Khoảng 1–2 phút sau web cập nhật.
+
+Nên giữ đúng 10 câu. Hỏi sao cho trả lời **Có** là thói quen tốt. Không dùng chữ chữa, điều trị, khỏi bệnh.
+
+**Chơi nhóm ở sự kiện:**
+
+1. Trên máy tính nối TV, mở **thucduonglanh.vn/ngon-tay-song-lanh/nhom/**.
+2. Gõ **Tên buổi** (ví dụ "Trà đàm tháng 10"). Bấm **Bắt đầu**.
+3. Bấm **Tiếp** (hoặc phím →) để sang câu sau. Phím **F** để toàn màn hình.
+4. Cuối buổi màn hình hiện 3 mã QR: nhận cẩm nang, chơi lại trên điện thoại, vào nhóm Zalo.
+
+Khách quét mã và để lại tên sẽ vào tab Khách hỏi của sale. Biết được buổi nào mang về bao nhiêu khách.
+
+## Tạo link theo dõi khi đăng bài
+
+Mỗi bài đăng, mỗi quảng cáo dẫn khách về web thì dùng **link theo dõi**. Nhờ vậy biết khách đến từ bài nào.
+
+1. Mở [thucduonglanh.vn/admin/utm](https://thucduonglanh.vn/admin/utm).
+2. Dán link trang muốn dẫn khách tới.
+3. Chọn **Kênh** (Facebook, TikTok, Zalo…) và **Hình thức** (bài đăng, quảng cáo…).
+4. Gõ **Tên chiến dịch** không dấu, ví dụ `dilvang-combo`.
+5. Bấm **📋 Sao chép link**. Dùng link này khi đăng bài.
+
+## Link và mã QR cho tờ rơi, standee, gói hàng
+
+Mỗi nơi khách nhìn thấy (tờ rơi ở sự kiện, standee ở đối tác, tờ rơi trong hộp hàng…) dùng **1 link riêng**. Khách quét QR → vào web → đơn tự ghi đến từ đâu.
+
+**Mở:** trong CRM bấm **QR** trên thanh menu (Quản trị: **Tổng quan → 📍 Link & QR**).
+
+**Tạo link mới:**
+
+1. Bấm **＋ Tạo link mới**.
+2. **Mã ngắn**: càng ngắn thì QR càng dễ quét. Ví dụ gõ "DT An Lạc", máy đổi thành `dt-an-lac`. **Tạo xong không đổi được mã.**
+3. **Tên**, **Loại** (tờ rơi, standee, đối tác…): để nhận ra trong báo cáo.
+4. **Trang đích**: `/` là trang chủ. Trang sản phẩm thì chép phần sau tên miền, ví dụ `/san-pham/tra-dilvang/`.
+5. Bấm **Lưu**. Link chạy ngay.
+
+**Các nút trên mỗi link:**
+
+- **⬇ Tải QR**: **PNG** để dán vào Canva, gửi Zalo. **SVG** để gửi nhà in. In QR rộng từ 2,5 cm, nền trắng.
+- **📋 Link in**: link ngắn (chính là nội dung mã QR).
+- **📋 Link quảng cáo**: link dài, dán vào Google Ads, YouTube, bài đăng.
+- **✏️ Sửa**: đổi trang đích thì QR đã in **tự dẫn sang trang mới**, không phải in lại.
+- Không dùng nữa: **✏️ Sửa → ⏸ Ngừng dùng**. Không có nút xoá, để tờ rơi đã phát không bị hỏng link.
+
+**Đọc số:** **👀 Lượt quét** (mỗi điện thoại tính 1 lần mỗi ngày), **🛒 Đơn** và **💰 Tiền** (khách đặt trong 30 ngày sau khi quét), **🆕 Khách mới**. Xem riêng 1 sự kiện: chọn **📅** đúng ngày sự kiện.
+
+## Tin Telegram mỗi sáng
+
+Nối Telegram ở **⚙ Cài đặt → 📲 Thông báo Telegram riêng** (cách làm giống bên sale, xem [Đăng nhập](/huong-dan/crm/#dang-nhap)). 8h sáng bạn nhận tin **"📣 Marketing sáng nay"**: hạng thi đua của bạn, tiến độ mục tiêu, số hôm qua, việc nên làm. Muốn xem ngay: cuối tab Marketing bấm **Gửi thử cho tôi**.
+
+## Phụ trách sàn: cập nhật số Shopee, TikTok Shop
+
+Đơn trên sàn không đi qua CRM. Bạn cần đưa số lên để CRM tính doanh số. Tab **Sàn** chỉ hiện với người được Quản trị giao.
+
+**Cách 1: Gõ số vào Google Sheet (đang dùng cho Shopee)**
+
+1. Mở Google Sheet **"BC KQKD Sàn TMĐT"**, tab **Shope**.
+2. Mỗi ngày gõ 1 dòng: Ngày, Số người mua, Số đơn hàng, Số lượng sản phẩm, Doanh số, Số đơn hoàn/huỷ, Doanh số hoàn huỷ.
+3. CRM tự lấy số 30 phút một lần. Muốn thấy ngay: tab **Sàn** → **🔄 Lấy số từ Google Sheet**.
+
+- Gõ số **trong ngày hôm sau** là được. Quá 2 ngày chưa gõ, CRM nhắc bằng chữ đỏ.
+- **Doanh số** gõ tổng tiền mọi đơn đã đặt trong ngày, **kể cả đơn sau này bị huỷ**. Máy tự trừ phần huỷ.
+- Đơn huỷ hoặc trả lại ghi vào **đúng dòng ngày khách đặt** đơn đó.
+- Đừng đổi tên dòng tiêu đề. Mở sàn mới thì thêm tab tên **TikTok** hoặc **Lazada**, cột giống tab Shope.
+
+**Cách 2: Tải file đơn hàng từ sàn** (có thêm sản phẩm bán chạy và tiền thực về)
+
+1. **Shopee:** Kênh Người Bán → **Đơn hàng** → Tất cả → **Xuất** → chọn **30 ngày gần nhất** → tải file. **TikTok Shop:** Seller Center → **Đơn hàng → Quản lý đơn hàng** → **Xuất**.
+2. Vào CRM → tab **Sàn** → **📤 Tải file từ sàn** → chọn file. CRM cho xem trước số đơn, doanh số.
+3. Bấm **Nhập**.
+
+Tải lại đơn cũ **không bị tính trùng**. Nên tải luôn 30 ngày gần nhất. Muốn có **tiền thực về** đúng: tải thêm file tiền về (Shopee: **Tài Chính → Doanh Thu → Đã thanh toán → Xuất**; TikTok: **Tài chính → Đối soát**) bằng cùng nút 📤.
+
+File không đọc được: chụp màn hình gửi Quản trị. File .xls cũ thì mở bằng Excel hoặc Google Sheets, lưu lại thành .xlsx.

@@ -689,7 +689,7 @@
       '<div class="grow"></div><div class="me">' + meHTML() + '</div>' +
       (isMkt() ? '' : '<button class="icon-btn" id="gsBtn" title="Tìm khách, đơn, khách hỏi" aria-label="Tìm khách, đơn, khách hỏi">🔍</button>') +
       '<button class="icon-btn fb-btn" id="fbBtn" title="Góp ý: báo lỗi, chỗ khó dùng, ý tưởng" aria-label="Góp ý">💡<span class="fb-lbl">Góp ý</span></button>' +
-      '<a class="icon-btn" href="/huong-dan/crm/" target="_blank" rel="noopener" title="Hướng dẫn sử dụng" aria-label="Hướng dẫn sử dụng">' + I.help + '</a>' +
+      '<a class="icon-btn" href="/huong-dan/' + (isMkt() ? 'marketing' : 'crm') + '/" target="_blank" rel="noopener" title="Hướng dẫn sử dụng" aria-label="Hướng dẫn sử dụng">' + I.help + '</a>' +
       '<a class="icon-btn top-set" href="#cai-dat" title="Cài đặt" aria-label="Cài đặt">' + I.gear + '</a>' +
       '<button class="icon-btn" id="refresh" title="Tải lại dữ liệu" aria-label="Tải lại dữ liệu">' + I.refresh + '</button>' +
       '</div></header><main id="view"></main>';
