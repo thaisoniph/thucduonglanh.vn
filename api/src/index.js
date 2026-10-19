@@ -11,7 +11,7 @@ import { voucherCheck, voucherApply } from './voucher.js';
 import { qrGo } from './links.js';
 import { journeyCounts, pledge, quiz } from './journey.js';
 
-const API_VERSION = '2026-10-19d'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
+const API_VERSION = '2026-10-19e'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
 const ORIGINS = /^https:\/\/((www\.|crm\.|mkt\.|camnangsongkhoe\.)?thucduonglanh\.vn|([a-z0-9-]+\.)?(thucduonglanh(-crm)?|camnang-song-khoe-thuc-duong-lanh)\.pages\.dev)$|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
 function ctxOf(env, ectx) { return { env, db: env.DB, later: p => ectx.waitUntil(Promise.resolve(p).catch(e => console.error('later', e && e.message))) }; }

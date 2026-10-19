@@ -806,9 +806,12 @@ async function crmSession(x, token) {
 
 /* ================================================================ đơn hàng */
 /** Tên sản phẩm sale gõ khác nhau nhưng là 1 thứ ("Fu Progomax900g", "fucoidan PROgomax 900g"…) → cùng 1 khoá: bỏ dấu, hoa thường, khoảng trắng, tách số dính chữ, "Fu" = Fucoidan. */
-export function prodKey(s) {
+function prodKey0(s) {
   return nrm(s).replace(/(\d)\s*(?:gr|gram|gam)\b/g, '$1g').replace(/([a-z])(\d)/g, '$1 $2').replace(/(\d)\s+(g|kg|ml|v|goi)\b/g, '$1$2').replace(/[^a-z0-9]+/g, ' ').trim().replace(/^fu\b/, 'fucoidan');
 }
+/** Tên gọi khác do anh Sơn xác nhận 19/10/2026: "promax" = Progomax; fucodan/fucudan = Ngũ cốc Fucoidan (loại cũ đã dừng, khác Progomax); ruốc chay không ghi cỡ / 165g = ruốc chay rong biển 165g. */
+const PROD_ALIAS = [[/^fucoidan promax\b/, 'fucoidan progomax'], [/^(?:ngu coc )?fuc[ou]dan\b/, 'ngu coc fucoidan'], [/^ruoc chay(?: 165g)?$/, 'ruoc chay rong bien 165g']];
+export function prodKey(s) { let k = prodKey0(s); PROD_ALIAS.forEach(a => { k = k.replace(a[0], a[1]); }); return k; }
 /** Đổi tên sản phẩm trong đơn về tên chuẩn (bảng kv prod_canon do unifyProducts lập). */
 export function canonItems(items, map) { (items || []).forEach(i => { const c = map && map[prodKey(i.name)]; if (c) i.name = c; }); return items; }
 const ITEM_LINE = /^(🎁 ?)?(.*?)((?: \(.*\))? x\d+ = .*)$/;
@@ -819,7 +822,7 @@ const prodScore = (n, c) => c + (/\p{L}\d/u.test(n) ? 0 : 1e7) + (n[0] === n[0].
 export async function unifyProducts(x) {
   const rows = await all(x.db, "SELECT rid, items FROM orders WHERE items != ''"), by = {};
   rows.forEach(r => String(r.items).split('\n').forEach(l => { const m = l.match(ITEM_LINE); if (!m) return; const n = m[2].replace(/\s+/g, ' ').trim(), k = prodKey(n); if (k) (by[k] = by[k] || {})[n] = (by[k][n] || 0) + 1; }));
-  const map = {}; Object.keys(by).forEach(k => { const g = by[k]; map[k] = Object.keys(g).sort((a, b) => prodScore(b, g[b]) - prodScore(a, g[a]))[0]; });
+  const map = {}; Object.keys(by).forEach(k => { const g = by[k]; const sc = n => prodScore(n, g[n]) + (prodKey0(n) === k ? 1e8 : 0); const n = Object.keys(g).sort((a, b) => sc(b) - sc(a))[0]; map[k] = n[0].toUpperCase() + n.slice(1); }); // tên gọi khác (PROD_ALIAS) không được chọn làm tên chuẩn
   await kvSet(x.db, 'prod_canon', JSON.stringify(map));
   const chg = []; rows.forEach(r => { const t = canonText(r.items, map); if (t !== r.items) chg.push({ rid: r.rid, items: t }); });
   for (let i = 0; i < chg.length; i += 200) await run(x.db, "UPDATE orders SET items = json_extract(j.value, '$.items') FROM json_each(?) j WHERE orders.rid = json_extract(j.value, '$.rid')", JSON.stringify(chg.slice(i, i + 200)));
