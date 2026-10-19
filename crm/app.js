@@ -32,15 +32,15 @@
   var RESULTS = ['Đã đặt lại', 'Hẹn gọi lại', 'Không nghe máy', 'Đã hỏi thăm', 'Không có nhu cầu'];
   // Ghi nhanh 1 chạm (giống cách sale viết tắt trên Sheet): tự chọn kết quả + tự hẹn ngày gọi lại
   var QUICK = [
-    { k: 'knm', l: '📵 KNM', r: 'Không nghe máy', n: 'knm', d: 2 },
-    { k: 'tb', l: '📴 Thuê bao', r: 'Không nghe máy', n: 'thuê bao', d: 3 },
+    { k: 'knm', l: '📵 Không nghe máy', r: 'Không nghe máy', n: 'knm', d: 2 },
+    { k: 'tb', l: '📴 Thuê bao / tắt máy', r: 'Không nghe máy', n: 'thuê bao', d: 3 },
     { k: 'tcn', l: '🙅 Từ chối nghe', r: 'Không nghe máy', n: 'từ chối nghe', d: 7 },
     { k: 'ok', l: '👍 Dùng ok', r: 'Đã hỏi thăm', n: 'kh dùng ok', d: 0 },
     { k: 'con', l: '📦 Còn hàng', r: 'Hẹn gọi lại', n: 'kh còn nhiều', d: 14 },
     { k: 'tien', l: '💸 Hết tiền', r: 'Hẹn gọi lại', n: 'kh hết tiền, hẹn tháng sau', d: 30 },
     { k: 'mua', l: '🛒 Đặt lại', r: 'Đã đặt lại', n: 'kh đặt lại', d: 0, order: true },
     { k: 'thoi', l: '🚫 Không dùng nữa', r: 'Không có nhu cầu', n: 'kh không dùng nữa', d: 0 },
-    { k: 'nhan', l: '📦 Đã nhận, đã HD dùng', r: 'Đã hỏi thăm', n: 'kh đã nhận hàng, đã hướng dẫn dùng', d: 0, received: 1, only: 'd1' },
+    { k: 'nhan', l: '📦 Đã nhận, đã hướng dẫn dùng', r: 'Đã hỏi thăm', n: 'kh đã nhận hàng, đã hướng dẫn dùng', d: 0, received: 1, only: 'd1' },
     { k: 'chuanhan', l: '🚚 Chưa nhận hàng', r: 'Hẹn gọi lại', n: 'kh chưa nhận được hàng', d: 2, only: 'd1' }
   ];
   var SOURCES = ['Zalo', 'Điện thoại', 'Facebook', 'TikTok', 'Shopee', 'Khách quen giới thiệu', 'Tại cửa hàng', 'Tờ rơi / Sự kiện', 'Khác'];
@@ -632,7 +632,7 @@
     var cnt = {}; (list || []).forEach(function (c) { var k = custCat(c).key; cnt[k] = (cnt[k] || 0) + 1; });
     var keys = CAT_ORDER.concat(myTags().map(function (t) { return 'tag:' + t.name; }));
     Object.keys(cnt).forEach(function (k) { if (keys.indexOf(k) < 0) keys.push(k); });
-    return '<div class="legend">' + keys.map(function (k) {
+    return '<div class="legend"><span class="muted lg-t">Màu thẻ (bấm để lọc):</span>' + keys.map(function (k) {
       var isTag = k.indexOf('tag:') === 0, color = isTag ? tagColor(k.slice(4)) : catColor(k), label = isTag ? k.slice(4) : CAT_DEF[k].label;
       return '<button class="lg' + (active === k ? ' on' : '') + '" data-cat="' + esc(k) + '"' + (isTag ? '' : ' title="' + esc(CAT_DEF[k].tip) + '"') + '><i style="background:' + color + ';border-color:' + shade(color, .35) + '"></i>' + esc(label) + (list ? ' <em>' + (cnt[k] || 0) + '</em>' : '') + '</button>';
     }).join('') + '<button type="button" class="lg-set lg-help" data-taghelp>ⓘ Giải thích nhãn</button><a class="lg-set" href="#cai-dat">🎨 Đổi màu</a></div>';
@@ -1132,7 +1132,7 @@
     var names = staffNames(); if (!names.length) return '';
     var st = teamStats(names);
     var cell = function (v, bad) { return '<td' + (v && bad ? ' class="bad"' : '') + '>' + (v || '–') + '</td>'; };
-    return '<section class="section"><div class="section-h"><h2>👥 Tiến độ nhân sự hôm nay</h2><span class="tip">bấm vào tên để xem việc của người đó</span></div><div class="team-wrap"><table class="team"><thead><tr><th>Nhân sự</th><th>Chăm sóc<br><small>đã xong / cần làm</small></th><th>Trễ hạn</th><th>KNM</th><th>Khách hỏi chờ</th><th>Đơn chưa xác nhận</th><th>Chốt hôm nay</th></tr></thead><tbody>' +
+    return '<section class="section"><div class="section-h"><h2>👥 Tiến độ nhân sự hôm nay</h2><span class="tip">bấm vào tên để xem việc của người đó</span></div><div class="team-wrap"><table class="team"><thead><tr><th>Nhân sự</th><th>Chăm sóc<br><small>đã xong / cần làm</small></th><th>Trễ hạn</th><th title="Khách gọi không nghe máy hôm nay">Không nghe</th><th>Khách hỏi chờ</th><th>Đơn chưa xác nhận</th><th>Chốt hôm nay</th></tr></thead><tbody>' +
       names.map(function (n) {
         var x = st[n], all = x.doneN + x.todo, p = all ? Math.round(x.doneN * 100 / all) : 100;
         return '<tr data-who="' + esc(n) + '"><td><b>' + esc(n) + '</b></td><td><div class="tm-p"><span>' + x.doneN + ' / ' + all + '</span><div class="bar"><i style="width:' + p + '%"></i></div></div></td>' +
@@ -1500,6 +1500,7 @@
     var cArea = $('#cArea'); if (cArea) cArea.innerHTML = areaBox(q) + crossHint(q, qd, true);
     cList.innerHTML = renderCustomerList(list, f.n);
   }
+  document.addEventListener('toggle', function (e) { var t = e.target; if (t && t.classList && t.classList.contains('cfmore') && S.f && S.f.c) S.f.c.more = t.open; }, true);
   function viewCustomers() {
     var f = S.f.c || (S.f.c = { q: '', k: 'all', sort: 'prio', n: 60 });
     var q = norm(f.q), qd = q.replace(/\D/g, ''), words = qWords(q);
@@ -1516,16 +1517,17 @@
     if (q) list = list.filter(function (c) { return (c._normName || norm(c.name)).indexOf(q) >= 0; }).concat(list.filter(function (c) { return (c._normName || norm(c.name)).indexOf(q) < 0; })); // trùng tên lên đầu, rồi mới đến trùng tỉnh / địa chỉ / sản phẩm
     S.promoPick = { list: list, label: cur.l + (lvl() >= 2 && S.who ? ' · ' + (S.who === '-' ? 'chưa ai phụ trách' : 'của ' + S.who) : '') + (f.spend ? ' · chi ' + SPEND[f.spend][0].toLowerCase() : '') + (f.src ? ' · nguồn ' + f.src : '') + (f.bday ? ' · ' + bdayLabel(f.bday) : '') + (f.q ? ' · tìm “' + f.q + '”' : '') };
     return '<div class="page-head"><h1>Khách đã mua</h1><span class="muted" id="cCount">' + base.length + ' khách</span><div class="grow"></div>' + whoSel() + '<button class="btn pri" data-promo title="Gửi tin ưu đãi qua Zalo cho từng khách trong danh sách đang lọc">📣 Gửi ưu đãi lần lượt</button></div>' +
-      '<div class="tools"><div class="search">' + I.search + '<input type="search" id="cq" placeholder="Tìm tên, SĐT, tỉnh, huyện, sản phẩm…" value="' + esc(f.q) + '"><button type="button" class="search-x" aria-label="Xoá chữ tìm kiếm" title="Xoá">✕</button></div>' +
+      '<div class="tools"><div class="search">' + I.search + '<input type="search" id="cq" placeholder="Tìm tên, SĐT, tỉnh, sản phẩm…" value="' + esc(f.q) + '"><button type="button" class="search-x" aria-label="Xoá chữ tìm kiếm" title="Xoá">✕</button></div>' +
       '<select id="csort" style="flex:0 0 auto;width:auto">' + Object.keys(SORTS).map(function (k) { return '<option value="' + k + '"' + (f.sort === k ? ' selected' : '') + '>' + SORTS[k][0] + '</option>'; }).join('') + '</select></div>' +
+      (f.bday && !dobReady() ? '<div class="notice">🎂 Máy chủ chưa có cột Ngày sinh. Báo quản lý dán code Apps Script bản mới và Triển khai phiên bản mới.</div>' : '') +
+      '<div class="chips" id="cChips">' + renderCustomerChips(base, cur) + '</div>' +
+      legend(S.d.customers.filter(function (c) { return whoOk(c.owner); }), f.cat) +
+      '<details class="cfmore"' + (f.spend || f.src || f.bday || f.more ? ' open' : '') + '><summary>🔎 Lọc thêm: mức chi, nguồn khách, sinh nhật' + (f.spend || f.src || f.bday ? ' <b class="cf-on">· đang lọc</b>' : '') + '</summary>' +
       '<div class="tools filt"><select id="cspend" class="' + (f.spend ? 'on' : '') + '" title="Lọc theo tổng tiền khách đã chi"><option value="">💰 Mọi mức chi</option>' + Object.keys(SPEND).map(function (k) { return '<option value="' + k + '"' + (f.spend === k ? ' selected' : '') + '>Đã chi ' + SPEND[k][0].toLowerCase() + '</option>'; }).join('') + '</select>' +
         '<select id="csrc" class="' + (f.src ? 'on' : '') + '" title="Lọc theo nguồn khách mua lần đầu"><option value="">🧭 Mọi nguồn</option>' + srcs.map(function (x) { return '<option' + (f.src === x ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('') + '</select>' +
         '<select id="cbday" class="' + (f.bday ? 'on' : '') + '" title="Lọc khách theo tháng sinh nhật (ngày sinh nhập ở hồ sơ khách → Sửa thông tin)"><option value="">🎂 Sinh nhật</option>' +
           [['this', 'Sinh nhật tháng này (T' + bdayMonth('this') + ')'], ['next', 'Sinh nhật tháng sau (T' + bdayMonth('next') + ')']].concat([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(function (m) { return [String(m), 'Sinh nhật tháng ' + m]; })).concat([['none', 'Chưa có ngày sinh']]).map(function (o) { return '<option value="' + o[0] + '"' + (f.bday === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>' +
-        (f.spend || f.src || f.bday ? '<button type="button" class="link small" data-cfclear>Bỏ lọc</button>' : '') + '</div>' +
-      (f.bday && !dobReady() ? '<div class="notice">🎂 Máy chủ chưa có cột Ngày sinh. Báo quản lý dán code Apps Script bản mới và Triển khai phiên bản mới.</div>' : '') +
-      legend(S.d.customers.filter(function (c) { return whoOk(c.owner); }), f.cat) +
-      '<div class="chips" id="cChips">' + renderCustomerChips(base, cur) + '</div>' +
+        (f.spend || f.src || f.bday ? '<button type="button" class="link small" data-cfclear>Bỏ lọc</button>' : '') + '</div>' + '</details>' +
       '<div id="cArea">' + (areaBox(q) + crossHint(q, qd, true)) + '</div>' +
       '<div id="cList">' + renderCustomerList(list, f.n) + '</div>';
   }
@@ -1773,7 +1775,7 @@
       commBox(c, type, true) + giftBox(giftPerson(c.phone), type, true) + // thu gọn: để Bước 2 không bị đẩy xuống xa
       '<div class="box"><h3>Bước 2 · Khách thế nào? Bấm 1 nút là xong</h3>' +
       '<label class="f"><span>Khách nói gì (không bắt buộc, gõ trước rồi bấm nút)</span><textarea id="kNote" rows="2" placeholder="vd: chị bảo ngủ ngon hơn, còn nửa hộp…"></textarea></label>' +
-      '<div class="f"><span style="display:block;font-size:13px;color:var(--muted);margin-bottom:6px">Máy tự lưu và tự hẹn ngày gọi lại</span><div class="quick">' + QUICK.filter(function (q) { return !q.only || q.only === type; }).sort(function (a, b) { return (b.only ? 1 : 0) - (a.only ? 1 : 0); }).map(function (q) { return '<button class="btn" data-q="' + q.k + '" title="' + esc(q.r + (q.d ? ', ' + q.d + ' ngày sau tự nhắc gọi lại' : '')) + '">' + q.l + '</button>'; }).join('') + '</div></div>' +
+      '<div class="f"><span style="display:block;font-size:13px;color:var(--muted);margin-bottom:6px">Máy tự lưu và tự hẹn ngày gọi lại</span><div class="quick">' + QUICK.filter(function (q) { return !q.only || q.only === type; }).sort(function (a, b) { return (b.only ? 1 : 0) - (a.only ? 1 : 0); }).map(function (q) { return '<button class="btn" data-q="' + q.k + '" title="' + esc(q.r + (q.d ? ', ' + q.d + ' ngày sau tự nhắc gọi lại' : '')) + '">' + q.l + (q.d ? '<small>gọi lại sau ' + q.d + ' ngày</small>' : '') + '</button>'; }).join('') + '</div></div>' +
       '<div class="k-cb"><span>📅 Khách hẹn gọi lại:</span>' + [[1, 'Mai'], [3, '3 ngày'], [7, '1 tuần'], [14, '2 tuần']].map(function (x) { return '<button type="button" class="chip" data-kcb="' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div>' +
       '<details class="k-more"><summary>Kết quả khác / tự chọn ngày hẹn</summary><div style="margin-top:10px">' +
       '<label class="f"><span>Việc</span><select id="kTask">' + Object.keys(TASK_LOG).map(function (k) { return '<option value="' + k + '"' + (k === type ? ' selected' : '') + '>' + TASK_LOG[k] + '</option>'; }).join('') + '</select></label>' +
@@ -2051,7 +2053,7 @@
     var body = '<div class="acts steps" style="margin-bottom:12px"><a class="btn" href="tel:' + o.phone + '">📞 Gọi</a><a class="btn zalo" href="' + zalo(o.phone) + '" target="_blank" rel="noopener">Zalo</a>' +
       (c ? '<button class="btn" data-cust="' + c.phone + '">👤 Xem khách (' + c.orders + ' đơn)</button>' : '') + '<button class="btn" id="oCopy">📋 Copy thông tin giao hàng</button><button class="btn" id="oEdit">✏️ Sửa đơn</button></div>' +
       (o.oflag ? '<div class="notice" id="oOtBox">⚠️ <b>Kiểm tra loại đơn:</b> sale chọn <b>' + esc(otLabel(otypeOf(o))) + '</b>. ' + esc(o.oflag) + '.' + (lvl() >= 2 ? '<div class="steps" style="margin-top:8px"><button class="btn pri" id="oOtOk">✓ Đúng, giữ ' + esc(otypeOf(o)) + '</button>' + OTYPES.filter(function (t) { return t !== otypeOf(o); }).map(function (t) { return '<button class="btn" data-otset="' + esc(t) + '">Đổi sang ' + esc(otLabel(t)) + '</button>'; }).join('') + '</div>' : '<br>Quản lý sẽ kiểm tra lại.') + '</div>' : '') +
-      '<div class="box"><h3>Trạng thái</h3><div class="radios">' + STATUS.map(function (s) { return '<label><input type="radio" name="oSt" value="' + s + '"' + (s === o.status ? ' checked' : '') + '><span>' + s + '</span></label>'; }).join('') + '</div></div>' +
+      '<div class="box"><h3>Trạng thái</h3>' + (NEXT[o.status] ? '<p class="next-hint">👉 Bước tiếp theo: bấm <b>' + NEXT[o.status] + '</b>' + { 'Mới': ' sau khi gọi khách xác nhận đơn.', 'Đã xác nhận': ' khi đã gửi hàng (hoặc nhập mã vận đơn bên dưới).', 'Đang giao': ' khi khách đã nhận hàng.' }[o.status] + '</p>' : '') + '<div class="radios">' + STATUS.map(function (s) { return '<label><input type="radio" name="oSt" value="' + s + '"' + (s === o.status ? ' checked' : '') + '><span>' + s + '</span></label>'; }).join('') + '</div></div>' +
       '<div class="box"><div class="grid-info">' + info('Khách', o.name, false, true) + info('Điện thoại', fPhone(o.phone), false, normPhone(o.phone)) + info('Thời gian', fDateTime(o.time) + ' ' + vnDate(o.time).y) + info('Thanh toán', o.payment) +
       info('Địa chỉ', fullAddr(o), true, true) + (o.email ? info('Email', o.email, true, true) : '') + info('Nguồn', o.source || '–', true) + '</div>' +
       (lvl() >= 2 ? '<label class="f" style="margin:10px 0 0"><span>Nhân viên bán (tính doanh số)</span><select id="oSeller">' + ownerOptions(o.seller, true) + '</select></label>' : '<p class="small muted" style="margin:8px 0 0">Nhân viên bán: <b>' + esc(o.seller || '–') + '</b></p>') + '</div>' +
@@ -2603,7 +2605,7 @@
     if (lvl() >= 2 && f.k === 'mine') f.k = 'due';
     var cur = LF.filter(function (x) { return x.k === f.k; })[0] || LF[0], list = sortLeads(base.filter(cur.f));
     return '<div class="page-head"><h1>Khách hỏi</h1><span class="muted" id="tCount">' + leadsCountText(base) + '</span><div class="grow"></div>' + whoSel() + '<button class="btn pri" data-newlead>＋ Thêm khách hỏi</button></div>' +
-      '<div class="tools"><div class="search">' + I.search + '<input type="search" id="tq" placeholder="Tìm tên, SĐT, tỉnh, sản phẩm quan tâm…" value="' + esc(f.q) + '"><button type="button" class="search-x" aria-label="Xoá chữ tìm kiếm" title="Xoá">✕</button></div>' +
+      '<div class="tools"><div class="search">' + I.search + '<input type="search" id="tq" placeholder="Tìm tên, SĐT, sản phẩm…" value="' + esc(f.q) + '"><button type="button" class="search-x" aria-label="Xoá chữ tìm kiếm" title="Xoá">✕</button></div>' +
         '<select id="tch" class="' + (f.ch ? 'on' : '') + '" style="flex:0 0 auto;width:auto" title="Lọc theo kênh khách hỏi"><option value="">📣 Mọi kênh</option>' + chs.map(function (x) { return '<option' + (f.ch === x ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('') + '</select></div>' +
       offerBanner() + '<div class="chips" id="tChips">' + renderLeadsChips(base, cur) + '</div>' +
       '<div id="tArea">' + (areaBox(q, 'lead') + crossHint(q, qd, false)) + '</div>' +
@@ -5452,19 +5454,11 @@
       '<h3 style="margin:14px 0 8px">Nhãn riêng của bạn</h3><div class="color-rows" id="tagRows">' + tg.map(function (t, i) { return '<div class="color-row" data-ti="' + i + '"><input type="color" data-tk="color" value="' + esc(t.color) + '"><input type="text" data-tk="name" value="' + esc(t.name) + '" placeholder="Tên nhãn (vd Khách thân)" maxlength="30"><button class="rm" data-deltag="' + i + '" aria-label="Xoá">✕</button></div>'; }).join('') + '</div>' +
       '<div class="steps" style="margin-top:10px"><button class="btn" data-addtag>＋ Thêm nhãn</button><button class="btn pri" id="prefSave">Lưu màu & nhãn</button><button class="btn ghost" id="prefReset">Về màu mặc định</button></div></div>';
     G.guide = '<div class="box guide"><h3>Hướng dẫn nhanh</h3><ol>' +
-      '<li>Mỗi sáng mở tab <b>Hôm nay</b>. Làm lần lượt từ trên xuống: đơn mới, khách vừa hỏi (nếu có), chăm sóc khách, khách hỏi. Dưới mỗi khách có dòng 🕘 lần liên hệ gần nhất để biết lần trước đã nói gì.</li>' +
-      '<li><b>Đơn mới:</b> gọi khách xác nhận, xong bấm <b>✅ Xác nhận</b>. Gửi hàng thì bấm <b>🚚 Đang giao</b>, khách nhận thì <b>📬 Đã giao</b>.</li>' +
-      '<li><b>Chăm sóc:</b> bấm <b>💬 Chăm sóc</b> → <b>Copy tin & mở Zalo</b> → dán tin gửi khách → quay lại chọn <b>Kết quả</b> → <b>Lưu</b>. Khách đó sẽ tự biến khỏi danh sách.</li>' +
-      '<li>Khách hẹn gọi lại: chọn “Hẹn gọi lại” và chọn ngày. Đến ngày, khách tự hiện lại ở tab Hôm nay.</li>' +
-      '<li>Khách đặt qua Zalo / điện thoại: vào <b>Đơn hàng → ＋ Tạo đơn</b> để lưu, khách sẽ được chăm sóc tự động như đơn web.</li>' +
-      '<li><b>Khách hỏi</b> (hỏi mà chưa mua, nhắn Fanpage, Zalo, form web…): vào tab <b>Khách hỏi → ＋ Thêm</b>. Mỗi lần nói chuyện bấm <b>💬 Tư vấn</b> → chọn kết quả. Khách đồng ý mua thì chọn <b>“Khách chốt mua”</b>, form tạo đơn mở ra luôn. Khách từ chối thì chọn <b>“Khách không mua”</b> và ghi lý do.</li>' +
-      '<li>Tab <b>Hiệu quả</b>: đầu tháng bấm <b>🎯 Đặt mục tiêu</b> doanh số của mình. Thanh tiến độ cho biết đang nhanh hay chậm (vạch đen = hôm nay), và mỗi ngày cần bán thêm bao nhiêu. Bên dưới là doanh số, giá trị trung bình mỗi đơn, tỷ lệ chốt, phần doanh số từ khách cũ và kết quả chăm sóc, so với kỳ trước. Bấm nút <b>📅</b> để chọn thời gian (hôm nay, 7 ngày, tháng trước hoặc tự chọn ngày).</li>' +
-      '<li><b>Đơn chuyển khoản</b>: tiền về tài khoản thì mở đơn bấm <b>💳 Xác nhận đã nhận tiền</b>. Gửi hàng thì nhập <b>mã vận đơn</b>, đơn tự chuyển sang “Đang giao”.</li>' +
-      '<li>Bạn chỉ thấy <b>khách mình phụ trách</b>. Gõ số của khách người khác đang phụ trách, CRM sẽ báo tên người đó. Muốn đổi người phụ trách thì nhờ quản lý chuyển.</li>' +
-      '<li>Nên bấm <b>📲 Kết nối Telegram</b> (mục ngay dưới) để nhận riêng đơn mới và việc hằng ngày của mình.</li>' +
-      '<li><b>Màu thẻ khách</b>: trắng = mua 1 lần, vàng = mua từ 2 lần, tím = đặt tối / CN / lễ, xám = hay hoàn / bom (đầu mỗi danh sách có dòng <b>Màu dòng</b> nhắc lại). Bấm vào ô màu ở trang Khách hàng để lọc. Đổi màu hoặc tạo nhãn riêng ở mục 🎨 bên dưới.</li>' +
-      '<li><b>☐ Khách đồng ý nhận ưu đãi</b> (trong hồ sơ): bấm khi khách đồng ý nhận tin khuyến mãi. Khách chưa đồng ý thì chỉ hỏi thăm, hướng dẫn dùng.</li>' +
-      '<li>Nhãn <span class="age ok">💬 5 ngày chưa chăm sóc</span>: đếm từ lần gần nhất khách <b>có trả lời</b> (gọi không nghe máy thì vẫn đếm tiếp). <b>Xanh</b> ≤ 7 ngày · <b>Cam</b> 8–30 ngày · <b>Đỏ</b> trên 30 ngày, nên liên hệ lại.</li>' +
+      '<li>Mỗi sáng mở <b>Hôm nay</b>, bấm <b>▶ Bắt đầu gọi lần lượt</b>. Với mỗi khách: <b>📞 Gọi</b> → nói chuyện → <b>💬 Ghi lại</b> kết quả. Khách không nghe máy thì bấm <b>📵 Không nghe</b>, 2 ngày sau CRM tự nhắc.</li>' +
+      '<li>Khách đặt qua Zalo / điện thoại: <b>Đơn hàng → ＋ Tạo đơn</b>. Khách hỏi mà chưa mua: <b>Khách hỏi → ＋ Thêm khách hỏi</b>.</li>' +
+      '<li>Mỗi đơn chỉ có 1 nút xanh là việc tiếp theo (Xác nhận → Đang giao → Đã giao). Cứ bấm theo nút đó.</li>' +
+      '<li>Đầu tháng vào <b>Hiệu quả</b> bấm <b>🎯 Đặt mục tiêu</b>. Màu ở mọi màn hình: 🟢 tốt · 🟠 cần để ý · 🔴 cần xử lý (có dòng chú thích ngay trên màn hình).</li>' +
+      '<li>Kết nối <b>📲 Telegram</b> (mục ngay dưới) để nhận việc mỗi sáng. Chỉ gửi ưu đãi khi khách đã đồng ý (ô <b>☐ Khách đồng ý nhận ưu đãi</b> trong hồ sơ).</li>' +
       '</ol><p style="margin:10px 0"><a class="btn" href="/huong-dan/crm/" target="_blank" rel="noopener">📖 Xem hướng dẫn đầy đủ</a></p><p class="small muted" style="margin:6px 0 0">Không chụp màn hình, không gửi danh sách khách ra ngoài: đây là dữ liệu cá nhân, pháp luật yêu cầu giữ kín (Nghị định 13/2023).</p></div>';
     h += '<p class="small muted set-intro">Bấm vào từng mục để mở. Dòng nhỏ dưới tên mục là đang cài thế nào; có <b>⚠️</b> là nên làm.</p>';
     h += setSec('🙋 Của tôi', setGroup('guide', '📖 Hướng dẫn nhanh', 'Những điều cần biết khi dùng CRM hằng ngày', G.guide, true) +

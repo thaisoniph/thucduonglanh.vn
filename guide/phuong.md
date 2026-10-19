@@ -41,7 +41,7 @@ Chào Phương! Toàn bộ khách, đơn hàng và **ghi chú cũ** trong file c
 
 Trên cùng là **số khách cần chăm sóc hôm nay** và **thanh tiến độ** (đã xong bao nhiêu). Mỗi ngày CRM đưa ra tối đa **30 khách**, khách quan trọng trước: hẹn gọi lại → hỏi nhận hàng → sắp hết hàng → việc bị trễ → các việc khác. Khách chưa tới lượt tự dời sang hôm sau, không mất.
 
-Bên dưới, khách được chia **nhóm thu gọn** (bấm vào nhóm mới mở ra), mỗi khách 1 dòng với 3 nút **📞 Gọi · 📵 KNM · 💬 Chăm sóc**:
+Bên dưới, khách được chia **nhóm thu gọn** (bấm vào nhóm mới mở ra), mỗi khách 1 dòng với 3 nút **📞 Gọi · 📵 Không nghe · 💬 Ghi lại**:
 
 - **📞 Hẹn gọi lại**: khách em đã hẹn, hoặc hôm trước không nghe máy.
 - **📦 Hỏi nhận hàng**: khách vừa nhận hàng. Đơn chưa giao xong thì CRM chờ khoảng **5 ngày** sau ngày đặt mới nhắc, thẻ khách ghi "đơn vẫn Đang giao" để bạn hỏi khách đã nhận chưa. Khách **mua lại đúng sản phẩm đã dùng** (🌟 khách quen) thì CRM không nhắc mốc này, mốc 1 tuần và mốc 14 ngày nữa, vì khách đã biết cách dùng; chỉ nhắc khi sắp hết hàng.
@@ -63,7 +63,7 @@ Bấm **▶ Bắt đầu gọi lần lượt**, CRM mở **từng khách một**
 
 | Nút | Máy ghi | Tự nhắc gọi lại |
 | --- | --- | --- |
-| 📵 **KNM** | knm | sau 2 ngày |
+| 📵 **Không nghe máy** | knm | sau 2 ngày |
 | 📴 **Thuê bao** | thuê bao | sau 3 ngày |
 | 🙅 **Từ chối nghe** | từ chối nghe | sau 7 ngày |
 | 👍 **Dùng ok** | kh dùng ok | không hẹn |
@@ -71,7 +71,7 @@ Bấm **▶ Bắt đầu gọi lần lượt**, CRM mở **từng khách một**
 | 💸 **Hết tiền** | kh hết tiền, hẹn tháng sau | sau 30 ngày |
 | 🛒 **Đặt lại** | kh đặt lại, mở luôn form tạo đơn | không hẹn |
 | 🚫 **Không dùng nữa** | kh không dùng nữa | không hẹn, không đưa vào danh sách khách cũ nữa |
-| 📦 **Đã nhận, đã HD dùng** *(khi hỏi nhận hàng)* | kh đã nhận hàng · máy ghi luôn ngày nhận hàng | không hẹn |
+| 📦 **Đã nhận, đã hướng dẫn dùng** *(khi hỏi nhận hàng)* | kh đã nhận hàng · máy ghi luôn ngày nhận hàng | không hẹn |
 | 🚚 **Chưa nhận hàng** *(khi hỏi nhận hàng)* | kh chưa nhận được hàng | sau 2 ngày |
 
 Khách nói gì thêm (vd “bà ngủ ngon hơn”) thì gõ vào **Ghi chú lần này** **trước** khi bấm nút, máy ghi kèm. Khách **đã kết bạn Zalo** thì nên nhắn trước; khách **chưa kết bạn** thì gọi, gọi xong nhớ xin kết bạn.

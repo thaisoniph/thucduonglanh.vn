@@ -78,7 +78,7 @@ Trên danh sách đơn và khách hỏi, bấm vào mã đơn hoặc số điệ
   - **Ai thấy đơn mới:** Quản lý / Quản trị thấy tất cả. Nhân viên sale **chỉ thấy đơn đã giao cho mình**: đơn quản lý giao, hoặc đơn của khách mình đang phụ trách đặt lại. Đơn chưa giao thì không hiện với nhân viên nào, ở cả **Hôm nay** lẫn tab **Đơn hàng**.
   - **Quản lý giao đơn:** trên mỗi đơn mới có ô **Giao cho…**, chọn tên nhân sự là xong. Người đó sẽ thấy đơn ở **Hôm nay**. Chọn **Bỏ giao** để rút lại. (Người được giao cũng là *NV bán* của đơn, tính vào doanh số.)
 - **2️⃣ 🔥 Khách vừa hỏi – liên hệ ngay** (chỉ hiện khi có): người hỏi trong 24 giờ qua mà chưa ai liên hệ. Đây là khách nóng nhất, gọi càng sớm càng dễ chốt.
-- **3️⃣ Chăm sóc khách:** chia nhóm theo loại việc (xem [bảng các loại việc](#cac-loai-viec-cham-soc)). Nhóm đầu tiên tự mở sẵn (nếu phía trên chưa có mục nào mở), các nhóm khác bấm vào mới mở. Mỗi khách 1 dòng với nút **📞 Gọi · 📵 KNM · 💬 Chăm sóc**. Dưới tên khách có dòng **🕘 lần liên hệ gần nhất** (vd *“3 ngày trước: Đã hỏi thăm: chị bảo ngủ ngon hơn”*, kèm *📵 2 lần KNM liền* nếu gọi mãi không được) để biết lần trước đã nói gì trước khi gọi. Khách chưa ai liên hệ thì ghi *🆕 Chưa liên hệ lần nào*.
+- **3️⃣ Chăm sóc khách:** chia nhóm theo loại việc (xem [bảng các loại việc](#cac-loai-viec-cham-soc)). Nhóm đầu tiên tự mở sẵn (nếu phía trên chưa có mục nào mở), các nhóm khác bấm vào mới mở. Mỗi khách 1 dòng với nút **📞 Gọi · 📵 Không nghe · 💬 Ghi lại**. Dưới tên khách có dòng **🕘 lần liên hệ gần nhất** (vd *“3 ngày trước: Đã hỏi thăm: chị bảo ngủ ngon hơn”*, kèm *📵 2 lần KNM liền* nếu gọi mãi không được) để biết lần trước đã nói gì trước khi gọi. Khách chưa ai liên hệ thì ghi *🆕 Chưa liên hệ lần nào*.
     - **⚠️ Khách VIP trễ hạn**: khách VIP quá hạn chăm sóc từ 2 ngày được gom thành nhóm riêng ngay sau *Hẹn gọi lại*, dòng khách ghi rõ việc cần làm. Khi bấm *Bắt đầu gọi lần lượt*, các khách này cũng được gọi trước.
     - **🎂 Sinh nhật**: khách có sinh nhật trong 7 ngày tới có nhãn hồng (*Sinh nhật hôm nay*, *SN ngày mai*, *SN 12/10*). Nhớ nhắn chúc mừng. Cần nhập ngày sinh trong hồ sơ khách thì nhãn mới hiện.
     - **💡 Gợi ý sản phẩm**: ở các việc *Sắp hết*, *Giới thiệu sản phẩm phù hợp*, *Mời quay lại*, *Khách cũ lâu chưa gọi*, CRM gợi ý sản phẩm mà những khách mua giống khách này hay mua thêm. Đây chỉ là gợi ý, sale tự xem có hợp với khách không.
@@ -246,7 +246,7 @@ Công ty có 2 món quà miễn phí để **thêm giá trị cho khách**: cẩ
 
     | Nút | Máy ghi | Tự nhắc gọi lại |
     | --- | --- | --- |
-    | 📵 **KNM** | knm (không nghe máy) | sau 2 ngày |
+    | 📵 **Không nghe máy** | knm (không nghe máy) | sau 2 ngày |
     | 📴 **Thuê bao** | thuê bao | sau 3 ngày |
     | 🙅 **Từ chối nghe** | từ chối nghe | sau 7 ngày |
     | 👍 **Dùng ok** | kh dùng ok | không hẹn |
@@ -255,7 +255,7 @@ Công ty có 2 món quà miễn phí để **thêm giá trị cho khách**: cẩ
     | 🛒 **Đặt lại** | kh đặt lại, rồi mở luôn form tạo đơn | không hẹn |
     | 🚫 **Không dùng nữa** | kh không dùng nữa | không hẹn |
 
-    Chữ gõ ở ô **Khách nói gì** được ghi kèm. Ở tab Hôm nay, thẻ khách có sẵn nút **📵 KNM**: gọi không được thì bấm ngay, không cần mở hộp chăm sóc.
+    Chữ gõ ở ô **Khách nói gì** được ghi kèm. Ở tab Hôm nay, thẻ khách có sẵn nút **📵 Không nghe**: gọi không được thì bấm ngay, không cần mở hộp chăm sóc.
 
     **📅 Khách hẹn gọi lại** (từ 16/10/2026): khách bảo *gọi lại sau* thì bấm 1 nút **Mai · 3 ngày · 1 tuần · 2 tuần** là lưu luôn kết quả *Hẹn gọi lại* kèm ngày, ghi chú đang gõ cũng được lưu.
 
@@ -461,6 +461,8 @@ Bấm **1 chạm** ở hàng nút thời gian đầu trang (trên điện thoạ
     - **Tỷ lệ chốt** = số data quảng cáo đã ra đơn ÷ tổng số data quảng cáo trong kỳ. *Data quảng cáo* là **từng dòng có số điện thoại trong file số quảng cáo**, tính theo ngày và tên sale ghi trong file; 1 số có nhiều lần trong kỳ chỉ tính 1. Ngày ghi ở 1 dòng áp dụng cho các dòng bên dưới **cho tới khi gặp ngày mới**, nên dòng quên ghi ngày vẫn được tính đúng ngày; sang ngày mới nhớ ghi ngày mới ở dòng đầu tiên của ngày. *Ra đơn* = số đó có đơn (không huỷ / hoàn) từ ngày có số, kể cả khách tự đặt trên web, hoặc khách hỏi của số đó “Đã chốt”. Số đang tư vấn, không mua, số rác **vẫn nằm trong mẫu số**. Tên sale trong file cần khớp “Tên trong file QC” của nhân sự thì số mới được tính cho người đó. Số liệu cập nhật mỗi lần CRM đọc file quảng cáo. Data gần đây còn đang tư vấn nên tỷ lệ của tuần / tháng đang chạy sẽ tăng dần.
 
 Doanh số tính theo **Nhân viên bán** ghi trên từng đơn. Đơn khách tự đặt trên web được tính cho **người đang phụ trách khách đó**.
+
+> Tab **Khách đã mua**: các nút lọc chính (Cần chăm sóc, VIP, Sắp mất…) nằm ngay dưới ô tìm; lọc theo mức chi, nguồn khách, sinh nhật bấm **🔎 Lọc thêm**. Cửa sổ đơn hàng ghi sẵn **👉 Bước tiếp theo**.
 
 > Từ 19/10/2026: các nút trên mỗi dòng có chữ bên dưới (📞 Gọi · 📵 Không nghe = khách không nghe máy, 2 ngày sau tự nhắc lại · 💬 Ghi lại = ghi kết quả chăm sóc). Đầu danh sách ở Hôm nay và Đơn hàng có dòng **Màu dòng** cho biết màu nền nghĩa là gì.
 
@@ -767,7 +769,7 @@ Máy tự ghi kèm bạn đang ở màn hình nào, dùng máy gì, nên bạn c
 
 **Đồng nghiệp đã sửa mà máy tôi chưa thấy?** Bấm nút **⟳** góc trên để tải lại.
 
-**Báo “Mất kết nối mạng”?** Kiểm tra wifi hoặc 4G rồi bấm lại. Riêng kết quả chăm sóc (KNM, Dùng ok…) và ghi chú khách thì không cần bấm lại: CRM tự gửi khi có mạng.
+**Báo “Mất kết nối mạng”?** Kiểm tra wifi hoặc 4G rồi bấm lại. Riêng kết quả chăm sóc (Không nghe máy, Dùng ok…) và ghi chú khách thì không cần bấm lại: CRM tự gửi khi có mạng.
 
 **Góc trên hiện “⏳ Đang gửi 1”?** Việc bạn vừa lưu đang được gửi lên máy chủ. Cứ làm tiếp. Mất mạng thì CRM giữ lại và tự gửi khi có mạng, kể cả khi bạn tắt trang rồi mở lại.
 
