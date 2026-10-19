@@ -468,7 +468,10 @@ Doanh số tính theo **Nhân viên bán** ghi trên từng đơn. Đơn khách 
 - **Nhãn trên biểu đồ**: 📈 *Đang đi lên* · ➡️ *Đi ngang* · 📉 *Đang đi xuống*, kèm 1 câu giải thích (vd "cuối kỳ cao hơn đầu kỳ khoảng 18%. Cả kỳ cao hơn kỳ trước 12%"). Chênh dưới 10% là đi ngang. Cần ít nhất 3 ngày có số mới kết luận.
 - **Mỗi điểm** = 1 ngày (xem tới 45 ngày), 1 tuần (tới khoảng 6 tháng) hoặc 1 tháng (Quý / Năm dài hơn). Đoạn mờ ở cuối là ngày / tuần đang chạy, chưa trọn nên không tính vào kết luận.
 - Rê chuột (máy tính) hoặc chạm (điện thoại) vào biểu đồ để xem số từng ngày.
-- **Đường nhỏ ↗ → ↘** cạnh con số (ô lớn ở Tổng quan, thẻ từng nhân viên ở Hiệu quả): xem nhanh đang lên hay xuống mà không cần mở biểu đồ.
+- **Đường nhỏ ↗ → ↘** kèm chữ *đang lên / đi ngang / đang xuống* cạnh mỗi con số ở các ô lớn (6 ô Tổng quan: Doanh thu, Doanh số, Khách mới mua, Khách mua lại, Quảng cáo, Hoàn/huỷ; 4 ô Hiệu quả: Doanh số, Chốt được, Mỗi đơn, Khách cũ mua lại): xem nhanh con số đang lên hay xuống **trong kỳ đang xem** (từng ngày của tháng này…), không cần mở biểu đồ.
+  - Màu xanh = tốt, đỏ = chưa tốt. Riêng ô **Hoàn / huỷ** thì *đang xuống* là tốt nên tô xanh.
+  - Đường nhỏ khác với dòng ▲▼ "so với cùng kỳ tháng trước": ví dụ doanh số cả tháng vẫn cao hơn tháng trước (▲ xanh) nhưng mấy ngày gần đây bán ít hơn đầu tháng (đường *đang xuống*) → nên đẩy bán ngay.
+  - Ngày không có số (vd chưa có đơn nên không tính được %) thì bỏ qua. Chưa đủ 3 ngày có số thì ghi *chưa rõ*.
 - Tab **Hiệu quả** có mục **📈 Xu hướng**: chọn *Doanh số / Số đơn / Lượt chăm sóc*, cho cả nhóm hoặc từng người. Tab **Marketing** có biểu đồ **chi phí (vàng) và tiền khách mới (xanh)**: đường xanh càng cao trên đường vàng là quảng cáo càng có lời; dòng dưới cho biết hiệu quả nửa sau kỳ tốt lên hay kém đi.
 
 ## Tổng quan (chỉ Quản trị)

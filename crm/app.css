@@ -801,8 +801,10 @@ details.set-g .dash-more-b { background: #fff; }
 .trd-tip .trd-k.prev { border-top-color: #cfd0c8; }
 @media (max-width: 520px) { .trd-y, .trd-p { height: 140px; } .trd-y { width: 40px; } .trd-x { margin-left: 46px; } }
 /* Đường nhỏ (sparkline) trong ô số / thẻ nhân viên */
-.spk { display: inline-flex; align-items: center; gap: 3px; vertical-align: middle; color: var(--muted); }
-.spk svg { width: 56px; height: 18px; overflow: visible; }
+.spk { display: inline-flex; flex-direction: column; align-items: flex-end; gap: 2px; vertical-align: middle; color: var(--muted); flex-shrink: 0; }
+.spk-g { display: inline-flex; align-items: center; gap: 3px; }
+.spk-w { font-size: 11px; font-weight: 700; line-height: 1; white-space: nowrap; }
+.spk svg { width: 72px; height: 24px; overflow: visible; }
 .spk polyline { fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
 .spk em { font-style: normal; font-weight: 800; font-size: 14px; }
 .spk.up { color: var(--primary); } .spk.down { color: var(--red); }
