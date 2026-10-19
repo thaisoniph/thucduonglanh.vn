@@ -57,7 +57,7 @@ async function gaReport(x, prop, from, to, pf, pt) {
   const [a, b] = await Promise.all([
     gaFetch(x.env, DATA + 'properties/' + prop + ':batchRunReports', { requests: [
       rep([], ['activeUsers', 'newUsers', 'sessions', 'engagedSessions', 'screenPageViews', 'userEngagementDuration'], both),
-      rep(['date'], ['sessions', 'activeUsers'], cur),
+      rep(['date'], ['sessions', 'activeUsers', 'engagedSessions', 'userEngagementDuration'], cur),
       rep(['sessionDefaultChannelGroup'], ['sessions', 'engagedSessions', 'activeUsers', 'ecommercePurchases'], both),
       rep(['eventName'], ['eventCount', 'totalUsers'], both, ev),
       rep(['sessionSourceMedium'], ['sessions', 'engagedSessions', 'ecommercePurchases'], cur, top('sessions', 12))
@@ -73,7 +73,7 @@ async function gaReport(x, prop, from, to, pf, pt) {
   const byRange = (rows, n) => { const o = { cur: {}, prev: {} }; rows.forEach(w => { o[w[1]][w[0]] = w.slice(2, 2 + n); }); return o; };
   return {
     cur: sum('cur'), prev: sum('prev'),
-    days: days.map(w => [w[0].slice(0, 4) + '-' + w[0].slice(4, 6) + '-' + w[0].slice(6), w[1], w[2]]).sort((p, q) => p[0] < q[0] ? -1 : 1),
+    days: days.map(w => [w[0].slice(0, 4) + '-' + w[0].slice(4, 6) + '-' + w[0].slice(6), w[1], w[2], w[3], w[4]]).sort((p, q) => p[0] < q[0] ? -1 : 1),
     ch: byRange(ch, 4), ev: byRange(evs, 2),
     src: src.map(w => [w[0], w[1], w[2], w[3]]),
     pages: pages.map(w => [w[0], w[1], w[2], w[3]]),
@@ -86,7 +86,7 @@ async function gaReport(x, prop, from, to, pf, pt) {
 export async function crmGa(x, u, d) {
   if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị xem được số liệu website.' };
   if (![d.from, d.to, d.pf, d.pt].every(s => DAY_RE.test(String(s || '')))) return { ok: false, error: 'Khoảng thời gian chưa đúng.' };
-  const todayIso = fmtDate(startOfDay(Date.now()), 'yyyy-MM-dd'), key = 'gac_' + [d.from, d.to, d.pf, d.pt].join('_');
+  const todayIso = fmtDate(startOfDay(Date.now()), 'yyyy-MM-dd'), key = 'gac2_' + [d.from, d.to, d.pf, d.pt].join('_');
   if (!d.fresh) { const c = await kvJson(x.db, key, null); if (c) return { ok: true, ga: c, cached: true }; }
   try {
     const prop = await propId(x);

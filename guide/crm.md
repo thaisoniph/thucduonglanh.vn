@@ -468,7 +468,13 @@ Doanh số tính theo **Nhân viên bán** ghi trên từng đơn. Đơn khách 
 - **Nhãn trên biểu đồ**: 📈 *Đang đi lên* · ➡️ *Đi ngang* · 📉 *Đang đi xuống*, kèm 1 câu giải thích (vd "cuối kỳ cao hơn đầu kỳ khoảng 18%. Cả kỳ cao hơn kỳ trước 12%"). Chênh dưới 10% là đi ngang. Cần ít nhất 3 ngày có số mới kết luận.
 - **Mỗi điểm** = 1 ngày (xem tới 45 ngày), 1 tuần (tới khoảng 6 tháng) hoặc 1 tháng (Quý / Năm dài hơn). Đoạn mờ ở cuối là ngày / tuần đang chạy, chưa trọn nên không tính vào kết luận.
 - Rê chuột (máy tính) hoặc chạm (điện thoại) vào biểu đồ để xem số từng ngày.
-- **Đường nhỏ ↗ → ↘** kèm chữ *đang lên / đi ngang / đang xuống* cạnh mỗi con số ở các ô lớn (6 ô Tổng quan: Doanh thu, Doanh số, Khách mới mua, Khách mua lại, Quảng cáo, Hoàn/huỷ; 4 ô Hiệu quả: Doanh số, Chốt được, Mỗi đơn, Khách cũ mua lại): xem nhanh con số đang lên hay xuống **trong kỳ đang xem** (từng ngày của tháng này…), không cần mở biểu đồ.
+- **Đường nhỏ ↗ → ↘** kèm chữ *đang lên / đi ngang / đang xuống* cạnh hầu hết con số thống kê: xem nhanh con số đang lên hay xuống **trong kỳ đang xem** (từng ngày của tháng này…), không cần mở biểu đồ. Có ở:
+  - **Tổng quan**: 6 ô lớn, và các mục chi tiết Bán hàng văn phòng, Quảng cáo, Website, Sàn.
+  - **Hiệu quả**: 4 ô lớn, thẻ từng nhân viên (đường doanh số), mục Chăm sóc khách (lượt chăm sóc, khách quay lại mua), bảng BCDT.
+  - **Marketing**: các ô Tiền bỏ ra, Tiền khách mới, Chi phí / tiền khách mới, Chi phí 1 data, Chi phí có 1 khách mới, mục Data quảng cáo.
+  - **Sàn**, **Link & QR**, ô doanh số / khách mới tháng ở **Hôm nay** (quản lý).
+  - Không vẽ đường cho số **về muộn**: Data → mua hàng, Chăm sóc ra đơn, Tỷ lệ hoàn, Tiền thực về của sàn. Những số này mấy ngày gần đây luôn thấp vì khách chưa kịp mua hoặc hoàn chưa về, nên đường sẽ luôn báo "đang xuống" sai. Ô toàn số 0 cũng không vẽ.
+  - Chi phí quảng cáo vẽ màu trung tính (chi nhiều hơn chưa chắc là xấu). Các ô *chi phí / kết quả* thì *đang xuống* là tốt (xanh).
   - Màu xanh = tốt, đỏ = chưa tốt. Riêng ô **Hoàn / huỷ** thì *đang xuống* là tốt nên tô xanh.
   - Đường nhỏ khác với dòng ▲▼ "so với cùng kỳ tháng trước": ví dụ doanh số cả tháng vẫn cao hơn tháng trước (▲ xanh) nhưng mấy ngày gần đây bán ít hơn đầu tháng (đường *đang xuống*) → nên đẩy bán ngay.
   - Ngày không có số (vd chưa có đơn nên không tính được %) thì bỏ qua. Chưa đủ 3 ngày có số thì ghi *chưa rõ*.

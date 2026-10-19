@@ -805,6 +805,14 @@ details.set-g .dash-more-b { background: #fff; }
 .spk-g { display: inline-flex; align-items: center; gap: 3px; }
 .spk-w { font-size: 11px; font-weight: 700; line-height: 1; white-space: nowrap; }
 .spk svg { width: 72px; height: 24px; overflow: visible; }
+.mv { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.mv > b { margin-top: 2px; white-space: nowrap; min-width: 0; }
+.metric .mv .spk svg, .kpi .mv .spk svg { width: 52px; height: 20px; }
+.metric .mv .spk, .kpi .mv .spk { display: inline-flex; font-size: inherit; }
+.metric .mv .spk-g, .kpi .mv .spk-g { display: inline-flex; }
+.metric .mv .spk-w, .kpi .mv .spk-w { display: block; font-size: 11px; font-weight: 700; color: inherit; }
+.metric .mv .spk.up, .kpi .mv .spk.up { color: var(--primary); } .metric .mv .spk.down, .kpi .mv .spk.down { color: var(--red); }
+.metric .mv .spk.flat, .metric .mv .spk.none, .kpi .mv .spk.flat, .kpi .mv .spk.none { color: var(--muted); }
 .spk polyline { fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
 .spk em { font-style: normal; font-weight: 800; font-size: 14px; }
 .spk.up { color: var(--primary); } .spk.down { color: var(--red); }
@@ -1036,3 +1044,4 @@ button:focus-visible, a:focus-visible, summary:focus-visible, [role="button"]:fo
 .qze-h{margin:18px 0 8px}
 .qze-r{border-top:1px dashed var(--line,#e5e5e5);padding-top:10px}
 .qze-note{margin-right:auto}
+.rep-ppl-h .spk { margin-right: 6px; } .rep-ppl-h .spk-w { font-size: 11px; font-weight: 700; } .rep-ppl-h .spk svg { width: 60px; height: 20px; }

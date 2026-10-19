@@ -1071,14 +1071,15 @@
       h += raceBlock(); // bảng thi đua: quản lý thấy cả bảng, kể cả khi đang lọc 1 nhân viên
       h += '<div class="minis">' + mini('🧾 Đơn mới', no.length, '#don-hang', no.length ? 'warn' : '') + mini('🙋 Khách hỏi', hot.length + ld.length, '#tiem-nang', hot.length + ld.length ? 'bad' : '') + mini('✅ Đã làm', doneToday.length, '', '') + miniGoal() + '</div>';
     }
+    var TB = trendBuckets(monthRange(monthOf(Date.now()))), tsk = function (v) { return sparkSvg(v, TB.partial); };
     if (lvl() >= 2 && wn) {
       var pm = perf(wn, monthRange(monthOf(Date.now())));
-      h += '<div class="kpis">' + kpi('Doanh số tháng ' + (new Date().getMonth() + 1) + ' của ' + esc(wn), moneyShort(pm.sales), '', '', pm.orders + ' đơn · chốt ' + (pm.closePct === null ? '–' : pm.closePct + '%')) +
+      h += '<div class="kpis">' + kpi('Doanh số tháng ' + (new Date().getMonth() + 1) + ' của ' + esc(wn), moneyShort(pm.sales), '', '', pm.orders + ' đơn · chốt ' + (pm.closePct === null ? '–' : pm.closePct + '%'), tsk(repSeries(wn, TB, 0, 'sales'))) +
         kpi('Khách đang phụ trách', pm.mine, '', '', pm.care + ' lượt chăm sóc tháng này') + '</div>';
     } else if (lvl() >= 2) {
       var m = monthStats();
-      h += '<div class="kpis">' + kpi('Doanh số tháng ' + m.month, moneyShort(m.revenue), '', '', m.orders + ' đơn · ' + (m.prev ? (m.revenue >= m.prev ? '▲ ' : '▼ ') + 'tháng trước ' + moneyShort(m.prev) : 'chưa có tháng trước')) +
-        kpi('Khách mới tháng ' + m.month, m.newCus, '', '', m.returning + ' khách mua lại') + '</div>';
+      h += '<div class="kpis">' + kpi('Doanh số tháng ' + m.month, moneyShort(m.revenue), '', '', m.orders + ' đơn · ' + (m.prev ? (m.revenue >= m.prev ? '▲ ' : '▼ ') + 'tháng trước ' + moneyShort(m.prev) : 'chưa có tháng trước'), tsk(repSeries(null, TB, 0, 'sales'))) +
+        kpi('Khách mới tháng ' + m.month, m.newCus, '', '', m.returning + ' khách mua lại', tsk(trendSum(TB, S.d.customers.filter(function (c) { return c.first; }), function (c) { return c.first; }, function () { return 1; }))) + '</div>';
     }
 
     if (lvl() >= 2 && !wn) h += teamBlock() + waitingBlock(); // đang xem 1 nhân viên → ẩn khách chưa ai phụ trách
@@ -1335,8 +1336,8 @@
     if (!t || !t.amount) return kpi('Mục tiêu tháng của tôi', 'Chưa đặt', 'warn', '#bao-cao', 'bấm để đặt mục tiêu');
     var p = pct(sales, t.amount); return kpi('Mục tiêu tháng của tôi', p + '%', p >= 100 ? 'good' : '', '#bao-cao', moneyShort(sales) + ' / ' + moneyShort(t.amount));
   }
-  function kpi(label, val, cls, href, sub) {
-    return '<' + (href ? 'a href="' + href + '"' : 'div') + ' class="kpi ' + (cls || '') + '"><span>' + label + '</span><b>' + val + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</' + (href ? 'a' : 'div') + '>';
+  function kpi(label, val, cls, href, sub, spark) {
+    return '<' + (href ? 'a href="' + href + '"' : 'div') + ' class="kpi ' + (cls || '') + '"><span>' + label + '</span>' + (spark ? '<div class="mv"><b>' + val + '</b>' + spark + '</div>' : '<b>' + val + '</b>') + (sub ? '<small>' + sub + '</small>' : '') + '</' + (href ? 'a' : 'div') + '>';
   }
   function logItem(l) {
     return '<div class="it"><b>' + esc(l.what) + '</b>' + (l.name ? ' – ' + esc(l.name) : '') + (l.result ? ': ' + esc(l.result) : '') + (l.note ? '<br>' + esc(l.note) : '') + '<small>' + fDateTime(l.time) + ' · ' + esc(l.by) + '</small></div>';
@@ -2801,11 +2802,13 @@
   }
 
   /** Số liệu của 1 nhân viên (name) hoặc cả nhóm (name = null) trong khoảng thời gian R. */
-  function careMetrics(c, p, me) {
+  function careMetrics(c, p, me, name, R) {
+    // đường nhỏ: không vẽ Chăm sóc ra đơn / Tỷ lệ hoàn (tính theo 14 ngày sau, hoàn về muộn → cuối kỳ luôn thấp)
+    var CB = R ? trendBuckets(R) : null, PF = CB ? trendEachMemo('perf' + name, CB, function (r) { return perf(name, r); }) : null, csk = function (f, bad) { return PF ? sparkSvg(trendPick(PF, f), CB.partial, bad) : ''; };
     return '<section class="section"><div class="section-h"><h2>💬 Chăm sóc khách</h2></div><div class="metrics">' +
-      metric('Lượt chăm sóc', c.care, (c.replyPct === null ? 'Chưa có lượt nào.' : 'Kết nối được ' + c.replyPct + '% (' + c.replied + '/' + c.care + ' lượt khách nghe máy / trả lời).'), delta(c.care, p.care)) +
+      metric('Lượt chăm sóc', c.care, (c.replyPct === null ? 'Chưa có lượt nào.' : 'Kết nối được ' + c.replyPct + '% (' + c.replied + '/' + c.care + ' lượt khách nghe máy / trả lời).'), delta(c.care, p.care), '', csk('care')) +
       metric('Chăm sóc ra đơn', c.convPct === null ? '–' : c.convPct + '%', c.conv + ' / ' + c.contacted + ' khách được chăm sóc đã mua trong 14 ngày sau đó · ' + moneyShort(c.convRev) + '. Số này cho biết chăm sóc có ra tiền không.', c.convPct === null ? '' : delta(c.convPct, p.convPct, 'rate')) +
-      metric('Khách quay lại mua', c.repeat, 'Số khách cũ đã mua lại trong thời gian đã chọn.', delta(c.repeat, p.repeat)) +
+      metric('Khách quay lại mua', c.repeat, 'Số khách cũ đã mua lại trong thời gian đã chọn.', delta(c.repeat, p.repeat), '', csk('repeat')) +
       metric('Tỷ lệ hoàn đơn', c.backPct === null ? '–' : c.backPct + '%', c.backN + ' đơn hoàn · ' + moneyShort(c.backV) + '. Gọi xác nhận kỹ trước khi gửi, đơn lớn nên nhờ chuyển khoản trước.', c.backPct === null ? '' : delta(c.backPct, p.backPct, 'rate')) +
       (function () { var cs = S.d.customers.filter(function (x) { return x.orders && !coldOf(x) && (!me || x.owner === S.user.name); }), inN = cs.filter(inComm).length, invN = cs.filter(invited).length;
         return metric('Khách trong nhóm cộng đồng', cs.length ? pct(inN, cs.length) + '%' : '–', inN + ' / ' + cs.length + ' khách đã vào nhóm Zalo “Sống khỏe cùng Thực Dưỡng Lành”' + (invN ? ' · ' + invN + ' khách đã mời, chưa vào' : '') + '. Mời ở mốc hỏi nhận hàng / hỏi thăm 1 tuần, hoặc lọc 👥 Chưa vào cộng đồng.', ''); })() +
@@ -2932,8 +2935,9 @@
     var p = Math.round((cur - prev) * 100 / prev);
     return p === 0 ? '<em class="delta">bằng ' + CMP_LABEL + '</em>' : '<em class="delta ' + (p > 0 ? 'up' : 'down') + '">' + (p > 0 ? '▲ ' : '▼ ') + Math.abs(p) + '% so với ' + CMP_LABEL + '</em>';
   }
-  function metric(label, value, explain, d, href) {
-    return '<' + (href ? 'a href="' + href + '"' : 'div') + ' class="metric"><span>' + label + '</span><b>' + value + '</b>' + (d || '') + '<small>' + explain + '</small></' + (href ? 'a' : 'div') + '>';
+  /** spark = đường xu hướng nhỏ (sparkSvg) đặt cạnh con số. */
+  function metric(label, value, explain, d, href, spark) {
+    return '<' + (href ? 'a href="' + href + '"' : 'div') + ' class="metric"><span>' + label + '</span>' + (spark ? '<div class="mv"><b>' + value + '</b>' + spark + '</div>' : '<b>' + value + '</b>') + (d || '') + '<small>' + explain + '</small></' + (href ? 'a' : 'div') + '>';
   }
 
   /** Khối mục tiêu tháng: thanh tiến độ + còn thiếu bao nhiêu + mỗi ngày cần bao nhiêu. */
@@ -3088,19 +3092,31 @@
       '<p class="trd-lg">' + S0.map(function (s) { return '<span><i class="trd-k ' + s.cls + '"></i>' + esc(s.name) + '</span>'; }).join('') + '<span class="muted">· mỗi điểm = 1 ' + unitW + (B.partial ? ' · đoạn mờ cuối = ' + unitW + ' đang chạy' : '') + '</span></p>' + (o.note ? '<p class="bar-legend">' + o.note + '</p>' : '') + '</div>';
   }
   /** Đường nhỏ trong ô số / thẻ nhân viên: thấy ngay lên hay xuống. Điểm null (kỳ không có số, vd. tỷ lệ khi chưa có đơn) thì bỏ qua.
-   *  bad = số càng thấp càng tốt (hoàn / huỷ): đi lên tô đỏ, đi xuống tô xanh. */
+   *  bad = true: số càng thấp càng tốt (hoàn / huỷ, chi phí / kết quả): đi lên tô đỏ, đi xuống tô xanh. bad = 'n': trung tính (tiền chi quảng cáo), không tô xanh / đỏ. */
   function sparkSvg(vals, partial, bad) {
     if (partial && vals.length && vals[vals.length - 1] === null) partial = false;
     vals = vals.filter(function (v) { return v !== null && v !== undefined && isFinite(v); });
-    var n = vals.length; if (n < 2) return '';
+    var n = vals.length; if (n < 2 || !vals.some(function (v) { return v; })) return ''; // toàn 0: không vẽ
     var mx = Math.max.apply(null, vals) || 1, V = trendVerdict(vals, partial), pts = vals.map(function (v, i) { return (i / (n - 1) * 100).toFixed(1) + ',' + (22 - v / mx * 20).toFixed(1); });
-    var cls = V ? (bad && V.k !== 'flat' ? (V.k === 'up' ? 'down' : 'up') : V.k) : 'none';
-    return '<span class="spk ' + cls + '" title="' + (V ? TRD_WORD[V.k].slice(3) + ' trong kỳ' + (bad && V.k !== 'flat' ? (V.k === 'up' ? ' (chưa tốt)' : ' (tốt)') : '') : 'Chưa đủ số liệu để biết xu hướng') + '"><span class="spk-g"><svg viewBox="0 0 100 24" preserveAspectRatio="none" aria-hidden="true"><polyline points="' + pts.join(' ') + '"/></svg>' + (V ? '<em>' + { up: '↗', flat: '→', down: '↘' }[V.k] + '</em>' : '') + '</span><span class="spk-w">' + (V ? { up: 'đang lên', flat: 'đi ngang', down: 'đang xuống' }[V.k] : 'chưa rõ') + '</span></span>';
+    var cls = V ? (bad === 'n' ? 'neu' : bad && V.k !== 'flat' ? (V.k === 'up' ? 'down' : 'up') : V.k) : 'none';
+    return '<span class="spk ' + cls + '" title="' + (V ? TRD_WORD[V.k].slice(3) + ' trong kỳ' + (bad === true && V.k !== 'flat' ? (V.k === 'up' ? ' (chưa tốt)' : ' (tốt)') : '') : 'Chưa đủ số liệu để biết xu hướng') + '"><span class="spk-g"><svg viewBox="0 0 100 24" preserveAspectRatio="none" aria-hidden="true"><polyline points="' + pts.join(' ') + '"/></svg>' + (V ? '<em>' + { up: '↗', flat: '→', down: '↘' }[V.k] + '</em>' : '') + '</span><span class="spk-w">' + (V ? { up: 'đang lên', flat: 'đi ngang', down: 'đang xuống' }[V.k] : 'chưa rõ') + '</span></span>';
   }
   /** Tỷ lệ từng điểm = a ÷ b (× k); điểm không có mẫu số → null. */
   function trendRate(a, b, k) { return a.map(function (x, i) { return b[i] ? x * (k || 1) / b[i] : null; }); }
   /** Chạy fn(khoảng) cho từng điểm của B (dùng cho số phải tính lại cả khối, vd. tỷ lệ chốt). */
   function trendEach(B, fn) { return B.L.map(function (b) { return fn([b.a, b.b]); }); }
+  /** Như trendEach nhưng nhớ kết quả (tính lại khi dữ liệu đổi): dùng cho bizStats / perf chạy từng ngày, khỏi tính lại mỗi lần vẽ màn hình. */
+  var TREND_MEMO = {};
+  function trendEachMemo(key, B, fn) {
+    var d = S.d, st = [d.orders.length, (d.leads || []).length, d.log.length, (d.adRows || []).length, d.customers.length, B.r0, B.L.length, today()].join('|');
+    var k = key + '|' + st, c = TREND_MEMO[k]; if (c && c.d === d) return c.v;
+    if (Object.keys(TREND_MEMO).length > 40) TREND_MEMO = {};
+    var v = trendEach(B, fn); TREND_MEMO[k] = { d: d, v: v }; return v;
+  }
+  /** Chuỗi theo ngày từ bảng {ngày yyyy-MM-dd: số} (máy chủ gửi) → các điểm của B. */
+  function trendDays(B, o, f) { return trendSum(B, Object.keys(o || {}).map(function (k) { return [k, o[k]]; }), function (r) { return dayMs(r[0]); }, f || function (r) { return r[1]; }); }
+  /** Lấy 1 trường từ mảng kết quả từng điểm. */
+  function trendPick(arr, f) { return arr.map(function (x) { var v = typeof f === 'function' ? f(x) : x[f]; return v === undefined ? null : v; }); }
   /** Kỳ trước cùng độ dài để đặt chồng: lùi off ms. Không có kỳ so sánh (Năm nay, Mọi lúc) → null. */
   function trendOff(R, P) { return CMP_LABEL && P && P[1] > P[0] && R[0] ? R[0] - P[0] : null; }
 
@@ -3208,13 +3224,17 @@
       vd: trendRate(trendSum(B, S.d.orders, t, function (o) { return isVoid(o.status) ? 1 : 0; }), trendSum(B, S.d.orders, t, function () { return 1; }), 100) };
   }
   /** Quảng cáo từng điểm: doanh số khách mới (mua lần đầu trong kỳ, sàn chỉ tính kênh có chi phí, như mktCalc) ÷ chi phí. Điểm không có chi phí → null. */
-  function dashAdsSeries(B, M, sj) {
+  function dashAdsSeries(B, M, sj) { var A = dashAdsParts(B, M, sj); return A && trendRate(A.nr, A.sp); }
+  /** { sp: chi phí, nr: doanh số khách mới } từng điểm của B. */
+  function dashAdsParts(B, M, sj) {
     if (!M) return null;
     var sd = function (r) { return dayMs(r[0]); }, sp = trendSum(B, Object.keys(M.day).map(function (k) { return [k, M.day[k]]; }), sd, function (r) { return r[1]; });
     var nr = trendSum(B, S.d.orders.filter(function (o) { if (isVoid(o.status)) return false; var cu = S.d.byPhone && S.d.byPhone[normPhone(o.phone)]; return !cu || !cu.first || cu.first >= B.r0; }), function (o) { return o.time; }, function (o) { return o.total || 0; });
     if (sj) nr = nr.map(function (x, i) { return x + trendSum(B, sj.days.filter(function (r) { return M.ch[r[1]]; }), sd, function (r) { return r[2] || 0; })[i]; });
-    return trendRate(nr, sp);
+    return { sp: sp, nr: nr };
   }
+  /** a ÷ b từng điểm, chỉ khi cả 2 khác 0 (chi phí / kết quả: ngày không chi hoặc không có kết quả thì bỏ qua). */
+  function trendRateNZ(a, b, k) { return b ? a.map(function (x, i) { return x && b[i] ? x * (k || 1) / b[i] : null; }) : null; }
   /** Tỷ lệ hoàn / huỷ đơn văn phòng (đơn trong CRM) trong khoảng R: số đơn huỷ + hoàn ÷ mọi đơn. */
   function voidStats(R) { var n = 0, v = 0; S.d.orders.forEach(function (o) { if (o.time >= R[0] && o.time < R[1]) { n++; if (isVoid(o.status)) v++; } }); return { n: n, v: v, pct: n ? Math.round(v * 100 / n) : null }; }
   function viewDash() {
@@ -3231,16 +3251,17 @@
     h += '<div class="section-h dash-more-h"><h2>🔎 Xem chi tiết</h2><span class="tip">bấm vào từng mục để mở / đóng</span></div>';
     // ---- mục tiêu từng mảng
     h += dashMore('goal', '🎯 Mục tiêu từng mảng', gl.rows.filter(function (x) { return x.t; }).map(function (x) { return x.c.icon + ' ' + esc(x.c.k) + ' ' + Math.round(x.v * 100 / x.t) + '%'; }).join(' · ') || 'Chưa đặt mục tiêu theo mảng', officeGoalBlock(month, sj, true));
-    // ---- bán hàng văn phòng
+    // ---- bán hàng văn phòng (đường nhỏ: bizStats từng ngày / tuần / tháng)
+    var DB = T.tr.B, BZ = trendEachMemo('biz', DB, bizStats), sk = function (v, bad) { return v ? sparkSvg(v, DB.partial, bad) : ''; };
     h += dashMore('biz', '💰 Bán hàng văn phòng', b.n + ' đơn · ' + moneyShort(b.rev) + ' · ' + b.leads + ' khách hỏi mới', '<p class="small muted">Đơn trong CRM: website, sale, khách hỏi (sàn ở mục 🛒) · không tính đơn huỷ / hoàn.</p><div class="metrics">' +
-      metric('Doanh số', moneyShort(b.rev), money(b.rev) + ' từ ' + b.n + ' đơn.', delta(b.rev, bp.rev)) +
-      metric('Doanh thu (đã thu tiền)', moneyShort(b.paid), b.paidN + ' đơn đã giao hoặc đã nhận chuyển khoản' + (b.rev > b.paid ? ' · còn ' + moneyShort(b.rev - b.paid) + ' đang giao / chờ thu' : '') + '.', '') +
-      metric('Số đơn', b.n, 'Website ' + b.web + ' · Sale & khách hỏi ' + (b.n - b.web) + '.', delta(b.n, bp.n)) +
-      metric('Giá trị trung bình / đơn', b.n ? moneyShort(b.avg) : '–', 'Tăng khi khách mua combo, mua kèm, đủ mức miễn phí ship.', b.n ? delta(b.avg, bp.n ? bp.avg : 0) : '') +
-      metric('Khách mua lần đầu', b.firstN, 'Khách mới có đơn đầu tiên trong kỳ.', delta(b.firstN, bp.firstN)) +
-      metric('Doanh số từ khách cũ', b.oldPct === null ? '–' : b.oldPct + '%', moneyShort(b.oldRev) + ' từ khách đã từng mua. Cao = chăm sóc tốt, khách quay lại.', b.oldPct === null ? '' : delta(b.oldPct, bp.oldPct, 'rate')) +
-      (b.ad ? metric('Data quảng cáo', b.ad.n, b.ad.fresh + ' số mới · ' + b.ad.old + ' khách cũ · ' + b.ad.again + ' từng hỏi trước đây. ' + b.ad.won + ' ra đơn (chốt ' + (b.ad.pct === null ? '–' : b.ad.pct + '%') + '). Cùng cách đếm với tab Hiệu quả.', delta(b.ad.n, bp.ad ? bp.ad.n : null), '#bao-cao') : '') +
-      metric('Khách hỏi mới', b.leads, 'Số chưa từng có trong CRM, mọi kênh (quảng cáo, website, nhập tay), trong đó ' + b.webLeads + ' từ website. Khách cũ / khách hỏi lại không tính.', delta(b.leads, bp.leads), '#tiem-nang') +
+      metric('Doanh số', moneyShort(b.rev), money(b.rev) + ' từ ' + b.n + ' đơn.', delta(b.rev, bp.rev), '', sk(trendPick(BZ, 'rev'))) +
+      metric('Doanh thu (đã thu tiền)', moneyShort(b.paid), b.paidN + ' đơn đã giao hoặc đã nhận chuyển khoản' + (b.rev > b.paid ? ' · còn ' + moneyShort(b.rev - b.paid) + ' đang giao / chờ thu' : '') + '.', '', '', sk(trendPick(BZ, 'paid'))) +
+      metric('Số đơn', b.n, 'Website ' + b.web + ' · Sale & khách hỏi ' + (b.n - b.web) + '.', delta(b.n, bp.n), '', sk(trendPick(BZ, 'n'))) +
+      metric('Giá trị trung bình / đơn', b.n ? moneyShort(b.avg) : '–', 'Tăng khi khách mua combo, mua kèm, đủ mức miễn phí ship.', b.n ? delta(b.avg, bp.n ? bp.avg : 0) : '', '', sk(trendPick(BZ, function (x) { return x.n ? x.rev / x.n : null; }))) +
+      metric('Khách mua lần đầu', b.firstN, 'Khách mới có đơn đầu tiên trong kỳ.', delta(b.firstN, bp.firstN), '', sk(trendPick(BZ, 'firstN'))) +
+      metric('Doanh số từ khách cũ', b.oldPct === null ? '–' : b.oldPct + '%', moneyShort(b.oldRev) + ' từ khách đã từng mua. Cao = chăm sóc tốt, khách quay lại.', b.oldPct === null ? '' : delta(b.oldPct, bp.oldPct, 'rate'), '', sk(trendPick(BZ, 'oldPct'))) +
+      (b.ad ? metric('Data quảng cáo', b.ad.n, b.ad.fresh + ' số mới · ' + b.ad.old + ' khách cũ · ' + b.ad.again + ' từng hỏi trước đây. ' + b.ad.won + ' ra đơn (chốt ' + (b.ad.pct === null ? '–' : b.ad.pct + '%') + '). Cùng cách đếm với tab Hiệu quả.', delta(b.ad.n, bp.ad ? bp.ad.n : null), '#bao-cao', sk(trendPick(BZ, function (x) { return x.ad ? x.ad.n : null; }))) : '') +
+      metric('Khách hỏi mới', b.leads, 'Số chưa từng có trong CRM, mọi kênh (quảng cáo, website, nhập tay), trong đó ' + b.webLeads + ' từ website. Khách cũ / khách hỏi lại không tính.', delta(b.leads, bp.leads), '#tiem-nang', sk(trendPick(BZ, 'leads'))) +
       '</div>');
     // ---- quảng cáo
     var mLine = !M ? (MK.err ? '⚠️ chưa tải được' : '⏳ đang tải…') : M.tot ? 'Chi ' + moneyShort(M.tot) + (M.nr ? ' · 1đ → ' + oneDec(M.nr / M.tot) + 'đ doanh số khách mới' : '') : 'Chưa có chi phí trong kỳ';
@@ -3269,14 +3290,15 @@
     // ---- website
     var conv = g && g.cur.sessions ? b.web * 100 / g.cur.sessions : null, convP = g && g.prev.sessions ? bp.web * 100 / g.prev.sessions : null, wh;
     if (!g) wh = gaSetupBox(gj);
-    else wh = '<p class="small muted">Google Analytics · cập nhật ' + fDateTime(g.at) + '</p><div class="metrics dash-m3">' +
-      metric('Lượt truy cập', g.cur.sessions.toLocaleString('vi-VN'), g.cur.views.toLocaleString('vi-VN') + ' lượt xem trang · mỗi lượt xem TB ' + (g.cur.sessions ? oneDec(g.cur.views / g.cur.sessions) : 0) + ' trang.', noGaCmp ? '' : delta(g.cur.sessions, g.prev.sessions)) +
-      metric('Người xem', g.cur.users.toLocaleString('vi-VN'), g.cur.newUsers.toLocaleString('vi-VN') + ' người lần đầu vào web.', noGaCmp ? '' : delta(g.cur.users, g.prev.users)) +
-      metric('Đơn đặt trên web', b.web, moneyShort(b.webRev) + ' · đếm từ CRM, đủ cả khách không bấm đồng ý cookie.', delta(b.web, bp.web)) +
-      metric('Tỷ lệ ra đơn', conv === null ? '–' : oneDec(conv) + '%', 'Đơn web ÷ lượt truy cập. Web bán lẻ thường đạt 1–3%. Hơi cao hơn thực tế vì Analytics chỉ đếm khách bấm đồng ý cookie.', conv === null || noGaCmp ? '' : dRate(conv, convP)) +
-      metric('Khách ở lại xem', g.cur.sessions ? pct(g.cur.engaged, g.cur.sessions) + '%' : '–', 'Lượt truy cập có xem ≥ 10 giây, hoặc xem ≥ 2 trang, hoặc bấm mua / gọi. Thấp = trang vào đầu không hợp với khách.', noGaCmp || !g.prev.sessions ? '' : delta(pct(g.cur.engaged, g.cur.sessions), pct(g.prev.engaged, g.prev.sessions), 'rate')) +
-      metric('Thời gian xem TB', g.cur.users ? fDur(g.cur.dur / g.cur.users) : '–', 'Thời gian 1 người thật sự xem web (tab đang mở) trong kỳ.', noGaCmp || !g.prev.users ? '' : delta(Math.round(g.cur.dur / g.cur.users), Math.round(g.prev.dur / g.prev.users))) +
-      '</div>' + gaBlocks(g, b, noGaCmp);
+    else { var GD = g.days || [], eng = GD.length && GD[0][3] !== undefined, gs = function (i) { return trendSum(DB, GD, function (r) { return dayMs(r[0]); }, function (r) { return r[i] || 0; }); }, gS = gs(1), gU = gs(2);
+    wh = '<p class="small muted">Google Analytics · cập nhật ' + fDateTime(g.at) + '</p><div class="metrics dash-m3">' +
+      metric('Lượt truy cập', g.cur.sessions.toLocaleString('vi-VN'), g.cur.views.toLocaleString('vi-VN') + ' lượt xem trang · mỗi lượt xem TB ' + (g.cur.sessions ? oneDec(g.cur.views / g.cur.sessions) : 0) + ' trang.', noGaCmp ? '' : delta(g.cur.sessions, g.prev.sessions), '', sk(gS)) +
+      metric('Người xem', g.cur.users.toLocaleString('vi-VN'), g.cur.newUsers.toLocaleString('vi-VN') + ' người lần đầu vào web.', noGaCmp ? '' : delta(g.cur.users, g.prev.users), '', sk(gU)) +
+      metric('Đơn đặt trên web', b.web, moneyShort(b.webRev) + ' · đếm từ CRM, đủ cả khách không bấm đồng ý cookie.', delta(b.web, bp.web), '', sk(trendPick(BZ, 'web'))) +
+      metric('Tỷ lệ ra đơn', conv === null ? '–' : oneDec(conv) + '%', 'Đơn web ÷ lượt truy cập. Web bán lẻ thường đạt 1–3%. Hơi cao hơn thực tế vì Analytics chỉ đếm khách bấm đồng ý cookie.', conv === null || noGaCmp ? '' : dRate(conv, convP), '', sk(trendRate(trendPick(BZ, 'web'), gS, 100))) +
+      metric('Khách ở lại xem', g.cur.sessions ? pct(g.cur.engaged, g.cur.sessions) + '%' : '–', 'Lượt truy cập có xem ≥ 10 giây, hoặc xem ≥ 2 trang, hoặc bấm mua / gọi. Thấp = trang vào đầu không hợp với khách.', noGaCmp || !g.prev.sessions ? '' : delta(pct(g.cur.engaged, g.cur.sessions), pct(g.prev.engaged, g.prev.sessions), 'rate'), '', eng ? sk(trendRate(gs(3), gS, 100)) : '') +
+      metric('Thời gian xem TB', g.cur.users ? fDur(g.cur.dur / g.cur.users) : '–', 'Thời gian 1 người thật sự xem web (tab đang mở) trong kỳ.', noGaCmp || !g.prev.users ? '' : delta(Math.round(g.cur.dur / g.cur.users), Math.round(g.prev.dur / g.prev.users)), '', eng ? sk(trendRate(gs(4), gU)) : '') +
+      '</div>' + gaBlocks(g, b, noGaCmp); }
     h += dashMore('web', '🌐 Website thucduonglanh.vn', g ? g.cur.sessions.toLocaleString('vi-VN') + ' lượt vào · ' + b.web + ' đơn web' + (conv === null ? '' : ' · ' + oneDec(conv) + '% ra đơn') : gj ? '🔌 chưa kết nối Google Analytics' : GA.err ? '⚠️ chưa tải được' : '⏳ đang tải…', wh);
     h += '<p class="small muted">Doanh số, đơn, khách lấy từ CRM (đơn 13 tháng gần nhất) và file sàn. Số website lấy từ Google Analytics, chỉ đếm khách đã bấm “Đồng ý” cookie (Nghị định 13/2023), nên thấp hơn số người vào thật.</p>' +
       '<p class="small muted">🔜 Sắp có: TikTok / Google Ads tự lấy chi phí · lãi gộp theo sản phẩm, theo kênh (cần giá vốn) · tỷ lệ giao thành công, khách mua lại sau 30 / 60 / 90 ngày.</p>';
@@ -3402,14 +3424,16 @@
     if (!tot && !totp) return h + '<div class="box"><p>Chưa có chi phí quảng cáo nào trong kỳ này.</p><p class="small muted">' + fbLine + '</p></div></section>';
     var per = function (n, v) { return n && v ? moneyShort(Math.round(v / n)) : '–'; }, prevPer = function (n, v) { return n && v ? Math.round(v / n) : null; };
     var sfb = M.sfb, E = M.E, Ep = M.Ep, nr = M.nr, nrp = M.nrp, newN = M.newN, newNp = M.newNp;
+    var MB = trendBuckets(R), MZ = trendEachMemo('biz', MB, bizStats), AP = dashAdsParts(MB, M, sj), msk = function (v, bad) { return v ? sparkSvg(v, MB.partial, bad) : ''; };
+    var mNw = trendSum(MB, S.d.customers.filter(function (c) { return c.first; }), function (c) { return c.first; }, function () { return 1; });
     h += '<div class="metrics dash-m3">' +
-      metric('Chi phí quảng cáo', moneyShort(tot), Object.keys(ch).sort(function (x, y) { return ch[y] - ch[x]; }).map(function (k) { return chInfo(k).icon + ' ' + esc(k) + ' ' + moneyShort(ch[k]); }).join(' · '), delta(tot, totp)) +
-      metric('Chi phí / doanh số khách mới', nr ? oneDec(tot * 100 / nr) + '%' : '–', 'Chi phí quảng cáo ÷ ' + moneyShort(nr) + ' doanh số khách mua lần đầu trong kỳ' + (sj && Object.keys(ch).some(function (k) { return chInfo(k).san; }) ? ' (gồm doanh số sàn có chạy quảng cáo)' : '') + '. Thấp hơn là tốt.', nr && nrp && totp ? inv(dRate(tot * 100 / nr, totp * 100 / nrp)) : '') +
-      metric('1đ chi phí → doanh số khách mới', nr ? oneDec(nr / tot) + 'đ' : '–', 'Doanh số khách mới ÷ chi phí quảng cáo.', nr && nrp && totp ? dRate(nr / tot, nrp / totp).replace(/điểm/, 'đ') : '') +
-      metric('Chi phí có 1 khách mới', per(newN, tot), newN + ' khách mua lần đầu. So với số tiền 1 khách mua trong cả năm để biết có đáng không (chưa tính giá vốn).', newN && tot ? inv(delta(Math.round(tot / newN), prevPer(newNp, totp))) : '') +
-      (b.ad ? metric('Chi phí / data quảng cáo', per(b.ad.n, tot), 'Chi phí ÷ ' + b.ad.n + ' data quảng cáo (gồm cả khách cũ nhắn qua quảng cáo).' + (b.ad.won ? ' Mỗi data ra đơn tốn ' + per(b.ad.won, tot) + '.' : ''), b.ad.n && tot ? inv(delta(Math.round(tot / b.ad.n), bp.ad ? prevPer(bp.ad.n, totp) : null)) : '')
-        : metric('Chi phí / khách hỏi mới', per(b.leads, tot), b.leads + ' khách hỏi mới mọi kênh (chưa có file số quảng cáo).', b.leads && tot ? inv(delta(Math.round(tot / b.leads), prevPer(bp.leads, totp))) : '')) +
-      metric('Chi phí / doanh số tổng', b.rev ? oneDec(tot * 100 / b.rev) + '%' : '–', 'Chi phí ÷ toàn bộ doanh số CRM (cả khách cũ). Chỉ để tham khảo, đánh giá quảng cáo thì xem ô doanh số khách mới.', b.rev && bp.rev && totp ? inv(dRate(tot * 100 / b.rev, totp * 100 / bp.rev)) : '') +
+      metric('Chi phí quảng cáo', moneyShort(tot), Object.keys(ch).sort(function (x, y) { return ch[y] - ch[x]; }).map(function (k) { return chInfo(k).icon + ' ' + esc(k) + ' ' + moneyShort(ch[k]); }).join(' · '), delta(tot, totp), '', msk(AP.sp, 'n')) +
+      metric('Chi phí / doanh số khách mới', nr ? oneDec(tot * 100 / nr) + '%' : '–', 'Chi phí quảng cáo ÷ ' + moneyShort(nr) + ' doanh số khách mua lần đầu trong kỳ' + (sj && Object.keys(ch).some(function (k) { return chInfo(k).san; }) ? ' (gồm doanh số sàn có chạy quảng cáo)' : '') + '. Thấp hơn là tốt.', nr && nrp && totp ? inv(dRate(tot * 100 / nr, totp * 100 / nrp)) : '', '', msk(trendRateNZ(AP.sp, AP.nr, 100), true)) +
+      metric('1đ chi phí → doanh số khách mới', nr ? oneDec(nr / tot) + 'đ' : '–', 'Doanh số khách mới ÷ chi phí quảng cáo.', nr && nrp && totp ? dRate(nr / tot, nrp / totp).replace(/điểm/, 'đ') : '', '', msk(trendRate(AP.nr, AP.sp))) +
+      metric('Chi phí có 1 khách mới', per(newN, tot), newN + ' khách mua lần đầu. So với số tiền 1 khách mua trong cả năm để biết có đáng không (chưa tính giá vốn).', newN && tot ? inv(delta(Math.round(tot / newN), prevPer(newNp, totp))) : '', '', msk(trendRateNZ(AP.sp, mNw), true)) +
+      (b.ad ? metric('Chi phí / data quảng cáo', per(b.ad.n, tot), 'Chi phí ÷ ' + b.ad.n + ' data quảng cáo (gồm cả khách cũ nhắn qua quảng cáo).' + (b.ad.won ? ' Mỗi data ra đơn tốn ' + per(b.ad.won, tot) + '.' : ''), b.ad.n && tot ? inv(delta(Math.round(tot / b.ad.n), bp.ad ? prevPer(bp.ad.n, totp) : null)) : '', '', msk(trendRateNZ(AP.sp, trendPick(MZ, function (x) { return x.ad ? x.ad.n : 0; })), true))
+        : metric('Chi phí / khách hỏi mới', per(b.leads, tot), b.leads + ' khách hỏi mới mọi kênh (chưa có file số quảng cáo).', b.leads && tot ? inv(delta(Math.round(tot / b.leads), prevPer(bp.leads, totp))) : '', '', msk(trendRateNZ(AP.sp, trendPick(MZ, 'leads')), true))) +
+      metric('Chi phí / doanh số tổng', b.rev ? oneDec(tot * 100 / b.rev) + '%' : '–', 'Chi phí ÷ toàn bộ doanh số CRM (cả khách cũ). Chỉ để tham khảo, đánh giá quảng cáo thì xem ô doanh số khách mới.', b.rev && bp.rev && totp ? inv(dRate(tot * 100 / b.rev, totp * 100 / bp.rev)) : '', '', msk(trendRateNZ(AP.sp, trendPick(MZ, 'rev'), 100), true)) +
       '</div>';
     h += effBlock(E, Ep, ch, chp, sfb, sj);
     h += '<div class="dash-grid">';
@@ -3556,10 +3580,11 @@
     if (!j) return h + '<div class="box"><p class="muted">' + (LQ.err ? '⚠️ ' + esc(LQ.err) + ' <button class="link" data-lq="reload">Thử lại</button>' : '⏳ Đang tải…') + '</p></div>';
     var z = [0, 0, 0, 0], st = j.stats || {}, pv = j.prev || {}, T = [0, 0, 0, 0], Tp = [0, 0, 0, 0];
     j.links.forEach(function (l) { var a = st[l.code] || z, b = pv[l.code] || z; for (var i = 0; i < 4; i++) { T[i] += a[i]; Tp[i] += b[i]; } });
+    var QB = trendBuckets(perRange(f.p)), qs = function (i) { return st._dd ? trendDays(QB, st._dd, function (r) { return r[1][i]; }) : null; }, qsk = function (i) { var v = qs(i); return v ? sparkSvg(v, QB.partial) : ''; };
     var tay = st._tay || z; T[1] += tay[1]; T[2] += tay[2]; T[3] += tay[3]; var tp = pv._tay || z; Tp[1] += tp[1]; Tp[2] += tp[2]; Tp[3] += tp[3];
-    h += '<div class="metrics dash-m3">' + metric('👀 Lượt quét / mở link', T[0], 'Mỗi điện thoại tính 1 lần / ngày / link. Đếm cả khách chưa đồng ý cookie.', delta(T[0], Tp[0])) +
-      metric('🛒 Đơn', T[1], (T[0] && T[1] - tay[1] ? 'Cứ 100 lượt quét có ' + oneDec((T[1] - tay[1]) * 100 / T[0]) + ' đơn. ' : '') + 'Gồm khách quét rồi vài hôm sau mới đặt (trong 30 ngày).', delta(T[1], Tp[1])) +
-      metric('💰 Tiền', moneyShort(T[2]), 'Đơn huỷ / hoàn không tính.', delta(T[2], Tp[2])) + metric('🆕 Khách mới', T[3], 'Khách mua lần đầu trong kỳ.', delta(T[3], Tp[3])) + '</div>';
+    h += '<div class="metrics dash-m3">' + metric('👀 Lượt quét / mở link', T[0], 'Mỗi điện thoại tính 1 lần / ngày / link. Đếm cả khách chưa đồng ý cookie.', delta(T[0], Tp[0]), '', qsk(0)) +
+      metric('🛒 Đơn', T[1], (T[0] && T[1] - tay[1] ? 'Cứ 100 lượt quét có ' + oneDec((T[1] - tay[1]) * 100 / T[0]) + ' đơn. ' : '') + 'Gồm khách quét rồi vài hôm sau mới đặt (trong 30 ngày).', delta(T[1], Tp[1]), '', qsk(1)) +
+      metric('💰 Tiền', moneyShort(T[2]), 'Đơn huỷ / hoàn không tính.', delta(T[2], Tp[2]), '', qsk(2)) + metric('🆕 Khách mới', T[3], 'Khách mua lần đầu trong kỳ.', delta(T[3], Tp[3]), '', qsk(3)) + '</div>';
     if (tay[1]) h += '<p class="small">☎️ Khách gọi / nhắn Zalo đặt sau khi nhận tờ rơi, gặp ở sự kiện (sale lên đơn chọn “Tờ rơi / Sự kiện”): <b>' + tay[1] + ' đơn · ' + moneyShort(tay[2]) + '</b></p>';
     var on = j.links.filter(function (l) { return l.active; }).sort(function (a, b) { var x = st[a.code] || z, y = st[b.code] || z; return y[2] - x[2] || y[0] - x[0] || (b.at || 0) - (a.at || 0); }), off = j.links.filter(function (l) { return !l.active; });
     var kn = {}; (j.kinds || []).forEach(function (k) { kn[k[0]] = k[1]; });
@@ -3949,14 +3974,16 @@
     var cpd = ad && ad.n && tot ? Math.round(tot / ad.n) : 0, cpdP = adp && adp.n && totp ? Math.round(totp / adp.n) : 0, cpn = newN && tot ? Math.round(tot / newN) : 0, LT = mkLtvBlock(mj, cpn);
     var up = function (c, p0) { return !c || !p0 ? '' : c <= p0 * 1.05 ? 'ok' : c <= p0 * 1.2 ? 'mid' : 'bad'; }; // chi phí / đơn vị: tăng là xấu
     var wr = ad && ad.n ? pct(ad.won, ad.n) : null;
+    var KB = trendBuckets(R), kSp = trendDays(KB, day), kNr = trendDays(KB, mj.newDay), kNn = mj.newNDay ? trendDays(KB, mj.newNDay) : null, kAd = ad && ad.dd ? ad.dd : null;
+    var kAn = kAd ? trendDays(KB, kAd, function (r) { return r[1][0]; }) : null, ksk = function (v, bad) { return v ? sparkSvg(v, KB.partial, bad) : ''; };
     h += '<section class="dash-hero mk-hero"><p class="mk-row-l">💵 Tiền</p><div class="dash-tiles mk3">' +
-      dashTile('ch', '', '💸 Tiền bỏ ra quảng cáo', moneyShort(tot), inv(delta(tot, totp)), Object.keys(ch).sort(function (x, y) { return ch[y] - ch[x]; }).slice(0, 3).map(function (k) { return chInfo(k).icon + ' ' + esc(k) + ' ' + moneyShort(ch[k]); }).join(' · ') || 'Chưa có chi phí trong kỳ') +
-      dashTile('ch', dashTrend(nr, nrp), '💰 Tiền khách mới mua', moneyShort(nr), delta(nr, nrp), newN + ' khách mới từ quảng cáo') +
-      dashTile('camp', tot ? adsLv(tot, nr) : '', '🚦 Chi phí / tiền khách mới', rate === null ? '–' : oneDec(rate) + '%', rate !== null && totp && nrp ? inv(dRate(rate, totp * 100 / nrp)) : '', 'Xanh dưới ' + A[0] + '% · đỏ trên ' + A[1] + '%' + (rate !== null ? ' · bỏ 1đ thu ' + oneDec(nr / tot) + 'đ' : '')) +
+      dashTile('ch', '', '💸 Tiền bỏ ra quảng cáo', moneyShort(tot), inv(delta(tot, totp)), Object.keys(ch).sort(function (x, y) { return ch[y] - ch[x]; }).slice(0, 3).map(function (k) { return chInfo(k).icon + ' ' + esc(k) + ' ' + moneyShort(ch[k]); }).join(' · ') || 'Chưa có chi phí trong kỳ', ksk(kSp, 'n')) +
+      dashTile('ch', dashTrend(nr, nrp), '💰 Tiền khách mới mua', moneyShort(nr), delta(nr, nrp), newN + ' khách mới từ quảng cáo', ksk(kNr)) +
+      dashTile('camp', tot ? adsLv(tot, nr) : '', '🚦 Chi phí / tiền khách mới', rate === null ? '–' : oneDec(rate) + '%', rate !== null && totp && nrp ? inv(dRate(rate, totp * 100 / nrp)) : '', 'Xanh dưới ' + A[0] + '% · đỏ trên ' + A[1] + '%' + (rate !== null ? ' · bỏ 1đ thu ' + oneDec(nr / tot) + 'đ' : ''), ksk(trendRateNZ(kSp, kNr, 100), true)) +
       '</div><p class="mk-row-l">📇 Data &amp; khách</p><div class="dash-tiles mk3">' +
-      dashTile('data', up(cpd, cpdP), '📇 Chi phí 1 data', cpd ? moneyShort(cpd) : '–', cpd && cpdP ? inv(delta(cpd, cpdP)) : '', ad ? ad.n.toLocaleString('vi-VN') + ' data (số khách để lại)' + (adp && adp.n ? ' · ' + CMP_LABEL + ' ' + moneyShort(cpdP) + ' / data' : '') : 'Chưa có file số quảng cáo') +
+      dashTile('data', up(cpd, cpdP), '📇 Chi phí 1 data', cpd ? moneyShort(cpd) : '–', cpd && cpdP ? inv(delta(cpd, cpdP)) : '', ad ? ad.n.toLocaleString('vi-VN') + ' data (số khách để lại)' + (adp && adp.n ? ' · ' + CMP_LABEL + ' ' + moneyShort(cpdP) + ' / data' : '') : 'Chưa có file số quảng cáo', ksk(trendRateNZ(kSp, kAn), true)) +
       dashTile('sale', wr === null ? '' : wr >= 25 ? 'ok' : wr >= 15 ? 'mid' : 'bad', '🛒 Data → mua hàng', wr === null ? '–' : wr + '%', ad ? delta(wr, adp && adp.n ? pct(adp.won, adp.n) : null, 'rate') : '', ad ? 'Cứ 100 data có ' + wr + ' người mua · ' + ad.won + ' / ' + ad.n : 'Chưa có file số quảng cáo') +
-      dashTile('ltv', LT.cap && cpn ? LT.lv : up(cpn, newNp && totp ? Math.round(totp / newNp) : 0), '👤 Chi phí có 1 khách mới', cpn ? moneyShort(cpn) : '–', cpn && newNp && totp ? inv(delta(cpn, Math.round(totp / newNp))) : '', LT.cap ? 'Nên dưới ' + moneyShort(LT.cap) + ' (= ' + A[0] + '% tiền 1 khách mua trong 3 tháng)' : newN + ' khách mới') +
+      dashTile('ltv', LT.cap && cpn ? LT.lv : up(cpn, newNp && totp ? Math.round(totp / newNp) : 0), '👤 Chi phí có 1 khách mới', cpn ? moneyShort(cpn) : '–', cpn && newNp && totp ? inv(delta(cpn, Math.round(totp / newNp))) : '', LT.cap ? 'Nên dưới ' + moneyShort(LT.cap) + ' (= ' + A[0] + '% tiền 1 khách mua trong 3 tháng)' : newN + ' khách mới', ksk(trendRateNZ(kSp, kNn), true)) +
       '</div></section>';
     var GB = mkGoalBlock(gKey === key ? mj : gm, mj); h += GB.h;
     h += mkBudgetBlock(mj.budget);
@@ -3994,8 +4021,8 @@
     h += mkMore('ch', '🎯 Hiệu quả từng kênh', bestCh.length ? bestCh.map(function (k) { return chInfo(k).icon + ' ' + esc(k) + ' ' + Math.round(ch[k] * 100 / E[k].newRev) + '%'; }).join(' · ') + ' (chi phí / tiền khách mới)' : 'Chi phí so với tiền khách mới của từng kênh', effBlock(E, Ep, ch, chp, f.sfb, null, 1));
     h += mkMore('ltv', '💎 1 khách mới đáng giá bao nhiêu?', LT.line || '', LT.h);
     if (ad) h += mkMore('data', '📇 Data quảng cáo', ad.n + ' data · ' + per(ad.n, tot) + ' / data · ' + (ad.idle ? '⏳ ' + ad.idle + ' chưa có kết quả tư vấn' : 'rác ' + pct(ad.junk, ad.n) + '%'), '<div class="metrics dash-m3">' +
-      metric('Tổng data', ad.n, ad.fresh + ' số mới · ' + ad.old + ' khách cũ · ' + ad.again + ' từng hỏi trước đây.', delta(ad.n, adp ? adp.n : null)) +
-      metric('Chi phí / data', per(ad.n, tot), 'Chi phí quảng cáo ÷ số data.', ad.n && tot && adp && adp.n && totp ? inv(delta(Math.round(tot / ad.n), Math.round(totp / adp.n))) : '') +
+      metric('Tổng data', ad.n, ad.fresh + ' số mới · ' + ad.old + ' khách cũ · ' + ad.again + ' từng hỏi trước đây.', delta(ad.n, adp ? adp.n : null), '', ksk(kAn)) +
+      metric('Chi phí / data', per(ad.n, tot), 'Chi phí quảng cáo ÷ số data.', ad.n && tot && adp && adp.n && totp ? inv(delta(Math.round(tot / ad.n), Math.round(totp / adp.n))) : '', '', ksk(trendRateNZ(kSp, kAn), true)) +
       metric('Data ra đơn', ad.n ? pct(ad.won, ad.n) + '%' : '–', ad.won + ' / ' + ad.n + ' data đã mua' + (ad.won && tot ? ' · mỗi data ra đơn tốn ' + per(ad.won, tot) : '') + '. Data gần đây còn đang tư vấn nên số này tăng dần.', ad.n && adp && adp.n ? delta(pct(ad.won, ad.n), pct(adp.won, adp.n), 'rate') : '') +
       metric('Không mua', ad.lost, 'Khách đã tư vấn nhưng không mua.', '') +
       metric('Số rác', ad.junk, 'Sai số, không liên lạc được, không có nhu cầu thật.', ad.junk && adp ? inv(delta(ad.junk, adp.junk)) : '') +
@@ -4269,16 +4296,18 @@
   }
   function sanStats(sj, R, compact, P) {
     var s = sanSum(sj.days, 2), p = sanSum(sj.prev, 1), rate = function (a, b) { return b ? oneDec(a * 100 / b) + '%' : '–'; };
+    // đường nhỏ: sj.days = [ngày, sàn, doanh số, đơn, huỷ, hoàn, tổng đơn đặt, …]; không vẽ Tiền thực về / Tỷ lệ hoàn (số về sau 1–2 tuần, mấy ngày gần đây luôn thấp)
+    var SB = R ? trendBuckets(R) : null, sd = function (i) { return trendSum(SB, sj.days, function (r) { return dayMs(r[0]); }, function (r) { return r[i] || 0; }); }, ssk = function (f, bad) { return SB ? sparkSvg(f(), SB.partial, bad) : ''; };
     if (!s.t && !p.t) return '<div class="box"><p class="muted">Chưa có đơn sàn nào đặt trong kỳ này.</p></div>';
     var shops = Object.keys(s.shop).sort(function (a, b) { return s.shop[b].g - s.shop[a].g; });
     var netNote = !s.nn ? 'Chưa có số. Tải file Thu nhập / Đối soát của sàn để có tiền thật về tài khoản.' :
       (s.nr ? s.nr + ' đơn số thật (file Thu nhập)' : '') + (s.nn > s.nr ? (s.nr ? ', ' : '') + (s.nn - s.nr) + ' đơn ước tính (đã trừ voucher shop, phí sàn)' : '') + (s.n > s.nn ? ', ' + (s.n - s.nn) + ' đơn chưa có số' : '') + '.';
     var h = '<div class="metrics dash-m3">' +
-      metric('Doanh số sàn', moneyShort(s.g), money(s.g) + ' · ' + shops.map(function (k) { return sanIcon(k) + ' ' + esc(k) + ' ' + moneyShort(s.shop[k].g); }).join(' · ') + '. Theo ngày đặt, không tính đơn huỷ / hoàn.', delta(s.g, p.g)) +
-      metric('Số đơn', s.n, shops.map(function (k) { return esc(k) + ' ' + s.shop[k].n; }).join(' · ') + ' (không tính huỷ / hoàn).', delta(s.n, p.n)) +
-      metric('Giá trị TB / đơn', s.n ? moneyShort(Math.round(s.g / s.n)) : '–', 'Doanh số ÷ số đơn.', s.n && p.n ? delta(Math.round(s.g / s.n), Math.round(p.g / p.n)) : '') +
+      metric('Doanh số sàn', moneyShort(s.g), money(s.g) + ' · ' + shops.map(function (k) { return sanIcon(k) + ' ' + esc(k) + ' ' + moneyShort(s.shop[k].g); }).join(' · ') + '. Theo ngày đặt, không tính đơn huỷ / hoàn.', delta(s.g, p.g), '', ssk(function () { return sd(2); })) +
+      metric('Số đơn', s.n, shops.map(function (k) { return esc(k) + ' ' + s.shop[k].n; }).join(' · ') + ' (không tính huỷ / hoàn).', delta(s.n, p.n), '', ssk(function () { return sd(3); })) +
+      metric('Giá trị TB / đơn', s.n ? moneyShort(Math.round(s.g / s.n)) : '–', 'Doanh số ÷ số đơn.', s.n && p.n ? delta(Math.round(s.g / s.n), Math.round(p.g / p.n)) : '', '', ssk(function () { return trendRate(sd(2), sd(3)); })) +
       metric('Tiền thực về', s.nn ? moneyShort(s.nv) : '–', netNote, s.nn && p.nn ? delta(s.nv, p.nv) : '') +
-      metric('Tỷ lệ huỷ', rate(s.c, s.t), s.c + ' / ' + s.t + ' đơn đặt bị huỷ.', s.t && p.t ? inv(dRate(s.c * 100 / s.t, p.c * 100 / p.t)) : '') +
+      metric('Tỷ lệ huỷ', rate(s.c, s.t), s.c + ' / ' + s.t + ' đơn đặt bị huỷ.', s.t && p.t ? inv(dRate(s.c * 100 / s.t, p.c * 100 / p.t)) : '', '', ssk(function () { return trendRate(sd(4), sd(6), 100); }, true)) +
       metric('Tỷ lệ hoàn', rate(s.r, s.t), s.r + ' đơn trả hàng / hoàn tiền / giao không thành công.', s.t && p.t ? inv(dRate(s.r * 100 / s.t, p.r * 100 / p.t)) : '') + '</div>';
     if (compact) return h;
     if (shops.length > 1) h += '<div class="box"><h3>Theo sàn</h3>' + barList(shops.map(function (k) { var x = s.shop[k]; return { l: sanIcon(k) + ' ' + k, v: x.g, sub: x.n + ' đơn · huỷ ' + x.c + ' · hoàn ' + x.r }; }), moneyShort, '', { below: 1 }) + '</div>';
@@ -4848,7 +4877,7 @@
     h += '<h2 class="dash-more-h">Xem chi tiết <small class="muted">(bấm để mở)</small></h2>';
     h += repMore('rtrend', '📈 Bán hàng theo ngày', 'Doanh số, số đơn, lượt chăm sóc từng ngày, so với ' + (CMP_LABEL || 'kỳ trước'), repTrend(name, cx));
     h += smkMore(mk, mk && mk.me);
-    h += repMore('care', '💬 Chăm sóc khách', c.care + ' lượt' + (c.replyPct === null ? '' : ' · ' + c.replyPct + '% khách nghe máy') + (c.convPct === null ? '' : ' · ' + c.convPct + '% chăm sóc ra đơn'), careMetrics(c, p, me));
+    h += repMore('care', '💬 Chăm sóc khách', c.care + ' lượt' + (c.replyPct === null ? '' : ' · ' + c.replyPct + '% khách nghe máy') + (c.convPct === null ? '' : ' · ' + c.convPct + '% chăm sóc ra đơn'), careMetrics(c, p, me, name, cx.R));
     var why = whyBlock(name, cx), wt = (why.match(/<span class="bar-l" role="cell">([^<]*)</) || [])[1];
     h += repMore('why', '🙅 Vì sao khách chưa mua', wt ? 'Nhiều nhất: ' + wt : 'Ghi lý do khi chăm sóc để máy gom', why);
     var geo = geoBlock(name, cx), gt = (geo.match(/Nhiều nhất: <b>([^<]*)</) || [])[1];
@@ -4886,11 +4915,11 @@
     return w.slice(0, 2);
   }
   function repPeople(rows, t, cx) {
-    var careAvg = rows.length ? rows.reduce(function (s0, r) { return s0 + r.care; }, 0) / rows.length : 0, M = ['🥇', '🥈', '🥉'];
+    var careAvg = rows.length ? rows.reduce(function (s0, r) { return s0 + r.care; }, 0) / rows.length : 0, M = ['🥇', '🥈', '🥉'], PB = trendBuckets(cx.R);
     return '<div class="box rep-ppl"><h3>👥 Từng nhân viên <small class="muted">(bấm vào tên để xem chi tiết, đặt mục tiêu)</small></h3>' + (rows.length ? rows.map(function (r, i) {
       var g = r.t && r.t.amount ? goalCalc(r.ms, r.t.amount, cx.month) : null, lv = g && g.isCur ? g.lv : dashTrend(r.sales, r.prev.sales), wk = repWeak(r, t, careAvg);
       return '<div class="rep-ppl-r ' + (lv || '') + '" role="button" tabindex="0" data-who="' + esc(r.n) + '">' +
-        '<div class="rep-ppl-h"><b>' + (r.sales && i < 3 ? M[i] + ' ' : '') + esc(r.n) + '</b><span>' + (DASH_LV[lv] || '') + ' ' + moneyShort(r.sales) + '</span></div>' +
+        '<div class="rep-ppl-h"><b>' + (r.sales && i < 3 ? M[i] + ' ' : '') + esc(r.n) + '</b><span>' + sparkSvg(repSeries(r.n, PB, 0, 'sales'), PB.partial) + ' ' + (DASH_LV[lv] || '') + ' ' + moneyShort(r.sales) + '</span></div>' +
         (g ? '<div class="bar sm"><i style="width:' + Math.min(100, g.p * 100).toFixed(1) + '%"></i>' + (g.isCur ? '<u style="left:' + (g.tp * 100).toFixed(1) + '%"></u>' : '') + '</div><div class="rep-ppl-s">🎯 ' + Math.round(g.p * 100) + '% mục tiêu ' + moneyShort(r.t.amount) + (g.isCur ? ' · ' + GOAL_LV[g.lv] : '') + '</div>' : '<div class="rep-ppl-s warn">🎯 Chưa đặt mục tiêu ' + monthLabel(cx.month) + '</div>') +
         (r.mk && r.mk.n ? '<div class="rep-ppl-s">📣 ' + r.mk.n + ' số' + (r.mk.cost ? ' · công ty chi ' + moneyShort(r.mk.cost) + ' → mang về ' + moneyShort(r.mk.rev) : '') + (smkSpeed(r.mk) !== null ? ' · gọi trong ngày ' + smkSpeed(r.mk) + '%' : '') + '</div>' : '') +
         '<div class="rep-ppl-s">' + r.orders + ' đơn · chốt ' + (r.closePct === null ? '–' : r.closePct + '%') + ' · mỗi đơn ' + (r.orders ? moneyShort(r.avg) : '–') + ' · 💬 ' + r.care + ' lượt</div>' +
@@ -4944,7 +4973,7 @@
     h += rows.length >= 2 ? repMore('cmp', '📊 So sánh nhân viên', 'Xếp hạng theo doanh số, số đơn, tỷ lệ chốt, % mục tiêu…' + (lead ? ' · dẫn đầu: ' + esc(lead.n) : ''), compareBlock(rows, cx)) : '';
     h += repMore('rtrend', '📈 Bán hàng theo ngày', 'Doanh số, số đơn, lượt chăm sóc từng ngày, so với ' + (CMP_LABEL || 'kỳ trước'), repTrend(null, cx));
     h += smkMore(mk, null);
-    h += repMore('care', '💬 Chăm sóc khách', all.care + ' lượt' + (all.replyPct === null ? '' : ' · ' + all.replyPct + '% khách nghe máy') + (all.convPct === null ? '' : ' · ' + all.convPct + '% chăm sóc ra đơn'), careMetrics(all, prev, false));
+    h += repMore('care', '💬 Chăm sóc khách', all.care + ' lượt' + (all.replyPct === null ? '' : ' · ' + all.replyPct + '% khách nghe máy') + (all.convPct === null ? '' : ' · ' + all.convPct + '% chăm sóc ra đơn'), careMetrics(all, prev, false, null, cx.R));
     var why = whyBlock(null, cx), wt = (why.match(/<span class="bar-l" role="cell">([^<]*)</) || [])[1];
     h += repMore('why', '🙅 Vì sao khách chưa mua', wt ? 'Nhiều nhất: ' + wt : 'Ghi lý do khi chăm sóc để máy gom', why + teamLostBlock(R));
     var geo = geoBlock(null, cx), gt = (geo.match(/Nhiều nhất: <b>([^<]*)</) || [])[1];
@@ -5362,13 +5391,14 @@
     var d = bcdtData(name, month), fmtv = function (v, isMoney) { return !v ? '' : isMoney ? v.toLocaleString('vi-VN') : v; };
     var cols = bcdtCols().filter(function (c, i) { return i === 0 || c[1](d.tot); }); // ẩn cột cả tháng bằng 0 (dòng SP không bán) cho gọn
     var sumL = function (o) { return BC_LINES.reduce(function (s, l) { return s + o[l]; }, 0); }, T = d.tot, tRev = sumL(T.newR) + sumL(T.oldR), tg = name ? targetOf(name, month) : null;
-    var sumKpi = kpi('Tổng doanh số', moneyShort(tRev), '', '', (sumL(T.newN) + sumL(T.oldN)) + ' đơn · hoàn ' + T.hoanN) +
+    var BR = d.rows.filter(function (r) { return r.day <= today(); }), bsk = function (f, bad) { return BR.length >= 2 ? sparkSvg(BR.map(f), month === monthOf(Date.now()), bad) : ''; };
+    var sumKpi = kpi('Tổng doanh số', moneyShort(tRev), '', '', (sumL(T.newN) + sumL(T.oldN)) + ' đơn · hoàn ' + T.hoanN, bsk(function (r) { return sumL(r.newR) + sumL(r.oldR); })) +
       kpi('Tỷ lệ chốt', T.close.data ? T.close.pct + '%' : '–', '', '', T.close.won + ' ra đơn / ' + T.close.data + ' data quảng cáo' + (T.close.open ? ' · ' + T.close.open + ' đang tư vấn' : '')) +
-      kpi('TB/đơn khách mới', sumL(T.newN) ? moneyShort(sumL(T.newR) / sumL(T.newN)) : '–') +
-      kpi('Doanh số khách cũ', tRev ? Math.round(sumL(T.oldR) / tRev * 100) + '%' : '–', '', '', moneyShort(sumL(T.oldR))) +
-      kpi('TB/đơn khách cũ', sumL(T.oldN) ? moneyShort(sumL(T.oldR) / sumL(T.oldN)) : '–', '', '', sumL(T.oldN) + ' đơn khách cũ') +
+      kpi('TB/đơn khách mới', sumL(T.newN) ? moneyShort(sumL(T.newR) / sumL(T.newN)) : '–', '', '', '', bsk(function (r) { return sumL(r.newN) ? sumL(r.newR) / sumL(r.newN) : null; })) +
+      kpi('Doanh số khách cũ', tRev ? Math.round(sumL(T.oldR) / tRev * 100) + '%' : '–', '', '', moneyShort(sumL(T.oldR)), bsk(function (r) { var t = sumL(r.newR) + sumL(r.oldR); return t ? sumL(r.oldR) * 100 / t : null; })) +
+      kpi('TB/đơn khách cũ', sumL(T.oldN) ? moneyShort(sumL(T.oldR) / sumL(T.oldN)) : '–', '', '', sumL(T.oldN) + ' đơn khách cũ', bsk(function (r) { return sumL(r.oldN) ? sumL(r.oldR) / sumL(r.oldN) : null; })) +
       kpi('DT ngoài giờ (loại đơn)', moneyShort(T.offR), '', '', T.offN + ' đơn sale chọn Ngoài giờ / Ngày lễ (tính hoa hồng)') +
-      kpi('KH cũ đã chăm sóc', T.careOk, '', '', 'kết nối được · ' + T.knm + ' lượt không nghe máy') +
+      kpi('KH cũ đã chăm sóc', T.careOk, '', '', 'kết nối được · ' + T.knm + ' lượt không nghe máy', bsk(function (r) { return r.careOk; })) +
       (tg && tg.amount ? kpi('% tiến độ mục tiêu', pct(tRev, tg.amount) + '%', pct(tRev, tg.amount) >= 100 ? 'good' : '', '', 'mục tiêu ' + moneyShort(tg.amount)) : '');
     var head = '<tr>' + cols.map(function (c) { return '<th>' + esc(c[0]) + '</th>'; }).join('') + '</tr>';
     var tr = function (r, cls) { return '<tr' + (cls ? ' class="' + cls + '"' : '') + '>' + cols.map(function (c) { return '<td>' + fmtv(c[1](r), c[2]) + '</td>'; }).join('') + '</tr>'; };

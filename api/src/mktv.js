@@ -46,7 +46,7 @@ function orderProds(items, total) {
  *  thêm: phễu (tot / totPrev), giá trung bình 1 kết quả mỗi kênh (cpr), theo sản phẩm (prod), giá trị khách mới 90 ngày (ltv), ngân sách tháng (budget). */
 export async function mktView(x, u, d) {
   if (![d.from, d.to, d.pf, d.pt].every(s => DAY_RE.test(String(s || '')))) return { ok: false, error: 'Khoảng thời gian chưa đúng.' };
-  const sfb = d.sfb !== false && d.sfb !== 0, key = 'mktv10_' + [d.from, d.to, d.pf, d.pt, sfb ? 1 : 0, u.level >= 3 ? 'a' : 'm'].join('_') + '_' + ((await kvGet(x.db, 'ads_rows_v')) || '');
+  const sfb = d.sfb !== false && d.sfb !== 0, key = 'mktv11_' + [d.from, d.to, d.pf, d.pt, sfb ? 1 : 0, u.level >= 3 ? 'a' : 'm'].join('_') + '_' + ((await kvGet(x.db, 'ads_rows_v')) || '');
   if (!d.fresh) { const c = await kvJson(x.db, key, null); if (c) return Object.assign(c, { cached: true }, await budgetOf(x)); }
   const R = [dayMs(d.from), dayMs(d.to) + DAY], P = [dayMs(d.pf), dayMs(d.pt) + DAY];
   const mid = iso(Math.floor((R[0] + R[1]) / 2 / DAY) * DAY); // chia đôi kỳ: tỷ lệ bấm nửa đầu ↔ nửa sau (quảng cáo có bị nhàm không)
@@ -87,15 +87,15 @@ export async function mktView(x, u, d) {
   /** Doanh thu khách mới theo kênh (khách mua lần đầu trong kỳ, mọi đơn của họ trong kỳ, kênh = kênh đơn đầu). Khách cũ quay lại: chỉ để tham khảo.
    *  po (kỳ này): các đơn khách mới [kênh, sản phẩm, tiền] để chia theo sản phẩm. */
   const eff = (Rg, san, po, wb) => {
-    const C = {}, get = k => C[k] || (C[k] = { newN: 0, newRev: 0, oldRev: 0, oldN: 0, dd: {} }), who = {}, seen = {};
+    const C = {}, get = k => C[k] || (C[k] = { newN: 0, newRev: 0, oldRev: 0, oldN: 0, dd: {}, dn: {} }), who = {}, seen = {};
     ords.filter(o => o.time >= Rg[0] && o.time < Rg[1]).forEach(o => {
       const ph = o.ph || ('?' + o.time), f = firstOf[o.ph], isNew = !f || f >= Rg[0];
       if (!who[ph]) who[ph] = orderChan(o) || '?';
       const k = isNew ? who[ph] : orderChan(o) || '?', c = get(k);
       if (wb) { wb.tot += o.total; if (isWebO(o)) { if (isNew && who[ph] === 'Facebook') wb.fb += o.total; else if (isNew) { wb.newRev += o.total; wb.nw[ph] = 1; } else { wb.oldRev += o.total; wb.od[ph] = 1; } } }
       if (isNew) {
-        const fresh = !seen[k + ph]; if (fresh) { seen[k + ph] = 1; c.newN++; }
-        c.newRev += o.total; const dk = iso(o.time); c.dd[dk] = (c.dd[dk] || 0) + o.total;
+        const fresh = !seen[k + ph], dk = iso(o.time); if (fresh) { seen[k + ph] = 1; c.newN++; c.dn[dk] = (c.dn[dk] || 0) + 1; }
+        c.newRev += o.total; c.dd[dk] = (c.dd[dk] || 0) + o.total;
         if (po) orderProds(o.items, o.total).forEach(([p, v], i) => po.push([k, p, v, fresh && !i ? ph : '']));
       } else { c.oldRev += o.total; c.oldN++; }
     });
@@ -106,11 +106,12 @@ export async function mktView(x, u, d) {
    *  idle: data từ hôm qua trở về trước mà chưa có kết quả tư vấn nào (khách hỏi vẫn "Mới hỏi", chưa mua). prod: data / ra đơn theo sản phẩm (cột Nguồn quảng cáo). */
   const today0 = startOfDay(Date.now());
   const adStat = (Rg, byProd) => {
-    const o = { n: 0, won: 0, lost: 0, junk: 0, fresh: 0, old: 0, again: 0, idle: 0 }, seen = {};
+    const o = { n: 0, won: 0, lost: 0, junk: 0, fresh: 0, old: 0, again: 0, idle: 0, dd: {} }, seen = {};
     ads.forEach(([day, ph, src]) => {
       if (day < Rg[0] || day >= Rg[1] || seen[ph]) return; seen[ph] = 1; o.n++;
       const ls = (leadsBy[ph] || []).filter(l => (l.last_at || l.time || 0) >= day);
       const won = (buyBy[ph] || []).some(t => t >= day) || ls.some(l => l.status === 'Đã chốt'), no = !won && ls.find(l => l.status === 'Không mua');
+      const dk = iso(day), dv = o.dd[dk] || (o.dd[dk] = [0, 0]); dv[0]++; if (won) dv[1]++; // theo ngày: [data, ra đơn]
       if (won) o.won++; else if (no) o[/rác/i.test(no.reason || '') ? 'junk' : 'lost']++;
       else if (day < today0 && !ls.some(l => l.status && l.status !== 'Mới hỏi')) o.idle++;
       if (firstOf[ph] && firstOf[ph] < day) o.old++; else if ((leadsBy[ph] || []).some(l => (l.time || 0) < day)) o.again++; else o.fresh++;
@@ -158,7 +159,7 @@ export async function mktView(x, u, d) {
   const paid = {}; spDays.concat(spPrev).forEach(r => { if (r.s > 0) paid[r.channel] = 1; });
   const onlyPaid = C => { const o = {}; Object.keys(C).forEach(k => { if (paid[k]) o[k] = C[k]; }); return o; };
   /** Tiền khách mới theo ngày, chỉ kênh có chi phí trong kỳ đó (sàn không chạy quảng cáo không tính) – cho biểu đồ chi phí ↔ tiền khách mới. */
-  const byDay = (C, sp) => { const on = {}, o = {}; sp.forEach(r => { if (r.s > 0) on[r.channel] = 1; }); Object.keys(C).forEach(k => { if (on[k]) Object.keys(C[k].dd).forEach(dk => { o[dk] = (o[dk] || 0) + C[k].dd[dk]; }); delete C[k].dd; }); return o; };
+  const byDay = (C, sp, f) => { const on = {}, o = {}; f = f || 'dd'; sp.forEach(r => { if (r.s > 0) on[r.channel] = 1; }); Object.keys(C).forEach(k => { if (on[k]) Object.keys(C[k][f]).forEach(dk => { o[dk] = (o[dk] || 0) + C[k][f][dk]; }); delete C[k][f]; }); return o; };
 
   // theo sản phẩm (kỳ này): chi phí theo tên chiến dịch, data + ra đơn theo file số, tiền khách mới (chỉ kênh có chạy quảng cáo) theo dòng sản phẩm của đơn
   const PR = {}, pget = k => PR[k] || (PR[k] = { k, sp: 0, res: 0, n: 0, won: 0, rev: 0, newN: 0 }), po = [];
@@ -180,7 +181,7 @@ export async function mktView(x, u, d) {
     days: spDays.map(r => [r.day, r.channel, r.s]), prev: spPrev.map(r => [r.channel, r.s]),
     // [kênh, chiến dịch, src, chi phí, hiển thị, click, tin nhắn, SĐT, mua, [tài khoản], [hiển thị nửa đầu, click nửa đầu, ngày cuối có chi]]
     camps: camps.map(r => [r.channel, r.campaign, r.src, r.s, r.i, r.c, r.m, r.l, r.p, accOf(cfg, r), [r.i1 || 0, r.c1 || 0, r.last || '']]),
-    eff: onlyPaid(EF), effPrev: onlyPaid(EP), newDay: byDay(EF, spDays), newDayPrev: byDay(EP, spPrev), ad, adPrev: ads.length ? adStat(P) : null,
+    eff: onlyPaid(EF), effPrev: onlyPaid(EP), newNDay: byDay(EF, spDays, 'dn'), newNDayPrev: byDay(EP, spPrev, 'dn'), newDay: byDay(EF, spDays), newDayPrev: byDay(EP, spPrev), ad, adPrev: ads.length ? adStat(P) : null,
     tot, totPrev: sumT(spPrev), cpr, mid,
     prod: Object.values(PR).filter(p => p.sp || p.n || p.rev).sort((a, b) => b.sp - a.sp || b.rev - a.rev),
     sale: saleFb(R, u.level >= 3), ltv: await ltvOf(x),

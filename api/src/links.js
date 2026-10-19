@@ -46,18 +46,19 @@ export async function qrGo(x, req, code) {
 const campOf = v => { const a = String(v || '').split(' / '); return a.length >= 3 && !/^(sale|nhập tay|tiềm năng|file )/i.test(a[0]) ? a[2].trim().toLowerCase() : ''; };
 
 /** Thống kê kỳ [from, to]: { mã: [lượt quét, đơn, tiền, khách mới] }; _tay = đơn sale lên với nguồn "Tờ rơi / Sự kiện". */
-async function linkStats(x, from, to) {
-  const A = dayMs(from), B = dayMs(to) + DAY, o = {}, g = c => o[c] || (o[c] = [0, 0, 0, 0]);
+async function linkStats(x, from, to, byDay) {
+  const A = dayMs(from), B = dayMs(to) + DAY, o = {}, g = c => o[c] || (o[c] = [0, 0, 0, 0]), dd = byDay ? (o._dd = {}) : null, gd = k => dd[k] || (dd[k] = [0, 0, 0, 0]);
   const [hits, ords] = await Promise.all([
     all(x.db, 'SELECT code, SUM(n) AS n FROM qr_hits WHERE day BETWEEN ? AND ? GROUP BY code', from, to),
     all(x.db, "SELECT phone, time, total, status, source, first_source FROM orders WHERE time >= ? AND time < ? AND (source LIKE '% / % / %' OR first_source LIKE '% / % / %' OR source LIKE 'Nhập tay – Tờ rơi%')", A, B)
   ]);
   hits.forEach(h => { g(h.code)[0] += Number(h.n) || 0; });
-  const list = ords.filter(r => !isVoid(r.status)).map(r => ({ ph: normPhone(r.phone), total: Number(r.total) || 0, c: campOf(r.source) || campOf(r.first_source) || (/^nhập tay – tờ rơi/i.test(r.source || '') ? '_tay' : '') })).filter(r => r.c && r.c.length <= 40);
+  if (dd) (await all(x.db, 'SELECT day, SUM(n) AS n FROM qr_hits WHERE day BETWEEN ? AND ? GROUP BY day', from, to)).forEach(h => { gd(h.day)[0] += Number(h.n) || 0; });
+  const list = ords.filter(r => !isVoid(r.status)).map(r => ({ ph: normPhone(r.phone), total: Number(r.total) || 0, day: fmtDate(Number(r.time) || 0, 'yyyy-MM-dd'), c: campOf(r.source) || campOf(r.first_source) || (/^nhập tay – tờ rơi/i.test(r.source || '') ? '_tay' : '') })).filter(r => r.c && r.c.length <= 40);
   const phones = [...new Set(list.map(r => r.ph).filter(Boolean))], firstOf = {};
   if (phones.length) (await allIn(x.db, 'SELECT phone, first FROM customers WHERE phone IN (SELECT value FROM json_each(?))', phones)).forEach(c => { firstOf[normPhone(c.phone)] = Number(c.first) || 0; });
   const seen = {};
-  list.forEach(r => { const a = g(r.c), f = firstOf[r.ph]; a[1]++; a[2] += r.total; if (r.ph && !seen[r.c + r.ph] && (!f || f >= A)) { seen[r.c + r.ph] = 1; a[3]++; } });
+  list.forEach(r => { const a = g(r.c), f = firstOf[r.ph]; const e = dd ? gd(r.day) : [0, 0, 0, 0]; a[1]++; a[2] += r.total; e[1]++; e[2] += r.total; if (r.ph && !seen[r.c + r.ph] && (!f || f >= A)) { seen[r.c + r.ph] = 1; a[3]++; e[3]++; } });
   return o;
 }
 
@@ -70,7 +71,7 @@ export async function crmLinks(x, u, d, log) {
     const links = await all(x.db, 'SELECT code, name, kind, dest, note, active, by_name, at, upd_by, upd_at FROM links ORDER BY active DESC, at DESC');
     links.forEach(l => { l.target = linkTarget(l, l.code); l.short = SITE + '/q/' + l.code + '/'; });
     const ok = [d.from, d.to, d.pf, d.pt].every(s => DR.test(String(s || '')));
-    return { ok: true, links, kinds: Object.keys(LINK_KINDS).map(k => [k, LINK_KINDS[k][2]]), stats: ok ? await linkStats(x, d.from, d.to) : {}, prev: ok ? await linkStats(x, d.pf, d.pt) : {} };
+    return { ok: true, links, kinds: Object.keys(LINK_KINDS).map(k => [k, LINK_KINDS[k][2]]), stats: ok ? await linkStats(x, d.from, d.to, true) : {}, prev: ok ? await linkStats(x, d.pf, d.pt) : {} };
   }
   if (a === 'link_save') {
     const code = String(d.code || '').trim().toLowerCase(), name = String(d.name || '').trim().slice(0, 120), kind = LINK_KINDS[d.kind] ? d.kind : 'khac';
