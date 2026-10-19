@@ -3,7 +3,7 @@
 // Cách tính giống hệt tab Tổng quan (chanEff / orderChan / closeStats trong crm/app.js) để 2 nơi luôn ra cùng số. Sửa cách tính thì sửa cả 2 nơi.
 import { accOf } from './mkt.js';
 import { pledgeStats, quizStats } from './journey.js';
-import { all, allIn, first, kvGet, kvSet, kvJson, normPhone, nrm, esc, isVoid, startOfDay, fmtDate, DAY, CRM_URL } from './lib.js';
+import { all, allIn, first, kvGet, kvSet, kvJson, normPhone, nrm, esc, isVoid, startOfDay, fmtDate, DAY, MKT_URL } from './lib.js';
 
 const DAY_RE = /^\d{4}-\d\d-\d\d$/;
 /* Từ khoá nhận ra kênh (giống MKT_CH trong crm/app.js – thêm kênh thì thêm cả 2 nơi). Kênh cụ thể (TikTok Shop) đứng trước kênh chung (TikTok). */
@@ -332,6 +332,6 @@ export async function mktDailyMsgs(x, users) {
     const mine = keys.filter(k => sameWho(G[k].who, y.name)), rest = keys.filter(k => mine.indexOf(k) < 0);
     const goalTxt = keys.length ? '🎯 <b>Mục tiêu tháng ' + Number(b.m.slice(5)) + '</b> (tháng đã qua ' + Math.round(tp * 100) + '%)' + (mine.length ? '\n<i>Kênh của bạn:</i>\n' + mine.map(line).join('\n') + (rest.length ? '\n<i>Kênh khác:</i> ' + rest.map(k => (CH_ICON[k] || '📦') + ' ' + esc(k) + ' ' + (G[k].rev ? pc(rev(k), G[k].rev) + '%' : ms(rev(k)))).join(' · ') : '') : (rest.length ? '\n' + rest.map(line).join('\n') : '')) : '🎯 Chưa có mục tiêu tháng này (Quản trị đặt ở tab Marketing).';
     return { who: y.name, tg: y.tg, text: '📣 <b>Marketing sáng ' + fmtDate(now, 'dd/MM') + '</b>\n\n' + (rankTxt ? rankTxt + '\n\n' : '') + goalTxt + (yline ? '\n\n' + yline : '') +
-      (todo.length ? '\n\n✅ <b>Nên làm hôm nay</b>\n' + todo.slice(0, 5).map(t => '• ' + t).join('\n') : '') + '\n\n👉 Xem chi tiết: ' + CRM_URL + '/#marketing' };
+      (todo.length ? '\n\n✅ <b>Nên làm hôm nay</b>\n' + todo.slice(0, 5).map(t => '• ' + t).join('\n') : '') + '\n\n👉 Xem chi tiết: ' + MKT_URL };
   });
 }

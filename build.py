@@ -2981,6 +2981,11 @@ def build_crm():
         "name": "CRM Thực Dưỡng Lành", "short_name": "CRM TDL", "start_url": "/", "display": "standalone",
         "background_color": "#f5f4ef", "theme_color": "#24805B",
         "icons": [{"src": "/icon-180.png", "sizes": "180x180", "type": "image/png"}, {"src": "/icon-512.png", "sizes": "512x512", "type": "image/png"}]}, ensure_ascii=False), "utf-8")
+    # mkt.thucduonglanh.vn dùng chung CRM; app.js đổi sang manifest này để lưu ra màn hình mang tên Marketing
+    (out / "manifest-mkt.webmanifest").write_text(json.dumps({
+        "name": "Marketing Thực Dưỡng Lành", "short_name": "Marketing TDL", "start_url": "/", "display": "standalone",
+        "background_color": "#f5f4ef", "theme_color": "#24805B",
+        "icons": [{"src": "/icon-180.png", "sizes": "180x180", "type": "image/png"}, {"src": "/icon-512.png", "sizes": "512x512", "type": "image/png"}]}, ensure_ascii=False), "utf-8")
     (out / "robots.txt").write_text("User-agent: *\nDisallow: /\n", "utf-8")
     (out / "_headers").write_text(
         "/*\n  X-Robots-Tag: noindex, nofollow\n  X-Content-Type-Options: nosniff\n  X-Frame-Options: DENY\n  Referrer-Policy: no-referrer\n"

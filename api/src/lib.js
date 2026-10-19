@@ -3,6 +3,7 @@
 export const TZ_MS = 7 * 3600e3; // Việt Nam UTC+7, không đổi giờ mùa hè
 export const DAY = 864e5;
 export const CRM_URL = 'https://crm.thucduonglanh.vn';
+export const MKT_URL = 'https://mkt.thucduonglanh.vn'; // cùng trang CRM, mở thẳng tab Marketing – link gửi cho nhân sự marketing
 
 export function normPhone(p) { p = String(p == null ? '' : p).replace(/\D/g, ''); if (p.indexOf('84') === 0 && p.length >= 11) p = '0' + p.slice(2); return p; }
 export function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }

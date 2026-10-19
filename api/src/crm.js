@@ -1,5 +1,5 @@
 // CRM: đăng nhập, dữ liệu, đơn hàng, khách, tiềm năng, cài đặt. Chuyển từ Apps Script sang, giữ nguyên cách làm việc & dữ liệu trả về cho giao diện.
-import { normPhone, nrm, esc, fmt, startOfDay, TZ_MS, fmtDate, dateOrBlank, slugName, replaceRows, isVoid, randHex, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, DAY, CRM_URL, refCode } from './lib.js';
+import { normPhone, nrm, esc, fmt, startOfDay, TZ_MS, fmtDate, dateOrBlank, slugName, replaceRows, isVoid, randHex, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, DAY, CRM_URL, MKT_URL, refCode } from './lib.js';
 import { crmPartner, partnerSchema, orderAttrib } from './partner.js';
 import { sendMail, telegram, telegramTo, telegramPhoto, tgUpdates, tgConf, bridge } from './google.js';
 import { crmGa, crmGaProp } from './ga.js';
@@ -763,14 +763,15 @@ export async function telegramUser(x, name, text) { const y = (await crmUsers(x)
 async function crmLogin(x, d) {
   const email = String(d.email || '').trim().toLowerCase();
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return { ok: false, error: 'Email chưa đúng.' };
-  if (!await crmUser(x, email)) return { ok: false, error: 'Email này chưa được cấp quyền vào CRM. Nhờ anh Sơn hoặc quản lý thêm email của bạn.' };
+  const lu = await crmUser(x, email);
+  if (!lu) return { ok: false, error: 'Email này chưa được cấp quyền vào CRM. Nhờ anh Sơn hoặc quản lý thêm email của bạn.' };
   const rk = 'rl_' + email, n = Number(await kvGet(x.db, rk) || 0);
   if (n >= 5) return { ok: false, error: 'Bạn đã xin mã quá nhiều lần. Vui lòng đợi 15 phút rồi thử lại.' };
   await kvSet(x.db, rk, String(n + 1), 900e3);
   const b = new Uint32Array(1); crypto.getRandomValues(b); const code = String(b[0] % 900000 + 100000);
   await kvSet(x.db, 'otp_' + email, JSON.stringify({ c: code, t: 0 }), 600e3);
   x.later(sendMail(x.env, { to: email, name: 'CRM Thực Dưỡng Lành', subject: code + ' là mã đăng nhập CRM Thực Dưỡng Lành',
-    body: 'Mã đăng nhập của bạn: ' + code + '\n\nMã dùng được trong 10 phút. Không đưa mã này cho người khác.\nNếu bạn không yêu cầu đăng nhập, hãy bỏ qua email này.\n\n' + CRM_URL }).catch(e => console.error('mail', e.message))); // gửi nền: trả lời ngay, email tới sau vài giây
+    body: 'Mã đăng nhập của bạn: ' + code + '\n\nMã dùng được trong 10 phút. Không đưa mã này cho người khác.\nNếu bạn không yêu cầu đăng nhập, hãy bỏ qua email này.\n\n' + (lu.role === 'Marketing' ? MKT_URL : CRM_URL) }).catch(e => console.error('mail', e.message))); // gửi nền: trả lời ngay, email tới sau vài giây
   return { ok: true };
 }
 async function crmVerify(x, d) {

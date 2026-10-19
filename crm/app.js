@@ -164,6 +164,9 @@
   function zalo(p) { return 'https://zalo.me/' + normPhone(p); }
   var ZI = '<svg class="zi" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0068ff"/><text x="16" y="20.5" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="11.5" font-weight="700" fill="#fff">Zalo</text></svg>'; // biểu tượng Zalo: khách đã kết bạn (khác 💬 = chăm sóc / nhắn tin)
   function lvl() { return S.user ? S.user.level : 0; }
+  /* mkt.thucduonglanh.vn = cùng CRM này (thêm tên miền vào project Pages), mở thẳng tab Marketing và đổi tên hiển thị */
+  var MKT_HOST = /^mkt\./.test(location.hostname), APP_NM = MKT_HOST ? 'Marketing Thực Dưỡng Lành' : 'CRM Thực Dưỡng Lành';
+  if (MKT_HOST) { document.title = APP_NM; var mfl = document.querySelector('link[rel=manifest]'); if (mfl) mfl.href = '/manifest-mkt.webmanifest'; }
   function toast(msg, err) {
     var el = document.createElement('div'); if (err) el.className = 'err'; el.textContent = msg; $('#toast').appendChild(el);
     setTimeout(function () { el.remove(); }, err ? (msg.length > 120 ? 15000 : 6000) : 2800);
@@ -244,7 +247,7 @@
   /* ================================================================ đăng nhập */
   function renderLogin(step, email, msg) {
     $('#app').innerHTML = '<div class="login"><form class="login-box" novalidate>' +
-      '<img src="/logo.webp" alt="Thực Dưỡng Lành"><h1>CRM Thực Dưỡng Lành</h1>' +
+      '<img src="/logo.webp" alt="Thực Dưỡng Lành"><h1>' + APP_NM + '</h1>' +
       (step === 'code'
         ? '<p class="sub">Mã 6 số đã gửi tới <b>' + esc(email) + '</b>.<br>Mở hộp thư (xem cả mục Spam/Quảng cáo) để lấy mã.</p>' +
           '<label class="f"><span>Mã đăng nhập</span><input type="text" class="code" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required></label>' +
@@ -740,7 +743,7 @@
     });
   }
   /** Tab mở mặc định theo quyền: Quản trị → Tổng quan, Quản lý → Hiệu quả, nhân viên → Hôm nay. */
-  function homeView() { return isMkt() ? 'marketing' : lvl() >= 3 ? 'tong-quan' : lvl() >= 2 ? 'bao-cao' : 'hom-nay'; }
+  function homeView() { return isMkt() || (MKT_HOST && myViews().some(function (x) { return x.id === 'marketing'; })) ? 'marketing' : lvl() >= 3 ? 'tong-quan' : lvl() >= 2 ? 'bao-cao' : 'hom-nay'; }
   function route() { var h = (location.hash || '').slice(1).split('/'); return { view: h[0] === 'lien-he' ? 'tiem-nang' : h[0] || homeView(), id: decodeURIComponent(h[1] || '') }; }
   var lastView = '';
   function render() {
@@ -755,7 +758,7 @@
     if (focusId && $('#' + focusId)) { var f = $('#' + focusId); f.focus(); try { f.setSelectionRange(selStart, selStart); } catch (e) { } }
     if (keepScroll) window.scrollTo(0, y); else window.scrollTo(0, 0);
     lastView = v;
-    document.title = VIEWS.filter(function (x) { return x.id === v; })[0].label + ' – CRM Thực Dưỡng Lành';
+    document.title = VIEWS.filter(function (x) { return x.id === v; })[0].label + ' – ' + APP_NM;
     if (v === 'cai-dat') bindSettings();
     if (v === 'tong-quan') bindDash();
     if (v === 'bao-cao') bindRep();

@@ -16,6 +16,7 @@ Trang này dành cho toàn bộ nhân sự. Đọc phần **Bắt đầu** trư�
 | Việc | Link |
 | --- | --- |
 | **CRM**: đơn hàng, chăm sóc khách, khách hỏi | [crm.thucduonglanh.vn](https://crm.thucduonglanh.vn) |
+| **Trang Marketing** (nhân sự marketing): chi phí, hiệu quả quảng cáo, Link & QR | [mkt.thucduonglanh.vn](https://mkt.thucduonglanh.vn) |
 | Trang hướng dẫn này | [crm.thucduonglanh.vn/huong-dan](https://crm.thucduonglanh.vn/huong-dan/) |
 | Website bán hàng | [thucduonglanh.vn](https://thucduonglanh.vn) |
 | Trang quản trị website (đăng bài, sửa sản phẩm) | [thucduonglanh.vn/admin](https://thucduonglanh.vn/admin/) |

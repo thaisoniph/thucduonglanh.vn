@@ -332,7 +332,8 @@ Apps Script giới hạn 200 phiên bản/dự án: báo lỗi "Không tạo đ�
 
 - Nameserver: `liberty.ns.cloudflare.com`, `randy.ns.cloudflare.com`. **Mọi thay đổi DNS làm trên Cloudflare**, không làm ở Tenten.
 - `www` và `http://` tự chuyển về `https://thucduonglanh.vn`.
-- Link phụ = **Redirect Rules** (Cloudflare → thucduonglanh.vn → Rules → Redirect Rules), dùng đủ 10/10 quy tắc gói miễn phí: story, ld, shop, shopee, family, **cauchuyen → /ho-so-thuong-hieu/**, sotay, mkt, quacmadiamond + quy tắc HTTPS/www. `quatang` là CNAME tới LadiPage.
+- Link phụ = **Redirect Rules** (Cloudflare → thucduonglanh.vn → Rules → Redirect Rules), dùng đủ 10/10 quy tắc gói miễn phí: story, ld, shop, shopee, family, **cauchuyen → /ho-so-thuong-hieu/**, sotay, quacmadiamond + quy tắc HTTPS/www (19/10/2026 bỏ quy tắc `mkt` → canva.link/mkt-vtg, còn trống 1 chỗ).
+- **mkt.thucduonglanh.vn** (19/10/2026) = tên miền thứ hai của project Pages `thucduonglanh-crm` (CNAME → thucduonglanh-crm.pages.dev), không phải trang riêng. `crm/app.js` thấy tên máy `mkt.` thì đổi tên hiển thị thành *Marketing Thực Dưỡng Lành*, mở mặc định tab Marketing (với ai có tab này) và dùng `manifest-mkt.webmanifest` (build.py tạo). Máy chủ: `mkt.` có trong `ORIGINS` (api/src/index.js); `MKT_URL` (lib.js) dùng cho tin Telegram 8h của Marketing và email mã đăng nhập của tài khoản quyền Marketing. `quatang` là CNAME tới LadiPage.
 - GitHub Actions dùng secrets `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` (GitHub → Settings → Secrets).
 - Muốn đăng lại một phần mà không sửa code: GitHub → Actions → chọn "Website – dựng và đăng" / "CRM – dựng và đăng" / "Máy chủ api – triển khai" → **Run workflow**. Thêm thư mục mới mà CRM hay web cần dùng thì nhớ thêm vào `paths` / `paths-ignore` của file workflow tương ứng.
 

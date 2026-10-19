@@ -547,6 +547,8 @@ Trên đơn web, nguồn đến từ link hiện **📍 <tên link>**.
 
 **Thêm người:** Quản trị vào **Cài đặt → Nhân sự được vào CRM → ＋ Thêm người**, nhập email, chọn quyền **Marketing** → **Lưu nhân sự**. Người đó đăng nhập bằng mã gửi về email như các bạn sale. Nghỉ việc thì bỏ tích *Đang dùng*.
 
+**Địa chỉ của marketing: [mkt.thucduonglanh.vn](https://mkt.thucduonglanh.vn)**, chỉ cần nhớ địa chỉ này. Đây là trang Marketing của CRM, mở ra là vào thẳng tab 📣 Marketing (nhập crm.thucduonglanh.vn cũng vào được, chỉ là phải đăng nhập riêng ở mỗi địa chỉ). Trên điện thoại, mở mkt.thucduonglanh.vn rồi chọn *Thêm vào màn hình chính* để có biểu tượng **Marketing TDL** như một ứng dụng. Quản trị mở địa chỉ này cũng vào thẳng tab Marketing.
+
 **Tài khoản Marketing chỉ thấy tab 📣 Marketing**, không thấy khách, đơn, số điện thoại hay doanh số toàn công ty. Máy chủ tính sẵn và chỉ gửi con số tổng (Nghị định 13/2023). Tài khoản này không được giao khách, không có trong bảng hiệu quả của sale.
 
 **Trong tab Marketing:** màn hình đầu chỉ có số quan trọng nhất, phần chi tiết thu gọn, bấm tiêu đề mới mở (CRM nhớ mục bạn hay mở).
