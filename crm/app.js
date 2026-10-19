@@ -5462,7 +5462,7 @@
       '<li><b>Đơn chuyển khoản</b>: tiền về tài khoản thì mở đơn bấm <b>💳 Xác nhận đã nhận tiền</b>. Gửi hàng thì nhập <b>mã vận đơn</b>, đơn tự chuyển sang “Đang giao”.</li>' +
       '<li>Bạn chỉ thấy <b>khách mình phụ trách</b>. Gõ số của khách người khác đang phụ trách, CRM sẽ báo tên người đó. Muốn đổi người phụ trách thì nhờ quản lý chuyển.</li>' +
       '<li>Nên bấm <b>📲 Kết nối Telegram</b> (mục ngay dưới) để nhận riêng đơn mới và việc hằng ngày của mình.</li>' +
-      '<li><b>Màu thẻ khách</b>: trắng = khách mới, vàng = khách cũ, tím = ngoài giờ (tối / CN / lễ), xám = hoàn / bom. Bấm vào ô màu ở trang Khách hàng để lọc. Đổi màu hoặc tạo nhãn riêng ở mục 🎨 bên dưới.</li>' +
+      '<li><b>Màu thẻ khách</b>: trắng = mua 1 lần, vàng = mua từ 2 lần, tím = đặt tối / CN / lễ, xám = hay hoàn / bom (đầu mỗi danh sách có dòng <b>Màu dòng</b> nhắc lại). Bấm vào ô màu ở trang Khách hàng để lọc. Đổi màu hoặc tạo nhãn riêng ở mục 🎨 bên dưới.</li>' +
       '<li><b>☐ Khách đồng ý nhận ưu đãi</b> (trong hồ sơ): bấm khi khách đồng ý nhận tin khuyến mãi. Khách chưa đồng ý thì chỉ hỏi thăm, hướng dẫn dùng.</li>' +
       '<li>Nhãn <span class="age ok">💬 5 ngày chưa chăm sóc</span>: đếm từ lần gần nhất khách <b>có trả lời</b> (gọi không nghe máy thì vẫn đếm tiếp). <b>Xanh</b> ≤ 7 ngày · <b>Cam</b> 8–30 ngày · <b>Đỏ</b> trên 30 ngày, nên liên hệ lại.</li>' +
       '</ol><p style="margin:10px 0"><a class="btn" href="/huong-dan/crm/" target="_blank" rel="noopener">📖 Xem hướng dẫn đầy đủ</a></p><p class="small muted" style="margin:6px 0 0">Không chụp màn hình, không gửi danh sách khách ra ngoài: đây là dữ liệu cá nhân, pháp luật yêu cầu giữ kín (Nghị định 13/2023).</p></div>';
