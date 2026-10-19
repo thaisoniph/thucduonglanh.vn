@@ -3927,13 +3927,16 @@
       toast('⬇️ Đã tải ' + rows.length + ' số');
     };
   }
+  /** 🗺 Ảnh hệ thống Marketing (bản Canva): nút ở đầu tab Marketing; Quản trị đổi link ở Cài đặt → Kết nối & báo cáo. */
+  function mktDoc() { return (S.d && S.d.rules && S.d.rules.mktDoc) || {}; }
+  function mktDocBtn() { var u = mktDoc().url; return u ? '<a class="btn ghost" href="' + esc(u) + '" target="_blank" rel="noopener" title="Sơ đồ hệ thống marketing của công ty (Canva)">🗺 Hệ thống Marketing</a>' : ''; }
   function viewMkt() {
     var f = S.f.m || (S.f.m = {}); if (!f.p || f.p.k === 'all') f.p = { k: 'month' }; if (f.sfb === undefined) f.sfb = store('dash_sfb') === '1'; // mặc định TẮT (16/10/2026): đơn chưa rõ nguồn không tự tính cho Facebook
     if (!f.open) { try { f.open = JSON.parse(store('mkt_open') || '{}'); } catch (e) { f.open = {}; } }
     var gKey = mvMonthKey(), R = perRange(f.p), key = mvKey(), mj = MV.cache[key], gm = MV.cache[gKey];
     if (gKey !== key && !gm && !MV.err) setTimeout(function () { mvFetch(gKey); }, 0);
     if (!mj && !MV.err) setTimeout(function () { mvFetch(key); }, 0);
-    var h = '<div class="page-head"><h1>📣 Marketing</h1><div class="grow"></div>' + '<a class="btn ghost" href="#link-qr" title="Tạo link, mã QR cho tờ rơi, standee, quảng cáo và xem hiệu quả">📍 Link &amp; QR</a>' + (lvl() >= 3 ? '<button class="btn ghost" data-mkv="aud" title="File số điện thoại khách cũ để tải lên Facebook">👥 Tệp khách FB</button>' : '') + '<button class="btn" data-mkv="cost">⚙️ Nhập chi phí</button><button class="btn ghost" data-mkv="fresh" title="Tính lại số mới nhất">↻</button></div>' + perChips('m', f.p);
+    var h = '<div class="page-head"><h1>📣 Marketing</h1><div class="grow"></div>' + '<a class="btn ghost" href="#link-qr" title="Tạo link, mã QR cho tờ rơi, standee, quảng cáo và xem hiệu quả">📍 Link &amp; QR</a>' + mktDocBtn() + (lvl() >= 3 ? '<button class="btn ghost" data-mkv="aud" title="File số điện thoại khách cũ để tải lên Facebook">👥 Tệp khách FB</button>' : '') + '<button class="btn" data-mkv="cost">⚙️ Nhập chi phí</button><button class="btn ghost" data-mkv="fresh" title="Tính lại số mới nhất">↻</button></div>' + perChips('m', f.p);
     if (!mj) return h + '<div class="box"><p class="muted">' + (MV.err ? '⚠️ ' + esc(MV.err) + ' <button class="link" data-mkv="fresh">Thử lại</button>' : '⏳ Đang tính hiệu quả quảng cáo…') + '</p></div>';
     MK.fbOn = mj.fb.on;
     var ch = {}, chp = {}, tot = 0, totp = 0, day = {}, A = dashAds(), per = function (n, v) { return n && v ? moneyShort(Math.round(v / n)) : '–'; };
@@ -5501,6 +5504,8 @@
       var src = S.d.sources || [], ads = S.d.ads, SB = syncBoxes(), cut = SB.indexOf('<div class="box"><h3>📣');
       h += setSec('🔌 Kết nối & báo cáo', setGroup('src', '📂 File Google Sheet của sale', src.length ? src.length + ' file' : '⚠️ Chưa có file nào', SB.slice(0, cut)) +
         setGroup('ads', '📣 File số quảng cáo chung', ads && ads.fileId ? '✅ ' + (ads.auto ? 'Tự lấy số 10 phút / lần' : 'Lấy số bằng tay') + (ads.last ? ' · lần cuối ' + when(ads.last) : '') : '⚠️ Chưa kết nối', SB.slice(cut)) +
+        setGroup('mdoc', '🗺 Ảnh hệ thống Marketing', mktDoc().url ? '✅ Có link' + (mktDoc().at ? ' · đổi ' + esc(mktDoc().at) : '') + ' · nút ở đầu tab Marketing' : '⚠️ Chưa có link', '<div class="box"><p class="hint" style="margin:0 0 10px">Nút <b>🗺 Hệ thống Marketing</b> ở đầu tab Marketing mở link này. Cập nhật ảnh trên Canva thì dán link mới (Chia sẻ → Xem công khai → Sao chép liên kết).</p>' +
+          '<div class="steps"><input type="url" id="mdocUrl" value="' + esc(mktDoc().url || '') + '" placeholder="https://www.canva.com/design/…/view" style="flex:1;min-width:220px"><button class="btn pri" id="mdocSave">Lưu link</button>' + (mktDoc().url ? '<a class="btn ghost" href="' + esc(mktDoc().url) + '" target="_blank" rel="noopener">Mở thử</a>' : '') + '</div></div>') +
         setGroup('da', '🚦 Mức đèn quảng cáo ở Tổng quan', '🟢 dưới ' + DA[0] + '% · 🔴 trên ' + DA[1] + '%', G.da) +
         setGroup('cms', '🌐 Trang quản trị website', cmsLine(), cmsBox()));
     }
@@ -5566,6 +5571,11 @@
         b.disabled = true;
         api('settings', { dash: { adsGood: g, adsBad: r } }).then(function (j) { if (!j.dash) { toast('Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.', true); b.disabled = false; return; } S.d.rules.dash = j.dash; toast('Đã lưu mức đèn ✓'); b.disabled = false; }, function (e) { toast(e.message, true); b.disabled = false; });
       }; }
+    if ($('#mdocSave')) $('#mdocSave').onclick = function () {
+      var b = this, v = $('#mdocUrl').value.trim(); if (!/^https:\/\/\S+$/.test(v)) { toast('Link phải bắt đầu bằng https://', true); return; }
+      b.disabled = true;
+      api('settings', { mktDoc: { url: v } }).then(function (j) { if (!j.mktDoc) { toast('Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.', true); b.disabled = false; return; } S.d.rules.mktDoc = j.mktDoc; toast('Đã lưu link ✓ Nút 🗺 Hệ thống Marketing đã mở link mới'); render(); }, function (e) { toast(e.message, true); b.disabled = false; });
+    };
     if ($('#tgOff')) $('#tgOff').onclick = function () { if (!confirm('Ngắt thông báo Telegram riêng?')) return; api('tg_off').then(function () { S.user.tg = false; toast('Đã ngắt'); render(); }, function (e) { toast(e.message, true); }); };
     if ($('#tgLink')) $('#tgLink').onclick = function () {
       var b = this; b.disabled = true; b.textContent = 'Đang tạo link…';

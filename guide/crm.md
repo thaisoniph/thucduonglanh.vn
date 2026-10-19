@@ -551,6 +551,8 @@ Trên đơn web, nguồn đến từ link hiện **📍 <tên link>**.
 
 **Tài khoản Marketing chỉ thấy tab 📣 Marketing**, không thấy khách, đơn, số điện thoại hay doanh số toàn công ty. Máy chủ tính sẵn và chỉ gửi con số tổng (Nghị định 13/2023). Tài khoản này không được giao khách, không có trong bảng hiệu quả của sale.
 
+**🗺 Hệ thống Marketing:** nút ở góc trên tab Marketing, mở ảnh sơ đồ hệ thống marketing của công ty (Canva). Quản trị đổi link ở **Cài đặt → 🔌 Kết nối & báo cáo → 🗺 Ảnh hệ thống Marketing** mỗi khi cập nhật ảnh.
+
 **Trong tab Marketing:** màn hình đầu chỉ có số quan trọng nhất, phần chi tiết thu gọn, bấm tiêu đề mới mở (CRM nhớ mục bạn hay mở).
 
 **🎁 Ưu đãi / thông điệp đang chạy** (dưới *Nên làm gì*, Marketing và Quản trị sửa được): bấm **＋ Thêm**, ghi tên ưu đãi, sản phẩm, nội dung sale cần nói đúng (giá, quà, điều kiện, câu quảng cáo chính) và ngày hết hạn. Sale thấy ngay ở đầu tab **Khách hỏi** và trong **Hiệu quả → 📣 Từ quảng cáo**. Hết hạn thì tự ẩn với sale. Bấm **Sửa** để sửa hoặc xoá.
