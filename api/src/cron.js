@@ -1,7 +1,7 @@
 // Việc chạy theo lịch: 8h sáng gửi danh sách chăm sóc + báo mức dùng CRM + tin Marketing sáng nay, 10 phút/lần lấy số quảng cáo, 30 phút/lần tự nhập file sale + Google Sheet báo cáo sàn, 6 tiếng 1 lần chép bản sao dữ liệu sang Google Sheet.
 import { normPhone, esc, fmtDate, startOfDay, all, kvGet, kvSet, kvDel, CRM_URL, DAY } from './lib.js';
 import { telegram, telegramTo, gInfo, sheetMeta, sheetClear, sheetWrite, sheetAddTabs, sheetBatch, a1 } from './google.js';
-import { recalcAll, crmUsers, unifyNames, autoCloseLeads, rulesCfg, careTask, groupOf, leadsData, leadDue, adsCfg, usageAlert } from './crm.js';
+import { recalcAll, crmUsers, unifyNames, unifyProducts, autoCloseLeads, rulesCfg, careTask, groupOf, leadsData, leadDue, adsCfg, usageAlert } from './crm.js';
 import { adsSync, srcAutoTick, fixAdsLeads } from './sync.js';
 import { sanSheetTick } from './san.js';
 import { mktTick } from './mkt.js';
@@ -116,7 +116,7 @@ export async function scheduled(x, cron) {
     await kvSet(x.db, 'auto_tick_last', String(now));
     try { if (await srcAutoTick(x)) await kvSet(x.db, 'auto_tick_last', String(now - 20 * 60e3)); } catch (e) { console.error('srcAutoTick', e.message); } // chưa hết sheet → 10 phút sau làm tiếp
     const lastUni = Number(await kvGet(x.db, 'unify_last') || 0); // gộp tên đọc hết các bảng → 6 tiếng 1 lần là đủ
-    if (now - lastUni > 6 * 3600e3) { await kvSet(x.db, 'unify_last', String(now)); try { await unifyNames(x); } catch (e) { console.error('unifyNames', e.message); } }
+    if (now - lastUni > 6 * 3600e3) { await kvSet(x.db, 'unify_last', String(now)); try { await unifyNames(x); } catch (e) { console.error('unifyNames', e.message); } try { await unifyProducts(x); } catch (e) { console.error('unifyProducts', e.message); } }
     try { await fixAdsLeads(x); } catch (e) { console.error('fixAdsLeads', e.message); } // 1 lần: khách hỏi ngày tương lai / file QC đã có số tiền đơn
     try { await autoCloseLeads(x, null); } catch (e) { console.error('autoCloseLeads', e.message); } // quét bù khách hỏi đã có đơn (25 phút 1 lần)
   }

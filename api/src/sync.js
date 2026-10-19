@@ -3,7 +3,7 @@
 import { normPhone, esc, fmtDate, nrm, isVoid, hashKey, hashKeyLegacy, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, CRM_URL, DAY } from './lib.js';
 import { sheetMeta, sheetValues, sheetWrite, a1, serialToMs } from './google.js';
 import { wbKeys, wbHas } from './wb.js';
-import { phoneAlias, crmUsers, crmLog, recalc, deletedOrderIds, delMark, setCallbacks, caCfg, caOf, normLine, itemsText, shipText, ORDER_COLS, srcList, adsCfg, telegramUser, unifyNames } from './crm.js';
+import { phoneAlias, crmUsers, crmLog, recalc, deletedOrderIds, delMark, setCallbacks, caCfg, caOf, normLine, itemsText, shipText, ORDER_COLS, srcList, adsCfg, telegramUser, unifyNames, prodKey, canonItems } from './crm.js';
 
 const FIELD_LABEL = { date: 'Ngày', name: 'Tên khách', phone: 'SĐT', address: 'Địa chỉ', product: 'Sản phẩm', qty: 'Số lượng', gift1: 'Quà tặng 1', gift1qty: 'SL quà 1', gift2: 'Quà tặng 2', gift2qty: 'SL quà 2',
   status: 'Trạng thái', ctype: 'Phân loại khách / ca', line: 'Dòng SP (nguồn)', code: 'Mã đơn', amount: 'Số tiền', shipText: 'Lên đơn (mô tả)', callback: 'Lịch gọi lại', note: 'Ghi chú / nhật ký', health: 'Tình trạng sức khoẻ',
@@ -198,7 +198,7 @@ function caFromText(v, when, cfg) {
   return when ? caOf(when, { evening: '23:59', holidays: cfg.holidays }) : 'Ngày'; // file cũ không có giờ: chỉ xét Chủ nhật & ngày lễ
 }
 /** Tên sản phẩm chính của đơn đã nhập (dòng đầu của items, bỏ " x4 = …"), chữ thường không dấu để so với file. */
-const prodOf = items => nrm(String(items || '').split('\n')[0].replace(/^🎁\s*/, '').replace(/\s+x\d+\s*=.*$/, ''));
+const prodOf = items => prodKey(String(items || '').split('\n')[0].replace(/^🎁\s*/, '').replace(/\s+x\d+\s*=.*$/, ''));
 function cell(r, m, k) { if (m[k] === undefined || m[k] === null || m[k] === '') return ''; const v = r[m[k]]; return v === undefined || v === null ? '' : v; }
 function neededCols(shCfg) {
   let mx = 0; Object.keys(shCfg.map || {}).forEach(k => { const v = Number(shCfg.map[k]); if (v + 1 > mx) mx = v + 1; });
@@ -364,7 +364,7 @@ async function importOrders(x, src, shCfg, data, dry) {
   // 1 đơn cũ chỉ cho 1 dòng nhận qua mã NK… (sale tách 1 lần mua thành nhiều dòng cùng ngày / tiền / sản phẩm, mỗi dòng 1 mã đơn: trước đây mã NK
   // giống nhau nên chỉ nhập 1 đơn; nay mỗi mã 1 đơn, dòng thứ 2 trở đi là đơn mới). Dòng trùng hẳn mã đơn vẫn coi là 1 đơn.
   const used = {};
-  parsed.forEach(p => { p.day = fmtDate(p.when, 'yyyyMMdd'); p.prod = nrm(p.product || cell(p.r, m, 'gift1')); if (ex[p.key]) { p.o = ex[p.key]; used[p.o.rid] = 1; } });
+  parsed.forEach(p => { p.day = fmtDate(p.when, 'yyyyMMdd'); p.prod = prodKey(p.product || cell(p.r, m, 'gift1')); if (ex[p.key]) { p.o = ex[p.key]; used[p.o.rid] = 1; } });
   parsed.forEach(p => {
     if (p.o) return;
     const a = p.alt.find(k => ex[k] && !used[ex[k].rid]);
@@ -401,11 +401,12 @@ async function importOrders(x, src, shCfg, data, dry) {
     const f = p.o || ex[p.key]; if (f && String(f.source || '').indexOf('File ') === 0 && !wDel.some(d => d.rid === f.rid)) wDel.push(f); // đơn file trùng đã nhập trước đây
   });
   const out = [], seen = {}, noteAdd = [], phones = {}, callbacks = {}, upd = [], ren = [], fix = [], chg = [], chgPh = {}; let dup = 0, revenue = 0, minD = null, maxD = null, afterCut = 0;
+  const PC = await kvJson(x.db, 'prod_canon', {}); // tên sản phẩm chuẩn (unifyProducts)
   const rowItems = (r, product, amount) => {
     const items = [];
     if (product) items.push({ name: product, variant: '', qty: toQty(cell(r, m, 'qty')) || 1, price: 0, subtotal: amount });
     [['gift1', 'gift1qty'], ['gift2', 'gift2qty']].forEach(g => { const n = String(cell(r, m, g[0]) || '').trim(); if (n) items.push({ name: n, variant: '', qty: toQty(cell(r, m, g[1])) || 1, gift: true, subtotal: 0 }); });
-    return items;
+    return canonItems(items, PC);
   };
   const wUpd = []; // đơn web ghép với dòng file: cập nhật trạng thái theo file, gán sale nếu đơn chưa có người bán; dòng có mã đơn sale (tên + ngày + số) → đơn đổi sang mã đó, giữ nguồn Website, mã web cũ ghi vào ghi chú
   for (const p of parsed) {

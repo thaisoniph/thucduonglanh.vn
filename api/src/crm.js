@@ -805,6 +805,27 @@ async function crmSession(x, token) {
 }
 
 /* ================================================================ đơn hàng */
+/** Tên sản phẩm sale gõ khác nhau nhưng là 1 thứ ("Fu Progomax900g", "fucoidan PROgomax 900g"…) → cùng 1 khoá: bỏ dấu, hoa thường, khoảng trắng, tách số dính chữ, "Fu" = Fucoidan. */
+export function prodKey(s) {
+  return nrm(s).replace(/(\d)\s*(?:gr|gram|gam)\b/g, '$1g').replace(/([a-z])(\d)/g, '$1 $2').replace(/(\d)\s+(g|kg|ml|v|goi)\b/g, '$1$2').replace(/[^a-z0-9]+/g, ' ').trim().replace(/^fu\b/, 'fucoidan');
+}
+/** Đổi tên sản phẩm trong đơn về tên chuẩn (bảng kv prod_canon do unifyProducts lập). */
+export function canonItems(items, map) { (items || []).forEach(i => { const c = map && map[prodKey(i.name)]; if (c) i.name = c; }); return items; }
+const ITEM_LINE = /^(🎁 ?)?(.*?)((?: \(.*\))? x\d+ = .*)$/;
+const canonText = (text, map) => String(text || '').split('\n').map(l => { const m = l.match(ITEM_LINE), c = m && map[prodKey(m[2])]; return c ? (m[1] || '') + c + m[3] : l; }).join('\n');
+/** Chọn tên chuẩn: không dính số vào chữ, viết hoa chữ đầu (không viết IN HOA cả chữ), rồi đến cách ghi nhiều đơn nhất. */
+const prodScore = (n, c) => c + (/\p{L}\d/u.test(n) ? 0 : 1e7) + (n[0] === n[0].toUpperCase() && n[0] !== n[0].toLowerCase() && !/\p{Lu}{4,}/u.test(n) ? 1e6 : 0);
+/** Gộp tên sản phẩm gõ khác nhau trong mọi đơn về 1 tên, để thống kê theo sản phẩm đúng. Đọc hết đơn → 6 tiếng 1 lần. */
+export async function unifyProducts(x) {
+  const rows = await all(x.db, "SELECT rid, items FROM orders WHERE items != ''"), by = {};
+  rows.forEach(r => String(r.items).split('\n').forEach(l => { const m = l.match(ITEM_LINE); if (!m) return; const n = m[2].replace(/\s+/g, ' ').trim(), k = prodKey(n); if (k) (by[k] = by[k] || {})[n] = (by[k][n] || 0) + 1; }));
+  const map = {}; Object.keys(by).forEach(k => { const g = by[k]; map[k] = Object.keys(g).sort((a, b) => prodScore(b, g[b]) - prodScore(a, g[a]))[0]; });
+  await kvSet(x.db, 'prod_canon', JSON.stringify(map));
+  const chg = []; rows.forEach(r => { const t = canonText(r.items, map); if (t !== r.items) chg.push({ rid: r.rid, items: t }); });
+  for (let i = 0; i < chg.length; i += 200) await run(x.db, "UPDATE orders SET items = json_extract(j.value, '$.items') FROM json_each(?) j WHERE orders.rid = json_extract(j.value, '$.rid')", JSON.stringify(chg.slice(i, i + 200)));
+  if (chg.length) await kvSet(x.db, 'recalc_all', '1'); // sản phẩm hay mua của khách tính lại theo tên mới
+  return chg.length;
+}
 export function itemsText(items) { return items.map(i => (i.gift ? '🎁 ' : '') + i.name + (i.variant ? ' (' + i.variant + ')' : '') + ' x' + i.qty + ' = ' + fmt(i.gift ? 0 : i.subtotal)).join('\n'); }
 /** Câu "lên đơn" gửi vận chuyển: "4 Fucoidan Progomax 900g, 1 Bữa ăn dinh dưỡng (quà)". */
 export function shipText(items) { return (items || []).map(i => (Number(i.qty) || 1) + ' ' + i.name + (i.variant ? ' ' + i.variant : '') + (i.gift ? ' (quà)' : '')).join(', '); }
@@ -830,6 +851,7 @@ export async function saveOrder(x, data, opt) {
   const c = Object.assign({}, data.customer || {}), now = Date.now(), manual = !!opt.by, raw = normPhone(c.phone), phone = await mainPhone(x, raw);
   if (raw !== phone) c.note = (c.note ? c.note + ' · ' : '') + 'SĐT khách ghi: ' + raw; // số phụ của khách đã gộp → đơn vào hồ sơ số chính, giữ số khách ghi để giao hàng
   if (!manual && data.id && await first(x.db, 'SELECT rid FROM orders WHERE id = ?', String(data.id))) return { dup: true }; // web gửi lại khi mạng chập chờn
+  canonItems(data.items, await kvJson(x.db, 'prod_canon', {}));
   const items = itemsText(data.items || []), pay = data.payment === 'bank' ? 'Chuyển khoản' : 'COD', realItems = (data.items || []).filter(i => !i.gift);
   if (!opt.otype) { try { opt.otype = (await otypeSuggest(x, phone, now)).t; } catch (e) { console.error('otype', e.message); } } // đơn web: loại đơn theo gợi ý (tính trước khi lưu)
   const ca = opt.ca || caOf(now, await caCfg(x)), line = opt.line || lineOf(realItems.map(i => i.name + ' ' + (i.variant || '')).join(' ')), ship = opt.shipText || shipText(data.items || []);
@@ -926,6 +948,7 @@ async function crmOrderEdit(x, u, d) {
   const gErr = (await orderGuard(x, u, o)) || (o.phone !== phone ? await guardPhone(x, u, phone) : ''); if (gErr) return { ok: false, error: gErr };
   const ship = Math.max(0, Math.round(Number(d.shipping) || 0)), sub = applyTotal(items, d.total, ship);
   items = items.concat(cleanItems(d.gifts).map(g => Object.assign(g, { gift: true, price: 0, subtotal: 0 })));
+  canonItems(items, await kvJson(x.db, 'prod_canon', {}));
   const set = { name: String(c.name).trim(), phone, province: c.province || '', ward: c.ward || '', address: c.address || '', items: itemsText(items), subtotal: sub, shipping: ship, total: sub + ship, payment: d.payment === 'bank' ? 'Chuyển khoản' : 'COD',
     ship: shipText(items), line: lineOf(items.filter(i => !i.gift).map(i => i.name + ' ' + i.variant).join(' ')) };
   if (OTYPES.indexOf(d.otype) >= 0 && d.otype !== o.otype) { // đổi loại đơn: quản lý → xong; nhân viên khác gợi ý → chờ quản lý kiểm tra
