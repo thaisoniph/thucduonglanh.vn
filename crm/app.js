@@ -637,6 +637,11 @@
       return '<button class="lg' + (active === k ? ' on' : '') + '" data-cat="' + esc(k) + '"' + (isTag ? '' : ' title="' + esc(CAT_DEF[k].tip) + '"') + '><i style="background:' + color + ';border-color:' + shade(color, .35) + '"></i>' + esc(label) + (list ? ' <em>' + (cnt[k] || 0) + '</em>' : '') + '</button>';
     }).join('') + '<button type="button" class="lg-set lg-help" data-taghelp>ⓘ Giải thích nhãn</button><a class="lg-set" href="#cai-dat">🎨 Đổi màu</a></div>';
   }
+  /** Chú thích màu nền từng dòng, ngay trên danh sách: nhìn là biết dòng vàng / tím / xám nghĩa là gì. order = nhãn theo đơn. */
+  function colorKey(order) {
+    var L = order ? { new: 'Đơn đầu tiên', old: 'Khách mua lại', off: 'Đặt tối / CN / lễ', void: 'Hoàn / huỷ' } : null;
+    return '<div class="ckey"><span class="muted">Màu dòng:</span>' + CAT_ORDER.map(function (k) { var c = catColor(k); return '<span><i style="background:' + c + ';border-color:' + shade(c, .35) + '"></i>' + esc(L ? L[k] : CAT_DEF[k].label) + '</span>'; }).join('') + (myTags().length ? '<span class="muted">· màu khác = nhãn riêng</span>' : '') + '</div>';
+  }
   function isBank(o) { return /chuyển khoản/i.test(o.payment); }
   function unpaidOrders() { return S.d.orders.filter(function (o) { return isBank(o) && !o.paid && !isVoid(o.status); }); }
   function isOpenLead(l) { return l.status === 'Mới hỏi' || l.status === 'Đang tư vấn'; }
@@ -1093,7 +1098,7 @@
     if (hot.length) h += '<section class="section"><div class="section-h"><h2>2️⃣ 🔥 Khách vừa hỏi – liên hệ ngay</h2><span class="count">' + hot.length + '</span></div>' +
       grp('hot', '🔥 Khách vừa hỏi', hot.length, 'hỏi trong 24 giờ qua, chưa ai liên hệ. Gọi càng sớm càng dễ chốt', capRows(hot, leadCard), 'list cols" style="padding:10px') + '</section>';
 
-    h += '<section class="section"><div class="section-h"><h2>' + (hot.length ? '3️⃣' : '2️⃣') + ' Chăm sóc khách</h2>' + (q.list.length ? '<span class="count">' + q.list.length + '</span>' : '') + '<span class="tip">bấm vào nhóm để mở danh sách</span></div>';
+    h += '<section class="section"><div class="section-h"><h2>' + (hot.length ? '3️⃣' : '2️⃣') + ' Chăm sóc khách</h2>' + (q.list.length ? '<span class="count">' + q.list.length + '</span>' : '') + '<span class="tip">bấm vào nhóm để mở danh sách</span></div>' + (q.list.length ? colorKey() : '');
     if (!q.list.length) h += empty(lvl() >= 2 && S.who && tasksAll().length ? 'Khách của ' + (S.who === '-' ? 'mục “Chưa ai phụ trách”' : esc(S.who)) + ' đã chăm sóc xong. Chọn “Tất cả nhân sự” để xem các khách khác.' : 'Hôm nay không còn khách cần chăm sóc 🎉');
     GROUP_ORDER.forEach(function (k) {
       var arr = q.list.filter(function (c) { return (vipLate(c) ? 'viplate' : taskKey(c)) === k; }); if (!arr.length) return;
@@ -1305,14 +1310,14 @@
       '<div class="rw-1"><b>' + esc(c.name || 'Khách') + '</b>' + (c.zalo ? '<span class="zl ic" title="Đã kết bạn Zalo">' + ZI + '</span>' : '') + (inComm(c) ? '<span class="comm-ic" title="Đã vào nhóm Zalo cộng đồng">👥</span>' : '') + custTags(c) + (leadsOf(c.phone).some(isOpenLead) ? '<span class="tag reask" title="Khách vừa để lại số hỏi lại (quảng cáo / web). Xem ở tab Hôm nay hoặc Khách hỏi">🔁 Đang hỏi lại</span>' : '') + (c.owner && lvl() >= 2 ? '<span class="tag owner">👤 ' + esc(c.owner) + '</span>' : !c.owner ? '<span class="tag noconsent">Chưa ai phụ trách</span>' : '') + srcChip(c) + '<span class="end">' + c.orders + ' đơn · ' + moneyShort(c.spent) + '</span></div>' +
       '<div class="rw-2">' + (provOf(c) ? '📍 ' + esc(provOf(c).old) + ' · ' : '') + 'Mua lần đầu ' + fDate(c.first).replace(/\/(\d{2})(\d{2})$/, '/$2') + ' · gần nhất ' + daysAgo(c.last) + (c.products.length ? ' · ' + esc(shortProducts(c.products, 1)) : '') + bdayTag(c) + (live && c.runout && c.runout > (c.last || 0) && k !== 'runout' ? ' · ⏰ hết ~' + fDate(c.runout).slice(0, 5) : '') + (k && TASKS[k] ? ' · <span class="warn-line">' + TASKS[k].icon + ' ' + TASKS[k].title + '</span>' : '') + '</div>' +
       '<div class="rw-3">' + (h ? '💬 ' + fDate(h.time).slice(0, 5) + ': ' + esc(h.text.length > 90 ? h.text.slice(0, 90) + '…' : h.text) : '<span class="muted">Chưa có lần chăm sóc nào</span>') + '</div></div>' +
-      '<div class="rw-a"><a class="btn" href="tel:' + c.phone + '" aria-label="Gọi">📞</a><button class="btn pri" data-care="' + c.phone + '" data-task="' + (k || 'other') + '" aria-label="Chăm sóc">💬</button></div></div>';
+      '<div class="rw-a"><a class="btn" href="tel:' + c.phone + '" aria-label="Gọi">📞<small>Gọi</small></a><button class="btn pri" data-care="' + c.phone + '" data-task="' + (k || 'other') + '" aria-label="Chăm sóc">💬<small>Ghi lại</small></button></div></div>';
   }
   /** 1 dòng gọn cho danh sách việc: tên · việc cần làm · nút gọi / KNM / chăm sóc. */
   function rowCard(c) {
     var cat = custCat(c), k = taskKey(c);
     return '<div class="rw click tinted" data-cust="' + c.phone + '"' + catAttr(cat) + '><div class="rw-m"><div class="rw-1"><b>' + esc(c.name || 'Khách') + '</b>' + (c.zalo ? '<span class="zl ic" title="Đã kết bạn Zalo">' + ZI + '</span>' : '') + (inComm(c) ? '<span class="comm-ic" title="Đã vào nhóm Zalo cộng đồng">👥</span>' : '') + custTags(c) + (vipLate(c) ? '<span class="tag st-huy" title="Khách VIP đã quá hạn chăm sóc ' + c.task.late + ' ngày – ưu tiên gọi trước">⚠️ VIP trễ hạn</span>' : '') + bdayChip(c) + srcChip(c) + '<span class="end">' + (c.spent ? moneyShort(c.spent) : '<span class="muted" title="Đơn chưa ghi số tiền – mở hồ sơ kiểm tra lại đơn">chưa có tiền đơn</span>') + '</span></div>' +
       '<div class="rw-2">' + (vipLate(c) ? '<b>' + TASKS[k].icon + ' ' + TASKS[k].title + '</b> · ' : '') + (c.task ? taskLine(c) : replyOf(c).days + ' ngày chưa phản hồi') + (c.products.length ? ' · ' + esc(shortProducts(c.products, 1)) : '') + sugLine(c) + '</div>' + lastTouch(c) + '</div>' +
-      '<div class="rw-a"><a class="btn" href="tel:' + c.phone + '" aria-label="Gọi">📞</a><button class="btn" data-quick="' + c.phone + '|knm|' + k + '" title="Không nghe máy: 2 ngày sau tự nhắc" aria-label="KNM">📵</button><button class="btn pri" data-care="' + c.phone + '" data-task="' + k + '" aria-label="Chăm sóc">💬</button></div></div>';
+      '<div class="rw-a"><a class="btn" href="tel:' + c.phone + '" aria-label="Gọi">📞<small>Gọi</small></a><button class="btn" data-quick="' + c.phone + '|knm|' + k + '" title="Không nghe máy: 2 ngày sau tự nhắc" aria-label="KNM">📵<small>Không nghe</small></button><button class="btn pri" data-care="' + c.phone + '" data-task="' + k + '" aria-label="Chăm sóc">💬<small>Ghi lại</small></button></div></div>';
   }
   /** Mốc 30 ngày / mời quay lại / khách cũ: gợi ý sản phẩm khách khác hay mua kèm. */
   function sugLine(c) { var k = taskKey(c); if (k !== 'd30' && k !== 'winback' && k !== 'old' && k !== 'runout') return ''; var sg = suggestFor(c); return sg ? ' · <span class="sug" title="Khách mua sản phẩm giống khách này hay mua thêm sản phẩm này">💡 gợi ý: ' + esc(sg) + '</span>' : ''; }
@@ -1952,7 +1957,7 @@
       '<div class="rw-2">' + (pv ? '<b class="prov">📍 ' + esc(pv.old) + '</b> · ' : '') + when(o.time) + ' · ' + esc(o.payment) + (isBank(o) && !isVoid(o.status) ? (o.paid ? ' ✓' : ' <span class="warn-line">chưa nhận tiền</span>') : '') + ' · ' + esc(itemNames(o.items).join(', ')) + '</div>' +
       trkLine(o) + (kn ? '<div class="keynote">📌 ' + esc(o.note.length > 140 ? o.note.slice(0, 140) + '…' : o.note) + '</div>' : '') +
       '<div class="rw-3">' + (o.oflag ? '<span class="tag st-late" title="' + esc(o.oflag) + '">⚠️ Kiểm tra loại đơn</span> ' : '') + (o.tracking ? trackLink(o) + ' · ' : carrierOf(o) ? '<span class="muted">🚚 ' + esc(carrierOf(o)) + '</span> · ' : '') + '<span class="muted">' + cp(o.id) + ' · ' + (isWebOrder(o) ? '<span class="tag st-giao" title="' + esc('Khách tự đặt trên website · nguồn: ' + (o.source || 'Truy cập trực tiếp')) + '">🌐 Web · ' + esc(webSrc(o)) + '</span>' : esc(otLabel(otypeOf(o)))) + '</span>' + (o.seller && (lvl() >= 2 || o.seller !== S.user.name) ? ' · 👤 ' + esc(o.seller) : '') + (o.note && !kn ? ' · 📝 ' + esc(o.note.length > 60 ? o.note.slice(0, 60) + '…' : o.note) : '') + '</div></div>' +
-      '<div class="rw-a">' + (lvl() >= 2 && o.status === 'Mới' ? oAssignSel(o) : '') + act + '<a class="btn" href="tel:' + o.phone + '" aria-label="Gọi">📞</a></div></div>';
+      '<div class="rw-a">' + (lvl() >= 2 && o.status === 'Mới' ? oAssignSel(o) : '') + act + '<a class="btn" href="tel:' + o.phone + '" aria-label="Gọi">📞<small>Gọi</small></a></div></div>';
   }
   /** Quản lý: giao đơn mới cho nhân sự (ghi vào NV bán) – nhân sự đó mới thấy đơn ở Hôm nay. */
   function oAssignSel(o) {
@@ -2030,7 +2035,7 @@
       '<div class="tools"><div class="search">' + I.search + '<input type="search" id="oq" placeholder="Tìm tên, SĐT, mã đơn, sản phẩm…" value="' + esc(f.q) + '"><button type="button" class="search-x" aria-label="Xoá chữ tìm kiếm" title="Xoá">✕</button></div></div>';
     var G = orderTodo(); if (lvl() >= 2 && S.who) G.forEach(function (g) { g.list = g.list.filter(function (o) { return whoOk(orderOwner(o)); }); });
     var todoN = G.reduce(function (s0, g) { return s0 + g.list.length; }, 0);
-    h += '<div class="tabs" id="oTabs" style="max-width:420px"><button data-otab="todo" class="' + (f.tab === 'todo' ? 'on' : '') + '">⚡ Cần xử lý' + (todoN ? ' (' + todoN + ')' : '') + '</button><button data-otab="all" class="' + (f.tab === 'all' ? 'on' : '') + '">📋 Tất cả đơn</button></div>' +
+    h += '<div class="tabs" id="oTabs" style="max-width:420px"><button data-otab="todo" class="' + (f.tab === 'todo' ? 'on' : '') + '">⚡ Cần xử lý' + (todoN ? ' (' + todoN + ')' : '') + '</button><button data-otab="all" class="' + (f.tab === 'all' ? 'on' : '') + '">📋 Tất cả đơn</button></div>' + colorKey(true) +
       '<div id="oBody">' + renderOrdersBody(f, OS, q, qd) + '</div>';
     return h;
   }

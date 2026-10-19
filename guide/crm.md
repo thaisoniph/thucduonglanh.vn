@@ -462,6 +462,8 @@ Bấm **1 chạm** ở hàng nút thời gian đầu trang (trên điện thoạ
 
 Doanh số tính theo **Nhân viên bán** ghi trên từng đơn. Đơn khách tự đặt trên web được tính cho **người đang phụ trách khách đó**.
 
+> Từ 19/10/2026: các nút trên mỗi dòng có chữ bên dưới (📞 Gọi · 📵 Không nghe = khách không nghe máy, 2 ngày sau tự nhắc lại · 💬 Ghi lại = ghi kết quả chăm sóc). Đầu danh sách ở Hôm nay và Đơn hàng có dòng **Màu dòng** cho biết màu nền nghĩa là gì.
+
 ## Đọc biểu đồ xu hướng (Tổng quan, Hiệu quả, Marketing, Sàn)
 
 Ngay dưới chọn thời gian của mỗi màn hình thống kê có 1 dòng chú thích: 🟢 Tốt · 🟠 Cần để ý · 🔴 Cần xử lý, ▲▼ so với kỳ trước (xanh là tốt hơn, đỏ là kém hơn), đường nhỏ cho biết số lên hay xuống trong kỳ, dấu › ở góc ô là bấm vào được. Ô nào có mốc riêng thì ghi ngay trong ô (vd "tốt: dưới 30%").

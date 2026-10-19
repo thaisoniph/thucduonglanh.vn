@@ -1057,3 +1057,12 @@ button:focus-visible, a:focus-visible, summary:focus-visible, [role="button"]:fo
 .dash-tile { position: relative; padding-right: 26px; }
 .dash-tile::after { content: '›'; position: absolute; right: 10px; bottom: 8px; font-size: 22px; line-height: 1; color: #b9c2b6; }
 .dash-tile:hover::after { color: var(--primary); }
+
+/* nút biểu tượng có chữ nhỏ bên dưới */
+.rw-a .btn small { display: block; font-size: 10px; font-weight: 600; line-height: 1; color: var(--muted); white-space: nowrap; }
+.rw-a .btn:has(small) { flex-direction: column; gap: 2px; width: auto; min-width: 46px; height: 48px; padding: 0 5px; }
+.rw-a .btn.pri small { color: #fff; opacity: .9; }
+/* chú thích màu dòng */
+.ckey { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: -2px 0 10px; font-size: 12.5px; }
+.ckey span { display: inline-flex; align-items: center; gap: 5px; }
+.ckey i { width: 14px; height: 14px; border-radius: 4px; border: 1px solid; display: inline-block; }
