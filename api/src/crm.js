@@ -809,8 +809,8 @@ async function crmSession(x, token) {
 function prodKey0(s) {
   return nrm(s).replace(/(\d)\s*(?:gr|gram|gam)\b/g, '$1g').replace(/([a-z])(\d)/g, '$1 $2').replace(/(\d)\s+(g|kg|ml|v|goi)\b/g, '$1$2').replace(/[^a-z0-9]+/g, ' ').trim().replace(/^fu\b/, 'fucoidan');
 }
-/** Tên gọi khác do anh Sơn xác nhận 19/10/2026: "promax" = Progomax; fucodan/fucudan = Ngũ cốc Fucoidan (loại cũ đã dừng, khác Progomax); ruốc chay không ghi cỡ / 165g = ruốc chay rong biển 165g. */
-const PROD_ALIAS = [[/^fucoidan promax\b/, 'fucoidan progomax'], [/^(?:ngu coc )?fuc[ou]dan\b/, 'ngu coc fucoidan'], [/^ruoc chay(?: 165g)?$/, 'ruoc chay rong bien 165g']];
+/** Tên gọi khác do anh Sơn xác nhận 19/10/2026: "promax", "Sữa hạt Fucoidan progomax" = Progomax (400g hộp nhỏ, 900g hộp to – tách theo cỡ); fucodan/fucudan = Ngũ cốc Fucoidan (loại cũ đã dừng, khác Progomax); ruốc chay không ghi cỡ / 165g = ruốc chay rong biển 165g. */
+const PROD_ALIAS = [[/^(?:sua hat )?fucoidan promax\b/, 'fucoidan progomax'], [/^sua hat fucoidan progomax\b/, 'fucoidan progomax'], [/^(?:ngu coc )?fuc[ou]dan\b/, 'ngu coc fucoidan'], [/^ruoc chay(?: 165g)?$/, 'ruoc chay rong bien 165g']];
 export function prodKey(s) { let k = prodKey0(s); PROD_ALIAS.forEach(a => { k = k.replace(a[0], a[1]); }); return k; }
 /** Đổi tên sản phẩm trong đơn về tên chuẩn (bảng kv prod_canon do unifyProducts lập). */
 export function canonItems(items, map) { (items || []).forEach(i => { const c = map && map[prodKey(i.name)]; if (c) i.name = c; }); return items; }
