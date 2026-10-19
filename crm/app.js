@@ -2759,7 +2759,15 @@
     var ks = PER_CEO.concat(extra || []), R = perRange(p), on = ks.indexOf(p.k) >= 0;
     return '<div class="per-q" role="group" aria-label="Thời gian">' + ks.map(function (k) { return '<button type="button" class="chip' + (p.k === k ? ' on' : '') + '" data-pq="' + slot + '|' + k + '">' + perLabel({ k: k }) + '</button>'; }).join('') +
       '<button type="button" class="chip' + (on ? '' : ' on') + '" data-per="' + slot + '">📅 ' + (on ? 'Khác' : esc(perLabel(p))) + '</button></div>' +
-      '<p class="small muted per-q-d">' + (p.k === 'all' ? 'Từ trước tới nay' : perDates(R)) + (noCmp ? '' : CMP_LABEL ? ' · so với ' + CMP_LABEL : p.k === 'year' ? ' · năm nay chưa so với năm trước' : '') + '</p>';
+      '<p class="small muted per-q-d">' + (p.k === 'all' ? 'Từ trước tới nay' : perDates(R)) + (noCmp ? '' : CMP_LABEL ? ' · so với ' + CMP_LABEL : p.k === 'year' ? ' · năm nay chưa so với năm trước' : '') + '</p>' + (noCmp ? '' : statKey(slot));
+  }
+  /** Chú thích ngay trên màn hình thống kê: màu đèn, ▲▼, đường nhỏ, ô bấm được. Nhìn là hiểu, không phải mở hướng dẫn.
+   *  Đèn chỉ có ở Tổng quan (g), Hiệu quả (r), Marketing (m); Sàn, Link & QR chỉ có ▲▼ và đường nhỏ. */
+  function statKey(slot) {
+    var lights = /^[grm]$/.test(slot), spk = '<svg viewBox="0 0 24 10" aria-hidden="true"><polyline points="0,8 6,5 11,7 17,2 24,3"/></svg>';
+    return '<div class="stat-key">' + (lights ? '<span>🟢 Tốt</span><span>🟠 Cần để ý</span><span>🔴 Cần xử lý</span><span class="sk-sep"></span>' : '') +
+      '<span><b class="sk-up">▲</b><b class="sk-dn">▼</b> so với ' + esc(CMP_LABEL || 'kỳ trước') + ': xanh là tốt hơn, đỏ là kém hơn</span>' +
+      '<span class="sk-spk">' + spk + ' đường nhỏ: số lên hay xuống trong kỳ này</span>' + (lights ? '<span>› bấm vào ô để xem chi tiết</span>' : '') + '</div>';
   }
   /** Khoảng [từ, đến) theo giờ VN của 1 lựa chọn thời gian p = { k, from, to }. */
   function perRange(p) {
@@ -3166,10 +3174,11 @@
   function dashAds() { var c = (S.d && S.d.rules && S.d.rules.dash) || {}; return [Number(c.adsGood) || 30, Number(c.adsBad) || 40]; }
   function adsLv(sp, rev) { if (!sp) return ''; var c = rev ? sp * 100 / rev : Infinity, A = dashAds(); return c < A[0] ? 'ok' : c <= A[1] ? 'mid' : 'bad'; }
   var DASH_LV = { ok: '🟢', done: '🟢', mid: '🟠', bad: '🔴' };
+  var DASH_TIP = { ok: 'Tốt', done: 'Tốt', mid: 'Cần để ý', bad: 'Cần xử lý' };
   /** Đèn theo xu hướng so với kỳ trước: tăng = xanh, giảm dưới 10% = cam, giảm từ 10% = đỏ. */
   function dashTrend(cur, prev) { if (!CMP_LABEL || !prev) return ''; var d = (cur - prev) / prev; return d >= 0 ? 'ok' : d > -0.1 ? 'mid' : 'bad'; }
   function dashTile(go, lv, label, value, d, sub, spark) {
-    return '<button type="button" class="dash-tile ' + (lv || '') + '" data-dgo="' + go + '"><span class="dash-tile-l">' + label + (DASH_LV[lv] ? '<i>' + DASH_LV[lv] + '</i>' : '') + '</span><span class="dash-tile-v"><b>' + value + '</b>' + (spark || '') + '</span>' + (d || '') + '<small>' + sub + '</small></button>';
+    return '<button type="button" class="dash-tile ' + (lv || '') + '" data-dgo="' + go + '"><span class="dash-tile-l">' + label + (DASH_LV[lv] ? '<i title="' + DASH_TIP[lv] + '">' + DASH_LV[lv] + '</i>' : '') + '</span><span class="dash-tile-v"><b>' + value + '</b>' + (spark || '') + '</span>' + (d || '') + '<small>' + sub + '</small></button>';
   }
   /** Mục tiêu tháng cả văn phòng = cộng các mảng (Sale, Website, sàn…). */
   function dashGoal(month, sj) {
@@ -3191,7 +3200,7 @@
       dashTile('biz', b.oldPct === null || bp.oldPct === null ? '' : dashTrend(b.oldPct, bp.oldPct), '🔁 Khách mua lại', b.oldPct === null ? '–' : b.oldPct + '%', b.oldPct === null ? '' : delta(b.oldPct, bp.oldPct, 'rate'),
         b.oldPct === null ? 'Chưa có đơn văn phòng trong kỳ' : moneyShort(b.oldRev) + ' doanh số từ khách đã từng mua', sparkSvg(T.tr.old, T.tr.B.partial)) +
       dashTile('mkt', adLv, '📣 Quảng cáo', ads === null ? '–' : '1đ → ' + oneDec(ads) + 'đ', ads !== null && M.totp && M.nrp ? dRate(ads, M.nrp / M.totp).replace(/điểm/, 'đ') : '',
-        !M ? (MK.err ? '⚠️ Chưa tải được chi phí' : '⏳ đang tải…') : M.tot ? 'Chi ' + moneyShort(M.tot) + (M.nr ? ' = ' + Math.round(M.tot * 100 / M.nr) + '% tiền khách mới mua' : ', chưa có khách mới mua') : 'Chưa có chi phí quảng cáo trong kỳ', ads === null ? '' : sparkSvg(dashAdsSeries(T.tr.B, M, sj), T.tr.B.partial)) +
+        !M ? (MK.err ? '⚠️ Chưa tải được chi phí' : '⏳ đang tải…') : M.tot ? 'Chi ' + moneyShort(M.tot) + (M.nr ? ' = ' + Math.round(M.tot * 100 / M.nr) + '% tiền khách mới mua' : ', chưa có khách mới mua') + ' · tốt: dưới ' + dashAds()[0] + '%' : 'Chưa có chi phí quảng cáo trong kỳ', ads === null ? '' : sparkSvg(dashAdsSeries(T.tr.B, M, sj), T.tr.B.partial)) +
       dashTile('biz', T.vs.pct === null ? '' : T.vs.pct < 5 ? 'ok' : T.vs.pct < 10 ? 'mid' : 'bad', '↩️ Hoàn / huỷ', T.vs.pct === null ? '–' : T.vs.pct + '%', T.vs.pct !== null && T.vsp.pct !== null ? inv(delta(T.vs.pct, T.vsp.pct, 'rate')) : '',
         T.vs.n ? T.vs.v + ' / ' + T.vs.n + ' đơn văn phòng · dưới 5% là tốt' : 'Chưa có đơn văn phòng trong kỳ', sparkSvg(T.tr.vd, T.tr.B.partial, true)) +
       '</div><div class="dash-go"><a class="btn" href="#bao-cao">📊 Bán hàng</a><a class="btn" href="#marketing">📣 Marketing</a><a class="btn" href="#san">🛒 Sàn</a><a class="btn" href="#link-qr">📍 Link & QR</a></div>';
@@ -3982,7 +3991,7 @@
       dashTile('camp', tot ? adsLv(tot, nr) : '', '🚦 Chi phí / tiền khách mới', rate === null ? '–' : oneDec(rate) + '%', rate !== null && totp && nrp ? inv(dRate(rate, totp * 100 / nrp)) : '', 'Xanh dưới ' + A[0] + '% · đỏ trên ' + A[1] + '%' + (rate !== null ? ' · bỏ 1đ thu ' + oneDec(nr / tot) + 'đ' : ''), ksk(trendRateNZ(kSp, kNr, 100), true)) +
       '</div><p class="mk-row-l">📇 Data &amp; khách</p><div class="dash-tiles mk3">' +
       dashTile('data', up(cpd, cpdP), '📇 Chi phí 1 data', cpd ? moneyShort(cpd) : '–', cpd && cpdP ? inv(delta(cpd, cpdP)) : '', ad ? ad.n.toLocaleString('vi-VN') + ' data (số khách để lại)' + (adp && adp.n ? ' · ' + CMP_LABEL + ' ' + moneyShort(cpdP) + ' / data' : '') : 'Chưa có file số quảng cáo', ksk(trendRateNZ(kSp, kAn), true)) +
-      dashTile('sale', wr === null ? '' : wr >= 25 ? 'ok' : wr >= 15 ? 'mid' : 'bad', '🛒 Data → mua hàng', wr === null ? '–' : wr + '%', ad ? delta(wr, adp && adp.n ? pct(adp.won, adp.n) : null, 'rate') : '', ad ? 'Cứ 100 data có ' + wr + ' người mua · ' + ad.won + ' / ' + ad.n : 'Chưa có file số quảng cáo') +
+      dashTile('sale', wr === null ? '' : wr >= 25 ? 'ok' : wr >= 15 ? 'mid' : 'bad', '🛒 Data → mua hàng', wr === null ? '–' : wr + '%', ad ? delta(wr, adp && adp.n ? pct(adp.won, adp.n) : null, 'rate') : '', ad ? 'Cứ 100 data có ' + wr + ' người mua · ' + ad.won + ' / ' + ad.n + ' · tốt: từ 25%' : 'Chưa có file số quảng cáo') +
       dashTile('ltv', LT.cap && cpn ? LT.lv : up(cpn, newNp && totp ? Math.round(totp / newNp) : 0), '👤 Chi phí có 1 khách mới', cpn ? moneyShort(cpn) : '–', cpn && newNp && totp ? inv(delta(cpn, Math.round(totp / newNp))) : '', LT.cap ? 'Nên dưới ' + moneyShort(LT.cap) + ' (= ' + A[0] + '% tiền 1 khách mua trong 3 tháng)' : newN + ' khách mới', ksk(trendRateNZ(kSp, kNn), true)) +
       '</div></section>';
     var GB = mkGoalBlock(gKey === key ? mj : gm, mj); h += GB.h;

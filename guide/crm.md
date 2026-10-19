@@ -464,6 +464,8 @@ Doanh số tính theo **Nhân viên bán** ghi trên từng đơn. Đơn khách 
 
 ## Đọc biểu đồ xu hướng (Tổng quan, Hiệu quả, Marketing, Sàn)
 
+Ngay dưới chọn thời gian của mỗi màn hình thống kê có 1 dòng chú thích: 🟢 Tốt · 🟠 Cần để ý · 🔴 Cần xử lý, ▲▼ so với kỳ trước (xanh là tốt hơn, đỏ là kém hơn), đường nhỏ cho biết số lên hay xuống trong kỳ, dấu › ở góc ô là bấm vào được. Ô nào có mốc riêng thì ghi ngay trong ô (vd "tốt: dưới 30%").
+
 - **Đường xanh** = kỳ đang xem. **Đường xám nét đứt** = kỳ trước, đặt chồng lên để so (ngày 1 với ngày 1, ngày 2 với ngày 2…). Đường xanh nằm trên đường xám là đang làm tốt hơn kỳ trước.
 - **Nhãn trên biểu đồ**: 📈 *Đang đi lên* · ➡️ *Đi ngang* · 📉 *Đang đi xuống*, kèm 1 câu giải thích (vd "cuối kỳ cao hơn đầu kỳ khoảng 18%. Cả kỳ cao hơn kỳ trước 12%"). Chênh dưới 10% là đi ngang. Cần ít nhất 3 ngày có số mới kết luận.
 - **Mỗi điểm** = 1 ngày (xem tới 45 ngày), 1 tuần (tới khoảng 6 tháng) hoặc 1 tháng (Quý / Năm dài hơn). Đoạn mờ ở cuối là ngày / tuần đang chạy, chưa trọn nên không tính vào kết luận.

@@ -1045,3 +1045,15 @@ button:focus-visible, a:focus-visible, summary:focus-visible, [role="button"]:fo
 .qze-r{border-top:1px dashed var(--line,#e5e5e5);padding-top:10px}
 .qze-note{margin-right:auto}
 .rep-ppl-h .spk { margin-right: 6px; } .rep-ppl-h .spk-w { font-size: 11px; font-weight: 700; } .rep-ppl-h .spk svg { width: 60px; height: 20px; }
+
+/* Chú thích màu trên màn hình thống kê (statKey) */
+.stat-key { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; margin: -4px 0 14px; font-size: 12.5px; color: var(--muted); }
+.stat-key span { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.stat-key .sk-sep { width: 1px; height: 14px; background: var(--line); padding: 0; }
+.stat-key .sk-up { color: var(--primary); font-size: 10px; } .stat-key .sk-dn { color: var(--red); font-size: 10px; margin-right: 2px; }
+.stat-key svg { width: 24px; height: 10px; } .stat-key polyline { fill: none; stroke: var(--ink); stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; }
+@media (max-width: 640px) { .stat-key span { white-space: normal; } .stat-key .sk-sep { display: none; } }
+/* ô bấm được: dấu › góc dưới */
+.dash-tile { position: relative; padding-right: 26px; }
+.dash-tile::after { content: '›'; position: absolute; right: 10px; bottom: 8px; font-size: 22px; line-height: 1; color: #b9c2b6; }
+.dash-tile:hover::after { color: var(--primary); }
