@@ -687,7 +687,7 @@
       '<a class="brand" href="#' + homeView() + '"><img src="/icon-180.png" alt="">CRM</a>' +
       '<nav class="nav">' + navViews().map(function (v) { return '<a href="#' + v.id + '" data-v="' + v.id + '"' + (v.id === 'cai-dat' ? ' class="nav-set"' : '') + '>' + I[v.icon] + '<span' + (v.short ? ' data-short="' + v.short + '"' : '') + '>' + v.label + '</span></a>'; }).join('') + '</nav>' +
       '<div class="grow"></div><div class="me">' + meHTML() + '</div>' +
-      (isMkt() ? '' : '<button class="icon-btn" id="gsBtn" title="Tìm khách, đơn, khách hỏi" aria-label="Tìm khách, đơn, khách hỏi">🔍</button>') +
+      (isMkt() ? '' : '<button class="icon-btn" id="gsBtn" title="Tìm ở mọi tab: khách đã mua, đơn hàng, khách hỏi" aria-label="Tìm ở mọi tab">🔍</button>') +
       '<button class="icon-btn fb-btn" id="fbBtn" title="Góp ý: báo lỗi, chỗ khó dùng, ý tưởng" aria-label="Góp ý">💡<span class="fb-lbl">Góp ý</span></button>' +
       '<a class="icon-btn" href="/huong-dan/' + (isMkt() ? 'marketing' : 'crm') + '/" target="_blank" rel="noopener" title="Hướng dẫn sử dụng" aria-label="Hướng dẫn sử dụng">' + I.help + '</a>' +
       '<a class="icon-btn top-set" href="#cai-dat" title="Cài đặt" aria-label="Cài đặt">' + I.gear + '</a>' +
@@ -699,9 +699,9 @@
     navBadges(); pendingBadge();
   }
   /** 🔍 Tìm nhanh trên mọi tab (Đợt 2, 16/10/2026): gõ SĐT / tên / mã đơn → khách đã mua, đơn hàng, khách hỏi; bấm là mở. Chỉ tìm trong dữ liệu người dùng được xem (máy chủ đã lọc). */
-  function openGlobalSearch() {
+  function openGlobalSearch(pre) {
     var m = modal('🔍 Tìm nhanh', '<input type="search" id="gsQ" placeholder="Số điện thoại, tên khách hoặc mã đơn" autocomplete="off" inputmode="search"><div id="gsRes" class="gs-res"><p class="muted small">Gõ ít nhất 2 chữ hoặc 3 số.</p></div>', '');
-    var qi = $('#gsQ', m), out = $('#gsRes', m), tm = null;
+    var qi = $('#gsQ', m), out = $('#gsRes', m), tm = null; if (pre) qi.value = pre;
     var it = function (href, title, sub) { return '<a class="gs-it" href="' + href + '"><b>' + title + '</b><span>' + sub + '</span></a>'; };
     var find = function () {
       var raw = qi.value.trim(), q = norm(raw), dg = raw.replace(/\D/g, ''), byPh = dg.length >= 3;
@@ -718,6 +718,7 @@
     };
     qi.addEventListener('input', function () { clearTimeout(tm); tm = setTimeout(find, 150); });
     out.addEventListener('click', function (e) { if (e.target.closest('.gs-it')) closeModal(true); });
+    if (pre) find();
     setTimeout(function () { qi.focus(); }, 60);
   }
   /* ---------- ✨ AI (Đợt 3, 16/10/2026): tóm tắt hồ sơ khách / viết tin nhắn. Chỉ hiện khi máy chủ có khoá AI (rules.ai). Tên khách không gửi đi: AI viết [Tên], máy này điền lại. */
@@ -1297,6 +1298,23 @@
     var cs = S.d.customers.filter(function (c) { return hit(c.name, c.phone) && (lvl() >= 2 || c.owner === S.user.name); }).slice(0, 5);
     return cs.length ? '<div class="notice info cross">🛒 Có <b>' + cs.length + '</b> người khớp ở tab <b>Khách đã mua</b>: ' + cs.map(function (c) { return '<button type="button" class="link" data-cust="' + c.phone + '">' + esc(c.name || c.phone) + '</button>'; }).join(', ') + '</div>' : '';
   }
+  /** Đang gõ tìm → tạm bỏ các mục lọc (về Tất cả) để không giấu khách tìm thấy; xoá chữ tìm → trả lại mục lọc cũ.
+   *  Bấm chọn mục khác trong lúc tìm (searchKeep) thì giữ lựa chọn đó. */
+  function searchWide(f, v, dflt) {
+    if (v && !f._pre) { f._pre = {}; Object.keys(dflt).forEach(function (k) { f._pre[k] = f[k]; f[k] = dflt[k]; }); }
+    else if (!v && f._pre) { Object.keys(f._pre).forEach(function (k) { f[k] = f._pre[k]; }); delete f._pre; }
+  }
+  function searchKeep(f) { if (f) delete f._pre; }
+  /** Cập nhật các ô chọn / nút màu nằm ngoài phần vẽ lại cho khớp bộ lọc sau khi tìm (không vẽ lại cả trang để ô tìm giữ con trỏ). */
+  function searchSync() {
+    var sv = function (id, v) { var el = $('#' + id); if (el) { el.value = v || ''; el.classList.toggle('on', !!v); } };
+    if (S.f.t) sv('tch', S.f.t.ch);
+    if (S.f.c) { sv('cspend', S.f.c.spend); sv('csrc', S.f.c.src); sv('cbday', S.f.c.bday); $$('.legend .lg').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-cat') === S.f.c.cat); }); }
+    $$('#tChips,#cChips').forEach(function (box) { var on = $('.chip.on', box); if (on) box.scrollLeft = Math.max(0, on.offsetLeft - box.offsetLeft - 12); }); // điện thoại: cuộn tới mục đang chọn (Tất cả nằm cuối hàng)
+  }
+  /** Dòng đếm khi đang tìm + ô trống khi không thấy (kèm nút tìm ở mọi tab). */
+  function searchCount(n, unit, raw) { return 'Tìm thấy ' + n + ' ' + unit + ' khớp “' + raw + '”'; }
+  function searchEmpty(what, raw) { return '<div class="empty">Không tìm thấy ' + what + ' nào khớp “' + esc(raw) + '”. <button type="button" class="btn sm" data-gsopen="' + esc(raw) + '">🔍 Tìm ở mọi tab</button></div>'; }
   function leadsOf(phone) {
     if (!S.d) return [];
     phone = normPhone(phone);
@@ -1464,7 +1482,8 @@
   function custRowF(c) { return custRow(c, !!(S.f.c && S.f.c.k === 'ref')); }
   function renderCustomerList(list, n) {
     var rs = S.f.c && S.f.c.k === 'ref' ? refStats().sum : null;
-    if (!list.length) return empty(rs ? 'Chưa có khách nào giới thiệu. Khi thêm khách hỏi, chọn “Khách giới thiệu” rồi chọn người giới thiệu.' : 'Không có khách nào khớp.');
+    var sq = S.f.c && S.f.c.q && S.f.c.q.trim();
+    if (!list.length) return rs ? empty('Chưa có khách nào giới thiệu. Khi thêm khách hỏi, chọn “Khách giới thiệu” rồi chọn người giới thiệu.') : sq ? searchEmpty('khách đã mua', sq) : empty('Không có khách nào khớp.');
     return (rs ? '<div class="notice info">🎁 <b>' + list.length + ' khách</b> đã giới thiệu ' + list.reduce(function (s0, c) { return s0 + refStats().by[c.phone].n; }, 0) + ' người, mang về <b>' + moneyShort(list.reduce(function (s0, c) { return s0 + refStats().by[c.phone].rev; }, 0)) + '</b>. Xếp theo doanh thu mang về. Mở hồ sơ để xem từng người và tặng quà cảm ơn.</div>' : '') +
       '<div class="crows">' + list.slice(0, n).map(custRowF).join('') + '</div>' +
       (list.length > n ? '<button class="btn more" data-more="c">Xem thêm ' + Math.min(60, list.length - n) + ' khách</button>' : '');
@@ -1501,7 +1520,7 @@
       return;
     }
 
-    var cCount = $('#cCount'); if (cCount) cCount.textContent = base.length + ' khách';
+    var cCount = $('#cCount'); if (cCount) cCount.textContent = f.q.trim() ? searchCount(base.length, 'khách', f.q.trim()) : base.length + ' khách';
     var cChips = $('#cChips'); if (cChips) cChips.innerHTML = renderCustomerChips(base, cur);
     var cArea = $('#cArea'); if (cArea) cArea.innerHTML = areaBox(q) + crossHint(q, qd, true);
     cList.innerHTML = renderCustomerList(list, f.n);
@@ -1523,7 +1542,7 @@
     if (cur.k === 'ref') list.sort(function (a, b) { var x = refStats().by[a.phone], y = refStats().by[b.phone]; return y.rev - x.rev || y.n - x.n; }); // 🎁 mang về nhiều doanh thu nhất lên đầu
     if (q) list = list.filter(function (c) { return (c._normName || norm(c.name)).indexOf(q) >= 0; }).concat(list.filter(function (c) { return (c._normName || norm(c.name)).indexOf(q) < 0; })); // trùng tên lên đầu, rồi mới đến trùng tỉnh / địa chỉ / sản phẩm
     S.promoPick = { list: list, label: cur.l + (lvl() >= 2 && S.who ? ' · ' + (S.who === '-' ? 'chưa ai phụ trách' : 'của ' + S.who) : '') + (f.spend ? ' · chi ' + SPEND[f.spend][0].toLowerCase() : '') + (f.src ? ' · nguồn ' + f.src : '') + (f.bday ? ' · ' + bdayLabel(f.bday) : '') + (f.q ? ' · tìm “' + f.q + '”' : '') };
-    return '<div class="page-head"><h1>Khách đã mua</h1><span class="muted" id="cCount">' + base.length + ' khách</span><div class="grow"></div>' + whoSel() + '<button class="btn pri" data-promo title="Gửi tin ưu đãi qua Zalo cho từng khách trong danh sách đang lọc">📣 Gửi ưu đãi lần lượt</button></div>' +
+    return '<div class="page-head"><h1>Khách đã mua</h1><span class="muted" id="cCount">' + esc(f.q.trim() ? searchCount(base.length, 'khách', f.q.trim()) : base.length + ' khách') + '</span><div class="grow"></div>' + whoSel() + '<button class="btn pri" data-promo title="Gửi tin ưu đãi qua Zalo cho từng khách trong danh sách đang lọc">📣 Gửi ưu đãi lần lượt</button></div>' +
       '<div class="tools"><div class="search">' + I.search + '<input type="search" id="cq" placeholder="Tìm tên, SĐT, tỉnh, sản phẩm…" value="' + esc(f.q) + '"><button type="button" class="search-x" aria-label="Xoá chữ tìm kiếm" title="Xoá">✕</button></div>' +
       '<select id="csort" style="flex:0 0 auto;width:auto">' + Object.keys(SORTS).map(function (k) { return '<option value="' + k + '"' + (f.sort === k ? ' selected' : '') + '>' + SORTS[k][0] + '</option>'; }).join('') + '</select></div>' +
       (f.bday && !dobReady() ? '<div class="notice">🎂 Máy chủ chưa có cột Ngày sinh. Báo quản lý dán code Apps Script bản mới và Triển khai phiên bản mới.</div>' : '') +
@@ -1996,7 +2015,7 @@
       '<div class="chips">' + ['all'].concat(STATUS).map(function (s0) { var n = s0 === 'all' ? base.length : base.filter(function (o) { return o.status === s0; }).length; return n || s0 === 'all' || f.st === s0 ? '<button class="chip' + (f.st === s0 ? ' on' : '') + '" data-os="' + esc(s0) + '">' + (s0 === 'all' ? 'Tất cả' : s0) + ' <em>' + n + '</em></button>' : ''; }).join('') + '</div>' +
       '<p class="small muted" style="margin:0 0 8px">' + list.length + ' đơn' + ' · ' + money(sum) + ' (không tính huỷ / hoàn)' + '</p>' +
       (list.length ? '<div class="crows">' + list.slice(0, f.n).map(orderRow).join('') + '</div>' +
-        (list.length > f.n ? '<button class="btn more" data-more="o">Xem thêm ' + Math.min(60, list.length - f.n) + ' đơn</button>' : '') : empty('Không có đơn nào.'));
+        (list.length > f.n ? '<button class="btn more" data-more="o">Xem thêm ' + Math.min(60, list.length - f.n) + ' đơn</button>' : '') : f.q && f.q.trim() ? searchEmpty('đơn', f.q.trim()) : empty('Không có đơn nào.'));
   }
   function renderOrdersPart(appendOnly) {
     var oBody = $('#oBody');
@@ -2613,7 +2632,7 @@
   }
   /** Danh sách tên tỉnh (cũ + mới) để chọn nhanh. */
   function provNames() { var o = {}; Object.keys(PROV_MERGE).forEach(function (nw) { o[nw] = 1; PROV_MERGE[nw].forEach(function (x) { if (!/^(HCM|TPHCM|TP HCM|HN|HP|Kontum|Daklak|Đaklak|Đăk .*|Dak .*|Bắc Cạn)$/.test(x)) o[x] = 1; }); }); return Object.keys(o).sort(function (a, b) { return a.localeCompare(b, 'vi'); }); }
-  function leadsCountText(base) { return base.length + ' lượt hỏi · ' + base.filter(isOpenLead).length + ' người đang theo dõi (chưa mua)'; }
+  function leadsCountText(base) { var f = S.f.t || {}; if (f.q && f.q.trim()) return searchCount(base.length, 'khách hỏi', f.q.trim()); return base.length + ' lượt hỏi · ' + base.filter(isOpenLead).length + ' người đang theo dõi (chưa mua)'; }
   function renderLeadsChips(base, cur) {
     return LF.filter(function (x) { return lvl() < 2 || x.k !== 'mine'; }).map(function (x) {
       var n = base.filter(x.f).length; if (x.k === 'noorder' && !n && cur.k !== x.k) return '';
@@ -2621,7 +2640,8 @@
     }).join('');
   }
   function renderLeadsList(list, n, curK) {
-    if (!list.length) return empty(curK === 'due' ? 'Không có khách hỏi cần liên hệ 🎉' : 'Chưa có khách nào ở mục này.');
+    var sq = S.f.t && S.f.t.q && S.f.t.q.trim();
+    if (!list.length) return sq ? searchEmpty('khách hỏi', sq) + (curK !== 'all' ? '<p class="small muted" style="text-align:center">Đang lọc mục “' + ((LF.filter(function (x) { return x.k === curK; })[0] || {}).l || '') + '”. <button type="button" class="link" data-tf="all">Xem mọi mục</button></p>' : '') : empty(curK === 'due' ? 'Không có khách hỏi cần liên hệ 🎉' : 'Chưa có khách nào ở mục này.');
     return '<div class="list cols">' + list.slice(0, n).map(leadCard).join('') + '</div>' +
       (list.length > n ? '<button class="btn more" data-more="t">Xem thêm ' + Math.min(60, list.length - n) + ' khách</button>' : '');
   }
@@ -2658,7 +2678,7 @@
     var base = dedupLeads((S.d.leads || []).filter(function (l) { return (lvl() < 2 || whoOk(l.owner)) && (!f.ch || chLabel(l.channel) === f.ch) && (!q || leadHit(l, words) || (qd.length >= 3 && (l._phoneDigits || l.phone).indexOf(qd) >= 0)); }));
     if (lvl() >= 2 && f.k === 'mine') f.k = 'due';
     var cur = LF.filter(function (x) { return x.k === f.k; })[0] || LF[0], list = sortLeads(base.filter(cur.f));
-    return '<div class="page-head"><h1>Khách hỏi</h1><span class="muted" id="tCount">' + leadsCountText(base) + '</span><div class="grow"></div>' + whoSel() + '<button class="btn pri" data-newlead>＋ Thêm khách hỏi</button></div>' +
+    return '<div class="page-head"><h1>Khách hỏi</h1><span class="muted" id="tCount">' + esc(leadsCountText(base)) + '</span><div class="grow"></div>' + whoSel() + '<button class="btn pri" data-newlead>＋ Thêm khách hỏi</button></div>' +
       '<div class="tools"><div class="search">' + I.search + '<input type="search" id="tq" placeholder="Tìm tên, SĐT, sản phẩm…" value="' + esc(f.q) + '"><button type="button" class="search-x" aria-label="Xoá chữ tìm kiếm" title="Xoá">✕</button></div>' +
         '<select id="tch" class="' + (f.ch ? 'on' : '') + '" style="flex:0 0 auto;width:auto" title="Lọc theo kênh khách hỏi"><option value="">📣 Mọi kênh</option>' + chs.map(function (x) { return '<option' + (f.ch === x ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('') + '</select></div>' +
       offerBanner() + '<div class="chips" id="tChips">' + renderLeadsChips(base, cur) + '</div>' +
@@ -6330,13 +6350,13 @@
     if (t.hasAttribute('data-newlead')) { openLeadForm(); return; }
     if (t.hasAttribute('data-editlead')) { var L2 = findLead(a('data-editlead')); if (L2) openLeadForm(L2); return; }
     if (t.hasAttribute('data-neworder')) { openNewOrder(a('data-neworder')); return; }
-    if (t.hasAttribute('data-cf')) { S.f.c.k = a('data-cf'); S.f.c.n = 60; if ($('#cList')) renderCustomersPart(); else render(); return; }
-    if (t.hasAttribute('data-och')) { S.f.o.ch = a('data-och'); S.f.o.n = 60; if ($('#oBody')) renderOrdersPart(); else render(); return; }
-    if (t.hasAttribute('data-os')) { S.f.o.st = a('data-os'); S.f.o.n = 60; if ($('#oBody')) renderOrdersPart(); else render(); return; }
-    if (t.hasAttribute('data-otab')) { S.f.o.tab = a('data-otab'); if (S.f.o.tab === 'todo') S.f.o.q = ''; S.f.o.n = 60; if ($('#oBody')) renderOrdersPart(); else render(); return; }
+    if (t.hasAttribute('data-cf')) { searchKeep(S.f.c); S.f.c.k = a('data-cf'); S.f.c.n = 60; if ($('#cList')) renderCustomersPart(); else render(); return; }
+    if (t.hasAttribute('data-och')) { searchKeep(S.f.o); S.f.o.ch = a('data-och'); S.f.o.n = 60; if ($('#oBody')) renderOrdersPart(); else render(); return; }
+    if (t.hasAttribute('data-os')) { searchKeep(S.f.o); S.f.o.st = a('data-os'); S.f.o.n = 60; if ($('#oBody')) renderOrdersPart(); else render(); return; }
+    if (t.hasAttribute('data-otab')) { searchKeep(S.f.o); S.f.o.tab = a('data-otab'); if (S.f.o.tab === 'todo') S.f.o.q = ''; S.f.o.n = 60; if ($('#oBody')) renderOrdersPart(); else render(); return; }
     if (t.hasAttribute('data-per')) { openPer(a('data-per')); return; }
     if (t.hasAttribute('data-pq')) { var pq = a('data-pq').split('|'); S.f[pq[0]].p = { k: pq[1] }; if (pq[0] === 'o') S.f.o.n = 60; render(); return; }
-    if (t.hasAttribute('data-tf')) { S.f.t.k = a('data-tf'); S.f.t.n = 60; if ($('#tList')) renderLeadsPart(); else render(); return; }
+    if (t.hasAttribute('data-tf')) { searchKeep(S.f.t); S.f.t.k = a('data-tf'); S.f.t.n = 60; if ($('#tList')) renderLeadsPart(); else render(); return; }
     if (t.hasAttribute('data-who')) { setWho(a('data-who') === 'team' ? '' : a('data-who')); window.scrollTo(0, 0); return; }
     if (t.hasAttribute('data-offer')) { offerEdit(a('data-offer')); return; }
     if (t.hasAttribute('data-race')) { if (a('data-race') === 'retry') S.race = null; else S.f.race = a('data-race'); render(); return; }
@@ -6369,6 +6389,7 @@
   }, true);
   document.addEventListener('click', function (e) { var gb = e.target.closest && e.target.closest('[data-gift]'); if (!gb || !S.d) return; e.stopPropagation(); var a = gb.getAttribute('data-gift').split('|'); giftAct(gb, a[0], a[1], a[2]); }, true);
   document.addEventListener('click', function (e) { var cm = e.target.closest && e.target.closest('[data-comm]'); if (!cm || !S.d) return; e.stopPropagation(); var a = cm.getAttribute('data-comm').split('|'); commAct(a[0], a[1]); }, true);
+  document.addEventListener('click', function (e) { var g = e.target.closest && e.target.closest('[data-gsopen]'); if (!g || !S.d) return; e.stopPropagation(); openGlobalSearch(g.getAttribute('data-gsopen')); }, true);
   document.addEventListener('click', function (e) { // nút ✕ trong ô tìm kiếm: xoá chữ, giữ con trỏ để gõ tìm mới
     var bx = e.target.closest && e.target.closest('.search-x'); if (!bx) return;
     var inp = bx.parentNode.querySelector('input'); if (!inp) return;
@@ -6381,17 +6402,19 @@
       var id = e.target.id, v = e.target.value;
       clearTimeout(typing);
       typing = setTimeout(function () {
-        if (id === 'cq') { S.f.c.q = v; S.f.c.n = 60; if ($('#cList')) renderCustomersPart(); else render(); }
-        else if (id === 'oq') { S.f.o.q = v; if (v) S.f.o.tab = 'all'; S.f.o.n = 60; if ($('#oBody')) renderOrdersPart(); else render(); }
-        else if (id === 'tq') { S.f.t.q = v; S.f.t.n = 60; if ($('#tList')) renderLeadsPart(); else render(); }
+        var on = !!v.trim();
+        if (id === 'cq') { S.f.c.q = v; searchWide(S.f.c, on, { k: 'all', cat: '', spend: '', src: '', bday: '' }); S.f.c.n = 60; if ($('#cList')) renderCustomersPart(); else render(); }
+        else if (id === 'oq') { S.f.o.q = v; searchWide(S.f.o, on, { tab: 'all', st: 'all', ch: '', p: { k: 'all' } }); S.f.o.n = 60; if ($('#oBody')) renderOrdersPart(); else render(); }
+        else if (id === 'tq') { S.f.t.q = v; searchWide(S.f.t, on, { k: 'all', ch: '' }); S.f.t.n = 60; if ($('#tList')) renderLeadsPart(); else render(); }
+        searchSync();
       }, 200);
     }
   });
   document.addEventListener('change', function (e) {
     if (!S.d) return;
     if (e.target.id === 'csort') { S.f.c.sort = e.target.value; if ($('#cList')) renderCustomersPart(); else render(); }
-    if (e.target.id === 'cspend' || e.target.id === 'csrc' || e.target.id === 'cbday') { S.f.c[{ cspend: 'spend', csrc: 'src', cbday: 'bday' }[e.target.id]] = e.target.value; S.f.c.n = 60; if ($('#cList')) renderCustomersPart(); else render(); }
-    if (e.target.id === 'tch') { S.f.t.ch = e.target.value; S.f.t.n = 60; if ($('#tList')) renderLeadsPart(); else render(); }
+    if (e.target.id === 'cspend' || e.target.id === 'csrc' || e.target.id === 'cbday') { searchKeep(S.f.c); S.f.c[{ cspend: 'spend', csrc: 'src', cbday: 'bday' }[e.target.id]] = e.target.value; S.f.c.n = 60; if ($('#cList')) renderCustomersPart(); else render(); }
+    if (e.target.id === 'tch') { searchKeep(S.f.t); S.f.t.ch = e.target.value; S.f.t.n = 60; if ($('#tList')) renderLeadsPart(); else render(); }
     if (e.target.hasAttribute && e.target.hasAttribute('data-assign') && e.target.value) {
       var as = e.target.getAttribute('data-assign').split('|'), to = e.target.value;
       var prevOwner = as[0] === 'c' ? (cust(as[1]) || {}).owner : (findLead(as[1]) || {}).owner;

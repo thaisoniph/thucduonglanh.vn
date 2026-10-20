@@ -123,6 +123,8 @@ Vào tab **Khách**, gõ vào ô tìm: tên, số điện thoại, **tỉnh**, h
 
 Bấm **🔎 Lọc thêm** để lọc theo mức chi tiền, khách đến từ đâu, sinh nhật. Bấm **✕** ở cuối ô tìm để xoá chữ cũ.
 
+**Khi gõ vào ô tìm**, máy tìm trong **Tất cả**, không bị giới hạn ở mục đang chọn (như *Cần chăm sóc* hay *Cần liên hệ*). Vì vậy khách nằm ở mục nào cũng hiện ra. Bấm **✕** để xoá chữ là màn hình quay về mục bạn chọn lúc trước. Tab **Khách hỏi** và **Đơn hàng** cũng làm như vậy. Không thấy khách thì bấm **🔍 Tìm ở mọi tab**.
+
 **Đang tư vấn khách mới, dùng con số để khách tin hơn:**
 
 1. Hỏi khách ở tỉnh nào.
