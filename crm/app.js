@@ -177,7 +177,7 @@
     function fallback() { var t = document.createElement('textarea'); t.value = text; t.style.position = 'fixed'; t.style.opacity = '0'; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); } catch (e) { } t.remove(); }
   }
 
-  var SERVER_V = '2026-10-20c'; // phải trùng số phiên bản máy chủ (api/src/index.js)
+  var SERVER_V = '2026-10-20d'; // phải trùng số phiên bản máy chủ (api/src/index.js)
   var ON_CF = !/script\.google/.test(CFG.endpoint || ''); // máy chủ Cloudflare (nhanh) hay Apps Script cũ
   function checkVersion(j) {
     if (j && j.v) S.srvV = j.v;
@@ -2395,7 +2395,8 @@
     if (!eo && lead && lead.interest) sItems = [{ name: lead.interest, variant: '', qty: 1 }];
     var fullAddr = c0 ? [c0.address, c0.ward, c0.province].filter(Boolean).join(', ') : '';
     var src0 = store('crm_osrc'); if (SOURCES.indexOf(src0) < 0) src0 = SOURCES[0]; // nhớ lựa chọn lần trước của từng người
-    var car0 = eo ? carrierOf(eo) : store('crm_ocar'); if (!eo && CARRIERS[car0] === undefined) car0 = 'Viettel Post'; // đơn vị vận chuyển: nhớ lần trước như nguồn đơn
+    var car0 = eo ? carrierOf(eo) : 'BEST Express'; // đơn mới mặc định BEST Express (anh Sơn 20/10/2026)
+    var free0 = !(eo && eo.shipping > 0), fee0 = eo && eo.shipping > 0 ? eo.shipping : CFG.shipping_fee || 30000; // mặc định miễn phí vận chuyển
     var ot0 = eo ? otypeOf(eo) : '', otField = '<div class="f otype"><span class="lbl">Loại đơn (tính hoa hồng)</span><div class="radios ot4">' + OTYPES.map(function (t) { return '<label><input type="radio" name="otype" value="' + t + '"' + (t === ot0 ? ' checked' : '') + '><span><b>' + OT[t][0] + ' ' + t + '</b><small>' + esc(OT[t][1]) + '</small></span></label>'; }).join('') + '</div><p class="hint" id="noOtHint" style="margin:6px 0 0"></p></div>';
     var body = '<form id="noForm" novalidate>' +
       (lead ? '<div class="notice info">🛒 Chốt đơn cho khách hỏi <b>' + esc(lead.name || lead.phone || '') + '</b>. Lưu đơn xong, khách tự chuyển sang “Đã chốt”.</div>' : '') +
@@ -2424,9 +2425,12 @@
       '<div class="box">' + otField + '<label class="f"><span>Số tiền thu khách *</span><input type="text" name="total" inputmode="decimal" autocomplete="off" placeholder="vd 1800000 hoặc 1tr8" value="' + (eo ? eo.total : '') + '"></label><p class="hint" id="noTotalHint"></p>' +
       '<div class="f"><span class="lbl">Thanh toán</span><div class="radios"><label><input type="radio" name="payment" value="cod"' + (eo && isBank(eo) ? '' : ' checked') + '><span>COD (trả khi nhận)</span></label><label><input type="radio" name="payment" value="bank"' + (eo && isBank(eo) ? ' checked' : '') + '><span>Chuyển khoản</span></label></div></div>' +
       '<div class="f"><span class="lbl">Đơn vị vận chuyển</span><div class="radios">' + Object.keys(CARRIERS).map(function (k) { return '<label><input type="radio" name="carrier" value="' + esc(k) + '"' + (k === car0 ? ' checked' : '') + '><span>' + esc(k) + '</span></label>'; }).join('') + '</div></div>' +
+      '<div class="f"><span class="lbl">Phí vận chuyển</span><div class="radios"><label><input type="radio" name="shipmode" value="free"' + (free0 ? ' checked' : '') + '><span>Miễn phí vận chuyển</span></label><label><input type="radio" name="shipmode" value="add"' + (free0 ? '' : ' checked') + '><span>Cộng phí ship</span></label></div></div>' +
+      '<label class="f" id="noShipFee"' + (free0 ? ' hidden' : '') + '><span>Phí ship cộng vào tiền thu khách</span><input type="number" name="shipping" min="0" step="1000" inputmode="numeric" value="' + (free0 ? 0 : fee0) + '"></label>' +
+      '<label class="f"><span>Mã đơn' + (eo ? ' (không đổi được khi sửa)' : '') + '</span><input type="text" name="code" autocomplete="off" value="' + (eo ? esc(eo.id) : '') + '"' + (eo ? ' readonly' : '') + '></label>' +
+      (eo ? '' : '<p class="hint" id="noCodeHint">Tự điền: tên + ngày + tháng + số thứ tự đơn trong ngày (giống cột Mã đơn trong file của bạn). Gửi Viettel Post thì thêm chữ V ở đầu.</p>') +
       (eo ? '<label class="f"><span>Lý do sửa (không bắt buộc)</span><input type="text" name="reason" placeholder="vd: khách đổi sang hộp 400g"></label>' : '<label class="f"><span>Ghi chú giao hàng</span><textarea name="note" rows="2" placeholder="vd: giao giờ hành chính, gọi trước khi giao"></textarea></label>') +
       '<details class="addr-more opts" id="noOpts"><summary>⚙️ <span id="noOptSum"></span></summary>' +
-      '<label class="f"><span>Phí ship tính riêng (nếu có)</span><input type="number" name="shipping" min="0" step="1000" inputmode="numeric" value="' + (eo ? eo.shipping : 0) + '"></label>' +
       (eo ? '' : (lead ? '' : '<label class="f"><span>Khách đặt qua</span><select name="source">' + SOURCES.map(function (s) { return '<option' + (s === src0 ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select></label>') +
         '<div class="f"><span class="lbl">Trạng thái</span><div class="radios"><label><input type="radio" name="status" value="Đã xác nhận" checked><span>Đã chốt với khách</span></label><label><input type="radio" name="status" value="Mới"><span>Chưa xác nhận</span></label></div></div>' +
         '<label class="switch"><input type="checkbox" name="consent"' + (c0 && c0.consent ? ' checked' : '') + '> Khách đồng ý nhận tin ưu đãi</label>') + '</details>' +
@@ -2511,7 +2515,7 @@
       if (lo) $('#noRepeat', m).onclick = function () {
         var its = parseItems(lo.items), ps = its.filter(function (i) { return !i.gift; }), gs = its.filter(function (i) { return i.gift; });
         items.innerHTML = ps.map(function (i) { return row('prod', i); }).join('') || row('prod'); gifts.innerHTML = gs.map(function (i) { return row('gift', i); }).join('');
-        F.total.value = lo.total; totalEdited = true; F.shipping.value = lo.shipping || 0;
+        F.total.value = lo.total; totalEdited = true; setShipMode(lo.shipping > 0, lo.shipping);
         var pb = $('input[name=payment][value=' + (isBank(lo) ? 'bank' : 'cod') + ']', form); if (pb) pb.checked = true;
         calc(); toast('Đã điền như đơn ' + fDate(lo.time) + ' – sửa chỗ nào khác rồi lưu');
       };
@@ -2613,6 +2617,28 @@
     $('#noAddGift', m).onclick = function () { gifts.insertAdjacentHTML('beforeend', row('gift')); $('.item2:last-child .iName', gifts).focus(); };
     F.total.addEventListener('input', function () { totalEdited = true; calc(); });
     F.shipping.addEventListener('input', calc); $('#noOpts', m).addEventListener('change', optSum);
+    /* ---- phí ship: Miễn phí (mặc định) / Cộng phí ship (hiện ô số tiền, mặc định phí ship của web) */
+    function setShipMode(add, fee) {
+      var r = $('input[name=shipmode][value=' + (add ? 'add' : 'free') + ']', form); if (r) r.checked = true;
+      $('#noShipFee', m).hidden = !add; F.shipping.value = add ? (fee || +F.shipping.value || CFG.shipping_fee || 30000) : 0; calc();
+    }
+    $$('input[name=shipmode]', form).forEach(function (r) { r.addEventListener('change', function () { setShipMode(r.value === 'add'); }); });
+    /* ---- mã đơn: <V nếu Viettel Post><tên của bạn><ddMM><số thứ tự 2 chữ số trong ngày>, vd Phuong201001, VPhuong201002 – khớp cột Mã đơn file sale.
+     *  Sale tự sửa ô thì giữ chữ của sale (đổi hãng chỉ thêm / bỏ chữ V). Máy chủ kiểm tra trùng; mã tự điền trùng thì máy chủ tự lấy số kế tiếp. */
+    var codeAuto = !eo, codePre = (S.user && S.user.prefix) || slugName(S.user && S.user.name), codeDay = (function () { var x = vnDate(Date.now()); return pad(x.d) + pad(x.m); })();
+    function isVtp() { var c = $('input[name=carrier]:checked', form); return !!c && c.value === 'Viettel Post'; }
+    function codeSuggest() {
+      var base = codePre + codeDay, t0 = dayStart(Date.now()), n = 0;
+      (S.d.orders || []).forEach(function (o) { var id = String(o.id || ''); if ((o.time || 0) < t0) return; if (id.indexOf('V' + base) === 0) id = id.slice(1); var k = id.indexOf(base) === 0 && id.slice(base.length).match(/^(\d{2})(?![\d-])/); if (k) n = Math.max(n, +k[1]); }); // bỏ mã kiểu cũ Phuong201026-01
+      return (isVtp() ? 'V' : '') + base + pad(n + 1);
+    }
+    function codeVtp() {
+      if (eo) return; if (codeAuto) { F.code.value = codeSuggest(); return; }
+      var v = F.code.value.trim(), hasV = v.indexOf('V' + codePre) === 0;
+      if (isVtp() && !hasV && v) F.code.value = 'V' + v; else if (!isVtp() && hasV) F.code.value = v.slice(1);
+    }
+    if (!eo) { F.code.value = codeSuggest(); F.code.addEventListener('input', function () { codeAuto = !F.code.value.trim(); }); F.code.addEventListener('change', function () { if (!F.code.value.trim()) { codeAuto = true; F.code.value = codeSuggest(); } }); }
+    $$('input[name=carrier]', form).forEach(function (r) { r.addEventListener('change', codeVtp); });
     var shipText = function () { var addr = F.full.value.trim(); return F.name.value.trim() + ' – ' + normPhone(F.phone.value) + '\n' + addr + '\n' + $('#noShip', m).textContent + '\nThu: ' + money(moneyIn(F.total.value)) + ($('input[name=payment]:checked', form).value === 'bank' ? ' (đã chuyển khoản)' : ' (COD)') + (F.note && F.note.value.trim() ? '\nGhi chú: ' + F.note.value.trim() : ''); };
     $('#noCopy', m).onclick = function (e) { e.preventDefault(); copy(shipText()).then(function () { toast('Đã copy nội dung lên đơn'); }); };
     showOld(curC); calc(); otUpdate();
@@ -2620,6 +2646,7 @@
     $('#noSave', m).onclick = function () {
       var err = $('#noErr', m), ph = normPhone(F.phone.value), ls = read(items), gs = read(gifts), tot = moneyIn(F.total.value), ship = Math.max(0, +F.shipping.value || 0);
       if (!/^0\d{9,10}$/.test(ph)) { err.textContent = 'Số điện thoại chưa đúng (10 số, bắt đầu bằng 0).'; F.phone.focus(); return; }
+      if (!eo && !/^[\p{L}\d][\p{L}\d.\-_ ]{2,29}$/u.test(F.code.value.trim())) { err.textContent = 'Mã đơn chưa đúng (3–30 ký tự: chữ, số, dấu chấm, gạch).'; F.code.focus(); return; }
       if (!F.name.value.trim()) { err.textContent = 'Nhập tên khách.'; F.name.focus(); return; }
       if (prov.value.trim() && !unitOf(prov.value.trim())) { err.textContent = 'Tỉnh / thành phố mới chưa đúng – chọn trong danh sách gợi ý.'; prov.focus(); return; }
       if (!ls.length) { err.textContent = 'Nhập ít nhất 1 sản phẩm.'; return; }
@@ -2629,7 +2656,7 @@
       if (!eo) copy(shipText()); // copy ngay lúc bấm (điện thoại chỉ cho copy khi vừa bấm)
       var btn = this; btn.disabled = true; btn.textContent = 'Đang lưu…'; err.textContent = '';
       var full = F.full.value.trim(), cu = { phone: ph, name: F.name.value.trim(), province: prov.value.trim(), ward: ward.value.trim(), address: full, addrOld: oldText() };
-      var otIn = $('input[name=otype]:checked', form), carIn = $('input[name=carrier]:checked', form); if (carIn && !eo) store('crm_ocar', carIn.value);
+      var otIn = $('input[name=otype]:checked', form), carIn = $('input[name=carrier]:checked', form);
       var common = { customer: cu, items: ls, gifts: gs, total: tot, shipping: ship, payment: $('input[name=payment]:checked', form).value, otype: otIn ? otIn.value : undefined, carrier: carIn ? carIn.value : '' }; // máy chủ tính lại gợi ý, khác gợi ý → quản lý kiểm tra
       var fail = function (e) { btn.disabled = false; calc(); err.textContent = e.message; };
       if (eo) {
@@ -2637,7 +2664,7 @@
         api('order_edit', common).then(function () { closeModal(true); toast('Đã sửa đơn ' + eo.id + ' ✓'); history.replaceState(null, '', '#don-hang'); load(true); }, fail);
         return;
       }
-      cu.note = F.note.value.trim(); common.status = $('input[name=status]:checked', form).value; common.source = F.source ? F.source.value : ''; common.consent = F.consent.checked; var L0 = lead || autoLead; common.leadId = L0 ? L0.id : '';
+      cu.note = F.note.value.trim(); common.status = $('input[name=status]:checked', form).value; common.code = F.code.value.trim(); common.codeAuto = codeAuto; common.source = F.source ? F.source.value : ''; common.consent = F.consent.checked; var L0 = lead || autoLead; common.leadId = L0 ? L0.id : '';
       if (F.source) store('crm_osrc', F.source.value);
       var create = function () { return api('order_create', common).catch(function (e) {
         if (!e.j || !e.j.dupOf || !confirm(e.message + '\n\nBấm OK nếu khách thật sự đặt thêm 1 đơn nữa. Bấm Huỷ để xem lại tab Đơn hàng.')) { if (e.j && e.j.dupOf) { closeModal(); location.hash = '#don-hang'; load(true); e.handled = true; } throw e; }

@@ -115,7 +115,8 @@ Khách đặt qua Zalo, Facebook, điện thoại… thì bạn **tạo đơn tr
 3. **Xem lại 2 ô địa chỉ.** Ô xanh là **🆕 Địa chỉ mới** (34 tỉnh, không có huyện), dùng để giao hàng. Ô vàng là **🕰 Địa chỉ cũ** (63 tỉnh, có huyện), dùng khi lên đơn Misa. Khách ghi kiểu cũ hay kiểu mới đều được: CRM tự điền cả 2 ô. Ô nào trống hoặc sai thì gõ vào ô đó để tìm, **không cần gõ dấu** (vd gõ `vinh phuc`, `hoi thinh`), rồi bấm chọn trong danh sách. Điền 1 bên, bên kia tự điền theo. Bấm **Copy** ở góc ô để chép địa chỉ đó.
 4. **Chọn sản phẩm:** bấm vào tên sản phẩm. Bấm thêm lần nữa để tăng số lượng. Có quà thì bấm **🎁 Thêm quà**.
 5. **Gõ số tiền thu của khách.** Gõ `1800000`, `1tr8` hay `1,8tr` đều được.
-6. Chọn cách trả tiền: **COD** (khách trả tiền khi nhận hàng) hoặc **Chuyển khoản**. Chọn luôn **Đơn vị vận chuyển** (Viettel Post, GHTK, Xe ôm…). CRM nhớ lựa chọn lần trước của bạn.
+6. Chọn cách trả tiền: **COD** (khách trả tiền khi nhận hàng) hoặc **Chuyển khoản**. Chọn **Đơn vị vận chuyển** (CRM chọn sẵn **BEST Express**) và **Phí vận chuyển**: chọn sẵn **Miễn phí vận chuyển**, bấm **Cộng phí ship** nếu khách trả ship (CRM cộng 30.000đ vào tiền thu, sửa được).
+   **Mã đơn** tự điền giống cột Mã đơn trong file của bạn: tên + ngày + tháng + số thứ tự đơn trong ngày, vd `Phuong201001`. Chọn Viettel Post thì tự thêm chữ **V** ở đầu (`VPhuong201001`). Muốn mã khác thì sửa ô này trước khi lưu.
 7. Bấm **Lưu & copy lên đơn**. Đơn được lưu. Nội dung đơn đã được chép sẵn, bạn dán sang bên vận chuyển.
 
 ![Cuối trang tạo đơn: số tiền, cách trả tiền, nút Lưu](/huong-dan/img/crm-neworder-save.webp)

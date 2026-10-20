@@ -1105,11 +1105,14 @@ async function crmMergeSkip(x, u, d) {
   await crmLog(x, u, 'Gộp khách', '-', '', 'Không phải 1 người', k.split('|').join(', '));
   return { ok: true };
 }
-/** Mã đơn theo sale: <tiền tố><ddMMyy>-<số thứ tự>, ví dụ Phuong300926-01. */
-async function nextCode(x, u, now) {
-  const y = (await crmUsers(x)).find(z => z.email === u.email) || u, pre = (y.prefix || slugName(u.name)) + fmtDate(now, 'ddMMyy') + '-';
-  let n = 0; for (const r of await all(x.db, 'SELECT id FROM orders WHERE substr(id, 1, ?) = ?', pre.length, pre)) n = Math.max(n, parseInt(r.id.slice(pre.length), 10) || 0);
-  return pre + (n + 1 < 10 ? '0' : '') + (n + 1);
+/** Mã đơn theo sale, giống cột Mã đơn trong file sale (anh Sơn 20/10/2026): <V nếu gửi Viettel Post><tiền tố><ddMM><số thứ tự 2 chữ số trong ngày>,
+ *  ví dụ Phuong201001, VPhuong201002. Số thứ tự đếm chung đơn có / không có chữ V của sale trong ngày (36 tiếng gần nhất để năm sau không đếm nhầm). */
+async function nextCode(x, u, now, vtp) {
+  const y = (await crmUsers(x)).find(z => z.email === u.email) || u, base = (y.prefix || slugName(u.name)) + fmtDate(now, 'ddMM');
+  let n = 0; for (const r of await all(x.db, 'SELECT id FROM orders WHERE (substr(id, 1, ?) = ? OR substr(id, 1, ?) = ?) AND time > ?', base.length, base, base.length + 1, 'V' + base, now - 36 * 3600e3)) {
+    const t = r.id.charAt(0) === 'V' && r.id.indexOf('V' + base) === 0 ? r.id.slice(base.length + 1) : r.id.slice(base.length), k = t.match(/^(\d{2})(?![\d-])/); if (k) n = Math.max(n, +k[1]); // bỏ mã kiểu cũ Phuong201026-01 (ddMMyy-số)
+  }
+  return (vtp ? 'V' : '') + base + (n + 1 < 10 ? '0' : '') + (n + 1);
 }
 async function crmOrderCreate(x, u, d) {
   const c = d.customer || {}, raw = normPhone(c.phone), phone = await mainPhone(x, raw);
@@ -1126,7 +1129,15 @@ async function crmOrderCreate(x, u, d) {
     const dup = await first(x.db, "SELECT id, time FROM orders WHERE phone = ? AND total = ? AND time > ? AND status NOT IN ('Huỷ', 'Hoàn') ORDER BY time DESC LIMIT 1", phone, sub + ship, now - 60 * 60e3);
     if (dup) return { ok: false, dupOf: dup.id, error: 'Khách này vừa có đơn ' + dup.id + ' cùng số tiền ' + fmt(sub + ship) + ' lúc ' + fmtDate(Number(dup.time), 'HH:mm') + '. Có thể lần trước đã lưu rồi.' };
   }
-  const id = await nextCode(x, u, now), sug = await otypeSuggest(x, phone, now); // gợi ý tính TRƯỚC khi lưu (lưu xong khách đã thành "đã mua")
+  const vtp = /viettel/i.test(String(d.carrier || '')), want = String(d.code || '').trim().replace(/\s+/g, ' ');
+  let id = '';
+  if (want) { // mã sale gõ / CRM tự điền: trùng đơn khác → mã tự điền thì lấy số kế tiếp, mã tự gõ thì báo sale sửa
+    if (!/^[\p{L}\d][\p{L}\d.\-_ ]{2,29}$/u.test(want)) return { ok: false, error: 'Mã đơn chưa đúng (3–30 ký tự: chữ, số, dấu chấm, gạch).' };
+    if (!(await first(x.db, 'SELECT rid FROM orders WHERE id = ?', want))) id = want;
+    else if (!d.codeAuto) return { ok: false, error: 'Mã đơn ' + want + ' đã có rồi. Sửa mã khác rồi lưu lại.' };
+  }
+  if (!id) id = await nextCode(x, u, now, vtp);
+  const sug = await otypeSuggest(x, phone, now); // gợi ý tính TRƯỚC khi lưu (lưu xong khách đã thành "đã mua")
   const otype = OTYPES.indexOf(d.otype) >= 0 ? d.otype : sug.t, oflag = u.level >= 2 ? '' : otypeFlag(otype, sug);
   const src = ld && ld.channel ? 'Tiềm năng – ' + ld.channel : 'Nhập tay – ' + (d.source || 'Khác');
   await saveOrder(x, { id, customer: { name: String(c.name).trim(), phone: raw, email: c.email || '', province: c.province || '', district: c.ward || '', address: c.address || '', note: c.note || '' },
