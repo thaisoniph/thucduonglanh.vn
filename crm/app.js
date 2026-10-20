@@ -47,7 +47,7 @@
   var GROUP_CLS = { 'VIP': 'vip', 'Quay lại': 'back', 'Mới': 'new', 'Sắp mất': 'risk' };
   var LEAD_ST = ['Mới hỏi', 'Đang tư vấn', 'Đã chốt', 'Không mua'];
   var LEAD_CLS = { 'Mới hỏi': 'st-moi', 'Đang tư vấn': 'st-xn', 'Đã chốt': 'st-xong', 'Không mua': 'st-huy' };
-  var CHANNELS = ['Facebook', 'Zalo', 'TikTok', 'Điện thoại', 'Form website', 'Shopee', 'Người quen giới thiệu', 'Sự kiện / hội thảo', 'Khác'];
+  var CHANNELS = ['Facebook', 'Zalo', 'Khách giới thiệu', 'TikTok', 'Điện thoại', 'Form website', 'Shopee', 'Sự kiện / hội thảo', 'Khác']; // 20/10/2026: “Người quen giới thiệu” → “Khách giới thiệu” (chọn được người giới thiệu)
   var LEAD_RESULTS = [{ v: 'Đã tư vấn, khách cân nhắc', days: 2 }, { v: 'Hẹn liên hệ lại', days: 2 }, { v: 'Không nghe máy', days: 1 }, { v: 'Khách chốt mua', close: true }, { v: 'Khách không mua', lost: true }];
   var LOST_REASONS = ['Giá cao', 'Chưa có nhu cầu', 'Đã mua nơi khác', 'Không liên lạc được', 'Khác'];
   // Đơn vị vận chuyển → link tra cứu ({c} = mã vận đơn). Hãng không có link thẳng thì mở trang tra cứu, mã được copy sẵn để dán.
@@ -177,7 +177,7 @@
     function fallback() { var t = document.createElement('textarea'); t.value = text; t.style.position = 'fixed'; t.style.opacity = '0'; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); } catch (e) { } t.remove(); }
   }
 
-  var SERVER_V = '2026-10-18b'; // phải trùng số phiên bản máy chủ (api/src/index.js)
+  var SERVER_V = '2026-10-20a'; // phải trùng số phiên bản máy chủ (api/src/index.js)
   var ON_CF = !/script\.google/.test(CFG.endpoint || ''); // máy chủ Cloudflare (nhanh) hay Apps Script cũ
   function checkVersion(j) {
     if (j && j.v) S.srvV = j.v;
@@ -438,7 +438,7 @@
     c._rh1 = undefined;
   }
   function setData(j, at) {
-    S.d = j; S.user = j.user; S.loadedAt = at;
+    S.d = j; S.user = j.user; S.loadedAt = at; S._refs = null;
     [j.customers, j.orders, j.leads || [], j.log || []].forEach(function (arr) { arr.forEach(function (x) { if (x.name && ZALO_X.test(x.name)) { ZALO_X.lastIndex = 0; x.name = x.name.replace(ZALO_X, '').trim(); } ZALO_X.lastIndex = 0; }); });
     preIndexData(j);
     S.outbox.forEach(applyOp); // việc vừa bấm nhưng máy chủ chưa nhận xong → vẫn hiện đúng
@@ -1304,11 +1304,12 @@
     return (S.d.leads || []).filter(function (l) { return normPhone(l.phone) === phone; }).sort(function (a, b) { return (a.time || 0) - (b.time || 0); });
   }
   /** 1 dòng gọn ở tab Khách hàng: giá trị · lần mua gần nhất · việc tiếp theo · lần chăm sóc gần nhất. */
-  function custRow(c) {
+  function custRow(c, withRef) {
     var cat = custCat(c), h = recentHist(c, 1)[0], k = c.task ? c.task.type : '', live = stageOf(c) === 'live';
     return '<div class="rw cr click tinted" data-cust="' + c.phone + '"' + catAttr(cat) + '><div class="rw-m">' +
       '<div class="rw-1"><b>' + esc(c.name || 'Khách') + '</b>' + (c.zalo ? '<span class="zl ic" title="Đã kết bạn Zalo">' + ZI + '</span>' : '') + (inComm(c) ? '<span class="comm-ic" title="Đã vào nhóm Zalo cộng đồng">👥</span>' : '') + custTags(c) + (leadsOf(c.phone).some(isOpenLead) ? '<span class="tag reask" title="Khách vừa để lại số hỏi lại (quảng cáo / web). Xem ở tab Hôm nay hoặc Khách hỏi">🔁 Đang hỏi lại</span>' : '') + (c.owner && lvl() >= 2 ? '<span class="tag owner">👤 ' + esc(c.owner) + '</span>' : !c.owner ? '<span class="tag noconsent">Chưa ai phụ trách</span>' : '') + srcChip(c) + '<span class="end">' + c.orders + ' đơn · ' + moneyShort(c.spent) + '</span></div>' +
       '<div class="rw-2">' + (provOf(c) ? '📍 ' + esc(provOf(c).old) + ' · ' : '') + 'Mua lần đầu ' + fDate(c.first).replace(/\/(\d{2})(\d{2})$/, '/$2') + ' · gần nhất ' + daysAgo(c.last) + (c.products.length ? ' · ' + esc(shortProducts(c.products, 1)) : '') + bdayTag(c) + (live && c.runout && c.runout > (c.last || 0) && k !== 'runout' ? ' · ⏰ hết ~' + fDate(c.runout).slice(0, 5) : '') + (k && TASKS[k] ? ' · <span class="warn-line">' + TASKS[k].icon + ' ' + TASKS[k].title + '</span>' : '') + '</div>' +
+      (withRef === true ? refLine(c) : '') +
       '<div class="rw-3">' + (h ? '💬 ' + fDate(h.time).slice(0, 5) + ': ' + esc(h.text.length > 90 ? h.text.slice(0, 90) + '…' : h.text) : '<span class="muted">Chưa có lần chăm sóc nào</span>') + '</div></div>' +
       '<div class="rw-a"><a class="btn" href="tel:' + c.phone + '" aria-label="Gọi">📞<small>Gọi</small></a><button class="btn pri" data-care="' + c.phone + '" data-task="' + (k || 'other') + '" aria-label="Chăm sóc">💬<small>Ghi lại</small></button></div></div>';
   }
@@ -1370,6 +1371,7 @@
     { k: 'lost', l: 'Lâu không mua', f: function (c) { return stageOf(c) === 'lost' && !coldOf(c); } },
     { k: 'runout7', l: '⏰ Sắp hết hàng', f: function (c) { return !coldOf(c) && !!c.runout && c.runout > (c.last || 0) && c.runout >= today() - 7 * DAY && c.runout < today() + 8 * DAY; } },
     { k: 'callback', l: 'Có hẹn gọi lại', f: function (c) { return !!c.callback && !coldOf(c); } },
+    { k: 'ref', l: '🎁 Đã giới thiệu khách', f: function (c) { return !!refStats().by[c.phone]; } },
     { k: 'zalo', l: ZI + ' Đã kết bạn Zalo', f: function (c) { return !!c.zalo && !coldOf(c); } },
     { k: 'nocomm', l: '👥 Chưa vào cộng đồng', f: function (c) { return !inComm(c) && !coldOf(c); } },
     { k: 'nozalo', l: 'Chưa kết bạn Zalo', f: function (c) { return !c.zalo && !coldOf(c); } },
@@ -1459,9 +1461,12 @@
       return '<button class="chip' + (x.k === cur.k ? ' on' : '') + '" data-cf="' + x.k + '"' + (tp ? ' title="' + esc(tp) + '"' : '') + '>' + x.l + ' <em>' + n + '</em></button>';
     }).join('');
   }
+  function custRowF(c) { return custRow(c, !!(S.f.c && S.f.c.k === 'ref')); }
   function renderCustomerList(list, n) {
-    if (!list.length) return empty('Không có khách nào khớp.');
-    return '<div class="crows">' + list.slice(0, n).map(custRow).join('') + '</div>' +
+    var rs = S.f.c && S.f.c.k === 'ref' ? refStats().sum : null;
+    if (!list.length) return empty(rs ? 'Chưa có khách nào giới thiệu. Khi thêm khách hỏi, chọn “Khách giới thiệu” rồi chọn người giới thiệu.' : 'Không có khách nào khớp.');
+    return (rs ? '<div class="notice info">🎁 <b>' + list.length + ' khách</b> đã giới thiệu ' + list.reduce(function (s0, c) { return s0 + refStats().by[c.phone].n; }, 0) + ' người, mang về <b>' + moneyShort(list.reduce(function (s0, c) { return s0 + refStats().by[c.phone].rev; }, 0)) + '</b>. Xếp theo doanh thu mang về. Mở hồ sơ để xem từng người và tặng quà cảm ơn.</div>' : '') +
+      '<div class="crows">' + list.slice(0, n).map(custRowF).join('') + '</div>' +
       (list.length > n ? '<button class="btn more" data-more="c">Xem thêm ' + Math.min(60, list.length - n) + ' khách</button>' : '');
   }
   function renderCustomersPart(appendOnly) {
@@ -1479,6 +1484,7 @@
     var cur = chips.filter(function (x) { return x.k === f.k; })[0] || chips[0];
     var list = base.filter(cur.f).sort(SORTS[f.sort][1]);
     if (f.bday && f.bday !== 'none') list.sort(function (a, b) { return dobOf(a).d - dobOf(b).d; }); // lọc sinh nhật: xếp theo ngày trong tháng
+    if (cur.k === 'ref') list.sort(function (a, b) { var x = refStats().by[a.phone], y = refStats().by[b.phone]; return y.rev - x.rev || y.n - x.n; }); // 🎁 mang về nhiều doanh thu nhất lên đầu
     if (q) list = list.filter(function (c) { return (c._normName || norm(c.name)).indexOf(q) >= 0; }).concat(list.filter(function (c) { return (c._normName || norm(c.name)).indexOf(q) < 0; }));
     S.promoPick = { list: list, label: cur.l + (lvl() >= 2 && S.who ? ' · ' + (S.who === '-' ? 'chưa ai phụ trách' : 'của ' + S.who) : '') + (f.spend ? ' · chi ' + SPEND[f.spend][0].toLowerCase() : '') + (f.src ? ' · nguồn ' + f.src : '') + (f.bday ? ' · ' + bdayLabel(f.bday) : '') + (f.q ? ' · tìm “' + f.q + '”' : '') };
 
@@ -1486,7 +1492,7 @@
       var crows = $('.crows', cList);
       var prevN = f.n - 60;
       var nextSlice = list.slice(prevN, f.n);
-      if (crows && nextSlice.length) crows.insertAdjacentHTML('beforeend', nextSlice.map(custRow).join(''));
+      if (crows && nextSlice.length) crows.insertAdjacentHTML('beforeend', nextSlice.map(custRowF).join(''));
       var btnMore = $('[data-more=c]', cList);
       if (btnMore) {
         if (list.length > f.n) btnMore.textContent = 'Xem thêm ' + Math.min(60, list.length - f.n) + ' khách';
@@ -1514,6 +1520,7 @@
     var cur = chips.filter(function (x) { return x.k === f.k; })[0] || chips[0];
     var list = base.filter(cur.f).sort(SORTS[f.sort][1]);
     if (f.bday && f.bday !== 'none') list.sort(function (a, b) { return dobOf(a).d - dobOf(b).d; }); // lọc sinh nhật: xếp theo ngày trong tháng
+    if (cur.k === 'ref') list.sort(function (a, b) { var x = refStats().by[a.phone], y = refStats().by[b.phone]; return y.rev - x.rev || y.n - x.n; }); // 🎁 mang về nhiều doanh thu nhất lên đầu
     if (q) list = list.filter(function (c) { return (c._normName || norm(c.name)).indexOf(q) >= 0; }).concat(list.filter(function (c) { return (c._normName || norm(c.name)).indexOf(q) < 0; })); // trùng tên lên đầu, rồi mới đến trùng tỉnh / địa chỉ / sản phẩm
     S.promoPick = { list: list, label: cur.l + (lvl() >= 2 && S.who ? ' · ' + (S.who === '-' ? 'chưa ai phụ trách' : 'của ' + S.who) : '') + (f.spend ? ' · chi ' + SPEND[f.spend][0].toLowerCase() : '') + (f.src ? ' · nguồn ' + f.src : '') + (f.bday ? ' · ' + bdayLabel(f.bday) : '') + (f.q ? ' · tìm “' + f.q + '”' : '') };
     return '<div class="page-head"><h1>Khách đã mua</h1><span class="muted" id="cCount">' + base.length + ' khách</span><div class="grow"></div>' + whoSel() + '<button class="btn pri" data-promo title="Gửi tin ưu đãi qua Zalo cho từng khách trong danh sách đang lọc">📣 Gửi ưu đãi lần lượt</button></div>' +
@@ -1586,7 +1593,7 @@
     var owners = userNames(), all = null, tab = 'hist', tlMax = 25, st = custStats(c, ordersOf(c.phone)), openId = '';
     var live = ordersOf(c.phone).filter(function (o) { return /^(Mới|Đã xác nhận|Đang giao)$/.test(o.status); })[0], sg = suggestFor(c), last1 = recentHist(c, 1)[0], hrs = callHours(c);
     if (c.owner && owners.indexOf(c.owner) < 0) owners.push(c.owner);
-    var r = replyOf(c), avg = c.orders ? c.spent / c.orders : 0;
+    var r = replyOf(c), avg = c.orders ? Math.round(c.spent / c.orders) : 0;
     var habit = function () { return '<span>🧺 Hay mua: <b>' + esc(st.top || '–') + '</b>' + (st.topN > 1 ? ' (' + st.topN + ' lần)' : '') + '</span>' + (st.gap ? '<span>🔁 Khoảng <b>' + st.gap + ' ngày</b> mua lại 1 lần</span>' : '') + (c.runout ? '<span>⏰ Dự kiến hết: <b>' + fDate(c.runout).slice(0, 5) + '</b> (' + daysAgo(c.runout) + ')</span>' : ''); };
     var body = '<div class="p-top"><div class="p-sub">' + cpPhone(c.phone) + ' · ' + (c.owner ? '👤 ' + esc(c.owner) : (isPoolStaff() ? claimBtn('c', c.phone) : 'Chưa ai phụ trách')) + (custSrc(c) ? ' · <span title="Nguồn khách (theo đơn đầu tiên)">' + srcIcon(custSrc(c)) + esc(custSrc(c)) + '</span>' : '') + '</div>' +
       '<div class="p-tags">' + zaloTag(c) + consentTag(c) + '</div>' +
@@ -1596,7 +1603,7 @@
       '<div class="p-lines"><span>🛒 Mua gần nhất: <b>' + daysAgo(c.last) + '</b> (' + fDate(c.last) + ')</span><span id="pHabit">' + habit() + '</span>' +
       (c.backN ? '<span>↩ ' + c.backN + ' lần hoàn' + (c.lastBack ? ' (gần nhất ' + fDate(c.lastBack) + ')' : '') + (riskyReturn(c) ? ' · <span class="bad-line">hay hoàn: nên nhờ khách chuyển khoản trước</span>' : ' · vẫn là khách tốt') + '</span>' : '') +
       noteExtras(c.note).map(function (l) { var i = l.indexOf(':'), k = l.slice(0, i).trim(); return '<span>' + (EXTRA_IC[k] || '•') + ' ' + esc(k) + ': <b>' + esc(l.slice(i + 1).trim()) + '</b></span>'; }).join('') +
-      (sg ? '<span><span class="sug" title="Khách mua sản phẩm giống khách này hay mua thêm sản phẩm này">💡 Gợi ý giới thiệu: ' + esc(sg) + '</span></span>' : '') + '</div>' + aiBox(c) +
+      (sg ? '<span><span class="sug" title="Khách mua sản phẩm giống khách này hay mua thêm sản phẩm này">💡 Gợi ý giới thiệu: ' + esc(sg) + '</span></span>' : '') + '</div>' + refIntroBox(c) + aiBox(c) +
       (live ? '<div class="notice click" data-poid="' + esc(live.id) + '">' + (trkWarn(live) ? '⚠️' : '🚚') + ' Khách đang có đơn <b>' + fDate(live.time).slice(0, 5) + '</b> (' + esc(live.status) + (live.trk ? ': ' + esc(live.trk) : '') + ') chưa giao xong. Hỏi thăm đơn này trước, chưa nên chào thêm. <u>Xem đơn</u></div>' : '') +
       (coldOf(c) ? '<div class="notice" style="background:#eef2f7;color:#334">❄️ <b>Khách lạnh</b> (' + esc(coldOf(c)) + '): không đưa vào danh sách gọi hằng ngày. ' + (coldOf(c) === 'Không dùng nữa' ? 'Sau 6 tháng tự quay lại để chào lại 1 lần; khách đặt đơn mới là hết lạnh.' : 'Nếu bán lại, nên nhờ khách chuyển khoản trước.') + '</div>' : '') +
       '<div class="p-now">' + (c.task ? '<div>' + TASKS[c.task.type].icon + ' Hôm nay: <b>' + TASKS[c.task.type].title + '</b> · ' + taskLine(c) + '</div>' : '') +
@@ -2461,9 +2468,56 @@
   /** Ghi chú khách hỏi: số tiền file QC ghi thô (“Đơn: 900000”) → “Đơn: 900.000đ”. */
   function leadNoteFmt(s) { return String(s || '').replace(/Đơn: (\d{4,})(?![\d.,])/g, function (a, n) { return 'Đơn: ' + money(+n); }); }
   /** Kênh khách hỏi để hiện: số từ file quảng cáo / file sale cũ đều là quảng cáo Facebook (anh Sơn 12/10/2026) → “Facebook Ads”; tên chiến dịch vẫn ở “Quan tâm”. */
-  function chLabel(ch) { ch = String(ch || '').trim(); return /^(quảng cáo|file cũ)\s*[–-]/i.test(ch) ? 'Facebook Ads' : ch || 'Khác'; }
+  function chLabel(ch) { ch = String(ch || '').trim(); return /^(quảng cáo|file cũ)\s*[–-]/i.test(ch) ? 'Facebook Ads' : /^người quen giới thiệu$/i.test(ch) ? REF_CH : ch || 'Khác'; }
+  /* ---------- 🎁 Khách giới thiệu (20/10/2026): khách hỏi kênh “Khách giới thiệu” ghi SĐT người giới thiệu (refPhone);
+   *  đơn web dùng mã giới thiệu của khách cũ cũng có refPhone (api/src/partner.js). Gom lại: ai giới thiệu bao nhiêu người, bao nhiêu người đã mua, doanh thu mang về
+   *  (tổng tiền các người được giới thiệu đã mua, không tính đơn huỷ / hoàn) → tặng quà cảm ơn. Chỉ tính trên dữ liệu người dùng được xem. */
+  var REF_CH = 'Khách giới thiệu';
+  function isRefCh(ch) { return chLabel(ch) === REF_CH; }
+  function refWho(phone, name) { var c = phone && cust(phone), ld = !c && phone ? leadsOf(phone)[0] : null; return (c && c.name) || name || (ld && ld.name) || fPhone(phone) || 'Người giới thiệu'; }
+  function refStats() {
+    if (S._refs && S._refs.l === S.d.leads && S._refs.o === S.d.orders && S._refs.c === S.d.customers) return S._refs.v;
+    var by = {}, of = {};
+    var add = function (rp, rn, ph, name, t) {
+      rp = normPhone(rp); ph = normPhone(ph); if (!rp || !ph || rp === ph) return;
+      if (!of[ph] || t < of[ph].time) of[ph] = { phone: rp, name: rn || '', time: t };
+      var r = by[rp] || (by[rp] = { phone: rp, name: '', ppl: {} }); if (!r.name && rn) r.name = rn;
+      if (!r.ppl[ph] || t < r.ppl[ph].time) r.ppl[ph] = { phone: ph, name: name || '', time: t };
+    };
+    (S.d.leads || []).forEach(function (l) { if (l.refPhone) add(l.refPhone, l.refName, l.phone, l.name, l.time || 0); });
+    (S.d.orders || []).forEach(function (o) { if (o.refPhone && !isVoid(o.status)) add(o.refPhone, '', o.phone, o.name, o.time || 0); });
+    var sum = { refs: 0, n: 0, bought: 0, rev: 0 };
+    Object.keys(by).forEach(function (k) {
+      var r = by[k];
+      r.list = Object.keys(r.ppl).map(function (p) { var x = r.ppl[p], c = cust(p); x.orders = c ? c.orders : 0; x.spent = c ? c.spent : 0; if (c && c.name) x.name = c.name; return x; }).sort(function (a, b) { return b.time - a.time; });
+      r.n = r.list.length; r.bought = r.list.filter(function (x) { return x.orders > 0; }).length; r.rev = r.list.reduce(function (s0, x) { return s0 + x.spent; }, 0);
+      r.gifts = logOf(k).filter(function (x) { return x.what === 'Cảm ơn giới thiệu'; });
+      r.giftWait = (S.d.orders || []).filter(function (o) { return normPhone(o.refPhone) === k && !o.refGift && !isVoid(o.status); });
+      sum.refs++; sum.n += r.n; sum.bought += r.bought; sum.rev += r.rev;
+    });
+    S._refs = { l: S.d.leads, o: S.d.orders, c: S.d.customers, v: { by: by, of: of, sum: sum } };
+    return S._refs.v;
+  }
+  /** Ai giới thiệu số này (null nếu không ai). */
+  function refByOf(phone) { return refStats().of[normPhone(phone)] || null; }
+  /** Dòng giới thiệu trên thẻ khách (bộ lọc 🎁 Đã giới thiệu khách). */
+  function refLine(c) {
+    var r = refStats().by[c.phone]; if (!r) return '';
+    return '<div class="rw-ref">🎁 Giới thiệu <b>' + r.n + ' người</b> · ' + r.bought + ' đã mua · mang về <b>' + moneyShort(r.rev) + '</b> · ' + (r.gifts.length ? '✓ đã tặng quà ' + r.gifts.length + ' lần' : '<span class="warn-line">chưa tặng quà cảm ơn</span>') + '</div>';
+  }
+  /** Ô 🎁 trong hồ sơ khách: được ai giới thiệu + đã giới thiệu những ai (bấm tên để mở), nút tặng quà cảm ơn theo đơn của người được giới thiệu. */
+  function refIntroBox(c) {
+    var by = refByOf(c.phone), r = refStats().by[c.phone], h = '';
+    if (by) h += '<div class="notice info">🎁 Khách này được <button type="button" class="link" data-cust="' + by.phone + '"' + (cust(by.phone) ? '' : ' disabled') + '><b>' + esc(refWho(by.phone, by.name)) + '</b></button> giới thiệu' + (by.time ? ' (' + fDate(by.time) + ')' : '') + '.</div>';
+    if (!r) return h;
+    return h + '<div class="box ref-intro"><h3>🎁 Đã giới thiệu ' + r.n + ' người</h3>' +
+      '<div class="p-val"><div><b>' + r.n + '</b><span>người</span></div><div><b>' + r.bought + '</b><span>đã mua</span></div><div><b>' + moneyShort(r.rev) + '</b><span>doanh thu mang về</span></div></div>' +
+      '<div class="ref-ppl">' + r.list.map(function (x) { var c2 = cust(x.phone); return '<div><button type="button" class="link"' + (c2 ? ' data-cust="' + x.phone + '"' : ' disabled') + '>' + esc(x.name || fPhone(x.phone)) + '</button><span class="small muted">' + fDate(x.time).slice(0, 5) + ' · ' + (x.orders ? x.orders + ' đơn · ' + moneyShort(x.spent) : 'chưa mua') + '</span></div>'; }).join('') + '</div>' +
+      '<p class="small" style="margin:8px 0 0">' + (r.gifts.length ? '✓ Đã tặng quà cảm ơn ' + r.gifts.length + ' lần, gần nhất ' + fDate(r.gifts[0].time) + ': ' + esc(r.gifts[0].result) : '<span class="warn-line">Chưa tặng quà cảm ơn.</span>') + '</p>' +
+      (r.giftWait.length ? '<div class="steps" style="margin-top:8px">' + r.giftWait.slice(0, 3).map(function (o) { return '<button type="button" class="btn pri" data-refgift="' + esc(o.id) + '">🎁 Cảm ơn vì giới thiệu ' + esc(o.name) + '</button>'; }).join('') + '</div>' : '') + '</div>';
+  }
   /** Biểu tượng + tên nguồn khách (lần đầu biết đến / mua lần đầu). */
-  function srcIcon(s) { return s === 'Website' ? '🌐 ' : s === 'Facebook Ads' ? '📘 ' : /^ebook/i.test(s) ? '🎁 ' : /zalo/i.test(s) ? '💬 ' : /tiktok/i.test(s) ? '🎵 ' : '📍 '; }
+  function srcIcon(s) { return s === 'Website' ? '🌐 ' : s === REF_CH ? '🎁 ' : s === 'Facebook Ads' ? '📘 ' : /^ebook/i.test(s) ? '🎁 ' : /zalo/i.test(s) ? '💬 ' : /tiktok/i.test(s) ? '🎵 ' : '📍 '; }
   /** Nguồn khách để hiện (giống custSource ở api/): máy chủ tính lại theo lịch ban ngày, dữ liệu cũ còn ghi nguồn thô của đơn đầu
    *  (“File Thu Phương – lên đơn”, “chatgpt.com”…) → quy đổi luôn ở đây. Anh Sơn 12/10/2026: khách nhập từ file sale / trước 13/10 = Facebook Ads. */
   var SRC_CUT = Date.parse('2026-10-13T00:00:00+07:00');
@@ -2521,7 +2575,7 @@
     var open = isOpenLead(l), due = leadDueLine(l), note = lastNote(l), c = cust(l.phone);
     return '<div class="card click" data-lead="' + esc(l.id) + '">' +
       '<div class="r1"><b>' + esc((c && c.name) || l.name || 'Khách') + '</b>' + leadTags(l, c) + (c ? custTags(c) : '') + (l.owner ? (lvl() >= 2 || l.owner !== S.user.name ? '<span class="tag owner">👤 ' + esc(l.owner) + '</span>' : '') : '<span class="tag noconsent">Chưa ai phụ trách</span>') + '<span class="end small muted" title="' + esc(l.channel) + '">' + srcIcon(chLabel(l.channel)) + esc(chLabel(l.channel)) + '</span></div>' +
-      '<div class="r2">' + cpPhone(l.phone) + (leadProv(l) ? ' · 📍 ' + esc(leadProv(l).old) : '') + (l.interest ? ' · Quan tâm: ' + esc(intLabel(l.interest)) : '') + '</div>' +
+      '<div class="r2">' + cpPhone(l.phone) + (leadProv(l) ? ' · 📍 ' + esc(leadProv(l).old) : '') + (l.interest ? ' · Quan tâm: ' + esc(intLabel(l.interest)) : '') + (l.refPhone || l.refName ? ' · 🎁 ' + esc(refWho(l.refPhone, l.refName)) + ' giới thiệu' : '') + '</div>' +
       '<div class="r-age">' + leadAge(l) + (c ? '<button type="button" class="age-miss link-cust" data-cust="' + c.phone + '" title="Mở hồ sơ khách đã mua">👤 ' + c.orders + ' đơn · ' + moneyShort(c.spent) + ' · mua gần nhất ' + daysAgo(c.last) + ' ›</button>' : '') + '</div>' +
       (due || note ? '<div class="r3">' + due + (due && note ? '<br>' : '') + (note ? '📝 ' + esc(note.length > 90 ? note.slice(0, 90) + '…' : note) : '') + '</div>' : '') +
       (open ? '<div class="acts"><button class="btn pri" data-consult="' + esc(l.id) + '">💬 Tư vấn</button><a class="btn" href="tel:' + l.phone + '">📞 Gọi</a><button class="btn" data-leadorder="' + esc(l.id) + '">🛒 Chốt đơn</button>' + (!l.owner && isPoolStaff() ? claimBtn('l', l.id) : '') + '</div>'
@@ -2622,6 +2676,7 @@
       (open || leadNoOrder(l) ? '<button class="btn" data-leadorder="' + esc(l.id) + '">🛒 ' + (open ? 'Chốt đơn' : 'Lên đơn') + '</button>' : '') + '<button class="btn" data-editlead="' + esc(l.id) + '">✏️ Sửa</button></div>' +
       (c ? '<div class="notice info">👤 Số này đã là khách hàng: <b>' + esc(c.name) + '</b> · ' + c.orders + ' đơn, ' + money(c.spent) + ' <button class="btn" data-cust="' + c.phone + '" style="margin-left:6px">Xem khách</button></div>' : '') + (leadProv(l) ? areaBox(norm(leadProv(l).old), 'lead') : '') +
       (open && leadDueLine(l) ? '<div class="notice">' + leadDueLine(l) + '</div>' : '') +
+      (l.refPhone || l.refName ? '<div class="notice info">🎁 Được <b>' + esc(refWho(l.refPhone, l.refName)) + '</b>' + (l.refPhone ? ' (' + fPhone(l.refPhone) + ')' : '') + ' giới thiệu' + (cust(l.refPhone) ? ' <button class="btn" data-cust="' + cust(l.refPhone).phone + '" style="margin-left:6px">Xem người giới thiệu</button>' : '') + '</div>' : '') +
       '<div class="r-age" style="margin:0 0 12px">' + leadAge(l) + '</div>' +
       '<div class="box"><div class="grid-info">' + info('Điện thoại', fPhone(l.phone), false, normPhone(l.phone)) + info('Trạng thái', l.status) + info('Kênh', chLabel(l.channel) + (chLabel(l.channel) !== l.channel ? ' (' + l.channel + ')' : '')) + info('Quan tâm', intLabel(l.interest) || '–') +
       info('Phụ trách', l.owner || '– Chưa ai –') + info('Ngày hỏi', fDate(l.time)) + info('Lần liên hệ gần nhất', l.lastAt ? fDate(l.lastAt) + ' (' + daysAgo(l.lastAt) + ')' : 'chưa liên hệ') +
@@ -2638,41 +2693,105 @@
   }
   function productNames() { var seen = {}; return (CFG.products || []).map(function (p) { return p.name; }).filter(function (n) { if (seen[n]) return false; seen[n] = 1; return true; }); }
 
-  /** Thêm mới hoặc sửa thông tin khách hỏi. */
+  /** Thêm mới hoặc sửa thông tin khách hỏi.
+   *  20/10/2026: dán số thiếu số 0 (copy từ Sheet / Facebook) → tự thêm 0; số đã có thì hiện ngay thông tin khách (đã mua / đang hỏi) để ghi nối, không tạo trùng;
+   *  kênh 🎁 Khách giới thiệu → chọn người giới thiệu (gõ tên hoặc SĐT) để theo dõi ai giới thiệu bao nhiêu người, mang về bao nhiêu doanh thu. */
   function openLeadForm(l) {
-    var edit = !!l; l = l || { name: '', phone: '', channel: 'Facebook', interest: '', owner: S.user.name, note: '', callback: null, status: 'Mới hỏi', reason: '' };
+    var edit = !!l; l = l || { name: '', phone: '', channel: 'Facebook', interest: '', owner: S.user.name, note: '', callback: null, status: 'Mới hỏi', reason: '', refPhone: '', refName: '' };
+    var ref = l.refPhone || l.refName ? { phone: l.refPhone || '', name: l.refName || '' } : null, chSel = chLabel(l.channel);
     var body = '<form id="lfForm" novalidate><div class="box">' +
-      '<div class="row2c"><label class="f"><span>Số điện thoại *</span><input type="tel" name="phone" inputmode="tel" value="' + esc(l.phone) + '"></label>' +
-      '<label class="f"><span>Tên khách</span><input type="text" name="name" value="' + esc(l.name) + '" placeholder="vd: Chị Lan"></label></div><p class="hint" id="lfHint"></p>' +
-      '<div class="row2c"><label class="f"><span>Khách đến từ đâu</span><select name="channel">' + CHANNELS.map(function (c) { return '<option' + (c === l.channel ? ' selected' : '') + '>' + c + '</option>'; }).join('') + '</select></label>' +
+      '<div class="row2c"><label class="f"><span>Số điện thoại *</span><input type="tel" name="phone" inputmode="tel" autocomplete="off" value="' + esc(l.phone) + '" placeholder="Dán hoặc gõ số, thiếu số 0 máy tự thêm"></label>' +
+      '<label class="f"><span>Tên khách</span><input type="text" name="name" value="' + esc(l.name) + '" placeholder="vd: Chị Lan"></label></div><div id="lfHint"></div>' +
+      '<div class="row2c"><label class="f"><span>Khách đến từ đâu</span><select name="channel">' + CHANNELS.concat(CHANNELS.indexOf(chSel) < 0 && l.channel ? [l.channel] : []).map(function (c) { return '<option' + (c === chSel || c === l.channel ? ' selected' : '') + '>' + esc(c) + '</option>'; }).join('') + '</select></label>' +
       '<label class="f"><span>Quan tâm sản phẩm</span><input type="text" name="interest" list="lfProducts" value="' + esc(l.interest) + '" placeholder="Chọn hoặc gõ"><datalist id="lfProducts">' + productNames().map(function (n) { return '<option value="' + esc(n) + '">'; }).join('') + '</datalist></label></div>' +
-      '<div class="row2c">' + (lvl() >= 2 ? '<label class="f"><span>Người phụ trách</span><select name="owner">' + ownerOptions(l.owner, true) + '</select></label>' : '<div class="f"><span style="display:block;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px">Người phụ trách</span><b>' + esc(l.owner || S.user.name) + '</b></div>') +
-      '<label class="f"><span>Hẹn liên hệ lại ngày</span><input type="date" name="callback" value="' + (l.callback ? isoDate(l.callback) : '') + '"></label></div>' +
+      '<div class="lf-ref" id="lfRef" hidden><span class="lf-ref-t">🎁 Ai giới thiệu khách này?</span><div id="lfRefSel"></div>' +
+        '<div id="lfRefFind"><input type="text" id="lfRefQ" autocomplete="off" placeholder="Gõ tên hoặc số điện thoại người giới thiệu"><div class="ref-sug" id="lfRefSug"></div></div>' +
+        '<p class="small muted" style="margin:6px 0 0">Ghi đúng người giới thiệu để CRM đếm họ đã giới thiệu bao nhiêu người, mang về bao nhiêu doanh thu → tặng quà cảm ơn.</p></div>' +
+      '<div class="row2c"><label class="f"><span>Hẹn liên hệ lại ngày</span><input type="date" name="callback" value="' + (l.callback ? isoDate(l.callback) : '') + '"></label>' +
+      (lvl() >= 2 ? '<label class="f"><span>Người phụ trách</span><select name="owner">' + ownerOptions(l.owner, true) + '</select></label>' : '<div class="f"><span>Người phụ trách</span><div class="lf-me">👤 ' + esc(l.owner || S.user.name) + '</div></div>') + '</div>' +
       (edit ? '<div class="row2c"><label class="f"><span>Trạng thái</span><select name="status">' + LEAD_ST.filter(function (s) { return s !== 'Đã chốt' || lvl() >= 2 || l.status === 'Đã chốt' || l.orderId; }).map(function (s) { return '<option' + (s === l.status ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select></label>' +
         '<label class="f"><span>Lý do không mua</span><input type="text" name="reason" list="lfReasons" value="' + esc(l.reason) + '"><datalist id="lfReasons">' + LOST_REASONS.map(function (r) { return '<option value="' + r + '">'; }).join('') + '</datalist></label></div>' : '') +
       '<label class="f"><span>' + (edit ? 'Ghi chú' : 'Khách hỏi gì / cần gì') + '</span><textarea name="note" rows="' + (edit ? 5 : 3) + '">' + esc(l.note) + '</textarea></label>' +
       '<p class="err" id="lfErr"></p></div></form>';
-    var m = modal(edit ? 'Sửa: ' + esc(l.name) : 'Thêm khách hỏi', body, '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="lfSave">Lưu</button>');
-    var F = $('#lfForm', m).elements, hint = $('#lfHint', m);
-    function check() {
-      var ph = normPhone(F.phone.value), c = cust(ph), ol = (S.d.leads || []).filter(function (x) { return x.phone === ph && isOpenLead(x) && x.id !== l.id; })[0];
-      hint.innerHTML = c ? '👤 Số này đã là khách hàng: <b>' + esc(c.name) + '</b> (' + c.orders + ' đơn).' : ol ? 'Số này đang có trong danh sách khách hỏi (' + esc(ol.status) + ', ' + esc(ol.owner || 'chưa ai phụ trách') + '). Lưu sẽ ghi nối vào đó, không tạo trùng.' : '';
-      if (c && !F.name.value) F.name.value = c.name;
-      if (!c && !ol && lvl() < 2) checkPhone(ph, function (r) { if (r && r.status === 'other') hint.innerHTML = ownerWarn(r); });
+    var m = modal(edit ? 'Sửa: ' + esc(l.name) : 'Thêm khách hỏi', body, '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="lfSave">' + (edit ? 'Lưu' : 'Tạo khách hỏi') + '</button>');
+    var F = $('#lfForm', m).elements, hint = $('#lfHint', m), save = $('#lfSave', m), touched = {}, lastPh = '';
+    ['name', 'interest', 'channel'].forEach(function (k) { F[k].addEventListener('input', function () { touched[k] = 1; }); });
+
+    /* ---- 🎁 người giới thiệu: gõ tên / SĐT → chọn khách có sẵn, hoặc dùng số mới (ghi thêm tên) */
+    var refQ = $('#lfRefQ', m), refSug = $('#lfRefSug', m);
+    function drawRef() {
+      var on = isRefCh(F.channel.value); $('#lfRef', m).hidden = !on;
+      $('#lfRefFind', m).hidden = !!ref;
+      $('#lfRefSel', m).innerHTML = ref ? '<div class="ref-on"><span>✓ <b>' + esc(refWho(ref.phone, ref.name)) + '</b>' + (ref.phone ? ' · ' + fPhone(ref.phone) : '') + (refStats().by[ref.phone] ? ' · đã giới thiệu ' + refStats().by[ref.phone].n + ' người' : '') + '</span><button type="button" class="link small" id="lfRefX">Đổi người</button></div>' +
+        (ref.phone && !cust(ref.phone) && !leadsOf(ref.phone).length ? '<input type="text" id="lfRefName" placeholder="Tên người giới thiệu (vd Chị Hoa)" value="' + esc(ref.name) + '" style="margin-top:8px">' : '') : '';
+      var x = $('#lfRefX', m); if (x) x.onclick = function () { ref = null; drawRef(); refQ.value = ''; refSug.innerHTML = ''; refQ.focus(); };
+      var rn = $('#lfRefName', m); if (rn) rn.oninput = function () { ref.name = rn.value.trim(); };
     }
-    F.phone.addEventListener('input', check); if (!edit) setTimeout(function () { F.phone.focus(); }, 60);
-    $('#lfSave', m).onclick = function () {
+    function findRef() {
+      var q = norm(refQ.value.trim()), qd = refQ.value.replace(/\D/g, ''), ph = normPhone(F.phone.value), np = normPhone(refQ.value), seen = {}, out = [];
+      if (q.length < 2 && qd.length < 3) { refSug.innerHTML = ''; return; }
+      var words = q.split(/\s+/).filter(String), qd2 = normPhone(qd), hit = function (name, phone) { return phone !== ph && (qd.length >= 3 ? phone.indexOf(qd) >= 0 || (qd2 !== qd && phone.indexOf(qd2) >= 0) : words.every(function (w) { return norm(name).indexOf(w) >= 0; })); };
+      S.d.customers.forEach(function (c) { if (out.length < 6 && !seen[c.phone] && hit(c.name || '', c.phone)) { seen[c.phone] = 1; out.push({ phone: c.phone, name: c.name, sub: c.orders + ' đơn · ' + moneyShort(c.spent) + (c.owner ? ' · 👤 ' + c.owner : '') }); } });
+      (S.d.leads || []).forEach(function (x) { var p = normPhone(x.phone); if (out.length < 6 && !seen[p] && hit(x.name || '', p)) { seen[p] = 1; out.push({ phone: p, name: x.name, sub: 'khách hỏi · ' + x.status }); } });
+      if (/^0\d{9,10}$/.test(np) && !seen[np] && np !== ph) out.push({ phone: np, name: '', sub: 'số chưa có trong CRM – bấm để dùng số này', isNew: 1 });
+      refSug.innerHTML = out.length ? out.map(function (r, i) { var st = refStats().by[r.phone]; return '<button type="button" data-refi="' + i + '">' + (r.isNew ? '＋ ' + fPhone(r.phone) : '<b>' + esc(r.name || 'Khách') + '</b> · ' + fPhone(r.phone)) + '<small>' + esc(r.sub) + (st ? ' · đã giới thiệu ' + st.n + ' người' : '') + '</small></button>'; }).join('')
+        : '<p class="small muted" style="margin:4px 0 0">Không thấy ai khớp. Gõ đủ số điện thoại người giới thiệu để dùng số mới.</p>';
+      $$('[data-refi]', refSug).forEach(function (b) { b.onclick = function () { var r = out[+b.getAttribute('data-refi')]; ref = { phone: r.phone, name: r.name || '' }; refSug.innerHTML = ''; drawRef(); var rn = $('#lfRefName', m); if (rn) rn.focus(); }; });
+    }
+    refQ.addEventListener('input', findRef);
+    F.channel.addEventListener('change', function () { drawRef(); if (isRefCh(F.channel.value) && !ref) refQ.focus(); });
+    drawRef();
+
+    /* ---- số điện thoại: tự thêm số 0 / bỏ +84, dấu cách; số đã có → hiện thông tin khách ngay */
+    function fixPhone() {
+      var raw = F.phone.value, n = normPhone(raw);
+      if (raw !== n && /^0\d{9,10}$/.test(n)) { var add0 = raw.replace(/\D/g, '').charAt(0) !== '0'; F.phone.value = n; if (add0) toast('Đã tự thêm số 0 ở đầu: ' + fPhone(n)); }
+    }
+    function check() {
+      fixPhone();
+      var ph = normPhone(F.phone.value), ok = /^0\d{9,10}$/.test(ph); if (ph === lastPh) return; lastPh = ph;
+      var c = ok && cust(ph), ol = ok && (S.d.leads || []).filter(function (x) { return normPhone(x.phone) === ph && isOpenLead(x) && x.id !== l.id; })[0], by = ok && refByOf(ph);
+      save.disabled = false;
+      if (!edit) save.textContent = ol ? 'Ghi thêm vào khách này' : c ? 'Lưu lượt hỏi lại' : 'Tạo khách hỏi';
+      if (!ok) { hint.innerHTML = ''; return; }
+      if (!c && !ol) {
+        hint.innerHTML = edit ? '' : '<p class="lf-new">✨ Số mới, chưa có trong CRM. Bấm <b>Tạo khách hỏi</b> để tạo hồ sơ mới.</p>';
+        if (lvl() < 2) checkPhone(ph, function (r) { if (r && r.status === 'other' && normPhone(F.phone.value) === ph) { hint.innerHTML = '<p class="lf-new bad">' + ownerWarn(r) + '</p>'; save.disabled = true; } });
+        return;
+      }
+      var cl = c ? custStats(c, ordersOf(c.phone)) : null;
+      hint.innerHTML = '<div class="lf-found"><div class="lf-f1">' + (c ? '👤 Khách đã mua: <b>' + esc(c.name || 'Khách') + '</b>' + custTags(c) : '🙋 Đang là khách hỏi: <b>' + esc(ol.name || 'Khách') + '</b>') + '</div>' +
+        (c ? '<div class="lf-f2">🛒 <b>' + c.orders + ' đơn · ' + moneyShort(c.spent) + '</b> · mua gần nhất ' + daysAgo(c.last) + (cl && cl.top ? ' · hay mua ' + esc(cl.top) : '') + ' · ' + (c.owner ? '👤 ' + esc(c.owner) : 'chưa ai phụ trách') + '</div>' : '') +
+        (ol ? '<div class="lf-f2">🙋 ' + leadTag(ol) + ' · hỏi ' + daysAgo(ol.time) + ' qua ' + esc(chLabel(ol.channel)) + (ol.interest ? ' · quan tâm ' + esc(intLabel(ol.interest)) : '') + ' · ' + (ol.owner ? '👤 ' + esc(ol.owner) : 'chưa ai phụ trách') + (lastNote(ol) ? '<br>📝 ' + esc(lastNote(ol).slice(0, 120)) : '') + '</div>' : '') +
+        (by ? '<div class="lf-f2">🎁 Được <b>' + esc(refWho(by.phone, by.name)) + '</b> giới thiệu</div>' : '') +
+        '<div class="lf-acts">' + (c ? '<button type="button" class="btn" data-cust="' + c.phone + '">👤 Mở hồ sơ khách</button>' : '') + (ol ? '<button type="button" class="btn" data-lead="' + esc(ol.id) + '">🙋 Xem khách hỏi</button><button type="button" class="btn pri" data-consult="' + esc(ol.id) + '">💬 Tư vấn ngay</button>' : '') + '</div>' +
+        (edit ? '' : '<p class="small muted" style="margin:8px 0 0">' + (ol ? 'Bấm <b>Ghi thêm vào khách này</b>: nội dung khách hỏi được ghi nối vào khách hỏi đang có, không tạo trùng.' : 'Khách cũ hỏi lại: bấm <b>Lưu lượt hỏi lại</b> để tạo lượt hỏi mới, vẫn giữ người phụ trách cũ.') + '</p>') + '</div>';
+      if (edit) return;
+      var nm = (c && c.name) || (ol && ol.name); if (nm && !touched.name) F.name.value = nm;
+      if (ol && ol.interest && !touched.interest) F.interest.value = ol.interest;
+      if (ol && ol.channel && !touched.channel) { var cv = chLabel(ol.channel); if (CHANNELS.indexOf(cv) >= 0) F.channel.value = cv; }
+      if (F.owner && (c || ol)) { var ow = (ol && ol.owner) || (c && c.owner); if (ow) F.owner.value = ow; }
+      if (by && !ref) ref = { phone: by.phone, name: by.name || '' };
+      drawRef();
+    }
+    F.phone.addEventListener('input', check); F.phone.addEventListener('blur', check);
+    if (edit) check(); else setTimeout(function () { F.phone.focus(); }, 60);
+    save.onclick = function () {
       var err = $('#lfErr', m), ph = normPhone(F.phone.value);
       if (!/^0\d{9,10}$/.test(ph)) { err.textContent = 'Số điện thoại chưa đúng (10 số, bắt đầu bằng 0).'; F.phone.focus(); return; }
-      var p = { id: edit ? l.id : '', phone: ph, name: F.name.value.trim() || 'Khách ' + ph.slice(-4), channel: F.channel.value, interest: F.interest.value.trim(), owner: F.owner ? F.owner.value : S.user.name, callback: F.callback.value, note: F.note.value.trim() };
+      var isRef = isRefCh(F.channel.value);
+      if (isRef && !ref && refQ.value.trim()) { err.textContent = 'Bấm chọn người giới thiệu trong danh sách gợi ý (hoặc xoá chữ ở ô người giới thiệu).'; refQ.focus(); return; }
+      if (isRef && ref && ref.phone === ph) { err.textContent = 'Người giới thiệu không thể là chính khách này.'; return; }
+      var p = { id: edit ? l.id : '', phone: ph, name: F.name.value.trim() || 'Khách ' + ph.slice(-4), channel: F.channel.value, interest: F.interest.value.trim(), owner: F.owner ? F.owner.value : S.user.name, callback: F.callback.value, note: F.note.value.trim(),
+        refPhone: isRef && ref ? ref.phone : '', refName: isRef && ref ? (ref.name || (cust(ref.phone) || {}).name || '') : '' };
       if (edit) { p.status = F.status.value; p.reason = F.reason.value.trim(); if (p.status === 'Không mua' && !p.reason) { err.textContent = 'Ghi lý do khách không mua giúp em nhé.'; return; } }
-      var btn = this; btn.disabled = true; btn.textContent = 'Đang lưu…';
+      var btn = this, label = btn.textContent; btn.disabled = true; btn.textContent = 'Đang lưu…';
       api('lead_save', p).then(function (j) {
         closeModal(true); if (edit) history.replaceState(null, '', '#tiem-nang');
         toast(j.merged ? 'Số này đã có – đã ghi nối vào khách cũ ✓' : 'Đã lưu ✓');
         if (!edit && location.hash.indexOf('#tiem-nang') !== 0 && location.hash.indexOf('#hom-nay') !== 0) location.hash = '#tiem-nang';
         load(true);
-      }, function (e) { btn.disabled = false; btn.textContent = 'Lưu'; err.textContent = e.message; });
+      }, function (e) { btn.disabled = false; btn.textContent = label; err.textContent = e.message; });
     };
   }
 
@@ -5929,7 +6048,7 @@
       var b = this, k = $('[name=rgK]:checked', m).value, vk = $('#rgVk', m).value, vv = $('#rgVv', m).value;
       b.disabled = true;
       api('ref_gift', { id: o.id, kind: k, text: $('#rgText', m).value, vkind: vk, value: vk === 'percent' ? parseFloat(String(vv).replace(',', '.')) || 0 : parseMoney(vv) }).then(function (j) {
-        o.refGift = j.gift; b.hidden = true;
+        o.refGift = j.gift; b.hidden = true; S._refs = null;
         var txt = j.code ? 'Dạ [Tên] ơi, cảm ơn [Tên] đã giới thiệu ' + (o.name || 'bạn') + ' tin dùng Thực Dưỡng Lành ạ ❤️ Em gửi [Tên] voucher ' + j.code + ' (' + j.label.replace(' ₫', 'đ') + ') cho lần đặt hàng tiếp theo trên web, dùng trong 90 ngày. Bấm link là mã tự áp dụng: https://thucduonglanh.vn/?uudai=' + j.code
           : 'Dạ [Tên] ơi, cảm ơn [Tên] đã giới thiệu ' + (o.name || 'bạn') + ' tin dùng Thực Dưỡng Lành ạ ❤️ Em xin gửi [Tên] món quà nhỏ: ' + $('#rgText', m).value.trim() + '. Em sẽ báo [Tên] khi gửi quà nhé!';
         $('#rgDone', m).innerHTML = '<div class="notice" style="margin-top:10px">✅ Đã lưu: ' + esc(j.gift) + '</div><label class="f"><span>Tin gửi ' + esc(rc.name || 'khách') + '</span><textarea id="rgMsg" rows="5">' + esc(fillTpl(txt, rc)) + '</textarea></label><button class="btn pri" id="rgGo">📋 Copy tin & mở Zalo</button>';

@@ -132,8 +132,12 @@ Khách đặt qua Zalo, Facebook, điện thoại… thì bạn **tạo đơn tr
 **Thêm người mới hỏi:**
 
 1. Vào tab **Khách hỏi**, bấm **＋ Thêm khách hỏi**.
-2. Gõ số điện thoại, tên, khách biết đến mình từ đâu, khách quan tâm sản phẩm gì.
-3. Bấm **Lưu**.
+2. Dán hoặc gõ số điện thoại. Số bị mất số 0 ở đầu (copy từ Sheet, Facebook) thì máy **tự thêm số 0**.
+3. Xem ô ngay dưới số điện thoại:
+   - **✨ Số mới**: gõ tiếp tên, khách biết đến mình từ đâu, quan tâm sản phẩm gì. Bấm **Tạo khách hỏi**.
+   - **🙋 Đang là khách hỏi**: máy hiện tên, người phụ trách, lần hỏi trước. Bấm **Ghi thêm vào khách này** (không tạo trùng), hoặc **💬 Tư vấn ngay**.
+   - **👤 Khách đã mua**: máy hiện số đơn, tiền đã mua. Bấm **👤 Mở hồ sơ khách** để xem, hoặc **Lưu lượt hỏi lại**.
+4. Khách do **người khác giới thiệu**: ở ô *Khách đến từ đâu* chọn **Khách giới thiệu**. Ô vàng hiện ra: gõ tên hoặc số của người giới thiệu, bấm chọn đúng người. Người đó chưa có trong CRM thì gõ đủ số điện thoại, bấm **＋ số đó**, rồi ghi tên.
 
 Khách để lại số trên web hay quảng cáo thì **tự vào đây**, bạn không cần thêm.
 

@@ -77,6 +77,10 @@ Khách khen sản phẩm? Mời khách giới thiệu bạn bè.
 4. Có người dùng mã, Telegram báo bạn. Tab Hôm nay hiện mục **🎁 Cảm ơn khách giới thiệu**.
 5. Chờ đơn **đã giao**, rồi bấm **🎁 Tặng quà / voucher** để cảm ơn khách. Chọn **Tặng quà** (ghi quà gì) hoặc **Tặng voucher** (mã giảm giá riêng cho khách, dùng trong 90 ngày).
 
+**Khách gọi điện / nhắn Zalo nói "chị Hoa giới thiệu":** khi thêm khách hỏi, chọn *Khách đến từ đâu* là **Khách giới thiệu** rồi chọn chị Hoa. Khách chốt đơn thì tab Hôm nay cũng nhắc **🎁 Cảm ơn khách giới thiệu**.
+
+**Xem ai giới thiệu nhiều:** tab **Khách đã mua** → bấm nút lọc **🎁 Đã giới thiệu khách**. Người mang về nhiều tiền nhất đứng đầu. Mỗi người có dòng: giới thiệu mấy người, mấy người đã mua, mang về bao nhiêu tiền, đã tặng quà chưa. Mở hồ sơ để xem từng người được giới thiệu và bấm tặng quà cảm ơn.
+
 ## Xem hồ sơ khách
 
 Bấm vào **tên khách** ở bất kỳ đâu để mở hồ sơ.

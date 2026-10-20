@@ -16,7 +16,7 @@ import { wbQueue, wbOrderQueue, wbStatusQueue, WB_SHORT } from './wb.js';
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-10-17c'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
+const SCHEMA_V = '2026-10-20a'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -40,6 +40,8 @@ export async function ensureSchema(db) {
     // Khách: đã kết bạn Zalo, nhóm cộng đồng, ngày sinh (bản Apps Script có, lúc chuyển sang D1 bị thiếu)
     const ccols = (await all(db, "PRAGMA table_info(customers)")).map(r => r.name);
     for (const [col, def] of [['zalo', 'INTEGER DEFAULT 0'], ['community', "TEXT DEFAULT ''"], ['dob', "TEXT DEFAULT ''"], ['recv', 'INTEGER'], ['ok_n', 'INTEGER DEFAULT 0'], ['back_n', 'INTEGER DEFAULT 0'], ['last_back', 'INTEGER'], ['fam', 'INTEGER DEFAULT 0']]) if (!ccols.includes(col)) { try { await run(db, `ALTER TABLE customers ADD COLUMN ${col} ${def}`); } catch (e) { } }
+    const lcols = (await all(db, "PRAGMA table_info(leads)")).map(r => r.name); // 20/10/2026: khách hỏi do khách khác giới thiệu (SĐT + tên người giới thiệu)
+    for (const col of ['ref_phone', 'ref_name']) if (!lcols.includes(col)) { try { await run(db, `ALTER TABLE leads ADD COLUMN ${col} TEXT DEFAULT ''`); } catch (e) { } }
     const ucols = (await all(db, "PRAGMA table_info(users)")).map(r => r.name);
     if (!ucols.includes('web')) { try { await run(db, "ALTER TABLE users ADD COLUMN web TEXT DEFAULT ''"); } catch (e) { } } // Sửa website: đăng nhập /admin bằng email (api/src/cms.js)
     await run(db, "UPDATE users SET role = 'Sale & CSKH' WHERE role = 'Nhân viên'"); // 15/10/2026: đổi tên quyền
@@ -289,7 +291,7 @@ export function custSource(o) {
   if (/zalo/.test(k)) return 'Zalo';
   if (/tiktok/.test(k)) return 'TikTok';
   if (/shopee|lazada/.test(k)) return m[2].trim();
-  if (/gioi thieu|nguoi quen|khach quen/.test(k)) return 'Người quen giới thiệu';
+  if (/gioi thieu|nguoi quen|khach quen/.test(k)) return 'Khách giới thiệu';
   if (/dien thoai|hotline/.test(k)) return 'Gọi hotline';
   if (/su kien|hoi thao/.test(k)) return 'Sự kiện / hội thảo';
   if (/cua hang/.test(k)) return 'Tại cửa hàng';
@@ -406,7 +408,7 @@ export function leadDue(l, today) {
 }
 
 /* ================================================================ đọc dữ liệu cho giao diện */
-const leadOut = r => ({ id: r.id, time: r.time, name: r.name || '', phone: r.phone || '', channel: r.channel || '', interest: r.interest || '', status: r.status || 'Mới hỏi', owner: r.owner || '', lastAt: r.last_at, callback: r.callback, reason: r.reason || '', note: r.note || '', orderId: r.order_id || '', by: r.by_name || '' });
+const leadOut = r => ({ id: r.id, time: r.time, name: r.name || '', phone: r.phone || '', channel: r.channel || '', interest: r.interest || '', status: r.status || 'Mới hỏi', owner: r.owner || '', lastAt: r.last_at, callback: r.callback, reason: r.reason || '', note: r.note || '', orderId: r.order_id || '', by: r.by_name || '', refPhone: r.ref_phone || '', refName: r.ref_name || '' });
 const orderOut = r => ({ row: r.rid, time: r.time, id: r.id, name: r.name || '', phone: r.phone || '', email: r.email || '', province: r.province || '', ward: r.ward || '', address: r.address || '', items: r.items || '', subtotal: r.subtotal || 0,
   shipping: r.shipping || 0, total: r.total || 0, payment: r.payment || '', note: r.note || '', status: r.status || 'Mới', source: r.source || '', consent: !!r.consent, paid: r.paid || '', carrier: r.carrier || '', tracking: r.tracking || '', seller: r.seller || '', ca: r.ca || '', line: r.line || '', ship: r.ship || '',
   shipAt: r.ship_at, receivedAt: r.received_at, otype: r.otype || '', oflag: r.oflag || '', trk: r.trk || '', trkAt: r.trk_at, trkCode: r.trk_code || 0, voucher: r.voucher || '', refPhone: r.ref_phone || '', refGift: r.ref_gift || '', partner: r.partner || '' });
@@ -1135,6 +1137,9 @@ async function crmOrderCreate(x, u, d) {
       total: sub + ship, status: ORDER_STATUS.indexOf(d.status) >= 0 ? d.status : 'Đã xác nhận', ship: shipText(items), note: c.note || '', ca: otypeCa(otype), otype, old: !!cv && Number(cv.orders) > 1 });
   });
   if (d.leadId) await leadUpdate(x, d.leadId, { status: 'Đã chốt', order_id: id, last_at: now, callback: null });
+  // 🎁 khách hỏi do khách khác giới thiệu → đơn đầu tiên ghi người giới thiệu: tab Hôm nay nhắc "Cảm ơn khách giới thiệu" (api/src/partner.js)
+  const rl = ld && ld.ref_phone ? ld : await first(x.db, "SELECT ref_phone FROM leads WHERE phone = ? AND coalesce(ref_phone, '') != '' ORDER BY rid DESC LIMIT 1", phone);
+  if (rl && rl.ref_phone) { try { await run(x.db, "UPDATE orders SET ref_phone = ? WHERE id = ? AND coalesce(ref_phone, '') = '' AND NOT EXISTS (SELECT 1 FROM orders o2 WHERE o2.phone = ? AND coalesce(o2.ref_phone, '') != '')", rl.ref_phone, id, phone); } catch (e) { } }
   return { ok: true, id, otype, oflag };
 }
 
@@ -1328,7 +1333,7 @@ async function crmTarget(x, u, d) {
 
 /* ================================================================ khách tiềm năng */
 async function leadGet(x, id) { return first(x.db, 'SELECT * FROM leads WHERE id = ?', String(id)); }
-const LEAD_FIELDS = ['time', 'name', 'phone', 'channel', 'interest', 'status', 'owner', 'last_at', 'callback', 'reason', 'note', 'order_id', 'by_name'];
+const LEAD_FIELDS = ['time', 'name', 'phone', 'channel', 'interest', 'status', 'owner', 'last_at', 'callback', 'reason', 'note', 'order_id', 'by_name', 'ref_phone', 'ref_name'];
 export async function leadUpdate(x, id, f) {
   const ks = Object.keys(f).filter(k => LEAD_FIELDS.indexOf(k) >= 0); if (!ks.length) return false;
   if (f.phone !== undefined) f.phone = normPhone(f.phone);
@@ -1343,19 +1348,25 @@ export async function addLead(x, o) {
     const note = String(cur.note || '') + (o.note ? '\n[' + fmtDate(now, 'dd/MM') + '] ' + o.note : '');
     const ci = String(cur.interest || ''), oi = String(o.interest || '');
     const interest = o.addInterest && ci && oi && ci.indexOf(oi.split(' · ')[0]) < 0 ? ci + ' | ' + oi : (oi || ci); // addInterest: khách nhận thêm quà khác → giữ quan tâm cũ, ghi nối
-    await leadUpdate(x, cur.id, { note, interest, owner: cur.owner || o.owner || '' });
+    const f = { note, interest, owner: cur.owner || o.owner || '' };
+    if (o.refPhone && !cur.ref_phone) Object.assign(f, { ref_phone: o.refPhone, ref_name: o.refName || '', channel: o.channel || cur.channel });
+    await leadUpdate(x, cur.id, f);
     return { id: cur.id, merged: true, owner: cur.owner || o.owner || '' };
   }
   let owner = o.owner || '';
   if (!owner && o.auto) owner = (await ownerOf(x, phone)) || await autoOwner(x); // khách cũ → người đang phụ trách; khách lạ → theo chế độ chia khách
   const id = 'TN' + fmtDate(now, 'yyMMddHHmmss') + Math.floor(Math.random() * 10) + randHex(1);
-  await run(x.db, 'INSERT INTO leads (id, time, name, phone, channel, interest, status, owner, last_at, callback, reason, note, order_id, by_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, \'\', ?, \'\', ?)',
-    id, now, o.name || '', phone, o.channel || 'Khác', o.interest || '', 'Mới hỏi', owner, dateOrBlank(o.callback), o.note || '', o.by || '');
+  await run(x.db, 'INSERT INTO leads (id, time, name, phone, channel, interest, status, owner, last_at, callback, reason, note, order_id, by_name, ref_phone, ref_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, \'\', ?, \'\', ?, ?, ?)',
+    id, now, o.name || '', phone, o.channel || 'Khác', o.interest || '', 'Mới hỏi', owner, dateOrBlank(o.callback), o.note || '', o.by || '', o.refPhone || '', o.refName || '');
   return { id, merged: false, owner };
 }
 async function crmLeadSave(x, u, d) {
   const phone = normPhone(d.phone);
   if (!/^0\d{9,10}$/.test(phone)) return { ok: false, error: 'Số điện thoại chưa đúng (10 số, bắt đầu bằng 0).' };
+  // 🎁 Khách giới thiệu: SĐT người giới thiệu (có thể chưa có trong CRM thì ghi kèm tên)
+  const refPhone = d.refPhone ? normPhone(d.refPhone) : '', refName = String(d.refName || '').trim().slice(0, 80);
+  if (refPhone && !/^0\d{9,10}$/.test(refPhone)) return { ok: false, error: 'Số điện thoại người giới thiệu chưa đúng.' };
+  if (refPhone && refPhone === phone) return { ok: false, error: 'Người giới thiệu không thể là chính khách này.' };
   if (!d.id && u.level < 2) { // nhân viên thêm khách tiềm năng: không được "đè" lên khách của người khác
     const chk = await crmCheckPhone(x, u, { phone });
     if (chk.status === 'other') return { ok: false, error: 'Số này ' + (chk.lead ? 'đang là khách tiềm năng' : 'là khách hàng') + ' do ' + chk.owner + ' phụ trách. Nhờ quản lý nếu cần chuyển.' };
@@ -1363,11 +1374,12 @@ async function crmLeadSave(x, u, d) {
   }
   if (d.id && u.level < 2) { const ld0 = await leadGet(x, d.id); if (!ld0) return { ok: false, error: 'Không tìm thấy khách tiềm năng.' }; const e0 = await guardLead(x, u, ld0); if (e0) return { ok: false, error: e0 }; d.owner = u.name; }
   if (!d.id) {
-    const res = await addLead(x, { name: String(d.name || '').trim(), phone, channel: d.channel, interest: d.interest, owner: d.owner === undefined ? u.name : d.owner, note: d.note, callback: d.callback, by: u.name });
-    await crmLog(x, u, 'Thêm tiềm năng', phone, d.name, d.channel || '', d.interest || '');
+    const res = await addLead(x, { name: String(d.name || '').trim(), phone, channel: d.channel, interest: d.interest, owner: d.owner === undefined ? u.name : d.owner, note: d.note, callback: d.callback, by: u.name, refPhone, refName });
+    await crmLog(x, u, 'Thêm tiềm năng', phone, d.name, d.channel || '', [d.interest || '', refPhone || refName ? '🎁 ' + (refName || '') + (refPhone ? ' ' + refPhone : '') + ' giới thiệu' : ''].filter(String).join(' · '));
     return { ok: true, id: res.id, merged: res.merged };
   }
   const f = { name: String(d.name || '').trim(), phone, channel: d.channel || 'Khác', interest: d.interest || '', owner: d.owner || '', note: d.note || '', callback: dateOrBlank(d.callback) };
+  if (d.refPhone !== undefined) { f.ref_phone = refPhone; f.ref_name = refName; }
   if (d.status && LEAD_STATUS.indexOf(d.status) >= 0) f.status = d.status;
   if (f.status === 'Đã chốt' && u.level < 2) { // sale không tự đặt "Đã chốt" khi chưa có đơn (tỷ lệ chốt, thi đua công bằng – 16/10/2026)
     const ld1 = await leadGet(x, d.id);
