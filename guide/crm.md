@@ -112,10 +112,11 @@ Khách đặt qua Zalo, Facebook, điện thoại… thì bạn **tạo đơn tr
 
 1. Vào tab **Đơn hàng**, bấm **＋ Tạo đơn**.
 2. Bấm **📋 Dán tin nhắn của khách**. Dán nguyên tin Zalo của khách (có tên, số điện thoại, địa chỉ). CRM tự điền vào các ô. Bạn chỉ cần xem lại. (Hoặc gõ số điện thoại: khách cũ thì tên và địa chỉ tự hiện ra.)
-3. **Chọn sản phẩm:** bấm vào tên sản phẩm. Bấm thêm lần nữa để tăng số lượng. Có quà thì bấm **🎁 Thêm quà**.
-4. **Gõ số tiền thu của khách.** Gõ `1800000`, `1tr8` hay `1,8tr` đều được.
-5. Chọn cách trả tiền: **COD** (khách trả tiền khi nhận hàng) hoặc **Chuyển khoản**.
-6. Bấm **Lưu & copy lên đơn**. Đơn được lưu. Nội dung đơn đã được chép sẵn, bạn dán sang bên vận chuyển.
+3. **Xem lại 2 ô địa chỉ.** Ô xanh là **🆕 Địa chỉ mới** (34 tỉnh, không có huyện), dùng để giao hàng. Ô vàng là **🕰 Địa chỉ cũ** (63 tỉnh, có huyện), dùng khi lên đơn Misa. Khách ghi kiểu cũ hay kiểu mới đều được: CRM tự điền cả 2 ô. Ô nào trống hoặc sai thì gõ vào ô đó để tìm, **không cần gõ dấu** (vd gõ `vinh phuc`, `hoi thinh`), rồi bấm chọn trong danh sách. Điền 1 bên, bên kia tự điền theo. Bấm **Copy** ở góc ô để chép địa chỉ đó.
+4. **Chọn sản phẩm:** bấm vào tên sản phẩm. Bấm thêm lần nữa để tăng số lượng. Có quà thì bấm **🎁 Thêm quà**.
+5. **Gõ số tiền thu của khách.** Gõ `1800000`, `1tr8` hay `1,8tr` đều được.
+6. Chọn cách trả tiền: **COD** (khách trả tiền khi nhận hàng) hoặc **Chuyển khoản**.
+7. Bấm **Lưu & copy lên đơn**. Đơn được lưu. Nội dung đơn đã được chép sẵn, bạn dán sang bên vận chuyển.
 
 ![Cuối trang tạo đơn: số tiền, cách trả tiền, nút Lưu](/huong-dan/img/crm-neworder-save.webp)
 

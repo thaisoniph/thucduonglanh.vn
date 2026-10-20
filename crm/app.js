@@ -177,7 +177,7 @@
     function fallback() { var t = document.createElement('textarea'); t.value = text; t.style.position = 'fixed'; t.style.opacity = '0'; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); } catch (e) { } t.remove(); }
   }
 
-  var SERVER_V = '2026-10-20a'; // phải trùng số phiên bản máy chủ (api/src/index.js)
+  var SERVER_V = '2026-10-20b'; // phải trùng số phiên bản máy chủ (api/src/index.js)
   var ON_CF = !/script\.google/.test(CFG.endpoint || ''); // máy chủ Cloudflare (nhanh) hay Apps Script cũ
   function checkVersion(j) {
     if (j && j.v) S.srvV = j.v;
@@ -1680,7 +1680,7 @@
       }).join('') + '</div><p class="small muted" style="margin:6px 0 0">Bấm vào đơn để xem chi tiết, đặt lại đơn cũ.</p>' : '<p class="muted">Chưa có đơn.</p>') + (all ? '' : '<p class="small muted">Đang tải đơn cũ…</p>');
       if (tab === 'info') box.innerHTML = '<div class="box" style="margin:0"><div class="grid-info">' + info('Điện thoại', fPhone(c.phone), false, normPhone(c.phone)) + info('Zalo', c.zalo ? '✓ Đã kết bạn' : 'Chưa kết bạn') + info('Cộng đồng', inComm(c) ? '👥 Đã vào nhóm' : c.community || 'Chưa mời') +
         info('Ngày sinh', c.dob ? '🎂 ' + c.dob : 'chưa có') + info('Đơn đầu', fDate(c.first)) + info('Nhận hàng gần nhất', c.recv ? fDate(c.recv) : 'chưa rõ') + info('Nhóm', c.group) + info('Nguồn', custSrc(c) || '–') +
-        (function () { var ld = leadsOf(c.phone)[0]; return ld ? info('Biết đến qua', chLabel(ld.channel) + ' · hỏi ' + fDate(ld.time) + (c.first && c.first >= (ld.time || 0) ? ' · chốt sau ' + Math.max(0, Math.round((c.first - ld.time) / DAY)) + ' ngày' : ''), true) : ''; })() + info('Tỉnh / thành', provOf(c) ? provOf(c).old + (provOf(c).old !== provOf(c).nw ? ' (nay thuộc ' + provOf(c).nw + ')' : '') : 'chưa rõ') + info('Địa chỉ', fullAddr(c), true, true) + info('Đã mua', c.products.join('; '), true) +
+        (function () { var ld = leadsOf(c.phone)[0]; return ld ? info('Biết đến qua', chLabel(ld.channel) + ' · hỏi ' + fDate(ld.time) + (c.first && c.first >= (ld.time || 0) ? ' · chốt sau ' + Math.max(0, Math.round((c.first - ld.time) / DAY)) + ' ngày' : ''), true) : ''; })() + info('Tỉnh / thành', provOf(c) ? provOf(c).old + (provOf(c).old !== provOf(c).nw ? ' (nay thuộc ' + provOf(c).nw + ')' : '') : 'chưa rõ') + info('Địa chỉ', fullAddr(c), true, true) + (c.addrOld ? info('Địa chỉ cũ (Misa)', c.addrOld, true, true) : '') + info('Đã mua', c.products.join('; '), true) +
         noteExtras(c.note).map(function (l) { var i = l.indexOf(':'); return info(l.slice(0, i), l.slice(i + 1).trim(), true); }).join('') + '</div></div>';
       var mo = $('[data-tlmore]', m); if (mo) mo.onclick = function () { tlMax += 50; draw(); };
     };
@@ -2104,7 +2104,7 @@
       (o.oflag ? '<div class="notice" id="oOtBox">⚠️ <b>Kiểm tra loại đơn:</b> sale chọn <b>' + esc(otLabel(otypeOf(o))) + '</b>. ' + esc(o.oflag) + '.' + (lvl() >= 2 ? '<div class="steps" style="margin-top:8px"><button class="btn pri" id="oOtOk">✓ Đúng, giữ ' + esc(otypeOf(o)) + '</button>' + OTYPES.filter(function (t) { return t !== otypeOf(o); }).map(function (t) { return '<button class="btn" data-otset="' + esc(t) + '">Đổi sang ' + esc(otLabel(t)) + '</button>'; }).join('') + '</div>' : '<br>Quản lý sẽ kiểm tra lại.') + '</div>' : '') +
       '<div class="box"><h3>Trạng thái</h3>' + (NEXT[o.status] ? '<p class="next-hint">👉 Bước tiếp theo: bấm <b>' + NEXT[o.status] + '</b>' + { 'Mới': ' sau khi gọi khách xác nhận đơn.', 'Đã xác nhận': ' khi đã gửi hàng (hoặc nhập mã vận đơn bên dưới).', 'Đang giao': ' khi khách đã nhận hàng.' }[o.status] + '</p>' : '') + '<div class="radios">' + STATUS.map(function (s) { return '<label><input type="radio" name="oSt" value="' + s + '"' + (s === o.status ? ' checked' : '') + '><span>' + s + '</span></label>'; }).join('') + '</div></div>' +
       '<div class="box"><div class="grid-info">' + info('Khách', o.name, false, true) + info('Điện thoại', fPhone(o.phone), false, normPhone(o.phone)) + info('Thời gian', fDateTime(o.time) + ' ' + vnDate(o.time).y) + info('Thanh toán', o.payment) +
-      info('Địa chỉ', fullAddr(o), true, true) + (o.email ? info('Email', o.email, true, true) : '') + info('Nguồn', o.source || '–', true) + '</div>' +
+      info('Địa chỉ', fullAddr(o), true, true) + (o.addrOld ? info('Địa chỉ cũ (Misa)', o.addrOld, true, true) : '') + (o.email ? info('Email', o.email, true, true) : '') + info('Nguồn', o.source || '–', true) + '</div>' +
       (lvl() >= 2 ? '<label class="f" style="margin:10px 0 0"><span>Nhân viên bán (tính doanh số)</span><select id="oSeller">' + ownerOptions(o.seller, true) + '</select></label>' : '<p class="small muted" style="margin:8px 0 0">Nhân viên bán: <b>' + esc(o.seller || '–') + '</b></p>') + '</div>' +
       '<div class="box"><h3>Sản phẩm</h3><div class="pre">' + cp(o.items) + '</div>' +
       (o.ship ? '<p style="margin:10px 0 0"><b>Lên đơn:</b> ' + esc(o.ship) + ' <button class="btn ghost" id="oShipCopy" type="button">📋 Copy</button></p>' : '') +
@@ -2235,6 +2235,85 @@
     });
     return { province: prov ? prov.n : '', ward: best };
   }
+  /* ---------- địa chỉ CŨ (63 tỉnh – huyện – xã, trước 01/07/2025) – Misa vẫn chọn theo địa chỉ cũ (anh Sơn 20/10/2026).
+   *  /vn-units-old.json do scripts/vn-units-old.py tạo từ bảng chuyển đổi chính thức: mỗi xã cũ kèm (các) xã mới tương ứng. */
+  function loadOldUnits() {
+    if (S.unitsOld) return Promise.resolve(S.unitsOld);
+    return fetch('/vn-units-old.json').then(function (r) { return r.json(); }).then(function (raw) { S.unitsOld = oldIndex(raw); return S.unitsOld; }).catch(function () { return null; });
+  }
+  function oldIndex(raw) {
+    var rev = {}, P = raw.map(function (a) {
+      var p = { n: a[0], f: a[1], nw: a[2] };
+      p.d = a[3].map(function (b) {
+        var d = { n: b[0], p: p };
+        d.w = b[1].map(function (c) { var w = { n: c[0], d: d, nw: c[1] ? c[1].split('|') : [] }; w.nw.forEach(function (x) { (rev[p.nw + '|' + x] = rev[p.nw + '|' + x] || []).push(w); }); return w; });
+        return d;
+      });
+      return p;
+    });
+    var alone = {}; P.forEach(function (p) { alone[p.n] = p.n !== p.nw; }); // tỉnh cũ đã gộp tên (Vĩnh Phúc…) – thấy là chắc chắn địa chỉ kiểu cũ
+    return { p: P, rev: rev, alone: alone };
+  }
+  /** "Xã Thanh Vân, Huyện Tam Dương, Vĩnh Phúc" (đã lưu) → { w, d, p } của dữ liệu cũ; thiếu phần nào thì phần đó null. */
+  function oldParse(OU, s) {
+    var a = String(s || '').split(',').map(function (x) { return x.trim(); }).filter(Boolean), r = { p: null, d: null, w: null }; if (!OU || !a.length) return r;
+    var pn = norm(a[a.length - 1]); r.p = OU.p.filter(function (p) { return norm(p.n) === pn || norm(p.f) === pn; })[0] || null; if (!r.p) return r;
+    if (a.length >= 2) { var dn = norm(a[a.length - 2]); r.d = r.p.d.filter(function (d) { return norm(d.n) === dn; })[0] || null; }
+    if (r.d && a.length >= 3) { var wn = norm(a[a.length - 3]); r.w = r.d.w.filter(function (w) { return norm(w.n) === wn; })[0] || null; }
+    return r;
+  }
+  /** Tách địa chỉ cũ trong chữ khách ghi: "thôn Phú Thị, xã Thanh Vân, Tam Dương, Vĩnh Phúc" → tỉnh / huyện / xã cũ. Tỉnh lấy tên xuất hiện sau cùng. */
+  function detectOld(OU, text) {
+    var r = { p: null, d: null, w: null }; if (!OU || !String(text || '').trim()) return r;
+    var t = ' ' + norm(text).replace(/[.,;:\-–()/]/g, ' ').replace(/\s+/g, ' ') + ' ', at = -1, AL = { hcm: 'Hồ Chí Minh', tphcm: 'Hồ Chí Minh', 'sai gon': 'Hồ Chí Minh', hn: 'Hà Nội', 'thua thien hue': 'Huế', brvt: 'Bà Rịa - Vũng Tàu', 'vung tau': 'Bà Rịa - Vũng Tàu', 'ba ria': 'Bà Rịa - Vũng Tàu' };
+    var k2 = function (n) { return norm(n).replace(/[.,;:\-–()/]/g, ' ').replace(/\s+/g, ' ').trim(); }, bare = function (n) { return k2(n).replace(/^(tinh|thanh pho|quan|huyen|thi xa|phuong|xa|thi tran) /, ''); };
+    OU.p.forEach(function (p) { [k2(p.f), bare(p.f)].concat(Object.keys(AL).filter(function (k) { return AL[k] === p.n; })).forEach(function (k) { var i = t.lastIndexOf(' ' + k + ' '); if (i > at) { at = i; r.p = p; } }); });
+    var best = function (list, pre, bareOk) { // tên đầy đủ, hoặc chữ viết tắt + tên ("x thanh van", "h tam duong"), hoặc tên trơn khi đã biết vùng
+      var hit = null, len = 0;
+      list.forEach(function (o) {
+        var b = bare(o.n), ok = t.indexOf(' ' + k2(o.n) + ' ') >= 0 || new RegExp(' (' + pre + ') ' + b.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ' ').test(t) || (bareOk && t.indexOf(' ' + b + ' ') >= 0);
+        if (ok && b.length > len) { hit = o; len = b.length; }
+      });
+      return hit;
+    };
+    if (r.p) r.d = best(r.p.d, 'q|quan|h|huyen|tx|thi xa|tp|thanh pho', true);
+    var pool = r.d ? r.d.w : r.p ? [].concat.apply([], r.p.d.map(function (d) { return d.w; })) : [];
+    r.w = best(pool, 'p|phuong|x|xa|tt|thi tran', !!r.d);
+    if (r.w && !r.d) r.d = r.w.d;
+    return r;
+  }
+  /** Ô gõ để tìm, không cần gõ dấu ("vinh phuc", "hoi thinh"): gợi ý ngay dưới ô, bấm hoặc Enter để chọn.
+   *  items() → [{ v: giá trị điền vào ô, s: chữ phụ (mờ), k: chữ thêm để tìm, …dữ liệu riêng }]; onPick(item) khi chọn. */
+  function addrPick(inp, items, onPick) {
+    var box = document.createElement('div'), cur = [], hi = 0, wrap = inp.parentNode;
+    box.className = 'apick-list'; box.hidden = true; wrap.classList.add('apick'); wrap.appendChild(box); inp.setAttribute('autocomplete', 'off');
+    var key = function (x) { return x._k || (x._k = ' ' + norm(x.v + ' ' + (x.s || '') + ' ' + (x.k || '')).replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ') + ' '); };
+    function draw() { box.innerHTML = cur.map(function (x, i) { return '<button type="button" data-i="' + i + '"' + (i === hi ? ' class="on"' : '') + '>' + esc(x.v) + (x.s ? '<small>' + esc(x.s) + '</small>' : '') + '</button>'; }).join(''); }
+    function match() {
+      var ws = norm(inp.value).replace(/[^a-z0-9 ]/g, ' ').trim().split(/\s+/).filter(Boolean), all = items() || [], r;
+      r = ws.length ? all.filter(function (x) { var k = key(x); return ws.every(function (w) { return k.indexOf(' ' + w) >= 0; }); }) : all;
+      if (ws.length) { var q = ' ' + ws.join(' '); r.sort(function (a, b) { return (norm(' ' + b.v).indexOf(q) >= 0) - (norm(' ' + a.v).indexOf(q) >= 0); }); } // khớp tên chính lên trước
+      return r;
+    }
+    function show() { cur = match().slice(0, 40); hi = 0; draw(); box.hidden = !cur.length || document.activeElement !== inp; }
+    function pick(x) { inp.value = x.v; box.hidden = true; if (onPick) onPick(x); }
+    inp.addEventListener('input', show); inp.addEventListener('focus', show);
+    inp.addEventListener('blur', function () { setTimeout(function () { box.hidden = true; }, 200); });
+    inp.addEventListener('change', function () { // gõ xong không bấm chọn: khớp hẳn 1 tên, hoặc chỉ còn 1 gợi ý → nhận luôn
+      var v = norm(inp.value).trim(); if (!v) { if (onPick) onPick(null); return; }
+      var ex = (items() || []).filter(function (x) { return norm(x.v) === v || norm(x.v).replace(/^(tinh|thanh pho|quan|huyen|thi xa|phuong|xa|thi tran) /, '') === v; });
+      if (ex.length !== 1) { ex = match(); if (ex.length !== 1) return; }
+      if (inp.value !== ex[0].v || !onPick) pick(ex[0]); else onPick(ex[0]);
+    });
+    inp.addEventListener('keydown', function (e) {
+      if (box.hidden || !cur.length) return;
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); hi = (hi + (e.key === 'ArrowDown' ? 1 : cur.length - 1)) % cur.length; draw(); var b = box.children[hi]; if (b) b.scrollIntoView({ block: 'nearest' }); }
+      else if (e.key === 'Enter') { e.preventDefault(); pick(cur[hi]); }
+      else if (e.key === 'Escape') box.hidden = true;
+    });
+    box.addEventListener('mousedown', function (e) { e.preventDefault(); }); // bấm gợi ý không làm mất con trỏ khỏi ô
+    box.addEventListener('click', function (e) { var b = e.target.closest('[data-i]'); if (b) pick(cur[+b.getAttribute('data-i')]); });
+  }
   /** Số tiền gõ tắt: 1800000, 1.800.000, 1tr8, 1tr85, 1,8tr, 800k. */
   function moneyIn(v) {
     var s = String(v || '').toLowerCase().replace(/\s/g, '').replace(/đ|vnd/g, ''); if (!s) return 0;
@@ -2305,7 +2384,7 @@
     opt = opt || {};
     var P = productOptions(), byLabel = {}, eo = opt.order || null, lead = opt.lead || null, mgr = lvl() >= 2;
     P.forEach(function (p) { byLabel[norm(p.label)] = p; });
-    var c0 = eo ? { phone: eo.phone, name: eo.name, address: eo.address, province: eo.province, ward: eo.ward, consent: eo.consent }
+    var c0 = eo ? { phone: eo.phone, name: eo.name, address: eo.address, province: eo.province, ward: eo.ward, addrOld: eo.addrOld, consent: eo.consent }
       : cust(opt.phone || (lead && lead.phone) || '') || (lead ? { phone: lead.phone, name: lead.name, address: '', province: '', ward: '', consent: false, isLead: true } : null);
     var names = P.map(function (p) { return p.label; }); soldNames().forEach(function (n) { if (names.indexOf(n) < 0) names.push(n); });
     var row = function (cls, it) {
@@ -2325,10 +2404,17 @@
       '<div class="row2c"><label class="f"><span>Số điện thoại *</span><input type="tel" name="phone" inputmode="tel" value="' + esc(c0 ? c0.phone : '') + '"></label>' +
       '<label class="f"><span>Tên khách *</span><input type="text" name="name" value="' + esc(c0 ? c0.name : '') + '"></label></div>' +
       '<div class="hint" id="noOld"></div><div id="noFlag"></div>' +
-      '<label class="f"><span>Địa chỉ</span><textarea name="full" rows="2" placeholder="Số nhà, đường, phường/xã, tỉnh/thành">' + esc(fullAddr) + '</textarea></label>' +
+      '<label class="f"><span>Địa chỉ</span><textarea name="full" rows="2" placeholder="Số nhà, thôn, đường, xã, huyện, tỉnh – ghi kiểu cũ hay mới đều được">' + esc(fullAddr) + '</textarea></label>' +
       '<p class="hint" id="noAddrHint"></p>' +
-      '<details class="addr-more"><summary>Sửa tỉnh / phường</summary><div class="row2c"><label class="f"><span>Tỉnh / Thành phố</span><select name="province"><option value="">– Chọn –</option></select></label>' +
-      '<label class="f"><span>Phường / Xã</span><input type="text" name="ward" list="noWards" autocomplete="off" value="' + esc(c0 ? c0.ward : '') + '"><datalist id="noWards"></datalist></label></div></details></div>' +
+      '<div class="no-addr2">' + // 2 địa chỉ: mới (34 tỉnh, giao hàng) + cũ (63 tỉnh, có huyện – Misa vẫn chọn kiểu cũ). Điền 1 bên, bên kia tự điền theo bảng chuyển đổi.
+        '<div class="no-addr2-col"><div class="no-addr2-h"><b>🆕 Địa chỉ mới</b><button type="button" class="btn sm" data-acopy="new">Copy</button><small>34 tỉnh, từ 01/07/2025 · không có huyện</small></div>' +
+          '<label class="f"><span>Tỉnh / Thành phố</span><input type="text" name="province" placeholder="Gõ để tìm, vd: phu tho" value="' + esc(c0 ? c0.province : '') + '"></label>' +
+          '<label class="f"><span>Phường / Xã</span><input type="text" name="ward" placeholder="Gõ để tìm" value="' + esc(c0 ? c0.ward : '') + '"></label><p class="hint" id="noNewHint"></p></div>' +
+        '<div class="no-addr2-col"><div class="no-addr2-h"><b>🕰 Địa chỉ cũ</b><button type="button" class="btn sm" data-acopy="old">Copy</button><small>63 tỉnh, có huyện · dùng khi lên đơn Misa</small></div>' +
+          '<label class="f"><span>Tỉnh / Thành phố</span><input type="text" name="oprov" placeholder="Gõ để tìm, vd: vinh phuc"></label>' +
+          '<label class="f"><span>Quận / Huyện</span><input type="text" name="odist" placeholder="Gõ để tìm"></label>' +
+          '<label class="f"><span>Phường / Xã</span><input type="text" name="oward" placeholder="Gõ để tìm"></label><p class="hint" id="noOldHint"></p></div>' +
+      '</div></div>' +
       '<datalist id="noProducts">' + names.map(function (n) { return '<option value="' + esc(n) + '">'; }).join('') + '</datalist>' +
       '<div class="box"><h3>Sản phẩm <span class="muted small" style="font-weight:400">· bấm để thêm, bấm lại để tăng số lượng</span></h3><div class="chips wrap" id="noChips"></div>' +
       '<div class="items" id="noItems">' + (sItems.length ? sItems.map(function (i) { return row('prod', i); }).join('') : row('prod')) + '</div>' +
@@ -2346,19 +2432,72 @@
       '<p class="err" id="noErr"></p></form>';
     var m = modal(eo ? 'Sửa đơn ' + esc(eo.id) : lead ? 'Chốt đơn: ' + esc(lead.name || lead.phone || 'khách hỏi') : 'Lên đơn mới', body, '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="noSave">Lưu đơn</button>');
     var form = $('#noForm', m), F = form.elements, items = $('#noItems', m), gifts = $('#noGifts', m), prov = F.province, ward = F.ward, totalEdited = !!eo, curC = c0 && !c0.isLead && !eo ? c0 : null;
-    loadUnits().then(function (u) {
-      prov.innerHTML = '<option value="">– Chọn –</option>' + u.map(function (p) { return '<option>' + esc(p.n) + '</option>'; }).join('');
-      if (c0 && c0.province) setProvince(c0.province, c0.ward); else addrChanged();
-    });
+    /* ---- 2 địa chỉ. Tự điền (theo chữ địa chỉ / theo bên kia) chỉ đè ô chưa tự tay chọn; xoá chữ địa chỉ → làm lại từ đầu */
+    var OU = null, oP = null, oD = null, oW = null, touchN = !!(c0 && (c0.province || c0.ward)), touchO = false;
+    var oprov = F.oprov, odist = F.odist, oward = F.oward;
+    function unitOf(n) { return (S.units || []).filter(function (p) { return p.n === n; })[0] || null; }
     function setProvince(pv, wd) {
-      var u = S.units || [], hit = u.filter(function (p) { return norm(p.n) === norm(pv) || norm(p.f) === norm(pv); })[0];
-      if (!hit && pv && !$$('option', prov).some(function (o) { return o.value === pv; })) prov.insertAdjacentHTML('beforeend', '<option>' + esc(pv) + '</option>');
-      prov.value = hit ? hit.n : pv; fillWards(); if (wd !== undefined) ward.value = wd; addrHint();
+      var hit = (S.units || []).filter(function (p) { return norm(p.n) === norm(pv) || norm(p.f) === norm(pv); })[0];
+      prov.value = hit ? hit.n : pv || ''; if (wd !== undefined) ward.value = wd || ''; addrHint();
     }
-    function fillWards() { var p = (S.units || []).filter(function (x) { return x.n === prov.value; })[0]; $('#noWards', m).innerHTML = p ? p.w.map(function (w) { return '<option value="' + esc(w) + '">'; }).join('') : ''; }
-    function addrHint() { $('#noAddrHint', m).innerHTML = prov.value || ward.value ? '📍 Nhận ra: <b>' + esc([ward.value, prov.value].filter(Boolean).join(', ')) + '</b> (sai thì bấm “Sửa tỉnh / phường”)' : F.full.value.trim() ? '⚠️ Chưa nhận ra tỉnh / phường – bấm “Sửa tỉnh / phường” để chọn.' : ''; }
-    function addrChanged() { if (!F.full.value.trim()) { prov.value = ''; ward.value = ''; fillWards(); addrHint(); return; } var d = detectAddr(F.full.value); if (d.province) setProvince(d.province, d.ward || ward.value); else addrHint(); } // xoá địa chỉ → bỏ luôn tỉnh / phường cũ
-    prov.onchange = function () { fillWards(); addrHint(); }; ward.addEventListener('input', addrHint);
+    function setOld(p, d, w) { oP = p || null; oD = d || null; oW = w || null; oprov.value = oP ? oP.n : ''; odist.value = oD ? oD.n : ''; oward.value = oW ? oW.n : ''; addrHint(); }
+    function oldText() { return [oward.value.trim(), odist.value.trim(), oprov.value.trim()].filter(Boolean).join(', '); }
+    /** xã cũ → xã mới (1 xã cũ có thể chia sang vài xã mới: để sale chọn) */
+    function newFromOld(w) {
+      if (!w) return; var pn = w.d.p.nw; prov.value = pn; ward.value = w.nw.length === 1 ? w.nw[0] : (w.nw.indexOf(ward.value) >= 0 ? ward.value : '');
+      addrHint();
+    }
+    /** xã mới → xã cũ: chỉ 1 xã cũ gộp vào thì điền luôn; nhiều xã cũ cùng huyện thì điền tỉnh + huyện */
+    function oldFromNew() {
+      if (!OU || !prov.value || !ward.value) return; var l = OU.rev[prov.value + '|' + ward.value] || []; if (!l.length) return;
+      if (l.length === 1) return setOld(l[0].d.p, l[0].d, l[0]);
+      var ds = l.map(function (w) { return w.d; }).filter(function (d, i, a) { return a.indexOf(d) === i; });
+      var ps = ds.map(function (d) { return d.p; }).filter(function (p, i, a) { return a.indexOf(p) === i; });
+      setOld(ps.length === 1 ? ps[0] : null, ds.length === 1 ? ds[0] : null, null);
+    }
+    function addrHint() {
+      var nh = '', oh = '', full = F.full.value.trim();
+      if (oW && oW.nw.length > 1 && oW.d.p.nw === prov.value && oW.nw.indexOf(ward.value) < 0) nh = '⚠️ ' + esc(oW.n) + ' cũ nay chia vào: <b>' + esc(oW.nw.join(', ')) + '</b> – chọn 1 xã đúng với nhà khách.';
+      if (prov.value && ward.value && !oW && OU) { var l = OU.rev[prov.value + '|' + ward.value] || []; if (l.length > 1) oh = 'Phường / xã mới này gộp từ: ' + l.slice(0, 6).map(function (w) { return esc(w.n) + ' (' + esc(w.d.n.replace(/^(Huyện|Quận|Thị xã|Thành phố) /, '')) + ')'; }).join(', ') + (l.length > 6 ? '…' : '') + ' – bấm ô Phường / Xã để chọn.'; }
+      if (prov.value && !unitOf(prov.value)) nh = '⚠️ “' + esc(prov.value) + '” không có trong 34 tỉnh mới – chọn trong danh sách gợi ý.';
+      $('#noNewHint', m).innerHTML = nh; $('#noOldHint', m).innerHTML = oh;
+      $('#noAddrHint', m).innerHTML = full && !prov.value && !oprov.value ? '⚠️ Chưa nhận ra tỉnh / phường – gõ vào các ô bên dưới để chọn.' : '';
+    }
+    function addrChanged() {
+      if (!F.full.value.trim()) { touchN = touchO = false; setProvince('', ''); setOld(); return; }
+      var d = detectAddr(F.full.value), o = detectOld(OU, F.full.value), oldStyle = o.w && (o.d || OU.alone[o.p.n]); // có tên huyện / tỉnh cũ → chắc là địa chỉ kiểu cũ
+      if (!touchO && (o.w || (o.p && OU.alone[o.p.n]))) setOld(o.p, o.d, o.w);
+      if (!touchN) { if (oldStyle) newFromOld(o.w); else if (d.province) setProvince(d.province, d.ward || (norm(d.province) === norm(prov.value) ? ward.value : '')); }
+      if (!touchO && !o.w && !(o.p && OU.alone[o.p.n])) oldFromNew();
+      addrHint();
+    }
+    /* ---- ô gõ để tìm */
+    var OLD_OF = {}; // tỉnh mới → tên các tỉnh cũ gộp vào (gõ "vinh phuc" ở ô tỉnh mới vẫn ra Phú Thọ)
+    var provItems = function () { return (S.units || []).map(function (p) { var o = (OLD_OF[p.n] || []).filter(function (x) { return x !== p.n; }); return { v: p.n, k: p.f, s: o.length ? 'gồm cả ' + o.join(', ') : '' }; }); };
+    var wardItems = function () { var u = unitOf(prov.value); return u ? u.w.map(function (w) { return { v: w }; }) : [].concat.apply([], (S.units || []).map(function (p) { return p.w.map(function (w) { return { v: w, s: p.n, p: p.n }; }); })); };
+    var oProvItems = function () { return OU ? OU.p.map(function (p) { return { v: p.n, k: p.f, s: p.nw !== p.n ? 'nay thuộc ' + p.nw : '', o: p }; }) : []; };
+    var oDistItems = function () { return OU ? (oP ? oP.d.map(function (d) { return { v: d.n, o: d }; }) : [].concat.apply([], OU.p.map(function (p) { return p.d.map(function (d) { return { v: d.n, s: p.n, o: d }; }); }))) : []; };
+    var oWardItems = function () {
+      if (!OU) return []; var sw = function (w, sh) { return { v: w.n, s: sh ? w.d.n + ', ' + w.d.p.n : w.nw.length ? '→ ' + w.nw.join(' / ') : '', o: w }; };
+      if (oD) return oD.w.map(function (w) { return sw(w); });
+      var l = prov.value && ward.value ? OU.rev[prov.value + '|' + ward.value] : null; if (l && l.length) return l.map(function (w) { return sw(w, true); }); // đã có xã mới: chỉ hiện các xã cũ gộp vào
+      return [].concat.apply([], (oP ? [oP] : OU.p).map(function (p) { return [].concat.apply([], p.d.map(function (d) { return d.w.map(function (w) { return sw(w, true); }); })); }));
+    };
+    addrPick(prov, provItems, function (x) { touchN = true; var u = x && unitOf(x.v); if (!u || u.w.indexOf(ward.value) < 0) ward.value = ''; addrHint(); });
+    addrPick(ward, wardItems, function (x) { touchN = true; if (x && x.p) prov.value = x.p; if (x && !touchO) oldFromNew(); addrHint(); });
+    addrPick(oprov, oProvItems, function (x) { touchO = true; var p = x ? x.o : null; setOld(p, oD && oD.p === p ? oD : null, oW && oW.d.p === p ? oW : null); if (p && !touchN && !prov.value) setProvince(p.nw); });
+    addrPick(odist, oDistItems, function (x) { touchO = true; var d = x ? x.o : null; setOld(d ? d.p : oP, d, oW && oW.d === d ? oW : null); });
+    addrPick(oward, oWardItems, function (x) { touchO = true; var w = x ? x.o : null; if (!w) { setOld(oP, oD, null); return; } setOld(w.d.p, w.d, w); if (!touchN || !ward.value) newFromOld(w); });
+    [oprov, odist, oward].forEach(function (el) { el.addEventListener('input', function () { touchO = true; if (!el.value.trim()) { if (el === oprov) setOld(); else if (el === odist) setOld(oP); else setOld(oP, oD); } }); });
+    [prov, ward].forEach(function (el) { el.addEventListener('input', function () { touchN = true; addrHint(); }); });
+    $$('[data-acopy]', m).forEach(function (b) { b.onclick = function () { var t = b.getAttribute('data-acopy') === 'old' ? oldText() : [ward.value.trim(), prov.value.trim()].filter(Boolean).join(', '); if (!t) return toast('Chưa có địa chỉ ' + (b.getAttribute('data-acopy') === 'old' ? 'cũ' : 'mới') + ' để copy', true); copy(t).then(function () { toast('Đã copy: ' + t); }); }; });
+    Promise.all([loadUnits(), loadOldUnits()]).then(function (r) {
+      OU = r[1]; if (OU) OU.p.forEach(function (p) { (OLD_OF[p.nw] = OLD_OF[p.nw] || []).push(p.n); });
+      if (c0 && c0.addrOld && OU) { var po = oldParse(OU, c0.addrOld); touchO = true; setOld(po.p, po.d, po.w); if (!po.p) { var a = c0.addrOld.split(','); oprov.value = (a.pop() || '').trim(); } } // địa chỉ cũ đã lưu ở đơn / hồ sơ khách
+      if (c0 && c0.province) setProvince(c0.province, c0.ward);
+      if (c0 && c0.province && !touchO) oldFromNew();
+      if (!(c0 && c0.province)) addrChanged(); else addrHint();
+    });
     F.full.addEventListener('input', function () { clearTimeout(F.full._t); F.full._t = setTimeout(addrChanged, 300); });
     function flagOf(c) { return c && c.flag ? '<div class="notice">⚠️ Khách có nhãn <b>' + esc(c.flag) + '</b>. Kiểm tra kỹ trước khi gửi hàng (nên chuyển khoản trước).</div>' : ''; }
     /* ---- khách cũ: thông tin + nút đặt lại như đơn trước */
@@ -2378,7 +2517,11 @@
     }
     function fillFrom(c) {
       if (!F.name.value) F.name.value = c.name;
-      if (!F.full.value.trim()) { F.full.value = [c.address, c.ward, c.province].filter(Boolean).join(', '); if (c.province) setProvince(c.province, c.ward); else addrChanged(); }
+      if (!F.full.value.trim()) {
+        F.full.value = [c.address, c.ward, c.province].filter(Boolean).join(', ');
+        if (c.addrOld && OU) { var po = oldParse(OU, c.addrOld); if (po.p) { touchO = true; setOld(po.p, po.d, po.w); } }
+        if (c.province) { touchN = true; setProvince(c.province, c.ward); if (!touchO) oldFromNew(); } else addrChanged();
+      }
       if (F.consent) F.consent.checked = c.consent;
     }
     /* ---- số của người đang ở tab Khách hỏi (chưa mua): điền tên, gợi ý sản phẩm quan tâm; lưu đơn → khách hỏi tự chuyển "Đã chốt" */
@@ -2476,13 +2619,14 @@
       var err = $('#noErr', m), ph = normPhone(F.phone.value), ls = read(items), gs = read(gifts), tot = moneyIn(F.total.value), ship = Math.max(0, +F.shipping.value || 0);
       if (!/^0\d{9,10}$/.test(ph)) { err.textContent = 'Số điện thoại chưa đúng (10 số, bắt đầu bằng 0).'; F.phone.focus(); return; }
       if (!F.name.value.trim()) { err.textContent = 'Nhập tên khách.'; F.name.focus(); return; }
+      if (prov.value.trim() && !unitOf(prov.value.trim())) { err.textContent = 'Tỉnh / thành phố mới chưa đúng – chọn trong danh sách gợi ý.'; prov.focus(); return; }
       if (!ls.length) { err.textContent = 'Nhập ít nhất 1 sản phẩm.'; return; }
       if (!tot) { err.textContent = 'Nhập số tiền thu khách.'; F.total.focus(); return; }
       if (tot < ship) { err.textContent = 'Số tiền thu khách nhỏ hơn phí ship.'; $('#noOpts', m).open = true; return; }
       ls.forEach(function (i) { if (!i.price) i.price = Math.round((tot - ship) / ls.length / i.qty); }); // chưa có giá niêm yết: chia đều, máy tính lại theo tổng
       if (!eo) copy(shipText()); // copy ngay lúc bấm (điện thoại chỉ cho copy khi vừa bấm)
       var btn = this; btn.disabled = true; btn.textContent = 'Đang lưu…'; err.textContent = '';
-      var full = F.full.value.trim(), cu = { phone: ph, name: F.name.value.trim(), province: prov.value, ward: ward.value.trim(), address: full };
+      var full = F.full.value.trim(), cu = { phone: ph, name: F.name.value.trim(), province: prov.value.trim(), ward: ward.value.trim(), address: full, addrOld: oldText() };
       var otIn = $('input[name=otype]:checked', form), common = { customer: cu, items: ls, gifts: gs, total: tot, shipping: ship, payment: $('input[name=payment]:checked', form).value, otype: otIn ? otIn.value : undefined }; // máy chủ tính lại gợi ý, khác gợi ý → quản lý kiểm tra
       var fail = function (e) { btn.disabled = false; calc(); err.textContent = e.message; };
       if (eo) {

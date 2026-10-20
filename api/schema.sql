@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS orders (
   subtotal INTEGER DEFAULT 0, shipping INTEGER DEFAULT 0, total INTEGER DEFAULT 0, payment TEXT DEFAULT '', note TEXT DEFAULT '',
   status TEXT DEFAULT 'Mới', source TEXT DEFAULT '', first_source TEXT DEFAULT '', consent INTEGER DEFAULT 0, paid TEXT DEFAULT '',
   carrier TEXT DEFAULT '', tracking TEXT DEFAULT '', seller TEXT DEFAULT '', ca TEXT DEFAULT '', line TEXT DEFAULT '', ship TEXT DEFAULT '',
-  ship_at INTEGER, received_at INTEGER, otype TEXT DEFAULT '', oflag TEXT DEFAULT '', trk TEXT DEFAULT '', trk_at INTEGER, trk_code INTEGER DEFAULT 0
+  ship_at INTEGER, received_at INTEGER, otype TEXT DEFAULT '', oflag TEXT DEFAULT '', trk TEXT DEFAULT '', trk_at INTEGER, trk_code INTEGER DEFAULT 0, addr_old TEXT DEFAULT ''
 );
 CREATE INDEX IF NOT EXISTS orders_id ON orders(id);
 CREATE INDEX IF NOT EXISTS orders_phone ON orders(phone, time);
@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS customers (
   orders INTEGER DEFAULT 0, spent INTEGER DEFAULT 0, first INTEGER, last INTEGER, products TEXT DEFAULT '', runout INTEGER,
   consent INTEGER DEFAULT 0, source TEXT DEFAULT '', owner TEXT DEFAULT '', care_at INTEGER, care_result TEXT DEFAULT '',
   note TEXT DEFAULT '', callback INTEGER, flag TEXT DEFAULT '', tag TEXT DEFAULT '', last_status TEXT DEFAULT '', last_ca TEXT DEFAULT '',
-  last_seller TEXT DEFAULT ''
+  last_seller TEXT DEFAULT '', addr_old TEXT DEFAULT ''
 );
 CREATE INDEX IF NOT EXISTS customers_owner ON customers(owner);
 

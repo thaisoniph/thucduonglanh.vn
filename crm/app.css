@@ -161,6 +161,23 @@ textarea { min-height: 88px; resize: vertical; line-height: 1.45; }
 input:focus, select:focus, textarea:focus { outline: 2px solid rgba(31, 95, 58, .25); border-color: var(--primary); }
 .row2c { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 @media (max-width: 520px) { .row2c { grid-template-columns: 1fr; } }
+/* lên đơn: 2 địa chỉ mới / cũ (Misa) + ô gõ để tìm không cần dấu (addrPick trong app.js) */
+.no-addr2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.no-addr2-col { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 10px 12px 2px; background: var(--primary-soft); min-width: 0; }
+.no-addr2-col + .no-addr2-col { background: var(--gold-light); }
+.no-addr2-h { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; margin-bottom: 8px; }
+.no-addr2-h b { font-size: 14px; color: var(--ink); }
+.no-addr2-h .btn { margin-left: auto; }
+.no-addr2-h small { flex-basis: 100%; color: var(--muted); font-size: 12px; }
+.no-addr2 .hint { margin-top: -4px; }
+.no-addr2 .hint:empty { display: none; }
+@media (max-width: 620px) { .no-addr2 { grid-template-columns: 1fr; } }
+.apick { position: relative; }
+.apick-list { position: absolute; left: 0; right: 0; top: 100%; z-index: 30; margin-top: 2px; max-height: 260px; overflow-y: auto; background: #fff; border: 1px solid #d8d4c8; border-radius: 10px; box-shadow: var(--shadow-lg); }
+.apick-list button { display: block; width: 100%; text-align: left; border: 0; background: none; padding: 9px 12px; font: inherit; font-size: 15px; color: var(--ink); cursor: pointer; border-bottom: 1px solid var(--line); }
+.apick-list button:last-child { border-bottom: 0; }
+.apick-list button.on, .apick-list button:hover { background: var(--primary-light); }
+.apick-list small { display: block; color: var(--muted); font-size: 12px; }
 .quick { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px; }
 .quick .btn { justify-content: center; min-height: 44px; white-space: normal; text-align: center; line-height: 1.2; }
 

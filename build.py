@@ -2970,6 +2970,7 @@ def build_crm():
     for f in ("logo.webp", "icon-32.png", "icon-180.png", "icon-512.png"):
         shutil.copy(brand / f, out / f)
     shutil.copy(DATA / "vn-units.json", out / "vn-units.json")
+    shutil.copy(DATA / "vn-units-old.json", out / "vn-units-old.json")  # địa chỉ cũ 63 tỉnh + xã mới tương ứng (scripts/vn-units-old.py)
     products = [{"name": p["name"], "slug": p["slug"], "price": p.get("base_price"), "unit": p.get("unit", ""),
                  "variants": [{"name": v["name"], "price": v["price"]} for v in p.get("base_variants", [])]} for p in PRODUCTS]
     cfg = {"endpoint": (SITE.get("api_endpoint") or SITE.get("order_endpoint", "")), "shipping_fee": SITE.get("shipping_fee", 0),
