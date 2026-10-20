@@ -698,22 +698,45 @@
     if ($('#gsBtn')) $('#gsBtn').onclick = function () { openGlobalSearch(); };
     navBadges(); pendingBadge();
   }
-  /** 🔍 Tìm nhanh trên mọi tab (Đợt 2, 16/10/2026): gõ SĐT / tên / mã đơn → khách đã mua, đơn hàng, khách hỏi; bấm là mở. Chỉ tìm trong dữ liệu người dùng được xem (máy chủ đã lọc). */
+  /** 🔍 Tìm nhanh trên mọi tab (Đợt 2, 16/10/2026): gõ SĐT / tên / mã đơn → khách đã mua, đơn hàng, khách hỏi; bấm là mở. Chỉ tìm trong dữ liệu người dùng được xem (máy chủ đã lọc).
+   *  20/10/2026: gom theo người (số điện thoại) → mỗi người 1 dòng; đã mua thì mở hồ sơ khách (có cả lịch sử hỏi + đơn), chưa mua thì mở lượt hỏi gần nhất.
+   *  Đơn chỉ hiện riêng khi khớp theo mã đơn. */
   function openGlobalSearch(pre) {
     var m = modal('🔍 Tìm nhanh', '<input type="search" id="gsQ" placeholder="Số điện thoại, tên khách hoặc mã đơn" autocomplete="off" inputmode="search"><div id="gsRes" class="gs-res"><p class="muted small">Gõ ít nhất 2 chữ hoặc 3 số.</p></div>', '');
     var qi = $('#gsQ', m), out = $('#gsRes', m), tm = null; if (pre) qi.value = pre;
-    var it = function (href, title, sub) { return '<a class="gs-it" href="' + href + '"><b>' + title + '</b><span>' + sub + '</span></a>'; };
+    var it = function (href, title, sub, extra) { return '<a class="gs-it" href="' + href + '"><b>' + title + '</b><span>' + sub + '</span>' + (extra ? '<span class="gs-x">' + extra + '</span>' : '') + '</a>'; };
     var find = function () {
       var raw = qi.value.trim(), q = norm(raw), dg = raw.replace(/\D/g, ''), byPh = dg.length >= 3;
       if (q.length < 2 && !byPh) { out.innerHTML = '<p class="muted small">Gõ ít nhất 2 chữ hoặc 3 số.</p>'; return; }
       var hit = function (name, phone) { return (byPh && String(phone || '').indexOf(dg) >= 0) || (!byPh && norm(name).indexOf(q) >= 0); };
-      var cs = (S.d.customers || []).filter(function (c) { return c.orders > 0 && hit(c.name, c.phone); }).slice(0, 8);
-      var os = (S.d.orders || []).filter(function (o) { return norm(o.id).indexOf(q) >= 0 || hit(o.name, o.phone); }).sort(function (a, b) { return (b.time || 0) - (a.time || 0); }).slice(0, 6);
-      var ls = (S.d.leads || []).filter(function (l) { return hit(l.name, l.phone); }).sort(function (a, b) { return (b.time || 0) - (a.time || 0); }).slice(0, 6);
-      var h = '';
-      if (cs.length) h += '<h3>👤 Khách đã mua</h3>' + cs.map(function (c) { return it('#khach-hang/' + c.phone, esc(c.name || 'Khách') + ' · ' + fPhone(c.phone), c.orders + ' đơn · ' + moneyShort(c.spent || 0) + (c.owner ? ' · ' + esc(c.owner) : '')); }).join('');
-      if (os.length) h += '<h3>📦 Đơn hàng</h3>' + os.map(function (o) { return it('#don-hang/' + encodeURIComponent(o.id), esc(o.id) + ' · ' + esc(o.name || ''), fDate(o.time).slice(0, 5) + ' · ' + moneyShort(o.total || 0) + ' · ' + esc(o.status || '')); }).join('');
-      if (ls.length) h += '<h3>🙋 Khách hỏi</h3>' + ls.map(function (l) { return it('#tiem-nang/' + encodeURIComponent(l.id), esc(l.name || 'Khách') + ' · ' + fPhone(l.phone), esc(l.status || '') + ' · hỏi ' + fDate(l.time).slice(0, 5) + (l.owner ? ' · ' + esc(l.owner) : '')); }).join('');
+      var P = {}, keys = [], codeOs = [];
+      var person = function (ph) { var k = normPhone(ph) || String(ph || ''); if (!P[k]) { P[k] = { ph: k, os: [], ls: [], t: 0 }; keys.push(k); } return P[k]; };
+      (S.d.customers || []).forEach(function (c) { if (c.orders > 0 && hit(c.name, c.phone)) { var p = person(c.phone); p.c = c; p.t = Math.max(p.t, c.last || 0); } });
+      (S.d.orders || []).forEach(function (o) {
+        if (hit(o.name, o.phone)) { var p = person(o.phone); p.os.push(o); p.t = Math.max(p.t, o.time || 0); }
+        else if (/\d/.test(q) && norm(o.id).indexOf(q) >= 0) codeOs.push(o); // mã đơn luôn có số: gõ tên thì không kéo theo đơn có tên sale trong mã
+      });
+      (S.d.leads || []).forEach(function (l) { if (hit(l.name, l.phone)) { var p = person(l.phone); p.ls.push(l); p.t = Math.max(p.t, l.lastAt || l.time || 0); } });
+      keys.forEach(function (k) { var p = P[k]; if (!p.c && p.os.length) { var c = cust(k); if (c && c.orders > 0) p.c = c; } });
+      var byT = function (a, b) { return (b.time || 0) - (a.time || 0); };
+      var ppl = keys.map(function (k) { var p = P[k]; p.os.sort(byT); p.ls.sort(byT); return p; }).sort(function (a, b) { return (b.c ? 1 : 0) - (a.c ? 1 : 0) || b.t - a.t; }).slice(0, 10);
+      var oLine = function (o) { return '📦 ' + esc(o.id) + ' ' + esc((o.status || '').toLowerCase()) + ' ' + fDate(o.time).slice(0, 5); };
+      var lLine = function (l, n) { return '🙋 hỏi ' + fDate(l.time).slice(0, 5) + ' (' + esc((l.status || '').toLowerCase()) + ')' + (n > 1 ? ' · ' + n + ' lượt hỏi' : ''); };
+      var h = ppl.map(function (p) {
+        var c = p.c, o = p.os[0], l = p.ls[0], name = esc((c && c.name) || (o && o.name) || (l && l.name) || 'Khách') + ' · ' + fPhone(p.ph), x = [];
+        if (c) {
+          if (o) x.push(oLine(o)); if (l) x.push(lLine(l, p.ls.length));
+          return it('#khach-hang/' + c.phone, name, '👤 Khách đã mua · ' + c.orders + ' đơn · ' + moneyShort(c.spent || 0) + (c.owner ? ' · ' + esc(c.owner) : ''), x.join(' · '));
+        }
+        if (l) {
+          if (o) x.push(oLine(o));
+          return it('#tiem-nang/' + encodeURIComponent(l.id), name, lLine(l, p.ls.length).replace('🙋 hỏi', '🙋 Khách hỏi · hỏi') + (l.owner ? ' · ' + esc(l.owner) : ''), x.join(' · '));
+        }
+        return it('#don-hang/' + encodeURIComponent(o.id), name, oLine(o) + ' · ' + moneyShort(o.total || 0), p.os.length > 1 ? p.os.length + ' đơn' : '');
+      }).join('');
+      if (h) h = '<h3>👤 Người tìm thấy (' + ppl.length + ')</h3>' + h;
+      codeOs.sort(byT);
+      if (codeOs.length) h += '<h3>📦 Đơn khớp mã</h3>' + codeOs.slice(0, 6).map(function (o) { return it('#don-hang/' + encodeURIComponent(o.id), esc(o.id) + ' · ' + esc(o.name || ''), fDate(o.time).slice(0, 5) + ' · ' + moneyShort(o.total || 0) + ' · ' + esc(o.status || '')); }).join('');
       out.innerHTML = h || '<p class="muted small">Không thấy. Khách do người khác phụ trách thì bạn không thấy được, nhờ quản lý tra giúp.</p>';
     };
     qi.addEventListener('input', function () { clearTimeout(tm); tm = setTimeout(find, 150); });

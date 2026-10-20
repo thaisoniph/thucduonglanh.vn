@@ -185,7 +185,7 @@ Từ đó, CRM cho bạn biết mỗi ngày cần bán bao nhiêu. Thanh màu ch
 
 **Các nút trên cùng:**
 
-- **🔍** Tìm ở mọi tab: gõ tên, số điện thoại (từ 3 số) hoặc mã đơn. Máy tìm cùng lúc trong khách đã mua, đơn hàng và khách hỏi.
+- **🔍** Tìm ở mọi tab: gõ tên, số điện thoại (từ 3 số) hoặc mã đơn. Máy tìm cùng lúc trong khách đã mua, đơn hàng và khách hỏi. Mỗi người chỉ hiện **1 dòng** (gom theo số điện thoại): đã mua thì bấm vào mở hồ sơ khách, trong đó có cả lần hỏi và các đơn; chưa mua thì mở lượt hỏi. Gõ mã đơn thì hiện thêm mục **📦 Đơn khớp mã**.
 - **⟳** Tải lại: xem dữ liệu mới nhất, ví dụ khi đồng nghiệp vừa sửa.
 - **💡 Góp ý:** báo lỗi hoặc gửi ý tưởng.
 - **⚙** Cài đặt: nối Telegram, lấy link đặt hàng riêng của bạn.

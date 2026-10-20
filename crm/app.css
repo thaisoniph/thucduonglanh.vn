@@ -1026,7 +1026,7 @@ button:focus-visible, a:focus-visible, summary:focus-visible, [role="button"]:fo
 #gsQ { width: 100%; font-size: 16px; min-height: 44px; padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); }
 .gs-res { margin-top: 10px; } .gs-res h3 { font-size: 14px; margin: 14px 0 6px; color: var(--muted); }
 .gs-it { display: block; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); margin-bottom: 6px; text-decoration: none; color: var(--ink); background: var(--card); min-height: 44px; }
-.gs-it span { display: block; font-size: 13px; color: var(--muted); } .gs-it:hover { border-color: var(--primary); }
+.gs-it span { display: block; font-size: 13px; color: var(--muted); } .gs-it .gs-x { font-size: 12.5px; margin-top: 2px; } .gs-it:hover { border-color: var(--primary); }
 /* ✨ AI tóm tắt hồ sơ (Đợt 3) */
 .ai-box { margin: 10px 0; } .ai-out { margin-top: 8px; padding: 10px 12px; background: var(--primary-soft); border: 1px solid var(--primary-light); border-radius: var(--radius-sm); font-size: 14px; line-height: 1.5; color: var(--ink); }
 
