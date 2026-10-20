@@ -4680,7 +4680,8 @@
     price1: /^(gia uu dai|unitprice|unit price|don gia)$/,
     price0: /^(gia goc|sku unit original price)$/,
     voucher: /^(ma giam gia cua shop|voucher cua shop|shop voucher)$/,
-    fee: /^(phi co dinh|phi dich vu|phi thanh toan)$/,
+    fee: /^(phi co dinh|phi dich vu|phi thanh toan|phi xu ly giao dich)$/,
+    lvl: /^(don hang \/ san pham)$/, // file Thu nhập Shopee: mỗi đơn có 1 dòng Order + các dòng Sku lặp lại số tiền
     refund: /^(order refund amount|so tien hoan tra|so tien hoan lai|so tien hoan tien)$/,
     net: /^(tong tien da thanh toan|tong so tien da thanh toan|so tien thanh toan|tong thu nhap|so tien quyet toan|total settlement amount|settlement amount|so tien da nhan|tong so tien nguoi ban nhan duoc|so tien nguoi ban nhan duoc|thanh toan cho nguoi ban)$/
   };
@@ -4719,7 +4720,7 @@
     var shop = /order id|id don hang|sku id|order\/adjustment id|tiktok/.test(hn) ? 'TikTok Shop' : /ordernumber|orderitemid|lazada/.test(hn) ? 'Lazada' : 'Shopee';
     var kind = mm.status == null && mm.net != null ? 'income' : 'orders';
     if (kind === 'income') {
-      var I = {}, sum = 0; R.forEach(function (r) { var id = sanId(g(r, 'id')); if (!id) return; var v = nb(r, 'net'); I[id] = (I[id] || 0) + v; sum += v; });
+      var I = {}, sum = 0; R.forEach(function (r) { var id = sanId(g(r, 'id')); if (!id || norm(g(r, 'lvl')).trim() === 'sku') return; var v = nb(r, 'net'); I[id] = (I[id] || 0) + v; sum += v; });
       var ir = Object.keys(I).map(function (id) { return { id: id, net: I[id] }; });
       return ir.length ? { kind: kind, shop: shop, rows: ir, sum: sum } : { err: 'File tiền về không có dòng nào có mã đơn.' };
     }
@@ -4740,10 +4741,10 @@
       var s = norm(o.status + ' ' + o.sub), rt = norm(o.ret), state = 'ok', refund = 0;
       if (/huy|cancel/.test(s)) state = 'cancel';
       else if (/cho thanh toan|chua thanh toan|unpaid|awaiting payment/.test(s)) state = 'wait';
-      else if (/khong thanh cong|that bai|failed|tra hang|hoan hang|returned|da hoan/.test(s)) state = 'return';
+      else if (!/da nhan duoc hang/.test(s) && /khong thanh cong|that bai|failed|tra hang|hoan hang|returned|da hoan/.test(s)) state = 'return'; // Shopee: "Người mua xác nhận đã nhận được hàng, tuy nhiên vẫn có thể gửi yêu cầu Trả hàng…" là đơn thành công
       if (state === 'ok') {
         if (o.rf > 0) refund = o.rf;
-        else if (rt && !/tu choi|rejected|huy|cancel|dong yeu cau|closed/.test(rt) && /chap nhan|dong y|hoan tien thanh cong|da hoan tien|da tra hang|accepted|approved|refunded|completed/.test(rt)) refund = o.rv > 0 ? o.rv : o.gmv; // yêu cầu đang xem xét: chưa trừ
+        else if (rt && !/tu choi|rejected|huy|cancel|dong yeu cau|closed/.test(rt) && /chap nhan|chap thuan|dong y|hoan tien thanh cong|da hoan tien|da tra hang|accepted|approved|refunded|completed/.test(rt)) refund = o.rv > 0 ? o.rv : o.gmv; // yêu cầu đang xem xét: chưa trừ
         if (o.gmv > 0 && refund >= o.gmv) { state = 'return'; refund = 0; }
       }
       n[state]++; var sk = o.status + (o.ret ? ' · ' + o.ret : ''); (st[sk] = st[sk] || [0, state])[0]++;

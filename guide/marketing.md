@@ -174,4 +174,7 @@ Nối Telegram ở **⚙ Cài đặt → 📲 Thông báo Telegram riêng** (cá
 
 Tải lại đơn cũ **không bị tính trùng**. Nên tải luôn 30 ngày gần nhất. Muốn có **tiền thực về** đúng: tải thêm file tiền về (Shopee: **Tài Chính → Doanh Thu → Đã thanh toán → Xuất**; TikTok: **Tài chính → Đối soát**) bằng cùng nút 📤.
 
+- Shopee thường cho tải về **2 file tiền về**: file `Income…` (đơn bán trong nước) và file `shopee_xi_Income…` (đơn bán qua Shopee nước ngoài). Tải lên **cả 2 file**, mỗi lần 1 file.
+- Luôn tải **file đơn hàng trước**, sau đó mới tải file tiền về. Đơn nào chưa có trong CRM thì CRM chưa ghi được tiền về. Muốn có tiền về của tháng trước thì tải thêm file đơn hàng của tháng đó.
+
 File không đọc được: chụp màn hình gửi Quản trị. File .xls cũ thì mở bằng Excel hoặc Google Sheets, lưu lại thành .xlsx.
