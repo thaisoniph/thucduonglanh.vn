@@ -2224,6 +2224,7 @@
     if (!String(text || '').trim()) return { province: '', ward: '' }; // địa chỉ trống: không đoán tỉnh
     u.forEach(function (p) { [p.n, p.f].forEach(function (nm) { if (!nm) return; var k = ' ' + norm(nm) + ' '; if (t.indexOf(k) >= 0 && (!prov || nm.length > prov._len)) { prov = p; prov._len = nm.length; } }); });
     if (!prov) Object.keys(PROV_ALIAS).forEach(function (k) { if (!prov && t.indexOf(' ' + k + ' ') >= 0) prov = u.filter(function (p) { return p.n === PROV_ALIAS[k]; })[0] || null; });
+    if (!prov) { var pv = provOf({ address: text }); if (pv) prov = u.filter(function (p) { return p.n === pv.nw; })[0] || null; } // tên tỉnh cũ trước sáp nhập (Vĩnh Phúc → Phú Thọ…)
     var pool = prov ? [prov] : u, best = '';
     pool.forEach(function (p) {
       p.w.forEach(function (w) {
@@ -2317,7 +2318,7 @@
     var src0 = store('crm_osrc'); if (SOURCES.indexOf(src0) < 0) src0 = SOURCES[0]; // nhớ lựa chọn lần trước của từng người
     var ot0 = eo ? otypeOf(eo) : '', otField = '<div class="f otype"><span class="lbl">Loại đơn (tính hoa hồng)</span><div class="radios ot4">' + OTYPES.map(function (t) { return '<label><input type="radio" name="otype" value="' + t + '"' + (t === ot0 ? ' checked' : '') + '><span><b>' + OT[t][0] + ' ' + t + '</b><small>' + esc(OT[t][1]) + '</small></span></label>'; }).join('') + '</div><p class="hint" id="noOtHint" style="margin:6px 0 0"></p></div>';
     var body = '<form id="noForm" novalidate>' +
-      (lead ? '<div class="notice info">🛒 Chốt đơn cho khách hỏi <b>' + esc(lead.name) + '</b>. Lưu đơn xong, khách tự chuyển sang “Đã chốt”.</div>' : '') +
+      (lead ? '<div class="notice info">🛒 Chốt đơn cho khách hỏi <b>' + esc(lead.name || lead.phone || '') + '</b>. Lưu đơn xong, khách tự chuyển sang “Đã chốt”.</div>' : '') +
       (eo ? '<div class="notice">Đang sửa đơn <b>' + esc(eo.id) + '</b>. Lưu xong, số đơn / tổng chi của khách được tính lại.</div>' : '') +
       '<div class="box"><h3>Khách hàng</h3>' +
       (eo ? '' : '<details class="paste"' + (c0 ? '' : ' open') + '><summary>📋 Dán tin nhắn của khách</summary><textarea id="noPaste" rows="3" placeholder="Dán nguyên tin Zalo của khách (tên, số điện thoại, địa chỉ) – CRM tự tách vào các ô dưới"></textarea><p class="hint" id="noPasteHint" style="margin:4px 0 10px"></p></details>') +
@@ -2343,7 +2344,7 @@
         '<label class="switch"><input type="checkbox" name="consent"' + (c0 && c0.consent ? ' checked' : '') + '> Khách đồng ý nhận tin ưu đãi</label>') + '</details>' +
       '<p class="hint" style="margin:10px 0 0">📦 <span id="noShip"></span> · <a href="#" id="noCopy">copy</a>' + (eo ? ' · Mã đơn <b>' + esc(eo.id) + '</b>' : '') + '</p></div>' +
       '<p class="err" id="noErr"></p></form>';
-    var m = modal(eo ? 'Sửa đơn ' + esc(eo.id) : lead ? 'Chốt đơn: ' + esc(lead.name) : 'Lên đơn mới', body, '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="noSave">Lưu đơn</button>');
+    var m = modal(eo ? 'Sửa đơn ' + esc(eo.id) : lead ? 'Chốt đơn: ' + esc(lead.name || lead.phone || 'khách hỏi') : 'Lên đơn mới', body, '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="noSave">Lưu đơn</button>');
     var form = $('#noForm', m), F = form.elements, items = $('#noItems', m), gifts = $('#noGifts', m), prov = F.province, ward = F.ward, totalEdited = !!eo, curC = c0 && !c0.isLead && !eo ? c0 : null;
     loadUnits().then(function (u) {
       prov.innerHTML = '<option value="">– Chọn –</option>' + u.map(function (p) { return '<option>' + esc(p.n) + '</option>'; }).join('');
