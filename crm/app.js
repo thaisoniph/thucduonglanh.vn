@@ -4716,6 +4716,7 @@
       return { err: 'Không nhận ra file. Cần file <b>đơn hàng</b> (có cột Mã đơn hàng + Ngày đặt hàng) hoặc file <b>tiền về</b> (Mã đơn hàng + số tiền thanh toán).<br><span class="muted">Đầu file: ' + esc(hd.slice(0, 300)) + '</span>' };
     }
     var mm = best.mm, R = best.rows.slice(best.hi + 1), hn = norm(best.rows[best.hi].join('|'));
+    if (!R.some(function (r) { return r.some(function (v) { return v !== ''; }); })) return { err: 'File này <b>không có đơn nào</b> (chỉ có dòng tiêu đề). Trên Shopee hãy bấm tab <b>Tất cả</b> rồi mới bấm Xuất (file đúng có tên bắt đầu bằng <b>Order.all</b>; tên có chữ <i>toship</i> là đang ở tab Chờ lấy hàng).' };
     var g = function (r, k) { return mm[k] == null ? '' : r[mm[k]]; }, nb = function (r, k) { return mm[k] == null ? 0 : sanNum(r[mm[k]]); };
     var shop = /order id|id don hang|sku id|order\/adjustment id|tiktok/.test(hn) ? 'TikTok Shop' : /ordernumber|orderitemid|lazada/.test(hn) ? 'Lazada' : 'Shopee';
     var kind = mm.status == null && mm.net != null ? 'income' : 'orders';
