@@ -168,7 +168,7 @@ Nối Telegram ở **⚙ Cài đặt → 📲 Thông báo Telegram riêng** (cá
 
 **Cách 2: Tải file đơn hàng từ sàn** (có thêm sản phẩm bán chạy và tiền thực về)
 
-1. **Shopee:** Kênh Người Bán → **Đơn hàng** → Tất cả → **Xuất** → chọn **30 ngày gần nhất** → tải file. **TikTok Shop:** Seller Center → **Đơn hàng → Quản lý đơn hàng** → **Xuất**.
+1. **Shopee:** Kênh Người Bán → **Đơn hàng** → bấm tab **Tất cả** (không phải tab Chờ lấy hàng) → **Xuất** → chọn **30 ngày gần nhất** → tải file. **TikTok Shop:** Seller Center → **Đơn hàng → Quản lý đơn hàng** → **Xuất**.
 2. Vào CRM → tab **Sàn** → **📤 Tải file từ sàn** → chọn file. CRM cho xem trước số đơn, doanh số.
 3. Bấm **Nhập**.
 
