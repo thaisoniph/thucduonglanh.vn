@@ -958,6 +958,7 @@ async function crmOrderEdit(x, u, d) {
   const set = { name: String(c.name).trim(), phone, province: c.province || '', ward: c.ward || '', address: c.address || '', items: itemsText(items), subtotal: sub, shipping: ship, total: sub + ship, payment: d.payment === 'bank' ? 'Chuyển khoản' : 'COD',
     ship: shipText(items), line: lineOf(items.filter(i => !i.gift).map(i => i.name + ' ' + i.variant).join(' ')) };
   if (c.addrOld !== undefined) set.addr_old = String(c.addrOld || '').slice(0, 300);
+  if (d.carrier) set.carrier = String(d.carrier).slice(0, 40);
   if (OTYPES.indexOf(d.otype) >= 0 && d.otype !== o.otype) { // đổi loại đơn: quản lý → xong; nhân viên khác gợi ý → chờ quản lý kiểm tra
     set.otype = d.otype; set.ca = otypeCa(d.otype); set.oflag = u.level >= 2 ? '' : otypeFlag(d.otype, await otypeSuggest(x, phone, Number(o.time) || Date.now()));
   }
@@ -1133,6 +1134,7 @@ async function crmOrderCreate(x, u, d) {
     { by: u.name, status: ORDER_STATUS.indexOf(d.status) >= 0 ? d.status : 'Đã xác nhận', ca: otypeCa(otype), otype, oflag });
   await run(x.db, "UPDATE customers SET owner = ? WHERE phone = ? AND (owner = '' OR owner IS NULL)", u.name, phone);
   const ao = String(c.addrOld || '').trim().slice(0, 300); // địa chỉ cũ (Misa) – lưu vào đơn + hồ sơ khách để lần sau tự điền
+  if (d.carrier) await run(x.db, 'UPDATE orders SET carrier = ? WHERE id = ? AND phone = ?', String(d.carrier).slice(0, 40), id, phone); // đơn vị vận chuyển chọn lúc lên đơn
   if (ao) { await run(x.db, 'UPDATE orders SET addr_old = ? WHERE id = ? AND phone = ?', ao, id, phone); await run(x.db, 'UPDATE customers SET addr_old = ? WHERE phone = ?', ao, phone); }
   await crmLog(x, u, 'Tạo đơn', id, c.name, fmt(sub + ship), src);
   await wbSafe(async () => { // ghi ngược vào sheet lên đơn của sale
