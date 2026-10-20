@@ -177,7 +177,7 @@
     function fallback() { var t = document.createElement('textarea'); t.value = text; t.style.position = 'fixed'; t.style.opacity = '0'; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); } catch (e) { } t.remove(); }
   }
 
-  var SERVER_V = '2026-10-20d'; // phải trùng số phiên bản máy chủ (api/src/index.js)
+  var SERVER_V = '2026-10-20e'; // phải trùng số phiên bản máy chủ (api/src/index.js)
   var ON_CF = !/script\.google/.test(CFG.endpoint || ''); // máy chủ Cloudflare (nhanh) hay Apps Script cũ
   function checkVersion(j) {
     if (j && j.v) S.srvV = j.v;
@@ -2428,7 +2428,7 @@
       '<div class="f"><span class="lbl">Phí vận chuyển</span><div class="radios"><label><input type="radio" name="shipmode" value="free"' + (free0 ? ' checked' : '') + '><span>Miễn phí vận chuyển</span></label><label><input type="radio" name="shipmode" value="add"' + (free0 ? '' : ' checked') + '><span>Cộng phí ship</span></label></div></div>' +
       '<label class="f" id="noShipFee"' + (free0 ? ' hidden' : '') + '><span>Phí ship cộng vào tiền thu khách</span><input type="number" name="shipping" min="0" step="1000" inputmode="numeric" value="' + (free0 ? 0 : fee0) + '"></label>' +
       '<label class="f"><span>Mã đơn' + (eo ? ' (không đổi được khi sửa)' : '') + '</span><input type="text" name="code" autocomplete="off" value="' + (eo ? esc(eo.id) : '') + '"' + (eo ? ' readonly' : '') + '></label>' +
-      (eo ? '' : '<p class="hint" id="noCodeHint">Tự điền: tên + ngày + tháng + số thứ tự đơn trong ngày (giống cột Mã đơn trong file của bạn). Gửi Viettel Post thì thêm chữ V ở đầu.</p>') +
+      (eo ? '' : '<p class="hint" id="noCodeHint">Tự điền: tên + ngày + tháng + năm + số thứ tự đơn trong ngày, ghi vào cột Mã đơn trong file của bạn. Gửi Viettel Post thì thêm chữ V ở đầu.</p>') +
       (eo ? '<label class="f"><span>Lý do sửa (không bắt buộc)</span><input type="text" name="reason" placeholder="vd: khách đổi sang hộp 400g"></label>' : '<label class="f"><span>Ghi chú giao hàng</span><textarea name="note" rows="2" placeholder="vd: giao giờ hành chính, gọi trước khi giao"></textarea></label>') +
       '<details class="addr-more opts" id="noOpts"><summary>⚙️ <span id="noOptSum"></span></summary>' +
       (eo ? '' : (lead ? '' : '<label class="f"><span>Khách đặt qua</span><select name="source">' + SOURCES.map(function (s) { return '<option' + (s === src0 ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select></label>') +
@@ -2623,9 +2623,9 @@
       $('#noShipFee', m).hidden = !add; F.shipping.value = add ? (fee || +F.shipping.value || CFG.shipping_fee || 30000) : 0; calc();
     }
     $$('input[name=shipmode]', form).forEach(function (r) { r.addEventListener('change', function () { setShipMode(r.value === 'add'); }); });
-    /* ---- mã đơn: <V nếu Viettel Post><tên của bạn><ddMM><số thứ tự 2 chữ số trong ngày>, vd Phuong201001, VPhuong201002 – khớp cột Mã đơn file sale.
+    /* ---- mã đơn: <V nếu Viettel Post><tên của bạn><ddMMyy><số thứ tự 2 chữ số trong ngày>, vd Phuong20102601, VPhuong20102602 – ghi vào cột Mã đơn file sale.
      *  Sale tự sửa ô thì giữ chữ của sale (đổi hãng chỉ thêm / bỏ chữ V). Máy chủ kiểm tra trùng; mã tự điền trùng thì máy chủ tự lấy số kế tiếp. */
-    var codeAuto = !eo, codePre = (S.user && S.user.prefix) || slugName(S.user && S.user.name), codeDay = (function () { var x = vnDate(Date.now()); return pad(x.d) + pad(x.m); })();
+    var codeAuto = !eo, codePre = (S.user && S.user.prefix) || slugName(S.user && S.user.name), codeDay = (function () { var x = vnDate(Date.now()); return pad(x.d) + pad(x.m) + String(x.y).slice(-2); })();
     function isVtp() { var c = $('input[name=carrier]:checked', form); return !!c && c.value === 'Viettel Post'; }
     function codeSuggest() {
       var base = codePre + codeDay, t0 = dayStart(Date.now()), n = 0;

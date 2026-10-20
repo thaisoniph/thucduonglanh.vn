@@ -56,10 +56,12 @@ function dateCtx(rows, m) { return { us: usDates(rows.map(r => cell(r, m, 'date'
 /** Ngày trong mã đơn: tên + ngày + tháng + số thứ tự trong ngày ("Chang090601" = 09/06 đơn 01). Tên có thể có dấu, dấu chấm, khoảng trắng
  *  ("Lương 010401", "T.THUY240701"), sau số có thể có chữ ("Chang250401A", "THU120501 - 1 GAFO 500G"). 7 chữ số: ddMM + 3 số hoặc 0 + ddMM + 2 số
  *  ("TUAN0141101"), hoặc gõ thừa số → trả mọi cách đọc hợp lệ [[ngày, tháng]]. */
-const CODE_RE = /^[\p{L}.\s]{2,16}?(\d{5,7})(?!\d)/u;
+const CODE_RE = /^[\p{L}.\s]{2,16}?(\d{5,8})(?!\d)/u; // 8 chữ số: mã CRM tạo từ 20/10/2026 = ddMMyy + số thứ tự (Phuong20102601)
 function codeDays(code) {
   const m = String(code || '').trim().match(CODE_RE); if (!m) return [];
   const D = m[1], out = [];
+  if (D.length === 8 && !(+D.substr(4, 2) >= 24 && +D.substr(4, 2) <= +fmtDate(Date.now(), 'yy') + 1)) return []; // 8 số mà năm không hợp lý → gõ thừa số, không đọc ngày
+  // 8 số: ddMMyyNN → ngày, tháng ở 4 số đầu
   for (const i of D.length === 7 ? [0, 1] : [0]) { const d = +D.substr(i, 2), mo = +D.substr(i + 2, 2); if (d >= 1 && d <= 31 && mo >= 1 && mo <= 12) out.push([d, mo]); }
   return out;
 }
@@ -71,7 +73,7 @@ const OWN_ALIAS = { CHANG: ['TRANG'] }; // sale ghi mã bằng tên khác (anh S
 const unsign = v => String(v || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'D').replace(/[^A-Za-z]/g, '').toUpperCase();
 function lev(a, b) { const d = Array.from({ length: b.length + 1 }, (_, j) => j); for (let i = 1; i <= a.length; i++) { let p = d[0]; d[0] = i; for (let j = 1; j <= b.length; j++) { const t = d[j]; d[j] = Math.min(d[j] + 1, d[j - 1] + 1, p + (a[i - 1] === b[j - 1] ? 0 : 1)); p = t; } } return d[b.length]; }
 function codeOwner(code, sale) {
-  const m = String(code || '').trim().match(/^([\p{L}.\s]{2,16}?)\s*\d{5,7}(?!\d)/u); if (!m) return '';
+  const m = String(code || '').trim().match(/^([\p{L}.\s]{2,16}?)\s*\d{5,8}(?!\d)/u); if (!m) return '';
   let pre = unsign(m[1]).replace(/^V(?=[A-Z]{3})/, ''); // "VTrang…", "VLuong…": đơn gửi lại
   if (!pre || /VP|GHTK|DOI/.test(pre)) return ''; // mã Viettel Post / GHTK / "đã đổi VP"
   const last = unsign(String(sale || '').trim().split(/\s+/).pop()); if (!last) return '';
@@ -326,7 +328,7 @@ async function importOrders(x, src, shCfg, data, dry) {
     const D = days[ri], when = D.t, sw = D.sw || D.code; // ngày theo mã đơn (ô trống / lệch ô ngày); 12/10/2026: sheet VTG_lendon của Chang bỏ trống ngày 260 dòng
     if (!phone || !when || (!product && !amount)) { if (nonEmpty(r)) skip++; continue; }
     if (D.far && far.length < 30) far.push({ row: ri + (shCfg.header || 1) + 1, code: codeRaw, date: fmtDate(D.old, 'dd/MM/yyyy') });
-    const valid = CODE_RE.test(codeRaw) || /^[A-Za-z]{2,}\d{5,}/.test(codeRaw);
+    const valid = CODE_RE.test(codeRaw) || /^\p{L}{2,}\d{5,}/u.test(codeRaw);
     const nkOf = t => { const hk = sale + '|' + fmtDate(t, 'yyyyMMdd') + '|' + fp + '|' + amount + '|' + nrm(product); return ['NK' + hashKey(hk), 'NK' + hashKeyLegacy(hk)]; };
     const [nk, old] = nkOf(when), prev = D.old && fmtDate(D.old, 'yyyyMMdd') !== fmtDate(when, 'yyyyMMdd') ? nkOf(D.old) : [];
     const key = valid ? codeRaw : nk, alt = (valid ? [nk, old] : [old]).concat(prev); // alt: mã NK… cùng dòng (Apps Script cũ băm chữ có dấu thành "?"; sale điền mã đơn sau khi đã nhập; ngày cũ theo ô trước khi lấy theo mã)

@@ -1105,10 +1105,10 @@ async function crmMergeSkip(x, u, d) {
   await crmLog(x, u, 'Gộp khách', '-', '', 'Không phải 1 người', k.split('|').join(', '));
   return { ok: true };
 }
-/** Mã đơn theo sale, giống cột Mã đơn trong file sale (anh Sơn 20/10/2026): <V nếu gửi Viettel Post><tiền tố><ddMM><số thứ tự 2 chữ số trong ngày>,
- *  ví dụ Phuong201001, VPhuong201002. Số thứ tự đếm chung đơn có / không có chữ V của sale trong ngày (36 tiếng gần nhất để năm sau không đếm nhầm). */
+/** Mã đơn theo sale (anh Sơn 20/10/2026): <V nếu gửi Viettel Post><tiền tố><ddMMyy><số thứ tự 2 chữ số trong ngày>,
+ *  ví dụ Phuong20102601, VPhuong20102602 (sync.js CODE_RE đọc được 8 chữ số). Số thứ tự đếm chung đơn có / không có chữ V của sale trong ngày (36 tiếng gần nhất để năm sau không đếm nhầm). */
 async function nextCode(x, u, now, vtp) {
-  const y = (await crmUsers(x)).find(z => z.email === u.email) || u, base = (y.prefix || slugName(u.name)) + fmtDate(now, 'ddMM');
+  const y = (await crmUsers(x)).find(z => z.email === u.email) || u, base = (y.prefix || slugName(u.name)) + fmtDate(now, 'ddMMyy');
   let n = 0; for (const r of await all(x.db, 'SELECT id FROM orders WHERE (substr(id, 1, ?) = ? OR substr(id, 1, ?) = ?) AND time > ?', base.length, base, base.length + 1, 'V' + base, now - 36 * 3600e3)) {
     const t = r.id.charAt(0) === 'V' && r.id.indexOf('V' + base) === 0 ? r.id.slice(base.length + 1) : r.id.slice(base.length), k = t.match(/^(\d{2})(?![\d-])/); if (k) n = Math.max(n, +k[1]); // bỏ mã kiểu cũ Phuong201026-01 (ddMMyy-số)
   }
