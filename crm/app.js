@@ -52,6 +52,10 @@
   var LOST_REASONS = ['Giá cao', 'Chưa có nhu cầu', 'Đã mua nơi khác', 'Không liên lạc được', 'Khác'];
   // Đơn vị vận chuyển → link tra cứu ({c} = mã vận đơn). Hãng không có link thẳng thì mở trang tra cứu, mã được copy sẵn để dán.
   var CARRIERS = { 'Viettel Post': 'https://viettelpost.vn/viettelpost-iframe/tra-cuu-hanh-trinh-don-hang-v3-recaptcha?orderString={c}', 'BEST Express': 'https://www.best-inc.vn/track?bills={c}', 'GHN': 'https://donhang.ghn.vn/?order_code={c}', 'GHTK': 'https://i.ghtk.vn/{c}', 'J&T Express': 'https://jtexpress.vn/vi/tracking?type=track&billcode={c}', 'SPX Express': 'https://spx.vn/track?{c}', 'VNPost': 'https://vnpost.vn/', 'Xe ôm': '', 'Ahamove': '', 'Grab / Be': '', 'Tự giao': '' };
+  var CAR_MAIN = ['BEST Express', 'Viettel Post', 'Xe ôm', 'Grab / Be']; // hãng hay dùng hiện sẵn ở form lên đơn, hãng khác bấm "＋ Hãng khác" (anh Sơn 20/10/2026)
+  /** Ghi chú giao hàng hay dùng – bấm để thêm / bỏ trong ô ghi chú. Cặp trái nghĩa (cho / không cho xem hàng, sáng / chiều) bấm cái này thì bỏ cái kia. */
+  var NOTE_QUICK = ['Gọi trước khi giao', 'Giao giờ hành chính', 'Cho xem hàng', 'Không cho xem hàng', 'Giao buổi sáng', 'Giao buổi chiều', 'Giao cuối tuần', 'Gửi bảo vệ / lễ tân', 'Giao gấp'];
+  var NOTE_PAIR = { 'Cho xem hàng': 'Không cho xem hàng', 'Không cho xem hàng': 'Cho xem hàng', 'Giao buổi sáng': 'Giao buổi chiều', 'Giao buổi chiều': 'Giao buổi sáng' };
 
 
   /** Tên hãng chuẩn của đơn: khớp tên gõ tay (vd "viettelpost", "Best") với danh sách. Chưa có hãng thì đoán như máy chủ (shipFromCode):
@@ -2396,6 +2400,7 @@
     var fullAddr = c0 ? [c0.address, c0.ward, c0.province].filter(Boolean).join(', ') : '';
     var src0 = store('crm_osrc'); if (SOURCES.indexOf(src0) < 0) src0 = SOURCES[0]; // nhớ lựa chọn lần trước của từng người
     var car0 = eo ? carrierOf(eo) : 'BEST Express'; // đơn mới mặc định BEST Express (anh Sơn 20/10/2026)
+    var carMore = Object.keys(CARRIERS).filter(function (k) { return CAR_MAIN.indexOf(k) < 0; }), carOpen = carMore.indexOf(car0) >= 0; // hãng ít dùng thu gọn, đơn gửi hãng khác thì mở sẵn
     var free0 = !(eo && eo.shipping > 0), fee0 = eo && eo.shipping > 0 ? eo.shipping : CFG.shipping_fee || 30000; // mặc định miễn phí vận chuyển
     var ot0 = eo ? otypeOf(eo) : '', otField = '<div class="f otype"><span class="lbl">Loại đơn (tính hoa hồng)</span><div class="radios ot4">' + OTYPES.map(function (t) { return '<label><input type="radio" name="otype" value="' + t + '"' + (t === ot0 ? ' checked' : '') + '><span><b>' + OT[t][0] + ' ' + t + '</b><small>' + esc(OT[t][1]) + '</small></span></label>'; }).join('') + '</div><p class="hint" id="noOtHint" style="margin:6px 0 0"></p></div>';
     var body = '<form id="noForm" novalidate>' +
@@ -2424,12 +2429,14 @@
       '<div class="items" id="noGifts" style="margin-top:8px">' + sGifts.map(function (i) { return row('gift', i); }).join('') + '</div></div>' +
       '<div class="box">' + otField + '<label class="f"><span>Số tiền thu khách *</span><input type="text" name="total" inputmode="decimal" autocomplete="off" placeholder="vd 1800000 hoặc 1tr8" value="' + (eo ? eo.total : '') + '"></label><p class="hint" id="noTotalHint"></p>' +
       '<div class="f"><span class="lbl">Thanh toán</span><div class="radios"><label><input type="radio" name="payment" value="cod"' + (eo && isBank(eo) ? '' : ' checked') + '><span>COD (trả khi nhận)</span></label><label><input type="radio" name="payment" value="bank"' + (eo && isBank(eo) ? ' checked' : '') + '><span>Chuyển khoản</span></label></div></div>' +
-      '<div class="f"><span class="lbl">Đơn vị vận chuyển</span><div class="radios">' + Object.keys(CARRIERS).map(function (k) { return '<label><input type="radio" name="carrier" value="' + esc(k) + '"' + (k === car0 ? ' checked' : '') + '><span>' + esc(k) + '</span></label>'; }).join('') + '</div></div>' +
+      '<div class="f"><span class="lbl">Đơn vị vận chuyển</span><div class="radios">' + CAR_MAIN.concat(carMore).map(function (k) { var x = CAR_MAIN.indexOf(k) < 0; return '<label' + (x ? ' class="no-car-x"' + (carOpen ? '' : ' hidden') : '') + '><input type="radio" name="carrier" value="' + esc(k) + '"' + (k === car0 ? ' checked' : '') + '><span>' + esc(k) + '</span></label>'; }).join('') +
+        (carOpen ? '' : '<button type="button" class="chip" id="noCarMore">＋ Hãng khác</button>') + '</div></div>' +
       '<div class="f"><span class="lbl">Phí vận chuyển</span><div class="radios"><label><input type="radio" name="shipmode" value="free"' + (free0 ? ' checked' : '') + '><span>Miễn phí vận chuyển</span></label><label><input type="radio" name="shipmode" value="add"' + (free0 ? '' : ' checked') + '><span>Cộng phí ship</span></label></div></div>' +
       '<label class="f" id="noShipFee"' + (free0 ? ' hidden' : '') + '><span>Phí ship cộng vào tiền thu khách</span><input type="number" name="shipping" min="0" step="1000" inputmode="numeric" value="' + (free0 ? 0 : fee0) + '"></label>' +
       '<label class="f"><span>Mã đơn' + (eo ? ' (không đổi được khi sửa)' : '') + '</span><input type="text" name="code" autocomplete="off" value="' + (eo ? esc(eo.id) : '') + '"' + (eo ? ' readonly' : '') + '></label>' +
-      (eo ? '' : '<p class="hint" id="noCodeHint">Tự điền: tên + ngày + tháng + năm + số thứ tự đơn trong ngày, ghi vào cột Mã đơn trong file của bạn. Gửi Viettel Post thì thêm chữ V ở đầu.</p>') +
-      (eo ? '<label class="f"><span>Lý do sửa (không bắt buộc)</span><input type="text" name="reason" placeholder="vd: khách đổi sang hộp 400g"></label>' : '<label class="f"><span>Ghi chú giao hàng</span><textarea name="note" rows="2" placeholder="vd: giao giờ hành chính, gọi trước khi giao"></textarea></label>') +
+      (eo ? '' : '<p class="hint" id="noCodeHint">Tự điền: tên + ngày tháng năm + gạch + số thứ tự đơn trong ngày (vd Phuong201026-01), ghi vào cột Mã đơn trong file của bạn. Gửi Viettel Post thì thêm chữ V ở đầu.</p>') +
+      (eo ? '<label class="f"><span>Lý do sửa (không bắt buộc)</span><input type="text" name="reason" placeholder="vd: khách đổi sang hộp 400g"></label>' : '<div class="f"><span class="lbl">Ghi chú giao hàng <span class="muted small" style="font-weight:400">· bấm để thêm nhanh</span></span><div class="chips wrap" id="noNoteChips">' + NOTE_QUICK.map(function (t) { return '<button type="button" class="chip" data-nq="' + esc(t) + '">' + esc(t) + '</button>'; }).join('') + '</div>' +
+        '<textarea name="note" rows="2" placeholder="Ghi thêm nếu cần, vd: giao sau 17h, gửi nhà hàng xóm số 12"></textarea></div>') +
       '<details class="addr-more opts" id="noOpts"><summary>⚙️ <span id="noOptSum"></span></summary>' +
       (eo ? '' : (lead ? '' : '<label class="f"><span>Khách đặt qua</span><select name="source">' + SOURCES.map(function (s) { return '<option' + (s === src0 ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select></label>') +
         '<div class="f"><span class="lbl">Trạng thái</span><div class="radios"><label><input type="radio" name="status" value="Đã xác nhận" checked><span>Đã chốt với khách</span></label><label><input type="radio" name="status" value="Mới"><span>Chưa xác nhận</span></label></div></div>' +
@@ -2623,14 +2630,14 @@
       $('#noShipFee', m).hidden = !add; F.shipping.value = add ? (fee || +F.shipping.value || CFG.shipping_fee || 30000) : 0; calc();
     }
     $$('input[name=shipmode]', form).forEach(function (r) { r.addEventListener('change', function () { setShipMode(r.value === 'add'); }); });
-    /* ---- mã đơn: <V nếu Viettel Post><tên của bạn><ddMMyy><số thứ tự 2 chữ số trong ngày>, vd Phuong20102601, VPhuong20102602 – ghi vào cột Mã đơn file sale.
+    /* ---- mã đơn: <V nếu Viettel Post><tên của bạn><ddMMyy>-<số thứ tự 2 chữ số trong ngày>, vd Phuong201026-01, VPhuong201026-02 – ghi vào cột Mã đơn file sale.
      *  Sale tự sửa ô thì giữ chữ của sale (đổi hãng chỉ thêm / bỏ chữ V). Máy chủ kiểm tra trùng; mã tự điền trùng thì máy chủ tự lấy số kế tiếp. */
     var codeAuto = !eo, codePre = (S.user && S.user.prefix) || slugName(S.user && S.user.name), codeDay = (function () { var x = vnDate(Date.now()); return pad(x.d) + pad(x.m) + String(x.y).slice(-2); })();
     function isVtp() { var c = $('input[name=carrier]:checked', form); return !!c && c.value === 'Viettel Post'; }
     function codeSuggest() {
       var base = codePre + codeDay, t0 = dayStart(Date.now()), n = 0;
-      (S.d.orders || []).forEach(function (o) { var id = String(o.id || ''); if ((o.time || 0) < t0) return; if (id.indexOf('V' + base) === 0) id = id.slice(1); var k = id.indexOf(base) === 0 && id.slice(base.length).match(/^(\d{2})(?![\d-])/); if (k) n = Math.max(n, +k[1]); }); // bỏ mã kiểu cũ Phuong201026-01
-      return (isVtp() ? 'V' : '') + base + pad(n + 1);
+      (S.d.orders || []).forEach(function (o) { var id = String(o.id || ''); if ((o.time || 0) < t0) return; if (id.indexOf('V' + base) === 0) id = id.slice(1); var k = id.indexOf(base) === 0 && id.slice(base.length).match(/^-?(\d{2})(?![\d-])/); if (k) n = Math.max(n, +k[1]); }); // đếm cả mã không gạch Phuong20102601 (sáng 20/10/2026); bỏ mã trùng có đuôi SĐT Phuong201026-5179
+      return (isVtp() ? 'V' : '') + base + '-' + pad(n + 1);
     }
     function codeVtp() {
       if (eo) return; if (codeAuto) { F.code.value = codeSuggest(); return; }
@@ -2639,6 +2646,18 @@
     }
     if (!eo) { F.code.value = codeSuggest(); F.code.addEventListener('input', function () { codeAuto = !F.code.value.trim(); }); F.code.addEventListener('change', function () { if (!F.code.value.trim()) { codeAuto = true; F.code.value = codeSuggest(); } }); }
     $$('input[name=carrier]', form).forEach(function (r) { r.addEventListener('change', codeVtp); });
+    if ($('#noCarMore', m)) $('#noCarMore', m).onclick = function () { $$('.no-car-x', form).forEach(function (l) { l.hidden = false; }); this.remove(); };
+    /* ---- ghi chú giao hàng: bấm nút để thêm / bỏ câu hay dùng trong ô ghi chú (sale vẫn gõ thêm được) */
+    function noteParts() { return F.note.value.split(/\s*[,;\n]\s*/).map(function (t) { return t.trim(); }).filter(Boolean); }
+    function noteChipsSync() { var ps = noteParts().map(norm); $$('#noNoteChips .chip', m).forEach(function (b) { b.classList.toggle('on', ps.indexOf(norm(b.dataset.nq)) >= 0); }); }
+    if (F.note && $('#noNoteChips', m)) {
+      $('#noNoteChips', m).addEventListener('click', function (e) {
+        var b = e.target.closest('[data-nq]'); if (!b) return;
+        var t = b.dataset.nq, off = NOTE_PAIR[t] ? norm(NOTE_PAIR[t]) : null, had = false, ps = noteParts().filter(function (p) { var k = norm(p); if (k === norm(t)) { had = true; return false; } return k !== off; });
+        if (!had) ps.push(t); F.note.value = ps.join(', '); noteChipsSync();
+      });
+      F.note.addEventListener('input', noteChipsSync);
+    }
     var shipText = function () { var addr = F.full.value.trim(); return F.name.value.trim() + ' – ' + normPhone(F.phone.value) + '\n' + addr + '\n' + $('#noShip', m).textContent + '\nThu: ' + money(moneyIn(F.total.value)) + ($('input[name=payment]:checked', form).value === 'bank' ? ' (đã chuyển khoản)' : ' (COD)') + (F.note && F.note.value.trim() ? '\nGhi chú: ' + F.note.value.trim() : ''); };
     $('#noCopy', m).onclick = function (e) { e.preventDefault(); copy(shipText()).then(function () { toast('Đã copy nội dung lên đơn'); }); };
     showOld(curC); calc(); otUpdate();
