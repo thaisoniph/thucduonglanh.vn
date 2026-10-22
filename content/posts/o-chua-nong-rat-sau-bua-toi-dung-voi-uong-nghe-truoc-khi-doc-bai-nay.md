@@ -1,6 +1,6 @@
 ---
 title: Ợ chua, nóng rát sau bữa tối? Đừng vội uống nghệ trước khi đọc bài này
-date: 2026-10-15
+date: 2026-10-08
 category: kien-thuc-dinh-duong
 image: /assets/uploads/curcumin-bia.jpg
 excerpt: 'Curcumin là gì, uống nghệ có tốt cho dạ dày không? Những điều cần biết về curcumin: cách dùng, ai cần thận trọng, khi nào cần đi khám, kèm sữa hạt Curcumin 15 loại hạt.'
