@@ -1,6 +1,6 @@
 ---
 title: 'Trà đinh lăng: dùng lá hay dùng rễ, pha thế nào và ai cần hỏi bác sĩ trước'
-date: 2026-10-17
+date: 2026-10-19
 category: kien-thuc-dinh-duong
 image: /assets/uploads/che-vang-1.jpg
 excerpt: Lá và rễ đinh lăng dùng khác nhau ra sao, liều nào được nêu trong các nguồn y khoa phổ thông, bằng chứng còn hạn chế ở đâu và ai cần thận trọng.
