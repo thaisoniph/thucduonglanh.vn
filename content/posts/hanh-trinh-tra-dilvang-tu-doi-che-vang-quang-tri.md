@@ -1,6 +1,6 @@
 ---
 title: 'Hành trình một gói trà DILVANG: từ đồi chè vằng Quảng Trị đến tách trà ấm'
-date: '2026-10-15'
+date: 2026-10-09
 category: cau-chuyen-san-pham
 image: /assets/uploads/cau-chuyen/dilvang-doi-che-vang.webp
 excerpt: Đằng sau gói trà 5g là những triền đồi nắng gió, những gốc đinh lăng trong vườn nhà bà con Vĩnh Linh và một nhà máy GMP của người Quảng Trị. Cùng đi lại hành trình ấy.
