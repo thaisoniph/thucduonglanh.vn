@@ -1,6 +1,6 @@
 ---
 title: 'Chè vằng Quảng Trị: chỉ dẫn địa lý, cách chọn, cách pha và những điều cần biết'
-date: 2026-10-16
+date: 2026-10-09
 category: kien-thuc-dinh-duong
 image: /assets/uploads/cau-chuyen/dilvang-doi-che-vang.webp
 excerpt: Chè vằng Quảng Trị có giấy chỉ dẫn địa lý số 00126 từ 2023. Tên gọi, cách phân biệt với lá ngón, cách chọn, liều thông thường và ai cần thận trọng, có nguồn.
