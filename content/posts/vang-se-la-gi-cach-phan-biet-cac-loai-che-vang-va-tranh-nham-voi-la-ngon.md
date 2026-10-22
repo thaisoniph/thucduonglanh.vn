@@ -1,6 +1,6 @@
 ---
 title: Vằng sẻ là gì? Cách phân biệt các loại chè vằng và tránh nhầm với lá ngón
-date: 2026-10-18
+date: 2026-10-11
 category: kien-thuc-dinh-duong
 image: /assets/uploads/che-vang-2.jpg
 excerpt: Tên "vằng sẻ" có trong tài liệu nào? Ba kiểu hình chè vằng theo nghiên cứu, bảng phân biệt chè vằng với lá ngón và bốn câu hỏi cần hỏi trước khi mua.
