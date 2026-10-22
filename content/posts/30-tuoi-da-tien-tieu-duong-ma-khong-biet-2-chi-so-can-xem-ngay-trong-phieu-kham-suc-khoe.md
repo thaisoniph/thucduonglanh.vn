@@ -1,6 +1,6 @@
 ---
 title: 30 tuổi đã tiền tiểu đường mà không biết? 2 chỉ số cần xem ngay trong phiếu khám sức khỏe
-date: 2026-10-20
+date: 2026-10-13
 category: kien-thuc-dinh-duong
 image: /assets/uploads/bia-bai3-tien-dai-thao-duong-thu-duong-huyet.jpg
 excerpt: Việt Nam có khoảng 12 triệu người tiền đái tháo đường, nhiều người chưa biết mình mắc. Cách đọc chỉ số đường huyết và 5 thay đổi ăn uống nên bắt đầu ngay.
