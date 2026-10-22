@@ -34,7 +34,7 @@ Sau khi khỏi bệnh, Vinmec gợi ý với trẻ sụt cân nên bổ sung the
 
 Không. Oresol là dung dịch bù nước và điện giải theo công thức. Thức uống ngũ cốc không thay được. Nó chỉ phù hợp ở giai đoạn người bệnh đã uống được nước, ăn được dạng lỏng và cần thêm đạm, năng lượng cho bữa phụ. Hãy hỏi bác sĩ đang theo dõi trước khi dùng.
 
-![Ly nước lọc đang được rót](/assets/uploads/sot-xuat-huyet-2.jpg)
+![Ly nước lọc đặt trên bàn](/assets/uploads/sot-xuat-huyet-3.jpg)
 
 ## Giải pháp từ Thực Dưỡng Lành
 
