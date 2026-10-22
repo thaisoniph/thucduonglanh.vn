@@ -27,6 +27,8 @@ Các nguồn dinh dưỡng chung đều thống nhất vài điểm. Pharmacity 
 
 Trẻ dưới 5 tuổi thuộc nhóm nguy cơ diễn biến nặng nếu mắc cúm (Bộ Y tế). Trẻ sốt cao, li bì, khó thở cần đưa đến cơ sở y tế.
 
+![Mẹ đút cháo cho bé gái đang ngồi ăn ở bàn](/assets/uploads/tre-giao-mua-2.jpg)
+
 ## Thức uống hạt và ngũ cốc cho trẻ: lưu ý
 
 Thức uống ngũ cốc chỉ nên là bữa phụ, không thay bữa chính của trẻ. Cần hỏi bác sĩ nếu trẻ đang ốm nặng. Trẻ dị ứng với các loại hạt không nên dùng.
