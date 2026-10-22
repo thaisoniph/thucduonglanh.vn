@@ -1,6 +1,6 @@
 ---
 title: Cứ giao mùa là cả nhà thay nhau ốm? 4 thay đổi trong bữa ăn nên làm ngay tuần này
-date: 2026-10-16
+date: 2026-10-10
 category: kien-thuc-dinh-duong
 image: /assets/uploads/bia-bai1-cam-lanh-giao-mua.jpg
 excerpt: Tháng 10 thời tiết đổi nhanh, cúm và bệnh hô hấp tăng. 4 việc nên làm với bữa ăn hằng ngày để cơ thể có đủ nguyên liệu tự bảo vệ.
