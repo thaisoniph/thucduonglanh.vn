@@ -1,6 +1,6 @@
 ---
 title: Bạn bỏ bữa sáng mấy lần một tuần? 5 cách có bữa sáng đủ chất chỉ trong 60 giây
-date: 2026-10-11
+date: 2026-10-04
 category: kien-thuc-dinh-duong
 image: /assets/uploads/bua-sang-bia.jpg
 excerpt: 'Bỏ bữa sáng vì không kịp? 5 cách có bữa sáng nhanh cho người bận rộn: đủ đạm, đủ xơ, pha trong 1 phút, kèm gợi ý bữa sáng dinh dưỡng từ 12 loại hạt và ngũ cốc.'
