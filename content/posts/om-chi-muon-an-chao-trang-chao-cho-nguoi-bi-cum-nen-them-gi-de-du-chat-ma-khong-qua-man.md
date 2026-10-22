@@ -30,6 +30,8 @@ Thay một phần gạo trắng bằng yến mạch hoặc gạo lứt nấu nh�
 
 Khi miệng nhạt, nhiều người nêm đậm tay hoặc ăn kèm ruốc, dưa mắm. Nhưng Pharmacity khuyên hạn chế thực phẩm chế biến sẵn khi bị cúm. Người Việt vốn ăn mặn hơn khuyến nghị, xem bài [Người Việt ăn mặn gấp 1,6 lần khuyến nghị](/goc-song-lanh/nguoi-viet-an-man-gap-1-6-lan-khuyen-nghi-mam-com-nha-ban-dang-o-dau/). Một món ăn kèm cho đỡ nhạt là hợp lý, nhưng nên dùng ít.
 
+![Bát cháo nóng có thịt và hành lá, dùng muỗng ăn trên bàn](/assets/uploads/chao-cho-nguoi-cum-2.jpg)
+
 ## Giải pháp từ Thực Dưỡng Lành
 
 Ruốc Rong Biển Vị Sườn Non là ruốc chay, dùng rắc cháo, cơm, xôi. Mỗi 100 g có 30 đến 40 g đạm. Sản phẩm mặn: natri khoảng 1.200 đến 1.800 mg mỗi 100 g. Tính theo hàm lượng trên, mỗi 5 g ruốc chứa khoảng 60 đến 90 mg natri, nên một bát cháo chỉ cần rắc một ít. Dùng tốt nhất trong 7 ngày sau khi mở hũ.
