@@ -10,9 +10,10 @@ import { cmsRoute } from './cms.js';
 import { voucherCheck, voucherApply } from './voucher.js';
 import { qrGo } from './links.js';
 import { journeyCounts, pledge, quiz } from './journey.js';
+import { apply } from './apply.js';
 
-const API_VERSION = '2026-10-20f'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
-const ORIGINS = /^https:\/\/((www\.|crm\.|mkt\.|camnangsongkhoe\.)?thucduonglanh\.vn|([a-z0-9-]+\.)?(thucduonglanh(-crm)?|camnang-song-khoe-thuc-duong-lanh)\.pages\.dev)$|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
+const API_VERSION = '2026-10-22a'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
+const ORIGINS = /^https:\/\/((www\.|crm\.|mkt\.|congsu\.|camnangsongkhoe\.)?thucduonglanh\.vn|([a-z0-9-]+\.)?(thucduonglanh(-crm|-congsu)?|camnang-song-khoe-thuc-duong-lanh)\.pages\.dev)$|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
 function ctxOf(env, ectx) { return { env, db: env.DB, later: p => ectx.waitUntil(Promise.resolve(p).catch(e => console.error('later', e && e.message))) }; }
 function json(o, origin, status) {
@@ -43,6 +44,7 @@ async function website(x, data) {
   if (data.type === 'pledge') return await pledge(x, data); // lời cam kết "Tôi chọn sống lành" (journey.js)
   if (data.type === 'quiz') return await quiz(x, data); // trò chơi "Bạn còn mấy ngón tay?" (journey.js)
   if (data.type === 'voucher') return await voucherCheck(x, data); // khách bấm "Áp dụng" mã ưu đãi
+  if (data.type === 'apply') return await apply(x, data); // ứng tuyển từ congsu.thucduonglanh.vn (apply.js)
   if (data.type === 'order') {
     try {
       if (data.voucher) { // đơn gửi lại (mạng chập chờn) đã lưu rồi thì không kiểm tra lại mã (mã 1 lần sẽ báo "đã dùng")
@@ -122,7 +124,7 @@ export default {
       if (req.method !== 'POST') return json({ ok: false, error: 'method' }, origin, 405);
       const t0 = Date.now();
       await ensureSchema(x.db);
-      const text = await req.text(); if (text.length > 2e6) return json({ ok: false, error: 'Dữ liệu quá lớn' }, origin, 413);
+      const text = await req.text(); if (text.length > (text.startsWith('{"type":"apply"') ? 8e6 : 2e6)) return json({ ok: false, error: 'Dữ liệu quá lớn' }, origin, 413); // hồ sơ ứng tuyển kèm file CV tới 5 MB
       const d = JSON.parse(text || '{}');
       if (d.type === 'crm') { const out = await crmApi(x, d, ADMIN, DUPS); out.v = API_VERSION; out.sms = Date.now() - t0; return json(out, origin); } // sms: thời gian máy chủ xử lý → CRM ghi vào "Đo tốc độ CRM"
       if (d.type === 'vtp') return json(await vtpWebhook(x, d.payload), origin);

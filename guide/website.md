@@ -2,8 +2,8 @@
 title: Hướng dẫn sửa website
 nav: Website
 order: 6
-updated: 2026-10-19
-description: Đăng bài, sửa giá, sửa sản phẩm trên thucduonglanh.vn. Làm trên máy tính.
+updated: 2026-10-22
+description: Đăng bài, sửa giá, sửa sản phẩm, đăng tin tuyển dụng. Làm trên máy tính.
 ---
 
 Trang này dành cho người **đăng bài, sửa sản phẩm, sửa giá** trên website [thucduonglanh.vn](https://thucduonglanh.vn).
@@ -102,6 +102,19 @@ Gói = nhiều sản phẩm bán chung 1 giá. Ví dụ **Gói Khởi Động 10
 - Nên dùng chữ *bắt đầu, khởi động, trải nghiệm, thói quen nhỏ*. Tránh chữ *thử thách, phải, bắt buộc*.
 - Mục **Link tài liệu lộ trình** và **Quyền lợi thêm**: chỉ điền khi đã có thật.
 - Tạm ngừng bán gói: tắt **Hiển thị trên web**.
+
+## Đăng tin tuyển dụng
+
+Trang tuyển dụng: [congsu.thucduonglanh.vn](https://congsu.thucduonglanh.vn). Mỗi vị trí là 1 mục trong **Tuyển dụng**.
+
+1. Vào **Tuyển dụng**. Mở vị trí có sẵn để sửa, hoặc bấm **Tạo mới**.
+2. Điền **Tên vị trí**, **Số lượng**, **Mức lương**, **Hạn ứng tuyển**.
+3. **Nội dung**: giữ 4 tiêu đề lớn (Mô tả công việc, Yêu cầu ứng viên, Học tập & phát triển, Thu nhập & chế độ phúc lợi). Địa chỉ, giờ làm, số liên hệ trang tự thêm.
+4. Bấm **Lưu**. Chờ 1–2 phút.
+
+- Tuyển đủ người: tắt **Đang tuyển**. Không cần xoá, lần sau bật lại là xong.
+- Không hứa mức thu nhập chưa chốt với anh Sơn.
+- Hồ sơ ứng viên gửi về Telegram của Quản trị (kèm file CV) và email báo đơn. Gọi lại cho ứng viên trong 2 ngày làm việc.
 
 ## Cài đặt website
 

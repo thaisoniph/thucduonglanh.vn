@@ -555,6 +555,35 @@ collections:
       - { label: "Thứ tự ở chân trang", name: order, widget: number, value_type: int, default: 50 }
       - { label: "Nội dung", name: body, i18n: true, widget: markdown, hint: "Có thể dùng {brand}, {hotline}, {email}, {address}, {company} – web tự thay bằng thông tin công ty." }
 
+  # ------------------------------------------------------------ TUYỂN DỤNG (congsu.thucduonglanh.vn, build_congsu.py)
+  - name: jobs
+    label: "Tuyển dụng (congsu.thucduonglanh.vn)"
+    label_singular: "vị trí tuyển dụng"
+    description: "Mỗi mục là 1 vị trí trên trang tuyển dụng congsu.thucduonglanh.vn. Tuyển đủ thì tắt “Đang tuyển” (không cần xoá). Bấm Lưu, khoảng 2 phút sau trang được cập nhật. Hồ sơ ứng viên gửi về Telegram của Quản trị và email báo đơn."
+    folder: content/jobs
+    extension: md
+    format: frontmatter
+    create: true
+    delete: true
+    slug: "{{slug}}"
+    identifier_field: title
+    summary: "{{title}} – {{quantity}} người"
+    sortable_fields: [order, title]
+    fields:
+      - { label: "Tên vị trí", name: title, widget: string, hint: "Tên file (đường link) tự tạo theo tên lần đầu lưu, vd Kế toán thuế → congsu.thucduonglanh.vn/ke-toan-thue/" }
+      - { label: "Đang tuyển", name: active, widget: boolean, default: true, hint: "Tắt = ẩn vị trí khỏi trang (giữ lại để mở lại sau)." }
+      - { label: "Thứ tự trên trang", name: order, widget: number, value_type: int, default: 10 }
+      - { label: "Số lượng", name: quantity, widget: number, value_type: int, default: 1 }
+      - { label: "Địa điểm làm việc", name: location, widget: string, default: "Hà Nội (Vinhomes Ocean Park, Gia Lâm)" }
+      - { label: "Mức lương", name: salary, widget: string, default: "Thỏa thuận theo năng lực", hint: "VD: 12 – 18 triệu + thưởng" }
+      - { label: "Hình thức làm việc", name: work_type, widget: string, default: "Toàn thời gian, tại văn phòng" }
+      - { label: "Hạn ứng tuyển (chữ hiện trên trang)", name: deadline, widget: string, default: "Đến khi tuyển đủ", hint: "VD: 30/11/2026" }
+      - { label: "Hạn ứng tuyển cho Google (không bắt buộc)", name: valid_through, widget: datetime, format: "YYYY-MM-DD", time_format: false, required: false, hint: "Google Việc làm dùng ngày này để tự ẩn tin khi hết hạn." }
+      - { label: "Ngày đăng tin", name: date, widget: datetime, format: "YYYY-MM-DD", time_format: false, required: false }
+      - { label: "Câu mở đầu (in đậm)", name: headline, widget: string, required: false, hint: "1 câu nói vị trí này quan trọng thế nào." }
+      - { label: "Câu trích dẫn (in nghiêng)", name: quote, widget: string, required: false }
+      - { label: "Nội dung", name: body, widget: markdown, hint: "Giữ 4 tiêu đề lớn: 1. Mô tả công việc · 2. Yêu cầu ứng viên · 3. Học tập & phát triển · 4. Thu nhập & chế độ phúc lợi. Mục 5 (địa điểm, giờ làm, liên hệ) trang tự thêm." }
+
   # ------------------------------------------------------------ HƯỚNG DẪN NỘI BỘ (crm.thucduonglanh.vn/huong-dan/)
   - name: guide
     label: "Hướng dẫn nội bộ"

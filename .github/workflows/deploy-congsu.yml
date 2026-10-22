@@ -1,0 +1,67 @@
+name: Tuyển dụng – dựng và đăng
+
+# Trang tuyển dụng congsu.thucduonglanh.vn (build_congsu.py: congsu/ + content/jobs/ → dist-congsu/, project Pages riêng).
+# Chạy khi đổi giao diện trang tuyển dụng, vị trí tuyển (sửa ở /admin → Tuyển dụng) hoặc thông tin công ty (data/site.json).
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'congsu/**'
+      - 'content/jobs/**'
+      - 'build_congsu.py'
+      - 'data/site.json'
+      - 'assets/img/brand/**'
+      - 'requirements.txt'
+      - '.github/workflows/deploy-congsu.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-congsu
+  cancel-in-progress: true
+
+jobs:
+  congsu:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python build_congsu.py
+      - name: Tạo project tuyển dụng (chỉ lần đầu)
+        continue-on-error: true
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages project create thucduonglanh-congsu --production-branch=main
+      - name: Đăng trang tuyển dụng lên Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist-congsu --project-name=thucduonglanh-congsu --branch=main --commit-dirty=true
+      - name: Gắn tên miền congsu.thucduonglanh.vn (chỉ lần đầu)
+        continue-on-error: true
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CF_ZONE: 5cee9541139ab9326026e0c7f0826d7e
+        run: |
+          API=https://api.cloudflare.com/client/v4
+          H=(-H "Authorization: Bearer $CF_TOKEN" -H "Content-Type: application/json")
+          if curl -s "${H[@]}" "$API/accounts/$CF_ACCOUNT/pages/projects/thucduonglanh-congsu/domains" | grep -q '"name":"congsu.thucduonglanh.vn"'; then
+            echo "Tên miền đã gắn"
+          else
+            curl -s "${H[@]}" -X POST "$API/accounts/$CF_ACCOUNT/pages/projects/thucduonglanh-congsu/domains" -d '{"name":"congsu.thucduonglanh.vn"}' | head -c 600; echo
+          fi
+          if curl -s "${H[@]}" "$API/zones/$CF_ZONE/dns_records?name=congsu.thucduonglanh.vn" | grep -q '"name":"congsu.thucduonglanh.vn"'; then
+            echo "Bản ghi DNS đã có"
+          else
+            curl -s "${H[@]}" -X POST "$API/zones/$CF_ZONE/dns_records" -d '{"type":"CNAME","name":"congsu","content":"thucduonglanh-congsu.pages.dev","proxied":true,"comment":"Trang tuyển dụng"}' | head -c 600; echo
+          fi

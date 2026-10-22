@@ -610,6 +610,8 @@ def footer():
     if BROCHURE:
         about = about.replace('<li><a href="/gioi-thieu/">Giới Thiệu</a></li>', f'<li><a href="/gioi-thieu/">Giới Thiệu</a></li><li><a href="{BR_PATH}">Hồ sơ thương hiệu</a></li>')
     bct = f'<a href="{esc(SITE["bo_cong_thuong_url"])}" target="_blank" rel="noopener" class="bct"><img src="/assets/img/brand/bo-cong-thuong.png" alt="{t("Đã thông báo Bộ Công Thương")}" width="150" loading="lazy"></a>' if SITE.get("bo_cong_thuong_url") else ""
+    if IS_VI:
+        about += '<li><a href="https://congsu.thucduonglanh.vn/" target="_blank" rel="noopener">Tuyển dụng</a></li>'
     year = datetime.date.today().year
     return f'''
 <footer class="site-footer">
@@ -2850,6 +2852,9 @@ def main():
         "/assets/video/*\n  Cache-Control: public, max-age=604800\n", "utf-8")
     print(f"Đã tạo {len(routes)} trang công khai + 6 trang chức năng vào {DIST}")
     build_crm()
+    if IS_VI:
+        from build_congsu import build_congsu  # trang tuyển dụng congsu.thucduonglanh.vn → dist-congsu/
+        build_congsu()
 
 
 def route_date(r, lang=None):

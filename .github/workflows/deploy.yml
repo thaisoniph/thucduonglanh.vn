@@ -6,6 +6,10 @@ on:
     branches: [main]
     paths-ignore:
       - 'crm/**'
+      - 'congsu/**'
+      - 'content/jobs/**'
+      - 'build_congsu.py'
+      - '.github/workflows/deploy-congsu.yml'
       - 'guide/**'
       - 'api/**'
       - 'backend/**'
