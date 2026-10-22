@@ -115,6 +115,8 @@ Trang tuyển dụng: [congsu.thucduonglanh.vn](https://congsu.thucduonglanh.vn)
 - Tuyển đủ người: tắt **Đang tuyển**. Không cần xoá, lần sau bật lại là xong.
 - Không hứa mức thu nhập chưa chốt với anh Sơn.
 - Hồ sơ ứng viên gửi về Telegram của Quản trị (kèm file CV) và email báo đơn. Gọi lại cho ứng viên trong 2 ngày làm việc.
+- Đầu mỗi tin có **mức phù hợp**: 🟢 từ 80% (rất phù hợp, nên gọi ngay), 🟡 60–79% (đọc kỹ câu trả lời rồi quyết), 🔴 dưới 60% (cần cân nhắc). Dòng ⚠️ là điểm cần hỏi lại khi phỏng vấn.
+- Bộ câu hỏi chấm điểm không sửa được trong trang quản trị. Muốn đổi câu hỏi thì báo anh Sơn.
 
 ## Cài đặt website
 

@@ -9,6 +9,7 @@ on:
       - 'congsu/**'
       - 'content/jobs/**'
       - 'build_congsu.py'
+      - 'api/src/apply-quiz.js'
       - 'data/site.json'
       - 'assets/img/brand/**'
       - 'requirements.txt'
