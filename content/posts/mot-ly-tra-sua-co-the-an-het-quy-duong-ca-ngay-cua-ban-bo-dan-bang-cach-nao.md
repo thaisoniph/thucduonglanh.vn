@@ -1,6 +1,6 @@
 ---
 title: 'Một ly trà sữa có thể ăn hết quỹ đường cả ngày của bạn: bỏ dần bằng cách nào?'
-date: 2026-10-17
+date: 2026-10-13
 category: kien-thuc-dinh-duong
 image: /assets/uploads/giam-duong-bia.jpg
 excerpt: Người Việt trung bình ăn 46,5g đường tự do mỗi ngày. Uống gì thay trà sữa và nước ngọt? 5 cách giảm đường dễ làm, kèm gợi ý trà hòa tan chè vằng đinh lăng pha nước ấm.
