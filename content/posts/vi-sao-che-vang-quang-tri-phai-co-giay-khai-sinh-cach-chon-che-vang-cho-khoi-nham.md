@@ -1,6 +1,6 @@
 ---
 title: 'Cách chọn chè vằng thật: xem giấy tờ nào để khỏi mua nhầm'
-date: 2026-10-17
+date: 2026-10-10
 category: kien-thuc-dinh-duong
 image: /assets/uploads/che-vang-bia.jpg
 excerpt: 'Cách chọn chè vằng thật khi mua: đọc giấy chỉ dẫn địa lý, nhãn và hồ sơ sản phẩm để khỏi nhầm. Có bảng kiểm tra và hướng dẫn pha DILVANG đúng cách.'
