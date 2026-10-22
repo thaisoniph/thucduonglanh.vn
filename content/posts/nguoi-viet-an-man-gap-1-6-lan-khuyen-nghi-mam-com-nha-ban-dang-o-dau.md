@@ -1,6 +1,6 @@
 ---
 title: 'Người Việt ăn mặn gấp 1,6 lần khuyến nghị: mâm cơm nhà bạn đang ở đâu?'
-date: 2026-10-17
+date: 2026-10-14
 category: kien-thuc-dinh-duong
 image: /assets/uploads/giam-muoi-bia.jpg
 excerpt: Người Việt ăn 8,1g muối mỗi ngày, gấp 1,6 lần khuyến nghị WHO. Cách nêm nếm thông minh, đọc nhãn natri, và gợi ý xì dầu đậu đen ngưu bàng, ruốc rong biển cho mâm cơm chay.
