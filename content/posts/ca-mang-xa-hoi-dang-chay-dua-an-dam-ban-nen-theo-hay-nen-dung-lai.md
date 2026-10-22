@@ -1,6 +1,6 @@
 ---
 title: 'Cả mạng xã hội đang chạy đua ăn đạm: bạn nên theo hay nên dừng lại?'
-date: 2026-10-17
+date: 2026-10-12
 category: kien-thuc-dinh-duong
 image: /assets/uploads/dam-thuc-vat-bia.jpg
 excerpt: Protein maxxing là gì, ăn nhiều đạm có tốt hơn không? Hướng dẫn bổ sung đạm thực vật từ hạt, đậu và ngũ cốc cho người ăn chay, người bận rộn, kèm gợi ý sản phẩm.
