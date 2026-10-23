@@ -595,6 +595,52 @@ label .invalid,input.invalid,textarea.invalid{border-color:var(--red)!important}
 .jr-num{margin:0;display:flex;flex-wrap:wrap;justify-content:center;align-items:baseline;gap:4px 12px;color:var(--ink);font-size:18px}
 .jr-num b{font-size:44px;line-height:1.1;color:var(--primary-2);font-variant-numeric:tabular-nums}
 .jr-meta{margin:8px 0 0;font-size:14.5px;color:var(--text)}
+.plg-lit{margin:-4px 0 14px;font-size:15px}
+/* Bản đồ hành trình 34 tỉnh (build.py journey_map, main.js initJourneyMap) */
+.jm{max-width:1040px;margin:0 auto 40px;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);grid-template-areas:'map head' 'map side';grid-template-rows:auto 1fr;gap:0 32px;text-align:left;padding:26px;border-radius:24px;background:linear-gradient(160deg,#f4faf6 0%,#fff 55%,#fbf5ea 100%);box-shadow:0 10px 34px rgba(12,82,51,.08);scroll-margin-top:90px}
+.jm-map{position:relative;grid-area:map;align-self:center}.jm-head{grid-area:head;align-self:end;padding-top:12px}.jm-side{grid-area:side}
+.jm-svg svg{display:block;width:100%;height:auto;max-height:640px;overflow:visible}
+.jm-p{stroke:#fff;stroke-width:1.2;stroke-linejoin:round;cursor:pointer;transition:fill .6s,opacity .2s}
+.jm-l0{fill:#e3e8e1}.jm-l1{fill:#cfe8da}.jm-l2{fill:#9fd0b4}.jm-l3{fill:#5fae86}.jm-l4{fill:#2f8a61}.jm-l5{fill:#0C5233}
+.jm-p.on{opacity:.75}
+.jm:not(.jm-go) .jm-p:not(.jm-l0){fill:#e3e8e1}
+.jm-isl circle{fill:#5fae86}
+.jm-isl text{font:600 22px "Be Vietnam Pro",system-ui,sans-serif;fill:var(--primary-2)}
+.jm-isl .jm-sub{font-weight:400;font-size:19px;fill:var(--text)}
+.jm-pin{pointer-events:all;cursor:pointer}
+.jm-in{opacity:0}
+.jm-go .jm-in{animation:jmDrop .55s cubic-bezier(.3,1.5,.6,1) both}
+.jm-drop{fill:var(--gold);stroke:var(--brown);stroke-width:1.4}
+.jm-pin-me .jm-drop{fill:#e2572b;stroke:#a33a17}
+.jm-pulse{fill:var(--gold);opacity:0;transform-box:fill-box;transform-origin:center}
+.jm-go .jm-pulse{animation:jmPulse 2.4s ease-out infinite}
+.jm-pin-me .jm-pulse{fill:#e2572b}
+@keyframes jmDrop{0%{opacity:0;transform:translateY(-40px)}100%{opacity:1;transform:none}}
+@keyframes jmPulse{0%{opacity:.55;transform:scale(.6)}100%{opacity:0;transform:scale(2.6)}}
+.jm-still .jm-in{animation:none;opacity:1}.jm-still .jm-pulse{animation:none}
+.jm-tip{position:absolute;transform:translate(-50%,-100%);background:var(--primary-2);color:#fff;padding:7px 12px;border-radius:10px;font-size:13.5px;line-height:1.35;text-align:center;pointer-events:none;white-space:nowrap;box-shadow:0 6px 18px rgba(0,0,0,.18);z-index:2}
+.jm-tip b{display:block;font-size:14.5px}
+.jm-eye{margin:0 0 6px;font-size:13px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:var(--brown)}
+.jm-big{margin:0;font-size:20px;color:var(--ink);line-height:1.25}
+.jm-big b{font-size:58px;line-height:1;color:var(--primary-2);font-variant-numeric:tabular-nums;margin:0 2px}
+.jm-big span{white-space:nowrap}
+.jm-bar{height:10px;border-radius:99px;background:#e3e8e1;margin:14px 0 16px;overflow:hidden}
+.jm-bar i{display:block;height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,var(--primary-3),var(--primary-2))}
+.jm-me{margin:0 0 14px;padding:10px 14px;border-radius:12px;background:#fdeee6;color:#7a2f12;font-size:14.5px}
+.jm-h{margin:6px 0 8px;font-weight:600;color:var(--ink);font-size:15px}
+.jm-top{list-style:none;margin:0 0 16px;padding:0;display:grid;gap:7px}
+.jm-top li{display:grid;grid-template-columns:118px 1fr auto;align-items:center;gap:10px;font-size:14.5px}
+.jm-top span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jm-top i{height:8px;border-radius:99px;background:var(--primary-3)}
+.jm-top b{font-variant-numeric:tabular-nums;color:var(--primary-2)}
+.jm-wait{margin:0 0 16px;font-size:14.5px;line-height:1.55}
+.jm-legend{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--text)}
+.jm-legend li{display:flex;align-items:center;gap:6px}
+.jm-legend i{width:14px;height:14px;border-radius:4px;display:inline-block}
+.jm-legend .jm-l0{background:#e3e8e1}.jm-legend .jm-l1{background:#cfe8da}.jm-legend .jm-l2{background:#9fd0b4}.jm-legend .jm-l3{background:#5fae86}.jm-legend .jm-l4{background:#2f8a61}.jm-legend .jm-l5{background:#0C5233}
+.jm-note{margin:0;font-size:12.5px;line-height:1.5;color:var(--muted,#6b7066)}
+.plg-page .jm{margin-top:40px;width:min(1040px,calc(100vw - 32px));position:relative;left:50%;transform:translateX(-50%)}
+@media (max-width:820px){.jm{grid-template-columns:1fr;grid-template-areas:'head' 'map' 'side';padding:20px 14px;gap:14px;border-radius:18px}.jm-head{text-align:center;padding:0}.jm-svg svg{max-height:none}.jm-big b{font-size:48px}}
 .plg-in{max-width:760px}
 .plg-page{text-align:center}
 .plg-h{font-family:var(--serif);font-weight:600;font-size:46px;color:var(--primary-2);margin:0 0 12px}

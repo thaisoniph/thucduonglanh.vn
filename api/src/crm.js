@@ -454,7 +454,7 @@ const PROV_MERGE = { 'Tuyên Quang': ['Hà Giang', 'Tuyên Quang'], 'Lào Cai': 
   'Hà Nội': ['Hà Nội', 'HN'], 'Huế': ['Thừa Thiên Huế', 'Huế'], 'Lai Châu': ['Lai Châu'], 'Điện Biên': ['Điện Biên'], 'Sơn La': ['Sơn La'], 'Lạng Sơn': ['Lạng Sơn'], 'Quảng Ninh': ['Quảng Ninh', 'Hạ Long'],
   'Thanh Hóa': ['Thanh Hóa'], 'Nghệ An': ['Nghệ An'], 'Hà Tĩnh': ['Hà Tĩnh'], 'Cao Bằng': ['Cao Bằng'] };
 let PROV_KEYS = null;
-function provOfAddr(text) {
+export function provOfAddr(text) {
   if (!PROV_KEYS) { PROV_KEYS = []; Object.keys(PROV_MERGE).forEach(nw => PROV_MERGE[nw].forEach(old => PROV_KEYS.push({ k: ' ' + nrm(old) + ' ', old, nw }))); PROV_KEYS.sort((a, b) => b.k.length - a.k.length); }
   const t = ' ' + nrm(text).replace(/[.,;:\-–()/]/g, ' ').replace(/\s+/g, ' ') + ' '; let best = null, at = -1;
   PROV_KEYS.forEach(p => { const i = t.lastIndexOf(p.k); if (i > at) { at = i; best = p; } });
@@ -462,7 +462,7 @@ function provOfAddr(text) {
 }
 /** Số khách cả công ty theo tỉnh / sản phẩm (chỉ con số, không tên / SĐT) cho khung 📍 khi nhân viên gõ tên tỉnh. Tính lại 6 tiếng 1 lần.
  *  { p: { 'Nam Định': [tỉnh mới, số khách, mua ≥2 lần, mua trong 30 ngày, { sản phẩm: số khách }] }, s: { sản phẩm: [số khách, mua ≥2 lần] } } */
-async function areaStats(x) {
+export async function areaStats(x) { // cũng dùng cho bản đồ hành trình (journey.js)
   const c0 = await kvGet(x.db, 'areas'); if (c0) return JSON.parse(c0);
   const p = {}, s = {}, d30 = Date.now() - 30 * DAY;
   for (const c of await all(x.db, 'SELECT address, ward, province, products, orders, last FROM customers WHERE orders > 0')) {

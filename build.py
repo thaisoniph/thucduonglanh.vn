@@ -1606,6 +1606,7 @@ def community_html(start_url="/san-pham/"):
   <h2 class="sec-title big">{t("Cùng chúng tôi đi hành trình")}<br><span class="accent">{t("10 triệu người Việt sống khỏe hơn")}</span></h2>
   <p class="join-sub">{sub}</p>
   {journey_counter()}
+  {journey_map()}
   <div class="cm-grid">{cards}</div>
   <div class="join-self"><p>{t("Hoặc bắt đầu từ chính mình, từ hôm nay:")}</p><div class="join-btns">{pledge_btn}{quiz_btn}<a class="btn btn-lg{" btn-ghost" if pledge_btn else ""}" href="{start_url}" data-cta="join_start">{t("Bắt đầu 10 ngày sống lành")}</a></div></div>
 </div></section>'''
@@ -1623,6 +1624,31 @@ def journey_counter():
         return ""
     return '''<div class="jr" data-jr hidden><p class="jr-num"><b data-jr-total>0</b><span>người đã cùng Thực Dưỡng Lành sống lành</span></p>
 <p class="jr-meta"><span data-jr-buyers></span> khách hàng tin dùng<span data-jr-pl hidden> · <span data-jr-pledges></span> lời cam kết</span> · Mục tiêu <b>10.000.000</b> người Việt</p></div>'''
+
+
+def journey_map():
+    """Bản đồ hành trình (23/10/2026): 34 tỉnh mới + Hoàng Sa, Trường Sa (assets/img/ban-do-34-tinh.svg, dựng từ ranh giới hành chính 2025).
+    Tỉnh có người đồng hành (khách đã mua + lời cam kết) được tô xanh đậm dần theo số người và cắm ghim; số lấy từ api /api/journey (ô prov).
+    main.js initJourneyMap: chỉ tải hình khi khách cuộn gần tới; lỗi mạng thì khối tự ẩn."""
+    if not IS_VI:
+        return ""
+    legend = "".join(f'<li><i class="jm-l{i}"></i>{t}</li>' for i, t in enumerate(["Chưa có", "1–9", "10–49", "50–199", "200–999", "1.000+"]))
+    return f'''<div class="jm" id="ban-do" data-jm data-src="/assets/img/ban-do-34-tinh.svg?v={VERSION}" hidden>
+  <div class="jm-map"><div class="jm-svg" data-jm-svg></div><div class="jm-tip" data-jm-tip hidden></div></div>
+  <div class="jm-head">
+    <p class="jm-eye">Bản đồ hành trình</p>
+    <p class="jm-big">Đã có mặt ở <b data-jm-n>0</b><span>/34 tỉnh, thành phố</span></p>
+    <div class="jm-bar"><i data-jm-bar></i></div>
+    <p class="jm-me" data-jm-me hidden></p>
+  </div>
+  <div class="jm-side">
+    <p class="jm-h">Nơi có nhiều người đồng hành nhất</p>
+    <ol class="jm-top" data-jm-top></ol>
+    <p class="jm-wait" data-jm-wait hidden></p>
+    <ul class="jm-legend" aria-label="Chú thích màu: số người đồng hành">{legend}</ul>
+    <p class="jm-note">Người đồng hành = khách hàng đã tin dùng + người đã ký lời cam kết sống lành. Chạm vào một tỉnh để xem số người. Bản đồ 34 tỉnh, thành phố theo địa giới hành chính mới.</p>
+  </div>
+</div>'''
 
 
 def page_pledge():
@@ -1651,12 +1677,14 @@ def page_pledge():
     </form>
     <div class="plg-done" data-plg-done hidden>
       <p class="plg-thanks">Cảm ơn <b data-plg-name></b>! Bạn là người thứ <b data-plg-no></b> trên hành trình 10 triệu người Việt sống khỏe hơn.</p>
+      <p class="plg-lit" data-plg-lit hidden></p>
       <img class="plg-img" data-plg-img alt="Ảnh chứng nhận lời cam kết Tôi chọn sống lành" width="1080" height="1350">
       <div class="plg-acts"><a class="btn" data-plg-dl download="cam-ket-song-lanh.png" href="#">⬇️ Tải ảnh</a><button class="btn btn-ghost" type="button" data-plg-share>📤 Chia sẻ</button><button class="btn btn-ghost" type="button" data-plg-invite>💌 Mời người thân cùng ký</button></div>
       <p class="plg-again"><button type="button" class="link-btn" data-plg-again>Ký thêm cho một người thân</button></p>
       {f'<div class="plg-gift">{gift_form("camnang", "pledge")}</div>' if CN_PATH else ""}
     </div>
   </div>
+  {journey_map()}
   <div class="plg-next"><p>Lời hứa nhỏ, bắt đầu từ bữa ăn hôm nay:</p><a class="btn btn-lg btn-ghost" href="{start}" data-cta="pledge_start">Bắt đầu 10 ngày sống lành</a>{f'<p class="plg-quiz">Hoặc chơi thử trò 1 phút: <a href="{QUIZ_PATH}" data-cta="pledge_quiz">🖐 Bạn còn mấy ngón tay?</a></p>' if QUIZ.get("questions") else ""}</div>
 </div></section>'''
     return layout(PLEDGE_PATH, "Tôi chọn sống lành – Lời cam kết", f"Ký lời cam kết “Tôi chọn sống lành”, cùng {BRAND} đi hành trình giúp 10 triệu người Việt sống khỏe hơn và nhận ảnh chứng nhận để chia sẻ.", body, body_class="page-pledge")

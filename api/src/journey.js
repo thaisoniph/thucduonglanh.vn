@@ -3,6 +3,7 @@
 // Lời cam kết KHÔNG lưu tên, SĐT hay IP (17/10/2026, anh Sơn chọn: không chăm sóc lại được thì không giữ dữ liệu cá nhân).
 // Tên chỉ nằm trên máy khách để vẽ ảnh chứng nhận. Máy chủ giữ: thời gian, tỉnh/thành (không bắt buộc), nguồn khách → thống kê ở CRM tab 📣 Marketing.
 import { all, first, run, kvGet, kvSet } from './lib.js';
+import { areaStats, provOfAddr } from './crm.js';
 
 export async function journeySchema(db) {
   await run(db, `CREATE TABLE IF NOT EXISTS pledges (id INTEGER PRIMARY KEY AUTOINCREMENT, time INTEGER, name TEXT DEFAULT '', province TEXT DEFAULT '', src TEXT DEFAULT '', ip TEXT DEFAULT '')`);
@@ -21,9 +22,20 @@ async function buyers(db) {
 }
 async function pledges(db) { const r = await first(db, 'SELECT MAX(id) n FROM pledges'); return Number(r && r.n) || 0; }
 
+/** Bản đồ hành trình (23/10/2026): số người đồng hành theo 34 tỉnh mới = khách đã mua (tỉnh nhận từ địa chỉ, dùng chung bộ đếm areaStats
+ *  của CRM, lưu kv 6 tiếng) + lời cam kết có chọn tỉnh. Chỉ con số theo tỉnh. Địa chỉ không nhận ra tỉnh thì không tính vào bản đồ. */
+async function provCounts(x) {
+  const m = {}, add = (nw, n) => { if (nw && n > 0) m[nw] = (m[nw] || 0) + n; };
+  const a = await areaStats(x).catch(() => null);
+  if (a) Object.values(a.p || {}).forEach(v => add(v[0], Number(v[1]) || 0));
+  const rows = await all(x.db, "SELECT province, COUNT(*) AS n FROM pledges WHERE province != '' GROUP BY province").catch(() => []);
+  rows.forEach(r => { const pv = provOfAddr(r.province); add(pv && pv.nw, Number(r.n) || 0); });
+  return m;
+}
+
 export async function journeyCounts(x) {
-  const b = await buyers(x.db), p = await pledges(x.db);
-  return { ok: true, buyers: b, pledges: p, total: b + p, goal: 10000000 };
+  const b = await buyers(x.db), p = await pledges(x.db), prov = await provCounts(x).catch(() => ({}));
+  return { ok: true, buyers: b, pledges: p, total: b + p, goal: 10000000, prov };
 }
 
 const clean = (s, n) => String(s || '').replace(/<[^>]*>/g, '').replace(/[<>"`\u0000-\u001f]/g, '').replace(/\s+/g, ' ').trim().slice(0, n);

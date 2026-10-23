@@ -1322,16 +1322,21 @@
     captureSource(); initConsent(); trackPageEvents();
     renderCounts(); renderMini(); markWish();
     initHeader(); initClicks(); initRail(); initLightbox(); initProduct(); initCerts(); initProof(); initTabs(); initReadmore(); initSort();
-    initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initPledge(); initQuiz(); initGiftDock(); initZaloGate(); initMusic(); initBrandVideo();
+    initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initJourneyMap(); initPledge(); initQuiz(); initGiftDock(); initZaloGate(); initMusic(); initBrandVideo();
     window.addEventListener('storage', function (e) { if (e.key === 'tdl_cart') { cart = load('tdl_cart', []); cleanCart(); renderCounts(); renderMini(); } });
   }
   // ===== Hành trình 10 triệu người Việt sống khỏe hơn: bộ đếm [data-jr] + trang ký cam kết /cam-ket-song-lanh/ (api journey.js) =====
   function jrApi() { return CFG.endpoint && /\/api$/.test(CFG.endpoint) ? CFG.endpoint + '/journey' : ''; }
   function vn(n) { return Number(n || 0).toLocaleString('vi-VN'); }
+  var jrP = null;
+  function jrData() { // bộ đếm + bản đồ dùng chung 1 lần gọi api
+    if (!jrP) jrP = fetch(jrApi()).then(function (r) { return r.json(); });
+    return jrP;
+  }
   function initJourney() {
     var boxes = document.querySelectorAll('[data-jr]'), u = jrApi();
     if (!boxes.length || !u) return;
-    fetch(u).then(function (r) { return r.json(); }).then(function (j) {
+    jrData().then(function (j) {
       if (!j || !j.ok || !j.total) return;
       boxes.forEach(function (b) {
         var tot = b.querySelector('[data-jr-total]');
@@ -1346,6 +1351,76 @@
         var io = new IntersectionObserver(function (es) { if (es[0].isIntersecting) { io.disconnect(); run(); } }); io.observe(b);
       });
     }).catch(function () { });
+  }
+  // Bản đồ hành trình [data-jm] (build.py journey_map): 34 tỉnh tô xanh theo số người đồng hành + ghim; tải hình khi khách cuộn gần tới
+  var JM_LV = [1, 10, 50, 200, 1000];
+  function jmLevel(n) { var l = 0; JM_LV.forEach(function (v, i) { if (n >= v) l = i + 1; }); return l; }
+  function jmName(p) { return p === 'Hồ Chí Minh' ? 'TP. Hồ Chí Minh' : p; }
+  function jmMine() { // tỉnh khách vừa chọn khi ký cam kết (lưu trên máy khách)
+    var p = load('tdl_pledge', null); return p && p.province ? p : null;
+  }
+  function initJourneyMap() {
+    var box = document.querySelector('[data-jm]'); if (!box || !jrApi()) return;
+    var go = function () {
+      Promise.all([jrData(), fetch(box.getAttribute('data-src')).then(function (r) { if (!r.ok) throw 0; return r.text(); })]).then(function (rs) {
+        var j = rs[0], prov = Object.assign({}, j && j.prov);
+        if (!j || !j.ok || !Object.keys(prov).length) return;
+        var mine = jmMine();
+        // vừa ký trong 10 phút: số trên máy chủ còn lưu đệm nên cộng tạm 1 cho tỉnh của khách
+        if (mine && Date.now() - (mine.at || 0) < 600e3) prov[mine.province] = (prov[mine.province] || 0) + 1;
+        box.hidden = false;
+        var holder = box.querySelector('[data-jm-svg]'); holder.innerHTML = rs[1];
+        var svg = holder.querySelector('svg'), pins = svg.querySelector('.jm-pins'), NS = 'http://www.w3.org/2000/svg', tip = box.querySelector('[data-jm-tip]');
+        var paths = [].slice.call(svg.querySelectorAll('[data-p]')), lit = [];
+        paths.forEach(function (el) {
+          var p = el.getAttribute('data-p'), n = prov[p] || 0;
+          el.setAttribute('class', 'jm-p jm-l' + jmLevel(n));
+          var tt = document.createElementNS(NS, 'title'); tt.textContent = jmName(p) + ': ' + (n ? vn(n) + ' người đồng hành' : 'chưa có người đồng hành'); el.appendChild(tt);
+          if (n) lit.push({ el: el, p: p, n: n, x: +el.getAttribute('data-x'), y: +el.getAttribute('data-y') });
+        });
+        lit.sort(function (a, b) { return a.y - b.y; }); // ghim cắm dần từ Bắc vào Nam
+        lit.forEach(function (o, i) {
+          var g = document.createElementNS(NS, 'g'), me = mine && mine.province === o.p;
+          g.setAttribute('transform', 'translate(' + o.x + ' ' + o.y + ')');
+          g.setAttribute('class', 'jm-pin' + (me ? ' jm-pin-me' : ''));
+          g.innerHTML = '<g class="jm-in" style="animation-delay:' + (0.25 + i * 0.07).toFixed(2) + 's"><ellipse class="jm-pulse" rx="9" ry="4" style="animation-delay:' + (i * 0.23 % 2.4).toFixed(2) + 's"/><path class="jm-drop" d="M0 0C-3-7-11-12-11-21a11 11 0 1 1 22 0c0 9-8 14-11 21z"/><circle cy="-21" r="4.2" fill="#fff"/></g>';
+          g.setAttribute('data-p', o.p); pins.appendChild(g);
+        });
+        var ps = Object.keys(prov).filter(function (k) { return prov[k] > 0; });
+        var count = paths.filter(function (el) { return prov[el.getAttribute('data-p')] > 0; }).length;
+        var nEl = box.querySelector('[data-jm-n]'), bar = box.querySelector('[data-jm-bar]');
+        var top = ps.sort(function (a, b) { return prov[b] - prov[a]; }).slice(0, 5), mx = prov[top[0]] || 1;
+        box.querySelector('[data-jm-top]').innerHTML = top.map(function (p) { return '<li><span>' + esc(jmName(p)) + '</span><i style="width:' + Math.max(4, Math.round(prov[p] / mx * 100)) + '%"></i><b>' + vn(prov[p]) + '</b></li>'; }).join('');
+        var wait = paths.map(function (el) { return el.getAttribute('data-p'); }).filter(function (p) { return !prov[p]; });
+        if (wait.length) { var w = box.querySelector('[data-jm-wait]'); w.innerHTML = '🌱 Còn <b>' + wait.length + '</b> nơi đang chờ người mở đường: ' + esc(wait.map(jmName).join(', ')) + '. <a href="/cam-ket-song-lanh/" data-cta="map_pledge">Ký cam kết để thắp sáng tỉnh của bạn</a>'; w.hidden = false; }
+        if (mine) { var m = box.querySelector('[data-jm-me]'); m.innerHTML = '📍 Bạn đã thắp sáng một điểm ở <b>' + esc(jmName(mine.province)) + '</b>. Cảm ơn bạn!'; m.hidden = false; }
+        // chạm / rê chuột vào tỉnh hoặc ghim → hiện số người
+        var show = function (p, ev) {
+          if (!p) { tip.hidden = true; return; }
+          var n = prov[p] || 0, r = holder.getBoundingClientRect();
+          tip.innerHTML = '<b>' + esc(jmName(p)) + '</b>' + (n ? vn(n) + ' người đồng hành' : 'Chưa có ai. Hãy là người đầu tiên!');
+          tip.hidden = false;
+          var x = ev.clientX - r.left, y = ev.clientY - r.top;
+          tip.style.left = Math.max(70, Math.min(r.width - 70, x)) + 'px'; tip.style.top = Math.max(0, y - 14) + 'px';
+          paths.forEach(function (el) { el.classList.toggle('on', el.getAttribute('data-p') === p); });
+        };
+        var pick = function (e) { var t = e.target.closest && e.target.closest('[data-p]'); return t && t.getAttribute('data-p'); };
+        svg.addEventListener('pointermove', function (e) { if (e.pointerType === 'mouse') show(pick(e), e); });
+        svg.addEventListener('pointerleave', function () { tip.hidden = true; paths.forEach(function (el) { el.classList.remove('on'); }); });
+        svg.addEventListener('click', function (e) { show(pick(e), e); });
+        var run = function () {
+          box.classList.add('jm-go');
+          var t0 = performance.now();
+          (function step(now) { var k = Math.min(1, (now - t0) / 1400); nEl.textContent = Math.round(count * (1 - Math.pow(1 - k, 3))); bar.style.width = (count / 34 * 100 * k) + '%'; if (k < 1) requestAnimationFrame(step); })(t0);
+        };
+        if (!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) { box.classList.add('jm-go', 'jm-still'); nEl.textContent = count; bar.style.width = (count / 34 * 100) + '%'; return; }
+        var io2 = new IntersectionObserver(function (es) { if (es[0].isIntersecting) { io2.disconnect(); run(); } }, { threshold: 0.25 }); io2.observe(box);
+      }).catch(function () { });
+    };
+    box._jmGo = go; // ký cam kết xong → vẽ lại để ghim tỉnh của khách hiện ngay
+    if (!('IntersectionObserver' in window)) return go();
+    var io = new IntersectionObserver(function (es) { if (es[0].isIntersecting) { io.disconnect(); go(); } }, { rootMargin: '600px 0px' });
+    io.observe(box.parentNode);
   }
   function pledgeCard(name, no, cb) { // ảnh chứng nhận 1080×1350 vẽ ngay trên máy khách
     var W = 1080, H = 1350, c = document.createElement('canvas'), x = c.getContext('2d'), logo = new Image();
@@ -1392,6 +1467,8 @@
       var gb = document.getElementById('giftBox'), gn = gb && gb.querySelector('#giftForm input[name=name]');
       if (gb && gb.getAttribute('data-pos') === 'pledge') { gb.setAttribute('data-ctx', '✍️ Đã ký cam kết “Tôi chọn sống lành”'); if (gn && !gn.value) gn.value = p.name; }
       done.querySelector('[data-plg-name]').textContent = p.name; done.querySelector('[data-plg-no]').textContent = vn(p.no);
+      var lit = done.querySelector('[data-plg-lit]');
+      if (lit && p.province && document.querySelector('[data-jm]')) { lit.innerHTML = '📍 Bạn vừa thắp sáng thêm một điểm ở <b>' + esc(jmName(p.province)) + '</b> 🌱 <a href="#ban-do">Xem trên bản đồ</a>'; lit.hidden = false; }
       form.hidden = true; done.hidden = false;
       pledgeCard(p.name, p.no, function (b) {
         blob = b; if (imgUrl) URL.revokeObjectURL(imgUrl); imgUrl = URL.createObjectURL(b);
@@ -1410,8 +1487,10 @@
         .then(function (j) {
           btn.disabled = false;
           if (!j || !j.ok) { msg.className = 'form-msg err'; msg.textContent = (j && j.error) || 'Chưa gửi được, bạn thử lại giúp nhé.'; return; }
-          var p = { name: name, no: j.no, at: Date.now() }; save('tdl_pledge', p); msg.textContent = '';
-          track('pledge', {}); show(p); done.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          var pv = form.elements.province.value.trim(), p = { name: name, no: j.no, at: Date.now(), province: pv === 'Ở nước ngoài' ? '' : pv }; save('tdl_pledge', p); msg.textContent = '';
+          track('pledge', {}); show(p);
+          var jm = document.querySelector('[data-jm]'); if (jm && jm._jmGo && p.province) { jm.classList.remove('jm-go'); jm._jmGo(); }
+          done.scrollIntoView({ behavior: 'smooth', block: 'start' });
         })
         .catch(function () { btn.disabled = false; msg.className = 'form-msg err'; msg.textContent = 'Mạng đang chập chờn, bạn thử lại giúp nhé.'; });
     });
