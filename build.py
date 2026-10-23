@@ -1626,7 +1626,7 @@ def journey_counter():
 <p class="jr-meta"><span data-jr-buyers></span> khách hàng tin dùng<span data-jr-pl hidden> · <span data-jr-pledges></span> lời cam kết</span> · Mục tiêu <b>10.000.000</b> người Việt</p></div>'''
 
 
-def journey_map():
+def journey_map(on_pledge=False):
     """Bản đồ hành trình (23/10/2026): 34 tỉnh mới + Hoàng Sa, Trường Sa (assets/img/ban-do-34-tinh.svg, dựng từ ranh giới hành chính 2025).
     Tỉnh có người đồng hành (khách đã mua + lời cam kết) được tô xanh đậm dần theo số người và cắm ghim; số lấy từ api /api/journey (ô prov).
     main.js initJourneyMap: chỉ tải hình khi khách cuộn gần tới; lỗi mạng thì khối tự ẩn."""
@@ -1645,6 +1645,7 @@ def journey_map():
     <p class="jm-h">Nơi có nhiều người đồng hành nhất</p>
     <ol class="jm-top" data-jm-top></ol>
     <p class="jm-wait" data-jm-wait hidden></p>
+    <div class="jm-cta"><a class="btn btn-lg" href="{"#ky-cam-ket" if on_pledge else PLEDGE_PATH}" data-cta="map_pledge"><span>✍️ Ký lời cam kết <span class="nw">“Tôi chọn sống lành”</span></span></a><p>Cùng đồng hành và thắp sáng tỉnh của bạn <span class="nw">trên bản đồ</span></p></div>
     <ul class="jm-legend" aria-label="Chú thích màu: số người đồng hành">{legend}</ul>
     <p class="jm-note">Người đồng hành = khách hàng đã tin dùng + người đã ký lời cam kết sống lành. Chạm vào một tỉnh để xem số người. Bản đồ 34 tỉnh, thành phố theo địa giới hành chính mới.</p>
   </div>
@@ -1663,7 +1664,7 @@ def page_pledge():
   <h1 class="plg-h">Tôi chọn sống lành</h1>
   <p class="plg-lead">Hành trình nào cũng bắt đầu từ một lời hứa nhỏ với chính mình. Ký lời cam kết để cùng {BRAND} lan tỏa lối sống lành tới 10 triệu người Việt, rồi nhận ảnh chứng nhận để chia sẻ với người thân.</p>
   {journey_counter()}
-  <div class="plg-card">
+  <div class="plg-card" id="ky-cam-ket">
     <form class="plg-form" data-pledge novalidate>
       <h2>Lời cam kết</h2>
       <p class="plg-intro">Tôi chọn sống lành, để sống đáng. Từ hôm nay, tôi cam kết:</p>
@@ -1684,7 +1685,7 @@ def page_pledge():
       {f'<div class="plg-gift">{gift_form("camnang", "pledge")}</div>' if CN_PATH else ""}
     </div>
   </div>
-  {journey_map()}
+  {journey_map(on_pledge=True)}
   <div class="plg-next"><p>Lời hứa nhỏ, bắt đầu từ bữa ăn hôm nay:</p><a class="btn btn-lg btn-ghost" href="{start}" data-cta="pledge_start">Bắt đầu 10 ngày sống lành</a>{f'<p class="plg-quiz">Hoặc chơi thử trò 1 phút: <a href="{QUIZ_PATH}" data-cta="pledge_quiz">🖐 Bạn còn mấy ngón tay?</a></p>' if QUIZ.get("questions") else ""}</div>
 </div></section>'''
     return layout(PLEDGE_PATH, "Tôi chọn sống lành – Lời cam kết", f"Ký lời cam kết “Tôi chọn sống lành”, cùng {BRAND} đi hành trình giúp 10 triệu người Việt sống khỏe hơn và nhận ảnh chứng nhận để chia sẻ.", body, body_class="page-pledge")
