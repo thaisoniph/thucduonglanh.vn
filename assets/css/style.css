@@ -676,6 +676,49 @@ label .invalid,input.invalid,textarea.invalid{border-color:var(--red)!important}
 .plg-next p{margin:0 0 12px}
 @media (max-width:600px){.jr{padding:18px 14px;margin-bottom:24px}.jr-num{font-size:16px}.jr-num b{font-size:36px}.plg-h{font-size:34px}.plg-card{padding:24px 18px;border-radius:18px}.plg-acts .btn{flex:1 1 100%}.join-btns .btn{flex:1 1 100%}}
 @media (max-width:600px){.join-sub{font-size:15px;margin-bottom:22px}.join-self{margin-top:26px}}
+/* Bức tường Sống Lành /buc-tuong-song-lanh/ + dải tên (build.py page_wall, wall_strip; main.js initWall, initWallStrip) */
+.plg-show{display:flex;gap:10px;align-items:flex-start;margin:4px 0 16px;padding:12px 14px;background:#fff;border:1px solid var(--line);border-radius:var(--radius-sm);cursor:pointer;font-size:15px;line-height:1.5}
+.plg-show input{width:20px;height:20px;margin:2px 0 0;flex:none;accent-color:var(--primary)}
+.plg-show small{display:block;font-size:13.5px;color:var(--muted);margin-top:2px}
+.plg-show small b,.wl-hint b{color:var(--primary-2);white-space:nowrap}
+.plg-page .wst{margin-top:24px}
+.plg-wall{text-align:center;margin:14px 0 0;font-size:15.5px}
+.plg-wall a{font-weight:600}
+.wst{margin:0 auto 26px;max-width:1040px}
+.wst-in{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #ead7b6;border-radius:999px;padding:8px 8px 8px 18px;color:var(--ink);text-decoration:none;box-shadow:var(--shadow)}
+.wst-h{flex:none;font-weight:600;font-size:14px;color:var(--primary-2)}
+.wst-run{flex:1;min-width:0;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+.wst-track{display:inline-flex;white-space:nowrap;animation:wst-go 60s linear infinite}
+.wst-in:hover .wst-track{animation-play-state:paused}
+.wst-dup{display:inline-flex}
+.wst-it{padding:0 18px;font-size:14.5px;color:var(--muted);border-right:1px solid var(--line)}
+.wst-it b{color:var(--ink);font-weight:600}
+.wst-go{flex:none;background:var(--primary);color:#fff;border-radius:999px;padding:8px 16px;font-size:14px;font-weight:600}
+@keyframes wst-go{to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){.wst-track{animation:none}.wst-dup{display:none}}
+@media (max-width:600px){.wst-in{flex-wrap:wrap;border-radius:18px;padding:12px 14px;gap:8px}.wst-run{flex:1 1 100%;order:2}.wst-go{order:3;flex:1 1 100%;text-align:center}}
+.wl-page{text-align:center}
+.wl-in{max-width:960px}
+.wl-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wl-find{display:flex;gap:10px;max-width:760px;margin:0 auto 10px}
+.wl-q{flex:2}.wl-p{flex:1}
+.wl-find input,.wl-find select{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:var(--radius-sm);font:inherit;font-size:16px;background:#fff}
+.wl-find input:focus,.wl-find select:focus{outline:2px solid var(--primary);border-color:var(--primary)}
+[data-wl-more][hidden]{display:none}
+.wl-hint{font-size:13.5px;color:var(--muted);margin:0 0 18px}
+.wl-sum{margin:0 0 16px;font-size:15.5px;min-height:1.5em}
+.wl-grid{list-style:none;margin:0 0 20px;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;text-align:left}
+.wl-it{display:flex;gap:10px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.wl-ic{font-size:20px;line-height:1.2}
+.wl-tx b{display:block;font-size:16.5px;color:var(--primary-2);font-weight:600}
+.wl-tx small{display:block;font-size:13px;color:var(--muted);margin-top:3px;line-height:1.45}
+.wl-tx em{display:inline-block;font-style:normal;font-size:12px;font-weight:600;background:var(--primary);color:#fff;border-radius:999px;padding:1px 9px;margin:4px 0 0}
+.wl-anon b{color:var(--muted);font-weight:500}
+.wl-me{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-light)}
+.wl-cta{margin-top:28px;background:var(--gold-light);border:1px solid #ead7b6;border-radius:22px;padding:26px 20px}
+.wl-cta p{margin:0 0 12px;font-size:16px}
+.wl-cta .wl-note{margin:14px auto 0;max-width:600px;font-size:13px;color:var(--muted);line-height:1.6}
+@media (max-width:600px){.wl-find{flex-wrap:wrap}.wl-q,.wl-p{flex:1 1 100%}.wl-find .btn{flex:1 1 100%}.wl-grid{grid-template-columns:1fr 1fr;gap:8px}.wl-it{padding:10px;gap:6px}.wl-ic{display:none}.wl-tx b{font-size:15px}}
 .plg-quiz{margin:16px 0 0;font-size:15px}
 .plg-quiz a{font-weight:600}
 /* Trò chơi "Bạn còn mấy ngón tay?" /ngon-tay-song-lanh/ (build.py page_quiz, main.js initQuiz) */

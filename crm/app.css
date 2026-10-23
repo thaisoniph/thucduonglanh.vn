@@ -1124,3 +1124,9 @@ div.f > span { display: block; font-size: 13px; font-weight: 600; color: var(--i
 .ref-ppl > div { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; padding: 4px 0; border-bottom: 1px dashed var(--line); }
 .ref-ppl .link[disabled] { color: var(--ink); cursor: default; text-decoration: none; }
 .rw-ref { font-size: 13px; margin-top: 2px; color: var(--ink); }
+
+/* 🧱 Bức tường Sống Lành trong 📣 Marketing → 🌱 Tôi chọn sống lành (app.js mkWallRows) */
+.mk-wl{margin-top:14px}
+.mk-wl ul{list-style:none;margin:8px 0 0;padding:0;max-height:360px;overflow:auto}
+.mk-wl li{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid var(--line,#e5e5e5);font-size:14px}
+.mk-wl li.off span{opacity:.45;text-decoration:line-through}

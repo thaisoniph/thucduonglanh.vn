@@ -1,14 +1,17 @@
 // Hành trình 10 triệu người Việt sống khỏe hơn: bộ đếm công khai (trang chủ, /cam-ket-song-lanh/) + lời cam kết "Tôi chọn sống lành".
 // Bộ đếm = số khách đã mua (customers.orders > 0, đơn huỷ/hoàn không tính) + số lời cam kết. Chỉ trả về con số, không lộ dữ liệu khách.
-// Lời cam kết KHÔNG lưu tên, SĐT hay IP (17/10/2026, anh Sơn chọn: không chăm sóc lại được thì không giữ dữ liệu cá nhân).
-// Tên chỉ nằm trên máy khách để vẽ ảnh chứng nhận. Máy chủ giữ: thời gian, tỉnh/thành (không bắt buộc), nguồn khách → thống kê ở CRM tab 📣 Marketing.
-import { all, first, run, kvGet, kvSet } from './lib.js';
+// Không lưu SĐT, IP. Tên đầy đủ không bao giờ tới máy chủ: 23/10/2026 anh Sơn duyệt "Bức tường Sống Lành" (/buc-tuong-song-lanh/) →
+// khách tự tích "Hiện tên tôi" thì máy chủ chỉ giữ tên đã che (Đ.M.T. Sơn) + số thứ tự; không tích = "Một người bạn".
+// Máy chủ giữ: thời gian, tỉnh/thành (không bắt buộc), nguồn khách → thống kê ở CRM tab 📣 Marketing (ở đó ẩn được tên không phù hợp).
+import { all, first, run, kvGet, kvSet, nrm } from './lib.js';
 import { areaStats, provOfAddr } from './crm.js';
 
 export async function journeySchema(db) {
   await run(db, `CREATE TABLE IF NOT EXISTS pledges (id INTEGER PRIMARY KEY AUTOINCREMENT, time INTEGER, name TEXT DEFAULT '', province TEXT DEFAULT '', src TEXT DEFAULT '', ip TEXT DEFAULT '')`);
   await run(db, 'CREATE INDEX IF NOT EXISTS pledges_time ON pledges(time)');
-  await run(db, "UPDATE pledges SET name = '', ip = '' WHERE name != '' OR ip != ''"); // xoá tên / IP của bản đầu (17/10/2026), cột name, ip bỏ trống từ nay
+  // cột name, ip bỏ trống (tên / IP bản đầu đã xoá 17/10/2026). Bức tường (23/10/2026): pub = tên đã che, pk = pub không dấu để tìm, no = số thứ tự trên ảnh, hide = Marketing / Quản trị ẩn
+  const pc = (await all(db, 'PRAGMA table_info(pledges)')).map(c => c.name);
+  for (const [col, def] of [['pub', "TEXT DEFAULT ''"], ['pk', "TEXT DEFAULT ''"], ['no', 'INTEGER'], ['hide', 'INTEGER DEFAULT 0']]) if (!pc.includes(col)) { try { await run(db, `ALTER TABLE pledges ADD COLUMN ${col} ${def}`); } catch (e) { } }
   // trò chơi "Bạn còn mấy ngón tay?" (/ngon-tay-song-lanh/, 17/10/2026): chỉ lưu điểm, thói quen bị hạ ngón (cách nhau dấu |), nguồn
   await run(db, `CREATE TABLE IF NOT EXISTS quizzes (id INTEGER PRIMARY KEY AUTOINCREMENT, time INTEGER, score INTEGER, total INTEGER, miss TEXT DEFAULT '', src TEXT DEFAULT '')`);
   await run(db, 'CREATE INDEX IF NOT EXISTS quizzes_time ON quizzes(time)');
@@ -42,16 +45,56 @@ const clean = (s, n) => String(s || '').replace(/<[^>]*>/g, '').replace(/[<>"`\u
 
 async function sha(t) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)); return [...new Uint8Array(b)].slice(0, 12).map(v => v.toString(16).padStart(2, '0')).join(''); }
 
-/** Khách ký cam kết → trả về số thứ tự trên hành trình để in lên ảnh chứng nhận. Không nhận tên (tên ở lại trên máy khách). */
+// Che tên: tên gọi (chữ cuối) giữ nguyên, họ + tên đệm còn chữ cái đầu. "nguyễn thu hà" → "N.T. Hà". Máy khách che trước khi gửi, máy chủ che lại cho chắc.
+export function maskName(s) {
+  const w = clean(s, 60).replace(/[^\p{L}\s.'-]/gu, '').split(/[\s.]+/).filter(Boolean).map(v => v.charAt(0).toUpperCase() + v.slice(1).toLowerCase());
+  if (!w.length) return '';
+  const last = w.pop();
+  return (w.length ? w.map(v => v.charAt(0) + '.').join('') + ' ' : '') + last.slice(0, 20);
+}
+// từ tục / không phù hợp (so không dấu, theo từng chữ): có thì vẫn đếm nhưng không hiện tên
+const BAD = new Set('dit dm dmm dcm dkm vcl vkl vl clm cl cak deo ditme fuck shit sex porn bitch dick'.split(' '));
+const badName = s => nrm(s).split(/[\s.]+/).some(v => BAD.has(v));
+
+/** Khách chọn sống lành → trả về số thứ tự trên hành trình để in lên ảnh chứng nhận. Tên đầy đủ ở lại trên máy khách; chỉ nhận tên đã che khi khách tích "Hiện tên tôi". */
 export async function pledge(x, d) {
   const province = clean(d.province, 40);
+  let pub = d.show ? maskName(d.pub) : ''; if (pub.length < 2 || badName(pub)) pub = '';
   // chống spam: tối đa 30 lần/ngày/mạng (đủ cho ký tập thể ở sự kiện, chung wifi). Khoá đếm dùng mã băm của IP, tự xoá sau 1 ngày
   const k = x.ip ? 'jr_ip_' + await sha(x.ip + '|jr') : '';
   const used = Number(k ? await kvGet(x.db, k) : 0) || 0;
   if (used >= 30) return { ok: false, error: 'Mạng này đã ký nhiều lần hôm nay rồi, cảm ơn bạn nhiều nhé!' };
-  const r = await first(x.db, 'INSERT INTO pledges (time, province, src) VALUES (?, ?, ?) RETURNING id', Date.now(), province, clean(d.src, 80));
+  const r = await first(x.db, 'INSERT INTO pledges (time, province, src, pub, pk) VALUES (?, ?, ?, ?, ?) RETURNING id', Date.now(), province, clean(d.src, 80), pub, nrm(pub));
   if (k) await kvSet(x.db, k, used + 1, 24 * 3600e3);
-  return { ok: true, no: (await buyers(x.db)) + (Number(r && r.id) || 0) };
+  const no = (await buyers(x.db)) + (Number(r && r.id) || 0);
+  if (r && r.id) await run(x.db, 'UPDATE pledges SET no = ? WHERE id = ?', no, r.id);
+  return { ok: true, no, pub };
+}
+
+/** Bức tường Sống Lành (GET /api/wall, index.js lưu đệm 2 phút): mới nhất trước, 60 người/lần; q = tên (không dấu) hoặc số thứ tự; p = tỉnh.
+ *  Chỉ trả tên đã che. Người không tích "Hiện tên tôi" (và mọi người chọn trước 23/10/2026) hiện là "Một người bạn". */
+export async function wall(x, q, p, before) {
+  q = nrm(q).replace(/[^a-z0-9 .]/g, '').trim().slice(0, 40); p = clean(p, 40); before = Math.max(0, Number(before) || 0);
+  const W = ['hide = 0'], A = [];
+  if (/^\d[\d.,]*$/.test(q)) { W.push('no = ?'); A.push(Number(q.replace(/\D/g, ''))); }
+  else if (q) { // "son" khớp tên gọi; "dinh minh thai son" / "d.m.t. son" khớp đúng tên đã che
+    const m = nrm(maskName(q)); W.push("pk != ''");
+    if (m.includes('.')) { W.push('(pk = ? OR pk LIKE ?)'); A.push(m, '%.' + m); } // "thai son" = "t. son" cũng khớp "d.m.t. son"
+    else { W.push("(pk = ? OR pk LIKE ? OR pk LIKE ?)"); A.push(q, '% ' + q + '%', q + '%'); }
+  }
+  if (p) { W.push('province = ?'); A.push(p); }
+  if (before) { W.push('id < ?'); A.push(before); }
+  const rows = await all(x.db, `SELECT id, time, pub, province, no FROM pledges WHERE ${W.join(' AND ')} ORDER BY id DESC LIMIT 61`, ...A);
+  const named = q || p || before ? null : Number((await first(x.db, "SELECT COUNT(*) n FROM pledges WHERE pub != '' AND hide = 0") || {}).n) || 0;
+  return { ok: true, named, more: rows.length > 60 ? rows[59].id : 0,
+    rows: rows.slice(0, 60).map(r => ({ n: r.pub || '', p: r.province || '', no: Number(r.no) || 0, t: r.time })) };
+}
+
+/** CRM 📣 Marketing → 🌱 Tôi chọn sống lành: ẩn / hiện lại một tên trên Bức tường (Marketing, Quản trị). */
+export async function wallHide(x, u, d) {
+  if (!(u.level >= 3 || u.role === 'Marketing')) return { ok: false, error: 'Chỉ Marketing và Quản trị.' };
+  await run(x.db, 'UPDATE pledges SET hide = ? WHERE id = ?', d.hide ? 1 : 0, Number(d.id) || 0);
+  return { ok: true };
 }
 
 /** Thống kê cho CRM tab 📣 Marketing (mktv.js): số người ký trong kỳ / kỳ trước, theo nguồn, theo tỉnh. */
@@ -61,7 +104,8 @@ export async function pledgeStats(x, R, P) {
     first(x.db, 'SELECT COUNT(*) AS n FROM pledges WHERE time >= ? AND time < ?', P[0], P[1]).catch(() => null)
   ]);
   const by = f => { const m = {}; rows.forEach(r => { const k = String(r[f] || '').trim(); m[k] = (m[k] || 0) + (Number(r.n) || 0); }); return Object.entries(m).sort((a, b) => b[1] - a[1]); };
-  return { n: rows.reduce((t, r) => t + (Number(r.n) || 0), 0), prev: Number(prev && prev.n) || 0, src: by('src'), prov: by('province') };
+  const names = await all(x.db, "SELECT id, time, pub, province, no, hide FROM pledges WHERE pub != '' ORDER BY id DESC LIMIT 40").catch(() => []); // tên mới nhất trên Bức tường để duyệt
+  return { n: rows.reduce((t, r) => t + (Number(r.n) || 0), 0), prev: Number(prev && prev.n) || 0, src: by('src'), prov: by('province'), names };
 }
 
 /** Khách chơi xong "Bạn còn mấy ngón tay?" → lưu điểm để biết thói quen nào khách hay "hạ ngón" nhất. Không tên, SĐT, IP. */

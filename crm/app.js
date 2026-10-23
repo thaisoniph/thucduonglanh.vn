@@ -4253,10 +4253,26 @@
       line: pl.n + ' người chọn' + (top ? ' · nhiều nhất từ ' + esc(top[0] || 'Truy cập trực tiếp') : ''),
       h: '<div class="metrics dash-m3">' + metric('Người chọn trong kỳ', pl.n, 'Số người bấm "Tôi chọn sống lành" trên website (thucduonglanh.vn/toi-chon-song-lanh/).', delta(pl.n, pl.prev)) + '</div>' +
         '<div class="dash-grid"><div class="box"><h3>Đến từ đâu</h3>' + barList(rows(pl.src, 'Truy cập trực tiếp'), cnt) + '</div>' +
-        '<div class="box"><h3>Tỉnh / thành</h3>' + barList(rows(pl.prov, 'Không chọn tỉnh'), cnt) + '</div></div>' +
-        '<p class="bar-legend">Nguồn = nguồn / kênh / chiến dịch của lần vào web gần nhất (link UTM, mã QR ở 📍 Link &amp; QR, link sale). "cam_ket / chia_se" = người được bạn bè mời qua nút Chia sẻ / Mời người thân. Muốn biết bài đăng, sự kiện nào mang nhiều người ký: gắn link UTM hoặc mã QR riêng cho từng nơi. Website không lưu tên hay số điện thoại người ký.</p>'
+        '<div class="box"><h3>Tỉnh / thành</h3>' + barList(rows(pl.prov, 'Không chọn tỉnh'), cnt) + '</div></div>' + mkWallRows(pl.names) +
+        '<p class="bar-legend">Nguồn = nguồn / kênh / chiến dịch của lần vào web gần nhất (link UTM, mã QR ở 📍 Link &amp; QR, link sale). "cam_ket / chia_se" = người được bạn bè mời qua nút Chia sẻ / Mời người thân. Muốn biết bài đăng, sự kiện nào mang nhiều người ký: gắn link UTM hoặc mã QR riêng cho từng nơi. Website không lưu tên đầy đủ hay số điện thoại: chỉ lưu tên đã che của người tự tích "Hiện tên tôi".</p>'
     };
   }
+  /** 🧱 Bức tường Sống Lành (thucduonglanh.vn/buc-tuong-song-lanh/, 23/10/2026): 40 tên đã che mới nhất, bấm Ẩn nếu tên không phù hợp (api wall_hide). Web cập nhật sau tối đa 2 phút. */
+  function mkWallRows(L) {
+    if (!L || !L.length) return '';
+    var d2 = function (t) { var d = new Date(t); return ('0' + d.getDate()).slice(-2) + '/' + ('0' + (d.getMonth() + 1)).slice(-2); };
+    return '<div class="box mk-wl"><h3>🧱 Tên mới trên Bức tường Sống Lành</h3><p class="bar-legend">Tên đã che bớt, do khách tự tích “Hiện tên tôi”. Thấy tên không phù hợp (tục, quảng cáo, giả mạo) thì bấm <b>Ẩn</b>; khách nhắn xin gỡ tên cũng bấm Ẩn. <a href="https://thucduonglanh.vn/buc-tuong-song-lanh/" target="_blank" rel="noopener">Mở Bức tường ↗</a></p><ul>' +
+      L.map(function (r) { return '<li' + (r.hide ? ' class="off"' : '') + '><span><b>' + esc(r.pub) + '</b> · ' + esc(r.province || 'Không chọn tỉnh') + (r.no ? ' · số ' + Number(r.no).toLocaleString('vi-VN') : '') + ' · ' + d2(r.time) + '</span><button type="button" class="btn sm ghost" data-wlh="' + r.id + '" data-on="' + (r.hide ? 0 : 1) + '">' + (r.hide ? 'Hiện lại' : 'Ẩn') + '</button></li>'; }).join('') + '</ul></div>';
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-wlh]'); if (!b) return;
+    var hide = b.getAttribute('data-on') === '1';
+    b.disabled = true;
+    api('wall_hide', { id: +b.getAttribute('data-wlh'), hide: hide ? 1 : 0 }).then(function () {
+      b.disabled = false; b.setAttribute('data-on', hide ? 0 : 1); b.textContent = hide ? 'Hiện lại' : 'Ẩn'; b.closest('li').classList.toggle('off', hide);
+      toast(hide ? 'Đã ẩn tên khỏi Bức tường ✓' : 'Đã hiện lại tên ✓');
+    }, function (er) { b.disabled = false; toast(er.message, true); });
+  });
   /** 🖐 Trò chơi "Bạn còn mấy ngón tay?" trên thucduonglanh.vn/ngon-tay-song-lanh/ (api/src/journey.js quizStats): số lượt chơi, điểm trung bình (thang 10), thói quen khách hay "hạ ngón" nhất. Không có tên hay SĐT. */
   function mkQuizBlock(qz) {
     if (!qz || (!qz.n && !qz.prev)) return null;

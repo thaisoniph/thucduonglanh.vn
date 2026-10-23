@@ -9,10 +9,10 @@ import { scheduled, mirror, dailyCare } from './cron.js';
 import { cmsRoute } from './cms.js';
 import { voucherCheck, voucherApply } from './voucher.js';
 import { qrGo } from './links.js';
-import { journeyCounts, pledge, quiz } from './journey.js';
+import { journeyCounts, pledge, quiz, wall } from './journey.js';
 import { apply } from './apply.js';
 
-const API_VERSION = '2026-10-23d'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
+const API_VERSION = '2026-10-23e'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
 const ORIGINS = /^https:\/\/((www\.|crm\.|mkt\.|congsu\.|camnangsongkhoe\.)?thucduonglanh\.vn|([a-z0-9-]+\.)?(thucduonglanh(-crm|-congsu)?|camnang-song-khoe-thuc-duong-lanh)\.pages\.dev)$|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
 function ctxOf(env, ectx) { return { env, db: env.DB, later: p => ectx.waitUntil(Promise.resolve(p).catch(e => console.error('later', e && e.message))) }; }
@@ -97,6 +97,15 @@ export default {
           const ck = new Request('https://api.thucduonglanh.vn/api/journey'), cache = caches.default;
           let r = await cache.match(ck);
           if (!r) { await ensureSchema(x.db); r = new Response(JSON.stringify(await journeyCounts(x)), { headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=300' } }); x.later(cache.put(ck, r.clone())); }
+          const h = new Headers(r.headers); h.set('Access-Control-Allow-Origin', '*');
+          return new Response(r.body, { headers: h });
+        }
+        if (path === '/api/wall') { // Bức tường Sống Lành /buc-tuong-song-lanh/ (journey.js): chỉ tên đã che; lưu đệm 2 phút theo từng câu tìm
+          const sp = url.searchParams, key = new URL('https://api.thucduonglanh.vn/api/wall');
+          ['q', 'p', 'b'].forEach(k => { const v = String(sp.get(k) || '').trim().slice(0, 40); if (v) key.searchParams.set(k, v); });
+          const ck = new Request(key.toString()), cache = caches.default;
+          let r = await cache.match(ck);
+          if (!r) { await ensureSchema(x.db); r = new Response(JSON.stringify(await wall(x, key.searchParams.get('q'), key.searchParams.get('p'), key.searchParams.get('b'))), { headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=120' } }); x.later(cache.put(ck, r.clone())); }
           const h = new Headers(r.headers); h.set('Access-Control-Allow-Origin', '*');
           return new Response(r.body, { headers: h });
         }

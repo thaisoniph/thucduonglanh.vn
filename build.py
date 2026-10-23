@@ -1623,6 +1623,7 @@ def community_html(start_url="/san-pham/"):
   <h2 class="sec-title big">{t("Cùng chúng tôi đi hành trình")}<br><span class="accent">{t("10 triệu người Việt sống khỏe hơn")}</span></h2>
   <p class="join-sub">{sub}</p>
   {journey_counter()}
+  {wall_strip()}
   {journey_map()}
   <div class="cm-grid">{cards}</div>
   <div class="join-self"><p>{t("Hoặc bắt đầu từ chính mình, từ hôm nay:")}</p><div class="join-btns">{pledge_btn}{quiz_btn}<a class="btn btn-lg{" btn-ghost" if pledge_btn else ""}" href="{start_url}" data-cta="join_start">{t("Bắt đầu 10 ngày sống lành")}</a></div></div>
@@ -1694,24 +1695,63 @@ def page_pledge():
       <div class="plg-f pv" data-pv='{esc(json.dumps(pv_list, ensure_ascii=False))}'><label for="plgProv"><span>Tỉnh / thành phố (không bắt buộc)</span></label>
         <input id="plgProv" name="province" autocomplete="off" placeholder="Gõ tên tỉnh, ví dụ: nghe an" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="plgProvList">
         <ul class="pv-list" id="plgProvList" role="listbox" hidden></ul></div>
+      <label class="plg-show"><input type="checkbox" name="show" data-plg-show><span><b>Hiện tên tôi trên <a href="{WALL_PATH}" target="_blank" rel="noopener">Bức tường Sống Lành</a></b><small data-plg-prev>Tên được che bớt, ví dụ Nguyễn Thu Hà sẽ hiện là <b>N.T. Hà</b>, để chỉ bạn nhận ra mình.</small></span></label>
       <input type="text" name="website" tabindex="-1" autocomplete="off" class="hp" aria-hidden="true">
       <button class="btn btn-lg plg-submit" type="submit">🌱 Tôi chọn sống lành</button>
       <p class="form-msg" data-plg-msg role="status"></p>
-      <p class="plg-note">Chúng tôi không lưu tên của bạn: tên chỉ dùng để in lên ảnh chứng nhận ngay trên máy bạn. Website chỉ đếm số người cùng chọn sống lành (kèm tỉnh/thành nếu bạn chọn). Xem <a href="/chinh-sach-bao-mat/">chính sách bảo mật</a>.</p>
+      <p class="plg-note">Tên đầy đủ của bạn chỉ dùng để in lên ảnh chứng nhận ngay trên máy bạn, website không lưu. Nếu bạn tích ô trên, website chỉ lưu tên đã che bớt (kèm tỉnh/thành nếu bạn chọn) để hiện trên Bức tường. Muốn gỡ tên, bạn nhắn Zalo {esc(SITE["hotline"])}. Xem <a href="/chinh-sach-bao-mat/">chính sách bảo mật</a>.</p>
     </form>
     <div class="plg-done" data-plg-done hidden>
       <p class="plg-thanks">Cảm ơn <b data-plg-name></b>! Bạn là người thứ <b data-plg-no></b> trên hành trình 10 triệu người Việt sống khỏe hơn.</p>
       <p class="plg-lit" data-plg-lit hidden></p>
       <img class="plg-img" data-plg-img alt="Ảnh chứng nhận Tôi chọn sống lành" width="1080" height="1350">
       <div class="plg-acts"><a class="btn" data-plg-dl download="toi-chon-song-lanh.png" href="#">⬇️ Tải ảnh</a><button class="btn btn-ghost" type="button" data-plg-share>📤 Chia sẻ</button><button class="btn btn-ghost" type="button" data-plg-invite>💌 Mời người thân cùng chọn</button></div>
+      <p class="plg-wall" data-plg-wall hidden></p>
       <p class="plg-again"><button type="button" class="link-btn" data-plg-again>Thêm một người thân cùng chọn sống lành</button></p>
       {f'<div class="plg-gift">{gift_form("camnang", "pledge")}</div>' if CN_PATH else ""}
     </div>
   </div>
+  {wall_strip()}
   {journey_map(on_pledge=True)}
   <div class="plg-next"><p>Lời hứa nhỏ, bắt đầu từ bữa ăn hôm nay:</p><a class="btn btn-lg btn-ghost" href="{start}" data-cta="pledge_start">Bắt đầu 10 ngày sống lành</a>{f'<p class="plg-quiz">Hoặc chơi thử trò 1 phút: <a href="{QUIZ_PATH}" data-cta="pledge_quiz">🖐 Bạn còn mấy ngón tay?</a></p>' if QUIZ.get("questions") else ""}</div>
 </div></section>'''
     return layout(PLEDGE_PATH, "Tôi chọn sống lành – Hành trình 10 triệu người Việt sống khỏe hơn", f"Chọn sống lành cùng {BRAND} trên hành trình lan tỏa và truyền cảm hứng đến 10 triệu người Việt sống khỏe hơn mỗi ngày, rồi nhận ảnh chứng nhận để chia sẻ.", body, body_class="page-pledge")
+
+
+WALL_PATH = "/buc-tuong-song-lanh/"
+
+
+def wall_strip():
+    """Dải "Những người vừa chọn sống lành" (trang chủ #dong-hanh, trang Tôi chọn sống lành): tên đã che mới nhất chạy chậm, bấm sang Bức tường.
+    main.js initWallStrip lấy từ api /api/wall; chưa có ai hiện tên hoặc lỗi mạng thì giữ ẩn."""
+    if not IS_VI:
+        return ""
+    return f'''<div class="wst" data-wst hidden><a class="wst-in" href="{WALL_PATH}" data-cta="wall_strip"><span class="wst-h">🌱 Vừa chọn sống lành</span><span class="wst-run"><span class="wst-track" data-wst-track></span></span><span class="wst-go">Tìm tên bạn →</span></a></div>'''
+
+
+def page_wall():
+    """Bức tường Sống Lành /buc-tuong-song-lanh/ (23/10/2026): danh sách người chọn sống lành, tìm theo tên không dấu / số thứ tự, lọc tỉnh.
+    Chỉ có tên đã che (Đ.M.T. Sơn) của người tự tích "Hiện tên tôi"; còn lại hiện "Một người bạn". main.js initWall, api journey.js wall."""
+    provs = sorted([u["n"] for u in json.loads((DATA / "vn-units.json").read_text(encoding="utf-8"))], key=lambda n: n.replace("Đ", "D~"))
+    opts = "".join(f'<option value="{esc(n)}">{esc("TP. Hồ Chí Minh" if n == "Hồ Chí Minh" else n)}</option>' for n in provs)
+    body = f'''<section class="section wl-page"><div class="container wl-in">
+  <p class="join-eye">Hành trình 10 triệu người Việt sống khỏe hơn</p>
+  <h1 class="plg-h">Bức tường <span class="nw">Sống Lành</span></h1>
+  <p class="plg-lead">Mỗi cái tên ở đây là một người đã chọn sống lành, cùng {BRAND} lan tỏa đến 10 triệu người Việt. Gõ tên hoặc số thứ tự trên ảnh chứng nhận để tìm lại chính mình.</p>
+  {journey_counter()}
+  <form class="wl-find" data-wl-form role="search">
+    <label class="wl-q"><span class="wl-sr">Tìm tên hoặc số thứ tự</span><input name="q" type="search" placeholder="Gõ tên (không cần dấu) hoặc số, ví dụ: thu ha" autocomplete="off" enterkeyhint="search"></label>
+    <label class="wl-p"><span class="wl-sr">Tỉnh / thành phố</span><select name="p"><option value="">Tất cả tỉnh, thành</option>{opts}</select></label>
+    <button class="btn" type="submit">🔎 Tìm</button>
+  </form>
+  <p class="wl-hint">Tên được che bớt để giữ riêng tư: Nguyễn Thu Hà hiện là <b>N.T. Hà</b>. Gõ “ha”, “thu ha” hoặc “nguyen thu ha” đều tìm được.</p>
+  <p class="wl-sum" data-wl-sum role="status"></p>
+  <ul class="wl-grid" data-wl-list></ul>
+  <p class="center"><button class="btn btn-ghost" type="button" data-wl-more hidden>Xem thêm</button></p>
+  <div class="wl-cta"><p>Bạn chưa có tên trên Bức tường?</p><a class="btn btn-lg" href="{PLEDGE_PATH}#chon-song-lanh" data-cta="wall_pledge">🌱 Tôi chọn sống lành</a>
+  <p class="wl-note">Chỉ hiện tên của người tự tích “Hiện tên tôi”, những người khác hiện là “Một người bạn”. Muốn gỡ tên khỏi Bức tường, bạn nhắn Zalo {esc(SITE["hotline"])} kèm số thứ tự trên ảnh chứng nhận.</p></div>
+</div></section>'''
+    return layout(WALL_PATH, "Bức tường Sống Lành – Những người chọn sống lành cùng Thực Dưỡng Lành", f"Danh sách những người đã chọn sống lành cùng {BRAND} trên hành trình 10 triệu người Việt sống khỏe hơn. Tìm lại tên của bạn.", body, body_class="page-wall")
 
 
 QUIZ_PATH = "/ngon-tay-song-lanh/"
@@ -2838,6 +2878,7 @@ def main():
         routes.append(write(GIFT_PATH, page_gifts()))
     if IS_VI:
         routes.append(write(PLEDGE_PATH, page_pledge()))
+        routes.append(write(WALL_PATH, page_wall()))
         if QUIZ.get("questions"):
             routes.append(write(QUIZ_PATH, page_quiz()))
             write(QUIZ_GROUP_PATH, page_quiz_group())  # màn hình chơi nhóm: không vào sitemap

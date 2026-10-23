@@ -1340,7 +1340,7 @@
     captureSource(); initConsent(); trackPageEvents();
     renderCounts(); renderMini(); markWish();
     initHeader(); initClicks(); initRail(); initLightbox(); initProduct(); initCerts(); initProof(); initTabs(); initReadmore(); initSort();
-    initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initJourneyMap(); initPledge(); initQuiz(); initGiftDock(); initZaloGate(); initMusic(); initBrandVideo();
+    initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initJourneyMap(); initPledge(); initWall(); initWallStrip(); initQuiz(); initGiftDock(); initZaloGate(); initMusic(); initBrandVideo();
     window.addEventListener('storage', function (e) { if (e.key === 'tdl_cart') { cart = load('tdl_cart', []); cleanCart(); renderCounts(); renderMini(); } });
   }
   // ===== Hành trình 10 triệu người Việt sống khỏe hơn: bộ đếm [data-jr] + trang "Tôi chọn sống lành" /toi-chon-song-lanh/ (api journey.js) =====
@@ -1525,33 +1525,41 @@
     initProvPick();
     var done = document.querySelector('[data-plg-done]'), msg = form.querySelector('[data-plg-msg]'), btn = form.querySelector('button[type=submit]');
     var shareUrl = location.origin + location.pathname + '?utm_source=cam_ket&utm_medium=chia_se', blob = null, imgUrl = ''; // UTM: CRM Marketing đếm được người ký nhờ bạn bè mời
-    function show(p) {
+    function showDone(p) {
       var gb = document.getElementById('giftBox'), gn = gb && gb.querySelector('#giftForm input[name=name]');
       if (gb && gb.getAttribute('data-pos') === 'pledge') { gb.setAttribute('data-ctx', '🌱 Đã chọn “Tôi chọn sống lành”'); if (gn && !gn.value) gn.value = p.name; }
       done.querySelector('[data-plg-name]').textContent = p.name; done.querySelector('[data-plg-no]').textContent = vn(p.no);
       var lit = done.querySelector('[data-plg-lit]');
       if (lit && p.province && document.querySelector('[data-jm]')) { lit.innerHTML = '📍 Bạn vừa thắp sáng thêm một điểm ở <b>' + esc(jmName(p.province)) + '</b> 🌱 <a href="#ban-do">Xem trên bản đồ</a>'; lit.hidden = false; }
+      var wl = done.querySelector('[data-plg-wall]');
+      if (wl) { wl.innerHTML = p.pub ? '🧱 Tên <b>' + esc(p.pub) + '</b> đã có trên <a href="/buc-tuong-song-lanh/?q=' + p.no + '" data-cta="pledge_wall">Bức tường Sống Lành</a>' : '🧱 <a href="/buc-tuong-song-lanh/" data-cta="pledge_wall">Xem Bức tường Sống Lành</a>: những người đã cùng chọn'; wl.hidden = false; }
       form.hidden = true; done.hidden = false;
       pledgeCard(p.name, p.no, function (b) {
         blob = b; if (imgUrl) URL.revokeObjectURL(imgUrl); imgUrl = URL.createObjectURL(b);
         done.querySelector('[data-plg-img]').src = imgUrl; done.querySelector('[data-plg-dl]').href = imgUrl;
       });
     }
-    var saved = load('tdl_pledge', null); if (saved && saved.name && saved.no) show(saved);
+    var saved = load('tdl_pledge', null); if (saved && saved.name && saved.no) showDone(saved);
+    var chk = form.querySelector('[data-plg-show]'), prev = form.querySelector('[data-plg-prev]'), prev0 = prev && prev.innerHTML;
+    var upd = function () { // xem trước tên sẽ hiện trên Bức tường
+      var m = maskName(form.elements.name.value);
+      if (prev) prev.innerHTML = chk.checked && m.length > 1 ? 'Tên sẽ hiện là <b>' + esc(m) + '</b>' + (form.elements.province.value.trim() ? ' · ' + esc(form.elements.province.value.trim()) : '') + '. Chỉ bạn nhận ra mình.' : prev0;
+    };
+    if (chk) { chk.addEventListener('change', upd); form.elements.name.addEventListener('input', upd); form.elements.province.addEventListener('change', upd); }
     form.addEventListener('submit', function (e) {
       e.preventDefault();
-      var name = form.elements.name.value.trim(), u = CFG.endpoint, pvIn = form.elements.province, pv = pvIn.value.trim() ? provPick(pvIn) : '';
+      var name = form.elements.name.value.trim(), u = CFG.endpoint, pvIn = form.elements.province, pv = pvIn.value.trim() ? provPick(pvIn) : '', show = !!(form.elements.show && form.elements.show.checked);
       if (name.length < 2) { msg.className = 'form-msg err'; msg.textContent = 'Bạn ghi giúp tên của mình nhé.'; form.elements.name.focus(); return; }
       if (pv === null) { msg.className = 'form-msg err'; msg.textContent = 'Chưa nhận ra tỉnh “' + pvIn.value.trim() + '”. Bạn chọn trong danh sách gợi ý, hoặc để trống cũng được nhé.'; pvIn.focus(); return; }
       if (!u) return;
       btn.disabled = true; msg.className = 'form-msg'; msg.textContent = 'Đang ghi lại lựa chọn của bạn…';
-      fetch(u, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ type: 'pledge', province: pv, website: form.elements.website.value, src: sourceLabel().last }) })
+      fetch(u, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ type: 'pledge', province: pv, show: show, pub: show ? maskName(name) : '', website: form.elements.website.value, src: sourceLabel().last }) })
         .then(function (r) { return r.json(); })
         .then(function (j) {
           btn.disabled = false;
           if (!j || !j.ok) { msg.className = 'form-msg err'; msg.textContent = (j && j.error) || 'Chưa gửi được, bạn thử lại giúp nhé.'; return; }
-          var p = { name: name, no: j.no, at: Date.now(), province: pv === 'Ở nước ngoài' ? '' : pv }; save('tdl_pledge', p); msg.textContent = '';
-          track('pledge', {}); show(p);
+          var p = { name: name, no: j.no, at: Date.now(), province: pv === 'Ở nước ngoài' ? '' : pv, pub: j.pub || '' }; save('tdl_pledge', p); msg.textContent = '';
+          track('pledge', { wall: show ? 1 : 0 }); showDone(p);
           var jm = document.querySelector('[data-jm]'); if (jm && jm._jmGo && p.province) { jm.classList.remove('jm-go'); jm._jmGo(); }
           done.scrollIntoView({ behavior: 'smooth', block: 'start' });
         })
@@ -1572,6 +1580,54 @@
     });
     done.querySelector('[data-plg-dl]').addEventListener('click', function () { track('pledge_download', {}); });
     done.querySelector('[data-plg-again]').addEventListener('click', function () { form.reset(); done.hidden = true; form.hidden = false; form.elements.name.focus(); });
+  }
+  // ===== Bức tường Sống Lành /buc-tuong-song-lanh/ (build.py page_wall, wall_strip; api journey.js wall) =====
+  // Che tên giống máy chủ (journey.js maskName): tên gọi giữ nguyên, họ + tên đệm còn chữ cái đầu. "nguyễn thu hà" → "N.T. Hà"
+  function maskName(s) {
+    var w = String(s || '').replace(/[0-9<>"`!@#$%^&*()_+=\[\]{};:,\/?|~]/g, ' ').split(/[\s.]+/).filter(Boolean).map(function (v) { return v.charAt(0).toUpperCase() + v.slice(1).toLowerCase(); });
+    if (!w.length) return '';
+    var last = w.pop();
+    return (w.length ? w.map(function (v) { return v.charAt(0) + '.'; }).join('') + ' ' : '') + last.slice(0, 20);
+  }
+  function wallApi(q) { return jrApi() ? jrApi().replace(/journey$/, 'wall') + (q ? '?' + q : '') : ''; }
+  function wallDate(t) { var d = new Date(t); return ('0' + d.getDate()).slice(-2) + '/' + ('0' + (d.getMonth() + 1)).slice(-2) + '/' + d.getFullYear(); }
+  function initWallStrip() {
+    var boxes = document.querySelectorAll('[data-wst]'), u = wallApi(); if (!boxes.length || !u) return;
+    fetch(u).then(function (r) { return r.json(); }).then(function (j) {
+      var L = ((j && j.rows) || []).filter(function (r) { return r.n; }).slice(0, 16); if (L.length < 3) return; // ít quá thì chưa hiện
+      var h = L.map(function (r) { return '<span class="wst-it"><b>' + esc(r.n) + '</b>' + (r.p ? ' · ' + esc(jmName(r.p)) : '') + '</span>'; }).join('');
+      boxes.forEach(function (b) { var tr = b.querySelector('[data-wst-track]'); tr.innerHTML = h + '<span aria-hidden="true" class="wst-dup">' + h + '</span>'; tr.style.animationDuration = Math.max(20, L.length * 4) + 's'; b.hidden = false; });
+    }).catch(function () { });
+  }
+  function initWall() {
+    var form = document.querySelector('[data-wl-form]'); if (!form || !wallApi()) return;
+    var list = document.querySelector('[data-wl-list]'), sum = document.querySelector('[data-wl-sum]'), more = document.querySelector('[data-wl-more]'), next = 0, cur = '', mine = load('tdl_pledge', null);
+    var qs0 = new URLSearchParams(location.search); form.elements.q.value = qs0.get('q') || ''; if (qs0.get('p')) form.elements.p.value = qs0.get('p');
+    function card(r) {
+      var me = mine && mine.no && r.no === mine.no;
+      return '<li class="wl-it' + (r.n ? '' : ' wl-anon') + (me ? ' wl-me' : '') + '"><span class="wl-ic" aria-hidden="true">🌱</span><span class="wl-tx"><b>' + (r.n ? esc(r.n) : 'Một người bạn') + '</b>' + (me ? '<em>Đây là bạn</em>' : '') +
+        '<small>' + [r.p ? '📍 ' + esc(jmName(r.p)) : '', r.no ? 'Người thứ ' + vn(r.no) : '', wallDate(r.t)].filter(Boolean).join(' · ') + '</small></span></li>';
+    }
+    function go(add) {
+      var q = form.elements.q.value.trim(), p = form.elements.p.value, ps = new URLSearchParams();
+      if (q) ps.set('q', q); if (p) ps.set('p', p);
+      if (!add) { cur = ps.toString(); next = 0; history.replaceState(null, '', location.pathname + (cur ? '?' + cur : '')); sum.textContent = 'Đang tìm…'; }
+      if (add && next) ps.set('b', next);
+      more.hidden = true;
+      fetch(wallApi(ps.toString())).then(function (r) { return r.json(); }).then(function (j) {
+        if (!j || !j.ok) throw 0;
+        var rows = j.rows || [];
+        if (add) list.insertAdjacentHTML('beforeend', rows.map(card).join('')); else list.innerHTML = rows.map(card).join('');
+        next = j.more || 0; more.hidden = !next;
+        if (!add) sum.innerHTML = q || p ? (rows.length ? 'Tìm thấy <b>' + (next ? rows.length + '+' : rows.length) + '</b> người' + (q ? ' với “' + esc(q) + '”' : '') + (p ? ' ở ' + esc(jmName(p)) : '') + '.' : 'Chưa thấy ai' + (q ? ' tên “' + esc(q) + '”' : '') + (p ? ' ở ' + esc(jmName(p)) : '') + '. Bạn thử gõ tên gọi thôi (ví dụ “ha”), hoặc số thứ tự trên ảnh chứng nhận.')
+          : (j.named ? '<b>' + vn(j.named) + '</b> người đã để tên trên Bức tường. Mới nhất ở trên cùng.' : 'Mới nhất ở trên cùng.');
+        if (q || p) track('wall_search', { found: rows.length });
+      }).catch(function () { sum.textContent = 'Mạng đang chập chờn, bạn thử lại giúp nhé.'; });
+    }
+    form.addEventListener('submit', function (e) { e.preventDefault(); go(false); });
+    form.elements.p.addEventListener('change', function () { go(false); });
+    more.addEventListener('click', function () { go(true); });
+    go(false);
   }
   // ===== Trò chơi "Bạn còn mấy ngón tay?" /ngon-tay-song-lanh/ (build.py page_quiz, data/quiz.json) =====
   // Gửi về api chỉ điểm + tên thói quen bị hạ ngón + nguồn (journey.js quiz), không tên/SĐT. Kết quả, thử thách 7 ngày lưu tdl_quiz trên máy khách.
