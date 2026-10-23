@@ -750,6 +750,23 @@ collections:
               - { label: "Chủ tài khoản (không dấu)", name: account_name, widget: string }
           - { label: "Miễn phí ship cho đơn từ (đồng, 0 = không áp dụng)", name: free_ship_threshold, widget: number, value_type: int, default: 0 }
           - { label: "Phí ship cố định (đồng, 0 = báo khi xác nhận đơn)", name: shipping_fee, widget: number, value_type: int, default: 0 }
+          - label: "Hộp tư vấn nổi (góc phải màn hình máy tính)"
+            name: float_chat
+            widget: object
+            collapsed: true
+            required: false
+            hint: "Bong bóng hiện khi khách bấm logo tròn góc phải hoặc ở trang khoảng 25 giây. Ô Nhận cẩm nang (đầu) và Liên hệ tư vấn (cuối) luôn có sẵn."
+            fields:
+              - { label: "Câu chào (tự đổi lần lượt)", name: messages, widget: list, field: { label: "Câu chào", name: message, widget: string }, hint: "Mỗi dòng 1 câu, ngắn, xưng em – gọi anh/chị. Câu đầu hiện trước. Không ghi công dụng chữa bệnh." }
+              - { label: "Đổi câu sau mỗi (giây)", name: seconds, widget: number, value_type: int, default: 7, min: 3, max: 30 }
+              - label: "Các nút gợi ý (nên 2–4 nút)"
+                name: links
+                widget: list
+                summary: "{{fields.label}}"
+                hint: "Ít lựa chọn thì khách dễ chọn hơn. Đường dẫn lấy phần sau thucduonglanh.vn, ví dụ /san-pham/tra-hoa-tan-dilvang-dinh-lang-che-vang/"
+                fields:
+                  - { label: "Chữ trên nút", name: label, widget: string }
+                  - { label: "Đường dẫn", name: url, widget: string }
           - label: "Mốc đơn hàng thứ 2 trong giỏ (sau mốc miễn phí ship)"
             name: aov_milestone
             widget: object

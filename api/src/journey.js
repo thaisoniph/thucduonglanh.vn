@@ -1,7 +1,7 @@
 // Hành trình 10 triệu người Việt sống khỏe hơn: bộ đếm công khai (trang chủ, /cam-ket-song-lanh/) + lời cam kết "Tôi chọn sống lành".
 // Bộ đếm = số khách đã mua (customers.orders > 0, đơn huỷ/hoàn không tính) + số lời cam kết. Chỉ trả về con số, không lộ dữ liệu khách.
 // Không lưu SĐT, IP. Tên đầy đủ không bao giờ tới máy chủ: 23/10/2026 anh Sơn duyệt "Bức tường Sống Lành" (/buc-tuong-song-lanh/) →
-// khách tự tích "Hiện tên tôi" thì máy chủ chỉ giữ tên đã che (Đ.M.T. Sơn) + số thứ tự; không tích = "Một người bạn".
+// khách bấm nút "Tôi chọn sống lành và hiện tên trên Bức tường" thì máy chủ chỉ giữ tên đã che (Đ.M.T. Sơn) + số thứ tự; bấm "không hiện tên" = "Một người bạn".
 // Máy chủ giữ: thời gian, tỉnh/thành (không bắt buộc), nguồn khách → thống kê ở CRM tab 📣 Marketing (ở đó ẩn được tên không phù hợp).
 import { all, first, run, kvGet, kvSet, nrm } from './lib.js';
 import { areaStats, provOfAddr } from './crm.js';
@@ -56,7 +56,7 @@ export function maskName(s) {
 const BAD = new Set('dit dm dmm dcm dkm vcl vkl vl clm cl cak deo ditme fuck shit sex porn bitch dick'.split(' '));
 const badName = s => nrm(s).split(/[\s.]+/).some(v => BAD.has(v));
 
-/** Khách chọn sống lành → trả về số thứ tự trên hành trình để in lên ảnh chứng nhận. Tên đầy đủ ở lại trên máy khách; chỉ nhận tên đã che khi khách tích "Hiện tên tôi". */
+/** Khách chọn sống lành → trả về số thứ tự trên hành trình để in lên ảnh chứng nhận. Tên đầy đủ ở lại trên máy khách; chỉ nhận tên đã che khi khách bấm nút "…và hiện tên". */
 export async function pledge(x, d) {
   const province = clean(d.province, 40);
   let pub = d.show ? maskName(d.pub) : ''; if (pub.length < 2 || badName(pub)) pub = '';
@@ -72,7 +72,7 @@ export async function pledge(x, d) {
 }
 
 /** Bức tường Sống Lành (GET /api/wall, index.js lưu đệm 2 phút): mới nhất trước, 60 người/lần; q = tên (không dấu) hoặc số thứ tự; p = tỉnh.
- *  Chỉ trả tên đã che. Người không tích "Hiện tên tôi" (và mọi người chọn trước 23/10/2026) hiện là "Một người bạn". */
+ *  Chỉ trả tên đã che. Người chọn "không hiện tên" (và mọi người chọn trước 23/10/2026) hiện là "Một người bạn". */
 export async function wall(x, q, p, before) {
   q = nrm(q).replace(/[^a-z0-9 .]/g, '').trim().slice(0, 40); p = clean(p, 40); before = Math.max(0, Number(before) || 0);
   const W = ['hide = 0'], A = [];

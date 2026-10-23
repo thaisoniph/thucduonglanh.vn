@@ -95,7 +95,7 @@ Nếu các sale chênh nhau nhiều, vấn đề có thể nằm ở khâu tư v
 ## Trò chơi và "Tôi chọn sống lành" trên website
 
 - **🌱 Tôi chọn sống lành**: số người bấm "Tôi chọn sống lành" ở thucduonglanh.vn/toi-chon-song-lanh/ (trước 23/10/2026 tên là "lời cam kết", link cũ vẫn tự chuyển sang), đến từ đâu, ở tỉnh nào.
-- **🧱 Bức tường Sống Lành** (thucduonglanh.vn/buc-tuong-song-lanh/): khi bấm "Tôi chọn sống lành", khách có thể tích ô **Hiện tên tôi**. Tên hiện ra đã được che bớt (Nguyễn Thu Hà hiện là **N.T. Hà**), ai cũng gõ tìm được tên mình. Trong mục 🌱 có danh sách tên mới nhất:
+- **🧱 Bức tường Sống Lành** (thucduonglanh.vn/buc-tuong-song-lanh/): khi bấm "Tôi chọn sống lành", có 2 nút: nút chính **Tôi chọn sống lành và hiện tên trên Bức tường**, dòng nhỏ bên dưới **Chọn sống lành, không hiện tên**. Tên hiện ra đã được che bớt (Nguyễn Thu Hà hiện là **N.T. Hà**), ai cũng gõ tìm được tên mình. Trong mục 🌱 có danh sách tên mới nhất:
   - Thấy tên bậy, tên quảng cáo, tên giả mạo: bấm **Ẩn**. Khoảng 2 phút sau tên biến mất khỏi web.
   - Khách nhắn xin gỡ tên: hỏi số thứ tự trên ảnh chứng nhận, tìm trong danh sách rồi bấm **Ẩn**.
   - Bấm nhầm thì bấm **Hiện lại**.

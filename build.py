@@ -675,13 +675,21 @@ def music_btn():
 
 
 def float_widget():
-    chips = "".join(f'<a class="fw-chip" href="/san-pham/{p["slug"]}/">{esc(p.get("short_name") or p["name"])}</a>' for p in PRODUCTS if p.get("featured"))
+    # Hộp tư vấn góc phải (23/10/2026): ít lựa chọn cho khách dễ chọn. Câu chào tự đổi + các nút sửa ở /admin → Cài đặt website → Hộp tư vấn nổi (data/site.json float_chat).
+    fc = (SITE.get("float_chat") or {}) if IS_VI else {}  # bản dịch chưa có câu chào riêng → giữ 1 câu dịch sẵn + sản phẩm nổi bật
+    links = [x for x in (fc.get("links") or []) if x.get("label") and x.get("url")]
+    if links:
+        chips = "".join(f'<a class="fw-chip" href="{esc(x["url"])}" data-cta="float_chip">{esc(x["label"])}</a>' for x in links)
+    else:
+        chips = "".join(f'<a class="fw-chip" href="/san-pham/{p["slug"]}/">{esc(p.get("short_name") or p["name"])}</a>' for p in PRODUCTS if p.get("featured"))
+    msgs = [m.strip() for m in (fc.get("messages") or []) if m and m.strip()] or [t("Anh/chị đang tìm hiểu sản phẩm nào ạ? Em sẵn sàng tư vấn ngay cho anh/chị nhé!")]
+    rot = f' data-fw-msgs="{esc(json.dumps(msgs, ensure_ascii=False))}" data-fw-sec="{max(3, int(fc.get("seconds") or 7))}"' if len(msgs) > 1 else ""
     return f'''
 <div class="float-widget" id="floatWidget">
   <div class="fw-pop" id="fwPop">
     <button class="fw-x" id="fwClose" aria-label="{t("Ẩn")}">{I["close"]}</button>
     <div class="fw-msg"><div class="fw-name"><img src="/assets/img/brand/emblem.png" alt="" width="22" height="22">{BRAND}</div>
-    <p>{t("Anh/chị đang tìm hiểu sản phẩm nào ạ? Em sẵn sàng tư vấn ngay cho anh/chị nhé!")}</p></div>
+    <p class="fw-say" aria-live="polite"{rot}>{esc(msgs[0])}</p></div>
     <div class="fw-chips">{f'<a class="fw-chip fw-gift" href="{esc(CN_PATH)}?tu=float" data-cta="camnang_float">🎁 Nhận cẩm nang sống khỏe</a>' if CN_PATH else f'<a class="fw-chip fw-gift" href="{esc(ebook_href("float"))}"{ebook_target()} data-cta="ebook_float">🎁 Nhận ebook miễn phí</a>' if ebook_href("float") else ""}{chips}<a class="fw-chip" href="{zalo_link()}" target="_blank" rel="noopener">{t("Liên hệ tư vấn")}</a></div>
   </div>
   <a class="fw-btn fw-phone" href="tel:{tel(SITE["hotline"])}" aria-label="{t("Gọi")} {esc(SITE["hotline"])}">{I["phone"]}<span class="fw-tx">{t("Gọi")} {esc(SITE["hotline"])}</span></a>
@@ -1695,11 +1703,12 @@ def page_pledge():
       <div class="plg-f pv" data-pv='{esc(json.dumps(pv_list, ensure_ascii=False))}'><label for="plgProv"><span>Tỉnh / thành phố (không bắt buộc)</span></label>
         <input id="plgProv" name="province" autocomplete="off" placeholder="Gõ tên tỉnh, ví dụ: nghe an" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="plgProvList">
         <ul class="pv-list" id="plgProvList" role="listbox" hidden></ul></div>
-      <label class="plg-show"><input type="checkbox" name="show" data-plg-show><span><b>Hiện tên tôi trên <a href="{WALL_PATH}" target="_blank" rel="noopener">Bức tường Sống Lành</a></b><small data-plg-prev>Tên được che bớt, ví dụ Nguyễn Thu Hà sẽ hiện là <b>N.T. Hà</b>, để chỉ bạn nhận ra mình.</small></span></label>
       <input type="text" name="website" tabindex="-1" autocomplete="off" class="hp" aria-hidden="true">
-      <button class="btn btn-lg plg-submit" type="submit">🌱 Tôi chọn sống lành</button>
+      <button class="btn btn-lg plg-submit" type="submit" value="1" data-cta="pledge_show">🌱 Tôi chọn sống lành và hiện tên trên Bức tường</button>
+      <p class="plg-prev" data-plg-prev>Tên được che bớt để chỉ bạn nhận ra mình: Nguyễn Thu Hà sẽ hiện là <b>N.T. Hà</b>. <a href="{WALL_PATH}" target="_blank" rel="noopener">Xem Bức tường Sống Lành</a></p>
+      <p class="plg-nopub"><button class="link-btn" type="submit" value="0" data-cta="pledge_nopub">Chọn sống lành, không hiện tên</button></p>
       <p class="form-msg" data-plg-msg role="status"></p>
-      <p class="plg-note">Tên đầy đủ của bạn chỉ dùng để in lên ảnh chứng nhận ngay trên máy bạn, website không lưu. Nếu bạn tích ô trên, website chỉ lưu tên đã che bớt (kèm tỉnh/thành nếu bạn chọn) để hiện trên Bức tường. Muốn gỡ tên, bạn nhắn Zalo {esc(SITE["hotline"])}. Xem <a href="/chinh-sach-bao-mat/">chính sách bảo mật</a>.</p>
+      <p class="plg-note">Tên đầy đủ của bạn chỉ dùng để in lên ảnh chứng nhận ngay trên máy bạn, website không lưu. Nếu bạn bấm nút “và hiện tên”, website chỉ lưu tên đã che bớt (kèm tỉnh/thành nếu bạn chọn) để hiện trên Bức tường. Muốn gỡ tên, bạn nhắn Zalo {esc(SITE["hotline"])}. Xem <a href="/chinh-sach-bao-mat/">chính sách bảo mật</a>.</p>
     </form>
     <div class="plg-done" data-plg-done hidden>
       <p class="plg-thanks">Cảm ơn <b data-plg-name></b>! Bạn là người thứ <b data-plg-no></b> trên hành trình 10 triệu người Việt sống khỏe hơn.</p>
@@ -1731,7 +1740,7 @@ def wall_strip():
 
 def page_wall():
     """Bức tường Sống Lành /buc-tuong-song-lanh/ (23/10/2026): danh sách người chọn sống lành, tìm theo tên không dấu / số thứ tự, lọc tỉnh.
-    Chỉ có tên đã che (Đ.M.T. Sơn) của người tự tích "Hiện tên tôi"; còn lại hiện "Một người bạn". main.js initWall, api journey.js wall."""
+    Chỉ có tên đã che (Đ.M.T. Sơn) của người bấm nút "…và hiện tên"; còn lại hiện "Một người bạn". main.js initWall, api journey.js wall."""
     provs = sorted([u["n"] for u in json.loads((DATA / "vn-units.json").read_text(encoding="utf-8"))], key=lambda n: n.replace("Đ", "D~"))
     opts = "".join(f'<option value="{esc(n)}">{esc("TP. Hồ Chí Minh" if n == "Hồ Chí Minh" else n)}</option>' for n in provs)
     body = f'''<section class="section wl-page"><div class="container wl-in">
@@ -1749,7 +1758,7 @@ def page_wall():
   <ul class="wl-grid" data-wl-list></ul>
   <p class="center"><button class="btn btn-ghost" type="button" data-wl-more hidden>Xem thêm</button></p>
   <div class="wl-cta"><p>Bạn chưa có tên trên Bức tường?</p><a class="btn btn-lg" href="{PLEDGE_PATH}#chon-song-lanh" data-cta="wall_pledge">🌱 Tôi chọn sống lành</a>
-  <p class="wl-note">Chỉ hiện tên của người tự tích “Hiện tên tôi”, những người khác hiện là “Một người bạn”. Muốn gỡ tên khỏi Bức tường, bạn nhắn Zalo {esc(SITE["hotline"])} kèm số thứ tự trên ảnh chứng nhận.</p></div>
+  <p class="wl-note">Chỉ hiện tên của người chọn “hiện tên trên Bức tường”, những người khác hiện là “Một người bạn”. Muốn gỡ tên khỏi Bức tường, bạn nhắn Zalo {esc(SITE["hotline"])} kèm số thứ tự trên ảnh chứng nhận.</p></div>
 </div></section>'''
     return layout(WALL_PATH, "Bức tường Sống Lành – Những người chọn sống lành cùng Thực Dưỡng Lành", f"Danh sách những người đã chọn sống lành cùng {BRAND} trên hành trình 10 triệu người Việt sống khỏe hơn. Tìm lại tên của bạn.", body, body_class="page-wall")
 

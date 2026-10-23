@@ -21,7 +21,7 @@ Chỉ khi quý khách bấm "Đồng ý" ở thông báo cookie, {brand} mới b
 
 Khi quý khách đánh dấu "Đồng ý nhận tư vấn, nhắc lịch dùng sản phẩm và ưu đãi", {brand} có thể liên hệ qua điện thoại hoặc Zalo để hướng dẫn sử dụng, nhắc lịch dùng và gửi ưu đãi, và có thể hiển thị ưu đãi phù hợp cho quý khách trên Facebook. Khi dùng cho Facebook, số điện thoại được mã hóa ngay trên máy của {brand} trước khi gửi đi để đối chiếu, Facebook không nhận được số gốc. Quý khách có thể yêu cầu ngừng nhận bất kỳ lúc nào bằng cách báo cho nhân viên hoặc gọi {hotline}.
 
-Khi quý khách bấm "Tôi chọn sống lành" trên website, tên đầy đủ chỉ dùng để in ảnh chứng nhận ngay trên máy của quý khách, {brand} không lưu. Chỉ khi quý khách tự đánh dấu "Hiện tên tôi trên Bức tường Sống Lành", {brand} mới lưu và hiển thị công khai tên đã che bớt (ví dụ Nguyễn Thu Hà hiện là N.T. Hà), kèm tỉnh/thành nếu quý khách chọn, tại trang Bức tường Sống Lành. Quý khách có thể yêu cầu gỡ tên bất kỳ lúc nào qua Zalo hoặc hotline {hotline}.
+Khi quý khách bấm "Tôi chọn sống lành" trên website, tên đầy đủ chỉ dùng để in ảnh chứng nhận ngay trên máy của quý khách, {brand} không lưu. Chỉ khi quý khách tự bấm nút "Tôi chọn sống lành và hiện tên trên Bức tường", {brand} mới lưu và hiển thị công khai tên đã che bớt (ví dụ Nguyễn Thu Hà hiện là N.T. Hà), kèm tỉnh/thành nếu quý khách chọn, tại trang Bức tường Sống Lành. Quý khách có thể yêu cầu gỡ tên bất kỳ lúc nào qua Zalo hoặc hotline {hotline}.
 
 ## 5. Thời gian lưu trữ
 

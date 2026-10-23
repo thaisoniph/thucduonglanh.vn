@@ -1321,6 +1321,16 @@
       onScroll = function () { var max = document.documentElement.scrollHeight - innerHeight; if (max > 0 && scrollY / max >= 0.6) autoOpen('auto_scroll'); };
       window.addEventListener('scroll', onScroll, { passive: true });
     }
+    // câu chào tự đổi khi hộp đang mở (danh sách sửa ở /admin → Hộp tư vấn nổi)
+    var say = w.querySelector('[data-fw-msgs]'), msgs = []; try { msgs = say ? JSON.parse(say.getAttribute('data-fw-msgs')) : []; } catch (e) { }
+    if (msgs.length > 1) {
+      var mi = 0, sec = Math.max(3, +say.getAttribute('data-fw-sec') || 7);
+      setInterval(function () {
+        if (!w.classList.contains('open') || document.hidden) return;
+        mi = (mi + 1) % msgs.length; say.classList.add('fw-fade');
+        setTimeout(function () { say.textContent = msgs[mi]; say.classList.remove('fw-fade'); }, 250);
+      }, sec * 1000);
+    }
     $('#fwToggle').addEventListener('click', function () { if (w.classList.toggle('open')) track('chat_widget_open', { trigger: 'click' }); });
     $('#fwClose').addEventListener('click', function () { w.classList.remove('open'); ss('tdl_fw', '1'); stopAuto(); });
   }
@@ -1523,7 +1533,8 @@
   function initPledge() {
     var form = document.querySelector('[data-pledge]'); if (!form) return;
     initProvPick();
-    var done = document.querySelector('[data-plg-done]'), msg = form.querySelector('[data-plg-msg]'), btn = form.querySelector('button[type=submit]');
+    var done = document.querySelector('[data-plg-done]'), msg = form.querySelector('[data-plg-msg]'), btns = form.querySelectorAll('button[type=submit]'), busy = function (on) { [].forEach.call(btns, function (x) { x.disabled = on; }); }, pick = '1';
+    [].forEach.call(btns, function (x) { x.addEventListener('click', function () { pick = x.value; }); }); // nút nào được bấm: 1 = hiện tên, 0 = không hiện (Enter trong ô = nút chính)
     var shareUrl = location.origin + location.pathname + '?utm_source=cam_ket&utm_medium=chia_se', blob = null, imgUrl = ''; // UTM: CRM Marketing đếm được người ký nhờ bạn bè mời
     function showDone(p) {
       var gb = document.getElementById('giftBox'), gn = gb && gb.querySelector('#giftForm input[name=name]');
@@ -1540,30 +1551,30 @@
       });
     }
     var saved = load('tdl_pledge', null); if (saved && saved.name && saved.no) showDone(saved);
-    var chk = form.querySelector('[data-plg-show]'), prev = form.querySelector('[data-plg-prev]'), prev0 = prev && prev.innerHTML;
+    var prev = form.querySelector('[data-plg-prev]'), prev0 = prev && prev.innerHTML;
     var upd = function () { // xem trước tên sẽ hiện trên Bức tường
       var m = maskName(form.elements.name.value);
-      if (prev) prev.innerHTML = chk.checked && m.length > 1 ? 'Tên sẽ hiện là <b>' + esc(m) + '</b>' + (form.elements.province.value.trim() ? ' · ' + esc(form.elements.province.value.trim()) : '') + '. Chỉ bạn nhận ra mình.' : prev0;
+      if (prev) prev.innerHTML = m.length > 1 ? 'Nếu hiện tên, Bức tường sẽ ghi: <b>' + esc(m) + '</b>' + (form.elements.province.value.trim() ? ' · ' + esc(form.elements.province.value.trim()) : '') + '. Chỉ bạn nhận ra mình.' : prev0;
     };
-    if (chk) { chk.addEventListener('change', upd); form.elements.name.addEventListener('input', upd); form.elements.province.addEventListener('change', upd); }
+    if (prev) { form.elements.name.addEventListener('input', upd); form.elements.province.addEventListener('change', upd); }
     form.addEventListener('submit', function (e) {
       e.preventDefault();
-      var name = form.elements.name.value.trim(), u = CFG.endpoint, pvIn = form.elements.province, pv = pvIn.value.trim() ? provPick(pvIn) : '', show = !!(form.elements.show && form.elements.show.checked);
+      var name = form.elements.name.value.trim(), u = CFG.endpoint, pvIn = form.elements.province, pv = pvIn.value.trim() ? provPick(pvIn) : '', show = (e.submitter ? e.submitter.value : pick) === '1'; pick = '1';
       if (name.length < 2) { msg.className = 'form-msg err'; msg.textContent = 'Bạn ghi giúp tên của mình nhé.'; form.elements.name.focus(); return; }
       if (pv === null) { msg.className = 'form-msg err'; msg.textContent = 'Chưa nhận ra tỉnh “' + pvIn.value.trim() + '”. Bạn chọn trong danh sách gợi ý, hoặc để trống cũng được nhé.'; pvIn.focus(); return; }
       if (!u) return;
-      btn.disabled = true; msg.className = 'form-msg'; msg.textContent = 'Đang ghi lại lựa chọn của bạn…';
+      busy(true); msg.className = 'form-msg'; msg.textContent = 'Đang ghi lại lựa chọn của bạn…';
       fetch(u, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ type: 'pledge', province: pv, show: show, pub: show ? maskName(name) : '', website: form.elements.website.value, src: sourceLabel().last }) })
         .then(function (r) { return r.json(); })
         .then(function (j) {
-          btn.disabled = false;
+          busy(false);
           if (!j || !j.ok) { msg.className = 'form-msg err'; msg.textContent = (j && j.error) || 'Chưa gửi được, bạn thử lại giúp nhé.'; return; }
           var p = { name: name, no: j.no, at: Date.now(), province: pv === 'Ở nước ngoài' ? '' : pv, pub: j.pub || '' }; save('tdl_pledge', p); msg.textContent = '';
           track('pledge', { wall: show ? 1 : 0 }); showDone(p);
           var jm = document.querySelector('[data-jm]'); if (jm && jm._jmGo && p.province) { jm.classList.remove('jm-go'); jm._jmGo(); }
           done.scrollIntoView({ behavior: 'smooth', block: 'start' });
         })
-        .catch(function () { btn.disabled = false; msg.className = 'form-msg err'; msg.textContent = 'Mạng đang chập chờn, bạn thử lại giúp nhé.'; });
+        .catch(function () { busy(false); msg.className = 'form-msg err'; msg.textContent = 'Mạng đang chập chờn, bạn thử lại giúp nhé.'; });
     });
     var text = 'Mình vừa chọn sống lành cùng Thực Dưỡng Lành, trên hành trình lan tỏa và truyền cảm hứng đến 10 triệu người Việt sống khỏe hơn mỗi ngày. Cùng chọn sống lành với mình nhé:';
     function copyInvite() { var t = text + ' ' + shareUrl; if (navigator.clipboard) navigator.clipboard.writeText(t).then(function () { toast('Đã sao chép lời mời – dán vào Zalo/Facebook để gửi', 'ok'); }); }

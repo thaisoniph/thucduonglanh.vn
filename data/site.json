@@ -134,5 +134,30 @@
     "amount": 500000,
     "label": "Mốc 500K",
     "reward": ""
+  },
+  "float_chat": {
+    "seconds": 7,
+    "messages": [
+      "Anh/chị đang tìm hiểu sản phẩm nào ạ? Em sẵn sàng tư vấn ngay cho anh/chị nhé!",
+      "Mới bắt đầu sống lành? Gói Khởi động 10 ngày là cách dễ nhất để bắt đầu ạ.",
+      "Anh/chị muốn chọn quà sức khỏe cho bố mẹ? Em gợi ý giúp nhé!",
+      "Hôm nay anh/chị đã uống đủ nước chưa ạ? 🌿",
+      "Nhận miễn phí cẩm nang Sống khỏe chủ động, đọc ngay trên điện thoại ạ.",
+      "Cùng hàng nghìn người Việt chọn sống lành mỗi ngày nhé! 🌱"
+    ],
+    "links": [
+      {
+        "label": "Khởi động 10 ngày",
+        "url": "/san-pham/thu-thach-10-ngay-song-lanh/"
+      },
+      {
+        "label": "Trà DILVANG",
+        "url": "/san-pham/tra-hoa-tan-dilvang-dinh-lang-che-vang/"
+      },
+      {
+        "label": "🌱 Tôi chọn sống lành",
+        "url": "/toi-chon-song-lanh/?tu=float"
+      }
+    ]
   }
 }
