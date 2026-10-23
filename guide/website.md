@@ -131,6 +131,10 @@ Cột trái chọn **Cài đặt website**. Các mục hay dùng:
 - **Ebook quà tặng** và **Cẩm nang sống khỏe**: link sách, tiêu đề, ảnh bìa, bật/tắt popup tặng cẩm nang. Khách nhận quà sẽ vào tab Khách hỏi trong CRM.
 - **Ưu đãi chỉ có khi đặt trên website**: bật/tắt, mức giảm chung (%), câu quảng bá, quà tặng. Giá trong sản phẩm vẫn nhập **giá gốc**, web tự giảm.
 - **Mã ưu đãi tặng sau khi nhận quà**: mã khách thấy sau khi để số nhận cẩm nang, ebook hoặc vào nhóm Zalo (đang là SONGLANH5, giảm 5%). Muốn đổi mã thì Quản lý tạo mã mới trong CRM trước, rồi mới gõ mã đó vào đây.
+- **Hộp tư vấn nổi** (bong bóng góc phải trên máy tính, bấm logo tròn để mở):
+  - **Câu chào**: mỗi dòng 1 câu. Web tự đổi câu lần lượt sau vài giây. Bấm **Thêm** để thêm câu, kéo để đổi thứ tự (câu đầu hiện trước). Viết ngắn, xưng em – gọi anh/chị, không ghi công dụng chữa bệnh.
+  - **Đổi câu sau mỗi (giây)**: nên để 6–8 giây.
+  - **Các nút gợi ý**: chữ trên nút + đường dẫn (phần sau thucduonglanh.vn). Nên để 2–4 nút, ít lựa chọn thì khách dễ chọn hơn. Ô "Nhận cẩm nang" (đầu) và "Liên hệ tư vấn" (cuối) luôn có sẵn, không cần thêm.
 - **Mốc đơn hàng thứ 2**: để tắt. Chỉ bật khi công ty đã duyệt một quyền lợi thật.
 
 **Nhạc nền website:** nút ♪ trên đầu trang. Sửa được: bật/tắt, âm lượng (nên 20–30%), danh sách bài.
