@@ -91,9 +91,9 @@ Bấm vào từng mục để mở:
 
 Nếu các sale chênh nhau nhiều, vấn đề có thể nằm ở khâu tư vấn, chưa chắc do quảng cáo.
 
-## Trò chơi và lời cam kết trên website
+## Trò chơi và "Tôi chọn sống lành" trên website
 
-- **✍️ Lời cam kết sống lành**: số người ký cam kết ở thucduonglanh.vn/cam-ket-song-lanh/, đến từ đâu, ở tỉnh nào.
+- **🌱 Tôi chọn sống lành**: số người bấm "Tôi chọn sống lành" ở thucduonglanh.vn/toi-chon-song-lanh/ (trước 23/10/2026 tên là "lời cam kết", link cũ vẫn tự chuyển sang), đến từ đâu, ở tỉnh nào.
 - **🖐 Trò chơi "Bạn còn mấy ngón tay"**: số lượt chơi, điểm trung bình, **thói quen khách thấy khó nhất**. Nên làm bài viết, video, quảng cáo đúng chỗ khó đó.
 
 **Sửa câu hỏi trò chơi:**

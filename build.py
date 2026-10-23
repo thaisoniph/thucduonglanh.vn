@@ -527,7 +527,7 @@ if not POSTS["posts"] and not IS_VI:
     NAV = [x for x in NAV if x[1] != "/goc-song-lanh/"]  # ngôn ngữ khác chưa có bài viết nào thì ẩn mục
 if (SITE.get("camnang") or {}).get("url") or (SITE.get("ebook") or {}).get("url"):
     NAV.insert(-1, ("Quà Tặng", "/qua-tang/", [("🎁 Tất cả quà tặng", "/qua-tang/", [])] + ([("📖 Cẩm nang sống khỏe", SITE["camnang"]["url"], [])] if (SITE.get("camnang") or {}).get("url") else []) + ([("🦴 Ebook cơ xương khớp", SITE["ebook"]["url"], [])] if (SITE.get("ebook") or {}).get("url") else [])
-                    + ([("🖐 Trò chơi: Bạn còn mấy ngón tay?", "/ngon-tay-song-lanh/", []), ("✍️ Ký cam kết sống lành", "/cam-ket-song-lanh/", [])] if IS_VI else [])))  # trang gom quà tặng + trò chơi + lời cam kết (17/10/2026)
+                    + ([("🖐 Trò chơi: Bạn còn mấy ngón tay?", "/ngon-tay-song-lanh/", []), ("🌱 Tôi chọn sống lành", "/toi-chon-song-lanh/", [])] if IS_VI else [])))  # trang gom quà tặng + trò chơi + lời cam kết (17/10/2026)
 
 
 def nav_html(active, cls):
@@ -1059,7 +1059,7 @@ def gift_form(key, ctx=""):
         h2, sub = "🎁 Nhận quà để dựng lại từng ngón tay", f"Để lại tên và số Zalo: nhận ngay cẩm nang “Sống khỏe chủ động” (32 trang, có sách nói, nhật ký 7 ngày) và lời mời vào nhóm Zalo để được nhắc thử thách mỗi ngày."
         btn = "🎁 Nhận quà miễn phí"
     elif ctx == "pledge":
-        h2, sub = "🎁 Quà cho người giữ lời hứa", "Để lời cam kết thành thói quen: nhận cẩm nang “Sống khỏe chủ động” (32 trang, có sách nói, nhật ký 7 ngày thay đổi nhỏ) và vào nhóm Zalo cùng mọi người giữ lời hứa mỗi ngày."
+        h2, sub = "🎁 Quà cho người chọn sống lành", "Để lựa chọn sống lành thành thói quen: nhận cẩm nang “Sống khỏe chủ động” (32 trang, có sách nói, nhật ký 7 ngày thay đổi nhỏ) và vào nhóm Zalo cùng mọi người sống lành mỗi ngày."
         btn = "🎁 Nhận quà miễn phí"
     chips = "".join(f'<label class="cn-chip"><input type="checkbox" name="concern" value="{esc(c)}"><span>{esc(c)}</span></label>' for c in concerns)
     group = SITE.get("zalo_group", "")
@@ -1073,7 +1073,7 @@ def gift_form(key, ctx=""):
     nxt = [g for g in gift_list() if g["key"] != key]
     fun = "".join(f'<a class="gnext gfun" href="{h}?tu=gift_{key}" data-cta="gift_next_{k}"><span class="gfun-ic">{i}</span><span><small>{sm}</small><b>{b}</b><em>{e} →</em></span></a>' for k, h, i, sm, b, e in [
         ("quiz", QUIZ_PATH, "🖐", "Trò chơi 1 phút", "Bạn còn mấy ngón tay?", "Kiểm tra lối sống, nhận thử thách 7 ngày"),
-        ("pledge", PLEDGE_PATH, "✍️", "Hành trình 10 triệu người", "Ký cam kết “Tôi chọn sống lành”", "Nhận ảnh chứng nhận để chia sẻ")] if k != ctx and IS_VI)
+        ("pledge", PLEDGE_PATH, "🌱", "Hành trình 10 triệu người", "Tôi chọn sống lành", "Nhận ảnh chứng nhận để chia sẻ")] if k != ctx and IS_VI)
     next_box = fun + "".join(f'''<a class="gnext" href="{esc(gift_href(g, "next"))}" data-cta="gift_next_{g["key"]}">
   <img src="{esc(g["image"])}" alt="" width="64" height="96" loading="lazy"><span><small>🎁 Anh/chị còn 1 quà nữa</small><b>{esc(g["title"])}</b><em>Nhận ngay 1 chạm, không cần điền lại →</em></span></a>''' for g in nxt)
     return f'''<div class="ebf card cnf{" gift-" + ctx if ctx else ""}" id="giftBox" data-key="{key}" data-open="{esc(opener)}" data-title="{esc(title)}" data-book="{esc(book)}"{f' data-pos="{ctx}"' if ctx else ""}>
@@ -1216,7 +1216,7 @@ def hub_items():
         out.append({"k": "gift", "ic": "🎁", "eye": "Quà tặng miễn phí", "t": "Cẩm nang Sống khỏe chủ động", "s": "32 trang có sách nói: mâm cơm cân bằng, gạo lứt, vận động sau 45 tuổi. Đọc thử ngay, không cần đăng ký.", "href": CN_READ, "btn": "Đọc thử miễn phí"})
     if QUIZ.get("questions"):
         out.append({"k": "quiz", "ic": "🖐", "eye": "Trò chơi 1 phút", "t": "Bạn còn mấy ngón tay?", "s": "10 câu về thói quen hằng ngày. Xem lối sống của bạn được mấy điểm.", "href": QUIZ_PATH, "btn": "Chơi ngay"})
-    out.append({"k": "pledge", "ic": "✍️", "eye": "Hành trình 10 triệu người", "t": "Tôi chọn sống lành", "s": "Ký lời hứa nhỏ với chính mình, nhận ảnh chứng nhận để chia sẻ.", "href": PLEDGE_PATH, "btn": "Ký cam kết"})
+    out.append({"k": "pledge", "ic": "🌱", "eye": "Hành trình 10 triệu người", "t": "Tôi chọn sống lành", "s": "Một lựa chọn nhỏ cho chính mình, nhận ảnh chứng nhận để chia sẻ.", "href": PLEDGE_PATH, "btn": "Tôi chọn sống lành"})
     return out
 
 
@@ -1308,7 +1308,7 @@ def page_gifts():
   <div class="gifts-head center"><span class="gifts-eye">🎁 Quà tặng sức khỏe miễn phí</span><h1>Chọn món quà anh/chị cần</h1>
   <p>Tài liệu do {BRAND} biên soạn, đọc ngay trên điện thoại. Chỉ cần để lại tên và số điện thoại.</p></div>
   <div class="gf-grid gf-n{len(gift_list())}">{gift_cards("qua_tang")}</div>
-  {f'<div class="gifts-head center hub-more"><span class="gifts-eye">🎲 Thêm niềm vui sống lành</span><h2>Chơi thử, ký cam kết cùng mọi người</h2></div><div class="hub-grid hub-n2">{hub_cards("qua_tang").split("</a>", 1)[1] if CN_PATH else hub_cards("qua_tang")}</div>' if IS_VI else ""}
+  {f'<div class="gifts-head center hub-more"><span class="gifts-eye">🎲 Thêm niềm vui sống lành</span><h2>Chơi thử, cùng mọi người chọn sống lành</h2></div><div class="hub-grid hub-n2">{hub_cards("qua_tang").split("</a>", 1)[1] if CN_PATH else hub_cards("qua_tang")}</div>' if IS_VI else ""}
   <p class="eb-disc center">Tài liệu tham khảo về dinh dưỡng và lối sống, không thay thế chẩn đoán hay tư vấn của bác sĩ.</p>
 </div></section>'''
     return layout(GIFT_PATH, "Quà tặng sức khỏe miễn phí", f"Nhận miễn phí cẩm nang Sống khỏe chủ động và ebook Dinh Dưỡng cho Cơ Xương Khớp từ {BRAND}.", body, og=f"{CN_IMG}/og.jpg", body_class="page-gifts")
@@ -1600,7 +1600,7 @@ def community_html(start_url="/san-pham/"):
     total = total // 10000 * 10000
     sub = tf("Hơn <b>{n}</b> người đang theo dõi {brand} trên các kênh. Chọn một nơi để cùng sống lành mỗi ngày, hoàn toàn miễn phí.", n=f"{total:,}".replace(",", "."), brand=BRAND) if total >= 10000 else t("Chọn một nơi để cùng sống lành mỗi ngày, hoàn toàn miễn phí.")
     quiz_btn = f'<a class="btn btn-lg btn-ghost" href="{QUIZ_PATH}" data-cta="join_quiz">🖐 Chơi thử: Bạn còn mấy ngón tay?</a>' if IS_VI and QUIZ.get("questions") else ""
-    pledge_btn = f'<a class="btn btn-lg" href="{PLEDGE_PATH}" data-cta="join_pledge">✍️ {t("Ký lời cam kết “Tôi chọn sống lành”")}</a>' if IS_VI else ""
+    pledge_btn = f'<a class="btn btn-lg" href="{PLEDGE_PATH}" data-cta="join_pledge">🌱 {t("Tôi chọn sống lành")}</a>' if IS_VI else ""
     return f'''<section class="section join" id="dong-hanh"><div class="container">
   <p class="join-eye">{t("Lời mời đồng hành")}</p>
   <h2 class="sec-title big">{t("Cùng chúng tôi đi hành trình")}<br><span class="accent">{t("10 triệu người Việt sống khỏe hơn")}</span></h2>
@@ -1612,7 +1612,7 @@ def community_html(start_url="/san-pham/"):
 </div></section>'''
 
 
-PLEDGE_PATH = "/cam-ket-song-lanh/"
+PLEDGE_PATH = "/toi-chon-song-lanh/"  # trước 23/10/2026 là /cam-ket-song-lanh/ (_redirects chuyển 301 sang đây)
 PLEDGE_ITEMS = ["Ăn chậm hơn, chọn bữa ăn lành hơn cho mình và gia đình.",
                 "Lắng nghe cơ thể: ngủ đủ, uống đủ nước, vận động mỗi ngày.",
                 "Chăm sóc sớm hơn những người mình thương."]
@@ -1623,12 +1623,12 @@ def journey_counter():
     if not IS_VI:
         return ""
     return '''<div class="jr" data-jr hidden><p class="jr-num"><b data-jr-total>0</b><span>người đã cùng Thực Dưỡng Lành sống lành</span></p>
-<p class="jr-meta"><span data-jr-buyers></span> khách hàng tin dùng<span data-jr-pl hidden> · <span data-jr-pledges></span> lời cam kết</span> · Mục tiêu <b>10.000.000</b> người Việt</p></div>'''
+<p class="jr-meta"><span data-jr-buyers></span> khách hàng tin dùng<span data-jr-pl hidden> · <span data-jr-pledges></span> người chọn sống lành</span> · Mục tiêu <b>10.000.000</b> người Việt</p></div>'''
 
 
 def journey_map(on_pledge=False):
     """Bản đồ hành trình (23/10/2026): 34 tỉnh mới + Hoàng Sa, Trường Sa (assets/img/ban-do-34-tinh.svg, dựng từ ranh giới hành chính 2025).
-    Tỉnh có người đồng hành (khách đã mua + lời cam kết) được tô xanh đậm dần theo số người và cắm ghim; số lấy từ api /api/journey (ô prov).
+    Tỉnh có người đồng hành (khách đã mua + người bấm "Tôi chọn sống lành") được tô xanh đậm dần theo số người và cắm ghim; số lấy từ api /api/journey (ô prov).
     main.js initJourneyMap: chỉ tải hình khi khách cuộn gần tới; lỗi mạng thì khối tự ẩn."""
     if not IS_VI:
         return ""
@@ -1645,50 +1645,56 @@ def journey_map(on_pledge=False):
     <p class="jm-h">Nơi có nhiều người đồng hành nhất</p>
     <ol class="jm-top" data-jm-top></ol>
     <p class="jm-wait" data-jm-wait hidden></p>
-    <div class="jm-cta"><a class="btn btn-lg" href="{"#ky-cam-ket" if on_pledge else PLEDGE_PATH}" data-cta="map_pledge"><span>✍️ Ký lời cam kết <span class="nw">“Tôi chọn sống lành”</span></span></a><p>Cùng đồng hành và thắp sáng tỉnh của bạn <span class="nw">trên bản đồ</span></p></div>
+    <div class="jm-cta"><a class="btn btn-lg" href="{"#chon-song-lanh" if on_pledge else PLEDGE_PATH}" data-cta="map_pledge">🌱 Tôi chọn sống lành</a><p>Cùng đồng hành với {BRAND} và thắp sáng tỉnh của bạn <span class="nw">trên bản đồ</span></p></div>
     <ul class="jm-legend" aria-label="Chú thích màu: số người đồng hành">{legend}</ul>
-    <p class="jm-note">Người đồng hành = khách hàng đã tin dùng + người đã ký lời cam kết sống lành. Chạm vào một tỉnh để xem số người. Bản đồ 34 tỉnh, thành phố theo địa giới hành chính mới.</p>
+    <p class="jm-note">Người đồng hành = khách hàng đã tin dùng + người đã chọn sống lành trên website. Chạm vào một tỉnh để xem số người. Bản đồ 34 tỉnh, thành phố theo địa giới hành chính mới.</p>
   </div>
 </div>'''
 
 
 def page_pledge():
-    """Trang /cam-ket-song-lanh/: ký lời cam kết "Tôi chọn sống lành" → ảnh chứng nhận để chia sẻ (main.js initPledge, api journey.js)."""
+    """Trang /toi-chon-song-lanh/ (23/10/2026 đổi từ "lời cam kết" sang "Tôi chọn sống lành" cho nhẹ nhàng, dễ tham gia) → ảnh chứng nhận để chia sẻ (main.js initPledge, api journey.js)."""
     items = "".join(f"<li>{esc(x)}</li>" for x in PLEDGE_ITEMS)
-    prov_opts = "".join(f"<option>{esc(n)}</option>" for n in sorted((u["n"] for u in json.loads((DATA / "vn-units.json").read_text(encoding="utf-8"))), key=lambda v: v.replace("Đ", "D~")))
+    # ô gõ tìm tỉnh (main.js initProvPick): [tên mới, tên gọi khác]. Gõ tên tỉnh cũ (Nam Định, Bình Dương…) vẫn ra tỉnh mới sau sáp nhập 07/2025
+    # [tên mới, tên khác, 1 = tỉnh cũ (hiện "gồm … cũ")]
+    pv_list = [[u["n"], "", 0] for u in sorted(json.loads((DATA / "vn-units.json").read_text(encoding="utf-8")), key=lambda u: u["n"].replace("Đ", "D~"))]
+    pv_list += [[e[2], e[0], 1] for e in json.loads((DATA / "vn-units-old.json").read_text(encoding="utf-8")) if e[0] != e[2]]
+    pv_list += [["Huế", "Thừa Thiên Huế", 0], ["Hồ Chí Minh", "Sài Gòn", 0], ["Hồ Chí Minh", "TP HCM", 0], ["Hồ Chí Minh", "Vũng Tàu", 1], ["Ở nước ngoài", "", 0]]
     hh = HOME.get("hero") or {}
     hp = PROD_BY.get(hh.get("product") or "")
     start = f'/san-pham/{hp["slug"]}/' if hp else "/san-pham/"
     body = f'''<section class="section plg-page"><div class="container plg-in">
   <p class="join-eye">Hành trình 10 triệu người Việt sống khỏe hơn</p>
   <h1 class="plg-h">Tôi chọn sống lành</h1>
-  <p class="plg-lead">Hành trình nào cũng bắt đầu từ một lời hứa nhỏ với chính mình. Ký lời cam kết để cùng {BRAND} lan tỏa lối sống lành tới 10 triệu người Việt, rồi nhận ảnh chứng nhận để chia sẻ với người thân.</p>
+  <p class="plg-lead">Hành trình nào cũng bắt đầu từ một lựa chọn nhỏ. Chọn sống lành để đồng hành cùng {BRAND} trên hành trình lan tỏa và truyền cảm hứng đến 10 triệu người Việt sống khỏe hơn mỗi ngày, rồi nhận ảnh chứng nhận để chia sẻ với người thân.</p>
   {journey_counter()}
-  <div class="plg-card" id="ky-cam-ket">
+  <div class="plg-card" id="chon-song-lanh">
     <form class="plg-form" data-pledge novalidate>
-      <h2>Lời cam kết</h2>
-      <p class="plg-intro">Tôi chọn sống lành, để sống đáng. Từ hôm nay, tôi cam kết:</p>
+      <h2>Lựa chọn của tôi</h2>
+      <p class="plg-intro">Tôi chọn sống lành, để sống đáng. Từ hôm nay, mỗi ngày một chút:</p>
       <ol class="plg-list">{items}</ol>
       <label class="plg-f"><span>Tên của bạn *</span><input name="name" maxlength="40" autocomplete="name" placeholder="Ví dụ: Nguyễn Thu Hà" required></label>
-      <label class="plg-f"><span>Tỉnh / thành phố</span><select name="province"><option value="">Không bắt buộc</option>{prov_opts}<option>Ở nước ngoài</option></select></label>
+      <div class="plg-f pv" data-pv='{esc(json.dumps(pv_list, ensure_ascii=False))}'><label for="plgProv"><span>Tỉnh / thành phố (không bắt buộc)</span></label>
+        <input id="plgProv" name="province" autocomplete="off" placeholder="Gõ tên tỉnh, ví dụ: nghe an" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="plgProvList">
+        <ul class="pv-list" id="plgProvList" role="listbox" hidden></ul></div>
       <input type="text" name="website" tabindex="-1" autocomplete="off" class="hp" aria-hidden="true">
-      <button class="btn btn-lg plg-submit" type="submit">✍️ Tôi cam kết</button>
+      <button class="btn btn-lg plg-submit" type="submit">🌱 Tôi chọn sống lành</button>
       <p class="form-msg" data-plg-msg role="status"></p>
-      <p class="plg-note">Chúng tôi không lưu tên của bạn: tên chỉ dùng để in lên ảnh chứng nhận ngay trên máy bạn. Website chỉ đếm số người cùng cam kết (kèm tỉnh/thành nếu bạn chọn). Xem <a href="/chinh-sach-bao-mat/">chính sách bảo mật</a>.</p>
+      <p class="plg-note">Chúng tôi không lưu tên của bạn: tên chỉ dùng để in lên ảnh chứng nhận ngay trên máy bạn. Website chỉ đếm số người cùng chọn sống lành (kèm tỉnh/thành nếu bạn chọn). Xem <a href="/chinh-sach-bao-mat/">chính sách bảo mật</a>.</p>
     </form>
     <div class="plg-done" data-plg-done hidden>
       <p class="plg-thanks">Cảm ơn <b data-plg-name></b>! Bạn là người thứ <b data-plg-no></b> trên hành trình 10 triệu người Việt sống khỏe hơn.</p>
       <p class="plg-lit" data-plg-lit hidden></p>
-      <img class="plg-img" data-plg-img alt="Ảnh chứng nhận lời cam kết Tôi chọn sống lành" width="1080" height="1350">
-      <div class="plg-acts"><a class="btn" data-plg-dl download="cam-ket-song-lanh.png" href="#">⬇️ Tải ảnh</a><button class="btn btn-ghost" type="button" data-plg-share>📤 Chia sẻ</button><button class="btn btn-ghost" type="button" data-plg-invite>💌 Mời người thân cùng ký</button></div>
-      <p class="plg-again"><button type="button" class="link-btn" data-plg-again>Ký thêm cho một người thân</button></p>
+      <img class="plg-img" data-plg-img alt="Ảnh chứng nhận Tôi chọn sống lành" width="1080" height="1350">
+      <div class="plg-acts"><a class="btn" data-plg-dl download="toi-chon-song-lanh.png" href="#">⬇️ Tải ảnh</a><button class="btn btn-ghost" type="button" data-plg-share>📤 Chia sẻ</button><button class="btn btn-ghost" type="button" data-plg-invite>💌 Mời người thân cùng chọn</button></div>
+      <p class="plg-again"><button type="button" class="link-btn" data-plg-again>Thêm một người thân cùng chọn sống lành</button></p>
       {f'<div class="plg-gift">{gift_form("camnang", "pledge")}</div>' if CN_PATH else ""}
     </div>
   </div>
   {journey_map(on_pledge=True)}
   <div class="plg-next"><p>Lời hứa nhỏ, bắt đầu từ bữa ăn hôm nay:</p><a class="btn btn-lg btn-ghost" href="{start}" data-cta="pledge_start">Bắt đầu 10 ngày sống lành</a>{f'<p class="plg-quiz">Hoặc chơi thử trò 1 phút: <a href="{QUIZ_PATH}" data-cta="pledge_quiz">🖐 Bạn còn mấy ngón tay?</a></p>' if QUIZ.get("questions") else ""}</div>
 </div></section>'''
-    return layout(PLEDGE_PATH, "Tôi chọn sống lành – Lời cam kết", f"Ký lời cam kết “Tôi chọn sống lành”, cùng {BRAND} đi hành trình giúp 10 triệu người Việt sống khỏe hơn và nhận ảnh chứng nhận để chia sẻ.", body, body_class="page-pledge")
+    return layout(PLEDGE_PATH, "Tôi chọn sống lành – Hành trình 10 triệu người Việt sống khỏe hơn", f"Chọn sống lành cùng {BRAND} trên hành trình lan tỏa và truyền cảm hứng đến 10 triệu người Việt sống khỏe hơn mỗi ngày, rồi nhận ảnh chứng nhận để chia sẻ.", body, body_class="page-pledge")
 
 
 QUIZ_PATH = "/ngon-tay-song-lanh/"
@@ -1753,7 +1759,7 @@ def page_quiz():
       <p class="qz-note">Bảng tích ✓ chỉ lưu trên máy của bạn, không gửi đi đâu.</p>
     </div>
     <div class="qz-box qz-prods" data-qz-prods hidden><h2>Gợi ý nhỏ từ {BRAND}</h2><div data-qz-prod-list></div><p class="qz-disc">Sản phẩm là thực phẩm, không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh.</p></div>
-    <div class="qz-next"><p>Muốn đi xa hơn? Ký một lời hứa nhỏ với chính mình:</p><a class="btn btn-lg" href="{PLEDGE_PATH}" data-cta="quiz_pledge">✍️ Ký lời cam kết “Tôi chọn sống lành”</a>
+    <div class="qz-next"><p>Muốn đi xa hơn? Chọn một điều nhỏ cho chính mình:</p><a class="btn btn-lg" href="{PLEDGE_PATH}" data-cta="quiz_pledge">🌱 Tôi chọn sống lành</a>
       <p class="qz-again"><button type="button" class="link-btn" data-qz-again>🔁 Chơi lại từ đầu</button></p></div>
   </div>
   <p class="qz-foot">Trò chơi chỉ để tham khảo vui, không thay thế lời khuyên của bác sĩ hay chuyên gia y tế. Website chỉ đếm số điểm chung, không lưu tên hay số điện thoại của bạn.</p>
@@ -2872,7 +2878,7 @@ def main():
     (DIST / "CNAME").write_text(DOMAIN.replace("https://", "").replace("http://", "") + "\n", "utf-8")
     (DIST / ".nojekyll").write_text("", "utf-8")
     # 📍 mã QR / link ngắn /q/<mã>/: máy chủ api đếm lượt quét rồi chuyển tới trang đích kèm UTM (link quản lý ở CRM → 📍 Link & QR, api/src/links.js)
-    (DIST / "_redirects").write_text("/q/*  https://api.thucduonglanh.vn/q/:splat  302\n/admin/qr  https://crm.thucduonglanh.vn/#link-qr  302\n/admin/qr/  https://crm.thucduonglanh.vn/#link-qr  302\n", "utf-8")
+    (DIST / "_redirects").write_text("/cam-ket-song-lanh/*  /toi-chon-song-lanh/  301\n/cam-ket-song-lanh  /toi-chon-song-lanh/  301\n/q/*  https://api.thucduonglanh.vn/q/:splat  302\n/admin/qr  https://crm.thucduonglanh.vn/#link-qr  302\n/admin/qr/  https://crm.thucduonglanh.vn/#link-qr  302\n", "utf-8")
     (DIST / "_headers").write_text(
         "/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n  X-Frame-Options: SAMEORIGIN\n"
         "/assets/css/*\n  Cache-Control: public, max-age=31536000, immutable\n"

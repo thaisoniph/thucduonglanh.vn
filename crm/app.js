@@ -4165,8 +4165,8 @@
     var rows = function (L, empty) { return L.slice(0, 10).map(function (r) { return { l: r[0] || empty, v: r[1], muted: !r[0] }; }); };
     var cnt = function (v) { return v + ' người'; }, top = pl.src[0];
     return {
-      line: pl.n + ' người ký' + (top ? ' · nhiều nhất từ ' + esc(top[0] || 'Truy cập trực tiếp') : ''),
-      h: '<div class="metrics dash-m3">' + metric('Người ký trong kỳ', pl.n, 'Số người ký lời cam kết "Tôi chọn sống lành" trên website.', delta(pl.n, pl.prev)) + '</div>' +
+      line: pl.n + ' người chọn' + (top ? ' · nhiều nhất từ ' + esc(top[0] || 'Truy cập trực tiếp') : ''),
+      h: '<div class="metrics dash-m3">' + metric('Người chọn trong kỳ', pl.n, 'Số người bấm "Tôi chọn sống lành" trên website (thucduonglanh.vn/toi-chon-song-lanh/).', delta(pl.n, pl.prev)) + '</div>' +
         '<div class="dash-grid"><div class="box"><h3>Đến từ đâu</h3>' + barList(rows(pl.src, 'Truy cập trực tiếp'), cnt) + '</div>' +
         '<div class="box"><h3>Tỉnh / thành</h3>' + barList(rows(pl.prov, 'Không chọn tỉnh'), cnt) + '</div></div>' +
         '<p class="bar-legend">Nguồn = nguồn / kênh / chiến dịch của lần vào web gần nhất (link UTM, mã QR ở 📍 Link &amp; QR, link sale). "cam_ket / chia_se" = người được bạn bè mời qua nút Chia sẻ / Mời người thân. Muốn biết bài đăng, sự kiện nào mang nhiều người ký: gắn link UTM hoặc mã QR riêng cho từng nơi. Website không lưu tên hay số điện thoại người ký.</p>'
@@ -4383,7 +4383,7 @@
       metric('Khách trong nhóm đã mua lại', cm.buyers, cm.n + ' đơn' + (cm.buyers ? ' · trung bình ' + moneyShort(Math.round(cm.rev / cm.buyers)) + ' / khách' : '') + '.', delta(cm.buyers, cmp ? cmp.buyers : null)) +
       metric('Chi phí cộng đồng', csp ? moneyShort(csp) : '–', csp && cm.rev ? 'Bằng ' + Math.round(csp * 100 / cm.rev) + '% tiền mua lại. Quà tặng, minigame… nhập ở ⚙️ Nhập chi phí → kênh Cộng đồng Zalo.' : 'Quà tặng, minigame… nhập ở ⚙️ Nhập chi phí → kênh Cộng đồng Zalo.', '') +
       '</div><p class="bar-legend">Khách được tính là trong nhóm khi sale / CSKH bấm "Đã vào" ở ô Cộng đồng trên hồ sơ khách. Đánh dấu đủ thì số này mới đúng.</p>');
-    var PL = mkPledgeBlock(mj.pledge); if (PL) h += mkMore('pledge', '✍️ Lời cam kết sống lành (website)', PL.line, PL.h);
+    var PL = mkPledgeBlock(mj.pledge); if (PL) h += mkMore('pledge', '🌱 Tôi chọn sống lành (website)', PL.line, PL.h);
     var QZ = mkQuizBlock(mj.quiz) || { line: 'Chưa có lượt chơi trong kỳ', h: '' }; h += mkMore('quiz', '🖐 Trò chơi Bạn còn mấy ngón tay (website)', QZ.line, QZ.h + qzeBox());
     h += mkMore('camp', '🎬 Chiến dịch: nên tăng, giữ hay tắt?', CB.line, CB.h);
     h += mkMore('sale', '🤝 Phản hồi từ sale', SB.line, SB.h);

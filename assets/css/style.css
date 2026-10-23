@@ -655,6 +655,14 @@ label .invalid,input.invalid,textarea.invalid{border-color:var(--red)!important}
 .plg-f span{display:block;font-size:14px;font-weight:600;margin-bottom:6px;color:var(--ink)}
 .plg-f input,.plg-f select{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:var(--radius-sm);font:inherit;font-size:16px;background:#fff}
 .plg-f input:focus,.plg-f select:focus{outline:2px solid var(--primary);border-color:var(--primary)}
+.pv{position:relative}
+.pv-list{position:absolute;left:0;right:0;top:100%;margin:4px 0 0;padding:6px;list-style:none;background:#fff;border:1px solid var(--line);border-radius:var(--radius-sm);box-shadow:0 12px 30px rgba(38,42,31,.14);z-index:5;max-height:300px;overflow:auto}
+.pv-list li{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;padding:11px 12px;border-radius:8px;cursor:pointer;font-size:16px}
+.pv-list li.on,.pv-list li:hover{background:var(--primary-light)}
+.pv-list b{font-weight:600;color:var(--ink)}
+.pv-list small{font-size:13px;color:var(--muted)}
+.pv-list .pv-none{cursor:default;color:var(--muted);font-size:14px}
+.pv-list .pv-none:hover{background:none}
 .plg-submit{width:100%;margin-top:4px}
 .plg-note{font-size:13px;color:var(--muted);margin:12px 0 0;line-height:1.6}
 .plg-thanks{text-align:center;font-size:17px;margin:0 0 18px}
