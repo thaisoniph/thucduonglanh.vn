@@ -20,6 +20,7 @@ SRC, OUT = ROOT / "congsu", ROOT / "dist-congsu"
 BASE = "https://congsu.thucduonglanh.vn"
 HOURS = "Thứ 2 – Thứ 7: 8h00 – 16h45 (nghỉ trưa 12h00 – 13h30)"
 esc = lambda s: html.escape(str(s if s is not None else ""), quote=True)
+JOBS = []  # vị trí đang tuyển, build_congsu() điền – dùng cho nút liên hệ nổi ở mọi trang
 
 
 def load_jobs():
@@ -78,7 +79,31 @@ def head(title, desc, path, extra=""):
 """
 
 
-def foot(site):
+PHONE_SVG = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg>'
+ZALO_SVG = '<svg viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="12" fill="#0068ff"/><text x="24" y="30" text-anchor="middle" font-family="Arial,sans-serif" font-weight="700" font-size="15" fill="#fff">Zalo</text></svg>'
+
+
+def float_widget(site, jobs):
+    """Nút gọi điện + nhắn Zalo nổi góc phải, giống thucduonglanh.vn (build.py float_widget): máy tính = nút gọi + Zalo + nút tròn mở lời chào;
+    điện thoại = 1 nút "💬 Hỏi thêm" bấm mới bung Gọi + Zalo (có chữ). Lời chào viết cho ứng viên."""
+    hot, zalo = re.sub(r"\D", "", site.get("hotline", "")), re.sub(r"\D", "", site.get("zalo") or site.get("hotline", ""))
+    chips = "".join(f'<a class="fw-chip" href="/{j["slug"]}/">Vị trí {esc(j["title"])}</a>' for j in jobs)
+    return f"""<div class="float-widget" id="floatWidget">
+<div class="fw-pop" id="fwPop">
+<button class="fw-x" id="fwClose" type="button" aria-label="Ẩn lời chào">✕</button>
+<div class="fw-msg"><div class="fw-name"><img src="/icon-180.png" alt="" width="22" height="22">Tuyển dụng VitaGreen</div>
+<p>Bạn cần hỏi thêm về vị trí, quy trình hay văn hóa ở VitaGreen? Gọi hoặc nhắn Zalo, chúng tôi trả lời ngay trong giờ làm việc.</p></div>
+<div class="fw-chips"><a class="fw-chip fw-go" href="/#ung-tuyen">📝 Ứng tuyển ngay</a>{chips}<a class="fw-chip" href="https://zalo.me/{zalo}" target="_blank" rel="noopener">Nhắn Zalo hỏi thêm</a></div>
+</div>
+<a class="fw-btn fw-phone" href="tel:{hot}" aria-label="Gọi {esc(site.get("hotline"))}">{PHONE_SVG}<span class="fw-tx">Gọi {esc(site.get("hotline"))}</span></a>
+<a class="fw-btn fw-zalo" href="https://zalo.me/{zalo}" target="_blank" rel="noopener" aria-label="Nhắn Zalo">{ZALO_SVG}<span class="fw-tx">Nhắn Zalo</span></a>
+<button type="button" class="fw-dial" id="fwDial" aria-expanded="false"><span class="fw-d-on">💬 Hỏi thêm</span><span class="fw-d-off">✕ Đóng</span></button>
+<button class="fw-btn fw-main" id="fwToggle" type="button" aria-label="Mở hộp hỏi đáp tuyển dụng"><img src="/icon-180.png" alt="" width="56" height="56"></button>
+</div>
+"""
+
+
+def foot(site, jobs=()):
     s, hot = site.get("socials", {}), re.sub(r"\D", "", site.get("hotline", ""))
     links = "".join(f'<a href="{esc(u)}" target="_blank" rel="noopener">{n}</a>' for n, u in
                     [("Website", "https://thucduonglanh.vn"), ("Facebook", s.get("facebook")), ("YouTube", s.get("youtube")), ("TikTok", s.get("tiktok"))] if u)
@@ -89,7 +114,7 @@ def foot(site):
 Hotline / Zalo: <a href="tel:{hot}">{esc(site.get("hotline"))}</a> · Email: <a href="mailto:{esc(site.get("email"))}">{esc(site.get("email"))}</a></div>
 <div class="cs-foot-links">{links}</div>
 </div><p class="cs-copy">© {datetime.date.today().year} VitaGreen Nutrition – Thực Dưỡng Lành</p></footer>
-<script src="/app.js?v=__V__" defer></script>
+{float_widget(site, jobs)}<script src="/app.js?v=__V__" defer></script>
 </body>
 </html>
 """
@@ -501,7 +526,7 @@ def page_home(jobs, site, quiz):
 </div>
 </section>
 </main>
-""" + foot(site)
+""" + foot(site, JOBS)
 
 
 # ---------------------------------------------------------------- trang chi tiết vị trí
@@ -564,7 +589,7 @@ def page_job(j, prev, nxt, site):
 </div>
 <nav class="cs-pnav"><div class="cs-wrap">{nav}</div></nav>
 </main>
-""" + foot(site)
+""" + foot(site, JOBS)
 
 
 # ---------------------------------------------------------------- dựng
@@ -572,7 +597,9 @@ def build_congsu():
     if not SRC.exists():
         return
     site = json.loads((ROOT / "data/site.json").read_text("utf-8"))
+    global JOBS
     jobs, quiz = load_jobs(), load_quiz()
+    JOBS = jobs
     if OUT.exists():
         shutil.rmtree(OUT)
     shutil.copytree(SRC / "img", OUT / "img")
@@ -625,7 +652,7 @@ def build_congsu():
         "/img/*\n  Cache-Control: public, max-age=604800\n", "utf-8")
     (OUT / "404.html").write_text(head("Không tìm thấy trang | Tuyển dụng Thực Dưỡng Lành", "", "/404")
                                   .replace("__V__", ver) + '<main class="cs-wrap cs-404"><h1>Không tìm thấy trang</h1><p>Vị trí này có thể đã tuyển đủ.</p><a class="cs-btn" href="/#vi-tri">Xem các vị trí đang tuyển</a></main>'
-                                  + foot(site).replace("__V__", ver), "utf-8")
+                                  + foot(site, jobs).replace("__V__", ver), "utf-8")
     print(f"Đã tạo trang tuyển dụng vào {OUT} ({len(jobs)} vị trí)")
 
 

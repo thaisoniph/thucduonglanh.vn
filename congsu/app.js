@@ -55,8 +55,28 @@
     });
   });
 
+  // Nút gọi + Zalo nổi (giống thucduonglanh.vn): điện thoại bấm "💬 Hỏi thêm" bung Gọi + Zalo; máy tính bấm nút tròn mở lời chào,
+  // tự mở 1 lần/phiên sau 40 giây (không mở khi đang điền form). Bấm ✕ thì phiên đó không tự mở nữa.
+  (function () {
+    var w = document.getElementById('floatWidget'); if (!w) return;
+    function ss(k, v) { try { if (v == null) return sessionStorage.getItem(k); sessionStorage.setItem(k, v); } catch (e) { return null; } }
+    var dial = document.getElementById('fwDial');
+    dial.addEventListener('click', function () { dial.setAttribute('aria-expanded', w.classList.toggle('dial') ? 'true' : 'false'); });
+    document.addEventListener('click', function (e) { if (w.classList.contains('dial') && !w.contains(e.target)) { w.classList.remove('dial'); dial.setAttribute('aria-expanded', 'false'); } });
+    document.getElementById('fwToggle').addEventListener('click', function () { w.classList.toggle('open'); });
+    document.getElementById('fwClose').addEventListener('click', function () { w.classList.remove('open'); ss('cs_fw', '1'); });
+    w.querySelectorAll('.fw-chip').forEach(function (a) { a.addEventListener('click', function () { w.classList.remove('open'); }); });
+    if (!matchMedia('(max-width:640px)').matches && ss('cs_fw') !== '1') setTimeout(function () {
+      var f = document.getElementById('cs-form');
+      if (ss('cs_fw') === '1' || (f && f.contains(document.activeElement))) return;
+      w.classList.add('open'); ss('cs_fw', '1');
+    }, 40000);
+  })();
+
   var form = document.getElementById('cs-form');
   if (!form) return;
+  form.addEventListener('focusin', function (e) { if (/INPUT|TEXTAREA|SELECT/.test(e.target.tagName) && e.target.type !== 'radio' && e.target.type !== 'checkbox') document.body.classList.add('cs-typing'); });
+  form.addEventListener('focusout', function () { document.body.classList.remove('cs-typing'); });
   var msg = form.querySelector('.cs-fmsg'), steps = [].slice.call(form.querySelectorAll('.cs-step')), dots = form.querySelectorAll('.cs-stepbar li'), cur = 0;
   function say(t, bad) { msg.textContent = t; msg.className = 'cs-fmsg' + (bad ? ' err' : ''); }
   function phoneOk(p) { p = String(p).replace(/\D/g, ''); if (p.indexOf('84') === 0 && p.length === 11) p = '0' + p.slice(2); return /^0\d{9}$/.test(p) ? p : ''; }
