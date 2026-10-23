@@ -1464,7 +1464,9 @@
     q = norm(q).replace(/^(tp\.?|thanh pho|tinh)\s+/, '').trim(); if (!q) return [];
     var seen = {}, out = [];
     list.forEach(function (e) {
-      var a = norm(e[1] || e[0]), i = a.indexOf(q); if (i < 0 || seen[e[0]]) return;
+      var a = norm(e[1] || e[0]), i = a.indexOf(q), ab = a.split(/[\s-]+/).map(function (x) { return x.charAt(0); }).join(''); // ab: chữ viết tắt (hn, hcm, qn…)
+      if (i < 0 && ab.length > 1 && ab === q.replace(/\s/g, '')) i = 0;
+      if (i < 0 || seen[e[0]]) return;
       if (i > 0 && a.charAt(i - 1) !== ' ') return; // khớp từ đầu một chữ: "ninh" ra Ninh Bình, Bắc Ninh, Quảng Ninh
       seen[e[0]] = 1; out.push({ n: e[0], a: e[2] ? e[1] : '', s: (i === 0 ? 0 : 1) + (e[1] ? 2 : 0) });
     });

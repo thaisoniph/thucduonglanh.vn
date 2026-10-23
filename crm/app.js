@@ -2296,7 +2296,11 @@
     function match() {
       var ws = norm(inp.value).replace(/[^a-z0-9 ]/g, ' ').trim().split(/\s+/).filter(Boolean), all = items() || [], r;
       r = ws.length ? all.filter(function (x) { var k = key(x); return ws.every(function (w) { return k.indexOf(' ' + w) >= 0; }); }) : all;
-      if (ws.length) { var q = ' ' + ws.join(' '); r.sort(function (a, b) { return (norm(' ' + b.v).indexOf(q) >= 0) - (norm(' ' + a.v).indexOf(q) >= 0); }); } // khớp tên chính lên trước
+      if (ws.length) { // khớp tên chính / đúng chữ viết tắt của chính nó (x.a) lên trước; tỉnh cũ ("nay thuộc …") xuống sau
+        var q = ' ' + ws.join(' '), ab = ' ' + ws.join('') + ' ';
+        var sc = function (x) { return (norm(' ' + x.v).indexOf(q) >= 0 ? 2 : 0) + (x.a && (' ' + x.a + ' ').indexOf(ab) >= 0 ? 2 : 0) + (/^nay thuộc/.test(x.s || '') ? 0 : 1); };
+        r.sort(function (a, b) { return sc(b) - sc(a); });
+      }
       return r;
     }
     function show() { cur = match().slice(0, 40); hi = 0; draw(); box.hidden = !cur.length || document.activeElement !== inp; }
@@ -2486,9 +2490,9 @@
     }
     /* ---- ô gõ để tìm */
     var OLD_OF = {}; // tỉnh mới → tên các tỉnh cũ gộp vào (gõ "vinh phuc" ở ô tỉnh mới vẫn ra Phú Thọ)
-    var provItems = function () { return (S.units || []).map(function (p) { var o = (OLD_OF[p.n] || []).filter(function (x) { return x !== p.n; }); return { v: p.n, k: p.f, s: o.length ? 'gồm cả ' + o.join(', ') : '' }; }); };
+    var provItems = function () { return (S.units || []).map(function (p) { var o = (OLD_OF[p.n] || []).filter(function (x) { return x !== p.n; }); return { v: p.n, a: provAbbr(p.n), k: p.f + ' ' + provAbbr(p.n) + ' ' + o.map(provAbbr).join(' '), s: o.length ? 'gồm cả ' + o.join(', ') : '' }; }); };
     var wardItems = function () { var u = unitOf(prov.value); return u ? u.w.map(function (w) { return { v: w }; }) : [].concat.apply([], (S.units || []).map(function (p) { return p.w.map(function (w) { return { v: w, s: p.n, p: p.n }; }); })); };
-    var oProvItems = function () { return OU ? OU.p.map(function (p) { return { v: p.n, k: p.f, s: p.nw !== p.n ? 'nay thuộc ' + p.nw : '', o: p }; }) : []; };
+    var oProvItems = function () { return OU ? OU.p.map(function (p) { return { v: p.n, a: provAbbr(p.n), k: p.f + ' ' + provAbbr(p.n), s: p.nw !== p.n ? 'nay thuộc ' + p.nw : '', o: p }; }) : []; };
     var oDistItems = function () { return OU ? (oP ? oP.d.map(function (d) { return { v: d.n, o: d }; }) : [].concat.apply([], OU.p.map(function (p) { return p.d.map(function (d) { return { v: d.n, s: p.n, o: d }; }); }))) : []; };
     var oWardItems = function () {
       if (!OU) return []; var sw = function (w, sh) { return { v: w.n, s: sh ? w.d.n + ', ' + w.d.p.n : w.nw.length ? '→ ' + w.nw.join(' / ') : '', o: w }; };
@@ -2848,13 +2852,19 @@
     return words.every(function (w) { return t.indexOf(w) >= 0; });
   }
   /** Danh sách tên tỉnh (cũ + mới) để chọn nhanh. */
+  /** Chữ viết tắt tên tỉnh để gõ nhanh: chữ cái đầu mỗi chữ (hn, hcm, hp, dn, qn…) + vài cách gọi quen. Ghép vào ô k của addrPick. */
+  var PROV_ABBR = { 'Hồ Chí Minh': 'tphcm sg sgn saigon', 'Bà Rịa - Vũng Tàu': 'brvt', 'Bà Rịa': 'brvt', 'Vũng Tàu': 'brvt', 'Thừa Thiên Huế': 'tth', 'Đắk Lắk': 'daklak', 'Đắk Nông': 'daknong' };
+  function provAbbr(n) {
+    var w = norm(n).replace(/^(tinh|thanh pho) /, '').split(/[\s-]+/).filter(Boolean);
+    return (w.length > 1 ? w.map(function (x) { return x.charAt(0); }).join('') : '') + ' ' + (PROV_ABBR[n] || '');
+  }
   /** Gợi ý cho ô gõ tìm tỉnh (addrPick): tỉnh mới ghi "gồm cả …", tỉnh cũ ghi "nay thuộc …". */
   function provPickItems() {
     var all = provNames();
     return all.map(function (n) {
       var nw = Object.keys(PROV_MERGE).filter(function (k) { return PROV_MERGE[k].indexOf(n) >= 0; })[0] || n;
       var olds = n === nw ? (PROV_MERGE[nw] || []).filter(function (x) { return x !== nw && all.indexOf(x) >= 0; }) : [];
-      return { v: n, s: n !== nw ? 'nay thuộc ' + nw : olds.length ? 'gồm cả ' + olds.join(', ') : '' };
+      return { v: n, a: provAbbr(n), k: provAbbr(n) + ' ' + (n === nw ? olds.map(provAbbr).join(' ') : ''), s: n !== nw ? 'nay thuộc ' + nw : olds.length ? 'gồm cả ' + olds.join(', ') : '' };
     });
   }
   function provNames() { var o = {}; Object.keys(PROV_MERGE).forEach(function (nw) { o[nw] = 1; PROV_MERGE[nw].forEach(function (x) { if (!/^(HCM|TPHCM|TP HCM|HN|HP|Kontum|Daklak|Đaklak|Đăk .*|Dak .*|Bắc Cạn)$/.test(x)) o[x] = 1; }); }); return Object.keys(o).sort(function (a, b) { return a.localeCompare(b, 'vi'); }); }
