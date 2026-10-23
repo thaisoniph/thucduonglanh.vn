@@ -586,6 +586,11 @@ def build_congsu():
         js = rjsmin.jsmin(js)
     except Exception:
         pass
+    # Ảnh gắn ?v=<mã nội dung>: thay ảnh cùng tên thì link đổi, Cloudflare / trình duyệt không giữ ảnh cũ (23/10/2026 ảnh đội ngũ bị giữ bản cũ 7 ngày)
+    imgv = {f.name: hashlib.md5(f.read_bytes()).hexdigest()[:8] for f in (SRC / "img").iterdir() if f.is_file()}
+    def bust(text):
+        return re.sub(r'/img/([\w.-]+\.(?:webp|jpg|png))(?![?\w])', lambda m: f"/img/{m.group(1)}?v={imgv[m.group(1)]}" if m.group(1) in imgv else m.group(0), text)
+    css = bust(css)
     (OUT / "style.css").write_text(css, "utf-8")
     (OUT / "app.js").write_text(js, "utf-8")
     ver = hashlib.md5((css + js).encode("utf-8")).hexdigest()[:8]
@@ -604,7 +609,7 @@ def build_congsu():
     for path, doc in pages.items():
         d = OUT / path.strip("/")
         d.mkdir(parents=True, exist_ok=True)
-        (d / "index.html").write_text(doc.replace("__V__", ver), "utf-8")
+        (d / "index.html").write_text(bust(doc.replace("__V__", ver)), "utf-8")
     today = datetime.date.today().isoformat()
     (OUT / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
                                      + "".join(f"<url><loc>{BASE}{p}</loc><lastmod>{today}</lastmod></url>" for p in pages) + "</urlset>\n", "utf-8")
