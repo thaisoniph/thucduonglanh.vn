@@ -1268,7 +1268,7 @@
   function initGiftPop() {
     var pop = $('#giftPop'); if (!pop) return;
     var path = location.pathname, href = pop.getAttribute('data-href') || '';
-    if (/^\/(gio-hang|thanh-toan|dat-hang-thanh-cong|qua-tang|ebook)\//.test(path) || (href && path.indexOf(href) === 0)) return;
+    if (/^\/(gio-hang|thanh-toan|dat-hang-thanh-cong|qua-tang|ebook|bo-o-cu)\//.test(path) || (href && path.indexOf(href) === 0)) return;
     function blocked() { return cart.length || load('tdl_last_order', null) || load('tdl_camnang', null) || load('tdl_ebook', null) || (Date.now() - (load('tdl_gp_off', 0) || 0) < 7 * 864e5) || sessionStorage.getItem('tdl_gp') === '1'; }
     try { if (blocked()) return; } catch (e) { return; }
     var t0 = Date.now(), armed = false, lastY = scrollY, lastT = Date.now(), maxY = 0;
@@ -1350,7 +1350,7 @@
     captureSource(); initConsent(); trackPageEvents();
     renderCounts(); renderMini(); markWish();
     initHeader(); initClicks(); initRail(); initLightbox(); initProduct(); initCerts(); initProof(); initTabs(); initReadmore(); initSort();
-    initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initJourneyMap(); initPledge(); initWall(); initWallStrip(); initQuiz(); initGiftDock(); initZaloGate(); initMusic(); initBrandVideo();
+    initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initJourneyMap(); initPledge(); initWall(); initWallStrip(); initQuiz(); initGiftDock(); initZaloGate(); initOcx(); initMusic(); initBrandVideo();
     window.addEventListener('storage', function (e) { if (e.key === 'tdl_cart') { cart = load('tdl_cart', []); cleanCart(); renderCounts(); renderMini(); } });
   }
   // ===== Hành trình 10 triệu người Việt sống khỏe hơn: bộ đếm [data-jr] + trang "Tôi chọn sống lành" /toi-chon-song-lanh/ (api journey.js) =====
@@ -1835,6 +1835,27 @@
       report(l, cs, false);
       var old = giftLead() || {}; save('tdl_lead', { name: l.name, phone: l.phone, concern: cs.length ? cs : old.concern || [], gifts: old.gifts || [], t: Date.now() });
       show('done'); box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+  // ===== Landing quảng cáo Bộ Ở Cữ /bo-o-cu/ (build.py page_ocx): để số giữ bộ → khách hỏi trong CRM + Telegram =====
+  function initOcx() {
+    var box = $('#ocxBox'); if (!box) return;
+    var form = $('#ocxForm', box), done = $('.ocx-done', box), bar = $('.ocx-bar'), dat = $('#dat');
+    function show(l) { $('[data-ocx-name]', done).textContent = l.name; $('[data-ocx-phone]', done).textContent = l.phone; form.hidden = true; done.hidden = false; }
+    var old = load('tdl_ocx', null); if (old && old.name) show(old);
+    if (bar && dat && 'IntersectionObserver' in window) new IntersectionObserver(function (es) { bar.classList.toggle('off', es[0].isIntersecting); }).observe(dat);
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var msg = $('.form-msg', form); msg.className = 'form-msg';
+      if (form.elements.website.value) return;
+      if (!validate(form)) { msg.className = 'form-msg err'; msg.textContent = 'Mẹ điền giúp shop họ tên và số điện thoại đúng (10 số) nhé.'; return; }
+      var l = { name: form.elements.name.value.trim(), phone: normPhone(form.elements.phone.value) }, pk = (form.querySelector('input[name=pack]:checked') || {}).value || '', wh = form.elements.where.value.trim().slice(0, 200), src = sourceLabel();
+      send({ type: 'contact', name: l.name, phone: l.phone, email: '', source: src.last, created: new Date().toISOString(), page: location.href,
+        message: '🍵 GIỮ BỘ Ở CỮ THẢNH THƠI (landing quảng cáo)\n📦 ' + pk + (wh ? '\n📍 Giao tới: ' + wh : '') + '\n🔗 Nguồn: ' + src.last + '\n👉 Gọi xác nhận địa chỉ, giờ giao rồi lên đơn trong CRM' }).catch(function () { });
+      track('generate_lead', { form: 'bo_o_cu', pack: /6 Tuần/.test(pk) ? '6_tuan' : '21_ngay' });
+      save('tdl_ocx', { name: l.name, phone: l.phone, t: Date.now() });
+      var g = giftLead() || {}; save('tdl_lead', { name: l.name, phone: l.phone, concern: g.concern || [], gifts: g.gifts || [], t: Date.now() });
+      show(l); box.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   }
   // ===== Nút nổi "🎁 Quà & Trò chơi" (build.py gift_dock): luôn thấy ở góc trái dưới, bấm mở bảng chọn từ dưới lên =====

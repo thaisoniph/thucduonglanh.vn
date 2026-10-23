@@ -1837,6 +1837,182 @@ def page_quiz():
 QUIZ_GROUP_PATH = QUIZ_PATH + "nhom/"
 
 
+OCX_PATH = "/bo-o-cu/"  # landing quảng cáo "Bộ Ở Cữ Thảnh Thơi 21 Ngày" (Trà DILVANG, mẹ ở cữ cùng bà) – offer: Google Doc Offer_Bo_O_Cu_Thanh_Thoi_DILVANG
+OCX = {  # số liệu offer: sửa ở đây. Giá trị quà, cam kết, giới hạn 50 bộ là ĐỀ XUẤT trong offer 23/10/2026, chờ anh Sơn chốt (hạn 27/10)
+    "product": "tra-hoa-tan-dilvang-dinh-lang-che-vang", "boxes": 3, "price": 369000,
+    "up_boxes": 6, "up_price": 699000, "weekly": 50,
+    "bonus": [("Cốc giữ nhiệt có vạch 300–400ml", "", "Pha đúng lượng nước, đêm không nguội nhanh", 89000),
+              ("“Thư gửi Bà”", "Tờ in chữ to kể nguồn gốc: chè vằng Quảng Trị có chỉ dẫn địa lý, nhà máy đạt GMP", "Bà đọc, bà yên tâm", 49000),
+              ("Sổ tay “21 ngày ở cữ nhẹ nhàng”", "Giờ uống nước, thực đơn gợi ý, mẹ và bà cùng đọc", "Biết làm đúng, đỡ tranh luận", 99000),
+              ("Zalo hỏi đáp với chuyên viên VitaGreen 30 ngày", "", "Có người để hỏi khi băn khoăn", 150000),
+              ("Thẻ “Việc của Bố” + thiệp viết tay", "", "Chồng tặng vợ, tự tay pha mỗi tối", 29000)],
+}
+
+
+def page_ocx():
+    """Landing quảng cáo Bộ Ở Cữ Thảnh Thơi (23/10/2026): Hook → Kết quả → Chuyện nhà → Nguồn gốc → Cách pha → Nhận gì → Bảo đảm → 2 bước.
+    Form giữ bộ → api {type:'contact'} (khách hỏi kênh "Form website" + Telegram LIÊN HỆ MỚI), không cần sửa api. JS main.js initOcx, CSS .ocx-… cuối style.css.
+    Không bán "lợi sữa": DILVANG là thực phẩm tự công bố, chỉ nói tiện lợi + nguồn gốc. noindex, không vào sitemap."""
+    p = next((x for x in PRODUCTS if x["slug"] == OCX["product"]), None)
+    if not p or not p.get("price"):
+        return None
+    hot, zl, n = SITE["hotline"], zalo_link(), OCX["boxes"]
+    retail, up_retail = p["price"] * n, p["price"] * OCX["up_boxes"]
+    bonus = OCX["bonus"]
+    total = retail + sum(b[3] for b in bonus)
+    vnd = lambda x: f"{int(x):,}".replace(",", ".") + "đ"
+    rows = f'<tr><td><span class="ocx-tag">Chính</span>{n} hộp Trà hòa tan DILVANG<small>{n * 15} gói, đủ khoảng {n * 15 // 3}–{n * 15 // 2} ngày theo nhãn (2–3 gói/ngày)</small></td><td>Cốc chè vằng ấm mỗi ngày</td><td class="v">{vnd(retail)}</td></tr>'
+    rows += "".join(f'<tr><td><span class="ocx-tag">Tặng</span>{esc(a)}{f"<small>{esc(s)}</small>" if s else ""}</td><td>{esc(w)}</td><td class="v">{vnd(v)}</td></tr>' for a, s, w, v in bonus)
+    img = lambda src, w, alt, cls="", extra="": f'<img src="{img_url(src, w)}" alt="{esc(alt)}" class="{cls}" loading="lazy" decoding="async"{extra}>'
+    pk1, pk2 = f"Bộ Ở Cữ Thảnh Thơi 21 Ngày ({n} hộp) – {vnd(OCX['price'])}", f"Trọn 6 Tuần Ở Cữ ({OCX['up_boxes']} hộp, giao 2 lần) – {vnd(OCX['up_price'])}"
+    disc = "Sản phẩm này là thực phẩm, không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh."
+    body = f'''<div class="ocx">
+<section class="ocx-hero"><div class="ocx-wrap">
+  <div class="ocx-hero-g">
+    <div class="ocx-stack">
+      <span class="ocx-eye">Mỗi tuần chỉ gói tay {OCX["weekly"]} bộ</span>
+      <h1>Cốc chè vằng ấm sau 10 giây, <span class="nw">kể cả lúc 2 giờ sáng</span></h1>
+      <p class="ocx-lead">Dành cho mẹ đang ở cữ cùng bà. Không cần đun nồi, không phải lọc bã, không cãi nhau với bà chuyện kiêng cữ.</p>
+      <div class="ocx-cta"><a class="ocx-btn" href="#dat" data-cta="ocx_hero">Giữ 1 bộ, shop gọi lại</a><a class="ocx-btn ghost" href="#nhan" data-cta="ocx_hero_stack">Xem bộ gồm những gì</a></div>
+      <p class="ocx-mini">Trà hòa tan DILVANG · chè vằng – đinh lăng Quảng Trị · {vnd(OCX["price"])} cả bộ, miễn phí giao hàng</p>
+    </div>
+    {img("/assets/img/products/tra-dilvang-5.webp", 1000, "Xé gói Trà DILVANG, pha nước ấm vào cốc", "ocx-hero-img", ' fetchpriority="high" width="1000" height="1000"').replace(' loading="lazy"', "")}
+  </div>
+  <div class="ocx-facts">
+    <div><b>10 giây</b><span>xé gói, khuấy đều là uống</span></div>
+    <div><b>40–50°C</b><span>pha nước ấm, không cần đun sôi</span></div>
+    <div><b>300–400ml</b><span>mỗi gói một cốc đầy</span></div>
+    <div><b>{n * 15} gói</b><span>{n} hộp trong một bộ</span></div>
+  </div>
+</div></section>
+
+<section class="ocx-band"><div class="ocx-wrap">
+  <div class="ocx-head"><h2>21 ngày tới, trong nhà <span class="nw">sẽ khác thế này</span></h2></div>
+  <div class="ocx-g4">
+    <div class="ocx-card"><i>1</i><h3>Bà được nghỉ tay</h3><p>Không phải đứng bếp đun nồi chè vằng to mỗi sáng.</p></div>
+    <div class="ocx-card"><i>2</i><h3>Không còn chè nguội</h3><p>Mẹ không phải uống cốc chè đã để từ trưa.</p></div>
+    <div class="ocx-card"><i>3</i><h3>Đêm vẫn có cốc ấm</h3><p>Một tay bế con, một tay xé gói, khuấy 10 giây là xong.</p></div>
+    <div class="ocx-card"><i>4</i><h3>Bà gật đầu</h3><p>Bà đọc “Thư gửi Bà” in chữ to: chè vằng Quảng Trị có chỉ dẫn địa lý, làm ở nhà máy đạt GMP.</p></div>
+  </div>
+</div></section>
+
+<section><div class="ocx-wrap">
+  <div class="ocx-head"><span class="ocx-eye">Chuyện nhà nào có bà chăm cũng gặp</span><h2>Bà bảo phải uống chè vằng. <span class="nw">Mẹ bảo không ai đun.</span></h2></div>
+  <div class="ocx-ten">
+    <div class="ocx-col"><span class="ocx-lbl">Trước đây</span><h3>Ai cũng mệt</h3><ul><li>Bà đi chợ mua lá, đun nồi to, lọc bã</li><li>Mẹ tự tìm hiểu uống thế nào cho đúng</li><li>Cả nhà tranh luận chuyện kiêng cữ</li><li>Chồng không biết giúp gì</li></ul></div>
+    <div class="ocx-col after"><span class="ocx-lbl">Với Bộ Ở Cữ Thảnh Thơi</span><h3>Ai cũng có việc vừa sức</h3><ul><li>Xé gói, pha nước ấm, khuấy đều</li><li>Lịch uống in sẵn trên thẻ: 2–3 gói mỗi ngày theo nhãn</li><li>“Thư gửi Bà” in chữ to, kể rõ nguồn gốc</li><li>Thẻ “Việc của Bố”: tối pha cho vợ một cốc</li></ul></div>
+  </div>
+  <p class="ocx-quote">Bà vẫn đúng, mẹ vẫn được nghỉ. Chỉ cần đổi nồi chè thành một gói pha 10 giây.</p>
+</div></section>
+
+<section class="ocx-band" id="nguon-goc"><div class="ocx-wrap">
+  <div class="ocx-proof">
+    <div>
+      {img("/assets/uploads/cau-chuyen/dilvang-doi-che-vang.webp", 1000, "Đồi chè vằng ở Quảng Trị", "ocx-proof-img", ' width="1200" height="900"')}
+      <div class="ocx-thumbs">
+        {img("/assets/uploads/cau-chuyen/dilvang-la-che-vang.webp", 480, "Lá chè vằng sẻ")}
+        {img("/assets/uploads/cau-chuyen/dilvang-tdl-tham-phong-sach.webp", 480, "Đội ngũ Thực Dưỡng Lành thăm phòng sạch nhà máy Gold Herbal")}
+        {img("/assets/img/products/tra-dilvang-2.webp", 480, "Hộp Trà hòa tan DILVANG")}
+      </div>
+    </div>
+    <div>
+      <div class="ocx-head"><span class="ocx-eye">Giấy tờ bà đọc được</span><h2>Vì sao bà yên tâm</h2></div>
+      <dl class="ocx-pl">
+        <div><dt>Chỉ dẫn địa lý</dt><dd>Chè vằng Quảng Trị được Nhà nước bảo hộ Chỉ dẫn địa lý, do Sở Khoa học và Công nghệ tỉnh Quảng Trị quản lý.</dd></div>
+        <div><dt>Nhà máy GMP</dt><dd>Nhà máy Gold Herbal (Đông Hà, Quảng Trị) được Cục An toàn thực phẩm, Bộ Y tế cấp chứng nhận GMP (Giấy 09/2025/ATTP-CNGMP).</dd></div>
+        <div><dt>Kiểm nghiệm</dt><dd>Viện Kiểm nghiệm An toàn vệ sinh thực phẩm Quốc gia (NIFC) xác nhận đúng chè vằng, đinh lăng; không phát hiện Aflatoxin, Salmonella.</dd></div>
+        <div><dt>Công nghệ EECV</dt><dd>Chiết xuất và cô đặc trong chân không ở nhiệt độ thấp, giữ màu và mùi gần với lá tươi.</dd></div>
+        <div><dt>4 không</dt><dd>Không chất bảo quản, không chất chống đông vón, không hương liệu tổng hợp, không phẩm màu nhân tạo.</dd></div>
+        <div><dt>Hồ sơ</dt><dd>Bản tự công bố số 14.1/GOLDHERBAL/2025. <a href="/san-pham/{p["slug"]}/#kiem-nghiem" target="_blank" rel="noopener" data-cta="ocx_proof">Xem ảnh giấy tờ</a></dd></div>
+      </dl>
+    </div>
+  </div>
+</div></section>
+
+<section><div class="ocx-wrap">
+  <div class="ocx-head"><h2>Pha trong <span class="nw">3 bước,</span> <span class="nw">đúng theo nhãn</span></h2></div>
+  <div class="ocx-steps">
+    <div class="ocx-card"><b>1</b><h3>Cho 1 gói vào cốc</h3><p>Dùng cốc giữ nhiệt có vạch đi kèm bộ.</p></div>
+    <div class="ocx-card"><b>2</b><h3>Thêm nước ấm</h3><p>300–400ml nước ấm 40–50°C. Không cần đun sôi.</p></div>
+    <div class="ocx-card"><b>3</b><h3>Khuấy đều và thưởng thức</h3><p>Khuyến nghị 2–3 gói mỗi ngày.</p></div>
+  </div>
+  <p class="ocx-note">Không cần cắt cao, không cần hãm, không có bã.</p>
+</div></section>
+
+<section class="ocx-band" id="nhan"><div class="ocx-wrap">
+  <div class="ocx-head"><span class="ocx-eye">Bộ Ở Cữ Thảnh Thơi 21 Ngày</span><h2>Mẹ nhận được gì</h2></div>
+  <div class="ocx-tbl"><table>
+    <thead><tr><th>Thành phần</th><th>Để làm gì</th><th class="v">Giá trị</th></tr></thead>
+    <tbody>{rows}
+      <tr class="ocx-tot"><td>Tổng giá trị</td><td></td><td class="v">{vnd(total)}</td></tr>
+      <tr class="ocx-pr"><td><b>Giá cả bộ hôm nay</b><small>Rẻ hơn mua lẻ {n} hộp ({vnd(retail)}), kèm toàn bộ quà tặng, miễn phí giao hàng</small></td><td></td><td class="v">{vnd(OCX["price"])}</td></tr>
+    </tbody></table></div>
+  <div class="ocx-upg"><span><b>Trọn 6 Tuần Ở Cữ:</b> {OCX["up_boxes"]} hộp ({OCX["up_boxes"] * 15} gói), giao làm 2 lần, kèm toàn bộ quà tặng</span><span><s>{vnd(up_retail)}</s> <b>{vnd(OCX["up_price"])}</b></span></div>
+  <p class="ocx-note">Giá trị quà tặng là giá tham khảo để mẹ dễ hình dung. {disc}</p>
+</div></section>
+
+<section><div class="ocx-wrap">
+  <div class="ocx-guar">
+    <div class="ocx-seal">Thử 3 gói<br>Hoàn tiền<br>7 ngày</div>
+    <div class="ocx-stack"><h2>Bảo đảm: <span class="nw">rủi ro</span> <span class="nw">thuộc về chúng tôi</span></h2>
+    <p class="ocx-lead">Uống thử 3 gói đầu. Mẹ hoặc bà không ưng vị, nhắn shop trong 7 ngày: VitaGreen hoàn tiền 2 hộp chưa bóc. Không hỏi lý do.</p></div>
+  </div>
+</div></section>
+
+<section class="ocx-scar" id="dat"><div class="ocx-wrap">
+  <div class="ocx-head"><span class="ocx-eye">Mỗi tuần chỉ {OCX["weekly"]} bộ gói tay kèm thiệp</span><h2>Giữ bộ cho mẹ <span class="nw">trong 1 phút</span></h2>
+  <p class="ocx-lead">Thiệp được viết tay nên số bộ mỗi tuần có hạn. Mẹ để lại số, shop gọi xác nhận trước khi giao. Chưa phải trả tiền lúc này.</p></div>
+  <div class="ocx-two">
+    <div class="ocx-box" id="ocxBox">
+      <form id="ocxForm" novalidate>
+        <span class="ocx-n">Cách 1 · Để lại số</span>
+        <label>Họ và tên *<input name="name" required autocomplete="name" placeholder="Ví dụ: Nguyễn Thị Lan"></label>
+        <label>Số điện thoại (Zalo) *<input name="phone" type="tel" required autocomplete="tel" inputmode="tel" placeholder="Ví dụ: 0912 345 678"></label>
+        <fieldset class="ocx-packs"><legend>Chọn bộ</legend>
+          <label><input type="radio" name="pack" value="{esc(pk1)}" checked><span><b>Bộ 21 Ngày</b> · {n} hộp<em>{vnd(OCX["price"])}</em></span></label>
+          <label><input type="radio" name="pack" value="{esc(pk2)}"><span><b>Trọn 6 Tuần</b> · {OCX["up_boxes"]} hộp, giao 2 lần<em>{vnd(OCX["up_price"])}</em></span></label>
+        </fieldset>
+        <label>Giao tới đâu? <small>(không bắt buộc, ví dụ: nhà ngoại ở Thanh Hóa)</small><input name="where" autocomplete="off" placeholder="Tỉnh/thành, hoặc ghi chú cho shop"></label>
+        <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <button class="ocx-btn" type="submit">Giữ 1 bộ cho mẹ</button>
+        <p class="form-msg" role="status"></p>
+        <p class="ocx-legal">Khi bấm, mẹ đồng ý để {BRAND} gọi/nhắn Zalo xác nhận đơn và tư vấn, theo <a href="/chinh-sach-bao-mat/" target="_blank">Chính sách bảo mật</a>. Không chia sẻ thông tin cho bên thứ ba.</p>
+      </form>
+      <div class="ocx-done" hidden>
+        <h3>🌿 Shop đã giữ bộ cho mẹ <span data-ocx-name></span></h3>
+        <p>Trong giờ làm việc, shop gọi số <b data-ocx-phone></b> trong khoảng 30 phút để xác nhận địa chỉ và giờ giao. Ngoài giờ, shop gọi vào sáng hôm sau.</p>
+        <p>Cần gấp? Nhắn Zalo cho shop luôn nhé.</p>
+        <a class="ocx-btn zalo" href="{zl}" target="_blank" rel="noopener" data-cta="ocx_done_zalo">💬 Nhắn Zalo {esc(hot)}</a>
+      </div>
+    </div>
+    <div class="ocx-box">
+      <span class="ocx-n">Cách 2 · Nhắn tin hoặc gọi</span>
+      <p>Nhắn mã dưới đây qua Zalo, shop trả lời ngay:</p>
+      <span class="ocx-code">Ở CỮ</span>
+      <a class="ocx-btn zalo" href="{zl}" target="_blank" rel="noopener" data-cta="ocx_zalo">💬 Nhắn Zalo “Ở CỮ”</a>
+      <a class="ocx-btn ghost" href="tel:{tel(hot)}" data-cta="ocx_call">📞 Gọi {esc(hot)}</a>
+      <p class="ocx-note">Giao toàn quốc, nhận hàng rồi mới trả tiền (COD) hoặc chuyển khoản. Giao thẳng tới nhà nội hoặc nhà ngoại nơi mẹ đang ở cữ.</p>
+    </div>
+  </div>
+</div></section>
+
+<section id="hoi-dap"><div class="ocx-wrap ocx-faq">
+  <div class="ocx-head"><h2>Câu hỏi thường gặp</h2></div>
+  <details><summary>Trà hòa tan DILVANG gồm những gì?</summary><p>Cao khô chè vằng 820mg và cao khô đinh lăng 180mg mỗi gói, phụ liệu maltodextrin. Hộp 15 gói x 5g, hạn dùng 24 tháng. Sản xuất tại Công ty Cổ phần Dược liệu Gold Herbal, Quảng Trị.</p></details>
+  <details><summary>Mẹ đang cho con bú có dùng được không?</summary><p>Sản phẩm là thực phẩm, không phải thuốc. Mỗi người có thể trạng khác nhau, mẹ nên hỏi ý kiến bác sĩ đang theo dõi mình nếu có băn khoăn. Chuyên viên VitaGreen trên Zalo sẽ gửi mẹ đầy đủ thành phần và hồ sơ sản phẩm.</p></details>
+  <details><summary>Pha thế nào cho đúng?</summary><p>1 gói với 300–400ml nước ấm 40–50°C, khuấy đều. Khuyến nghị 2–3 gói mỗi ngày.</p></details>
+  <details><summary>Một bộ dùng được bao lâu?</summary><p>Bộ 21 Ngày có {n * 15} gói. Uống 2 gói mỗi ngày thì đủ khoảng 3 tuần, 3 gói mỗi ngày thì khoảng 2 tuần. Ở cữ 6 tuần thì gói Trọn 6 Tuần tiện hơn: shop giao 2 lần để trà luôn mới.</p></details>
+  <details><summary>Giao hàng và thanh toán thế nào?</summary><p>Shop gọi xác nhận trước khi giao, có thể giao thẳng tới nhà nội hoặc nhà ngoại nơi mẹ đang ở cữ. Miễn phí giao hàng, mẹ nhận hàng rồi trả tiền hoặc chuyển khoản.</p></details>
+  <details><summary>Chỉ muốn mua lẻ 1 hộp?</summary><p>Mẹ xem và đặt ở <a href="/san-pham/{p["slug"]}/" data-cta="ocx_single">trang Trà DILVANG</a>. Mua lẻ không kèm quà tặng của bộ.</p></details>
+  <p class="ocx-disc">{disc}</p>
+</div></section>
+</div>
+<div class="ocx-bar"><span><b>{vnd(OCX["price"])}</b> cả bộ · miễn phí giao</span><a class="ocx-btn" href="#dat" data-cta="ocx_bar">Giữ 1 bộ</a></div>'''
+    return layout(OCX_PATH, "Bộ Ở Cữ Thảnh Thơi 21 Ngày – Trà DILVANG chè vằng Quảng Trị",
+                  "Dành cho mẹ ở cữ cùng bà: cốc chè vằng ấm sau 10 giây, kể cả lúc 2 giờ sáng. Chè vằng Quảng Trị có chỉ dẫn địa lý, nhà máy GMP. Bộ 3 hộp kèm quà, miễn phí giao.",
+                  body, og=img_url("/assets/img/products/tra-dilvang-5.webp", 1000), body_class="page-ocx", noindex=True)
+
+
 def page_quiz_group():
     """Màn hình lớn chơi nhóm (trà đàm, hội thảo, sự kiện): người dẫn chiếu lên TV/máy chiếu, bấm → / Space / bút trình chiếu để sang câu.
     Cuối buổi hiện mã QR: nhận quà cẩm nang, chơi lại trên điện thoại (thử thách 7 ngày), vào nhóm Zalo; link gắn utm_campaign = tên buổi để CRM đếm khách từ sự kiện.
@@ -2893,6 +3069,8 @@ def main():
             write(QUIZ_GROUP_PATH, page_quiz_group())  # màn hình chơi nhóm: không vào sitemap
     if SITE.get("zalo_group"):  # link cố định cho QR, sách, bài đăng: luôn chuyển tới nhóm Zalo đang cài ở /admin (nhóm đầy → đổi link ở /admin là xong)
         write(ZALO_GATE, page_zalo_gate())  # 17/10/2026: cổng để lại tên + số Zalo rồi mới vào nhóm (không vào sitemap)
+    if IS_VI and (ocx := page_ocx()):
+        write(OCX_PATH, ocx)  # landing quảng cáo Bộ Ở Cữ (không vào sitemap)
     routes.append(write("/san-pham/", page_listing("/san-pham/", t("Toàn bộ sản phẩm"), PRODUCTS, "", [(t("Toàn bộ sản phẩm"), None)])))
     sale =[p for p in PRODUCTS if p["on_sale"]]
     if HAS_SALE and sale: routes.append(write("/khuyen-mai/", page_listing("/khuyen-mai/", t("Khuyến Mãi"), sale, t("Các sản phẩm đang có chương trình ưu đãi tại ") + BRAND + ".", [(t("Sản phẩm"), "/san-pham/"), (t("Khuyến Mãi"), None)])))
