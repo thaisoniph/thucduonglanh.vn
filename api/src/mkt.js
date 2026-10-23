@@ -97,13 +97,25 @@ export async function fbSync(x, since, until) {
   await cfgSave(x, c2);
   return errs.length && !n ? { ok: false, error: errs.join(' · ') } : { ok: true, rows: n, spend, warn: errs.join(' · ') };
 }
-/** Lịch tự động (cron.js): 3 tiếng 1 lần lấy lại 3 ngày gần nhất (Facebook còn chỉnh số 1–2 ngày sau). */
+/** Lịch tự động (cron.js): 1 tiếng 1 lần lấy số hôm nay (marketing xem CPM / CTR / CPC trong ngày để chỉnh thầu, 23/10/2026);
+ *  3 tiếng 1 lần lấy lại 3 ngày gần nhất (Facebook còn chỉnh số 1–2 ngày sau). */
 export async function mktTick(x) {
   const c = await cfgOf(x), fb = c.fb || {};
-  if (!fb.token || Date.now() - (fb.last || 0) < 3 * 3600e3) return;
+  if (!fb.token || Date.now() - (fb.last || 0) < 3600e3) return;
   const t = startOfDay(Date.now());
   if (Date.now() - (fb.listed || 0) > DAY) { try { if ((await fbRefresh(x)).length) return void await syncDays(x, 90); } catch (e) { console.error('fbRefresh', e.message); } }
-  await fbSync(x, iso(t - 2 * DAY), iso(t));
+  const full = Date.now() - (fb.full || 0) >= 3 * 3600e3;
+  const r = await fbSync(x, iso(full ? t - 2 * DAY : t), iso(t));
+  if (full && r.ok) { const c2 = await cfgOf(x); c2.fb = Object.assign({}, c2.fb, { full: Date.now() }); await cfgSave(x, c2); }
+}
+/** mkt_kpi (Marketing + Quản trị): chỉ số từng chiến dịch theo ngày, 9 ngày gần nhất (hôm nay, hôm qua, 7 ngày trước đó để so).
+ *  Chỉ dòng có lượt hiển thị (Facebook tự động, file có cột hiển thị). → rows [ngày, kênh, chiến dịch, [tài khoản, act_…], chi phí, hiển thị, bấm link, tin nhắn] */
+async function mktKpi(x) {
+  const t = startOfDay(Date.now()), [rows, c] = await Promise.all([
+    all(x.db, 'SELECT day, channel, account, campaign, src, SUM(spend) AS s, SUM(impressions) AS i, SUM(clicks) AS c, SUM(msgs) AS m FROM ad_spend WHERE day BETWEEN ? AND ? AND impressions > 0 GROUP BY day, channel, account, campaign', iso(t - 8 * DAY), iso(t)),
+    cfgOf(x)
+  ]);
+  return { ok: true, today: iso(t), last: (c.fb || {}).last || null, rows: rows.map(r => [r.day, r.channel, r.campaign, accOf(c, r), r.s, r.i, r.c, r.m]) };
 }
 
 /** Tài khoản quảng cáo của 1 dòng chiến dịch: [tên hiện, mã act_… (Facebook, để mở Trình quản lý quảng cáo) hoặc '']. Dùng chung cho lệnh mkt và mktv. */
@@ -198,7 +210,7 @@ async function mktDel(x, d) {
 }
 
 export async function crmMkt(x, u, d) {
-  if (u.level < 3 && !(u.role === 'Marketing' && /^mkt_(import|add|list|del)$/.test(d.action))) return { ok: false, error: 'Chỉ Quản trị xem / sửa được chi phí marketing.' }; // Marketing: tự nhập chi phí (file / nhập tay), không đụng mã Facebook
+  if (u.level < 3 && !(u.role === 'Marketing' && /^mkt_(import|add|list|del|kpi)$/.test(d.action))) return { ok: false, error: 'Chỉ Quản trị xem / sửa được chi phí marketing.' }; // Marketing: tự nhập chi phí (file / nhập tay), không đụng mã Facebook
   switch (d.action) {
     case 'mkt': return mktLoad(x, d);
     case 'mkt_fb': return mktFb(x, d);
@@ -206,6 +218,7 @@ export async function crmMkt(x, u, d) {
     case 'mkt_add': return mktAdd(x, u, d);
     case 'mkt_list': return mktList(x);
     case 'mkt_del': return mktDel(x, d);
+    case 'mkt_kpi': return mktKpi(x);
   }
   return { ok: false, error: 'Không rõ thao tác: ' + d.action };
 }

@@ -2,7 +2,7 @@
 title: Hướng dẫn cho Marketing và phụ trách sàn
 nav: Marketing
 order: 5
-updated: 2026-10-19
+updated: 2026-10-23
 description: Xem hiệu quả quảng cáo, nhập chi phí, tạo link và mã QR, cập nhật số liệu sàn.
 ---
 
@@ -62,7 +62,7 @@ Bạn đặt được cho **kênh mình phụ trách**, hoặc kênh chưa ai nh
 
 Bấm **⚙️ Nhập chi phí**:
 
-- **📘 Facebook**: tự cập nhật 3 tiếng một lần. Chỉ Quản trị kết nối.
+- **📘 Facebook**: số hôm nay tự cập nhật 1 tiếng một lần. Chỉ Quản trị kết nối.
 - **📄 Nhập file**: TikTok, Google Ads… Xuất báo cáo CSV theo ngày và chiến dịch, rồi chọn file. Nhập lại cùng ngày thì số mới thay số cũ.
 - **✍️ Nhập tay**: KOL, in ấn, sự kiện, quà tặng nhóm Zalo… Nhập số tiền cho một khoảng ngày. Máy chia đều theo ngày.
 - **📋 Đã nhập**: xem lại, xoá lần nhập sai.
@@ -83,6 +83,7 @@ Sale thấy ngay ở đầu tab **Khách hỏi**. Hết hạn thì tự ẩn.
 
 Bấm vào từng mục để mở:
 
+- **📊 Chỉ số chiến dịch hôm nay**: CPM (giá 1.000 lượt thấy), CTR (cứ 100 người thấy có mấy người bấm), CPC (giá 1 lượt bấm), số tin nhắn và giá 1 tin của từng chiến dịch. Mỗi chỉ số so với **hôm qua** và **trung bình 7 ngày**, kèm đèn. Chiến dịch có đèn 🔴 xếp lên đầu. Số Facebook hôm nay **tự cập nhật 1 tiếng 1 lần** (7h–22h). Bấm **Hôm qua** để xem cả ngày hôm qua.
 - **🎬 Chiến dịch: nên tăng, giữ hay tắt?** 🟢 *Nên tăng tiền* (rẻ hơn trung bình từ 20%) · 🟠 *Giữ nguyên* · 🔴 *Nên giảm / tắt* (đắt hơn từ 40%, hoặc tiêu nhiều mà chưa có kết quả) · ⚪ *Chưa đủ số*. Dòng 🎨 báo mẫu quảng cáo đã nhàm.
 - **🤝 Phản hồi từ sale**: số khách từ nguồn nào tốt, vì sao khách không mua, bao lâu thì khách mua, tỷ lệ trả hàng.
 - **🪜 Quảng cáo rơi rụng ở đâu?** Thấy → bấm → để số → mua → tiền. Chỉ ra khâu yếu nhất.

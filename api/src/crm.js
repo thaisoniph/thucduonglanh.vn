@@ -1291,10 +1291,17 @@ async function crmSettings(x, u, d) {
     await crmLog(x, u, 'Cài đặt', '-', '', 'Hoa hồng: ' + COMM_KEYS.map(t => t + ' ' + (CM[t] === '' ? '–' : CM[t] + '%')).join(', '), '');
     return { ok: true, commission: CM };
   }
+  if (d.kpi) { // mức "tốt" của chỉ số chiến dịch ở tab Marketing (chỉ Quản trị): CPM, CPC, giá 1 tin nhắn (đ, tốt khi dưới), CTR (%, tốt khi từ). 0 = chưa đặt → so với trung bình 7 ngày
+    if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị sửa được mục này.' };
+    const v = k => Math.min(1e9, Math.max(0, Number(String(d.kpi[k] == null ? '' : d.kpi[k]).replace(',', '.')) || 0)), K = { cpm: Math.round(v('cpm')), ctr: Math.min(100, Math.round(v('ctr') * 100) / 100), cpc: Math.round(v('cpc')), msg: Math.round(v('msg')) };
+    const D = Object.assign({}, await kvJson(x.db, 'dash_cfg', {}), { kpi: K }); await kvSet(x.db, 'dash_cfg', JSON.stringify(D));
+    await crmLog(x, u, 'Cài đặt', '-', '', 'Mức tốt chỉ số quảng cáo: CPM dưới ' + (K.cpm || '–') + 'đ · CTR từ ' + (K.ctr || '–') + '% · CPC dưới ' + (K.cpc || '–') + 'đ · 1 tin nhắn dưới ' + (K.msg || '–') + 'đ', '');
+    return { ok: true, dash: D };
+  }
   if (d.dash) { // mức đèn ở tab Tổng quan (chỉ Quản trị): chi phí quảng cáo / doanh thu khách mới dưới adsGood % = xanh, tới adsBad % = cam, trên = đỏ
     if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị sửa được mục này.' };
     const g = Math.min(500, Math.max(1, Number(String(d.dash.adsGood).replace(',', '.')) || 30)), b = Math.min(1000, Math.max(g, Number(String(d.dash.adsBad).replace(',', '.')) || 40));
-    const D = { adsGood: g, adsBad: b }; await kvSet(x.db, 'dash_cfg', JSON.stringify(D));
+    const D = Object.assign({}, await kvJson(x.db, 'dash_cfg', {}), { adsGood: g, adsBad: b }); await kvSet(x.db, 'dash_cfg', JSON.stringify(D));
     await crmLog(x, u, 'Cài đặt', '-', '', 'Đèn quảng cáo Tổng quan: xanh dưới ' + g + '%, cam tới ' + b + '%, đỏ trên ' + b + '%', '');
     return { ok: true, dash: D };
   }
@@ -1736,7 +1743,7 @@ async function crmFbUpdate(x, u, d) {
 
 /* ================================================================ điều phối */
 /** Việc tài khoản Marketing được làm: xem tab Marketing, nhập chi phí (file / nhập tay), góp ý, Telegram, cài đặt màu, đo tốc độ. Mọi việc khác máy chủ từ chối. */
-const MKT_ACTIONS = { link_list: 1, link_save: 1, link_active: 1, load: 1, mktv: 1, mkt_tg_test: 1, mkt_goal: 1, mkt_import: 1, mkt_add: 1, mkt_list: 1, quiz_cms: 1, mkt_del: 1, prefs: 1, tg_link: 1, tg_check: 1, tg_off: 1, perf: 1, usage: 1, feedback: 1, fb_list: 1, fb_img: 1, offers: 1, offer_save: 1, offer_del: 1 };
+const MKT_ACTIONS = { link_list: 1, link_save: 1, link_active: 1, load: 1, mktv: 1, mkt_tg_test: 1, mkt_goal: 1, mkt_import: 1, mkt_add: 1, mkt_list: 1, mkt_kpi: 1, quiz_cms: 1, mkt_del: 1, prefs: 1, tg_link: 1, tg_check: 1, tg_off: 1, perf: 1, usage: 1, feedback: 1, fb_list: 1, fb_img: 1, offers: 1, offer_save: 1, offer_del: 1 };
 export async function crmApi(x, d, sync, mgr) {
   await ensureSchema(x.db);
   const a = d.action;
