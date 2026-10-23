@@ -117,6 +117,8 @@ Mã giảm giá gửi riêng cho **khách cũ, đối tác**. Trên web không q
 - Mã chưa có đơn nào dùng thì **🗑 Xoá** được. Có đơn rồi thì chỉ **⏸ Tắt**.
 - Mã nên khó đoán. Ai gõ sai mã 8 lần sẽ bị khoá 15 phút.
 
+**Mã SONGLANH5 (quà chào mừng, giảm 5%)**: web tự tặng mã này cho khách vừa để số nhận cẩm nang, nhận ebook, nhận quà sau trò chơi / cam kết, hoặc vào nhóm Zalo. Mã tự lưu trên máy khách và tự trừ khi đặt hàng. Mỗi số dùng 1 lần. Đơn từ 300.000đ vẫn được miễn phí ship như bình thường. Muốn dừng tặng thì **⏸ Tắt** mã này trong danh sách mã.
+
 ## Tổng quan (chỉ Quản trị)
 
 Tab đầu tiên, dành cho chủ doanh nghiệp. **Nhìn 5 giây là nắm được tình hình.**

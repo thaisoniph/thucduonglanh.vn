@@ -1086,6 +1086,18 @@
     try { var u = new URL(location.href); u.searchParams.delete('uudai'); history.replaceState(null, '', u.pathname + u.search + u.hash); } catch (e) { }
     setTimeout(function () { toast(TF('🎟 Đã lưu mã ưu đãi {0} – tự áp dụng khi bạn đặt hàng', c), 'ok'); }, 600);
   }
+  /** mã ưu đãi chào mừng (khung .wvc, build.py wvc_box) trong màn hình đã nhận quà / vào nhóm Zalo.
+      Khách đã để số → lưu mã vào tdl_vc_code để tự áp dụng khi đặt hàng (1 lần/máy, không đè mã khác khách đang có) */
+  function grantWvc() {
+    var boxes = $$('[data-wvc]'); if (!boxes.length) return;
+    var c = boxes[0].getAttribute('data-wvc');
+    if (!load('tdl_wvc', null)) {
+      save('tdl_wvc', { t: Date.now() });
+      if (!load('tdl_vc_code', '') && !load('tdl_vc', null)) save('tdl_vc_code', c);
+      track('welcome_voucher', { coupon: c });
+    }
+    boxes.forEach(function (b) { b.hidden = false; });
+  }
   function initCheckout() {
     var form = $('#checkoutForm'); if (!form) return;
     if (!cart.length) { location.replace(U('/gio-hang/')); return; }
@@ -1208,7 +1220,7 @@
     var box = $('#giftBox'); if (!box) return;
     var key = box.getAttribute('data-key'), form = $('#giftForm', box), done = $('.ebf-done', box), quick = $('.gq', box), open = $('[data-gift-open]', box);
     var openUrl = box.getAttribute('data-open') || '', title = box.getAttribute('data-title') || '', book = box.getAttribute('data-book') || title;
-    function show(state) { form.hidden = state !== 'form'; done.hidden = state !== 'done'; quick.hidden = state !== 'quick'; if (state === 'done') open.href = giftUrl(key, openUrl); }
+    function show(state) { form.hidden = state !== 'form'; done.hidden = state !== 'done'; quick.hidden = state !== 'quick'; if (state === 'done') { open.href = giftUrl(key, openUrl); grantWvc(); } }
     function finish(lead, cs, ask, again) {
       var src = sourceLabel(), bp = box.getAttribute('data-pos') || '', pos = qs('tu') || bp, ctx = box.getAttribute('data-ctx') || ''; // ctx: kết quả trò chơi / lời cam kết → sale đọc trong CRM
       send({ type: 'contact', kind: 'ebook', book: key, book_title: book, again: again, concern: cs.join(', '), ask: ask, ctx: ctx, created: new Date().toISOString(), name: lead.name, phone: lead.phone, email: '', pos: pos, source: src.last,
@@ -1293,6 +1305,12 @@
     function ss(k, v) { try { if (v == null) return sessionStorage.getItem(k); sessionStorage.setItem(k, v); } catch (e) { return null; } }
     var timer, onScroll;
     function stopAuto() { clearTimeout(timer); window.removeEventListener('scroll', onScroll); }
+    var dial = $('#fwDial'); // điện thoại: 1 nút "💬 Tư vấn" bung Gọi + Zalo
+    if (dial) {
+      dial.addEventListener('click', function () { var on = w.classList.toggle('dial'); dial.setAttribute('aria-expanded', on ? 'true' : 'false'); if (on) track('chat_widget_open', { trigger: 'dial' }); });
+      document.addEventListener('click', function (e) { if (w.classList.contains('dial') && !w.contains(e.target)) { w.classList.remove('dial'); dial.setAttribute('aria-expanded', 'false'); } });
+    }
+    if (matchMedia('(max-width:640px)').matches) return; // lời chào tự bung chỉ trên máy tính (điện thoại vốn ẩn hộp này)
     function autoOpen(trigger) {
       if (w.classList.contains('open') || ss('tdl_fw') === '1' || ss('tdl_fw_auto') === '1') return stopAuto();
       if (document.body.classList.contains('satc-on')) return; // đang hiện thanh mua nhanh (trang sản phẩm, điện thoại): chờ lần sau
@@ -1726,7 +1744,7 @@
   function initZaloGate() {
     var box = $('#zgBox'); if (!box) return;
     var form = $('#zgForm', box), done = $('.ebf-done', box), quick = $('.zg-quick', box), lead = giftLead();
-    function show(st) { form.hidden = st !== 'form'; done.hidden = st !== 'done'; quick.hidden = st !== 'quick'; }
+    function show(st) { form.hidden = st !== 'form'; done.hidden = st !== 'done'; quick.hidden = st !== 'quick'; if (st === 'done') grantWvc(); }
     function ctx() { var q = (load('tdl_quiz', {}) || {}).last; return [q ? '🖐 Trò chơi: còn ' + q.score + ' ngón' : '', load('tdl_pledge', null) ? '🌱 Đã chọn sống lành' : ''].filter(Boolean).join(' · '); }
     function report(l, cs, again) {
       var src = sourceLabel(), pos = qs('tu');

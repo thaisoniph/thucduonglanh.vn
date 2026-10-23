@@ -684,8 +684,9 @@ def float_widget():
     <p>{t("Anh/chị đang tìm hiểu sản phẩm nào ạ? Em sẵn sàng tư vấn ngay cho anh/chị nhé!")}</p></div>
     <div class="fw-chips">{f'<a class="fw-chip fw-gift" href="{esc(CN_PATH)}?tu=float" data-cta="camnang_float">🎁 Nhận cẩm nang sống khỏe</a>' if CN_PATH else f'<a class="fw-chip fw-gift" href="{esc(ebook_href("float"))}"{ebook_target()} data-cta="ebook_float">🎁 Nhận ebook miễn phí</a>' if ebook_href("float") else ""}{chips}<a class="fw-chip" href="{zalo_link()}" target="_blank" rel="noopener">{t("Liên hệ tư vấn")}</a></div>
   </div>
-  <a class="fw-btn fw-phone" href="tel:{tel(SITE["hotline"])}" aria-label="{t("Gọi")} {esc(SITE["hotline"])}">{I["phone"]}</a>
-  <a class="fw-btn fw-zalo" href="{zalo_link()}" target="_blank" rel="noopener" aria-label="Chat Zalo">{I["zalo"]}</a>
+  <a class="fw-btn fw-phone" href="tel:{tel(SITE["hotline"])}" aria-label="{t("Gọi")} {esc(SITE["hotline"])}">{I["phone"]}<span class="fw-tx">{t("Gọi")} {esc(SITE["hotline"])}</span></a>
+  <a class="fw-btn fw-zalo" href="{zalo_link()}" target="_blank" rel="noopener" aria-label="Chat Zalo">{I["zalo"]}<span class="fw-tx">{t("Nhắn Zalo")}</span></a>
+  <button type="button" class="fw-dial" id="fwDial" aria-expanded="false"><span class="fw-d-on">💬 {t("Tư vấn")}</span><span class="fw-d-off">✕ {t("Đóng")}</span></button>
   <button class="fw-btn fw-main" id="fwToggle" aria-label="{t("Mở hộp tư vấn")}"><img src="/assets/img/brand/icon-180.png" alt="" width="56" height="56"></button>
 </div>'''
 
@@ -1043,6 +1044,20 @@ def gift_popup():
 EB_CONCERNS = ["Thoái hóa khớp", "Đau mỏi cơ – cứng cơ", "Gout", "Loãng xương", "Viêm khớp dạng thấp", "Đau thần kinh tọa", "Chăm sóc cha mẹ lớn tuổi", "Vấn đề khác"]
 
 
+def wvc_box():
+    """Mã ưu đãi chào mừng (data/site.json → welcome_voucher, mã tạo ở CRM → 🎟 Mã ưu đãi): hiện trong màn hình đã nhận quà / đã vào nhóm Zalo.
+    JS grantWvc() lưu mã vào tdl_vc_code (tự áp dụng khi đặt hàng) và bỏ ẩn khung."""
+    wv = SITE.get("welcome_voucher") or {}
+    if not (IS_VI and wv.get("enabled") and wv.get("code")):
+        return ""
+    fs = f' Đơn từ {money(SITE["free_ship_threshold"])} vẫn được miễn phí ship.' if SITE.get("free_ship_threshold") else ""
+    return f'''<div class="wvc" data-wvc="{esc(wv["code"])}" hidden>
+  <b>🎟 Quà thêm: mã <span class="wvc-code">{esc(wv["code"])}</span> {esc(wv.get("label") or "")} khi mua trên web</b>
+  <p>Mã đã tự lưu, tự trừ tiền lúc đặt hàng (mỗi số điện thoại dùng 1 lần).{fs}</p>
+  <a class="btn btn-buy" href="/san-pham/" data-cta="wvc_shop">Xem sản phẩm →</a>
+</div>'''
+
+
 def gift_form(key, ctx=""):
     """Form nhận quà dùng chung (/cam-nang-song-khoe/, /ebook/): họ tên, SĐT, vấn đề quan tâm, câu hỏi thêm.
     Khách đã nhận 1 quà (localStorage tdl_lead) → hiện ô "nhận ngay 1 chạm", không phải điền lại. Xong → mở quà + mời nhóm Zalo + gợi ý quà còn lại."""
@@ -1100,6 +1115,7 @@ def gift_form(key, ctx=""):
       <p class="ebf-note">{esc(done_note)}</p>
       <a class="btn btn-lg btn-buy" data-gift-open href="{esc(opener)}" target="_blank" rel="noopener" data-cta="{key}_open">{esc(open_lbl)}</a>
       {zalo_box}
+      {wvc_box()}
       {next_box}
       <button type="button" class="ebf-again" data-gift-again>Đăng ký cho người thân</button>
     </div>
@@ -1279,6 +1295,7 @@ def page_zalo_gate():
       <h2>✅ Xong rồi, mời anh/chị vào nhóm!</h2>
       <p class="ebf-note">Bấm nút để mở nhóm trong Zalo. Nhóm có bật duyệt thì đội ngũ {BRAND} sẽ duyệt trong ngày.</p>
       <a class="btn btn-lg btn-zalo" data-zg-join href="{esc(group)}" target="_blank" rel="noopener" data-cta="zalo_gate_join">👥 Vào nhóm Zalo ngay →</a>
+      {wvc_box()}
       {gift}
     </div>
   </div>
@@ -1491,7 +1508,7 @@ def page_home():
     brochure_btn = f'<a class="btn btn-lg btn-ghost" href="{BR_PATH}">📖 Đọc hồ sơ thương hiệu</a>' if BROCHURE else ""
     tag_box = f'<div class="tag-cloud">{tag_html}</div>' if tag_html else ""
     # Khối niềm tin đứng đầu trang: trả lời "vì sao" trước khi nói đến sản phẩm (câu treo ở văn phòng) + lời mời đồng hành
-    join_btn = f'<a class="blf-btn" href="#dong-hanh" data-cta="belief_join">{t("Cùng đồng hành")} ↓</a>' if SITE.get("community") else ""  # bản EN chưa có khối cộng đồng
+    join_btn = f'<a class="blf-btn blf-btn2" href="#dong-hanh" data-cta="belief_join">{t("Cùng đồng hành")} ↓</a>' if SITE.get("community") else ""  # bản EN chưa có khối cộng đồng
     def nw(s, *parts):
         """Giữ các cụm có nghĩa trên cùng 1 dòng (không ngắt "cách / ăn", "Thực Dưỡng / Lành"). Cụm không có trong câu (bản dịch) thì bỏ qua."""
         for x in parts:
@@ -1504,7 +1521,7 @@ def page_home():
   <h2 class="blf-eye">{t("Chúng tôi có một ước mơ")}</h2>
   <blockquote class="blf-q"><p>{blf_q}<em>{blf_em}</em></p></blockquote>
   <p class="blf-join">{blf_join}</p>
-  <div class="blf-acts">{join_btn}<a class="blf-link" href="/gioi-thieu/" data-cta="belief_story">{t("Đọc câu chuyện của chúng tôi")} →</a></div>{bv_hero_btn()}
+  <div class="blf-acts"><a class="blf-btn" href="{lp("/san-pham/")}" data-cta="belief_shop">{t("Xem sản phẩm")} →</a>{join_btn}<a class="blf-link" href="/gioi-thieu/" data-cta="belief_story">{t("Đọc câu chuyện của chúng tôi")} →</a></div>{bv_hero_btn()}
 </div></section>'''
     body = f'''{belief}
 {hero}{bv_float()}
@@ -2594,8 +2611,49 @@ def page_blog(path, title, posts, crumbs):
     return layout(path, title, tf("{title} – kiến thức dinh dưỡng, lối sống lành mạnh và câu chuyện sản phẩm từ {brand}.", title=title, brand=BRAND), body, jsonld=[bld])
 
 
+def post_products(p):
+    """Sản phẩm gợi ý trong bài viết (23/10/2026): ô `products` của bài (danh sách slug) nếu có, không thì lấy các sản phẩm bài đã nhắc tới (link /san-pham/…), theo thứ tự xuất hiện."""
+    slugs = p.get("products") or re.findall(r'/san-pham/([a-z0-9-]+)/', p["content"])
+    out = []
+    for s in slugs:
+        q = PROD_BY.get(s)
+        if q and q.get("price") is not None and q not in out:
+            out.append(q)
+    return out
+
+
+def post_pbox(items, where):
+    """Khung mua nhanh trong bài viết: where = mid (giữa bài, 1 sản phẩm) | end (cuối bài, tối đa 2)."""
+    if not items:
+        return ""
+    rows = ""
+    for q in items:
+        url = f'/san-pham/{q["slug"]}/'
+        if not q.get("variants"):
+            act = f'<button class="btn btn-buy pbx-btn" data-add="{q["slug"]}">{I["cart"]}<span>{t("Thêm vào giỏ")}</span></button>'
+        else:
+            act = f'<a class="btn btn-buy pbx-btn" href="{url}" data-cta="post_pbox_{where}">{t("Chọn loại")} →</a>'
+        rows += f'''<div class="pbx-item"><a class="pbx-img" href="{url}" data-cta="post_pbox_{where}"><img src="{pimg(q["images"][0], True)}" alt="{esc(q["name"])}" width="96" height="96" loading="lazy"></a>
+<div class="pbx-tx"><a class="pbx-name" href="{url}" data-cta="post_pbox_{where}">{esc(q["name"])}</a>{f'<small>{esc(q["pitch"])}</small>' if q.get("pitch") else ""}{price_html(q, "price pbx-price", from_=True)}</div>{act}</div>'''
+    return f'''<aside class="pbx pbx-{where}"><p class="pbx-eye">🌿 {t("Gợi ý cho bữa ăn hằng ngày")}</p>{rows}
+<p class="pbx-note">{t("Sản phẩm là thực phẩm, không phải là thuốc, không có tác dụng thay thế thuốc chữa bệnh.")}</p></aside>'''
+
+
+def post_with_pbox(p):
+    """Chèn khung sản phẩm vào giữa bài (trước tiêu đề mục ở khoảng giữa, bài có ≥ 3 mục) và cuối bài."""
+    items, html = post_products(p), p["content"]
+    if not items:
+        return html, ""
+    cuts = [m.start() for m in re.finditer(r"<h2[ >]", html)]
+    if len(cuts) >= 3:
+        i = cuts[len(cuts) // 2]
+        html = html[:i] + post_pbox(items[:1], "mid") + html[i:]
+    return html, post_pbox(items[:2], "end")
+
+
 def page_post(p):
     path = f"/goc-song-lanh/{p['slug']}/"
+    post_html, pbox_end = post_with_pbox(p)
     cat = PCATS.get(p["category"], {"name": "", "slug": ""})
     bc, bld = breadcrumb([(t("Góc Sống Lành"), "/goc-song-lanh/"), (cat["name"], f"/goc-song-lanh/chuyen-muc/{cat['slug']}/"), (p["title"], None)])
     d = datetime.date.fromisoformat(p["date"]).strftime("%d/%m/%Y")
@@ -2605,9 +2663,9 @@ def page_post(p):
   <div class="post-meta"><a href="/goc-song-lanh/chuyen-muc/{cat["slug"]}/">{esc(cat["name"])}</a> · <time datetime="{p["date"]}">{d}</time></div>
   <h1>{esc(p["title"])}</h1>
   <img class="post-cover" src="{img_url(p["image"], 1400)}" alt="{esc(p["title"])}" width="1200" height="1200">
-  {p["content"]}
+  {post_html}
 </article>
-{cn_cta("post")}{f'<p class="post-quiz">🖐 Bạn sống lành tới đâu? <a href="{QUIZ_PATH}?tu=post" data-cta="post_quiz">Chơi thử 1 phút: Bạn còn mấy ngón tay? →</a></p>' if IS_VI and QUIZ.get("questions") else ""}</div></section>
+{pbox_end}{cn_cta("post")}{f'<p class="post-quiz">🖐 Bạn sống lành tới đâu? <a href="{QUIZ_PATH}?tu=post" data-cta="post_quiz">Chơi thử 1 phút: Bạn còn mấy ngón tay? →</a></p>' if IS_VI and QUIZ.get("questions") else ""}</div></section>
 <section class="section bg-soft"><div class="container"><h2 class="sec-title">{t("Bài viết khác")}</h2><div class="post-grid">{"".join(post_card(x) for x in others)}</div></div></section>'''
     org = {"@type": "Organization", "name": BRAND, "url": DOMAIN + "/", "logo": {"@type": "ImageObject", "url": DOMAIN + "/assets/img/brand/logo@2x.png"}}
     ld = {"@context": "https://schema.org", "@type": "Article", "headline": p["title"], "description": p["excerpt"], "inLanguage": LANG,

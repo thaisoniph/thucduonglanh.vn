@@ -130,6 +130,7 @@ Cột trái chọn **Cài đặt website**. Các mục hay dùng:
 - **Video thương hiệu**: dán link YouTube. Video hiện ở trang chủ, trang Giới thiệu và bong bóng tròn góc màn hình. Xoá link thì video tự ẩn.
 - **Ebook quà tặng** và **Cẩm nang sống khỏe**: link sách, tiêu đề, ảnh bìa, bật/tắt popup tặng cẩm nang. Khách nhận quà sẽ vào tab Khách hỏi trong CRM.
 - **Ưu đãi chỉ có khi đặt trên website**: bật/tắt, mức giảm chung (%), câu quảng bá, quà tặng. Giá trong sản phẩm vẫn nhập **giá gốc**, web tự giảm.
+- **Mã ưu đãi tặng sau khi nhận quà**: mã khách thấy sau khi để số nhận cẩm nang, ebook hoặc vào nhóm Zalo (đang là SONGLANH5, giảm 5%). Muốn đổi mã thì Quản lý tạo mã mới trong CRM trước, rồi mới gõ mã đó vào đây.
 - **Mốc đơn hàng thứ 2**: để tắt. Chỉ bật khi công ty đã duyệt một quyền lợi thật.
 
 **Nhạc nền website:** nút ♪ trên đầu trang. Sửa được: bật/tắt, âm lượng (nên 20–30%), danh sách bài.
