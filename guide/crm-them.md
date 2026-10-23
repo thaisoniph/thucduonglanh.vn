@@ -128,7 +128,7 @@ Bấm **🔎 Lọc thêm** để lọc theo mức chi tiền, khách đến từ
 **Đang tư vấn khách mới, dùng con số để khách tin hơn:**
 
 1. Hỏi khách ở tỉnh nào.
-2. Gõ tên tỉnh vào ô tìm ở tab **Khách** (hoặc ô **📍 Khách ở tỉnh nào?** trong cửa sổ Tư vấn).
+2. Gõ tên tỉnh vào ô tìm ở tab **Khách** (hoặc ô **📍 Khách ở tỉnh nào?** trong cửa sổ Tư vấn). Gõ không dấu cũng được, ví dụ `nghe an`. Gõ tên tỉnh cũ (Nam Định, Bình Dương…) máy vẫn ra, kèm dòng "nay thuộc …". Bấm chọn trong danh sách hiện ra.
 3. Khung xanh hiện ra: bao nhiêu khách ở tỉnh đó đã mua, hay mua gì, kèm **💡 câu gợi ý** để nói với khách.
 
 ![Tìm theo tỉnh](/huong-dan/img/crm-area.webp)

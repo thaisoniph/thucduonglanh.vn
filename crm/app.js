@@ -2848,6 +2848,15 @@
     return words.every(function (w) { return t.indexOf(w) >= 0; });
   }
   /** Danh sách tên tỉnh (cũ + mới) để chọn nhanh. */
+  /** Gợi ý cho ô gõ tìm tỉnh (addrPick): tỉnh mới ghi "gồm cả …", tỉnh cũ ghi "nay thuộc …". */
+  function provPickItems() {
+    var all = provNames();
+    return all.map(function (n) {
+      var nw = Object.keys(PROV_MERGE).filter(function (k) { return PROV_MERGE[k].indexOf(n) >= 0; })[0] || n;
+      var olds = n === nw ? (PROV_MERGE[nw] || []).filter(function (x) { return x !== nw && all.indexOf(x) >= 0; }) : [];
+      return { v: n, s: n !== nw ? 'nay thuộc ' + nw : olds.length ? 'gồm cả ' + olds.join(', ') : '' };
+    });
+  }
   function provNames() { var o = {}; Object.keys(PROV_MERGE).forEach(function (nw) { o[nw] = 1; PROV_MERGE[nw].forEach(function (x) { if (!/^(HCM|TPHCM|TP HCM|HN|HP|Kontum|Daklak|Đaklak|Đăk .*|Dak .*|Bắc Cạn)$/.test(x)) o[x] = 1; }); }); return Object.keys(o).sort(function (a, b) { return a.localeCompare(b, 'vi'); }); }
   function leadsCountText(base) { var f = S.f.t || {}; if (f.q && f.q.trim()) return searchCount(base.length, 'khách hỏi', f.q.trim()); return base.length + ' lượt hỏi · ' + base.filter(isOpenLead).length + ' người đang theo dõi (chưa mua)'; }
   function renderLeadsChips(base, cur) {
@@ -3040,7 +3049,7 @@
     var fill = function (text) { return fillTpl(text, { name: l.name, products: [l.interest || 'sản phẩm bên em'] }); };
     var body = '<div class="box"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>' + cp(l.name) + '</b> ' + leadTag(l) + ' <span class="muted">' + cpPhone(l.phone) + ' · ' + esc(chLabel(l.channel)) + '</span></div>' +
       '<div class="small muted" style="margin-top:4px">' + (l.interest ? 'Quan tâm: ' + esc(l.interest) + ' · ' : '') + 'hỏi ' + daysAgo(l.time) + (lastNote(l) ? '<br>📝 ' + esc(lastNote(l)) : '') + '</div></div>' +
-      '<div class="box"><label class="f" style="margin:0"><span>📍 Khách ở tỉnh nào? <em class="muted" style="font-style:normal;font-weight:400">(hỏi khách rồi gõ, máy cho biết bên mình đã có bao nhiêu khách ở đó)</em></span><input type="text" id="cProv" list="cProvs" autocomplete="off" placeholder="vd Nghệ An" value="' + esc(leadProv(l) ? leadProv(l).old : '') + '"><datalist id="cProvs">' + provNames().map(function (n) { return '<option value="' + esc(n) + '">'; }).join('') + '</datalist></label><div id="cArea" style="margin-top:8px"></div></div>' +
+      '<div class="box"><label class="f" style="margin:0"><span>📍 Khách ở tỉnh nào? <em class="muted" style="font-style:normal;font-weight:400">(hỏi khách rồi gõ, máy cho biết bên mình đã có bao nhiêu khách ở đó)</em></span><input type="text" id="cProv" autocomplete="off" placeholder="Gõ để tìm, vd: nghe an" value="' + esc(leadProv(l) ? leadProv(l).old : '') + '"></label><div id="cArea" style="margin-top:8px"></div></div>' +
       '<div class="box"><h3>Bước 1 · Nhắn / gọi cho khách</h3>' +
       '<label class="f"><span>Mẫu tin</span><select id="cTpl"><option value="-1">– Tự viết –</option>' + tp.map(function (t, i) { return '<option value="' + i + '"' + (i === ti ? ' selected' : '') + '>' + esc(t[0] + (t[1] ? ' – ' + t[1] : '')) + '</option>'; }).join('') + '</select></label>' +
       '<label class="f"><span>Nội dung (sửa được)</span><textarea id="cMsg" rows="5">' + esc(ti >= 0 ? fill(tp[ti][2]) : '') + '</textarea></label>' +
@@ -3062,6 +3071,7 @@
     $('#cZalo', m).onclick = function () { copy(msg.value).then(function () { toast('Đã copy – dán vào khung chat Zalo'); }); window.open(zalo(l.phone), '_blank', 'noopener'); };
     var provIn = $('#cProv', m), showArea = function () { var v = provIn.value.trim(), pv = v && provOf({ address: v }); $('#cArea', m).innerHTML = pv ? areaBox(norm(pv.old), 'consult') : v.length >= 3 ? '<p class="small muted" style="margin:0">Chưa nhận ra tỉnh – chọn trong danh sách gợi ý nhé.</p>' : ''; };
     provIn.oninput = showArea; showArea();
+    addrPick(provIn, provPickItems, showArea); // gõ không dấu, tên tỉnh cũ hay mới đều ra (giống form lên đơn)
     // Đợt 3: nút 1 chạm giống cửa sổ Chăm sóc – chọn sẵn kết quả (+ ngày hẹn / lý do) rồi lưu luôn
     var pick = function (v, days, reason) {
       var r = $('input[name=cRes][value="' + v + '"]', m); if (!r) return; r.checked = true; r.onchange();
