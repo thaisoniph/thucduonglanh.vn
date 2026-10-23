@@ -111,11 +111,13 @@ export async function mktTick(x) {
 /** mkt_kpi (Marketing + Quản trị): chỉ số từng chiến dịch theo ngày, 9 ngày gần nhất (hôm nay, hôm qua, 7 ngày trước đó để so).
  *  Chỉ dòng có lượt hiển thị (Facebook tự động, file có cột hiển thị). → rows [ngày, kênh, chiến dịch, [tài khoản, act_…], chi phí, hiển thị, bấm link, tin nhắn] */
 async function mktKpi(x) {
-  const t = startOfDay(Date.now()), [rows, c] = await Promise.all([
+  const t = startOfDay(Date.now()), [rows, c, ads] = await Promise.all([
     all(x.db, 'SELECT day, channel, account, campaign, src, SUM(spend) AS s, SUM(impressions) AS i, SUM(clicks) AS c, SUM(msgs) AS m FROM ad_spend WHERE day BETWEEN ? AND ? AND impressions > 0 GROUP BY day, channel, account, campaign', iso(t - 8 * DAY), iso(t)),
-    cfgOf(x)
+    cfgOf(x), kvJson(x.db, 'ads_rows', [])
   ]);
-  return { ok: true, today: iso(t), last: (c.fb || {}).last || null, rows: rows.map(r => [r.day, r.channel, r.campaign, accOf(c, r), r.s, r.i, r.c, r.m]) };
+  const data = {}, seen = {}; // số SĐT (data) về file số quảng cáo mỗi ngày, mỗi số 1 lần / ngày – để tính chi phí 1 SĐT (marketing ngành này nhìn số này là chính)
+  (ads || []).forEach(a => { const tm = Number(a[0]) || 0, p = String(a[1] || ''); if (tm < t - 8 * DAY || !p) return; const d = iso(tm); if (seen[d + p]) return; seen[d + p] = 1; data[d] = (data[d] || 0) + 1; });
+  return { ok: true, today: iso(t), last: (c.fb || {}).last || null, data, rows: rows.map(r => [r.day, r.channel, r.campaign, accOf(c, r), r.s, r.i, r.c, r.m]) };
 }
 
 /** Tài khoản quảng cáo của 1 dòng chiến dịch: [tên hiện, mã act_… (Facebook, để mở Trình quản lý quảng cáo) hoặc '']. Dùng chung cho lệnh mkt và mktv. */

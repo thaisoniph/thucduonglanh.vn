@@ -1291,9 +1291,9 @@ async function crmSettings(x, u, d) {
     await crmLog(x, u, 'Cài đặt', '-', '', 'Hoa hồng: ' + COMM_KEYS.map(t => t + ' ' + (CM[t] === '' ? '–' : CM[t] + '%')).join(', '), '');
     return { ok: true, commission: CM };
   }
-  if (d.kpi) { // mức "tốt" của chỉ số chiến dịch ở tab Marketing (chỉ Quản trị): CPM, CPC, giá 1 tin nhắn (đ, tốt khi dưới), CTR (%, tốt khi từ). 0 = chưa đặt → so với trung bình 7 ngày
+  if (d.kpi) { // mức "tốt" của chỉ số chiến dịch ở tab Marketing (chỉ Quản trị): CPM, CPC, giá 1 tin nhắn, giá 1 SĐT (đ, tốt khi dưới), CTR (%, tốt khi từ). 0 = chưa đặt → so với trung bình 7 ngày
     if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị sửa được mục này.' };
-    const v = k => Math.min(1e9, Math.max(0, Number(String(d.kpi[k] == null ? '' : d.kpi[k]).replace(',', '.')) || 0)), K = { cpm: Math.round(v('cpm')), ctr: Math.min(100, Math.round(v('ctr') * 100) / 100), cpc: Math.round(v('cpc')), msg: Math.round(v('msg')) };
+    const v = k => Math.min(1e9, Math.max(0, Number(String(d.kpi[k] == null ? '' : d.kpi[k]).replace(',', '.')) || 0)), K = { cpm: Math.round(v('cpm')), ctr: Math.min(100, Math.round(v('ctr') * 100) / 100), cpc: Math.round(v('cpc')), msg: Math.round(v('msg')), sdt: Math.round(v('sdt')) };
     const D = Object.assign({}, await kvJson(x.db, 'dash_cfg', {}), { kpi: K }); await kvSet(x.db, 'dash_cfg', JSON.stringify(D));
     await crmLog(x, u, 'Cài đặt', '-', '', 'Mức tốt chỉ số quảng cáo: CPM dưới ' + (K.cpm || '–') + 'đ · CTR từ ' + (K.ctr || '–') + '% · CPC dưới ' + (K.cpc || '–') + 'đ · 1 tin nhắn dưới ' + (K.msg || '–') + 'đ', '');
     return { ok: true, dash: D };
