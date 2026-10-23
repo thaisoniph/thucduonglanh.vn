@@ -1843,6 +1843,7 @@
     var form = $('#ocxForm', box), done = $('.ocx-done', box), bar = $('.ocx-bar'), dat = $('#dat');
     function show(l) { $('[data-ocx-name]', done).textContent = l.name; $('[data-ocx-phone]', done).textContent = l.phone; form.hidden = true; done.hidden = false; }
     var old = load('tdl_ocx', null); if (old && old.name) show(old);
+    $$('[data-until]').forEach(function (u) { if (new Date(u.getAttribute('data-until') + 'T23:59:59+07:00') < new Date()) u.hidden = true; }); // hết hạn quà đợt này: tự ẩn dòng hạn
     if (bar && dat && 'IntersectionObserver' in window) new IntersectionObserver(function (es) { bar.classList.toggle('off', es[0].isIntersecting); }).observe(dat);
     form.addEventListener('submit', function (e) {
       e.preventDefault();

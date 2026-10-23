@@ -2242,3 +2242,4 @@ body.buy-vis .bvb{opacity:0;visibility:hidden;pointer-events:none}
 @media (max-width:600px){.ocx-guar{grid-template-columns:1fr}}
 @media (prefers-reduced-motion:reduce){.ocx-btn,.ocx-bar{transition:none}}
 @media (max-width:640px){.ocx-tbl table{min-width:0}.ocx-tbl th:nth-child(2),.ocx-tbl td:nth-child(2){display:none}.ocx-tbl th,.ocx-tbl td{padding:13px 14px}.ocx-facts b{font-size:1.45rem;white-space:nowrap}.ocx-facts>div{padding:16px}}
+.ocx-until{margin-top:4px;font-weight:600;color:#F3E0BD}

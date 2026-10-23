@@ -1838,14 +1838,15 @@ QUIZ_GROUP_PATH = QUIZ_PATH + "nhom/"
 
 
 OCX_PATH = "/bo-o-cu/"  # landing quảng cáo "Bộ Ở Cữ Thảnh Thơi 21 Ngày" (Trà DILVANG, mẹ ở cữ cùng bà) – offer: Google Doc Offer_Bo_O_Cu_Thanh_Thoi_DILVANG
-OCX = {  # số liệu offer: sửa ở đây. Giá trị quà, cam kết, giới hạn 50 bộ là ĐỀ XUẤT trong offer 23/10/2026, chờ anh Sơn chốt (hạn 27/10)
+OCX = {  # số liệu offer: sửa ở đây. Giá trị quà, cam kết là ĐỀ XUẤT trong offer 23/10/2026, chờ anh Sơn chốt (hạn 27/10)
     "product": "tra-hoa-tan-dilvang-dinh-lang-che-vang", "boxes": 3, "price": 369000,
-    "up_boxes": 6, "up_price": 699000, "weekly": 50,
+    "up_boxes": 6, "up_price": 699000,
+    "until": "",  # hạn quà tặng đợt này "YYYY-MM-DD" (để trống = không hiện; quá hạn trình duyệt tự ẩn dòng hạn). Chỉ ghi khi đợt quà thật sự kết thúc ngày đó
     "bonus": [("Cốc giữ nhiệt có vạch 300–400ml", "", "Pha đúng lượng nước, đêm không nguội nhanh", 89000),
               ("“Thư gửi Bà”", "Tờ in chữ to kể nguồn gốc: chè vằng Quảng Trị có chỉ dẫn địa lý, nhà máy đạt GMP", "Bà đọc, bà yên tâm", 49000),
               ("Sổ tay “21 ngày ở cữ nhẹ nhàng”", "Giờ uống nước, thực đơn gợi ý, mẹ và bà cùng đọc", "Biết làm đúng, đỡ tranh luận", 99000),
               ("Zalo hỏi đáp với chuyên viên VitaGreen 30 ngày", "", "Có người để hỏi khi băn khoăn", 150000),
-              ("Thẻ “Việc của Bố” + thiệp viết tay", "", "Chồng tặng vợ, tự tay pha mỗi tối", 29000)],
+              ("Thẻ “Việc của Bố” + thiệp để bố tự viết", "", "Bố viết vài dòng cho vợ, tối tự tay pha một cốc", 29000)],
 }
 
 
@@ -1865,12 +1866,13 @@ def page_ocx():
     rows += "".join(f'<tr><td><span class="ocx-tag">Tặng</span>{esc(a)}{f"<small>{esc(s)}</small>" if s else ""}</td><td>{esc(w)}</td><td class="v">{vnd(v)}</td></tr>' for a, s, w, v in bonus)
     img = lambda src, w, alt, cls="", extra="": f'<img src="{img_url(src, w)}" alt="{esc(alt)}" class="{cls}" loading="lazy" decoding="async"{extra}>'
     pk1, pk2 = f"Bộ Ở Cữ Thảnh Thơi 21 Ngày ({n} hộp) – {vnd(OCX['price'])}", f"Trọn 6 Tuần Ở Cữ ({OCX['up_boxes']} hộp, giao 2 lần) – {vnd(OCX['up_price'])}"
+    until = f'<p class="ocx-until" data-until="{esc(OCX["until"])}">🎁 Quà tặng kèm bộ áp dụng đến hết ngày {"/".join(reversed(OCX["until"].split("-")))}.</p>' if OCX.get("until") else ""
     disc = "Sản phẩm này là thực phẩm, không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh."
     body = f'''<div class="ocx">
 <section class="ocx-hero"><div class="ocx-wrap">
   <div class="ocx-hero-g">
     <div class="ocx-stack">
-      <span class="ocx-eye">Mỗi tuần chỉ gói tay {OCX["weekly"]} bộ</span>
+      <span class="ocx-eye">Dành cho mẹ đang ở cữ</span>
       <h1>Cốc chè vằng ấm sau 10 giây, <span class="nw">kể cả lúc 2 giờ sáng</span></h1>
       <p class="ocx-lead">Dành cho mẹ đang ở cữ cùng bà. Không cần đun nồi, không phải lọc bã, không cãi nhau với bà chuyện kiêng cữ.</p>
       <div class="ocx-cta"><a class="ocx-btn" href="#dat" data-cta="ocx_hero">Giữ 1 bộ, shop gọi lại</a><a class="ocx-btn ghost" href="#nhan" data-cta="ocx_hero_stack">Xem bộ gồm những gì</a></div>
@@ -1960,8 +1962,8 @@ def page_ocx():
 </div></section>
 
 <section class="ocx-scar" id="dat"><div class="ocx-wrap">
-  <div class="ocx-head"><span class="ocx-eye">Mỗi tuần chỉ {OCX["weekly"]} bộ gói tay kèm thiệp</span><h2>Giữ bộ cho mẹ <span class="nw">trong 1 phút</span></h2>
-  <p class="ocx-lead">Thiệp được viết tay nên số bộ mỗi tuần có hạn. Mẹ để lại số, shop gọi xác nhận trước khi giao. Chưa phải trả tiền lúc này.</p></div>
+  <div class="ocx-head"><span class="ocx-eye">Ở cữ chỉ có 21–42 ngày</span><h2>Giữ bộ cho mẹ <span class="nw">trong 1 phút</span></h2>
+  <p class="ocx-lead">Mỗi ngày chờ là thêm một ngày bà đứng bếp đun nồi chè. Mẹ để lại số, shop gọi xác nhận và giao ngay: Hà Nội 1–2 ngày, tỉnh khác 2–5 ngày. Chưa phải trả tiền lúc này.</p>{until}</div>
   <div class="ocx-two">
     <div class="ocx-box" id="ocxBox">
       <form id="ocxForm" novalidate>
