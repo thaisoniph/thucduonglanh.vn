@@ -608,6 +608,8 @@ def build_congsu():
     today = datetime.date.today().isoformat()
     (OUT / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
                                      + "".join(f"<url><loc>{BASE}{p}</loc><lastmod>{today}</lastmod></url>" for p in pages) + "</urlset>\n", "utf-8")
+    # Đổi tên vị trí (đổi đường link): link cũ ghi ở ô aliases tự chuyển sang link mới (23/10/2026: ke-toan-thue → ke-toan-tong-hop)
+    (OUT / "_redirects").write_text("".join(f"/{a}/ /{j['slug']}/ 301\n/{a} /{j['slug']}/ 301\n" for j in jobs for a in (j.get("aliases") or [])), "utf-8")
     (OUT / "robots.txt").write_text(f"User-agent: *\nAllow: /\nSitemap: {BASE}/sitemap.xml\n", "utf-8")
     (OUT / "_headers").write_text(
         "/*\n  X-Content-Type-Options: nosniff\n  X-Frame-Options: SAMEORIGIN\n  Referrer-Policy: strict-origin-when-cross-origin\n"

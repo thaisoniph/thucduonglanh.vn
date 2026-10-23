@@ -570,7 +570,7 @@ collections:
     summary: "{{title}} – {{quantity}} người"
     sortable_fields: [order, title]
     fields:
-      - { label: "Tên vị trí", name: title, widget: string, hint: "Tên file (đường link) tự tạo theo tên lần đầu lưu, vd Kế toán thuế → congsu.thucduonglanh.vn/ke-toan-thue/" }
+      - { label: "Tên vị trí", name: title, widget: string, hint: "Tên file (đường link) tự tạo theo tên lần đầu lưu, vd Kế toán tổng hợp → congsu.thucduonglanh.vn/ke-toan-tong-hop/" }
       - { label: "Đang tuyển", name: active, widget: boolean, default: true, hint: "Tắt = ẩn vị trí khỏi trang (giữ lại để mở lại sau)." }
       - { label: "Thứ tự trên trang", name: order, widget: number, value_type: int, default: 10 }
       - { label: "Số lượng", name: quantity, widget: number, value_type: int, default: 1 }
@@ -580,6 +580,7 @@ collections:
       - { label: "Hạn ứng tuyển (chữ hiện trên trang)", name: deadline, widget: string, default: "Đến khi tuyển đủ", hint: "VD: 30/11/2026" }
       - { label: "Hạn ứng tuyển cho Google (không bắt buộc)", name: valid_through, widget: datetime, format: "YYYY-MM-DD", time_format: false, required: false, hint: "Google Việc làm dùng ngày này để tự ẩn tin khi hết hạn." }
       - { label: "Ngày đăng tin", name: date, widget: datetime, format: "YYYY-MM-DD", time_format: false, required: false }
+      - { label: "Đường link cũ", name: aliases, widget: list, required: false, hint: "Chỉ điền khi đổi tên vị trí đã từng đăng: ghi phần link cũ (vd ke-toan-thue), người mở link cũ sẽ tự sang trang này." }
       - { label: "Câu mở đầu (in đậm)", name: headline, widget: string, required: false, hint: "1 câu nói vị trí này quan trọng thế nào." }
       - { label: "Câu trích dẫn (in nghiêng)", name: quote, widget: string, required: false }
       - { label: "Nội dung", name: body, widget: markdown, hint: "Giữ 4 tiêu đề lớn: 1. Mô tả công việc · 2. Yêu cầu ứng viên · 3. Học tập & phát triển · 4. Thu nhập & chế độ phúc lợi. Mục 5 (địa điểm, giờ làm, liên hệ) trang tự thêm." }
