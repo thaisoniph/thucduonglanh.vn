@@ -617,7 +617,7 @@ def footer():
 <footer class="site-footer">
   <div class="container footer-grid">
     <div class="f-col f-brand">
-      <a href="/" class="f-logo"><img src="/assets/img/brand/logo-cream.webp" alt="{BRAND}" width="200" height="142" loading="lazy"></a>
+      <a href="/" class="f-logo"><img src="/assets/img/brand/logo-gold-footer.webp" alt="{BRAND}" width="220" height="160" loading="lazy"></a>
       <p class="f-slogan">{slogan_html()}</p>
       <p class="f-company">{esc(SITE["company"])}</p>
       <p>{tf("Giấy chứng nhận đăng ký doanh nghiệp số {code} đăng ký lần đầu ngày {date}", code=esc(SITE["tax_code"]), date=esc(SITE["tax_date"]))}</p>
