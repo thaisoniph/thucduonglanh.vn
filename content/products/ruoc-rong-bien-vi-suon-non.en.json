@@ -2,6 +2,7 @@
   "name": "Vegan Seaweed Floss – Pork Rib Flavor",
   "short_name": "Seaweed Floss",
   "badge": "Vegan",
+  "unit": "",
   "variants": [
     {
       "name": "Jar 215g"
@@ -11,6 +12,45 @@
     }
   ],
   "summary": "A vegan floss made from **natural seaweed** and **plant-based \"pork rib\"**, fragrant with lime leaves and toasted sesame. Nutty, savory and perfect with rice – **100% vegan, no preservatives**.",
+  "serving_unit": "",
+  "pitch": "Vegan seaweed floss with lime leaves – just sprinkle on rice",
+  "badges": [
+    "Vegan",
+    "No preservatives",
+    "39.2g plant protein per 100g (AVATEK lab testing)",
+    "Not detected: Aflatoxin, Salmonella",
+    "Factory certified ISO 22000:2018"
+  ],
+  "proofs": [
+    {
+      "title": "Test report",
+      "org": "AVATEK Center for Testing and Applied Science Consulting (ISO/IEC 17025)",
+      "number": "",
+      "date": "",
+      "scope": "Per 100g: 490 kcal, protein 39.2g, fat 34.6g, sodium 1,666mg. Aflatoxin B1, total Aflatoxin and Salmonella not detected"
+    },
+    {
+      "title": "Factory certified ISO 22000:2018",
+      "org": "International Certification JSC (ICB)",
+      "number": "",
+      "date": "06/10/2025 – valid until 05/10/2028",
+      "scope": "Huong Sac Vegan Co., Ltd. (Hai Phong): production and trading of vegetarian foods"
+    }
+  ],
+  "reviews": [],
+  "keywords": [
+    "vegan floss",
+    "pork floss",
+    "meat floss",
+    "seaweed",
+    "vegan",
+    "vegetarian",
+    "plant-based",
+    "kids",
+    "rice topping",
+    "side dish",
+    "plant protein"
+  ],
   "highlights": [
     "100% vegan",
     "No preservatives",
@@ -21,23 +61,31 @@
   "sections": [
     {
       "title": "Ingredients",
-      "text": "Plant-based pork rib (80%), seaweed (12%), sesame, lime leaves, vegetable oil, vegan seasonings."
+      "text": "Plant-based pork rib (80%), seaweed (12%), sesame, lime leaves, vegetable oil, vegan seasonings.",
+      "items": [],
+      "rows": []
     },
     {
       "title": "Highlights",
+      "text": "",
       "items": [
         "100% vegan, no preservatives.",
         "Rich in natural minerals from seaweed.",
         "Provides plant protein and healthy fats.",
         "Fragrant with lime leaves and toasted sesame; nutty and savory."
-      ]
+      ],
+      "rows": []
     },
     {
       "title": "How to use",
-      "text": "Enjoy straight from the jar with hot rice, congee, sticky rice, bread, rice balls or lunch boxes, or sprinkle over salads."
+      "text": "Enjoy straight from the jar with hot rice, congee, sticky rice, bread, rice balls or lunch boxes, or sprinkle over salads.",
+      "items": [],
+      "rows": []
     },
     {
       "title": "Nutrition facts (per 100g)",
+      "text": "",
+      "items": [],
       "rows": [
         {
           "label": "Energy",
@@ -67,50 +115,22 @@
     },
     {
       "title": "Who it's for",
-      "text": "Vegetarians and vegans, people following a macrobiotic diet, anyone wanting more plant protein, older adults, students, office workers and families."
+      "text": "Vegetarians and vegans, people following a macrobiotic diet, anyone wanting more plant protein, older adults, students, office workers and families.",
+      "items": [],
+      "rows": []
     },
     {
       "title": "Storage",
+      "text": "",
       "items": [
         "Store in a cool, dry place away from sunlight.",
         "Close tightly after use; best enjoyed within 7 days of opening."
-      ]
+      ],
+      "rows": []
     }
   ],
-  "badges": [
-    "Vegan",
-    "No preservatives",
-    "39.2g plant protein per 100g (AVATEK lab testing)",
-    "Not detected: Aflatoxin, Salmonella",
-    "Factory certified ISO 22000:2018"
-  ],
-  "keywords": [
-    "vegan floss",
-    "pork floss",
-    "meat floss",
-    "seaweed",
-    "vegan",
-    "vegetarian",
-    "plant-based",
-    "kids",
-    "rice topping",
-    "side dish",
-    "plant protein"
-  ],
-  "pitch": "Vegan seaweed floss with lime leaves – just sprinkle on rice",
-  "proofs": [
-    {
-      "title": "Test report",
-      "org": "AVATEK Center for Testing and Applied Science Consulting (ISO/IEC 17025)",
-      "scope": "Per 100g: 490 kcal, protein 39.2g, fat 34.6g, sodium 1,666mg. Aflatoxin B1, total Aflatoxin and Salmonella not detected"
-    },
-    {
-      "title": "Factory certified ISO 22000:2018",
-      "org": "International Certification JSC (ICB)",
-      "scope": "Huong Sac Vegan Co., Ltd. (Hai Phong): production and trading of vegetarian foods",
-      "date": "06/10/2025 – valid until 05/10/2028"
-    }
-  ],
+  "story": null,
+  "disclaimer": "",
   "faq": [
     {
       "q": "Is the seaweed floss with vegan ribs really vegan?",

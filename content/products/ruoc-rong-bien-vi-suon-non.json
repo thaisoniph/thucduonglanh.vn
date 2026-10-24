@@ -2,25 +2,22 @@
   "name": "Ruốc Rong Biển Vị Sườn Non Thuần Chay",
   "short_name": "Ruốc Rong Biển",
   "category": "gia-vi-mon-chay",
-  "sku": "TDL-RUOC",
-  "order": 4,
-  "featured": true,
   "published": true,
+  "featured": true,
+  "order": 4,
   "badge": "Thuần chay",
+  "sku": "TDL-RUOC",
   "price": 89000,
   "regular_price": null,
   "web_discount": 0,
-  "unit": "",
+  "unit": "165 gam",
   "variants": [
-    {
-      "name": "Hũ 215g",
-      "price": 89000,
-      "regular_price": null
-    },
     {
       "name": "Hũ 165g",
       "price": 75000,
-      "regular_price": null
+      "regular_price": 99000,
+      "web_discount": 5,
+      "servings": null
     }
   ],
   "images": [
@@ -33,6 +30,53 @@
     "/assets/img/products/ruoc-chay-rong-bien-7.webp"
   ],
   "summary": "Ruốc chay từ **rong biển tự nhiên** kết hợp **sườn non chay**, thơm lá chanh và mè rang. Vị bùi, đậm đà, rất đưa cơm – **thuần chay tinh khiết, không chất bảo quản**.",
+  "servings": null,
+  "serving_unit": "",
+  "pitch": "Ruốc chay rong biển thơm lá chanh, rắc cơm là ngon",
+  "badges": [
+    "Thuần chay",
+    "Không chất bảo quản",
+    "39,2g đạm thực vật trong 100g (kiểm nghiệm AVATEK)",
+    "Không phát hiện Aflatoxin, Salmonella",
+    "Nhà máy đạt ISO 22000:2018"
+  ],
+  "test_cert_img": "",
+  "label_imgs": [
+    "/assets/uploads/ho-so/ruoc-nhan-va-giay-to.webp"
+  ],
+  "proofs": [
+    {
+      "title": "Phiếu kết quả kiểm nghiệm",
+      "org": "Trung tâm Kiểm nghiệm và Tư vấn UDKH AVATEK (ISO/IEC 17025)",
+      "number": "BEG6250800186-1",
+      "date": "25/08/2025",
+      "scope": "Trong 100g: 490 kcal, đạm 39,2g, béo 34,6g, natri 1.666mg. Không phát hiện Aflatoxin B1, Aflatoxin tổng, Salmonella",
+      "file": ""
+    },
+    {
+      "title": "Nhà máy đạt ISO 22000:2018",
+      "org": "Công ty CP Chứng nhận Quốc tế (ICB)",
+      "number": "250840.FMS.CN25",
+      "date": "06/10/2025 – hiệu lực đến 05/10/2028",
+      "scope": "Công ty TNHH Hương Sắc Vegan (Hải Phòng): sản xuất và kinh doanh thực phẩm chay",
+      "file": ""
+    }
+  ],
+  "needs": [
+    "an-chay-ngon-mieng"
+  ],
+  "reviews": [],
+  "keywords": [
+    "ruốc chay",
+    "chà bông",
+    "rong biển",
+    "ăn chay",
+    "món chay",
+    "đồ chay",
+    "trẻ em",
+    "cơm",
+    "ăn kèm"
+  ],
   "highlights": [
     "Thuần chay tinh khiết",
     "Không chất bảo quản",
@@ -44,26 +88,34 @@
     {
       "title": "Thành phần",
       "style": "quote",
-      "text": "Sườn non chay (80%), rong biển (12%), mè (vừng), lá chanh, dầu thực vật, gia vị thuần chay."
+      "text": "Sườn non chay (80%), rong biển (12%), mè (vừng), lá chanh, dầu thực vật, gia vị thuần chay.",
+      "items": [],
+      "rows": []
     },
     {
       "title": "Đặc điểm nổi bật",
       "style": "list",
+      "text": "",
       "items": [
         "Thuần chay tinh khiết, không chất bảo quản.",
         "Giàu khoáng chất tự nhiên từ rong biển.",
         "Bổ sung đạm thực vật và chất béo tốt.",
         "Hương thơm lá chanh, mè rang; vị bùi, đậm đà."
-      ]
+      ],
+      "rows": []
     },
     {
       "title": "Cách dùng",
       "style": "box",
-      "text": "Dùng trực tiếp với cơm nóng, cháo, xôi, bánh mì, cơm nắm, cơm hộp hoặc rắc lên salad."
+      "text": "Dùng trực tiếp với cơm nóng, cháo, xôi, bánh mì, cơm nắm, cơm hộp hoặc rắc lên salad.",
+      "items": [],
+      "rows": []
     },
     {
       "title": "Giá trị dinh dưỡng (trong 100g)",
       "style": "table",
+      "text": "",
+      "items": [],
       "rows": [
         {
           "label": "Năng lượng",
@@ -94,62 +146,27 @@
     {
       "title": "Đối tượng sử dụng",
       "style": "box",
-      "text": "Người ăn chay, người theo thực dưỡng, người muốn bổ sung đạm thực vật, người lớn tuổi, học sinh – sinh viên, nhân viên văn phòng và mọi gia đình."
+      "text": "Người ăn chay, người theo thực dưỡng, người muốn bổ sung đạm thực vật, người lớn tuổi, học sinh – sinh viên, nhân viên văn phòng và mọi gia đình.",
+      "items": [],
+      "rows": []
     },
     {
       "title": "Bảo quản",
       "style": "list",
+      "text": "",
       "items": [
         "Nơi khô ráo, thoáng mát, tránh ánh nắng.",
         "Đậy kín sau khi dùng; ngon nhất trong 7 ngày sau khi mở."
-      ]
+      ],
+      "rows": []
     }
   ],
-  "disclaimer": "",
+  "story": null,
   "upsell": [
     "xi-dau-2s-do-den-nguu-bang"
   ],
-  "badges": [
-    "Thuần chay",
-    "Không chất bảo quản",
-    "39,2g đạm thực vật trong 100g (kiểm nghiệm AVATEK)",
-    "Không phát hiện Aflatoxin, Salmonella",
-    "Nhà máy đạt ISO 22000:2018"
-  ],
-  "keywords": [
-    "ruốc chay",
-    "chà bông",
-    "rong biển",
-    "ăn chay",
-    "món chay",
-    "đồ chay",
-    "trẻ em",
-    "cơm",
-    "ăn kèm"
-  ],
-  "needs": [
-    "an-chay-ngon-mieng"
-  ],
-  "pitch": "Ruốc chay rong biển thơm lá chanh, rắc cơm là ngon",
-  "label_imgs": [
-    "/assets/uploads/ho-so/ruoc-nhan-va-giay-to.webp"
-  ],
-  "proofs": [
-    {
-      "title": "Phiếu kết quả kiểm nghiệm",
-      "org": "Trung tâm Kiểm nghiệm và Tư vấn UDKH AVATEK (ISO/IEC 17025)",
-      "number": "BEG6250800186-1",
-      "date": "25/08/2025",
-      "scope": "Trong 100g: 490 kcal, đạm 39,2g, béo 34,6g, natri 1.666mg. Không phát hiện Aflatoxin B1, Aflatoxin tổng, Salmonella"
-    },
-    {
-      "title": "Nhà máy đạt ISO 22000:2018",
-      "org": "Công ty CP Chứng nhận Quốc tế (ICB)",
-      "number": "250840.FMS.CN25",
-      "date": "06/10/2025 – hiệu lực đến 05/10/2028",
-      "scope": "Công ty TNHH Hương Sắc Vegan (Hải Phòng): sản xuất và kinh doanh thực phẩm chay"
-    }
-  ],
+  "disclaimer": "",
+  "manufacturer": "",
   "faq": [
     {
       "q": "Ruốc rong biển vị sườn non có phải đồ chay không?",
