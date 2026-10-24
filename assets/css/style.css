@@ -828,6 +828,13 @@ label .invalid,input.invalid,textarea.invalid{border-color:var(--red)!important}
 .prose h2{font-size:23px;margin-top:1.6em;color:var(--primary)}
 .prose ul,.prose ol{padding-left:22px}
 .prose li{margin-bottom:6px}
+.prose table{width:100%;border-collapse:separate;border-spacing:0;margin:18px 0 24px;font-size:15px;line-height:1.5;border:1px solid var(--line);border-radius:var(--radius-sm);overflow:hidden}
+.prose th,.prose td{padding:10px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);border-right:1px solid var(--line)}
+.prose tr>:last-child{border-right:0}
+.prose tbody tr:last-child>*{border-bottom:0}
+.prose thead th{background:var(--primary);color:#fff;font-weight:700}
+.prose tbody tr:nth-child(even){background:var(--soft)}
+.prose tbody td:first-child{font-weight:600;color:var(--ink)}
 .post-cover{border-radius:var(--radius);margin:20px 0 28px;aspect-ratio:16/9;object-fit:cover;width:100%}
 /* Khung sản phẩm trong bài viết (build.py post_pbox, 23/10/2026) */
 .pbx{margin:28px 0;padding:16px;border:1.5px solid var(--gold-2);border-radius:var(--radius);background:var(--cream);line-height:1.5}
@@ -2241,5 +2248,6 @@ body.buy-vis .bvb{opacity:0;visibility:hidden;pointer-events:none}
   .page-ocx .float-widget{bottom:84px}}
 @media (max-width:600px){.ocx-guar{grid-template-columns:1fr}}
 @media (prefers-reduced-motion:reduce){.ocx-btn,.ocx-bar{transition:none}}
+@media (max-width:640px){.prose table{font-size:13.5px;line-height:1.45}.prose th,.prose td{padding:8px 7px}}
 @media (max-width:640px){.ocx-tbl table{min-width:0}.ocx-tbl th:nth-child(2),.ocx-tbl td:nth-child(2){display:none}.ocx-tbl th,.ocx-tbl td{padding:13px 14px}.ocx-facts b{font-size:1.45rem;white-space:nowrap}.ocx-facts>div{padding:16px}}
 .ocx-until{margin-top:4px;font-weight:600;color:#F3E0BD}
