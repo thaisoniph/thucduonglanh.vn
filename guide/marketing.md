@@ -19,7 +19,9 @@ Trang này dành cho bạn **làm marketing** và bạn **phụ trách sàn** (S
 
 Chưa vào được? Nhờ Quản trị thêm email của bạn với quyền **Marketing**.
 
-Tài khoản Marketing **chỉ thấy tab 📣 Marketing**. Bạn không thấy tên, số điện thoại khách hay doanh số toàn công ty. Đây là quy định bảo vệ dữ liệu khách (Nghị định 13/2023).
+Tài khoản Marketing thấy tab **📣 Marketing** và tab **Khách hỏi**. Tab Khách hỏi chỉ có khách để lại số trên web (nhận ebook, xin vào nhóm Zalo, form liên hệ) để bạn xem chất lượng khách từ quảng cáo. Bạn chỉ xem, không gọi, không sửa; quản lý sẽ giao khách cho sale. Mục **🧺 Chờ giao** là khách chưa ai phụ trách.
+
+Bạn không thấy khách đã mua, đơn hàng hay doanh số toàn công ty. Số điện thoại khách chỉ dùng cho công việc, không chép ra ngoài (Nghị định 13/2023).
 
 ## Màn hình Marketing có gì?
 

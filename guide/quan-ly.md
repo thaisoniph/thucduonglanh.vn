@@ -13,7 +13,7 @@ Trang này dành cho **Quản lý** và **Quản trị**. Bạn nên biết các
 | Quyền | Làm được |
 | --- | --- |
 | **Sale & CSKH** | Chỉ thấy khách mình phụ trách. Gọi khách, xử lý đơn, khách hỏi, xem kết quả của mình |
-| **Marketing** | Chỉ thấy tab Marketing. Không thấy khách, đơn, doanh số công ty |
+| **Marketing** | Tab Marketing + xem (không sửa) khách để lại số trên web ở tab Khách hỏi. Không thấy khách đã mua, đơn, doanh số công ty |
 | **Quản lý** | Thấy mọi khách. Giao khách, xem cả nhóm, đặt mục tiêu cho nhân viên, sửa mẫu tin, tạo mã ưu đãi |
 | **Quản trị** | Thêm: thêm hoặc khoá nhân sự, đổi quyền, xoá dữ liệu nhập thử. Thấy tab Tổng quan |
 
@@ -52,6 +52,7 @@ Tài khoản Quản trị không nằm trong bảng so sánh nhân sự. Doanh s
     - *Tự chia đều*: lần lượt cho những người đang bật "Nhận khách mới".
     - *Quản lý giao tay*: khách mới chờ quản lý giao.
     - *Kho chung*: khách mới nằm ở Kho chung. Ai xác nhận đơn hoặc chăm sóc trước thì được khách.
+- **Khách để lại số trên web** (nhận ebook, xin vào nhóm Zalo, form liên hệ): dù chọn chế độ nào, khách mới chưa từng mua **luôn chờ quản lý giao**. Sale không thấy và không tự nhận được. Giao ở tab **Hôm nay → 🧺 Kho chung**, hoặc tab **Khách hỏi** bấm mục **🧺 Chờ giao** để xem danh sách. Khách đã có người phụ trách từ trước thì vẫn về người đó.
 - **Ai được nhận khách mới**: bật hoặc tắt cho từng người. Ví dụ tắt khi nghỉ phép.
 - **Chia đều khách chưa ai phụ trách**: dùng 1 lần cho khách cũ.
 - **Chuyển toàn bộ khách của A sang B**: dùng khi có người nghỉ việc.
