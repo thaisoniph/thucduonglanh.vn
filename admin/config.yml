@@ -112,7 +112,7 @@ collections:
         widget: list
         required: false
         summary: "{{fields.name}} – {{fields.price}}đ"
-        hint: "Ví dụ: Hộp 400g – 450000, Hộp 125g – 140000. Loại đầu tiên được chọn sẵn."
+        hint: "Dòng ĐẦU TIÊN luôn là hộp lẻ (gói Khởi động 10 ngày lấy dòng này). Combo đặt tên kiểu “Combo 3 hộp” hoặc “Mua 3 tặng 1” và điền Giá gốc = giá gốc 1 hộp × số hộp → web tự hiện ≈ giá/hộp, -x%, nhãn Lợi nhất và gợi ý đổi sang combo trong giỏ."
         fields:
           - { label: "Tên quy cách", name: name, i18n: true, widget: string }
           - { label: "Giá bán (đồng)", name: price, widget: number, value_type: int, required: false }

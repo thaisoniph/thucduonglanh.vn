@@ -50,6 +50,8 @@ Muốn ẩn bài mà không xoá: tắt ô **Hiển thị trên web**.
 2. Gõ giá **liền một dãy số**. **Không có dấu chấm, không có chữ "đ".** Ví dụ: `140000`.
     - Sản phẩm 1 loại: sửa ô **Giá bán**.
     - Sản phẩm nhiều loại (Hộp 400g, Hộp 125g…): sửa trong mục **Nhiều quy cách / nhiều giá**.
+    - **Dòng đầu tiên luôn là hộp lẻ.** Gói Khởi động 10 ngày lấy dòng đầu tiên. Nếu dòng đầu là combo, gói sẽ ghi sai thành "3 hộp".
+    - **Combo** đặt tên kiểu `Combo 3 hộp` hoặc `Mua 3 tặng 1`. Ô **Giá gốc** = giá gốc 1 hộp × số hộp khách nhận (ví dụ Mua 3 tặng 1 Bữa Ăn: 450000 × 4 = `1800000`). Web tự tính "≈ giá/hộp", "-x%", gắn nhãn **Lợi nhất** và nhắc khách đổi sang combo trong giỏ.
 3. Bấm **Lưu**.
 
 - **Muốn giảm giá:** điền **Giá gốc gạch ngang** (lớn hơn Giá bán). Web tự hiện "-x%".

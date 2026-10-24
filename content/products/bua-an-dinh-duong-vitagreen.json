@@ -36,14 +36,14 @@
     {
       "name": "Mua 3 tặng 1",
       "price": 1350000,
-      "regular_price": null,
+      "regular_price": 1800000,
       "web_discount": null,
       "servings": 80
     },
     {
       "name": "Mua 5 tặng 2",
       "price": 2250000,
-      "regular_price": null,
+      "regular_price": 3150000,
       "web_discount": null,
       "servings": 140
     }

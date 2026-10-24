@@ -2266,3 +2266,16 @@ body.buy-vis .bvb{opacity:0;visibility:hidden;pointer-events:none}
 .pk-acts .btn{min-height:50px;padding:10px 12px;justify-content:center}
 .pk-acts svg{width:20px;height:20px}
 .pk-more{text-align:center;margin:12px 0 0;font-size:14.5px}
+/* nút quy cách: ≈ giá/hộp, -X%, nhãn Lợi nhất (build.py v_opt) + khung Chọn loại */
+.v-opt{position:relative}
+.v-opt .v-per{display:block;font-style:normal;font-size:12.5px;color:var(--muted);margin-top:1px}
+.v-opt .v-per b{color:#c0392b;font-weight:700}
+.v-best{display:inline-block;font-style:normal;font-size:11.5px;font-weight:700;line-height:1;color:#fff;background:#c0392b;border-radius:99px;padding:3px 8px;vertical-align:2px}
+.v-opt .v-best{position:absolute;top:-9px;right:8px}
+.v-opt.v-has-best{border-color:#e7a99f}
+.pk-n small{display:block;font-size:13px;color:var(--muted);margin-top:2px}
+.pk-n small b{color:#c0392b}
+/* gợi ý đổi hộp lẻ sang combo trong giỏ (main.js comboNudge) */
+.cn-box{display:flex;gap:10px;align-items:center;background:#fff8ec;border:1px solid #f1d9a8;border-radius:12px;padding:10px 12px;margin:12px 0;font-size:14.5px;line-height:1.45}
+.cn-box p{margin:0;flex:1}
+.cn-box .btn{flex:0 0 auto;white-space:nowrap}

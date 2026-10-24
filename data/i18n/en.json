@@ -1,4 +1,10 @@
 {
+ "Đã đổi sang combo tiết kiệm hơn": "Switched to the better-value combo",
+ "Đổi ngay": "Switch",
+ "không tốn thêm tiền": "at no extra cost",
+ "chỉ thêm {0}": "just {0} more",
+ "Đổi sang <b>{0}</b>: được <b>{1} {2}</b>, {3}, rẻ hơn <b>{4}</b> so với mua lẻ.": "Switch to <b>{0}</b>: get <b>{1} {2}</b>, {3}, and save <b>{4}</b> vs. buying singly.",
+ "Lợi nhất": "Best value",
  " khi đặt trên website (mức giảm ghi ở từng sản phẩm, đã trừ trực tiếp vào giá).": " when ordering on our website (discount shown on each product, already deducted from the price).",
  " · Còn {0} tới {1}": " · {0} more to reach {1}",
  " · Thêm <b>{0}</b> để nhận {1}": " · Add <b>{0}</b> to get {1}",

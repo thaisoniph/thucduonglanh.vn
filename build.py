@@ -302,6 +302,31 @@ for p in PRODUCTS:
     for v in p["variants"]:
         apply_web_offer(v, pct_of(v.get("web_discount"), pp))
     p["web_off_max"] = max([p["web_off"]] + [v["web_off"] for v in p["variants"]])
+
+
+def variant_units(p):
+    """Số đơn vị (hộp/lon…) trong từng quy cách, so với quy cách ĐẦU TIÊN (= hộp lẻ, luôn để đầu danh sách):
+    "Mua 3 tặng 1" → 4, "Combo 3 hộp" → 3; không đọc được tên thì so số gói (servings) với hộp lẻ; vẫn không ra số nguyên → None.
+    Dùng cho nhãn "≈ giá/hộp · Lợi nhất" trên nút quy cách và gợi ý "nâng lên combo" trong giỏ (main.js comboNudge)."""
+    import unicodedata
+    vs = p.get("variants") or []
+    s0 = num(vs[0].get("servings")) if vs else None
+    for i, v in enumerate(vs):
+        n = unicodedata.normalize("NFC", v.get("name_vi") or v.get("name") or "").lower()
+        m, c, u = re.search(r"mua\s*(\d+)\s*tặng\s*(\d+)", n), re.search(r"combo\s*(\d+)", n), None
+        if i == 0:
+            u = 1
+        elif m:
+            u = int(m.group(1)) + int(m.group(2))
+        elif c:
+            u = int(c.group(1))
+        elif s0 and num(v.get("servings")) and num(v["servings"]) % s0 == 0:
+            u = int(num(v["servings"]) // s0)
+        v["units"] = u
+
+
+for p in PRODUCTS:
+    variant_units(p)
 _BY_SLUG = {p["slug"]: p for p in PRODUCTS}
 for p in PRODUCTS:
     if not p.get("combo"):
@@ -2316,7 +2341,8 @@ def page_product(p):
     badge = f'<span class="badge-sale">-{d}%</span>' if d else ""
     variants = ""
     if p.get("variants"):
-        opts = "".join(v_opt(i, v) for i, v in enumerate(p["variants"]))
+        best = max(((discount(v), i) for i, v in enumerate(p["variants"]) if (v.get("units") or 0) >= 2 and v.get("price")), default=(0, -1))
+        opts = "".join(v_opt(i, v, p, i == best[1] and best[0] > 0) for i, v in enumerate(p["variants"]))
         variants = f'<div class="variants"><span class="lbl">{t("Chọn quy cách:")}</span><div class="v-opts">{opts}</div></div>'
     unit = f'<p class="unit"><span class="lbl">{t("Quy cách:")}</span> {esc(p["unit"])}</p>' if p.get("unit") else ""
     _bset = {(b or "").strip().lower() for b in (p.get("badges") or [])}  # ý đã có trong khung "Vì sao nên chọn" thì không lặp lại
@@ -2563,11 +2589,21 @@ def save_text(v):
     return tf('Tiết kiệm <b>{amount}</b> so với giá gốc', amount=money(v["regular_price"] - v["price"])) if d else ""
 
 
-def v_opt(i, v):
-    """Nút chọn quy cách: tên + giá (người lớn tuổi không phải bấm thử mới biết giá)."""
+def v_opt(i, v, p=None, best=False):
+    """Nút chọn quy cách: tên + giá (người lớn tuổi không phải bấm thử mới biết giá).
+    Quy cách nhiều hộp: thêm "≈ giá/hộp", "-X%" (so với giá gốc, khớp nhãn giảm giá) và nhãn "Lợi nhất" cho combo tiết kiệm nhiều nhất."""
     price = f"<small>{money(v['price'])}</small>" if v.get("price") is not None else ""
+    extra, u, d = [], v.get("units") or 0, discount(v)
+    if u >= 2 and v.get("price") and p:
+        uw = unit_word(p, p["variants"][0]) if IS_VI else "unit"
+        uw = uw if uw != "sản phẩm" else "hộp"
+        extra.append(f'≈ {money(round(v["price"] / u / 1000) * 1000).replace(" ₫", "đ")}/{uw}')
+    if d and u >= 2:
+        extra.append(f'<b>-{d}%</b>')
+    more = f'<i class="v-per">{" · ".join(extra)}</i>' if extra else ""
+    tag = f'<em class="v-best">{t("Lợi nhất")}</em>' if best else ""
     on = "true" if i == 0 else "false"
-    return f'<button type="button" class="v-opt{" is-active" if i == 0 else ""}" data-variant="{i}" aria-pressed="{on}"><span>{esc(v["name"])}</span>{price}</button>'
+    return f'<button type="button" class="v-opt{" is-active" if i == 0 else ""}{" v-has-best" if best else ""}" data-variant="{i}" aria-pressed="{on}">{tag}<span>{esc(v["name"])}</span>{price}{more}</button>'
 
 
 def satc_html(p):

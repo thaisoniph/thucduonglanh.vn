@@ -22,14 +22,14 @@
     {
       "name": "Combo 3 hộp",
       "price": 435000,
-      "regular_price": 465000,
+      "regular_price": 567000,
       "web_discount": null,
       "servings": 45
     },
     {
       "name": "Combo 5 hộp",
       "price": 699000,
-      "regular_price": 775000,
+      "regular_price": 945000,
       "web_discount": null,
       "servings": 75
     }

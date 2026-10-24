@@ -179,7 +179,7 @@
           '<div class="mc-row"><div class="qty sm mc-qty" role="group" aria-label="' + T('Số lượng') + ' ' + esc(p.short || p.name) + '"><button type="button" data-mq="-1" data-key="' + esc(it.key) + '" aria-label="' + T('Bớt 1') + '"' + (it.qty <= 1 ? ' disabled' : '') + '>−</button><span aria-live="polite">' + it.qty + '</span><button type="button" data-mq="1" data-key="' + esc(it.key) + '" aria-label="' + T('Thêm 1') + '"' + (it.qty >= 99 ? ' disabled' : '') + '>+</button></div>' +
           '<b class="mc-sub">' + money(unitPrice(it) * it.qty) + '</b>' +
           '<button class="mc-rm" data-rm="' + esc(it.key) + '" aria-label="' + esc(TF('Xóa {0} khỏi giỏ', p.short || p.name)) + '">' + ICON.trash + '<span>' + T('Xóa') + '</span></button></div></div></div>';
-      }).join('') + cartUpHTML();
+      }).join('') + comboNudge() + cartUpHTML();
     }
     var t = $('#mcTotal'); if (t) t.textContent = money(cartTotal());
     // thanh tiến độ freeship: vẽ lại cùng lúc với giỏ (cùng hàm, cùng dữ liệu) nên không cần theo dõi DOM, không bao giờ bị nhân đôi
@@ -189,6 +189,27 @@
     if (miniOpen()) seeUpsell(body);
   }
   var lastLvl = null, upSeen = {}, mcFocus = null;
+  /* gợi ý nâng lên combo: khách đang mua hộp lẻ (quy cách đầu tiên) mà thêm tối đa 2 hộp / giá 1 hộp là thành combo rẻ hơn mua lẻ
+     → "Đổi sang Combo 3 hộp: được 3 hộp, chỉ thêm 125.000đ, rẻ hơn 30.000đ so với mua lẻ". Số hộp mỗi quy cách: build.py variant_units. */
+  function comboNudge() {
+    var out = '';
+    cart.some(function (it) {
+      var p = BY[it.slug] || {}, vs = p.variants || [], v0 = vs[0];
+      if (it.vi !== 0 || vs.length < 2 || !v0 || v0.price == null) return false;
+      var best = null;
+      vs.forEach(function (v, k) {
+        if (!k || v.price == null || !v.units || v.units <= it.qty || v.units - it.qty > 2) return;
+        var extra = v.price - it.qty * v0.price, save = v.units * v0.price - v.price;
+        if (save > 0 && extra <= v0.price && (!best || v.units < best.units)) best = { k: k, v: v, units: v.units, extra: extra, save: save };
+      });
+      if (!best) return false;
+      var w = (v0.name || '').split(' ')[0].toLowerCase(), uw = LANG === 'vi' ? (['hộp', 'hũ', 'chai', 'lon', 'gói', 'túi', 'lọ'].indexOf(w) >= 0 ? w : 'hộp') : T('sản phẩm');
+      out = '<div class="cn-box"><p>🎁 ' + TF('Đổi sang <b>{0}</b>: được <b>{1} {2}</b>, {3}, rẻ hơn <b>{4}</b> so với mua lẻ.', esc(best.v.name), best.units, uw, best.extra > 0 ? TF('chỉ thêm {0}', money(best.extra)) : T('không tốn thêm tiền'), money(best.save)) + '</p>' +
+        '<button type="button" class="btn btn-sm" data-cn="' + esc(it.key) + '|' + best.k + '">' + T('Đổi ngay') + '</button></div>';
+      return true;
+    });
+    return out;
+  }
   function miniOpen() { var m = $('#minicart'); return !!(m && m.classList.contains('open')); }
   function seeUpsell(box) { $$('[data-cup]', box).forEach(function (b) { var v = b.getAttribute('data-cup').split('|'); if (upSeen[v[0]]) return; upSeen[v[0]] = 1; var gi = gaItem(v[0], +v[1], 1); track('upsell_impression', { currency: 'VND', value: gi ? gi.price : 0, location: 'minicart', reason: b.getAttribute('data-reason') || '', items: gi ? [gi] : [] }); }); }
   function openMini() {
@@ -335,6 +356,12 @@
         else if (h.indexOf('zalo.me') >= 0) track('click_zalo', { location: a.closest('.float-widget') ? 'nut_noi' : (a.closest('.qo,.checkout') ? 'dat_hang' : 'trang') });
         else if (/heyzine|\.pdf$/.test(h)) track('view_brochure', { method: /\.pdf$/.test(h) ? 'pdf' : 'fullscreen' }); }
       var t;
+      if ((t = e.target.closest('[data-cn]'))) { // đổi hộp lẻ sang combo (comboNudge)
+        var cv = t.getAttribute('data-cn'), cn = [cv.slice(0, cv.lastIndexOf('|')), cv.slice(cv.lastIndexOf('|') + 1)], old = cart.filter(function (x) { return x.key === cn[0]; })[0]; if (!old) return;
+        cart = cart.filter(function (x) { return x.key !== cn[0]; }); addToCart(old.slug, 1, +cn[1]);
+        track('combo_upgrade', { item_id: old.slug, from_qty: old.qty, item_variant: (BY[old.slug].variants[+cn[1]] || {}).name });
+        toast(T('Đã đổi sang combo tiết kiệm hơn'), 'ok'); if ($('#cartPage')) renderCartPage(); return;
+      }
       if ((t = e.target.closest('[data-pick]'))) { e.preventDefault(); openPick(t.getAttribute('data-pick')); return; }
       if ((t = e.target.closest('[data-add]'))) { e.preventDefault(); if (addToCart(t.getAttribute('data-add'), 1)) openMini(); return; }
       if ((t = e.target.closest('[data-wish]'))) { e.preventDefault(); toggleWish(t.getAttribute('data-wish')); return; }
@@ -622,7 +649,7 @@
           '<td><button class="mc-rm" data-rm="' + esc(it.key) + '" aria-label="' + T('Xóa') + '">' + ICON.trash + '</button></td></tr>';
       }).join('') + '</tbody></table>' +
       '<div class="cart-actions"><a class="btn btn-outline" href="' + U('/san-pham/') + '">← ' + T('Tiếp tục mua sắm') + '</a><button class="btn btn-ghost" data-clear>' + T('Xóa giỏ hàng') + '</button></div></div>' +
-      '<aside class="card totals"><h2>' + T('Cộng giỏ hàng') + '</h2><div class="row"><span>' + T('Tạm tính') + '</span><b>' + money(sub) + '</b></div><div class="row"><span>' + T('Phí vận chuyển') + '</span><span>' + sh.label + '</span></div>' + freeShipHint(sub) + cartUpHTML(2) +
+      '<aside class="card totals"><h2>' + T('Cộng giỏ hàng') + '</h2><div class="row"><span>' + T('Tạm tính') + '</span><b>' + money(sub) + '</b></div><div class="row"><span>' + T('Phí vận chuyển') + '</span><span>' + sh.label + '</span></div>' + freeShipHint(sub) + comboNudge() + cartUpHTML(2) +
       '<div class="row total"><span>' + T('Tổng') + '</span><b>' + money(sub + sh.fee) + '</b></div><a class="btn btn-lg btn-block" href="' + U('/thanh-toan/') + '">' + T('Tiến hành thanh toán') + '</a></aside>';
   }
   function initCartPage() {
@@ -1120,11 +1147,13 @@
     var p = BY[slug]; if (!p) return;
     if (!(p.variants && p.variants.length)) { location.href = p.url; return; }
     var vi = 0, opener = document.activeElement;
+    var pkBest = -1, pkD = 0; p.variants.forEach(function (v, i) { var d = v.units >= 2 && v.price ? offPct(v) : 0; if (d > pkD) { pkD = d; pkBest = i; } });
     var m = document.createElement('div'); m.className = 'qo pk'; m.setAttribute('role', 'dialog'); m.setAttribute('aria-modal', 'true'); m.setAttribute('aria-label', T('Chọn loại'));
     m.innerHTML = '<div class="qo-box"><div class="qo-head"><b>' + T('Chọn loại') + '</b><button type="button" class="icon-btn qo-x" aria-label="' + T('Đóng') + '">' + ICON.close + '</button></div>' +
       '<div class="qo-prod"><img src="' + p.img + '" alt=""><div><b>' + esc(p.name) + '</b><small class="qo-var"></small></div></div>' +
       '<div class="pk-opts" role="radiogroup" aria-label="' + T('Chọn loại') + '">' + p.variants.map(function (v, i) {
-        return '<label class="pk-opt"><input type="radio" name="pk" value="' + i + '"' + (i ? '' : ' checked') + '><span class="pk-n">' + esc(v.name) + '</span><span class="pk-p">' + (v.price != null ? money(v.price) : '') + (v.regular_price && v.regular_price > v.price ? ' <s>' + money(v.regular_price) + '</s>' : '') + '</span></label>';
+        var d = v.units >= 2 ? offPct(v) : 0;
+        return '<label class="pk-opt"><input type="radio" name="pk" value="' + i + '"' + (i ? '' : ' checked') + '><span class="pk-n">' + esc(v.name) + (i === pkBest ? ' <em class="v-best">' + T('Lợi nhất') + '</em>' : '') + (v.units >= 2 && v.price ? '<small>≈ ' + money(Math.round(v.price / v.units / 1000) * 1000).replace(' ₫', 'đ') + '/' + (LANG === 'vi' ? 'hộp' : 'unit') + (d ? ' · <b>-' + d + '%</b>' : '') + '</small>' : '') + '</span><span class="pk-p">' + (v.price != null ? money(v.price) : '') + (v.regular_price && v.regular_price > v.price ? ' <s>' + money(v.regular_price) + '</s>' : '') + '</span></label>';
       }).join('') + '</div>' +
       '<div class="qo-qty"><span>' + T('Số lượng') + '</span><div class="qty"><button type="button" data-q="-1" aria-label="' + T('Giảm số lượng') + '">−</button><input type="number" min="1" max="99" value="1" aria-label="' + T('Số lượng') + '"><button type="button" data-q="1" aria-label="' + T('Tăng số lượng') + '">+</button></div></div>' +
       '<div class="pk-acts"><button type="button" class="btn btn-lg pk-add">' + ICON.cart + ' ' + T('Thêm vào giỏ') + '</button><button type="button" class="btn btn-lg btn-outline pk-buy">' + T('Mua ngay') + '</button></div>' +
