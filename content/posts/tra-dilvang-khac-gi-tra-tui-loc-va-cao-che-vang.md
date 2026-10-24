@@ -17,7 +17,7 @@ Bài này so sánh ba dạng theo 6 điểm. Mọi con số về DILVANG lấy t
 
 | | Túi lọc | Cao | DILVANG |
 |---|---|---|---|
-| Cách làm | Lá khô cắt nhỏ | Nấu 80–100°C, cô đặc | Chiết chân không dưới 70°C |
+| Cách làm | Lá khô cắt nhỏ | Nấu 80–100°C, cô đặc trên 100°C | Chiết chân không dưới 70°C, cô đặc khép kín dưới 75°C |
 | Cách pha | Hãm nước sôi | Cắt miếng, hòa nước nóng | Hòa nước ấm 40–50°C |
 | Hương vị | Thơm lá, nhẹ | Sẫm màu, đắng đậm | Vàng nâu, không thêm hương liệu |
 | Bảo quản | Độ ẩm tới ~12% | Tùy nơi, đọc nhãn | Độ ẩm 5,53%, gói kín |
@@ -28,15 +28,15 @@ Số liệu dạng túi lọc và cao lấy từ mô tả sản phẩm trong h�
 
 ## 1. Cách chiết xuất: nhiệt độ và hệ kín
 
-Theo hồ sơ chỉ dẫn địa lý chè vằng Quảng Trị, cao chè vằng được nấu khoảng 2 lít nước cho 1 kg nguyên liệu ở 80 đến 100°C, lọc bã rồi cô đặc. Thành phẩm có màu sẫm, vị đắng, hậu ngọt. Đây là cách làm quen thuộc của nhiều gia đình và cơ sở nhỏ.
+Theo hồ sơ chỉ dẫn địa lý chè vằng Quảng Trị, cao chè vằng được nấu khoảng 2 lít nước cho 1 kg nguyên liệu ở 80 đến 100°C, lọc bã rồi cô đặc. Khâu cô đặc thường đun sôi trong nồi hở, nhiệt độ trên 100°C. Thành phẩm có màu sẫm, vị đắng, hậu ngọt. Đây là cách làm quen thuộc của nhiều gia đình và cơ sở nhỏ.
 
 DILVANG được làm tại nhà máy Gold Herbal (Đông Hà, Quảng Trị) bằng công nghệ **EECV**, viết tắt của Extract (chiết xuất), Evaporate (bay hơi), Concentrate (cô đặc), Vacuum (chân không). Theo tài liệu công nghệ của nhà sản xuất:
 
 - Chiết xuất ở **dưới 70°C**, trong hệ thống chân không khép kín, không tiếp xúc oxy trong không khí.
-- Cô đặc tuần hoàn ở **dưới 65°C**, áp suất thấp hơn −0,08 MPa.
+- Cô đặc tuần hoàn khép kín ở **dưới 75°C**, áp suất thấp hơn −0,08 MPa.
 - Sấy chân không ở **dưới 40°C**, áp suất thấp hơn −0,09 MPa, ra dạng bột hòa tan.
 
-![Sơ đồ so sánh nấu cao truyền thống và chiết xuất chân không EECV](/assets/uploads/dilvang-quy-trinh-eecv.webp)
+![Sơ đồ so sánh nấu cao truyền thống và chiết xuất chân không EECV](/assets/uploads/dilvang-quy-trinh-eecv-2.webp)
 
 Vì sao nhiệt độ quan trọng? Lá chè vằng có tinh dầu. Một phân tích tinh dầu lá chè vằng ghi nhận thành phần chính là linalool (khoảng 44%), geraniol (khoảng 19%) và α-terpineol (khoảng 15%). Đây là nhóm chất thơm dễ bay theo hơi nước khi đun sôi trong nồi hở. Nhà sản xuất cho biết chiết ở nhiệt độ thấp trong hệ kín giúp hạn chế oxy hóa, giữ màu và mùi gần với dược liệu hơn.
 
