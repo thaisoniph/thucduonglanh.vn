@@ -7,11 +7,33 @@
   "order": 5,
   "badge": "Lên men 99 ngày",
   "sku": "TDL-XD2S",
-  "price": 168000,
+  "price": 189000,
   "regular_price": 199000,
   "web_discount": 0,
   "unit": "Chai 500ml",
-  "variants": [],
+  "variants": [
+    {
+      "name": "Chai 500ml",
+      "price": 189000,
+      "regular_price": 199000,
+      "web_discount": null,
+      "servings": null
+    },
+    {
+      "name": "Combo 2 chai",
+      "price": 349000,
+      "regular_price": 398000,
+      "web_discount": null,
+      "servings": null
+    },
+    {
+      "name": "Combo 3 chai",
+      "price": 499000,
+      "regular_price": 597000,
+      "web_discount": null,
+      "servings": null
+    }
+  ],
   "images": [
     "/assets/img/products/xi-dau-2s-1.webp",
     "/assets/img/products/xi-dau-2s-2.webp",

@@ -191,6 +191,7 @@
   var lastLvl = null, upSeen = {}, mcFocus = null;
   /* gợi ý nâng lên combo: khách đang mua hộp lẻ (quy cách đầu tiên) mà thêm tối đa 2 hộp / giá 1 hộp là thành combo rẻ hơn mua lẻ
      → "Đổi sang Combo 3 hộp: được 3 hộp, chỉ thêm 125.000đ, rẻ hơn 30.000đ so với mua lẻ". Số hộp mỗi quy cách: build.py variant_units. */
+  function unitWordOf(p) { var w = (((p.variants || [])[0] || {}).name || '').split(' ')[0].toLowerCase(); return ['hộp', 'hũ', 'chai', 'lon', 'gói', 'túi', 'lọ'].indexOf(w) >= 0 ? w : 'hộp'; } // chữ đơn vị theo quy cách đầu (Hũ 165g → hũ)
   function comboNudge() {
     var out = '';
     cart.some(function (it) {
@@ -203,7 +204,7 @@
         if (save > 0 && extra <= v0.price && (!best || v.units < best.units)) best = { k: k, v: v, units: v.units, extra: extra, save: save };
       });
       if (!best) return false;
-      var w = (v0.name || '').split(' ')[0].toLowerCase(), uw = LANG === 'vi' ? (['hộp', 'hũ', 'chai', 'lon', 'gói', 'túi', 'lọ'].indexOf(w) >= 0 ? w : 'hộp') : T('sản phẩm');
+      var uw = LANG === 'vi' ? unitWordOf(p) : T('sản phẩm');
       out = '<div class="cn-box"><p>🎁 ' + TF('Đổi sang <b>{0}</b>: được <b>{1} {2}</b>, {3}, rẻ hơn <b>{4}</b> so với mua lẻ.', esc(best.v.name), best.units, uw, best.extra > 0 ? TF('chỉ thêm {0}', money(best.extra)) : T('không tốn thêm tiền'), money(best.save)) + '</p>' +
         '<button type="button" class="btn btn-sm" data-cn="' + esc(it.key) + '|' + best.k + '">' + T('Đổi ngay') + '</button></div>';
       return true;
@@ -1153,7 +1154,7 @@
       '<div class="qo-prod"><img src="' + p.img + '" alt=""><div><b>' + esc(p.name) + '</b><small class="qo-var"></small></div></div>' +
       '<div class="pk-opts" role="radiogroup" aria-label="' + T('Chọn loại') + '">' + p.variants.map(function (v, i) {
         var d = v.units >= 2 ? offPct(v) : 0;
-        return '<label class="pk-opt"><input type="radio" name="pk" value="' + i + '"' + (i ? '' : ' checked') + '><span class="pk-n">' + esc(v.name) + (i === pkBest ? ' <em class="v-best">' + T('Lợi nhất') + '</em>' : '') + (v.units >= 2 && v.price ? '<small>≈ ' + money(Math.round(v.price / v.units / 1000) * 1000).replace(' ₫', 'đ') + '/' + (LANG === 'vi' ? 'hộp' : 'unit') + (d ? ' · <b>-' + d + '%</b>' : '') + '</small>' : '') + '</span><span class="pk-p">' + (v.price != null ? money(v.price) : '') + (v.regular_price && v.regular_price > v.price ? ' <s>' + money(v.regular_price) + '</s>' : '') + '</span></label>';
+        return '<label class="pk-opt"><input type="radio" name="pk" value="' + i + '"' + (i ? '' : ' checked') + '><span class="pk-n">' + esc(v.name) + (i === pkBest ? ' <em class="v-best">' + T('Lợi nhất') + '</em>' : '') + (v.units >= 2 && v.price ? '<small>≈ ' + money(Math.round(v.price / v.units / 1000) * 1000).replace(' ₫', 'đ') + '/' + (LANG === 'vi' ? unitWordOf(p) : 'unit') + (d ? ' · <b>-' + d + '%</b>' : '') + '</small>' : '') + '</span><span class="pk-p">' + (v.price != null ? money(v.price) : '') + (v.regular_price && v.regular_price > v.price ? ' <s>' + money(v.regular_price) + '</s>' : '') + '</span></label>';
       }).join('') + '</div>' +
       '<div class="qo-qty"><span>' + T('Số lượng') + '</span><div class="qty"><button type="button" data-q="-1" aria-label="' + T('Giảm số lượng') + '">−</button><input type="number" min="1" max="99" value="1" aria-label="' + T('Số lượng') + '"><button type="button" data-q="1" aria-label="' + T('Tăng số lượng') + '">+</button></div></div>' +
       '<div class="pk-acts"><button type="button" class="btn btn-lg pk-add">' + ICON.cart + ' ' + T('Thêm vào giỏ') + '</button><button type="button" class="btn btn-lg btn-outline pk-buy">' + T('Mua ngay') + '</button></div>' +

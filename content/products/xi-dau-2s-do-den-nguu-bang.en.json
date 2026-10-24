@@ -3,7 +3,17 @@
   "short_name": "2S Soy Sauce",
   "badge": "Fermented 99 days",
   "unit": "Bottle 500ml",
-  "variants": [],
+  "variants": [
+    {
+      "name": "Bottle 500ml"
+    },
+    {
+      "name": "Combo 2 bottles"
+    },
+    {
+      "name": "Combo 3 bottles"
+    }
+  ],
   "summary": "The first soy sauce **naturally fermented from Vietnamese green-kernel black beans and burdock root** grown in Soc Son. After **99 days of traditional fermentation**, it becomes a flavorful, wholesome sauce for everyone – whether you eat a regular or a plant-based diet.",
   "serving_unit": "",
   "pitch": "Naturally fermented for 99 days from black beans and burdock",

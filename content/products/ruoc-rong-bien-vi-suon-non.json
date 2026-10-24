@@ -18,6 +18,20 @@
       "regular_price": 99000,
       "web_discount": 5,
       "servings": null
+    },
+    {
+      "name": "Combo 3 hũ",
+      "price": 199000,
+      "regular_price": 297000,
+      "web_discount": null,
+      "servings": null
+    },
+    {
+      "name": "Mua 4 tặng 1 (5 hũ)",
+      "price": 300000,
+      "regular_price": 495000,
+      "web_discount": null,
+      "servings": null
     }
   ],
   "images": [
