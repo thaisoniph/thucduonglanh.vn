@@ -7,11 +7,26 @@
   "order": 3,
   "badge": "Mới",
   "sku": "GH-DILVANG75",
-  "price": 140000,
-  "regular_price": null,
+  "price": 155000,
+  "regular_price": 189000,
   "web_discount": 0,
   "unit": "Hộp 75g (15 gói x 5g)",
-  "variants": [],
+  "variants": [
+    {
+      "name": "Combo 3 hộp",
+      "price": 435000,
+      "regular_price": 465000,
+      "web_discount": null,
+      "servings": 45
+    },
+    {
+      "name": "Combo 5 hộp",
+      "price": 699000,
+      "regular_price": 775000,
+      "web_discount": null,
+      "servings": 75
+    }
+  ],
   "images": [
     "/assets/uploads/dilvang-01.png",
     "/assets/img/products/tra-dilvang-2.webp",
