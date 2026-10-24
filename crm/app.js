@@ -679,7 +679,8 @@
     { id: 'san', label: 'Sàn', icon: 'shop', san: 1 }, // doanh số Shopee / TikTok Shop: Quản trị + người phụ trách sàn (Quản trị vào từ Tổng quan, không chiếm chỗ trên menu)
     { id: 'cai-dat', label: 'Cài đặt', icon: 'gear' }
   ];
-  function myViews() { if (isMkt()) return VIEWS.filter(function (v) { return v.mkt || v.lq || v.id === 'cai-dat'; }); return VIEWS.filter(function (v) { return (!v.min || lvl() >= v.min) && (!v.lq || lvl() >= 2) && (!v.san || (S.d && S.d.sanOk) || lvl() >= 3) && (!v.mkt || lvl() >= 3); }); }
+  // Marketing: tab Marketing, Link & QR, Khách hỏi (24/10/2026: chỉ xem khách để lại số trên web), Cài đặt
+  function myViews() { if (isMkt()) return VIEWS.filter(function (v) { return v.mkt || v.lq || v.id === 'tiem-nang' || v.id === 'cai-dat'; }); return VIEWS.filter(function (v) { return (!v.min || lvl() >= v.min) && (!v.lq || lvl() >= 2) && (!v.san || (S.d && S.d.sanOk) || lvl() >= 3) && (!v.mkt || lvl() >= 3); }); }
   function navViews() { return myViews().filter(function (v) { return !((v.san || v.mkt || v.lq) && lvl() >= 3); }); }
   function meHTML() { return '<b>' + esc(S.user.name) + '</b>'; } // chỉ tên: mỗi người là chủ công việc của mình
   function updatedLine() {
@@ -2818,7 +2819,7 @@
       '<div class="r2">' + cpPhone(l.phone) + (leadProv(l) ? ' · 📍 ' + esc(leadProv(l).old) : '') + (l.interest ? ' · Quan tâm: ' + esc(intLabel(l.interest)) : '') + (l.refPhone || l.refName ? ' · 🎁 ' + esc(refWho(l.refPhone, l.refName)) + ' giới thiệu' : '') + '</div>' +
       '<div class="r-age">' + leadAge(l) + (c ? '<button type="button" class="age-miss link-cust" data-cust="' + c.phone + '" title="Mở hồ sơ khách đã mua">👤 ' + c.orders + ' đơn · ' + moneyShort(c.spent) + ' · mua gần nhất ' + daysAgo(c.last) + ' ›</button>' : '') + '</div>' +
       (due || note ? '<div class="r3">' + due + (due && note ? '<br>' : '') + (note ? '📝 ' + esc(note.length > 90 ? note.slice(0, 90) + '…' : note) : '') + '</div>' : '') +
-      (open ? '<div class="acts"><button class="btn pri" data-consult="' + esc(l.id) + '">💬 Tư vấn</button><a class="btn" href="tel:' + l.phone + '">📞 Gọi</a><button class="btn" data-leadorder="' + esc(l.id) + '">🛒 Chốt đơn</button>' + (!l.owner && isPoolStaff() ? claimBtn('l', l.id) : '') + '</div>'
+      (isMkt() ? '' : open ? '<div class="acts"><button class="btn pri" data-consult="' + esc(l.id) + '">💬 Tư vấn</button><a class="btn" href="tel:' + l.phone + '">📞 Gọi</a><button class="btn" data-leadorder="' + esc(l.id) + '">🛒 Chốt đơn</button>' + (!l.owner && isPoolStaff() ? claimBtn('l', l.id) : '') + '</div>'
         : leadNoOrder(l) ? '<div class="acts"><button class="btn" data-leadorder="' + esc(l.id) + '">🛒 Lên đơn</button><a class="btn" href="tel:' + l.phone + '">📞 Gọi</a></div>' : '') +
       '</div>';
   }
@@ -2833,6 +2834,7 @@
     { k: 'due', l: 'Cần liên hệ', f: function (l) { return !!leadDue(l); } },
     { k: 'open', l: 'Đang theo dõi', f: isOpenLead },
     { k: 'mine', l: 'Của tôi', f: function (l) { return l.owner === S.user.name; } },
+    { k: 'nogiao', l: '🧺 Chờ giao', f: function (l) { return isOpenLead(l) && !l.owner; } }, // quản lý / Marketing: khách chưa ai phụ trách (khách web chờ quản lý giao)
     { k: 'Mới hỏi', l: 'Mới hỏi', f: function (l) { return l.status === 'Mới hỏi'; } },
     { k: 'Đang tư vấn', l: 'Đang tư vấn', f: function (l) { return l.status === 'Đang tư vấn'; } },
     { k: 'Đã chốt', l: 'Đã chốt', f: function (l) { return l.status === 'Đã chốt'; } },
@@ -2870,8 +2872,8 @@
   function provNames() { var o = {}; Object.keys(PROV_MERGE).forEach(function (nw) { o[nw] = 1; PROV_MERGE[nw].forEach(function (x) { if (!/^(HCM|TPHCM|TP HCM|HN|HP|Kontum|Daklak|Đaklak|Đăk .*|Dak .*|Bắc Cạn)$/.test(x)) o[x] = 1; }); }); return Object.keys(o).sort(function (a, b) { return a.localeCompare(b, 'vi'); }); }
   function leadsCountText(base) { var f = S.f.t || {}; if (f.q && f.q.trim()) return searchCount(base.length, 'khách hỏi', f.q.trim()); return base.length + ' lượt hỏi · ' + base.filter(isOpenLead).length + ' người đang theo dõi (chưa mua)'; }
   function renderLeadsChips(base, cur) {
-    return LF.filter(function (x) { return lvl() < 2 || x.k !== 'mine'; }).map(function (x) {
-      var n = base.filter(x.f).length; if (x.k === 'noorder' && !n && cur.k !== x.k) return '';
+    return LF.filter(function (x) { return x.k === 'mine' ? lvl() < 2 && !isMkt() : x.k === 'nogiao' ? lvl() >= 2 || isMkt() : true; }).map(function (x) {
+      var n = base.filter(x.f).length; if ((x.k === 'noorder' || x.k === 'nogiao') && !n && cur.k !== x.k) return '';
       return '<button class="chip' + (x.k === cur.k ? ' on' : '') + '" data-tf="' + esc(x.k) + '">' + x.l + ' <em>' + n + '</em></button>';
     }).join('');
   }
@@ -2887,7 +2889,7 @@
     var f = S.f.t || (S.f.t = { q: '', k: 'due', n: 60 });
     var q = norm(f.q), qd = q.replace(/\D/g, ''), words = qWords(q), chs = leadChannels(); if (f.ch && chs.indexOf(f.ch) < 0) f.ch = '';
     var base = dedupLeads((S.d.leads || []).filter(function (l) { return (lvl() < 2 || whoOk(l.owner)) && (!f.ch || chLabel(l.channel) === f.ch) && (!q || leadHit(l, words) || (qd.length >= 3 && (l._phoneDigits || l.phone).indexOf(qd) >= 0)); }));
-    if (lvl() >= 2 && f.k === 'mine') f.k = 'due';
+    if ((lvl() >= 2 || isMkt()) && f.k === 'mine') f.k = 'due';
     var cur = LF.filter(function (x) { return x.k === f.k; })[0] || LF[0], list = sortLeads(base.filter(cur.f));
 
     if (appendOnly) {
@@ -2912,9 +2914,9 @@
     var f = S.f.t || (S.f.t = { q: '', k: 'due', n: 60 });
     var q = norm(f.q), qd = q.replace(/\D/g, ''), words = qWords(q), chs = leadChannels(); if (f.ch && chs.indexOf(f.ch) < 0) f.ch = '';
     var base = dedupLeads((S.d.leads || []).filter(function (l) { return (lvl() < 2 || whoOk(l.owner)) && (!f.ch || chLabel(l.channel) === f.ch) && (!q || leadHit(l, words) || (qd.length >= 3 && (l._phoneDigits || l.phone).indexOf(qd) >= 0)); }));
-    if (lvl() >= 2 && f.k === 'mine') f.k = 'due';
+    if ((lvl() >= 2 || isMkt()) && f.k === 'mine') f.k = 'due';
     var cur = LF.filter(function (x) { return x.k === f.k; })[0] || LF[0], list = sortLeads(base.filter(cur.f));
-    return '<div class="page-head"><h1>Khách hỏi</h1><span class="muted" id="tCount">' + esc(leadsCountText(base)) + '</span><div class="grow"></div>' + whoSel() + '<button class="btn pri" data-newlead>＋ Thêm khách hỏi</button></div>' +
+    return '<div class="page-head"><h1>Khách hỏi</h1><span class="muted" id="tCount">' + esc(leadsCountText(base)) + '</span><div class="grow"></div>' + whoSel() + (isMkt() ? '' : '<button class="btn pri" data-newlead>＋ Thêm khách hỏi</button>') + '</div>' + (isMkt() ? '<p class="small muted">Khách để lại số trên web (nhận ebook, vào nhóm Zalo, form liên hệ). Bạn chỉ xem; quản lý giao khách cho sale ở tab Hôm nay → 🧺 Kho chung.</p>' : '') +
       '<div class="tools"><div class="search">' + I.search + '<input type="search" id="tq" placeholder="Tìm tên, SĐT, sản phẩm…" value="' + esc(f.q) + '"><button type="button" class="search-x" aria-label="Xoá chữ tìm kiếm" title="Xoá">✕</button></div>' +
         '<select id="tch" class="' + (f.ch ? 'on' : '') + '" style="flex:0 0 auto;width:auto" title="Lọc theo kênh khách hỏi"><option value="">📣 Mọi kênh</option>' + chs.map(function (x) { return '<option' + (f.ch === x ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('') + '</select></div>' +
       offerBanner() + '<div class="chips" id="tChips">' + renderLeadsChips(base, cur) + '</div>' +
@@ -2927,9 +2929,9 @@
     if (!fromRoute) history.pushState(null, '', '#tiem-nang/' + encodeURIComponent(l.id));
     var c = cust(l.phone), open = isOpenLead(l);
     var logs = logOf(l.phone).filter(function (x) { return x.what === 'Tư vấn' || x.what === 'Thêm tiềm năng'; });
-    var body = '<div class="acts steps" style="margin-bottom:12px">' + (open ? '<button class="btn pri" data-consult="' + esc(l.id) + '">💬 Tư vấn</button>' : '') +
+    var body = (isMkt() ? '' : '<div class="acts steps" style="margin-bottom:12px">' + (open ? '<button class="btn pri" data-consult="' + esc(l.id) + '">💬 Tư vấn</button>' : '') +
       '<a class="btn" href="tel:' + l.phone + '">📞 Gọi</a><a class="btn zalo" href="' + zalo(l.phone) + '" target="_blank" rel="noopener">Zalo</a>' +
-      (open || leadNoOrder(l) ? '<button class="btn" data-leadorder="' + esc(l.id) + '">🛒 ' + (open ? 'Chốt đơn' : 'Lên đơn') + '</button>' : '') + '<button class="btn" data-editlead="' + esc(l.id) + '">✏️ Sửa</button></div>' +
+      (open || leadNoOrder(l) ? '<button class="btn" data-leadorder="' + esc(l.id) + '">🛒 ' + (open ? 'Chốt đơn' : 'Lên đơn') + '</button>' : '') + '<button class="btn" data-editlead="' + esc(l.id) + '">✏️ Sửa</button></div>') +
       (c ? '<div class="notice info">👤 Số này đã là khách hàng: <b>' + esc(c.name) + '</b> · ' + c.orders + ' đơn, ' + money(c.spent) + ' <button class="btn" data-cust="' + c.phone + '" style="margin-left:6px">Xem khách</button></div>' : '') + (leadProv(l) ? areaBox(norm(leadProv(l).old), 'lead') : '') +
       (open && leadDueLine(l) ? '<div class="notice">' + leadDueLine(l) + '</div>' : '') +
       (l.refPhone || l.refName ? '<div class="notice info">🎁 Được <b>' + esc(refWho(l.refPhone, l.refName)) + '</b>' + (l.refPhone ? ' (' + fPhone(l.refPhone) + ')' : '') + ' giới thiệu' + (cust(l.refPhone) ? ' <button class="btn" data-cust="' + cust(l.refPhone).phone + '" style="margin-left:6px">Xem người giới thiệu</button>' : '') + '</div>' : '') +
@@ -2938,7 +2940,7 @@
       info('Phụ trách', l.owner || '– Chưa ai –') + info('Ngày hỏi', fDate(l.time)) + info('Lần liên hệ gần nhất', l.lastAt ? fDate(l.lastAt) + ' (' + daysAgo(l.lastAt) + ')' : 'chưa liên hệ') +
       info('Hẹn liên hệ lại', l.callback ? fDate(l.callback) : '–') + (l.reason ? info('Lý do không mua', l.reason, true) : '') + (l.orderId ? info('Mã đơn', l.orderId, true, true) : '') + '</div></div>' +
       '<div class="box"><h3>Ghi chú</h3><div class="pre">' + (l.note ? esc(leadNoteFmt(l.note)) : '<span class="muted">Chưa có ghi chú.</span>') + '</div></div>' +
-      (open ? giftBox(giftPerson(l.phone), '') : '') +
+      (open && !isMkt() ? giftBox(giftPerson(l.phone), '') : '') +
       '<div class="box"><h3>Lịch sử tư vấn (' + logs.length + ')</h3>' + (logs.length ? '<div class="timeline">' + logs.map(logItem).join('') + '</div>' : '<p class="muted">Chưa có.</p>') + '</div>';
     modal(cp(l.name, esc(l.name || 'Khách hỏi')) + ' ' + leadTag(l) + (leadIsReask(l, c) ? ' ' + REASK_TAG : ''), body, null, { route: '#tiem-nang', pushed: !fromRoute });
   }
@@ -5908,7 +5910,7 @@
     G.tg = '<div class="box"><h3>📲 Thông báo Telegram riêng</h3>' + (S.user.tg
       ? '<p style="margin:0 0 10px">✅ Đã kết nối. ' + (isMkt() ? 'Bạn nhận tin <b>📣 Marketing sáng nay</b> lúc 8h: tiến độ mục tiêu kênh của bạn, hôm qua, việc nên làm.' : 'Bạn nhận riêng: đơn mới của khách mình phụ trách, khách hỏi mới được giao, danh sách việc lúc 8h sáng.') + '</p><button class="btn ghost" id="tgOff">Ngắt kết nối</button>'
       : '<p style="margin:0 0 10px">' + (isMkt() ? 'Nhận tin <b>📣 Marketing sáng nay</b> lúc 8h qua Telegram (tiến độ mục tiêu, việc nên làm).' : 'Nhận thông báo về khách <b>của riêng bạn</b> qua Telegram.') + ' Làm 1 lần, mất 30 giây:</p><ol style="margin:0 0 10px;padding-left:20px"><li>Bấm <b>“Kết nối Telegram”</b>.</li><li>Bấm <b>“Mở Telegram”</b> → trong Telegram bấm <b>Start / Bắt đầu</b>.</li><li>Quay lại đây bấm <b>“Tôi đã bấm Start”</b>.</li></ol><div class="steps" id="tgSteps"><button class="btn pri" id="tgLink">Kết nối Telegram</button></div>') + '</div>';
-    if (isMkt()) return h + setGroup('acc', '👤 Tài khoản của tôi', esc(S.user.name) + ' · ' + esc(S.user.email), G.acc) + G.tg + setGroup('qz', '🖐 Trò chơi “Bạn còn mấy ngón tay?”', 'Sửa câu hỏi trò chơi trên web · màn hình chơi nhóm', qzeBox()) + '<div class="box"><h3>📣 Tài khoản Marketing</h3><p style="margin:0 0 8px">Bạn xem được tab <b>Marketing</b>: chi phí quảng cáo, khách mới và tiền khách mới mỗi kênh mang về, data quảng cáo, chiến dịch. Chi phí TikTok, Google, KOL… bấm <b>⚙️ Nhập chi phí</b> để nhập file hoặc nhập tay.</p><p class="small muted" style="margin:0 0 10px">Số liệu chỉ là con số tổng, không có thông tin khách hàng (Nghị định 13/2023).</p><a class="btn" href="/huong-dan/crm/" target="_blank" rel="noopener">📖 Xem hướng dẫn</a></div>';
+    if (isMkt()) return h + setGroup('acc', '👤 Tài khoản của tôi', esc(S.user.name) + ' · ' + esc(S.user.email), G.acc) + G.tg + setGroup('qz', '🖐 Trò chơi “Bạn còn mấy ngón tay?”', 'Sửa câu hỏi trò chơi trên web · màn hình chơi nhóm', qzeBox()) + '<div class="box"><h3>📣 Tài khoản Marketing</h3><p style="margin:0 0 8px">Bạn xem được tab <b>Marketing</b>: chi phí quảng cáo, khách mới và tiền khách mới mỗi kênh mang về, data quảng cáo, chiến dịch. Chi phí TikTok, Google, KOL… bấm <b>⚙️ Nhập chi phí</b> để nhập file hoặc nhập tay.</p><p style="margin:0 0 8px">Tab <b>Khách hỏi</b>: xem khách để lại số trên web (chỉ xem, quản lý giao cho sale).</p><p class="small muted" style="margin:0 0 10px">Số điện thoại khách chỉ dùng cho công việc, không chép ra ngoài (Nghị định 13/2023).</p><a class="btn" href="/huong-dan/crm/" target="_blank" rel="noopener">📖 Xem hướng dẫn</a></div>';
     G.lim = '<div class="box"><h3>🎯 Số khách chăm sóc mỗi ngày</h3><p class="small muted" style="margin:0 0 8px">Tab Hôm nay chỉ đưa ra tối đa bấy nhiêu khách mỗi ngày (khách quan trọng trước). Khách chưa tới lượt tự dời sang hôm sau. Cài trên máy này.</p>' +
       '<div style="display:flex;gap:8px;align-items:center"><input type="number" id="dayLim" min="5" max="200" value="' + dayLimit() + '" style="max-width:110px"><button class="btn" id="dayLimSave">Lưu</button></div></div>';
     var cc = {}; CAT_ORDER.forEach(function (k) { cc[k] = catColor(k); });
@@ -5985,7 +5987,7 @@
       '</div><div class="steps" style="margin-top:10px"><button class="btn" data-add="tp">＋ Thêm mẫu</button><button class="btn pri" id="tpSave">Lưu mẫu tin</button></div></div>';
     if (lvl() >= 3) {
       var us = S.f.us || (S.f.us = S.d.users.map(function (u) { return { email: u.email, name: u.name, role: u.role, active: u.active !== false, alias: u.alias || '', prefix: u.prefix || '', web: !!u.web }; }));
-      G.us = '<div class="box"><h3>Nhân sự được vào CRM</h3><p class="hint" style="margin:0 0 10px"><b>Quản trị</b>: toàn quyền. <b>Quản lý</b>: thêm xem doanh số, sửa chu kỳ & mẫu tin. <b>Sale & CSKH</b>: bán hàng, chăm sóc khách mình phụ trách, xử lý đơn. <b>Marketing</b>: chỉ thấy tab 📣 Marketing (chi phí, hiệu quả quảng cáo, tự nhập chi phí), không thấy khách, đơn, doanh số công ty. Nhân viên nghỉ việc: bỏ tích “Đang dùng” là không vào được nữa.</p>' +
+      G.us = '<div class="box"><h3>Nhân sự được vào CRM</h3><p class="hint" style="margin:0 0 10px"><b>Quản trị</b>: toàn quyền. <b>Quản lý</b>: thêm xem doanh số, sửa chu kỳ & mẫu tin. <b>Sale & CSKH</b>: bán hàng, chăm sóc khách mình phụ trách, xử lý đơn. <b>Marketing</b>: tab 📣 Marketing (chi phí, hiệu quả quảng cáo, tự nhập chi phí) + xem (không sửa) khách để lại số trên web ở tab Khách hỏi; không thấy khách đã mua, đơn, doanh số công ty. Khách để lại số trên web luôn chờ Quản lý / Quản trị giao, sale không tự nhận. Nhân viên nghỉ việc: bỏ tích “Đang dùng” là không vào được nữa.</p>' +
         '<p class="hint" style="margin:0 0 10px"><b>Tên trong file QC</b>: tên sale như đang ghi ở cột Sale của file số quảng cáo (nhiều cách viết thì cách nhau dấu phẩy, vd “Phương, PHƯƠNG”). <b>Tiền tố mã đơn</b>: vd “Phuong” → mã đơn Phuong300926-01.</p>' +
         '<div class="edit-table" id="usT"><div class="edit-row usr head"><span>Email</span><span>Tên hiển thị</span><span>Quyền</span><span>Đang dùng</span><span></span></div>' +
         us.map(function (u, i) { return '<div class="edit-row usr" data-i="' + i + '"><input type="email" data-k="email" value="' + esc(u.email) + '" placeholder="email@gmail.com"><input type="text" data-k="name" value="' + esc(u.name) + '" placeholder="Tên"><select data-k="role">' + ['Quản trị', 'Quản lý', 'Marketing', 'Sale & CSKH'].map(function (r) { return '<option value="' + esc(r) + '"' + (r === u.role ? ' selected' : '') + '>' + esc(r) + '</option>'; }).join('') + '</select><label class="switch"><input type="checkbox" data-k="active"' + (u.active ? ' checked' : '') + '> Có</label><button class="rm" data-rm="us" data-i="' + i + '" aria-label="Xoá">✕</button>' +

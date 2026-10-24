@@ -510,19 +510,21 @@ async function crmLoad(x, u, d) {
   d = d || {};
   if (u.role === 'Marketing') { // chỉ phần khung (tên, cài đặt màu…), không 1 dòng khách / đơn / khách hỏi / nhật ký nào
     const [R0, mode0] = await Promise.all([rulesCfg(x), assignMode(x)]), s0 = await loadSmall(x, u, R0, mode0, '');
-    return Object.assign(s0, { today: startOfDay(Date.now()), customers: [], orders: [], leads: [], log: [], contacts: [], targets: [], users: [], sources: [], areas: undefined, ads: null, adRows: [], adV: '', fbNew: 0, sanOk: false, sv: 0, lr: 0 });
+    const wl = await all(x.db, "SELECT * FROM leads WHERE by_name = 'Website' ORDER BY rid DESC LIMIT 3000"); // 24/10/2026: Marketing xem (chỉ đọc) khách để lại số trên web
+    return Object.assign(s0, { today: startOfDay(Date.now()), customers: [], orders: [], leads: wl.reverse().map(leadOut), log: [], contacts: [], targets: [], users: [], sources: [], areas: undefined, ads: null, adRows: [], adV: '', fbNew: 0, sanOk: false, sv: 0, lr: 0 });
   }
   if (d.part === 'delta') return crmDelta(x, u, d);
   const today = startOfDay(Date.now()), staff = u.level < 2, part = d.part === 'core' || d.part === 'rest' ? d.part : '';
   const [R, mode] = await Promise.all([rulesCfg(x), assignMode(x)]); // hỏi song song cho nhanh
   // khách của nhân viên: viết để dùng được chỉ mục customers(owner) → chỉ đọc khách của người đó, không quét cả bảng
   const see = mode === 'pool' ? "(owner = ?1 OR owner = '' OR owner IS NULL)" : '(owner = ?1)';
+  const seeL = mode === 'pool' ? "(owner = ?1 OR ((owner = '' OR owner IS NULL) AND coalesce(by_name, '') != 'Website'))" : '(owner = ?1)'; // khách hỏi để lại số trên web chưa giao: sale không thấy, chờ quản lý giao
   const from = Date.now() - 400 * DAY, open = "status IN ('Mới', 'Đã xác nhận', 'Đang giao')";
   const cutO = part === 'rest' ? Number(d.o) || 0 : Date.now() - 100 * DAY, cutL = part === 'rest' ? Number(d.l) || 0 : Date.now() - 60 * DAY;
   const ordWhen = part === 'core' ? `(time >= ?4 OR ${open})` : part === 'rest' ? `time >= ?3 AND time < ?4 AND NOT ${open}` : `(time >= ?3 OR ${open})`;
   const ordSql = `SELECT * FROM orders WHERE ${ordWhen}` + (staff ? ` AND (seller = ?1 OR phone IN (SELECT phone FROM customers WHERE ${see}))` : '') + ' ORDER BY time DESC, rid DESC LIMIT 6000';
   const logWhen = part === 'core' ? 'time >= ?3' : part === 'rest' ? 'time < ?3' : '';
-  const logSee = staff ? `(by_name = ?1 OR ref IN (SELECT phone FROM customers WHERE ${see}) OR ref IN (SELECT phone FROM leads WHERE ${see}) OR ref IN (SELECT id FROM orders WHERE seller = ?1 OR phone IN (SELECT phone FROM customers WHERE ${see})))` : '';
+  const logSee = staff ? `(by_name = ?1 OR ref IN (SELECT phone FROM customers WHERE ${see}) OR ref IN (SELECT phone FROM leads WHERE ${seeL}) OR ref IN (SELECT id FROM orders WHERE seller = ?1 OR phone IN (SELECT phone FROM customers WHERE ${see})))` : '';
   const logSql = 'SELECT time, by_name, what, ref, name, result, note FROM logs' + (logSee || logWhen ? ' WHERE ' + [logSee, logWhen].filter(Boolean).join(' AND ') : '') + ' ORDER BY rid DESC LIMIT 6000';
   const b = (sql, ...a) => x.db.prepare(sql).bind(...a);
   // Quản trị/Quản lý không có ?1 (tên) → dồn số thứ tự tham số; ?2 bỏ trống
@@ -534,7 +536,7 @@ async function crmLoad(x, u, d) {
     return { ok: true, orders: ro.reverse().map(orderOut), log: rl.reverse().map(logOut) };
   }
   const cusSql = CUS_SQL + " WHERE (orders > 0 OR flag != '')" + (staff ? ' AND ' + see : '');
-  const leadSql = 'SELECT * FROM leads' + (staff ? ' WHERE ' + see : '') + ' ORDER BY rid DESC LIMIT 3000';
+  const leadSql = 'SELECT * FROM leads' + (staff ? ' WHERE ' + seeL : '') + ' ORDER BY rid DESC LIMIT 3000';
   const smallP = loadSmall(x, u, R, mode); smallP.catch(() => { }); // chạy song song với lượt đọc chính
   const res = await x.db.batch([
     b(`SELECT ${NOW_MS} AS sv, (SELECT max(rid) FROM logs) AS lr`), // mốc cho lần tự làm mới sau chỉ lấy phần thay đổi
@@ -569,13 +571,13 @@ async function crmDelta(x, u, d) {
   const dels = await delSince(x, since2); // dòng Quản trị vừa xoá → máy khác bỏ khỏi danh sách
   const cusOk = v => (v.orders > 0 || (v.flag || '') !== '') && (!staff || mine(v.owner || ''));
   const ordOk = o => !staff || o.seller === u.name || (o.c_owner != null && mine(o.c_owner || ''));
-  const leadOk = l => !staff || mine(l.owner || '');
+  const leadOk = l => !staff || (l.owner ? l.owner === u.name : mine('') && l.by_name !== 'Website');
   let logs = lg;
   if (staff && logs.length) { // nhật ký mới: chỉ giữ dòng của khách / khách hỏi / đơn mình xem được
     const refs = [...new Set(logs.map(l => l.ref).filter(Boolean))], vis = {};
     if (refs.length) {
       (await allIn(x.db, 'SELECT phone, owner FROM customers WHERE phone IN (SELECT value FROM json_each(?))', refs)).forEach(r => { if (mine(r.owner || '')) vis[r.phone] = 1; });
-      (await allIn(x.db, 'SELECT phone, owner FROM leads WHERE phone IN (SELECT value FROM json_each(?))', refs)).forEach(r => { if (mine(r.owner || '')) vis[r.phone] = 1; });
+      (await allIn(x.db, 'SELECT phone, owner, by_name FROM leads WHERE phone IN (SELECT value FROM json_each(?))', refs)).forEach(r => { if (leadOk(r)) vis[r.phone] = 1; });
       (await allIn(x.db, 'SELECT o.id, o.seller, c.owner AS c_owner FROM orders o LEFT JOIN customers c ON c.phone = o.phone WHERE o.id IN (SELECT value FROM json_each(?))', refs)).forEach(r => { if (ordOk(r)) vis[r.id] = 1; });
     }
     logs = logs.filter(l => l.by_name === u.name || vis[l.ref]);
@@ -677,6 +679,7 @@ async function guardLead(x, u, ld) {
   if (u.level >= 2) return '';
   const owner = ld.owner || '';
   if (owner === u.name) return '';
+  if (!owner && ld.by_name === 'Website') return 'Khách để lại số trên web: chờ quản lý giao người phụ trách.';
   if (!owner && await assignMode(x) === 'pool') { await leadUpdate(x, ld.id, { owner: u.name }); ld.owner = u.name; await crmLog(x, u, 'Nhận khách', ld.phone, ld.name, 'Kho chung – tiềm năng', ''); return ''; }
   return owner ? 'Khách này do ' + owner + ' phụ trách. Nhờ quản lý chuyển nếu cần.' : 'Khách này chưa được giao cho bạn. Nhờ quản lý giao.';
 }
@@ -685,7 +688,8 @@ async function crmCheckPhone(x, u, d) {
   const phone = await mainPhone(x, d.phone); if (!/^0\d{9,10}$/.test(phone)) return { ok: true, status: 'none' };
   const c = await first(x.db, 'SELECT owner FROM customers WHERE phone = ?', phone);
   if (!c) {
-    const ol = await first(x.db, "SELECT owner FROM leads WHERE phone = ? AND status IN ('Mới hỏi', 'Đang tư vấn') ORDER BY rid LIMIT 1", phone);
+    const ol = await first(x.db, "SELECT owner, by_name FROM leads WHERE phone = ? AND status IN ('Mới hỏi', 'Đang tư vấn') ORDER BY rid LIMIT 1", phone);
+    if (ol && !ol.owner && ol.by_name === 'Website' && u.level < 2) return { ok: true, status: 'other', owner: 'Quản lý (khách web chờ giao)', lead: true };
     if (ol) return { ok: true, status: ol.owner === u.name ? 'mine' : ol.owner ? 'other' : 'free', owner: ol.owner || '', lead: true };
     return { ok: true, status: 'none' };
   }
@@ -729,7 +733,7 @@ async function crmRecv(x, u, d) {
 }
 async function crmClaim(x, u, d) {
   if (await assignMode(x) !== 'pool' && u.level < 2) return { ok: false, error: 'Đang không ở chế độ Kho chung.' };
-  if (d.leadId) { const ld = await leadGet(x, d.leadId); if (!ld) return { ok: false, error: 'Không tìm thấy khách.' }; if (ld.owner && ld.owner !== u.name) return { ok: false, error: 'Khách này vừa được ' + ld.owner + ' nhận.' }; await leadUpdate(x, d.leadId, { owner: u.name }); }
+  if (d.leadId) { const ld = await leadGet(x, d.leadId); if (!ld) return { ok: false, error: 'Không tìm thấy khách.' }; if (ld.owner && ld.owner !== u.name) return { ok: false, error: 'Khách này vừa được ' + ld.owner + ' nhận.' }; if (!ld.owner && ld.by_name === 'Website' && u.level < 2) return { ok: false, error: 'Khách để lại số trên web: chờ quản lý giao người phụ trách.' }; await leadUpdate(x, d.leadId, { owner: u.name }); }
   if (d.phone) { const o = await ownerOf(x, d.phone); if (o && o !== u.name) return { ok: false, error: 'Khách này vừa được ' + o + ' nhận.' }; await setOwner(x, d.phone, u.name); }
   await crmLog(x, u, 'Nhận khách', normPhone(d.phone || ''), '', 'Kho chung', '');
   return { ok: true };
@@ -1379,7 +1383,7 @@ export async function addLead(x, o) {
     return { id: cur.id, merged: true, owner: cur.owner || o.owner || '' };
   }
   let owner = o.owner || '';
-  if (!owner && o.auto) owner = (await ownerOf(x, phone)) || await autoOwner(x); // khách cũ → người đang phụ trách; khách lạ → theo chế độ chia khách
+  if (!owner && o.auto) owner = (await ownerOf(x, phone)) || (o.by === 'Website' ? '' : await autoOwner(x)); // khách cũ → người đang phụ trách; khách lạ → theo chế độ chia khách. 24/10/2026: khách lạ để lại số trên web không tự chia, chờ quản lý giao
   const id = 'TN' + fmtDate(now, 'yyMMddHHmmss') + Math.floor(Math.random() * 10) + randHex(1);
   await run(x.db, 'INSERT INTO leads (id, time, name, phone, channel, interest, status, owner, last_at, callback, reason, note, order_id, by_name, ref_phone, ref_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, \'\', ?, \'\', ?, ?, ?)',
     id, now, o.name || '', phone, o.channel || 'Khác', o.interest || '', 'Mới hỏi', owner, dateOrBlank(o.callback), o.note || '', o.by || '', o.refPhone || '', o.refName || '');
