@@ -17,6 +17,7 @@ Bài này so sánh ba dạng theo 6 điểm. Mọi con số về DILVANG lấy t
 
 | | Túi lọc | Cao | DILVANG |
 |---|---|---|---|
+| Nguồn lá | Tùy nơi, đọc nhãn | Tùy nơi, đọc nhãn | Chè vằng Quảng Trị, có chỉ dẫn địa lý |
 | Cách làm | Lá khô cắt nhỏ | Nấu 80–100°C, cô đặc trên 100°C | Chiết chân không dưới 70°C, cô đặc khép kín dưới 75°C |
 | Cách pha | Hãm nước sôi | Cắt miếng, hòa nước nóng | Hòa nước ấm 40–50°C |
 | Hương vị | Thơm lá, nhẹ | Sẫm màu, đắng đậm | Vàng nâu, không thêm hương liệu |
@@ -92,7 +93,9 @@ Cách pha theo nhãn: 1 gói, thêm 300 đến 400ml nước ấm 40 đến 50°
 
 ## 6. Nguồn gốc và hồ sơ
 
-- **Chỉ dẫn địa lý:** chè vằng Quảng Trị được cấp Giấy chứng nhận đăng ký chỉ dẫn địa lý số 00126, quyền quản lý thuộc Sở Khoa học và Công nghệ Quảng Trị. Giấy này xác nhận nguồn gốc và quy cách, không chứng nhận công dụng sức khỏe.
+Chè vằng Quảng Trị, người địa phương quen gọi là chè vằng sẻ, nổi tiếng từ lâu với hương thơm dịu, vị đắng nhẹ, hậu thanh mát nhờ nắng gió và thổ nhưỡng vùng Cam Lộ, Hải Lăng, Vĩnh Linh. Nhờ chất lượng và danh tiếng gắn với vùng đất này, chè vằng Quảng Trị được Nhà nước bảo hộ chỉ dẫn địa lý (giấy chứng nhận số 00126). Đây là điểm mà rất ít sản phẩm chè vằng trên thị trường có được.
+
+- **Chỉ dẫn địa lý:** quyền quản lý thuộc Sở Khoa học và Công nghệ Quảng Trị. Giấy chứng nhận xác nhận nguồn gốc và quy cách, không chứng nhận công dụng sức khỏe.
 - **Nhà máy:** Cục An toàn thực phẩm (Bộ Y tế) cấp giấy chứng nhận đạt GMP cho dạng sản phẩm bột. Báo Tiền Phong gọi đây là nhà máy sản xuất dược liệu đạt chuẩn GMP đầu tiên tại Quảng Trị.
 - **Doanh nghiệp khoa học và công nghệ:** Gold Herbal được Sở KH&CN Quảng Trị cấp giấy chứng nhận số 08/DNKHCN ngày 09/5/2025.
 - **Sản phẩm tiêu biểu:** bộ sản phẩm Cao khô hòa tan – Trà hòa tan Gold Herbal được UBND tỉnh Quảng Trị chứng nhận Sản phẩm công nghiệp nông thôn tiêu biểu cấp tỉnh năm 2026.
