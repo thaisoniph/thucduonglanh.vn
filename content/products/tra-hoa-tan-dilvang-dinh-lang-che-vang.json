@@ -13,6 +13,13 @@
   "unit": "Hộp 75g (15 gói x 5g)",
   "variants": [
     {
+      "name": "Hộp lẻ 75g (15 gói x 5g)",
+      "price": 155000,
+      "regular_price": 189000,
+      "web_discount": null,
+      "servings": 15
+    },
+    {
       "name": "Combo 3 hộp",
       "price": 435000,
       "regular_price": 465000,

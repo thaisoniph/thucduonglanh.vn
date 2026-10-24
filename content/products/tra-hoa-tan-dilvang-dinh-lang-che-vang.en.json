@@ -3,7 +3,17 @@
   "short_name": "DILVANG Tea",
   "badge": "New",
   "unit": "Box 75g (15 sachets × 5g)",
-  "variants": [],
+  "variants": [
+    {
+      "name": "Single box 75g (15 sachets × 5g)"
+    },
+    {
+      "name": "Combo 3 boxes"
+    },
+    {
+      "name": "Combo 5 boxes"
+    }
+  ],
   "summary": "Extract of **Chè Vằng and Polyscias from Quang Tri** – a chè vằng growing area protected by a state-registered **Geographical Indication**. Made with EECV vacuum extraction technology at a GMP-certified factory. Just stir into warm water – no boiling, no steeping, no leaves left behind.",
   "serving_unit": "sachet",
   "pitch": "Quang Tri chè vằng & polyscias – just add warm water",
