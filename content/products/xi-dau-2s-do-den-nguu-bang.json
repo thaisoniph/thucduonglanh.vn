@@ -7,8 +7,8 @@
   "order": 5,
   "badge": "Lên men 99 ngày",
   "sku": "TDL-XD2S",
-  "price": 189000,
-  "regular_price": null,
+  "price": 168000,
+  "regular_price": 199000,
   "web_discount": 0,
   "unit": "Chai 500ml",
   "variants": [],
@@ -19,6 +19,45 @@
     "/assets/img/products/xi-dau-2s-4.webp"
   ],
   "summary": "Xì dầu đầu tiên **lên men tự nhiên từ đậu đen xanh lòng Việt Nam và củ ngưu bàng** trồng tại Sóc Sơn. Qua **99 ngày lên men thủ công**, cho ra giọt xì dầu thơm ngon, an lành cho cả người ăn thường và người ăn thuần thực vật.",
+  "servings": null,
+  "serving_unit": "",
+  "pitch": "Lên men tự nhiên 99 ngày từ đỗ đen và ngưu bàng",
+  "badges": [
+    "Lên men tự nhiên 99 ngày",
+    "Đỗ đen và ngưu bàng kiểm nghiệm tại NIFC",
+    "Đỗ đen: không phát hiện Aflatoxin, 3 hoạt chất thuốc BVTV đã kiểm",
+    "Ngưu bàng trồng tại Sóc Sơn"
+  ],
+  "test_cert_img": "",
+  "label_imgs": [],
+  "proofs": [
+    {
+      "title": "Phiếu kiểm nghiệm nguyên liệu hạt đỗ đen và củ ngưu bàng",
+      "org": "Viện Kiểm nghiệm ATVSTP Quốc gia (NIFC) – Bộ Y tế",
+      "number": "75771/PKN-VKNQG (đỗ đen) · 24577/PKN-VKNQG (ngưu bàng)",
+      "date": "11/12/2025 · 30/05/2025",
+      "scope": "Đỗ đen: không phát hiện Aflatoxin B1, Aflatoxin tổng, Carbendazim, Propargite, Tebuconazole. Đây là kiểm nghiệm nguyên liệu",
+      "file": "/assets/uploads/ho-so/xi-dau-nifc-nguyen-lieu.webp"
+    }
+  ],
+  "needs": [
+    "an-chay-ngon-mieng"
+  ],
+  "reviews": [],
+  "keywords": [
+    "xì dầu",
+    "nước tương",
+    "tàu vị yểu",
+    "gia vị",
+    "gia vị chay",
+    "đỗ đen",
+    "đậu đen",
+    "ngưu bàng",
+    "lên men",
+    "ăn chay",
+    "món chay",
+    "nước chấm"
+  ],
   "highlights": [
     "Lên men tự nhiên 99 ngày",
     "Đỗ đen xanh lòng & ngưu bàng Sóc Sơn",
@@ -54,44 +93,14 @@
       "rows": []
     }
   ],
+  "story": null,
   "upsell": [
-    "ruoc-rong-bien-vi-suon-non"
+    "ruoc-rong-bien-vi-suon-non",
+    "tra-hoa-tan-dilvang-dinh-lang-che-vang",
+    "bua-an-dinh-duong-vitagreen"
   ],
   "disclaimer": "",
-  "badges": [
-    "Lên men tự nhiên 99 ngày",
-    "Đỗ đen và ngưu bàng kiểm nghiệm tại NIFC",
-    "Đỗ đen: không phát hiện Aflatoxin, 3 hoạt chất thuốc BVTV đã kiểm",
-    "Ngưu bàng trồng tại Sóc Sơn"
-  ],
-  "keywords": [
-    "xì dầu",
-    "nước tương",
-    "tàu vị yểu",
-    "gia vị",
-    "gia vị chay",
-    "đỗ đen",
-    "đậu đen",
-    "ngưu bàng",
-    "lên men",
-    "ăn chay",
-    "món chay",
-    "nước chấm"
-  ],
-  "needs": [
-    "an-chay-ngon-mieng"
-  ],
-  "pitch": "Lên men tự nhiên 99 ngày từ đỗ đen và ngưu bàng",
-  "proofs": [
-    {
-      "title": "Phiếu kiểm nghiệm nguyên liệu hạt đỗ đen và củ ngưu bàng",
-      "org": "Viện Kiểm nghiệm ATVSTP Quốc gia (NIFC) – Bộ Y tế",
-      "number": "75771/PKN-VKNQG (đỗ đen) · 24577/PKN-VKNQG (ngưu bàng)",
-      "date": "11/12/2025 · 30/05/2025",
-      "scope": "Đỗ đen: không phát hiện Aflatoxin B1, Aflatoxin tổng, Carbendazim, Propargite, Tebuconazole. Đây là kiểm nghiệm nguyên liệu",
-      "file": "/assets/uploads/ho-so/xi-dau-nifc-nguyen-lieu.webp"
-    }
-  ],
+  "manufacturer": "HTX Bảo tồn và Phát triển Dược liệu Sóc Sơn",
   "faq": [
     {
       "q": "Xì dầu 2S đỗ đen ngưu bàng khác xì dầu thường thế nào?",
@@ -117,6 +126,5 @@
       "q": "Một chai bao nhiêu ml?",
       "a": "Chai 500ml."
     }
-  ],
-  "manufacturer": "HTX Bảo tồn và Phát triển Dược liệu Sóc Sơn"
+  ]
 }
