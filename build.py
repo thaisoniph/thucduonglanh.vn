@@ -644,7 +644,7 @@ def footer():
   <a href="/gio-hang/" class="btn btn-outline btn-block">{t("Xem giỏ hàng")}</a><a href="/thanh-toan/" class="btn btn-block">{t("Thanh toán")}</a></div>
 </div></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<div class="cookie-bar" id="cookieBar" hidden role="dialog" aria-label="{t("Thông báo cookie")}"><p>{t('🍪 Anh/chị cho phép dùng cookie nhé? Nhờ đó Thực Dưỡng Lành gợi ý sản phẩm, ưu đãi hợp với anh/chị (cả trên Facebook, Google) và làm website tốt hơn. <a href="/chinh-sach-bao-mat/">Chi tiết</a>')}</p><div><button type="button" class="btn btn-sm cb-yes" data-consent="yes">{t("Đồng ý")}</button><button type="button" class="cb-no" data-consent="no">{t("Không, cảm ơn")}</button></div></div>
+<div class="cookie-bar" id="cookieBar" hidden role="dialog" aria-label="{t("Thông báo cookie")}"><p><span class="cb-long">{t('🍪 Anh/chị cho phép dùng cookie nhé? Nhờ đó Thực Dưỡng Lành gợi ý sản phẩm, ưu đãi hợp với anh/chị (cả trên Facebook, Google) và làm website tốt hơn. <a href="/chinh-sach-bao-mat/">Chi tiết</a>')}</span><span class="cb-short">{t('🍪 Cho phép cookie để gợi ý sản phẩm, ưu đãi hợp với anh/chị (cả trên Facebook, Google)? <a href="/chinh-sach-bao-mat/">Chi tiết</a>')}</span></p><div><button type="button" class="btn btn-sm cb-yes" data-consent="yes">{t("Đồng ý")}</button><button type="button" class="cb-no" data-consent="no">{t("Không, cảm ơn")}</button></div></div>
 <button class="to-top" id="toTop" aria-label="{t("Lên đầu trang")}">{I["up"]}</button>{gift_dock()}'''
 
 
@@ -836,7 +836,8 @@ def product_card(p, lazy=True):
         action = f'<button class="pc-add" data-add="{p["slug"]}" aria-label="{tf("Thêm {name} vào giỏ", name=esc(p["name"]))}">{I["cart"]}<span>{t("Thêm vào giỏ")}</span></button>'
     else:
         label = t("Chọn loại") if p.get("variants") and p.get("price") is not None else t("Xem chi tiết")
-        action = f'<a class="pc-add" href="/san-pham/{p["slug"]}/">{I["right"]}<span>{label}</span></a>'
+        pick = f' data-pick="{p["slug"]}"' if p.get("variants") and p.get("price") is not None else ""  # main.js: mở khung chọn loại + thêm vào giỏ ngay tại chỗ
+        action = f'<a class="pc-add" href="/san-pham/{p["slug"]}/"{pick}>{I["right"]}<span>{label}</span></a>'
     return f'''<article class="p-card">
   <a class="pc-media" href="/san-pham/{p["slug"]}/" aria-label="{esc(p["name"])}">
     {badge}
@@ -1448,6 +1449,7 @@ def page_home():
     hh = HOME.get("hero") or {}
     hp = PROD_BY.get(hh.get("product") or "")
     h_url = f'/san-pham/{hp["slug"]}/' if hp else "/san-pham/"
+    h_buy = f' data-buy-now="{hp["slug"]}"' if hp and hp.get("price") is not None else ""  # bấm là mở Đặt hàng nhanh, không phải sang trang sản phẩm
     h_img = img_url(hh.get("image") or (hp["images"][0] if hp else "/assets/img/brand/og-image.jpg"), 1000)
     h_title = md_inline(esc(hh.get("title") or BRAND).replace("&#x27;", "'"))
     h_cta = esc(hh.get("cta") or t("Mua ngay")) + (f' – {money(hp["price"]).replace(" ₫", "đ")}' if hp and hp.get("price") else "")
@@ -1458,7 +1460,7 @@ def page_home():
   <div class="hero-deco" aria-hidden="true"></div>
   <div class="container slide-in">
     <div class="slide-text">{f'<span class="eyebrow">{esc(hh["eyebrow"])}</span>' if hh.get("eyebrow") else ""}<h1 class="slide-title">{h_title}</h1>{f'<p>{esc(hh["sub"])}</p>' if hh.get("sub") else ""}
-      <div class="slide-cta hero-cta"><a class="btn btn-lg" href="{h_url}" data-cta="hero_main">{h_cta}</a><a class="btn btn-lg btn-ghost hero-all" href="/san-pham/" data-cta="hero_all">{t("Xem tất cả sản phẩm")}</a></div>{h_trust}</div>
+      <div class="slide-cta hero-cta"><a class="btn btn-lg" href="{h_url}"{h_buy} data-cta="hero_main">{h_cta}</a><a class="btn btn-lg btn-ghost hero-all" href="/san-pham/" data-cta="hero_all">{t("Xem tất cả sản phẩm")}</a></div>{h_trust}</div>
     <div class="slide-media"><a href="{h_url}" tabindex="-1"><img src="{h_img}" alt="{esc(hp["name"] if hp else BRAND)}" width="1000" height="1000" fetchpriority="high"></a></div>
   </div>
 </section>'''
@@ -1574,7 +1576,7 @@ def page_home():
   <div class="fb-strip">{fb}</div>
 </div></section>
 
-{community_html(h_url)}
+{community_html(h_url, h_buy)}
 {blog_html}
 
 <section class="section seo-block"><div class="container">
@@ -1613,7 +1615,7 @@ def org_ld():
     return {k: v for k, v in org.items() if v}
 
 
-def community_html(start_url="/san-pham/"):
+def community_html(start_url="/san-pham/", buy=""):
     """Lời mời đồng hành (#dong-hanh, nút ở khối Chúng tôi có một ước mơ dẫn tới): các kênh cộng đồng + bắt đầu 10 ngày."""
     items = [dict(c, url=f"{ZALO_GATE}?tu=dong_hanh") if SITE.get("zalo_group") and c.get("url") == SITE["zalo_group"] else c for c in (SITE.get("community") or [])]  # nhóm Zalo: qua cổng để lại số trước
     if not items:
@@ -1634,7 +1636,7 @@ def community_html(start_url="/san-pham/"):
   {wall_strip()}
   {journey_map()}
   <div class="cm-grid">{cards}</div>
-  <div class="join-self"><p>{t("Hoặc bắt đầu từ chính mình, từ hôm nay:")}</p><div class="join-btns">{pledge_btn}{quiz_btn}<a class="btn btn-lg{" btn-ghost" if pledge_btn else ""}" href="{start_url}" data-cta="join_start">{t("Bắt đầu 10 ngày sống lành")}</a></div></div>
+  <div class="join-self"><p>{t("Hoặc bắt đầu từ chính mình, từ hôm nay:")}</p><div class="join-btns">{pledge_btn}{quiz_btn}<a class="btn btn-lg{" btn-ghost" if pledge_btn else ""}" href="{start_url}"{buy} data-cta="join_start">{t("Bắt đầu 10 ngày sống lành")}</a></div></div>
 </div></section>'''
 
 
@@ -1644,12 +1646,37 @@ PLEDGE_ITEMS = ["Ăn chậm hơn, chọn bữa ăn lành hơn cho mình và gia 
                 "Chăm sóc sớm hơn những người mình thương."]
 
 
+_JR = None
+def journey_now():
+    """Số hành trình lúc build (api /api/journey), để ghi sẵn vào HTML: bot tìm kiếm và khách mạng chậm thấy số thật thay vì 0.
+    Lỗi mạng / chưa có api thì trả {} → giữ như cũ (khối ẩn tới khi main.js lấy được số)."""
+    global _JR
+    if _JR is None:
+        _JR = {}
+        api = SITE.get("api_endpoint") or ""
+        if api.endswith("/api"):
+            try:
+                from urllib.request import urlopen, Request
+                req = Request(api + "/journey", headers={"User-Agent": "Mozilla/5.0 (tdl-build)", "Origin": "https://thucduonglanh.vn"})
+                j = json.loads(urlopen(req, timeout=6).read().decode("utf-8"))
+                if j.get("ok") and j.get("total"):
+                    _JR = j
+            except Exception as e:
+                print("  (bỏ qua số hành trình lúc build:", e, ")")
+    return _JR
+
+
 def journey_counter():
-    """Bộ đếm hành trình 10 triệu người: số thật lấy từ api /api/journey (khách đã mua + lời cam kết); lỗi mạng thì giữ ẩn."""
+    """Bộ đếm hành trình 10 triệu người: số thật lấy từ api /api/journey (khách đã mua + lời cam kết).
+    Lúc build ghi sẵn số làm tròn xuống trăm (vd 8.000) → main.js đếm tiếp lên số mới nhất; build không lấy được số thì khối ẩn như cũ."""
     if not IS_VI:
         return ""
-    return '''<div class="jr" data-jr hidden><p class="jr-num"><b data-jr-total>0</b><span>người đã cùng Thực Dưỡng Lành sống lành</span></p>
-<p class="jr-meta"><span data-jr-buyers></span> khách hàng tin dùng<span data-jr-pl hidden> · <span data-jr-pledges></span> người chọn sống lành</span> · Mục tiêu <b>10.000.000</b> người Việt</p></div>'''
+    j = journey_now()
+    vn = lambda n: f"{int(n):,}".replace(",", ".")
+    tot = j.get("total", 0) // 100 * 100
+    buy = j.get("buyers", 0) // 100 * 100
+    return f'''<div class="jr" data-jr{"" if tot else " hidden"}><p class="jr-num"><b data-jr-total{f' data-from="{tot}"' if tot else ""}>{vn(tot) + "+" if tot else "0"}</b><span>người đã cùng Thực Dưỡng Lành sống lành</span></p>
+<p class="jr-meta"><span data-jr-buyers>{vn(buy) + "+" if buy else ""}</span> khách hàng tin dùng<span data-jr-pl hidden> · <span data-jr-pledges></span> người chọn sống lành</span> · Mục tiêu <b>10.000.000</b> người Việt</p></div>'''
 
 
 def journey_map(on_pledge=False):
@@ -1663,7 +1690,7 @@ def journey_map(on_pledge=False):
   <div class="jm-map"><div class="jm-svg" data-jm-svg></div><div class="jm-tip" data-jm-tip hidden></div></div>
   <div class="jm-head">
     <p class="jm-eye">Bản đồ hành trình</p>
-    <p class="jm-big">Đã có mặt ở <b data-jm-n>0</b><span>/34 tỉnh, thành phố</span></p>
+    <p class="jm-big">Đã có mặt ở <b data-jm-n>{min(34, len([v for v in (journey_now().get("prov") or {}).values() if v]))}</b><span>/34 tỉnh, thành phố</span></p>
     <div class="jm-bar"><i data-jm-bar></i></div>
     <p class="jm-me" data-jm-me hidden></p>
   </div>
@@ -2859,7 +2886,7 @@ def post_pbox(items, where):
         if not q.get("variants"):
             act = f'<button class="btn btn-buy pbx-btn" data-add="{q["slug"]}">{I["cart"]}<span>{t("Thêm vào giỏ")}</span></button>'
         else:
-            act = f'<a class="btn btn-buy pbx-btn" href="{url}" data-cta="post_pbox_{where}">{t("Chọn loại")} →</a>'
+            act = f'<a class="btn btn-buy pbx-btn" href="{url}" data-pick="{q["slug"]}" data-cta="post_pbox_{where}">{t("Chọn loại")} →</a>'
         rows += f'''<div class="pbx-item"><a class="pbx-img" href="{url}" data-cta="post_pbox_{where}"><img src="{pimg(q["images"][0], True)}" alt="{esc(q["name"])}" width="96" height="96" loading="lazy"></a>
 <div class="pbx-tx"><a class="pbx-name" href="{url}" data-cta="post_pbox_{where}">{esc(q["name"])}</a>{f'<small>{esc(q["pitch"])}</small>' if q.get("pitch") else ""}{price_html(q, "price pbx-price", from_=True)}</div>{act}</div>'''
     return f'''<aside class="pbx pbx-{where}"><p class="pbx-eye">🌿 {t("Gợi ý cho bữa ăn hằng ngày")}</p>{rows}

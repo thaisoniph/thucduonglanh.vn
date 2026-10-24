@@ -1276,7 +1276,9 @@ body.satc-on .float-widget,body.satc-on .to-top{bottom:calc(var(--satc-h,104px) 
 .cookie-bar div{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .cookie-bar .cb-yes{min-width:120px;padding:9px 22px;font-size:15px}
 .cookie-bar .cb-no{background:none;border:0;padding:8px 10px;color:var(--muted);font:inherit;font-size:13.5px;text-decoration:underline;cursor:pointer}
-@media (max-width:560px){.cookie-bar div{width:100%}.cookie-bar .cb-yes{flex:1}}
+.cookie-bar .cb-short{display:none}
+/* điện thoại: dải mỏng sát đáy, câu ngắn (vẫn nói rõ mục đích quảng cáo), 2 nút cùng 1 hàng */
+@media (max-width:560px){.cookie-bar{left:8px;right:8px;bottom:8px;padding:9px 12px;gap:8px;border-radius:12px}.cookie-bar .cb-long{display:none}.cookie-bar .cb-short{display:inline}.cookie-bar p{flex-basis:100%;font-size:13px;line-height:1.4}.cookie-bar div{width:100%;flex-wrap:nowrap}.cookie-bar .cb-yes{flex:1;padding:7px 16px;font-size:14.5px}.cookie-bar .cb-no{padding:6px 8px;font-size:13px;white-space:nowrap}}
 .oa-cta{border:1.5px solid #bfd6ff;background:#f3f7ff;border-radius:14px;padding:16px;margin:0 0 16px;text-align:center}
 .oa-cta b{display:block;color:#0050c8;font-size:16.5px}
 .oa-cta p{margin:6px 0 10px;font-size:14.5px}
@@ -2251,3 +2253,16 @@ body.buy-vis .bvb{opacity:0;visibility:hidden;pointer-events:none}
 @media (max-width:640px){.prose table{font-size:13.5px;line-height:1.45}.prose th,.prose td{padding:8px 7px}}
 @media (max-width:640px){.ocx-tbl table{min-width:0}.ocx-tbl th:nth-child(2),.ocx-tbl td:nth-child(2){display:none}.ocx-tbl th,.ocx-tbl td{padding:13px 14px}.ocx-facts b{font-size:1.45rem;white-space:nowrap}.ocx-facts>div{padding:16px}}
 .ocx-until{margin-top:4px;font-weight:600;color:#F3E0BD}
+/* khung "Chọn loại" từ thẻ sản phẩm (main.js openPick) – dùng chung khung .qo của Đặt hàng nhanh */
+.pk-opts{display:grid;gap:8px;margin:0 0 14px}
+.pk-opt{display:flex;align-items:center;gap:10px;border:1.5px solid var(--line);border-radius:12px;padding:11px 12px;cursor:pointer;font-size:15px;line-height:1.35}
+.pk-opt:has(input:checked){border-color:var(--primary);background:var(--soft)}
+.pk-opt input{accent-color:var(--primary);width:18px;height:18px;flex:0 0 18px;margin:0}
+.pk-n{flex:1;color:var(--ink)}
+.pk-p{font-weight:700;color:var(--primary-2);white-space:nowrap;text-align:right}
+.pk-p s{display:block;font-weight:400;font-size:13px;color:var(--muted)}
+.pk .qo-qty{margin-bottom:14px}
+.pk-acts{display:grid;grid-template-columns:1.4fr 1fr;gap:10px}
+.pk-acts .btn{min-height:50px;padding:10px 12px;justify-content:center}
+.pk-acts svg{width:20px;height:20px}
+.pk-more{text-align:center;margin:12px 0 0;font-size:14.5px}

@@ -335,6 +335,7 @@
         else if (h.indexOf('zalo.me') >= 0) track('click_zalo', { location: a.closest('.float-widget') ? 'nut_noi' : (a.closest('.qo,.checkout') ? 'dat_hang' : 'trang') });
         else if (/heyzine|\.pdf$/.test(h)) track('view_brochure', { method: /\.pdf$/.test(h) ? 'pdf' : 'fullscreen' }); }
       var t;
+      if ((t = e.target.closest('[data-pick]'))) { e.preventDefault(); openPick(t.getAttribute('data-pick')); return; }
       if ((t = e.target.closest('[data-add]'))) { e.preventDefault(); if (addToCart(t.getAttribute('data-add'), 1)) openMini(); return; }
       if ((t = e.target.closest('[data-wish]'))) { e.preventDefault(); toggleWish(t.getAttribute('data-wish')); return; }
       if ((t = e.target.closest('[data-mq]'))) { var mk = t.getAttribute('data-key'), mi = cart.filter(function (x) { return x.key === mk; })[0]; if (mi) { mi.qty = Math.max(1, Math.min(99, mi.qty + (+t.getAttribute('data-mq')))); saveCart(); var nb = $('#mcBody [data-mq="' + t.getAttribute('data-mq') + '"][data-key="' + mk + '"]'); if (nb && !nb.disabled) nb.focus(); if ($('#cartPage')) renderCartPage(); } return; }
@@ -349,6 +350,7 @@
       if ((t = e.target.closest('[data-cta]'))) track('cta_click', { cta: t.getAttribute('data-cta') });
       if ((t = e.target.closest('[data-buy-now]')) && !t.closest('[data-product]')) { // nút Mua ngay ngoài trang chi tiết (thẻ gói ở trang chủ…)
         var bp = BY[t.getAttribute('data-buy-now')]; if (!bp) return;
+        e.preventDefault(); // nút dạng link (đầu trang chủ): mở Đặt hàng nhanh thay vì sang trang sản phẩm
         var bvi = (bp.variants && bp.variants.length) ? 0 : -1, bpr = bvi >= 0 ? bp.variants[0].price : bp.price;
         if (bpr == null) { toast(T('Sản phẩm đang cập nhật giá, vui lòng liên hệ tư vấn.'), 'err'); return; }
         openQuickOrder(bp.slug, bvi, 1); return;
@@ -1113,6 +1115,36 @@
       placeOrder(items(), data, $('#placeOrder'), msg, function () { cart = []; saveCart(); });
     });
   }
+  /* khung "Chọn loại" (thẻ sản phẩm có nhiều loại): chọn loại + số lượng rồi thêm vào giỏ ngay, không phải sang trang chi tiết */
+  function openPick(slug) {
+    var p = BY[slug]; if (!p) return;
+    if (!(p.variants && p.variants.length)) { location.href = p.url; return; }
+    var vi = 0, opener = document.activeElement;
+    var m = document.createElement('div'); m.className = 'qo pk'; m.setAttribute('role', 'dialog'); m.setAttribute('aria-modal', 'true'); m.setAttribute('aria-label', T('Chọn loại'));
+    m.innerHTML = '<div class="qo-box"><div class="qo-head"><b>' + T('Chọn loại') + '</b><button type="button" class="icon-btn qo-x" aria-label="' + T('Đóng') + '">' + ICON.close + '</button></div>' +
+      '<div class="qo-prod"><img src="' + p.img + '" alt=""><div><b>' + esc(p.name) + '</b><small class="qo-var"></small></div></div>' +
+      '<div class="pk-opts" role="radiogroup" aria-label="' + T('Chọn loại') + '">' + p.variants.map(function (v, i) {
+        return '<label class="pk-opt"><input type="radio" name="pk" value="' + i + '"' + (i ? '' : ' checked') + '><span class="pk-n">' + esc(v.name) + '</span><span class="pk-p">' + (v.price != null ? money(v.price) : '') + (v.regular_price && v.regular_price > v.price ? ' <s>' + money(v.regular_price) + '</s>' : '') + '</span></label>';
+      }).join('') + '</div>' +
+      '<div class="qo-qty"><span>' + T('Số lượng') + '</span><div class="qty"><button type="button" data-q="-1" aria-label="' + T('Giảm số lượng') + '">−</button><input type="number" min="1" max="99" value="1" aria-label="' + T('Số lượng') + '"><button type="button" data-q="1" aria-label="' + T('Tăng số lượng') + '">+</button></div></div>' +
+      '<div class="pk-acts"><button type="button" class="btn btn-lg pk-add">' + ICON.cart + ' ' + T('Thêm vào giỏ') + '</button><button type="button" class="btn btn-lg btn-outline pk-buy">' + T('Mua ngay') + '</button></div>' +
+      '<p class="pk-more"><a href="' + p.url + '">' + T('Xem chi tiết') + ' →</a></p></div>';
+    document.body.appendChild(m); lock(true);
+    var qIn = m.querySelector('.qo-qty input'), qty = function () { return Math.max(1, Math.min(99, parseInt(qIn.value, 10) || 1)); };
+    function close() { m.remove(); lock(false); document.removeEventListener('keydown', onKey); if (opener && opener.focus && document.contains(opener)) opener.focus(); }
+    function onKey(e) { if (e.key === 'Escape') close(); }
+    function refresh() { var v = p.variants[vi]; m.querySelector('.qo-var').textContent = v.name + (v.price != null ? ' · ' + money(v.price * qty()) : ''); }
+    m.addEventListener('change', function (e) { if (e.target.name === 'pk') { vi = +e.target.value; refresh(); } else if (e.target === qIn) { qIn.value = qty(); refresh(); } });
+    m.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-q]'); if (b) { qIn.value = Math.max(1, Math.min(99, qty() + (+b.getAttribute('data-q')))); refresh(); return; }
+      if (e.target.closest('.pk-add')) { if (addToCart(slug, qty(), vi)) { close(); openMini(); } return; }
+      if (e.target.closest('.pk-buy')) { var q = qty(); close(); openQuickOrder(slug, vi, q); return; }
+      if (e.target === m || e.target.closest('.qo-x')) close();
+    });
+    document.addEventListener('keydown', onKey);
+    var gi = gaItem(slug, 0, 1); track('view_item', { currency: 'VND', value: gi ? gi.price : 0, items: gi ? [gi] : [], view_type: 'chon_loai' });
+    refresh(); setTimeout(function () { var r = m.querySelector('.pk-opt input'); if (r) r.focus(); }, 60);
+  }
   function openQuickOrder(slug, vi, qty) {
     var p = BY[slug]; if (!p) return;
     var m = document.createElement('div'); m.className = 'qo'; m.setAttribute('role', 'dialog'); m.setAttribute('aria-modal', 'true'); m.setAttribute('aria-label', T('Đặt hàng nhanh'));
@@ -1173,7 +1205,7 @@
     return '<article class="p-card"><a class="pc-media" href="' + p.url + '">' + (d ? '<span class="badge-sale">-' + d + '%</span>' : '') + '<img class="pc-img" src="' + p.img + '" alt="' + esc(p.name) + '" width="480" height="480"></a>' +
       '<button class="pc-wish" data-wish="' + p.slug + '" aria-label="' + T('Yêu thích') + '">' + ICON.heart + '</button><div class="pc-body"><h3 class="pc-title"><a href="' + p.url + '">' + esc(p.name) + '</a></h3>' + ((p.chips || []).length ? '<p class="pc-chips">' + p.chips.map(function (c) { return '<span>' + esc(c) + '</span>'; }).join('') + '</p>' : '') +
       '<div class="price pc-price">' + (cv ? '<span class="from">' + T('Từ') + '</span>' : '') + (d ? '<del>' + money(it.regular_price) + '</del>' : '') + '<ins' + (it.price == null ? ' class="contact"' : '') + '>' + money(it.price) + '</ins></div></div>' +
-      (p.price != null && !(p.variants && p.variants.length) ? '<button class="pc-add" data-add="' + p.slug + '">' + ICON.cart + '<span>' + T('Thêm vào giỏ') + '</span></button>' : '<a class="pc-add" href="' + p.url + '">' + ICON.right + '<span>' + T('Xem chi tiết') + '</span></a>') + '</article>';
+      (p.price != null && !(p.variants && p.variants.length) ? '<button class="pc-add" data-add="' + p.slug + '">' + ICON.cart + '<span>' + T('Thêm vào giỏ') + '</span></button>' : '<a class="pc-add" href="' + p.url + '"' + (p.price != null ? ' data-pick="' + p.slug + '">' + ICON.right + '<span>' + T('Chọn loại') : '>' + ICON.right + '<span>' + T('Xem chi tiết')) + '</span></a>') + '</article>';
   }
   function renderWishPage() {
     var el = $('#wishPage'); if (!el) return;
@@ -1372,8 +1404,8 @@
         if (j.pledges > 0) { b.querySelector('[data-jr-pledges]').textContent = vn(j.pledges); b.querySelector('[data-jr-pl]').hidden = false; }
         b.hidden = false;
         var run = function () { // đếm tăng dần cho sinh động
-          var t0 = performance.now(), d = 1200;
-          (function step(now) { var k = Math.min(1, (now - t0) / d); tot.textContent = vn(Math.round(j.total * (1 - Math.pow(1 - k, 3)))); if (k < 1) requestAnimationFrame(step); })(t0);
+          var t0 = performance.now(), d = 1200, f0 = Math.min(+tot.getAttribute('data-from') || 0, j.total); // HTML đã ghi sẵn số lúc build → đếm tiếp từ đó
+          (function step(now) { var k = Math.min(1, (now - t0) / d); tot.textContent = vn(Math.round(f0 + (j.total - f0) * (1 - Math.pow(1 - k, 3)))); if (k < 1) requestAnimationFrame(step); })(t0);
         };
         if (!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) { tot.textContent = vn(j.total); return; }
         var io = new IntersectionObserver(function (es) { if (es[0].isIntersecting) { io.disconnect(); run(); } }); io.observe(b);
