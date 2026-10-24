@@ -9,7 +9,7 @@
   "sku": "TDL-CUR400",
   "price": 450000,
   "regular_price": null,
-  "web_discount": null,
+  "web_discount": 0,
   "unit": "",
   "variants": [
     {
