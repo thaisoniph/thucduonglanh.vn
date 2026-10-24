@@ -28,8 +28,8 @@
     },
     {
       "name": "Combo 2 hộp 500g",
-      "price": 900000,
-      "regular_price": 799000,
+      "price": 799000,
+      "regular_price": 900000,
       "web_discount": null,
       "servings": 40
     },
@@ -39,6 +39,13 @@
       "regular_price": null,
       "web_discount": null,
       "servings": 80
+    },
+    {
+      "name": "Mua 5 tặng 2",
+      "price": 2250000,
+      "regular_price": null,
+      "web_discount": null,
+      "servings": 140000
     }
   ],
   "images": [
