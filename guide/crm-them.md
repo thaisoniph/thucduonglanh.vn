@@ -267,6 +267,7 @@ Một số khách tự để lại số trên web. Họ vào tab **Khách hỏi*
 
 - **Kênh "Nhóm Zalo (Website)"**: khách muốn vào nhóm Zalo. Trong 24 giờ, kết bạn Zalo, nhắn chào mừng, hỏi khách quan tâm gì.
 - **Kênh "Ebook – quà tặng (Website)"**: khách nhận quà cẩm nang hoặc ebook. Ghi chú có ghi khách quan tâm vấn đề gì. Ví dụ *"📖 Đọc thử 5 trang rồi để lại số"* là khách đã đọc thử và muốn đọc tiếp, thường quan tâm thật.
+- **Kênh "Chatbot (Website)"**: khách hỏi trợ lý chat **An Lành** trên web rồi để lại số nhận quà (hoặc tự gõ số trong khung chat). Ghi chú có các câu khách đã hỏi và dòng **🤖 Tóm tắt chat** (khách là ai, quan tâm gì, nên nói gì). **Đọc tóm tắt trước khi gọi**, đừng hỏi lại điều khách đã hỏi bot. Khách đã nhận cẩm nang + mã SONGLANH5.
 - Ghi chú có **"🖐 Trò chơi: còn 6/10 ngón"**: khách vừa chơi trò chơi thói quen trên web. Hỏi thăm đúng thói quen khách muốn sửa.
 - Khung **🎁 Ưu đãi đang chạy** ở đầu tab Khách hỏi: ưu đãi trên quảng cáo hiện nay. **Đọc trước khi gọi** để nói đúng điều khách đã thấy.
 

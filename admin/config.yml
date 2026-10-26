@@ -921,6 +921,22 @@ collections:
               - { label: "Danh hiệu", name: title, widget: string }
               - { label: "Lời nhắn", name: text, widget: text }
 
+      - name: chatbot
+        label: "Trợ lý chat An Lành"
+        file: data/chatbot.json
+        format: json
+        description: "Khung chat AI góc phải website. Bot tự đọc toàn bộ sản phẩm, giá, hỏi đáp, giấy tờ, chính sách trên web (sửa sản phẩm là bot biết sau vài phút). Ở đây chỉ sửa tên, câu chào, câu hỏi gợi ý, quà tặng và kiến thức thêm."
+        fields:
+          - { label: "Bật trợ lý chat", name: enabled, widget: boolean, default: true }
+          - { label: "Tên trợ lý", name: name, widget: string, default: "An Lành" }
+          - { label: "Dòng mô tả", name: role, widget: string, required: false }
+          - { label: "Câu chào đầu tiên", name: greeting, widget: text, hint: "Xưng em, gọi anh/chị. Nói rõ là trợ lý ảo." }
+          - { label: "Câu hỏi gợi ý (khách bấm là hỏi)", name: quick, widget: list, field: { label: "Câu hỏi", name: q, widget: string }, hint: "3–5 câu ngắn, hay gặp nhất. Không ghi tên bệnh." }
+          - { label: "Mời nhận quà sau bao nhiêu câu hỏi", name: gift_after, widget: number, value_type: int, default: 2, min: 1, max: 6 }
+          - { label: "Tiêu đề thẻ quà", name: gift_title, widget: string }
+          - { label: "Mô tả quà", name: gift_text, widget: text, hint: "Chỉ ghi quà có thật. Khách hỏi về xương khớp thì bot tự đổi sang ebook Cơ Xương Khớp." }
+          - { label: "Kiến thức thêm cho trợ lý", name: knowledge, widget: markdown, required: false, hint: "Thông tin không có trên web mà bot cần biết: câu chuyện công ty, sản phẩm chưa bán trên web, chương trình đang chạy… Chỉ ghi điều đúng, không ghi công dụng chữa bệnh." }
+
       - name: post_categories
         label: "Chuyên mục bài viết"
         file: data/post-categories.{{locale}}.json

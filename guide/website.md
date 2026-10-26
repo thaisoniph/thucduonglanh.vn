@@ -151,6 +151,11 @@ Cột trái chọn **Cài đặt website**. Các mục hay dùng:
 
 - **Trang chủ – Ảnh lớn đầu trang & băng chuyền**: tiêu đề, ảnh, chữ trên nút, dòng tin cậy dưới nút.
 - **Chọn theo nhu cầu**: các thẻ *Bữa sáng bận rộn*… ở trang chủ. Không ghi tên bệnh.
+- **Trợ lý chat An Lành**: khung chat AI ở góc phải web (trên điện thoại: bấm **💬 Tư vấn** → **Hỏi trợ lý An Lành**). Bot tự đọc sản phẩm, giá, hỏi đáp, giấy tờ, chính sách trên web, nên **sửa sản phẩm là bot biết sau khoảng 10 phút**, không cần dạy lại. Ở đây chỉ sửa:
+  - **Câu chào**, **Câu hỏi gợi ý** (3–5 câu khách hay hỏi nhất, khách bấm là hỏi luôn).
+  - **Mời nhận quà sau bao nhiêu câu hỏi** (đang là 2), **Mô tả quà**: chỉ ghi quà có thật.
+  - **Kiến thức thêm**: điều bot cần biết mà web chưa có (chương trình đang chạy, sản phẩm chưa bán trên web…). Viết câu ngắn, đúng sự thật, không ghi công dụng chữa bệnh.
+  - Bot trả lời sai hoặc thiếu thì báo anh Sơn, hoặc sửa phần **Hỏi đáp** của sản phẩm đó.
 - **Trò chơi Bạn còn mấy ngón tay**: câu hỏi và kết quả. Sửa trong CRM (**⚙ Cài đặt → 🖐 Trò chơi**) dễ hơn trên điện thoại.
 - **Hồ sơ thương hiệu (brochure)**: sách lật, file PDF, ảnh bìa.
 - **Danh mục sản phẩm, Chuyên mục bài viết**: thêm, đổi tên. **Không đổi ô "Mã"** của danh mục đang có sản phẩm.

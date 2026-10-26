@@ -1397,6 +1397,159 @@
     $('#fwClose').addEventListener('click', function () { w.classList.remove('open'); ss('tdl_fw', '1'); stopAuto(); });
   }
 
+  /* ---------- 💬 Trợ lý chat An Lành (26/10/2026): khung chat góc phải, AI trả lời từ kiến thức web (api/src/chat.js, build.py chat_kb).
+     Mở bằng mọi nút [data-chat] (giá trị = câu điền sẵn). Lịch sử lưu localStorage tdl_chat 3 ngày; hỏi đủ CFG.chat.after câu thì mời nhận quà (tên + số Zalo). ---------- */
+  function initChat() {
+    var C = CFG.chat; if (!C || !CFG.endpoint) return;
+    function rid() { var a = new Uint8Array(12); try { crypto.getRandomValues(a); } catch (e) { for (var i = 0; i < 12; i++) a[i] = Math.random() * 256; } return Array.prototype.map.call(a, function (b) { return ('0' + b.toString(16)).slice(-2); }).join(''); }
+    var st = load('tdl_chat', null);
+    if (!st || !st.sid || Date.now() - (st.t || 0) > 3 * 864e5) st = { sid: rid(), t: Date.now(), msgs: [], asked: 0, gift: 0 };
+    function keep() { st.t = Date.now(); st.msgs = st.msgs.slice(-40); save('tdl_chat', st); }
+    var zl = 'https://zalo.me/' + (CFG.zalo || ''), busy = false, built = false, box, body, form, inp, quick;
+    function build() {
+      if (built) return; built = true;
+      box = document.createElement('div'); box.className = 'ch'; box.id = 'tdlChat'; box.hidden = true;
+      box.setAttribute('role', 'dialog'); box.setAttribute('aria-label', 'Trợ lý ' + C.name);
+      box.innerHTML = '<div class="ch-head"><img src="/assets/img/brand/emblem.png" alt="" width="36" height="36"><div class="ch-who"><b>' + esc(C.name) + '</b><small><i class="ch-dot"></i>Trợ lý ảo · trả lời ngay</small></div>'
+        + '<a class="ch-zl" href="' + esc(zl) + '" target="_blank" rel="noopener" data-ch-zalo="head" title="Nhắn Zalo cho chuyên viên">Zalo</a><button type="button" class="ch-x" aria-label="Đóng khung chat">' + ICON.close + '</button></div>'
+        + '<div class="ch-body" aria-live="polite"></div><div class="ch-quick"></div>'
+        + '<form class="ch-form"><textarea rows="1" maxlength="600" placeholder="Nhập câu hỏi của anh/chị…" aria-label="Câu hỏi"></textarea><button type="submit" class="ch-send" aria-label="Gửi">'
+        + '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.4 20.4 21 12 3.4 3.6l.1 6.5L15 12l-11.5 1.9z"/></svg></button></form>'
+        + '<p class="ch-note">Trợ lý ảo có thể nhầm. Thông tin để tham khảo, không thay lời khuyên của bác sĩ. <a href="' + esc(C.privacy) + '">Bảo mật</a></p>';
+      document.body.appendChild(box);
+      body = $('.ch-body', box); form = $('.ch-form', box); inp = $('textarea', form); quick = $('.ch-quick', box);
+      $('.ch-x', box).addEventListener('click', close);
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !box.hidden) close(); });
+      inp.addEventListener('input', grow);
+      inp.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); ask(inp.value); } });
+      form.addEventListener('submit', function (e) { e.preventDefault(); ask(inp.value); });
+      quick.addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) { track('chat_quick', { q: b.textContent }); ask(b.textContent); } });
+      body.addEventListener('click', onBodyClick);
+      body.addEventListener('submit', onLeadSubmit);
+      box.addEventListener('click', function (e) { var z = e.target.closest('[data-ch-zalo]'); if (z) track('click_zalo', { location: 'chat_' + z.getAttribute('data-ch-zalo') }); });
+      render();
+    }
+    function grow() { inp.style.height = 'auto'; inp.style.height = Math.min(inp.scrollHeight, 120) + 'px'; }
+    function md(s) { // chữ AI → HTML an toàn: **đậm**, gạch đầu dòng, link
+      var out = [], ul = false;
+      String(s).split(/\n/).forEach(function (ln) {
+        var h = esc(ln.trim()).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/(https?:\/\/[^\s<)]+[^\s<).,;:!?])/g, function (u) {
+          return '<a href="' + u + '"' + (u.indexOf(location.origin) === 0 || u.indexOf('https://thucduonglanh.vn') === 0 ? '' : ' target="_blank" rel="noopener"') + '>' + u.replace(/^https?:\/\/(www\.)?/, '').slice(0, 48) + '</a>';
+        });
+        var li = /^[-•*]\s+/.test(ln.trim());
+        if (li && !ul) { out.push('<ul>'); ul = true; } else if (!li && ul) { out.push('</ul>'); ul = false; }
+        if (li) out.push('<li>' + h.replace(/^[-•*]\s+/, '') + '</li>'); else if (h) out.push('<p>' + h + '</p>');
+      });
+      if (ul) out.push('</ul>');
+      return out.join('');
+    }
+    function card(slug) {
+      var p = BY[slug]; if (!p) return '';
+      var vs = (p.variants || []).filter(function (v) { return v.price != null; }), pr = vs.length ? Math.min.apply(null, vs.map(function (v) { return v.price; })) : p.price;
+      return '<a class="ch-card" href="' + esc(p.url) + '" data-ch-sp="' + esc(slug) + '"><img src="' + esc(p.img) + '" alt="" width="56" height="56" loading="lazy"><span><b>' + esc(p.short || p.name) + '</b><em>' + (vs.length > 1 ? 'Từ ' : '') + money(pr) + '</em></span><i>Xem & đặt →</i></a>';
+    }
+    function botHTML(t) {
+      var sp = [], zalo = false;
+      var clean = String(t).replace(/\[\[sp:([a-z0-9-]+)\]\]/g, function (m, s) { if (sp.indexOf(s) < 0) sp.push(s); return ''; }).replace(/\[\[zalo\]\]/g, function () { zalo = true; return ''; }).trim();
+      var h = md(clean) + sp.slice(0, 2).map(card).join('');
+      if (zalo) h += '<div class="ch-acts"><a class="ch-act ch-act-z" href="' + esc(zl) + '" target="_blank" rel="noopener" data-ch-zalo="reply">💬 Nhắn Zalo chuyên viên</a>' + (giftLead() ? '' : '<button type="button" class="ch-act" data-ch-lead="call">📞 Để lại số, chuyên viên gọi lại</button>') + '</div>';
+      return h;
+    }
+    function bubble(r, html) { var d = document.createElement('div'); d.className = 'ch-m ch-' + r; d.innerHTML = html; body.appendChild(d); return d; }
+    function scroll() { body.scrollTop = body.scrollHeight; }
+    function render() {
+      body.innerHTML = '';
+      bubble('a', md(C.greet || ('Dạ em là ' + C.name + ', anh/chị cần em hỗ trợ gì ạ?')));
+      st.msgs.forEach(function (m) { bubble(m.r, m.r === 'u' ? md(m.t) : botHTML(m.t)); });
+      if (st.gift === 1 && !st.done) giftCard(); else if (st.done) doneCard();
+      quick.innerHTML = st.msgs.length ? '' : (C.quick || []).map(function (q) { return '<button type="button">' + esc(q) + '</button>'; }).join('');
+      scroll();
+    }
+    function hours() { var d = new Date(Date.now() + 7 * 36e5), h = d.getUTCHours(), w = d.getUTCDay(); return w >= 1 && w <= 6 && h >= 8 && h < 17; }
+    function giftKey() { return C.eb && /khớp|xương|gout|gút|thoái hóa|thoái hoá|loãng xương|đau gối|đau lưng/i.test(st.msgs.map(function (m) { return m.r === 'u' ? m.t : ''; }).join(' ')) ? 'ebook' : 'camnang'; }
+    function giftCard(why) {
+      var old = $('.ch-gift', body); if (old) old.remove();
+      var l = giftLead(), key = giftKey(), what = key === 'ebook' ? 'Ebook “Dinh Dưỡng cho Cơ Xương Khớp” + video thực đơn 7 ngày' : 'Cẩm nang “Sống khỏe chủ động” (32 trang, có sách nói)';
+      var txt = why === 'call' ? 'Anh/chị để lại tên và số Zalo, chuyên viên sẽ ' + (hours() ? 'liên hệ ngay' : 'liên hệ từ 8h sáng') + ' ạ. Kèm quà: ' + what + (C.wvc ? ' + mã giảm 5% đơn đầu' : '') + '.'
+        : (key === 'camnang' && C.gtext ? C.gtext : what + (C.wvc ? ' + mã giảm 5% đơn đầu' : '') + ' + chuyên viên tư vấn riêng qua Zalo. Hoàn toàn miễn phí.');
+      var d = bubble('a ch-gift', '<b class="ch-gt">' + esc(C.gtitle) + '</b><p>' + esc(txt) + '</p>' + (l
+        ? '<p class="ch-gq">Em gửi quà vào số <b>' + esc(l.phone.replace(/^(\d{4})\d+(\d{3})$/, '$1***$2')) + '</b> của ' + esc(l.name || 'anh/chị') + ' nhé?</p><button type="button" class="btn btn-buy ch-gbtn" data-ch-quick="' + key + '">🎁 Nhận quà 1 chạm</button><button type="button" class="ch-link" data-ch-other>Dùng số khác</button>'
+        : leadForm(key)));
+      d.setAttribute('data-key', key); d.setAttribute('data-why', why || 'gift'); scroll();
+    }
+    function leadForm(key) {
+      return '<form class="ch-lf" data-key="' + key + '" novalidate><input name="name" autocomplete="name" placeholder="Tên anh/chị" maxlength="60"><input name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="Số Zalo, ví dụ 0912 345 678" maxlength="16">'
+        + '<button type="submit" class="btn btn-buy ch-gbtn">🎁 Nhận quà miễn phí</button><small>Bấm nhận quà là anh/chị đồng ý để Thực Dưỡng Lành liên hệ tư vấn qua số này. <a href="' + esc(C.privacy) + '" target="_blank" rel="noopener">Chính sách bảo mật</a></small><p class="ch-err" hidden></p></form>';
+    }
+    function doneCard() {
+      var key = st.done || 'camnang', url = key === 'ebook' ? C.eb : giftUrl('camnang', C.cn);
+      bubble('a ch-gift ch-done', '<b class="ch-gt">✅ Em đã gửi quà cho anh/chị</b>' + (url ? '<a class="btn btn-buy ch-gbtn" href="' + esc(url) + '" target="_blank" rel="noopener" data-cta="chat_gift_open">📖 Mở ' + (key === 'ebook' ? 'ebook' : 'cẩm nang') + ' ngay</a>' : '')
+        + (C.wvc ? '<p>🎟 Mã <b>' + esc(C.wvc) + '</b> đã tự lưu, tự trừ tiền khi anh/chị đặt hàng trên web.</p>' : '')
+        + '<p>Chuyên viên sẽ nhắn Zalo cho anh/chị ' + (hours() ? 'trong ít phút tới' : 'từ 8h sáng') + '. Anh/chị cứ hỏi tiếp em nhé!</p>');
+    }
+    function onBodyClick(e) {
+      var sp = e.target.closest('[data-ch-sp]'); if (sp) { track('chat_product_click', { item_id: sp.getAttribute('data-ch-sp') }); if (matchMedia('(min-width:641px)').matches) sessionStorage.setItem('tdl_ch_open', '1'); return; }
+      var lb = e.target.closest('[data-ch-lead]'); if (lb) { st.gift = 1; keep(); giftCard('call'); var f = $('.ch-lf input', body); if (f) f.focus(); return; }
+      var q = e.target.closest('[data-ch-quick]'); if (q) { var l = giftLead(); if (l) sendLead(l.name, l.phone, q.getAttribute('data-ch-quick'), true, q); return; }
+      var o = e.target.closest('[data-ch-other]'); if (o) { var g = o.closest('.ch-gift'); g.querySelector('.ch-gq').remove(); g.querySelector('[data-ch-quick]').remove(); o.insertAdjacentHTML('beforebegin', leadForm(g.getAttribute('data-key'))); o.remove(); }
+    }
+    function onLeadSubmit(e) {
+      var f = e.target.closest('.ch-lf'); if (!f) return; e.preventDefault();
+      var name = f.elements.name.value.trim(), phone = normPhone(f.elements.phone.value), err = $('.ch-err', f);
+      if (!name || !phone) { err.hidden = false; err.textContent = !name ? 'Anh/chị cho em xin tên nhé.' : 'Số điện thoại chưa đúng (10 số, bắt đầu bằng 0).'; (!name ? f.elements.name : f.elements.phone).focus(); return; }
+      sendLead(name, phone, f.getAttribute('data-key'), false, $('button', f));
+    }
+    function sendLead(name, phone, key, again, btn) {
+      btn.disabled = true; btn.textContent = 'Đang gửi…';
+      var title = key === 'ebook' ? 'Ebook Dinh Dưỡng cho Cơ Xương Khớp' : 'Cẩm nang Sống khỏe chủ động', why = (btn.closest('.ch-gift') || box).getAttribute('data-why') || 'gift';
+      fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ type: 'chat_lead', sid: st.sid, name: name, phone: phone, gift: title + (C.wvc ? ' + mã ' + C.wvc : ''), again: again, source: sourceLabel().last }) })
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          if (!j || !j.ok) throw new Error(j && j.error || 'Lỗi');
+          var gifts = (giftLead() || {}).gifts || []; if (gifts.indexOf(key) < 0) gifts.push(key);
+          save('tdl_lead', { name: name, phone: phone, concern: (giftLead() || {}).concern || [], gifts: gifts, t: Date.now() }); save(GIFT_KEY[key], { t: Date.now() });
+          if (C.wvc && !load('tdl_wvc', null)) { save('tdl_wvc', { t: Date.now() }); if (!load('tdl_vc_code', '') && !load('tdl_vc', null)) save('tdl_vc_code', C.wvc); }
+          track('generate_lead', { form: 'chat', location: why, returning: again ? 1 : 0 });
+          st.gift = 1; st.done = key; keep();
+          var g = $('.ch-gift', body); if (g) g.remove(); doneCard(); scroll();
+        })
+        .catch(function (e) { btn.disabled = false; btn.textContent = '🎁 Thử gửi lại'; var er = $('.ch-err', body); if (er) { er.hidden = false; er.textContent = String(e.message || 'Mạng chập chờn, anh/chị bấm gửi lại giúp em.'); } });
+    }
+    function ask(q) {
+      q = String(q || '').trim(); if (!q || busy) return;
+      busy = true; inp.value = ''; grow(); quick.innerHTML = '';
+      var g = $('.ch-gift:not(.ch-done)', body); // khách hỏi tiếp khi chưa điền quà → để thẻ quà xuống dưới cùng sau câu trả lời
+      if (g) g.remove();
+      bubble('u', md(q)); st.msgs.push({ r: 'u', t: q }); st.asked = (st.asked || 0) + 1; keep();
+      var typing = bubble('a ch-typing', '<span></span><span></span><span></span>'); scroll();
+      track('chat_message', { n: st.asked });
+      var done = function (t) {
+        typing.remove(); busy = false;
+        bubble('a', botHTML(t)); st.msgs.push({ r: 'a', t: t }); keep();
+        if (!st.done && (st.gift === 1 || (!st.gift && st.asked >= (C.after || 2)))) { if (!st.gift) track('chat_gift_offer', {}); st.gift = 1; keep(); giftCard(); }
+        scroll(); if (matchMedia('(min-width:641px)').matches) inp.focus();
+      };
+      fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ type: 'chat', sid: st.sid, text: q, page: location.pathname + ' – ' + document.title, source: sourceLabel().last }) })
+        .then(function (r) { return r.json(); })
+        .then(function (j) { if (j && j.lead) { st.gift = 1; st.done = st.done || 'camnang'; } done(j && j.reply ? j.reply : 'Dạ em chưa trả lời được lúc này, anh/chị nhắn Zalo cho chuyên viên giúp em nhé. [[zalo]]'); })
+        .catch(function () { done('Dạ mạng đang chập chờn, anh/chị gửi lại câu hỏi giúp em nhé. Cần gấp thì nhắn Zalo cho chuyên viên ạ. [[zalo]]'); });
+    }
+    function open(trigger, prefill) {
+      build(); if (!box.hidden) { if (prefill) { inp.value = prefill; grow(); inp.focus(); } return; }
+      box.hidden = false; document.body.classList.add('ch-on'); requestAnimationFrame(function () { box.classList.add('on'); });
+      var fw = $('#floatWidget'); if (fw) { fw.classList.remove('open', 'dial'); }
+      if (prefill) { inp.value = prefill; grow(); }
+      scroll(); if (matchMedia('(min-width:641px)').matches || prefill) inp.focus();
+      track('chat_open', { trigger: trigger || 'button' });
+    }
+    function close() { box.classList.remove('on'); document.body.classList.remove('ch-on'); sessionStorage.removeItem('tdl_ch_open'); setTimeout(function () { box.hidden = true; }, 200); }
+    document.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-chat]'); if (!b) return;
+      e.preventDefault(); open(b.getAttribute('data-chat-from') || 'button', b.getAttribute('data-chat') || '');
+    });
+    try { if (sessionStorage.getItem('tdl_ch_open') === '1' && matchMedia('(min-width:641px)').matches) open('continue'); } catch (e) { }
+  }
+
   function initFlipbook() {
     $$('[data-flipbook]').forEach(function (v) {
       v.addEventListener('click', function () {
@@ -1412,7 +1565,7 @@
     captureSource(); initConsent(); trackPageEvents();
     renderCounts(); renderMini(); markWish();
     initHeader(); initClicks(); initRail(); initLightbox(); initProduct(); initCerts(); initProof(); initTabs(); initReadmore(); initSort();
-    initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initJourneyMap(); initPledge(); initWall(); initWallStrip(); initQuiz(); initGiftDock(); initZaloGate(); initOcx(); initMusic(); initBrandVideo();
+    initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initJourneyMap(); initPledge(); initWall(); initWallStrip(); initQuiz(); initGiftDock(); initZaloGate(); initOcx(); initMusic(); initBrandVideo(); initChat();
     window.addEventListener('storage', function (e) { if (e.key === 'tdl_cart') { cart = load('tdl_cart', []); cleanCart(); renderCounts(); renderMini(); } });
   }
   // ===== Hành trình 10 triệu người Việt sống khỏe hơn: bộ đếm [data-jr] + trang "Tôi chọn sống lành" /toi-chon-song-lanh/ (api journey.js) =====

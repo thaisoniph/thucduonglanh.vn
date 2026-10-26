@@ -709,18 +709,22 @@ def float_widget():
         chips = "".join(f'<a class="fw-chip" href="/san-pham/{p["slug"]}/">{esc(p.get("short_name") or p["name"])}</a>' for p in PRODUCTS if p.get("featured"))
     msgs = [m.strip() for m in (fc.get("messages") or []) if m and m.strip()] or [t("Anh/chị đang tìm hiểu sản phẩm nào ạ? Em sẵn sàng tư vấn ngay cho anh/chị nhé!")]
     rot = f' data-fw-msgs="{esc(json.dumps(msgs, ensure_ascii=False))}" data-fw-sec="{max(3, int(fc.get("seconds") or 7))}"' if len(msgs) > 1 else ""
+    cb = chat_cfg()  # 💬 trợ lý chat: logo tròn / lời chào mở khung chat, thêm nút "Hỏi An Lành" (máy tính: đầu danh sách; điện thoại: trong nút Tư vấn)
+    ai_chip = f'<button type="button" class="fw-chip fw-ai" data-chat data-chat-from="float_chip">💬 Hỏi {esc(cb["name"])} · trả lời ngay</button>' if cb else ""
+    ai_dial = f'<button type="button" class="fw-btn fw-aib" data-chat data-chat-from="dial" aria-label="Hỏi trợ lý {esc(cb["name"])}"><span class="fw-aic">💬</span><span class="fw-tx">Hỏi trợ lý {esc(cb["name"])}</span></button>' if cb else ""
+    chat_attr = ' data-chat data-chat-from="float_main"' if cb else ""
     return f'''
 <div class="float-widget" id="floatWidget">
   <div class="fw-pop" id="fwPop">
     <button class="fw-x" id="fwClose" aria-label="{t("Ẩn")}">{I["close"]}</button>
-    <div class="fw-msg"><div class="fw-name"><img src="/assets/img/brand/emblem.png" alt="" width="22" height="22">{BRAND}</div>
+    <div class="fw-msg"{chat_attr.replace("float_main", "float_msg")}><div class="fw-name"><img src="/assets/img/brand/emblem.png" alt="" width="22" height="22">{BRAND}</div>
     <p class="fw-say" aria-live="polite"{rot}>{esc(msgs[0])}</p></div>
-    <div class="fw-chips">{f'<a class="fw-chip fw-gift" href="{esc(CN_PATH)}?tu=float" data-cta="camnang_float">🎁 Nhận cẩm nang sống khỏe</a>' if CN_PATH else f'<a class="fw-chip fw-gift" href="{esc(ebook_href("float"))}"{ebook_target()} data-cta="ebook_float">🎁 Nhận ebook miễn phí</a>' if ebook_href("float") else ""}{chips}<a class="fw-chip" href="{zalo_link()}" target="_blank" rel="noopener">{t("Liên hệ tư vấn")}</a></div>
+    <div class="fw-chips">{ai_chip}{f'<a class="fw-chip fw-gift" href="{esc(CN_PATH)}?tu=float" data-cta="camnang_float">🎁 Nhận cẩm nang sống khỏe</a>' if CN_PATH else f'<a class="fw-chip fw-gift" href="{esc(ebook_href("float"))}"{ebook_target()} data-cta="ebook_float">🎁 Nhận ebook miễn phí</a>' if ebook_href("float") else ""}{chips}<a class="fw-chip" href="{zalo_link()}" target="_blank" rel="noopener">{t("Liên hệ tư vấn")}</a></div>
   </div>
-  <a class="fw-btn fw-phone" href="tel:{tel(SITE["hotline"])}" aria-label="{t("Gọi")} {esc(SITE["hotline"])}">{I["phone"]}<span class="fw-tx">{t("Gọi")} {esc(SITE["hotline"])}</span></a>
+  {ai_dial}<a class="fw-btn fw-phone" href="tel:{tel(SITE["hotline"])}" aria-label="{t("Gọi")} {esc(SITE["hotline"])}">{I["phone"]}<span class="fw-tx">{t("Gọi")} {esc(SITE["hotline"])}</span></a>
   <a class="fw-btn fw-zalo" href="{zalo_link()}" target="_blank" rel="noopener" aria-label="Chat Zalo">{I["zalo"]}<span class="fw-tx">{t("Nhắn Zalo")}</span></a>
   <button type="button" class="fw-dial" id="fwDial" aria-expanded="false"><span class="fw-d-on">💬 {t("Tư vấn")}</span><span class="fw-d-off">✕ {t("Đóng")}</span></button>
-  <button class="fw-btn fw-main" id="fwToggle" aria-label="{t("Mở hộp tư vấn")}"><img src="/assets/img/brand/icon-180.png" alt="" width="56" height="56"></button>
+  <button class="fw-btn fw-main" id="fwToggle"{chat_attr} aria-label="{t("Mở hộp tư vấn")}"><img src="/assets/img/brand/icon-180.png" alt="" width="56" height="56"></button>
 </div>'''
 
 
@@ -2386,8 +2390,10 @@ def page_product(p):
     related = [x for x in PRODUCTS if x["slug"] != p["slug"] and x["category"] == p["category"]]
     related += [x for x in PRODUCTS if x["slug"] != p["slug"] and x not in related]
     faqs = product_faqs(p, purchasable)
+    cb = chat_cfg()
+    ask_btn = f'<div class="pfaq-ask"><span>Chưa thấy câu anh/chị cần?</span><button type="button" class="btn btn-outline" data-chat="Cho em hỏi về {esc(p.get("short_name") or p["name"])}: " data-chat-from="product_faq">💬 Hỏi {esc(cb["name"])} – trả lời ngay</button></div>' if cb else ""
     faq_box = f'<section class="pfaq-wrap" id="hoi-dap"><h2 class="sec-title left">{t("Câu hỏi thường gặp")}</h2>' + "".join(
-        f'<details class="pfaq-q"><summary>{esc(q)}</summary><div class="pfaq-a">{md(a)}</div></details>' for q, a in faqs) + "</section>" if faqs else ""
+        f'<details class="pfaq-q"><summary>{esc(q)}</summary><div class="pfaq-a">{md(a)}</div></details>' for q, a in faqs) + ask_btn + "</section>" if faqs else ""
     body = f'''<section class="section pt-2"><div class="container">
   {bc}
   <div class="product{" product-cbl" if landing else ""}" data-product="{p["slug"]}">
