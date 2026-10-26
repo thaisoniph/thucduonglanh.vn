@@ -228,8 +228,10 @@ Bấm 1 nút thời gian ở trên cùng: *Hôm nay, Tuần này, Tháng này…
 ![Tab Hiệu quả](/huong-dan/img/crm-hieuqua.webp)
 
 - **Thanh mục tiêu:** vạch đen là hôm nay. Thanh màu vượt vạch đen = **đúng tiến độ**.
-- **4 ô lớn** (mỗi ô so với chính bạn kỳ trước):
-    - **💰 Doanh số**: tổng tiền bạn bán được.
+- **6 ô lớn** (mỗi ô so với chính bạn kỳ trước):
+    - **💰 Doanh số**: tổng tiền các đơn bạn lên, **kể cả đơn bị hoàn / huỷ**. Dòng 🎯 bên dưới là số tính mục tiêu, thi đua: đã trừ đơn hoàn / huỷ.
+    - **💵 Doanh thu**: tiền đơn đã giao xong hoặc đã nhận chuyển khoản.
+    - **↩️ Hoàn / huỷ**: bao nhiêu % đơn của bạn bị hoàn hoặc huỷ. Dưới 5% là tốt. Gọi xác nhận trước khi gửi hàng thì số này giảm.
     - **🎯 Chốt được**: cứ 10 người hỏi thì bạn chốt được mấy người.
     - **🛒 Mỗi đơn**: trung bình mỗi đơn bao nhiêu tiền. Tư vấn combo, 2–3 hộp thì số này tăng.
     - **🔁 Khách cũ mua lại**: bao nhiêu khách cũ quay lại mua.

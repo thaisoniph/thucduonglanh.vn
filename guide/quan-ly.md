@@ -125,9 +125,10 @@ Mã giảm giá gửi riêng cho **khách cũ, đối tác**. Trên web không q
 Tab đầu tiên, dành cho chủ doanh nghiệp. **Nhìn 5 giây là nắm được tình hình.**
 
 - **6 ô lớn**: 💵 Doanh thu · 💰 Doanh số · 🙋 Khách mới mua · 🔁 Khách mua lại · 📣 Quảng cáo · ↩️ Hoàn / huỷ.
-    - **Doanh số** = tiền các đơn đã đặt.
-    - **Doanh thu** = tiền các đơn **đã thu được** (đã giao, hoặc đã nhận chuyển khoản).
-    - Cả hai đều không tính đơn huỷ, đơn trả lại.
+    - **Doanh số** = tiền **mọi đơn đã đặt**, kể cả đơn sau này bị huỷ hoặc hoàn. Dòng nhỏ dưới ô ghi số còn lại sau khi trừ hoàn / huỷ.
+    - **Doanh thu** = tiền các đơn **đã thu được** (đã giao, hoặc đã nhận chuyển khoản). Không có đơn huỷ, đơn hoàn.
+    - **↩️ Hoàn / huỷ** = bao nhiêu % đơn bị hoàn hoặc huỷ, và mất bao nhiêu tiền. Đây là chỉ số của sale.
+- **Mỗi tab cho một người xem:** 📊 **Tổng quan** cho chủ doanh nghiệp · 📣 **Marketing** cho bạn chạy quảng cáo · 📈 **Hiệu quả** cho sale và chăm sóc khách.
 - **Đèn**: 🟢 tốt · 🟠 cần để ý · 🔴 cần xử lý. Quảng cáo: chi phí dưới 30% tiền khách mới mua = 🟢, 30–40% = 🟠, trên 40% = 🔴. Đổi mức ở **Cài đặt → 🚦 Mức đèn Tổng quan**.
 - **📌 Cần chú ý**: tối đa 5 việc máy tự rút ra. Bấm **Xem →** để mở đúng chỗ.
 - **4 nút đi thẳng**: 📊 Bán hàng · 📣 Marketing · 🛒 Sàn · 📍 Link & QR.
