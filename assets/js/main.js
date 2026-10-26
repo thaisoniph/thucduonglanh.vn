@@ -1470,8 +1470,8 @@
     function giftCard(why) {
       var old = $('.ch-gift', body); if (old) old.remove();
       var l = giftLead(), key = giftKey(), what = key === 'ebook' ? 'Ebook “Dinh Dưỡng cho Cơ Xương Khớp” + video thực đơn 7 ngày' : 'Cẩm nang “Sống khỏe chủ động” (32 trang, có sách nói)';
-      var txt = why === 'call' ? 'Anh/chị để lại tên và số Zalo, chuyên viên sẽ ' + (hours() ? 'liên hệ ngay' : 'liên hệ từ 8h sáng') + ' ạ. Kèm quà: ' + what + (C.wvc ? ' + mã giảm 5% đơn đầu' : '') + '.'
-        : (key === 'camnang' && C.gtext ? C.gtext : what + (C.wvc ? ' + mã giảm 5% đơn đầu' : '') + ' + chuyên viên tư vấn riêng qua Zalo. Hoàn toàn miễn phí.');
+      var txt = why === 'call' ? 'Anh/chị để lại tên và số Zalo, chuyên viên sẽ ' + (hours() ? 'liên hệ ngay' : 'liên hệ từ 8h sáng') + ' ạ. Kèm quà: ' + what + (C.wvc && C.wvp ? ' + mã giảm thêm ' + C.wvp + '% tổng tiền hàng' : '') + '.'
+        : (key === 'camnang' && C.gtext ? C.gtext : what + (C.wvc && C.wvp ? ' + mã giảm thêm ' + C.wvp + '% tổng tiền hàng' : '') + ' + chuyên viên tư vấn riêng qua Zalo. Hoàn toàn miễn phí.');
       var d = bubble('a ch-gift', '<b class="ch-gt">' + esc(C.gtitle) + '</b><p>' + esc(txt) + '</p>' + (l
         ? '<p class="ch-gq">Em gửi quà vào số <b>' + esc(l.phone.replace(/^(\d{4})\d+(\d{3})$/, '$1***$2')) + '</b> của ' + esc(l.name || 'anh/chị') + ' nhé?</p><button type="button" class="btn btn-buy ch-gbtn" data-ch-quick="' + key + '">🎁 Nhận quà 1 chạm</button><button type="button" class="ch-link" data-ch-other>Dùng số khác</button>'
         : leadForm(key)));
@@ -1484,7 +1484,10 @@
     function doneCard() {
       var key = st.done || 'camnang', url = key === 'ebook' ? C.eb : giftUrl('camnang', C.cn);
       bubble('a ch-gift ch-done', '<b class="ch-gt">✅ Em đã gửi quà cho anh/chị</b>' + (url ? '<a class="btn btn-buy ch-gbtn" href="' + esc(url) + '" target="_blank" rel="noopener" data-cta="chat_gift_open">📖 Mở ' + (key === 'ebook' ? 'ebook' : 'cẩm nang') + ' ngay</a>' : '')
-        + (C.wvc ? '<p>🎟 Mã <b>' + esc(C.wvc) + '</b> đã tự lưu, tự trừ tiền khi anh/chị đặt hàng trên web.</p>' : '')
+        + (C.wvc ? '<div class="ch-wvc"><b>🎟 Mã ' + esc(C.wvc) + (C.wvp ? ': giảm thêm ' + C.wvp + '% tổng tiền hàng' : '') + '</b><ul>'
+          + (C.wvp ? '<li>Ví dụ đơn ' + money(400000) + ' được giảm ' + money(4000 * C.wvp) + '.</li>' : '')
+          + '<li>Mã đã tự lưu trên máy này, <b>tự trừ khi đặt hàng trên web</b>, không cần nhập.</li><li>Dùng 1 lần cho mỗi số điện thoại, không cần đơn tối thiểu.</li>'
+          + (C.fs ? '<li>Đơn từ ' + money(C.fs) + ' vẫn được miễn phí ship.</li>' : '') + '</ul></div>' : '')
         + '<p>Chuyên viên sẽ nhắn Zalo cho anh/chị ' + (hours() ? 'trong ít phút tới' : 'từ 8h sáng') + '. Anh/chị cứ hỏi tiếp em nhé!</p>');
     }
     function onBodyClick(e) {

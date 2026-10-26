@@ -3324,7 +3324,8 @@ def chat_cfg():
             "quick": [q for q in (CHAT.get("quick") or []) if q][:6], "after": max(1, int(num(CHAT.get("gift_after")) or 2)),
             "gtitle": CHAT.get("gift_title") or "🎁 Quà tặng", "gtext": CHAT.get("gift_text") or "",
             "cn": CN.get("reader", "") if CN_PATH else "", "eb": eb.get("flipbook", ""),
-            "wvc": wv.get("code", "") if wv.get("enabled") else "", "hours": SITE.get("opening_hours", ""),
+            "wvc": wv.get("code", "") if wv.get("enabled") else "", "wvp": num((re.search(r"(\d+)\s*%", wv.get("label") or "") or [0, 0])[1]) or 0,
+            "fs": SITE.get("free_ship_threshold") or 0, "hours": SITE.get("opening_hours", ""),
             "privacy": "/chinh-sach-bao-mat/"}
 
 
@@ -3374,7 +3375,7 @@ def chat_kb():
         out += ["## Quà tặng miễn phí trên web"] + [f"- {g['title']} ({g['sub']}): " + ("" if g["href"].startswith("http") else DOMAIN) + gift_href(g, "chat") for g in gl]
     wv = SITE.get("welcome_voucher") or {}
     if wv.get("enabled") and wv.get("code"):
-        out.append(f"- Khách để lại tên và số Zalo để nhận quà thì được thêm mã {wv['code']} ({wv.get('label', '')}) cho đơn đầu trên web.")
+        out.append(f"- Khách để lại tên và số Zalo để nhận quà thì được thêm mã {wv['code']} ({wv.get('label', '')} tổng tiền hàng khi đặt trên web): không cần đơn tối thiểu, không giới hạn số tiền giảm, mỗi số điện thoại dùng 1 lần; mã tự lưu và tự trừ lúc đặt hàng, không cần nhập. Miễn phí ship vẫn tính theo tiền hàng trước khi giảm (đơn từ {money(SITE.get('free_ship_threshold') or 0)}).")
     if WEB_OFFER.get("gift_enabled") and WEB_OFFER.get("gift_title"):
         out.append(f"- Quà khi vào nhóm Zalo / mua trên web: {WEB_OFFER['gift_title']}")
     out.append("")
