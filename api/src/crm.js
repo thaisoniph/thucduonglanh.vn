@@ -3,6 +3,7 @@ import { normPhone, nrm, esc, fmt, startOfDay, TZ_MS, fmtDate, dateOrBlank, slug
 import { crmPartner, partnerSchema, orderAttrib } from './partner.js';
 import { chatSchema } from './chat.js';
 import { zbotSchema, crmZbot } from './zbot.js';
+import { fbSchema, crmFp } from './fb.js';
 import { sendMail, telegram, telegramTo, telegramPhoto, tgUpdates, tgConf, bridge } from './google.js';
 import { crmGa, crmGaProp } from './ga.js';
 import { crmMkt } from './mkt.js';
@@ -18,7 +19,7 @@ import { wbQueue, wbOrderQueue, wbStatusQueue, WB_SHORT } from './wb.js';
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-10-26z'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
+const SCHEMA_V = '2026-10-27a'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -115,6 +116,7 @@ export async function ensureSchema(db) {
     await partnerSchema(db); // 🤝 CTV / đối tác + 🎁 khách giới thiệu (api/src/partner.js)
     await chatSchema(db); // 💬 trợ lý chat trên web (api/src/chat.js)
     await zbotSchema(db); // 🤖 trợ lý nhóm Zalo (api/src/zbot.js)
+    await fbSchema(db); // 📘 trợ lý Fanpage Facebook (api/src/fb.js)
     schemaDone = true;
     if (deltaOk) await run(db, "INSERT INTO kv (k, v) VALUES ('schema_v', ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v, exp = NULL", SCHEMA_V);
   } catch (e) {
@@ -1752,7 +1754,7 @@ async function crmFbUpdate(x, u, d) {
 
 /* ================================================================ điều phối */
 /** Việc tài khoản Marketing được làm: xem tab Marketing, nhập chi phí (file / nhập tay), góp ý, Telegram, cài đặt màu, đo tốc độ. Mọi việc khác máy chủ từ chối. */
-const MKT_ACTIONS = { link_list: 1, link_save: 1, link_active: 1, load: 1, mktv: 1, mkt_tg_test: 1, mkt_goal: 1, mkt_import: 1, mkt_add: 1, mkt_list: 1, mkt_kpi: 1, quiz_cms: 1, mkt_del: 1, prefs: 1, tg_link: 1, tg_check: 1, tg_off: 1, perf: 1, usage: 1, feedback: 1, fb_list: 1, fb_img: 1, offers: 1, offer_save: 1, offer_del: 1, wall_hide: 1, zb_view: 1, zb_cfg: 1, zb_post: 1, zb_regen: 1, zb_send: 1 };
+const MKT_ACTIONS = { link_list: 1, link_save: 1, link_active: 1, load: 1, mktv: 1, mkt_tg_test: 1, mkt_goal: 1, mkt_import: 1, mkt_add: 1, mkt_list: 1, mkt_kpi: 1, quiz_cms: 1, mkt_del: 1, prefs: 1, tg_link: 1, tg_check: 1, tg_off: 1, perf: 1, usage: 1, feedback: 1, fb_list: 1, fb_img: 1, offers: 1, offer_save: 1, offer_del: 1, wall_hide: 1, zb_view: 1, zb_cfg: 1, zb_post: 1, zb_regen: 1, zb_send: 1, fp_view: 1, fp_page: 1, fp_resub: 1, fp_post: 1, fp_now: 1, fp_regen: 1, fp_send: 1 };
 export async function crmApi(x, d, sync, mgr) {
   await ensureSchema(x.db);
   const a = d.action;
@@ -1810,6 +1812,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (a === 'merge_skip') return crmMergeSkip(x, u, d);
   if (a === 'merge') return crmMerge(x, u, d);
   if (/^zb_/.test(a)) return crmZbot(x, u, d, crmLog); // 🤖 Trợ lý Zalo An Lành (Quản lý, Quản trị, Marketing)
+  if (/^fp_/.test(a)) return crmFp(x, u, d, crmLog); // 📘 Trợ lý Fanpage (Quản lý, Quản trị, Marketing; kết nối: Quản trị)
   if (/^link_/.test(a)) return crmLinks(x, u, d, crmLog); // 📍 Link & mã QR (Marketing, Quản lý, Quản trị)
   if (/^voucher_/.test(a)) return crmVoucher(x, u, d, crmLog); // 🎟 Mã ưu đãi (Quản lý trở lên)
   if (a === 'ref_code' || a === 'ref_gift' || /^partner_/.test(a)) { // 🎁 mã giới thiệu / quà cảm ơn (sale làm cho khách mình) · 🤝 CTV (Quản lý trở lên)

@@ -131,7 +131,7 @@ Tab đầu tiên, dành cho chủ doanh nghiệp. **Nhìn 5 giây là nắm đư
 - **Mỗi tab cho một người xem:** 📊 **Tổng quan** cho chủ doanh nghiệp · 📣 **Marketing** cho bạn chạy quảng cáo · 📈 **Hiệu quả** cho sale và chăm sóc khách.
 - **Đèn**: 🟢 tốt · 🟠 cần để ý · 🔴 cần xử lý. Quảng cáo: chi phí dưới 30% tiền khách mới mua = 🟢, 30–40% = 🟠, trên 40% = 🔴. Đổi mức ở **Cài đặt → 🚦 Mức đèn Tổng quan**.
 - **📌 Cần chú ý**: tối đa 5 việc máy tự rút ra. Bấm **Xem →** để mở đúng chỗ.
-- **5 nút đi thẳng**: 📊 Bán hàng · 📣 Marketing · 🛒 Sàn · 📍 Link & QR · 🤖 Trợ lý Zalo (cách dùng: [Marketing](/huong-dan/marketing/)).
+- **6 nút đi thẳng**: 📊 Bán hàng · 📣 Marketing · 🛒 Sàn · 📍 Link & QR · 🤖 Trợ lý Zalo · 📘 Fanpage (cách dùng: [Marketing](/huong-dan/marketing/), [Fanpage](/huong-dan/fanpage/)).
 - **🔎 Xem chi tiết**: mục tiêu từng mảng (Sale, Website, Shopee, TikTok Shop), bán hàng văn phòng, quảng cáo từng kênh, sàn, sản phẩm bán chạy, website (lượt xem, đơn web, video câu chuyện được xem ở đâu…).
 
 Chọn thời gian ở hàng nút trên cùng. Kỳ đang chạy so với **cùng số ngày** của kỳ trước (ví dụ 1–12/10 so với 1–12/9), cho công bằng.

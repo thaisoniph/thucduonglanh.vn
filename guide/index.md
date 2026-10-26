@@ -15,6 +15,7 @@ Chào bạn! Trang này giúp bạn biết **mình cần đọc phần nào**. B
 | **Bán hàng, chăm sóc khách** | [CRM](/huong-dan/crm/) (đọc trước), rồi [CRM thêm](/huong-dan/crm-them/) khi cần |
 | **Quản lý nhóm bán hàng** | [CRM](/huong-dan/crm/), rồi [Quản lý](/huong-dan/quan-ly/) |
 | **Marketing, phụ trách sàn** | [Marketing](/huong-dan/marketing/) |
+| **Chăm fanpage Facebook** | [Fanpage](/huong-dan/fanpage/) |
 | **Đăng bài, sửa sản phẩm trên web** | [Website](/huong-dan/website/) |
 
 > **CRM là gì?** Là một trang web giống **cuốn sổ ghi khách hàng**. Mọi khách, mọi đơn hàng đều nằm trong đó. Bạn gọi khách xong thì bấm vào CRM. Máy tự nhớ, tự nhắc bạn hôm nào gọi lại.

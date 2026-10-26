@@ -76,7 +76,7 @@ const slotTime = (day, at) => { const [h, m] = String(at || '07:30').split(':').
 const groupName = (st, gid) => ((st && st.groups || []).find(g => g.id === gid) || {}).name || 'nhóm';
 
 /** Sản phẩm trong kiến thức (chat-kb.txt): mã → tên, link, ảnh */
-function prodMap(know) {
+export function prodMap(know) {
   const out = {};
   for (const part of String(know).split('\n## Sản phẩm: ').slice(1)) {
     const name = part.split('\n')[0].trim(), code = (part.match(/\[\[sp:([a-z0-9-]+)\]\]/) || [])[1], img = (part.match(/\n- Ảnh: (\S+)/) || [])[1];

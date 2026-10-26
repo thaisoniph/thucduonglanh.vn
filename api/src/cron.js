@@ -9,6 +9,7 @@ import { mktDailyMsgs } from './mktv.js';
 import { wbTick } from './wb.js';
 import { backfillCustomerExtras } from './migrate.js';
 import { zbotTick } from './zbot.js';
+import { fpTick } from './fb.js';
 
 function careMessage(items, leads, today, isGroup, who, R) {
   const block = (title, arr, tip) => !arr.length ? '' : '\n\n<b>' + title + ' (' + arr.length + ')</b> – ' + tip + '\n' + arr.slice(0, 25).map(c =>
@@ -128,6 +129,7 @@ export async function scheduled(x, cron) {
   try { await backfillCustomerExtras(x); } catch (e) { console.error('backfill', e.message); } // 1 lần: Zalo / cộng đồng / ngày sinh từ Sheet cũ
   try { await mktTick(x); } catch (e) { console.error('mktTick', e.message); } // chi phí Facebook Ads: 3 tiếng 1 lần
   try { await zbotTick(x); } catch (e) { console.error('zbotTick', e.message); } // 🤖 trợ lý Zalo: soạn bài đăng nhóm trước 1 ngày, báo khi mất kết nối
+  try { await fpTick(x); } catch (e) { console.error('fpTick', e.message); } // 📘 trợ lý Fanpage: nhắc khách chưa để số, đăng bài tới giờ, soạn bài trước
   const last = Number(await kvGet(x.db, 'mirror_last') || 0);
   if (now - last > 6 * 3600e3 - 5 * 60e3) { try { // đọc toàn bộ dữ liệu → 6 tiếng 1 lần
      await mirror(x); } catch (e) { console.error('mirror', e.message); await kvSet(x.db, 'mirror_last', String(now)); await kvSet(x.db, 'mirror_err', fmtDate(now, 'HH:mm dd/MM') + ': ' + String(e.message).slice(0, 300)); } } // lỗi thì 6 tiếng sau mới thử lại (mỗi lần thử đọc hết dữ liệu)

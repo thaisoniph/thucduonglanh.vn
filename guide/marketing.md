@@ -188,6 +188,10 @@ Kiểm tra kỹ trước khi đăng: giá, ưu đãi đúng với web; không c�
 
 **Khi Telegram báo "🤖 TRỢ LÝ ZALO CẦN NGƯỜI THẬT"**: khách hỏi việc riêng (đơn hàng, giá sỉ, bệnh cụ thể…). Sale nhắn riêng cho khách trên Zalo trong ngày.
 
+## Trợ lý Fanpage Facebook
+
+Trợ lý An Lành trả lời bình luận, nhắn tin Messenger, tặng quà, mời vào nhóm Zalo và soạn bài đăng cho các fanpage. Cách dùng: [Fanpage](/huong-dan/fanpage/).
+
 ## Tin Telegram mỗi sáng
 
 Nối Telegram ở **⚙ Cài đặt → 📲 Thông báo Telegram riêng** (cách làm giống bên sale, xem [Đăng nhập](/huong-dan/crm/#dang-nhap)). 8h sáng bạn nhận tin **"📣 Marketing sáng nay"**: hạng thi đua của bạn, tiến độ mục tiêu, số hôm qua, việc nên làm. Muốn xem ngay: cuối tab Marketing bấm **Gửi thử cho tôi**.

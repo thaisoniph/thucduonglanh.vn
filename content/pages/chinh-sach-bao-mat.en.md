@@ -21,13 +21,15 @@ Only when you click "Accept" on the cookie notice does {brand} turn on Google An
 
 When you tick "I agree to receive advice, product usage reminders and promotions", {brand} may contact you by phone or Zalo to give usage instructions, send usage reminders and share promotions, and may show you relevant offers on Facebook. For Facebook, your phone number is encrypted on {brand}'s own device before being sent for matching, so Facebook never receives the original number. You can ask us to stop at any time by telling our staff or calling {hotline}.
 
+When you comment or send a message on {brand}'s Facebook pages, an automated assistant (using artificial intelligence) reads the content to reply and send gifts. {brand} stores your Facebook name, the conversation and any phone number you choose to send, so our staff can keep advising you by phone or Zalo. Comments containing a phone number are hidden from other people. You can type "talk to staff" at any time.
+
 ## 5. Retention period
 
 Your information is retained until you request its deletion, or as required by law.
 
 ## 6. Your rights
 
-You have the right to request to access, update, correct or delete your personal information by contacting us at **{email}** or hotline **{hotline}**.
+You have the right to request to access, update, correct or delete your personal information by contacting us at **{email}** or hotline **{hotline}**. For data from Facebook and Messenger, send your deletion request via our page's messages, email or hotline; {brand} deletes it within 7 working days and confirms with you.
 
 ## 7. Entity collecting and managing the information
 

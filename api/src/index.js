@@ -13,9 +13,10 @@ import { journeyCounts, pledge, quiz, wall } from './journey.js';
 import { apply } from './apply.js';
 import { chat, chatLead } from './chat.js';
 import { zbot, zbotLead } from './zbot.js';
+import { fbRoute } from './fb.js';
 export { AiRelay } from './airelay.js'; // Durable Object chuyển tiếp lời gọi AI qua Bắc Mỹ
 
-const API_VERSION = '2026-10-26z'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
+const API_VERSION = '2026-10-27a'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
 const ORIGINS = /^https:\/\/((www\.|crm\.|mkt\.|congsu\.|camnangsongkhoe\.)?thucduonglanh\.vn|([a-z0-9-]+\.)?(thucduonglanh(-crm|-congsu)?|camnang-song-khoe-thuc-duong-lanh)\.pages\.dev)$|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
 function ctxOf(env, ectx) { return { env, db: env.DB, later: p => ectx.waitUntil(Promise.resolve(p).catch(e => console.error('later', e && e.message))) }; }
@@ -96,6 +97,10 @@ export default {
     if (path.startsWith('/gh/') || path.startsWith('/cms/')) { // trang quản trị website đăng nhập bằng email (cms.js)
       try { await ensureSchema(x.db); const r = await cmsRoute(x, req, path); if (r) return r; }
       catch (err) { console.error('cms', err && err.stack || err); return json({ ok: false, message: String(err && err.message || err) }, origin, 500); }
+    }
+    if (path.startsWith('/fb/')) { // 📘 trợ lý Fanpage: webhook Facebook + đăng nhập kết nối trang (fb.js)
+      try { await ensureSchema(x.db); const r = await fbRoute(x, req, path, url); if (r) return r; }
+      catch (err) { console.error('fb', err && err.stack || err); return new Response('error', { status: 500 }); }
     }
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: ORIGINS.test(origin) ? { 'Access-Control-Allow-Origin': origin, 'Access-Control-Allow-Methods': 'GET, POST', 'Access-Control-Allow-Headers': 'Content-Type', 'Access-Control-Max-Age': '86400' } : {} });
     try {

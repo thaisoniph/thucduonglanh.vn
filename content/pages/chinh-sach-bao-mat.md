@@ -23,13 +23,15 @@ Khi quý khách đánh dấu "Đồng ý nhận tư vấn, nhắc lịch dùng s
 
 Khi quý khách bấm "Tôi chọn sống lành" trên website, tên đầy đủ chỉ dùng để in ảnh chứng nhận ngay trên máy của quý khách, {brand} không lưu. Chỉ khi quý khách tự bấm nút "Tôi chọn sống lành và hiện tên trên Bức tường", {brand} mới lưu và hiển thị công khai tên đã che bớt (ví dụ Nguyễn Thu Hà hiện là N.T. Hà), kèm tỉnh/thành nếu quý khách chọn, tại trang Bức tường Sống Lành. Quý khách có thể yêu cầu gỡ tên bất kỳ lúc nào qua Zalo hoặc hotline {hotline}.
 
+Khi quý khách bình luận hoặc nhắn tin trên fanpage Facebook của {brand}, trợ lý tự động (có dùng trí tuệ nhân tạo) đọc nội dung để trả lời và gửi quà. {brand} lưu tên Facebook, nội dung trò chuyện và số điện thoại quý khách tự gửi để chuyên viên tiếp tục tư vấn qua điện thoại hoặc Zalo. Bình luận có số điện thoại được ẩn để người khác không thấy. Quý khách có thể nhắn "gặp nhân viên" bất kỳ lúc nào.
+
 ## 5. Thời gian lưu trữ
 
 Thông tin được lưu trữ cho đến khi quý khách yêu cầu hủy bỏ hoặc theo quy định của pháp luật.
 
 ## 6. Quyền của khách hàng
 
-Quý khách có quyền yêu cầu kiểm tra, cập nhật, điều chỉnh hoặc xóa thông tin cá nhân bằng cách liên hệ email **{email}** hoặc hotline **{hotline}**.
+Quý khách có quyền yêu cầu kiểm tra, cập nhật, điều chỉnh hoặc xóa thông tin cá nhân bằng cách liên hệ email **{email}** hoặc hotline **{hotline}**. Với dữ liệu từ Facebook và Messenger, quý khách gửi yêu cầu xóa qua tin nhắn fanpage, email hoặc hotline; {brand} xóa trong vòng 7 ngày làm việc và báo lại cho quý khách.
 
 ## 7. Đơn vị thu thập và quản lý thông tin
 
