@@ -705,10 +705,12 @@ export async function adsSync(x, u, dry) {
   const nextFrom = async (pool, key) => { if (!(key in rr)) rr[key] = (await kvGet(x.db, key)) || ''; const n = pool[(pool.indexOf(rr[key]) + 1) % pool.length]; rr[key] = n; return n; };
   const scan = [], reg = [], regFrom = Date.now() - 100 * DAY; // reg: mọi dòng có SĐT trong 100 ngày → đếm data quảng cáo (tỷ lệ chốt), không phụ thuộc việc tạo khách hỏi
   const keep = {}, keepRaw = {}, rowsOf = {}, AL = await phoneAlias(x), mp = p => AL[p] || p; // mp: số phụ của khách đã gộp → số chính. Cột Trùng sale: {sđt: sale phụ trách khách} (dòng dưới cùng có ghi thắng) – không phụ thuộc file sale nào nhập trước
-  const sheets = [];
+  const sheets = [], missing = [];
   for (const sc of (cfg.sheets || []).filter(s => s.on)) {
     const m = sc.map || cfg.map || {}, hr = sc.header || 1;
-    const vals = await sheetValues(x.env, cfg.fileId, a1(sc.name, 'A' + (hr + 1) + ':' + colLetter(neededCols({ map: m }) - 1)), 'UNFORMATTED_VALUE');
+    let vals;
+    try { vals = await sheetValues(x.env, cfg.fileId, a1(sc.name, 'A' + (hr + 1) + ':' + colLetter(neededCols({ map: m }) - 1)), 'UNFORMATTED_VALUE'); }
+    catch (e) { if (!/Unable to parse range/i.test(e.message)) throw e; missing.push(sc.name); continue; } // tab bị xoá / đổi tên (26/10/2026: xoá tab "Sữa CurCumin" làm dừng cả file 10 ngày) → bỏ qua tab đó, các tab khác vẫn chạy
     sheets.push({ sc, m, hr, vals });
     if (m.dup !== undefined) vals.forEach((r, i) => {
       const ph = mp(toPhone(cell(r, m, 'phone'))), t = String(cell(r, m, 'dup') || '').trim(); if (!ph) return;
@@ -749,7 +751,7 @@ export async function adsSync(x, u, dry) {
     ids[id] = 1; openBy[phone] = owner; perSale[owner] = (perSale[owner] || 0) + 1; perSheet[sc.name] = (perSheet[sc.name] || 0) + 1;
   }
   const res = { ok: true, newLeads: rows.length, merged, perSale, perSheet, skipped, writes: writes.length, mode: cfg.mode, since };
-  res.keep = kres;
+  res.keep = kres; if (missing.length) { res.missing = missing; console.error('ads', 'Không thấy tab: ' + missing.join(', ')); }
   if (dry || !rows.length) return res;
   await insertMany(x.db, 'leads', LEAD_COLS, rows, 'ON CONFLICT(id) DO NOTHING');
   const wd = []; writes.forEach(w => { if (w.col !== undefined) wd.push({ range: a1(w.sheet, colLetter(w.col) + w.row), values: [[w.val]] }); if (w.dupCol !== undefined) wd.push({ range: a1(w.sheet, colLetter(w.dupCol) + w.row), values: [[w.val]] }); });
