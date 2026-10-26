@@ -3343,6 +3343,8 @@ def chat_kb():
            f"Tên trợ lý: {CHAT.get('name') or 'An Lành'} – {CHAT.get('role') or ''}. Giờ làm việc của chuyên viên: {SITE.get('opening_hours', '')}. Hotline / Zalo: {SITE['hotline']} (Zalo: {zalo_link()}).", ""]
     for p in PRODUCTS:
         out += [f"## Sản phẩm: {p['name']}", f"- Mã gợi ý thẻ sản phẩm: [[sp:{p['slug']}]]", f"- Link: {DOMAIN}/san-pham/{p['slug']}/", f"- Giá trên web: {money_of(p)}"]
+        if p.get("images"):
+            out.append(f"- Ảnh: {DOMAIN}{img_url(p['images'][0], 1000)}")  # trợ lý nhóm Zalo (api/src/zbot.js) lấy ảnh này đăng kèm bài
         if p.get("free_ship"):
             out.append("- Miễn phí giao hàng")
         for k, lb in (("unit", "Quy cách"), ("summary", "Tóm tắt"), ("pitch", "Điểm chính"), ("manufacturer", "Nhà sản xuất"), ("tagline", "Thông điệp"), ("subline", "Mô tả")):

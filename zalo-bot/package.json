@@ -1,0 +1,13 @@
+{
+  "name": "thucduonglanh-zalo-bot",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Trợ lý An Lành trong nhóm Zalo Thực Dưỡng Lành (xem README.md)",
+  "scripts": { "start": "node bot.js" },
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "sharp": "0.34.4",
+    "zca-js": "2.2.0"
+  }
+}

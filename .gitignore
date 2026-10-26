@@ -14,3 +14,10 @@ api/.wrangler/
 api/node_modules/
 output/i18n-missing-*.txt
 dist-congsu/
+# trợ lý Zalo: bí mật + phiên đăng nhập chỉ ở máy chạy trợ lý
+zalo-bot/.env
+zalo-bot/creds.json
+zalo-bot/qr.png
+zalo-bot/tmp/
+zalo-bot/node_modules/
+zalo-bot/*.log

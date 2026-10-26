@@ -83,6 +83,7 @@
     search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>',
     qr: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></svg>',
     mega: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a1 1 0 0 0 1 1h3l6 4V6L7 10H4a1 1 0 0 0-1 1z"/><path d="M17 9a4 4 0 0 1 0 6"/><path d="M8 14l1.5 5h2.5l-1.5-5"/></svg>',
+    bot: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="3"/><path d="M12 8V4M8 4h8M9 14h.01M15 14h.01"/></svg>',
     shop: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>'
   };
 
@@ -676,6 +677,7 @@
     { id: 'bao-cao', label: 'Hiệu quả', icon: 'chart' },
     { id: 'marketing', label: 'Marketing', icon: 'mega', mkt: 1 }, // quyền Marketing: chỉ thấy tab này + Cài đặt; Quản trị vào từ Tổng quan (không chiếm chỗ trên menu)
     { id: 'link-qr', label: 'Link & QR', short: 'QR', icon: 'qr', lq: 1 }, // 📍 link / mã QR theo dõi nguồn khách: Marketing, Quản lý, Quản trị (Quản trị vào từ Tổng quan / Marketing)
+    { id: 'tro-ly-zalo', label: 'Trợ lý Zalo', short: 'Zalo', icon: 'bot', lq: 1 }, // 🤖 trợ lý An Lành trong nhóm Zalo (api/src/zbot.js): cùng quyền với Link & QR
     { id: 'san', label: 'Sàn', icon: 'shop', san: 1 }, // doanh số Shopee / TikTok Shop: Quản trị + người phụ trách sàn (Quản trị vào từ Tổng quan, không chiếm chỗ trên menu)
     { id: 'cai-dat', label: 'Cài đặt', icon: 'gear' }
   ];
@@ -787,7 +789,7 @@
     var keepScroll = lastView === v, y = window.scrollY;
     var el = $('#view');
     var focusId = document.activeElement && document.activeElement.id, selStart = document.activeElement && document.activeElement.selectionStart;
-    el.innerHTML = ({ 'hom-nay': viewToday, 'khach-hang': viewCustomers, 'don-hang': viewOrders, 'tiem-nang': viewLeads, 'bao-cao': viewReport, 'cai-dat': viewSettings, 'tong-quan': viewDash, san: viewSan, marketing: viewMkt, 'link-qr': viewLinks })[v]();
+    el.innerHTML = ({ 'hom-nay': viewToday, 'khach-hang': viewCustomers, 'don-hang': viewOrders, 'tiem-nang': viewLeads, 'bao-cao': viewReport, 'cai-dat': viewSettings, 'tong-quan': viewDash, san: viewSan, marketing: viewMkt, 'link-qr': viewLinks, 'tro-ly-zalo': viewZbot })[v]();
     el.insertAdjacentHTML('beforeend', updatedLine());
     if (focusId && $('#' + focusId)) { var f = $('#' + focusId); f.focus(); try { f.setSelectionRange(selStart, selStart); } catch (e) { } }
     if (keepScroll) window.scrollTo(0, y); else window.scrollTo(0, 0);
@@ -3592,7 +3594,7 @@
         !M ? (MK.err ? '⚠️ Chưa tải được chi phí' : '⏳ đang tải…') : M.tot ? 'Chi ' + moneyShort(M.tot) + (M.nr ? ' = ' + Math.round(M.tot * 100 / M.nr) + '% doanh số khách mới' : ', chưa có khách mới mua') + ' · tốt: dưới ' + dashAds()[0] + '%' : 'Chưa có chi phí quảng cáo trong kỳ', ads === null ? '' : sparkSvg(dashAdsSeries(T.tr.B, M, sj), T.tr.B.partial)) +
       dashTile('biz', T.vs.pct === null ? '' : T.vs.pct < 5 ? 'ok' : T.vs.pct < 10 ? 'mid' : 'bad', '↩️ Hoàn / huỷ', T.vs.pct === null ? '–' : T.vs.pct + '%', T.vs.pct !== null && T.vsp.pct !== null ? inv(delta(T.vs.pct, T.vsp.pct, 'rate')) : '',
         (T.vs.n ? T.vs.v + ' / ' + T.vs.n + ' đơn văn phòng · dưới 5% là tốt' : 'Chưa có đơn văn phòng trong kỳ') + (T.vRev ? '<br>Tiền hoàn / huỷ ' + moneyShort(T.vRev) + ' = ' + pct(T.vRev, T.rev) + '% doanh số' + (T.sanV ? ' (sàn ' + moneyShort(T.sanV) + ')' : '') : ''), sparkSvg(T.tr.vd, T.tr.B.partial, true)) +
-      '</div><div class="dash-go"><a class="btn" href="#bao-cao">📊 Bán hàng</a><a class="btn" href="#marketing">📣 Marketing</a><a class="btn" href="#san">🛒 Sàn</a><a class="btn" href="#link-qr">📍 Link & QR</a></div>';
+      '</div><div class="dash-go"><a class="btn" href="#bao-cao">📊 Bán hàng</a><a class="btn" href="#marketing">📣 Marketing</a><a class="btn" href="#san">🛒 Sàn</a><a class="btn" href="#link-qr">📍 Link & QR</a><a class="btn" href="#tro-ly-zalo">🤖 Trợ lý Zalo</a></div>';
     if (G) {
       var say = G.p >= 1 ? '🎉 Đã đạt mục tiêu, vượt <b>' + moneyShort(gl.cur - gl.tt) + '</b>.' : G.isCur ? 'Còn <b>' + G.left + ' ngày</b>, mỗi ngày cần bán khoảng <b>' + moneyShort(G.perDay) + '</b>' + (G.el >= 3 ? ' · giữ nhịp hiện nay thì cả tháng được khoảng ' + moneyShort(G.fc) + ' (' + pct(G.fc, gl.tt) + '%)' : '') + '.' : 'Cả tháng đạt ' + Math.round(G.p * 100) + '% mục tiêu.';
       h += '<div class="goal dash-goal ' + G.lv + '" role="button" tabindex="0" data-dgo="goal"><div class="goal-h"><b>🎯 Mục tiêu ' + monthLabel(month) + (sj ? '' : ' <small class="muted">(⏳ chưa gồm sàn)</small>') + '</b><span class="goal-st">' + GOAL_LV[G.lv] + '</span></div>' +
@@ -4116,6 +4118,123 @@
     if (v[0] === 'qr') return lqQrOpen(l);
     if (v[0] === 'ed') return lqForm(l);
     if (v[0] === 'cs' || v[0] === 'ct') { copy(v[0] === 'cs' ? l.short : l.target).then(function () { toast(v[0] === 'cs' ? 'Đã chép link in QR ✓' : 'Đã chép link quảng cáo ✓'); }); }
+  });
+  /* ---------------------------------------------------------------- 🤖 Trợ lý Zalo An Lành (api/src/zbot.js, chương trình ở zalo-bot/)
+   * Tài khoản Zalo "Trợ lý An Lành" làm phó nhóm: chào người mới, trả lời câu hỏi, chúc mừng khách nhận quà trên web, tự duyệt người đã để số, đăng bài sáng / tối.
+   * Tab này: xem trợ lý có đang chạy không, sửa / duyệt / bỏ bài AI soạn trước, gửi tin vào nhóm, cài đặt, xem trợ lý vừa làm gì. Quản lý, Quản trị, Marketing. */
+  var ZB = { d: null, busy: 0, err: '' };
+  var ZB_KIND = { welcome: ['👋', 'Chào người mới'], answer: ['💬', 'Trả lời trong nhóm'], handoff: ['🙋', 'Cần người thật (nhóm)'], react: ['❤️', 'Thả tim'], dm: ['📩', 'Trả lời tin riêng'], dm_handoff: ['🙋', 'Cần người thật (tin riêng)'],
+    post: ['📝', 'Đăng bài'], send: ['📣', 'Đăng tin nhân sự gửi'], announce: ['🎉', 'Chúc mừng nhận quà'], friend: ['🤝', 'Kết bạn'], error: ['⚠️', 'Lỗi'], skip: ['🤐', 'Không trả lời'] };
+  function zbFetch() {
+    ZB.busy = 1; ZB.err = '';
+    api('zb_view', {}).then(function (j) { ZB.d = j; }, function (e) { ZB.err = /Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message; })
+      .then(function () { ZB.busy = 0; if (route().view === 'tro-ly-zalo') render(); });
+  }
+  function zbDay(day) { var t = new Date(day.slice(0, 4) + '-' + day.slice(4, 6) + '-' + day.slice(6, 8) + 'T12:00:00+07:00').getTime(), d0 = today(); return dayStart(t) === d0 ? 'Hôm nay' : dayStart(t) === d0 + DAY ? 'Ngày mai' : dayStart(t) === d0 - DAY ? 'Hôm qua' : day.slice(6, 8) + '/' + day.slice(4, 6); }
+  function zbSlot(id) { return (ZB.d.cfg.slots || []).filter(function (s) { return s.id === id; })[0] || { id: id, at: '', on: false }; }
+  function viewZbot() {
+    if (!ZB.d && !ZB.err && !ZB.busy) setTimeout(zbFetch, 0);
+    var h = '<div class="page-head"><h1>🤖 Trợ lý Zalo An Lành</h1><div class="grow"></div><button class="btn pri" data-zb="send">📣 Gửi tin vào nhóm</button></div>' +
+      '<p class="muted small lq-intro">Tài khoản Zalo <b>“Trợ lý An Lành”</b> làm phó nhóm: chào người mới, trả lời câu hỏi, chúc mừng khách vừa nhận quà trên web, tự duyệt người đã để số, đăng bài sáng và tối. Câu nào cần người thật thì báo Telegram.</p>';
+    if (!ZB.d) return h + '<div class="box"><p class="muted">' + (ZB.err ? '⚠️ ' + esc(ZB.err) + ' <button class="link" data-zb="reload">Thử lại</button>' : '⏳ Đang tải…') + '</p></div>';
+    var j = ZB.d, c = j.cfg, st = j.status, live = st && !st.down && j.now - st.at < 15 * 60e3, n = {};
+    (j.stats || []).forEach(function (r) { n[r.kind] = r.n; });
+    var g = function (k) { return n[k] || 0; };
+    // trạng thái
+    h += '<div class="box zb-status ' + (live && c.on ? 'ok' : 'bad') + '"><p><b>' + (!st ? '⚪ Chưa chạy lần nào' : !c.on ? '⏸ Đang tắt (bật lại ở Cài đặt bên dưới)' : live ? '🟢 Đang chạy' : '🔴 Mất kết nối') + '</b>' +
+      (st ? ' · lần cuối báo về ' + fDateTime(st.at) + (st.me && st.me.name ? ' · tài khoản <b>' + esc(st.me.name) + '</b>' : '') : '') + '</p>' +
+      (!st ? '<p class="small">Cần chạy chương trình trợ lý trên máy tính và quét mã QR bằng Zalo “Trợ lý An Lành” (hướng dẫn: thư mục zalo-bot/README.md).</p>' : !live && c.on ? '<p class="small">Kiểm tra máy đang chạy trợ lý: bật máy, có mạng. Nếu Telegram báo “bị đăng xuất” thì cần quét lại mã QR.</p>' : '') +
+      (!j.aiOn ? '<p class="small">⚠️ Máy chủ chưa có khoá AI nên trợ lý chưa trả lời, chưa soạn bài được.</p>' : '') + (!j.key ? '<p class="small">⚠️ Máy chủ chưa có mã ZBOT_KEY nên chương trình trợ lý chưa kết nối được.</p>' : '') +
+      (st && st.groups && st.groups.length ? '<p class="small">Nhóm đang chăm sóc: ' + st.groups.filter(function (x) { return c.groups.indexOf(x.id) >= 0; }).map(function (x) { return '<b>' + esc(x.name) + '</b> (' + x.total + ' người' + (x.admin ? '' : ', ⚠️ trợ lý chưa là phó nhóm nên chưa tự duyệt được') + ')'; }).join(', ') + (c.groups.length ? '' : '⚠️ chưa chọn nhóm nào (chọn ở Cài đặt)') + '</p>' : '') + '</div>';
+    // 7 ngày qua
+    h += '<h2 class="zb-h">7 ngày qua</h2><div class="metrics dash-m3">' + metric('👋 Chào người mới', g('welcome'), 'Mỗi lần chào có thể gồm nhiều người vào cùng lúc.', '') +
+      metric('💬 Trả lời trong nhóm', g('answer') + g('handoff'), g('react') ? 'Thả tim ' + g('react') + ' lần cho chia sẻ của thành viên.' : 'Chỉ trả lời câu hỏi chưa ai trong đội ngũ trả lời.', '') +
+      metric('📩 Trả lời tin riêng', g('dm') + g('dm_handoff'), 'Khách kết bạn, nhắn riêng cho trợ lý.', '') +
+      metric('🙋 Cần người thật', g('handoff') + g('dm_handoff'), 'Đã báo Telegram để nhân sự nhắn khách.', '') +
+      metric('📝 Bài đã đăng', g('post') + g('send'), '🎉 Chúc mừng nhận quà: ' + g('announce') + ' lần.', '') +
+      metric('✅ Khách web đã vào nhóm', (j.users && j.users.joined7) || 0, 'Tìm được Zalo của ' + ((j.users && j.users.known) || 0) + ' khách để lại số trên web.', '') + '</div>';
+    // bài đăng
+    var auto = c.mode === 'auto', days = [], P = {};
+    (j.posts || []).forEach(function (p) { P[p.id] = p; if (days.indexOf(p.day) < 0) days.push(p.day); });
+    var key = function (t) { var x = new Date(t + 7 * 3600e3); return x.getUTCFullYear() + pad(x.getUTCMonth() + 1) + pad(x.getUTCDate()); };
+    [key(j.now), key(j.now + DAY)].forEach(function (d) { if (days.indexOf(d) < 0) days.push(d); }); days.sort();
+    h += '<h2 class="zb-h">📝 Bài đăng nhóm</h2><p class="muted small">AI soạn trước theo lịch chủ đề trong tuần, dùng đúng thông tin sản phẩm trên web. ' + (auto ? '<b>Chế độ tự đăng</b>: tới giờ trợ lý tự đăng bài nháp. Thấy bài chưa ổn thì sửa ngay trong ô, hoặc bấm <b>⏸ Bỏ bài này</b>.' : '<b>Chế độ chờ duyệt</b>: chỉ bài đã bấm <b>✅ Duyệt</b> mới được đăng.') + '</p>';
+    days.forEach(function (d) {
+      (c.slots || []).forEach(function (sl) {
+        var p = P[d + '_' + sl.id]; if (!p && !sl.on) return;
+        var lbl = zbDay(d) + ' · ' + (sl.id === 'toi' ? '🌙 Bài tối' : '☀️ Bài sáng') + ' ' + sl.at;
+        if (!p) { if (new Date(d.slice(0, 4) + '-' + d.slice(4, 6) + '-' + d.slice(6, 8) + 'T' + (sl.at || '00:00') + ':00+07:00').getTime() < j.now) return; h += '<div class="box zb-post zb-none"><p><b>' + lbl + '</b> · <span class="muted">⏳ chưa soạn – AI soạn trước giờ đăng</span></p><button class="btn sm" data-zb="regen|' + d + '_' + sl.id + '">✍️ Soạn ngay</button></div>'; return; }
+        var badge = p.status === 'sent' ? '📤 Đã đăng ' + fDateTime(p.sent_at) : p.status === 'skip' ? '⏸ Đã bỏ, không đăng' : p.status === 'ok' ? '✅ Đã duyệt, sẽ đăng lúc ' + sl.at : auto ? '✍️ Nháp, sẽ tự đăng lúc ' + sl.at : '⏳ Chờ duyệt';
+        var done = p.status === 'sent';
+        h += '<div class="box zb-post zb-' + p.status + '"><div class="zb-ph"><b>' + lbl + '</b><span class="zb-badge">' + badge + '</span></div>' +
+          '<p class="small"><b>Chủ đề:</b> ' + esc(p.topic) + (p.img ? ' · 🖼 kèm ảnh sản phẩm' : '') + ' <span class="muted">· ' + (p.by_name && p.by_name !== 'AI' ? 'sửa bởi ' + esc(p.by_name) : 'AI soạn') + ' ' + fDateTime(p.at) + '</span></p>' +
+          (p.img ? '<img class="zb-img" src="' + esc(p.img) + '" alt="" loading="lazy">' : '') +
+          '<textarea class="zb-text" id="zbT_' + p.id + '" rows="' + Math.min(16, Math.max(4, String(p.text).split('\n').length + 1)) + '"' + (done ? ' readonly' : '') + '>' + esc(p.text) + '</textarea>' +
+          (done ? '' : '<div class="lq-btns"><button class="btn sm pri" data-zb="save|' + p.id + '">💾 Lưu sửa</button>' + (!auto && p.status !== 'ok' ? '<button class="btn sm" data-zb="ok|' + p.id + '">✅ Duyệt</button>' : '') +
+            (p.status === 'skip' ? '<button class="btn sm" data-zb="draft|' + p.id + '">▶️ Đăng lại bài này</button>' : '<button class="btn sm ghost" data-zb="skip|' + p.id + '">⏸ Bỏ bài này</button>') +
+            '<button class="btn sm ghost" data-zb="regen|' + p.id + '">🔄 Viết lại</button></div>') + '</div>';
+      });
+    });
+    h += '<p class="bar-legend">Chữ trong <b>**hai dấu sao**</b> sẽ in đậm trên Zalo. Bài nói về sản phẩm có ảnh sẽ kèm ảnh. Không đăng từ 21h45 tới 6h sáng.' + (j.err ? ' Lần soạn lỗi gần nhất: ' + esc(j.err) : '') + '</p>';
+    // cài đặt
+    var sg = (st && st.groups) || [], ck = function (k, t, sub) { return '<label class="zb-ck"><input type="checkbox" data-zbc="' + k + '"' + (c[k] ? ' checked' : '') + '><span><b>' + t + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</span></label>'; };
+    h += '<details class="box zb-set"><summary><b>⚙️ Cài đặt trợ lý</b></summary>' +
+      ck('on', 'Bật trợ lý', 'Tắt thì trợ lý im lặng hoàn toàn (không chào, không trả lời, không đăng).') +
+      '<p class="zb-sub"><b>Nhóm trợ lý chăm sóc</b></p>' + (sg.length ? sg.map(function (x) { return '<label class="zb-ck"><input type="checkbox" data-zbg="' + esc(x.id) + '"' + (c.groups.indexOf(x.id) >= 0 ? ' checked' : '') + '><span><b>' + esc(x.name) + '</b><small>' + x.total + ' người' + (x.admin ? ' · trợ lý là phó nhóm' : ' · ⚠️ trợ lý chưa là phó nhóm') + '</small></span></label>'; }).join('') : '<p class="small muted">Trợ lý chưa chạy hoặc chưa ở nhóm nào. Thêm tài khoản “Trợ lý An Lành” vào nhóm và đặt làm phó nhóm.</p>') +
+      '<p class="zb-sub"><b>Việc trợ lý làm</b></p>' + ck('welcome', 'Chào người mới vào nhóm', 'Gọi tên @… , gộp người vào trong 1 phút thành 1 tin.') + ck('answer', 'Trả lời câu hỏi trong nhóm', 'Chờ 1,5 phút; đội ngũ (trưởng / phó nhóm) trả lời trước thì trợ lý thôi. Người gọi tên trợ lý thì trả lời ngay.') +
+      ck('announce', 'Chúc mừng thành viên vừa nhận quà trên web', 'Chỉ tên Zalo + tên quà, không số điện thoại, không bệnh.') + ck('approve', 'Tự duyệt người xin vào nhóm đã để số trên web', 'Người lạ: báo Telegram để nhân sự duyệt tay. Cần bật “Duyệt thành viên” trong Zalo.') +
+      ck('approveAll', 'Tự duyệt tất cả người xin vào (kể cả chưa để số)', '') +
+      '<p class="zb-sub"><b>Bài đăng</b></p><label class="zb-ck"><input type="radio" name="zbMode" value="auto"' + (auto ? ' checked' : '') + '><span><b>Tự đăng</b><small>Tới giờ tự đăng bài nháp (vẫn sửa / bỏ được trước giờ đăng).</small></span></label>' +
+      '<label class="zb-ck"><input type="radio" name="zbMode" value="approve"' + (auto ? '' : ' checked') + '><span><b>Chờ duyệt</b><small>Chỉ đăng bài đã bấm Duyệt. AI soạn xong báo Telegram.</small></span></label>' +
+      (c.slots || []).map(function (sl) { return '<label class="zb-ck"><input type="checkbox" data-zbs="' + sl.id + '"' + (sl.on ? ' checked' : '') + '><span><b>' + (sl.id === 'toi' ? '🌙 Bài tối' : '☀️ Bài sáng') + '</b> lúc <input type="time" data-zbt="' + sl.id + '" value="' + esc(sl.at) + '" class="zb-time"></span></label>'; }).join('') +
+      '<label class="f"><span>Tối đa số câu trả lời / nhóm / giờ</span><input type="number" id="zbMax" min="1" max="30" value="' + (c.maxHour || 8) + '"></label>' +
+      '<button class="btn pri" data-zb="cfg">Lưu cài đặt</button></details>';
+    // nhật ký
+    h += '<h2 class="zb-h">🕘 Trợ lý vừa làm gì</h2>' + ((j.log || []).length ? '<div class="box zb-log">' + j.log.map(function (l) {
+      var k = ZB_KIND[l.kind] || ['•', l.kind];
+      return '<details><summary><span class="zb-t">' + fDateTime(l.at) + '</span> ' + k[0] + ' <b>' + k[1] + '</b>' + (l.name ? ' · ' + esc(l.name) : '') + (l.text ? ' <span class="muted">· ' + esc(l.text.slice(0, 80)) + '</span>' : '') + '</summary>' +
+        (l.text ? '<p class="small"><b>Tin:</b> ' + esc(l.text) + '</p>' : '') + (l.reply ? '<p class="small zb-rep"><b>Trợ lý:</b> ' + esc(l.reply).replace(/\n/g, '<br>') + '</p>' : '') + '</details>';
+    }).join('') + '</div>' : '<div class="box"><p class="muted">Chưa có hoạt động.</p></div>');
+    return h;
+  }
+  function zbSendOpen() {
+    var gs = ((ZB.d && ZB.d.status && ZB.d.status.groups) || []).filter(function (x) { return ZB.d.cfg.groups.indexOf(x.id) >= 0; });
+    if (!gs.length) return toast('Trợ lý chưa chạy hoặc chưa chọn nhóm (xem ⚙️ Cài đặt trợ lý).', true);
+    var m = modal('📣 Gửi tin vào nhóm', '<p class="small muted">Trợ lý đăng y nguyên nội dung này vào: ' + gs.map(function (x) { return '<b>' + esc(x.name) + '</b>'; }).join(', ') + '. Chữ trong **hai dấu sao** in đậm.</p>' +
+      '<label class="f"><span>Nội dung</span><textarea id="zbSendT" rows="8" maxlength="4000" placeholder="vd: 🌿 Chào cả nhà, tối nay 20h có buổi live…"></textarea></label>' +
+      '<label class="f"><span>Hẹn giờ (để trống = gửi ngay)</span><input type="datetime-local" id="zbSendAt"></label>',
+      '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="zbSendGo">Gửi</button>');
+    draftKeep($('#zbSendT', m), 'zbSend');
+    $('#zbSendGo', m).onclick = function () {
+      var b = this, t = $('#zbSendT', m).value.trim(), at = $('#zbSendAt', m).value;
+      if (t.length < 5) return toast('Bạn chưa nhập nội dung.', true);
+      b.disabled = true; api('zb_send', { text: t, at: at }).then(function () { store('zbSend', null); closeModal(); toast(at ? 'Đã hẹn giờ ✓ Trợ lý sẽ đăng đúng giờ.' : 'Đã gửi ✓ Trợ lý đăng trong khoảng 1 phút.'); zbFetch(); }, function (e) { b.disabled = false; toast(e.message, true); });
+    };
+  }
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-zb]'); if (!t) return;
+    var v = t.getAttribute('data-zb').split('|'), id = v[1] || '';
+    if (v[0] === 'reload') { ZB.err = ''; ZB.d = null; return render(); }
+    if (v[0] === 'send') return zbSendOpen();
+    var after = function (msg) { return function () { toast(msg); zbFetch(); }; }, fail = function (e) { t.disabled = false; toast(e.message, true); };
+    if (v[0] === 'save' || v[0] === 'ok' || v[0] === 'skip' || v[0] === 'draft') {
+      var ta = $('#zbT_' + id); t.disabled = true;
+      return api('zb_post', { id: id, text: ta ? ta.value : undefined, status: v[0] === 'save' ? undefined : v[0] }).then(after({ save: 'Đã lưu bài ✓', ok: 'Đã duyệt ✓ Tới giờ trợ lý sẽ đăng.', skip: 'Đã bỏ bài này, trợ lý sẽ không đăng.', draft: 'Đã dùng lại bài này ✓' }[v[0]]), fail);
+    }
+    if (v[0] === 'regen') {
+      var hint = prompt('Muốn AI viết lại thế nào? (vd: “nói về hạt óc chó”, “ngắn hơn”, “vui hơn”). Để trống = viết bài khác cùng chủ đề.', ''); if (hint === null) return;
+      var p = id.split('_'); t.disabled = true; t.textContent = '⏳ AI đang viết (khoảng 30 giây)…';
+      return api('zb_regen', { id: id, day: p[0], slot: p[1], hint: hint }).then(after('AI đã viết lại ✓ Xem và sửa nếu cần.'), fail);
+    }
+    if (v[0] === 'cfg') {
+      var box = t.closest('.zb-set'), cfg = { groups: [], slots: [] };
+      $$('[data-zbc]', box).forEach(function (x) { cfg[x.getAttribute('data-zbc')] = x.checked; });
+      $$('[data-zbg]', box).forEach(function (x) { if (x.checked) cfg.groups.push(x.getAttribute('data-zbg')); });
+      $$('[data-zbs]', box).forEach(function (x) { var sid = x.getAttribute('data-zbs'); cfg.slots.push({ id: sid, on: x.checked, at: $('[data-zbt="' + sid + '"]', box).value }); });
+      var md = $('input[name="zbMode"]:checked', box); if (md) cfg.mode = md.value; cfg.maxHour = Number($('#zbMax', box).value) || 8;
+      if (!$$('[data-zbg]', box).length) delete cfg.groups;
+      t.disabled = true; return api('zb_cfg', { cfg: cfg }).then(after('Đã lưu cài đặt ✓ Trợ lý áp dụng trong khoảng 1 phút.'), fail);
+    }
   });
   /** 💎 Giá trị 1 khách mới (90 ngày đầu) → nên chi tối đa bao nhiêu để có 1 khách mới. */
   function mkLtvBlock(mj, cpn) {
