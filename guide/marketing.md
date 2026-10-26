@@ -30,6 +30,7 @@ Màn hình đầu chỉ có **số quan trọng nhất**. Phần chi tiết thu 
 **6 ô số, chia 2 hàng, đọc từ trái sang phải:**
 
 - **Hàng 💵 Tiền:** 💸 tiền bỏ ra quảng cáo → 💰 tiền khách mới mua → 🚦 chi phí so với tiền khách mới.
+  - 💰 **Doanh số khách mới** tính **cả đơn hoàn / huỷ**. Đơn bị hoàn hay huỷ là việc của sale, không trừ vào điểm của marketing. Dòng nhỏ dưới ô cho biết trong đó có bao nhiêu tiền hoàn / huỷ.
 - **Hàng 📇 Data & khách:** 📇 chi phí có 1 data → 🛒 cứ 100 data có mấy người mua → 👤 chi phí có 1 khách mới.
 
 **"Data"** = 1 số điện thoại khách để lại khi xem quảng cáo.

@@ -3744,13 +3744,13 @@
     return sfb && /^(File |Nhập tay)/.test(o.source || '') ? 'Facebook' : '';
   }
   function chanEff(R, sj, prev, sfb) {
-    var C = {}, get = function (k) { return C[k] || (C[k] = { k: k, newN: 0, newRev: 0, oldRev: 0, oldN: 0 }); }, who = {};
-    S.d.orders.filter(function (o) { return !isVoid(o.status) && o.time >= R[0] && o.time < R[1]; }).sort(function (a, b) { return a.time - b.time; }).forEach(function (o) {
+    var C = {}, get = function (k) { return C[k] || (C[k] = { k: k, newN: 0, newRev: 0, newVoid: 0, oldRev: 0, oldN: 0 }); }, who = {};
+    S.d.orders.filter(function (o) { return o.time >= R[0] && o.time < R[1]; }).sort(function (a, b) { return a.time - b.time; }).forEach(function (o) {
       var ph = normPhone(o.phone) || o.id, cu = S.d.byPhone && S.d.byPhone[ph], t = o.total || 0;
       var isNew = !cu || !cu.first || cu.first >= R[0];
       if (!who[ph]) who[ph] = get(orderChan(o, sfb) || '?');
       var c = isNew ? who[ph] : get(orderChan(o, sfb) || '?');
-      if (isNew) { if (!c['_' + ph]) { c['_' + ph] = 1; c.newN++; } c.newRev += t; } else { c.oldRev += t; c.oldN++; }
+      if (isNew) { if (!c['_' + ph]) { c['_' + ph] = 1; c.newN++; } c.newRev += t; if (isVoid(o.status)) c.newVoid += t; } else { c.oldRev += t; c.oldN++; }
     });
     if (sj) (prev ? sj.prev.map(function (r) { return [r[0], r[1]]; }) : sj.days.map(function (r) { return [r[1], r[2]]; })).forEach(function (r) { var c = get(r[0]); c.san = 1; c.newRev += r[1] || 0; });
     return C;
@@ -4443,7 +4443,7 @@
     mj.days.forEach(function (r) { if (chInfo(r[1]).ret) return; ch[r[1]] = (ch[r[1]] || 0) + r[2]; tot += r[2]; day[r[0]] = (day[r[0]] || 0) + r[2]; }); // 👥 cộng đồng: không phải quảng cáo tìm khách mới
     mj.prev.forEach(function (r) { if (chInfo(r[0]).ret) return; chp[r[0]] = r[1]; totp += r[1]; });
     var E = mj.eff, Ep = mj.effPrev, nrOf = function (E0, sp) { var v = 0; Object.keys(E0).forEach(function (k) { if (!E0[k].san || sp[k]) v += E0[k].newRev; }); return v; };
-    var nr = nrOf(E, ch), nrp = nrOf(Ep, chp), newN = 0, newNp = 0; Object.keys(E).forEach(function (k) { newN += E[k].newN; }); Object.keys(Ep).forEach(function (k) { newNp += Ep[k].newN; });
+    var nr = nrOf(E, ch), nrp = nrOf(Ep, chp), newN = 0, newNp = 0, nVoid = 0; Object.keys(E).forEach(function (k) { newN += E[k].newN; if (!E[k].san || ch[k]) nVoid += E[k].newVoid || 0; }); Object.keys(Ep).forEach(function (k) { newNp += Ep[k].newN; });
     var rate = tot && nr ? tot * 100 / nr : null, ad = mj.ad, adp = mj.adPrev;
     // ---- màn hình đầu: 2 hàng ô số (Tiền · Data & khách) + thi đua + ngân sách + Nên làm gì
     var cpd = ad && ad.n && tot ? Math.round(tot / ad.n) : 0, cpdP = adp && adp.n && totp ? Math.round(totp / adp.n) : 0, cpn = newN && tot ? Math.round(tot / newN) : 0, LT = mkLtvBlock(mj, cpn);
@@ -4453,7 +4453,7 @@
     var kAn = kAd ? trendDays(KB, kAd, function (r) { return r[1][0]; }) : null, ksk = function (v, bad) { return v ? sparkSvg(v, KB.partial, bad) : ''; };
     h += '<section class="dash-hero mk-hero"><p class="mk-row-l">💵 Tiền</p><div class="dash-tiles mk3">' +
       dashTile('ch', '', '💸 Tiền bỏ ra quảng cáo', moneyShort(tot), inv(delta(tot, totp)), Object.keys(ch).sort(function (x, y) { return ch[y] - ch[x]; }).slice(0, 3).map(function (k) { return chInfo(k).icon + ' ' + esc(k) + ' ' + moneyShort(ch[k]); }).join(' · ') || 'Chưa có chi phí trong kỳ', ksk(kSp, 'n')) +
-      dashTile('ch', dashTrend(nr, nrp), '💰 Tiền khách mới mua', moneyShort(nr), delta(nr, nrp), newN + ' khách mới từ quảng cáo', ksk(kNr)) +
+      dashTile('ch', dashTrend(nr, nrp), '💰 Doanh số khách mới', moneyShort(nr), delta(nr, nrp), newN + ' khách mới từ quảng cáo · tính cả đơn hoàn / huỷ' + (nVoid ? ' (' + moneyShort(nVoid) + ', phần của sale)' : ''), ksk(kNr)) +
       dashTile('camp', tot ? adsLv(tot, nr) : '', '🚦 Chi phí / tiền khách mới', rate === null ? '–' : oneDec(rate) + '%', rate !== null && totp && nrp ? inv(dRate(rate, totp * 100 / nrp)) : '', 'Xanh dưới ' + A[0] + '% · đỏ trên ' + A[1] + '%' + (rate !== null ? ' · bỏ 1đ thu ' + oneDec(nr / tot) + 'đ' : ''), ksk(trendRateNZ(kSp, kNr, 100), true)) +
       '</div><p class="mk-row-l">📇 Data &amp; khách</p><div class="dash-tiles mk3">' +
       dashTile('data', kpGoal().sdt && cpd ? kpLv(cpd, kpGoal().sdt, 0, 0) : up(cpd, cpdP), '📇 Chi phí 1 data', cpd ? moneyShort(cpd) : '–', cpd && cpdP ? inv(delta(cpd, cpdP)) : '', ad ? ad.n.toLocaleString('vi-VN') + ' data (số khách để lại)' + (kpGoal().sdt ? ' · tốt: dưới ' + moneyShort(kpGoal().sdt) : '') + (adp && adp.n ? ' · ' + CMP_LABEL + ' ' + moneyShort(cpdP) + ' / data' : '') : 'Chưa có file số quảng cáo', ksk(trendRateNZ(kSp, kAn), true)) +

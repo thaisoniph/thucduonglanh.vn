@@ -46,7 +46,7 @@ function orderProds(items, total) {
  *  thêm: phễu (tot / totPrev), giá trung bình 1 kết quả mỗi kênh (cpr), theo sản phẩm (prod), giá trị khách mới 90 ngày (ltv), ngân sách tháng (budget). */
 export async function mktView(x, u, d) {
   if (![d.from, d.to, d.pf, d.pt].every(s => DAY_RE.test(String(s || '')))) return { ok: false, error: 'Khoảng thời gian chưa đúng.' };
-  const sfb = d.sfb !== false && d.sfb !== 0, key = 'mktv11_' + [d.from, d.to, d.pf, d.pt, sfb ? 1 : 0, u.level >= 3 ? 'a' : 'm'].join('_') + '_' + ((await kvGet(x.db, 'ads_rows_v')) || '');
+  const sfb = d.sfb !== false && d.sfb !== 0, key = 'mktv12_' + [d.from, d.to, d.pf, d.pt, sfb ? 1 : 0, u.level >= 3 ? 'a' : 'm'].join('_') + '_' + ((await kvGet(x.db, 'ads_rows_v')) || '');
   if (!d.fresh) { const c = await kvJson(x.db, key, null); if (c) return Object.assign(c, { cached: true }, await budgetOf(x)); }
   const R = [dayMs(d.from), dayMs(d.to) + DAY], P = [dayMs(d.pf), dayMs(d.pt) + DAY];
   const mid = iso(Math.floor((R[0] + R[1]) / 2 / DAY) * DAY); // chia đôi kỳ: tỷ lệ bấm nửa đầu ↔ nửa sau (quảng cáo có bị nhàm không)
@@ -64,7 +64,8 @@ export async function mktView(x, u, d) {
   ]);
   const ads = (adRows || []).map(a => [Number(a[0]) || 0, normPhone(a[1]), String(a[3] || ''), String(a[2] || '')]).filter(a => a[1]);
   const adFirst = {}; ads.forEach(a => { if (!adFirst[a[1]] || a[0] < adFirst[a[1]]) adFirst[a[1]] = a[0]; });
-  const ords = ordAll.filter(o => !isVoid(o.status)).map(o => ({ ph: normPhone(o.phone), time: Number(o.time) || 0, total: Number(o.total) || 0, source: o.source || '', items: o.items || '' }));
+  // marketing chấm trên DOANH SỐ khách mới: giữ cả đơn hoàn / huỷ (hoàn / huỷ là việc của sale, anh Sơn 26/10/2026); v = đơn hoàn / huỷ → newVoid để xem riêng
+  const ords = ordAll.map(o => ({ ph: normPhone(o.phone), time: Number(o.time) || 0, total: Number(o.total) || 0, source: o.source || '', items: o.items || '', v: isVoid(o.status) }));
   const adIn = ads.filter(a => (a[0] >= R[0] && a[0] < R[1]) || (a[0] >= P[0] && a[0] < P[1]));
   const phones = [...new Set(ords.map(o => o.ph).concat(adIn.map(a => a[1])).filter(Boolean))];
   const [cus, lds, buys] = phones.length ? await Promise.all([
@@ -87,7 +88,7 @@ export async function mktView(x, u, d) {
   /** Doanh thu khách mới theo kênh (khách mua lần đầu trong kỳ, mọi đơn của họ trong kỳ, kênh = kênh đơn đầu). Khách cũ quay lại: chỉ để tham khảo.
    *  po (kỳ này): các đơn khách mới [kênh, sản phẩm, tiền] để chia theo sản phẩm. */
   const eff = (Rg, san, po, wb) => {
-    const C = {}, get = k => C[k] || (C[k] = { newN: 0, newRev: 0, oldRev: 0, oldN: 0, dd: {}, dn: {} }), who = {}, seen = {};
+    const C = {}, get = k => C[k] || (C[k] = { newN: 0, newRev: 0, newVoid: 0, oldRev: 0, oldN: 0, dd: {}, dn: {} }), who = {}, seen = {};
     ords.filter(o => o.time >= Rg[0] && o.time < Rg[1]).forEach(o => {
       const ph = o.ph || ('?' + o.time), f = firstOf[o.ph], isNew = !f || f >= Rg[0];
       if (!who[ph]) who[ph] = orderChan(o) || '?';
@@ -95,7 +96,7 @@ export async function mktView(x, u, d) {
       if (wb) { wb.tot += o.total; if (isWebO(o)) { if (isNew && who[ph] === 'Facebook') wb.fb += o.total; else if (isNew) { wb.newRev += o.total; wb.nw[ph] = 1; } else { wb.oldRev += o.total; wb.od[ph] = 1; } } }
       if (isNew) {
         const fresh = !seen[k + ph], dk = iso(o.time); if (fresh) { seen[k + ph] = 1; c.newN++; c.dn[dk] = (c.dn[dk] || 0) + 1; }
-        c.newRev += o.total; c.dd[dk] = (c.dd[dk] || 0) + o.total;
+        c.newRev += o.total; c.dd[dk] = (c.dd[dk] || 0) + o.total; if (o.v) c.newVoid += o.total;
         if (po) orderProds(o.items, o.total).forEach(([p, v], i) => po.push([k, p, v, fresh && !i ? ph : '']));
       } else { c.oldRev += o.total; c.oldN++; }
     });
@@ -120,7 +121,7 @@ export async function mktView(x, u, d) {
     return o;
   };
   /** 👥 Cộng đồng Zalo trong kỳ: đơn mua lại (sau đơn đầu) của khách đã vào nhóm. → { rev, n (đơn), buyers (khách) } */
-  const commOf = Rg => { const o = { rev: 0, n: 0, buyers: 0 }, seen = {}; ords.forEach(d0 => { if (d0.time < Rg[0] || d0.time >= Rg[1] || !inComm[d0.ph] || !firstOf[d0.ph] || d0.time <= firstOf[d0.ph]) return; o.rev += d0.total; o.n++; if (!seen[d0.ph]) { seen[d0.ph] = 1; o.buyers++; } }); return o; };
+  const commOf = Rg => { const o = { rev: 0, n: 0, buyers: 0 }, seen = {}; ords.forEach(d0 => { if (d0.v || d0.time < Rg[0] || d0.time >= Rg[1] || !inComm[d0.ph] || !firstOf[d0.ph] || d0.time <= firstOf[d0.ph]) return; o.rev += d0.total; o.n++; if (!seen[d0.ph]) { seen[d0.ph] = 1; o.buyers++; } }); return o; };
   /** 🤝 Phản hồi từ sale (data trong kỳ R): chất lượng data theo nguồn, lý do không mua, bao lâu thì mua, hoàn / huỷ, hỏi gì mua gì, mức xử lý data của từng sale.
    *  Chỉ số tổng; tên sale chỉ gửi cho Quản trị (own), Marketing nhận danh sách không tên. */
   const saleFb = (Rg, own) => {
