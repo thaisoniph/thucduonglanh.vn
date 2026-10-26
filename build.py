@@ -3194,7 +3194,7 @@ def main():
            "shipping_fee": SITE.get("shipping_fee", 0), "free_ship_threshold": SITE.get("free_ship_threshold", 0),
            "aov_milestone": SITE.get("aov_milestone") or {},
            "music": {"tracks": music_tracks(), "auto": (SITE.get("music") or {}).get("autoplay", True) is not False, "vol": max(5, min(100, num((SITE.get("music") or {}).get("volume")) or 25)) / 100} if music_tracks() else None,
-           "needs": [{"slug": n["slug"], "name": n["name"], "icon": n.get("icon") or "", "url": lp(n["url"])} for n in NEEDS]}
+           "needs": [{"slug": n["slug"], "name": n["name"], "icon": n.get("icon") or "", "url": lp(n["url"])} for n in NEEDS], "chat": chat_cfg()}
     js = "window.TDL_PRODUCTS=" + json.dumps(js_products, ensure_ascii=False) + ";\nwindow.TDL_CONFIG=" + json.dumps(cfg, ensure_ascii=False) + ";\n"
     if not IS_VI:
         cfg.update(lang=LANG, paths={r: lp(r) for r in ("/", "/san-pham/", "/gio-hang/", "/thanh-toan/", "/dat-hang-thanh-cong/", "/tim-kiem/")})
@@ -3222,8 +3222,9 @@ def main():
     (DIST / "sitemap.xml").write_text("\n".join(sm), "utf-8")
     private = ["/gio-hang/", "/thanh-toan/", "/dat-hang-thanh-cong/"]
     private += [ALT_ROUTES[lang][r] for lang in ALT_ROUTES for r in private if r in ALT_ROUTES[lang]]
-    (DIST / "robots.txt").write_text("User-agent: *\nAllow: /\n" + "".join(f"Disallow: {r}\n" for r in private) + f"Disallow: /admin/\n\nSitemap: {DOMAIN}/sitemap.xml\n", "utf-8")
+    (DIST / "robots.txt").write_text("User-agent: *\nAllow: /\n" + "".join(f"Disallow: {r}\n" for r in private) + f"Disallow: /admin/\nDisallow: /chat-kb.txt\n\nSitemap: {DOMAIN}/sitemap.xml\n", "utf-8")
     (DIST / "llms.txt").write_text(llms_txt(), "utf-8")
+    (DIST / "chat-kb.txt").write_text(chat_kb(), "utf-8")  # kiến thức cho trợ lý chat (api/src/chat.js)
     if SITE.get("indexnow_key"):  # file xác minh IndexNow (Bing, Yandex…): workflow deploy.yml báo các trang mới sửa sau mỗi lần đăng
         (DIST / f'{SITE["indexnow_key"]}.txt').write_text(SITE["indexnow_key"], "utf-8")
     (DIST / "CNAME").write_text(DOMAIN.replace("https://", "").replace("http://", "") + "\n", "utf-8")
@@ -3300,6 +3301,84 @@ def llms_txt():
     out += ["", "## Chính sách", ""] + [f'- [{pg["title"]}]({DOMAIN}/{pg["slug"]}/)' for pg in PAGES]
     out += ["", "## English", "", f"- [English version]({DOMAIN}/en/)", ""]
     return "\n".join(x for x in out if x is not None)
+
+
+_cbf = DATA / "chatbot.json"  # 💬 trợ lý chat An Lành (26/10/2026): sửa ở /admin → Cài đặt → Trợ lý chat
+CHAT = json.loads(_cbf.read_text("utf-8")) if _cbf.exists() else {}
+
+
+def chat_cfg():
+    """Cài đặt trợ lý chat gửi xuống main.js (TDL_CONFIG.chat). Chỉ bản tiếng Việt, cần máy chủ api (endpoint …/api)."""
+    ep = SITE.get("api_endpoint") or ""
+    if not (IS_VI and CHAT.get("enabled") and ep.endswith("/api")):
+        return None
+    wv = SITE.get("welcome_voucher") or {}
+    eb = SITE.get("ebook") or {}
+    return {"name": CHAT.get("name") or "An Lành", "role": CHAT.get("role") or "", "greet": CHAT.get("greeting") or "",
+            "quick": [q for q in (CHAT.get("quick") or []) if q][:6], "after": max(1, int(num(CHAT.get("gift_after")) or 2)),
+            "gtitle": CHAT.get("gift_title") or "🎁 Quà tặng", "gtext": CHAT.get("gift_text") or "",
+            "cn": CN.get("reader", "") if CN_PATH else "", "eb": eb.get("flipbook", ""),
+            "wvc": wv.get("code", "") if wv.get("enabled") else "", "hours": SITE.get("opening_hours", ""),
+            "privacy": "/chinh-sach-bao-mat/"}
+
+
+def chat_kb():
+    """/chat-kb.txt: kiến thức cho trợ lý chat (api/src/chat.js tải về, lưu đệm 10 phút). Tự sinh từ dữ liệu web nên sửa web là bot biết ngay:
+    bản tóm tắt llms.txt + chi tiết từng sản phẩm (thành phần, cách dùng, hỏi đáp, giấy tờ) + chính sách + quà tặng + kiến thức thêm ở /admin."""
+    def txt(s):
+        return re.sub(r"\n{3,}", "\n\n", strip_tags(md(str(s or ""))).strip())
+    def money_of(p):
+        vs = [v for v in p.get("variants", []) if v.get("price") is not None]
+        if vs:
+            return "; ".join(f'{v["name"]}: {money(v["price"])}' + (f' (giá gốc {money(v["regular_price"])})' if v.get("regular_price") and v["regular_price"] > v["price"] else "") for v in vs)
+        return money(p["price"]) if p.get("price") is not None else "liên hệ"
+    out = [llms_txt(), "", f"# KIẾN THỨC CHI TIẾT CHO TRỢ LÝ {(CHAT.get('name') or 'An Lành').upper()}", "",
+           f"Tên trợ lý: {CHAT.get('name') or 'An Lành'} – {CHAT.get('role') or ''}. Giờ làm việc của chuyên viên: {SITE.get('opening_hours', '')}. Hotline / Zalo: {SITE['hotline']} (Zalo: {zalo_link()}).", ""]
+    for p in PRODUCTS:
+        out += [f"## Sản phẩm: {p['name']}", f"- Mã gợi ý thẻ sản phẩm: [[sp:{p['slug']}]]", f"- Link: {DOMAIN}/san-pham/{p['slug']}/", f"- Giá trên web: {money_of(p)}"]
+        if p.get("free_ship"):
+            out.append("- Miễn phí giao hàng")
+        for k, lb in (("unit", "Quy cách"), ("summary", "Tóm tắt"), ("pitch", "Điểm chính"), ("manufacturer", "Nhà sản xuất"), ("tagline", "Thông điệp"), ("subline", "Mô tả")):
+            if p.get(k):
+                out.append(f"- {lb}: {txt(p[k])}")
+        if p.get("days"):
+            out.append(f"- Dùng trong: {p['days']} ngày")
+        for x in p.get("items") or []:  # gói / combo
+            out.append(f"- Trong gói: {x.get('qty', 1)} × {x.get('title') or x.get('product')} {x.get('variant') or ''} – {x.get('benefit') or ''}: {txt(x.get('detail') or x.get('note'))}")
+        if p.get("highlights"):
+            out += ["- Nổi bật:"] + [f"  - {txt(h)}" for h in p["highlights"] if h]
+        if p.get("badges"):
+            out += ["- Cam kết / chứng nhận:"] + [f"  - {txt(h)}" for h in p["badges"] if h]
+        for s in p.get("sections") or []:
+            body = "\n".join(x for x in [txt(s.get("text")), *[f"  - {txt(i)}" for i in s.get("items") or [] if i],
+                                         *[f"  - {' | '.join(txt(c) for c in (r if isinstance(r, list) else r.values()))}" for r in s.get("rows") or [] if r]] if x)
+            if body:
+                out.append(f"### {s.get('title') or ''}\n{body}")
+        pf = [x for x in (p.get("proofs") or []) if x.get("title")]
+        if pf:
+            out += ["### Hồ sơ, giấy tờ"] + [f"- {x['title']}" + "".join(f", {x[k]}" for k in ("org", "number", "date", "scope") if x.get(k)) for x in pf]
+        qa = product_faqs(p)
+        if qa:
+            out += ["### Hỏi đáp"] + [f"Hỏi: {q}\nĐáp: {txt(a)}" for q, a in qa]
+        if p.get("disclaimer"):
+            out.append(f"- Lưu ý bắt buộc: {txt(p['disclaimer'])}")
+        out.append("")
+    gl = gift_list()
+    if gl:
+        out += ["## Quà tặng miễn phí trên web"] + [f"- {g['title']} ({g['sub']}): " + ("" if g["href"].startswith("http") else DOMAIN) + gift_href(g, "chat") for g in gl]
+    wv = SITE.get("welcome_voucher") or {}
+    if wv.get("enabled") and wv.get("code"):
+        out.append(f"- Khách để lại tên và số Zalo để nhận quà thì được thêm mã {wv['code']} ({wv.get('label', '')}) cho đơn đầu trên web.")
+    if WEB_OFFER.get("gift_enabled") and WEB_OFFER.get("gift_title"):
+        out.append(f"- Quà khi vào nhóm Zalo / mua trên web: {WEB_OFFER['gift_title']}")
+    out.append("")
+    for pg in PAGES:
+        if pg["slug"] in ("chinh-sach-giao-hang", "chinh-sach-doi-tra", "chinh-sach-thanh-toan", "chinh-sach-kiem-hang", "huong-dan-mua-hang"):
+            out += [f"## {pg['title']} ({DOMAIN}/{pg['slug']}/)", strip_tags(fill(pg["content"])).strip()[:2500], ""]
+    if CHAT.get("knowledge"):
+        out += ["# KIẾN THỨC THÊM (soạn ở /admin)", "", str(CHAT["knowledge"]).strip(), ""]
+    import html as _html
+    return re.sub(r"[ \t]+\n", "\n", re.sub(r"\n{3,}", "\n\n", _html.unescape("\n".join(out))))
 
 
 def crm_gifts():
