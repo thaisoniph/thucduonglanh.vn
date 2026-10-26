@@ -11,17 +11,25 @@ Tìm mua chè vằng, bạn sẽ gặp ba dạng chính: **trà túi lọc** (l�
 
 Bài này so sánh ba dạng theo 6 điểm. Mọi con số về DILVANG lấy từ nhãn, bản tự công bố và phiếu kiểm nghiệm. Dạng nào cũng có chỗ mạnh riêng, nên cuối bài có phần "nên chọn dạng nào".
 
-![Bảng so sánh trà túi lọc, cao chè vằng và trà hòa tan DILVANG](/assets/uploads/dilvang-so-sanh-3-dang.webp)
+**4 điểm khác biệt của DILVANG, tóm gọn trước khi đọc chi tiết:**
+
+1. **Nhiệt độ thấp, hệ kín:** chiết xuất dưới 70°C và cô đặc dưới 65°C trong điều kiện chân không khép kín, không đun sôi nồi hở.
+2. **Không chất bảo quản, không hương liệu tổng hợp:** mùi vị đến từ chè vằng và đinh lăng.
+3. **Độ ẩm thấp, gói kín:** độ ẩm 5,53% theo phiếu NIFC, từng gói 5g, hạn dùng 24 tháng.
+4. **Nguồn lá có chỉ dẫn địa lý:** chè vằng Quảng Trị, nhà máy đạt GMP.
+
+![Bảng so sánh trà túi lọc, cao chè vằng và trà hòa tan DILVANG](/assets/uploads/dilvang-so-sanh-3-dang-2.webp)
 
 ## Bảng tóm tắt
 
 | | Túi lọc | Cao | DILVANG |
 |---|---|---|---|
 | Nguồn lá | Tùy nơi, đọc nhãn | Tùy nơi, đọc nhãn | Chè vằng Quảng Trị, có chỉ dẫn địa lý |
-| Cách làm | Lá khô cắt nhỏ | Nấu 80–100°C, cô đặc trên 100°C | Chiết chân không dưới 70°C, cô đặc khép kín dưới 75°C |
-| Cách pha | Hãm nước sôi | Cắt miếng, hòa nước nóng | Hòa nước ấm 40–50°C |
+| Cách làm | Lá khô cắt nhỏ, chất lượng tùy nguyên liệu | Nấu sôi, cô đặc trên 100°C | Chiết dưới 70°C, cô đặc dưới 65°C, chân không khép kín |
+| Hoạt chất | Có thể biến đổi khi hãm nước sôi | Có thể biến đổi khi nấu lâu ở nhiệt độ cao | Xử lý ở nhiệt độ thấp, hạn chế oxy hóa |
+| Cách pha | Hãm nước sôi, chờ lâu | Cắt miếng, khó dùng | Hòa nước ấm 40–50°C, tiện lợi |
 | Hương vị | Thơm lá, nhẹ | Sẫm màu, đắng đậm | Vàng nâu, không thêm hương liệu |
-| Bảo quản | Độ ẩm tới ~12% | Tùy nơi, đọc nhãn | Độ ẩm 5,53%, gói kín |
+| Bảo quản | Dễ hút ẩm sau khi mở túi | Tùy nơi, đọc nhãn | Độ ẩm thấp (5,53%), gói kín, hạn 24 tháng |
 | Liều | Theo túi | Tự ước lượng | Gói 5g chia sẵn |
 | Bã | Bỏ túi | Không | Không |
 
@@ -31,15 +39,17 @@ Số liệu dạng túi lọc và cao lấy từ mô tả sản phẩm trong h�
 
 Theo hồ sơ chỉ dẫn địa lý chè vằng Quảng Trị, cao chè vằng được nấu khoảng 2 lít nước cho 1 kg nguyên liệu ở 80 đến 100°C, lọc bã rồi cô đặc. Khâu cô đặc thường đun sôi trong nồi hở, nhiệt độ trên 100°C. Thành phẩm có màu sẫm, vị đắng, hậu ngọt. Đây là cách làm quen thuộc của nhiều gia đình và cơ sở nhỏ.
 
-DILVANG được làm tại nhà máy Gold Herbal (Đông Hà, Quảng Trị) bằng công nghệ **EECV**, viết tắt của Extract (chiết xuất), Evaporate (bay hơi), Concentrate (cô đặc), Vacuum (chân không). Theo tài liệu công nghệ của nhà sản xuất:
+DILVANG được sản xuất tại nhà máy Dược liệu Gold Herbal (Đông Hà, Quảng Trị) bằng công nghệ **EECV**, viết tắt của Extract (chiết xuất), Evaporate (bay hơi), Concentrate (cô đặc), Vacuum (chân không). Theo tài liệu công nghệ của nhà sản xuất:
 
 - Chiết xuất ở **dưới 70°C**, trong hệ thống chân không khép kín, không tiếp xúc oxy trong không khí.
-- Cô đặc tuần hoàn khép kín ở **dưới 75°C**, áp suất thấp hơn −0,08 MPa.
-- Sấy chân không ở **dưới 40°C**, áp suất thấp hơn −0,09 MPa, ra dạng bột hòa tan.
+- Cô đặc tuần hoàn khép kín ở **dưới 65°C**, áp suất thấp hơn −0,08 MPa.
+- Sấy chân không ở **dưới 45°C**, áp suất thấp hơn −0,09 MPa.
 
-![Sơ đồ so sánh nấu cao truyền thống và chiết xuất chân không EECV](/assets/uploads/dilvang-quy-trinh-eecv-2.webp)
+![Sơ đồ so sánh nấu cao truyền thống và chiết xuất chân không EECV](/assets/uploads/dilvang-quy-trinh-eecv-3.webp)
 
 Vì sao nhiệt độ quan trọng? Lá chè vằng có tinh dầu. Một phân tích tinh dầu lá chè vằng ghi nhận thành phần chính là linalool (khoảng 44%), geraniol (khoảng 19%) và α-terpineol (khoảng 15%). Đây là nhóm chất thơm dễ bay theo hơi nước khi đun sôi trong nồi hở. Nhà sản xuất cho biết chiết ở nhiệt độ thấp trong hệ kín giúp hạn chế oxy hóa, giữ màu và mùi gần với dược liệu hơn.
+
+Ngược lại, khi đun sôi lâu trong nồi hở, nhiệt độ cao và không khí có thể làm bay hơi hoặc biến đổi một phần hoạt chất và mùi thơm. Đây là lý do DILVANG chọn cách làm ở nhiệt độ thấp trong hệ kín.
 
 Công nghệ này được chuyển giao từ đề tài khoa học do Sở Khoa học và Công nghệ Quảng Trị quản lý.
 

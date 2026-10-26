@@ -97,7 +97,7 @@ Dạng nào cũng cần kiểm tra hồ sơ sản phẩm. Chỉ dẫn địa lý
 [Trà hòa tan DILVANG](/san-pham/tra-hoa-tan-dilvang-dinh-lang-che-vang/) là trà hòa tan kết hợp chè vằng và đinh lăng, do Công ty Cổ phần Dược liệu Gold Herbal sản xuất. Nhà máy đặt tại cụm công nghiệp Quốc lộ 9D, Đông Hà, Quảng Trị, đạt chuẩn GMP. Nguyên liệu lấy từ vùng liên kết với hợp tác xã và hộ dân trong tỉnh, riêng chè vằng liên kết với Hợp tác xã Cam Hiếu.
 
 - Thành phần: cao khô chè vằng, cao khô đinh lăng, phụ liệu maltodextrin.
-- Công nghệ: chiết xuất chân không ở nhiệt độ dưới 70 độ C, cô đặc, sấy chân không dưới 40 độ C.
+- Công nghệ: chiết xuất chân không ở nhiệt độ dưới 70 độ C, cô đặc khép kín dưới 65 độ C, sấy chân không dưới 45 độ C.
 - Quy cách: hộp 75g, 15 gói 5g, hạn dùng 24 tháng.
 - Cách dùng theo nhãn: 1 gói với 300 đến 400 ml nước ấm 40 đến 50 độ C, khuấy đều, dùng 2 đến 3 gói mỗi ngày.
 - Vỏ hộp có mã QR để tra cứu nguồn gốc. Hồ sơ gồm bản tự công bố số 14.1/GOLDHERBAL/2025 và giấy chứng nhận cơ sở đủ điều kiện an toàn thực phẩm.
