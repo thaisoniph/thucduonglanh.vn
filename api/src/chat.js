@@ -7,6 +7,7 @@
  * Không lưu IP (chỉ mã băm trong kv để đếm lượt/ngày). Chat chưa để lại số tự xoá sau 90 ngày.
  * Chi phí: claude-haiku-5-5 ($0,10 / $0,50 mỗi 1 triệu token), phần kiến thức (~20 nghìn token) được lưu đệm nên mỗi câu trả lời chỉ vài chục đồng. */
 import Anthropic from '@anthropic-ai/sdk';
+import { aiFetch } from './airelay.js';
 import { esc, run, first, kvGet, kvSet, normPhone, fmtDate, md5hex, CRM_URL, TZ_MS, DAY } from './lib.js';
 import { addLead, telegramUser } from './crm.js';
 import { telegram } from './google.js';
@@ -31,7 +32,7 @@ const RULES = [
 ].join('\n');
 
 let client = null;
-function ai(env) { if (!client) client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 1, timeout: 30e3 }); return client; }
+function ai(env) { if (!client) client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 1, timeout: 30e3, fetch: aiFetch(env) }); return client; } // qua trạm Bắc Mỹ (airelay.js)
 
 export async function chatSchema(db) {
   await run(db, `CREATE TABLE IF NOT EXISTS chats (sid TEXT PRIMARY KEY, start INTEGER, last INTEGER, n INTEGER DEFAULT 0, page TEXT DEFAULT '', src TEXT DEFAULT '',

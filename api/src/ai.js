@@ -6,6 +6,7 @@
  * Không gửi tên, số điện thoại khách: tên thay bằng [Tên] (CRM điền lại trên máy), số điện thoại trong ghi chú bị che.
  * Giới hạn AI_DAY_MAX lượt / ngày cho cả công ty; cùng khách + cùng dữ liệu trong ngày thì dùng lại kết quả cũ (không tốn thêm). */
 import Anthropic from '@anthropic-ai/sdk';
+import { aiFetch } from './airelay.js';
 import { normPhone, fmtDate, all, first, kvGet, kvSet, isVoid, DAY } from './lib.js';
 
 const AI_MODEL = 'claude-haiku-5-5'; // anh Sơn chọn 16/10/2026: rẻ (~17đ/lượt), đủ cho tóm tắt 4 dòng / tin 60 chữ. Cần hay hơn thì đổi 'claude-opus-5-5' (~680đ/lượt)
@@ -19,7 +20,7 @@ const SYSTEM = [
 ].join('\n');
 
 let client = null;
-function ai(env) { if (!client) client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 1, timeout: 25e3 }); return client; }
+function ai(env) { if (!client) client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 1, timeout: 25e3, fetch: aiFetch(env) }); return client; } // qua trạm Bắc Mỹ (airelay.js)
 
 /** Che số điện thoại / email trong ghi chú trước khi gửi đi. */
 const scrub = s => String(s || '').replace(/(\+?84|0)[\d .]{8,12}\d/g, '[SĐT]').replace(/[\w.+-]+@[\w-]+\.[\w.]+/g, '[email]');
