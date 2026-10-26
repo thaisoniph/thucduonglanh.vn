@@ -164,7 +164,7 @@ Sheet **Đơn hàng website Thực Dưỡng Lành**: https://docs.google.com/spr
 | Chu kỳ dùng | Số ngày dùng hết 1 đơn vị sản phẩm → tính "Dự kiến hết hàng". Chỉnh theo thực tế. |
 | Mẫu tin nhắn CSKH | Mẫu Zalo cho từng thời điểm chăm sóc. |
 | Liên hệ | Lời nhắn từ form Liên hệ. |
-| Nhân sự CRM | Email · Tên · Quyền (Quản trị / Quản lý / Marketing / Sale & CSKH) · Đang dùng (Có/Không). Sửa được trên web ở mục Cài đặt (chỉ Quản trị). thaisoniph@gmail.com luôn là Quản trị. |
+| Nhân sự CRM | Email · Tên · Quyền (Quản trị / Quản lý / Marketing / Sale & CSKH) · Đang dùng (Có/Không). Sửa được trên web ở mục Cài đặt (chỉ Quản trị). thaisoniph@gmail.com luôn là Quản trị. Cột D1 `users.mkv` = ô **📣 Xem Marketing** (26/10/2026, chỉ Quản lý / Sale): mở tab Marketing chỉ xem (`mkvOnly()` trong app.js ẩn Nhập chi phí / Gửi thử Telegram; server cho `mktv` khi `u.mkv`, các lệnh sửa vẫn chặn như cũ). |
 | Nhật ký CSKH | Mỗi thao tác trên CRM web: ai làm, lúc nào, việc gì, kết quả, ghi chú. Là nguồn số liệu của tab Báo cáo. |
 | Khách tiềm năng | Người hỏi mua nhưng chưa mua: Mã · Kênh · Quan tâm · Trạng thái (Mới hỏi → Đang tư vấn → Đã chốt / Không mua) · Phụ trách · Lần liên hệ · Hẹn liên hệ lại · Lý do không mua · Mã đơn. Form Liên hệ trên web tự thêm vào đây (vẫn ghi cả trang Liên hệ). Cùng 1 số đang mở thì ghi nối, không tạo trùng. Lần đầu tạo trang, các lời nhắn cũ ở Liên hệ được chuyển sang. |
 

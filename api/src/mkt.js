@@ -212,7 +212,7 @@ async function mktDel(x, d) {
 }
 
 export async function crmMkt(x, u, d) {
-  if (u.level < 3 && !(u.role === 'Marketing' && /^mkt_(import|add|list|del|kpi)$/.test(d.action))) return { ok: false, error: 'Chỉ Quản trị xem / sửa được chi phí marketing.' }; // Marketing: tự nhập chi phí (file / nhập tay), không đụng mã Facebook
+  if (u.level < 3 && !(u.role === 'Marketing' && /^mkt_(import|add|list|del|kpi)$/.test(d.action)) && !(u.mkv && d.action === 'mkt_kpi')) return { ok: false, error: 'Chỉ Quản trị xem / sửa được chi phí marketing.' }; // Marketing: tự nhập chi phí (file / nhập tay), không đụng mã Facebook; 📣 Xem Marketing: chỉ đọc mkt_kpi
   switch (d.action) {
     case 'mkt': return mktLoad(x, d);
     case 'mkt_fb': return mktFb(x, d);
