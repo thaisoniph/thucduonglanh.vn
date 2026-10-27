@@ -168,10 +168,10 @@ Tài khoản Zalo **"Trợ lý An Lành"** là phó nhóm "Sống khỏe cùng T
 
 **Bài đăng nhóm (việc chính của bạn):**
 
-AI soạn sẵn bài cho **hôm nay** và **ngày mai**. Mỗi ngày bạn đọc bài của ngày mai:
+AI soạn sẵn bài cho **hôm nay** và **ngày mai**, rồi báo Telegram **"📝 Bài Zalo chờ duyệt"**. **Bài chưa duyệt thì trợ lý không đăng.** Mỗi ngày bạn đọc bài của ngày mai:
 
-1. Bài ổn: không cần làm gì. Tới giờ trợ lý tự đăng.
-2. Muốn sửa chữ: sửa ngay trong ô, rồi bấm **💾 Lưu sửa**. Chữ đặt giữa `**hai dấu sao**` sẽ in đậm trên Zalo.
+1. Bài ổn: bấm **✅ Duyệt**. Tới giờ trợ lý tự đăng.
+2. Muốn sửa chữ: sửa ngay trong ô, bấm **💾 Lưu sửa**, rồi bấm **✅ Duyệt**. Chữ đặt giữa `**hai dấu sao**` sẽ in đậm trên Zalo.
 3. Muốn AI viết bài khác: bấm **🔄 Viết lại**, gõ ý muốn (ví dụ "nói về hạt óc chó", "ngắn hơn"), chờ khoảng 30 giây.
 4. Không muốn đăng: bấm **⏸ Bỏ bài này**. Đổi ý thì bấm **▶️ Đăng lại bài này**.
 
@@ -181,8 +181,8 @@ Kiểm tra kỹ trước khi đăng: giá, ưu đãi đúng với web; không c�
 
 **⚙️ Cài đặt trợ lý** (bấm để mở): bật / tắt từng việc, đổi giờ đăng bài, chọn chế độ đăng.
 
-- **Tự đăng**: tới giờ là trợ lý đăng bài, kể cả khi chưa ai xem. Đây là chế độ đang dùng.
-- **Chờ duyệt**: chỉ đăng bài đã bấm **✅ Duyệt**. Khi AI soạn xong, Telegram báo để bạn vào duyệt.
+- **Chờ duyệt**: chỉ đăng bài đã bấm **✅ Duyệt**. Khi AI soạn xong, Telegram báo để bạn vào duyệt. Đây là chế độ đang dùng.
+- **Tự đăng**: tới giờ là trợ lý đăng bài nháp, kể cả khi chưa ai xem.
 
 **🕘 Trợ lý vừa làm gì**: bấm vào từng dòng để xem tin của khách và câu trả lời của trợ lý. Thấy trợ lý trả lời chưa đúng thì báo anh Sơn để chỉnh.
 

@@ -26,7 +26,7 @@ const SITE = 'https://thucduonglanh.vn';
 const CFG0 = {
   on: true, groups: [], // nhóm trợ lý chăm sóc (mã nhóm Zalo). Trống → lần đầu tự chọn nhóm có tên "Thực Dưỡng Lành"
   welcome: true, answer: true, announce: true, approve: true, approveAll: false,
-  mode: 'auto', // auto: tới giờ tự đăng bài đã soạn · approve: chỉ đăng bài đã duyệt
+  mode: 'approve', // approve: chỉ đăng bài đã duyệt (anh Sơn chọn 27/10/2026) · auto: tới giờ tự đăng bài nháp
   slots: [{ id: 'sang', at: '07:30', on: true }, { id: 'toi', at: '20:00', on: true }],
   maxHour: 8 // số câu trả lời tối đa / nhóm / giờ (tránh "nói nhiều", Zalo khoá)
 };

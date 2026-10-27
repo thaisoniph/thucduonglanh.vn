@@ -7,7 +7,7 @@ Tài khoản Zalo **"Trợ lý An Lành"** (SIM riêng) làm phó nhóm "Sống 
 - **Thả tim** khi thành viên chia sẻ bữa ăn lành, cảm nhận, lời cảm ơn.
 - **Chúc mừng** thành viên vừa nhận quà trên web (như nhóm Sống Khỏe 365). Tin chúc mừng chỉ có tên Zalo và tên quà, không có số điện thoại, không nhắc bệnh.
 - **Tự duyệt người xin vào nhóm** nếu họ đã để số qua cổng /nhom-zalo/ hoặc nhận quà trên web (trợ lý tìm Zalo theo số). Người lạ thì báo Telegram để nhân sự duyệt tay.
-- **Đăng bài** sáng 7h30 và tối 20h. AI soạn trước theo lịch chủ đề trong tuần; nhân sự xem, sửa, bỏ ở CRM → **🤖 Trợ lý Zalo**.
+- **Đăng bài** sáng 7h30 và tối 20h. AI soạn trước theo lịch chủ đề trong tuần; **bài phải được duyệt** ở CRM → **🤖 Trợ lý Zalo** mới được đăng (đổi sang tự đăng trong ⚙️ Cài đặt).
 - **Nhắn riêng**: tự đồng ý kết bạn, chào, trả lời như An Lành. Khách gửi số điện thoại thì CRM tự tạo khách hỏi (kênh "Zalo Trợ lý An Lành").
 - CRM tự ghi **"Đã vào nhóm"** cho khách đã để số trên web khi họ vào nhóm.
 
