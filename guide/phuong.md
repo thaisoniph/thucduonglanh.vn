@@ -39,17 +39,17 @@ Chào Phương! Toàn bộ khách, đơn hàng và **ghi chú cũ** trong file c
 
 ![Tab Hôm nay: thanh mục tiêu và các nhóm việc thu gọn](/huong-dan/img/ph-old.webp)
 
-Trên cùng là **số khách cần chăm sóc hôm nay** và **thanh tiến độ** (đã xong bao nhiêu). Mỗi ngày CRM đưa ra tối đa **30 khách**, khách quan trọng trước: hẹn gọi lại → hỏi nhận hàng → sắp hết hàng → việc bị trễ → các việc khác. Khách chưa tới lượt tự dời sang hôm sau, không mất.
+Trên cùng là **số khách cần chăm sóc hôm nay** và **thanh tiến độ** (đã xong bao nhiêu). Mỗi ngày CRM đưa ra tối đa **30 khách**, khách quan trọng trước: hẹn gọi lại → sắp hết hàng → hỏi nhận hàng → việc bị trễ → các việc khác. Cùng một việc thì khách dễ mua lại đứng trước: khách VIP, khách mua nhiều lần. Khách từng hoàn đơn hoặc lần trước không nghe máy xếp sau. Khách chưa tới lượt tự dời sang hôm sau, không mất.
 
 Bên dưới, khách được chia **nhóm thu gọn** (bấm vào nhóm mới mở ra), mỗi khách 1 dòng với 3 nút **📞 Gọi · 📵 Không nghe · 💬 Ghi lại**:
 
 - **📞 Hẹn gọi lại**: khách em đã hẹn, hoặc hôm trước không nghe máy.
-- **📦 Hỏi nhận hàng**: khách vừa nhận hàng. Đơn chưa giao xong thì CRM chờ khoảng **5 ngày** sau ngày đặt mới nhắc, thẻ khách ghi "đơn vẫn Đang giao" để bạn hỏi khách đã nhận chưa. Khách **mua lại đúng sản phẩm đã dùng** (🌟 khách quen) thì CRM không nhắc mốc này, mốc 1 tuần và mốc 14 ngày nữa, vì khách đã biết cách dùng; chỉ nhắc khi sắp hết hàng.
-- **⏰ Sắp hết hàng**: khách sắp dùng hết, nhắc đặt lại.
+- **📦 Hỏi nhận hàng**: CRM tự đọc tỉnh trong địa chỉ khách để đoán ngày hàng tới, rồi nhắc bạn **sau đó 1 ngày**. Khách **miền Bắc** (cả Thanh Hóa, Nghệ An, Hà Tĩnh): nhắc vào **ngày thứ 4** sau khi đặt. Khách **ở xa** (miền Trung, miền Nam): nhắc vào **ngày thứ 6**. Không đọc được tỉnh: nhắc vào **ngày thứ 5**. Khách nằm trong danh sách 3 ngày để bạn kịp gọi. Nếu bạn đã bấm khách nhận hàng ngày nào thì CRM tính theo ngày đó. Khách **mua lại đúng sản phẩm đã dùng** (🌟 khách quen) thì CRM không nhắc mốc này, mốc 1 tuần và mốc 14 ngày nữa, vì khách đã biết cách dùng; chỉ nhắc khi sắp hết hàng.
+- **⏰ Sắp hết hàng**: khách sắp dùng hết, nhắc đặt lại. CRM nhắc **sớm hơn** ngày hết hàng để đơn mới tới kịp: khách miền Bắc trước khoảng 4 ngày, khách ở xa trước khoảng 6 ngày. Nếu bạn đã hẹn gọi lại khách vào ngày sau thì CRM chờ đúng ngày hẹn.
 - **💬 / 🌿 / 💌**: xin cảm nhận, giới thiệu thêm, mời quay lại.
 - **🔁 Khách cũ lâu chưa gọi**: hơn 30 ngày chưa nói chuyện, khách chi nhiều nhất lên trước.
 
-Khách đã nói chuyện với bạn trong **14 ngày** gần đây thì CRM tự **chưa nhắc lại** (trừ khi bạn hẹn gọi lại, hoặc khách có đơn mới cần hỏi nhận hàng). Khách vừa đặt đơn hôm qua sẽ không hiện ra ngay hôm nay.
+Khách đã nói chuyện với bạn trong **14 ngày** gần đây thì CRM tự **chưa nhắc lại** (trừ khi bạn hẹn gọi lại, khách có đơn mới cần hỏi nhận hàng, hoặc khách sắp hết hàng). Khách vừa đặt đơn hôm qua sẽ không hiện ra ngay hôm nay.
 
 Dòng **⏳ trễ N ngày** là việc đã qua ngày nên làm (vd em nghỉ vài hôm), vẫn giữ lại để em không sót khách.
 

@@ -82,7 +82,7 @@ Sale chọn loại đơn khác với gợi ý của máy thì đơn có nhãn **
 
 - **Chu kỳ dùng sản phẩm**: khách dùng hết 1 hộp trong bao nhiêu ngày. Máy dùng số này để nhắc khách đặt lại. Tên sản phẩm chỉ cần 1 phần (ví dụ "DILVANG").
 - **Mẫu tin nhắn chăm sóc**: viết **[Tên]** và **[Sản phẩm]** để máy tự thay. Cột *Thời điểm* cần có chữ "1 ngày", "hết", "14", "30" hoặc "60" để máy chọn đúng mẫu. Mẫu tặng quà: Thời điểm "Quà tặng", dùng **[Tên]** và **[Link quà]**. **Không hứa chữa bệnh.**
-- **⭐ Nhóm khách**: mức để máy xếp khách **VIP** và **Sắp mất**, số ngày giao hàng trung bình, số ngày giãn cách giữa 2 lần chào bán (ghi 0 = tắt). Bấm **Lưu nhóm khách**.
+- **⭐ Nhóm khách**: mức để máy xếp khách **VIP** và **Sắp mất**, số ngày giao hàng cho khách miền Bắc (mặc định 3) và khách ở xa (mặc định 5), số ngày giãn cách giữa 2 lần chào bán (ghi 0 = tắt). Bấm **Lưu nhóm khách**.
 - **Nhân sự được vào CRM** (chỉ Quản trị): **＋ Thêm người**, nhập email, tên, chọn quyền, bấm **Lưu nhân sự**. Người nghỉ việc thì **bỏ tích "Đang dùng"**, không cần xoá. Ô **🌐 Sửa website** để cho người đó sửa website. Ô **📣 Xem Marketing** (có ở Quản lý và Sale) cho người đó xem thêm tab **📣 Marketing**: chi phí quảng cáo, khách mới, hiệu quả từng kênh. Chỉ xem được, không nhập chi phí, không đặt mục tiêu.
 - **📂 File của sale** (chỉ Quản trị): nối file Google Sheet của sale với CRM. Tích **✍️ Ghi kết quả chăm sóc ngược vào file này** để máy ghi vào file của sale. Sale cần **chia sẻ quyền Chỉnh sửa** file cho tài khoản chạy CRM.
 

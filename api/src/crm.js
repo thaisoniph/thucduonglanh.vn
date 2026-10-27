@@ -19,7 +19,7 @@ import { wbQueue, wbOrderQueue, wbStatusQueue, WB_SHORT } from './wb.js';
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-10-27a'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
+const SCHEMA_V = '2026-10-27b'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -43,13 +43,14 @@ export async function ensureSchema(db) {
     await addCol('addr_old', "TEXT DEFAULT ''"); // 20/10/2026: địa chỉ cũ (63 tỉnh, có huyện) – Misa vẫn chọn theo địa chỉ cũ
     // Khách: đã kết bạn Zalo, nhóm cộng đồng, ngày sinh (bản Apps Script có, lúc chuyển sang D1 bị thiếu)
     const ccols = (await all(db, "PRAGMA table_info(customers)")).map(r => r.name);
-    for (const [col, def] of [['zalo', 'INTEGER DEFAULT 0'], ['community', "TEXT DEFAULT ''"], ['dob', "TEXT DEFAULT ''"], ['recv', 'INTEGER'], ['ok_n', 'INTEGER DEFAULT 0'], ['back_n', 'INTEGER DEFAULT 0'], ['last_back', 'INTEGER'], ['fam', 'INTEGER DEFAULT 0'], ['addr_old', "TEXT DEFAULT ''"]]) if (!ccols.includes(col)) { try { await run(db, `ALTER TABLE customers ADD COLUMN ${col} ${def}`); } catch (e) { } }
+    for (const [col, def] of [['zalo', 'INTEGER DEFAULT 0'], ['community', "TEXT DEFAULT ''"], ['dob', "TEXT DEFAULT ''"], ['recv', 'INTEGER'], ['ok_n', 'INTEGER DEFAULT 0'], ['back_n', 'INTEGER DEFAULT 0'], ['last_back', 'INTEGER'], ['fam', 'INTEGER DEFAULT 0'], ['addr_old', "TEXT DEFAULT ''"], ['zone', 'INTEGER DEFAULT 0']]) if (!ccols.includes(col)) { try { await run(db, `ALTER TABLE customers ADD COLUMN ${col} ${def}`); } catch (e) { } }
     const lcols = (await all(db, "PRAGMA table_info(leads)")).map(r => r.name); // 20/10/2026: khách hỏi do khách khác giới thiệu (SĐT + tên người giới thiệu)
     for (const col of ['ref_phone', 'ref_name']) if (!lcols.includes(col)) { try { await run(db, `ALTER TABLE leads ADD COLUMN ${col} TEXT DEFAULT ''`); } catch (e) { } }
     const ucols = (await all(db, "PRAGMA table_info(users)")).map(r => r.name);
     if (!ucols.includes('web')) { try { await run(db, "ALTER TABLE users ADD COLUMN web TEXT DEFAULT ''"); } catch (e) { } } // Sửa website: đăng nhập /admin bằng email (api/src/cms.js)
     if (!ucols.includes('mkv')) { try { await run(db, "ALTER TABLE users ADD COLUMN mkv TEXT DEFAULT ''"); } catch (e) { } } // 26/10/2026: 📣 Xem Marketing (Quản lý / Sale chỉ xem tab Marketing)
     await run(db, "UPDATE users SET role = 'Sale & CSKH' WHERE role = 'Nhân viên'"); // 15/10/2026: đổi tên quyền
+    if (!ccols.includes('zone')) await run(db, "INSERT INTO kv (k, v) VALUES ('recalc_all', '1') ON CONFLICT(k) DO UPDATE SET v = '1'"); // 27/10/2026: vùng giao hàng đọc từ địa chỉ → tính lại mọi khách 1 lần
     if (!ccols.includes('recv')) await run(db, "INSERT INTO kv (k, v) VALUES ('recalc_all', '1') ON CONFLICT(k) DO UPDATE SET v = '1'"); // cột mới (ngày nhận, số đơn hoàn, khách quen) → cron tính lại mọi khách 1 lần
     // 11/10/2026: khách đều nhập từ file sale (đã mua, đã liên hệ) → anh Sơn chọn mặc định tất cả đồng ý nhận ưu đãi. Chạy 1 lần.
     if (!(await db.prepare("SELECT v FROM kv WHERE k = 'consent_all'").first())) { await run(db, 'UPDATE customers SET consent = 1 WHERE consent IS NOT 1'); await run(db, "INSERT INTO kv (k, v) VALUES ('consent_all', ?) ON CONFLICT(k) DO NOTHING", String(Date.now())); }
@@ -152,7 +153,7 @@ async function otypeSuggest(x, phone, t) {
   return { t: 'Khách mới', why: 'lần đầu mua' };
 }
 function otypeFlag(chosen, sug) { return chosen && chosen !== sug.t ? 'CRM gợi ý ' + sug.t + ': ' + sug.why : ''; }
-export const VIP_ORDERS = 3, VIP_SPENT = 2000000, AT_RISK_DAYS = 60, COOL_DAYS = 14, SHIP_DAYS = 3, FAM_MIN = 1, FAM_GAP = 180; // COOL_DAYS: khách vừa trả lời chăm sóc → bao nhiêu ngày sau mới nhắc lại (0 = tắt)
+export const VIP_ORDERS = 3, VIP_SPENT = 2000000, AT_RISK_DAYS = 60, COOL_DAYS = 14, SHIP_DAYS = 3, SHIP_FAR = 5, FAM_MIN = 1, FAM_GAP = 180; // COOL_DAYS: khách vừa trả lời chăm sóc → bao nhiêu ngày sau mới nhắc lại (0 = tắt)
 const NOTE_MAX = 400; // nhật ký dài chỉ gửi phần đầu khi mở CRM; mở hồ sơ khách mới tải đủ (cust_orders)
 export const LINES = [['Fucoidan Pro', /progomax|fucoidan pro|fu ?pro/i], ['Curcumin', /curcumin|nghệ/i], ['BADD', /bữa ăn|badd|bua an/i]];
 export const DEFAULT_CYCLES = [
@@ -174,7 +175,7 @@ export async function rulesCfg(x) {
   if (x._rules) return x._rules;
   const r = await kvJson(x.db, 'rules_cfg', {}) || {};
   return (x._rules = { vipOrders: Number(r.vipOrders) || VIP_ORDERS, vipSpent: Number(r.vipSpent) || VIP_SPENT, atRisk: Number(r.atRisk) || AT_RISK_DAYS, coolDays: r.coolDays !== undefined && r.coolDays !== '' ? Number(r.coolDays) : COOL_DAYS,
-    shipDays: r.shipDays !== undefined && r.shipDays !== '' ? Number(r.shipDays) : SHIP_DAYS, famMin: r.famMin !== undefined && r.famMin !== '' ? Number(r.famMin) : FAM_MIN });
+    shipDays: r.shipDays !== undefined && r.shipDays !== '' ? Number(r.shipDays) : SHIP_DAYS, shipFar: r.shipFar !== undefined && r.shipFar !== '' ? Number(r.shipFar) : SHIP_FAR, famMin: r.famMin !== undefined && r.famMin !== '' ? Number(r.famMin) : FAM_MIN });
 }
 export async function caCfg(x) { if (!x._ca) x._ca = await kvJson(x.db, 'ca_cfg', {}) || {}; return x._ca; }
 export async function assignMode(x) { if (!x._mode) x._mode = (await kvGet(x.db, 'assign_mode')) || 'pool'; return x._mode; }
@@ -262,7 +263,12 @@ function runOutDate(cycles, items, t) { let best = 0; (items || []).forEach(i =>
 /** Đọc dòng sản phẩm đã lưu: "Tên (quy cách) x2 = 280.000 ₫". Bỏ dòng quà tặng (🎁). */
 export function parseItemLines(text) { return String(text || '').split('\n').map(l => { if (/^🎁/.test(l)) return null; const m = l.match(/^(.*?)(?: \((.*?)\))? x(\d+) =/); return m ? { name: m[1], variant: m[2] || '', qty: +m[3] } : null; }).filter(Boolean); }
 
-const CUS_COLS = ['phone', 'name', 'address', 'province', 'ward', 'orders', 'spent', 'first', 'last', 'products', 'runout', 'consent', 'source', 'owner', 'last_status', 'last_ca', 'last_seller', 'recv', 'ok_n', 'back_n', 'last_back', 'fam'];
+const CUS_COLS = ['phone', 'name', 'address', 'province', 'ward', 'orders', 'spent', 'first', 'last', 'products', 'runout', 'consent', 'source', 'owner', 'last_status', 'last_ca', 'last_seller', 'recv', 'ok_n', 'back_n', 'last_back', 'fam', 'zone'];
+/** Vùng giao hàng (gửi từ Hà Nội, sale báo 27/10/2026): 1 = gần (miền Bắc + Thanh Hóa, Nghệ An, Hà Tĩnh) ~3 ngày, 2 = xa (miền Trung, miền Nam) ~5 ngày, 0 = không đọc được tỉnh. */
+const NEAR_PROV = ['Hà Nội', 'Hải Phòng', 'Quảng Ninh', 'Bắc Ninh', 'Hưng Yên', 'Ninh Bình', 'Phú Thọ', 'Thái Nguyên', 'Tuyên Quang', 'Lào Cai', 'Lạng Sơn', 'Cao Bằng', 'Lai Châu', 'Điện Biên', 'Sơn La', 'Thanh Hóa', 'Nghệ An', 'Hà Tĩnh'];
+export function zoneOf(text) { const pv = provOfAddr(text || ''); return !pv ? 0 : NEAR_PROV.indexOf(pv.nw) >= 0 ? 1 : 2; }
+/** Số ngày giao ước tính theo vùng (Cài đặt → Nhóm khách); không rõ vùng = trung bình 2 mức. */
+export function shipOf(zone, R) { const a = R.shipDays || 0, b = R.shipFar == null ? a : R.shipFar; return zone === 1 ? a : zone === 2 ? b : Math.round((a + b) / 2); }
 /**
  * Tính lại khách của các số điện thoại (từ toàn bộ đơn, bỏ đơn Huỷ / Hoàn). Giữ nguyên các cột nhân viên điền (ghi chú, hẹn, nhãn…).
  * opt.owners = {sđt: tên} gán người phụ trách cho khách chưa có; opt.sellerOwner = tên sale: khách chưa ai phụ trách mà đơn gần nhất do sale này bán → giao cho sale.
@@ -311,10 +317,10 @@ export async function recalc(x, phones, opt) {
   const cycles = await cyclesList(x), R = await rulesCfg(x); let n = 0;
   for (let i = 0; i < list.length; i += 400) {
     const part = list.slice(i, i + 400);
-    const rows = await all(x.db, 'SELECT id, note, phone, time, status, items, total, consent, first_source, source, seller, name, address, province, ward, ca, received_at, ship_at FROM orders WHERE phone IN (SELECT value FROM json_each(?)) ORDER BY time, rid', JSON.stringify(part));
+    const rows = await all(x.db, 'SELECT id, note, phone, time, status, items, total, consent, first_source, source, seller, name, address, province, ward, addr_old, ca, received_at, ship_at FROM orders WHERE phone IN (SELECT value FROM json_each(?)) ORDER BY time, rid', JSON.stringify(part));
     const map = {};
     for (const r of rows) {
-      const c = map[r.phone] || (map[r.phone] = { orders: 0, spent: 0, first: null, last: null, bought: [], run: null, consent: 0, src: '', lastT: -1, lastStatus: '', lastCa: '', seller: '', okN: 0, backN: 0, lastBack: null, recv: null, list: [] });
+      const c = map[r.phone] || (map[r.phone] = { orders: 0, spent: 0, first: null, last: null, bought: [], run: null, consent: 0, src: '', lastT: -1, lastStatus: '', lastCa: '', seller: '', okN: 0, backN: 0, lastBack: null, recv: null, zone: 0, list: [] });
       c.list.push(r); if (/hoàn/i.test(r.status || '')) { c.backN++; if ((r.time || 0) > (c.lastBack || 0)) c.lastBack = r.time || 0; } else if (!isVoid(r.status) && r.time) c.okN++;
       if ((r.time || 0) >= c.lastT) { c.lastT = r.time || 0; c.lastStatus = r.status || ''; if (!isVoid(r.status)) c.lastCa = r.ca || ''; }
       if (isVoid(r.status) || !r.time) continue;
@@ -324,7 +330,8 @@ export async function recalc(x, phones, opt) {
       const items = parseItemLines(r.items);
       items.forEach(it => { const nm = it.name + (it.variant ? ' (' + it.variant + ')' : ''); if (c.bought.indexOf(nm) < 0) c.bought.push(nm); });
       c.recv = r.received_at || null; // ngày khách nhận đơn gần nhất (chưa biết thì để trống)
-      const ro = runOutDate(cycles, items, r.received_at || (r.ship_at ? r.ship_at + R.shipDays * DAY : r.time + R.shipDays * DAY)); if (ro) c.run = ro; // dùng hết tính từ ngày nhận hàng (chưa biết thì ngày gửi / ngày đặt + số ngày giao)
+      const z = zoneOf([r.address, r.ward, r.province, r.addr_old].join(' ')); if (z) c.zone = z; // vùng theo địa chỉ đơn gần nhất đọc được tỉnh
+      const sd = shipOf(z || c.zone, R) * DAY, ro = runOutDate(cycles, items, r.received_at || (r.ship_at ? r.ship_at + sd : r.time + sd)); if (ro) c.run = ro; // dùng hết tính từ ngày nhận hàng (chưa biết thì ngày gửi / ngày đặt + số ngày giao theo vùng)
       if (r.consent) c.consent = 1;
     }
     const up = [], zero = [];
@@ -334,11 +341,11 @@ export async function recalc(x, phones, opt) {
       let owner = (opt.owners && opt.owners[ph]) || '';
       if (!owner && opt.sellerOwner && c.seller === opt.sellerOwner) owner = opt.sellerOwner;
       up.push({ phone: ph, name: c.name || '', address: c.address || '', province: c.province || '', ward: c.ward || '', orders: c.orders, spent: c.spent, first: c.first, last: c.last, products: c.bought.join('; '), runout: c.run, consent: c.consent, source: c.src, owner, last_status: c.lastStatus, last_ca: c.lastCa, last_seller: c.seller,
-        recv: c.recv, ok_n: c.okN, back_n: c.backN, last_back: c.lastBack, fam: famOf(c.list, R.famMin) ? 1 : 0 });
+        recv: c.recv, ok_n: c.okN, back_n: c.backN, last_back: c.lastBack, fam: famOf(c.list, R.famMin) ? 1 : 0, zone: c.zone });
     }
     await insertMany(x.db, 'customers', CUS_COLS, up, `ON CONFLICT(phone) DO UPDATE SET name = excluded.name, address = excluded.address, province = excluded.province, ward = excluded.ward, orders = excluded.orders, spent = excluded.spent,
       first = excluded.first, last = excluded.last, products = excluded.products, runout = excluded.runout, consent = max(coalesce(customers.consent, 0), excluded.consent), source = excluded.source, last_status = excluded.last_status, last_ca = excluded.last_ca, last_seller = excluded.last_seller,
-      recv = excluded.recv, ok_n = excluded.ok_n, back_n = excluded.back_n, last_back = excluded.last_back, fam = excluded.fam,
+      recv = excluded.recv, ok_n = excluded.ok_n, back_n = excluded.back_n, last_back = excluded.last_back, fam = excluded.fam, zone = excluded.zone,
       owner = CASE WHEN customers.owner IS NULL OR customers.owner = '' THEN excluded.owner ELSE customers.owner END`);
     if (zero.length) await run(x.db, "UPDATE customers SET orders = 0, spent = 0, products = '', runout = NULL, recv = NULL, ok_n = 0, fam = 0, last_status = json_extract(j.value, '$.last_status'), last_ca = json_extract(j.value, '$.last_ca'), back_n = json_extract(j.value, '$.back_n'), last_back = json_extract(j.value, '$.last_back') FROM json_each(?) j WHERE customers.phone = json_extract(j.value, '$.phone')", JSON.stringify(zero));
     n += up.length;
@@ -371,13 +378,13 @@ export async function setCallbacks(x, cb) {
 
 /* ================================================================ việc chăm sóc hôm nay */
 const CARE_STEPS = [{ key: 'd1', at: 1, win: 2 }, { key: 'runout' }, { key: 'd7', at: 7, win: 3 }, { key: 'd14', at: 14, win: 3 }, { key: 'd30', at: 30, win: 3 }, { key: 'winback', at: AT_RISK_DAYS, win: 7 }];
-const OPEN_ST = /^(Mới|Đã xác nhận|Đang giao)$/, D1_WAIT = 3, D1_END = 6;
+const OPEN_ST = /^(Mới|Đã xác nhận|Đang giao)$/, D1_WIN = 3;
 /** D+7 "Hỏi thăm sau 1 tuần" (anh Sơn chốt 16/10/2026): chỉ khách mua lần đầu, tính từ ngày nhận hàng (chưa rõ ngày nhận mà đơn đã giao → ngày đặt + số ngày giao).
  *  Không bị giãn cách chăm sóc chặn (khách vừa được hỏi nhận hàng ở D+1); đã chăm sóc từ ngày nhận + 4 trở đi thì thôi. */
 function d7Task(c, today, R, last, care, toRun) {
   if (Number(c.orders) !== 1) return null;
   let recv = c.recv ? startOfDay(c.recv) : null, est = 0;
-  if (recv == null || recv < last) { if (OPEN_ST.test(c.last_status || '')) return null; recv = last + (R.shipDays || 0) * DAY; est = 1; }
+  if (recv == null || recv < last) { if (OPEN_ST.test(c.last_status || '')) return null; recv = last + shipOf(c.zone, R) * DAY; est = 1; }
   const rd = Math.round((today - recv) / DAY);
   if (rd < 7 || rd > 10 || (care != null && care >= recv + 4 * DAY)) return null;
   return { type: 'd7', days: rd, late: 0, toRun, est };
@@ -391,20 +398,23 @@ export function careTask(c, today, R) {
   if (cb != null && cb <= today) return { type: 'callback', days, late: Math.round((today - cb) / DAY), toRun };
   // Khách vừa trả lời chăm sóc (không tính "Không nghe máy") trong coolDays ngày → chưa nhắc lại các mốc định kỳ (hẹn gọi lại, hỏi nhận hàng vẫn nhắc)
   const cool = R.coolDays > 0 && care != null && c.care_result !== 'Không nghe máy' && today - care < R.coolDays * DAY;
+  const ship = shipOf(c.zone, R), lead = ship + 1; // nhắc đặt lại sớm hơn ngày hết đủ để đơn mới kịp tới (khách xa nhắc sớm hơn)
   for (const s of CARE_STEPS) {
     if (c.fam && (s.key === 'd1' || s.key === 'd14')) continue; // khách quen sản phẩm: đã biết cách dùng
     if (s.key === 'd1') { // hỏi nhận hàng. Đã chăm sóc sau ngày đặt → coi như đã hỏi
       if (care != null && care > last) continue;
       const recv = c.recv ? startOfDay(c.recv) : null;
       if (recv != null && recv >= last) { const rd = Math.round((today - recv) / DAY); if (rd >= 0 && rd <= 2) return { type: 'd1', days: rd, late: 0, toRun }; continue; } // biết ngày nhận: từ hôm nhận đến 2 ngày sau
-      // chưa rõ ngày nhận: đơn còn đang xử lý / đi đường thì chờ quá số ngày giao (Cài đặt) + D1_WAIT ngày mới hỏi; đã giao thì từ D+1
-      const open = OPEN_ST.test(c.last_status || ''), from = open ? Math.max(D1_WAIT, (R.shipDays || 0) + 2) : s.at;
-      if (days >= from && days <= from + D1_END - D1_WAIT) return { type: 'd1', days, late: 0, toRun, est: 1 };
+      // chưa rõ ngày nhận (27/10/2026): hỏi 1 ngày sau ngày hàng dự kiến tới theo vùng (gần: ngày thứ 4, xa: ngày thứ 6, không rõ tỉnh: ngày thứ 5), hiện 3 ngày.
+      // Không dựa vào trạng thái "Đã giao" vì đơn từ file sale thường ghi sẵn lúc lên đơn.
+      const from = ship + 1;
+      if (days >= from && days <= from + D1_WIN) return { type: 'd1', days, late: 0, toRun, est: 1 };
       continue;
     }
     if (s.key === 'd7') { const t7 = d7Task(c, today, R, last, care, toRun); if (t7) return t7; continue; }
+    // Sắp hết hàng = lúc dễ ra đơn nhất: không bị giãn cách chặn, chỉ nhường khi sale đã hẹn gọi lại ngày sau (27/10/2026)
+    if (s.key === 'runout') { if (toRun !== null && toRun >= -7 && toRun <= lead && days >= 2 && !(cb != null && cb > today) && !(care != null && care >= runD - lead * DAY)) return { type: 'runout', days, late: toRun < 0 ? -toRun : 0, toRun }; continue; }
     if (cool) continue;
-    if (s.key === 'runout') { if (toRun !== null && toRun >= -7 && toRun <= 2 && days >= 2 && !(care != null && care >= runD - 3 * DAY)) return { type: 'runout', days, late: toRun < 0 ? -toRun : 0, toRun }; }
     else { const at = s.key === 'winback' ? R.atRisk : s.at; if (days >= at && days <= at + s.win && !(care != null && care >= last + at * DAY)) return { type: s.key, days, late: 0, toRun }; }
   }
   return null;
@@ -433,12 +443,12 @@ export async function srcList(x) {
 }
 export async function adsCfg(x) { return kvJson(x.db, 'ads_cfg', null); }
 
-const CUS_SQL = `SELECT phone, name, address, province, ward, orders, spent, first, last, products, runout, consent, source, owner, care_at, care_result, substr(note, 1, ${NOTE_MAX}) AS note, length(note) > ${NOTE_MAX} AS cut, callback, flag, tag, last_status, last_ca, zalo, community, dob, recv, ok_n, back_n, last_back, fam, addr_old FROM customers`;
+const CUS_SQL = `SELECT phone, name, address, province, ward, orders, spent, first, last, products, runout, consent, source, owner, care_at, care_result, substr(note, 1, ${NOTE_MAX}) AS note, length(note) > ${NOTE_MAX} AS cut, callback, flag, tag, last_status, last_ca, zalo, community, dob, recv, ok_n, back_n, last_back, fam, addr_old, zone FROM customers`;
 const cusOut = (v, today, R) => ({
   phone: v.phone, name: v.name || '', address: v.address || '', province: v.province || '', ward: v.ward || '', orders: v.orders || 0, spent: v.spent || 0, first: v.first, last: v.last,
   products: String(v.products || '').split('; ').filter(String), runout: v.runout, group: groupOf(v.orders || 0, v.spent || 0, v.last, R), consent: !!v.consent, source: v.source || '', owner: v.owner || '',
   careAt: v.care_at, careResult: v.care_result || '', note: v.note || '', noteCut: !!v.cut, callback: v.callback, flag: v.flag || '', tag: v.tag || '', task: careTask(v, today, R), lastStatus: v.last_status || '', lastCa: v.last_ca || '',
-  zalo: !!v.zalo, community: v.community || '', dob: v.dob || '', recv: v.recv || null, okN: v.ok_n || 0, backN: v.back_n || 0, lastBack: v.last_back || 0, fam: !!v.fam, addrOld: v.addr_old || ''
+  zalo: !!v.zalo, community: v.community || '', dob: v.dob || '', recv: v.recv || null, okN: v.ok_n || 0, backN: v.back_n || 0, lastBack: v.last_back || 0, fam: !!v.fam, addrOld: v.addr_old || '', zone: v.zone || 0
 });
 const logOut = l => ({ time: l.time, by: l.by_name || '', what: l.what || '', ref: l.ref || '', name: l.name || '', result: l.result || '', note: l.note || '' });
 const contactOut = r => ({ row: r.rid, time: r.time, name: r.name || '', phone: r.phone || '', email: r.email || '', message: r.message || '', page: r.page || '', done: !!r.done, note: r.note || '' });
@@ -505,7 +515,7 @@ async function loadSmall(x, u, R, mode, adV) {
     ok: true, user: publicUser(u), areas, sanOk, now: Date.now(), today: startOfDay(Date.now()), fbNew, users, prefs, tagColors, sources, ads, adV: ar.v, adRows: ar.rows, qrLinks,
     contacts: ct.reverse().map(contactOut), targets: tg.map(t => ({ month: t.month, name: t.name, amount: t.amount || 0, by: t.by_name || '', at: t.at })),
     cycles: cy.filter(r => r.name).map(r => [r.name, r.variant || '', Number(r.days) || 0, r.basis || '']), templates: tp.filter(r => r.text).map(r => [r.when_txt || '', r.purpose || '', r.text]),
-    rules: { ai: !!x.env.ANTHROPIC_API_KEY && u.role !== 'Marketing', vipOrders: R.vipOrders, vipSpent: R.vipSpent, atRisk: R.atRisk, coolDays: R.coolDays, shipDays: R.shipDays, famMin: R.famMin, otypes: OTYPES, commission, dash, mktDoc, statuses: ORDER_STATUS, results: CARE_RESULTS, leadStatus: LEAD_STATUS, assignMode: mode, bot: BOT_USERNAME, ca, lines: LINES.map(l => l[0]).concat(['Khác']) }
+    rules: { ai: !!x.env.ANTHROPIC_API_KEY && u.role !== 'Marketing', vipOrders: R.vipOrders, vipSpent: R.vipSpent, atRisk: R.atRisk, coolDays: R.coolDays, shipDays: R.shipDays, shipFar: R.shipFar, famMin: R.famMin, otypes: OTYPES, commission, dash, mktDoc, statuses: ORDER_STATUS, results: CARE_RESULTS, leadStatus: LEAD_STATUS, assignMode: mode, bot: BOT_USERNAME, ca, lines: LINES.map(l => l[0]).concat(['Khác']) }
   };
 }
 
@@ -1290,6 +1300,7 @@ async function crmSettings(x, u, d) {
     const R = { vipOrders: Math.max(1, Math.round(Number(d.rules.vipOrders) || VIP_ORDERS)), vipSpent: Math.max(0, Math.round(Number(d.rules.vipSpent) || VIP_SPENT)), atRisk: Math.max(7, Math.round(Number(d.rules.atRisk) || AT_RISK_DAYS)),
       coolDays: d.rules.coolDays === undefined || d.rules.coolDays === '' ? (await rulesCfg(x)).coolDays : Math.min(60, Math.max(0, Math.round(Number(d.rules.coolDays) || 0))),
       shipDays: d.rules.shipDays === undefined || d.rules.shipDays === '' ? (await rulesCfg(x)).shipDays : Math.min(15, Math.max(0, Math.round(Number(d.rules.shipDays) || 0))),
+      shipFar: d.rules.shipFar === undefined || d.rules.shipFar === '' ? (await rulesCfg(x)).shipFar : Math.min(15, Math.max(0, Math.round(Number(d.rules.shipFar) || 0))),
       famMin: d.rules.famMin === undefined || d.rules.famMin === '' ? (await rulesCfg(x)).famMin : Math.min(10, Math.max(0, Math.round(Number(d.rules.famMin) || 0))) };
     await kvSet(x.db, 'rules_cfg', JSON.stringify(R)); x._rules = null;
     await crmLog(x, u, 'Cài đặt', '-', '', 'VIP từ ' + R.vipOrders + ' đơn hoặc ' + fmt(R.vipSpent) + '; Sắp mất sau ' + R.atRisk + ' ngày; giãn cách chăm sóc ' + R.coolDays + ' ngày', '');

@@ -8,8 +8,8 @@
 
   var TASKS = {
     callback: { icon: '📞', title: 'Hẹn gọi lại', tip: 'khách đã hẹn đến hôm nay', tpl: '' },
-    d1: { icon: '📦', title: 'Hỏi nhận hàng, hướng dẫn dùng', tip: 'khách vừa nhận hàng (hoặc đơn đã quá ngày giao dự kiến 2 ngày)', tpl: '1 ngày' },
-    runout: { icon: '⏰', title: 'Sắp hết / đã hết sản phẩm', tip: 'nhắc đặt lại, đơn từ 300K được freeship', tpl: 'hết' },
+    d1: { icon: '📦', title: 'Hỏi nhận hàng, hướng dẫn dùng', tip: 'khách vừa nhận hàng, hoặc hàng dự kiến đã tới hôm qua (miền Bắc: ngày thứ 4, ở xa: ngày thứ 6 sau khi đặt)', tpl: '1 ngày' },
+    runout: { icon: '⏰', title: 'Sắp hết / đã hết sản phẩm', tip: 'nhắc đặt lại trước khi hết để hàng tới kịp, đơn từ 300K được freeship', tpl: 'hết' },
     d7: { icon: '🤝', title: 'Hỏi thăm sau 1 tuần', tip: 'Khách mua lần đầu, 7 ngày sau khi nhận hàng: dùng có khó khăn gì, cần hỗ trợ gì', tpl: '7 ngày' },
     d14: { icon: '💬', title: 'Xin cảm nhận', tip: '14 ngày sau khi nhận hàng', tpl: '14' },
     d30: { icon: '🌿', title: 'Giới thiệu sản phẩm phù hợp', tip: '30 ngày sau khi nhận hàng', tpl: '30' },
@@ -870,7 +870,7 @@
     if (t.type === 'callback') return '<span class="warn-line">📞 Hẹn gọi lại ' + (t.late ? '– đã quá ' + t.late + ' ngày' : 'hôm nay') + '</span>';
     if (t.type === 'runout') return t.late ? '<span class="bad-line">Đã hết khoảng ' + t.late + ' ngày</span>' : '<span class="warn-line">' + (t.toRun === 0 ? 'Hết trong hôm nay' : 'Còn khoảng ' + t.toRun + ' ngày là hết (' + fDate(today() + t.toRun * DAY).slice(0, 5) + ')') + '</span>';
     var late = t.late ? ' <span class="bad-line">· ⏳ trễ ' + t.late + ' ngày</span>' : '';
-    if (t.type === 'd1') return (t.est ? 'Đặt ' + daysAgo(c.last) + ' · <span class="warn-line">' + (/^(Mới|Đã xác nhận|Đang giao)$/.test(c.lastStatus || '') ? 'đơn vẫn «' + esc(c.lastStatus) + '», hỏi khách đã nhận hàng chưa' : 'chưa rõ ngày nhận hàng') + '</span>' : 'Nhận hàng ' + (t.days === 0 ? 'hôm nay' : t.days + ' ngày trước')) + late;
+    if (t.type === 'd1') return (t.est ? 'Đặt ' + daysAgo(c.last) + ' · <span class="warn-line">' + (/^(Mới|Đã xác nhận|Đang giao)$/.test(c.lastStatus || '') ? 'đơn vẫn «' + esc(c.lastStatus) + '», hỏi khách đã nhận hàng chưa' : 'chưa rõ ngày nhận hàng') + '</span>' + (c.zone ? ' · ' + (c.zone === 1 ? 'miền Bắc, giao ~' + ((S.d.rules || {}).shipDays || 3) : 'ở xa, giao ~' + ((S.d.rules || {}).shipFar || 5)) + ' ngày' : '') : 'Nhận hàng ' + (t.days === 0 ? 'hôm nay' : t.days + ' ngày trước')) + late;
     return (t.est ? 'Đặt ' + daysAgo(c.last) : 'Nhận hàng ' + t.days + ' ngày trước') + late;
   }
   /* ---------- số ngày chưa chăm sóc: tính từ lần gần nhất KHÁCH CÓ PHẢN HỒI ("Không nghe máy" không tính) */
@@ -1204,10 +1204,12 @@
       '<button class="btn gm-more" data-gmore>Xem thêm ' + (arr.length - CAP_ROWS) + ' khách</button>';
   }
   /* ---------- danh sách việc trong ngày: xếp theo mức quan trọng, giới hạn số khách/ngày (phần còn lại để mai, có “trễ N ngày”) */
-  var DAY_LIMIT_DEF = 30, GROUP_ORDER = ['callback', 'viplate', 'd1', 'runout', 'd7', 'd14', 'd30', 'winback', 'old'];
-  var PRIO = { callback: 0, d1: 1, runout: 2, d7: 3.5, d14: 4, d30: 5, winback: 6, old: 7 };
+  var DAY_LIMIT_DEF = 30, GROUP_ORDER = ['callback', 'viplate', 'runout', 'd1', 'd7', 'd14', 'd30', 'winback', 'old'];
+  var PRIO = { callback: 0, runout: 1, d1: 2, d7: 3.5, d14: 4, d30: 5, winback: 6, old: 7 }; // 27/10/2026: sắp hết hàng lên trước hỏi nhận hàng (dễ ra đơn nhất; hỏi nhận hàng còn hiện 3 ngày)
   function dayLimit() { var n = parseInt(store('crm_daylimit') || '', 10); return n > 0 ? n : DAY_LIMIT_DEF; }
   function taskKey(c) { return c.task ? c.task.type : 'old'; }
+  /** Cùng loại việc: khách dễ ra đơn lên trước. VIP, mua lại nhiều lần cộng điểm; từng hoàn đơn, lần trước không nghe máy trừ điểm. */
+  function buyScore(c) { return (isVip(c) ? 2 : 0) + Math.min(c.okN || 0, 5) * 0.5 - (c.backN ? 2 : 0) - (c.careResult === NO_REPLY ? 0.5 : 0); }
   function vipLate(c) { var k = taskKey(c); return !!(c.task && c.task.late >= 2 && k !== 'callback' && k !== 'runout' && isVip(c)); } // VIP bị bỏ sót ≥ 2 ngày
   function prioOf(c) { var k = taskKey(c); return vipLate(c) ? 0.5 : c.task && c.task.late && k !== 'callback' && k !== 'runout' ? 3 : PRIO[k]; }
   function isCareLog(l) { if (!CARE_WHAT) { CARE_WHAT = {}; Object.keys(TASK_LOG).forEach(function (k) { CARE_WHAT[TASK_LOG[k]] = 1; }); CARE_WHAT['Ghi nhanh'] = 1; } return !!CARE_WHAT[l.what]; }
@@ -1216,7 +1218,7 @@
   function leadPhones() { var o = {}; leadsDue().forEach(function (l) { o[normPhone(l.phone)] = 1; }); return o; }
   function dayQueue() {
     var lp = leadPhones(), all = tasksShown().concat(oldDueAll()).filter(function (c) { return !lp[c.phone]; });
-    all.sort(function (a, b) { return prioOf(a) - prioOf(b) || ((b.task && b.task.late) || 0) - ((a.task && a.task.late) || 0) || b.spent - a.spent; });
+    all.sort(function (a, b) { return prioOf(a) - prioOf(b) || ((b.task && b.task.late) || 0) - ((a.task && a.task.late) || 0) || buyScore(b) - buyScore(a) || b.spent - a.spent; });
     var done = doneCount(), room = Math.max(0, dayLimit() - done);
     return { list: all.slice(0, room), rest: Math.max(0, all.length - room), done: done };
   }
@@ -6237,10 +6239,12 @@
       '<label class="f"><span>“Sắp mất” khi bao nhiêu ngày chưa mua lại</span><input type="number" id="rRisk" min="7" value="' + esc(R.atRisk || 60) + '"></label>' +
       '<label class="f"><span>🕑 Khách vừa được chăm sóc thì bao nhiêu ngày sau mới nhắc lại</span><input type="number" id="rCool" min="0" max="60" value="' + esc(R.coolDays === undefined ? 14 : R.coolDays) + '"></label>' +
       '<p class="hint">Khách đã trả lời (không tính “Không nghe máy”) trong số ngày này thì CRM <b>không</b> nhắc sắp hết hàng, xin cảm nhận, giới thiệu sản phẩm, mời quay lại. Vẫn nhắc <b>hẹn gọi lại</b> và <b>hỏi nhận hàng</b> đơn mới. Ghi <b>0</b> = tắt.</p>' +
-      '<label class="f"><span>🚚 Số ngày giao hàng trung bình</span><input type="number" id="rShip" min="0" max="15" value="' + esc(R.shipDays === undefined ? 3 : R.shipDays) + '"></label>' +
+      '<div class="row2c"><label class="f"><span>🚚 Số ngày giao: khách miền Bắc (gần)</span><input type="number" id="rShip" min="0" max="15" value="' + esc(R.shipDays === undefined ? 3 : R.shipDays) + '"></label>' +
+      '<label class="f"><span>🚚 Số ngày giao: miền Trung, miền Nam (xa)</span><input type="number" id="rShipFar" min="0" max="15" value="' + esc(R.shipFar === undefined ? 5 : R.shipFar) + '"></label></div>' +
+      '<p class="hint">CRM tự đọc tỉnh trong địa chỉ khách. <b>Gần</b> = Hà Nội, các tỉnh miền Bắc, Thanh Hóa, Nghệ An, Hà Tĩnh. <b>Xa</b> = từ Quảng Trị trở vào. Không đọc được tỉnh thì lấy trung bình 2 mức. Hỏi nhận hàng vào <b>1 ngày sau</b> ngày hàng dự kiến tới (gần: ngày thứ 4, xa: ngày thứ 6 sau khi đặt). Nhắc đặt lại trước ngày hết hàng (số ngày giao + 1) để đơn mới tới kịp.</p>' +
       '<label class="f"><span>🌟 Khách quen sản phẩm khi đã mua sản phẩm đó từ (lần)</span><input type="number" id="rFam" min="0" max="10" value="' + esc(R.famMin === undefined ? 1 : R.famMin) + '"></label>' +
       '<p class="hint">Khách quen (mua lại đúng sản phẩm đã dùng, lần mua trước trong 6 tháng, đơn trước không bị hoàn) đã biết cách dùng: CRM <b>bỏ qua</b> hỏi nhận hàng, hỏi thăm 7 ngày, xin cảm nhận 14 ngày. Vẫn nhắc <b>sắp hết hàng</b>, giới thiệu sản phẩm 30 ngày, mời quay lại. Ghi <b>0</b> = tắt (ai cũng gọi đủ các mốc).</p>' +
-      '<p class="hint">Các mốc chăm sóc (hỏi nhận hàng, sắp hết hàng, xin cảm nhận…) tính từ <b>ngày khách nhận hàng</b>: ngày đơn chuyển “Đã giao”, hoặc ngày sale bấm “Đã nhận hàng” khi gọi. Chưa biết ngày nhận thì máy ước tính = <b>ngày gửi</b> + số ngày này (đơn chưa ghi ngày gửi: ngày đặt + số ngày này). Đơn còn chờ xác nhận / chờ gửi thì chưa nhắc hỏi nhận hàng.</p>' +
+      '<p class="hint">Các mốc chăm sóc (hỏi nhận hàng, sắp hết hàng, xin cảm nhận…) tính từ <b>ngày khách nhận hàng</b>: ngày đơn chuyển “Đã giao”, hoặc ngày sale bấm “Đã nhận hàng” khi gọi. Chưa biết ngày nhận thì máy ước tính = <b>ngày gửi</b> + số ngày giao theo vùng (đơn chưa ghi ngày gửi: ngày đặt + số ngày giao).</p>' +
       '<p class="hint" id="rHint"></p><button class="btn pri" id="rSave">Lưu nhóm khách</button></div>';
     var CMc = R.commission || {};
     G.cm = '<div class="box"><h3>💰 Hoa hồng</h3><p class="hint" style="margin:0 0 10px">% hoa hồng trên tiền hàng của đơn (không gồm phí ship, đã trừ huỷ / hoàn). Báo cáo BCDT tự tính hoa hồng tháng cho từng sale. Để trống = chưa tính.</p><div class="row2c">' +
@@ -6364,7 +6368,7 @@
     if ($('#rSave')) { var rh = function () { $('#rHint').textContent = 'Tổng chi = ' + money(moneyIn($('#rVipS').value)); }; $('#rVipS').addEventListener('input', rh); rh();
       $('#rSave').onclick = function () {
         var b = this; b.disabled = true;
-        api('settings', { rules: { vipOrders: $('#rVipN').value, vipSpent: moneyIn($('#rVipS').value), atRisk: $('#rRisk').value, coolDays: $('#rCool').value, shipDays: $('#rShip').value, famMin: $('#rFam').value } }).then(function (j) { Object.assign(S.d.rules, j.rules); toast('Đã lưu. Nhóm khách được tính lại ✓'); load(true); }, function (e) { toast(e.message, true); b.disabled = false; });
+        api('settings', { rules: { vipOrders: $('#rVipN').value, vipSpent: moneyIn($('#rVipS').value), atRisk: $('#rRisk').value, coolDays: $('#rCool').value, shipDays: $('#rShip').value, shipFar: $('#rShipFar').value, famMin: $('#rFam').value } }).then(function (j) { Object.assign(S.d.rules, j.rules); toast('Đã lưu. Nhóm khách được tính lại ✓'); load(true); }, function (e) { toast(e.message, true); b.disabled = false; });
       }; }
     if ($('#cmSave')) $('#cmSave').onclick = function () {
       var b = this, cm = {}; $$('[data-cm]').forEach(function (x) { cm[x.getAttribute('data-cm')] = x.value.trim(); }); b.disabled = true;
