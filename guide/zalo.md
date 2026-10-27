@@ -8,112 +8,118 @@ description: Cài đặt và sử dụng tài khoản Zalo "Trợ lý An Lành" 
 
 Trang này dành cho **người quản lý nhóm Zalo**, **marketing** và **sale trực Zalo**.
 
-## Trợ lý Zalo làm gì?
+## Trợ lý Zalo là gì?
 
-**"Trợ lý An Lành"** là một tài khoản Zalo riêng, dùng số mới, làm **phó nhóm** "Sống khỏe cùng Thực Dưỡng Lành". Máy tính tự trả lời thay cho tài khoản này, cả ngày lẫn đêm.
+**"Trợ lý An Lành"** là một tài khoản Zalo dùng **số mới**, làm **phó nhóm** "Sống khỏe cùng Thực Dưỡng Lành". Máy tính trả lời thay cho tài khoản này, cả ngày lẫn đêm.
 
-Trợ lý tự làm các việc sau:
+Trợ lý tự làm 6 việc:
 
-1. **Chào người mới** vào nhóm, gọi đúng tên @…
-2. **Chúc mừng** thành viên vừa nhận quà trên web (cẩm nang, ebook). Chỉ ghi tên Zalo và tên quà, không bao giờ ghi số điện thoại hay bệnh của khách.
-3. **Trả lời câu hỏi** trong nhóm về sản phẩm, cách dùng, dinh dưỡng, đặt hàng. Trợ lý chờ khoảng 1,5 phút. Nếu bạn đã trả lời rồi thì trợ lý thôi, không chen vào.
-4. **Thả tim** khi thành viên khoe bữa ăn, chia sẻ cảm nhận, cảm ơn.
-5. **Duyệt người xin vào nhóm**, nhưng chỉ người đã để số trên web. Người lạ thì Telegram báo để bạn duyệt tay.
-6. **Đăng bài** lúc 7h30 và 20h. Bài do AI soạn, **phải được duyệt** mới đăng.
-7. **Nhắn riêng**: tự đồng ý kết bạn và tư vấn như chuyên viên. Khách gửi số điện thoại thì CRM tự tạo khách hỏi.
+1. 👋 **Chào** người mới vào nhóm, gọi đúng tên.
+2. 💬 **Trả lời** câu hỏi trong nhóm và tin nhắn riêng.
+3. ❤️ **Thả tim** khi có người khoe bữa ăn, cảm ơn.
+4. 🎉 **Chúc mừng** người vừa nhận quà trên web.
+5. ✅ **Duyệt** người xin vào nhóm, nếu họ đã để số trên web.
+6. 📝 **Đăng bài** lúc 7h30 và 20h, nhưng **chỉ đăng bài đã được duyệt**.
 
-## Trợ lý và người thật chia việc thế nào?
+## Trợ lý và người thật chia việc
 
-- **Số Zalo mới**: dành cho trợ lý, trả lời tự động.
-- **Hotline 0966 326 522**: vẫn do người thật trực như cũ. **Không cài trợ lý lên hotline.**
+![Khách hỏi → trợ lý trả lời. Ca khó → Telegram báo → có số thì gọi từ hotline, chưa có số thì nhắn tay trên điện thoại trợ lý](/huong-dan/img/zalo-chia-viec.webp)
 
-**Ca khó** là khi khách hỏi đơn hàng, đổi trả, khiếu nại, giá sỉ, bệnh cụ thể, hoặc khách đang bực. Gặp ca khó, trợ lý trả lời ngắn, xin số điện thoại, rồi Telegram báo **"🤖 TRỢ LÝ ZALO CẦN NGƯỜI THẬT"**. Bạn làm trong ngày:
+- **Số mới** là của trợ lý.
+- **Hotline 0966 326 522** vẫn do người thật trực như cũ.
 
-1. **Tin báo có số điện thoại**: gọi hoặc nhắn khách từ **Zalo hotline 0966 326 522**.
-2. **Chưa có số**: mở **điện thoại có SIM trợ lý**, nhắn tay cho khách. Trợ lý thấy bạn nhắn thì **tự im 2 tiếng** trong cuộc trò chuyện đó.
+**Khi Telegram báo "🤖 TRỢ LÝ ZALO CẦN NGƯỜI THẬT":**
 
-Trong nhóm cũng vậy: bạn trả lời ai (bấm trả lời tin hoặc gọi tên @) thì trợ lý không chen vào với người đó.
+1. Tin có **số điện thoại** của khách → gọi hoặc nhắn khách từ **hotline 0966 326 522**.
+2. Tin **chưa có số** → mở **điện thoại của trợ lý**, nhắn tay cho khách.
 
-⚠️ **Tài khoản trợ lý chỉ dùng trên app Zalo của điện thoại.** Không đăng nhập Zalo máy tính hay Zalo web, vì máy chạy trợ lý đang dùng chỗ đó. Đăng nhập vào là trợ lý bị đẩy ra và ngừng chạy.
+Bạn nhắn tay thì trợ lý **tự im 2 tiếng** với khách đó. Trong nhóm, bạn trả lời ai thì trợ lý không chen vào với người đó.
 
-## Cài đặt lần đầu
+⚠️ Tài khoản trợ lý **chỉ dùng trên điện thoại**. Đừng đăng nhập Zalo máy tính hay Zalo web, vì đăng nhập vào là trợ lý ngừng chạy.
 
-**Việc của người quản lý nhóm:**
+## Mở tab Trợ lý Zalo
 
-1. Lắp **SIM mới** vào một điện thoại, cài Zalo, tạo tài khoản. Đặt tên **Trợ lý An Lành**, ảnh đại diện dùng logo Thực Dưỡng Lành.
-2. Dùng tay tài khoản này **3–5 ngày**: kết bạn vài người trong công ty, nhắn vài tin. Tài khoản mới mà hoạt động ngay thì Zalo dễ khoá.
-3. Vào nhóm "Sống khỏe cùng Thực Dưỡng Lành": **thêm** Trợ lý An Lành vào nhóm. Sau đó vào phần cài đặt nhóm → **Thành viên** → bấm giữ tên Trợ lý An Lành → chọn **Bổ nhiệm làm phó nhóm**.
-4. Muốn chỉ người đã để số trên web mới được vào nhóm: vào cài đặt nhóm, bật **Phê duyệt thành viên mới**.
-5. Đưa điện thoại có SIM trợ lý cho **anh Sơn** làm bước kết nối bên dưới.
+Vào CRM, bấm **Zalo** trên thanh menu. Quản trị thì vào **Tổng quan → 🤖 Trợ lý Zalo**.
 
-**Việc của anh Sơn (máy Mac, làm 1 lần):**
+![Ô trên cùng: 🟢 Đang chạy](/huong-dan/img/zalo-status.webp)
+
+- 🟢 **Đang chạy**: trợ lý đang làm việc.
+- 🔴 **Mất kết nối**: báo anh Sơn.
+
+## Việc mỗi ngày: duyệt bài
+
+Khi Telegram báo **"📝 Bài Zalo chờ duyệt"**, bạn vào tab và tìm bài **Ngày mai**.
+
+![Các nút dưới mỗi bài: 1 Duyệt, 2 Lưu sửa, 3 Viết lại, 4 Bỏ bài này](/huong-dan/img/zalo-duyet.webp)
+
+1. Đọc bài. Bài ổn thì bấm **✅ Duyệt** là xong.
+2. Muốn sửa chữ thì sửa ngay trong ô, bấm **💾 Lưu sửa**, rồi bấm **✅ Duyệt**.
+3. Muốn bài khác thì bấm **🔄 Viết lại**, gõ ý muốn (ví dụ "ngắn hơn"), chờ 30 giây.
+4. Không muốn đăng thì bấm **⏸ Bỏ bài này**.
+
+**Bài chưa bấm Duyệt thì trợ lý không đăng.**
+
+Trước khi duyệt, kiểm tra 3 điều:
+
+- Giá và ưu đãi đúng như trên web.
+- Không có chữ "chữa", "điều trị", "khỏi bệnh".
+- Bài nói về sản phẩm thì có dòng "không phải là thuốc".
+
+## Gửi tin của mình vào nhóm
+
+Dùng khi có thông báo, livestream, khuyến mãi.
+
+![Cửa sổ Gửi tin vào nhóm](/huong-dan/img/zalo-gui-tin.webp)
+
+1. Bấm **📣 Gửi tin vào nhóm** (nút xanh trên cùng).
+2. Gõ nội dung.
+3. Muốn gửi lúc khác thì chọn giờ. Để trống thì gửi ngay.
+4. Bấm **Gửi**.
+
+## Xem trợ lý vừa làm gì
+
+Kéo xuống cuối tab, tới mục **🕘 Trợ lý vừa làm gì**. Bấm vào một dòng để xem khách hỏi gì và trợ lý trả lời gì.
+
+![Danh sách việc trợ lý vừa làm, bấm vào để xem chi tiết](/huong-dan/img/zalo-nhat-ky.webp)
+
+Thấy trợ lý trả lời chưa đúng thì chụp màn hình gửi anh Sơn.
+
+## Cài đặt trợ lý
+
+Bấm **⚙️ Cài đặt trợ lý** để mở.
+
+![Cài đặt: 1 Bật trợ lý, 2 Chờ duyệt, 3 Lưu cài đặt](/huong-dan/img/zalo-cai-dat.webp)
+
+1. **Bật trợ lý**: bỏ tích thì trợ lý im lặng. Trợ lý nói sai, cần dừng gấp thì bỏ tích ô này.
+2. **Chờ duyệt**: giữ nguyên ô này. Chỉ chọn **Tự đăng** khi anh Sơn đồng ý.
+3. Đổi xong, bấm **Lưu cài đặt**. Khoảng 1 phút sau trợ lý làm theo.
+
+## Cài đặt lần đầu (làm 1 lần)
+
+**Người quản lý nhóm làm:**
+
+1. Lắp **SIM mới** vào một điện thoại, cài Zalo. Đặt tên **Trợ lý An Lành**, ảnh đại diện là logo Thực Dưỡng Lành.
+2. Dùng tay tài khoản này **3–5 ngày**: kết bạn với vài người trong công ty, nhắn vài tin. Tài khoản mới mà chạy ngay thì Zalo dễ khoá.
+3. Thêm Trợ lý An Lành vào nhóm, rồi **bổ nhiệm làm phó nhóm**.
+4. Muốn chỉ người đã để số trên web mới được vào nhóm: trong cài đặt nhóm, bật **Phê duyệt thành viên mới**.
+5. Đưa điện thoại của trợ lý cho **anh Sơn**.
+
+**Anh Sơn làm trên máy Mac:**
 
 1. Mở **Terminal**, dán lệnh này rồi bấm Enter:
    ```
    cd ~/Documents/"Website TDL"/website && bash zalo-bot/cai-dat.sh
    ```
-2. Máy hiện một **mã QR**. Trên điện thoại có SIM trợ lý: mở Zalo → bấm biểu tượng **QR** ở góc trên → quét mã → bấm **Đăng nhập**.
-3. Đợi Terminal báo **"✅ Trợ lý đang chạy nền"** là xong.
+2. Màn hình hiện **mã QR**. Trên điện thoại của trợ lý: mở Zalo → bấm biểu tượng **QR** → quét → bấm **Đăng nhập**.
+3. Thấy chữ **"✅ Trợ lý đang chạy nền"** là xong.
 
-**Kiểm tra:** vào CRM → **🤖 Trợ lý Zalo**. Ô trên cùng hiện **🟢 Đang chạy** là được. Máy Mac phải bật và có mạng thì trợ lý mới chạy.
-
-## Mở tab Trợ lý Zalo
-
-Trong CRM bấm **Zalo** trên thanh menu. Quản trị vào từ **Tổng quan → 🤖 Trợ lý Zalo**.
-
-## Việc hằng ngày: duyệt bài đăng
-
-AI soạn sẵn bài cho **hôm nay** và **ngày mai**, rồi Telegram báo **"📝 Bài Zalo chờ duyệt"**. **Bài chưa duyệt thì trợ lý không đăng.**
-
-Mỗi ngày, đọc bài của ngày mai:
-
-1. Bài ổn: bấm **✅ Duyệt**. Tới giờ trợ lý tự đăng.
-2. Muốn sửa chữ: sửa ngay trong ô, bấm **💾 Lưu sửa**, rồi bấm **✅ Duyệt**. Chữ đặt giữa `**hai dấu sao**` sẽ in đậm trên Zalo.
-3. Muốn AI viết bài khác: bấm **🔄 Viết lại**, gõ ý muốn (ví dụ "nói về hạt óc chó", "ngắn hơn", "vui hơn"), chờ khoảng 30 giây.
-4. Không muốn đăng bài này: bấm **⏸ Bỏ bài này**. Đổi ý thì bấm **▶️ Đăng lại bài này**.
-
-**Trước khi duyệt, kiểm tra:**
-
-- Giá và ưu đãi đúng với web.
-- Không có chữ "chữa", "điều trị", "khỏi bệnh".
-- Bài nói về sản phẩm phải có dòng "không phải là thuốc".
-
-## Gửi tin của mình vào nhóm
-
-Dùng khi có thông báo live, khuyến mãi, sự kiện:
-
-1. Bấm **📣 Gửi tin vào nhóm**.
-2. Gõ nội dung.
-3. Để trống ô giờ thì trợ lý gửi ngay (trong khoảng 1 phút). Chọn giờ thì trợ lý gửi đúng giờ đó.
-4. Bấm **Gửi**.
-
-## Xem trợ lý vừa làm gì
-
-Cuối tab có mục **🕘 Trợ lý vừa làm gì**. Bấm vào từng dòng để xem tin của khách và câu trả lời của trợ lý.
-
-- 👋 Chào người mới · 💬 Trả lời trong nhóm · 📩 Trả lời tin riêng · ❤️ Thả tim
-- 🙋 Cần người thật: đã báo Telegram
-- 🧑 Nhân sự nhắn tay: trợ lý đang nhường
-- 🎉 Chúc mừng nhận quà · 📝 Đăng bài
-
-Thấy trợ lý trả lời chưa đúng thì chụp màn hình gửi anh Sơn để chỉnh.
-
-## Cài đặt trợ lý
-
-Bấm **⚙️ Cài đặt trợ lý** để mở. Đổi xong bấm **Lưu cài đặt**, khoảng 1 phút sau trợ lý làm theo.
-
-- **Bật trợ lý**: bỏ tích là trợ lý im lặng hoàn toàn. Dùng khi có sự cố cần dừng ngay.
-- **Nhóm trợ lý chăm sóc**: tích nhóm muốn trợ lý làm việc.
-- Bật / tắt từng việc: chào người mới, trả lời câu hỏi, chúc mừng nhận quà, tự duyệt.
-- **Bài đăng**:
-  - **Chờ duyệt** (đang dùng): chỉ đăng bài đã bấm Duyệt.
-  - **Tự đăng**: tới giờ là đăng, kể cả bài chưa ai xem. Chỉ chuyển sang chế độ này khi anh Sơn đồng ý.
-- **Giờ đăng**: mặc định 7h30 và 20h. Bỏ tích buổi nào thì buổi đó không đăng.
-- **Tối đa số câu trả lời / nhóm / giờ**: để trợ lý không nói quá nhiều (mặc định 8).
+Máy Mac phải **bật và có mạng** thì trợ lý mới chạy.
 
 ## Khi có sự cố
 
-- **Tab báo 🔴 Mất kết nối** hoặc Telegram báo **"⚠️ Trợ lý Zalo mất kết nối"**: máy Mac chạy trợ lý đang tắt hoặc mất mạng. Báo anh Sơn.
-- **Telegram báo "⚠️ Trợ lý Zalo bị đăng xuất"**: cần quét lại mã QR. Mang điện thoại SIM trợ lý tới anh Sơn.
-- **Zalo khoá tài khoản trợ lý**: nhóm không sao vì anh Sơn vẫn là trưởng nhóm. Dùng SIM khác, làm lại phần cài đặt lần đầu.
-- **Trợ lý nói sai, cần dừng gấp**: tab Trợ lý Zalo → ⚙️ Cài đặt → bỏ tích **Bật trợ lý** → **Lưu cài đặt**.
+| Thấy gì | Làm gì |
+|---|---|
+| 🔴 Mất kết nối | Báo anh Sơn kiểm tra máy Mac |
+| Telegram báo "bị đăng xuất" | Mang điện thoại của trợ lý tới anh Sơn để quét lại mã QR |
+| Zalo khoá tài khoản trợ lý | Nhóm không sao. Dùng SIM khác, làm lại phần cài đặt lần đầu |
+| Trợ lý nói sai | Cài đặt → bỏ tích **Bật trợ lý** → **Lưu cài đặt** |
