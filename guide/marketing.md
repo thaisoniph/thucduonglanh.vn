@@ -186,7 +186,12 @@ Kiểm tra kỹ trước khi đăng: giá, ưu đãi đúng với web; không c�
 
 **🕘 Trợ lý vừa làm gì**: bấm vào từng dòng để xem tin của khách và câu trả lời của trợ lý. Thấy trợ lý trả lời chưa đúng thì báo anh Sơn để chỉnh.
 
-**Khi Telegram báo "🤖 TRỢ LÝ ZALO CẦN NGƯỜI THẬT"**: khách hỏi việc riêng (đơn hàng, giá sỉ, bệnh cụ thể…). Sale nhắn riêng cho khách trên Zalo trong ngày.
+**Khi Telegram báo "🤖 TRỢ LÝ ZALO CẦN NGƯỜI THẬT"**: khách hỏi việc riêng (đơn hàng, giá sỉ, bệnh cụ thể…). Người trực xử lý trong ngày:
+
+1. Tin có số điện thoại: gọi hoặc nhắn khách từ **Zalo hotline 0966 326 522**.
+2. Chưa có số: mở **điện thoại "Trợ lý An Lành"**, nhắn tay cho khách. Trợ lý thấy bạn nhắn thì **tự im 2 tiếng** trong cuộc trò chuyện đó, không chen vào.
+
+Không đăng nhập tài khoản "Trợ lý An Lành" trên Zalo máy tính, vì trợ lý đang dùng chỗ đó.
 
 ## Trợ lý Fanpage Facebook
 

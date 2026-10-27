@@ -4125,7 +4125,7 @@
    * Tab này: xem trợ lý có đang chạy không, sửa / duyệt / bỏ bài AI soạn trước, gửi tin vào nhóm, cài đặt, xem trợ lý vừa làm gì. Quản lý, Quản trị, Marketing. */
   var ZB = { d: null, busy: 0, err: '' };
   var ZB_KIND = { welcome: ['👋', 'Chào người mới'], answer: ['💬', 'Trả lời trong nhóm'], handoff: ['🙋', 'Cần người thật (nhóm)'], react: ['❤️', 'Thả tim'], dm: ['📩', 'Trả lời tin riêng'], dm_handoff: ['🙋', 'Cần người thật (tin riêng)'],
-    post: ['📝', 'Đăng bài'], send: ['📣', 'Đăng tin nhân sự gửi'], announce: ['🎉', 'Chúc mừng nhận quà'], friend: ['🤝', 'Kết bạn'], error: ['⚠️', 'Lỗi'], skip: ['🤐', 'Không trả lời'] };
+    post: ['📝', 'Đăng bài'], send: ['📣', 'Đăng tin nhân sự gửi'], announce: ['🎉', 'Chúc mừng nhận quà'], friend: ['🤝', 'Kết bạn'], human: ['🧑', 'Nhân sự nhắn tay, trợ lý nhường 2 tiếng'], error: ['⚠️', 'Lỗi'], skip: ['🤐', 'Không trả lời'] };
   function zbFetch() {
     ZB.busy = 1; ZB.err = '';
     api('zb_view', {}).then(function (j) { ZB.d = j; }, function (e) { ZB.err = /Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message; })

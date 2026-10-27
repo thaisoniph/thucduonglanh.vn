@@ -13,6 +13,15 @@ Tài khoản Zalo **"Trợ lý An Lành"** (SIM riêng) làm phó nhóm "Sống 
 
 Phần "bộ não" (AI, quyết định, bài đăng) nằm ở máy chủ: `api/src/zbot.js`. Thư mục này chỉ là chương trình giữ tài khoản Zalo, dùng thư viện zca-js (không chính thức).
 
+## Chia việc: trợ lý và người thật
+
+- **Số mới (SIM riêng) cho trợ lý**, hotline **0966 326 522 giữ cho người thật** (đơn hàng, ca khó). Không cài trợ lý lên hotline: nếu Zalo khoá thì mất cả lịch sử khách, và trợ lý chiếm chỗ Zalo PC của hotline.
+- **Trợ lý** là cửa trước 24/7: chào, trả lời câu thường gặp, đăng bài, nhắn riêng.
+- **Ca khó** (đặt hàng, đơn đã đặt, đổi trả, khiếu nại, giá sỉ, bệnh cụ thể, khách bực): trợ lý trả lời ngắn, xin số nếu chưa có, rồi báo Telegram **🤖 TRỢ LÝ ZALO CẦN NGƯỜI THẬT**. Người trực xử lý bằng 1 trong 2 cách:
+  1. Có số khách: gọi hoặc nhắn từ **Zalo hotline 0966 326 522**.
+  2. Chưa có số: cầm **điện thoại "Trợ lý An Lành"**, nhắn tay cho khách. Trợ lý thấy người nhắn tay thì **tự nhường cuộc trò chuyện đó 2 tiếng**. Trong nhóm cũng vậy: người trực trả lời ai thì trợ lý không chen vào.
+- Điện thoại "Trợ lý An Lành" nên để ở chỗ người trực (giờ hành chính). Chỉ dùng app Zalo trên điện thoại này; không đăng nhập Zalo PC / web, vì chỗ đó trợ lý đang dùng.
+
 ## Cài trên máy Mac (1 lần)
 
 1. Điện thoại có SIM riêng, cài Zalo, đăng nhập tài khoản "Trợ lý An Lành". Nên dùng tay 3–5 ngày trước: đặt ảnh đại diện, kết bạn vài người, nhắn vài tin.

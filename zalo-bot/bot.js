@@ -9,7 +9,7 @@ import { execFile } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const VER = '2026-10-26a';
+const VER = '2026-10-27a';
 const DIR = dirname(fileURLToPath(import.meta.url)), TMP = join(DIR, 'tmp'), CREDS = join(DIR, 'creds.json'), QR = join(DIR, 'qr.png');
 for (const l of (existsSync(join(DIR, '.env')) ? readFileSync(join(DIR, '.env'), 'utf8') : '').split('\n')) { const m = l.match(/^\s*([A-Z_]+)\s*=\s*(.*)\s*$/); if (m && !process.env[m[1]]) process.env[m[1]] = m[2]; }
 const API = process.env.API_URL || 'https://api.thucduonglanh.vn/', KEY = process.env.ZBOT_KEY;
@@ -46,8 +46,14 @@ function rich(text, mentions) {
   const o = { msg: out }; if (styles.length) o.styles = styles; if (ms.length) o.mentions = ms; return o;
 }
 async function typing(tid, type, text) { try { await api.sendTypingEvent(tid, type); } catch (e) { } await sleep(Math.min(9000, 1500 + String(text || '').length * 45 + rnd(0, 1500))); }
+/* tin do trợ lý gửi (để phân biệt với tin nhân sự nhắn tay trên điện thoại "Trợ lý An Lành") */
+const SENT = new Map();
+function mine(id, text) { const now = Date.now(); if (id) SENT.set('i' + id, now); if (text) SENT.set('t' + String(text).trim().slice(0, 200), now); for (const [k, t] of SENT) if (now - t > 10 * 60e3) SENT.delete(k); }
+const isBotMsg = d => SENT.has('i' + d.msgId) || SENT.has('i' + d.realMsgId) || (typeof d.content === 'string' && SENT.has('t' + d.content.trim().slice(0, 200)));
 function say(tid, type, text, extra) {
-  return queue(async () => { await typing(tid, type, text); const c = Object.assign(rich(text, extra && extra.mentions), extra && extra.quote ? { quote: extra.quote } : {}); return api.sendMessage(c, tid, type); });
+  const c = Object.assign(rich(text, extra && extra.mentions), extra && extra.quote ? { quote: extra.quote } : {});
+  mine('', c.msg);
+  return queue(async () => { await typing(tid, type, text); const r = await api.sendMessage(c, tid, type); mine(r && r.message && r.message.msgId, c.msg); return r; });
 }
 async function imgFile(url) {
   const r = await fetch(url, { signal: AbortSignal.timeout(30e3) }); if (!r.ok) throw new Error('ảnh ' + r.status);
@@ -113,13 +119,20 @@ async function doJob(j) {
 
 /* ---------------------------------------------------------------- tin nhắn */
 const handled = {}; // người đã được đội ngũ trả lời → trợ lý không chen vào 30 phút
+const HUMAN = {}, HUMAN_MS = 2 * 3600e3; // nhân sự nhắn tay trên điện thoại "Trợ lý An Lành" → trợ lý nhường cuộc trò chuyện đó 2 tiếng
+const humanOn = tid => HUMAN[tid] && Date.now() - HUMAN[tid] < HUMAN_MS;
 async function onMessage(m) {
-  if (m.isSelf) return;
   const d = m.data, text = typeof d.content === 'string' ? d.content.trim() : '';
+  if (m.isSelf) {
+    if (!text || isBotMsg(d)) return; // ảnh / tin trợ lý vừa gửi quay về
+    if (m.type === ThreadType.User) { if (!humanOn(m.threadId)) call('human', { uid: m.threadId, text }); HUMAN[m.threadId] = Date.now(); log('🧑 nhân sự nhắn tay, trợ lý nhường', m.threadId); }
+    else { remember(m.threadId, { uid: me, name: 'Đội ngũ', text, staff: 1 }); if (d.quote && d.quote.ownerId) handled[m.threadId + d.quote.ownerId] = Date.now(); for (const x of d.mentions || []) handled[m.threadId + x.uid] = Date.now(); }
+    return;
+  }
   if (m.type === ThreadType.User) {
-    if (!text || !CFG.on) return;
+    if (!text || !CFG.on || humanOn(m.threadId)) return;
     const r = await call('dm', { uid: m.threadId, name: d.dName, text });
-    if (r.reply) await say(m.threadId, ThreadType.User, r.reply);
+    if (r.reply && !humanOn(m.threadId)) await say(m.threadId, ThreadType.User, r.reply);
     return;
   }
   const gid = m.threadId, g = G[gid]; if (!g || !text) return;
@@ -179,7 +192,7 @@ async function onFriend(ev) {
 /* ---------------------------------------------------------------- đăng nhập */
 async function imageMeta(path) { const m = await sharp(path).metadata(); const { size } = await import('node:fs').then(f => f.promises.stat(path)); return { width: m.width, height: m.height, size }; }
 async function login() {
-  const zalo = new Zalo({ selfListen: false, logging: false, imageMetadataGetter: imageMeta });
+  const zalo = new Zalo({ selfListen: true, logging: false, imageMetadataGetter: imageMeta });
   if (existsSync(CREDS)) {
     try { const a = await zalo.login(JSON.parse(readFileSync(CREDS, 'utf8'))); log('Đăng nhập bằng phiên đã lưu'); return a; }
     catch (e) { log('Phiên đăng nhập hết hạn:', e.message); }

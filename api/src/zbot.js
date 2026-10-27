@@ -95,7 +95,7 @@ function zText(s, prods) {
 /* ---------------------------------------------------------------- điều phối (index.js gọi khi type === 'zbot') */
 export async function zbot(x, d) {
   if (!x.env.ZBOT_KEY || d.key !== x.env.ZBOT_KEY) return { ok: false, error: 'key' };
-  const h = { poll: zPoll, ack: zAck, join: zJoin, msg: zMsg, dm: zDm, friend: zFriend, login: zLogin }[d.ev];
+  const h = { poll: zPoll, ack: zAck, join: zJoin, msg: zMsg, dm: zDm, friend: zFriend, login: zLogin, human: zHuman }[d.ev];
   return h ? await h(x, d) : { ok: false, error: 'ev' };
 }
 
@@ -295,7 +295,8 @@ async function zMsg(x, d) {
 /** Câu cần người thật → Telegram (kèm số điện thoại nếu đã biết từ web) */
 async function handoff(x, o) {
   const u = o.uid ? await first(x.db, 'SELECT phone, name FROM zb_users WHERE uid = ?', o.uid) : null;
-  await telegram(x.env, '🤖 <b>TRỢ LÝ ZALO CẦN NGƯỜI THẬT</b> – ' + esc(o.where) + '\n👤 ' + esc(o.name || '') + (u && u.phone ? ' – <b>' + esc(u.phone) + '</b>' : ' (chưa biết số)') + '\n💬 ' + esc(o.text.slice(0, 300)) + '\n🤖 Đã trả lời: ' + esc(o.reply.slice(0, 300)) + '\n👉 Nhắn riêng khách qua Zalo (tìm tên trong nhóm' + (u && u.phone ? ' hoặc theo số' : '') + ')');
+  await telegram(x.env, '🤖 <b>TRỢ LÝ ZALO CẦN NGƯỜI THẬT</b> – ' + esc(o.where) + '\n👤 ' + esc(o.name || '') + (u && u.phone ? ' – <b>' + esc(u.phone) + '</b>' : ' (chưa biết số)') + '\n💬 ' + esc(o.text.slice(0, 300)) + '\n🤖 Đã trả lời: ' + esc(o.reply.slice(0, 300))
+    + '\n👉 ' + (u && u.phone ? 'Gọi / nhắn từ Zalo hotline 0966 326 522 theo số trên, hoặc ' : '') + 'trả lời ngay trên điện thoại "Trợ lý An Lành" (' + (o.where === 'tin nhắn riêng' ? 'mở cuộc trò chuyện với khách' : 'tìm tên khách trong nhóm') + '). Người nhắn tay thì trợ lý tự nhường 2 tiếng.');
 }
 
 /* ---------------------------------------------------------------- khách nhắn riêng cho trợ lý */
@@ -311,7 +312,7 @@ Bạn là "${BOT}" – chuyên viên chăm sóc khách hàng của Thực Dưỡ
 
 # Tư vấn
 - Trả lời thẳng trước. Biết nhu cầu thì gợi ý 1–2 sản phẩm hợp nhất kèm lý do gắn với hoàn cảnh khách, thêm [[sp:mã]] (tối đa 2). Khách muốn mua: bấm link đặt trên web (được kiểm hàng trước khi nhận), hoặc gửi tên + số điện thoại + địa chỉ để chuyên viên lên đơn.
-- Thêm [[zalo]] khi cần người thật: khách gửi thông tin đặt hàng, hỏi đơn đã đặt, đổi trả, khiếu nại, giá sỉ / đại lý / cộng tác viên, sản phẩm chưa có trên web, hoặc điều em không biết. Khi đó nói tự nhiên: "em chuyển chị bên chuyên viên gọi lại cho mình ngay nha" (trong giờ làm việc; ngoài giờ thì từ 8h sáng hôm sau).
+- Thêm [[zalo]] khi cần người thật: khách gửi thông tin đặt hàng, hỏi đơn đã đặt, đổi trả, khiếu nại, giá sỉ / đại lý / cộng tác viên, sản phẩm chưa có trên web, bệnh cụ thể cần tư vấn kỹ, khách bực bội, hoặc điều em không biết. Khi đó nói tự nhiên: "em báo chị chuyên viên bên em nhắn lại cho mình ngay nha" (trong giờ làm việc; ngoài giờ thì từ 8h sáng hôm sau). Nếu khách chưa cho số điện thoại thì xin nhẹ nhàng 1 lần để chuyên viên gọi / nhắn Zalo hotline 0966 326 522 cho khách.
 - Khách tự gửi số điện thoại thì cảm ơn và báo chuyên viên sẽ liên hệ.`;
 
 async function zDm(x, d) {
@@ -354,6 +355,9 @@ async function dmLead(x, o) {
   await run(x.db, `INSERT INTO zb_users (uid, phone, zname, lead, at) VALUES (?, ?, ?, ?, ?) ON CONFLICT(uid) DO UPDATE SET phone = excluded.phone, lead = excluded.lead`, o.uid, o.phone, o.name.slice(0, 80), ld.id, Date.now());
   await telegram(x.env, '💬 <b>KHÁCH ĐỂ LẠI SỐ QUA TRỢ LÝ ZALO</b>\n👤 ' + esc(o.name) + ' – <b>' + esc(o.phone) + '</b>\n💬 ' + esc(asks.join(' | ')) + (ld.owner ? '\n\n👤 Giao cho: ' + esc(ld.owner) : '\n\n⚠️ Chưa có người phụ trách – vào CRM để giao') + '\n👉 ' + CRM_URL + '/#tiem-nang');
 }
+
+/** Nhân sự nhắn tay trên điện thoại "Trợ lý An Lành" → trợ lý nhường cuộc trò chuyện đó 2 tiếng (chương trình Zalo tự làm, ở đây chỉ ghi nhật ký) */
+async function zHuman(x, d) { await zlog(x, 'human', { uid: d.uid, text: String(d.text || '').slice(0, 300) }); return { ok: true }; }
 
 async function zFriend(x, d) {
   const cfg = await zCfg(x); if (!cfg.on) return { ok: true, accept: false };
