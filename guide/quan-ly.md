@@ -131,17 +131,23 @@ Mã giảm giá gửi riêng cho **khách cũ, đối tác**. Trên web không q
 
 ## Tổng quan (chỉ Quản trị)
 
-Tab đầu tiên, dành cho chủ doanh nghiệp. **Nhìn 5 giây là nắm được tình hình.**
+Tab đầu tiên, dành cho chủ doanh nghiệp. **Nhìn 5 giây là nắm được tình hình.** Đọc từ trên xuống theo 3 câu hỏi: *Tháng này có ổn không? Vì sao? Phải làm gì?*
 
-- **6 ô lớn**: 💵 Doanh thu · 💰 Doanh số · 🙋 Khách mới mua · 🔁 Khách mua lại · 📣 Quảng cáo · ↩️ Hoàn / huỷ.
-    - **Doanh số** = tiền **mọi đơn đã đặt**, kể cả đơn sau này bị huỷ hoặc hoàn. Dòng nhỏ dưới ô ghi số còn lại sau khi trừ hoàn / huỷ.
-    - **Doanh thu** = tiền các đơn **đã thu được** (đã giao, hoặc đã nhận chuyển khoản). Không có đơn huỷ, đơn hoàn.
+1. **Câu kết luận** (dòng đầu, có đèn): tháng này dự kiến đạt bao nhiêu so với mục tiêu, còn thiếu bao nhiêu, khâu nào yếu nhất.
+2. **6 ô lớn**: 💰 Doanh số · 💵 Tiền đã về · 🙋 Khách mới mua · 🔁 Doanh số từ khách cũ · 📣 1đ quảng cáo thu về · ↩️ Hoàn / huỷ.
+    - **Doanh số** = tiền các đơn **đã trừ hoàn / huỷ**. Từ 29/10/2026 cả trang (ô, biểu đồ, mục tiêu, Bán hàng văn phòng) dùng **một** con số này, giống tab Hiệu quả.
+    - **Tiền đã về** = tiền các đơn **đã thu được** (đã giao, hoặc đã nhận chuyển khoản).
+    - **Doanh số từ khách cũ** = bao nhiêu % doanh số đến từ khách đã từng mua. Cao = chăm sóc tốt.
+    - **1đ quảng cáo thu về** = bỏ 1 đồng quảng cáo thì khách mới mua bao nhiêu đồng.
     - **↩️ Hoàn / huỷ** = bao nhiêu % đơn bị hoàn hoặc huỷ, và mất bao nhiêu tiền. Đây là chỉ số của sale.
-- **Mỗi tab cho một người xem:** 📊 **Tổng quan** cho chủ doanh nghiệp · 📣 **Marketing** cho bạn chạy quảng cáo · 📈 **Hiệu quả** cho sale và chăm sóc khách.
-- **Đèn**: 🟢 tốt · 🟠 cần để ý · 🔴 cần xử lý. Quảng cáo: chi phí dưới 30% tiền khách mới mua = 🟢, 30–40% = 🟠, trên 40% = 🔴. Đổi mức ở **Cài đặt → 🚦 Mức đèn Tổng quan**.
-- **📌 Cần chú ý**: tối đa 5 việc máy tự rút ra. Bấm **Xem →** để mở đúng chỗ.
-- **6 nút đi thẳng**: 📊 Bán hàng · 📣 Marketing · 🛒 Sàn · 📍 Link & QR · 🤖 Trợ lý Zalo · 📘 Fanpage (cách dùng: [Marketing](/huong-dan/marketing/), [Fanpage](/huong-dan/fanpage/)).
-- **🔎 Xem chi tiết**: mục tiêu từng mảng (Sale, Website, Shopee, TikTok Shop), bán hàng văn phòng, quảng cáo từng kênh, sàn, sản phẩm bán chạy, website (lượt xem, đơn web, video câu chuyện được xem ở đâu…).
+    - Mũi tên **▲▼** so với kỳ trước (xanh = tốt hơn, đỏ = kém hơn). Đường nhỏ màu xám chỉ cho biết **trong kỳ** số đang lên hay xuống.
+3. **🎯 Mục tiêu tháng** và **🧩 Theo từng mảng** (Sale, Website, Shopee…): mỗi mảng 1 dòng, có đèn tiến độ. Nút **🎯 Đặt mục tiêu** nằm ngay đây.
+4. **🔍 Vì sao doanh số tăng / giảm**: Doanh số = khách hỏi mới × tỷ lệ chốt × giá trị 1 đơn + khách cũ mua lại. Ô **viền đỏ** là khâu giảm nhiều nhất, nên sửa trước.
+5. **✅ Việc cần làm**: tối đa 4 việc, việc gấp trước. Mỗi việc ghi **👤 ai làm** (Quản lý sale, Marketing, tên sale đang trễ chăm sóc…) và số tiền liên quan. Bấm **Xem →** để mở đúng chỗ. Tin tốt gom vào dòng **🌟 Điểm sáng**.
+
+- **Đèn**: 🟢 tốt · 🟠 cần để ý · 🔴 cần xử lý · ⚪ chưa đặt mục tiêu. Quảng cáo: chi phí dưới 30% tiền khách mới mua = 🟢, 30–40% = 🟠, trên 40% = 🔴. Đổi mức ở **Cài đặt → 🚦 Mức đèn Tổng quan**.
+- **🔎 Xem chi tiết từng phần** (bấm để mở): bán hàng văn phòng, quảng cáo (3 chiến dịch **ra đơn rẻ nhất** nên dồn tiền, 3 chiến dịch **ra đơn đắt nhất** nên giảm hoặc tắt), sàn, xu hướng theo ngày, đơn được lên từ đâu, sản phẩm bán chạy (báo ⚠️ khi 1 sản phẩm chiếm từ 50% tiền bán), khách hỏi theo kênh, khách giới thiệu & CTV, website (phần nguồn khách, phễu, trang xem nhiều nằm trong **Xem thêm**).
+- **Mỗi tab cho một người xem:** 📊 **Tổng quan** cho chủ doanh nghiệp · 📣 **Marketing** cho bạn chạy quảng cáo · 📈 **Hiệu quả** cho sale và chăm sóc khách. Nút sang các tab khác (📊 Bán hàng · 📣 Marketing · 🛒 Sàn · 📍 Link & QR · 🤖 Trợ lý Zalo · 📘 Fanpage) nằm ở **cuối trang** (cách dùng: [Marketing](/huong-dan/marketing/), [Fanpage](/huong-dan/fanpage/)).
 
 Chọn thời gian ở hàng nút trên cùng. Kỳ đang chạy so với **cùng số ngày** của kỳ trước (ví dụ 1–12/10 so với 1–12/9), cho công bằng.
 
