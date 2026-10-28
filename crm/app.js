@@ -3958,7 +3958,7 @@
   var KP = { j: null, at: 0, busy: 0, err: '' };
   function kpFetch(force) {
     if (KP.busy || (!force && (KP.err || (KP.j && Date.now() - KP.at < 10 * 60e3)))) return; KP.busy = 1; KP.err = '';
-    api('mkt_kpi').then(function (j) { KP.j = j; KP.at = Date.now(); }, function (e) { KP.err = /Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, bấm ↻ sau 2 phút.' : e.message; })
+    api('mkt_kpi', force || !KP.j ? { live: 1 } : {}).then(function (j) { KP.j = j; KP.at = Date.now(); }, function (e) { KP.err = /Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, bấm ↻ sau 2 phút.' : e.message; })
       .then(function () { KP.busy = 0; if (route().view === 'marketing') softRender(true); });
   }
   /** Mức tốt Quản trị đặt. Chưa đặt lần nào → mức bạn marketing (Tùng) đề xuất 23/10/2026: 1 tin nhắn dưới 100k, 1 SĐT dưới 300k (200–300k là đẹp). */
@@ -3984,6 +3984,59 @@
       return '<div class="kp-c ' + lv + (k === 'sdt' ? ' kp-main' : '') + '"><span class="kp-l">' + m[1] + (DASH_LV[lv] ? ' <i title="' + DASH_TIP[lv] + '">' + DASH_LV[lv] + '</i>' : '') + '</span><b>' + big + '</b><small>' + sub + '</small>' + (cmp ? '<small class="kp-cmp">' + cmp + '</small>' : '') + '</div>';
     }).join('') + '</div>';
     return { h: h, bad: bad };
+  }
+  /* ---------- 📋 Chiến dịch đang chạy (29/10/2026): danh sách Facebook lấy 3 tiếng 1 lần (mkt_kpi → live, kv mkt_live) + số hôm nay của từng chiến dịch (KP rows, khớp theo tài khoản + tên). */
+  var LV_OBJ = { OUTCOME_ENGAGEMENT: 'Tương tác / tin nhắn', MESSAGES: 'Tin nhắn', OUTCOME_LEADS: 'Thu SĐT (khách tiềm năng)', LEAD_GENERATION: 'Thu SĐT', OUTCOME_SALES: 'Bán hàng', CONVERSIONS: 'Chuyển đổi',
+    OUTCOME_TRAFFIC: 'Lượt truy cập', LINK_CLICKS: 'Lượt bấm link', OUTCOME_AWARENESS: 'Nhận diện thương hiệu', REACH: 'Tiếp cận', OUTCOME_APP_PROMOTION: 'Ứng dụng', VIDEO_VIEWS: 'Lượt xem video', POST_ENGAGEMENT: 'Tương tác bài viết' };
+  var LV_AD = { ACTIVE: ['🟢', 'Đang chạy'], PENDING_REVIEW: ['⏳', 'Chờ duyệt'], IN_PROCESS: ['⏳', 'Đang xử lý'], PREAPPROVED: ['⏳', 'Chờ duyệt'], DISAPPROVED: ['⛔', 'Bị từ chối'], WITH_ISSUES: ['⚠️', 'Có lỗi'] };
+  function lvTime(s) { var t = s ? new Date(String(s).replace(/([+-]\d\d)(\d\d)$/, '$1:$2')).getTime() : 0; return isNaN(t) ? 0 : t; }
+  function mkLiveBlock(f) {
+    var j = KP.j, L = j && j.live;
+    if (!j) return { h: '', todo: [] };
+    if (!L || !L.camps) return { todo: [], h: '<div class="box lv-box"><h3>📋 Chiến dịch đang chạy</h3><p class="small muted">' + (j.fbOn ? '⏳ Đang lấy danh sách từ Facebook, bấm ↻ sau 1 phút.' : 'Cần Quản trị kết nối Facebook Ads (⚙️ Nhập chi phí → 📘 Facebook tự động) để thấy danh sách chiến dịch đang chạy.') + '</p></div>' };
+    var t0 = j.today, G = kpGoal(), S7 = {}, ST = {}, z = function () { return { s: 0, i: 0, c: 0, m: 0 }; };
+    (j.rows || []).forEach(function (r) {
+      var k = (r[3] && r[3][1] || '') + '|' + r[2], o = r[0] === t0 ? (ST[k] = ST[k] || z()) : dayMs(r[0]) >= dayMs(t0) - 7 * DAY ? (S7[k] = S7[k] || z()) : null;
+      if (o) { o.s += r[4] || 0; o.i += r[5] || 0; o.c += r[6] || 0; o.m += r[7] || 0; }
+    });
+    var bad = [], wait = 0, budD = 0, spT = 0;
+    var cs = L.camps.map(function (c) {
+      var k = c.acc + '|' + c.n, t = ST[k] || z(), b = S7[k] || z(), sts = {}; c.ads.forEach(function (a) { sts[a.st] = (sts[a.st] || 0) + 1; });
+      var lv = sts.DISAPPROVED ? 'bad' : sts.WITH_ISSUES ? 'bad' : sts.ACTIVE ? 'ok' : 'mid';
+      var tag = sts.DISAPPROVED ? '⛔ ' + sts.DISAPPROVED + ' quảng cáo bị từ chối' : sts.WITH_ISSUES ? '⚠️ Có quảng cáo bị lỗi' : sts.ACTIVE ? '🟢 Đang chạy' : '⏳ Chờ duyệt';
+      if (lv === 'bad') bad.push(c.n); if (lv === 'mid') wait++;
+      budD += c.bud[0] || 0; spT += t.s;
+      return { c: c, t: t, b: b, lv: lv, tag: tag, rank: (lv === 'bad' ? 2 : 0) * 1e12 + t.s };
+    }).sort(function (a, b) { return b.rank - a.rank; });
+    var n = f.lall ? 200 : 6, now = Date.now();
+    var card = function (x) {
+      var c = x.c, t = x.t, B = kpCalc(x.b), C = kpCalc(t), num = (c.acc || '').replace(/^act_/, ''), st = lvTime(c.start), sp = lvTime(c.stop);
+      var chip = function (k, l, v, hi) { var lv = t.i >= 500 || k === 'msg' ? kpLv(v, G[k], B[k], hi) : ''; return '<span class="lv-k ' + lv + '">' + l + ' <b>' + kpFmt(k, v) + '</b>' + (DASH_LV[lv] ? ' ' + DASH_LV[lv] : '') + '</span>'; };
+      var info = [
+        c.pages.length ? c.pages.map(function (p) { return '📄 <a href="https://www.facebook.com/' + esc(p[0]) + '" target="_blank" rel="noopener">' + esc(p[1] || 'Trang ' + p[0]) + '</a>'; }).join(', ') : '',
+        c.obj ? '🎯 ' + esc(LV_OBJ[c.obj] || c.obj) : '',
+        c.bud[0] ? '💰 ' + moneyShort(c.bud[0]) + ' / ngày' : c.bud[1] ? '💰 ' + moneyShort(c.bud[1]) + ' cả đợt' : '',
+        st ? '📅 Chạy từ ' + fDate(st) + ' (' + Math.max(1, Math.ceil((now - st) / DAY)) + ' ngày)' + (sp ? ' · đến ' + fDate(sp) : '') : '',
+        c.an ? '🏷 ' + esc(c.an) : ''].filter(Boolean).join(' · ');
+      var ads = c.ads.slice(0, f.lall ? 12 : 4).map(function (a) {
+        var S0 = LV_AD[a.st] || ['', a.st], lk = a.post || a.ig || a.pv;
+        return '<div class="lv-ad">' + (a.th ? '<a href="' + esc(lk || '#') + '" target="_blank" rel="noopener"><img src="' + esc(a.th) + '" alt="" loading="lazy" referrerpolicy="no-referrer"></a>' : '<span class="lv-noimg">🖼</span>') +
+          '<div><span class="small">' + S0[0] + ' ' + esc(a.n || 'Quảng cáo') + (a.st !== 'ACTIVE' ? ' <b>(' + S0[1] + ')</b>' : '') + '</span><span class="lv-links">' +
+          (a.post ? '<a href="' + esc(a.post) + '" target="_blank" rel="noopener">👁 Xem bài viết</a>' : '') + (a.ig ? '<a href="' + esc(a.ig) + '" target="_blank" rel="noopener">📷 Instagram</a>' : '') + (a.pv ? '<a href="' + esc(a.pv) + '" target="_blank" rel="noopener">🔍 Xem trước quảng cáo</a>' : '') + '</span></div></div>';
+      }).join('') + (c.ads.length > (f.lall ? 12 : 4) ? '<p class="small muted">+ ' + (c.ads.length - (f.lall ? 12 : 4)) + ' quảng cáo nữa</p>' : '');
+      return '<div class="mk-camp lv-camp ' + x.lv + '"><div class="mk-camp-h"><span class="mk-badge ' + x.lv + '">' + x.tag + '</span><b>' + esc(c.n) + '</b><span class="mk-camp-v" title="Đã chi hôm nay">' + (t.s ? moneyShort(t.s) + ' <small>hôm nay</small>' : '<small>chưa chi hôm nay</small>') + '</span></div>' +
+        '<p class="small muted lv-info">' + info + '</p>' +
+        (t.s || t.i ? '<div class="lv-ks">' + chip('msg', '💬 ' + (t.m || 0) + ' tin · 1 tin', C.msg, 0) + chip('ctr', 'CTR', C.ctr, 1) + chip('cpm', 'CPM', C.cpm, 0) + chip('cpc', 'CPC', C.cpc, 0) + '</div>' : '') +
+        '<div class="lv-ads">' + ads + '</div>' +
+        (num ? '<a class="lv-am" href="https://adsmanager.facebook.com/adsmanager/manage/ads?act=' + esc(num) + '&selected_campaign_ids=' + esc(c.id) + '" target="_blank" rel="noopener">Mở chiến dịch trong Trình quản lý quảng cáo ↗</a>' : '') + '</div>';
+    };
+    var h = '<div class="box lv-box" id="mk-live"><h3>📋 Chiến dịch đang chạy (' + cs.length + ')</h3><p class="small muted">' +
+      [budD ? 'Ngân sách ' + moneyShort(budD) + ' / ngày' : '', 'đã chi hôm nay ' + moneyShort(spT), bad.length ? '🔴 ' + bad.length + ' chiến dịch có quảng cáo bị từ chối / lỗi' : '', wait ? '⏳ ' + wait + ' chờ duyệt' : ''].filter(Boolean).join(' · ') +
+      '. Danh sách cập nhật lúc ' + fDateTime(L.at) + ' (3 tiếng 1 lần, bấm ↻ để lấy ngay). Số hôm nay so với 7 ngày trước' + (G.msg ? ', giá 1 tin so với mức tốt ' + moneyShort(G.msg) : '') + '.</p>' +
+      (L.err ? '<p class="err">⚠️ ' + esc(L.err) + '</p>' : '') +
+      (cs.length ? '<div class="mk-camps">' + cs.slice(0, n).map(card).join('') + '</div>' + (cs.length > n ? '<button class="btn ghost sm" data-lvall="1">Xem tất cả ' + cs.length + ' chiến dịch</button>' : '') : '<p class="muted">Không có chiến dịch nào đang chạy.</p>') + '</div>';
+    var todo = bad.length ? [{ p: 1, t: '⛔ Chiến dịch <b>' + esc(bad.slice(0, 2).join(', ')) + '</b>' + (bad.length > 2 ? ' và ' + (bad.length - 2) + ' chiến dịch khác' : '') + ' có quảng cáo bị từ chối hoặc lỗi: sửa ngay để không mất ngày chạy. <button class="link" data-dgo="mk-live">Xem</button>' }] : [];
+    return { h: h, todo: todo };
   }
   function mkKpiBlock(f) {
     var j = KP.j;
@@ -4788,9 +4841,10 @@
     h += mkBudgetBlock(mj.budget);
     var FN = mkFunnel(mj, nr, newN), BC = mkBudgetCalc(mj.budget), SB = mkSaleBlock(mj), CB = mkCampBlock(mj, f), PB = mkProdBlock(mj);
     if (!KP.j || Date.now() - KP.at > 10 * 60e3) setTimeout(kpFetch, 0);
-    var KI = mkKpiBlock(f), kmore = KI.bad && f.kd !== 'y' ? [{ p: 2, t: '📊 <b>' + KI.bad + ' chiến dịch</b> hôm nay có chỉ số kém hơn bình thường (đèn 🔴): xem giá thầu, hình / video. <button class="link" data-dgo="mk-kpi">Xem</button>' }] : [];
+    var LB = mkLiveBlock(f), KI = mkKpiBlock(f), kmore = LB.todo.concat(KI.bad && f.kd !== 'y' ? [{ p: 2, t: '📊 <b>' + KI.bad + ' chiến dịch</b> hôm nay có chỉ số kém hơn bình thường (đèn 🔴): xem giá thầu, hình / video. <button class="link" data-dgo="mk-kpi">Xem</button>' }] : []);
     var L = mkTodo(mj, ch, E, { weak: FN.weak, ltv: LT, bud: BC, more: GB.todo.concat(SB.todo, kmore), gch: GB.gch });
     if (L.length) h += '<div class="box dash-notes"><h3>✅ Nên làm gì</h3>' + L.map(function (x) { return '<p>' + x + '</p>'; }).join('') + '</div>';
+    h += LB.h;
     h += offerAdmin();
     // ---- chi tiết: thu gọn, bấm mới mở (xếp theo mức quan trọng)
     h += '<h2 class="mk-more-h">Xem chi tiết <span class="tip">bấm vào từng mục để mở</span></h2>';
@@ -4850,6 +4904,7 @@
     $$('[data-mka]').forEach(function (el) { el.onclick = function () { S.f.m.acc = el.getAttribute('data-mka'); render(); }; });
     $$('[data-mkc]').forEach(function (el) { el.onclick = function () { S.f.m.cv = el.getAttribute('data-mkc'); S.f.m.call = 0; render(); }; });
     $$('[data-kpd]').forEach(function (el) { el.onclick = function () { S.f.m.kd = el.getAttribute('data-kpd'); S.f.m.kall = 0; render(); }; });
+    $$('[data-lvall]').forEach(function (el) { el.onclick = function () { S.f.m.lall = 1; render(); }; });
     $$('[data-kpall]').forEach(function (el) { el.onclick = function () { S.f.m.kall = 1; render(); }; });
   }
 

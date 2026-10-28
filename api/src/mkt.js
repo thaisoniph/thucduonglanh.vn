@@ -107,17 +107,55 @@ export async function mktTick(x) {
   const full = Date.now() - (fb.full || 0) >= 3 * 3600e3;
   const r = await fbSync(x, iso(full ? t - 2 * DAY : t), iso(t));
   if (full && r.ok) { const c2 = await cfgOf(x); c2.fb = Object.assign({}, c2.fb, { full: Date.now() }); await cfgSave(x, c2); }
+  if (full) { try { await fbLive(x); } catch (e) { console.error('fbLive', e.message); } }
+}
+/** 📋 Chiến dịch đang chạy (29/10/2026, anh Sơn muốn thấy ngay ở tab Marketing): mọi quảng cáo Facebook đang chạy / chờ duyệt / bị từ chối của các tài khoản đã chọn,
+ *  gom theo chiến dịch: tên, mục tiêu, ngân sách (cấp chiến dịch hoặc cộng các nhóm quảng cáo), ngày bắt đầu, fanpage, bài viết + ảnh nhỏ + link xem trước của từng quảng cáo.
+ *  Chạy cùng lượt 3 tiếng (mktTick), sau khi lấy lại số, hoặc khi bấm ↻ (lệnh mkt_kpi live, tối đa 10 phút / lần). Lưu kv mkt_live, không ghi bảng D1. */
+const LIVE_ST = ['ACTIVE', 'PENDING_REVIEW', 'DISAPPROVED', 'WITH_ISSUES', 'IN_PROCESS', 'PREAPPROVED'];
+async function fbLive(x) {
+  const c = await cfgOf(x), fb = c.fb || {}; if (!fb.token || !(fb.accounts || []).length) return null;
+  const C = {}, pages = {}, errs = [];
+  for (const acc of fb.accounts) {
+    try {
+      const info = (fb.all || []).find(a => a.id === acc) || {}, usd = info.cur === 'USD', rate = usd ? (fb.fx || FX_USD) / 100 : 1; // ngân sách tính theo đơn vị nhỏ nhất: USD = xu
+      let j = await fbGet(fb.token, acc + '/ads', { effective_status: JSON.stringify(LIVE_ST), limit: 200,
+        fields: 'id,name,effective_status,preview_shareable_link,campaign{id,name,effective_status,objective,daily_budget,lifetime_budget,start_time,stop_time},adset{id,daily_budget,lifetime_budget,end_time},creative{effective_object_story_id,thumbnail_url,instagram_permalink_url,object_story_spec{page_id}}' });
+      for (let i = 0; i < 10; i++) {
+        (j.data || []).forEach(a => {
+          const cp = a.campaign || {}; if (!cp.id || cp.effective_status !== 'ACTIVE') return;
+          const o = C[cp.id] || (C[cp.id] = { acc, an: info.name || acc, id: cp.id, n: String(cp.name || '').slice(0, 200), obj: cp.objective || '', start: cp.start_time || '', stop: cp.stop_time || '',
+            bud: [num(Number(cp.daily_budget || 0) * rate), num(Number(cp.lifetime_budget || 0) * rate)], cbo: !!(cp.daily_budget || cp.lifetime_budget), sets: {}, pg: {}, ads: [] });
+          const as = a.adset || {}; if (!o.cbo && as.id && !o.sets[as.id]) { o.sets[as.id] = 1; o.bud[0] += num(Number(as.daily_budget || 0) * rate); o.bud[1] += num(Number(as.lifetime_budget || 0) * rate); }
+          const cr = a.creative || {}, story = String(cr.effective_object_story_id || ''), pid = story.split('_')[0] || String((cr.object_story_spec || {}).page_id || '');
+          if (pid) { o.pg[pid] = 1; pages[pid] = 1; }
+          if (o.ads.length < 12) o.ads.push({ n: String(a.name || '').slice(0, 120), st: a.effective_status || '', post: story ? 'https://www.facebook.com/' + story : '', ig: cr.instagram_permalink_url || '', pv: a.preview_shareable_link || '', th: /^https:\/\/[^/]*fbcdn\.net\//.test(cr.thumbnail_url || '') ? cr.thumbnail_url : '' });
+        });
+        if (!j.paging || !j.paging.next) break; j = await fbGet(fb.token, j.paging.next);
+      }
+    } catch (e) { errs.push(((fb.all || []).find(a => a.id === acc) || {}).name || acc); console.error('fbLive', acc, e.message); }
+  }
+  const ids = Object.keys(pages), names = {};
+  try { (await all(x.db, 'SELECT id, name FROM fp_pages')).forEach(r => { names[r.id] = r.name; }); } catch (e) { /* chưa có bảng fanpage */ }
+  const miss = ids.filter(id => !names[id]);
+  if (miss.length) { try { const j = await fbGet(fb.token, '', { ids: miss.slice(0, 50).join(','), fields: 'name' }); miss.forEach(id => { if (j[id] && j[id].name) names[id] = j[id].name; }); } catch (e) { /* mã quảng cáo không đọc được tên trang: hiện mã trang */ } }
+  const camps = Object.values(C).map(o => ({ acc: o.acc, an: o.an, id: o.id, n: o.n, obj: o.obj, start: o.start, stop: o.stop, bud: o.bud, pages: Object.keys(o.pg).map(id => [id, names[id] || '']), ads: o.ads }));
+  const L = { at: Date.now(), err: errs.length ? 'Không đọc được: ' + errs.join(', ') : '', camps };
+  await kvSet(x.db, 'mkt_live', JSON.stringify(L));
+  return L;
 }
 /** mkt_kpi (Marketing + Quản trị): chỉ số từng chiến dịch theo ngày, 9 ngày gần nhất (hôm nay, hôm qua, 7 ngày trước đó để so).
  *  Chỉ dòng có lượt hiển thị (Facebook tự động, file có cột hiển thị). → rows [ngày, kênh, chiến dịch, [tài khoản, act_…], chi phí, hiển thị, bấm link, tin nhắn] */
-async function mktKpi(x) {
+async function mktKpi(x, d) {
+  let live = await kvJson(x.db, 'mkt_live', null);
+  if (d && d.live && (!live || Date.now() - (live.at || 0) > 10 * 60e3)) { try { live = await fbLive(x) || live; } catch (e) { console.error('fbLive', e.message); } }
   const t = startOfDay(Date.now()), [rows, c, ads] = await Promise.all([
     all(x.db, 'SELECT day, channel, account, campaign, src, SUM(spend) AS s, SUM(impressions) AS i, SUM(clicks) AS c, SUM(msgs) AS m FROM ad_spend WHERE day BETWEEN ? AND ? AND impressions > 0 GROUP BY day, channel, account, campaign', iso(t - 8 * DAY), iso(t)),
     cfgOf(x), kvJson(x.db, 'ads_rows', [])
   ]);
   const data = {}, seen = {}; // số SĐT (data) về file số quảng cáo mỗi ngày, mỗi số 1 lần / ngày – để tính chi phí 1 SĐT (marketing ngành này nhìn số này là chính)
   (ads || []).forEach(a => { const tm = Number(a[0]) || 0, p = String(a[1] || ''); if (tm < t - 8 * DAY || !p) return; const d = iso(tm); if (seen[d + p]) return; seen[d + p] = 1; data[d] = (data[d] || 0) + 1; });
-  return { ok: true, today: iso(t), last: (c.fb || {}).last || null, data, rows: rows.map(r => [r.day, r.channel, r.campaign, accOf(c, r), r.s, r.i, r.c, r.m]) };
+  return { ok: true, today: iso(t), last: (c.fb || {}).last || null, data, live: live || null, fbOn: !!(c.fb || {}).token, rows: rows.map(r => [r.day, r.channel, r.campaign, accOf(c, r), r.s, r.i, r.c, r.m]) };
 }
 
 /** Tài khoản quảng cáo của 1 dòng chiến dịch: [tên hiện, mã act_… (Facebook, để mở Trình quản lý quảng cáo) hoặc '']. Dùng chung cho lệnh mkt và mktv. */
@@ -220,7 +258,7 @@ export async function crmMkt(x, u, d) {
     case 'mkt_add': return mktAdd(x, u, d);
     case 'mkt_list': return mktList(x);
     case 'mkt_del': return mktDel(x, d);
-    case 'mkt_kpi': return mktKpi(x);
+    case 'mkt_kpi': return mktKpi(x, d);
   }
   return { ok: false, error: 'Không rõ thao tác: ' + d.action };
 }

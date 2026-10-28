@@ -2,7 +2,7 @@
 title: Hướng dẫn cho Marketing và phụ trách sàn
 nav: Marketing
 order: 5
-updated: 2026-10-23
+updated: 2026-10-29
 description: Xem hiệu quả quảng cáo, nhập chi phí, tạo link và mã QR, cập nhật số liệu sàn.
 ---
 
@@ -45,6 +45,18 @@ Màn hình đầu chỉ có **số quan trọng nhất**. Phần chi tiết thu 
 **Biểu đồ:** **đường xanh** là tiền khách mới, **đường vàng** là chi phí. Đường xanh càng cao hơn đường vàng thì quảng cáo càng có lời.
 
 Số tính lại 30 phút một lần. Bấm **↻** để tính lại ngay.
+
+## 📋 Chiến dịch đang chạy
+
+Ngay dưới **✅ Nên làm gì** là danh sách **mọi chiến dịch Facebook đang chạy**. Mỗi chiến dịch có:
+
+- **Trạng thái**: 🟢 đang chạy · ⏳ chờ duyệt · ⛔ có quảng cáo bị từ chối (xếp lên đầu, sửa ngay).
+- **Fanpage** đang chạy, **mục tiêu**, **ngân sách mỗi ngày**, **chạy từ ngày nào**, tài khoản quảng cáo.
+- **Số hôm nay**: tiền đã chi, số tin nhắn và giá 1 tin, CTR, CPM, CPC, kèm đèn.
+- **Từng quảng cáo**: ảnh nhỏ, bấm **👁 Xem bài viết** để mở bài trên Facebook, **🔍 Xem trước quảng cáo** để xem đúng như khách thấy.
+- Nút **Mở chiến dịch trong Trình quản lý quảng cáo** để sửa ngay.
+
+Danh sách tự cập nhật 3 tiếng một lần. Bấm **↻** để lấy ngay.
 
 ## Đặt mục tiêu của bạn
 

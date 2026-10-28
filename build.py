@@ -3542,7 +3542,7 @@ def build_crm():
     (out / "robots.txt").write_text("User-agent: *\nDisallow: /\n", "utf-8")
     (out / "_headers").write_text(
         "/*\n  X-Robots-Tag: noindex, nofollow\n  X-Content-Type-Options: nosniff\n  X-Frame-Options: DENY\n  Referrer-Policy: no-referrer\n"
-        "  Content-Security-Policy: default-src 'self'; connect-src 'self' https://api.thucduonglanh.vn https://script.google.com https://script.googleusercontent.com; img-src 'self' data: https://thucduonglanh.vn; style-src 'self' 'unsafe-inline'; script-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'\n"
+        "  Content-Security-Policy: default-src 'self'; connect-src 'self' https://api.thucduonglanh.vn https://script.google.com https://script.googleusercontent.com; img-src 'self' data: https://thucduonglanh.vn https://*.fbcdn.net; style-src 'self' 'unsafe-inline'; script-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'\n"
         "/\n  Cache-Control: no-cache\n/index.html\n  Cache-Control: no-cache\n/crm-data.js\n  Cache-Control: no-cache\n"
         "/qrcode.js\n  Cache-Control: public, max-age=86400\n"
         "/app.js\n  Cache-Control: public, max-age=31536000, immutable\n/app.css\n  Cache-Control: public, max-age=31536000, immutable\n", "utf-8")
