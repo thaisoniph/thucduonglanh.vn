@@ -163,7 +163,7 @@ async function zAck(x, d) {
   const j = await first(x.db, 'SELECT * FROM zb_out WHERE id = ?', Number(d.id) || 0); if (!j) return { ok: true };
   await run(x.db, 'UPDATE zb_out SET status = ?, done_at = ? WHERE id = ?', d.ok ? 'done' : 'err', Date.now(), j.id);
   if (j.kind === 'lookup' && d.ok && d.uid) await zFound(x, j, String(d.uid), String(d.zname || ''), d.inGroups || []);
-  if (j.kind === 'post' && d.ok) await zlog(x, j.ref ? 'post' : 'send', { gid: j.gid, text: j.text.slice(0, 200), name: j.ref ? '' : 'Nhân sự gửi' });
+  if (j.kind === 'post' && d.ok) await zlog(x, j.ref === 'announce' ? 'announced' : j.ref ? 'post' : 'send', { gid: j.gid, text: j.text.slice(0, 200), name: j.ref ? '' : 'Nhân sự gửi' });
   if (!d.ok && j.kind !== 'lookup') await zlog(x, 'error', { gid: j.gid, text: 'Không gửi được (' + j.kind + '): ' + String(d.error || '').slice(0, 200), reply: j.text.slice(0, 300) });
   return { ok: true };
 }
@@ -180,9 +180,9 @@ async function zFound(x, j, uid, zname, inGroups) {
   if (g.length && cfg.announce && info.what && info.announce) await queueAnnounce(x, g[0], uid, zname || info.name || 'bạn', info.what); // khách đã ở trong nhóm, vừa nhận quà trên web → chúc mừng (như nhóm Sống Khỏe 365)
 }
 async function queueAnnounce(x, gid, uid, nm, what) {
-  const now = Date.now(), text = announceText(nm, what);
-  await run(x.db, "INSERT INTO zb_out (kind, gid, text, mentions, due, at) VALUES ('post', ?, ?, ?, ?, ?)", gid, text, JSON.stringify([{ uid, name: nm }]), now + 60e3, now);
-  await zlog(x, 'announce', { gid, uid, name: nm, text: what, reply: text });
+  const now = Date.now(), text = announceText(nm, what), due = quiet(now + 60e3) ? nextMorning(now) : now + 60e3; // giờ im lặng → 6h30 sáng
+  await run(x.db, "INSERT INTO zb_out (kind, gid, text, mentions, due, at, ref) VALUES ('post', ?, ?, ?, ?, ?, 'announce')", gid, text, JSON.stringify([{ uid, name: nm }]), due, now);
+  await zlog(x, 'announce', { gid, uid, name: nm, text: what + ' · ⏰ hẹn đăng ' + fmtDate(due, 'HH:mm dd/MM') + (due - now > 5 * 60e3 ? ' (sau giờ im lặng 21h45–6h)' : ''), reply: text });
 }
 function announceText(nm, what) {
   const t = [
