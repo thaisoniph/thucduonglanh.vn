@@ -4751,7 +4751,7 @@
       if (wt && web.share < wt) T.push({ p: 2, t: '🌐 Tiền qua website mới ' + oneDec(web.share) + '% (mục tiêu ' + wt + '%): gắn link web (tạo ở /admin/utm) vào mọi bài đăng, KOC, nhóm Zalo; bỏ thẻ "đặt web lần sau giảm giá" vào đơn sàn.' });
     }
     h += '<div class="mk-board">' + rows.map(function (o, i) {
-      var me = isMkt() && sameWho(o.who, S.user.name);
+      var me = (isMkt() || mkvOnly()) && sameWho(o.who, S.user.name);
       if (me && o.C.isCur && o.C.lv === 'bad') T.push({ p: 0, t: '🏆 Bạn đang hạng ' + (i + 1) + '/' + rows.length + ', đạt ' + Math.round(o.p * 100) + '% mục tiêu (tháng đã qua ' + Math.round(o.C.tp * 100) + '%): mỗi ngày cần ' + moneyShort(o.C.perDay) + '.' });
       return '<div class="mk-br ' + o.C.lv + (me ? ' me' : '') + '"><span class="mk-br-rk">' + (solo ? '🎯' : MED[i] || (i + 1)) + '</span><div class="mk-br-m"><div class="mk-br-h"><b>' + esc(o.who) + '</b>' + (me ? '<span class="tag new">Bạn</span>' : '') +
         '<span class="mk-br-ch">' + o.ch.map(function (k) { return chInfo(k).icon + ' ' + esc(k); }).join(' · ') + '</span><span class="mk-br-p">' + Math.round(o.p * 100) + '%</span></div>' + bar(o.C) +
@@ -4795,7 +4795,7 @@
   function openMkGoal(live, month) {
     var m0 = live.budget.m, m1 = Object.keys(live.goals || {}).filter(function (k) { return /^\d{4}-\d\d$/.test(k) && k !== m0; })[0];
     month = month || m0;
-    var G = (live.goals && live.goals[month]) || {}, prev = live.goals && live.goals.prev, staff = (S.d.users || []).filter(function (u) { return u.active !== false && (u.role === 'Marketing' || u.role === 'Quản trị'); }).map(function (u) { return u.name; });
+    var G = (live.goals && live.goals[month]) || {}, prev = live.goals && live.goals.prev, staff = (S.d.users || []).filter(function (u) { return u.active !== false; }).sort(function (x, y) { var r = function (u) { return u.role === 'Marketing' ? 0 : u.mkv ? 1 : u.role === 'Quản trị' ? 3 : 2; }; return r(x) - r(y); }).map(function (u) { return u.name; }); // 29/10/2026: mọi nhân sự (vd sale phụ trách Cộng đồng Zalo), Marketing lên đầu
     var adm = lvl() >= 3, me = S.user.name, mineOf = function (k) { var g = G[k]; return adm || !g || !(g.rev || g.pct) || !g.who || sameWho(g.who, me); };
     var row = function (c) { var g = G[c.k] || {}, ok = mineOf(c.k), dis = ok ? '' : ' disabled';
       return '<div class="mk-gr' + (ok ? '' : ' lock') + '" data-ch="' + esc(c.k) + '"><b>' + c.icon + ' ' + esc(c.k) + (!ok ? '<small>🔒 ' + esc(g.who) + ' phụ trách</small>' : '') + '</b>' +
