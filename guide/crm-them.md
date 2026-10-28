@@ -67,15 +67,26 @@ Mỗi bạn có **một link web riêng**, ví dụ `thucduonglanh.vn/?ref=thuy`
 
 **Link đặt lại (giỏ hàng có sẵn):** trong hồ sơ khách hoặc cửa sổ Chăm sóc, bấm **🔗 Link đặt lại**. CRM tạo link đã có sẵn sản phẩm của đơn trước. Bấm **📋 Copy tin & mở Zalo**, gửi khách. Khách chỉ cần xem lại địa chỉ rồi bấm Đặt hàng. Nên dùng khi khách **sắp hết hàng**.
 
-## Khách cũ giới thiệu bạn bè
+## Khách cũ giới thiệu bạn bè (🌱 Đại sứ Sống Lành)
 
-Khách khen sản phẩm? Mời khách giới thiệu bạn bè.
+Khách đã mua thì ai cũng có **link giới thiệu riêng**. Bạn bè của khách **mua lần đầu** trên web được **giảm 10%**. Khách được **voucher cảm ơn** bằng 10% đơn của bạn. Đủ **3 người bạn mua** thì khách được tặng thêm **1 hộp Trà DILVANG**.
 
-1. Mở hồ sơ khách, bấm **🎁 Mã giới thiệu**. CRM tạo mã riêng cho khách (ví dụ `AN111`) và soạn sẵn tin.
-2. Bấm **📋 Copy tin & mở Zalo**, gửi khách.
-3. Bạn bè của khách **mua lần đầu** trên web bằng mã này được **giảm 10%**.
-4. Có người dùng mã, Telegram báo bạn. Tab Hôm nay hiện mục **🎁 Cảm ơn khách giới thiệu**.
-5. Chờ đơn **đã giao**, rồi bấm **🎁 Tặng quà / voucher** để cảm ơn khách. Chọn **Tặng quà** (ghi quà gì) hoặc **Tặng voucher** (mã giảm giá riêng cho khách, dùng trong 90 ngày).
+**Khách tự lấy link** ở trang **thucduonglanh.vn/gioi-thieu-ban-be/** (nhập số điện thoại đã mua), hoặc ngay trên trang cảm ơn sau khi đặt hàng. Trong gói hàng có **thẻ QR**. Khách quét thẻ là vào trang đó.
+
+**Bạn bè đặt hàng** theo 1 trong 2 cách:
+- Bấm link của khách, mã giảm giá tự áp dụng.
+- Ở trang thanh toán, bấm **Có mã ưu đãi / người giới thiệu?**, rồi gõ **mã** (ví dụ `AN111`) hoặc **số điện thoại** của người giới thiệu.
+
+**Việc của bạn (sale):**
+1. Khách khen sản phẩm thì mời khách giới thiệu. Mở hồ sơ khách, bấm **🎁 Mã giới thiệu**, rồi bấm **📋 Copy tin & mở Zalo** để gửi khách.
+2. Có bạn đặt hàng thì Telegram báo bạn.
+3. Đơn của bạn ấy **giao xong 7 ngày** thì CRM **tự tạo voucher cảm ơn** (mã `CAMON…`, chỉ số của khách mới dùng được, hạn 90 ngày). Bạn không cần tính tiền.
+4. Tab **Hôm nay** hiện mục **🎁 Cảm ơn khách giới thiệu**:
+   - **📋 Báo khách mã**: copy tin có sẵn mã, gửi qua Zalo. Gửi xong mục đó tự ẩn.
+   - **🏅 Gửi quà**: khách đủ 3 người. Hỏi khách gửi quà kèm đơn sau hay gửi riêng. Gửi xong bấm **✅ Đã gửi quà**.
+   - **🌟 Mời làm CTV**: khách đủ 5 người. Gửi tin mời, báo quản lý để thêm khách làm CTV.
+
+**Không được tặng:** đơn huỷ hoặc hoàn, khách tự giới thiệu chính mình (cùng số điện thoại hoặc cùng địa chỉ). CRM tự bỏ qua và ghi ⛔. Quản lý xem lại nếu khách hỏi.
 
 **Khách gọi điện / nhắn Zalo nói "chị Hoa giới thiệu":** khi thêm khách hỏi, chọn *Khách đến từ đâu* là **Khách giới thiệu** rồi chọn chị Hoa. Khách chốt đơn thì tab Hôm nay cũng nhắc **🎁 Cảm ơn khách giới thiệu**.
 

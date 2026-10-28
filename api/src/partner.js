@@ -168,7 +168,7 @@ export async function refMe(x, d) {
 async function tierList(x, u) {
   const cfg = await partnerCfg(x);
   const rows = await all(x.db, "SELECT t.phone, t.tier, t.at, c.name, c.owner, (SELECT count(DISTINCT o.phone) FROM orders o WHERE o.ref_phone = t.phone AND coalesce(o.ref_gift, '') != '' AND o.ref_gift NOT LIKE '⛔%') AS n FROM ref_tiers t LEFT JOIN customers c ON c.phone = t.phone WHERE t.done_at IS NULL ORDER BY t.at");
-  return { ok: true, cfg: { tierN: cfg.tierN, tierGift: cfg.tierGift, ctvN: cfg.ctvN, rate: cfg.rate }, list: rows.filter(r => u.level >= 2 || r.owner === u.name).map(r => ({ phone: r.phone, tier: r.tier, at: r.at, name: r.name || '', owner: r.owner || '', n: r.n, kind: r.tier === cfg.ctvN ? 'ctv' : 'gift' })) };
+  return { ok: true, cfg: { tierN: cfg.tierN, tierGift: cfg.tierGift, ctvN: cfg.ctvN, rate: cfg.rate, auto: cfg.auto }, list: rows.filter(r => u.level >= 2 || r.owner === u.name).map(r => ({ phone: r.phone, tier: r.tier, at: r.at, name: r.name || '', owner: r.owner || '', n: r.n, kind: r.tier === cfg.ctvN ? 'ctv' : 'gift' })) };
 }
 
 /* ------------------------------------------------------------ 🤝 CTV / đối tác (Quản lý trở lên) */

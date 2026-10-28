@@ -6677,23 +6677,60 @@
     api('ref_code', { phone: c.phone }).then(function (j) {
       var box = $('#rfMain', m); if (!box) return;
       var pct = (String(j.label).match(/[\d.,]+%/) || [''])[0], url = 'https://thucduonglanh.vn/?uudai=' + encodeURIComponent(j.code) + '&ref=' + refCode(c.owner || S.user.name);
-      var txt = fillTpl('Dạ [Tên] ơi, cảm ơn [Tên] đã tin dùng Thực Dưỡng Lành ❤️ Em gửi [Tên] mã giới thiệu riêng: ' + j.code + '. Bạn bè, người thân của [Tên] đặt hàng lần đầu trên web nhập mã này được giảm ' + pct + '. Mỗi người bạn đặt hàng thành công, em xin gửi [Tên] một phần quà cảm ơn ạ.\n[Tên] chỉ cần chuyển tiếp tin dưới đây cho bạn bè nhé:\n\n---\nMình đang dùng sản phẩm của Thực Dưỡng Lành thấy hợp nên giới thiệu bạn. Đặt lần đầu trên web nhập mã ' + j.code + ' được giảm ' + pct + ' (bấm link là mã tự áp dụng): ' + url, c);
+      var txt = fillTpl('Dạ [Tên] ơi, cảm ơn [Tên] đã tin dùng Thực Dưỡng Lành ❤️ Em gửi [Tên] mã giới thiệu riêng: ' + j.code + '. Bạn bè, người thân của [Tên] đặt hàng lần đầu trên web nhập mã này (hoặc số điện thoại của [Tên]) được giảm ' + pct + '. Mỗi người bạn nhận hàng xong, [Tên] được tặng voucher ' + (j.cfg ? j.cfg.rwPct : 10) + '% giá trị đơn của bạn ấy' + (j.cfg && j.cfg.tierN ? ', đủ ' + j.cfg.tierN + ' người tặng thêm ' + j.cfg.tierGift : '') + ' ạ. [Tên] xem bạn bè đã mua và quà của mình tại ' + REF_PAGE + '\n[Tên] chỉ cần chuyển tiếp tin dưới đây cho bạn bè nhé:\n\n---\nMình đang dùng sản phẩm của Thực Dưỡng Lành thấy hợp nên giới thiệu bạn. Đặt lần đầu trên web nhập mã ' + j.code + ' được giảm ' + pct + ' (bấm link là mã tự áp dụng): ' + url, c);
       box.innerHTML = '<div class="box rf-code"><b style="font-size:20px;letter-spacing:1px">' + esc(j.code) + '</b> <span class="small">' + esc(j.label) + ' đơn đầu cho bạn bè</span><p class="small muted" style="margin:6px 0 0">' + (j.used ? '🎉 Đã có <b>' + j.used + '</b> người đặt bằng mã này.' : 'Chưa có ai dùng mã.') + ' Chỉ khách <b>mua lần đầu</b> dùng được, khách không tự dùng mã của mình.</p></div>' +
         '<label class="f"><span>Tin gửi khách (sửa được)</span><textarea id="rfText" rows="9">' + esc(txt) + '</textarea></label>' +
-        '<p class="small muted" style="margin:6px 0 0">Bạn bè đặt bằng mã: khách mới tự giao cho ' + esc(c.owner || S.user.name) + ' phụ trách, tab Hôm nay hiện mục <b>🎁 Cảm ơn khách giới thiệu</b> để bạn tặng quà hoặc voucher cho ' + esc(c.name || 'khách') + '.</p>' +
+        '<p class="small muted" style="margin:6px 0 0">Bạn bè đặt bằng mã: khách mới tự giao cho ' + esc(c.owner || S.user.name) + ' phụ trách, đơn giao xong 7 ngày thì CRM tự tạo voucher cảm ơn, tab Hôm nay hiện mục <b>🎁 Cảm ơn khách giới thiệu</b> để bạn nhắn mã cho ' + esc(c.name || 'khách') + '.</p>' +
         '<div class="steps" style="margin-top:10px"><button class="btn pri" id="rfGo">📋 Copy tin & mở Zalo</button><button class="btn ghost" data-copyref="' + esc(url) + '">📋 Chỉ copy link</button></div>';
       $('#rfGo', m).onclick = function () { rfCopyZalo(m, '#rfText', c.phone); };
     }, function (e) { var box = $('#rfMain', m); if (box) box.innerHTML = '<p class="err">' + esc(e.message) + '</p>'; });
   }
-  /** Tab Hôm nay: đơn của người được giới thiệu mà chưa tặng quà người giới thiệu (sale thấy khách mình phụ trách, quản lý thấy hết). */
+  /** Tab Hôm nay → 🎁 Cảm ơn khách giới thiệu (28/10/2026): máy chủ tự phát voucher CAMON khi đơn của bạn đã giao + 7 ngày (partner.js refAuto),
+   *  sale chỉ việc báo khách; mốc đủ 3 bạn → tặng quà, 5 bạn → mời làm CTV (bảng ref_tiers, tải riêng). Tắt tự động ở Cài đặt → 🤝 thì quay về tặng tay. */
+  function refMine(phone) { if (lvl() >= 2) return true; var c = cust(phone); return !!(c && c.owner === S.user.name); }
   function refThanksBlock() {
-    var os = S.d.orders.filter(function (o) { if (!o.refPhone || o.refGift || isVoid(o.status)) return false; if (lvl() >= 2) return true; var c = cust(o.refPhone); return c && c.owner === S.user.name; });
-    if (!os.length) return '';
-    return '<section class="section"><div class="section-h"><h2>🎁 Cảm ơn khách giới thiệu</h2><span class="count">' + os.length + '</span><span class="tip">nên tặng khi đơn đã giao</span></div><div class="list">' + os.slice(0, 30).map(function (o) {
-      var rc = cust(o.refPhone);
-      return '<div class="card"><div class="r1"><b>' + esc(rc ? rc.name || o.refPhone : o.refPhone) + '</b><span class="small">giới thiệu</span><b>' + esc(o.name) + '</b></div><div class="small muted" style="margin:4px 0">Đơn ' + esc(o.id) + ' · ' + money(o.total) + ' · ' + esc(o.status) + (lvl() >= 2 && rc && rc.owner ? ' · 👤 ' + esc(rc.owner) : '') + '</div>' +
-        '<div class="acts"><button class="btn pri" data-refgift="' + esc(o.id) + '">🎁 Tặng quà / voucher</button>' + (rc ? '<button class="btn ghost" data-cust="' + rc.phone + '">Hồ sơ</button>' : '') + '</div></div>';
-    }).join('') + '</div></section>';
+    if (S._rtAt !== S.loadedAt && !S._rtBusy) { S._rtBusy = 1; api('ref_tiers').then(function (j) { S._rt = j; S._rtAt = S.loadedAt; S._rtBusy = 0; if (j.list.length) render(); }, function () { S._rtBusy = 0; S._rtAt = S.loadedAt; }); }
+    var rt = S._rt || { list: [], cfg: {} }, auto = rt.cfg.auto !== 0;
+    var tell = S.d.orders.filter(function (o) { return o.refPhone && /^Voucher .*Tự động/.test(o.refGift || '') && !o.refTold && !isVoid(o.status) && refMine(o.refPhone); });
+    var manual = auto ? [] : S.d.orders.filter(function (o) { return o.refPhone && !o.refGift && !isVoid(o.status) && refMine(o.refPhone); });
+    var tiers = rt.list || [], n = tell.length + manual.length + tiers.length;
+    if (!n) return '';
+    var who = function (ph) { var rc = cust(ph); return { rc: rc, name: rc ? rc.name || ph : ph, own: lvl() >= 2 && rc && rc.owner ? ' · 👤 ' + esc(rc.owner) : '' }; };
+    return '<section class="section"><div class="section-h"><h2>🎁 Cảm ơn khách giới thiệu</h2><span class="count">' + n + '</span><span class="tip">' + (auto ? 'voucher đã tự tạo, bạn nhắn khách mã qua Zalo' : 'nên tặng khi đơn đã giao') + '</span></div><div class="list">' +
+      tiers.map(function (t) { var w = who(t.phone);
+        return '<div class="card"><div class="r1"><b>' + esc(w.name) + '</b><span class="small">' + (t.kind === 'ctv' ? '🌟 đã giới thiệu ' + t.n + ' người mua → mời làm Cộng tác viên' : '🏅 đã giới thiệu ' + t.n + ' người mua → tặng ' + esc(rt.cfg.tierGift)) + '</span></div><div class="small muted" style="margin:4px 0">' + fPhone(t.phone) + w.own + '</div>' +
+          '<div class="acts"><button class="btn pri" data-reftier="' + t.phone + '|' + t.tier + '">' + (t.kind === 'ctv' ? '🌟 Mời làm CTV' : '🎁 Gửi quà') + '</button>' + (w.rc ? '<button class="btn ghost" data-cust="' + t.phone + '">Hồ sơ</button>' : '') + '</div></div>'; }).join('') +
+      tell.map(function (o) { var w = who(o.refPhone);
+        return '<div class="card"><div class="r1"><b>' + esc(w.name) + '</b><span class="small">giới thiệu</span><b>' + esc(o.name) + '</b></div><div class="small muted" style="margin:4px 0">🎟 ' + esc(o.refGift.split(' · ')[0]) + ' · đơn ' + esc(o.id) + w.own + '</div>' +
+          '<div class="acts"><button class="btn pri" data-reftell="' + esc(o.id) + '">📋 Báo khách mã</button>' + (w.rc ? '<button class="btn ghost" data-cust="' + w.rc.phone + '">Hồ sơ</button>' : '') + '</div></div>'; }).join('') +
+      manual.slice(0, 30).map(function (o) { var w = who(o.refPhone);
+        return '<div class="card"><div class="r1"><b>' + esc(w.name) + '</b><span class="small">giới thiệu</span><b>' + esc(o.name) + '</b></div><div class="small muted" style="margin:4px 0">Đơn ' + esc(o.id) + ' · ' + money(o.total) + ' · ' + esc(o.status) + w.own + '</div>' +
+          '<div class="acts"><button class="btn pri" data-refgift="' + esc(o.id) + '">🎁 Tặng quà / voucher</button>' + (w.rc ? '<button class="btn ghost" data-cust="' + w.rc.phone + '">Hồ sơ</button>' : '') + '</div></div>'; }).join('') + '</div></section>';
+  }
+  var REF_PAGE = 'https://thucduonglanh.vn/gioi-thieu-ban-be/';
+  /** 📋 Báo khách mã: tin Zalo có sẵn mã voucher tự động, bấm gửi xong ghi "đã báo" để mục này biến mất. */
+  function openRefTell(id) {
+    var o = S.d.orders.filter(function (x) { return x.id === id; })[0]; if (!o) return;
+    var rc = cust(o.refPhone) || { name: '', phone: o.refPhone }, mm = (o.refGift || '').match(/Voucher (\S+) \((.+?), hạn ([\d/]+)\)/) || ['', '', '', ''];
+    var txt = fillTpl('Dạ [Tên] ơi, cảm ơn [Tên] đã giới thiệu ' + (o.name || 'bạn') + ' tin dùng Thực Dưỡng Lành ạ ❤️ Em gửi [Tên] voucher ' + mm[1] + ' (' + mm[2].replace(' ₫', 'đ') + ') cho lần đặt tiếp theo trên web, dùng đến ' + mm[3] + '. Bấm link là mã tự áp dụng: https://thucduonglanh.vn/?uudai=' + mm[1] +
+      '\n[Tên] xem bạn bè đã mua và quà của mình tại: ' + REF_PAGE, rc);
+    var m = modal('🎁 Báo ' + esc(rc.name || rc.phone), '<p class="small muted" style="margin:0 0 8px">' + esc(o.refGift) + '. Mã chỉ dùng được với số ' + fPhone(o.refPhone) + '.</p><label class="f"><span>Tin gửi khách (sửa được)</span><textarea id="rtMsg" rows="7">' + esc(txt) + '</textarea></label>',
+      '<button class="btn pri" id="rtGo">📋 Copy tin & mở Zalo</button><button class="btn ghost" id="rtDone">✓ Đã báo cách khác</button><button class="btn ghost" data-close>Đóng</button>');
+    var mark = function () { o.refTold = 1; api('ref_told', { id: o.id }).catch(function (e) { toast(e.message, true); }); closeModal(); render(); };
+    $('#rtGo', m).onclick = function () { rfCopyZalo(m, '#rtMsg', rc.phone); mark(); };
+    $('#rtDone', m).onclick = mark;
+  }
+  /** 🏅 mốc quà / 🌟 mời CTV: tin Zalo + ghi đã làm. */
+  function openRefTier(key) {
+    var ph = key.split('|')[0], tier = +key.split('|')[1], rt = S._rt || { list: [], cfg: {} }, t = rt.list.filter(function (x) { return x.phone === ph && x.tier === tier; })[0]; if (!t) return;
+    var rc = cust(ph) || { name: '', phone: ph }, ctv = t.kind === 'ctv';
+    var txt = fillTpl(ctv ? 'Dạ [Tên] ơi, cảm ơn [Tên] đã giới thiệu ' + t.n + ' người bạn tin dùng Thực Dưỡng Lành ạ ❤️ Bên em trân trọng mời [Tên] làm Cộng tác viên: mỗi khách mới [Tên] giới thiệu, [Tên] nhận ' + rt.cfg.rate + '% tiền hàng mọi đơn của khách đó trong 6 tháng, trả bằng tiền. [Tên] quan tâm thì em gửi thông tin chi tiết nhé!'
+      : 'Dạ [Tên] ơi, [Tên] đã giới thiệu được ' + t.n + ' người bạn tin dùng Thực Dưỡng Lành rồi ạ 🎉 Em xin gửi tặng [Tên] ' + rt.cfg.tierGift + ' để cảm ơn. Em gửi kèm đơn tới của [Tên] hay gửi riêng về địa chỉ cũ ạ?', rc);
+    var m = modal((ctv ? '🌟 Mời làm CTV – ' : '🏅 Quà cảm ơn – ') + esc(rc.name || ph), '<label class="f"><span>Tin gửi khách (sửa được)</span><textarea id="rtMsg" rows="6">' + esc(txt) + '</textarea></label>' +
+      '<label class="f"><span>Ghi chú (vd ' + (ctv ? 'đã thêm CTV / khách chưa muốn' : 'gửi kèm đơn TDL… / gửi riêng ngày…') + ')</span><input type="text" id="rtNote" maxlength="200"></label>' + (ctv ? '<p class="small muted">Khách đồng ý: quản lý thêm ở Cài đặt → 🤝 Cộng tác viên → ＋ Thêm CTV.</p>' : ''),
+      '<button class="btn" id="rtGo">📋 Copy tin & mở Zalo</button><button class="btn pri" id="rtDone">✅ ' + (ctv ? 'Đã mời' : 'Đã gửi quà') + '</button><button class="btn ghost" data-close>Đóng</button>');
+    $('#rtGo', m).onclick = function () { rfCopyZalo(m, '#rtMsg', rc.phone); };
+    $('#rtDone', m).onclick = function () { var b = this; b.disabled = true; api('ref_tier_done', { phone: ph, tier: tier, note: $('#rtNote', m).value }).then(function (j) { S._rt = j; toast('Đã ghi ✓'); closeModal(); render(); }, function (e) { toast(e.message, true); b.disabled = false; }); };
   }
   function openRefGift(id) {
     var o = S.d.orders.filter(function (x) { return x.id === id; })[0]; if (!o) return;
@@ -6719,7 +6756,7 @@
   }
   function ptBox() {
     return '<div class="box"><h3>🤝 Cộng tác viên & khách giới thiệu</h3><p class="hint" style="margin:0 0 10px">CTV / đối tác có link và mã giảm giá riêng. Khách <b>mới</b> đặt qua link / mã của CTV thì mọi đơn của khách đó trong thời hạn (mặc định 6 tháng, kể cả đơn sale lên lại) được tính hoa hồng (mặc định 10% tiền hàng). Chỉ trả <b>1 tầng</b> (không trả theo người CTV rủ thêm: nhiều tầng là bán hàng đa cấp, phải có giấy phép). Hoa hồng đủ điều kiện khi đơn <b>đã giao + qua 7 ngày</b>; trả từ 2 triệu / lần thì trừ 10% thuế TNCN.</p>' +
-      '<p class="hint" style="margin:0 0 10px">Khách cũ giới thiệu bạn bè: sale bấm <b>🎁 Mã giới thiệu</b> trong hồ sơ khách. Cài % giảm cho bạn được giới thiệu ở đây.</p><button class="btn pri" id="ptOpen">Quản lý cộng tác viên</button></div>';
+      '<p class="hint" style="margin:0 0 10px">Khách cũ giới thiệu bạn bè (🌱 Đại sứ Sống Lành): khách tự lấy link ở thucduonglanh.vn/gioi-thieu-ban-be/, hoặc sale bấm <b>🎁 Mã giới thiệu</b> trong hồ sơ khách. Bạn bè gõ mã hoặc SĐT người giới thiệu ở ô mã ưu đãi. Voucher cảm ơn và mốc quà tự tính, sale báo khách ở tab Hôm nay. Cài mức ở ⚙️ Cài đặt chung.</p><button class="btn pri" id="ptOpen">Quản lý cộng tác viên</button></div>';
   }
   function openPartners() {
     var D = { j: null };
@@ -6729,7 +6766,7 @@
     function fail(e) { toast(e.message, true); }
     function list() {
       var j = D.j, cfg = j.cfg, r = j.refs || {}; foot(true);
-      var h = '<p class="small muted" style="margin:0 0 10px">Mặc định: hoa hồng <b>' + cfg.rate + '%</b> · tính đơn mua lại <b>' + cfg.months + ' tháng</b> · bạn được khách cũ giới thiệu giảm <b>' + cfg.refPct + '%</b> đơn đầu.<br>🎁 Khách giới thiệu: ' + (r.codes || 0) + ' mã đã phát · ' + (r.orders || 0) + ' đơn từ bạn bè · ' + (r.gifts || 0) + ' lần đã tặng quà.</p>';
+      var h = '<p class="small muted" style="margin:0 0 10px">Mặc định: hoa hồng <b>' + cfg.rate + '%</b> · tính đơn mua lại <b>' + cfg.months + ' tháng</b> · bạn được khách cũ giới thiệu giảm <b>' + cfg.refPct + '%</b> đơn đầu · người giới thiệu nhận voucher <b>' + cfg.rwPct + '%</b>' + (cfg.auto ? ' (tự động)' : ' (tặng tay)') + (cfg.tierN ? ' · đủ ' + cfg.tierN + ' bạn tặng ' + esc(cfg.tierGift) : '') + '.<br>🎁 Khách giới thiệu: ' + (r.codes || 0) + ' mã đã phát · ' + (r.orders || 0) + ' đơn từ bạn bè · ' + (r.gifts || 0) + ' lần đã tặng quà.</p>';
       if (!j.list.length) h += empty('Chưa có CTV nào. Bấm ＋ Thêm CTV (5–10 người thử trước).');
       else h += '<div class="list">' + j.list.map(function (p, i) {
         return '<div class="card"' + (p.active ? '' : ' style="opacity:.6"') + '><div class="r1"><b>' + esc(p.name) + '</b><span class="small">' + esc(p.kind) + ' · ' + p.rate + '%</span>' + (p.active ? '' : '<span class="small muted">· tạm dừng</span>') + '</div>' +
@@ -6795,10 +6832,15 @@
       box().innerHTML = '<label class="f"><span>% hoa hồng mặc định cho CTV mới</span><input type="text" inputmode="decimal" id="pcRate" value="' + c.rate + '"></label>' +
         '<label class="f"><span>Tính hoa hồng đơn mua lại trong (tháng)</span><input type="number" min="1" max="36" id="pcMon" value="' + c.months + '"></label>' +
         '<label class="f"><span>🎁 Bạn được khách cũ giới thiệu giảm (%) đơn đầu</span><input type="text" inputmode="decimal" id="pcRef" value="' + c.refPct + '"></label>' +
-        '<p class="small muted">Đổi % mặc định không đổi % của CTV đã có (sửa từng người). Đổi % giảm cho bạn được giới thiệu: mọi mã giới thiệu đã phát đổi theo.</p>' +
+        '<h3 style="margin:14px 0 4px">🌱 Cảm ơn khách giới thiệu (Đại sứ Sống Lành)</h3>' +
+        '<label class="switch"><input type="checkbox" id="pcAuto"' + (c.auto ? ' checked' : '') + '> Tự tạo voucher cảm ơn khi đơn của bạn bè đã giao + 7 ngày (8h sáng mỗi ngày)</label>' +
+        '<label class="f"><span>Voucher cảm ơn = (%) tiền hàng đơn đầu của bạn bè</span><input type="text" inputmode="decimal" id="pcRw" value="' + c.rwPct + '"></label>' +
+        '<div class="row2c"><label class="f"><span>Mốc quà: đủ (người mua)</span><input type="number" min="0" max="50" id="pcTn" value="' + c.tierN + '"></label><label class="f"><span>Quà khi đạt mốc</span><input type="text" id="pcTg" maxlength="80" value="' + esc(c.tierGift) + '"></label></div>' +
+        '<label class="f"><span>Mời làm CTV khi đủ (người mua), 0 = không mời</span><input type="number" min="0" max="100" id="pcCn" value="' + c.ctvN + '"></label>' +
+        '<p class="small muted">Đổi % mặc định không đổi % của CTV đã có (sửa từng người). Đổi % giảm cho bạn được giới thiệu: mọi mã giới thiệu đã phát đổi theo. Đổi các mức ở đây thì sửa luôn chữ trên trang web (/admin → Cài đặt chung → Giới thiệu bạn bè) cho khớp.</p>' +
         '<div class="steps" style="margin-top:12px"><button class="btn pri" id="pcSave">Lưu</button><button class="btn ghost" id="ptBack">Quay lại</button></div>';
       $('#ptBack', m).onclick = list;
-      $('#pcSave', m).onclick = function () { var b = this; b.disabled = true; api('partner_cfg', { rate: parseFloat($('#pcRate', m).value.replace(',', '.')), months: +$('#pcMon', m).value, refPct: parseFloat($('#pcRef', m).value.replace(',', '.')) }).then(function (j) { done(j); toast('Đã lưu'); }, function (e) { fail(e); b.disabled = false; }); };
+      $('#pcSave', m).onclick = function () { var b = this; b.disabled = true; api('partner_cfg', { rate: parseFloat($('#pcRate', m).value.replace(',', '.')), months: +$('#pcMon', m).value, refPct: parseFloat($('#pcRef', m).value.replace(',', '.')), auto: $('#pcAuto', m).checked, rwPct: parseFloat($('#pcRw', m).value.replace(',', '.')), tierN: +$('#pcTn', m).value, tierGift: $('#pcTg', m).value, ctvN: +$('#pcCn', m).value }).then(function (j) { done(j); toast('Đã lưu'); }, function (e) { fail(e); b.disabled = false; }); };
     }
     $('#ptNew').onclick = function () { form(null); };
     $('#ptCfgB').onclick = cfgForm;
@@ -6932,7 +6974,7 @@
     if (e.defaultPrevented || (e.key !== 'Enter' && e.key !== ' ') || !e.target || e.target.getAttribute('role') !== 'button' || /^(BUTTON|A|INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
     e.preventDefault(); e.target.click();
   });
-  document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-refcode],[data-refgift]'); if (!b || !S.d) return; e.preventDefault(); e.stopPropagation(); if (b.hasAttribute('data-refcode')) openRefCode(b.getAttribute('data-refcode')); else openRefGift(b.getAttribute('data-refgift')); }, true);
+  document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-refcode],[data-refgift],[data-reftell],[data-reftier]'); if (!b || !S.d) return; e.preventDefault(); e.stopPropagation(); if (b.hasAttribute('data-refcode')) openRefCode(b.getAttribute('data-refcode')); else if (b.hasAttribute('data-reftell')) openRefTell(b.getAttribute('data-reftell')); else if (b.hasAttribute('data-reftier')) openRefTier(b.getAttribute('data-reftier')); else openRefGift(b.getAttribute('data-refgift')); }, true);
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-relink]'); if (!b || !S.d) return; e.preventDefault(); e.stopPropagation(); openRelink(b.getAttribute('data-relink')); }, true);
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-copyref]'); if (!b) return; e.preventDefault(); copy(b.getAttribute('data-copyref')).then(function () { toast('Đã copy link ✓'); }); });
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-gmore]'); if (!b) return; var r = b.previousElementSibling; if (r) r.hidden = false; b.remove(); });

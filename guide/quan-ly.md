@@ -100,6 +100,8 @@ Vào **Cài đặt → 🤝 Cộng tác viên & khách giới thiệu → Quản
 - Khách mới gọi điện nói "chị Hương giới thiệu": mở CTV đó → ✏️ Sửa → **＋ Gắn khách cho CTV này**.
 - Chỉ trả cho **1 tầng**. Không trả cho người "giới thiệu ra CTV". Trả nhiều tầng là bán hàng đa cấp, phải có giấy phép.
 
+**🌱 Khách cũ giới thiệu (Đại sứ Sống Lành):** bấm **⚙️ Cài đặt chung** để sửa mức. Mặc định: bạn được giới thiệu giảm 10%, người giới thiệu được voucher 10% đơn của bạn (tự tạo lúc 8h sáng, khi đơn giao xong 7 ngày), đủ 3 người tặng 1 hộp Trà DILVANG, đủ 5 người mời làm CTV. Đổi mức ở CRM thì sửa luôn chữ trên trang web: **/admin → Cài đặt chung → Giới thiệu bạn bè**. File in thẻ QR bỏ trong gói hàng ở Drive: *03_Marketing & Truyền thông/05_Ấn phẩm in ấn*.
+
 **Trả tiền CTV:** bấm **💰 Đơn & đối soát**. Chỉ đơn **đã giao và qua 7 ngày** mới được tính. Trả từ 2 triệu một lần thì máy tự trừ 10% thuế thu nhập cá nhân. Chuyển khoản xong bấm **✅ Đã chuyển tiền**. Bấm **📋 Copy bảng đối soát** để gửi CTV.
 
 ## Mã ưu đãi đặt hàng web
