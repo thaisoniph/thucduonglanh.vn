@@ -17,7 +17,7 @@ const SYS_WHAT = /^(Giao khách|Đồng bộ|Nhập|Cài đặt|Nhân sự|Đơn
 
 /** Tính cho cả nhóm 1 lần (lưu tạm 30 phút), rồi cắt phần của từng người. */
 async function teamCalc(x, from, to) {
-  const key = 'smkt1_' + from + '_' + to + '_' + ((await kvGet(x.db, 'ads_rows_v')) || '');
+  const key = 'smkt2_' + from + '_' + to + '_' + ((await kvGet(x.db, 'ads_rows_v')) || '');
   const c = await kvJson(x.db, key, null); if (c) return c;
   const R = [dayMs(from), dayMs(to) + DAY], today0 = startOfDay(Date.now());
   const [adRows, sp] = await Promise.all([kvJson(x.db, 'ads_rows', []),
@@ -60,9 +60,28 @@ async function teamCalc(x, from, to) {
   Object.keys(cpl).forEach(p => { P[p] = Math.round(cpl[p]); });
   const out = { at: Date.now(), spend: spend.all, n: data.length, cpl: data.length ? Math.round(spend.all / data.length) : 0, cplBy: P, cplRest: Math.round(cplRest), team: fin(team), people: {} };
   Object.keys(people).forEach(k => { out.people[k] = fin(people[k]); });
+  out.best = await bestCalc(x, R, people);
   const live = R[1] > Date.now();
   await kvSet(x.db, key, JSON.stringify(out), live ? 30 * 60e3 : 12 * 3600e3);
   return out;
+}
+/** Người giỏi nhất nhóm ở từng bước (29/10/2026): chỉ tỷ lệ, không tên, không tiền (giữ cách thi đua bớt so tiền).
+ *  Chỉ tính người đang làm (không Quản trị) có đủ mẫu: ≥ 10 số quảng cáo / ≥ 10 đơn, để 1–2 số may mắn không thành "giỏi nhất". */
+async function bestCalc(x, R, people) {
+  const staff = {}; (await all(x.db, "SELECT name FROM users WHERE active = 1 AND role != 'Quản trị'")).forEach(r => { staff[r.name] = 1; });
+  const best = { speed: null, close: null, roi: null, ok: null }, up = (k, v) => { if (v !== null && (best[k] === null || v > best[k])) best[k] = v; };
+  Object.keys(people).forEach(k => {
+    const b = people[k]; if (!staff[k] || b.n < 10) return;
+    const called = b.same + b.next + b.late + b.none;
+    up('speed', called >= 10 ? Math.round(b.same * 100 / called) : null);
+    up('close', Math.round(b.won * 100 / b.n));
+    up('roi', b.cost ? Math.round(b.rev / b.cost * 10) / 10 : null);
+  });
+  const by = {}; (await all(x.db, "SELECT seller, status, count(*) AS n FROM orders WHERE time >= ? AND time < ? GROUP BY seller, status", R[0], R[1])).forEach(r => {
+    const o = by[r.seller] || (by[r.seller] = { n: 0, v: 0 }); o.n += r.n; if (isVoid(r.status)) o.v += r.n;
+  });
+  Object.keys(by).forEach(k => { if (staff[k] && by[k].n >= 10) up('ok', 100 - Math.round(by[k].v * 100 / by[k].n)); });
+  return best;
 }
 function blank() { return { n: 0, won: 0, junk: 0, lost: 0, open: 0, cost: 0, rev: 0, same: 0, next: 0, late: 0, none: 0, wait: 0, prod: {} }; }
 function fin(b) { b.cost = Math.round(b.cost); Object.keys(b.prod).forEach(k => { b.prod[k].cost = Math.round(b.prod[k].cost); }); return b; }
@@ -76,9 +95,9 @@ export async function crmSaleMkt(x, u, d) {
     const tm = T.team || blank(), prod = {};
     Object.keys(tm.prod || {}).forEach(k => { const p = tm.prod[k]; prod[k] = { n: p.n, won: p.won, junk: p.junk }; });
     const team = { n: tm.n, won: tm.won, junk: tm.junk, lost: tm.lost, open: tm.open, same: tm.same, next: tm.next, late: tm.late, none: tm.none, wait: tm.wait, cost: 0, rev: 0, roi: tm.cost ? Math.round(tm.rev / tm.cost * 10) / 10 : null, prod };
-    return { ok: true, at: T.at, team, me, offers: await offersLive(x), mine: 1 };
+    return { ok: true, at: T.at, team, me, best: T.best || null, offers: await offersLive(x), mine: 1 };
   }
-  return { ok: true, at: T.at, spend: T.spend, n: T.n, cpl: T.cpl, cplBy: T.cplBy, cplRest: T.cplRest, team: T.team, me, offers: await offersLive(x), people: T.people };
+  return { ok: true, at: T.at, spend: T.spend, n: T.n, cpl: T.cpl, cplBy: T.cplBy, cplRest: T.cplRest, team: T.team, me, best: T.best || null, offers: await offersLive(x), people: T.people };
 }
 
 /* ---------- Ưu đãi / thông điệp quảng cáo đang chạy: Marketing + Quản trị ghi, mọi người đọc (kv mkt_offers) */

@@ -5626,7 +5626,7 @@
     cx.whole = f.p.k === 'month' || f.p.k === 'lmonth'; // đúng trọn 1 tháng → mục tiêu dùng luôn số trong kỳ
     cx.P = cmpRange(f.p);
     if (f.p.k === 'all') { cx.all = salesAllGet(); if (!cx.all) cx.allNote = S.salesAll ? '' : '<div class="notice">⏳ Đang lấy doanh số từ trước tới nay trên máy chủ…</div>'; else cx.allNote = '<p class="small muted">Mọi lúc: <b>doanh số, số đơn</b> tính đủ mọi đơn từ trước tới nay (cả đơn cũ nhập từ file sale). Các chỉ số khác (chăm sóc, tỷ lệ chốt, khách cũ) tính trên dữ liệu khoảng 13 tháng gần nhất.</p>'; }
-    return '<div class="page-head"><h1>Hiệu quả</h1><div class="grow"></div>' + whoSel() + '</div>' + perChips('r', f.p, ['all'], false, !!who && who !== '-') +
+    return '<div class="page-head"><h1>Hiệu quả</h1><div class="grow"></div>' + whoSel() + '</div>' + perChips('r', f.p, ['all'], false, who !== '-') +
       (cx.allNote || '') + (!who ? viewTeam(cx) : who === '-' ? viewNoOwner(cx) : viewPerson(who, cx));
   }
   /** Tổng doanh số từ trước tới nay theo nhân viên bán (hỏi máy chủ, nhớ 10 phút). null = đang tải / máy chủ cũ chưa có. */
@@ -5782,32 +5782,41 @@
   }
   /** Tỷ lệ chốt cả nhóm theo file số quảng cáo (máy chủ gửi kèm cả cho sale). */
   function smkClose(T) { return T && T.n ? pct(T.won, T.n) : null; }
-  /** 6 bước bán hàng theo đúng thứ tự làm việc (29/10/2026): số nhận → gọi ngay → chốt → mỗi đơn → giao thành công → khách cũ mua lại. */
+  /** So với người giỏi nhất nhóm (máy chủ chỉ gửi tỷ lệ, không tên, không tiền). team: đang xem cả nhóm. */
+  function repBest(best, mine, fmt, team) {
+    if (best === null || best === undefined) return '';
+    return team ? 'giỏi nhất ' + fmt(best) : mine !== null && mine >= best ? '🏆 giỏi nhất nhóm' : 'giỏi nhất ' + fmt(best);
+  }
+  /** 6 bước bán hàng theo đúng thứ tự làm việc (29/10/2026): số nhận → gọi ngay → chốt → mỗi đơn → giao thành công → khách cũ mua lại.
+   *  Xem cả nhóm: gọi với mb = T (không so với nhóm, chỉ so với người giỏi nhất). */
   function repSteps(c, p, mk, mb, T) {
     var K = repSparks(c.name, c.cx), sp = mb ? smkSpeed(mb) : null, tsp = T && T !== mb ? smkSpeed(T) : null, tcl = T && T !== mb ? smkClose(T) : null;
+    var team = !c.name, you = team ? 'cả nhóm' : c.name === S.user.name ? 'bạn' : esc(c.name), Bt = (mk && mk.best) || {}, pc = function (v) { return v + '%'; };
+    var j = function (a) { return a.filter(Boolean).join(' · '); };
     var roi = mb && mb.cost ? mb.rev / mb.cost : null, troi = T ? (T.roi != null ? T.roi : T.cost ? T.rev / T.cost : null) : null;
     var ok = c.vPct === null ? null : 100 - c.vPct, okLv = c.vPct === null ? '' : c.vPct < 5 ? 'ok' : c.vPct < 10 ? 'mid' : 'bad';
     var wait = mk === null ? 'Không tính khi xem Mọi lúc' : mk === undefined ? '⏳ Đang tính…' : '';
-    return '<div class="rep-steps-h"><h3>🪜 Các bước bán hàng</h3><span>đi từ ô 1 đến ô 6 · ô nào đỏ là khâu cần sửa · bấm ô để xem chi tiết</span></div><div class="dash-tiles dt6 rep-steps">' +
+    return '<div class="rep-steps-h"><h3>🪜 Các bước bán hàng' + (team ? ' của cả nhóm' : '') + '</h3><span>đi từ ô 1 đến ô 6 · ô nào đỏ là khâu cần sửa · bấm ô để xem chi tiết</span></div><div class="dash-tiles dt6 rep-steps">' +
       repStep(1, 'mkt', roi !== null ? adsLv(mb.cost, mb.rev) : '', '📥 Khách hỏi nhận được', c.data, delta(c.data, p.data),
-        roi !== null ? 'Công ty chi ' + moneyShort(mb.cost) + ' · cứ 1đ bạn mang về <b>' + oneDec(roi) + 'đ</b>' + (troi !== null && T !== mb ? ' (cả nhóm ' + oneDec(troi) + 'đ)' : '') : wait || 'Số khách để lại từ quảng cáo') +
+        roi !== null ? 'Công ty chi ' + moneyShort(mb.cost) + ' · cứ 1đ ' + you + ' mang về <b>' + oneDec(roi) + 'đ</b>' + (troi !== null && T !== mb ? ' (cả nhóm ' + oneDec(troi) + 'đ)' : '') + (Bt.roi != null ? ' · ' + repBest(Bt.roi, roi === null ? null : Math.round(roi * 10) / 10, function (v) { return oneDec(v) + 'đ'; }, team) : '') : wait || 'Số khách để lại từ quảng cáo') +
       repStep(2, 'mkt', smkSpeedLv(sp), '📞 Gọi ngay trong ngày', sp === null ? '–' : sp + '%', '',
-        sp === null ? (wait || 'Chưa có số mới để tính') : (tsp !== null ? 'Cả nhóm ' + tsp + '% · ' : '') + (mb.none ? '<b class="bad-line">' + mb.none + ' số chưa gọi</b>' : 'Tốt là từ 80%')) +
+        sp === null ? (wait || 'Chưa có số mới để tính') : j([tsp !== null ? 'Cả nhóm ' + tsp + '%' : '', repBest(Bt.speed, sp, pc, team), mb.none ? '<b class="bad-line">' + mb.none + ' số chưa gọi</b>' : 'tốt là từ 80%'])) +
       repStep(3, 'why', repRateLv(c.closePct, p.closePct), '🎯 Chốt được', c.closePct === null ? '–' : c.closePct + '%', c.closePct === null ? '' : delta(c.closePct, p.closePct, 'rate'),
-        c.data ? 'Cứ 10 khách hỏi chốt ' + Math.round(c.won * 10 / c.data) + ' khách' + (tcl !== null ? ' · cả nhóm ' + tcl + '%' : '') : 'Chưa có khách hỏi từ quảng cáo', K.close) +
+        c.data ? j(['Cứ 10 khách hỏi chốt ' + Math.round(c.won * 10 / c.data) + ' khách', tcl !== null ? 'cả nhóm ' + tcl + '%' : '', repBest(Bt.close, c.closePct, pc, team)]) : 'Chưa có khách hỏi từ quảng cáo', K.close) +
       repStep(4, 'rtrend', c.orders && p.orders ? dashTrend(c.avg, p.avg) : '', '🛒 Mỗi đơn', c.orders ? moneyShort(c.avg) : '–', c.orders ? delta(c.avg, p.orders ? p.avg : 0) : '', 'Bán combo, 2–3 hộp thì số này tăng', K.avg) +
       repStep(5, 'rtrend', okLv, '📦 Giao thành công', ok === null ? '–' : ok + '%', ok !== null && p.vPct !== null ? delta(ok, 100 - p.vPct, 'rate') : '',
-        c.grossN ? (c.vN ? c.vN + ' đơn hoàn / huỷ · ' + moneyShort(c.vV) + ' · ' : '') + 'tốt là từ 95%' : 'Chưa có đơn trong kỳ') +
+        c.grossN ? j([c.vN ? c.vN + ' đơn hoàn / huỷ · ' + moneyShort(c.vV) : '', Bt.ok != null ? repBest(Bt.ok, ok, pc, team) : 'tốt là từ 95%']) : 'Chưa có đơn trong kỳ') +
       repStep(6, 'care', c.sales ? repRateLv(c.oldPct, p.sales ? p.oldPct : null) : '', '🔁 Khách cũ mua lại', c.repeat + ' khách', delta(c.repeat, p.repeat), c.sales ? moneyShort(c.oldRev) + ' = ' + c.oldPct + '% doanh số' : 'Chăm sóc tốt thì số này tăng', K.repeat) +
       '</div>';
   }
   /** 💡 Khâu cần sửa nhất: chỉ 1 khâu (đèn đỏ trước, rồi khâu mất nhiều tiền nhất), kèm cách làm và số tiền thêm được nếu sửa. */
-  function repFix(c, p, mb, T) {
-    var C = [], avg = c.avg || p.avg || 0, sp = mb ? smkSpeed(mb) : null, tcl = T && T !== mb ? smkClose(T) : null;
-    if (c.vPct !== null && c.vPct > 5 && c.vN >= 2) C.push({ lv: c.vPct >= 10 ? 'bad' : 'mid', v: Math.round(c.vV * (c.vPct - 5) / c.vPct), t: '📦 Giao thành công ' + (100 - c.vPct) + '%, tốt là từ 95%', h: 'Gọi xác nhận trước khi gửi (đúng tên, địa chỉ, giờ nhận). Đơn lớn nhờ khách chuyển khoản trước.', g: 'giảm hoàn / huỷ còn 5%' });
-    if (sp !== null && sp < 80) C.push({ lv: smkSpeedLv(sp), v: 0, t: '📞 Gọi ngay trong ngày ' + sp + '%, tốt là từ 80%', h: 'Khách vừa để số còn nhớ quảng cáo nên dễ chốt. Có số mới là gọi trong 1 tiếng, gọi xong ghi lên CRM.' + (mb.none ? ' Gọi ngay ' + mb.none + ' số chưa gọi.' : '') });
+  function repFix(c, p, mb, T, best) {
+    var C = [], avg = c.avg || p.avg || 0, sp = mb ? smkSpeed(mb) : null, tcl = T && T !== mb ? smkClose(T) : null, Bt = best || {};
+    var top = function (v, fmt) { return v != null ? ' Người giỏi nhất nhóm đang đạt ' + fmt(v) + '.' : ''; }, pc = function (v) { return v + '%'; };
+    if (c.vPct !== null && c.vPct > 5 && c.vN >= 2) C.push({ lv: c.vPct >= 10 ? 'bad' : 'mid', v: Math.round(c.vV * (c.vPct - 5) / c.vPct), t: '📦 Giao thành công ' + (100 - c.vPct) + '%, tốt là từ 95%', h: 'Gọi xác nhận trước khi gửi (đúng tên, địa chỉ, giờ nhận). Đơn lớn nhờ khách chuyển khoản trước.' + top(Bt.ok, pc), g: 'giảm hoàn / huỷ còn 5%' });
+    if (sp !== null && sp < 80) C.push({ lv: smkSpeedLv(sp), v: 0, t: '📞 Gọi ngay trong ngày ' + sp + '%, tốt là từ 80%', h: 'Khách vừa để số còn nhớ quảng cáo nên dễ chốt. Có số mới là gọi trong 1 tiếng, gọi xong ghi lên CRM.' + (mb.none ? ' Gọi ngay ' + mb.none + ' số chưa gọi.' : '') + top(Bt.speed, pc) });
     var ref = c.closePct === null ? null : tcl !== null && tcl > c.closePct ? [tcl, 'bằng cả nhóm (' + tcl + '%)'] : p.closePct !== null && p.closePct > c.closePct ? [p.closePct, 'bằng ' + CMP_LABEL + ' (' + p.closePct + '%)'] : null;
-    if (ref && c.data >= 5) C.push({ lv: ref[0] - c.closePct >= 3 ? 'bad' : 'mid', v: Math.round(c.data * (ref[0] - c.closePct) / 100 * avg), t: '🎯 Chốt được ' + c.closePct + '%', h: 'Xem khách hay từ chối vì sao (mục 🙅 bên dưới) để chuẩn bị sẵn câu trả lời. Khách đang tư vấn thì gọi lại trong 24 giờ.', g: 'tăng tỷ lệ chốt ' + ref[1] });
+    if (ref && c.data >= 5) C.push({ lv: ref[0] - c.closePct >= 3 ? 'bad' : 'mid', v: Math.round(c.data * (ref[0] - c.closePct) / 100 * avg), t: '🎯 Chốt được ' + c.closePct + '%', h: 'Xem khách hay từ chối vì sao (mục 🙅 bên dưới) để chuẩn bị sẵn câu trả lời. Khách đang tư vấn thì gọi lại trong 24 giờ.' + top(Bt.close, pc), g: 'tăng tỷ lệ chốt ' + ref[1] });
     if (c.orders >= 3 && p.orders && c.avg < p.avg && CMP_LABEL) C.push({ lv: dashTrend(c.avg, p.avg), v: (p.avg - c.avg) * c.orders, t: '🛒 Mỗi đơn ' + moneyShort(c.avg) + ', thấp hơn ' + CMP_LABEL + ' (' + moneyShort(p.avg) + ')', h: 'Gợi ý combo hoặc mua 2–3 hộp cho cả nhà, nhắc khách đơn từ 300.000đ được miễn phí ship.', g: 'đưa mỗi đơn về như ' + CMP_LABEL });
     if (p.repeat && c.repeat < p.repeat && CMP_LABEL) C.push({ lv: dashTrend(c.repeat, p.repeat), v: c.repeat ? Math.round((p.repeat - c.repeat) * c.oldRev / c.repeat) : 0, t: '🔁 Khách cũ mua lại ' + c.repeat + ' khách, ít hơn ' + CMP_LABEL + ' (' + p.repeat + ')', h: 'Mỗi ngày làm hết việc chăm sóc ở tab Hôm nay: hỏi nhận hàng, nhắc sắp hết sản phẩm, mời quay lại.', g: 'có thêm ' + (p.repeat - c.repeat) + ' khách cũ quay lại' });
     if (c.care >= 10 && c.replyPct !== null && c.replyPct < 40) C.push({ lv: 'mid', v: 0, t: '☎️ Chỉ ' + c.replyPct + '% cuộc gọi có khách nghe máy', h: 'Thử gọi giờ khác (12h–13h, sau 19h) hoặc nhắn Zalo trước khi gọi.' });
@@ -5825,16 +5834,6 @@
     return '<div class="rep-money"><div>💰 Doanh số <b>' + moneyShort(g) + '</b>' + (cx.all ? '' : delta(c.gross, p.gross)) + '<small>' + (cx.all ? c.orders + ' đơn (Mọi lúc: chưa gồm hoàn / huỷ)' : c.grossN + ' đơn' + (c.vN ? ', gồm ' + c.vN + ' đơn hoàn / huỷ · mục tiêu tính ' + moneyShort(c.sales) : '')) + '</small></div>' +
       '<div>💵 Đã thu <b>' + moneyShort(c.paid) + '</b>' + delta(c.paid, p.paid) + '<small>' + (c.sales > c.paid ? 'còn ' + moneyShort(c.sales - c.paid) + ' đang giao / chờ thu' : 'đơn đã giao hoặc đã chuyển khoản') + '</small></div></div>';
   }
-  /** 3 ô tiền của tab Hiệu quả (26/10/2026): 💰 Doanh số GỒM hoàn / huỷ · 💵 Doanh thu đã thu · ↩️ Hoàn / huỷ. Mục tiêu vẫn tính trên doanh số trừ hoàn / huỷ (c.sales).
-   *  Mọi lúc (cx.all): máy chủ chỉ có doanh số trừ hoàn / huỷ → ô Doanh số hiện số đó. */
-  function repMoneyTiles(c, p, G, cx, K) {
-    var g = cx.all ? c.sales : c.gross, vlv = c.vPct === null ? '' : c.vPct < 5 ? 'ok' : c.vPct < 10 ? 'mid' : 'bad';
-    return dashTile('rtrend', cx.whole && G && G.isCur ? G.lv : dashTrend(g, cx.all ? p.sales : p.gross), '💰 Doanh số', moneyShort(g), cx.all ? '' : delta(c.gross, p.gross),
-        cx.all ? c.orders + ' đơn (Mọi lúc: chưa gồm hoàn / huỷ)' : c.grossN + ' đơn, gồm ' + c.vN + ' đơn hoàn / huỷ' + (c.vN ? '<br>🎯 Tính mục tiêu (trừ hoàn / huỷ): ' + moneyShort(c.sales) : ''), cx.all ? K.sales : K.gross) +
-      dashTile('rtrend', dashTrend(c.paid, p.paid), '💵 Doanh thu', moneyShort(c.paid), delta(c.paid, p.paid), 'Tiền đơn đã giao hoặc đã nhận chuyển khoản' + (c.sales > c.paid ? ' · còn ' + moneyShort(c.sales - c.paid) + ' đang giao / chờ thu' : ''), K.paid) +
-      dashTile('rtrend', vlv, '↩️ Hoàn / huỷ', c.vPct === null ? '–' : c.vPct + '%', c.vPct !== null && p.vPct !== null ? inv(delta(c.vPct, p.vPct, 'rate')) : '',
-        c.grossN ? c.vN + ' / ' + c.grossN + ' đơn · ' + moneyShort(c.vV) + ' · dưới 5% là tốt' : 'Chưa có đơn trong kỳ', K.vd);
-  }
   /* Hiệu quả của 1 người (29/10/2026) theo thứ tự sale giỏi tự hỏi: mình ở đâu so với mục tiêu → hôm nay làm gì → yếu ở bước nào → sửa thế nào.
    * Số liệu sâu (quảng cáo, chăm sóc, lý do, tỉnh) thu gọn bên dưới; công cụ (link web, báo cáo) ở cuối. */
   function viewPerson(name, cx) {
@@ -5843,7 +5842,7 @@
     c.name = name; c.cx = cx;
     var h = (lvl() >= 2 && !me ? '<button class="btn ghost" data-who="team" style="margin-bottom:10px">← Quay lại cả nhóm</button>' : '') +
       targetBlock(name, month, ms, me || lvl() >= 2, c.avg || p.avg) + repMoneyLine(c, p, cx);
-    h += '<section class="dash-hero">' + repTodo(c, p, me, mb) + repSteps(c, p, mk, mb, T) + repFix(c, p, mb, T) + '</section>';
+    h += '<section class="dash-hero">' + repTodo(c, p, me, mb) + repSteps(c, p, mk, mb, T) + repFix(c, p, mb, T, mk && mk.best) + '</section>';
     h += '<h2 class="dash-more-h">Xem chi tiết <small class="muted">(bấm để mở)</small></h2>';
     h += repMore('rtrend', '📈 Bán hàng theo ngày', 'Doanh số, số đơn, lượt chăm sóc từng ngày, so với ' + (CMP_LABEL || 'kỳ trước'), repTrend(name, cx));
     h += smkMore(mk, mb, smkInvest(mk, mb, who, cx.label).replace(/<button class="link" data-rgo="mkt">[^<]*<\/button>/, '') + repFunnel(c, who));
@@ -5915,7 +5914,9 @@
     if (noT.length && cx.month === monthOf(Date.now())) L.push({ p: 3, t: '🎯 Chưa đặt mục tiêu ' + monthLabel(cx.month) + ': ' + nm(noT) + '.' });
     if (t.backPct !== null && t.backPct >= 10 && t.backN >= 3) L.push({ p: 3, t: '📦 Tỷ lệ hoàn đơn ' + t.backPct + '% (' + t.backN + ' đơn, ' + moneyShort(t.backV) + '). Nhắc gọi xác nhận trước khi gửi.' });
     L.sort(function (x, y) { return x.p - y.p; });
-    return '<div class="box rep-todo"><h3>👉 Quản lý nên làm ngay</h3>' + (L.length ? L.slice(0, 5).map(function (x) { return '<div class="rep-todo-r"><span>' + x.t + '</span>' + (x.a || '') + '</div>'; }).join('') : '<div class="rep-todo-r"><span>🎉 Cả nhóm đang ổn. Khen người dẫn đầu và giữ nhịp nhé!</span></div>') + '</div>';
+    var row = function (x) { return '<div class="rep-todo-r"><span>' + x.t + '</span>' + (x.a || '') + '</div>'; };
+    return '<div class="box rep-todo"><h3>👉 Quản lý làm ' + (L.length ? Math.min(3, L.length) + ' việc này trước' : 'gì hôm nay?') + ' <small class="muted">việc gấp lên trước</small></h3>' +
+      (L.length ? L.slice(0, 3).map(row).join('') + (L.length > 3 ? '<details class="rep-todo-more"><summary>＋ ' + (L.length - 3) + ' việc khác</summary>' + L.slice(3).map(row).join('') + '</details>' : '') : '<div class="rep-todo-r"><span>🎉 Cả nhóm đang ổn. Khen người dẫn đầu và giữ nhịp nhé!</span></div>') + '</div>';
   }
   /** Lý do khách hỏi không mua (chọn khi chốt "Không mua"), cả nhóm. */
   function teamLostBlock(R) {
@@ -5929,25 +5930,24 @@
     var names = staffNames(); S.d.orders.forEach(function (o) { if (o.seller && names.indexOf(o.seller) < 0 && !isAdminName(o.seller)) names.push(o.seller); }); // không tính tài khoản Quản trị
     var act = staffNames(), rows = names.map(function (n) { var p = salesAllFix(perf(n, R), n, cx); p.n = n; p.prev = perf(n, cx.P); p.t = targetOf(n, month); p.ms = cx.whole ? p.sales : perf(n, monthRange(month)).sales; return p; }).filter(function (p) { return act.indexOf(p.n) >= 0 || p.orders > 0; }).sort(function (a, b) { return b.sales - a.sales; });
     var ns = S.d.orders.filter(function (o) { return !isVoid(o.status) && o.time >= R[0] && o.time < R[1] && !o.seller; }), noSeller = { n: ns.length, v: ns.reduce(function (s0, o) { return s0 + o.total; }, 0) };
-    var ms = cx.whole ? all.sales : perf(null, monthRange(month)).sales, G = tt ? goalCalc(ms, tt, month) : null, mk = smkGet('', cx), K = repSparks(null, cx);
+    var ms = cx.whole ? all.sales : perf(null, monthRange(month)).sales, mk = smkGet('', cx);
     rows.forEach(function (r) { r.mk = mk && mk.people ? mk.people[r.n] || null : null; });
-    var h = targetBlockTeam(ms, tt, month);
-    h += '<section class="dash-hero"><div class="dash-tiles dt6">' + repMoneyTiles(all, prev, G, cx, K) +
-      dashTile('cmp', repRateLv(all.closePct, prev.closePct), '🎯 Chốt được', all.closePct === null ? '–' : all.closePct + '%', all.closePct === null ? '' : delta(all.closePct, prev.closePct, 'rate'), all.data ? 'Cứ 10 khách hỏi chốt ' + Math.round(all.won * 10 / all.data) + ' khách' : 'Chưa có khách hỏi từ quảng cáo', K.close) +
-      dashTile('cmp', all.orders && prev.orders ? dashTrend(all.avg, prev.avg) : '', '🛒 Mỗi đơn', all.orders ? moneyShort(all.avg) : '–', all.orders ? delta(all.avg, prev.orders ? prev.avg : 0) : '', 'Tiền trung bình 1 đơn', K.avg) +
-      dashTile('care', all.sales ? repRateLv(all.oldPct, prev.sales ? prev.oldPct : null) : '', '🔁 Khách cũ mua lại', all.repeat + ' khách', delta(all.repeat, prev.repeat), all.sales ? moneyShort(all.oldRev) + ' = ' + all.oldPct + '% doanh số' : 'Chăm sóc tốt thì số này tăng', K.repeat) +
-      '</div>' + smkInvest(mk, mk && mk.team, 'cả nhóm', cx.label) + repFunnel(all, 'cả nhóm') + repMgrTodo(rows, all, cx, noSeller) + teamBlock() /* Đợt 2: tiến độ hôm nay (việc trễ, đơn chưa xác nhận…) ngay trong Hiệu quả, quản lý không phải sang tab Hôm nay */ + repPeople(rows, all, cx) + '</section>' + refBox(all, prev, '');
-    h += '<div class="steps" style="margin:0 0 16px"><button class="btn pri" data-daily="">📋 Báo cáo ngày (gửi Zalo)</button><button class="btn" data-bcdt="|' + month + '">📊 Bảng BCDT cả nhóm ' + monthLabel(month) + '</button>' + (lvl() >= 3 ? '<button class="btn" data-usage="">📈 Mức dùng CRM</button>' : '') + '</div>';
+    all.name = null; all.cx = cx;
+    var h = targetBlockTeam(ms, tt, month, all.avg || prev.avg) + repMoneyLine(all, prev, cx);
+    // 29/10/2026: cùng thứ tự màn hình 1 người: mục tiêu → việc cần làm → 6 bước → khâu cần sửa nhất → từng người → chi tiết → công cụ
+    h += '<section class="dash-hero">' + repMgrTodo(rows, all, cx, noSeller) + repSteps(all, prev, mk, mk && mk.team, mk && mk.team) + repFix(all, prev, mk && mk.team, mk && mk.team, mk && mk.best) +
+      teamBlock() /* tiến độ hôm nay (việc trễ, đơn chưa xác nhận…) ngay trong Hiệu quả, quản lý không phải sang tab Hôm nay */ + repPeople(rows, all, cx) + '</section>';
     h += '<h2 class="dash-more-h">Xem chi tiết <small class="muted">(bấm để mở)</small></h2>';
     var lead = rows[0] && rows[0].sales ? rows[0] : null;
     h += rows.length >= 2 ? repMore('cmp', '📊 So sánh nhân viên', 'Xếp hạng theo doanh số, số đơn, tỷ lệ chốt, % mục tiêu…' + (lead ? ' · dẫn đầu: ' + esc(lead.n) : ''), compareBlock(rows, cx)) : '';
     h += repMore('rtrend', '📈 Bán hàng theo ngày', 'Doanh số, số đơn, lượt chăm sóc từng ngày, so với ' + (CMP_LABEL || 'kỳ trước'), repTrend(null, cx));
-    h += smkMore(mk, null);
+    h += smkMore(mk, null, smkInvest(mk, mk && mk.team, 'cả nhóm', cx.label).replace(/<button class="link" data-rgo="mkt">[^<]*<\/button>/, '') + repFunnel(all, 'cả nhóm'));
     h += repMore('care', '💬 Chăm sóc khách', all.care + ' lượt' + (all.replyPct === null ? '' : ' · ' + all.replyPct + '% khách nghe máy') + (all.convPct === null ? '' : ' · ' + all.convPct + '% chăm sóc ra đơn'), careMetrics(all, prev, false, null, cx.R));
     var why = whyBlock(null, cx), wt = (why.match(/<span class="bar-l" role="cell">([^<]*)</) || [])[1];
     h += repMore('why', '🙅 Vì sao khách chưa mua', wt ? 'Nhiều nhất: ' + wt : 'Ghi lý do khi chăm sóc để máy gom', why + teamLostBlock(R));
     var geo = geoBlock(null, cx), gt = (geo.match(/Nhiều nhất: <b>([^<]*)</) || [])[1];
     h += repMore('geo', '📍 Khách ở tỉnh nào', gt ? 'Nhiều nhất: ' + gt : 'Chưa có địa chỉ', geo);
+    h += '<h2 class="dash-more-h">🧰 Công cụ</h2><div class="steps" style="margin:0 0 10px"><button class="btn pri" data-daily="">📋 Báo cáo ngày (gửi Zalo)</button><button class="btn" data-bcdt="|' + month + '">📊 Bảng BCDT cả nhóm ' + monthLabel(month) + '</button>' + (lvl() >= 3 ? '<button class="btn" data-usage="">📈 Mức dùng CRM</button>' : '') + '</div>' + refBox(all, prev, '');
     h += '<p class="small muted">🟢 đúng tiến độ mục tiêu / tốt hơn ' + (CMP_LABEL || 'kỳ trước') + ' · 🟠 hơi chậm / giảm nhẹ · 🔴 đang chậm / giảm nhiều. 🥇🥈🥉 xếp theo doanh số trong kỳ đang chọn.</p>';
     return h;
   }
@@ -5987,13 +5987,13 @@
       kpi('Khách chưa ai phụ trách', cs.length, '', '', csTask + ' khách đang cần chăm sóc') + kpi('Khách hỏi chưa ai nhận', ls.length, ls.length ? 'warn' : '', '', 'đang theo dõi') + '</div>' +
       '<div class="notice">Các tab Hôm nay, Khách đã mua, Khách hỏi, Đơn hàng đang lọc theo “Chưa ai phụ trách”. Mở từng tab để giao người phụ trách (hồ sơ khách → Người phụ trách, hoặc đơn → Nhân viên bán). Chọn “Tất cả nhân sự” ở ô phía trên để bỏ lọc.</div>';
   }
-  function targetBlockTeam(sales, tt, month) {
+  function targetBlockTeam(sales, tt, month, avg) { // avg: tiền mỗi đơn → đổi "mỗi ngày cần" ra số đơn
     if (!tt) return '<div class="goal none"><div class="goal-h"><b>🎯 Mục tiêu cả nhóm ' + monthLabel(month) + '</b></div><p>Chưa ai đặt mục tiêu. Bấm vào từng nhân viên bên dưới để đặt.</p></div>';
     var R = monthRange(month), isCur = month === monthOf(Date.now()), days = Math.round((R[1] - R[0]) / DAY), el = isCur ? Math.min(days, Math.floor((today() - R[0]) / DAY) + 1) : days;
     var p = sales / tt, tp = el / days, lv = p >= 1 ? 'done' : p >= tp ? 'ok' : p >= tp * 0.8 ? 'mid' : 'bad';
     return '<div class="goal ' + lv + '"><div class="goal-h"><b>🎯 Mục tiêu cả nhóm ' + monthLabel(month) + '</b><span class="goal-st">' + { done: '🎉 Đã đạt', ok: '🟢 Đúng tiến độ', mid: '🟠 Hơi chậm', bad: '🔴 Đang chậm' }[lv] + '</span></div>' +
       '<div class="goal-num"><b>' + moneyShort(sales) + '</b> / ' + moneyShort(tt) + '<span>' + Math.round(p * 100) + '%</span></div>' +
-      '<div class="bar"><i style="width:' + Math.min(100, p * 100).toFixed(1) + '%"></i>' + (isCur ? '<u style="left:' + (tp * 100).toFixed(1) + '%"></u>' : '') + '</div>' + (isCur ? '<div class="bar-legend"><span>Vạch đen = hôm nay (ngày ' + el + '/' + days + ')</span></div>' : '') + (isCur && p < 1 ? '<p>Còn thiếu <b>' + moneyShort(tt - sales) + '</b> trong <b>' + (days - el + 1) + ' ngày</b> → cả nhóm mỗi ngày cần khoảng <b>' + moneyShort(Math.ceil((tt - sales) / (days - el + 1))) + '</b>.' + (el >= 3 ? ' Giữ nhịp hiện nay thì cả tháng được khoảng ' + moneyShort(Math.round(sales / el * days)) + ' (' + pct(Math.round(sales / el * days), tt) + '%).' : '') + '</p>' : '') + '<p class="small muted">Tổng mục tiêu của các nhân viên.</p></div>';
+      '<div class="bar"><i style="width:' + Math.min(100, p * 100).toFixed(1) + '%"></i>' + (isCur ? '<u style="left:' + (tp * 100).toFixed(1) + '%"></u>' : '') + '</div>' + (isCur ? '<div class="bar-legend"><span>Vạch đen = hôm nay (ngày ' + el + '/' + days + ')</span></div>' : '') + (isCur && p < 1 ? '<p>Còn thiếu <b>' + moneyShort(tt - sales) + '</b> trong <b>' + (days - el + 1) + ' ngày</b> → cả nhóm mỗi ngày cần khoảng <b>' + moneyShort(Math.ceil((tt - sales) / (days - el + 1))) + '</b>' + (avg ? ' ≈ <b>' + Math.ceil((tt - sales) / (days - el + 1) / avg) + ' đơn</b>' : '') + '.' + (el >= 3 ? ' Giữ nhịp hiện nay thì cả tháng được khoảng ' + moneyShort(Math.round(sales / el * days)) + ' (' + pct(Math.round(sales / el * days), tt) + '%).' : '') + '</p>' : '') + '<p class="small muted">Tổng mục tiêu của các nhân viên.</p></div>';
   }
 
   /** Đặt / sửa mục tiêu doanh số tháng. */

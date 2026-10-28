@@ -246,7 +246,7 @@ Tab xếp theo đúng thứ tự một sale giỏi tự hỏi mỗi ngày, **đ�
 
 ![Việc nên làm ngay](/huong-dan/img/crm-hieuqua-viec.webp)
 
-3. **🪜 Các bước bán hàng:** 6 ô đánh số, đi đúng đường khách đi:
+3. **🪜 Các bước bán hàng:** 6 ô đánh số, đi đúng đường khách đi. Dòng nhỏ trong ô có **"giỏi nhất …"** = mức của người làm tốt nhất nhóm ở bước đó (không ghi tên, không ghi tiền); thấy **🏆 giỏi nhất nhóm** là bạn đang dẫn đầu bước đó:
     - **① Khách hỏi nhận được**: số khách để lại từ quảng cáo. Dòng nhỏ: công ty chi bao nhiêu, **cứ 1đ công ty chi bạn mang về mấy đồng**.
     - **② Gọi ngay trong ngày**: bao nhiêu % số mới bạn gọi ngay hôm nhận. **Từ 80% là tốt.** Khách vừa để số còn nhớ quảng cáo nên dễ chốt nhất.
     - **③ Chốt được**: cứ 10 người hỏi thì bạn chốt được mấy người, so với cả nhóm.

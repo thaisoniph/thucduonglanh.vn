@@ -33,12 +33,15 @@ Khi vào CRM: nhân viên vào thẳng **Hôm nay**, quản lý vào **Hiệu qu
 
 Đọc từ trên xuống:
 
-- **🎯 Mục tiêu cả nhóm**: đã bán bao nhiêu so với mục tiêu, mỗi ngày cần bán bao nhiêu.
-- **4 ô lớn**: 💰 Tiền cả nhóm · 🎯 Chốt được · 🛒 Mỗi đơn · 🔁 Khách cũ mua lại. Đèn so với kỳ trước.
-- **📞 Khách hỏi từ quảng cáo đi về đâu?**: bao nhiêu đã mua, đang tư vấn, không mua, số rác.
-- **💸 Công ty đã đầu tư cho cả nhóm**: tiền quảng cáo, mang về bao nhiêu, % số được gọi ngay trong ngày.
-- **👥 Từng nhân viên**: xếp theo doanh số. Viền màu: 🟢 đúng tiến độ · 🟠 hơi chậm · 🔴 đang chậm. Dòng **Cần kèm** chỉ ra tối đa 2 điểm yếu của người đó. Bấm vào để xem chi tiết và đặt mục tiêu.
-- **Xem chi tiết**: **📊 So sánh nhân viên** (chọn chỉ số, vạch đậm = trung bình nhóm), bán hàng theo ngày, chăm sóc khách, vì sao khách chưa mua, khách ở tỉnh nào.
+1. **🎯 Mục tiêu cả nhóm**: đã bán bao nhiêu so với mục tiêu, mỗi ngày cần bao nhiêu tiền **≈ bao nhiêu đơn**. Ngay dưới: 💰 Doanh số (gồm hoàn / huỷ) và 💵 Đã thu.
+2. **👉 Quản lý làm 3 việc này trước**: việc gấp lên đầu (số quảng cáo chưa ai gọi, người đang chậm mục tiêu, khách hỏi đang chờ…). Bấm tên người để xem người đó. Bấm **＋ việc khác** để xem thêm.
+3. **🪜 Các bước bán hàng của cả nhóm**: 6 ô đánh số ① Khách hỏi nhận được → ② Gọi ngay trong ngày → ③ Chốt được → ④ Mỗi đơn → ⑤ Giao thành công → ⑥ Khách cũ mua lại. Dòng **"giỏi nhất …"** = mức của người làm tốt nhất nhóm ở bước đó. Ô đỏ là khâu cần sửa.
+4. **💡 Khâu cần sửa nhất**: 1 khâu yếu nhất của cả nhóm, cách sửa và số tiền thêm được nếu sửa. Dùng làm chủ đề họp nhóm.
+5. **👥 Tiến độ hôm nay** và **Từng nhân viên**: xếp theo doanh số. Viền màu: 🟢 đúng tiến độ · 🟠 hơi chậm · 🔴 đang chậm. Dòng **Cần kèm** chỉ ra tối đa 2 điểm yếu của người đó. Bấm vào để xem chi tiết và đặt mục tiêu.
+6. **Xem chi tiết**: **📊 So sánh nhân viên** (chọn chỉ số, vạch đậm = trung bình nhóm), bán hàng theo ngày, **📣 Từ quảng cáo** (công ty đã đầu tư cho cả nhóm, khách hỏi đi về đâu), chăm sóc khách, vì sao khách chưa mua, khách ở tỉnh nào.
+7. **🧰 Công cụ**: Báo cáo ngày, Bảng BCDT, Mức dùng CRM, đơn khách tự đặt trên web.
+
+Sale chỉ thấy mức "giỏi nhất nhóm" dưới dạng % (không thấy tên, không thấy tiền của người khác).
 
 Tài khoản Quản trị không nằm trong bảng so sánh nhân sự. Doanh số cả nhóm vẫn tính đủ.
 
