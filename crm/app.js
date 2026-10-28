@@ -4677,6 +4677,34 @@
         '<p class="bar-legend">Thói quen hạ ngón nhiều nhất = điều khách đang thấy khó nhất: nên viết bài, làm video, chạy quảng cáo đúng chỗ đó. "ngon_tay / chia_se" = người được bạn bè rủ chơi qua nút Khoe kết quả / Thách bạn bè. Website không lưu tên hay số điện thoại người chơi.</p>'
     };
   }
+  /** 🌐 Danh sách đơn đặt trên web trong kỳ (mktv → web.list, 29/10/2026): khách đến từ đâu, mua gì, ở đâu + gợi ý + từng đơn.
+   *  r = [giờ, new|old|fb, tiền, nguồn, tỉnh, sản phẩm, mã ưu đãi, huỷ/hoàn, tên, SĐT, mã đơn] – tên / SĐT / mã đơn chỉ Quản trị nhận được. */
+  var WL_K = { 'new': ['🆕', 'Khách mới'], old: ['🔁', 'Khách cũ đặt lại'], fb: ['📘', 'Khách mới từ quảng cáo Facebook'] };
+  function mkWebList(wb, f) {
+    var L = (wb.list || []).filter(function (r) { return !r[7]; }), X = (wb.list || []).length - L.length;
+    if (!(wb.list || []).length) return '<p class="muted">Kỳ này chưa có đơn đặt trên web.</p>';
+    var grp = function (key) { var o = {}; L.forEach(function (r) { key(r).forEach(function (k) { if (!k) return; var g = o[k] || (o[k] = { n: 0, v: 0 }); g.n++; g.v += r[2]; }); }); return Object.keys(o).map(function (k) { return { l: k, v: o[k].v, n: o[k].n }; }).sort(function (a, b) { return b.v - a.v; }); };
+    var src = grp(function (r) { return [webSrc({ source: r[3] })]; }), prod = grp(function (r) { return String(r[5] || '').split(' · ').map(function (x) { return x.replace(/\s*[x×]\s*\d+\s*$/i, '').replace(/\s*\(.*$/, '').trim(); }); }), prov = grp(function (r) { return [r[4] || 'Chưa rõ tỉnh']; });
+    var tot = L.reduce(function (a, r) { return a + r[2]; }, 0), vc = L.filter(function (r) { return r[6]; }), old = L.filter(function (r) { return r[1] === 'old'; });
+    var bar = function (a) { return barList(a.slice(0, 6).map(function (x) { return { l: x.l, v: x.v, txt: moneyShort(x.v) + ' · ' + x.n + ' đơn' }; }), moneyShort); };
+    var tips = [], d0 = src.filter(function (x) { return x.l === 'Vào thẳng web'; })[0];
+    if (src[0] && tot && src[0].l !== 'Vào thẳng web') tips.push('📍 Nhiều tiền nhất đến từ <b>' + esc(src[0].l) + '</b> (' + pct(src[0].v, tot) + '% tiền đơn web): làm thêm nội dung / link ở kênh này.');
+    if (d0 && tot && d0.v * 100 / tot >= 40) tips.push('🔗 ' + pct(d0.v, tot) + '% tiền đến từ khách <b>vào thẳng web</b> (không rõ từ đâu): dùng link có mã ở tab <b>📍 Link &amp; QR</b> khi đăng Zalo, gửi tin, in tờ rơi để biết kênh nào ra đơn.');
+    if (old.length && tot) tips.push('🔁 ' + old.length + ' đơn của khách cũ đặt lại trên web (' + pct(old.reduce(function (a, r) { return a + r[2]; }, 0), tot) + '% tiền): gửi link đặt lại trong tin chăm sóc khách để đỡ công sale.');
+    if (vc.length) tips.push('🎟 ' + vc.length + ' / ' + L.length + ' đơn có dùng mã ưu đãi (' + esc(Object.keys(vc.reduce(function (o, r) { o[String(r[6]).toUpperCase()] = 1; return o; }, {})).slice(0, 3).join(', ')) + ').');
+    if (prod[0]) tips.push('🧴 Bán chạy nhất trên web: <b>' + esc(prod[0].l) + '</b>. Đưa sản phẩm này lên đầu trang chủ / quảng cáo dẫn về web.');
+    var adm = lvl() >= 3, n = f.wall ? 300 : 15;
+    var rows = (wb.list || []).slice(0, n).map(function (r) {
+      var K = WL_K[r[1]] || ['', ''], who = adm && r[9] ? '<button type="button" class="link" data-cust="' + esc(r[9]) + '">' + esc(r[8] || r[9]) + '</button>' : '';
+      return '<div class="wl-r' + (r[7] ? ' wl-void' : '') + '"><div class="wl-1"><span class="wl-t">' + fDateTime(r[0]) + '</span><span class="tag" title="' + K[1] + '">' + K[0] + ' ' + K[1] + '</span>' + (who ? '<b>' + who + '</b>' : '') + (r[7] ? '<span class="tag">❌ Huỷ / hoàn</span>' : '') + '<span class="wl-v">' + moneyShort(r[2]) + '</span></div>' +
+        '<div class="wl-2">🧴 ' + esc(r[5] || '–') + '</div><div class="small muted">' + ['Đến từ: ' + esc(webSrc({ source: r[3] })), r[4] ? '🏠 ' + esc(r[4]) : '', r[6] ? '🎟 ' + esc(r[6]) : '', adm && r[10] ? 'Mã ' + esc(r[10]) : ''].filter(Boolean).join(' · ') + '</div></div>';
+    }).join('');
+    return '<h3 class="wl-h">Khách đặt trên web kỳ này: ' + L.length + ' đơn · ' + moneyShort(tot) + (X ? ' <small class="muted">(+ ' + X + ' đơn huỷ / hoàn)</small>' : '') + '</h3>' +
+      (tips.length ? '<div class="box dash-notes"><h3>💡 Gợi ý phát triển web</h3>' + tips.map(function (t) { return '<p>' + t + '</p>'; }).join('') + '</div>' : '') +
+      '<div class="dash-grid wl-g"><div class="box"><h3>📍 Khách đến từ đâu</h3>' + bar(src) + '</div><div class="box"><h3>🧴 Mua gì</h3>' + bar(prod) + '</div><div class="box"><h3>🏠 Ở đâu</h3>' + bar(prov) + '</div></div>' +
+      '<h3 class="wl-h">Từng đơn (mới nhất trước)</h3><div class="wl">' + rows + '</div>' + ((wb.list || []).length > n ? '<button class="btn ghost sm" data-wlall="1">Xem thêm ' + ((wb.list || []).length - n) + ' đơn</button>' : '') +
+      '<p class="bar-legend">"Khách đến từ đâu" đọc từ link khách bấm vào web (UTM, mã 📍 Link &amp; QR, trang giới thiệu). ' + (adm ? 'Bấm tên khách để mở hồ sơ.' : 'Tài khoản Marketing không xem được tên, số điện thoại khách (Nghị định 13/2023).') + '</p>';
+  }
   function mkMore(k, title, line, body) {
     if (!body) return '';
     var o = S.f.m.open || {};
@@ -4869,7 +4897,7 @@
         metric('🆕 Khách mới đặt web', moneyShort(wb.newRev) + ' <small>(' + pct(wb.newRev, wsum) + '%)</small>', wb.newN + ' khách mua lần đầu trên web' + (wb.newN ? ' · trung bình ' + moneyShort(Math.round(wb.newRev / wb.newN)) : '') + '.', delta(wb.newRev, wbp ? wbp.newRev : null)) +
         metric('🔁 Khách cũ đặt lại trên web', moneyShort(wb.oldRev) + ' <small>(' + pct(wb.oldRev, wsum) + '%)</small>', wb.oldN + ' khách từng mua trước đó nay đặt trên web.', delta(wb.oldRev, wbp ? wbp.oldRev : null)) +
         (wb.fb ? metric('📘 Khách mới từ quảng cáo Facebook', moneyShort(wb.fb) + ' <small>(' + pct(wb.fb, wsum) + '%)</small>', 'Đặt trên web nhưng đến từ quảng cáo Facebook → tính cho kênh Facebook, không tính vào mục tiêu Website.', '') : '') +
-        '</div><p class="bar-legend">Mục tiêu Website = tiền khách mới + khách cũ đặt trên web (không gồm phần quảng cáo Facebook). Khách cũ = đã từng mua trước kỳ này. Muốn tăng khách cũ đặt web: gửi link web trong nhóm Zalo, tin nhắn CSKH, thẻ trong đơn sàn.</p>');
+        '</div><p class="bar-legend">Mục tiêu Website = tiền khách mới + khách cũ đặt trên web (không gồm phần quảng cáo Facebook). Khách cũ = đã từng mua trước kỳ này. Muốn tăng khách cũ đặt web: gửi link web trong nhóm Zalo, tin nhắn CSKH, thẻ trong đơn sàn.</p>' + mkWebList(wb, S.f.m));
     }
     var cm = mj.comm, cmp = mj.commPrev, csp = 0; mj.days.forEach(function (r) { if (r[1] === MK_COMM) csp += r[2]; });
     if (cm && (cm.rev || csp)) h += mkMore('comm', '👥 Cộng đồng Zalo', moneyShort(cm.rev) + ' tiền mua lại · ' + cm.buyers + ' khách', '<div class="metrics dash-m3">' +
@@ -4915,6 +4943,7 @@
     $$('[data-mkc]').forEach(function (el) { el.onclick = function () { S.f.m.cv = el.getAttribute('data-mkc'); S.f.m.call = 0; render(); }; });
     $$('[data-kpd]').forEach(function (el) { el.onclick = function () { S.f.m.kd = el.getAttribute('data-kpd'); S.f.m.kall = 0; render(); }; });
     $$('[data-lvall]').forEach(function (el) { el.onclick = function () { S.f.m.lall = 1; render(); }; });
+    $$('[data-wlall]').forEach(function (el) { el.onclick = function () { S.f.m.wall = 1; render(); }; });
     $$('[data-lvf]').forEach(function (el) { el.onclick = function () { S.f.m.lvf = el.getAttribute('data-lvf'); S.f.m.lall = 0; render(); }; });
   }
 

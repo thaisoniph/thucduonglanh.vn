@@ -46,7 +46,11 @@ function orderProds(items, total) {
  *  thêm: phễu (tot / totPrev), giá trung bình 1 kết quả mỗi kênh (cpr), theo sản phẩm (prod), giá trị khách mới 90 ngày (ltv), ngân sách tháng (budget). */
 export async function mktView(x, u, d) {
   if (![d.from, d.to, d.pf, d.pt].every(s => DAY_RE.test(String(s || '')))) return { ok: false, error: 'Khoảng thời gian chưa đúng.' };
-  const sfb = d.sfb !== false && d.sfb !== 0, key = 'mktv12_' + [d.from, d.to, d.pf, d.pt, sfb ? 1 : 0, u.level >= 3 ? 'a' : 'm'].join('_') + '_' + ((await kvGet(x.db, 'ads_rows_v')) || '');
+  /** 1 đơn web cho danh sách 🌐 (29/10/2026): [giờ, loại new|old|fb, tiền, nguồn (UTM / trang giới thiệu), tỉnh, sản phẩm, mã ưu đãi, huỷ/hoàn, tên, SĐT, mã đơn].
+   *  Tên / SĐT / mã đơn chỉ gửi cho Quản trị; tài khoản Marketing chỉ thấy phần không định danh (Nghị định 13/2023). */
+  const admin = u.level >= 3;
+  const webRow = (o, k) => [o.time, k, o.total, String(o.source || '').slice(0, 200), o.prov, String(o.items || '').split(/\n|;\s*/).map(l => l.replace(/\s*=\s*[\d.,]+\s*đ?\s*$/, '').trim()).filter(Boolean).join(' · ').slice(0, 160), o.vc, o.v ? 1 : 0, admin ? o.name : '', admin ? o.ph : '', admin ? o.id : ''];
+  const sfb = d.sfb !== false && d.sfb !== 0, key = 'mktv13_' + [d.from, d.to, d.pf, d.pt, sfb ? 1 : 0, u.level >= 3 ? 'a' : 'm'].join('_') + '_' + ((await kvGet(x.db, 'ads_rows_v')) || '');
   if (!d.fresh) { const c = await kvJson(x.db, key, null); if (c) return Object.assign(c, { cached: true }, await budgetOf(x)); }
   const R = [dayMs(d.from), dayMs(d.to) + DAY], P = [dayMs(d.pf), dayMs(d.pt) + DAY];
   const mid = iso(Math.floor((R[0] + R[1]) / 2 / DAY) * DAY); // chia đôi kỳ: tỷ lệ bấm nửa đầu ↔ nửa sau (quảng cáo có bị nhàm không)
@@ -57,7 +61,7 @@ export async function mktView(x, u, d) {
       'FROM ad_spend WHERE day BETWEEN ? AND ? GROUP BY channel, account, campaign ORDER BY s DESC LIMIT 60', mid, mid, d.from, d.to),
     all(x.db, 'SELECT channel, campaign, SUM(spend) AS s, SUM(msgs) + SUM(leads) AS r FROM ad_spend WHERE day BETWEEN ? AND ? GROUP BY channel, campaign', d.from, d.to),
     all(x.db, 'SELECT channel, SUM(spend) AS s, SUM(impressions) AS i, SUM(clicks) AS c, SUM(msgs) AS m, SUM(leads) AS l, SUM(purchases) AS p FROM ad_spend WHERE day BETWEEN ? AND ? GROUP BY channel', d.pf, d.pt),
-    all(x.db, 'SELECT phone, time, total, status, source, items FROM orders WHERE time >= ? AND time < ? ORDER BY time', Math.min(R[0], P[0]), Math.max(R[1], P[1])),
+    all(x.db, 'SELECT id, name, province, voucher, phone, time, total, status, source, items FROM orders WHERE time >= ? AND time < ? ORDER BY time', Math.min(R[0], P[0]), Math.max(R[1], P[1])),
     all(x.db, "SELECT day, shop, SUM(CASE WHEN state = 'ok' THEN gmv - refund ELSE 0 END) AS g FROM san_orders WHERE day BETWEEN ? AND ? GROUP BY day, shop", d.from, d.to).catch(() => []),
     all(x.db, "SELECT day, shop, SUM(CASE WHEN state = 'ok' THEN gmv - refund ELSE 0 END) AS g FROM san_orders WHERE day BETWEEN ? AND ? GROUP BY day, shop", d.pf, d.pt).catch(() => []),
     kvJson(x.db, 'ads_rows', []), kvJson(x.db, 'mkt_cfg', {})
@@ -65,7 +69,7 @@ export async function mktView(x, u, d) {
   const ads = (adRows || []).map(a => [Number(a[0]) || 0, normPhone(a[1]), String(a[3] || ''), String(a[2] || '')]).filter(a => a[1]);
   const adFirst = {}; ads.forEach(a => { if (!adFirst[a[1]] || a[0] < adFirst[a[1]]) adFirst[a[1]] = a[0]; });
   // marketing chấm trên DOANH SỐ khách mới: giữ cả đơn hoàn / huỷ (hoàn / huỷ là việc của sale, anh Sơn 26/10/2026); v = đơn hoàn / huỷ → newVoid để xem riêng
-  const ords = ordAll.map(o => ({ ph: normPhone(o.phone), time: Number(o.time) || 0, total: Number(o.total) || 0, source: o.source || '', items: o.items || '', v: isVoid(o.status) }));
+  const ords = ordAll.map(o => ({ ph: normPhone(o.phone), time: Number(o.time) || 0, total: Number(o.total) || 0, source: o.source || '', items: o.items || '', v: isVoid(o.status), id: o.id || '', name: o.name || '', prov: o.province || '', vc: o.voucher || '' }));
   const adIn = ads.filter(a => (a[0] >= R[0] && a[0] < R[1]) || (a[0] >= P[0] && a[0] < P[1]));
   const phones = [...new Set(ords.map(o => o.ph).concat(adIn.map(a => a[1])).filter(Boolean))];
   const [cus, lds, buys] = phones.length ? await Promise.all([
@@ -93,7 +97,7 @@ export async function mktView(x, u, d) {
       const ph = o.ph || ('?' + o.time), f = firstOf[o.ph], isNew = !f || f >= Rg[0];
       if (!who[ph]) who[ph] = orderChan(o) || '?';
       const k = isNew ? who[ph] : orderChan(o) || '?', c = get(k);
-      if (wb) { wb.tot += o.total; if (isWebO(o)) { if (isNew && who[ph] === 'Facebook') wb.fb += o.total; else if (isNew) { wb.newRev += o.total; wb.nw[ph] = 1; } else { wb.oldRev += o.total; wb.od[ph] = 1; } } }
+      if (wb) { wb.tot += o.total; if (isWebO(o)) { if (wb.list) wb.list.push(webRow(o, isNew ? (who[ph] === 'Facebook' ? 'fb' : 'new') : 'old')); if (isNew && who[ph] === 'Facebook') wb.fb += o.total; else if (isNew) { wb.newRev += o.total; wb.nw[ph] = 1; } else { wb.oldRev += o.total; wb.od[ph] = 1; } } }
       if (isNew) {
         const fresh = !seen[k + ph], dk = iso(o.time); if (fresh) { seen[k + ph] = 1; c.newN++; c.dn[dk] = (c.dn[dk] || 0) + 1; }
         c.newRev += o.total; c.dd[dk] = (c.dd[dk] || 0) + o.total; if (o.v) c.newVoid += o.total;
@@ -164,7 +168,7 @@ export async function mktView(x, u, d) {
 
   // theo sản phẩm (kỳ này): chi phí theo tên chiến dịch, data + ra đơn theo file số, tiền khách mới (chỉ kênh có chạy quảng cáo) theo dòng sản phẩm của đơn
   const PR = {}, pget = k => PR[k] || (PR[k] = { k, sp: 0, res: 0, n: 0, won: 0, rev: 0, newN: 0 }), po = [];
-  const WB = () => ({ tot: 0, fb: 0, newRev: 0, oldRev: 0, nw: {}, od: {} }), wbR = WB(), wbP = WB();
+  const WB = () => ({ tot: 0, fb: 0, newRev: 0, oldRev: 0, nw: {}, od: {} }), wbR = Object.assign(WB(), { list: [] }), wbP = WB();
   const fb = (cfg || {}).fb || {}, EF = eff(R, sanR, po, wbR), EP = eff(P, sanP, null, wbP);
   /** 🌐 Website: tiền đơn web chia khách mới / khách cũ; fb = đơn web của khách mới đến từ quảng cáo Facebook (tính cho kênh Facebook). share = % tiền qua web trên toàn bộ doanh thu (CRM + sàn), chỉ gửi %. */
   const webOut = w => ({ newRev: w.newRev, oldRev: w.oldRev, fb: w.fb, newN: Object.keys(w.nw).length, oldN: Object.keys(w.od).length, share: w.tot ? Math.round((w.newRev + w.oldRev + w.fb) * 1000 / w.tot) / 10 : null });
@@ -187,7 +191,7 @@ export async function mktView(x, u, d) {
     prod: Object.values(PR).filter(p => p.sp || p.n || p.rev).sort((a, b) => b.sp - a.sp || b.rev - a.rev),
     sale: saleFb(R, u.level >= 3), ltv: await ltvOf(x),
     // tiền khách mới mọi kênh marketing (kể cả kênh chưa có chi phí, vd sàn) → tiến độ mục tiêu từng kênh
-    revAll: Object.assign(Object.fromEntries(Object.keys(EF).filter(k => GOAL_CH.indexOf(k) >= 0).map(k => [k, EF[k].newRev])), { [COMM]: commOf(R).rev, [WEB]: wbR.newRev + wbR.oldRev }), comm: commOf(R), commPrev: commOf(P), web: webOut(wbR), webPrev: webOut(wbP),
+    revAll: Object.assign(Object.fromEntries(Object.keys(EF).filter(k => GOAL_CH.indexOf(k) >= 0).map(k => [k, EF[k].newRev])), { [COMM]: commOf(R).rev, [WEB]: wbR.newRev + wbR.oldRev }), comm: commOf(R), commPrev: commOf(P), web: Object.assign(webOut(wbR), { list: wbR.list.slice(-300).reverse() }), webPrev: webOut(wbP),
     fb: { on: !!fb.token, last: fb.last || null },
     pledge: await pledgeStats(x, R, P), // ✍️ lời cam kết sống lành trên website (journey.js)
     quiz: await quizStats(x, R, P) // 🖐 trò chơi Bạn còn mấy ngón tay (journey.js)

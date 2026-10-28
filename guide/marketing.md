@@ -62,6 +62,18 @@ Ngay dưới **✅ Nên làm gì**. Đây là chỗ xem và chỉnh quảng cáo
 
 Số tự cập nhật 1 tiếng một lần (7h–22h). Trước 7h sáng hiện số hôm qua. Bấm **Hôm qua** để xem cả ngày hôm qua. Bấm **↻** để lấy ngay.
 
+## 🌐 Khách đặt trên web
+
+Trong **Xem chi tiết → 🌐 Website: khách mới & khách cũ**, kéo xuống dưới các ô số:
+
+- **💡 Gợi ý phát triển web**: kênh nào mang nhiều tiền nhất, bao nhiêu khách vào thẳng web không rõ nguồn, khách cũ đặt lại, mã ưu đãi, sản phẩm bán chạy.
+- **📍 Khách đến từ đâu · 🧴 Mua gì · 🏠 Ở đâu**: xếp theo tiền.
+- **Từng đơn**: giờ đặt, khách mới hay cũ, sản phẩm, tiền, đến từ đâu, tỉnh, mã ưu đãi.
+
+Tài khoản Marketing **không thấy tên, số điện thoại khách** (Nghị định 13/2023). Quản trị thấy tên, bấm vào để mở hồ sơ khách.
+
+Muốn biết chính xác khách đến từ kênh nào: khi đăng Zalo, gửi tin, in tờ rơi thì dùng **link có mã** ở tab **📍 Link & QR**.
+
 ## Đặt mục tiêu của bạn
 
 1. Bấm **🎯 Đặt mục tiêu của tôi**.

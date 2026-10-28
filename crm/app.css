@@ -1173,3 +1173,14 @@ div.f > span { display: block; font-size: 13px; font-weight: 600; color: var(--i
 .zb-log summary { cursor: pointer; line-height: 1.45; }
 .zb-t { color: var(--muted); font-size: .82rem; }
 .zb-rep { background: var(--primary-soft); border-radius: 8px; padding: 8px 10px; }
+
+/* 🌐 danh sách đơn web (tab Marketing) */
+.wl-h { margin: 16px 0 8px; font-size: 16px; }
+.wl-g { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.wl { display: flex; flex-direction: column; gap: 6px; }
+.wl-r { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; }
+.wl-r.wl-void { opacity: .6; }
+.wl-1 { display: flex; align-items: center; gap: 6px 8px; flex-wrap: wrap; }
+.wl-t { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.wl-v { margin-left: auto; font-weight: 700; font-variant-numeric: tabular-nums; }
+.wl-2 { margin: 4px 0 2px; font-size: 14px; color: var(--ink); overflow-wrap: anywhere; }
