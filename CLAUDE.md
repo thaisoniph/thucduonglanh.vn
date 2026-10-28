@@ -48,7 +48,7 @@ Nếu CRM web (`crm/`) cần Apps Script bản mới mới chạy được thì 
 - Phí ship 30.000đ, miễn phí từ 300.000đ. Chuyển khoản qua QR VCB. Hotline/Zalo: 0966 326 522.
 
 ## Đo lường
-- GA4 G-X40P3S7FZ8, Clarity yoto1kqbmx và Meta Pixel 1342001937266392 (bật 04/10/2026) chỉ tải sau khi khách đồng ý cookie (Luật BVDLCN 91/2025, hiệu lực 01/01/2026). Không bỏ thông báo cookie (anh Sơn chọn 15/10/2026, xem HUONG-DAN.md mục 5).
+- GA4 G-X40P3S7FZ8, Clarity yoto1kqbmx và Meta Pixel 2205980853628210 (BM Thucduonglanh1, thay mã cũ 28/10/2026) chỉ tải sau khi khách đồng ý cookie (Luật BVDLCN 91/2025, hiệu lực 01/01/2026). Không bỏ thông báo cookie (anh Sơn chọn 15/10/2026, xem HUONG-DAN.md mục 5).
 - Đếm tổng lượt truy cập không cần đồng ý: Cloudflare Web Analytics (không cookie).
 - Chưa có TikTok Pixel, chờ anh Sơn gửi mã.
 

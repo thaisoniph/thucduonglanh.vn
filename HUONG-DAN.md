@@ -323,7 +323,7 @@ Apps Script giới hạn 200 phiên bản/dự án: báo lỗi "Không tạo đ�
 
 ## 5. Đo lường & remarketing
 
-- Mã trong `data/config.json`: `ga4_id` = **G-X40P3S7FZ8**, `clarity_id` = **yoto1kqbmx**, `meta_pixel` = **1342001937266392** (lấy từ trang Ladi ebook cũ, bật 2026-10-04), `tiktok_pixel` (để trống = chưa bật). Form ebook bắn `generate_lead` → Meta `Lead`.
+- Mã trong `data/config.json`: `ga4_id` = **G-X40P3S7FZ8**, `clarity_id` = **yoto1kqbmx**, `meta_pixel` = **2205980853628210** ("Website Thực Dưỡng Lành" trong BM Thucduonglanh1, anh Sơn toàn quyền; thay mã cũ 1342001937266392 của Ladi ebook ngày 2026-10-28), `tiktok_pixel` (để trống = chưa bật). Form ebook bắn `generate_lead` → Meta `Lead`.
 - Công cụ chỉ chạy **sau khi khách bấm "Đồng ý"** ở thông báo cookie (Luật Bảo vệ dữ liệu cá nhân 91/2025/QH15, hiệu lực 01/01/2026: khách im lặng hoặc không bấm thì không tính là đồng ý; phạt chung tới 3 tỷ đồng). 15/10/2026 anh Sơn hỏi bỏ thông báo để đo hết và remarketing hết khách. Đã chọn **giữ thông báo** và làm 3 việc thay thế:
   - **Thông báo cookie mới** (`build.py` `#cookieBar`, CSS `.cb-yes` / `.cb-no`): câu chữ nêu rõ mục đích quảng cáo (Facebook, Google), vì câu cũ chỉ nói "đo lường" nên chưa đủ để chạy remarketing. Nút "Đồng ý" to, nổi bật; nút từ chối đổi thành "Không, cảm ơn" (dạng chữ). Lựa chọn lưu ở `localStorage tdl_consent` (yes/no).
   - **Rút lại đồng ý**: link `data-cookie-reset` ở mục 3 Chính sách bảo mật mở lại thông báo. Nếu khách đang đồng ý mà chọn Không thì `dropTrackCookies()` xoá cookie `_ga`, `_fbp`, `_clck`… rồi tải lại trang để tắt công cụ.
