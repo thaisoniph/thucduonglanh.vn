@@ -46,17 +46,21 @@ Màn hình đầu chỉ có **số quan trọng nhất**. Phần chi tiết thu 
 
 Số tính lại 30 phút một lần. Bấm **↻** để tính lại ngay.
 
-## 📋 Chiến dịch đang chạy
+## 📘 Quảng cáo Facebook đang chạy
 
-Ngay dưới **✅ Nên làm gì** là danh sách **mọi chiến dịch Facebook đang chạy**. Mỗi chiến dịch có:
+Ngay dưới **✅ Nên làm gì**. Đây là chỗ xem và chỉnh quảng cáo hằng ngày.
 
-- **Trạng thái**: 🟢 đang chạy · ⏳ chờ duyệt · ⛔ có quảng cáo bị từ chối (xếp lên đầu, sửa ngay).
-- **Fanpage** đang chạy, **mục tiêu**, **ngân sách mỗi ngày**, **chạy từ ngày nào**, tài khoản quảng cáo.
-- **Số hôm nay**: tiền đã chi, số tin nhắn và giá 1 tin, CTR, CPM, CPC, kèm đèn.
-- **Từng quảng cáo**: ảnh nhỏ, bấm **👁 Xem bài viết** để mở bài trên Facebook, **🔍 Xem trước quảng cáo** để xem đúng như khách thấy.
-- Nút **Mở chiến dịch trong Trình quản lý quảng cáo** để sửa ngay.
+1. **Ô tổng trên cùng**: hôm nay cả tài khoản chi bao nhiêu, ⭐ **giá 1 SĐT** (quan trọng nhất, tốt: dưới 300k), CPM, CTR, CPC, tin nhắn.
+2. **Lọc nhanh**: 🔴 Cần xử lý · 🟢 Nên tăng tiền · 🟠 Giữ nguyên · ⚪ Chờ thêm số.
+3. **Mỗi chiến dịch** có sẵn **👉 việc nên làm**, đọc là làm theo:
+   - ⛔ **Sửa ngay**: quảng cáo bị Facebook từ chối.
+   - 🔴 **Nên giảm / tắt**: giá 1 tin nhắn 7 ngày đắt hơn mức tốt từ 40%. Giảm 30% ngân sách hoặc tắt.
+   - 🟢 **Nên tăng tiền**: rẻ hơn mức tốt từ 20%. Tăng 20% ngân sách, 2–3 ngày sau mới tăng tiếp.
+   - 🟠 **Giữ nguyên** · ⚪ **Chờ thêm số** (mới chạy dưới 3 ngày: chưa sửa gì).
+   - Dòng màu cam: 🎨 khách bấm ít dần → làm hình / video mới; 💸 hôm nay giá thầu đắt → chưa tăng tiền.
+4. Bấm **👁 Bài viết** / **🔍 Xem như khách thấy** để xem quảng cáo, bấm **✏️ Sửa ngân sách / tắt / bật** để mở thẳng chiến dịch trong Trình quản lý quảng cáo.
 
-Danh sách tự cập nhật 3 tiếng một lần. Bấm **↻** để lấy ngay.
+Số tự cập nhật 1 tiếng một lần (7h–22h). Trước 7h sáng hiện số hôm qua. Bấm **Hôm qua** để xem cả ngày hôm qua. Bấm **↻** để lấy ngay.
 
 ## Đặt mục tiêu của bạn
 
@@ -98,8 +102,7 @@ Sale thấy ngay ở đầu tab **Khách hỏi**. Hết hạn thì tự ẩn.
 
 Bấm vào từng mục để mở:
 
-- **📊 Chỉ số chiến dịch hôm nay**: ⭐ **giá 1 SĐT** (số khách để lại trong file số của sale, chỉ số quan trọng nhất; mức tốt: dưới 300k), CPM (giá 1.000 lượt thấy), CTR (cứ 100 người thấy có mấy người bấm), CPC (giá 1 lượt bấm), số tin nhắn và giá 1 tin (mức tốt: dưới 100k) của từng chiến dịch. Giá 1 SĐT chỉ có ở ô Tất cả chiến dịch; buổi sáng sale chưa nhập hết số nên giá 1 SĐT hôm nay thường cao, chiều tối mới sát. Mỗi chỉ số so với **hôm qua** và **trung bình 7 ngày**, kèm đèn. Chiến dịch có đèn 🔴 xếp lên đầu. Số Facebook hôm nay **tự cập nhật 1 tiếng 1 lần** (7h–22h). Bấm **Hôm qua** để xem cả ngày hôm qua.
-- **🎬 Chiến dịch: nên tăng, giữ hay tắt?** 🟢 *Nên tăng tiền* (rẻ hơn trung bình từ 20%) · 🟠 *Giữ nguyên* · 🔴 *Nên giảm / tắt* (đắt hơn từ 40%, hoặc tiêu nhiều mà chưa có kết quả) · ⚪ *Chưa đủ số*. Dòng 🎨 báo mẫu quảng cáo đã nhàm.
+- **🎬 Mọi chiến dịch trong kỳ (cả đã tắt)**: chấm điểm theo kỳ đang chọn (tháng này, tháng trước…). 🟢 *Nên tăng tiền* (rẻ hơn trung bình từ 20%) · 🟠 *Giữ nguyên* · 🔴 *Nên giảm / tắt* (đắt hơn từ 40%, hoặc tiêu nhiều mà chưa có kết quả) · ⚪ *Chưa đủ số*. Dòng 🎨 báo mẫu quảng cáo đã nhàm.
 - **🤝 Phản hồi từ sale**: số khách từ nguồn nào tốt, vì sao khách không mua, bao lâu thì khách mua, tỷ lệ trả hàng.
 - **🪜 Quảng cáo rơi rụng ở đâu?** Thấy → bấm → để số → mua → tiền. Chỉ ra khâu yếu nhất.
 - **🧴 Quảng cáo từng sản phẩm**: lời, hoà vốn hay lỗ.
