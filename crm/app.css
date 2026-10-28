@@ -1245,3 +1245,8 @@ div.f > span { display: block; font-size: 13px; font-weight: 600; color: var(--i
 .dash-hero .spk.neu { color: var(--muted); }
 .dash-hero .dash-tile-v b { white-space: nowrap; }
 @media (max-width: 520px) { .dash-hero .dash-tile .spk-w { display: none; } .dash-hero .dash-tile .spk svg { width: 48px; } }
+.dash-in { font-weight: 700; color: var(--ink); }
+/* Cài đặt → 💰 Giá vốn sản phẩm */
+.costcfg-h, .costcfg-r { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 8px; }
+.costcfg-h { font-size: 13px; font-weight: 700; color: var(--muted); margin: 10px 0 4px; }
+.costcfg-r { margin-bottom: 6px; } .costcfg-r input { width: 100%; min-width: 0; }

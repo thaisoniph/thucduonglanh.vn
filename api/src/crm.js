@@ -505,17 +505,18 @@ async function loadSmall(x, u, R, mode, adV) {
   const users = (await crmUsers(x)).filter(y => y.active || u.level >= 3).map(y => u.level >= 3 ? { email: y.email, name: y.name, role: y.role, active: y.active, recv: y.recv, tg: !!y.tg, alias: y.alias, prefix: y.prefix || slugName(y.name), web: y.web || y.level >= 3, mkv: y.mkv || y.level >= 3 } : u.level >= 2 ? { name: y.name, role: y.role, recv: y.recv, tg: !!y.tg } : { name: y.name, role: y.role });
   const adsP = adRowsOf(x, u, adV); adsP.catch(() => { });
   const areasP = u.level === 1 ? areaStats(x) : Promise.resolve(undefined); areasP.catch(() => { }); // quản lý đã có đủ khách → máy tự đếm
-  const [ca, fbNew, prefs, tagColors, sources, ads, commission, sanOk, dash, qrLinks, mktDoc] = await Promise.all([caCfg(x), // hỏi song song: mỗi lần hỏi máy chủ dữ liệu mất một nhịp
+  const [ca, fbNew, prefs, tagColors, sources, ads, commission, sanOk, dash, qrLinks, mktDoc, cost] = await Promise.all([caCfg(x), // hỏi song song: mỗi lần hỏi máy chủ dữ liệu mất một nhịp
     u.level >= 2 ? first(x.db, "SELECT count(*) AS n FROM feedback WHERE status = 'Mới'").then(r => (r || {}).n || 0) : 0,
     prefsOf(x, u.email), allTagColors(x), u.level >= 3 ? srcList(x) : [], u.level >= 3 ? adsCfg(x) : null, kvJson(x.db, 'commission_cfg', {}).then(r => r || {}), sanAllowed(x, u).catch(() => false), u.level >= 3 || u.role === 'Marketing' || u.mkv ? kvJson(x.db, 'dash_cfg', {}).then(r => r || {}) : null,
     all(x.db, 'SELECT code, name FROM links').then(r => r.map(l => [l.code, l.name])).catch(() => []),
-    u.level >= 3 || u.role === 'Marketing' || u.mkv ? kvJson(x.db, 'mkt_doc', null).then(r => r || MKT_DOC_DEF) : null]); // 📍 tên link QR → nguồn đơn web hiện "📍 <tên>"
+    u.level >= 3 || u.role === 'Marketing' || u.mkv ? kvJson(x.db, 'mkt_doc', null).then(r => r || MKT_DOC_DEF) : null,
+    u.level >= 3 ? kvJson(x.db, 'cost_cfg', null) : null]); // 💰 giá nhập sản phẩm: chỉ Quản trị (không nằm trong repo công khai) // 📍 tên link QR → nguồn đơn web hiện "📍 <tên>"
   const [ct, tg, cy, tp] = (await smallQ).map(r => r.results || []), ar = await adsP, areas = await areasP.catch(() => undefined);
   return {
     ok: true, user: publicUser(u), areas, sanOk, now: Date.now(), today: startOfDay(Date.now()), fbNew, users, prefs, tagColors, sources, ads, adV: ar.v, adRows: ar.rows, qrLinks,
     contacts: ct.reverse().map(contactOut), targets: tg.map(t => ({ month: t.month, name: t.name, amount: t.amount || 0, by: t.by_name || '', at: t.at })),
     cycles: cy.filter(r => r.name).map(r => [r.name, r.variant || '', Number(r.days) || 0, r.basis || '']), templates: tp.filter(r => r.text).map(r => [r.when_txt || '', r.purpose || '', r.text]),
-    rules: { ai: !!x.env.ANTHROPIC_API_KEY && u.role !== 'Marketing', vipOrders: R.vipOrders, vipSpent: R.vipSpent, atRisk: R.atRisk, coolDays: R.coolDays, shipDays: R.shipDays, shipFar: R.shipFar, famMin: R.famMin, otypes: OTYPES, commission, dash, mktDoc, statuses: ORDER_STATUS, results: CARE_RESULTS, leadStatus: LEAD_STATUS, assignMode: mode, bot: BOT_USERNAME, ca, lines: LINES.map(l => l[0]).concat(['Khác']) }
+    rules: { ai: !!x.env.ANTHROPIC_API_KEY && u.role !== 'Marketing', vipOrders: R.vipOrders, vipSpent: R.vipSpent, atRisk: R.atRisk, coolDays: R.coolDays, shipDays: R.shipDays, shipFar: R.shipFar, famMin: R.famMin, otypes: OTYPES, commission, dash, mktDoc, cost, statuses: ORDER_STATUS, results: CARE_RESULTS, leadStatus: LEAD_STATUS, assignMode: mode, bot: BOT_USERNAME, ca, lines: LINES.map(l => l[0]).concat(['Khác']) }
   };
 }
 
@@ -1319,6 +1320,14 @@ async function crmSettings(x, u, d) {
     const D = Object.assign({}, await kvJson(x.db, 'dash_cfg', {}), { kpi: K }); await kvSet(x.db, 'dash_cfg', JSON.stringify(D));
     await crmLog(x, u, 'Cài đặt', '-', '', 'Mức tốt chỉ số quảng cáo: CPM dưới ' + (K.cpm || '–') + 'đ · CTR từ ' + (K.ctr || '–') + '% · CPC dưới ' + (K.cpc || '–') + 'đ · 1 tin nhắn dưới ' + (K.msg || '–') + 'đ', '');
     return { ok: true, dash: D };
+  }
+  if (d.cost) { // 💰 giá nhập từng sản phẩm + % chi phí thêm (vận chuyển, kho…) → giá vốn để Tổng quan tính lãi gộp. Chỉ Quản trị.
+    if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị sửa được mục này.' };
+    const items = (Array.isArray(d.cost.items) ? d.cost.items : []).slice(0, 200).map(r => [String((r || [])[0] || '').trim().slice(0, 80), Math.max(0, Math.min(1e9, Math.round(Number(String((r || [])[1] || '').replace(/[^\d]/g, '')) || 0)))]).filter(r => r[0] && r[1]);
+    const C = { items, oh: Math.min(100, Math.max(0, Number(String(d.cost.oh == null ? 15 : d.cost.oh).replace(',', '.')) || 0)), at: Date.now(), by: u.name };
+    await kvSet(x.db, 'cost_cfg', JSON.stringify(C));
+    await crmLog(x, u, 'Cài đặt', '-', '', 'Giá vốn: ' + items.length + ' sản phẩm, cộng thêm ' + C.oh + '%', '');
+    return { ok: true, cost: C };
   }
   if (d.dash) { // mức đèn ở tab Tổng quan (chỉ Quản trị): chi phí quảng cáo / doanh thu khách mới dưới adsGood % = xanh, tới adsBad % = cam, trên = đỏ
     if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị sửa được mục này.' };

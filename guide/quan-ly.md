@@ -134,10 +134,10 @@ Mã giảm giá gửi riêng cho **khách cũ, đối tác**. Trên web không q
 Tab đầu tiên, dành cho chủ doanh nghiệp. **Nhìn 5 giây là nắm được tình hình.** Đọc từ trên xuống theo 3 câu hỏi: *Tháng này có ổn không? Vì sao? Phải làm gì?*
 
 1. **Câu kết luận** (dòng đầu, có đèn): tháng này dự kiến đạt bao nhiêu so với mục tiêu, còn thiếu bao nhiêu, khâu nào yếu nhất.
-2. **6 ô lớn**: 💰 Doanh số · 💵 Tiền đã về · 🙋 Khách mới mua · 🔁 Doanh số từ khách cũ · 📣 1đ quảng cáo thu về · ↩️ Hoàn / huỷ.
+2. **6 ô lớn**: 💰 Doanh số · 💵 Tiền đã về · 🙋 Khách mới mua · 📈 Lãi gộp · 📣 1đ quảng cáo thu về · ↩️ Hoàn / huỷ.
     - **Doanh số** = tiền các đơn **đã trừ hoàn / huỷ**. Từ 29/10/2026 cả trang (ô, biểu đồ, mục tiêu, Bán hàng văn phòng) dùng **một** con số này, giống tab Hiệu quả.
     - **Tiền đã về** = tiền các đơn **đã thu được** (đã giao, hoặc đã nhận chuyển khoản).
-    - **Doanh số từ khách cũ** = bao nhiêu % doanh số đến từ khách đã từng mua. Cao = chăm sóc tốt.
+    - **📈 Lãi gộp** = doanh số (đơn văn phòng) − giá vốn hàng đã bán, kể cả quà tặng. Dòng nhỏ ghi lãi còn lại sau khi trừ quảng cáo. Chưa trừ ship, lương, mặt bằng. Giá vốn nhập ở **Cài đặt → 💰 Giá vốn sản phẩm** (chỉ Quản trị thấy).
     - **1đ quảng cáo thu về** = bỏ 1 đồng quảng cáo thì khách mới mua bao nhiêu đồng.
     - **↩️ Hoàn / huỷ** = bao nhiêu % đơn bị hoàn hoặc huỷ, và mất bao nhiêu tiền. Đây là chỉ số của sale.
     - Mũi tên **▲▼** so với kỳ trước (xanh = tốt hơn, đỏ = kém hơn). Đường nhỏ màu xám chỉ cho biết **trong kỳ** số đang lên hay xuống.
@@ -145,6 +145,8 @@ Tab đầu tiên, dành cho chủ doanh nghiệp. **Nhìn 5 giây là nắm đư
 4. **🔍 Vì sao doanh số tăng / giảm**: Doanh số = khách hỏi mới × tỷ lệ chốt × giá trị 1 đơn + khách cũ mua lại. Ô **viền đỏ** là khâu giảm nhiều nhất, nên sửa trước.
 5. **✅ Việc cần làm**: tối đa 4 việc, việc gấp trước. Mỗi việc ghi **👤 ai làm** (Quản lý sale, Marketing, tên sale đang trễ chăm sóc…) và số tiền liên quan. Bấm **Xem →** để mở đúng chỗ. Tin tốt gom vào dòng **🌟 Điểm sáng**.
 
+- **💰 Giá vốn sản phẩm** (Cài đặt, chỉ Quản trị): mỗi dòng 1 sản phẩm + giá nhập, cộng thêm 15% (sửa được) ra giá vốn. Tên chỉ cần đúng **loại + trọng lượng** (vd "Gafo Fucoidan 800g"). Máy tự khớp với tên trong đơn ("Bữa ăn DD 500G", combo, "Mua 3 tặng 1"…). Dưới bảng có danh sách sản phẩm đã bán mà **chưa khớp** giá vốn, thấy tên nào thì thêm dòng cho tên đó.
+- **Khách quay lại mua** (trong mục Bán hàng văn phòng): bao nhiêu % khách mua lần đầu đã mua tiếp sau 30 / 60 / 90 ngày, 1 khách mang về bao nhiêu tiền và bao nhiêu lãi trong 90 ngày đầu. Mục 📣 so số lãi này với **chi phí có 1 khách mới**: tốn hơn số lãi thì quảng cáo đang lỗ, máy đưa vào Việc cần làm.
 - **Đèn**: 🟢 tốt · 🟠 cần để ý · 🔴 cần xử lý · ⚪ chưa đặt mục tiêu. Quảng cáo: chi phí dưới 30% tiền khách mới mua = 🟢, 30–40% = 🟠, trên 40% = 🔴. Đổi mức ở **Cài đặt → 🚦 Mức đèn Tổng quan**.
 - **🔎 Xem chi tiết từng phần** (bấm để mở): bán hàng văn phòng, quảng cáo (3 chiến dịch **ra đơn rẻ nhất** nên dồn tiền, 3 chiến dịch **ra đơn đắt nhất** nên giảm hoặc tắt), sàn, xu hướng theo ngày, đơn được lên từ đâu, sản phẩm bán chạy (báo ⚠️ khi 1 sản phẩm chiếm từ 50% tiền bán), khách hỏi theo kênh, khách giới thiệu & CTV, website (phần nguồn khách, phễu, trang xem nhiều nằm trong **Xem thêm**).
 - **Mỗi tab cho một người xem:** 📊 **Tổng quan** cho chủ doanh nghiệp · 📣 **Marketing** cho bạn chạy quảng cáo · 📈 **Hiệu quả** cho sale và chăm sóc khách. Nút sang các tab khác (📊 Bán hàng · 📣 Marketing · 🛒 Sàn · 📍 Link & QR · 🤖 Trợ lý Zalo · 📘 Fanpage) nằm ở **cuối trang** (cách dùng: [Marketing](/huong-dan/marketing/), [Fanpage](/huong-dan/fanpage/)).
