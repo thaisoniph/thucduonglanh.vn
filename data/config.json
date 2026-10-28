@@ -13,6 +13,7 @@
   "indexnow_key": "33899a7d71336cb16611f78f487bb241",
   "google_site_verification": "",
   "bing_site_verification": "",
-  "_ghi_chu_seo": "indexnow_key: mã IndexNow (công khai, nằm ở /<mã>.txt) – sau mỗi lần đăng web, GitHub tự báo Bing các trang mới sửa (scripts/indexnow.py). google_site_verification / bing_site_verification: chỉ điền khi xác minh Search Console / Bing Webmaster bằng thẻ HTML (dán phần content=\"…\"); xác minh bằng DNS ở Cloudflare thì để trống.",
+  "facebook_domain_verification": "s92hvwotmr999qm299vt2qw1pz5d9r",
+  "_ghi_chu_seo": "indexnow_key: mã IndexNow (công khai, nằm ở /<mã>.txt) – sau mỗi lần đăng web, GitHub tự báo Bing các trang mới sửa (scripts/indexnow.py). google_site_verification / bing_site_verification / facebook_domain_verification (Meta Business → Tên miền → thẻ meta, BM Thucduonglanh1, 28/10/2026): chỉ điền khi xác minh Search Console / Bing Webmaster bằng thẻ HTML (dán phần content=\"…\"); xác minh bằng DNS ở Cloudflare thì để trống.",
   "_ghi_chu_do_luong": "ga4_id dạng G-XXXXXXX; clarity_id dạng chuỗi 10 ký tự; meta_pixel / tiktok_pixel: mã pixel quảng cáo. Để trống = không bật. Cloudflare Web Analytics (đếm lượt truy cập, không cookie): bật ở Cloudflare → Workers & Pages → thucduonglanh → Metrics (15/10/2026), Cloudflare tự chèn mã mỗi lần deploy, không cần mã ở đây."
 }

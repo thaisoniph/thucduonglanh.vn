@@ -748,7 +748,7 @@ def layout(path, title, desc, body, og=None, jsonld=None, body_class="", noindex
 <meta property="og:type" content="{og_type}"><meta property="og:site_name" content="{BRAND}">{extra_head}
 <meta property="og:title" content="{esc(full_title)}"><meta property="og:description" content="{esc(desc)}">
 <meta property="og:url" content="{url}"><meta property="og:image" content="{og_img}"><meta property="og:locale" content="{LANGS[LANG]["locale"]}">
-{f'<meta name="google-site-verification" content="{esc(SITE["google_site_verification"])}">' if SITE.get("google_site_verification") and path == "/" else ""}{f'<meta name="msvalidate.01" content="{esc(SITE["bing_site_verification"])}">' if SITE.get("bing_site_verification") and path == "/" else ""}
+{f'<meta name="google-site-verification" content="{esc(SITE["google_site_verification"])}">' if SITE.get("google_site_verification") and path == "/" else ""}{f'<meta name="msvalidate.01" content="{esc(SITE["bing_site_verification"])}">' if SITE.get("bing_site_verification") and path == "/" else ""}{f'<meta name="facebook-domain-verification" content="{esc(SITE["facebook_domain_verification"])}">' if SITE.get("facebook_domain_verification") and path == "/" else ""}
 <meta name="theme-color" content="#24805B">
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/brand/icon-32.png">
 <link rel="apple-touch-icon" href="/assets/img/brand/icon-180.png">
