@@ -4408,7 +4408,7 @@
     var after = function (msg) { return function () { toast(msg); fpFetch(); }; }, fail = function (e) { t.disabled = false; toast(e.message, true); };
     if (v[0] === 'app') { t.disabled = true; return api('fp_app', { appId: $('#fpAppId').value.trim(), secret: $('#fpSecret').value.trim(), config: $('#fpConfig').value.trim() }).then(after('Đã lưu ✓ Làm tiếp bước 2.'), fail); }
     if (v[0] === 'connect') { t.disabled = true; return api('fp_connect', {}).then(function (j) { t.disabled = false; location.href = j.url; }, fail); }
-    if (v[0] === 'ptoken') { t.disabled = true; return api('fp_ptoken', { ptk: $('#fpPtk').value.trim() }).then(function (j) { toast('Đã kết nối ' + j.pages.length + ' trang ✓'); fpFetch(); }, fail); }
+    if (v[0] === 'ptoken') { t.disabled = true; return api('fp_ptoken', { ptk: $('#fpPtk').value.trim() }).then(function (j) { if (j.miss && j.miss.length) alert('Đã kết nối ' + j.pages.length + ' trang, nhưng mã còn THIẾU quyền: ' + j.miss.join(', ') + '.\n\nVào ứng dụng Meta thêm các quyền này (Trường hợp sử dụng → Quyền), rồi tạo mã mới và dán lại. Thiếu quyền thì trợ lý chưa trả lời bình luận / đăng bài được.'); else toast('Đã kết nối ' + j.pages.length + ' trang ✓'); fpFetch(); }, fail); }
     if (v[0] === 'page') {
       var box = t.closest('[data-fpbox]'), cfg = {};
       $$('[data-fpc]', box).forEach(function (x) { cfg[x.getAttribute('data-fpc')] = x.checked; });

@@ -23,6 +23,7 @@ const useEnv = x => { if (x.env.FB_GRAPH) GRAPH = x.env.FB_GRAPH; }; // chạy t
 const HOOK_URL = 'https://api.thucduonglanh.vn/fb/hook', CB_URL = 'https://api.thucduonglanh.vn/fb/cb';
 const SCOPES = 'pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,pages_read_user_content,pages_manage_engagement,pages_manage_posts,business_management';
 const FIELDS = 'feed,messages,messaging_postbacks,message_echoes';
+const PERMS = ['pages_messaging', 'pages_manage_metadata', 'pages_read_engagement', 'pages_read_user_content', 'pages_manage_engagement', 'pages_manage_posts']; // quyền bot cần (kiểm tra khi dán mã)
 const FAST = 'claude-haiku-5-5', WRITER = 'claude-opus-5-5';
 const BOT = 'An Lành';
 const CAMNANG = 'https://camnangsongkhoe.thucduonglanh.vn/?ma=fb', ZALO_GROUP = 'https://zalo.me/g/tvepjg478'; // trùng data/site.json (camnang.reader, zalo_group)
@@ -502,17 +503,23 @@ export async function crmFp(x, u, d, crmLog) {
   }
   if (a === 'fp_ptoken') { // dán mã truy cập trang (lấy ở trang ứng dụng Meta → Messenger → Tạo mã) hoặc mã người dùng
     const tk = String(d.ptk || '').trim(); if (tk.length < 40) return { ok: false, error: 'Mã truy cập chưa đúng.' };
-    let list;
-    try {
-      const me = await graph('me?fields=id,name&metadata=1', tk); // metadata.type: page | user (không cần quyền đọc trang)
-      const isPage = (me.metadata && me.metadata.type) === 'page';
-      if (isPage) list = [{ id: me.id, name: me.name, access_token: tk }];
-      else { try { list = await userPages(tk); } catch (e) { list = [{ id: me.id, name: me.name, access_token: tk }]; } } // không đọc được danh sách trang → coi như mã trang
+    let list, miss = [];
+    try { // debug_token (mã ứng dụng = App ID|App Secret): biết loại mã + quyền mà không cần quyền đọc trang
+      const app = await appCfg(x); if (!app.id || !app.secret) return { ok: false, error: 'Lưu App ID và App Secret trước.' };
+      const dbg = (await graph('debug_token?input_token=' + encodeURIComponent(tk), app.id + '|' + app.secret)).data || {};
+      if (!dbg.is_valid) return { ok: false, error: 'Mã đã hết hạn hoặc không đúng ứng dụng Trợ lý Thực Dưỡng Lành. Tạo mã mới rồi dán lại.' };
+      if (String(dbg.app_id) !== String(app.id)) return { ok: false, error: 'Mã này của ứng dụng khác (không phải App ID ' + app.id + ').' };
+      miss = PERMS.filter(s => (dbg.scopes || []).indexOf(s) < 0);
+      if (dbg.type === 'PAGE') {
+        const id = String(dbg.profile_id || ''); let name = '';
+        try { name = (await graph('me?fields=name', tk)).name || ''; } catch (e) { } // thiếu pages_read_engagement thì không đọc được tên
+        list = [{ id, name: name || 'Fanpage ' + id, access_token: tk }];
+      } else list = await userPages(tk);
     } catch (e) { return { ok: false, error: 'Facebook không nhận mã này: ' + e.message }; }
     if (!list.length) return { ok: false, error: 'Mã này không quản lý fanpage nào.' };
     const pages = await savePages(x, list);
-    await crmLog(x, u, 'Kết nối fanpage', '', '', pages.length + ' trang', pages.map(z => z.name).join(', '));
-    return { ok: true, pages };
+    await crmLog(x, u, 'Kết nối fanpage', '', '', pages.length + ' trang', pages.map(z => z.name).join(', ') + (miss.length ? ' · thiếu quyền: ' + miss.join(', ') : ''));
+    return { ok: true, pages, miss };
   }
   if (a === 'fp_page') { // bật / tắt + cài đặt 1 trang
     const r = await first(x.db, 'SELECT * FROM fp_pages WHERE id = ?', String(d.id || '')); if (!r) return { ok: false, error: 'Không tìm thấy trang.' };
