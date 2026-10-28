@@ -238,21 +238,26 @@ Bấm 1 nút thời gian ở trên cùng: *Hôm nay, Tuần này, Tháng này…
 
 ![Tab Hiệu quả](/huong-dan/img/crm-hieuqua.webp)
 
-- **Thanh mục tiêu:** vạch đen là hôm nay. Thanh màu vượt vạch đen = **đúng tiến độ**.
-- **6 ô lớn** (mỗi ô so với chính bạn kỳ trước):
-    - **💰 Doanh số**: tổng tiền các đơn bạn lên, **kể cả đơn bị hoàn / huỷ**. Dòng 🎯 bên dưới là số tính mục tiêu, thi đua: đã trừ đơn hoàn / huỷ.
-    - **💵 Doanh thu**: tiền đơn đã giao xong hoặc đã nhận chuyển khoản.
-    - **↩️ Hoàn / huỷ**: bao nhiêu % đơn của bạn bị hoàn hoặc huỷ. Dưới 5% là tốt. Gọi xác nhận trước khi gửi hàng thì số này giảm.
-    - **🎯 Chốt được**: cứ 10 người hỏi thì bạn chốt được mấy người.
-    - **🛒 Mỗi đơn**: trung bình mỗi đơn bao nhiêu tiền. Tư vấn combo, 2–3 hộp thì số này tăng.
-    - **🔁 Khách cũ mua lại**: bao nhiêu khách cũ quay lại mua.
-- **👉 Việc nên làm ngay**: tối đa 5 việc quan trọng nhất. Làm theo từ trên xuống.
+Tab xếp theo đúng thứ tự một sale giỏi tự hỏi mỗi ngày, **đọc từ trên xuống**:
+
+1. **🎯 Mục tiêu:** vạch đen là hôm nay. Thanh màu vượt vạch đen = **đúng tiến độ**. Dòng "mỗi ngày cần…" ghi luôn **cần bao nhiêu đơn mỗi ngày**.
+    - Ngay dưới: **💰 Doanh số** (tổng tiền các đơn bạn lên, **kể cả đơn hoàn / huỷ**; số tính mục tiêu đã trừ hoàn / huỷ) và **💵 Đã thu** (đơn đã giao xong hoặc đã nhận chuyển khoản).
+2. **👉 Hôm nay làm 3 việc này trước:** việc **ra nhiều tiền nhất lên đầu**, có ghi "≈ có thể ra … tr". Làm từ trên xuống. Bấm **＋ việc khác** để xem thêm.
 
 ![Việc nên làm ngay](/huong-dan/img/crm-hieuqua-viec.webp)
 
-- **💸 Công ty đã đầu tư cho bạn**: công ty đã trả bao nhiêu tiền quảng cáo để có các số khách giao cho bạn, và bạn đã bán được bao nhiêu từ các số đó. **Gọi số mới ngay trong ngày** thì dễ chốt nhất.
+3. **🪜 Các bước bán hàng:** 6 ô đánh số, đi đúng đường khách đi:
+    - **① Khách hỏi nhận được**: số khách để lại từ quảng cáo. Dòng nhỏ: công ty chi bao nhiêu, **cứ 1đ công ty chi bạn mang về mấy đồng**.
+    - **② Gọi ngay trong ngày**: bao nhiêu % số mới bạn gọi ngay hôm nhận. **Từ 80% là tốt.** Khách vừa để số còn nhớ quảng cáo nên dễ chốt nhất.
+    - **③ Chốt được**: cứ 10 người hỏi thì bạn chốt được mấy người, so với cả nhóm.
+    - **④ Mỗi đơn**: trung bình mỗi đơn bao nhiêu tiền. Tư vấn combo, 2–3 hộp thì số này tăng.
+    - **⑤ Giao thành công**: bao nhiêu % đơn đến tay khách, không bị hoàn / huỷ. **Từ 95% là tốt.** Gọi xác nhận trước khi gửi thì số này tăng.
+    - **⑥ Khách cũ mua lại**: bao nhiêu khách cũ quay lại mua.
+4. **💡 Khâu cần sửa nhất:** máy chọn ra **1 khâu yếu nhất**, chỉ cách sửa và ghi **sửa được thì thêm khoảng bao nhiêu tiền**. Chỉ cần tập trung sửa khâu này.
+5. **Xem chi tiết** (bấm để mở): bán hàng theo ngày, từ quảng cáo (công ty đã đầu tư cho bạn, khách hỏi đi về đâu), chăm sóc, lý do khách chưa mua, tỉnh.
+6. **🧰 Công cụ** (cuối trang): Báo cáo ngày gửi Zalo, Bảng BCDT, link web riêng của bạn để gửi khách.
 
-**Đèn màu:** 🟢 bằng hoặc tốt hơn kỳ trước · 🟠 giảm nhẹ · 🔴 giảm nhiều.
+**Đèn màu** (có chữ đi kèm): 🟢 Tốt · 🟠 Cần để ý · 🔴 Cần xử lý. So với chính bạn kỳ trước, hoặc so với mức tốt ghi ngay trong ô.
 
 **Đường nhỏ cạnh con số:** ↗ *đang lên*, → *đi ngang*, ↘ *đang xuống*. Cho biết mấy ngày qua con số đang tốt lên hay kém đi.
 

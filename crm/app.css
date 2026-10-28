@@ -1198,3 +1198,24 @@ div.f > span { display: block; font-size: 13px; font-weight: 600; color: var(--i
 /* ✅ Nên làm gì: ai làm */
 .mk-who { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 999px; background: #e7f2ea; color: var(--primary); vertical-align: 1px; }
 .mk-who.s { background: #fff1e0; color: var(--orange); }
+/* Hiệu quả 1 người (29/10/2026): dòng tiền dưới mục tiêu, việc làm ngay, 6 bước bán hàng, khâu cần sửa nhất */
+.rep-money { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0 0; }
+.rep-money > div { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 14px; font-size: 14px; }
+.rep-money b { display: block; font-size: 22px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.rep-money small { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
+.rep-todo h3 small { font-weight: 400; font-size: 13px; }
+.rep-est { color: var(--primary); white-space: nowrap; }
+.rep-todo-more summary { cursor: pointer; padding: 8px 0 0; font-size: 14px; font-weight: 600; color: var(--primary); }
+.rep-steps-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 18px 0 8px; }
+.rep-steps-h h3 { margin: 0; font-size: 16px; }
+.rep-steps-h span { font-size: 13px; color: var(--muted); }
+.rep-step-n { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--ink); color: #fff; font-style: normal; font-size: 12px; margin-right: 6px; vertical-align: 1px; }
+.rep-step .rep-step-lv { font-size: 12px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+.box.rep-fix { margin: 0 0 10px; border-left: 6px solid var(--line); }
+.box.rep-fix.ok { border-left-color: var(--primary); } .box.rep-fix.mid { border-left-color: var(--mid); } .box.rep-fix.bad { border-left-color: var(--red); }
+.rep-fix h3 { margin: 0 0 8px; font-size: 16px; }
+.rep-fix p { margin: 6px 0 0; font-size: 15px; line-height: 1.45; }
+.rep-fix .rep-fix-t b { font-size: 17px; }
+.rep-fix .rep-fix-g { background: var(--bg, #f5f7f3); border-radius: 8px; padding: 8px 10px; }
+@media (max-width: 520px) { .rep-money b { font-size: 19px; } .rep-step .rep-step-lv span { display: none; } }
+.rep-step small b { display: inline; font-size: inherit; margin: 0; color: var(--ink); }
