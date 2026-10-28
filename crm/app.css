@@ -1250,3 +1250,5 @@ div.f > span { display: block; font-size: 13px; font-weight: 600; color: var(--i
 .costcfg-h, .costcfg-r { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 8px; }
 .costcfg-h { font-size: 13px; font-weight: 700; color: var(--muted); margin: 10px 0 4px; }
 .costcfg-r { margin-bottom: 6px; } .costcfg-r input { width: 100%; min-width: 0; }
+.costcfg-paste { margin-top: 12px; } .costcfg-paste > summary { cursor: pointer; font-weight: 600; color: var(--primary); padding: 6px 0; }
+.costcfg-paste textarea { width: 100%; margin: 6px 0; font: inherit; font-size: 13px; }

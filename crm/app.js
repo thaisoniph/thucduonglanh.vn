@@ -6663,6 +6663,7 @@
       '<label class="f" style="max-width:260px"><span>% cộng thêm vào giá nhập</span><input type="text" inputmode="decimal" id="costOh" value="' + esc(C.oh) + '"></label>' +
       '<div class="costcfg-h"><span>Sản phẩm</span><span>Giá nhập (đ)</span></div><div id="costRows">' + (C.items.length ? C.items : [['', '']]).map(function (r) { return costRowHTML(r[0], r[1]); }).join('') + '</div>' +
       '<div class="steps" style="margin-top:8px"><button class="btn" id="costAdd">+ Thêm dòng</button><button class="btn pri" id="costSave">Lưu giá vốn</button></div>' +
+      '<details class="costcfg-paste"><summary>📋 Dán cả bảng từ Notion / Excel / Google Sheet</summary><p class="hint">Copy cả bảng (có cột Tên sản phẩm và Giá nhập) rồi dán vào ô dưới. Máy lấy tên + số tiền đầu tiên sau tên của mỗi dòng, thay cho bảng trên. Bấm <b>Lưu giá vốn</b> sau khi xem lại.</p><textarea id="costPaste" rows="6" placeholder="STT  Tên sản phẩm  Giá nhập  Giá bán lẻ …"></textarea><button class="btn" id="costParse">Đọc bảng đã dán</button></details>' +
       (ms.length ? '<p class="hint" style="margin-top:12px">⚠️ <b>Đã bán 90 ngày qua nhưng chưa khớp giá vốn</b> (Tổng quan tạm tính theo tỷ lệ trung bình). Thêm dòng có đúng loại + trọng lượng:</p><ul class="small">' + ms.map(function (k) { return '<li>' + esc(k) + ' · ' + moneyShort(miss[k]) + '</li>'; }).join('') + '</ul>' : '') + '</div>';
   }
   /** 🌐 Trang quản trị website (Quản trị): mã GitHub của công ty để nhân sự đăng nhập thucduonglanh.vn/admin bằng email (api/src/cms.js). Trạng thái tải khi mở Cài đặt. */
@@ -6727,6 +6728,16 @@
       }; }
     if ($('#costSave')) {
       $('#costAdd').onclick = function () { $('#costRows').insertAdjacentHTML('beforeend', costRowHTML('', '')); };
+      $('#costParse').onclick = function () { // mỗi dòng: bỏ ô STT, ô đầu có chữ = tên, ô tiền đầu tiên sau tên = giá nhập
+        var R = String($('#costPaste').value || '').split(/\r?\n/).map(function (l) {
+          var c = l.split(/\t|\s*\|\s*|\s{2,}/).map(function (x) { return x.trim(); }).filter(Boolean), ni = -1;
+          c.some(function (x, i) { if (/[a-zà-ỹ]/i.test(x)) { ni = i; return true; } return false; }); if (ni < 0) return null;
+          var pr = c.slice(ni + 1).map(function (x) { return /^[\d.,]+$/.test(x) ? parseMoney(x) : 0; }).filter(function (v) { return v >= 1000; })[0];
+          return pr && !/tên sản phẩm|giá nhập/i.test(c[ni]) ? [c[ni], pr] : null;
+        }).filter(Boolean);
+        if (!R.length) { toast('Chưa đọc được dòng nào. Kiểm tra bảng có cột tên và cột giá nhập.', true); return; }
+        $('#costRows').innerHTML = R.map(function (r) { return costRowHTML(r[0], r[1]); }).join(''); toast('Đã đọc ' + R.length + ' sản phẩm. Xem lại rồi bấm Lưu giá vốn.');
+      };
       $('#costSave').onclick = function () {
         var b = this, items = $$('#costRows .costcfg-r').map(function (r) { return [r.querySelector('[data-cn]').value.trim(), parseMoney(r.querySelector('[data-cp]').value || '0')]; }).filter(function (r) { return r[0] && r[1] > 0; });
         var oh = Number(($('#costOh').value || '0').replace(',', '.'));
