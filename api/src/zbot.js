@@ -143,7 +143,11 @@ async function zPoll(x, d) {
     }
   }
   // việc chờ: giao 1 lần (không gửi lại khi lỗi → không đăng trùng vào nhóm)
-  const jobs = await all(x.db, "SELECT id, kind, gid, uid, phone, text, img, mentions FROM zb_out WHERE status = 'new' AND due <= ? ORDER BY due LIMIT 8", now);
+  // tra số điện thoại trên Zalo: tối đa 1 lần / 3 phút, 25 lần / ngày (tra nhiều là dấu hiệu Zalo hay khoá)
+  const lkDay = 'zb_lk_' + fmtDate(now, 'yyMMdd'), lkN = Number(await kvGet(x.db, lkDay) || 0), lkOk = lkN < 25 && now - Number(await kvGet(x.db, 'zb_lk_last') || 0) > 180e3;
+  let jobs = await all(x.db, "SELECT id, kind, gid, uid, phone, text, img, mentions FROM zb_out WHERE status = 'new' AND due <= ? ORDER BY due LIMIT 8", now);
+  let lk = 0; jobs = jobs.filter(j => j.kind !== 'lookup' || (lkOk && !lk++));
+  if (lk) { await kvSet(x.db, lkDay, String(lkN + 1), 2 * 86400e3); await kvSet(x.db, 'zb_lk_last', String(now)); }
   if (jobs.length) {
     await run(x.db, "UPDATE zb_out SET status = 'sent', done_at = ? WHERE id IN (SELECT value FROM json_each(?))", now, JSON.stringify(jobs.map(j => j.id)));
     out.jobs = jobs.filter(j => j.kind === 'lookup' || !quiet(now) || j.kind === 'dm').map(j => ({ id: j.id, kind: j.kind, gid: j.gid, uid: j.uid, phone: j.phone, text: j.text, img: j.img, mentions: j.mentions ? JSON.parse(j.mentions) : [] }));
@@ -253,6 +257,8 @@ Bạn là "${BOT}" – thành viên đội chăm sóc khách hàng của Thực 
 - Xưng "em". Gọi người hỏi theo cách họ xưng (cô/chú/bác/anh/chị); chưa rõ thì "anh/chị". Không cần gọi tên đầy đủ.
 - Ngắn: 1–4 câu, dưới 70 chữ (trừ khi cần liệt kê). Emoji tối đa 1.
 - Đồng cảm trước khi đưa thông tin nếu người ta kể chuyện, lo lắng.
+- Tránh câu "nghe là biết máy": "Chắc chắn rồi", "Rất vui được hỗ trợ", "Cảm ơn bạn đã đặt câu hỏi", "Tuyệt vời!", "Hy vọng thông tin trên hữu ích", "Nếu còn thắc mắc gì…". Không nhắc lại câu hỏi của người ta. Không phải câu nào cũng mở bằng "Dạ"; đổi cách mở (dạ / vâng / ôi / gọi tên…) cho tự nhiên.
+- Không gọi người nhắn là "bạn" (khách đa số là cô chú, anh chị). Viết đúng chính tả, có dấu đầy đủ, không viết tắt kiểu "k", "dc".
 - Trả lời thẳng điều được hỏi. Gợi ý sản phẩm chỉ khi người ta hỏi hoặc rõ nhu cầu; khi gợi ý thêm [[sp:mã]] (tối đa 1).
 - Việc riêng tư (đơn hàng, đổi trả, khiếu nại, giá sỉ, bệnh cụ thể, người muốn mua) → trả lời ngắn và mời nhắn riêng: "anh/chị nhắn riêng em nha, em hỗ trợ kỹ hơn" + thêm [[zalo]] để chuyên viên biết. Không hỏi số điện thoại trong nhóm.
 
@@ -261,7 +267,12 @@ Bạn đọc một tin trong nhóm (kèm vài tin trước đó). Quyết địn
 - Trả lời khi: người ta gọi bạn / trả lời tin của bạn; hoặc đặt câu hỏi về sản phẩm, cách dùng, dinh dưỡng, sống khỏe, đặt hàng, ưu đãi mà chưa ai trong đội ngũ trả lời.
 - Chỉ thả tim (viết đúng: [TIM]) khi: người ta khoe bữa ăn lành, chia sẻ cảm nhận, cảm ơn, chúc mừng, trả lời câu hỏi tương tác của bài đăng.
 - Im lặng (viết đúng: [BO_QUA]) khi: chuyện phiếm giữa thành viên, chào hỏi chung, tin không cần đội ngũ, quảng cáo / link lạ, đã có người trả lời đủ, tin chính trị / tôn giáo gây tranh cãi.
-Khi trả lời thì chỉ viết nội dung tin (không ghi [TIM] / [BO_QUA]).`;
+Khi trả lời thì chỉ viết nội dung tin (không ghi [TIM] / [BO_QUA]).
+
+# Ví dụ giọng nhắn (chỉ để học giọng; thông tin thật lấy từ phần kiến thức, không lấy từ ví dụ)
+- Hỏi: "Đặt hàng thế nào em ơi" → "Dạ chị nhắn riêng em tên với địa chỉ, em lên đơn cho chị luôn nha. Hàng tới chị được kiểm rồi mới trả tiền ạ."
+- Hỏi: "Có ai dùng thử chưa mọi người" → [BO_QUA] nếu thành viên khác đang trả lời; nếu chưa ai trả lời sau một lúc: "Nhiều cô chú trong nhóm đang dùng đó chị ạ, mọi người chia sẻ thêm cho chị với nha 😊"
+- Kể: "Mấy hôm nay mất ngủ quá" → "Ôi mất ngủ mệt lắm chị ạ. Chị thử ăn tối sớm, bớt điện thoại trước giờ ngủ xem sao. Cần gì chị cứ nhắn riêng em nha."`;
 
 async function zMsg(x, d) {
   const cfg = await zCfg(x), gid = String(d.gid || ''), now = Date.now();
@@ -309,6 +320,8 @@ Bạn là "${BOT}" – chuyên viên chăm sóc khách hàng của Thực Dưỡ
 - Đồng cảm trước khi đưa thông tin nếu khách kể chuyện. Nhớ điều khách đã kể, không hỏi lại.
 - Ngắn: 2–4 câu, dưới 80 chữ; chỉ gạch đầu dòng khi liệt kê từ 3 ý. Emoji tối đa 1. Không tiêu đề, không bảng, không dấu ** (Zalo không hiện chữ đậm).
 - Không phải câu nào cũng hỏi lại; hỏi 1 câu khi thật cần để tư vấn.
+- Tránh câu "nghe là biết máy": "Chắc chắn rồi", "Rất vui được hỗ trợ", "Cảm ơn bạn đã đặt câu hỏi", "Tuyệt vời!", "Hy vọng thông tin trên hữu ích", "Nếu còn thắc mắc gì…". Không nhắc lại câu hỏi của người ta. Không phải câu nào cũng mở bằng "Dạ"; đổi cách mở (dạ / vâng / ôi / gọi tên…) cho tự nhiên.
+- Không gọi người nhắn là "bạn" (khách đa số là cô chú, anh chị). Viết đúng chính tả, có dấu đầy đủ, không viết tắt kiểu "k", "dc".
 
 # Tư vấn
 - Trả lời thẳng trước. Biết nhu cầu thì gợi ý 1–2 sản phẩm hợp nhất kèm lý do gắn với hoàn cảnh khách, thêm [[sp:mã]] (tối đa 2). Khách muốn mua: bấm link đặt trên web (được kiểm hàng trước khi nhận), hoặc gửi tên + số điện thoại + địa chỉ để chuyên viên lên đơn.
@@ -320,7 +333,7 @@ async function zDm(x, d) {
   const uid = String(d.uid || '').replace(/\D/g, '').slice(0, 30), text = String(d.text || '').replace(/\s+/g, ' ').trim().slice(0, 600);
   if (!uid || !text) return { ok: true };
   const now = Date.now(), sid = 'zl' + uid, dk = 'zb_dm_' + uid + '_' + fmtDate(now, 'yyMMdd'), nd = Number(await kvGet(x.db, dk) || 0);
-  if (nd >= 60) return { ok: true }; // 1 người / ngày
+  if (nd >= 30) return { ok: true }; // tối đa 30 câu trả lời / 1 người / ngày (tránh nhắn dồn dập)
   const row = await first(x.db, 'SELECT * FROM chats WHERE sid = ?', sid);
   let msgs = []; try { msgs = JSON.parse(row && row.msgs || '[]'); } catch (e) { }
   msgs.push({ r: 'u', t: text, at: now });

@@ -9,7 +9,7 @@ import { execFile } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const VER = '2026-10-27a';
+const VER = '2026-10-28a';
 const DIR = dirname(fileURLToPath(import.meta.url)), TMP = join(DIR, 'tmp'), CREDS = join(DIR, 'creds.json'), QR = join(DIR, 'qr.png');
 for (const l of (existsSync(join(DIR, '.env')) ? readFileSync(join(DIR, '.env'), 'utf8') : '').split('\n')) { const m = l.match(/^\s*([A-Z_]+)\s*=\s*(.*)\s*$/); if (m && !process.env[m[1]]) process.env[m[1]] = m[2]; }
 const API = process.env.API_URL || 'https://api.thucduonglanh.vn/', KEY = process.env.ZBOT_KEY;
@@ -54,6 +54,13 @@ function say(tid, type, text, extra) {
   const c = Object.assign(rich(text, extra && extra.mentions), extra && extra.quote ? { quote: extra.quote } : {});
   mine('', c.msg);
   return queue(async () => { await typing(tid, type, text); const r = await api.sendMessage(c, tid, type); mine(r && r.message && r.message.msgId, c.msg); return r; });
+}
+/** Câu trả lời dài → 2 tin ngắn như người thật nhắn (chỉ tin đầu trích dẫn câu hỏi) */
+async function reply(tid, type, text, extra) {
+  const p = String(text || '').split(/\n\s*\n/), cut = text.length > 160 && p.length > 1 ? Math.ceil(p.length / 2) : p.length;
+  const a = p.slice(0, cut).join('\n\n'), b = p.slice(cut).join('\n\n');
+  try { await say(tid, type, a, extra); } catch (e) { if (!extra) throw e; await say(tid, type, a); } // trích dẫn lỗi → gửi thường
+  if (b) await say(tid, type, b);
 }
 async function imgFile(url) {
   const r = await fetch(url, { signal: AbortSignal.timeout(30e3) }); if (!r.ok) throw new Error('ảnh ' + r.status);
@@ -132,7 +139,7 @@ async function onMessage(m) {
   if (m.type === ThreadType.User) {
     if (!text || !CFG.on || humanOn(m.threadId)) return;
     const r = await call('dm', { uid: m.threadId, name: d.dName, text });
-    if (r.reply && !humanOn(m.threadId)) await say(m.threadId, ThreadType.User, r.reply);
+    if (r.reply && !humanOn(m.threadId)) await reply(m.threadId, ThreadType.User, r.reply);
     return;
   }
   const gid = m.threadId, g = G[gid]; if (!g || !text) return;
@@ -155,7 +162,7 @@ async function onMessage(m) {
   if (r.react) { try { await sleep(rnd(2000, 6000)); await api.addReaction(Reactions.HEART, { data: { msgId: d.msgId, cliMsgId: d.cliMsgId }, threadId: gid, type: ThreadType.Group }); } catch (e) { log('thả tim', e.message); } }
   if (r.reply) {
     const quote = { content: d.content, msgType: d.msgType, propertyExt: d.propertyExt, uidFrom: d.uidFrom, msgId: d.msgId, cliMsgId: d.cliMsgId, ts: d.ts, ttl: d.ttl };
-    try { await say(gid, ThreadType.Group, r.reply, { quote }); } catch (e) { await say(gid, ThreadType.Group, r.reply); }
+    await reply(gid, ThreadType.Group, r.reply, { quote });
     remember(gid, { uid: me, name: myName, text: r.reply, bot: 1 });
   }
 }
