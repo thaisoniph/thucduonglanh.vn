@@ -1194,3 +1194,7 @@ div.f > span { display: block; font-size: 13px; font-weight: 600; color: var(--i
 .mk-grp-b { padding-left: 42px; }
 .mk-grp-b .dash-more { margin-bottom: 8px; }
 @media (max-width: 640px) { .mk-grp-b { padding-left: 0; } }
+
+/* ✅ Nên làm gì: ai làm */
+.mk-who { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 999px; background: #e7f2ea; color: var(--primary); vertical-align: 1px; }
+.mk-who.s { background: #fff1e0; color: var(--orange); }

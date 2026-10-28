@@ -35,9 +35,8 @@ Màn hình đầu chỉ có **số quan trọng nhất**. Phần chi tiết thu 
 
 **"Data"** = 1 số điện thoại khách để lại khi xem quảng cáo.
 
-- **✅ Nên làm gì**: tối đa 5 việc quan trọng nhất. Làm theo từ trên xuống.
-- **🏆 Thi đua Marketing**: xếp hạng theo **% mục tiêu** đạt được. Vượt mức chi phí thì không được đứng hạng 1.
-- **💰 Thanh ngân sách tháng**: đã chi bao nhiêu so với ngân sách. Chỉ Quản trị đặt ngân sách.
+- **✅ Nên làm gì**: tối đa 5 việc quan trọng nhất, việc gấp đứng trước. Mỗi dòng ghi rõ **ai làm** (Marketing / Sale). Làm theo từ trên xuống.
+- **🎯 Mục tiêu & ngân sách tháng** (dưới khối 📘 Quảng cáo Facebook): tiến độ mục tiêu của từng bạn, từ 2 người có mục tiêu trở lên thì có bảng thi đua xếp theo **% mục tiêu** (vượt mức chi phí thì không đứng hạng 1); thanh ngân sách đã chi so với ngân sách (chỉ Quản trị đặt).
 - **🗺 Hệ thống Marketing** (nút góc trên): sơ đồ hệ thống marketing của công ty.
 
 **Đèn:** 🟢 tốt · 🟠 cần để ý · 🔴 cần xử lý. Với ô chi phí, *đang xuống* là tốt (màu xanh).
