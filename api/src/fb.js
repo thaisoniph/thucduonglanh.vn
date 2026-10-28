@@ -514,7 +514,11 @@ export async function crmFp(x, u, d, crmLog) {
         const id = String(dbg.profile_id || ''); let name = '';
         try { name = (await graph('me?fields=name', tk)).name || ''; } catch (e) { } // thiếu pages_read_engagement thì không đọc được tên
         list = [{ id, name: name || 'Fanpage ' + id, access_token: tk }];
-      } else list = await userPages(tk);
+      } else { // mã người dùng (vd Graph API Explorer, hết hạn sau 1 giờ) → đổi mã dài hạn → mã trang không hết hạn
+        let long = tk;
+        try { const j = await graph('oauth/access_token?grant_type=fb_exchange_token&client_id=' + app.id + '&client_secret=' + app.secret + '&fb_exchange_token=' + encodeURIComponent(tk), app.id + '|' + app.secret); if (j.access_token) long = j.access_token; } catch (e) { }
+        list = await userPages(long);
+      }
     } catch (e) { return { ok: false, error: 'Facebook không nhận mã này: ' + e.message }; }
     if (!list.length) return { ok: false, error: 'Mã này không quản lý fanpage nào.' };
     const pages = await savePages(x, list);
