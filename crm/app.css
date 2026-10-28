@@ -875,6 +875,7 @@ details.set-g .dash-more-b { background: #fff; }
 .lv-info { line-height: 1.5; } .lv-info a { color: inherit; font-weight: 600; }
 .lv-ks { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .lv-k { font-size: 13px; border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; background: #fff; }
+.lv-k.lv-d { border: 0; background: none; padding-left: 0; font-weight: 600; color: var(--muted); }
 .lv-k.ok { background: #f1f8f2; } .lv-k.mid { background: #fff7ec; } .lv-k.bad { background: #fdf0ef; border-color: #f2c4bf; }
 .lv-ads { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; margin-top: 10px; }
 .lv-ad { display: flex; gap: 10px; align-items: center; min-width: 0; }

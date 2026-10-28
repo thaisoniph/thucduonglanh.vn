@@ -3994,11 +3994,16 @@
     var j = KP.j, L = j && j.live;
     if (!j) return { h: '', todo: [] };
     if (!L || !L.camps) return { todo: [], h: '<div class="box lv-box"><h3>📋 Chiến dịch đang chạy</h3><p class="small muted">' + (j.fbOn ? '⏳ Đang lấy danh sách từ Facebook, bấm ↻ sau 1 phút.' : 'Cần Quản trị kết nối Facebook Ads (⚙️ Nhập chi phí → 📘 Facebook tự động) để thấy danh sách chiến dịch đang chạy.') + '</p></div>' };
-    var t0 = j.today, G = kpGoal(), S7 = {}, ST = {}, z = function () { return { s: 0, i: 0, c: 0, m: 0 }; };
+    // chưa có số hôm nay (đêm / sáng sớm: lịch lấy số chạy 7h–22h) → hiện số hôm qua, so với 7 ngày trước hôm qua
+    var t0 = j.today, G = kpGoal(), S7 = {}, ST = {}, SY = {}, S7Y = {}, z = function () { return { s: 0, i: 0, c: 0, m: 0 }; }, T0 = dayMs(t0);
     (j.rows || []).forEach(function (r) {
-      var k = (r[3] && r[3][1] || '') + '|' + r[2], o = r[0] === t0 ? (ST[k] = ST[k] || z()) : dayMs(r[0]) >= dayMs(t0) - 7 * DAY ? (S7[k] = S7[k] || z()) : null;
-      if (o) { o.s += r[4] || 0; o.i += r[5] || 0; o.c += r[6] || 0; o.m += r[7] || 0; }
+      var k = (r[3] && r[3][1] || '') + '|' + r[2], ms = dayMs(r[0]), put = function (M) { var o = M[k] = M[k] || z(); o.s += r[4] || 0; o.i += r[5] || 0; o.c += r[6] || 0; o.m += r[7] || 0; };
+      if (ms === T0) put(ST); else put(S7);
+      if (ms === T0 - DAY) put(SY); else if (ms < T0 - DAY) put(S7Y);
     });
+    var anyT = Object.keys(ST).some(function (k) { return ST[k].s > 0; }), useY = !anyT && Object.keys(SY).length > 0;
+    if (useY) { ST = SY; S7 = S7Y; }
+    var dl = useY ? 'hôm qua' : 'hôm nay';
     var bad = [], wait = 0, budD = 0, spT = 0;
     var cs = L.camps.map(function (c) {
       var k = c.acc + '|' + c.n, t = ST[k] || z(), b = S7[k] || z(), sts = {}; c.ads.forEach(function (a) { sts[a.st] = (sts[a.st] || 0) + 1; });
@@ -4024,15 +4029,15 @@
           '<div><span class="small">' + S0[0] + ' ' + esc(a.n || 'Quảng cáo') + (a.st !== 'ACTIVE' ? ' <b>(' + S0[1] + ')</b>' : '') + '</span><span class="lv-links">' +
           (a.post ? '<a href="' + esc(a.post) + '" target="_blank" rel="noopener">👁 Xem bài viết</a>' : '') + (a.ig ? '<a href="' + esc(a.ig) + '" target="_blank" rel="noopener">📷 Instagram</a>' : '') + (a.pv ? '<a href="' + esc(a.pv) + '" target="_blank" rel="noopener">🔍 Xem trước quảng cáo</a>' : '') + '</span></div></div>';
       }).join('') + (c.ads.length > (f.lall ? 12 : 4) ? '<p class="small muted">+ ' + (c.ads.length - (f.lall ? 12 : 4)) + ' quảng cáo nữa</p>' : '');
-      return '<div class="mk-camp lv-camp ' + x.lv + '"><div class="mk-camp-h"><span class="mk-badge ' + x.lv + '">' + x.tag + '</span><b>' + esc(c.n) + '</b><span class="mk-camp-v" title="Đã chi hôm nay">' + (t.s ? moneyShort(t.s) + ' <small>hôm nay</small>' : '<small>chưa chi hôm nay</small>') + '</span></div>' +
+      return '<div class="mk-camp lv-camp ' + x.lv + '"><div class="mk-camp-h"><span class="mk-badge ' + x.lv + '">' + x.tag + '</span><b>' + esc(c.n) + '</b><span class="mk-camp-v" title="Đã chi hôm nay">' + (t.s ? moneyShort(t.s) + ' <small>' + dl + '</small>' : '<small>chưa chi ' + dl + '</small>') + '</span></div>' +
         '<p class="small muted lv-info">' + info + '</p>' +
-        (t.s || t.i ? '<div class="lv-ks">' + chip('msg', '💬 ' + (t.m || 0) + ' tin · 1 tin', C.msg, 0) + chip('ctr', 'CTR', C.ctr, 1) + chip('cpm', 'CPM', C.cpm, 0) + chip('cpc', 'CPC', C.cpc, 0) + '</div>' : '') +
+        (t.s || t.i ? '<div class="lv-ks"><span class="lv-k lv-d">' + (useY ? 'Hôm qua' : 'Hôm nay') + '</span>' + chip('msg', '💬 ' + (t.m || 0) + ' tin · 1 tin', C.msg, 0) + chip('ctr', 'CTR', C.ctr, 1) + chip('cpm', 'CPM', C.cpm, 0) + chip('cpc', 'CPC', C.cpc, 0) + '</div>' : '') +
         '<div class="lv-ads">' + ads + '</div>' +
         (num ? '<a class="lv-am" href="https://adsmanager.facebook.com/adsmanager/manage/ads?act=' + esc(num) + '&selected_campaign_ids=' + esc(c.id) + '" target="_blank" rel="noopener">Mở chiến dịch trong Trình quản lý quảng cáo ↗</a>' : '') + '</div>';
     };
     var h = '<div class="box lv-box" id="mk-live"><h3>📋 Chiến dịch đang chạy (' + cs.length + ')</h3><p class="small muted">' +
-      [budD ? 'Ngân sách ' + moneyShort(budD) + ' / ngày' : '', 'đã chi hôm nay ' + moneyShort(spT), bad.length ? '🔴 ' + bad.length + ' chiến dịch có quảng cáo bị từ chối / lỗi' : '', wait ? '⏳ ' + wait + ' chờ duyệt' : ''].filter(Boolean).join(' · ') +
-      '. Danh sách cập nhật lúc ' + fDateTime(L.at) + ' (3 tiếng 1 lần, bấm ↻ để lấy ngay). Số hôm nay so với 7 ngày trước' + (G.msg ? ', giá 1 tin so với mức tốt ' + moneyShort(G.msg) : '') + '.</p>' +
+      [budD ? 'Ngân sách ' + moneyShort(budD) + ' / ngày' : '', (useY ? 'chưa có số hôm nay (Facebook lấy số từ 7h) · hôm qua đã chi ' : 'đã chi hôm nay ') + moneyShort(spT), bad.length ? '🔴 ' + bad.length + ' chiến dịch có quảng cáo bị từ chối / lỗi' : '', wait ? '⏳ ' + wait + ' chờ duyệt' : ''].filter(Boolean).join(' · ') +
+      '. Danh sách cập nhật lúc ' + fDateTime(L.at) + ' (3 tiếng 1 lần, bấm ↻ để lấy ngay). Số ' + dl + ' so với 7 ngày trước đó' + (G.msg ? ', giá 1 tin so với mức tốt ' + moneyShort(G.msg) : '') + '.</p>' +
       (L.err ? '<p class="err">⚠️ ' + esc(L.err) + '</p>' : '') +
       (cs.length ? '<div class="mk-camps">' + cs.slice(0, n).map(card).join('') + '</div>' + (cs.length > n ? '<button class="btn ghost sm" data-lvall="1">Xem tất cả ' + cs.length + ' chiến dịch</button>' : '') : '<p class="muted">Không có chiến dịch nào đang chạy.</p>') + '</div>';
     var todo = bad.length ? [{ p: 1, t: '⛔ Chiến dịch <b>' + esc(bad.slice(0, 2).join(', ')) + '</b>' + (bad.length > 2 ? ' và ' + (bad.length - 2) + ' chiến dịch khác' : '') + ' có quảng cáo bị từ chối hoặc lỗi: sửa ngay để không mất ngày chạy. <button class="link" data-dgo="mk-live">Xem</button>' }] : [];
