@@ -3686,6 +3686,9 @@
     h += dashMore('chan', '🧭 Tiền đến từ kênh nào', ['Website', 'Sale', 'Khách hỏi'].map(function (c) { return c + ' ' + (b.ch[c] ? pct(b.ch[c].v, tot) : 0) + '%'; }).join(' · '), '<div class="box">' +
       barList(subs.slice(0, 12).map(function (x) { return { l: x.g + ' – ' + x.l, v: x.v, sub: x.n + ' đơn · ' + pct(x.v, tot) + '%' }; }), moneyShort, 'Chưa có đơn trong kỳ.', { below: 1 }) +
       '<p class="bar-legend">Website = khách tự đặt trên web (nguồn theo link UTM / Facebook / Google…). Sale = đơn nhân viên lên (nhập tay, file sale). Khách hỏi = chốt từ tab Khách hỏi.</p></div>');
+    // ---- 🌱 khách giới thiệu + CTV (affiliate)
+    var rf = refDash(R), rfp = refDash(P), RZ = trendEachMemo('refd', DB, refDash);
+    h += dashMore('ref', '🌱 Khách giới thiệu & CTV', rf.n ? rf.n + ' đơn · ' + moneyShort(rf.rev) + ' · ' + rf.pct + '% đơn' + (rf.newPct !== null ? ' · ' + rf.newPct + '% khách mới' : '') : 'Chưa có đơn nhờ giới thiệu trong kỳ', refDashBlock(rf, rfp, RZ, sk));
     // ---- sản phẩm + khách hỏi
     var prods = Object.keys(b.prod).map(function (k) { return { l: k, v: b.prod[k].v, sub: b.prod[k].q + ' sản phẩm' }; }).sort(function (x, y) { return y.v - x.v; });
     var lch = Object.keys(b.leadCh).map(function (k) { return { l: k, v: b.leadCh[k] }; }).sort(function (x, y) { return y.v - x.v; });
@@ -3707,6 +3710,37 @@
     h += '<p class="small muted">Doanh số, đơn, khách lấy từ CRM (đơn 13 tháng gần nhất) và file sàn. Số website lấy từ Google Analytics, chỉ đếm khách đã bấm “Đồng ý” cookie (Nghị định 13/2023), nên thấp hơn số người vào thật.</p>' +
       '<p class="small muted">🔜 Sắp có: TikTok / Google Ads tự lấy chi phí · lãi gộp theo sản phẩm, theo kênh (cần giá vốn) · tỷ lệ giao thành công, khách mua lại sau 30 / 60 / 90 ngày.</p>';
     return h;
+  }
+  /* ---------- 🌱 Tổng quan → Khách giới thiệu & CTV (28/10/2026). Đơn "nhờ giới thiệu" = đơn có người giới thiệu (refPhone: bạn của khách cũ, đơn đầu)
+   * hoặc thuộc CTV (partner: mọi đơn của khách CTV trong thời hạn). Chi phí = tiền giảm cho bạn (mã giới thiệu) + voucher CAMON đã dùng + hoa hồng CTV. */
+  function refDash(R) {
+    var x = { n: 0, rev: 0, all: 0, allRev: 0, fr: 0, frRev: 0, ctv: 0, ctvRev: 0, comm: 0, off: 0, cam: 0, who: {}, ctvs: {} }, nw = {}, nr = {};
+    S.d.orders.forEach(function (o) {
+      if (o.time < R[0] || o.time >= R[1] || isVoid(o.status)) return;
+      var t = o.total || 0, ph = normPhone(o.phone), cu = S.d.byPhone && S.d.byPhone[ph];
+      x.all++; x.allRev += t;
+      if (/^CAMON/.test(o.voucher || '')) x.cam += o.discount || 0;
+      if (ph && !(cu && cu.first && dayStart(cu.first) < dayStart(o.time))) { nw[ph] = 1; if (o.refPhone || o.partner) nr[ph] = 1; } // khách mua lần đầu trong kỳ (như bizStats)
+      if (!o.refPhone && !o.partner) return;
+      x.n++; x.rev += t;
+      if (o.refPhone) { x.fr++; x.frRev += t; x.off += o.discount || 0; var w = x.who[o.refPhone] || (x.who[o.refPhone] = { n: 0, v: 0 }); w.n++; w.v += t; }
+      if (o.partner) { x.ctv++; x.ctvRev += t; var cm = Math.max(0, Math.round((t - (o.shipping || 0)) * (o.pRate || 0) / 100)); x.comm += cm; var c = x.ctvs[o.partner] || (x.ctvs[o.partner] = { n: 0, v: 0, cm: 0 }); c.n++; c.v += t; c.cm += cm; }
+    });
+    x.newN = Object.keys(nw).length; x.newRef = Object.keys(nr).length; x.pct = x.all ? pct(x.n, x.all) : 0; x.revPct = x.allRev ? pct(x.rev, x.allRev) : 0; x.newPct = x.newN ? pct(x.newRef, x.newN) : null;
+    x.cost = x.off + x.cam + x.comm; x.costPct = x.rev ? Math.round(x.cost * 1000 / x.rev) / 10 : null; x.amb = Object.keys(x.who).length;
+    return x;
+  }
+  function refDashBlock(rf, rfp, RZ, sk) {
+    var top = Object.keys(rf.who).map(function (ph) { var c = cust(ph); return { l: c ? c.name || fPhone(ph) : fPhone(ph), v: rf.who[ph].v, sub: rf.who[ph].n + ' người bạn mua' + (c && c.owner ? ' · 👤 ' + c.owner : '') }; }).sort(function (a, b) { return b.v - a.v; });
+    var ctv = Object.keys(rf.ctvs).map(function (k) { var c = rf.ctvs[k]; return { l: k, v: c.v, sub: c.n + ' đơn · hoa hồng ' + moneyShort(c.cm) }; }).sort(function (a, b) { return b.v - a.v; });
+    return '<p class="small muted">Đơn nhờ giới thiệu = bạn bè của khách cũ mua lần đầu (mã / SĐT người giới thiệu) hoặc khách của Cộng tác viên. Không tính đơn huỷ / hoàn. Khách tự lấy link ở thucduonglanh.vn/gioi-thieu-ban-be/.</p><div class="metrics">' +
+      metric('Đơn nhờ giới thiệu', rf.n, rf.pct + '% tổng số đơn · bạn bè khách cũ ' + rf.fr + ' · khách của CTV ' + rf.ctv + '.', delta(rf.n, rfp.n), '', sk(trendPick(RZ, 'n'))) +
+      metric('Doanh số nhờ giới thiệu', moneyShort(rf.rev), rf.revPct + '% doanh số (trừ hoàn / huỷ) · bạn bè ' + moneyShort(rf.frRev) + ' · CTV ' + moneyShort(rf.ctvRev) + '.', delta(rf.rev, rfp.rev), '', sk(trendPick(RZ, 'rev'))) +
+      metric('Khách mới nhờ giới thiệu', rf.newPct === null ? '–' : rf.newPct + '%', rf.newRef + ' / ' + rf.newN + ' khách mua lần đầu trong kỳ. Càng cao càng đỡ tốn quảng cáo.', rf.newPct === null || rfp.newPct === null ? '' : delta(rf.newPct, rfp.newPct, 'rate'), '', sk(trendPick(RZ, 'newPct'))) +
+      metric('Chi phí ưu đãi', rf.costPct === null ? '–' : oneDec(rf.costPct) + '%', moneyShort(rf.cost) + ' = giảm cho bạn bè ' + moneyShort(rf.off) + ' + voucher cảm ơn đã dùng ' + moneyShort(rf.cam) + ' + hoa hồng CTV ' + moneyShort(rf.comm) + ', chia cho doanh số nhờ giới thiệu. So với % chi phí quảng cáo ở mục 📣.', rf.costPct === null || rfp.costPct === null ? '' : inv(delta(rf.costPct, rfp.costPct, 'rate')), '') +
+      metric('Đại sứ có bạn mua', rf.amb, 'Số khách cũ có ít nhất 1 người bạn mua lần đầu trong kỳ.', delta(rf.amb, rfp.amb), '', sk(trendPick(RZ, 'amb'))) +
+      '</div><div class="dash-grid"><div class="box"><h3>🏅 Đại sứ mang về nhiều nhất</h3>' + barList(top.slice(0, 8), moneyShort, 'Chưa có ai trong kỳ.', { below: 1 }) + '</div>' +
+      '<div class="box"><h3>🤝 Cộng tác viên</h3>' + barList(ctv.slice(0, 8), moneyShort, 'Chưa có đơn CTV trong kỳ.', { below: 1 }) + '<p class="bar-legend">Hoa hồng ước tính theo % chốt trên từng đơn. Trả tiền ở Cài đặt → 🤝 Cộng tác viên.</p></div></div>';
   }
   /* ---------------- Chi phí marketing (lệnh mkt*, api/src/mkt.js). Thêm kênh quảng cáo mới: thêm 1 dòng vào MKT_CH.
    * kw: từ khoá (không dấu) nhận ra đơn / khách hỏi đến từ kênh đó, dựa vào Nguồn đơn và Kênh của khách hỏi → tính “thu về” và ROAS của kênh. */
@@ -6772,17 +6806,19 @@
         return '<div class="card"' + (p.active ? '' : ' style="opacity:.6"') + '><div class="r1"><b>' + esc(p.name) + '</b><span class="small">' + esc(p.kind) + ' · ' + p.rate + '%</span>' + (p.active ? '' : '<span class="small muted">· tạm dừng</span>') + '</div>' +
           '<div class="small muted" style="margin:4px 0">🔗 thucduonglanh.vn/?ref=' + esc(p.code) + (p.vcode ? ' · 🎟 mã ' + esc(p.vcode) : '') + (p.phone ? ' · ' + fPhone(p.phone) : '') + '</div>' +
           '<div class="small">👥 ' + p.cust + ' khách · 🛒 ' + p.n + ' đơn · ' + moneyShort(p.sales) + ' tiền hàng<br>💰 Đủ điều kiện trả: <b>' + money(p.ready) + '</b> (' + p.readyN + ' đơn) · chờ giao / đổi trả: ' + money(p.wait) + ' · đã trả: ' + money(p.paid) + '</div>' +
-          '<div class="acts" style="margin-top:8px"><button class="btn" data-ptcp="' + i + '">📋 Tin gửi CTV</button><button class="btn" data-ptor="' + i + '">💰 Đơn & đối soát</button><button class="btn ghost" data-pted="' + i + '">✏️ Sửa</button></div></div>';
+          '<div class="acts" style="margin-top:8px"><button class="btn" data-ptcp="' + i + '">📋 Tin gửi CTV</button>' + (p.viewKey ? '<button class="btn" data-ptvk="' + i + '" title="Link bí mật để CTV tự xem khách, đơn, hoa hồng">🔐 Link xem hoa hồng</button>' : '') + '<button class="btn" data-ptor="' + i + '">💰 Đơn & đối soát</button><button class="btn ghost" data-pted="' + i + '">✏️ Sửa</button></div></div>';
       }).join('') + '</div>';
       if (j.pays.length) h += '<h3 style="margin:14px 0 6px">Lịch sử trả hoa hồng</h3><div class="small">' + j.pays.slice(0, 20).map(function (p) { var pp = j.list.filter(function (x) { return x.code === p.code; })[0]; return fDate(p.at) + ' · ' + esc(pp ? pp.name : p.code) + ' · ' + p.n + ' đơn · ' + money(p.net) + (p.tax ? ' (thuế ' + money(p.tax) + ')' : '') + ' · ' + esc(p.by); }).join('<br>') + '</div>';
       box().innerHTML = h;
       $$('[data-pted]', m).forEach(function (b) { b.onclick = function () { form(j.list[+b.getAttribute('data-pted')]); }; });
       $$('[data-ptor]', m).forEach(function (b) { b.onclick = function () { orders(j.list[+b.getAttribute('data-ptor')]); }; });
+      $$('[data-ptvk]', m).forEach(function (b) { b.onclick = function () { var p = j.list[+b.getAttribute('data-ptvk')]; copy('Chào ' + p.name + ', đây là trang riêng để bạn tự xem khách, đơn hàng và hoa hồng của mình (cập nhật liên tục): ' + ptView(p) + '\nLink này của riêng bạn, bạn lưu lại và đừng gửi cho người khác nhé.').then(function () { toast('Đã copy – dán vào Zalo gửi CTV'); }); }; });
       $$('[data-ptcp]', m).forEach(function (b) { b.onclick = function () { var p = j.list[+b.getAttribute('data-ptcp')]; copy(ptMsg(p)).then(function () { toast('Đã copy – dán vào Zalo gửi CTV'); }); }; });
     }
+    function ptView(p) { return 'https://thucduonglanh.vn/ctv/#' + p.viewKey; }
     function ptMsg(p) {
       return 'Chào ' + p.name + ', đây là link giới thiệu riêng của bạn với Thực Dưỡng Lành: https://thucduonglanh.vn/?ref=' + p.code + (p.vcode ? '\nMã giảm giá cho khách mới của bạn: ' + p.vcode + ' (khách nhập ở trang thanh toán, hoặc dùng link https://thucduonglanh.vn/?uudai=' + p.vcode + '&ref=' + p.code + ')' : '') +
-        '\nKhách mới đặt qua link / mã này: bạn nhận ' + p.rate + '% tiền hàng cho mọi đơn của khách trong ' + D.j.cfg.months + ' tháng. Hoa hồng tính khi đơn đã giao và qua 7 ngày đổi trả, đối soát cuối tháng.' +
+        '\nKhách mới đặt qua link / mã này: bạn nhận ' + p.rate + '% tiền hàng cho mọi đơn của khách trong ' + D.j.cfg.months + ' tháng. Hoa hồng tính khi đơn đã giao và qua 7 ngày đổi trả, đối soát cuối tháng.' + (p.viewKey ? '\nXem khách, đơn và hoa hồng của bạn bất cứ lúc nào (link riêng, đừng gửi người khác): ' + ptView(p) : '') +
         '\nLưu ý khi đăng bài: chỉ nói đúng công dụng trên bao bì / hồ sơ công bố, không dùng các từ "chữa", "điều trị", "khỏi bệnh", và ghi rõ "sản phẩm không phải là thuốc, không có tác dụng thay thế thuốc chữa bệnh".';
     }
     function form(p) {
@@ -6797,6 +6833,7 @@
         '<div class="row2c"><label class="f"><span>Tài khoản nhận tiền (ngân hàng, số TK, tên)</span><input type="text" id="ptBank" value="' + esc(p.bank) + '"></label><label class="f"><span>Số CCCD (để khấu trừ thuế)</span><input type="text" id="ptId" value="' + esc(p.idno) + '"></label></div>' +
         '<label class="f"><span>Ghi chú</span><input type="text" id="ptNote" value="' + esc(p.note) + '" maxlength="300"></label>' +
         '<label class="switch"><input type="checkbox" id="ptAct"' + (p.active ? ' checked' : '') + '> Đang hợp tác</label>' +
+        (isNew ? '' : '<br><label class="switch"><input type="checkbox" id="ptNk"> 🔐 Đổi link xem hoa hồng (link cũ hết dùng được, dùng khi CTV lỡ gửi link cho người khác)</label>') +
         (isNew ? '' : '<p class="small muted">Đổi % hoa hồng chỉ áp dụng cho đơn mới, đơn đã ghi giữ % cũ. Mã giảm giá đang có: điền lại % giảm khi lưu, để trống ô % là tắt mã.</p>') +
         '<div class="steps" style="margin-top:12px"><button class="btn pri" id="ptSave">' + (isNew ? 'Thêm CTV' : 'Lưu') + '</button><button class="btn ghost" id="ptBack">Quay lại</button></div>' +
         (isNew ? '' : '<details class="p-edit" style="margin-top:12px"><summary>＋ Gắn khách cho CTV này</summary><div class="box" style="margin:8px 0 0"><p class="small muted" style="margin:0 0 8px">Khách mới đặt qua điện thoại / Zalo nhưng do CTV giới thiệu: nhập số khách (đã có đơn trong CRM). Tính từ đơn đầu tiên của khách.</p><input type="tel" id="ptClPh" placeholder="Số điện thoại khách"><button class="btn" id="ptCl" style="margin-top:8px">Gắn khách</button></div></details>');
@@ -6805,7 +6842,7 @@
       $('#ptSave', m).onclick = function () {
         var b = this; b.disabled = true;
         api('partner_save', { isNew: isNew, code: $('#ptCode', m).value || $('#ptName', m).value, name: $('#ptName', m).value, kind: $('#ptKind', m).value, rate: $('#ptRate', m).value.trim() === '' ? '' : parseFloat($('#ptRate', m).value.replace(',', '.')),
-          vcode: $('#ptVc', m).value.trim(), vpct: parseFloat($('#ptVp', m).value.replace(',', '.')) || 0, phone: $('#ptPhone', m).value.trim(), email: $('#ptEmail', m).value.trim(), bank: $('#ptBank', m).value.trim(), idno: $('#ptId', m).value.trim(), note: $('#ptNote', m).value.trim(), active: $('#ptAct', m).checked })
+          vcode: $('#ptVc', m).value.trim(), vpct: parseFloat($('#ptVp', m).value.replace(',', '.')) || 0, phone: $('#ptPhone', m).value.trim(), email: $('#ptEmail', m).value.trim(), bank: $('#ptBank', m).value.trim(), idno: $('#ptId', m).value.trim(), note: $('#ptNote', m).value.trim(), active: $('#ptAct', m).checked, newKey: !!($('#ptNk', m) && $('#ptNk', m).checked) })
           .then(function (j) { done(j); toast(isNew ? 'Đã thêm – bấm 📋 Tin gửi CTV để gửi link' : 'Đã lưu'); }, function (e) { fail(e); b.disabled = false; });
       };
       if ($('#ptCl', m)) $('#ptCl', m).onclick = function () { var b = this; b.disabled = true; api('partner_claim', { code: p.code, phone: $('#ptClPh', m).value.trim() }).then(function (j) { D.j = j; toast('Đã gắn khách cho ' + p.name); b.disabled = false; $('#ptClPh', m).value = ''; }, function (e) { fail(e); b.disabled = false; }); };

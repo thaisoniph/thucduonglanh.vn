@@ -23,6 +23,12 @@ async function buyers(db) {
   const r = await first(db, 'SELECT COUNT(*) n FROM customers WHERE orders > 0');
   const n = Number(r && r.n) || 0; await kvSet(db, 'jr_buyers', n, 6 * 3600e3); return n;
 }
+/** 🌱 Số người bạn đã mua nhờ được giới thiệu (bạn của khách cũ + khách của CTV): trang /gioi-thieu-ban-be/. Lưu kv 6 tiếng như buyers. */
+async function referred(db) {
+  const c = await kvGet(db, 'jr_refs'); if (c != null) return Number(c) || 0;
+  const r = await first(db, "SELECT COUNT(*) n FROM customers WHERE orders > 0 AND (coalesce(partner, '') != '' OR phone IN (SELECT phone FROM orders WHERE ref_phone != ''))");
+  const n = Number(r && r.n) || 0; await kvSet(db, 'jr_refs', n, 6 * 3600e3); return n;
+}
 async function pledges(db) { const r = await first(db, 'SELECT MAX(id) n FROM pledges'); return Number(r && r.n) || 0; }
 
 /** Bản đồ hành trình (23/10/2026): số người đồng hành theo 34 tỉnh mới = khách đã mua (tỉnh nhận từ địa chỉ, dùng chung bộ đếm areaStats
@@ -37,8 +43,8 @@ async function provCounts(x) {
 }
 
 export async function journeyCounts(x) {
-  const b = await buyers(x.db), p = await pledges(x.db), prov = await provCounts(x).catch(() => ({}));
-  return { ok: true, buyers: b, pledges: p, total: b + p, goal: 10000000, prov };
+  const b = await buyers(x.db), p = await pledges(x.db), prov = await provCounts(x).catch(() => ({})), refs = await referred(x.db).catch(() => 0);
+  return { ok: true, buyers: b, pledges: p, total: b + p, goal: 10000000, prov, refs };
 }
 
 const clean = (s, n) => String(s || '').replace(/<[^>]*>/g, '').replace(/[<>"`\u0000-\u001f]/g, '').replace(/\s+/g, ' ').trim().slice(0, n);

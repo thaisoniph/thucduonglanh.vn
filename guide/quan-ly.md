@@ -102,6 +102,10 @@ Vào **Cài đặt → 🤝 Cộng tác viên & khách giới thiệu → Quản
 
 **🌱 Khách cũ giới thiệu (Đại sứ Sống Lành):** bấm **⚙️ Cài đặt chung** để sửa mức. Mặc định: bạn được giới thiệu giảm 10%, người giới thiệu được voucher 10% đơn của bạn (tự tạo lúc 8h sáng, khi đơn giao xong 7 ngày), đủ 3 người tặng 1 hộp Trà DILVANG, đủ 5 người mời làm CTV. Đổi mức ở CRM thì sửa luôn chữ trên trang web: **/admin → Cài đặt chung → Giới thiệu bạn bè**. File in thẻ QR bỏ trong gói hàng ở Drive: *03_Marketing & Truyền thông/05_Ấn phẩm in ấn*.
 
+**🔐 CTV tự xem hoa hồng:** mỗi CTV có 1 link riêng (ví dụ `thucduonglanh.vn/ctv/#a1b2…`). Bấm **🔐 Link xem hoa hồng** ở thẻ CTV để copy tin có link, dán vào Zalo gửi CTV. CTV mở link là thấy khách của mình (tên che bớt), đơn, hoa hồng đủ điều kiện, đang chờ và đã nhận. Link cũng có sẵn trong **📋 Tin gửi CTV**. CTV lỡ gửi link cho người khác: **✏️ Sửa** → tích **Đổi link xem hoa hồng** → Lưu, rồi gửi link mới.
+
+**Xem hiệu quả:** tab **Tổng quan** → mục **🌱 Khách giới thiệu & CTV**: số đơn và doanh số nhờ giới thiệu, % khách mới đến từ giới thiệu, chi phí ưu đãi (so với % chi phí quảng cáo), đại sứ và CTV mang về nhiều nhất.
+
 **Trả tiền CTV:** bấm **💰 Đơn & đối soát**. Chỉ đơn **đã giao và qua 7 ngày** mới được tính. Trả từ 2 triệu một lần thì máy tự trừ 10% thuế thu nhập cá nhân. Chuyển khoản xong bấm **✅ Đã chuyển tiền**. Bấm **📋 Copy bảng đối soát** để gửi CTV.
 
 ## Mã ưu đãi đặt hàng web

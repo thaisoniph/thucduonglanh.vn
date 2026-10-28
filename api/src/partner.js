@@ -10,8 +10,8 @@
 //   giới thiệu vào ô mã ưu đãi cũng được (voucher.js). Đơn của bạn đã giao + 7 ngày → refAuto tự phát voucher CAMON = rwPct % tiền hàng của bạn
 //   (gắn SĐT người giới thiệu, hạn 90 ngày), sale chỉ việc báo khách. Đủ tierN bạn mua → tặng tierGift (1 hộp Trà DILVANG), đủ ctvN → mời làm CTV.
 //   Chống gian lận: không tính đơn trùng SĐT / trùng địa chỉ người giới thiệu, đơn huỷ / hoàn.
-import { all, first, run, kvGet, kvSet, normPhone, fmt, nrm, isVoid, refCode } from './lib.js';
-import { vcLabel, makeRefCode } from './voucher.js';
+import { all, first, run, kvGet, kvSet, normPhone, fmt, nrm, isVoid, refCode, randHex } from './lib.js';
+import { vcNorm, vcLabel, makeRefCode } from './voucher.js';
 
 const LIVE = "status NOT LIKE '%uỷ%' AND status NOT LIKE '%ủy%' AND status NOT LIKE '%oàn%'";
 const DAY = 864e5, RETURN_DAYS = 7, TAX_FROM = 2000000, TAX_PCT = 10;
@@ -29,6 +29,7 @@ export async function partnerSchema(db) {
   const add = async (t, cols) => { const have = (await all(db, `PRAGMA table_info(${t})`)).map(r => r.name); for (const [c, d] of cols) if (!have.includes(c)) { try { await run(db, `ALTER TABLE ${t} ADD COLUMN ${c} ${d}`); } catch (e) { } } };
   await add('orders', [['partner', "TEXT DEFAULT ''"], ['partner_rate', 'REAL DEFAULT 0'], ['paid_out', 'INTEGER DEFAULT 0'], ['ref_phone', "TEXT DEFAULT ''"], ['ref_gift', "TEXT DEFAULT ''"]]);
   await add('customers', [['partner', "TEXT DEFAULT ''"], ['partner_at', 'INTEGER']]);
+  await add('partners', [['view_key', "TEXT DEFAULT ''"]]); // link bí mật CTV tự xem hoa hồng: thucduonglanh.vn/ctv/#<view_key>
   await add('vouchers', [['ref_phone', "TEXT DEFAULT ''"], ['partner', "TEXT DEFAULT ''"], ['new_only', 'INTEGER DEFAULT 0']]);
   await add('orders', [['ref_told', 'INTEGER DEFAULT 0']]); // đã báo khách voucher cảm ơn tự động
   // mốc thưởng của người giới thiệu: tier = số bạn (3 → quà, 5 → mời làm CTV). done_at trống = sale chưa làm
@@ -180,6 +181,7 @@ function mask(name, phone) {
 }
 async function pList(x) {
   await partnerFill(x);
+  for (const p of await all(x.db, "SELECT code FROM partners WHERE coalesce(view_key, '') = ''")) await run(x.db, 'UPDATE partners SET view_key = ? WHERE code = ?', randHex(12), p.code);
   const ps = await all(x.db, 'SELECT p.*, (SELECT v.value FROM vouchers v WHERE v.code = p.vcode AND v.active = 1) AS vpct FROM partners p ORDER BY p.active DESC, p.created');
   const os = await all(x.db, "SELECT id, phone, status, total, shipping, partner, partner_rate, paid_out, time, ship_at, received_at FROM orders WHERE coalesce(partner, '') != ''");
   const pays = await all(x.db, 'SELECT * FROM partner_pay ORDER BY id DESC LIMIT 200');
@@ -195,7 +197,7 @@ async function pList(x) {
   const refs = await first(x.db, "SELECT (SELECT count(*) FROM vouchers WHERE coalesce(ref_phone, '') != '') AS codes, (SELECT count(*) FROM orders WHERE coalesce(ref_phone, '') != '' AND status NOT LIKE '%uỷ%' AND status NOT LIKE '%ủy%' AND status NOT LIKE '%oàn%') AS orders, (SELECT count(*) FROM orders WHERE coalesce(ref_gift, '') != '') AS gifts");
   return {
     ok: true, cfg: await partnerCfg(x), refs,
-    list: ps.map(p => { const s = st[p.code] || { cust: {}, n: 0, sales: 0, ready: 0, readyN: 0, wait: 0, waitN: 0, paid: 0 }; return { code: p.code, name: p.name, phone: p.phone, email: p.email, kind: p.kind, rate: p.rate, bank: p.bank, idno: p.idno, note: p.note, vcode: p.vcode, vpct: p.vpct || '', active: !!p.active, created: p.created, by: p.by_name, cust: Object.keys(s.cust).length, n: s.n, sales: s.sales, ready: s.ready, readyN: s.readyN, wait: s.wait, waitN: s.waitN, paid: s.paid }; }),
+    list: ps.map(p => { const s = st[p.code] || { cust: {}, n: 0, sales: 0, ready: 0, readyN: 0, wait: 0, waitN: 0, paid: 0 }; return { code: p.code, name: p.name, phone: p.phone, email: p.email, kind: p.kind, rate: p.rate, bank: p.bank, idno: p.idno, note: p.note, vcode: p.vcode, vpct: p.vpct || '', viewKey: p.view_key || '', active: !!p.active, created: p.created, by: p.by_name, cust: Object.keys(s.cust).length, n: s.n, sales: s.sales, ready: s.ready, readyN: s.readyN, wait: s.wait, waitN: s.waitN, paid: s.paid }; }),
     pays: pays.map(p => ({ id: p.id, code: p.code, at: p.at, amount: p.amount, tax: p.tax, net: p.net, n: p.n, note: p.note, by: p.by_name }))
   };
 }
@@ -224,6 +226,7 @@ async function pSave(x, u, d, log, staffNames) {
   const row = [name, phone, String(d.email || '').trim().slice(0, 120), d.kind === 'Đối tác' ? 'Đối tác' : 'CTV', rate, String(d.bank || '').slice(0, 200), String(d.idno || '').slice(0, 30), String(d.note || '').slice(0, 300), vcode, d.active === false ? 0 : 1];
   if (old) await run(x.db, 'UPDATE partners SET name = ?, phone = ?, email = ?, kind = ?, rate = ?, bank = ?, idno = ?, note = ?, vcode = ?, active = ? WHERE code = ?', ...row, code);
   else await run(x.db, 'INSERT INTO partners (name, phone, email, kind, rate, bank, idno, note, vcode, active, code, created, by_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', ...row, code, Date.now(), u.name);
+  if (old && d.newKey) await run(x.db, 'UPDATE partners SET view_key = ? WHERE code = ?', randHex(12), code); // link cũ hết dùng được
   await log(x, u, old ? 'Sửa CTV' : 'Thêm CTV', code, name, rate + '%' + (vcode ? ' · mã ' + vcode : '') + (row[9] ? '' : ' · tạm dừng'), '');
   return pList(x);
 }
@@ -254,6 +257,31 @@ async function pClaim(x, u, d, log) {
   await run(x.db, 'UPDATE customers SET partner = ?, partner_at = ? WHERE phone = ?', code, Number(c.first) || Date.now(), phone);
   await log(x, u, 'Gắn khách cho CTV', phone, c.name, p.name, '');
   return pList(x);
+}
+
+/* ------------------------------------------------------------ 🤝 Trang CTV tự xem hoa hồng (28/10/2026): thucduonglanh.vn/ctv/#<view_key> (main.js initCtv) */
+/** Không cần đăng nhập: ai có link bí mật mới xem được. Chỉ trả tên khách đã che, không trả SĐT / địa chỉ khách, tài khoản ngân hàng chỉ còn 4 số cuối.
+ *  Sai link nhiều lần → khoá theo IP 15 phút. Quản lý đổi link ở CRM (✏️ Sửa CTV → Đổi link xem hoa hồng). */
+export async function ctvMe(x, d) {
+  const fk = 'ctvf_' + String(x.ip || 'x').slice(0, 60), fails = Number(await kvGet(x.db, fk)) || 0;
+  if (fails >= 10) return { ok: false, error: 'Bạn mở sai link nhiều lần. Thử lại sau 15 phút nhé.' };
+  const key = String(d.key || '').replace(/[^a-f0-9]/g, '');
+  const p = key.length >= 16 ? await first(x.db, 'SELECT * FROM partners WHERE view_key = ?', key) : null;
+  if (!p) { await kvSet(x.db, fk, fails + 1, 15 * 60e3); return { ok: false, bad: true, error: 'Link không đúng hoặc đã được đổi. Bạn nhắn Zalo 0966 326 522 để xin link mới nhé.' }; }
+  const cfg = await partnerCfg(x), L = (await pOrders(x, p.code)).list || [];
+  const sum = f => L.filter(f).reduce((s, o) => s + o.comm, 0), cnt = f => L.filter(f).length, live = o => !o.void;
+  const pays = await all(x.db, 'SELECT at, net, tax, n, amount FROM partner_pay WHERE code = ? ORDER BY id DESC LIMIT 50', p.code);
+  const vc = p.vcode ? await first(x.db, 'SELECT value FROM vouchers WHERE code = ? AND active = 1', p.vcode) : null;
+  const custs = {}; L.filter(live).forEach(o => { custs[o.phone] = 1; });
+  return {
+    ok: true, name: p.name, kind: p.kind, active: !!p.active, code: p.code, rate: p.rate, months: cfg.months, vcode: vc ? p.vcode : '', vpct: vc ? vc.value : 0,
+    bank: p.bank ? String(p.bank).replace(/\d(?=\d{4})/g, '•') : '',
+    cust: Object.keys(custs).length, n: cnt(live), sales: L.filter(live).reduce((s, o) => s + o.goods, 0),
+    ready: sum(o => o.ready), readyN: cnt(o => o.ready), wait: sum(o => live(o) && !o.paid && !o.ready), waitN: cnt(o => live(o) && !o.paid && !o.ready),
+    paid: pays.reduce((s, q) => s + (q.net || 0), 0), taxFrom: TAX_FROM, taxPct: TAX_PCT,
+    orders: L.slice(0, 300).map(o => ({ who: o.who.split(' · ')[0], time: o.time, goods: o.goods, rate: o.rate, comm: o.comm, st: o.void ? 'void' : o.paid ? 'paid' : o.ready ? 'ready' : 'wait', status: o.status })),
+    pays: pays.map(q => ({ at: q.at, net: q.net, tax: q.tax, n: q.n }))
+  };
 }
 
 /** Lệnh CRM. ref_code / ref_gift: sale làm cho khách mình (crm.js kiểm tra người phụ trách trước). Còn lại: Quản lý trở lên. */

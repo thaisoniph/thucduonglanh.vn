@@ -1247,7 +1247,35 @@
     var box = $('#refPage'); if (!box) return;
     var f = $('[data-rf-form]', box), out = $('[data-rf-out]', box), msg = $('[data-rf-msg]', box), inp = f.querySelector('[name=phone]');
     inp.value = load('tdl_rf_phone', '') || ((load('tdl_customer', null) || {}).phone) || '';
+    var cnt = $('[data-rf-count]'); // số người đã mua nhờ được giới thiệu (api journey.js referred, chỉ hiện khi đủ nhiều)
+    if (cnt && jrApi()) jrData().then(function (j) { if (j && j.refs >= 10) { cnt.innerHTML = '🌱 Đã có <b>' + vn(j.refs) + '</b> người mua sản phẩm nhờ người thân, bạn bè giới thiệu'; cnt.hidden = false; } });
     f.addEventListener('submit', function (e) { e.preventDefault(); var p = normPhone(inp.value); if (!/^0\d{9,10}$/.test(p)) { msg.textContent = 'Số điện thoại chưa đúng, bạn kiểm tra lại giúp nhé.'; msg.className = 'form-msg err'; inp.focus(); return; } refLoad(p, out, msg, f.querySelector('button')); });
+  }
+  /* ---------- 🤝 Trang CTV tự xem hoa hồng /ctv/#<link bí mật> (build.py page_ctv, api partner.js ctvMe). Link nhớ trên máy để lần sau mở /ctv/ là xem được. */
+  function initCtv() {
+    var box = $('#ctvPage'); if (!box || !CFG.endpoint) return;
+    var key = String(location.hash || '').replace(/^#k?=?/, '').replace(/[^a-f0-9]/g, '') || load('tdl_ctv_key', '');
+    var msg = $('[data-ctv-msg]', box), out = $('[data-ctv-out]', box);
+    if (location.hash) try { history.replaceState(null, '', location.pathname); } catch (e) { } // không để link bí mật trên thanh địa chỉ (chụp màn hình, chia sẻ nhầm)
+    if (!key) { msg.innerHTML = 'Bạn mở trang này bằng <b>link riêng</b> mà ' + esc(CFG.brand) + ' gửi qua Zalo nhé. Chưa có link thì nhắn Zalo ' + esc(CFG.hotline) + '.'; return; }
+    fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ type: 'ctv_me', key: key }) }).then(function (r) { return r.json(); }).then(function (j) {
+      if (!j || !j.ok) { if (j && j.bad) try { localStorage.removeItem('tdl_ctv_key'); } catch (e) { } msg.textContent = (j && j.error) || 'Chưa tải được, bạn thử lại nhé.'; return; }
+      save('tdl_ctv_key', key); msg.hidden = true; track('ctv_view', {});
+      var d = function (t) { var x = new Date(t); return ('0' + x.getDate()).slice(-2) + '/' + ('0' + (x.getMonth() + 1)).slice(-2) + '/' + x.getFullYear(); };
+      var link = location.origin + '/?ref=' + encodeURIComponent(j.code), vlink = j.vcode ? location.origin + '/?uudai=' + encodeURIComponent(j.vcode) + '&ref=' + encodeURIComponent(j.code) : '';
+      var st = { ready: '💰 Đủ điều kiện trả', wait: '⏳ Chờ giao / đổi trả', paid: '✅ Đã trả', 'void': '✖ Huỷ / hoàn' };
+      var tile = function (l, v, s) { return '<div class="ctv-t"><span>' + l + '</span><b>' + v + '</b>' + (s ? '<small>' + s + '</small>' : '') + '</div>'; };
+      $('[data-ctv-h]').textContent = 'Chào ' + j.name + '!';
+      out.innerHTML = (j.active ? '' : '<p class="notice">Tài khoản Cộng tác viên đang tạm dừng. Đơn cũ vẫn được tính như bình thường.</p>') +
+        '<div class="ctv-tiles">' + tile('Đủ điều kiện, chờ chuyển', money(j.ready), j.readyN + ' đơn') + tile('Đang chờ giao / đổi trả', money(j.wait), j.waitN + ' đơn') + tile('Đã nhận', money(j.paid), j.pays.length + ' lần chuyển') + tile('Khách của bạn', j.cust, j.n + ' đơn · ' + money(j.sales) + ' tiền hàng') + '</div>' +
+        '<p class="ctv-rate">Hoa hồng <b>' + j.rate + '%</b> tiền hàng, tính mọi đơn của khách trong <b>' + j.months + ' tháng</b>' + (j.bank ? ' · nhận tiền về: ' + esc(j.bank) : '') + '</p>' +
+        '<p class="rf-eye">Link giới thiệu của bạn</p><div class="rf-link"><input type="text" readonly value="' + esc(vlink || link) + '" aria-label="Link giới thiệu"><button type="button" class="btn" data-ctv-copy="' + esc(vlink || link) + '">Copy link</button></div>' +
+        (j.vcode ? '<p class="rf-code">Mã giảm giá cho khách mới của bạn: <b>' + esc(j.vcode) + '</b> (giảm ' + j.vpct + '% đơn đầu). Khách bấm link trên là mã tự áp dụng, hoặc nhập mã ở trang thanh toán.</p>' : '<p class="rf-code">Khách bấm link này rồi đặt hàng trong 30 ngày là được tính cho bạn.</p>') +
+        '<p class="rf-eye" style="margin-top:16px">🧾 Đơn của khách bạn giới thiệu</p>' + (j.orders.length ? '<div class="ctv-list">' + j.orders.map(function (o) { return '<div class="ctv-o"><span><b>' + esc(o.who) + '</b><small>' + d(o.time) + ' · ' + money(o.goods) + ' × ' + o.rate + '%</small></span><span><b>' + money(o.comm) + '</b><small>' + st[o.st] + '</small></span></div>'; }).join('') + '</div>' : '<p class="muted">Chưa có đơn. Gửi link cho người đầu tiên nhé!</p>') +
+        (j.pays.length ? '<p class="rf-eye" style="margin-top:16px">🏦 Các lần đã chuyển tiền</p><div class="ctv-list">' + j.pays.map(function (q) { return '<div class="ctv-o"><span><b>' + d(q.at) + '</b><small>' + q.n + ' đơn' + (q.tax ? ' · đã trừ thuế TNCN ' + money(q.tax) : '') + '</small></span><span><b>' + money(q.net) + '</b></span></div>'; }).join('') + '</div>' : '');
+      out.hidden = false;
+      $$('[data-ctv-copy]', out).forEach(function (b) { b.onclick = function () { if (navigator.clipboard) navigator.clipboard.writeText(b.getAttribute('data-ctv-copy')).then(function () { toast('Đã sao chép link', 'ok'); }); track('ctv_copy', {}); }; });
+    }, function () { msg.textContent = 'Mạng chập chờn, bạn tải lại trang nhé.'; });
   }
   function initThanks() {
     var el = $('#thanksPage'); if (!el) return;
@@ -1620,7 +1648,7 @@
     captureSource(); initConsent(); trackPageEvents();
     renderCounts(); renderMini(); markWish();
     initHeader(); initClicks(); initRail(); initLightbox(); initProduct(); initCerts(); initProof(); initTabs(); initReadmore(); initSort();
-    initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initJourneyMap(); initPledge(); initRef(); initWall(); initWallStrip(); initQuiz(); initGiftDock(); initZaloGate(); initOcx(); initMusic(); initBrandVideo(); initChat();
+    initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initJourneyMap(); initPledge(); initRef(); initCtv(); initWall(); initWallStrip(); initQuiz(); initGiftDock(); initZaloGate(); initOcx(); initMusic(); initBrandVideo(); initChat();
     window.addEventListener('storage', function (e) { if (e.key === 'tdl_cart') { cart = load('tdl_cart', []); cleanCart(); renderCounts(); renderMini(); } });
   }
   // ===== Hành trình 10 triệu người Việt sống khỏe hơn: bộ đếm [data-jr] + trang "Tôi chọn sống lành" /toi-chon-song-lanh/ (api journey.js) =====

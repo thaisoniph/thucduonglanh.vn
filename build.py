@@ -1862,6 +1862,7 @@ def page_ref():
     <li><span>3</span><b>Nhận quà cảm ơn</b>Đơn của bạn bè giao xong 7 ngày, bạn nhận voucher bằng {rp}% giá trị đơn đó.</li>
   </ol>
   {tier}
+  <p class="rf-count" data-rf-count hidden></p>
   <div class="plg-card rf-card" id="refPage">
     <form data-rf-form novalidate>
       <h2>Lấy link giới thiệu của tôi</h2>
@@ -1875,6 +1876,28 @@ def page_ref():
   <p>Cần hỗ trợ, bạn nhắn Zalo hoặc gọi <a href="tel:{tel(SITE["hotline"])}">{esc(SITE["hotline"])}</a>.</p></details>
 </div></section>'''
     return layout(REF_PATH, f"Giới thiệu bạn bè – Đại sứ Sống Lành cùng {BRAND}", f"Giới thiệu bạn bè mua sản phẩm {BRAND}: bạn bè giảm {fp}% đơn đầu, bạn nhận voucher cảm ơn {rp}% giá trị đơn" + (f" và quà khi đủ {tn} người" if tn else "") + ".", body, body_class="page-ref")
+
+
+CTV_PATH = "/ctv/"
+
+
+def page_ctv():
+    """🤝 Trang Cộng tác viên tự xem hoa hồng /ctv/#<link bí mật> (28/10/2026): không đăng nhập, link do quản lý gửi qua Zalo (CRM → Cài đặt → 🤝 → 🔐 Link xem hoa hồng).
+    main.js initCtv gọi api partner.js ctvMe. noindex, không vào sitemap."""
+    body = f'''<section class="section plg-page ctv-page"><div class="container plg-in">
+  <p class="join-eye">🤝 Cộng tác viên {BRAND}</p>
+  <h1 class="plg-h" data-ctv-h>Trang của Cộng tác viên</h1>
+  <div class="plg-card ctv-card" id="ctvPage"><p class="muted" data-ctv-msg>Đang tải…</p><div data-ctv-out hidden></div></div>
+  <details class="rf-rules"><summary>Cách tính hoa hồng</summary><ol>
+    <li>Khách <b>mới</b> (số điện thoại chưa từng mua) đặt hàng qua link hoặc mã giảm giá của bạn thì thuộc về bạn.</li>
+    <li>Mọi đơn của khách đó trong thời hạn (xem ở trên) đều được tính hoa hồng trên tiền hàng, không tính phí ship. Đơn khách đặt qua điện thoại, Zalo cũng được tính.</li>
+    <li>Hoa hồng đủ điều kiện trả khi đơn <b>đã giao</b> và qua <b>7 ngày</b> đổi trả. Đơn huỷ hoặc hoàn không tính.</li>
+    <li>{BRAND} chuyển khoản theo kỳ đối soát. Lần trả từ 2.000.000đ trở lên được khấu trừ 10% thuế thu nhập cá nhân theo quy định.</li>
+    <li>Chỉ tính khách bạn giới thiệu trực tiếp, không tính nhiều tầng.</li>
+    <li>Khi đăng bài, bạn chỉ nói đúng công dụng ghi trên bao bì, không dùng các từ “chữa”, “điều trị”, “khỏi bệnh”, và ghi rõ: sản phẩm không phải là thuốc, không có tác dụng thay thế thuốc chữa bệnh.</li>
+  </ol><p>Link trang này là của riêng bạn, đừng chia sẻ cho người khác. Cần hỗ trợ, bạn nhắn Zalo <a href="tel:{tel(SITE["hotline"])}">{esc(SITE["hotline"])}</a>.</p></details>
+</div></section>'''
+    return layout(CTV_PATH, f"Cộng tác viên {BRAND}", f"Trang riêng của Cộng tác viên {BRAND}: khách, đơn hàng và hoa hồng.", body, body_class="page-ctv", noindex=True)
 
 
 def page_quiz():
@@ -3184,6 +3207,7 @@ def main():
         routes.append(write(WALL_PATH, page_wall()))
         if REF_PATH:
             routes.append(write(REF_PATH, page_ref()))
+        write(CTV_PATH, page_ctv())  # trang CTV tự xem hoa hồng: link bí mật, không vào sitemap
         if QUIZ.get("questions"):
             routes.append(write(QUIZ_PATH, page_quiz()))
             write(QUIZ_GROUP_PATH, page_quiz_group())  # màn hình chơi nhóm: không vào sitemap
@@ -3275,7 +3299,7 @@ def main():
         sm += [sm_url(ALT_ROUTES[lang][r], r, lang) for r in pub]
     sm.append("</urlset>")
     (DIST / "sitemap.xml").write_text("\n".join(sm), "utf-8")
-    private = ["/gio-hang/", "/thanh-toan/", "/dat-hang-thanh-cong/"]
+    private = ["/gio-hang/", "/thanh-toan/", "/dat-hang-thanh-cong/", CTV_PATH]
     private += [ALT_ROUTES[lang][r] for lang in ALT_ROUTES for r in private if r in ALT_ROUTES[lang]]
     (DIST / "robots.txt").write_text("User-agent: *\nAllow: /\n" + "".join(f"Disallow: {r}\n" for r in private) + f"Disallow: /admin/\nDisallow: /chat-kb.txt\n\nSitemap: {DOMAIN}/sitemap.xml\n", "utf-8")
     (DIST / "llms.txt").write_text(llms_txt(), "utf-8")
