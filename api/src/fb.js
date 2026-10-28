@@ -504,9 +504,10 @@ export async function crmFp(x, u, d, crmLog) {
     const tk = String(d.ptk || '').trim(); if (tk.length < 40) return { ok: false, error: 'Mã truy cập chưa đúng.' };
     let list;
     try {
-      const me = await graph('me?fields=id,name', tk);
-      let isPage = false; try { await graph('me?fields=fan_count', tk); isPage = true; } catch (e) { }
-      list = isPage ? [{ id: me.id, name: me.name, access_token: tk }] : await userPages(tk);
+      const me = await graph('me?fields=id,name&metadata=1', tk); // metadata.type: page | user (không cần quyền đọc trang)
+      const isPage = (me.metadata && me.metadata.type) === 'page';
+      if (isPage) list = [{ id: me.id, name: me.name, access_token: tk }];
+      else { try { list = await userPages(tk); } catch (e) { list = [{ id: me.id, name: me.name, access_token: tk }]; } } // không đọc được danh sách trang → coi như mã trang
     } catch (e) { return { ok: false, error: 'Facebook không nhận mã này: ' + e.message }; }
     if (!list.length) return { ok: false, error: 'Mã này không quản lý fanpage nào.' };
     const pages = await savePages(x, list);
