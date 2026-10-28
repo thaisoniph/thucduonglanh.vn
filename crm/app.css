@@ -1184,3 +1184,13 @@ div.f > span { display: block; font-size: 13px; font-weight: 600; color: var(--i
 .wl-t { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .wl-v { margin-left: auto; font-weight: 700; font-variant-numeric: tabular-nums; }
 .wl-2 { margin: 4px 0 2px; font-size: 14px; color: var(--ink); overflow-wrap: anywhere; }
+
+/* tab Marketing: 4 câu hỏi lớn ở phần chi tiết (mkGroup) */
+.mk-grp { margin: 0 0 18px; }
+.mk-grp-h { display: flex; gap: 12px; align-items: flex-start; margin: 0 0 8px; }
+.mk-grp-n { flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--primary); color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.mk-grp-h h3 { margin: 2px 0 2px; font-size: 18px; color: var(--ink); }
+.mk-grp-h p { margin: 0; font-size: 15px; color: var(--ink); }
+.mk-grp-b { padding-left: 42px; }
+.mk-grp-b .dash-more { margin-bottom: 8px; }
+@media (max-width: 640px) { .mk-grp-b { padding-left: 0; } }

@@ -110,17 +110,17 @@ Sale cần biết quảng cáo đang hứa gì, để nói đúng với khách.
 
 Sale thấy ngay ở đầu tab **Khách hỏi**. Hết hạn thì tự ẩn.
 
-## Xem chi tiết: quảng cáo nào tốt, nào nên tắt
+## Xem chi tiết: 4 câu hỏi, đọc từ trên xuống
 
-Bấm vào từng mục để mở:
+Phần dưới màn hình là **4 câu hỏi** theo đúng thứ tự người làm marketing cần trả lời. Dưới mỗi câu hỏi có **câu trả lời ngắn** (đèn 🟢🟠🔴). Câu nào đèn đỏ thì bấm mở các mục bên dưới để tìm nguyên nhân.
 
-- **🎬 Mọi chiến dịch trong kỳ (cả đã tắt)**: chấm điểm theo kỳ đang chọn (tháng này, tháng trước…). 🟢 *Nên tăng tiền* (rẻ hơn trung bình từ 20%) · 🟠 *Giữ nguyên* · 🔴 *Nên giảm / tắt* (đắt hơn từ 40%, hoặc tiêu nhiều mà chưa có kết quả) · ⚪ *Chưa đủ số*. Dòng 🎨 báo mẫu quảng cáo đã nhàm.
-- **🤝 Phản hồi từ sale**: số khách từ nguồn nào tốt, vì sao khách không mua, bao lâu thì khách mua, tỷ lệ trả hàng.
-- **🪜 Quảng cáo rơi rụng ở đâu?** Thấy → bấm → để số → mua → tiền. Chỉ ra khâu yếu nhất.
-- **🧴 Quảng cáo từng sản phẩm**: lời, hoà vốn hay lỗ.
-- **💎 1 khách mới đáng giá bao nhiêu?**: mức tối đa nên chi để có 1 khách mới.
-
-Nếu các sale chênh nhau nhiều, vấn đề có thể nằm ở khâu tư vấn, chưa chắc do quảng cáo.
+1. **💰 Tiền quảng cáo có lời không?** Bỏ 1đ quảng cáo, khách mới mua bao nhiêu đ.
+   - 📊 Kênh nào bỏ 1 đồng thu về nhiều nhất · 📈 Hiệu quả đang tốt lên hay kém đi · 💎 Được chi tối đa bao nhiêu để có 1 khách mới · 🎯 Mỗi kênh đạt bao nhiêu % mục tiêu.
+2. **📣 Quảng cáo nào tốt, quảng cáo nào dở?**
+   - 🎬 Tính cả kỳ: chiến dịch nào nên tăng, nên tắt (gồm cả chiến dịch đã tắt) · 🧴 Sản phẩm nào chạy quảng cáo có lời · 🪜 Khách rơi rụng ở bước nào (thấy → bấm → nhắn → để số → mua).
+3. **📇 Số điện thoại về sale có ra đơn không?**
+   - 📇 Bao nhiêu số, giá 1 số, còn bao nhiêu sale chưa gọi · 🤝 Sale kể lại: vì sao khách không mua, nguồn nào số tốt. Nếu các sale chênh nhau nhiều, vấn đề có thể nằm ở khâu tư vấn, chưa chắc do quảng cáo.
+4. **🌱 Kênh tự có (không tốn tiền quảng cáo)**: 🌐 website, 👥 nhóm Zalo, 🌱 "Tôi chọn sống lành", 🖐 trò chơi trên web.
 
 ## Trò chơi và "Tôi chọn sống lành" trên website
 

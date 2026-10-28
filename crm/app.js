@@ -4630,7 +4630,7 @@
         (sl.unassigned ? '<p class="small muted">' + sl.unassigned + ' data chưa chia cho sale.</p>' : ''));
       if (ss.length > 1 && gap >= 15) T.push({ p: 4, t: '🧑‍💼 Tỷ lệ chốt giữa các sale chênh ' + gap + ' điểm (' + mn + '% → ' + mx + '%): vấn đề nằm ở khâu tư vấn nhiều hơn quảng cáo.' });
     }
-    var line = ['Data ra đơn ' + pct(ad.won, ad.n) + '%', top ? 'không mua nhiều nhất vì ' + top.toLowerCase() : '', sl.ord ? 'hoàn / huỷ ' + pct(sl.voidN, sl.ord) + '%' : ''].filter(Boolean).join(' · ');
+    var line = [pct(ad.won, ad.n) + '% số điện thoại đã mua', top ? 'không mua nhiều nhất vì ' + top.toLowerCase() : '', sl.ord ? 'hoàn / huỷ ' + pct(sl.voidN, sl.ord) + '%' : ''].filter(Boolean).join(' · ');
     return { h: h + '<p class="bar-legend">Tính từ data trong file số quảng cáo của kỳ này và kết quả sale ghi (khách hỏi, đơn hàng). Chỉ có con số tổng, không có thông tin khách.</p>', line: line, todo: T };
   }
   /** Mục thu gọn của tab Marketing: tiêu đề + 1 dòng tóm tắt, bấm mới mở. Nhớ mục đang mở (mkt_open). */
@@ -4704,6 +4704,10 @@
       '<div class="dash-grid wl-g"><div class="box"><h3>📍 Khách đến từ đâu</h3>' + bar(src) + '</div><div class="box"><h3>🧴 Mua gì</h3>' + bar(prod) + '</div><div class="box"><h3>🏠 Ở đâu</h3>' + bar(prov) + '</div></div>' +
       '<h3 class="wl-h">Từng đơn (mới nhất trước)</h3><div class="wl">' + rows + '</div>' + ((wb.list || []).length > n ? '<button class="btn ghost sm" data-wlall="1">Xem thêm ' + ((wb.list || []).length - n) + ' đơn</button>' : '') +
       '<p class="bar-legend">"Khách đến từ đâu" đọc từ link khách bấm vào web (UTM, mã 📍 Link &amp; QR, trang giới thiệu). ' + (adm ? 'Bấm tên khách để mở hồ sơ.' : 'Tài khoản Marketing không xem được tên, số điện thoại khách (Nghị định 13/2023).') + '</p>';
+  }
+  /** 1 câu hỏi lớn ở phần chi tiết tab Marketing: số thứ tự + câu hỏi + câu trả lời ngắn, bên dưới là các mục con thu gọn. */
+  function mkGroup(no, q, ans, body) {
+    return '<section class="mk-grp"><div class="mk-grp-h"><span class="mk-grp-n">' + no + '</span><div><h3>' + q + '</h3><p>' + ans + '</p></div></div>' + (body ? '<div class="mk-grp-b">' + body + '</div>' : '') + '</section>';
   }
   function mkMore(k, title, line, body) {
     if (!body) return '';
@@ -4885,13 +4889,13 @@
     if (L.length) h += '<div class="box dash-notes"><h3>✅ Nên làm gì</h3>' + L.map(function (x) { return '<p>' + x + '</p>'; }).join('') + '</div>';
     h += LB.h;
     h += offerAdmin();
-    // ---- chi tiết: thu gọn, bấm mới mở (xếp theo mức quan trọng)
-    h += '<h2 class="mk-more-h">Xem chi tiết <span class="tip">bấm vào từng mục để mở</span></h2>';
-    if (GB.body) h += mkMore('goal', '🎯 Mục tiêu từng kênh', GB.line, GB.body);
+    // ---- chi tiết (29/10/2026): gom thành 4 câu hỏi theo thứ tự người làm marketing tự hỏi; mỗi câu có câu trả lời ngắn, mục con thu gọn bấm mới mở (mkGroup)
+    var D = {};
+    if (GB.body) D.goal = mkMore('goal', '🎯 Mỗi kênh đạt bao nhiêu % mục tiêu tháng?', GB.line, GB.body);
     var wb = mj.web, wbp = mj.webPrev;
     if (wb && wb.share !== null) {
       var wsum = wb.newRev + wb.oldRev + wb.fb, wsp = wbp ? wbp.newRev + wbp.oldRev + wbp.fb : null;
-      h += mkMore('web', '🌐 Website: khách mới & khách cũ', oneDec(wb.share) + '% tổng doanh số · khách mới ' + pct(wb.newRev, wsum) + '% · khách cũ ' + pct(wb.oldRev, wsum) + '%', '<div class="metrics dash-m3">' +
+      D.web = mkMore('web', '🌐 Website bán được bao nhiêu, khách từ đâu tới?', oneDec(wb.share) + '% tổng doanh số · khách mới ' + pct(wb.newRev, wsum) + '% · khách cũ ' + pct(wb.oldRev, wsum) + '%', '<div class="metrics dash-m3">' +
         metric('Tiền đơn web', moneyShort(wsum), (wb.newN + wb.oldN) + ' khách đặt trên web.', delta(wsum, wsp)) +
         metric('% tiền qua website', oneDec(wb.share) + '%', 'Tiền đơn web ÷ toàn bộ doanh số (sale + web + sàn). Càng cao càng đỡ phí sàn.', wbp && wbp.share !== null ? dRate(wb.share, wbp.share) : '') +
         metric('🆕 Khách mới đặt web', moneyShort(wb.newRev) + ' <small>(' + pct(wb.newRev, wsum) + '%)</small>', wb.newN + ' khách mua lần đầu trên web' + (wb.newN ? ' · trung bình ' + moneyShort(Math.round(wb.newRev / wb.newN)) : '') + '.', delta(wb.newRev, wbp ? wbp.newRev : null)) +
@@ -4900,21 +4904,21 @@
         '</div><p class="bar-legend">Mục tiêu Website = tiền khách mới + khách cũ đặt trên web (không gồm phần quảng cáo Facebook). Khách cũ = đã từng mua trước kỳ này. Muốn tăng khách cũ đặt web: gửi link web trong nhóm Zalo, tin nhắn CSKH, thẻ trong đơn sàn.</p>' + mkWebList(wb, S.f.m));
     }
     var cm = mj.comm, cmp = mj.commPrev, csp = 0; mj.days.forEach(function (r) { if (r[1] === MK_COMM) csp += r[2]; });
-    if (cm && (cm.rev || csp)) h += mkMore('comm', '👥 Cộng đồng Zalo', moneyShort(cm.rev) + ' tiền mua lại · ' + cm.buyers + ' khách', '<div class="metrics dash-m3">' +
+    if (cm && (cm.rev || csp)) D.comm = mkMore('comm', '👥 Khách trong nhóm Zalo mua lại bao nhiêu?', moneyShort(cm.rev) + ' tiền mua lại · ' + cm.buyers + ' khách', '<div class="metrics dash-m3">' +
       metric('Tiền mua lại', moneyShort(cm.rev), 'Đơn mua lại (không tính đơn đầu) của khách đã vào nhóm Zalo cộng đồng.', delta(cm.rev, cmp ? cmp.rev : null)) +
       metric('Khách trong nhóm đã mua lại', cm.buyers, cm.n + ' đơn' + (cm.buyers ? ' · trung bình ' + moneyShort(Math.round(cm.rev / cm.buyers)) + ' / khách' : '') + '.', delta(cm.buyers, cmp ? cmp.buyers : null)) +
       metric('Chi phí cộng đồng', csp ? moneyShort(csp) : '–', csp && cm.rev ? 'Bằng ' + Math.round(csp * 100 / cm.rev) + '% tiền mua lại. Quà tặng, minigame… nhập ở ⚙️ Nhập chi phí → kênh Cộng đồng Zalo.' : 'Quà tặng, minigame… nhập ở ⚙️ Nhập chi phí → kênh Cộng đồng Zalo.', '') +
       '</div><p class="bar-legend">Khách được tính là trong nhóm khi sale / CSKH bấm "Đã vào" ở ô Cộng đồng trên hồ sơ khách. Đánh dấu đủ thì số này mới đúng.</p>');
-    var PL = mkPledgeBlock(mj.pledge); if (PL) h += mkMore('pledge', '🌱 Tôi chọn sống lành (website)', PL.line, PL.h);
-    var QZ = mkQuizBlock(mj.quiz) || { line: 'Chưa có lượt chơi trong kỳ', h: '' }; h += mkMore('quiz', '🖐 Trò chơi Bạn còn mấy ngón tay (website)', QZ.line, QZ.h + qzeBox());
-    h += mkMore('camp', '🎬 Mọi chiến dịch trong kỳ (cả đã tắt)', CB.line, CB.h);
-    h += mkMore('sale', '🤝 Phản hồi từ sale', SB.line, SB.h);
-    h += mkMore('fun', '🪜 Quảng cáo đi tới đâu thì rơi rụng?', FN.weak ? '🔴 Khâu yếu nhất: ' + FN.weak.l : 'Từ lúc khách thấy quảng cáo đến lúc trả tiền', FN.h);
-    h += mkMore('prod', '🧴 Quảng cáo từng sản phẩm', PB.line, PB.h);
+    var PL = mkPledgeBlock(mj.pledge); if (PL) D.pledge = mkMore('pledge', '🌱 Bao nhiêu người bấm "Tôi chọn sống lành" trên web?', PL.line, PL.h);
+    var QZ = mkQuizBlock(mj.quiz) || { line: 'Chưa có lượt chơi trong kỳ', h: '' }; D.quiz = mkMore('quiz', '🖐 Trò chơi "Bạn còn mấy ngón tay": khách thấy khó điều gì?', QZ.line, QZ.h + qzeBox());
+    D.camp = mkMore('camp', '🎬 Tính cả kỳ: chiến dịch nào nên tăng, nên tắt?', CB.line, CB.h);
+    D.sale = mkMore('sale', '🤝 Sale kể lại: vì sao khách không mua?', SB.line, SB.h);
+    D.fun = mkMore('fun', '🪜 Khách rơi rụng ở bước nào?', FN.weak ? '🔴 Khâu yếu nhất: ' + FN.weak.l : 'Từ lúc khách thấy quảng cáo đến lúc trả tiền', FN.h);
+    D.prod = mkMore('prod', '🧴 Sản phẩm nào chạy quảng cáo có lời?', PB.line, PB.h);
     var bestCh = Object.keys(ch).filter(function (k) { return ch[k] > 0 && E[k] && E[k].newRev; }).sort(function (x, y) { return ch[x] / E[x].newRev - ch[y] / E[y].newRev; });
-    h += mkMore('ch', '🎯 Hiệu quả từng kênh', bestCh.length ? bestCh.map(function (k) { return chInfo(k).icon + ' ' + esc(k) + ' ' + Math.round(ch[k] * 100 / E[k].newRev) + '%'; }).join(' · ') + ' (chi phí / tiền khách mới)' : 'Chi phí so với tiền khách mới của từng kênh', effBlock(E, Ep, ch, chp, f.sfb, null, 1));
-    h += mkMore('ltv', '💎 1 khách mới đáng giá bao nhiêu?', LT.line || '', LT.h);
-    if (ad) h += mkMore('data', '📇 Data quảng cáo', ad.n + ' data · ' + per(ad.n, tot) + ' / data · ' + (ad.idle ? '⏳ ' + ad.idle + ' chưa có kết quả tư vấn' : 'rác ' + pct(ad.junk, ad.n) + '%'), '<div class="metrics dash-m3">' +
+    D.ch = mkMore('ch', '📊 Kênh nào bỏ 1 đồng thu về nhiều nhất?', bestCh.length ? bestCh.map(function (k) { return chInfo(k).icon + ' ' + esc(k) + ': bỏ 1đ thu ' + oneDec(E[k].newRev / ch[k]) + 'đ'; }).join(' · ') : 'Chi phí so với tiền khách mới của từng kênh', effBlock(E, Ep, ch, chp, f.sfb, null, 1));
+    D.ltv = mkMore('ltv', '💎 Được chi tối đa bao nhiêu để có 1 khách mới?', LT.line || '', LT.h);
+    if (ad) D.data = mkMore('data', '📇 Bao nhiêu số điện thoại về sale, giá 1 số, còn bao nhiêu chưa gọi?', ad.n + ' số · ' + per(ad.n, tot) + ' / 1 số · ' + (ad.idle ? '⏳ ' + ad.idle + ' chưa có kết quả tư vấn' : 'rác ' + pct(ad.junk, ad.n) + '%'), '<div class="metrics dash-m3">' +
       metric('Tổng data', ad.n, ad.fresh + ' số mới · ' + ad.old + ' khách cũ · ' + ad.again + ' từng hỏi trước đây.', delta(ad.n, adp ? adp.n : null), '', ksk(kAn)) +
       metric('Chi phí / data', per(ad.n, tot), 'Chi phí quảng cáo ÷ số data.', ad.n && tot && adp && adp.n && totp ? inv(delta(Math.round(tot / ad.n), Math.round(totp / adp.n))) : '', '', ksk(trendRateNZ(kSp, kAn), true)) +
       metric('Data ra đơn', ad.n ? pct(ad.won, ad.n) + '%' : '–', ad.won + ' / ' + ad.n + ' data đã mua' + (ad.won && tot ? ' · mỗi data ra đơn tốn ' + per(ad.won, tot) : '') + '. Data gần đây còn đang tư vấn nên số này tăng dần.', ad.n && adp && adp.n ? delta(pct(ad.won, ad.n), pct(adp.won, adp.n), 'rate') : '') +
@@ -4927,9 +4931,15 @@
       var nv = dser(mj.newDay), sv = dser(day), full = BM.partial ? BM.L.length - 1 : BM.L.length, hf = Math.floor(full / 2), part = function (a, i, j) { return a.slice(i, j).reduce(function (x, y) { return x + y; }, 0); };
       var r1 = part(nv, 0, hf) ? part(sv, 0, hf) * 100 / part(nv, 0, hf) : null, r2 = part(nv, hf, full) ? part(sv, hf, full) * 100 / part(nv, hf, full) : null;
       var eff = r1 !== null && r2 !== null && hf >= 2 ? (Math.abs(r2 - r1) < 3 ? '➡️ Hiệu quả giữ nguyên: chi phí bằng khoảng ' + Math.round(r2) + '% tiền khách mới cả nửa đầu lẫn nửa sau kỳ.' : (r2 < r1 ? '✅ Hiệu quả đang tốt lên' : '⚠️ Hiệu quả đang kém đi') + ': chi phí bằng ' + Math.round(r1) + '% tiền khách mới ở nửa đầu kỳ, ' + Math.round(r2) + '% ở nửa sau.') : '';
-      h += mkMore('tr', '📈 Chi phí và tiền khách mới theo ngày', eff ? eff.split(':')[0] : 'Biểu đồ theo ngày', (mj.newDay ? '' : '<p class="small muted">⏳ Máy chủ đang cập nhật, bấm ↻ sau 2 phút để có đường tiền khách mới.</p>') +
+      D.tr = mkMore('tr', '📈 Hiệu quả đang tốt lên hay kém đi?', eff ? eff.split(':')[0] : 'Biểu đồ theo ngày', (mj.newDay ? '' : '<p class="small muted">⏳ Máy chủ đang cập nhật, bấm ↻ sau 2 phút để có đường tiền khách mới.</p>') +
         trendChart({ B: BM, fmt: moneyShort, what: 'Tiền khách mới', series: [{ v: nv, name: 'Tiền khách mới mua', cls: 'cur' }, { v: sv, name: 'Chi phí quảng cáo', cls: 'alt' }], note: (eff ? '<b>' + eff + '</b> ' : '') + 'Đường xanh nằm càng cao trên đường vàng là tiền thu về càng nhiều so với tiền quảng cáo.' }));
     }
+    var adsA = tot ? adsLv(tot, nr) : '', mins = function (ks) { return ks.map(function (k) { return D[k] || ''; }).join(''); };
+    h += '<h2 class="mk-more-h">Xem chi tiết <span class="tip">4 câu hỏi, đọc từ trên xuống · bấm từng mục để mở</span></h2>';
+    h += mkGroup('1', '💰 Tiền quảng cáo có lời không?', !tot ? 'Kỳ này chưa có chi phí quảng cáo.' : adsA === 'ok' ? '🟢 Có lời: bỏ 1đ quảng cáo, khách mới mua ' + oneDec(nr / tot) + 'đ.' : adsA === 'mid' ? '🟠 Tạm ổn: bỏ 1đ, khách mới mua ' + oneDec(nr / tot) + 'đ. Cần rẻ hơn chút nữa.' : '🔴 Chưa có lời: bỏ 1đ quảng cáo, khách mới chỉ mua ' + oneDec(nr / (tot || 1)) + 'đ. Mở các mục dưới để xem kênh, chiến dịch nào kéo xuống.', mins(['ch', 'tr', 'ltv', 'goal']));
+    h += mkGroup('2', '📣 Quảng cáo nào tốt, quảng cáo nào dở?', CB.line || 'Chưa có chiến dịch trong kỳ', mins(['camp', 'prod', 'fun']));
+    h += mkGroup('3', '📇 Số điện thoại về sale có ra đơn không?', ad ? ad.n + ' số điện thoại · ' + pct(ad.won, ad.n) + '% đã mua' + (ad.idle ? ' · ⏳ ' + ad.idle + ' số sale chưa gọi xong' : '') : 'Chưa có file số quảng cáo của sale.', mins(['data', 'sale']));
+    h += mkGroup('4', '🌱 Kênh tự có: website & nhóm Zalo (không tốn tiền quảng cáo)', [wb && wb.share !== null ? '🌐 Web = ' + oneDec(wb.share) + '% doanh số' : '', cm && cm.rev ? '👥 Nhóm Zalo mua lại ' + moneyShort(cm.rev) : ''].filter(Boolean).join(' · ') || 'Website, nhóm Zalo, hoạt động trên web', mins(['web', 'comm', 'pledge', 'quiz']));
     h += '<p class="small mk-tgline">📲 Mỗi sáng 8h, Telegram gửi tin <b>📣 Marketing sáng nay</b> (tiến độ mục tiêu, hôm qua, việc nên làm) cho bạn marketing đã kết nối Telegram ở Cài đặt.' + (mkvOnly() ? '' : ' <button class="link" data-mkv="tgtest">Gửi thử cho tôi</button>') + '</p>';
     h += '<p class="small muted" style="margin-top:12px">' + (mj.fb.on ? '📘 Facebook Ads tự cập nhật' + (mj.fb.last ? ' · lần gần nhất ' + fDateTime(mj.fb.last) : '') + ' · ' : '') + 'Số tính lúc ' + fDateTime(mj.at) + (mj.cached ? ' (bấm ↻ để tính lại)' : '') + '. Tiền khách mới = tiền khách mua lần đầu mang về trong kỳ (cả các đơn sau của họ trong kỳ), gắn theo kênh đã đưa khách tới.</p>';
     return h;
