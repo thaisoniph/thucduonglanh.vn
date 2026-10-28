@@ -22,7 +22,16 @@ Phần "bộ não" (AI, quyết định, bài đăng) nằm ở máy chủ: `api
   2. Chưa có số: cầm **điện thoại "Trợ lý An Lành"**, nhắn tay cho khách. Trợ lý thấy người nhắn tay thì **tự nhường cuộc trò chuyện đó 2 tiếng**. Trong nhóm cũng vậy: người trực trả lời ai thì trợ lý không chen vào.
 - Điện thoại "Trợ lý An Lành" nên để ở chỗ người trực (giờ hành chính). Chỉ dùng app Zalo trên điện thoại này; không đăng nhập Zalo PC / web, vì chỗ đó trợ lý đang dùng.
 
-## Cài trên máy Mac (1 lần)
+## Đang chạy ở đâu
+
+Từ 28/10/2026 trợ lý chạy **24/7 trên VPS của công ty** (cùng máy với n8n, không đụng n8n): dịch vụ systemd `tdl-zalo-bot`, thư mục `/opt/tdl-zalo-bot`, người dùng `tdlbot`. Trên Mac của anh Sơn có tên tắt SSH `tdl-vps` (IP và cổng chỉ lưu trong `~/.ssh/config`, không ghi vào repo). Bản trên Mac đã tắt.
+
+- Cập nhật code sau khi sửa `bot.js`: `bash zalo-bot/cai-vps.sh tdl-vps` (giữ nguyên phiên đăng nhập trên VPS).
+- Xem nhật ký: `ssh tdl-vps journalctl -u tdl-zalo-bot -f`
+- Khởi động lại: `ssh tdl-vps systemctl restart tdl-zalo-bot`
+- Zalo bắt đăng nhập lại: `ssh tdl-vps 'cd /opt/tdl-zalo-bot && sudo -u tdlbot node bot.js --dang-nhap'`, chép `qr.png` về (`scp tdl-vps:/opt/tdl-zalo-bot/qr.png .`) rồi quét, xong `systemctl restart tdl-zalo-bot`.
+
+## Cài trên máy Mac (cách cũ, dùng lần đầu để quét QR)
 
 1. Điện thoại có SIM riêng, cài Zalo, đăng nhập tài khoản "Trợ lý An Lành". Nên dùng tay 3–5 ngày trước: đặt ảnh đại diện, kết bạn vài người, nhắn vài tin.
 2. Trong nhóm Zalo: thêm "Trợ lý An Lành" vào nhóm → **đặt làm phó nhóm** (để duyệt thành viên). Bật **Duyệt thành viên mới** nếu muốn chỉ người đã để số mới được vào.

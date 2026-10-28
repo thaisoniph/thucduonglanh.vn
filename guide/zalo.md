@@ -2,7 +2,7 @@
 title: Trợ lý Zalo An Lành
 nav: Trợ lý Zalo
 order: 8
-updated: 2026-10-27
+updated: 2026-10-28
 description: Cài đặt và sử dụng tài khoản Zalo "Trợ lý An Lành" trong nhóm Sống khỏe cùng Thực Dưỡng Lành – chào người mới, trả lời, đăng bài, chuyển ca khó cho người thật.
 ---
 
@@ -113,13 +113,13 @@ Bấm **⚙️ Cài đặt trợ lý** để mở.
 2. Màn hình hiện **mã QR**. Trên điện thoại của trợ lý: mở Zalo → bấm biểu tượng **QR** → quét → bấm **Đăng nhập**.
 3. Thấy chữ **"✅ Trợ lý đang chạy nền"** là xong.
 
-Máy Mac phải **bật và có mạng** thì trợ lý mới chạy.
+Từ 28/10/2026 trợ lý chạy trên **máy chủ riêng của công ty (VPS)**, 24/7. Không cần để máy Mac bật.
 
 ## Khi có sự cố
 
 | Thấy gì | Làm gì |
 |---|---|
-| 🔴 Mất kết nối | Báo anh Sơn kiểm tra máy Mac |
+| 🔴 Mất kết nối | Báo anh Sơn (trợ lý tự thử kết nối lại mỗi phút) |
 | Telegram báo "bị đăng xuất" | Mang điện thoại của trợ lý tới anh Sơn để quét lại mã QR |
 | Zalo khoá tài khoản trợ lý | Nhóm không sao. Dùng SIM khác, làm lại phần cài đặt lần đầu |
 | Trợ lý nói sai | Cài đặt → bỏ tích **Bật trợ lý** → **Lưu cài đặt** |
