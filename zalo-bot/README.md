@@ -55,6 +55,8 @@ Từ 28/10/2026 trợ lý chạy **24/7 trên VPS của công ty** (cùng máy v
 ## Để Zalo không khoá tài khoản
 
 - Trợ lý **không tự nhắn cho người lạ**. Nó chỉ trả lời người nhắn trước, đồng ý kết bạn, và nói trong nhóm.
+- Tra Zalo theo số điện thoại (để tự duyệt / chúc mừng khách web) tối đa 1 lần / 3 phút và 25 lần / ngày; quá thì để hôm sau. Mỗi khách nhắn riêng được trả lời tối đa 30 tin / ngày.
+- Câu trả lời dài được tách thành 2 tin ngắn.
 - Mỗi tin cách nhau vài giây và có "đang soạn tin" như người thật. Mỗi nhóm tối đa 8 câu trả lời / giờ (đổi được ở Cài đặt). Từ 21h45 đến 6h không chủ động nói trong nhóm.
 - Đây là cách không chính thức. Zalo có thể khoá tài khoản trợ lý, nhưng nhóm không bị ảnh hưởng vì anh Sơn vẫn là trưởng nhóm. Nếu bị khoá thì dùng SIM khác, cài lại.
 
