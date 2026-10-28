@@ -27,9 +27,37 @@ export function vcLabel(v) {
 function expAt(s) { if (!s) return 0; const t = new Date(String(s) + 'T23:59:59+07:00').getTime(); return isNaN(t) ? 0 : t; }
 const LIVE = "status NOT LIKE '%uỷ%' AND status NOT LIKE '%ủy%' AND status NOT LIKE '%Hoàn%'"; // đơn huỷ / hoàn trả lại lượt dùng
 
-/** Kiểm tra mã cho 1 đơn. phone có thể trống (khách chưa nhập) → mã gắn số điện thoại báo cần nhập số trước. */
+const LIVE_O = "status NOT LIKE '%uỷ%' AND status NOT LIKE '%ủy%' AND status NOT LIKE '%oàn%'";
+/** 🎁 Mã giới thiệu của khách đã mua: TÊN + 3 số cuối SĐT (HUONG522), bạn bè mua lần đầu giảm refPct %. Đã có thì trả mã cũ.
+ *  Dùng chung cho: sale bấm 🎁 Mã giới thiệu (partner.js), khách tự lấy ở /gioi-thieu-ban-be/, bạn bè gõ SĐT người giới thiệu vào ô mã ưu đãi.
+ *  Khách chưa có đơn nào (không huỷ / hoàn) → null. */
+export async function makeRefCode(x, phone, by, refPct) {
+  phone = normPhone(phone);
+  const old = await first(x.db, 'SELECT * FROM vouchers WHERE ref_phone = ? AND active = 1 ORDER BY created LIMIT 1', phone);
+  if (old) return { code: old.code, label: vcLabel(old), v: old };
+  const c = await first(x.db, 'SELECT name FROM customers WHERE phone = ?', phone);
+  if (!c || !(await first(x.db, 'SELECT count(*) AS n FROM orders WHERE phone = ? AND ' + LIVE_O, phone)).n) return null;
+  const w = vcNorm(String(c.name || '').replace(/\(.*?\)/g, ' ').trim().split(/\s+/).pop() || 'BAN').slice(0, 8) || 'BAN';
+  let code = w + phone.slice(-3), i = 1;
+  while (await first(x.db, 'SELECT code FROM vouchers WHERE code = ?', code)) code = w + phone.slice(-3) + (++i);
+  await run(x.db, "INSERT INTO vouchers (code, kind, value, max_off, min_sub, exp, max_uses, once, phone, note, active, created, by_name, ref_phone, new_only) VALUES (?, 'percent', ?, 0, 0, '', 0, 1, '', ?, 1, ?, ?, ?, 1)",
+    code, refPct, 'Mã giới thiệu của ' + (c.name || phone), Date.now(), by || '', phone);
+  await run(x.db, 'INSERT INTO logs (time, by_name, what, ref, name, result, note) VALUES (?, ?, ?, ?, ?, ?, ?)', Date.now(), by || '', 'Mã giới thiệu', phone, c.name || '', code, 'Bạn bè giảm ' + refPct + '% đơn đầu');
+  return { code, label: 'Giảm ' + refPct + '%', isNew: true, v: await first(x.db, 'SELECT * FROM vouchers WHERE code = ?', code) };
+}
+async function refPctOf(x) { try { const c = JSON.parse((await kvGet(x.db, 'partner_cfg')) || '{}'); return c.refPct == null ? 10 : Number(c.refPct); } catch (e) { return 10; } } // = partnerCfg(x).refPct (partner.js nhập file này)
+
+/** Kiểm tra mã cho 1 đơn. phone có thể trống (khách chưa nhập) → mã gắn số điện thoại báo cần nhập số trước.
+ *  Khách gõ SỐ ĐIỆN THOẠI người giới thiệu vào ô mã (28/10/2026) → đổi thành mã giới thiệu của người đó. */
 async function vcCheck(x, code, sub, phone) {
   code = vcNorm(code); if (!code) return { ok: false, error: 'Bạn nhập mã ưu đãi giúp nhé.' };
+  if (/^(0\d{9,10}|84\d{9,10})$/.test(code)) {
+    const rp = normPhone(code);
+    if (phone && normPhone(phone) === rp) return { ok: false, error: 'Đây là số của chính bạn. Ô này để nhập số điện thoại của người đã giới thiệu bạn nhé.' };
+    const r = await makeRefCode(x, rp, 'Website', await refPctOf(x));
+    if (!r) return { ok: false, bad: true, error: 'Số ' + rp + ' chưa từng mua hàng tại Thực Dưỡng Lành nên chưa có ưu đãi giới thiệu. Bạn kiểm tra lại số giúp nhé.' };
+    code = r.code;
+  }
   const v = await first(x.db, 'SELECT * FROM vouchers WHERE code = ?', code);
   if (!v || !v.active) return { ok: false, bad: true, error: 'Mã ưu đãi không đúng. Bạn kiểm tra lại giúp nhé.' };
   if (v.exp && expAt(v.exp) < Date.now()) return { ok: false, error: 'Mã ưu đãi đã hết hạn.' };

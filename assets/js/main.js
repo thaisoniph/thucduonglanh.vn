@@ -1074,8 +1074,8 @@
     var msg = vcUi.msg ? '<small class="vc-msg' + (vcUi.err ? ' err' : '') + '">' + esc(vcUi.msg) + '</small>' : '';
     if (VC) return '<div class="vc-row"><span>🎟 ' + T('Mã') + ' <b>' + esc(VC.code) + '</b> <button type="button" class="vc-rm" data-vc-rm>' + T('Bỏ mã') + '</button></span>' +
       (t.on ? '<b class="free">' + (VC.kind === 'ship' ? T('Miễn phí ship') : '−' + money(t.off)) + '</b>' : '<small class="vc-low">' + TF('Áp dụng cho đơn từ {0}', money(VC.min_sub)) + '</small>') + '</div>';
-    if (!vcUi.open) return '<div class="vc-box"><button type="button" class="vc-open" data-vc-open>' + T('Có mã ưu đãi?') + '</button></div>';
-    return '<div class="vc-box"><div class="vc-in"><input type="text" data-vc-in value="' + esc(vcUi.draft) + '" placeholder="' + T('Nhập mã ưu đãi') + '" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="30" aria-label="' + T('Mã ưu đãi') + '">' +
+    if (!vcUi.open) return '<div class="vc-box"><button type="button" class="vc-open" data-vc-open>' + T('Có mã ưu đãi / người giới thiệu?') + '</button></div>';
+    return '<div class="vc-box"><div class="vc-in"><input type="text" data-vc-in value="' + esc(vcUi.draft) + '" placeholder="' + T('Mã ưu đãi hoặc SĐT người giới thiệu') + '" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="30" aria-label="' + T('Mã ưu đãi') + '">' +
       '<button type="button" class="btn vc-go" data-vc-apply' + (vcUi.busy ? ' disabled' : '') + '>' + (vcUi.busy ? T('Đang kiểm tra…') : T('Áp dụng')) + '</button></div>' + msg + '</div>';
   }
   function vcClear() { VC = null; try { localStorage.removeItem('tdl_vc'); localStorage.removeItem('tdl_vc_code'); } catch (e) { } }
@@ -1200,6 +1200,55 @@
     var of = mountOrderForm(m, { items: items, type: 'mua_ngay' }); vcMount(m, items, refresh); refresh();
     form.addEventListener('submit', function (e) { e.preventDefault(); var msg = m.querySelector('.form-msg'); msg.textContent = ''; var data = of.collect(); if (!data) return; placeOrder(items(), data, m.querySelector('.btn-order'), msg); });
   }
+  /* ---------- 🌱 Đại sứ Sống Lành (28/10/2026): khách đã mua lấy link giới thiệu, xem bạn bè đã mua + voucher cảm ơn + mốc quà.
+     Trang /gioi-thieu-ban-be/ (build.py page_ref) và khung trên trang cảm ơn. Máy chủ: api partner.js refMe. */
+  function refLoad(phone, out, msg, btn) {
+    if (!CFG.endpoint) return;
+    if (btn) btn.disabled = true; if (msg) { msg.textContent = 'Đang tìm…'; msg.className = 'form-msg'; }
+    fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ type: 'ref_me', phone: phone }) })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (btn) btn.disabled = false;
+        if (!j || !j.ok) { if (msg) { msg.textContent = (j && j.error) || 'Chưa tra được, bạn thử lại nhé.'; msg.className = 'form-msg err'; } track('ref_lookup', { found: 0 }); return; }
+        if (msg) msg.textContent = '';
+        save('tdl_rf_phone', phone); track('ref_lookup', { found: 1, friends: j.n });
+        out.innerHTML = refHTML(j); out.hidden = false;
+      }, function () { if (btn) btn.disabled = false; if (msg) { msg.textContent = 'Mạng chập chờn, bạn bấm lại nhé.'; msg.className = 'form-msg err'; } });
+  }
+  function refUrl(j) { return location.origin + '/?uudai=' + encodeURIComponent(j.code); }
+  function refMsg(j) { return 'Mình đang dùng sản phẩm của ' + CFG.brand + ', thấy hợp nên gửi bạn tham khảo 🌿 Bạn đặt lần đầu trên web qua link này được giảm ' + j.pct + '% (mã ' + j.code + ' tự áp dụng): ' + refUrl(j); }
+  function refHTML(j) {
+    var lb = function (s) { return esc(String(s || '').replace(' ₫', 'đ')); }, dmy = function (s) { return String(s || '').split('-').reverse().join('/'); };
+    var h = '<div class="rf-res"><p class="rf-eye">Link giới thiệu của bạn</p><div class="rf-link"><input type="text" readonly value="' + esc(refUrl(j)) + '" aria-label="Link giới thiệu"><button type="button" class="btn" data-rf-copy="link">Copy link</button></div>' +
+      '<p class="rf-code">Bạn bè cũng có thể nhập mã <b>' + esc(j.code) + '</b> hoặc số điện thoại của bạn vào ô “Có mã ưu đãi” khi đặt hàng.</p>' +
+      '<div class="rf-acts"><button type="button" class="btn btn-lg" data-rf-share>📤 Gửi cho bạn bè</button><button type="button" class="btn btn-ghost" data-rf-copy="msg">📋 Copy tin nhắn mẫu</button></div>';
+    if (j.tierN) {
+      var got = (j.tiers || []).filter(function (t) { return t.tier === j.tierN; })[0], n = Math.min(j.n, j.tierN), dots = '';
+      for (var i = 0; i < j.tierN; i++) dots += '<i class="' + (i < n ? 'on' : '') + '"></i>';
+      h += '<div class="rf-prog"><div class="rf-dots">' + dots + '</div><p>' + (got ? (got.done ? '🎉 Bạn đã nhận quà mốc ' + j.tierN + ' người: ' + esc(j.tierGift) + '. Cảm ơn bạn!' : '🎉 Bạn đã giới thiệu đủ ' + j.tierN + ' người! Nhân viên sẽ liên hệ gửi bạn ' + esc(j.tierGift) + '.')
+        : 'Đã có <b>' + j.n + '</b> người bạn mua. Còn <b>' + (j.tierN - n) + '</b> người nữa là nhận <b>' + esc(j.tierGift) + '</b>.') + '</p></div>';
+    }
+    if (j.vouchers && j.vouchers.length) h += '<div class="rf-vcs"><p class="rf-eye">🎟 Voucher của bạn</p>' + j.vouchers.map(function (v) { return '<div class="rf-vc"><span><b>' + esc(v.code) + '</b> · ' + lb(v.label) + (v.exp ? ' · hạn ' + dmy(v.exp) : '') + '</span><button type="button" class="btn btn-sm" data-rf-use="' + esc(v.code) + '">Dùng ngay</button></div>'; }).join('') + '<small>Voucher gắn với số điện thoại của bạn: khi đặt hàng nhập đúng số này.</small></div>';
+    var st = { done: '✅ Đã tặng voucher cảm ơn', wait: '⏳ Chờ giao hàng + 7 ngày', void: '✖ Đơn đã huỷ / hoàn', no: '⛔ Không tính (trùng số hoặc địa chỉ)' };
+    h += '<div class="rf-fr"><p class="rf-eye">👥 Bạn bè đã mua qua bạn</p>' + (j.friends && j.friends.length ? '<ul>' + j.friends.map(function (f) { return '<li><b>' + esc(f.who) + '</b><span>' + st[f.st] + '</span></li>'; }).join('') + '</ul>' : '<p class="muted">Chưa có ai. Gửi link cho người đầu tiên nhé!</p>') + '</div></div>';
+    refData = j; return h;
+  }
+  var refData = null;
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-rf-copy],[data-rf-share],[data-rf-use]'); if (!b || !refData) return;
+    var j = refData;
+    if (b.hasAttribute('data-rf-use')) { save('tdl_vc_code', b.getAttribute('data-rf-use')); vcClear(); track('ref_voucher_use', {}); location.href = U(cart.length ? '/thanh-toan/' : '/san-pham/'); return; }
+    var t = b.getAttribute('data-rf-copy') === 'link' ? refUrl(j) : refMsg(j);
+    if (b.hasAttribute('data-rf-share')) { track('ref_share', {}); if (navigator.share) { navigator.share({ title: CFG.brand, text: refMsg(j).replace(refUrl(j), '').trim(), url: refUrl(j) }).catch(function () { }); return; } t = refMsg(j); }
+    else track('ref_copy', { what: b.getAttribute('data-rf-copy') });
+    if (navigator.clipboard) navigator.clipboard.writeText(t).then(function () { toast('Đã sao chép – dán vào Zalo/Facebook để gửi bạn bè', 'ok'); });
+  });
+  function initRef() {
+    var box = $('#refPage'); if (!box) return;
+    var f = $('[data-rf-form]', box), out = $('[data-rf-out]', box), msg = $('[data-rf-msg]', box), inp = f.querySelector('[name=phone]');
+    inp.value = load('tdl_rf_phone', '') || ((load('tdl_customer', null) || {}).phone) || '';
+    f.addEventListener('submit', function (e) { e.preventDefault(); var p = normPhone(inp.value); if (!/^0\d{9,10}$/.test(p)) { msg.textContent = 'Số điện thoại chưa đúng, bạn kiểm tra lại giúp nhé.'; msg.className = 'form-msg err'; inp.focus(); return; } refLoad(p, out, msg, f.querySelector('button')); });
+  }
   function initThanks() {
     var el = $('#thanksPage'); if (!el) return;
     var o = load('tdl_last_order', null);
@@ -1220,7 +1269,10 @@
     el.innerHTML = '<div class="ok-ic">' + ICON.check + '</div><h1>' + TF('Cảm ơn {0}!', esc(o.customer.name)) + '</h1><p>' + TF('Đơn hàng <b>{0}</b> đã được ghi nhận. {1} sẽ gọi điện xác nhận tới số <b>{2}</b> trong thời gian sớm nhất.', esc(o.id), esc(CFG.brand), esc(o.customer.phone)) + '</p>' +
       zaloNote + qr + '<div class="order-box">' + rows + (o.voucher ? '<div class="row"><span>🎟 ' + T('Mã ưu đãi') + ' ' + esc(o.voucher) + '</span><b>' + (o.discount ? '−' + money(o.discount) : T('Áp dụng')) + '</b></div>' : '') + '<div class="row"><span>' + T('Giao hàng') + '</span><span>' + (o.shipping ? money(o.shipping) : ((+CFG.shipping_fee && +CFG.free_ship_threshold) ? T('Miễn phí') : T('Báo khi xác nhận'))) + '</span></div><div class="row"><span><b>' + T('Tổng cộng') + '</b></span><b style="color:var(--primary-2)">' + money(o.total) + '</b></div>' +
       '<div class="row"><span>' + T('Người nhận') + '</span><span>' + esc(o.customer.name) + ' – ' + esc(o.customer.phone) + '</span></div><div class="row"><span>' + T('Địa chỉ') + '</span><span>' + esc(addr + ', ' + o.customer.district + ', ' + o.customer.province) + '</span></div>' +
-      '<div class="row"><span>' + T('Thanh toán||payment') + '</span><span>' + (o.payment === 'bank' ? T('Chuyển khoản') : T('Thanh toán khi nhận hàng (COD)')) + '</span></div></div>' + (CFG.zalo_group ? '<div class="oa-cta"><b>👥 Mời anh/chị vào nhóm Zalo Sống khỏe cùng ' + esc(CFG.brand) + '</b><p>' + (CFG.gift ? '🎁 Quà tặng thành viên: <strong>' + esc(CFG.gift) + '</strong>. ' : '') + 'Nhận hướng dẫn dùng sản phẩm, thực đơn lành mỗi ngày và ưu đãi riêng cho thành viên.</p><a class="btn btn-zalo" href="' + esc(CFG.zalo_group) + '" target="_blank" rel="noopener" data-cta="zalo_group_thanks">Vào nhóm Zalo</a>' + (CFG.zalo_oa ? '<a class="oa-link" href="' + esc(CFG.zalo_oa) + '" target="_blank" rel="noopener" data-cta="zalo_oa_thanks">hoặc Quan tâm Zalo OA</a>' : '') + '</div>' : CFG.zalo_oa ? '<div class="oa-cta"><b>📲 Quan tâm Zalo OA Thực Dưỡng Lành</b><p>Để nhận hướng dẫn dùng sản phẩm, lịch nhắc và ưu đãi dành riêng cho khách đã mua.</p><a class="btn btn-zalo" href="' + esc(CFG.zalo_oa) + '" target="_blank" rel="noopener">Quan tâm Zalo OA</a></div>' : '') + '<a class="btn btn-outline" href="' + U('/san-pham/') + '">' + T('Tiếp tục mua sắm') + '</a>';
+      '<div class="row"><span>' + T('Thanh toán||payment') + '</span><span>' + (o.payment === 'bank' ? T('Chuyển khoản') : T('Thanh toán khi nhận hàng (COD)')) + '</span></div></div>' +
+      (LANG === 'vi' && CFG.ref_path && o.sent ? '<div class="rf-thanks"><b>🎁 Giới thiệu bạn bè, cùng nhận quà</b><p>Bạn bè của bạn được giảm giá đơn đầu, bạn nhận voucher cảm ơn cho lần mua sau.</p><button type="button" class="btn" data-rf-get>Lấy link giới thiệu của tôi</button><div data-rf-out hidden></div><a class="rf-more" href="' + esc(CFG.ref_path) + '">Xem thể lệ</a></div>' : '') + (CFG.zalo_group ? '<div class="oa-cta"><b>👥 Mời anh/chị vào nhóm Zalo Sống khỏe cùng ' + esc(CFG.brand) + '</b><p>' + (CFG.gift ? '🎁 Quà tặng thành viên: <strong>' + esc(CFG.gift) + '</strong>. ' : '') + 'Nhận hướng dẫn dùng sản phẩm, thực đơn lành mỗi ngày và ưu đãi riêng cho thành viên.</p><a class="btn btn-zalo" href="' + esc(CFG.zalo_group) + '" target="_blank" rel="noopener" data-cta="zalo_group_thanks">Vào nhóm Zalo</a>' + (CFG.zalo_oa ? '<a class="oa-link" href="' + esc(CFG.zalo_oa) + '" target="_blank" rel="noopener" data-cta="zalo_oa_thanks">hoặc Quan tâm Zalo OA</a>' : '') + '</div>' : CFG.zalo_oa ? '<div class="oa-cta"><b>📲 Quan tâm Zalo OA Thực Dưỡng Lành</b><p>Để nhận hướng dẫn dùng sản phẩm, lịch nhắc và ưu đãi dành riêng cho khách đã mua.</p><a class="btn btn-zalo" href="' + esc(CFG.zalo_oa) + '" target="_blank" rel="noopener">Quan tâm Zalo OA</a></div>' : '') + '<a class="btn btn-outline" href="' + U('/san-pham/') + '">' + T('Tiếp tục mua sắm') + '</a>';
+    var rg = el.querySelector('[data-rf-get]');
+    if (rg) rg.addEventListener('click', function () { track('ref_thanks', {}); rg.hidden = true; refLoad(normPhone(o.customer.phone), el.querySelector('.rf-thanks [data-rf-out]'), null, null); });
     var z = $('#sendZalo');
     if (z) z.addEventListener('click', function () {
       var txt = orderText(o);
@@ -1568,7 +1620,7 @@
     captureSource(); initConsent(); trackPageEvents();
     renderCounts(); renderMini(); markWish();
     initHeader(); initClicks(); initRail(); initLightbox(); initProduct(); initCerts(); initProof(); initTabs(); initReadmore(); initSort();
-    initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initJourneyMap(); initPledge(); initWall(); initWallStrip(); initQuiz(); initGiftDock(); initZaloGate(); initOcx(); initMusic(); initBrandVideo(); initChat();
+    initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initJourneyMap(); initPledge(); initRef(); initWall(); initWallStrip(); initQuiz(); initGiftDock(); initZaloGate(); initOcx(); initMusic(); initBrandVideo(); initChat();
     window.addEventListener('storage', function (e) { if (e.key === 'tdl_cart') { cart = load('tdl_cart', []); cleanCart(); renderCounts(); renderMini(); } });
   }
   // ===== Hành trình 10 triệu người Việt sống khỏe hơn: bộ đếm [data-jr] + trang "Tôi chọn sống lành" /toi-chon-song-lanh/ (api journey.js) =====

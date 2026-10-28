@@ -636,7 +636,7 @@ def footer():
         about = about.replace('<li><a href="/gioi-thieu/">Giới Thiệu</a></li>', f'<li><a href="/gioi-thieu/">Giới Thiệu</a></li><li><a href="{BR_PATH}">Hồ sơ thương hiệu</a></li>')
     bct = f'<a href="{esc(SITE["bo_cong_thuong_url"])}" target="_blank" rel="noopener" class="bct"><img src="/assets/img/brand/bo-cong-thuong.png" alt="{t("Đã thông báo Bộ Công Thương")}" width="150" loading="lazy"></a>' if SITE.get("bo_cong_thuong_url") else ""
     if IS_VI:
-        about += '<li><a href="https://congsu.thucduonglanh.vn/" target="_blank" rel="noopener">Tuyển dụng</a></li>'
+        about += (f'<li><a href="{REF_PATH}">Giới thiệu bạn bè, nhận quà</a></li>' if REF_PATH else "") + '<li><a href="https://congsu.thucduonglanh.vn/" target="_blank" rel="noopener">Tuyển dụng</a></li>'
     year = datetime.date.today().year
     return f'''
 <footer class="site-footer">
@@ -1828,6 +1828,53 @@ def hands_html(cls="qz-hands"):
     """2 bàn tay xòe 10 ngón (CSS .qz-…); ngón bị hạ: main.js thêm class .down vào [data-qz-f]."""
     hand = lambda side, base: f'<div class="qz-hand qz-{side}">' + "".join(f'<span class="qz-f qz-f{i}" data-qz-f="{base + i}"></span>' for i in range(5)) + '<span class="qz-palm"></span></div>'
     return f'<div class="{cls}" aria-hidden="true">{hand("l", 0)}{hand("r", 5)}</div>'
+
+
+REF = SITE.get("referral") or {}
+REF_PATH = "/gioi-thieu-ban-be/" if REF.get("enabled") else ""
+
+
+def page_ref():
+    """🌱 Đại sứ Sống Lành /gioi-thieu-ban-be/ (28/10/2026): khách đã mua nhập SĐT → link + mã giới thiệu, bạn bè đã mua (tên che), voucher cảm ơn, mốc quà.
+    Chữ lấy từ site.json "referral" (/admin); mức thưởng thật do CRM tính (api/src/partner.js refMe / refAuto). main.js initRef. QR trên thẻ bỏ trong gói hàng trỏ về đây."""
+    fp, rp, tn, cn = (int(num(REF.get(k)) or 0) for k in ("friend_pct", "reward_pct", "tier_n", "ctv_n"))
+    tg = esc(REF.get("tier_gift") or "")
+    tier = (f'<p class="rf-tier">🏅 Giới thiệu đủ <b>{tn} người</b> mua: tặng thêm <b>{tg}</b>.' + (f' Từ <b>{cn} người</b>: mời bạn làm <b>Cộng tác viên</b>, nhận hoa hồng bằng tiền.' if cn else "") + "</p>") if tn and tg else ""
+    rules = [
+        "Dành cho khách đã mua hàng tại " + BRAND + " (đặt trên web, Zalo hay điện thoại đều được). Bạn tra cứu bằng số điện thoại đã dùng khi mua.",
+        f"Người được giới thiệu: mua lần đầu (số điện thoại chưa từng đặt hàng), giảm {fp}% tiền hàng đơn đầu tiên khi đặt trên web. Mỗi đơn dùng 1 mã ưu đãi.",
+        f"Voucher cảm ơn: bằng {rp}% số tiền hàng bạn bè đã trả cho đơn đầu (không tính phí ship), tối thiểu 10.000đ. Voucher gắn với số điện thoại của bạn, dùng 1 lần khi đặt trên web, hạn 90 ngày, không đổi ra tiền mặt.",
+        "Voucher được cấp tự động khi đơn của bạn bè đã giao xong và qua 7 ngày đổi trả. Nhân viên " + BRAND + " sẽ nhắn mã cho bạn, bạn cũng xem được ngay trên trang này.",
+        "Không tính: đơn huỷ hoặc hoàn; tự giới thiệu chính mình (cùng số điện thoại hoặc cùng địa chỉ nhận hàng).",
+    ] + ([f"Quà mốc {tn} người ({REF.get('tier_gift')}) tặng một lần, nhân viên sẽ liên hệ để gửi quà."] if tn and tg else []) + [
+        "Chương trình chỉ cảm ơn người giới thiệu trực tiếp, không tính nhiều tầng.",
+        "Khi giới thiệu, bạn chia sẻ trải nghiệm thật của mình và đúng công dụng ghi trên bao bì. Sản phẩm không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh.",
+        BRAND + " có thể điều chỉnh hoặc kết thúc chương trình và sẽ báo trên trang này; voucher đã cấp vẫn giữ nguyên giá trị.",
+    ]
+    rules_html = "".join(f"<li>{esc(r)}</li>" for r in rules)
+    body = f'''<section class="section plg-page rf-page"><div class="container plg-in">
+  <p class="join-eye">🌱 Đại sứ Sống Lành</p>
+  <h1 class="plg-h">Giới thiệu bạn bè, <span class="nw">cùng nhận quà</span></h1>
+  <p class="plg-lead">Bạn thấy sản phẩm {BRAND} hợp với mình? Gửi link cho người thân, bạn bè. Bạn của bạn được giảm <b>{fp}%</b> đơn đầu, còn bạn nhận <b>voucher cảm ơn</b> cho lần mua sau.</p>
+  <ol class="rf-steps">
+    <li><span>1</span><b>Lấy link của bạn</b>Nhập số điện thoại bạn đã dùng khi mua hàng.</li>
+    <li><span>2</span><b>Gửi cho bạn bè</b>Bạn bè đặt lần đầu qua link được giảm {fp}%. Hoặc họ nhập số điện thoại của bạn vào ô “Có mã ưu đãi” khi đặt.</li>
+    <li><span>3</span><b>Nhận quà cảm ơn</b>Đơn của bạn bè giao xong 7 ngày, bạn nhận voucher bằng {rp}% giá trị đơn đó.</li>
+  </ol>
+  {tier}
+  <div class="plg-card rf-card" id="refPage">
+    <form data-rf-form novalidate>
+      <h2>Lấy link giới thiệu của tôi</h2>
+      <label class="plg-f"><span>Số điện thoại bạn đã dùng khi mua hàng</span><input name="phone" type="tel" inputmode="tel" autocomplete="tel" required placeholder="Ví dụ: 0912 345 678"></label>
+      <button class="btn btn-lg plg-submit" type="submit" data-cta="ref_lookup">🎁 Lấy link & xem quà của tôi</button>
+      <p class="form-msg" data-rf-msg role="status"></p>
+    </form>
+    <div data-rf-out hidden></div>
+  </div>
+  <details class="rf-rules"><summary>Thể lệ chương trình</summary><ol>{rules_html}</ol>
+  <p>Cần hỗ trợ, bạn nhắn Zalo hoặc gọi <a href="tel:{tel(SITE["hotline"])}">{esc(SITE["hotline"])}</a>.</p></details>
+</div></section>'''
+    return layout(REF_PATH, f"Giới thiệu bạn bè – Đại sứ Sống Lành cùng {BRAND}", f"Giới thiệu bạn bè mua sản phẩm {BRAND}: bạn bè giảm {fp}% đơn đầu, bạn nhận voucher cảm ơn {rp}% giá trị đơn" + (f" và quà khi đủ {tn} người" if tn else "") + ".", body, body_class="page-ref")
 
 
 def page_quiz():
@@ -3135,6 +3182,8 @@ def main():
     if IS_VI:
         routes.append(write(PLEDGE_PATH, page_pledge()))
         routes.append(write(WALL_PATH, page_wall()))
+        if REF_PATH:
+            routes.append(write(REF_PATH, page_ref()))
         if QUIZ.get("questions"):
             routes.append(write(QUIZ_PATH, page_quiz()))
             write(QUIZ_GROUP_PATH, page_quiz_group())  # màn hình chơi nhóm: không vào sitemap

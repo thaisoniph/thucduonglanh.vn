@@ -1,13 +1,13 @@
 #!/bin/bash
 # Chuyển trợ lý Zalo An Lành từ máy Mac lên VPS (Ubuntu/Debian) để chạy 24/7. Chạy trên Mac:
-#   bash zalo-bot/cai-vps.sh root@<IP-VPS>
-# Cần đăng nhập SSH được vào VPS (lần đầu: ssh-copy-id root@<IP-VPS>, gõ mật khẩu VPS).
+#   bash zalo-bot/cai-vps.sh tdl-vps   (tên tắt trong ~/.ssh/config của Mac anh Sơn: IP, cổng SSH, user root)
+# Cần đăng nhập SSH được vào VPS (lần đầu: ssh-copy-id tdl-vps, gõ mật khẩu VPS).
 # Chép bot.js + .env + creds.json (phiên Zalo đã quét trên Mac, khỏi quét lại) lên /opt/tdl-zalo-bot,
 # chạy bằng systemd (tự bật lại khi VPS khởi động / bị lỗi), rồi tắt bản trên Mac (2 nơi cùng chạy sẽ đá nhau ra).
 # Không đụng tới n8n hay chương trình khác trên VPS. Lần sau cập nhật code: chạy lại đúng lệnh này.
 set -e
 H="$1"
-[ -z "$H" ] && { echo "Cách dùng: bash zalo-bot/cai-vps.sh root@<IP-VPS>"; exit 1; }
+[ -z "$H" ] && { echo "Cách dùng: bash zalo-bot/cai-vps.sh tdl-vps"; exit 1; }
 SRC="$(cd "$(dirname "$0")" && pwd)"
 MAC="$HOME/.tdl-zalo-bot"
 PL="$HOME/Library/LaunchAgents/vn.thucduonglanh.zalobot.plist"

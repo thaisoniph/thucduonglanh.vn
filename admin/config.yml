@@ -679,6 +679,18 @@ collections:
                   - { label: "Tên bài", name: title, widget: string }
                   - { label: "File nhạc (.mp3, .m4a)", name: file, widget: file }
                   - { label: "Phát", name: on, widget: boolean, default: true }
+          - label: "Giới thiệu bạn bè (Đại sứ Sống Lành)"
+            name: referral
+            widget: object
+            required: false
+            hint: "Chữ hiện trên trang thucduonglanh.vn/gioi-thieu-ban-be/. Mức thưởng THẬT do CRM tính (CRM → Cài đặt → 🤝 Cộng tác viên → ⚙️ Cài đặt chung): đổi ở đây thì đổi luôn ở CRM cho khớp."
+            fields:
+              - { label: "Hiện trang và ô giới thiệu", name: enabled, widget: boolean, default: true }
+              - { label: "Bạn được giới thiệu giảm (%) đơn đầu", name: friend_pct, widget: number, value_type: int, min: 0, max: 30, default: 10 }
+              - { label: "Voucher cảm ơn người giới thiệu (% đơn của bạn)", name: reward_pct, widget: number, value_type: int, min: 0, max: 30, default: 10 }
+              - { label: "Mốc quà: số bạn mua", name: tier_n, widget: number, value_type: int, min: 0, max: 50, default: 3 }
+              - { label: "Quà khi đạt mốc", name: tier_gift, widget: string, default: "1 hộp Trà DILVANG" }
+              - { label: "Mời làm CTV khi đủ (số bạn mua)", name: ctv_n, widget: number, value_type: int, min: 0, max: 100, default: 5 }
           - label: "Ưu đãi chỉ có khi đặt trên website"
             name: web_offer
             i18n: true

@@ -10,6 +10,7 @@ import { wbTick } from './wb.js';
 import { backfillCustomerExtras } from './migrate.js';
 import { zbotTick } from './zbot.js';
 import { fpTick } from './fb.js';
+import { refAuto } from './partner.js';
 
 function careMessage(items, leads, today, isGroup, who, R) {
   const block = (title, arr, tip) => !arr.length ? '' : '\n\n<b>' + title + ' (' + arr.length + ')</b> – ' + tip + '\n' + arr.slice(0, 25).map(c =>
@@ -100,6 +101,14 @@ export async function mirror(x) {
   return counts;
 }
 
+/** 🌱 Đại sứ Sống Lành (partner.js refAuto): tự phát voucher cảm ơn người giới thiệu + mốc quà, báo nhóm Telegram và người phụ trách. */
+async function refThanks(x) {
+  const msgs = await refAuto(x); if (!msgs.length) return;
+  await telegram(x.env, '<b>🌱 Cảm ơn khách giới thiệu</b>\n' + msgs.map(m => '• ' + esc(m.text) + (m.owner ? ' 👤' + esc(m.owner) : '')).join('\n') + '\n\n' + CRM_URL);
+  const by = {}; msgs.forEach(m => { if (m.owner) (by[m.owner] = by[m.owner] || []).push(m.text); });
+  for (const u of await crmUsers(x)) if (u.active && u.tg && by[u.name]) await telegramTo(x.env, u.tg, '<b>🌱 Cảm ơn khách giới thiệu</b>\n' + by[u.name].map(t => '• ' + esc(t)).join('\n') + '\n\n' + CRM_URL);
+}
+
 /** Mỗi 10 phút từ 7h đến 22h (giờ VN), ban đêm nghỉ. 8h sáng: gửi danh sách chăm sóc. */
 export async function scheduled(x, cron) {
   if (!await kvGet(x.db, 'migrated')) return;
@@ -107,7 +116,7 @@ export async function scheduled(x, cron) {
   if (vn.getUTCHours() < 7 || vn.getUTCHours() >= 22) return; // ban đêm (22h–7h) không ai làm việc → nghỉ, đỡ tốn lượt đọc
   if (vn.getUTCHours() === 8 && vn.getUTCMinutes() < 10) {
     const key = 'care_' + fmtDate(now, 'yyyyMMdd');
-    if (!await kvGet(x.db, key)) { await kvSet(x.db, key, '1', 2 * DAY); try { await dailyCare(x); } catch (e) { console.error('dailyCare', e.message); } }
+    if (!await kvGet(x.db, key)) { await kvSet(x.db, key, '1', 2 * DAY); try { await refThanks(x); } catch (e) { console.error('refAuto', e.message); } try { await dailyCare(x); } catch (e) { console.error('dailyCare', e.message); } }
     const mk = 'mktd_' + fmtDate(now, 'yyyyMMdd'); // tin Telegram marketing buổi sáng
     if (!await kvGet(x.db, mk)) { await kvSet(x.db, mk, '1', 2 * DAY); try { for (const m of await mktDailyMsgs(x, await crmUsers(x))) await telegramTo(x.env, m.tg, m.text); } catch (e) { console.error('mktDaily', e.message); } }
   }

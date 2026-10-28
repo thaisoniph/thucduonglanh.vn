@@ -19,7 +19,7 @@ import { wbQueue, wbOrderQueue, wbStatusQueue, WB_SHORT } from './wb.js';
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-10-27b'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
+const SCHEMA_V = '2026-10-28a'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -429,7 +429,7 @@ export function leadDue(l, today) {
 const leadOut = r => ({ id: r.id, time: r.time, name: r.name || '', phone: r.phone || '', channel: r.channel || '', interest: r.interest || '', status: r.status || 'Mới hỏi', owner: r.owner || '', lastAt: r.last_at, callback: r.callback, reason: r.reason || '', note: r.note || '', orderId: r.order_id || '', by: r.by_name || '', refPhone: r.ref_phone || '', refName: r.ref_name || '' });
 const orderOut = r => ({ row: r.rid, time: r.time, id: r.id, name: r.name || '', phone: r.phone || '', email: r.email || '', province: r.province || '', ward: r.ward || '', address: r.address || '', items: r.items || '', subtotal: r.subtotal || 0,
   shipping: r.shipping || 0, total: r.total || 0, payment: r.payment || '', note: r.note || '', status: r.status || 'Mới', source: r.source || '', consent: !!r.consent, paid: r.paid || '', carrier: r.carrier || '', tracking: r.tracking || '', seller: r.seller || '', ca: r.ca || '', line: r.line || '', ship: r.ship || '',
-  shipAt: r.ship_at, receivedAt: r.received_at, otype: r.otype || '', oflag: r.oflag || '', trk: r.trk || '', trkAt: r.trk_at, trkCode: r.trk_code || 0, voucher: r.voucher || '', refPhone: r.ref_phone || '', refGift: r.ref_gift || '', partner: r.partner || '', addrOld: r.addr_old || '' });
+  shipAt: r.ship_at, receivedAt: r.received_at, otype: r.otype || '', oflag: r.oflag || '', trk: r.trk || '', trkAt: r.trk_at, trkCode: r.trk_code || 0, voucher: r.voucher || '', refPhone: r.ref_phone || '', refGift: r.ref_gift || '', refTold: r.ref_told ? 1 : 0, partner: r.partner || '', addrOld: r.addr_old || '' });
 export async function leadsData(x, where, ...args) { return (await all(x.db, 'SELECT * FROM leads' + (where ? ' WHERE ' + where : '') + ' ORDER BY rid DESC LIMIT 3000', ...args)).reverse().map(leadOut); }
 
 async function prefsOf(x, email) { return await kvJson(x.db, 'prefs_' + email, {}) || {}; }
@@ -1826,9 +1826,9 @@ export async function crmApi(x, d, sync, mgr) {
   if (/^fp_/.test(a)) return crmFp(x, u, d, crmLog); // 📘 Trợ lý Fanpage (Quản lý, Quản trị, Marketing; kết nối: Quản trị)
   if (/^link_/.test(a)) return crmLinks(x, u, d, crmLog); // 📍 Link & mã QR (Marketing, Quản lý, Quản trị)
   if (/^voucher_/.test(a)) return crmVoucher(x, u, d, crmLog); // 🎟 Mã ưu đãi (Quản lý trở lên)
-  if (a === 'ref_code' || a === 'ref_gift' || /^partner_/.test(a)) { // 🎁 mã giới thiệu / quà cảm ơn (sale làm cho khách mình) · 🤝 CTV (Quản lý trở lên)
-    if (a === 'ref_code') { const g = await guardPhone(x, u, d.phone); if (g) return { ok: false, error: g }; }
-    if (a === 'ref_gift') { const o = await first(x.db, 'SELECT ref_phone FROM orders WHERE id = ? ORDER BY rid LIMIT 1', String(d.id || '')); const g = o && o.ref_phone ? await guardPhone(x, u, o.ref_phone) : ''; if (g) return { ok: false, error: g }; }
+  if (/^ref_/.test(a) || /^partner_/.test(a)) { // 🎁 mã giới thiệu / quà cảm ơn / mốc thưởng (sale làm cho khách mình) · 🤝 CTV (Quản lý trở lên)
+    if (a === 'ref_code' || a === 'ref_tier_done') { const g = await guardPhone(x, u, d.phone); if (g) return { ok: false, error: g }; }
+    if (a === 'ref_gift' || a === 'ref_told') { const o = await first(x.db, 'SELECT ref_phone FROM orders WHERE id = ? ORDER BY rid LIMIT 1', String(d.id || '')); const g = o && o.ref_phone ? await guardPhone(x, u, o.ref_phone) : ''; if (g) return { ok: false, error: g }; }
     return crmPartner(x, u, d, crmLog, (await crmUsers(x)).map(z => z.name));
   }
   const need = { settings: 2, users: 3, assign: 2, bulk: 2, recv: 2 };

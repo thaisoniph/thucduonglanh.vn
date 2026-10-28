@@ -13,10 +13,11 @@ import { journeyCounts, pledge, quiz, wall } from './journey.js';
 import { apply } from './apply.js';
 import { chat, chatLead } from './chat.js';
 import { zbot, zbotLead } from './zbot.js';
+import { refMe } from './partner.js';
 import { fbRoute } from './fb.js';
 export { AiRelay } from './airelay.js'; // Durable Object chuyển tiếp lời gọi AI qua Bắc Mỹ
 
-const API_VERSION = '2026-10-27d'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
+const API_VERSION = '2026-10-28a'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
 const ORIGINS = /^https:\/\/((www\.|crm\.|mkt\.|congsu\.|camnangsongkhoe\.)?thucduonglanh\.vn|([a-z0-9-]+\.)?(thucduonglanh(-crm|-congsu)?|camnang-song-khoe-thuc-duong-lanh)\.pages\.dev)$|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
 function ctxOf(env, ectx) { return { env, db: env.DB, later: p => ectx.waitUntil(Promise.resolve(p).catch(e => console.error('later', e && e.message))) }; }
@@ -47,7 +48,8 @@ async function website(x, data) {
   if (data.type === 'vtp') return await vtpWebhook(x, data.payload);
   if (data.type === 'pledge') return await pledge(x, data); // lời cam kết "Tôi chọn sống lành" (journey.js)
   if (data.type === 'quiz') return await quiz(x, data); // trò chơi "Bạn còn mấy ngón tay?" (journey.js)
-  if (data.type === 'voucher') return await voucherCheck(x, data); // khách bấm "Áp dụng" mã ưu đãi
+  if (data.type === 'voucher') return await voucherCheck(x, data); // khách bấm "Áp dụng" mã ưu đãi (gõ SĐT người giới thiệu cũng được)
+  if (data.type === 'ref_me') return await refMe(x, data); // 🌱 /gioi-thieu-ban-be/ + trang cảm ơn: link giới thiệu, bạn bè đã mua, voucher (partner.js)
   if (data.type === 'apply') return await apply(x, data); // ứng tuyển từ congsu.thucduonglanh.vn (apply.js)
   if (data.type === 'chat') return await chat(x, data); // 💬 trợ lý chat An Lành trên web (chat.js)
   if (data.type === 'chat_lead') return await chatLead(x, data); // khách để lại số trong khung chat
