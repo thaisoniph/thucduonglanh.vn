@@ -1096,6 +1096,12 @@ button:focus-visible, a:focus-visible, summary:focus-visible, [role="button"]:fo
 .stat-key .sk-up { color: var(--primary); font-size: 10px; } .stat-key .sk-dn { color: var(--red); font-size: 10px; margin-right: 2px; }
 .stat-key svg { width: 24px; height: 10px; } .stat-key polyline { fill: none; stroke: var(--ink); stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; }
 @media (max-width: 640px) { .stat-key span { white-space: normal; } .stat-key .sk-sep { display: none; } }
+/* Quản trị: chú thích ký hiệu gọn thành 1 dòng "?" (29/10/2026) */
+.stat-key-fold { margin: -4px 0 14px; font-size: 12.5px; color: var(--muted); }
+.stat-key-fold > summary { cursor: pointer; list-style: none; display: inline-block; padding: 2px 0; }
+.stat-key-fold > summary::-webkit-details-marker { display: none; }
+.stat-key-fold[open] > summary { margin-bottom: 6px; }
+.stat-key-fold .stat-key { margin: 0; }
 /* ô bấm được: dấu › góc dưới */
 .dash-tile { position: relative; padding-right: 26px; }
 .dash-tile::after { content: '›'; position: absolute; right: 10px; bottom: 8px; font-size: 22px; line-height: 1; color: #b9c2b6; }

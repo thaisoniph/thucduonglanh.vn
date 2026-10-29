@@ -131,10 +131,16 @@ Mã giảm giá gửi riêng cho **khách cũ, đối tác**. Trên web không q
 
 ## Tổng quan (chỉ Quản trị)
 
-Tab đầu tiên, dành cho chủ doanh nghiệp. **Nhìn 5 giây là nắm được tình hình.** Đọc từ trên xuống theo 3 câu hỏi: *Tháng này có ổn không? Vì sao? Phải làm gì?*
+Tab đầu tiên, dành cho chủ doanh nghiệp. **Nhìn 5 giây là nắm được tình hình.**
+
+Trên điện thoại, thanh dưới của Quản trị là **Tổng quan · Hiệu quả · Marketing · Đơn hàng · ••• Thêm** (kết quả, đội sale, tiền quảng cáo, đơn và tiền chờ thu). Hôm nay, Khách hỏi, Khách đã mua, Sàn, Link & QR, Zalo, Fanpage, Cài đặt nằm trong **••• Thêm**; tìm 1 khách thì bấm 🔍 ở trên. Số đỏ trên nút Thêm không cộng việc gọi khách của sale.
+
+Dòng chú thích màu đèn, ▲▼, đường nhỏ được thu gọn thành **? Ý nghĩa màu, ▲▼, đường nhỏ**, bấm để mở.
+
+ Đọc từ trên xuống theo 3 câu hỏi: *Tháng này có ổn không? Vì sao? Phải làm gì?*
 
 1. **Câu kết luận** (dòng đầu, có đèn): tháng này dự kiến đạt bao nhiêu so với mục tiêu, còn thiếu bao nhiêu, khâu nào yếu nhất.
-2. **6 ô lớn**: 💰 Doanh số · 💵 Tiền đã về · 🙋 Khách mới mua · 📈 Lãi gộp · 📣 1đ quảng cáo thu về · ↩️ Hoàn / huỷ.
+2. **6 ô lớn** (xếp theo mức cần ra quyết định): 💰 Doanh số · 📈 Lãi gộp · 💵 Tiền đã về · 📣 1đ quảng cáo thu về · 🙋 Khách mới mua · ↩️ Hoàn / huỷ.
     - **Doanh số** = tiền các đơn **đã trừ hoàn / huỷ**. Từ 29/10/2026 cả trang (ô, biểu đồ, mục tiêu, Bán hàng văn phòng) dùng **một** con số này, giống tab Hiệu quả.
     - **Tiền đã về** = tiền các đơn **đã thu được** (đã giao, hoặc đã nhận chuyển khoản).
     - **📈 Lãi gộp** = doanh số (đơn văn phòng) − giá vốn hàng đã bán, kể cả quà tặng. Dòng nhỏ ghi lãi còn lại sau khi trừ quảng cáo. Chưa trừ ship, lương, mặt bằng. Giá vốn nhập ở **Cài đặt → 💰 Giá vốn sản phẩm** (chỉ Quản trị thấy).
@@ -143,7 +149,7 @@ Tab đầu tiên, dành cho chủ doanh nghiệp. **Nhìn 5 giây là nắm đư
     - Mũi tên **▲▼** so với kỳ trước (xanh = tốt hơn, đỏ = kém hơn). Đường nhỏ màu xám chỉ cho biết **trong kỳ** số đang lên hay xuống.
 3. **🎯 Mục tiêu tháng** và **🧩 Theo từng mảng** (Sale, Website, Shopee…): mỗi mảng 1 dòng, có đèn tiến độ. Nút **🎯 Đặt mục tiêu** nằm ngay đây.
 4. **🔍 Vì sao doanh số tăng / giảm**: Doanh số = khách hỏi mới × tỷ lệ chốt × giá trị 1 đơn + khách cũ mua lại. Ô **viền đỏ** là khâu giảm nhiều nhất, nên sửa trước.
-5. **✅ Việc cần làm**: tối đa 4 việc, việc gấp trước. Mỗi việc ghi **👤 ai làm** (Quản lý sale, Marketing, tên sale đang trễ chăm sóc…) và số tiền liên quan. Bấm **Xem →** để mở đúng chỗ. Tin tốt gom vào dòng **🌟 Điểm sáng**.
+5. **✅ Việc cần làm**: tối đa 4 việc, việc gấp trước. Mỗi việc ghi **👤 ai làm** (Quản lý sale, Marketing, tên sale đang trễ chăm sóc…). Có dòng **khách hỏi quá hạn chưa ai gọi** (30 ngày gần đây: để lại số hơn 1 ngày chưa liên hệ, hoặc lỡ hẹn gọi lại; từ 10 khách là 🔴) kèm tên sale đang để tồn nhiều nhất và số tiền liên quan. Bấm **Xem →** để mở đúng chỗ. Tin tốt gom vào dòng **🌟 Điểm sáng**.
 
 - **💰 Giá vốn sản phẩm** (Cài đặt, chỉ Quản trị): mỗi dòng 1 sản phẩm + giá nhập, cộng thêm 15% (sửa được) ra giá vốn. Tên chỉ cần đúng **loại + trọng lượng** (vd "Gafo Fucoidan 800g"). Máy tự khớp với tên trong đơn ("Bữa ăn DD 500G", combo, "Mua 3 tặng 1"…). Nhanh nhất: bấm **📋 Dán cả bảng**, copy bảng giá từ Notion / Excel dán vào → **Đọc bảng đã dán** → xem lại → **Lưu giá vốn**. Dưới bảng có danh sách sản phẩm đã bán mà **chưa khớp** giá vốn, thấy tên nào thì thêm dòng cho tên đó.
 - **Khách quay lại mua** (trong mục Bán hàng văn phòng): bao nhiêu % khách mua lần đầu đã mua tiếp sau 30 / 60 / 90 ngày, 1 khách mang về bao nhiêu tiền và bao nhiêu lãi trong 90 ngày đầu. Mục 📣 so số lãi này với **chi phí có 1 khách mới**: tốn hơn số lãi thì quảng cáo đang lỗ, máy đưa vào Việc cần làm.
