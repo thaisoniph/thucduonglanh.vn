@@ -83,6 +83,7 @@ export async function mktView(x, u, d) {
   buys.sort((a, b) => (a.time || 0) - (b.time || 0)).forEach(o => { const p = normPhone(o.phone); (ordBy[p] = ordBy[p] || []).push(o); if (!isVoid(o.status)) (buyBy[p] = buyBy[p] || []).push(Number(o.time) || 0); });
 
   const orderChan = o => {
+    if (!o.ph) return ''; // doanh thu sự kiện chia cho sale (không có SĐT khách): không tính vào kênh quảng cáo nào
     const ad = adFirst[o.ph]; if (ad && ad <= o.time) return 'Facebook';
     for (const l of leadsBy[o.ph] || []) { if ((l.time || 0) > o.time || /^file cũ/i.test(l.channel || '')) continue; const k = kwChan(l.channel); if (k) return k; }
     const k = kwChan(o.source); if (k) return k;

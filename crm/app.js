@@ -3960,6 +3960,7 @@
   function kwChan(text) { var n = norm(text); for (var i = 0; i < MKT_CH.length; i++) if (MKT_CH[i].kw && MKT_CH[i].kw.test(n)) return MKT_CH[i].k; return ''; }
   function orderChan(o, sfb) {
     var ph = normPhone(o.phone), ad = adFirstMap()[ph], k;
+    if (!ph) return ''; // doanh thu sự kiện chia cho sale (không có SĐT khách): không tính vào kênh quảng cáo nào (giống api/src/mktv.js)
     if (ad && ad <= o.time) return 'Facebook';
     var ls = leadsOf(ph).filter(function (l) { return (l.time || 0) <= o.time && !/^file cũ/i.test(l.channel || ''); });
     for (var i = 0; i < ls.length; i++) if ((k = kwChan(ls[i].channel))) return k;

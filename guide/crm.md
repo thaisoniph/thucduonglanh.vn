@@ -166,6 +166,12 @@ Khách để lại số trên web hay quảng cáo thì **tự vào đây**, b�
 
 ![Cửa sổ Báo cáo ngày: CRM tự viết, bạn chỉ cần copy](/huong-dan/img/crm-report.webp)
 
+### Bạn vẫn lên đơn trong file Google Sheet? Nhớ 3 điều
+
+- **Khách huỷ đơn**: xoá dòng hoặc chuyển sang tab khách huỷ đều được. CRM tự bỏ đơn đó và trừ doanh số trong khoảng 30 phút.
+- **Đổi mã đơn, gộp 2 dòng thành 1**: được. Đơn mang mã cũ cũng tự mất khỏi CRM.
+- **Bán ở sự kiện**: ghi 1 dòng, cột tên ghi **khách sự kiện**, có ngày và **số tiền được chia cho bạn**. Không cần số điện thoại. Ví dụ: sự kiện bán 10 triệu, 3 bạn đi thì mỗi bạn ghi 3.330.000đ (1 bạn ghi 3.340.000đ cho đủ 10 triệu). Khách bạn xin được số ở sự kiện thì lên đơn bình thường như mọi khách.
+
 ## Việc 6: Đầu tháng đặt mục tiêu
 
 1. Vào tab **Hiệu quả**.

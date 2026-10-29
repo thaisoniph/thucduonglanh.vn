@@ -88,6 +88,8 @@ Sale chọn loại đơn khác với gợi ý của máy thì đơn có nhãn **
 - **⭐ Nhóm khách**: mức để máy xếp khách **VIP** và **Sắp mất**, số ngày giao hàng cho khách miền Bắc (mặc định 3) và khách ở xa (mặc định 5), số ngày giãn cách giữa 2 lần chào bán (ghi 0 = tắt). Bấm **Lưu nhóm khách**.
 - **Nhân sự được vào CRM** (chỉ Quản trị): **＋ Thêm người**, nhập email, tên, chọn quyền, bấm **Lưu nhân sự**. Người nghỉ việc thì **bỏ tích "Đang dùng"**, không cần xoá. Ô **🌐 Sửa website** để cho người đó sửa website. Ô **📣 Xem Marketing** (có ở Quản lý và Sale) cho người đó xem thêm tab **📣 Marketing**: chi phí quảng cáo, khách mới, hiệu quả từng kênh. Chỉ xem được, không nhập chi phí, không đặt mục tiêu.
 - **📂 File của sale** (chỉ Quản trị): nối file Google Sheet của sale với CRM. Tích **✍️ Ghi kết quả chăm sóc ngược vào file này** để máy ghi vào file của sale. Sale cần **chia sẻ quyền Chỉnh sửa** file cho tài khoản chạy CRM.
+  - Sale xoá dòng hoặc đổi mã đơn trong file: đơn chưa giao xong trong 45 ngày gần đây mà không còn dòng nào trong file thì CRM **tự xoá** và nhắn Telegram cho Quản trị (🧹). Đơn đã giao, có mã vận đơn hoặc đã sửa trên CRM thì CRM **không tự xoá**, chỉ báo để anh/chị xem. Mất hơn 15 đơn cùng lúc (file hỏng, đổi cột) thì cũng chỉ báo.
+  - Doanh thu sự kiện chia đều cho các sale: mỗi sale ghi 1 dòng **khách sự kiện** + ngày + số tiền của mình, không cần số điện thoại. CRM tính vào doanh số của sale, không tính là khách mới của quảng cáo nào.
 
 ## Cộng tác viên và đối tác
 
