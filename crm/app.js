@@ -6570,8 +6570,65 @@
     var why = []; ents.forEach(function (e, i) { if (name === null && !i) return; e.cs.why.slice(0, 12).forEach(function (w) { why.push((name === null ? '<b>' + esc(e.t) + ':</b> ' : '') + esc(w)); }); });
     var csv = name === null ? [['Sale'].concat(cols.map(function (c) { return c[0] ? c[0] + ' – ' + c[1] : c[1]; }))].concat(ents.map(function (e) { return [e.t].concat(cols.map(function (c) { return c[2](e); })); }))
       : [['Chỉ số', name]].concat(cols.map(function (c) { return [c[0] ? c[0] + ' – ' + c[1] : c[1], c[2](ents[0])]; }));
-    return { html: '<div class="bcdt-wrap">' + h + '</div>' + (name === null ? '<p class="small muted" style="margin:6px 0 0">Mỗi sale 1 dòng, xếp theo doanh thu trong ngày. Dòng mờ = chưa có đơn / chưa ghi chăm sóc. Số mới = số quảng cáo vào trong ngày. Cột cả ngày bằng 0 được ẩn cho gọn.</p>' : '') +
+    var img = name === null ? { head: ['Sale'].concat(cols.map(function (c) { return c[0] ? c[0] + ' · ' + c[1] : c[1]; })), sum: cols.map(function (c) { return !!c[4]; }), rows: ents.map(function (e, i) { return { c: [e.t].concat(cols.map(function (c) { return String(fv(c, e)); })), b: !i, z: i && !cols.some(function (c) { return c[2](e); }) }; }) }
+      : { head: ['Chỉ số', name], rows: cols.map(function (c) { return { c: [c[0] ? c[0] + ' · ' + c[1] : c[1], String(fv(c, ents[0]) || '0')], b: !!c[4] }; }) };
+    img.title = '📋 BÁO CÁO NGÀY ' + fDate(day) + ' – ' + (name || 'Cả nhóm');
+    img.why = []; ents.forEach(function (e, i) { if (name === null && !i) return; e.cs.why.slice(0, 12).forEach(function (w) { img.why.push((name === null ? e.t + ': ' : '') + w); }); });
+    return { img: img, html: '<div class="bcdt-wrap">' + h + '</div>' + (name === null ? '<p class="small muted" style="margin:6px 0 0">Mỗi sale 1 dòng, xếp theo doanh thu trong ngày. Dòng mờ = chưa có đơn / chưa ghi chăm sóc. Số mới = số quảng cáo vào trong ngày. Cột cả ngày bằng 0 được ẩn cho gọn.</p>' : '') +
       '<h3 style="margin:12px 0 6px">💬 Lý do khách từ chối</h3>' + (why.length ? '<ul class="dy-why">' + why.map(function (w) { return '<li>' + w + '</li>'; }).join('') + '</ul>' : '<p class="small muted" style="margin:0">Chưa có.</p>'), csv: csv };
+  }
+  /** Vẽ bảng báo cáo ngày thành ảnh PNG (canvas, không cần thư viện) để dán / chia sẻ vào Zalo. */
+  function dyImg(sp) {
+    var cv = document.createElement('canvas'), x = cv.getContext('2d'), SC = 2, pad = 18, lh = 21, cp = 9;
+    var font = function (b, sz) { return (b ? 'bold ' : 'normal ') + (sz || 15) + 'px "Helvetica Neue", Helvetica, Roboto, Arial, sans-serif'; };
+    var tw = function (t, b, sz) { x.font = font(b, sz); return x.measureText(t).width; };
+    var wrap = function (t, w, b, sz) { var out = [], cur = ''; String(t).split(' ').forEach(function (wd) { var nx = cur ? cur + ' ' + wd : wd; if (cur && tw(nx, b, sz) > w) { out.push(cur); cur = wd; } else cur = nx; }); if (cur) out.push(cur); return out.length ? out : ['']; };
+    var many = sp.head.length > 2, maxH = many ? 104 : 420;
+    var cw = sp.head.map(function (hd, i) {
+      var cell = sp.rows.reduce(function (m, r) { return Math.max(m, tw(r.c[i], true)); }, 0), word = String(hd).split(' ').reduce(function (m, wd) { return Math.max(m, tw(wd, true, 14)); }, 0);
+      return Math.ceil(Math.max(cell, word, Math.min(tw(hd, true, 14), maxH), i ? 48 : 90)) + cp * 2;
+    });
+    var tblW = cw.reduce(function (a, b) { return a + b; }, 0), W = Math.max(tblW, 460) + pad * 2;
+    var hl = sp.head.map(function (hd, i) { return wrap(hd, cw[i] - cp * 2, true, 14); }), hH = Math.max.apply(null, hl.map(function (l) { return l.length; })) * 18 + 14, rH = lh + 12;
+    var why = []; (sp.why || []).forEach(function (w) { wrap('• ' + w, W - pad * 2, false).forEach(function (l) { why.push(l); }); });
+    var tl = wrap(sp.title, W - pad * 2, true, 19), H = pad + tl.length * 26 + 10 + hH + sp.rows.length * rH + (why.length ? 16 + lh + why.length * lh : 0) + 30 + pad;
+    cv.width = W * SC; cv.height = H * SC; x.scale(SC, SC); x.textBaseline = 'middle';
+    x.fillStyle = '#fff'; x.fillRect(0, 0, W, H);
+    var y = pad + 13; x.fillStyle = '#2f5d3a'; tl.forEach(function (l) { x.font = font(true, 19); x.fillText(l, pad, y); y += 26; }); y += 10 - 13;
+    var cx = function (i) { return pad + cw.slice(0, i).reduce(function (a, b) { return a + b; }, 0); };
+    x.fillStyle = '#2f5d3a'; x.fillRect(pad, y, tblW, hH); x.fillStyle = '#fff';
+    hl.forEach(function (ls, i) { ls.forEach(function (l, k) { x.font = font(true, 14); var lw = x.measureText(l).width; x.fillText(l, i ? cx(i) + (cw[i] - lw) / 2 : cx(i) + cp, y + hH / 2 + (k - (ls.length - 1) / 2) * 18); }); });
+    y += hH;
+    sp.rows.forEach(function (r, ri) {
+      x.fillStyle = r.b ? '#e6efe4' : ri % 2 ? '#f6f7f3' : '#fff'; x.fillRect(pad, y, tblW, rH);
+      r.c.forEach(function (v, i) {
+        if (sp.sum && sp.sum[i - 1] && !r.b) { x.fillStyle = '#eef5ec'; x.fillRect(cx(i), y, cw[i], rH); }
+        x.font = font(r.b || (sp.sum && sp.sum[i - 1]), 15); x.fillStyle = r.z ? '#9a9c95' : '#1f2a1c';
+        var lw = x.measureText(v).width; x.fillText(v, i ? cx(i) + cw[i] - cp - lw : cx(i) + cp, y + rH / 2);
+      });
+      y += rH;
+    });
+    x.strokeStyle = '#d5dacf'; x.lineWidth = 1; var top = y - sp.rows.length * rH - hH;
+    for (var i = 0; i <= cw.length; i++) { x.beginPath(); x.moveTo(cx(i) + .5, top); x.lineTo(cx(i) + .5, y); x.stroke(); }
+    for (var k = 0; k <= sp.rows.length; k++) { var yy = top + hH + k * rH; x.beginPath(); x.moveTo(pad, yy + .5); x.lineTo(pad + tblW, yy + .5); x.stroke(); }
+    if (why.length) { y += 16 + lh / 2; x.font = font(true, 16); x.fillStyle = '#2f5d3a'; x.fillText('💬 Lý do khách từ chối', pad, y); x.fillStyle = '#1f2a1c'; x.font = font(false, 15); why.forEach(function (l) { y += lh; x.fillText(l, pad, y); }); }
+    x.font = font(false, 12); x.fillStyle = '#8a8d84'; x.fillText('CRM Thực Dưỡng Lành · tự tính từ đơn hàng và chăm sóc', pad, H - pad - 6);
+    return cv;
+  }
+  /** Gửi ảnh: điện thoại mở bảng chia sẻ (chọn Zalo), máy tính copy ảnh để dán vào Zalo; không được thì tải ảnh về. */
+  function dyShare(cv, file) {
+    var u = cv.toDataURL('image/png'), bin = atob(u.split(',')[1]), arr = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    var blob = new Blob([arr], { type: 'image/png' }), f;
+    var save = function () { var a = document.createElement('a'); a.href = u; a.download = file; document.body.appendChild(a); a.click(); a.remove(); toast('Đã tải ảnh về máy – mở Zalo và gửi ảnh này vào nhóm'); };
+    try { f = new File([blob], file, { type: 'image/png' }); } catch (e) { f = null; }
+    if (f && window.matchMedia && matchMedia('(pointer:coarse)').matches && navigator.canShare && navigator.canShare({ files: [f] })) {
+      navigator.share({ files: [f], title: 'Báo cáo ngày' }).catch(function (e) { if (e && e.name !== 'AbortError') save(); }); return;
+    }
+    if (navigator.clipboard && window.ClipboardItem) {
+      navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]).then(function () { toast('Đã copy ảnh ✓ Mở nhóm Zalo, bấm Ctrl+V (Mac: ⌘+V) để dán'); }, save); return;
+    }
+    save();
   }
   function csvSave(lines, file) {
     var csv = '﻿' + lines.map(function (l) { return l.map(function (v) { v = String(v == null ? '' : v); return /[",\n;]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(','); }).join('\n');
@@ -6585,13 +6642,14 @@
       '<p class="small muted" style="margin:0 0 6px">Máy tự tính từ đơn hàng và các lần bấm kết quả chăm sóc – không cần ai gõ tay.</p>' +
       '<div id="dyTbl">' + tb.html + '</div>' +
       '<div id="dyList">' + dayOrdersHtml(name, day) + '</div>' +
-      '<details class="dy-txt" style="margin-top:12px"><summary>📝 Bản chữ để dán Zalo (sửa được trước khi copy)</summary><textarea id="dyText" rows="18" style="font-family:inherit;font-size:14px;line-height:1.5;margin-top:8px">' + esc(dailyText(name, day)) + '</textarea></details>';
-    var m = modal('📋 Báo cáo ngày', body, '<button class="btn" data-close>Đóng</button><button class="btn" id="dyCsv">⬇️ Tải Excel</button><button class="btn zalo" id="dyCopy">📋 Copy chữ gửi Zalo</button>');
+      '<details class="dy-txt" style="margin-top:12px"><summary>📝 Bản chữ để dán Zalo (sửa được trước khi copy)</summary><textarea id="dyText" rows="18" style="font-family:inherit;font-size:14px;line-height:1.5;margin-top:8px">' + esc(dailyText(name, day)) + '</textarea><button class="btn" id="dyCopy" style="margin-top:8px">📋 Copy chữ</button></details>';
+    var m = modal('📋 Báo cáo ngày', body, '<button class="btn" data-close>Đóng</button><button class="btn" id="dyCsv">⬇️ Tải Excel</button><button class="btn zalo" id="dyImg">🖼️ ' + (window.matchMedia && matchMedia('(pointer:coarse)').matches ? 'Gửi ảnh vào Zalo' : 'Copy ảnh gửi Zalo') + '</button>');
     m.querySelector('.sheet').classList.add('dy-sheet');
     var cur = function () { var w = $('#dyWho', m), dv = $('#dyDay', m).value; return [w ? (w.value || null) : name, dv ? new Date(dv + 'T12:00:00+07:00').getTime() : Date.now()]; };
     var redraw = function () { var c = cur(); tb = dailyTable(c[0], c[1]); $('#dyTbl', m).innerHTML = tb.html; $('#dyText', m).value = dailyText(c[0], c[1]); $('#dyList', m).innerHTML = dayOrdersHtml(c[0], c[1]); };
     if ($('#dyWho', m)) $('#dyWho', m).onchange = redraw; $('#dyDay', m).onchange = redraw;
     $('#dyCsv', m).onclick = function () { var c = cur(); csvSave(tb.csv, 'Bao-cao-ngay-' + isoDate(c[1]) + (c[0] ? '-' + slugName(c[0]) : '-ca-nhom') + '.csv'); };
+    $('#dyImg', m).onclick = function () { var c = cur(); dyShare(dyImg(tb.img), 'Bao-cao-ngay-' + isoDate(c[1]) + (c[0] ? '-' + slugName(c[0]) : '-ca-nhom') + '.png'); };
     $('#dyCopy', m).onclick = function () { copy($('#dyText', m).value).then(function () { toast('Đã copy – mở nhóm Zalo và dán vào nhé'); }); };
   }
   /** Đơn trong ngày xếp theo giờ lên đơn (chỉ xem, không copy vào Zalo). Đơn huỷ / hoàn không tính. */

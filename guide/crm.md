@@ -161,7 +161,10 @@ Khách để lại số trên web hay quảng cáo thì **tự vào đây**, b�
 
 1. Vào tab **Hôm nay**, kéo xuống cuối trang.
 2. Bấm **📋 Báo cáo cuối ngày (bảng)**. CRM tự đếm và hiện thành bảng như Excel: số mới, số đơn, doanh thu từng sản phẩm, khách cũ, tổng doanh thu, chăm sóc, lý do từ chối.
-3. Cần gửi Zalo thì bấm **📋 Copy chữ gửi Zalo**, rồi dán vào nhóm. Muốn sửa chữ trước khi copy thì mở mục **📝 Bản chữ để dán Zalo**.
+3. Gửi vào nhóm Zalo bằng ảnh bảng:
+   - **Máy tính:** bấm **🖼️ Copy ảnh gửi Zalo** → mở nhóm Zalo → bấm **Ctrl+V** (máy Mac: **⌘+V**) → Gửi.
+   - **Điện thoại:** bấm **🖼️ Gửi ảnh vào Zalo** → chọn **Zalo** → chọn nhóm → Gửi.
+   - Muốn gửi chữ như trước: mở mục **📝 Bản chữ để dán Zalo** → sửa nếu cần → bấm **📋 Copy chữ**.
 4. Bấm **⬇️ Tải Excel** nếu cần lưu file.
 
 ![Cửa sổ Báo cáo ngày: CRM tự viết, bạn chỉ cần copy](/huong-dan/img/crm-report.webp)

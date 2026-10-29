@@ -255,7 +255,7 @@ Tab xếp theo đúng thứ tự một sale giỏi tự hỏi mỗi ngày, **đ�
     - **⑥ Khách cũ mua lại**: bao nhiêu khách cũ quay lại mua.
 4. **💡 Khâu cần sửa nhất:** máy chọn ra **1 khâu yếu nhất**, chỉ cách sửa và ghi **sửa được thì thêm khoảng bao nhiêu tiền**. Chỉ cần tập trung sửa khâu này.
 5. **Xem chi tiết** (bấm để mở): bán hàng theo ngày, từ quảng cáo (công ty đã đầu tư cho bạn, khách hỏi đi về đâu), chăm sóc, lý do khách chưa mua, tỉnh.
-6. **🧰 Công cụ** (cuối trang): Báo cáo ngày (bảng, copy chữ gửi Zalo được), Bảng BCDT, link web riêng của bạn để gửi khách.
+6. **🧰 Công cụ** (cuối trang): Báo cáo ngày (bảng, gửi ảnh bảng vào Zalo), Bảng BCDT, link web riêng của bạn để gửi khách.
 
 **Đèn màu** (có chữ đi kèm): 🟢 Tốt · 🟠 Cần để ý · 🔴 Cần xử lý. So với chính bạn kỳ trước, hoặc so với mức tốt ghi ngay trong ô.
 
