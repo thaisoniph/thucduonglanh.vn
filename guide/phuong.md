@@ -121,4 +121,4 @@ Cuối ngày bấm **📋 Báo cáo cuối ngày (gửi Zalo)** ở tab Hôm nay
 
 **Muốn xem hướng dẫn đầy đủ?** Xem [Hướng dẫn CRM](/huong-dan/crm/).
 
-**Có gì vướng, thấy lỗi hay có ý tưởng?** Chụp màn hình chỗ đó, bấm nút **💡 Góp ý** trên đầu trang CRM, chọn ảnh, gõ vài chữ rồi gửi. Anh Sơn nhận được ngay kèm ảnh và sẽ sửa cho hợp với cách em làm việc.
+**Có gì vướng, thấy lỗi hay có ý tưởng?** Chụp màn hình chỗ đó, bấm **💡 Góp ý** (điện thoại: **••• Thêm → Góp ý**), chọn ảnh, gõ vài chữ rồi gửi. Anh Sơn nhận được ngay kèm ảnh và sẽ sửa cho hợp với cách em làm việc.

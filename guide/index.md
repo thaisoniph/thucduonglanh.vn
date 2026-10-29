@@ -66,5 +66,5 @@ Từng việc được hướng dẫn kỹ ở [phần CRM](/huong-dan/crm/).
 ## Cần giúp đỡ?
 
 - Hỏi quản lý, hoặc nhắn anh Sơn.
-- Hoặc bấm nút **💡 Góp ý** trên đầu trang CRM. Gõ vài chữ, gửi kèm ảnh chụp màn hình.
+- Hoặc bấm **💡 Góp ý** trong CRM (điện thoại: **••• Thêm → Góp ý**; máy tính: nút trên đầu trang). Gõ vài chữ, gửi kèm ảnh chụp màn hình.
 - Khi gửi ảnh ra ngoài CRM, nhớ **che tên và số điện thoại khách**.

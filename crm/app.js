@@ -84,6 +84,7 @@
     qr: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></svg>',
     mega: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a1 1 0 0 0 1 1h3l6 4V6L7 10H4a1 1 0 0 0-1 1z"/><path d="M17 9a4 4 0 0 1 0 6"/><path d="M8 14l1.5 5h2.5l-1.5-5"/></svg>',
     bot: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="3"/><path d="M12 8V4M8 4h8M9 14h.01M15 14h.01"/></svg>',
+    more: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>',
     shop: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>'
   };
 
@@ -340,7 +341,7 @@
       var keep = !!j.part && silent && prev && prev.orders && !prev.partial && Date.now() - (S.restAt || 0) < 3600e3; // tự làm mới: đơn, nhật ký cũ giữ bản trên máy (1 tiếng mới đọc lại) – nhanh hơn, đỡ tốn lượt đọc máy chủ
       j.partial = !!j.part && !keep; setData(j, Date.now()); S.fullAt = Date.now(); S.perf = { core: Date.now() - t0, srv: j.t, kb: j.__kb };
       if (!j.part) idb('set', 'data', { tk: S.token.slice(-12), at: S.loadedAt, fa: S.fullAt, d: j }); // máy chủ cũ: 1 đợt
-      if (!$('.me') || $$('.nav a').length !== navViews().length) shell(); else { $('.me').innerHTML = meHTML(); navBadges(); } // .me chỉ có ở giao diện thật (khung chờ không có)
+      if (!$('.me') || ($('.nav') && $('.nav').getAttribute('data-sig')) !== navSig()) shell(); else { $('.me').innerHTML = meHTML(); navBadges(); } // .me chỉ có ở giao diện thật (khung chờ không có)
       softRender(silent);
       if (j.part) { // đợt 2 tải ngầm, không giữ S.loading → bấm ↻ lúc đợt 2 chưa xong vẫn tải lại được
         if (keep) idb('set', 'data', { tk: S.token.slice(-12), at: S.loadedAt, fa: S.fullAt, d: j }); else loadRest(j);
@@ -685,17 +686,61 @@
   // Marketing: tab Marketing, Link & QR, Khách hỏi (24/10/2026: chỉ xem khách để lại số trên web), Cài đặt
   function myViews() { if (isMkt()) return VIEWS.filter(function (v) { return v.mkt || v.lq || v.id === 'tiem-nang' || v.id === 'cai-dat'; }); return VIEWS.filter(function (v) { return (!v.min || lvl() >= v.min) && (!v.lq || lvl() >= 2) && (!v.san || (S.d && S.d.sanOk) || lvl() >= 3) && (!v.mkt || lvl() >= 3 || mkvOnly()); }); }
   function navViews() { return myViews().filter(function (v) { return !((v.san || v.mkt || v.lq) && lvl() >= 3); }); }
+  /** Điện thoại (29/10/2026, kiểu Apple): thanh dưới chỉ 4 mục hay dùng + "Thêm"; mục còn lại, Cài đặt, Hướng dẫn, Góp ý nằm ở màn Thêm. Máy tính vẫn hiện đủ. */
+  var NAV_FIRST = ['hom-nay', 'tiem-nang', 'khach-hang', 'don-hang', 'bao-cao'];
+  function navMain() {
+    var all = navViews().filter(function (v) { return v.id !== 'cai-dat'; }).map(function (v) { return v.id; }), out = [];
+    [homeView()].concat(NAV_FIRST, all).forEach(function (id) { if (out.length < 4 && all.indexOf(id) >= 0 && out.indexOf(id) < 0) out.push(id); });
+    return out;
+  }
+  function navSig() { return navViews().map(function (v) { return v.id; }).join() + '|' + navMain().join(); }
+  var VIEW_DESC = {
+    'tong-quan': 'Bức tranh kinh doanh cả công ty', 'hom-nay': 'Khách cần gọi, đơn mới hôm nay', 'tiem-nang': 'Người để lại số, chưa mua',
+    'khach-hang': 'Hồ sơ, lịch sử mua, chăm sóc', 'don-hang': 'Đơn mới, đang giao, hoàn / huỷ', 'bao-cao': 'Doanh số, mục tiêu, thi đua',
+    marketing: 'Quảng cáo, chi phí, giá 1 số điện thoại', 'link-qr': 'Link và mã QR theo dõi nguồn khách', 'tro-ly-zalo': 'Trợ lý An Lành trong nhóm Zalo',
+    fanpage: 'Trả lời bình luận, tin nhắn Fanpage', san: 'Doanh số Shopee, TikTok Shop', 'cai-dat': 'Nhân sự, mục tiêu, mẫu tin, tài khoản'
+  };
+  var VIEW_TINT = { 'tong-quan': '#1f5f3a', 'hom-nay': '#34a853', 'tiem-nang': '#ff9500', 'khach-hang': '#007aff', 'don-hang': '#a2845e', 'bao-cao': '#5856d6', marketing: '#ff2d55', 'link-qr': '#636366', 'tro-ly-zalo': '#0068ff', fanpage: '#1877f2', san: '#ee4d2d', 'cai-dat': '#8e8e93' };
+  function viewMore() {
+    var main = navMain(), n = navCounts();
+    var rest = myViews().filter(function (v) { return main.indexOf(v.id) < 0 && v.id !== 'cai-dat'; });
+    var badge = function (k) { return k ? '<em class="mr-n">' + (k > 99 ? '99+' : k) + '</em>' : ''; };
+    var row = function (open, icon, tint, label, desc, k) { return open + '<i class="mr-ic" style="background:' + tint + '">' + icon + '</i><span class="mr-t"><b>' + label + '</b>' + (desc ? '<small>' + desc + '</small>' : '') + '</span>' + badge(k) + '<span class="mr-chev" aria-hidden="true">›</span>'; };
+    var vrow = function (v) { return row('<a class="mr-row" href="#' + v.id + '">', I[v.icon], VIEW_TINT[v.id] || '#8e8e93', v.label, VIEW_DESC[v.id], n[v.id]) + '</a>'; };
+    var group = function (t, rows) { return rows ? '<section class="mr-g">' + (t ? '<h2>' + t + '</h2>' : '') + '<div class="mr-list">' + rows + '</div></section>' : ''; };
+    var isCh = function (v) { return v.mkt || v.lq || v.san; };
+    var h = '<div class="mr"><div class="page-head"><h1>Thêm</h1></div>' +
+      '<div class="mr-me"><span class="mr-av">' + esc((S.user.name || '?').trim().split(/\s+/).pop().charAt(0).toUpperCase()) + '</span><span class="mr-t"><b>' + esc(S.user.name) + '</b><small>' + esc(S.user.role || '') + ' · ' + esc(S.user.email || '') + '</small></span></div>' +
+      (isMkt() ? '' : '<button type="button" class="mr-search" data-mr="search">' + I.search + '<span>Tìm khách, số điện thoại, mã đơn</span></button>') +
+      group('Bán hàng', rest.filter(function (v) { return !isCh(v); }).map(vrow).join('')) +
+      group('Marketing & kênh bán', rest.filter(isCh).map(vrow).join('')) +
+      group('Khác',
+        vrow(VIEWS.filter(function (v) { return v.id === 'cai-dat'; })[0]) +
+        row('<a class="mr-row" href="/huong-dan/' + (isMkt() ? 'marketing' : 'crm') + '/" target="_blank" rel="noopener">', I.help, '#30b0c7', 'Hướng dẫn sử dụng', 'Cách dùng từng màn hình, có hình', 0) + '</a>' +
+        row('<button type="button" class="mr-row" data-mr="fb">', '💡', '#ffcc00', 'Góp ý', 'Báo lỗi, chỗ khó dùng, ý tưởng', lvl() >= 2 ? S.d.fbNew : 0) + '</button>' +
+        row('<button type="button" class="mr-row" data-mr="re">', I.refresh, '#34c759', 'Tải lại dữ liệu', 'Lấy số mới nhất từ máy chủ', 0) + '</button>') +
+      '</div>';
+    return h;
+  }
+  function bindMore() {
+    $$('[data-mr]').forEach(function (b) {
+      b.onclick = function () { var k = b.getAttribute('data-mr'); if (k === 'search') openGlobalSearch(); else if (k === 'fb') openFeedback(); else { load(); toast('Đang tải lại dữ liệu…'); } };
+    });
+  }
   function meHTML() { return '<b>' + esc(S.user.name) + '</b>'; } // chỉ tên: mỗi người là chủ công việc của mình
   function updatedLine() {
     var pf = S.perf, sp = pf && lvl() >= 3 ? ' · tải ' + (pf.core / 1000).toFixed(1) + 's' + (pf.srv ? ' (máy chủ ' + (pf.srv.ms / 1000).toFixed(1) + 's' + (pf.srv.cached ? ', bản đọc sẵn' : ', đọc Sheet') + ')' : '') + (pf.kb ? ', ' + pf.kb + ' KB' : '') + (pf.rest ? ' + đợt 2 ' + (pf.rest / 1000).toFixed(1) + 's' + (pf.kb2 ? '/' + pf.kb2 + ' KB' : '') : '') : '';
     return '<p class="updated">' + (S.stale ? '⏳ Đang cập nhật… (đang xem dữ liệu lúc ' + fDateTime(S.loadedAt) + ')' : 'Cập nhật lúc ' + fDateTime(S.loadedAt)) + (S.d && S.d.partial ? ' · ⏳ đang tải thêm đơn & nhật ký cũ…' : '') + ' · dữ liệu lưu trên máy chủ CRM (bản sao ở Google Sheet)' + sp + '</p>';
   }
   function shell() {
+    var main = navMain(), tc = $('meta[name="theme-color"]');
+    if (tc && window.matchMedia) tc.content = matchMedia('(max-width: 859px)').matches ? '#f7f7f4' : '#1f5f3a'; // điện thoại: thanh trên sáng màu
     $('#app').innerHTML = '<header class="top"><div class="top-in">' +
       '<a class="brand" href="#' + homeView() + '"><img src="/icon-180.png" alt="">CRM</a>' +
-      '<nav class="nav">' + navViews().map(function (v) { return '<a href="#' + v.id + '" data-v="' + v.id + '"' + (v.id === 'cai-dat' ? ' class="nav-set"' : '') + '>' + I[v.icon] + '<span' + (v.short ? ' data-short="' + v.short + '"' : '') + '>' + v.label + '</span></a>'; }).join('') + '</nav>' +
+      '<nav class="nav" data-sig="' + navSig() + '">' + navViews().map(function (v) { return '<a href="#' + v.id + '" data-v="' + v.id + '"' + (v.id === 'cai-dat' ? ' class="nav-set"' : main.indexOf(v.id) < 0 ? ' class="nav-x"' : '') + '>' + I[v.icon] + '<span' + (v.short ? ' data-short="' + v.short + '"' : '') + '>' + v.label + '</span></a>'; }).join('') +
+      '<a href="#them" data-v="them" class="nav-more">' + I.more + '<span>Thêm</span></a></nav>' +
       '<div class="grow"></div><div class="me">' + meHTML() + '</div>' +
-      (isMkt() ? '' : '<button class="icon-btn" id="gsBtn" title="Tìm ở mọi tab: khách đã mua, đơn hàng, khách hỏi" aria-label="Tìm ở mọi tab">🔍</button>') +
+      (isMkt() ? '' : '<button class="icon-btn" id="gsBtn" title="Tìm ở mọi tab: khách đã mua, đơn hàng, khách hỏi" aria-label="Tìm ở mọi tab">' + I.search + '</button>') +
       '<button class="icon-btn fb-btn" id="fbBtn" title="Góp ý: báo lỗi, chỗ khó dùng, ý tưởng" aria-label="Góp ý">💡<span class="fb-lbl">Góp ý</span></button>' +
       '<a class="icon-btn" href="/huong-dan/' + (isMkt() ? 'marketing' : 'crm') + '/" target="_blank" rel="noopener" title="Hướng dẫn sử dụng" aria-label="Hướng dẫn sử dụng">' + I.help + '</a>' +
       '<a class="icon-btn top-set" href="#cai-dat" title="Cài đặt" aria-label="Cài đặt">' + I.gear + '</a>' +
@@ -773,30 +818,34 @@
   function setWho(v) { S.who = v || ''; store('crm_who', S.who); ['c', 'o', 't'].forEach(function (k) { if (S.f[k]) S.f[k].n = 60; }); navBadges(); render(); }
   function navBadges() {
     var fb = $('#fbBtn'); if (fb) { var fd = $('.dot', fb); if (fd) fd.remove(); if (lvl() >= 2 && S.d.fbNew) fb.insertAdjacentHTML('beforeend', '<span class="dot">' + S.d.fbNew + '</span>'); }
-    var ld = leadsDue().length, n = { 'hom-nay': newOrders().length + dayQueue().list.length + hotLeads().length, 'don-hang': newOrders().length, 'tiem-nang': ld };
+    var n = navCounts(), main = navMain(), more = lvl() >= 2 ? S.d.fbNew || 0 : 0;
+    Object.keys(n).forEach(function (v) { if (main.indexOf(v) < 0) more += n[v]; });
+    n.them = more; // số trên nút Thêm = số của các mục đang nằm trong Thêm (đơn mới, góp ý mới…)
     $$('.nav a').forEach(function (a) {
       var v = a.getAttribute('data-v'), d = $('.dot', a); if (d) d.remove();
       if (n[v]) a.insertAdjacentHTML('beforeend', '<span class="dot">' + (n[v] > 99 ? '99+' : n[v]) + '</span>');
     });
   }
+  function navCounts() { return { 'hom-nay': newOrders().length + dayQueue().list.length + hotLeads().length, 'don-hang': newOrders().length, 'tiem-nang': leadsDue().length }; }
   /** Tab mở mặc định theo quyền: Quản trị → Tổng quan, Quản lý → Hiệu quả, nhân viên → Hôm nay. */
   function homeView() { return isMkt() || (MKT_HOST && myViews().some(function (x) { return x.id === 'marketing'; })) ? 'marketing' : lvl() >= 3 ? 'tong-quan' : lvl() >= 2 ? 'bao-cao' : 'hom-nay'; }
   function route() { var h = (location.hash || '').slice(1).split('/'); return { view: h[0] === 'lien-he' ? 'tiem-nang' : h[0] || homeView(), id: decodeURIComponent(h[1] || '') }; }
   var lastView = '';
   function render() {
     if (!S.d || !$('#view')) return;
-    var r = route(), v = myViews().some(function (x) { return x.id === r.view; }) ? r.view : homeView();
-    $$('.nav a').forEach(function (a) { a.classList.toggle('on', a.getAttribute('data-v') === v); }); var ts = $('.top-set'); if (ts) ts.classList.toggle('on', v === 'cai-dat');
+    var r = route(), v = r.view === 'them' ? 'them' : myViews().some(function (x) { return x.id === r.view; }) ? r.view : homeView(), main = navMain();
+    $$('.nav a').forEach(function (a) { var d = a.getAttribute('data-v'); a.classList.toggle('on', d === v || (d === 'them' && main.indexOf(v) < 0)); }); var ts = $('.top-set'); if (ts) ts.classList.toggle('on', v === 'cai-dat');
     var keepScroll = lastView === v, y = window.scrollY;
     var el = $('#view');
     var focusId = document.activeElement && document.activeElement.id, selStart = document.activeElement && document.activeElement.selectionStart;
-    el.innerHTML = ({ 'hom-nay': viewToday, 'khach-hang': viewCustomers, 'don-hang': viewOrders, 'tiem-nang': viewLeads, 'bao-cao': viewReport, 'cai-dat': viewSettings, 'tong-quan': viewDash, san: viewSan, marketing: viewMkt, 'link-qr': viewLinks, 'tro-ly-zalo': viewZbot, fanpage: viewFp })[v]();
+    el.innerHTML = ({ 'hom-nay': viewToday, 'khach-hang': viewCustomers, 'don-hang': viewOrders, 'tiem-nang': viewLeads, 'bao-cao': viewReport, 'cai-dat': viewSettings, 'tong-quan': viewDash, san: viewSan, marketing: viewMkt, 'link-qr': viewLinks, 'tro-ly-zalo': viewZbot, fanpage: viewFp, them: viewMore })[v]();
     el.insertAdjacentHTML('beforeend', updatedLine());
     if (focusId && $('#' + focusId)) { var f = $('#' + focusId); f.focus(); try { f.setSelectionRange(selStart, selStart); } catch (e) { } }
     if (keepScroll) window.scrollTo(0, y); else window.scrollTo(0, 0);
     lastView = v;
-    document.title = VIEWS.filter(function (x) { return x.id === v; })[0].label + ' – ' + APP_NM;
+    document.title = (v === 'them' ? 'Thêm' : VIEWS.filter(function (x) { return x.id === v; })[0].label) + ' – ' + APP_NM;
     if (v === 'cai-dat') bindSettings();
+    if (v === 'them') bindMore();
     if (v === 'tong-quan') bindDash();
     if (v === 'bao-cao') bindRep();
     if (v === 'marketing') bindMkv();

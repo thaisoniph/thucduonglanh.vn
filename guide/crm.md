@@ -32,7 +32,7 @@ Mã chỉ dùng được trong 10 phút. Vào được rồi thì máy nhớ b�
 
 **Nối Telegram** (làm 1 lần, mất 30 giây). Telegram sẽ báo bạn khi có đơn mới, có khách mới hỏi, và gửi việc cần làm lúc 8 giờ sáng.
 
-1. Trong CRM, bấm nút **⚙** (Cài đặt) ở trên cùng.
+1. Trong CRM, mở **Cài đặt**: trên điện thoại bấm **••• Thêm** (góc phải thanh dưới cùng) → **Cài đặt**; trên máy tính bấm **⚙** ở trên cùng.
 2. Bấm **Kết nối Telegram**, rồi bấm **Mở Telegram**.
 3. Trong Telegram, bấm **Start** (hoặc **Bắt đầu**).
 4. Quay lại CRM, bấm **Tôi đã bấm Start**. Xong!
@@ -176,7 +176,7 @@ Từ đó, CRM cho bạn biết mỗi ngày cần bán bao nhiêu. Thanh màu ch
 
 ## Trên màn hình CRM có gì?
 
-**Các tab** (trên điện thoại nằm ở thanh dưới cùng):
+**Các tab** (trên điện thoại nằm ở thanh dưới cùng). Thanh dưới chỉ hiện **4 tab hay dùng + ••• Thêm**. Tab nào không thấy thì bấm **••• Thêm**: ở đó có các tab còn lại (mỗi dòng ghi rõ dùng để làm gì), **Cài đặt**, **Hướng dẫn**, **💡 Góp ý**, **Tải lại dữ liệu**. Số đỏ trên nút Thêm = việc đang chờ ở các tab bên trong (ví dụ đơn mới).
 
 | Tab | Dùng để |
 | --- | --- |
@@ -186,7 +186,7 @@ Từ đó, CRM cho bạn biết mỗi ngày cần bán bao nhiêu. Thanh màu ch
 | **Đơn hàng** | Xác nhận, gửi hàng, tạo đơn |
 | **Hiệu quả** | Doanh số và mục tiêu của bạn |
 
-**Các nút trên cùng:**
+**Các nút trên cùng** (trên điện thoại chỉ còn 🔍 và ⟳; Góp ý, Cài đặt nằm trong **••• Thêm**):
 
 - **🔍** Tìm ở mọi tab: gõ tên, số điện thoại (từ 3 số) hoặc mã đơn. Máy tìm cùng lúc trong khách đã mua, đơn hàng và khách hỏi. Mỗi người chỉ hiện **1 dòng** (gom theo số điện thoại): đã mua thì bấm vào mở hồ sơ khách, trong đó có cả lần hỏi và các đơn; chưa mua thì mở lượt hỏi. Gõ mã đơn thì hiện thêm mục **📦 Đơn khớp mã**.
 - **⟳** Tải lại: xem dữ liệu mới nhất, ví dụ khi đồng nghiệp vừa sửa.
@@ -216,7 +216,7 @@ Từ đó, CRM cho bạn biết mỗi ngày cần bán bao nhiêu. Thanh màu ch
 **Thấy lỗi, hoặc chỗ nào khó dùng?**
 
 1. Chụp màn hình chỗ đó.
-2. Bấm **💡 Góp ý** trên đầu trang.
+2. Bấm **💡 Góp ý** (điện thoại: **••• Thêm → Góp ý**; máy tính: nút trên đầu trang).
 3. Chọn **🐞 Lỗi**, **😕 Khó dùng** hoặc **💡 Ý tưởng**. Gõ vài chữ. Bấm **📷 Chọn ảnh** để gửi kèm ảnh.
 4. Bấm **Gửi góp ý**. Mọi góp ý đều được đọc.
 

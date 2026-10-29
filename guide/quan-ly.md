@@ -172,7 +172,7 @@ Tab **Hiệu quả** → nút **📈 Mức dùng CRM**. Chọn xem 7, 14 hoặc 
 
 ## Góp ý của nhân viên
 
-Nút **💡 Góp ý** có số đỏ khi có góp ý mới. Mở **💡 Góp ý → Danh sách góp ý** để xem ảnh, đổi trạng thái (*Mới → Đang làm → Đã xong*) và trả lời. Nhân viên nhận trả lời qua Telegram.
+Nút **💡 Góp ý** có số đỏ khi có góp ý mới (trên điện thoại nằm trong **••• Thêm**, số đỏ hiện cả trên nút Thêm). Mở **💡 Góp ý → Danh sách góp ý** để xem ảnh, đổi trạng thái (*Mới → Đang làm → Đã xong*) và trả lời. Nhân viên nhận trả lời qua Telegram.
 
 ## Sửa trang hướng dẫn này
 
