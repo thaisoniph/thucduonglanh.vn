@@ -1209,7 +1209,7 @@
     if (doneToday.length) h += '<section class="section"><details class="grp" data-grp="done"' + (S.f.gopen && S.f.gopen.done ? ' open' : '') + '><summary><span class="g-t">✅ Đã làm hôm nay</span><span class="count">' + doneToday.length + '</span></summary><div class="timeline" style="padding:12px">' +
       doneToday.slice(0, 40).map(logItem).join('') + '</div></details></section>';
     if (lvl() < 2) h += '<section class="section td-tail"><div class="section-h"><h2>🏁 Mục tiêu & thi đua</h2></div>' + myGoalToday() + raceBlock() + '</section>';
-    h += '<button class="btn block" data-daily="' + esc(lvl() >= 2 ? wn || '' : S.user.name) + '" style="margin-top:12px">📋 Báo cáo cuối ngày (gửi Zalo)</button>';
+    h += '<button class="btn block" data-daily="' + esc(lvl() >= 2 ? wn || '' : S.user.name) + '" style="margin-top:12px">📋 Báo cáo cuối ngày (bảng)</button>';
     return h;
   }
   /** Sale: 1 dòng mục tiêu tháng + hôm nay trong khung đầu trang Hôm nay (chi tiết ở cuối trang). */
@@ -6063,7 +6063,7 @@
     h += repMore('why', '🙅 Vì sao khách chưa mua', wt ? 'Nhiều nhất: ' + wt : 'Ghi lý do khi chăm sóc để máy gom', why);
     var geo = geoBlock(name, cx), gt = (geo.match(/Nhiều nhất: <b>([^<]*)</) || [])[1];
     h += repMore('geo', '📍 Khách ở tỉnh nào', gt ? 'Nhiều nhất: ' + gt : 'Chưa có địa chỉ', geo);
-    h += '<h2 class="dash-more-h">🧰 Công cụ</h2><div class="steps" style="margin:0 0 10px"><button class="btn pri" data-daily="' + esc(name) + '">📋 Báo cáo ngày (gửi Zalo)</button><button class="btn" data-bcdt="' + esc(name) + '|' + month + '">📊 Bảng BCDT ' + monthLabel(month) + '</button>' + (lvl() >= 3 && !me ? '<button class="btn" data-usage="' + esc(name) + '">📈 Mức dùng CRM</button>' : '') + '</div>' + refBox(c, p, name);
+    h += '<h2 class="dash-more-h">🧰 Công cụ</h2><div class="steps" style="margin:0 0 10px"><button class="btn pri" data-daily="' + esc(name) + '">📋 Báo cáo ngày (bảng)</button><button class="btn" data-bcdt="' + esc(name) + '|' + month + '">📊 Bảng BCDT ' + monthLabel(month) + '</button>' + (lvl() >= 3 && !me ? '<button class="btn" data-usage="' + esc(name) + '">📈 Mức dùng CRM</button>' : '') + '</div>' + refBox(c, p, name);
     h += '<p class="small muted">🟢 Tốt · 🟠 Cần để ý · 🔴 Cần xử lý, so với ' + (CMP_LABEL || 'kỳ trước') + ' hoặc mức tốt ghi trong ô. Doanh số tính theo “Nhân viên bán” ghi trên từng đơn; đơn khách tự đặt trên web tính cho người đang phụ trách khách đó.</p>';
     return h;
   }
@@ -6159,7 +6159,7 @@
     h += repMore('why', '🙅 Vì sao khách chưa mua', wt ? 'Nhiều nhất: ' + wt : 'Ghi lý do khi chăm sóc để máy gom', why + teamLostBlock(R));
     var geo = geoBlock(null, cx), gt = (geo.match(/Nhiều nhất: <b>([^<]*)</) || [])[1];
     h += repMore('geo', '📍 Khách ở tỉnh nào', gt ? 'Nhiều nhất: ' + gt : 'Chưa có địa chỉ', geo);
-    h += '<h2 class="dash-more-h">🧰 Công cụ</h2><div class="steps" style="margin:0 0 10px"><button class="btn pri" data-daily="">📋 Báo cáo ngày (gửi Zalo)</button><button class="btn" data-bcdt="|' + month + '">📊 Bảng BCDT cả nhóm ' + monthLabel(month) + '</button>' + (lvl() >= 3 ? '<button class="btn" data-usage="">📈 Mức dùng CRM</button>' : '') + '</div>' + refBox(all, prev, '');
+    h += '<h2 class="dash-more-h">🧰 Công cụ</h2><div class="steps" style="margin:0 0 10px"><button class="btn pri" data-daily="">📋 Báo cáo ngày (bảng)</button><button class="btn" data-bcdt="|' + month + '">📊 Bảng BCDT cả nhóm ' + monthLabel(month) + '</button>' + (lvl() >= 3 ? '<button class="btn" data-usage="">📈 Mức dùng CRM</button>' : '') + '</div>' + refBox(all, prev, '');
     h += '<p class="small muted">🟢 đúng tiến độ mục tiêu / tốt hơn ' + (CMP_LABEL || 'kỳ trước') + ' · 🟠 hơi chậm / giảm nhẹ · 🔴 đang chậm / giảm nhiều. 🥇🥈🥉 xếp theo doanh số trong kỳ đang chọn.</p>';
     return h;
   }
@@ -6535,16 +6535,63 @@
     lines.push('', '📈 Luỹ kế ' + monthLabel(month) + ': ' + mf(mrev) + (tg && tg.amount ? ' · đạt ' + pct(mrev, tg.amount) + '% mục tiêu ' + moneyShort(tg.amount) : ''));
     return lines.join('\n');
   }
+  /** Báo cáo ngày dạng bảng như Excel (góp ý chị Thuỷ 29/10/2026): cả nhóm = mỗi sale 1 dòng + dòng Tổng; 1 người = 2 cột Chỉ số | Số. Cột cả ngày bằng 0 thì ẩn. */
+  function dailyTable(name, day) {
+    var month = monthOf(day), R = monthRange(month), idx = Math.floor((dayStart(day) - R[0]) / DAY), d0 = dayStart(day);
+    var sum = function (o) { return BC_LINES.reduce(function (s0, l) { return s0 + o[l]; }, 0); };
+    var adm = {}; (S.d.users || []).forEach(function (u) { if (u.role === 'Quản trị') adm[u.name] = 1; });
+    var ents = (name === null ? [{ n: null, t: 'TỔNG cả nhóm' }].concat(userNames().map(function (n) { return { n: n, t: n }; })) : [{ n: name, t: name }]).map(function (e) {
+      var b = bcdtData(e.n, month); e.r = b.rows[idx] || b.rows[0]; e.T = b.tot; e.cs = careStats(e.n, d0, d0 + DAY); e.tg = e.n ? targetOf(e.n, month) : null; return e;
+    });
+    var cols = [];
+    BC_LINES.forEach(function (l) {
+      if (l !== 'Khác') cols.push([l, 'Số mới', function (e) { return e.r.newD[l]; }]);
+      cols.push([l, 'Đơn', function (e) { return e.r.newN[l]; }], [l, 'Doanh thu', function (e) { return e.r.newR[l]; }, 1]);
+    });
+    cols.push(['Khách cũ', 'Đơn', function (e) { return sum(e.r.oldN); }], ['Khách cũ', 'Doanh thu', function (e) { return sum(e.r.oldR); }, 1],
+      ['', 'TỔNG DT', function (e) { return sum(e.r.newR) + sum(e.r.oldR); }, 1, 1],
+      ['Theo giờ lên đơn', '🏢 Giờ hành chính', function (e) { return e.r.hrR['Trong giờ']; }, 1], ['Theo giờ lên đơn', '🌙 Tối / CN', function (e) { return e.r.hrR['Ngoài giờ']; }, 1], ['Theo giờ lên đơn', '🎉 Ngày lễ', function (e) { return e.r.hrR['Ngày lễ']; }, 1], ['Theo giờ lên đơn', '❔ Không rõ giờ', function (e) { return e.r.hrR['Không rõ giờ']; }, 1],
+      ['Đơn hoàn', 'Số đơn', function (e) { return e.r.hoanN; }], ['Đơn hoàn', 'Giá trị', function (e) { return e.r.hoanV; }, 1],
+      ['Chăm sóc khách cũ', 'Kết nối', function (e) { return e.cs.ok; }], ['Chăm sóc khách cũ', 'Không nghe máy', function (e) { return e.cs.knm; }],
+      ['Luỹ kế ' + monthLabel(month), 'Doanh thu', function (e) { return sum(e.T.newR) + sum(e.T.oldR); }, 1], ['Luỹ kế ' + monthLabel(month), '% mục tiêu', function (e) { return e.tg && e.tg.amount ? pct(sum(e.T.newR) + sum(e.T.oldR), e.tg.amount) + '%' : ''; }]);
+    cols = cols.filter(function (c) { return c[4] || ents.some(function (e) { return c[2](e); }); });
+    if (name === null) ents = ents.filter(function (e, i) { return !i || !adm[e.n] || cols.some(function (c) { return c[2](e); }); }); // Quản trị không bán thì không hiện dòng trống
+    var fv = function (c, e) { var v = c[2](e); return !v ? '' : c[3] ? Number(v).toLocaleString('vi-VN') : v; };
+    if (name === null) ents = [ents[0]].concat(ents.slice(1).sort(function (a, b) { return (sum(b.r.newR) + sum(b.r.oldR)) - (sum(a.r.newR) + sum(a.r.oldR)) || b.cs.ok - a.cs.ok; }));
+    var h;
+    if (name !== null) { // 1 người: bảng dọc cho dễ đọc trên điện thoại
+      h = '<table class="bcdt dy-tbl"><thead><tr><th>Chỉ số</th><th>' + esc(name) + '</th></tr></thead><tbody>' + cols.map(function (c) { return '<tr' + (c[4] ? ' class="tot"' : '') + '><td>' + esc(c[0] ? c[0] + ' · ' + c[1] : c[1]) + '</td><td>' + (fv(c, ents[0]) || '0') + '</td></tr>'; }).join('') + '</tbody></table>';
+    } else {
+      var grp = [], g; cols.forEach(function (c) { if (g && g.t === c[0] && c[0]) g.n++; else grp.push(g = { t: c[0], n: 1, c: c }); });
+      h = '<table class="bcdt dy-tbl"><thead><tr><th rowspan="2">Sale</th>' + grp.map(function (x) { return x.t ? '<th colspan="' + x.n + '">' + esc(x.t) + '</th>' : '<th rowspan="2">' + esc(x.c[1]) + '</th>'; }).join('') + '</tr><tr>' +
+        cols.filter(function (c) { return c[0]; }).map(function (c) { return '<th>' + esc(c[1]) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+        ents.map(function (e, i) { var z = i && !cols.some(function (c) { return c[2](e); }); return '<tr class="' + (i ? '' : 'tot') + (z ? ' dy-zero' : '') + '"><td>' + esc(e.t) + '</td>' + cols.map(function (c) { return '<td' + (c[4] ? ' class="dy-sum"' : '') + '>' + fv(c, e) + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table>';
+    }
+    var why = []; ents.forEach(function (e, i) { if (name === null && !i) return; e.cs.why.slice(0, 12).forEach(function (w) { why.push((name === null ? '<b>' + esc(e.t) + ':</b> ' : '') + esc(w)); }); });
+    var csv = name === null ? [['Sale'].concat(cols.map(function (c) { return c[0] ? c[0] + ' – ' + c[1] : c[1]; }))].concat(ents.map(function (e) { return [e.t].concat(cols.map(function (c) { return c[2](e); })); }))
+      : [['Chỉ số', name]].concat(cols.map(function (c) { return [c[0] ? c[0] + ' – ' + c[1] : c[1], c[2](ents[0])]; }));
+    return { html: '<div class="bcdt-wrap">' + h + '</div>' + (name === null ? '<p class="small muted" style="margin:6px 0 0">Mỗi sale 1 dòng, xếp theo doanh thu trong ngày. Dòng mờ = chưa có đơn / chưa ghi chăm sóc. Số mới = số quảng cáo vào trong ngày. Cột cả ngày bằng 0 được ẩn cho gọn.</p>' : '') +
+      '<h3 style="margin:12px 0 6px">💬 Lý do khách từ chối</h3>' + (why.length ? '<ul class="dy-why">' + why.map(function (w) { return '<li>' + w + '</li>'; }).join('') + '</ul>' : '<p class="small muted" style="margin:0">Chưa có.</p>'), csv: csv };
+  }
+  function csvSave(lines, file) {
+    var csv = '﻿' + lines.map(function (l) { return l.map(function (v) { v = String(v == null ? '' : v); return /[",\n;]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(','); }).join('\n');
+    var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = file; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  }
   function openDaily(name, day) {
     name = name === undefined ? (lvl() >= 2 ? null : S.user.name) : name; day = day || Date.now();
     var opts = lvl() >= 2 ? '<label class="f"><span>Của ai</span><select id="dyWho"><option value="">Cả nhóm</option>' + userNames().map(function (n) { return '<option' + (n === name ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('') + '</select></label>' : '';
+    var tb = dailyTable(name, day);
     var body = '<div class="row2c">' + opts + '<label class="f"><span>Ngày</span><input type="date" id="dyDay" value="' + isoDate(day) + '" max="' + isoDate(Date.now()) + '"></label></div>' +
-      '<p class="small muted" style="margin:0 0 6px">Máy tự tính từ đơn hàng và các lần bạn bấm kết quả chăm sóc. Sửa được trước khi copy (vd thêm lý do từ chối).</p>' +
-      '<textarea id="dyText" rows="18" style="font-family:inherit;font-size:14px;line-height:1.5">' + esc(dailyText(name, day)) + '</textarea>' +
-      '<div id="dyList">' + dayOrdersHtml(name, day) + '</div>';
-    var m = modal('📋 Báo cáo ngày', body, '<button class="btn" data-close>Đóng</button><button class="btn zalo" id="dyCopy">📋 Copy để dán vào Zalo</button>');
-    var redraw = function () { var w = $('#dyWho', m), dv = $('#dyDay', m).value, nm = w ? (w.value || null) : name, dy = dv ? new Date(dv + 'T12:00:00+07:00').getTime() : Date.now(); $('#dyText', m).value = dailyText(nm, dy); $('#dyList', m).innerHTML = dayOrdersHtml(nm, dy); };
+      '<p class="small muted" style="margin:0 0 6px">Máy tự tính từ đơn hàng và các lần bấm kết quả chăm sóc – không cần ai gõ tay.</p>' +
+      '<div id="dyTbl">' + tb.html + '</div>' +
+      '<div id="dyList">' + dayOrdersHtml(name, day) + '</div>' +
+      '<details class="dy-txt" style="margin-top:12px"><summary>📝 Bản chữ để dán Zalo (sửa được trước khi copy)</summary><textarea id="dyText" rows="18" style="font-family:inherit;font-size:14px;line-height:1.5;margin-top:8px">' + esc(dailyText(name, day)) + '</textarea></details>';
+    var m = modal('📋 Báo cáo ngày', body, '<button class="btn" data-close>Đóng</button><button class="btn" id="dyCsv">⬇️ Tải Excel</button><button class="btn zalo" id="dyCopy">📋 Copy chữ gửi Zalo</button>');
+    m.querySelector('.sheet').classList.add('dy-sheet');
+    var cur = function () { var w = $('#dyWho', m), dv = $('#dyDay', m).value; return [w ? (w.value || null) : name, dv ? new Date(dv + 'T12:00:00+07:00').getTime() : Date.now()]; };
+    var redraw = function () { var c = cur(); tb = dailyTable(c[0], c[1]); $('#dyTbl', m).innerHTML = tb.html; $('#dyText', m).value = dailyText(c[0], c[1]); $('#dyList', m).innerHTML = dayOrdersHtml(c[0], c[1]); };
     if ($('#dyWho', m)) $('#dyWho', m).onchange = redraw; $('#dyDay', m).onchange = redraw;
+    $('#dyCsv', m).onclick = function () { var c = cur(); csvSave(tb.csv, 'Bao-cao-ngay-' + isoDate(c[1]) + (c[0] ? '-' + slugName(c[0]) : '-ca-nhom') + '.csv'); };
     $('#dyCopy', m).onclick = function () { copy($('#dyText', m).value).then(function () { toast('Đã copy – mở nhóm Zalo và dán vào nhé'); }); };
   }
   /** Đơn trong ngày xếp theo giờ lên đơn (chỉ xem, không copy vào Zalo). Đơn huỷ / hoàn không tính. */
@@ -6597,9 +6644,7 @@
       '<p class="small muted" style="margin:8px 0 0">Khách mới = đơn đầu tiên của khách. Data mới = số quảng cáo vào CRM trong ngày. Đơn huỷ không tính; đơn hoàn tính riêng.</p></div>';
     var m = modal('📊 BCDT ' + monthLabel(month) + (name ? ' – ' + esc(name) : ' – cả nhóm'), body, '<button class="btn" data-close>Đóng</button><button class="btn pri" id="bcCsv">⬇️ Tải file Excel (CSV)</button>');
     $('#bcCsv', m).onclick = function () {
-      var lines = [cols.map(function (c) { return c[0]; })].concat([d.tot].concat(d.rows).map(function (r) { return cols.map(function (c) { return c[1](r); }); }));
-      var csv = '﻿' + lines.map(function (l) { return l.map(function (v) { v = String(v == null ? '' : v); return /[",\n;]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(','); }).join('\n');
-      var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = 'BCDT-' + month + (name ? '-' + slugName(name) : '-ca-nhom') + '.csv'; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+      csvSave([cols.map(function (c) { return c[0]; })].concat([d.tot].concat(d.rows).map(function (r) { return cols.map(function (c) { return c[1](r); }); })), 'BCDT-' + month + (name ? '-' + slugName(name) : '-ca-nhom') + '.csv');
     };
   }
 

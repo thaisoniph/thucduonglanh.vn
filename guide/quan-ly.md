@@ -39,7 +39,7 @@ Khi vào CRM: nhân viên vào thẳng **Hôm nay**, quản lý vào **Hiệu qu
 4. **💡 Khâu cần sửa nhất**: 1 khâu yếu nhất của cả nhóm, cách sửa và số tiền thêm được nếu sửa. Dùng làm chủ đề họp nhóm.
 5. **👥 Tiến độ hôm nay** và **Từng nhân viên**: xếp theo doanh số. Viền màu: 🟢 đúng tiến độ · 🟠 hơi chậm · 🔴 đang chậm. Dòng **Cần kèm** chỉ ra tối đa 2 điểm yếu của người đó. Bấm vào để xem chi tiết và đặt mục tiêu.
 6. **Xem chi tiết**: **📊 So sánh nhân viên** (chọn chỉ số, vạch đậm = trung bình nhóm), bán hàng theo ngày, **📣 Từ quảng cáo** (công ty đã đầu tư cho cả nhóm, khách hỏi đi về đâu), chăm sóc khách, vì sao khách chưa mua, khách ở tỉnh nào.
-7. **🧰 Công cụ**: Báo cáo ngày, Bảng BCDT, Mức dùng CRM, đơn khách tự đặt trên web.
+7. **🧰 Công cụ**: **📋 Báo cáo ngày (bảng)**: chọn *Cả nhóm* để xem mỗi sale 1 dòng như Excel (dòng TỔNG ở trên, dòng mờ = chưa có đơn/chưa ghi chăm sóc, lý do từ chối ghi kèm tên), chọn ngày khác để xem lại, **⬇️ Tải Excel** để lưu. Không cần đọc từng tin báo cáo trên Zalo nữa. Bảng BCDT, Mức dùng CRM, đơn khách tự đặt trên web.
 
 Sale chỉ thấy mức "giỏi nhất nhóm" dưới dạng % (không thấy tên, không thấy tiền của người khác).
 

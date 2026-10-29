@@ -160,9 +160,9 @@ Khách để lại số trên web hay quảng cáo thì **tự vào đây**, b�
 ## Việc 5: Cuối ngày gửi báo cáo
 
 1. Vào tab **Hôm nay**, kéo xuống cuối trang.
-2. Bấm **📋 Báo cáo cuối ngày (gửi Zalo)**. CRM tự đếm và viết báo cáo đúng mẫu của nhóm.
-3. Xem lại. Sửa nếu cần.
-4. Bấm **📋 Copy để dán vào Zalo**, rồi dán vào nhóm Zalo.
+2. Bấm **📋 Báo cáo cuối ngày (bảng)**. CRM tự đếm và hiện thành bảng như Excel: số mới, số đơn, doanh thu từng sản phẩm, khách cũ, tổng doanh thu, chăm sóc, lý do từ chối.
+3. Cần gửi Zalo thì bấm **📋 Copy chữ gửi Zalo**, rồi dán vào nhóm. Muốn sửa chữ trước khi copy thì mở mục **📝 Bản chữ để dán Zalo**.
+4. Bấm **⬇️ Tải Excel** nếu cần lưu file.
 
 ![Cửa sổ Báo cáo ngày: CRM tự viết, bạn chỉ cần copy](/huong-dan/img/crm-report.webp)
 
