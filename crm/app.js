@@ -688,9 +688,10 @@
   function navViews() { return myViews().filter(function (v) { return !((v.san || v.mkt || v.lq) && lvl() >= 3); }); }
   /** Điện thoại (29/10/2026, kiểu Apple): thanh dưới chỉ 4 mục hay dùng + "Thêm"; mục còn lại, Cài đặt, Hướng dẫn, Góp ý nằm ở màn Thêm. Máy tính vẫn hiện đủ. */
   var NAV_FIRST = ['hom-nay', 'tiem-nang', 'khach-hang', 'don-hang', 'bao-cao'];
+  var NAV_SALE = ['hom-nay', 'tiem-nang', 'bao-cao', 'khach-hang']; // sale: Hiệu quả ở chính giữa thanh dưới (anh Sơn 29/10/2026), đơn mới đã có trong Hôm nay nên Đơn hàng vào Thêm
   function navMain() {
-    var all = navViews().filter(function (v) { return v.id !== 'cai-dat'; }).map(function (v) { return v.id; }), out = [];
-    [homeView()].concat(NAV_FIRST, all).forEach(function (id) { if (out.length < 4 && all.indexOf(id) >= 0 && out.indexOf(id) < 0) out.push(id); });
+    var all = navViews().filter(function (v) { return v.id !== 'cai-dat'; }).map(function (v) { return v.id; }), out = [], sale = lvl() < 2 && !isMkt();
+    (sale ? NAV_SALE : [homeView()]).concat(NAV_FIRST, all).forEach(function (id) { if (out.length < 4 && all.indexOf(id) >= 0 && out.indexOf(id) < 0) out.push(id); });
     return out;
   }
   function navSig() { return navViews().map(function (v) { return v.id; }).join() + '|' + navMain().join(); }
@@ -821,10 +822,19 @@
     var n = navCounts(), main = navMain(), more = lvl() >= 2 ? S.d.fbNew || 0 : 0;
     Object.keys(n).forEach(function (v) { if (main.indexOf(v) < 0) more += n[v]; });
     n.them = more; // số trên nút Thêm = số của các mục đang nằm trong Thêm (đơn mới, góp ý mới…)
+    var pc = myPace();
     $$('.nav a').forEach(function (a) {
-      var v = a.getAttribute('data-v'), d = $('.dot', a); if (d) d.remove();
+      var v = a.getAttribute('data-v'), d = $('.dot', a), k = $('.nav-kpi', a); if (d) d.remove(); if (k) k.remove();
       if (n[v]) a.insertAdjacentHTML('beforeend', '<span class="dot">' + (n[v] > 99 ? '99+' : n[v]) + '</span>');
+      if (v === 'bao-cao' && pc) a.insertAdjacentHTML('beforeend', '<span class="nav-kpi ' + pc.lv + '" title="Doanh số tháng đạt ' + pc.pct + '% mục tiêu">' + pc.pct + '%</span>'); // sale: % mục tiêu tháng luôn hiện trên nút Hiệu quả
     });
+  }
+  /** Sale: % mục tiêu tháng của chính mình + mức tiến độ (cùng cách tính với khối Mục tiêu ở Hiệu quả). null = không phải sale / chưa đặt mục tiêu. */
+  function myPace() {
+    if (lvl() >= 2 || isMkt() || !S.d) return null;
+    var me = S.user.name, mk = monthOf(Date.now()), R = monthRange(mk), t = targetOf(me, mk); if (!t || !t.amount) return null;
+    var sales = perf(me, R).sales, days = Math.round((R[1] - R[0]) / DAY), tp = Math.min(days, Math.floor((today() - R[0]) / DAY) + 1) / days, p = sales / t.amount;
+    return { pct: pct(sales, t.amount), lv: p >= 1 ? 'done' : p >= tp ? 'ok' : p >= tp * 0.8 ? 'mid' : 'bad' };
   }
   function navCounts() { return { 'hom-nay': newOrders().length + dayQueue().list.length + hotLeads().length, 'don-hang': newOrders().length, 'tiem-nang': leadsDue().length }; }
   /** Tab mở mặc định theo quyền: Quản trị → Tổng quan, Quản lý → Hiệu quả, nhân viên → Hôm nay. */
@@ -1206,7 +1216,7 @@
     var me = S.user.name, mk = monthOf(Date.now()), R = monthRange(mk), t = targetOf(me, mk), t0 = today(), sales = perf(me, R).sales, td = perf(me, [t0, t0 + DAY]);
     if (!t || !t.amount) return '<p class="td-goal">🎯 Doanh số tháng: <b>' + moneyShort(sales) + '</b> · chưa đặt mục tiêu (đặt ở cuối trang)</p>';
     var left = Math.round((R[1] - t0) / DAY), need = Math.max(0, Math.ceil((t.amount - (sales - td.sales)) / Math.max(1, left)));
-    return '<p class="td-goal">🎯 Tháng: <b>' + moneyShort(sales) + '</b> / ' + moneyShort(t.amount) + ' (' + pct(sales, t.amount) + '%) · Hôm nay: <b>' + moneyShort(td.sales) + '</b>' + (need ? ' / cần ' + moneyShort(need) : '') + '</p>';
+    return '<p class="td-goal">🎯 Tháng: <b>' + moneyShort(sales) + '</b> / ' + moneyShort(t.amount) + ' (' + pct(sales, t.amount) + '%) · Hôm nay: <b>' + moneyShort(td.sales) + '</b>' + (need ? ' / cần ' + moneyShort(need) : '') + ' · <a href="#bao-cao">Xem hiệu quả ›</a></p>';
   }
   /** Quản lý (đang xem Tất cả nhân sự): tiến độ hôm nay của từng người. Bấm 1 dòng → lọc theo người đó. */
   function teamBlock() {

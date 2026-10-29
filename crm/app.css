@@ -1291,3 +1291,10 @@ div.f > span { display: block; font-size: 13px; font-weight: 600; color: var(--i
 .mr-t small { font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
 .mr-n { font-style: normal; background: #e53935; color: #fff; border-radius: 10px; min-width: 22px; height: 22px; padding: 0 7px; font-size: 12px; font-weight: 700; line-height: 22px; text-align: center; flex: none; }
 .mr-chev { color: #c4c4c7; font-size: 24px; line-height: 1; flex: none; }
+
+/* Sale: nhãn % mục tiêu tháng trên nút Hiệu quả (29/10/2026). Xanh = đúng tiến độ, cam = hơi chậm, đỏ = đang chậm */
+.nav-kpi { min-width: 30px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--primary); color: #fff; font-size: 11px; font-weight: 800; line-height: 18px; text-align: center; font-variant-numeric: tabular-nums; }
+.nav-kpi.mid { background: var(--mid); color: #3a2400; }
+.nav-kpi.bad { background: var(--red); }
+@media (max-width: 859px) { .nav .nav-kpi { position: absolute; top: -3px; left: 50%; margin-left: 4px; box-shadow: 0 0 0 2px #fafaf8; } }
+@media (min-width: 860px) { .nav-kpi.ok, .nav-kpi.done { background: #fff; color: var(--primary); } }

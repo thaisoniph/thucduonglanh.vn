@@ -184,7 +184,7 @@ Từ đó, CRM cho bạn biết mỗi ngày cần bán bao nhiêu. Thanh màu ch
 | **Khách hỏi** | Người hỏi mà chưa mua |
 | **Khách** (Khách đã mua) | Người đã mua ít nhất 1 lần. Tìm khách, xem lịch sử mua |
 | **Đơn hàng** | Xác nhận, gửi hàng, tạo đơn |
-| **Hiệu quả** | Doanh số và mục tiêu của bạn |
+| **Hiệu quả** | Doanh số và mục tiêu của bạn. Trên điện thoại nằm **chính giữa** thanh dưới, có nhãn **% mục tiêu tháng**: 🟢 xanh = đúng tiến độ, 🟠 cam = hơi chậm, 🔴 đỏ = đang chậm. Ở Hôm nay bấm **Xem hiệu quả ›** cũng mở được |
 
 **Các nút trên cùng** (trên điện thoại chỉ còn 🔍 và ⟳; Góp ý, Cài đặt nằm trong **••• Thêm**):
 
