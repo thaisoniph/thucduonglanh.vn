@@ -2,6 +2,7 @@
 // - ghi chú chăm sóc → nối vào ô ghi chú dòng cuối của khách trong sheet chăm sóc ("cop số"), đúng kiểu sale tự ghi ", 30/9 knm"
 // - "@zalo" → thêm "(x)" vào tên khách (= đã kết bạn Zalo)
 // - "@order {...}" → thêm dòng đơn tạo trên CRM vào sheet lên đơn; "@ost {...}" → sửa ô trạng thái của đúng dòng đơn
+// - "@cinfo {...}" → sửa tên / địa chỉ khách trên CRM → sửa ô tên, địa chỉ ở dòng đơn gần nhất của khách
 // - "@oed {...}" → sửa đơn trên CRM (tên, SĐT, địa chỉ, sản phẩm, tiền) → sửa các ô của dòng đơn; "@odel {...}" → Quản trị xoá đơn trên CRM → ô trạng thái "Huỷ" (không xoá dòng của sale)
 // Bấm trên CRM chỉ xếp hàng vào bảng wb_queue (nhanh); lịch 10 phút/lần wbTick ghi 1 lượt. Cần sale chia sẻ quyền CHỈNH SỬA file cho tài khoản Google của CRM.
 import { normPhone, nrm, fmtDate, all, run, allIn, kvGet, kvSet, TZ_MS, DAY } from './lib.js';
@@ -9,12 +10,12 @@ import { sheetValues, sheetBatchGet, sheetWrite, sheetAppend, a1 } from './googl
 import { fileIdOf, SRC_UTIL } from './sync.js';
 import { phoneAlias } from './crm.js';
 
-const WB_ORDER = '@order ', WB_OST = '@ost ', WB_OED = '@oed ', WB_ODEL = '@odel ', WB_ZALO = '@zalo';
+const WB_ORDER = '@order ', WB_OST = '@ost ', WB_OED = '@oed ', WB_ODEL = '@odel ', WB_CINFO = '@cinfo ', WB_ZALO = '@zalo';
 export const WB_SHORT = { 'Không nghe máy': 'knm', 'Đã hỏi thăm': 'đã hỏi thăm', 'Hẹn gọi lại': 'hẹn gọi lại', 'Đã đặt lại': 'kh đặt lại', 'Không có nhu cầu': 'kh không có nhu cầu' }; // chữ viết tắt sale quen dùng
 const WB_ST = { 'Mới': 'Đã lên đơn', 'Đã xác nhận': 'Đã lên đơn', 'Đang giao': 'Đang giao', 'Đã giao': 'Giao thành công', 'Huỷ': 'Huỷ', 'Hoàn': 'Hoàn', 'Đổi hàng': 'Đổi hàng' }; // chữ quen dùng trong file sale (lúc nhập lại CRM hiểu đúng)
 const RETRY_MS = 7 * DAY, KEEP_MS = 60 * DAY, BACKOFF_MS = 30 * 60e3; // lỗi thử lại trong 7 ngày (30 phút/lần); giữ 60 ngày để tra lại + để lúc nhập file nhận ra dòng CRM đã ghi
 const has = (m, k) => m[k] !== undefined && m[k] !== null && m[k] !== '';
-const isOrd = it => [WB_ORDER, WB_OST, WB_OED, WB_ODEL].some(k => it.text.indexOf(k) === 0);
+const isOrd = it => [WB_ORDER, WB_OST, WB_OED, WB_ODEL, WB_CINFO].some(k => it.text.indexOf(k) === 0);
 const keyOf = t => nrm(t).replace(/[^a-z0-9]+/g, ' ').trim();
 const dM = t => { const d = new Date(t + TZ_MS); return d.getUTCDate() + '/' + (d.getUTCMonth() + 1); }; // "11/10" như sale ghi
 
@@ -71,18 +72,26 @@ export async function wbDeleteQueue(x, owners, o) {
   let src = null; for (const w of owners || []) { if (!src && w) src = await wbSource(x, w, true); } if (!src) return;
   await push(x, src, o.phone, o.name, WB_ODEL + JSON.stringify(o));
 }
+/** Sửa tên / địa chỉ khách trên CRM → xếp hàng sửa dòng đơn gần nhất của khách trong file (o: phone, name, address). */
+export async function wbInfoQueue(x, owners, o) {
+  await ensure(x.db);
+  if (!o || !o.phone) return;
+  let src = null; for (const w of owners || []) { if (!src && w) src = await wbSource(x, w, true); } if (!src) return;
+  await push(x, src, o.phone, o.name, WB_CINFO + JSON.stringify(o));
+}
 /** Mã đơn CRM đang chờ ghi vào file này (sửa / đổi trạng thái / xoá): lúc nhập file chưa lấy số trong file đè lên đơn đó.
  *  added: mã đơn CRM đã thêm dòng vào sheet (name) thành công → dòng đó bị sale xoá khỏi file thì xoá đơn trên CRM. */
 export async function wbPending(x, srcId, sheet) {
   await ensure(x.db);
-  const pend = {}, added = {};
+  const pend = {}, added = {}, pendPh = {}; // pendPh: SĐT khách đang chờ ghi tên / địa chỉ
   for (const r of await all(x.db, "SELECT text, result, done_at FROM wb_queue WHERE src = ? AND substr(text, 1, 1) = '@' AND (done_at IS NULL OR text LIKE '@order %')", String(srcId))) {
     let o = {}; try { o = JSON.parse(String(r.text).replace(/^@\w+ /, '')); } catch (e) { continue; }
+    if (r.done_at == null && String(r.text).indexOf(WB_CINFO) === 0) { pendPh[normPhone(o.phone)] = 1; continue; }
     if (!o.id) continue;
     if (r.done_at == null) pend[o.id] = 1;
     else if (String(r.text).indexOf(WB_ORDER) === 0 && String(r.result || '').indexOf('Đã thêm đơn ' + o.id + ' vào sheet ' + sheet) === 0) added[o.id] = 1;
   }
-  return { pend, added };
+  return { pend, added, pendPh };
 }
 
 /** Nội dung CRM đã ghi ngược vào file của sale (theo SĐT, dạng khoá so sánh) → lúc nhập file không nhập lại chính những dòng đó. */
@@ -148,6 +157,15 @@ async function wbOrderWriteSheet(x, src, sc, items) {
       put('product', o.product); put('qty', o.qty); put('gift1', o.gift); put('gift1qty', o.giftQty); put('amount', o.total); put('status', WB_ST[o.status] || 'Đã lên đơn');
       put('shipText', o.ship); put('note', o.note); put('ctype', o.otype === 'Khách cũ' ? 'kh cũ' : o.otype === 'Khách mới' ? 'kh mới' : (o.old ? 'kh cũ' : 'kh mới') + (o.otype === 'Ngoài giờ' || o.ca === 'Tối/CN' ? ' tối' : o.otype === 'Ngày lễ' || o.ca === 'Lễ' ? ' lễ' : '')); // “Phân loại khách / ca” như sale vẫn ghi
       added[o.id] = r; add.push(r); out.push('Đã thêm đơn ' + o.id + ' vào sheet ' + sc.name); continue;
+    }
+    if (it.text.indexOf(WB_CINFO) === 0) { // tên / địa chỉ khách: dòng đơn gần nhất của SĐT này; tên giữ dấu "(x)" (đã kết bạn Zalo) nếu dòng cũ có
+      const R = await readRows(), AL = await phoneAlias(x), mo = p => AL[p] || p, ph = mo(normPhone(o.phone)); let hit = -1;
+      for (let j = R.length - 1; j >= 0 && hit < 0; j--) if (mo(U.toPhone(R[j][+m.phone])) === ph) hit = j;
+      if (hit < 0) { out.push('Bỏ qua: không thấy khách ' + o.phone + ' trong sheet ' + sc.name); continue; }
+      const nm0 = has(m, 'name') ? String(R[hit][+m.name] || '') : '', zx = /\(\s*[xX×]\s*\)/.test(nm0) && !/\(\s*[xX×]\s*\)/.test(o.name || '');
+      if (o.name) setCell(hit, 'name', String(o.name).trim() + (zx ? '(x)' : ''));
+      if (o.address) setCell(hit, 'address', o.address);
+      out.push('Đã sửa tên / địa chỉ khách ở dòng ' + (hr + 1 + hit)); continue;
     }
     const ed = it.text.indexOf(WB_OED) === 0, del = it.text.indexOf(WB_ODEL) === 0;
     if (!ed && !has(m, 'status')) { out.push('Bỏ qua: sheet lên đơn chưa chọn cột trạng thái'); continue; } // đổi trạng thái / xoá

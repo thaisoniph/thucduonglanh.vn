@@ -15,7 +15,7 @@ import { crmVoucher, voucherSchema } from './voucher.js';
 import { journeySchema, wallHide } from './journey.js';
 import { crmLinks } from './links.js';
 import { crmAi } from './ai.js';
-import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, WB_SHORT } from './wb.js';
+import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, wbInfoQueue, WB_SHORT } from './wb.js';
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
@@ -1234,6 +1234,15 @@ async function crmCustomer(x, u, d) {
     const was = await first(x.db, 'SELECT ' + ks.join(', ') + ', name AS nm FROM customers WHERE phone = ?', phone) || {};
     await run(x.db, 'UPDATE customers SET ' + ks.map(k => k + ' = ?').join(', ') + ' WHERE phone = ?', ...ks.map(k => set[k]), phone);
     await custEditLog(x, u, phone, was, set);
+    // 30/10/2026 anh Sơn: sửa tên / địa chỉ khách trên CRM → đơn gần nhất cũng đổi (lần tính lại khách lấy tên, địa chỉ theo đơn gần nhất) + ghi ngược vào file sale
+    const nmC = set.name !== undefined && String(set.name).trim() && set.name !== was.name, adC = ['address', 'ward', 'province'].some(k => set[k] !== undefined && set[k] !== was[k]);
+    if (nmC || adC) {
+      const lo = await first(x.db, "SELECT rid, id, seller, source FROM orders WHERE phone = ? AND status NOT LIKE '%uỷ%' AND status NOT LIKE '%ủy%' ORDER BY time DESC, rid DESC LIMIT 1", phone);
+      const cu = await first(x.db, 'SELECT name, address, ward, province, owner FROM customers WHERE phone = ?', phone), addr = [cu.address, cu.ward, cu.province].filter(Boolean).join(', ');
+      if (lo) await run(x.db, 'UPDATE orders SET ' + [nmC ? 'name = ?' : '', adC ? 'address = ?, ward = ?, province = ?' : ''].filter(String).join(', ') + ' WHERE rid = ?', ...(nmC ? [cu.name] : []), ...(adC ? [cu.address || '', cu.ward || '', cu.province || ''] : []), lo.rid);
+      await wbSafe(async () => { const mm = lo && String(lo.source || '').match(/^File .+? – (.+)$/);
+        await wbInfoQueue(x, [cu.owner, lo && lo.seller], { phone, sheet: mm ? mm[1] : '', name: nmC ? cu.name : '', address: adC ? addr : '' }); });
+    }
   }
   if (d.quick) { // ✏️ Ghi nhanh (16/10/2026): máy chủ tự chèn 1 dòng lên đầu ghi chú (không đè ghi chú người khác vừa sửa), tính là 1 lượt chăm sóc + nhật ký, xoá hẹn gọi lại đã tới hạn
     const q = String(d.quick).trim().slice(0, 500), now = Date.now(), cq = await first(x.db, 'SELECT name, note, owner, callback FROM customers WHERE phone = ?', phone);
