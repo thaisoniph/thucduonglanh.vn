@@ -1363,3 +1363,8 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .cs-alert ul { margin: 4px 0; padding-left: 18px; }
 .cs-alert p { margin: 4px 0 0; }
 .pt-warn{color:#b3261e;background:#fdecea;border-radius:8px;padding:6px 8px;margin:6px 0}
+/* 💰 Bảng lương & hoa hồng Phụ lục 01 (Cài đặt → 💰 Lương & hoa hồng) */
+.pp-grid{overflow-x:auto;margin:10px 0 0}
+.pp-tier{display:grid;grid-template-columns:repeat(9,minmax(74px,1fr));gap:4px;margin-bottom:4px;min-width:700px}
+.pp-tier input{width:100%;padding:6px;font-size:14px}
+.pp-head span{font-size:12px;font-weight:600;color:var(--muted);align-self:end}

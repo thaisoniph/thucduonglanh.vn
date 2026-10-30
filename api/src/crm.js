@@ -19,7 +19,7 @@ import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, wbInf
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-10-30i'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
+const SCHEMA_V = '2026-10-30j'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -48,7 +48,7 @@ export async function ensureSchema(db) {
     for (const col of ['ref_phone', 'ref_name']) if (!lcols.includes(col)) { try { await run(db, `ALTER TABLE leads ADD COLUMN ${col} TEXT DEFAULT ''`); } catch (e) { } }
     const ucols = (await all(db, "PRAGMA table_info(users)")).map(r => r.name);
     if (!ucols.includes('web')) { try { await run(db, "ALTER TABLE users ADD COLUMN web TEXT DEFAULT ''"); } catch (e) { } } // Sửa website: đăng nhập /admin bằng email (api/src/cms.js)
-    for (const col of ['phone', 'full']) if (!ucols.includes(col)) { try { await run(db, `ALTER TABLE users ADD COLUMN ${col} TEXT DEFAULT ''`); } catch (e) { } } // 30/10/2026: SĐT + họ tên đầy đủ nhân sự → cảnh báo nhân sự / người nhà đăng ký CTV (partner.js staffHit)
+    for (const col of ['phone', 'full', 'acct', 'joined']) if (!ucols.includes(col)) { try { await run(db, `ALTER TABLE users ADD COLUMN ${col} TEXT DEFAULT ''`); } catch (e) { } } // 30/10/2026: SĐT + họ tên đầy đủ nhân sự → cảnh báo nhân sự / người nhà đăng ký CTV (partner.js staffHit)
     if (!ucols.includes('mkv')) { try { await run(db, "ALTER TABLE users ADD COLUMN mkv TEXT DEFAULT ''"); } catch (e) { } } // 26/10/2026: 📣 Xem Marketing (Quản lý / Sale chỉ xem tab Marketing)
     await run(db, "UPDATE users SET role = 'Sale & CSKH' WHERE role = 'Nhân viên'"); // 15/10/2026: đổi tên quyền
     if (!ccols.includes('zone')) await run(db, "INSERT INTO kv (k, v) VALUES ('recalc_all', '1') ON CONFLICT(k) DO UPDATE SET v = '1'"); // 27/10/2026: vùng giao hàng đọc từ địa chỉ → tính lại mọi khách 1 lần
@@ -208,7 +208,7 @@ const USERS_SQL = 'SELECT * FROM users ORDER BY ord, rowid';
 function usersFrom(x, rows) {
   const list = rows.map(r => {
     const e = String(r.email || '').trim().toLowerCase(), role = roleOf(r.role);
-    return { email: e, name: String(r.name || e.split('@')[0]).trim(), role, active: !!r.active, recv: role === 'Marketing' ? false : String(r.recv || '').trim() === '' ? role === SALE : !no(r.recv), tg: String(r.tg || '').trim(), alias: String(r.alias || '').trim(), prefix: String(r.prefix || '').trim(), web: String(r.web || '').trim() === 'Có', phone: String(r.phone || '').trim(), full: String(r.full || '').trim(), mkv: role !== 'Marketing' && String(r.mkv || '').trim() === 'Có' };
+    return { email: e, name: String(r.name || e.split('@')[0]).trim(), role, active: !!r.active, recv: role === 'Marketing' ? false : String(r.recv || '').trim() === '' ? role === SALE : !no(r.recv), tg: String(r.tg || '').trim(), alias: String(r.alias || '').trim(), prefix: String(r.prefix || '').trim(), web: String(r.web || '').trim() === 'Có', phone: String(r.phone || '').trim(), full: String(r.full || '').trim(), acct: String(r.acct || '').trim(), joined: String(r.joined || '').trim(), mkv: role !== 'Marketing' && String(r.mkv || '').trim() === 'Có' };
   }).filter(u => /@/.test(u.email));
   const sa = list.find(u => u.email === SUPER_ADMIN);
   if (!sa) list.unshift({ email: SUPER_ADMIN, name: 'Thái Sơn', role: 'Quản trị', active: true, recv: false, tg: '', alias: '', prefix: '', web: true });
@@ -503,21 +503,21 @@ async function loadSmall(x, u, R, mode, adV) {
     b('SELECT name, variant, days, basis FROM cycles ORDER BY rid'),
     b('SELECT when_txt, purpose, text FROM templates ORDER BY rid')
   ]); smallQ.catch(() => { });
-  const users = (await crmUsers(x)).filter(y => y.active || u.level >= 3).map(y => u.level >= 3 ? { email: y.email, name: y.name, role: y.role, active: y.active, recv: y.recv, tg: !!y.tg, alias: y.alias, prefix: y.prefix || slugName(y.name), web: y.web || y.level >= 3, mkv: y.mkv || y.level >= 3 } : u.level >= 2 ? { name: y.name, role: y.role, recv: y.recv, tg: !!y.tg } : { name: y.name, role: y.role });
+  const users = (await crmUsers(x)).filter(y => y.active || u.level >= 3).map(y => u.level >= 3 ? { email: y.email, name: y.name, role: y.role, active: y.active, recv: y.recv, tg: !!y.tg, alias: y.alias, prefix: y.prefix || slugName(y.name), web: y.web || y.level >= 3, mkv: y.mkv || y.level >= 3, phone: y.phone, full: y.full, acct: y.acct, joined: y.joined } : u.level >= 2 ? { name: y.name, role: y.role, recv: y.recv, tg: !!y.tg, joined: y.joined } : { name: y.name, role: y.role, joined: y.name === u.name ? y.joined : '' }); // SĐT, họ tên, số tài khoản nhân sự: chỉ Quản trị; ngày vào làm: tính thâm niên (Phụ lục 01)
   const adsP = adRowsOf(x, u, adV); adsP.catch(() => { });
   const areasP = u.level === 1 ? areaStats(x) : Promise.resolve(undefined); areasP.catch(() => { }); // quản lý đã có đủ khách → máy tự đếm
-  const [ca, fbNew, prefs, tagColors, sources, ads, commission, sanOk, dash, qrLinks, mktDoc, cost] = await Promise.all([caCfg(x), // hỏi song song: mỗi lần hỏi máy chủ dữ liệu mất một nhịp
+  const [ca, fbNew, prefs, tagColors, sources, ads, commission, sanOk, dash, qrLinks, mktDoc, cost, payplan, staffGuard] = await Promise.all([caCfg(x), // hỏi song song: mỗi lần hỏi máy chủ dữ liệu mất một nhịp
     u.level >= 2 ? first(x.db, "SELECT count(*) AS n FROM feedback WHERE status = 'Mới'").then(r => (r || {}).n || 0) : 0,
     prefsOf(x, u.email), allTagColors(x), u.level >= 3 ? srcList(x) : [], u.level >= 3 ? adsCfg(x) : null, kvJson(x.db, 'commission_cfg', {}).then(r => r || {}), sanAllowed(x, u).catch(() => false), u.level >= 3 || u.role === 'Marketing' || u.mkv ? kvJson(x.db, 'dash_cfg', {}).then(r => r || {}) : null,
     all(x.db, 'SELECT code, name FROM links').then(r => r.map(l => [l.code, l.name])).catch(() => []),
     u.level >= 3 || u.role === 'Marketing' || u.mkv ? kvJson(x.db, 'mkt_doc', null).then(r => r || MKT_DOC_DEF) : null,
-    u.level >= 3 ? kvJson(x.db, 'cost_cfg', null) : null]); // 💰 giá nhập sản phẩm: chỉ Quản trị (không nằm trong repo công khai) // 📍 tên link QR → nguồn đơn web hiện "📍 <tên>"
+    u.level >= 3 ? kvJson(x.db, 'cost_cfg', null) : null, kvJson(x.db, 'payplan_cfg', null).then(r => Object.assign({}, PAYPLAN, r || {})), u.level >= 3 ? kvJson(x.db, 'staff_guard', []).then(r => r || []) : []]); // 💰 giá nhập sản phẩm: chỉ Quản trị (không nằm trong repo công khai) // 📍 tên link QR → nguồn đơn web hiện "📍 <tên>"
   const [ct, tg, cy, tp] = (await smallQ).map(r => r.results || []), ar = await adsP, areas = await areasP.catch(() => undefined);
   return {
     ok: true, user: publicUser(u), areas, sanOk, now: Date.now(), today: startOfDay(Date.now()), fbNew, users, prefs, tagColors, sources, ads, adV: ar.v, adRows: ar.rows, qrLinks,
     contacts: ct.reverse().map(contactOut), targets: tg.map(t => ({ month: t.month, name: t.name, amount: t.amount || 0, by: t.by_name || '', at: t.at })),
     cycles: cy.filter(r => r.name).map(r => [r.name, r.variant || '', Number(r.days) || 0, r.basis || '']), templates: tp.filter(r => r.text).map(r => [r.when_txt || '', r.purpose || '', r.text]),
-    rules: { ai: !!x.env.ANTHROPIC_API_KEY && u.role !== 'Marketing', vipOrders: R.vipOrders, vipSpent: R.vipSpent, atRisk: R.atRisk, coolDays: R.coolDays, shipDays: R.shipDays, shipFar: R.shipFar, famMin: R.famMin, otypes: OTYPES, commission, dash, mktDoc, cost, statuses: ORDER_STATUS, results: CARE_RESULTS, leadStatus: LEAD_STATUS, assignMode: mode, bot: BOT_USERNAME, ca, lines: LINES.map(l => l[0]).concat(['Khác']) }
+    rules: { ai: !!x.env.ANTHROPIC_API_KEY && u.role !== 'Marketing', vipOrders: R.vipOrders, vipSpent: R.vipSpent, atRisk: R.atRisk, coolDays: R.coolDays, shipDays: R.shipDays, shipFar: R.shipFar, famMin: R.famMin, otypes: OTYPES, commission, payplan, staffGuard, dash, mktDoc, cost, statuses: ORDER_STATUS, results: CARE_RESULTS, leadStatus: LEAD_STATUS, assignMode: mode, bot: BOT_USERNAME, ca, lines: LINES.map(l => l[0]).concat(['Khác']) }
   };
 }
 
@@ -1307,6 +1307,11 @@ async function crmContact(x, u, d) {
 
 /* ================================================================ cài đặt, nhân sự, mục tiêu */
 const COMM_KEYS = ['Khách mới', 'Khách cũ', 'Ngoài giờ', 'Ngày lễ', 'Đơn web'];
+// 💰 Phụ lục 01/CĐ2026 (anh Sơn gửi 30/10/2026): [doanh thu tháng từ, lương cơ bản, trợ cấp BH, [[% khách cũ, % khách mới] dưới 1 năm, 1–2 năm, trên 2 năm]].
+// Dưới bậc đầu (80 triệu) = "hỗ trợ theo năng lực" (quản lý quyết). senior: [số tháng làm từ, phụ cấp thâm niên / tháng]. webAuto: khách mới tự đặt web không qua link sale = % của mức khách mới.
+const PAYPLAN = { on: 1, webAuto: 50, senior: [[36, 300000], [60, 500000]], tiers: [
+  [80e6, 5500000, 1000000, [[3, 2], [4.5, 2.5], [5, 2.5]]], [100e6, 6500000, 1000000, [[3, 2.5], [4.5, 2.5], [5, 2.5]]], [150e6, 7000000, 1000000, [[3.5, 2.5], [4.5, 2.5], [5, 2.5]]],
+  [200e6, 7500000, 1000000, [[3.5, 3], [4.5, 3], [5, 3.5]]], [250e6, 8000000, 1000000, [[4, 3], [4.5, 3], [5, 3.5]]], [300e6, 8500000, 1000000, [[4, 3], [4.5, 3], [5, 3.5]]], [350e6, 9000000, 1000000, [[4, 3], [4.5, 3], [5, 3.5]]]] };
 // 🗺 Ảnh hệ thống Marketing (19/10/2026): nút ở tab Marketing mở link này; Quản trị đổi link ở Cài đặt khi cập nhật ảnh
 const MKT_DOC_DEF = { url: 'https://www.canva.com/design/DAHR6DTx10U/rS1FE_25_Xrf9_WPWuN1Sg/view', at: '' };
 async function crmSettings(x, u, d) {
@@ -1333,6 +1338,22 @@ async function crmSettings(x, u, d) {
     await kvSet(x.db, 'commission_cfg', JSON.stringify(CM));
     await crmLog(x, u, 'Cài đặt', '-', '', 'Hoa hồng: ' + COMM_KEYS.map(t => t + ' ' + (CM[t] === '' ? '–' : CM[t] + '%')).join(', '), '');
     return { ok: true, commission: CM };
+  }
+  if (d.payplan) { // 💰 Lương & hoa hồng theo Phụ lục 01/CĐ2026 (30/10/2026): bậc doanh thu × thâm niên × khách cũ / mới; chỉ Quản trị sửa
+    if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị sửa được mục này.' };
+    const P = d.payplan, n = v => Math.max(0, Number(String(v == null ? '' : v).replace(',', '.')) || 0);
+    const tiers = (Array.isArray(P.tiers) ? P.tiers : []).map(t => [n(t[0]), n(t[1]), n(t[2]), [0, 1, 2].map(k => [Math.min(50, n((t[3] || [])[k] && t[3][k][0])), Math.min(50, n((t[3] || [])[k] && t[3][k][1]))])]).filter(t => t[0] > 0).sort((a, b) => a[0] - b[0]).slice(0, 12);
+    const PP = { on: P.on ? 1 : 0, tiers, senior: (Array.isArray(P.senior) ? P.senior : []).map(t => [Math.round(n(t[0])), n(t[1])]).filter(t => t[0] > 0).slice(0, 4), webAuto: Math.min(100, n(P.webAuto)) };
+    await kvSet(x.db, 'payplan_cfg', JSON.stringify(PP));
+    await crmLog(x, u, 'Cài đặt', '-', '', 'Lương & hoa hồng Phụ lục 01: ' + (PP.on ? 'bật' : 'tắt') + ' · ' + tiers.length + ' bậc · khách mới tự đặt web ' + PP.webAuto + '% mức khách mới', '');
+    return { ok: true, payplan: PP };
+  }
+  if (d.staffGuard) { // nhân sự chưa có tài khoản CRM: họ tên, SĐT, số tài khoản → cảnh báo tự làm CTV (partner.js staffHit)
+    if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị sửa được mục này.' };
+    const G = (Array.isArray(d.staffGuard) ? d.staffGuard : []).map(r => ({ full: String(r.full || '').trim().slice(0, 80), phone: normPhone(r.phone || '') || '', acct: String(r.acct || '').replace(/\D/g, '').slice(0, 24) })).filter(r => r.full || r.phone || r.acct).slice(0, 100);
+    await kvSet(x.db, 'staff_guard', JSON.stringify(G));
+    await crmLog(x, u, 'Cài đặt', '-', '', 'Nhân sự chưa có tài khoản CRM: ' + G.length + ' người', '');
+    return { ok: true, staffGuard: G };
   }
   if (d.kpi) { // mức "tốt" của chỉ số chiến dịch ở tab Marketing (chỉ Quản trị): CPM, CPC, giá 1 tin nhắn, giá 1 SĐT (đ, tốt khi dưới), CTR (%, tốt khi từ). 0 = chưa đặt → so với trung bình 7 ngày
     if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị sửa được mục này.' };
@@ -1387,11 +1408,11 @@ async function crmSaveUsers(x, u, d) {
   const seen = {}, rows = (d.users || []).map((y, i) => {
     const e = String(y.email || '').trim().toLowerCase(), o = cur[e] || {}, role = roleOf(y.role);
     return { email: e, name: String(y.name || '').trim(), role, active: y.active === false ? 0 : 1, recv: (y.recv !== undefined ? y.recv : o.recv !== undefined ? o.recv : role === SALE) ? 'Có' : 'Không', tg: o.tg || '',
-      alias: String(y.alias !== undefined ? y.alias : o.alias || '').trim(), prefix: String(y.prefix !== undefined ? y.prefix : o.prefix || '').replace(/[^A-Za-z0-9]/g, ''), web: (y.web !== undefined ? y.web : o.web) ? 'Có' : '', mkv: (y.mkv !== undefined ? y.mkv : o.mkv) ? 'Có' : '', phone: normPhone(y.phone !== undefined ? y.phone : o.phone || '') || '', full: String(y.full !== undefined ? y.full : o.full || '').trim().slice(0, 80), ord: i };
+      alias: String(y.alias !== undefined ? y.alias : o.alias || '').trim(), prefix: String(y.prefix !== undefined ? y.prefix : o.prefix || '').replace(/[^A-Za-z0-9]/g, ''), web: (y.web !== undefined ? y.web : o.web) ? 'Có' : '', mkv: (y.mkv !== undefined ? y.mkv : o.mkv) ? 'Có' : '', phone: normPhone(y.phone !== undefined ? y.phone : o.phone || '') || '', full: String(y.full !== undefined ? y.full : o.full || '').trim().slice(0, 80), acct: String(y.acct !== undefined ? y.acct : o.acct || '').replace(/\D/g, '').slice(0, 24), joined: String(y.joined !== undefined ? y.joined : o.joined || '').trim().slice(0, 30), ord: i };
   }).filter(r => { if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(r.email) || seen[r.email]) return false; seen[r.email] = 1; return true; });
-  if (!seen[SUPER_ADMIN]) rows.unshift({ email: SUPER_ADMIN, name: 'Thái Sơn', role: 'Quản trị', active: 1, recv: 'Không', tg: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].tg || '' : '', alias: '', prefix: '', web: 'Có', mkv: '', phone: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].phone || '' : '', full: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].full || '' : '', ord: -1 });
+  if (!seen[SUPER_ADMIN]) rows.unshift({ email: SUPER_ADMIN, name: 'Thái Sơn', role: 'Quản trị', active: 1, recv: 'Không', tg: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].tg || '' : '', alias: '', prefix: '', web: 'Có', mkv: '', phone: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].phone || '' : '', full: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].full || '' : '', acct: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].acct || '' : '', joined: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].joined || '' : '', ord: -1 });
   const ren = {}; rows.forEach(r => { const o = cur[r.email]; if (o && o.name && r.name && o.name !== r.name && !rows.some(z => z.name === o.name)) ren[o.name] = r.name; }); // đổi tên → đơn, khách, file sale theo tên mới
-  await replaceRows(x.db, 'users', ['email', 'name', 'role', 'active', 'recv', 'tg', 'alias', 'prefix', 'web', 'mkv', 'phone', 'full', 'ord'], rows); x._users = null;
+  await replaceRows(x.db, 'users', ['email', 'name', 'role', 'active', 'recv', 'tg', 'alias', 'prefix', 'web', 'mkv', 'phone', 'full', 'acct', 'joined', 'ord'], rows); x._users = null;
   try { await unifyNames(x, ren); } catch (e) { console.error('unifyNames', e.message); }
   await crmLog(x, u, 'Nhân sự', '-', '', 'Cập nhật ' + rows.length + ' tài khoản', '');
   return { ok: true, users: await crmUsers(x) };

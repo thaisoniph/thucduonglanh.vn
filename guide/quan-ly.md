@@ -107,7 +107,13 @@ Mức cho người tự đăng ký sửa ở **⚙️ Cài đặt chung**, dòng
 **🛡 Chống sale lách qua CTV (từ 30/10/2026):**
 - Khách đã là **khách hỏi của sale** (có trong CRM trong 90 ngày, trước lúc bấm link CTV) mà đặt qua link / mã CTV: **không tính** hoa hồng CTV, khách vẫn thuộc sale. Đơn ghi "⚠️ … không tính hoa hồng CTV".
 - Thẻ CTV hiện ô đỏ ⚠️ khi: có khách đã được nhân sự gọi / ghi chăm sóc **trước** khi khách thuộc CTV; có lần đặt bị chặn như trên; CTV trùng SĐT, email, họ tên hoặc tài khoản ngân hàng mang tên nhân sự. Thấy ⚠️ thì xem kỹ trước khi bấm ✅ Đã chuyển tiền.
-- Để CRM nhận ra nhân sự: Quản trị điền **SĐT cá nhân** và **Họ tên đầy đủ** của từng người ở **Cài đặt → Nhân sự** rồi bấm Lưu.
+- Để CRM nhận ra nhân sự: Quản trị điền **SĐT cá nhân**, **Họ tên đầy đủ**, **Số tài khoản** của từng người ở **Cài đặt → Nhân sự** rồi bấm Lưu. Người chưa có tài khoản CRM (kho, marketing mới…) ghi vào ô **Nhân sự chưa có tài khoản CRM** ngay bên dưới.
+
+**💰 Lương & hoa hồng tạm tính (Phụ lục 01, từ 30/10/2026):** mở **Hiệu quả → 📊 BCDT**. Xem 1 người: mục **💰 Thu nhập tạm tính** (lương cố định theo bậc doanh thu, hoa hồng khách cũ / khách mới theo thâm niên, phụ cấp thâm niên, còn bao nhiêu nữa thì lên bậc). Xem cả nhóm: bảng từng người.
+- Đơn khách tự đặt trên web tính như đơn sale lên: khách cũ theo % khách cũ, khách mới đặt qua **link riêng của sale** theo % khách mới. Khách mới tự tìm đến web (không qua link sale) thì tính **50%** mức khách mới.
+- Doanh thu dưới 80 triệu: hỗ trợ theo năng lực, quản lý tự quyết.
+- Thâm niên lấy từ ô **Ngày làm chính thức** ở Cài đặt → Nhân sự. Sửa bảng bậc / % ở **Cài đặt → 💰 Lương & hoa hồng (Phụ lục 01)** (chỉ Quản trị).
+- Đây là số tạm tính để nhân sự theo dõi; số chốt lương vẫn do kế toán đối chiếu.
 
 **Cách tính tiền cho CTV:**
 

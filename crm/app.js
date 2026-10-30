@@ -6625,6 +6625,66 @@
   /* ================================================================ BCDT – báo cáo doanh số tháng theo mẫu của sale */
   function lineOfTxt(t) { t = String(t || ''); return /progomax|fucoidan pro|fu ?pro/i.test(t) ? 'Fucoidan Pro' : /curcumin|nghệ/i.test(t) ? 'Curcumin' : /bữa ăn|badd|bua an/i.test(t) ? 'BADD' : 'Khác'; }
   var BC_LINES = ['Curcumin', 'BADD', 'Fucoidan Pro', 'Khác'];
+  /* 💰 Lương & hoa hồng theo Phụ lục 01/CĐ2026 (30/10/2026, máy chủ crm.js PAYPLAN, sửa ở Cài đặt → 💰 Lương & hoa hồng): bậc theo doanh thu tháng của sale × thâm niên
+     (ngày vào làm ở Cài đặt → Nhân sự) × khách cũ / mới. Đơn web tính như đơn sale; khách mới tự đặt web không qua link sale = webAuto % mức khách mới. */
+  function ppOn() { var P = S.d.rules.payplan; return !!(P && P.on && P.tiers && P.tiers.length); }
+  function ppJoinTs(v) {
+    var t = String(v || ''), m = t.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/); if (m) return new Date(+m[3], +m[2] - 1, +m[1]).getTime();
+    m = t.match(/(\d{1,2})\/(\d{4})/); if (m) return new Date(+m[2], +m[1] - 1, 1).getTime();
+    m = t.match(/(\d{4})-(\d{1,2})(?:-(\d{1,2}))?/); return m ? new Date(+m[1], +m[2] - 1, +(m[3] || 1)).getTime() : 0;
+  }
+  var PP_SEN = ['dưới 1 năm', '1–2 năm', 'trên 2 năm'];
+  function payOf(name, month) {
+    if (!ppOn() || !name) return null;
+    var P = S.d.rules.payplan, R = monthRange(month), u = (S.d.users || []).filter(function (z) { return z.name === name; })[0] || {}, jt = ppJoinTs(u.joined);
+    var sums = { old: 0, nw: 0, auto: 0 }, rev = 0, n = 0;
+    S.d.orders.forEach(function (o) {
+      if (!o.time || o.time < R[0] || o.time >= R[1] || o.seller !== name || /hoàn/i.test(o.status) || isVoid(o.status)) return;
+      var c = cust(o.phone), t0 = otypeOf(o), isNew = t0 === 'Khách mới' ? true : t0 === 'Khách cũ' ? false : !c || !c.first || c.first >= o.time - 3600e3;
+      var k = !isNew ? 'old' : isWebOrder(o) && String(o.note || '').indexOf('🔗 Đặt qua link của ' + name) < 0 ? 'auto' : 'nw';
+      sums[k] += commBase(o); rev += o.total; n++;
+    });
+    var mo = jt ? (R[1] - jt) / (30.44 * DAY) : -1, si = mo < 12 ? 0 : mo < 24 ? 1 : 2, tier = null, ti = -1;
+    P.tiers.forEach(function (t, i) { if (rev >= t[0]) { tier = t; ti = i; } });
+    var rt = tier ? tier[3][si] : [0, 0], cm = { old: Math.round(sums.old * rt[0] / 100), nw: Math.round(sums.nw * rt[1] / 100), auto: Math.round(sums.auto * rt[1] * (P.webAuto || 0) / 10000) };
+    var sen = (P.senior || []).reduce(function (a, t) { return mo >= t[0] ? Math.max(a, t[1]) : a; }, 0), comm = cm.old + cm.nw + cm.auto, fixed = tier ? tier[1] + tier[2] : 0;
+    return { rev: rev, n: n, tier: tier, ti: ti, si: si, mo: mo, joined: u.joined || '', tv: /^\s*tv/i.test(u.joined || ''), rt: rt, sums: sums, cm: cm, comm: comm, fixed: fixed, sen: sen, total: fixed + comm + sen, webAuto: P.webAuto || 0 };
+  }
+  function ppHtml(name, month) {
+    var p = payOf(name, month); if (!p) return '';
+    var T = S.d.rules.payplan.tiers, nx = T[p.ti + 1], sen = p.mo < 0 ? '⚠️ chưa có ngày vào làm (Cài đặt → Nhân sự), tạm tính dưới 1 năm' : 'thâm niên ' + Math.floor(p.mo / 12) + ' năm ' + Math.floor(p.mo % 12) + ' tháng → cột ' + PP_SEN[p.si] + (p.tv ? ' (đang ghi thử việc)' : '');
+    return '<div class="box pp-box"><h3 style="margin:0 0 6px">💰 Thu nhập tạm tính (Phụ lục 01)</h3><p class="small muted" style="margin:0 0 8px">Doanh thu tháng <b>' + money(p.rev) + '</b> (' + p.n + ' đơn, cả đơn web, không tính huỷ / hoàn) · ' + esc(sen) + '.</p>' +
+      (p.tier ? '<div class="kpis" style="margin:0">' + kpi('Lương cố định', moneyShort(p.fixed), '', '', 'bậc từ ' + moneyShort(p.tier[0]) + ': cơ bản ' + moneyShort(p.tier[1]) + ' + BH ' + moneyShort(p.tier[2])) +
+        kpi('🔁 HH khách cũ', moneyShort(p.cm.old), '', '', p.rt[0] + '% × ' + moneyShort(p.sums.old) + ' tiền hàng') +
+        kpi('🆕 HH khách mới', moneyShort(p.cm.nw), '', '', p.rt[1] + '% × ' + moneyShort(p.sums.nw) + ' (sale chốt + qua link của bạn)') +
+        (p.sums.auto ? kpi('🌐 Khách mới tự đặt web', moneyShort(p.cm.auto), '', '', (p.rt[1] * p.webAuto / 100) + '% × ' + moneyShort(p.sums.auto) + ' (không qua link sale: ' + p.webAuto + '% mức khách mới)') : '') +
+        (p.sen ? kpi('🎖 Phụ cấp thâm niên', moneyShort(p.sen), '', '', '') : '') + kpi('Tổng tạm tính', moneyShort(p.total), 'good', '', 'chưa gồm thưởng') + '</div>' +
+        (nx ? '<p class="small" style="margin:8px 0 0">📈 Thêm <b>' + money(nx[0] - p.rev) + '</b> doanh thu nữa là lên bậc ' + moneyShort(nx[0]) + ': lương cơ bản ' + moneyShort(nx[1]) + ', hoa hồng ' + nx[3][p.si][0] + '% / ' + nx[3][p.si][1] + '%.</p>' : '')
+        : '<p class="notice" style="margin:0">Doanh thu dưới ' + money(T[0][0]) + ': <b>hỗ trợ theo năng lực</b> (quản lý quyết). Còn ' + money(T[0][0] - p.rev) + ' nữa là vào bậc đầu.</p>') +
+      '<p class="small muted" style="margin:8px 0 0">Hoa hồng tính trên tiền hàng (không gồm phí ship). Đơn Ngoài giờ / Ngày lễ tính theo khách cũ / mới. Tạm tính theo dữ liệu CRM, số chốt lương do kế toán đối chiếu.</p></div>';
+  }
+  function ppTable(month) {
+    if (!ppOn()) return '';
+    var R = monthRange(month), names = {}; S.d.orders.forEach(function (o) { if (o.seller && o.time >= R[0] && o.time < R[1]) names[o.seller] = 1; });
+    var rows = Object.keys(names).map(function (nm) { return [nm, payOf(nm, month)]; }).filter(function (r) { return r[1] && r[1].rev; }).sort(function (a, b) { return b[1].rev - a[1].rev; });
+    if (!rows.length) return '';
+    return '<div class="box pp-box"><h3 style="margin:0 0 6px">💰 Thu nhập tạm tính từng người (Phụ lục 01)</h3><div class="bcdt-wrap"><table class="bcdt"><thead><tr><th>Nhân sự</th><th>Doanh thu</th><th>Bậc</th><th>Thâm niên</th><th>Lương cố định</th><th>HH khách cũ</th><th>HH khách mới</th><th>HH web tự đặt</th><th>Phụ cấp</th><th>Tổng</th></tr></thead><tbody>' +
+      rows.map(function (r) { var p = r[1]; return '<tr><td>' + esc(r[0]) + '</td><td>' + money(p.rev) + '</td><td>' + (p.tier ? 'từ ' + moneyShort(p.tier[0]) : 'hỗ trợ theo năng lực') + '</td><td>' + (p.mo < 0 ? '⚠️ thiếu ngày' : PP_SEN[p.si]) + '</td><td>' + money(p.fixed) + '</td><td>' + money(p.cm.old) + '</td><td>' + money(p.cm.nw) + '</td><td>' + money(p.cm.auto) + '</td><td>' + money(p.sen) + '</td><td><b>' + money(p.total) + '</b></td></tr>'; }).join('') +
+      '</tbody></table></div><p class="small muted" style="margin:8px 0 0">Bậc dưới ' + moneyShort(S.d.rules.payplan.tiers[0][0]) + ' = hỗ trợ theo năng lực (không tự tính lương cố định, hoa hồng). Chưa gồm thưởng.</p></div>';
+  }
+  function ppSetHtml() {
+    var P = S.d.rules.payplan || { tiers: [], senior: [] }, ed = lvl() >= 3, dis = ed ? '' : ' disabled', inp = function (v, id) { return '<input type="text" inputmode="decimal" value="' + esc(v) + '"' + (id ? ' id="' + id + '"' : '') + dis + '>'; };
+    var sv = function (m) { var t = (P.senior || []).filter(function (z) { return z[0] === m; })[0]; return t ? t[1] : 0; }, wa = P.webAuto == null ? 50 : P.webAuto;
+    return '<div class="box"><p class="hint" style="margin:0 0 8px">Theo <b>Phụ lục 01/CĐ2026</b>. Báo cáo BCDT tự tính lương cố định + hoa hồng tạm tính cho từng sale: bậc theo <b>doanh thu tháng</b> (cả đơn web, không tính huỷ / hoàn), cột theo <b>thâm niên</b> (ngày làm chính thức ở Cài đặt → Nhân sự), % theo <b>khách cũ / khách mới</b> trên tiền hàng. Đơn web tính như đơn sale lên. Dưới bậc đầu = hỗ trợ theo năng lực (quản lý quyết).' + (ed ? '' : ' Chỉ Quản trị sửa được.') + '</p>' +
+      '<label class="switch"><input type="checkbox" id="ppOn"' + (P.on ? ' checked' : '') + dis + '> Dùng bảng này để tính hoa hồng (tắt = quay về % theo loại đơn ở mục 💰 Hoa hồng)</label>' +
+      '<div class="pp-grid"><div class="pp-tier pp-head"><span>Doanh thu từ (triệu)</span><span>Lương cơ bản</span><span>Trợ cấp BH</span><span>&lt;1 năm: cũ %</span><span>mới %</span><span>1–2 năm: cũ %</span><span>mới %</span><span>&gt;2 năm: cũ %</span><span>mới %</span></div>' +
+      P.tiers.concat(ed ? [[0, 0, 0, [[0, 0], [0, 0], [0, 0]]]] : []).map(function (t) { return '<div class="pp-tier pp-row">' + inp(t[0] ? t[0] / 1e6 : '') + inp(t[1] ? t[1].toLocaleString('vi-VN') : '') + inp(t[2] ? t[2].toLocaleString('vi-VN') : '') + t[3].map(function (r) { return inp(t[0] ? r[0] : '') + inp(t[0] ? r[1] : ''); }).join('') + '</div>'; }).join('') + '</div>' +
+      '<p class="small muted" style="margin:4px 0 8px">Dòng trống cuối: thêm bậc. Xoá số ở ô “Doanh thu từ” để bỏ bậc.</p>' +
+      '<div class="row2c"><label class="f"><span>🎖 Phụ cấp thâm niên trên 3 năm (đ/tháng)</span>' + inp(sv(36).toLocaleString('vi-VN'), 'ppS3') + '</label><label class="f"><span>🎖 Trên 5 năm (đ/tháng)</span>' + inp(sv(60).toLocaleString('vi-VN'), 'ppS5') + '</label></div>' +
+      '<label class="f"><span>🌐 Khách mới tự đặt trên web, không qua link của sale: tính bao nhiêu % mức khách mới</span>' + inp(wa, 'ppWa') + '</label>' +
+      '<p class="hint">Khách mới đặt qua <b>link riêng của sale</b> tính đủ % khách mới. Khách tự tìm đến web (quảng cáo, Google) được máy chia cho sale thì sale chỉ gọi xác nhận, nên tính ' + wa + '%. Từ đơn thứ 2 là khách cũ, tính đủ % khách cũ.</p>' +
+      (ed ? '<button class="btn pri" id="ppSave">Lưu bảng lương & hoa hồng</button>' : '') + '</div>';
+  }
   function bcdtData(name, month) {
     var R = monthRange(month), days = Math.round((R[1] - R[0]) / DAY), rows = [], tot = null, ca = { 'Ngày': [0, 0], 'Tối/CN': [0, 0], 'Lễ': [0, 0] }, ot = {}, web = { n: 0, r: 0, c: 0, src: {} }; OTYPES.forEach(function (t) { ot[t] = [0, 0, 0]; }); // [số đơn, doanh số, tiền tính hoa hồng = tiền hàng không gồm phí ship]
     var mine = function (o) { return name === null || o.seller === name; };
@@ -6843,7 +6903,7 @@
       (tg && tg.amount ? kpi('% tiến độ mục tiêu', pct(tRev, tg.amount) + '%', pct(tRev, tg.amount) >= 100 ? 'good' : '', '', 'mục tiêu ' + moneyShort(tg.amount)) : '');
     var head = '<tr>' + cols.map(function (c) { return '<th>' + esc(c[0]) + '</th>'; }).join('') + '</tr>';
     var tr = function (r, cls) { return '<tr' + (cls ? ' class="' + cls + '"' : '') + '>' + cols.map(function (c) { return '<td>' + fmtv(c[1](r), c[2]) + '</td>'; }).join('') + '</tr>'; };
-    var CMr = S.d.rules.commission || {}, cmP = function (k) { return Number(CMr[k]) || 0; }, W = d.web, wP = cmP(CH_WEB), wCm = Math.round((W.c != null ? W.c : W.r) * wP / 100);
+    var CMr = S.d.rules.commission || {}, cmP = function (k) { return ppOn() ? 0 : Number(CMr[k]) || 0; }, W = d.web, wP = cmP(CH_WEB), wCm = Math.round((W.c != null ? W.c : W.r) * wP / 100);
     var saleN = OTYPES.reduce(function (s0, t) { return s0 + d.ot[t][0]; }, 0), saleR = OTYPES.reduce(function (s0, t) { return s0 + d.ot[t][1]; }, 0), saleCm = OTYPES.reduce(function (s0, t) { return s0 + Math.round((d.ot[t][2] != null ? d.ot[t][2] : d.ot[t][1]) * cmP(t) / 100); }, 0);
     var chKpi = kpi('💬 Sale lên đơn', moneyShort(saleR), '', '', saleN + ' đơn · ' + (saleR + W.r ? Math.round(saleR / (saleR + W.r) * 100) : 0) + '% doanh số') +
       kpi('🌐 Khách tự đặt trên web', moneyShort(W.r), '', '', W.n + ' đơn' + (W.n ? ' · ' + Object.keys(W.src).sort(function (a, b) { return W.src[b] - W.src[a]; }).map(function (k) { return esc(k) + ' ' + W.src[k]; }).join(', ') : '') + (wP ? ' · hoa hồng ' + wP + '% = <b>' + money(wCm) + '</b>' : ''));
@@ -6851,7 +6911,7 @@
       '<h3 style="margin:4px 0 8px">🕘 Theo giờ lên đơn</h3><div class="kpis" style="margin:0 0 10px">' + HR_KEYS.filter(function (k) { return T.hrN[k] || k === 'Trong giờ' || k === 'Ngoài giờ'; }).map(function (k) { var tt = HR_KEYS.reduce(function (s0, j) { return s0 + T.hrR[j]; }, 0); return kpi(HR_ICON[k] + ' ' + (k === 'Trong giờ' ? 'Giờ hành chính' : k === 'Ngoài giờ' ? 'Tối / Chủ nhật' : k), moneyShort(T.hrR[k]), '', '', T.hrN[k] + ' đơn' + (tt ? ' · ' + Math.round(T.hrR[k] / tt * 100) + '%' : '') + ' · ' + esc(hourTip(k))); }).join('') + '</div>' +
       '<h3 style="margin:4px 0 8px">Đơn sale lên – theo loại đơn (tính hoa hồng)</h3><div class="kpis" style="margin:0">' + OTYPES.map(function (t) { var p = cmP(t), x = d.ot[t]; return kpi(OT[t][0] + ' ' + t, moneyShort(x[1]), '', '', x[0] + ' đơn' + (p ? ' · hoa hồng ' + p + '% = <b>' + money(Math.round((x[2] != null ? x[2] : x[1]) * p / 100)) + '</b>' : '')); }).join('') +
       (OTYPES.concat([CH_WEB]).some(cmP) ? kpi('💰 Tổng hoa hồng', moneyShort(saleCm + wCm), 'good', '', 'đơn sale ' + moneyShort(saleCm) + ' + đơn web ' + moneyShort(wCm) + ' · tạm tính, đơn chờ kiểm tra loại vẫn tính') : '') + '</div>' +
-      '<p class="small muted" style="margin:8px 0 0">Đơn web = khách tự đặt trên thucduonglanh.vn, tính cho sale đang phụ trách khách lúc đặt. Đơn web không tính vào 4 loại đơn ở trên mà tính theo % hoa hồng đơn web.</p></div>' +
+      '<p class="small muted" style="margin:8px 0 0">Đơn web = khách tự đặt trên thucduonglanh.vn, tính cho sale đang phụ trách khách lúc đặt.' + (ppOn() ? ' Hoa hồng tính theo Phụ lục 01 ở mục 💰 bên dưới.' : ' Đơn web không tính vào 4 loại đơn ở trên mà tính theo % hoa hồng đơn web.') + '</p></div>' + (name ? ppHtml(name, month) : ppTable(month)) +
       '<div class="box"><div class="bcdt-wrap"><table class="bcdt"><thead>' + head + '</thead><tbody>' + tr(d.tot, 'tot') + d.rows.map(function (r) { return tr(r); }).join('') + '</tbody></table></div>' +
       '<p class="small muted" style="margin:8px 0 0">Khách mới = đơn đầu tiên của khách. Data mới = số quảng cáo vào CRM trong ngày. Đơn huỷ không tính; đơn hoàn tính riêng.</p></div>';
     var m = modal('📊 BCDT ' + monthLabel(month) + (name ? ' – ' + esc(name) : ' – cả nhóm'), body, '<button class="btn" data-close>Đóng</button><button class="btn pri" id="bcCsv">⬇️ Tải file Excel (CSV)</button>');
@@ -6945,14 +7005,17 @@
       '<div class="edit-table" id="tpT">' + tp.map(function (r, i) { return '<div class="edit-row tpl" data-i="' + i + '"><input type="text" data-k="0" value="' + esc(r[0]) + '" placeholder="Thời điểm"><input type="text" data-k="1" value="' + esc(r[1]) + '" placeholder="Mục đích"><button class="rm" data-rm="tp" data-i="' + i + '" aria-label="Xoá">✕</button><textarea data-k="2" rows="3" placeholder="Nội dung tin">' + esc(r[2]) + '</textarea></div>'; }).join('') +
       '</div><div class="steps" style="margin-top:10px"><button class="btn" data-add="tp">＋ Thêm mẫu</button><button class="btn pri" id="tpSave">Lưu mẫu tin</button></div></div>';
     if (lvl() >= 3) {
-      var us = S.f.us || (S.f.us = S.d.users.map(function (u) { return { email: u.email, name: u.name, role: u.role, active: u.active !== false, alias: u.alias || '', prefix: u.prefix || '', web: !!u.web, mkv: !!u.mkv, phone: u.phone || '', full: u.full || '' }; }));
+      var us = S.f.us || (S.f.us = S.d.users.map(function (u) { return { email: u.email, name: u.name, role: u.role, active: u.active !== false, alias: u.alias || '', prefix: u.prefix || '', web: !!u.web, mkv: !!u.mkv, phone: u.phone || '', full: u.full || '', acct: u.acct || '', joined: u.joined || '' }; }));
       G.us = '<div class="box"><h3>Nhân sự được vào CRM</h3><p class="hint" style="margin:0 0 10px"><b>Quản trị</b>: toàn quyền. <b>Quản lý</b>: thêm xem doanh số, sửa chu kỳ & mẫu tin. <b>Sale & CSKH</b>: bán hàng, chăm sóc khách mình phụ trách, xử lý đơn. <b>Marketing</b>: tab 📣 Marketing (chi phí, hiệu quả quảng cáo, tự nhập chi phí) + xem (không sửa) khách để lại số trên web ở tab Khách hỏi; không thấy khách đã mua, đơn, doanh số công ty. Khách để lại số trên web luôn chờ Quản lý / Quản trị giao, sale không tự nhận. Muốn Quản lý / Sale xem thêm số marketing: tích <b>📣 Xem Marketing</b> dưới tên người đó (chỉ xem, không sửa). Nhân viên nghỉ việc: bỏ tích “Đang dùng” là không vào được nữa.</p>' +
-        '<p class="hint" style="margin:0 0 10px"><b>Tên trong file QC</b>: tên sale như đang ghi ở cột Sale của file số quảng cáo (nhiều cách viết thì cách nhau dấu phẩy, vd “Phương, PHƯƠNG”). <b>Tiền tố mã đơn</b>: vd “Phuong” → mã đơn Phuong300926-01. <b>SĐT + họ tên đầy đủ</b>: CRM so với người đăng ký Cộng tác viên, trùng thì báo ⚠️ (nhân sự không được làm CTV).</p>' +
+        '<p class="hint" style="margin:0 0 10px"><b>Tên trong file QC</b>: tên sale như đang ghi ở cột Sale của file số quảng cáo (nhiều cách viết thì cách nhau dấu phẩy, vd “Phương, PHƯƠNG”). <b>Tiền tố mã đơn</b>: vd “Phuong” → mã đơn Phuong300926-01. <b>SĐT, họ tên đầy đủ, số tài khoản</b>: CRM so với người đăng ký Cộng tác viên, trùng thì báo ⚠️ (nhân sự không được làm CTV); chỉ Quản trị thấy. <b>Ngày làm chính thức</b>: tính thâm niên cho lương & hoa hồng (Phụ lục 01).</p>' +
         '<div class="edit-table" id="usT"><div class="edit-row usr head"><span>Email</span><span>Tên hiển thị</span><span>Quyền</span><span>Đang dùng</span><span></span></div>' +
         us.map(function (u, i) { return '<div class="edit-row usr" data-i="' + i + '"><input type="email" data-k="email" value="' + esc(u.email) + '" placeholder="email@gmail.com"><input type="text" data-k="name" value="' + esc(u.name) + '" placeholder="Tên"><select data-k="role">' + ['Quản trị', 'Quản lý', 'Marketing', 'Sale & CSKH'].map(function (r) { return '<option value="' + esc(r) + '"' + (r === u.role ? ' selected' : '') + '>' + esc(r) + '</option>'; }).join('') + '</select><label class="switch"><input type="checkbox" data-k="active"' + (u.active ? ' checked' : '') + '> Có</label><button class="rm" data-rm="us" data-i="' + i + '" aria-label="Xoá">✕</button>' +
-          '<input type="text" data-k="alias" value="' + esc(u.alias || '') + '" placeholder="Tên trong file QC (vd Phương)" class="usr-x"><input type="text" data-k="prefix" value="' + esc(u.prefix || '') + '" placeholder="Tiền tố mã đơn (vd Phuong)" class="usr-x"><input type="tel" data-k="phone" value="' + esc(u.phone || '') + '" placeholder="SĐT cá nhân (chống tự làm CTV)" class="usr-x"><input type="text" data-k="full" value="' + esc(u.full || '') + '" placeholder="Họ tên đầy đủ (vd Nguyễn Thu Hương)" class="usr-x"><label class="switch usr-w"><input type="checkbox" data-k="web"' + (u.web || u.role === 'Quản trị' ? ' checked' : '') + (u.role === 'Quản trị' ? ' disabled' : '') + '> 🌐 Sửa website (đăng bài, sửa sản phẩm ở thucduonglanh.vn/admin)</label>' +
+          '<input type="text" data-k="alias" value="' + esc(u.alias || '') + '" placeholder="Tên trong file QC (vd Phương)" class="usr-x"><input type="text" data-k="prefix" value="' + esc(u.prefix || '') + '" placeholder="Tiền tố mã đơn (vd Phuong)" class="usr-x"><input type="tel" data-k="phone" value="' + esc(u.phone || '') + '" placeholder="SĐT cá nhân (chống tự làm CTV)" class="usr-x"><input type="text" data-k="full" value="' + esc(u.full || '') + '" placeholder="Họ tên đầy đủ (vd Nguyễn Thu Hương)" class="usr-x"><input type="text" inputmode="numeric" data-k="acct" value="' + esc(u.acct || '') + '" placeholder="Số tài khoản ngân hàng (chống tự làm CTV)" class="usr-x"><input type="text" data-k="joined" value="' + esc(u.joined || '') + '" placeholder="Ngày làm chính thức (vd 07/2024) – tính thâm niên" class="usr-x"><label class="switch usr-w"><input type="checkbox" data-k="web"' + (u.web || u.role === 'Quản trị' ? ' checked' : '') + (u.role === 'Quản trị' ? ' disabled' : '') + '> 🌐 Sửa website (đăng bài, sửa sản phẩm ở thucduonglanh.vn/admin)</label>' +
           (u.role === 'Quản lý' || u.role === 'Sale & CSKH' ? '<label class="switch usr-w"><input type="checkbox" data-k="mkv"' + (u.mkv ? ' checked' : '') + '> 📣 Xem Marketing (chỉ xem tab Marketing: chi phí, hiệu quả quảng cáo; không sửa)</label>' : '') + '</div>'; }).join('') +
-        '</div><div class="steps" style="margin-top:10px"><button class="btn" data-add="us">＋ Thêm người</button><button class="btn pri" id="usSave">Lưu nhân sự</button></div></div>';
+        '</div><div class="steps" style="margin-top:10px"><button class="btn" data-add="us">＋ Thêm người</button><button class="btn pri" id="usSave">Lưu nhân sự</button></div>' +
+        '<h3 style="margin:16px 0 4px">Nhân sự chưa có tài khoản CRM</h3><p class="hint" style="margin:0 0 6px">Mỗi dòng 1 người: <b>Họ tên | SĐT | Số tài khoản</b>. Chỉ để CRM cảnh báo khi họ (hoặc người dùng tài khoản của họ) đăng ký Cộng tác viên.</p>' +
+        '<textarea id="sgTxt" rows="4" style="width:100%" placeholder="Nguyễn Văn A | 0912345678 | 0123456789">' + esc((S.d.rules.staffGuard || []).map(function (r) { return [r.full, r.phone, r.acct].join(' | '); }).join('\n')) + '</textarea>' +
+        '<div class="steps" style="margin-top:8px"><button class="btn pri" id="sgSave">Lưu danh sách</button></div></div>';
     }
     // ---- gom thành nhóm, mỗi mục 1 dòng tóm tắt
     var ca = R.ca || {}, hol = ca.holidays || ['01/01', '30/04', '01/05', '02/09'], cmOn = Object.keys(CMc).filter(function (k) { return CMc[k] !== '' && CMc[k] != null; });
@@ -6964,6 +7027,7 @@
     h += setSec('🛒 Bán hàng & chăm sóc', setGroup('rules', '⭐ Nhóm khách & lịch nhắc', 'VIP từ ' + (R.vipOrders || 3) + ' đơn hoặc ' + moneyShort(R.vipSpent || 2000000) + ' · Sắp mất sau ' + (R.atRisk || 60) + ' ngày · nhắc lại sau ' + (R.coolDays === undefined ? 14 : R.coolDays) + ' ngày', G.rules) +
       setGroup('cy', '📦 Bao lâu khách dùng hết 1 hộp', cy.length + ' sản phẩm · để nhắc khách đặt lại đúng lúc', G.cy) +
       setGroup('tp', '💬 Mẫu tin nhắn chăm sóc', tp.length + ' mẫu', G.tp) +
+      setGroup('pp', '💰 Lương & hoa hồng (Phụ lục 01)', ppOn() ? '✅ Đang dùng · ' + S.d.rules.payplan.tiers.length + ' bậc doanh thu' : 'Đang tắt · đang dùng % theo loại đơn', ppSetHtml()) +
       setGroup('cm', '💰 Hoa hồng', cmOn.length ? cmOn.map(function (k) { return esc(k) + ' ' + CMc[k] + '%'; }).join(' · ') : '⚠️ Chưa đặt % hoa hồng', G.cm) +
       setGroup('ca', '🕘 Ca tối & ngày lễ', 'Ca tối từ ' + esc(ca.evening || '17:30') + ' · ' + hol.length + ' ngày lễ', caBox()) +
       setGroup('vc', '🎟 Mã ưu đãi đặt hàng web', 'Tạo mã giảm giá gửi riêng khách cũ, đối tác', vcBox()) +
@@ -7044,6 +7108,16 @@
         var b = this; b.disabled = true;
         api('settings', { rules: { vipOrders: $('#rVipN').value, vipSpent: moneyIn($('#rVipS').value), atRisk: $('#rRisk').value, coolDays: $('#rCool').value, shipDays: $('#rShip').value, shipFar: $('#rShipFar').value, famMin: $('#rFam').value } }).then(function (j) { Object.assign(S.d.rules, j.rules); toast('Đã lưu. Nhóm khách được tính lại ✓'); load(true); }, function (e) { toast(e.message, true); b.disabled = false; });
       }; }
+    if ($('#sgSave')) $('#sgSave').onclick = function () {
+      var b = this, L = $('#sgTxt').value.split('\n').map(function (ln) { var a = ln.split('|').map(function (z) { return z.trim(); }); return { full: a[0] || '', phone: a[1] || '', acct: a[2] || '' }; }).filter(function (r) { return r.full || r.phone || r.acct; }); b.disabled = true;
+      api('settings', { staffGuard: L.length ? L : [{}] }).then(function (j) { S.d.rules.staffGuard = j.staffGuard; toast('Đã lưu ' + j.staffGuard.length + ' người ✓'); b.disabled = false; }, function (e) { toast(e.message, true); b.disabled = false; });
+    };
+    if ($('#ppSave')) $('#ppSave').onclick = function () {
+      var b = this, num = function (v) { return parseFloat(String(v).replace(/\./g, '').replace(',', '.')) || 0; }, pc = function (v) { return parseFloat(String(v).replace(',', '.')) || 0; };
+      var tiers = $$('.pp-row').map(function (r) { var q = $$('input', r).map(function (i) { return i.value; }); return [pc(q[0]) * 1e6, num(q[1]), num(q[2]), [[pc(q[3]), pc(q[4])], [pc(q[5]), pc(q[6])], [pc(q[7]), pc(q[8])]]]; }).filter(function (t) { return t[0] > 0; });
+      b.disabled = true;
+      api('settings', { payplan: { on: $('#ppOn').checked, tiers: tiers, webAuto: pc($('#ppWa').value), senior: [[36, num($('#ppS3').value)], [60, num($('#ppS5').value)]] } }).then(function (j) { S.d.rules.payplan = j.payplan; toast('Đã lưu bảng lương & hoa hồng ✓'); b.disabled = false; }, function (e) { toast(e.message, true); b.disabled = false; });
+    };
     if ($('#cmSave')) $('#cmSave').onclick = function () {
       var b = this, cm = {}; $$('[data-cm]').forEach(function (x) { cm[x.getAttribute('data-cm')] = x.value.trim(); }); b.disabled = true;
       api('settings', { commission: cm }).then(function (j) { S.d.rules.commission = j.commission; toast('Đã lưu % hoa hồng ✓'); b.disabled = false; }, function (e) { toast(e.message, true); b.disabled = false; });

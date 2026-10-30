@@ -310,7 +310,7 @@ async function pList(x) {
   // ⚠️ dấu hiệu nghi vấn (30/10/2026): khách của CTV mà nhân sự đã ghi chăm sóc trước khi khách thuộc CTV; lần đặt qua CTV bị chặn vì là khách hỏi của sale; CTV trùng tên / email / tài khoản nhân sự
   const pre = await all(x.db, "SELECT c.partner AS code, count(*) AS n FROM customers c WHERE coalesce(c.partner, '') != '' AND EXISTS (SELECT 1 FROM logs l WHERE l.ref = c.phone AND l.time < c.partner_at AND l.by_name NOT IN ('', 'Website', 'Tự động')) GROUP BY c.partner");
   const skip = await all(x.db, "SELECT name AS code, count(*) AS n FROM logs WHERE what = 'CTV không tính' GROUP BY name");
-  const staff = await all(x.db, "SELECT email, name, coalesce(phone, '') AS phone, coalesce(full, '') AS full FROM users"), flag = {};
+  const staff = await staffOf(x), flag = {};
   const add = (code, t) => { (flag[code] = flag[code] || []).push(t); };
   pre.forEach(r => add(r.code, r.n + ' khách đã được nhân sự chăm trước khi đặt qua CTV'));
   skip.forEach(r => add(r.code, r.n + ' lần đặt qua link / mã CTV bị chặn vì là khách hỏi của sale'));
@@ -323,11 +323,17 @@ async function pList(x) {
   };
 }
 /** CTV / người đăng ký trùng nhân sự: cùng email, cùng họ tên, hoặc tài khoản ngân hàng mang tên nhân sự (họ tên đầy đủ, không dấu). Trả câu cảnh báo hoặc ''. */
+async function staffOf(x) { // nhân sự có tài khoản CRM + nhân sự chưa có tài khoản (kv staff_guard, Cài đặt → Nhân sự)
+  const us = await all(x.db, "SELECT email, name, coalesce(phone, '') AS phone, coalesce(full, '') AS full, coalesce(acct, '') AS acct FROM users");
+  let g = []; try { g = JSON.parse((await kvGet(x.db, 'staff_guard')) || '[]') || []; } catch (e) { }
+  return us.concat(g.map(r => ({ email: '', name: r.full, phone: r.phone, full: r.full, acct: r.acct })));
+}
 function staffHit(staff, p) {
   const em = String(p.email || '').trim().toLowerCase(), nm = nrm(p.name), bk = ' ' + nrm(p.bank).replace(/[^a-z0-9]+/g, ' ') + ' ', ph = normPhone(p.phone || '');
   for (const s of staff) {
     if (ph && ph === normPhone(s.phone || '')) return '⚠️ Trùng số điện thoại nhân sự ' + s.name;
     if (em && em === String(s.email || '').toLowerCase()) return '⚠️ Trùng email nhân sự ' + s.name;
+    if (String(s.acct || '').length >= 6 && String(p.bank || '').replace(/\D/g, '').includes(s.acct)) return '⚠️ Trùng số tài khoản ngân hàng của nhân sự ' + s.name;
     const sn = nrm(s.full || s.name); if (!sn) continue;
     if (sn.includes(' ') && nm === sn) return '⚠️ Trùng họ tên nhân sự ' + s.name;
     if (sn.includes(' ') && bk.includes(' ' + sn.replace(/[^a-z0-9]+/g, ' ') + ' ')) return '⚠️ Tài khoản nhận tiền mang tên nhân sự ' + s.name;
@@ -407,7 +413,7 @@ export async function ctvApply(x, d) {
   if (await first(x.db, "SELECT id FROM partner_apps WHERE phone = ? AND st = 'new'", phone)) return { ok: true, already: 'wait', msg: 'Chúng tôi đã nhận đăng ký của số này và đang xem. Nhân viên sẽ liên hệ qua Zalo trong 1–2 ngày làm việc.' };
   const row = { name, phone, email: t(d.email, 120), area: t(d.area, 80), channel: t(Array.isArray(d.channel) ? d.channel.join(', ') : d.channel, 200), bank: t(d.bank, 200), note: t(d.note, 500), src: t(d.source, 200) };
   await run(x.db, 'INSERT INTO partner_apps (at, name, phone, email, area, channel, bank, note, src) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', Date.now(), row.name, row.phone, row.email, row.area, row.channel, row.bank, row.note, row.src);
-  const c = await first(x.db, 'SELECT orders, owner FROM customers WHERE phone = ?', phone), sw = staffHit(await all(x.db, "SELECT email, name, coalesce(phone, '') AS phone, coalesce(full, '') AS full FROM users"), row);
+  const c = await first(x.db, 'SELECT orders, owner FROM customers WHERE phone = ?', phone), sw = staffHit(await staffOf(x), row);
   x.later(telegram(x.env, '🤝 <b>ĐĂNG KÝ CỘNG TÁC VIÊN</b>\n👤 ' + esc(name) + ' – <b>' + esc(phone) + '</b>' + (row.area ? ' · ' + esc(row.area) : '') + (row.channel ? '\n📣 Sẽ giới thiệu qua: ' + esc(row.channel) : '') + (row.note ? '\n💬 ' + esc(row.note) : '') +
     (c ? '\n🛒 Đã là khách: ' + (c.orders || 0) + ' đơn' + (c.owner ? ' · sale ' + esc(c.owner) : '') : '') + (sw ? '\n' + esc(sw) + ' (nhân sự và người nhà không làm CTV)' : '') + '\n👉 Gọi / Zalo làm quen rồi Duyệt ở CRM → Cài đặt → 🤝 Quản lý cộng tác viên'));
   return { ok: true };
