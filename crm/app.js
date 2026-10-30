@@ -1863,6 +1863,126 @@
     }, function (e) { toast(e.message, true); if (btn) { btn.disabled = false; btn.textContent = kind === 'o' ? '🗑 Xoá đơn này' : '🗑 Xoá khách này'; } });
   }
 
+  /* ---------- 💬 kịch bản gọi theo mốc chăm sóc (30/10/2026): các bước nói + "khách nói gì thì làm gì" + khi nào báo quản lý.
+   * Cách dùng lấy theo trang sản phẩm thucduonglanh.vn và hồ sơ công ty (skill vtg). Không nói chữa / điều trị / khỏi bệnh. */
+  var PROD_USE = [
+    [/progomax|promax/, 'Fucoidan Progomax', 'Pha 5 muỗng (khoảng 45g) với 200ml nước ấm 60–70°C, khuấy đều. Uống 1 ly, 2–3 lần mỗi ngày. Mở nắp dùng trong 30 ngày.'],
+    [/gafo/, 'Gafo Fucoidan', 'Pha theo hướng dẫn in trên hộp. Uống buổi sáng sau ăn 30 phút, hoặc buổi tối trước khi ngủ 1 tiếng. Mở hộp dùng trong 30–45 ngày.'],
+    [/curcumin|sua hat c/, 'Dinh Dưỡng Từ Hạt và Curcumin', 'Pha 3 muỗng (khoảng 30g) với 150–180ml nước ấm 60–70°C, khuấy đều. Uống 1 ly, 2–3 lần mỗi ngày. Người mới dùng nên bắt đầu nửa liều rồi tăng dần. Mở nắp dùng trong 30 ngày.'],
+    [/bua an|vitagreen/, 'Bữa Ăn Dinh Dưỡng VitaGreen', 'Pha 25–30g (3 thìa gạt ngang) với 150–180ml nước khoảng 60°C, khuấy đều, uống ngay. Ngày 2–3 lần. Có thể xay sinh tố cùng hoa quả. Mở nắp dùng trong 30 ngày.'],
+    [/dilvang|che vang|dinh lang/, 'Trà DILVANG', 'Cho 1 gói vào cốc, thêm 300–400ml nước ấm 40–50°C, khuấy đều là uống được (không cần đun sôi, không cần hãm). Ngày 2–3 gói.'],
+    [/mam xoi/, 'Trà Mâm Xôi', 'Cho 1 túi trà vào 300–400ml nước sôi, hãm 7–10 phút. Ngày 2–3 túi, mỗi túi hãm lại được 1–2 lần.'],
+    [/dau xanh|rau ma/, 'Bột Đậu Xanh Rau Má', 'Pha 2–3 thìa bột với nước ấm, khuấy đều. Thêm đá hoặc sữa tuỳ khẩu vị, uống lạnh ngon hơn. Mở nắp dùng trong 2–3 tháng.'],
+    [/ruoc/, 'Ruốc Rong Biển', 'Ăn trực tiếp với cơm nóng, cháo, xôi, bánh mì, cơm nắm hoặc rắc lên salad. Đậy kín sau khi mở, ngon nhất trong 7 ngày.'],
+    [/xi dau|nuoc tuong|\b2s\b/, 'Xì Dầu 2S', 'Chấm, trộn trực tiếp, hoặc tẩm ướp, kho, xào như xì dầu thường.']
+  ];
+  /** Cách dùng các sản phẩm khách mua gần nhất (tối đa 3, không trùng). */
+  function useLines(c) {
+    var out = [], seen = {}, ps = (c.products || []).slice().reverse();
+    ps.forEach(function (p) { var k = norm(p); for (var i = 0; i < PROD_USE.length; i++) if (PROD_USE[i][0].test(k)) { if (!seen[i] && out.length < 3) { seen[i] = 1; out.push({ n: PROD_USE[i][1], u: PROD_USE[i][2] }); } return; } });
+    return out;
+  }
+  // Câu khách hay hỏi ở mọi mốc
+  var CS_COMMON = [
+    ['“Uống cái này có khỏi bệnh không em?”', 'Dạ sản phẩm là thực phẩm, không phải là thuốc và không thay thế thuốc chữa bệnh ạ. Sản phẩm giúp mình bổ sung dinh dưỡng mỗi ngày, còn việc điều trị [Tên] vẫn theo bác sĩ nhé.', 'Không hứa khỏi bệnh, không nói “chữa”, “điều trị”. Ghi bệnh khách kể vào ô <b>Khách nói gì</b>.'],
+    ['“Chị đang uống thuốc, dùng cùng được không?”', 'Dạ đây là thực phẩm nên mình vẫn dùng thuốc bình thường theo bác sĩ ạ. Nếu đang điều trị bệnh, [Tên] hỏi thêm bác sĩ đang theo dõi cho yên tâm nhé.', 'Không khuyên khách bỏ thuốc hay bớt thuốc.'],
+    ['Khách đang bận', 'Dạ em xin lỗi đã làm phiền ạ. Khi nào [Tên] tiện để em gọi lại ạ?', 'Bấm nút <b>📅 Mai</b> / <b>3 ngày</b>… ở Bước 2 theo giờ khách hẹn.']
+  ];
+  var CS_ALERT = ['Khách bị <b>ngứa, nổi mẩn, khó thở, đau bụng kéo dài</b> sau khi dùng → nói khách <b>tạm dừng dùng</b>, khó chịu nhiều thì đi khám ngay.', 'Hàng <b>bị vỡ, móp, thiếu, hết hạn, có mùi lạ</b> → xin khách ảnh chụp hộp và tem đơn qua Zalo.', 'Khách <b>đòi trả hàng, hoàn tiền</b>, hoặc đang rất bực.', 'Khách hỏi về <b>bệnh nặng</b> (ung thư, đang hoá trị, suy thận…) và muốn biết sản phẩm “có chữa được không”.'];
+  var CARE_SCRIPT = {
+    d1: { t: 'hỏi nhận hàng, hướng dẫn dùng', use: 1, s: [
+      ['1. Chào và hỏi nhận hàng', 'Dạ em chào anh/chị [Tên], em là [NV] bên Thực Dưỡng Lành. [Tên] đã nhận được [Sản phẩm] chưa ạ? Hàng tới nơi có nguyên vẹn không ạ?', ''],
+      ['2. Hướng dẫn cách dùng', 'Em hướng dẫn nhanh để mình dùng cho ngon và đều nhé ạ.', 'Đọc tiếp cho khách đúng phần <b>📋 Cách dùng</b> ở trên. Nói chậm, hỏi lại “mình nghe rõ không ạ”.'],
+      ['3. Hỏi ai dùng, muốn cải thiện gì', 'Sản phẩm này mình mua để dùng cho mình hay cho người nhà ạ? Mình đang mong ăn uống, sức khoẻ thay đổi điều gì nhất ạ?', 'Ghi câu trả lời vào ô <b>Khách nói gì</b> (vd “mua cho mẹ 70 tuổi, ăn kém”). Lần gọi sau đọc lại là biết hỏi gì.'],
+      ['4. Xin kết bạn Zalo, mời vào nhóm', 'Em xin kết bạn Zalo với [Tên] để gửi hướng dẫn bằng hình, có gì mình nhắn em lúc nào cũng được ạ. Bên em còn có nhóm Zalo chia sẻ thực đơn lành mạnh, em mời [Tên] vào cùng nhé.', 'Kết bạn xong bấm <b>➕ Đã kết bạn Zalo</b>. Mời nhóm ở khung <b>👥 Mời vào nhóm Zalo cộng đồng</b> bên dưới.'],
+      ['5. Ghi kết quả', '', 'Bấm <b>📦 Đã nhận, đã hướng dẫn dùng</b>. CRM tự nhắc bạn hỏi thăm sau 1 tuần.']
+    ], c: [
+      ['“Chị chưa nhận được hàng”', 'Dạ em kiểm tra đơn của mình ngay và báo lại [Tên] trong hôm nay ạ.', 'Mở đơn xem mã vận đơn, tra hãng vận chuyển. Bấm <b>🚚 Chưa nhận hàng</b> (2 ngày sau CRM tự nhắc). Đặt quá 7 ngày chưa tới thì báo quản lý.'],
+      ['“Hàng bị móp / vỡ / thiếu”', 'Dạ em xin lỗi [Tên] ạ. [Tên] chụp giúp em ảnh hộp hàng và tem đơn gửi qua Zalo, em báo bên kho xử lý cho mình ngay ạ.', 'Ghi vào ô <b>Khách nói gì</b>, <b>báo quản lý ngay</b>, bấm <b>📅 Mai</b> để hôm sau gọi báo khách.'],
+      ['Khách không nghe máy', '', 'Bấm <b>💬 Nhắn Zalo</b> (tin mẫu đã có sẵn cách dùng), rồi bấm <b>📵 Không nghe máy</b>.'],
+      ['“Chị không đặt, chắc người nhà đặt”', 'Dạ vâng ạ, đơn [Sản phẩm] gửi về địa chỉ nhà mình. [Tên] cho em xin tên người đặt để em hướng dẫn cách dùng cho đúng người nhé.', 'Ghi tên, số người dùng thật vào ô <b>Khách nói gì</b>.']
+    ] },
+    runout: { t: 'sắp hết hàng, mời đặt lại', use: 1, s: [
+      ['1. Hỏi còn bao nhiêu', 'Dạ em chào anh/chị [Tên], mình dùng [Sản phẩm] đều không ạ? Theo lịch thì sắp hết rồi, nhà mình còn dùng được khoảng mấy hôm nữa ạ?', 'Xem dòng <b>⏰ Dự kiến hết hàng</b> và <b>🔁 ~… ngày mua lại</b> ở trên trước khi gọi.'],
+      ['2. Nói lý do nên đặt sớm', 'Hàng đi đường mất vài ngày, mình đặt bây giờ là vừa nối tiếp, không bị ngắt quãng ạ. Đơn từ 300.000đ được miễn phí ship.', ''],
+      ['3. Gợi ý số lượng', 'Nhà mình dùng đều thì [Tên] lấy luôn 2 hộp cho đủ dùng lâu, đỡ phải đặt nhiều lần ạ.', 'Khách hay mua bao nhiêu thì gợi đúng số đó hoặc thêm 1. Không ép.'],
+      ['4. Chốt đơn', '', 'Khách đồng ý: bấm <b>🛒 Đặt lại</b> (mở form tạo đơn), hoặc <b>🔗 Link đặt lại</b> để khách tự đặt trên web.']
+    ], c: [
+      ['“Chị còn nhiều lắm”', 'Dạ vâng ạ. Mỗi ngày mình đang dùng mấy lần ạ? Dùng đều mỗi ngày thì mới thấy rõ, em hẹn [Tên] khoảng 2 tuần nữa em hỏi lại nhé.', 'Khách dùng ít hơn hướng dẫn thì nhắc lại <b>📋 Cách dùng</b>. Bấm <b>📦 Còn hàng</b>.'],
+      ['“Chưa có tiền / để tháng sau”', 'Dạ không sao ạ. Đầu tháng sau em nhắn [Tên] nhé, có chương trình ưu đãi gì em báo mình trước ạ.', 'Bấm <b>💸 Hết tiền</b> (30 ngày sau tự nhắc).'],
+      ['“Đắt quá”', 'Dạ em hiểu ạ. Mình lấy đơn từ 300.000đ là được miễn phí ship. Để em xem có ưu đãi nào cho khách cũ rồi báo [Tên] nhé.', 'Hỏi quản lý ưu đãi đang có. Không tự giảm giá. Bấm <b>📅 Mai</b> để gọi lại báo khách.'],
+      ['“Uống mãi chưa thấy gì”', 'Dạ mình dùng mỗi ngày mấy lần, được bao lâu rồi ạ? Thực phẩm dinh dưỡng cần dùng đều đặn một thời gian, không nhanh như thuốc ạ.', 'Hỏi kỹ cách dùng. Dùng chưa đúng thì hướng dẫn lại, hẹn <b>📅 1 tuần</b>. Khách vẫn không ưng thì gợi sản phẩm khác hợp hơn.'],
+      ['“Chị mua chỗ khác / trên Shopee rồi”', 'Dạ vâng ạ, miễn là hàng chính hãng là được. Có gì cần hỏi cách dùng [Tên] cứ nhắn em nhé.', 'Không chê nơi khác. Ghi vào ô <b>Khách nói gì</b>, bấm <b>👍 Dùng ok</b>.'],
+      ['“Thôi chị không dùng nữa”', 'Dạ vâng ạ. [Tên] cho em hỏi thật là mình chưa ưng điều gì để bên em làm tốt hơn ạ?', 'Ghi lý do vào ô <b>Khách nói gì</b>, rồi bấm <b>🚫 Không dùng nữa</b>.']
+    ] },
+    d7: { t: 'hỏi thăm sau 1 tuần', use: 1, s: [
+      ['1. Hỏi dùng có quen không', 'Dạ em chào anh/chị [Tên], mình dùng [Sản phẩm] được khoảng 1 tuần rồi, thấy dễ uống không ạ? Mỗi ngày mình dùng mấy lần ạ?', ''],
+      ['2. Kiểm tra cách dùng', '', 'So câu trả lời với <b>📋 Cách dùng</b> ở trên. Khách dùng ít, pha sai, quên dùng thì hướng dẫn lại nhẹ nhàng.'],
+      ['3. Hỏi thay đổi nhỏ', 'Mấy hôm nay ăn uống, giấc ngủ, đi lại của mình thế nào ạ?', 'Khách khen gì thì ghi <b>nguyên câu</b> vào ô <b>Khách nói gì</b>.'],
+      ['4. Ghi kết quả', '', 'Ổn thì bấm <b>👍 Dùng ok</b>. CRM tự nhắc xin cảm nhận ở ngày 14.']
+    ], c: [
+      ['“Chưa thấy gì”', 'Dạ mới 1 tuần thôi ạ. Thực phẩm dinh dưỡng cần dùng đều mỗi ngày một thời gian để cơ thể làm quen, không nhanh như thuốc. Mình cố dùng đều, em hỏi thăm [Tên] tiếp nhé.', 'Hỏi kỹ mỗi ngày dùng mấy lần. Bấm <b>📅 1 tuần</b>.'],
+      ['“Khó uống / ngọt quá / nhạt quá”', 'Dạ mình chỉnh lượng nước theo khẩu vị ạ: ngọt quá thì thêm nước, nhạt thì bớt nước. Có thể xay cùng hoa quả cho dễ uống hơn ạ.', 'Ghi khẩu vị của khách vào ô <b>Khách nói gì</b>.'],
+      ['“Uống vào thấy đầy bụng, đi ngoài nhiều”', 'Dạ sản phẩm có nhiều chất xơ nên người mới dùng hay gặp ạ. Mình tạm nghỉ 1–2 hôm, rồi dùng nửa liều, quen dần mới tăng lên nhé ạ.', 'Áp dụng cho các loại sữa hạt, bột dinh dưỡng. Nếu kéo dài hoặc nặng hơn: <b>báo quản lý ngay</b>.'],
+      ['“Hay quên uống”', 'Dạ [Tên] để hộp ngay cạnh bàn ăn sáng, hoặc pha luôn lúc ăn sáng cho thành thói quen nhé ạ.', ''],
+      ['“Người nhà không chịu uống”', 'Dạ người nhà mình thích vị thế nào ạ? Em gợi ý cách pha khác cho dễ uống hơn nhé.', 'Ghi người dùng và khẩu vị. Nếu vẫn không hợp, hẹn gọi lại để gợi sản phẩm khác.']
+    ] },
+    d14: { t: 'xin cảm nhận', s: [
+      ['1. Hỏi cảm nhận', 'Dạ em chào anh/chị [Tên], mình dùng [Sản phẩm] được 2 tuần rồi, [Tên] thấy thế nào ạ? So với trước khi dùng có gì khác không ạ?', 'Để khách nói hết, không gợi ý câu trả lời.'],
+      ['2. Khách khen → xin cảm nhận', 'Em mừng quá ạ. Em xin phép ghi lại cảm nhận của [Tên] nhé. Nếu tiện, mình nhắn em 1–2 câu hoặc chụp 1 tấm ảnh sản phẩm ở nhà qua Zalo ạ. Em không để tên đầy đủ và số điện thoại của mình đâu ạ.', 'Ghi nguyên câu khách khen vào ô <b>Khách nói gì</b>. Ảnh, tin khách gửi thì chuyển cho quản lý.'],
+      ['3. Khách hài lòng → mời giới thiệu', '', 'Bấm <button type="button" class="link" data-refcode="[SĐT]">🌱 Mời giới thiệu bạn bè</button>: có sẵn tin nhắn và kịch bản gọi.'],
+      ['4. Ghi kết quả', '', 'Bấm <b>👍 Dùng ok</b>.']
+    ], c: [
+      ['“Chưa thấy gì”', 'Dạ mình dùng mỗi ngày mấy lần ạ? Thực phẩm dinh dưỡng cần dùng đều một thời gian, em hỏi thăm [Tên] thêm nhé.', 'Hỏi kỹ cách dùng, hướng dẫn lại. Bấm <b>📅 2 tuần</b>.'],
+      ['“Không muốn chụp ảnh, ngại”', 'Dạ không sao ạ, [Tên] chia sẻ bằng lời là em quý lắm rồi ạ.', 'Chỉ ghi lời khách nói. Không nài.'],
+      ['Khách góp ý chưa hài lòng', 'Dạ em cảm ơn [Tên] đã nói thật ạ. Em ghi lại để bên em làm tốt hơn.', 'Ghi đủ lời góp ý. Góp ý về chất lượng hàng thì <b>báo quản lý</b>.']
+    ] },
+    d30: { t: 'giới thiệu sản phẩm phù hợp', s: [
+      ['1. Hỏi thăm', 'Dạ em chào anh/chị [Tên], mình dùng [Sản phẩm] được khoảng 1 tháng rồi, cả nhà dùng đều không ạ?', ''],
+      ['2. Hỏi nhu cầu của cả nhà', 'Ngoài mình ra, nhà mình có ai như bố mẹ lớn tuổi, người ăn chay, hay người bận rộn hay bỏ bữa không ạ?', 'Nghe khách nói ai cần gì rồi mới gợi ý.'],
+      ['3. Chỉ gợi 1 sản phẩm hợp nhất', 'Với [người khách vừa kể], bên em có [Gợi ý] nhiều nhà đang dùng, em gửi [Tên] xem thử nhé ạ.', 'Gợi ý theo nhu cầu: <b>bữa phụ nhanh, ăn kém</b> → Bữa Ăn Dinh Dưỡng VitaGreen · <b>tiêu hoá kém, mới ốm dậy</b> → Dinh Dưỡng Từ Hạt và Curcumin · <b>ăn chay, bữa cơm nhanh</b> → Ruốc Rong Biển, Xì Dầu 2S · <b>thích trà thảo mộc, ngại đun nấu</b> → Trà DILVANG · <b>người lớn tuổi cần bồi bổ</b> → Fucoidan Progomax.'],
+      ['4. Chốt nhẹ nhàng', '', 'Khách muốn thử: bấm <b>🛒 Đặt lại</b>. Khách chưa cần: bấm <b>👍 Dùng ok</b>, không nài.']
+    ], c: [
+      ['“Chưa cần thêm”', 'Dạ vâng ạ. Khi nào cần [Tên] cứ nhắn em nhé.', 'Bấm <b>👍 Dùng ok</b>.'],
+      ['“Để chị xem đã”', 'Dạ em gửi [Tên] link sản phẩm qua Zalo để mình xem lúc rảnh nhé ạ.', 'Gửi link, bấm <b>📅 3 ngày</b>.'],
+      ['Khách hài lòng, hay khen', '', 'Mời khách giới thiệu bạn bè: bấm <button type="button" class="link" data-refcode="[SĐT]">🌱 Mời giới thiệu bạn bè</button>.']
+    ] },
+    winback: { t: 'mời khách quay lại', s: [
+      ['1. Hỏi thăm trước, chưa bán', 'Dạ em chào anh/chị [Tên], lâu rồi em chưa hỏi thăm mình. Dạo này [Tên] và gia đình khoẻ không ạ?', 'Nói chuyện vui vẻ 1–2 câu trước.'],
+      ['2. Hỏi vì sao tạm ngưng', 'Trước mình hay dùng [Sản phẩm], sau đó mình tạm nghỉ là do bận chưa kịp đặt, hay có điều gì chưa ưng ạ? [Tên] góp ý thật giúp em nhé.', 'Đây là thông tin quý nhất. Ghi lý do vào ô <b>Khách nói gì</b>.'],
+      ['3. Trả lời theo lý do', '', 'Xem phần <b>Khách nói gì thì làm gì</b> ngay dưới.'],
+      ['4. Mời quay lại', 'Nếu [Tên] muốn dùng lại, em gửi link đặt lại có sẵn giỏ hàng như lần trước, mình chỉ cần bấm đặt là xong ạ.', 'Bấm <b>🔗 Link đặt lại</b> hoặc <b>🛒 Đặt lại</b>.']
+    ], c: [
+      ['“Bận quá, quên mất”', 'Dạ em hiểu ạ. Em gửi link đặt lại, [Tên] bấm 1 lần là xong nhé.', 'Gửi <b>🔗 Link đặt lại</b>. Hẹn <b>📅 3 ngày</b> hỏi lại.'],
+      ['“Dùng không thấy hiệu quả”', 'Dạ lúc trước mình dùng mỗi ngày mấy lần, trong bao lâu ạ? Em xem có sản phẩm khác hợp với mình hơn không nhé.', 'Ghi cách khách đã dùng. Gợi sản phẩm hợp nhu cầu hơn, không hứa hiệu quả.'],
+      ['“Chị mua chỗ khác rồi”', 'Dạ vâng ạ. Có gì cần hỏi cách ăn uống, cách dùng [Tên] cứ nhắn em nhé.', 'Không chê nơi khác. Bấm <b>👍 Dùng ok</b>.'],
+      ['“Chưa có tiền”', 'Dạ không sao ạ, em hẹn tháng sau em nhắn [Tên] nhé.', 'Bấm <b>💸 Hết tiền</b>.'],
+      ['“Không dùng nữa”', 'Dạ em cảm ơn [Tên] đã ủng hộ bên em thời gian qua ạ.', 'Ghi lý do, bấm <b>🚫 Không dùng nữa</b>.']
+    ] },
+    callback: { t: 'gọi lại theo hẹn', s: [
+      ['1. Đọc lại lần trước', '', 'Xem <b>💬 Chăm sóc gần đây</b> ở trên: lần trước khách nói gì, hẹn chuyện gì.'],
+      ['2. Mở đầu nhắc đúng chuyện cũ', 'Dạ em chào anh/chị [Tên], hôm trước mình hẹn em gọi lại hôm nay về chuyện …, giờ [Tên] tiện nói chuyện không ạ?', 'Điền vào “…” đúng việc khách đã hẹn.'],
+      ['3. Làm tiếp việc còn dở', '', 'Hẹn chốt đơn → <b>🛒 Đặt lại</b>. Hẹn hỏi thăm → hỏi như mốc hỏi thăm 1 tuần.']
+    ], c: [
+      ['Lần trước khách không nghe máy', 'Dạ em gọi mấy lần chưa gặp được [Tên] nên em nhắn ạ. Mình dùng [Sản phẩm] thấy thế nào, có cần em hỗ trợ gì không ạ?', 'Không nghe máy từ 3 lần: <b>nhắn Zalo</b> thay vì gọi tiếp. Bấm <b>📵 Không nghe máy</b>.']
+    ] }
+  };
+  CARE_SCRIPT.old = CARE_SCRIPT.winback;
+  /** Khung 💬 Kịch bản gọi trong hộp chăm sóc. Mở / đóng lần trước thì lần sau giữ nguyên (nhân sự mới mở sẵn). */
+  function careScript(c, type) {
+    var k = CARE_SCRIPT[type]; if (!k) return '';
+    var nv = (S.user && S.user.name || '').trim().split(/\s+/).pop() || '…', sg = suggestFor(c), uses = k.use ? useLines(c) : [];
+    var f = function (t) { return fillTpl(String(t).replace(/\[NV\]/g, nv).replace(/\[Gợi ý\]/g, sg || 'sản phẩm phù hợp'), c).replace(/\[SĐT\]/g, c.phone); };
+    var say = function (t) { return t ? '<p class="rs-say">“' + esc(f(t)) + '”</p>' : ''; };
+    var row = function (x) { return '<div class="cs-case"><p class="cs-q">🗣 ' + esc(f(x[0])) + '</p>' + say(x[1]) + (x[2] ? '<p class="rs-tip">👉 ' + f(x[2]) + '</p>' : '') + '</div>'; };
+    return '<details class="rf-script k-scr"' + (store('care_scr') === '0' ? '' : ' open') + '><summary>💬 Kịch bản gọi: ' + esc(k.t) + ' <small>(bấm để ' + (store('care_scr') === '0' ? 'mở' : 'đóng') + ')</small></summary>' +
+      (k.use ? '<div class="cs-use"><b>📋 Cách dùng</b>' + (uses.length ? uses.map(function (u) { return '<p><b>' + esc(u.n) + ':</b> ' + esc(u.u) + '</p>'; }).join('') : '<p class="muted">Chưa nhận ra sản phẩm. Xem cách dùng in trên hộp hoặc trang sản phẩm trên thucduonglanh.vn.</p>') + '</div>' : '') +
+      k.s.map(function (x) { return '<div class="rs-step"><b>' + x[0] + '</b>' + say(x[1]) + (x[2] ? '<p class="rs-tip">👉 ' + f(x[2]) + '</p>' : '') + '</div>'; }).join('') +
+      '<div class="rs-step"><b>Khách nói gì thì làm gì</b>' + k.c.concat(CS_COMMON).map(row).join('') + '</div>' +
+      '<div class="cs-alert"><b>🚨 Báo quản lý ngay khi</b><ul>' + CS_ALERT.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul><p>Nói với khách: “Dạ em ghi lại đầy đủ và báo quản lý gọi lại cho ' + esc(f('[Tên]')) + ' trong hôm nay ạ.” Ghi vào ô <b>Khách nói gì</b>, bấm <b>📅 Mai</b>.</p></div>' +
+      '<p class="rs-note">⚠️ Không nói sản phẩm chữa / điều trị / khỏi bệnh. Sản phẩm là thực phẩm, không phải là thuốc. Đổi “anh/chị” cho đúng khách.</p></details>';
+  }
+
   /* ---------- hộp chăm sóc: tin mẫu → Zalo → kết quả */
   function templateFor(type) {
     var key = TASKS[type === 'old' ? 'winback' : type] && TASKS[type === 'old' ? 'winback' : type].tpl, tp = S.d.templates; // khách cũ lâu chưa gọi → dùng mẫu "Mời quay lại"
@@ -1873,7 +1993,10 @@
   }
   function fillTpl(text, c) {
     var name = (c.name || '').replace(/\(.*?\)/g, ' ').trim().split(/\s+/).pop() || 'anh/chị';
-    return String(text).replace(/\[Tên\]/gi, name).replace(/\[Sản phẩm\]/gi, shortProducts(c.products, 2) || 'sản phẩm');
+    var use = function () { return useLines(c).map(function (u) { return u.n + ': ' + u.u; }).join('\n'); };
+    text = String(text).replace(/\[Cách dùng\]/gi, function () { return use() || 'em gửi mình ngay ạ'; });
+    if (/cách dùng[^:\n]{0,60}:\s*…/i.test(text) && use()) text = text.replace(/(cách dùng[^:\n]{0,60}:)\s*…[ \t]*/i, function (x, h) { return h + '\n' + use() + '\n'; }); // mẫu "Hỏi nhận hàng": điền sẵn cách dùng thay cho "…"
+    return text.replace(/\[Tên\]/gi, name).replace(/\[Sản phẩm\]/gi, shortProducts(c.products, 2) || 'sản phẩm');
   }
   function openCare(phone, type, opt) {
     var c = cust(phone); if (!c) return; opt = opt || {};
@@ -1892,7 +2015,7 @@
       '<details class="k-msg"' + (c.zalo ? ' open' : '') + '><summary>✏️ Tin nhắn sẽ gửi (sửa được)</summary>' +
       '<label class="f" style="margin-top:8px"><span>Mẫu tin</span><select id="kTpl"><option value="-1">– Tự viết –</option>' + tp.map(function (t, i) { return '<option value="' + i + '"' + (i === ti ? ' selected' : '') + '>' + esc(t[0] + (t[1] ? ' – ' + t[1] : '')) + '</option>'; }).join('') + '</select></label>' +
       '<label class="f"><span>Nội dung (nhớ điền phần “…” nếu có)</span><textarea id="kMsg" rows="5">' + esc(ti >= 0 ? fillTpl(tp[ti][2], c) : '') + '</textarea></label>' +
-      '<button type="button" class="link small" id="kCopy">Chỉ copy tin (không mở Zalo)</button>' + (S.d.rules && S.d.rules.ai ? ' · <button type="button" class="link small" data-ai="msg" data-aiph="' + c.phone + '" data-aitask="' + esc(type || 'other') + '">✨ Nhờ AI viết tin</button>' : '') + '</details></div>' +
+      '<button type="button" class="link small" id="kCopy">Chỉ copy tin (không mở Zalo)</button>' + (S.d.rules && S.d.rules.ai ? ' · <button type="button" class="link small" data-ai="msg" data-aiph="' + c.phone + '" data-aitask="' + esc(type || 'other') + '">✨ Nhờ AI viết tin</button>' : '') + '</details>' + careScript(c, type) + '</div>' +
       commBox(c, type, true) + giftBox(giftPerson(c.phone), type, true) + // thu gọn: để Bước 2 không bị đẩy xuống xa
       '<div class="box"><h3>Bước 2 · Khách thế nào? Bấm 1 nút là xong</h3>' +
       '<label class="f"><span>Khách nói gì (không bắt buộc, gõ trước rồi bấm nút)</span><textarea id="kNote" rows="2" placeholder="vd: chị bảo ngủ ngon hơn, còn nửa hộp…"></textarea></label>' +
@@ -1911,6 +2034,7 @@
     var drawSum = function (more) { var b = $('#kSum', m); if (!b) return; b.innerHTML = careSum(c, all, more); var x = $('[data-kmore]', b); if (x) x.onclick = function () { drawSum(true); }; };
     drawSum(false);
     api('cust_orders', { phone: c.phone }).then(function (j) { all = j.orders || null; if (c.noteCut && j.note !== undefined) { c.note = j.note; c.noteCut = false; } drawSum(false); }, function () {}); // tải đủ đơn cũ (danh sách tải sẵn chỉ có đơn gần đây)
+    var ks = $('.k-scr', m); if (ks) ks.addEventListener('toggle', function () { store('care_scr', ks.open ? '1' : '0'); var sm = $('summary small', ks); if (sm) sm.textContent = '(bấm để ' + (ks.open ? 'đóng' : 'mở') + ')'; });
     var msg = $('#kMsg', m);
     $('#kTpl', m).onchange = function () { var i = +this.value; msg.value = i >= 0 ? fillTpl(tp[i][2], c) : ''; };
     $('#kCopy', m).onclick = function () { copy(msg.value).then(function () { toast('Đã copy tin nhắn'); }); };

@@ -47,6 +47,7 @@ Tab **Hôm nay** là danh sách khách bạn cần gọi hôm nay. Máy đã ch�
 2. Bấm nút xanh **▶ Bắt đầu gọi lần lượt**. CRM mở từng khách một.
 3. Đọc nhanh thông tin khách: khách mua gì, lần trước nói gì.
 4. Bấm **📞 Gọi**. Hoặc bấm **💬 Nhắn Zalo**: CRM chép sẵn tin nhắn và mở Zalo, bạn chỉ cần dán rồi gửi.
+   Chưa biết nói gì? Đọc mục **💬 Kịch bản gọi** ngay bên dưới: có câu nói mẫu, cách dùng sản phẩm, khách nói gì thì làm gì. Xem trang [Kịch bản gọi](/huong-dan/kich-ban/).
 5. Khách nói gì thì gõ vài chữ vào ô **Khách nói gì**. Ví dụ: *"chị bảo ngủ ngon hơn"*. Không có gì thì bỏ qua.
 6. Bấm **1 nút kết quả** (xem bảng dưới). CRM tự lưu và tự mở khách tiếp theo.
 7. Làm đến khi hết danh sách.
