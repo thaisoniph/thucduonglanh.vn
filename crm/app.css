@@ -1362,3 +1362,4 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .cs-alert > b { color: var(--red); }
 .cs-alert ul { margin: 4px 0; padding-left: 18px; }
 .cs-alert p { margin: 4px 0 0; }
+.pt-warn{color:#b3261e;background:#fdecea;border-radius:8px;padding:6px 8px;margin:6px 0}

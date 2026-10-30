@@ -1042,7 +1042,7 @@
     // gửi tên tiếng Việt (name_vi) để CRM nhận đúng sản phẩm / chu kỳ dùng dù khách đặt ở bản ngôn ngữ khác
     var clean = items.map(function (i) { var b = BY[i.slug] || {}; return { slug: i.slug, name: i.name_vi || i.name, variant: i.variant_vi || i.variant, qty: i.qty, price: i.price, subtotal: i.subtotal, days: b.days || undefined }; });
     var src = sourceLabel();
-    var order = { type: 'order', id: id, created: d.toISOString(), customer: data.customer, payment: data.payment, items: clean, subtotal: sub, shipping: t.fee, total: t.total, voucher: t.on ? VC.code : '', discount: t.off, page: location.href, marketing_consent: !!data.marketing, source: src.last, first_source: src.first, ref: refCode() };
+    var order = { type: 'order', id: id, created: d.toISOString(), customer: data.customer, payment: data.payment, items: clean, subtotal: sub, shipping: t.fee, total: t.total, voucher: t.on ? VC.code : '', discount: t.off, page: location.href, marketing_consent: !!data.marketing, source: src.last, first_source: src.first, ref: refCode(), ref_at: refCode() ? (load('tdl_ref', null) || {}).t || 0 : 0 }; // ref_at: lúc khách bấm link (CTV không được tính khách đã là khách hỏi của sale trước lúc này)
     var label = btn.innerHTML; btn.disabled = true; btn.textContent = T('Đang gửi đơn hàng…');
     send(order).then(function (r) { order.sent = r.sent; if (r.total) order.total = r.total; if (LANG !== 'vi') order.view = items.map(function (i) { return { name: i.name, variant: i.variant }; }); save('tdl_last_order', order); if (order.voucher) vcClear(); if (onSent) onSent(); location.href = U('/dat-hang-thanh-cong/') + '?id=' + id; })
       .catch(function (e) {

@@ -104,6 +104,11 @@ Vào **Cài đặt → 🤝 Cộng tác viên & khách giới thiệu → Quản
 3. Duyệt xong, ở thẻ CTV mới bấm **📋 Tin gửi CTV** rồi dán vào Zalo gửi họ (tin đã có link giới thiệu và link xem hoa hồng).
 Mức cho người tự đăng ký sửa ở **⚙️ Cài đặt chung**, dòng 📝. Đổi thì sửa luôn chữ trên web: **/admin → Cài đặt chung → Đăng ký cộng tác viên**. CTV tự mua bằng chính số của mình thì máy không tính hoa hồng.
 
+**🛡 Chống sale lách qua CTV (từ 30/10/2026):**
+- Khách đã là **khách hỏi của sale** (có trong CRM trong 90 ngày, trước lúc bấm link CTV) mà đặt qua link / mã CTV: **không tính** hoa hồng CTV, khách vẫn thuộc sale. Đơn ghi "⚠️ … không tính hoa hồng CTV".
+- Thẻ CTV hiện ô đỏ ⚠️ khi: có khách đã được nhân sự gọi / ghi chăm sóc **trước** khi khách thuộc CTV; có lần đặt bị chặn như trên; CTV trùng SĐT, email, họ tên hoặc tài khoản ngân hàng mang tên nhân sự. Thấy ⚠️ thì xem kỹ trước khi bấm ✅ Đã chuyển tiền.
+- Để CRM nhận ra nhân sự: Quản trị điền **SĐT cá nhân** và **Họ tên đầy đủ** của từng người ở **Cài đặt → Nhân sự** rồi bấm Lưu.
+
 **Cách tính tiền cho CTV:**
 
 - Khách **mới** đặt qua link hoặc mã của CTV thì khách thuộc CTV.

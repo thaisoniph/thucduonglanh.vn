@@ -24,6 +24,7 @@ const DEF_TIERS = [[3, '1 hộp Trà DILVANG'], [5, 'Combo 3 hũ Ruốc Rong Bi�
 const DEF_STEPS = [[300000, 20000], [700000, 50000]];
 const DEF = { rate: 10, months: 6, refPct: 10, rwPct: 10, rwAmt: 50000, rwSteps: DEF_STEPS, saleSteps: DEF_STEPS, winDays: 60, vcMin: 300000, auto: 1, tiers: DEF_TIERS, tierN: 3, tierGift: '1 hộp Trà DILVANG', ctvN: 5, bonus: 50000, goalN: 20, goalGift: 'Liên hoan cả nhóm', appRate: 10, appVpct: 10 };
 // 30/10/2026: người ngoài tự đăng ký CTV ở thucduonglanh.vn/cong-tac-vien/ → quản lý duyệt. Khi duyệt: hoa hồng appRate %, khách mới của CTV giảm appVpct % đơn đầu.
+const LEAD_DAYS = 90; // khách hỏi của sale trong 90 ngày → không tính cho CTV
 const CTV_T = 1000; // ref_tiers.tier của mốc mời làm CTV = 1000 + ctvN (để không trùng mốc quà cùng số người)
 /** Bậc quà đã sắp xếp: [{n, gift}] */
 export function stepsOf(a) { return (Array.isArray(a) ? a : []).map(t => [Math.round(Number(t[0]) || 0), Math.round(Number(t[1]) || 0)]).filter(t => t[1] > 0).sort((x, y) => x[0] - y[0]); }
@@ -77,7 +78,7 @@ export async function partnerFill(x) {
 }
 
 /** Gọi trong saveOrder sau khi lưu đơn (đơn web): ghi khách giới thiệu / CTV. isNew = khách chưa có đơn nào trước đơn này. Trả thông tin để báo Telegram + ghi chú. */
-export async function orderAttrib(x, { id, phone, ref, voucher, isNew }) {
+export async function orderAttrib(x, { id, phone, ref, refAt, voucher, isNew }) {
   const out = {}; let v = null, pc = '';
   if (voucher) v = await first(x.db, 'SELECT ref_phone, partner FROM vouchers WHERE code = ?', String(voucher));
   if (v && v.ref_phone) {
@@ -88,6 +89,15 @@ export async function orderAttrib(x, { id, phone, ref, voucher, isNew }) {
   if (ref) { const p = await first(x.db, 'SELECT code FROM partners WHERE code = ? AND active = 1', refCode(ref)); if (p) pc = p.code; }
   if (!pc && v && v.partner) pc = v.partner;
   if (pc && await first(x.db, 'SELECT code FROM partners WHERE code = ? AND phone = ?', pc, phone)) pc = ''; // CTV tự mua bằng số của mình: không tính hoa hồng
+  if (pc && isNew) { // 30/10/2026 chống sale lách: khách đã là khách hỏi có sale phụ trách (trong LEAD_DAYS ngày, trước lúc bấm link CTV) thì thuộc sale, không tính CTV
+    const now = Date.now(), at0 = Number(refAt) > now - 31 * DAY && Number(refAt) <= now ? Number(refAt) : now - DAY; // không có lúc bấm link (khách gõ mã) → chỉ tính khách hỏi có từ 1 ngày trước
+    const ld = await first(x.db, "SELECT owner, time FROM leads WHERE phone = ? AND coalesce(owner, '') != '' AND time >= ? AND time < ? ORDER BY time LIMIT 1", phone, now - LEAD_DAYS * DAY, at0);
+    if (ld) {
+      out.ctvSkip = '⚠️ Đặt qua link / mã CTV ' + pc + ' nhưng đã là khách hỏi của ' + ld.owner + ' từ ' + new Date(Number(ld.time) + 7 * 3600e3).toISOString().slice(0, 10).split('-').reverse().join('/') + ' → không tính hoa hồng CTV';
+      await run(x.db, 'INSERT INTO logs (time, by_name, what, ref, name, result, note) VALUES (?, ?, ?, ?, ?, ?, ?)', now, 'Tự động', 'CTV không tính', phone, pc, 'Khách hỏi của ' + ld.owner, String(id || ''));
+      pc = '';
+    }
+  }
   if (pc && isNew) await run(x.db, "UPDATE customers SET partner = ?, partner_at = ? WHERE phone = ? AND coalesce(partner, '') = ''", pc, Date.now(), phone);
   const c = await first(x.db, 'SELECT partner FROM customers WHERE phone = ?', phone);
   if (c && c.partner) { await partnerFill(x); const p = await first(x.db, 'SELECT name FROM partners WHERE code = ?', c.partner); const o = await first(x.db, 'SELECT partner FROM orders WHERE id = ? AND phone = ?', String(id), phone); if (o && o.partner) out.partner = p ? p.name : c.partner; }
@@ -297,12 +307,32 @@ async function pList(x) {
   });
   pays.forEach(p => { const s = st[p.code]; if (s) s.paid += p.amount; });
   const refs = await first(x.db, "SELECT (SELECT count(*) FROM vouchers WHERE coalesce(ref_phone, '') != '') AS codes, (SELECT count(*) FROM orders WHERE coalesce(ref_phone, '') != '' AND status NOT LIKE '%uỷ%' AND status NOT LIKE '%ủy%' AND status NOT LIKE '%oàn%') AS orders, (SELECT count(*) FROM orders WHERE coalesce(ref_gift, '') != '') AS gifts");
+  // ⚠️ dấu hiệu nghi vấn (30/10/2026): khách của CTV mà nhân sự đã ghi chăm sóc trước khi khách thuộc CTV; lần đặt qua CTV bị chặn vì là khách hỏi của sale; CTV trùng tên / email / tài khoản nhân sự
+  const pre = await all(x.db, "SELECT c.partner AS code, count(*) AS n FROM customers c WHERE coalesce(c.partner, '') != '' AND EXISTS (SELECT 1 FROM logs l WHERE l.ref = c.phone AND l.time < c.partner_at AND l.by_name NOT IN ('', 'Website', 'Tự động')) GROUP BY c.partner");
+  const skip = await all(x.db, "SELECT name AS code, count(*) AS n FROM logs WHERE what = 'CTV không tính' GROUP BY name");
+  const staff = await all(x.db, "SELECT email, name, coalesce(phone, '') AS phone, coalesce(full, '') AS full FROM users"), flag = {};
+  const add = (code, t) => { (flag[code] = flag[code] || []).push(t); };
+  pre.forEach(r => add(r.code, r.n + ' khách đã được nhân sự chăm trước khi đặt qua CTV'));
+  skip.forEach(r => add(r.code, r.n + ' lần đặt qua link / mã CTV bị chặn vì là khách hỏi của sale'));
+  ps.forEach(p => { const w = staffHit(staff, p); if (w) add(p.code, w); });
   const apps = await all(x.db, "SELECT * FROM partner_apps WHERE st = 'new' OR done_at > ? ORDER BY st = 'new' DESC, id DESC LIMIT 60", Date.now() - 30 * DAY);
   return {
-    ok: true, cfg: await partnerCfg(x), refs, apps: apps.map(a => ({ id: a.id, at: a.at, name: a.name, phone: a.phone, email: a.email, area: a.area, channel: a.channel, bank: a.bank, note: a.note, src: a.src, st: a.st, code: a.code, doneAt: a.done_at, doneBy: a.done_by, reason: a.reason })),
-    list: ps.map(p => { const s = st[p.code] || { cust: {}, n: 0, sales: 0, ready: 0, readyN: 0, wait: 0, waitN: 0, paid: 0 }; return { code: p.code, name: p.name, phone: p.phone, email: p.email, kind: p.kind, rate: p.rate, bank: p.bank, idno: p.idno, note: p.note, vcode: p.vcode, vpct: p.vpct || '', viewKey: p.view_key || '', active: !!p.active, created: p.created, by: p.by_name, cust: Object.keys(s.cust).length, n: s.n, sales: s.sales, ready: s.ready, readyN: s.readyN, wait: s.wait, waitN: s.waitN, paid: s.paid }; }),
+    ok: true, cfg: await partnerCfg(x), refs, apps: apps.map(a => ({ warn: staffHit(staff, a), id: a.id, at: a.at, name: a.name, phone: a.phone, email: a.email, area: a.area, channel: a.channel, bank: a.bank, note: a.note, src: a.src, st: a.st, code: a.code, doneAt: a.done_at, doneBy: a.done_by, reason: a.reason })),
+    list: ps.map(p => { const s = st[p.code] || { cust: {}, n: 0, sales: 0, ready: 0, readyN: 0, wait: 0, waitN: 0, paid: 0 }; return { code: p.code, name: p.name, phone: p.phone, email: p.email, kind: p.kind, rate: p.rate, bank: p.bank, idno: p.idno, note: p.note, vcode: p.vcode, vpct: p.vpct || '', viewKey: p.view_key || '', warn: flag[p.code] || [], active: !!p.active, created: p.created, by: p.by_name, cust: Object.keys(s.cust).length, n: s.n, sales: s.sales, ready: s.ready, readyN: s.readyN, wait: s.wait, waitN: s.waitN, paid: s.paid }; }),
     pays: pays.map(p => ({ id: p.id, code: p.code, at: p.at, amount: p.amount, tax: p.tax, net: p.net, n: p.n, note: p.note, by: p.by_name }))
   };
+}
+/** CTV / người đăng ký trùng nhân sự: cùng email, cùng họ tên, hoặc tài khoản ngân hàng mang tên nhân sự (họ tên đầy đủ, không dấu). Trả câu cảnh báo hoặc ''. */
+function staffHit(staff, p) {
+  const em = String(p.email || '').trim().toLowerCase(), nm = nrm(p.name), bk = ' ' + nrm(p.bank).replace(/[^a-z0-9]+/g, ' ') + ' ', ph = normPhone(p.phone || '');
+  for (const s of staff) {
+    if (ph && ph === normPhone(s.phone || '')) return '⚠️ Trùng số điện thoại nhân sự ' + s.name;
+    if (em && em === String(s.email || '').toLowerCase()) return '⚠️ Trùng email nhân sự ' + s.name;
+    const sn = nrm(s.full || s.name); if (!sn) continue;
+    if (sn.includes(' ') && nm === sn) return '⚠️ Trùng họ tên nhân sự ' + s.name;
+    if (sn.includes(' ') && bk.includes(' ' + sn.replace(/[^a-z0-9]+/g, ' ') + ' ')) return '⚠️ Tài khoản nhận tiền mang tên nhân sự ' + s.name;
+  }
+  return '';
 }
 async function pSave(x, u, d, log, staffNames) {
   const code = refCode(d.code || d.name), name = String(d.name || '').trim().slice(0, 80);
@@ -377,9 +407,9 @@ export async function ctvApply(x, d) {
   if (await first(x.db, "SELECT id FROM partner_apps WHERE phone = ? AND st = 'new'", phone)) return { ok: true, already: 'wait', msg: 'Chúng tôi đã nhận đăng ký của số này và đang xem. Nhân viên sẽ liên hệ qua Zalo trong 1–2 ngày làm việc.' };
   const row = { name, phone, email: t(d.email, 120), area: t(d.area, 80), channel: t(Array.isArray(d.channel) ? d.channel.join(', ') : d.channel, 200), bank: t(d.bank, 200), note: t(d.note, 500), src: t(d.source, 200) };
   await run(x.db, 'INSERT INTO partner_apps (at, name, phone, email, area, channel, bank, note, src) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', Date.now(), row.name, row.phone, row.email, row.area, row.channel, row.bank, row.note, row.src);
-  const c = await first(x.db, 'SELECT orders, owner FROM customers WHERE phone = ?', phone);
+  const c = await first(x.db, 'SELECT orders, owner FROM customers WHERE phone = ?', phone), sw = staffHit(await all(x.db, "SELECT email, name, coalesce(phone, '') AS phone, coalesce(full, '') AS full FROM users"), row);
   x.later(telegram(x.env, '🤝 <b>ĐĂNG KÝ CỘNG TÁC VIÊN</b>\n👤 ' + esc(name) + ' – <b>' + esc(phone) + '</b>' + (row.area ? ' · ' + esc(row.area) : '') + (row.channel ? '\n📣 Sẽ giới thiệu qua: ' + esc(row.channel) : '') + (row.note ? '\n💬 ' + esc(row.note) : '') +
-    (c ? '\n🛒 Đã là khách: ' + (c.orders || 0) + ' đơn' + (c.owner ? ' · sale ' + esc(c.owner) : '') : '') + '\n👉 Gọi / Zalo làm quen rồi Duyệt ở CRM → Cài đặt → 🤝 Quản lý cộng tác viên'));
+    (c ? '\n🛒 Đã là khách: ' + (c.orders || 0) + ' đơn' + (c.owner ? ' · sale ' + esc(c.owner) : '') : '') + (sw ? '\n' + esc(sw) + ' (nhân sự và người nhà không làm CTV)' : '') + '\n👉 Gọi / Zalo làm quen rồi Duyệt ở CRM → Cài đặt → 🤝 Quản lý cộng tác viên'));
   return { ok: true };
 }
 async function appOk(x, u, d, log, staffNames) {
