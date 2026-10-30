@@ -71,14 +71,20 @@ Mỗi bạn có **một link web riêng**, ví dụ `thucduonglanh.vn/?ref=thuy`
 
 Khách đã mua thì ai cũng có **link giới thiệu riêng**. Bạn bè của khách **mua lần đầu** trên web được **giảm 10%**. Quà cho khách (từ 30/10/2026, cộng dồn):
 
-| Số bạn đã mua | Khách được |
-|---|---|
-| Mỗi 1 bạn | Voucher **50.000đ** cho lần mua sau |
-| Đủ 3 bạn | Tặng thêm **1 hộp Trà DILVANG** |
-| Đủ 5 bạn | Tặng thêm **Combo 3 hũ Ruốc Rong Biển** + mời làm CTV |
-| Đủ 10 bạn | Tặng thêm **1 hộp Bữa Ăn Dinh Dưỡng 500g** + danh hiệu **Đại sứ Vàng** |
+Mỗi người bạn được tính **cộng dồn tiền hàng trong 60 ngày** kể từ đơn đầu (bạn mua ít lần đầu, mua thêm sau vẫn được tính):
 
-Nói với khách cho dễ nhớ: *"Mỗi bạn chị giới thiệu mua, chị có 50 nghìn. Đủ 3 bạn bên em tặng thêm hộp trà, đủ 10 bạn tặng hộp Bữa ăn dinh dưỡng."* Khách xem mình đã được mấy bạn, còn mấy bạn nữa tới quà ở trang **thucduonglanh.vn/gioi-thieu-ban-be/** (thanh 🌱 tô dần).
+| Người bạn đã mua (cộng dồn 60 ngày) | Khách cũ được |
+|---|---|
+| Đủ 300.000đ | Voucher **20.000đ** |
+| Đủ 700.000đ | Thêm voucher **30.000đ** (tổng 50.000đ) |
+
+| Số bạn đã mua đủ 300.000đ | Tặng thêm |
+|---|---|
+| Đủ 3 bạn | **1 hộp Trà DILVANG** |
+| Đủ 5 bạn | **Combo 3 hũ Ruốc Rong Biển** + mời làm CTV |
+| Đủ 10 bạn | **1 hộp Bữa Ăn Dinh Dưỡng 500g** + danh hiệu **Đại sứ Vàng** |
+
+Voucher dùng cho đơn từ 300.000đ, hạn 90 ngày. Nói với khách cho dễ nhớ: *"Bạn chị mua đủ 300 nghìn là chị có voucher 20 nghìn, đủ 700 nghìn là 50 nghìn. Đủ 3 bạn bên em tặng thêm hộp trà."* Khách xem mình đã được mấy bạn, còn mấy bạn nữa tới quà ở trang **thucduonglanh.vn/gioi-thieu-ban-be/** (thanh 🌱 tô dần).
 
 **Khách tự lấy link** ở trang **thucduonglanh.vn/gioi-thieu-ban-be/** (nhập số điện thoại đã mua), hoặc ngay trên trang cảm ơn sau khi đặt hàng. Trong gói hàng có **thẻ QR**. Khách quét thẻ là vào trang đó.
 
@@ -89,7 +95,8 @@ Nói với khách cho dễ nhớ: *"Mỗi bạn chị giới thiệu mua, chị 
 ### 💰 Quyền lợi của bạn (sale): thưởng 50.000đ / khách mới
 
 - Người được giới thiệu là **số mới, chưa có trong CRM** (chưa từng mua, chưa từng hỏi) → khách đó **thuộc về bạn**, nếu bạn đang phụ trách người giới thiệu. Ai nhập khách cũng vậy, kể cả khi người bạn tự đặt trên web.
-- Đơn đầu của khách mới **giao xong 7 ngày** → bạn được **thưởng 50.000đ**. 8h sáng hôm đó Telegram báo 🎉. Các đơn mua lại về sau của khách cũng tính doanh số cho bạn.
+- Thưởng tính **cộng dồn tiền hàng khách mới mua trong 60 ngày đầu** (đơn đã giao xong 7 ngày): đủ **300.000đ → 20.000đ**, đủ **700.000đ → thêm 30.000đ** (tổng 50.000đ). 8h sáng Telegram báo 🎉. Khách mua ít lần đầu thì chăm sóc để khách mua thêm: danh sách ở tab **Hiệu quả** ghi rõ *"đã mua 140k / 300k, còn 160k nữa là +20.000đ"*. Các đơn mua lại về sau của khách cũng tính doanh số cho bạn.
+- Khách mới mua chưa đủ 300.000đ thì chưa có tiền thưởng, nhưng khách **vẫn thuộc về bạn** và được tính vào **mục tiêu nhóm**.
 - Không được thưởng: số đã có trong CRM, đơn huỷ hoặc hoàn, khách mới **cùng địa chỉ** với người giới thiệu.
 - Xem thưởng của mình: tab **Hôm nay**, dòng 🌱 ở khung đầu trang, hoặc tab **Hiệu quả** → ô **🌱 Khách mới nhờ khách cũ giới thiệu**. Ô này có: số khách mới, tiền thưởng đã chắc, tiền đang chờ, và **🤝 mục tiêu cả nhóm** trong tháng.
 
@@ -97,7 +104,7 @@ Nói với khách cho dễ nhớ: *"Mỗi bạn chị giới thiệu mua, chị 
 1. Tab **Hôm nay** có mục **🌱 Mời làm Đại sứ** (nằm sau Khách hỏi cần liên hệ): mỗi ngày tối đa 5 khách của bạn đã nhận hàng 7–30 ngày. Hỏi "Chị dùng thấy thế nào ạ?". Khách khen thì bấm **🌱 Mời giới thiệu**, rồi bấm **📋 Copy tin & mở Zalo** để gửi khách. Khách chưa hài lòng hoặc chưa tiện thì bấm **Để sau**, khách ẩn 30 ngày. Bấm vào tên khách là mở hồ sơ.
    - Khách đang có trong việc **Chăm sóc khách** hôm nay thì không hiện ở mục này. Thẻ khách đó có nhãn **🌱 Mời giới thiệu**: gọi chăm sóc xong, khách thấy hợp thì bấm nhãn đó luôn. Gọi 1 lần làm được cả 2 việc. Khách khen sản phẩm lúc khác thì mở hồ sơ, bấm **🌱 Mời giới thiệu bạn bè**.
 2. Có bạn đặt hàng thì Telegram báo bạn.
-3. Đơn của bạn ấy **giao xong 7 ngày** thì CRM **tự tạo voucher 50.000đ** (mã `CAMON…`, chỉ số của khách mới dùng được, hạn 90 ngày). Bạn không cần tính tiền.
+3. Bạn ấy mua đủ 300.000đ (cộng dồn, đơn đã giao xong 7 ngày) thì CRM **tự tạo voucher 20.000đ**, đủ 700.000đ tạo thêm voucher 30.000đ (mã `CAMON…`, chỉ số của khách cũ dùng được, đơn từ 300.000đ, hạn 90 ngày). Bạn không cần tính tiền.
 4. Tab **Hôm nay** hiện mục **🎁 Cảm ơn khách giới thiệu**:
    - **📋 Báo khách mã**: copy tin có sẵn mã, gửi qua Zalo. Gửi xong mục đó tự ẩn.
    - **🏅 Gửi quà**: khách đủ mốc 3, 5 hoặc 10 bạn (thẻ ghi rõ quà gì). Hỏi khách gửi quà kèm đơn sau hay gửi riêng. Gửi xong bấm **✅ Đã gửi quà**.

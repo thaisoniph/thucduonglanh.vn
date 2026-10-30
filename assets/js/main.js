@@ -1217,6 +1217,7 @@
   }
   function refUrl(j) { return location.origin + '/?uudai=' + encodeURIComponent(j.code); }
   function refMsg(j) { return 'Mình đang dùng sản phẩm của ' + CFG.brand + ', thấy hợp nên gửi bạn tham khảo 🌿 Bạn đặt lần đầu trên web qua link này được giảm ' + j.pct + '% (mã ' + j.code + ' tự áp dụng): ' + refUrl(j); }
+  function vnd(n) { return String(Math.round(Number(n) || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + 'đ'; }
   function refHTML(j) {
     var lb = function (s) { return esc(String(s || '').replace(' ₫', 'đ')); }, dmy = function (s) { return String(s || '').split('-').reverse().join('/'); };
     var h = '<div class="rf-res"><p class="rf-eye">Link giới thiệu của bạn</p><div class="rf-link"><input type="text" readonly value="' + esc(refUrl(j)) + '" aria-label="Link giới thiệu"><button type="button" class="btn" data-rf-copy="link">Copy link</button></div>' +
@@ -1229,13 +1230,14 @@
       L.forEach(function (t) { mk[t.n] = 1; if (!nx && j.n < t.n) nx = t; });
       for (var i = 1; i <= max; i++) dots += '<i class="' + (i <= n ? 'on' : '') + (mk[i] ? ' mk' : '') + '">' + (mk[i] ? (i <= n ? '🎁' : i) : '') + '</i>';
       h += '<div class="rf-prog"><p class="rf-eye">🌱 Hành trình Đại sứ của bạn</p><div class="rf-dots">' + dots + '</div>' +
-        '<p>Đã có <b>' + j.n + '</b> người bạn mua' + (j.rwAmt ? ' · mỗi người bạn mua, bạn nhận voucher <b>' + lb((j.rwAmt + '').replace(/\B(?=(\d{3})+(?!\d))/g, '.') + 'đ') + '</b>' : '') + '.' + (nx ? ' Còn <b>' + (nx.n - j.n) + '</b> người nữa là nhận <b>' + esc(nx.gift) + '</b>.' : ' 🎉 Bạn đã đạt mọi mốc quà. Cảm ơn bạn!') + '</p><ul class="rf-ladder">' +
+        '<p>Đã có <b>' + j.n + '</b> người bạn mua' + (j.rwSteps && j.rwSteps.length ? ' đủ ' + vnd(j.rwSteps[0][0]) + '. Mỗi người bạn mua đủ ' + vnd(j.rwSteps[0][0]) + ', bạn nhận voucher <b>' + vnd(j.rwSteps[0][1]) + '</b>' + (j.rwSteps[1] ? ', đủ ' + vnd(j.rwSteps[1][0]) + ' thêm <b>' + vnd(j.rwSteps[1][1] - j.rwSteps[0][1]) + '</b>' : '') + ' (cộng dồn ' + (j.winDays || 60) + ' ngày)' : j.rwAmt ? ' · mỗi người bạn mua, bạn nhận voucher <b>' + vnd(j.rwAmt) + '</b>' : '') + '.' + (nx ? ' Còn <b>' + (nx.n - j.n) + '</b> người nữa là nhận <b>' + esc(nx.gift) + '</b>.' : ' 🎉 Bạn đã đạt mọi mốc quà. Cảm ơn bạn!') + '</p><ul class="rf-ladder">' +
         L.map(function (t) { var got = (j.tiers || []).filter(function (x) { return x.tier === t.n; })[0];
           return '<li class="' + (j.n >= t.n ? 'ok' : '') + '"><b>' + t.n + ' bạn</b><span>' + esc(t.gift) + '</span><em>' + (got ? (got.done ? '✅ Đã nhận' : '🎉 Nhân viên sẽ liên hệ gửi quà') : j.n >= t.n ? '🎉 Đã đạt' : 'còn ' + (t.n - j.n) + ' bạn') + '</em></li>'; }).join('') + '</ul></div>';
     }
     if (j.vouchers && j.vouchers.length) h += '<div class="rf-vcs"><p class="rf-eye">🎟 Voucher của bạn</p>' + j.vouchers.map(function (v) { return '<div class="rf-vc"><span><b>' + esc(v.code) + '</b> · ' + lb(v.label) + (v.exp ? ' · hạn ' + dmy(v.exp) : '') + '</span><button type="button" class="btn btn-sm" data-rf-use="' + esc(v.code) + '">Dùng ngay</button></div>'; }).join('') + '<small>Voucher gắn với số điện thoại của bạn: khi đặt hàng nhập đúng số này.</small></div>';
-    var st = { done: '✅ Đã tặng voucher cảm ơn', wait: '⏳ Chờ giao hàng + 7 ngày', void: '✖ Đơn đã huỷ / hoàn', no: '⛔ Không tính (trùng số hoặc địa chỉ)' };
-    h += '<div class="rf-fr"><p class="rf-eye">👥 Bạn bè đã mua qua bạn</p>' + (j.friends && j.friends.length ? '<ul>' + j.friends.map(function (f) { return '<li><b>' + esc(f.who) + '</b><span>' + st[f.st] + '</span></li>'; }).join('') + '</ul>' : '<p class="muted">Chưa có ai. Gửi link cho người đầu tiên nhé!</p>') + '</div></div>';
+    var s1 = j.rwSteps && j.rwSteps.length ? j.rwSteps[0][0] : 0, st = { done: '✅ Đã tặng voucher cảm ơn', wait: '⏳ Chờ giao hàng + 7 ngày', void: '✖ Đơn đã huỷ / hoàn', no: '⛔ Không tính (trùng số hoặc địa chỉ)', end: '⌛ Hết ' + (j.winDays || 60) + ' ngày, chưa đủ ' + vnd(s1) };
+    var fst = function (f) { if (f.st === 'done') return '✅ Đã tặng voucher ' + (f.vc ? vnd(f.vc) : 'cảm ơn') + (j.rwSteps && j.rwSteps[1] && f.goods < j.rwSteps[1][0] && f.end && Date.now() < f.end ? ' · mua đủ ' + vnd(j.rwSteps[1][0]) + ' được thêm' : ''); if (f.st === 'wait' && s1) return f.goods >= s1 ? '📦 Đã mua đủ, chờ giao hàng + 7 ngày' : '🛒 Đã mua ' + vnd(f.goods) + ' / ' + vnd(s1); return st[f.st] || ''; };
+    h += '<div class="rf-fr"><p class="rf-eye">👥 Bạn bè đã mua qua bạn</p>' + (j.friends && j.friends.length ? '<ul>' + j.friends.map(function (f) { return '<li><b>' + esc(f.who) + '</b><span>' + fst(f) + '</span></li>'; }).join('') + '</ul>' : '<p class="muted">Chưa có ai. Gửi link cho người đầu tiên nhé!</p>') + '</div></div>';
     refData = j; return h;
   }
   var refData = null;

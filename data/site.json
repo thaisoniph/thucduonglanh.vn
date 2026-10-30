@@ -51,7 +51,17 @@
   "referral": {
     "enabled": true,
     "friend_pct": 10,
-    "reward_amt": 50000,
+    "reward_steps": [
+      {
+        "min": 300000,
+        "amt": 20000
+      },
+      {
+        "min": 700000,
+        "amt": 50000
+      }
+    ],
+    "win_days": 60,
     "tiers": [
       {
         "n": 3,

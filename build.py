@@ -1838,19 +1838,26 @@ def page_ref():
     """🌱 Đại sứ Sống Lành /gioi-thieu-ban-be/ (28/10/2026): khách đã mua nhập SĐT → link + mã giới thiệu, bạn bè đã mua (tên che), voucher cảm ơn, mốc quà.
     Chữ lấy từ site.json "referral" (/admin); mức thưởng thật do CRM tính (api/src/partner.js refMe / refAuto). main.js initRef. QR trên thẻ bỏ trong gói hàng trỏ về đây."""
     # 30/10/2026: mỗi bạn mua = voucher tròn reward_amt (dễ hình dung hơn % đơn của bạn) + bậc quà tiers [{n, gift}]
-    fp, ra, cn = (int(num(REF.get(k)) or 0) for k in ("friend_pct", "reward_amt", "ctv_n"))
-    rw = f"{ra:,}".replace(",", ".") + "đ" if ra else "cảm ơn"
+    # 30/10/2026 lần 3: voucher CỘNG DỒN theo tổng tiền hàng người bạn mua trong win_days ngày (reward_steps [{min, amt}]: đủ 300k → 20k, đủ 700k → tổng 50k)
+    fp, cn, wd = (int(num(REF.get(k)) or 0) for k in ("friend_pct", "ctv_n", "win_days"))
+    vn = lambda n: f"{int(n):,}".replace(",", ".") + "đ"
+    steps = sorted([(int(num(t.get("min")) or 0), int(num(t.get("amt")) or 0)) for t in (REF.get("reward_steps") or [])])
+    steps = [t for t in steps if t[1] > 0]
+    ra = steps[-1][1] if steps else 0
+    rw = vn(ra) if ra else "cảm ơn"
+    smin = vn(steps[0][0]) if steps else ""
+    step_txt = ", ".join((f"thêm {vn(a - steps[i - 1][1])} khi đủ {vn(m)}" if i else f"{vn(a)} khi bạn mua đủ {vn(m)}") for i, (m, a) in enumerate(steps))
     tiers = sorted([(int(num(t.get("n")) or 0), str(t.get("gift") or "").strip()) for t in (REF.get("tiers") or [])], key=lambda t: t[0])
     tiers = [t for t in tiers if t[0] > 0 and t[1]]
-    tier = ('<div class="rf-tier"><p>🎁 <b>Quà theo số bạn bè đã mua</b> (cộng dồn, mỗi mốc tặng 1 lần):</p><ul class="rf-ladder">' +
-            f'<li><b>Mỗi bạn</b><span>Voucher <b>{rw}</b> cho lần mua sau</span></li>' +
-            "".join(f"<li><b>{n} bạn</b><span>Tặng thêm <b>{esc(g)}</b></span></li>" for n, g in tiers) + "</ul>" +
+    tier = (f'<div class="rf-tier"><p>🎁 <b>Quà cảm ơn bạn</b>, tính theo tổng tiền hàng mỗi người bạn bè mua trong {wd} ngày đầu (cộng dồn). Quà mốc tặng 1 lần.</p><ul class="rf-ladder">' +
+            "".join(f'<li><b>Bạn bè mua đủ {vn(m)}</b><span>Voucher <b>{vn(a - (steps[i - 1][1] if i else 0))}</b>' + (f" nữa (tổng {vn(a)})" if i else "") + '</span></li>' for i, (m, a) in enumerate(steps)) +
+            "".join(f"<li><b>Đủ {n} bạn bè</b><span>Tặng thêm <b>{esc(g)}</b></span></li>" for n, g in tiers) + (f'<li class="rf-note"><span>Mốc quà đếm những bạn bè đã mua đủ {smin}.</span></li>' if tiers and smin else "") + "</ul>" +
             (f'<p>Từ <b>{cn} người</b>: mời bạn làm <b>Cộng tác viên</b>, nhận hoa hồng bằng tiền.</p>' if cn else "") + "</div>") if ra or tiers else ""
     rules = [
         "Dành cho khách đã mua hàng tại " + BRAND + " (đặt trên web, Zalo hay điện thoại đều được). Bạn tra cứu bằng số điện thoại đã dùng khi mua.",
         f"Người được giới thiệu: mua lần đầu (số điện thoại chưa từng đặt hàng), giảm {fp}% tiền hàng đơn đầu tiên khi đặt trên web. Mỗi đơn dùng 1 mã ưu đãi.",
-        f"Voucher cảm ơn: {rw} cho mỗi người bạn mua đơn đầu. Voucher gắn với số điện thoại của bạn, dùng 1 lần khi đặt trên web, hạn 90 ngày, không đổi ra tiền mặt.",
-        "Voucher được cấp tự động khi đơn của bạn bè đã giao xong và qua 7 ngày đổi trả. Nhân viên " + BRAND + " sẽ nhắn mã cho bạn, bạn cũng xem được ngay trên trang này.",
+        f"Voucher cảm ơn tính cộng dồn theo tổng tiền hàng (không tính phí ship) mỗi người bạn mua trong {wd} ngày kể từ đơn đầu: {step_txt}. Voucher gắn với số điện thoại của bạn, dùng 1 lần cho đơn từ {smin} khi đặt trên web, hạn 90 ngày, không đổi ra tiền mặt.",
+        "Voucher được cấp tự động khi các đơn của bạn bè đã giao xong và qua 7 ngày đổi trả. Nhân viên " + BRAND + " sẽ nhắn mã cho bạn, bạn cũng xem được ngay trên trang này.",
         "Không tính: đơn huỷ hoặc hoàn; tự giới thiệu chính mình (cùng số điện thoại hoặc cùng địa chỉ nhận hàng).",
     ] + (["Quà theo mốc (" + "; ".join(f"{n} người: {g}" for n, g in tiers) + ") mỗi mốc tặng một lần, nhân viên sẽ liên hệ để gửi quà."] if tiers else []) + [
         "Chương trình chỉ cảm ơn người giới thiệu trực tiếp, không tính nhiều tầng.",
@@ -1861,11 +1868,11 @@ def page_ref():
     body = f'''<section class="section plg-page rf-page"><div class="container plg-in">
   <p class="join-eye">🌱 Đại sứ Sống Lành</p>
   <h1 class="plg-h">Giới thiệu bạn bè, <span class="nw">cùng nhận quà</span></h1>
-  <p class="plg-lead">Bạn thấy sản phẩm {BRAND} hợp với mình? Gửi link cho người thân, bạn bè. Bạn của bạn được giảm <b>{fp}%</b> đơn đầu, còn bạn nhận <b>voucher {rw}</b> cho mỗi người bạn mua, cùng quà khi đủ {tiers[0][0] if tiers else 3} bạn.</p>
+  <p class="plg-lead">Bạn thấy sản phẩm {BRAND} hợp với mình? Gửi link cho người thân, bạn bè. Bạn của bạn được giảm <b>{fp}%</b> đơn đầu, còn bạn nhận <b>voucher đến {rw}</b> cho mỗi người bạn mua, cùng quà khi đủ {tiers[0][0] if tiers else 3} bạn.</p>
   <ol class="rf-steps">
     <li><span>1</span><b>Lấy link của bạn</b>Nhập số điện thoại bạn đã dùng khi mua hàng.</li>
     <li><span>2</span><b>Gửi cho bạn bè</b>Bạn bè đặt lần đầu qua link được giảm {fp}%. Hoặc họ nhập số điện thoại của bạn vào ô “Có mã ưu đãi” khi đặt.</li>
-    <li><span>3</span><b>Nhận quà cảm ơn</b>Đơn của bạn bè giao xong 7 ngày, bạn nhận voucher {rw}. Đủ mốc thì nhận thêm quà.</li>
+    <li><span>3</span><b>Nhận quà cảm ơn</b>Bạn bè mua đủ {smin} (cộng dồn {wd} ngày), bạn nhận voucher. Đủ mốc thì nhận thêm quà.</li>
   </ol>
   {tier}
   <p class="rf-count" data-rf-count hidden></p>
@@ -1881,7 +1888,7 @@ def page_ref():
   <details class="rf-rules"><summary>Thể lệ chương trình</summary><ol>{rules_html}</ol>
   <p>Cần hỗ trợ, bạn nhắn Zalo hoặc gọi <a href="tel:{tel(SITE["hotline"])}">{esc(SITE["hotline"])}</a>.</p></details>
 </div></section>'''
-    return layout(REF_PATH, f"Giới thiệu bạn bè – Đại sứ Sống Lành cùng {BRAND}", f"Giới thiệu bạn bè mua sản phẩm {BRAND}: bạn bè giảm {fp}% đơn đầu, bạn nhận voucher {rw} mỗi người bạn mua" + (f" và quà khi đủ {tiers[0][0]} người" if tiers else "") + ".", body, body_class="page-ref")
+    return layout(REF_PATH, f"Giới thiệu bạn bè – Đại sứ Sống Lành cùng {BRAND}", f"Giới thiệu bạn bè mua sản phẩm {BRAND}: bạn bè giảm {fp}% đơn đầu, bạn nhận voucher đến {rw} mỗi người bạn mua" + (f" và quà khi đủ {tiers[0][0]} người" if tiers else "") + ".", body, body_class="page-ref")
 
 
 CTV_PATH = "/ctv/"

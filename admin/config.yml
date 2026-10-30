@@ -687,7 +687,15 @@ collections:
             fields:
               - { label: "Hiện trang và ô giới thiệu", name: enabled, widget: boolean, default: true }
               - { label: "Bạn được giới thiệu giảm (%) đơn đầu", name: friend_pct, widget: number, value_type: int, min: 0, max: 30, default: 10 }
-              - { label: "Voucher cảm ơn mỗi bạn mua (đ)", name: reward_amt, widget: number, value_type: int, min: 0, max: 1000000, default: 50000 }
+              - label: "Voucher cảm ơn (cộng dồn theo tổng tiền hàng người bạn mua)"
+                name: reward_steps
+                widget: list
+                required: false
+                summary: "mua đủ {{fields.min}}đ → tổng {{fields.amt}}đ"
+                fields:
+                  - { label: "Khi bạn mua đủ (đ)", name: min, widget: number, value_type: int, min: 0 }
+                  - { label: "Tổng voucher (đ)", name: amt, widget: number, value_type: int, min: 0 }
+              - { label: "Tính trong (ngày) từ đơn đầu của bạn", name: win_days, widget: number, value_type: int, min: 7, max: 365, default: 60 }
               - label: "Bậc quà (mỗi mốc tặng 1 lần)"
                 name: tiers
                 widget: list
