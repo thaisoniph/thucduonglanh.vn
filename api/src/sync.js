@@ -2,7 +2,7 @@
 // Đọc bằng Google Sheets API (nhanh, không phải mở cả file như Apps Script). Nhập nhiều lần không trùng.
 import { normPhone, esc, fmtDate, nrm, isVoid, hashKey, hashKeyLegacy, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, CRM_URL, DAY } from './lib.js';
 import { sheetMeta, sheetValues, sheetWrite, a1, serialToMs } from './google.js';
-import { wbKeys, wbHas } from './wb.js';
+import { wbKeys, wbHas, wbPending } from './wb.js';
 import { phoneAlias, crmUsers, crmLog, recalc, deletedOrderIds, delMark, setCallbacks, caCfg, caOf, normLine, itemsText, shipText, ORDER_COLS, srcList, adsCfg, telegramUser, unifyNames, prodKey, canonItems } from './crm.js';
 
 const FIELD_LABEL = { date: 'Ngày', name: 'Tên khách', phone: 'SĐT', address: 'Địa chỉ', product: 'Sản phẩm', qty: 'Số lượng', gift1: 'Quà tặng 1', gift1qty: 'SL quà 1', gift2: 'Quà tặng 2', gift2qty: 'SL quà 2',
@@ -298,7 +298,7 @@ async function srcSync(x, u, d) {
   const data = await srcRows(x, src, shCfg), total = data.rows.length; let res;
   // tự nhập 25 phút/lần: sheet không đổi chữ nào so với lần trước → bỏ qua, không đọc / ghi máy chủ dữ liệu
   const auto = u.name === 'Tự động' && !d.dry, sigKey = 'ss_' + hashKey(src.id + '|' + shCfg.name);
-  const sig = auto ? await sha1('d8#' + src.sale + '#' + (src.cfg.until || '') + '#' + JSON.stringify(shCfg) + '#' + JSON.stringify(data.rows)) : '';
+  const sig = auto ? await sha1('d9#' + src.sale + '#' + (src.cfg.until || '') + '#' + JSON.stringify(shCfg) + '#' + JSON.stringify(data.rows)) : '';
   if (auto && await kvGet(x.db, sigKey) === sig) return { ok: true, role: shCfg.role, sheetName: shCfg.name, total, skipped: true, summary: 'không đổi' };
   if (!d.dry && (shCfg.role === 'orders' || shCfg.role === 'care')) { try { await notePhones(x, src, shCfg, data.rows); } catch (e) { console.error('notePhones', sale, shCfg.name, e.message); } }
   if (shCfg.role === 'orders') res = await importOrders(x, src, shCfg, data, !!d.dry);
@@ -336,7 +336,7 @@ async function importOrders(x, src, shCfg, data, dry) {
     const key = valid ? codeRaw : nk, alt = (valid ? [nk, old] : [old]).concat(prev); // alt: mã NK… cùng dòng (Apps Script cũ băm chữ có dấu thành "?"; sale điền mã đơn sau khi đã nhập; ngày cũ theo ô trước khi lấy theo mã)
     parsed.push({ r, phone, when, sw, fill: D.fill, dc: D.code && D.old ? (D.byCode ? 1 : 2) : 0, product, amount, codeRaw, valid, key, alt, yk: valid ? codeRaw + '-' + fp.slice(-4) : '', sig: fp + '|' + fmtDate(when, 'yyyyMMdd') + '|' + amount + '|' + nrm(product || cell(r, m, 'gift1')) });
   }
-  const ex = {}; (await allIn(x.db, 'SELECT rid, id, status, source, name, phone, time, total, items, note FROM orders WHERE id IN (SELECT value FROM json_each(?))', [...new Set(parsed.flatMap(p => [p.key, p.yk].concat(p.alt)).filter(String))])).forEach(o => { ex[o.id] = o; });
+  const ex = {}; (await allIn(x.db, 'SELECT rid, id, status, source, seller, name, phone, time, total, shipping, items, line, ship, note FROM orders WHERE id IN (SELECT value FROM json_each(?))', [...new Set(parsed.flatMap(p => [p.key, p.yk].concat(p.alt)).filter(String))])).forEach(o => { ex[o.id] = o; });
   // Mã đơn không có năm → trùng giữa các năm / giữa các sheet ("Chang101001" năm 2025 và 2026 là 2 khách khác nhau). Mã đã thuộc đơn của khách khác
   // (khác SĐT) → đơn này dùng mã + 4 số cuối SĐT. 12/10/2026: 64 đơn VTG_lendon của Chang bị coi là "đã có", 8 đơn cũ bị ghi đè.
   // Nhưng sale sửa SĐT của chính đơn đó (16/10/2026: Phương sửa số Thầy Chùa An 0395045379 → 0395045179 → CRM tạo thêm Phuong051004-5179, doanh số dư 1,8 triệu):
@@ -385,9 +385,14 @@ async function importOrders(x, src, shCfg, data, dry) {
     .forEach(rule => rest.forEach(p => { if (!p.o) { const o = take(p, o => rule(p, o)); if (o) { p.o = o; p.edited = 1; } } }));
   // đơn file đã ghép có mã đơn thật: sale sửa ngày / tiền / sản phẩm trong file (đơn 60 ngày gần đây, chưa ai sửa đơn trên CRM) → CRM theo file
   // Ngày theo cột ngày (rule 'cell', anh Sơn chọn 16/10/2026): ngày lệch file thì sửa theo file ở mọi đơn file, kể cả đơn cũ
-  const chkIds = parsed.filter(p => p.o && !p.edited && String(p.o.source || '').indexOf('File ') === 0 && ((rule !== 'code' && fmtDate(p.o.time, 'yyyyMMdd') !== p.day) || ((p.when > Date.now() - 60 * DAY || p.o.time > Date.now() - 60 * DAY || p.sw) && (prodOf(p.o.items) !== p.prod || Number(p.o.total) !== p.amount || fmtDate(p.o.time, 'yyyyMMdd') !== p.day)))).map(p => p.o.id);
+  // Ghi 2 chiều (30/10/2026 anh Sơn: "sửa ở đâu cũng được"): đơn CRM đang chờ ghi vào file (sửa / đổi trạng thái / xoá) → lượt này file chưa đè lên;
+  // đơn tạo trên CRM đã ghi thành dòng trong sheet này (WP.added) → sale sửa tiền / ngày / sản phẩm, xoá dòng trong file thì CRM theo như đơn file.
+  let WP = { pend: {}, added: {} }; try { WP = await wbPending(x, src.id, shCfg.name); } catch (e) { console.error('wbPending', e.message); }
+  const multiP = o => String(o.items || '').split('\n').filter(l => l.trim() && !/^🎁/.test(l.trim())).length > 1; // đơn CRM nhiều sản phẩm: file chỉ có 1 ô sản phẩm → không lấy sản phẩm theo file
+  const isFileO = o => String(o.source || '').indexOf('File ') === 0, crmOwn = o => !isFileO(o) && o.seller === sale && !!WP.added[o.id], sync2 = o => !WP.pend[o.id] && (isFileO(o) || crmOwn(o));
+  const chkIds = parsed.filter(p => p.o && !p.edited && sync2(p.o) && ((rule !== 'code' && fmtDate(p.o.time, 'yyyyMMdd') !== p.day) || ((p.when > Date.now() - 60 * DAY || p.o.time > Date.now() - 60 * DAY || p.sw) && ((prodOf(p.o.items) !== p.prod && (isFileO(p.o) || !multiP(p.o))) || Number(p.o.total) !== p.amount || fmtDate(p.o.time, 'yyyyMMdd') !== p.day)))).map(p => p.o.id);
   const handEdit = {}; // 30/10/2026 anh Sơn: doanh số sale theo file → đơn file sửa trên CRM vẫn theo file (trước đây giữ bản sửa trên CRM)
-  const crmDay = {}, webOf = {}, webRid = {}; (await allIn(x.db, "SELECT rid, id, phone, time, total, subtotal, status, seller, name, source, note FROM orders WHERE phone IN (SELECT value FROM json_each(?)) AND source NOT LIKE 'File %'", [...new Set(parsed.map(p => p.phone))])).forEach(o => { crmDay[o.phone + '|' + fmtDate(o.time, 'yyyyMMdd') + '|' + (Number(o.total) || 0)] = 1; (webOf[o.phone] = webOf[o.phone] || []).push(o); webRid[o.rid] = o; }); // đơn tạo trên CRM / web (đã ghi ngược vào file)
+  const crmDay = {}, webOf = {}, webRid = {}; (await allIn(x.db, "SELECT rid, id, phone, time, total, subtotal, status, seller, name, source, note FROM orders WHERE phone IN (SELECT value FROM json_each(?)) AND source NOT LIKE 'File %'", [...new Set(parsed.map(p => p.phone))])).forEach(o => { crmDay[o.phone + '|' + fmtDate(o.time, 'yyyyMMdd') + '|' + (Number(o.total) || 0)] = o.rid; (webOf[o.phone] = webOf[o.phone] || []).push(o); webRid[o.rid] = o; }); // đơn tạo trên CRM / web (đã ghi ngược vào file)
   // Đơn web / CRM chưa giao mà sale lên lại trong file vài ngày sau (12/10/2026: chị Vân đặt web 05/10, Phương lên đơn trong file 07/10 → bị tính 2 đơn).
   // Dòng file cùng SĐT + cùng tiền, ngày từ 1 ngày trước tới 10 ngày sau đơn web → là đơn web đó: không tạo đơn file (đơn file đã nhập thì xoá), trạng thái theo file.
   // Đã ghép thì nhớ ở kv wlink {mã dòng file: rid đơn web} để sau khi đơn web đã giao vẫn nhận ra.
@@ -412,7 +417,7 @@ async function importOrders(x, src, shCfg, data, dry) {
     [['gift1', 'gift1qty'], ['gift2', 'gift2qty']].forEach(g => { const n = String(cell(r, m, g[0]) || '').trim(); if (n) items.push({ name: n, variant: '', qty: toQty(cell(r, m, g[1])) || 1, gift: true, subtotal: 0 }); });
     return canonItems(items, PC);
   };
-  const wUpd = []; // đơn web ghép với dòng file: cập nhật trạng thái theo file, gán sale nếu đơn chưa có người bán; dòng có mã đơn sale (tên + ngày + số) → đơn đổi sang mã đó, giữ nguồn Website, mã web cũ ghi vào ghi chú
+  const crmKeep = {}, wUpd = []; // đơn web ghép với dòng file: cập nhật trạng thái theo file, gán sale nếu đơn chưa có người bán; dòng có mã đơn sale (tên + ngày + số) → đơn đổi sang mã đó, giữ nguồn Website, mã web cũ ghi vào ghi chú
   for (const p of parsed) {
     const { r, phone, when, product, amount, codeRaw, valid, key, alt } = p;
     if (p.web) {
@@ -427,19 +432,26 @@ async function importOrders(x, src, shCfg, data, dry) {
     if (ex[key] && !seen['n' + ex[key].rid]) { const co = codeOwner(codeRaw, sale), cur = ex[key]; seen['n' + cur.rid] = 1; if (co && String(cur.note || '').indexOf(co) < 0) noteAdd.push({ rid: cur.rid, note: co + (cur.note ? ' · ' + cur.note : '') }); }
     if (ex[key]) { // đã nhập: file cũ đổi sang Đã giao / Hoàn / Huỷ / Đổi hàng thì cập nhật theo (không đè thay đổi làm trên CRM)
       const st1 = mapStatus(cell(r, m, 'status'), when), cur = ex[key];
-      if (String(cur.source || '').indexOf('File ') === 0 && (p.edited || chkIds.indexOf(cur.id) >= 0) && !handEdit[cur.id] && !seen['c' + cur.rid]) {
+      if (sync2(cur) && (p.edited || chkIds.indexOf(cur.id) >= 0) && !handEdit[cur.id] && !seen['c' + cur.rid]) {
         seen['c' + cur.rid] = 1; const amt = amount, items = rowItems(r, product, amt); // ô tiền trống / 0 → đơn 0đ (30/10/2026 anh Sơn: theo file)
+        if (!isFileO(cur)) { // đơn tạo trên CRM: tiền gồm ship; cùng sản phẩm thì giữ nguyên các dòng hàng / quà; cùng ngày thì giữ giờ
+          const sameP = multiP(cur) || prodOf(cur.items) === p.prod, sh = Math.min(Number(cur.shipping) || 0, amt);
+          chg.push({ why: 'Sale sửa dòng đơn CRM trong file ' + shCfg.name, rid: cur.rid, time: fmtDate(cur.time, 'yyyyMMdd') === p.day ? cur.time : when, total: amt, subtotal: amt - sh, items: sameP ? cur.items : itemsText(items), line: sameP ? cur.line : normLine(cell(r, m, 'line'), product), ship: sameP ? cur.ship : String(cell(r, m, 'shipText') || '').trim() || shipText(items), name: cur.name, id: key,
+            from: fmtDate(cur.time, 'dd/MM') + ' ' + (Number(cur.total) || 0).toLocaleString('vi-VN') + 'đ ' + String(cur.items || '').split('\n')[0].replace(/\s+x\d+\s*=.*$/, ''), to: fmtDate(when, 'dd/MM') + ' ' + amt.toLocaleString('vi-VN') + 'đ ' + product });
+          chgPh[phone] = 1;
+        } else {
         chg.push({ why: rule !== 'code' && fmtDate(cur.time, 'yyyyMMdd') !== p.day && !p.dc && !p.sw ? (p.fill ? 'Ô ngày trống: lấy ngày dòng trên (file ' + shCfg.name + ')' : 'Ngày theo cột ngày trong file ' + shCfg.name + ' (trước đây theo mã đơn)') : p.dc === 1 ? 'Ngày theo mã đơn ' + p.codeRaw + ' (file ' + shCfg.name + ')' : p.dc === 2 ? 'Năm của ngày ' + fmtDate(when, 'dd/MM') + ' suy theo các dòng xung quanh (file ' + shCfg.name + ')' : p.sw ? 'Ngày trong file ' + shCfg.name + ' bị đảo ngày/tháng (định dạng Mỹ)' : String(cur.source || '').endsWith(' – ' + shCfg.name) ? '' : 'Mã đơn trùng với dòng sheet khác (' + String(cur.source).replace(/^File .* – /, '') + ')', rid: cur.rid, time: when, total: amt, subtotal: amt, items: itemsText(items), line: normLine(cell(r, m, 'line'), product), ship: String(cell(r, m, 'shipText') || '').trim() || shipText(items), name: cur.name, id: key, from: fmtDate(cur.time, 'dd/MM') + ' ' + (Number(cur.total) || 0).toLocaleString('vi-VN') + 'đ ' + String(cur.items || '').split('\n')[0].replace(/\s+x\d+\s*=.*$/, ''), to: fmtDate(when, 'dd/MM') + ' ' + amt.toLocaleString('vi-VN') + 'đ ' + product });
         chgPh[phone] = 1;
+        }
       }
-      if (String(cur.source || '').indexOf('File ') === 0 && st1 !== cur.status && FINAL[st1]) {
+      if (sync2(cur) && st1 !== cur.status && FINAL[st1]) {
         if (!FINAL[cur.status]) { upd.push({ rid: cur.rid, status: st1 }); cur.status = st1; }
         else if (EXPLICIT.test(nrm(cell(r, m, 'status')))) fix.push({ cur, status: st1 }); // sale sửa trạng thái đã chốt (vd nhập nhầm Hoàn → Đã giao): chỉ theo file nếu chưa ai đổi trên CRM / Viettel Post
       }
       dup++; continue;
     }
     if (gone[key] || alt.some(k => gone[k])) { dup++; continue; }
-    if (crmDay[phone + '|' + fmtDate(when, 'yyyyMMdd') + '|' + amount]) { dup++; continue; } // đơn CRM / web đã ghi ngược vào file → không nhập lại
+    if (crmDay[phone + '|' + fmtDate(when, 'yyyyMMdd') + '|' + amount]) { crmKeep[crmDay[phone + '|' + fmtDate(when, 'yyyyMMdd') + '|' + amount]] = 1; dup++; continue; } // đơn CRM / web đã ghi ngược vào file → không nhập lại
     if (seen[key]) { dup++; continue; } seen[key] = 1;
     if (until && when >= until) { afterCut++; continue; } // từ ngày này sale lên đơn trên CRM → không nhập để tránh trùng
     const items = rowItems(r, product, amount);
@@ -471,12 +483,12 @@ async function importOrders(x, src, shCfg, data, dry) {
   // Đơn mất khỏi file (29/10/2026: CRM tính dư cho Lương 25,9 triệu tháng 10): sale xoá dòng đơn huỷ (chuyển sang tab "Khách huỷ"), đánh lại mã đơn
   // (231004 → 231003), gộp 2 dòng thành 1 → đơn cũ vẫn nằm trên CRM. Đơn của sheet này từ đầu tháng trước, không dòng nào trong file nhận → xoá, báo Quản trị.
   // 30/10/2026 anh Sơn: doanh số sale theo file → xoá cả đơn đã giao / hoàn / có vận đơn / đã sửa trên CRM. Chỉ giữ: mã còn ở dòng file bị bỏ qua (sale đang sửa dở SĐT…); mất > 15 đơn 1 lượt (file hỏng / đổi cột) → chỉ báo.
-  const keepRid = {}; Object.keys(claimed).forEach(r => { keepRid[r] = 1; }); parsed.forEach(p => { [p.o, ex[p.key], p.web].forEach(o => { if (o) keepRid[o.rid] = 1; }); }); orphan.concat(wDel).forEach(o => { keepRid[o.rid] = 1; });
+  const keepRid = {}; Object.keys(claimed).forEach(r => { keepRid[r] = 1; }); parsed.forEach(p => { [p.o, ex[p.key], p.web].forEach(o => { if (o) keepRid[o.rid] = 1; }); }); orphan.concat(wDel).forEach(o => { keepRid[o.rid] = 1; }); Object.keys(crmKeep).forEach(r => { keepRid[r] = 1; });
   const lost = [], lostHold = [];
   if (parsed.length >= 10) {
     const vn = new Date(Date.now() + 7 * 3600e3), from = Date.UTC(vn.getUTCFullYear(), vn.getUTCMonth() - 1, 1) - 7 * 3600e3; // 0h ngày 1 tháng trước, giờ VN
-    const L = (await all(x.db, "SELECT rid, id, status, source, seller, name, phone, time, total, tracking, trk FROM orders WHERE seller = ? AND source LIKE 'File %' AND time >= ?", sale, from))
-      .filter(o => !keepRid[o.rid] && String(o.source).endsWith(' – ' + shCfg.name) && !skipCodes[o.id] && !skipCodes[String(o.id).replace(/-\d{4}$/, '')]);
+    const L = (await all(x.db, "SELECT rid, id, status, source, seller, name, phone, time, total, tracking, trk FROM orders WHERE seller = ? AND time >= ?", sale, from))
+      .filter(o => !keepRid[o.rid] && !WP.pend[o.id] && (isFileO(o) ? String(o.source).endsWith(' – ' + shCfg.name) : WP.added[o.id]) && !skipCodes[o.id] && !skipCodes[String(o.id).replace(/-\d{4}$/, '')]);
     lost.push(...L);
     if (lost.length > 15) { lostHold.push(...lost); lost.length = 0; }
   }

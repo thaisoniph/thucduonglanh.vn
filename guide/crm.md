@@ -173,7 +173,7 @@ Khách để lại số trên web hay quảng cáo thì **tự vào đây**, b�
 
 - **Khách huỷ đơn**: xoá dòng hoặc chuyển sang tab khách huỷ đều được. CRM tự bỏ đơn đó và trừ doanh số trong khoảng 30 phút.
 - **Đổi mã đơn, gộp 2 dòng thành 1**: được. Đơn mang mã cũ cũng tự mất khỏi CRM.
-- **Doanh số của bạn trên CRM = số trong file.** Sửa số tiền (kể cả về 0) thì CRM sửa theo. Muốn sửa đơn thì sửa trong file, đừng sửa trên CRM.
+- **Sửa ở đâu cũng được.** Sửa đơn trên CRM (tiền, sản phẩm, tên, số điện thoại, địa chỉ, trạng thái) thì khoảng 10 phút sau CRM tự sửa dòng đó trong file. Sửa trong file (kể cả số tiền về 0) thì khoảng 30 phút sau CRM sửa theo. Đừng sửa cùng 1 đơn ở cả 2 nơi trong vòng 30 phút.
 - **Bán ở sự kiện**: ghi 1 dòng, cột tên ghi **khách sự kiện**, có ngày và **số tiền được chia cho bạn**. Không cần số điện thoại. Ví dụ: sự kiện bán 10 triệu, 3 bạn đi thì mỗi bạn ghi 3.330.000đ (1 bạn ghi 3.340.000đ cho đủ 10 triệu). Khách bạn xin được số ở sự kiện thì lên đơn bình thường như mọi khách.
 
 ## Việc 6: Đầu tháng đặt mục tiêu

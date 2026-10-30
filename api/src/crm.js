@@ -15,7 +15,7 @@ import { crmVoucher, voucherSchema } from './voucher.js';
 import { journeySchema, wallHide } from './journey.js';
 import { crmLinks } from './links.js';
 import { crmAi } from './ai.js';
-import { wbQueue, wbOrderQueue, wbStatusQueue, WB_SHORT } from './wb.js';
+import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, WB_SHORT } from './wb.js';
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
@@ -988,6 +988,11 @@ async function crmOrderEdit(x, u, d) {
   await run(x.db, 'UPDATE orders SET ' + ks.map(k => k + ' = ?').join(', ') + ' WHERE rid = ?', ...ks.map(k => set[k]), o.rid);
   await crmLog(x, u, 'Sửa đơn', d.id, c.name, fmt(o.total) + ' → ' + fmt(sub + ship), d.reason || '');
   await recalc(x, [o.phone, phone]);
+  await wbSafe(async () => { // 30/10/2026 anh Sơn: sửa đơn trên CRM → ghi ngược vào dòng đơn trong file sale (sửa ở đâu cũng được)
+    const ow = await ownerOf(x, phone), m = String(o.source || '').match(/^File .+? – (.+)$/), real0 = items.filter(i => !i.gift), gift0 = items.filter(i => i.gift)[0];
+    await wbEditQueue(x, [o.seller, ow], { id: o.id, sheet: m ? m[1] : '', time: Number(o.time) || 0, prev: { phone: o.phone, total: Number(o.total) || 0 }, name: set.name, phone, address: [set.address, set.ward, set.province].filter(Boolean).join(', '),
+      product: real0.map(i => i.name + (i.variant ? ' ' + i.variant : '') + (real0.length > 1 ? ' x' + i.qty : '')).join(', '), qty: real0.length === 1 ? real0[0].qty : '', gift: gift0 ? gift0.name : '', giftQty: gift0 ? gift0.qty : '', total: sub + ship, ship: set.ship });
+  });
   if (set.addr_old) await run(x.db, 'UPDATE customers SET addr_old = ? WHERE phone = ?', set.addr_old, phone);
   return { ok: true, row: o.rid };
 }
@@ -1007,6 +1012,8 @@ async function crmOrderDelete(x, u, d) {
   if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị xoá được đơn hàng.' };
   const o = await first(x.db, 'SELECT * FROM orders WHERE rid = ? AND id = ?', Number(d.row) || 0, String(d.id || ''));
   if (!o) return { ok: false, error: 'Không tìm thấy đơn ' + (d.id || '') + ' (có thể đã bị xoá).' };
+  await wbSafe(async () => { const ow = await ownerOf(x, o.phone), m = String(o.source || '').match(/^File .+? – (.+)$/); // ghi "Huỷ" vào dòng đơn trong file sale
+    await wbDeleteQueue(x, [o.seller, ow], { id: o.id, sheet: m ? m[1] : '', phone: o.phone, name: o.name, time: Number(o.time) || 0, total: Number(o.total) || 0 }); });
   await run(x.db, 'DELETE FROM orders WHERE rid = ?', o.rid);
   if (!await first(x.db, 'SELECT rid FROM orders WHERE id = ?', o.id)) await run(x.db, 'DELETE FROM logs WHERE ref = ?', o.id); // còn đơn trùng mã thì giữ nhật ký
   await recalc(x, [o.phone]);

@@ -2,18 +2,19 @@
 // - ghi chú chăm sóc → nối vào ô ghi chú dòng cuối của khách trong sheet chăm sóc ("cop số"), đúng kiểu sale tự ghi ", 30/9 knm"
 // - "@zalo" → thêm "(x)" vào tên khách (= đã kết bạn Zalo)
 // - "@order {...}" → thêm dòng đơn tạo trên CRM vào sheet lên đơn; "@ost {...}" → sửa ô trạng thái của đúng dòng đơn
+// - "@oed {...}" → sửa đơn trên CRM (tên, SĐT, địa chỉ, sản phẩm, tiền) → sửa các ô của dòng đơn; "@odel {...}" → Quản trị xoá đơn trên CRM → ô trạng thái "Huỷ" (không xoá dòng của sale)
 // Bấm trên CRM chỉ xếp hàng vào bảng wb_queue (nhanh); lịch 10 phút/lần wbTick ghi 1 lượt. Cần sale chia sẻ quyền CHỈNH SỬA file cho tài khoản Google của CRM.
 import { normPhone, nrm, fmtDate, all, run, allIn, kvGet, kvSet, TZ_MS, DAY } from './lib.js';
 import { sheetValues, sheetBatchGet, sheetWrite, sheetAppend, a1 } from './google.js';
 import { fileIdOf, SRC_UTIL } from './sync.js';
 import { phoneAlias } from './crm.js';
 
-const WB_ORDER = '@order ', WB_OST = '@ost ', WB_ZALO = '@zalo';
+const WB_ORDER = '@order ', WB_OST = '@ost ', WB_OED = '@oed ', WB_ODEL = '@odel ', WB_ZALO = '@zalo';
 export const WB_SHORT = { 'Không nghe máy': 'knm', 'Đã hỏi thăm': 'đã hỏi thăm', 'Hẹn gọi lại': 'hẹn gọi lại', 'Đã đặt lại': 'kh đặt lại', 'Không có nhu cầu': 'kh không có nhu cầu' }; // chữ viết tắt sale quen dùng
 const WB_ST = { 'Mới': 'Đã lên đơn', 'Đã xác nhận': 'Đã lên đơn', 'Đang giao': 'Đang giao', 'Đã giao': 'Giao thành công', 'Huỷ': 'Huỷ', 'Hoàn': 'Hoàn', 'Đổi hàng': 'Đổi hàng' }; // chữ quen dùng trong file sale (lúc nhập lại CRM hiểu đúng)
 const RETRY_MS = 7 * DAY, KEEP_MS = 60 * DAY, BACKOFF_MS = 30 * 60e3; // lỗi thử lại trong 7 ngày (30 phút/lần); giữ 60 ngày để tra lại + để lúc nhập file nhận ra dòng CRM đã ghi
 const has = (m, k) => m[k] !== undefined && m[k] !== null && m[k] !== '';
-const isOrd = it => it.text.indexOf(WB_ORDER) === 0 || it.text.indexOf(WB_OST) === 0;
+const isOrd = it => [WB_ORDER, WB_OST, WB_OED, WB_ODEL].some(k => it.text.indexOf(k) === 0);
 const keyOf = t => nrm(t).replace(/[^a-z0-9]+/g, ' ').trim();
 const dM = t => { const d = new Date(t + TZ_MS); return d.getUTCDate() + '/' + (d.getUTCMonth() + 1); }; // "11/10" như sale ghi
 
@@ -55,6 +56,33 @@ export async function wbStatusQueue(x, owners, o) {
   if (!o || !o.phone) return;
   let src = null; for (const w of owners || []) { if (!src && w) src = await wbSource(x, w, true); } if (!src) return;
   await push(x, src, o.phone, o.name, WB_OST + JSON.stringify(o));
+}
+/** Sửa đơn trên CRM (o.prev = SĐT / tiền trước khi sửa để tìm dòng) → xếp hàng sửa các ô của dòng đơn. */
+export async function wbEditQueue(x, owners, o) {
+  await ensure(x.db);
+  if (!o || !o.phone) return;
+  let src = null; for (const w of owners || []) { if (!src && w) src = await wbSource(x, w, true); } if (!src) return;
+  await push(x, src, o.phone, o.name, WB_OED + JSON.stringify(o));
+}
+/** Quản trị xoá đơn trên CRM → xếp hàng ghi "Huỷ" vào ô trạng thái (để doanh số trong file khớp CRM). */
+export async function wbDeleteQueue(x, owners, o) {
+  await ensure(x.db);
+  if (!o || !o.phone) return;
+  let src = null; for (const w of owners || []) { if (!src && w) src = await wbSource(x, w, true); } if (!src) return;
+  await push(x, src, o.phone, o.name, WB_ODEL + JSON.stringify(o));
+}
+/** Mã đơn CRM đang chờ ghi vào file này (sửa / đổi trạng thái / xoá): lúc nhập file chưa lấy số trong file đè lên đơn đó.
+ *  added: mã đơn CRM đã thêm dòng vào sheet (name) thành công → dòng đó bị sale xoá khỏi file thì xoá đơn trên CRM. */
+export async function wbPending(x, srcId, sheet) {
+  await ensure(x.db);
+  const pend = {}, added = {};
+  for (const r of await all(x.db, "SELECT text, result, done_at FROM wb_queue WHERE src = ? AND substr(text, 1, 1) = '@' AND (done_at IS NULL OR text LIKE '@order %')", String(srcId))) {
+    let o = {}; try { o = JSON.parse(String(r.text).replace(/^@\w+ /, '')); } catch (e) { continue; }
+    if (!o.id) continue;
+    if (r.done_at == null) pend[o.id] = 1;
+    else if (String(r.text).indexOf(WB_ORDER) === 0 && String(r.result || '').indexOf('Đã thêm đơn ' + o.id + ' vào sheet ' + sheet) === 0) added[o.id] = 1;
+  }
+  return { pend, added };
 }
 
 /** Nội dung CRM đã ghi ngược vào file của sale (theo SĐT, dạng khoá so sánh) → lúc nhập file không nhập lại chính những dòng đó. */
@@ -105,7 +133,8 @@ async function wbOrderWrite(x, src, items) {
   return res;
 }
 async function wbOrderWriteSheet(x, src, sc, items) {
-  const U = SRC_UTIL, id = fileIdOf(src.url), m = sc.map, hr = sc.header || 1, width = U.neededCols(sc), out = [], add = [], upd = {}, added = {}; let rows = null;
+  const U = SRC_UTIL, id = fileIdOf(src.url), m = sc.map, hr = sc.header || 1, width = U.neededCols(sc), out = [], add = [], cells = {}, added = {}; let rows = null;
+  const setCell = (i, f, v) => { if (has(m, f) && v !== undefined && v !== null) cells[i + '|' + m[f]] = { i, c: +m[f], v }; };
   const readRows = async () => { // đọc 1 lần các cột cần để tìm dòng đơn
     if (!rows) rows = (await sheetValues(x.env, id, a1(sc.name, 'A' + (hr + 1) + ':' + U.colLetter(width - 1)), 'UNFORMATTED_VALUE')).map(r => { r = (r || []).slice(0, width); while (r.length < width) r.push(''); return r; });
     return rows;
@@ -120,16 +149,23 @@ async function wbOrderWriteSheet(x, src, sc, items) {
       put('shipText', o.ship); put('note', o.note); put('ctype', o.otype === 'Khách cũ' ? 'kh cũ' : o.otype === 'Khách mới' ? 'kh mới' : (o.old ? 'kh cũ' : 'kh mới') + (o.otype === 'Ngoài giờ' || o.ca === 'Tối/CN' ? ' tối' : o.otype === 'Ngày lễ' || o.ca === 'Lễ' ? ' lễ' : '')); // “Phân loại khách / ca” như sale vẫn ghi
       added[o.id] = r; add.push(r); out.push('Đã thêm đơn ' + o.id + ' vào sheet ' + sc.name); continue;
     }
-    if (!has(m, 'status')) { out.push('Bỏ qua: sheet lên đơn chưa chọn cột trạng thái'); continue; } // đổi trạng thái
-    const st = WB_ST[o.status] || o.status;
-    if (added[o.id]) { added[o.id][+m.status] = st; out.push('Đã ghi trạng thái (đơn vừa thêm): ' + st); continue; } // đơn thêm cùng lượt
+    const ed = it.text.indexOf(WB_OED) === 0, del = it.text.indexOf(WB_ODEL) === 0;
+    if (!ed && !has(m, 'status')) { out.push('Bỏ qua: sheet lên đơn chưa chọn cột trạng thái'); continue; } // đổi trạng thái / xoá
+    const st = del ? 'Huỷ' : WB_ST[o.status] || o.status;
+    if (added[o.id] && !ed) { added[o.id][+m.status] = st; out.push('Đã ghi trạng thái (đơn vừa thêm): ' + st); continue; } // đơn thêm cùng lượt
     const R = await readRows(); let hit = -1;
+    const ph0 = normPhone((o.prev && o.prev.phone) || o.phone), tot0 = Number(o.prev ? o.prev.total : o.total) || 0; // sửa đơn: tìm dòng theo SĐT / tiền trước khi sửa
     if (has(m, 'code')) for (let i = R.length - 1; i >= 0 && hit < 0; i--) if (String(R[i][+m.code]).trim() === String(o.id)) hit = i;
-    if (hit < 0) { const AL = await phoneAlias(x), mo = p => AL[p] || p; for (let j = R.length - 1; j >= 0 && hit < 0; j--) { const r2 = R[j]; if (mo(U.toPhone(r2[+m.phone])) === mo(normPhone(o.phone)) && day(has(m, 'date') ? r2[+m.date] : '') === day(Number(o.time)) && (!has(m, 'amount') || !o.total || U.toMoney(r2[+m.amount]) === Number(o.total))) hit = j; } }
+    if (hit < 0) { const AL = await phoneAlias(x), mo = p => AL[p] || p; for (let j = R.length - 1; j >= 0 && hit < 0; j--) { const r2 = R[j]; if (mo(U.toPhone(r2[+m.phone])) === mo(ph0) && day(has(m, 'date') ? r2[+m.date] : '') === day(Number(o.time)) && (!has(m, 'amount') || !tot0 || U.toMoney(r2[+m.amount]) === tot0)) hit = j; } }
     if (hit < 0) { out.push('Bỏ qua: không thấy đơn ' + o.id + ' trong file'); continue; }
-    upd[hit] = st; out.push('Đã ghi trạng thái dòng ' + (hr + 1 + hit) + ': ' + st);
+    if (ed) {
+      setCell(hit, 'name', o.name); setCell(hit, 'phone', o.phone || undefined); // ghi RAW: chữ, giữ số 0 đầu if (o.address) setCell(hit, 'address', o.address);
+      setCell(hit, 'product', o.product); setCell(hit, 'qty', o.qty); setCell(hit, 'gift1', o.gift); setCell(hit, 'gift1qty', o.giftQty); setCell(hit, 'amount', o.total); if (o.ship) setCell(hit, 'shipText', o.ship);
+      out.push('Đã sửa dòng ' + (hr + 1 + hit) + ' theo đơn sửa trên CRM'); continue;
+    }
+    setCell(hit, 'status', st); out.push('Đã ghi trạng thái dòng ' + (hr + 1 + hit) + ': ' + st + (del ? ' (đơn đã xoá trên CRM)' : ''));
   }
-  await sheetWrite(x.env, id, Object.keys(upd).map(i => ({ range: a1(sc.name, U.colLetter(+m.status) + (hr + 1 + +i)), values: [[upd[i]]] })));
+  await sheetWrite(x.env, id, Object.values(cells).map(c => ({ range: a1(sc.name, U.colLetter(c.c) + (hr + 1 + c.i)), values: [[c.v]] })));
   if (add.length) await appendAt(x, id, sc.name, hr + 1 + (await readRows()).length, width, add);
   return out;
 }
