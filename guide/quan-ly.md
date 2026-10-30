@@ -111,6 +111,7 @@ Mức cho người tự đăng ký sửa ở **⚙️ Cài đặt chung**, dòng
 
 **💰 Lương & hoa hồng tạm tính (Phụ lục 01, từ 30/10/2026):** mở **Hiệu quả → 📊 BCDT**. Xem 1 người: mục **💰 Thu nhập tạm tính** (lương cố định theo bậc doanh thu, hoa hồng khách cũ / khách mới theo thâm niên, phụ cấp thâm niên, còn bao nhiêu nữa thì lên bậc). Xem cả nhóm: bảng từng người.
 - Đơn khách tự đặt trên web tính như đơn sale lên: khách cũ theo % khách cũ, khách mới đặt qua **link riêng của sale** theo % khách mới. Khách mới tự tìm đến web (không qua link sale) thì tính **50%** mức khách mới.
+- Đơn sale chốt **tối / Chủ nhật** (loại đơn Ngoài giờ): **6%** cố định. Đơn **ngày lễ**: **10%** cố định. Không theo bậc, thâm niên, vẫn cộng vào doanh thu để xét bậc. Đơn khách tự đặt web lúc tối / lễ tính như đơn web thường.
 - Doanh thu dưới 80 triệu: hỗ trợ theo năng lực, quản lý tự quyết.
 - Thâm niên lấy từ ô **Ngày làm chính thức** ở Cài đặt → Nhân sự. Sửa bảng bậc / % ở **Cài đặt → 💰 Lương & hoa hồng (Phụ lục 01)** (chỉ Quản trị).
 - Đây là số tạm tính để nhân sự theo dõi; số chốt lương vẫn do kế toán đối chiếu.

@@ -19,7 +19,7 @@ import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, wbInf
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-10-30j'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
+const SCHEMA_V = '2026-10-31a'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -1309,7 +1309,8 @@ async function crmContact(x, u, d) {
 const COMM_KEYS = ['Khách mới', 'Khách cũ', 'Ngoài giờ', 'Ngày lễ', 'Đơn web'];
 // 💰 Phụ lục 01/CĐ2026 (anh Sơn gửi 30/10/2026): [doanh thu tháng từ, lương cơ bản, trợ cấp BH, [[% khách cũ, % khách mới] dưới 1 năm, 1–2 năm, trên 2 năm]].
 // Dưới bậc đầu (80 triệu) = "hỗ trợ theo năng lực" (quản lý quyết). senior: [số tháng làm từ, phụ cấp thâm niên / tháng]. webAuto: khách mới tự đặt web không qua link sale = % của mức khách mới.
-const PAYPLAN = { on: 1, webAuto: 50, senior: [[36, 300000], [60, 500000]], tiers: [
+const PAYPLAN = { on: 1, webAuto: 50, off: 6, hol: 10, // off / hol: % cố định đơn sale chốt tối / Chủ nhật (Ngoài giờ) và ngày lễ (anh Sơn gửi 30/10/2026), không theo bậc / thâm niên
+  senior: [[36, 300000], [60, 500000]], tiers: [
   [80e6, 5500000, 1000000, [[3, 2], [4.5, 2.5], [5, 2.5]]], [100e6, 6500000, 1000000, [[3, 2.5], [4.5, 2.5], [5, 2.5]]], [150e6, 7000000, 1000000, [[3.5, 2.5], [4.5, 2.5], [5, 2.5]]],
   [200e6, 7500000, 1000000, [[3.5, 3], [4.5, 3], [5, 3.5]]], [250e6, 8000000, 1000000, [[4, 3], [4.5, 3], [5, 3.5]]], [300e6, 8500000, 1000000, [[4, 3], [4.5, 3], [5, 3.5]]], [350e6, 9000000, 1000000, [[4, 3], [4.5, 3], [5, 3.5]]]] };
 // 🗺 Ảnh hệ thống Marketing (19/10/2026): nút ở tab Marketing mở link này; Quản trị đổi link ở Cài đặt khi cập nhật ảnh
@@ -1343,9 +1344,9 @@ async function crmSettings(x, u, d) {
     if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị sửa được mục này.' };
     const P = d.payplan, n = v => Math.max(0, Number(String(v == null ? '' : v).replace(',', '.')) || 0);
     const tiers = (Array.isArray(P.tiers) ? P.tiers : []).map(t => [n(t[0]), n(t[1]), n(t[2]), [0, 1, 2].map(k => [Math.min(50, n((t[3] || [])[k] && t[3][k][0])), Math.min(50, n((t[3] || [])[k] && t[3][k][1]))])]).filter(t => t[0] > 0).sort((a, b) => a[0] - b[0]).slice(0, 12);
-    const PP = { on: P.on ? 1 : 0, tiers, senior: (Array.isArray(P.senior) ? P.senior : []).map(t => [Math.round(n(t[0])), n(t[1])]).filter(t => t[0] > 0).slice(0, 4), webAuto: Math.min(100, n(P.webAuto)) };
+    const PP = { on: P.on ? 1 : 0, tiers, senior: (Array.isArray(P.senior) ? P.senior : []).map(t => [Math.round(n(t[0])), n(t[1])]).filter(t => t[0] > 0).slice(0, 4), webAuto: Math.min(100, n(P.webAuto)), off: Math.min(50, n(P.off)), hol: Math.min(50, n(P.hol)) };
     await kvSet(x.db, 'payplan_cfg', JSON.stringify(PP));
-    await crmLog(x, u, 'Cài đặt', '-', '', 'Lương & hoa hồng Phụ lục 01: ' + (PP.on ? 'bật' : 'tắt') + ' · ' + tiers.length + ' bậc · khách mới tự đặt web ' + PP.webAuto + '% mức khách mới', '');
+    await crmLog(x, u, 'Cài đặt', '-', '', 'Lương & hoa hồng Phụ lục 01: ' + (PP.on ? 'bật' : 'tắt') + ' · ' + tiers.length + ' bậc · khách mới tự đặt web ' + PP.webAuto + '% mức khách mới · tối / CN ' + PP.off + '% · lễ ' + PP.hol + '%', '');
     return { ok: true, payplan: PP };
   }
   if (d.staffGuard) { // nhân sự chưa có tài khoản CRM: họ tên, SĐT, số tài khoản → cảnh báo tự làm CTV (partner.js staffHit)

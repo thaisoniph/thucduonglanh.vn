@@ -6637,18 +6637,18 @@
   function payOf(name, month) {
     if (!ppOn() || !name) return null;
     var P = S.d.rules.payplan, R = monthRange(month), u = (S.d.users || []).filter(function (z) { return z.name === name; })[0] || {}, jt = ppJoinTs(u.joined);
-    var sums = { old: 0, nw: 0, auto: 0 }, rev = 0, n = 0;
+    var sums = { old: 0, nw: 0, auto: 0, off: 0, hol: 0 }, rev = 0, n = 0;
     S.d.orders.forEach(function (o) {
       if (!o.time || o.time < R[0] || o.time >= R[1] || o.seller !== name || /hoàn/i.test(o.status) || isVoid(o.status)) return;
       var c = cust(o.phone), t0 = otypeOf(o), isNew = t0 === 'Khách mới' ? true : t0 === 'Khách cũ' ? false : !c || !c.first || c.first >= o.time - 3600e3;
-      var k = !isNew ? 'old' : isWebOrder(o) && String(o.note || '').indexOf('🔗 Đặt qua link của ' + name) < 0 ? 'auto' : 'nw';
+      var web = isWebOrder(o), k = !web && t0 === 'Ngoài giờ' ? 'off' : !web && t0 === 'Ngày lễ' ? 'hol' : !isNew ? 'old' : web && String(o.note || '').indexOf('🔗 Đặt qua link của ' + name) < 0 ? 'auto' : 'nw';
       sums[k] += commBase(o); rev += o.total; n++;
     });
     var mo = jt ? (R[1] - jt) / (30.44 * DAY) : -1, si = mo < 12 ? 0 : mo < 24 ? 1 : 2, tier = null, ti = -1;
     P.tiers.forEach(function (t, i) { if (rev >= t[0]) { tier = t; ti = i; } });
-    var rt = tier ? tier[3][si] : [0, 0], cm = { old: Math.round(sums.old * rt[0] / 100), nw: Math.round(sums.nw * rt[1] / 100), auto: Math.round(sums.auto * rt[1] * (P.webAuto || 0) / 10000) };
-    var sen = (P.senior || []).reduce(function (a, t) { return mo >= t[0] ? Math.max(a, t[1]) : a; }, 0), comm = cm.old + cm.nw + cm.auto, fixed = tier ? tier[1] + tier[2] : 0;
-    return { rev: rev, n: n, tier: tier, ti: ti, si: si, mo: mo, joined: u.joined || '', tv: /^\s*tv/i.test(u.joined || ''), rt: rt, sums: sums, cm: cm, comm: comm, fixed: fixed, sen: sen, total: fixed + comm + sen, webAuto: P.webAuto || 0 };
+    var rt = tier ? tier[3][si] : [0, 0], cm = { old: Math.round(sums.old * rt[0] / 100), nw: Math.round(sums.nw * rt[1] / 100), auto: Math.round(sums.auto * rt[1] * (P.webAuto || 0) / 10000), off: Math.round(sums.off * (P.off || 0) / 100), hol: Math.round(sums.hol * (P.hol || 0) / 100) };
+    var sen = (P.senior || []).reduce(function (a, t) { return mo >= t[0] ? Math.max(a, t[1]) : a; }, 0), comm = cm.old + cm.nw + cm.auto + cm.off + cm.hol, fixed = tier ? tier[1] + tier[2] : 0;
+    return { rev: rev, n: n, tier: tier, ti: ti, si: si, mo: mo, joined: u.joined || '', tv: /^\s*tv/i.test(u.joined || ''), rt: rt, sums: sums, cm: cm, comm: comm, fixed: fixed, sen: sen, total: fixed + comm + sen, webAuto: P.webAuto || 0, off: P.off || 0, hol: P.hol || 0 };
   }
   function ppHtml(name, month) {
     var p = payOf(name, month); if (!p) return '';
@@ -6658,18 +6658,20 @@
         kpi('🔁 HH khách cũ', moneyShort(p.cm.old), '', '', p.rt[0] + '% × ' + moneyShort(p.sums.old) + ' tiền hàng') +
         kpi('🆕 HH khách mới', moneyShort(p.cm.nw), '', '', p.rt[1] + '% × ' + moneyShort(p.sums.nw) + ' (sale chốt + qua link của bạn)') +
         (p.sums.auto ? kpi('🌐 Khách mới tự đặt web', moneyShort(p.cm.auto), '', '', (p.rt[1] * p.webAuto / 100) + '% × ' + moneyShort(p.sums.auto) + ' (không qua link sale: ' + p.webAuto + '% mức khách mới)') : '') +
+        (p.sums.off ? kpi('🌙 Đơn tối / Chủ nhật', moneyShort(p.cm.off), '', '', p.off + '% cố định × ' + moneyShort(p.sums.off)) : '') +
+        (p.sums.hol ? kpi('🎉 Đơn ngày lễ', moneyShort(p.cm.hol), '', '', p.hol + '% cố định × ' + moneyShort(p.sums.hol)) : '') +
         (p.sen ? kpi('🎖 Phụ cấp thâm niên', moneyShort(p.sen), '', '', '') : '') + kpi('Tổng tạm tính', moneyShort(p.total), 'good', '', 'chưa gồm thưởng') + '</div>' +
         (nx ? '<p class="small" style="margin:8px 0 0">📈 Thêm <b>' + money(nx[0] - p.rev) + '</b> doanh thu nữa là lên bậc ' + moneyShort(nx[0]) + ': lương cơ bản ' + moneyShort(nx[1]) + ', hoa hồng ' + nx[3][p.si][0] + '% / ' + nx[3][p.si][1] + '%.</p>' : '')
         : '<p class="notice" style="margin:0">Doanh thu dưới ' + money(T[0][0]) + ': <b>hỗ trợ theo năng lực</b> (quản lý quyết). Còn ' + money(T[0][0] - p.rev) + ' nữa là vào bậc đầu.</p>') +
-      '<p class="small muted" style="margin:8px 0 0">Hoa hồng tính trên tiền hàng (không gồm phí ship). Đơn Ngoài giờ / Ngày lễ tính theo khách cũ / mới. Tạm tính theo dữ liệu CRM, số chốt lương do kế toán đối chiếu.</p></div>';
+      '<p class="small muted" style="margin:8px 0 0">Hoa hồng tính trên tiền hàng (không gồm phí ship). Đơn sale chốt tối / Chủ nhật và ngày lễ tính % cố định (theo loại đơn sale chọn khi lên đơn); đơn khách tự đặt web lúc tối / lễ tính như đơn web thường. Tạm tính theo dữ liệu CRM, số chốt lương do kế toán đối chiếu.</p></div>';
   }
   function ppTable(month) {
     if (!ppOn()) return '';
     var R = monthRange(month), names = {}; S.d.orders.forEach(function (o) { if (o.seller && o.time >= R[0] && o.time < R[1]) names[o.seller] = 1; });
     var rows = Object.keys(names).map(function (nm) { return [nm, payOf(nm, month)]; }).filter(function (r) { return r[1] && r[1].rev; }).sort(function (a, b) { return b[1].rev - a[1].rev; });
     if (!rows.length) return '';
-    return '<div class="box pp-box"><h3 style="margin:0 0 6px">💰 Thu nhập tạm tính từng người (Phụ lục 01)</h3><div class="bcdt-wrap"><table class="bcdt"><thead><tr><th>Nhân sự</th><th>Doanh thu</th><th>Bậc</th><th>Thâm niên</th><th>Lương cố định</th><th>HH khách cũ</th><th>HH khách mới</th><th>HH web tự đặt</th><th>Phụ cấp</th><th>Tổng</th></tr></thead><tbody>' +
-      rows.map(function (r) { var p = r[1]; return '<tr><td>' + esc(r[0]) + '</td><td>' + money(p.rev) + '</td><td>' + (p.tier ? 'từ ' + moneyShort(p.tier[0]) : 'hỗ trợ theo năng lực') + '</td><td>' + (p.mo < 0 ? '⚠️ thiếu ngày' : PP_SEN[p.si]) + '</td><td>' + money(p.fixed) + '</td><td>' + money(p.cm.old) + '</td><td>' + money(p.cm.nw) + '</td><td>' + money(p.cm.auto) + '</td><td>' + money(p.sen) + '</td><td><b>' + money(p.total) + '</b></td></tr>'; }).join('') +
+    return '<div class="box pp-box"><h3 style="margin:0 0 6px">💰 Thu nhập tạm tính từng người (Phụ lục 01)</h3><div class="bcdt-wrap"><table class="bcdt"><thead><tr><th>Nhân sự</th><th>Doanh thu</th><th>Bậc</th><th>Thâm niên</th><th>Lương cố định</th><th>HH khách cũ</th><th>HH khách mới</th><th>HH web tự đặt</th><th>HH tối / CN / lễ</th><th>Phụ cấp</th><th>Tổng</th></tr></thead><tbody>' +
+      rows.map(function (r) { var p = r[1]; return '<tr><td>' + esc(r[0]) + '</td><td>' + money(p.rev) + '</td><td>' + (p.tier ? 'từ ' + moneyShort(p.tier[0]) : 'hỗ trợ theo năng lực') + '</td><td>' + (p.mo < 0 ? '⚠️ thiếu ngày' : PP_SEN[p.si]) + '</td><td>' + money(p.fixed) + '</td><td>' + money(p.cm.old) + '</td><td>' + money(p.cm.nw) + '</td><td>' + money(p.cm.auto) + '</td><td>' + money(p.cm.off + p.cm.hol) + '</td><td>' + money(p.sen) + '</td><td><b>' + money(p.total) + '</b></td></tr>'; }).join('') +
       '</tbody></table></div><p class="small muted" style="margin:8px 0 0">Bậc dưới ' + moneyShort(S.d.rules.payplan.tiers[0][0]) + ' = hỗ trợ theo năng lực (không tự tính lương cố định, hoa hồng). Chưa gồm thưởng.</p></div>';
   }
   function ppSetHtml() {
@@ -6681,6 +6683,7 @@
       P.tiers.concat(ed ? [[0, 0, 0, [[0, 0], [0, 0], [0, 0]]]] : []).map(function (t) { return '<div class="pp-tier pp-row">' + inp(t[0] ? t[0] / 1e6 : '') + inp(t[1] ? t[1].toLocaleString('vi-VN') : '') + inp(t[2] ? t[2].toLocaleString('vi-VN') : '') + t[3].map(function (r) { return inp(t[0] ? r[0] : '') + inp(t[0] ? r[1] : ''); }).join('') + '</div>'; }).join('') + '</div>' +
       '<p class="small muted" style="margin:4px 0 8px">Dòng trống cuối: thêm bậc. Xoá số ở ô “Doanh thu từ” để bỏ bậc.</p>' +
       '<div class="row2c"><label class="f"><span>🎖 Phụ cấp thâm niên trên 3 năm (đ/tháng)</span>' + inp(sv(36).toLocaleString('vi-VN'), 'ppS3') + '</label><label class="f"><span>🎖 Trên 5 năm (đ/tháng)</span>' + inp(sv(60).toLocaleString('vi-VN'), 'ppS5') + '</label></div>' +
+      '<div class="row2c"><label class="f"><span>🌙 Đơn tối / Chủ nhật (Ngoài giờ): % cố định</span>' + inp(P.off == null ? 6 : P.off, 'ppOff') + '</label><label class="f"><span>🎉 Đơn ngày lễ: % cố định</span>' + inp(P.hol == null ? 10 : P.hol, 'ppHol') + '</label></div>' +
       '<label class="f"><span>🌐 Khách mới tự đặt trên web, không qua link của sale: tính bao nhiêu % mức khách mới</span>' + inp(wa, 'ppWa') + '</label>' +
       '<p class="hint">Khách mới đặt qua <b>link riêng của sale</b> tính đủ % khách mới. Khách tự tìm đến web (quảng cáo, Google) được máy chia cho sale thì sale chỉ gọi xác nhận, nên tính ' + wa + '%. Từ đơn thứ 2 là khách cũ, tính đủ % khách cũ.</p>' +
       (ed ? '<button class="btn pri" id="ppSave">Lưu bảng lương & hoa hồng</button>' : '') + '</div>';
@@ -7116,7 +7119,7 @@
       var b = this, num = function (v) { return parseFloat(String(v).replace(/\./g, '').replace(',', '.')) || 0; }, pc = function (v) { return parseFloat(String(v).replace(',', '.')) || 0; };
       var tiers = $$('.pp-row').map(function (r) { var q = $$('input', r).map(function (i) { return i.value; }); return [pc(q[0]) * 1e6, num(q[1]), num(q[2]), [[pc(q[3]), pc(q[4])], [pc(q[5]), pc(q[6])], [pc(q[7]), pc(q[8])]]]; }).filter(function (t) { return t[0] > 0; });
       b.disabled = true;
-      api('settings', { payplan: { on: $('#ppOn').checked, tiers: tiers, webAuto: pc($('#ppWa').value), senior: [[36, num($('#ppS3').value)], [60, num($('#ppS5').value)]] } }).then(function (j) { S.d.rules.payplan = j.payplan; toast('Đã lưu bảng lương & hoa hồng ✓'); b.disabled = false; }, function (e) { toast(e.message, true); b.disabled = false; });
+      api('settings', { payplan: { on: $('#ppOn').checked, tiers: tiers, webAuto: pc($('#ppWa').value), off: pc($('#ppOff').value), hol: pc($('#ppHol').value), senior: [[36, num($('#ppS3').value)], [60, num($('#ppS5').value)]] } }).then(function (j) { S.d.rules.payplan = j.payplan; toast('Đã lưu bảng lương & hoa hồng ✓'); b.disabled = false; }, function (e) { toast(e.message, true); b.disabled = false; });
     };
     if ($('#cmSave')) $('#cmSave').onclick = function () {
       var b = this, cm = {}; $$('[data-cm]').forEach(function (x) { cm[x.getAttribute('data-cm')] = x.value.trim(); }); b.disabled = true;
