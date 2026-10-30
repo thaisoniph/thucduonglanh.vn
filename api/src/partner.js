@@ -15,7 +15,13 @@ import { vcNorm, vcLabel, makeRefCode } from './voucher.js';
 
 const LIVE = "status NOT LIKE '%uỷ%' AND status NOT LIKE '%ủy%' AND status NOT LIKE '%oàn%'";
 const DAY = 864e5, RETURN_DAYS = 7, TAX_FROM = 2000000, TAX_PCT = 10;
-const DEF = { rate: 10, months: 6, refPct: 10, rwPct: 10, auto: 1, tierN: 3, tierGift: '1 hộp Trà DILVANG', ctvN: 5, bonus: 50000, goalN: 20, goalGift: 'Liên hoan cả nhóm' };
+// 30/10/2026 anh Sơn chọn: mỗi bạn mua = voucher tròn rwAmt (50.000đ, dễ hình dung hơn % đơn của bạn); bậc quà sản phẩm `tiers` [[số bạn, quà]] (mỗi mốc tặng 1 lần).
+// rwAmt = 0 → quay về rwPct % tiền hàng. tierN / tierGift: bản cũ (1 mốc), giữ để trả cho trang web cũ còn trong bộ nhớ đệm.
+const DEF_TIERS = [[3, '1 hộp Trà DILVANG'], [5, 'Combo 3 hũ Ruốc Rong Biển'], [10, '1 hộp Bữa Ăn Dinh Dưỡng 500g + danh hiệu Đại sứ Vàng']];
+const DEF = { rate: 10, months: 6, refPct: 10, rwPct: 10, rwAmt: 50000, auto: 1, tiers: DEF_TIERS, tierN: 3, tierGift: '1 hộp Trà DILVANG', ctvN: 5, bonus: 50000, goalN: 20, goalGift: 'Liên hoan cả nhóm' };
+const CTV_T = 1000; // ref_tiers.tier của mốc mời làm CTV = 1000 + ctvN (để không trùng mốc quà cùng số người)
+/** Bậc quà đã sắp xếp: [{n, gift}] */
+export function ladder(c) { return (Array.isArray(c.tiers) ? c.tiers : [[c.tierN, c.tierGift]]).map(t => ({ n: Math.round(Number(t[0]) || 0), gift: String(t[1] || '').trim() })).filter(t => t.n > 0 && t.gift).sort((a, b) => a.n - b.n); }
 export async function partnerCfg(x) { let c = {}; try { c = JSON.parse((await kvGet(x.db, 'partner_cfg')) || '{}'); } catch (e) { } return Object.assign({}, DEF, c); }
 
 export async function partnerSchema(db) {
@@ -34,6 +40,10 @@ export async function partnerSchema(db) {
   await add('orders', [['ref_told', 'INTEGER DEFAULT 0']]); // đã báo khách voucher cảm ơn tự động
   // mốc thưởng của người giới thiệu: tier = số bạn (3 → quà, 5 → mời làm CTV). done_at trống = sale chưa làm
   await run(db, `CREATE TABLE IF NOT EXISTS ref_tiers (phone TEXT, tier INTEGER, at INTEGER, done_at INTEGER, done_by TEXT DEFAULT '', note TEXT DEFAULT '', PRIMARY KEY (phone, tier))`);
+  if (!(await first(db, "SELECT v FROM kv WHERE k = 'rt_ctv_mig'"))) { // 30/10/2026: mốc mời CTV cũ ghi tier = ctvN (5) → 1000 + 5, vì nay 5 người cũng là 1 mốc quà
+    await run(db, 'UPDATE OR IGNORE ref_tiers SET tier = ? + tier WHERE tier = 5', CTV_T);
+    await run(db, "INSERT INTO kv (k, v) VALUES ('rt_ctv_mig', '1') ON CONFLICT(k) DO NOTHING");
+  }
   // 🌱 sale được ghi công khách mới nhờ khách cũ giới thiệu (30/10/2026): 1 dòng / khách mới. ok_at = lúc đủ điều kiện thưởng, void = 1 không thưởng (trùng địa chỉ người giới thiệu)
   await run(db, `CREATE TABLE IF NOT EXISTS ref_sale (phone TEXT PRIMARY KEY, sale TEXT DEFAULT '', ref_phone TEXT DEFAULT '', at INTEGER, src TEXT DEFAULT '', amount INTEGER DEFAULT 0, ok_at INTEGER, order_id TEXT DEFAULT '', void INTEGER DEFAULT 0, by_name TEXT DEFAULT '')`);
   await run(db, 'CREATE INDEX IF NOT EXISTS orders_partner ON orders(partner)');
@@ -73,7 +83,7 @@ async function refCodeFor(x, u, d) {
   if (!await first(x.db, 'SELECT phone FROM customers WHERE phone = ?', phone)) return { ok: false, error: 'Không tìm thấy khách.' };
   const r = await makeRefCode(x, phone, u.name, cfg.refPct);
   if (!r) return { ok: false, error: 'Khách chưa có đơn hàng nào (không tính đơn huỷ / hoàn) nên chưa tạo được mã giới thiệu.' };
-  return { ok: true, code: r.code, label: r.label, used: (await first(x.db, "SELECT count(*) AS n FROM orders WHERE voucher = ? AND " + LIVE, r.code)).n, isNew: !!r.isNew, cfg: { rwPct: cfg.rwPct, tierN: cfg.tierN, tierGift: cfg.tierGift, auto: cfg.auto } };
+  return { ok: true, code: r.code, label: r.label, used: (await first(x.db, "SELECT count(*) AS n FROM orders WHERE voucher = ? AND " + LIVE, r.code)).n, isNew: !!r.isNew, cfg: { rwPct: cfg.rwPct, rwAmt: cfg.rwAmt, tiers: ladder(cfg), tierN: cfg.tierN, tierGift: cfg.tierGift, auto: cfg.auto } };
 }
 /** Sale tặng quà / voucher cảm ơn khách đã giới thiệu (theo đơn của người được giới thiệu). */
 async function refGift(x, u, d, log) {
@@ -117,7 +127,7 @@ export async function refAuto(x) {
     let txt;
     if (same) txt = '⛔ Không tự tặng: ' + same + ' với người giới thiệu (quản lý xem lại, muốn tặng thì tạo mã ở 🎟 Mã ưu đãi)';
     else {
-      const value = Math.max(10000, Math.floor(((Number(o.total) || 0) - (Number(o.shipping) || 0)) * cfg.rwPct / 100 / 1000) * 1000), exp = vnDay(Date.now() + 90 * DAY);
+      const value = cfg.rwAmt > 0 ? Math.round(cfg.rwAmt) : Math.max(10000, Math.floor(((Number(o.total) || 0) - (Number(o.shipping) || 0)) * cfg.rwPct / 100 / 1000) * 1000), exp = vnDay(Date.now() + 90 * DAY);
       let code = 'CAMON' + rp.slice(-4), i = 0; while (await first(x.db, 'SELECT code FROM vouchers WHERE code = ?', code)) code = 'CAMON' + rp.slice(-4) + 'BCDEFGHKMNPQRSTUVXYZ'.charAt(i++ % 20) + (i > 20 ? Math.ceil(i / 20) : ''); // CAMON5522, CAMON5522B, CAMON5522C…
       await run(x.db, "INSERT INTO vouchers (code, kind, value, max_off, min_sub, exp, max_uses, once, phone, note, active, created, by_name) VALUES (?, 'amount', ?, 0, 0, ?, 1, 1, ?, ?, 1, ?, 'Tự động')",
         code, value, exp, rp, 'Cảm ơn giới thiệu đơn ' + o.id + ' (tự động)', Date.now());
@@ -132,9 +142,10 @@ export async function refAuto(x) {
   for (const rp of Object.keys(hit)) {
     const n = (await first(x.db, 'SELECT count(DISTINCT phone) AS n FROM orders WHERE ref_phone = ? AND ' + rewarded, rp)).n;
     const rc = (await first(x.db, 'SELECT name, owner, partner FROM customers WHERE phone = ?', rp)) || {}, who = rc.name || rp;
-    for (const [tier, msg] of [[cfg.tierN, '🏅 ' + who + ' đã giới thiệu ' + n + ' người mua → tặng ' + cfg.tierGift + '. Vào tab Hôm nay bấm "Đã gửi quà" khi gửi xong.'],
-      [cfg.ctvN, '🌟 ' + who + ' đã giới thiệu ' + n + ' người mua → mời làm Cộng tác viên (hoa hồng ' + cfg.rate + '%). Quản lý thêm CTV ở Cài đặt → 🤝.']]) {
-      if (!(tier > 0) || n < tier || (tier === cfg.ctvN && rc.partner)) continue;
+    const marks = ladder(cfg).map(t => [t.n, t.n, '🏅 ' + who + ' đã giới thiệu ' + n + ' người mua → đủ mốc ' + t.n + ' người, tặng ' + t.gift + '. Vào tab Hôm nay bấm "Đã gửi quà" khi gửi xong.']);
+    if (cfg.ctvN > 0 && !rc.partner) marks.push([CTV_T + cfg.ctvN, cfg.ctvN, '🌟 ' + who + ' đã giới thiệu ' + n + ' người mua → mời làm Cộng tác viên (hoa hồng ' + cfg.rate + '%). Quản lý thêm CTV ở Cài đặt → 🤝.']);
+    for (const [tier, need, msg] of marks) {
+      if (n < need) continue;
       const r = await run(x.db, 'INSERT OR IGNORE INTO ref_tiers (phone, tier, at) VALUES (?, ?, ?)', rp, tier, Date.now());
       if (r && r.meta && r.meta.changes) out.push({ owner: rc.owner || '', text: msg });
     }
@@ -214,14 +225,16 @@ export async function refMe(x, d) {
     vouchers.push({ code: v.code, label: vcLabel(v), exp: v.exp });
   }
   const tiers = (await all(x.db, 'SELECT tier, done_at FROM ref_tiers WHERE phone = ?', phone)).map(t => ({ tier: t.tier, done: !!t.done_at }));
-  return { ok: true, code: r.code, pct: cfg.refPct, rwPct: cfg.rwPct, tierN: cfg.tierN, tierGift: cfg.tierGift, friends, n: friends.filter(f => f.st === 'done').length, vouchers, tiers };
+  const L = ladder(cfg);
+  return { ok: true, code: r.code, pct: cfg.refPct, rwPct: cfg.rwPct, rwAmt: cfg.rwAmt, ladder: L, tierN: L.length ? L[0].n : 0, tierGift: L.length ? L[0].gift : '', friends, n: friends.filter(f => f.st === 'done').length, vouchers, tiers: tiers.filter(t => t.tier < CTV_T) };
 }
 
 /** CRM tab Hôm nay: mốc thưởng chưa làm (sale thấy khách mình phụ trách). */
 async function tierList(x, u) {
   const cfg = await partnerCfg(x);
   const rows = await all(x.db, "SELECT t.phone, t.tier, t.at, c.name, c.owner, (SELECT count(DISTINCT o.phone) FROM orders o WHERE o.ref_phone = t.phone AND coalesce(o.ref_gift, '') != '' AND o.ref_gift NOT LIKE '⛔%') AS n FROM ref_tiers t LEFT JOIN customers c ON c.phone = t.phone WHERE t.done_at IS NULL ORDER BY t.at");
-  return { ok: true, cfg: { tierN: cfg.tierN, tierGift: cfg.tierGift, ctvN: cfg.ctvN, rate: cfg.rate, auto: cfg.auto }, list: rows.filter(r => u.level >= 2 || r.owner === u.name).map(r => ({ phone: r.phone, tier: r.tier, at: r.at, name: r.name || '', owner: r.owner || '', n: r.n, kind: r.tier === cfg.ctvN ? 'ctv' : 'gift' })) };
+  const L = ladder(cfg), gOf = n => (L.filter(t => t.n === n)[0] || { gift: cfg.tierGift }).gift;
+  return { ok: true, cfg: { tierN: cfg.tierN, tierGift: cfg.tierGift, ctvN: cfg.ctvN, rate: cfg.rate, auto: cfg.auto }, list: rows.filter(r => u.level >= 2 || r.owner === u.name).map(r => ({ phone: r.phone, tier: r.tier, at: r.at, name: r.name || '', owner: r.owner || '', n: r.n, kind: r.tier >= CTV_T ? 'ctv' : 'gift', gift: r.tier >= CTV_T ? '' : gOf(r.tier), need: r.tier % CTV_T })) };
 }
 
 /* ------------------------------------------------------------ 🤝 CTV / đối tác (Quản lý trở lên) */
@@ -356,7 +369,7 @@ export async function crmPartner(x, u, d, log, staffNames) {
   if (a === 'ref_tier_done') {
     const note = String(d.note || '').trim().slice(0, 200);
     await run(x.db, 'UPDATE ref_tiers SET done_at = ?, done_by = ?, note = ? WHERE phone = ? AND tier = ?', Date.now(), u.name, note, normPhone(d.phone), Number(d.tier) || 0);
-    await log(x, u, Number(d.tier) === (await partnerCfg(x)).ctvN ? 'Mời làm CTV' : 'Quà mốc giới thiệu', normPhone(d.phone), '', note || 'Đã làm', 'Mốc ' + d.tier + ' người');
+    await log(x, u, Number(d.tier) >= CTV_T ? 'Mời làm CTV' : 'Quà mốc giới thiệu', normPhone(d.phone), '', note || 'Đã làm', 'Mốc ' + (Number(d.tier) % CTV_T) + ' người');
     return tierList(x, u);
   }
   if (u.level < 2) return { ok: false, error: 'Chỉ Quản lý và Quản trị quản lý cộng tác viên.' };
@@ -369,11 +382,14 @@ export async function crmPartner(x, u, d, log, staffNames) {
     const c = await partnerCfg(x), rate = Number(d.rate), months = Math.round(Number(d.months)), refPct = Number(d.refPct);
     const rwPct = d.rwPct == null ? c.rwPct : Number(d.rwPct), tierN = d.tierN == null ? c.tierN : Math.round(Number(d.tierN)), ctvN = d.ctvN == null ? c.ctvN : Math.round(Number(d.ctvN));
     const tierGift = d.tierGift == null ? c.tierGift : String(d.tierGift).trim().slice(0, 80), auto = d.auto == null ? c.auto : d.auto ? 1 : 0;
+    const rwAmt = d.rwAmt == null ? c.rwAmt : Math.round(Number(d.rwAmt) || 0);
+    const tiers = Array.isArray(d.tiers) ? d.tiers.map(t => [Math.round(Number(t[0]) || 0), String(t[1] || '').trim().slice(0, 100)]).filter(t => t[0] > 0 && t[1]).slice(0, 6) : c.tiers;
+    if (!(rwAmt >= 0 && rwAmt <= 1000000) || tiers.some(t => t[0] > 100)) return { ok: false, error: 'Kiểm tra lại: voucher cảm ơn 0–1.000.000đ, mốc quà tối đa 100 người.' };
     if (!(rate >= 0 && rate <= 50) || !(months >= 1 && months <= 36) || !(refPct >= 0 && refPct <= 30)) return { ok: false, error: 'Kiểm tra lại: hoa hồng 0–50%, thời hạn 1–36 tháng, giảm cho bạn được giới thiệu 0–30%.' };
     if (!(rwPct >= 0 && rwPct <= 30) || !(tierN >= 0 && tierN <= 50) || !(ctvN >= 0 && ctvN <= 100)) return { ok: false, error: 'Kiểm tra lại: voucher cảm ơn 0–30%, mốc quà 0–50 người, mốc mời CTV 0–100 người.' };
-    await kvSet(x.db, 'partner_cfg', JSON.stringify(Object.assign({}, c, { rate, months, refPct, rwPct, auto, tierN, tierGift, ctvN }))); // giữ thưởng sale / mục tiêu nhóm
+    await kvSet(x.db, 'partner_cfg', JSON.stringify(Object.assign({}, c, { rate, months, refPct, rwPct, rwAmt, tiers, auto, tierN, tierGift, ctvN }))); // giữ thưởng sale / mục tiêu nhóm
     if (refPct !== c.refPct) await run(x.db, "UPDATE vouchers SET value = ? WHERE coalesce(ref_phone, '') != '' AND kind = 'percent'", refPct); // mã giới thiệu đã phát theo % mới
-    await log(x, u, 'Cài đặt CTV', '', '', 'Hoa hồng ' + rate + '% · ' + months + ' tháng · bạn được giới thiệu giảm ' + refPct + '% · voucher cảm ơn ' + rwPct + '%' + (auto ? '' : ' (tắt tự động)') + ' · ' + tierN + ' bạn → ' + tierGift + ' · ' + ctvN + ' bạn → mời CTV', '');
+    await log(x, u, 'Cài đặt CTV', '', '', 'Hoa hồng ' + rate + '% · ' + months + ' tháng · bạn được giới thiệu giảm ' + refPct + '% · voucher cảm ơn ' + (rwAmt > 0 ? fmt(rwAmt) : rwPct + '%') + (auto ? '' : ' (tắt tự động)') + ' · ' + tiers.map(t => t[0] + ' bạn → ' + t[1]).join(' · ') + ' · ' + ctvN + ' bạn → mời CTV', '');
     return pList(x);
   }
   return { ok: false, error: 'Không rõ thao tác: ' + a };

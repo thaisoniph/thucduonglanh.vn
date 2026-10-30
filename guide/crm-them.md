@@ -69,7 +69,16 @@ Mỗi bạn có **một link web riêng**, ví dụ `thucduonglanh.vn/?ref=thuy`
 
 ## Khách cũ giới thiệu bạn bè (🌱 Đại sứ Sống Lành)
 
-Khách đã mua thì ai cũng có **link giới thiệu riêng**. Bạn bè của khách **mua lần đầu** trên web được **giảm 10%**. Khách được **voucher cảm ơn** bằng 10% đơn của bạn. Đủ **3 người bạn mua** thì khách được tặng thêm **1 hộp Trà DILVANG**.
+Khách đã mua thì ai cũng có **link giới thiệu riêng**. Bạn bè của khách **mua lần đầu** trên web được **giảm 10%**. Quà cho khách (từ 30/10/2026, cộng dồn):
+
+| Số bạn đã mua | Khách được |
+|---|---|
+| Mỗi 1 bạn | Voucher **50.000đ** cho lần mua sau |
+| Đủ 3 bạn | Tặng thêm **1 hộp Trà DILVANG** |
+| Đủ 5 bạn | Tặng thêm **Combo 3 hũ Ruốc Rong Biển** + mời làm CTV |
+| Đủ 10 bạn | Tặng thêm **1 hộp Bữa Ăn Dinh Dưỡng 500g** + danh hiệu **Đại sứ Vàng** |
+
+Nói với khách cho dễ nhớ: *"Mỗi bạn chị giới thiệu mua, chị có 50 nghìn. Đủ 3 bạn bên em tặng thêm hộp trà, đủ 10 bạn tặng hộp Bữa ăn dinh dưỡng."* Khách xem mình đã được mấy bạn, còn mấy bạn nữa tới quà ở trang **thucduonglanh.vn/gioi-thieu-ban-be/** (thanh 🌱 tô dần).
 
 **Khách tự lấy link** ở trang **thucduonglanh.vn/gioi-thieu-ban-be/** (nhập số điện thoại đã mua), hoặc ngay trên trang cảm ơn sau khi đặt hàng. Trong gói hàng có **thẻ QR**. Khách quét thẻ là vào trang đó.
 
@@ -88,10 +97,10 @@ Khách đã mua thì ai cũng có **link giới thiệu riêng**. Bạn bè củ
 1. Tab **Hôm nay** có mục **🌱 Mời làm Đại sứ** (nằm sau Khách hỏi cần liên hệ): mỗi ngày tối đa 5 khách của bạn đã nhận hàng 7–30 ngày. Hỏi "Chị dùng thấy thế nào ạ?". Khách khen thì bấm **Gửi mã**, rồi bấm **📋 Copy tin & mở Zalo** để gửi khách. Khách chưa hài lòng hoặc chưa tiện thì bấm **Để sau**, khách ẩn 30 ngày. Bấm vào tên khách là mở hồ sơ.
    - Khách đang có trong việc **Chăm sóc khách** hôm nay thì không hiện ở mục này. Thẻ khách đó có nhãn **🌱 Mời giới thiệu**: gọi chăm sóc xong, khách thấy hợp thì bấm nhãn đó luôn. Gọi 1 lần làm được cả 2 việc. Khách khen sản phẩm lúc khác thì mở hồ sơ, bấm **🎁 Mã giới thiệu**.
 2. Có bạn đặt hàng thì Telegram báo bạn.
-3. Đơn của bạn ấy **giao xong 7 ngày** thì CRM **tự tạo voucher cảm ơn** (mã `CAMON…`, chỉ số của khách mới dùng được, hạn 90 ngày). Bạn không cần tính tiền.
+3. Đơn của bạn ấy **giao xong 7 ngày** thì CRM **tự tạo voucher 50.000đ** (mã `CAMON…`, chỉ số của khách mới dùng được, hạn 90 ngày). Bạn không cần tính tiền.
 4. Tab **Hôm nay** hiện mục **🎁 Cảm ơn khách giới thiệu**:
    - **📋 Báo khách mã**: copy tin có sẵn mã, gửi qua Zalo. Gửi xong mục đó tự ẩn.
-   - **🏅 Gửi quà**: khách đủ 3 người. Hỏi khách gửi quà kèm đơn sau hay gửi riêng. Gửi xong bấm **✅ Đã gửi quà**.
+   - **🏅 Gửi quà**: khách đủ mốc 3, 5 hoặc 10 bạn (thẻ ghi rõ quà gì). Hỏi khách gửi quà kèm đơn sau hay gửi riêng. Gửi xong bấm **✅ Đã gửi quà**.
    - **🌟 Mời làm CTV**: khách đủ 5 người. Gửi tin mời, báo quản lý để thêm khách làm CTV.
 
 ### 💬 Kịch bản gọi: khách hài lòng → mời giới thiệu

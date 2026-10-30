@@ -1222,11 +1222,16 @@
     var h = '<div class="rf-res"><p class="rf-eye">Link giới thiệu của bạn</p><div class="rf-link"><input type="text" readonly value="' + esc(refUrl(j)) + '" aria-label="Link giới thiệu"><button type="button" class="btn" data-rf-copy="link">Copy link</button></div>' +
       '<p class="rf-code">Bạn bè cũng có thể nhập mã <b>' + esc(j.code) + '</b> hoặc số điện thoại của bạn vào ô “Có mã ưu đãi” khi đặt hàng.</p>' +
       '<div class="rf-acts"><button type="button" class="btn btn-lg" data-rf-share>📤 Gửi cho bạn bè</button><button type="button" class="btn btn-ghost" data-rf-copy="msg">📋 Copy tin nhắn mẫu</button></div>';
-    if (j.tierN) {
-      var got = (j.tiers || []).filter(function (t) { return t.tier === j.tierN; })[0], n = Math.min(j.n, j.tierN), dots = '';
-      for (var i = 0; i < j.tierN; i++) dots += '<i class="' + (i < n ? 'on' : '') + '"></i>';
-      h += '<div class="rf-prog"><div class="rf-dots">' + dots + '</div><p>' + (got ? (got.done ? '🎉 Bạn đã nhận quà mốc ' + j.tierN + ' người: ' + esc(j.tierGift) + '. Cảm ơn bạn!' : '🎉 Bạn đã giới thiệu đủ ' + j.tierN + ' người! Nhân viên sẽ liên hệ gửi bạn ' + esc(j.tierGift) + '.')
-        : 'Đã có <b>' + j.n + '</b> người bạn mua. Còn <b>' + (j.tierN - n) + '</b> người nữa là nhận <b>' + esc(j.tierGift) + '</b>.') + '</p></div>';
+    // 30/10/2026: thanh 🌱 tô theo số bạn đã mua + bậc quà (3 / 5 / 10 bạn). Máy chủ cũ chỉ có tierN / tierGift → 1 bậc.
+    var L = j.ladder || (j.tierN ? [{ n: j.tierN, gift: j.tierGift }] : []);
+    if (L.length) {
+      var max = L[L.length - 1].n, n = Math.min(j.n, max), mk = {}, dots = '', nx = null;
+      L.forEach(function (t) { mk[t.n] = 1; if (!nx && j.n < t.n) nx = t; });
+      for (var i = 1; i <= max; i++) dots += '<i class="' + (i <= n ? 'on' : '') + (mk[i] ? ' mk' : '') + '">' + (mk[i] ? (i <= n ? '🎁' : i) : '') + '</i>';
+      h += '<div class="rf-prog"><p class="rf-eye">🌱 Hành trình Đại sứ của bạn</p><div class="rf-dots">' + dots + '</div>' +
+        '<p>Đã có <b>' + j.n + '</b> người bạn mua' + (j.rwAmt ? ' · mỗi người bạn mua, bạn nhận voucher <b>' + lb((j.rwAmt + '').replace(/\B(?=(\d{3})+(?!\d))/g, '.') + 'đ') + '</b>' : '') + '.' + (nx ? ' Còn <b>' + (nx.n - j.n) + '</b> người nữa là nhận <b>' + esc(nx.gift) + '</b>.' : ' 🎉 Bạn đã đạt mọi mốc quà. Cảm ơn bạn!') + '</p><ul class="rf-ladder">' +
+        L.map(function (t) { var got = (j.tiers || []).filter(function (x) { return x.tier === t.n; })[0];
+          return '<li class="' + (j.n >= t.n ? 'ok' : '') + '"><b>' + t.n + ' bạn</b><span>' + esc(t.gift) + '</span><em>' + (got ? (got.done ? '✅ Đã nhận' : '🎉 Nhân viên sẽ liên hệ gửi quà') : j.n >= t.n ? '🎉 Đã đạt' : 'còn ' + (t.n - j.n) + ' bạn') + '</em></li>'; }).join('') + '</ul></div>';
     }
     if (j.vouchers && j.vouchers.length) h += '<div class="rf-vcs"><p class="rf-eye">🎟 Voucher của bạn</p>' + j.vouchers.map(function (v) { return '<div class="rf-vc"><span><b>' + esc(v.code) + '</b> · ' + lb(v.label) + (v.exp ? ' · hạn ' + dmy(v.exp) : '') + '</span><button type="button" class="btn btn-sm" data-rf-use="' + esc(v.code) + '">Dùng ngay</button></div>'; }).join('') + '<small>Voucher gắn với số điện thoại của bạn: khi đặt hàng nhập đúng số này.</small></div>';
     var st = { done: '✅ Đã tặng voucher cảm ơn', wait: '⏳ Chờ giao hàng + 7 ngày', void: '✖ Đơn đã huỷ / hoàn', no: '⛔ Không tính (trùng số hoặc địa chỉ)' };

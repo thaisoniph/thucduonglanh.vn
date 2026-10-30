@@ -51,9 +51,21 @@
   "referral": {
     "enabled": true,
     "friend_pct": 10,
-    "reward_pct": 10,
-    "tier_n": 3,
-    "tier_gift": "1 hộp Trà DILVANG",
+    "reward_amt": 50000,
+    "tiers": [
+      {
+        "n": 3,
+        "gift": "1 hộp Trà DILVANG"
+      },
+      {
+        "n": 5,
+        "gift": "Combo 3 hũ Ruốc Rong Biển"
+      },
+      {
+        "n": 10,
+        "gift": "1 hộp Bữa Ăn Dinh Dưỡng 500g + danh hiệu Đại sứ Vàng"
+      }
+    ],
     "ctv_n": 5
   },
   "web_offer": {

@@ -687,9 +687,15 @@ collections:
             fields:
               - { label: "Hiện trang và ô giới thiệu", name: enabled, widget: boolean, default: true }
               - { label: "Bạn được giới thiệu giảm (%) đơn đầu", name: friend_pct, widget: number, value_type: int, min: 0, max: 30, default: 10 }
-              - { label: "Voucher cảm ơn người giới thiệu (% đơn của bạn)", name: reward_pct, widget: number, value_type: int, min: 0, max: 30, default: 10 }
-              - { label: "Mốc quà: số bạn mua", name: tier_n, widget: number, value_type: int, min: 0, max: 50, default: 3 }
-              - { label: "Quà khi đạt mốc", name: tier_gift, widget: string, default: "1 hộp Trà DILVANG" }
+              - { label: "Voucher cảm ơn mỗi bạn mua (đ)", name: reward_amt, widget: number, value_type: int, min: 0, max: 1000000, default: 50000 }
+              - label: "Bậc quà (mỗi mốc tặng 1 lần)"
+                name: tiers
+                widget: list
+                required: false
+                summary: "{{fields.n}} bạn → {{fields.gift}}"
+                fields:
+                  - { label: "Đủ (số bạn mua)", name: n, widget: number, value_type: int, min: 1, max: 100 }
+                  - { label: "Quà", name: gift, widget: string }
               - { label: "Mời làm CTV khi đủ (số bạn mua)", name: ctv_n, widget: number, value_type: int, min: 0, max: 100, default: 5 }
           - label: "Ưu đãi chỉ có khi đặt trên website"
             name: web_offer

@@ -7238,7 +7238,7 @@
     api('ref_code', { phone: c.phone }).then(function (j) {
       var box = $('#rfMain', m); if (!box) return;
       var pct = (String(j.label).match(/[\d.,]+%/) || [''])[0], url = 'https://thucduonglanh.vn/?uudai=' + encodeURIComponent(j.code) + '&ref=' + refCode(c.owner || S.user.name);
-      var txt = fillTpl('Dạ [Tên] ơi, cảm ơn [Tên] đã tin dùng Thực Dưỡng Lành ❤️ Em gửi [Tên] mã giới thiệu riêng: ' + j.code + '. Bạn bè, người thân của [Tên] đặt hàng lần đầu trên web nhập mã này (hoặc số điện thoại của [Tên]) được giảm ' + pct + '. Mỗi người bạn nhận hàng xong, [Tên] được tặng voucher ' + (j.cfg ? j.cfg.rwPct : 10) + '% giá trị đơn của bạn ấy' + (j.cfg && j.cfg.tierN ? ', đủ ' + j.cfg.tierN + ' người tặng thêm ' + j.cfg.tierGift : '') + ' ạ. [Tên] xem bạn bè đã mua và quà của mình tại ' + REF_PAGE + '\n[Tên] chỉ cần chuyển tiếp tin dưới đây cho bạn bè nhé:\n\n---\nMình đang dùng sản phẩm của Thực Dưỡng Lành thấy hợp nên giới thiệu bạn. Đặt lần đầu trên web nhập mã ' + j.code + ' được giảm ' + pct + ' (bấm link là mã tự áp dụng): ' + url, c);
+      var txt = fillTpl('Dạ [Tên] ơi, cảm ơn [Tên] đã tin dùng Thực Dưỡng Lành ❤️ Em gửi [Tên] mã giới thiệu riêng: ' + j.code + '. Bạn bè, người thân của [Tên] đặt hàng lần đầu trên web nhập mã này (hoặc số điện thoại của [Tên]) được giảm ' + pct + '. Mỗi người bạn mua và nhận hàng, [Tên] được ' + rfGiftTxt(j.cfg) + ' ạ. [Tên] xem bạn bè đã mua và quà của mình tại ' + REF_PAGE + '\n[Tên] chỉ cần chuyển tiếp tin dưới đây cho bạn bè nhé:\n\n---\nMình đang dùng sản phẩm của Thực Dưỡng Lành thấy hợp nên giới thiệu bạn. Đặt lần đầu trên web nhập mã ' + j.code + ' được giảm ' + pct + ' (bấm link là mã tự áp dụng): ' + url, c);
       box.innerHTML = '<div class="box rf-code"><b style="font-size:20px;letter-spacing:1px">' + esc(j.code) + '</b> <span class="small">' + esc(j.label) + ' đơn đầu cho bạn bè</span><p class="small muted" style="margin:6px 0 0">' + (j.used ? '🎉 Đã có <b>' + j.used + '</b> người đặt bằng mã này.' : 'Chưa có ai dùng mã.') + ' Chỉ khách <b>mua lần đầu</b> dùng được, khách không tự dùng mã của mình.</p></div>' +
         refScript(c, j) +
         '<label class="f"><span>Tin gửi khách (sửa được)</span><textarea id="rfText" rows="9">' + esc(txt) + '</textarea></label>' +
@@ -7248,15 +7248,18 @@
       if (S._rb && S._rb.inv && S._rb.inv.indexOf(c.phone) < 0) S._rb.inv.push(c.phone); // 🌱 đã có mã → bỏ khỏi mục Mời làm Đại sứ
     }, function (e) { var box = $('#rfMain', m); if (box) box.innerHTML = '<p class="err">' + esc(e.message) + '</p>'; });
   }
+  /** Quà cho người giới thiệu, viết để khách dễ hình dung (30/10/2026): "voucher 50.000đ … Đủ 3 bạn tặng thêm …, đủ 5 bạn …". cf = cfg máy chủ (rwAmt, tiers [{n, gift}]). */
+  function rfLadder(cf) { cf = cf || {}; var T = cf.tiers || (cf.tierN ? [{ n: cf.tierN, gift: cf.tierGift }] : []); return T.map(function (t) { return 'đủ ' + t.n + ' bạn tặng thêm ' + t.gift; }).join(', '); }
+  function rfGiftTxt(cf) { cf = cf || {}; var L = rfLadder(cf); return (cf.rwAmt > 0 ? 'voucher ' + money(cf.rwAmt) : 'voucher ' + (cf.rwPct || 10) + '% giá trị đơn của bạn ấy') + ' để [Tên] mua lần sau' + (L ? '. ' + L.charAt(0).toUpperCase() + L.slice(1) : ''); }
   /** 💬 Kịch bản gọi khi khách hài lòng → mời giới thiệu (30/10/2026). Quà lấy theo Cài đặt 🤝 (j.cfg). Không nói công dụng chữa bệnh. */
   function refScript(c, j) {
     var cf = j.cfg || {}, pct = (String(j.label).match(/[\d.,]+%/) || ['10%'])[0];
-    var gift = 'voucher ' + (cf.rwPct || 10) + '% giá trị đơn của bạn ấy để [Tên] mua lần sau' + (cf.tierN ? ', đủ ' + cf.tierN + ' bạn bên em tặng thêm ' + cf.tierGift : '');
+    var gift = rfGiftTxt(cf);
     var st = [
       ['1. Hỏi thăm, để khách tự nói cảm nhận', 'Dạ anh/chị [Tên] dùng [Sản phẩm] được một thời gian rồi, mình thấy hợp không ạ? Cả nhà mình dùng có quen không ạ?', 'Lắng nghe, để khách nói hết. Khách khen thì mới sang bước 2. Khách chưa hài lòng thì hỏi cách dùng, hẹn gọi lại, bấm <b>Để sau</b>.'],
       ['2. Cảm ơn, nói ý nghĩa', 'Em mừng quá ạ. Thực Dưỡng Lành đang có hành trình giúp 10 triệu người Việt ăn uống lành hơn. Cách lan toả tốt nhất là từ người dùng thật như anh/chị, vì người thân tin lời [Tên] hơn tin quảng cáo ạ.', ''],
       ['3. Gợi đúng người cần', 'Trong nhà mình, bố mẹ, anh chị em hay bạn bè, đồng nghiệp, có ai đang muốn ăn uống lành mạnh hơn không ạ?', 'Gợi cụ thể theo khách: bố mẹ lớn tuổi, chị em sau sinh, bạn ăn chay, đồng nghiệp hay ăn ngoài.'],
-      ['4. Nói lợi ích cho cả hai', 'Bạn của [Tên] đặt lần đầu được giảm ' + pct + '. Còn mỗi người bạn nhận hàng xong, [Tên] được ' + gift + '. [Tên] xem bạn nào đã mua và quà của mình ngay trên web ạ.', ''],
+      ['4. Nói lợi ích cho cả hai', 'Bạn của [Tên] đặt lần đầu được giảm ' + pct + '. Còn mỗi người bạn mua và nhận hàng, [Tên] được ' + gift + '. [Tên] xem bạn nào đã mua và quà của mình ngay trên web ạ.', ''],
       ['5. Làm thật dễ cho khách', 'Em gửi [Tên] 1 tin qua Zalo, [Tên] chỉ cần chuyển tiếp cho bạn là xong, không phải giải thích gì. Hoặc [Tên] cho em xin tên và số của bạn, em gọi tư vấn giúp, vẫn tính là [Tên] giới thiệu ạ.', 'Khách đồng ý: bấm <b>📋 Copy tin & mở Zalo</b> bên dưới. Khách cho số bạn: <b>＋ Thêm khách hỏi</b>, ô <i>Khách đến từ đâu</i> chọn <b>Khách giới thiệu</b> rồi chọn [Tên].']
     ];
     var ob = [
@@ -7283,7 +7286,7 @@
     var who = function (ph) { var rc = cust(ph); return { rc: rc, name: rc ? rc.name || ph : ph, own: lvl() >= 2 && rc && rc.owner ? ' · 👤 ' + esc(rc.owner) : '' }; };
     return '<section class="section"><div class="section-h"><h2>🎁 Cảm ơn khách giới thiệu</h2><span class="count">' + n + '</span><span class="tip">' + (auto ? 'voucher đã tự tạo, bạn nhắn khách mã qua Zalo' : 'nên tặng khi đơn đã giao') + '</span></div><div class="list">' +
       tiers.map(function (t) { var w = who(t.phone);
-        return '<div class="card"><div class="r1"><b>' + esc(w.name) + '</b><span class="small">' + (t.kind === 'ctv' ? '🌟 đã giới thiệu ' + t.n + ' người mua → mời làm Cộng tác viên' : '🏅 đã giới thiệu ' + t.n + ' người mua → tặng ' + esc(rt.cfg.tierGift)) + '</span></div><div class="small muted" style="margin:4px 0">' + fPhone(t.phone) + w.own + '</div>' +
+        return '<div class="card"><div class="r1"><b>' + esc(w.name) + '</b><span class="small">' + (t.kind === 'ctv' ? '🌟 đã giới thiệu ' + t.n + ' người mua → mời làm Cộng tác viên' : '🏅 đủ mốc ' + (t.need || t.tier) + ' bạn → tặng ' + esc(t.gift || rt.cfg.tierGift)) + '</span></div><div class="small muted" style="margin:4px 0">' + fPhone(t.phone) + w.own + '</div>' +
           '<div class="acts"><button class="btn pri" data-reftier="' + t.phone + '|' + t.tier + '">' + (t.kind === 'ctv' ? '🌟 Mời làm CTV' : '🎁 Gửi quà') + '</button>' + (w.rc ? '<button class="btn ghost" data-cust="' + t.phone + '">Hồ sơ</button>' : '') + '</div></div>'; }).join('') +
       tell.map(function (o) { var w = who(o.refPhone);
         return '<div class="card"><div class="r1"><b>' + esc(w.name) + '</b><span class="small">giới thiệu</span><b>' + esc(o.name) + '</b></div><div class="small muted" style="margin:4px 0">🎟 ' + esc(o.refGift.split(' · ')[0]) + ' · đơn ' + esc(o.id) + w.own + '</div>' +
@@ -7310,7 +7313,7 @@
     var ph = key.split('|')[0], tier = +key.split('|')[1], rt = S._rt || { list: [], cfg: {} }, t = rt.list.filter(function (x) { return x.phone === ph && x.tier === tier; })[0]; if (!t) return;
     var rc = cust(ph) || { name: '', phone: ph }, ctv = t.kind === 'ctv';
     var txt = fillTpl(ctv ? 'Dạ [Tên] ơi, cảm ơn [Tên] đã giới thiệu ' + t.n + ' người bạn tin dùng Thực Dưỡng Lành ạ ❤️ Bên em trân trọng mời [Tên] làm Cộng tác viên: mỗi khách mới [Tên] giới thiệu, [Tên] nhận ' + rt.cfg.rate + '% tiền hàng mọi đơn của khách đó trong 6 tháng, trả bằng tiền. [Tên] quan tâm thì em gửi thông tin chi tiết nhé!'
-      : 'Dạ [Tên] ơi, [Tên] đã giới thiệu được ' + t.n + ' người bạn tin dùng Thực Dưỡng Lành rồi ạ 🎉 Em xin gửi tặng [Tên] ' + rt.cfg.tierGift + ' để cảm ơn. Em gửi kèm đơn tới của [Tên] hay gửi riêng về địa chỉ cũ ạ?', rc);
+      : 'Dạ [Tên] ơi, [Tên] đã giới thiệu được ' + t.n + ' người bạn tin dùng Thực Dưỡng Lành rồi ạ 🎉 Em xin gửi tặng [Tên] ' + (t.gift || rt.cfg.tierGift) + ' để cảm ơn. Em gửi kèm đơn tới của [Tên] hay gửi riêng về địa chỉ cũ ạ?', rc);
     var m = modal((ctv ? '🌟 Mời làm CTV – ' : '🏅 Quà cảm ơn – ') + esc(rc.name || ph), '<label class="f"><span>Tin gửi khách (sửa được)</span><textarea id="rtMsg" rows="6">' + esc(txt) + '</textarea></label>' +
       '<label class="f"><span>Ghi chú (vd ' + (ctv ? 'đã thêm CTV / khách chưa muốn' : 'gửi kèm đơn TDL… / gửi riêng ngày…') + ')</span><input type="text" id="rtNote" maxlength="200"></label>' + (ctv ? '<p class="small muted">Khách đồng ý: quản lý thêm ở Cài đặt → 🤝 Cộng tác viên → ＋ Thêm CTV.</p>' : ''),
       '<button class="btn" id="rtGo">📋 Copy tin & mở Zalo</button><button class="btn pri" id="rtDone">✅ ' + (ctv ? 'Đã mời' : 'Đã gửi quà') + '</button><button class="btn ghost" data-close>Đóng</button>');
@@ -7434,7 +7437,7 @@
     function fail(e) { toast(e.message, true); }
     function list() {
       var j = D.j, cfg = j.cfg, r = j.refs || {}; foot(true);
-      var h = '<p class="small muted" style="margin:0 0 10px">Mặc định: hoa hồng <b>' + cfg.rate + '%</b> · tính đơn mua lại <b>' + cfg.months + ' tháng</b> · bạn được khách cũ giới thiệu giảm <b>' + cfg.refPct + '%</b> đơn đầu · người giới thiệu nhận voucher <b>' + cfg.rwPct + '%</b>' + (cfg.auto ? ' (tự động)' : ' (tặng tay)') + (cfg.tierN ? ' · đủ ' + cfg.tierN + ' bạn tặng ' + esc(cfg.tierGift) : '') + '.<br>🎁 Khách giới thiệu: ' + (r.codes || 0) + ' mã đã phát · ' + (r.orders || 0) + ' đơn từ bạn bè · ' + (r.gifts || 0) + ' lần đã tặng quà.</p>';
+      var h = '<p class="small muted" style="margin:0 0 10px">Mặc định: hoa hồng <b>' + cfg.rate + '%</b> · tính đơn mua lại <b>' + cfg.months + ' tháng</b> · bạn được khách cũ giới thiệu giảm <b>' + cfg.refPct + '%</b> đơn đầu · người giới thiệu nhận voucher <b>' + (cfg.rwAmt > 0 ? money(cfg.rwAmt) : cfg.rwPct + '%') + '</b> mỗi bạn' + (cfg.auto ? ' (tự động)' : ' (tặng tay)') + ' · ' + esc(rfLadder({ tiers: (cfg.tiers || []).map(function (t) { return { n: t[0], gift: t[1] }; }) })) + '.<br>🎁 Khách giới thiệu: ' + (r.codes || 0) + ' mã đã phát · ' + (r.orders || 0) + ' đơn từ bạn bè · ' + (r.gifts || 0) + ' lần đã tặng quà.</p>';
       if (!j.list.length) h += empty('Chưa có CTV nào. Bấm ＋ Thêm CTV (5–10 người thử trước).');
       else h += '<div class="list">' + j.list.map(function (p, i) {
         return '<div class="card"' + (p.active ? '' : ' style="opacity:.6"') + '><div class="r1"><b>' + esc(p.name) + '</b><span class="small">' + esc(p.kind) + ' · ' + p.rate + '%</span>' + (p.active ? '' : '<span class="small muted">· tạm dừng</span>') + '</div>' +
@@ -7505,13 +7508,14 @@
         '<label class="f"><span>🎁 Bạn được khách cũ giới thiệu giảm (%) đơn đầu</span><input type="text" inputmode="decimal" id="pcRef" value="' + c.refPct + '"></label>' +
         '<h3 style="margin:14px 0 4px">🌱 Cảm ơn khách giới thiệu (Đại sứ Sống Lành)</h3>' +
         '<label class="switch"><input type="checkbox" id="pcAuto"' + (c.auto ? ' checked' : '') + '> Tự tạo voucher cảm ơn khi đơn của bạn bè đã giao + 7 ngày (8h sáng mỗi ngày)</label>' +
-        '<label class="f"><span>Voucher cảm ơn = (%) tiền hàng đơn đầu của bạn bè</span><input type="text" inputmode="decimal" id="pcRw" value="' + c.rwPct + '"></label>' +
-        '<div class="row2c"><label class="f"><span>Mốc quà: đủ (người mua)</span><input type="number" min="0" max="50" id="pcTn" value="' + c.tierN + '"></label><label class="f"><span>Quà khi đạt mốc</span><input type="text" id="pcTg" maxlength="80" value="' + esc(c.tierGift) + '"></label></div>' +
+        '<div class="row2c"><label class="f"><span>Voucher cảm ơn mỗi bạn mua (đ)</span><input type="text" inputmode="numeric" id="pcRa" value="' + (c.rwAmt || 0) + '"></label><label class="f"><span>Nếu để 0đ: voucher = (%) tiền hàng của bạn</span><input type="text" inputmode="decimal" id="pcRw" value="' + c.rwPct + '"></label></div>' +
+        '<p class="small" style="margin:8px 0 4px"><b>Bậc quà</b> (mỗi mốc tặng 1 lần, để trống dòng nào thì bỏ mốc đó)</p>' +
+        [0, 1, 2, 3].map(function (i) { var t = (c.tiers || [])[i] || ['', '']; return '<div class="row2c pc-tier"><label class="f"><span>Đủ (bạn mua)</span><input type="number" min="0" max="100" value="' + esc(t[0]) + '"></label><label class="f"><span>Quà</span><input type="text" maxlength="100" value="' + esc(t[1]) + '"></label></div>'; }).join('') +
         '<label class="f"><span>Mời làm CTV khi đủ (người mua), 0 = không mời</span><input type="number" min="0" max="100" id="pcCn" value="' + c.ctvN + '"></label>' +
         '<p class="small muted">Đổi % mặc định không đổi % của CTV đã có (sửa từng người). Đổi % giảm cho bạn được giới thiệu: mọi mã giới thiệu đã phát đổi theo. Đổi các mức ở đây thì sửa luôn chữ trên trang web (/admin → Cài đặt chung → Giới thiệu bạn bè) cho khớp.</p>' +
         '<div class="steps" style="margin-top:12px"><button class="btn pri" id="pcSave">Lưu</button><button class="btn ghost" id="ptBack">Quay lại</button></div>';
       $('#ptBack', m).onclick = list;
-      $('#pcSave', m).onclick = function () { var b = this; b.disabled = true; api('partner_cfg', { rate: parseFloat($('#pcRate', m).value.replace(',', '.')), months: +$('#pcMon', m).value, refPct: parseFloat($('#pcRef', m).value.replace(',', '.')), auto: $('#pcAuto', m).checked, rwPct: parseFloat($('#pcRw', m).value.replace(',', '.')), tierN: +$('#pcTn', m).value, tierGift: $('#pcTg', m).value, ctvN: +$('#pcCn', m).value }).then(function (j) { done(j); toast('Đã lưu'); }, function (e) { fail(e); b.disabled = false; }); };
+      $('#pcSave', m).onclick = function () { var b = this; b.disabled = true; api('partner_cfg', { rate: parseFloat($('#pcRate', m).value.replace(',', '.')), months: +$('#pcMon', m).value, refPct: parseFloat($('#pcRef', m).value.replace(',', '.')), auto: $('#pcAuto', m).checked, rwPct: parseFloat($('#pcRw', m).value.replace(',', '.')), rwAmt: parseMoney($('#pcRa', m).value), tiers: $$('.pc-tier', m).map(function (r) { var q = $$('input', r); return [+q[0].value || 0, q[1].value.trim()]; }).filter(function (t) { return t[0] > 0 && t[1]; }), ctvN: +$('#pcCn', m).value }).then(function (j) { done(j); toast('Đã lưu'); }, function (e) { fail(e); b.disabled = false; }); };
     }
     $('#ptNew').onclick = function () { form(null); };
     $('#ptCfgB').onclick = cfgForm;
