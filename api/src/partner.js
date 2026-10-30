@@ -15,7 +15,7 @@ import { vcNorm, vcLabel, makeRefCode } from './voucher.js';
 
 const LIVE = "status NOT LIKE '%uỷ%' AND status NOT LIKE '%ủy%' AND status NOT LIKE '%oàn%'";
 const DAY = 864e5, RETURN_DAYS = 7, TAX_FROM = 2000000, TAX_PCT = 10;
-const DEF = { rate: 10, months: 6, refPct: 10, rwPct: 10, auto: 1, tierN: 3, tierGift: '1 hộp Trà DILVANG', ctvN: 5 };
+const DEF = { rate: 10, months: 6, refPct: 10, rwPct: 10, auto: 1, tierN: 3, tierGift: '1 hộp Trà DILVANG', ctvN: 5, bonus: 50000, goalN: 20, goalGift: 'Liên hoan cả nhóm' };
 export async function partnerCfg(x) { let c = {}; try { c = JSON.parse((await kvGet(x.db, 'partner_cfg')) || '{}'); } catch (e) { } return Object.assign({}, DEF, c); }
 
 export async function partnerSchema(db) {
@@ -34,6 +34,8 @@ export async function partnerSchema(db) {
   await add('orders', [['ref_told', 'INTEGER DEFAULT 0']]); // đã báo khách voucher cảm ơn tự động
   // mốc thưởng của người giới thiệu: tier = số bạn (3 → quà, 5 → mời làm CTV). done_at trống = sale chưa làm
   await run(db, `CREATE TABLE IF NOT EXISTS ref_tiers (phone TEXT, tier INTEGER, at INTEGER, done_at INTEGER, done_by TEXT DEFAULT '', note TEXT DEFAULT '', PRIMARY KEY (phone, tier))`);
+  // 🌱 sale được ghi công khách mới nhờ khách cũ giới thiệu (30/10/2026): 1 dòng / khách mới. ok_at = lúc đủ điều kiện thưởng, void = 1 không thưởng (trùng địa chỉ người giới thiệu)
+  await run(db, `CREATE TABLE IF NOT EXISTS ref_sale (phone TEXT PRIMARY KEY, sale TEXT DEFAULT '', ref_phone TEXT DEFAULT '', at INTEGER, src TEXT DEFAULT '', amount INTEGER DEFAULT 0, ok_at INTEGER, order_id TEXT DEFAULT '', void INTEGER DEFAULT 0, by_name TEXT DEFAULT '')`);
   await run(db, 'CREATE INDEX IF NOT EXISTS orders_partner ON orders(partner)');
   await run(db, 'CREATE INDEX IF NOT EXISTS orders_ref_phone ON orders(ref_phone)');
 }
@@ -138,6 +140,56 @@ export async function refAuto(x) {
     }
   }
   return out;
+}
+
+/* ------------------------------------------------------------ 🌱 Sale giữ khách + thưởng khách mới nhờ khách cũ giới thiệu (30/10/2026) */
+// Anh Sơn chọn: khách MỚI (số chưa có trong CRM: chưa là khách, chưa là khách hỏi, chưa có đơn) do khách cũ giới thiệu → thuộc về sale đang phụ trách
+// khách cũ đó; sale được thưởng `bonus`đ (mặc định 50.000) khi đơn đầu của khách mới đã giao + 7 ngày. Mục tiêu cả nhóm: goalN khách mới / tháng → goalGift.
+/** Ghi công cho sale nếu đủ điều kiện. Trả tên sale (rồi người gọi giao khách cho sale đó) hoặc ''. skipLead = id khách hỏi vừa tạo cho chính lượt này. */
+export async function refClaim(x, phone, refPhone, src, by, skipLead) {
+  phone = normPhone(phone); refPhone = normPhone(refPhone);
+  if (!phone || !refPhone || phone === refPhone) return '';
+  const rc = await first(x.db, "SELECT owner FROM customers WHERE phone = ? AND orders > 0 AND coalesce(owner, '') != ''", refPhone); if (!rc) return '';
+  const su = await first(x.db, 'SELECT role, active FROM users WHERE name = ?', rc.owner); if (su && (!su.active || su.role === 'Marketing')) return ''; // sale đã nghỉ → không ghi công
+  if (await first(x.db, 'SELECT phone FROM ref_sale WHERE phone = ?', phone) || await first(x.db, 'SELECT phone FROM customers WHERE phone = ?', phone) ||
+    await first(x.db, 'SELECT rid FROM orders WHERE phone = ? LIMIT 1', phone) || await first(x.db, 'SELECT rid FROM leads WHERE phone = ? AND id != ? LIMIT 1', phone, String(skipLead || ''))) return ''; // đã có trong CRM
+  const cfg = await partnerCfg(x);
+  await run(x.db, 'INSERT OR IGNORE INTO ref_sale (phone, sale, ref_phone, at, src, amount, by_name) VALUES (?, ?, ?, ?, ?, ?, ?)', phone, rc.owner, refPhone, Date.now(), src, Math.round(Number(cfg.bonus) || 0), by || '');
+  return rc.owner;
+}
+/** Cron 8h: đơn đầu (không huỷ / hoàn) của khách mới đã giao + 7 ngày → ghi thưởng cho sale. Trả [{owner, text}] để báo Telegram. */
+export async function refSaleAuto(x) {
+  const out = [];
+  for (const r of await all(x.db, 'SELECT * FROM ref_sale WHERE ok_at IS NULL AND void = 0')) {
+    const o = await first(x.db, 'SELECT id, name, address, ward, status, time, ship_at, received_at FROM orders WHERE phone = ? AND ' + LIVE + ' ORDER BY time LIMIT 1', r.phone);
+    if (!o || !ready(o)) continue;
+    const rc = (await first(x.db, 'SELECT name, address, ward FROM customers WHERE phone = ?', r.ref_phone)) || {}, ak = addrKey(o.address, o.ward);
+    if (ak && ak === addrKey(rc.address, rc.ward)) { // cùng địa chỉ với người giới thiệu → không thưởng, quản lý xem lại
+      await run(x.db, 'UPDATE ref_sale SET void = 1, order_id = ? WHERE phone = ?', o.id, r.phone);
+      out.push({ owner: r.sale, text: '⛔ Không tính thưởng giới thiệu cho ' + r.sale + ': ' + (o.name || r.phone) + ' trùng địa chỉ với người giới thiệu ' + (rc.name || r.ref_phone) + ' (đơn ' + o.id + '). Quản lý xem lại.' });
+      continue;
+    }
+    await run(x.db, 'UPDATE ref_sale SET ok_at = ?, order_id = ? WHERE phone = ?', Date.now(), o.id, r.phone);
+    if (r.amount > 0) out.push({ owner: r.sale, text: '🎉 ' + r.sale + ' +' + fmt(r.amount) + ' thưởng giới thiệu: ' + (o.name || r.phone) + ' (do ' + (rc.name || r.ref_phone) + ' giới thiệu) đã nhận hàng đơn ' + o.id + '.' });
+  }
+  return out;
+}
+/** CRM: danh sách khách mới nhờ giới thiệu (sale chỉ thấy của mình) + số của cả nhóm theo tháng (mục tiêu nhóm) + khách đã có mã giới thiệu (để mời làm Đại sứ). */
+async function bonusList(x, u) {
+  const cfg = await partnerCfg(x), since = Date.now() - 400 * DAY;
+  const rows = await all(x.db, `SELECT r.phone, r.sale, r.ref_phone, r.at, r.src, r.amount, r.ok_at, r.order_id, r.void, c.name AS name, rc.name AS ref_name,
+    (SELECT name FROM leads l WHERE l.phone = r.phone ORDER BY l.rid LIMIT 1) AS lname,
+    (SELECT o.time || '|' || o.status FROM orders o WHERE o.phone = r.phone AND o.${LIVE.replace(/ AND status/g, ' AND o.status')} ORDER BY o.time LIMIT 1) AS fo,
+    (SELECT count(*) FROM orders o WHERE o.phone = r.phone) AS n
+    FROM ref_sale r LEFT JOIN customers c ON c.phone = r.phone LEFT JOIN customers rc ON rc.phone = r.ref_phone WHERE r.at >= ?`, since);
+  const team = {}, L = rows.map(r => {
+    const f = r.fo ? String(r.fo).split('|') : null, ft = f ? Number(f[0]) : null;
+    const st = r.void ? 'void' : r.ok_at ? 'ok' : !f ? (r.n ? 'void' : 'wait') : /đã giao/i.test(f[1]) ? 'hold' : 'ship';
+    if (ft && !r.void) { const m = new Date(ft + 7 * 3600e3).toISOString().slice(0, 7); team[m] = (team[m] || 0) + 1; }
+    return { phone: r.phone, name: r.name || r.lname || '', sale: r.sale, refPhone: r.ref_phone, refName: r.ref_name || '', at: r.at, src: r.src, amount: r.amount || 0, okAt: r.ok_at || null, first: ft, st };
+  }).filter(r => u.level >= 2 || r.sale === u.name);
+  const inv = (await all(x.db, "SELECT DISTINCT v.ref_phone AS p FROM vouchers v JOIN customers c ON c.phone = v.ref_phone WHERE coalesce(v.ref_phone, '') != ''" + (u.level >= 2 ? '' : ' AND c.owner = ?'), ...(u.level >= 2 ? [] : [u.name]))).map(r => r.p);
+  return { ok: true, cfg: { bonus: cfg.bonus, goalN: cfg.goalN, goalGift: cfg.goalGift }, list: L, team, inv };
 }
 
 /** Web /gioi-thieu-ban-be/ + trang cảm ơn: khách nhập SĐT đã mua → link / mã giới thiệu, bạn bè đã mua (tên che), voucher đang có, mốc quà.
@@ -291,6 +343,16 @@ export async function crmPartner(x, u, d, log, staffNames) {
   if (a === 'ref_gift') return refGift(x, u, d, log);
   if (a === 'ref_told') { await run(x.db, 'UPDATE orders SET ref_told = 1 WHERE id = ?', String(d.id || '')); const o = await first(x.db, 'SELECT ref_phone, ref_gift, name FROM orders WHERE id = ?', String(d.id || '')); if (o) await log(x, u, 'Báo voucher cảm ơn', o.ref_phone, '', o.ref_gift, 'Giới thiệu ' + (o.name || '')); return { ok: true }; }
   if (a === 'ref_tiers') return tierList(x, u);
+  if (a === 'ref_bonus') return bonusList(x, u);
+  if (a === 'ref_goal') { // thưởng sale + mục tiêu nhóm: chỉ Quản lý trở lên
+    if (u.level < 2) return { ok: false, error: 'Chỉ Quản lý và Quản trị đổi mục này.' };
+    const c = await partnerCfg(x), bonus = Math.round(Number(d.bonus)), goalN = Math.round(Number(d.goalN)), goalGift = String(d.goalGift || '').trim().slice(0, 80);
+    if (!(bonus >= 0 && bonus <= 1000000) || !(goalN >= 0 && goalN <= 1000)) return { ok: false, error: 'Kiểm tra lại: thưởng 0–1.000.000đ, mục tiêu nhóm 0–1000 khách.' };
+    await kvSet(x.db, 'partner_cfg', JSON.stringify(Object.assign({}, c, { bonus, goalN, goalGift })));
+    if (bonus !== c.bonus) await run(x.db, 'UPDATE ref_sale SET amount = ? WHERE ok_at IS NULL AND void = 0', bonus); // khách chưa đủ điều kiện → theo mức mới
+    await log(x, u, 'Cài đặt CTV', '', '', 'Thưởng sale ' + fmt(bonus) + ' / khách mới nhờ giới thiệu · mục tiêu nhóm ' + goalN + ' khách / tháng' + (goalGift ? ' → ' + goalGift : ''), '');
+    return bonusList(x, u);
+  }
   if (a === 'ref_tier_done') {
     const note = String(d.note || '').trim().slice(0, 200);
     await run(x.db, 'UPDATE ref_tiers SET done_at = ?, done_by = ?, note = ? WHERE phone = ? AND tier = ?', Date.now(), u.name, note, normPhone(d.phone), Number(d.tier) || 0);
@@ -309,7 +371,7 @@ export async function crmPartner(x, u, d, log, staffNames) {
     const tierGift = d.tierGift == null ? c.tierGift : String(d.tierGift).trim().slice(0, 80), auto = d.auto == null ? c.auto : d.auto ? 1 : 0;
     if (!(rate >= 0 && rate <= 50) || !(months >= 1 && months <= 36) || !(refPct >= 0 && refPct <= 30)) return { ok: false, error: 'Kiểm tra lại: hoa hồng 0–50%, thời hạn 1–36 tháng, giảm cho bạn được giới thiệu 0–30%.' };
     if (!(rwPct >= 0 && rwPct <= 30) || !(tierN >= 0 && tierN <= 50) || !(ctvN >= 0 && ctvN <= 100)) return { ok: false, error: 'Kiểm tra lại: voucher cảm ơn 0–30%, mốc quà 0–50 người, mốc mời CTV 0–100 người.' };
-    await kvSet(x.db, 'partner_cfg', JSON.stringify({ rate, months, refPct, rwPct, auto, tierN, tierGift, ctvN }));
+    await kvSet(x.db, 'partner_cfg', JSON.stringify(Object.assign({}, c, { rate, months, refPct, rwPct, auto, tierN, tierGift, ctvN }))); // giữ thưởng sale / mục tiêu nhóm
     if (refPct !== c.refPct) await run(x.db, "UPDATE vouchers SET value = ? WHERE coalesce(ref_phone, '') != '' AND kind = 'percent'", refPct); // mã giới thiệu đã phát theo % mới
     await log(x, u, 'Cài đặt CTV', '', '', 'Hoa hồng ' + rate + '% · ' + months + ' tháng · bạn được giới thiệu giảm ' + refPct + '% · voucher cảm ơn ' + rwPct + '%' + (auto ? '' : ' (tắt tự động)') + ' · ' + tierN + ' bạn → ' + tierGift + ' · ' + ctvN + ' bạn → mời CTV', '');
     return pList(x);

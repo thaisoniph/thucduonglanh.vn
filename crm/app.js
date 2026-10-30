@@ -1162,7 +1162,7 @@
       '<div class="bar"><i style="width:' + pc + '%"></i></div>' +
       (q.list.length && (!wn || wn === S.user.name) ? '<button class="btn pri lg block" data-flow>▶ Bắt đầu gọi lần lượt</button>' : '') +
       (q.rest ? '<p class="small muted" style="margin:8px 0 0">Còn ' + q.rest + ' khách để các ngày sau (tối đa ' + dayLimit() + ' khách/ngày, đổi ở <a href="#cai-dat">Cài đặt</a>).</p>' : '') +
-      (lvl() < 2 ? todayGoalLine() : '') + '</section>';
+      (lvl() < 2 ? todayGoalLine() + refSaleLine() : '') + '</section>';
     // Đợt 2 (16/10/2026): sale mở máy thấy ngay khách cần gọi; mục tiêu chi tiết + thi đua + báo cáo cuối ngày chuyển xuống cuối trang. Quản lý giữ thi đua + ô số ở đầu.
     if (lvl() >= 2) {
       h += raceBlock(); // bảng thi đua: quản lý thấy cả bảng, kể cả khi đang lọc 1 nhân viên
@@ -1201,6 +1201,7 @@
         '<div class="rows">' + capRows(arr, rowCard) + '</div></details>';
     });
     h += '</section>';
+    h += ambBlock(); // 🌱 sau việc chăm sóc: mời khách đang dùng tốt làm Đại sứ (gửi mã giới thiệu)
 
     h += '<section class="section"><div class="section-h"><h2>' + (hot.length ? '4️⃣' : '3️⃣') + ' Khách hỏi cần liên hệ</h2>' + (ld.length ? '<span class="count">' + ld.length + '</span>' : '') + '<span class="tip">người hỏi mua nhưng chưa mua</span></div>' +
       (ld.length ? '<details class="grp" data-grp="leads"' + (S.f.gopen && S.f.gopen.leads ? ' open' : '') + '><summary><span class="g-t">🙋 Người hỏi cần liên hệ</span><span class="count">' + ld.length + '</span><span class="g-tip">' + (hot.length ? 'đến hẹn, 3 ngày chưa liên hệ, hoặc hỏi đã lâu mà chưa ai liên hệ' : 'mới hỏi, đến hẹn hoặc 3 ngày chưa liên hệ') + '</span></summary><div class="list cols" style="padding:10px">' + ld.map(leadCard).join('') + '</div></details>' : empty('Không có khách hỏi cần liên hệ 🎉')) +
@@ -1208,7 +1209,7 @@
 
     if (doneToday.length) h += '<section class="section"><details class="grp" data-grp="done"' + (S.f.gopen && S.f.gopen.done ? ' open' : '') + '><summary><span class="g-t">✅ Đã làm hôm nay</span><span class="count">' + doneToday.length + '</span></summary><div class="timeline" style="padding:12px">' +
       doneToday.slice(0, 40).map(logItem).join('') + '</div></details></section>';
-    if (lvl() < 2) h += '<section class="section td-tail"><div class="section-h"><h2>🏁 Mục tiêu & thi đua</h2></div>' + myGoalToday() + raceBlock() + '</section>';
+    if (lvl() < 2) h += '<section class="section td-tail"><div class="section-h"><h2>🏁 Mục tiêu & thi đua</h2></div>' + myGoalToday() + refSaleBox(S.user.name) + raceBlock() + '</section>';
     h += '<button class="btn block" data-daily="' + esc(lvl() >= 2 ? wn || '' : S.user.name) + '" style="margin-top:12px">📋 Báo cáo cuối ngày (bảng)</button>';
     return h;
   }
@@ -3111,7 +3112,7 @@
       var btn = this, label = btn.textContent; btn.disabled = true; btn.textContent = 'Đang lưu…';
       api('lead_save', p).then(function (j) {
         closeModal(true); if (edit) history.replaceState(null, '', '#tiem-nang');
-        toast(j.merged ? 'Số này đã có – đã ghi nối vào khách cũ ✓' : 'Đã lưu ✓');
+        toast(j.merged ? 'Số này đã có – đã ghi nối vào khách cũ ✓' : j.refTo ? (j.refTo === S.user.name ? '🌱 Đã lưu ✓ Khách mới do khách cũ của bạn giới thiệu: khách mua & nhận hàng là bạn được thưởng' : '🌱 Đã lưu ✓ Khách mới do khách của ' + j.refTo + ' giới thiệu nên giao cho ' + j.refTo) : 'Đã lưu ✓');
         if (!edit && location.hash.indexOf('#tiem-nang') !== 0 && location.hash.indexOf('#hom-nay') !== 0) location.hash = '#tiem-nang';
         load(true);
       }, function (e) { btn.disabled = false; btn.textContent = label; err.textContent = e.message; });
@@ -6072,6 +6073,7 @@
     var h = (lvl() >= 2 && !me ? '<button class="btn ghost" data-who="team" style="margin-bottom:10px">← Quay lại cả nhóm</button>' : '') +
       targetBlock(name, month, ms, me || lvl() >= 2, c.avg || p.avg) + repMoneyLine(c, p, cx);
     h += '<section class="dash-hero">' + repTodo(c, p, me, mb) + repSteps(c, p, mk, mb, T) + repFix(c, p, mb, T, mk && mk.best) + '</section>';
+    h += refSaleBox(name);
     h += '<h2 class="dash-more-h">Xem chi tiết <small class="muted">(bấm để mở)</small></h2>';
     h += repMore('rtrend', '📈 Bán hàng theo ngày', 'Doanh số, số đơn, lượt chăm sóc từng ngày, so với ' + (CMP_LABEL || 'kỳ trước'), repTrend(name, cx));
     h += smkMore(mk, mb, smkInvest(mk, mb, who, cx.label).replace(/<button class="link" data-rgo="mkt">[^<]*<\/button>/, '') + repFunnel(c, who));
@@ -6166,6 +6168,7 @@
     // 29/10/2026: cùng thứ tự màn hình 1 người: mục tiêu → việc cần làm → 6 bước → khâu cần sửa nhất → từng người → chi tiết → công cụ
     h += '<section class="dash-hero">' + repMgrTodo(rows, all, cx, noSeller) + repSteps(all, prev, mk, mk && mk.team, mk && mk.team) + repFix(all, prev, mk && mk.team, mk && mk.team, mk && mk.best) +
       teamBlock() /* tiến độ hôm nay (việc trễ, đơn chưa xác nhận…) ngay trong Hiệu quả, quản lý không phải sang tab Hôm nay */ + repPeople(rows, all, cx) + '</section>';
+    h += refSaleBox(null);
     h += '<h2 class="dash-more-h">Xem chi tiết <small class="muted">(bấm để mở)</small></h2>';
     var lead = rows[0] && rows[0].sales ? rows[0] : null;
     h += rows.length >= 2 ? repMore('cmp', '📊 So sánh nhân viên', 'Xếp hạng theo doanh số, số đơn, tỷ lệ chốt, % mục tiêu…' + (lead ? ' · dẫn đầu: ' + esc(lead.n) : ''), compareBlock(rows, cx)) : '';
@@ -7240,6 +7243,7 @@
         '<p class="small muted" style="margin:6px 0 0">Bạn bè đặt bằng mã: khách mới tự giao cho ' + esc(c.owner || S.user.name) + ' phụ trách, đơn giao xong 7 ngày thì CRM tự tạo voucher cảm ơn, tab Hôm nay hiện mục <b>🎁 Cảm ơn khách giới thiệu</b> để bạn nhắn mã cho ' + esc(c.name || 'khách') + '.</p>' +
         '<div class="steps" style="margin-top:10px"><button class="btn pri" id="rfGo">📋 Copy tin & mở Zalo</button><button class="btn ghost" data-copyref="' + esc(url) + '">📋 Chỉ copy link</button></div>';
       $('#rfGo', m).onclick = function () { rfCopyZalo(m, '#rfText', c.phone); };
+      if (S._rb && S._rb.inv && S._rb.inv.indexOf(c.phone) < 0) S._rb.inv.push(c.phone); // 🌱 đã có mã → bỏ khỏi mục Mời làm Đại sứ
     }, function (e) { var box = $('#rfMain', m); if (box) box.innerHTML = '<p class="err">' + esc(e.message) + '</p>'; });
   }
   /** Tab Hôm nay → 🎁 Cảm ơn khách giới thiệu (28/10/2026): máy chủ tự phát voucher CAMON khi đơn của bạn đã giao + 7 ngày (partner.js refAuto),
@@ -7310,6 +7314,76 @@
         render();
       }, function (e) { toast(e.message, true); b.disabled = false; });
     };
+  }
+  /* ---------- 🌱 Sale giữ khách + thưởng khách mới nhờ khách cũ giới thiệu (30/10/2026, api partner.js refClaim / refSaleAuto / bonusList).
+   * Khách mới (số chưa có trong CRM) do khách cũ giới thiệu → thuộc về sale phụ trách khách cũ; đơn đầu giao xong 7 ngày → thưởng (mặc định 50.000đ). */
+  var RB_ST = { wait: ['⏳', 'chưa mua'], ship: ['🚚', 'đang giao'], hold: ['📦', 'đã nhận, chờ đủ 7 ngày'], ok: ['✅', 'đã tính thưởng'], 'void': ['⛔', 'không tính (huỷ / hoàn / trùng địa chỉ)'] };
+  function rbData() {
+    if (S._rbAt !== S.loadedAt && !S._rbBusy && !(S._rb && Date.now() - S._rbT < 5 * 60e3)) { S._rbBusy = 1; api('ref_bonus').then(function (j) { S._rb = j; S._rbT = Date.now(); S._rbAt = S.loadedAt; S._rbBusy = 0; render(); }, function () { S._rbBusy = 0; S._rbAt = S.loadedAt; }); } // tải lại tối đa 5 phút / lần (đỡ tốn lượt đọc D1)
+    return S._rb || null;
+  }
+  function rbSum(L) { return L.reduce(function (s0, r) { return s0 + (r.amount || 0); }, 0); }
+  function rbMonth(L, mk) { // số của 1 người / cả nhóm trong tháng mk
+    var R = monthRange(mk), inM = function (t) { return t && t >= R[0] && t < R[1]; };
+    var ok = L.filter(function (r) { return r.st === 'ok' && inM(r.okAt); }), pend = L.filter(function (r) { return r.st === 'ship' || r.st === 'hold'; });
+    return { nw: L.filter(function (r) { return r.st !== 'void' && inM(r.first); }).length, ok: ok, okV: rbSum(ok), pend: pend, pendV: rbSum(pend), wait: L.filter(function (r) { return r.st === 'wait'; }) };
+  }
+  /** Sale: 1 dòng trong khung đầu Hôm nay. */
+  function refSaleLine() {
+    var rb = rbData(); if (!rb) return '';
+    var mk = monthOf(Date.now()), M = rbMonth(rb.list.filter(function (r) { return r.sale === S.user.name; }), mk), tn = rb.team[mk] || 0, c = rb.cfg;
+    return '<p class="td-goal">🌱 Khách giới thiệu: thưởng tháng này <b>' + moneyShort(M.okV) + '</b>' + (M.pend.length ? ' (+' + moneyShort(M.pendV) + ' đang chờ)' : '') + (c.goalN ? ' · cả nhóm <b>' + tn + '</b> / ' + c.goalN + ' khách' : '') + '</p>';
+  }
+  /** Hiệu quả (1 người hoặc cả nhóm khi name = null) + cuối trang Hôm nay của sale. */
+  function refSaleBox(name) {
+    var rb = rbData(); if (!rb) return '';
+    var mk = monthOf(Date.now()), c = rb.cfg, mine = rb.list.filter(function (r) { return !name || r.sale === name; }), M = rbMonth(mine, mk);
+    var tn = rb.team[mk] || 0, gp = c.goalN ? Math.min(100, pct(tn, c.goalN)) : 0;
+    var h = '<div class="box rsb"><h3>🌱 Khách mới nhờ khách cũ giới thiệu · tháng ' + (+mk.slice(5)) + '</h3>' +
+      '<p class="small muted" style="margin:0 0 10px">Khách đang dùng tốt giới thiệu người thân. Người đó là <b>số mới, chưa có trong CRM</b> → khách thuộc về sale phụ trách khách cũ. Đơn đầu giao xong 7 ngày → sale được thưởng <b>' + money(c.bonus) + '</b> / khách. Mời khách ở mục <b>🌱 Mời làm Đại sứ</b> (tab Hôm nay).</p>' +
+      '<div class="rsb-n"><div><b>' + M.nw + '</b><span>khách mới đã mua</span></div><div><b>' + moneyShort(M.okV) + '</b><span>thưởng đã chắc · ' + M.ok.length + ' khách</span></div><div><b>' + moneyShort(M.pendV) + '</b><span>đang chờ · ' + M.pend.length + ' khách đang giao / chờ đủ 7 ngày</span></div></div>' +
+      (M.wait.length ? '<p class="small" style="margin:8px 0 0">⏳ ' + M.wait.length + ' người được giới thiệu chưa mua: gọi tư vấn để chốt.</p>' : '') +
+      (c.goalN ? '<div class="rsb-goal"><div><b>🤝 Mục tiêu cả nhóm:</b> ' + tn + ' / ' + c.goalN + ' khách mới' + (c.goalGift ? ' → 🎉 ' + esc(c.goalGift) : '') + '<span>' + (tn >= c.goalN ? '✅ Đã đạt!' : 'còn ' + (c.goalN - tn) + ' khách') + '</span></div><div class="bar sm"><i style="width:' + gp + '%"></i></div></div>' : '');
+    if (!name && lvl() >= 2) { // quản lý: bảng thưởng từng người (tháng này + tháng trước để trả lương)
+      var pk = monthOf(monthRange(mk)[0] - DAY), ns = [];
+      rb.list.forEach(function (r) { if (ns.indexOf(r.sale) < 0) ns.push(r.sale); });
+      if (ns.length) h += '<div class="team-wrap"><table class="team"><thead><tr><th>Nhân sự</th><th>Khách mới<br><small>tháng này</small></th><th>Thưởng đã chắc<br><small>tháng này</small></th><th>Đang chờ</th><th>Thưởng<br><small>tháng ' + (+pk.slice(5)) + '</small></th></tr></thead><tbody>' +
+        ns.map(function (n) { var L = rb.list.filter(function (r) { return r.sale === n; }), A = rbMonth(L, mk), B = rbMonth(L, pk);
+          return '<tr><td><b>' + esc(n) + '</b></td><td>' + (A.nw || '–') + '</td><td>' + (A.okV ? money(A.okV) : '–') + '</td><td>' + (A.pendV ? money(A.pendV) : '–') + '</td><td>' + (B.okV ? money(B.okV) : '–') + '</td></tr>'; }).join('') + '</tbody></table></div>';
+    }
+    var L = mine.slice().sort(function (a, b) { return b.at - a.at; }).slice(0, 40);
+    if (L.length) h += '<details class="rsb-list"><summary>Danh sách khách được giới thiệu (' + mine.length + ')</summary>' + L.map(function (r) { var t = RB_ST[r.st] || ['', ''];
+      return '<div class="rsb-r" data-cust="' + esc(r.phone) + '"><b>' + esc(r.name || r.phone) + '</b> <span class="small muted">do ' + esc(r.refName || r.refPhone) + ' giới thiệu · ' + fDate(r.at) + (name ? '' : ' · 👤 ' + esc(r.sale)) + '</span><span class="small">' + t[0] + ' ' + t[1] + (r.st === 'ok' && r.amount ? ' · +' + money(r.amount) : '') + '</span></div>'; }).join('') + '</details>';
+    if (lvl() >= 2) h += '<button class="btn ghost sm" data-rgoal style="margin-top:10px">⚙️ Đổi mức thưởng / mục tiêu nhóm</button>';
+    return h + '</div>';
+  }
+  function openRefGoal() {
+    var c = (S._rb && S._rb.cfg) || { bonus: 50000, goalN: 20, goalGift: '' };
+    var m = modal('🌱 Thưởng sale & mục tiêu nhóm', '<label class="f"><span>Thưởng sale cho mỗi khách mới nhờ khách cũ giới thiệu (đ)</span><input type="text" inputmode="numeric" id="rgB" value="' + c.bonus + '"></label>' +
+      '<div class="row2c"><label class="f"><span>Mục tiêu cả nhóm (khách mới / tháng, 0 = tắt)</span><input type="number" min="0" max="1000" id="rgN" value="' + c.goalN + '"></label><label class="f"><span>Phần thưởng khi cả nhóm đạt</span><input type="text" maxlength="80" id="rgG" value="' + esc(c.goalGift || '') + '"></label></div>' +
+      '<p class="small muted">Đổi mức thưởng thì áp dụng cho cả khách đang chờ (chưa đủ điều kiện). Khách đã tính thưởng giữ mức cũ.</p>', '<button class="btn pri" id="rgSv">Lưu</button><button class="btn ghost" data-close>Đóng</button>');
+    $('#rgSv', m).onclick = function () { var b = this; b.disabled = true;
+      api('ref_goal', { bonus: parseMoney($('#rgB', m).value), goalN: +$('#rgN', m).value || 0, goalGift: $('#rgG', m).value }).then(function (j) { S._rb = j; toast('Đã lưu ✓'); closeModal(); render(); }, function (e) { toast(e.message, true); b.disabled = false; }); };
+  }
+  /** Hôm nay → 🌱 Mời làm Đại sứ: khách mình phụ trách đã nhận hàng 7–30 ngày (đang dùng, dễ thấy hợp), chưa có mã giới thiệu. Tối đa 5 khách / ngày. */
+  function ambBlock() {
+    var rb = rbData(), me = lvl() < 2 ? S.user.name : whoName(); if (!rb || !rb.inv || !me) return '';
+    var inv = {}, sk = {}, now = Date.now(), L = [];
+    rb.inv.forEach(function (p) { inv[p] = 1; });
+    try { sk = JSON.parse(store('crm_amb_skip') || '{}'); } catch (e) { }
+    S.d.customers.forEach(function (c) {
+      if (c.owner !== me || inv[c.phone] || (sk[c.phone] && sk[c.phone] > now)) return;
+      var o = ordersOf(c.phone).filter(function (x) { return !isVoid(x.status); })[0]; if (!o || !/đã giao/i.test(o.status || '')) return;
+      var d = Math.floor((now - (o.receivedAt || o.shipAt || o.time)) / DAY); if (d < 7 || d > 30) return;
+      L.push({ c: c, d: d });
+    });
+    if (!L.length) return '';
+    L.sort(function (a, b) { return (b.c.orders - a.c.orders) || (a.d - b.d); });
+    var bonus = rb.cfg.bonus;
+    return '<section class="section"><div class="section-h"><h2>🌱 Mời làm Đại sứ</h2><span class="count">' + Math.min(5, L.length) + '</span><span class="tip">khách đã nhận hàng 7–30 ngày. Hỏi thăm, khách thấy hợp thì gửi mã giới thiệu' + (bonus ? ' · mỗi người bạn mới mua, bạn được thưởng ' + money(bonus) : '') + '</span></div><div class="list">' +
+      L.slice(0, 5).map(function (x) { var c = x.c;
+        return '<div class="card"><div class="r1"><b>' + esc(c.name || c.phone) + '</b><span class="small">nhận hàng ' + x.d + ' ngày trước · ' + c.orders + ' đơn</span></div>' +
+          '<div class="acts"><button class="btn pri" data-refcode="' + c.phone + '">🌱 Gửi mã giới thiệu</button><button class="btn ghost" data-cust="' + c.phone + '">Hồ sơ</button><button class="btn ghost" data-ambskip="' + c.phone + '" title="Khách chưa hài lòng hoặc chưa tiện: ẩn 30 ngày">Để sau</button></div></div>'; }).join('') + '</div></section>';
   }
   function ptBox() {
     return '<div class="box"><h3>🤝 Cộng tác viên & khách giới thiệu</h3><p class="hint" style="margin:0 0 10px">CTV / đối tác có link và mã giảm giá riêng. Khách <b>mới</b> đặt qua link / mã của CTV thì mọi đơn của khách đó trong thời hạn (mặc định 6 tháng, kể cả đơn sale lên lại) được tính hoa hồng (mặc định 10% tiền hàng). Chỉ trả <b>1 tầng</b> (không trả theo người CTV rủ thêm: nhiều tầng là bán hàng đa cấp, phải có giấy phép). Hoa hồng đủ điều kiện khi đơn <b>đã giao + qua 7 ngày</b>; trả từ 2 triệu / lần thì trừ 10% thuế TNCN.</p>' +
@@ -7535,6 +7609,9 @@
     e.preventDefault(); e.target.click();
   });
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-refcode],[data-refgift],[data-reftell],[data-reftier]'); if (!b || !S.d) return; e.preventDefault(); e.stopPropagation(); if (b.hasAttribute('data-refcode')) openRefCode(b.getAttribute('data-refcode')); else if (b.hasAttribute('data-reftell')) openRefTell(b.getAttribute('data-reftell')); else if (b.hasAttribute('data-reftier')) openRefTier(b.getAttribute('data-reftier')); else openRefGift(b.getAttribute('data-refgift')); }, true);
+  document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-rgoal],[data-ambskip]'); if (!b || !S.d) return; e.preventDefault(); e.stopPropagation();
+    if (b.hasAttribute('data-rgoal')) return openRefGoal();
+    var sk = {}; try { sk = JSON.parse(store('crm_amb_skip') || '{}'); } catch (x) { } sk[b.getAttribute('data-ambskip')] = Date.now() + 30 * DAY; store('crm_amb_skip', JSON.stringify(sk)); render(); }, true);
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-relink]'); if (!b || !S.d) return; e.preventDefault(); e.stopPropagation(); openRelink(b.getAttribute('data-relink')); }, true);
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-copyref]'); if (!b) return; e.preventDefault(); copy(b.getAttribute('data-copyref')).then(function () { toast('Đã copy link ✓'); }); });
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-gmore]'); if (!b) return; var r = b.previousElementSibling; if (r) r.hidden = false; b.remove(); });

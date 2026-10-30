@@ -77,8 +77,15 @@ Khách đã mua thì ai cũng có **link giới thiệu riêng**. Bạn bè củ
 - Bấm link của khách, mã giảm giá tự áp dụng.
 - Ở trang thanh toán, bấm **Có mã ưu đãi / người giới thiệu?**, rồi gõ **mã** (ví dụ `AN111`) hoặc **số điện thoại** của người giới thiệu.
 
+### 💰 Quyền lợi của bạn (sale): thưởng 50.000đ / khách mới
+
+- Người được giới thiệu là **số mới, chưa có trong CRM** (chưa từng mua, chưa từng hỏi) → khách đó **thuộc về bạn**, nếu bạn đang phụ trách người giới thiệu. Ai nhập khách cũng vậy, kể cả khi người bạn tự đặt trên web.
+- Đơn đầu của khách mới **giao xong 7 ngày** → bạn được **thưởng 50.000đ**. 8h sáng hôm đó Telegram báo 🎉. Các đơn mua lại về sau của khách cũng tính doanh số cho bạn.
+- Không được thưởng: số đã có trong CRM, đơn huỷ hoặc hoàn, khách mới **cùng địa chỉ** với người giới thiệu.
+- Xem thưởng của mình: tab **Hôm nay**, dòng 🌱 ở khung đầu trang, hoặc tab **Hiệu quả** → ô **🌱 Khách mới nhờ khách cũ giới thiệu**. Ô này có: số khách mới, tiền thưởng đã chắc, tiền đang chờ, và **🤝 mục tiêu cả nhóm** trong tháng.
+
 **Việc của bạn (sale):**
-1. Khách khen sản phẩm thì mời khách giới thiệu. Mở hồ sơ khách, bấm **🎁 Mã giới thiệu**, rồi bấm **📋 Copy tin & mở Zalo** để gửi khách.
+1. Tab **Hôm nay** có mục **🌱 Mời làm Đại sứ**: mỗi ngày tối đa 5 khách của bạn đã nhận hàng 7–30 ngày. Gọi hỏi thăm. Khách thấy hợp thì bấm **🌱 Gửi mã giới thiệu**, rồi bấm **📋 Copy tin & mở Zalo** để gửi khách. Khách chưa hài lòng hoặc chưa tiện thì bấm **Để sau**, khách ẩn 30 ngày. Khách khen sản phẩm lúc khác thì mở hồ sơ, bấm **🎁 Mã giới thiệu**.
 2. Có bạn đặt hàng thì Telegram báo bạn.
 3. Đơn của bạn ấy **giao xong 7 ngày** thì CRM **tự tạo voucher cảm ơn** (mã `CAMON…`, chỉ số của khách mới dùng được, hạn 90 ngày). Bạn không cần tính tiền.
 4. Tab **Hôm nay** hiện mục **🎁 Cảm ơn khách giới thiệu**:
@@ -88,7 +95,7 @@ Khách đã mua thì ai cũng có **link giới thiệu riêng**. Bạn bè củ
 
 **Không được tặng:** đơn huỷ hoặc hoàn, khách tự giới thiệu chính mình (cùng số điện thoại hoặc cùng địa chỉ). CRM tự bỏ qua và ghi ⛔. Quản lý xem lại nếu khách hỏi.
 
-**Khách gọi điện / nhắn Zalo nói "chị Hoa giới thiệu":** khi thêm khách hỏi, chọn *Khách đến từ đâu* là **Khách giới thiệu** rồi chọn chị Hoa. Khách chốt đơn thì tab Hôm nay cũng nhắc **🎁 Cảm ơn khách giới thiệu**.
+**Khách gọi điện / nhắn Zalo nói "chị Hoa giới thiệu":** khi thêm khách hỏi, chọn *Khách đến từ đâu* là **Khách giới thiệu** rồi chọn chị Hoa. Nhớ chọn **ngay lúc thêm khách** (quên thì sửa trong 2 ngày). Chị Hoa do bạn khác phụ trách thì khách tự giao cho bạn đó, CRM báo ngay khi bạn bấm Lưu. Khách chốt đơn thì tab Hôm nay cũng nhắc **🎁 Cảm ơn khách giới thiệu**.
 
 **Xem ai giới thiệu nhiều:** tab **Khách đã mua** → bấm nút lọc **🎁 Đã giới thiệu khách**. Người mang về nhiều tiền nhất đứng đầu. Mỗi người có dòng: giới thiệu mấy người, mấy người đã mua, mang về bao nhiêu tiền, đã tặng quà chưa. Mở hồ sơ để xem từng người được giới thiệu và bấm tặng quà cảm ơn.
 

@@ -1,6 +1,6 @@
 // CRM: đăng nhập, dữ liệu, đơn hàng, khách, tiềm năng, cài đặt. Chuyển từ Apps Script sang, giữ nguyên cách làm việc & dữ liệu trả về cho giao diện.
 import { normPhone, nrm, esc, fmt, startOfDay, TZ_MS, fmtDate, dateOrBlank, slugName, replaceRows, isVoid, randHex, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, DAY, CRM_URL, MKT_URL, refCode } from './lib.js';
-import { crmPartner, partnerSchema, orderAttrib } from './partner.js';
+import { crmPartner, partnerSchema, orderAttrib, refClaim } from './partner.js';
 import { chatSchema } from './chat.js';
 import { zbotSchema, crmZbot } from './zbot.js';
 import { fbSchema, crmFp } from './fb.js';
@@ -19,7 +19,7 @@ import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, wbInf
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-10-28c'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
+const SCHEMA_V = '2026-10-30d'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -887,6 +887,9 @@ export async function saveOrder(x, data, opt) {
   let owner = await ownerOf(x, phone), assigned = '', refBy = '';
   if (!opt.by && data.ref) refBy = await refUser(x, String(data.ref).slice(0, 40)); // khách đặt qua link riêng của sale
   if (refBy) c.note = (c.note ? c.note + ' · ' : '') + '🔗 Đặt qua link của ' + refBy + (owner && owner !== refBy ? ' (khách do ' + owner + ' phụ trách)' : '');
+  let refSale = ''; // 🌱 khách mới (chưa có trong CRM) dùng mã / SĐT của khách cũ → thuộc về sale phụ trách khách cũ (partner.js refClaim)
+  if (!manual && !owner && data.voucher) { try { const rv = await first(x.db, 'SELECT ref_phone FROM vouchers WHERE code = ?', String(data.voucher)); if (rv && rv.ref_phone) refSale = await refClaim(x, phone, rv.ref_phone, 'web', 'Website'); } catch (e) { console.error('refClaim', e.message); } }
+  if (refSale) owner = assigned = refSale;
   if (!owner && !opt.by) owner = assigned = refBy || await autoOwner(x); // khách mới: giao cho sale gửi link, không thì theo chế độ "Tự chia đều"
   const seller = opt.by || owner;
   await insertMany(x.db, 'orders', ORDER_COLS, [{ id: String(data.id || ''), time: now, name: c.name || '', phone, email: c.email || '', province: c.province || '', ward: c.district || '', address: c.address || '', items,
@@ -909,8 +912,8 @@ export async function saveOrder(x, data, opt) {
       '\n📍 ' + esc([c.address, c.district, c.province].filter(Boolean).join(', ')) + '\n\n' + esc(items) + '\n\n💰 <b>Tổng: ' + fmt(data.total) + '</b> (ship ' + fmt(data.shipping) + ') – ' + pay +
       (c.note ? '\n📝 ' + esc(c.note) : '') + (data.source ? '\n🔗 Nguồn: ' + esc(data.source) : '');
     if (atNote) omsg += '\n' + esc(atNote);
-    await telegram(x.env, omsg + (manual ? '' : owner ? '\n👤 Phụ trách: ' + esc(owner) + (assigned ? (assigned === refBy ? ' (khách đặt qua link của ' + esc(refBy) + ')' : ' (vừa tự chia)') : '') : '\n⚠️ Khách chưa có người phụ trách – vào CRM để giao'));
-    if (!manual && owner) await telegramUser(x, owner, omsg + '\n\n👉 Đơn của khách bạn phụ trách – gọi xác nhận: ' + CRM_URL + '/#don-hang');
+    await telegram(x.env, omsg + (manual ? '' : owner ? '\n👤 Phụ trách: ' + esc(owner) + (assigned ? (refSale ? ' (khách mới do khách cũ của ' + esc(refSale) + ' giới thiệu)' : assigned === refBy ? ' (khách đặt qua link của ' + esc(refBy) + ')' : ' (vừa tự chia)') : '') : '\n⚠️ Khách chưa có người phụ trách – vào CRM để giao'));
+    if (!manual && owner) await telegramUser(x, owner, omsg + (refSale ? '\n\n🌱 Khách mới do khách bạn phụ trách giới thiệu → khách thuộc về bạn, đơn giao thành công 7 ngày là bạn được thưởng.' : '') + '\n\n👉 Đơn của khách bạn phụ trách – gọi xác nhận: ' + CRM_URL + '/#don-hang');
     if (at.refOwner && at.refOwner !== owner) await telegramUser(x, at.refOwner, '🎁 Khách ' + esc(at.refName || at.refPhone) + ' (bạn phụ trách) vừa giới thiệu ' + esc(c.name) + ' đặt đơn ' + esc(data.id) + ' – ' + fmt(data.total) + '. Giao xong nhớ tặng quà / voucher cảm ơn ở tab Hôm nay: ' + CRM_URL);
   };
   x.later(notify());
@@ -1445,10 +1448,14 @@ async function crmLeadSave(x, u, d) {
     d.owner = u.name;
   }
   if (d.id && u.level < 2) { const ld0 = await leadGet(x, d.id); if (!ld0) return { ok: false, error: 'Không tìm thấy khách tiềm năng.' }; const e0 = await guardLead(x, u, ld0); if (e0) return { ok: false, error: e0 }; d.owner = u.name; }
+  let refTo = ''; // 🌱 khách mới (chưa có trong CRM) do khách cũ giới thiệu → thuộc về sale phụ trách khách cũ, sale đó được thưởng (partner.js refClaim)
+  if (!d.id && refPhone) { refTo = await refClaim(x, phone, refPhone, 'lead', u.name); if (refTo) d.owner = refTo; }
+  if (d.id && refPhone) { const ld2 = await leadGet(x, d.id); if (ld2 && !ld2.ref_phone && Date.now() - (Number(ld2.time) || 0) < 2 * DAY) { refTo = await refClaim(x, phone, refPhone, 'lead', u.name, d.id); if (refTo) d.owner = refTo; } } // quên ghi người giới thiệu lúc thêm: sửa trong 2 ngày vẫn tính
+  if (refTo && refTo !== u.name) x.later(telegramUser(x, refTo, '🌱 ' + esc(u.name) + ' vừa thêm khách hỏi ' + esc(String(d.name || '').trim() || phone) + ' – ' + phone + ', do khách bạn phụ trách ' + esc(refName || refPhone) + ' giới thiệu → khách giao cho bạn. Gọi ngay nhé: ' + CRM_URL + '/#tiem-nang').catch(() => {}));
   if (!d.id) {
     const res = await addLead(x, { name: String(d.name || '').trim(), phone, channel: d.channel, interest: d.interest, owner: d.owner === undefined ? u.name : d.owner, note: d.note, callback: d.callback, by: u.name, refPhone, refName });
     await crmLog(x, u, 'Thêm tiềm năng', phone, d.name, d.channel || '', [d.interest || '', refPhone || refName ? '🎁 ' + (refName || '') + (refPhone ? ' ' + refPhone : '') + ' giới thiệu' : ''].filter(String).join(' · '));
-    return { ok: true, id: res.id, merged: res.merged };
+    return { ok: true, id: res.id, merged: res.merged, refTo };
   }
   const f = { name: String(d.name || '').trim(), phone, channel: d.channel || 'Khác', interest: d.interest || '', owner: d.owner || '', note: d.note || '', callback: dateOrBlank(d.callback) };
   if (d.refPhone !== undefined) { f.ref_phone = refPhone; f.ref_name = refName; }
@@ -1459,7 +1466,7 @@ async function crmLeadSave(x, u, d) {
   }
   if (d.reason !== undefined) f.reason = d.reason;
   if (!await leadUpdate(x, d.id, f)) return { ok: false, error: 'Không tìm thấy khách tiềm năng.' };
-  return { ok: true, id: d.id };
+  return { ok: true, id: d.id, refTo };
 }
 async function crmLeadContact(x, u, d) {
   const ld = await leadGet(x, d.id); if (!ld) return { ok: false, error: 'Không tìm thấy khách tiềm năng.' };

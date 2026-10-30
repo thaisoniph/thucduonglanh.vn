@@ -10,7 +10,7 @@ import { wbTick } from './wb.js';
 import { backfillCustomerExtras } from './migrate.js';
 import { zbotTick } from './zbot.js';
 import { fpTick } from './fb.js';
-import { refAuto } from './partner.js';
+import { refAuto, refSaleAuto } from './partner.js';
 
 function careMessage(items, leads, today, isGroup, who, R) {
   const block = (title, arr, tip) => !arr.length ? '' : '\n\n<b>' + title + ' (' + arr.length + ')</b> – ' + tip + '\n' + arr.slice(0, 25).map(c =>
@@ -103,7 +103,9 @@ export async function mirror(x) {
 
 /** 🌱 Đại sứ Sống Lành (partner.js refAuto): tự phát voucher cảm ơn người giới thiệu + mốc quà, báo nhóm Telegram và người phụ trách. */
 async function refThanks(x) {
-  const msgs = await refAuto(x); if (!msgs.length) return;
+  let msgs = await refAuto(x);
+  try { msgs = msgs.concat(await refSaleAuto(x)); } catch (e) { console.error('refSaleAuto', e.message); } // 🌱 thưởng sale khách mới nhờ giới thiệu
+  if (!msgs.length) return;
   await telegram(x.env, '<b>🌱 Cảm ơn khách giới thiệu</b>\n' + msgs.map(m => '• ' + esc(m.text) + (m.owner ? ' 👤' + esc(m.owner) : '')).join('\n') + '\n\n' + CRM_URL);
   const by = {}; msgs.forEach(m => { if (m.owner) (by[m.owner] = by[m.owner] || []).push(m.text); });
   for (const u of await crmUsers(x)) if (u.active && u.tg && by[u.name]) await telegramTo(x.env, u.tg, '<b>🌱 Cảm ơn khách giới thiệu</b>\n' + by[u.name].map(t => '• ' + esc(t)).join('\n') + '\n\n' + CRM_URL);
