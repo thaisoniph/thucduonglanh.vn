@@ -1008,7 +1008,7 @@
       '<label class="switch" style="margin-top:6px"><input type="checkbox" id="prC" checked> Chỉ khách <b>đồng ý nhận ưu đãi</b> (đúng Nghị định 13)</label>' +
       '<p class="small muted" id="prN" style="margin:8px 0 0"></p></div>' +
       '<div class="box"><label class="f"><span>Tên chương trình (để đo hiệu quả)</span><input type="text" id="prName" value="' + esc('Ưu đãi ' + fDate(Date.now()).slice(0, 5)) + '"></label>' +
-      '<label class="f"><span>Mẫu tin có sẵn</span><select id="prTpl"><option value="-1">– Mẫu ưu đãi mặc định –</option>' + tp.map(function (t, i) { return '<option value="' + i + '">' + esc(t[0] + (t[1] ? ' – ' + t[1] : '')) + '</option>'; }).join('') + '</select></label>' +
+      '<label class="f"><span>Mẫu tin có sẵn</span><select id="prTpl"><option value="-1">– Mẫu ưu đãi mặc định –</option>' + tplOpts(tp, -1) + '</select></label>' +
       '<label class="f"><span>Nội dung (viết [Tên], [Sản phẩm] để máy tự điền; nhớ sửa phần “…”)</span><textarea id="prText" rows="5">' + esc(PROMO_DEF) + '</textarea></label></div>' +
       (stats.length ? '<div class="box"><h3>📊 Chương trình gần đây</h3><table class="tg-help">' + stats.map(function (x) { return '<tr><td><b>' + esc(x.name) + '</b><br><span class="small muted">' + fDate(x.first) + '</span></td><td>Đã gửi <b>' + x.sent + '</b> khách · <b>' + x.conv + '</b> khách mua trong 14 ngày (' + (x.sent ? pct(x.conv, x.sent) : 0) + '%) · ' + moneyShort(x.rev) + '</td></tr>'; }).join('') + '</table></div>' : '') +
       '<p class="small muted">Lưu ý: gửi rải trong ngày, không gửi dồn liên tục vài trăm tin để Zalo không hạn chế tài khoản. Tin gửi từ chính Zalo của bạn nên khách thấy gần gũi.</p>';
@@ -1983,6 +1983,14 @@
       '<p class="rs-note">⚠️ Không nói sản phẩm chữa / điều trị / khỏi bệnh. Sản phẩm là thực phẩm, không phải là thuốc. Đổi “anh/chị” cho đúng khách.</p></details>';
   }
 
+  /** Ô chọn mẫu tin: xếp theo thứ tự thời gian chăm sóc (anh Sơn 30/10/2026). value vẫn là vị trí gốc trong S.d.templates. Mẫu không nhận ra thứ tự thì để cuối, giữ thứ tự cũ. */
+  var TPL_ORDER = [/khach moi|moi hoi|tu van/, /^1 ngay|nhan hang \+|hoi nhan hang/, /^7 ngay|1 tuan/, /^14 ngay|cam nhan/, /het san pham|truoc khi het|dat lai/, /^30 ngay|gioi thieu san pham/, /^60 ngay|quay lai/, /cong dong|nhom zalo/];
+  function tplOpts(tp, ti) {
+    var rank = function (t) { var k = norm(t[0] + ' – ' + t[1]); for (var j = 0; j < TPL_ORDER.length; j++) if (TPL_ORDER[j].test(k)) return j; return TPL_ORDER.length; };
+    return tp.map(function (t, i) { return { t: t, i: i, r: rank(t) }; }).sort(function (a, b) { return a.r - b.r || a.i - b.i; })
+      .map(function (x) { return '<option value="' + x.i + '"' + (x.i === ti ? ' selected' : '') + '>' + esc(x.t[0] + (x.t[1] ? ' – ' + x.t[1] : '')) + '</option>'; }).join('');
+  }
+
   /* ---------- hộp chăm sóc: tin mẫu → Zalo → kết quả */
   function templateFor(type) {
     var key = TASKS[type === 'old' ? 'winback' : type] && TASKS[type === 'old' ? 'winback' : type].tpl, tp = S.d.templates; // khách cũ lâu chưa gọi → dùng mẫu "Mời quay lại"
@@ -2013,7 +2021,7 @@
       (c.zalo ? '<div class="k-go"><button class="btn zalo" id="kZalo">💬 Nhắn Zalo</button><a class="btn" href="tel:' + c.phone + '">📞 Gọi</a></div><p class="small muted" style="margin:8px 0 0">' + ZI + ' Khách đã kết bạn Zalo: nhắn trước, khách tiện trả lời lúc rảnh. Bấm <b>Nhắn Zalo</b> là tin bên dưới được copy sẵn, chỉ cần dán và gửi.</p>'
         : '<div class="k-go"><a class="btn pri" href="tel:' + c.phone + '">📞 Gọi</a><button class="btn zalo" id="kZalo">💬 Nhắn Zalo</button></div><p class="small" style="margin:8px 0 0">Khách <b>chưa kết bạn Zalo</b>: nên gọi trước, gọi xong xin kết bạn. ' + (canEdit(c) ? zaloTag(c) : '') + '</p>') +
       '<details class="k-msg"' + (c.zalo ? ' open' : '') + '><summary>✏️ Tin nhắn sẽ gửi (sửa được)</summary>' +
-      '<label class="f" style="margin-top:8px"><span>Mẫu tin</span><select id="kTpl"><option value="-1">– Tự viết –</option>' + tp.map(function (t, i) { return '<option value="' + i + '"' + (i === ti ? ' selected' : '') + '>' + esc(t[0] + (t[1] ? ' – ' + t[1] : '')) + '</option>'; }).join('') + '</select></label>' +
+      '<label class="f" style="margin-top:8px"><span>Mẫu tin</span><select id="kTpl"><option value="-1">– Tự viết –</option>' + tplOpts(tp, ti) + '</select></label>' +
       '<label class="f"><span>Nội dung (nhớ điền phần “…” nếu có)</span><textarea id="kMsg" rows="5">' + esc(ti >= 0 ? fillTpl(tp[ti][2], c) : '') + '</textarea></label>' +
       '<button type="button" class="link small" id="kCopy">Chỉ copy tin (không mở Zalo)</button>' + (S.d.rules && S.d.rules.ai ? ' · <button type="button" class="link small" data-ai="msg" data-aiph="' + c.phone + '" data-aitask="' + esc(type || 'other') + '">✨ Nhờ AI viết tin</button>' : '') + '</details>' + careScript(c, type) + '</div>' +
       commBox(c, type, true) + giftBox(giftPerson(c.phone), type, true) + // thu gọn: để Bước 2 không bị đẩy xuống xa
@@ -3254,7 +3262,7 @@
       '<div class="small muted" style="margin-top:4px">' + (l.interest ? 'Quan tâm: ' + esc(l.interest) + ' · ' : '') + 'hỏi ' + daysAgo(l.time) + (lastNote(l) ? '<br>📝 ' + esc(lastNote(l)) : '') + '</div></div>' +
       '<div class="box"><label class="f" style="margin:0"><span>📍 Khách ở tỉnh nào? <em class="muted" style="font-style:normal;font-weight:400">(hỏi khách rồi gõ, máy cho biết bên mình đã có bao nhiêu khách ở đó)</em></span><input type="text" id="cProv" autocomplete="off" placeholder="Gõ để tìm, vd: nghe an" value="' + esc(leadProv(l) ? leadProv(l).old : '') + '"></label><div id="cArea" style="margin-top:8px"></div></div>' +
       '<div class="box"><h3>Bước 1 · Nhắn / gọi cho khách</h3>' +
-      '<label class="f"><span>Mẫu tin</span><select id="cTpl"><option value="-1">– Tự viết –</option>' + tp.map(function (t, i) { return '<option value="' + i + '"' + (i === ti ? ' selected' : '') + '>' + esc(t[0] + (t[1] ? ' – ' + t[1] : '')) + '</option>'; }).join('') + '</select></label>' +
+      '<label class="f"><span>Mẫu tin</span><select id="cTpl"><option value="-1">– Tự viết –</option>' + tplOpts(tp, ti) + '</select></label>' +
       '<label class="f"><span>Nội dung (sửa được)</span><textarea id="cMsg" rows="5">' + esc(ti >= 0 ? fill(tp[ti][2]) : '') + '</textarea></label>' +
       '<div class="steps"><button class="btn zalo" id="cZalo">📋 Copy tin & mở Zalo</button><a class="btn" href="tel:' + l.phone + '">📞 Gọi</a></div></div>' +
       giftBox(giftPerson(l.phone), 'lead') +
