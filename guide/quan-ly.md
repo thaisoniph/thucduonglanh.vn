@@ -145,7 +145,7 @@ Dòng chú thích màu đèn, ▲▼, đường nhỏ được thu gọn thành 
 2. **6 ô lớn** (xếp theo mức cần ra quyết định): 💰 Doanh số · 📈 Lãi gộp · 💵 Tiền đã về · 📣 1đ quảng cáo thu về · 🙋 Khách mới mua · ↩️ Hoàn / huỷ.
     - **Doanh số** = tiền các đơn **đã trừ hoàn / huỷ**. Từ 29/10/2026 cả trang (ô, biểu đồ, mục tiêu, Bán hàng văn phòng) dùng **một** con số này, giống tab Hiệu quả.
     - **Tiền đã về** = tiền các đơn **đã thu được** (đã giao, hoặc đã nhận chuyển khoản).
-    - **📈 Lãi gộp** = doanh số (đơn văn phòng) − giá vốn hàng đã bán, kể cả quà tặng. Dòng nhỏ ghi lãi còn lại sau khi trừ quảng cáo. Chưa trừ ship, lương, mặt bằng. Giá vốn nhập ở **Cài đặt → 💰 Giá vốn sản phẩm** (chỉ Quản trị thấy).
+    - **📈 Lãi gộp** = lãi đơn văn phòng (doanh số − giá vốn hàng đã bán, kể cả quà tặng) + lãi sàn (tiền sàn thực trả về − giá vốn). Tab **Sàn** có ô **📈 Lãi gộp sàn** và % lãi từng sản phẩm. Tải file **Thu nhập** của sàn thì số tiền về (đã trừ phí sàn) chính xác hơn. Dòng nhỏ ghi lãi còn lại sau khi trừ quảng cáo. Chưa trừ ship, lương, mặt bằng. Giá vốn nhập ở **Cài đặt → 💰 Giá vốn sản phẩm** (chỉ Quản trị thấy).
     - **1đ quảng cáo thu về** = bỏ 1 đồng quảng cáo thì khách mới mua bao nhiêu đồng.
     - **↩️ Hoàn / huỷ** = bao nhiêu % đơn bị hoàn hoặc huỷ, và mất bao nhiêu tiền. Đây là chỉ số của sale.
     - Mũi tên **▲▼** so với kỳ trước (xanh = tốt hơn, đỏ = kém hơn). Đường nhỏ màu xám chỉ cho biết **trong kỳ** số đang lên hay xuống.

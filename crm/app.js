@@ -3742,14 +3742,16 @@
         return '<div class="dash-seg-r" role="row"><span role="cell">' + x.c.icon + ' ' + esc(x.c.k) + '</span><b role="cell">' + (x.wait ? '…' : moneyShort(x.v)) + '</b><span role="cell" class="dash-seg-p">' + (x.t && !x.wait ? Math.round(g.p * 100) + '% / ' + moneyShort(x.t) : 'chưa đặt mục tiêu') + '</span><span role="cell" title="' + (x.t ? GOAL_LV[g.lv].replace(/<[^>]+>/g, '') : '') + '">' + st + '</span></div>';
       }).join('') + '</div><p class="bar-legend">Sale, Website lấy từ đơn trong CRM (đã trừ hoàn / huỷ); sàn lấy từ tab Sàn. Đèn: 🟢 đúng tiến độ · 🟠 hơi chậm · 🔴 chậm · ⚪ chưa đặt mục tiêu.</p></div>';
   }
-  /** Ô 📈 Lãi gộp (văn phòng): doanh số đã trừ hoàn / huỷ − giá vốn (cả quà tặng), dòng dưới: trừ tiếp quảng cáo (không tính quảng cáo trên sàn). */
-  function dashGpTile(b, bp, M) {
+  /** Ô 📈 Lãi gộp = văn phòng (doanh số đã trừ hoàn / huỷ − giá vốn, cả quà tặng) + sàn (tiền thực về − giá vốn, sanGp). Dòng dưới: trừ tiếp toàn bộ quảng cáo (cả quảng cáo sàn). */
+  function dashGpTile(b, bp, M, sj) {
     var g = gpOf(b), gp0 = gpOf(bp);
     if (!costCfg()) return dashTile('biz', '', '📈 Lãi gộp', '–', '', lvl() >= 3 ? 'Chưa nhập giá vốn: vào Cài đặt → 💰 Giá vốn sản phẩm' : 'Chưa có giá vốn');
-    if (!g) return dashTile('biz', '', '📈 Lãi gộp', '–', '', 'Chưa có đơn văn phòng trong kỳ');
-    var ads = M && M.tot ? M.tot - Object.keys(M.ch || {}).filter(function (k) { return chInfo(k).san; }).reduce(function (s0, k) { return s0 + M.ch[k]; }, 0) : 0, after = g.gp - ads;
-    return dashTile('biz', after < 0 ? 'bad' : '', '📈 Lãi gộp', moneyShort(g.gp), gp0 ? delta(g.gp, gp0.gp) : '',
-      g.pct + '% doanh số văn phòng' + (ads ? ' · trừ quảng cáo còn <span class="dash-in">' + moneyShort(after) + '</span>' : '') + (g.cover < 90 ? ' · ⚠️ ' + (100 - g.cover) + '% hàng chưa có giá vốn' : '') + ' · chưa trừ ship, lương, mặt bằng');
+    var cr = sj ? sanCostRate(sj, b) : null, sg = cr ? sanGp(sanSum(sj.days, 2), cr) : null, sg0 = cr ? sanGp(sanSum(sj.prev, 1), cr) : null;
+    if (!g && !sg) return dashTile('biz', '', '📈 Lãi gộp', '–', '', 'Chưa có đơn trong kỳ');
+    var tot = (g ? g.gp : 0) + (sg ? sg.gp : 0), tot0 = gp0 || sg0 ? (gp0 ? gp0.gp : 0) + (sg0 ? sg0.gp : 0) : 0, ads = M && M.tot || 0, after = tot - ads;
+    return dashTile('biz', after < 0 ? 'bad' : '', '📈 Lãi gộp', moneyShort(tot), tot0 ? delta(tot, tot0) : '',
+      (sg ? 'Văn phòng ' + (g ? moneyShort(g.gp) : '0đ') + ' · sàn ' + moneyShort(sg.gp) : (g ? g.pct + '% doanh số văn phòng' : '')) + (!sj ? ' · ⏳ đang cộng sàn' : '') +
+      (ads ? ' · trừ quảng cáo còn <span class="dash-in">' + moneyShort(after) + '</span>' : '') + (g && g.cover < 90 ? ' · ⚠️ ' + (100 - g.cover) + '% hàng chưa có giá vốn' : '') + ' · chưa trừ ship, lương, mặt bằng');
   }
   /** Màn hình đầu (29/10/2026, theo thứ tự CEO): câu kết luận → 6 con số → mục tiêu + từng mảng → vì sao tăng / giảm. Bấm vào ô → mở mục chi tiết tương ứng. */
   function dashHero(T, b, bp, M, gl, month, sj, p) {
@@ -3758,7 +3760,7 @@
     var h = '<section class="dash-hero">' + dashVerdict(T, gl, month, drv) + '<div class="dash-tiles dt6">' +
       dashTile('biz', whole && G && G.isCur ? G.lv : dashTrend(T.net, T.netP), '💰 Doanh số', moneyShort(T.net), delta(T.net, T.netP),
         'Đã trừ hoàn / huỷ' + (!sj ? (SN.err ? ' · chưa gồm sàn (chưa tải được)' : ' · ⏳ đang cộng số sàn…') : T.san ? ' · gồm sàn ' + moneyShort(T.san) : ''), dashSpk(T.tr.rev, PT)) +
-      dashGpTile(b, bp, M) +
+      dashGpTile(b, bp, M, sj) +
       dashTile('biz', '', '💵 Tiền đã về', moneyShort(T.paid), '', T.net ? pct(T.paid, T.net) + '% doanh số' + (T.net > T.paid ? ' · còn ' + moneyShort(T.net - T.paid) + ' đang giao / chờ thu' : '') : 'Chưa có đơn', dashSpk(T.tr.paid, PT)) +
       dashTile('mkt', adLv, '📣 1đ quảng cáo thu về', ads === null ? '–' : oneDec(ads) + 'đ', ads !== null && M.totp && M.nrp ? dRate(ads, M.nrp / M.totp).replace(/điểm/, 'đ') : '',
         !M ? (MK.err ? '⚠️ Chưa tải được chi phí' : '⏳ đang tải…') : M.tot ? 'Chi ' + moneyShort(M.tot) + ' → ' + moneyShort(M.nr) + ' doanh số khách mới' : 'Chưa có chi phí quảng cáo trong kỳ', ads === null ? '' : dashSpk(dashAdsSeries(T.tr.B, M, sj), PT)) +
@@ -5363,6 +5365,20 @@
     return h + '<div class="box ogoal">' + rows.map(function (x) { return goalRowHTML(x, month); }).join('') +
       '<p class="bar-legend">Vạch đen = hôm nay. Sale, Website lấy từ đơn trong CRM; sàn lấy từ file tải lên ở tab Sàn (theo ngày đặt, đã trừ đơn huỷ / hoàn).</p></div></section>';
   }
+  /** 💰 Lãi gộp sàn (30/10/2026) = tiền thực về − giá vốn. s = sanSum(…), r = tỷ lệ giá vốn ÷ tiền hàng (sanCostRate).
+   *  Tiền về: đơn có số tiền về (file Thu nhập / cột phí trong file đơn) → tỷ lệ tiền về ÷ doanh số áp cho cả kỳ; chưa có số nào → tạm dùng doanh số (chưa trừ phí sàn). */
+  function sanGp(s, r) {
+    if (!s || !s.g || r === null) return null;
+    var fee = s.gn && s.nv ? s.nv / s.gn : null, back = Math.round(fee === null ? s.g : s.g * fee), cogs = Math.round(r.r * s.g);
+    return { gp: back - cogs, back: back, cogs: cogs, pct: back ? Math.round((back - cogs) * 100 / back) : null, noFee: fee === null, est: r.est, cover: s.g ? Math.min(100, pct(s.gi || 0, s.g)) : 0 };
+  }
+  /** Tỷ lệ giá vốn ÷ tiền hàng của sàn, từ danh sách sản phẩm đã bán (sj.pall). Không khớp được sản phẩm nào → tạm lấy tỷ lệ của đơn văn phòng (est). null = chưa có giá vốn. */
+  function sanCostRate(sj, b) {
+    if (!costCfg()) return null;
+    var c = 0, v = 0; (sj && (sj.pall || sj.prods) || []).forEach(function (x) { var k = itemCost({ name: x[1], variant: '', qty: x[2] }); if (k !== null && x[3]) { c += k; v += x[3]; } });
+    if (v) return { r: c / v, est: false };
+    var g = b && gpOf(b); return g ? { r: g.r, est: true } : null;
+  }
   /** Lần tải file gần nhất của từng sàn: quá 3 ngày chưa tải → nhắc. */
   /** Nguồn số mới nhất của từng sàn: file đơn tải lên hoặc Google Sheet báo cáo (Sheet: tính theo ngày cuối đã gõ số). → {sàn: {f, sheet, late (số ngày chưa cập nhật)}} */
   function sanLatest(sj) {
@@ -5387,7 +5403,7 @@
   /** Cộng các dòng [.., sàn, g, n, c, r, t, nv, nn, nr] (off = vị trí g). */
   function sanSum(rows, off) {
     // gp = tiền đơn sàn đã thu (máy chủ mới; cũ = 0) · gv = tiền hoàn / huỷ sàn (máy chủ từ 26/10/2026)
-    var F = ['g', 'n', 'c', 'r', 't', 'nv', 'nn', 'nr', 'gp', 'gv'], s = { shop: {}, day: {} }; F.forEach(function (f) { s[f] = 0; });
+    var F = ['g', 'n', 'c', 'r', 't', 'nv', 'nn', 'nr', 'gp', 'gv', 'gi', 'gn'], s = { shop: {}, day: {} }; F.forEach(function (f) { s[f] = 0; });
     rows.forEach(function (r) {
       var x = s.shop[r[off - 1]] || (s.shop[r[off - 1]] = {}); F.forEach(function (f, i) { s[f] += r[off + i] || 0; x[f] = (x[f] || 0) + (r[off + i] || 0); });
       if (off === 2) s.day[r[0]] = (s.day[r[0]] || 0) + (r[2] || 0);
@@ -5407,6 +5423,7 @@
       metric('Số đơn', s.n, shops.map(function (k) { return esc(k) + ' ' + s.shop[k].n; }).join(' · ') + ' (không tính huỷ / hoàn).', delta(s.n, p.n), '', ssk(function () { return sd(3); })) +
       metric('Giá trị TB / đơn', s.n ? moneyShort(Math.round(s.g / s.n)) : '–', 'Doanh số ÷ số đơn.', s.n && p.n ? delta(Math.round(s.g / s.n), Math.round(p.g / p.n)) : '', '', ssk(function () { return trendRate(sd(2), sd(3)); })) +
       metric('Tiền thực về', s.nn ? moneyShort(s.nv) : '–', netNote, s.nn && p.nn ? delta(s.nv, p.nv) : '') +
+      (function () { var cr = costCfg() ? sanCostRate(sj, R ? bizStats(R) : null) : null, g = cr && sanGp(s, cr), g0 = cr && sanGp(p, cr); return g ? metric('📈 Lãi gộp sàn', moneyShort(g.gp), (g.noFee ? 'Doanh số (chưa trừ phí sàn vì chưa có file Thu nhập)' : 'Tiền thực về ' + moneyShort(g.back)) + ' − giá vốn ' + moneyShort(g.cogs) + (g.pct !== null ? ' = ' + g.pct + '%' : '') + '. ' + (g.est ? 'File sàn chưa có tên sản phẩm nên giá vốn tạm theo tỷ lệ của đơn văn phòng.' : g.cover < 90 ? 'Giá vốn tính từ ' + g.cover + '% doanh số có tên sản phẩm, phần còn lại theo cùng tỷ lệ.' : '') + ' Chưa trừ quảng cáo sàn.', g0 ? delta(g.gp, g0.gp) : '') : ''; })() +
       metric('Tỷ lệ huỷ', rate(s.c, s.t), s.c + ' / ' + s.t + ' đơn đặt bị huỷ.', s.t && p.t ? inv(dRate(s.c * 100 / s.t, p.c * 100 / p.t)) : '', '', ssk(function () { return trendRate(sd(4), sd(6), 100); }, true)) +
       metric('Tỷ lệ hoàn', rate(s.r, s.t), s.r + ' đơn trả hàng / hoàn tiền / giao không thành công.', s.t && p.t ? inv(dRate(s.r * 100 / s.t, p.r * 100 / p.t)) : '') + '</div>';
     if (compact) return h;
@@ -5414,7 +5431,7 @@
     h += '<div class="dash-grid">';
     var BS = trendBuckets(R), offS = trendOff(R, P), sd = function (r) { return dayMs(r[0]); };
     if (BS.L.length >= 2) h += '<div class="box"><h3>📈 Doanh số sàn</h3>' + trendChart({ B: BS, fmt: moneyShort, what: 'Doanh số sàn', series: [{ v: trendSum(BS, sj.days, sd, function (r) { return r[2] || 0; }), name: 'Kỳ này', cls: 'cur' }, offS !== null && sj.pdays && { v: trendSum(BS, sj.pdays, sd, function (r) { return r[1] || 0; }, offS), name: 'Kỳ trước (' + CMP_LABEL + ')', cls: 'prev' }] }) + '</div>';
-    h += '<div class="box"><h3>🏆 Sản phẩm bán chạy trên sàn</h3>' + barList(sj.prods.map(function (r) { return { l: sanIcon(r[0]) + ' ' + (r[1].length > 70 ? r[1].slice(0, 68) + '…' : r[1]), v: r[3], sub: r[2] + ' sản phẩm', tip: r[1] }; }), moneyShort, 'Chưa có.', { below: 1 }) + '</div></div>';
+    h += '<div class="box"><h3>🏆 Sản phẩm bán chạy trên sàn</h3>' + barList(sj.prods.map(function (r) { var c = costCfg() ? itemCost({ name: r[1], variant: '', qty: r[2] }) : null; return { l: sanIcon(r[0]) + ' ' + (r[1].length > 70 ? r[1].slice(0, 68) + '…' : r[1]), v: r[3], sub: r[2] + ' sản phẩm' + (c !== null && r[3] ? ' · lãi gộp ' + pct(r[3] - c, r[3]) + '% (chưa trừ phí sàn)' : costCfg() ? ' · chưa có giá vốn' : ''), tip: r[1] }; }), moneyShort, 'Chưa có.', { below: 1 }) + '</div></div>';
     return h;
   }
   /** Tổng quan: khối sàn gọn, bấm sang tab Sàn xem chi tiết. */
