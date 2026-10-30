@@ -298,7 +298,7 @@ async function srcSync(x, u, d) {
   const data = await srcRows(x, src, shCfg), total = data.rows.length; let res;
   // tự nhập 25 phút/lần: sheet không đổi chữ nào so với lần trước → bỏ qua, không đọc / ghi máy chủ dữ liệu
   const auto = u.name === 'Tự động' && !d.dry, sigKey = 'ss_' + hashKey(src.id + '|' + shCfg.name);
-  const sig = auto ? await sha1('d7#' + src.sale + '#' + (src.cfg.until || '') + '#' + JSON.stringify(shCfg) + '#' + JSON.stringify(data.rows)) : '';
+  const sig = auto ? await sha1('d8#' + src.sale + '#' + (src.cfg.until || '') + '#' + JSON.stringify(shCfg) + '#' + JSON.stringify(data.rows)) : '';
   if (auto && await kvGet(x.db, sigKey) === sig) return { ok: true, role: shCfg.role, sheetName: shCfg.name, total, skipped: true, summary: 'không đổi' };
   if (!d.dry && (shCfg.role === 'orders' || shCfg.role === 'care')) { try { await notePhones(x, src, shCfg, data.rows); } catch (e) { console.error('notePhones', sale, shCfg.name, e.message); } }
   if (shCfg.role === 'orders') res = await importOrders(x, src, shCfg, data, !!d.dry);
@@ -385,8 +385,8 @@ async function importOrders(x, src, shCfg, data, dry) {
     .forEach(rule => rest.forEach(p => { if (!p.o) { const o = take(p, o => rule(p, o)); if (o) { p.o = o; p.edited = 1; } } }));
   // đơn file đã ghép có mã đơn thật: sale sửa ngày / tiền / sản phẩm trong file (đơn 60 ngày gần đây, chưa ai sửa đơn trên CRM) → CRM theo file
   // Ngày theo cột ngày (rule 'cell', anh Sơn chọn 16/10/2026): ngày lệch file thì sửa theo file ở mọi đơn file, kể cả đơn cũ
-  const chkIds = parsed.filter(p => p.o && !p.edited && String(p.o.source || '').indexOf('File ') === 0 && ((rule !== 'code' && fmtDate(p.o.time, 'yyyyMMdd') !== p.day) || ((p.when > Date.now() - 60 * DAY || p.o.time > Date.now() - 60 * DAY || p.sw) && (prodOf(p.o.items) !== p.prod || (p.amount > 0 && Number(p.o.total) !== p.amount) || fmtDate(p.o.time, 'yyyyMMdd') !== p.day)))).map(p => p.o.id);
-  const handEdit = {}; if (chkIds.length) (await allIn(x.db, "SELECT DISTINCT ref FROM logs WHERE what = 'Sửa đơn' AND ref IN (SELECT value FROM json_each(?))", [...new Set(chkIds)])).forEach(l => { handEdit[l.ref] = 1; });
+  const chkIds = parsed.filter(p => p.o && !p.edited && String(p.o.source || '').indexOf('File ') === 0 && ((rule !== 'code' && fmtDate(p.o.time, 'yyyyMMdd') !== p.day) || ((p.when > Date.now() - 60 * DAY || p.o.time > Date.now() - 60 * DAY || p.sw) && (prodOf(p.o.items) !== p.prod || Number(p.o.total) !== p.amount || fmtDate(p.o.time, 'yyyyMMdd') !== p.day)))).map(p => p.o.id);
+  const handEdit = {}; // 30/10/2026 anh Sơn: doanh số sale theo file → đơn file sửa trên CRM vẫn theo file (trước đây giữ bản sửa trên CRM)
   const crmDay = {}, webOf = {}, webRid = {}; (await allIn(x.db, "SELECT rid, id, phone, time, total, subtotal, status, seller, name, source, note FROM orders WHERE phone IN (SELECT value FROM json_each(?)) AND source NOT LIKE 'File %'", [...new Set(parsed.map(p => p.phone))])).forEach(o => { crmDay[o.phone + '|' + fmtDate(o.time, 'yyyyMMdd') + '|' + (Number(o.total) || 0)] = 1; (webOf[o.phone] = webOf[o.phone] || []).push(o); webRid[o.rid] = o; }); // đơn tạo trên CRM / web (đã ghi ngược vào file)
   // Đơn web / CRM chưa giao mà sale lên lại trong file vài ngày sau (12/10/2026: chị Vân đặt web 05/10, Phương lên đơn trong file 07/10 → bị tính 2 đơn).
   // Dòng file cùng SĐT + cùng tiền, ngày từ 1 ngày trước tới 10 ngày sau đơn web → là đơn web đó: không tạo đơn file (đơn file đã nhập thì xoá), trạng thái theo file.
@@ -428,7 +428,7 @@ async function importOrders(x, src, shCfg, data, dry) {
     if (ex[key]) { // đã nhập: file cũ đổi sang Đã giao / Hoàn / Huỷ / Đổi hàng thì cập nhật theo (không đè thay đổi làm trên CRM)
       const st1 = mapStatus(cell(r, m, 'status'), when), cur = ex[key];
       if (String(cur.source || '').indexOf('File ') === 0 && (p.edited || chkIds.indexOf(cur.id) >= 0) && !handEdit[cur.id] && !seen['c' + cur.rid]) {
-        seen['c' + cur.rid] = 1; const amt = amount || Number(cur.total) || 0, items = rowItems(r, product, amt); // ô tiền trống: giữ số tiền cũ
+        seen['c' + cur.rid] = 1; const amt = amount, items = rowItems(r, product, amt); // ô tiền trống / 0 → đơn 0đ (30/10/2026 anh Sơn: theo file)
         chg.push({ why: rule !== 'code' && fmtDate(cur.time, 'yyyyMMdd') !== p.day && !p.dc && !p.sw ? (p.fill ? 'Ô ngày trống: lấy ngày dòng trên (file ' + shCfg.name + ')' : 'Ngày theo cột ngày trong file ' + shCfg.name + ' (trước đây theo mã đơn)') : p.dc === 1 ? 'Ngày theo mã đơn ' + p.codeRaw + ' (file ' + shCfg.name + ')' : p.dc === 2 ? 'Năm của ngày ' + fmtDate(when, 'dd/MM') + ' suy theo các dòng xung quanh (file ' + shCfg.name + ')' : p.sw ? 'Ngày trong file ' + shCfg.name + ' bị đảo ngày/tháng (định dạng Mỹ)' : String(cur.source || '').endsWith(' – ' + shCfg.name) ? '' : 'Mã đơn trùng với dòng sheet khác (' + String(cur.source).replace(/^File .* – /, '') + ')', rid: cur.rid, time: when, total: amt, subtotal: amt, items: itemsText(items), line: normLine(cell(r, m, 'line'), product), ship: String(cell(r, m, 'shipText') || '').trim() || shipText(items), name: cur.name, id: key, from: fmtDate(cur.time, 'dd/MM') + ' ' + (Number(cur.total) || 0).toLocaleString('vi-VN') + 'đ ' + String(cur.items || '').split('\n')[0].replace(/\s+x\d+\s*=.*$/, ''), to: fmtDate(when, 'dd/MM') + ' ' + amt.toLocaleString('vi-VN') + 'đ ' + product });
         chgPh[phone] = 1;
       }
@@ -469,15 +469,15 @@ async function importOrders(x, src, shCfg, data, dry) {
   // Đơn NK… của sheet này (30 ngày gần đây) không còn dòng nào trong file nhận, mà cùng SĐT có dòng khác cách ≤ 3 ngày: bản cũ của dòng đã sửa (nhập trước khi có lượt 2) → xoá cho khỏi tính 2 lần
   const orphan = []; Object.keys(pool).forEach(ph => pool[ph].forEach(o => { if (o.time > Date.now() - 30 * DAY && parsed.some(p => p.phone === ph && Math.abs(p.when - o.time) <= 3 * DAY && (!p.o || p.o.rid !== o.rid))) orphan.push(o); }));
   // Đơn mất khỏi file (29/10/2026: CRM tính dư cho Lương 25,9 triệu tháng 10): sale xoá dòng đơn huỷ (chuyển sang tab "Khách huỷ"), đánh lại mã đơn
-  // (231004 → 231003), gộp 2 dòng thành 1 → đơn cũ vẫn nằm trên CRM. Đơn của sheet này trong 45 ngày, chưa giao xong, không dòng nào trong file nhận → xoá, báo Quản trị.
-  // Không xoá: đơn đã giao / hoàn / huỷ, đơn có mã vận đơn, đơn đã sửa tay trên CRM, mã còn ở dòng file bị bỏ qua (sale đang sửa dở SĐT…); mất > 15 đơn 1 lượt (file hỏng / đổi cột) → chỉ báo.
+  // (231004 → 231003), gộp 2 dòng thành 1 → đơn cũ vẫn nằm trên CRM. Đơn của sheet này từ đầu tháng trước, không dòng nào trong file nhận → xoá, báo Quản trị.
+  // 30/10/2026 anh Sơn: doanh số sale theo file → xoá cả đơn đã giao / hoàn / có vận đơn / đã sửa trên CRM. Chỉ giữ: mã còn ở dòng file bị bỏ qua (sale đang sửa dở SĐT…); mất > 15 đơn 1 lượt (file hỏng / đổi cột) → chỉ báo.
   const keepRid = {}; Object.keys(claimed).forEach(r => { keepRid[r] = 1; }); parsed.forEach(p => { [p.o, ex[p.key], p.web].forEach(o => { if (o) keepRid[o.rid] = 1; }); }); orphan.concat(wDel).forEach(o => { keepRid[o.rid] = 1; });
   const lost = [], lostHold = [];
   if (parsed.length >= 10) {
-    const L = (await all(x.db, "SELECT rid, id, status, source, seller, name, phone, time, total, tracking, trk FROM orders WHERE seller = ? AND source LIKE 'File %' AND time >= ?", sale, Date.now() - 45 * DAY))
+    const vn = new Date(Date.now() + 7 * 3600e3), from = Date.UTC(vn.getUTCFullYear(), vn.getUTCMonth() - 1, 1) - 7 * 3600e3; // 0h ngày 1 tháng trước, giờ VN
+    const L = (await all(x.db, "SELECT rid, id, status, source, seller, name, phone, time, total, tracking, trk FROM orders WHERE seller = ? AND source LIKE 'File %' AND time >= ?", sale, from))
       .filter(o => !keepRid[o.rid] && String(o.source).endsWith(' – ' + shCfg.name) && !skipCodes[o.id] && !skipCodes[String(o.id).replace(/-\d{4}$/, '')]);
-    const hand = {}; if (L.length) (await allIn(x.db, "SELECT DISTINCT ref FROM logs WHERE what = 'Sửa đơn' AND ref IN (SELECT value FROM json_each(?))", L.map(o => o.id))).forEach(l => { hand[l.ref] = 1; });
-    L.forEach(o => { (FINAL[o.status] || isVoid(o.status) || o.tracking || o.trk || hand[o.id] ? lostHold : lost).push(o); });
+    lost.push(...L);
     if (lost.length > 15) { lostHold.push(...lost); lost.length = 0; }
   }
   const summary = out.length + ' đơn mới, ' + dup + ' đã có' + (upd.length ? ' (' + upd.length + ' cập nhật trạng thái)' : '') + (ren.length ? ', ' + ren.length + ' đơn nhận mã đơn mới' : '') + (chg.length ? ', ' + chg.length + ' đơn sửa theo file' : '') + (orphan.length ? ', xoá ' + orphan.length + ' đơn trùng' : '') + (lost.length ? ', xoá ' + lost.length + ' đơn không còn trong file' : '') + (lostHold.length ? ', ' + lostHold.length + ' đơn không còn trong file cần xem (đã báo Quản trị)' : '') + (afterCut ? ', ' + afterCut + ' đơn sau ngày chốt bỏ qua' : '') + ', ' + skip + ' dòng bỏ qua' + (far.length ? ', ' + far.length + ' mã đơn lệch ô ngày quá 45 ngày (lấy theo mã)' : '');
@@ -560,7 +560,7 @@ async function lostAlert(x, sale, sheet, lost, hold) {
     const line = o => '• ' + esc(o.id) + ' – ' + esc(o.name) + ' – ' + fmtDate(o.time, 'dd/MM') + ' – ' + (Number(o.total) || 0).toLocaleString('vi-VN') + 'đ (' + esc(o.status) + ')';
     const msg = '🧹 <b>File ' + esc(sale) + ' (' + esc(sheet) + '): đơn không còn trong file</b>\n' +
       (lost.length ? '\nĐã xoá khỏi CRM ' + lost.length + ' đơn (sale xoá dòng / đổi mã đơn), doanh số của sale tự trừ:\n' + lost.slice(0, 15).map(line).join('\n') + (lost.length > 15 ? '\n…' : '') + '\n' : '') +
-      (h.length ? '\nCần xem ' + h.length + ' đơn (đã giao / có mã vận đơn / đã sửa trên CRM' + (h.length > 15 ? ' / mất quá nhiều đơn 1 lúc' : '') + '), CRM chưa xoá:\n' + h.slice(0, 15).map(line).join('\n') + (h.length > 15 ? '\n…' : '') + '\nĐơn đúng → nhắc sale thêm lại dòng vào file. Đơn thừa → Quản trị xoá trên CRM.\n' : '') + CRM_URL + '/#don-hang';
+      (h.length ? '\nCần xem ' + h.length + ' đơn (mất quá nhiều đơn 1 lúc, có thể file bị hỏng / đổi cột), CRM chưa xoá:\n' + h.slice(0, 15).map(line).join('\n') + (h.length > 15 ? '\n…' : '') + '\nĐơn đúng → nhắc sale thêm lại dòng vào file. Đơn thừa → Quản trị xoá trên CRM.\n' : '') + CRM_URL + '/#don-hang';
     for (const u of (await crmUsers(x)).filter(u => u.active && u.role === 'Quản trị' && u.tg)) await telegramUser(x, u.name, msg);
   } catch (e) { console.log('lostAlert', e && e.message); }
 }
