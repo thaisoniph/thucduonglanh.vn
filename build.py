@@ -636,7 +636,7 @@ def footer():
         about = about.replace('<li><a href="/gioi-thieu/">Giới Thiệu</a></li>', f'<li><a href="/gioi-thieu/">Giới Thiệu</a></li><li><a href="{BR_PATH}">Hồ sơ thương hiệu</a></li>')
     bct = f'<a href="{esc(SITE["bo_cong_thuong_url"])}" target="_blank" rel="noopener" class="bct"><img src="/assets/img/brand/bo-cong-thuong.png" alt="{t("Đã thông báo Bộ Công Thương")}" width="150" loading="lazy"></a>' if SITE.get("bo_cong_thuong_url") else ""
     if IS_VI:
-        about += (f'<li><a href="{REF_PATH}">Giới thiệu bạn bè, nhận quà</a></li>' if REF_PATH else "") + '<li><a href="https://congsu.thucduonglanh.vn/" target="_blank" rel="noopener">Tuyển dụng</a></li>'
+        about += (f'<li><a href="{REF_PATH}">Giới thiệu bạn bè, nhận quà</a></li>' if REF_PATH else "") + (f'<li><a href="{CTVJ_PATH}">Làm cộng tác viên</a></li>' if CTVJ_PATH else "") + '<li><a href="https://congsu.thucduonglanh.vn/" target="_blank" rel="noopener">Tuyển dụng</a></li>'
     year = datetime.date.today().year
     return f'''
 <footer class="site-footer">
@@ -1892,6 +1892,60 @@ def page_ref():
 
 
 CTV_PATH = "/ctv/"
+CTVJ = SITE.get("ctv_join") or {}
+CTVJ_PATH = "/cong-tac-vien/" if CTVJ.get("enabled") else ""
+
+
+def page_ctv_join():
+    """📝 Đăng ký làm Cộng tác viên /cong-tac-vien/ (30/10/2026): ai cũng đăng ký được (chưa mua cũng được), quản lý gọi làm quen rồi bấm Duyệt ở CRM
+    → CRM tạo link ?ref= + mã giảm giá cho khách của CTV + link trang /ctv/ tự xem hoa hồng. Chữ từ site.json "ctv_join" (/admin); mức thật ở CRM (partner.js appRate / appVpct).
+    main.js initCtvJoin gửi api partner.js ctvApply. Không thu CCCD trên web (chỉ hỏi khi trả từ 2 triệu để khấu trừ thuế)."""
+    rate, months, fp = (int(num(CTVJ.get(k)) or 0) for k in ("rate", "months", "friend_pct"))
+    chans = ["Facebook", "Zalo", "TikTok", "Người quen, bạn bè", "Nhóm cộng đồng", "Cửa hàng / phòng tập / spa"]
+    chips = "".join(f'<label class="cn-chip"><input type="checkbox" name="channel" value="{esc(c)}"><span>{esc(c)}</span></label>' for c in chans)
+    rules = [
+        "Ai cũng đăng ký được, kể cả chưa từng mua sản phẩm. Nhân viên " + BRAND + " sẽ gọi hoặc nhắn Zalo làm quen trong 1–2 ngày làm việc. Khi được duyệt, bạn nhận link giới thiệu riêng" + (f", mã giảm {fp}% cho khách mới của bạn" if fp else "") + " và trang riêng để tự xem khách, đơn hàng, hoa hồng.",
+        "Khách mới (số điện thoại chưa từng mua tại " + BRAND + ") đặt hàng qua link hoặc mã của bạn thì thuộc về bạn. Khách bấm link rồi đặt trong 30 ngày vẫn được tính.",
+        f"Hoa hồng {rate}% tiền hàng (không tính phí ship) cho mọi đơn của khách đó trong {months} tháng, kể cả đơn khách đặt lại qua điện thoại, Zalo.",
+        "Hoa hồng đủ điều kiện khi đơn đã giao và qua 7 ngày đổi trả. Đơn huỷ, hoàn không tính. " + BRAND + " đối soát và chuyển khoản hằng tháng.",
+        "Lần chuyển từ 2.000.000đ trở lên được khấu trừ 10% thuế thu nhập cá nhân theo quy định; khi đó nhân viên sẽ xin số CCCD của bạn.",
+        "Không tính: tự mua cho chính mình hoặc người cùng địa chỉ nhận hàng, khách đã từng mua, đơn tạo ảo.",
+        "Chương trình chỉ trả cho khách bạn giới thiệu trực tiếp, không tính nhiều tầng, không cần đóng phí, không bắt buộc mua hàng.",
+        "Khi giới thiệu, bạn chỉ nói đúng công dụng ghi trên bao bì, không dùng các từ “chữa”, “điều trị”, “khỏi bệnh”, và ghi rõ: sản phẩm không phải là thuốc, không có tác dụng thay thế thuốc chữa bệnh. Không chạy quảng cáo bằng tên thương hiệu " + BRAND + ", không giả làm trang chính thức.",
+        BRAND + " có thể tạm dừng tài khoản nếu bạn vi phạm các điều trên. Hoa hồng của đơn hợp lệ trước đó vẫn được trả. " + BRAND + " có thể điều chỉnh chương trình và sẽ báo trước qua Zalo; đơn đã ghi giữ mức cũ.",
+    ]
+    rules_html = "".join(f"<li>{esc(r)}</li>" for r in rules)
+    body = f'''<section class="section plg-page rf-page ctvj-page"><div class="container plg-in">
+  <p class="join-eye">🤝 Cộng tác viên {BRAND}</p>
+  <h1 class="plg-h">Giới thiệu sản phẩm lành, <span class="nw">nhận hoa hồng {rate}%</span></h1>
+  <p class="plg-lead">Bạn quen nhiều người quan tâm ăn uống lành mạnh? Đăng ký làm Cộng tác viên: gửi link cho người quen, khách mới của bạn được giảm <b>{fp}%</b> đơn đầu, bạn nhận <b>{rate}% tiền hàng</b> cho mọi đơn của họ trong <b>{months} tháng</b>. Không mất phí, không cần nhập hàng.</p>
+  <ol class="rf-steps">
+    <li><span>1</span><b>Đăng ký</b>Điền form bên dưới, mất 1 phút.</li>
+    <li><span>2</span><b>Làm quen & nhận link</b>Nhân viên gọi hoặc nhắn Zalo cho bạn trong 1–2 ngày, gửi link và mã giảm giá riêng.</li>
+    <li><span>3</span><b>Giới thiệu & nhận tiền</b>Khách mua qua bạn, bạn tự xem hoa hồng trên trang riêng, nhận chuyển khoản hằng tháng.</li>
+  </ol>
+  <div class="plg-card rf-card" id="ctvJoin">
+    <form class="plg-form" data-cj-form novalidate>
+      <h2>Đăng ký làm Cộng tác viên</h2>
+      <label class="plg-f"><span>Họ và tên *</span><input name="name" maxlength="80" autocomplete="name" required placeholder="Ví dụ: Nguyễn Thu Hà"></label>
+      <label class="plg-f"><span>Số điện thoại có Zalo *</span><input name="phone" type="tel" inputmode="tel" autocomplete="tel" required placeholder="Ví dụ: 0912 345 678"></label>
+      <label class="plg-f"><span>Bạn ở tỉnh / thành nào?</span><input name="area" maxlength="80" placeholder="Ví dụ: Hà Nội"></label>
+      <fieldset class="cn-chips cj-chips"><legend>Bạn sẽ giới thiệu qua đâu? <small>(chọn nhiều được)</small></legend>{chips}</fieldset>
+      <label class="plg-f"><span>Email (không bắt buộc)</span><input name="email" type="email" maxlength="120" autocomplete="email"></label>
+      <label class="plg-f"><span>Tài khoản nhận hoa hồng (không bắt buộc, bổ sung sau cũng được)</span><input name="bank" maxlength="200" placeholder="Ngân hàng · số tài khoản · tên chủ tài khoản"></label>
+      <label class="plg-f"><span>Bạn muốn nhắn gì thêm?</span><textarea name="note" rows="2" maxlength="500" placeholder="Ví dụ: mình bán hàng online, có nhóm mẹ bỉm 2.000 người…"></textarea></label>
+      <input type="text" name="website" tabindex="-1" autocomplete="off" class="hp" aria-hidden="true">
+      <label class="cj-agree"><input type="checkbox" name="agree" required> <span>Tôi đã đọc và đồng ý <a href="#the-le">thể lệ chương trình</a>, đồng ý để {BRAND} dùng thông tin trên để liên hệ và trả hoa hồng (xem <a href="/chinh-sach-bao-mat/">chính sách bảo mật</a>).</span></label>
+      <button class="btn btn-lg plg-submit" type="submit" data-cta="ctv_apply">🤝 Gửi đăng ký</button>
+      <p class="form-msg" data-cj-msg role="status"></p>
+    </form>
+    <div class="cj-done" data-cj-done hidden></div>
+  </div>
+  <p class="rf-code">Bạn đã mua hàng và chỉ muốn giới thiệu vài người thân? Xem <a href="{REF_PATH or "/"}">Giới thiệu bạn bè, nhận quà</a> (không cần đăng ký).</p>
+  <details class="rf-rules" id="the-le" open><summary>Thể lệ chương trình</summary><ol>{rules_html}</ol>
+  <p>Cần hỗ trợ, bạn nhắn Zalo hoặc gọi <a href="tel:{tel(SITE["hotline"])}">{esc(SITE["hotline"])}</a>.</p></details>
+</div></section>'''
+    return layout(CTVJ_PATH, f"Đăng ký Cộng tác viên – hoa hồng {rate}% | {BRAND}", f"Đăng ký làm Cộng tác viên {BRAND}: khách mới của bạn giảm {fp}% đơn đầu, bạn nhận {rate}% tiền hàng mọi đơn của họ trong {months} tháng. Không mất phí, không nhập hàng.", body, body_class="page-ctvj")
 
 
 def page_ctv():
@@ -3220,6 +3274,8 @@ def main():
         routes.append(write(WALL_PATH, page_wall()))
         if REF_PATH:
             routes.append(write(REF_PATH, page_ref()))
+        if CTVJ_PATH:
+            routes.append(write(CTVJ_PATH, page_ctv_join()))
         write(CTV_PATH, page_ctv())  # trang CTV tự xem hoa hồng: link bí mật, không vào sitemap
         if QUIZ.get("questions"):
             routes.append(write(QUIZ_PATH, page_quiz()))

@@ -98,6 +98,12 @@ Vào **Cài đặt → 🤝 Cộng tác viên & khách giới thiệu → Quản
 1. Bấm **＋ Thêm CTV** (CTV = cộng tác viên). Nhập tên. CRM tự tạo link riêng, ví dụ `thucduonglanh.vn/?ref=huong`. Có thể thêm mã giảm giá cho khách của CTV (ví dụ `HUONG10`).
 2. Bấm **📋 Tin gửi CTV** để gửi link, mã và quy định cho CTV.
 
+**📝 Người lạ tự đăng ký làm CTV (từ 30/10/2026):** ai muốn làm CTV (chưa mua hàng cũng được) thì gửi họ trang **thucduonglanh.vn/cong-tac-vien/** để tự điền form. Có người đăng ký thì nhóm Telegram báo "🤝 ĐĂNG KÝ CỘNG TÁC VIÊN".
+1. Gọi hoặc nhắn Zalo làm quen: hỏi họ định giới thiệu cho ai, ở đâu. Thấy không ổn (số ảo, chỉ muốn tự mua lấy hoa hồng) thì không duyệt.
+2. Mở **Quản lý cộng tác viên**. Ô vàng **📝 … người đăng ký làm CTV, chờ duyệt** ở trên cùng. Bấm **✅ Duyệt**: CRM tự tạo link (ví dụ `?ref=huong678`), mã giảm 10% cho khách mới của họ, hoa hồng 10%. Không duyệt thì bấm **Từ chối** và ghi lý do (chỉ lưu trong CRM).
+3. Duyệt xong, ở thẻ CTV mới bấm **📋 Tin gửi CTV** rồi dán vào Zalo gửi họ (tin đã có link giới thiệu và link xem hoa hồng).
+Mức cho người tự đăng ký sửa ở **⚙️ Cài đặt chung**, dòng 📝. Đổi thì sửa luôn chữ trên web: **/admin → Cài đặt chung → Đăng ký cộng tác viên**. CTV tự mua bằng chính số của mình thì máy không tính hoa hồng.
+
 **Cách tính tiền cho CTV:**
 
 - Khách **mới** đặt qua link hoặc mã của CTV thì khách thuộc CTV.

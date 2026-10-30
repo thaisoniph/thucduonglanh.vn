@@ -78,6 +78,12 @@
     ],
     "ctv_n": 5
   },
+  "ctv_join": {
+    "enabled": true,
+    "rate": 10,
+    "months": 6,
+    "friend_pct": 10
+  },
   "web_offer": {
     "enabled": true,
     "percent": 15,

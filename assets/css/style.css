@@ -2387,3 +2387,14 @@ body.ch-on .float-widget,body.ch-on .gd-btn,body.ch-on .bvb,body.ch-on .to-top{o
 .ctv-list{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:2px 14px}
 .ctv-o{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}.ctv-o:last-child{border-bottom:0}
 .ctv-o span{display:flex;flex-direction:column}.ctv-o span:last-child{text-align:right}.ctv-o small{color:var(--muted);font-size:12.5px}
+/* 📝 Đăng ký Cộng tác viên /cong-tac-vien/ (build.py page_ctv_join, main.js initCtvJoin) */
+.cj-chips legend{font-weight:600;font-size:14px;margin-bottom:8px;padding:0;color:var(--ink)}
+.cj-chips legend small{font-weight:400;color:var(--muted)}
+.ctvj-page .plg-f textarea{display:block;width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:var(--radius-sm);font:inherit;font-size:16px;background:#fff;resize:vertical}
+.ctvj-page .plg-f textarea:focus{outline:2px solid var(--primary);border-color:var(--primary)}
+.cj-agree{display:flex;gap:10px;align-items:flex-start;margin:6px 0 14px;font-size:14px;line-height:1.5;cursor:pointer}
+.cj-agree input{width:20px;height:20px;flex:none;margin-top:1px;accent-color:var(--primary)}
+.cj-agree.invalid{color:#d33}
+.cj-done{text-align:center;padding:8px 0}
+.cj-done .cj-ic{font-size:44px;line-height:1;margin:0 0 8px}
+.cj-done h2{margin:0 0 8px}

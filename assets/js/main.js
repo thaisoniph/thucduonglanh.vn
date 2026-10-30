@@ -1284,6 +1284,31 @@
       $$('[data-ctv-copy]', out).forEach(function (b) { b.onclick = function () { if (navigator.clipboard) navigator.clipboard.writeText(b.getAttribute('data-ctv-copy')).then(function () { toast('Đã sao chép link', 'ok'); }); track('ctv_copy', {}); }; });
     }, function () { msg.textContent = 'Mạng chập chờn, bạn tải lại trang nhé.'; });
   }
+  /* ---------- 📝 Đăng ký làm Cộng tác viên /cong-tac-vien/ (build.py page_ctv_join, api partner.js ctvApply): gửi đăng ký → quản lý gọi làm quen rồi duyệt ở CRM. */
+  function initCtvJoin() {
+    var box = $('#ctvJoin'); if (!box || !CFG.endpoint) return;
+    var f = $('[data-cj-form]', box), msg = $('[data-cj-msg]', box), done = $('[data-cj-done]', box), btn = f.querySelector('button[type=submit]');
+    var cu = load('tdl_customer', null) || {}; if (cu.name && !f.name.value) f.name.value = cu.name; if (cu.phone && !f.phone.value) f.phone.value = cu.phone;
+    var err = function (t, el) { msg.textContent = t; msg.className = 'form-msg err'; if (el) el.focus(); };
+    f.addEventListener('submit', function (e) {
+      e.preventDefault(); msg.textContent = '';
+      var p = normPhone(f.phone.value), ag = f.querySelector('.cj-agree');
+      if (f.name.value.trim().length < 2) return err('Bạn nhập họ tên giúp nhé.', f.name);
+      if (!/^0\d{9,10}$/.test(p)) return err('Số điện thoại chưa đúng, bạn kiểm tra lại giúp nhé.', f.phone);
+      ag.classList.toggle('invalid', !f.agree.checked); if (!f.agree.checked) return err('Bạn đọc thể lệ và đánh dấu ô đồng ý giúp nhé.', f.agree);
+      var s = sourceLabel(), body = { type: 'ctv_apply', name: f.name.value.trim(), phone: p, area: f.area.value.trim(), email: f.email.value.trim(), bank: f.bank.value.trim(), note: f.note.value.trim(), agree: true, website: f.website.value,
+        channel: $$('[name=channel]:checked', f).map(function (c) { return c.value; }), source: s.last + (s.first && s.first !== s.last ? ' (lần đầu: ' + s.first + ')' : '') };
+      btn.disabled = true; msg.textContent = 'Đang gửi…'; msg.className = 'form-msg';
+      fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) }).then(function (r) { return r.json(); }).then(function (j) {
+        btn.disabled = false;
+        if (!j || !j.ok) return err((j && j.error) || 'Chưa gửi được, bạn thử lại nhé.');
+        track('ctv_apply', { already: j.already || '' });
+        done.innerHTML = '<p class="cj-ic">' + (j.already ? 'ℹ️' : '🎉') + '</p><h2>' + (j.already ? 'Chúng tôi đã có thông tin của bạn' : 'Cảm ơn ' + esc(body.name) + '!') + '</h2><p>' + esc(j.msg || 'Chúng tôi đã nhận đăng ký. Nhân viên ' + CFG.brand + ' sẽ gọi hoặc nhắn Zalo số ' + p + ' trong 1–2 ngày làm việc để gửi link giới thiệu riêng của bạn.') + '</p>' +
+          '<p class="muted">Cần gấp, bạn nhắn Zalo <a href="https://zalo.me/' + CFG.zalo + '" target="_blank" rel="noopener">' + esc(CFG.hotline) + '</a>.</p>';
+        f.hidden = true; done.hidden = false; done.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, function () { btn.disabled = false; err('Mạng chập chờn, bạn bấm gửi lại nhé.'); });
+    });
+  }
   function initThanks() {
     var el = $('#thanksPage'); if (!el) return;
     var o = load('tdl_last_order', null);
@@ -1655,7 +1680,7 @@
     captureSource(); initConsent(); trackPageEvents();
     renderCounts(); renderMini(); markWish();
     initHeader(); initClicks(); initRail(); initLightbox(); initProduct(); initCerts(); initProof(); initTabs(); initReadmore(); initSort();
-    initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initJourneyMap(); initPledge(); initRef(); initCtv(); initWall(); initWallStrip(); initQuiz(); initGiftDock(); initZaloGate(); initOcx(); initMusic(); initBrandVideo(); initChat();
+    initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initJourneyMap(); initPledge(); initRef(); initCtv(); initCtvJoin(); initWall(); initWallStrip(); initQuiz(); initGiftDock(); initZaloGate(); initOcx(); initMusic(); initBrandVideo(); initChat();
     window.addEventListener('storage', function (e) { if (e.key === 'tdl_cart') { cart = load('tdl_cart', []); cleanCart(); renderCounts(); renderMini(); } });
   }
   // ===== Hành trình 10 triệu người Việt sống khỏe hơn: bộ đếm [data-jr] + trang "Tôi chọn sống lành" /toi-chon-song-lanh/ (api journey.js) =====

@@ -10,8 +10,9 @@
 //   giới thiệu vào ô mã ưu đãi cũng được (voucher.js). Đơn của bạn đã giao + 7 ngày → refAuto tự phát voucher CAMON = rwPct % tiền hàng của bạn
 //   (gắn SĐT người giới thiệu, hạn 90 ngày), sale chỉ việc báo khách. Đủ tierN bạn mua → tặng tierGift (1 hộp Trà DILVANG), đủ ctvN → mời làm CTV.
 //   Chống gian lận: không tính đơn trùng SĐT / trùng địa chỉ người giới thiệu, đơn huỷ / hoàn.
-import { all, first, run, kvGet, kvSet, normPhone, fmt, nrm, isVoid, refCode, randHex } from './lib.js';
+import { all, first, run, kvGet, kvSet, normPhone, fmt, nrm, isVoid, refCode, randHex, esc } from './lib.js';
 import { vcNorm, vcLabel, makeRefCode } from './voucher.js';
+import { telegram } from './google.js';
 
 const LIVE = "status NOT LIKE '%uỷ%' AND status NOT LIKE '%ủy%' AND status NOT LIKE '%oàn%'";
 const DAY = 864e5, RETURN_DAYS = 7, TAX_FROM = 2000000, TAX_PCT = 10;
@@ -21,7 +22,8 @@ const DEF_TIERS = [[3, '1 hộp Trà DILVANG'], [5, 'Combo 3 hũ Ruốc Rong Bi�
 // 30/10/2026 (lần 3, anh Sơn + Thủy): thưởng tính CỘNG DỒN theo tiền hàng khách mới mua trong winDays (60) ngày đầu: đủ 300k → 20k, đủ 700k → tổng 50k
 // (cả voucher người giới thiệu `rwSteps` lẫn thưởng sale `saleSteps`; [[mức tiền hàng, tổng thưởng]]). Voucher chỉ dùng cho đơn từ vcMin. Đơn nhỏ không lỗ, sale có lý do chăm sóc khách mới.
 const DEF_STEPS = [[300000, 20000], [700000, 50000]];
-const DEF = { rate: 10, months: 6, refPct: 10, rwPct: 10, rwAmt: 50000, rwSteps: DEF_STEPS, saleSteps: DEF_STEPS, winDays: 60, vcMin: 300000, auto: 1, tiers: DEF_TIERS, tierN: 3, tierGift: '1 hộp Trà DILVANG', ctvN: 5, bonus: 50000, goalN: 20, goalGift: 'Liên hoan cả nhóm' };
+const DEF = { rate: 10, months: 6, refPct: 10, rwPct: 10, rwAmt: 50000, rwSteps: DEF_STEPS, saleSteps: DEF_STEPS, winDays: 60, vcMin: 300000, auto: 1, tiers: DEF_TIERS, tierN: 3, tierGift: '1 hộp Trà DILVANG', ctvN: 5, bonus: 50000, goalN: 20, goalGift: 'Liên hoan cả nhóm', appRate: 10, appVpct: 10 };
+// 30/10/2026: người ngoài tự đăng ký CTV ở thucduonglanh.vn/cong-tac-vien/ → quản lý duyệt. Khi duyệt: hoa hồng appRate %, khách mới của CTV giảm appVpct % đơn đầu.
 const CTV_T = 1000; // ref_tiers.tier của mốc mời làm CTV = 1000 + ctvN (để không trùng mốc quà cùng số người)
 /** Bậc quà đã sắp xếp: [{n, gift}] */
 export function stepsOf(a) { return (Array.isArray(a) ? a : []).map(t => [Math.round(Number(t[0]) || 0), Math.round(Number(t[1]) || 0)]).filter(t => t[1] > 0).sort((x, y) => x[0] - y[0]); }
@@ -59,6 +61,8 @@ export async function partnerSchema(db) {
     await run(db, 'UPDATE ref_sale SET amount = 0 WHERE ok_at IS NULL');
     await run(db, "INSERT INTO kv (k, v) VALUES ('rs_mig', '1') ON CONFLICT(k) DO NOTHING");
   }
+  // 📝 đơn đăng ký làm CTV từ web (30/10/2026): st new = chờ duyệt, ok = đã duyệt (code = mã CTV), no = từ chối
+  await run(db, `CREATE TABLE IF NOT EXISTS partner_apps (id INTEGER PRIMARY KEY AUTOINCREMENT, at INTEGER, name TEXT DEFAULT '', phone TEXT DEFAULT '', email TEXT DEFAULT '', area TEXT DEFAULT '', channel TEXT DEFAULT '', bank TEXT DEFAULT '', note TEXT DEFAULT '', src TEXT DEFAULT '', st TEXT DEFAULT 'new', code TEXT DEFAULT '', done_at INTEGER, done_by TEXT DEFAULT '', reason TEXT DEFAULT '')`);
   await run(db, 'CREATE INDEX IF NOT EXISTS orders_partner ON orders(partner)');
   await run(db, 'CREATE INDEX IF NOT EXISTS orders_ref_phone ON orders(ref_phone)');
 }
@@ -83,6 +87,7 @@ export async function orderAttrib(x, { id, phone, ref, voucher, isNew }) {
   }
   if (ref) { const p = await first(x.db, 'SELECT code FROM partners WHERE code = ? AND active = 1', refCode(ref)); if (p) pc = p.code; }
   if (!pc && v && v.partner) pc = v.partner;
+  if (pc && await first(x.db, 'SELECT code FROM partners WHERE code = ? AND phone = ?', pc, phone)) pc = ''; // CTV tự mua bằng số của mình: không tính hoa hồng
   if (pc && isNew) await run(x.db, "UPDATE customers SET partner = ?, partner_at = ? WHERE phone = ? AND coalesce(partner, '') = ''", pc, Date.now(), phone);
   const c = await first(x.db, 'SELECT partner FROM customers WHERE phone = ?', phone);
   if (c && c.partner) { await partnerFill(x); const p = await first(x.db, 'SELECT name FROM partners WHERE code = ?', c.partner); const o = await first(x.db, 'SELECT partner FROM orders WHERE id = ? AND phone = ?', String(id), phone); if (o && o.partner) out.partner = p ? p.name : c.partner; }
@@ -292,8 +297,9 @@ async function pList(x) {
   });
   pays.forEach(p => { const s = st[p.code]; if (s) s.paid += p.amount; });
   const refs = await first(x.db, "SELECT (SELECT count(*) FROM vouchers WHERE coalesce(ref_phone, '') != '') AS codes, (SELECT count(*) FROM orders WHERE coalesce(ref_phone, '') != '' AND status NOT LIKE '%uỷ%' AND status NOT LIKE '%ủy%' AND status NOT LIKE '%oàn%') AS orders, (SELECT count(*) FROM orders WHERE coalesce(ref_gift, '') != '') AS gifts");
+  const apps = await all(x.db, "SELECT * FROM partner_apps WHERE st = 'new' OR done_at > ? ORDER BY st = 'new' DESC, id DESC LIMIT 60", Date.now() - 30 * DAY);
   return {
-    ok: true, cfg: await partnerCfg(x), refs,
+    ok: true, cfg: await partnerCfg(x), refs, apps: apps.map(a => ({ id: a.id, at: a.at, name: a.name, phone: a.phone, email: a.email, area: a.area, channel: a.channel, bank: a.bank, note: a.note, src: a.src, st: a.st, code: a.code, doneAt: a.done_at, doneBy: a.done_by, reason: a.reason })),
     list: ps.map(p => { const s = st[p.code] || { cust: {}, n: 0, sales: 0, ready: 0, readyN: 0, wait: 0, waitN: 0, paid: 0 }; return { code: p.code, name: p.name, phone: p.phone, email: p.email, kind: p.kind, rate: p.rate, bank: p.bank, idno: p.idno, note: p.note, vcode: p.vcode, vpct: p.vpct || '', viewKey: p.view_key || '', active: !!p.active, created: p.created, by: p.by_name, cust: Object.keys(s.cust).length, n: s.n, sales: s.sales, ready: s.ready, readyN: s.readyN, wait: s.wait, waitN: s.waitN, paid: s.paid }; }),
     pays: pays.map(p => ({ id: p.id, code: p.code, at: p.at, amount: p.amount, tax: p.tax, net: p.net, n: p.n, note: p.note, by: p.by_name }))
   };
@@ -356,6 +362,47 @@ async function pClaim(x, u, d, log) {
   return pList(x);
 }
 
+/* ------------------------------------------------------------ 📝 Người ngoài tự đăng ký làm CTV (30/10/2026): thucduonglanh.vn/cong-tac-vien/ (main.js initCtvJoin)
+   Không tự kích hoạt: quản lý xem và bấm Duyệt ở CRM → Cài đặt → 🤝 (tránh đăng ký ảo / tự mua lấy hoa hồng). Không thu CCCD trên web (dữ liệu nhạy cảm): chỉ hỏi khi trả từ 2 triệu. */
+export async function ctvApply(x, d) {
+  const fk = 'ctva_' + String(x.ip || 'x').slice(0, 60), n = Number(await kvGet(x.db, fk)) || 0;
+  if (n >= 5) return { ok: false, error: 'Bạn gửi nhiều lần quá. Thử lại sau 1 giờ, hoặc nhắn Zalo 0966 326 522 nhé.' };
+  const t = (v, m) => String(v || '').trim().slice(0, m), name = t(d.name, 80), phone = normPhone(d.phone);
+  if (name.length < 2) return { ok: false, error: 'Bạn nhập họ tên giúp nhé.' };
+  if (!/^0\d{9,10}$/.test(phone)) return { ok: false, error: 'Số điện thoại chưa đúng, bạn kiểm tra lại giúp nhé.' };
+  if (!d.agree) return { ok: false, error: 'Bạn đọc và đánh dấu đồng ý điều khoản giúp nhé.' };
+  await kvSet(x.db, fk, n + 1, 60 * 60e3);
+  const p = await first(x.db, 'SELECT name, active FROM partners WHERE phone = ?', phone);
+  if (p) return { ok: true, already: 'ctv', msg: p.active ? 'Số này đã là Cộng tác viên của chúng tôi. Bạn mở link riêng đã nhận qua Zalo để xem hoa hồng nhé.' : 'Số này đã đăng ký Cộng tác viên (đang tạm dừng). Bạn nhắn Zalo 0966 326 522 để được hỗ trợ.' };
+  if (await first(x.db, "SELECT id FROM partner_apps WHERE phone = ? AND st = 'new'", phone)) return { ok: true, already: 'wait', msg: 'Chúng tôi đã nhận đăng ký của số này và đang xem. Nhân viên sẽ liên hệ qua Zalo trong 1–2 ngày làm việc.' };
+  const row = { name, phone, email: t(d.email, 120), area: t(d.area, 80), channel: t(Array.isArray(d.channel) ? d.channel.join(', ') : d.channel, 200), bank: t(d.bank, 200), note: t(d.note, 500), src: t(d.source, 200) };
+  await run(x.db, 'INSERT INTO partner_apps (at, name, phone, email, area, channel, bank, note, src) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', Date.now(), row.name, row.phone, row.email, row.area, row.channel, row.bank, row.note, row.src);
+  const c = await first(x.db, 'SELECT orders, owner FROM customers WHERE phone = ?', phone);
+  x.later(telegram(x.env, '🤝 <b>ĐĂNG KÝ CỘNG TÁC VIÊN</b>\n👤 ' + esc(name) + ' – <b>' + esc(phone) + '</b>' + (row.area ? ' · ' + esc(row.area) : '') + (row.channel ? '\n📣 Sẽ giới thiệu qua: ' + esc(row.channel) : '') + (row.note ? '\n💬 ' + esc(row.note) : '') +
+    (c ? '\n🛒 Đã là khách: ' + (c.orders || 0) + ' đơn' + (c.owner ? ' · sale ' + esc(c.owner) : '') : '') + '\n👉 Gọi / Zalo làm quen rồi Duyệt ở CRM → Cài đặt → 🤝 Quản lý cộng tác viên'));
+  return { ok: true };
+}
+async function appOk(x, u, d, log, staffNames) {
+  const a = await first(x.db, 'SELECT * FROM partner_apps WHERE id = ?', Number(d.id) || 0);
+  if (!a || a.st !== 'new') return { ok: false, error: 'Đơn đăng ký này đã xử lý rồi.' };
+  const cfg = await partnerCfg(x), taken = async c => staffNames.some(n => refCode(n) === c) || !!(await first(x.db, 'SELECT code FROM partners WHERE code = ?', c)) || !!(await first(x.db, 'SELECT code FROM vouchers WHERE code = ?', vcNorm(c)));
+  let code = refCode(d.code || '');
+  if (!code) { const w = refCode(a.name.split(/\s+/).pop()) || 'ctv'; code = w + a.phone.slice(-3); for (let i = 2; await taken(code) && i < 20; i++) code = w + a.phone.slice(-3) + i; } // vd huong678: ngắn, dễ đọc
+  const vp = d.vpct == null ? cfg.appVpct : Number(d.vpct) || 0;
+  const r = await pSave(x, u, { isNew: true, code, name: a.name, phone: a.phone, email: a.email, kind: 'CTV', rate: d.rate == null || d.rate === '' ? cfg.appRate : d.rate, vpct: vp, vcode: code, bank: a.bank, note: ('Tự đăng ký trên web ' + new Date(a.at + 7 * 3600e3).toISOString().slice(0, 10).split('-').reverse().join('/') + (a.area ? ' · ' + a.area : '') + (a.channel ? ' · ' + a.channel : '')).slice(0, 300), active: true }, log, staffNames);
+  if (!r.ok) return r;
+  await run(x.db, "UPDATE partner_apps SET st = 'ok', code = ?, done_at = ?, done_by = ? WHERE id = ?", code, Date.now(), u.name, a.id);
+  return Object.assign(await pList(x), { madeCode: code });
+}
+async function appNo(x, u, d, log) {
+  const a = await first(x.db, 'SELECT * FROM partner_apps WHERE id = ?', Number(d.id) || 0);
+  if (!a || a.st !== 'new') return { ok: false, error: 'Đơn đăng ký này đã xử lý rồi.' };
+  const reason = String(d.reason || '').trim().slice(0, 200);
+  await run(x.db, "UPDATE partner_apps SET st = 'no', done_at = ?, done_by = ?, reason = ? WHERE id = ?", Date.now(), u.name, reason, a.id);
+  await log(x, u, 'Từ chối đăng ký CTV', a.phone, a.name, reason, '');
+  return pList(x);
+}
+
 /* ------------------------------------------------------------ 🤝 Trang CTV tự xem hoa hồng (28/10/2026): thucduonglanh.vn/ctv/#<view_key> (main.js initCtv) */
 /** Không cần đăng nhập: ai có link bí mật mới xem được. Chỉ trả tên khách đã che, không trả SĐT / địa chỉ khách, tài khoản ngân hàng chỉ còn 4 số cuối.
  *  Sai link nhiều lần → khoá theo IP 15 phút. Quản lý đổi link ở CRM (✏️ Sửa CTV → Đổi link xem hoa hồng). */
@@ -409,18 +456,22 @@ export async function crmPartner(x, u, d, log, staffNames) {
   if (a === 'partner_orders') return pOrders(x, String(d.code || ''));
   if (a === 'partner_pay') return pPay(x, u, d, log);
   if (a === 'partner_claim') return pClaim(x, u, d, log);
+  if (a === 'partner_app_ok') return appOk(x, u, d, log, staffNames);
+  if (a === 'partner_app_no') return appNo(x, u, d, log);
   if (a === 'partner_cfg') {
     const c = await partnerCfg(x), rate = Number(d.rate), months = Math.round(Number(d.months)), refPct = Number(d.refPct);
     const rwPct = d.rwPct == null ? c.rwPct : Number(d.rwPct), tierN = d.tierN == null ? c.tierN : Math.round(Number(d.tierN)), ctvN = d.ctvN == null ? c.ctvN : Math.round(Number(d.ctvN));
     const tierGift = d.tierGift == null ? c.tierGift : String(d.tierGift).trim().slice(0, 80), auto = d.auto == null ? c.auto : d.auto ? 1 : 0;
     const rwAmt = d.rwAmt == null ? c.rwAmt : Math.round(Number(d.rwAmt) || 0), rwSteps = Array.isArray(d.rwSteps) ? stepsOf(d.rwSteps).slice(0, 4) : stepsOf(c.rwSteps), winDays = d.winDays == null ? c.winDays : Math.min(365, Math.max(7, Math.round(Number(d.winDays) || 60)));
+    const appRate = d.appRate == null || d.appRate === '' ? c.appRate : Number(d.appRate), appVpct = d.appVpct == null || d.appVpct === '' ? c.appVpct : Number(d.appVpct);
+    if (!(appRate >= 0 && appRate <= 50) || !(appVpct >= 0 && appVpct <= 30)) return { ok: false, error: 'Kiểm tra lại: hoa hồng CTV tự đăng ký 0–50%, khách của họ giảm 0–30%.' };
     const tiers = Array.isArray(d.tiers) ? d.tiers.map(t => [Math.round(Number(t[0]) || 0), String(t[1] || '').trim().slice(0, 100)]).filter(t => t[0] > 0 && t[1]).slice(0, 6) : c.tiers;
     if (!(rwAmt >= 0 && rwAmt <= 1000000) || tiers.some(t => t[0] > 100)) return { ok: false, error: 'Kiểm tra lại: voucher cảm ơn 0–1.000.000đ, mốc quà tối đa 100 người.' };
     if (!(rate >= 0 && rate <= 50) || !(months >= 1 && months <= 36) || !(refPct >= 0 && refPct <= 30)) return { ok: false, error: 'Kiểm tra lại: hoa hồng 0–50%, thời hạn 1–36 tháng, giảm cho bạn được giới thiệu 0–30%.' };
     if (!(rwPct >= 0 && rwPct <= 30) || !(tierN >= 0 && tierN <= 50) || !(ctvN >= 0 && ctvN <= 100)) return { ok: false, error: 'Kiểm tra lại: voucher cảm ơn 0–30%, mốc quà 0–50 người, mốc mời CTV 0–100 người.' };
-    await kvSet(x.db, 'partner_cfg', JSON.stringify(Object.assign({}, c, { rate, months, refPct, rwPct, rwAmt, rwSteps, winDays, tiers, auto, tierN, tierGift, ctvN }))); // giữ thưởng sale / mục tiêu nhóm
+    await kvSet(x.db, 'partner_cfg', JSON.stringify(Object.assign({}, c, { rate, months, refPct, rwPct, rwAmt, rwSteps, winDays, tiers, auto, tierN, tierGift, ctvN, appRate, appVpct }))); // giữ thưởng sale / mục tiêu nhóm
     if (refPct !== c.refPct) await run(x.db, "UPDATE vouchers SET value = ? WHERE coalesce(ref_phone, '') != '' AND kind = 'percent'", refPct); // mã giới thiệu đã phát theo % mới
-    await log(x, u, 'Cài đặt CTV', '', '', 'Hoa hồng ' + rate + '% · ' + months + ' tháng · bạn được giới thiệu giảm ' + refPct + '% · voucher cảm ơn ' + rwSteps.map(t => 'bạn mua đủ ' + fmt(t[0]) + ' → ' + fmt(t[1])).join(', ') + ' (' + winDays + ' ngày)' + (auto ? '' : ' (tắt tự động)') + ' · ' + tiers.map(t => t[0] + ' bạn → ' + t[1]).join(' · ') + ' · ' + ctvN + ' bạn → mời CTV', '');
+    await log(x, u, 'Cài đặt CTV', '', '', 'Hoa hồng ' + rate + '% · ' + months + ' tháng · bạn được giới thiệu giảm ' + refPct + '% · voucher cảm ơn ' + rwSteps.map(t => 'bạn mua đủ ' + fmt(t[0]) + ' → ' + fmt(t[1])).join(', ') + ' (' + winDays + ' ngày)' + (auto ? '' : ' (tắt tự động)') + ' · ' + tiers.map(t => t[0] + ' bạn → ' + t[1]).join(' · ') + ' · ' + ctvN + ' bạn → mời CTV · CTV tự đăng ký: ' + appRate + '%, khách giảm ' + appVpct + '%', '');
     return pList(x);
   }
   return { ok: false, error: 'Không rõ thao tác: ' + a };
