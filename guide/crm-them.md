@@ -94,6 +94,18 @@ Khách đã mua thì ai cũng có **link giới thiệu riêng**. Bạn bè củ
    - **🏅 Gửi quà**: khách đủ 3 người. Hỏi khách gửi quà kèm đơn sau hay gửi riêng. Gửi xong bấm **✅ Đã gửi quà**.
    - **🌟 Mời làm CTV**: khách đủ 5 người. Gửi tin mời, báo quản lý để thêm khách làm CTV.
 
+### 💬 Kịch bản gọi: khách hài lòng → mời giới thiệu
+
+Bấm **Gửi mã** (hoặc **🎁 Mã giới thiệu**), cửa sổ có mục **💬 Kịch bản gọi**, bấm để mở. Tên khách và sản phẩm đã điền sẵn.
+
+1. **Hỏi thăm, để khách tự nói:** "Anh/chị dùng [sản phẩm] được một thời gian rồi, mình thấy hợp không ạ?" Khách khen thì mới sang bước 2. Khách chưa hài lòng thì hỏi cách dùng, hẹn gọi lại.
+2. **Cảm ơn, nói ý nghĩa:** "Thực Dưỡng Lành đang có hành trình giúp 10 triệu người Việt ăn uống lành hơn. Người thân tin lời anh/chị hơn tin quảng cáo ạ."
+3. **Gợi đúng người cần:** bố mẹ lớn tuổi, chị em sau sinh, bạn ăn chay, đồng nghiệp hay ăn ngoài.
+4. **Nói lợi ích cho cả hai:** bạn được giảm 10% đơn đầu, khách được voucher và quà theo mốc.
+5. **Làm thật dễ:** "Em gửi tin qua Zalo, anh/chị chỉ cần chuyển tiếp." Hoặc xin tên, số của bạn để mình gọi tư vấn (thêm khách hỏi, chọn **Khách giới thiệu**).
+
+Không nói sản phẩm chữa / điều trị / khỏi bệnh.
+
 **Không được tặng:** đơn huỷ hoặc hoàn, khách tự giới thiệu chính mình (cùng số điện thoại hoặc cùng địa chỉ). CRM tự bỏ qua và ghi ⛔. Quản lý xem lại nếu khách hỏi.
 
 **Khách gọi điện / nhắn Zalo nói "chị Hoa giới thiệu":** khi thêm khách hỏi, chọn *Khách đến từ đâu* là **Khách giới thiệu** rồi chọn chị Hoa. Nhớ chọn **ngay lúc thêm khách** (quên thì sửa trong 2 ngày). Chị Hoa do bạn khác phụ trách thì khách tự giao cho bạn đó, CRM báo ngay khi bạn bấm Lưu. Khách chốt đơn thì tab Hôm nay cũng nhắc **🎁 Cảm ơn khách giới thiệu**.

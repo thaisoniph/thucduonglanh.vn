@@ -1342,3 +1342,12 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .amb-skip { border: 0; background: none; color: var(--muted); font-size: 13px; padding: 7px 6px; cursor: pointer; }
 .amb-more { margin: 6px 0 0 14px; font-size: 12px; color: var(--muted); }
 .amb-chip { border: 0; border-radius: 999px; background: var(--primary-light); color: var(--primary); font-size: 12px; font-weight: 600; padding: 2px 8px; margin-right: 6px; cursor: pointer; }
+
+/* 💬 Kịch bản mời giới thiệu trong cửa sổ Mã giới thiệu */
+.rf-script { margin: 10px 0; background: var(--primary-soft); border-radius: 12px; padding: 10px 12px; }
+.rf-script summary { cursor: pointer; font-weight: 600; color: var(--primary); }
+.rf-script summary small { font-weight: 400; color: var(--muted); }
+.rs-step { margin-top: 10px; } .rs-step > b { font-size: 14px; }
+.rs-say { margin: 4px 0 0; padding: 8px 10px; background: var(--card); border-radius: 10px; font-size: 14px; line-height: 1.45; }
+.rs-tip { margin: 4px 0 0; font-size: 13px; color: var(--muted); }
+.rs-note { margin: 10px 0 0; font-size: 12px; color: var(--muted); }

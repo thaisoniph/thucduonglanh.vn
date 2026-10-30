@@ -7234,18 +7234,41 @@
   /** Hồ sơ khách → 🎁 Mã giới thiệu: mã riêng của khách (TÊN + 3 số cuối), bạn bè đặt lần đầu trên web được giảm %, sale tặng quà cảm ơn khi bạn đặt. */
   function openRefCode(phone) {
     var c = cust(phone); if (!c) return;
-    var m = modal('🎁 Mã giới thiệu – ' + esc(c.name || c.phone), '<div id="rfMain"><p class="muted">Đang tạo mã…</p></div>', '');
+    var m = modal('🎁 Mã giới thiệu – ' + esc(ambName(c.name) || c.phone), '<div id="rfMain"><p class="muted">Đang tạo mã…</p></div>', '');
     api('ref_code', { phone: c.phone }).then(function (j) {
       var box = $('#rfMain', m); if (!box) return;
       var pct = (String(j.label).match(/[\d.,]+%/) || [''])[0], url = 'https://thucduonglanh.vn/?uudai=' + encodeURIComponent(j.code) + '&ref=' + refCode(c.owner || S.user.name);
       var txt = fillTpl('Dạ [Tên] ơi, cảm ơn [Tên] đã tin dùng Thực Dưỡng Lành ❤️ Em gửi [Tên] mã giới thiệu riêng: ' + j.code + '. Bạn bè, người thân của [Tên] đặt hàng lần đầu trên web nhập mã này (hoặc số điện thoại của [Tên]) được giảm ' + pct + '. Mỗi người bạn nhận hàng xong, [Tên] được tặng voucher ' + (j.cfg ? j.cfg.rwPct : 10) + '% giá trị đơn của bạn ấy' + (j.cfg && j.cfg.tierN ? ', đủ ' + j.cfg.tierN + ' người tặng thêm ' + j.cfg.tierGift : '') + ' ạ. [Tên] xem bạn bè đã mua và quà của mình tại ' + REF_PAGE + '\n[Tên] chỉ cần chuyển tiếp tin dưới đây cho bạn bè nhé:\n\n---\nMình đang dùng sản phẩm của Thực Dưỡng Lành thấy hợp nên giới thiệu bạn. Đặt lần đầu trên web nhập mã ' + j.code + ' được giảm ' + pct + ' (bấm link là mã tự áp dụng): ' + url, c);
       box.innerHTML = '<div class="box rf-code"><b style="font-size:20px;letter-spacing:1px">' + esc(j.code) + '</b> <span class="small">' + esc(j.label) + ' đơn đầu cho bạn bè</span><p class="small muted" style="margin:6px 0 0">' + (j.used ? '🎉 Đã có <b>' + j.used + '</b> người đặt bằng mã này.' : 'Chưa có ai dùng mã.') + ' Chỉ khách <b>mua lần đầu</b> dùng được, khách không tự dùng mã của mình.</p></div>' +
+        refScript(c, j) +
         '<label class="f"><span>Tin gửi khách (sửa được)</span><textarea id="rfText" rows="9">' + esc(txt) + '</textarea></label>' +
-        '<p class="small muted" style="margin:6px 0 0">Bạn bè đặt bằng mã: khách mới tự giao cho ' + esc(c.owner || S.user.name) + ' phụ trách, đơn giao xong 7 ngày thì CRM tự tạo voucher cảm ơn, tab Hôm nay hiện mục <b>🎁 Cảm ơn khách giới thiệu</b> để bạn nhắn mã cho ' + esc(c.name || 'khách') + '.</p>' +
+        '<p class="small muted" style="margin:6px 0 0">Bạn bè đặt bằng mã: khách mới tự giao cho ' + esc(c.owner || S.user.name) + ' phụ trách' + (S._rb && S._rb.cfg.bonus ? ' (người bạn là số mới thì ' + esc(c.owner || S.user.name) + ' được thưởng ' + money(S._rb.cfg.bonus) + ')' : '') + ', đơn giao xong 7 ngày thì CRM tự tạo voucher cảm ơn, tab Hôm nay hiện mục <b>🎁 Cảm ơn khách giới thiệu</b> để bạn nhắn mã cho ' + esc(ambName(c.name) || 'khách') + '.</p>' +
         '<div class="steps" style="margin-top:10px"><button class="btn pri" id="rfGo">📋 Copy tin & mở Zalo</button><button class="btn ghost" data-copyref="' + esc(url) + '">📋 Chỉ copy link</button></div>';
       $('#rfGo', m).onclick = function () { rfCopyZalo(m, '#rfText', c.phone); };
       if (S._rb && S._rb.inv && S._rb.inv.indexOf(c.phone) < 0) S._rb.inv.push(c.phone); // 🌱 đã có mã → bỏ khỏi mục Mời làm Đại sứ
     }, function (e) { var box = $('#rfMain', m); if (box) box.innerHTML = '<p class="err">' + esc(e.message) + '</p>'; });
+  }
+  /** 💬 Kịch bản gọi khi khách hài lòng → mời giới thiệu (30/10/2026). Quà lấy theo Cài đặt 🤝 (j.cfg). Không nói công dụng chữa bệnh. */
+  function refScript(c, j) {
+    var cf = j.cfg || {}, pct = (String(j.label).match(/[\d.,]+%/) || ['10%'])[0];
+    var gift = 'voucher ' + (cf.rwPct || 10) + '% giá trị đơn của bạn ấy để [Tên] mua lần sau' + (cf.tierN ? ', đủ ' + cf.tierN + ' bạn bên em tặng thêm ' + cf.tierGift : '');
+    var st = [
+      ['1. Hỏi thăm, để khách tự nói cảm nhận', 'Dạ anh/chị [Tên] dùng [Sản phẩm] được một thời gian rồi, mình thấy hợp không ạ? Cả nhà mình dùng có quen không ạ?', 'Lắng nghe, để khách nói hết. Khách khen thì mới sang bước 2. Khách chưa hài lòng thì hỏi cách dùng, hẹn gọi lại, bấm <b>Để sau</b>.'],
+      ['2. Cảm ơn, nói ý nghĩa', 'Em mừng quá ạ. Thực Dưỡng Lành đang có hành trình giúp 10 triệu người Việt ăn uống lành hơn. Cách lan toả tốt nhất là từ người dùng thật như anh/chị, vì người thân tin lời [Tên] hơn tin quảng cáo ạ.', ''],
+      ['3. Gợi đúng người cần', 'Trong nhà mình, bố mẹ, anh chị em hay bạn bè, đồng nghiệp, có ai đang muốn ăn uống lành mạnh hơn không ạ?', 'Gợi cụ thể theo khách: bố mẹ lớn tuổi, chị em sau sinh, bạn ăn chay, đồng nghiệp hay ăn ngoài.'],
+      ['4. Nói lợi ích cho cả hai', 'Bạn của [Tên] đặt lần đầu được giảm ' + pct + '. Còn mỗi người bạn nhận hàng xong, [Tên] được ' + gift + '. [Tên] xem bạn nào đã mua và quà của mình ngay trên web ạ.', ''],
+      ['5. Làm thật dễ cho khách', 'Em gửi [Tên] 1 tin qua Zalo, [Tên] chỉ cần chuyển tiếp cho bạn là xong, không phải giải thích gì. Hoặc [Tên] cho em xin tên và số của bạn, em gọi tư vấn giúp, vẫn tính là [Tên] giới thiệu ạ.', 'Khách đồng ý: bấm <b>📋 Copy tin & mở Zalo</b> bên dưới. Khách cho số bạn: <b>＋ Thêm khách hỏi</b>, ô <i>Khách đến từ đâu</i> chọn <b>Khách giới thiệu</b> rồi chọn [Tên].']
+    ];
+    var ob = [
+      ['“Để chị xem đã”', 'Dạ vâng, em cứ gửi sẵn mã cho [Tên]. Khi nào có ai hỏi, [Tên] chỉ cần chuyển tiếp tin là được ạ.'],
+      ['“Ngại, sợ giống đi bán hàng”', 'Dạ [Tên] chỉ chia sẻ trải nghiệm thật của mình thôi ạ. Bạn mua hay không là tuỳ, bên em tư vấn nhẹ nhàng, không làm phiền bạn [Tên].'],
+      ['“Bạn chị ở xa”', 'Dạ bên em giao toàn quốc, đơn từ 300.000đ được miễn phí ship ạ.']
+    ];
+    var f = function (t) { return fillTpl(t, c); };
+    return '<details class="rf-script"><summary>💬 Kịch bản gọi: khách hài lòng → mời giới thiệu <small>(bấm để mở)</small></summary>' +
+      st.map(function (x) { return '<div class="rs-step"><b>' + x[0] + '</b><p class="rs-say">“' + esc(f(x[1])) + '”</p>' + (x[2] ? '<p class="rs-tip">👉 ' + f(x[2]) + '</p>' : '') + '</div>'; }).join('') +
+      '<div class="rs-step"><b>Khách còn băn khoăn</b>' + ob.map(function (x) { return '<p class="rs-tip"><b>' + x[0] + '</b> → “' + esc(f(x[1])) + '”</p>'; }).join('') + '</div>' +
+      '<p class="rs-note">⚠️ Không nói sản phẩm chữa / điều trị / khỏi bệnh. Thực phẩm bổ sung không phải là thuốc. Đổi “anh/chị” cho đúng khách.</p></details>';
   }
   /** Tab Hôm nay → 🎁 Cảm ơn khách giới thiệu (28/10/2026): máy chủ tự phát voucher CAMON khi đơn của bạn đã giao + 7 ngày (partner.js refAuto),
    *  sale chỉ việc báo khách; mốc đủ 3 bạn → tặng quà, 5 bạn → mời làm CTV (bảng ref_tiers, tải riêng). Tắt tự động ở Cài đặt → 🤝 thì quay về tặng tay. */
