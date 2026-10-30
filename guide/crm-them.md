@@ -94,8 +94,8 @@ Nói với khách cho dễ nhớ: *"Mỗi bạn chị giới thiệu mua, chị 
 - Xem thưởng của mình: tab **Hôm nay**, dòng 🌱 ở khung đầu trang, hoặc tab **Hiệu quả** → ô **🌱 Khách mới nhờ khách cũ giới thiệu**. Ô này có: số khách mới, tiền thưởng đã chắc, tiền đang chờ, và **🤝 mục tiêu cả nhóm** trong tháng.
 
 **Việc của bạn (sale):**
-1. Tab **Hôm nay** có mục **🌱 Mời làm Đại sứ** (nằm sau Khách hỏi cần liên hệ): mỗi ngày tối đa 5 khách của bạn đã nhận hàng 7–30 ngày. Hỏi "Chị dùng thấy thế nào ạ?". Khách khen thì bấm **Gửi mã**, rồi bấm **📋 Copy tin & mở Zalo** để gửi khách. Khách chưa hài lòng hoặc chưa tiện thì bấm **Để sau**, khách ẩn 30 ngày. Bấm vào tên khách là mở hồ sơ.
-   - Khách đang có trong việc **Chăm sóc khách** hôm nay thì không hiện ở mục này. Thẻ khách đó có nhãn **🌱 Mời giới thiệu**: gọi chăm sóc xong, khách thấy hợp thì bấm nhãn đó luôn. Gọi 1 lần làm được cả 2 việc. Khách khen sản phẩm lúc khác thì mở hồ sơ, bấm **🎁 Mã giới thiệu**.
+1. Tab **Hôm nay** có mục **🌱 Mời làm Đại sứ** (nằm sau Khách hỏi cần liên hệ): mỗi ngày tối đa 5 khách của bạn đã nhận hàng 7–30 ngày. Hỏi "Chị dùng thấy thế nào ạ?". Khách khen thì bấm **🌱 Mời giới thiệu**, rồi bấm **📋 Copy tin & mở Zalo** để gửi khách. Khách chưa hài lòng hoặc chưa tiện thì bấm **Để sau**, khách ẩn 30 ngày. Bấm vào tên khách là mở hồ sơ.
+   - Khách đang có trong việc **Chăm sóc khách** hôm nay thì không hiện ở mục này. Thẻ khách đó có nhãn **🌱 Mời giới thiệu**: gọi chăm sóc xong, khách thấy hợp thì bấm nhãn đó luôn. Gọi 1 lần làm được cả 2 việc. Khách khen sản phẩm lúc khác thì mở hồ sơ, bấm **🌱 Mời giới thiệu bạn bè**.
 2. Có bạn đặt hàng thì Telegram báo bạn.
 3. Đơn của bạn ấy **giao xong 7 ngày** thì CRM **tự tạo voucher 50.000đ** (mã `CAMON…`, chỉ số của khách mới dùng được, hạn 90 ngày). Bạn không cần tính tiền.
 4. Tab **Hôm nay** hiện mục **🎁 Cảm ơn khách giới thiệu**:
@@ -105,7 +105,7 @@ Nói với khách cho dễ nhớ: *"Mỗi bạn chị giới thiệu mua, chị 
 
 ### 💬 Kịch bản gọi: khách hài lòng → mời giới thiệu
 
-Bấm **Gửi mã** (hoặc **🎁 Mã giới thiệu**), cửa sổ có mục **💬 Kịch bản gọi**, bấm để mở. Tên khách và sản phẩm đã điền sẵn.
+Bấm **🌱 Mời giới thiệu** (ở mục Mời làm Đại sứ, thẻ chăm sóc hoặc hồ sơ khách), cửa sổ có tin nhắn soạn sẵn kèm mã của khách và mục **💬 Kịch bản gọi**, bấm để mở. Tên khách và sản phẩm đã điền sẵn.
 
 1. **Hỏi thăm, để khách tự nói:** "Anh/chị dùng [sản phẩm] được một thời gian rồi, mình thấy hợp không ạ?" Khách khen thì mới sang bước 2. Khách chưa hài lòng thì hỏi cách dùng, hẹn gọi lại.
 2. **Cảm ơn, nói ý nghĩa:** "Thực Dưỡng Lành đang có hành trình giúp 10 triệu người Việt ăn uống lành hơn. Người thân tin lời anh/chị hơn tin quảng cáo ạ."

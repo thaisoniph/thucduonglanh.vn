@@ -1711,7 +1711,7 @@
     var habit = function () { return '<span>🧺 Hay mua: <b>' + esc(st.top || '–') + '</b>' + (st.topN > 1 ? ' (' + st.topN + ' lần)' : '') + '</span>' + (st.gap ? '<span>🔁 Khoảng <b>' + st.gap + ' ngày</b> mua lại 1 lần</span>' : '') + (c.runout ? '<span>⏰ Dự kiến hết: <b>' + fDate(c.runout).slice(0, 5) + '</b> (' + daysAgo(c.runout) + ')</span>' : ''); };
     var body = '<div class="p-top"><div class="p-sub">' + cpPhone(c.phone) + ' · ' + (c.owner ? '👤 ' + esc(c.owner) : (isPoolStaff() ? claimBtn('c', c.phone) : 'Chưa ai phụ trách')) + (custSrc(c) ? ' · <span title="Nguồn khách (theo đơn đầu tiên)">' + srcIcon(custSrc(c)) + esc(custSrc(c)) + '</span>' : '') + '</div>' +
       '<div class="p-tags">' + zaloTag(c) + consentTag(c) + '</div>' +
-      '<div class="acts steps p-acts"><a class="btn" href="tel:' + c.phone + '">📞 Gọi</a><a class="btn zalo" href="' + zalo(c.phone) + '" target="_blank" rel="noopener">Zalo</a><button class="btn pri" data-care="' + c.phone + '" data-task="' + (c.task ? c.task.type : 'other') + '">💬 Chăm sóc</button><button class="btn" data-neworder="' + c.phone + '">＋ Đơn</button><button class="btn" data-relink="' + c.phone + '" title="Link web có sẵn giỏ hàng như đơn trước, gửi khách tự đặt">🔗 Link đặt lại</button><button class="btn" data-refcode="' + c.phone + '" title="Mã giới thiệu riêng: bạn bè khách đặt lần đầu được giảm giá, khách được tặng quà">🎁 Mã giới thiệu</button></div></div>' +
+      '<div class="acts steps p-acts"><a class="btn" href="tel:' + c.phone + '">📞 Gọi</a><a class="btn zalo" href="' + zalo(c.phone) + '" target="_blank" rel="noopener">Zalo</a><button class="btn pri" data-care="' + c.phone + '" data-task="' + (c.task ? c.task.type : 'other') + '">💬 Chăm sóc</button><button class="btn" data-neworder="' + c.phone + '">＋ Đơn</button><button class="btn" data-relink="' + c.phone + '" title="Link web có sẵn giỏ hàng như đơn trước, gửi khách tự đặt">🔗 Link đặt lại</button><button class="btn" data-refcode="' + c.phone + '" title="Có sẵn tin nhắn kèm mã giới thiệu riêng của khách và kịch bản gọi: bạn bè khách đặt lần đầu được giảm giá, khách được tặng quà">🌱 Mời giới thiệu bạn bè</button></div></div>' +
       (c.flag ? '<div class="notice" style="background:var(--red-light);color:var(--red)">⚠️ Khách có nhãn <b>' + esc(c.flag) + '</b>. Nên yêu cầu chuyển khoản trước khi gửi hàng.</div>' : '') +
       '<div class="p-val"><div><b>' + moneyShort(c.spent) + '</b><span>Tổng chi</span></div><div><b>' + c.orders + '</b><span>đơn</span></div><div><b>' + moneyShort(avg) + '</b><span>TB/đơn</span></div></div>' +
       '<div class="p-lines"><span>🛒 Mua gần nhất: <b>' + daysAgo(c.last) + '</b> (' + fDate(c.last) + ')</span><span id="pHabit">' + habit() + '</span>' +
@@ -7231,10 +7231,10 @@
   }
   /* ---------- 🎁 Khách cũ giới thiệu + 🤝 Cộng tác viên / đối tác (api/src/partner.js) */
   function rfCopyZalo(m, sel, phone) { copy($(sel, m).value).then(function () { toast('Đã copy tin ✓ Dán vào Zalo rồi gửi'); if (phone) window.open(zalo(phone), '_blank', 'noopener'); }); }
-  /** Hồ sơ khách → 🎁 Mã giới thiệu: mã riêng của khách (TÊN + 3 số cuối), bạn bè đặt lần đầu trên web được giảm %, sale tặng quà cảm ơn khi bạn đặt. */
+  /** Hồ sơ khách → 🌱 Mời giới thiệu bạn bè (trước 30/10/2026: 🎁 Mã giới thiệu): mã riêng của khách (TÊN + 3 số cuối), bạn bè đặt lần đầu trên web được giảm %, sale tặng quà cảm ơn khi bạn đặt. */
   function openRefCode(phone) {
     var c = cust(phone); if (!c) return;
-    var m = modal('🎁 Mã giới thiệu – ' + esc(ambName(c.name) || c.phone), '<div id="rfMain"><p class="muted">Đang tạo mã…</p></div>', '');
+    var m = modal('🌱 Mời ' + esc(fillTpl('[Tên]', c)) + ' giới thiệu bạn bè', '<div id="rfMain"><p class="muted">Đang tạo mã…</p></div>', '');
     api('ref_code', { phone: c.phone }).then(function (j) {
       var box = $('#rfMain', m); if (!box) return;
       var pct = (String(j.label).match(/[\d.,]+%/) || [''])[0], url = 'https://thucduonglanh.vn/?uudai=' + encodeURIComponent(j.code) + '&ref=' + refCode(c.owner || S.user.name);
@@ -7418,16 +7418,16 @@
     var L = A.list.filter(function (x) { return !busy[x.c.phone]; }); if (!L.length) return '';
     var bonus = S._rb.cfg.bonus;
     return '<section class="section amb"><div class="section-h"><h2>' + (num || '') + ' 🌱 Mời làm Đại sứ</h2><span class="count">' + Math.min(5, L.length) + '</span></div>' +
-      '<p class="amb-sub">Khách đã dùng 7–30 ngày. Hỏi <i>“Chị dùng thấy thế nào ạ?”</i>, khách khen thì bấm <b>Gửi mã</b>.' + (bonus ? ' Mỗi người bạn mới mua, bạn được <b>+' + money(bonus) + '</b>.' : '') + '</p><div class="amb-list">' +
+      '<p class="amb-sub">Khách đã dùng 7–30 ngày. Hỏi <i>“Chị dùng thấy thế nào ạ?”</i>, khách khen thì bấm <b>Mời giới thiệu</b>: có sẵn tin nhắn và kịch bản gọi.' + (bonus ? ' Mỗi người bạn mới mua, bạn được <b>+' + money(bonus) + '</b>.' : '') + '</p><div class="amb-list">' +
       L.slice(0, 5).map(function (x) { var c = x.c, nm = ambName(c.name) || c.phone;
         return '<div class="amb-row click" data-cust="' + c.phone + '"><span class="amb-av">' + esc(ambAv(c.name)) + '</span><span class="amb-t"><b>' + esc(nm) + (isVip(c) ? ' <em class="amb-vip">VIP</em>' : '') + '</b>' +
           '<small>' + (c.products.length ? esc(shortProducts(c.products, 1)) + ' · ' : '') + 'nhận ' + x.d + ' ngày trước · ' + c.orders + ' đơn</small></span>' +
-          '<span class="amb-a"><button class="amb-go" data-refcode="' + c.phone + '">Gửi mã</button><button class="amb-skip" data-ambskip="' + c.phone + '" title="Khách chưa hài lòng hoặc chưa tiện: ẩn 30 ngày">Để sau</button></span></div>'; }).join('') +
+          '<span class="amb-a"><button class="amb-go" data-refcode="' + c.phone + '">🌱 Mời giới thiệu</button><button class="amb-skip" data-ambskip="' + c.phone + '" title="Khách chưa hài lòng hoặc chưa tiện: ẩn 30 ngày">Để sau</button></span></div>'; }).join('') +
       '</div>' + (L.length > 5 ? '<p class="amb-more">Còn ' + (L.length - 5) + ' khách, mai hiện tiếp.</p>' : '') + '</section>';
   }
   function ptBox() {
     return '<div class="box"><h3>🤝 Cộng tác viên & khách giới thiệu</h3><p class="hint" style="margin:0 0 10px">CTV / đối tác có link và mã giảm giá riêng. Khách <b>mới</b> đặt qua link / mã của CTV thì mọi đơn của khách đó trong thời hạn (mặc định 6 tháng, kể cả đơn sale lên lại) được tính hoa hồng (mặc định 10% tiền hàng). Chỉ trả <b>1 tầng</b> (không trả theo người CTV rủ thêm: nhiều tầng là bán hàng đa cấp, phải có giấy phép). Hoa hồng đủ điều kiện khi đơn <b>đã giao + qua 7 ngày</b>; trả từ 2 triệu / lần thì trừ 10% thuế TNCN.</p>' +
-      '<p class="hint" style="margin:0 0 10px">Khách cũ giới thiệu bạn bè (🌱 Đại sứ Sống Lành): khách tự lấy link ở thucduonglanh.vn/gioi-thieu-ban-be/, hoặc sale bấm <b>🎁 Mã giới thiệu</b> trong hồ sơ khách. Bạn bè gõ mã hoặc SĐT người giới thiệu ở ô mã ưu đãi. Voucher cảm ơn và mốc quà tự tính, sale báo khách ở tab Hôm nay. Cài mức ở ⚙️ Cài đặt chung.</p><button class="btn pri" id="ptOpen">Quản lý cộng tác viên</button></div>';
+      '<p class="hint" style="margin:0 0 10px">Khách cũ giới thiệu bạn bè (🌱 Đại sứ Sống Lành): khách tự lấy link ở thucduonglanh.vn/gioi-thieu-ban-be/, hoặc sale bấm <b>🌱 Mời giới thiệu bạn bè</b> trong hồ sơ khách. Bạn bè gõ mã hoặc SĐT người giới thiệu ở ô mã ưu đãi. Voucher cảm ơn và mốc quà tự tính, sale báo khách ở tab Hôm nay. Cài mức ở ⚙️ Cài đặt chung.</p><button class="btn pri" id="ptOpen">Quản lý cộng tác viên</button></div>';
   }
   function openPartners() {
     var D = { j: null };
