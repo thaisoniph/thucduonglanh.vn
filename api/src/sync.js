@@ -599,14 +599,14 @@ async function srcFinish(x, u, d) {
 
 /** Sheet khách & nhật ký chăm sóc ("cop số"…): ghép nhật ký vào hồ sơ khách; người chưa mua → khách tiềm năng. */
 async function importCare(x, src, shCfg, data, dry, idx) {
-  const m = shCfg.map || {}, sale = src.sale, start = (src.cfg.done && src.cfg.done[idx]) || 0, ctx = dateCtx(data.rows, shCfg.map || {}), per = {}, order = [], nowMs = Date.now(), wbk = await wbKeys(x, src.id), AL = await phoneAlias(x); let skip = 0;
+  const m = shCfg.map || {}, ex = (shCfg.extra || []).map(Number).filter(i => i >= 0), sale = src.sale, start = (src.cfg.done && src.cfg.done[idx]) || 0, ctx = dateCtx(data.rows, shCfg.map || {}), per = {}, order = [], nowMs = Date.now(), wbk = await wbKeys(x, src.id), AL = await phoneAlias(x); let skip = 0;
   data.rows.forEach((r, i) => {
     const when = toDate(cell(r, m, 'date'), ctx); if (i < start) return; // ngày vẫn đọc để biết năm của các dòng sau
     const fp = toPhone(cell(r, m, 'phone')), phone = AL[fp] || fp; if (!phone) { if (nonEmpty(r)) skip++; return; }
     let p = per[phone]; if (!p) { p = per[phone] = { name: '', entries: [], seen: {}, extra: [], last: null, status: '', product: '', amount: 0 }; order.push(phone); }
     p.name = String(cell(r, m, 'name') || p.name).trim(); if (when && (!p.last || when > p.last)) p.last = when;
-    const n = String(cell(r, m, 'note') || '').trim(), hl = String(cell(r, m, 'health') || '').trim();
-    splitNote(n, when || null, nowMs).forEach(e => { const key = e.t + '|' + e.text; if (!p.seen[key] && !wbHas(wbk, phone, e.text) && !wbHas(wbk, fp, e.text)) { p.seen[key] = 1; p.entries.push(e); } }); // dòng do CRM ghi ngược: bỏ
+    const hl = String(cell(r, m, 'health') || '').trim();
+    [cell(r, m, 'note')].concat(ex.map(i => r[i])).map(v => String(v == null ? '' : v).trim()).filter(String).forEach(n => splitNote(n, when || null, nowMs).forEach(e => { const key = e.t + '|' + e.text; if (!p.seen[key] && !wbHas(wbk, phone, e.text) && !wbHas(wbk, fp, e.text)) { p.seen[key] = 1; p.entries.push(e); } })); // dòng do CRM ghi ngược: bỏ; cột thêm (vd "CS 1", "CS 2") cũng là nhật ký
     nameMarks(cell(r, m, 'name')).concat(hl ? ['Sức khoẻ: ' + hl] : []).forEach(v => { if (p.extra.indexOf(v) < 0) p.extra.push(v); });
     p.status = String(cell(r, m, 'status') || p.status); p.product = String(cell(r, m, 'product') || p.product); p.amount = p.amount || toMoney(cell(r, m, 'amount'));
   });
@@ -641,7 +641,7 @@ async function importCare(x, src, shCfg, data, dry, idx) {
   if (dry) return res;
   if (toNote.length) {
     const cur = {}; (await allIn(x.db, 'SELECT phone, note FROM customers WHERE phone IN (SELECT value FROM json_each(?))', toNote)).forEach(r => { cur[r.phone] = r.note || ''; });
-    const up = toNote.map(ph => { const c = cur[ph] || '', add = per[ph].notes.join('\n'); return { p: ph, n: (c.indexOf(head) >= 0 ? c + '\n' + add : (c ? c + '\n' : '') + head + '\n' + add).slice(0, 45000), a: per[ph].replyAt || null, r: per[ph].replyRes || '' }; });
+    const up = toNote.map(ph => { const c = cur[ph] || '', add = per[ph].notes.filter(l => c.indexOf(l) < 0).join('\n'); if (!add) return null; return { p: ph, n: (c.indexOf(head) >= 0 ? c + '\n' + add : (c ? c + '\n' : '') + head + '\n' + add).slice(0, 45000), a: per[ph].replyAt || null, r: per[ph].replyRes || '' }; }).filter(Boolean); // đọc lại sheet: dòng đã có thì không chép lần nữa
     const newer = "json_extract(j.value, '$.a') IS NOT NULL AND (customers.care_at IS NULL OR customers.care_at < json_extract(j.value, '$.a'))";
     for (let i = 0; i < up.length; i += 300) await run(x.db, "UPDATE customers SET note = json_extract(j.value, '$.n'), owner = CASE WHEN customers.owner IS NULL OR customers.owner = '' THEN ? ELSE customers.owner END, care_at = CASE WHEN " + newer + " THEN json_extract(j.value, '$.a') ELSE customers.care_at END, care_result = CASE WHEN " + newer + " THEN json_extract(j.value, '$.r') ELSE customers.care_result END FROM json_each(?) j WHERE customers.phone = json_extract(j.value, '$.p')", sale, JSON.stringify(up.slice(i, i + 300)));
   }
