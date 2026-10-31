@@ -771,8 +771,11 @@ async function crmPrefs(x, u, d) {
   const clean = c => /^#[0-9a-fA-F]{6}$/.test(String(c)) ? c : '', colors = {};
   Object.keys(d.colors || {}).forEach(k => { if (/^(new|old|void|off|vip)$/.test(k) && clean(d.colors[k])) colors[k] = d.colors[k]; });
   const seen = {}, tags = (d.tags || []).map(t => ({ name: String(t.name || '').trim().slice(0, 30), color: clean(t.color) || '#dbeafe' })).filter(t => { if (!t.name || seen[t.name]) return false; seen[t.name] = 1; return true; }).slice(0, 20);
-  await kvSet(x.db, 'prefs_' + u.email, JSON.stringify({ colors, tags }));
-  return { ok: true, prefs: { colors, tags } };
+  const cur = await prefsOf(x, u.email), zp = d.zalo === undefined ? cur.zalo || '' : normPhone(d.zalo); // số Zalo bán hàng của nhân viên: in vào tin mời giới thiệu để bạn của khách nhắn thẳng
+  if (zp && !/^0\d{9}$/.test(zp)) return { ok: false, error: 'Số Zalo chưa đúng (10 số, bắt đầu bằng 0).' };
+  const P = d.colors === undefined && d.tags === undefined ? Object.assign({}, cur, { zalo: zp }) : { colors, tags, zalo: zp };
+  await kvSet(x.db, 'prefs_' + u.email, JSON.stringify(P));
+  return { ok: true, prefs: P };
 }
 
 /* ================================================================ Telegram riêng */

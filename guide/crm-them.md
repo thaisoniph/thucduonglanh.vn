@@ -111,6 +111,15 @@ Voucher dùng cho đơn từ 300.000đ, hạn 90 ngày. Nói với khách cho d�
    - **🏅 Gửi quà**: khách đủ mốc 3, 5 hoặc 10 bạn (thẻ ghi rõ quà gì). Hỏi khách gửi quà kèm đơn sau hay gửi riêng. Gửi xong bấm **✅ Đã gửi quà**.
    - **🌟 Mời làm CTV**: khách đủ 5 người. Gửi tin mời, báo quản lý để thêm khách làm CTV.
 
+### 👵 Khách lớn tuổi, ngại thao tác: cách dễ nhất
+
+Khách trung niên ngại vào web, ngại gõ mã. Ưu tiên theo thứ tự:
+1. **Xin số người bạn ngay trong cuộc gọi**: *"Chị không phải làm gì cả, chị đọc em số của bạn, em gọi tư vấn giúp, vẫn tính là chị giới thiệu."* Rồi **＋ Thêm khách hỏi** → *Khách đến từ đâu* chọn **Khách giới thiệu** → chọn khách cũ. Gọi người bạn ngay trong ngày.
+2. **Tin ② có số Zalo của bạn**: người bạn chỉ cần nhắn Zalo / gọi và nói tên người giới thiệu. Lần đầu bấm 🌱 Mời giới thiệu, CRM hỏi **số Zalo bán hàng của bạn** để ghi vào tin (lưu 1 lần). Gửi kèm **danh thiếp Zalo** của bạn: trong khung chat Zalo bấm **＋** (hoặc **⋯**) → **Danh thiếp** → chọn chính mình.
+3. **Phiếu giới thiệu giấy**: mỗi gói hàng kèm 2 phiếu cắt rời (file ở Drive *05_Ấn phẩm in ấn*, in đen trắng). Khách cũ ghi tên + số mình vào phiếu, đưa cho bạn. Người bạn gọi hotline đọc tên trên phiếu.
+4. **Ai nghe máy cũng ghi được**: người bạn gọi nói "chị Lan ở Thanh Xuân giới thiệu" → ở ô người giới thiệu gõ **"lan"**: CRM tìm trong khách **cả công ty** (cả khách của người khác), hiện khu vực + người phụ trách để chọn đúng. Khách mới tự giao cho sale phụ trách chị Lan.
+5. **Trợ lý chat (web, Zalo, Fanpage)** tự hỏi tên + số người giới thiệu khi khách nói "được giới thiệu", và ghi vào khách hỏi. Khách chỉ nói tên mà chưa có số: trong ghi chú khách hỏi có dòng 🌱, bạn hỏi thêm rồi sửa khách hỏi (chọn Khách giới thiệu) trong 2 ngày.
+
 ### 💬 Kịch bản gọi: khách hài lòng → mời giới thiệu
 
 Bấm **🌱 Mời giới thiệu** (ở mục Mời làm Đại sứ, thẻ chăm sóc hoặc hồ sơ khách), cửa sổ có tin nhắn soạn sẵn kèm mã của khách và mục **💬 Kịch bản gọi**, bấm để mở. Tên khách và sản phẩm đã điền sẵn.
@@ -119,7 +128,7 @@ Bấm **🌱 Mời giới thiệu** (ở mục Mời làm Đại sứ, thẻ ch�
 2. **Cảm ơn, nói ý nghĩa:** "Thực Dưỡng Lành đang có hành trình giúp 10 triệu người Việt ăn uống lành hơn. Người thân tin lời anh/chị hơn tin quảng cáo ạ."
 3. **Gợi đúng người cần:** bố mẹ lớn tuổi, chị em sau sinh, bạn ăn chay, đồng nghiệp hay ăn ngoài.
 4. **Nói lợi ích cho cả hai:** bạn được giảm 10% đơn đầu, khách được voucher và quà theo mốc.
-5. **Làm thật dễ:** "Em gửi tin qua Zalo, anh/chị chỉ cần chuyển tiếp." Gửi tin ① rồi tin ② (tin ② là tin để khách chuyển tiếp). Hoặc xin tên, số của bạn để mình gọi tư vấn (thêm khách hỏi, chọn **Khách giới thiệu**).
+5. **Làm thật dễ, xin số người bạn trước:** "Anh/chị đọc em số của bạn, em gọi tư vấn giúp." Hoặc gửi tin ① rồi tin ② qua Zalo (tin ② để khách chuyển tiếp, có số Zalo của bạn), kèm danh thiếp Zalo của bạn.
 
 Không nói sản phẩm chữa / điều trị / khỏi bệnh.
 

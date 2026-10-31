@@ -18,7 +18,8 @@ import { aiFetch } from './airelay.js';
 import { esc, run, all, first, kvGet, kvSet, kvJson, normPhone, fmtDate, isVoid, CRM_URL, TZ_MS, DAY } from './lib.js';
 import { telegram } from './google.js';
 import { addLead } from './crm.js';
-import { kb, safe, workNow, TRUTH_RULES, PHONE_RE } from './chat.js';
+import { kb, safe, workNow, TRUTH_RULES, REF_RULES, REF_TXT, PHONE_RE } from './chat.js';
+import { botRef } from './partner.js';
 import { offersLive } from './salemkt.js';
 
 const BOT = 'An Lành';
@@ -362,13 +363,13 @@ async function zDm(x, d) {
   let msgs = []; try { msgs = JSON.parse(row && row.msgs || '[]'); } catch (e) { }
   msgs.push({ r: 'u', t: text, at: now });
   const pm = text.match(PHONE_RE), ph = pm ? normPhone(pm[0]) : '';
-  const gotPhone = ph && /^0\d{9}$/.test(ph) && !(row && row.phone) ? ph : '';
+  const gotPhone = ph && /^0\d{9}$/.test(ph) && !(row && row.phone) && !REF_TXT.test(text) ? ph : '';
   const hist = msgs.slice(-16); while (hist.length && hist[0].r !== 'u') hist.shift();
   const know = await kb(), w = workNow(now), u = await first(x.db, 'SELECT phone, what FROM zb_users WHERE uid = ?', uid);
   let reply = '';
   try {
     const res = await ai(x.env).messages.create({ model: FAST, max_tokens: 1500, output_config: { effort: 'low' },
-      system: [{ type: 'text', text: DM_RULES + '\n' + TRUTH_RULES.replace(/mời nhắn Zalo/g, 'thêm [[zalo]] để chuyên viên hỗ trợ') },
+      system: [{ type: 'text', text: DM_RULES + '\n' + REF_RULES + '\n' + TRUTH_RULES.replace(/mời nhắn Zalo/g, 'thêm [[zalo]] để chuyên viên hỗ trợ') },
         { type: 'text', text: 'TÀI LIỆU (thông tin chính thức của Thực Dưỡng Lành):\n\n' + know, cache_control: { type: 'ephemeral' } },
         { type: 'text', text: 'Bây giờ là ' + w.label + '. Chuyên viên ' + (w.on ? 'đang trực.' : 'ngoài giờ (trực Thứ 2 – Thứ 7, 8h–17h): gọi lại từ 8h sáng hôm sau.') + ' Tên Zalo của khách: ' + String(d.name || '').slice(0, 60) + '.' + (u && u.what ? ' Khách đã nhận trên web: ' + u.what + '.' : '') + (gotPhone ? '\n(Khách vừa gửi số điện thoại, hệ thống đã chuyển cho chuyên viên. Hãy cảm ơn và báo chuyên viên sẽ liên hệ.)' : '') }],
       messages: hist.map(m => ({ role: m.r === 'u' ? 'user' : 'assistant', content: m.t })) });
@@ -387,7 +388,8 @@ async function zDm(x, d) {
 }
 async function dmLead(x, o) {
   const asks = o.msgs.filter(m => m.r === 'u').map(m => m.t.replace(PHONE_RE, '[SĐT]').slice(0, 120)).slice(-5);
-  const ld = await addLead(x, { name: o.name || 'Khách Zalo', phone: o.phone, channel: 'Zalo Trợ lý An Lành', interest: 'Nhắn trợ lý Zalo', addInterest: true, note: 'Khách gửi số khi nhắn trợ lý Zalo An Lành (tên Zalo: ' + o.name + ') · Đã hỏi: ' + asks.join(' | '), by: 'Website', auto: true });
+  const rf = await botRef(x, o.msgs.filter(m => m.r === 'u').map(m => m.t), o.phone); // 🌱 khách nói được người quen giới thiệu
+  const ld = await addLead(x, Object.assign({ name: o.name || 'Khách Zalo', phone: o.phone, channel: 'Zalo Trợ lý An Lành', interest: 'Nhắn trợ lý Zalo', addInterest: true, note: 'Khách gửi số khi nhắn trợ lý Zalo An Lành (tên Zalo: ' + o.name + ') · Đã hỏi: ' + asks.join(' | ') + rf.note, by: 'Website', auto: true }, rf.lead));
   await run(x.db, "UPDATE chats SET phone = ?, name = ?, lead = ? WHERE sid = ?", o.phone, o.name, ld.id, 'zl' + o.uid);
   await run(x.db, `INSERT INTO zb_users (uid, phone, zname, lead, at) VALUES (?, ?, ?, ?, ?) ON CONFLICT(uid) DO UPDATE SET phone = excluded.phone, lead = excluded.lead`, o.uid, o.phone, o.name.slice(0, 80), ld.id, Date.now());
   await telegram(x.env, '💬 <b>KHÁCH ĐỂ LẠI SỐ QUA TRỢ LÝ ZALO</b>\n👤 ' + esc(o.name) + ' – <b>' + esc(o.phone) + '</b>\n💬 ' + esc(asks.join(' | ')) + (ld.owner ? '\n\n👤 Giao cho: ' + esc(ld.owner) : '\n\n⚠️ Chưa có người phụ trách – vào CRM để giao') + '\n👉 ' + CRM_URL + '/#tiem-nang');

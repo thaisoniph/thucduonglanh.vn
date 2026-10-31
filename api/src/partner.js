@@ -241,6 +241,35 @@ async function bonusList(x, u) {
   return { ok: true, cfg: { bonus: max, saleSteps: steps, winDays: cfg.winDays, goalN: cfg.goalN, goalGift: cfg.goalGift }, list: L, team, pays, inv };
 }
 
+/** 🤖 Trợ lý chat web / Zalo / Fanpage (31/10/2026): khách nói "chị Lan giới thiệu…" → tìm số người giới thiệu trong tin khách (số khác số của khách) hoặc tên,
+ *  trả { lead: {refPhone, refName, owner?}, note } để addLead ghi kèm; số mới chưa có trong CRM → giao sale phụ trách người giới thiệu (refClaim). */
+export async function botRef(x, texts, phone) {
+  const out = { lead: {}, note: '' };
+  try {
+    const said = (texts || []).filter(t => /gi[ớo]i thi[ệe]u|gioi thieu|ng[ưu][ờo]i quen/i.test(t || '')); if (!said.length) return out;
+    const me = normPhone(phone), all = (texts || []).join(' \n ').match(/(?:\+?84|0)(?:[\s.-]?\d){9}\b/g) || [];
+    const rp = all.map(normPhone).filter(p => /^0\d{9}$/.test(p) && p !== me)[0] || '';
+    const nm = (said.join(' ').match(/(?:[Cc]hị|[Aa]nh|[Cc]ô|[Cc]hú|[Bb]ác|[Ee]m|[Bb]ạn|[Bb]à|[Ôô]ng)\s+([A-ZĐÀ-Ỹ][\p{L}]*(?:\s+[A-ZĐÀ-Ỹ][\p{L}]*){0,2})/u) || [])[0] || '';
+    out.note = ' · 🌱 Khách nói được giới thiệu: "' + said.slice(-1)[0].replace(/(?:\+?84|0)(?:[\s.-]?\d){9}\b/g, '[SĐT]').slice(0, 120) + '"' + (rp ? '' : ' – chưa có số người giới thiệu, sale hỏi thêm rồi sửa khách hỏi (chọn Khách giới thiệu) trong 2 ngày');
+    if (!rp) { if (nm) out.lead.refName = nm.slice(0, 80); return out; }
+    const rc = await first(x.db, 'SELECT name FROM customers WHERE phone = ?', rp);
+    out.lead = { refPhone: rp, refName: (rc && rc.name) || nm.slice(0, 80) };
+    const sale = await refClaim(x, me, rp, 'bot', 'Trợ lý An Lành'); if (sale) out.lead.owner = sale;
+  } catch (e) { console.error('botRef', e.message); }
+  return out;
+}
+/** CRM: tìm người giới thiệu trong cả công ty (sale chỉ có sẵn khách của mình trên máy) – theo tên không dấu hoặc số; trả tên, khu vực, người phụ trách. */
+async function refFind(x, d) {
+  const q = nrm(d.q).trim(), qd = String(d.q || '').replace(/\D/g, ''); if (q.length < 2 && qd.length < 4) return { ok: true, list: [] };
+  const words = q.split(/\s+/).filter(Boolean), last = words[words.length - 1] || '';
+  const rows = qd.length >= 4 ? await all(x.db, "SELECT phone, name, ward, province, owner, orders FROM customers WHERE orders > 0 AND phone LIKE ? LIMIT 20", '%' + qd.slice(-9) + '%')
+    : await all(x.db, "SELECT phone, name, ward, province, owner, orders FROM customers WHERE orders > 0 AND (name LIKE ? OR name LIKE ?) LIMIT 400", '%' + d.q.trim().split(/\s+/).pop() + '%', '%' + last + '%');
+  let hit = rows.filter(r => qd.length >= 4 || words.every(w => nrm(r.name).indexOf(w) >= 0));
+  if (!hit.length && qd.length < 4) hit = (await all(x.db, 'SELECT phone, name, ward, province, owner, orders FROM customers WHERE orders > 0')).filter(r => words.every(w => nrm(r.name).indexOf(w) >= 0)); // gõ không dấu ("hanh" → Hạnh): LIKE không bỏ dấu được nên lọc trên máy chủ
+  const list = hit.slice(0, 8).map(r => ({ phone: r.phone, name: r.name || '', area: [r.ward, r.province].filter(Boolean).join(', '), owner: r.owner || '', orders: r.orders }));
+  return { ok: true, list };
+}
+
 /** Web /gioi-thieu-ban-be/ + trang cảm ơn: khách nhập SĐT đã mua → link / mã giới thiệu, bạn bè đã mua (tên che), voucher đang có, mốc quà.
  *  Không trả tên, địa chỉ: mã giới thiệu ai lấy được cũng chỉ làm lợi cho chủ số; voucher CAMON gắn SĐT nên người khác không dùng được. */
 export async function refMe(x, d) {
@@ -472,6 +501,7 @@ export async function crmPartner(x, u, d, log, staffNames) {
   if (a === 'ref_told') { await run(x.db, 'UPDATE orders SET ref_told = 1 WHERE id = ?', String(d.id || '')); const o = await first(x.db, 'SELECT ref_phone, ref_gift, name FROM orders WHERE id = ?', String(d.id || '')); if (o) await log(x, u, 'Báo voucher cảm ơn', o.ref_phone, '', o.ref_gift, 'Giới thiệu ' + (o.name || '')); return { ok: true }; }
   if (a === 'ref_tiers') return tierList(x, u);
   if (a === 'ref_bonus') return bonusList(x, u);
+  if (a === 'ref_find') return refFind(x, d);
   if (a === 'ref_goal') { // thưởng sale + mục tiêu nhóm: chỉ Quản lý trở lên
     if (u.level < 2) return { ok: false, error: 'Chỉ Quản lý và Quản trị đổi mục này.' };
     const c = await partnerCfg(x), saleSteps = Array.isArray(d.saleSteps) ? stepsOf(d.saleSteps).slice(0, 4) : stepsOf(c.saleSteps), goalN = Math.round(Number(d.goalN)), goalGift = String(d.goalGift || '').trim().slice(0, 80);

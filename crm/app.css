@@ -1440,3 +1440,5 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 #cArea:not(:empty) { margin-top: 8px; }
 .box-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; } /* tiêu đề khung + nút nhỏ bên phải (vd Thông tin · ✏️ Sửa) */
 .quick.q4 { grid-template-columns: repeat(4, 1fr); } @media (max-width: 640px) { .quick.q4 { grid-template-columns: repeat(2, 1fr); } } /* 4 nút kết quả Tư vấn: điện thoại 2×2, máy tính 1 hàng */
+
+.rf-zl { margin-top: 10px; padding: 10px 12px; background: var(--primary-soft); border-radius: 12px; }

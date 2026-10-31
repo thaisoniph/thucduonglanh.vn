@@ -3379,7 +3379,7 @@
     ['name', 'interest', 'channel'].forEach(function (k) { F[k].addEventListener('input', function () { touched[k] = 1; }); });
 
     /* ---- 🎁 người giới thiệu: gõ tên / SĐT → chọn khách có sẵn, hoặc dùng số mới (ghi thêm tên) */
-    var refQ = $('#lfRefQ', m), refSug = $('#lfRefSug', m);
+    var refQ = $('#lfRefQ', m), refSug = $('#lfRefSug', m), refSrv = {}, refT = 0;
     function drawRef() {
       var on = isRefCh(F.channel.value); $('#lfRef', m).hidden = !on;
       $('#lfRefFind', m).hidden = !!ref;
@@ -3392,9 +3392,12 @@
       var q = norm(refQ.value.trim()), qd = refQ.value.replace(/\D/g, ''), ph = normPhone(F.phone.value), np = normPhone(refQ.value), seen = {}, out = [];
       if (q.length < 2 && qd.length < 3) { refSug.innerHTML = ''; return; }
       var words = q.split(/\s+/).filter(String), qd2 = normPhone(qd), hit = function (name, phone) { return phone !== ph && (qd.length >= 3 ? phone.indexOf(qd) >= 0 || (qd2 !== qd && phone.indexOf(qd2) >= 0) : words.every(function (w) { return norm(name).indexOf(w) >= 0; })); };
-      S.d.customers.forEach(function (c) { if (out.length < 6 && !seen[c.phone] && hit(c.name || '', c.phone)) { seen[c.phone] = 1; out.push({ phone: c.phone, name: c.name, sub: c.orders + ' đơn · ' + moneyShort(c.spent) + (c.owner ? ' · 👤 ' + c.owner : '') }); } });
+      S.d.customers.forEach(function (c) { if (out.length < 6 && !seen[c.phone] && hit(c.name || '', c.phone)) { seen[c.phone] = 1; out.push({ phone: c.phone, name: c.name, sub: [c.ward, c.province].filter(Boolean).join(', ') + (c.ward || c.province ? ' · ' : '') + c.orders + ' đơn · ' + moneyShort(c.spent) + (c.owner ? ' · 👤 ' + c.owner : '') }); } });
+      (refSrv[q || qd] || []).forEach(function (r) { if (out.length < 8 && !seen[r.phone] && r.phone !== ph) { seen[r.phone] = 1; out.push({ phone: r.phone, name: r.name, sub: (r.area ? r.area + ' · ' : '') + r.orders + ' đơn' + (r.owner ? ' · 👤 ' + r.owner : '') }); } });
       (S.d.leads || []).forEach(function (x) { var p = normPhone(x.phone); if (out.length < 6 && !seen[p] && hit(x.name || '', p)) { seen[p] = 1; out.push({ phone: p, name: x.name, sub: 'khách hỏi · ' + x.status }); } });
       if (/^0\d{9,10}$/.test(np) && !seen[np] && np !== ph) out.push({ phone: np, name: '', sub: 'số chưa có trong CRM – bấm để dùng số này', isNew: 1 });
+      // 31/10/2026: khách của người khác không có trên máy sale → hỏi máy chủ tìm cả công ty (người nghe hotline ghi được "chị Lan ở Thanh Xuân giới thiệu")
+      var key = q || qd; if (out.length < 3 && !(key in refSrv)) { clearTimeout(refT); refT = setTimeout(function () { refSrv[key] = []; api('ref_find', { q: refQ.value.trim() }).then(function (j) { refSrv[key] = j.list || []; if ((norm(refQ.value.trim()) || refQ.value.replace(/\D/g, '')) === key) findRef(); }, function () { }); }, 450); }
       refSug.innerHTML = out.length ? out.map(function (r, i) { var st = refStats().by[r.phone]; return '<button type="button" data-refi="' + i + '">' + (r.isNew ? '＋ ' + fPhone(r.phone) : '<b>' + esc(r.name || 'Khách') + '</b> · ' + fPhone(r.phone)) + '<small>' + esc(r.sub) + (st ? ' · đã giới thiệu ' + st.n + ' người' : '') + '</small></button>'; }).join('')
         : '<p class="small muted" style="margin:4px 0 0">Không thấy ai khớp. Gõ đủ số điện thoại người giới thiệu để dùng số mới.</p>';
       $$('[data-refi]', refSug).forEach(function (b) { b.onclick = function () { var r = out[+b.getAttribute('data-refi')]; ref = { phone: r.phone, name: r.name || '' }; refSug.innerHTML = ''; drawRef(); var rn = $('#lfRefName', m); if (rn) rn.focus(); }; });
@@ -7680,16 +7683,22 @@
       var pct = (String(j.label).match(/[\d.,]+%/) || [''])[0], url = 'https://thucduonglanh.vn/?uudai=' + encodeURIComponent(j.code) + '&ref=' + refCode(c.owner || S.user.name);
       // 31/10/2026: tách 2 tin ngắn (trước là 1 tin dài ~10 dòng, khách ngại đọc, chuyển tiếp lẫn cả lời nhắn riêng). Chi tiết quà để trang REF_PAGE.
       var nm = esc(fillTpl('[Tên]', c));
-      var t1 = fillTpl('Dạ [Tên] ơi, cảm ơn [Tên] đã tin dùng Thực Dưỡng Lành ❤️\nEm gửi [Tên] mã giới thiệu riêng: ' + j.code + '\n🎁 Bạn bè [Tên] mua lần đầu: giảm ' + pct + '\n🎁 [Tên]: ' + rfGiftShort(j.cfg, pct) + '\nXem quà của [Tên]: ' + REF_PAGE + '\nTin dưới đây [Tên] chỉ cần chuyển tiếp cho bạn bè là xong ạ 👇', c);
-      var t2 = 'Mình dùng Thực Dưỡng Lành thấy hợp nên giới thiệu bạn 🌿 Bấm link này đặt lần đầu được giảm ' + pct + ' (mã ' + j.code + ' tự áp dụng): ' + url;
+      // 31/10/2026 (khách trung niên ngại thao tác): cách chính là đọc số người bạn cho sale / bạn nhắn Zalo sale nói tên người giới thiệu; link web để cuối cho ai rành
+      var mine = !c.owner || c.owner === S.user.name, zl = mine ? ((S.d.prefs || {}).zalo || '') : '', who = mine && zl ? S.user.name + ' ' + fPhone(zl) : 'Thực Dưỡng Lành ' + HOTLINE_TDL;
+      var t1 = fillTpl('Dạ [Tên] ơi, cảm ơn [Tên] đã tin dùng Thực Dưỡng Lành ❤️\nNgười thân, bạn bè của [Tên] muốn dùng thử thì cách dễ nhất: [Tên] nhắn em số điện thoại của bạn, em gọi tư vấn giúp ạ.\n🎁 Bạn của [Tên] mua lần đầu: giảm ' + pct + '\n🎁 [Tên]: ' + rfGiftShort(j.cfg, pct) + '\nHoặc [Tên] chuyển tiếp tin dưới đây cho bạn là xong ạ 👇', c);
+      var t2 = 'Mình dùng Thực Dưỡng Lành thấy hợp nên giới thiệu bạn 🌿 Bạn gọi hoặc nhắn Zalo ' + who + ', nói "' + (ambName(c.name) || 'mình') + ' giới thiệu" là được giảm ' + pct + ' đơn đầu, có người tư vấn tận tình. Muốn tự đặt trên web thì bấm link (mã ' + j.code + ' tự áp dụng): ' + url;
       box.innerHTML = '<div class="box rf-code"><b style="font-size:20px;letter-spacing:1px">' + esc(j.code) + '</b> <span class="small">' + esc(j.label) + ' đơn đầu cho bạn bè</span><p class="small muted" style="margin:6px 0 0">' + (j.used ? '🎉 Đã có <b>' + j.used + '</b> người đặt bằng mã này.' : 'Chưa có ai dùng mã.') + ' Chỉ người <b>mua lần đầu</b> dùng được.</p></div>' +
         refScript(c, j) +
         '<label class="f"><span><b>① Tin gửi ' + nm + '</b> (sửa được)</span><textarea id="rfText" rows="6">' + esc(t1) + '</textarea></label>' +
         '<button class="btn pri" id="rfGo">📋 Copy tin ① & mở Zalo</button>' +
         '<label class="f" style="margin-top:14px"><span><b>② Tin để ' + nm + ' chuyển cho bạn bè</b>: gửi ngay sau tin ①</span><textarea id="rfText2" rows="3">' + esc(t2) + '</textarea></label>' +
         '<button class="btn" id="rfGo2">📋 Copy tin ②</button>' +
-        '<p class="small muted" style="margin:12px 0 0">Bạn bè đặt bằng mã → tự về ' + esc(c.owner || S.user.name) + ' phụ trách' + (S._rb && S._rb.cfg.bonus ? ' (số mới: thưởng ' + money(S._rb.cfg.bonus) + ')' : '') + '. Giao xong 7 ngày CRM tự tạo voucher cảm ơn, tab Hôm nay nhắc ở mục <b>🎁 Cảm ơn khách giới thiệu</b>.</p>';
+        (mine && !zl ? '<div class="rf-zl"><label class="f"><span>📱 Số Zalo bán hàng của bạn: ghi vào tin ② để bạn của khách nhắn thẳng cho bạn (lưu 1 lần)</span><input type="tel" id="rfZl" placeholder="09xx xxx xxx"></label><button class="btn sm" id="rfZlS">Lưu số Zalo</button></div>' : '') +
+        '<p class="small muted" style="margin:10px 0 0">💡 Gửi kèm <b>danh thiếp Zalo</b> của bạn để bạn của khách bấm là nhắn được: trong khung chat Zalo bấm <b>＋</b> (hoặc <b>⋯</b>) → <b>Danh thiếp</b> → chọn chính mình. Khách đọc số bạn bè qua điện thoại: <b>＋ Thêm khách hỏi</b> → <i>Khách đến từ đâu</i> chọn <b>Khách giới thiệu</b> → chọn ' + nm + '.</p>' +
+        '<p class="small muted" style="margin:12px 0 0">Bạn bè đặt bằng mã → tự về ' + esc(c.owner || S.user.name) + ' phụ trách' + (S._rb && S._rb.cfg.bonus ? ' (số mới: thưởng đến ' + money(S._rb.cfg.bonus) + ' khi bạn mua đủ mức)' : '') + '. Giao xong 7 ngày CRM tự tạo voucher cảm ơn, tab Hôm nay nhắc ở mục <b>🎁 Cảm ơn khách giới thiệu</b>.</p>';
       $('#rfGo', m).onclick = function () { rfCopyZalo(m, '#rfText', c.phone); this.textContent = '✓ Đã copy ① — dán vào Zalo, rồi quay lại copy ②'; };
+      var zs = $('#rfZlS', m); if (zs) zs.onclick = function () { var b = this, v = normPhone($('#rfZl', m).value); if (!/^0\d{9}$/.test(v)) return toast('Số Zalo chưa đúng (10 số, bắt đầu bằng 0)', true); b.disabled = true;
+        api('prefs', { zalo: v }).then(function (j2) { S.d.prefs = j2.prefs; toast('Đã lưu số Zalo ✓'); closeModal(); openRefCode(phone); }, function (e) { toast(e.message, true); b.disabled = false; }); };
       $('#rfGo2', m).onclick = function () { var b = this; copy($('#rfText2', m).value).then(function () { toast('Đã copy tin ② ✓ Dán vào Zalo gửi tiếp'); b.textContent = '✓ Đã copy ②'; }); };
       if (S._rb && S._rb.inv && S._rb.inv.indexOf(c.phone) < 0) S._rb.inv.push(c.phone); // 🌱 đã có mã → bỏ khỏi mục Mời làm Đại sứ
     }, function (e) { var box = $('#rfMain', m); if (box) box.innerHTML = '<p class="err">' + esc(e.message) + '</p>'; });
@@ -7713,7 +7722,7 @@
       ['2. Cảm ơn, nói ý nghĩa', 'Em mừng quá ạ. Thực Dưỡng Lành đang có hành trình giúp 10 triệu người Việt ăn uống lành hơn. Cách lan toả tốt nhất là từ người dùng thật như anh/chị, vì người thân tin lời [Tên] hơn tin quảng cáo ạ.', ''],
       ['3. Gợi đúng người cần', 'Trong nhà mình, bố mẹ, anh chị em hay bạn bè, đồng nghiệp, có ai đang muốn ăn uống lành mạnh hơn không ạ?', 'Gợi cụ thể theo khách: bố mẹ lớn tuổi, chị em sau sinh, bạn ăn chay, đồng nghiệp hay ăn ngoài.'],
       ['4. Nói lợi ích cho cả hai', 'Bạn của [Tên] đặt lần đầu được giảm ' + pct + '. Còn mỗi người bạn mua và nhận hàng, [Tên] được ' + gift + '. [Tên] xem bạn nào đã mua và quà của mình ngay trên web ạ.', ''],
-      ['5. Làm thật dễ cho khách', 'Em gửi [Tên] 1 tin qua Zalo, [Tên] chỉ cần chuyển tiếp cho bạn là xong, không phải giải thích gì. Hoặc [Tên] cho em xin tên và số của bạn, em gọi tư vấn giúp, vẫn tính là [Tên] giới thiệu ạ.', 'Khách đồng ý: bấm <b>📋 Copy tin ① & mở Zalo</b> bên dưới, gửi xong copy tin ② gửi tiếp. Khách cho số bạn: <b>＋ Thêm khách hỏi</b>, ô <i>Khách đến từ đâu</i> chọn <b>Khách giới thiệu</b> rồi chọn [Tên].']
+      ['5. Làm thật dễ: xin số người bạn trước', '[Tên] không phải làm gì cả ạ: [Tên] đọc em số điện thoại của bạn, em gọi tư vấn giúp, vẫn tính là [Tên] giới thiệu. Hoặc em gửi [Tên] 1 tin Zalo, [Tên] chuyển tiếp cho bạn, bạn nhắn em và nói tên [Tên] là được ạ.', 'Khách đọc số bạn (cách dễ nhất cho cô chú, anh chị lớn tuổi): <b>＋ Thêm khách hỏi</b>, ô <i>Khách đến từ đâu</i> chọn <b>Khách giới thiệu</b> rồi chọn [Tên], gọi bạn ngay trong ngày. Khách muốn tự chuyển: bấm <b>📋 Copy tin ①</b> rồi <b>tin ②</b> bên dưới, gửi kèm danh thiếp Zalo của bạn.']
     ];
     var ob = [
       ['“Để chị xem đã”', 'Dạ vâng, em cứ gửi sẵn mã cho [Tên]. Khi nào có ai hỏi, [Tên] chỉ cần chuyển tiếp tin là được ạ.'],
@@ -7748,7 +7757,7 @@
         return '<div class="card"><div class="r1"><b>' + esc(w.name) + '</b><span class="small">giới thiệu</span><b>' + esc(o.name) + '</b></div><div class="small muted" style="margin:4px 0">Đơn ' + esc(o.id) + ' · ' + money(o.total) + ' · ' + esc(o.status) + w.own + '</div>' +
           '<div class="acts"><button class="btn pri" data-refgift="' + esc(o.id) + '">🎁 Tặng quà / voucher</button>' + (w.rc ? '<button class="btn ghost" data-cust="' + w.rc.phone + '">Hồ sơ</button>' : '') + '</div></div>'; }).join('') + '</div></section>';
   }
-  var REF_PAGE = 'https://thucduonglanh.vn/gioi-thieu-ban-be/';
+  var REF_PAGE = 'https://thucduonglanh.vn/gioi-thieu-ban-be/', HOTLINE_TDL = '0966 326 522';
   /** 📋 Báo khách mã: tin Zalo có sẵn mã voucher tự động, bấm gửi xong ghi "đã báo" để mục này biến mất. */
   function openRefTell(id) {
     var o = S.d.orders.filter(function (x) { return x.id === id; })[0]; if (!o) return;

@@ -15,7 +15,8 @@ import { aiFetch } from './airelay.js';
 import { esc, run, all, first, kvGet, kvSet, kvDel, kvJson, normPhone, nrm, fmtDate, randHex, CRM_URL, TZ_MS, DAY } from './lib.js';
 import { telegram } from './google.js';
 import { addLead, telegramUser } from './crm.js';
-import { kb, safe, workNow, TRUTH_RULES, PHONE_RE } from './chat.js';
+import { kb, safe, workNow, TRUTH_RULES, REF_RULES, REF_TXT, PHONE_RE } from './chat.js';
+import { botRef } from './partner.js';
 import { prodMap, zbotLead } from './zbot.js';
 
 let GRAPH = 'https://graph.facebook.com/v23.0/';
@@ -194,7 +195,7 @@ async function commentOpener(x, p, name, text, post, hasPhone) {
     try {
       const know = await kb(), pt = await postText(x, p, post);
       const res = await ai(x.env).messages.create({ model: FAST, max_tokens: 800, output_config: { effort: 'low' },
-        system: [{ type: 'text', text: MSG_RULES + '\n' + TRUTH_RULES.replace(/mời nhắn Zalo/g, 'thêm [[zalo]]') },
+        system: [{ type: 'text', text: MSG_RULES + '\n' + REF_RULES + '\n' + TRUTH_RULES.replace(/mời nhắn Zalo/g, 'thêm [[zalo]]') },
           { type: 'text', text: 'TÀI LIỆU (thông tin chính thức của Thực Dưỡng Lành):\n\n' + know, cache_control: { type: 'ephemeral' } }],
         messages: [{ role: 'user', content: (pt ? 'Bài viết trên fanpage "' + p.name + '":\n' + pt + '\n\n' : '') + 'Khách "' + name + '" bình luận dưới bài: "' + text + '"\n\nViết 1–2 câu (dưới 50 chữ) trả lời thẳng điều khách hỏi trong bình luận, để gửi trong tin nhắn riêng. Không chào (đã chào rồi), không mời nhận quà (đã có câu riêng). Bình luận không có câu hỏi thì viết đúng: [KHONG]' }] });
       ans = res.stop_reason === 'refusal' ? '' : textOf(res);
@@ -264,7 +265,7 @@ async function onMessage(x, p, m, app) {
   let msgs = []; try { msgs = JSON.parse(row && row.msgs || '[]'); } catch (e) { }
   if (!text && !payload) return; // nhãn dán, ảnh: để nhân sự xem trong hộp thư
   const pm = (/^\+?\d[\d .-]{8,}$/.test(payload) ? payload : text).match(PHONE_RE), ph = pm ? normPhone(pm[0]) : '';
-  const gotPhone = /^0\d{9}$/.test(ph) && !u.phone ? ph : '';
+  const gotPhone = /^0\d{9}$/.test(ph) && !u.phone && !REF_TXT.test(text || '') ? ph : '';
   msgs.push({ r: 'u', t: payload === 'GIFT' ? '🎁 Nhận quà' : payload === 'ASK' ? '💬 Hỏi sản phẩm' : text || payload, at: now });
   const save = async (reply, miss) => {
     if (reply) msgs.push({ r: 'a', t: reply, at: Date.now() });
@@ -282,7 +283,7 @@ async function onMessage(x, p, m, app) {
     await save(out, 0);
     await flog(x, p.id, 'lead', { name: u.name, text: text.replace(PHONE_RE, '[SĐT]'), reply: 'Đã gửi quà + link nhóm Zalo' });
     let src = {}; try { src = JSON.parse(u.src || '{}'); } catch (e) { }
-    await saveLead(x, p, { psid, name: u.name, phone: gotPhone, how: 'Để lại số qua Messenger', gift: true, asks: msgs.filter(z => z.r === 'u').map(z => z.t.replace(PHONE_RE, '[SĐT]')), post: src.post, cmt: src.text });
+    await saveLead(x, p, { psid, name: u.name, phone: gotPhone, how: 'Để lại số qua Messenger', gift: true, asks: msgs.filter(z => z.r === 'u').map(z => z.t.replace(PHONE_RE, '[SĐT]')), raw: msgs.filter(z => z.r === 'u').map(z => z.t), post: src.post, cmt: src.text });
     return;
   }
   if (payload === 'GIFT' || /^(qua|nhan qua|lay qua|xin qua)\b/.test(nrm(text))) {
@@ -302,7 +303,7 @@ async function onMessage(x, p, m, app) {
   let reply = '';
   try {
     const res = await ai(x.env).messages.create({ model: FAST, max_tokens: 1500, output_config: { effort: 'low' },
-      system: [{ type: 'text', text: MSG_RULES + '\n' + TRUTH_RULES.replace(/mời nhắn Zalo/g, 'thêm [[zalo]] để chuyên viên hỗ trợ') },
+      system: [{ type: 'text', text: MSG_RULES + '\n' + REF_RULES + '\n' + TRUTH_RULES.replace(/mời nhắn Zalo/g, 'thêm [[zalo]] để chuyên viên hỗ trợ') },
         { type: 'text', text: 'TÀI LIỆU (thông tin chính thức của Thực Dưỡng Lành):\n\n' + know, cache_control: { type: 'ephemeral' } },
         { type: 'text', text: 'Fanpage: "' + p.name + '". Bây giờ là ' + w.label + '. Chuyên viên ' + (w.on ? 'đang trực.' : 'ngoài giờ (trực Thứ 2 – Thứ 7, 8h–17h): nhắn lại từ 8h sáng hôm sau.') + (u.name ? ' Tên Facebook của khách: ' + u.name + '.' : '') + (src.text ? ' Khách đến từ bình luận: "' + src.text + '".' : '') + (u.phone ? ' Khách ĐÃ để số và đã nhận quà, không mời nhận quà nữa.' : u.gift ? ' Đã xin số để gửi quà, chưa nhận được.' : '') }],
       messages: hist.map(z => ({ role: z.r === 'u' ? 'user' : 'assistant', content: z.t })) });
@@ -326,8 +327,9 @@ async function handoff(x, p, u, text, reply) {
 /** Khách để số (bình luận / Messenger) → khách hỏi kênh Facebook + Telegram + trợ lý Zalo tìm theo số */
 async function saveLead(x, p, o) {
   const asks = (o.asks || []).map(s => String(s).slice(0, 120)).slice(-5);
-  const ld = await addLead(x, { name: o.name || 'Khách fanpage', phone: o.phone, channel: 'Facebook', addInterest: true,
-    interest: 'Fanpage ' + p.name + (o.gift ? ' · Nhận quà cẩm nang' : ''), note: o.how + ' – fanpage "' + p.name + '"' + (o.cmt ? ' · Bình luận: ' + String(o.cmt).replace(PHONE_RE, '[SĐT]').slice(0, 150) : '') + (asks.length ? ' · Đã hỏi: ' + asks.join(' | ') : '') + (o.post ? ' · Bài: https://facebook.com/' + o.post : ''),
+  const rf = await botRef(x, o.raw || [], o.phone); // 🌱 khách nói được người quen giới thiệu
+  const ld = await addLead(x, { ...rf.lead, name: o.name || 'Khách fanpage', phone: o.phone, channel: 'Facebook', addInterest: true,
+    interest: 'Fanpage ' + p.name + (o.gift ? ' · Nhận quà cẩm nang' : ''), note: o.how + ' – fanpage "' + p.name + '"' + (o.cmt ? ' · Bình luận: ' + String(o.cmt).replace(PHONE_RE, '[SĐT]').slice(0, 150) : '') + (asks.length ? ' · Đã hỏi: ' + asks.join(' | ') : '') + rf.note + (o.post ? ' · Bài: https://facebook.com/' + o.post : ''),
     by: 'Website', auto: true });
   if (o.psid) await run(x.db, 'UPDATE fp_users SET phone = ?, lead = ? WHERE psid = ?', o.phone, ld.id, o.psid);
   if (o.psid) await run(x.db, 'UPDATE chats SET phone = ?, name = ?, lead = ? WHERE sid = ?', o.phone, o.name || '', ld.id, 'fb' + o.psid);
