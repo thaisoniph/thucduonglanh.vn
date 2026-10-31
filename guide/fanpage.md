@@ -55,6 +55,7 @@ Kiểm tra kỹ trước khi duyệt: giá và ưu đãi phải đúng với web
 Mỗi trang có ô **⚙️ Cài đặt trang** (bấm để mở):
 
 - **Bật trợ lý cho trang này**: tắt thì trợ lý không làm gì trên trang đó.
+- **⚡ Mở Tự động hoá của Meta cho trang này**: khi bật trợ lý, bấm link này rồi tắt **Trả lời tức thì** của Meta. Nếu không, khách nhận 2 lời chào cùng lúc. Meta không cho phần mềm khác bật/tắt mục này, nên phải bấm tay một lần.
 - **Chỉ trả lời bình luận có từ khoá**: để trống thì trợ lý trả lời mọi bình luận. Chỉ điền khi muốn trợ lý trả lời ít lại, ví dụ `quà, giá, tư vấn`.
 - **Câu trả lời công khai**: mỗi dòng một câu. `{ten}` sẽ được thay bằng tên khách.
 - **Tin gửi quà**: `{link}` là link cẩm nang, `{nhom}` là link nhóm Zalo.
