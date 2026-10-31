@@ -70,7 +70,8 @@
   var CARRIERS = { 'Viettel Post': 'https://viettelpost.vn/viettelpost-iframe/tra-cuu-hanh-trinh-don-hang-v3-recaptcha?orderString={c}', 'BEST Express': 'https://www.best-inc.vn/track?bills={c}', 'GHN': 'https://donhang.ghn.vn/?order_code={c}', 'GHTK': 'https://i.ghtk.vn/{c}', 'J&T Express': 'https://jtexpress.vn/vi/tracking?type=track&billcode={c}', 'SPX Express': 'https://spx.vn/track?{c}', 'VNPost': 'https://vnpost.vn/', 'Xe ôm': '', 'Ahamove': '', 'Grab / Be': '', 'Tự giao': '' };
   var CAR_MAIN = ['BEST Express', 'Viettel Post', 'Xe ôm', 'Grab / Be']; // hãng hay dùng hiện sẵn ở form lên đơn, hãng khác bấm "＋ Hãng khác" (anh Sơn 20/10/2026)
   /** Ghi chú giao hàng hay dùng – bấm để thêm / bỏ trong ô ghi chú. Cặp trái nghĩa (cho / không cho xem hàng, sáng / chiều) bấm cái này thì bỏ cái kia. */
-  var NOTE_QUICK = ['Gọi trước khi giao', 'Giao giờ hành chính', 'Cho xem hàng', 'Không cho xem hàng', 'Giao buổi sáng', 'Giao buổi chiều', 'Giao cuối tuần', 'Gửi bảo vệ / lễ tân', 'Giao gấp'];
+  var NOTE_GROUPS = [['Xem hàng', [['Cho xem hàng'], ['Không cho xem hàng', 'Không cho xem']]], ['Thời gian', [['Giao giờ hành chính', 'Giờ hành chính'], ['Giao buổi sáng', 'Buổi sáng'], ['Giao buổi chiều', 'Buổi chiều'], ['Giao cuối tuần', 'Cuối tuần'], ['Giao gấp']]], ['Khác', [['Gọi trước khi giao'], ['Gửi bảo vệ / lễ tân']]]]; // [chữ ghi vào ghi chú, chữ trên nút (ngắn hơn, đã có tên nhóm)]
+  var NOTE_QUICK = [].concat.apply([], NOTE_GROUPS.map(function (g) { return g[1].map(function (x) { return x[0]; }); }));
   var NOTE_PAIR = { 'Cho xem hàng': 'Không cho xem hàng', 'Không cho xem hàng': 'Cho xem hàng', 'Giao buổi sáng': 'Giao buổi chiều', 'Giao buổi chiều': 'Giao buổi sáng' };
 
 
@@ -2816,7 +2817,7 @@
       '<label class="f"><span>Mã đơn' + (eo ? ' (không đổi được khi sửa)' : '') + '</span><input type="text" name="code" autocomplete="off" value="' + (eo ? esc(eo.id) : '') + '"' + (eo ? ' readonly' : '') + '></label>' +
       (eo ? '' : '<p class="hint" id="noCodeHint">Tự điền: tên + ngày tháng năm + gạch + số thứ tự đơn trong ngày (vd Phuong201026-01), ghi vào cột Mã đơn trong file của bạn. Gửi Viettel Post thì thêm chữ V ở đầu.</p>') + '</div>' +
       '<div class="no-sum" id="noOtSum"><span id="noOtSumT"></span><button type="button" class="btn sm" id="noOtEdit">Chọn khác</button></div><div id="noOtBox" hidden>' + otField + '</div>' + // loại đơn CRM tự chọn; sale chọn khác mới mở 4 ô
-      (eo ? '<label class="f"><span>Lý do sửa (không bắt buộc)</span><input type="text" name="reason" placeholder="vd: khách đổi sang hộp 400g"></label>' : '<div class="f"><span class="lbl">Ghi chú giao hàng <span class="muted small" style="font-weight:400">· bấm để thêm nhanh</span></span><div class="chips wrap" id="noNoteChips">' + NOTE_QUICK.map(function (t) { return '<button type="button" class="chip" data-nq="' + esc(t) + '">' + esc(t) + '</button>'; }).join('') + '</div>' +
+      (eo ? '<label class="f"><span>Lý do sửa (không bắt buộc)</span><input type="text" name="reason" placeholder="vd: khách đổi sang hộp 400g"></label>' : '<div class="f"><span class="lbl">Ghi chú giao hàng <span class="muted small" style="font-weight:400">· bấm để thêm nhanh</span></span><div id="noNoteChips" class="nq-groups">' + NOTE_GROUPS.map(function (g) { return '<div class="nq-row"><span class="nq-k">' + g[0] + '</span><div class="chips wrap">' + g[1].map(function (x) { return '<button type="button" class="chip" data-nq="' + esc(x[0]) + '">' + esc(x[1] || x[0]) + '</button>'; }).join('') + '</div></div>'; }).join('') + '</div><p class="hint nq-prev" id="noNotePrev" hidden></p>' +
         '<textarea name="note" rows="2" placeholder="Ghi thêm nếu cần, vd: giao sau 17h, gửi nhà hàng xóm số 12"></textarea></div>') +
       '<details class="addr-more opts" id="noOpts"><summary>⚙️ <span id="noOptSum"></span></summary>' +
       (eo ? '' : (lead ? '' : '<label class="f"><span>Khách đặt qua</span><select name="source">' + SOURCES.map(function (s) { return '<option' + (s === src0 ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select></label>') +
@@ -2909,6 +2910,8 @@
         F.total.value = lo.total; totalEdited = true; setShipMode(lo.shipping > 0, lo.shipping);
         var pb = $('input[name=payment][value=' + (isBank(lo) ? 'bank' : 'cod') + ']', form); if (pb) pb.checked = true;
         calc(); toast('Đã điền như đơn ' + fDate(lo.time) + ' – sửa chỗ nào khác rồi lưu');
+        var nq = String(lo.note || '').split(/\s*[,;\n]\s*/).filter(function (t) { return NOTE_QUICK.some(function (q) { return norm(q) === norm(t); }); });
+        if (F.note && nq.length && !F.note.value.trim()) { F.note.value = nq.join(', '); noteChipsSync(); $('#noNotePrev', m).hidden = false; $('#noNotePrev', m).textContent = '↺ Đã chọn sẵn như lần trước khách dặn. Bấm lại nút để bỏ.'; }
         var done = document.createElement('div'); done.className = 'no-rep-done'; done.textContent = '✓ Đã điền như đơn ' + this.textContent.replace(/^🔁 Đặt lại như đơn /, ''); this.replaceWith(done);
       };
       renderChips(c);

@@ -135,7 +135,7 @@ Khách đặt qua Zalo, Facebook, điện thoại… thì bạn **tạo đơn tr
 6. Chọn cách trả tiền: **COD** (khách trả tiền khi nhận hàng) hoặc **Chuyển khoản**. Chọn **Đơn vị vận chuyển** (CRM chọn sẵn **BEST Express**; hãng ít dùng bấm **＋ Hãng khác**) và **Phí vận chuyển**: chọn sẵn **Miễn phí vận chuyển**, bấm **Cộng phí ship** nếu khách trả ship (CRM cộng 30.000đ vào tiền thu, sửa được).
    **Mã đơn** tự điền: tên + ngày tháng năm + gạch + số thứ tự đơn trong ngày, vd `Phuong201026-01` (đơn 01 ngày 20/10/2026). Chọn Viettel Post thì tự thêm chữ **V** ở đầu (`VPhuong201026-01`). Lưu xong, mã ghi vào cột Mã đơn trong file của bạn. Muốn mã khác thì sửa ô này trước khi lưu.
    **Loại đơn (tính hoa hồng)** CRM tự chọn, chỉ hiện 1 dòng **🏷 Loại đơn: …**. Thấy sai thì bấm **Chọn khác** rồi chọn lại.
-   **Ghi chú giao hàng:** bấm nhanh các nút hay dùng (Gọi trước khi giao, Cho xem hàng, Giao giờ hành chính…), bấm lại để bỏ. Cần ghi thêm thì gõ vào ô bên dưới.
+   **Ghi chú giao hàng:** các nút xếp theo 3 hàng **Xem hàng / Thời gian / Khác**. Bấm để chọn (nút có dấu **✓** là đã chọn), bấm lại để bỏ. Chọn **Không cho xem** thì **Cho xem hàng** tự bỏ, **Buổi sáng / Buổi chiều** cũng vậy. Khách cũ: CRM tự chọn sẵn như lần trước khách dặn (dòng *↺ Đã chọn sẵn…*). Cần ghi thêm thì gõ vào ô bên dưới.
 7. Bấm **Lưu & copy lên đơn**. Đơn được lưu. Nội dung đơn đã được chép sẵn, bạn dán sang bên vận chuyển.
 
 ![Cuối trang tạo đơn: số tiền, cách trả tiền, nút Lưu](/huong-dan/img/crm-neworder-save.webp)
