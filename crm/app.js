@@ -2701,7 +2701,7 @@
   }
   /* ---------- giờ lên đơn (đúng giờ đồng hồ, khác Loại đơn do sale chọn để tính hoa hồng). Ngày lễ → Ngoài giờ (Chủ nhật, trước 8:00, từ giờ ca tối) → Trong giờ; đơn nhập file chỉ có ngày → Không rõ giờ */
   var HR_KEYS = ['Trong giờ', 'Ngoài giờ', 'Ngày lễ', 'Không rõ giờ'];
-  var HR_ICON = { 'Trong giờ': '🏢', 'Ngoài giờ': '🌙', 'Ngày lễ': '🎉', 'Không rõ giờ': '❔' };
+  var HR_ICON = { 'Trong giờ': '🏢', 'Ngoài giờ': '🌙', 'Ngày lễ': '🎉', 'Không rõ giờ': '📄' };
   function evTime() { return ((S.d.rules || {}).ca || {}).evening || '17:30'; }
   function hourBucket(t) {
     if (!t) return 'Không rõ giờ';
@@ -6972,7 +6972,7 @@
     });
     cols.push(['Khách cũ', 'Đơn', function (e) { return sum(e.r.oldN); }], ['Khách cũ', 'Doanh thu', function (e) { return sum(e.r.oldR); }, 1],
       ['', 'TỔNG DT', function (e) { return sum(e.r.newR) + sum(e.r.oldR); }, 1, 1],
-      ['DT theo giờ lên đơn', 'Giờ hành chính', function (e) { return e.r.hrR['Trong giờ']; }, 1], ['DT theo giờ lên đơn', 'Tối / Chủ nhật', function (e) { return e.r.hrR['Ngoài giờ']; }, 1], ['DT theo giờ lên đơn', 'Ngày lễ', function (e) { return e.r.hrR['Ngày lễ']; }, 1], ['DT theo giờ lên đơn', 'Đơn nhập từ file (không rõ giờ)', function (e) { return e.r.hrR['Không rõ giờ']; }, 1],
+      ['DT theo giờ lên đơn', 'Giờ hành chính', function (e) { return e.r.hrR['Trong giờ']; }, 1], ['DT theo giờ lên đơn', 'Tối / Chủ nhật', function (e) { return e.r.hrR['Ngoài giờ']; }, 1], ['DT theo giờ lên đơn', 'Ngày lễ', function (e) { return e.r.hrR['Ngày lễ']; }, 1], ['DT theo giờ lên đơn', 'Gõ vào file (không có giờ)', function (e) { return e.r.hrR['Không rõ giờ']; }, 1],
       ['Đơn hoàn', 'Số đơn', function (e) { return e.r.hoanN; }], ['Đơn hoàn', 'Giá trị', function (e) { return e.r.hoanV; }, 1],
       ['Chăm sóc khách cũ', 'Kết nối', function (e) { return e.cs.ok; }], ['Chăm sóc khách cũ', 'Không nghe máy', function (e) { return e.cs.knm; }],
       ['Luỹ kế ' + monthLabel(month), 'Doanh thu', function (e) { return sum(e.T.newR) + sum(e.T.oldR); }, 1, 0, 1], ['Luỹ kế ' + monthLabel(month), '% mục tiêu', function (e) { return e.tg && e.tg.amount ? pct(sum(e.T.newR) + sum(e.T.oldR), e.tg.amount) + '%' : ''; }]);
@@ -7080,8 +7080,8 @@
     var d0 = dayStart(day), L = (S.d.orders || []).filter(function (o) { return o.time >= d0 && o.time < d0 + DAY && (name === null || o.seller === name) && !isVoid(o.status); }).sort(function (a, b) { return a.time - b.time || (a.row || 0) - (b.row || 0); });
     if (!L.length) return '';
     return '<h3 style="margin:12px 0 6px">🕘 Đơn trong ngày theo giờ lên đơn</h3><div class="bcdt-wrap"><table class="bcdt"><thead><tr><th>Giờ</th><th>Mã đơn</th><th>Khách</th>' + (name === null ? '<th>Sale</th>' : '') + '<th>Số tiền</th><th>Ca</th></tr></thead><tbody>' +
-      L.map(function (o) { var hb = hourBucket(o.time), x = vnDate(o.time); return '<tr><td>' + (hb === 'Không rõ giờ' ? '–' : pad(x.h) + ':' + pad(x.mi)) + '</td><td>' + esc(o.id || '') + '</td><td>' + esc(o.name || '') + '</td>' + (name === null ? '<td>' + esc(o.seller || '') + '</td>' : '') + '<td>' + (Number(o.total) || 0).toLocaleString('vi-VN') + '</td><td>' + HR_ICON[hb] + ' ' + hb + '</td></tr>'; }).join('') +
-      '</tbody></table></div><p class="small muted" style="margin:6px 0 0">Giờ hành chính: thứ 2 – thứ 7, 8:00 – ' + esc(evTime()) + '. Chủ nhật tính ngoài giờ, trừ khi là ngày lễ. Đơn nhập từ file sale chỉ có ngày nên ghi “Không rõ giờ”.</p>';
+      L.map(function (o) { var hb = hourBucket(o.time), x = vnDate(o.time); return '<tr><td>' + (hb === 'Không rõ giờ' ? '–' : pad(x.h) + ':' + pad(x.mi)) + '</td><td>' + esc(o.id || '') + '</td><td>' + esc(o.name || '') + '</td>' + (name === null ? '<td>' + esc(o.seller || '') + '</td>' : '') + '<td>' + (Number(o.total) || 0).toLocaleString('vi-VN') + '</td><td>' + HR_ICON[hb] + ' ' + (hb === 'Không rõ giờ' ? 'Gõ vào file, không có giờ' : hb) + '</td></tr>'; }).join('') +
+      '</tbody></table></div><p class="small muted" style="margin:6px 0 0">Giờ hành chính: thứ 2 – thứ 7, 8:00 – ' + esc(evTime()) + '. Chủ nhật tính ngoài giờ, trừ khi là ngày lễ. Đơn gõ vào file Google Sheet của sale chỉ có ngày, không có giờ. Lên đơn trên CRM thì có giờ chính xác.</p>';
   }
   function bcdtCols() {
     var c = [['Ngày', function (r) { return r.day ? fDate(r.day).slice(0, 5) : 'TỔNG'; }]];
