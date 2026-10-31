@@ -6939,7 +6939,7 @@
     lines.push('KH cũ đã chăm sóc (kết nối): ' + cs.ok, 'Không nghe máy: ' + cs.knm);
     lines.push('Lý do từ chối:' + (cs.why.length ? '' : ' –')); cs.why.slice(0, 12).forEach(function (w) { lines.push('- ' + w); });
     var T = d.tot, mrev = sum(T.newR) + sum(T.oldR), tg = name ? targetOf(name, month) : null;
-    lines.push('', '📈 Luỹ kế ' + monthLabel(month) + ': ' + mf(mrev) + (tg && tg.amount ? ' · đạt ' + pct(mrev, tg.amount) + '% mục tiêu ' + moneyShort(tg.amount) : ''));
+    if (tg && tg.amount) lines.push('', '📈 Luỹ kế ' + monthLabel(month) + ': đạt ' + pct(mrev, tg.amount) + '% mục tiêu'); // không ghi số tiền luỹ kế: sale ngại gửi vào nhóm chung (anh Sơn 31/10/2026), giống bảng thi đua
     return lines.join('\n');
   }
   /** Báo cáo ngày dạng bảng như Excel (góp ý chị Thuỷ 29/10/2026): cả nhóm = mỗi sale 1 dòng + dòng Tổng; 1 người = 2 cột Chỉ số | Số. Cột cả ngày bằng 0 thì ẩn. */
@@ -6957,13 +6957,14 @@
     });
     cols.push(['Khách cũ', 'Đơn', function (e) { return sum(e.r.oldN); }], ['Khách cũ', 'Doanh thu', function (e) { return sum(e.r.oldR); }, 1],
       ['', 'TỔNG DT', function (e) { return sum(e.r.newR) + sum(e.r.oldR); }, 1, 1],
-      ['Theo giờ lên đơn', '🏢 Giờ hành chính', function (e) { return e.r.hrR['Trong giờ']; }, 1], ['Theo giờ lên đơn', '🌙 Tối / CN', function (e) { return e.r.hrR['Ngoài giờ']; }, 1], ['Theo giờ lên đơn', '🎉 Ngày lễ', function (e) { return e.r.hrR['Ngày lễ']; }, 1], ['Theo giờ lên đơn', '❔ Không rõ giờ', function (e) { return e.r.hrR['Không rõ giờ']; }, 1],
+      ['DT theo giờ lên đơn', 'Giờ hành chính', function (e) { return e.r.hrR['Trong giờ']; }, 1], ['DT theo giờ lên đơn', 'Tối / Chủ nhật', function (e) { return e.r.hrR['Ngoài giờ']; }, 1], ['DT theo giờ lên đơn', 'Ngày lễ', function (e) { return e.r.hrR['Ngày lễ']; }, 1], ['DT theo giờ lên đơn', 'Đơn nhập từ file (không rõ giờ)', function (e) { return e.r.hrR['Không rõ giờ']; }, 1],
       ['Đơn hoàn', 'Số đơn', function (e) { return e.r.hoanN; }], ['Đơn hoàn', 'Giá trị', function (e) { return e.r.hoanV; }, 1],
       ['Chăm sóc khách cũ', 'Kết nối', function (e) { return e.cs.ok; }], ['Chăm sóc khách cũ', 'Không nghe máy', function (e) { return e.cs.knm; }],
-      ['Luỹ kế ' + monthLabel(month), 'Doanh thu', function (e) { return sum(e.T.newR) + sum(e.T.oldR); }, 1], ['Luỹ kế ' + monthLabel(month), '% mục tiêu', function (e) { return e.tg && e.tg.amount ? pct(sum(e.T.newR) + sum(e.T.oldR), e.tg.amount) + '%' : ''; }]);
+      ['Luỹ kế ' + monthLabel(month), 'Doanh thu', function (e) { return sum(e.T.newR) + sum(e.T.oldR); }, 1, 0, 1], ['Luỹ kế ' + monthLabel(month), '% mục tiêu', function (e) { return e.tg && e.tg.amount ? pct(sum(e.T.newR) + sum(e.T.oldR), e.tg.amount) + '%' : ''; }]);
     cols = cols.filter(function (c) { return c[4] || ents.some(function (e) { return c[2](e); }); });
     if (name === null) ents = ents.filter(function (e, i) { return !i || !adm[e.n] || cols.some(function (c) { return c[2](e); }); }); // Quản trị không bán thì không hiện dòng trống
     var fv = function (c, e) { var v = c[2](e); return !v ? '' : c[3] ? Number(v).toLocaleString('vi-VN') : v; };
+    var csvCols = cols; cols = cols.filter(function (c) { return !c[5]; }); // c[5] = chỉ có trong Excel, không lên màn hình / ảnh Zalo (số tiền luỹ kế tháng)
     if (name === null) ents = [ents[0]].concat(ents.slice(1).sort(function (a, b) { return (sum(b.r.newR) + sum(b.r.oldR)) - (sum(a.r.newR) + sum(a.r.oldR)) || b.cs.ok - a.cs.ok; }));
     var h;
     if (name !== null) { // 1 người: bảng dọc cho dễ đọc trên điện thoại
@@ -6975,8 +6976,8 @@
         ents.map(function (e, i) { var z = i && !cols.some(function (c) { return c[2](e); }); return '<tr class="' + (i ? '' : 'tot') + (z ? ' dy-zero' : '') + '"><td>' + esc(e.t) + '</td>' + cols.map(function (c) { return '<td' + (c[4] ? ' class="dy-sum"' : '') + '>' + fv(c, e) + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table>';
     }
     var why = []; ents.forEach(function (e, i) { if (name === null && !i) return; e.cs.why.slice(0, 12).forEach(function (w) { why.push((name === null ? '<b>' + esc(e.t) + ':</b> ' : '') + esc(w)); }); });
-    var csv = name === null ? [['Sale'].concat(cols.map(function (c) { return c[0] ? c[0] + ' – ' + c[1] : c[1]; }))].concat(ents.map(function (e) { return [e.t].concat(cols.map(function (c) { return c[2](e); })); }))
-      : [['Chỉ số', name]].concat(cols.map(function (c) { return [c[0] ? c[0] + ' – ' + c[1] : c[1], c[2](ents[0])]; }));
+    var csv = name === null ? [['Sale'].concat(csvCols.map(function (c) { return c[0] ? c[0] + ' – ' + c[1] : c[1]; }))].concat(ents.map(function (e) { return [e.t].concat(csvCols.map(function (c) { return c[2](e); })); }))
+      : [['Chỉ số', name]].concat(csvCols.map(function (c) { return [c[0] ? c[0] + ' – ' + c[1] : c[1], c[2](ents[0])]; }));
     var img = name === null ? { head: ['Sale'].concat(cols.map(function (c) { return c[0] ? c[0] + ' · ' + c[1] : c[1]; })), sum: cols.map(function (c) { return !!c[4]; }), rows: ents.map(function (e, i) { return { c: [e.t].concat(cols.map(function (c) { return String(fv(c, e)); })), b: !i, z: i && !cols.some(function (c) { return c[2](e); }) }; }) }
       : { head: ['Chỉ số', name], rows: cols.map(function (c) { return { c: [c[0] ? c[0] + ' · ' + c[1] : c[1], String(fv(c, ents[0]) || '0')], b: !!c[4] }; }) };
     img.title = '📋 BÁO CÁO NGÀY ' + fDate(day) + ' – ' + (name || 'Cả nhóm');

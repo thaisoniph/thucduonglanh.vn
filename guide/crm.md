@@ -182,12 +182,12 @@ Khách để lại số trên web hay quảng cáo thì **tự vào đây**, b�
 ## Việc 5: Cuối ngày gửi báo cáo
 
 1. Vào tab **Hôm nay**, kéo xuống cuối trang.
-2. Bấm **📋 Báo cáo cuối ngày (bảng)**. CRM tự đếm và hiện thành bảng như Excel: số mới, số đơn, doanh thu từng sản phẩm, khách cũ, tổng doanh thu, chăm sóc, lý do từ chối.
+2. Bấm **📋 Báo cáo cuối ngày (bảng)**. CRM tự đếm và hiện thành bảng như Excel: số mới, số đơn, doanh thu từng sản phẩm, khách cũ, tổng doanh thu, chăm sóc, lý do từ chối, % mục tiêu tháng. Bảng chỉ ghi **% mục tiêu**, không ghi số tiền luỹ kế tháng (giống bảng thi đua), nên bạn yên tâm gửi vào nhóm.
 3. Gửi vào nhóm Zalo bằng ảnh bảng:
    - **Máy tính:** bấm **🖼️ Copy ảnh gửi Zalo** → mở nhóm Zalo → bấm **Ctrl+V** (máy Mac: **⌘+V**) → Gửi.
    - **Điện thoại:** bấm **🖼️ Gửi ảnh vào Zalo** → chọn **Zalo** → chọn nhóm → Gửi.
    - Muốn gửi chữ như trước: mở mục **📝 Bản chữ để dán Zalo** → sửa nếu cần → bấm **📋 Copy chữ**.
-4. Bấm **⬇️ Tải Excel** nếu cần lưu file.
+4. Bấm **⬇️ Tải Excel** nếu cần lưu file. File Excel có thêm số tiền luỹ kế tháng để bạn tự xem.
 
 ![Cửa sổ Báo cáo ngày: CRM tự viết, bạn chỉ cần copy](/huong-dan/img/crm-report.webp)
 

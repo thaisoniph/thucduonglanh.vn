@@ -99,7 +99,7 @@ Nên em **đừng ghi tay thêm vào Sheet** cho những cuộc gọi đã bấm
 
 ## 6. Báo cáo cuối ngày
 
-Cuối ngày bấm **📋 Báo cáo cuối ngày (bảng)** ở tab Hôm nay. CRM tự điền thành bảng như Excel (số đơn từng dòng, đơn khách cũ, tổng DT, KH cũ đã chăm sóc, không nghe máy, lý do từ chối, luỹ kế tháng). Bấm **🖼️ Copy ảnh gửi Zalo** (điện thoại: **🖼️ Gửi ảnh vào Zalo** → chọn Zalo) rồi dán vào nhóm Zalo. Không phải tự đếm nữa.
+Cuối ngày bấm **📋 Báo cáo cuối ngày (bảng)** ở tab Hôm nay. CRM tự điền thành bảng như Excel (số đơn từng dòng, đơn khách cũ, tổng DT, KH cũ đã chăm sóc, không nghe máy, lý do từ chối, % mục tiêu tháng). Ảnh gửi Zalo chỉ ghi % mục tiêu, không ghi số tiền luỹ kế tháng; muốn xem số tiền thì bấm **⬇️ Tải Excel**. Bấm **🖼️ Copy ảnh gửi Zalo** (điện thoại: **🖼️ Gửi ảnh vào Zalo** → chọn Zalo) rồi dán vào nhóm Zalo. Không phải tự đếm nữa.
 
 ## 4 điều cần nhớ
 
