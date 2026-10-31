@@ -101,7 +101,7 @@ Voucher dùng cho đơn từ 300.000đ, hạn 90 ngày. Nói với khách cho d�
 - Xem thưởng của mình: tab **Hôm nay**, dòng 🌱 ở khung đầu trang, hoặc tab **Hiệu quả** → ô **🌱 Khách mới nhờ khách cũ giới thiệu**. Ô này có: số khách mới, tiền thưởng đã chắc, tiền đang chờ, và **🤝 mục tiêu cả nhóm** trong tháng.
 
 **Việc của bạn (sale):**
-1. Tab **Hôm nay** có mục **🌱 Mời làm Đại sứ** (nằm sau Khách hỏi cần liên hệ): mỗi ngày tối đa 5 khách của bạn đã nhận hàng 7–30 ngày. Hỏi "Chị dùng thấy thế nào ạ?". Khách khen thì bấm **🌱 Mời giới thiệu**, rồi bấm **📋 Copy tin & mở Zalo** để gửi khách. Khách chưa hài lòng hoặc chưa tiện thì bấm **Để sau**, khách ẩn 30 ngày. Bấm vào tên khách là mở hồ sơ.
+1. Tab **Hôm nay** có mục **🌱 Mời làm Đại sứ** (nằm sau Khách hỏi cần liên hệ): mỗi ngày tối đa 5 khách của bạn đã nhận hàng 7–30 ngày. Hỏi "Chị dùng thấy thế nào ạ?". Khách khen thì bấm **🌱 Mời giới thiệu**. Cửa sổ có 2 tin ngắn: bấm **📋 Copy tin ① & mở Zalo**, dán gửi khách (cảm ơn + mã + quà). Quay lại bấm **📋 Copy tin ②**, dán gửi tiếp: đây là tin khách chỉ việc chuyển tiếp cho bạn bè, có sẵn link giảm giá. Khách chưa hài lòng hoặc chưa tiện thì bấm **Để sau**, khách ẩn 30 ngày. Bấm vào tên khách là mở hồ sơ.
    - Khách đang có trong việc **Chăm sóc khách** hôm nay thì không hiện ở mục này. Thẻ khách đó có nhãn **🌱 Mời giới thiệu**: gọi chăm sóc xong, khách thấy hợp thì bấm nhãn đó luôn. Gọi 1 lần làm được cả 2 việc. Khách khen sản phẩm lúc khác thì mở hồ sơ, bấm **🌱 Mời giới thiệu bạn bè**.
 2. Có bạn đặt hàng thì Telegram báo bạn.
 3. Bạn ấy mua đủ 300.000đ (cộng dồn, đơn đã giao xong 7 ngày) thì CRM **tự tạo voucher 20.000đ**, đủ 700.000đ tạo thêm voucher 30.000đ (mã `CAMON…`, chỉ số của khách cũ dùng được, đơn từ 300.000đ, hạn 90 ngày). Bạn không cần tính tiền.
@@ -118,7 +118,7 @@ Bấm **🌱 Mời giới thiệu** (ở mục Mời làm Đại sứ, thẻ ch�
 2. **Cảm ơn, nói ý nghĩa:** "Thực Dưỡng Lành đang có hành trình giúp 10 triệu người Việt ăn uống lành hơn. Người thân tin lời anh/chị hơn tin quảng cáo ạ."
 3. **Gợi đúng người cần:** bố mẹ lớn tuổi, chị em sau sinh, bạn ăn chay, đồng nghiệp hay ăn ngoài.
 4. **Nói lợi ích cho cả hai:** bạn được giảm 10% đơn đầu, khách được voucher và quà theo mốc.
-5. **Làm thật dễ:** "Em gửi tin qua Zalo, anh/chị chỉ cần chuyển tiếp." Hoặc xin tên, số của bạn để mình gọi tư vấn (thêm khách hỏi, chọn **Khách giới thiệu**).
+5. **Làm thật dễ:** "Em gửi tin qua Zalo, anh/chị chỉ cần chuyển tiếp." Gửi tin ① rồi tin ② (tin ② là tin để khách chuyển tiếp). Hoặc xin tên, số của bạn để mình gọi tư vấn (thêm khách hỏi, chọn **Khách giới thiệu**).
 
 Không nói sản phẩm chữa / điều trị / khỏi bệnh.
 
