@@ -1398,3 +1398,8 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .no-addr-mini { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; background: var(--bg, #f6f5f1); border-radius: 10px; padding: 10px 12px; margin: 4px 0 6px; font-size: 14px; line-height: 1.4; }
 .no-addr-mini > span:first-child { flex: 1 1 220px; }
 .no-addr-mini-b { display: flex; gap: 6px; flex-wrap: wrap; }
+/* hộp chăm sóc Bước 2: dòng hướng dẫn đổi khi đã gõ ghi chú, ô ghi chú viền xanh, nút Khách mua nổi bật (31/10/2026) */
+.k-tap { margin: 2px 0 8px; font-size: 13.5px; color: var(--muted); }
+.k-note.has { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-light, #e7f3ec); }
+.quick .btn.k-q-buy { border-color: var(--primary); color: var(--primary); }
+.k-tap.on { color: var(--primary); font-weight: 600; }

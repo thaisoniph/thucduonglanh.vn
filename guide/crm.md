@@ -48,8 +48,9 @@ Tab **Hôm nay** là danh sách khách bạn cần gọi hôm nay. Máy đã ch�
 3. Đọc nhanh thông tin khách: khách mua gì, lần trước nói gì.
 4. Bấm **📞 Gọi**. Hoặc bấm **💬 Nhắn Zalo**: CRM chép sẵn tin nhắn và mở Zalo, bạn chỉ cần dán rồi gửi.
    Chưa biết nói gì? Đọc mục **💬 Kịch bản gọi** ngay bên dưới: có câu nói mẫu, cách dùng sản phẩm, khách nói gì thì làm gì. Xem trang [Kịch bản gọi](/huong-dan/kich-ban/).
-5. Khách nói gì thì gõ vài chữ vào ô **Khách nói gì**. Ví dụ: *"chị bảo ngủ ngon hơn"*. Không có gì thì bỏ qua.
-6. Bấm **1 nút kết quả** (xem bảng dưới). CRM tự lưu và tự mở khách tiếp theo.
+   Muốn xem hoặc sửa tin nhắn trước khi gửi thì bấm **✏️ Xem / sửa tin nhắn** (bình thường thu gọn cho đỡ dài).
+5. **Bước 2 · Ghi lại kết quả.** Khách nói gì thì gõ vài chữ vào ô **✍️ Khách nói gì?**. Ví dụ: *"chị bảo ngủ ngon hơn"*. Không có gì thì bỏ qua. Gõ xong, ô viền xanh và hiện dòng **✅ Đã có ghi chú**: ghi chú **chưa lưu** cho tới khi bạn bấm 1 nút ở bước 6.
+6. Bấm **1 nút kết quả** (xem bảng dưới). CRM lưu kết quả **cùng ghi chú bạn vừa gõ**, báo lại nội dung đã lưu, rồi tự mở khách tiếp theo.
    **Khách muốn mua luôn?** Không cần kéo xuống. Ngay dưới thông tin khách có khung **Khách muốn mua?**: bấm nút xanh **🛒 Lên đơn ngay**. Form tạo đơn mở ra, **đã điền sẵn như đơn trước** (sản phẩm, số tiền, cách trả tiền). Sửa chỗ khách đổi rồi bấm **Lưu đơn**. CRM tự ghi "Đã đặt lại" và mở khách tiếp theo. Bấm nhầm thì bấm **✕**, CRM quay lại đúng khách đang gọi.
    Nút bên cạnh **🔗 Gửi link cho khách tự đặt** là gửi link để **khách tự đặt trên web**, bạn không lên đơn. Chỉ bấm nút này khi khách muốn tự đặt.
 7. Làm đến khi hết danh sách.
@@ -68,7 +69,7 @@ Tab **Hôm nay** là danh sách khách bạn cần gọi hôm nay. Máy đã ch�
 | Dùng tốt | **👍 Dùng ok** | không |
 | Còn nhiều hàng | **📦 Còn hàng** | sau 14 ngày |
 | Chưa có tiền | **💸 Hết tiền** | sau 30 ngày |
-| Muốn mua thêm | **🛒 Lên đơn ngay** (trên cùng) hoặc **🛒 Đặt lại** | mở form tạo đơn điền sẵn như đơn trước |
+| Muốn mua thêm | **🛒 Lên đơn ngay** (trên cùng) hoặc **🛒 Khách mua** | mở form tạo đơn điền sẵn như đơn trước |
 | Không dùng nữa | **🚫 Không dùng nữa** | không gọi nữa |
 | Bảo "gọi lại sau" | **Mai**, **3 ngày**, **1 tuần** hoặc **2 tuần** | đúng ngày bạn chọn |
 | Vừa nhận hàng | **📦 Đã nhận, đã hướng dẫn dùng** | không |
@@ -135,7 +136,7 @@ Lưu đơn xong, CRM **ở lại chỗ bạn đang làm** (hồ sơ khách, tab 
 
 **Khách lấy cả thùng to, cần tách làm 2 kiện?** Lên **2 đơn**, mỗi đơn 1 mã (CRM tự đánh `-01`, `-02`), chia sản phẩm và số tiền theo từng kiện. Lưu đơn thứ 2, nếu CRM hỏi *"Khách này vừa có đơn… Có thể lần trước đã lưu rồi"* thì bấm **OK**. Đây không phải đơn trùng, doanh số vẫn đúng. Trong file Google Sheet cũng ghi 2 dòng, 2 mã đơn như vậy.
 
-> Khi gọi chăm sóc, bấm **🛒 Lên đơn ngay** hoặc **🛒 Đặt lại** thì CRM chỉ ghi "Đã đặt lại" **sau khi bạn Lưu đơn**. Đóng form không lưu thì chưa có đơn, cũng chưa ghi gì.
+> Khi gọi chăm sóc, bấm **🛒 Lên đơn ngay** hoặc **🛒 Khách mua** thì CRM chỉ ghi "Đã đặt lại" **sau khi bạn Lưu đơn**. Đóng form không lưu thì chưa có đơn, cũng chưa ghi gì.
 
 ## Việc 4: Có người hỏi mà chưa mua (tab Khách hỏi)
 

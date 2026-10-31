@@ -1908,7 +1908,7 @@
       ['1. Hỏi còn bao nhiêu', 'Dạ em chào anh/chị [Tên], mình dùng [Sản phẩm] đều không ạ? Theo lịch thì sắp hết rồi, nhà mình còn dùng được khoảng mấy hôm nữa ạ?', 'Xem dòng <b>⏰ Dự kiến hết hàng</b> và <b>🔁 ~… ngày mua lại</b> ở trên trước khi gọi.'],
       ['2. Nói lý do nên đặt sớm', 'Hàng đi đường mất vài ngày, mình đặt bây giờ là vừa nối tiếp, không bị ngắt quãng ạ. Đơn từ 300.000đ được miễn phí ship.', ''],
       ['3. Gợi ý số lượng', 'Nhà mình dùng đều thì [Tên] lấy luôn 2 hộp cho đủ dùng lâu, đỡ phải đặt nhiều lần ạ.', 'Khách hay mua bao nhiêu thì gợi đúng số đó hoặc thêm 1. Không ép.'],
-      ['4. Chốt đơn', '', 'Khách đồng ý: bấm <b>🛒 Đặt lại</b> (mở form tạo đơn), hoặc <b>🔗 Link đặt lại</b> để khách tự đặt trên web.']
+      ['4. Chốt đơn', '', 'Khách đồng ý: bấm <b>🛒 Khách mua</b> (mở form tạo đơn), hoặc <b>🔗 Link đặt lại</b> để khách tự đặt trên web.']
     ], c: [
       ['“Chị còn nhiều lắm”', 'Dạ vâng ạ. Mỗi ngày mình đang dùng mấy lần ạ? Dùng đều mỗi ngày thì mới thấy rõ, em hẹn [Tên] khoảng 2 tuần nữa em hỏi lại nhé.', 'Khách dùng ít hơn hướng dẫn thì nhắc lại <b>📋 Cách dùng</b>. Bấm <b>📦 Còn hàng</b>.'],
       ['“Chưa có tiền / để tháng sau”', 'Dạ không sao ạ. Đầu tháng sau em nhắn [Tên] nhé, có chương trình ưu đãi gì em báo mình trước ạ.', 'Bấm <b>💸 Hết tiền</b> (30 ngày sau tự nhắc).'],
@@ -1943,7 +1943,7 @@
       ['1. Hỏi thăm', 'Dạ em chào anh/chị [Tên], mình dùng [Sản phẩm] được khoảng 1 tháng rồi, cả nhà dùng đều không ạ?', ''],
       ['2. Hỏi nhu cầu của cả nhà', 'Ngoài mình ra, nhà mình có ai như bố mẹ lớn tuổi, người ăn chay, hay người bận rộn hay bỏ bữa không ạ?', 'Nghe khách nói ai cần gì rồi mới gợi ý.'],
       ['3. Chỉ gợi 1 sản phẩm hợp nhất', 'Với [người khách vừa kể], bên em có [Gợi ý] nhiều nhà đang dùng, em gửi [Tên] xem thử nhé ạ.', 'Gợi ý theo nhu cầu: <b>bữa phụ nhanh, ăn kém</b> → Bữa Ăn Dinh Dưỡng VitaGreen · <b>tiêu hoá kém, mới ốm dậy</b> → Dinh Dưỡng Từ Hạt và Curcumin · <b>ăn chay, bữa cơm nhanh</b> → Ruốc Rong Biển, Xì Dầu 2S · <b>thích trà thảo mộc, ngại đun nấu</b> → Trà DILVANG · <b>người lớn tuổi cần bồi bổ</b> → Fucoidan Progomax.'],
-      ['4. Chốt nhẹ nhàng', '', 'Khách muốn thử: bấm <b>🛒 Đặt lại</b>. Khách chưa cần: bấm <b>👍 Dùng ok</b>, không nài.']
+      ['4. Chốt nhẹ nhàng', '', 'Khách muốn thử: bấm <b>🛒 Khách mua</b>. Khách chưa cần: bấm <b>👍 Dùng ok</b>, không nài.']
     ], c: [
       ['“Chưa cần thêm”', 'Dạ vâng ạ. Khi nào cần [Tên] cứ nhắn em nhé.', 'Bấm <b>👍 Dùng ok</b>.'],
       ['“Để chị xem đã”', 'Dạ em gửi [Tên] link sản phẩm qua Zalo để mình xem lúc rảnh nhé ạ.', 'Gửi link, bấm <b>📅 3 ngày</b>.'],
@@ -1953,7 +1953,7 @@
       ['1. Hỏi thăm trước, chưa bán', 'Dạ em chào anh/chị [Tên], lâu rồi em chưa hỏi thăm mình. Dạo này [Tên] và gia đình khoẻ không ạ?', 'Nói chuyện vui vẻ 1–2 câu trước.'],
       ['2. Hỏi vì sao tạm ngưng', 'Trước mình hay dùng [Sản phẩm], sau đó mình tạm nghỉ là do bận chưa kịp đặt, hay có điều gì chưa ưng ạ? [Tên] góp ý thật giúp em nhé.', 'Đây là thông tin quý nhất. Ghi lý do vào ô <b>Khách nói gì</b>.'],
       ['3. Trả lời theo lý do', '', 'Xem phần <b>Khách nói gì thì làm gì</b> ngay dưới.'],
-      ['4. Mời quay lại', 'Nếu [Tên] muốn dùng lại, em gửi link đặt lại có sẵn giỏ hàng như lần trước, mình chỉ cần bấm đặt là xong ạ.', 'Bấm <b>🔗 Link đặt lại</b> hoặc <b>🛒 Đặt lại</b>.']
+      ['4. Mời quay lại', 'Nếu [Tên] muốn dùng lại, em gửi link đặt lại có sẵn giỏ hàng như lần trước, mình chỉ cần bấm đặt là xong ạ.', 'Bấm <b>🔗 Link đặt lại</b> hoặc <b>🛒 Khách mua</b>.']
     ], c: [
       ['“Bận quá, quên mất”', 'Dạ em hiểu ạ. Em gửi link đặt lại, [Tên] bấm 1 lần là xong nhé.', 'Gửi <b>🔗 Link đặt lại</b>. Hẹn <b>📅 3 ngày</b> hỏi lại.'],
       ['“Dùng không thấy hiệu quả”', 'Dạ lúc trước mình dùng mỗi ngày mấy lần, trong bao lâu ạ? Em xem có sản phẩm khác hợp với mình hơn không nhé.', 'Ghi cách khách đã dùng. Gợi sản phẩm hợp nhu cầu hơn, không hứa hiệu quả.'],
@@ -1964,7 +1964,7 @@
     callback: { t: 'gọi lại theo hẹn', s: [
       ['1. Đọc lại lần trước', '', 'Xem <b>💬 Chăm sóc gần đây</b> ở trên: lần trước khách nói gì, hẹn chuyện gì.'],
       ['2. Mở đầu nhắc đúng chuyện cũ', 'Dạ em chào anh/chị [Tên], hôm trước mình hẹn em gọi lại hôm nay về chuyện …, giờ [Tên] tiện nói chuyện không ạ?', 'Điền vào “…” đúng việc khách đã hẹn.'],
-      ['3. Làm tiếp việc còn dở', '', 'Hẹn chốt đơn → <b>🛒 Đặt lại</b>. Hẹn hỏi thăm → hỏi như mốc hỏi thăm 1 tuần.']
+      ['3. Làm tiếp việc còn dở', '', 'Hẹn chốt đơn → <b>🛒 Khách mua</b>. Hẹn hỏi thăm → hỏi như mốc hỏi thăm 1 tuần.']
     ], c: [
       ['Lần trước khách không nghe máy', 'Dạ em gọi mấy lần chưa gặp được [Tên] nên em nhắn ạ. Mình dùng [Sản phẩm] thấy thế nào, có cần em hỗ trợ gì không ạ?', 'Không nghe máy từ 3 lần: <b>nhắn Zalo</b> thay vì gọi tiếp. Bấm <b>📵 Không nghe máy</b>.']
     ] }
@@ -2023,14 +2023,15 @@
       '<div class="box"><h3>Bước 1 · Gọi hoặc nhắn cho khách</h3>' +
       (c.zalo ? '<div class="k-go"><button class="btn zalo" id="kZalo">💬 Nhắn Zalo</button><a class="btn" href="tel:' + c.phone + '">📞 Gọi</a></div><p class="small muted" style="margin:8px 0 0">' + ZI + ' Khách đã kết bạn Zalo: nhắn trước, khách tiện trả lời lúc rảnh. Bấm <b>Nhắn Zalo</b> là tin bên dưới được copy sẵn, chỉ cần dán và gửi.</p>'
         : '<div class="k-go"><a class="btn pri" href="tel:' + c.phone + '">📞 Gọi</a><button class="btn zalo" id="kZalo">💬 Nhắn Zalo</button></div><p class="small" style="margin:8px 0 0">Khách <b>chưa kết bạn Zalo</b>: nên gọi trước, gọi xong xin kết bạn. ' + (canEdit(c) ? zaloTag(c) : '') + '</p>') +
-      '<details class="k-msg"' + (c.zalo ? ' open' : '') + '><summary>✏️ Tin nhắn sẽ gửi (sửa được)</summary>' +
+      '<details class="k-msg"><summary>✏️ Xem / sửa tin nhắn <span class="muted small" style="font-weight:400">(bấm Nhắn Zalo là tự copy tin này)</span></summary>' + // luôn thu gọn: sale ít sửa tin, để kéo nhanh xuống Bước 2 (anh Sơn 31/10/2026)
       '<label class="f" style="margin-top:8px"><span>Mẫu tin</span><select id="kTpl"><option value="-1">– Tự viết –</option>' + tplOpts(tp, ti) + '</select></label>' +
       '<label class="f"><span>Nội dung (nhớ điền phần “…” nếu có)</span><textarea id="kMsg" rows="5">' + esc(ti >= 0 ? fillTpl(tp[ti][2], c) : '') + '</textarea></label>' +
       '<button type="button" class="link small" id="kCopy">Chỉ copy tin (không mở Zalo)</button>' + (S.d.rules && S.d.rules.ai ? ' · <button type="button" class="link small" data-ai="msg" data-aiph="' + c.phone + '" data-aitask="' + esc(type || 'other') + '">✨ Nhờ AI viết tin</button>' : '') + '</details>' + careScript(c, type) + '</div>' +
       commBox(c, type, true) + giftBox(giftPerson(c.phone), type, true) + // thu gọn: để Bước 2 không bị đẩy xuống xa
-      '<div class="box"><h3>Bước 2 · Khách thế nào? Bấm 1 nút là xong</h3>' +
-      '<label class="f"><span>Khách nói gì (không bắt buộc, gõ trước rồi bấm nút)</span><textarea id="kNote" rows="2" placeholder="vd: chị bảo ngủ ngon hơn, còn nửa hộp…"></textarea></label>' +
-      '<div class="f"><span style="display:block;font-size:13px;color:var(--muted);margin-bottom:6px">Máy tự lưu và tự hẹn ngày gọi lại</span><div class="quick">' + QUICK.filter(function (q) { return !q.only || q.only === type; }).sort(function (a, b) { return (b.only ? 1 : 0) - (a.only ? 1 : 0); }).map(function (q) { return '<button class="btn" data-q="' + q.k + '" title="' + esc(q.r + (q.d ? ', ' + q.d + ' ngày sau tự nhắc gọi lại' : '')) + '">' + q.l + (q.d ? '<small>gọi lại sau ' + q.d + ' ngày</small>' : '') + '</button>'; }).join('') + '</div></div>' +
+      '<div class="box"><h3>Bước 2 · Ghi lại kết quả</h3>' +
+      '<label class="f"><span>✍️ Khách nói gì? <span class="muted" style="font-weight:400">(không bắt buộc)</span></span><textarea id="kNote" class="k-note" rows="2" placeholder="vd: chị bảo ngủ ngon hơn, còn nửa hộp…"></textarea></label>' +
+      '<p class="k-tap" id="kTap"></p>' + // dòng hướng dẫn đổi theo việc đã gõ ghi chú hay chưa → sale biết ghi chú được lưu khi bấm nút
+      '<div class="quick">' + QUICK.filter(function (q) { return !q.only || q.only === type; }).sort(function (a, b) { return (b.only ? 1 : 0) - (a.only ? 1 : 0); }).map(function (q) { return '<button class="btn' + (q.order ? ' k-q-buy' : '') + '" data-q="' + q.k + '" title="' + esc(q.r + (q.d ? ', ' + q.d + ' ngày sau tự nhắc gọi lại' : '')) + '">' + (q.order ? '🛒 Khách mua<small>mở form lên đơn</small>' : q.l + (q.d ? '<small>gọi lại sau ' + q.d + ' ngày</small>' : '')) + '</button>'; }).join('') + '</div>' +
       '<div class="k-cb"><span>📅 Khách hẹn gọi lại:</span>' + [[1, 'Mai'], [3, '3 ngày'], [7, '1 tuần'], [14, '2 tuần']].map(function (x) { return '<button type="button" class="chip" data-kcb="' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div>' +
       '<details class="k-more"><summary>Kết quả khác / tự chọn ngày hẹn</summary><div style="margin-top:10px">' +
       '<label class="f"><span>Việc</span><select id="kTask">' + Object.keys(TASK_LOG).map(function (k) { return '<option value="' + k + '"' + (k === type ? ' selected' : '') + '>' + TASK_LOG[k] + '</option>'; }).join('') + '</select></label>' +
@@ -2052,6 +2053,7 @@
     $('#kZalo', m).onclick = function () { copy(msg.value).then(function () { toast('Đã copy – dán vào khung chat Zalo'); }); window.open(zalo(c.phone), '_blank', 'noopener'); };
     $$('input[name=kRes]', m).forEach(function (r) { r.onchange = function () { if (r.value === 'Hẹn gọi lại' && !$('#kCb', m).value) { $('#kCb', m).value = isoDate(Date.now() + 2 * DAY); $('#kCb', m).focus(); } }; });
     var kn = $('#kNote', m), dk = 'draft_k_' + c.phone; draftKeep(kn, dk); // chữ đang gõ: lỡ đóng cửa sổ thì lần mở sau vẫn còn
+    noteTap(kn, $('#kTap', m));
     var buy = function () { openOrderForm({ phone: c.phone, autoRepeat: true, care: { task: $('#kTask', m).value, note: kn.value.trim() }, back: function () { openCare(c.phone, type, opt); } }); };
     $('#kBuy', m).onclick = buy;
     $('#kLink', m).onclick = function () { openRelink(c.phone, function () { openCare(c.phone, type, opt); }); }; // đóng hộp link → quay lại khách đang gọi
@@ -2059,7 +2061,7 @@
     $$('[data-kcb]', m).forEach(function (b) { b.onclick = function () { // hẹn nhanh 1 chạm (Đợt 2): lưu "Hẹn gọi lại" + ngày
       var n = +b.getAttribute('data-kcb'), p = { phone: c.phone, task: $('#kTask', m).value, result: 'Hẹn gọi lại', note: kn.value.trim(), callback: isoDate(Date.now() + n * DAY) };
       $$('[data-kcb]', m).forEach(function (x) { x.disabled = true; });
-      saveCare(c, p).then(function () { store(dk, null); closeModal(); toast('Đã hẹn gọi lại ' + fDate(Date.now() + n * DAY).slice(0, 5) + ' ✓'); navBadges(); render(); if (S.flow) setTimeout(nextFlow, 200); }, function (e) { $$('[data-kcb]', m).forEach(function (x) { x.disabled = false; }); $('#kErr', m).textContent = e.message; });
+      saveCare(c, p).then(function () { store(dk, null); closeModal(); toast('Đã hẹn gọi lại ' + fDate(Date.now() + n * DAY).slice(0, 5) + (p.note ? ' · đã lưu ghi chú “' + p.note + '”' : '') + ' ✓'); navBadges(); render(); if (S.flow) setTimeout(nextFlow, 200); }, function (e) { $$('[data-kcb]', m).forEach(function (x) { x.disabled = false; }); $('#kErr', m).textContent = e.message; });
     }; });
     $('#kSave', m).onclick = function () {
       var res = $('input[name=kRes]:checked', m), err = $('#kErr', m);
@@ -2099,6 +2101,11 @@
       }).join('') + '</div>' + (list.length > max ? '<button type="button" class="link small" data-kmore>Xem thêm ' + (list.length - max) + ' đơn cũ hơn</button>' : '') + (all ? '' : '<p class="small muted" style="margin:2px 0 0">Đang tải đơn cũ…</p>')
         : '<p class="small muted" style="margin:2px 0 0">' + (all ? 'Chưa có đơn.' : 'Đang tải đơn…') + '</p>');
   }
+  /** Dòng "👇 Bấm 1 nút…" dưới ô Khách nói gì: đã gõ thì báo rõ ghi chú sẽ lưu kèm nút bấm (sale từng tưởng ghi chú bị mất). */
+  function noteTap(ta, el) {
+    var f = function () { var on = !!ta.value.trim(); ta.classList.toggle('has', on); el.classList.toggle('on', on); el.innerHTML = on ? '✅ Đã có ghi chú. 👇 Bấm <b>1 nút</b> bên dưới để lưu ghi chú này cùng kết quả.' : '👇 Bấm <b>1 nút</b> đúng với khách. CRM tự lưu và tự hẹn ngày gọi lại.'; };
+    ta.addEventListener('input', f); f();
+  }
   function saveCare(c, p) { sendOp('care', p); return Promise.resolve(); } // lưu ngay trên màn hình, gửi ngầm (xem hàng chờ gửi)
   /** Ghi nhanh 1 chạm: KNM, thuê bao, dùng ok… (thêm ghi chú đang gõ nếu có). */
   function quickCare(c, key, task, extra, btn, errEl) {
@@ -2108,7 +2115,7 @@
     var txt = btn ? btn.textContent : ''; if (btn) { btn.disabled = true; btn.textContent = 'Đang lưu…'; }
     saveCare(c, p).then(function () {
       store('draft_k_' + c.phone, null); if ($('.modal')) closeModal();
-      toast('Đã ghi “' + q.n + '”' + (q.d ? ' · ' + q.d + ' ngày sau tự nhắc gọi lại' : '') + ' ✓'); navBadges(); render();
+      toast('Đã lưu “' + p.note + '”' + (q.d ? ' · ' + q.d + ' ngày sau tự nhắc gọi lại' : '') + ' ✓'); navBadges(); render();
       if (q.order) { S.flow = null; openOrderForm({ phone: c.phone, autoRepeat: true }); } else if (S.flow) setTimeout(nextFlow, 200);
     }, function (e) { if (btn) { btn.disabled = false; btn.textContent = txt; } if (errEl) errEl.textContent = e.message; else toast(e.message, true); });
   }
@@ -3301,7 +3308,7 @@
       '<div class="steps"><button class="btn zalo" id="cZalo">📋 Copy tin & mở Zalo</button><a class="btn" href="tel:' + l.phone + '">📞 Gọi</a></div></div>' +
       giftBox(giftPerson(l.phone), 'lead') +
       '<div class="box"><h3>Bước 2 · Khách thế nào? Bấm 1 nút là xong</h3>' +
-      '<label class="f"><span>Ghi chú lần này (không bắt buộc, gõ trước rồi bấm nút)</span><textarea id="cNote" rows="2" placeholder="Khách nói gì, băn khoăn gì…"></textarea></label>' +
+      '<label class="f"><span>✍️ Khách nói gì? <span class="muted" style="font-weight:400">(không bắt buộc)</span></span><textarea id="cNote" class="k-note" rows="2" placeholder="Khách nói gì, băn khoăn gì…"></textarea></label><p class="k-tap" id="cTap"></p>' +
       '<div class="quick">' + [['📵 Không nghe máy', 'Không nghe máy'], ['🤔 Đang cân nhắc', 'Đã tư vấn, khách cân nhắc'], ['🛒 Chốt mua', 'Khách chốt mua']].map(function (x) { return '<button type="button" class="btn" data-cq="' + esc(x[1]) + '">' + x[0] + '</button>'; }).join('') + '</div>' +
       '<div class="k-cb"><span>📅 Hẹn liên hệ lại:</span>' + [[1, 'Mai'], [3, '3 ngày'], [7, '1 tuần']].map(function (x) { return '<button type="button" class="chip" data-cqd="' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div>' +
       '<div class="k-cb"><span>🚫 Không mua vì:</span>' + LOST_REASONS.map(function (r) { return '<button type="button" class="chip" data-cqr="' + esc(r) + '">' + esc(r) + '</button>'; }).join('') + '</div>' +
@@ -3311,7 +3318,7 @@
       '<label class="f" id="cCbWrap"><span>Hẹn liên hệ lại ngày</span><input type="date" id="cCb" min="' + isoDate(Date.now()) + '"></label>' +
       '<button class="btn pri" id="cSave" style="width:100%">Lưu</button></div></details><p class="err" id="cErr"></p></div>';
     var m = modal('Tư vấn: ' + esc(l.name), body, '<button class="btn" data-close>Để sau</button>');
-    var msg = $('#cMsg', m), lnD = 'draft_l_' + l.id; draftKeep($('#cNote', m), lnD);
+    var msg = $('#cMsg', m), lnD = 'draft_l_' + l.id; draftKeep($('#cNote', m), lnD); noteTap($('#cNote', m), $('#cTap', m));
     $('#cTpl', m).onchange = function () { var i = +this.value; msg.value = i >= 0 ? fill(tp[i][2]) : ''; };
     $('#cZalo', m).onclick = function () { copy(msg.value).then(function () { toast('Đã copy – dán vào khung chat Zalo'); }); window.open(zalo(l.phone), '_blank', 'noopener'); };
     var provIn = $('#cProv', m), showArea = function () { var v = provIn.value.trim(), pv = v && provOf({ address: v }); $('#cArea', m).innerHTML = pv ? areaBox(norm(pv.old), 'consult') : v.length >= 3 ? '<p class="small muted" style="margin:0">Chưa nhận ra tỉnh – chọn trong danh sách gợi ý nhé.</p>' : ''; };
