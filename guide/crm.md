@@ -200,22 +200,22 @@ Từ đó, CRM cho bạn biết mỗi ngày cần bán bao nhiêu. Thanh màu ch
 
 ## Trên màn hình CRM có gì?
 
-**Các tab** (trên điện thoại nằm ở thanh dưới cùng). Thanh dưới chỉ hiện **4 tab hay dùng + ••• Thêm**. Tab nào không thấy thì bấm **••• Thêm**: ở đó có các tab còn lại (mỗi dòng ghi rõ dùng để làm gì), **Cài đặt**, **Hướng dẫn**, **💡 Góp ý**, **Tải lại dữ liệu**. Số đỏ trên nút Thêm = việc đang chờ ở các tab bên trong (ví dụ đơn mới).
+**Các tab** (trên điện thoại nằm ở thanh dưới cùng). Thanh dưới chỉ hiện **4 tab hay dùng + ••• Thêm**: với sale là **Hôm nay · Khách hỏi · Đơn hàng · Hiệu quả**. Tab nào không thấy thì bấm **••• Thêm**: ở đó có các tab còn lại (mỗi dòng ghi rõ dùng để làm gì), **Cài đặt**, **Hướng dẫn**, **💡 Góp ý**, **Tải lại dữ liệu**. Số đỏ trên nút Thêm = việc đang chờ ở các tab bên trong (ví dụ đơn mới).
 
 | Tab | Dùng để |
 | --- | --- |
 | **Hôm nay** | Việc cần làm hôm nay. Mở đầu tiên mỗi sáng |
 | **Khách hỏi** | Người hỏi mà chưa mua |
-| **Khách** (Khách đã mua) | Người đã mua ít nhất 1 lần. Tìm khách, xem lịch sử mua |
-| **Đơn hàng** | Xác nhận, gửi hàng, tạo đơn |
-| **Hiệu quả** | Doanh số và mục tiêu của bạn. Trên điện thoại nằm **chính giữa** thanh dưới, có nhãn **% mục tiêu tháng**: 🟢 xanh = đúng tiến độ, 🟠 cam = hơi chậm, 🔴 đỏ = đang chậm. Ở Hôm nay bấm **Xem hiệu quả ›** cũng mở được |
+| **Khách đã mua** | Người đã mua ít nhất 1 lần. Tìm khách, xem lịch sử mua. Trên điện thoại nằm trong **••• Thêm** (tìm nhanh 1 khách thì bấm 🔍 ở trên) |
+| **Đơn hàng** | Xác nhận, gửi hàng, tạo đơn. Có nhãn **🚚 số đơn của bạn đang giao** |
+| **Hiệu quả** | Doanh số và mục tiêu của bạn. Có nhãn **% mục tiêu tháng**: 🟢 xanh = đúng tiến độ, 🟠 cam = hơi chậm, 🔴 đỏ = đang chậm. Ở Hôm nay bấm **Xem hiệu quả ›** cũng mở được |
 
 **Con số trên các tab nghĩa là gì?**
 
 - **Số trong vòng tròn đỏ** = việc bạn cần làm. Làm xong thì số giảm.
   - **Hôm nay** = đơn mới chờ xác nhận + khách đến lịch chăm sóc hôm nay + khách vừa hỏi trong 24 giờ chưa ai gọi.
   - **Khách hỏi** = khách hỏi cần liên hệ: chưa gọi lần nào, đến hẹn gọi lại, hoặc quá 3 ngày chưa liên hệ lại.
-  - **Đơn hàng** = đơn mới chờ xác nhận.
+  - **Đơn hàng** = đơn mới chờ xác nhận. Nhãn xanh **🚚 2** bên cạnh = 2 đơn của bạn đang giao (chưa tới tay khách); đơn nào bị cảnh báo vận chuyển thì đưa chuột vào tab sẽ thấy, nên gọi khách sớm.
   - Khách vừa hỏi được đếm ở **cả Hôm nay và Khách hỏi**, nên cộng 2 số lại sẽ bị trùng.
 - **Nhãn % ở Hiệu quả** = doanh số tháng này đã đạt bao nhiêu % mục tiêu tháng của bạn. Đây **không phải** điểm làm việc. Màu so với số ngày đã qua trong tháng: xanh = đúng tiến độ, cam = hơi chậm, đỏ = đang chậm.
 - Muốn xem số chia ra từng loại: trên máy tính **đưa chuột vào tab**; trên điện thoại mở **••• Thêm** (mỗi dòng có ghi chú dưới tên).

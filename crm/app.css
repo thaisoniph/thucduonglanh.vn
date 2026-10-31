@@ -1311,7 +1311,7 @@ div.f > span { display: block; font-size: 13px; font-weight: 600; color: var(--i
 .nav-kpi.info { background: #e8efe9; color: var(--primary); }
 .nav-kpi.mid { background: var(--mid); color: #3a2400; }
 .nav-kpi.bad { background: var(--red); }
-@media (max-width: 859px) { .nav .nav-kpi { position: absolute; top: -3px; left: 50%; margin-left: 4px; box-shadow: 0 0 0 2px #fafaf8; } .nav .nav-kpi small { display: none; } .nav .dot + .nav-kpi { top: 15px; } }
+@media (max-width: 859px) { .nav .nav-kpi { position: absolute; top: -3px; left: 50%; margin-left: 4px; box-shadow: 0 0 0 2px #fafaf8; } .nav .nav-kpi small { display: none; } .nav .dot + .nav-kpi { left: auto; right: 50%; margin-left: 0; margin-right: 4px; } } /* có cả số đỏ: nhãn sang trái biểu tượng */
 @media (min-width: 860px) { .nav-kpi.ok, .nav-kpi.done { background: #fff; color: var(--primary); } .nav-kpi.info { background: rgba(255, 255, 255, .2); color: #fff; } }
 @media (min-width: 860px) and (max-width: 1279px) { .nav .nav-kpi small { display: none; } } /* màn hẹp: chỉ số, chữ giải thích vẫn có khi đưa chuột vào tab */
 @media (min-width: 860px) and (max-width: 1799px) { .nav-many .nav-kpi small { display: none; } } /* Quản lý / Quản trị nhiều tab: chỉ hiện chữ khi màn rất rộng */

@@ -688,7 +688,7 @@
   function navViews() { return myViews().filter(function (v) { return !((v.san || v.lq) && lvl() >= 3); }); } // Quản trị: Marketing có trên menu (29/10/2026), Sàn / Link & QR / Zalo / Fanpage vào từ Thêm
   /** Điện thoại (29/10/2026, kiểu Apple): thanh dưới chỉ 4 mục hay dùng + "Thêm"; mục còn lại, Cài đặt, Hướng dẫn, Góp ý nằm ở màn Thêm. Máy tính vẫn hiện đủ. */
   var NAV_FIRST = ['hom-nay', 'tiem-nang', 'khach-hang', 'don-hang', 'bao-cao'];
-  var NAV_SALE = ['hom-nay', 'tiem-nang', 'bao-cao', 'khach-hang']; // sale: Hiệu quả ở chính giữa thanh dưới (anh Sơn 29/10/2026), đơn mới đã có trong Hôm nay nên Đơn hàng vào Thêm
+  var NAV_SALE = ['hom-nay', 'tiem-nang', 'bao-cao', 'don-hang']; // sale: Hiệu quả ở chính giữa thanh dưới (anh Sơn 29/10/2026); 31/10/2026 Đơn hàng (có số đang giao) thay Khách, Khách vào Thêm
   var NAV_CEO = ['tong-quan', 'bao-cao', 'marketing', 'don-hang']; // Quản trị (anh Sơn 29/10/2026): kết quả, đội sale, tiền quảng cáo, đơn / tiền chờ thu. Hôm nay, Khách hỏi, Khách là việc của sale → Thêm
   function navMain() {
     var all = navViews().filter(function (v) { return v.id !== 'cai-dat'; }).map(function (v) { return v.id; }), out = [], sale = lvl() < 2 && !isMkt();
@@ -847,6 +847,10 @@
       return { t: p + '%', s: s, lv: g.lv, tip: 'Doanh số ' + ml + ' ' + who + ' đạt ' + p + '% mục tiêu (' + moneyShort(cur) + ' / ' + moneyShort(tgt) + ') · ' + PACE_TXT[g.lv] };
     };
     var pc = myPace(); if (pc) o['bao-cao'] = goal(pc.v, pc.t, 'của bạn', 'mục tiêu');
+    if (lvl() < 2 && !isMkt()) { // sale: số đơn của mình đang giao (anh Sơn 31/10/2026)
+      var sh = S.d.orders.filter(function (x) { return x.status === 'Đang giao' && whoOk(orderOwner(x)); }), wn = sh.filter(trkWarn).length;
+      if (sh.length) o['don-hang'] = { t: '🚚 ' + sh.length, s: 'đang giao', lv: 'info', tip: sh.length + ' đơn của bạn đang giao' + (wn ? ' · ⚠️ ' + wn + ' đơn có cảnh báo vận chuyển, cần gọi khách' : '') };
+    }
     if (lvl() >= 2 && !isMkt()) o['bao-cao'] = goal(perf(null, monthRange(mk)).sales, teamTarget(mk), 'cả nhóm sale', 'mục tiêu nhóm');
     if (lvl() >= 3) { // Tổng quan: chỉ hiện khi đã có số sàn (tải cùng màn Tổng quan), để % khớp với ô mục tiêu trong trang
       var sk = Object.keys(SN.cache).filter(function (k) { return k.slice(-mk.length - 1) === '_' + mk; })[0];
