@@ -163,6 +163,7 @@ Trên điện thoại, thanh dưới của Quản trị là **Tổng quan · Hi�
 - **Hiệu quả** (Quản lý, Quản trị) = doanh số tháng cả nhóm sale đạt bao nhiêu % tổng mục tiêu của các bạn sale. Chưa đặt mục tiêu thì hiện số tiền.
 - **Marketing** = số khách để lại số điện thoại hôm nay (mỗi số tính 1 lần). Đưa chuột vào để so với hôm qua.
 - **Đơn hàng**: số đỏ = đơn mới chờ xác nhận; nhãn **🚚** = số đơn đang giao. Đưa chuột vào để xem thêm: đơn bị cảnh báo vận chuyển, đơn đã xác nhận chờ gửi, đơn chuyển khoản chưa nhận tiền.
+- **Khách đã mua** = **+số khách mua lần đầu** trong tháng này (cùng cách đếm ô Khách mua lần đầu ở Tổng quan). Đưa chuột vào để so với cùng kỳ tháng trước.
 - **Sàn** = doanh số tháng các sàn đạt bao nhiêu % mục tiêu (hiện sau khi mở Tổng quan hoặc Sàn 1 lần).
 - Trên điện thoại, thanh dưới của **Quản lý** là **Hôm nay · Khách hỏi · Đơn hàng · Hiệu quả · ••• Thêm**; Khách đã mua nằm trong **••• Thêm**.
 - Màu nhãn %: xanh = đúng tiến độ, cam = hơi chậm, đỏ = đang chậm (so với số ngày đã qua trong tháng).

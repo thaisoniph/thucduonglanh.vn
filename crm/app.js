@@ -854,6 +854,15 @@
       if (sh.length) o['don-hang'] = { t: '🚚 ' + sh.length, s: 'đang giao', lv: 'info', tip: sh.length + ' đơn đang giao' + (navWho() || ' của bạn') + (wn ? ' · ⚠️ ' + wn + ' đơn có cảnh báo vận chuyển, cần gọi khách' : '') + (cf ? ' · ' + cf + ' đơn đã xác nhận, chờ gửi hàng' : '') + (up ? ' · ' + up + ' đơn chuyển khoản chưa nhận tiền' : '') };
     }
     if (lvl() >= 2 && !isMkt()) o['bao-cao'] = goal(perf(null, monthRange(mk)).sales, teamTarget(mk), 'cả nhóm sale', 'mục tiêu nhóm');
+    if (lvl() >= 2 && !isMkt()) { // Khách đã mua: khách mua lần đầu trong tháng, cùng cách đếm ô Khách mua lần đầu ở Tổng quan (anh Sơn 31/10/2026)
+      var R0 = monthRange(mk), P0 = monthRange(shiftMonth(mk, -1)), el = today() + DAY - R0[0];
+      var fn = function (a, b) { var seen = {}, n = 0; S.d.orders.forEach(function (x) {
+        if (x.time < a || x.time >= b || isVoid(x.status) || !whoOk(orderOwner(x))) return;
+        var ph = normPhone(x.phone), cu = S.d.byPhone && S.d.byPhone[ph]; if (!ph || seen[ph] || (cu && cu.first && dayStart(cu.first) < dayStart(x.time))) return; seen[ph] = 1; n++;
+      }); return n; };
+      var nw = fn(R0[0], R0[1]), pw = fn(P0[0], Math.min(P0[1], P0[0] + el));
+      o['khach-hang'] = { t: '+' + nw, s: 'khách mới', lv: 'info', tip: nw + ' khách mua lần đầu trong ' + ml + navWho() + ' · cùng kỳ tháng trước ' + pw + ' khách' };
+    }
     // Tổng quan, Sàn: chỉ hiện khi đã có số sàn của tháng (tải khi mở Tổng quan / Sàn), để % khớp với ô mục tiêu trong trang
     var sk = Object.keys(SN.cache).filter(function (k) { return k.slice(-mk.length - 1) === '_' + mk; })[0];
     if (sk) {
