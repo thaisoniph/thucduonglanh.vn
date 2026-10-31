@@ -304,15 +304,17 @@ async function onMessage(x, p, m, app) {
   const hist = msgs.slice(-16); while (hist.length && hist[0].r !== 'u') hist.shift();
   const know = await kb(), w = workNow(now); let src = {}; try { src = JSON.parse(u.src || '{}'); } catch (e) { }
   const asked = msgs.filter(z => z.r === 'u').length;
-  let reply = '';
-  try {
+  let reply = '', aerr = null;
+  for (let tr = 0; tr < 2 && !reply; tr++) try { // lỗi thì thử lại 1 lần, lần sau gửi ít lịch sử hơn
+    const hs = tr ? hist.slice(-6) : hist; while (hs.length && hs[0].r !== 'u') hs.shift();
     const res = await ai(x.env).messages.create({ model: FAST, max_tokens: 1500, output_config: { effort: 'low' },
       system: [{ type: 'text', text: MSG_RULES + '\n' + REF_RULES + '\n' + TRUTH_RULES.replace(/mời nhắn Zalo/g, 'thêm [[zalo]] để chuyên viên hỗ trợ') },
         { type: 'text', text: 'TÀI LIỆU (thông tin chính thức của Thực Dưỡng Lành):\n\n' + know, cache_control: { type: 'ephemeral' } },
         { type: 'text', text: 'Fanpage: "' + p.name + '". Bây giờ là ' + w.label + '. Chuyên viên ' + (w.on ? 'đang trực.' : 'ngoài giờ (trực Thứ 2 – Thứ 7, 8h–17h): nhắn lại từ 8h sáng hôm sau.') + (u.name ? ' Tên Facebook của khách: ' + u.name + '.' : '') + (src.text ? ' Khách đến từ bình luận: "' + src.text + '".' : '') + (u.phone ? ' Khách ĐÃ để số và đã nhận quà, không mời nhận quà nữa.' : u.gift ? ' Đã xin số để gửi quà, chưa nhận được.' : '') }],
-      messages: hist.map(z => ({ role: z.r === 'u' ? 'user' : 'assistant', content: z.t })) });
+      messages: hs.map(z => ({ role: z.r === 'u' ? 'user' : 'assistant', content: z.t })) });
     reply = res.stop_reason === 'refusal' ? 'Dạ câu này em xin phép chưa trả lời được ạ, để chuyên viên bên em nhắn lại cho mình nha. [[zalo]]' : textOf(res);
-  } catch (e) { console.error('fp ai', e && e.message); reply = 'Dạ em đang hơi chậm một chút, mình nhắn lại giúp em sau ít phút nha 🙏'; }
+  } catch (e) { aerr = e; console.error('fp ai', e && (e.status || ''), e && e.message); }
+  if (!reply) { reply = 'Dạ em đang hơi chậm một chút, mình nhắn lại giúp em sau ít phút nha 🙏'; await flog(x, p.id, 'error', { name: u.name, text: 'AI lỗi khi trả lời: ' + text.slice(0, 120), reply: aerr ? String(aerr.status || '') + ' ' + String(aerr.message || aerr).slice(0, 300) : 'AI không trả lời' }); }
   const z = fbText(safe(reply), prodMap(know), p); if (!z.text) return;
   const qr = !u.phone && !u.gift && asked >= 2 ? [{ content_type: 'text', title: '🎁 Nhận quà', payload: 'GIFT' }] : null; // từ câu hỏi thứ 2: nút nhận quà dưới câu trả lời
   await send(x, p, psid, z.text, qr);
