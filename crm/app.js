@@ -2539,7 +2539,7 @@
       if (box.hidden || !cur.length) return;
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); hi = (hi + (e.key === 'ArrowDown' ? 1 : cur.length - 1)) % cur.length; draw(); var b = box.children[hi]; if (b) b.scrollIntoView({ block: 'nearest' }); }
       else if (e.key === 'Enter') { e.preventDefault(); pick(cur[hi]); }
-      else if (e.key === 'Escape') box.hidden = true;
+      else if (e.key === 'Escape' && !box.hidden) { box.hidden = true; e.stopPropagation(); } // Esc chỉ đóng danh sách gợi ý, không đóng cả hộp
     });
     box.addEventListener('mousedown', function (e) { e.preventDefault(); }); // bấm gợi ý không làm mất con trỏ khỏi ô
     box.addEventListener('click', function (e) { var b = e.target.closest('[data-i]'); if (b) pick(cur[+b.getAttribute('data-i')]); });
@@ -3048,12 +3048,12 @@
     if (w === 'new') return '<span class="warn-line">🆕 Chưa liên hệ lần nào – gọi / nhắn ngay</span>';
     if (w === 'callback') { var late = Math.round((today() - dayStart(l.callback)) / DAY); return '<span class="warn-line">📞 Hẹn liên hệ lại ' + (late > 0 ? '– đã quá ' + late + ' ngày' : 'hôm nay') + '</span>'; }
     if (w === 'stale') return '<span class="bad-line">Đã ' + leadDays(l) + ' ngày chưa liên hệ lại</span>';
-    if (isOpenLead(l) && l.callback) return 'Hẹn liên hệ lại ' + fDate(l.callback);
+    if (isOpenLead(l) && l.callback) return '📅 Hẹn liên hệ lại ' + fDate(l.callback);
     return '';
   }
   function lastNote(l) { var n = leadNoteFmt(l.note).trim().split('\n').filter(Boolean); return n.length ? n[n.length - 1].replace(/^\[[^\]]*\]\s*/, '') : ''; }
   function leadCard(l) {
-    var open = isOpenLead(l), due = leadDueLine(l), note = lastNote(l), c = cust(l.phone);
+    var open = isOpenLead(l), due = /^(new|stale)$/.test(leadDue(l) || '') ? '' : leadDueLine(l), note = lastNote(l), c = cust(l.phone);
     return '<div class="card click" data-lead="' + esc(l.id) + '">' +
       '<div class="r1"><b>' + esc((c && c.name) || l.name || 'Khách') + '</b>' + leadTags(l, c) + (c ? custTags(c) : '') + (l.owner ? (lvl() >= 2 || l.owner !== S.user.name ? '<span class="tag owner">👤 ' + esc(l.owner) + '</span>' : '') : '<span class="tag noconsent">Chưa ai phụ trách</span>') + '<span class="end small muted" title="' + esc(l.channel) + '">' + srcIcon(chLabel(l.channel)) + esc(chLabel(l.channel)) + '</span></div>' +
       '<div class="r2">' + cpPhone(l.phone) + (leadProv(l) ? ' · 📍 ' + esc(leadProv(l).old) : '') + (l.interest ? ' · Quan tâm: ' + esc(intLabel(l.interest)) : '') + (l.refPhone || l.refName ? ' · 🎁 ' + esc(refWho(l.refPhone, l.refName)) + ' giới thiệu' : '') + '</div>' +
@@ -3170,18 +3170,17 @@
     var c = cust(l.phone), open = isOpenLead(l);
     var logs = logOf(l.phone).filter(function (x) { return x.what === 'Tư vấn' || x.what === 'Thêm tiềm năng'; });
     var body = (isMkt() ? '' : '<div class="acts steps" style="margin-bottom:12px">' + (open ? '<button class="btn pri" data-consult="' + esc(l.id) + '">💬 Tư vấn</button>' : '') +
-      '<a class="btn" href="tel:' + l.phone + '">📞 Gọi</a><a class="btn zalo" href="' + zalo(l.phone) + '" target="_blank" rel="noopener">Zalo</a>' +
-      (open || leadNoOrder(l) ? '<button class="btn" data-leadorder="' + esc(l.id) + '">🛒 ' + (open ? 'Chốt đơn' : 'Lên đơn') + '</button>' : '') + '<button class="btn" data-editlead="' + esc(l.id) + '">✏️ Sửa</button></div>') +
-      (c ? '<div class="notice info">👤 Số này đã là khách hàng: <b>' + esc(c.name) + '</b> · ' + c.orders + ' đơn, ' + money(c.spent) + ' <button class="btn" data-cust="' + c.phone + '" style="margin-left:6px">Xem khách</button></div>' : '') + (leadProv(l) ? areaBox(norm(leadProv(l).old), 'lead') : '') +
-      (open && leadDueLine(l) ? '<div class="notice">' + leadDueLine(l) + '</div>' : '') +
+      '<a class="btn" href="tel:' + l.phone + '">📞 Gọi</a>' + // 31/10/2026: bỏ nút Zalo (trong Tư vấn đã có Nhắn Zalo), Sửa chuyển xuống khung thông tin → 1 hàng nút
+      (open || leadNoOrder(l) ? '<button class="btn" data-leadorder="' + esc(l.id) + '">🛒 ' + (open ? 'Chốt đơn' : 'Lên đơn') + '</button>' : '') + '</div>') +
+      (c ? '<div class="notice info">👤 Số này đã là khách hàng: <b>' + esc(c.name) + '</b> · ' + c.orders + ' đơn, ' + money(c.spent) + ' <button class="btn" data-cust="' + c.phone + '" style="margin-left:6px">Xem khách</button></div>' : '') + (open && leadDue(l) === 'callback' ? '<div class="notice">' + leadDueLine(l) + '</div>' : '') + // tỉnh / bên mình có bao nhiêu khách ở đó: xem trong Tư vấn; mới hỏi / lâu chưa liên hệ đã có nhãn bên dưới
       (l.refPhone || l.refName ? '<div class="notice info">🎁 Được <b>' + esc(refWho(l.refPhone, l.refName)) + '</b>' + (l.refPhone ? ' (' + fPhone(l.refPhone) + ')' : '') + ' giới thiệu' + (cust(l.refPhone) ? ' <button class="btn" data-cust="' + cust(l.refPhone).phone + '" style="margin-left:6px">Xem người giới thiệu</button>' : '') + '</div>' : '') +
       '<div class="r-age" style="margin:0 0 12px">' + leadAge(l) + '</div>' +
-      '<div class="box"><div class="grid-info">' + info('Điện thoại', fPhone(l.phone), false, normPhone(l.phone)) + info('Trạng thái', l.status) + info('Kênh', chLabel(l.channel) + (chLabel(l.channel) !== l.channel ? ' (' + l.channel + ')' : '')) + info('Quan tâm', intLabel(l.interest) || '–') +
-      info('Phụ trách', l.owner || '– Chưa ai –') + info('Ngày hỏi', fDate(l.time)) + info('Lần liên hệ gần nhất', l.lastAt ? fDate(l.lastAt) + ' (' + daysAgo(l.lastAt) + ')' : 'chưa liên hệ') +
-      info('Hẹn liên hệ lại', l.callback ? fDate(l.callback) : '–') + (l.reason ? info('Lý do không mua', l.reason, true) : '') + (l.orderId ? info('Mã đơn', l.orderId, true, true) : '') + '</div></div>' +
+      '<div class="box"><div class="box-h"><h3 style="margin:0">Thông tin</h3>' + (isMkt() ? '' : '<button class="btn sm" data-editlead="' + esc(l.id) + '">✏️ Sửa</button>') + '</div><div class="grid-info">' + info('Điện thoại', fPhone(l.phone), false, normPhone(l.phone)) + info('Quan tâm', intLabel(l.interest) || '–') + info('Kênh', chLabel(l.channel) + (chLabel(l.channel) !== l.channel ? ' (' + l.channel + ')' : '')) + info('Ngày hỏi', fDate(l.time)) +
+      (lvl() >= 2 || l.owner !== S.user.name ? info('Phụ trách', l.owner || '– Chưa ai –') : '') + (open && l.callback && leadDue(l) !== 'callback' ? info('Hẹn liên hệ lại', fDate(l.callback)) : '') + // trạng thái có ở tiêu đề, lần liên hệ gần nhất có ở nhãn tuổi → bỏ cho gọn
+      (l.reason ? info('Lý do không mua', l.reason, true) : '') + (l.orderId ? info('Mã đơn', l.orderId, true, true) : '') + '</div></div>' +
       '<div class="box"><h3>Ghi chú</h3><div class="pre">' + (l.note ? esc(leadNoteFmt(l.note)) : '<span class="muted">Chưa có ghi chú.</span>') + '</div></div>' +
       (open && !isMkt() ? giftBox(giftPerson(l.phone), '') : '') +
-      '<div class="box"><h3>Lịch sử tư vấn (' + logs.length + ')</h3>' + (logs.length ? '<div class="timeline">' + logs.map(logItem).join('') + '</div>' : '<p class="muted">Chưa có.</p>') + '</div>';
+      '<div class="box"><h3>Lịch sử tư vấn (' + logs.length + ')</h3>' + (logs.length ? '<div class="timeline">' + logs.slice(0, 3).map(logItem).join('') + '</div>' + (logs.length > 3 ? '<details class="k-msg"><summary>Xem thêm ' + (logs.length - 3) + ' lần cũ hơn</summary><div class="timeline">' + logs.slice(3).map(logItem).join('') + '</div></details>' : '') : '<p class="muted">Chưa có.</p>') + '</div>';
     modal(cp(l.name, esc(l.name || 'Khách hỏi')) + ' ' + leadTag(l) + (leadIsReask(l, c) ? ' ' + REASK_TAG : ''), body, null, { route: '#tiem-nang', pushed: !fromRoute });
   }
 
@@ -3301,17 +3300,20 @@
     var fill = function (text) { return fillTpl(text, { name: l.name, products: [l.interest || 'sản phẩm bên em'] }); };
     var body = '<div class="box"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>' + cp(l.name) + '</b> ' + leadTag(l) + ' <span class="muted">' + cpPhone(l.phone) + ' · ' + esc(chLabel(l.channel)) + '</span></div>' +
       '<div class="small muted" style="margin-top:4px">' + (l.interest ? 'Quan tâm: ' + esc(l.interest) + ' · ' : '') + 'hỏi ' + daysAgo(l.time) + (lastNote(l) ? '<br>📝 ' + esc(lastNote(l)) : '') + '</div></div>' +
-      '<div class="box"><label class="f" style="margin:0"><span>📍 Khách ở tỉnh nào? <em class="muted" style="font-style:normal;font-weight:400">(hỏi khách rồi gõ, máy cho biết bên mình đã có bao nhiêu khách ở đó)</em></span><input type="text" id="cProv" autocomplete="off" placeholder="Gõ để tìm, vd: nghe an" value="' + esc(leadProv(l) ? leadProv(l).old : '') + '"></label><div id="cArea" style="margin-top:8px"></div></div>' +
-      '<div class="box"><h3>Bước 1 · Nhắn / gọi cho khách</h3>' +
-      '<label class="f"><span>Mẫu tin</span><select id="cTpl"><option value="-1">– Tự viết –</option>' + tplOpts(tp, ti) + '</select></label>' +
-      '<label class="f"><span>Nội dung (sửa được)</span><textarea id="cMsg" rows="5">' + esc(ti >= 0 ? fill(tp[ti][2]) : '') + '</textarea></label>' +
-      '<div class="steps"><button class="btn zalo" id="cZalo">📋 Copy tin & mở Zalo</button><a class="btn" href="tel:' + l.phone + '">📞 Gọi</a></div></div>' +
-      giftBox(giftPerson(l.phone), 'lead') +
-      '<div class="box"><h3>Bước 2 · Khách thế nào? Bấm 1 nút là xong</h3>' +
+      '<div class="box"><h3>Bước 1 · Gọi hoặc nhắn cho khách</h3>' + // 31/10/2026: giống hộp chăm sóc – 2 nút to, tin nhắn / tỉnh / quà thu gọn, bấm mới mở
+      '<div class="k-go"><a class="btn pri" href="tel:' + l.phone + '">📞 Gọi</a><button class="btn zalo" id="cZalo">💬 Nhắn Zalo</button></div>' +
+      '<details class="k-msg"><summary>✏️ Xem / sửa tin nhắn <span class="muted small" style="font-weight:400">(bấm Nhắn Zalo là tự copy tin này)</span></summary>' +
+      '<label class="f" style="margin-top:8px"><span>Mẫu tin</span><select id="cTpl"><option value="-1">– Tự viết –</option>' + tplOpts(tp, ti) + '</select></label>' +
+      '<label class="f"><span>Nội dung (sửa được)</span><textarea id="cMsg" rows="5">' + esc(ti >= 0 ? fill(tp[ti][2]) : '') + '</textarea></label></details>' +
+      '<details class="k-msg"><summary>📍 Khách ở tỉnh nào? <span class="muted small" style="font-weight:400" id="cProvS">' + (leadProv(l) ? esc(leadProv(l).old) : '(gõ tỉnh để xem bên mình có bao nhiêu khách ở đó)') + '</span></summary>' +
+      '<label class="f" style="margin-top:8px"><span>Tỉnh của khách</span><input type="text" id="cProv" autocomplete="off" placeholder="Gõ để tìm, vd: nghe an" value="' + esc(leadProv(l) ? leadProv(l).old : '') + '"></label><div id="cArea"></div></details></div>' +
+      giftBox(giftPerson(l.phone), 'lead', true) +
+      '<div class="box"><h3>Bước 2 · Ghi lại kết quả</h3>' +
       '<label class="f"><span>✍️ Khách nói gì? <span class="muted" style="font-weight:400">(không bắt buộc)</span></span><textarea id="cNote" class="k-note" rows="2" placeholder="Khách nói gì, băn khoăn gì…"></textarea></label><p class="k-tap" id="cTap"></p>' +
-      '<div class="quick">' + [['📵 Không nghe máy', 'Không nghe máy'], ['🤔 Đang cân nhắc', 'Đã tư vấn, khách cân nhắc'], ['🛒 Chốt mua', 'Khách chốt mua']].map(function (x) { return '<button type="button" class="btn" data-cq="' + esc(x[1]) + '">' + x[0] + '</button>'; }).join('') + '</div>' +
-      '<div class="k-cb"><span>📅 Hẹn liên hệ lại:</span>' + [[1, 'Mai'], [3, '3 ngày'], [7, '1 tuần']].map(function (x) { return '<button type="button" class="chip" data-cqd="' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div>' +
-      '<div class="k-cb"><span>🚫 Không mua vì:</span>' + LOST_REASONS.map(function (r) { return '<button type="button" class="chip" data-cqr="' + esc(r) + '">' + esc(r) + '</button>'; }).join('') + '</div>' +
+      '<div class="quick q4">' + [['📵 Không nghe máy', 'Không nghe máy', 'gọi lại sau 1 ngày'], ['🤔 Đang cân nhắc', 'Đã tư vấn, khách cân nhắc', 'hẹn lại sau 2 ngày'], ['🛒 Chốt mua', 'Khách chốt mua', 'mở form lên đơn']].map(function (x) { return '<button type="button" class="btn' + (x[2] === 'mở form lên đơn' ? ' k-q-buy' : '') + '" data-cq="' + esc(x[1]) + '">' + x[0] + '<small>' + x[2] + '</small></button>'; }).join('') +
+        '<button type="button" class="btn" id="cLostBtn">🚫 Không mua<small>chọn lý do</small></button></div>' +
+      '<div class="k-cb" id="cLostQ" hidden><span>Khách không mua vì:</span>' + LOST_REASONS.map(function (r) { return '<button type="button" class="chip" data-cqr="' + esc(r) + '">' + esc(r) + '</button>'; }).join('') + '</div>' + // lý do cất sau nút Không mua cho gọn
+      '<div class="k-cb"><span>📅 Khách hẹn liên hệ lại:</span>' + [[1, 'Mai'], [3, '3 ngày'], [7, '1 tuần']].map(function (x) { return '<button type="button" class="chip" data-cqd="' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div>' +
       '<details class="k-more"><summary>Chọn kết quả khác / tự chọn ngày</summary><div style="margin-top:10px"><div class="radios" style="margin-bottom:12px">' + LEAD_RESULTS.map(function (r) { return '<label><input type="radio" name="cRes" value="' + esc(r.v) + '"><span>' + esc(r.v) + '</span></label>'; }).join('') + '</div>' +
       '<div id="cLost" hidden><label class="f"><span>Lý do không mua *</span><select id="cReason"><option value="">– Chọn –</option>' + LOST_REASONS.map(function (r) { return '<option>' + r + '</option>'; }).join('') + '</select></label></div>' +
       '<p class="notice info" id="cClose" hidden>Bấm <b>Lưu</b> → mở ngay form tạo đơn cho khách.</p>' +
@@ -3321,7 +3323,8 @@
     var msg = $('#cMsg', m), lnD = 'draft_l_' + l.id; draftKeep($('#cNote', m), lnD); noteTap($('#cNote', m), $('#cTap', m));
     $('#cTpl', m).onchange = function () { var i = +this.value; msg.value = i >= 0 ? fill(tp[i][2]) : ''; };
     $('#cZalo', m).onclick = function () { copy(msg.value).then(function () { toast('Đã copy – dán vào khung chat Zalo'); }); window.open(zalo(l.phone), '_blank', 'noopener'); };
-    var provIn = $('#cProv', m), showArea = function () { var v = provIn.value.trim(), pv = v && provOf({ address: v }); $('#cArea', m).innerHTML = pv ? areaBox(norm(pv.old), 'consult') : v.length >= 3 ? '<p class="small muted" style="margin:0">Chưa nhận ra tỉnh – chọn trong danh sách gợi ý nhé.</p>' : ''; };
+    $('#cLostBtn', m).onclick = function () { var q = $('#cLostQ', m); q.hidden = !q.hidden; this.classList.toggle('on', !q.hidden); };
+    var provIn = $('#cProv', m), showArea = function () { var v = provIn.value.trim(), pv = v && provOf({ address: v }); if (pv) $('#cProvS', m).textContent = pv.old; $('#cArea', m).innerHTML = pv ? areaBox(norm(pv.old), 'consult') : v.length >= 3 ? '<p class="small muted" style="margin:0">Chưa nhận ra tỉnh – chọn trong danh sách gợi ý nhé.</p>' : ''; };
     provIn.oninput = showArea; showArea();
     addrPick(provIn, provPickItems, showArea); // gõ không dấu, tên tỉnh cũ hay mới đều ra (giống form lên đơn)
     // Đợt 3: nút 1 chạm giống cửa sổ Chăm sóc – chọn sẵn kết quả (+ ngày hẹn / lý do) rồi lưu luôn

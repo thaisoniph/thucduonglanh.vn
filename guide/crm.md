@@ -159,9 +159,10 @@ Khách để lại số trên web hay quảng cáo thì **tự vào đây**, b�
 **Mỗi lần nói chuyện với khách:**
 
 1. Bấm **💬 Tư vấn** ở khách đó.
-2. Gõ vài chữ khách nói vào ô **Ghi chú lần này**.
-3. Bấm **1 nút**: **📵 Không nghe máy**, **🤔 Đang cân nhắc**, **🛒 Chốt mua**, hẹn **Mai / 3 ngày / 1 tuần**, hoặc **🚫 Không mua vì…** (chọn lý do).
-4. Bấm **🛒 Chốt mua** thì trang tạo đơn mở ra. Tạo đơn xong, khách tự chuyển sang tab **Khách đã mua**.
+2. **Bước 1:** bấm **📞 Gọi** hoặc **💬 Nhắn Zalo** (CRM tự copy tin mẫu, chỉ cần dán). Muốn sửa tin, xem khách ở tỉnh nào, hay tặng quà thì bấm vào dòng **✏️ Xem / sửa tin nhắn**, **📍 Khách ở tỉnh nào?**, **🎁 Tặng quà** để mở ra. Bình thường các mục này thu gọn cho đỡ dài.
+3. **Bước 2:** khách nói gì thì gõ vào ô **✍️ Khách nói gì?** (không bắt buộc).
+4. Bấm **1 nút**: **📵 Không nghe máy**, **🤔 Đang cân nhắc**, **🛒 Chốt mua**, **🚫 Không mua** (bấm rồi chọn lý do), hoặc hẹn **Mai / 3 ngày / 1 tuần**. Ghi chú bạn gõ được lưu kèm.
+5. Bấm **🛒 Chốt mua** thì trang tạo đơn mở ra. Tạo đơn xong, khách tự chuyển sang tab **Khách đã mua**.
 
 ![Cửa sổ Tư vấn: thông tin khách và Bước 1](/huong-dan/img/crm-consult.webp)
 
