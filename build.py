@@ -3480,7 +3480,8 @@ def zalo_imgs():
         if not src or src in seen or "/img/products/" in src or "/brand/" in src or not alt:
             return
         seen.add(src)
-        out.append({"url": DOMAIN + img_url(src, 1000), "alt": html.unescape(alt).strip(), "bai": title})
+        # ảnh gốc: đường dẫn không đổi giữa các lần build (ảnh tối ưu ở assets/img/auto đổi mã mỗi lần build → bài hẹn đăng hôm sau mất ảnh); thumb chỉ để CRM xem nhanh
+        out.append({"url": DOMAIN + src, "thumb": DOMAIN + img_url(src, 400), "alt": html.unescape(alt).strip(), "bai": title})
     for p in POSTS["posts"]:
         add(p["image"], p["title"], p["title"])
         for m in re.finditer(r'<img[^>]*?src="([^"]+)"[^>]*?alt="([^"]*)"|<img[^>]*?alt="([^"]*)"[^>]*?src="([^"]+)"', p["content"]):
@@ -3503,7 +3504,7 @@ def chat_kb():
     for p in PRODUCTS:
         out += [f"## Sản phẩm: {p['name']}", f"- Mã gợi ý thẻ sản phẩm: [[sp:{p['slug']}]]", f"- Link: {DOMAIN}/san-pham/{p['slug']}/", f"- Giá trên web: {money_of(p)}"]
         if p.get("images"):
-            out.append(f"- Ảnh: {DOMAIN}{img_url(p['images'][0], 1000)}")  # trợ lý nhóm Zalo (api/src/zbot.js) lấy ảnh này đăng kèm bài
+            out.append(f"- Ảnh: {DOMAIN}{p['images'][0] if not p['images'][0].startswith('http') else ''}")  # trợ lý nhóm Zalo (api/src/zbot.js) lấy ảnh này đăng kèm bài: ảnh gốc vì đường dẫn không đổi giữa các lần build
         if p.get("free_ship"):
             out.append("- Miễn phí giao hàng")
         for k, lb in (("unit", "Quy cách"), ("summary", "Tóm tắt"), ("pitch", "Điểm chính"), ("manufacturer", "Nhà sản xuất"), ("tagline", "Thông điệp"), ("subline", "Mô tả")):

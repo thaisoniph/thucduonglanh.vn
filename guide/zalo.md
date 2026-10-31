@@ -19,7 +19,7 @@ Trợ lý tự làm 6 việc:
 3. ❤️ **Thả tim** khi có người khoe bữa ăn, cảm ơn.
 4. 🎉 **Chúc mừng** người vừa nhận quà trên web.
 5. ✅ **Duyệt** người xin vào nhóm, nếu họ đã để số trên web.
-6. 📝 **Đăng bài** lúc 7h30 và 20h, nhưng **chỉ đăng bài đã được duyệt**.
+6. 📝 **Đăng bài** lúc 7h30 và 20h. Khung giờ nào để **Chờ duyệt** thì chỉ đăng bài đã được duyệt; khung giờ để **Tự đăng** thì tới giờ trợ lý tự đăng.
 
 ## Trợ lý và người thật chia việc
 
@@ -57,13 +57,23 @@ Khi Telegram báo **"📝 Bài Zalo chờ duyệt"**, bạn vào tab và tìm b�
 3. Muốn bài khác thì bấm **🔄 Viết lại**, gõ ý muốn (ví dụ "ngắn hơn"), chờ 30 giây.
 4. Không muốn đăng thì bấm **⏸ Bỏ bài này**.
 
-**Bài chưa bấm Duyệt thì trợ lý không đăng.**
+**Khung giờ đang để Chờ duyệt: bài chưa bấm Duyệt thì trợ lý không đăng.** Khung giờ để Tự đăng thì không cần bấm Duyệt (xem phần *Chọn giờ nào tự đăng* bên dưới).
 
-**Ảnh kèm bài:** AI tự chọn ảnh. Bài nói về sản phẩm thì kèm ảnh sản phẩm. Bài khác thì AI chọn một ảnh thật trên web hợp với chủ đề; không có ảnh nào hợp thì bài chỉ có chữ. Muốn đổi thì bấm **🖼 Đổi ảnh** (hoặc **🖼 Thêm ảnh**) dưới bài:
+## Đổi ảnh kèm bài
 
-- Bấm vào một ảnh trong kho để chọn.
-- Hoặc bấm **📷 Tải ảnh từ máy** để lấy ảnh trong điện thoại hay máy tính.
-- Không muốn kèm ảnh thì bấm **🚫 Không kèm ảnh**.
+AI tự chọn ảnh. Bài nói về sản phẩm thì kèm ảnh sản phẩm. Bài khác thì AI chọn một ảnh trên web hợp với chủ đề. Không có ảnh hợp thì bài chỉ có chữ.
+
+![Dưới bài: 1 nút Đổi ảnh](/huong-dan/img/zalo-doi-anh.webp)
+
+1. Bấm **🖼 Đổi ảnh** dưới bài. Bài chưa có ảnh thì nút ghi **🖼 Thêm ảnh**.
+
+![Khung chọn ảnh: 1 ảnh trong kho, 2 Tải ảnh từ máy, 3 Không kèm ảnh](/huong-dan/img/zalo-chon-anh.webp)
+
+2. Chọn 1 trong 3 cách:
+   - **Số 1:** bấm vào một ảnh trong kho.
+   - **Số 2:** bấm **📷 Tải ảnh từ máy** để lấy ảnh trong điện thoại hay máy tính.
+   - **Số 3:** bấm **🚫 Không kèm ảnh** nếu muốn bài chỉ có chữ.
+3. Khung tự đóng. Ảnh mới hiện ngay dưới bài.
 
 Trước khi duyệt, kiểm tra 3 điều:
 
@@ -94,11 +104,36 @@ Thấy trợ lý trả lời chưa đúng thì chụp màn hình gửi anh Sơn.
 
 Bấm **⚙️ Cài đặt trợ lý** để mở.
 
-![Cài đặt: 1 Bật trợ lý, 2 Chờ duyệt, 3 Lưu cài đặt](/huong-dan/img/zalo-cai-dat.webp)
+![Ô 1: Bật trợ lý](/huong-dan/img/zalo-cai-dat.webp)
 
-1. **Bật trợ lý**: bỏ tích thì trợ lý im lặng. Trợ lý nói sai, cần dừng gấp thì bỏ tích ô này.
-2. **Chờ duyệt**: giữ nguyên ô này. Chỉ chọn **Tự đăng** khi anh Sơn đồng ý.
-3. Đổi xong, bấm **Lưu cài đặt**. Khoảng 1 phút sau trợ lý làm theo.
+**Bật trợ lý** (số 1): bỏ tích thì trợ lý im lặng hoàn toàn. Trợ lý nói sai, cần dừng gấp thì bỏ tích ô này, rồi bấm **Lưu cài đặt** ở cuối.
+
+## Chọn giờ nào tự đăng, giờ nào chờ duyệt
+
+Mỗi khung giờ đăng bài chọn riêng 1 trong 2 cách:
+
+- **⏳ Chờ duyệt:** trợ lý chỉ đăng khi đã có người bấm ✅ Duyệt.
+- **🤖 Tự đăng:** tới giờ trợ lý tự đăng bài AI soạn. Trước giờ đăng vẫn sửa được, hoặc bấm ⏸ Bỏ bài này nếu không muốn đăng.
+
+![Cài đặt giờ đăng: 1 bài sáng, 2 bài tối, 3 Lưu cài đặt](/huong-dan/img/zalo-gio-dang.webp)
+
+1. Bài sáng: chọn **⏳ Chờ duyệt** hoặc **🤖 Tự đăng**. Muốn đổi giờ thì sửa ô giờ.
+2. Bài tối: chọn tương tự.
+3. Bấm **Lưu cài đặt**. Khoảng 1 phút sau trợ lý làm theo.
+
+Muốn tắt hẳn một khung giờ thì bỏ tích ô vuông cạnh chữ **Bài sáng** hoặc **Bài tối**.
+
+## Giao người phụ trách trợ lý
+
+**Quản lý** và **Marketing** đã có sẵn quyền dùng tab Trợ lý Zalo. Muốn giao cho một bạn **Sale** phụ trách thì **Quản trị** làm như sau:
+
+1. Vào **Cài đặt → 👥 Nhân sự → Ai được vào CRM**.
+2. Tìm bạn đó, tích ô **🤖 Phụ trách Trợ lý Zalo** (số 1 trong ảnh).
+3. Bấm **Lưu nhân sự** ở cuối danh sách.
+
+![Ô 1: Phụ trách Trợ lý Zalo](/huong-dan/img/zalo-phu-trach.webp)
+
+Bạn đó đăng nhập lại CRM là thấy tab **Zalo**. Từ đó bạn ấy duyệt bài, đổi ảnh, gửi tin vào nhóm và chỉnh giờ đăng được.
 
 ## Cài đặt lần đầu (làm 1 lần)
 

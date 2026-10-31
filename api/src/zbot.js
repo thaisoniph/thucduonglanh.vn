@@ -69,6 +69,8 @@ export async function zbotSchema(db) {
   await run(db, 'CREATE INDEX IF NOT EXISTS zb_log_at ON zb_log(at)');
 }
 
+/** Khung giờ này tự đăng hay chờ duyệt (31/10/2026: mỗi khung giờ chọn riêng; khung chưa chọn thì theo chế độ chung) */
+const slotAuto = (cfg, slot) => { const s = (cfg.slots || []).find(z => z.id === slot); return ((s && s.mode) || cfg.mode) === 'auto'; };
 export async function zCfg(x) { const c = Object.assign({}, CFG0, await kvJson(x.db, 'zb_cfg', {})); if (!Array.isArray(c.slots) || !c.slots.length) c.slots = CFG0.slots; return c; }
 const zlog = (x, kind, o) => run(x.db, 'INSERT INTO zb_log (at, kind, gid, uid, name, text, reply) VALUES (?, ?, ?, ?, ?, ?, ?)', Date.now(), kind, o.gid || '', o.uid || '', String(o.name || '').slice(0, 80), String(o.text || '').slice(0, 1000), String(o.reply || '').slice(0, 2000));
 const vnHour = t => { const d = new Date(t + TZ_MS); return d.getUTCHours() + d.getUTCMinutes() / 60; };
@@ -149,7 +151,7 @@ async function zPoll(x, d) {
     for (const p of await all(x.db, "SELECT * FROM zb_posts WHERE day = ? AND status IN ('draft', 'ok')", day)) {
       const sl = cfg.slots.find(s => s.id === p.slot); if (!sl || !sl.on) continue;
       const t = slotTime(day, sl.at); if (now < t || now > t + 2 * 3600e3) continue;
-      if (p.status === 'draft' && cfg.mode !== 'auto') continue;
+      if (p.status === 'draft' && !slotAuto(cfg, p.slot)) continue;
       if (!String(p.text || '').trim()) continue;
       await run(x.db, "UPDATE zb_posts SET status = 'sent', sent_at = ? WHERE id = ? AND status = ?", now, p.id, p.status);
       for (const gid of cfg.groups) await run(x.db, "INSERT INTO zb_out (kind, gid, text, img, due, at, ref) VALUES ('post', ?, ?, ?, ?, ?, ?)", gid, p.text, p.img || '', now, now, p.id);
@@ -467,20 +469,20 @@ export async function zWrite(x, day, slot, hint, by) {
     ON CONFLICT(id) DO UPDATE SET topic = excluded.topic, text = excluded.text, img = excluded.img, prod = excluded.prod, status = 'draft', by_name = excluded.by_name, at = excluded.at`,
     id, day, slot, topic, body.slice(0, 4000), img, prods[code] ? code : '', by || 'AI', now);
   const cfg = await zCfg(x);
-  if (cfg.mode !== 'auto' && !by) x.later(telegram(x.env, '📝 <b>Bài Zalo chờ duyệt</b> – ' + (SLOT_NAME[slot] || slot) + ' ' + day.slice(6, 8) + '/' + day.slice(4, 6) + ': ' + esc(topic) + '\n👉 Duyệt / sửa: ' + CRM_URL + '/#tro-ly-zalo'));
+  if (!slotAuto(cfg, slot) && !by) x.later(telegram(x.env, '📝 <b>Bài Zalo chờ duyệt</b> – ' + (SLOT_NAME[slot] || slot) + ' ' + day.slice(6, 8) + '/' + day.slice(4, 6) + ': ' + esc(topic) + '\n👉 Duyệt / sửa: ' + CRM_URL + '/#tro-ly-zalo'));
   return { id, topic };
 }
 
 /* ---------------------------------------------------------------- CRM → tab 🤖 Trợ lý Zalo (Quản lý, Quản trị, Marketing) */
 export async function crmZbot(x, u, d, crmLog) {
-  if (u.level < 2 && u.role !== 'Marketing') return { ok: false, error: 'Chỉ Quản lý, Quản trị và Marketing dùng được Trợ lý Zalo.' };
+  if (u.level < 2 && u.role !== 'Marketing' && !u.zb) return { ok: false, error: 'Bạn chưa được giao phụ trách Trợ lý Zalo. Nhờ Quản trị tích ô 🤖 Trợ lý Zalo cho bạn ở Cài đặt → Nhân sự.' };
   const a = d.action, now = Date.now();
   if (a === 'zb_view') {
     const cfg = await zCfg(x), st = await kvJson(x.db, 'zb_status', null);
     const from = fmtDate(now - DAY, 'yyyyMMdd');
     const posts = await all(x.db, 'SELECT id, day, slot, topic, text, img, prod, status, by_name, at, sent_at FROM zb_posts WHERE day >= ? ORDER BY day, slot', from);
     const log = await all(x.db, 'SELECT at, kind, gid, name, text, reply FROM zb_log ORDER BY rid DESC LIMIT 60');
-    const lib = (await imgLib()).map(i => ({ url: i.url, alt: i.alt }));
+    const lib = (await imgLib()).map(i => ({ url: i.url, thumb: i.thumb || i.url, alt: i.alt }));
     const stats = await all(x.db, 'SELECT kind, count(*) AS n FROM zb_log WHERE at > ? GROUP BY kind', now - 7 * DAY);
     const users = await first(x.db, "SELECT count(*) AS n, sum(CASE WHEN phone != '' THEN 1 ELSE 0 END) AS known, sum(CASE WHEN joined > ? AND phone != '' THEN 1 ELSE 0 END) AS joined7 FROM zb_users", now - 7 * DAY);
     return { ok: true, cfg, status: st, posts, log, lib, stats, users, err: await kvGet(x.db, 'zb_write_err'), key: !!x.env.ZBOT_KEY, aiOn: !!x.env.ANTHROPIC_API_KEY, now };
@@ -491,7 +493,7 @@ export async function crmZbot(x, u, d, crmLog) {
     if (c.mode === 'auto' || c.mode === 'approve') cfg.mode = c.mode;
     if (Array.isArray(c.groups)) cfg.groups = c.groups.map(String).slice(0, 10);
     if (c.maxHour !== undefined) cfg.maxHour = Math.max(1, Math.min(30, Number(c.maxHour) || 8));
-    if (Array.isArray(c.slots)) cfg.slots = cfg.slots.map(s => { const n = c.slots.find(z => z.id === s.id) || {}; return { id: s.id, at: /^\d{1,2}:\d{2}$/.test(n.at || '') ? n.at.padStart(5, '0') : s.at, on: n.on === undefined ? s.on : !!n.on }; });
+    if (Array.isArray(c.slots)) cfg.slots = cfg.slots.map(s => { const n = c.slots.find(z => z.id === s.id) || {}; return { id: s.id, at: /^\d{1,2}:\d{2}$/.test(n.at || '') ? n.at.padStart(5, '0') : s.at, on: n.on === undefined ? s.on : !!n.on, mode: n.mode === 'auto' || n.mode === 'approve' ? n.mode : s.mode || cfg.mode }; });
     await kvSet(x.db, 'zb_cfg', JSON.stringify(cfg));
     await crmLog(x, u, 'Cài đặt trợ lý Zalo', '', '', '', JSON.stringify(c).slice(0, 300));
     return { ok: true, cfg };
