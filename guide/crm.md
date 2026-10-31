@@ -210,6 +210,16 @@ Từ đó, CRM cho bạn biết mỗi ngày cần bán bao nhiêu. Thanh màu ch
 | **Đơn hàng** | Xác nhận, gửi hàng, tạo đơn |
 | **Hiệu quả** | Doanh số và mục tiêu của bạn. Trên điện thoại nằm **chính giữa** thanh dưới, có nhãn **% mục tiêu tháng**: 🟢 xanh = đúng tiến độ, 🟠 cam = hơi chậm, 🔴 đỏ = đang chậm. Ở Hôm nay bấm **Xem hiệu quả ›** cũng mở được |
 
+**Con số trên các tab nghĩa là gì?**
+
+- **Số trong vòng tròn đỏ** = việc bạn cần làm. Làm xong thì số giảm.
+  - **Hôm nay** = đơn mới chờ xác nhận + khách đến lịch chăm sóc hôm nay + khách vừa hỏi trong 24 giờ chưa ai gọi.
+  - **Khách hỏi** = khách hỏi cần liên hệ: chưa gọi lần nào, đến hẹn gọi lại, hoặc quá 3 ngày chưa liên hệ lại.
+  - **Đơn hàng** = đơn mới chờ xác nhận.
+  - Khách vừa hỏi được đếm ở **cả Hôm nay và Khách hỏi**, nên cộng 2 số lại sẽ bị trùng.
+- **Nhãn % ở Hiệu quả** = doanh số tháng này đã đạt bao nhiêu % mục tiêu tháng của bạn. Đây **không phải** điểm làm việc. Màu so với số ngày đã qua trong tháng: xanh = đúng tiến độ, cam = hơi chậm, đỏ = đang chậm.
+- Muốn xem số chia ra từng loại: trên máy tính **đưa chuột vào tab**; trên điện thoại mở **••• Thêm** (mỗi dòng có ghi chú dưới tên).
+
 **Các nút trên cùng** (trên điện thoại chỉ còn 🔍 và ⟳; Góp ý, Cài đặt nằm trong **••• Thêm**):
 
 - **🔍** Tìm ở mọi tab: gõ tên, số điện thoại (từ 3 số) hoặc mã đơn. Máy tìm cùng lúc trong khách đã mua, đơn hàng và khách hỏi. Mỗi người chỉ hiện **1 dòng** (gom theo số điện thoại): đã mua thì bấm vào mở hồ sơ khách, trong đó có cả lần hỏi và các đơn; chưa mua thì mở lượt hỏi. Gõ mã đơn thì hiện thêm mục **📦 Đơn khớp mã**.

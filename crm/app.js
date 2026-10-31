@@ -704,11 +704,11 @@
   };
   var VIEW_TINT = { 'tong-quan': '#1f5f3a', 'hom-nay': '#34a853', 'tiem-nang': '#ff9500', 'khach-hang': '#007aff', 'don-hang': '#a2845e', 'bao-cao': '#5856d6', marketing: '#ff2d55', 'link-qr': '#636366', 'tro-ly-zalo': '#0068ff', fanpage: '#1877f2', san: '#ee4d2d', 'cai-dat': '#8e8e93' };
   function viewMore() {
-    var main = navMain(), n = navCounts();
+    var main = navMain(), n = navCounts(), info = navInfo();
     var rest = myViews().filter(function (v) { return main.indexOf(v.id) < 0 && v.id !== 'cai-dat'; });
     var badge = function (k) { return k ? '<em class="mr-n">' + (k > 99 ? '99+' : k) + '</em>' : ''; };
-    var row = function (open, icon, tint, label, desc, k) { return open + '<i class="mr-ic" style="background:' + tint + '">' + icon + '</i><span class="mr-t"><b>' + label + '</b>' + (desc ? '<small>' + desc + '</small>' : '') + '</span>' + badge(k) + '<span class="mr-chev" aria-hidden="true">›</span>'; };
-    var vrow = function (v) { return row('<a class="mr-row" href="#' + v.id + '">', I[v.icon], VIEW_TINT[v.id] || '#8e8e93', v.label, VIEW_DESC[v.id], n[v.id]) + '</a>'; };
+    var row = function (open, icon, tint, label, desc, k, x) { return open + '<i class="mr-ic" style="background:' + tint + '">' + icon + '</i><span class="mr-t"><b>' + label + '</b>' + (desc ? '<small>' + desc + '</small>' : '') + (x ? '<small class="mr-kpi-t">' + esc(x.tip) + '</small>' : '') + '</span>' + (x ? navKpi(x) : '') + badge(k) + '<span class="mr-chev" aria-hidden="true">›</span>'; };
+    var vrow = function (v) { return row('<a class="mr-row" href="#' + v.id + '">', I[v.icon], VIEW_TINT[v.id] || '#8e8e93', v.label, VIEW_DESC[v.id], n[v.id], info[v.id]) + '</a>'; };
     var group = function (t, rows) { return rows ? '<section class="mr-g">' + (t ? '<h2>' + t + '</h2>' : '') + '<div class="mr-list">' + rows + '</div></section>' : ''; };
     var isCh = function (v) { return v.mkt || v.lq || v.san; };
     var h = '<div class="mr"><div class="page-head"><h1>Thêm</h1></div>' +
@@ -739,7 +739,7 @@
     if (tc && window.matchMedia) tc.content = matchMedia('(max-width: 859px)').matches ? '#f7f7f4' : '#1f5f3a'; // điện thoại: thanh trên sáng màu
     $('#app').innerHTML = '<header class="top"><div class="top-in">' +
       '<a class="brand" href="#' + homeView() + '"><img src="/icon-180.png" alt="">CRM</a>' +
-      '<nav class="nav" data-sig="' + navSig() + '">' + navViews().map(function (v) { return '<a href="#' + v.id + '" data-v="' + v.id + '"' + (v.id === 'cai-dat' ? ' class="nav-set"' : main.indexOf(v.id) < 0 ? ' class="nav-x"' : '') + '>' + I[v.icon] + '<span' + (v.short ? ' data-short="' + v.short + '"' : '') + '>' + v.label + '</span></a>'; }).join('') +
+      '<nav class="nav' + (navViews().length > 6 ? ' nav-many' : '') + '" data-sig="' + navSig() + '">' + navViews().map(function (v) { return '<a href="#' + v.id + '" data-v="' + v.id + '"' + (v.id === 'cai-dat' ? ' class="nav-set"' : main.indexOf(v.id) < 0 ? ' class="nav-x"' : '') + '>' + I[v.icon] + '<span' + (v.short ? ' data-short="' + v.short + '"' : '') + '>' + v.label + '</span></a>'; }).join('') +
       '<a href="#them" data-v="them" class="nav-more">' + I.more + '<span>Thêm</span></a></nav>' +
       '<div class="grow"></div><div class="me">' + meHTML() + '</div>' +
       (isMkt() ? '' : '<button class="icon-btn" id="gsBtn" title="Tìm ở mọi tab: khách đã mua, đơn hàng, khách hỏi" aria-label="Tìm ở mọi tab">' + I.search + '</button>') +
@@ -820,26 +820,68 @@
     }, function (er) { b.disabled = false; b.textContent = txt; toast(er.message, true); });
   }, true);
   function setWho(v) { S.who = v || ''; store('crm_who', S.who); ['c', 'o', 't'].forEach(function (k) { if (S.f[k]) S.f[k].n = 60; }); navBadges(); render(); }
+  /** Số trên tab (31/10/2026, anh Sơn: nhìn tab là biết sơ bộ). Số đỏ = việc cần làm (đưa chuột vào tab thấy tách từng loại); nhãn màu = con số tham khảo theo quyền (navInfo). */
   function navBadges() {
     var fb = $('#fbBtn'); if (fb) { var fd = $('.dot', fb); if (fd) fd.remove(); if (lvl() >= 2 && S.d.fbNew) fb.insertAdjacentHTML('beforeend', '<span class="dot">' + S.d.fbNew + '</span>'); }
-    var n = navCounts(), main = navMain(), more = lvl() >= 2 ? S.d.fbNew || 0 : 0;
+    var nd = navData(), n = nd.n, main = navMain(), more = lvl() >= 2 ? S.d.fbNew || 0 : 0, info = navInfo();
     Object.keys(n).forEach(function (v) { if (main.indexOf(v) < 0 && !(lvl() >= 3 && (v === 'hom-nay' || v === 'tiem-nang'))) more += n[v]; });
     n.them = more; // số trên nút Thêm = số của các mục đang nằm trong Thêm (đơn mới, góp ý mới…)
-    var pc = myPace();
+    if (more) nd.tip.them = 'Số việc trong các mục ở màn Thêm (đơn mới, khách hỏi, góp ý mới…)';
     $$('.nav a').forEach(function (a) {
-      var v = a.getAttribute('data-v'), d = $('.dot', a), k = $('.nav-kpi', a); if (d) d.remove(); if (k) k.remove();
+      var v = a.getAttribute('data-v'), d = $('.dot', a), k = $('.nav-kpi', a), x = info[v], lb = $('span', a); if (d) d.remove(); if (k) k.remove();
       if (n[v]) a.insertAdjacentHTML('beforeend', '<span class="dot">' + (n[v] > 99 ? '99+' : n[v]) + '</span>');
-      if (v === 'bao-cao' && pc) a.insertAdjacentHTML('beforeend', '<span class="nav-kpi ' + pc.lv + '" title="Doanh số tháng đạt ' + pc.pct + '% mục tiêu">' + pc.pct + '%</span>'); // sale: % mục tiêu tháng luôn hiện trên nút Hiệu quả
+      if (x) a.insertAdjacentHTML('beforeend', navKpi(x));
+      var tip = [n[v] ? nd.tip[v] : '', x ? x.tip : ''].filter(Boolean).join('\n');
+      if (tip) a.title = tip; else a.removeAttribute('title');
+      a.setAttribute('aria-label', (lb ? lb.textContent : '') + (tip ? '. ' + tip : ''));
     });
+  }
+  function navKpi(x) { return '<span class="nav-kpi ' + x.lv + '"><b>' + x.t + '</b>' + (x.s ? '<small> ' + x.s + '</small>' : '') + '</span>'; }
+  var PACE_TXT = { done: '🎉 đã đạt mục tiêu', ok: '🟢 đúng tiến độ', mid: '🟠 hơi chậm so với số ngày đã qua trong tháng', bad: '🔴 đang chậm so với số ngày đã qua trong tháng' };
+  /** Nhãn con số trên tab theo quyền: Sale → % mục tiêu của mình (Hiệu quả); Quản lý, Quản trị → % mục tiêu cả nhóm sale (Hiệu quả); Quản trị → % mục tiêu cả công ty (Tổng quan); ai xem Marketing → số điện thoại để lại hôm nay. */
+  function navInfo() {
+    var o = {}; if (!S.d) return o;
+    var mk = monthOf(Date.now()), ml = monthLabel(mk), goal = function (cur, tgt, who, s) {
+      if (!tgt) return { t: moneyShort(cur), s: 'tháng này', lv: 'info', tip: 'Doanh số ' + ml + ' ' + who + ': ' + money(cur) + ' (chưa đặt mục tiêu)' };
+      var g = goalCalc(cur, tgt, mk), p = pct(cur, tgt);
+      return { t: p + '%', s: s, lv: g.lv, tip: 'Doanh số ' + ml + ' ' + who + ' đạt ' + p + '% mục tiêu (' + moneyShort(cur) + ' / ' + moneyShort(tgt) + ') · ' + PACE_TXT[g.lv] };
+    };
+    var pc = myPace(); if (pc) o['bao-cao'] = goal(pc.v, pc.t, 'của bạn', 'mục tiêu');
+    if (lvl() >= 2 && !isMkt()) o['bao-cao'] = goal(perf(null, monthRange(mk)).sales, teamTarget(mk), 'cả nhóm sale', 'mục tiêu nhóm');
+    if (lvl() >= 3) { // Tổng quan: chỉ hiện khi đã có số sàn (tải cùng màn Tổng quan), để % khớp với ô mục tiêu trong trang
+      var sk = Object.keys(SN.cache).filter(function (k) { return k.slice(-mk.length - 1) === '_' + mk; })[0];
+      if (sk) { var gl = dashGoal(mk, SN.cache[sk]); o['tong-quan'] = goal(gl.cur, gl.tt, 'cả công ty (văn phòng + sàn, đã trừ hoàn / huỷ)', 'mục tiêu'); }
+    }
+    if (myViews().some(function (v) { return v.id === 'marketing'; })) {
+      var t0 = today(), cnt = function (a, b) { var seen = {}; (S.d.leads || []).forEach(function (l) { if (l.time >= a && l.time < b && !/^file cũ/i.test(l.channel || '')) seen[normPhone(l.phone) || l.id] = 1; }); return Object.keys(seen).length; };
+      var td = cnt(t0, t0 + DAY), yd = cnt(t0 - DAY, t0);
+      if (td || yd) o.marketing = { t: String(td), s: 'số hôm nay', lv: 'info', tip: 'Hôm nay có ' + td + ' khách để lại số điện thoại (' + (isMkt() ? 'từ website' : 'mọi kênh') + ', mỗi số tính 1 lần) · hôm qua ' + yd + ' số' };
+    }
+    return o;
   }
   /** Sale: % mục tiêu tháng của chính mình + mức tiến độ (cùng cách tính với khối Mục tiêu ở Hiệu quả). null = không phải sale / chưa đặt mục tiêu. */
   function myPace() {
     if (lvl() >= 2 || isMkt() || !S.d) return null;
-    var me = S.user.name, mk = monthOf(Date.now()), R = monthRange(mk), t = targetOf(me, mk); if (!t || !t.amount) return null;
-    var sales = perf(me, R).sales, days = Math.round((R[1] - R[0]) / DAY), tp = Math.min(days, Math.floor((today() - R[0]) / DAY) + 1) / days, p = sales / t.amount;
-    return { pct: pct(sales, t.amount), lv: p >= 1 ? 'done' : p >= tp ? 'ok' : p >= tp * 0.8 ? 'mid' : 'bad' };
+    var me = S.user.name, mk = monthOf(Date.now()), t = targetOf(me, mk); if (!t || !t.amount) return null;
+    var sales = perf(me, monthRange(mk)).sales;
+    return { pct: pct(sales, t.amount), lv: goalCalc(sales, t.amount, mk).lv, v: sales, t: t.amount };
   }
-  function navCounts() { return { 'hom-nay': newOrders().length + dayQueue().list.length + hotLeads().length, 'don-hang': newOrders().length, 'tiem-nang': leadsDue().length }; }
+  /** Số đỏ (việc cần làm) + chú thích tách từng loại. Marketing chỉ xem khách hỏi, không gọi → không có số đỏ ở Khách hỏi. */
+  function navData() {
+    var no = newOrders().length, q = dayQueue().list.length, hot = hotLeads().length, ld = isMkt() ? [] : leadsDue(), k = { new: 0, callback: 0, stale: 0 };
+    ld.forEach(function (l) { k[leadDue(l)]++; });
+    var team = lvl() >= 2 ? (S.who ? ' của ' + (S.who === '-' ? 'khách chưa giao' : S.who) : ' (cả nhóm)') : '';
+    var part = function (a) { return a.filter(function (x) { return x[0]; }).map(function (x) { return x[0] + ' ' + x[1]; }).join(' · '); };
+    return {
+      n: { 'hom-nay': no + q + hot, 'don-hang': no, 'tiem-nang': ld.length },
+      tip: {
+        'hom-nay': 'Việc cần làm hôm nay' + team + ': ' + part([[no, 'đơn mới chờ xác nhận'], [q, 'khách đến lịch chăm sóc'], [hot, 'khách vừa hỏi chưa ai gọi (cũng nằm ở Khách hỏi)']]),
+        'tiem-nang': 'Khách hỏi cần liên hệ' + team + ': ' + part([[k.new, 'chưa gọi lần nào'], [k.callback, 'đến hẹn gọi lại'], [k.stale, 'quá 3 ngày chưa liên hệ lại']]),
+        'don-hang': no + ' đơn mới chờ xác nhận' + team
+      }
+    };
+  }
+  function navCounts() { return navData().n; }
   /** Tab mở mặc định theo quyền: Quản trị → Tổng quan, Quản lý → Hiệu quả, nhân viên → Hôm nay. */
   function homeView() { return isMkt() || (MKT_HOST && myViews().some(function (x) { return x.id === 'marketing'; })) ? 'marketing' : lvl() >= 3 ? 'tong-quan' : lvl() >= 2 ? 'bao-cao' : 'hom-nay'; }
   function route() { var h = (location.hash || '').slice(1).split('/'); return { view: h[0] === 'lien-he' ? 'tiem-nang' : h[0] || homeView(), id: decodeURIComponent(h[1] || '') }; }
@@ -5510,7 +5552,7 @@
     if (SN.busy === key) return; SN.busy = key; SN.err = '';
     var k = key.split('_');
     api('san', { from: k[0], to: k[1], pf: k[2], pt: k[3], month: k[4] }).then(function (j) { SN.cache[key] = j; }, function (e) { SN.err = /Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message; })
-      .then(function () { SN.busy = ''; var v = route().view; if (v === 'tong-quan' || v === 'san') softRender(true); });
+      .then(function () { SN.busy = ''; var v = route().view; if (v === 'tong-quan' || v === 'san') softRender(true); navBadges(); }); // navBadges: % mục tiêu công ty trên tab Tổng quan
   }
   /** Số liệu sàn của kỳ đang xem (tự tải nếu chưa có). */
   function snGet(R, P, month) { var key = snKey(R, P, month), sj = SN.cache[key]; if (!sj && !SN.err) setTimeout(function () { snFetch(key); }, 0); return sj; }

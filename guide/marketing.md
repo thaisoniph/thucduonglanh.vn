@@ -25,6 +25,8 @@ Bạn không thấy khách đã mua, đơn hàng hay doanh số toàn công ty. 
 
 ## Màn hình Marketing có gì?
 
+Con số cạnh chữ **Marketing** trên thanh tab = số khách để lại số điện thoại trên web **hôm nay** (mỗi số tính 1 lần). Đưa chuột vào để so với hôm qua.
+
 Màn hình đầu chỉ có **số quan trọng nhất**. Phần chi tiết thu gọn, bấm vào tiêu đề mới mở.
 
 **6 ô số, chia 2 hàng, đọc từ trái sang phải:**

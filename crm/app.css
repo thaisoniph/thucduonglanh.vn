@@ -1305,11 +1305,19 @@ div.f > span { display: block; font-size: 13px; font-weight: 600; color: var(--i
 .mr-chev { color: #c4c4c7; font-size: 24px; line-height: 1; flex: none; }
 
 /* Sale: nhãn % mục tiêu tháng trên nút Hiệu quả (29/10/2026). Xanh = đúng tiến độ, cam = hơi chậm, đỏ = đang chậm */
-.nav-kpi { min-width: 30px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--primary); color: #fff; font-size: 11px; font-weight: 800; line-height: 18px; text-align: center; font-variant-numeric: tabular-nums; }
+.nav-kpi { min-width: 30px; height: 18px; padding: 0 6px; border-radius: 9px; background: var(--primary); color: #fff; font-size: 11px; font-weight: 800; line-height: 18px; text-align: center; font-variant-numeric: tabular-nums; white-space: nowrap; flex: none; }
+.nav-kpi b { font-weight: 800; }
+.nav-kpi small { font-size: 10.5px; font-weight: 600; }
+.nav-kpi.info { background: #e8efe9; color: var(--primary); }
 .nav-kpi.mid { background: var(--mid); color: #3a2400; }
 .nav-kpi.bad { background: var(--red); }
-@media (max-width: 859px) { .nav .nav-kpi { position: absolute; top: -3px; left: 50%; margin-left: 4px; box-shadow: 0 0 0 2px #fafaf8; } }
-@media (min-width: 860px) { .nav-kpi.ok, .nav-kpi.done { background: #fff; color: var(--primary); } }
+@media (max-width: 859px) { .nav .nav-kpi { position: absolute; top: -3px; left: 50%; margin-left: 4px; box-shadow: 0 0 0 2px #fafaf8; } .nav .nav-kpi small { display: none; } .nav .dot + .nav-kpi { top: 15px; } }
+@media (min-width: 860px) { .nav-kpi.ok, .nav-kpi.done { background: #fff; color: var(--primary); } .nav-kpi.info { background: rgba(255, 255, 255, .2); color: #fff; } }
+@media (min-width: 860px) and (max-width: 1279px) { .nav .nav-kpi small { display: none; } } /* màn hẹp: chỉ số, chữ giải thích vẫn có khi đưa chuột vào tab */
+@media (min-width: 860px) and (max-width: 1799px) { .nav-many .nav-kpi small { display: none; } } /* Quản lý / Quản trị nhiều tab: chỉ hiện chữ khi màn rất rộng */
+.mr-row .nav-kpi { height: 22px; line-height: 22px; font-size: 12px; padding: 0 8px; border-radius: 11px; margin-left: 6px; }
+.mr-row .nav-kpi.ok, .mr-row .nav-kpi.done { background: var(--primary); color: #fff; }
+.mr-t small.mr-kpi-t { color: var(--primary); }
 /* Báo cáo ngày dạng bảng (29/10/2026) */
 table.dy-tbl { font-size: 13px; }
 table.dy-tbl th { text-align: center; }
