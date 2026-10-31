@@ -4547,6 +4547,7 @@
    * Tài khoản Zalo "Trợ lý An Lành" làm phó nhóm: chào người mới, trả lời câu hỏi, chúc mừng khách nhận quà trên web, tự duyệt người đã để số, đăng bài sáng / tối.
    * Tab này: xem trợ lý có đang chạy không, sửa / duyệt / bỏ bài AI soạn trước, gửi tin vào nhóm, cài đặt, xem trợ lý vừa làm gì. Quản lý, Quản trị, Marketing. */
   var ZB = { d: null, busy: 0, err: '' };
+  var ZB_FUN = { TOFU: '🔵 Nhận biết · tương tác', MOFU: '⚪ Cân nhắc · tạo niềm tin', BOFU: '🟠 Chuyển đổi · bán hàng' }; // nhãn phễu nội dung (zbot.js THEME)
   var ZB_KIND = { welcome: ['👋', 'Chào người mới'], answer: ['💬', 'Trả lời trong nhóm'], handoff: ['🙋', 'Cần người thật (nhóm)'], react: ['❤️', 'Thả tim'], dm: ['📩', 'Trả lời tin riêng'], dm_handoff: ['🙋', 'Cần người thật (tin riêng)'],
     post: ['📝', 'Đăng bài'], send: ['📣', 'Đăng tin nhân sự gửi'], announce: ['🎉', 'Soạn tin chúc mừng nhận quà (chờ đăng)'], announced: ['✅', 'Đã đăng tin chúc mừng vào nhóm'], friend: ['🤝', 'Kết bạn'], human: ['🧑', 'Nhân sự nhắn tay, trợ lý nhường 2 tiếng'], error: ['⚠️', 'Lỗi'], skip: ['🤐', 'Không trả lời'] };
   function zbFetch() {
@@ -4582,6 +4583,9 @@
     (j.posts || []).forEach(function (p) { P[p.id] = p; if (days.indexOf(p.day) < 0) days.push(p.day); });
     var key = function (t) { var x = new Date(t + 7 * 3600e3); return x.getUTCFullYear() + pad(x.getUTCMonth() + 1) + pad(x.getUTCDate()); };
     [key(j.now), key(j.now + DAY)].forEach(function (d) { if (days.indexOf(d) < 0) days.push(d); }); days.sort();
+    var fu = j.funnel || {}, fk = ['TOFU', 'MOFU', 'BOFU'].filter(function (k) { return fu[k]; });
+    if (fk.length) h += '<h2 class="zb-h">📊 Hiệu quả bài đăng theo phễu (30 ngày)</h2><p class="muted small">Đếm trong 2 tiếng sau mỗi bài: số người nhắn / gửi ảnh / thả cảm xúc (không tính đội ngũ). Đơn: khách bấm link trong bài rồi đặt trên web.</p><div class="zb-funs">' +
+      fk.map(function (k) { var f = fu[k]; return '<div class="box zb-funbox"><span class="zb-fun zb-fun-' + k.toLowerCase() + '">' + ZB_FUN[k] + '</span><p><b>' + f.posts + '</b> bài · trung bình <b>' + (Math.round(f.people / f.posts * 10) / 10) + '</b> người tương tác / bài</p><p class="small muted">💬 ' + f.msgs + ' tin · ❤️ ' + f.reacts + ' cảm xúc' + (f.orders ? ' · 🛒 ' + f.orders + ' đơn, ' + moneyShort(f.rev) : '') + '</p></div>'; }).join('') + '</div>';
     h += '<h2 class="zb-h">📝 Bài đăng nhóm</h2><p class="muted small">AI soạn trước theo lịch chủ đề trong tuần, dùng đúng thông tin sản phẩm trên web. ' + (c.slots || []).filter(function (q) { return q.on; }).map(function (q) { return (q.id === 'toi' ? '🌙 Bài tối ' : '☀️ Bài sáng ') + q.at + ': <b>' + (slA(q.id) ? '🤖 tự đăng' : '⏳ chờ duyệt') + '</b>'; }).join(' · ') + '. Tự đăng: tới giờ trợ lý đăng bài AI soạn, thấy chưa ổn thì sửa ngay trong ô hoặc bấm <b>⏸ Bỏ bài này</b>. Chờ duyệt: chỉ bài đã bấm <b>✅ Duyệt</b> mới được đăng. Đổi ở <b>⚙️ Cài đặt trợ lý</b>.</p>';
     days.forEach(function (d) {
       (c.slots || []).forEach(function (sl) {
@@ -4592,6 +4596,8 @@
         var badge = p.status === 'sent' ? '📤 Đã đăng ' + fDateTime(p.sent_at) : p.status === 'skip' ? '⏸ Đã bỏ, không đăng' : p.status === 'ok' ? '✅ Đã duyệt, sẽ đăng lúc ' + sl.at : auto ? '✍️ Nháp, sẽ tự đăng lúc ' + sl.at : '⏳ Chờ duyệt';
         var done = p.status === 'sent';
         h += '<div class="box zb-post zb-' + p.status + '"><div class="zb-ph"><b>' + lbl + '</b><span class="zb-badge">' + badge + '</span></div>' +
+          (p.funnel ? '<span class="zb-fun zb-fun-' + p.funnel.toLowerCase() + '">' + ZB_FUN[p.funnel] + '</span>' : '') +
+          (done ? '<p class="small zb-eng">📊 2 tiếng sau khi đăng: <b>' + (p.eng_people || 0) + '</b> người tương tác · 💬 ' + (p.eng_msgs || 0) + ' tin · ❤️ ' + (p.eng_reacts || 0) + ' cảm xúc' + (p.orders ? ' · 🛒 <b>' + p.orders + ' đơn</b> (' + moneyShort(p.rev) + ') từ link trong bài' : '') + '</p>' : '') +
           '<p class="small"><b>Chủ đề:</b> ' + esc(p.topic) + (p.img ? ' · 🖼 kèm ảnh' : ' · <span class="muted">không kèm ảnh</span>') + ' <span class="muted">· ' + (p.by_name && p.by_name !== 'AI' ? 'sửa bởi ' + esc(p.by_name) : 'AI soạn') + ' ' + fDateTime(p.at) + '</span></p>' +
           '<div class="zb-imgbar">' + (p.img ? '<img class="zb-img" src="' + esc(p.img) + '" alt="Ảnh kèm bài" loading="lazy">' : '') + (done ? '' : '<button class="btn sm" data-zb="img|' + p.id + '">🖼 ' + (p.img ? 'Đổi ảnh' : 'Thêm ảnh') + '</button>') + '</div>' +
           '<textarea class="zb-text" id="zbT_' + p.id + '" rows="' + Math.min(16, Math.max(4, String(p.text).split('\n').length + 1)) + '"' + (done ? ' readonly' : '') + '>' + esc(p.text) + '</textarea>' +

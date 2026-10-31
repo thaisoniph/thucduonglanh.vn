@@ -59,6 +59,18 @@ Khi Telegram báo **"📝 Bài Zalo chờ duyệt"**, bạn vào tab và tìm b�
 
 **Khung giờ đang để Chờ duyệt: bài chưa bấm Duyệt thì trợ lý không đăng.** Khung giờ để Tự đăng thì không cần bấm Duyệt (xem phần *Chọn giờ nào tự đăng* bên dưới).
 
+## Bài đăng theo phễu nội dung
+
+Mỗi bài có một nhãn màu cho biết bài đó để làm gì:
+
+- **🔵 Nhận biết · tương tác** (8 bài/tuần): câu hỏi dễ trả lời, đố vui, mẹo, món ăn. Giúp nhóm vui, mọi người quen nói chuyện.
+- **⚪ Cân nhắc · tạo niềm tin** (4 bài/tuần): kiến thức dinh dưỡng, hỏi đáp sản phẩm, cảm nhận khách hàng thật.
+- **🟠 Chuyển đổi · bán hàng** (2 bài/tuần, sáng Thứ 7 và tối Thứ 6): giới thiệu sản phẩm, ưu đãi đang chạy, cách đặt hàng.
+
+Tối Thứ 4 có **đố vui**, sáng Thứ 5 trợ lý **công bố đáp án**. Tối Thứ 5 là bài **cảm nhận khách hàng** (dùng ảnh feedback thật).
+
+Bài đã đăng có dòng **📊** cho biết trong 2 tiếng sau khi đăng có bao nhiêu người nhắn, gửi ảnh, thả cảm xúc. Nếu khách bấm link trong bài rồi đặt hàng trên web, dòng này hiện thêm **🛒 số đơn**. Đầu tab có bảng **Hiệu quả bài đăng theo phễu (30 ngày)** để so loại bài nào làm nhóm sôi nổi, loại nào ra đơn.
+
 ## Đổi ảnh kèm bài
 
 AI tự chọn ảnh. Bài nói về sản phẩm thì kèm ảnh sản phẩm. Bài khác thì AI chọn một ảnh trên web hợp với chủ đề. Không có ảnh hợp thì bài chỉ có chữ.

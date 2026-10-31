@@ -15,10 +15,11 @@
  * Chi phí AI: trả lời, chào dùng claude-haiku-5-5 (vài chục đồng/lần); bài đăng dùng claude-opus-5-5 (~2.500đ/bài, 2 bài/ngày ≈ 150k/tháng). */
 import Anthropic from '@anthropic-ai/sdk';
 import { aiFetch } from './airelay.js';
-import { esc, run, all, first, kvGet, kvSet, kvJson, normPhone, fmtDate, CRM_URL, TZ_MS, DAY } from './lib.js';
+import { esc, run, all, first, kvGet, kvSet, kvJson, normPhone, fmtDate, isVoid, CRM_URL, TZ_MS, DAY } from './lib.js';
 import { telegram } from './google.js';
 import { addLead } from './crm.js';
 import { kb, safe, workNow, TRUTH_RULES, PHONE_RE } from './chat.js';
+import { offersLive } from './salemkt.js';
 
 const BOT = 'An Lành';
 const FAST = 'claude-haiku-5-5', WRITER = 'claude-opus-5-5';
@@ -32,22 +33,27 @@ const CFG0 = {
 };
 const SLOT_NAME = { sang: 'Bài sáng', toi: 'Bài tối' };
 // Lịch chủ đề trong tuần (0 = Chủ nhật). Sửa ở đây là bài soạn sau sẽ theo.
+/** Lịch chủ đề theo phễu nội dung (31/10/2026, anh Sơn duyệt): người trong nhóm đã để số nhận quà → nhóm chủ yếu giữ chân + tạo niềm tin, bán vừa phải.
+ * TOFU 🔵 tương tác, giá trị (8 bài/tuần) · MOFU ⚪ tạo niềm tin (4 bài) · BOFU 🟠 chuyển đổi (2 bài). Chỉ số = thứ trong tuần (0 = Chủ nhật). */
 const THEME = {
-  sang: ['Tâm an cuối tuần: lời chúc nhẹ nhàng + 1 câu chuyện / suy ngẫm ngắn về sống chậm, biết ơn, gia đình (không bịa chuyện khách hàng)',
-    'Kiến thức dinh dưỡng nền tảng: 1 điều dễ hiểu, áp dụng được ngay trong bữa ăn gia đình',
-    'Ly sáng có gì: giới thiệu 1–3 nguyên liệu có trong 1 sản phẩm (đúng thành phần trong tài liệu), vị, cách người Việt quen dùng',
-    'Bếp lành: 1 món ăn / thức uống lành, dễ làm, nguyên liệu dễ mua (có thể là món chay)',
-    'Hỏi đáp: chọn 1 câu khách hay hỏi trong phần hỏi đáp của 1 sản phẩm và trả lời rõ ràng, gần gũi',
-    'Thói quen sống lành: ngủ, vận động nhẹ, uống nước, thở, ăn chậm… 1 việc nhỏ làm được hôm nay',
-    'Góc sản phẩm: giới thiệu nhẹ nhàng 1 sản phẩm (ai hợp, cách dùng, quy cách, giá đúng tài liệu), nhắc đặt trên web được kiểm hàng trước khi nhận, freeship đơn từ 300k'],
-  toi: ['Chúc cả nhà tuần mới bình an + 1 câu hỏi nhỏ để mọi người chia sẻ',
-    'Câu hỏi tương tác: hỏi thói quen ăn uống / sinh hoạt của mọi người, dễ trả lời 1 dòng',
-    'Mẹo nhỏ buổi tối: 1 mẹo để ngủ ngon / thư giãn / chuẩn bị bữa sáng mai',
-    'Mini đố vui về dinh dưỡng (1 câu, 2–3 lựa chọn), hẹn sáng mai trợ lý trả lời',
-    'Lời nhắn tử tế cuối ngày + nhắc uống đủ nước, nghỉ ngơi',
-    'Câu hỏi tương tác: mời mọi người khoe bữa ăn lành / ly sáng của mình',
-    'Nhắc nhẹ cuối tuần: dành thời gian cho gia đình, cùng nấu 1 món lành']
+  sang: [
+    { f: 'TOFU', t: 'Tâm an cuối tuần: lời chúc nhẹ nhàng + 1 suy ngẫm ngắn về sống chậm, biết ơn, gia đình (không bịa chuyện khách hàng)' },
+    { f: 'MOFU', t: 'Kiến thức dinh dưỡng nền tảng: 1 điều dễ hiểu, áp dụng được ngay trong bữa ăn gia đình' },
+    { f: 'MOFU', t: 'Ly sáng có gì: giới thiệu 1–3 nguyên liệu có trong 1 sản phẩm (đúng thành phần trong tài liệu), vị, cách người Việt quen dùng' },
+    { f: 'TOFU', t: 'Bếp lành: 1 món ăn / thức uống lành, dễ làm, nguyên liệu dễ mua (có thể là món chay)' },
+    { f: 'MOFU', t: 'Mở đầu bằng ĐÁP ÁN câu đố tối qua (giải thích ngắn, cảm ơn mọi người đã trả lời), rồi hỏi đáp: chọn 1 câu khách hay hỏi trong phần hỏi đáp của 1 sản phẩm và trả lời rõ ràng, gần gũi', quiz: 1 },
+    { f: 'TOFU', t: 'Thói quen sống lành: ngủ, vận động nhẹ, uống nước, thở, ăn chậm… 1 việc nhỏ làm được hôm nay' },
+    { f: 'BOFU', t: 'Góc sản phẩm cuối tuần: giới thiệu nhẹ nhàng 1 sản phẩm (ai hợp, cách dùng, quy cách, giá đúng tài liệu) + ưu đãi đang chạy nếu có; nhắc đặt trên web được kiểm hàng trước khi nhận, freeship đơn từ 300k; để 1 link sản phẩm', link: 1 }],
+  toi: [
+    { f: 'TOFU', t: 'Chúc cả nhà tuần mới bình an + 1 câu hỏi nhỏ để mọi người chia sẻ' },
+    { f: 'TOFU', t: 'Câu hỏi tương tác: hỏi thói quen ăn uống / sinh hoạt của mọi người, dễ trả lời 1 dòng' },
+    { f: 'TOFU', t: 'Mẹo nhỏ buổi tối: 1 mẹo để ngủ ngon / thư giãn / chuẩn bị bữa sáng mai' },
+    { f: 'TOFU', t: 'Mini đố vui về dinh dưỡng (1 câu, 3 lựa chọn A/B/C, đáp án là kiến thức phổ thông chắc chắn đúng), mời mọi người trả lời bằng 1 chữ cái, hẹn sáng mai công bố đáp án' },
+    { f: 'MOFU', t: 'Câu chuyện khách hàng thật: dựa ĐÚNG vào CẢM NHẬN KHÁCH HÀNG được cung cấp bên dưới (không thêm thắt, không nói về bệnh / công dụng chữa trị), kể ngắn gọn ấm áp, cảm ơn khách đã chia sẻ, mời mọi người kể trải nghiệm của mình', fb: 1 },
+    { f: 'BOFU', t: 'Nhắc nhẹ cuối tuần: ưu đãi đang chạy (nếu có) hoặc hướng dẫn đặt hàng trên web 3 bước (được kiểm hàng trước khi nhận, freeship từ 300k), không thúc ép; để 1 link sản phẩm hợp nhất', link: 1 },
+    { f: 'TOFU', t: 'Cuối tuần: mời mọi người khoe mâm cơm / bữa ăn lành của nhà mình, hoặc rủ cả nhà cùng nấu 1 món lành' }]
 };
+const FUNNEL = { TOFU: '🔵 Nhận biết – tương tác', MOFU: '⚪ Cân nhắc – tạo niềm tin', BOFU: '🟠 Chuyển đổi – bán hàng' };
 
 let client = null;
 function ai(env) { if (!client) client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 2, timeout: 60e3, fetch: aiFetch(env) }); return client; } // qua trạm Bắc Mỹ (airelay.js)
@@ -64,6 +70,7 @@ export async function zbotSchema(db) {
   await run(db, `CREATE TABLE IF NOT EXISTS zb_posts (id TEXT PRIMARY KEY, day TEXT, slot TEXT, topic TEXT DEFAULT '', text TEXT DEFAULT '', img TEXT DEFAULT '', prod TEXT DEFAULT '',
     status TEXT DEFAULT 'draft', by_name TEXT DEFAULT '', at INTEGER, sent_at INTEGER)`); // bài đăng hằng ngày (id = yyyyMMdd_slot)
   await run(db, 'CREATE INDEX IF NOT EXISTS zb_posts_day ON zb_posts(day)');
+  for (const c of ["funnel TEXT DEFAULT ''", 'eng_msgs INTEGER DEFAULT 0', 'eng_people INTEGER DEFAULT 0', 'eng_reacts INTEGER DEFAULT 0']) { try { await run(db, 'ALTER TABLE zb_posts ADD COLUMN ' + c); } catch (e) { } } // 31/10/2026: nhãn phễu + tương tác 2 tiếng sau khi đăng
   await run(db, `CREATE TABLE IF NOT EXISTS zb_log (rid INTEGER PRIMARY KEY AUTOINCREMENT, at INTEGER, kind TEXT, gid TEXT DEFAULT '', uid TEXT DEFAULT '', name TEXT DEFAULT '',
     text TEXT DEFAULT '', reply TEXT DEFAULT '')`); // nhật ký trợ lý (CRM xem)
   await run(db, 'CREATE INDEX IF NOT EXISTS zb_log_at ON zb_log(at)');
@@ -107,6 +114,8 @@ async function zPoll(x, d) {
   const st = { at: now, me: d.me || null, groups: (d.groups || []).slice(0, 50), ver: String(d.ver || '') };
   if (!old || now - old.at > 4 * 60e3 || JSON.stringify(old.groups) !== JSON.stringify(st.groups) || (old.down && !st.down)) await kvSet(x.db, 'zb_status', JSON.stringify(st)); // ghi 4 phút / lần cho đỡ tốn
   if (old && old.down) x.later(telegram(x.env, '✅ <b>Trợ lý Zalo An Lành đã chạy lại</b>'));
+  for (const t of (Array.isArray(d.stats) ? d.stats : []).slice(0, 5)) // tương tác 2 tiếng sau khi đăng bài (chương trình Zalo đếm)
+    await run(x.db, 'UPDATE zb_posts SET eng_msgs = ?, eng_people = ?, eng_reacts = ? WHERE id = ?', Number(t.msgs) || 0, Number(t.people) || 0, Number(t.reacts) || 0, String(t.id || ''));
   if (!cfg.groups.length && !(await kvGet(x.db, 'zb_cfg'))) { // lần đầu: tự chọn nhóm của Thực Dưỡng Lành
     const g = st.groups.filter(g => /thực dưỡng lành/i.test(g.name));
     if (g.length) { cfg.groups = g.map(g => g.id); await kvSet(x.db, 'zb_cfg', JSON.stringify(cfg)); }
@@ -160,12 +169,12 @@ async function zPoll(x, d) {
   // việc chờ: giao 1 lần (không gửi lại khi lỗi → không đăng trùng vào nhóm)
   // tra số điện thoại trên Zalo: tối đa 1 lần / 3 phút, 25 lần / ngày (tra nhiều là dấu hiệu Zalo hay khoá)
   const lkDay = 'zb_lk_' + fmtDate(now, 'yyMMdd'), lkN = Number(await kvGet(x.db, lkDay) || 0), lkOk = lkN < 25 && now - Number(await kvGet(x.db, 'zb_lk_last') || 0) > 180e3;
-  let jobs = await all(x.db, "SELECT id, kind, gid, uid, phone, text, img, mentions FROM zb_out WHERE status = 'new' AND due <= ? ORDER BY due LIMIT 8", now);
+  let jobs = await all(x.db, "SELECT id, kind, gid, uid, phone, text, img, mentions, ref FROM zb_out WHERE status = 'new' AND due <= ? ORDER BY due LIMIT 8", now);
   let lk = 0; jobs = jobs.filter(j => j.kind !== 'lookup' || (lkOk && !lk++));
   if (lk) { await kvSet(x.db, lkDay, String(lkN + 1), 2 * 86400e3); await kvSet(x.db, 'zb_lk_last', String(now)); }
   if (jobs.length) {
     await run(x.db, "UPDATE zb_out SET status = 'sent', done_at = ? WHERE id IN (SELECT value FROM json_each(?))", now, JSON.stringify(jobs.map(j => j.id)));
-    out.jobs = jobs.filter(j => j.kind === 'lookup' || !quiet(now) || j.kind === 'dm').map(j => ({ id: j.id, kind: j.kind, gid: j.gid, uid: j.uid, phone: j.phone, text: j.text, img: j.img, mentions: j.mentions ? JSON.parse(j.mentions) : [] }));
+    out.jobs = jobs.filter(j => j.kind === 'lookup' || !quiet(now) || j.kind === 'dm').map(j => ({ id: j.id, kind: j.kind, ref: j.ref || '', gid: j.gid, uid: j.uid, phone: j.phone, text: j.text, img: j.img, mentions: j.mentions ? JSON.parse(j.mentions) : [] }));
     const late = jobs.filter(j => !out.jobs.find(o => o.id === j.id)); // ban đêm: dời sang 6h sáng
     for (const j of late) await run(x.db, "UPDATE zb_out SET status = 'new', due = ? WHERE id = ?", nextMorning(now), j.id);
   }
@@ -431,11 +440,21 @@ export async function zWrite(x, day, slot, hint, by) {
   const know = await kb(), prods = prodMap(know), wd = new Date(slotTime(day, '12:00') + TZ_MS).getUTCDay();
   const recent = await all(x.db, "SELECT day, slot, topic, img FROM zb_posts WHERE topic != '' ORDER BY day DESC LIMIT 20");
   const used = new Set(recent.map(r => r.img).filter(Boolean)), lib = (await imgLib()).filter(i => !used.has(i.url)); // không lặp ảnh đã dùng gần đây
-  const sang = slot !== 'toi';
+  const sang = slot !== 'toi', th = THEME[sang ? 'sang' : 'toi'][wd];
+  // ưu đãi đang chạy (Marketing nhập ở CRM) cho bài bán hàng
+  const offers = th.f === 'BOFU' ? await offersLive(x) : [];
+  // đố vui tối qua → sáng nay công bố đáp án
+  const quiz = th.quiz ? await first(x.db, "SELECT text FROM zb_posts WHERE day = ? AND slot = 'toi'", fmtDate(slotTime(day, '12:00') - DAY, 'yyyyMMdd')) : null;
+  // cảm nhận khách hàng thật (anh Sơn cho phép đăng trong nhóm 31/10/2026): lấy cái lâu chưa dùng nhất
+  const fbs = th.fb ? ((await kvJson(x.db, 'zb_fb', [])) || []).filter(f => f.on !== false).sort((a, b) => (a.used || 0) - (b.used || 0)) : [];
+  const fb = fbs[0] || null;
   const ask = [
     'Viết 1 bài đăng nhóm Zalo cộng đồng "Sống khỏe cùng Thực Dưỡng Lành" (thành viên phần lớn là cô chú trung niên, mẹ bỉm, người ăn chay, dân văn phòng).',
     'Ngày: ' + ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'][wd] + ' ' + day.slice(6, 8) + '/' + day.slice(4, 6) + ' · ' + (sang ? 'đăng lúc sáng sớm' : 'đăng buổi tối') + '.',
-    'Chủ đề hôm nay: ' + THEME[sang ? 'sang' : 'toi'][wd] + (hint ? '\nYêu cầu thêm của nhân sự: ' + hint : ''),
+    'Chủ đề hôm nay: ' + th.t + ' (tầng phễu: ' + FUNNEL[th.f] + ')' + (hint ? '\nYêu cầu thêm của nhân sự: ' + hint : ''),
+    quiz ? 'CÂU ĐỐ TỐI QUA (công bố đáp án đúng, giải thích 1–2 câu):\n' + String(quiz.text).slice(0, 1200) : th.quiz ? 'Tối qua không có câu đố: bỏ phần đáp án, chỉ làm phần hỏi đáp.' : '',
+    th.fb ? (fb ? 'CẢM NHẬN KHÁCH HÀNG (thật, khách đồng ý chia sẻ; chỉ dùng đúng ý này, không thêm chi tiết, không nêu họ tên đầy đủ – gọi "một chị khách", "anh khách quen"…):\n' + fb.note : 'Chưa có cảm nhận khách hàng mới: thay bằng câu hỏi mời mọi người kể trải nghiệm dùng sản phẩm của mình (không bịa cảm nhận).') : '',
+    th.f === 'BOFU' ? (offers.length ? 'ƯU ĐÃI ĐANG CHẠY (chỉ nói đúng như sau):\n' + offers.map(o => '- ' + [o.title, o.prod ? 'sản phẩm: ' + o.prod : '', o.text, o.until ? 'hạn đến ' + o.until : ''].filter(Boolean).join(' · ')).join('\n') : 'Hiện không có ưu đãi riêng: không bịa khuyến mãi, chỉ nhắc freeship đơn từ 300k và được kiểm hàng trước khi nhận.') : '',
     recent.length ? 'Các bài gần đây (KHÔNG lặp lại chủ đề / nguyên liệu / món / sản phẩm đã viết trong 7 ngày):\n' + recent.map(r => '- ' + r.day.slice(6, 8) + '/' + r.day.slice(4, 6) + ' ' + (SLOT_NAME[r.slot] || r.slot) + ': ' + r.topic).join('\n') : '',
     '',
     'Giọng văn: như một người chăm nhóm thật, ấm áp, gần gũi, kính trọng ("cô chú, anh chị"), xưng "Thực Dưỡng Lành" hoặc "em". Không văn quảng cáo, không giật tít, không hù dọa bệnh tật.',
@@ -462,12 +481,15 @@ export async function zWrite(x, day, slot, hint, by) {
   const topic = ((head.match(/CHỦ ĐỀ:\s*(.+)/) || [])[1] || body.split('\n')[0]).replace(/\*/g, '').trim().slice(0, 120);
   const code = ((head.match(/SẢN PHẨM:\s*([a-z0-9-]+)/) || [])[1] || '');
   const pick = lib[Number((head.match(/ẢNH:\s*(\d+)/) || [])[1]) - 1];
-  const img = prods[code] && prods[code].img ? prods[code].img : pick ? pick.url : '';
+  const img = fb && fb.img ? fb.img : prods[code] && prods[code].img ? prods[code].img : pick ? pick.url : '';
   if (!body) throw new Error('AI chưa viết được bài');
   const id = day + '_' + slot, now = Date.now();
-  await run(x.db, `INSERT INTO zb_posts (id, day, slot, topic, text, img, prod, status, by_name, at) VALUES (?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?)
-    ON CONFLICT(id) DO UPDATE SET topic = excluded.topic, text = excluded.text, img = excluded.img, prod = excluded.prod, status = 'draft', by_name = excluded.by_name, at = excluded.at`,
-    id, day, slot, topic, body.slice(0, 4000), img, prods[code] ? code : '', by || 'AI', now);
+  // link web trong bài → gắn mã bài để CRM đếm đơn từ bài này (đơn ghi nguồn "zalo / nhom / <mã bài>")
+  const tagged = body.replace(/https:\/\/thucduonglanh\.vn[^\s)]*/g, u => u.replace(/[?#].*$/, '') + '?utm_source=zalo&utm_medium=nhom&utm_campaign=' + id);
+  if (fb) { const all = (await kvJson(x.db, 'zb_fb', [])) || []; for (const f of all) if (f.id === fb.id) f.used = now; await kvSet(x.db, 'zb_fb', JSON.stringify(all)); }
+  await run(x.db, `INSERT INTO zb_posts (id, day, slot, topic, text, img, prod, status, by_name, at, funnel) VALUES (?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET topic = excluded.topic, text = excluded.text, img = excluded.img, prod = excluded.prod, status = 'draft', by_name = excluded.by_name, at = excluded.at, funnel = excluded.funnel`,
+    id, day, slot, topic, tagged.slice(0, 4000), img, prods[code] ? code : '', by || 'AI', now, th.f);
   const cfg = await zCfg(x);
   if (!slotAuto(cfg, slot) && !by) x.later(telegram(x.env, '📝 <b>Bài Zalo chờ duyệt</b> – ' + (SLOT_NAME[slot] || slot) + ' ' + day.slice(6, 8) + '/' + day.slice(4, 6) + ': ' + esc(topic) + '\n👉 Duyệt / sửa: ' + CRM_URL + '/#tro-ly-zalo'));
   return { id, topic };
@@ -480,12 +502,18 @@ export async function crmZbot(x, u, d, crmLog) {
   if (a === 'zb_view') {
     const cfg = await zCfg(x), st = await kvJson(x.db, 'zb_status', null);
     const from = fmtDate(now - DAY, 'yyyyMMdd');
-    const posts = await all(x.db, 'SELECT id, day, slot, topic, text, img, prod, status, by_name, at, sent_at FROM zb_posts WHERE day >= ? ORDER BY day, slot', from);
+    const posts = await all(x.db, 'SELECT id, day, slot, topic, text, img, prod, status, by_name, at, sent_at, funnel, eng_msgs, eng_people, eng_reacts FROM zb_posts WHERE day >= ? ORDER BY day, slot', from);
+    // 30 ngày: bài đã đăng + tương tác + đơn từ link trong bài (nguồn đơn "zalo / nhom / <mã bài>")
+    const since = now - 30 * DAY, done = await all(x.db, "SELECT id, funnel, eng_msgs, eng_people, eng_reacts FROM zb_posts WHERE status = 'sent' AND sent_at >= ?", since);
+    const ords = await all(x.db, "SELECT source, first_source, total, status FROM orders WHERE time >= ? AND (source LIKE 'zalo / nhom / %' OR first_source LIKE 'zalo / nhom / %')", since);
+    const byPost = {}; for (const o of ords) { if (isVoid(o.status)) continue; const m = String(o.source).match(/^zalo \/ nhom \/ (\S+)/) || String(o.first_source).match(/^zalo \/ nhom \/ (\S+)/); if (!m) continue; const b = byPost[m[1]] || (byPost[m[1]] = { n: 0, rev: 0 }); b.n++; b.rev += Number(o.total) || 0; }
+    const funnel = {}; for (const p of done) { const k = p.funnel || 'Khác', f = funnel[k] || (funnel[k] = { posts: 0, people: 0, msgs: 0, reacts: 0, orders: 0, rev: 0 }); f.posts++; f.people += p.eng_people || 0; f.msgs += p.eng_msgs || 0; f.reacts += p.eng_reacts || 0; if (byPost[p.id]) { f.orders += byPost[p.id].n; f.rev += byPost[p.id].rev; } }
+    for (const p of posts) if (byPost[p.id]) { p.orders = byPost[p.id].n; p.rev = byPost[p.id].rev; }
     const log = await all(x.db, 'SELECT at, kind, gid, name, text, reply FROM zb_log ORDER BY rid DESC LIMIT 60');
     const lib = (await imgLib()).map(i => ({ url: i.url, thumb: i.thumb || i.url, alt: i.alt }));
     const stats = await all(x.db, 'SELECT kind, count(*) AS n FROM zb_log WHERE at > ? GROUP BY kind', now - 7 * DAY);
     const users = await first(x.db, "SELECT count(*) AS n, sum(CASE WHEN phone != '' THEN 1 ELSE 0 END) AS known, sum(CASE WHEN joined > ? AND phone != '' THEN 1 ELSE 0 END) AS joined7 FROM zb_users", now - 7 * DAY);
-    return { ok: true, cfg, status: st, posts, log, lib, stats, users, err: await kvGet(x.db, 'zb_write_err'), key: !!x.env.ZBOT_KEY, aiOn: !!x.env.ANTHROPIC_API_KEY, now };
+    return { ok: true, cfg, status: st, posts, log, lib, funnel, stats, users, err: await kvGet(x.db, 'zb_write_err'), key: !!x.env.ZBOT_KEY, aiOn: !!x.env.ANTHROPIC_API_KEY, now };
   }
   if (a === 'zb_cfg') {
     const cfg = await zCfg(x), c = d.cfg || {};

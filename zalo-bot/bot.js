@@ -9,7 +9,7 @@ import { execFile } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const VER = '2026-10-28a';
+const VER = '2026-10-31a';
 const DIR = dirname(fileURLToPath(import.meta.url)), TMP = join(DIR, 'tmp'), CREDS = join(DIR, 'creds.json'), QR = join(DIR, 'qr.png');
 for (const l of (existsSync(join(DIR, '.env')) ? readFileSync(join(DIR, '.env'), 'utf8') : '').split('\n')) { const m = l.match(/^\s*([A-Z_]+)\s*=\s*(.*)\s*$/); if (m && !process.env[m[1]]) process.env[m[1]] = m[2]; }
 const API = process.env.API_URL || 'https://api.thucduonglanh.vn/', KEY = process.env.ZBOT_KEY;
@@ -69,11 +69,14 @@ async function imgFile(url) {
   return f;
 }
 async function post(gid, text, img, mentions) {
+  const ids = [];
   if (img) {
-    try { const f = await imgFile(img); await queue(() => api.sendMessage({ msg: '', attachments: [f] }, gid, ThreadType.Group)); try { unlinkSync(f); } catch (e) { } }
+    try { const f = await imgFile(img); const r = await queue(() => api.sendMessage({ msg: '', attachments: [f] }, gid, ThreadType.Group)); try { unlinkSync(f); } catch (e) { } for (const a of (r && r.attachment) || []) if (a && a.msgId) ids.push(String(a.msgId)); }
     catch (e) { log('ảnh bài đăng', e.message); }
   }
-  return say(gid, ThreadType.Group, text, { mentions });
+  const r = await say(gid, ThreadType.Group, text, { mentions });
+  if (r && r.message && r.message.msgId) ids.push(String(r.message.msgId));
+  return ids;
 }
 
 /* ---------------------------------------------------------------- nhóm */
@@ -92,6 +95,24 @@ async function refreshGroups() {
   } catch (e) { log('đọc nhóm', e.message); }
 }
 const groupList = () => Object.entries(G).map(([id, g]) => ({ id, name: g.name || '', total: g.total || 0, admin: !!g.boss }));
+/* ---------------------------------------------------------------- đo tương tác bài đăng: 2 tiếng sau khi đăng, đếm tin nhắn, số người nói, lượt thả cảm xúc (không tính đội ngũ, trợ lý) */
+const WATCH = {}, WATCH_MS = 2 * 3600e3;
+function watchPost(gid, ref, ids) { WATCH[gid] = { ref, ids: new Set(ids), until: Date.now() + WATCH_MS, msgs: 0, people: new Set(), reacts: 0, dirty: 1 }; }
+function watchMsg(gid, uid) { const w = WATCH[gid]; if (!w || Date.now() > w.until) return; w.msgs++; w.people.add(String(uid)); w.dirty = 1; }
+function onReaction(r) {
+  if (r.isSelf || !r.isGroup) return; const w = WATCH[r.threadId]; if (!w || Date.now() > w.until) return;
+  const g = G[r.threadId]; if (g && g.admins && g.admins.has(String(r.data.uidFrom))) return;
+  if (((r.data.content && r.data.content.rMsg) || []).some(x => w.ids.has(String(x.gMsgID)))) { w.reacts++; w.people.add(String(r.data.uidFrom)); w.dirty = 1; }
+}
+function watchStats() { // gửi kèm vòng hỏi máy chủ; hết 2 tiếng thì gửi lần cuối rồi thôi
+  const out = [];
+  for (const [gid, w] of Object.entries(WATCH)) {
+    const done = Date.now() > w.until;
+    if (w.dirty || done) out.push({ id: w.ref, msgs: w.msgs, people: w.people.size, reacts: w.reacts, done: done ? 1 : 0 });
+    w.dirty = 0; if (done) delete WATCH[gid];
+  }
+  return out;
+}
 function remember(gid, m) { const g = G[gid] || (G[gid] = { ctx: [], joins: [], admins: new Set(), members: new Set() }); g.ctx.push(m); if (g.ctx.length > 15) g.ctx.shift(); }
 
 /* ---------------------------------------------------------------- vòng hỏi máy chủ (45 giây) */
@@ -105,7 +126,7 @@ async function poll() {
       try { const p = await api.getPendingGroupMembers(gid); if (p && p.users && p.users.length) pending[gid] = p.users.map(u => ({ uid: u.uid, name: u.dpn })); } catch (e) { }
     }
   }
-  const r = await call('poll', { me: { uid: me, name: myName }, groups: groupList(), pending, ver: VER });
+  const r = await call('poll', { me: { uid: me, name: myName }, groups: groupList(), pending, ver: VER, stats: watchStats() });
   if (r.cfg) CFG = r.cfg;
   for (const [gid, uids] of Object.entries(r.approve || {})) {
     try { const res = await api.reviewPendingMemberRequest({ members: uids, isApprove: true }, gid); log('✅ duyệt vào nhóm', G[gid] && G[gid].name, JSON.stringify(res)); } catch (e) { log('duyệt', e.message); }
@@ -119,7 +140,7 @@ async function doJob(j) {
       if (!uid) return call('ack', { id: j.id, ok: false, error: 'không tìm thấy' });
       return call('ack', { id: j.id, ok: true, uid, zname: u.zalo_name || u.display_name || '', inGroups: Object.entries(G).filter(([, g]) => g.members && g.members.has(String(uid))).map(([id]) => id) });
     }
-    if (j.kind === 'post') { await post(j.gid, j.text, j.img, j.mentions); remember(j.gid, { uid: me, name: myName, text: j.text, bot: 1 }); return call('ack', { id: j.id, ok: true }); }
+    if (j.kind === 'post') { const ids = await post(j.gid, j.text, j.img, j.mentions); if (j.ref && j.ref !== 'announce') watchPost(j.gid, j.ref, ids); remember(j.gid, { uid: me, name: myName, text: j.text, bot: 1 }); return call('ack', { id: j.id, ok: true }); }
     if (j.kind === 'dm') { await say(j.uid, ThreadType.User, j.text); return call('ack', { id: j.id, ok: true }); }
   } catch (e) { log('việc', j.kind, e.message); call('ack', { id: j.id, ok: false, error: e.message }); }
 }
@@ -142,8 +163,10 @@ async function onMessage(m) {
     if (r.reply && !humanOn(m.threadId)) await reply(m.threadId, ThreadType.User, r.reply);
     return;
   }
-  const gid = m.threadId, g = G[gid]; if (!g || !text) return;
+  const gid = m.threadId, g = G[gid]; if (!g) return;
   const staff = g.admins && g.admins.has(d.uidFrom);
+  if (!staff) watchMsg(gid, d.uidFrom); // đếm cả ảnh, sticker (khoe mâm cơm…)
+  if (!text) return;
   remember(gid, { uid: d.uidFrom, name: d.dName, text, staff: staff ? 1 : 0 });
   if (!isMine(gid) || !CFG.on) return;
   if (staff) { // đội ngũ trả lời ai thì đánh dấu người đó
@@ -226,6 +249,7 @@ async function main() {
   L.on('message', m => onMessage(m).catch(e => log('tin', e.message)));
   L.on('group_event', ev => { try { onGroupEvent(ev); } catch (e) { log('nhóm', e.message); } });
   L.on('friend_event', ev => onFriend(ev).catch(e => log('bạn', e.message)));
+  L.on('reaction', r => { try { onReaction(r); } catch (e) { log('cảm xúc', e.message); } });
   L.on('connected', () => log('🟢 Đã kết nối Zalo'));
   L.on('closed', async (code, reason) => { log('🔴 Mất kết nối Zalo', code, reason); if (code === 3000) log('Tài khoản đang mở ở máy khác (Zalo PC/web) – đóng bớt rồi chạy lại.'); await call('login', { reason: 'mất kết nối ' + code + ' ' + (reason || '') }); process.exit(1); }); // launchd / pm2 tự bật lại
   L.on('error', e => log('lỗi kết nối', e && e.message));
