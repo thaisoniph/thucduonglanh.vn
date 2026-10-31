@@ -73,6 +73,7 @@ Bấm **▶ Bắt đầu gọi lần lượt**, CRM mở **từng khách một**
 | 🚫 **Không dùng nữa** | kh không dùng nữa | không hẹn, không đưa vào danh sách khách cũ nữa |
 | 📦 **Đã nhận, đã hướng dẫn dùng** *(khi hỏi nhận hàng)* | kh đã nhận hàng · máy ghi luôn ngày nhận hàng | không hẹn |
 | 🚚 **Chưa nhận hàng** *(khi hỏi nhận hàng)* | kh chưa nhận được hàng | sau 2 ngày |
+| 📵 **Ngừng liên hệ** *(khách đã mất / bỏ số, CRM hỏi lại và bắt chọn lý do)* | ngừng liên hệ: lý do | không bao giờ nhắc nữa; quản lý nhận tin báo để kiểm tra |
 
 **Khách đồng ý mua ngay khi đang gọi:** bấm nút xanh **🛒 Lên đơn ngay** ở khung **Khách muốn mua?** ngay dưới tên khách, không cần kéo xuống. Nút **🔗 Gửi link cho khách tự đặt** bên cạnh là để khách tự đặt trên web, đừng nhầm.
 

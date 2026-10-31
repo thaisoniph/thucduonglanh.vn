@@ -1413,6 +1413,7 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .k-tap { margin: 2px 0 8px; font-size: 13.5px; color: var(--muted); }
 .k-note.has { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-light, #e7f3ec); }
 .quick .btn.k-q-buy { border-color: var(--primary); color: var(--primary); }
+.quick .btn.k-q-stop { border-style: dashed; color: #6b7280; } /* 📵 Ngừng liên hệ: nhạt, có hỏi lại trước khi lưu (31/10/2026) */
 .k-tap.on { color: var(--primary); font-weight: 600; }
 /* hộp Tư vấn khách hỏi: nút Không mua bật/tắt hàng lý do (31/10/2026) */
 .quick .btn.on { border-color: var(--red); color: var(--red); }

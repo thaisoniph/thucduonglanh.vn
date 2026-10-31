@@ -19,7 +19,7 @@ import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, wbInf
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-10-31x'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
+const SCHEMA_V = '2026-10-31y'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -43,7 +43,7 @@ export async function ensureSchema(db) {
     await addCol('addr_old', "TEXT DEFAULT ''"); // 20/10/2026: địa chỉ cũ (63 tỉnh, có huyện) – Misa vẫn chọn theo địa chỉ cũ
     // Khách: đã kết bạn Zalo, nhóm cộng đồng, ngày sinh (bản Apps Script có, lúc chuyển sang D1 bị thiếu)
     const ccols = (await all(db, "PRAGMA table_info(customers)")).map(r => r.name);
-    for (const [col, def] of [['zalo', 'INTEGER DEFAULT 0'], ['community', "TEXT DEFAULT ''"], ['dob', "TEXT DEFAULT ''"], ['recv', 'INTEGER'], ['ok_n', 'INTEGER DEFAULT 0'], ['back_n', 'INTEGER DEFAULT 0'], ['last_back', 'INTEGER'], ['fam', 'INTEGER DEFAULT 0'], ['addr_old', "TEXT DEFAULT ''"], ['zone', 'INTEGER DEFAULT 0']]) if (!ccols.includes(col)) { try { await run(db, `ALTER TABLE customers ADD COLUMN ${col} ${def}`); } catch (e) { } }
+    for (const [col, def] of [['zalo', 'INTEGER DEFAULT 0'], ['community', "TEXT DEFAULT ''"], ['dob', "TEXT DEFAULT ''"], ['recv', 'INTEGER'], ['ok_n', 'INTEGER DEFAULT 0'], ['back_n', 'INTEGER DEFAULT 0'], ['last_back', 'INTEGER'], ['fam', 'INTEGER DEFAULT 0'], ['addr_old', "TEXT DEFAULT ''"], ['zone', 'INTEGER DEFAULT 0'], ['stop', "TEXT DEFAULT ''"], ['stop_by', "TEXT DEFAULT ''"], ['stop_at', 'INTEGER'], ['stop_ok', 'INTEGER DEFAULT 0']]) if (!ccols.includes(col)) { try { await run(db, `ALTER TABLE customers ADD COLUMN ${col} ${def}`); } catch (e) { } }
     const lcols = (await all(db, "PRAGMA table_info(leads)")).map(r => r.name); // 20/10/2026: khách hỏi do khách khác giới thiệu (SĐT + tên người giới thiệu)
     for (const col of ['ref_phone', 'ref_name']) if (!lcols.includes(col)) { try { await run(db, `ALTER TABLE leads ADD COLUMN ${col} TEXT DEFAULT ''`); } catch (e) { } }
     const ucols = (await all(db, "PRAGMA table_info(users)")).map(r => r.name);
@@ -391,7 +391,10 @@ function d7Task(c, today, R, last, care, toRun) {
   if (rd < 7 || rd > 10 || (care != null && care >= recv + 4 * DAY)) return null;
   return { type: 'd7', days: rd, late: 0, toRun, est };
 }
+/** 📵 Ngừng liên hệ (31/10/2026): khách đã mất / bỏ số → không bao giờ nhắc chăm sóc. Khách đặt đơn mới sau ngày đánh dấu (số vẫn dùng) thì tự hết. */
+export function isStopped(c) { return !!(c && c.stop) && !((Number(c.last) || 0) > (Number(c.stop_at) || 0)); }
 export function careTask(c, today, R) {
+  if (isStopped(c)) return null;
   const last = c.last ? startOfDay(c.last) : null; if (last == null) return null;
   const days = Math.round((today - last) / DAY);
   const runD = c.runout ? startOfDay(c.runout) : null, care = c.care_at ? startOfDay(c.care_at) : null;
@@ -445,12 +448,13 @@ export async function srcList(x) {
 }
 export async function adsCfg(x) { return kvJson(x.db, 'ads_cfg', null); }
 
-const CUS_SQL = `SELECT phone, name, address, province, ward, orders, spent, first, last, products, runout, consent, source, owner, care_at, care_result, substr(note, 1, ${NOTE_MAX}) AS note, length(note) > ${NOTE_MAX} AS cut, callback, flag, tag, last_status, last_ca, zalo, community, dob, recv, ok_n, back_n, last_back, fam, addr_old, zone FROM customers`;
+const CUS_SQL = `SELECT phone, name, address, province, ward, orders, spent, first, last, products, runout, consent, source, owner, care_at, care_result, substr(note, 1, ${NOTE_MAX}) AS note, length(note) > ${NOTE_MAX} AS cut, callback, flag, tag, last_status, last_ca, zalo, community, dob, recv, ok_n, back_n, last_back, fam, addr_old, zone, stop, stop_by, stop_at, stop_ok FROM customers`;
 const cusOut = (v, today, R) => ({
   phone: v.phone, name: v.name || '', address: v.address || '', province: v.province || '', ward: v.ward || '', orders: v.orders || 0, spent: v.spent || 0, first: v.first, last: v.last,
   products: String(v.products || '').split('; ').filter(String), runout: v.runout, group: groupOf(v.orders || 0, v.spent || 0, v.last, R), consent: !!v.consent, source: v.source || '', owner: v.owner || '',
   careAt: v.care_at, careResult: v.care_result || '', note: v.note || '', noteCut: !!v.cut, callback: v.callback, flag: v.flag || '', tag: v.tag || '', task: careTask(v, today, R), lastStatus: v.last_status || '', lastCa: v.last_ca || '',
-  zalo: !!v.zalo, community: v.community || '', dob: v.dob || '', recv: v.recv || null, okN: v.ok_n || 0, backN: v.back_n || 0, lastBack: v.last_back || 0, fam: !!v.fam, addrOld: v.addr_old || '', zone: v.zone || 0
+  zalo: !!v.zalo, community: v.community || '', dob: v.dob || '', recv: v.recv || null, okN: v.ok_n || 0, backN: v.back_n || 0, lastBack: v.last_back || 0, fam: !!v.fam, addrOld: v.addr_old || '', zone: v.zone || 0,
+  stop: v.stop || '', stopBy: v.stop_by || '', stopAt: v.stop_at || null, stopOk: !!v.stop_ok
 });
 const logOut = l => ({ time: l.time, by: l.by_name || '', what: l.what || '', ref: l.ref || '', name: l.name || '', result: l.result || '', note: l.note || '' });
 const contactOut = r => ({ row: r.rid, time: r.time, name: r.name || '', phone: r.phone || '', email: r.email || '', message: r.message || '', page: r.page || '', done: !!r.done, note: r.note || '' });
@@ -1217,6 +1221,45 @@ async function crmCare(x, u, d) {
   await crmLog(x, u, TASK_LABEL[d.task] || TASK_LABEL.other, phone, c.name, d.result, note + (d.callback ? (note ? ' – ' : '') + 'hẹn gọi lại ' + String(d.callback).split('-').reverse().join('/') : ''));
   return { ok: true, careAt: now, owner, callback: cb };
 }
+/** 📵 Ngừng liên hệ (anh Sơn 31/10/2026): khách đã mất / bỏ số → không hiện ở chăm sóc nữa.
+ *  mode set: sale bấm (đã xác nhận trên màn hình) → báo Telegram riêng cho Quản lý / Quản trị; ok: quản lý xác nhận đúng; undo: trả khách về chăm sóc (quản lý, hoặc chính người bấm khi quản lý chưa xác nhận). */
+const STOP_REASONS = ['Khách đã mất', 'Bỏ số / số không còn dùng'];
+async function crmStop(x, u, d) {
+  const phone = normPhone(d.phone), mode = d.mode || 'set';
+  const c = await first(x.db, 'SELECT name, owner, orders, spent, last, stop, stop_by, stop_at, stop_ok FROM customers WHERE phone = ?', phone);
+  if (!c) return { ok: false, error: 'Không tìm thấy khách ' + phone };
+  const note = String(d.note || '').trim().slice(0, 300), now = Date.now();
+  if (mode === 'set') {
+    const gErr = await guardPhone(x, u, phone); if (gErr) return { ok: false, error: gErr };
+    const reason = STOP_REASONS.indexOf(d.reason) >= 0 ? d.reason : note ? 'Khác: ' + note : '';
+    if (!reason) return { ok: false, error: 'Chọn lý do ngừng liên hệ.' };
+    const ok = u.level >= 2 ? 1 : 0;
+    await run(x.db, "UPDATE customers SET stop = ?, stop_by = ?, stop_at = ?, stop_ok = ?, care_at = ?, care_result = 'Ngừng liên hệ', callback = NULL WHERE phone = ?", reason, u.name, now, ok, now, phone);
+    await crmLog(x, u, 'Ngừng liên hệ', phone, c.name, reason, reason.indexOf('Khác: ') === 0 ? '' : note);
+    await wbSafe(() => wbQueue(x, c.owner || u.name, phone, c.name, 'ngừng liên hệ: ' + reason.toLowerCase() + (note && reason.indexOf('Khác: ') ? ', ' + note : '')));
+    const msg = '📵 <b>' + esc(u.name) + '</b> báo <b>ngừng liên hệ</b> khách <b>' + esc(c.name || '') + '</b> – ' + phone +
+      '\nLý do: ' + esc(reason) + (note && reason.indexOf('Khác: ') ? ' (' + esc(note) + ')' : '') +
+      '\nĐã mua ' + (c.orders || 0) + ' đơn · ' + fmt(c.spent) + (c.last ? ' · lần cuối ' + fmtDate(c.last, 'dd/MM/yyyy') : '') +
+      '\n\nKhách này sẽ không hiện ở danh sách chăm sóc nữa. Bạn kiểm tra lại: ' + CRM_URL + '#khach-hang → lọc 📵 Ngừng liên hệ';
+    for (const m of await crmUsers(x)) if (m.active && m.tg && m.level >= 2 && m.name !== u.name) { try { await telegramTo(x.env, m.tg, msg); } catch (e) { } }
+    return { ok: true, stop: reason, stopAt: now, stopOk: !!ok };
+  }
+  if (!c.stop) return { ok: true };
+  if (mode === 'ok') {
+    if (u.level < 2) return { ok: false, error: 'Chỉ quản lý xác nhận được.' };
+    await run(x.db, 'UPDATE customers SET stop_ok = 1 WHERE phone = ?', phone);
+    await crmLog(x, u, 'Ngừng liên hệ', phone, c.name, 'Quản lý xác nhận', c.stop);
+    return { ok: true };
+  }
+  if (mode === 'undo') {
+    if (u.level < 2 && !(c.stop_by === u.name && !c.stop_ok)) return { ok: false, error: 'Quản lý đã xác nhận ngừng liên hệ. Cần chăm sóc lại thì nhờ quản lý bỏ.' };
+    await run(x.db, "UPDATE customers SET stop = '', stop_by = '', stop_at = NULL, stop_ok = 0 WHERE phone = ?", phone);
+    await crmLog(x, u, 'Bỏ ngừng liên hệ', phone, c.name, 'Chăm sóc lại', note || ('trước đó: ' + c.stop + ' (' + (c.stop_by || '') + ')'));
+    if (c.stop_by && c.stop_by !== u.name) { try { await telegramUser(x, c.stop_by, '↩️ <b>' + esc(u.name) + '</b> trả lại khách <b>' + esc(c.name || '') + '</b> – ' + phone + ' để bạn chăm sóc tiếp (trước đó bạn báo: ' + esc(c.stop) + ').' + (note ? '\nGhi chú: ' + esc(note) : '')); } catch (e) { } }
+    return { ok: true };
+  }
+  return { ok: false, error: 'Không rõ thao tác' };
+}
 async function crmCustomer(x, u, d) {
   const gErr = await guardPhone(x, u, d.phone); if (gErr) return { ok: false, error: gErr };
   if (u.level < 2) delete d.owner; // nhân viên không tự đổi người phụ trách
@@ -1893,7 +1936,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (opKey) { const done = await kvGet(x.db, opKey); if (done) return JSON.parse(done); }
   const h = { care: crmCare, customer: crmCustomer, order_status: crmOrderStatus, contact: crmContact, settings: crmSettings, users: crmSaveUsers, order_edit: crmOrderEdit,
     lead_save: crmLeadSave, lead_contact: crmLeadContact, target: crmTarget, assign: crmAssign, bulk: crmBulk, recv: crmRecv, claim: crmClaim,
-    order_delete: crmOrderDelete, customer_delete: crmCustomerDelete, gift: crmGift }[a];
+    order_delete: crmOrderDelete, customer_delete: crmCustomerDelete, gift: crmGift, stop: crmStop }[a];
   if (h) {
     const res = await h(x, u, d);
     if (opKey && res && res.ok) { await kvSet(x.db, opKey, JSON.stringify(res), 6 * 3600e3); if (Math.random() < 0.02) await run(x.db, "DELETE FROM kv WHERE k LIKE 'op\\_%' ESCAPE '\\' AND exp < ?", Date.now()); }

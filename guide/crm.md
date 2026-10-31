@@ -74,6 +74,15 @@ Tab **Hôm nay** là danh sách khách bạn cần gọi hôm nay. Máy đã ch�
 | Bảo "gọi lại sau" | **Mai**, **3 ngày**, **1 tuần** hoặc **2 tuần** | đúng ngày bạn chọn |
 | Vừa nhận hàng | **📦 Đã nhận, đã hướng dẫn dùng** | không |
 | Chưa nhận được hàng | **🚚 Chưa nhận hàng** | sau 2 ngày |
+| Khách **đã mất**, hoặc **bỏ số** (số không còn dùng) | **📵 Ngừng liên hệ** | không bao giờ gọi nữa |
+
+**📵 Ngừng liên hệ** chỉ dùng khi đã chắc chắn: người nhà báo tin khách đã mất, hoặc gọi nhiều ngày đều báo *số không tồn tại*. Khách chỉ không nghe máy hay tắt máy thì bấm **📵 Không nghe máy** hoặc **📴 Thuê bao**.
+
+1. Bấm **📵 Ngừng liên hệ**. CRM hỏi lại cho chắc.
+2. Chọn lý do: **Khách đã mất**, **Bỏ số / số không còn dùng** hoặc **Lý do khác** (lý do khác thì phải ghi rõ).
+3. Bấm **Đúng, ngừng liên hệ**. Quản lý nhận tin báo và kiểm tra lại.
+
+Bấm nhầm? Mở hồ sơ khách, bấm **↩️ Bấm nhầm, chăm sóc lại**. Nút này chỉ còn khi quản lý chưa xác nhận. Khách đặt đơn mới thì CRM tự bỏ nhãn.
 
 Không có nút nào hợp? Bấm **Kết quả khác / tự chọn ngày hẹn**.
 

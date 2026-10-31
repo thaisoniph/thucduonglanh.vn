@@ -72,6 +72,14 @@ Tài khoản Quản trị không nằm trong bảng so sánh nhân sự. Doanh s
 
 **Cài đặt → 🔗 Khách dùng nhiều số:** bấm **Xem khách nghi trùng**. Chọn số chính → **🔗 Gộp vào số đã chọn**. Không phải 1 người thì bấm **Không phải 1 người**.
 
+## Khách sale báo ngừng liên hệ
+
+Sale bấm **📵 Ngừng liên hệ** khi khách đã mất hoặc bỏ số. Khách đó không hiện ở danh sách chăm sóc nữa. Để sale không bỏ phí số khách còn gọi được, quản lý kiểm tra lại:
+
+1. Có khách mới bị báo thì bạn nhận **tin Telegram riêng** (cần đã kết nối Telegram). Đầu tab **Hôm nay** cũng có dòng **📵 … khách sale báo ngừng liên hệ**. Bấm **Xem danh sách**.
+2. Danh sách nằm ở **Khách đã mua → 📵 Ngừng liên hệ**. Đầu danh sách ghi số khách mỗi sale bấm trong tháng. Sale nào bấm nhiều bất thường thì gọi thử vài số.
+3. Mở hồ sơ khách. Bấm **✓ Đúng, giữ ngừng liên hệ**, hoặc **↩️ Trả lại cho sale chăm sóc** (sale nhận tin Telegram báo khách đã được trả lại).
+
 ## Kiểm tra loại đơn
 
 Sale chọn loại đơn khác với gợi ý của máy thì đơn có nhãn **⚠️ Kiểm tra loại đơn**.
