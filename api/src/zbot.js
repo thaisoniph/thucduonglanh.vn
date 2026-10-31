@@ -108,6 +108,18 @@ async function zPoll(x, d) {
     const g = st.groups.filter(g => /thực dưỡng lành/i.test(g.name));
     if (g.length) { cfg.groups = g.map(g => g.id); await kvSet(x.db, 'zb_cfg', JSON.stringify(cfg)); }
   }
+  // mỗi tài khoản Zalo thấy cùng một nhóm với mã khác nhau → đổi tài khoản trợ lý thì tìm lại nhóm theo tên (29/10: đổi SIM làm bài đăng lỗi "Tham số không hợp lệ")
+  if (cfg.groups.length && st.groups.length) {
+    const ids = st.groups.map(g => g.id), names = Object.assign({}, cfg.gnames || {});
+    for (const g of st.groups) if (cfg.groups.includes(g.id)) names[g.id] = g.name;
+    const map = {}; for (const id of cfg.groups) if (!ids.includes(id) && names[id]) { const g = st.groups.find(g => g.name === names[id]); if (g) { map[id] = g.id; names[g.id] = g.name; } }
+    if (Object.keys(map).length || JSON.stringify(names) !== JSON.stringify(cfg.gnames || {})) {
+      cfg.groups = [...new Set(cfg.groups.map(id => map[id] || id))]; cfg.gnames = names;
+      await kvSet(x.db, 'zb_cfg', JSON.stringify(Object.assign(await kvJson(x.db, 'zb_cfg', {}), { groups: cfg.groups, gnames: names })));
+      for (const [a, b] of Object.entries(map)) { await run(x.db, "UPDATE zb_out SET gid = ? WHERE gid = ? AND status = 'new'", b, a); await run(x.db, 'UPDATE zb_users SET gid = ? WHERE gid = ?', b, a); }
+      if (Object.keys(map).length) await zlog(x, 'error', { text: 'Tài khoản trợ lý đổi → đã tự nhận lại nhóm: ' + Object.keys(map).map(id => names[id]).join(', ') });
+    }
+  }
   const out = { ok: true, cfg: { on: cfg.on, groups: cfg.groups, welcome: cfg.welcome, answer: cfg.answer, quiet: quiet(now), maxHour: cfg.maxHour }, jobs: [], approve: {} };
   if (!cfg.on) return out;
 
