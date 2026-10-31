@@ -1237,10 +1237,10 @@ async function crmStop(x, u, d) {
     await run(x.db, "UPDATE customers SET stop = ?, stop_by = ?, stop_at = ?, stop_ok = ?, care_at = ?, care_result = 'Ngừng liên hệ', callback = NULL WHERE phone = ?", reason, u.name, now, ok, now, phone);
     await crmLog(x, u, 'Ngừng liên hệ', phone, c.name, reason, reason.indexOf('Khác: ') === 0 ? '' : note);
     await wbSafe(() => wbQueue(x, c.owner || u.name, phone, c.name, 'ngừng liên hệ: ' + reason.toLowerCase() + (note && reason.indexOf('Khác: ') ? ', ' + note : '')));
-    const msg = '📵 <b>' + esc(u.name) + '</b> báo <b>ngừng liên hệ</b> khách <b>' + esc(c.name || '') + '</b> – ' + phone +
+    const msg = '🕊️ <b>' + esc(u.name) + '</b> báo <b>ngừng liên hệ</b> khách <b>' + esc(c.name || '') + '</b> – ' + phone +
       '\nLý do: ' + esc(reason) + (note && reason.indexOf('Khác: ') ? ' (' + esc(note) + ')' : '') +
       '\nĐã mua ' + (c.orders || 0) + ' đơn · ' + fmt(c.spent) + (c.last ? ' · lần cuối ' + fmtDate(c.last, 'dd/MM/yyyy') : '') +
-      '\n\nKhách này sẽ không hiện ở danh sách chăm sóc nữa. Bạn kiểm tra lại: ' + CRM_URL + '#khach-hang → lọc 📵 Ngừng liên hệ';
+      '\n\nKhách này sẽ không hiện ở danh sách chăm sóc nữa. Bạn kiểm tra lại: ' + CRM_URL + '#khach-hang → lọc 🕊️ Ngừng liên hệ';
     for (const m of await crmUsers(x)) if (m.active && m.tg && m.level >= 2 && m.name !== u.name) { try { await telegramTo(x.env, m.tg, msg); } catch (e) { } }
     return { ok: true, stop: reason, stopAt: now, stopOk: !!ok };
   }

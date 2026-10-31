@@ -70,10 +70,10 @@ Bấm **▶ Bắt đầu gọi lần lượt**, CRM mở **từng khách một**
 | 📦 **Còn hàng** | kh còn nhiều | sau 14 ngày |
 | 💸 **Hết tiền** | kh hết tiền, hẹn tháng sau | sau 30 ngày |
 | 🛒 **Khách mua** (hoặc nút xanh **🛒 Lên đơn ngay** trên cùng) | mở form tạo đơn điền sẵn như đơn trước; lưu đơn xong mới ghi “kh đặt lại, đơn …” rồi sang khách tiếp | không hẹn |
-| 🚫 **Không dùng nữa** | kh không dùng nữa | không hẹn, không đưa vào danh sách khách cũ nữa |
+| 🚫 **Không dùng nữa** | kh không dùng nữa | không hẹn; 6 tháng sau chào lại 1 lần |
 | 📦 **Đã nhận, đã hướng dẫn dùng** *(khi hỏi nhận hàng)* | kh đã nhận hàng · máy ghi luôn ngày nhận hàng | không hẹn |
 | 🚚 **Chưa nhận hàng** *(khi hỏi nhận hàng)* | kh chưa nhận được hàng | sau 2 ngày |
-| 📵 **Ngừng liên hệ** *(khách đã mất / bỏ số, CRM hỏi lại và bắt chọn lý do)* | ngừng liên hệ: lý do | không bao giờ nhắc nữa; quản lý nhận tin báo để kiểm tra |
+| 🕊️ **Khách đã mất / bỏ số** *(CRM hỏi lại và bắt chọn lý do)* | ngừng liên hệ: lý do | không bao giờ nhắc nữa; quản lý nhận tin báo để kiểm tra |
 
 **Khách đồng ý mua ngay khi đang gọi:** bấm nút xanh **🛒 Lên đơn ngay** ở khung **Khách muốn mua?** ngay dưới tên khách, không cần kéo xuống. Nút **🔗 Gửi link cho khách tự đặt** bên cạnh là để khách tự đặt trên web, đừng nhầm.
 

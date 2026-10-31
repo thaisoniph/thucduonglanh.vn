@@ -193,7 +193,7 @@ Máy **tự xếp nhóm** cho mỗi khách:
 | **Lâu không mua** | Hơn 180 ngày chưa mua |
 | **VIP** | Từ 3 đơn, hoặc đã chi từ 2.000.000đ |
 | **❄️ Khách lạnh** | Đã nói không dùng nữa, hoặc từng không nhận hàng. Máy không đưa vào danh sách gọi. Sau 6 tháng máy cho gọi lại 1 lần |
-| **📵 Ngừng liên hệ** | Khách đã mất hoặc bỏ số. Không bao giờ vào danh sách gọi, không nhận ưu đãi. Khách đặt đơn mới thì tự bỏ |
+| **🕊️ Ngừng liên hệ** | Khách đã mất hoặc bỏ số. Không bao giờ vào danh sách gọi, không nhận ưu đãi. Khách đặt đơn mới thì tự bỏ |
 | **⚠️ hay hoàn** | Hay trả lại hàng. Gọi xác nhận kỹ trước khi gửi. Đơn lớn thì nên nhờ khách chuyển khoản trước |
 
 **Màu thẻ khách:**

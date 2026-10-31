@@ -57,7 +57,11 @@ Tab **Hôm nay** là danh sách khách bạn cần gọi hôm nay. Máy đã ch�
 
 ![Cửa sổ gọi lần lượt: thông tin khách và Bước 1 gọi hoặc nhắn](/huong-dan/img/crm-care.webp)
 
-**Bấm nút nào?**
+**Bấm nút nào?** Các nút chia 3 nhóm. Gọi xong, tự hỏi: *khách có nghe máy không?*
+
+- **☎️ Chưa nói chuyện được**: Không nghe máy, Thuê bao, Từ chối nghe.
+- **💬 Đã nói chuyện với khách**: Khách mua, Dùng ok, Còn hàng, Hết tiền (khi hỏi nhận hàng có thêm Đã nhận / Chưa nhận hàng).
+- **🚫 Không gọi nữa** (dưới cùng): Không dùng nữa, Khách đã mất / bỏ số.
 
 ![Bước 2: bấm 1 nút kết quả](/huong-dan/img/crm-care-buttons.webp)
 
@@ -74,11 +78,11 @@ Tab **Hôm nay** là danh sách khách bạn cần gọi hôm nay. Máy đã ch�
 | Bảo "gọi lại sau" | **Mai**, **3 ngày**, **1 tuần** hoặc **2 tuần** | đúng ngày bạn chọn |
 | Vừa nhận hàng | **📦 Đã nhận, đã hướng dẫn dùng** | không |
 | Chưa nhận được hàng | **🚚 Chưa nhận hàng** | sau 2 ngày |
-| Khách **đã mất**, hoặc **bỏ số** (số không còn dùng) | **📵 Ngừng liên hệ** | không bao giờ gọi nữa |
+| Khách **đã mất**, hoặc **bỏ số** (số không còn dùng) | **🕊️ Khách đã mất / bỏ số** | không bao giờ gọi nữa |
 
-**📵 Ngừng liên hệ** chỉ dùng khi đã chắc chắn: người nhà báo tin khách đã mất, hoặc gọi nhiều ngày đều báo *số không tồn tại*. Khách chỉ không nghe máy hay tắt máy thì bấm **📵 Không nghe máy** hoặc **📴 Thuê bao**.
+**🕊️ Khách đã mất / bỏ số** chỉ dùng khi đã chắc chắn: người nhà báo tin khách đã mất, hoặc gọi nhiều ngày đều báo *số không tồn tại*. Khách chỉ không nghe máy hay tắt máy thì bấm **📵 Không nghe máy** hoặc **📴 Thuê bao**.
 
-1. Bấm **📵 Ngừng liên hệ**. CRM hỏi lại cho chắc.
+1. Bấm **🕊️ Khách đã mất / bỏ số**. CRM hỏi lại cho chắc.
 2. Chọn lý do: **Khách đã mất**, **Bỏ số / số không còn dùng** hoặc **Lý do khác** (lý do khác thì phải ghi rõ).
 3. Bấm **Đúng, ngừng liên hệ**. Quản lý nhận tin báo và kiểm tra lại.
 

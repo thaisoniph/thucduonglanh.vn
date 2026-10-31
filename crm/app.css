@@ -1413,7 +1413,17 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .k-tap { margin: 2px 0 8px; font-size: 13.5px; color: var(--muted); }
 .k-note.has { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-light, #e7f3ec); }
 .quick .btn.k-q-buy { border-color: var(--primary); color: var(--primary); }
-.quick .btn.k-q-stop { border-style: dashed; color: #6b7280; } /* 📵 Ngừng liên hệ: nhạt, có hỏi lại trước khi lưu (31/10/2026) */
+.quick .btn.k-q-stop { border-style: dashed; color: #6b7280; } /* 🕊️ Khách đã mất / bỏ số: nhạt, có hỏi lại trước khi lưu (31/10/2026) */
+/* Nút kết quả chăm sóc chia 3 nhóm (31/10/2026): chữ chỉ xuống dòng giữa các cụm .nw; nhóm "Không gọi nữa" tách xa, nút nhỏ hơn */
+.qgroups { display: flex; flex-direction: column; gap: 12px; }
+.qg-h { font-size: 12.5px; font-weight: 700; color: var(--muted); margin: 0 0 6px; }
+.qg .quick { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.quick .btn .nw { white-space: nowrap; }
+.qg .quick .btn.k-q-buy { background: var(--primary); border-color: var(--primary); color: #fff; } .qg .quick .btn.k-q-buy small { color: rgba(255, 255, 255, .85); } /* Khách mua: nút chính, nổi nhất */
+.qg .k-cb { margin: 8px 0 0; }
+.qg-stop { margin-top: 6px; padding-top: 12px; border-top: 1px dashed #d6d9de; }
+.qg-stop .quick .btn { min-height: 40px; font-size: 13px; }
+.qg-stop .quick .btn:not(.k-q-stop) { color: #4b5563; }
 .k-tap.on { color: var(--primary); font-weight: 600; }
 /* hộp Tư vấn khách hỏi: nút Không mua bật/tắt hàng lý do (31/10/2026) */
 .quick .btn.on { border-color: var(--red); color: var(--red); }

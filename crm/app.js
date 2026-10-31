@@ -31,18 +31,34 @@
   var NEXT_LABEL = { 'Mới': '✅ Xác nhận', 'Đã xác nhận': '🚚 Đang giao', 'Đang giao': '📬 Đã giao' };
   var RESULTS = ['Đã đặt lại', 'Hẹn gọi lại', 'Không nghe máy', 'Đã hỏi thăm', 'Không có nhu cầu'];
   // Ghi nhanh 1 chạm (giống cách sale viết tắt trên Sheet): tự chọn kết quả + tự hẹn ngày gọi lại
+  // 31/10/2026 anh Sơn: chia 3 nhóm theo câu sale tự hỏi khi gọi xong (g: miss = chưa nói chuyện được, talk = đã nói chuyện, stop = không gọi nữa); s = dòng chữ nhỏ khi không hẹn ngày
   var QUICK = [
-    { k: 'knm', l: '📵 Không nghe máy', r: 'Không nghe máy', n: 'knm', d: 2 },
-    { k: 'tb', l: '📴 Thuê bao / tắt máy', r: 'Không nghe máy', n: 'thuê bao', d: 3 },
-    { k: 'tcn', l: '🙅 Từ chối nghe', r: 'Không nghe máy', n: 'từ chối nghe', d: 7 },
-    { k: 'ok', l: '👍 Dùng ok', r: 'Đã hỏi thăm', n: 'kh dùng ok', d: 0 },
-    { k: 'con', l: '📦 Còn hàng', r: 'Hẹn gọi lại', n: 'kh còn nhiều', d: 14 },
-    { k: 'tien', l: '💸 Hết tiền', r: 'Hẹn gọi lại', n: 'kh hết tiền, hẹn tháng sau', d: 30 },
-    { k: 'mua', l: '🛒 Đặt lại', r: 'Đã đặt lại', n: 'kh đặt lại', d: 0, order: true },
-    { k: 'thoi', l: '🚫 Không dùng nữa', r: 'Không có nhu cầu', n: 'kh không dùng nữa', d: 0 },
-    { k: 'nhan', l: '📦 Đã nhận, đã hướng dẫn dùng', r: 'Đã hỏi thăm', n: 'kh đã nhận hàng, đã hướng dẫn dùng', d: 0, received: 1, only: 'd1' },
-    { k: 'chuanhan', l: '🚚 Chưa nhận hàng', r: 'Hẹn gọi lại', n: 'kh chưa nhận được hàng', d: 2, only: 'd1' }
+    { k: 'knm', l: '📵 Không nghe máy', r: 'Không nghe máy', n: 'knm', d: 2, g: 'miss' },
+    { k: 'tb', l: '📴 Thuê bao / tắt máy', r: 'Không nghe máy', n: 'thuê bao', d: 3, g: 'miss' },
+    { k: 'tcn', l: '🙅 Từ chối nghe', r: 'Không nghe máy', n: 'từ chối nghe', d: 7, g: 'miss' },
+    { k: 'mua', l: '🛒 Khách mua', r: 'Đã đặt lại', n: 'kh đặt lại', d: 0, order: true, s: 'mở form lên đơn', g: 'talk' },
+    { k: 'nhan', l: '📦 Đã nhận, đã hướng dẫn dùng', r: 'Đã hỏi thăm', n: 'kh đã nhận hàng, đã hướng dẫn dùng', d: 0, received: 1, only: 'd1', s: 'không hẹn', g: 'talk' },
+    { k: 'chuanhan', l: '🚚 Chưa nhận hàng', r: 'Hẹn gọi lại', n: 'kh chưa nhận được hàng', d: 2, only: 'd1', g: 'talk' },
+    { k: 'ok', l: '👍 Dùng ok', r: 'Đã hỏi thăm', n: 'kh dùng ok', d: 0, s: 'không hẹn', g: 'talk' },
+    { k: 'con', l: '📦 Còn hàng', r: 'Hẹn gọi lại', n: 'kh còn nhiều', d: 14, g: 'talk' },
+    { k: 'tien', l: '💸 Hết tiền', r: 'Hẹn gọi lại', n: 'kh hết tiền, hẹn tháng sau', d: 30, g: 'talk' },
+    { k: 'thoi', l: '🚫 Không dùng nữa', r: 'Không có nhu cầu', n: 'kh không dùng nữa', d: 0, s: '6 tháng sau chào lại', g: 'stop' }
   ];
+  var QUICK_G = [['miss', '☎️ Chưa nói chuyện được'], ['talk', '💬 Đã nói chuyện với khách'], ['stop', '🚫 Không gọi nữa']];
+  /** Chữ trên nút: chỉ xuống dòng ở chỗ " / " hoặc ", " (không ngắt giữa cụm như "Không nghe / máy"). */
+  function qLabel(t) { return String(t).replace(/(\/ |, )/g, '$1\n').split('\n').map(function (x) { return '<span class="nw">' + esc(x.trim()) + '</span>'; }).join(' '); }
+  /** Nút kết quả chăm sóc theo 3 nhóm. Nhóm "Không gọi nữa" để cuối, tách xa, có thêm nút 🕊️ Khách đã mất / bỏ số (hỏi lại trước khi lưu). */
+  function quickHtml(type) {
+    var qs = QUICK.filter(function (q) { return !q.only || q.only === type; });
+    return '<div class="qgroups">' + QUICK_G.map(function (g) {
+      var bs = qs.filter(function (q) { return q.g === g[0]; }).map(function (q) {
+        return '<button class="btn' + (q.order ? ' k-q-buy' : '') + '" data-q="' + q.k + '" title="' + esc(q.r + (q.d ? ', ' + q.d + ' ngày sau tự nhắc gọi lại' : '')) + '">' + qLabel(q.l) + '<small>' + (q.d ? 'gọi lại sau ' + q.d + ' ngày' : esc(q.s || '')) + '</small></button>';
+      });
+      if (g[0] === 'stop') bs.push('<button class="btn k-q-stop" id="kStop" title="Khách đã mất hoặc bỏ số: không hiện ở chăm sóc nữa (có hỏi lại trước khi lưu)">' + qLabel('🕊️ Khách đã mất / bỏ số') + '<small>hỏi lại trước khi lưu</small></button>');
+      return '<div class="qg qg-' + g[0] + '"><div class="qg-h">' + g[1] + '</div><div class="quick">' + bs.join('') + '</div>' +
+        (g[0] === 'talk' ? '<div class="k-cb"><span>📅 Khách hẹn gọi lại:</span>' + [[1, 'Mai'], [3, '3 ngày'], [7, '1 tuần'], [14, '2 tuần']].map(function (x) { return '<button type="button" class="chip" data-kcb="' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div>' : '') + '</div>';
+    }).join('') + '</div>';
+  }
   var SOURCES = ['Zalo', 'Điện thoại', 'Facebook', 'TikTok', 'Shopee', 'Khách quen giới thiệu', 'Tại cửa hàng', 'Tờ rơi / Sự kiện', 'Khác'];
   var GROUP_CLS = { 'VIP': 'vip', 'Quay lại': 'back', 'Mới': 'new', 'Sắp mất': 'risk' };
   var LEAD_ST = ['Mới hỏi', 'Đang tư vấn', 'Đã chốt', 'Không mua'];
@@ -1504,7 +1520,7 @@
       '<div class="rw-1"><b>' + esc(c.name || 'Khách') + '</b>' + (c.zalo ? '<span class="zl ic" title="Đã kết bạn Zalo">' + ZI + '</span>' : '') + (inComm(c) ? '<span class="comm-ic" title="Đã vào nhóm Zalo cộng đồng">👥</span>' : '') + custTags(c) + (leadsOf(c.phone).some(isOpenLead) ? '<span class="tag reask" title="Khách vừa để lại số hỏi lại (quảng cáo / web). Xem ở tab Hôm nay hoặc Khách hỏi">🔁 Đang hỏi lại</span>' : '') + (c.owner && lvl() >= 2 ? '<span class="tag owner">👤 ' + esc(c.owner) + '</span>' : !c.owner ? '<span class="tag noconsent">Chưa ai phụ trách</span>' : '') + srcChip(c) + '<span class="end">' + c.orders + ' đơn · ' + moneyShort(c.spent) + '</span></div>' +
       '<div class="rw-2">' + (provOf(c) ? '📍 ' + esc(provOf(c).old) + ' · ' : '') + 'Mua lần đầu ' + fDate(c.first).replace(/\/(\d{2})(\d{2})$/, '/$2') + ' · gần nhất ' + daysAgo(c.last) + (c.products.length ? ' · ' + esc(shortProducts(c.products, 1)) : '') + bdayTag(c) + (live && c.runout && c.runout > (c.last || 0) && k !== 'runout' ? ' · ⏰ hết ~' + fDate(c.runout).slice(0, 5) : '') + (k && TASKS[k] ? ' · <span class="warn-line">' + TASKS[k].icon + ' ' + TASKS[k].title + '</span>' : '') + '</div>' +
       (withRef === true ? refLine(c) : '') +
-      '<div class="rw-3">' + (isStopped(c) ? '📵 <b>' + esc(c.stop) + '</b> · ' + esc(c.stopBy || '?') + ' ' + fDate(c.stopAt).slice(0, 5) + (c.stopOk ? ' · quản lý đã xác nhận' : ' · <span class="bad-line">chờ quản lý xem</span>') : h ? '💬 ' + fDate(h.time).slice(0, 5) + ': ' + esc(h.text.length > 90 ? h.text.slice(0, 90) + '…' : h.text) : '<span class="muted">Chưa có lần chăm sóc nào</span>') + '</div></div>' +
+      '<div class="rw-3">' + (isStopped(c) ? '🕊️ <b>' + esc(c.stop) + '</b> · ' + esc(c.stopBy || '?') + ' ' + fDate(c.stopAt).slice(0, 5) + (c.stopOk ? ' · quản lý đã xác nhận' : ' · <span class="bad-line">chờ quản lý xem</span>') : h ? '💬 ' + fDate(h.time).slice(0, 5) + ': ' + esc(h.text.length > 90 ? h.text.slice(0, 90) + '…' : h.text) : '<span class="muted">Chưa có lần chăm sóc nào</span>') + '</div></div>' +
       '<div class="rw-a"><a class="btn" href="tel:' + c.phone + '" aria-label="Gọi">📞<small>Gọi</small></a><button class="btn pri" data-care="' + c.phone + '" data-task="' + (k || 'other') + '" aria-label="Chăm sóc">💬<small>Ghi lại</small></button></div></div>';
   }
   /** 1 dòng gọn cho danh sách việc: tên · việc cần làm · nút gọi / KNM / chăm sóc. */
@@ -1570,7 +1586,7 @@
     { k: 'nocomm', l: '👥 Chưa vào cộng đồng', f: function (c) { return !inComm(c) && !coldOf(c); } },
     { k: 'nozalo', l: 'Chưa kết bạn Zalo', f: function (c) { return !c.zalo && !coldOf(c); } },
     { k: 'cold', l: '❄️ Khách lạnh', f: function (c) { return !!coldOf(c); } },
-    { k: 'stop', l: '📵 Ngừng liên hệ', f: isStopped }
+    { k: 'stop', l: '🕊️ Ngừng liên hệ', f: isStopped }
   ];
   var SORTS = { prio: ['Nên gọi trước', function (a, b) { var pa = a.task ? prioOf(a) : isVip(a) && stageOf(a) === 'risk' ? 8 : 9, pb = b.task ? prioOf(b) : isVip(b) && stageOf(b) === 'risk' ? 8 : 9; return (coldOf(a) ? 1 : 0) - (coldOf(b) ? 1 : 0) || pa - pb || b.spent - a.spent; }],
     last: ['Mua gần nhất', function (a, b) { return (b.last || 0) - (a.last || 0); }], age: ['Lâu chưa chăm sóc nhất', function (a, b) { return (replyOf(a).at || 0) - (replyOf(b).at || 0) || (a.first || 0) - (b.first || 0); }], spent: ['Chi nhiều nhất', function (a, b) { return b.spent - a.spent; }],
@@ -2113,8 +2129,7 @@
       '<div class="box"><h3>Bước 2 · Ghi lại kết quả</h3>' +
       '<label class="f"><span>✍️ Khách nói gì? <span class="muted" style="font-weight:400">(không bắt buộc)</span></span><textarea id="kNote" class="k-note" rows="2" placeholder="vd: chị bảo ngủ ngon hơn, còn nửa hộp…"></textarea></label>' +
       '<p class="k-tap" id="kTap"></p>' + // dòng hướng dẫn đổi theo việc đã gõ ghi chú hay chưa → sale biết ghi chú được lưu khi bấm nút
-      '<div class="quick">' + QUICK.filter(function (q) { return !q.only || q.only === type; }).sort(function (a, b) { return (b.only ? 1 : 0) - (a.only ? 1 : 0); }).map(function (q) { return '<button class="btn' + (q.order ? ' k-q-buy' : '') + '" data-q="' + q.k + '" title="' + esc(q.r + (q.d ? ', ' + q.d + ' ngày sau tự nhắc gọi lại' : '')) + '">' + (q.order ? '🛒 Khách mua<small>mở form lên đơn</small>' : q.l + (q.d ? '<small>gọi lại sau ' + q.d + ' ngày</small>' : '')) + '</button>'; }).join('') + '<button class="btn k-q-stop" id="kStop" title="Khách đã mất hoặc bỏ số: không hiện ở chăm sóc nữa (có hỏi lại trước khi lưu)">📵 Ngừng liên hệ<small>khách đã mất / bỏ số</small></button></div>' +
-      '<div class="k-cb"><span>📅 Khách hẹn gọi lại:</span>' + [[1, 'Mai'], [3, '3 ngày'], [7, '1 tuần'], [14, '2 tuần']].map(function (x) { return '<button type="button" class="chip" data-kcb="' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div>' +
+      quickHtml(type) +
       '<details class="k-more"><summary>Kết quả khác / tự chọn ngày hẹn</summary><div style="margin-top:10px">' +
       '<label class="f"><span>Việc</span><select id="kTask">' + Object.keys(TASK_LOG).map(function (k) { return '<option value="' + k + '"' + (k === type ? ' selected' : '') + '>' + TASK_LOG[k] + '</option>'; }).join('') + '</select></label>' +
       '<div class="f"><span style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--ink)">Kết quả</span><div class="radios">' + RESULTS.map(function (r, i) { return '<label><input type="radio" name="kRes" value="' + esc(r) + '"' + '><span>' + esc(r) + '</span></label>'; }).join('') + '</div></div>' +
@@ -2197,21 +2212,21 @@
       '<div class="f"><span style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--ink)">Lý do (bắt buộc chọn)</span><div class="radios">' + STOP_REASONS.concat(['Lý do khác']).map(function (r) { return '<label><input type="radio" name="stR" value="' + esc(r) + '"><span>' + esc(r) + '</span></label>'; }).join('') + '</div></div>' +
       '<label class="f"><span>Ghi thêm <span class="muted" style="font-weight:400">(vd: con gái báo tin 20/10, gọi 5 lần đều báo số không tồn tại)</span></span><textarea id="stNote" rows="2">' + esc(note || '') + '</textarea></label>' +
       '<p class="small muted" style="margin:0">' + (lvl() >= 2 ? 'Quản lý khác sẽ nhận tin báo qua Telegram.' : 'Quản lý sẽ nhận tin báo qua Telegram và kiểm tra lại. Bấm nhầm thì mở hồ sơ khách, bấm <b>↩️ Bấm nhầm, chăm sóc lại</b> (được khi quản lý chưa xác nhận).') + '</p><p class="err" id="stErr"></p>';
-    var m = modal('📵 Ngừng liên hệ khách', body, '<button class="btn" id="stBack">' + (back ? '← Quay lại' : 'Huỷ') + '</button><button class="btn danger" id="stOk">Đúng, ngừng liên hệ</button>');
+    var m = modal('🕊️ Ngừng liên hệ khách', body, '<button class="btn" id="stBack">' + (back ? '← Quay lại' : 'Huỷ') + '</button><button class="btn danger" id="stOk">Đúng, ngừng liên hệ</button>');
     $('#stBack', m).onclick = function () { closeModal(true); if (back) back(); };
     $('#stOk', m).onclick = function () {
       var r = $('input[name=stR]:checked', m), nt = $('#stNote', m).value.trim(), err = $('#stErr', m);
       if (!r) { err.textContent = 'Chọn 1 lý do ở trên giúp nhé.'; return; }
       if (r.value === 'Lý do khác' && !nt) { err.textContent = 'Lý do khác: ghi rõ lý do vào ô Ghi thêm.'; $('#stNote', m).focus(); return; }
       sendOp('stop', { phone: c.phone, mode: 'set', reason: r.value === 'Lý do khác' ? '' : r.value, note: nt });
-      closeModal(); toast('📵 Đã ngừng liên hệ ' + (c.name || fPhone(c.phone)) + '. Quản lý sẽ kiểm tra lại.'); navBadges(); render(); if (done) done();
+      closeModal(); toast('🕊️ Đã ngừng liên hệ ' + (c.name || fPhone(c.phone)) + '. Quản lý sẽ kiểm tra lại.'); navBadges(); render(); if (done) done();
     };
   }
   /** Hồ sơ khách: khung đỏ "Ngừng liên hệ" + nút cho quản lý (✓ Đúng / ↩️ Chăm sóc lại) hoặc người bấm (↩️ Bấm nhầm). */
   function stopNotice(c) {
     if (!isStopped(c)) return '';
     var mine = c.stopBy === S.user.name && !c.stopOk, mgr = lvl() >= 2;
-    return '<div class="notice" style="background:#eef2f7;color:#334">📵 <b>Ngừng liên hệ</b>: ' + esc(c.stop) + ' · ' + esc(c.stopBy || '?') + ' bấm ngày ' + fDate(c.stopAt) + (c.stopOk ? ' · <b>quản lý đã xác nhận</b>' : ' · <b>chờ quản lý xem</b>') + '. Khách không hiện ở danh sách chăm sóc, không nhận tin ưu đãi. Khách đặt đơn mới thì tự bỏ.' +
+    return '<div class="notice" style="background:#eef2f7;color:#334">🕊️ <b>Ngừng liên hệ</b>: ' + esc(c.stop) + ' · ' + esc(c.stopBy || '?') + ' bấm ngày ' + fDate(c.stopAt) + (c.stopOk ? ' · <b>quản lý đã xác nhận</b>' : ' · <b>chờ quản lý xem</b>') + '. Khách không hiện ở danh sách chăm sóc, không nhận tin ưu đãi. Khách đặt đơn mới thì tự bỏ.' +
       (mgr || mine ? '<div class="steps" style="margin-top:8px">' + (mgr && !c.stopOk ? '<button class="btn sm pri" data-stop="ok|' + c.phone + '">✓ Đúng, giữ ngừng liên hệ</button>' : '') + '<button class="btn sm" data-stop="undo|' + c.phone + '">↩️ ' + (mgr ? 'Trả lại cho sale chăm sóc' : 'Bấm nhầm, chăm sóc lại') + '</button></div>' : '') + '</div>';
   }
   /** Khách đã mua → 📵 Ngừng liên hệ: đếm theo người bấm (tháng này) để quản lý thấy sale nào bấm nhiều bất thường. */
@@ -2219,7 +2234,7 @@
     var wait = list.filter(function (c) { return !c.stopOk; }).length, mk = monthOf(Date.now()), by = {};
     list.forEach(function (c) { if (c.stopAt && monthOf(c.stopAt) === mk) { var k = c.stopBy || '?'; by[k] = (by[k] || 0) + 1; } });
     var who = Object.keys(by).sort(function (a, b) { return by[b] - by[a]; }).map(function (k) { return esc(k) + ' <b>' + by[k] + '</b>'; }).join(' · ');
-    return '<div class="notice info">📵 <b>' + list.length + ' khách</b> ngừng liên hệ (đã mất / bỏ số): không hiện ở chăm sóc, không nhận ưu đãi.' + (lvl() >= 2 ? (wait ? ' <b>' + wait + ' khách chờ bạn xem lại</b>: mở hồ sơ, bấm ✓ Đúng hoặc ↩️ Trả lại cho sale.' : ' Đã xem hết.') + (who ? '<br>Tháng này: ' + who + '. Sale nào bấm nhiều bất thường thì gọi thử vài số.' : '') : '') + '</div>';
+    return '<div class="notice info">🕊️ <b>' + list.length + ' khách</b> ngừng liên hệ (đã mất / bỏ số): không hiện ở chăm sóc, không nhận ưu đãi.' + (lvl() >= 2 ? (wait ? ' <b>' + wait + ' khách chờ bạn xem lại</b>: mở hồ sơ, bấm ✓ Đúng hoặc ↩️ Trả lại cho sale.' : ' Đã xem hết.') + (who ? '<br>Tháng này: ' + who + '. Sale nào bấm nhiều bất thường thì gọi thử vài số.' : '') : '') + '</div>';
   }
   function stopAct(mode, phone) {
     var c = cust(phone); if (!c) return;
@@ -2231,7 +2246,7 @@
   /** Hôm nay (Quản lý): khách sale vừa báo ngừng liên hệ, chưa xem. */
   function stopWaitBlock() {
     var n = S.d.customers.filter(function (c) { return isStopped(c) && !c.stopOk && whoOk(c.owner); }).length;
-    return n ? '<div class="notice click" data-stopgo="1" style="margin:12px 0">📵 <b>' + n + ' khách</b> sale báo ngừng liên hệ (đã mất / bỏ số), chờ bạn xem lại để tránh bỏ phí số khách. <u>Xem danh sách</u></div>' : '';
+    return n ? '<div class="notice click" data-stopgo="1" style="margin:12px 0">🕊️ <b>' + n + ' khách</b> sale báo ngừng liên hệ (đã mất / bỏ số), chờ bạn xem lại để tránh bỏ phí số khách. <u>Xem danh sách</u></div>' : '';
   }
   /** Ghi nhanh 1 chạm: KNM, thuê bao, dùng ok… (thêm ghi chú đang gõ nếu có). */
   function quickCare(c, key, task, extra, btn, errEl) {
