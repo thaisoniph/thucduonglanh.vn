@@ -460,6 +460,16 @@ details.grp .g-tip { flex-basis: 100%; font-size: 13px; color: var(--muted); }
 .p-top { margin: 0 0 10px; } .p-sub { color: var(--muted); font-size: 14px; margin-bottom: 6px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .p-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; } .p-tags:empty { display: none; }
 .p-acts .btn { flex: 1; justify-content: center; }
+.p-phone { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: var(--primary-light); border: 1px solid #cfe2d4; border-radius: 14px; padding: 10px 14px; margin: 0 0 8px; }
+.p-ph .cp { font-size: 28px; font-weight: 800; color: var(--primary); letter-spacing: .02em; line-height: 1.15; border-bottom: 0; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.p-phone .zl { margin-left: auto; font-size: 14px; padding: 4px 11px; }
+.p-sub > span { white-space: nowrap; } .p-sub b { color: var(--ink); } .p-sub .tag, .p-sub .zl { margin-left: 2px; }
+.p-acts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 0 0 8px; } .p-acts .btn { min-width: 0; padding-left: 6px; padding-right: 6px; }
+.p-acts2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; } .p-acts2 .btn { justify-content: center; font-size: 14px; padding: 7px 8px; min-height: 0; }
+.p-val.p-val4 { grid-template-columns: repeat(4, 1fr); } .p-val4 b { font-size: 18px; white-space: nowrap; } .p-val4 span { display: block; line-height: 1.25; margin-top: 2px; }
+.p-val4 > div.late { background: #fdecec; } .p-val4 .late b { color: var(--red); }
+.p-now .p-h { font-weight: 700; color: #8a5a00; font-size: 13px; text-transform: uppercase; letter-spacing: .03em; }
+@media (max-width: 520px) { .p-ph .cp { font-size: 25px; } .p-acts { grid-template-columns: repeat(2, 1fr); } .p-val.p-val4 { grid-template-columns: repeat(2, 1fr); } }
 .p-val { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 0 0 8px; }
 .p-val > div { background: var(--card); border-radius: 12px; padding: 10px; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,.05); }
 .p-val b { display: block; font-size: 20px; color: var(--ink); line-height: 1.2; } .p-val span { font-size: 13px; color: var(--muted); }

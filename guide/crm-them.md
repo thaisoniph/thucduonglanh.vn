@@ -146,11 +146,13 @@ Bấm vào **tên khách** ở bất kỳ đâu để mở hồ sơ.
 
 Đọc từ trên xuống:
 
-- **Trên cùng:** số điện thoại, ai phụ trách, 4 nút **Gọi · Zalo · Chăm sóc · ＋ Đơn**.
-- **Chữ to:** khách đã chi bao nhiêu, mua mấy đơn, trung bình mỗi đơn bao nhiêu.
-- **Hay mua gì**, bao lâu mua lại 1 lần, ngày dự kiến hết hàng.
+- **Dải xanh trên cùng:** số điện thoại chữ to. Bấm vào số là copy được.
+- Dưới số: ai phụ trách, khách đến từ đâu (VD Facebook Ads), khách có nhận ưu đãi không.
+- **4 nút chính:** **📞 Gọi · Zalo · 💬 Chăm sóc · ＋ Lên đơn**. Hàng nút nhỏ bên dưới: **🔗 Link đặt lại** (gửi khách tự đặt trên web) và **🌱 Mời giới thiệu bạn bè**.
 - **Khung xanh 🚚:** khách đang có đơn chưa giao xong. Hỏi thăm đơn đó trước, chưa nên chào thêm.
-- **Khung vàng:** lần cuối khách trả lời, lần trước nói gì, khách hay nghe máy buổi nào. **Đọc trước khi gọi.**
+- **Khung vàng "Lần trước nói chuyện":** đã hẹn gọi lại ngày nào, lần cuối khách trả lời, lần trước ghi gì, khách hay nghe máy buổi nào. **Đọc khung này trước khi gọi.**
+- **4 ô số:** khách đã mua tổng bao nhiêu tiền, mấy đơn, trung bình 1 đơn, và đã bao nhiêu ngày từ lần mua cuối. Ô ngày **màu đỏ** nghĩa là khách đã quá thời gian mua lại quen thuộc, nên gọi sớm.
+- **Hay mua gì**, bao lâu mua lại 1 lần, ngày dự kiến hết hàng.
 - **Thẻ Lịch sử:** mọi đơn hàng và mọi lần gọi, mới nhất ở trên.
 
 **Ghi nhanh:** ô **✏️ Ghi nhanh** ở đáy màn hình. Gõ vài chữ, bấm **Lưu**. Máy tự thêm ngày. Ví dụ: *"kh dùng ok, hẹn cuối tháng lấy tiếp"*.
