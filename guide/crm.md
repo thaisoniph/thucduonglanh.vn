@@ -127,6 +127,10 @@ Khách đặt qua Zalo, Facebook, điện thoại… thì bạn **tạo đơn tr
 
 **Khách cũ mua lại y như lần trước?** Bấm **🔁 Đặt lại như đơn trước**. Mọi thứ tự điền giống đơn cũ.
 
+**Địa chỉ khách cũ** chỉ hiện 1 dòng **📍 Giao như lần trước: …** cho gọn. Khách đổi địa chỉ thì bấm **✏️ Đổi địa chỉ**. Lên đơn Misa cần địa chỉ kiểu cũ thì bấm **Copy địa chỉ cũ**.
+
+Lưu đơn xong, CRM **ở lại chỗ bạn đang làm** (hồ sơ khách, tab Hôm nay…), không nhảy sang tab Đơn hàng. Đơn vừa tạo xem ở tab **Đơn hàng**.
+
 **Khách gọi đến muốn mua?** Bấm **🔍 Tìm khách, số điện thoại, mã đơn** (trên cùng), gõ số của khách. Khách cũ: bấm **🛒 Lên đơn · điền sẵn như lần trước**. Khách mới (chưa có trong CRM): gõ đủ 10 số rồi bấm **🛒 Lên đơn cho số …**.
 
 **Khách lấy cả thùng to, cần tách làm 2 kiện?** Lên **2 đơn**, mỗi đơn 1 mã (CRM tự đánh `-01`, `-02`), chia sản phẩm và số tiền theo từng kiện. Lưu đơn thứ 2, nếu CRM hỏi *"Khách này vừa có đơn… Có thể lần trước đã lưu rồi"* thì bấm **OK**. Đây không phải đơn trùng, doanh số vẫn đúng. Trong file Google Sheet cũng ghi 2 dòng, 2 mã đơn như vậy.
