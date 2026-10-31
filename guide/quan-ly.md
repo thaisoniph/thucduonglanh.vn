@@ -157,17 +157,19 @@ Tab đầu tiên, dành cho chủ doanh nghiệp. **Nhìn 5 giây là nắm đư
 
 Trên điện thoại, thanh dưới của Quản trị là **Tổng quan · Hiệu quả · Marketing · Đơn hàng · ••• Thêm** (kết quả, đội sale, tiền quảng cáo, đơn và tiền chờ thu). Hôm nay, Khách hỏi, Khách đã mua, Sàn, Link & QR, Zalo, Fanpage, Cài đặt nằm trong **••• Thêm**; tìm 1 khách thì bấm 🔍 ở trên. Số đỏ trên nút Thêm không cộng việc gọi khách của sale.
 
-**Con số trên tab** (đưa chuột vào tab để xem chia ra từng loại):
+**Con số trên tab**: mỗi người chỉ thấy số của việc mình, để nhìn là biết cần làm gì. Trên máy tính chỉ hiện số; đưa chuột vào tab sẽ có dòng giải thích.
 
-- **Tổng quan** (Quản trị) = doanh số tháng cả công ty (văn phòng + sàn, đã trừ hoàn / huỷ) đạt bao nhiêu % mục tiêu. Nhãn hiện sau khi mở Tổng quan 1 lần (chờ tải số sàn).
-- **Hiệu quả** (Quản lý, Quản trị) = doanh số tháng cả nhóm sale đạt bao nhiêu % tổng mục tiêu của các bạn sale. Chưa đặt mục tiêu thì hiện số tiền.
-- **Marketing** = số khách để lại số điện thoại hôm nay (mỗi số tính 1 lần). Đưa chuột vào để so với hôm qua.
-- **Đơn hàng**: số đỏ = đơn mới chờ xác nhận; nhãn **🚚** = số đơn đang giao. Đưa chuột vào để xem thêm: đơn bị cảnh báo vận chuyển, đơn đã xác nhận chờ gửi, đơn chuyển khoản chưa nhận tiền.
-- **Khách đã mua** = **+số khách mua lần đầu** trong tháng này (cùng cách đếm ô Khách mua lần đầu ở Tổng quan). Đưa chuột vào để so với cùng kỳ tháng trước.
-- **Sàn** = doanh số tháng các sàn đạt bao nhiêu % mục tiêu (hiện sau khi mở Tổng quan hoặc Sàn 1 lần).
-- Trên điện thoại, thanh dưới của **Quản lý** là **Hôm nay · Khách hỏi · Đơn hàng · Hiệu quả · ••• Thêm**; Khách đã mua nằm trong **••• Thêm**.
+- **Quản trị** chỉ có 2 chỗ có số:
+  - **Tổng quan** = doanh số tháng cả công ty (văn phòng + sàn, đã trừ hoàn / huỷ) đạt bao nhiêu % mục tiêu. Nhãn hiện sau khi mở Tổng quan 1 lần (chờ tải số sàn).
+  - **Đơn hàng**: số đỏ = đơn mới chờ xác nhận; nhãn **🚚** = số đơn đang giao. Đưa chuột vào để xem thêm: đơn bị cảnh báo vận chuyển, đơn đã xác nhận chờ gửi, đơn chuyển khoản chưa nhận tiền.
+  - Doanh số đội sale, khách mới, khách hỏi mới, khách hỏi quá hạn đều nằm trong **Tổng quan** (ô số và mục Việc cần làm), nên không lặp lại trên tab. Trong **••• Thêm**, tab **Sàn** có nhãn % mục tiêu các sàn.
+- **Quản lý**:
+  - **Hôm nay, Khách hỏi** (số đỏ) = việc của **cả nhóm** (chọn 1 nhân viên ở ô **👥 Tất cả nhân sự** thì chỉ đếm của người đó).
+  - **Đơn hàng** = như Quản trị ở trên.
+  - **Hiệu quả** = doanh số tháng cả nhóm sale đạt bao nhiêu % tổng mục tiêu của các bạn sale. Chưa đặt mục tiêu thì hiện số tiền.
+  - **Khách đã mua** = **+số khách mua lần đầu** trong tháng này. Đưa chuột vào để so với cùng kỳ tháng trước.
+  - Trên điện thoại, thanh dưới là **Hôm nay · Khách hỏi · Đơn hàng · Hiệu quả · ••• Thêm**; Khách đã mua nằm trong **••• Thêm**.
 - Màu nhãn %: xanh = đúng tiến độ, cam = hơi chậm, đỏ = đang chậm (so với số ngày đã qua trong tháng).
-- Số đỏ ở Hôm nay, Khách hỏi, Đơn hàng = việc của **cả nhóm** (chọn 1 nhân viên ở ô **👥 Tất cả nhân sự** thì chỉ đếm của người đó).
 
 Dòng chú thích màu đèn, ▲▼, đường nhỏ được thu gọn thành **? Ý nghĩa màu, ▲▼, đường nhỏ**, bấm để mở.
 

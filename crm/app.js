@@ -853,8 +853,8 @@
       var cf = S.d.orders.filter(function (x) { return x.status === 'Đã xác nhận' && mine(x); }).length, up = lvl() >= 2 ? unpaidOrders().filter(mine).length : 0;
       if (sh.length) o['don-hang'] = { t: '🚚 ' + sh.length, s: 'đang giao', lv: 'info', tip: sh.length + ' đơn đang giao' + (navWho() || ' của bạn') + (wn ? ' · ⚠️ ' + wn + ' đơn có cảnh báo vận chuyển, cần gọi khách' : '') + (cf ? ' · ' + cf + ' đơn đã xác nhận, chờ gửi hàng' : '') + (up ? ' · ' + up + ' đơn chuyển khoản chưa nhận tiền' : '') };
     }
-    if (lvl() >= 2 && !isMkt()) o['bao-cao'] = goal(perf(null, monthRange(mk)).sales, teamTarget(mk), 'cả nhóm sale', 'mục tiêu nhóm');
-    if (lvl() >= 2 && !isMkt()) { // Khách đã mua: khách mua lần đầu trong tháng, cùng cách đếm ô Khách mua lần đầu ở Tổng quan (anh Sơn 31/10/2026)
+    if (lvl() === 2 && !isMkt()) o['bao-cao'] = goal(perf(null, monthRange(mk)).sales, teamTarget(mk), 'cả nhóm sale', 'mục tiêu nhóm');
+    if (lvl() === 2 && !isMkt()) { // Khách đã mua (Quản lý; Quản trị xem ô Khách mới ở Tổng quan): khách mua lần đầu trong tháng, cùng cách đếm ô Khách mua lần đầu ở Tổng quan (anh Sơn 31/10/2026)
       var R0 = monthRange(mk), P0 = monthRange(shiftMonth(mk, -1)), el = today() + DAY - R0[0];
       var fn = function (a, b) { var seen = {}, n = 0; S.d.orders.forEach(function (x) {
         if (x.time < a || x.time >= b || isVoid(x.status) || !whoOk(orderOwner(x))) return;
@@ -870,7 +870,7 @@
       var sv = 0, st = 0; goalRows(mk, SN.cache[sk], true).forEach(function (x) { sv += x.v; st += x.t; });
       if (sv || st) o.san = goal(sv, st, 'các sàn TMĐT', 'mục tiêu');
     }
-    if (myViews().some(function (v) { return v.id === 'marketing'; })) {
+    if (lvl() < 3 && myViews().some(function (v) { return v.id === 'marketing'; })) { // Quản trị: số khách hỏi mới đã có ở Tổng quan
       var t0 = today(), cnt = function (a, b) { var seen = {}; (S.d.leads || []).forEach(function (l) { if (l.time >= a && l.time < b && !/^file cũ/i.test(l.channel || '')) seen[normPhone(l.phone) || l.id] = 1; }); return Object.keys(seen).length; };
       var td = cnt(t0, t0 + DAY), yd = cnt(t0 - DAY, t0);
       if (td || yd) o.marketing = { t: String(td), s: 'số hôm nay', lv: 'info', tip: 'Hôm nay có ' + td + ' khách để lại số điện thoại (' + (isMkt() ? 'từ website' : 'mọi kênh') + ', mỗi số tính 1 lần) · hôm qua ' + yd + ' số' };
@@ -891,7 +891,7 @@
     var team = navWho();
     var part = function (a) { return a.filter(function (x) { return x[0]; }).map(function (x) { return x[0] + ' ' + x[1]; }).join(' · '); };
     return {
-      n: { 'hom-nay': no + q + hot, 'don-hang': no, 'tiem-nang': ld.length },
+      n: lvl() >= 3 ? { 'don-hang': no } : { 'hom-nay': no + q + hot, 'don-hang': no, 'tiem-nang': ld.length }, // Quản trị (anh Sơn 31/10/2026: số nhiều quá): chỉ số đỏ đơn mới; việc gọi khách của sale xem ở Tổng quan → Việc cần làm
       tip: {
         'hom-nay': 'Việc cần làm hôm nay' + team + ': ' + part([[no, 'đơn mới chờ xác nhận'], [q, 'khách đến lịch chăm sóc'], [hot, 'khách vừa hỏi chưa ai gọi (cũng nằm ở Khách hỏi)']]),
         'tiem-nang': 'Khách hỏi cần liên hệ' + team + ': ' + part([[k.new, 'chưa gọi lần nào'], [k.callback, 'đến hẹn gọi lại'], [k.stale, 'quá 3 ngày chưa liên hệ lại']]),
