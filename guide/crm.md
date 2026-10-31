@@ -134,14 +134,23 @@ Khách đặt qua Zalo, Facebook, điện thoại… thì bạn **tạo đơn tr
 5. **Gõ số tiền thu của khách.** Gõ `1800000`, `1tr8` hay `1,8tr` đều được.
 6. Chọn cách trả tiền: **COD** (khách trả tiền khi nhận hàng) hoặc **Chuyển khoản**. Chọn **Đơn vị vận chuyển** (CRM chọn sẵn **BEST Express**; hãng ít dùng bấm **＋ Hãng khác**) và **Phí vận chuyển**: chọn sẵn **Miễn phí vận chuyển**, bấm **Cộng phí ship** nếu khách trả ship (CRM cộng 30.000đ vào tiền thu, sửa được).
    **Mã đơn** tự điền: tên + ngày tháng năm + gạch + số thứ tự đơn trong ngày, vd `Phuong201026-01` (đơn 01 ngày 20/10/2026). Chọn Viettel Post thì tự thêm chữ **V** ở đầu (`VPhuong201026-01`). Lưu xong, mã ghi vào cột Mã đơn trong file của bạn. Muốn mã khác thì sửa ô này trước khi lưu.
+   **Loại đơn (tính hoa hồng)** CRM tự chọn, chỉ hiện 1 dòng **🏷 Loại đơn: …**. Thấy sai thì bấm **Chọn khác** rồi chọn lại.
    **Ghi chú giao hàng:** bấm nhanh các nút hay dùng (Gọi trước khi giao, Cho xem hàng, Giao giờ hành chính…), bấm lại để bỏ. Cần ghi thêm thì gõ vào ô bên dưới.
 7. Bấm **Lưu & copy lên đơn**. Đơn được lưu. Nội dung đơn đã được chép sẵn, bạn dán sang bên vận chuyển.
 
 ![Cuối trang tạo đơn: số tiền, cách trả tiền, nút Lưu](/huong-dan/img/crm-neworder-save.webp)
 
-**Khách cũ mua lại y như lần trước?** Bấm **🔁 Đặt lại như đơn trước**. Mọi thứ tự điền giống đơn cũ.
+**Khách cũ mua lại y như lần trước?** Bấm **🔁 Đặt lại như đơn trước**. Mọi thứ tự điền giống đơn cũ, nút đổi thành dòng chữ **✓ Đã điền như đơn …**. (Lên đơn lúc gọi chăm sóc thì CRM tự điền sẵn, bạn không cần bấm.)
 
-**Địa chỉ khách cũ** chỉ hiện 1 dòng **📍 Giao như lần trước: …** cho gọn. Khách đổi địa chỉ thì bấm **✏️ Đổi địa chỉ**. Lên đơn Misa cần địa chỉ kiểu cũ thì bấm **Copy địa chỉ cũ**.
+Form khách cũ được làm gọn, đi từ trên xuống theo 3 phần: **① Khách hàng → ② Sản phẩm → ③ Tiền & giao hàng**, rồi bấm nút xanh dưới cùng.
+
+**Địa chỉ khách cũ** gom trong khung **📍 Giao như lần trước**. Khung có sẵn 2 dòng:
+- **🕰 Địa chỉ cũ – lên Misa** (vd *Xã Phước Thái, Huyện Long Thành, Đồng Nai*): bấm **Copy** rồi dán vào Misa.
+- **🆕 Địa chỉ mới – 34 tỉnh** (vd *Xã Phước Thái, Đồng Nai*): dùng khi gửi hàng.
+
+Khách đổi địa chỉ, hoặc dòng nào ghi *chưa rõ*, thì bấm **✏️ Đổi địa chỉ** để chọn lại.
+
+**Thanh toán, vận chuyển, phí ship, mã đơn** của khách cũ gom thành 1 dòng, vd *💵 COD · 🚚 BEST Express · Miễn phí ship · Mã Phuong311026-01*. Đúng rồi thì để nguyên. Khách đổi gì thì bấm **✏️ Sửa**.
 
 Lưu đơn xong, CRM **ở lại chỗ bạn đang làm** (hồ sơ khách, tab Hôm nay…), không nhảy sang tab Đơn hàng. Đơn vừa tạo xem ở tab **Đơn hàng**.
 

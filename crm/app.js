@@ -2635,17 +2635,18 @@
     var t = ' ' + norm(text).replace(/[.,;:\-–()/]/g, ' ').replace(/\s+/g, ' ') + ' ', at = -1, AL = { hcm: 'Hồ Chí Minh', tphcm: 'Hồ Chí Minh', 'sai gon': 'Hồ Chí Minh', hn: 'Hà Nội', 'thua thien hue': 'Huế', brvt: 'Bà Rịa - Vũng Tàu', 'vung tau': 'Bà Rịa - Vũng Tàu', 'ba ria': 'Bà Rịa - Vũng Tàu' };
     var k2 = function (n) { return norm(n).replace(/[.,;:\-–()/]/g, ' ').replace(/\s+/g, ' ').trim(); }, bare = function (n) { return k2(n).replace(/^(tinh|thanh pho|quan|huyen|thi xa|phuong|xa|thi tran) /, ''); };
     OU.p.forEach(function (p) { [k2(p.f), bare(p.f)].concat(Object.keys(AL).filter(function (k) { return AL[k] === p.n; })).forEach(function (k) { var i = t.lastIndexOf(' ' + k + ' '); if (i > at) { at = i; r.p = p; } }); });
-    var best = function (list, pre, bareOk) { // tên đầy đủ, hoặc chữ viết tắt + tên ("x thanh van", "h tam duong"), hoặc tên trơn khi đã biết vùng
-      var hit = null, len = 0;
+    var best = function (list, pre, bareOk, skip) { // tên đầy đủ, hoặc chữ viết tắt + tên ("x thanh van", "h tam duong"), hoặc tên trơn khi đã biết vùng
+      var hit = null, sc = 0;
       list.forEach(function (o) {
-        var b = bare(o.n), ok = t.indexOf(' ' + k2(o.n) + ' ') >= 0 || new RegExp(' (' + pre + ') ' + b.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ' ').test(t) || (bareOk && t.indexOf(' ' + b + ' ') >= 0);
-        if (ok && b.length > len) { hit = o; len = b.length; }
+        var b = bare(o.n), clear = t.indexOf(' ' + k2(o.n) + ' ') >= 0 || new RegExp(' (' + pre + ') ' + b.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ' ').test(t), ok = clear || (bareOk && b !== skip && t.indexOf(' ' + b + ' ') >= 0);
+        var v = ok ? b.length + (clear ? 1000 : 0) : 0; // tên có chữ xã / phường / huyện đứng trước thắng tên trơn
+        if (v > sc) { hit = o; sc = v; }
       });
       return hit;
     };
     if (r.p) r.d = best(r.p.d, 'q|quan|h|huyen|tx|thi xa|tp|thanh pho', true);
     var pool = r.d ? r.d.w : r.p ? [].concat.apply([], r.p.d.map(function (d) { return d.w; })) : [];
-    r.w = best(pool, 'p|phuong|x|xa|tt|thi tran', !!r.d);
+    r.w = best(pool, 'p|phuong|x|xa|tt|thi tran', !!r.d, r.d ? bare(r.d.n) : ''); // "xã Phước Thái, Long Thành": chữ Long Thành là tên huyện, không phải Thị trấn Long Thành
     if (r.w && !r.d) r.d = r.w.d;
     return r;
   }
@@ -2768,22 +2769,25 @@
     var start = eo ? parseItems(eo.items) : [], sItems = start.filter(function (i) { return !i.gift; }), sGifts = start.filter(function (i) { return i.gift; });
     if (!eo && lead && lead.interest) sItems = [{ name: lead.interest, variant: '', qty: 1 }];
     var fullAddr = c0 ? [c0.address].concat([c0.ward, c0.province].filter(function (x) { var ad = norm(c0.address || ''), k = norm(x), i = ad.indexOf(k); return x && !(i >= 0 && !/[a-z0-9]/.test(ad.charAt(i + k.length))); })).filter(Boolean).join(', ') : ''; // địa chỉ đã ghi sẵn phường / tỉnh thì không ghép thêm (trước đây mỗi lần đặt lại tên tỉnh bị lặp thêm 1 lần)
-    var addrMini = !eo && !!c0 && !c0.isLead && !!c0.province && !!fullAddr; // khách cũ đã có địa chỉ đủ tỉnh
+    var addrMini = !eo && !!c0 && !c0.isLead && !!fullAddr; // khách cũ đã có địa chỉ: hiện gọn 1 khung (CRM đọc không ra tỉnh thì tự mở đủ ô để chọn)
     var src0 = store('crm_osrc'); if (SOURCES.indexOf(src0) < 0) src0 = SOURCES[0]; // nhớ lựa chọn lần trước của từng người
     var car0 = eo ? carrierOf(eo) : 'BEST Express'; // đơn mới mặc định BEST Express (anh Sơn 20/10/2026)
     var carMore = Object.keys(CARRIERS).filter(function (k) { return CAR_MAIN.indexOf(k) < 0; }), carOpen = carMore.indexOf(car0) >= 0; // hãng ít dùng thu gọn, đơn gửi hãng khác thì mở sẵn
     var free0 = !(eo && eo.shipping > 0), fee0 = eo && eo.shipping > 0 ? eo.shipping : CFG.shipping_fee || 30000; // mặc định miễn phí vận chuyển
+    var sumMini = !eo && !!c0 && !c0.isLead && !!lastGoodOrder(c0.phone); // đơn đặt lại: thu gọn thanh toán / vận chuyển / mã đơn
     var ot0 = eo ? otypeOf(eo) : '', otField = '<div class="f otype"><span class="lbl">Loại đơn (tính hoa hồng)</span><div class="radios ot4">' + OTYPES.map(function (t) { return '<label><input type="radio" name="otype" value="' + t + '"' + (t === ot0 ? ' checked' : '') + '><span><b>' + OT[t][0] + ' ' + t + '</b><small>' + esc(OT[t][1]) + '</small></span></label>'; }).join('') + '</div><p class="hint" id="noOtHint" style="margin:6px 0 0"></p></div>';
     var body = '<form id="noForm" novalidate>' +
-      (opt.care ? '<div class="notice info">📞 Khách đồng ý mua lúc gọi chăm sóc. CRM đã điền sẵn như đơn trước: sửa chỗ khách đổi (số lượng, địa chỉ…) rồi bấm <b>Lưu đơn</b>. Lưu xong CRM tự ghi “Đã đặt lại”' + (S.flow ? ' và mở khách tiếp theo' : '') + '. Bấm ✕ để quay lại khách này.</div>' : '') +
+      (opt.care ? '<div class="notice info">📞 Đã điền sẵn như đơn trước. Khách đổi gì thì sửa chỗ đó, rồi bấm nút xanh <b>Lưu & copy lên đơn</b> dưới cùng.</div>' : '') +
       (lead ? '<div class="notice info">🛒 Chốt đơn cho khách hỏi <b>' + esc(lead.name || lead.phone || '') + '</b>. Lưu đơn xong, khách tự chuyển sang “Đã chốt”.</div>' : '') +
       (eo ? '<div class="notice">Đang sửa đơn <b>' + esc(eo.id) + '</b>. Lưu xong, số đơn / tổng chi của khách được tính lại.</div>' : '') +
-      '<div class="box"><h3>Khách hàng</h3>' +
-      (eo ? '' : '<details class="paste"' + (c0 ? '' : ' open') + '><summary>📋 Dán tin nhắn của khách</summary><textarea id="noPaste" rows="3" placeholder="Dán nguyên tin Zalo của khách (tên, số điện thoại, địa chỉ) – CRM tự tách vào các ô dưới"></textarea><p class="hint" id="noPasteHint" style="margin:4px 0 10px"></p></details>') +
+      '<div class="box"><h3>① Khách hàng</h3>' +
+      (eo || (c0 && !c0.isLead) ? '' : '<details class="paste"' + (c0 ? '' : ' open') + '><summary>📋 Dán tin nhắn của khách</summary><textarea id="noPaste" rows="3" placeholder="Dán nguyên tin Zalo của khách (tên, số điện thoại, địa chỉ) – CRM tự tách vào các ô dưới"></textarea><p class="hint" id="noPasteHint" style="margin:4px 0 10px"></p></details>') +
       '<div class="row2c"><label class="f"><span>Số điện thoại *</span><input type="tel" name="phone" inputmode="tel" value="' + esc(c0 ? c0.phone : opt.phone || '') + '"></label>' +
       '<label class="f"><span>Tên khách *</span><input type="text" name="name" value="' + esc(c0 ? c0.name : '') + '"></label></div>' +
       '<div class="hint" id="noOld"></div><div id="noFlag"></div>' +
-      (addrMini ? '<div class="no-addr-mini" id="noAddrMini"><span>📍 Giao như lần trước: <b id="noAddrMiniT">' + esc(fullAddr) + '</b></span><span class="no-addr-mini-b"><button type="button" class="btn sm" id="noOldCopy" title="Copy địa chỉ kiểu cũ (63 tỉnh, có huyện) để lên đơn Misa">Copy địa chỉ cũ</button><button type="button" class="btn sm" id="noAddrEdit">✏️ Đổi địa chỉ</button></span></div>' : '') +
+      (addrMini ? '<div class="no-addr-mini" id="noAddrMini"><div class="nam-top"><span>📍 Giao như lần trước</span><button type="button" class="btn sm" id="noAddrEdit">✏️ Đổi địa chỉ</button></div><b id="noAddrMiniT">' + esc(fullAddr) + '</b>' +
+        '<div class="nam-row old"><span class="nam-k">🕰 Địa chỉ cũ <small>lên Misa</small></span><span class="nam-v" id="noMiniOld">đang đọc…</span><button type="button" class="btn sm" data-acopy="old">Copy</button></div>' +
+        '<div class="nam-row"><span class="nam-k">🆕 Địa chỉ mới <small>34 tỉnh</small></span><span class="nam-v" id="noMiniNew">đang đọc…</span><button type="button" class="btn sm" data-acopy="new">Copy</button></div></div>' : '') +
       '<div id="noAddrBox"' + (addrMini ? ' hidden' : '') + '>' + // khách cũ: cất 2 khung địa chỉ, bấm Đổi địa chỉ mới mở (form gọn ~1 màn hình)
       '<label class="f"><span>Địa chỉ</span><textarea name="full" rows="2" placeholder="Số nhà, thôn, đường, xã, huyện, tỉnh – ghi kiểu cũ hay mới đều được">' + esc(fullAddr) + '</textarea></label>' +
       '<p class="hint" id="noAddrHint"></p>' +
@@ -2797,18 +2801,21 @@
           '<label class="f"><span>Phường / Xã</span><input type="text" name="oward" placeholder="Gõ để tìm"></label><p class="hint" id="noOldHint"></p></div>' +
       '</div></div></div>' +
       '<datalist id="noProducts">' + names.map(function (n) { return '<option value="' + esc(n) + '">'; }).join('') + '</datalist>' +
-      '<div class="box"><h3>Sản phẩm <span class="muted small" style="font-weight:400">· bấm để thêm, bấm lại để tăng số lượng</span></h3><div class="chips wrap" id="noChips"></div>' +
+      '<div class="box"><h3>② Sản phẩm <span class="muted small" style="font-weight:400">· bấm để thêm, bấm lại để tăng số lượng</span></h3><div class="chips wrap" id="noChips"></div>' +
       '<div class="items" id="noItems">' + (sItems.length ? sItems.map(function (i) { return row('prod', i); }).join('') : row('prod')) + '</div>' +
       '<div class="steps" style="margin-top:8px"><button type="button" class="btn" id="noAdd">＋ Sản phẩm khác</button><button type="button" class="btn" id="noAddGift">🎁 Thêm quà</button></div>' +
       '<div class="items" id="noGifts" style="margin-top:8px">' + sGifts.map(function (i) { return row('gift', i); }).join('') + '</div></div>' +
-      '<div class="box">' + otField + '<label class="f"><span>Số tiền thu khách *</span><input type="text" name="total" inputmode="decimal" autocomplete="off" placeholder="vd 1800000 hoặc 1tr8" value="' + (eo ? eo.total : '') + '"></label><p class="hint" id="noTotalHint"></p>' +
+      '<div class="box"><h3>③ Tiền & giao hàng</h3><label class="f"><span>Số tiền thu khách *</span><input type="text" name="total" inputmode="decimal" autocomplete="off" placeholder="vd 1800000 hoặc 1tr8" value="' + (eo ? eo.total : '') + '"></label><p class="hint" id="noTotalHint"></p>' +
+      '<div class="no-sum" id="noSum"' + (sumMini ? '' : ' hidden') + '><span id="noSumT"></span><button type="button" class="btn sm" id="noSumEdit">✏️ Sửa</button></div>' + // khách cũ: thanh toán / vận chuyển / phí ship / mã đơn như mọi lần → 1 dòng, bấm Sửa mới mở
+      '<div id="noShipBox"' + (sumMini ? ' hidden' : '') + '>' +
       '<div class="f"><span class="lbl">Thanh toán</span><div class="radios"><label><input type="radio" name="payment" value="cod"' + (eo && isBank(eo) ? '' : ' checked') + '><span>COD (trả khi nhận)</span></label><label><input type="radio" name="payment" value="bank"' + (eo && isBank(eo) ? ' checked' : '') + '><span>Chuyển khoản</span></label></div></div>' +
       '<div class="f"><span class="lbl">Đơn vị vận chuyển</span><div class="radios">' + CAR_MAIN.concat(carMore).map(function (k) { var x = CAR_MAIN.indexOf(k) < 0; return '<label' + (x ? ' class="no-car-x"' + (carOpen ? '' : ' hidden') : '') + '><input type="radio" name="carrier" value="' + esc(k) + '"' + (k === car0 ? ' checked' : '') + '><span>' + esc(k) + '</span></label>'; }).join('') +
         (carOpen ? '' : '<button type="button" class="chip" id="noCarMore">＋ Hãng khác</button>') + '</div></div>' +
       '<div class="f"><span class="lbl">Phí vận chuyển</span><div class="radios"><label><input type="radio" name="shipmode" value="free"' + (free0 ? ' checked' : '') + '><span>Miễn phí vận chuyển</span></label><label><input type="radio" name="shipmode" value="add"' + (free0 ? '' : ' checked') + '><span>Cộng phí ship</span></label></div></div>' +
       '<label class="f" id="noShipFee"' + (free0 ? ' hidden' : '') + '><span>Phí ship cộng vào tiền thu khách</span><input type="number" name="shipping" min="0" step="1000" inputmode="numeric" value="' + (free0 ? 0 : fee0) + '"></label>' +
       '<label class="f"><span>Mã đơn' + (eo ? ' (không đổi được khi sửa)' : '') + '</span><input type="text" name="code" autocomplete="off" value="' + (eo ? esc(eo.id) : '') + '"' + (eo ? ' readonly' : '') + '></label>' +
-      (eo ? '' : '<p class="hint" id="noCodeHint">Tự điền: tên + ngày tháng năm + gạch + số thứ tự đơn trong ngày (vd Phuong201026-01), ghi vào cột Mã đơn trong file của bạn. Gửi Viettel Post thì thêm chữ V ở đầu.</p>') +
+      (eo ? '' : '<p class="hint" id="noCodeHint">Tự điền: tên + ngày tháng năm + gạch + số thứ tự đơn trong ngày (vd Phuong201026-01), ghi vào cột Mã đơn trong file của bạn. Gửi Viettel Post thì thêm chữ V ở đầu.</p>') + '</div>' +
+      '<div class="no-sum" id="noOtSum"><span id="noOtSumT"></span><button type="button" class="btn sm" id="noOtEdit">Chọn khác</button></div><div id="noOtBox" hidden>' + otField + '</div>' + // loại đơn CRM tự chọn; sale chọn khác mới mở 4 ô
       (eo ? '<label class="f"><span>Lý do sửa (không bắt buộc)</span><input type="text" name="reason" placeholder="vd: khách đổi sang hộp 400g"></label>' : '<div class="f"><span class="lbl">Ghi chú giao hàng <span class="muted small" style="font-weight:400">· bấm để thêm nhanh</span></span><div class="chips wrap" id="noNoteChips">' + NOTE_QUICK.map(function (t) { return '<button type="button" class="chip" data-nq="' + esc(t) + '">' + esc(t) + '</button>'; }).join('') + '</div>' +
         '<textarea name="note" rows="2" placeholder="Ghi thêm nếu cần, vd: giao sau 17h, gửi nhà hàng xóm số 12"></textarea></div>') +
       '<details class="addr-more opts" id="noOpts"><summary>⚙️ <span id="noOptSum"></span></summary>' +
@@ -2849,6 +2856,7 @@
       if (prov.value && ward.value && !oW && OU) { var l = OU.rev[prov.value + '|' + ward.value] || []; if (l.length > 1) oh = 'Phường / xã mới này gộp từ: ' + l.slice(0, 6).map(function (w) { return esc(w.n) + ' (' + esc(w.d.n.replace(/^(Huyện|Quận|Thị xã|Thành phố) /, '')) + ')'; }).join(', ') + (l.length > 6 ? '…' : '') + ' – bấm ô Phường / Xã để chọn.'; }
       if (prov.value && !unitOf(prov.value)) nh = '⚠️ “' + esc(prov.value) + '” không có trong 34 tỉnh mới – chọn trong danh sách gợi ý.';
       $('#noNewHint', m).innerHTML = nh; $('#noOldHint', m).innerHTML = oh;
+      if ($('#noMiniOld', m) && OU) { var ot = oldText(), nt = [ward.value.trim(), prov.value.trim()].filter(Boolean).join(', '), miss = '<span class="warn-t">chưa rõ – bấm ✏️ Đổi địa chỉ để chọn</span>'; $('#noMiniOld', m).innerHTML = ot ? esc(ot) : miss; $('#noMiniNew', m).innerHTML = nt ? esc(nt) : miss; }
       $('#noAddrHint', m).innerHTML = full && !prov.value && !oprov.value ? '⚠️ Chưa nhận ra tỉnh / phường – gõ vào các ô bên dưới để chọn.' : '';
     }
     function addrChanged() {
@@ -2878,13 +2886,14 @@
     addrPick(oward, oWardItems, function (x) { touchO = true; var w = x ? x.o : null; if (!w) { setOld(oP, oD, null); return; } setOld(w.d.p, w.d, w); if (!touchN || !ward.value) newFromOld(w); });
     [oprov, odist, oward].forEach(function (el) { el.addEventListener('input', function () { touchO = true; if (!el.value.trim()) { if (el === oprov) setOld(); else if (el === odist) setOld(oP); else setOld(oP, oD); } }); });
     [prov, ward].forEach(function (el) { el.addEventListener('input', function () { touchN = true; addrHint(); }); });
-    $$('[data-acopy]', m).forEach(function (b) { b.onclick = function () { var t = b.getAttribute('data-acopy') === 'old' ? oldText() : [ward.value.trim(), prov.value.trim()].filter(Boolean).join(', '); if (!t) return toast('Chưa có địa chỉ ' + (b.getAttribute('data-acopy') === 'old' ? 'cũ' : 'mới') + ' để copy', true); copy(t).then(function () { toast('Đã copy: ' + t); }); }; });
+    $$('[data-acopy]', m).forEach(function (b) { b.onclick = function () { var t = b.getAttribute('data-acopy') === 'old' ? oldText() : [ward.value.trim(), prov.value.trim()].filter(Boolean).join(', '); if (!t) { addrOpen(); return toast('Chưa có địa chỉ ' + (b.getAttribute('data-acopy') === 'old' ? 'cũ' : 'mới') + ' – chọn ở khung bên dưới', true); } copy(t).then(function () { toast('Đã copy: ' + t); }); }; });
     Promise.all([loadUnits(), loadOldUnits()]).then(function (r) {
       OU = r[1]; if (OU) OU.p.forEach(function (p) { (OLD_OF[p.nw] = OLD_OF[p.nw] || []).push(p.n); });
       if (c0 && c0.addrOld && OU) { var po = oldParse(OU, c0.addrOld); touchO = true; setOld(po.p, po.d, po.w); if (!po.p) { var a = c0.addrOld.split(','); oprov.value = (a.pop() || '').trim(); } } // địa chỉ cũ đã lưu ở đơn / hồ sơ khách
       if (c0 && c0.province) setProvince(c0.province, c0.ward);
       if (c0 && c0.province && !touchO) oldFromNew();
       if (!(c0 && c0.province)) addrChanged(); else addrHint();
+      if (!prov.value && !oprov.value) addrOpen(); // khung gọn mà CRM không đọc ra tỉnh → mở đủ ô để sale chọn
     });
     F.full.addEventListener('input', function () { clearTimeout(F.full._t); F.full._t = setTimeout(addrChanged, 300); });
     function flagOf(c) { return c && c.flag ? '<div class="notice">⚠️ Khách có nhãn <b>' + esc(c.flag) + '</b>. Kiểm tra kỹ trước khi gửi hàng (nên chuyển khoản trước).</div>' : ''; }
@@ -2900,6 +2909,7 @@
         F.total.value = lo.total; totalEdited = true; setShipMode(lo.shipping > 0, lo.shipping);
         var pb = $('input[name=payment][value=' + (isBank(lo) ? 'bank' : 'cod') + ']', form); if (pb) pb.checked = true;
         calc(); toast('Đã điền như đơn ' + fDate(lo.time) + ' – sửa chỗ nào khác rồi lưu');
+        var done = document.createElement('div'); done.className = 'no-rep-done'; done.textContent = '✓ Đã điền như đơn ' + this.textContent.replace(/^🔁 Đặt lại như đơn /, ''); this.replaceWith(done);
       };
       renderChips(c);
     }
@@ -2949,8 +2959,12 @@
       if (!otPicked) { var r0 = $('input[name=otype][value="' + sug.t + '"]', form); if (r0) r0.checked = true; cur = r0; }
       var v = cur ? cur.value : '', bad = v && v !== sug.t, box = $('.f.otype', m);
       box.classList.toggle('warn', !!bad);
+      $('#noOtSumT', m).innerHTML = v ? '🏷 Loại đơn: <b>' + (OT[v] ? OT[v][0] + ' ' : '') + esc(v) + '</b> <span class="muted">· CRM tự chọn: ' + esc(sug.why) + '</span>' : '🏷 Loại đơn: chưa chọn';
+      if (bad || !v) otOpen();
       $('#noOtHint', m).innerHTML = bad ? '⚠️ Bạn chọn <b>' + esc(v) + '</b>, CRM gợi ý <b>' + esc(sug.t) + '</b> (' + esc(sug.why) + '). ' + (mgr ? 'Bạn là quản lý nên lưu theo lựa chọn của bạn.' : 'Vẫn lưu được, quản lý sẽ kiểm tra lại.') : '💡 CRM gợi ý: <b>' + esc(sug.t) + '</b> – ' + esc(sug.why);
     }
+    function otOpen() { $('#noOtSum', m).hidden = true; $('#noOtBox', m).hidden = false; }
+    $('#noOtEdit', m).onclick = otOpen;
     $$('input[name=otype]', form).forEach(function (r) { r.addEventListener('change', function () { otPicked = true; otUpdate(); }); });
     F.phone.addEventListener('input', otUpdate);
     /* ---- nút sản phẩm hay bán (+ sản phẩm khách hay mua lên trước) */
@@ -2982,6 +2996,13 @@
       var st = $('input[name=status]:checked', form), ship = +F.shipping.value || 0;
       $('#noOptSum', m).textContent = 'Tuỳ chọn khác: ' + [F.source ? F.source.value : '', st ? (st.value === 'Mới' ? 'Chưa xác nhận' : 'Đã chốt') : '', ship ? 'ship ' + money(ship) : ''].filter(Boolean).join(' · ') + ' – bấm để sửa';
     }
+    function sumSync() {
+      var pay = $('input[name=payment]:checked', form), car = $('input[name=carrier]:checked', form), ship = +F.shipping.value || 0;
+      $('#noSumT', m).innerHTML = [pay && pay.value === 'bank' ? '💳 Chuyển khoản' : '💵 COD', car ? '🚚 ' + esc(car.value) : '', ship ? 'Ship ' + money(ship) : 'Miễn phí ship', F.code.value.trim() ? 'Mã <b>' + esc(F.code.value.trim()) + '</b>' : ''].filter(Boolean).join(' · ');
+    }
+    function shipOpen() { $('#noSum', m).hidden = true; $('#noShipBox', m).hidden = false; }
+    $('#noSumEdit', m).onclick = shipOpen;
+    form.addEventListener('change', sumSync); form.addEventListener('input', sumSync);
     function calc() {
       var ls = read(items), gs = read(gifts), base = ls.reduce(function (s, i) { return s + i.qty * i.price; }, 0), ship = Math.max(0, +F.shipping.value || 0);
       if (!totalEdited && base) F.total.value = base + ship;
@@ -2989,7 +3010,7 @@
       $('#noTotalHint', m).innerHTML = (tot ? '= <b>' + money(tot) + '</b>' : '') + (base ? ' · giá niêm yết ' + money(base) + (tot && tot - ship !== base ? ' (bạn đang bán ' + (tot - ship > base ? 'cao' : 'thấp') + ' hơn ' + money(Math.abs(tot - ship - base)) + ')' : '') : '');
       $('#noShip', m).textContent = shipLine(ls, gs) || 'chưa có sản phẩm';
       $('#noSave', m).textContent = (eo ? 'Lưu đơn' : 'Lưu & copy lên đơn') + (tot ? ' · ' + money(tot) : '');
-      optSum();
+      optSum(); sumSync();
     }
     [items, gifts].forEach(function (box) {
       box.addEventListener('input', calc);
@@ -3039,7 +3060,6 @@
     var addrOpen = function () { if ($('#noAddrMini', m)) { $('#noAddrMini', m).hidden = true; $('#noAddrBox', m).hidden = false; } };
     if ($('#noAddrEdit', m)) {
       $('#noAddrEdit', m).onclick = function () { addrOpen(); F.full.focus(); };
-      $('#noOldCopy', m).onclick = function () { var t = oldText(); if (!t) { addrOpen(); return toast('Chưa có địa chỉ cũ – chọn ở khung Địa chỉ cũ', true); } copy(t).then(function () { toast('Đã copy địa chỉ cũ'); }); };
       F.phone.addEventListener('input', function () { if (normPhone(F.phone.value) !== c0.phone) addrOpen(); }); // đổi sang số khác → hiện đủ khung địa chỉ để xem lại
     }
     if ($('#noPaste', m)) $('#noPaste', m).addEventListener('input', addrOpen);
@@ -3047,12 +3067,12 @@
     $('#noSave', m).onclick = function () {
       var err = $('#noErr', m), ph = normPhone(F.phone.value), ls = read(items), gs = read(gifts), tot = moneyIn(F.total.value), ship = Math.max(0, +F.shipping.value || 0);
       if (!/^0\d{9,10}$/.test(ph)) { err.textContent = 'Số điện thoại chưa đúng (10 số, bắt đầu bằng 0).'; F.phone.focus(); return; }
-      if (!eo && !/^[\p{L}\d][\p{L}\d.\-_ ]{2,29}$/u.test(F.code.value.trim())) { err.textContent = 'Mã đơn chưa đúng (3–30 ký tự: chữ, số, dấu chấm, gạch).'; F.code.focus(); return; }
+      if (!eo && !/^[\p{L}\d][\p{L}\d.\-_ ]{2,29}$/u.test(F.code.value.trim())) { shipOpen(); err.textContent = 'Mã đơn chưa đúng (3–30 ký tự: chữ, số, dấu chấm, gạch).'; F.code.focus(); return; }
       if (!F.name.value.trim()) { err.textContent = 'Nhập tên khách.'; F.name.focus(); return; }
       if (prov.value.trim() && !unitOf(prov.value.trim())) { addrOpen(); err.textContent = 'Tỉnh / thành phố mới chưa đúng – chọn trong danh sách gợi ý.'; prov.focus(); return; }
       if (!ls.length) { err.textContent = 'Nhập ít nhất 1 sản phẩm.'; return; }
       if (!tot) { err.textContent = 'Nhập số tiền thu khách.'; F.total.focus(); return; }
-      if (tot < ship) { err.textContent = 'Số tiền thu khách nhỏ hơn phí ship.'; $('#noOpts', m).open = true; return; }
+      if (tot < ship) { err.textContent = 'Số tiền thu khách nhỏ hơn phí ship.'; shipOpen(); return; }
       ls.forEach(function (i) { if (!i.price) i.price = Math.round((tot - ship) / ls.length / i.qty); }); // chưa có giá niêm yết: chia đều, máy tính lại theo tổng
       if (!eo) copy(shipText()); // copy ngay lúc bấm (điện thoại chỉ cho copy khi vừa bấm)
       var btn = this; btn.disabled = true; btn.textContent = 'Đang lưu…'; err.textContent = '';
