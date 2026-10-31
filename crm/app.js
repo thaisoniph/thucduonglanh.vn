@@ -4981,6 +4981,7 @@
       (p.last_ev ? ' · <span class="muted">Facebook gửi sự kiện lần cuối ' + fDateTime(p.last_ev) + '</span>' : ' · <span class="muted">chưa nhận sự kiện nào</span>') + '</p>' +
       (p.active && !live && !p.err ? '<p class="small muted">Chưa thấy bình luận / tin nhắn nào gần đây. Nếu ứng dụng chưa được Facebook duyệt, trợ lý chỉ thấy người có vai trò trong ứng dụng (quản trị, nhà phát triển, người thử).</p>' : '') +
       '<label class="zb-ck"><input type="checkbox" data-fpa' + (p.active ? ' checked' : '') + '><span><b>Bật trợ lý cho trang này</b></span></label>' +
+      '<p class="small">⚡ <a href="https://business.facebook.com/latest/inbox/automations?asset_id=' + esc(p.id) + '" target="_blank" rel="noopener"><b>Mở Tự động hoá của Meta cho trang này</b></a> <span class="muted">· Khi trợ lý đang bật: tắt <b>Trả lời tức thì</b> để khách không nhận 2 lời chào. Meta không cho phần mềm khác bật / tắt mục này, phải bấm tay 1 lần.</span></p>' +
       '<details class="zb-set"><summary><b>⚙️ Cài đặt trang</b></summary>' +
       '<p class="zb-sub"><b>Bình luận</b></p>' + ck('like', 'Thích bình luận', '') + ck('reply', 'Trả lời công khai dưới bình luận', 'Đổi câu mỗi lần để Facebook không coi là spam.') +
       ck('dm', 'Nhắn riêng cho người bình luận', 'Facebook chỉ cho 1 tin / bình luận; mỗi người tối đa 1 lần / 24 giờ.') + ck('hide', 'Ẩn bình luận có số điện thoại', 'Bảo vệ thông tin khách; số vẫn được ghi vào Khách hỏi.') +
