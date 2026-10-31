@@ -11,7 +11,8 @@ H="$1"
 SRC="$(cd "$(dirname "$0")" && pwd)"
 MAC="$HOME/.tdl-zalo-bot"
 PL="$HOME/Library/LaunchAgents/vn.thucduonglanh.zalobot.plist"
-for f in .env creds.json; do [ -f "$MAC/$f" ] || { echo "❌ Chưa có $MAC/$f. Chạy bash zalo-bot/cai-dat.sh trên Mac trước."; exit 1; }; done
+[ -f "$MAC/.env" ] || { echo "❌ Chưa có $MAC/.env. Chạy bash zalo-bot/cai-dat.sh trên Mac trước."; exit 1; }
+# creds.json (phiên Zalo) chỉ cần lần đầu; VPS đã có phiên thì giữ nguyên phiên trên VPS
 SSH="ssh -o ConnectTimeout=15 $H"
 $SSH true || { echo "❌ Không vào được VPS. Chạy: ssh-copy-id $H  (gõ mật khẩu VPS) rồi chạy lại."; exit 1; }
 
@@ -32,7 +33,7 @@ EOF
 echo "📤 Chép chương trình + phiên đăng nhập lên VPS…"
 TMPD="/tmp/tdl-zalo-$$"
 $SSH "mkdir -p $TMPD && chmod 700 $TMPD"
-scp -q "$SRC/bot.js" "$SRC/package.json" "$SRC/package-lock.json" "$MAC/.env" "$MAC/creds.json" "$H:$TMPD/"
+scp -q "$SRC/bot.js" "$SRC/package.json" "$SRC/package-lock.json" "$MAC/.env" $([ -f "$MAC/creds.json" ] && echo "$MAC/creds.json") "$H:$TMPD/"
 
 echo "⏸  Tắt bản trên Mac…"
 launchctl bootout "gui/$(id -u)" "$PL" 2>/dev/null || true
@@ -45,7 +46,7 @@ SUDO=""; [ "$(id -u)" -ne 0 ] && SUDO="sudo"
 D=/opt/tdl-zalo-bot
 $SUDO cp "$TMPD"/bot.js "$TMPD"/package.json "$TMPD"/package-lock.json "$D/"
 # phiên đăng nhập: chỉ chép lần đầu (về sau bot tự làm mới creds.json trên VPS)
-[ -f "$D/creds.json" ] || $SUDO cp "$TMPD/creds.json" "$D/"
+[ -f "$D/creds.json" ] || [ ! -f "$TMPD/creds.json" ] || $SUDO cp "$TMPD/creds.json" "$D/"
 [ -f "$D/.env" ] || $SUDO cp "$TMPD/.env" "$D/"
 rm -rf "$TMPD"
 $SUDO chown -R tdlbot:tdlbot "$D" && $SUDO chmod 600 "$D/.env" "$D/creds.json"
