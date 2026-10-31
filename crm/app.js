@@ -689,10 +689,11 @@
   /** Điện thoại (29/10/2026, kiểu Apple): thanh dưới chỉ 4 mục hay dùng + "Thêm"; mục còn lại, Cài đặt, Hướng dẫn, Góp ý nằm ở màn Thêm. Máy tính vẫn hiện đủ. */
   var NAV_FIRST = ['hom-nay', 'tiem-nang', 'khach-hang', 'don-hang', 'bao-cao'];
   var NAV_SALE = ['hom-nay', 'tiem-nang', 'bao-cao', 'don-hang']; // sale: Hiệu quả ở chính giữa thanh dưới (anh Sơn 29/10/2026); 31/10/2026 Đơn hàng (có số đang giao) thay Khách, Khách vào Thêm
+  var NAV_MGR = ['bao-cao', 'hom-nay', 'tiem-nang', 'don-hang']; // Quản lý (anh Sơn 31/10/2026): Đơn hàng thay Khách để theo sát đơn của đội sale; Khách vào Thêm
   var NAV_CEO = ['tong-quan', 'bao-cao', 'marketing', 'don-hang']; // Quản trị (anh Sơn 29/10/2026): kết quả, đội sale, tiền quảng cáo, đơn / tiền chờ thu. Hôm nay, Khách hỏi, Khách là việc của sale → Thêm
   function navMain() {
     var all = navViews().filter(function (v) { return v.id !== 'cai-dat'; }).map(function (v) { return v.id; }), out = [], sale = lvl() < 2 && !isMkt();
-    (sale ? NAV_SALE : lvl() >= 3 ? NAV_CEO : [homeView()]).concat(NAV_FIRST, all).forEach(function (id) { if (out.length < 4 && all.indexOf(id) >= 0 && out.indexOf(id) < 0) out.push(id); });
+    (sale ? NAV_SALE : lvl() >= 3 ? NAV_CEO : lvl() >= 2 && !isMkt() ? NAV_MGR : [homeView()]).concat(NAV_FIRST, all).forEach(function (id) { if (out.length < 4 && all.indexOf(id) >= 0 && out.indexOf(id) < 0) out.push(id); });
     return out;
   }
   function navSig() { return navViews().map(function (v) { return v.id; }).join() + '|' + navMain().join(); }
@@ -847,14 +848,18 @@
       return { t: p + '%', s: s, lv: g.lv, tip: 'Doanh số ' + ml + ' ' + who + ' đạt ' + p + '% mục tiêu (' + moneyShort(cur) + ' / ' + moneyShort(tgt) + ') · ' + PACE_TXT[g.lv] };
     };
     var pc = myPace(); if (pc) o['bao-cao'] = goal(pc.v, pc.t, 'của bạn', 'mục tiêu');
-    if (lvl() < 2 && !isMkt()) { // sale: số đơn của mình đang giao (anh Sơn 31/10/2026)
-      var sh = S.d.orders.filter(function (x) { return x.status === 'Đang giao' && whoOk(orderOwner(x)); }), wn = sh.filter(trkWarn).length;
-      if (sh.length) o['don-hang'] = { t: '🚚 ' + sh.length, s: 'đang giao', lv: 'info', tip: sh.length + ' đơn của bạn đang giao' + (wn ? ' · ⚠️ ' + wn + ' đơn có cảnh báo vận chuyển, cần gọi khách' : '') };
+    if (!isMkt()) { // Đơn hàng: số đơn đang giao (anh Sơn 31/10/2026: sale = của mình; Quản lý, Quản trị = cả nhóm hoặc người đang lọc)
+      var mine = function (x) { return whoOk(orderOwner(x)); }, sh = S.d.orders.filter(function (x) { return x.status === 'Đang giao' && mine(x); }), wn = sh.filter(trkWarn).length;
+      var cf = S.d.orders.filter(function (x) { return x.status === 'Đã xác nhận' && mine(x); }).length, up = lvl() >= 2 ? unpaidOrders().filter(mine).length : 0;
+      if (sh.length) o['don-hang'] = { t: '🚚 ' + sh.length, s: 'đang giao', lv: 'info', tip: sh.length + ' đơn đang giao' + (navWho() || ' của bạn') + (wn ? ' · ⚠️ ' + wn + ' đơn có cảnh báo vận chuyển, cần gọi khách' : '') + (cf ? ' · ' + cf + ' đơn đã xác nhận, chờ gửi hàng' : '') + (up ? ' · ' + up + ' đơn chuyển khoản chưa nhận tiền' : '') };
     }
     if (lvl() >= 2 && !isMkt()) o['bao-cao'] = goal(perf(null, monthRange(mk)).sales, teamTarget(mk), 'cả nhóm sale', 'mục tiêu nhóm');
-    if (lvl() >= 3) { // Tổng quan: chỉ hiện khi đã có số sàn (tải cùng màn Tổng quan), để % khớp với ô mục tiêu trong trang
-      var sk = Object.keys(SN.cache).filter(function (k) { return k.slice(-mk.length - 1) === '_' + mk; })[0];
-      if (sk) { var gl = dashGoal(mk, SN.cache[sk]); o['tong-quan'] = goal(gl.cur, gl.tt, 'cả công ty (văn phòng + sàn, đã trừ hoàn / huỷ)', 'mục tiêu'); }
+    // Tổng quan, Sàn: chỉ hiện khi đã có số sàn của tháng (tải khi mở Tổng quan / Sàn), để % khớp với ô mục tiêu trong trang
+    var sk = Object.keys(SN.cache).filter(function (k) { return k.slice(-mk.length - 1) === '_' + mk; })[0];
+    if (sk) {
+      if (lvl() >= 3) { var gl = dashGoal(mk, SN.cache[sk]); o['tong-quan'] = goal(gl.cur, gl.tt, 'cả công ty (văn phòng + sàn, đã trừ hoàn / huỷ)', 'mục tiêu'); }
+      var sv = 0, st = 0; goalRows(mk, SN.cache[sk], true).forEach(function (x) { sv += x.v; st += x.t; });
+      if (sv || st) o.san = goal(sv, st, 'các sàn TMĐT', 'mục tiêu');
     }
     if (myViews().some(function (v) { return v.id === 'marketing'; })) {
       var t0 = today(), cnt = function (a, b) { var seen = {}; (S.d.leads || []).forEach(function (l) { if (l.time >= a && l.time < b && !/^file cũ/i.test(l.channel || '')) seen[normPhone(l.phone) || l.id] = 1; }); return Object.keys(seen).length; };
@@ -874,7 +879,7 @@
   function navData() {
     var no = newOrders().length, q = dayQueue().list.length, hot = hotLeads().length, ld = isMkt() ? [] : leadsDue(), k = { new: 0, callback: 0, stale: 0 };
     ld.forEach(function (l) { k[leadDue(l)]++; });
-    var team = lvl() >= 2 ? (S.who ? ' của ' + (S.who === '-' ? 'khách chưa giao' : S.who) : ' (cả nhóm)') : '';
+    var team = navWho();
     var part = function (a) { return a.filter(function (x) { return x[0]; }).map(function (x) { return x[0] + ' ' + x[1]; }).join(' · '); };
     return {
       n: { 'hom-nay': no + q + hot, 'don-hang': no, 'tiem-nang': ld.length },
@@ -886,6 +891,8 @@
     };
   }
   function navCounts() { return navData().n; }
+  /** Quản lý / Quản trị: số trên tab là của cả nhóm, hoặc của người đang lọc ở ô 👥. Sale: rỗng. */
+  function navWho() { return lvl() >= 2 ? (S.who ? ' của ' + (S.who === '-' ? 'khách chưa giao' : S.who) : ' (cả nhóm)') : ''; }
   /** Tab mở mặc định theo quyền: Quản trị → Tổng quan, Quản lý → Hiệu quả, nhân viên → Hôm nay. */
   function homeView() { return isMkt() || (MKT_HOST && myViews().some(function (x) { return x.id === 'marketing'; })) ? 'marketing' : lvl() >= 3 ? 'tong-quan' : lvl() >= 2 ? 'bao-cao' : 'hom-nay'; }
   function route() { var h = (location.hash || '').slice(1).split('/'); return { view: h[0] === 'lien-he' ? 'tiem-nang' : h[0] || homeView(), id: decodeURIComponent(h[1] || '') }; }
