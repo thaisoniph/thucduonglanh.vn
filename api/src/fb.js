@@ -223,18 +223,40 @@ Bạn là "${BOT}" – chuyên viên chăm sóc khách hàng của Thực Dưỡ
 
 # Tư vấn
 - Trả lời thẳng trước. Biết nhu cầu thì gợi ý 1–2 sản phẩm hợp nhất kèm lý do gắn với hoàn cảnh khách, thêm [[sp:mã]] (tối đa 2). Khách muốn mua: bấm link đặt trên web (được kiểm hàng trước khi nhận), hoặc gửi tên + số điện thoại + địa chỉ để chuyên viên lên đơn.
-- Khách hỏi giấy tờ, kiểm nghiệm, pháp lý: nêu ngắn 2–3 giấy chính (tên giấy, số hiệu, đơn vị cấp) đúng TÀI LIỆU, rồi gửi [[sp:mã]] và nói vào trang sản phẩm bấm nút "Xem phiếu kiểm nghiệm" để xem ảnh bản gốc. Không nói "em không gửi được".
+- Khách hỏi giấy tờ, kiểm nghiệm, pháp lý của 1 sản phẩm: 1–2 câu nêu ngắn các giấy chính (tên giấy + đơn vị cấp, không cần đọc số hiệu) đúng TÀI LIỆU, nói "em gửi ảnh bản gốc bên dưới" rồi thêm thẻ [[giayto:mã]] (hệ thống tự gửi ảnh giấy tờ). Không thêm [[sp:mã]] trong câu này. Không nói "em không gửi được".
+- Không tự viết đường link; muốn đưa link sản phẩm thì dùng thẻ [[sp:mã]].
 - Quà: cẩm nang "Sống khỏe chủ động" + mã giảm 5% + vào nhóm Zalo Sống khỏe. Khách chưa để số mà đã hỏi vài câu thì có thể mời nhẹ 1 lần: để lại số điện thoại (có Zalo) là em gửi quà liền. Đã mời rồi thì không nhắc lại.
 - Thêm [[zalo]] khi cần người thật: khách muốn gặp nhân viên / người thật, muốn xoá dữ liệu của mình, gửi thông tin đặt hàng, hỏi đơn đã đặt, đổi trả, khiếu nại, giá sỉ / đại lý / cộng tác viên, sản phẩm chưa có trên web, bệnh cụ thể cần tư vấn kỹ, khách bực bội, hoặc điều em không biết. Khi đó nói tự nhiên: "em báo chị chuyên viên bên em nhắn lại cho mình ngay nha" (trong giờ làm việc; ngoài giờ thì từ 8h sáng hôm sau).
 - Khách tự gửi số điện thoại thì cảm ơn và báo chuyên viên sẽ liên hệ.`;
 
 /** Thẻ của An Lành ([[sp:mã]], [[zalo]]) → chữ thường cho Messenger, link sản phẩm gắn UTM theo trang */
 function fbText(s, prods, p) {
-  let zalo = false;
-  const camp = nrm(p.name).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'fanpage';
-  const out = plain(s).replace(/\s*\[\[sp:([a-z0-9-]+)\]\]/g, (m, c) => prods[c] ? '\n👉 ' + prods[c].name + ': ' + prods[c].url + '?utm_source=facebook&utm_medium=messenger&utm_campaign=' + camp : '')
+  let zalo = false, proof = '';
+  const camp = nrm(p.name).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').replace(/^thuc-duong-lanh-?/, '').slice(0, 24).replace(/-[^-]*$/, '') || 'fanpage'; // ngắn cho link gọn
+  let t = plain(s).replace(/\s*\[\[giayto:([a-z0-9-]+)\]\]/g, (m, c) => { proof = proof || c; return ''; });
+  for (const m of t.matchAll(/\[\[sp:([a-z0-9-]+)\]\]/g)) t = t.replace(new RegExp('\\s*\\(?https?://(www\\.)?thucduonglanh\\.vn/san-pham/' + m[1] + '/?[^\\s)]*\\)?', 'g'), ''); // AI tự viết link trùng với thẻ → bỏ
+  const out = t.replace(/\s*\[\[sp:([a-z0-9-]+)\]\]/g, (m, c) => prods[c] ? '\n👉 ' + prods[c].name + ': ' + prods[c].url + '?utm_source=facebook&utm_medium=messenger&utm_campaign=' + camp : '')
     .replace(/\s*\[\[zalo\]\]/g, () => { zalo = true; return ''; }).replace(/\n{3,}/g, '\n\n').trim();
-  return { text: out, zalo };
+  return { text: out, zalo, proof };
+}
+/** Ảnh giấy tờ từng sản phẩm: https://thucduonglanh.vn/bot-proofs.json (build.py bot_proofs(), ảnh JPG), giữ 10 phút */
+let proofMem = null;
+async function proofs() {
+  if (proofMem && Date.now() - proofMem.t < 10 * 60e3) return proofMem.d;
+  try { const r = await fetch('https://thucduonglanh.vn/bot-proofs.json', { cf: { cacheTtl: 600, cacheEverything: true } }); if (r.ok) proofMem = { t: Date.now(), d: await r.json() }; } catch (e) { console.error('bot-proofs', e.message); }
+  return proofMem ? proofMem.d : {};
+}
+/** Gửi ảnh giấy tờ (tối đa 4 ảnh) như người thật chụp gửi, còn nữa thì gửi link xem hết */
+async function sendProofs(x, p, psid, code, prods, t0) {
+  const list = (await proofs())[code] || []; if (!list.length) return 0;
+  const show = list.slice(0, 4);
+  for (const it of show) {
+    if (BUDGET - (Date.now() - t0) < 1500) break;
+    await act(p, psid, 'typing_on'); await sleep(rnd(700, 1400));
+    try { await graph('me/messages', p.token, { recipient: { id: psid }, messaging_type: 'RESPONSE', message: { attachment: { type: 'image', payload: { url: it.url, is_reusable: true } }, metadata: 'anlanh' } }); } catch (e) { console.error('fp proof img', e.message); return 0; }
+  }
+  if (prods[code]) await send(x, p, psid, (list.length > show.length ? 'Còn ' + (list.length - show.length) + ' giấy nữa, mình xem đủ ở mục Hồ sơ chất lượng trên trang sản phẩm nha: ' : 'Mình xem rõ hơn ở mục Hồ sơ chất lượng trên trang sản phẩm nha: ') + prods[code].url);
+  return show.length;
 }
 async function send(x, p, psid, text, qr) {
   const parts = []; let t = String(text || '').trim();
@@ -352,8 +374,10 @@ async function onMessage(x, p, m, app) {
   if (!reply) { reply = 'Dạ em xem lại chút rồi nhắn mình ngay nha 🙏'; await flog(x, p.id, 'error', { name: u.name, text: 'AI lỗi khi trả lời: ' + lastAsk.slice(0, 120), reply: aerr ? String(aerr.status || '') + ' ' + String(aerr.message || aerr).slice(0, 300) : 'AI không trả lời' }); }
   const z = fbText(safe(reply), prodMap(know), p); if (!z.text) return;
   const qr = !u.phone && !u.gift && asked >= 2 ? [{ content_type: 'text', title: '🎁 Nhận quà', payload: 'GIFT' }] : null; // từ câu hỏi thứ 2: nút nhận quà dưới câu trả lời
-  await sendHuman(x, p, psid, z.text, qr, now, Date.now() - t1);
-  msgs = await readMsgs(); await put(z.text, z.zalo);
+  const pz = prodMap(know);
+  await sendHuman(x, p, psid, z.text, z.proof ? null : qr, now, Date.now() - t1);
+  const np = z.proof ? await sendProofs(x, p, psid, z.proof, pz, now) : 0; // khách hỏi giấy tờ → gửi thẳng ảnh bản gốc
+  msgs = await readMsgs(); await put(z.text + (np ? '\n[Đã gửi ' + np + ' ảnh giấy tờ]' : ''), z.zalo);
   await kvSet(x.db, dk, String(nd + 1), 2 * DAY);
   await flog(x, p.id, z.zalo ? 'handoff' : 'dm', { name: u.name, text: lastAsk, reply: z.text });
   if (z.zalo) x.later(handoff(x, p, u, lastAsk, z.text));

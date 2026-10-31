@@ -3373,6 +3373,7 @@ def main():
     (DIST / "robots.txt").write_text("User-agent: *\nAllow: /\n" + "".join(f"Disallow: {r}\n" for r in private) + f"Disallow: /admin/\nDisallow: /chat-kb.txt\n\nSitemap: {DOMAIN}/sitemap.xml\n", "utf-8")
     (DIST / "llms.txt").write_text(llms_txt(), "utf-8")
     (DIST / "chat-kb.txt").write_text(chat_kb(), "utf-8")  # kiến thức cho trợ lý chat (api/src/chat.js)
+    (DIST / "bot-proofs.json").write_text(json.dumps(bot_proofs(), ensure_ascii=False), "utf-8")  # ảnh giấy tờ cho trợ lý Fanpage (api/src/fb.js)
     (DIST / "anh-zalo.json").write_text(json.dumps(zalo_imgs(), ensure_ascii=False), "utf-8")  # kho ảnh thật cho bài đăng nhóm Zalo (api/src/zbot.js)
     if SITE.get("indexnow_key"):  # file xác minh IndexNow (Bing, Yandex…): workflow deploy.yml báo các trang mới sửa sau mỗi lần đăng
         (DIST / f'{SITE["indexnow_key"]}.txt').write_text(SITE["indexnow_key"], "utf-8")
@@ -3486,6 +3487,28 @@ def zalo_imgs():
         add(p["image"], p["title"], p["title"])
         for m in re.finditer(r'<img[^>]*?src="([^"]+)"[^>]*?alt="([^"]*)"|<img[^>]*?alt="([^"]*)"[^>]*?src="([^"]+)"', p["content"]):
             add(m.group(1) or m.group(4), m.group(2) or m.group(3), p["title"])
+    return out
+
+
+def bot_proofs():
+    """/bot-proofs.json: ảnh giấy tờ từng sản phẩm (bản tự công bố, phiếu kiểm nghiệm, GMP…) để trợ lý Fanpage gửi thẳng vào Messenger khi khách hỏi hồ sơ (api/src/fb.js, thẻ [[giayto:mã]]).
+    Messenger không nhận chắc ảnh WebP → chép sang JPG ở /fb-img/ (đường dẫn cố định theo tên file gốc)."""
+    from PIL import Image
+    out, d = {}, DIST / "fb-img"
+    for p in PRODUCTS:
+        items = []
+        for x in p.get("proofs") or []:
+            src = str(x.get("file") or "")
+            if not x.get("title") or not re.search(r"\.(webp|jpe?g|png)$", src, re.I) or not (ROOT / src.lstrip("/")).exists():
+                continue
+            name = Path(src).stem + ".jpg"
+            if not (d / name).exists():
+                d.mkdir(parents=True, exist_ok=True)
+                with Image.open(ROOT / src.lstrip("/")) as im:
+                    im = im.convert("RGB"); im.thumbnail((1600, 1600)); im.save(d / name, "JPEG", quality=85, optimize=True)
+            items.append({"t": x["title"] + (f' – {x["org"]}' if x.get("org") else ""), "url": f"{DOMAIN}/fb-img/{name}"})
+        if items:
+            out[p["slug"]] = items[:6]
     return out
 
 
