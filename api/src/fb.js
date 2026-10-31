@@ -56,7 +56,7 @@ const vnHour = t => { const d = new Date(t + TZ_MS); return d.getUTCHours() + d.
 const slotTime = (day, at) => { const [h, m] = String(at || '19:30').split(':').map(Number); return new Date(day.slice(0, 4) + '-' + day.slice(4, 6) + '-' + day.slice(6, 8) + 'T00:00:00+07:00').getTime() + ((h || 0) * 60 + (m || 0)) * 60e3; };
 const given = n => String(n || '').trim().split(/\s+/).pop() || 'anh/chị'; // tên gọi tiếng Việt = chữ cuối
 const pick = a => a[Math.floor(Math.random() * a.length)];
-const plain = s => String(s || '').replace(/\*\*/g, '').replace(/^#+\s*/gm, ''); // Facebook không hiện chữ đậm / tiêu đề markdown
+const plain = s => String(s || '').replace(/<br\s*\/?>/gi, '\n').replace(/<\/?[a-z][^>]*>/gi, '').replace(/\*\*/g, '').replace(/^#+\s*/gm, '').replace(/\n{3,}/g, '\n\n').trim(); // Facebook không hiện chữ đậm / tiêu đề markdown / thẻ HTML
 
 export async function fbSchema(db) {
   await run(db, `CREATE TABLE IF NOT EXISTS fp_pages (id TEXT PRIMARY KEY, name TEXT DEFAULT '', token TEXT DEFAULT '', active INTEGER DEFAULT 0, cfg TEXT DEFAULT '{}',
@@ -212,15 +212,20 @@ Bạn là "${BOT}" – chuyên viên chăm sóc khách hàng của Thực Dưỡ
 
 # Giọng nói
 - Như tin nhắn giữa người với người: câu ngắn, đời thường, "dạ", "ạ", "nha" vừa phải. Không văn mẫu, không quảng cáo.
-- Xưng hô theo khách (cô/chú/bác → xưng "con"/"cháu"; chị/anh → xưng "em"); chưa rõ thì "anh/chị", xưng "em". Giữ nguyên suốt cuộc trò chuyện.
+- Xưng hô theo khách (cô/chú/bác → xưng "con"/"cháu"; chị/anh → xưng "em"); chưa rõ thì "anh/chị", xưng "em". Giữ nguyên suốt cuộc trò chuyện. Không gọi khách là "bạn".
 - Đồng cảm trước khi đưa thông tin nếu khách kể chuyện. Nhớ điều khách đã kể, không hỏi lại.
-- Ngắn: 2–4 câu, dưới 80 chữ; chỉ gạch đầu dòng khi liệt kê từ 3 ý. Emoji tối đa 1. Không tiêu đề, không bảng, không dấu ** (Messenger không hiện chữ đậm).
+- Ngắn: tổng cộng dưới 90 chữ. Viết 1–3 đoạn ngắn, mỗi đoạn 1 ý, cách nhau 1 dòng trống (hệ thống gửi từng đoạn thành từng tin như người thật nhắn). Chỉ gạch đầu dòng khi liệt kê từ 3 ý. Emoji tối đa 1.
+- Chỉ chữ thường: không tiêu đề, không bảng, không dấu **, không thẻ HTML (<br>…), không markdown.
 - Không phải câu nào cũng hỏi lại; hỏi 1 câu khi thật cần để tư vấn.
+- Tránh câu "nghe là biết máy": "Chắc chắn rồi", "Rất vui được hỗ trợ", "Cảm ơn bạn đã đặt câu hỏi", "Tuyệt vời!", "Hy vọng thông tin trên hữu ích", "Nếu còn thắc mắc gì…". Không nhắc lại câu hỏi của khách. Không phải câu nào cũng mở bằng "Dạ"; đổi cách mở (dạ / vâng / gọi anh chị…) cho tự nhiên.
+- Viết đúng chính tả, có dấu đầy đủ, câu trọn nghĩa, không viết tắt kiểu "k", "dc".
+- Khách nhắn nhiều tin liên tiếp: đọc hết rồi trả lời gộp 1 lần.
 
 # Tư vấn
 - Trả lời thẳng trước. Biết nhu cầu thì gợi ý 1–2 sản phẩm hợp nhất kèm lý do gắn với hoàn cảnh khách, thêm [[sp:mã]] (tối đa 2). Khách muốn mua: bấm link đặt trên web (được kiểm hàng trước khi nhận), hoặc gửi tên + số điện thoại + địa chỉ để chuyên viên lên đơn.
+- Khách hỏi giấy tờ, kiểm nghiệm, pháp lý: nêu ngắn 2–3 giấy chính (tên giấy, số hiệu, đơn vị cấp) đúng TÀI LIỆU, rồi gửi [[sp:mã]] và nói vào trang sản phẩm bấm nút "Xem phiếu kiểm nghiệm" để xem ảnh bản gốc. Không nói "em không gửi được".
 - Quà: cẩm nang "Sống khỏe chủ động" + mã giảm 5% + vào nhóm Zalo Sống khỏe. Khách chưa để số mà đã hỏi vài câu thì có thể mời nhẹ 1 lần: để lại số điện thoại (có Zalo) là em gửi quà liền. Đã mời rồi thì không nhắc lại.
-- Thêm [[zalo]] khi cần người thật: khách muốn gặp nhân viên / người thật, muốn xoá dữ liệu của mình, gửi thông tin đặt hàng, hỏi đơn đã đặt, đổi trả, khiếu nại, giá sỉ / đại lý / cộng tác viên, sản phẩm chưa có trên web, hoặc điều em không biết. Khi đó nói tự nhiên: "em chuyển chị bên chuyên viên nhắn lại cho mình ngay nha" (trong giờ làm việc; ngoài giờ thì từ 8h sáng hôm sau).
+- Thêm [[zalo]] khi cần người thật: khách muốn gặp nhân viên / người thật, muốn xoá dữ liệu của mình, gửi thông tin đặt hàng, hỏi đơn đã đặt, đổi trả, khiếu nại, giá sỉ / đại lý / cộng tác viên, sản phẩm chưa có trên web, bệnh cụ thể cần tư vấn kỹ, khách bực bội, hoặc điều em không biết. Khi đó nói tự nhiên: "em báo chị chuyên viên bên em nhắn lại cho mình ngay nha" (trong giờ làm việc; ngoài giờ thì từ 8h sáng hôm sau).
 - Khách tự gửi số điện thoại thì cảm ơn và báo chuyên viên sẽ liên hệ.`;
 
 /** Thẻ của An Lành ([[sp:mã]], [[zalo]]) → chữ thường cho Messenger, link sản phẩm gắn UTM theo trang */
@@ -237,7 +242,29 @@ async function send(x, p, psid, text, qr) {
   if (t) parts.push(t);
   for (let i = 0; i < parts.length; i++) await graph('me/messages', p.token, { recipient: { id: psid }, messaging_type: 'RESPONSE', message: Object.assign({ text: parts[i], metadata: 'anlanh' }, qr && i === parts.length - 1 ? { quick_replies: qr } : {}) });
 }
-const typing = (x, p, psid) => graph('me/messages', p.token, { recipient: { id: psid }, sender_action: 'typing_on' }).catch(() => { });
+const act = (p, psid, a) => graph('me/messages', p.token, { recipient: { id: psid }, sender_action: a }).catch(() => { }); // mark_seen = "Đã xem", typing_on = "đang gõ"
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const rnd = (a, b) => a + Math.floor(Math.random() * (b - a));
+const BUDGET = 25e3; // xử lý xong trong 25 giây kể từ lúc nhận tin (Cloudflare cho chạy tiếp tối đa 30 giây sau khi trả lời Facebook)
+/** Câu dài → 2–3 tin ngắn theo đoạn (dòng link 👉 đi cùng đoạn trước) */
+function bubbles(text) {
+  if (text.length <= 160) return [text];
+  const out = [];
+  for (const s of text.split(/\n\s*\n/).map(s => s.trim()).filter(Boolean)) { if (out.length && (/^👉/.test(s) || s.length < 30)) out[out.length - 1] += '\n' + s; else out.push(s); }
+  while (out.length > 3) { const last = out.pop(); out[out.length - 1] += '\n\n' + last; }
+  return out.length ? out : [text];
+}
+/** Gửi như người thật: hiện "đang gõ" theo độ dài từng tin rồi mới gửi (spent: thời gian đã "gõ" trước đó, vd lúc chờ AI) */
+async function sendHuman(x, p, psid, text, qr, t0, spent) {
+  const bs = bubbles(String(text || '').trim());
+  for (let i = 0; i < bs.length; i++) {
+    const left = BUDGET - (Date.now() - t0);
+    if (left < 2500) { await send(x, p, psid, bs.slice(i).join('\n\n'), qr); return; } // hết giờ → gửi nốt
+    const wait = Math.min(left - 2000, Math.max(i ? 1200 : 0, Math.min(7000, 800 + bs[i].length * 40 + rnd(0, 900)) - (i ? 0 : spent || 0)));
+    if (wait > 0) { await act(p, psid, 'typing_on'); await sleep(wait); }
+    await send(x, p, psid, bs[i], i === bs.length - 1 ? qr : null);
+  }
+}
 const PAUSE_MS = 12 * 3600e3, AUTO_MS = 20e3; // nhân sự nhắn tay → bot nhường 12 tiếng; tin trang gửi trong 20 giây sau tin khách = tự động của Meta
 const ASK_PHONE = 'Dạ em gửi quà liền ạ 🎁 Mình cho em xin số điện thoại (có Zalo) để em gửi quà và mời mình vào nhóm Sống khỏe trên Zalo nha. Mình bấm số bên dưới cho nhanh, hoặc gõ số cũng được ạ.';
 
@@ -264,64 +291,72 @@ async function onMessage(x, p, m, app) {
     u = await first(x.db, 'SELECT * FROM fp_users WHERE psid = ?', psid);
   }
   await run(x.db, 'UPDATE fp_users SET last_in = ?, mid = ? WHERE psid = ?', now, mid, psid);
-  const sid = 'fb' + psid, row = await first(x.db, 'SELECT msgs FROM chats WHERE sid = ?', sid);
-  let msgs = []; try { msgs = JSON.parse(row && row.msgs || '[]'); } catch (e) { }
+  const sid = 'fb' + psid, readMsgs = async () => { const r = await first(x.db, 'SELECT msgs FROM chats WHERE sid = ?', sid); try { return JSON.parse(r && r.msgs || '[]'); } catch (e) { return []; } };
+  let msgs = await readMsgs();
   if (!text && !payload) return; // nhãn dán, ảnh: để nhân sự xem trong hộp thư
   const pm = (/^\+?\d[\d .-]{8,}$/.test(payload) ? payload : text).match(PHONE_RE), ph = pm ? normPhone(pm[0]) : '';
   const gotPhone = /^0\d{9}$/.test(ph) && !u.phone && !REF_TXT.test(text || '') ? ph : '';
   msgs.push({ r: 'u', t: payload === 'GIFT' ? '🎁 Nhận quà' : payload === 'ASK' ? '💬 Hỏi sản phẩm' : text || payload, at: now });
-  const save = async (reply, miss) => {
+  const put = async (reply, miss, first0) => { // first0: ghi tin khách ngay (tin sau tới đọc được), không có câu trả lời
     if (reply) msgs.push({ r: 'a', t: reply, at: Date.now() });
     await run(x.db, `INSERT INTO chats (sid, start, last, n, page, src, msgs, miss) VALUES (?, ?, ?, 1, ?, 'Facebook', ?, ?)
-      ON CONFLICT(sid) DO UPDATE SET last = excluded.last, n = chats.n + 1, msgs = excluded.msgs, miss = chats.miss + excluded.miss`, sid, now, now, 'Fanpage ' + p.name, JSON.stringify(msgs.slice(-60)).slice(0, 60000), miss ? 1 : 0);
+      ON CONFLICT(sid) DO UPDATE SET last = excluded.last, n = chats.n + ?, msgs = excluded.msgs, miss = chats.miss + excluded.miss`, sid, now, now, 'Fanpage ' + p.name, JSON.stringify(msgs.slice(-60)).slice(0, 60000), miss ? 1 : 0, first0 ? 1 : 0);
   };
+  await put('', 0, true);
   const echoAt = (u.pause || 0) - PAUSE_MS, autoEcho = msgs.some(z => z.r === 'u' && echoAt >= z.at && echoAt - z.at < AUTO_MS); // lần nhường do tin tự động của Meta (tới ngay sau 1 tin khách) → bỏ qua
-  if (u.pause > now && !autoEcho) { await save('', 0); return; } // nhân sự đang nói chuyện với khách
+  if (u.pause > now && !autoEcho) return; // nhân sự đang nói chuyện với khách
   const nm = given(u.name), c = p.cfg;
   const giftOut = () => c.gift_msg.replace(/\{ten\}/g, nm).replace(/\{link\}/g, c.gift_link || CAMNANG).replace(/\{nhom\}/g, c.group || ZALO_GROUP);
+  await sleep(rnd(1000, 2200)); await act(p, psid, 'mark_seen'); // như người thật: mở tin, "Đã xem"
 
   if (gotPhone) { // có số → ghi khách hỏi, gửi quà + nhóm Zalo
     const out = giftOut();
-    await send(x, p, psid, out);
+    await sendHuman(x, p, psid, out, null, now, 0);
     await run(x.db, 'UPDATE fp_users SET phone = ?, gift = 2 WHERE psid = ?', gotPhone, psid);
-    await save(out, 0);
+    await put(out, 0);
     await flog(x, p.id, 'lead', { name: u.name, text: text.replace(PHONE_RE, '[SĐT]'), reply: 'Đã gửi quà + link nhóm Zalo' });
     let src = {}; try { src = JSON.parse(u.src || '{}'); } catch (e) { }
     await saveLead(x, p, { psid, name: u.name, phone: gotPhone, how: 'Để lại số qua Messenger', gift: true, asks: msgs.filter(z => z.r === 'u').map(z => z.t.replace(PHONE_RE, '[SĐT]')), raw: msgs.filter(z => z.r === 'u').map(z => z.t), post: src.post, cmt: src.text });
     return;
   }
   if (payload === 'GIFT' || /^(qua|nhan qua|lay qua|xin qua)\b/.test(nrm(text))) {
-    if (u.phone) { const out = giftOut(); await send(x, p, psid, out); await save(out, 0); return; } // đã có số → gửi lại quà
-    await send(x, p, psid, ASK_PHONE, [{ content_type: 'user_phone_number' }]);
-    await run(x.db, 'UPDATE fp_users SET gift = 1 WHERE psid = ?', psid); await save(ASK_PHONE, 0);
+    if (u.phone) { const out = giftOut(); await sendHuman(x, p, psid, out, null, now, 0); await put(out, 0); return; } // đã có số → gửi lại quà
+    await sendHuman(x, p, psid, ASK_PHONE, [{ content_type: 'user_phone_number' }], now, 0);
+    await run(x.db, 'UPDATE fp_users SET gift = 1 WHERE psid = ?', psid); await put(ASK_PHONE, 0);
     await flog(x, p.id, 'gift_ask', { name: u.name, reply: 'Xin số để gửi quà' }); return;
   }
-  if (payload === 'ASK' && !text.replace(/💬|hỏi sản phẩm/gi, '').trim()) { const t = 'Dạ mình cứ nhắn điều mình muốn hỏi nha, em trả lời liền ạ 🌿 (ví dụ: sản phẩm nào hợp với mẹ sau sinh, trà uống thế nào, giá bao nhiêu…)'; await send(x, p, psid, t); await save(t, 0); return; }
-  if (!c.ai || !x.env.ANTHROPIC_API_KEY) { await save('', 0); return; }
+  if (payload === 'ASK' && !text.replace(/💬|hỏi sản phẩm/gi, '').trim()) { const t = 'Mình cứ nhắn điều mình muốn hỏi nha, em trả lời liền ạ 🌿 Ví dụ: sản phẩm nào hợp với mẹ sau sinh, trà uống thế nào, giá bao nhiêu…'; await sendHuman(x, p, psid, t, null, now, 0); await put(t, 0); return; }
+  if (!c.ai || !x.env.ANTHROPIC_API_KEY) return;
   const dk = 'fp_dm_' + psid + '_' + fmtDate(now, 'yyMMdd'), nd = Number(await kvGet(x.db, dk) || 0);
-  if (nd >= 60) { await save('', 0); return; } // 1 người / ngày
-  x.later(typing(x, p, psid));
+  if (nd >= 60) return; // 1 người / ngày
+  await sleep(rnd(800, 1600)); // chờ xem khách còn nhắn thêm không
+  const cur = await first(x.db, 'SELECT mid FROM fp_users WHERE psid = ?', psid);
+  if (cur && mid && cur.mid !== mid) return; // khách vừa nhắn tin mới → để lượt sau trả lời gộp
+  msgs = await readMsgs(); // đủ mọi tin khách vừa nhắn
+  await act(p, psid, 'typing_on');
   const hist = msgs.slice(-16); while (hist.length && hist[0].r !== 'u') hist.shift();
+  const lastAsk = hist.filter(z => z.r === 'u').slice(-3).map(z => z.t).join(' | ');
   const know = await kb(), w = workNow(now); let src = {}; try { src = JSON.parse(u.src || '{}'); } catch (e) { }
-  const asked = msgs.filter(z => z.r === 'u').length;
+  const asked = msgs.filter(z => z.r === 'u').length, t1 = Date.now();
   let reply = '', aerr = null;
   for (let tr = 0; tr < 2 && !reply; tr++) try { // lỗi thì thử lại 1 lần, lần sau gửi ít lịch sử hơn
-    const hs = tr ? hist.slice(-6) : hist; while (hs.length && hs[0].r !== 'u') hs.shift();
+    const hs = tr ? hist.slice(-6) : hist.slice(); while (hs.length && hs[0].r !== 'u') hs.shift();
+    const merged = []; for (const z of hs) { const role = z.r === 'u' ? 'user' : 'assistant'; if (merged.length && merged[merged.length - 1].role === role) merged[merged.length - 1].content += '\n' + z.t; else merged.push({ role, content: z.t }); } // nhiều tin khách liền nhau → 1 lượt
     const res = await ai(x.env).messages.create({ model: FAST, max_tokens: 1500, output_config: { effort: 'low' },
       system: [{ type: 'text', text: MSG_RULES + '\n' + REF_RULES + '\n' + TRUTH_RULES.replace(/mời nhắn Zalo/g, 'thêm [[zalo]] để chuyên viên hỗ trợ') },
         { type: 'text', text: 'TÀI LIỆU (thông tin chính thức của Thực Dưỡng Lành):\n\n' + know, cache_control: { type: 'ephemeral' } },
         { type: 'text', text: 'Fanpage: "' + p.name + '". Bây giờ là ' + w.label + '. Chuyên viên ' + (w.on ? 'đang trực.' : 'ngoài giờ (trực Thứ 2 – Thứ 7, 8h–17h): nhắn lại từ 8h sáng hôm sau.') + (u.name ? ' Tên Facebook của khách: ' + u.name + '.' : '') + (src.text ? ' Khách đến từ bình luận: "' + src.text + '".' : '') + (u.phone ? ' Khách ĐÃ để số và đã nhận quà, không mời nhận quà nữa.' : u.gift ? ' Đã xin số để gửi quà, chưa nhận được.' : '') }],
-      messages: hs.map(z => ({ role: z.r === 'u' ? 'user' : 'assistant', content: z.t })) });
-    reply = res.stop_reason === 'refusal' ? 'Dạ câu này em xin phép chưa trả lời được ạ, để chuyên viên bên em nhắn lại cho mình nha. [[zalo]]' : textOf(res);
+      messages: merged });
+    reply = res.stop_reason === 'refusal' ? 'Câu này em xin phép chưa trả lời được ạ, để chị chuyên viên bên em nhắn lại cho mình nha. [[zalo]]' : textOf(res);
   } catch (e) { aerr = e; console.error('fp ai', e && (e.status || ''), e && e.message); }
-  if (!reply) { reply = 'Dạ em đang hơi chậm một chút, mình nhắn lại giúp em sau ít phút nha 🙏'; await flog(x, p.id, 'error', { name: u.name, text: 'AI lỗi khi trả lời: ' + text.slice(0, 120), reply: aerr ? String(aerr.status || '') + ' ' + String(aerr.message || aerr).slice(0, 300) : 'AI không trả lời' }); }
+  if (!reply) { reply = 'Dạ em xem lại chút rồi nhắn mình ngay nha 🙏'; await flog(x, p.id, 'error', { name: u.name, text: 'AI lỗi khi trả lời: ' + lastAsk.slice(0, 120), reply: aerr ? String(aerr.status || '') + ' ' + String(aerr.message || aerr).slice(0, 300) : 'AI không trả lời' }); }
   const z = fbText(safe(reply), prodMap(know), p); if (!z.text) return;
   const qr = !u.phone && !u.gift && asked >= 2 ? [{ content_type: 'text', title: '🎁 Nhận quà', payload: 'GIFT' }] : null; // từ câu hỏi thứ 2: nút nhận quà dưới câu trả lời
-  await send(x, p, psid, z.text, qr);
-  await save(z.text, z.zalo);
+  await sendHuman(x, p, psid, z.text, qr, now, Date.now() - t1);
+  msgs = await readMsgs(); await put(z.text, z.zalo);
   await kvSet(x.db, dk, String(nd + 1), 2 * DAY);
-  await flog(x, p.id, z.zalo ? 'handoff' : 'dm', { name: u.name, text, reply: z.text });
-  if (z.zalo) x.later(handoff(x, p, u, text, z.text));
+  await flog(x, p.id, z.zalo ? 'handoff' : 'dm', { name: u.name, text: lastAsk, reply: z.text });
+  if (z.zalo) x.later(handoff(x, p, u, lastAsk, z.text));
 }
 
 /** Câu cần người thật → Telegram kèm link hộp thư fanpage */
