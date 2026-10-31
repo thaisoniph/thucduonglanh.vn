@@ -148,6 +148,9 @@ async function otypeSuggest(x, phone, t) {
   if (ca === 'Lễ') return { t: 'Ngày lễ', why: 'đơn tạo ngày lễ ' + dm(t) };
   if (ca === 'Tối/CN') return { t: 'Ngoài giờ', why: 'đơn tạo ' + (new Date(t + 7 * 3600e3).getUTCDay() === 0 ? 'Chủ nhật' : 'sau giờ ca tối') };
   phone = normPhone(phone);
+  // 31/10/2026 (anh Sơn duyệt, như chế độ cũ): khách mới do khách cũ giới thiệu → hoa hồng như Khách cũ (cộng thêm thưởng giới thiệu, partner.js)
+  const rf = (await first(x.db, 'SELECT ref_phone FROM ref_sale WHERE phone = ? AND void = 0', phone)) || (await first(x.db, "SELECT ref_phone FROM leads WHERE phone = ? AND coalesce(ref_phone, '') != '' ORDER BY rid DESC LIMIT 1", phone));
+  if (rf && rf.ref_phone) { const rc = await first(x.db, 'SELECT name FROM customers WHERE phone = ?', rf.ref_phone); return { t: 'Khách cũ', why: 'khách do khách cũ ' + ((rc && rc.name) || rf.ref_phone) + ' giới thiệu (hoa hồng như khách cũ)' }; }
   const ad = (await all(x.db, 'SELECT channel, time FROM leads WHERE phone = ? AND time >= ? AND time <= ? ORDER BY time DESC', phone, t - AD_LEAD_DAYS * DAY, t + DAY)).find(l => AD_CH.test(l.channel || ''));
   if (ad) return { t: 'Khách mới', why: 'khách để lại số qua ' + ad.channel + ' ngày ' + dm(ad.time) };
   const v = await first(x.db, 'SELECT first, orders FROM customers WHERE phone = ?', phone);
@@ -896,6 +899,7 @@ export async function saveOrder(x, data, opt) {
   let refSale = ''; // 🌱 khách mới (chưa có trong CRM) dùng mã / SĐT của khách cũ → thuộc về sale phụ trách khách cũ (partner.js refClaim)
   if (!manual && !owner && data.voucher) { try { const rv = await first(x.db, 'SELECT ref_phone FROM vouchers WHERE code = ?', String(data.voucher)); if (rv && rv.ref_phone) refSale = await refClaim(x, phone, rv.ref_phone, 'web', 'Website'); } catch (e) { console.error('refClaim', e.message); } }
   if (refSale) owner = assigned = refSale;
+  if (opt.otype === 'Khách mới' && data.voucher && !manual) { try { const rv2 = await first(x.db, 'SELECT ref_phone FROM vouchers WHERE code = ?', String(data.voucher)); if (rv2 && rv2.ref_phone) opt.otype = 'Khách cũ'; } catch (e) { } } // đặt web bằng mã / SĐT người giới thiệu → hoa hồng như khách cũ
   if (!owner && !opt.by) owner = assigned = refBy || await autoOwner(x); // khách mới: giao cho sale gửi link, không thì theo chế độ "Tự chia đều"
   const seller = opt.by || owner;
   await insertMany(x.db, 'orders', ORDER_COLS, [{ id: String(data.id || ''), time: now, name: c.name || '', phone, email: c.email || '', province: c.province || '', ward: c.district || '', address: c.address || '', items,

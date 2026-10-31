@@ -96,6 +96,7 @@ Voucher dùng cho đơn từ 300.000đ, hạn 90 ngày. Nói với khách cho d�
 
 - Người được giới thiệu là **số mới, chưa có trong CRM** (chưa từng mua, chưa từng hỏi) → khách đó **thuộc về bạn**, nếu bạn đang phụ trách người giới thiệu. Ai nhập khách cũng vậy, kể cả khi người bạn tự đặt trên web.
 - Thưởng tính **cộng dồn tiền hàng khách mới mua trong 60 ngày đầu** (đơn đã giao xong 7 ngày): đủ **300.000đ → 20.000đ**, đủ **700.000đ → thêm 30.000đ** (tổng 50.000đ). 8h sáng Telegram báo 🎉. Khách mua ít lần đầu thì chăm sóc để khách mua thêm: danh sách ở tab **Hiệu quả** ghi rõ *"đã mua 140k / 300k, còn 160k nữa là +20.000đ"*. Các đơn mua lại về sau của khách cũng tính doanh số cho bạn.
+- **Hoa hồng % vẫn tính như khách cũ** trên mọi đơn của khách được giới thiệu (CRM tự chọn loại đơn **Khách cũ**, ghi lý do "khách do khách cũ … giới thiệu"). Thưởng 20.000đ / 50.000đ là **cộng thêm**. Ví dụ khách mới mua đơn 5 triệu: hoa hồng như khách cũ trên 5 triệu + 50.000đ thưởng.
 - Khách mới mua chưa đủ 300.000đ thì chưa có tiền thưởng, nhưng khách **vẫn thuộc về bạn** và được tính vào **mục tiêu nhóm**.
 - Không được thưởng: số đã có trong CRM, đơn huỷ hoặc hoàn, khách mới **cùng địa chỉ** với người giới thiệu.
 - Xem thưởng của mình: tab **Hôm nay**, dòng 🌱 ở khung đầu trang, hoặc tab **Hiệu quả** → ô **🌱 Khách mới nhờ khách cũ giới thiệu**. Ô này có: số khách mới, tiền thưởng đã chắc, tiền đang chờ, và **🤝 mục tiêu cả nhóm** trong tháng.

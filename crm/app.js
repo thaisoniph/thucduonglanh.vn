@@ -2729,6 +2729,9 @@
     var ca = caNow(t), ph = normPhone(phone);
     if (ca === 'Lễ') return { t: 'Ngày lễ', why: 'đơn tạo ngày lễ' };
     if (ca === 'Tối/CN') return { t: 'Ngoài giờ', why: new Date(t + 7 * 3600e3).getUTCDay() === 0 ? 'đơn tạo Chủ nhật' : 'đơn tạo sau ' + (((S.d.rules || {}).ca || {}).evening || '17:30') };
+    // 31/10/2026: khách mới do khách cũ giới thiệu → hoa hồng như Khách cũ (trùng otypeSuggest ở api/src/crm.js)
+    var rl = (S.d.leads || []).filter(function (l) { return l.phone === ph && l.refPhone; })[0], rs = S._rb && S._rb.list.filter(function (r) { return r.phone === ph && r.st !== 'void'; })[0], rp = (rl && rl.refPhone) || (rs && rs.refPhone);
+    if (rp) return { t: 'Khách cũ', why: 'khách do khách cũ ' + (((cust(rp) || {}).name) || rp) + ' giới thiệu (hoa hồng như khách cũ)' };
     var ad = (S.d.leads || []).filter(function (l) { return l.phone === ph && /^(quảng cáo|ebook|form website)/i.test(l.channel || '') && l.time && l.time >= t - 30 * DAY && l.time <= t + DAY; }).sort(function (a, b) { return b.time - a.time; })[0];
     if (ad) return { t: 'Khách mới', why: 'khách để lại số qua ' + ad.channel + ' ngày ' + fDate(ad.time).slice(0, 5) };
     var c = cust(ph); if (c && c.first && c.first < t - 3600e3) return { t: 'Khách cũ', why: 'đã mua từ ' + fDate(c.first) + ' (' + c.orders + ' đơn)' };
@@ -7810,7 +7813,7 @@
     var mk = monthOf(Date.now()), c = rb.cfg, mine = rb.list.filter(function (r) { return !name || r.sale === name; }), M = rbMonth(mine, mk);
     var tn = rb.team[mk] || 0, gp = c.goalN ? Math.min(100, pct(tn, c.goalN)) : 0;
     var h = '<div class="box rsb"><h3>🌱 Khách mới nhờ khách cũ giới thiệu · tháng ' + (+mk.slice(5)) + '</h3>' +
-      '<p class="small muted" style="margin:0 0 10px">Khách đang dùng tốt giới thiệu người thân. Người đó là <b>số mới, chưa có trong CRM</b> → khách thuộc về sale phụ trách khách cũ. Thưởng tính <b>cộng dồn</b> tiền hàng khách mới mua trong ' + (c.winDays || 60) + ' ngày đầu: <b>' + rbStepTxt(rbSteps()) + '</b> (đơn đã giao xong 7 ngày). Khách mua ít lần đầu thì chăm sóc để khách mua thêm.</p>' +
+      '<p class="small muted" style="margin:0 0 10px">Khách đang dùng tốt giới thiệu người thân. Người đó là <b>số mới, chưa có trong CRM</b> → khách thuộc về sale phụ trách khách cũ. Thưởng tính <b>cộng dồn</b> tiền hàng khách mới mua trong ' + (c.winDays || 60) + ' ngày đầu: <b>' + rbStepTxt(rbSteps()) + '</b> (đơn đã giao xong 7 ngày). Khách mua ít lần đầu thì chăm sóc để khách mua thêm. <b>Hoa hồng % vẫn tính trên mọi đơn như khách cũ</b>, thưởng này là cộng thêm.</p>' +
       '<div class="rsb-n"><div><b>' + M.nw + '</b><span>khách mới đã mua</span></div><div><b>' + moneyShort(M.okV) + '</b><span>thưởng đã ghi tháng này</span></div><div><b>' + moneyShort(M.pendV) + '</b><span>đang chờ · ' + M.pend.length + ' khách đang giao / chờ đủ 7 ngày</span></div></div>' +
       (M.run.length ? '<p class="small" style="margin:8px 0 0">🛒 ' + M.run.length + ' khách mua chưa đủ mức thưởng: chăm sóc để khách mua thêm (xem danh sách bên dưới).</p>' : '') +
       (M.wait.length ? '<p class="small" style="margin:6px 0 0">⏳ ' + M.wait.length + ' người được giới thiệu chưa mua: gọi tư vấn để chốt.</p>' : '') +
