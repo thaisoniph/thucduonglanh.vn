@@ -65,7 +65,7 @@ Mỗi bạn có **một link web riêng**, ví dụ `thucduonglanh.vn/?ref=thuy`
 - Lý do mời khách đặt web: **giá rẻ hơn Shopee**, có thêm quà.
 - **Không** rủ khách đang mua trên Shopee sang web. Shopee cấm việc này và có thể phạt.
 
-**Link đặt lại (giỏ hàng có sẵn):** trong hồ sơ khách hoặc cửa sổ Chăm sóc, bấm **🔗 Link đặt lại**. CRM tạo link đã có sẵn sản phẩm của đơn trước. Bấm **📋 Copy tin & mở Zalo**, gửi khách. Khách chỉ cần xem lại địa chỉ rồi bấm Đặt hàng. Nên dùng khi khách **sắp hết hàng**.
+**Link đặt lại (giỏ hàng có sẵn):** trong hồ sơ khách bấm **🔗 Link đặt lại**, hoặc trong cửa sổ Chăm sóc bấm **🔗 Gửi link cho khách tự đặt** (khung *Khách muốn mua?*). Khách muốn bạn lên đơn luôn thì bấm nút xanh **🛒 Lên đơn ngay** bên cạnh. CRM tạo link đã có sẵn sản phẩm của đơn trước. Bấm **📋 Copy tin & mở Zalo**, gửi khách. Khách chỉ cần xem lại địa chỉ rồi bấm Đặt hàng. Nên dùng khi khách **sắp hết hàng**.
 
 ## Khách cũ giới thiệu bạn bè (🌱 Đại sứ Sống Lành)
 

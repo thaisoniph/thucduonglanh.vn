@@ -1386,3 +1386,11 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .zb-eng { background: var(--primary-soft); border-radius: var(--radius-sm); padding: 6px 10px; margin: 6px 0; }
 .zb-funs { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 12px; }
 .zb-funbox p { margin: 6px 0 0; }
+/* hộp chăm sóc: "Khách muốn mua?" ngay dưới thông tin khách – nút lên đơn (chính) to, nút gửi link (phụ) tách riêng có chữ giải thích (31/10/2026) */
+.k-buy h3 { margin: 0 0 8px; }
+.k-buy-b { display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px; }
+.k-buy-b .btn { flex-direction: column; justify-content: center; gap: 2px; min-height: 56px; white-space: normal; text-align: center; line-height: 1.25; font-size: 15px; }
+.k-buy-b .btn small { font-size: 11.5px; font-weight: 500; opacity: .85; }
+.k-buy-b .btn:not(.pri) small { color: var(--muted); }
+@media (max-width: 520px) { .k-buy-b { grid-template-columns: 1fr; } }
+.gs-ord { margin: -2px 0 10px; }

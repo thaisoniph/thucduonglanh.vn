@@ -135,7 +135,7 @@
     return { p: best, vi: vi, qty: it.qty || 1 };
   }
   /** 🔗 Link đặt lại: giỏ hàng web điền sẵn như đơn gần nhất + mã ?ref= của người phụ trách (đơn tính cho người đó). */
-  function openRelink(phone) {
+  function openRelink(phone, back) {
     var c = cust(phone); if (!c) return;
     var lo = ordersOf(c.phone).filter(function (o) { return !isVoid(o.status) && parseItems(o.items).length; }).sort(function (a, b) { return (b.time || 0) - (a.time || 0); })[0];
     var got = [], miss = [];
@@ -150,7 +150,7 @@
       '<label class="f"><span>Tin gửi khách (sửa được)</span><textarea id="rlText" rows="6">' + esc(txt) + '</textarea></label>' +
       '<p class="small muted" style="margin:6px 0 0">Khách đặt qua link này: đơn tính cho <b>' + esc(who) + '</b>' + (got.length ? ', giỏ hàng có sẵn ' + esc(list) + ' (khách đổi số lượng được)' : '') + '.</p>';
     var foot = '<button class="btn ghost" data-copyref="' + esc(url) + '">📋 Chỉ copy link</button><button class="btn pri" id="rlGo">📋 Copy tin & mở Zalo</button>';
-    var m = modal('🔗 Link đặt lại – ' + esc(c.name || c.phone), body, foot);
+    var m = modal('🔗 Link đặt lại – ' + esc(c.name || c.phone), body, foot, back ? { onClose: back } : null);
     $('#rlGo', m).onclick = function () { copy($('#rlText', m).value).then(function () { toast('Đã copy tin ✓ Dán vào Zalo rồi gửi'); window.open(zalo(c.phone), '_blank', 'noopener'); }); };
   }
   function refRow(label, url) { return '<div class="ref-row"><span class="small muted">' + label + '</span><input type="text" readonly value="' + esc(url) + '"><button class="btn" data-copyref="' + esc(url) + '">📋 Copy</button></div>'; }
@@ -759,6 +759,7 @@
   function openGlobalSearch(pre) {
     var m = modal('🔍 Tìm nhanh', '<input type="search" id="gsQ" placeholder="Số điện thoại, tên khách hoặc mã đơn" autocomplete="off" inputmode="search"><div id="gsRes" class="gs-res"><p class="muted small">Gõ ít nhất 2 chữ hoặc 3 số.</p></div>', '');
     var qi = $('#gsQ', m), out = $('#gsRes', m), tm = null; if (pre) qi.value = pre;
+    var ordBtn = function (ph, old) { return '<button type="button" class="btn sm gs-ord" data-gsord="' + ph + '">🛒 ' + (old ? 'Lên đơn · điền sẵn như lần trước' : 'Lên đơn cho số ' + fPhone(ph)) + '</button>'; }; // khách gọi đến muốn mua: lên đơn thẳng từ ô tìm
     var it = function (href, title, sub, extra) { return '<a class="gs-it" href="' + href + '"><b>' + title + '</b><span>' + sub + '</span>' + (extra ? '<span class="gs-x">' + extra + '</span>' : '') + '</a>'; };
     var find = function () {
       var raw = qi.value.trim(), q = norm(raw), dg = raw.replace(/\D/g, ''), byPh = dg.length >= 3;
@@ -781,7 +782,7 @@
         var c = p.c, o = p.os[0], l = p.ls[0], name = esc((c && c.name) || (o && o.name) || (l && l.name) || 'Khách') + ' · ' + fPhone(p.ph), x = [];
         if (c) {
           if (o) x.push(oLine(o)); if (l) x.push(lLine(l, p.ls.length));
-          return it('#khach-hang/' + c.phone, name, '👤 Khách đã mua · ' + c.orders + ' đơn · ' + moneyShort(c.spent || 0) + (c.owner ? ' · ' + esc(c.owner) : ''), x.join(' · '));
+          return it('#khach-hang/' + c.phone, name, '👤 Khách đã mua · ' + c.orders + ' đơn · ' + moneyShort(c.spent || 0) + (c.owner ? ' · ' + esc(c.owner) : ''), x.join(' · ')) + ordBtn(c.phone, true);
         }
         if (l) {
           if (o) x.push(oLine(o));
@@ -792,10 +793,11 @@
       if (h) h = '<h3>👤 Người tìm thấy (' + ppl.length + ')</h3>' + h;
       codeOs.sort(byT);
       if (codeOs.length) h += '<h3>📦 Đơn khớp mã</h3>' + codeOs.slice(0, 6).map(function (o) { return it('#don-hang/' + encodeURIComponent(o.id), esc(o.id) + ' · ' + esc(o.name || ''), fDate(o.time).slice(0, 5) + ' · ' + moneyShort(o.total || 0) + ' · ' + esc(o.status || '')); }).join('');
+      var ph10 = normPhone(raw); if (!ppl.length && /^0\d{9,10}$/.test(ph10)) h += '<p class="muted small">Chưa có khách số này.</p>' + ordBtn(ph10, false);
       out.innerHTML = h || '<p class="muted small">Không thấy. Khách do người khác phụ trách thì bạn không thấy được, nhờ quản lý tra giúp.</p>';
     };
     qi.addEventListener('input', function () { clearTimeout(tm); tm = setTimeout(find, 150); });
-    out.addEventListener('click', function (e) { if (e.target.closest('.gs-it')) closeModal(true); });
+    out.addEventListener('click', function (e) { var ob = e.target.closest('[data-gsord]'); if (ob) { openOrderForm({ phone: ob.getAttribute('data-gsord'), autoRepeat: true }); return; } if (e.target.closest('.gs-it')) closeModal(true); });
     if (pre) find();
     setTimeout(function () { qi.focus(); }, 60);
   }
@@ -2012,11 +2014,12 @@
     var ti = templateFor(type), tp = S.d.templates;
     var hist = recentHist(c, 4), all = null;
     var body = (opt.flow ? '<div class="flow-h"><div><b>Khách ' + opt.n + ' / ' + opt.total + '</b><span>' + (TASKS[type] ? TASKS[type].icon + ' ' + TASKS[type].title : 'Chăm sóc') + '</span></div><div class="bar"><i style="width:' + Math.round((opt.n - 1) * 100 / Math.max(1, opt.total)) + '%"></i></div></div>' : '') +
-      '<div class="box"><div class="r1" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>' + cp(c.name) + '</b> ' + custTags(c) + famTag(c) + ' <span class="muted">' + cpPhone(c.phone) + '</span><button class="btn sm" data-relink="' + c.phone + '" style="margin-left:auto" title="Link web có sẵn giỏ hàng như đơn trước">🔗 Link đặt lại</button></div>' +
+      '<div class="box"><div class="r1" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>' + cp(c.name) + '</b> ' + custTags(c) + famTag(c) + ' <span class="muted">' + cpPhone(c.phone) + '</span></div>' +
       '<div class="small muted" style="margin-top:4px">' + esc(shortProducts(c.products, 3)) + ' · mua ' + daysAgo(c.last) + (c.task ? ' · ' + taskLine(c) : '') + '</div>' +
       (c.flag ? '<div class="notice" style="background:var(--red-light);color:var(--red);margin:8px 0 0">⚠️ Khách có nhãn <b>' + esc(c.flag) + '</b>. Nên yêu cầu chuyển khoản trước khi gửi hàng.</div>' : '') +
       '<div id="kSum">' + careSum(c, null) + '</div>' + aiBox(c) +
       (hist.length ? '<div class="k-sec">💬 Chăm sóc gần đây</div><div class="mini-hist">' + hist.map(function (x) { return '<div><span>' + fDate(x.time).slice(0, 5) + '</span> ' + esc(x.text) + '</div>'; }).join('') + '</div>' : '') + '</div>' +
+      buyBox(c) + // nút lên đơn để ngay trên đầu: khách đồng ý mua lúc đang gọi thì không phải kéo xuống Bước 2 (Chang góp ý 31/10/2026)
       '<div class="box"><h3>Bước 1 · Gọi hoặc nhắn cho khách</h3>' +
       (c.zalo ? '<div class="k-go"><button class="btn zalo" id="kZalo">💬 Nhắn Zalo</button><a class="btn" href="tel:' + c.phone + '">📞 Gọi</a></div><p class="small muted" style="margin:8px 0 0">' + ZI + ' Khách đã kết bạn Zalo: nhắn trước, khách tiện trả lời lúc rảnh. Bấm <b>Nhắn Zalo</b> là tin bên dưới được copy sẵn, chỉ cần dán và gửi.</p>'
         : '<div class="k-go"><a class="btn pri" href="tel:' + c.phone + '">📞 Gọi</a><button class="btn zalo" id="kZalo">💬 Nhắn Zalo</button></div><p class="small" style="margin:8px 0 0">Khách <b>chưa kết bạn Zalo</b>: nên gọi trước, gọi xong xin kết bạn. ' + (canEdit(c) ? zaloTag(c) : '') + '</p>') +
@@ -2048,8 +2051,11 @@
     $('#kCopy', m).onclick = function () { copy(msg.value).then(function () { toast('Đã copy tin nhắn'); }); };
     $('#kZalo', m).onclick = function () { copy(msg.value).then(function () { toast('Đã copy – dán vào khung chat Zalo'); }); window.open(zalo(c.phone), '_blank', 'noopener'); };
     $$('input[name=kRes]', m).forEach(function (r) { r.onchange = function () { if (r.value === 'Hẹn gọi lại' && !$('#kCb', m).value) { $('#kCb', m).value = isoDate(Date.now() + 2 * DAY); $('#kCb', m).focus(); } }; });
-    $$('[data-q]', m).forEach(function (b) { b.onclick = function () { quickCare(c, b.getAttribute('data-q'), $('#kTask', m).value, $('#kNote', m).value.trim(), b, $('#kErr', m)); }; });
     var kn = $('#kNote', m), dk = 'draft_k_' + c.phone; draftKeep(kn, dk); // chữ đang gõ: lỡ đóng cửa sổ thì lần mở sau vẫn còn
+    var buy = function () { openOrderForm({ phone: c.phone, autoRepeat: true, care: { task: $('#kTask', m).value, note: kn.value.trim() }, back: function () { openCare(c.phone, type, opt); } }); };
+    $('#kBuy', m).onclick = buy;
+    $('#kLink', m).onclick = function () { openRelink(c.phone, function () { openCare(c.phone, type, opt); }); }; // đóng hộp link → quay lại khách đang gọi
+    $$('[data-q]', m).forEach(function (b) { b.onclick = b.getAttribute('data-q') === 'mua' ? buy : function () { quickCare(c, b.getAttribute('data-q'), $('#kTask', m).value, kn.value.trim(), b, $('#kErr', m)); }; });
     $$('[data-kcb]', m).forEach(function (b) { b.onclick = function () { // hẹn nhanh 1 chạm (Đợt 2): lưu "Hẹn gọi lại" + ngày
       var n = +b.getAttribute('data-kcb'), p = { phone: c.phone, task: $('#kTask', m).value, result: 'Hẹn gọi lại', note: kn.value.trim(), callback: isoDate(Date.now() + n * DAY) };
       $$('[data-kcb]', m).forEach(function (x) { x.disabled = true; });
@@ -2062,6 +2068,15 @@
       var btn = this; btn.disabled = true; btn.textContent = 'Đang lưu…';
       saveCare(c, p).then(function () { store(dk, null); closeModal(); toast('Đã lưu kết quả chăm sóc ✓'); navBadges(); render(); if (S.flow) setTimeout(nextFlow, 200); }, function (e) { btn.disabled = false; btn.textContent = opt.flow ? 'Lưu & sang khách tiếp' : 'Lưu kết quả'; err.textContent = e.message; });
     };
+  }
+  /** Đơn gần nhất còn hiệu lực của khách (bỏ đơn huỷ / hoàn) – để "đặt lại như lần trước". */
+  function lastGoodOrder(phone) { return ordersOf(phone).filter(function (o) { return !isVoid(o.status) && parseItems(o.items).some(function (i) { return !i.gift; }); })[0] || null; }
+  /** Khối "Khách mua?" đầu hộp chăm sóc: nút lên đơn (chính) tách hẳn khỏi nút gửi link cho khách tự đặt (phụ), ghi rõ chữ để không bấm nhầm. */
+  function buyBox(c) {
+    var lo = lastGoodOrder(c.phone), what = lo ? parseItems(lo.items).filter(function (i) { return !i.gift; }).slice(0, 3).map(function (i) { return i.qty + ' ' + shortLabel(i.name + (i.variant ? ' – ' + i.variant : '')); }).join(', ') : '';
+    return '<div class="box k-buy"><h3>Khách muốn mua?</h3><div class="k-buy-b">' +
+      '<button type="button" class="btn pri" id="kBuy">🛒 Lên đơn ngay<small>' + (lo ? 'điền sẵn như đơn ' + fDate(lo.time).slice(0, 5) + ': ' + esc(what) + ' · ' + moneyShort(lo.total) : 'mở form tạo đơn cho khách') + '</small></button>' +
+      '<button type="button" class="btn" id="kLink">🔗 Gửi link cho khách tự đặt<small>khách tự bấm đặt trên web, bạn không lên đơn</small></button></div></div>';
   }
   /** Tóm tắt khách trong hộp chăm sóc: giá trị, thói quen mua, lần cuối trả lời, lịch sử đơn – nhìn 1 màn hình là đủ để gọi. */
   function careSum(c, all, more) {
@@ -2094,7 +2109,7 @@
     saveCare(c, p).then(function () {
       store('draft_k_' + c.phone, null); if ($('.modal')) closeModal();
       toast('Đã ghi “' + q.n + '”' + (q.d ? ' · ' + q.d + ' ngày sau tự nhắc gọi lại' : '') + ' ✓'); navBadges(); render();
-      if (q.order) { S.flow = null; openNewOrder(c.phone); } else if (S.flow) setTimeout(nextFlow, 200);
+      if (q.order) { S.flow = null; openOrderForm({ phone: c.phone, autoRepeat: true }); } else if (S.flow) setTimeout(nextFlow, 200);
     }, function (e) { if (btn) { btn.disabled = false; btn.textContent = txt; } if (errEl) errEl.textContent = e.message; else toast(e.message, true); });
   }
 
@@ -2608,11 +2623,12 @@
     var free0 = !(eo && eo.shipping > 0), fee0 = eo && eo.shipping > 0 ? eo.shipping : CFG.shipping_fee || 30000; // mặc định miễn phí vận chuyển
     var ot0 = eo ? otypeOf(eo) : '', otField = '<div class="f otype"><span class="lbl">Loại đơn (tính hoa hồng)</span><div class="radios ot4">' + OTYPES.map(function (t) { return '<label><input type="radio" name="otype" value="' + t + '"' + (t === ot0 ? ' checked' : '') + '><span><b>' + OT[t][0] + ' ' + t + '</b><small>' + esc(OT[t][1]) + '</small></span></label>'; }).join('') + '</div><p class="hint" id="noOtHint" style="margin:6px 0 0"></p></div>';
     var body = '<form id="noForm" novalidate>' +
+      (opt.care ? '<div class="notice info">📞 Khách đồng ý mua lúc gọi chăm sóc. CRM đã điền sẵn như đơn trước: sửa chỗ khách đổi (số lượng, địa chỉ…) rồi bấm <b>Lưu đơn</b>. Lưu xong CRM tự ghi “Đã đặt lại”' + (S.flow ? ' và mở khách tiếp theo' : '') + '. Bấm ✕ để quay lại khách này.</div>' : '') +
       (lead ? '<div class="notice info">🛒 Chốt đơn cho khách hỏi <b>' + esc(lead.name || lead.phone || '') + '</b>. Lưu đơn xong, khách tự chuyển sang “Đã chốt”.</div>' : '') +
       (eo ? '<div class="notice">Đang sửa đơn <b>' + esc(eo.id) + '</b>. Lưu xong, số đơn / tổng chi của khách được tính lại.</div>' : '') +
       '<div class="box"><h3>Khách hàng</h3>' +
       (eo ? '' : '<details class="paste"' + (c0 ? '' : ' open') + '><summary>📋 Dán tin nhắn của khách</summary><textarea id="noPaste" rows="3" placeholder="Dán nguyên tin Zalo của khách (tên, số điện thoại, địa chỉ) – CRM tự tách vào các ô dưới"></textarea><p class="hint" id="noPasteHint" style="margin:4px 0 10px"></p></details>') +
-      '<div class="row2c"><label class="f"><span>Số điện thoại *</span><input type="tel" name="phone" inputmode="tel" value="' + esc(c0 ? c0.phone : '') + '"></label>' +
+      '<div class="row2c"><label class="f"><span>Số điện thoại *</span><input type="tel" name="phone" inputmode="tel" value="' + esc(c0 ? c0.phone : opt.phone || '') + '"></label>' +
       '<label class="f"><span>Tên khách *</span><input type="text" name="name" value="' + esc(c0 ? c0.name : '') + '"></label></div>' +
       '<div class="hint" id="noOld"></div><div id="noFlag"></div>' +
       '<label class="f"><span>Địa chỉ</span><textarea name="full" rows="2" placeholder="Số nhà, thôn, đường, xã, huyện, tỉnh – ghi kiểu cũ hay mới đều được">' + esc(fullAddr) + '</textarea></label>' +
@@ -2647,7 +2663,8 @@
         '<label class="switch"><input type="checkbox" name="consent"' + (c0 && c0.consent ? ' checked' : '') + '> Khách đồng ý nhận tin ưu đãi</label>') + '</details>' +
       '<p class="hint" style="margin:10px 0 0">📦 <span id="noShip"></span> · <a href="#" id="noCopy">copy</a>' + (eo ? ' · Mã đơn <b>' + esc(eo.id) + '</b>' : '') + '</p></div>' +
       '<p class="err" id="noErr"></p></form>';
-    var m = modal(eo ? 'Sửa đơn ' + esc(eo.id) : lead ? 'Chốt đơn: ' + esc(lead.name || lead.phone || 'khách hỏi') : 'Lên đơn mới', body, '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="noSave">Lưu đơn</button>');
+    var saved = false; // mở từ hộp chăm sóc: đóng form mà chưa lưu → quay lại hộp chăm sóc của khách đó
+    var m = modal(eo ? 'Sửa đơn ' + esc(eo.id) : lead ? 'Chốt đơn: ' + esc(lead.name || lead.phone || 'khách hỏi') : 'Lên đơn mới', body, '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="noSave">Lưu đơn</button>', opt.back ? { onClose: function () { if (!saved) opt.back(); } } : null);
     var form = $('#noForm', m), F = form.elements, items = $('#noItems', m), gifts = $('#noGifts', m), prov = F.province, ward = F.ward, totalEdited = !!eo, curC = c0 && !c0.isLead && !eo ? c0 : null;
     /* ---- 2 địa chỉ. Tự điền (theo chữ địa chỉ / theo bên kia) chỉ đè ô chưa tự tay chọn; xoá chữ địa chỉ → làm lại từ đầu */
     var OU = null, oP = null, oD = null, oW = null, touchN = !!(c0 && (c0.province || c0.ward)), touchO = false;
@@ -2718,7 +2735,7 @@
     F.full.addEventListener('input', function () { clearTimeout(F.full._t); F.full._t = setTimeout(addrChanged, 300); });
     function flagOf(c) { return c && c.flag ? '<div class="notice">⚠️ Khách có nhãn <b>' + esc(c.flag) + '</b>. Kiểm tra kỹ trước khi gửi hàng (nên chuyển khoản trước).</div>' : ''; }
     /* ---- khách cũ: thông tin + nút đặt lại như đơn trước */
-    function lastOrder(c) { return c ? ordersOf(c.phone).filter(function (o) { return !/huỷ|hủy|hoàn/i.test(o.status) && parseItems(o.items).length; })[0] : null; }
+    function lastOrder(c) { return c ? lastGoodOrder(c.phone) : null; }
     function showOld(c) {
       var lo = eo ? null : (opt.repeat && c && normPhone(opt.repeat.phone) === c.phone ? opt.repeat : lastOrder(c)), el = $('#noOld', m);
       el.innerHTML = c ? 'Khách cũ: <b>' + esc(c.name) + '</b> · ' + c.orders + ' đơn, ' + money(c.spent) + (lo ? '<button type="button" class="btn sm" id="noRepeat" style="display:block;margin:6px 0 4px">🔁 Đặt lại như đơn ' + fDate(lo.time).slice(0, 5) + ': ' + esc(parseItems(lo.items).filter(function (i) { return !i.gift; }).slice(0, 3).map(function (i) { return i.qty + ' ' + shortLabel(i.name + (i.variant ? ' – ' + i.variant : '')); }).join(', ')) + ' · ' + moneyShort(lo.total) + '</button>' : '') : '';
@@ -2865,7 +2882,7 @@
     var shipText = function () { var addr = F.full.value.trim(); return F.name.value.trim() + ' – ' + normPhone(F.phone.value) + '\n' + addr + '\n' + $('#noShip', m).textContent + '\nThu: ' + money(moneyIn(F.total.value)) + ($('input[name=payment]:checked', form).value === 'bank' ? ' (đã chuyển khoản)' : ' (COD)') + (F.note && F.note.value.trim() ? '\nGhi chú: ' + F.note.value.trim() : ''); };
     $('#noCopy', m).onclick = function (e) { e.preventDefault(); copy(shipText()).then(function () { toast('Đã copy nội dung lên đơn'); }); };
     showOld(curC); calc(); otUpdate();
-    if (opt.repeat && $('#noRepeat', m)) $('#noRepeat', m).click();
+    if ((opt.repeat || opt.autoRepeat) && $('#noRepeat', m)) $('#noRepeat', m).click();
     $('#noSave', m).onclick = function () {
       var err = $('#noErr', m), ph = normPhone(F.phone.value), ls = read(items), gs = read(gifts), tot = moneyIn(F.total.value), ship = Math.max(0, +F.shipping.value || 0);
       if (!/^0\d{9,10}$/.test(ph)) { err.textContent = 'Số điện thoại chưa đúng (10 số, bắt đầu bằng 0).'; F.phone.focus(); return; }
@@ -2895,6 +2912,12 @@
       }); };
       create().then(function (j) {
         if (L0) { L0.status = 'Đã chốt'; L0.orderId = j.id; L0.callback = null; }
+        saved = true;
+        if (opt.care) { // từ hộp chăm sóc: ghi "Đã đặt lại", ở lại Hôm nay, gọi lần lượt thì mở khách tiếp
+          saveCare(null, { phone: opt.phone, task: opt.care.task || 'other', result: 'Đã đặt lại', note: 'kh đặt lại, đơn ' + j.id + (opt.care.note ? ', ' + opt.care.note : ''), callback: '' }); store('draft_k_' + opt.phone, null);
+          closeModal(); toast('Đã tạo đơn ' + j.id + ' ✓ · nội dung lên đơn đã copy, dán sang bên vận chuyển'); if (j.oflag) toast('⚠️ Loại đơn khác gợi ý của CRM (' + j.oflag.replace(/^CRM gợi ý /, '') + '). Quản lý sẽ kiểm tra lại.', true);
+          navBadges(); load(true); if (S.flow) setTimeout(nextFlow, 600); return;
+        }
         closeModal(); toast('Đã tạo đơn ' + j.id + ' ✓ · nội dung lên đơn đã copy, dán sang bên vận chuyển'); if (j.oflag) toast('⚠️ Loại đơn khác gợi ý của CRM (' + j.oflag.replace(/^CRM gợi ý /, '') + '). Quản lý sẽ kiểm tra lại.', true); location.hash = '#don-hang'; load(true);
       }, function (e) { if (!e.handled) fail(e); });
     };
@@ -7244,7 +7267,7 @@
   }
 
   /* ================================================================ hộp thoại */
-  var modalRoute = null, modalPushed = false;
+  var modalRoute = null, modalPushed = false, modalOnClose = null;
   /* ================================================================ Quản trị: mức độ dùng CRM của nhân sự (usage_report) */
   function useAgo(t) { if (!t) return null; return Math.max(0, Math.round((today() - dayStart(t)) / DAY)); }
   function useAgoText(t) { var a = useAgo(t); return a === null ? 'Chưa từng vào' : a === 0 ? 'Hôm nay ' + fDateTime(t).slice(0, 5) : a === 1 ? 'Hôm qua ' + fDateTime(t).slice(0, 5) : a + ' ngày trước'; }
@@ -7891,13 +7914,14 @@
     var m = document.createElement('div'); m.className = 'modal'; m.setAttribute('role', 'dialog'); m.setAttribute('aria-modal', 'true');
     m.innerHTML = '<div class="sheet"><div class="sheet-h"><h2>' + title + '</h2><button class="x" data-close aria-label="Đóng">×</button></div><div class="sheet-b">' + body + '</div>' + (foot ? '<div class="sheet-f">' + foot + '</div>' : '') + '</div>';
     document.body.appendChild(m); document.body.style.overflow = 'hidden';
-    modalRoute = opt && opt.route || null; modalPushed = !!(opt && opt.pushed);
+    modalRoute = opt && opt.route || null; modalPushed = !!(opt && opt.pushed); modalOnClose = opt && opt.onClose || null;
     m.addEventListener('click', function (e) { if (e.target === m || e.target.closest('[data-close]')) closeModal(); });
     return m;
   }
   function closeModal(silent) {
     var m = $('.modal'); if (!m) return;
     m.remove(); document.body.style.overflow = '';
+    var oc = modalOnClose; modalOnClose = null; if (oc && !silent) setTimeout(oc, 0); // đóng để mở hộp khác (silent) thì không gọi
     if (!silent && modalRoute && route().id) { if (modalPushed) history.back(); else history.replaceState(null, '', modalRoute); }
     modalRoute = null; modalPushed = false;
   }
