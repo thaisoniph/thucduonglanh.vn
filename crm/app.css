@@ -1267,6 +1267,7 @@ div.f > span { display: block; font-size: 13px; font-weight: 600; color: var(--i
 
 /* ---------- Điện thoại kiểu Apple (29/10/2026): thanh trên sáng, chỉ 🔍 + ↻; thanh dưới 4 mục + Thêm; màn Thêm dạng danh sách như Cài đặt iPhone */
 .nav a.nav-more { display: none; }
+@media (min-width: 860px) { .top .nav.nav-hasmore a.nav-more { display: flex; } } /* máy tính: Quản lý / Quản trị có Link & QR, Zalo, Fanpage, Sàn trong Thêm (31/10/2026) */
 @media (max-width: 859px) {
   .top { background: rgba(247, 247, 244, .97); color: var(--ink); box-shadow: none; border-bottom: 1px solid rgba(0, 0, 0, .08); } /* không dùng backdrop-filter ở .top: làm thanh dưới (fixed, nằm trong .top) mất chỗ đứng */
   .brand { color: var(--ink); font-size: 19px; letter-spacing: -.01em; }
@@ -1313,7 +1314,7 @@ div.f > span { display: block; font-size: 13px; font-weight: 600; color: var(--i
 .nav-kpi.bad { background: var(--red); }
 @media (max-width: 859px) { .nav .nav-kpi { position: absolute; top: -3px; left: 50%; margin-left: 4px; box-shadow: 0 0 0 2px #fafaf8; } .nav .nav-kpi small { display: none; } .nav .dot + .nav-kpi { left: auto; right: 50%; margin-left: 0; margin-right: 4px; } } /* có cả số đỏ: nhãn sang trái biểu tượng */
 @media (min-width: 860px) { .nav-kpi.ok, .nav-kpi.done { background: #fff; color: var(--primary); } .nav-kpi.info { background: rgba(255, 255, 255, .2); color: #fff; } }
-@media (min-width: 860px) and (max-width: 1279px) { .nav .nav-kpi small { display: none; } } /* màn hẹp: chỉ số, chữ giải thích vẫn có khi đưa chuột vào tab */
+@media (min-width: 860px) and (max-width: 1399px) { .nav .nav-kpi small { display: none; } .nav-many a.nav-set span, .nav-many a.nav-more span { display: none; } } /* màn hẹp: chỉ số, chữ giải thích vẫn có khi đưa chuột vào tab */
 @media (min-width: 860px) { .nav-many .nav-kpi small { display: none; } } /* Quản lý / Quản trị nhiều tab: chỉ hiện số, chữ giải thích có khi đưa chuột vào tab (anh Sơn 31/10/2026: số nhiều quá) */
 @media (min-width: 860px) and (max-width: 1399px) { .top-in:has(.nav-many) .brand { font-size: 0; gap: 0; } } /* nhiều tab: logo bỏ chữ CRM để nút ↻ không bị cắt */
 @media (min-width: 860px) and (max-width: 1599px) { .top .nav-many a { padding: 8px 8px; gap: 5px; } .nav-many .nav-kpi { padding: 0 5px; } .nav-many a span[data-short] { font-size: 0; } .nav-many a span[data-short]::before { content: attr(data-short); font-size: 14px; } } /* nhiều tab + nhãn số: bớt khoảng trống để không tràn */

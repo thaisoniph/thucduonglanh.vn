@@ -165,7 +165,8 @@ Trên điện thoại, thanh dưới của Quản trị là **Tổng quan · Hi�
   - **Marketing** = **1đ→2,1đ**: tháng này bỏ 1đ quảng cáo, khách mới mua bao nhiêu đ (cùng số với ô 📣 1đ quảng cáo thu về ở Tổng quan). 🟢 xanh = có lời, 🟠 cam = tạm ổn, 🔴 đỏ = chưa có lời. Đưa chuột vào để thấy tiền chi, doanh số khách mới, chi bao nhiêu có 1 khách mới. Nhãn hiện sau khi mở Tổng quan 1 lần.
   - Doanh số đội sale, khách mới, khách hỏi mới, khách hỏi quá hạn đều nằm trong **Tổng quan** (ô số và mục Việc cần làm), nên không lặp lại trên tab. Trong **••• Thêm**, tab **Sàn** có nhãn % mục tiêu các sàn.
 - **Quản lý**:
-  - **Hôm nay, Khách hỏi** (số đỏ) = việc của **cả nhóm** (chọn 1 nhân viên ở ô **👥 Tất cả nhân sự** thì chỉ đếm của người đó).
+  - Trên máy tính, menu chỉ còn các tab hay dùng: **Hôm nay · Khách hỏi · Khách · Đơn hàng · Hiệu quả** (thêm **Marketing** nếu được xem) **· ⚙ Cài đặt · ••• Thêm**. Link & QR, Zalo, Fanpage, Sàn nằm trong **••• Thêm**.
+  - **Hôm nay** (số đỏ) = việc của **cả nhóm**. **Khách hỏi** không có số khi xem cả nhóm (khách vừa hỏi đã đếm ở Hôm nay); chọn 1 nhân viên ở ô **👥 Tất cả nhân sự** thì có số đỏ của người đó.
   - **Đơn hàng** = như Quản trị ở trên.
   - **Hiệu quả** = doanh số tháng cả nhóm sale đạt bao nhiêu % tổng mục tiêu của các bạn sale. Chưa đặt mục tiêu thì hiện số tiền.
   - **Khách đã mua** = **+số khách mua lần đầu** trong tháng này. Đưa chuột vào để so với cùng kỳ tháng trước.

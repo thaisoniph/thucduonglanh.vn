@@ -685,7 +685,7 @@
   ];
   // Marketing: tab Marketing, Link & QR, Khách hỏi (24/10/2026: chỉ xem khách để lại số trên web), Cài đặt
   function myViews() { if (isMkt()) return VIEWS.filter(function (v) { return v.mkt || v.lq || v.id === 'tiem-nang' || v.id === 'cai-dat'; }); return VIEWS.filter(function (v) { return (!v.min || lvl() >= v.min) && (!v.lq || lvl() >= 2 || (v.id === 'tro-ly-zalo' && S.user && S.user.zb)) && (!v.san || (S.d && S.d.sanOk) || lvl() >= 3) && (!v.mkt || lvl() >= 3 || mkvOnly()); }); }
-  function navViews() { return myViews().filter(function (v) { return !((v.san || v.lq) && lvl() >= 3); }); } // Quản trị: Marketing có trên menu (29/10/2026), Sàn / Link & QR / Zalo / Fanpage vào từ Thêm
+  function navViews() { return myViews().filter(function (v) { return !((v.san || v.lq) && lvl() >= 2 && !isMkt()); }); } // Quản trị: Marketing có trên menu (29/10/2026), Sàn / Link & QR / Zalo / Fanpage vào từ Thêm; Quản lý cũng vậy (anh Sơn 31/10/2026: menu máy tính rối)
   /** Điện thoại (29/10/2026, kiểu Apple): thanh dưới chỉ 4 mục hay dùng + "Thêm"; mục còn lại, Cài đặt, Hướng dẫn, Góp ý nằm ở màn Thêm. Máy tính vẫn hiện đủ. */
   var NAV_FIRST = ['hom-nay', 'tiem-nang', 'khach-hang', 'don-hang', 'bao-cao'];
   var NAV_SALE = ['hom-nay', 'tiem-nang', 'bao-cao', 'don-hang']; // sale: Hiệu quả ở chính giữa thanh dưới (anh Sơn 29/10/2026); 31/10/2026 Đơn hàng (có số đang giao) thay Khách, Khách vào Thêm
@@ -740,7 +740,7 @@
     if (tc && window.matchMedia) tc.content = matchMedia('(max-width: 859px)').matches ? '#f7f7f4' : '#1f5f3a'; // điện thoại: thanh trên sáng màu
     $('#app').innerHTML = '<header class="top"><div class="top-in">' +
       '<a class="brand" href="#' + homeView() + '"><img src="/icon-180.png" alt="">CRM</a>' +
-      '<nav class="nav' + (navViews().length > 6 ? ' nav-many' : '') + '" data-sig="' + navSig() + '">' + navViews().map(function (v) { return '<a href="#' + v.id + '" data-v="' + v.id + '"' + (v.id === 'cai-dat' ? ' class="nav-set"' : main.indexOf(v.id) < 0 ? ' class="nav-x"' : '') + '>' + I[v.icon] + '<span' + (v.short ? ' data-short="' + v.short + '"' : '') + '>' + v.label + '</span></a>'; }).join('') +
+      '<nav class="nav' + (navViews().length > 6 || lvl() >= 2 ? ' nav-many' : '') + (navViews().length < myViews().length ? ' nav-hasmore' : '') + '" data-sig="' + navSig() + '">' + navViews().map(function (v) { return '<a href="#' + v.id + '" data-v="' + v.id + '"' + (v.id === 'cai-dat' ? ' class="nav-set"' : main.indexOf(v.id) < 0 ? ' class="nav-x"' : '') + '>' + I[v.icon] + '<span' + (v.short ? ' data-short="' + v.short + '"' : '') + '>' + v.label + '</span></a>'; }).join('') +
       '<a href="#them" data-v="them" class="nav-more">' + I.more + '<span>Thêm</span></a></nav>' +
       '<div class="grow"></div><div class="me">' + meHTML() + '</div>' +
       (isMkt() ? '' : '<button class="icon-btn" id="gsBtn" title="Tìm ở mọi tab: khách đã mua, đơn hàng, khách hỏi" aria-label="Tìm ở mọi tab">' + I.search + '</button>') +
@@ -871,7 +871,7 @@
       if (sv || st) o.san = goal(sv, st, 'các sàn TMĐT', 'mục tiêu');
     }
     if (lvl() >= 3) { var ad = navAds(sk ? SN.cache[sk] : null); if (ad) o.marketing = ad; }
-    if (lvl() < 3 && myViews().some(function (v) { return v.id === 'marketing'; })) { // Quản trị: số khách hỏi mới đã có ở Tổng quan
+    if (isMkt()) { // chỉ quyền Marketing (Quản lý / sale được xem Marketing: bỏ cho gọn, 31/10/2026); Quản trị: số khách hỏi mới đã có ở Tổng quan
       var t0 = today(), cnt = function (a, b) { var seen = {}; (S.d.leads || []).forEach(function (l) { if (l.time >= a && l.time < b && !/^file cũ/i.test(l.channel || '')) seen[normPhone(l.phone) || l.id] = 1; }); return Object.keys(seen).length; };
       var td = cnt(t0, t0 + DAY), yd = cnt(t0 - DAY, t0);
       if (td || yd) o.marketing = { t: String(td), s: 'số hôm nay', lv: 'info', tip: 'Hôm nay có ' + td + ' khách để lại số điện thoại (' + (isMkt() ? 'từ website' : 'mọi kênh') + ', mỗi số tính 1 lần) · hôm qua ' + yd + ' số' };
@@ -905,7 +905,7 @@
     var team = navWho();
     var part = function (a) { return a.filter(function (x) { return x[0]; }).map(function (x) { return x[0] + ' ' + x[1]; }).join(' · '); };
     return {
-      n: lvl() >= 3 ? { 'don-hang': no } : { 'hom-nay': no + q + hot, 'don-hang': no, 'tiem-nang': ld.length }, // Quản trị (anh Sơn 31/10/2026: số nhiều quá): chỉ số đỏ đơn mới; việc gọi khách của sale xem ở Tổng quan → Việc cần làm
+      n: lvl() >= 3 ? { 'don-hang': no } : { 'hom-nay': no + q + hot, 'don-hang': no, 'tiem-nang': lvl() >= 2 && !S.who ? 0 : ld.length }, // Quản lý xem cả nhóm: Khách hỏi không có số đỏ (cả nhóm luôn 99+, khách vừa hỏi đã đếm ở Hôm nay), lọc 1 người thì có // Quản trị (anh Sơn 31/10/2026: số nhiều quá): chỉ số đỏ đơn mới; việc gọi khách của sale xem ở Tổng quan → Việc cần làm
       tip: {
         'hom-nay': 'Việc cần làm hôm nay' + team + ': ' + part([[no, 'đơn mới chờ xác nhận'], [q, 'khách đến lịch chăm sóc'], [hot, 'khách vừa hỏi chưa ai gọi (cũng nằm ở Khách hỏi)']]),
         'tiem-nang': 'Khách hỏi cần liên hệ' + team + ': ' + part([[k.new, 'chưa gọi lần nào'], [k.callback, 'đến hẹn gọi lại'], [k.stale, 'quá 3 ngày chưa liên hệ lại']]),
@@ -922,8 +922,8 @@
   var lastView = '';
   function render() {
     if (!S.d || !$('#view')) return;
-    var r = route(), v = r.view === 'them' ? 'them' : myViews().some(function (x) { return x.id === r.view; }) ? r.view : homeView(), main = navMain();
-    $$('.nav a').forEach(function (a) { var d = a.getAttribute('data-v'); a.classList.toggle('on', d === v || (d === 'them' && main.indexOf(v) < 0)); }); var ts = $('.top-set'); if (ts) ts.classList.toggle('on', v === 'cai-dat');
+    var wide = window.matchMedia && matchMedia('(min-width: 860px)').matches, r = route(), v = r.view === 'them' ? 'them' : myViews().some(function (x) { return x.id === r.view; }) ? r.view : homeView(), main = navMain();
+    $$('.nav a').forEach(function (a) { var d = a.getAttribute('data-v'); a.classList.toggle('on', d === v || (d === 'them' && (wide ? !navViews().some(function (x) { return x.id === v; }) : main.indexOf(v) < 0))); }); var ts = $('.top-set'); if (ts) ts.classList.toggle('on', v === 'cai-dat');
     var keepScroll = lastView === v, y = window.scrollY;
     var el = $('#view');
     var focusId = document.activeElement && document.activeElement.id, selStart = document.activeElement && document.activeElement.selectionStart;
