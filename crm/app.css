@@ -1166,6 +1166,12 @@ div.f > span { display: block; font-size: 13px; font-weight: 600; color: var(--i
 .zb-none { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
 .zb-none p { margin: 0; }
 .zb-img { display: block; width: 96px; height: 96px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); margin: 6px 0; }
+.zb-imgbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 6px 0; }
+.zb-lib { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; max-height: 55vh; overflow-y: auto; }
+.zb-libi { display: flex; flex-direction: column; gap: 4px; padding: 4px; background: var(--card); border: 2px solid var(--line); border-radius: 10px; cursor: pointer; text-align: left; font: inherit; color: inherit; }
+.zb-libi img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; }
+.zb-libi span { font-size: 11px; line-height: 1.3; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.zb-libi.on, .zb-libi:hover { border-color: var(--primary); }
 .zb-text { width: 100%; box-sizing: border-box; font: inherit; font-size: .95rem; line-height: 1.5; padding: 10px; border: 1px solid var(--line); border-radius: var(--radius-sm); resize: vertical; }
 .zb-text[readonly] { background: var(--bg); color: var(--muted); }
 .zb-set summary { cursor: pointer; }

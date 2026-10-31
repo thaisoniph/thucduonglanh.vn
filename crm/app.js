@@ -4591,15 +4591,15 @@
         var badge = p.status === 'sent' ? '📤 Đã đăng ' + fDateTime(p.sent_at) : p.status === 'skip' ? '⏸ Đã bỏ, không đăng' : p.status === 'ok' ? '✅ Đã duyệt, sẽ đăng lúc ' + sl.at : auto ? '✍️ Nháp, sẽ tự đăng lúc ' + sl.at : '⏳ Chờ duyệt';
         var done = p.status === 'sent';
         h += '<div class="box zb-post zb-' + p.status + '"><div class="zb-ph"><b>' + lbl + '</b><span class="zb-badge">' + badge + '</span></div>' +
-          '<p class="small"><b>Chủ đề:</b> ' + esc(p.topic) + (p.img ? ' · 🖼 kèm ảnh sản phẩm' : '') + ' <span class="muted">· ' + (p.by_name && p.by_name !== 'AI' ? 'sửa bởi ' + esc(p.by_name) : 'AI soạn') + ' ' + fDateTime(p.at) + '</span></p>' +
-          (p.img ? '<img class="zb-img" src="' + esc(p.img) + '" alt="" loading="lazy">' : '') +
+          '<p class="small"><b>Chủ đề:</b> ' + esc(p.topic) + (p.img ? ' · 🖼 kèm ảnh' : ' · <span class="muted">không kèm ảnh</span>') + ' <span class="muted">· ' + (p.by_name && p.by_name !== 'AI' ? 'sửa bởi ' + esc(p.by_name) : 'AI soạn') + ' ' + fDateTime(p.at) + '</span></p>' +
+          '<div class="zb-imgbar">' + (p.img ? '<img class="zb-img" src="' + esc(p.img) + '" alt="Ảnh kèm bài" loading="lazy">' : '') + (done ? '' : '<button class="btn sm" data-zb="img|' + p.id + '">🖼 ' + (p.img ? 'Đổi ảnh' : 'Thêm ảnh') + '</button>') + '</div>' +
           '<textarea class="zb-text" id="zbT_' + p.id + '" rows="' + Math.min(16, Math.max(4, String(p.text).split('\n').length + 1)) + '"' + (done ? ' readonly' : '') + '>' + esc(p.text) + '</textarea>' +
           (done ? '' : '<div class="lq-btns"><button class="btn sm pri" data-zb="save|' + p.id + '">💾 Lưu sửa</button>' + (!auto && p.status !== 'ok' ? '<button class="btn sm" data-zb="ok|' + p.id + '">✅ Duyệt</button>' : '') +
             (p.status === 'skip' ? '<button class="btn sm" data-zb="draft|' + p.id + '">▶️ Đăng lại bài này</button>' : '<button class="btn sm ghost" data-zb="skip|' + p.id + '">⏸ Bỏ bài này</button>') +
             '<button class="btn sm ghost" data-zb="regen|' + p.id + '">🔄 Viết lại</button></div>') + '</div>';
       });
     });
-    h += '<p class="bar-legend">Chữ trong <b>**hai dấu sao**</b> sẽ in đậm trên Zalo. Bài nói về sản phẩm có ảnh sẽ kèm ảnh. Không đăng từ 21h45 tới 6h sáng.' + (j.err ? ' Lần soạn lỗi gần nhất: ' + esc(j.err) : '') + '</p>';
+    h += '<p class="bar-legend">Chữ trong <b>**hai dấu sao**</b> sẽ in đậm trên Zalo. AI tự chọn ảnh: bài về sản phẩm kèm ảnh sản phẩm, bài khác chọn ảnh thật hợp chủ đề trong kho ảnh web (không có ảnh hợp thì chỉ đăng chữ). Bấm <b>🖼 Đổi ảnh</b> để chọn ảnh khác hoặc tải ảnh từ máy. Không đăng từ 21h45 tới 6h sáng.' + (j.err ? ' Lần soạn lỗi gần nhất: ' + esc(j.err) : '') + '</p>';
     // cài đặt
     var sg = (st && st.groups) || [], ck = function (k, t, sub) { return '<label class="zb-ck"><input type="checkbox" data-zbc="' + k + '"' + (c[k] ? ' checked' : '') + '><span><b>' + t + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</span></label>'; };
     h += '<details class="box zb-set"><summary><b>⚙️ Cài đặt trợ lý</b></summary>' +
@@ -4645,6 +4645,7 @@
       var ta = $('#zbT_' + id); t.disabled = true;
       return api('zb_post', { id: id, text: ta ? ta.value : undefined, status: v[0] === 'save' ? undefined : v[0] }).then(after({ save: 'Đã lưu bài ✓', ok: 'Đã duyệt ✓ Tới giờ trợ lý sẽ đăng.', skip: 'Đã bỏ bài này, trợ lý sẽ không đăng.', draft: 'Đã dùng lại bài này ✓' }[v[0]]), fail);
     }
+    if (v[0] === 'img') return zbImgOpen(id);
     if (v[0] === 'regen') {
       var hint = prompt('Muốn AI viết lại thế nào? (vd: “nói về hạt óc chó”, “ngắn hơn”, “vui hơn”). Để trống = viết bài khác cùng chủ đề.', ''); if (hint === null) return;
       var p = id.split('_'); t.disabled = true; t.textContent = '⏳ AI đang viết (khoảng 30 giây)…';
@@ -4660,6 +4661,18 @@
       t.disabled = true; return api('zb_cfg', { cfg: cfg }).then(after('Đã lưu cài đặt ✓ Trợ lý áp dụng trong khoảng 1 phút.'), fail);
     }
   });
+  function zbImgOpen(id) { // 🖼 đổi ảnh bài đăng: chọn trong kho ảnh thật của web / tải từ máy / bỏ ảnh
+    var p = ((ZB.d && ZB.d.posts) || []).filter(function (x) { return x.id === id; })[0]; if (!p) return;
+    var lib = (ZB.d && ZB.d.lib) || [];
+    var m = modal('🖼 Ảnh kèm bài', '<p class="small muted">Bấm vào 1 ảnh để chọn. Ảnh đang dùng có viền xanh.</p>' +
+      '<div class="lq-btns" style="margin-bottom:10px"><label class="btn pri">📷 Tải ảnh từ máy<input type="file" id="zbImgFile" accept="image/*" hidden></label>' + (p.img ? '<button class="btn ghost" data-zbpick="">🚫 Không kèm ảnh</button>' : '') + '</div>' +
+      '<p class="zb-sub"><b>Kho ảnh thật trên web</b> <span class="muted small">(' + lib.length + ' ảnh trong các bài viết)</span></p>' +
+      '<div class="zb-lib">' + lib.map(function (i) { return '<button class="zb-libi' + (i.url === p.img ? ' on' : '') + '" data-zbpick="' + esc(i.url) + '" title="' + esc(i.alt) + '"><img src="' + esc(i.url) + '" alt="' + esc(i.alt) + '" loading="lazy"><span>' + esc(i.alt) + '</span></button>'; }).join('') + '</div>',
+      '<button class="btn" data-close>Đóng</button>');
+    var put = function (img, msg) { return api('zb_img', { id: id, img: img }).then(function () { closeModal(); toast(msg); zbFetch(); }, function (e) { toast(e.message, true); }); };
+    m.addEventListener('click', function (e) { var b = e.target.closest('[data-zbpick]'); if (!b) return; var u = b.getAttribute('data-zbpick'); put(u, u ? 'Đã đổi ảnh ✓' : 'Đã bỏ ảnh, bài chỉ đăng chữ ✓'); });
+    $('#zbImgFile', m).onchange = function () { var f = this.files && this.files[0]; if (!f) return; toast('Đang tải ảnh lên…'); shrinkImage(f).then(function (src) { return put(src, 'Đã tải ảnh lên ✓'); }, function () { toast('Không đọc được ảnh này, bạn chọn ảnh khác nhé.', true); }); };
+  }
   /* ---------------------------------------------------------------- 📘 Trợ lý Fanpage (api/src/fb.js, 26/10/2026)
    * Khách bình luận → bot thích + trả lời + nhắn riêng → An Lành tư vấn trong Messenger → xin số → gửi quà + link nhóm Zalo, CRM có khách hỏi.
    * AI soạn bài đăng cho từng trang, nhân sự duyệt / sửa. Quản lý, Quản trị, Marketing; kết nối ứng dụng + trang: chỉ Quản trị. Dùng lại giao diện zb-… của Trợ lý Zalo. */

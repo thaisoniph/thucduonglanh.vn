@@ -12,12 +12,12 @@ import { qrGo } from './links.js';
 import { journeyCounts, pledge, quiz, wall } from './journey.js';
 import { apply } from './apply.js';
 import { chat, chatLead } from './chat.js';
-import { zbot, zbotLead } from './zbot.js';
+import { zbot, zbotLead, zbImg } from './zbot.js';
 import { refMe, ctvMe, ctvApply } from './partner.js';
 import { fbRoute } from './fb.js';
 export { AiRelay } from './airelay.js'; // Durable Object chuyển tiếp lời gọi AI qua Bắc Mỹ
 
-const API_VERSION = '2026-10-31c'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
+const API_VERSION = '2026-10-31d'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
 const ORIGINS = /^https:\/\/((www\.|crm\.|mkt\.|congsu\.|camnangsongkhoe\.)?thucduonglanh\.vn|([a-z0-9-]+\.)?(thucduonglanh(-crm|-congsu)?|camnang-song-khoe-thuc-duong-lanh)\.pages\.dev)$|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
 function ctxOf(env, ectx) { return { env, db: env.DB, later: p => ectx.waitUntil(Promise.resolve(p).catch(e => console.error('later', e && e.message))) }; }
@@ -109,6 +109,7 @@ export default {
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: ORIGINS.test(origin) ? { 'Access-Control-Allow-Origin': origin, 'Access-Control-Allow-Methods': 'GET, POST', 'Access-Control-Allow-Headers': 'Content-Type', 'Access-Control-Max-Age': '86400' } : {} });
     try {
       if (req.method === 'GET') {
+        if (/^\/zb-img\/[a-z0-9]+$/.test(path)) return await zbImg(x, path.slice(8)); // ảnh bài đăng nhóm Zalo do nhân sự tải lên (zbot.js)
         if (/^\/q\/[^/]+$/.test(path)) return await qrGo(x, req, path.slice(3)); // mã QR / link ngắn thucduonglanh.vn/q/<mã>/ (links.js)
         if (path === '/api/journey') { // bộ đếm hành trình 10 triệu người (journey.js): lưu đệm 5 phút ở Cloudflare để ít đọc D1
           const ck = new Request('https://api.thucduonglanh.vn/api/journey'), cache = caches.default;

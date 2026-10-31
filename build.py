@@ -3373,6 +3373,7 @@ def main():
     (DIST / "robots.txt").write_text("User-agent: *\nAllow: /\n" + "".join(f"Disallow: {r}\n" for r in private) + f"Disallow: /admin/\nDisallow: /chat-kb.txt\n\nSitemap: {DOMAIN}/sitemap.xml\n", "utf-8")
     (DIST / "llms.txt").write_text(llms_txt(), "utf-8")
     (DIST / "chat-kb.txt").write_text(chat_kb(), "utf-8")  # kiến thức cho trợ lý chat (api/src/chat.js)
+    (DIST / "anh-zalo.json").write_text(json.dumps(zalo_imgs(), ensure_ascii=False), "utf-8")  # kho ảnh thật cho bài đăng nhóm Zalo (api/src/zbot.js)
     if SITE.get("indexnow_key"):  # file xác minh IndexNow (Bing, Yandex…): workflow deploy.yml báo các trang mới sửa sau mỗi lần đăng
         (DIST / f'{SITE["indexnow_key"]}.txt').write_text(SITE["indexnow_key"], "utf-8")
     (DIST / "CNAME").write_text(DOMAIN.replace("https://", "").replace("http://", "") + "\n", "utf-8")
@@ -3469,6 +3470,22 @@ def chat_cfg():
             "wvc": wv.get("code", "") if wv.get("enabled") else "", "wvp": num((re.search(r"(\d+)\s*%", wv.get("label") or "") or [0, 0])[1]) or 0,
             "fs": SITE.get("free_ship_threshold") or 0, "hours": SITE.get("opening_hours", ""),
             "privacy": "/chinh-sach-bao-mat/"}
+
+
+def zalo_imgs():
+    """/anh-zalo.json: ảnh thật trong các bài viết (ảnh bìa + ảnh trong bài, kèm chú thích) để trợ lý nhóm Zalo chọn ảnh minh hoạ cho bài đăng.
+    Ảnh sản phẩm không đưa vào đây: bài nói về sản phẩm đã tự lấy ảnh sản phẩm."""
+    out, seen = [], set()
+    def add(src, alt, title):
+        if not src or src in seen or "/img/products/" in src or "/brand/" in src or not alt:
+            return
+        seen.add(src)
+        out.append({"url": DOMAIN + img_url(src, 1000), "alt": html.unescape(alt).strip(), "bai": title})
+    for p in POSTS["posts"]:
+        add(p["image"], p["title"], p["title"])
+        for m in re.finditer(r'<img[^>]*?src="([^"]+)"[^>]*?alt="([^"]*)"|<img[^>]*?alt="([^"]*)"[^>]*?src="([^"]+)"', p["content"]):
+            add(m.group(1) or m.group(4), m.group(2) or m.group(3), p["title"])
+    return out
 
 
 def chat_kb():

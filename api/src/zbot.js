@@ -22,7 +22,7 @@ import { kb, safe, workNow, TRUTH_RULES, PHONE_RE } from './chat.js';
 
 const BOT = 'An Lành';
 const FAST = 'claude-haiku-5-5', WRITER = 'claude-opus-5-5';
-const SITE = 'https://thucduonglanh.vn';
+const SITE = 'https://thucduonglanh.vn', API_URL = 'https://api.thucduonglanh.vn';
 const CFG0 = {
   on: true, groups: [], // nhóm trợ lý chăm sóc (mã nhóm Zalo). Trống → lần đầu tự chọn nhóm có tên "Thực Dưỡng Lành"
   welcome: true, answer: true, announce: true, approve: true, approveAll: false,
@@ -60,6 +60,7 @@ export async function zbotSchema(db) {
   await run(db, `CREATE TABLE IF NOT EXISTS zb_out (id INTEGER PRIMARY KEY AUTOINCREMENT, kind TEXT, gid TEXT DEFAULT '', uid TEXT DEFAULT '', phone TEXT DEFAULT '', text TEXT DEFAULT '',
     img TEXT DEFAULT '', mentions TEXT DEFAULT '', due INTEGER, status TEXT DEFAULT 'new', at INTEGER, done_at INTEGER, ref TEXT DEFAULT '')`); // việc chờ chương trình Zalo làm
   await run(db, 'CREATE INDEX IF NOT EXISTS zb_out_due ON zb_out(status, due)');
+  await run(db, 'CREATE TABLE IF NOT EXISTS zb_imgs (id TEXT PRIMARY KEY, data TEXT, at INTEGER)'); // ảnh nhân sự tải lên cho bài đăng (data:image/jpeg;base64…), xem ở api.thucduonglanh.vn/zb-img/<id>
   await run(db, `CREATE TABLE IF NOT EXISTS zb_posts (id TEXT PRIMARY KEY, day TEXT, slot TEXT, topic TEXT DEFAULT '', text TEXT DEFAULT '', img TEXT DEFAULT '', prod TEXT DEFAULT '',
     status TEXT DEFAULT 'draft', by_name TEXT DEFAULT '', at INTEGER, sent_at INTEGER)`); // bài đăng hằng ngày (id = yyyyMMdd_slot)
   await run(db, 'CREATE INDEX IF NOT EXISTS zb_posts_day ON zb_posts(day)');
@@ -415,9 +416,19 @@ export async function zbotTick(x) {
 }
 
 /** Soạn 1 bài (hint: ý nhân sự gõ khi bấm "Viết lại") */
+/** Kho ảnh thật cho bài đăng: https://thucduonglanh.vn/anh-zalo.json (build.py zalo_imgs(): ảnh trong các bài viết + chú thích), giữ trong bộ nhớ 10 phút */
+let imgMem = null;
+export async function imgLib() {
+  if (imgMem && Date.now() - imgMem.t < 10 * 60e3) return imgMem.list;
+  try { const r = await fetch(SITE + '/anh-zalo.json', { cf: { cacheTtl: 600, cacheEverything: true } }); if (r.ok) { const l = await r.json(); if (Array.isArray(l)) imgMem = { t: Date.now(), list: l }; } }
+  catch (e) { console.error('anh-zalo', e.message); }
+  return imgMem ? imgMem.list : [];
+}
+
 export async function zWrite(x, day, slot, hint, by) {
   const know = await kb(), prods = prodMap(know), wd = new Date(slotTime(day, '12:00') + TZ_MS).getUTCDay();
-  const recent = await all(x.db, "SELECT day, slot, topic FROM zb_posts WHERE topic != '' ORDER BY day DESC LIMIT 20");
+  const recent = await all(x.db, "SELECT day, slot, topic, img FROM zb_posts WHERE topic != '' ORDER BY day DESC LIMIT 20");
+  const used = new Set(recent.map(r => r.img).filter(Boolean)), lib = (await imgLib()).filter(i => !used.has(i.url)); // không lặp ảnh đã dùng gần đây
   const sang = slot !== 'toi';
   const ask = [
     'Viết 1 bài đăng nhóm Zalo cộng đồng "Sống khỏe cùng Thực Dưỡng Lành" (thành viên phần lớn là cô chú trung niên, mẹ bỉm, người ăn chay, dân văn phòng).',
@@ -432,7 +443,9 @@ export async function zWrite(x, day, slot, hint, by) {
     'Không dùng các từ "chữa", "điều trị", "khỏi bệnh", "đặc trị", "thay thuốc", "thần dược". Nếu bài nói về sản phẩm: thêm 1 dòng cuối nhỏ "Sản phẩm là thực phẩm, không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh."',
     'Nếu nhắc tới sản phẩm có trên web thì có thể để link sản phẩm ở cuối bài (1 link). Không để số điện thoại.',
     '',
-    'Trả về đúng định dạng:\nCHỦ ĐỀ: <tóm tắt chủ đề trong 10 chữ, nêu rõ nguyên liệu / món / sản phẩm>\nSẢN PHẨM: <mã sản phẩm dạng chữ-thường-gạch-ngang nếu bài nói chủ yếu về 1 sản phẩm có ảnh, không thì ghi "không">\n---\n<nội dung bài>'
+    lib.length ? 'KHO ẢNH THẬT (số. mô tả ảnh) – nếu bài KHÔNG nói chủ yếu về 1 sản phẩm, chọn 1 ảnh khớp rõ với nội dung bài (đúng món / nguyên liệu / hoạt động); không có ảnh nào khớp thì ghi "không", đừng chọn ảnh chỉ gần giống:\n' + lib.map((i, n) => (n + 1) + '. ' + i.alt).join('\n') : '',
+    '',
+    'Trả về đúng định dạng:\nCHỦ ĐỀ: <tóm tắt chủ đề trong 10 chữ, nêu rõ nguyên liệu / món / sản phẩm>\nSẢN PHẨM: <mã sản phẩm dạng chữ-thường-gạch-ngang nếu bài nói chủ yếu về 1 sản phẩm có ảnh, không thì ghi "không">\nẢNH: <số ảnh trong KHO ẢNH THẬT, hoặc "không">\n---\n<nội dung bài>'
   ].filter(s => s !== null).join('\n');
   const req = { model: WRITER, max_tokens: 4000, output_config: { effort: 'medium' },
     system: [{ type: 'text', text: 'Bạn viết bài cho nhóm Zalo cộng đồng của Thực Dưỡng Lành (VitaGreen Nutrition). Tiếng Việt chuẩn, tự nhiên.\n' + TRUTH_RULES },
@@ -446,7 +459,8 @@ export async function zWrite(x, day, slot, hint, by) {
   const head = parts.length > 1 ? parts[0] : '', body = safe((parts.length > 1 ? parts.slice(1).join('\n---\n') : raw).trim());
   const topic = ((head.match(/CHỦ ĐỀ:\s*(.+)/) || [])[1] || body.split('\n')[0]).replace(/\*/g, '').trim().slice(0, 120);
   const code = ((head.match(/SẢN PHẨM:\s*([a-z0-9-]+)/) || [])[1] || '');
-  const img = prods[code] ? prods[code].img : '';
+  const pick = lib[Number((head.match(/ẢNH:\s*(\d+)/) || [])[1]) - 1];
+  const img = prods[code] && prods[code].img ? prods[code].img : pick ? pick.url : '';
   if (!body) throw new Error('AI chưa viết được bài');
   const id = day + '_' + slot, now = Date.now();
   await run(x.db, `INSERT INTO zb_posts (id, day, slot, topic, text, img, prod, status, by_name, at) VALUES (?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?)
@@ -466,9 +480,10 @@ export async function crmZbot(x, u, d, crmLog) {
     const from = fmtDate(now - DAY, 'yyyyMMdd');
     const posts = await all(x.db, 'SELECT id, day, slot, topic, text, img, prod, status, by_name, at, sent_at FROM zb_posts WHERE day >= ? ORDER BY day, slot', from);
     const log = await all(x.db, 'SELECT at, kind, gid, name, text, reply FROM zb_log ORDER BY rid DESC LIMIT 60');
+    const lib = (await imgLib()).map(i => ({ url: i.url, alt: i.alt }));
     const stats = await all(x.db, 'SELECT kind, count(*) AS n FROM zb_log WHERE at > ? GROUP BY kind', now - 7 * DAY);
     const users = await first(x.db, "SELECT count(*) AS n, sum(CASE WHEN phone != '' THEN 1 ELSE 0 END) AS known, sum(CASE WHEN joined > ? AND phone != '' THEN 1 ELSE 0 END) AS joined7 FROM zb_users", now - 7 * DAY);
-    return { ok: true, cfg, status: st, posts, log, stats, users, err: await kvGet(x.db, 'zb_write_err'), key: !!x.env.ZBOT_KEY, aiOn: !!x.env.ANTHROPIC_API_KEY, now };
+    return { ok: true, cfg, status: st, posts, log, lib, stats, users, err: await kvGet(x.db, 'zb_write_err'), key: !!x.env.ZBOT_KEY, aiOn: !!x.env.ANTHROPIC_API_KEY, now };
   }
   if (a === 'zb_cfg') {
     const cfg = await zCfg(x), c = d.cfg || {};
@@ -489,6 +504,20 @@ export async function crmZbot(x, u, d, crmLog) {
     await run(x.db, 'UPDATE zb_posts SET text = ?, status = ?, by_name = ?, at = ? WHERE id = ?', text, st, u.name, now, p.id);
     await crmLog(x, u, 'Bài Zalo', p.id, '', { ok: 'Duyệt', skip: 'Bỏ', draft: 'Sửa' }[st] || st, p.topic);
     return { ok: true };
+  }
+  if (a === 'zb_img') { // đổi ảnh bài: link trong kho / ảnh tải từ máy (data:image…) / '' = bỏ ảnh
+    const p = await first(x.db, 'SELECT id, status, topic FROM zb_posts WHERE id = ?', String(d.id || '')); if (!p) return { ok: false, error: 'Không tìm thấy bài.' };
+    if (p.status === 'sent') return { ok: false, error: 'Bài này đã đăng rồi.' };
+    let img = String(d.img || '');
+    if (img.startsWith('data:image/')) {
+      if (img.length > 1.5e6) return { ok: false, error: 'Ảnh lớn quá, bạn chọn ảnh khác giúp nhé.' };
+      const iid = 'u' + now.toString(36) + Math.random().toString(36).slice(2, 6);
+      await run(x.db, 'INSERT INTO zb_imgs (id, data, at) VALUES (?, ?, ?)', iid, img, now);
+      img = API_URL + '/zb-img/' + iid;
+    } else if (img && !img.startsWith(SITE + '/') && !img.startsWith(API_URL + '/zb-img/')) return { ok: false, error: 'Ảnh không hợp lệ.' };
+    await run(x.db, 'UPDATE zb_posts SET img = ?, by_name = ?, at = ? WHERE id = ?', img, u.name, now, p.id);
+    await crmLog(x, u, 'Bài Zalo', p.id, '', img ? 'Đổi ảnh' : 'Bỏ ảnh', p.topic);
+    return { ok: true, img };
   }
   if (a === 'zb_regen') {
     const p = await first(x.db, 'SELECT day, slot, status FROM zb_posts WHERE id = ?', String(d.id || ''));
@@ -514,4 +543,13 @@ export async function crmZbot(x, u, d, crmLog) {
     return { ok: true };
   }
   return { ok: false, error: 'Không rõ thao tác: ' + a };
+}
+
+/** GET api.thucduonglanh.vn/zb-img/<id>: ảnh nhân sự tải lên cho bài đăng (chương trình Zalo tải về để đăng, CRM xem trước) */
+export async function zbImg(x, id) {
+  const r = await first(x.db, 'SELECT data FROM zb_imgs WHERE id = ?', String(id).replace(/[^a-z0-9]/g, '').slice(0, 30));
+  const m = r && String(r.data).match(/^data:(image\/[a-z+]+);base64,(.+)$/);
+  if (!m) return new Response('Không có ảnh', { status: 404 });
+  const bin = atob(m[2]), buf = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+  return new Response(buf, { headers: { 'Content-Type': m[1], 'Cache-Control': 'public, max-age=31536000, immutable', 'Access-Control-Allow-Origin': '*' } });
 }

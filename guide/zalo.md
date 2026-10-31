@@ -2,7 +2,7 @@
 title: Trợ lý Zalo An Lành
 nav: Trợ lý Zalo
 order: 8
-updated: 2026-10-28
+updated: 2026-10-31
 description: Cài đặt và sử dụng tài khoản Zalo "Trợ lý An Lành" trong nhóm Sống khỏe cùng Thực Dưỡng Lành – chào người mới, trả lời, đăng bài, chuyển ca khó cho người thật.
 ---
 
@@ -58,6 +58,12 @@ Khi Telegram báo **"📝 Bài Zalo chờ duyệt"**, bạn vào tab và tìm b�
 4. Không muốn đăng thì bấm **⏸ Bỏ bài này**.
 
 **Bài chưa bấm Duyệt thì trợ lý không đăng.**
+
+**Ảnh kèm bài:** AI tự chọn ảnh. Bài nói về sản phẩm thì kèm ảnh sản phẩm. Bài khác thì AI chọn một ảnh thật trên web hợp với chủ đề; không có ảnh nào hợp thì bài chỉ có chữ. Muốn đổi thì bấm **🖼 Đổi ảnh** (hoặc **🖼 Thêm ảnh**) dưới bài:
+
+- Bấm vào một ảnh trong kho để chọn.
+- Hoặc bấm **📷 Tải ảnh từ máy** để lấy ảnh trong điện thoại hay máy tính.
+- Không muốn kèm ảnh thì bấm **🚫 Không kèm ảnh**.
 
 Trước khi duyệt, kiểm tra 3 điều:
 
