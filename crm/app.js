@@ -2616,7 +2616,8 @@
     };
     var start = eo ? parseItems(eo.items) : [], sItems = start.filter(function (i) { return !i.gift; }), sGifts = start.filter(function (i) { return i.gift; });
     if (!eo && lead && lead.interest) sItems = [{ name: lead.interest, variant: '', qty: 1 }];
-    var fullAddr = c0 ? [c0.address, c0.ward, c0.province].filter(Boolean).join(', ') : '';
+    var fullAddr = c0 ? [c0.address].concat([c0.ward, c0.province].filter(function (x) { var ad = norm(c0.address || ''), k = norm(x), i = ad.indexOf(k); return x && !(i >= 0 && !/[a-z0-9]/.test(ad.charAt(i + k.length))); })).filter(Boolean).join(', ') : ''; // địa chỉ đã ghi sẵn phường / tỉnh thì không ghép thêm (trước đây mỗi lần đặt lại tên tỉnh bị lặp thêm 1 lần)
+    var addrMini = !eo && !!c0 && !c0.isLead && !!c0.province && !!fullAddr; // khách cũ đã có địa chỉ đủ tỉnh
     var src0 = store('crm_osrc'); if (SOURCES.indexOf(src0) < 0) src0 = SOURCES[0]; // nhớ lựa chọn lần trước của từng người
     var car0 = eo ? carrierOf(eo) : 'BEST Express'; // đơn mới mặc định BEST Express (anh Sơn 20/10/2026)
     var carMore = Object.keys(CARRIERS).filter(function (k) { return CAR_MAIN.indexOf(k) < 0; }), carOpen = carMore.indexOf(car0) >= 0; // hãng ít dùng thu gọn, đơn gửi hãng khác thì mở sẵn
@@ -2631,6 +2632,8 @@
       '<div class="row2c"><label class="f"><span>Số điện thoại *</span><input type="tel" name="phone" inputmode="tel" value="' + esc(c0 ? c0.phone : opt.phone || '') + '"></label>' +
       '<label class="f"><span>Tên khách *</span><input type="text" name="name" value="' + esc(c0 ? c0.name : '') + '"></label></div>' +
       '<div class="hint" id="noOld"></div><div id="noFlag"></div>' +
+      (addrMini ? '<div class="no-addr-mini" id="noAddrMini"><span>📍 Giao như lần trước: <b id="noAddrMiniT">' + esc(fullAddr) + '</b></span><span class="no-addr-mini-b"><button type="button" class="btn sm" id="noOldCopy" title="Copy địa chỉ kiểu cũ (63 tỉnh, có huyện) để lên đơn Misa">Copy địa chỉ cũ</button><button type="button" class="btn sm" id="noAddrEdit">✏️ Đổi địa chỉ</button></span></div>' : '') +
+      '<div id="noAddrBox"' + (addrMini ? ' hidden' : '') + '>' + // khách cũ: cất 2 khung địa chỉ, bấm Đổi địa chỉ mới mở (form gọn ~1 màn hình)
       '<label class="f"><span>Địa chỉ</span><textarea name="full" rows="2" placeholder="Số nhà, thôn, đường, xã, huyện, tỉnh – ghi kiểu cũ hay mới đều được">' + esc(fullAddr) + '</textarea></label>' +
       '<p class="hint" id="noAddrHint"></p>' +
       '<div class="no-addr2">' + // 2 địa chỉ: mới (34 tỉnh, giao hàng) + cũ (63 tỉnh, có huyện – Misa vẫn chọn kiểu cũ). Điền 1 bên, bên kia tự điền theo bảng chuyển đổi.
@@ -2641,7 +2644,7 @@
           '<label class="f"><span>Tỉnh / Thành phố</span><input type="text" name="oprov" placeholder="Gõ để tìm, vd: vinh phuc"></label>' +
           '<label class="f"><span>Quận / Huyện</span><input type="text" name="odist" placeholder="Gõ để tìm"></label>' +
           '<label class="f"><span>Phường / Xã</span><input type="text" name="oward" placeholder="Gõ để tìm"></label><p class="hint" id="noOldHint"></p></div>' +
-      '</div></div>' +
+      '</div></div></div>' +
       '<datalist id="noProducts">' + names.map(function (n) { return '<option value="' + esc(n) + '">'; }).join('') + '</datalist>' +
       '<div class="box"><h3>Sản phẩm <span class="muted small" style="font-weight:400">· bấm để thêm, bấm lại để tăng số lượng</span></h3><div class="chips wrap" id="noChips"></div>' +
       '<div class="items" id="noItems">' + (sItems.length ? sItems.map(function (i) { return row('prod', i); }).join('') : row('prod')) + '</div>' +
@@ -2664,7 +2667,7 @@
       '<p class="hint" style="margin:10px 0 0">📦 <span id="noShip"></span> · <a href="#" id="noCopy">copy</a>' + (eo ? ' · Mã đơn <b>' + esc(eo.id) + '</b>' : '') + '</p></div>' +
       '<p class="err" id="noErr"></p></form>';
     var saved = false; // mở từ hộp chăm sóc: đóng form mà chưa lưu → quay lại hộp chăm sóc của khách đó
-    var m = modal(eo ? 'Sửa đơn ' + esc(eo.id) : lead ? 'Chốt đơn: ' + esc(lead.name || lead.phone || 'khách hỏi') : 'Lên đơn mới', body, '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="noSave">Lưu đơn</button>', opt.back ? { onClose: function () { if (!saved) opt.back(); } } : null);
+    var m = modal(eo ? 'Sửa đơn ' + esc(eo.id) : lead ? 'Chốt đơn: ' + esc(lead.name || lead.phone || 'khách hỏi') : 'Lên đơn mới', body, '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="noSave">Lưu đơn</button>', { onClose: function () { if (saved) return; if (opt.back) opt.back(); else if (route().id) render(); } }); // đóng không lưu → quay lại hộp đang xem trước đó (chăm sóc / hồ sơ khách / khách hỏi / đơn)
     var form = $('#noForm', m), F = form.elements, items = $('#noItems', m), gifts = $('#noGifts', m), prov = F.province, ward = F.ward, totalEdited = !!eo, curC = c0 && !c0.isLead && !eo ? c0 : null;
     /* ---- 2 địa chỉ. Tự điền (theo chữ địa chỉ / theo bên kia) chỉ đè ô chưa tự tay chọn; xoá chữ địa chỉ → làm lại từ đầu */
     var OU = null, oP = null, oD = null, oW = null, touchN = !!(c0 && (c0.province || c0.ward)), touchO = false;
@@ -2882,13 +2885,20 @@
     var shipText = function () { var addr = F.full.value.trim(); return F.name.value.trim() + ' – ' + normPhone(F.phone.value) + '\n' + addr + '\n' + $('#noShip', m).textContent + '\nThu: ' + money(moneyIn(F.total.value)) + ($('input[name=payment]:checked', form).value === 'bank' ? ' (đã chuyển khoản)' : ' (COD)') + (F.note && F.note.value.trim() ? '\nGhi chú: ' + F.note.value.trim() : ''); };
     $('#noCopy', m).onclick = function (e) { e.preventDefault(); copy(shipText()).then(function () { toast('Đã copy nội dung lên đơn'); }); };
     showOld(curC); calc(); otUpdate();
+    var addrOpen = function () { if ($('#noAddrMini', m)) { $('#noAddrMini', m).hidden = true; $('#noAddrBox', m).hidden = false; } };
+    if ($('#noAddrEdit', m)) {
+      $('#noAddrEdit', m).onclick = function () { addrOpen(); F.full.focus(); };
+      $('#noOldCopy', m).onclick = function () { var t = oldText(); if (!t) { addrOpen(); return toast('Chưa có địa chỉ cũ – chọn ở khung Địa chỉ cũ', true); } copy(t).then(function () { toast('Đã copy địa chỉ cũ'); }); };
+      F.phone.addEventListener('input', function () { if (normPhone(F.phone.value) !== c0.phone) addrOpen(); }); // đổi sang số khác → hiện đủ khung địa chỉ để xem lại
+    }
+    if ($('#noPaste', m)) $('#noPaste', m).addEventListener('input', addrOpen);
     if ((opt.repeat || opt.autoRepeat) && $('#noRepeat', m)) $('#noRepeat', m).click();
     $('#noSave', m).onclick = function () {
       var err = $('#noErr', m), ph = normPhone(F.phone.value), ls = read(items), gs = read(gifts), tot = moneyIn(F.total.value), ship = Math.max(0, +F.shipping.value || 0);
       if (!/^0\d{9,10}$/.test(ph)) { err.textContent = 'Số điện thoại chưa đúng (10 số, bắt đầu bằng 0).'; F.phone.focus(); return; }
       if (!eo && !/^[\p{L}\d][\p{L}\d.\-_ ]{2,29}$/u.test(F.code.value.trim())) { err.textContent = 'Mã đơn chưa đúng (3–30 ký tự: chữ, số, dấu chấm, gạch).'; F.code.focus(); return; }
       if (!F.name.value.trim()) { err.textContent = 'Nhập tên khách.'; F.name.focus(); return; }
-      if (prov.value.trim() && !unitOf(prov.value.trim())) { err.textContent = 'Tỉnh / thành phố mới chưa đúng – chọn trong danh sách gợi ý.'; prov.focus(); return; }
+      if (prov.value.trim() && !unitOf(prov.value.trim())) { addrOpen(); err.textContent = 'Tỉnh / thành phố mới chưa đúng – chọn trong danh sách gợi ý.'; prov.focus(); return; }
       if (!ls.length) { err.textContent = 'Nhập ít nhất 1 sản phẩm.'; return; }
       if (!tot) { err.textContent = 'Nhập số tiền thu khách.'; F.total.focus(); return; }
       if (tot < ship) { err.textContent = 'Số tiền thu khách nhỏ hơn phí ship.'; $('#noOpts', m).open = true; return; }
@@ -2907,7 +2917,7 @@
       cu.note = F.note.value.trim(); common.status = $('input[name=status]:checked', form).value; common.code = F.code.value.trim(); common.codeAuto = codeAuto; common.source = F.source ? F.source.value : ''; common.consent = F.consent.checked; var L0 = lead || autoLead; common.leadId = L0 ? L0.id : '';
       if (F.source) store('crm_osrc', F.source.value);
       var create = function () { return api('order_create', common).catch(function (e) {
-        if (!e.j || !e.j.dupOf || !confirm(e.message + '\n\nBấm OK nếu khách đặt thêm 1 đơn nữa, hoặc bạn đang tách thùng to thành 2 kiện (mỗi kiện 1 mã đơn). Bấm Huỷ để xem lại tab Đơn hàng.')) { if (e.j && e.j.dupOf) { closeModal(); location.hash = '#don-hang'; load(true); e.handled = true; } throw e; }
+        if (!e.j || !e.j.dupOf || !confirm(e.message + '\n\nBấm OK nếu khách đặt thêm 1 đơn nữa, hoặc bạn đang tách thùng to thành 2 kiện (mỗi kiện 1 mã đơn). Bấm Huỷ để xem lại tab Đơn hàng.')) { if (e.j && e.j.dupOf) { saved = true; closeModal(); location.hash = '#don-hang'; load(true); e.handled = true; } throw e; }
         common.force = true; return api('order_create', common);
       }); };
       create().then(function (j) {
@@ -2918,7 +2928,8 @@
           closeModal(); toast('Đã tạo đơn ' + j.id + ' ✓ · nội dung lên đơn đã copy, dán sang bên vận chuyển'); if (j.oflag) toast('⚠️ Loại đơn khác gợi ý của CRM (' + j.oflag.replace(/^CRM gợi ý /, '') + '). Quản lý sẽ kiểm tra lại.', true);
           navBadges(); load(true); if (S.flow) setTimeout(nextFlow, 600); return;
         }
-        closeModal(); toast('Đã tạo đơn ' + j.id + ' ✓ · nội dung lên đơn đã copy, dán sang bên vận chuyển'); if (j.oflag) toast('⚠️ Loại đơn khác gợi ý của CRM (' + j.oflag.replace(/^CRM gợi ý /, '') + '). Quản lý sẽ kiểm tra lại.', true); location.hash = '#don-hang'; load(true);
+        closeModal(); toast('Đã tạo đơn ' + j.id + ' ✓ · nội dung lên đơn đã copy, dán sang bên vận chuyển'); if (j.oflag) toast('⚠️ Loại đơn khác gợi ý của CRM (' + j.oflag.replace(/^CRM gợi ý /, '') + '). Quản lý sẽ kiểm tra lại.', true);
+        navBadges(); load(true).then(function () { if (!$('.modal')) render(); }); // ở lại trang đang làm; đang ở hồ sơ khách thì hồ sơ tự mở lại (Chang góp ý 31/10/2026)
       }, function (e) { if (!e.handled) fail(e); });
     };
   }

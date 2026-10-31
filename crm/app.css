@@ -1394,3 +1394,7 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .k-buy-b .btn:not(.pri) small { color: var(--muted); }
 @media (max-width: 520px) { .k-buy-b { grid-template-columns: 1fr; } }
 .gs-ord { margin: -2px 0 10px; }
+/* form lên đơn, khách cũ: địa chỉ thu gọn 1 dòng, bấm Đổi địa chỉ mới mở 2 khung cũ/mới (31/10/2026) */
+.no-addr-mini { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; background: var(--bg, #f6f5f1); border-radius: 10px; padding: 10px 12px; margin: 4px 0 6px; font-size: 14px; line-height: 1.4; }
+.no-addr-mini > span:first-child { flex: 1 1 220px; }
+.no-addr-mini-b { display: flex; gap: 6px; flex-wrap: wrap; }
