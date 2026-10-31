@@ -238,6 +238,7 @@ async function send(x, p, psid, text, qr) {
   for (let i = 0; i < parts.length; i++) await graph('me/messages', p.token, { recipient: { id: psid }, messaging_type: 'RESPONSE', message: Object.assign({ text: parts[i], metadata: 'anlanh' }, qr && i === parts.length - 1 ? { quick_replies: qr } : {}) });
 }
 const typing = (x, p, psid) => graph('me/messages', p.token, { recipient: { id: psid }, sender_action: 'typing_on' }).catch(() => { });
+const PAUSE_MS = 12 * 3600e3, AUTO_MS = 20e3; // nhân sự nhắn tay → bot nhường 12 tiếng; tin trang gửi trong 20 giây sau tin khách = tự động của Meta
 const ASK_PHONE = 'Dạ em gửi quà liền ạ 🎁 Mình cho em xin số điện thoại (có Zalo) để em gửi quà và mời mình vào nhóm Sống khỏe trên Zalo nha. Mình bấm số bên dưới cho nhanh, hoặc gõ số cũng được ạ.';
 
 async function onMessage(x, p, m, app) {
@@ -245,7 +246,9 @@ async function onMessage(x, p, m, app) {
   if (msg && msg.is_echo) { // tin trang gửi đi
     if (String(msg.app_id || '') === String(app.id) || msg.metadata === 'anlanh') return; // của bot
     const psid = String((m.recipient || {}).id || ''); if (!psid) return;
-    await run(x.db, 'INSERT INTO fp_users (psid, page, pause, at) VALUES (?, ?, ?, ?) ON CONFLICT(psid) DO UPDATE SET pause = excluded.pause', psid, p.id, now + 12 * 3600e3, now); // nhân sự nhắn tay → bot nhường 12 tiếng
+    const ou = await first(x.db, 'SELECT last_in FROM fp_users WHERE psid = ?', psid);
+    if (ou && ou.last_in && now - ou.last_in < AUTO_MS) return; // trả lời tức thì / câu hỏi thường gặp của Meta Business Suite (gửi ngay sau tin khách) – không phải nhân sự
+    await run(x.db, 'INSERT INTO fp_users (psid, page, pause, at) VALUES (?, ?, ?, ?) ON CONFLICT(psid) DO UPDATE SET pause = excluded.pause', psid, p.id, now + PAUSE_MS, now); // nhân sự nhắn tay → bot nhường 12 tiếng
     return;
   }
   if (!p.active || !msg && !m.postback) return;
@@ -272,7 +275,8 @@ async function onMessage(x, p, m, app) {
     await run(x.db, `INSERT INTO chats (sid, start, last, n, page, src, msgs, miss) VALUES (?, ?, ?, 1, ?, 'Facebook', ?, ?)
       ON CONFLICT(sid) DO UPDATE SET last = excluded.last, n = chats.n + 1, msgs = excluded.msgs, miss = chats.miss + excluded.miss`, sid, now, now, 'Fanpage ' + p.name, JSON.stringify(msgs.slice(-60)).slice(0, 60000), miss ? 1 : 0);
   };
-  if (u.pause > now) { await save('', 0); return; } // nhân sự đang nói chuyện với khách
+  const echoAt = (u.pause || 0) - PAUSE_MS, autoEcho = msgs.some(z => z.r === 'u' && echoAt >= z.at && echoAt - z.at < AUTO_MS); // lần nhường do tin tự động của Meta (tới ngay sau 1 tin khách) → bỏ qua
+  if (u.pause > now && !autoEcho) { await save('', 0); return; } // nhân sự đang nói chuyện với khách
   const nm = given(u.name), c = p.cfg;
   const giftOut = () => c.gift_msg.replace(/\{ten\}/g, nm).replace(/\{link\}/g, c.gift_link || CAMNANG).replace(/\{nhom\}/g, c.group || ZALO_GROUP);
 
