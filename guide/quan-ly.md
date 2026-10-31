@@ -177,7 +177,6 @@ Trên điện thoại, thanh dưới của Quản trị là **Tổng quan · Hi�
   - **Hôm nay** (số đỏ) = việc của **cả nhóm**. **Khách hỏi** không có số khi xem cả nhóm (khách vừa hỏi đã đếm ở Hôm nay); chọn 1 nhân viên ở ô **👥 Tất cả nhân sự** thì có số đỏ của người đó.
   - **Đơn hàng** = như Quản trị ở trên.
   - **Hiệu quả** = doanh số tháng cả nhóm sale đạt bao nhiêu % tổng mục tiêu của các bạn sale. Chưa đặt mục tiêu thì hiện số tiền.
-  - **Khách đã mua** = **+số khách mua lần đầu** trong tháng này. Đưa chuột vào để so với cùng kỳ tháng trước.
   - Trên điện thoại, thanh dưới là **Hôm nay · Khách hỏi · Đơn hàng · Hiệu quả · ••• Thêm**; Khách đã mua nằm trong **••• Thêm**.
 - Màu nhãn %: xanh = đúng tiến độ, cam = hơi chậm, đỏ = đang chậm (so với số ngày đã qua trong tháng).
 
