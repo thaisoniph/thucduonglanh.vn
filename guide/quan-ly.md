@@ -159,9 +159,10 @@ Trên điện thoại, thanh dưới của Quản trị là **Tổng quan · Hi�
 
 **Con số trên tab**: mỗi người chỉ thấy số của việc mình, để nhìn là biết cần làm gì. Trên máy tính chỉ hiện số; đưa chuột vào tab sẽ có dòng giải thích.
 
-- **Quản trị** chỉ có 2 chỗ có số:
+- **Quản trị** có 3 chỗ có số:
   - **Tổng quan** = doanh số tháng cả công ty (văn phòng + sàn, đã trừ hoàn / huỷ) đạt bao nhiêu % mục tiêu. Nhãn hiện sau khi mở Tổng quan 1 lần (chờ tải số sàn).
   - **Đơn hàng**: số đỏ = đơn mới chờ xác nhận; nhãn **🚚** = số đơn đang giao. Đưa chuột vào để xem thêm: đơn bị cảnh báo vận chuyển, đơn đã xác nhận chờ gửi, đơn chuyển khoản chưa nhận tiền.
+  - **Marketing** = **1đ→2,1đ**: tháng này bỏ 1đ quảng cáo, khách mới mua bao nhiêu đ (cùng số với ô 📣 1đ quảng cáo thu về ở Tổng quan). 🟢 xanh = có lời, 🟠 cam = tạm ổn, 🔴 đỏ = chưa có lời. Đưa chuột vào để thấy tiền chi, doanh số khách mới, chi bao nhiêu có 1 khách mới. Nhãn hiện sau khi mở Tổng quan 1 lần.
   - Doanh số đội sale, khách mới, khách hỏi mới, khách hỏi quá hạn đều nằm trong **Tổng quan** (ô số và mục Việc cần làm), nên không lặp lại trên tab. Trong **••• Thêm**, tab **Sàn** có nhãn % mục tiêu các sàn.
 - **Quản lý**:
   - **Hôm nay, Khách hỏi** (số đỏ) = việc của **cả nhóm** (chọn 1 nhân viên ở ô **👥 Tất cả nhân sự** thì chỉ đếm của người đó).

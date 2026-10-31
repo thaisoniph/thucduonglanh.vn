@@ -870,12 +870,26 @@
       var sv = 0, st = 0; goalRows(mk, SN.cache[sk], true).forEach(function (x) { sv += x.v; st += x.t; });
       if (sv || st) o.san = goal(sv, st, 'các sàn TMĐT', 'mục tiêu');
     }
+    if (lvl() >= 3) { var ad = navAds(sk ? SN.cache[sk] : null); if (ad) o.marketing = ad; }
     if (lvl() < 3 && myViews().some(function (v) { return v.id === 'marketing'; })) { // Quản trị: số khách hỏi mới đã có ở Tổng quan
       var t0 = today(), cnt = function (a, b) { var seen = {}; (S.d.leads || []).forEach(function (l) { if (l.time >= a && l.time < b && !/^file cũ/i.test(l.channel || '')) seen[normPhone(l.phone) || l.id] = 1; }); return Object.keys(seen).length; };
       var td = cnt(t0, t0 + DAY), yd = cnt(t0 - DAY, t0);
       if (td || yd) o.marketing = { t: String(td), s: 'số hôm nay', lv: 'info', tip: 'Hôm nay có ' + td + ' khách để lại số điện thoại (' + (isMkt() ? 'từ website' : 'mọi kênh') + ', mỗi số tính 1 lần) · hôm qua ' + yd + ' số' };
     }
     return o;
+  }
+  /** Quản trị, tab Marketing (anh Sơn 31/10/2026: theo sát marketing): tháng này bỏ 1đ quảng cáo thu về bao nhiêu đ doanh số khách mới, cùng số + màu với ô 📣 ở Tổng quan.
+   *  Chỉ đọc số đã tải khi mở Tổng quan (MK.cache tháng này), nhớ kết quả theo lần tải dữ liệu để không tính lại mỗi lần vẽ tab. */
+  var NAV_MK = {};
+  function navAds(sj) {
+    var p = { k: 'month' }, R = perRange(p), P = cmpRange(p), key = gaKey(R, P), mj = MK.cache[key]; if (!mj) return null;
+    var sig = key + '|' + (sj ? 1 : 0) + '|' + S.loadedAt; if (NAV_MK.sig === sig) return NAV_MK.v;
+    var M = mktCalc(key, R, P, sj), v = null;
+    if (M && M.tot) {
+      var lv = adsLv(M.tot, M.nr), x = M.nr / M.tot;
+      v = { t: '1đ→' + oneDec(x) + 'đ', s: '', lv: lv === 'ok' ? 'done' : lv || 'info', tip: monthLabel(monthOf(Date.now())).replace(/^t/, 'T') + ': chi quảng cáo ' + moneyShort(M.tot) + ' → ' + moneyShort(M.nr) + ' doanh số khách mới, bỏ 1đ thu về ' + oneDec(x) + 'đ · ' + ({ ok: '🟢 có lời', mid: '🟠 tạm ổn, cần rẻ hơn', bad: '🔴 chưa có lời' }[lv] || '') + (M.newN ? ' · ' + M.newN + ' khách mới, chi ' + moneyShort(Math.round(M.tot / M.newN)) + ' có 1 khách' : '') };
+    }
+    NAV_MK = { sig: sig, v: v }; return v;
   }
   /** Sale: % mục tiêu tháng của chính mình + mức tiến độ (cùng cách tính với khối Mục tiêu ở Hiệu quả). null = không phải sale / chưa đặt mục tiêu. */
   function myPace() {
@@ -4185,7 +4199,7 @@
     if (MK.busy === key) return; MK.busy = key; MK.err = '';
     var k = key.split('_');
     api('mkt', { from: k[0], to: k[1], pf: k[2], pt: k[3] }).then(function (j) { MK.cache[key] = j; }, function (e) { MK.err = /Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message; })
-      .then(function () { MK.busy = ''; if (route().view === 'tong-quan') softRender(true); });
+      .then(function () { MK.busy = ''; if (route().view === 'tong-quan') softRender(true); navBadges(); }); // navBadges: nhãn 1đ→…đ trên tab Marketing của Quản trị
   }
   /** Chi phí: giảm là tốt → đổi màu mũi tên (xanh khi giảm). */
   function inv(h) { return String(h).replace(/class="delta (up|down)"/, function (_, c) { return 'class="delta ' + (c === 'up' ? 'down' : 'up') + '"'; }); }
