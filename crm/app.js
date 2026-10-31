@@ -2786,9 +2786,9 @@
       '<div class="row2c"><label class="f"><span>Số điện thoại *</span><input type="tel" name="phone" inputmode="tel" value="' + esc(c0 ? c0.phone : opt.phone || '') + '"></label>' +
       '<label class="f"><span>Tên khách *</span><input type="text" name="name" value="' + esc(c0 ? c0.name : '') + '"></label></div>' +
       '<div class="hint" id="noOld"></div><div id="noFlag"></div>' +
-      (addrMini ? '<div class="no-addr-mini" id="noAddrMini"><div class="nam-top"><span>📍 Giao như lần trước</span><button type="button" class="btn sm" id="noAddrEdit">✏️ Đổi địa chỉ</button></div><b id="noAddrMiniT">' + esc(fullAddr) + '</b>' +
+      ('<div class="no-addr-mini" id="noAddrMini"' + (addrMini ? '' : ' hidden') + '><div class="nam-top"><span>📍 Giao như lần trước</span><button type="button" class="btn sm" id="noAddrEdit">✏️ Đổi địa chỉ</button></div><b id="noAddrMiniT">' + esc(fullAddr) + '</b>' +
         '<div class="nam-row old"><span class="nam-k">🕰 Địa chỉ cũ <small>lên Misa</small></span><span class="nam-v" id="noMiniOld">đang đọc…</span><button type="button" class="btn sm" data-acopy="old">Copy</button></div>' +
-        '<div class="nam-row"><span class="nam-k">🆕 Địa chỉ mới <small>34 tỉnh</small></span><span class="nam-v" id="noMiniNew">đang đọc…</span><button type="button" class="btn sm" data-acopy="new">Copy</button></div></div>' : '') +
+        '<div class="nam-row"><span class="nam-k">🆕 Địa chỉ mới <small>34 tỉnh</small></span><span class="nam-v" id="noMiniNew">đang đọc…</span><button type="button" class="btn sm" data-acopy="new">Copy</button></div></div>') +
       '<div id="noAddrBox"' + (addrMini ? ' hidden' : '') + '>' + // khách cũ: cất 2 khung địa chỉ, bấm Đổi địa chỉ mới mở (form gọn ~1 màn hình)
       '<label class="f"><span>Địa chỉ</span><textarea name="full" rows="2" placeholder="Số nhà, thôn, đường, xã, huyện, tỉnh – ghi kiểu cũ hay mới đều được">' + esc(fullAddr) + '</textarea></label>' +
       '<p class="hint" id="noAddrHint"></p>' +
@@ -3004,7 +3004,7 @@
       $('#noSumT', m).innerHTML = [pay && pay.value === 'bank' ? '💳 Chuyển khoản' : '💵 COD', car ? '🚚 ' + esc(car.value) : '', ship ? 'Ship ' + money(ship) : 'Miễn phí ship', F.code.value.trim() ? 'Mã <b>' + esc(F.code.value.trim()) + '</b>' : ''].filter(Boolean).join(' · ');
     }
     function shipOpen() { $('#noSum', m).hidden = true; $('#noShipBox', m).hidden = false; }
-    $('#noSumEdit', m).onclick = shipOpen;
+    var shipManual = false; $('#noSumEdit', m).onclick = function () { shipManual = true; shipOpen(); };
     form.addEventListener('change', sumSync); form.addEventListener('input', sumSync);
     function calc() {
       var ls = read(items), gs = read(gifts), base = ls.reduce(function (s, i) { return s + i.qty * i.price; }, 0), ship = Math.max(0, +F.shipping.value || 0);
@@ -3061,11 +3061,17 @@
     $('#noCopy', m).onclick = function (e) { e.preventDefault(); copy(shipText()).then(function () { toast('Đã copy nội dung lên đơn'); }); };
     showOld(curC); calc(); otUpdate();
     var addrOpen = function () { if ($('#noAddrMini', m)) { $('#noAddrMini', m).hidden = true; $('#noAddrBox', m).hidden = false; } };
-    if ($('#noAddrEdit', m)) {
-      $('#noAddrEdit', m).onclick = function () { addrOpen(); F.full.focus(); };
-      F.phone.addEventListener('input', function () { if (normPhone(F.phone.value) !== c0.phone) addrOpen(); }); // đổi sang số khác → hiện đủ khung địa chỉ để xem lại
-    }
-    if ($('#noPaste', m)) $('#noPaste', m).addEventListener('input', addrOpen);
+    var addrManual = false, pasted = false;
+    $('#noAddrEdit', m).onclick = function () { addrManual = true; addrOpen(); F.full.focus(); };
+    if ($('#noPaste', m)) $('#noPaste', m).addEventListener('input', function () { pasted = true; addrOpen(); }); // tin dán có thể ghi địa chỉ mới → hiện đủ khung để xem lại
+    /* ---- gõ / đổi số điện thoại: khách cũ → thu gọn như lúc mở từ hồ sơ khách (địa chỉ 1 khung, thanh toán / vận chuyển 1 dòng, ẩn ô dán tin); số khác → mở đủ */
+    if (!eo) F.phone.addEventListener('input', function () {
+      var c = curC, pd = $('details.paste', m), oldOrd = c && lastGoodOrder(c.phone);
+      if (c && !addrManual && !pasted && F.full.value.trim() && !(OU && !prov.value && !oprov.value)) { $('#noAddrMiniT', m).textContent = F.full.value.trim(); addrHint(); $('#noAddrMini', m).hidden = false; $('#noAddrBox', m).hidden = true; }
+      else addrOpen();
+      if (oldOrd && !shipManual) { $('#noSum', m).hidden = false; $('#noShipBox', m).hidden = true; sumSync(); } else if (!c) shipOpen();
+      if (pd && !$('#noPaste', m).value.trim()) pd.hidden = !!c;
+    });
     if ((opt.repeat || opt.autoRepeat) && $('#noRepeat', m)) $('#noRepeat', m).click();
     $('#noSave', m).onclick = function () {
       var err = $('#noErr', m), ph = normPhone(F.phone.value), ls = read(items), gs = read(gifts), tot = moneyIn(F.total.value), ship = Math.max(0, +F.shipping.value || 0);

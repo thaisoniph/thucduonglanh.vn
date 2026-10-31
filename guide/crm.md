@@ -142,7 +142,7 @@ Khách đặt qua Zalo, Facebook, điện thoại… thì bạn **tạo đơn tr
 
 **Khách cũ mua lại y như lần trước?** Bấm **🔁 Đặt lại như đơn trước**. Mọi thứ tự điền giống đơn cũ, nút đổi thành dòng chữ **✓ Đã điền như đơn …**. (Lên đơn lúc gọi chăm sóc thì CRM tự điền sẵn, bạn không cần bấm.)
 
-Form khách cũ được làm gọn, đi từ trên xuống theo 3 phần: **① Khách hàng → ② Sản phẩm → ③ Tiền & giao hàng**, rồi bấm nút xanh dưới cùng.
+Form khách cũ được làm gọn (kể cả khi bấm **＋ Tạo đơn** rồi gõ số khách cũ: CRM nhận ra là tự thu gọn), đi từ trên xuống theo 3 phần: **① Khách hàng → ② Sản phẩm → ③ Tiền & giao hàng**, rồi bấm nút xanh dưới cùng.
 
 **Địa chỉ khách cũ** gom trong khung **📍 Giao như lần trước**. Khung có sẵn 2 dòng:
 - **🕰 Địa chỉ cũ – lên Misa** (vd *Xã Phước Thái, Huyện Long Thành, Đồng Nai*): bấm **Copy** rồi dán vào Misa.
