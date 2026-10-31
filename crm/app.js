@@ -2890,7 +2890,7 @@
       cu.note = F.note.value.trim(); common.status = $('input[name=status]:checked', form).value; common.code = F.code.value.trim(); common.codeAuto = codeAuto; common.source = F.source ? F.source.value : ''; common.consent = F.consent.checked; var L0 = lead || autoLead; common.leadId = L0 ? L0.id : '';
       if (F.source) store('crm_osrc', F.source.value);
       var create = function () { return api('order_create', common).catch(function (e) {
-        if (!e.j || !e.j.dupOf || !confirm(e.message + '\n\nBấm OK nếu khách thật sự đặt thêm 1 đơn nữa. Bấm Huỷ để xem lại tab Đơn hàng.')) { if (e.j && e.j.dupOf) { closeModal(); location.hash = '#don-hang'; load(true); e.handled = true; } throw e; }
+        if (!e.j || !e.j.dupOf || !confirm(e.message + '\n\nBấm OK nếu khách đặt thêm 1 đơn nữa, hoặc bạn đang tách thùng to thành 2 kiện (mỗi kiện 1 mã đơn). Bấm Huỷ để xem lại tab Đơn hàng.')) { if (e.j && e.j.dupOf) { closeModal(); location.hash = '#don-hang'; load(true); e.handled = true; } throw e; }
         common.force = true; return api('order_create', common);
       }); };
       create().then(function (j) {

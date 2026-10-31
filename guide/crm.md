@@ -125,6 +125,8 @@ Khách đặt qua Zalo, Facebook, điện thoại… thì bạn **tạo đơn tr
 
 **Khách cũ mua lại y như lần trước?** Bấm **🔁 Đặt lại như đơn trước**. Mọi thứ tự điền giống đơn cũ.
 
+**Khách lấy cả thùng to, cần tách làm 2 kiện?** Lên **2 đơn**, mỗi đơn 1 mã (CRM tự đánh `-01`, `-02`), chia sản phẩm và số tiền theo từng kiện. Lưu đơn thứ 2, nếu CRM hỏi *"Khách này vừa có đơn… Có thể lần trước đã lưu rồi"* thì bấm **OK**. Đây không phải đơn trùng, doanh số vẫn đúng. Trong file Google Sheet cũng ghi 2 dòng, 2 mã đơn như vậy.
+
 > Chọn **"Đã đặt lại"** khi gọi khách **chưa phải là tạo đơn**. Bạn vẫn phải tạo đơn thì mới có đơn hàng.
 
 ## Việc 4: Có người hỏi mà chưa mua (tab Khách hỏi)
