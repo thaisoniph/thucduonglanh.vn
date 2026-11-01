@@ -516,7 +516,7 @@ async function loadSmall(x, u, R, mode, adV) {
   const areasP = u.level === 1 ? areaStats(x) : Promise.resolve(undefined); areasP.catch(() => { }); // quản lý đã có đủ khách → máy tự đếm
   const [ca, fbNew, prefs, tagColors, sources, ads, commission, sanOk, dash, qrLinks, mktDoc, cost, payplan, staffGuard] = await Promise.all([caCfg(x), // hỏi song song: mỗi lần hỏi máy chủ dữ liệu mất một nhịp
     u.level >= 2 ? first(x.db, "SELECT count(*) AS n FROM feedback WHERE status = 'Mới'").then(r => (r || {}).n || 0) : 0,
-    prefsOf(x, u.email), allTagColors(x), u.level >= 3 ? srcList(x) : [], u.level >= 3 ? adsCfg(x) : null, kvJson(x.db, 'commission_cfg', {}).then(r => r || {}), sanAllowed(x, u).catch(() => false), u.level >= 3 || u.role === 'Marketing' || u.mkv ? kvJson(x.db, 'dash_cfg', {}).then(r => r || {}) : null,
+    prefsOf(x, u.email), allTagColors(x), u.level >= 3 ? srcList(x) : [], u.level >= 3 ? adsCfg(x) : null, kvJson(x.db, 'commission_cfg', {}).then(r => r || {}), sanAllowed(x, u).catch(() => false), kvJson(x.db, 'dash_cfg', {}).then(r => r || {}),
     all(x.db, 'SELECT code, name FROM links').then(r => r.map(l => [l.code, l.name])).catch(() => []),
     u.level >= 3 || u.role === 'Marketing' || u.mkv ? kvJson(x.db, 'mkt_doc', null).then(r => r || MKT_DOC_DEF) : null,
     u.level >= 3 ? kvJson(x.db, 'cost_cfg', null) : null, kvJson(x.db, 'payplan_cfg', null).then(r => Object.assign({}, PAYPLAN, r || {})), u.level >= 3 ? kvJson(x.db, 'staff_guard', []).then(r => r || []) : []]); // 💰 giá nhập sản phẩm: chỉ Quản trị (không nằm trong repo công khai) // 📍 tên link QR → nguồn đơn web hiện "📍 <tên>"
@@ -525,7 +525,7 @@ async function loadSmall(x, u, R, mode, adV) {
     ok: true, user: publicUser(u), areas, sanOk, now: Date.now(), today: startOfDay(Date.now()), fbNew, users, prefs, tagColors, sources, ads, adV: ar.v, adRows: ar.rows, qrLinks,
     contacts: ct.reverse().map(contactOut), targets: tg.map(t => ({ month: t.month, name: t.name, amount: t.amount || 0, by: t.by_name || '', at: t.at })),
     cycles: cy.filter(r => r.name).map(r => [r.name, r.variant || '', Number(r.days) || 0, r.basis || '']), templates: tp.filter(r => r.text).map(r => [r.when_txt || '', r.purpose || '', r.text]),
-    rules: { ai: !!x.env.ANTHROPIC_API_KEY && u.role !== 'Marketing', vipOrders: R.vipOrders, vipSpent: R.vipSpent, atRisk: R.atRisk, coolDays: R.coolDays, shipDays: R.shipDays, shipFar: R.shipFar, famMin: R.famMin, otypes: OTYPES, commission, payplan, staffGuard, dash, mktDoc, cost, statuses: ORDER_STATUS, results: CARE_RESULTS, leadStatus: LEAD_STATUS, assignMode: mode, bot: BOT_USERNAME, ca, lines: LINES.map(l => l[0]).concat(['Khác']) }
+    rules: { backCost: Number(dash.backCost) || 0, ai: !!x.env.ANTHROPIC_API_KEY && u.role !== 'Marketing', vipOrders: R.vipOrders, vipSpent: R.vipSpent, atRisk: R.atRisk, coolDays: R.coolDays, shipDays: R.shipDays, shipFar: R.shipFar, famMin: R.famMin, otypes: OTYPES, commission, payplan, staffGuard, dash: u.level >= 3 || u.role === 'Marketing' || u.mkv ? dash : null, mktDoc, cost, statuses: ORDER_STATUS, results: CARE_RESULTS, leadStatus: LEAD_STATUS, assignMode: mode, bot: BOT_USERNAME, ca, lines: LINES.map(l => l[0]).concat(['Khác']) }
   };
 }
 
@@ -1433,8 +1433,9 @@ async function crmSettings(x, u, d) {
   if (d.dash) { // mức đèn ở tab Tổng quan (chỉ Quản trị): chi phí quảng cáo / doanh thu khách mới dưới adsGood % = xanh, tới adsBad % = cam, trên = đỏ
     if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị sửa được mục này.' };
     const g = Math.min(500, Math.max(1, Number(String(d.dash.adsGood).replace(',', '.')) || 30)), b = Math.min(1000, Math.max(g, Number(String(d.dash.adsBad).replace(',', '.')) || 40));
-    const D = Object.assign({}, await kvJson(x.db, 'dash_cfg', {}), { adsGood: g, adsBad: b }); await kvSet(x.db, 'dash_cfg', JSON.stringify(D));
-    await crmLog(x, u, 'Cài đặt', '-', '', 'Đèn quảng cáo Tổng quan: xanh dưới ' + g + '%, cam tới ' + b + '%, đỏ trên ' + b + '%', '');
+    const bc = Math.min(1e6, Math.max(0, Math.round(Number(d.dash.backCost) || 0))); // phí ship mất cho 1 đơn hoàn (đi + về), 01/11/2026
+    const D = Object.assign({}, await kvJson(x.db, 'dash_cfg', {}), { adsGood: g, adsBad: b }, bc ? { backCost: bc } : {}); await kvSet(x.db, 'dash_cfg', JSON.stringify(D));
+    await crmLog(x, u, 'Cài đặt', '-', '', 'Đèn quảng cáo Tổng quan: xanh dưới ' + g + '%, cam tới ' + b + '%, đỏ trên ' + b + '%' + (bc ? ' · phí ship 1 đơn hoàn ' + bc + 'đ' : ''), '');
     return { ok: true, dash: D };
   }
   if (d.mktDoc) {

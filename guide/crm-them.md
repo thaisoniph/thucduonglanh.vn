@@ -290,7 +290,7 @@ Bấm 1 nút thời gian ở trên cùng: *Hôm nay, Tuần này, Tháng này…
 Tab xếp theo đúng thứ tự một sale giỏi tự hỏi mỗi ngày, **đọc từ trên xuống**:
 
 1. **🎯 Mục tiêu:** vạch đen là hôm nay. Thanh màu vượt vạch đen = **đúng tiến độ**. Dòng "mỗi ngày cần…" ghi luôn **cần bao nhiêu đơn mỗi ngày**.
-    - Ngay dưới: **💰 Doanh số** (tổng tiền các đơn bạn lên, **kể cả đơn hoàn / huỷ**; số tính mục tiêu đã trừ hoàn / huỷ) và **💵 Đã thu** (đơn đã giao xong hoặc đã nhận chuyển khoản).
+    - Ngay dưới: **💰 Doanh số** (tiền các đơn bạn lên, **đã trừ đơn hoàn / huỷ**, đúng số tính mục tiêu) và **💵 Đã thu** (đơn đã giao xong hoặc đã nhận chuyển khoản).
 2. **👉 Hôm nay làm 3 việc này trước:** việc **ra nhiều tiền nhất lên đầu**, có ghi "≈ có thể ra … tr". Làm từ trên xuống. Bấm **＋ việc khác** để xem thêm.
 
 ![Việc nên làm ngay](/huong-dan/img/crm-hieuqua-viec.webp)
@@ -300,7 +300,7 @@ Tab xếp theo đúng thứ tự một sale giỏi tự hỏi mỗi ngày, **đ�
     - **② Gọi ngay trong ngày**: bao nhiêu % số mới bạn gọi ngay hôm nhận. **Từ 80% là tốt.** Khách vừa để số còn nhớ quảng cáo nên dễ chốt nhất.
     - **③ Chốt được**: cứ 10 người hỏi thì bạn chốt được mấy người, so với cả nhóm.
     - **④ Mỗi đơn**: trung bình mỗi đơn bao nhiêu tiền. Tư vấn combo, 2–3 hộp thì số này tăng.
-    - **⑤ Giao thành công**: bao nhiêu % đơn đến tay khách, không bị hoàn / huỷ. **Từ 95% là tốt.** Gọi xác nhận trước khi gửi thì số này tăng.
+    - **⑤ Giao thành công**: trong các đơn đã gửi đi, bao nhiêu % đến tay khách, không bị hoàn. Đơn huỷ trước khi gửi không tính vào đây (chỉ đếm số đơn). Mỗi đơn hoàn công ty mất phí ship 2 chiều. **Từ 95% là tốt.** Gọi xác nhận trước khi gửi thì số này tăng.
     - **⑥ Khách cũ mua lại**: bao nhiêu khách cũ quay lại mua.
 4. **💡 Khâu cần sửa nhất:** máy chọn ra **1 khâu yếu nhất**, chỉ cách sửa và ghi **sửa được thì thêm khoảng bao nhiêu tiền**. Chỉ cần tập trung sửa khâu này.
 5. **Xem chi tiết** (bấm để mở): bán hàng theo ngày, từ quảng cáo (công ty đã đầu tư cho bạn, khách hỏi đi về đâu), chăm sóc, lý do khách chưa mua, tỉnh.

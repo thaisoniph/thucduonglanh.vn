@@ -33,7 +33,7 @@ Khi vào CRM: nhân viên vào thẳng **Hôm nay**, quản lý vào **Hiệu qu
 
 Đọc từ trên xuống:
 
-1. **🎯 Mục tiêu cả nhóm**: đã bán bao nhiêu so với mục tiêu, mỗi ngày cần bao nhiêu tiền **≈ bao nhiêu đơn**. Ngay dưới: 💰 Doanh số (gồm hoàn / huỷ) và 💵 Đã thu.
+1. **🎯 Mục tiêu cả nhóm**: đã bán bao nhiêu so với mục tiêu, mỗi ngày cần bao nhiêu tiền **≈ bao nhiêu đơn**. Ngay dưới: 💰 Doanh số (đã trừ hoàn / huỷ, cùng số với Tổng quan) và 💵 Đã thu.
 2. **👉 Quản lý làm 3 việc này trước**: việc gấp lên đầu (số quảng cáo chưa ai gọi, người đang chậm mục tiêu, khách hỏi đang chờ…). Bấm tên người để xem người đó. Bấm **＋ việc khác** để xem thêm.
 3. **🪜 Các bước bán hàng của cả nhóm**: 6 ô đánh số ① Khách hỏi nhận được → ② Gọi ngay trong ngày → ③ Chốt được → ④ Mỗi đơn → ⑤ Giao thành công → ⑥ Khách cũ mua lại. Dòng **"giỏi nhất …"** = mức của người làm tốt nhất nhóm ở bước đó. Ô đỏ là khâu cần sửa.
 4. **💡 Khâu cần sửa nhất**: 1 khâu yếu nhất của cả nhóm, cách sửa và số tiền thêm được nếu sửa. Dùng làm chủ đề họp nhóm.
@@ -185,12 +185,12 @@ Dòng chú thích màu đèn, ▲▼, đường nhỏ được thu gọn thành 
  Đọc từ trên xuống theo 3 câu hỏi: *Tháng này có ổn không? Vì sao? Phải làm gì?*
 
 1. **Câu kết luận** (dòng đầu, có đèn): tháng này dự kiến đạt bao nhiêu so với mục tiêu, còn thiếu bao nhiêu, khâu nào yếu nhất.
-2. **6 ô lớn** (xếp theo mức cần ra quyết định): 💰 Doanh số · 📈 Lãi gộp · 💵 Tiền đã về · 📣 1đ quảng cáo thu về · 🙋 Khách mới mua · ↩️ Hoàn / huỷ.
+2. **6 ô lớn** (xếp theo mức cần ra quyết định): 💰 Doanh số · 📈 Lãi gộp · 💵 Tiền đã về · 📣 1đ quảng cáo thu về · 🙋 Khách mới mua · ↩️ Tỷ lệ hoàn.
     - **Doanh số** = tiền các đơn **đã trừ hoàn / huỷ**. Từ 29/10/2026 cả trang (ô, biểu đồ, mục tiêu, Bán hàng văn phòng) dùng **một** con số này, giống tab Hiệu quả.
     - **Tiền đã về** = tiền các đơn **đã thu được** (đã giao, hoặc đã nhận chuyển khoản).
     - **📈 Lãi gộp** = lãi đơn văn phòng (doanh số − giá vốn hàng đã bán, kể cả quà tặng) + lãi sàn (tiền sàn thực trả về − giá vốn). Tab **Sàn** có ô **📈 Lãi gộp sàn** và % lãi từng sản phẩm. Tải file **Thu nhập** của sàn thì số tiền về (đã trừ phí sàn) chính xác hơn. Dòng nhỏ ghi lãi còn lại sau khi trừ quảng cáo. Chưa trừ ship, lương, mặt bằng. Giá vốn nhập ở **Cài đặt → 💰 Giá vốn sản phẩm** (chỉ Quản trị thấy).
     - **1đ quảng cáo thu về** = bỏ 1 đồng quảng cáo thì khách mới mua bao nhiêu đồng.
-    - **↩️ Hoàn / huỷ** = bao nhiêu % đơn bị hoàn hoặc huỷ, và mất bao nhiêu tiền. Đây là chỉ số của sale.
+    - **↩️ Tỷ lệ hoàn** = số đơn hoàn ÷ số đơn **đã gửi đi**, kèm tiền phí ship mất ước tính (mặc định 60.000đ/đơn hoàn, đi + về; Quản trị sửa ở Cài đặt → 🚦 Mức đèn Tổng quan). Tốt là dưới 5%. Đơn **huỷ** (khách huỷ trước khi gửi, gần như không mất phí) không tính vào tỷ lệ, chỉ ghi số đơn ở dòng nhỏ. Đây là chỉ số của sale.
     - Mũi tên **▲▼** so với kỳ trước (xanh = tốt hơn, đỏ = kém hơn). Đường nhỏ màu xám chỉ cho biết **trong kỳ** số đang lên hay xuống.
 3. **🎯 Mục tiêu tháng** và **🧩 Theo từng mảng** (Sale, Website, Shopee…): mỗi mảng 1 dòng, có đèn tiến độ. Nút **🎯 Đặt mục tiêu** nằm ngay đây.
 4. **🔍 Vì sao doanh số tăng / giảm**: Doanh số = khách hỏi mới × tỷ lệ chốt × giá trị 1 đơn + khách cũ mua lại. Ô **viền đỏ** là khâu giảm nhiều nhất, nên sửa trước.

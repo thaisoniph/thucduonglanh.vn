@@ -78,7 +78,7 @@ async function bestCalc(x, R, people) {
     up('roi', b.cost ? Math.round(b.rev / b.cost * 10) / 10 : null);
   });
   const by = {}; (await all(x.db, "SELECT seller, status, count(*) AS n FROM orders WHERE time >= ? AND time < ? GROUP BY seller, status", R[0], R[1])).forEach(r => {
-    const o = by[r.seller] || (by[r.seller] = { n: 0, v: 0 }); o.n += r.n; if (isVoid(r.status)) o.v += r.n;
+    const o = by[r.seller] || (by[r.seller] = { n: 0, v: 0 }); if (/huỷ|hủy/i.test(r.status || '')) return; o.n += r.n; if (/hoàn/i.test(r.status || '')) o.v += r.n; // 01/11/2026: giao thành công = 1 − đơn hoàn ÷ đơn đã gửi (đơn huỷ không tính)
   });
   Object.keys(by).forEach(k => { if (staff[k] && by[k].n >= 10) up('ok', 100 - Math.round(by[k].v * 100 / by[k].n)); });
   return best;
