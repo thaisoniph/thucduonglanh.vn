@@ -632,20 +632,28 @@ async function crmRace(x, u) {
   const vn = new Date(now + TZ_MS), y = vn.getUTCFullYear(), mo = vn.getUTCMonth(), m0 = Date.UTC(y, mo, 1) - TZ_MS, m1 = Date.UTC(y, mo + 1, 1) - TZ_MS;
   const pm0 = Date.UTC(y, mo - 1, 1) - TZ_MS, mk = y + '-' + (mo < 9 ? '0' : '') + (mo + 1), from = Math.min(w0 - 7 * DAY, pm0);
   const VOID = "status NOT LIKE '%uỷ%' AND status NOT LIKE '%ủy%' AND status NOT LIKE '%oàn%'";
-  const [os, ls, tg] = await Promise.all([
+  // 01/11/2026: Tỷ lệ chốt tính giống tab Hiệu quả (closeStats trong crm/app.js): data quảng cáo trong kỳ (file số quảng cáo, mỗi SĐT 1 lần) đã ra đơn.
+  // Trước đây đếm mọi khách hỏi được giao, gồm cả data cũ nhập từ file ("File cũ – …") → sale nhận data nguội bị tụt còn ~14%, lệch với Hiệu quả.
+  const a0 = Math.min(w0, m0), a1 = Math.max(w0 + 7 * DAY, m1);
+  const ads = ((await kvJson(x.db, 'ads_rows', [])) || []).map(a => [Number(a[0]) || 0, normPhone(a[1]), String(a[2] || '')]).filter(a => a[1] && a[0] >= a0 && a[0] < a1);
+  const adPh = [...new Set(ads.map(a => a[1]))];
+  const [os, tg, ao, al] = await Promise.all([
     all(x.db, `SELECT o.seller, o.time, o.total, o.phone, c.first FROM orders o LEFT JOIN customers c ON c.phone = o.phone WHERE o.time >= ? AND ${VOID.replace(/status/g, 'o.status')}`, from),
-    all(x.db, "SELECT owner, time, status, reason, order_id FROM leads WHERE time >= ? AND owner != ''", Math.min(w0, m0)),
-    all(x.db, 'SELECT name, amount FROM targets WHERE month = ?', mk)]);
+    all(x.db, 'SELECT name, amount FROM targets WHERE month = ?', mk),
+    adPh.length ? allIn(x.db, `SELECT phone, time FROM orders WHERE phone IN (SELECT value FROM json_each(?)) AND time >= ? AND ${VOID}`, adPh, a0) : [],
+    adPh.length ? allIn(x.db, 'SELECT phone, time, last_at, status FROM leads WHERE phone IN (SELECT value FROM json_each(?)) AND coalesce(last_at, time) >= ?', adPh, a0) : []]);
+  const buyT = {}, ldBy = {}; ao.forEach(o => { (buyT[normPhone(o.phone)] = buyT[normPhone(o.phone)] || []).push(Number(o.time) || 0); }); al.forEach(l => { (ldBy[normPhone(l.phone)] = ldBy[normPhone(l.phone)] || []).push(l); });
+  const closeOf = (n, a, b) => { const seen = {}; let data = 0, won = 0; ads.forEach(r => { const [day, ph] = r; if (day < a || day >= b || r[2] !== n || seen[ph]) return; seen[ph] = 1; data++;
+    if ((buyT[ph] || []).some(t => t >= day) || (ldBy[ph] || []).some(l => (Number(l.last_at) || Number(l.time) || 0) >= day && l.status === 'Đã chốt')) won++; }); return { data, won }; };
   const us = (await crmUsers(x)).filter(v => v.active && v.level >= 1 && v.level < 3), names = us.map(v => v.name), tgt = {}; tg.forEach(t => { tgt[t.name] = Number(t.amount) || 0; });
   const sum = (a, b, n) => os.filter(o => o.time >= a && o.time < b && (!n || o.seller === n)).reduce((s, o) => s + (Number(o.total) || 0), 0);
   const period = (a, b, pa, pb, minLead, gk) => {
     const rows = names.map(n => {
       const mine = os.filter(o => o.seller === n && o.time >= a && o.time < b), sales = mine.reduce((s, o) => s + (Number(o.total) || 0), 0);
       const back = {}; mine.forEach(o => { if (o.first && o.first < o.time - 3600e3) back[o.phone] = 1; });
-      const ld = ls.filter(l => l.owner === n && l.time >= a && l.time < b && !(l.status === 'Không mua' && /rác/i.test(l.reason || '')));
-      const won = ld.filter(l => l.status === 'Đã chốt' || l.order_id).length, prev = sum(pa, pb, n);
+      const cs = closeOf(n, a, b), won = cs.won, prev = sum(pa, pb, n);
       const goal = (tgt[n] || 0) * gk;
-      return { n, sales, pct: goal > 0 ? Math.round(sales * 100 / goal) : null, orders: mine.length, back: Object.keys(back).length, data: ld.length, won, close: ld.length >= minLead ? Math.round(won * 100 / ld.length) : null,
+      return { n, sales, pct: goal > 0 ? Math.round(sales * 100 / goal) : null, orders: mine.length, back: Object.keys(back).length, data: cs.data, won, close: cs.data >= minLead ? Math.round(won * 100 / cs.data) : null,
         grow: prev >= 500000 ? Math.round((sales - prev) * 100 / prev) : null, prev };
     }).filter(r => us.find(v => v.name === r.n).level === 1 || r.orders > 0); // quản lý không bán thì không đưa vào bảng
     const cat = (k, f, money) => {

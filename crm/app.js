@@ -1396,7 +1396,7 @@
   /* ---------- Bảng thi đua: Top 3 mỗi hạng mục + hạng của mình + còn cách người ngay trên bao nhiêu. Hỏi máy chủ lệnh 'race' (nhớ 10 phút);
    * máy chủ chỉ gửi cho nhân viên Top 3 và số của chính họ (người hạng 4 trở xuống không bị lộ). Máy chủ cũ chưa có lệnh này → ẩn khối. */
   // 17/10/2026: Doanh số xếp theo % mục tiêu (máy chủ gửi c.pct = 1); số tiền của người khác chỉ quản lý thấy. Máy chủ cũ (không có c.pct) vẫn hiện tiền như trước.
-  var RACE_CATS = { sales: ['🏆 Doanh số', '% mục tiêu đạt (không tính đơn huỷ / hoàn)'], close: ['🎯 Tỷ lệ chốt', 'khách hỏi được giao ra đơn'], back: ['💚 Khách cũ quay lại', 'số khách cũ mua thêm đơn'], grow: ['🚀 Tiến bộ nhất', 'doanh số so với cùng kỳ trước'] };
+  var RACE_CATS = { sales: ['🏆 Doanh số', '% mục tiêu đạt (không tính đơn huỷ / hoàn)'], close: ['🎯 Tỷ lệ chốt', 'data quảng cáo ra đơn (như tab Hiệu quả)'], back: ['💚 Khách cũ quay lại', 'số khách cũ mua thêm đơn'], grow: ['🚀 Tiến bộ nhất', 'doanh số so với cùng kỳ trước'] };
   function raceGet() {
     var c = S.race;
     if ((!c || Date.now() - c.at > 600e3) && !S.raceBusy) {
@@ -1415,7 +1415,7 @@
     if (c.none && c.none.length) rows += '<li class="race-none">Chưa đặt mục tiêu: ' + c.none.map(function (e) { return esc(e.n) + (e.s ? ' (' + moneyShort(e.s) + ')' : ''); }).join(', ') + '</li>';
     var me = '';
     if (lvl() < 2) {
-      if (!c.me) me = c.k === 'sales' && c.pct ? 'Đặt 🎯 mục tiêu tháng để vào bảng xếp hạng' : c.k === 'close' ? 'Cần ít nhất ' + (wk ? 3 : 5) + ' khách hỏi trong kỳ để xếp hạng' : c.k === 'grow' ? 'Cần doanh số kỳ trước từ 500k để so' : 'Chưa có số liệu';
+      if (!c.me) me = c.k === 'sales' && c.pct ? 'Đặt 🎯 mục tiêu tháng để vào bảng xếp hạng' : c.k === 'close' ? 'Cần ít nhất ' + (wk ? 3 : 5) + ' số data quảng cáo trong kỳ để xếp hạng' : c.k === 'grow' ? 'Cần doanh số kỳ trước từ 500k để so' : 'Chưa có số liệu';
       else if (c.me.r === 1 && c.me.v > 0) me = '👑 Bạn đang dẫn đầu, giữ vững nhé!' + (c.me.s != null ? ' · ' + moneyShort(c.me.s) : '');
       else me = 'Bạn: <b>hạng ' + c.me.r + '/' + c.count + '</b> · ' + raceVal(c.k, c.me.v, c.pct) + (c.me.s != null ? ' (' + moneyShort(c.me.s) + ')' : '') + (c.me.gap ? ' · còn cách người trên <b>' + raceGap(c.k, c.me.gap, c.pct) + '</b>' : '');
     }
