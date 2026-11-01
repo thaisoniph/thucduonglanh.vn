@@ -19,7 +19,7 @@ import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, wbInf
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-10-31y'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
+const SCHEMA_V = '2026-11-01r'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -40,7 +40,10 @@ export async function ensureSchema(db) {
     await addCol('trk_code', 'INTEGER DEFAULT 0');
     await addCol('voucher', "TEXT DEFAULT ''"); // mã ưu đãi khách nhập khi đặt web (api/src/voucher.js)
     await addCol('discount', 'INTEGER DEFAULT 0');
-    await addCol('addr_old', "TEXT DEFAULT ''"); // 20/10/2026: địa chỉ cũ (63 tỉnh, có huyện) – Misa vẫn chọn theo địa chỉ cũ
+    await addCol('addr_old', "TEXT DEFAULT ''");
+    await addCol('ship_fee', 'INTEGER'); // 01/11/2026: phí thật trả hãng vận chuyển (từ file đối soát Best / Viettel Post / xe ôm)
+    await addCol('recon', "TEXT DEFAULT ''"); // lần đối soát gần nhất: "Best 01/11"
+ // 20/10/2026: địa chỉ cũ (63 tỉnh, có huyện) – Misa vẫn chọn theo địa chỉ cũ
     // Khách: đã kết bạn Zalo, nhóm cộng đồng, ngày sinh (bản Apps Script có, lúc chuyển sang D1 bị thiếu)
     const ccols = (await all(db, "PRAGMA table_info(customers)")).map(r => r.name);
     for (const [col, def] of [['zalo', 'INTEGER DEFAULT 0'], ['community', "TEXT DEFAULT ''"], ['dob', "TEXT DEFAULT ''"], ['recv', 'INTEGER'], ['ok_n', 'INTEGER DEFAULT 0'], ['back_n', 'INTEGER DEFAULT 0'], ['last_back', 'INTEGER'], ['fam', 'INTEGER DEFAULT 0'], ['addr_old', "TEXT DEFAULT ''"], ['zone', 'INTEGER DEFAULT 0'], ['stop', "TEXT DEFAULT ''"], ['stop_by', "TEXT DEFAULT ''"], ['stop_at', 'INTEGER'], ['stop_ok', 'INTEGER DEFAULT 0']]) if (!ccols.includes(col)) { try { await run(db, `ALTER TABLE customers ADD COLUMN ${col} ${def}`); } catch (e) { } }
@@ -437,7 +440,7 @@ export function leadDue(l, today) {
 const leadOut = r => ({ id: r.id, time: r.time, name: r.name || '', phone: r.phone || '', channel: r.channel || '', interest: r.interest || '', status: r.status || 'Mới hỏi', owner: r.owner || '', lastAt: r.last_at, callback: r.callback, reason: r.reason || '', note: r.note || '', orderId: r.order_id || '', by: r.by_name || '', refPhone: r.ref_phone || '', refName: r.ref_name || '' });
 const orderOut = r => ({ row: r.rid, time: r.time, id: r.id, name: r.name || '', phone: r.phone || '', email: r.email || '', province: r.province || '', ward: r.ward || '', address: r.address || '', items: r.items || '', subtotal: r.subtotal || 0,
   shipping: r.shipping || 0, total: r.total || 0, payment: r.payment || '', note: r.note || '', status: r.status || 'Mới', source: r.source || '', consent: !!r.consent, paid: r.paid || '', carrier: r.carrier || '', tracking: r.tracking || '', seller: r.seller || '', ca: r.ca || '', line: r.line || '', ship: r.ship || '',
-  shipAt: r.ship_at, receivedAt: r.received_at, otype: r.otype || '', oflag: r.oflag || '', trk: r.trk || '', trkAt: r.trk_at, trkCode: r.trk_code || 0, voucher: r.voucher || '', refPhone: r.ref_phone || '', refGift: r.ref_gift || '', refTold: r.ref_told ? 1 : 0, partner: r.partner || '', pRate: r.partner_rate || 0, discount: r.discount || 0, addrOld: r.addr_old || '' });
+  shipAt: r.ship_at, receivedAt: r.received_at, otype: r.otype || '', oflag: r.oflag || '', trk: r.trk || '', trkAt: r.trk_at, trkCode: r.trk_code || 0, voucher: r.voucher || '', refPhone: r.ref_phone || '', refGift: r.ref_gift || '', refTold: r.ref_told ? 1 : 0, partner: r.partner || '', pRate: r.partner_rate || 0, discount: r.discount || 0, addrOld: r.addr_old || '', shipFee: r.ship_fee == null ? null : r.ship_fee, recon: r.recon || '' });
 export async function leadsData(x, where, ...args) { return (await all(x.db, 'SELECT * FROM leads' + (where ? ' WHERE ' + where : '') + ' ORDER BY rid DESC LIMIT 3000', ...args)).reverse().map(leadOut); }
 
 async function prefsOf(x, email) { return await kvJson(x.db, 'prefs_' + email, {}) || {}; }
@@ -991,6 +994,27 @@ async function crmOrderStatus(x, u, d) {
     await wbStatusQueue(x, [o.seller, ow], { id: o.id, sheet: m ? m[1] : '', phone: o.phone, name: o.name, time: Number(o.time) || 0, total: Number(o.total) || 0, status: set.status }); });
   return { ok: true, row: o.rid, status: status || old };
 }
+/** 📦 Đối soát vận chuyển (01/11/2026): CRM đọc file Best / Viettel Post / xe ôm ngay trên máy, khớp đơn theo mã + SĐT, quản lý xem lại rồi gửi lên.
+ *  d.items = [{ row, id, fee, carrier, tracking, status }]: ghi phí thật, hãng, mã vận đơn (nếu đơn chưa có); status (nếu có) đổi như bấm tay (ghi nhật ký, tính lại khách, ghi file sale). */
+async function crmReconApply(x, u, d) {
+  if (u.level < 2) return { ok: false, error: 'Chỉ Quản lý / Quản trị đối soát được.' };
+  const items = (Array.isArray(d.items) ? d.items : []).slice(0, 3000), tag = String(d.src || 'Đối soát').slice(0, 40) + ' ' + fmtDate(Date.now(), 'dd/MM');
+  let fee = 0, st = 0; const errs = [];
+  for (const it of items) {
+    const o = await orderFind(x, it); if (!o) { errs.push(it.id); continue; }
+    const set = { recon: tag };
+    if (it.fee !== undefined && it.fee !== null && Number(it.fee) >= 0) { set.ship_fee = Math.round(Number(it.fee)); fee++; }
+    if (it.carrier && !o.carrier) set.carrier = String(it.carrier).slice(0, 40);
+    if (it.tracking && !o.tracking) set.tracking = String(it.tracking).trim().slice(0, 40);
+    const ks = Object.keys(set); await run(x.db, 'UPDATE orders SET ' + ks.map(k => k + ' = ?').join(', ') + ' WHERE rid = ?', ...ks.map(k => set[k]), o.rid);
+    if (it.status && it.status !== o.status && ORDER_STATUS.indexOf(it.status) >= 0) {
+      const r = await crmOrderStatus(x, u, { row: o.rid, id: o.id, status: it.status, reason: 'Đối soát ' + tag });
+      if (r.ok) st++; else errs.push(it.id);
+    }
+  }
+  await crmLog(x, u, 'Đối soát', '-', '', tag + ': ' + items.length + ' đơn, ghi phí ' + fee + ', đổi trạng thái ' + st, errs.length ? 'Lỗi: ' + errs.slice(0, 20).join(', ') : '');
+  return { ok: true, fee, status: st, errors: errs };
+}
 async function crmOrderEdit(x, u, d) {
   const o = await orderFind(x, d); if (!o) return { ok: false, error: 'Không tìm thấy đơn ' + d.id };
   const c = d.customer || {}, phone = normPhone(c.phone); let items = cleanItems(d.items);
@@ -1435,10 +1459,14 @@ async function crmSettings(x, u, d) {
     const m = String(d.opex.month || ''); if (!/^20\d\d-(0[1-9]|1[0-2])$/.test(m)) return { ok: false, error: 'Tháng không hợp lệ.' };
     const items = (Array.isArray(d.opex.items) ? d.opex.items : []).slice(0, 60).map(r => [String((r || [])[0] || '').trim().slice(0, 80), Math.max(0, Math.min(1e11, Math.round(Number(String((r || [])[1] || '').replace(/[^\d]/g, '')) || 0)))]).filter(r => r[0] && r[1]);
     const O = (await kvJson(x.db, 'opex_cfg', {})) || {};
-    if (items.length) O[m] = { items, at: Date.now(), by: u.name }; else delete O[m];
+    // kt = số từ file báo cáo kế toán tải lên (01/11/2026): tổng hợp tháng + chi phí theo nhóm, để so với số CRM tính
+    const num = v => { const n = Math.round(Number(v)); return isFinite(n) ? Math.max(-1e12, Math.min(1e12, n)) : null; }, k0 = d.opex.kt;
+    const kt = k0 && typeof k0 === 'object' ? Object.assign({ file: String(k0.file || '').slice(0, 120), groups: (Array.isArray(k0.groups) ? k0.groups : []).slice(0, 40).map(r => [String((r || [])[0] || '').trim().slice(0, 80), num((r || [])[1]) || 0]).filter(r => r[0]), at: Date.now(), by: u.name },
+      ...['sale', 'shopee', 'dt', 'cogs', 'gp', 'cost', 'profit', 'flow', 'cash', 'payable'].map(k => k0[k] == null || num(k0[k]) === null ? {} : { [k]: num(k0[k]) })) : (O[m] || {}).kt;
+    if (!d.opex.del && (items.length || kt)) O[m] = Object.assign({ items, at: Date.now(), by: u.name }, kt ? { kt } : {}); else delete O[m];
     Object.keys(O).sort().slice(0, -36).forEach(k => delete O[k]); // giữ 3 năm gần nhất
     await kvSet(x.db, 'opex_cfg', JSON.stringify(O));
-    await crmLog(x, u, 'Cài đặt', '-', '', 'Chi phí văn phòng tháng ' + m.slice(5) + '/' + m.slice(0, 4) + ': ' + items.length + ' khoản, tổng ' + fmt(items.reduce((a, r) => a + r[1], 0)), '');
+    await crmLog(x, u, 'Cài đặt', '-', '', (d.opex.del ? 'Xoá chi phí' : kt && k0 ? 'Tải file kế toán' : 'Chi phí văn phòng') + ' tháng ' + m.slice(5) + '/' + m.slice(0, 4) + ': ' + items.length + ' khoản, tổng ' + fmt(items.reduce((a, r) => a + r[1], 0)), '');
     return { ok: true, opex: O };
   }
   if (d.dash) { // mức đèn ở tab Tổng quan (chỉ Quản trị): chi phí quảng cáo / doanh thu khách mới dưới adsGood % = xanh, tới adsBad % = cam, trên = đỏ
@@ -1961,7 +1989,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (need[a] && u.level < need[a]) return { ok: false, error: 'Bạn không có quyền làm việc này.' };
   const opKey = d.opId ? 'op_' + String(d.opId).slice(0, 40) : ''; // CRM gửi lại việc khi mạng chập chờn: việc đã làm rồi thì trả kết quả cũ, không ghi trùng
   if (opKey) { const done = await kvGet(x.db, opKey); if (done) return JSON.parse(done); }
-  const h = { care: crmCare, customer: crmCustomer, order_status: crmOrderStatus, contact: crmContact, settings: crmSettings, users: crmSaveUsers, order_edit: crmOrderEdit,
+  const h = { care: crmCare, customer: crmCustomer, order_status: crmOrderStatus, recon_apply: crmReconApply, contact: crmContact, settings: crmSettings, users: crmSaveUsers, order_edit: crmOrderEdit,
     lead_save: crmLeadSave, lead_contact: crmLeadContact, target: crmTarget, assign: crmAssign, bulk: crmBulk, recv: crmRecv, claim: crmClaim,
     order_delete: crmOrderDelete, customer_delete: crmCustomerDelete, gift: crmGift, stop: crmStop }[a];
   if (h) {

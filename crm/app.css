@@ -1287,6 +1287,10 @@ div.f > span { display: block; font-size: 13px; font-weight: 600; color: var(--i
 .pnl-t .pnl-end.ok td { color: var(--primary); } .pnl-t .pnl-end.bad td { color: var(--red); }
 .pnl-notes { margin: 10px 0 0; padding-left: 18px; } .pnl-notes li { margin: 3px 0; }
 .pnl-tot { margin: 12px 0 0; font-size: 16px; }
+.kt-box { margin-top: 16px; padding-top: 12px; border-top: 1px dashed var(--line); } .kt-box h3 { margin: 0 0 6px; font-size: 16px; }
+.kt-sum { margin: 0 0 8px; font-size: 15px; color: var(--ink); }
+.kt-box .pnl-t td:nth-child(4), .kt-box .pnl-t th:nth-child(4) { color: var(--muted); font-size: 13px; }
+.kt-m { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid var(--line); } .kt-m input { margin-top: 4px; } .kt-m ul { margin: 4px 0; padding-left: 18px; }
 .costcfg-paste { margin-top: 12px; } .costcfg-paste > summary { cursor: pointer; font-weight: 600; color: var(--primary); padding: 6px 0; }
 .costcfg-paste textarea { width: 100%; margin: 6px 0; font: inherit; font-size: 13px; }
 
@@ -1474,3 +1478,8 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .quick.q4 { grid-template-columns: repeat(4, 1fr); } @media (max-width: 640px) { .quick.q4 { grid-template-columns: repeat(2, 1fr); } } /* 4 nút kết quả Tư vấn: điện thoại 2×2, máy tính 1 hàng */
 
 .rf-zl { margin-top: 10px; padding: 10px 12px; background: var(--primary-soft); border-radius: 12px; }
+/* 📦 Đối soát vận chuyển (01/11/2026) */
+.rc-list { display: flex; flex-direction: column; gap: 6px; max-height: 320px; overflow: auto; margin-bottom: 12px; }
+.rc-row { display: flex; gap: 8px; align-items: flex-start; background: var(--card); border: 1px solid var(--line, #e5e5ea); border-radius: 10px; padding: 8px 10px; font-size: 14px; }
+.rc-row input { margin-top: 3px; flex: none; }
+.rc-row.rc-warn { border-color: #ff9500; background: #fff8ee; }

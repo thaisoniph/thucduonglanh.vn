@@ -89,6 +89,26 @@ Sale chọn loại đơn khác với gợi ý của máy thì đơn có nhãn **
 
 % hoa hồng từng loại đặt ở **Cài đặt → 💰 Hoa hồng**. Ô *🌐 Đơn khách tự đặt trên web (%)* là hoa hồng đơn web (để trống = chưa tính).
 
+## Đối soát vận chuyển (Best, Viettel Post, xe ôm)
+
+Mỗi tháng (hoặc mỗi tuần) đối chiếu file của hãng vận chuyển với đơn trong CRM, để đơn hoàn được ghi đúng và biết công ty mất bao nhiêu tiền ship.
+
+1. Tải file từ hãng:
+    - **Best**: trang Best → Đối soát COD → Chi tiết đơn → **Xuất Excel**, chọn cả tháng.
+    - **Viettel Post**: Quản lý vận đơn → **Xuất danh sách vận đơn**.
+    - **Xe ôm / tự giao**: bảng Excel hoặc Google Sheet (tải về .xlsx hoặc .csv) có các cột **Mã đơn** (hoặc **SĐT**), **Trạng thái** (Giao thành công / Hoàn / Huỷ), **Phí ship**. Có thể thêm cột **Ngày**, **Thu hộ**.
+2. CRM → **Đơn hàng** → bấm **📦 Đối soát vận chuyển** → chọn file. CRM tự nhận ra file của Best hay Viettel Post (file xe ôm thì chọn Hãng = Xe ôm).
+3. CRM **chưa đổi gì**, chỉ cho xem trước:
+    - **✅ Khớp, đúng rồi**: đơn CRM đã đúng trạng thái.
+    - **🔄 Cần đổi trạng thái**: ví dụ CRM ghi "Đang giao" mà hãng báo đã hoàn. Bỏ chọn đơn nào không muốn đổi. Dòng viền cam là đơn ngược nhau (CRM ghi đã giao mà hãng báo hoàn), xem kỹ.
+    - **❓ Không tìm thấy trong CRM**: hãng có vận đơn mà CRM chưa có đơn → nhắc sale lên đơn.
+    - **⚠️ Mã trùng, SĐT khác**: mã đơn trùng nhưng số điện thoại khác → CRM không tự sửa, kiểm tra tay.
+4. Bấm **✅ Cập nhật vào CRM**. CRM ghi phí thật trả hãng, tên hãng, mã vận đơn vào từng đơn, đổi trạng thái như khi bấm tay (có ghi nhật ký, ghi cả vào file sale).
+
+CRM khớp đơn theo **mã đơn ghi ở ô Ghi chú của vận đơn** (vd `Phuong281026-04`) cộng **số điện thoại**. Sale ghi đúng mã đơn khi tạo vận đơn thì khớp được nhiều nhất.
+
+Sau khi đối soát, ô **↩️ Tỷ lệ hoàn** ở Tổng quan / Hiệu quả tính **tiền ship mất theo phí thật** của hãng. Đơn hoàn chưa đối soát tạm tính theo mức ở Cài đặt → 🚦 Mức đèn Tổng quan (mặc định 60.000đ/đơn). Bấm vào đơn sẽ thấy dòng "📦 Phí trả hãng".
+
 ## Cài đặt bán hàng và chăm sóc
 
 - **Chu kỳ dùng sản phẩm**: khách dùng hết 1 hộp trong bao nhiêu ngày. Máy dùng số này để nhắc khách đặt lại. Tên sản phẩm chỉ cần 1 phần (ví dụ "DILVANG").

@@ -32,6 +32,8 @@
   function isCancel(st) { return /huỷ|hủy/i.test(String(st || '')); }
   /** Phí ship mất cho 1 đơn hoàn (đi + về), ước tính. Quản trị sửa ở Cài đặt → 🚦 Mức đèn Tổng quan; mặc định 60.000đ (Best ~31k/chiều, 10/2026). */
   function backCost() { var v = Number(S.d && S.d.rules && S.d.rules.backCost); return v > 0 ? v : 60000; }
+  /** Tiền ship mất của 1 đơn hoàn: phí thật từ file đối soát vận chuyển (o.shipFee) nếu có, chưa đối soát thì ước tính backCost(). */
+  function backFee(o) { return o.shipFee != null ? o.shipFee : backCost(); }
   function isPaidOrder(o) { return !isVoid(o.status) && (/^(Đã giao|Đổi hàng)$/.test(o.status || '') || !!o.paid); }
   var NEXT = { 'Mới': 'Đã xác nhận', 'Đã xác nhận': 'Đang giao', 'Đang giao': 'Đã giao' };
   var NEXT_LABEL = { 'Mới': '✅ Xác nhận', 'Đã xác nhận': '🚚 Đang giao', 'Đang giao': '📬 Đã giao' };
@@ -217,7 +219,7 @@
   }
   var lastErr = '';
   var READ_ACTS = { load: 1, src_inspect: 1, ads_inspect: 1, cust_orders: 1, sales_all: 1, fb_list: 1, fb_img: 1, check_phone: 1 }; // chỉ đọc: Google trả lỗi tạm thời thì tự thử lại
-  var API_HEAVY = /^(src_|ads_|mkt_fb|mkt_import|dup_scan|migrate|mirror|san_|sync|care_now|usage_report|load$)/;
+  var API_HEAVY = /^(recon_|src_|ads_|mkt_fb|mkt_import|dup_scan|migrate|mirror|san_|sync|care_now|usage_report|load$)/;
   function api(action, payload, tries) {
     var body = Object.assign({ type: 'crm', action: action, token: S.token }, payload || {});
     if (!CFG.endpoint) return Promise.reject(new Error('Chưa cấu hình máy chủ.'));
@@ -1792,6 +1794,7 @@
       '<div>💳 ' + esc(o.payment || '–') + ' ' + paidTag(o) + '</div>' +
       (oa ? '<div>📍 ' + esc(oa) + (ca && norm(oa) !== norm(ca) ? ' <span class="warn-line">(khác địa chỉ hiện tại)</span>' : '') + '</div>' : '') +
       (o.tracking || carrierOf(o) ? '<div>' + (o.tracking ? trackLink(o) : '🚚 ' + esc(carrierOf(o))) + (o.trk ? ' · <span class="muted">' + esc(o.trk) + '</span>' : '') + '</div>' : '') +
+      (o.shipFee != null && lvl() >= 2 ? '<div class="small muted">📦 Phí trả hãng: ' + money(o.shipFee) + (o.recon ? ' · đối soát ' + esc(o.recon) : '') + '</div>' : '') +
       '<div class="muted">' + fDateTime(o.time) + ' · ' + esc(otLabel(otypeOf(o))) + (o.source ? ' · ' + esc(o.source) : '') + (o.seller ? ' · 👤 ' + esc(o.seller) : '') + '</div>' +
       (o.note ? '<div class="or-note">📝 ' + esc(o.note) + '</div>' : '') +
       (lg.length ? '<div class="or-log">' + lg.map(function (l) { return '<div>' + fDate(l.time).slice(0, 5) + ' · ' + esc(l.result || l.what) + (l.note ? ': ' + esc(l.note) : '') + (l.by ? ' <span class="muted">(' + esc(l.by) + ')</span>' : '') + '</div>'; }).join('') + '</div>' : '') +
@@ -2458,7 +2461,7 @@
     var OS = ordersSeen();
     var mR = monthRange(monthOf(Date.now())), todayOs = OS.filter(function (o) { return o.time >= t0 && !isVoid(o.status); }), monthOs = OS.filter(function (o) { return o.time >= mR[0] && o.time < mR[1] && o.status !== 'Huỷ'; });
     var backM = monthOs.filter(function (o) { return /hoàn/i.test(o.status); }).length, shipOs = OS.filter(function (o) { return o.status === 'Đang giao'; }), shipping = shipOs.length, codOut = shipOs.reduce(function (s0, o) { return s0 + (isBank(o) ? 0 : o.total); }, 0);
-    var h = '<div class="page-head"><h1>Đơn hàng</h1><div class="grow"></div>' + whoSel() + '<button class="btn pri" data-neworder="">＋ Tạo đơn (Zalo, điện thoại…)</button></div>' +
+    var h = '<div class="page-head"><h1>Đơn hàng</h1><div class="grow"></div>' + whoSel() + (lvl() >= 2 ? '<button class="btn" data-recon="">📦 Đối soát vận chuyển</button>' : '') + '<button class="btn pri" data-neworder="">＋ Tạo đơn (Zalo, điện thoại…)</button></div>' +
       '<div class="minis" id="oMinis">' + mini('🧾 Đơn hôm nay', todayOs.length, '', '') + mini('💰 Doanh số hôm nay', moneyShort(todayOs.reduce(function (s0, o) { return s0 + o.total; }, 0)), '', 'good') + mini('🚚 Đang giao', shipping + (codOut ? '<small class="mini-sub" title="Tiền COD bưu cục đang giữ của các đơn đang giao">thu hộ ' + moneyShort(codOut) + '</small>' : ''), '', '') + mini('↩ Hoàn tháng này', monthOs.length ? pct(backM, monthOs.length) + '%' : '–', '', backM ? 'bad' : '') + '</div>' +
       '<div class="tools"><div class="search">' + I.search + '<input type="search" id="oq" placeholder="Tìm tên, SĐT, mã đơn, sản phẩm…" value="' + esc(f.q) + '"><button type="button" class="search-x" aria-label="Xoá chữ tìm kiếm" title="Xoá">✕</button></div></div>';
     var G = orderTodo(); if (lvl() >= 2 && S.who) G.forEach(function (g) { g.list = g.list.filter(function (o) { return whoOk(orderOwner(o)); }); });
@@ -3631,7 +3634,7 @@
       metric('Lượt chăm sóc', c.care, (c.replyPct === null ? 'Chưa có lượt nào.' : 'Kết nối được ' + c.replyPct + '% (' + c.replied + '/' + c.care + ' lượt khách nghe máy / trả lời).'), delta(c.care, p.care), '', csk('care')) +
       metric('Chăm sóc ra đơn', c.convPct === null ? '–' : c.convPct + '%', c.conv + ' / ' + c.contacted + ' khách được chăm sóc đã mua trong 14 ngày sau đó · ' + moneyShort(c.convRev) + '. Số này cho biết chăm sóc có ra tiền không.', c.convPct === null ? '' : delta(c.convPct, p.convPct, 'rate')) +
       metric('Khách quay lại mua', c.repeat, 'Số khách cũ đã mua lại trong thời gian đã chọn.', delta(c.repeat, p.repeat), '', csk('repeat')) +
-      metric('Tỷ lệ hoàn đơn', c.backPct === null ? '–' : c.backPct + '%', c.backN + ' / ' + (c.backN + c.orders) + ' đơn đã gửi bị hoàn' + (c.backN ? ' · mất phí ship ≈ ' + moneyShort(c.backN * backCost()) : '') + (c.cN ? ' · ' + c.cN + ' đơn huỷ trước khi gửi (không tính)' : '') + '. Gọi xác nhận kỹ trước khi gửi, đơn lớn nên nhờ chuyển khoản trước.', c.backPct === null ? '' : delta(c.backPct, p.backPct, 'rate')) +
+      metric('Tỷ lệ hoàn đơn', c.backPct === null ? '–' : c.backPct + '%', c.backN + ' / ' + (c.backN + c.orders) + ' đơn đã gửi bị hoàn' + (c.backN ? ' · mất phí ship ≈ ' + moneyShort(c.backLoss) : '') + (c.cN ? ' · ' + c.cN + ' đơn huỷ trước khi gửi (không tính)' : '') + '. Gọi xác nhận kỹ trước khi gửi, đơn lớn nên nhờ chuyển khoản trước.', c.backPct === null ? '' : delta(c.backPct, p.backPct, 'rate')) +
       (function () { var cs = S.d.customers.filter(function (x) { return x.orders && !coldOf(x) && (!me || x.owner === S.user.name); }), inN = cs.filter(inComm).length, invN = cs.filter(invited).length;
         return metric('Khách trong nhóm cộng đồng', cs.length ? pct(inN, cs.length) + '%' : '–', inN + ' / ' + cs.length + ' khách đã vào nhóm Zalo “Sống khỏe cùng Thực Dưỡng Lành”' + (invN ? ' · ' + invN + ' khách đã mời, chưa vào' : '') + '. Mời ở mốc hỏi nhận hàng / hỏi thăm 1 tuần, hoặc lọc 👥 Chưa vào cộng đồng.', ''); })() +
       metric('VIP sắp mất chưa gọi', c.vipRisk, (c.vipRisk ? 'Khách VIP 61–180 ngày chưa mua và hơn 30 ngày chưa nói chuyện. Nên gọi trước tiên.' : 'Tốt lắm, khách VIP đều được chăm sóc.'), '', me && c.vipRisk ? '#khach-hang" data-vipgo="1' : '') +
@@ -3724,7 +3727,7 @@
     var repeat = {}; old.forEach(function (o) { repeat[o.phone] = 1; });
     var webOs = os.filter(isWebOrder), webRev = webOs.reduce(function (s0, o) { return s0 + o.total; }, 0);
     var vipRisk = mine.filter(function (c) { return isVip(c) && stageOf(c) === 'risk' && !coldOf(c) && replyOf(c).days > 30; }).length;
-    return { contacted: Object.keys(firstCare).length, conv: conv, convRev: convRev, convPct: Object.keys(firstCare).length ? pct(conv, Object.keys(firstCare).length) : null, backN: back.length, backPct: allOs.length ? pct(back.length, allOs.length) : null, backV: back.reduce(function (s0, o) { return s0 + o.total; }, 0), cN: cN, repeat: Object.keys(repeat).length, vipRisk: vipRisk, web: webOs.length, webOf: os.length, webRev: webRev, webPct: pct(webOs.length, os.length),
+    return { contacted: Object.keys(firstCare).length, conv: conv, convRev: convRev, convPct: Object.keys(firstCare).length ? pct(conv, Object.keys(firstCare).length) : null, backN: back.length, backPct: allOs.length ? pct(back.length, allOs.length) : null, backV: back.reduce(function (s0, o) { return s0 + o.total; }, 0), backLoss: back.reduce(function (s0, o) { return s0 + backFee(o); }, 0), cN: cN, repeat: Object.keys(repeat).length, vipRisk: vipRisk, web: webOs.length, webOf: os.length, webRev: webRev, webPct: pct(webOs.length, os.length),
       gross: sales + vV, grossN: os.length + vos.length, vN: vos.length, vV: vV, vPct: os.length + vos.length ? pct(vos.length, os.length + vos.length) : null,
       sales: sales, paid: paid, orders: os.length, avg: os.length ? Math.round(sales / os.length) : 0, oldRev: oldRev, oldPct: pct(oldRev, sales), won: cs.won, lost: cs.lost, junk: cs.junk, pending: cs.open, data: cs.data, closePct: cs.pct,
       care: care.length, replied: replied, replyPct: care.length ? pct(replied, care.length) : null, reorder: care.filter(function (l) { return l.result === 'Đã đặt lại'; }).length,
@@ -3880,10 +3883,10 @@
   /** Số kinh doanh trong khoảng R, từ đơn hàng + khách hỏi trên máy. */
   function bizStats(R) {
     var os = S.d.orders.filter(function (o) { return o.time >= R[0] && o.time < R[1]; }); // doanh số gồm đơn hoàn / huỷ (vN, vRev: phần hoàn / huỷ)
-    var s = { n: os.length, rev: 0, vN: 0, vRev: 0, bN: 0, bRev: 0, cN: 0, paid: 0, paidN: 0, web: 0, webRev: 0, oldRev: 0, firstN: 0, ch: {}, sub: {}, prod: {}, day: {}, cg: 0, irv: 0, irvAll: 0, cgGift: 0, nwNet: 0, nwIrv: 0, nwGift: 0 }, seen = {}, hasCost = !!costCfg();
+    var s = { n: os.length, rev: 0, vN: 0, vRev: 0, bN: 0, bRev: 0, bL: 0, cN: 0, paid: 0, paidN: 0, web: 0, webRev: 0, oldRev: 0, firstN: 0, ch: {}, sub: {}, prod: {}, day: {}, cg: 0, irv: 0, irvAll: 0, cgGift: 0, nwNet: 0, nwIrv: 0, nwGift: 0 }, seen = {}, hasCost = !!costCfg();
     os.forEach(function (o) {
       var c = chanOf(o), k = c[0] + ' · ' + c[1], ph = normPhone(o.phone), cu = S.d.byPhone && S.d.byPhone[ph], t = o.total || 0, dk = isoDate(o.time), vd = isVoid(o.status);
-      s.rev += t; s.day[dk] = (s.day[dk] || 0) + t; if (vd) { s.vN++; s.vRev += t; if (isBack(o.status)) { s.bN++; s.bRev += t; } else s.cN++; } if (isPaidOrder(o)) { s.paid += t; s.paidN++; }
+      s.rev += t; s.day[dk] = (s.day[dk] || 0) + t; if (vd) { s.vN++; s.vRev += t; if (isBack(o.status)) { s.bN++; s.bRev += t; s.bL += backFee(o); } else s.cN++; } if (isPaidOrder(o)) { s.paid += t; s.paidN++; }
       if (c[0] === 'Website') { s.web++; s.webRev += t; }
       (s.ch[c[0]] = s.ch[c[0]] || { v: 0, n: 0 }).v += t; s.ch[c[0]].n++;
       (s.sub[k] = s.sub[k] || { v: 0, n: 0, g: c[0], l: c[1] }).v += t; s.sub[k].n++;
@@ -4127,8 +4130,8 @@
   var OPEX_DEF = ['Thuê văn phòng', 'Lương nhân sự văn phòng', 'Lương + hoa hồng sale', 'Bảo hiểm xã hội', 'Điện', 'Nước', 'Internet & điện thoại', 'Tiền ship trả hãng vận chuyển', 'Phần mềm & công cụ', 'Văn phòng phẩm, tạp vụ', 'Khác'];
   var OPEX_SALE = 'Lương + hoa hồng sale';
   function opexMonth(m) {
-    var o = ((S.d.rules && S.d.rules.opex) || {})[m]; if (!o || !(o.items || []).length) return null;
-    var t = 0; o.items.forEach(function (r) { t += r[1]; }); return { items: o.items, tot: t, at: o.at, by: o.by };
+    var o = ((S.d.rules && S.d.rules.opex) || {})[m]; if (!o || !((o.items || []).length || o.kt)) return null; o.items = o.items || [];
+    var t = 0; o.items.forEach(function (r) { t += r[1]; }); return { items: o.items, tot: t, at: o.at, by: o.by, kt: o.kt || null };
   }
   /** Chi phí văn phòng trong khoảng R: mỗi tháng chạm R lấy tổng tháng × số ngày trong R ÷ số ngày của tháng (chỉ tính tới hết hôm nay). miss = tháng chưa nhập. */
   function opexFor(R) {
@@ -4149,7 +4152,7 @@
     Object.keys(nm).forEach(function (n) { var p = payOf(n, m); if (p) t += p.total; }); return t;
   }
   function dashPnl(T, b, bp, M, sj, R, P, month) {
-    var ML = monthLabel(month), btn = '<button class="btn sm pri" data-dash="opex" data-m="' + month + '">✏️ Nhập chi phí ' + ML + '</button>';
+    var ML = monthLabel(month), btn = '<button class="btn sm pri" data-dash="opex" data-m="' + month + '">✏️ Nhập chi phí ' + ML + '</button><button class="btn sm" data-dash="kt">📎 Tải file kế toán</button>';
     if (!costCfg()) return { line: '⚠️ Chưa nhập giá vốn', body: '<div class="box"><p class="notice" style="margin:0">Cần giá vốn sản phẩm để tính lãi: vào <b>Cài đặt → 💰 Giá vốn sản phẩm</b>.</p></div>' };
     var G = dashGp(b, bp, sj), ox = opexFor(R), op = opexFor(P), ads = M ? M.tot : 0, ads0 = M ? M.totp : 0, net = G.tot - ads - ox.v, net0 = G.tot0 - ads0 - op.v, cmp = !!CMP_LABEL;
     var c = function (v, neg) { return '<td>' + (v === null ? '–' : (neg && v ? '−' : v < 0 ? '−' : '') + moneyShort(Math.abs(v))) + '</td>'; };
@@ -4171,10 +4174,133 @@
     if (!M) notes.push(MK.err ? '⚠️ Chưa tải được chi phí quảng cáo.' : '⏳ Đang tải chi phí quảng cáo…');
     if (!sj) notes.push('⏳ Đang cộng số sàn…');
     notes.push('Doanh số tính khi lên đơn (chưa chắc đã thu tiền). Phí ship khách trả đã nằm trong doanh số; tiền ship trả hãng nhập thành 1 khoản chi phí. Số chốt lãi lỗ do kế toán đối chiếu.');
-    var hist = Object.keys((S.d.rules && S.d.rules.opex) || {}).sort().reverse().slice(0, 6).map(function (m) { var x = opexMonth(m); return x ? '<button class="btn sm ghost" data-dash="opex" data-m="' + m + '">' + monthLabel(m).replace(/^t/, 'T') + ': ' + moneyShort(x.tot) + '</button>' : ''; }).join('');
+    var hist = Object.keys((S.d.rules && S.d.rules.opex) || {}).sort().reverse().slice(0, 6).map(function (m) { var x = opexMonth(m); return x ? '<button class="btn sm ghost" data-dash="opex" data-m="' + m + '">' + monthLabel(m).replace(/^t/, 'T') + ': ' + moneyShort(x.tot) + (x.kt ? ' 📎' : '') + '</button>' : ''; }).join('');
+    var K = (opexMonth(month) || {}).kt, ks = '';
+    if (K) {
+      var kp = [K.profit != null ? (K.profit < 0 ? '🔴 lỗ ' : '🟢 lãi ') + moneyShort(Math.abs(K.profit)) : '', K.cash != null ? '💵 tiền ngân hàng cuối tháng ' + moneyShort(K.cash) : '', K.flow != null ? 'dòng tiền trong tháng ' + (K.flow < 0 ? '−' : '+') + moneyShort(Math.abs(K.flow)) : '', K.payable != null ? '🧾 còn nợ nhà cung cấp ' + moneyShort(K.payable) : ''].filter(Boolean);
+      ks = '<div class="kt-box"><h3>📑 Báo cáo kế toán ' + ML + '</h3>' + (kp.length ? '<p class="kt-sum">Kế toán chốt: ' + kp.join(' · ') + '</p>' : '') +
+        (K.cash != null && K.payable != null && K.payable > K.cash * 2 ? '<p class="notice small">⚠️ Nợ nhà cung cấp gấp ' + Math.round(K.payable / Math.max(1, K.cash)) + ' lần tiền đang có: cần kế hoạch trả nợ, tránh hết tiền chi lương / quảng cáo.</p>' : '') +
+        (ox.part ? '<p class="small muted">Chọn <b>' + (month === monthOf(Date.now()) ? 'Tháng này' : 'Tháng trước') + '</b> (trọn tháng) để xem bảng so số CRM với kế toán.</p>' : '<div class="bcdt-wrap pnl-wrap">' + ktCompare(K, T, G, M ? ads : null, ox, net, ML.replace(/^t/, 'T')) + '</div>') +
+        '<p class="small muted">File: ' + esc(K.file || '') + (K.by ? ' · ' + esc(K.by) + ' tải ' + when(K.at) : '') + '</p></div>';
+    }
     return { line: ox.has ? (net < 0 ? '🔴 Lỗ ' : '🟢 Lãi ') + moneyShort(Math.abs(net)) + ' sau mọi chi phí' + (T.net ? ' · ' + Math.round(net * 100 / T.net) + '% doanh số' : '') : '⚠️ Chưa nhập chi phí văn phòng ' + ML,
-      body: '<div class="box"><p class="pnl-say' + (ox.has ? net < 0 ? ' bad' : ' ok' : '') + '">' + say + '</p><div class="steps">' + btn + '</div>' + t +
+      body: '<div class="box"><p class="pnl-say' + (ox.has ? net < 0 ? ' bad' : ' ok' : '') + '">' + say + '</p><div class="steps">' + btn + '</div>' + t + ks +
         '<ul class="small muted pnl-notes">' + notes.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul>' + (hist ? '<p class="small" style="margin:10px 0 4px"><b>Chi phí văn phòng đã nhập</b> (bấm để sửa):</p><div class="steps">' + hist + '</div>' : '') + '</div>' };
+  }
+  /* ---------- 📎 File báo cáo kế toán (01/11/2026): Quản trị tải file .xlsx kế toán gửi hằng tháng, CRM đọc ngay trên máy (ktParse) rồi lưu vào opex_cfg:
+   * items = chi phí theo nhóm (trừ quảng cáo và phí sàn vì CRM đã tự tính), kt = số kế toán (doanh thu, giá vốn, lãi lỗ, tiền, nợ nhà cung cấp, mọi nhóm chi phí) để so với số CRM.
+   * Kế toán đổi mẫu file giữa các tháng (T7 khác T9) nên dò theo tên dòng, không theo vị trí ô. Trang "Doanh thu" của file có thể rất nặng (định dạng sẵn 1 triệu dòng) nên bỏ qua trang lớn. */
+  var KT_KEY = { sale: /^(tong )?doanh thu sale$/, shopee: /^(tong )?doanh thu shopee$/, dt: /^tong doanh thu/, cogs: /^gia von( hang ban)?$/, gp: /^loi nhuan gop$/, cost: /^tong chi phi$/,
+    profit: /^loi nhuan truoc thue/, flow: /^dong tien thuan/, cash: /so du tien gui.*cuoi ky|^tien ngan hang cuoi ky/, payable: /^(con )?phai tra nha cung cap$/ };
+  function ktKind(g) { var n = norm(g); return /quang cao|\bads\b/.test(n) ? 'ads' : /san tmdt|shopee|tiktok shop|lazada/.test(n) ? 'san' : ''; }
+  /** 1 dòng → nhãn (các ô chữ trước số đầu tiên, bỏ STT / số La Mã) + các số sau nhãn. */
+  function ktRow(row) {
+    var s = [], v = [];
+    row.forEach(function (c) { if (typeof c === 'number') { if (s.length) v.push(c); } else { var t = String(c).trim(); if (t && !v.length && !/^([ivx]+|\d+)\.?$/i.test(t)) s.push(t); } });
+    var l = s.join(' '); return { l: l, n: norm(l).replace(/^[ivx]+\.\s*/, '').replace(/\s+/g, ' ').trim(), v: v };
+  }
+  /** Đọc các trang không quá nặng của file .xlsx: [{ n: tên trang, rows }]. */
+  function xlsxNamed(u8, maxMb) {
+    var z = zipDir(u8);
+    return Promise.all([zipText(u8, z, 'xl/workbook.xml'), zipText(u8, z, 'xl/_rels/workbook.xml.rels'), zipText(u8, z, 'xl/sharedStrings.xml')]).then(function (a) {
+      var rel = {}, sh = [], ss = [];
+      a[1].replace(/<Relationship\b([^>]*)>/g, function (_, at) { var id = (at.match(/\bId="([^"]+)"/) || [])[1], tg = (at.match(/\bTarget="([^"]+)"/) || [])[1]; if (id && tg) rel[id] = tg.replace(/^\//, '').replace(/^(?!xl\/)/, 'xl/'); return ''; });
+      a[0].replace(/<sheet\b([^>]*)>/g, function (_, at) { var id = (at.match(/\br:id="([^"]+)"/) || [])[1], nm = (at.match(/\bname="([^"]*)"/) || [])[1]; if (rel[id] && z[rel[id]]) sh.push({ n: xmlDec(nm || ''), p: rel[id] }); return ''; });
+      a[2].replace(/<si(?:\s[^>]*)?>([\s\S]*?)<\/si>|<si\/>/g, function (_, inner) { ss.push(inner ? xmlTxt(inner.replace(/<rPh\b[\s\S]*?<\/rPh>/g, '')) : ''); return ''; });
+      sh = sh.filter(function (x) { return z[x.p].us <= maxMb * 1e6; }).slice(0, 10);
+      return Promise.all(sh.map(function (x) { return zipText(u8, z, x.p).then(function (t) { return { n: x.n, rows: xlsxRows(t, ss) }; }); }));
+    });
+  }
+  /** Đọc file kế toán: { rep: 'YYYY-MM' tháng báo cáo, sum: số tổng hợp tháng báo cáo, months: { 'YYYY-MM': [[nhóm, số tiền]] } }. */
+  function ktParse(sheets, fname) {
+    var sum = {}, rep = '', yr = 0, mo = 0, gB = [], inB = false, mat = {}, matDone = false; // chỉ đọc bảng chi phí theo tháng đầu tiên (file T9 còn bảng tổng hợp theo nhóm lặp lại số)
+    sheets.forEach(function (sh, si) {
+      var mc = null, gc = -1;
+      sh.rows.forEach(function (row) {
+        var r = ktRow(row), txt = norm(row.filter(function (c) { return typeof c === 'string'; }).join(' '));
+        if (!yr && /^nam bao cao/.test(r.n) && r.v[0] > 2000) yr = r.v[0];
+        if (!mo && /^thang bao cao/.test(r.n) && r.v[0] >= 1 && r.v[0] <= 12) mo = r.v[0];
+        if (!rep) { var km = txt.match(/thang\s*(\d{1,2})\s*\/\s*(20\d\d)/); if (km && +km[1] >= 1 && +km[1] <= 12) rep = km[2] + '-' + pad(+km[1]); }
+        if (si === 0) {
+          Object.keys(KT_KEY).some(function (k) {
+            if (!KT_KEY[k].test(r.n) || !r.v.length) return false;
+            if (k === 'payable') { if (/^con /.test(r.n) || sum.payable == null) sum.payable = /^con /.test(r.n) || r.v.length < 3 ? r.v[0] : r.v[2]; }
+            else if (sum[k] == null) sum[k] = r.v[0];
+            return true;
+          });
+          // khối chi phí theo nhóm của trang tổng hợp: từ dòng tiêu đề "Chi phí" / "Cơ cấu chi phí" tới "Tổng chi phí"
+          if (!r.v.length && /^(chi phi|co cau chi phi.*)$/.test(r.n)) { inB = !gB.length; return; }
+          if (inB) { if (/^tong chi phi/.test(r.n) || /^(iv|kết quả)/i.test(r.l)) inB = false; else if (r.l && r.v.length && !/^(nhom chi phi|chi tieu)/.test(r.n)) gB.push([r.l.replace(/\s+/g, ' '), r.v[0]]); }
+        }
+        // bảng chi phí theo tháng (cột 1…12): cộng theo nhóm cho từng tháng
+        if (mc === null) { if (matDone) return; var j = row.map(function (c) { return norm(c).trim(); }).indexOf('nhom chi phi'); if (j >= 0 && row.filter(function (c) { return typeof c === 'number' && c >= 1 && c <= 12; }).length >= 6) { mc = {}; gc = j; row.forEach(function (c, i) { if (typeof c === 'number' && c >= 1 && c <= 12 && mc[c] == null) mc[c] = i; }); } return; }
+        if (mc === false) return;
+        if (/tong chi phi|tong hop theo nhom/.test(txt)) { mc = false; matDone = true; return; }
+        var g = String(row[gc] || '').trim(); if (!g || typeof row[gc] === 'number') return;
+        Object.keys(mc).forEach(function (m) { var v = row[mc[m]]; if (typeof v === 'number' && v) { var a = mat[m] || (mat[m] = {}); a[g] = (a[g] || 0) + v; } });
+      });
+    });
+    if (yr && mo) rep = yr + '-' + pad(mo);
+    if (!rep) { var fm = String(fname || '').match(/(?:^|[^a-z])t(?:hang)?\s*(\d{1,2})(?!\d)/i); if (fm && +fm[1] >= 1 && +fm[1] <= 12) rep = (yr || new Date().getFullYear()) + '-' + pad(+fm[1]); }
+    var Y = rep ? rep.slice(0, 4) : String(yr || new Date().getFullYear()), months = {};
+    Object.keys(mat).forEach(function (m) { var a = mat[m], L = Object.keys(a).map(function (k) { return [k, Math.round(a[k])]; }).filter(function (x) { return x[1]; }); if (L.length) months[Y + '-' + pad(+m)] = L; });
+    if (rep && !months[rep] && gB.length) months[rep] = gB.map(function (x) { return [x[0], Math.round(x[1])]; }).filter(function (x) { return x[1]; });
+    ['sale', 'shopee', 'cogs'].forEach(function (k) { if (sum[k] != null) sum[k] = Math.round(sum[k]); });
+    if (sum.dt == null && (sum.sale != null || sum.shopee != null)) sum.dt = (sum.sale || 0) + (sum.shopee || 0);
+    return { rep: rep, sum: sum, months: months };
+  }
+  /** Chia nhóm chi phí: đưa vào CRM (items) / quảng cáo / phí sàn (CRM đã tự tính, không cộng lại). */
+  function ktSplit(groups) {
+    var o = { items: [], ads: 0, san: 0, tot: 0 };
+    groups.forEach(function (g) { var k = ktKind(g[0]); o.tot += g[1]; if (k) o[k] += g[1]; else o.items.push(g); });
+    return o;
+  }
+  function ktUpload() {
+    var md = modal('📎 Tải file báo cáo kế toán', '<p>Chọn file Excel (.xlsx) kế toán gửi hằng tháng (vd <b>Bao_cao_doanh_thu_chi_phi T9.xlsx</b>). CRM đọc ngay trên máy: các khoản chi phí theo nhóm, doanh thu, giá vốn, lãi lỗ, tiền ngân hàng, nợ nhà cung cấp. Xem lại rồi mới lưu.</p>' +
+      '<label class="f"><span>File</span><input type="file" id="ktFile" accept=".xlsx"></label><div id="ktOut"></div>', '<button class="btn" data-close>Đóng</button><button class="btn pri" id="ktSave" disabled>Lưu vào CRM</button>');
+    var P = null;
+    $('#ktFile', md).onchange = function () {
+      var f = this.files && this.files[0]; if (!f) return; $('#ktOut', md).innerHTML = '<p class="muted">⏳ Đang đọc file…</p>'; $('#ktSave', md).disabled = true;
+      f.arrayBuffer().then(function (buf) {
+        var u8 = new Uint8Array(buf); if (!(u8[0] === 0x50 && u8[1] === 0x4B)) throw new Error('Cần file Excel .xlsx. File .xls đời cũ: mở bằng Excel / Google Sheets → Lưu dưới dạng .xlsx rồi tải lại.');
+        return xlsxNamed(u8, 25);
+      }).then(function (sh) {
+        P = ktParse(sh, f.name); P.file = f.name;
+        var ms = Object.keys(P.months).sort().reverse();
+        if (!ms.length && !Object.keys(P.sum).length) throw new Error('Không thấy bảng chi phí trong file. File cần có dòng "Tổng chi phí" và các nhóm chi phí phía trên.');
+        var s = P.sum, h = '<div class="box">' + (P.rep ? '<p style="margin:0 0 6px"><b>Tháng báo cáo: ' + monthLabel(P.rep) + '</b></p>' : '<p class="notice">Không đọc được tháng báo cáo, các khoản vẫn lưu theo cột tháng trong file.</p>') +
+          (s.dt != null ? '<ul class="small" style="margin:0;padding-left:18px">' + [['Doanh thu', s.dt, s.sale != null ? 'sale ' + moneyShort(s.sale) + ' · Shopee ' + moneyShort(s.shopee || 0) : ''], ['Giá vốn', s.cogs], ['Tổng chi phí', s.cost], ['Lợi nhuận trước thuế', s.profit], ['Dòng tiền trong tháng', s.flow], ['Tiền ngân hàng cuối tháng', s.cash], ['Còn nợ nhà cung cấp', s.payable]]
+            .filter(function (x) { return x[1] != null; }).map(function (x) { return '<li>' + x[0] + ': <b>' + (x[1] < 0 ? '−' : '') + moneyShort(Math.abs(x[1])) + '</b>' + (x[2] ? ' (' + x[2] + ')' : '') + '</li>'; }).join('') + '</ul>' : '') + '</div>' +
+          '<p class="small" style="margin:12px 0 4px"><b>Chi phí theo tháng</b> (bỏ chọn tháng không muốn lưu). Quảng cáo và phí sàn không cộng vào chi phí văn phòng vì CRM đã tự tính, chỉ giữ để so.</p>' +
+          ms.map(function (m) {
+            var sp = ktSplit(P.months[m]), old = opexMonth(m);
+            var keep = m !== P.rep && old && old.kt && old.kt.dt != null; // tháng đã có số từ file báo cáo riêng của tháng đó → mặc định không thay
+            return '<label class="kt-m"><input type="checkbox" data-ktm="' + m + '"' + (keep ? '' : ' checked') + '><span><b>' + monthLabel(m).replace(/^t/, 'T') + '</b>: tổng ' + moneyShort(sp.tot) + ' → chi phí văn phòng <b>' + moneyShort(sp.tot - sp.ads - sp.san) + '</b>' + (sp.ads ? ' · bỏ quảng cáo ' + moneyShort(sp.ads) : '') + (sp.san ? ' · bỏ phí sàn ' + moneyShort(sp.san) : '') + (keep ? ' · <em>đã có số từ file ' + esc(old.kt.file) + ', tick nếu muốn thay</em>' : old ? ' · <em>thay ' + moneyShort(old.tot) + ' đã nhập</em>' : '') +
+              '<details class="small"><summary>' + P.months[m].length + ' nhóm</summary><ul>' + P.months[m].slice().sort(function (a, b) { return b[1] - a[1]; }).map(function (g) { return '<li>' + esc(g[0]) + ': ' + money(g[1]) + (ktKind(g[0]) ? ' <em class="muted">(CRM tự tính)</em>' : '') + '</li>'; }).join('') + '</ul></details></span></label>';
+          }).join('');
+        $('#ktOut', md).innerHTML = h; $('#ktSave', md).disabled = !ms.length;
+      }).catch(function (e) { $('#ktOut', md).innerHTML = '<p class="notice">⚠️ ' + esc(e.message || String(e)) + '</p>'; });
+    };
+    $('#ktSave', md).onclick = function () {
+      var b = this, ms = $$('[data-ktm]', md).filter(function (x) { return x.checked; }).map(function (x) { return x.getAttribute('data-ktm'); }); if (!P || !ms.length) return;
+      b.disabled = true; b.textContent = 'Đang lưu…';
+      ms.reduce(function (pr, m) {
+        return pr.then(function () {
+          var sp = ktSplit(P.months[m]), kt = Object.assign({ file: P.file, groups: P.months[m], ads: sp.ads, san: sp.san }, m === P.rep ? P.sum : {});
+          return api('settings', { opex: { month: m, items: sp.items, kt: kt } }).then(function (j) { if (!j.opex) throw new Error('Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.'); S.d.rules.opex = j.opex; });
+        });
+      }, Promise.resolve()).then(function () { closeModal(); toast('Đã lưu số kế toán ' + ms.map(function (m) { return monthLabel(m).replace(/^tháng /, 'T'); }).join(', ') + ' ✓'); render(); }, function (e) { toast(e.message, true); b.disabled = false; b.textContent = 'Lưu vào CRM'; });
+    };
+  }
+  /** Bảng so số CRM với báo cáo kế toán của tháng (khi xem trọn tháng). */
+  function ktCompare(k, T, G, ads, ox, net, ML) {
+    var g = ktSplit(k.groups || []), ktAds = k.ads != null ? k.ads : g.ads, ktSan = k.san != null ? k.san : g.san, oth = k.cost != null ? k.cost - ktAds - ktSan : g.tot - ktAds - ktSan;
+    var c = function (v) { return '<td>' + (v == null ? '–' : (v < 0 ? '−' : '') + moneyShort(Math.abs(v))) + '</td>'; };
+    var row = function (l, a, b, cls) { return '<tr' + (cls ? ' class="' + cls + '"' : '') + '><td>' + l + '</td>' + c(a) + c(b) + '<td>' + (a != null && b != null ? (a - b < 0 ? '−' : '+') + moneyShort(Math.abs(a - b)) : '') + '</td></tr>'; };
+    return '<table class="pnl-t"><thead><tr><th>' + ML + '</th><th>CRM tính</th><th>Kế toán</th><th>Lệch</th></tr></thead><tbody>' +
+      row('Doanh thu', T.net, k.dt) + row('Giá vốn (CRM gồm cả phí sàn)', T.net - G.tot, k.cogs != null ? k.cogs + ktSan : null) + row('Quảng cáo', ads, ktAds) + row('Chi phí khác', ox.v, oth) +
+      row(net < 0 ? '🔴 Lỗ' : '🟢 Lãi', net, k.profit, 'pnl-end ' + (net < 0 ? 'bad' : 'ok')) + '</tbody></table>' +
+      '<p class="small muted">Vì sao lệch: kế toán ghi doanh thu <b>chưa gồm thuế GTGT</b> và theo ngày xuất hoá đơn; CRM tính giá khách trả (đã gồm thuế) theo ngày lên đơn, đã trừ đơn hoàn / huỷ. Giá vốn CRM tính theo bảng giá nhập ở Cài đặt, kế toán theo phiếu xuất kho. Quảng cáo kế toán theo tiền đã thanh toán, CRM theo chi phí chạy trong tháng.</p>';
   }
   function opexRowHTML(n, v) { return '<div class="costcfg-r"><input type="text" data-on value="' + esc(n) + '" placeholder="Tên khoản chi, vd Thuê văn phòng"><input type="text" inputmode="numeric" data-ov value="' + (v ? Number(v).toLocaleString('vi-VN') : '') + '" placeholder="Số tiền"></div>'; }
   /** Hộp nhập chi phí văn phòng 1 tháng. Tháng chưa nhập: chép tên + số tiền tháng trước (nếu có) để chỉ cần sửa khoản thay đổi. */
@@ -4199,10 +4325,10 @@
     };
     var save = function (items, b) {
       b.disabled = true;
-      api('settings', { opex: { month: m, items: items } }).then(function (j) { if (!j.opex) { toast('Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.', true); b.disabled = false; return; } S.d.rules.opex = j.opex; closeModal(); toast(items.length ? 'Đã lưu chi phí ' + monthLabel(m) + ' ✓' : 'Đã xoá chi phí ' + monthLabel(m)); render(); }, function (e) { toast(e.message, true); b.disabled = false; });
+      api('settings', { opex: { month: m, items: items, del: !items.length } }).then(function (j) { if (!j.opex) { toast('Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.', true); b.disabled = false; return; } S.d.rules.opex = j.opex; closeModal(); toast(items.length ? 'Đã lưu chi phí ' + monthLabel(m) + ' ✓' : 'Đã xoá chi phí ' + monthLabel(m)); render(); }, function (e) { toast(e.message, true); b.disabled = false; });
     };
     $('#oxSave', md).onclick = function () { var it = rows().filter(function (r) { return r[0] && r[1] > 0; }); if (!it.length) { toast('Chưa có khoản nào có số tiền.', true); return; } save(it, this); };
-    if ($('#oxDel', md)) $('#oxDel', md).onclick = function () { if (confirm('Xoá toàn bộ chi phí ' + monthLabel(m) + '?')) save([], this); };
+    if ($('#oxDel', md)) $('#oxDel', md).onclick = function () { if (confirm('Xoá toàn bộ chi phí ' + monthLabel(m) + (x.kt ? ' (cả số file kế toán)' : '') + '?')) save([], this); };
   }
   /** Màn hình đầu (29/10/2026, theo thứ tự CEO): câu kết luận → 6 con số → mục tiêu + từng mảng → vì sao tăng / giảm. Bấm vào ô → mở mục chi tiết tương ứng. */
   function dashHero(T, b, bp, M, gl, month, sj, p) {
@@ -4217,7 +4343,7 @@
         !M ? (MK.err ? '⚠️ Chưa tải được chi phí' : '⏳ đang tải…') : M.tot ? 'Chi ' + moneyShort(M.tot) + ' → ' + moneyShort(M.nr) + ' doanh số khách mới' : 'Chưa có chi phí quảng cáo trong kỳ', ads === null ? '' : dashSpk(dashAdsSeries(T.tr.B, M, sj), PT)) +
       dashTile('biz', dashTrend(b.firstN, bp.firstN), '🙋 Khách mới mua', b.firstN.toLocaleString('vi-VN'), delta(b.firstN, bp.firstN), 'Khách mua lần đầu trong kỳ', dashSpk(T.tr.nw, PT)) +
       dashTile('biz', T.vs.pct === null ? '' : T.vs.pct < 5 ? 'ok' : T.vs.pct < 10 ? 'mid' : 'bad', '↩️ Tỷ lệ hoàn', T.vs.pct === null ? '–' : T.vs.pct + '%', T.vs.pct !== null && T.vsp.pct !== null ? inv(delta(T.vs.pct, T.vsp.pct, 'rate')) : '',
-        T.vs.n ? (T.vs.v ? 'Mất phí ship ≈ ' + moneyShort(T.vs.v * backCost()) + ' · ' : '') + T.vs.v + ' / ' + T.vs.n + ' đơn đã gửi · tốt: dưới 5%' + (T.vs.c ? ' · ✖️ huỷ ' + T.vs.c + ' đơn' : '') : 'Chưa có đơn văn phòng trong kỳ', dashSpk(T.tr.vd, PT)) +
+        T.vs.n ? (T.vs.v ? 'Mất phí ship ≈ ' + moneyShort(T.vs.l) + ' · ' : '') + T.vs.v + ' / ' + T.vs.n + ' đơn đã gửi · tốt: dưới 5%' + (T.vs.c ? ' · ✖️ huỷ ' + T.vs.c + ' đơn' : '') : 'Chưa có đơn văn phòng trong kỳ', dashSpk(T.tr.vd, PT)) +
       '</div>';
     if (G) {
       var say = G.p >= 1 ? '🎉 Đã đạt mục tiêu, vượt <b>' + moneyShort(gl.cur - gl.tt) + '</b>.' : G.isCur ? 'Còn <b>' + G.left + ' ngày</b>, mỗi ngày cần bán khoảng <b>' + moneyShort(G.perDay) + '</b>' + (G.el >= 3 ? ' · giữ nhịp hiện nay thì cả tháng được khoảng ' + moneyShort(G.fc) + ' (' + pct(G.fc, gl.tt) + '%)' : '') + '.' : 'Cả tháng đạt ' + Math.round(G.p * 100) + '% mục tiêu.';
@@ -4267,7 +4393,7 @@
   /** a ÷ b từng điểm, chỉ khi cả 2 khác 0 (chi phí / kết quả: ngày không chi hoặc không có kết quả thì bỏ qua). */
   function trendRateNZ(a, b, k) { return b ? a.map(function (x, i) { return x && b[i] ? x * (k || 1) / b[i] : null; }) : null; }
   /** Hoàn trên đơn văn phòng đã gửi (n không gồm đơn huỷ; c = số đơn huỷ). */
-  function voidStats(R) { var n = 0, v = 0, vr = 0, c = 0; S.d.orders.forEach(function (o) { if (o.time >= R[0] && o.time < R[1]) { if (isCancel(o.status)) { c++; return; } n++; if (isBack(o.status)) { v++; vr += o.total || 0; } } }); return { n: n, v: v, vr: vr, c: c, pct: n ? Math.round(v * 100 / n) : null }; }
+  function voidStats(R) { var n = 0, v = 0, vr = 0, l = 0, c = 0; S.d.orders.forEach(function (o) { if (o.time >= R[0] && o.time < R[1]) { if (isCancel(o.status)) { c++; return; } n++; if (isBack(o.status)) { v++; vr += o.total || 0; l += backFee(o); } } }); return { n: n, v: v, vr: vr, l: l, c: c, pct: n ? Math.round(v * 100 / n) : null }; }
   function viewDash() {
     var f = S.f.g || (S.f.g = {}); if (!f.p || f.p.k === 'all') f.p = { k: 'month' }; if (f.sfb === undefined) f.sfb = store('dash_sfb') === '1'; // mặc định TẮT (16/10/2026): đơn chưa rõ nguồn không tự tính cho Facebook
     if (!f.open) { try { f.open = JSON.parse(store('dash_open') || '{}') || {}; } catch (e) { f.open = {}; } }
@@ -4285,7 +4411,7 @@
     var DB = T.tr.B, BZ = trendEachMemo('biz', DB, bizStats), sk = function (v, bad) { return v ? sparkSvg(v, DB.partial, bad) : ''; };
     h += dashMore('biz', '💰 Bán hàng văn phòng', (b.n - b.vN) + ' đơn · ' + moneyShort(b.rev - b.vRev) + ' · ' + b.leads + ' khách hỏi mới', '<p class="small muted">Đơn trong CRM: website, sale, khách hỏi (sàn ở mục 🛒) · doanh số đã trừ hoàn / huỷ, như ô Doanh số ở đầu trang.</p><div class="metrics">' +
       metric('Doanh số', moneyShort(b.rev - b.vRev), money(b.rev - b.vRev) + ' từ ' + (b.n - b.vN) + ' đơn thành công' + (b.vRev ? ' · tính cả hoàn / huỷ là ' + moneyShort(b.rev) : '') + '.', delta(b.rev - b.vRev, bp.rev - bp.vRev), '', sk(trendPick(BZ, function (x) { return x.rev - x.vRev; }))) +
-      metric('↩️ Tỷ lệ hoàn', b.bPct === null ? '–' : b.bPct + '% đơn', b.bN + ' / ' + (b.n - b.cN) + ' đơn đã gửi bị hoàn' + (b.bN ? ' · mất phí ship ≈ ' + moneyShort(b.bN * backCost()) + ' (' + moneyShort(backCost()) + '/đơn, sửa ở Cài đặt)' : '') + '. ✖️ Huỷ trước khi gửi: ' + b.cN + ' đơn' + (b.cN ? ' · ' + moneyShort(b.rev ? b.vRev - b.bRev : 0) : '') + '. Việc của sale: gọi xác nhận trước khi gửi, theo dõi đơn đang giao.', b.bPct === null || bp.bPct === null ? '' : inv(delta(b.bPct, bp.bPct, 'rate')), '#bao-cao', sk(trendPick(BZ, 'bPct'), true)) +
+      metric('↩️ Tỷ lệ hoàn', b.bPct === null ? '–' : b.bPct + '% đơn', b.bN + ' / ' + (b.n - b.cN) + ' đơn đã gửi bị hoàn' + (b.bN ? ' · mất phí ship ≈ ' + moneyShort(b.bL) + ' (theo file đối soát vận chuyển; đơn chưa đối soát tính ' + moneyShort(backCost()) + '/đơn)' : '') + '. ✖️ Huỷ trước khi gửi: ' + b.cN + ' đơn' + (b.cN ? ' · ' + moneyShort(b.rev ? b.vRev - b.bRev : 0) : '') + '. Việc của sale: gọi xác nhận trước khi gửi, theo dõi đơn đang giao.', b.bPct === null || bp.bPct === null ? '' : inv(delta(b.bPct, bp.bPct, 'rate')), '#bao-cao', sk(trendPick(BZ, 'bPct'), true)) +
       metric('Doanh thu (đã thu tiền)', moneyShort(b.paid), b.paidN + ' đơn đã giao hoặc đã nhận chuyển khoản' + (b.rev - b.vRev > b.paid ? ' · còn ' + moneyShort(b.rev - b.vRev - b.paid) + ' đang giao / chờ thu' : '') + '.', '', '', sk(trendPick(BZ, 'paid'))) +
       metric('Số đơn', b.n, 'Website ' + b.web + ' · Sale & khách hỏi ' + (b.n - b.web) + '.', delta(b.n, bp.n), '', sk(trendPick(BZ, 'n'))) +
       metric('Giá trị trung bình / đơn', b.n ? moneyShort(b.avg) : '–', 'Tăng khi khách mua combo, mua kèm, đủ mức miễn phí ship.', b.n ? delta(b.avg, bp.n ? bp.avg : 0) : '', '', sk(trendPick(BZ, function (x) { return x.n ? x.rev / x.n : null; }))) +
@@ -6058,6 +6184,128 @@
       (P.noNet ? '<p class="muted">File không có cột phí sàn nên chưa ước tính được tiền về. Muốn có số tiền về, tải thêm file Thu nhập / Đối soát.</p>' : '');
   }
 
+  /* ================================================================ 📦 ĐỐI SOÁT VẬN CHUYỂN (01/11/2026)
+   * Quản lý / Quản trị tải file xuất từ Best, Viettel Post, hoặc bảng tự ghi đơn xe ôm (.xlsx / .csv). CRM đọc ngay trên máy (sanReadFile),
+   * khớp từng dòng với đơn CRM theo mã đơn (cột mã / ghi chú vận đơn) + SĐT, cho xem đơn lệch trạng thái, đơn không có trong CRM, phí thật.
+   * Bấm cập nhật → lệnh recon_apply: ghi phí thật (ship_fee), hãng, mã vận đơn, đổi trạng thái như bấm tay (ghi nhật ký, ghi file sale). */
+  var RC_COL = {
+    wb: /^(ma van don|so van don|ma vd)$/, code: /^(ma don hang|ma don|ma dh|ma noi bo)$/, note: /^(ghi chu|ghi chu don hang|noi dung)$/,
+    phone: /^(dien thoai cua nguoi nhan hang|dt nhan|sdt nhan|sdt nguoi nhan|so dien thoai nguoi nhan|sdt khach|sdt|so dien thoai|dien thoai)$/,
+    st: /^(trang thai|tinh trang)$/, back: /^(co chieu tra ve hay khong|don chuyen hoan|hoan)$/, cod: /^(so tien thu ho|tien thu ho( \(4\))?|thu ho|cod)$/,
+    fee: /^(tong cuoc van chuyen|tong phi( \(9\).*)?|phi ship|phi van chuyen|cuoc|tien ship|phi giao|tien xe om|phi)$/, day: /^(thoi gian dat hang|ngay tao|ngay gui|ngay giao|ngay)$/
+  };
+  var RC_ST = { back: '↩️ Hoàn', ok: '✅ Giao thành công', ship: '🚚 Đang giao', cancel: '✖️ Huỷ vận đơn', '': '❔ Chưa rõ' };
+  function rcKey(s) { return norm(s).replace(/[^a-z0-9]/g, ''); }
+  function rcNum(v) { if (typeof v === 'number') return v; var s = String(v == null ? '' : v).trim(); if (!s) return null; s = s.replace(/[đ₫\s]/g, ''); if (/^\d{1,3}([.,]\d{3})+$/.test(s)) s = s.replace(/[.,]/g, ''); else s = s.replace(',', '.'); var n = Number(s); return isFinite(n) ? n : null; }
+  function rcDay(v) {
+    if (typeof v === 'number' && v > 30000 && v < 80000) return Math.round((v - 25569) * DAY) - 7 * 3600e3; // số ngày kiểu Excel
+    var s = String(v || ''), m = s.match(/(\d{4})-(\d{1,2})-(\d{1,2})/), d = s.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (m) return Date.UTC(+m[1], +m[2] - 1, +m[3]) - 7 * 3600e3; if (d) return Date.UTC(+d[3], +d[2] - 1, +d[1]) - 7 * 3600e3; return 0;
+  }
+  function rcSt(st, back) {
+    var n = norm(st), b = norm(back).trim();
+    if ((b && !/^(no|khong|0|false|-)$/.test(b)) || /hoan|tra ve|tra hang|return/.test(n)) return 'back';
+    if (/huy|cancel/.test(n)) return 'cancel';
+    if (/thanh cong|da giao|da nhan|delivered|xong/.test(n)) return 'ok';
+    if (/dang giao|tren duong|van chuyen|da lay|cho giao|luu kho|dang/.test(n)) return 'ship';
+    return '';
+  }
+  /** Đọc các bảng trong file → { carrier, rows: [{ wb, codes, phone, st, stTxt, fee, cod, day }] }. Không thấy cột trạng thái → null. */
+  function rcParse(sheets) {
+    var best = null;
+    sheets.forEach(function (rows) {
+      for (var i = 0; i < Math.min(rows.length, 20) && !best; i++) {
+        var H = (rows[i] || []).map(function (c) { return norm(c).replace(/\s+/g, ' ').trim(); }), ix = {};
+        Object.keys(RC_COL).forEach(function (k) { for (var j = 0; j < H.length; j++) if (RC_COL[k].test(H[j])) { ix[k] = j; break; } });
+        if (ix.st === undefined || (ix.code === undefined && ix.note === undefined && ix.phone === undefined && ix.wb === undefined)) continue;
+        var hs = H.join('|'), carrier = /co chieu tra ve hay khong/.test(hs) ? 'BEST Express' : /don chuyen hoan|bc goc/.test(hs) ? 'Viettel Post' : '';
+        var out = [];
+        rows.slice(i + 1).forEach(function (r) {
+          var g = function (k) { return ix[k] === undefined ? '' : r[ix[k]]; }, codes = [];
+          [g('code'), String(g('note') || '').split(/[;,\n]/)[0]].forEach(function (c) { var k = rcKey(c); if (k && codes.indexOf(k) < 0) codes.push(k); });
+          var ph = normPhone(g('phone')); if (!codes.length && !ph && !g('wb')) return;
+          out.push({ wb: String(g('wb') || '').trim(), codes: codes, label: [String(g('code') || '').trim(), String(g('note') || '').split(/[;,\n]/)[0].trim()].filter(function (v) { return /\d/.test(v); })[0] || (g('wb') ? 'Vận đơn ' + g('wb') : ''), phone: ph, st: rcSt(g('st'), g('back')), stTxt: String(g('st') || ''), fee: rcNum(g('fee')), cod: rcNum(g('cod')) || 0, day: rcDay(g('day')) });
+        });
+        best = { carrier: carrier, rows: out };
+      }
+    });
+    return best;
+  }
+  /** Khớp dòng file với đơn CRM: mã đơn + SĐT; mã khớp mà SĐT khác → thử theo SĐT (trong ±10 ngày), không được thì để "cần xem"; không có mã → theo SĐT. */
+  function rcMatch(P) {
+    var byId = {}, byPh = {};
+    S.d.orders.forEach(function (o) { var k = rcKey(o.id); if (k) (byId[k] = byId[k] || []).push(o); if (o.phone) (byPh[o.phone] = byPh[o.phone] || []).push(o); });
+    var near = function (ph, day) { var L = (byPh[ph] || []).filter(function (o) { return !day || Math.abs(o.time - day) <= 10 * DAY; }); L.sort(function (a, b) { return Math.abs(a.time - day) - Math.abs(b.time - day); }); return L[0] || null; };
+    var M = {}, none = [], doubt = [];
+    P.rows.forEach(function (r) {
+      var c = [], o = null, how = 'mã';
+      r.codes.forEach(function (k) { (byId[k] || []).forEach(function (x) { if (c.indexOf(x) < 0) c.push(x); }); });
+      if (c.length) o = r.phone ? c.filter(function (x) { return x.phone === r.phone; })[0] || null : c[0];
+      if (!o && r.phone) { o = near(r.phone, r.day); how = 'SĐT'; }
+      if (!o) { if (c.length) doubt.push({ r: r, o: c[0] }); else none.push(r); return; }
+      var m = M[o.row] || (M[o.row] = { o: o, rows: [], fee: null, how: how });
+      m.rows.push(r); if (r.fee !== null) m.fee = (m.fee || 0) + r.fee;
+    });
+    var RANK = { back: 4, ok: 3, ship: 2, cancel: 1, '': 0 }, todo = [], same = 0;
+    Object.keys(M).forEach(function (k) {
+      var m = M[k], o = m.o; m.st = m.rows.reduce(function (s0, r) { return RANK[r.st] > RANK[s0] ? r.st : s0; }, ''); m.wb = (m.rows.filter(function (r) { return r.wb; })[0] || {}).wb || '';
+      var to = '', warn = '';
+      if (m.st === 'back' && o.status !== 'Hoàn' && o.status !== 'Đổi hàng') { to = 'Hoàn'; if (o.status === 'Đã giao') warn = 'CRM ghi đã giao'; }
+      else if (m.st === 'ok' && /^(Mới|Đã xác nhận|Đang giao)$/.test(o.status)) to = 'Đã giao';
+      else if (m.st === 'ok' && o.status === 'Hoàn') { to = 'Đã giao'; warn = 'CRM ghi hoàn, hãng báo giao thành công'; }
+      else if (m.st === 'ship' && /^(Mới|Đã xác nhận)$/.test(o.status)) to = 'Đang giao';
+      m.to = to; m.warn = warn; if (to) todo.push(m); else same++;
+    });
+    return { M: M, todo: todo, same: same, none: none, doubt: doubt };
+  }
+  function openRecon() {
+    var carriers = ['BEST Express', 'Viettel Post', 'Xe ôm', 'Khác'];
+    var body = '<p>Tải file đơn xuất từ hãng vận chuyển. CRM đọc ngay trên máy, khớp với đơn trong CRM rồi cho anh/chị <b>xem lại trước</b>, chưa đổi gì cho tới khi bấm Cập nhật.</p>' +
+      '<p class="small muted">• <b>Best</b>: trang Best → Đối soát COD → Chi tiết đơn → Xuất Excel (chọn cả tháng).<br>• <b>Viettel Post</b>: Quản lý vận đơn → Xuất danh sách vận đơn.<br>• <b>Xe ôm / tự giao</b>: bảng Excel hoặc Google Sheet (tải về .xlsx / .csv) có các cột <b>Mã đơn</b> (hoặc <b>SĐT</b>), <b>Trạng thái</b> (Giao thành công / Hoàn / Huỷ), <b>Phí ship</b>, có thể thêm <b>Ngày</b>, <b>Thu hộ</b>.</p>' +
+      '<label class="f"><span>Hãng</span><select id="rcCar"><option value="">Tự nhận ra từ file</option>' + carriers.map(function (c) { return '<option>' + c + '</option>'; }).join('') + '</select></label>' +
+      '<label class="f"><span>File</span><input type="file" id="rcFile" accept=".xlsx,.csv,.txt"></label><p class="err" id="rcErr"></p><div id="rcOut"></div>';
+    var m = modal('📦 Đối soát vận chuyển', body, '<button class="btn" data-close>Đóng</button><button class="btn pri" id="rcGo" hidden>Cập nhật vào CRM</button>');
+    var R = null, P = null;
+    $('#rcFile', m).onchange = function () {
+      var f = this.files[0], err = $('#rcErr', m); err.textContent = ''; $('#rcOut', m).innerHTML = '<p class="muted">⏳ Đang đọc file…</p>'; $('#rcGo', m).hidden = true; if (!f) return;
+      sanReadFile(f).then(function (sh) {
+        P = rcParse(sh); if (!P || !P.rows.length) throw new Error('Không thấy cột Trạng thái và Mã đơn / SĐT trong file. Kiểm tra lại file hoặc đổi tên cột cho đúng.');
+        P.carrier = $('#rcCar', m).value || P.carrier || 'Khác'; R = rcMatch(P); rcShow(m, P, R);
+      }).catch(function (e) { $('#rcOut', m).innerHTML = ''; err.textContent = e.message; });
+    };
+    $('#rcCar', m).onchange = function () { if (P) { P.carrier = this.value || P.carrier; rcShow(m, P, R); } };
+    $('#rcGo', m).onclick = function () {
+      var b = this, chk = {}; $$('[data-rcto]', m).forEach(function (x) { if (x.checked) chk[x.getAttribute('data-rcto')] = 1; });
+      var items = Object.keys(R.M).map(function (k) { var x = R.M[k]; return { row: x.o.row, id: x.o.id, fee: x.fee, carrier: P.carrier === 'Khác' ? '' : P.carrier, tracking: x.wb, status: chk[k] ? x.to : undefined }; });
+      var n = 0, st = 0, errs = [], step = function (i) {
+        if (i >= items.length) { closeModal(); toast('Đã đối soát ' + items.length + ' đơn: ' + st + ' đơn đổi trạng thái, ghi phí ' + n + ' đơn' + (errs.length ? ' · lỗi ' + errs.length + ' đơn' : '') + ' ✓', !!errs.length); load(true, true); return; }
+        b.textContent = '⏳ Đang cập nhật ' + Math.min(items.length, i + 100) + ' / ' + items.length + '…';
+        api('recon_apply', { src: P.carrier, items: items.slice(i, i + 100) }).then(function (j) { n += j.fee || 0; st += j.status || 0; errs = errs.concat(j.errors || []); step(i + 100); }, function (e) { b.disabled = false; b.textContent = 'Thử lại'; toast(e.message, true); });
+      };
+      b.disabled = true; step(0);
+    };
+  }
+  function rcShow(m, P, R) {
+    var rows = P.rows, fees = rows.filter(function (r) { return r.fee !== null; }), fT = fees.reduce(function (s0, r) { return s0 + r.fee; }, 0), days = rows.map(function (r) { return r.day; }).filter(Boolean);
+    var bk = Object.keys(R.M).map(function (k) { return R.M[k]; }).filter(function (x) { return x.st === 'back'; }), bF = bk.reduce(function (s0, x) { return s0 + (x.fee || 0); }, 0);
+    var cnt = {}; rows.forEach(function (r) { cnt[r.st] = (cnt[r.st] || 0) + 1; });
+    var line = function (x) { return '<b>' + esc(x.o.id) + '</b> ' + esc(x.o.name) + ' · ' + fDate(x.o.time) + ' · ' + esc(x.o.seller || orderOwner(x.o) || '') + (x.how === 'SĐT' ? ' <small class="muted">(khớp theo SĐT)</small>' : ''); };
+    var h = '<div class="notice info">📄 <b>' + esc(P.carrier) + '</b> · ' + rows.length + ' vận đơn' + (days.length ? ' · ' + fDate(Math.min.apply(null, days)) + ' – ' + fDate(Math.max.apply(null, days)) : '') + ' · ' +
+      Object.keys(RC_ST).filter(function (k) { return cnt[k]; }).map(function (k) { return RC_ST[k] + ' ' + cnt[k]; }).join(' · ') + '</div>';
+    h += '<div class="minis">' + mini('✅ Khớp, đúng rồi', R.same) + mini('🔄 Cần đổi trạng thái', R.todo.length, '', R.todo.length ? 'warn' : '') + mini('❓ Không có trong CRM', R.none.length, '', R.none.length ? 'warn' : '') + mini('⚠️ Mã trùng, SĐT khác', R.doubt.length, '', R.doubt.length ? 'warn' : '') + '</div>';
+    if (fees.length) h += '<p>💸 Phí trả hãng: <b>' + money(fT) + '</b> cho ' + fees.length + ' vận đơn (trung bình ' + moneyShort(Math.round(fT / fees.length)) + ')' + (bk.length ? ' · đơn hoàn: <b>' + bk.length + ' đơn, ' + money(bF) + '</b>' : '') + '.</p>';
+    if (R.todo.length) h += '<h3>🔄 Đổi trạng thái theo hãng <small class="muted">(bỏ chọn đơn không muốn đổi)</small></h3><div class="rc-list">' + R.todo.map(function (x) {
+      return '<label class="rc-row' + (x.warn ? ' rc-warn' : '') + '"><input type="checkbox" data-rcto="' + x.o.row + '"' + (x.warn && x.to !== 'Hoàn' ? '' : ' checked') + '><span>' + line(x) + '<br><small>CRM: ' + esc(x.o.status) + ' → <b>' + x.to + '</b> · ' + esc(P.carrier) + ': ' + esc(RC_ST[x.st]) + (x.warn ? ' · ⚠️ ' + esc(x.warn) : '') + '</small></span></label>';
+    }).join('') + '</div>';
+    if (R.none.length) h += '<h3>❓ Có trên file nhưng không tìm thấy trong CRM <small class="muted">(nhắc sale lên đơn)</small></h3><div class="rc-list">' + R.none.slice(0, 80).map(function (r) {
+      return '<div class="rc-row"><span><b>' + esc(r.label || '–') + '</b> · ' + (r.phone ? fPhone(r.phone) : 'không có SĐT') + (r.day ? ' · ' + fDate(r.day) : '') + ' · ' + esc(RC_ST[r.st]) + (r.cod ? ' · thu hộ ' + moneyShort(r.cod) : '') + '</span></div>';
+    }).join('') + (R.none.length > 80 ? '<p class="small muted">… và ' + (R.none.length - 80) + ' dòng nữa</p>' : '') + '</div>';
+    if (R.doubt.length) h += '<h3>⚠️ Mã đơn trùng nhưng SĐT khác <small class="muted">(không tự cập nhật, kiểm tra tay)</small></h3><div class="rc-list">' + R.doubt.map(function (d) {
+      return '<div class="rc-row"><span><b>' + esc(d.r.label) + '</b> · file: ' + fPhone(d.r.phone) + ' · CRM: ' + fPhone(d.o.phone) + ' (' + esc(d.o.name) + ', ' + esc(d.o.status) + ') · ' + esc(RC_ST[d.r.st]) + '</span></div>';
+    }).join('') + '</div>';
+    $('#rcOut', m).innerHTML = h;
+    var nM = Object.keys(R.M).length, go = $('#rcGo', m); go.hidden = !nM; go.textContent = '✅ Cập nhật vào CRM (' + nM + ' đơn: ghi phí, hãng' + (R.todo.length ? ', đổi trạng thái' : '') + ')';
+  }
   /* ---------- đọc file sàn: .xlsx (giải nén ngay trên trình duyệt, không cần thư viện ngoài) hoặc .csv */
   function sanReadFile(f) {
     return f.arrayBuffer().then(function (buf) {
@@ -6075,7 +6323,7 @@
     var n = dv.getUint16(e + 10, true), p = dv.getUint32(e + 16, true), td = new TextDecoder();
     for (var k = 0; k < n && dv.getUint32(p, true) === 0x02014b50; k++) {
       var nl = dv.getUint16(p + 28, true), xl = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true);
-      out[td.decode(u8.subarray(p + 46, p + 46 + nl))] = { m: dv.getUint16(p + 10, true), cs: dv.getUint32(p + 20, true), lo: dv.getUint32(p + 42, true) };
+      out[td.decode(u8.subarray(p + 46, p + 46 + nl))] = { m: dv.getUint16(p + 10, true), cs: dv.getUint32(p + 20, true), us: dv.getUint32(p + 24, true), lo: dv.getUint32(p + 42, true) };
       p += 46 + nl + xl + cl;
     }
     return out;
@@ -6267,7 +6515,7 @@
     var who = function (t) { return ' <span class="dash-who">👤 ' + t + '</span>'; };
     if (G && G.isCur && G.p < 1 && (G.lv === 'bad' || G.lv === 'mid')) L.push((G.lv === 'bad' ? '🔴' : '🟠') + ' <b>Chậm mục tiêu tháng:</b> mỗi ngày cần bán khoảng <b>' + moneyShort(G.perDay) + '</b>, hiện trung bình ' + moneyShort(Math.round(gl.cur / G.el)) + ' / ngày.' + who('Quản lý sale') + xem('#bao-cao'));
     if (G && G.p >= 1) OK.push('đã đạt mục tiêu tháng');
-    if (T.vs.pct !== null && T.vs.n >= 10 && T.vs.pct >= 10) L.push('🔴 <b>Tỷ lệ hoàn ' + T.vs.pct + '%</b> (' + T.vs.v + '/' + T.vs.n + ' đơn đã gửi, mất phí ship ≈ ' + moneyShort(T.vs.v * backCost()) + '), mức tốt là dưới 5%. Gọi xác nhận trước khi gửi, xem lý do các đơn hoàn.' + who('Quản lý sale') + xem('#don-hang'));
+    if (T.vs.pct !== null && T.vs.n >= 10 && T.vs.pct >= 10) L.push('🔴 <b>Tỷ lệ hoàn ' + T.vs.pct + '%</b> (' + T.vs.v + '/' + T.vs.n + ' đơn đã gửi, mất phí ship ≈ ' + moneyShort(T.vs.l) + '), mức tốt là dưới 5%. Gọi xác nhận trước khi gửi, xem lý do các đơn hoàn.' + who('Quản lý sale') + xem('#don-hang'));
     var LL = dashLeadLate(); if (LL.n) L.splice(G && G.isCur && G.p < 1 && (G.lv === 'bad' || G.lv === 'mid') ? 1 : 0, 0, (LL.n >= 10 ? '🔴' : '🟠') + ' <b>' + LL.n + ' khách hỏi quá hạn chưa ai gọi</b> (để lại số hơn 1 ngày chưa liên hệ, hoặc lỡ hẹn gọi lại): khách nguội nhanh, dễ mất đơn.' + who(LL.who) + xem('#tiem-nang'));
     var late = {}, lateN = 0; tasksAll().forEach(function (c) { if (c.task && c.task.late >= 2) { lateN++; var o = c.owner || 'Chưa giao'; late[o] = (late[o] || 0) + 1; } });
     if (lateN) L.push('🟠 <b>' + lateN + ' khách trễ hạn chăm sóc</b> từ 2 ngày trở lên: dễ mất đơn mua lại.' + who(Object.keys(late).sort(function (x, y) { return late[y] - late[x]; }).slice(0, 3).map(function (k) { return esc(k) + ' ' + late[k]; }).join(', ')) + xem('#hom-nay'));
@@ -6308,6 +6556,7 @@
         var a = el.getAttribute('data-dash'), f = S.f.g, key = gaKey(perRange(f.p), cmpRange(f.p));
         if (a === 'mkt') { openMkt(); return; }
         if (a === 'opex') { opexEdit(el.getAttribute('data-m')); return; }
+        if (a === 'kt') { ktUpload(); return; }
         if (a === 'sfb') { f.sfb = f.sfb === false; store('dash_sfb', f.sfb ? '1' : '0'); render(); return; }
         if (a === 'fresh') { delete MK.cache[key]; MK.err = ''; delete GA.cache[key]; GA.err = ''; GA.busy = ''; gaFetch(key, true); render(); return; }
         if (a === 'prop') { el.disabled = true; api('ga_prop', { prop: ($('#gaProp') || {}).value || '' }).then(function () { GA.cache = {}; GA.err = ''; toast('Đã lưu mã thuộc tính'); render(); }, function (e) { el.disabled = false; toast(e.message, true); }); }
@@ -6509,7 +6758,7 @@
         c.data ? j(['Cứ 10 khách hỏi chốt ' + Math.round(c.won * 10 / c.data) + ' khách', tcl !== null ? 'cả nhóm ' + tcl + '%' : '', repBest(Bt.close, c.closePct, pc, team)]) : 'Chưa có khách hỏi từ quảng cáo', K.close) +
       repStep(4, 'rtrend', c.orders && p.orders ? dashTrend(c.avg, p.avg) : '', '🛒 Mỗi đơn', c.orders ? moneyShort(c.avg) : '–', c.orders ? delta(c.avg, p.orders ? p.avg : 0) : '', 'Bán combo, 2–3 hộp thì số này tăng', K.avg) +
       repStep(5, 'rtrend', okLv, '📦 Giao thành công', ok === null ? '–' : ok + '%', ok !== null && p.backPct !== null ? delta(ok, 100 - p.backPct, 'rate') : '',
-        c.grossN ? j([c.backN ? c.backN + ' đơn hoàn · mất ship ≈ ' + moneyShort(c.backN * backCost()) : '', c.cN ? c.cN + ' đơn huỷ' : '', Bt.ok != null ? repBest(Bt.ok, ok, pc, team) : 'tốt là từ 95%']) : 'Chưa có đơn trong kỳ') +
+        c.grossN ? j([c.backN ? c.backN + ' đơn hoàn · mất ship ≈ ' + moneyShort(c.backLoss) : '', c.cN ? c.cN + ' đơn huỷ' : '', Bt.ok != null ? repBest(Bt.ok, ok, pc, team) : 'tốt là từ 95%']) : 'Chưa có đơn trong kỳ') +
       repStep(6, 'care', c.sales ? repRateLv(c.oldPct, p.sales ? p.oldPct : null) : '', '🔁 Khách cũ mua lại', c.repeat + ' khách', delta(c.repeat, p.repeat), c.sales ? moneyShort(c.oldRev) + ' = ' + c.oldPct + '% doanh số' : 'Chăm sóc tốt thì số này tăng', K.repeat) +
       '</div>';
   }
@@ -6517,7 +6766,7 @@
   function repFix(c, p, mb, T, best) {
     var C = [], avg = c.avg || p.avg || 0, sp = mb ? smkSpeed(mb) : null, tcl = T && T !== mb ? smkClose(T) : null, Bt = best || {};
     var top = function (v, fmt) { return v != null ? ' Người giỏi nhất nhóm đang đạt ' + fmt(v) + '.' : ''; }, pc = function (v) { return v + '%'; };
-    if (c.backPct !== null && c.backPct > 5 && c.backN >= 2) C.push({ lv: c.backPct >= 10 ? 'bad' : 'mid', v: Math.round(c.backV * (c.backPct - 5) / c.backPct), t: '📦 Giao thành công ' + (100 - c.backPct) + '%, tốt là từ 95% (' + c.backN + ' đơn hoàn, mất ship ≈ ' + moneyShort(c.backN * backCost()) + ')', h: 'Gọi xác nhận trước khi gửi (đúng tên, địa chỉ, giờ nhận). Đơn lớn nhờ khách chuyển khoản trước.' + top(Bt.ok, pc), g: 'giảm hoàn còn 5%' });
+    if (c.backPct !== null && c.backPct > 5 && c.backN >= 2) C.push({ lv: c.backPct >= 10 ? 'bad' : 'mid', v: Math.round(c.backV * (c.backPct - 5) / c.backPct), t: '📦 Giao thành công ' + (100 - c.backPct) + '%, tốt là từ 95% (' + c.backN + ' đơn hoàn, mất ship ≈ ' + moneyShort(c.backLoss) + ')', h: 'Gọi xác nhận trước khi gửi (đúng tên, địa chỉ, giờ nhận). Đơn lớn nhờ khách chuyển khoản trước.' + top(Bt.ok, pc), g: 'giảm hoàn còn 5%' });
     if (sp !== null && sp < 80) C.push({ lv: smkSpeedLv(sp), v: 0, t: '📞 Gọi ngay trong ngày ' + sp + '%, tốt là từ 80%', h: 'Khách vừa để số còn nhớ quảng cáo nên dễ chốt. Có số mới là gọi trong 1 tiếng, gọi xong ghi lên CRM.' + (mb.none ? ' Gọi ngay ' + mb.none + ' số chưa gọi.' : '') + top(Bt.speed, pc) });
     var ref = c.closePct === null ? null : tcl !== null && tcl > c.closePct ? [tcl, 'bằng cả nhóm (' + tcl + '%)'] : p.closePct !== null && p.closePct > c.closePct ? [p.closePct, 'bằng ' + CMP_LABEL + ' (' + p.closePct + '%)'] : null;
     if (ref && c.data >= 5) C.push({ lv: ref[0] - c.closePct >= 3 ? 'bad' : 'mid', v: Math.round(c.data * (ref[0] - c.closePct) / 100 * avg), t: '🎯 Chốt được ' + c.closePct + '%', h: 'Xem khách hay từ chối vì sao (mục 🙅 bên dưới) để chuẩn bị sẵn câu trả lời. Khách đang tư vấn thì gọi lại trong 24 giờ.' + top(Bt.close, pc), g: 'tăng tỷ lệ chốt ' + ref[1] });
@@ -6616,7 +6865,7 @@
     if (low.length) L.push({ p: 2, t: '🎯 Chốt thấp hơn nhóm (' + t.closePct + '%): ' + nm(low) + '. Nghe lại vài cuộc gọi, xem lý do khách từ chối.', a: '<button class="btn sm" data-rgo="why">Lý do</button>' });
     var noT = rows.filter(function (r) { return !(r.t && r.t.amount); });
     if (noT.length && cx.month === monthOf(Date.now())) L.push({ p: 3, t: '🎯 Chưa đặt mục tiêu ' + monthLabel(cx.month) + ': ' + nm(noT) + '.' });
-    if (t.backPct !== null && t.backPct >= 10 && t.backN >= 3) L.push({ p: 3, t: '📦 Tỷ lệ hoàn đơn ' + t.backPct + '% (' + t.backN + ' đơn, mất phí ship ≈ ' + moneyShort(t.backN * backCost()) + '). Nhắc gọi xác nhận trước khi gửi.' });
+    if (t.backPct !== null && t.backPct >= 10 && t.backN >= 3) L.push({ p: 3, t: '📦 Tỷ lệ hoàn đơn ' + t.backPct + '% (' + t.backN + ' đơn, mất phí ship ≈ ' + moneyShort(t.backLoss) + '). Nhắc gọi xác nhận trước khi gửi.' });
     L.sort(function (x, y) { return x.p - y.p; });
     var row = function (x) { return '<div class="rep-todo-r"><span>' + x.t + '</span>' + (x.a || '') + '</div>'; };
     return '<div class="box rep-todo"><h3>👉 Quản lý làm ' + (L.length ? Math.min(3, L.length) + ' việc này trước' : 'gì hôm nay?') + ' <small class="muted">việc gấp lên trước</small></h3>' +
@@ -7318,7 +7567,7 @@
         '<label class="f"><span>🟢 Xanh khi dưới (%)</span><input type="text" inputmode="decimal" id="daGood" value="' + DA[0] + '"></label>' +
         '<label class="f"><span>🔴 Đỏ khi trên (%)</span><input type="text" inputmode="decimal" id="daBad" value="' + DA[1] + '"></label></div>' +
         '<p class="hint" id="daHint"></p><label class="f"><span>📦 Phí ship mất cho 1 đơn hoàn (đi + về, đồng)</span><input type="text" inputmode="numeric" id="daBack" value="' + backCost() + '"></label>' +
-        '<p class="hint">Dùng để ước tính tiền mất vì đơn hoàn ở Tổng quan, Hiệu quả. Mặc định 60.000đ (Best khoảng 31.000đ/chiều, tháng 10/2026).</p><button class="btn pri" id="daSave">Lưu mức đèn</button></div>';
+        '<p class="hint">Đơn hoàn đã đối soát (Đơn hàng → 📦 Đối soát vận chuyển) tính đúng phí trên file của hãng. Mức này chỉ dùng cho đơn hoàn <b>chưa đối soát</b>. Mặc định 60.000đ.</p><button class="btn pri" id="daSave">Lưu mức đèn</button></div>';
       var KG = kpGoal(), kf = function (id, l, v, ph) { return '<label class="f"><span>' + l + '</span><input type="text" inputmode="decimal" id="' + id + '" value="' + (v || '') + '" placeholder="' + ph + '"></label>'; };
       G.kpi = '<div class="box"><h3>📊 Mức tốt chỉ số quảng cáo</h3><p class="hint" style="margin:0 0 10px">Tab <b>📣 Marketing → 📊 Chỉ số chiến dịch hôm nay</b> tô đèn theo các mức này: 🟢 đạt · 🟠 kém hơn tới 20% · 🔴 kém hơn nhiều. Để trống ô nào thì ô đó so với trung bình 7 ngày trước của chiến dịch.</p><div class="row2c">' +
         kf('kpCpm', 'CPM tốt khi dưới (đ / 1.000 lượt thấy)', KG.cpm, 'vd 40000') + kf('kpCtr', 'CTR tốt khi từ (%)', KG.ctr, 'vd 1,5') + '</div><div class="row2c">' +
@@ -8264,7 +8513,7 @@
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-gmore]'); if (!b) return; var r = b.previousElementSibling; if (r) r.hidden = false; b.remove(); });
   document.addEventListener('toggle', function (e) { var d = e.target; if (d && d.matches && d.matches('details[data-grp]')) { S.f.gopen = S.f.gopen || {}; S.f.gopen[d.getAttribute('data-grp')] = d.open; } }, true);
   document.addEventListener('click', function (e) {
-    var t = e.target.closest('[data-otab],[data-per],[data-pq],[data-promo],[data-rf],[data-vipgo],[data-stopgo],[data-stop],[data-taghelp],[data-consent],[data-daily],[data-usage],[data-flow],[data-zalo],[data-quick],[data-care],[data-next],[data-neworder],[data-cf],[data-os],[data-och],[data-tf],[data-cat],[data-addtag],[data-deltag],[data-claim],[data-bcdt],[data-srcadd],[data-srcedit],[data-srcsync],[data-srcdel],[data-adsedit],[data-adssync],[data-who],[data-target],[data-race],[data-offer],[data-myold],[data-more],[data-add],[data-rm],[data-consult],[data-leadorder],[data-newlead],[data-editlead],[data-cust],[data-order],[data-lead]');
+    var t = e.target.closest('[data-recon],[data-otab],[data-per],[data-pq],[data-promo],[data-rf],[data-vipgo],[data-stopgo],[data-stop],[data-taghelp],[data-consent],[data-daily],[data-usage],[data-flow],[data-zalo],[data-quick],[data-care],[data-next],[data-neworder],[data-cf],[data-os],[data-och],[data-tf],[data-cat],[data-addtag],[data-deltag],[data-claim],[data-bcdt],[data-srcadd],[data-srcedit],[data-srcsync],[data-srcdel],[data-adsedit],[data-adssync],[data-who],[data-target],[data-race],[data-offer],[data-myold],[data-more],[data-add],[data-rm],[data-consult],[data-leadorder],[data-newlead],[data-editlead],[data-cust],[data-order],[data-lead]');
     if (!t || !S.d) return;
     if (e.target.closest('a[href]') && !t.hasAttribute('data-myold')) return; // nút gọi / Zalo bên trong thẻ
     if (e.target.closest('select[data-oassign]')) return; // ô “Giao cho…” trên dòng đơn: không mở hộp đơn
@@ -8278,6 +8527,7 @@
     if (t.hasAttribute('data-vipgo')) { e.preventDefault(); S.f.c = { q: '', k: 'risk', sort: 'spent', n: 60 }; location.hash = '#khach-hang'; return; }
     if (t.hasAttribute('data-consent')) { e.stopPropagation(); var cc = cust(a('data-consent')); if (cc) { var off = t.hasAttribute('data-off'); if (off && !confirm('Khách không muốn nhận tin ưu đãi nữa? CRM sẽ bỏ khách này khỏi 📣 Gửi ưu đãi lần lượt.')) return; sendOp('customer', { phone: cc.phone, consent: off ? 0 : 1 }); t.outerHTML = consentTag(cc); toast(off ? 'Đã bỏ: khách không nhận tin ưu đãi' : 'Đã ghi: khách đồng ý nhận ưu đãi ✓'); } return; }
     if (t.hasAttribute('data-daily')) { openDaily(a('data-daily') || null); return; }
+    if (t.hasAttribute('data-recon')) { openRecon(); return; }
     if (t.hasAttribute('data-usage')) { openUsage(a('data-usage') || null); return; }
     if (t.hasAttribute('data-zalo')) { e.stopPropagation(); var zc = cust(a('data-zalo')); if (zc) { setZalo(zc, true); var zb = $('.modal [data-zalo]'); if (zb) zb.outerHTML = zaloTag(zc); } return; }
     if (t.hasAttribute('data-quick')) { e.stopPropagation(); var qk = a('data-quick').split('|'), qc = cust(qk[0]); if (qc) quickCare(qc, qk[1], qk[2], '', t); return; }
