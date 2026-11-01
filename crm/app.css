@@ -1272,6 +1272,21 @@ div.f > span { display: block; font-size: 13px; font-weight: 600; color: var(--i
 .costcfg-h, .costcfg-r { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 8px; }
 .costcfg-h { font-size: 13px; font-weight: 700; color: var(--muted); margin: 10px 0 4px; }
 .costcfg-r { margin-bottom: 6px; } .costcfg-r input { width: 100%; min-width: 0; }
+/* 🧮 Lãi lỗ (Tổng quan, 01/11/2026) */
+.pnl-say { margin: 0 0 10px; padding: 10px 12px; border-radius: var(--radius-sm); background: var(--orange-light); color: var(--ink); font-size: 16px; }
+.pnl-say.ok { background: var(--primary-light); } .pnl-say.bad { background: var(--red-light); }
+.pnl-wrap { max-height: none; margin-top: 10px; }
+.pnl-t { width: 100%; border-collapse: collapse; font-size: 14px; }
+.pnl-t th, .pnl-t td { padding: 7px 8px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+.pnl-t th { font-size: 13px; color: var(--muted); font-weight: 700; }
+.pnl-t th:first-child, .pnl-t td:first-child { text-align: left; white-space: normal; }
+.pnl-t small { color: var(--muted); font-weight: 400; }
+.pnl-t .pnl-x td { color: var(--text); } .pnl-t .pnl-x td:first-child { padding-left: 20px; }
+.pnl-t .pnl-sub td { font-weight: 700; color: var(--ink); background: var(--primary-soft); }
+.pnl-t .pnl-end td { font-size: 17px; font-weight: 800; border-bottom: 0; border-top: 2px solid var(--ink); }
+.pnl-t .pnl-end.ok td { color: var(--primary); } .pnl-t .pnl-end.bad td { color: var(--red); }
+.pnl-notes { margin: 10px 0 0; padding-left: 18px; } .pnl-notes li { margin: 3px 0; }
+.pnl-tot { margin: 12px 0 0; font-size: 16px; }
 .costcfg-paste { margin-top: 12px; } .costcfg-paste > summary { cursor: pointer; font-weight: 600; color: var(--primary); padding: 6px 0; }
 .costcfg-paste textarea { width: 100%; margin: 6px 0; font: inherit; font-size: 13px; }
 

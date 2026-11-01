@@ -4105,16 +4105,104 @@
         return '<div class="dash-seg-r" role="row"><span role="cell">' + x.c.icon + ' ' + esc(x.c.k) + '</span><b role="cell">' + (x.wait ? '…' : moneyShort(x.v)) + '</b><span role="cell" class="dash-seg-p">' + (x.t && !x.wait ? Math.round(g.p * 100) + '% / ' + moneyShort(x.t) : 'chưa đặt mục tiêu') + '</span><span role="cell" title="' + (x.t ? GOAL_LV[g.lv].replace(/<[^>]+>/g, '') : '') + '">' + st + '</span></div>';
       }).join('') + '</div><p class="bar-legend">Sale, Website lấy từ đơn trong CRM (đã trừ hoàn / huỷ); sàn lấy từ tab Sàn. Đèn: 🟢 đúng tiến độ · 🟠 hơi chậm · 🔴 chậm · ⚪ chưa đặt mục tiêu.</p></div>';
   }
-  /** Ô 📈 Lãi gộp = văn phòng (doanh số đã trừ hoàn / huỷ − giá vốn, cả quà tặng) + sàn (tiền thực về − giá vốn, sanGp). Dòng dưới: trừ tiếp toàn bộ quảng cáo (cả quảng cáo sàn). */
+  /** Lãi gộp văn phòng (gpOf) + sàn (sanGp) cho kỳ này và kỳ trước: dùng chung cho ô 📈 Lãi gộp và mục 🧮 Lãi lỗ. */
+  function dashGp(b, bp, sj) {
+    var g = gpOf(b), g0 = gpOf(bp), cr = sj ? sanCostRate(sj, b) : null, sg = cr ? sanGp(sanSum(sj.days, 2), cr) : null, sg0 = cr ? sanGp(sanSum(sj.prev, 1), cr) : null;
+    return { g: g, sg: sg, any: !!(g || sg), tot: (g ? g.gp : 0) + (sg ? sg.gp : 0), tot0: g0 || sg0 ? (g0 ? g0.gp : 0) + (sg0 ? sg0.gp : 0) : 0 };
+  }
+  /** Ô 📈 Lãi gộp = văn phòng (doanh số đã trừ hoàn / huỷ − giá vốn, cả quà tặng) + sàn (tiền thực về − giá vốn, sanGp). Dòng dưới: trừ tiếp toàn bộ quảng cáo (cả quảng cáo sàn)
+   *  và chi phí văn phòng nếu Quản trị đã nhập (mục 🧮 Lãi lỗ, 01/11/2026). */
   function dashGpTile(b, bp, M, sj) {
-    var g = gpOf(b), gp0 = gpOf(bp);
     if (!costCfg()) return dashTile('biz', '', '📈 Lãi gộp', '–', '', lvl() >= 3 ? 'Chưa nhập giá vốn: vào Cài đặt → 💰 Giá vốn sản phẩm' : 'Chưa có giá vốn');
-    var cr = sj ? sanCostRate(sj, b) : null, sg = cr ? sanGp(sanSum(sj.days, 2), cr) : null, sg0 = cr ? sanGp(sanSum(sj.prev, 1), cr) : null;
-    if (!g && !sg) return dashTile('biz', '', '📈 Lãi gộp', '–', '', 'Chưa có đơn trong kỳ');
-    var tot = (g ? g.gp : 0) + (sg ? sg.gp : 0), tot0 = gp0 || sg0 ? (gp0 ? gp0.gp : 0) + (sg0 ? sg0.gp : 0) : 0, ads = M && M.tot || 0, after = tot - ads;
-    return dashTile('biz', after < 0 ? 'bad' : '', '📈 Lãi gộp', moneyShort(tot), tot0 ? delta(tot, tot0) : '',
+    var G = dashGp(b, bp, sj), g = G.g, sg = G.sg;
+    if (!G.any) return dashTile('biz', '', '📈 Lãi gộp', '–', '', 'Chưa có đơn trong kỳ');
+    var ads = M && M.tot || 0, after = G.tot - ads, ox = lvl() >= 3 ? opexFor(perRange(S.f.g.p)) : null, net = ox && ox.has ? after - ox.v : null;
+    return dashTile(ox ? 'pnl' : 'biz', (net !== null ? net : after) < 0 ? 'bad' : '', '📈 Lãi gộp', moneyShort(G.tot), G.tot0 ? delta(G.tot, G.tot0) : '',
       (sg ? 'Văn phòng ' + (g ? moneyShort(g.gp) : '0đ') + ' · sàn ' + moneyShort(sg.gp) : (g ? g.pct + '% doanh số văn phòng' : '')) + (!sj ? ' · ⏳ đang cộng sàn' : '') +
-      (ads ? ' · trừ quảng cáo còn <span class="dash-in">' + moneyShort(after) + '</span>' : '') + (g && g.cover < 90 ? ' · ⚠️ ' + (100 - g.cover) + '% hàng chưa có giá vốn' : '') + ' · chưa trừ ship, lương, mặt bằng');
+      (net !== null ? ' · trừ quảng cáo + chi phí văn phòng: <span class="dash-in">' + (net < 0 ? 'lỗ ' : 'lãi ') + moneyShort(Math.abs(net)) + '</span>' : ads ? ' · trừ quảng cáo còn <span class="dash-in">' + moneyShort(after) + '</span>' : '') +
+      (g && g.cover < 90 ? ' · ⚠️ ' + (100 - g.cover) + '% hàng chưa có giá vốn' : '') + (net !== null ? '' : ' · chưa trừ ship, lương, mặt bằng' + (ox ? ' (nhập ở mục 🧮 Lãi lỗ)' : '')));
+  }
+  /* ---------- 🧮 Lãi lỗ (01/11/2026): Quản trị nhập chi phí văn phòng từng tháng (thuê nhà, lương, điện nước…) ở Tổng quan → mục 🧮 Lãi lỗ, lưu kv opex_cfg.
+   * Lãi / lỗ ròng = lãi gộp (dashGp: văn phòng + sàn) − quảng cáo (mktCalc, cả quảng cáo sàn) − chi phí văn phòng. Kỳ không trọn tháng: chi phí tháng chia theo số ngày. */
+  var OPEX_DEF = ['Thuê văn phòng', 'Lương nhân sự văn phòng', 'Lương + hoa hồng sale', 'Bảo hiểm xã hội', 'Điện', 'Nước', 'Internet & điện thoại', 'Tiền ship trả hãng vận chuyển', 'Phần mềm & công cụ', 'Văn phòng phẩm, tạp vụ', 'Khác'];
+  var OPEX_SALE = 'Lương + hoa hồng sale';
+  function opexMonth(m) {
+    var o = ((S.d.rules && S.d.rules.opex) || {})[m]; if (!o || !(o.items || []).length) return null;
+    var t = 0; o.items.forEach(function (r) { t += r[1]; }); return { items: o.items, tot: t, at: o.at, by: o.by };
+  }
+  /** Chi phí văn phòng trong khoảng R: mỗi tháng chạm R lấy tổng tháng × số ngày trong R ÷ số ngày của tháng (chỉ tính tới hết hôm nay). miss = tháng chưa nhập. */
+  function opexFor(R) {
+    var end = Math.min(R[1], today() + DAY), o = { v: 0, has: 0, miss: [], items: {}, part: false, days: 0, mdays: 0 };
+    if (!(end > R[0])) return o;
+    for (var m = monthOf(R[0]); m <= monthOf(end - 1); m = shiftMonth(m, 1)) {
+      var MR = monthRange(m), a = Math.max(R[0], MR[0]), b = Math.min(end, MR[1]), k = (b - a) / (MR[1] - MR[0]), x = opexMonth(m);
+      if (k < 0.999) o.part = true; o.days += Math.round((b - a) / DAY); o.mdays += Math.round((MR[1] - MR[0]) / DAY);
+      if (!x) { o.miss.push(m); continue; }
+      o.has++; o.v += x.tot * k; x.items.forEach(function (r) { o.items[r[0]] = (o.items[r[0]] || 0) + r[1] * k; });
+    }
+    o.v = Math.round(o.v); return o;
+  }
+  /** Lương + hoa hồng sale tháng m do CRM tạm tính (Phụ lục 01, payOf), để điền nhanh vào bảng chi phí. */
+  function opexSalePay(m) {
+    if (!ppOn()) return 0;
+    var R = monthRange(m), nm = {}, t = 0; S.d.orders.forEach(function (o) { if (o.seller && o.time >= R[0] && o.time < R[1]) nm[o.seller] = 1; });
+    Object.keys(nm).forEach(function (n) { var p = payOf(n, m); if (p) t += p.total; }); return t;
+  }
+  function dashPnl(T, b, bp, M, sj, R, P, month) {
+    var ML = monthLabel(month), btn = '<button class="btn sm pri" data-dash="opex" data-m="' + month + '">✏️ Nhập chi phí ' + ML + '</button>';
+    if (!costCfg()) return { line: '⚠️ Chưa nhập giá vốn', body: '<div class="box"><p class="notice" style="margin:0">Cần giá vốn sản phẩm để tính lãi: vào <b>Cài đặt → 💰 Giá vốn sản phẩm</b>.</p></div>' };
+    var G = dashGp(b, bp, sj), ox = opexFor(R), op = opexFor(P), ads = M ? M.tot : 0, ads0 = M ? M.totp : 0, net = G.tot - ads - ox.v, net0 = G.tot0 - ads0 - op.v, cmp = !!CMP_LABEL;
+    var c = function (v, neg) { return '<td>' + (v === null ? '–' : (neg && v ? '−' : v < 0 ? '−' : '') + moneyShort(Math.abs(v))) + '</td>'; };
+    var row = function (cls, l, v, v0, neg) { return '<tr class="' + cls + '"><td>' + l + '</td>' + c(v, neg) + (cmp ? c(v0, neg) : '') + '</tr>'; };
+    var names = Object.keys(ox.items).concat(Object.keys(op.items).filter(function (k) { return !(k in ox.items); })).sort(function (x, y) { return (ox.items[y] || 0) - (ox.items[x] || 0); });
+    var t = '<div class="bcdt-wrap pnl-wrap"><table class="pnl-t"><thead><tr><th>Khoản</th><th>Kỳ này</th>' + (cmp ? '<th>' + esc(CMP_LABEL.replace(/^\S/, function (s) { return s.toUpperCase(); })) + '</th>' : '') + '</tr></thead><tbody>' +
+      row('', '💰 Doanh số <small>(văn phòng + sàn, đã trừ hoàn / huỷ)</small>', T.net, T.netP) +
+      row('pnl-x', 'Giá vốn hàng bán, phí sàn', T.net - G.tot, T.netP - G.tot0, true) +
+      row('pnl-sub', '📈 Lãi gộp', G.tot, G.tot0) +
+      row('pnl-x', '📣 Quảng cáo <small>(tự lấy từ tab Marketing)</small>', M ? ads : null, M ? ads0 : null, true) +
+      (names.length ? names.map(function (k) { return row('pnl-x', esc(k), Math.round(ox.items[k] || 0), Math.round(op.items[k] || 0), true); }).join('') : row('pnl-x', '🏢 Chi phí văn phòng <small>(chưa nhập)</small>', 0, 0, true)) +
+      row('pnl-end ' + (net < 0 ? 'bad' : 'ok'), net < 0 ? '🔴 Lỗ' : '🟢 Lãi ròng', net, net0) + '</tbody></table></div>';
+    var say = !ox.has ? '⚠️ Chưa nhập chi phí văn phòng ' + ML + ' nên số dưới đây mới trừ giá vốn và quảng cáo.'
+      : (net < 0 ? '🔴 <b>Kỳ này đang lỗ ' + moneyShort(-net) + '</b>' : '🟢 <b>Kỳ này lãi ' + moneyShort(net) + '</b>') + (T.net ? ' (' + Math.round(net * 100 / T.net) + '% doanh số)' : '') + ' sau khi trừ giá vốn, quảng cáo và chi phí văn phòng.' +
+        (cmp && op.has ? ' ' + CMP_LABEL.replace(/^\S/, function (s) { return s.toUpperCase(); }) + ': ' + (net0 < 0 ? 'lỗ ' : 'lãi ') + moneyShort(Math.abs(net0)) + '.' : '');
+    var notes = [];
+    if (ox.part) notes.push('Kỳ đang xem có ' + ox.days + ' / ' + ox.mdays + ' ngày của tháng nên chi phí văn phòng tính theo số ngày (vd thuê nhà 10 tr, xem 10 / 30 ngày → 3,3 tr). Xem trọn tháng: chọn <b>Tháng trước</b> ở trên.');
+    if (ox.miss.length && ox.has) notes.push('⚠️ Chưa nhập chi phí: ' + ox.miss.map(monthLabel).join(', ') + '.');
+    if (!M) notes.push(MK.err ? '⚠️ Chưa tải được chi phí quảng cáo.' : '⏳ Đang tải chi phí quảng cáo…');
+    if (!sj) notes.push('⏳ Đang cộng số sàn…');
+    notes.push('Doanh số tính khi lên đơn (chưa chắc đã thu tiền). Phí ship khách trả đã nằm trong doanh số; tiền ship trả hãng nhập thành 1 khoản chi phí. Số chốt lãi lỗ do kế toán đối chiếu.');
+    var hist = Object.keys((S.d.rules && S.d.rules.opex) || {}).sort().reverse().slice(0, 6).map(function (m) { var x = opexMonth(m); return x ? '<button class="btn sm ghost" data-dash="opex" data-m="' + m + '">' + monthLabel(m).replace(/^t/, 'T') + ': ' + moneyShort(x.tot) + '</button>' : ''; }).join('');
+    return { line: ox.has ? (net < 0 ? '🔴 Lỗ ' : '🟢 Lãi ') + moneyShort(Math.abs(net)) + ' sau mọi chi phí' + (T.net ? ' · ' + Math.round(net * 100 / T.net) + '% doanh số' : '') : '⚠️ Chưa nhập chi phí văn phòng ' + ML,
+      body: '<div class="box"><p class="pnl-say' + (ox.has ? net < 0 ? ' bad' : ' ok' : '') + '">' + say + '</p><div class="steps">' + btn + '</div>' + t +
+        '<ul class="small muted pnl-notes">' + notes.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul>' + (hist ? '<p class="small" style="margin:10px 0 4px"><b>Chi phí văn phòng đã nhập</b> (bấm để sửa):</p><div class="steps">' + hist + '</div>' : '') + '</div>' };
+  }
+  function opexRowHTML(n, v) { return '<div class="costcfg-r"><input type="text" data-on value="' + esc(n) + '" placeholder="Tên khoản chi, vd Thuê văn phòng"><input type="text" inputmode="numeric" data-ov value="' + (v ? Number(v).toLocaleString('vi-VN') : '') + '" placeholder="Số tiền"></div>'; }
+  /** Hộp nhập chi phí văn phòng 1 tháng. Tháng chưa nhập: chép tên + số tiền tháng trước (nếu có) để chỉ cần sửa khoản thay đổi. */
+  function opexEdit(m) {
+    var x = opexMonth(m), pv = opexMonth(shiftMonth(m, -1)), items = x ? x.items : pv ? pv.items : OPEX_DEF.map(function (n) { return [n, 0]; }), sp = opexSalePay(m);
+    var body = '<label class="f" style="max-width:220px"><span>Tháng</span><input type="month" id="oxM" value="' + m + '"></label>' +
+      '<p class="hint">' + (x ? 'Đã nhập' + (x.by ? ' bởi ' + esc(x.by) : '') + (x.at ? ' · ' + when(x.at) : '') + '. Sửa số rồi bấm <b>Lưu</b>.' : pv ? '📋 Đã chép các khoản của ' + monthLabel(shiftMonth(m, -1)) + '. Sửa khoản nào khác rồi bấm <b>Lưu</b>.' : 'Gõ số tiền từng khoản trong tháng (vd 12tr, 850k hoặc 12.000.000). Khoản không có thì để trống.') +
+      ' Không nhập quảng cáo và giá vốn hàng (CRM đã tự tính). Chỉ Quản trị xem được.</p>' +
+      '<div class="costcfg-h"><span>Khoản chi</span><span>Số tiền (đ)</span></div><div id="oxRows">' + items.map(function (r) { return opexRowHTML(r[0], r[1]); }).join('') + '</div>' +
+      '<div class="steps" style="margin-top:8px"><button class="btn" id="oxAdd">+ Thêm dòng</button>' + (sp ? '<button class="btn" id="oxSale" title="Theo Phụ lục 01 ở Cài đặt, chưa gồm thưởng">💰 Điền lương sale CRM tính: ' + moneyShort(sp) + '</button>' : '') + '</div>' +
+      '<p class="pnl-tot">Tổng chi phí tháng: <b id="oxTot">0đ</b></p>';
+    var md = modal('🏢 Chi phí văn phòng ' + monthLabel(m), body, '<button class="btn" data-close>Đóng</button>' + (x ? '<button class="btn ghost" id="oxDel">Xoá tháng này</button>' : '') + '<button class="btn pri" id="oxSave">Lưu</button>');
+    var rows = function () { return $$('#oxRows .costcfg-r', md).map(function (r) { return [r.querySelector('[data-on]').value.trim(), parseMoney(r.querySelector('[data-ov]').value || '0')]; }); };
+    var sum = function () { var t = 0; rows().forEach(function (r) { t += r[1]; }); $('#oxTot', md).textContent = money(t); };
+    sum(); $('#oxRows', md).addEventListener('input', sum);
+    $('#oxM', md).onchange = function () { if (/^\d{4}-\d{2}$/.test(this.value)) opexEdit(this.value); };
+    $('#oxAdd', md).onclick = function () { $('#oxRows', md).insertAdjacentHTML('beforeend', opexRowHTML('', '')); };
+    if ($('#oxSale', md)) $('#oxSale', md).onclick = function () {
+      var r = $$('#oxRows .costcfg-r', md).filter(function (e) { return e.querySelector('[data-on]').value.trim() === OPEX_SALE; })[0];
+      if (!r) { $('#oxRows', md).insertAdjacentHTML('beforeend', opexRowHTML(OPEX_SALE, sp)); } else r.querySelector('[data-ov]').value = sp.toLocaleString('vi-VN');
+      sum(); toast('Đã điền ' + money(sp) + ' (chưa gồm thưởng)');
+    };
+    var save = function (items, b) {
+      b.disabled = true;
+      api('settings', { opex: { month: m, items: items } }).then(function (j) { if (!j.opex) { toast('Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.', true); b.disabled = false; return; } S.d.rules.opex = j.opex; closeModal(); toast(items.length ? 'Đã lưu chi phí ' + monthLabel(m) + ' ✓' : 'Đã xoá chi phí ' + monthLabel(m)); render(); }, function (e) { toast(e.message, true); b.disabled = false; });
+    };
+    $('#oxSave', md).onclick = function () { var it = rows().filter(function (r) { return r[0] && r[1] > 0; }); if (!it.length) { toast('Chưa có khoản nào có số tiền.', true); return; } save(it, this); };
+    if ($('#oxDel', md)) $('#oxDel', md).onclick = function () { if (confirm('Xoá toàn bộ chi phí ' + monthLabel(m) + '?')) save([], this); };
   }
   /** Màn hình đầu (29/10/2026, theo thứ tự CEO): câu kết luận → 6 con số → mục tiêu + từng mảng → vì sao tăng / giảm. Bấm vào ô → mở mục chi tiết tương ứng. */
   function dashHero(T, b, bp, M, gl, month, sj, p) {
@@ -4192,6 +4280,7 @@
     h += dashHero(T, b, bp, M, gl, month, sj, f.p);
     h += dashNotes(T, b, g, f.p, M, sj, gl);
     h += '<div class="section-h dash-more-h"><h2>🔎 Xem chi tiết từng phần</h2><span class="tip">bấm vào từng mục để mở / đóng</span></div>';
+    if (lvl() >= 3) { var PL = dashPnl(T, b, bp, M, sj, R, P, month); h += dashMore('pnl', '🧮 Lãi lỗ sau mọi chi phí', PL.line, PL.body); }
     // ---- bán hàng văn phòng (đường nhỏ: bizStats từng ngày / tuần / tháng)
     var DB = T.tr.B, BZ = trendEachMemo('biz', DB, bizStats), sk = function (v, bad) { return v ? sparkSvg(v, DB.partial, bad) : ''; };
     h += dashMore('biz', '💰 Bán hàng văn phòng', (b.n - b.vN) + ' đơn · ' + moneyShort(b.rev - b.vRev) + ' · ' + b.leads + ' khách hỏi mới', '<p class="small muted">Đơn trong CRM: website, sale, khách hỏi (sàn ở mục 🛒) · doanh số đã trừ hoàn / huỷ, như ô Doanh số ở đầu trang.</p><div class="metrics">' +
@@ -6218,6 +6307,7 @@
       el.onclick = function () {
         var a = el.getAttribute('data-dash'), f = S.f.g, key = gaKey(perRange(f.p), cmpRange(f.p));
         if (a === 'mkt') { openMkt(); return; }
+        if (a === 'opex') { opexEdit(el.getAttribute('data-m')); return; }
         if (a === 'sfb') { f.sfb = f.sfb === false; store('dash_sfb', f.sfb ? '1' : '0'); render(); return; }
         if (a === 'fresh') { delete MK.cache[key]; MK.err = ''; delete GA.cache[key]; GA.err = ''; GA.busy = ''; gaFetch(key, true); render(); return; }
         if (a === 'prop') { el.disabled = true; api('ga_prop', { prop: ($('#gaProp') || {}).value || '' }).then(function () { GA.cache = {}; GA.err = ''; toast('Đã lưu mã thuộc tính'); render(); }, function (e) { el.disabled = false; toast(e.message, true); }); }
