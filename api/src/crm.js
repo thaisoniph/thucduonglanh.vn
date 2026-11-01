@@ -1462,7 +1462,7 @@ async function crmSettings(x, u, d) {
     // kt = số từ file báo cáo kế toán tải lên (01/11/2026): tổng hợp tháng + chi phí theo nhóm, để so với số CRM tính
     const num = v => { const n = Math.round(Number(v)); return isFinite(n) ? Math.max(-1e12, Math.min(1e12, n)) : null; }, k0 = d.opex.kt;
     const kt = k0 && typeof k0 === 'object' ? Object.assign({ file: String(k0.file || '').slice(0, 120), groups: (Array.isArray(k0.groups) ? k0.groups : []).slice(0, 40).map(r => [String((r || [])[0] || '').trim().slice(0, 80), num((r || [])[1]) || 0]).filter(r => r[0]), at: Date.now(), by: u.name },
-      ...['sale', 'shopee', 'dt', 'cogs', 'gp', 'cost', 'profit', 'flow', 'cash', 'payable'].map(k => k0[k] == null || num(k0[k]) === null ? {} : { [k]: num(k0[k]) })) : (O[m] || {}).kt;
+      ...['sale', 'shopee', 'dt', 'cogs', 'gp', 'cost', 'profit', 'flow', 'cash', 'payable', 'ads', 'san'].map(k => k0[k] == null || num(k0[k]) === null ? {} : { [k]: num(k0[k]) })) : (O[m] || {}).kt;
     if (!d.opex.del && (items.length || kt)) O[m] = Object.assign({ items, at: Date.now(), by: u.name }, kt ? { kt } : {}); else delete O[m];
     Object.keys(O).sort().slice(0, -36).forEach(k => delete O[k]); // giữ 3 năm gần nhất
     await kvSet(x.db, 'opex_cfg', JSON.stringify(O));
