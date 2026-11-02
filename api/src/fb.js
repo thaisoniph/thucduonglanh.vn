@@ -61,6 +61,7 @@ const plain = s => String(s || '').replace(/<br\s*\/?>/gi, '\n').replace(/<\/?[a
 export async function fbSchema(db) {
   await run(db, `CREATE TABLE IF NOT EXISTS fp_pages (id TEXT PRIMARY KEY, name TEXT DEFAULT '', token TEXT DEFAULT '', active INTEGER DEFAULT 0, cfg TEXT DEFAULT '{}',
     at INTEGER, err TEXT DEFAULT '', last_ev INTEGER)`); // fanpage đã kết nối (token = mã truy cập trang, không bao giờ gửi về CRM)
+  try { await run(db, 'ALTER TABLE fp_pages ADD COLUMN on_at INTEGER'); } catch (e) { } // lúc bật trợ lý (quét bình luận chỉ lấy bình luận sau lúc này)
   await run(db, `CREATE TABLE IF NOT EXISTS fp_users (psid TEXT PRIMARY KEY, page TEXT, name TEXT DEFAULT '', phone TEXT DEFAULT '', lead TEXT DEFAULT '', src TEXT DEFAULT '',
     last_in INTEGER, pause INTEGER DEFAULT 0, gift INTEGER DEFAULT 0, nudged INTEGER DEFAULT 0, mid TEXT DEFAULT '', at INTEGER)`); // người nhắn fanpage (psid theo từng trang). gift: 1 đã xin số, 2 đã gửi quà
   await run(db, 'CREATE INDEX IF NOT EXISTS fp_users_in ON fp_users(last_in)');
@@ -157,7 +158,7 @@ async function onComment(x, p, v) {
   await kvSet(x.db, hk, String(nh + 1), 2 * 3600e3);
   const pm = text.match(PHONE_RE), ph = pm ? normPhone(pm[0]) : '', hasPhone = /^0\d{9}$/.test(ph);
   if (hasPhone) await saveLead(x, p, { psid: '', name, phone: ph, how: 'Khách để số trong bình luận', cmt: text, post }); // ghi số trước: bước sau lỗi cũng không mất khách
-  let bad = null; const tryDo = async (k, f) => { try { await f(); did.push(k); } catch (e) { bad = bad || e; console.error('fp ' + k, e.message); } }; // mỗi việc độc lập
+  let bad = null, dmErr = null; const tryDo = async (k, f) => { try { await f(); did.push(k); } catch (e) { if (k === 'dm') dmErr = e; else bad = bad || e; console.error('fp ' + k, e.message); } }; // mỗi việc độc lập; nhắn riêng lỗi (vd app chưa duyệt, người bình luận chặn tin nhắn) không tính là trang lỗi
   if (c.like) await tryDo('like', () => graph(cid + '/likes', p.token, {}));
   if (hasPhone && c.hide) await tryDo('hide', () => graph(cid, p.token, { is_hidden: true })); // ẩn số điện thoại khỏi người khác
   if (c.reply) await tryDo('reply', () => graph(cid + '/comments', p.token, { message: (hasPhone ? 'Dạ em nhận được thông tin rồi ạ, em đã ẩn số điện thoại để bảo mật cho mình. Em nhắn riêng {ten} ngay nha 💚' : pick(c.replies)).replace(/\{ten\}/g, given(name)) }));
@@ -175,6 +176,7 @@ async function onComment(x, p, v) {
   await run(x.db, 'UPDATE fp_cmts SET did = ? WHERE cid = ?', did.join(','), cid);
   await flog(x, p.id, 'comment', { name, text: text.replace(PHONE_RE, '[SĐT]'), reply: did.map(k => ({ like: '👍 thích', hide: '🙈 ẩn (có SĐT)', reply: '💬 trả lời công khai', dm: '📩 nhắn riêng' })[k]).join(' · ') + (bad ? ' · ⚠️ ' + bad.message : '') });
   if (bad) await pageErr(x, p, bad);
+  if (dmErr && !bad) await flog(x, p.id, 'error', { name, text: 'Không nhắn riêng được: ' + String(dmErr.message).slice(0, 200) });
 }
 const QR_START = [{ content_type: 'text', title: '🎁 Nhận quà', payload: 'GIFT' }, { content_type: 'text', title: '💬 Hỏi sản phẩm', payload: 'ASK' }];
 
@@ -442,10 +444,30 @@ async function savePages(x, list) {
 }
 
 /* ---------------------------------------------------------------- lịch: nhắc khách, đăng bài, soạn bài (cron 10 phút / lần, 7h–22h) */
+/** Quét bình luận gốc mới (6 giờ gần nhất, sau lúc bật trang) ở 5 bài mới nhất → xử lý như webhook. Bình luận đã xử lý có trong fp_cmts nên không trả lời 2 lần.
+ *  Cần vì: app chưa được Meta duyệt thì Facebook không gửi webhook bình luận; webhook đôi khi chậm / mất. */
+async function fpScan(x, p) {
+  if (!p.cfg.reply && !p.cfg.dm && !p.cfg.like) return 0;
+  const since = Math.max(Date.now() - 6 * 3600e3, p.on_at || 0);
+  const j = await graph(p.id + '/feed?fields=id,comments.filter(toplevel).order(reverse_chronological).limit(25){id,message,from,created_time}&limit=5', p.token);
+  const list = [];
+  for (const post of j.data || []) for (const c of (post.comments && post.comments.data) || []) if (Date.parse(c.created_time) >= since) list.push({ post: post.id, c });
+  if (!list.length) return 0;
+  const done = new Set((await all(x.db, 'SELECT cid FROM fp_cmts WHERE cid IN (SELECT value FROM json_each(?))', JSON.stringify(list.map(z => z.c.id)))).map(r => r.cid));
+  let n = 0;
+  for (const { post, c } of list.reverse()) { // cũ trước
+    if (done.has(c.id)) continue;
+    const from = c.from && c.from.id ? c.from : { id: 'c' + c.id, name: '' }; // app chưa duyệt thì Facebook giấu người bình luận
+    await onComment(x, p, { item: 'comment', verb: 'add', comment_id: c.id, post_id: post, parent_id: post, from, message: c.message || '' });
+    n++;
+  }
+  return n;
+}
 export async function fpTick(x) {
   useEnv(x);
   const pages = await all(x.db, 'SELECT * FROM fp_pages WHERE active = 1'); if (!pages.length) return;
   const now = Date.now(), P = Object.fromEntries(pages.map(r => [r.id, Object.assign({}, r, { cfg: pageCfg(r.cfg) })]));
+  for (const p of Object.values(P)) { try { await fpScan(x, p); } catch (e) { console.error('fpScan', e.message); } } // quét bình luận mới (phòng khi webhook chậm / app chưa duyệt)
   // nhắc 1 lần: khách đã nhắn (cửa sổ 24 giờ đang mở) nhưng chưa để số, im 3 tiếng
   if (vnHour(now) >= 8 && vnHour(now) < 21) {
     for (const u of await all(x.db, "SELECT * FROM fp_users WHERE phone = '' AND nudged = 0 AND last_in BETWEEN ? AND ? AND pause < ? LIMIT 20", now - 22 * 3600e3, now - 3 * 3600e3, now)) {
@@ -604,9 +626,14 @@ export async function crmFp(x, u, d, crmLog) {
     for (const k of ['gift_link', 'group']) if (n[k] !== undefined) { const v = String(n[k]).trim(); c[k] = /^https:\/\/\S+$/.test(v) ? v.slice(0, 300) : PCFG0[k]; }
     if (Array.isArray(n.slots)) c.slots = [...new Set(n.slots.map(s => String(s).trim()).filter(s => /^\d{1,2}:\d{2}$/.test(s)).map(s => s.padStart(5, '0')))].slice(0, 4).sort();
     const active = d.active === undefined ? r.active : d.active ? 1 : 0;
-    await run(x.db, 'UPDATE fp_pages SET cfg = ?, active = ? WHERE id = ?', JSON.stringify(c), active, r.id); PG.delete(r.id);
+    await run(x.db, 'UPDATE fp_pages SET cfg = ?, active = ?, on_at = CASE WHEN ? = 1 AND active = 0 THEN ? ELSE on_at END WHERE id = ?', JSON.stringify(c), active, active, Date.now(), r.id); PG.delete(r.id);
     await crmLog(x, u, 'Cài đặt fanpage', r.id, r.name, active ? 'Bật' : 'Tắt', '');
     return { ok: true };
+  }
+  if (a === 'fp_scan') { // 🔄 quét bình luận ngay (trang đang bật)
+    let n = 0, err = '';
+    for (const r of await all(x.db, 'SELECT * FROM fp_pages WHERE active = 1')) { try { n += await fpScan(x, Object.assign({}, r, { cfg: pageCfg(r.cfg) })); } catch (e) { err = r.name + ': ' + e.message; } }
+    return err && !n ? { ok: false, error: err } : { ok: true, n };
   }
   if (a === 'fp_resub' || a === 'fp_del') {
     const r = await first(x.db, 'SELECT * FROM fp_pages WHERE id = ?', String(d.id || '')); if (!r) return { ok: false, error: 'Không tìm thấy trang.' };

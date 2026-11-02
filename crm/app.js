@@ -5169,7 +5169,7 @@
       metric('🙋 Cần người thật', g('handoff'), 'Đã báo Telegram để nhân sự trả lời trong hộp thư fanpage.', '') +
       metric('📝 Bài đã đăng', g('post'), g('error') ? '⚠️ ' + g('error') + ' lỗi (xem nhật ký bên dưới).' : 'AI soạn, nhân sự duyệt.', '') + '</div>';
     // từng trang
-    h += '<h2 class="zb-h">📄 Fanpage</h2>' + (ps.length ? ps.map(fpPageBox).join('') : '<div class="box"><p class="muted">Chưa kết nối trang nào (xem 🔗 Kết nối Facebook ở trên).</p></div>');
+    h += '<h2 class="zb-h">📄 Fanpage</h2>' + (on.length ? '<p class="small muted">Trợ lý tự quét bình luận mới 10 phút / lần (7h–22h). <button class="btn sm" data-fp="scan">🔄 Quét bình luận ngay</button></p>' : '') + (ps.length ? ps.map(fpPageBox).join('') : '<div class="box"><p class="muted">Chưa kết nối trang nào (xem 🔗 Kết nối Facebook ở trên).</p></div>');
     // bài đăng
     var days = [], P = {}, key = function (t) { var x = new Date(t + 7 * 3600e3); return x.getUTCFullYear() + pad(x.getUTCMonth() + 1) + pad(x.getUTCDate()); };
     (j.posts || []).forEach(function (p) { P[p.id] = p; if (days.indexOf(p.day) < 0) days.push(p.day); });
@@ -5269,6 +5269,7 @@
       var md = $('input[name="fpMode_' + id + '"]:checked', box); if (md) cfg.mode = md.value;
       t.disabled = true; return api('fp_page', { id: id, active: $('[data-fpa]', box).checked, cfg: cfg }).then(after('Đã lưu cài đặt trang ✓'), fail);
     }
+    if (v[0] === 'scan') { t.disabled = true; return api('fp_scan', {}).then(function (j) { toast(j.n ? 'Đã xử lý ' + j.n + ' bình luận mới ✓' : 'Không có bình luận mới cần trả lời.'); fpFetch(); }, fail); }
     if (v[0] === 'resub') { t.disabled = true; return api('fp_resub', { id: id }).then(after('Đã kết nối lại ✓'), fail); }
     if (v[0] === 'del') { if (!confirm('Gỡ trang ' + fpPageOf(id).name + ' khỏi trợ lý? Trợ lý sẽ không trả lời trang này nữa.')) return; t.disabled = true; return api('fp_del', { id: id }).then(after('Đã gỡ trang.'), fail); }
     if (v[0] === 'save' || v[0] === 'ok' || v[0] === 'skip' || v[0] === 'draft') {
