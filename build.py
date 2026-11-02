@@ -636,7 +636,7 @@ def footer():
         about = about.replace('<li><a href="/gioi-thieu/">Giới Thiệu</a></li>', f'<li><a href="/gioi-thieu/">Giới Thiệu</a></li><li><a href="{BR_PATH}">Hồ sơ thương hiệu</a></li>')
     bct = f'<a href="{esc(SITE["bo_cong_thuong_url"])}" target="_blank" rel="noopener" class="bct"><img src="/assets/img/brand/bo-cong-thuong.png" alt="{t("Đã thông báo Bộ Công Thương")}" width="150" loading="lazy"></a>' if SITE.get("bo_cong_thuong_url") else ""
     if IS_VI:
-        about += (f'<li><a href="{REF_PATH}">Giới thiệu bạn bè, nhận quà</a></li>' if REF_PATH else "") + (f'<li><a href="{CTVJ_PATH}">Làm cộng tác viên</a></li>' if CTVJ_PATH else "") + '<li><a href="https://congsu.thucduonglanh.vn/" target="_blank" rel="noopener">Tuyển dụng</a></li>'
+        about += (f'<li><a href="{REF_PATH}">Giới thiệu bạn bè, <span style="white-space:nowrap">nhận quà</span> <small style="white-space:nowrap">(khách đã mua)</small></a></li>' if REF_PATH else "") + (f'<li><a href="{CTVJ_PATH}">Làm cộng tác viên, <span style="white-space:nowrap">nhận hoa hồng</span></a></li>' if CTVJ_PATH else "") + '<li><a href="https://congsu.thucduonglanh.vn/" target="_blank" rel="noopener">Tuyển dụng</a></li>'
     year = datetime.date.today().year
     return f'''
 <footer class="site-footer">
@@ -1852,7 +1852,7 @@ def page_ref():
     tier = (f'<div class="rf-tier"><p>🎁 <b>Quà cảm ơn bạn</b>, tính theo tổng tiền hàng mỗi người bạn bè mua trong {wd} ngày đầu (cộng dồn). Quà mốc tặng 1 lần.</p><ul class="rf-ladder">' +
             "".join(f'<li><b>Bạn bè mua đủ {vn(m)}</b><span>Voucher <b>{vn(a - (steps[i - 1][1] if i else 0))}</b>' + (f" nữa (tổng {vn(a)})" if i else "") + '</span></li>' for i, (m, a) in enumerate(steps)) +
             "".join(f"<li><b>Đủ {n} bạn bè</b><span>Tặng thêm <b>{esc(g)}</b></span></li>" for n, g in tiers) + (f'<li class="rf-note"><span>Mốc quà đếm những bạn bè đã mua đủ {smin}.</span></li>' if tiers and smin else "") + "</ul>" +
-            (f'<p>Từ <b>{cn} người</b>: mời bạn làm <b>Cộng tác viên</b>, nhận hoa hồng bằng tiền.</p>' if cn else "") + "</div>") if ra or tiers else ""
+            (f'<p>Từ <b>{cn} người</b>: mời bạn làm <b>Cộng tác viên</b>, nhận hoa hồng bằng tiền' + (f' (<a href="{CTVJ_PATH}">đăng ký tại đây</a>)' if CTVJ_PATH else "") + '.</p>' if cn else "") + "</div>") if ra or tiers else ""
     rules = [
         "Dành cho khách đã mua hàng tại " + BRAND + " (đặt trên web, Zalo hay điện thoại đều được). Bạn tra cứu bằng số điện thoại đã dùng khi mua.",
         f"Người được giới thiệu: mua lần đầu (số điện thoại chưa từng đặt hàng), giảm {fp}% tiền hàng đơn đầu tiên khi đặt trên web. Mỗi đơn dùng 1 mã ưu đãi.",
