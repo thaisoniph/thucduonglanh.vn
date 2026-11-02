@@ -4152,7 +4152,7 @@
     Object.keys(nm).forEach(function (n) { var p = payOf(n, m); if (p) t += p.total; }); return t;
   }
   function dashPnl(T, b, bp, M, sj, R, P, month) {
-    var ML = monthLabel(month), btn = '<button class="btn sm pri" data-dash="opex" data-m="' + month + '">✏️ Nhập chi phí ' + ML + '</button><button class="btn sm" data-dash="kt">📎 Tải file kế toán</button>';
+    var ML = monthLabel(month), btn = '<button class="btn sm pri" data-dash="opex" data-m="' + month + '">✏️ Nhập chi phí ' + ML + '</button><button class="btn sm" data-dash="kt">📎 Tải file kế toán</button><button class="btn sm" data-dash="pay">👥 Tải bảng lương</button>';
     if (!costCfg()) return { line: '⚠️ Chưa nhập giá vốn', body: '<div class="box"><p class="notice" style="margin:0">Cần giá vốn sản phẩm để tính lãi: vào <b>Cài đặt → 💰 Giá vốn sản phẩm</b>.</p></div>' };
     var G = dashGp(b, bp, sj), ox = opexFor(R), op = opexFor(P), ads = M ? M.tot : 0, ads0 = M ? M.totp : 0, net = G.tot - ads - ox.v, net0 = G.tot0 - ads0 - op.v, cmp = !!CMP_LABEL;
     var c = function (v, neg) { return '<td>' + (v === null ? '–' : (neg && v ? '−' : v < 0 ? '−' : '') + moneyShort(Math.abs(v))) + '</td>'; };
@@ -4184,7 +4184,7 @@
         '<p class="small muted">File: ' + esc(K.file || '') + (K.by ? ' · ' + esc(K.by) + ' tải ' + when(K.at) : '') + '</p></div>';
     }
     return { line: ox.has ? (net < 0 ? '🔴 Lỗ ' : '🟢 Lãi ') + moneyShort(Math.abs(net)) + ' sau mọi chi phí' + (T.net ? ' · ' + Math.round(net * 100 / T.net) + '% doanh số' : '') : '⚠️ Chưa nhập chi phí văn phòng ' + ML,
-      body: '<div class="box"><p class="pnl-say' + (ox.has ? net < 0 ? ' bad' : ' ok' : '') + '">' + say + '</p><div class="steps">' + btn + '</div>' + t + ks +
+      body: '<div class="box"><p class="pnl-say' + (ox.has ? net < 0 ? ' bad' : ' ok' : '') + '">' + say + '</p><div class="steps">' + btn + '</div>' + t + ks + payBlock(month, T, b, M, ox, ML) +
         '<ul class="small muted pnl-notes">' + notes.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul>' + (hist ? '<p class="small" style="margin:10px 0 4px"><b>Chi phí văn phòng đã nhập</b> (bấm để sửa):</p><div class="steps">' + hist + '</div>' : '') + '</div>' };
   }
   /* ---------- 📎 File báo cáo kế toán (01/11/2026): Quản trị tải file .xlsx kế toán gửi hằng tháng, CRM đọc ngay trên máy (ktParse) rồi lưu vào opex_cfg:
@@ -4301,6 +4301,91 @@
       row('Doanh thu', T.net, k.dt) + row('Giá vốn (CRM gồm cả phí sàn)', T.net - G.tot, k.cogs != null ? k.cogs + ktSan : null) + row('Quảng cáo', ads, ktAds) + row('Chi phí khác', ox.v, oth) +
       row(net < 0 ? '🔴 Lỗ' : '🟢 Lãi', net, k.profit, 'pnl-end ' + (net < 0 ? 'bad' : 'ok')) + '</tbody></table>' +
       '<p class="small muted">Vì sao lệch: kế toán ghi doanh thu <b>chưa gồm thuế GTGT</b> và theo ngày xuất hoá đơn; CRM tính giá khách trả (đã gồm thuế) theo ngày lên đơn, đã trừ đơn hoàn / huỷ. Giá vốn CRM tính theo bảng giá nhập ở Cài đặt, kế toán theo phiếu xuất kho. Quảng cáo kế toán theo tiền đã thanh toán, CRM theo chi phí chạy trong tháng.</p>';
+  }
+  /* ---------- 👥 Bảng lương / tạm ứng (02/11/2026): Quản trị tải file kế toán (mỗi tab 1 tháng), CRM đọc trên máy, so từng sale với lương CRM tạm tính (chỉ hiện lúc xem trước),
+   * máy chủ chỉ lưu tổng theo bộ phận (opex_cfg[tháng].pay = { kind: 'luong' | 'tu', dept: [[bộ phận, số người, tiền]], n, tot, file }). Không đọc / lưu số tài khoản. */
+  function payMonth(m) { var o = ((S.d.rules && S.d.rules.opex) || {})[m]; return o && o.pay || null; }
+  function payDept(t) { var n = norm(t); return /sale|kinh doanh|ban hang|cskh/.test(n) ? 'Sale' : /marketing|mkt|quang cao|content|thiet ke/.test(n) ? 'Marketing' : /ke toan/.test(n) ? 'Kế toán' : /kho|giao hang|van hanh|dong goi/.test(n) ? 'Kho' : /giam doc|quan ly|truong phong/.test(n) ? 'Quản lý' : String(t || '').trim() || 'Khác'; }
+  /** Mỗi trang tính = 1 tháng: dòng tiêu đề có "Họ và tên"; cột tiền ưu tiên tổng lương / tổng thu nhập, rồi thực nhận, cuối cùng số tiền tạm ứng. */
+  function payParse(sheets, fname) {
+    var out = {};
+    sheets.forEach(function (sh) {
+      var m = '', hd = -1, c = {}, kind = 'tu', P = [];
+      sh.rows.some(function (row, i) {
+        var txt = norm(row.filter(function (x) { return typeof x === 'string'; }).join(' '));
+        if (!m) { var a = txt.match(/thang\s*(\d{1,2})\s*(?:nam|\/)\s*(20\d\d)/); if (a && +a[1] >= 1 && +a[1] <= 12) m = a[2] + '-' + pad(+a[1]); }
+        if (hd < 0) {
+          var H = row.map(function (x) { return norm(x).replace(/\s+/g, ' ').trim(); }), ni = H.indexOf('ho va ten') >= 0 ? H.indexOf('ho va ten') : H.indexOf('ho ten');
+          if (ni < 0) return false;
+          hd = i; c.name = ni; c.dept = H.findIndex(function (h) { return /bo phan|chuc vu|vi tri/.test(h); });
+          var f = function (re) { return H.findIndex(function (h) { return re.test(h) && !/hinh thuc|ngay|ky nhan|ghi chu/.test(h); }); }; // "Hình thức nhận" không phải "Thực nhận"
+          c.amt = f(/^tong (thu nhap|luong|cong luong)|^luong (thang|tong)|^tong tien luong/); if (c.amt >= 0) kind = 'luong';
+          if (c.amt < 0) { c.amt = f(/thuc nhan|thuc linh|so tien thanh toan|con duoc nhan/); if (c.amt >= 0) kind = 'luong'; }
+          if (c.amt < 0) c.amt = f(/tam ung/);
+          if (c.amt < 0) hd = -1;
+          return false;
+        }
+        if (/tong cong|^cong$/.test(norm(row[c.name]).trim()) || /^tong cong/.test(txt)) return true;
+        var nm = String(row[c.name] || '').trim(), v = row[c.amt];
+        if (nm && typeof v === 'number' && v > 0) P.push({ n: nm.replace(/\s+/g, ' '), d: payDept(c.dept >= 0 ? row[c.dept] : ''), v: Math.round(v) });
+        return false;
+      });
+      if (!m) { var t = String(sh.n || '').match(/^t\s*(\d{1,2})$/i); if (t && +t[1] >= 1 && +t[1] <= 12) m = new Date().getFullYear() + '-' + pad(+t[1]); }
+      if (m && P.length) out[m] = { kind: kind, people: P, file: fname };
+    });
+    return out;
+  }
+  function payDeptSum(people) {
+    var D = {}; people.forEach(function (p) { var x = D[p.d] || (D[p.d] = [p.d, 0, 0]); x[1]++; x[2] += p.v; });
+    return Object.keys(D).map(function (k) { return D[k]; }).sort(function (a, b) { return b[2] - a[2]; });
+  }
+  /** Tên trong bảng lương ↔ tên nhân sự CRM (CRM thường ghi tên gọi: "Chang", "Lương"): khớp chữ cuối (giữ dấu), hoặc cả tên. */
+  function payCrmName(full) {
+    var f = String(full || '').trim().toLowerCase(), last = f.split(/\s+/).pop(), hit = null;
+    (S.d.users || []).some(function (u) { var n = String(u.name || '').trim().toLowerCase(); if (n && (n === f || n === last)) { hit = u.name; return true; } return false; });
+    return hit;
+  }
+  function payUpload() {
+    var md = modal('👥 Tải bảng lương / tạm ứng', '<p>Chọn file Excel (.xlsx) kế toán gửi: <b>bảng lương</b> hoặc <b>bảng tạm ứng lương</b>, mỗi tab 1 tháng. CRM đọc ngay trên máy, so từng sale với lương CRM tạm tính. <b>Chỉ lưu tổng tiền theo bộ phận</b> (Sale, Marketing, Kho…), không lưu tên, lương từng người hay số tài khoản.</p>' +
+      '<label class="f"><span>File</span><input type="file" id="pyFile" accept=".xlsx"></label><div id="pyOut"></div>', '<button class="btn" data-close>Đóng</button><button class="btn pri" id="pySave" disabled>Lưu vào CRM</button>');
+    var D = null;
+    $('#pyFile', md).onchange = function () {
+      var f = this.files && this.files[0]; if (!f) return; $('#pyOut', md).innerHTML = '<p class="muted">⏳ Đang đọc file…</p>'; $('#pySave', md).disabled = true;
+      f.arrayBuffer().then(function (buf) { var u8 = new Uint8Array(buf); if (!(u8[0] === 0x50 && u8[1] === 0x4B)) throw new Error('Cần file Excel .xlsx.'); return xlsxNamed(u8, 25); }).then(function (sh) {
+        D = payParse(sh, f.name); var ms = Object.keys(D).sort().reverse();
+        if (!ms.length) throw new Error('Không thấy bảng lương trong file: cần dòng tiêu đề có cột "Họ và tên" và cột tiền (Tổng lương / Thực nhận / Số tiền tạm ứng).');
+        $('#pyOut', md).innerHTML = ms.map(function (m) {
+          var x = D[m], dp = payDeptSum(x.people), tot = 0, old = payMonth(m); dp.forEach(function (r) { tot += r[2]; });
+          var sale = x.people.filter(function (p) { return p.d === 'Sale'; }).map(function (p) { var cn = payCrmName(p.n), q = cn && ppOn() ? payOf(cn, m) : null; return '<tr><td>' + esc(p.n) + (cn ? ' <small class="muted">(' + esc(cn) + ')</small>' : '') + '</td><td>' + moneyShort(p.v) + '</td><td>' + (q ? moneyShort(q.total) : '–') + '</td></tr>'; }).join('');
+          return '<label class="kt-m"><input type="checkbox" data-pym="' + m + '" checked><span><b>' + monthLabel(m).replace(/^t/, 'T') + '</b> · ' + (x.kind === 'luong' ? 'Bảng lương' : 'Tạm ứng') + ': ' + x.people.length + ' người, <b>' + moneyShort(tot) + '</b>' + (old ? ' · <em>thay ' + (old.kind === 'luong' ? 'bảng lương' : 'tạm ứng') + ' đã tải</em>' : '') +
+            '<br><small>' + dp.map(function (r) { return esc(r[0]) + ' ' + r[1] + ' người ' + moneyShort(r[2]); }).join(' · ') + '</small>' +
+            (sale ? '<details class="small"><summary>So từng sale với CRM (chỉ xem, không lưu)</summary><table class="pnl-t"><thead><tr><th>Sale</th><th>' + (x.kind === 'luong' ? 'Kế toán trả' : 'Tạm ứng') + '</th><th>CRM tạm tính</th></tr></thead><tbody>' + sale + '</tbody></table>' +
+              (ppOn() ? '' : '<p class="muted">Bật Phụ lục 01 ở Cài đặt → 💰 Lương & hoa hồng để CRM tạm tính.</p>') + '</details>' : '') + '</span></label>';
+        }).join('') + '<p class="small muted">Tạm ứng là tiền trả trước cuối tháng, phần còn lại trả khi chốt lương; nên tạm ứng thấp hơn CRM tạm tính là bình thường.</p>';
+        $('#pySave', md).disabled = false;
+      }).catch(function (e) { $('#pyOut', md).innerHTML = '<p class="notice">⚠️ ' + esc(e.message || String(e)) + '</p>'; });
+    };
+    $('#pySave', md).onclick = function () {
+      var b = this, ms = $$('[data-pym]', md).filter(function (x) { return x.checked; }).map(function (x) { return x.getAttribute('data-pym'); }); if (!D || !ms.length) return;
+      b.disabled = true; b.textContent = 'Đang lưu…';
+      ms.reduce(function (pr, m) {
+        return pr.then(function () { return api('settings', { pay: { month: m, data: { file: D[m].file, kind: D[m].kind, dept: payDeptSum(D[m].people) } } }).then(function (j) { if (!j.opex) throw new Error('Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.'); S.d.rules.opex = j.opex; }); });
+      }, Promise.resolve()).then(function () { closeModal(); toast('Đã lưu bảng lương ' + ms.map(function (m) { return monthLabel(m).replace(/^tháng /, 'T'); }).join(', ') + ' ✓'); render(); }, function (e) { toast(e.message, true); b.disabled = false; b.textContent = 'Lưu vào CRM'; });
+    };
+  }
+  /** Khối 👥 trong mục 🧮: lương / tạm ứng theo bộ phận của tháng, so với lương kế toán ghi trong báo cáo và với doanh số. */
+  function payBlock(month, T, b, M, ox, ML) {
+    var P = payMonth(month); if (!P) return '';
+    var K = (opexMonth(month) || {}).kt, kl = null, lu = P.kind === 'luong';
+    if (K) (K.groups || []).forEach(function (g) { if (/nhan vien|luong/.test(norm(g[0])) && !/bhxh|bao hiem/.test(norm(g[0]))) kl = (kl || 0) + g[1]; });
+    var sale = 0, mkt = 0; P.dept.forEach(function (r) { if (r[0] === 'Sale') sale += r[2]; if (r[0] === 'Marketing') mkt += r[2]; });
+    var sv = b.ch && b.ch.Sale ? b.ch.Sale.v : 0, L = [];
+    if (!lu && kl) L.push('Tạm ứng ' + moneyShort(P.tot) + ' = <b>' + pct(P.tot, kl) + '%</b> lương cả tháng kế toán ghi (' + moneyShort(kl) + '), còn khoảng <b>' + moneyShort(Math.max(0, kl - P.tot)) + '</b> trả khi chốt lương: nhớ để dành tiền.');
+    if (!lu && !kl) L.push('Đây là tiền <b>tạm ứng</b> cuối tháng, chưa phải toàn bộ lương. Tải thêm bảng lương chính thức hoặc file báo cáo kế toán để biết tổng lương.');
+    if (lu && !ox.part && T.net) L.push('Tổng lương = <b>' + pct(P.tot, T.net) + '%</b> doanh số.' + (sale && sv ? ' Lương sale = ' + pct(sale, sv) + '% doanh số đơn sale lên.' : '') + (mkt && M && M.nr ? ' Lương Marketing + quảng cáo = ' + pct(mkt + M.tot, M.nr) + '% doanh số khách mới.' : ''));
+    return '<div class="kt-box"><h3>👥 ' + (lu ? 'Lương' : 'Tạm ứng lương') + ' ' + ML + ': ' + P.n + ' người, ' + moneyShort(P.tot) + '</h3><table class="pnl-t"><thead><tr><th>Bộ phận</th><th>Người</th><th>' + (lu ? 'Lương' : 'Tạm ứng') + '</th><th>1 người</th></tr></thead><tbody>' +
+      P.dept.map(function (r) { return '<tr><td>' + esc(r[0]) + '</td><td>' + r[1] + '</td><td>' + moneyShort(r[2]) + '</td><td>' + moneyShort(Math.round(r[2] / Math.max(1, r[1]))) + '</td></tr>'; }).join('') + '</tbody></table>' +
+      (L.length ? '<p class="small">' + L.join(' ') + '</p>' : '') + '<p class="small muted">File: ' + esc(P.file || '') + (P.by ? ' · ' + esc(P.by) + ' tải ' + when(P.at) : '') + ' · chỉ lưu tổng theo bộ phận.</p></div>';
   }
   function opexRowHTML(n, v) { return '<div class="costcfg-r"><input type="text" data-on value="' + esc(n) + '" placeholder="Tên khoản chi, vd Thuê văn phòng"><input type="text" inputmode="numeric" data-ov value="' + (v ? Number(v).toLocaleString('vi-VN') : '') + '" placeholder="Số tiền"></div>'; }
   /** Hộp nhập chi phí văn phòng 1 tháng. Tháng chưa nhập: chép tên + số tiền tháng trước (nếu có) để chỉ cần sửa khoản thay đổi. */
@@ -6558,6 +6643,7 @@
         if (a === 'mkt') { openMkt(); return; }
         if (a === 'opex') { opexEdit(el.getAttribute('data-m')); return; }
         if (a === 'kt') { ktUpload(); return; }
+        if (a === 'pay') { payUpload(); return; }
         if (a === 'sfb') { f.sfb = f.sfb === false; store('dash_sfb', f.sfb ? '1' : '0'); render(); return; }
         if (a === 'fresh') { delete MK.cache[key]; MK.err = ''; delete GA.cache[key]; GA.err = ''; GA.busy = ''; gaFetch(key, true); render(); return; }
         if (a === 'prop') { el.disabled = true; api('ga_prop', { prop: ($('#gaProp') || {}).value || '' }).then(function () { GA.cache = {}; GA.err = ''; toast('Đã lưu mã thuộc tính'); render(); }, function (e) { el.disabled = false; toast(e.message, true); }); }

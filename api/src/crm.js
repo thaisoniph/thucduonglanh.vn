@@ -1454,6 +1454,19 @@ async function crmSettings(x, u, d) {
     await crmLog(x, u, 'Cài đặt', '-', '', 'Giá vốn: ' + items.length + ' sản phẩm, cộng thêm ' + C.oh + '%', '');
     return { ok: true, cost: C };
   }
+  if (d.pay) { // 👥 bảng lương / tạm ứng kế toán gửi (02/11/2026): chỉ lưu tổng theo bộ phận, không lưu tên, số tài khoản. Chỉ Quản trị. Ghi vào opex_cfg[tháng].pay
+    if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị sửa được mục này.' };
+    const m = String(d.pay.month || ''), P = d.pay.data || {}; if (!/^20\d\d-(0[1-9]|1[0-2])$/.test(m)) return { ok: false, error: 'Tháng không hợp lệ.' };
+    const num = v => Math.max(0, Math.min(1e11, Math.round(Number(v) || 0)));
+    const pay = { file: String(P.file || '').slice(0, 120), kind: P.kind === 'luong' ? 'luong' : 'tu', dept: (Array.isArray(P.dept) ? P.dept : []).slice(0, 20).map(r => [String((r || [])[0] || '').trim().slice(0, 40), num((r || [])[1]), num((r || [])[2])]).filter(r => r[0]), at: Date.now(), by: u.name };
+    pay.n = pay.dept.reduce((a, r) => a + r[1], 0); pay.tot = pay.dept.reduce((a, r) => a + r[2], 0);
+    const O = (await kvJson(x.db, 'opex_cfg', {})) || {};
+    if (P.del) { if (O[m]) delete O[m].pay; } else O[m] = Object.assign(O[m] || { items: [], at: Date.now(), by: u.name }, { pay });
+    if (O[m] && !(O[m].items || []).length && !O[m].kt && !O[m].pay) delete O[m];
+    await kvSet(x.db, 'opex_cfg', JSON.stringify(O));
+    await crmLog(x, u, 'Cài đặt', '-', '', (P.del ? 'Xoá bảng lương' : 'Tải ' + (pay.kind === 'luong' ? 'bảng lương' : 'bảng tạm ứng')) + ' tháng ' + m.slice(5) + '/' + m.slice(0, 4) + (P.del ? '' : ': ' + pay.n + ' người, tổng ' + fmt(pay.tot)), '');
+    return { ok: true, opex: O };
+  }
   if (d.opex) { // 🧮 chi phí văn phòng theo tháng (thuê nhà, lương, điện nước…) → Tổng quan tính lãi / lỗ ròng (01/11/2026). Chỉ Quản trị. kv opex_cfg = { 'YYYY-MM': { items: [[tên, số tiền]], at, by } }
     if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị sửa được mục này.' };
     const m = String(d.opex.month || ''); if (!/^20\d\d-(0[1-9]|1[0-2])$/.test(m)) return { ok: false, error: 'Tháng không hợp lệ.' };
@@ -1463,7 +1476,8 @@ async function crmSettings(x, u, d) {
     const num = v => { const n = Math.round(Number(v)); return isFinite(n) ? Math.max(-1e12, Math.min(1e12, n)) : null; }, k0 = d.opex.kt;
     const kt = k0 && typeof k0 === 'object' ? Object.assign({ file: String(k0.file || '').slice(0, 120), groups: (Array.isArray(k0.groups) ? k0.groups : []).slice(0, 40).map(r => [String((r || [])[0] || '').trim().slice(0, 80), num((r || [])[1]) || 0]).filter(r => r[0]), at: Date.now(), by: u.name },
       ...['sale', 'shopee', 'dt', 'cogs', 'gp', 'cost', 'profit', 'flow', 'cash', 'payable', 'ads', 'san'].map(k => k0[k] == null || num(k0[k]) === null ? {} : { [k]: num(k0[k]) })) : (O[m] || {}).kt;
-    if (!d.opex.del && (items.length || kt)) O[m] = Object.assign({ items, at: Date.now(), by: u.name }, kt ? { kt } : {}); else delete O[m];
+    const pay0 = (O[m] || {}).pay;
+    if (!d.opex.del && (items.length || kt)) O[m] = Object.assign({ items, at: Date.now(), by: u.name }, kt ? { kt } : {}, pay0 ? { pay: pay0 } : {}); else if (pay0 && !d.opex.del) O[m] = { items: [], pay: pay0 }; else delete O[m];
     Object.keys(O).sort().slice(0, -36).forEach(k => delete O[k]); // giữ 3 năm gần nhất
     await kvSet(x.db, 'opex_cfg', JSON.stringify(O));
     await crmLog(x, u, 'Cài đặt', '-', '', (d.opex.del ? 'Xoá chi phí' : kt && k0 ? 'Tải file kế toán' : 'Chi phí văn phòng') + ' tháng ' + m.slice(5) + '/' + m.slice(0, 4) + ': ' + items.length + ' khoản, tổng ' + fmt(items.reduce((a, r) => a + r[1], 0)), '');
