@@ -116,7 +116,7 @@ Trong CRM bấm **🔗 Kết nối fanpage** → đăng nhập Facebook → **t�
 
 **Bước 5. Xin Facebook duyệt (để trợ lý trả lời mọi khách)**
 
-**5a. Xác minh doanh nghiệp** (đã gửi 02/11/2026, Facebook xem xét khoảng 2 ngày làm việc): business.facebook.com/settings → Business Manager **Thucduonglanh1** → **Trung tâm bảo mật** → **Xác minh doanh nghiệp**. Chờ tới khi hiện ✅ **Đã xác minh** rồi mới làm 5b.
+**5a. Xác minh doanh nghiệp**: ✅ đã xong (Thucduonglanh1 đã xác minh 01/11/2026). Xem lại ở business.facebook.com/settings → **Trung tâm bảo mật**.
 
 **5b. Quay 1 video màn hình (2–3 phút, quay trên máy tính, dùng chung cho mọi quyền)**
 
