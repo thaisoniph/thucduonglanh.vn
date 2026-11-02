@@ -116,13 +116,61 @@ Trong CRM bấm **🔗 Kết nối fanpage** → đăng nhập Facebook → **t�
 
 **Bước 5. Xin Facebook duyệt (để trợ lý trả lời mọi khách)**
 
-1. **Xác minh doanh nghiệp:** business.facebook.com → **Cài đặt doanh nghiệp → Trung tâm bảo mật → Bắt đầu xác minh**. Cần giấy đăng ký kinh doanh (MST 0111053409), tên miền thucduonglanh.vn và số điện thoại công ty. Nếu Facebook bắt xác minh tên miền bằng mã DNS thì gửi mã cho em, em gắn vào Cloudflare.
-2. **Xem xét ứng dụng → Quyền và tính năng**: xin **Quyền truy cập nâng cao** cho `pages_messaging`, `pages_manage_metadata`, `pages_read_engagement`, `pages_read_user_content`, `pages_manage_engagement`, `pages_manage_posts`, `pages_show_list`, `business_management`.
-3. Mỗi quyền cần một đoạn mô tả **bằng tiếng Anh** và một **video quay màn hình** (1–2 phút). Đoạn mô tả có thể dùng chung:
+**5a. Xác minh doanh nghiệp** (đã gửi 02/11/2026, Facebook xem xét khoảng 2 ngày làm việc): business.facebook.com/settings → Business Manager **Thucduonglanh1** → **Trung tâm bảo mật** → **Xác minh doanh nghiệp**. Chờ tới khi hiện ✅ **Đã xác minh** rồi mới làm 5b.
 
-   > Thuc Duong Lanh is a Vietnamese nutrition brand. Our app helps our team answer customers on our own Facebook Pages. When someone comments on our post or ad, the app likes the comment, replies publicly and sends one private reply in Messenger with a free e-book gift. In Messenger, our assistant answers product questions using our official product information, and asks for the customer's phone number only if they want the gift. Comments containing phone numbers are hidden to protect privacy. Our marketing staff also schedule daily educational posts to our Pages after reviewing them in our internal dashboard. A human agent can take over any conversation from the Page inbox at any time.
+**5b. Quay 1 video màn hình (2–3 phút, quay trên máy tính, dùng chung cho mọi quyền)**
 
-4. Video quay: một người thử bình luận vào bài → trợ lý trả lời → mở Messenger thấy tin nhắn → bấm Nhận quà → gửi số → nhận quà. Thêm cảnh duyệt và đăng bài trong CRM.
-5. Gửi xét duyệt. Khi được duyệt, chuyển ứng dụng sang chế độ **Đang hoạt động (Live)**, rồi tắt tự động của Meta Business Suite trên các trang đã bật trợ lý.
+Quay bằng QuickTime trên Mac: **File → Bản ghi màn hình mới**. Nói tiếng Việt cũng được, Facebook chỉ xem thao tác.
+
+1. Mở CRM → **📘 Fanpage**: cho thấy danh sách trang đã kết nối, bấm mở **⚙️ Cài đặt trang** (khoảng 10 giây).
+2. Mở fanpage "Thực Dưỡng Lành - Giải Pháp Sống Khỏe Tự Nhiên", **bình luận "quan tâm"** vào 1 bài.
+3. Quay lại CRM, bấm **🔄 Quét bình luận ngay**. Mở lại bài viết: bình luận đã được **thích** và có **câu trả lời** của trang.
+4. Bình luận thử 1 câu có số điện thoại giả (vd `0900000000`): bình luận bị **ẩn**.
+5. Mở **Messenger**: thấy tin nhắn riêng của trang, nhắn "trà DILVANG uống thế nào" → trợ lý trả lời.
+6. Bấm **🎁 Nhận quà** → bấm gửi số → nhận quà.
+7. Nhắn "cho mình xem giấy tờ" → trợ lý gửi ảnh giấy tờ.
+8. Mở hộp thư fanpage (business.facebook.com → Hộp thư), **nhân viên gõ tay** 1 câu trả lời → cho thấy người thật tiếp quản được.
+9. CRM → 📘 Fanpage → phần **Bài đăng fanpage**: bấm **✍️ Viết bài đăng**, chọn trang, gõ nội dung, bấm **Đăng** → mở fanpage thấy bài vừa đăng.
+
+**5c. Gửi xét duyệt**: developers.facebook.com → ứng dụng → **Xét duyệt → Xét duyệt ứng dụng**.
+
+- **Cách sử dụng hợp lệ**: với mỗi quyền, dán đoạn tiếng Anh tương ứng bên dưới và tải lên video ở 5b.
+- **Xử lý dữ liệu**: trả lời theo phần "Xử lý dữ liệu" bên dưới.
+- **Hướng dẫn cho người xét duyệt**: dán đoạn "Reviewer instructions".
+
+`pages_messaging`
+> We use this permission to reply to people who message our own Facebook Pages (Thuc Duong Lanh nutrition brand, Vietnam). Our assistant answers product questions using our official product information, sends photos of our product certificates when asked, and offers a free e-book gift. It only replies within 24 hours of the person's last message. A human agent can take over any conversation from the Page inbox at any time; the assistant then stops replying to that person for 12 hours.
+
+`pages_manage_metadata`
+> We use this permission to subscribe our own Pages to webhooks (feed, messages, messaging_postbacks, message_echoes), so our server is notified when someone comments on our posts or messages our Pages, and when our staff reply manually.
+
+`pages_read_engagement`
+> We use this permission to read our own Pages' basic information (name) and the text of our own posts, so the assistant understands which product a comment is about (for example "price?" under a tea post) and gives the right answer.
+
+`pages_read_user_content`
+> We use this permission to read comments that people leave on our own Pages' posts and ads, so we can reply to them. Comments are only used to answer that person and are not shared with anyone.
+
+`pages_manage_engagement`
+> We use this permission to like and reply to comments on our own Pages, to send one private reply in Messenger to a person who commented, and to hide comments that contain a phone number to protect the commenter's privacy.
+
+`pages_manage_posts`
+> We use this permission to publish educational posts (healthy eating tips, recipes, product information) to our own Pages. Posts are drafted in our internal dashboard and reviewed by our marketing staff before they are published.
+
+`pages_show_list`
+> We use this permission to list the Pages our administrator manages, so the administrator can choose which of our company's Pages to connect to our customer service dashboard.
+
+`business_management`
+> Our Pages belong to our company's Business portfolio. We use this permission only to access those Pages that belong to our own business.
+
+**Reviewer instructions** (Hướng dẫn cho người xét duyệt)
+> This app is used only by our own company (Thuc Duong Lanh / VitaGreen Nutrition, Vietnam) to manage our own Facebook Pages. There is no public login. To test: 1) Comment on any post of the Page "Thực Dưỡng Lành - Giải Pháp Sống Khỏe Tự Nhiên" (https://www.facebook.com/1100449419808795). Within about 10 minutes the Page likes and replies to your comment and sends you a private message. 2) Message the Page in Messenger (for example "what products do you have?") and the assistant replies in Vietnamese. Tap "Nhận quà" (Get gift) to see the gift flow. The screencast shows every permission in use, including our internal dashboard where staff connect Pages, change settings and publish posts.
+
+**Xử lý dữ liệu** (trả lời các câu hỏi của Facebook)
+- Đơn vị chịu trách nhiệm dữ liệu: **CÔNG TY TNHH TẬP ĐOÀN VITAGREEN NUTRITION**, Việt Nam.
+- Bên xử lý dữ liệu thay mặt công ty (data processors): **Cloudflare** (máy chủ và cơ sở dữ liệu), **Anthropic** (AI soạn câu trả lời), **Google** (bản sao dữ liệu Google Sheet, gửi email), **Telegram** (báo khách mới cho nhân viên).
+- Có chuyển dữ liệu cho bên khác để bán không: **Không**.
+- Yêu cầu dữ liệu từ cơ quan nhà nước: chọn phương án **xem xét tính hợp pháp của yêu cầu, chỉ cung cấp phần tối thiểu theo luật**, và có **chính sách bảo mật công khai**: https://thucduonglanh.vn/chinh-sach-bao-mat/
+
+Khi được duyệt: chuyển ứng dụng sang **Đang hoạt động (Live)**, rồi tắt **Tin trả lời tự động**, **Tin nhắn vắng mặt** của Meta ở các trang đã bật trợ lý.
 
 Trường hợp đăng nhập Facebook bị lỗi, anh có thể lấy **mã truy cập trang** ở **Messenger → Cài đặt API → Tạo mã**, rồi dán vào ô **"Dán mã truy cập trang"** trong CRM.
