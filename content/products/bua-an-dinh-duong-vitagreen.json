@@ -9,7 +9,7 @@
   "sku": "TDL-BADD",
   "price": 450000,
   "regular_price": null,
-  "web_discount": 0,
+  "web_discount": 5,
   "unit": "",
   "variants": [
     {
@@ -21,9 +21,9 @@
     },
     {
       "name": "Gói Trải nghiệm (5 gói *25g)",
-      "price": 129000,
+      "price": 139000,
       "regular_price": null,
-      "web_discount": 5,
+      "web_discount": 10,
       "servings": 5
     },
     {
