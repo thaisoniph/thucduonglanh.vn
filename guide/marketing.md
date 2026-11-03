@@ -61,6 +61,15 @@ Ngay dưới **✅ Nên làm gì**. Đây là chỗ xem và chỉnh quảng cáo
    - Dòng màu cam: 🎨 khách bấm ít dần → làm hình / video mới; 💸 hôm nay giá thầu đắt → chưa tăng tiền.
 4. Bấm **👁 Bài viết** / **🔍 Xem như khách thấy** để xem quảng cáo, bấm **✏️ Sửa ngân sách / tắt / bật** để mở thẳng chiến dịch trong Trình quản lý quảng cáo.
 
+**Sửa quảng cáo ngay trong CRM** (Quản trị và Marketing):
+
+- **👉 Làm ngay**: nút theo lời khuyên, ví dụ *Tăng 20%: 600k → 720k / ngày* hoặc *Tắt chiến dịch này*.
+- **💰 Sửa ngân sách**: đổi ngân sách ngày. Có nút nhanh giảm 30%, giảm 20%, tăng 20%. Mỗi lần chỉ nên đổi khoảng 20%, cách 2–3 ngày, đổi mạnh hơn Facebook phải học lại, giá tăng.
+- **⏸ Tắt chiến dịch** / **▶️ Bật lại**, **⏸ Tắt quảng cáo này** (từng mẫu).
+- Mọi thao tác đều **hỏi lại trước khi làm** và **ghi vào Nhật ký**. Sửa mẫu, đối tượng thì bấm *Sửa mẫu, đối tượng trong Trình quản lý*.
+
+Lời khuyên còn xem: 🔁 **tần suất** (1 người thấy quảng cáo mấy lần / 7 ngày, trên 2,5 là khách ngán), 🎓 **đang học** (chiến dịch mới: chưa sửa gì 3–5 ngày), CTR thấp (hình chưa hút), bấm nhiều mà ít nhắn (lời chào chưa hay).
+
 Số tự cập nhật 1 tiếng một lần (7h–22h). Trước 7h sáng hiện số hôm qua. Bấm **Hôm qua** để xem cả ngày hôm qua. Bấm **↻** để lấy ngay.
 
 ## 🌐 Khách đặt trên web
