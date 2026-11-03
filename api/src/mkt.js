@@ -112,7 +112,7 @@ export async function mktTick(x) {
 /** 📋 Chiến dịch đang chạy (29/10/2026, anh Sơn muốn thấy ngay ở tab Marketing): mọi quảng cáo Facebook đang chạy / chờ duyệt / bị từ chối của các tài khoản đã chọn,
  *  gom theo chiến dịch: tên, mục tiêu, ngân sách (cấp chiến dịch hoặc cộng các nhóm quảng cáo), ngày bắt đầu, fanpage, bài viết + ảnh nhỏ + link xem trước của từng quảng cáo.
  *  Chạy cùng lượt 3 tiếng (mktTick), sau khi lấy lại số, hoặc khi bấm ↻ (lệnh mkt_kpi live, tối đa 10 phút / lần). Lưu kv mkt_live, không ghi bảng D1. */
-const LIVE_ST = ['ACTIVE', 'PENDING_REVIEW', 'DISAPPROVED', 'WITH_ISSUES', 'IN_PROCESS', 'PREAPPROVED'];
+const LIVE_ST = ['ACTIVE', 'PAUSED', 'PENDING_REVIEW', 'DISAPPROVED', 'WITH_ISSUES', 'IN_PROCESS', 'PREAPPROVED']; // PAUSED: quảng cáo tắt riêng trong chiến dịch đang chạy → bật lại được từ CRM
 async function fbLive(x) {
   const c = await cfgOf(x), fb = c.fb || {}; if (!fb.token || !(fb.accounts || []).length) return null;
   const C = {}, pages = {}, errs = [];
@@ -120,29 +120,78 @@ async function fbLive(x) {
     try {
       const info = (fb.all || []).find(a => a.id === acc) || {}, usd = info.cur === 'USD', rate = usd ? (fb.fx || FX_USD) / 100 : 1; // ngân sách tính theo đơn vị nhỏ nhất: USD = xu
       let j = await fbGet(fb.token, acc + '/ads', { effective_status: JSON.stringify(LIVE_ST), limit: 200,
-        fields: 'id,name,effective_status,preview_shareable_link,campaign{id,name,effective_status,objective,daily_budget,lifetime_budget,start_time,stop_time},adset{id,daily_budget,lifetime_budget,end_time},creative{effective_object_story_id,thumbnail_url,instagram_permalink_url,object_story_spec{page_id}}' });
+        fields: 'id,name,effective_status,preview_shareable_link,campaign{id,name,effective_status,objective,daily_budget,lifetime_budget,start_time,stop_time},adset{id,name,effective_status,daily_budget,lifetime_budget,end_time,learning_stage_info},creative{effective_object_story_id,thumbnail_url,instagram_permalink_url,object_story_spec{page_id}}' });
       for (let i = 0; i < 10; i++) {
         (j.data || []).forEach(a => {
           const cp = a.campaign || {}; if (!cp.id || cp.effective_status !== 'ACTIVE') return;
           const o = C[cp.id] || (C[cp.id] = { acc, an: info.name || acc, id: cp.id, n: String(cp.name || '').slice(0, 200), obj: cp.objective || '', start: cp.start_time || '', stop: cp.stop_time || '',
             bud: [num(Number(cp.daily_budget || 0) * rate), num(Number(cp.lifetime_budget || 0) * rate)], cbo: !!(cp.daily_budget || cp.lifetime_budget), sets: {}, pg: {}, ads: [] });
-          const as = a.adset || {}; if (!o.cbo && as.id && !o.sets[as.id]) { o.sets[as.id] = 1; o.bud[0] += num(Number(as.daily_budget || 0) * rate); o.bud[1] += num(Number(as.lifetime_budget || 0) * rate); }
+          const as = a.adset || {};
+          if (as.id && !o.sets[as.id]) { // nhóm quảng cáo: ngân sách (ABO), trạng thái, giai đoạn học của Facebook (LEARNING / SUCCESS / FAIL = học hạn chế)
+            const b = [num(Number(as.daily_budget || 0) * rate), num(Number(as.lifetime_budget || 0) * rate)];
+            o.sets[as.id] = { id: as.id, n: String(as.name || '').slice(0, 120), st: as.effective_status || '', b, learn: ((as.learning_stage_info || {}).status) || '' };
+            if (!o.cbo && as.effective_status === 'ACTIVE') { o.bud[0] += b[0]; o.bud[1] += b[1]; }
+          }
           const cr = a.creative || {}, story = String(cr.effective_object_story_id || ''), pid = story.split('_')[0] || String((cr.object_story_spec || {}).page_id || '');
           if (pid) { o.pg[pid] = 1; pages[pid] = 1; }
-          if (o.ads.length < 12) o.ads.push({ n: String(a.name || '').slice(0, 120), st: a.effective_status || '', post: story ? 'https://www.facebook.com/' + story : '', ig: cr.instagram_permalink_url || '', pv: a.preview_shareable_link || '', th: /^https:\/\/[^/]*fbcdn\.net\//.test(cr.thumbnail_url || '') ? cr.thumbnail_url : '' });
+          if (o.ads.length < 12) o.ads.push({ id: a.id, set: as.id || '', n: String(a.name || '').slice(0, 120), st: a.effective_status || '', post: story ? 'https://www.facebook.com/' + story : '', ig: cr.instagram_permalink_url || '', pv: a.preview_shareable_link || '', th: /^https:\/\/[^/]*fbcdn\.net\//.test(cr.thumbnail_url || '') ? cr.thumbnail_url : '' });
         });
         if (!j.paging || !j.paging.next) break; j = await fbGet(fb.token, j.paging.next);
       }
+      // 7 ngày gần nhất theo chiến dịch: tần suất (1 người thấy mấy lần), số người tiếp cận – để biết khách đã ngán mẫu quảng cáo chưa
+      try {
+        const ins = await fbGet(fb.token, acc + '/insights', { level: 'campaign', date_preset: 'last_7d', fields: 'campaign_id,frequency,reach', limit: 200 });
+        (ins.data || []).forEach(r => { if (C[r.campaign_id]) C[r.campaign_id].f7 = [Math.round(Number(r.frequency || 0) * 100) / 100, num(r.reach)]; });
+      } catch (e) { console.error('fbLive insights', acc, e.message); }
     } catch (e) { errs.push(((fb.all || []).find(a => a.id === acc) || {}).name || acc); console.error('fbLive', acc, e.message); }
   }
   const ids = Object.keys(pages), names = {};
   try { (await all(x.db, 'SELECT id, name FROM fp_pages')).forEach(r => { names[r.id] = r.name; }); } catch (e) { /* chưa có bảng fanpage */ }
   const miss = ids.filter(id => !names[id]);
   if (miss.length) { try { const j = await fbGet(fb.token, '', { ids: miss.slice(0, 50).join(','), fields: 'name' }); miss.forEach(id => { if (j[id] && j[id].name) names[id] = j[id].name; }); } catch (e) { /* mã quảng cáo không đọc được tên trang: hiện mã trang */ } }
-  const camps = Object.values(C).map(o => ({ acc: o.acc, an: o.an, id: o.id, n: o.n, obj: o.obj, start: o.start, stop: o.stop, bud: o.bud, pages: Object.keys(o.pg).map(id => [id, names[id] || '']), ads: o.ads }));
+  const camps = Object.values(C).map(o => ({ acc: o.acc, an: o.an, id: o.id, n: o.n, st: 'ACTIVE', obj: o.obj, start: o.start, stop: o.stop, bud: o.bud, cbo: o.cbo, sets: Object.values(o.sets), f7: o.f7 || null, pages: Object.keys(o.pg).map(id => [id, names[id] || '']), ads: o.ads }));
   const L = { at: Date.now(), err: errs.length ? 'Không đọc được: ' + errs.join(', ') : '', camps };
   await kvSet(x.db, 'mkt_live', JSON.stringify(L));
   return L;
+}
+/** mkt_fb_edit (Quản trị + Marketing, 02/11/2026): bật / tắt chiến dịch, nhóm quảng cáo, quảng cáo; đổi ngân sách ngày (chiến dịch CBO hoặc nhóm quảng cáo ABO).
+ *  Chỉ sửa được mục có trong danh sách 📋 đang chạy (kv mkt_live) để không đụng nhầm tài khoản khác. Mã truy cập cần quyền ads_management (chỉ ads_read thì báo cách cấp).
+ *  d: { kind: campaign|adset|ad, id, op: pause|resume|budget, amount (đ / ngày), force } → { ok, log, live } */
+export async function mktFbEdit(x, d) {
+  const c = await cfgOf(x), fb = c.fb || {}, L = await kvJson(x.db, 'mkt_live', null);
+  if (!fb.token) return { ok: false, error: 'Chưa kết nối Facebook Ads.' };
+  const id = String(d.id || ''), kind = String(d.kind || ''), op = String(d.op || '');
+  if (!/^\d+$/.test(id) || !/^(campaign|adset|ad)$/.test(kind) || !/^(pause|resume|budget)$/.test(op)) return { ok: false, error: 'Thao tác chưa đúng.' };
+  let cp = null, set = null, ad = null;
+  (L && L.camps || []).forEach(o => { if (kind === 'campaign' && o.id === id) cp = o; (o.sets || []).forEach(z => { if (kind === 'adset' && z.id === id) { cp = o; set = z; } }); (o.ads || []).forEach(z => { if (kind === 'ad' && z.id === id) { cp = o; ad = z; } }); });
+  if (!cp) return { ok: false, error: 'Không thấy mục này trong danh sách đang chạy. Bấm ↻ để lấy danh sách mới rồi thử lại.' };
+  const info = (fb.all || []).find(a => a.id === cp.acc) || {}, rate = info.cur === 'USD' ? (fb.fx || FX_USD) / 100 : 1;
+  const P = {}, nm = (kind === 'campaign' ? 'chiến dịch ' : kind === 'adset' ? 'nhóm quảng cáo ' : 'quảng cáo ') + '“' + (set ? set.n : ad ? ad.n : cp.n) + '”';
+  let log = '';
+  if (op === 'budget') {
+    if (kind === 'ad' || (kind === 'campaign' && !cp.cbo) || (kind === 'adset' && cp.cbo)) return { ok: false, error: kind === 'campaign' ? 'Chiến dịch này đặt ngân sách ở từng nhóm quảng cáo: sửa ở nhóm quảng cáo.' : 'Chiến dịch này đặt ngân sách chung ở cấp chiến dịch.' };
+    const old = kind === 'campaign' ? cp.bud[0] : set.b[0], amt = Math.round(Number(d.amount) || 0);
+    if (!old) return { ok: false, error: 'Mục này dùng ngân sách trọn đợt, không phải ngân sách ngày: sửa trong Trình quản lý quảng cáo.' };
+    if (amt < 20000) return { ok: false, error: 'Ngân sách ngày tối thiểu khoảng 20.000đ.' };
+    if (!d.force && (amt > old * 3 || amt < old / 3)) return { ok: false, confirm: 1, error: 'Ngân sách mới khác quá xa (' + old.toLocaleString('vi-VN') + 'đ → ' + amt.toLocaleString('vi-VN') + 'đ). Kiểm tra lại số.' };
+    P.daily_budget = String(Math.max(1, Math.round(amt / rate)));
+    log = 'Ngân sách ' + nm + ': ' + old.toLocaleString('vi-VN') + 'đ → ' + amt.toLocaleString('vi-VN') + 'đ / ngày';
+    if (kind === 'campaign') cp.bud[0] = amt; else { set.b[0] = amt; cp.bud[0] = (cp.sets || []).filter(z => z.st === 'ACTIVE').reduce((a, z) => a + (z.b[0] || 0), 0); }
+  } else {
+    P.status = op === 'pause' ? 'PAUSED' : 'ACTIVE';
+    log = (op === 'pause' ? 'Tắt ' : 'Bật lại ') + nm;
+    (kind === 'campaign' ? cp : set || ad).st = P.status;
+  }
+  const r = await fetch(FB_API + id, { method: 'POST', body: new URLSearchParams(Object.assign({ access_token: fb.token }, P)) });
+  const j = await r.json().catch(() => ({}));
+  if (j.error) {
+    const m = j.error.message || '', code = j.error.code;
+    if (code === 200 || code === 10 || code === 3 || /permission|ads_management/i.test(m)) return { ok: false, perm: 1, error: 'Mã Facebook đang kết nối chỉ có quyền XEM (ads_read). Cần tạo mã mới có thêm quyền ads_management – xem hướng dẫn ngay dưới.' };
+    if (code === 190) return { ok: false, error: 'Mã truy cập Facebook đã hết hạn. Quản trị tạo mã mới rồi dán lại ở ⚙️ Nhập chi phí → 📘 Facebook.' };
+    return { ok: false, error: 'Facebook báo lỗi: ' + (j.error.error_user_msg || m) };
+  }
+  if (L) { L.edited = Date.now(); await kvSet(x.db, 'mkt_live', JSON.stringify(L)); }
+  return { ok: true, log, cp: cp.n, live: L };
 }
 /** mkt_kpi (Marketing + Quản trị): chỉ số từng chiến dịch theo ngày, 9 ngày gần nhất (hôm nay, hôm qua, 7 ngày trước đó để so).
  *  Chỉ dòng có lượt hiển thị (Facebook tự động, file có cột hiển thị). → rows [ngày, kênh, chiến dịch, [tài khoản, act_…], chi phí, hiển thị, bấm link, tin nhắn] */

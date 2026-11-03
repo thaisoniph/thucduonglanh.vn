@@ -1483,3 +1483,7 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .rc-row { display: flex; gap: 8px; align-items: flex-start; background: var(--card); border: 1px solid var(--line, #e5e5ea); border-radius: 10px; padding: 8px 10px; font-size: 14px; }
 .rc-row input { margin-top: 3px; flex: none; }
 .rc-row.rc-warn { border-color: #ff9500; background: #fff8ee; }
+
+/* 📘 sửa quảng cáo Facebook trong CRM */
+.lv-ctl { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.lv-links .link { font-size: 13px; }

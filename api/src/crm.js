@@ -6,7 +6,7 @@ import { zbotSchema, crmZbot } from './zbot.js';
 import { fbSchema, crmFp } from './fb.js';
 import { sendMail, telegram, telegramTo, telegramPhoto, tgUpdates, tgConf, bridge } from './google.js';
 import { crmGa, crmGaProp } from './ga.js';
-import { crmMkt } from './mkt.js';
+import { crmMkt, mktFbEdit } from './mkt.js';
 import { mktView, mktBudgetSet, mktGoalSet, mktDailyMsgs } from './mktv.js';
 import { crmSan, sanSchema, sanAllowed } from './san.js';
 import { crmSaleMkt, crmOffers } from './salemkt.js';
@@ -1933,7 +1933,7 @@ async function crmFbUpdate(x, u, d) {
 
 /* ================================================================ điều phối */
 /** Việc tài khoản Marketing được làm: xem tab Marketing, nhập chi phí (file / nhập tay), góp ý, Telegram, cài đặt màu, đo tốc độ. Mọi việc khác máy chủ từ chối. */
-const MKT_ACTIONS = { link_list: 1, link_save: 1, link_active: 1, load: 1, mktv: 1, mkt_tg_test: 1, mkt_goal: 1, mkt_import: 1, mkt_add: 1, mkt_list: 1, mkt_kpi: 1, quiz_cms: 1, mkt_del: 1, prefs: 1, tg_link: 1, tg_check: 1, tg_off: 1, perf: 1, usage: 1, feedback: 1, fb_list: 1, fb_img: 1, offers: 1, offer_save: 1, offer_del: 1, wall_hide: 1, zb_view: 1, zb_cfg: 1, zb_post: 1, zb_regen: 1, zb_send: 1, zb_img: 1, fp_view: 1, fp_page: 1, fp_resub: 1, fp_scan: 1, fp_post: 1, fp_now: 1, fp_regen: 1, fp_send: 1 };
+const MKT_ACTIONS = { link_list: 1, link_save: 1, link_active: 1, load: 1, mktv: 1, mkt_tg_test: 1, mkt_goal: 1, mkt_import: 1, mkt_add: 1, mkt_list: 1, mkt_kpi: 1, mkt_fb_edit: 1, quiz_cms: 1, mkt_del: 1, prefs: 1, tg_link: 1, tg_check: 1, tg_off: 1, perf: 1, usage: 1, feedback: 1, fb_list: 1, fb_img: 1, offers: 1, offer_save: 1, offer_del: 1, wall_hide: 1, zb_view: 1, zb_cfg: 1, zb_post: 1, zb_regen: 1, zb_send: 1, zb_img: 1, fp_view: 1, fp_page: 1, fp_resub: 1, fp_scan: 1, fp_post: 1, fp_now: 1, fp_regen: 1, fp_send: 1 };
 export async function crmApi(x, d, sync, mgr) {
   await ensureSchema(x.db);
   const a = d.action;
@@ -1985,6 +1985,12 @@ export async function crmApi(x, d, sync, mgr) {
     return r;
   }
   if (a === 'mkt_budget') return u.level >= 3 ? mktBudgetSet(x, d) : { ok: false, error: 'Chỉ Quản trị đặt được ngân sách quảng cáo.' };
+  if (a === 'mkt_fb_edit') { // ✏️ bật / tắt / đổi ngân sách quảng cáo Facebook ngay trong CRM (Quản trị + Marketing), ghi Nhật ký
+    if (!(u.level >= 3 || u.role === 'Marketing')) return { ok: false, error: 'Chỉ Quản trị và Marketing sửa được quảng cáo.' };
+    const r = await mktFbEdit(x, d);
+    if (r.ok) await crmLog(x, u, 'Quảng cáo Facebook', '-', r.cp || '', r.log, '');
+    return r;
+  }
   if (/^mkt(_|$)/.test(a)) return crmMkt(x, u, d); // chi phí marketing
   if (/^san(_|$)/.test(a)) return crmSan(x, u, d); // doanh thu sàn TMĐT + mục tiêu theo mảng
   if (a === 'merge_suggest') return crmMergeSuggest(x, u); // gộp khách nhiều số (Quản lý trở lên)
