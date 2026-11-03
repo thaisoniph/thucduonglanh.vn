@@ -4847,7 +4847,7 @@
   /** 🧠 Lời khuyên cho 1 chiến dịch đang chạy (02/11/2026: theo cách người chạy quảng cáo thực phẩm / trà làm thực tế).
    *  Nhìn 7 ngày gần nhất (wk) + hôm nay (t): giá 1 tin nhắn so với mức tốt (R.msg), tần suất (c.f7), giai đoạn học của Facebook (c.sets[].learn), CTR, tỷ lệ bấm → nhắn.
    *  → { lv: fix|bad|ok|mid|wait, tag, why, tips[], act: { l, op, kind, id, amount } | null } — act = nút "Làm ngay" (bật / tắt / đổi ngân sách qua mkt_fb_edit). */
-  function lvAdvice(c, sts, t, b, wk, a3, b4, R, days) {
+  function lvAdvice(c, sts, t, b, wk, a3, b4, R, days, Y) {
     var o = { tips: [], act: null }, ref = R.msg, cpm = wk.m ? wk.s / wk.m : null, bud = c.bud[0], fq = c.f7 ? c.f7[0] : 0;
     var sets = (c.sets || []).filter(function (z) { return z.st === 'ACTIVE'; }), learning = sets.some(function (z) { return z.learn === 'LEARNING'; }), limited = sets.length && sets.every(function (z) { return z.learn === 'FAIL'; });
     var B = kpCalc(b), C = kpCalc(t), W = kpCalc(wk), lbl = G0().msg ? 'mức tốt ' + moneyShort(ref) : 'trung bình ' + moneyShort(Math.round(ref || 0));
@@ -4863,7 +4863,7 @@
     if (limited) o.tips.push('🎓 Facebook báo <b>học hạn chế</b> (không đủ ~50 tin / tuần): gộp bớt nhóm quảng cáo, nới đối tượng hoặc tăng ngân sách.');
     var spike = t.i >= 500 && B.cpm && C.cpm >= 1.3 * B.cpm;
     if (spike) o.tips.push('💸 Giá thầu ' + (KP.dl || 'hôm nay') + ' đắt hơn ' + Math.round((C.cpm / B.cpm - 1) * 100) + '% so với bình thường: hôm nay chưa tăng tiền.');
-    o.tips = o.tips.slice(0, 3);
+    var SU = lvSetup(c, wk, Y || { s: 0 }, days); o.tips = SU.causes.concat(o.tips).slice(0, 4);
     // kết luận + nút làm ngay
     if (c.st === 'PAUSED') { o.lv = 'wait'; o.tag = '⏸ Đã tắt'; o.why = 'Chiến dịch vừa được tắt từ CRM.'; o.act = { l: '▶️ Bật lại chiến dịch', op: 'resume', kind: 'campaign', id: c.id }; return o; }
     if (sts.DISAPPROVED || sts.WITH_ISSUES) { o.lv = 'fix'; o.tag = '⛔ Sửa ngay'; o.why = (sts.DISAPPROVED ? sts.DISAPPROVED + ' quảng cáo bị Facebook từ chối' : 'Có quảng cáo bị lỗi') + '. Quảng cáo thực phẩm hay bị từ chối khi: nói chữa / trị / giảm cân / hứa kết quả, câu hỏi nhắm vào người xem ("Bạn bị tiểu đường?"), ảnh trước – sau. Sửa câu chữ trong Trình quản lý quảng cáo rồi gửi duyệt lại.'; return o; }
@@ -4880,7 +4880,47 @@
     else if (cpm <= 0.8 * ref && spike) { o.lv = 'mid'; o.tag = '🟠 Giữ nguyên'; o.why = price + ', rẻ hơn ' + lbl + ' ' + Math.abs(k) + '%. Đáng tăng tiền nhưng hôm nay giá thầu đang cao: để mai tăng.'; }
     else if (cpm <= 0.8 * ref) { o.lv = 'ok'; o.tag = '🟢 Nên tăng tiền'; o.why = price + ', rẻ hơn ' + lbl + ' ' + Math.abs(k) + '%. Tăng 20% ngân sách; 2–3 ngày sau vẫn rẻ thì tăng tiếp 20% (tăng mạnh 1 lần Facebook học lại, giá lên).'; o.act = budAct(1.2, '➕ Tăng 20%:'); }
     else { o.lv = 'mid'; o.tag = '🟠 Giữ nguyên'; o.why = price + (k > 0 ? ', đắt hơn ' + lbl + ' ' + k + '%' : ', rẻ hơn ' + lbl + ' ' + Math.abs(k) + '%') + ': giữ ngân sách, thử thêm 1 mẫu mới để tìm mẫu rẻ hơn.'; }
+    if (SU.slow !== null && (o.lv === 'ok' || o.lv === 'mid')) { o.lv = 'mid'; o.tag = '🐢 Không tiêu hết tiền'; o.why = 'Hôm qua chỉ tiêu được <b>' + SU.slow + '%</b> ngân sách (' + moneyShort((Y || {}).s || 0) + ' / ' + moneyShort(bud) + '). ' + (SU.causes.length ? 'Nguyên nhân ở các dòng cam bên dưới, sửa trong Trình quản lý quảng cáo.' : 'Thường do tệp quá nhỏ, quảng cáo mới duyệt, hoặc tài khoản mới ít lịch sử chi tiêu.') + (cpm ? ' ' + price + '.' : ''); o.act = null; }
     return o;
+  }
+  /** 🔧 Chẩn đoán cài đặt nhóm quảng cáo (04/11/2026, từ số thật: tối ưu cho Mua hàng khi ít đơn + chỉ chạy tệp nóng 50–65 tuổi, tắt Advantage+ → CPM 150–600k, không tiêu hết tiền).
+   *  → { slow: % ngân sách hôm qua tiêu được (null nếu ≥ 60% hoặc chưa đủ ngày), causes: [dòng cam] } */
+  function lvSetup(c, wk, Y, days) {
+    var sets = (c.sets || []).filter(function (z) { return z.st === 'ACTIVE'; }), out = [], bud = c.bud[0];
+    var buy = sets.filter(function (z) { return /PURCHASE|OFFSITE_CONVERSIONS|VALUE/.test(z.opt || ''); }), hot = sets.filter(function (z) { return z.ca && !z.intr; });
+    var narrow = sets.filter(function (z) { var a = z.age || [0, 0]; return !z.adv && ((a[1] || 65) - (a[0] || 18)) <= 15; }), cap = sets.filter(function (z) { return /COST_CAP|BID_CAP|TARGET_COST/.test(z.bid || ''); });
+    if (buy.length && (wk.p || 0) < 30) out.push('🎯 Đang cho Facebook tìm người <b>MUA HÀNG</b> nhưng 7 ngày chỉ ghi nhận ' + (wk.p || 0) + ' lượt mua (cần khoảng 50 / tuần mới học được): Facebook trả giá cao để tìm rất ít người → <b>đắt và khó tiêu tiền</b>. Đổi mục tiêu tối ưu của nhóm quảng cáo sang <b>Cuộc trò chuyện</b> (tin nhắn) cho tới khi đủ đơn.');
+    if (cap.length) out.push('💲 Đang giới hạn giá thầu (' + esc(cap[0].bid) + '): đặt mức thấp quá Facebook sẽ không tiêu tiền. Nâng mức giới hạn hoặc chuyển sang "Chi phí thấp nhất".');
+    if (hot.length) out.push('🔥 Chỉ chạy <b>tệp nóng / tệp tuỳ chỉnh</b> (' + hot.map(function (z) { return '“' + esc(z.n) + '”'; }).slice(0, 2).join(', ') + '): tệp nhỏ nên giá cao và không tiêu hết tiền. Tệp nóng chỉ nên 100–200k / ngày, phần còn lại chạy tệp rộng.');
+    if (narrow.length) { var a = narrow[0].age || [0, 0]; out.push('👵 Độ tuổi hẹp ' + (a[0] || 18) + '–' + (a[1] || 65) + ' và tắt Advantage+ đối tượng: nới rộng 30–65+ (con cái hay mua cho bố mẹ) hoặc bật Advantage+ để Facebook tự tìm người.'); }
+    var slow = bud && days >= 2 && (Y.s || 0) < 0.6 * bud ? Math.round((Y.s || 0) * 100 / bud) : null;
+    return { slow: slow, causes: out };
+  }
+  /** 🩺 Khám tổng quát 7 ngày cả tài khoản: mỗi bước của đường đi quảng cáo → tin nhắn → số điện thoại có đèn theo mức chuẩn ngành thực phẩm / TPCN ở Việt Nam (chạy tin nhắn),
+   *  chỉ ra chỗ hở lớn nhất + cách sửa; cảnh báo tài khoản bị khoá / sắp chạm hạn mức chi. */
+  var FB_STD = { cpm: [80000, 150000], ctr: [1.5, 0.8], bm: [15, 8], ns: [40, 25], pace: [85, 60] };
+  function mkFbHealth(W, dataN, cs, L, G) {
+    if (!W.s) return { h: '', todo: [] };
+    var cpm = W.i ? W.s * 1000 / W.i : null, ctr = W.i ? W.c * 100 / W.i : null, bm = W.c ? W.m * 100 / W.c : null, ns = W.m && dataN ? dataN * 100 / W.m : null, cpmsg = W.m ? W.s / W.m : null, cps = dataN ? W.s / dataN : null;
+    var bud = 0, yd = 0; cs.forEach(function (x) { if (x.c.bud[0] && x.c.st !== 'PAUSED') { bud += x.c.bud[0]; yd += x.y.s || 0; } }); var pace = bud ? Math.round(yd * 100 / bud) : null;
+    var lo = function (v, a) { return v === null ? '' : v <= a[0] ? 'ok' : v <= a[1] ? 'mid' : 'bad'; }, hi = function (v, a) { return v === null ? '' : v >= a[0] ? 'ok' : v >= a[1] ? 'mid' : 'bad'; };
+    var S = [
+      { k: 'cpm', l: '💸 Giá đấu thầu (CPM)', v: cpm !== null ? moneyShort(Math.round(cpm)) : '–', lv: lo(cpm, FB_STD.cpm), n: 'tốt: dưới 80k', fix: 'Giá đấu thầu quá cao. Thường do: tối ưu cho Mua hàng khi còn ít đơn, chỉ chạy tệp nóng / tệp nhỏ, độ tuổi hẹp, nhiều tài khoản cùng nhắm 1 tệp. Gộp về 1–2 chiến dịch chính, tệp rộng, tối ưu Cuộc trò chuyện.' },
+      { k: 'ctr', l: '👆 Người thấy có bấm (CTR)', v: ctr !== null ? oneDec(ctr) + '%' : '–', lv: hi(ctr, FB_STD.ctr), n: 'tốt: từ 1,5%', fix: 'Mẫu quảng cáo chưa hút: thay 3 giây đầu video, ảnh có giá / quà, người thật dùng sản phẩm.' },
+      { k: 'bm', l: '💬 Bấm vào → nhắn tin', v: bm !== null ? oneDec(bm) + '%' : '–', lv: hi(bm, FB_STD.bm), n: 'tốt: từ 15%', fix: 'Khách bấm mở Messenger nhưng không nhắn: cài 3–4 câu hỏi gợi sẵn ("Giá bao nhiêu?", "Nhận tư vấn miễn phí", "Nhận quà") và lời chào có quà ngay câu đầu.' },
+      { k: 'msg', l: '💬 Giá 1 tin nhắn', v: cpmsg !== null ? moneyShort(Math.round(cpmsg)) : '–', lv: cpmsg === null ? '' : G.msg ? (cpmsg <= G.msg ? 'ok' : cpmsg <= G.msg * 1.3 ? 'mid' : 'bad') : '', n: G.msg ? 'tốt: dưới ' + moneyShort(G.msg) : '' },
+      { k: 'ns', l: '📇 Nhắn tin → để số', v: ns !== null ? Math.round(ns) + '%' : '–', lv: hi(ns, FB_STD.ns), n: 'tốt: từ 40%', fix: 'Nhắn nhiều mà ít để số: trả lời trong 5 phút, xin số khéo (tặng cẩm nang, gọi tư vấn miễn phí), bật trợ lý fanpage trả lời ngoài giờ.' },
+      { k: 'sdt', l: '⭐ Giá 1 số điện thoại', v: cps !== null ? moneyShort(Math.round(cps)) : '–', lv: cps === null ? '' : G.sdt ? (cps <= G.sdt ? 'ok' : cps <= G.sdt * 1.3 ? 'mid' : 'bad') : '', n: G.sdt ? 'tốt: dưới ' + moneyShort(G.sdt) : '' },
+      { k: 'pace', l: '🐢 Tiêu hết ngân sách (hôm qua)', v: pace !== null ? pace + '%' : '–', lv: hi(pace, FB_STD.pace), n: 'tốt: từ 85%', fix: 'Không tiêu hết tiền: xem các chiến dịch 🐢 bên dưới (thường do tối ưu cho Mua hàng, tệp nóng nhỏ, độ tuổi hẹp, giới hạn giá thầu).' }];
+    var worst = S.filter(function (x) { return x.lv === 'bad' && x.fix; })[0] || S.filter(function (x) { return x.lv === 'mid' && x.fix; })[0];
+    var acc = ((L && L.accs) || []).map(function (a) { return a.st && a.st !== 1 ? '⛔ Tài khoản <b>' + esc(a.n) + '</b> đang bị ' + (a.st === 2 ? 'vô hiệu hoá' : a.st === 3 ? 'nợ thanh toán' : 'hạn chế') + ': quảng cáo trong tài khoản này không chạy.' : a.cap && a.spent >= a.cap * 0.95 ? '💳 Tài khoản <b>' + esc(a.n) + '</b> ' + (a.spent >= a.cap ? 'đã chạm' : 'sắp chạm') + ' hạn mức chi tiêu (' + moneyShort(a.spent) + ' / ' + moneyShort(a.cap) + '): nâng hạn mức trong cài đặt thanh toán, không thì quảng cáo tự dừng.' : ''; }).filter(Boolean);
+    var h = '<div class="lv-hl"><p class="lv-hl-t">🩺 Khám 7 ngày qua: tiền quảng cáo hở ở đâu? <small class="muted">' + moneyShort(W.s) + ' · ' + W.m + ' tin nhắn · ' + dataN + ' số điện thoại</small></p><div class="lv-hl-g">' +
+      S.map(function (x) { return '<div class="lv-hl-c ' + x.lv + '"><span>' + x.l + (DASH_LV[x.lv] ? ' ' + DASH_LV[x.lv] : '') + '</span><b>' + x.v + '</b>' + (x.n ? '<small>' + x.n + '</small>' : '') + '</div>'; }).join('') + '</div>' +
+      (worst ? '<p class="lv-why ' + (worst.lv === 'bad' ? '' : 'mid') + '">🔍 <b>Chỗ hở lớn nhất: ' + worst.l.replace(/^\S+ /, '') + '.</b> ' + worst.fix + '</p>' : '<p class="lv-why">✅ Các bước đều đạt mức chuẩn.</p>') +
+      acc.map(function (t) { return '<p class="lv-why">' + t + '</p>'; }).join('') + '</div>';
+    var todo = acc.map(function (t) { return { p: 0, t: t }; });
+    if (worst && worst.lv === 'bad') todo.push({ p: 1, t: '🩺 Chỗ hở lớn nhất của quảng cáo Facebook: <b>' + worst.l.replace(/^\S+ /, '') + '</b> (' + worst.v + ', ' + worst.n + '). <button class="link" data-dgo="mk-live">Xem cách sửa</button>' });
+    return { h: h, todo: todo };
   }
   function G0() { return kpGoal(); }
   function fbCan() { return lvl() >= 3 || isMkt(); } // sửa quảng cáo Facebook trong CRM: Quản trị + Marketing (người chỉ được tích 📣 Xem Marketing thì không)
@@ -4929,14 +4969,15 @@
   function mkLiveBlock(f) {
     var j = KP.j, L = j && j.live;
     if (!j) return { h: '<div class="box lv-box"><h3>📘 Quảng cáo Facebook đang chạy</h3><p class="muted">' + (KP.err ? '⚠️ ' + esc(KP.err) : '⏳ Đang tải…') + '</p></div>', todo: [] };
-    var t0 = j.today, T0 = dayMs(t0), G = kpGoal(), z = function () { return { s: 0, i: 0, c: 0, m: 0 }; }, M = { t: {}, y: {}, b: {}, by: {}, a3: {}, b4: {} }, T = { t: z(), y: z(), b: z(), by: z(), yy: z() };
-    var add = function (o, r) { o.s += r[4] || 0; o.i += r[5] || 0; o.c += r[6] || 0; o.m += r[7] || 0; };
+    var t0 = j.today, T0 = dayMs(t0), G = kpGoal(), z = function () { return { s: 0, i: 0, c: 0, m: 0, p: 0 }; }, M = { t: {}, y: {}, b: {}, by: {}, a3: {}, b4: {}, w7: {} }, W7 = { s: 0, i: 0, c: 0, m: 0, p: 0 }, T = { t: z(), y: z(), b: z(), by: z(), yy: z() };
+    var add = function (o, r) { o.s += r[4] || 0; o.i += r[5] || 0; o.c += r[6] || 0; o.m += r[7] || 0; o.p = (o.p || 0) + (r[8] || 0); };
     (j.rows || []).forEach(function (r) {
       var k = (r[3] && r[3][1] || '') + '|' + r[2], ms = dayMs(r[0]), put = function (g) { add(M[g][k] = M[g][k] || z(), r); };
       if (ms === T0) { put('t'); add(T.t, r); } else { put('b'); add(T.b, r); }
       if (ms === T0 - DAY) { put('y'); add(T.y, r); } else if (ms < T0 - DAY) { put('by'); add(T.by, r); }
       if (ms === T0 - 2 * DAY) add(T.yy, r);
       if (ms < T0 && ms >= T0 - 3 * DAY) put('a3'); else if (ms < T0 - 3 * DAY && ms >= T0 - 7 * DAY) put('b4');
+      if (ms < T0 && ms >= T0 - 7 * DAY) { put('w7'); add(W7, r); }
     });
     var anyT = T.t.s > 0, useY = f.kd === 'y' || (!anyT && T.y.s > 0), dl = useY ? 'hôm qua' : 'hôm nay'; KP.dl = dl;
     var DD = j.data || {}, dv = useY ? T0 - DAY : T0, sumD = function (from, n) { var x = 0; for (var q = 0; q < n; q++) x += DD[isoDate(from - q * DAY)] || 0; return x; };
@@ -4947,14 +4988,14 @@
     var upd = '<p class="small muted">' + (!anyT && !f.kd && T.y.s ? '🌙 Chưa có số hôm nay (Facebook lấy số 7h–22h), đang hiện số hôm qua. ' : '') + (j.last ? 'Số Facebook cập nhật lúc ' + fDateTime(j.last) + ' (1 tiếng 1 lần). ' : '') + (L && L.at ? 'Danh sách chiến dịch cập nhật lúc ' + fDateTime(L.at) + '. Bấm ↻ để lấy ngay.' : '') + '</p>';
     if (!L || !L.camps) return { todo: [], h: '<div class="box lv-box" id="mk-live">' + head + upd + tot + '<p class="small muted">' + (j.fbOn ? '⏳ Đang lấy danh sách chiến dịch từ Facebook, bấm ↻ sau 1 phút.' : 'Cần Quản trị kết nối Facebook Ads (⚙️ Nhập chi phí → 📘 Facebook tự động) để thấy danh sách chiến dịch đang chạy.') + '</p></div>' };
     var MV0 = useY ? M.y : M.t, MB = useY ? M.by : M.b, now = Date.now(), all7 = z();
-    Object.keys(M.b).forEach(function (k) { add(all7, [0, 0, 0, 0, M.b[k].s, M.b[k].i, M.b[k].c, M.b[k].m]); });
+    Object.keys(M.b).forEach(function (k) { add(all7, [0, 0, 0, 0, M.b[k].s, M.b[k].i, M.b[k].c, M.b[k].m, M.b[k].p]); });
     var ref = G.msg || (all7.m ? all7.s / all7.m : 0), RF = { msg: ref, cpm: all7.i ? all7.s * 1000 / all7.i : 0 }, budD = 0;
     var cs = L.camps.map(function (c) {
       var k = c.acc + '|' + c.n, t = MV0[k] || z(), b = MB[k] || z(), wk = z(), sts = {}, st = lvTime(c.start);
-      [M.b[k], M.t[k]].forEach(function (x) { if (x) add(wk, [0, 0, 0, 0, x.s, x.i, x.c, x.m]); });
+      [M.b[k], M.t[k]].forEach(function (x) { if (x) add(wk, [0, 0, 0, 0, x.s, x.i, x.c, x.m, x.p]); });
       c.ads.forEach(function (a) { sts[a.st] = (sts[a.st] || 0) + 1; });
       budD += c.bud[0] || 0;
-      return { c: c, t: t, b: b, st: st, ad: lvAdvice(c, sts, t, b, wk, M.a3[k] || z(), M.b4[k] || z(), RF, st ? Math.max(1, Math.ceil((now - st) / DAY)) : 9) };
+      return { c: c, t: t, b: b, st: st, ad: lvAdvice(c, sts, t, b, wk, M.a3[k] || z(), M.b4[k] || z(), RF, st ? Math.max(1, Math.ceil((now - st) / DAY)) : 9, M.y[k] || z()), y: M.y[k] || z() };
     }).sort(function (x, y) { return LV_ORD[x.ad.lv] - LV_ORD[y.ad.lv] || y.t.s - x.t.s; });
     var cnt = { fix: 0, bad: 0, ok: 0, mid: 0, wait: 0 }, tips = []; cs.forEach(function (x) { cnt[x.ad.lv]++; if (x.ad.tips.length && /^🎨/.test(x.ad.tips[0])) tips.push(x.c.n); });
     if (f.lvf && !cnt[f.lvf] && !(f.lvf === 'bad' && cnt.fix)) f.lvf = '';
@@ -4983,8 +5024,9 @@
           (fbCan() && c.st === 'PAUSED' && !(a.act && a.act.op === 'resume') ? '<button type="button" class="btn sm" data-fbe="resume|campaign|' + esc(c.id) + '">▶️ Bật lại</button>' : '') +
           (num ? '<a class="btn sm ghost" href="https://adsmanager.facebook.com/adsmanager/manage/ads?act=' + esc(num) + '&selected_campaign_ids=' + esc(c.id) + '" target="_blank" rel="noopener">Sửa mẫu, đối tượng trong Trình quản lý ↗</a>' : '') + '</div></div>';
     };
+    var HL = mkFbHealth(W7, (function () { var x = 0; for (var q = 1; q <= 7; q++) x += DD[isoDate(T0 - q * DAY)] || 0; return x; })(), cs, L, G);
     var h = '<div class="box lv-box" id="mk-live">' + head +
-      '<p class="lv-sum">' + [cs.length + ' chiến dịch đang chạy', budD ? 'ngân sách ' + moneyShort(budD) + ' / ngày' : '', dl + ' đã chi ' + moneyShort(TV.s)].filter(Boolean).join(' · ') + '</p>' + upd + tot +
+      '<p class="lv-sum">' + [cs.length + ' chiến dịch đang chạy', budD ? 'ngân sách ' + moneyShort(budD) + ' / ngày' : '', dl + ' đã chi ' + moneyShort(TV.s)].filter(Boolean).join(' · ') + '</p>' + upd + HL.h + tot +
       (cs.length ? '<div class="chips wrap lv-f">' + fchip('', 'Tất cả ' + cs.length) + fchip('bad', '🔴 Cần xử lý', cnt.fix + cnt.bad) + fchip('ok', '🟢 Nên tăng tiền', cnt.ok) + fchip('mid', '🟠 Giữ nguyên', cnt.mid) + fchip('wait', '⚪ Chờ thêm số / duyệt', cnt.wait) + '</div>' +
         '<div class="mk-camps">' + list.slice(0, n).map(card).join('') + '</div>' + (list.length > n ? '<button class="btn ghost sm" data-lvall="1">Xem thêm ' + (list.length - n) + ' chiến dịch</button>' : '') : '<p class="muted">Không có chiến dịch nào đang chạy.</p>') +
       (L.err ? '<p class="err">⚠️ ' + esc(L.err) + '</p>' : '') +
@@ -4997,6 +5039,7 @@
     var nm = function (lv) { var a = cs.filter(function (x) { return x.ad.lv === lv; }); return a.slice(0, 2).map(function (x) { return '<b>' + esc(x.c.n) + '</b>'; }).join(', ') + (a.length > 2 ? ' và ' + (a.length - 2) + ' chiến dịch khác' : ''); };
     if (cnt.bad) todo.push({ p: 2, t: '🔴 Giảm tiền hoặc tắt: ' + nm('bad') + '. <button class="link" data-dgo="mk-live">Xem</button>' });
     if (cnt.ok) todo.push({ p: 3, t: '🟢 Tăng 20% ngân sách cho: ' + nm('ok') + '. <button class="link" data-dgo="mk-live">Xem</button>' });
+    HL.todo.forEach(function (x) { todo.push(x); });
     if (tips.length) todo.push({ p: 4, t: '🎨 Làm hình / video mới cho: <b>' + esc(tips.slice(0, 2).join(', ')) + '</b> (khách bấm ít dần).' });
     return { h: h, todo: todo, live: true, cnt: cnt };
   }

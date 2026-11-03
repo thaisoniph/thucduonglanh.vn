@@ -61,6 +61,10 @@ Ngay dưới **✅ Nên làm gì**. Đây là chỗ xem và chỉnh quảng cáo
    - Dòng màu cam: 🎨 khách bấm ít dần → làm hình / video mới; 💸 hôm nay giá thầu đắt → chưa tăng tiền.
 4. Bấm **👁 Bài viết** / **🔍 Xem như khách thấy** để xem quảng cáo, bấm **✏️ Sửa ngân sách / tắt / bật** để mở thẳng chiến dịch trong Trình quản lý quảng cáo.
 
+**🩺 Khám 7 ngày qua: tiền quảng cáo hở ở đâu?** (ngay dưới dòng tóm tắt): 7 ô có đèn, đọc từ trái sang phải theo đường đi của khách: giá đấu thầu (CPM, tốt dưới 80k) → người thấy có bấm (CTR, tốt từ 1,5%) → bấm vào có nhắn tin (tốt từ 15%) → giá 1 tin → nhắn tin có để số (tốt từ 40%) → ⭐ giá 1 số điện thoại → tiêu hết ngân sách hôm qua (tốt từ 85%). Dòng **🔍 Chỗ hở lớn nhất** nói ô đỏ quan trọng nhất và cách sửa. Tài khoản bị khoá hoặc sắp chạm hạn mức chi cũng báo ở đây.
+
+**🐢 Không tiêu hết tiền**: chiến dịch hôm qua tiêu chưa tới 60% ngân sách. Dòng cam bên dưới nói nguyên nhân: đang tối ưu cho *Mua hàng* khi còn ít đơn, chỉ chạy *tệp nóng*, *độ tuổi hẹp* và tắt Advantage+, hoặc *giới hạn giá thầu*. Những cài đặt này sửa trong Trình quản lý quảng cáo.
+
 **Sửa quảng cáo ngay trong CRM** (Quản trị và Marketing):
 
 - **👉 Làm ngay**: nút theo lời khuyên, ví dụ *Tăng 20%: 600k → 720k / ngày* hoặc *Tắt chiến dịch này*.
