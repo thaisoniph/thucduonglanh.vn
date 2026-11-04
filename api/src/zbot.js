@@ -81,6 +81,7 @@ export async function zbotSchema(db) {
   await run(db, `CREATE TABLE IF NOT EXISTS zb_log (rid INTEGER PRIMARY KEY AUTOINCREMENT, at INTEGER, kind TEXT, gid TEXT DEFAULT '', uid TEXT DEFAULT '', name TEXT DEFAULT '',
     text TEXT DEFAULT '', reply TEXT DEFAULT '')`); // nhật ký trợ lý (CRM xem)
   await run(db, 'CREATE INDEX IF NOT EXISTS zb_log_at ON zb_log(at)');
+  for (const c of ['done_at INTEGER', "done_by TEXT DEFAULT ''"]) { try { await run(db, 'ALTER TABLE zb_log ADD COLUMN ' + c); } catch (e) { } } // 05/11/2026: ca cần người thật → ai xử lý, lúc nào
   await run(db, 'CREATE TABLE IF NOT EXISTS zb_act (dh TEXT PRIMARY KEY, msgs INTEGER DEFAULT 0, people INTEGER DEFAULT 0)'); // 05/11/2026: tin nhắn thành viên theo giờ (dh = yyyyMMddHH giờ VN), chọn giờ đăng
 }
 
@@ -544,7 +545,8 @@ export async function crmZbot(x, u, d, crmLog) {
     const byPost = {}; for (const o of ords) { if (isVoid(o.status)) continue; const m = String(o.source).match(/^zalo \/ nhom \/ (\S+)/) || String(o.first_source).match(/^zalo \/ nhom \/ (\S+)/); if (!m) continue; const b = byPost[m[1]] || (byPost[m[1]] = { n: 0, rev: 0 }); b.n++; b.rev += Number(o.total) || 0; }
     const funnel = {}; for (const p of done) { const k = p.funnel || 'Khác', f = funnel[k] || (funnel[k] = { posts: 0, people: 0, msgs: 0, reacts: 0, orders: 0, rev: 0 }); f.posts++; f.people += p.eng_people || 0; f.msgs += p.eng_msgs || 0; f.reacts += p.eng_reacts || 0; if (byPost[p.id]) { f.orders += byPost[p.id].n; f.rev += byPost[p.id].rev; } }
     for (const p of posts) if (byPost[p.id]) { p.orders = byPost[p.id].n; p.rev = byPost[p.id].rev; }
-    const log = await all(x.db, 'SELECT at, kind, gid, name, text, reply FROM zb_log ORDER BY rid DESC LIMIT 60');
+    const log = await all(x.db, 'SELECT rid, at, kind, gid, uid, name, text, reply, done_at, done_by FROM zb_log ORDER BY rid DESC LIMIT 80');
+    const open = await all(x.db, "SELECT rid, at, kind, gid, uid, name, text, reply, done_at, done_by FROM zb_log WHERE kind IN ('handoff', 'dm_handoff') AND done_at IS NULL AND at > ? ORDER BY rid DESC LIMIT 30", now - 7 * DAY); // ca cần người thật chưa xử lý: ghim lên đầu
     const lib = (await imgLib()).map(i => ({ url: i.url, thumb: i.thumb || i.url, alt: i.alt }));
     const stats = await all(x.db, 'SELECT kind, count(*) AS n FROM zb_log WHERE at > ? GROUP BY kind', now - 7 * DAY);
     const users = await first(x.db, "SELECT count(*) AS n, sum(CASE WHEN phone != '' THEN 1 ELSE 0 END) AS known, sum(CASE WHEN joined > ? AND phone != '' THEN 1 ELSE 0 END) AS joined7, sum(CASE WHEN joined > ? THEN 1 ELSE 0 END) AS in30, sum(CASE WHEN joined > ? AND friend IS NOT NULL THEN 1 ELSE 0 END) AS fr30, sum(CASE WHEN friend > ? THEN 1 ELSE 0 END) AS fr7 FROM zb_users", now - 7 * DAY, now - 30 * DAY, now - 30 * DAY, now - 7 * DAY);
@@ -553,7 +555,7 @@ export async function crmZbot(x, u, d, crmLog) {
     const actDays = (await first(x.db, 'SELECT count(DISTINCT substr(dh, 1, 8)) AS n FROM zb_act WHERE dh >= ?', fmtDate(now - 14 * DAY, 'yyyyMMddHH'))).n || 0;
     const morn = await all(x.db, "SELECT sent_at, eng_people, eng_msgs, eng_reacts FROM zb_posts WHERE slot = 'sang' AND status = 'sent' AND sent_at >= ?", TRACK_FROM);
     const trialRes = {}; for (const p of morn) { const k = fmtDate(p.sent_at, 'HH'), r = trialRes[k] || (trialRes[k] = { posts: 0, people: 0, msgs: 0, reacts: 0 }); r.posts++; r.people += p.eng_people || 0; r.msgs += p.eng_msgs || 0; r.reacts += p.eng_reacts || 0; }
-    return { ok: true, cfg, status: st, posts, log, lib, funnel, act, actDays, trial: TIME_TRIAL, trialRes, stats, users, err: await kvGet(x.db, 'zb_write_err'), key: !!x.env.ZBOT_KEY, aiOn: !!x.env.ANTHROPIC_API_KEY, now };
+    return { ok: true, cfg, status: st, posts, log, open, lib, funnel, act, actDays, trial: TIME_TRIAL, trialRes, stats, users, err: await kvGet(x.db, 'zb_write_err'), key: !!x.env.ZBOT_KEY, aiOn: !!x.env.ANTHROPIC_API_KEY, now };
   }
   if (a === 'zb_cfg') {
     const cfg = await zCfg(x), c = d.cfg || {};
@@ -588,6 +590,16 @@ export async function crmZbot(x, u, d, crmLog) {
     await run(x.db, 'UPDATE zb_posts SET img = ?, by_name = ?, at = ? WHERE id = ?', img, u.name, now, p.id);
     await crmLog(x, u, 'Bài Zalo', p.id, '', img ? 'Đổi ảnh' : 'Bỏ ảnh', p.topic);
     return { ok: true, img };
+  }
+  if (a === 'zb_logmore') { // 🕘 xem thêm nhật ký cũ hơn
+    const rows = await all(x.db, 'SELECT rid, at, kind, gid, uid, name, text, reply, done_at, done_by FROM zb_log WHERE rid < ? ORDER BY rid DESC LIMIT 100', Number(d.before) || 0);
+    return { ok: true, log: rows };
+  }
+  if (a === 'zb_done') { // ✅ đánh dấu ca cần người thật đã xử lý (bỏ đánh dấu: undo)
+    const r = await first(x.db, 'SELECT rid, kind, name FROM zb_log WHERE rid = ?', Number(d.rid) || 0); if (!r) return { ok: false, error: 'Không tìm thấy.' };
+    await run(x.db, 'UPDATE zb_log SET done_at = ?, done_by = ? WHERE rid = ?', d.undo ? null : now, d.undo ? '' : u.name, r.rid);
+    await crmLog(x, u, 'Trợ lý Zalo', String(r.rid), '', d.undo ? 'Bỏ đánh dấu đã xử lý' : 'Đã xử lý ca cần người thật', r.name || '');
+    return { ok: true, done_at: d.undo ? null : now, done_by: d.undo ? '' : u.name };
   }
   if (a === 'zb_hist') { // 📚 bài đã đăng & hiệu quả (90 ngày)
     const since = now - 90 * DAY;

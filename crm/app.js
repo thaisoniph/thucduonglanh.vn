@@ -5304,12 +5304,8 @@
         '<div class="zb-mode"><label><input type="radio" name="zbM_' + sl.id + '" value="approve"' + (a ? '' : ' checked') + '> ⏳ Chờ duyệt</label><label><input type="radio" name="zbM_' + sl.id + '" value="auto"' + (a ? ' checked' : '') + '> 🤖 Tự đăng</label></div></div>'; }).join('') +
       '<label class="f"><span>Tối đa số câu trả lời / nhóm / giờ</span><input type="number" id="zbMax" min="1" max="30" value="' + (c.maxHour || 8) + '"></label>' +
       '<button class="btn pri" data-zb="cfg">Lưu cài đặt</button></details>';
-    // nhật ký
-    h += '<h2 class="zb-h">🕘 Trợ lý vừa làm gì</h2>' + ((j.log || []).length ? '<div class="box zb-log">' + j.log.map(function (l) {
-      var k = ZB_KIND[l.kind] || ['•', l.kind];
-      return '<details><summary><span class="zb-t">' + fDateTime(l.at) + '</span> ' + k[0] + ' <b>' + k[1] + '</b>' + (l.name ? ' · ' + esc(l.name) : '') + (l.text ? ' <span class="muted">· ' + esc(l.text.slice(0, 80)) + '</span>' : '') + '</summary>' +
-        (l.text ? '<p class="small"><b>Tin:</b> ' + esc(l.text) + '</p>' : '') + (l.reply ? '<p class="small zb-rep"><b>Trợ lý:</b> ' + esc(l.reply).replace(/\n/g, '<br>') + '</p>' : '') + '</details>';
-    }).join('') + '</div>' : '<div class="box"><p class="muted">Chưa có hoạt động.</p></div>');
+    // 🕘 nhật ký (05/11/2026 sắp lại): ca cần người thật ghim đầu + nút Đã xử lý, lọc theo loại, chia theo ngày, mở ra dạng khung chat
+    h += '<h2 class="zb-h">🕘 Trợ lý vừa làm gì</h2>' + zbLogHtml(j);
     return h;
   }
   function zbSendOpen() {
@@ -5339,6 +5335,9 @@
       return api('zb_post', { id: id, text: ta ? ta.value : undefined, status: v[0] === 'save' ? undefined : v[0] }).then(after({ save: 'Đã lưu bài ✓', ok: 'Đã duyệt ✓ Tới giờ trợ lý sẽ đăng.', skip: 'Đã bỏ bài này, trợ lý sẽ không đăng.', draft: 'Bài đã quay lại chờ duyệt ✓' }[v[0]]), fail);
     }
     if (v[0] === 'img') return zbImgOpen(id);
+    if (v[0] === 'lf') { ZB.lf = id; return render(); }
+    if (v[0] === 'done' || v[0] === 'undone') { t.disabled = true; return api('zb_done', { rid: Number(id), undo: v[0] === 'undone' }).then(after(v[0] === 'done' ? 'Đã ghi: bạn xử lý ca này ✓' : 'Đã bỏ đánh dấu'), fail); }
+    if (v[0] === 'logmore') { var all = (ZB.d.log || []).concat(ZB.more || []), min = all.reduce(function (m, l) { return Math.min(m, l.rid); }, 1e15); t.disabled = true; t.textContent = '⏳ Đang tải…'; return api('zb_logmore', { before: min }).then(function (r) { ZB.more = (ZB.more || []).concat(r.log || []); if (!(r.log || []).length || r.log.length < 100) ZB.moreEnd = 1; render(); }, fail); }
     if (v[0] === 'edit') { var cd = t.closest('[data-zbcard]'); if (cd) { cd.classList.toggle('zb-editing'); var ta2 = $('#zbT_' + id); if (ta2 && cd.classList.contains('zb-editing')) ta2.focus(); } return; }
     if (v[0] === 'regen') {
       var hint = prompt('Muốn AI viết lại thế nào? (vd: “nói về hạt óc chó”, “ngắn hơn”, “vui hơn”). Để trống = viết bài khác cùng chủ đề.', ''); if (hint === null) return;
@@ -5378,6 +5377,37 @@
     }
     m.addEventListener('click', function (e) { var b = e.target.closest('[data-zh]'); if (!b) return; var v = b.getAttribute('data-zh').split('|'); if (v[0] === 'open') F.open[v[1]] = !F.open[v[1]]; else F[v[0]] = v[1]; draw(); });
     api('zb_hist', {}).then(function (j) { P = j.posts || []; draw(); }, function (e) { body.innerHTML = '<p class="err">' + esc(e.message) + '</p>'; });
+  }
+  var ZB_LF = { all: ['Tất cả', null], need: ['🙋 Cần xử lý', ['handoff', 'dm_handoff']], reply: ['💬 Trả lời khách', ['answer', 'dm', 'react', 'skip', 'handoff', 'dm_handoff']], people: ['👋 Người mới & kết bạn', ['welcome', 'friend', 'announce', 'announced', 'human']], post: ['📝 Bài đăng', ['post', 'send', 'announced']], err: ['⚠️ Lỗi', ['error']] };
+  function zbLogTxt(l) { var t = String(l.text || '').replace(/\*\*/g, '').replace(/\s+/g, ' ').trim(); return t.length > 110 ? t.slice(0, 108) + '…' : t; }
+  function zbLogHtml(j) {
+    var lf = ZB.lf || 'all', ks = ZB_LF[lf][1], seen = {}, open = j.open || [];
+    var hm = function (t) { var x = vnDate(t); return pad(x.h) + ':' + pad(x.mi); }, dk = function (t) { var x = vnDate(t); return x.y + pad(x.m) + pad(x.d); };
+    var all = (j.log || []).concat(ZB.more || []).sort(function (a, b) { return b.at - a.at; }), L = all.filter(function (l) { return !ks || ks.indexOf(l.kind) >= 0; });
+    var chat = function (l) { // khung chat: khách bên trái, trợ lý bên phải
+      var who = ['answer', 'dm', 'react', 'skip', 'handoff', 'dm_handoff', 'human', 'friend'].indexOf(l.kind) >= 0;
+      return '<div class="zb-chat">' + (who && l.text ? '<div class="zb-cl"><small>' + esc(l.name || 'Khách') + '</small>' + zbRender(l.text) + '</div>' : !who && l.text && !l.reply ? '<div class="zb-cr"><small>Trợ lý</small>' + zbRender(l.text) + '</div>' : '') + (l.reply ? '<div class="zb-cr"><small>Trợ lý</small>' + zbRender(l.reply) + '</div>' : '') +
+        (l.kind === 'react' ? '<p class="small muted">Trợ lý thả ❤️ cho tin này.</p>' : '') + (l.kind === 'skip' ? '<p class="small muted">Trợ lý thấy không cần trả lời (chuyện phiếm / đã có người trả lời).</p>' : '') + '</div>';
+    };
+    var row = function (l, pin) {
+      var k = ZB_KIND[l.kind] || ['•', l.kind], need = l.kind === 'handoff' || l.kind === 'dm_handoff';
+      var st = need ? (l.done_at ? '<span class="zb-ldone">✅ ' + esc(l.done_by || '') + ' đã xử lý ' + fDateTime(l.done_at) + '</span>' : '<span class="zb-due">⏳ Chưa xử lý</span>') : '';
+      return '<details class="zb-lrow' + (need && !l.done_at ? ' zb-pin' : '') + '"' + (pin ? ' open' : '') + '><summary><span class="zb-t">' + (pin ? fDateTime(l.at) : hm(l.at)) + '</span> ' + k[0] + ' <b>' + k[1] + '</b>' + (l.name ? ' · ' + esc(l.name) : '') + ' ' + st + (zbLogTxt(l) ? '<span class="zb-lsum">' + esc(zbLogTxt(l)) + '</span>' : '') + '</summary>' + chat(l) +
+        (need ? '<div class="lq-btns">' + (l.done_at ? '<button class="btn sm ghost" data-zb="undone|' + l.rid + '">↩️ Bỏ đánh dấu</button>' : '<button class="btn sm pri" data-zb="done|' + l.rid + '">✅ Đã xử lý</button>') + '</div>' : '') + '</details>';
+    };
+    var hh = '<div class="chips zb-lf">' + Object.keys(ZB_LF).map(function (k) { return '<button class="chip' + (lf === k ? ' on' : '') + '" data-zb="lf|' + k + '">' + ZB_LF[k][0] + (k === 'need' && open.length ? ' <em>' + open.length + '</em>' : '') + '</button>'; }).join('') + '</div>';
+    if (open.length && (lf === 'all' || lf === 'need')) { hh += '<div class="box zb-log zb-pinbox"><p class="small" style="margin:0 0 4px"><b>🙋 ' + open.length + ' ca cần người thật chưa xử lý</b> · nhắn khách xong bấm <b>✅ Đã xử lý</b> để cả đội biết</p>' + open.map(function (l) { seen[l.rid] = 1; return row(l, true); }).join('') + '</div>'; }
+    var day = '', cnt = {}, out = '', groups = [];
+    L.forEach(function (l) { if (seen[l.rid]) return; var d = fDate(l.at); if (d !== day) { groups.push({ d: d, at: l.at, rows: [] }); day = d; } groups[groups.length - 1].rows.push(l); });
+    groups.forEach(function (g) {
+      var c2 = {}; g.rows.forEach(function (l) { c2[l.kind] = (c2[l.kind] || 0) + 1; });
+      var n = function () { var t = 0; for (var i = 0; i < arguments.length; i++) t += c2[arguments[i]] || 0; return t; };
+      var sum = [[n('post', 'send'), 'bài'], [n('answer', 'dm'), 'trả lời'], [n('welcome'), 'lượt chào'], [n('friend'), 'kết bạn'], [n('handoff', 'dm_handoff'), 'cần người thật'], [n('error'), 'lỗi']].filter(function (x) { return x[0]; }).map(function (x) { return x[0] + ' ' + x[1]; }).join(' · ');
+      out += '<div class="zb-day"><b>' + zbDay(dk(g.at)) + (zbDay(dk(g.at)).indexOf('/') < 0 ? ' · ' + fDate(g.at).slice(0, 5) : '') + '</b><span class="small muted">' + sum + '</span></div><div class="box zb-log">' + g.rows.map(function (l) { return row(l, false); }).join('') + '</div>';
+    });
+    hh += out || '<div class="box"><p class="muted">Chưa có hoạt động' + (lf !== 'all' ? ' loại này' : '') + '.</p></div>';
+    if (all.length >= 80 && !ZB.moreEnd) hh += '<button class="btn ghost" data-zb="logmore" style="width:100%">Xem thêm các ngày trước</button>';
+    return hh;
   }
   function zbRender(t) { // xem trước như trên Zalo: **đậm**, @tên, link, xuống dòng
     return esc(String(t || '')).replace(/\*\*([^*\n]+)\*\*/g, '<b>$1</b>').replace(/(https?:\/\/[^\s<]+)/g, '<span class="zb-link">$1</span>').replace(/(^|\s)(@[^\s,.!?]+)/g, '$1<span class="zb-at">$2</span>').replace(/\n/g, '<br>');

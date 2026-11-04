@@ -144,11 +144,15 @@ Tin này cũng được đo như bài AI soạn (xem ở **📚 Bài đã đăng
 
 ## Xem trợ lý vừa làm gì
 
-Kéo xuống cuối tab, tới mục **🕘 Trợ lý vừa làm gì**. Bấm vào một dòng để xem khách hỏi gì và trợ lý trả lời gì.
+Kéo xuống cuối tab, tới mục **🕘 Trợ lý vừa làm gì**.
 
-![Danh sách việc trợ lý vừa làm, bấm vào để xem chi tiết](/huong-dan/img/zalo-nhat-ky.webp)
+![Nhật ký: 1 lọc Cần xử lý, 2 nút Đã xử lý, 3 mỗi ngày một nhóm](/huong-dan/img/zalo-nhat-ky.webp)
 
-Thấy trợ lý trả lời chưa đúng thì chụp màn hình gửi anh Sơn.
+1. **Nút lọc** ở trên cùng: Tất cả · 🙋 Cần xử lý · 💬 Trả lời khách · 👋 Người mới & kết bạn · 📝 Bài đăng · ⚠️ Lỗi. Số đỏ cạnh **Cần xử lý** là số ca đang chờ người thật.
+2. **Ca cần người thật** (khung vàng) luôn nằm trên cùng. Bạn nhắn hoặc gọi khách xong thì bấm **✅ Đã xử lý**. CRM ghi tên bạn và giờ xử lý, để bạn khác không nhắn trùng. Bấm nhầm thì mở lại dòng đó, bấm **↩️ Bỏ đánh dấu**.
+3. **Mỗi ngày một nhóm**, kèm tóm tắt (ví dụ "2 bài · 3 trả lời · 1 lượt chào"). Bấm vào một dòng để xem **khách hỏi gì (bên trái)** và **trợ lý trả lời gì (bên phải)**, giống khung chat Zalo.
+
+Muốn xem các ngày cũ hơn thì bấm **Xem thêm các ngày trước** ở cuối. Thấy trợ lý trả lời chưa đúng thì chụp màn hình gửi anh Sơn.
 
 ## Cài đặt trợ lý
 

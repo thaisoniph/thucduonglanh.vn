@@ -1536,3 +1536,21 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .zb-hcol span { display: block; width: 100%; background: var(--primary-light); border-radius: 3px 3px 0 0; }
 .zb-hcol.on span { background: var(--primary); }
 .zb-hcol i { position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%); font-style: normal; font-size: 11px; color: var(--muted); }
+/* 🕘 nhật ký trợ lý Zalo (05/11/2026): lọc, chia ngày, ca cần xử lý ghim đầu, khung chat */
+.zb-lf { margin: 0 0 10px; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.zb-lf .chip { white-space: nowrap; }
+.zb-lf em { font-style: normal; background: var(--red); color: #fff; border-radius: 999px; padding: 0 7px; font-size: 12px; margin-left: 2px; }
+.zb-pinbox { border: 2px solid var(--gold); background: var(--gold-light); }
+.zb-day { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; margin: 14px 2px 6px; }
+.zb-lrow > summary { list-style: none; display: block; }
+.zb-lrow > summary::-webkit-details-marker { display: none; }
+.zb-lrow > summary .zb-due { font-size: .75rem; padding: 1px 8px; margin-left: 4px; }
+.zb-pin > summary .zb-due { background: var(--gold); color: #fff; }
+.zb-lsum { display: block; color: var(--muted); font-size: .9rem; margin: 2px 0 0 46px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.zb-lrow[open] .zb-lsum { display: none; }
+.zb-ldone { font-size: .78rem; color: var(--primary); margin-left: 4px; }
+.zb-chat { display: flex; flex-direction: column; gap: 6px; margin: 8px 0 4px; background: #e2e9f1; border-radius: 12px; padding: 10px; }
+.zb-cl, .zb-cr { max-width: 85%; border-radius: 12px; padding: 7px 11px; font-size: 14px; line-height: 1.45; word-wrap: break-word; }
+.zb-cl { align-self: flex-start; background: #fff; }
+.zb-cr { align-self: flex-end; background: #d4e8ff; }
+.zb-cl small, .zb-cr small { display: block; font-size: 11px; color: var(--muted); font-weight: 600; margin-bottom: 1px; }
