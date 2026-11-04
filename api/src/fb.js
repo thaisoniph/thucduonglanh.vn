@@ -157,7 +157,7 @@ async function onComment(x, p, v) {
   }
   await kvSet(x.db, hk, String(nh + 1), 2 * 3600e3);
   const pm = text.match(PHONE_RE), ph = pm ? normPhone(pm[0]) : '', hasPhone = /^0\d{9}$/.test(ph);
-  if (hasPhone) await saveLead(x, p, { psid: '', name, phone: ph, how: 'Khách để số trong bình luận', cmt: text, post }); // ghi số trước: bước sau lỗi cũng không mất khách
+  if (hasPhone) await saveLead(x, p, { psid: '', name, phone: ph, how: 'Khách để số trong bình luận', cmt: text, post, cid }); // ghi số trước: bước sau lỗi cũng không mất khách
   let bad = null, dmErr = null; const tryDo = async (k, f) => { try { await f(); did.push(k); } catch (e) { if (k === 'dm') dmErr = e; else bad = bad || e; console.error('fp ' + k, e.message); } }; // mỗi việc độc lập; nhắn riêng lỗi (vd app chưa duyệt, người bình luận chặn tin nhắn) không tính là trang lỗi
   if (c.like) await tryDo('like', () => graph(cid + '/likes', p.token, {}));
   if (hasPhone && c.hide) await tryDo('hide', () => graph(cid, p.token, { is_hidden: true })); // ẩn số điện thoại khỏi người khác
@@ -396,7 +396,7 @@ async function saveLead(x, p, o) {
   const asks = (o.asks || []).map(s => String(s).slice(0, 120)).slice(-5);
   const rf = await botRef(x, o.raw || [], o.phone); // 🌱 khách nói được người quen giới thiệu
   const ld = await addLead(x, { ...rf.lead, name: o.name || 'Khách fanpage', phone: o.phone, channel: 'Facebook', addInterest: true,
-    interest: 'Fanpage ' + p.name + (o.gift ? ' · Nhận quà cẩm nang' : ''), note: o.how + ' – fanpage "' + p.name + '"' + (o.cmt ? ' · Bình luận: ' + String(o.cmt).replace(PHONE_RE, '[SĐT]').slice(0, 150) : '') + (asks.length ? ' · Đã hỏi: ' + asks.join(' | ') : '') + rf.note + (o.post ? ' · Bài: https://facebook.com/' + o.post : ''),
+    interest: 'Fanpage ' + p.name + (o.gift ? ' · Nhận quà cẩm nang' : ''), note: o.how + ' – fanpage "' + p.name + '"' + (o.cmt ? ' · Bình luận: ' + String(o.cmt).replace(PHONE_RE, '[SĐT]').slice(0, 150) : '') + (asks.length ? ' · Đã hỏi: ' + asks.join(' | ') : '') + rf.note + (o.post ? ' · Bài: https://www.facebook.com/' + o.post + (o.cid ? '?comment_id=' + String(o.cid).split('_').pop() : '') : ''), // 04/11/2026: link mở thẳng bình luận của khách
     by: 'Website', auto: true });
   if (o.psid) await run(x.db, 'UPDATE fp_users SET phone = ?, lead = ? WHERE psid = ?', o.phone, ld.id, o.psid);
   if (o.psid) await run(x.db, 'UPDATE chats SET phone = ?, name = ?, lead = ? WHERE sid = ?', o.phone, o.name || '', ld.id, 'fb' + o.psid);

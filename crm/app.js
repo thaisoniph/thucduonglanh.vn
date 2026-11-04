@@ -3143,6 +3143,9 @@
   /** Tên sản phẩm quan tâm: số từ file QC để tên sheet / chiến dịch thô (“N1_GafoFucoidan”) → “Gafo Fucoidan”. */
   function intLabel(s) { s = String(s || '').trim(); return /^N\d+_/i.test(s) ? s.replace(/^N\d+_+/i, '').replace(/_+/g, ' ').replace(/([a-zà-ỹ])([A-ZÀ-Ỹ])/g, '$1 $2').trim() || s : s; }
   /** Ghi chú khách hỏi: số tiền file QC ghi thô (“Đơn: 900000”) → “Đơn: 900.000đ”. */
+  /** Link trong ghi chú bấm được (04/11/2026: link bài / bình luận fanpage). Nhận chuỗi đã esc. */
+  function noteLinks(h) { return h.replace(/https?:\/\/[^\s<]+[^\s<.,;)]/g, function (u) { return '<a href="' + u + '" target="_blank" rel="noopener">' + u + '</a>'; }); }
+  function fbLink(l) { var m = String(l.note || '').match(/https?:\/\/(www\.)?facebook\.com\/[^\s]+[^\s.,;)]/); return m ? m[0] : ''; }
   function leadNoteFmt(s) { return String(s || '').replace(/Đơn: (\d{4,})(?![\d.,])/g, function (a, n) { return 'Đơn: ' + money(+n); }); }
   /** Kênh khách hỏi để hiện: số từ file quảng cáo / file sale cũ đều là quảng cáo Facebook (anh Sơn 12/10/2026) → “Facebook Ads”; tên chiến dịch vẫn ở “Quan tâm”. */
   function chLabel(ch) { ch = String(ch || '').trim(); return /^(quảng cáo|file cũ)\s*[–-]/i.test(ch) ? 'Facebook Ads' : /^người quen giới thiệu$/i.test(ch) ? REF_CH : ch || 'Khác'; }
@@ -3366,7 +3369,7 @@
     var c = cust(l.phone), open = isOpenLead(l);
     var logs = logOf(l.phone).filter(function (x) { return x.what === 'Tư vấn' || x.what === 'Thêm tiềm năng'; });
     var body = (isMkt() ? '' : '<div class="acts steps" style="margin-bottom:12px">' + (open ? '<button class="btn pri" data-consult="' + esc(l.id) + '">💬 Tư vấn</button>' : '') +
-      '<a class="btn" href="tel:' + l.phone + '">📞 Gọi</a>' + // 31/10/2026: bỏ nút Zalo (trong Tư vấn đã có Nhắn Zalo), Sửa chuyển xuống khung thông tin → 1 hàng nút
+      '<a class="btn" href="tel:' + l.phone + '">📞 Gọi</a>' + (fbLink(l) ? '<a class="btn" href="' + esc(fbLink(l)) + '" target="_blank" rel="noopener">📘 ' + (/comment_id=/.test(fbLink(l)) ? 'Xem bình luận' : 'Xem bài viết') + '</a>' : '') + // 31/10/2026: bỏ nút Zalo (trong Tư vấn đã có Nhắn Zalo), Sửa chuyển xuống khung thông tin → 1 hàng nút
       (open || leadNoOrder(l) ? '<button class="btn" data-leadorder="' + esc(l.id) + '">🛒 ' + (open ? 'Chốt đơn' : 'Lên đơn') + '</button>' : '') + '</div>') +
       (c ? '<div class="notice info">👤 Số này đã là khách hàng: <b>' + esc(c.name) + '</b> · ' + c.orders + ' đơn, ' + money(c.spent) + ' <button class="btn" data-cust="' + c.phone + '" style="margin-left:6px">Xem khách</button></div>' : '') + (open && leadDue(l) === 'callback' ? '<div class="notice">' + leadDueLine(l) + '</div>' : '') + // tỉnh / bên mình có bao nhiêu khách ở đó: xem trong Tư vấn; mới hỏi / lâu chưa liên hệ đã có nhãn bên dưới
       (l.refPhone || l.refName ? '<div class="notice info">🎁 Được <b>' + esc(refWho(l.refPhone, l.refName)) + '</b>' + (l.refPhone ? ' (' + fPhone(l.refPhone) + ')' : '') + ' giới thiệu' + (cust(l.refPhone) ? ' <button class="btn" data-cust="' + cust(l.refPhone).phone + '" style="margin-left:6px">Xem người giới thiệu</button>' : '') + '</div>' : '') +
@@ -3374,7 +3377,7 @@
       '<div class="box"><div class="box-h"><h3 style="margin:0">Thông tin</h3>' + (isMkt() ? '' : '<button class="btn sm" data-editlead="' + esc(l.id) + '">✏️ Sửa</button>') + '</div><div class="grid-info">' + info('Điện thoại', fPhone(l.phone), false, normPhone(l.phone)) + info('Quan tâm', intLabel(l.interest) || '–') + info('Kênh', chLabel(l.channel) + (chLabel(l.channel) !== l.channel ? ' (' + l.channel + ')' : '')) + info('Ngày hỏi', fDate(l.time)) +
       (lvl() >= 2 || l.owner !== S.user.name ? info('Phụ trách', l.owner || '– Chưa ai –') : '') + (open && l.callback && leadDue(l) !== 'callback' ? info('Hẹn liên hệ lại', fDate(l.callback)) : '') + // trạng thái có ở tiêu đề, lần liên hệ gần nhất có ở nhãn tuổi → bỏ cho gọn
       (l.reason ? info('Lý do không mua', l.reason, true) : '') + (l.orderId ? info('Mã đơn', l.orderId, true, true) : '') + '</div></div>' +
-      '<div class="box"><h3>Ghi chú</h3><div class="pre">' + (l.note ? esc(leadNoteFmt(l.note)) : '<span class="muted">Chưa có ghi chú.</span>') + '</div></div>' +
+      '<div class="box"><h3>Ghi chú</h3><div class="pre">' + (l.note ? noteLinks(esc(leadNoteFmt(l.note))) : '<span class="muted">Chưa có ghi chú.</span>') + '</div></div>' +
       (open && !isMkt() ? giftBox(giftPerson(l.phone), '') : '') +
       '<div class="box"><h3>Lịch sử tư vấn (' + logs.length + ')</h3>' + (logs.length ? '<div class="timeline">' + logs.slice(0, 3).map(logItem).join('') + '</div>' + (logs.length > 3 ? '<details class="k-msg"><summary>Xem thêm ' + (logs.length - 3) + ' lần cũ hơn</summary><div class="timeline">' + logs.slice(3).map(logItem).join('') + '</div></details>' : '') : '<p class="muted">Chưa có.</p>') + '</div>' +
       (lvl() >= 3 ? '<details class="p-edit"><summary>🗑 Xoá khách hỏi (chỉ Quản trị)</summary><div class="box" style="margin:8px 0 0"><p class="small muted" style="margin:0 0 8px">Dùng cho số nhập thử / nhập nhầm. Chỉ xoá lần hỏi này và lịch sử tư vấn của nó' + (c ? ', hồ sơ khách <b>' + esc(c.name) + '</b> và đơn hàng vẫn giữ nguyên' : '') + '. Không khôi phục được.</p><button class="btn danger" data-leaddel="' + esc(l.id) + '">🗑 Xoá khách hỏi này</button></div></details>' : '');
