@@ -369,7 +369,7 @@ async function onMessage(x, p, m, app) {
     const res = await ai(x.env).messages.create({ model: FAST, max_tokens: 1500, output_config: { effort: 'low' },
       system: [{ type: 'text', text: MSG_RULES + '\n' + REF_RULES + '\n' + TRUTH_RULES.replace(/mời nhắn Zalo/g, 'thêm [[zalo]] để chuyên viên hỗ trợ') },
         { type: 'text', text: 'TÀI LIỆU (thông tin chính thức của Thực Dưỡng Lành):\n\n' + know, cache_control: { type: 'ephemeral' } },
-        { type: 'text', text: 'Fanpage: "' + p.name + '". Bây giờ là ' + w.label + '. Chuyên viên ' + (w.on ? 'đang trực.' : 'ngoài giờ (trực Thứ 2 – Thứ 7, 8h–17h): nhắn lại từ 8h sáng hôm sau.') + (u.name ? ' Tên Facebook của khách: ' + u.name + '.' : '') + (src.text ? ' Khách đến từ bình luận: "' + src.text + '".' : '') + (u.phone ? ' Khách ĐÃ để số và đã nhận quà, không mời nhận quà nữa.' : u.gift ? ' Đã xin số để gửi quà, chưa nhận được.' : '') }],
+        { type: 'text', text: 'Fanpage: "' + p.name + '". Bây giờ là ' + w.label + '. Chuyên viên ' + (w.on ? 'đang trực.' : 'ngoài giờ (trực Thứ 2 – Thứ 7, 8h–17h): nhắn lại từ 8h sáng hôm sau.') + (u.name ? ' Tên Facebook của khách: ' + u.name + '.' : '') + (src.text ? ' Khách đến từ bình luận: "' + src.text + '".' : '') + (u.phone ? ' (Ghi chú nội bộ, không nhắc lại với khách: khách đã để số và đã nhận quà, đừng mời nhận quà nữa. Không gọi khách là "khách" khi nói chuyện.)' : u.gift ? ' (Ghi chú nội bộ: đã xin số để gửi quà, khách chưa gửi.)' : '') }],
       messages: merged });
     reply = res.stop_reason === 'refusal' ? 'Câu này em xin phép chưa trả lời được ạ, để chị chuyên viên bên em nhắn lại cho mình nha. [[zalo]]' : textOf(res);
   } catch (e) { aerr = e; console.error('fp ai', e && (e.status || ''), e && e.message); }
