@@ -71,6 +71,16 @@ Tối Thứ 4 có **đố vui**, sáng Thứ 5 trợ lý **công bố đáp án*
 
 Bài đã đăng có dòng **📊** cho biết trong 2 tiếng sau khi đăng có bao nhiêu người nhắn, gửi ảnh, thả cảm xúc. Nếu khách bấm link trong bài rồi đặt hàng trên web, dòng này hiện thêm **🛒 số đơn**. Đầu tab có bảng **Hiệu quả bài đăng theo phễu (30 ngày)** để so loại bài nào làm nhóm sôi nổi, loại nào ra đơn.
 
+### Xem lại tất cả bài đã đăng
+
+Bấm nút **📚 Bài đã đăng & hiệu quả** ở đầu tab Zalo. Ở đây có mọi bài đã đăng trong 90 ngày:
+
+- Lọc theo loại bài: **🔵 Tương tác**, **⚪ Niềm tin**, **🟠 Bán hàng**.
+- Xếp theo: **🕘 Mới nhất**, **👥 Nhiều người tương tác** (3 bài tốt nhất có ⭐), **🛒 Ra đơn**.
+- Bấm vào một bài để xem lại nội dung.
+
+Mỗi tuần nên xem 1 lần: bài nào nhiều người hưởng ứng thì nhờ AI viết thêm kiểu đó (bấm **🔄 Viết lại** và gõ ý, ví dụ "viết kiểu đố vui như tuần trước"). AI cũng tự học: khi soạn bài mới, AI xem bài cùng loại nào được hưởng ứng nhiều nhất và ít nhất để viết cho hợp.
+
 ## Đổi ảnh kèm bài
 
 AI tự chọn ảnh. Bài nói về sản phẩm thì kèm ảnh sản phẩm. Bài khác thì AI chọn một ảnh trên web hợp với chủ đề. Không có ảnh hợp thì bài chỉ có chữ.

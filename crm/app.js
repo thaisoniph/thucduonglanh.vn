@@ -5212,7 +5212,7 @@
   function zbSlot(id) { return (ZB.d.cfg.slots || []).filter(function (s) { return s.id === id; })[0] || { id: id, at: '', on: false }; }
   function viewZbot() {
     if (!ZB.d && !ZB.err && !ZB.busy) setTimeout(zbFetch, 0);
-    var h = '<div class="page-head"><h1>🤖 Trợ lý Zalo An Lành</h1><div class="grow"></div><button class="btn pri" data-zb="send">📣 Gửi tin vào nhóm</button></div>' +
+    var h = '<div class="page-head"><h1>🤖 Trợ lý Zalo An Lành</h1><div class="grow"></div><button class="btn pri" data-zb="send">📣 Gửi tin vào nhóm</button><button class="btn" data-zb="hist">📚 Bài đã đăng &amp; hiệu quả</button></div>' +
       '<p class="muted small lq-intro">Tài khoản Zalo <b>“Trợ lý An Lành”</b> làm phó nhóm: chào người mới, trả lời câu hỏi, chúc mừng khách vừa nhận quà trên web, tự duyệt người đã để số, đăng bài sáng và tối. Câu nào cần người thật thì báo Telegram.</p>';
     if (!ZB.d) return h + '<div class="box"><p class="muted">' + (ZB.err ? '⚠️ ' + esc(ZB.err) + ' <button class="link" data-zb="reload">Thử lại</button>' : '⏳ Đang tải…') + '</p></div>';
     var j = ZB.d, c = j.cfg, st = j.status, live = st && !st.down && j.now - st.at < 15 * 60e3, n = {};
@@ -5300,6 +5300,7 @@
     var v = t.getAttribute('data-zb').split('|'), id = v[1] || '';
     if (v[0] === 'reload') { ZB.err = ''; ZB.d = null; return render(); }
     if (v[0] === 'send') return zbSendOpen();
+    if (v[0] === 'hist') return zbHistOpen();
     var after = function (msg) { return function () { toast(msg); zbFetch(); }; }, fail = function (e) { t.disabled = false; toast(e.message, true); };
     if (v[0] === 'save' || v[0] === 'ok' || v[0] === 'skip' || v[0] === 'draft') {
       var ta = $('#zbT_' + id); t.disabled = true;
@@ -5321,6 +5322,30 @@
       t.disabled = true; return api('zb_cfg', { cfg: cfg }).then(after('Đã lưu cài đặt ✓ Trợ lý áp dụng trong khoảng 1 phút.'), fail);
     }
   });
+  function zbHistOpen() { // 📚 mọi bài đã đăng trong 90 ngày + tương tác + đơn, lọc theo phễu, xếp theo hiệu quả
+    var m = modal('📚 Bài đã đăng & hiệu quả', '<p class="muted">Đang tải…</p>', '<button class="btn" data-close>Đóng</button>'), F = { f: '', sort: 'new', open: {} }, P = [];
+    var body = $('.sheet-b', m);
+    function draw() {
+      var L = P.filter(function (p) { return !F.f || p.funnel === F.f; }), T = L.filter(function (p) { return p.tracked; });
+      var avg = function (k) { return String(T.length ? Math.round(T.reduce(function (s, p) { return s + (p[k] || 0); }, 0) / T.length * 10) / 10 : 0).replace('.', ','); };
+      var S2 = L.slice().sort(F.sort === 'new' ? function (a, b) { return b.sent_at - a.sent_at; } : F.sort === 'top' ? function (a, b) { return (b.tracked - a.tracked) || (b.eng_people - a.eng_people) || (b.eng_msgs - a.eng_msgs); } : function (a, b) { return (b.orders - a.orders) || (b.rev - a.rev) || (b.eng_people - a.eng_people); });
+      var chip = function (k, v, t) { return '<button class="chip' + (F[k] === v ? ' on' : '') + '" data-zh="' + k + '|' + v + '">' + t + '</button>'; };
+      var h = '<p class="small muted" style="margin:0 0 8px">Số đo tính trong <b>2 tiếng sau khi đăng</b>: số người nhắn / gửi ảnh / thả cảm xúc (không tính đội ngũ). 🛒 = đơn khách đặt trên web qua link trong bài. Bài trước 31/10 chưa có số đo.</p>' +
+        '<div class="chips">' + chip('f', '', 'Tất cả') + chip('f', 'TOFU', '🔵 Tương tác') + chip('f', 'MOFU', '⚪ Niềm tin') + chip('f', 'BOFU', '🟠 Bán hàng') + '</div>' +
+        '<div class="chips" style="margin-top:6px">' + chip('sort', 'new', '🕘 Mới nhất') + chip('sort', 'top', '👥 Nhiều người tương tác') + chip('sort', 'ord', '🛒 Ra đơn') + '</div>' +
+        '<div class="zb-hsum"><div><b>' + L.length + '</b><span>bài đã đăng</span></div><div><b>' + avg('eng_people') + '</b><span>người tương tác / bài</span></div><div><b>' + avg('eng_msgs') + '</b><span>tin nhắn / bài</span></div><div><b>' + L.reduce(function (s, p) { return s + p.orders; }, 0) + '</b><span>đơn từ link bài</span></div></div>';
+      h += S2.length ? S2.map(function (p, i) {
+        var best = F.sort === 'top' && p.tracked && i < 3 ? ' ⭐' : '';
+        return '<div class="box zb-hrow" data-zh="open|' + p.id + '"><div class="zb-ph"><b>' + fDateTime(p.sent_at) + ' · ' + (p.slot === 'toi' ? '🌙 tối' : '☀️ sáng') + best + '</b>' + (p.funnel ? '<span class="zb-fun zb-fun-' + p.funnel.toLowerCase() + '">' + ZB_FUN[p.funnel] + '</span>' : '') + '</div>' +
+          '<p style="margin:4px 0">' + esc(p.topic) + (p.img ? ' <span class="muted small">· 🖼 có ảnh</span>' : '') + '</p>' +
+          '<p class="small zb-eng">' + (p.tracked ? '👥 <b>' + (p.eng_people || 0) + '</b> người · 💬 ' + (p.eng_msgs || 0) + ' tin · ❤️ ' + (p.eng_reacts || 0) + ' cảm xúc' : '<span class="muted">chưa có số đo</span>') + (p.orders ? ' · 🛒 <b>' + p.orders + ' đơn</b> (' + moneyShort(p.rev) + ')' : '') + '</p>' +
+          (F.open[p.id] ? '<pre class="zb-htext">' + esc(p.text) + '</pre>' : '<p class="small muted" style="margin:0">Bấm để xem nội dung bài</p>') + '</div>';
+      }).join('') : '<p class="muted">Chưa có bài nào.</p>';
+      body.innerHTML = h;
+    }
+    m.addEventListener('click', function (e) { var b = e.target.closest('[data-zh]'); if (!b) return; var v = b.getAttribute('data-zh').split('|'); if (v[0] === 'open') F.open[v[1]] = !F.open[v[1]]; else F[v[0]] = v[1]; draw(); });
+    api('zb_hist', {}).then(function (j) { P = j.posts || []; draw(); }, function (e) { body.innerHTML = '<p class="err">' + esc(e.message) + '</p>'; });
+  }
   function zbImgOpen(id) { // 🖼 đổi ảnh bài đăng: chọn trong kho ảnh thật của web / tải từ máy / bỏ ảnh
     var p = ((ZB.d && ZB.d.posts) || []).filter(function (x) { return x.id === id; })[0]; if (!p) return;
     var lib = (ZB.d && ZB.d.lib) || [];

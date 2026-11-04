@@ -54,6 +54,8 @@ const THEME = {
     { f: 'BOFU', t: 'Nhắc nhẹ cuối tuần: ưu đãi đang chạy (nếu có) hoặc hướng dẫn đặt hàng trên web 3 bước (được kiểm hàng trước khi nhận, freeship từ 300k), không thúc ép; để 1 link sản phẩm hợp nhất', link: 1 },
     { f: 'TOFU', t: 'Cuối tuần: mời mọi người khoe mâm cơm / bữa ăn lành của nhà mình, hoặc rủ cả nhà cùng nấu 1 món lành' }]
 };
+/** 31/10/2026 11:14: chương trình Zalo bắt đầu đếm tương tác; bài trước giờ này không có số đo (không tính vào thống kê) */
+const TRACK_FROM = Date.UTC(2026, 9, 31, 4, 14);
 const FUNNEL = { TOFU: '🔵 Nhận biết – tương tác', MOFU: '⚪ Cân nhắc – tạo niềm tin', BOFU: '🟠 Chuyển đổi – bán hàng' };
 
 let client = null;
@@ -450,6 +452,9 @@ export async function zWrite(x, day, slot, hint, by) {
   // cảm nhận khách hàng thật (anh Sơn cho phép đăng trong nhóm 31/10/2026): lấy cái lâu chưa dùng nhất
   const fbs = th.fb ? ((await kvJson(x.db, 'zb_fb', [])) || []).filter(f => f.on !== false).sort((a, b) => (a.used || 0) - (b.used || 0)) : [];
   const fb = fbs[0] || null;
+  // học từ số đo: bài cùng tầng phễu nhiều người tương tác nhất / ít nhất trong 45 ngày
+  const scored = await all(x.db, "SELECT topic, funnel, eng_people, eng_msgs FROM zb_posts WHERE status = 'sent' AND sent_at >= ? AND funnel = ? ORDER BY eng_people DESC, eng_msgs DESC", Math.max(TRACK_FROM, Date.now() - 45 * DAY), th.f);
+  const learn = scored.length >= 4 ? 'Bài cùng loại trong nhóm này được nhiều người hưởng ứng nhất (học cách đặt vấn đề, cách hỏi):\n' + scored.slice(0, 3).map(r => '- ' + r.topic + ' (' + r.eng_people + ' người)').join('\n') + '\nBài ít người hưởng ứng (tránh kiểu này):\n' + scored.slice(-2).map(r => '- ' + r.topic + ' (' + r.eng_people + ' người)').join('\n') : '';
   const ask = [
     'Viết 1 bài đăng nhóm Zalo cộng đồng "Sống khỏe cùng Thực Dưỡng Lành" (thành viên phần lớn là cô chú trung niên, mẹ bỉm, người ăn chay, dân văn phòng).',
     'Ngày: ' + ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'][wd] + ' ' + day.slice(6, 8) + '/' + day.slice(4, 6) + ' · ' + (sang ? 'đăng lúc sáng sớm' : 'đăng buổi tối') + '.',
@@ -457,6 +462,7 @@ export async function zWrite(x, day, slot, hint, by) {
     quiz ? 'CÂU ĐỐ TỐI QUA (công bố đáp án đúng, giải thích 1–2 câu):\n' + String(quiz.text).slice(0, 1200) : th.quiz ? 'Tối qua không có câu đố: bỏ phần đáp án, chỉ làm phần hỏi đáp.' : '',
     th.fb ? (fb ? 'CẢM NHẬN KHÁCH HÀNG (thật, khách đồng ý chia sẻ; chỉ dùng đúng ý này, không thêm chi tiết, không nêu họ tên đầy đủ – gọi "một chị khách", "anh khách quen"…):\n' + fb.note : 'Chưa có cảm nhận khách hàng mới: thay bằng câu hỏi mời mọi người kể trải nghiệm dùng sản phẩm của mình (không bịa cảm nhận).') : '',
     th.f === 'BOFU' ? (offers.length ? 'ƯU ĐÃI ĐANG CHẠY (chỉ nói đúng như sau):\n' + offers.map(o => '- ' + [o.title, o.prod ? 'sản phẩm: ' + o.prod : '', o.text, o.until ? 'hạn đến ' + o.until : ''].filter(Boolean).join(' · ')).join('\n') : 'Hiện không có ưu đãi riêng: không bịa khuyến mãi, chỉ nhắc freeship đơn từ 300k và được kiểm hàng trước khi nhận.') : '',
+    learn,
     recent.length ? 'Các bài gần đây (KHÔNG lặp lại chủ đề / nguyên liệu / món / sản phẩm đã viết trong 7 ngày):\n' + recent.map(r => '- ' + r.day.slice(6, 8) + '/' + r.day.slice(4, 6) + ' ' + (SLOT_NAME[r.slot] || r.slot) + ': ' + r.topic).join('\n') : '',
     '',
     'Giọng văn: như một người chăm nhóm thật, ấm áp, gần gũi, kính trọng ("cô chú, anh chị"), xưng "Thực Dưỡng Lành" hoặc "em". Không văn quảng cáo, không giật tít, không hù dọa bệnh tật.',
@@ -487,7 +493,7 @@ export async function zWrite(x, day, slot, hint, by) {
   if (!body) throw new Error('AI chưa viết được bài');
   const id = day + '_' + slot, now = Date.now();
   // link web trong bài → gắn mã bài để CRM đếm đơn từ bài này (đơn ghi nguồn "zalo / nhom / <mã bài>")
-  const tagged = body.replace(/https:\/\/thucduonglanh\.vn[^\s)]*/g, u => u.replace(/[?#].*$/, '') + '?utm_source=zalo&utm_medium=nhom&utm_campaign=' + id);
+  const tagged = body.replace(/(^|[\s(])_([^_\n]+)_(?=[\s).,!?]|$)/gm, '$1$2').replace(/(^|[\s(])\*([^*\n]+)\*(?=[\s).,!?]|$)/gm, '$1$2').replace(/https:\/\/thucduonglanh\.vn[^\s)]*/g, u => u.replace(/[?#].*$/, '') + '?utm_source=zalo&utm_medium=nhom&utm_campaign=' + id);
   if (fb) { const all = (await kvJson(x.db, 'zb_fb', [])) || []; for (const f of all) if (f.id === fb.id) f.used = now; await kvSet(x.db, 'zb_fb', JSON.stringify(all)); }
   await run(x.db, `INSERT INTO zb_posts (id, day, slot, topic, text, img, prod, status, by_name, at, funnel) VALUES (?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET topic = excluded.topic, text = excluded.text, img = excluded.img, prod = excluded.prod, status = 'draft', by_name = excluded.by_name, at = excluded.at, funnel = excluded.funnel`,
@@ -550,6 +556,13 @@ export async function crmZbot(x, u, d, crmLog) {
     await run(x.db, 'UPDATE zb_posts SET img = ?, by_name = ?, at = ? WHERE id = ?', img, u.name, now, p.id);
     await crmLog(x, u, 'Bài Zalo', p.id, '', img ? 'Đổi ảnh' : 'Bỏ ảnh', p.topic);
     return { ok: true, img };
+  }
+  if (a === 'zb_hist') { // 📚 bài đã đăng & hiệu quả (90 ngày)
+    const since = now - 90 * DAY;
+    const rows = await all(x.db, "SELECT id, day, slot, topic, text, img, funnel, sent_at, eng_msgs, eng_people, eng_reacts FROM zb_posts WHERE status = 'sent' AND sent_at >= ? ORDER BY sent_at DESC", since);
+    const ords = await all(x.db, "SELECT source, first_source, total, status FROM orders WHERE time >= ? AND (source LIKE 'zalo / nhom / %' OR first_source LIKE 'zalo / nhom / %')", since);
+    const byPost = {}; for (const o of ords) { if (isVoid(o.status)) continue; const m = String(o.source).match(/^zalo \/ nhom \/ (\S+)/) || String(o.first_source).match(/^zalo \/ nhom \/ (\S+)/); if (!m) continue; const b = byPost[m[1]] || (byPost[m[1]] = { n: 0, rev: 0 }); b.n++; b.rev += Number(o.total) || 0; }
+    return { ok: true, track: TRACK_FROM, posts: rows.map(p => Object.assign(p, { tracked: p.sent_at >= TRACK_FROM, orders: (byPost[p.id] || {}).n || 0, rev: (byPost[p.id] || {}).rev || 0 })) };
   }
   if (a === 'zb_regen') {
     const p = await first(x.db, 'SELECT day, slot, status FROM zb_posts WHERE id = ?', String(d.id || ''));
