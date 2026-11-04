@@ -95,6 +95,17 @@ Bấm nút **📚 Bài đã đăng & hiệu quả** ở đầu tab Zalo. Ở đ�
 
 Mỗi tuần nên xem 1 lần: bài nào nhiều người hưởng ứng thì nhờ AI viết thêm kiểu đó (bấm **🔄 Viết lại** và gõ ý, ví dụ "viết kiểu đố vui như tuần trước"). AI cũng tự học: khi soạn bài mới, AI xem bài cùng loại nào được hưởng ứng nhiều nhất và ít nhất để viết cho hợp.
 
+### Thử giờ đăng bài sáng và giờ nhóm hay nhắn tin
+
+Từ **10/11 đến 23/11**, bài sáng được thử ở 2 giờ, mỗi giờ 1 tuần. Trợ lý tự đổi giờ, bạn không cần chỉnh gì:
+
+- **10/11–16/11:** đăng lúc **6h15**
+- **17/11–23/11:** đăng lúc **9h00**
+
+Hạn duyệt bài sáng cũng đổi theo (ví dụ "Cần duyệt trước 6h15 ngày mai"), nên tuần đầu **duyệt bài sáng từ tối hôm trước**.
+
+Trong tab Zalo, ô **🧪 Thử giờ đăng bài sáng** so số người tương tác trung bình mỗi bài ở 7h30 (trước đây), 6h15 và 9h00. Giờ tốt nhất có ⭐. Biểu đồ **🕐 Giờ thành viên hay nhắn tin** cho biết nhóm đông người nói chuyện nhất vào giờ nào. Thử xong, anh Sơn sẽ chốt 1 giờ cố định.
+
 ## Đổi ảnh kèm bài
 
 AI tự chọn ảnh. Bài nói về sản phẩm thì kèm ảnh sản phẩm. Bài khác thì AI chọn một ảnh trên web hợp với chủ đề. Không có ảnh hợp thì bài chỉ có chữ.

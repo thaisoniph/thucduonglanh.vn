@@ -33,6 +33,9 @@ const CFG0 = {
   maxHour: 8 // số câu trả lời tối đa / nhóm / giờ (tránh "nói nhiều", Zalo khoá)
 };
 const SLOT_NAME = { sang: 'Bài sáng', toi: 'Bài tối' };
+/** 🧪 Thử giờ đăng bài sáng (anh Sơn duyệt 05/11/2026): mỗi khung 1 tuần, cùng chủ đề theo thứ → so người tương tác trung bình rồi chốt 1 giờ */
+export const TIME_TRIAL = [{ from: '20261110', to: '20261116', slot: 'sang', at: '06:15' }, { from: '20261117', to: '20261123', slot: 'sang', at: '09:00' }];
+const slotAt = (sl, day) => { const t = TIME_TRIAL.find(z => z.slot === sl.id && day >= z.from && day <= z.to); return t ? t.at : sl.at; };
 // Lịch chủ đề trong tuần (0 = Chủ nhật). Sửa ở đây là bài soạn sau sẽ theo.
 /** Lịch chủ đề theo phễu nội dung (31/10/2026, anh Sơn duyệt): người trong nhóm đã để số nhận quà → nhóm chủ yếu giữ chân + tạo niềm tin, bán vừa phải.
  * TOFU 🔵 tương tác, giá trị (8 bài/tuần) · MOFU ⚪ tạo niềm tin (4 bài) · BOFU 🟠 chuyển đổi (2 bài). Chỉ số = thứ trong tuần (0 = Chủ nhật). */
@@ -78,6 +81,7 @@ export async function zbotSchema(db) {
   await run(db, `CREATE TABLE IF NOT EXISTS zb_log (rid INTEGER PRIMARY KEY AUTOINCREMENT, at INTEGER, kind TEXT, gid TEXT DEFAULT '', uid TEXT DEFAULT '', name TEXT DEFAULT '',
     text TEXT DEFAULT '', reply TEXT DEFAULT '')`); // nhật ký trợ lý (CRM xem)
   await run(db, 'CREATE INDEX IF NOT EXISTS zb_log_at ON zb_log(at)');
+  await run(db, 'CREATE TABLE IF NOT EXISTS zb_act (dh TEXT PRIMARY KEY, msgs INTEGER DEFAULT 0, people INTEGER DEFAULT 0)'); // 05/11/2026: tin nhắn thành viên theo giờ (dh = yyyyMMddHH giờ VN), chọn giờ đăng
 }
 
 /** Khung giờ này tự đăng hay chờ duyệt (31/10/2026: mỗi khung giờ chọn riêng; khung chưa chọn thì theo chế độ chung) */
@@ -118,6 +122,8 @@ async function zPoll(x, d) {
   const st = { at: now, me: d.me || null, groups: (d.groups || []).slice(0, 50), ver: String(d.ver || '') };
   if (!old || now - old.at > 4 * 60e3 || JSON.stringify(old.groups) !== JSON.stringify(st.groups) || (old.down && !st.down)) await kvSet(x.db, 'zb_status', JSON.stringify(st)); // ghi 4 phút / lần cho đỡ tốn
   if (old && old.down) x.later(telegram(x.env, '✅ <b>Trợ lý Zalo An Lành đã chạy lại</b>'));
+  for (const a of (Array.isArray(d.act) ? d.act : []).slice(0, 6)) if (/^\d{10}$/.test(String(a.dh))) // tin nhắn thành viên theo giờ (chương trình Zalo đếm, gửi số cộng dồn của giờ đó)
+    await run(x.db, 'INSERT INTO zb_act (dh, msgs, people) VALUES (?, ?, ?) ON CONFLICT(dh) DO UPDATE SET msgs = max(zb_act.msgs, excluded.msgs), people = max(zb_act.people, excluded.people)', String(a.dh), Number(a.msgs) || 0, Number(a.people) || 0);
   for (const t of (Array.isArray(d.stats) ? d.stats : []).slice(0, 20)) // tương tác 2 tiếng sau khi đăng bài (chương trình Zalo đếm)
     await run(x.db, 'UPDATE zb_posts SET eng_msgs = ?, eng_people = ?, eng_reacts = ? WHERE id = ?', Number(t.msgs) || 0, Number(t.people) || 0, Number(t.reacts) || 0, String(t.id || ''));
   if (!cfg.groups.length && !(await kvGet(x.db, 'zb_cfg'))) { // lần đầu: tự chọn nhóm của Thực Dưỡng Lành
@@ -163,7 +169,7 @@ async function zPoll(x, d) {
     const day = fmtDate(now, 'yyyyMMdd');
     for (const p of await all(x.db, "SELECT * FROM zb_posts WHERE day = ? AND status IN ('draft', 'ok')", day)) {
       const sl = cfg.slots.find(s => s.id === p.slot); if (!sl || !sl.on) continue;
-      const t = slotTime(day, sl.at); if (now < t || now > t + 2 * 3600e3) continue;
+      const t = slotTime(day, slotAt(sl, day)); if (now < t || now > t + 2 * 3600e3) continue;
       if (p.status === 'draft' && !slotAuto(cfg, p.slot)) continue;
       if (!String(p.text || '').trim()) continue;
       await run(x.db, "UPDATE zb_posts SET status = 'sent', sent_at = ? WHERE id = ? AND status = ?", now, p.id, p.status);
@@ -440,7 +446,7 @@ export async function zbotTick(x) {
   const days = [fmtDate(now, 'yyyyMMdd'), fmtDate(now + DAY, 'yyyyMMdd')];
   const have = new Set((await all(x.db, 'SELECT id FROM zb_posts WHERE day IN (?, ?)', days[0], days[1])).map(r => r.id));
   for (const day of days) for (const sl of cfg.slots) {
-    if (!sl.on || have.has(day + '_' + sl.id) || slotTime(day, sl.at) < now + 20 * 60e3) continue;
+    if (!sl.on || have.has(day + '_' + sl.id) || slotTime(day, slotAt(sl, day)) < now + 20 * 60e3) continue;
     try { await zWrite(x, day, sl.id, ''); } catch (e) { console.error('zWrite', e.message); await kvSet(x.db, 'zb_write_err', fmtDate(now, 'HH:mm dd/MM') + ': ' + String(e.message).slice(0, 200)); }
     return;
   }
@@ -542,7 +548,12 @@ export async function crmZbot(x, u, d, crmLog) {
     const lib = (await imgLib()).map(i => ({ url: i.url, thumb: i.thumb || i.url, alt: i.alt }));
     const stats = await all(x.db, 'SELECT kind, count(*) AS n FROM zb_log WHERE at > ? GROUP BY kind', now - 7 * DAY);
     const users = await first(x.db, "SELECT count(*) AS n, sum(CASE WHEN phone != '' THEN 1 ELSE 0 END) AS known, sum(CASE WHEN joined > ? AND phone != '' THEN 1 ELSE 0 END) AS joined7, sum(CASE WHEN joined > ? THEN 1 ELSE 0 END) AS in30, sum(CASE WHEN joined > ? AND friend IS NOT NULL THEN 1 ELSE 0 END) AS fr30, sum(CASE WHEN friend > ? THEN 1 ELSE 0 END) AS fr7 FROM zb_users", now - 7 * DAY, now - 30 * DAY, now - 30 * DAY, now - 7 * DAY);
-    return { ok: true, cfg, status: st, posts, log, lib, funnel, stats, users, err: await kvGet(x.db, 'zb_write_err'), key: !!x.env.ZBOT_KEY, aiOn: !!x.env.ANTHROPIC_API_KEY, now };
+    // 🕐 giờ nhóm hoạt động 14 ngày + 🧪 kết quả thử giờ đăng bài sáng (theo giờ đăng thật)
+    const act = await all(x.db, "SELECT substr(dh, 9, 2) AS h, sum(msgs) AS msgs, sum(people) AS people, count(*) AS n FROM zb_act WHERE dh >= ? GROUP BY h", fmtDate(now - 14 * DAY, 'yyyyMMddHH'));
+    const actDays = (await first(x.db, 'SELECT count(DISTINCT substr(dh, 1, 8)) AS n FROM zb_act WHERE dh >= ?', fmtDate(now - 14 * DAY, 'yyyyMMddHH'))).n || 0;
+    const morn = await all(x.db, "SELECT sent_at, eng_people, eng_msgs, eng_reacts FROM zb_posts WHERE slot = 'sang' AND status = 'sent' AND sent_at >= ?", TRACK_FROM);
+    const trialRes = {}; for (const p of morn) { const k = fmtDate(p.sent_at, 'HH'), r = trialRes[k] || (trialRes[k] = { posts: 0, people: 0, msgs: 0, reacts: 0 }); r.posts++; r.people += p.eng_people || 0; r.msgs += p.eng_msgs || 0; r.reacts += p.eng_reacts || 0; }
+    return { ok: true, cfg, status: st, posts, log, lib, funnel, act, actDays, trial: TIME_TRIAL, trialRes, stats, users, err: await kvGet(x.db, 'zb_write_err'), key: !!x.env.ZBOT_KEY, aiOn: !!x.env.ANTHROPIC_API_KEY, now };
   }
   if (a === 'zb_cfg') {
     const cfg = await zCfg(x), c = d.cfg || {};

@@ -9,7 +9,7 @@ import { execFile } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const VER = '2026-11-05a';
+const VER = '2026-11-05b';
 const DIR = dirname(fileURLToPath(import.meta.url)), TMP = join(DIR, 'tmp'), CREDS = join(DIR, 'creds.json'), QR = join(DIR, 'qr.png');
 for (const l of (existsSync(join(DIR, '.env')) ? readFileSync(join(DIR, '.env'), 'utf8') : '').split('\n')) { const m = l.match(/^\s*([A-Z_]+)\s*=\s*(.*)\s*$/); if (m && !process.env[m[1]]) process.env[m[1]] = m[2]; }
 const API = process.env.API_URL || 'https://api.thucduonglanh.vn/', KEY = process.env.ZBOT_KEY;
@@ -99,6 +99,14 @@ const groupList = () => Object.entries(G).map(([id, g]) => ({ id, name: g.name |
 // mỗi tin đăng (bài AI, tin nhân sự gửi, tin chúc mừng) 1 cửa sổ đo; tin nhắn trong nhóm tính cho tin đăng gần nhất, cảm xúc tính đúng tin được thả
 const WATCH = {}, WATCH_MS = 2 * 3600e3;
 function watchPost(gid, ref, ids) { WATCH[ref] = { gid, ref, ids: new Set(ids), at: Date.now(), until: Date.now() + WATCH_MS, msgs: 0, people: new Set(), reacts: 0, dirty: 1 }; }
+// 🕐 tin nhắn thành viên theo giờ (giờ máy = giờ Việt Nam), gửi số cộng dồn của giờ đó kèm vòng hỏi máy chủ
+const ACT = {};
+function actMsg(gid, uid) {
+  if (!isMine(gid)) return;
+  const d = new Date(), k = d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0') + String(d.getHours()).padStart(2, '0');
+  const a = ACT[k] || (ACT[k] = { msgs: 0, people: new Set() }); a.msgs++; a.people.add(String(uid)); a.dirty = 1;
+}
+function actStats() { const out = [], keys = Object.keys(ACT).sort(); for (const k of keys) { if (ACT[k].dirty) out.push({ dh: k, msgs: ACT[k].msgs, people: ACT[k].people.size }); ACT[k].dirty = 0; } for (const k of keys.slice(0, -2)) delete ACT[k]; return out; }
 function watchMsg(gid, uid) {
   let w = null; for (const v of Object.values(WATCH)) if (v.gid === gid && Date.now() <= v.until && (!w || v.at > w.at)) w = v;
   if (!w) return; w.msgs++; w.people.add(String(uid)); w.dirty = 1;
@@ -131,7 +139,7 @@ async function poll() {
       try { const p = await api.getPendingGroupMembers(gid); if (p && p.users && p.users.length) pending[gid] = p.users.map(u => ({ uid: u.uid, name: u.dpn })); } catch (e) { }
     }
   }
-  const r = await call('poll', { me: { uid: me, name: myName, phone: myPhone }, groups: groupList(), pending, ver: VER, stats: watchStats() });
+  const r = await call('poll', { me: { uid: me, name: myName, phone: myPhone }, groups: groupList(), pending, ver: VER, stats: watchStats(), act: actStats() });
   if (r.cfg) CFG = r.cfg;
   for (const [gid, uids] of Object.entries(r.approve || {})) {
     try { const res = await api.reviewPendingMemberRequest({ members: uids, isApprove: true }, gid); log('✅ duyệt vào nhóm', G[gid] && G[gid].name, JSON.stringify(res)); } catch (e) { log('duyệt', e.message); }
@@ -170,7 +178,7 @@ async function onMessage(m) {
   }
   const gid = m.threadId, g = G[gid]; if (!g) return;
   const staff = g.admins && g.admins.has(d.uidFrom);
-  if (!staff) watchMsg(gid, d.uidFrom); // đếm cả ảnh, sticker (khoe mâm cơm…)
+  if (!staff) { watchMsg(gid, d.uidFrom); actMsg(gid, d.uidFrom); } // đếm cả ảnh, sticker (khoe mâm cơm…)
   if (!text) return;
   remember(gid, { uid: d.uidFrom, name: d.dName, text, staff: staff ? 1 : 0 });
   if (!isMine(gid) || !CFG.on) return;

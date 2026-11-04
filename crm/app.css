@@ -1530,3 +1530,9 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .zb-donei .zb-eng { margin: 0; padding: 3px 10px; }
 @media (max-width: 899px) { .zb-grid .zb-side { order: -1; } .zb-prev img { max-height: 240px; } }
 @media (min-width: 900px) { .zb-prev img { max-height: 300px; } }
+.zb-best { border: 2px solid var(--gold); }
+.zb-hours { display: grid; grid-template-columns: repeat(24, 1fr); gap: 3px; align-items: end; height: 150px; padding: 12px 10px 22px; }
+.zb-hcol { position: relative; height: 100%; display: flex; align-items: flex-end; }
+.zb-hcol span { display: block; width: 100%; background: var(--primary-light); border-radius: 3px 3px 0 0; }
+.zb-hcol.on span { background: var(--primary); }
+.zb-hcol i { position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%); font-style: normal; font-size: 11px; color: var(--muted); }
