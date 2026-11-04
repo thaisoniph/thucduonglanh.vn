@@ -66,6 +66,7 @@ export async function zbotSchema(db) {
   await run(db, `CREATE TABLE IF NOT EXISTS zb_users (uid TEXT PRIMARY KEY, phone TEXT DEFAULT '', name TEXT DEFAULT '', zname TEXT DEFAULT '', lead TEXT DEFAULT '', what TEXT DEFAULT '',
     at INTEGER, joined INTEGER, gid TEXT DEFAULT '', pend INTEGER DEFAULT 0)`); // tài khoản Zalo ↔ số điện thoại khách (tìm theo số khách để lại trên web)
   await run(db, 'CREATE INDEX IF NOT EXISTS zb_users_phone ON zb_users(phone)');
+  try { await run(db, 'ALTER TABLE zb_users ADD COLUMN friend INTEGER'); } catch (e) { } // 05/11/2026: lúc khách kết bạn với trợ lý (đo % người vào nhóm kết bạn)
   await run(db, `CREATE TABLE IF NOT EXISTS zb_out (id INTEGER PRIMARY KEY AUTOINCREMENT, kind TEXT, gid TEXT DEFAULT '', uid TEXT DEFAULT '', phone TEXT DEFAULT '', text TEXT DEFAULT '',
     img TEXT DEFAULT '', mentions TEXT DEFAULT '', due INTEGER, status TEXT DEFAULT 'new', at INTEGER, done_at INTEGER, ref TEXT DEFAULT '')`); // việc chờ chương trình Zalo làm
   await run(db, 'CREATE INDEX IF NOT EXISTS zb_out_due ON zb_out(status, due)');
@@ -108,7 +109,7 @@ function zText(s, prods) {
 /* ---------------------------------------------------------------- điều phối (index.js gọi khi type === 'zbot') */
 export async function zbot(x, d) {
   if (!x.env.ZBOT_KEY || d.key !== x.env.ZBOT_KEY) return { ok: false, error: 'key' };
-  const h = { poll: zPoll, ack: zAck, join: zJoin, msg: zMsg, dm: zDm, friend: zFriend, login: zLogin, human: zHuman }[d.ev];
+  const h = { poll: zPoll, ack: zAck, join: zJoin, msg: zMsg, dm: zDm, friend: zFriend, friend_ok: zFriendOk, login: zLogin, human: zHuman }[d.ev];
   return h ? await h(x, d) : { ok: false, error: 'ev' };
 }
 
@@ -210,7 +211,7 @@ async function zFound(x, j, uid, zname, inGroups) {
   if (g.length && cfg.announce && info.what && info.announce) await queueAnnounce(x, g[0], uid, zname || info.name || 'bạn', info.what); // khách đã ở trong nhóm, vừa nhận quà trên web → chúc mừng (như nhóm Sống Khỏe 365)
 }
 async function queueAnnounce(x, gid, uid, nm, what) {
-  const now = Date.now(), text = announceText(nm, what), due = quiet(now + 60e3) ? nextMorning(now) : now + 60e3; // giờ im lặng → 6h30 sáng
+  const now = Date.now(), text = announceText(nm, what) + friendAsk(friendLink(await kvJson(x.db, 'zb_status', null))), due = quiet(now + 60e3) ? nextMorning(now) : now + 60e3; // giờ im lặng → 6h30 sáng
   const id = 'c' + now.toString(36) + Math.random().toString(36).slice(2, 5); // lưu thành bài (slot 'chuc') để đo tương tác như bài thường
   await run(x.db, "INSERT INTO zb_posts (id, day, slot, topic, text, status, by_name, at, funnel) VALUES (?, ?, 'chuc', ?, ?, 'ok', 'Trợ lý', ?, 'CHUC')", id, fmtDate(due, 'yyyyMMdd'), ('Chúc mừng ' + nm + ' nhận ' + what).slice(0, 120), text, now);
   await run(x.db, "INSERT INTO zb_out (kind, gid, text, mentions, due, at, ref) VALUES ('post', ?, ?, ?, ?, ?, ?)", gid, text, JSON.stringify([{ uid, name: nm }]), due, now, id);
@@ -218,7 +219,7 @@ async function queueAnnounce(x, gid, uid, nm, what) {
 }
 function announceText(nm, what) {
   const t = [
-    `🎉 Chúc mừng @${nm} vừa nhận ${what} trên web Thực Dưỡng Lành 🌿\n\nAi trong nhóm muốn nhận thì vào thucduonglanh.vn hoặc nhắn riêng cho em nha, em gửi ngay ạ 💚`,
+    `🎉 Chúc mừng @${nm} vừa nhận ${what} trên web Thực Dưỡng Lành 🌿\n\nAi trong nhóm muốn nhận thì vào thucduonglanh.vn hoặc nhắn riêng cho em nha 💚`,
     `🌿 Nhóm mình vừa có @${nm} nhận ${what} nè cả nhà 🎉\n\nCô chú, anh chị nào cũng muốn nhận thì nhắn em một tiếng nha, hoàn toàn miễn phí ạ.`,
     `💚 @${nm} vừa nhận ${what} rồi ạ! Chúc anh/chị đọc vui và áp dụng được nhiều điều hay 🌱\n\nAi cần thì nhắn riêng em An Lành nhé.`
   ];
@@ -276,6 +277,7 @@ async function zJoin(x, d) {
     } catch (e) { console.error('zJoin ai', e.message); }
   }
   if (!text || mem.some(m => text.indexOf('@' + m.name) < 0)) text = 'Chào mừng ' + mem.map(m => '@' + m.name).join(', ') + ' đã vào nhóm ' + gname + ' 🌿\n\nMỗi sáng nhóm mình có bài kiến thức sống khỏe, thực đơn lành và hỏi đáp cùng đội ngũ Thực Dưỡng Lành. Anh/chị cần hỏi gì cứ nhắn riêng em An Lành hoặc gọi tên em trong nhóm nha 💚';
+  text += friendAsk(friendLink(st)).replace('Anh/chị bấm', mem.length > 1 ? 'Cả nhà bấm' : 'Anh/chị bấm'); // mời kết bạn: trợ lý nhắn riêng được (Zalo hạn chế nhắn người chưa kết bạn)
   await zlog(x, 'welcome', { gid, name: mem.map(m => m.name).join(', '), reply: text });
   return { ok: true, text, mentions: mem };
 }
@@ -407,9 +409,18 @@ async function zHuman(x, d) { await zlog(x, 'human', { uid: d.uid, text: String(
 
 async function zFriend(x, d) {
   const cfg = await zCfg(x); if (!cfg.on) return { ok: true, accept: false };
-  const nm = String(d.name || '').trim();
-  await zlog(x, 'friend', { uid: d.uid, name: nm, text: String(d.msg || '') });
-  return { ok: true, accept: true, text: 'Dạ em chào anh/chị' + (nm ? ' ' + nm : '') + ' ạ 🌿 Em là An Lành bên Thực Dưỡng Lành. Anh/chị cần hỏi gì về sản phẩm, cách dùng hay thực đơn lành cứ nhắn em nha, em trả lời liền ạ.' };
+  const nm = String(d.name || '').trim(), uid = String(d.uid || '');
+  const dk = 'zb_fr_' + fmtDate(Date.now(), 'yyMMdd'), n = Number(await kvGet(x.db, dk) || 0);
+  if (n >= 30) { await zlog(x, 'friend', { uid, name: nm, text: '⏸ Quá 30 lời mời hôm nay: để nhân sự đồng ý tay trên điện thoại trợ lý (Zalo → Danh bạ → Lời mời kết bạn)' }); return { ok: true, accept: false }; } // tài khoản mới: đồng ý vừa phải
+  await kvSet(x.db, dk, String(n + 1), 2 * DAY);
+  await zlog(x, 'friend', { uid, name: nm, text: String(d.msg || '') });
+  const u = uid ? await first(x.db, 'SELECT what FROM zb_users WHERE uid = ?', uid) : null;
+  return { ok: true, accept: true, text: 'Dạ em chào anh/chị' + (nm ? ' ' + nm : '') + ' ạ 🌿 Em là An Lành bên Thực Dưỡng Lành, cảm ơn anh/chị đã kết bạn với em.' + (u && u.what ? ' Anh/chị vừa nhận ' + u.what + ' trên web, cần em gửi lại hay hướng dẫn cách dùng thì nhắn em nha.' : '') + ' Anh/chị cần hỏi gì về sản phẩm, cách dùng hay thực đơn lành cứ nhắn em, em trả lời liền ạ.' };
+}
+async function zFriendOk(x, d) { // đã đồng ý kết bạn → ghi lại để đo % người vào nhóm kết bạn
+  const uid = String(d.uid || '').replace(/\D/g, '').slice(0, 30); if (!uid) return { ok: true };
+  await run(x.db, 'INSERT INTO zb_users (uid, zname, at, friend) VALUES (?, ?, ?, ?) ON CONFLICT(uid) DO UPDATE SET friend = COALESCE(zb_users.friend, excluded.friend)', uid, String(d.name || '').slice(0, 80), Date.now(), Date.now());
+  return { ok: true };
 }
 
 async function zLogin(x, d) {
@@ -445,6 +456,9 @@ export async function imgLib() {
   return imgMem ? imgMem.list : [];
 }
 
+/** Link kết bạn với tài khoản trợ lý (zalo.me/<số SIM trợ lý>, chương trình Zalo gửi số khi chạy) */
+const friendLink = st => st && st.me && /^0\d{9}$/.test(String(st.me.phone || '')) ? 'https://zalo.me/' + st.me.phone : '';
+const friendAsk = link => link ? '\n\n👉 Anh/chị bấm kết bạn với em để em gửi quà, nhắc lịch sống khỏe và hỗ trợ riêng nha: ' + link : '';
 /** Link web trong tin đăng nhóm → gắn mã tin để CRM đếm đơn (đơn ghi nguồn "zalo / nhom / <mã>") */
 const tagLinks = (t, id) => String(t).replace(/https:\/\/thucduonglanh\.vn[^\s)]*/g, u => u.replace(/[?#].*$/, '') + '?utm_source=zalo&utm_medium=nhom&utm_campaign=' + id);
 export async function zWrite(x, day, slot, hint, by) {
@@ -527,7 +541,7 @@ export async function crmZbot(x, u, d, crmLog) {
     const log = await all(x.db, 'SELECT at, kind, gid, name, text, reply FROM zb_log ORDER BY rid DESC LIMIT 60');
     const lib = (await imgLib()).map(i => ({ url: i.url, thumb: i.thumb || i.url, alt: i.alt }));
     const stats = await all(x.db, 'SELECT kind, count(*) AS n FROM zb_log WHERE at > ? GROUP BY kind', now - 7 * DAY);
-    const users = await first(x.db, "SELECT count(*) AS n, sum(CASE WHEN phone != '' THEN 1 ELSE 0 END) AS known, sum(CASE WHEN joined > ? AND phone != '' THEN 1 ELSE 0 END) AS joined7 FROM zb_users", now - 7 * DAY);
+    const users = await first(x.db, "SELECT count(*) AS n, sum(CASE WHEN phone != '' THEN 1 ELSE 0 END) AS known, sum(CASE WHEN joined > ? AND phone != '' THEN 1 ELSE 0 END) AS joined7, sum(CASE WHEN joined > ? THEN 1 ELSE 0 END) AS in30, sum(CASE WHEN joined > ? AND friend IS NOT NULL THEN 1 ELSE 0 END) AS fr30, sum(CASE WHEN friend > ? THEN 1 ELSE 0 END) AS fr7 FROM zb_users", now - 7 * DAY, now - 30 * DAY, now - 30 * DAY, now - 7 * DAY);
     return { ok: true, cfg, status: st, posts, log, lib, funnel, stats, users, err: await kvGet(x.db, 'zb_write_err'), key: !!x.env.ZBOT_KEY, aiOn: !!x.env.ANTHROPIC_API_KEY, now };
   }
   if (a === 'zb_cfg') {

@@ -17,6 +17,7 @@ Trợ lý tự làm 6 việc:
 1. 👋 **Chào** người mới vào nhóm, gọi đúng tên.
 2. 💬 **Trả lời** câu hỏi trong nhóm và tin nhắn riêng.
 3. ❤️ **Thả tim** khi có người khoe bữa ăn, cảm ơn.
+   Tin chào người mới và tin chúc mừng có **link mời kết bạn** với trợ lý. Kết bạn rồi trợ lý mới nhắn riêng được cho khách. Trợ lý tự đồng ý tối đa **30 lời mời mỗi ngày**, cách nhau ít nhất 3 phút.
 4. 🎉 **Chúc mừng** người vừa nhận quà trên web.
 5. ✅ **Duyệt** người xin vào nhóm, nếu họ đã để số trên web.
 6. 📝 **Đăng bài** lúc 7h30 và 20h. Khung giờ nào để **Chờ duyệt** thì chỉ đăng bài đã được duyệt; khung giờ để **Tự đăng** thì tới giờ trợ lý tự đăng.
@@ -188,4 +189,5 @@ Từ 28/10/2026 trợ lý chạy trên **máy chủ riêng của công ty (VPS)*
 | 🔴 Mất kết nối | Báo anh Sơn (trợ lý tự thử kết nối lại mỗi phút) |
 | Telegram báo "bị đăng xuất" | Mang điện thoại của trợ lý tới anh Sơn để quét lại mã QR |
 | Zalo khoá tài khoản trợ lý | Nhóm không sao. Dùng SIM khác, làm lại phần cài đặt lần đầu |
+| Nhật ký ghi "⏸ Quá 30 lời mời hôm nay" | Mở Zalo trên điện thoại trợ lý → **Danh bạ** → **Lời mời kết bạn** → đồng ý tay vài người, cách nhau vài phút |
 | Trợ lý nói sai | Cài đặt → bỏ tích **Bật trợ lý** → **Lưu cài đặt** |

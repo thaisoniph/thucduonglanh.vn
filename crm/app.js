@@ -5230,7 +5230,8 @@
       metric('📩 Trả lời tin riêng', g('dm') + g('dm_handoff'), 'Khách kết bạn, nhắn riêng cho trợ lý.', '') +
       metric('🙋 Cần người thật', g('handoff') + g('dm_handoff'), 'Đã báo Telegram để nhân sự nhắn khách.', '') +
       metric('📝 Bài đã đăng', g('post') + g('send'), '🎉 Chúc mừng nhận quà: ' + g('announce') + ' lần.', '') +
-      metric('✅ Khách web đã vào nhóm', (j.users && j.users.joined7) || 0, 'Tìm được Zalo của ' + ((j.users && j.users.known) || 0) + ' khách để lại số trên web.', '') + '</div>';
+      metric('✅ Khách web đã vào nhóm', (j.users && j.users.joined7) || 0, 'Tìm được Zalo của ' + ((j.users && j.users.known) || 0) + ' khách để lại số trên web.', '') +
+      metric('🤝 Kết bạn với trợ lý', (j.users && j.users.fr7) || 0, j.users && j.users.in30 ? Math.round((j.users.fr30 || 0) / j.users.in30 * 100) + '% người vào nhóm 30 ngày qua đã kết bạn (' + (j.users.fr30 || 0) + '/' + j.users.in30 + '). Tin chào và tin chúc mừng có link mời kết bạn.' : 'Tin chào và tin chúc mừng có link mời kết bạn.', '') + '</div>';
     // bài đăng
     var slA = function (id) { var z = (c.slots || []).filter(function (q) { return q.id === id; })[0]; return ((z && z.mode) || c.mode) === 'auto'; }, days = [], P = {};
     (j.posts || []).forEach(function (p) { P[p.id] = p; if (days.indexOf(p.day) < 0) days.push(p.day); });

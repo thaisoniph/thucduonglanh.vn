@@ -9,7 +9,7 @@ import { execFile } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const VER = '2026-11-04a';
+const VER = '2026-11-05a';
 const DIR = dirname(fileURLToPath(import.meta.url)), TMP = join(DIR, 'tmp'), CREDS = join(DIR, 'creds.json'), QR = join(DIR, 'qr.png');
 for (const l of (existsSync(join(DIR, '.env')) ? readFileSync(join(DIR, '.env'), 'utf8') : '').split('\n')) { const m = l.match(/^\s*([A-Z_]+)\s*=\s*(.*)\s*$/); if (m && !process.env[m[1]]) process.env[m[1]] = m[2]; }
 const API = process.env.API_URL || 'https://api.thucduonglanh.vn/', KEY = process.env.ZBOT_KEY;
@@ -29,7 +29,7 @@ async function call(ev, data) {
   return {};
 }
 
-let api = null, me = '', myName = '', CFG = { on: false, groups: [] };
+let api = null, me = '', myName = '', myPhone = '', CFG = { on: false, groups: [] };
 const G = {}; // nhóm: { name, total, admins:Set, members:Set, ctx:[], joins:[], joinTimer }
 const isMine = gid => CFG.groups.includes(gid);
 
@@ -131,7 +131,7 @@ async function poll() {
       try { const p = await api.getPendingGroupMembers(gid); if (p && p.users && p.users.length) pending[gid] = p.users.map(u => ({ uid: u.uid, name: u.dpn })); } catch (e) { }
     }
   }
-  const r = await call('poll', { me: { uid: me, name: myName }, groups: groupList(), pending, ver: VER, stats: watchStats() });
+  const r = await call('poll', { me: { uid: me, name: myName, phone: myPhone }, groups: groupList(), pending, ver: VER, stats: watchStats() });
   if (r.cfg) CFG = r.cfg;
   for (const [gid, uids] of Object.entries(r.approve || {})) {
     try { const res = await api.reviewPendingMemberRequest({ members: uids, isApprove: true }, gid); log('✅ duyệt vào nhóm', G[gid] && G[gid].name, JSON.stringify(res)); } catch (e) { log('duyệt', e.message); }
@@ -220,9 +220,13 @@ async function onFriend(ev) {
   try { const info = await api.getUserInfo(uid); const p = Object.values(info.changed_profiles || {})[0]; name = p ? p.displayName || p.zaloName : ''; } catch (e) { }
   const r = await call('friend', { uid, name, msg: ev.data.message });
   if (!r.accept) return;
-  await sleep(rnd(20e3, 90e3)); // như người thật: một lúc sau mới đồng ý
-  try { await api.acceptFriendRequest(uid); if (r.text) await say(uid, ThreadType.User, r.text); log('🤝 kết bạn', name); } catch (e) { log('kết bạn', e.message); }
+  // như người thật: một lúc sau mới đồng ý, và các lời mời cách nhau ít nhất 3 phút (tài khoản mới đồng ý dồn dập dễ bị Zalo nghi)
+  friendChain = friendChain.then(async () => {
+    await sleep(Math.max(rnd(20e3, 90e3), 180e3 - (Date.now() - friendAt)));
+    try { await api.acceptFriendRequest(uid); friendAt = Date.now(); call('friend_ok', { uid, name }); if (r.text) await say(uid, ThreadType.User, r.text); log('🤝 kết bạn', name); } catch (e) { log('kết bạn', e.message); }
+  });
 }
+let friendChain = Promise.resolve(), friendAt = 0;
 
 /* ---------------------------------------------------------------- đăng nhập */
 async function imageMeta(path) { const m = await sharp(path).metadata(); const { size } = await import('node:fs').then(f => f.promises.stat(path)); return { width: m.width, height: m.height, size }; }
@@ -246,7 +250,7 @@ async function main() {
   api = await login();
   me = String(api.getOwnId());
   if (process.argv.includes('--dang-nhap')) { log('✅ Đăng nhập xong, đã lưu phiên. Giờ cài chạy nền (cai-dat.sh làm tiếp).'); process.exit(0); } // cai-dat.sh: chỉ đăng nhập lần đầu
-  try { const p = (await api.fetchAccountInfo()).profile; myName = p.displayName || p.zaloName || 'Trợ lý An Lành'; } catch (e) { myName = 'Trợ lý An Lành'; }
+  try { const p = (await api.fetchAccountInfo()).profile; myName = p.displayName || p.zaloName || 'Trợ lý An Lành'; myPhone = String(p.phoneNumber || '').replace(/^\+?84/, '0').replace(/\D/g, ''); } catch (e) { myName = 'Trợ lý An Lành'; }
   log('🤖 Đang chạy với tài khoản', myName, me);
   await refreshGroups();
   log('Nhóm:', groupList().map(g => g.name + (g.admin ? ' (phó nhóm)' : ' (chưa là phó nhóm)')).join(' · ') || 'chưa ở nhóm nào');
