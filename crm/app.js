@@ -5240,27 +5240,41 @@
     var fu = j.funnel || {}, fk = ['TOFU', 'MOFU', 'BOFU', 'TIN', 'CHUC'].filter(function (k) { return fu[k]; });
     if (fk.length) h += '<h2 class="zb-h">📊 Hiệu quả bài đăng theo phễu (30 ngày)</h2><p class="muted small">Đếm trong 2 tiếng sau mỗi bài: số người nhắn / gửi ảnh / thả cảm xúc (không tính đội ngũ). Đơn: khách bấm link trong bài rồi đặt trên web.</p><div class="zb-funs">' +
       fk.map(function (k) { var f = fu[k]; return '<div class="box zb-funbox"><span class="zb-fun zb-fun-' + k.toLowerCase() + '">' + ZB_FUN[k] + '</span><p><b>' + f.posts + '</b> bài · trung bình <b>' + (Math.round(f.people / f.posts * 10) / 10) + '</b> người tương tác / bài</p><p class="small muted">💬 ' + f.msgs + ' tin · ❤️ ' + f.reacts + ' cảm xúc' + (f.orders ? ' · 🛒 ' + f.orders + ' đơn, ' + moneyShort(f.rev) : '') + '</p></div>'; }).join('') + '</div>';
-    h += '<h2 class="zb-h">📝 Bài đăng nhóm</h2><p class="muted small">AI soạn trước theo lịch chủ đề trong tuần, dùng đúng thông tin sản phẩm trên web. ' + (c.slots || []).filter(function (q) { return q.on; }).map(function (q) { return (q.id === 'toi' ? '🌙 Bài tối ' : '☀️ Bài sáng ') + q.at + ': <b>' + (slA(q.id) ? '🤖 tự đăng' : '⏳ chờ duyệt') + '</b>'; }).join(' · ') + '. Tự đăng: tới giờ trợ lý đăng bài AI soạn, thấy chưa ổn thì sửa ngay trong ô hoặc bấm <b>⏸ Bỏ bài này</b>. Chờ duyệt: chỉ bài đã bấm <b>✅ Duyệt</b> mới được đăng. Đổi ở <b>⚙️ Cài đặt trợ lý</b>.</p>';
-    days.forEach(function (d) {
-      (c.slots || []).forEach(function (sl) {
-        var p = P[d + '_' + sl.id]; if (!p && !sl.on) return;
-        var lbl = zbDay(d) + ' · ' + (sl.id === 'toi' ? '🌙 Bài tối' : '☀️ Bài sáng') + ' ' + sl.at;
-        var auto = slA(sl.id);
-        if (!p) { if (new Date(d.slice(0, 4) + '-' + d.slice(4, 6) + '-' + d.slice(6, 8) + 'T' + (sl.at || '00:00') + ':00+07:00').getTime() < j.now) return; h += '<div class="box zb-post zb-none"><p><b>' + lbl + '</b> · <span class="muted">⏳ chưa soạn – AI soạn trước giờ đăng</span></p><button class="btn sm" data-zb="regen|' + d + '_' + sl.id + '">✍️ Soạn ngay</button></div>'; return; }
-        var badge = p.status === 'sent' ? '📤 Đã đăng ' + fDateTime(p.sent_at) : p.status === 'fail' ? '⚠️ Không đăng được (xem 🕘 Trợ lý vừa làm gì)' : p.status === 'skip' ? '⏸ Đã bỏ, không đăng' : p.status === 'ok' ? '✅ Đã duyệt, sẽ đăng lúc ' + sl.at : auto ? '✍️ Nháp, sẽ tự đăng lúc ' + sl.at : '⏳ Chờ duyệt';
-        var done = p.status === 'sent';
-        h += '<div class="box zb-post zb-' + p.status + '"><div class="zb-ph"><b>' + lbl + '</b><span class="zb-badge">' + badge + '</span></div>' +
-          (p.funnel ? '<span class="zb-fun zb-fun-' + p.funnel.toLowerCase() + '">' + ZB_FUN[p.funnel] + '</span>' : '') +
-          (done ? '<p class="small zb-eng">📊 2 tiếng sau khi đăng: <b>' + (p.eng_people || 0) + '</b> người tương tác · 💬 ' + (p.eng_msgs || 0) + ' tin · ❤️ ' + (p.eng_reacts || 0) + ' cảm xúc' + (p.orders ? ' · 🛒 <b>' + p.orders + ' đơn</b> (' + moneyShort(p.rev) + ') từ link trong bài' : '') + '</p>' : '') +
-          '<p class="small"><b>Chủ đề:</b> ' + esc(p.topic) + (p.img ? ' · 🖼 kèm ảnh' : ' · <span class="muted">không kèm ảnh</span>') + ' <span class="muted">· ' + (p.by_name && p.by_name !== 'AI' ? 'sửa bởi ' + esc(p.by_name) : 'AI soạn') + ' ' + fDateTime(p.at) + '</span></p>' +
-          '<div class="zb-imgbar">' + (p.img ? '<img class="zb-img" src="' + esc(p.img) + '" alt="Ảnh kèm bài" loading="lazy">' : '') + (done ? '' : '<button class="btn sm" data-zb="img|' + p.id + '">🖼 ' + (p.img ? 'Đổi ảnh' : 'Thêm ảnh') + '</button>') + '</div>' +
-          '<textarea class="zb-text" id="zbT_' + p.id + '" rows="' + Math.min(16, Math.max(4, String(p.text).split('\n').length + 1)) + '"' + (done ? ' readonly' : '') + '>' + esc(p.text) + '</textarea>' +
-          (done ? '' : '<div class="lq-btns"><button class="btn sm pri" data-zb="save|' + p.id + '">💾 Lưu sửa</button>' + (!auto && p.status !== 'ok' ? '<button class="btn sm" data-zb="ok|' + p.id + '">✅ Duyệt</button>' : '') +
-            (p.status === 'skip' ? '<button class="btn sm" data-zb="draft|' + p.id + '">▶️ Đăng lại bài này</button>' : '<button class="btn sm ghost" data-zb="skip|' + p.id + '">⏸ Bỏ bài này</button>') +
-            '<button class="btn sm ghost" data-zb="regen|' + p.id + '">🔄 Viết lại</button></div>') + '</div>';
-      });
+    // 📝 bài đăng (05/11/2026 sắp lại): bài cần duyệt lên đầu + xem trước giống Zalo, bài đã đăng thu gọn 1 dòng
+    var items = [];
+    days.forEach(function (d) { (c.slots || []).forEach(function (sl) { var p = P[d + '_' + sl.id]; if (!p && !sl.on) return; items.push({ d: d, sl: sl, p: p, t: new Date(d.slice(0, 4) + '-' + d.slice(4, 6) + '-' + d.slice(6, 8) + 'T' + (sl.at || '00:00') + ':00+07:00').getTime() }); }); });
+    var isDone = function (it) { return it.p && (it.p.status === 'sent' || it.p.status === 'skip' || it.p.status === 'fail' || it.t + 2 * 3600e3 < j.now); };
+    var todo = items.filter(function (it) { return !isDone(it) && (it.p || it.t > j.now); }).sort(function (x, y) { return x.t - y.t; });
+    var past = items.filter(isDone).sort(function (x, y) { return y.t - x.t; });
+    var slotTxt = function (sl) { return (sl.id === 'toi' ? '🌙 Bài tối ' : '☀️ Bài sáng ') + sl.at; };
+    h += '<div class="zb-done-h"><h2 class="zb-h">📝 Bài đăng nhóm</h2><span class="small">' + (c.slots || []).filter(function (q) { return q.on; }).map(function (q) { return slotTxt(q) + ': <b>' + (slA(q.id) ? '🤖 tự đăng' : '⏳ chờ duyệt') + '</b>'; }).join(' · ') + '</span></div>' +
+      '<details class="zb-info small"><summary>ⓘ Cách hoạt động</summary><p>AI soạn trước theo lịch chủ đề trong tuần, dùng đúng thông tin sản phẩm trên web. <b>Chờ duyệt</b>: chỉ bài đã bấm <b>✅ Duyệt</b> mới được đăng. <b>Tự đăng</b>: tới giờ trợ lý đăng bài AI soạn, thấy chưa ổn thì sửa hoặc bấm <b>⏸ Bỏ bài này</b>. Đổi ở <b>⚙️ Cài đặt trợ lý</b>.</p><p>AI tự chọn ảnh: bài về sản phẩm kèm ảnh sản phẩm, bài khác chọn ảnh thật hợp chủ đề (không có ảnh hợp thì chỉ đăng chữ). Không đăng từ 21h45 tới 6h sáng. Khung bên trái là <b>bài sẽ hiện trên Zalo</b>; muốn sửa chữ bấm <b>✏️ Sửa chữ</b> (chữ trong **hai dấu sao** sẽ in đậm).</p>' + (j.err ? '<p class="err">Lần soạn lỗi gần nhất: ' + esc(j.err) + '</p>' : '') + '</details>';
+    todo.forEach(function (it) {
+      var p = it.p, sl = it.sl, lbl = zbDay(it.d) + ' · ' + slotTxt(sl), auto = slA(sl.id);
+      if (!p) { h += '<div class="box zb-post zb-none"><p><b>' + lbl + '</b> · <span class="muted">⏳ chưa soạn – AI soạn trước giờ đăng</span></p><button class="btn sm" data-zb="regen|' + it.d + '_' + sl.id + '">✍️ Soạn ngay</button></div>'; return; }
+      var when = sl.at + ' ' + zbDay(it.d).toLowerCase(), need = p.status !== 'ok' && !auto;
+      var due = p.status === 'ok' ? '✅ Đã duyệt · sẽ đăng ' + when : auto ? '🤖 Sẽ tự đăng ' + when : '⏳ Cần duyệt trước ' + when;
+      h += '<div class="box zb-post zb-' + p.status + (need ? ' zb-need' : '') + '" data-zbcard="' + p.id + '"><div class="zb-ph"><b>' + lbl + '</b><span class="zb-due">' + due + '</span></div>' +
+        '<div class="zb-grid"><div class="zb-prev">' + (p.img ? '<img src="' + esc(p.img) + '" alt="Ảnh kèm bài" loading="lazy">' : '') + '<div class="zb-bub">' + zbRender(p.text) + '</div>' + (p.img ? '' : '<p class="small muted" style="margin:6px 2px 0">Bài này không kèm ảnh</p>') + '</div>' +
+        '<div class="zb-side">' + (p.funnel ? '<span class="zb-fun zb-fun-' + p.funnel.toLowerCase() + '">' + ZB_FUN[p.funnel] + '</span>' : '') +
+        '<p class="small" style="margin:6px 0"><b>Chủ đề:</b> ' + esc(p.topic) + '<br><span class="muted">' + (p.by_name && p.by_name !== 'AI' ? 'Sửa bởi ' + esc(p.by_name) : 'AI soạn') + ' · ' + fDateTime(p.at) + '</span></p>' +
+        (need ? '<button class="btn pri zb-act" data-zb="ok|' + p.id + '">✅ Duyệt bài này</button>' : '') +
+        '<div class="zb-more"><button class="btn sm" data-zb="edit|' + p.id + '">✏️ Sửa chữ</button><button class="btn sm" data-zb="img|' + p.id + '">🖼 ' + (p.img ? 'Đổi ảnh' : 'Thêm ảnh') + '</button><button class="btn sm" data-zb="regen|' + p.id + '">🔄 Viết lại</button>' +
+        (p.status === 'ok' ? '<button class="btn sm ghost" data-zb="draft|' + p.id + '">↩️ Bỏ duyệt</button>' : '') + '<button class="btn sm ghost" data-zb="skip|' + p.id + '">⏸ Bỏ bài này</button></div>' +
+        '<div class="zb-edit"><textarea class="zb-text" id="zbT_' + p.id + '" rows="' + Math.min(18, Math.max(6, String(p.text).split('\n').length + 2)) + '">' + esc(p.text) + '</textarea><div class="lq-btns"><button class="btn sm pri" data-zb="save|' + p.id + '">💾 Lưu</button><button class="btn sm ghost" data-zb="edit|' + p.id + '">Huỷ</button></div></div>' +
+        '</div></div></div>';
     });
-    h += '<p class="bar-legend">Chữ trong <b>**hai dấu sao**</b> sẽ in đậm trên Zalo. AI tự chọn ảnh: bài về sản phẩm kèm ảnh sản phẩm, bài khác chọn ảnh thật hợp chủ đề trong kho ảnh web (không có ảnh hợp thì chỉ đăng chữ). Bấm <b>🖼 Đổi ảnh</b> để chọn ảnh khác hoặc tải ảnh từ máy. Không đăng từ 21h45 tới 6h sáng.' + (j.err ? ' Lần soạn lỗi gần nhất: ' + esc(j.err) : '') + '</p>';
+    if (past.length) {
+      h += '<h3 class="zb-h" style="font-size:1rem">📤 Đã đăng gần đây <span class="muted small">· bấm để xem lại, xem hết ở 📚 Bài đã đăng &amp; hiệu quả</span></h3>';
+      past.forEach(function (it) {
+        var p = it.p; if (!p) return;
+        var st = p.status === 'sent' ? '📤 ' + fDateTime(p.sent_at) : p.status === 'fail' ? '⚠️ Không đăng được' : p.status === 'skip' ? '⏸ Đã bỏ' : '⌛ Quá giờ, chưa đăng';
+        h += '<details class="box zb-donei"><summary><span class="zb-donel"><b>' + zbDay(it.d) + ' · ' + slotTxt(it.sl) + '</b> <span class="muted small">' + st + '</span></span><span class="zb-donet">' + esc(p.topic) + '</span>' +
+          (p.status === 'sent' ? '<span class="zb-eng small">👥 <b>' + (p.eng_people || 0) + '</b> · 💬 ' + (p.eng_msgs || 0) + ' · ❤️ ' + (p.eng_reacts || 0) + (p.orders ? ' · 🛒 <b>' + p.orders + '</b>' : '') + '</span>' : '') + '</summary>' +
+          '<div class="zb-prev" style="margin-top:10px">' + (p.img ? '<img src="' + esc(p.img) + '" alt="" loading="lazy">' : '') + '<div class="zb-bub">' + zbRender(p.text) + '</div></div>' +
+          (p.status === 'skip' ? '<div class="lq-btns" style="margin-top:8px"><button class="btn sm" data-zb="draft|' + p.id + '">▶️ Dùng lại bài này</button></div>' : '') + '</details>';
+      });
+    }
     // cài đặt
     var sg = (st && st.groups) || [], ck = function (k, t, sub) { return '<label class="zb-ck"><input type="checkbox" data-zbc="' + k + '"' + (c[k] ? ' checked' : '') + '><span><b>' + t + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</span></label>'; };
     h += '<details class="box zb-set"><summary><b>⚙️ Cài đặt trợ lý</b></summary>' +
@@ -5306,9 +5320,10 @@
     var after = function (msg) { return function () { toast(msg); zbFetch(); }; }, fail = function (e) { t.disabled = false; toast(e.message, true); };
     if (v[0] === 'save' || v[0] === 'ok' || v[0] === 'skip' || v[0] === 'draft') {
       var ta = $('#zbT_' + id); t.disabled = true;
-      return api('zb_post', { id: id, text: ta ? ta.value : undefined, status: v[0] === 'save' ? undefined : v[0] }).then(after({ save: 'Đã lưu bài ✓', ok: 'Đã duyệt ✓ Tới giờ trợ lý sẽ đăng.', skip: 'Đã bỏ bài này, trợ lý sẽ không đăng.', draft: 'Đã dùng lại bài này ✓' }[v[0]]), fail);
+      return api('zb_post', { id: id, text: ta ? ta.value : undefined, status: v[0] === 'save' ? undefined : v[0] }).then(after({ save: 'Đã lưu bài ✓', ok: 'Đã duyệt ✓ Tới giờ trợ lý sẽ đăng.', skip: 'Đã bỏ bài này, trợ lý sẽ không đăng.', draft: 'Bài đã quay lại chờ duyệt ✓' }[v[0]]), fail);
     }
     if (v[0] === 'img') return zbImgOpen(id);
+    if (v[0] === 'edit') { var cd = t.closest('[data-zbcard]'); if (cd) { cd.classList.toggle('zb-editing'); var ta2 = $('#zbT_' + id); if (ta2 && cd.classList.contains('zb-editing')) ta2.focus(); } return; }
     if (v[0] === 'regen') {
       var hint = prompt('Muốn AI viết lại thế nào? (vd: “nói về hạt óc chó”, “ngắn hơn”, “vui hơn”). Để trống = viết bài khác cùng chủ đề.', ''); if (hint === null) return;
       var p = id.split('_'); t.disabled = true; t.textContent = '⏳ AI đang viết (khoảng 30 giây)…';
@@ -5347,6 +5362,9 @@
     }
     m.addEventListener('click', function (e) { var b = e.target.closest('[data-zh]'); if (!b) return; var v = b.getAttribute('data-zh').split('|'); if (v[0] === 'open') F.open[v[1]] = !F.open[v[1]]; else F[v[0]] = v[1]; draw(); });
     api('zb_hist', {}).then(function (j) { P = j.posts || []; draw(); }, function (e) { body.innerHTML = '<p class="err">' + esc(e.message) + '</p>'; });
+  }
+  function zbRender(t) { // xem trước như trên Zalo: **đậm**, @tên, link, xuống dòng
+    return esc(String(t || '')).replace(/\*\*([^*\n]+)\*\*/g, '<b>$1</b>').replace(/(https?:\/\/[^\s<]+)/g, '<span class="zb-link">$1</span>').replace(/(^|\s)(@[^\s,.!?]+)/g, '$1<span class="zb-at">$2</span>').replace(/\n/g, '<br>');
   }
   function zbImgOpen(id) { // 🖼 đổi ảnh bài đăng: chọn trong kho ảnh thật của web / tải từ máy / bỏ ảnh
     var p = ((ZB.d && ZB.d.posts) || []).filter(function (x) { return x.id === id; })[0]; if (!p) return;
@@ -5510,7 +5528,7 @@
     if (v[0] === 'del') { if (!confirm('Gỡ trang ' + fpPageOf(id).name + ' khỏi trợ lý? Trợ lý sẽ không trả lời trang này nữa.')) return; t.disabled = true; return api('fp_del', { id: id }).then(after('Đã gỡ trang.'), fail); }
     if (v[0] === 'save' || v[0] === 'ok' || v[0] === 'skip' || v[0] === 'draft') {
       var ta = $('#fpT_' + id), ln = $('#fpL_' + id); t.disabled = true;
-      return api('fp_post', { id: id, text: ta ? ta.value : undefined, link: ln ? ln.value : undefined, status: v[0] === 'save' ? undefined : v[0] }).then(after({ save: 'Đã lưu bài ✓', ok: 'Đã duyệt ✓ Tới giờ sẽ đăng.', skip: 'Đã bỏ bài này.', draft: 'Đã dùng lại bài này ✓' }[v[0]]), fail);
+      return api('fp_post', { id: id, text: ta ? ta.value : undefined, link: ln ? ln.value : undefined, status: v[0] === 'save' ? undefined : v[0] }).then(after({ save: 'Đã lưu bài ✓', ok: 'Đã duyệt ✓ Tới giờ sẽ đăng.', skip: 'Đã bỏ bài này.', draft: 'Bài đã quay lại chờ duyệt ✓' }[v[0]]), fail);
     }
     if (v[0] === 'now') {
       if (!confirm('Đăng bài này lên fanpage ngay bây giờ?')) return;

@@ -2,7 +2,7 @@
 title: Trợ lý Zalo An Lành
 nav: Trợ lý Zalo
 order: 8
-updated: 2026-10-31
+updated: 2026-11-05
 description: Cài đặt và sử dụng tài khoản Zalo "Trợ lý An Lành" trong nhóm Sống khỏe cùng Thực Dưỡng Lành – chào người mới, trả lời, đăng bài, chuyển ca khó cho người thật.
 ---
 
@@ -49,14 +49,27 @@ Vào CRM, bấm **Zalo** trên thanh menu. Quản trị thì vào **Tổng quan 
 
 ## Việc mỗi ngày: duyệt bài
 
-Khi Telegram báo **"📝 Bài Zalo chờ duyệt"**, bạn vào tab và tìm bài **Ngày mai**.
+Khi Telegram báo **"📝 Bài Zalo chờ duyệt"**, bạn vào tab Zalo. **Bài cần duyệt nằm trên cùng, có viền vàng** và ghi rõ hạn, ví dụ "⏳ Cần duyệt trước 20:00 ngày mai".
 
-![Các nút dưới mỗi bài: 1 Duyệt, 2 Lưu sửa, 3 Viết lại, 4 Bỏ bài này](/huong-dan/img/zalo-duyet.webp)
+Khung xanh nhạt bên dưới là **bài sẽ hiện y như vậy trên Zalo** (ảnh, chữ đậm, link).
 
-1. Đọc bài. Bài ổn thì bấm **✅ Duyệt** là xong.
-2. Muốn sửa chữ thì sửa ngay trong ô, bấm **💾 Lưu sửa**, rồi bấm **✅ Duyệt**.
+![Bài cần duyệt: 1 Duyệt bài này, 2 Sửa chữ, 3 Viết lại, 4 Bỏ bài này](/huong-dan/img/zalo-duyet.webp)
+
+1. Đọc bài. Bài ổn thì bấm **✅ Duyệt bài này** là xong.
+2. Muốn sửa vài chữ thì bấm **✏️ Sửa chữ** (xem bước sửa bên dưới).
 3. Muốn bài khác thì bấm **🔄 Viết lại**, gõ ý muốn (ví dụ "ngắn hơn"), chờ 30 giây.
 4. Không muốn đăng thì bấm **⏸ Bỏ bài này**.
+
+**Sửa chữ:**
+
+![Ô sửa chữ: 1 sửa nội dung, 2 Lưu](/huong-dan/img/zalo-sua-chu.webp)
+
+1. Sửa ngay trong ô. Chữ muốn in đậm thì để trong **hai dấu sao**, ví dụ `**Hạt sen**`.
+2. Bấm **💾 Lưu**, rồi bấm **✅ Duyệt bài này**. Bấm **Huỷ** nếu không muốn sửa nữa.
+
+Bài đã duyệt hiện **✅ Đã duyệt · sẽ đăng…**. Đổi ý thì bấm **↩️ Bỏ duyệt**.
+
+**Bài đã đăng** được thu gọn ở mục **📤 Đã đăng gần đây**, mỗi bài 1 dòng kèm số 👥 người · 💬 tin · ❤️ cảm xúc. Bấm vào dòng để xem lại bài.
 
 **Khung giờ đang để Chờ duyệt: bài chưa bấm Duyệt thì trợ lý không đăng.** Khung giờ để Tự đăng thì không cần bấm Duyệt (xem phần *Chọn giờ nào tự đăng* bên dưới).
 
@@ -86,9 +99,9 @@ Mỗi tuần nên xem 1 lần: bài nào nhiều người hưởng ứng thì nh
 
 AI tự chọn ảnh. Bài nói về sản phẩm thì kèm ảnh sản phẩm. Bài khác thì AI chọn một ảnh trên web hợp với chủ đề. Không có ảnh hợp thì bài chỉ có chữ.
 
-![Dưới bài: 1 nút Đổi ảnh](/huong-dan/img/zalo-doi-anh.webp)
+![Bài cần duyệt: 1 nút Đổi ảnh](/huong-dan/img/zalo-doi-anh.webp)
 
-1. Bấm **🖼 Đổi ảnh** dưới bài. Bài chưa có ảnh thì nút ghi **🖼 Thêm ảnh**.
+1. Bấm **🖼 Đổi ảnh** ở bài cần đổi. Bài chưa có ảnh thì nút ghi **🖼 Thêm ảnh**.
 
 ![Khung chọn ảnh: 1 ảnh trong kho, 2 Tải ảnh từ máy, 3 Không kèm ảnh](/huong-dan/img/zalo-chon-anh.webp)
 

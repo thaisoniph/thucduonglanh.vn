@@ -1501,3 +1501,32 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .zb-hsum span { font-size: 11px; color: var(--muted); line-height: 1.25; display: block; }
 .zb-hrow { cursor: pointer; padding: 10px 12px; margin: 0 0 8px; }
 .zb-htext { white-space: pre-wrap; font: inherit; font-size: 14px; background: var(--bg); border-radius: var(--radius-sm); padding: 8px 10px; margin: 6px 0 0; }
+/* 📝 bài đăng nhóm Zalo (05/11/2026): xem trước giống Zalo, bài cần duyệt nổi bật, bài đã đăng thu gọn */
+.zb-done-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.zb-done-h .zb-h { margin-bottom: 0; }
+.zb-info { margin: 6px 0 12px; color: var(--mid); }
+.zb-info summary { cursor: pointer; color: var(--primary); font-weight: 600; }
+.zb-info p { margin: 6px 0 0; }
+.zb-need { border: 2px solid var(--gold); background: var(--gold-light); }
+.zb-due { font-size: .85rem; font-weight: 600; border-radius: 999px; padding: 3px 12px; background: var(--primary-light); color: var(--primary); }
+.zb-need .zb-due { background: var(--gold); color: #fff; }
+.zb-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 8px; }
+@media (min-width: 900px) { .zb-grid { grid-template-columns: minmax(320px, 420px) 1fr; align-items: start; } }
+.zb-prev { background: #e2e9f1; border-radius: 14px; padding: 10px; max-width: 460px; }
+.zb-prev img { display: block; width: 100%; max-height: 360px; object-fit: cover; border-radius: 12px; margin-bottom: 6px; }
+.zb-bub { background: #fff; border-radius: 12px; padding: 10px 12px; font-size: 15px; line-height: 1.5; color: #081c36; word-wrap: break-word; box-shadow: 0 1px 1px rgba(0,0,0,.06); }
+.zb-link { color: #0068ff; word-break: break-all; }
+.zb-at { color: #0068ff; font-weight: 600; }
+.zb-side { min-width: 0; }
+.zb-act { width: 100%; min-height: 48px; font-size: 1.05rem; margin: 6px 0 10px; }
+.zb-more { display: flex; flex-wrap: wrap; gap: 6px; }
+.zb-edit { display: none; margin-top: 10px; }
+.zb-editing .zb-edit { display: block; }
+.zb-donei { padding: 10px 12px; margin: 0 0 8px; }
+.zb-donei > summary { cursor: pointer; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; list-style: none; }
+.zb-donei > summary::-webkit-details-marker { display: none; }
+.zb-donel { white-space: nowrap; }
+.zb-donet { flex: 1 1 200px; min-width: 0; }
+.zb-donei .zb-eng { margin: 0; padding: 3px 10px; }
+@media (max-width: 899px) { .zb-grid .zb-side { order: -1; } .zb-prev img { max-height: 240px; } }
+@media (min-width: 900px) { .zb-prev img { max-height: 300px; } }
