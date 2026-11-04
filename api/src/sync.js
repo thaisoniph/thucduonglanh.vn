@@ -267,6 +267,7 @@ async function inspect(x, u, d, ads) {
 async function srcSave(x, u, d) {
   const list = await srcList(x), id = d.id || 'SRC' + Date.now().toString(36), cur = list.find(s => s.id === id);
   const cfg = d.cfg || (cur && cur.cfg) || {}; if (cur && cur.cfg && cur.cfg.done && !cfg.done) cfg.done = cur.cfg.done;
+  if (cur && cur.cfg && cur.cfg.orderSheet && !cfg.orderSheet) cfg.orderSheet = cur.cfg.orderSheet; // sheet ghi đơn CRM (04/11/2026: VTG_lendon) – màn cấu hình không có ô này, lưu lại không được làm mất
   const sale = d.sale || (cur && cur.sale) || '', url = d.url || (cur && cur.url) || '', fileName = d.fileName || (cur && cur.fileName) || '';
   if (cur) await run(x.db, 'UPDATE sources SET sale = ?, url = ?, file_name = ?, cfg = ? WHERE id = ?', sale, url, fileName, JSON.stringify(cfg), id);
   else await run(x.db, "INSERT INTO sources (id, sale, url, file_name, cfg, last, result) VALUES (?, ?, ?, ?, ?, NULL, '')", id, sale, url, fileName, JSON.stringify(cfg));

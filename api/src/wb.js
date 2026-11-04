@@ -112,6 +112,7 @@ async function wbOrderSheet(x, src) {
   const byName = n => os.find(s => s.name === n);
   if (src.cfg.orderSheet && byName(src.cfg.orderSheet)) return byName(src.cfg.orderSheet);
   if (os.length === 1) return os[0];
+  const vtg = os.filter(s => /^\s*vtg/i.test(s.name)); if (vtg.length === 1) return vtg[0]; // 04/11/2026: mọi sale lên đơn ở sheet VTG_lendon (đoán theo ngày từng chọn nhầm sheet cũ "Lên đơn")
   const ck = 'wbos_' + src.id, hit = await kvGet(x.db, ck); if (hit && byName(hit)) return byName(hit);
   let best = os[os.length - 1], bt = -1;
   for (const sc of os) {
