@@ -117,7 +117,7 @@ async function zPoll(x, d) {
   const st = { at: now, me: d.me || null, groups: (d.groups || []).slice(0, 50), ver: String(d.ver || '') };
   if (!old || now - old.at > 4 * 60e3 || JSON.stringify(old.groups) !== JSON.stringify(st.groups) || (old.down && !st.down)) await kvSet(x.db, 'zb_status', JSON.stringify(st)); // ghi 4 phút / lần cho đỡ tốn
   if (old && old.down) x.later(telegram(x.env, '✅ <b>Trợ lý Zalo An Lành đã chạy lại</b>'));
-  for (const t of (Array.isArray(d.stats) ? d.stats : []).slice(0, 5)) // tương tác 2 tiếng sau khi đăng bài (chương trình Zalo đếm)
+  for (const t of (Array.isArray(d.stats) ? d.stats : []).slice(0, 20)) // tương tác 2 tiếng sau khi đăng bài (chương trình Zalo đếm)
     await run(x.db, 'UPDATE zb_posts SET eng_msgs = ?, eng_people = ?, eng_reacts = ? WHERE id = ?', Number(t.msgs) || 0, Number(t.people) || 0, Number(t.reacts) || 0, String(t.id || ''));
   if (!cfg.groups.length && !(await kvGet(x.db, 'zb_cfg'))) { // lần đầu: tự chọn nhóm của Thực Dưỡng Lành
     const g = st.groups.filter(g => /thực dưỡng lành/i.test(g.name));
@@ -190,7 +190,10 @@ async function zAck(x, d) {
   const j = await first(x.db, 'SELECT * FROM zb_out WHERE id = ?', Number(d.id) || 0); if (!j) return { ok: true };
   await run(x.db, 'UPDATE zb_out SET status = ?, done_at = ? WHERE id = ?', d.ok ? 'done' : 'err', Date.now(), j.id);
   if (j.kind === 'lookup' && d.ok && d.uid) await zFound(x, j, String(d.uid), String(d.zname || ''), d.inGroups || []);
-  if (j.kind === 'post' && d.ok) await zlog(x, j.ref === 'announce' ? 'announced' : j.ref ? 'post' : 'send', { gid: j.gid, text: j.text.slice(0, 200), name: j.ref ? '' : 'Nhân sự gửi' });
+  const p = j.kind === 'post' && j.ref && j.ref !== 'announce' ? await first(x.db, 'SELECT id, slot FROM zb_posts WHERE id = ?', j.ref) : null; // mọi tin đăng vào nhóm đều là 1 dòng zb_posts để đo (04/11/2026)
+  if (p && d.ok && (p.slot === 'tay' || p.slot === 'chuc')) await run(x.db, "UPDATE zb_posts SET status = 'sent', sent_at = COALESCE(sent_at, ?) WHERE id = ?", Date.now(), p.id);
+  if (p && !d.ok) await run(x.db, "UPDATE zb_posts SET status = 'fail' WHERE id = ?", p.id); // gửi lỗi: không tính là đã đăng
+  if (j.kind === 'post' && d.ok) await zlog(x, j.ref === 'announce' || (p && p.slot === 'chuc') ? 'announced' : p && p.slot !== 'tay' ? 'post' : 'send', { gid: j.gid, text: j.text.slice(0, 200), name: p && p.slot !== 'tay' ? '' : 'Nhân sự gửi' });
   if (!d.ok && j.kind !== 'lookup') await zlog(x, 'error', { gid: j.gid, text: 'Không gửi được (' + j.kind + '): ' + String(d.error || '').slice(0, 200), reply: j.text.slice(0, 300) });
   return { ok: true };
 }
@@ -208,7 +211,9 @@ async function zFound(x, j, uid, zname, inGroups) {
 }
 async function queueAnnounce(x, gid, uid, nm, what) {
   const now = Date.now(), text = announceText(nm, what), due = quiet(now + 60e3) ? nextMorning(now) : now + 60e3; // giờ im lặng → 6h30 sáng
-  await run(x.db, "INSERT INTO zb_out (kind, gid, text, mentions, due, at, ref) VALUES ('post', ?, ?, ?, ?, ?, 'announce')", gid, text, JSON.stringify([{ uid, name: nm }]), due, now);
+  const id = 'c' + now.toString(36) + Math.random().toString(36).slice(2, 5); // lưu thành bài (slot 'chuc') để đo tương tác như bài thường
+  await run(x.db, "INSERT INTO zb_posts (id, day, slot, topic, text, status, by_name, at, funnel) VALUES (?, ?, 'chuc', ?, ?, 'ok', 'Trợ lý', ?, 'CHUC')", id, fmtDate(due, 'yyyyMMdd'), ('Chúc mừng ' + nm + ' nhận ' + what).slice(0, 120), text, now);
+  await run(x.db, "INSERT INTO zb_out (kind, gid, text, mentions, due, at, ref) VALUES ('post', ?, ?, ?, ?, ?, ?)", gid, text, JSON.stringify([{ uid, name: nm }]), due, now, id);
   await zlog(x, 'announce', { gid, uid, name: nm, text: what + ' · ⏰ hẹn đăng ' + fmtDate(due, 'HH:mm dd/MM') + (due - now > 5 * 60e3 ? ' (sau giờ im lặng 21h45–6h)' : ''), reply: text });
 }
 function announceText(nm, what) {
@@ -440,9 +445,11 @@ export async function imgLib() {
   return imgMem ? imgMem.list : [];
 }
 
+/** Link web trong tin đăng nhóm → gắn mã tin để CRM đếm đơn (đơn ghi nguồn "zalo / nhom / <mã>") */
+const tagLinks = (t, id) => String(t).replace(/https:\/\/thucduonglanh\.vn[^\s)]*/g, u => u.replace(/[?#].*$/, '') + '?utm_source=zalo&utm_medium=nhom&utm_campaign=' + id);
 export async function zWrite(x, day, slot, hint, by) {
   const know = await kb(), prods = prodMap(know), wd = new Date(slotTime(day, '12:00') + TZ_MS).getUTCDay();
-  const recent = await all(x.db, "SELECT day, slot, topic, img FROM zb_posts WHERE topic != '' ORDER BY day DESC LIMIT 20");
+  const recent = await all(x.db, "SELECT day, slot, topic, img FROM zb_posts WHERE topic != '' AND slot != 'chuc' ORDER BY day DESC LIMIT 20");
   const used = new Set(recent.map(r => r.img).filter(Boolean)), lib = (await imgLib()).filter(i => !used.has(i.url)); // không lặp ảnh đã dùng gần đây
   const sang = slot !== 'toi', th = THEME[sang ? 'sang' : 'toi'][wd];
   // ưu đãi đang chạy (Marketing nhập ở CRM) cho bài bán hàng
@@ -493,7 +500,7 @@ export async function zWrite(x, day, slot, hint, by) {
   if (!body) throw new Error('AI chưa viết được bài');
   const id = day + '_' + slot, now = Date.now();
   // link web trong bài → gắn mã bài để CRM đếm đơn từ bài này (đơn ghi nguồn "zalo / nhom / <mã bài>")
-  const tagged = body.replace(/(^|[\s(])_([^_\n]+)_(?=[\s).,!?]|$)/gm, '$1$2').replace(/(^|[\s(])\*([^*\n]+)\*(?=[\s).,!?]|$)/gm, '$1$2').replace(/https:\/\/thucduonglanh\.vn[^\s)]*/g, u => u.replace(/[?#].*$/, '') + '?utm_source=zalo&utm_medium=nhom&utm_campaign=' + id);
+  const tagged = tagLinks(body.replace(/(^|[\s(])_([^_\n]+)_(?=[\s).,!?]|$)/gm, '$1$2').replace(/(^|[\s(])\*([^*\n]+)\*(?=[\s).,!?]|$)/gm, '$1$2'), id);
   if (fb) { const all = (await kvJson(x.db, 'zb_fb', [])) || []; for (const f of all) if (f.id === fb.id) f.used = now; await kvSet(x.db, 'zb_fb', JSON.stringify(all)); }
   await run(x.db, `INSERT INTO zb_posts (id, day, slot, topic, text, img, prod, status, by_name, at, funnel) VALUES (?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET topic = excluded.topic, text = excluded.text, img = excluded.img, prod = excluded.prod, status = 'draft', by_name = excluded.by_name, at = excluded.at, funnel = excluded.funnel`,
@@ -559,7 +566,7 @@ export async function crmZbot(x, u, d, crmLog) {
   }
   if (a === 'zb_hist') { // 📚 bài đã đăng & hiệu quả (90 ngày)
     const since = now - 90 * DAY;
-    const rows = await all(x.db, "SELECT id, day, slot, topic, text, img, funnel, sent_at, eng_msgs, eng_people, eng_reacts FROM zb_posts WHERE status = 'sent' AND sent_at >= ? ORDER BY sent_at DESC", since);
+    const rows = await all(x.db, "SELECT id, day, slot, topic, text, img, funnel, by_name, sent_at, eng_msgs, eng_people, eng_reacts FROM zb_posts WHERE status = 'sent' AND sent_at >= ? ORDER BY sent_at DESC", since);
     const ords = await all(x.db, "SELECT source, first_source, total, status FROM orders WHERE time >= ? AND (source LIKE 'zalo / nhom / %' OR first_source LIKE 'zalo / nhom / %')", since);
     const byPost = {}; for (const o of ords) { if (isVoid(o.status)) continue; const m = String(o.source).match(/^zalo \/ nhom \/ (\S+)/) || String(o.first_source).match(/^zalo \/ nhom \/ (\S+)/); if (!m) continue; const b = byPost[m[1]] || (byPost[m[1]] = { n: 0, rev: 0 }); b.n++; b.rev += Number(o.total) || 0; }
     return { ok: true, track: TRACK_FROM, posts: rows.map(p => Object.assign(p, { tracked: p.sent_at >= TRACK_FROM, orders: (byPost[p.id] || {}).n || 0, rev: (byPost[p.id] || {}).rev || 0 })) };
@@ -583,7 +590,9 @@ export async function crmZbot(x, u, d, crmLog) {
     if (isNaN(at)) return { ok: false, error: 'Giờ hẹn chưa đúng.' };
     const gs = (Array.isArray(d.groups) && d.groups.length ? d.groups.map(String) : cfg.groups).filter(g => cfg.groups.includes(g));
     if (!gs.length) return { ok: false, error: 'Chưa chọn nhóm cho trợ lý.' };
-    for (const gid of gs) await run(x.db, "INSERT INTO zb_out (kind, gid, text, due, at) VALUES ('post', ?, ?, ?, ?)", gid, safe(text), Math.max(at, now), now);
+    const id = 'm' + now.toString(36) + Math.random().toString(36).slice(2, 5), kind = ['TOFU', 'MOFU', 'BOFU', 'TIN'].includes(d.kind) ? d.kind : 'TIN';
+    await run(x.db, "INSERT INTO zb_posts (id, day, slot, topic, text, status, by_name, at, funnel) VALUES (?, ?, 'tay', ?, ?, 'ok', ?, ?, ?)", id, fmtDate(Math.max(at, now), 'yyyyMMdd'), text.replace(/\*/g, '').split('\n').find(l => l.trim()).trim().slice(0, 100), tagLinks(safe(text), id), u.name, now, kind); // tin nhân sự gửi: lưu để đo như bài AI
+    for (const gid of gs) await run(x.db, "INSERT INTO zb_out (kind, gid, text, due, at, ref) VALUES ('post', ?, ?, ?, ?, ?)", gid, tagLinks(safe(text), id), Math.max(at, now), now, id);
     await crmLog(x, u, 'Gửi tin vào nhóm Zalo', '', '', at > now + 60e3 ? 'Hẹn ' + fmtDate(at, 'HH:mm dd/MM') : 'Gửi ngay', text.slice(0, 200));
     return { ok: true };
   }

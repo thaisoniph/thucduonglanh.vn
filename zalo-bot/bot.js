@@ -9,7 +9,7 @@ import { execFile } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const VER = '2026-10-31a';
+const VER = '2026-11-04a';
 const DIR = dirname(fileURLToPath(import.meta.url)), TMP = join(DIR, 'tmp'), CREDS = join(DIR, 'creds.json'), QR = join(DIR, 'qr.png');
 for (const l of (existsSync(join(DIR, '.env')) ? readFileSync(join(DIR, '.env'), 'utf8') : '').split('\n')) { const m = l.match(/^\s*([A-Z_]+)\s*=\s*(.*)\s*$/); if (m && !process.env[m[1]]) process.env[m[1]] = m[2]; }
 const API = process.env.API_URL || 'https://api.thucduonglanh.vn/', KEY = process.env.ZBOT_KEY;
@@ -96,20 +96,25 @@ async function refreshGroups() {
 }
 const groupList = () => Object.entries(G).map(([id, g]) => ({ id, name: g.name || '', total: g.total || 0, admin: !!g.boss }));
 /* ---------------------------------------------------------------- đo tương tác bài đăng: 2 tiếng sau khi đăng, đếm tin nhắn, số người nói, lượt thả cảm xúc (không tính đội ngũ, trợ lý) */
+// mỗi tin đăng (bài AI, tin nhân sự gửi, tin chúc mừng) 1 cửa sổ đo; tin nhắn trong nhóm tính cho tin đăng gần nhất, cảm xúc tính đúng tin được thả
 const WATCH = {}, WATCH_MS = 2 * 3600e3;
-function watchPost(gid, ref, ids) { WATCH[gid] = { ref, ids: new Set(ids), until: Date.now() + WATCH_MS, msgs: 0, people: new Set(), reacts: 0, dirty: 1 }; }
-function watchMsg(gid, uid) { const w = WATCH[gid]; if (!w || Date.now() > w.until) return; w.msgs++; w.people.add(String(uid)); w.dirty = 1; }
+function watchPost(gid, ref, ids) { WATCH[ref] = { gid, ref, ids: new Set(ids), at: Date.now(), until: Date.now() + WATCH_MS, msgs: 0, people: new Set(), reacts: 0, dirty: 1 }; }
+function watchMsg(gid, uid) {
+  let w = null; for (const v of Object.values(WATCH)) if (v.gid === gid && Date.now() <= v.until && (!w || v.at > w.at)) w = v;
+  if (!w) return; w.msgs++; w.people.add(String(uid)); w.dirty = 1;
+}
 function onReaction(r) {
-  if (r.isSelf || !r.isGroup) return; const w = WATCH[r.threadId]; if (!w || Date.now() > w.until) return;
+  if (r.isSelf || !r.isGroup) return;
   const g = G[r.threadId]; if (g && g.admins && g.admins.has(String(r.data.uidFrom))) return;
-  if (((r.data.content && r.data.content.rMsg) || []).some(x => w.ids.has(String(x.gMsgID)))) { w.reacts++; w.people.add(String(r.data.uidFrom)); w.dirty = 1; }
+  const ids = ((r.data.content && r.data.content.rMsg) || []).map(x => String(x.gMsgID));
+  for (const w of Object.values(WATCH)) if (w.gid === r.threadId && Date.now() <= w.until && ids.some(i => w.ids.has(i))) { w.reacts++; w.people.add(String(r.data.uidFrom)); w.dirty = 1; }
 }
 function watchStats() { // gửi kèm vòng hỏi máy chủ; hết 2 tiếng thì gửi lần cuối rồi thôi
   const out = [];
-  for (const [gid, w] of Object.entries(WATCH)) {
+  for (const [k, w] of Object.entries(WATCH)) {
     const done = Date.now() > w.until;
     if (w.dirty || done) out.push({ id: w.ref, msgs: w.msgs, people: w.people.size, reacts: w.reacts, done: done ? 1 : 0 });
-    w.dirty = 0; if (done) delete WATCH[gid];
+    w.dirty = 0; if (done) delete WATCH[k];
   }
   return out;
 }
