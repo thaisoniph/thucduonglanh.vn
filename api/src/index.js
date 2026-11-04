@@ -17,7 +17,7 @@ import { refMe, ctvMe, ctvApply } from './partner.js';
 import { fbRoute } from './fb.js';
 export { AiRelay } from './airelay.js'; // Durable Object chuyển tiếp lời gọi AI qua Bắc Mỹ
 
-const API_VERSION = '2026-11-05b'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
+const API_VERSION = '2026-11-05c'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
 const ORIGINS = /^https:\/\/((www\.|crm\.|mkt\.|congsu\.|camnangsongkhoe\.)?thucduonglanh\.vn|([a-z0-9-]+\.)?(thucduonglanh(-crm|-congsu)?|camnang-song-khoe-thuc-duong-lanh)\.pages\.dev)$|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
 function ctxOf(env, ectx) { return { env, db: env.DB, later: p => ectx.waitUntil(Promise.resolve(p).catch(e => console.error('later', e && e.message))) }; }
@@ -55,7 +55,7 @@ async function website(x, data) {
   if (data.type === 'apply') return await apply(x, data); // ứng tuyển từ congsu.thucduonglanh.vn (apply.js)
   if (data.type === 'chat') return await chat(x, data); // 💬 trợ lý chat An Lành trên web (chat.js)
   if (data.type === 'chat_lead') return await chatLead(x, data); // khách để lại số trong khung chat
-  if (data.type === 'zbot') return await zbot(x, data); // 🤖 chương trình Zalo "Trợ lý An Lành" (zbot.js, zalo-bot/)
+  if (data.type === 'zbot') { await ensureSchema(x.db); return await zbot(x, data); } // 🤖 chương trình Zalo "Trợ lý An Lành" (zbot.js, zalo-bot/); bảng mới (zb_act…) tạo cả khi chưa ai mở CRM
   if (data.type === 'order') {
     try {
       if (data.voucher) { // đơn gửi lại (mạng chập chờn) đã lưu rồi thì không kiểm tra lại mã (mã 1 lần sẽ báo "đã dùng")

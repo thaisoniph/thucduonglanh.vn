@@ -123,7 +123,7 @@ async function zPoll(x, d) {
   if (!old || now - old.at > 4 * 60e3 || JSON.stringify(old.groups) !== JSON.stringify(st.groups) || (old.down && !st.down)) await kvSet(x.db, 'zb_status', JSON.stringify(st)); // ghi 4 phút / lần cho đỡ tốn
   if (old && old.down) x.later(telegram(x.env, '✅ <b>Trợ lý Zalo An Lành đã chạy lại</b>'));
   for (const a of (Array.isArray(d.act) ? d.act : []).slice(0, 6)) if (/^\d{10}$/.test(String(a.dh))) // tin nhắn thành viên theo giờ (chương trình Zalo đếm, gửi số cộng dồn của giờ đó)
-    await run(x.db, 'INSERT INTO zb_act (dh, msgs, people) VALUES (?, ?, ?) ON CONFLICT(dh) DO UPDATE SET msgs = max(zb_act.msgs, excluded.msgs), people = max(zb_act.people, excluded.people)', String(a.dh), Number(a.msgs) || 0, Number(a.people) || 0);
+    try { await run(x.db, 'INSERT INTO zb_act (dh, msgs, people) VALUES (?, ?, ?) ON CONFLICT(dh) DO UPDATE SET msgs = max(zb_act.msgs, excluded.msgs), people = max(zb_act.people, excluded.people)', String(a.dh), Number(a.msgs) || 0, Number(a.people) || 0); } catch (e) { console.error('zb_act', e.message); } // lỗi đếm giờ không được chặn việc đăng bài
   for (const t of (Array.isArray(d.stats) ? d.stats : []).slice(0, 20)) // tương tác 2 tiếng sau khi đăng bài (chương trình Zalo đếm)
     await run(x.db, 'UPDATE zb_posts SET eng_msgs = ?, eng_people = ?, eng_reacts = ? WHERE id = ?', Number(t.msgs) || 0, Number(t.people) || 0, Number(t.reacts) || 0, String(t.id || ''));
   if (!cfg.groups.length && !(await kvGet(x.db, 'zb_cfg'))) { // lần đầu: tự chọn nhóm của Thực Dưỡng Lành
