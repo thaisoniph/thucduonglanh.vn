@@ -1091,6 +1091,20 @@ async function crmCustomerDelete(x, u, d) {
   return { ok: true, orders: os.length, leads: ls.length };
 }
 
+/** Xoá 1 khách hỏi nhập thử (04/11/2026): chỉ dòng khách hỏi + nhật ký tư vấn của nó; khách đã mua / đơn hàng giữ nguyên. */
+async function crmLeadDelete(x, u, d) {
+  if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị xoá được khách hỏi.' };
+  const l = await first(x.db, 'SELECT id, name, phone FROM leads WHERE id = ?', String(d.id || ''));
+  if (!l) return { ok: false, error: 'Không tìm thấy khách hỏi (có thể đã bị xoá).' };
+  await run(x.db, 'DELETE FROM leads WHERE id = ?', l.id);
+  const left = await first(x.db, 'SELECT (SELECT COUNT(*) FROM leads WHERE phone = ?) + (SELECT COUNT(*) FROM orders WHERE phone = ?) + (SELECT COUNT(*) FROM customers WHERE phone = ?) AS n', l.phone, l.phone, l.phone);
+  const refs = [l.id].concat(l.phone && !(left && left.n) ? [l.phone] : []); // số không còn gì khác → xoá luôn nhật ký theo số
+  await run(x.db, 'DELETE FROM logs WHERE ref IN (SELECT value FROM json_each(?))', JSON.stringify(refs));
+  await delMark(x, [], [], [l]);
+  await crmLog(x, u, 'Xoá dữ liệu', '', l.name || '', 'Xoá khách hỏi ' + (l.phone || ''), '');
+  return { ok: true };
+}
+
 /* ---------- gộp khách dùng nhiều số điện thoại (14/10/2026: chị Trịnh Thị Thu có 3 số → 3 hồ sơ, đơn và tổng chi bị chia nhỏ) */
 const ALIAS_KEY = 'ph_alias', MSKIP_KEY = 'merge_skip';
 /** {số phụ: số chính}. File sale, đơn web, đơn nhập tay, khách hỏi có số phụ → tính vào số chính, không tách lại. */
@@ -2011,7 +2025,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (opKey) { const done = await kvGet(x.db, opKey); if (done) return JSON.parse(done); }
   const h = { care: crmCare, customer: crmCustomer, order_status: crmOrderStatus, recon_apply: crmReconApply, contact: crmContact, settings: crmSettings, users: crmSaveUsers, order_edit: crmOrderEdit,
     lead_save: crmLeadSave, lead_contact: crmLeadContact, target: crmTarget, assign: crmAssign, bulk: crmBulk, recv: crmRecv, claim: crmClaim,
-    order_delete: crmOrderDelete, customer_delete: crmCustomerDelete, gift: crmGift, stop: crmStop }[a];
+    order_delete: crmOrderDelete, customer_delete: crmCustomerDelete, lead_delete: crmLeadDelete, gift: crmGift, stop: crmStop }[a];
   if (h) {
     const res = await h(x, u, d);
     if (opKey && res && res.ok) { await kvSet(x.db, opKey, JSON.stringify(res), 6 * 3600e3); if (Math.random() < 0.02) await run(x.db, "DELETE FROM kv WHERE k LIKE 'op\\_%' ESCAPE '\\' AND exp < ?", Date.now()); }

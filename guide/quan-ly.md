@@ -246,6 +246,7 @@ Tab **Hiệu quả** → nút **📈 Mức dùng CRM**. Chọn xem 7, 14 hoặc 
 
 - **Xoá đơn**: mở đơn → kéo xuống cuối → **🗑 Xoá đơn này**.
 - **Xoá khách**: mở hồ sơ khách → **🗑 Xoá khách này**. Xoá luôn mọi đơn, khách hỏi, lịch sử chăm sóc của số đó.
+- **Xoá khách hỏi** (số để lại thử trên web): tab **Khách hỏi** → bấm vào tên khách → kéo xuống cuối → **🗑 Xoá khách hỏi (chỉ Quản trị)** → **🗑 Xoá khách hỏi này**. Chỉ xoá lần hỏi đó, hồ sơ khách và đơn hàng (nếu có) vẫn giữ.
 - CRM hỏi lại 2 lần (lần 2 phải gõ chữ **XOA**). **Xoá rồi không lấy lại được.**
 - Khách huỷ đơn thật thì chọn **Huỷ**, **đừng xoá**, để còn số liệu.
 

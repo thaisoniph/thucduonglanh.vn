@@ -1957,6 +1957,17 @@
   function isAdminName(n) { return (S.d.users || []).some(function (u) { return u.name === n && u.role === 'Quản trị'; }); }
   function staffNames() { return userNames().filter(function (n) { return !isAdminName(n); }); }
   /** Quản trị xoá dữ liệu nhập thử: xác nhận 2 lần (gõ chữ XOA), xoá xong tải lại dữ liệu. */
+  /** 🗑 Xoá 1 khách hỏi nhập thử (04/11/2026, chỉ Quản trị): không đụng hồ sơ khách / đơn hàng. */
+  function leadDelete(l, btn) {
+    if (!l || lvl() < 3) return;
+    if (!confirm('Xoá vĩnh viễn khách hỏi ' + (l.name || '') + ' – ' + fPhone(l.phone) + '?\n\nKhông khôi phục được. Chỉ dùng cho số nhập thử / nhập nhầm.')) return;
+    btn.disabled = true; btn.textContent = 'Đang xoá…';
+    api('lead_delete', { id: l.id }).then(function () {
+      S.d.leads = (S.d.leads || []).filter(function (x) { return x.id !== l.id; });
+      setData(S.d, S.loadedAt); closeModal(true); render(); navBadges();
+      toast('Đã xoá khách hỏi ' + (l.name || fPhone(l.phone)));
+    }, function (e) { toast(e.message, true); btn.disabled = false; btn.textContent = '🗑 Xoá khách hỏi này'; });
+  }
   function adminDelete(kind, target, label, btn) {
     if (lvl() < 3) return;
     if (!confirm('Xoá vĩnh viễn ' + label + '?\n\nKhông khôi phục được. Chỉ dùng cho dữ liệu nhập thử / nhập nhầm.')) return;
@@ -3365,7 +3376,8 @@
       (l.reason ? info('Lý do không mua', l.reason, true) : '') + (l.orderId ? info('Mã đơn', l.orderId, true, true) : '') + '</div></div>' +
       '<div class="box"><h3>Ghi chú</h3><div class="pre">' + (l.note ? esc(leadNoteFmt(l.note)) : '<span class="muted">Chưa có ghi chú.</span>') + '</div></div>' +
       (open && !isMkt() ? giftBox(giftPerson(l.phone), '') : '') +
-      '<div class="box"><h3>Lịch sử tư vấn (' + logs.length + ')</h3>' + (logs.length ? '<div class="timeline">' + logs.slice(0, 3).map(logItem).join('') + '</div>' + (logs.length > 3 ? '<details class="k-msg"><summary>Xem thêm ' + (logs.length - 3) + ' lần cũ hơn</summary><div class="timeline">' + logs.slice(3).map(logItem).join('') + '</div></details>' : '') : '<p class="muted">Chưa có.</p>') + '</div>';
+      '<div class="box"><h3>Lịch sử tư vấn (' + logs.length + ')</h3>' + (logs.length ? '<div class="timeline">' + logs.slice(0, 3).map(logItem).join('') + '</div>' + (logs.length > 3 ? '<details class="k-msg"><summary>Xem thêm ' + (logs.length - 3) + ' lần cũ hơn</summary><div class="timeline">' + logs.slice(3).map(logItem).join('') + '</div></details>' : '') : '<p class="muted">Chưa có.</p>') + '</div>' +
+      (lvl() >= 3 ? '<details class="p-edit"><summary>🗑 Xoá khách hỏi (chỉ Quản trị)</summary><div class="box" style="margin:8px 0 0"><p class="small muted" style="margin:0 0 8px">Dùng cho số nhập thử / nhập nhầm. Chỉ xoá lần hỏi này và lịch sử tư vấn của nó' + (c ? ', hồ sơ khách <b>' + esc(c.name) + '</b> và đơn hàng vẫn giữ nguyên' : '') + '. Không khôi phục được.</p><button class="btn danger" data-leaddel="' + esc(l.id) + '">🗑 Xoá khách hỏi này</button></div></details>' : '');
     modal(cp(l.name, esc(l.name || 'Khách hỏi')) + ' ' + leadTag(l) + (leadIsReask(l, c) ? ' ' + REASK_TAG : ''), body, null, { route: '#tiem-nang', pushed: !fromRoute });
   }
 
@@ -8714,7 +8726,7 @@
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-gmore]'); if (!b) return; var r = b.previousElementSibling; if (r) r.hidden = false; b.remove(); });
   document.addEventListener('toggle', function (e) { var d = e.target; if (d && d.matches && d.matches('details[data-grp]')) { S.f.gopen = S.f.gopen || {}; S.f.gopen[d.getAttribute('data-grp')] = d.open; } }, true);
   document.addEventListener('click', function (e) {
-    var t = e.target.closest('[data-recon],[data-otab],[data-per],[data-pq],[data-promo],[data-rf],[data-vipgo],[data-stopgo],[data-stop],[data-taghelp],[data-consent],[data-daily],[data-usage],[data-flow],[data-zalo],[data-quick],[data-care],[data-next],[data-neworder],[data-cf],[data-os],[data-och],[data-tf],[data-cat],[data-addtag],[data-deltag],[data-claim],[data-bcdt],[data-srcadd],[data-srcedit],[data-srcsync],[data-srcdel],[data-adsedit],[data-adssync],[data-who],[data-target],[data-race],[data-offer],[data-myold],[data-more],[data-add],[data-rm],[data-consult],[data-leadorder],[data-newlead],[data-editlead],[data-cust],[data-order],[data-lead]');
+    var t = e.target.closest('[data-recon],[data-otab],[data-per],[data-pq],[data-promo],[data-rf],[data-vipgo],[data-stopgo],[data-stop],[data-taghelp],[data-consent],[data-daily],[data-usage],[data-flow],[data-zalo],[data-quick],[data-care],[data-next],[data-neworder],[data-cf],[data-os],[data-och],[data-tf],[data-cat],[data-addtag],[data-deltag],[data-claim],[data-bcdt],[data-srcadd],[data-srcedit],[data-srcsync],[data-srcdel],[data-adsedit],[data-adssync],[data-who],[data-target],[data-race],[data-offer],[data-myold],[data-more],[data-add],[data-rm],[data-consult],[data-leadorder],[data-newlead],[data-editlead],[data-leaddel],[data-cust],[data-order],[data-lead]');
     if (!t || !S.d) return;
     if (e.target.closest('a[href]') && !t.hasAttribute('data-myold')) return; // nút gọi / Zalo bên trong thẻ
     if (e.target.closest('select[data-oassign]')) return; // ô “Giao cho…” trên dòng đơn: không mở hộp đơn
@@ -8765,6 +8777,7 @@
     if (t.hasAttribute('data-consult')) { openConsult(a('data-consult')); return; }
     if (t.hasAttribute('data-leadorder')) { var L = findLead(a('data-leadorder')); if (L) openOrderForm({ lead: L }); return; }
     if (t.hasAttribute('data-newlead')) { openLeadForm(); return; }
+    if (t.hasAttribute('data-leaddel')) { leadDelete(findLead(a('data-leaddel')), t); return; }
     if (t.hasAttribute('data-editlead')) { var L2 = findLead(a('data-editlead')); if (L2) openLeadForm(L2); return; }
     if (t.hasAttribute('data-neworder')) { openNewOrder(a('data-neworder')); return; }
     if (t.hasAttribute('data-cf')) { searchKeep(S.f.c); S.f.c.k = a('data-cf'); S.f.c.n = 60; if ($('#cList')) renderCustomersPart(); else render(); return; }
