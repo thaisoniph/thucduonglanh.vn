@@ -2510,6 +2510,7 @@
       (o.trk ? trkLine(o).replace('class="trkl', 'class="trkl full') || '<div class="trkl full">📦 ' + esc(o.trk) + '</div>' : '') +
       '<div class="steps"><button class="btn" id="oTrackSave">Lưu vận đơn</button>' + (o.tracking ? '<button class="btn" id="oTrackGo">🔎 Tra cứu hành trình</button>' : '') + '</div>' +
       (o.tracking ? '' : '<p class="hint" style="margin:8px 0 0">Nhập mã vận đơn xong, đơn tự chuyển sang “Đang giao”.' + (carrierOf(o) === 'Viettel Post' ? ' Mã đơn ' + esc(o.id) + ' là mã của sale, không tra cứu được trên Viettel Post – cần mã vận đơn Viettel Post cấp (in trên phiếu gửi). Khi tạo đơn trên Viettel Post có ghi mã đơn này vào ô mã đơn hàng riêng / tham chiếu thì CRM tự điền mã vận đơn.' : '') + '</p>') + '</div>' +
+      (/^(Nhập tay|Tiềm năng)/.test(o.source || '') ? '<div class="box" id="oWb"><h3>📄 File lên đơn của sale</h3><p class="small muted" style="margin:0 0 8px">Đơn tạo trên CRM tự ghi vào sheet lên đơn (VTG_lendon) của sale phụ trách, khoảng 10 phút/lần (7h–22h).</p><button class="btn" id="oWbChk" type="button">🔎 Kiểm tra đã vào file chưa</button><div id="oWbRes"></div></div>' : '') +
       '<div class="box"><label class="f" style="margin:0"><span>Ghi chú đơn</span><textarea id="oNote" rows="2">' + esc(o.note) + '</textarea></label><button class="btn" id="oNoteSave" style="margin-top:8px">Lưu ghi chú</button></div>' +
       (logs.length ? '<div class="box"><h3>Lịch sử</h3><div class="timeline">' + logs.map(logItem).join('') + '</div></div>' : '') +
       (lvl() >= 3 ? '<div class="box"><h3>Xoá đơn (chỉ Quản trị)</h3><p class="small muted" style="margin:0 0 8px">Dùng cho đơn nhập thử / nhập nhầm. Xoá là mất hẳn đơn và lịch sử của đơn, không khôi phục được. Đơn khách huỷ thật thì chọn trạng thái “Huỷ”, đừng xoá.</p><button class="btn danger" id="oDel">🗑 Xoá đơn này</button></div>' : '');
@@ -2520,6 +2521,23 @@
       copy(o.name + ' – ' + o.phone + '\n' + [o.address, o.ward, o.province].filter(Boolean).join(', ') + '\n' + o.items + '\nTổng: ' + money(o.total) + ' (' + o.payment + ')' + (o.note ? '\nGhi chú: ' + o.note : '')).then(function () { toast('Đã copy'); });
     };
     $('#oEdit', m).onclick = function () { openOrderForm({ order: o }); };
+    if ($('#oWbChk', m)) $('#oWbChk', m).onclick = function () { // 05/11/2026 Thuỷ: đơn CRM chưa thấy trong VTG_lendon → xem đơn đã ghi chưa, lỗi gì, ghi lại
+      var b = this, box = $('#oWbRes', m); b.disabled = true; box.innerHTML = '<p class="muted small">Đang kiểm tra…</p>';
+      api('wb_order', { id: o.id }).then(function (j) {
+        b.disabled = false;
+        var f = j.files || [], on = f.filter(function (x) { return x.writeBack && x.sheets.length; }), last = (j.queue || []).filter(function (r) { return r.kind === '@order'; }).pop(), msg;
+        if (j.added) msg = '✅ ' + esc(last.result) + ' (' + fDateTime(last.done) + ').<br><span class="muted">Không thấy dòng này: xem cuối sheet, có thể sale đã xoá / sắp xếp lại.</span>';
+        else if (j.waiting) msg = '⏳ Đang chờ ghi' + (last && last.result ? '. Lần trước: <b>' + esc(last.result) + '</b>' : ' (lượt kế tiếp trong vòng 10 phút)') + '.' + (last && /quyền|permission|403/i.test(last.result) ? '<br>👉 Sale mở file → Chia sẻ → thêm tài khoản Google của CRM với quyền <b>Người chỉnh sửa</b>.' : '');
+        else if (last) msg = '⚠️ Chưa ghi được: <b>' + esc(last.result) + '</b>';
+        else if (!j.owner) msg = '⚠️ Khách chưa có người phụ trách nên CRM không biết ghi vào file của ai.';
+        else if (!f.length) msg = '⚠️ ' + esc(j.owner) + ' chưa có file sale nào trong CRM (Cài đặt → file sale), nên đơn không được ghi.';
+        else if (!on.length) msg = '⚠️ File của ' + esc(j.owner) + ' chưa bật <b>✍️ Ghi ngược</b>' + (f.some(function (x) { return x.writeBack; }) ? ' hoặc chưa có sheet nào chọn vai trò <b>Đơn hàng</b>' : '') + '. Lúc tạo đơn CRM không xếp hàng ghi. Bật trong Cài đặt → file sale của ' + esc(j.owner) + ', rồi bấm Ghi lại.';
+        else msg = '⚠️ Lúc tạo đơn CRM chưa xếp hàng ghi (có thể lúc đó file chưa bật ghi ngược).';
+        box.innerHTML = '<p style="margin:8px 0 0">' + msg + '</p>' + (j.owner ? '<p class="small muted" style="margin:6px 0 0">Ghi vào file của <b>' + esc(j.owner) + '</b>' + (on.length ? ' · sheet: ' + esc(on[0].orderSheet || on[0].sheets.join(', ')) : '') + '</p>' : '') +
+          (!j.added && !j.waiting && on.length ? '<button class="btn pri" id="oWbRe" type="button" style="margin-top:8px">✍️ Ghi lại vào file</button>' : '');
+        if ($('#oWbRe', m)) $('#oWbRe', m).onclick = function () { var b2 = this; b2.disabled = true; api('wb_order', { id: o.id, retry: 1 }).then(function () { box.innerHTML = '<p style="margin:8px 0 0">⏳ Đã xếp hàng ghi lại. Khoảng 10 phút nữa đơn vào file, bấm Kiểm tra lại để xem.</p>'; }, function (e) { b2.disabled = false; toast(e.message, true); }); };
+      }, function (e) { b.disabled = false; box.innerHTML = '<p class="bad-line small">' + esc(e.message) + '</p>'; });
+    };
     if ($('#oOtBox', m)) $('#oOtBox', m).addEventListener('click', function (e) {
       var b = e.target.closest('#oOtOk,[data-otset]'); if (!b) return; var to = b.getAttribute('data-otset'); b.disabled = true;
       api('order_status', to ? { id: o.id, row: o.row, otype: to } : { id: o.id, row: o.row, otypeOk: 1 }).then(function () {
