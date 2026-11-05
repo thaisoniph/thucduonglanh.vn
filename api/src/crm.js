@@ -9,6 +9,7 @@ import { crmGa, crmGaProp } from './ga.js';
 import { crmMkt, mktFbEdit } from './mkt.js';
 import { mktView, mktBudgetSet, mktGoalSet, mktDailyMsgs } from './mktv.js';
 import { crmSan, sanSchema, sanAllowed } from './san.js';
+import { fetchXlsx, crmFin } from './fin.js';
 import { crmSaleMkt, crmOffers } from './salemkt.js';
 import { cmsTokenSet, quizCms } from './cms.js';
 import { crmVoucher, voucherSchema } from './voucher.js';
@@ -517,18 +518,18 @@ async function loadSmall(x, u, R, mode, adV) {
   const users = (await crmUsers(x)).filter(y => y.active || u.level >= 3).map(y => u.level >= 3 ? { email: y.email, name: y.name, role: y.role, active: y.active, recv: y.recv, tg: !!y.tg, alias: y.alias, prefix: y.prefix || slugName(y.name), web: y.web || y.level >= 3, mkv: y.mkv || y.level >= 3, zb: !!y.zb, phone: y.phone, full: y.full, acct: y.acct, joined: y.joined } : u.level >= 2 ? { name: y.name, role: y.role, recv: y.recv, tg: !!y.tg, joined: y.joined } : { name: y.name, role: y.role, joined: y.name === u.name ? y.joined : '' }); // SĐT, họ tên, số tài khoản nhân sự: chỉ Quản trị; ngày vào làm: tính thâm niên (Phụ lục 01)
   const adsP = adRowsOf(x, u, adV); adsP.catch(() => { });
   const areasP = u.level === 1 ? areaStats(x) : Promise.resolve(undefined); areasP.catch(() => { }); // quản lý đã có đủ khách → máy tự đếm
-  const [ca, fbNew, prefs, tagColors, sources, ads, commission, sanOk, dash, qrLinks, mktDoc, cost, payplan, staffGuard, opex] = await Promise.all([caCfg(x), // hỏi song song: mỗi lần hỏi máy chủ dữ liệu mất một nhịp
+  const [ca, fbNew, prefs, tagColors, sources, ads, commission, sanOk, dash, qrLinks, mktDoc, cost, payplan, staffGuard, opex, fin, ktLink] = await Promise.all([caCfg(x), // hỏi song song: mỗi lần hỏi máy chủ dữ liệu mất một nhịp
     u.level >= 2 ? first(x.db, "SELECT count(*) AS n FROM feedback WHERE status = 'Mới'").then(r => (r || {}).n || 0) : 0,
     prefsOf(x, u.email), allTagColors(x), u.level >= 3 ? srcList(x) : [], u.level >= 3 ? adsCfg(x) : null, kvJson(x.db, 'commission_cfg', {}).then(r => r || {}), sanAllowed(x, u).catch(() => false), kvJson(x.db, 'dash_cfg', {}).then(r => r || {}),
     all(x.db, 'SELECT code, name FROM links').then(r => r.map(l => [l.code, l.name])).catch(() => []),
     u.level >= 3 || u.role === 'Marketing' || u.mkv ? kvJson(x.db, 'mkt_doc', null).then(r => r || MKT_DOC_DEF) : null,
-    u.level >= 3 ? kvJson(x.db, 'cost_cfg', null) : null, kvJson(x.db, 'payplan_cfg', null).then(r => Object.assign({}, PAYPLAN, r || {})), u.level >= 3 ? kvJson(x.db, 'staff_guard', []).then(r => r || []) : [], u.level >= 3 ? kvJson(x.db, 'opex_cfg', {}).then(r => r || {}) : null]); // 💰 giá nhập sản phẩm: chỉ Quản trị (không nằm trong repo công khai) // 📍 tên link QR → nguồn đơn web hiện "📍 <tên>"
+    u.level >= 3 ? kvJson(x.db, 'cost_cfg', null) : null, kvJson(x.db, 'payplan_cfg', null).then(r => Object.assign({}, PAYPLAN, r || {})), u.level >= 3 ? kvJson(x.db, 'staff_guard', []).then(r => r || []) : [], u.level >= 3 ? kvJson(x.db, 'opex_cfg', {}).then(r => r || {}) : null, u.level >= 3 ? kvJson(x.db, 'fin_cfg', null) : null, u.level >= 3 ? kvJson(x.db, 'kt_link', null) : null]); // 💰 giá nhập sản phẩm: chỉ Quản trị (không nằm trong repo công khai) // 📍 tên link QR → nguồn đơn web hiện "📍 <tên>"
   const [ct, tg, cy, tp] = (await smallQ).map(r => r.results || []), ar = await adsP, areas = await areasP.catch(() => undefined);
   return {
     ok: true, user: publicUser(u), areas, sanOk, now: Date.now(), today: startOfDay(Date.now()), fbNew, users, prefs, tagColors, sources, ads, adV: ar.v, adRows: ar.rows, qrLinks,
     contacts: ct.reverse().map(contactOut), targets: tg.map(t => ({ month: t.month, name: t.name, amount: t.amount || 0, by: t.by_name || '', at: t.at })),
     cycles: cy.filter(r => r.name).map(r => [r.name, r.variant || '', Number(r.days) || 0, r.basis || '']), templates: tp.filter(r => r.text).map(r => [r.when_txt || '', r.purpose || '', r.text]),
-    rules: { backCost: Number(dash.backCost) || 0, ai: !!x.env.ANTHROPIC_API_KEY && u.role !== 'Marketing', vipOrders: R.vipOrders, vipSpent: R.vipSpent, atRisk: R.atRisk, coolDays: R.coolDays, shipDays: R.shipDays, shipFar: R.shipFar, famMin: R.famMin, otypes: OTYPES, commission, payplan, staffGuard, dash: u.level >= 3 || u.role === 'Marketing' || u.mkv ? dash : null, mktDoc, cost, opex, statuses: ORDER_STATUS, results: CARE_RESULTS, leadStatus: LEAD_STATUS, assignMode: mode, bot: BOT_USERNAME, ca, lines: LINES.map(l => l[0]).concat(['Khác']) }
+    rules: { backCost: Number(dash.backCost) || 0, ai: !!x.env.ANTHROPIC_API_KEY && u.role !== 'Marketing', vipOrders: R.vipOrders, vipSpent: R.vipSpent, atRisk: R.atRisk, coolDays: R.coolDays, shipDays: R.shipDays, shipFar: R.shipFar, famMin: R.famMin, otypes: OTYPES, commission, payplan, staffGuard, dash: u.level >= 3 || u.role === 'Marketing' || u.mkv ? dash : null, mktDoc, cost, opex, fin, ktLink: ktLink && ktLink.link ? ktLink : null, statuses: ORDER_STATUS, results: CARE_RESULTS, leadStatus: LEAD_STATUS, assignMode: mode, bot: BOT_USERNAME, ca, lines: LINES.map(l => l[0]).concat(['Khác']) }
   };
 }
 
@@ -2027,7 +2028,8 @@ export async function crmApi(x, d, sync, mgr) {
     if (a === 'ref_gift' || a === 'ref_told') { const o = await first(x.db, 'SELECT ref_phone FROM orders WHERE id = ? ORDER BY rid LIMIT 1', String(d.id || '')); const g = o && o.ref_phone ? await guardPhone(x, u, o.ref_phone) : ''; if (g) return { ok: false, error: g }; }
     return crmPartner(x, u, d, crmLog, (await crmUsers(x)).map(z => z.name));
   }
-  if (a === 'kt_fetch') return u.level >= 3 ? crmKtFetch(d) : { ok: false, error: 'Bạn không có quyền làm việc này.' };
+  if (a === 'kt_fetch') return u.level >= 3 ? crmKtFetch(x, d) : { ok: false, error: 'Bạn không có quyền làm việc này.' };
+  if (a === 'kt_link' || a === 'fin_save' || a === 'fin_test') return crmFin(x, u, d, a); // 💼 tài chính (05/11/2026)
   const need = { settings: 2, users: 3, assign: 2, bulk: 2, recv: 2 };
   if (need[a] && u.level < need[a]) return { ok: false, error: 'Bạn không có quyền làm việc này.' };
   const opKey = d.opId ? 'op_' + String(d.opId).slice(0, 40) : ''; // CRM gửi lại việc khi mạng chập chờn: việc đã làm rồi thì trả kết quả cũ, không ghi trùng
@@ -2044,21 +2046,10 @@ export async function crmApi(x, d, sync, mgr) {
 }
 
 /** 📎 Tổng quan → Tải file kế toán bằng link Google Sheet (05/11/2026): trình duyệt không tự tải được từ Google (CORS) nên máy chủ tải bản .xlsx rồi gửi lại (base64).
- *  CRM đọc file ngay trên máy như khi chọn file. Chỉ Quản trị, chỉ link docs.google.com / drive.google.com, file ≤ 15MB, không lưu file. */
-async function crmKtFetch(d) {
-  const L = String(d.link || ''), id = (L.match(/(?:docs\.google\.com\/spreadsheets\/d\/|drive\.google\.com\/(?:file\/d\/|open\?id=))([\w-]{20,})/) || [])[1];
-  if (!id) return { ok: false, error: 'Link chưa đúng: cần link Google Sheet (docs.google.com/spreadsheets/d/…).' };
-  const urls = ['https://docs.google.com/spreadsheets/d/' + id + '/export?format=xlsx', 'https://drive.google.com/uc?export=download&id=' + id];
-  for (const url of urls) {
-    let r; try { r = await fetch(url, { redirect: 'follow' }); } catch (e) { continue; }
-    if (!r.ok) continue;
-    const buf = new Uint8Array(await r.arrayBuffer());
-    if (buf.length < 4 || buf[0] !== 0x50 || buf[1] !== 0x4B) continue; // trang đăng nhập Google (HTML) = link chưa mở quyền xem
-    if (buf.length > 15e6) return { ok: false, error: 'File quá lớn (' + Math.round(buf.length / 1e6) + ' MB). Tải file về máy rồi chọn file.' };
-    const cd = r.headers.get('content-disposition') || '', nm = (cd.match(/filename\*=UTF-8''([^;]+)/i) || [])[1] || (cd.match(/filename="([^"]+)"/i) || [])[1] || '';
-    let bin = ''; for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode.apply(null, buf.subarray(i, i + 0x8000));
-    let name = 'Google Sheet kế toán.xlsx'; try { if (nm) name = decodeURIComponent(nm); } catch (e) { name = nm; }
-    return { ok: true, b64: btoa(bin), name: /\.xlsx$/i.test(name) ? name : name + '.xlsx' };
-  }
-  return { ok: false, error: 'Không tải được file. Nhờ kế toán bật Chia sẻ → "Bất kỳ ai có đường liên kết" → Người xem, rồi thử lại. Hoặc tải file về máy (Tệp → Tải xuống → .xlsx) rồi chọn file.' };
+ *  CRM đọc file ngay trên máy như khi chọn file. Chỉ Quản trị. Không gửi link → dùng link đã nối (kt_link). Không lưu file. */
+async function crmKtFetch(x, d) {
+  const link = d.link || ((await kvJson(x.db, 'kt_link', null)) || {}).link; if (!link) return { ok: false, error: 'Chưa nối link Google Sheet kế toán.' };
+  const f = await fetchXlsx(link); if (f.error) return { ok: false, error: f.error };
+  let bin = ''; for (let i = 0; i < f.buf.length; i += 0x8000) bin += String.fromCharCode.apply(null, f.buf.subarray(i, i + 0x8000));
+  return { ok: true, b64: btoa(bin), name: f.name };
 }

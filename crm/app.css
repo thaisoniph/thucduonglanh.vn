@@ -1604,3 +1604,21 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .pnl-t td.ok { color: var(--primary); } .pnl-t td.bad { color: var(--red); }
 .kt-link { display: flex; gap: 6px; } .kt-link input { flex: 1 1 auto; min-width: 0; }
 .dpl-v > small b { display: inline; font-size: inherit; color: inherit; white-space: normal; }
+/* 🏦 Tiền & công nợ + 📊 Chi phí lớn (05/11/2026) */
+.fin-box { margin: 0 0 12px; }
+.fin-act { display: flex; flex-wrap: wrap; gap: 6px; }
+.fin-n { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 760px) { .fin-n { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.fin-c { padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--line); border-left: 5px solid var(--line); background: var(--card); min-width: 0; }
+.fin-c.mid { border-left-color: var(--mid); background: var(--orange-light); } .fin-c.bad { border-left-color: var(--red); background: var(--red-light); }
+.fin-c span { display: block; font-size: 14px; color: var(--muted); } .fin-c span small { font-size: 12px; }
+.fin-c > b { display: block; font-size: 22px; line-height: 1.25; color: var(--ink); white-space: nowrap; } .fin-c.bad > b { color: var(--red); }
+.fin-c > small { display: block; font-size: 13px; line-height: 1.4; color: var(--text); }
+.fin-due { margin: 6px 0 0; padding-left: 18px; }
+.fin-bars { display: grid; gap: 6px; }
+.fin-r { display: grid; grid-template-columns: minmax(150px, 1.3fr) minmax(60px, 2fr) auto; grid-template-areas: "l b v" "p p p"; gap: 2px 10px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.fin-l { grid-area: l; font-weight: 600; } .fin-r > b { grid-area: v; text-align: right; white-space: nowrap; }
+.fin-b { grid-area: b; height: 10px; background: var(--primary-soft); border-radius: 5px; overflow: hidden; } .fin-b i { display: block; height: 100%; background: var(--primary); border-radius: 5px; }
+.fin-r.mid .fin-b i { background: var(--mid); } .fin-r.bad .fin-b i { background: var(--red); }
+.fin-p { grid-area: p; font-size: 13px; color: var(--text); } .fin-p small { color: var(--muted); }
+.fin-adv { margin: 0; padding-left: 20px; } .fin-adv li { margin: 0 0 8px; line-height: 1.45; }

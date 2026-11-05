@@ -11,6 +11,7 @@ import { backfillCustomerExtras } from './migrate.js';
 import { zbotTick } from './zbot.js';
 import { fpTick } from './fb.js';
 import { refAuto, refSaleAuto } from './partner.js';
+import { finSync, finMorning } from './fin.js';
 
 function careMessage(items, leads, today, isGroup, who, R) {
   const block = (title, arr, tip) => !arr.length ? '' : '\n\n<b>' + title + ' (' + arr.length + ')</b> – ' + tip + '\n' + arr.slice(0, 25).map(c =>
@@ -116,9 +117,15 @@ export async function scheduled(x, cron) {
   if (!await kvGet(x.db, 'migrated')) return;
   const now = Date.now(), vn = new Date(now + 7 * 3600e3);
   if (vn.getUTCHours() < 7 || vn.getUTCHours() >= 22) return; // ban đêm (22h–7h) không ai làm việc → nghỉ, đỡ tốn lượt đọc
+  if (vn.getUTCHours() === 7 && vn.getUTCMinutes() >= 30 && vn.getUTCMinutes() < 50) { // 💼 7h30: tự đọc link Google Sheet kế toán (lượt riêng, lỗi không ảnh hưởng tin 8h)
+    const fk = 'finsync_' + fmtDate(now, 'yyyyMMdd');
+    if (!await kvGet(x.db, fk)) { await kvSet(x.db, fk, '1', 2 * DAY); try { await finSync(x); } catch (e) { console.error('finSync', e.message); } return; }
+  }
   if (vn.getUTCHours() === 8 && vn.getUTCMinutes() < 10) {
     const key = 'care_' + fmtDate(now, 'yyyyMMdd');
     if (!await kvGet(x.db, key)) { await kvSet(x.db, key, '1', 2 * DAY); try { await refThanks(x); } catch (e) { console.error('refAuto', e.message); } try { await dailyCare(x); } catch (e) { console.error('dailyCare', e.message); } }
+    const fm = 'fin_' + fmtDate(now, 'yyyyMMdd'); // 💼 tin tài chính buổi sáng: riêng cho Quản trị đã nối Telegram
+    if (!await kvGet(x.db, fm)) { await kvSet(x.db, fm, '1', 2 * DAY); try { const t = await finMorning(x); if (t) for (const u of await crmUsers(x)) if (u.active && u.tg && u.level >= 3) await telegramTo(x.env, u.tg, t); } catch (e) { console.error('finMorning', e.message); } }
     const mk = 'mktd_' + fmtDate(now, 'yyyyMMdd'); // tin Telegram marketing buổi sáng
     if (!await kvGet(x.db, mk)) { await kvSet(x.db, mk, '1', 2 * DAY); try { for (const m of await mktDailyMsgs(x, await crmUsers(x))) await telegramTo(x.env, m.tg, m.text); } catch (e) { console.error('mktDaily', e.message); } }
   }

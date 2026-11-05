@@ -4297,6 +4297,152 @@
       '<ul class="small muted pnl-notes">' + notes.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul></details>' +
       (notes.length > 1 && notes[0].charAt(0) === '⚠' ? '<p class="small notice" style="margin:8px 0 0">' + notes[0] + '</p>' : '') + '</div>';
   }
+  /* ---------- 🏦 Tiền & công nợ + 📊 Chi phí lớn & cách tối ưu (05/11/2026). Kế toán cập nhật 3 trang trong file Google Sheet báo cáo: "Sổ chi", "Số dư ngân hàng", "Công nợ"
+   * (mẫu: Drive 05_Tài chính & Kế toán/Báo cáo doanh thu - chi phí/2026-11-05_Mẫu cập nhật thu chi hằng ngày cho kế toán.xlsx). Quản trị nối link 1 lần → máy chủ tự đọc 7h30 (api/src/fin.js),
+   * CRM cũng tự đọc trên máy khi Quản trị mở Tổng quan mà số đã cũ quá 3 tiếng (finSyncC, phòng khi máy chủ gói miễn phí không đủ sức đọc). finParseC trùng finParse trong api/src/fin.js: sửa 1 bên thì sửa cả 2. */
+  var FIN = { busy: false, tried: 0, err: '' };
+  function finIso(v) {
+    if (typeof v === 'number' && v > 30000 && v < 80000) return new Date(Date.UTC(1899, 11, 30) + Math.round(v) * DAY).toISOString().slice(0, 10);
+    var s = String(v || '').trim(), m = s.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](20\d\d)/); if (m) return m[3] + '-' + pad(+m[2]) + '-' + pad(+m[1]);
+    m = s.match(/^(20\d\d)-(\d\d)-(\d\d)/); return m ? m[0] : '';
+  }
+  function finNum(v) { if (typeof v === 'number') return v; var s = String(v || '').replace(/[^\d-]/g, ''); return s && s !== '-' ? +s : 0; }
+  function finChiKind(g) { var n = norm(g); return /chuyen (giua|noi bo)|chuyen tien/.test(n) ? 'move' : /tra no|nha cung cap|nhap hang/.test(n) ? 'ncc' : /^thue\b(?! (van phong|mat bang|nha))/.test(n) ? 'tax' : ''; }
+  function finHead(rows, want, max) {
+    for (var i = 0; i < Math.min(rows.length, max || 30); i++) {
+      var H = rows[i].map(function (x) { return norm(x).replace(/\s+/g, ' ').trim(); }), c = {}, ok = true;
+      for (var k in want) { var j = H.findIndex(function (h) { return want[k].test(h); }); if (j < 0) { ok = false; break; } c[k] = j; }
+      if (ok) return { r: i, c: c, H: H };
+    }
+    return null;
+  }
+  function finParseC(sheets) {
+    var out = { chi: null, bank: null, pay: null };
+    sheets.forEach(function (sh) {
+      var nm = norm(sh.n), h;
+      if (!out.chi && /so chi/.test(nm) && (h = finHead(sh.rows, { d: /^ngay/, g: /^nhom/, v: /^so tien/ }))) {
+        var nd = h.H.findIndex(function (x) { return /^noi dung|dien giai/.test(x); }), to = h.H.findIndex(function (x) { return /nguoi nhan|nha cung cap/.test(x); }), L = [];
+        sh.rows.slice(h.r + 1).forEach(function (r) { var d = finIso(r[h.c.d]), v = finNum(r[h.c.v]); if (d && v > 0) L.push([d, String(r[h.c.g] || 'Chưa chọn nhóm').trim(), Math.round(v), nd >= 0 ? String(r[nd] || '').trim().slice(0, 80) : '', to >= 0 ? String(r[to] || '').trim().slice(0, 60) : '']); });
+        out.chi = L;
+      }
+      if (!out.bank && /so du/.test(nm) && (h = finHead(sh.rows, { d: /^ngay/, t: /^tong/ }))) {
+        var acc = h.H.map(function (x, j) { return j !== h.c.d && j !== h.c.t && x && !/ghi chu/.test(x) ? j : -1; }).filter(function (j) { return j >= 0; }), B = [];
+        sh.rows.slice(h.r + 1).forEach(function (r) { var d = finIso(r[h.c.d]); if (!d) return; var v = acc.map(function (j) { return Math.round(finNum(r[j])); }), s = v.reduce(function (a, b) { return a + b; }, 0), t = finNum(r[h.c.t]) || s; if (t || s) B.push([d, Math.round(t), v]); });
+        B.sort(function (a, b) { return a[0] < b[0] ? -1 : 1; }); out.bank = { acc: acc.map(function (j) { return String(sh.rows[h.r][j]).trim(); }), rows: B.slice(-62) };
+      }
+      if (!out.pay && /cong no/.test(nm) && (h = finHead(sh.rows, { ncc: /^nha cung cap/, v: /^gia tri/ }, 40))) {
+        var f = function (re) { return h.H.findIndex(function (x) { return re.test(x); }); }, cHd = f(/so hoa don|chung tu/), cNg = f(/^ngay hoa don/), cHan = f(/^han/), cPaid = f(/^da thanh toan/), cCon = f(/^con phai tra/), P = [];
+        sh.rows.slice(h.r + 1).some(function (r) {
+          var n = String(r[h.c.ncc] || '').trim(); if (!n) return false; if (/^(tong|cong)( cong)?\s*$|^tong cong/.test(norm(n).trim())) return true;
+          var v = finNum(r[h.c.v]), paid = cPaid >= 0 ? finNum(r[cPaid]) : 0, con = cCon >= 0 && r[cCon] !== '' && r[cCon] != null ? finNum(r[cCon]) : v - paid;
+          if (con > 0) P.push([n.slice(0, 80), cHd >= 0 ? String(r[cHd] || '').trim().slice(0, 30) : '', cNg >= 0 ? finIso(r[cNg]) : '', cHan >= 0 ? finIso(r[cHan]) : '', Math.round(con), Math.round(v)]);
+          return false;
+        });
+        out.pay = P;
+      }
+    });
+    return out;
+  }
+  /** Đọc link đã nối ngay trên máy: máy chủ tải file (kt_fetch) → CRM đọc → gửi kết quả lên (fin_save). */
+  function finSyncC(silent) {
+    if (FIN.busy) return; FIN.busy = true; FIN.tried = Date.now(); FIN.err = ''; if (!silent) render();
+    var nm = '';
+    api('kt_fetch', {}).then(function (j) {
+      nm = j.name || 'Google Sheet kế toán.xlsx'; var bin = atob(j.b64), u = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+      return xlsxNamed(u, 25);
+    }).then(function (sh) {
+      return api('fin_save', { kt: ktParse(sh, nm), fin: finParseC(sh), file: nm });
+    }).then(function (j) { S.d.rules.opex = j.opex; S.d.rules.fin = j.fin; if (!silent) toast('Đã lấy số mới từ file kế toán ✓'); }, function (e) {
+      FIN.err = /Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message; if (!silent) toast(FIN.err, true);
+    }).then(function () { FIN.busy = false; if (route().view === 'tong-quan') render(); });
+  }
+  function finLinkEdit() {
+    var L = S.d.rules.ktLink, md = modal('🔗 Nối file Google Sheet của kế toán', '<p>Dán link file <b>báo cáo doanh thu – chi phí</b> kế toán đang cập nhật. CRM tự đọc mỗi sáng 7h30 (và khi anh/chị mở Tổng quan), lấy: chi phí theo tháng, <b>Sổ chi</b> hằng ngày, <b>Số dư ngân hàng</b>, <b>Công nợ</b> nhà cung cấp.</p>' +
+      '<label class="f"><span>Link Google Sheet</span><input type="url" id="finLink" value="' + esc(L ? L.link : '') + '" placeholder="https://docs.google.com/spreadsheets/d/…"></label>' +
+      '<p class="small muted">Link cần để chế độ <b>Bất kỳ ai có đường liên kết → Người xem</b>. Mẫu 2 trang Sổ chi + Số dư ngân hàng cho kế toán: Drive → 05_Tài chính &amp; Kế toán → Báo cáo doanh thu - chi phí → <b>2026-11-05_Mẫu cập nhật thu chi hằng ngày cho kế toán.xlsx</b>.</p>',
+      (L ? '<button class="btn danger" id="finOff">Bỏ nối</button>' : '') + '<button class="btn" data-close>Đóng</button><button class="btn pri" id="finOk">Lưu và lấy số</button>');
+    $('#finOk', md).onclick = function () {
+      var b = this, v = $('#finLink', md).value.trim(); if (!/docs\.google\.com|drive\.google\.com/.test(v)) { toast('Dán link Google Sheet (docs.google.com/spreadsheets/…)', true); return; }
+      b.disabled = true; api('kt_link', { link: v }).then(function (j) { S.d.rules.ktLink = j.ktLink; closeModal(); finSyncC(false); }, function (e) { b.disabled = false; toast(/Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message, true); });
+    };
+    if ($('#finOff', md)) $('#finOff', md).onclick = function () { if (confirm('Bỏ nối file kế toán? Số đã lấy vẫn giữ.')) api('kt_link', { off: 1 }).then(function () { S.d.rules.ktLink = null; closeModal(); render(); }, function (e) { toast(e.message, true); }); };
+  }
+  /** Tháng kế toán gần nhất có đủ doanh thu + nhóm chi phí (để xem cơ cấu chi phí) và tháng trước nó. */
+  function finKtMonths() { var O = (S.d.rules && S.d.rules.opex) || {}; return Object.keys(O).sort().reverse().filter(function (m) { var k = O[m].kt; return k && k.dt > 0 && (k.groups || []).length; }).map(function (m) { return { m: m, k: O[m].kt }; }); }
+  var FIN_CAT = [ // [mã, tên, mức tốt (% doanh thu), mức báo đỏ, cách tối ưu]
+    ['cogs', '📦 Giá vốn hàng', 30, 33, 'Đàm phán giá nhập với nhà cung cấp lớn nhất (mua số lượng lớn hơn, xin chiết khấu / kéo dài hạn trả). Đẩy combo và sản phẩm lãi cao (xem lãi từng sản phẩm ở mục Bán hàng văn phòng).'],
+    ['ads', '📣 Quảng cáo', 22, 25, 'Đặt trần quảng cáo ≈ 22% doanh số. Dồn tiền vào chiến dịch ra đơn rẻ, giảm / tắt chiến dịch ra đơn đắt (mục 📣 Quảng cáo bên dưới chỉ rõ từng chiến dịch). Chăm khách cũ mua lại để bớt phụ thuộc quảng cáo.'],
+    ['luong', '👥 Lương + bảo hiểm', 20, 24, 'Chuyển dần sang lương cứng thấp + hoa hồng theo doanh số (Phụ lục 01). Chưa tuyển thêm tới khi doanh thu vượt mức hoà vốn. Xem tab Hiệu quả: ai chưa ra doanh số tương xứng lương.'],
+    ['san', '🛒 Phí sàn', 4, 6, 'Bỏ "buff đơn", tăng giá hoặc chỉ bán combo trên sàn. Sau 1 tháng sàn vẫn lỗ thì tạm dừng, dồn người và tiền sang kênh có lãi.'],
+    ['mb', '🏢 Mặt bằng, điện', 5, 7, 'Khoản cố định: chỉ giảm được khi gia hạn hợp đồng / đổi chỗ. Tắt điện, điều hoà khi về.'],
+    ['ship', '🚚 Vận chuyển', 3, 4, 'Giảm đơn hoàn (sale gọi xác nhận trước khi gửi), so giá các hãng, khuyến khích khách mua đủ mức miễn phí ship.'],
+    ['mkt', '🎯 Hỗ trợ marketing (TikTok, livestream…)', 2, 3, 'Mỗi khoản thử nghiệm đặt hạn 1 tháng + chỉ tiêu đơn; không ra đơn thì dừng.'],
+    ['khac', '📎 Khác', 3, 5, 'Rà các khoản lặt vặt lặp lại mỗi tháng.']];
+  function finCat(g) { var n = norm(g); return /quang cao|\bads\b/.test(n) && !/tiktok/.test(n) ? 'ads' : /san tmdt|shopee|lazada/.test(n) ? 'san' : /nhan vien|luong|bhxh|bao hiem/.test(n) ? 'luong' : /thue (van phong|mat bang|nha)|^dien|nuoc/.test(n) ? 'mb' : /van chuyen|ship/.test(n) ? 'ship' : /ho tro mkt|marketing|tiktok|livestream/.test(n) ? 'mkt' : 'khac'; }
+  function finCats(k) { var c = { cogs: k.cogs || 0 }; (k.groups || []).forEach(function (g) { var x = finCat(g[0]); c[x] = (c[x] || 0) + g[1]; }); return c; }
+  /** Khung 🏦 đầu Tổng quan (Quản trị): tiền đang có, tiền sắp về, nợ nhà cung cấp, đã chi tháng này. */
+  function dashFin() {
+    if (lvl() < 3) return '';
+    var F = S.d.rules.fin, L = S.d.rules.ktLink, KM = finKtMonths(), K = KM[0] && KM[0].k, ms = function (v) { return moneyShort(Math.round(v)); }, dd = function (d) { return d ? d.slice(8, 10) + '/' + d.slice(5, 7) : ''; };
+    if (L && !FIN.busy && Date.now() - FIN.tried > 600e3 && (!F || Date.now() - F.at > 3 * 3600e3)) setTimeout(function () { finSyncC(true); }, 0);
+    if (!F && !K) return '<div class="notice dash-goal-none">🏦 <b>Tiền & công nợ</b>: nối file Google Sheet của kế toán để xem tiền ngân hàng, nợ nhà cung cấp, khoản chi mỗi ngày. <button class="btn sm pri" data-dash="finlink">🔗 Nối link</button></div>';
+    var td = isoDate(Date.now()), bank = F && F.bank && F.bank.rows.length ? F.bank.rows[F.bank.rows.length - 1] : null, cash = bank ? bank[1] : K && K.cash != null ? K.cash : null;
+    var burn = K ? ((K.cost || 0) + (K.cogs || 0)) / 30.4 : 0, days = cash != null && burn > 0 ? Math.floor(cash / burn) : null;
+    var wk = bank && F.bank.rows.filter(function (r) { return r[0] <= isoDate(Date.now() - 7 * DAY); }).pop();
+    var coming = 0, cn = 0; S.d.orders.forEach(function (o) { if (o.time > Date.now() - 45 * DAY && !isVoid(o.status) && !isPaidOrder(o)) { coming += o.total || 0; cn++; } });
+    var pay = F && F.pay, ptot = pay ? pay.reduce(function (s, r) { return s + r[4]; }, 0) : K && K.payable != null ? K.payable : null, d7 = isoDate(Date.now() + 7 * DAY), d30 = isoDate(Date.now() + 30 * DAY);
+    var over = pay ? pay.filter(function (r) { return r[3] && r[3] < td; }) : [], due7 = pay ? pay.filter(function (r) { return r[3] && r[3] >= td && r[3] <= d7; }) : [], due30 = pay ? pay.filter(function (r) { return r[3] && r[3] <= d30; }).reduce(function (s, r) { return s + r[4]; }, 0) : 0, noHan = pay ? pay.filter(function (r) { return !r[3]; }).length : 0;
+    var mk = td.slice(0, 7), chi = F && F.chi ? F.chi.filter(function (r) { return r[0].slice(0, 7) === mk && finChiKind(r[1]) !== 'move'; }) : null, cost = 0, nccPaid = 0, G = {};
+    if (chi) chi.forEach(function (r) { if (finChiKind(r[1])) { nccPaid += r[2]; return; } cost += r[2]; G[r[1]] = (G[r[1]] || 0) + r[2]; });
+    var top = Object.keys(G).sort(function (a, b) { return G[b] - G[a]; })[0], lastChi = F && F.chi && F.chi.length ? F.chi.reduce(function (m, r) { return r[0] > m ? r[0] : m; }, '') : '';
+    var card = function (lv, l, v, sub) { return '<div class="fin-c ' + (lv || '') + '"><span>' + l + '</span><b>' + v + '</b><small>' + sub + '</small></div>'; };
+    var h = '<div class="box fin-box"><div class="dpl-h"><h3>🏦 Tiền & công nợ</h3><span class="fin-act">' + (FIN.busy ? '<span class="muted small">⏳ Đang đọc file kế toán…</span>' : L ? '<button class="btn sm ghost" data-dash="finsync">↻ Lấy số mới</button>' : '') + '<button class="btn sm ghost" data-dash="finlink">🔗 ' + (L ? 'Link kế toán' : 'Nối link') + '</button></span></div><div class="fin-n">' +
+      card(days !== null && days < 7 ? 'bad' : days !== null && days < 15 ? 'mid' : '', '🏦 Tiền ngân hàng' + (bank ? ' <small>' + dd(bank[0]) + '</small>' : K && K.cash != null ? ' <small>cuối ' + monthLabel(KM[0].m).replace(/^tháng /, 'T') + '</small>' : ''), cash != null ? ms(cash) : '–',
+        (days !== null ? 'Đủ chi khoảng <b>' + days + ' ngày</b>' : 'Chưa có số dư') + (wk ? ' · ' + (bank[1] >= wk[1] ? '▲ ' : '▼ ') + ms(Math.abs(bank[1] - wk[1])) + ' so với 7 ngày trước' : '')) +
+      card('', '💵 Tiền sắp về', ms(coming), cn + ' đơn đang giao / chờ thu (45 ngày gần đây)') +
+      card(over.length ? 'bad' : due7.length ? 'mid' : '', '🧾 Nợ nhà cung cấp', ptot != null ? ms(ptot) : '–',
+        pay ? (over.length ? '⚠️ <b>Quá hạn ' + ms(over.reduce(function (s, r) { return s + r[4]; }, 0)) + '</b> · ' : '') + (due7.length ? 'Tới hạn 7 ngày: <b>' + ms(due7.reduce(function (s, r) { return s + r[4]; }, 0)) + '</b>' : 'Không khoản nào tới hạn 7 ngày') + (noHan ? ' · ' + noHan + ' hoá đơn chưa ghi hạn' : '') : 'Kế toán chưa ghi trang Công nợ') +
+      card('', '💸 Đã chi ' + monthLabel(mk).replace(/^tháng /, 'T'), chi ? ms(cost) : '–', chi ? (top ? 'Lớn nhất: ' + esc(top) + ' ' + ms(G[top]) : '') + (nccPaid ? ' · trả nhà cung cấp ' + ms(nccPaid) : '') + (lastChi && lastChi < isoDate(Date.now() - 2 * DAY) ? ' · ⚠️ sổ chi chưa ghi từ ' + dd(lastChi) : '') : 'Chưa có trang Sổ chi') + '</div>';
+    if (cash != null && pay && due30) { var gap = cash + coming - due30; h += '<p class="dpl-be">' + (gap < 0 ? '🔴 <b>Tiền đang có + sắp về chưa đủ trả nợ tới hạn trong 30 ngày (' + ms(due30) + '), thiếu khoảng ' + ms(-gap) + '.</b> Cần hẹn lại lịch trả hoặc thu tiền đơn đang giao sớm.' : '🟢 Tiền đang có + sắp về đủ trả nợ tới hạn trong 30 ngày (' + ms(due30) + '), còn dư khoảng ' + ms(gap) + '.') + '</p>'; }
+    if (over.length || due7.length) h += '<ul class="small fin-due">' + over.concat(due7).slice(0, 5).map(function (r) { return '<li>' + (r[3] < td ? '⚠️ <b>quá hạn</b> ' : '') + esc(r[0]) + (r[1] ? ' (HĐ ' + esc(r[1]) + ')' : '') + ': <b>' + ms(r[4]) + '</b> · hạn ' + dd(r[3]) + '</li>'; }).join('') + '</ul>';
+    h += '<p class="small muted" style="margin:6px 0 0">' + (F ? 'Số kế toán đọc lúc ' + fDateTime(F.at) + (F.by ? ' (' + esc(F.by) + ')' : '') : 'Số tiền / nợ lấy từ file kế toán ' + monthLabel(KM[0].m)) + '. Tiền sắp về tính từ đơn CRM.' + (FIN.err ? ' <span class="bad-line">⚠️ ' + esc(FIN.err) + '</span>' : L && L.err ? ' <span class="bad-line">⚠️ ' + esc(L.err) + '</span>' : '') +
+      (L ? ' <button class="btn sm ghost" data-dash="fintest">📲 Gửi thử tin sáng</button>' : '') + '</p></div>';
+    return h;
+  }
+  /** Mục 📊: cơ cấu chi phí tháng kế toán gần nhất (% doanh thu, đèn theo mức tốt), tiết kiệm được bao nhiêu nếu về mức tốt, hoà vốn, sổ chi tháng này so với nhịp tháng trước. */
+  function dashCost() {
+    var KM = finKtMonths(); if (!KM.length) return null;
+    var k = KM[0].k, k0 = KM[1] && KM[1].k, C = finCats(k), C0 = k0 ? finCats(k0) : null, dt = k.dt, ML = monthLabel(KM[0].m).replace(/^tháng /, 'T'), ms = function (v) { return moneyShort(Math.round(v)); };
+    var shp = k.shopee || 0, R = FIN_CAT.map(function (c) {
+      var v = C[c[0]] || 0, p = v * 100 / dt, base = c[0] === 'san' && shp ? shp : dt, pp = v * 100 / base;
+      var lv = c[0] === 'san' ? (shp && v > shp * 0.4 ? 'bad' : shp && v > shp * 0.3 ? 'mid' : 'ok') : p > c[3] ? 'bad' : p > c[2] ? 'mid' : 'ok';
+      return { c: c, v: v, p: p, lv: lv, save: c[0] === 'san' ? 0 : Math.max(0, v - dt * c[2] / 100), v0: C0 ? C0[c[0]] || 0 : null, note: c[0] === 'san' && shp ? Math.round(pp) + '% doanh thu sàn' : '' };
+    }).filter(function (r) { return r.v > 0; }).sort(function (a, b) { return b.v - a.v; });
+    var tot = R.reduce(function (s, r) { return s + r.v; }, 0), mx = R[0] ? R[0].v : 1;
+    var fixed = (k.cost || 0) - (C.ads || 0) - (C.san || 0), vr = ((k.cogs || 0) + (C.ads || 0) + (C.san || 0)) / dt, be = vr < 1 ? fixed / (1 - vr) : null;
+    var san = shp ? shp - shp * (k.cogs || 0) / dt - (C.san || 0) : null;
+    var adv = R.filter(function (r) { return r.lv !== 'ok'; }).sort(function (a, b) { return b.save - a.save; });
+    var h = '<p class="pnl-say ' + (tot > dt ? 'bad' : 'ok') + '">' + ML + ': mỗi <b>100đ doanh thu</b> công ty chi <b>' + Math.round(tot * 100 / dt) + 'đ</b> (giá vốn + mọi chi phí) → ' + (k.profit != null ? (k.profit < 0 ? '🔴 lỗ ' : '🟢 lãi ') + ms(Math.abs(k.profit)) : '') + '.' +
+      (be ? ' <b>Hoà vốn cần doanh thu khoảng ' + ms(be) + ' / tháng</b> (≈ ' + ms(be / 30) + ' / ngày), ' + ML + ' đạt ' + ms(dt) + '.' : '') + '</p>' +
+      '<div class="fin-bars">' + R.map(function (r) {
+        return '<div class="fin-r ' + r.lv + '"><span class="fin-l">' + DASH_LV[r.lv === 'ok' ? 'ok' : r.lv] + ' ' + r.c[1] + '</span><span class="fin-b"><i style="width:' + (r.v * 100 / mx).toFixed(1) + '%"></i></span><b>' + ms(r.v) + '</b><span class="fin-p">' + Math.round(r.p) + '% <small>(tốt ≤ ' + r.c[2] + '%)</small>' + (r.note ? ' <small>· ' + r.note + '</small>' : '') + (r.v0 !== null && r.v0 ? ' <small>' + (r.v >= r.v0 ? '▲' : '▼') + ' ' + ms(Math.abs(r.v - r.v0)) + ' so với ' + monthLabel(KM[1].m).replace(/^tháng /, 'T') + '</small>' : '') + '</span></div>';
+      }).join('') + '</div>' +
+      (adv.length ? '<h3 style="margin:14px 0 6px">✅ Nên làm gì (xếp theo số tiền tiết kiệm được)</h3><ol class="fin-adv">' + adv.slice(0, 5).map(function (r) {
+        return '<li><b>' + r.c[1].replace(/^\S+\s/, '') + ' ' + Math.round(r.p) + '% doanh thu</b>' + (r.save ? ' → về mức ' + r.c[2] + '% thì <b>tiết kiệm ≈ ' + ms(r.save) + ' / tháng</b>' : r.c[0] === 'san' && san !== null ? ' → sàn ' + ML + ' ước ' + (san < 0 ? '<b>lỗ ' + ms(-san) + '</b>' : 'lãi ' + ms(san)) + ' (doanh thu ' + ms(shp) + ' − giá vốn − phí sàn, chưa gồm buff đơn)' : '') + '.<br><span class="small">' + r.c[4] + '</span></li>';
+      }).join('') + '</ol>' : '<p>🟢 Các khoản chi đều trong mức tốt.</p>');
+    // sổ chi tháng này: nhóm nào đang chi nhanh hơn nhịp tháng trước
+    var F = S.d.rules.fin, mk = isoDate(Date.now()).slice(0, 7);
+    if (F && F.chi) {
+      var el = vnDate(Date.now()).d, dim = Math.round((monthRange(mk)[1] - monthRange(mk)[0]) / DAY), G = {};
+      F.chi.forEach(function (r) { if (r[0].slice(0, 7) === mk && !finChiKind(r[1])) { var c = finCat(r[1]); G[c] = (G[c] || 0) + r[2]; } });
+      var fast = FIN_CAT.filter(function (c) { return c[0] !== 'cogs' && G[c[0]] && C[c[0]] && G[c[0]] > C[c[0]] * el / dim * 1.15 && G[c[0]] > 3e6 && c[0] !== 'luong' && c[0] !== 'mb'; }); // lương, mặt bằng trả 1 lần / tháng nên không so nhịp
+      h += '<p class="small" style="margin-top:10px"><b>Sổ chi ' + monthLabel(mk).replace(/^tháng /, 'T') + '</b> (' + el + '/' + dim + ' ngày): ' + FIN_CAT.filter(function (c) { return G[c[0]]; }).map(function (c) { return c[1].replace(/^\S+\s/, '') + ' ' + ms(G[c[0]]); }).join(' · ') +
+        (fast.length ? '<br>⚠️ Đang chi nhanh hơn nhịp ' + ML + ': ' + fast.map(function (c) { return '<b>' + c[1].replace(/^\S+\s/, '') + '</b> (' + ms(G[c[0]]) + ' / ' + el + ' ngày, ' + ML + ' cả tháng ' + ms(C[c[0]]) + ')'; }).join(', ') + '.' : '') + '</p>';
+    }
+    h += '<p class="small muted">Số theo file kế toán ' + ML + ' (doanh thu chưa gồm thuế GTGT). Mức "tốt" là mức tham khảo cho công ty bán hàng online cỡ vừa, chỉnh dần theo thực tế.</p>';
+    var line = Math.round(tot * 100 / dt) + 'đ chi / 100đ thu' + (adv[0] ? ' · lớn nhất cần sửa: ' + adv[0].c[1].replace(/^\S+\s/, '').toLowerCase() : '');
+    return { line: line, body: '<div class="box">' + h + '</div>' };
+  }
   /* ---------- 📎 File báo cáo kế toán (01/11/2026): Quản trị tải file .xlsx kế toán gửi hằng tháng, CRM đọc ngay trên máy (ktParse) rồi lưu vào opex_cfg:
    * items = chi phí theo nhóm (trừ quảng cáo và phí sàn vì CRM đã tự tính), kt = số kế toán (doanh thu, giá vốn, lãi lỗ, tiền, nợ nhà cung cấp, mọi nhóm chi phí) để so với số CRM.
    * Kế toán đổi mẫu file giữa các tháng (T7 khác T9) nên dò theo tên dòng, không theo vị trí ô. Trang "Doanh thu" của file có thể rất nặng (định dạng sẵn 1 triệu dòng) nên bỏ qua trang lớn. */
@@ -4542,7 +4688,7 @@
   function dashHero(T, b, bp, M, gl, month, sj, p) {
     var G = gl.G, whole = p.k === 'month' || p.k === 'lmonth', drv = dashDrivers(b, bp), PT = T.tr.B.partial;
     var ads = M && M.tot ? M.nr / M.tot : null, adLv = ads === null ? '' : adsLv(M.tot, M.nr);
-    var h = '<section class="dash-hero">' + dashVerdict(T, gl, month, drv) + dashDaily(perRange(p), b, M, sj, p, month) + '<div class="dash-tiles dt6">' +
+    var h = '<section class="dash-hero">' + dashVerdict(T, gl, month, drv) + dashDaily(perRange(p), b, M, sj, p, month) + dashFin() + '<div class="dash-tiles dt6">' +
       dashTile('biz', whole && G && G.isCur ? G.lv : dashTrend(T.net, T.netP), '💰 Doanh số', moneyShort(T.net), delta(T.net, T.netP),
         'Đã trừ hoàn / huỷ' + (!sj ? (SN.err ? ' · chưa gồm sàn (chưa tải được)' : ' · ⏳ đang cộng số sàn…') : T.san ? ' · gồm sàn ' + moneyShort(T.san) : ''), dashSpk(T.tr.rev, PT)) +
       dashGpTile(b, bp, M, sj) +
@@ -4615,6 +4761,7 @@
     h += dashNotes(T, b, g, f.p, M, sj, gl);
     h += '<div class="section-h dash-more-h"><h2>🔎 Xem chi tiết từng phần</h2><span class="tip">bấm vào từng mục để mở / đóng</span></div>';
     if (lvl() >= 3) { var PL = dashPnl(T, b, bp, M, sj, R, P, month); h += dashMore('pnl', '🧮 Lãi lỗ sau mọi chi phí', PL.line, PL.body); }
+    if (lvl() >= 3) { var CO = dashCost(); if (CO) h += dashMore('cost', '📊 Chi phí lớn & cách tối ưu', CO.line, CO.body); }
     // ---- bán hàng văn phòng (đường nhỏ: bizStats từng ngày / tuần / tháng)
     var DB = T.tr.B, BZ = trendEachMemo('biz', DB, bizStats), sk = function (v, bad) { return v ? sparkSvg(v, DB.partial, bad) : ''; };
     h += dashMore('biz', '💰 Bán hàng văn phòng', (b.n - b.vN) + ' đơn · ' + moneyShort(b.rev - b.vRev) + ' · ' + b.leads + ' khách hỏi mới', '<p class="small muted">Đơn trong CRM: website, sale, khách hỏi (sàn ở mục 🛒) · doanh số đã trừ hoàn / huỷ, như ô Doanh số ở đầu trang.</p><div class="metrics">' +
@@ -7064,6 +7211,9 @@
         if (a === 'opex') { opexEdit(el.getAttribute('data-m')); return; }
         if (a === 'kt') { ktUpload(); return; }
         if (a === 'pay') { payUpload(); return; }
+        if (a === 'finlink') { finLinkEdit(); return; }
+        if (a === 'finsync') { finSyncC(false); return; }
+        if (a === 'fintest') { el.disabled = true; api('fin_test', {}).then(function () { toast('📲 Đã gửi, mở Telegram để xem'); }, function (e) { toast(e.message, true); }).then(function () { el.disabled = false; }); return; }
         if (a === 'cogs') { store('dash_cogs', store('dash_cogs') === 'kt' ? '' : 'kt'); render(); return; }
         if (a === 'sfb') { f.sfb = f.sfb === false; store('dash_sfb', f.sfb ? '1' : '0'); render(); return; }
         if (a === 'fresh') { delete MK.cache[key]; MK.err = ''; delete GA.cache[key]; GA.err = ''; GA.busy = ''; gaFetch(key, true); render(); return; }
