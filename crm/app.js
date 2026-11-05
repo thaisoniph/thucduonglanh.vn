@@ -3033,7 +3033,7 @@
       var ls = read(items), gs = read(gifts), base = ls.reduce(function (s, i) { return s + i.qty * i.price; }, 0), ship = Math.max(0, +F.shipping.value || 0);
       if (!totalEdited && base) F.total.value = base + ship;
       var tot = moneyIn(F.total.value);
-      $('#noTotalHint', m).innerHTML = (tot ? '= <b>' + money(tot) + '</b>' : '') + (base ? ' · giá niêm yết ' + money(base) + (tot && tot - ship !== base ? ' (bạn đang bán ' + (tot - ship > base ? 'cao' : 'thấp') + ' hơn ' + money(Math.abs(tot - ship - base)) + ')' : '') : '');
+      $('#noTotalHint', m).innerHTML = (tot ? '= <b>' + money(tot) + '</b>' : F.total.value.trim() ? '= <b>0đ</b> (gửi bù / tặng quà)' : '') + (base ? ' · giá niêm yết ' + money(base) + (tot && tot - ship !== base ? ' (bạn đang bán ' + (tot - ship > base ? 'cao' : 'thấp') + ' hơn ' + money(Math.abs(tot - ship - base)) + ')' : '') : '');
       $('#noShip', m).textContent = shipLine(ls, gs) || 'chưa có sản phẩm';
       $('#noSave', m).textContent = (eo ? 'Lưu đơn' : 'Lưu & copy lên đơn') + (tot ? ' · ' + money(tot) : '');
       optSum(); sumSync();
@@ -3103,7 +3103,8 @@
       if (!F.name.value.trim()) { err.textContent = 'Nhập tên khách.'; F.name.focus(); return; }
       if (prov.value.trim() && !unitOf(prov.value.trim())) { addrOpen(); err.textContent = 'Tỉnh / thành phố mới chưa đúng – chọn trong danh sách gợi ý.'; prov.focus(); return; }
       if (!ls.length) { err.textContent = 'Nhập ít nhất 1 sản phẩm.'; return; }
-      if (!tot) { err.textContent = 'Nhập số tiền thu khách.'; F.total.focus(); return; }
+      if (!F.total.value.trim()) { err.textContent = 'Nhập số tiền thu khách (gửi bù hàng / tặng quà thì ghi 0).'; F.total.focus(); return; }
+      if (!tot && !confirm('Lưu đơn 0đ (gửi bù hàng / tặng quà, không thu tiền khách)?')) { F.total.focus(); return; } // 05/11/2026 Thuỷ: đơn 0đ vẫn phải lưu để có trong file lên đơn
       if (tot < ship) { err.textContent = 'Số tiền thu khách nhỏ hơn phí ship.'; shipOpen(); return; }
       ls.forEach(function (i) { if (!i.price) i.price = Math.round((tot - ship) / ls.length / i.qty); }); // chưa có giá niêm yết: chia đều, máy tính lại theo tổng
       if (!eo) copy(shipText()); // copy ngay lúc bấm (điện thoại chỉ cho copy khi vừa bấm)
