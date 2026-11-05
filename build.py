@@ -18,6 +18,7 @@ DIST = ROOT / "dist"
 DATA = ROOT / "data"
 
 import hashlib
+import unicodedata
 import markdown as _md
 import yaml
 
@@ -336,8 +337,10 @@ for p in PRODUCTS:
         q, qty = _BY_SLUG.get(it.get("product")), max(1, num(it.get("qty")) or 1)
         if not q or q.get("combo"):
             continue
-        vi = next((k for k, v in enumerate(q["variants"]) if it.get("variant") and v["name_vi"].strip().lower() == str(it["variant"]).strip().lower()), 0 if q["variants"] else -1)
-        base = q["base_variants"][vi]["price"] if vi >= 0 else q["base_price"]
+        _vn = lambda x: unicodedata.normalize("NFC", str(x or "")).strip().lower()  # tên loại có thể lưu dấu tách rời (NFD)
+        vi = next((k for k, v in enumerate(q["variants"]) if it.get("variant") and _vn(v["name_vi"]) == _vn(it["variant"])), 0 if q["variants"] else -1)
+        bv = q["base_variants"][vi] if vi >= 0 else {"price": q["base_price"], "regular_price": q.get("regular_price")}
+        base = max(bv["price"] or 0, bv.get("regular_price") or 0)  # giá lẻ niêm yết (giá gốc nếu sản phẩm đang giảm)
         web = q["variants"][vi]["price"] if vi >= 0 else q["price"]
         unit = q["variants"][vi]["name"] if vi >= 0 else q.get("unit", "")
         unit_vi = q["variants"][vi]["name_vi"] if vi >= 0 else ""
