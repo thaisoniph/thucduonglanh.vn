@@ -185,7 +185,17 @@ async function wbOrderWriteSheet(x, src, sc, items) {
     setCell(hit, 'status', st); out.push('Đã ghi trạng thái dòng ' + (hr + 1 + hit) + ': ' + st + (del ? ' (đơn đã xoá trên CRM)' : ''));
   }
   await sheetWrite(x.env, id, Object.values(cells).map(c => ({ range: a1(sc.name, U.colLetter(c.c) + (hr + 1 + c.i)), values: [[c.v]] })));
-  if (add.length) await appendAt(x, id, sc.name, hr + 1 + (await readRows()).length, width, add);
+  if (add.length) {
+    // 05/11/2026: VTG_lendon của chị Thủy có ~2.150 dòng trống còn công thức → đơn CRM bị thêm xuống tận dòng 2249–2250, sale không thấy.
+    // Nay ghi ngay dưới dòng đơn thật cuối cùng (có ngày / tên / SĐT / sản phẩm / tiền / mã), ô đang có công thức thì để nguyên.
+    const R = await readRows(), core = ['date', 'name', 'phone', 'product', 'amount', 'code'].filter(f => has(m, f)).map(f => +m[f]);
+    const filled = (r, c) => String(r[c] == null ? '' : r[c]).trim() !== '';
+    let last = R.length - 1; while (last >= 0 && !core.some(c => filled(R[last], c))) last--;
+    const fit = Math.max(0, Math.min(add.length, R.length - 1 - last)), wr = [];
+    add.slice(0, fit).forEach((r, k) => { const i = last + 1 + k; r.forEach((v, c) => { if (v !== '' && !filled(R[i], c)) wr.push({ range: a1(sc.name, U.colLetter(c) + (hr + 1 + i)), values: [[v]] }); }); });
+    if (wr.length) await sheetWrite(x.env, id, wr, 'USER_ENTERED');
+    if (add.length > fit) await appendAt(x, id, sc.name, hr + 1 + R.length, width, add.slice(fit));
+  }
   return out;
 }
 /** Ghi 1 lượt vào 1 file: lệnh đơn → sheet lên đơn; ghi chú → nối vào ô ghi chú dòng cuối của khách (chưa có dòng → thêm dòng mới). Trả về kết quả từng dòng, không ném lỗi. */

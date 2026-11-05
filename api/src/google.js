@@ -61,9 +61,9 @@ export async function sheetBatchGet(env, id, ranges, render) {
   const j = await gFetch(env, SHEETS + id + '/values:batchGet?' + q);
   return (j.valueRanges || []).map(v => v.values || []);
 }
-export async function sheetWrite(env, id, data) { // data: [{range, values}]
+export async function sheetWrite(env, id, data, mode) { // data: [{range, values}]; mode 'USER_ENTERED' = như sale gõ tay (ngày thành ngày, '0… giữ số 0)
   if (!data.length) return;
-  return gFetch(env, SHEETS + id + '/values:batchUpdate', { method: 'POST', body: JSON.stringify({ valueInputOption: 'RAW', data }) });
+  return gFetch(env, SHEETS + id + '/values:batchUpdate', { method: 'POST', body: JSON.stringify({ valueInputOption: mode || 'RAW', data }) });
 }
 /** Thêm dòng vào cuối bảng (như sale gõ tay: USER_ENTERED, chèn dòng mới). */
 export async function sheetAppend(env, id, range, values) {
