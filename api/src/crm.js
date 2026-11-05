@@ -889,6 +889,7 @@ function cleanItems(list) {
 /** Sale linh động giá: nếu nhập "Tổng tiền thu khách" thì chia lại tiền cho các dòng theo tỉ lệ giá. Trả về tạm tính. */
 function applyTotal(items, total, ship) {
   const sub = items.reduce((s, i) => s + i.subtotal, 0), want = Math.round(Number(total) || 0) - ship;
+  if (total !== undefined && total !== null && String(total).trim() !== '' && Number(total) === 0) { items.forEach(i => { i.price = 0; i.subtotal = 0; }); return 0; } // đơn 0đ: gửi bù hàng / tặng quà (Thuỷ góp ý 05/11/2026)
   if (!(want > 0) || want === sub) return sub;
   let left = want;
   items.forEach((i, k) => { const v = k === items.length - 1 ? left : sub ? Math.round(i.subtotal * want / sub) : Math.round(want / items.length); i.subtotal = v; i.price = i.qty ? Math.round(v / i.qty) : v; left -= v; });
