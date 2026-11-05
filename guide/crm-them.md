@@ -264,7 +264,7 @@ Cả hai đều không tính vào doanh số.
 **Nhãn trên đơn:**
 
 - **⚠️ đã hoàn 2 lần** (chữ đỏ): khách từng trả lại hàng. Gọi xác nhận kỹ.
-- **📌 Khung vàng**: ghi chú giao hàng (giờ giao, gọi trước…). Đọc kỹ trước khi gửi.
+- **📌 Khung vàng**: ghi chú giao hàng (giờ giao, gọi trước…). Đọc kỹ trước khi gửi. Mọi đơn mặc định **cho xem hàng, không thử** nên CRM không hiện lại câu này (vẫn xem được trong chi tiết đơn). Đơn ghi **không cho xem hàng** thì vẫn hiện khung vàng.
 - **Mã vận đơn**: bấm vào là mở trang tra cứu của hãng vận chuyển (mã đã được chép sẵn).
 - **📦 Dòng chữ xanh**: đơn Viettel Post đang ở đâu. Chuyển **khung đỏ ⚠️** khi giao không được.
 

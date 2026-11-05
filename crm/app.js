@@ -2384,7 +2384,13 @@
   }
   /** Ghi chú giao hàng cần làm đúng (giờ giao, gọi trước, cho xem hàng…) → hiện nổi bật trên dòng đơn. */
   var KEY_NOTE = /gio hanh chinh|goi truoc|alo truoc|hen giao|giao (vao |buoi |sau |truoc |gap|nhanh|cuoi tuan|thu \d|chu nhat|sang|chieu|toi)|(khong|ko|k) (giao|nhan|cho xem|xem hang|goi)|cho xem hang|dong kiem|kiem hang|cuoi tuan|truoc \d+ ?h|sau \d+ ?h|gui (tai|o|qua)|nhan (tai|o)|de (o|tai)|bao ve|le tan|hoa toc/;
-  function keyNote(o) { return !!o.note && KEY_NOTE.test(norm(o.note)) && !isVoid(o.status) && o.status !== 'Đã giao'; }
+  /** 05/11/2026 (anh Sơn): "Cho xem hàng, không thử" là mặc định công ty áp dụng mọi đơn → không nhắc lại trên dòng đơn (vẫn giữ trong chi tiết đơn). "Không cho xem" thì vẫn hiện. */
+  var NOTE_DEFAULT = /^(cho (khach )?xem( hang)?|duoc xem hang|(khong|ko|k) (duoc )?thu( hang)?|cho (khach )?xem( hang)?,? ?(va |nhung )?(khong|ko|k) (duoc |cho )?thu( hang)?)\.?$/;
+  function noteShort(o) {
+    var t = String(o.note || '').trim(); if (!t) return '';
+    return t.split(/\s*[;\n]\s*|\s*,\s*/).filter(function (x) { var n = norm(x).replace(/\s+/g, ' ').trim(); return n && !NOTE_DEFAULT.test(n); }).join(', ');
+  }
+  function keyNote(o) { var t = noteShort(o); return !!t && KEY_NOTE.test(norm(t)) && !isVoid(o.status) && o.status !== 'Đã giao'; }
   /** Mã vận đơn bấm được: copy mã + mở trang tra cứu của hãng. */
   function trackLink(o) {
     if (!o.tracking) return '';
@@ -2392,14 +2398,14 @@
     return u ? '<a class="trk" href="' + esc(u.replace('{c}', encodeURIComponent(o.tracking))) + '" target="_blank" rel="noopener" data-trk="' + esc(o.tracking) + '" title="Bấm để tra cứu (mã đã được copy sẵn)">🚚 ' + t + ' ↗</a>'
       : '<button type="button" class="trk link" data-trk="' + esc(o.tracking) + '" title="Bấm để copy mã vận đơn">🚚 ' + t + ' 📋</button>';
   }
-  function orderRow(o) {
-    var oc = orderCat(o), next = NEXT[o.status], dd = shipDays(o), shipping = o.status === 'Đang giao', pv = provOf(o), oc0 = cust(o.phone) || {}, backWarn = oc0.backN && !isVoid(o.status) && o.status !== 'Đã giao', kn = keyNote(o);
+  function orderRow(o, inGrp) {
+    var nt = noteShort(o), oc = orderCat(o), next = NEXT[o.status], dd = shipDays(o), shipping = o.status === 'Đang giao', pv = provOf(o), oc0 = cust(o.phone) || {}, backWarn = oc0.backN && !isVoid(o.status) && o.status !== 'Đã giao', kn = keyNote(o);
     var act = o.status === 'Đã xác nhận' && !o.tracking ? '<button class="btn pri" data-order="' + esc(o.id) + '" title="Mở đơn để nhập mã vận đơn">📦 Nhập mã VĐ</button>' : next ? '<button class="btn pri" data-next="' + esc(o.id) + '">' + NEXT_LABEL[o.status] + '</button>' : '';
     return '<div class="rw orw click tinted" data-order="' + esc(o.id) + '"' + catAttr(oc) + '><div class="rw-m">' +
-      '<div class="rw-1"><b>' + esc(o.name) + '</b>' + stTag(o.status) + (shipping ? '<span class="tag ' + (dd > SHIP_LATE ? 'st-late' : 'st-giao') + '" title="' + (o.shipAt ? 'Đã gửi ' + dd + ' ngày (gửi ngày ' + fDate(o.shipAt).slice(0, 5) + ')' : 'Tính từ ngày đặt ' + fDate(o.time).slice(0, 5) + ' (đơn này chưa ghi ngày gửi)') + '">🚚 ' + dd + ' ngày' + (dd > SHIP_LATE ? ' ⚠️' : '') + '</span>' : '') + (oc.key !== 'void' ? catChip(oc) : '') + (backWarn ? '<span class="tag st-back" title="' + esc('Khách này đã hoàn ' + oc0.backN + ' đơn' + (oc0.lastBack ? ', gần nhất ' + fDate(oc0.lastBack) : '') + '. Gọi xác nhận kỹ trước khi gửi; đơn lớn nên nhờ chuyển khoản trước.') + '">⚠️ đã hoàn ' + oc0.backN + ' lần</span>' : '') + '<span class="end">' + (shipping && !isBank(o) ? '<small class="muted">thu hộ </small>' : '') + money(o.total) + '</span></div>' +
+      '<div class="rw-1"><b>' + esc(o.name) + '</b>' + (inGrp === true ? '' : stTag(o.status)) + (shipping ? '<span class="tag ' + (dd > SHIP_LATE ? 'st-late' : 'st-giao') + '" title="' + (o.shipAt ? 'Đã gửi ' + dd + ' ngày (gửi ngày ' + fDate(o.shipAt).slice(0, 5) + ')' : 'Tính từ ngày đặt ' + fDate(o.time).slice(0, 5) + ' (đơn này chưa ghi ngày gửi)') + '">🚚 ' + dd + ' ngày' + (dd > SHIP_LATE ? ' ⚠️' : '') + '</span>' : '') + (oc.key !== 'void' ? catChip(oc) : '') + (backWarn ? '<span class="tag st-back" title="' + esc('Khách này đã hoàn ' + oc0.backN + ' đơn' + (oc0.lastBack ? ', gần nhất ' + fDate(oc0.lastBack) : '') + '. Gọi xác nhận kỹ trước khi gửi; đơn lớn nên nhờ chuyển khoản trước.') + '">⚠️ đã hoàn ' + oc0.backN + ' lần</span>' : '') + '<span class="end">' + (shipping && !isBank(o) ? '<small class="muted">thu hộ </small>' : '') + money(o.total) + '</span></div>' +
       '<div class="rw-2">' + (pv ? '<b class="prov">📍 ' + esc(pv.old) + '</b> · ' : '') + when(o.time) + ' · ' + esc(o.payment) + (isBank(o) && !isVoid(o.status) ? (o.paid ? ' ✓' : ' <span class="warn-line">chưa nhận tiền</span>') : '') + ' · ' + esc(itemNames(o.items).join(', ')) + '</div>' +
-      trkLine(o) + (kn ? '<div class="keynote">📌 ' + esc(o.note.length > 140 ? o.note.slice(0, 140) + '…' : o.note) + '</div>' : '') +
-      '<div class="rw-3">' + (o.oflag ? '<span class="tag st-late" title="' + esc(o.oflag) + '">⚠️ Kiểm tra loại đơn</span> ' : '') + (o.tracking ? trackLink(o) + ' · ' : carrierOf(o) ? '<span class="muted">🚚 ' + esc(carrierOf(o)) + '</span> · ' : '') + '<span class="muted">' + cp(o.id) + ' · ' + (isWebOrder(o) ? '<span class="tag st-giao" title="' + esc('Khách tự đặt trên website · nguồn: ' + (o.source || 'Truy cập trực tiếp')) + '">🌐 Web · ' + esc(webSrc(o)) + '</span>' : esc(otLabel(otypeOf(o)))) + '</span>' + (o.seller && (lvl() >= 2 || o.seller !== S.user.name) ? ' · 👤 ' + esc(o.seller) : '') + (o.note && !kn ? ' · 📝 ' + esc(o.note.length > 60 ? o.note.slice(0, 60) + '…' : o.note) : '') + '</div></div>' +
+      trkLine(o) + (kn ? '<div class="keynote">📌 ' + esc(nt.length > 140 ? nt.slice(0, 140) + '…' : nt) + '</div>' : '') +
+      '<div class="rw-3">' + (o.oflag ? '<span class="tag st-late" title="' + esc(o.oflag) + '">⚠️ Kiểm tra loại đơn</span> ' : '') + (o.tracking ? trackLink(o) + ' · ' : carrierOf(o) ? '<span class="muted">🚚 ' + esc(carrierOf(o)) + '</span> · ' : '') + '<span class="muted">' + cp(o.id) + ' · ' + (isWebOrder(o) ? '<span class="tag st-giao" title="' + esc('Khách tự đặt trên website · nguồn: ' + (o.source || 'Truy cập trực tiếp')) + '">🌐 Web · ' + esc(webSrc(o)) + '</span>' : esc(otLabel(otypeOf(o)))) + '</span>' + (o.seller && (lvl() >= 2 || o.seller !== S.user.name) ? ' · 👤 ' + esc(o.seller) : '') + (nt && !kn ? ' · 📝 ' + esc(nt.length > 60 ? nt.slice(0, 60) + '…' : nt) : '') + '</div></div>' +
       '<div class="rw-a">' + (lvl() >= 2 && o.status === 'Mới' ? oAssignSel(o) : '') + act + '<a class="btn" href="tel:' + o.phone + '" aria-label="Gọi">📞<small>Gọi</small></a></div></div>';
   }
   /** Quản lý: giao đơn mới cho nhân sự (ghi vào NV bán) – nhân sự đó mới thấy đơn ở Hôm nay. */
@@ -2414,7 +2420,7 @@
       var any = false, h = '';
       G.forEach(function (g) {
         if (!g.list.length) return; any = true;
-        h += '<details class="grp" data-grp="o-' + g.k + '"' + (!S.f.gopen || S.f.gopen['o-' + g.k] !== false ? ' open' : '') + '><summary><span class="g-t">' + g.t + '</span><span class="count">' + g.list.length + '</span><span class="g-tip">' + g.tip + '</span></summary><div class="rows">' + g.list.slice(0, 50).map(orderRow).join('') + (g.list.length > 50 ? '<p class="small muted" style="padding:8px 12px">… và ' + (g.list.length - 50) + ' đơn khác (xem ở Tất cả đơn)</p>' : '') + '</div></details>';
+        h += '<details class="grp" data-grp="o-' + g.k + '"' + (!S.f.gopen || S.f.gopen['o-' + g.k] !== false ? ' open' : '') + '><summary><span class="g-t">' + g.t + '</span><span class="count">' + g.list.length + '</span><span class="g-tip">' + g.tip + '</span></summary><div class="rows">' + g.list.slice(0, 50).map(function (o) { return orderRow(o, true); }).join('') + (g.list.length > 50 ? '<p class="small muted" style="padding:8px 12px">… và ' + (g.list.length - 50) + ' đơn khác (xem ở Tất cả đơn)</p>' : '') + '</div></details>';
       });
       if (!any) h += empty('🎉 Không có đơn nào cần xử lý. Xem lịch sử ở “Tất cả đơn”.');
       return h;
@@ -2479,6 +2485,7 @@
     var G = orderTodo(); if (lvl() >= 2 && S.who) G.forEach(function (g) { g.list = g.list.filter(function (o) { return whoOk(orderOwner(o)); }); });
     var todoN = G.reduce(function (s0, g) { return s0 + g.list.length; }, 0);
     h += '<div class="tabs" id="oTabs" style="max-width:420px"><button data-otab="todo" class="' + (f.tab === 'todo' ? 'on' : '') + '">⚡ Cần xử lý' + (todoN ? ' (' + todoN + ')' : '') + '</button><button data-otab="all" class="' + (f.tab === 'all' ? 'on' : '') + '">📋 Tất cả đơn</button></div>' + colorKey(true) +
+      (f.tab === 'todo' ? '<p class="small muted" style="margin:4px 2px 8px">ℹ️ Mọi đơn mặc định <b>cho xem hàng, không thử</b> nên không ghi lại trên từng đơn. Chỉ ghi chú khác (giờ giao, gọi trước…) mới hiện 📌.</p>' : '') +
       '<div id="oBody">' + renderOrdersBody(f, OS, q, qd) + '</div>';
     return h;
   }
@@ -4168,13 +4175,20 @@
     var o = ((S.d.rules && S.d.rules.opex) || {})[m]; if (!o || !((o.items || []).length || o.kt)) return null; o.items = o.items || [];
     var t = 0; o.items.forEach(function (r) { t += r[1]; }); return { items: o.items, tot: t, at: o.at, by: o.by, kt: o.kt || null };
   }
-  /** Chi phí văn phòng trong khoảng R: mỗi tháng chạm R lấy tổng tháng × số ngày trong R ÷ số ngày của tháng (chỉ tính tới hết hôm nay). miss = tháng chưa nhập. */
+  /** Tháng này chưa có chi phí (kế toán gửi file sau khi hết tháng) → tạm lấy tháng gần nhất đã có, lùi tối đa 3 tháng (05/11/2026). Tháng cũ chưa nhập thì không đoán. */
+  function opexEst(m) {
+    if (m < monthOf(Date.now())) return null;
+    for (var i = 1; i <= 3; i++) { var k = shiftMonth(m, -i), x = opexMonth(k); if (x && x.tot) return { x: x, from: k }; }
+    return null;
+  }
+  /** Chi phí văn phòng trong khoảng R: mỗi tháng chạm R lấy tổng tháng × số ngày trong R ÷ số ngày của tháng (chỉ tính tới hết hôm nay). miss = tháng chưa nhập, est = [[tháng, tháng lấy tạm]]. */
   function opexFor(R) {
-    var end = Math.min(R[1], today() + DAY), o = { v: 0, has: 0, miss: [], items: {}, part: false, days: 0, mdays: 0 };
+    var end = Math.min(R[1], today() + DAY), o = { v: 0, has: 0, miss: [], est: [], items: {}, part: false, days: 0, mdays: 0 };
     if (!(end > R[0])) return o;
     for (var m = monthOf(R[0]); m <= monthOf(end - 1); m = shiftMonth(m, 1)) {
       var MR = monthRange(m), a = Math.max(R[0], MR[0]), b = Math.min(end, MR[1]), k = (b - a) / (MR[1] - MR[0]), x = opexMonth(m);
       if (k < 0.999) o.part = true; o.days += Math.round((b - a) / DAY); o.mdays += Math.round((MR[1] - MR[0]) / DAY);
+      if (!x || !x.tot) { var e = opexEst(m); if (e) { x = e.x; o.est.push([m, e.from]); } }
       if (!x) { o.miss.push(m); continue; }
       o.has++; o.v += x.tot * k; x.items.forEach(function (r) { o.items[r[0]] = (o.items[r[0]] || 0) + r[1] * k; });
     }
@@ -4206,6 +4220,7 @@
     var notes = [];
     if (ox.part) notes.push('Kỳ đang xem có ' + ox.days + ' / ' + ox.mdays + ' ngày của tháng nên chi phí văn phòng tính theo số ngày (vd thuê nhà 10 tr, xem 10 / 30 ngày → 3,3 tr). Xem trọn tháng: chọn <b>Tháng trước</b> ở trên.');
     if (ox.miss.length && ox.has) notes.push('⚠️ Chưa nhập chi phí: ' + ox.miss.map(monthLabel).join(', ') + '.');
+    if (ox.est.length) notes.push('⏳ Chi phí văn phòng ' + ox.est.map(function (e) { return monthLabel(e[0]); }).join(', ') + ' chưa có (kế toán gửi sau khi hết tháng) nên <b>tạm lấy theo ' + ox.est.map(function (e) { return monthLabel(e[1]); }).join(', ') + '</b>. Có file tháng này thì bấm 📎 Tải file kế toán.');
     if (!M) notes.push(MK.err ? '⚠️ Chưa tải được chi phí quảng cáo.' : '⏳ Đang tải chi phí quảng cáo…');
     if (!sj) notes.push('⏳ Đang cộng số sàn…');
     notes.push('Doanh số tính khi lên đơn (chưa chắc đã thu tiền). Phí ship khách trả đã nằm trong doanh số; tiền ship trả hãng nhập thành 1 khoản chi phí. Số chốt lãi lỗ do kế toán đối chiếu.');
