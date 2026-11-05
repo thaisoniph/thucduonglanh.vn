@@ -6682,11 +6682,15 @@
     $('#rcCar', m).onchange = function () { if (P) { P.carrier = this.value || P.carrier; rcShow(m, P, R); } };
     $('#rcGo', m).onclick = function () {
       var b = this, chk = {}; $$('[data-rcto]', m).forEach(function (x) { if (x.checked) chk[x.getAttribute('data-rcto')] = 1; });
-      var items = Object.keys(R.M).map(function (k) { var x = R.M[k]; return { row: x.o.row, id: x.o.id, fee: x.fee, carrier: P.carrier === 'Khác' ? '' : P.carrier, tracking: x.wb, status: chk[k] ? x.to : undefined }; });
+      // 05/11/2026 (anh Sơn): đơn không có gì mới (trạng thái đã đúng, phí đã ghi, đã có hãng + mã vận đơn) thì bỏ qua → cập nhật nhanh
+      var car = P.carrier === 'Khác' ? '' : P.carrier, skipN = 0;
+      var items = Object.keys(R.M).map(function (k) { var x = R.M[k], o = x.o; return { row: o.row, id: o.id, fee: x.fee, carrier: car, tracking: x.wb, status: chk[k] ? x.to : undefined, _new: (chk[k] && x.to) || (x.fee !== null && x.fee !== o.shipFee) || (car && !o.carrier) || (x.wb && !o.tracking) }; })
+        .filter(function (it) { if (it._new) { delete it._new; return true; } skipN++; return false; });
+      if (!items.length) { closeModal(); toast('Tất cả ' + skipN + ' đơn đã đúng sẵn, không cần cập nhật ✓'); return; }
       var n = 0, st = 0, errs = [], step = function (i) {
-        if (i >= items.length) { closeModal(); toast('Đã đối soát ' + items.length + ' đơn: ' + st + ' đơn đổi trạng thái, ghi phí ' + n + ' đơn' + (errs.length ? ' · lỗi ' + errs.length + ' đơn' : '') + ' ✓', !!errs.length); load(true, true); return; }
-        b.textContent = '⏳ Đang cập nhật ' + Math.min(items.length, i + 100) + ' / ' + items.length + '…';
-        api('recon_apply', { src: P.carrier, items: items.slice(i, i + 100) }).then(function (j) { n += j.fee || 0; st += j.status || 0; errs = errs.concat(j.errors || []); step(i + 100); }, function (e) { b.disabled = false; b.textContent = 'Thử lại'; toast(e.message, true); });
+        if (i >= items.length) { closeModal(); toast('Đã đối soát ' + items.length + ' đơn: ' + st + ' đơn đổi trạng thái, ghi phí ' + n + ' đơn' + (skipN ? ' · bỏ qua ' + skipN + ' đơn đã đúng sẵn' : '') + (errs.length ? ' · lỗi ' + errs.length + ' đơn' : '') + ' ✓', !!errs.length); load(true, true); return; }
+        b.textContent = '⏳ Đang cập nhật ' + Math.min(items.length, i + 300) + ' / ' + items.length + '…';
+        api('recon_apply', { src: P.carrier, items: items.slice(i, i + 300) }).then(function (j) { n += j.fee || 0; st += j.status || 0; errs = errs.concat(j.errors || []); step(i + 300); }, function (e) { b.disabled = false; b.textContent = 'Thử lại'; toast(e.message, true); });
       };
       b.disabled = true; step(0);
     };

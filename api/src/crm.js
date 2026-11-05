@@ -1000,19 +1000,23 @@ async function crmOrderStatus(x, u, d) {
 async function crmReconApply(x, u, d) {
   if (u.level < 2) return { ok: false, error: 'Chỉ Quản lý / Quản trị đối soát được.' };
   const items = (Array.isArray(d.items) ? d.items : []).slice(0, 3000), tag = String(d.src || 'Đối soát').slice(0, 40) + ' ' + fmtDate(Date.now(), 'dd/MM');
-  let fee = 0, st = 0; const errs = [];
+  let fee = 0, st = 0; const errs = [], ups = [];
+  // 05/11/2026: đọc 1 lần cả lô + ghi gộp (trước: 2 lệnh / đơn, rất chậm); đổi trạng thái vẫn đi như bấm tay
+  const byRid = {}; (await allIn(x.db, 'SELECT * FROM orders WHERE rid IN (SELECT value FROM json_each(?))', items.map(it => Number(it.row) || 0))).forEach(o => { byRid[o.rid] = o; });
   for (const it of items) {
-    const o = await orderFind(x, it); if (!o) { errs.push(it.id); continue; }
+    let o = byRid[Number(it.row) || 0]; if (o && String(o.id) !== String(it.id)) o = null;
+    if (!o) o = await orderFind(x, it); if (!o) { errs.push(it.id); continue; }
     const set = { recon: tag };
     if (it.fee !== undefined && it.fee !== null && Number(it.fee) >= 0) { set.ship_fee = Math.round(Number(it.fee)); fee++; }
     if (it.carrier && !o.carrier) set.carrier = String(it.carrier).slice(0, 40);
     if (it.tracking && !o.tracking) set.tracking = String(it.tracking).trim().slice(0, 40);
-    const ks = Object.keys(set); await run(x.db, 'UPDATE orders SET ' + ks.map(k => k + ' = ?').join(', ') + ' WHERE rid = ?', ...ks.map(k => set[k]), o.rid);
+    const ks = Object.keys(set); ups.push(x.db.prepare('UPDATE orders SET ' + ks.map(k => k + ' = ?').join(', ') + ' WHERE rid = ?').bind(...ks.map(k => set[k]), o.rid));
     if (it.status && it.status !== o.status && ORDER_STATUS.indexOf(it.status) >= 0) {
       const r = await crmOrderStatus(x, u, { row: o.rid, id: o.id, status: it.status, reason: 'Đối soát ' + tag });
       if (r.ok) st++; else errs.push(it.id);
     }
   }
+  for (let i = 0; i < ups.length; i += 100) await x.db.batch(ups.slice(i, i + 100));
   await crmLog(x, u, 'Đối soát', '-', '', tag + ': ' + items.length + ' đơn, ghi phí ' + fee + ', đổi trạng thái ' + st, errs.length ? 'Lỗi: ' + errs.slice(0, 20).join(', ') : '');
   return { ok: true, fee, status: st, errors: errs };
 }

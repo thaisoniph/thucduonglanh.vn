@@ -103,7 +103,7 @@ Mỗi tháng (hoặc mỗi tuần) đối chiếu file của hãng vận chuyể
     - **🔄 Cần đổi trạng thái**: ví dụ CRM ghi "Đang giao" mà hãng báo hoàn → đơn chuyển sang **Đang chuyển hoàn**. Khi kho nhận đủ hàng thì bấm **📦 Kho đã nhận** trên đơn để chuyển sang **Hoàn**. Bỏ chọn đơn nào không muốn đổi. Dòng viền cam là đơn ngược nhau (CRM ghi đã giao mà hãng báo hoàn), xem kỹ.
     - **❓ Không tìm thấy trong CRM**: hãng có vận đơn mà CRM chưa có đơn → nhắc sale lên đơn.
     - **⚠️ Mã trùng, SĐT khác**: mã đơn trùng nhưng số điện thoại khác → CRM không tự sửa, kiểm tra tay.
-4. Bấm **✅ Cập nhật vào CRM**. CRM ghi phí thật trả hãng, tên hãng, mã vận đơn vào từng đơn, đổi trạng thái như khi bấm tay (có ghi nhật ký, ghi cả vào file sale).
+4. Bấm **✅ Cập nhật vào CRM**. CRM ghi phí thật trả hãng, tên hãng, mã vận đơn vào từng đơn, đổi trạng thái như khi bấm tay (có ghi nhật ký, ghi cả vào file sale). Đơn đã đúng sẵn (đúng trạng thái, đã ghi phí, đã có mã vận đơn) thì CRM **bỏ qua**, nên cập nhật nhanh, tải lại cùng file cũng không sao.
 
 CRM khớp đơn theo **mã đơn ghi ở ô Ghi chú của vận đơn** (vd `Phuong281026-04`) cộng **số điện thoại**. Sale ghi đúng mã đơn khi tạo vận đơn thì khớp được nhiều nhất.
 
