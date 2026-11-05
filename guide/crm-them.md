@@ -251,7 +251,15 @@ Tab **Đơn hàng** mở sẵn mục **⚡ Cần xử lý**, chia thành nhóm:
 | 📵 **Giao chưa được** | Bưu cục báo khách vắng nhà. **Gọi khách ngay**, hẹn lại giờ giao |
 | 🚚 **Giao lâu chưa tới** | Đã gửi hơn 5 ngày. Gọi hỏi khách, giục bưu cục |
 | 💳 **Chưa nhận tiền** | Kiểm tra tài khoản, tiền về thì bấm đã nhận tiền |
+| 📦 **Chờ hàng hoàn về kho** | Hãng đang chuyển hoàn, hàng chưa về. Khi kho nhận đủ hàng thì bấm **📦 Kho đã nhận** (đơn chuyển sang **Hoàn**) |
 | ↩ **Hoàn gần đây** | Khách trả lại hàng. Gọi hỏi lý do |
+
+**Đang chuyển hoàn** và **Hoàn** khác nhau:
+
+- **Đang chuyển hoàn**: hãng (Best, Viettel Post) báo trả hàng, hàng **đang trên đường về**. Thấy trên trang hãng thì chọn trạng thái này.
+- **Hoàn**: kho **đã nhận lại hàng**. Chỉ bấm khi đã kiểm đủ hàng.
+
+Cả hai đều không tính vào doanh số.
 
 **Nhãn trên đơn:**
 

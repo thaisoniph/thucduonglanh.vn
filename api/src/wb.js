@@ -12,7 +12,7 @@ import { phoneAlias } from './crm.js';
 
 const WB_ORDER = '@order ', WB_OST = '@ost ', WB_OED = '@oed ', WB_ODEL = '@odel ', WB_CINFO = '@cinfo ', WB_ZALO = '@zalo';
 export const WB_SHORT = { 'Không nghe máy': 'knm', 'Đã hỏi thăm': 'đã hỏi thăm', 'Hẹn gọi lại': 'hẹn gọi lại', 'Đã đặt lại': 'kh đặt lại', 'Không có nhu cầu': 'kh không có nhu cầu' }; // chữ viết tắt sale quen dùng
-const WB_ST = { 'Mới': 'Đã lên đơn', 'Đã xác nhận': 'Đã lên đơn', 'Đang giao': 'Đang giao', 'Đã giao': 'Giao thành công', 'Huỷ': 'Huỷ', 'Hoàn': 'Hoàn', 'Đổi hàng': 'Đổi hàng' }; // chữ quen dùng trong file sale (lúc nhập lại CRM hiểu đúng)
+const WB_ST = { 'Mới': 'Đã lên đơn', 'Đã xác nhận': 'Đã lên đơn', 'Đang giao': 'Đang giao', 'Đã giao': 'Giao thành công', 'Huỷ': 'Huỷ', 'Đang chuyển hoàn': 'Đang chuyển hoàn', 'Hoàn': 'Hoàn', 'Đổi hàng': 'Đổi hàng' }; // chữ quen dùng trong file sale (lúc nhập lại CRM hiểu đúng)
 const RETRY_MS = 7 * DAY, KEEP_MS = 60 * DAY, BACKOFF_MS = 30 * 60e3; // lỗi thử lại trong 7 ngày (30 phút/lần); giữ 60 ngày để tra lại + để lúc nhập file nhận ra dòng CRM đã ghi
 const has = (m, k) => m[k] !== undefined && m[k] !== null && m[k] !== '';
 const isOrd = it => [WB_ORDER, WB_OST, WB_OED, WB_ODEL, WB_CINFO].some(k => it.text.indexOf(k) === 0);

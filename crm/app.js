@@ -19,8 +19,8 @@
   var TASK_ORDER = ['callback', 'd1', 'runout', 'd7', 'd14', 'd30', 'winback'];
   var TASK_LOG = { callback: 'Gọi lại theo hẹn', d1: 'Hỏi nhận hàng', runout: 'Nhắc đặt lại', d7: 'Hỏi thăm sau 1 tuần', d14: 'Xin cảm nhận', d30: 'Giới thiệu sản phẩm', winback: 'Mời quay lại', old: 'Gọi khách cũ', other: 'Chăm sóc' };
   var OLD_DAYS = 30, OLD_PER_DAY = 15; // khách cũ quá 30 ngày chưa phản hồi: mỗi ngày gợi ý 15 khách chi nhiều nhất
-  var STATUS = ['Mới', 'Đã xác nhận', 'Đang giao', 'Đã giao', 'Huỷ', 'Hoàn', 'Đổi hàng'];
-  var ST_CLS = { 'Mới': 'st-moi', 'Đã xác nhận': 'st-xn', 'Đang giao': 'st-giao', 'Đã giao': 'st-xong', 'Huỷ': 'st-huy', 'Hoàn': 'st-huy', 'Đổi hàng': 'st-giao' };
+  var STATUS = ['Mới', 'Đã xác nhận', 'Đang giao', 'Đã giao', 'Huỷ', 'Đang chuyển hoàn', 'Hoàn', 'Đổi hàng']; // 05/11/2026: Đang chuyển hoàn = hãng đang trả hàng về, kho nhận đủ hàng mới bấm Hoàn
+  var ST_CLS = { 'Mới': 'st-moi', 'Đã xác nhận': 'st-xn', 'Đang giao': 'st-giao', 'Đã giao': 'st-xong', 'Huỷ': 'st-huy', 'Đang chuyển hoàn': 'st-huy', 'Hoàn': 'st-huy', 'Đổi hàng': 'st-giao' };
   function isVoid(st) { return /huỷ|hủy|hoàn/i.test(String(st || '')); } // huỷ / hoàn: không tính doanh số
   /** Doanh thu = tiền đơn đã thu (anh Sơn chốt 16/10/2026): không huỷ / hoàn và (Đã giao / Đổi hàng = COD đã thu, hoặc đã đánh dấu nhận chuyển khoản).
    *  Doanh số (29/10/2026) = đã TRỪ đơn hoàn / huỷ ở mọi màn (Tổng quan, Hiệu quả, mục tiêu, thi đua, hoa hồng). */
@@ -35,8 +35,8 @@
   /** Tiền ship mất của 1 đơn hoàn: phí thật từ file đối soát vận chuyển (o.shipFee) nếu có, chưa đối soát thì ước tính backCost(). */
   function backFee(o) { return o.shipFee != null ? o.shipFee : backCost(); }
   function isPaidOrder(o) { return !isVoid(o.status) && (/^(Đã giao|Đổi hàng)$/.test(o.status || '') || !!o.paid); }
-  var NEXT = { 'Mới': 'Đã xác nhận', 'Đã xác nhận': 'Đang giao', 'Đang giao': 'Đã giao' };
-  var NEXT_LABEL = { 'Mới': '✅ Xác nhận', 'Đã xác nhận': '🚚 Đang giao', 'Đang giao': '📬 Đã giao' };
+  var NEXT = { 'Mới': 'Đã xác nhận', 'Đã xác nhận': 'Đang giao', 'Đang giao': 'Đã giao', 'Đang chuyển hoàn': 'Hoàn' };
+  var NEXT_LABEL = { 'Mới': '✅ Xác nhận', 'Đã xác nhận': '🚚 Đang giao', 'Đang giao': '📬 Đã giao', 'Đang chuyển hoàn': '📦 Kho đã nhận' };
   var RESULTS = ['Đã đặt lại', 'Hẹn gọi lại', 'Không nghe máy', 'Đã hỏi thăm', 'Không có nhu cầu'];
   // Ghi nhanh 1 chạm (giống cách sale viết tắt trên Sheet): tự chọn kết quả + tự hẹn ngày gọi lại
   // 31/10/2026 anh Sơn: chia 3 nhóm theo câu sale tự hỏi khi gọi xong (g: miss = chưa nói chuyện được, talk = đã nói chuyện, stop = không gọi nữa); s = dòng chữ nhỏ khi không hẹn ngày
@@ -2376,7 +2376,8 @@
       { k: 'late', t: '🚚 Giao lâu chưa tới', tip: 'đang giao quá ' + SHIP_LATE + ' ngày – gọi hỏi khách, giục bưu cục để tránh hoàn', f: function (o) { return o.status === 'Đang giao' && shipDays(o) > SHIP_LATE && !trkWarn(o); } },
       { k: 'pay', t: '💳 Chưa nhận tiền', tip: 'chuyển khoản chưa thấy tiền về – kiểm tra tài khoản VCB', f: function (o) { return isBank(o) && !o.paid && !isVoid(o.status) && o.status !== 'Mới'; } },
       { k: 'otype', t: '⚠️ Kiểm tra loại đơn', tip: 'sale chọn loại đơn khác gợi ý của CRM – mở đơn, bấm ✓ Đúng hoặc đổi loại để tính hoa hồng đúng', f: function (o) { return lvl() >= 2 && !!o.oflag; } },
-      { k: 'back', t: '↩ Hoàn gần đây', tip: 'đơn hoàn (đặt trong 3 tuần) – gọi hỏi lý do, giữ khách', f: function (o) { return /hoàn/i.test(o.status) && d(o) <= 21; } }
+      { k: 'ret', t: '📦 Chờ hàng hoàn về kho', tip: 'hãng đang chuyển hoàn – kho nhận đủ hàng thì bấm “📦 Kho đã nhận” (đơn chuyển sang Hoàn)', f: function (o) { return o.status === 'Đang chuyển hoàn'; } },
+      { k: 'back', t: '↩ Hoàn gần đây', tip: 'đơn hoàn (đặt trong 3 tuần) – gọi hỏi lý do, giữ khách', f: function (o) { return o.status !== 'Đang chuyển hoàn' && /hoàn/i.test(o.status) && d(o) <= 21; } }
     ];
     G.forEach(function (g) { g.list = S.d.orders.filter(g.f).sort(function (a, b) { return a.time - b.time; }); });
     return G;
@@ -2493,7 +2494,7 @@
     var body = '<div class="acts steps" style="margin-bottom:12px"><a class="btn" href="tel:' + o.phone + '">📞 Gọi</a><a class="btn zalo" href="' + zalo(o.phone) + '" target="_blank" rel="noopener">Zalo</a>' +
       (c ? '<button class="btn" data-cust="' + c.phone + '">👤 Xem khách (' + c.orders + ' đơn)</button>' : '') + '<button class="btn" id="oCopy">📋 Copy thông tin giao hàng</button><button class="btn" id="oEdit">✏️ Sửa đơn</button></div>' +
       (o.oflag ? '<div class="notice" id="oOtBox">⚠️ <b>Kiểm tra loại đơn:</b> sale chọn <b>' + esc(otLabel(otypeOf(o))) + '</b>. ' + esc(o.oflag) + '.' + (lvl() >= 2 ? '<div class="steps" style="margin-top:8px"><button class="btn pri" id="oOtOk">✓ Đúng, giữ ' + esc(otypeOf(o)) + '</button>' + OTYPES.filter(function (t) { return t !== otypeOf(o); }).map(function (t) { return '<button class="btn" data-otset="' + esc(t) + '">Đổi sang ' + esc(otLabel(t)) + '</button>'; }).join('') + '</div>' : '<br>Quản lý sẽ kiểm tra lại.') + '</div>' : '') +
-      '<div class="box"><h3>Trạng thái</h3>' + (NEXT[o.status] ? '<p class="next-hint">👉 Bước tiếp theo: bấm <b>' + NEXT[o.status] + '</b>' + { 'Mới': ' sau khi gọi khách xác nhận đơn.', 'Đã xác nhận': ' khi đã gửi hàng (hoặc nhập mã vận đơn bên dưới).', 'Đang giao': ' khi khách đã nhận hàng.' }[o.status] + '</p>' : '') + '<div class="radios">' + STATUS.map(function (s) { return '<label><input type="radio" name="oSt" value="' + s + '"' + (s === o.status ? ' checked' : '') + '><span>' + s + '</span></label>'; }).join('') + '</div></div>' +
+      '<div class="box"><h3>Trạng thái</h3>' + (NEXT[o.status] ? '<p class="next-hint">👉 Bước tiếp theo: bấm <b>' + NEXT[o.status] + '</b>' + { 'Mới': ' sau khi gọi khách xác nhận đơn.', 'Đã xác nhận': ' khi đã gửi hàng (hoặc nhập mã vận đơn bên dưới).', 'Đang giao': ' khi khách đã nhận hàng.', 'Đang chuyển hoàn': ' khi kho đã nhận đủ hàng hoàn về.' }[o.status] + '</p>' : '') + '<div class="radios">' + STATUS.map(function (s) { return '<label><input type="radio" name="oSt" value="' + s + '"' + (s === o.status ? ' checked' : '') + '><span>' + s + '</span></label>'; }).join('') + '</div></div>' +
       '<div class="box"><div class="grid-info">' + info('Khách', o.name, false, true) + info('Điện thoại', fPhone(o.phone), false, normPhone(o.phone)) + info('Thời gian', fDateTime(o.time) + ' ' + vnDate(o.time).y) + info('Thanh toán', o.payment) +
       info('Địa chỉ', fullAddr(o), true, true) + (o.addrOld ? info('Địa chỉ cũ (Misa)', o.addrOld, true, true) : '') + (o.email ? info('Email', o.email, true, true) : '') + info('Nguồn', o.source || '–', true) + '</div>' +
       (lvl() >= 2 ? '<label class="f" style="margin:10px 0 0"><span>Nhân viên bán (tính doanh số)</span><select id="oSeller">' + ownerOptions(o.seller, true) + '</select></label>' : '<p class="small muted" style="margin:8px 0 0">Nhân viên bán: <b>' + esc(o.seller || '–') + '</b></p>') + '</div>' +
@@ -2587,8 +2588,8 @@
   }
   function setStatus(o, st, done) {
     if (st === o.status) return;
-    var reason = '';
-    if (st === 'Huỷ' || st === 'Hoàn' || st === 'Đổi hàng') { reason = prompt('Lý do ' + st.toLowerCase() + ' đơn ' + o.id + '? (không bắt buộc)', ''); if (reason === null) { render(); var r = $('input[name=oSt][value="' + o.status + '"]'); if (r) r.checked = true; return; } }
+    var reason = '', old0 = o.status;
+    if (st === 'Huỷ' || st === 'Đang chuyển hoàn' || (st === 'Hoàn' && old0 !== 'Đang chuyển hoàn') || st === 'Đổi hàng') { reason = prompt('Lý do ' + st.toLowerCase() + ' đơn ' + o.id + '? (không bắt buộc)', ''); if (reason === null) { render(); var r = $('input[name=oSt][value="' + o.status + '"]'); if (r) r.checked = true; return; } }
     var old = o.status; o.status = st; if (st === 'Đang giao' && !o.shipAt) o.shipAt = Date.now(); navBadges(); render(); if (done) done();
     api('order_status', { id: o.id, row: o.row, status: st, reason: reason }).then(function (j) {
       if (j.row) o.row = j.row;
@@ -6655,9 +6656,9 @@
     Object.keys(M).forEach(function (k) {
       var m = M[k], o = m.o; m.st = m.rows.reduce(function (s0, r) { return RANK[r.st] > RANK[s0] ? r.st : s0; }, ''); m.wb = (m.rows.filter(function (r) { return r.wb; })[0] || {}).wb || '';
       var to = '', warn = '';
-      if (m.st === 'back' && o.status !== 'Hoàn' && o.status !== 'Đổi hàng') { to = 'Hoàn'; if (o.status === 'Đã giao') warn = 'CRM ghi đã giao'; }
+      if (m.st === 'back' && !isBack(o.status) && o.status !== 'Đổi hàng') { to = 'Đang chuyển hoàn'; if (o.status === 'Đã giao') warn = 'CRM ghi đã giao'; } // 05/11/2026: hãng báo hoàn → Đang chuyển hoàn; kho nhận đủ hàng mới bấm Hoàn
       else if (m.st === 'ok' && /^(Mới|Đã xác nhận|Đang giao)$/.test(o.status)) to = 'Đã giao';
-      else if (m.st === 'ok' && o.status === 'Hoàn') { to = 'Đã giao'; warn = 'CRM ghi hoàn, hãng báo giao thành công'; }
+      else if (m.st === 'ok' && isBack(o.status)) { to = 'Đã giao'; warn = 'CRM ghi hoàn, hãng báo giao thành công'; }
       else if (m.st === 'ship' && /^(Mới|Đã xác nhận)$/.test(o.status)) to = 'Đang giao';
       m.to = to; m.warn = warn; if (to) todo.push(m); else same++;
     });
@@ -6700,7 +6701,7 @@
     h += '<div class="minis">' + mini('✅ Khớp, đúng rồi', R.same) + mini('🔄 Cần đổi trạng thái', R.todo.length, '', R.todo.length ? 'warn' : '') + mini('❓ Không có trong CRM', R.none.length, '', R.none.length ? 'warn' : '') + mini('⚠️ Mã trùng, SĐT khác', R.doubt.length, '', R.doubt.length ? 'warn' : '') + '</div>';
     if (fees.length) h += '<p>💸 Phí trả hãng: <b>' + money(fT) + '</b> cho ' + fees.length + ' vận đơn (trung bình ' + moneyShort(Math.round(fT / fees.length)) + ')' + (bk.length ? ' · đơn hoàn: <b>' + bk.length + ' đơn, ' + money(bF) + '</b>' : '') + '.</p>';
     if (R.todo.length) h += '<h3>🔄 Đổi trạng thái theo hãng <small class="muted">(bỏ chọn đơn không muốn đổi)</small></h3><div class="rc-list">' + R.todo.map(function (x) {
-      return '<label class="rc-row' + (x.warn ? ' rc-warn' : '') + '"><input type="checkbox" data-rcto="' + x.o.row + '"' + (x.warn && x.to !== 'Hoàn' ? '' : ' checked') + '><span>' + line(x) + '<br><small>CRM: ' + esc(x.o.status) + ' → <b>' + x.to + '</b> · ' + esc(P.carrier) + ': ' + esc(RC_ST[x.st]) + (x.warn ? ' · ⚠️ ' + esc(x.warn) : '') + '</small></span></label>';
+      return '<label class="rc-row' + (x.warn ? ' rc-warn' : '') + '"><input type="checkbox" data-rcto="' + x.o.row + '"' + (x.warn && x.to !== 'Đang chuyển hoàn' ? '' : ' checked') + '><span>' + line(x) + '<br><small>CRM: ' + esc(x.o.status) + ' → <b>' + x.to + '</b> · ' + esc(P.carrier) + ': ' + esc(RC_ST[x.st]) + (x.warn ? ' · ⚠️ ' + esc(x.warn) : '') + '</small></span></label>';
     }).join('') + '</div>';
     if (R.none.length) h += '<h3>❓ Có trên file nhưng không tìm thấy trong CRM <small class="muted">(nhắc sale lên đơn)</small></h3><div class="rc-list">' + R.none.slice(0, 80).map(function (r) {
       return '<div class="rc-row"><span><b>' + esc(r.label || '–') + '</b> · ' + (r.phone ? fPhone(r.phone) : 'không có SĐT') + (r.day ? ' · ' + fDate(r.day) : '') + ' · ' + esc(RC_ST[r.st]) + (r.cod ? ' · thu hộ ' + moneyShort(r.cod) : '') + '</span></div>';

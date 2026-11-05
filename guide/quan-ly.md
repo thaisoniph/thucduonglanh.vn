@@ -100,7 +100,7 @@ Mỗi tháng (hoặc mỗi tuần) đối chiếu file của hãng vận chuyể
 2. CRM → **Đơn hàng** → bấm **📦 Đối soát vận chuyển** → chọn file. CRM tự nhận ra file của Best hay Viettel Post (file xe ôm thì chọn Hãng = Xe ôm).
 3. CRM **chưa đổi gì**, chỉ cho xem trước:
     - **✅ Khớp, đúng rồi**: đơn CRM đã đúng trạng thái.
-    - **🔄 Cần đổi trạng thái**: ví dụ CRM ghi "Đang giao" mà hãng báo đã hoàn. Bỏ chọn đơn nào không muốn đổi. Dòng viền cam là đơn ngược nhau (CRM ghi đã giao mà hãng báo hoàn), xem kỹ.
+    - **🔄 Cần đổi trạng thái**: ví dụ CRM ghi "Đang giao" mà hãng báo hoàn → đơn chuyển sang **Đang chuyển hoàn**. Khi kho nhận đủ hàng thì bấm **📦 Kho đã nhận** trên đơn để chuyển sang **Hoàn**. Bỏ chọn đơn nào không muốn đổi. Dòng viền cam là đơn ngược nhau (CRM ghi đã giao mà hãng báo hoàn), xem kỹ.
     - **❓ Không tìm thấy trong CRM**: hãng có vận đơn mà CRM chưa có đơn → nhắc sale lên đơn.
     - **⚠️ Mã trùng, SĐT khác**: mã đơn trùng nhưng số điện thoại khác → CRM không tự sửa, kiểm tra tay.
 4. Bấm **✅ Cập nhật vào CRM**. CRM ghi phí thật trả hãng, tên hãng, mã vận đơn vào từng đơn, đổi trạng thái như khi bấm tay (có ghi nhật ký, ghi cả vào file sale).

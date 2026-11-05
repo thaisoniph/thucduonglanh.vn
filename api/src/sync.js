@@ -186,6 +186,7 @@ const EXPLICIT = /hoan|huy|bom|doi|giao thanh cong|da giao|thanh cong/, FILE_BY 
 function mapStatus(v, when) {
   const s = nrm(v);
   if (/hoan (thanh|tat)/.test(s)) return 'Đã giao'; // "Hoàn thành" / "Hoàn tất" = giao xong, không phải hoàn hàng
+  if (/(dang|chuyen) hoan|cho hoan/.test(s)) return 'Đang chuyển hoàn'; // 05/11/2026: hàng đang trả về, chưa về kho
   if (/hoan/.test(s)) return 'Hoàn';
   if (/huy|bom/.test(s)) return 'Huỷ';
   if (/doi/.test(s)) return 'Đổi hàng';
@@ -910,7 +911,7 @@ async function dupList(x) {
   const q = sql => allIn(x.db, sql, phones);
   const [cs, sp, os, dn] = [await q('SELECT phone, name, owner, orders, spent, last, products FROM customers WHERE phone IN (SELECT value FROM json_each(?))'),
     await q('SELECT phone, sale, sheet, last FROM sale_phones WHERE phone IN (SELECT value FROM json_each(?))'),
-    await q("SELECT phone, seller, count(*) AS n, sum(total) AS s, max(time) AS t FROM orders WHERE phone IN (SELECT value FROM json_each(?)) AND status NOT IN ('Huỷ', 'Hủy', 'Hoàn') GROUP BY phone, seller"),
+    await q("SELECT phone, seller, count(*) AS n, sum(total) AS s, max(time) AS t FROM orders WHERE phone IN (SELECT value FROM json_each(?)) AND status NOT IN ('Huỷ', 'Hủy', 'Hoàn', 'Đang chuyển hoàn') GROUP BY phone, seller"),
     await q('SELECT phone, owner, sales, by_name, at FROM dup_done WHERE phone IN (SELECT value FROM json_each(?))')];
   const S = {}, O = {}, D = {}, keep = await keepOf(x);
   sp.forEach(r => { const a = S[r.phone] = S[r.phone] || {}, s = a[r.sale] = a[r.sale] || { sheets: [], last: null }; if (s.sheets.indexOf(r.sheet) < 0) s.sheets.push(r.sheet); if (r.last && (!s.last || r.last > s.last)) s.last = r.last; });

@@ -138,7 +138,7 @@ const BOT_USERNAME = 'thucduonglanh_donhang_bot';
 const ASSIGN_MODES = { auto: 'Tự chia đều', manager: 'Quản lý giao tay', pool: 'Kho chung' };
 const SESSION_DAYS = 30;
 const TASK_LABEL = { callback: 'Gọi lại theo hẹn', d1: 'Hỏi nhận hàng', runout: 'Nhắc đặt lại', d7: 'Hỏi thăm sau 1 tuần', d14: 'Xin cảm nhận', d30: 'Giới thiệu sản phẩm', winback: 'Mời quay lại', old: 'Gọi khách cũ', other: 'Chăm sóc' };
-export const ORDER_STATUS = ['Mới', 'Đã xác nhận', 'Đang giao', 'Đã giao', 'Huỷ', 'Hoàn', 'Đổi hàng'];
+export const ORDER_STATUS = ['Mới', 'Đã xác nhận', 'Đang giao', 'Đã giao', 'Huỷ', 'Đang chuyển hoàn', 'Hoàn', 'Đổi hàng']; // 05/11/2026: Đang chuyển hoàn = hãng đang trả về; kho nhận đủ hàng mới bấm Hoàn
 const OPEN_STATUS = ['Mới', 'Đã xác nhận', 'Đang giao'];
 const CARE_RESULTS = ['Đã đặt lại', 'Hẹn gọi lại', 'Không nghe máy', 'Đã hỏi thăm', 'Không có nhu cầu'];
 export const LEAD_STATUS = ['Mới hỏi', 'Đang tư vấn', 'Đã chốt', 'Không mua'];
@@ -1218,7 +1218,7 @@ async function crmOrderCreate(x, u, d) {
   items = items.concat(cleanItems(d.gifts).map(g => Object.assign(g, { gift: true, price: 0, subtotal: 0 })));
   const now = Date.now();
   if (!d.force) { // bấm Lưu 2 lần (lần đầu mạng chập chờn, đơn đã lưu nhưng máy không nhận được trả lời) → không tạo đơn trùng
-    const dup = await first(x.db, "SELECT id, time FROM orders WHERE phone = ? AND total = ? AND time > ? AND status NOT IN ('Huỷ', 'Hoàn') ORDER BY time DESC LIMIT 1", phone, sub + ship, now - 60 * 60e3);
+    const dup = await first(x.db, "SELECT id, time FROM orders WHERE phone = ? AND total = ? AND time > ? AND status NOT IN ('Huỷ', 'Hoàn', 'Đang chuyển hoàn') ORDER BY time DESC LIMIT 1", phone, sub + ship, now - 60 * 60e3);
     if (dup) return { ok: false, dupOf: dup.id, error: 'Khách này vừa có đơn ' + dup.id + ' cùng số tiền ' + fmt(sub + ship) + ' lúc ' + fmtDate(Number(dup.time), 'HH:mm') + '. Có thể lần trước đã lưu rồi.' };
   }
   const vtp = /viettel/i.test(String(d.carrier || '')), want = String(d.code || '').trim().replace(/\s+/g, ' ');
@@ -1702,8 +1702,9 @@ export async function vtpWebhook(x, raw) {
 
   await run(x.db, "UPDATE orders SET trk = ?, trk_at = ?, trk_code = ?, carrier = CASE WHEN carrier LIKE '%viettel%' THEN carrier ELSE 'Viettel Post' END WHERE rid = ?", line, at, st, o.rid);
 
+  // 05/11/2026 (anh Sơn): hãng báo chuyển hoàn / đã trả hàng → Đang chuyển hoàn; chỉ khi kho nhận đủ hàng mới bấm Hoàn trên CRM
   const to = st === 501 ? (/^(Mới|Đã xác nhận|Đang giao)$/.test(old) ? 'Đã giao' : '')
-           : st === 504 ? (isVoid(old) ? '' : 'Hoàn')
+           : st === 502 || st === 504 || st === 515 ? (isVoid(old) ? '' : 'Đang chuyển hoàn')
            : st >= 200 && /^(Mới|Đã xác nhận)$/.test(old) && st !== 201 && st !== 503 ? 'Đang giao' : '';
   let res = { ok: true };
   if (to) {
@@ -1714,7 +1715,7 @@ export async function vtpWebhook(x, raw) {
   if (warn) {
     const msg = '🚚 <b>Viettel Post</b> · ' + esc(code) +
       '\n👤 <b>' + esc(o.name) + '</b> (' + esc(o.id) + ')' +
-      '\n⚠️ ' + esc(label) + (to === 'Hoàn' ? ' → đơn chuyển sang <b>Hoàn</b>' : '') +
+      '\n⚠️ ' + esc(label) + (to ? ' → đơn chuyển sang <b>' + esc(to) + '</b>' : '') + (st === 504 ? '\n📦 Hãng báo đã trả hàng – kho kiểm đủ hàng thì bấm <b>Kho đã nhận</b>' : '') +
       (note ? '\n📝 ' + esc(note) : '') +
       (place ? '\n📍 ' + esc(place) : '') +
       (o.seller ? '\n👤 NV bán: ' + esc(o.seller) : '') +
