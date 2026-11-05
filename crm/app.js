@@ -6595,7 +6595,7 @@
    * khớp từng dòng với đơn CRM theo mã đơn (cột mã / ghi chú vận đơn) + SĐT, cho xem đơn lệch trạng thái, đơn không có trong CRM, phí thật.
    * Bấm cập nhật → lệnh recon_apply: ghi phí thật (ship_fee), hãng, mã vận đơn, đổi trạng thái như bấm tay (ghi nhật ký, ghi file sale). */
   var RC_COL = {
-    wb: /^(ma van don|so van don|ma vd)$/, code: /^(ma don hang|ma don|ma dh|ma noi bo)$/, note: /^(ghi chu|ghi chu don hang|noi dung)$/,
+    wb: /^(ma van don|so van don|ma vd)#?$/, code: /^(ma don hang|ma don|ma dh|ma noi bo)$/, note: /^(ghi chu|ghi chu don hang|noi dung)$/,
     phone: /^(dien thoai cua nguoi nhan hang|dt nhan|sdt nhan|sdt nguoi nhan|so dien thoai nguoi nhan|sdt khach|sdt|so dien thoai|dien thoai)$/,
     st: /^(trang thai|tinh trang)$/, back: /^(co chieu tra ve hay khong|don chuyen hoan|hoan)$/, cod: /^(so tien thu ho|tien thu ho( \(4\))?|thu ho|cod)$/,
     fee: /^(tong cuoc van chuyen|tong phi( \(9\).*)?|phi ship|phi van chuyen|cuoc|tien ship|phi giao|tien xe om|phi)$/, day: /^(thoi gian dat hang|ngay tao|ngay gui|ngay giao|ngay)$/
@@ -6624,7 +6624,7 @@
         var H = (rows[i] || []).map(function (c) { return norm(c).replace(/\s+/g, ' ').trim(); }), ix = {};
         Object.keys(RC_COL).forEach(function (k) { for (var j = 0; j < H.length; j++) if (RC_COL[k].test(H[j])) { ix[k] = j; break; } });
         if (ix.st === undefined || (ix.code === undefined && ix.note === undefined && ix.phone === undefined && ix.wb === undefined)) continue;
-        var hs = H.join('|'), carrier = /co chieu tra ve hay khong/.test(hs) ? 'BEST Express' : /don chuyen hoan|bc goc/.test(hs) ? 'Viettel Post' : '';
+        var hs = H.join('|'), carrier = /co chieu tra ve hay khong|buu cuc quet moi nhat|co phai kien van de hay khong/.test(hs) ? 'BEST Express' : /don chuyen hoan|bc goc/.test(hs) ? 'Viettel Post' : '';
         var out = [];
         rows.slice(i + 1).forEach(function (r) {
           var g = function (k) { return ix[k] === undefined ? '' : r[ix[k]]; }, codes = [];
@@ -6667,7 +6667,7 @@
   function openRecon() {
     var carriers = ['BEST Express', 'Viettel Post', 'Xe ôm', 'Khác'];
     var body = '<p>Tải file đơn xuất từ hãng vận chuyển. CRM đọc ngay trên máy, khớp với đơn trong CRM rồi cho anh/chị <b>xem lại trước</b>, chưa đổi gì cho tới khi bấm Cập nhật.</p>' +
-      '<p class="small muted">• <b>Best</b>: trang Best → Đối soát COD → Chi tiết đơn → Xuất Excel (chọn cả tháng).<br>• <b>Viettel Post</b>: Quản lý vận đơn → Xuất danh sách vận đơn.<br>• <b>Xe ôm / tự giao</b>: bảng Excel hoặc Google Sheet (tải về .xlsx / .csv) có các cột <b>Mã đơn</b> (hoặc <b>SĐT</b>), <b>Trạng thái</b> (Giao thành công / Hoàn / Huỷ), <b>Phí ship</b>, có thể thêm <b>Ngày</b>, <b>Thu hộ</b>.</p>' +
+      '<p class="small muted">• <b>Best</b>: trang Best → Quản lý đơn hàng → Hàng gửi → Xuất ra Excel, hoặc Đối soát COD → Chi tiết đơn → Xuất Excel (chọn cả tháng).<br>• <b>Viettel Post</b>: Quản lý vận đơn → Xuất danh sách vận đơn.<br>• <b>Xe ôm / tự giao</b>: bảng Excel hoặc Google Sheet (tải về .xlsx / .csv) có các cột <b>Mã đơn</b> (hoặc <b>SĐT</b>), <b>Trạng thái</b> (Giao thành công / Hoàn / Huỷ), <b>Phí ship</b>, có thể thêm <b>Ngày</b>, <b>Thu hộ</b>.</p>' +
       '<label class="f"><span>Hãng</span><select id="rcCar"><option value="">Tự nhận ra từ file</option>' + carriers.map(function (c) { return '<option>' + c + '</option>'; }).join('') + '</select></label>' +
       '<label class="f"><span>File</span><input type="file" id="rcFile" accept=".xlsx,.csv,.txt"></label><p class="err" id="rcErr"></p><div id="rcOut"></div>';
     var m = modal('📦 Đối soát vận chuyển', body, '<button class="btn" data-close>Đóng</button><button class="btn pri" id="rcGo" hidden>Cập nhật vào CRM</button>');

@@ -94,7 +94,7 @@ Sale chọn loại đơn khác với gợi ý của máy thì đơn có nhãn **
 Mỗi tháng (hoặc mỗi tuần) đối chiếu file của hãng vận chuyển với đơn trong CRM, để đơn hoàn được ghi đúng và biết công ty mất bao nhiêu tiền ship.
 
 1. Tải file từ hãng:
-    - **Best**: trang Best → Đối soát COD → Chi tiết đơn → **Xuất Excel**, chọn cả tháng.
+    - **Best**: trang Best → Quản lý đơn hàng → **Hàng gửi** → **Xuất ra Excel** (cập nhật được cả đơn đang chuyển hoàn), hoặc Đối soát COD → Chi tiết đơn → **Xuất Excel**, chọn cả tháng.
     - **Viettel Post**: Quản lý vận đơn → **Xuất danh sách vận đơn**.
     - **Xe ôm / tự giao**: bảng Excel hoặc Google Sheet (tải về .xlsx hoặc .csv) có các cột **Mã đơn** (hoặc **SĐT**), **Trạng thái** (Giao thành công / Hoàn / Huỷ), **Phí ship**. Có thể thêm cột **Ngày**, **Thu hộ**.
 2. CRM → **Đơn hàng** → bấm **📦 Đối soát vận chuyển** → chọn file. CRM tự nhận ra file của Best hay Viettel Post (file xe ôm thì chọn Hãng = Xe ôm).
