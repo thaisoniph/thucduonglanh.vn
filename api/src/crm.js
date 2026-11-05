@@ -2027,6 +2027,7 @@ export async function crmApi(x, d, sync, mgr) {
     if (a === 'ref_gift' || a === 'ref_told') { const o = await first(x.db, 'SELECT ref_phone FROM orders WHERE id = ? ORDER BY rid LIMIT 1', String(d.id || '')); const g = o && o.ref_phone ? await guardPhone(x, u, o.ref_phone) : ''; if (g) return { ok: false, error: g }; }
     return crmPartner(x, u, d, crmLog, (await crmUsers(x)).map(z => z.name));
   }
+  if (a === 'kt_fetch') return u.level >= 3 ? crmKtFetch(d) : { ok: false, error: 'Bạn không có quyền làm việc này.' };
   const need = { settings: 2, users: 3, assign: 2, bulk: 2, recv: 2 };
   if (need[a] && u.level < need[a]) return { ok: false, error: 'Bạn không có quyền làm việc này.' };
   const opKey = d.opId ? 'op_' + String(d.opId).slice(0, 40) : ''; // CRM gửi lại việc khi mạng chập chờn: việc đã làm rồi thì trả kết quả cũ, không ghi trùng
@@ -2040,4 +2041,24 @@ export async function crmApi(x, d, sync, mgr) {
     return res;
   }
   return { ok: false, error: 'Không rõ thao tác: ' + a };
+}
+
+/** 📎 Tổng quan → Tải file kế toán bằng link Google Sheet (05/11/2026): trình duyệt không tự tải được từ Google (CORS) nên máy chủ tải bản .xlsx rồi gửi lại (base64).
+ *  CRM đọc file ngay trên máy như khi chọn file. Chỉ Quản trị, chỉ link docs.google.com / drive.google.com, file ≤ 15MB, không lưu file. */
+async function crmKtFetch(d) {
+  const L = String(d.link || ''), id = (L.match(/(?:docs\.google\.com\/spreadsheets\/d\/|drive\.google\.com\/(?:file\/d\/|open\?id=))([\w-]{20,})/) || [])[1];
+  if (!id) return { ok: false, error: 'Link chưa đúng: cần link Google Sheet (docs.google.com/spreadsheets/d/…).' };
+  const urls = ['https://docs.google.com/spreadsheets/d/' + id + '/export?format=xlsx', 'https://drive.google.com/uc?export=download&id=' + id];
+  for (const url of urls) {
+    let r; try { r = await fetch(url, { redirect: 'follow' }); } catch (e) { continue; }
+    if (!r.ok) continue;
+    const buf = new Uint8Array(await r.arrayBuffer());
+    if (buf.length < 4 || buf[0] !== 0x50 || buf[1] !== 0x4B) continue; // trang đăng nhập Google (HTML) = link chưa mở quyền xem
+    if (buf.length > 15e6) return { ok: false, error: 'File quá lớn (' + Math.round(buf.length / 1e6) + ' MB). Tải file về máy rồi chọn file.' };
+    const cd = r.headers.get('content-disposition') || '', nm = (cd.match(/filename\*=UTF-8''([^;]+)/i) || [])[1] || (cd.match(/filename="([^"]+)"/i) || [])[1] || '';
+    let bin = ''; for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode.apply(null, buf.subarray(i, i + 0x8000));
+    let name = 'Google Sheet kế toán.xlsx'; try { if (nm) name = decodeURIComponent(nm); } catch (e) { name = nm; }
+    return { ok: true, b64: btoa(bin), name: /\.xlsx$/i.test(name) ? name : name + '.xlsx' };
+  }
+  return { ok: false, error: 'Không tải được file. Nhờ kế toán bật Chia sẻ → "Bất kỳ ai có đường liên kết" → Người xem, rồi thử lại. Hoặc tải file về máy (Tệp → Tải xuống → .xlsx) rồi chọn file.' };
 }

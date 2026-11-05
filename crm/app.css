@@ -1581,3 +1581,26 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .fp-chat .zb-cr { background: #0084ff; color: #fff; }
 .fp-chat .zb-cr small { color: rgba(255,255,255,.85); }
 .fp-chat .zb-cr .fp-lnk { color: #fff; text-decoration: underline; }
+/* 💵 Lãi lỗ từng ngày ở đầu Tổng quan (05/11/2026) */
+.dpl { margin: 0 0 12px; }
+.dpl-h { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; justify-content: space-between; margin-bottom: 8px; }
+.dpl-h h3 { margin: 0; } .dpl-h h3 small { color: var(--muted); font-weight: 400; font-size: 13px; }
+.dpl-n { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+.dpl-v { padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--line); border-left: 5px solid var(--primary); background: var(--primary-light); }
+.dpl-v.bad { border-left-color: var(--red); background: var(--red-light); }
+.dpl-v span { display: block; font-size: 14px; color: var(--muted); } .dpl-v span small { font-size: 12px; }
+.dpl-v b { display: block; font-size: 24px; line-height: 1.25; color: var(--primary); white-space: nowrap; } .dpl-v.bad b { color: var(--red); }
+.dpl-v > small { display: block; font-size: 13px; color: var(--text); line-height: 1.4; }
+.dpl-bars { display: flex; gap: 2px; height: 90px; margin: 12px 0 2px; }
+.dpl-c { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; cursor: default; }
+.dpl-c > b { flex: 0 0 var(--up); display: flex; align-items: flex-end; }
+.dpl-c > u { flex: 1 1 auto; display: flex; align-items: flex-start; border-top: 1px solid var(--ink); text-decoration: none; }
+.dpl-c i { display: block; width: 100%; min-height: 2px; border-radius: 2px; }
+.dpl-c i.ok { background: var(--primary); } .dpl-c i.bad { background: var(--red); }
+.dpl-c.now i { opacity: .45; }
+.dpl-x { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+.dpl-be { margin: 8px 0 0; font-size: 15px; line-height: 1.45; }
+.dpl-more { margin-top: 8px; } .dpl-more summary { cursor: pointer; font-weight: 600; color: var(--primary); }
+.pnl-t td.ok { color: var(--primary); } .pnl-t td.bad { color: var(--red); }
+.kt-link { display: flex; gap: 6px; } .kt-link input { flex: 1 1 auto; min-width: 0; }
+.dpl-v > small b { display: inline; font-size: inherit; color: inherit; white-space: normal; }
