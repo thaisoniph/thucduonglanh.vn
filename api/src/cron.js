@@ -1,5 +1,5 @@
 // Việc chạy theo lịch: 8h sáng gửi danh sách chăm sóc + báo mức dùng CRM + tin Marketing sáng nay, 10 phút/lần lấy số quảng cáo, 30 phút/lần tự nhập file sale + Google Sheet báo cáo sàn, 6 tiếng 1 lần chép bản sao dữ liệu sang Google Sheet.
-import { normPhone, esc, fmtDate, startOfDay, all, kvGet, kvSet, kvDel, CRM_URL, DAY } from './lib.js';
+import { normPhone, esc, fmtDate, startOfDay, all, kvGet, kvSet, kvDel, kvJson, CRM_URL, DAY } from './lib.js';
 import { telegram, telegramTo, gInfo, sheetMeta, sheetClear, sheetWrite, sheetAddTabs, sheetBatch, a1 } from './google.js';
 import { recalcAll, crmUsers, unifyNames, unifyProducts, autoCloseLeads, rulesCfg, careTask, groupOf, leadsData, leadDue, adsCfg, usageAlert } from './crm.js';
 import { adsSync, srcAutoTick, fixAdsLeads } from './sync.js';
@@ -128,6 +128,10 @@ export async function scheduled(x, cron) {
     if (!await kvGet(x.db, fm)) { await kvSet(x.db, fm, '1', 2 * DAY); try { const t = await finMorning(x); if (t) for (const u of await crmUsers(x)) if (u.active && u.tg && u.level >= 3) await telegramTo(x.env, u.tg, t); } catch (e) { console.error('finMorning', e.message); } }
     const mk = 'mktd_' + fmtDate(now, 'yyyyMMdd'); // tin Telegram marketing buổi sáng
     if (!await kvGet(x.db, mk)) { await kvSet(x.db, mk, '1', 2 * DAY); try { for (const m of await mktDailyMsgs(x, await crmUsers(x))) await telegramTo(x.env, m.tg, m.text); } catch (e) { console.error('mktDaily', e.message); } }
+  }
+  if (vn.getUTCHours() >= 8 && vn.getUTCHours() <= 20) { // 💼 ngoài 7h30: đọc lại file kế toán 3 tiếng / lần (gói Workers $5 đủ sức, đọc ~70ms)
+    const L = await kvJson(x.db, 'kt_link', null);
+    if (L && L.link && now - (L.last || 0) > 3 * 3600e3 && now - (L.errAt || 0) > 3 * 3600e3) { try { await finSync(x); } catch (e) { console.error('finSync', e.message); } }
   }
   const ads = await adsCfg(x);
   if (ads && ads.auto) { try { await adsSync(x, { name: 'Tự động', level: 3 }, false); } catch (e) { console.error('ads', e.message); } }

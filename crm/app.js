@@ -4299,7 +4299,7 @@
   }
   /* ---------- 🏦 Tiền & công nợ + 📊 Chi phí lớn & cách tối ưu (05/11/2026). Kế toán cập nhật 3 trang trong file Google Sheet báo cáo: "Sổ chi", "Số dư ngân hàng", "Công nợ"
    * (mẫu: Drive 05_Tài chính & Kế toán/Báo cáo doanh thu - chi phí/2026-11-05_Mẫu cập nhật thu chi hằng ngày cho kế toán.xlsx). Quản trị nối link 1 lần → máy chủ tự đọc 7h30 (api/src/fin.js),
-   * CRM cũng tự đọc trên máy khi Quản trị mở Tổng quan mà số đã cũ quá 3 tiếng (finSyncC, phòng khi máy chủ gói miễn phí không đủ sức đọc). finParseC trùng finParse trong api/src/fin.js: sửa 1 bên thì sửa cả 2. */
+   * CRM cũng tự đọc trên máy khi Quản trị mở Tổng quan mà số đã cũ quá 3 tiếng (finSyncC, dự phòng khi máy chủ đọc lỗi; máy chủ đọc lại 3 tiếng / lần). finParseC trùng finParse trong api/src/fin.js: sửa 1 bên thì sửa cả 2. */
   var FIN = { busy: false, tried: 0, err: '' };
   function finIso(v) {
     if (typeof v === 'number' && v > 30000 && v < 80000) return new Date(Date.UTC(1899, 11, 30) + Math.round(v) * DAY).toISOString().slice(0, 10);

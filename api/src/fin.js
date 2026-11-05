@@ -1,7 +1,7 @@
 // 💼 Tài chính (05/11/2026): máy chủ tự đọc link Google Sheet báo cáo của kế toán (Quản trị nối link ở Tổng quan → 🏦 Tiền & công nợ).
 // Đọc: trang Tổng hợp + Chi phí (như 📎 Tải file kế toán ở CRM: ktParse, chép y từ crm/app.js — sửa 1 bên thì sửa cả 2),
 // và 3 trang hằng ngày: "Sổ chi" (mỗi khoản chi 1 dòng), "Số dư ngân hàng" (số dư cuối ngày từng tài khoản), "Công nợ" (nợ nhà cung cấp + hạn thanh toán).
-// Lưu kv opex_cfg (chi phí theo tháng, như tải file) + kv fin_cfg (tiền, sổ chi, công nợ). Cron 7h30 + 3 tiếng / lần; 8h sáng nhắn Telegram riêng cho Quản trị.
+// Lưu kv opex_cfg (chi phí theo tháng, như tải file) + kv fin_cfg (tiền, sổ chi, công nợ). Cron 7h30 rồi 3 tiếng / lần tới 20h (gói Workers $5, đọc 1 file ~70ms CPU); 8h sáng nhắn Telegram riêng cho Quản trị.
 import { esc, fmtDate, startOfDay, all, kvSet, kvJson, DAY, CRM_URL } from './lib.js';
 import { telegramTo } from './google.js';
 
