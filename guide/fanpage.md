@@ -2,7 +2,7 @@
 title: Trợ lý Fanpage Facebook
 nav: Fanpage
 order: 7
-updated: 2026-10-26
+updated: 2026-11-05
 description: Trợ lý An Lành trả lời bình luận, nhắn tin Messenger, tặng quà, mời vào nhóm Zalo và soạn bài đăng cho các fanpage.
 ---
 
@@ -34,25 +34,37 @@ Trong CRM, bấm **FB** trên thanh menu. Quản trị vào bằng cách bấm *
 
 ## Việc hằng ngày của bạn
 
-**1. Duyệt bài đăng.** AI soạn sẵn bài cho **hôm nay** và **ngày mai**, mỗi trang một bài riêng. Mỗi ngày bạn đọc bài của ngày mai:
+**1. Duyệt bài đăng.** AI soạn sẵn bài cho **hôm nay** và **ngày mai**, mỗi trang một bài riêng. Bài **cần duyệt** nằm trên cùng, có **viền vàng** và ghi "⏳ Cần duyệt trước … giờ". Khung trắng bên dưới là **bài sẽ hiện trên Facebook**. Nhiều trang thì bấm tên trang ở hàng nút phía trên để xem riêng từng trang (số đỏ = số bài đang chờ duyệt).
 
-- Bài ổn: bấm **✅ Duyệt**. Tới giờ, bài tự đăng lên trang.
-- Muốn sửa chữ: sửa ngay trong ô rồi bấm **💾 Lưu sửa**.
-- Muốn AI viết bài khác: bấm **🔄 Viết lại** và gõ ý muốn (ví dụ "nói về mè đen", "ngắn hơn"). Chờ khoảng 30 giây.
-- Không muốn đăng: bấm **⏸ Bỏ bài này**.
-- Muốn đăng luôn: bấm **📤 Đăng ngay**.
+![Bài cần duyệt: 1 Duyệt bài này, 2 Sửa chữ, 3 Đăng ngay, 4 Viết lại, 5 Bỏ bài này](/huong-dan/img/fp-duyet.webp)
+
+1. Bài ổn: bấm **✅ Duyệt bài này**. Tới giờ, bài tự đăng lên trang.
+2. Muốn sửa chữ hoặc đổi link: bấm **✏️ Sửa chữ**, sửa trong ô hiện ra rồi bấm **💾 Lưu**.
+3. Muốn đăng luôn: bấm **📤 Đăng ngay**.
+4. Muốn AI viết bài khác: bấm **🔄 Viết lại** và gõ ý muốn (ví dụ "nói về mè đen", "ngắn hơn"). Chờ khoảng 30 giây.
+5. Không muốn đăng: bấm **⏸ Bỏ bài này**.
+
+Bài đã đăng thu gọn thành 1 dòng ở mục **📤 Đã đăng gần đây**. Bấm vào dòng để xem lại, hoặc bấm **👁 Xem trên Facebook**.
 
 Kiểm tra kỹ trước khi duyệt: giá và ưu đãi phải đúng với web, và bài **không có** chữ "chữa", "điều trị", "khỏi bệnh". Facebook không hiện chữ đậm, nên bài chỉ có chữ thường và emoji. Bài nói về sản phẩm sẽ kèm link sản phẩm (có ảnh xem trước).
 
-**2. Khi Telegram báo "📘 FANPAGE CẦN NGƯỜI THẬT":** khách hỏi việc riêng (đơn hàng, đổi trả, giá sỉ, muốn gặp nhân viên…). Bạn bấm link trong tin Telegram để mở hộp thư fanpage và trả lời khách. Khi bạn đã nhắn cho khách, trợ lý **tự im 12 tiếng** với khách đó để không chen ngang.
+**2. Khi Telegram báo "📘 FANPAGE CẦN NGƯỜI THẬT":** khách hỏi việc riêng (đơn hàng, đổi trả, giá sỉ, muốn gặp nhân viên…). Ca này cũng được **ghim viền vàng** ở đầu mục **🕘 Trợ lý vừa làm gì**.
+
+![Nhật ký: 1 lọc Cần xử lý, 2 Mở hộp thư trang, 3 Đã xử lý](/huong-dan/img/fp-nhat-ky.webp)
+
+1. Bấm **🙋 Cần xử lý** để chỉ xem các ca chờ người thật.
+2. Bấm **💬 Mở hộp thư trang** để trả lời khách trên Facebook. Khi bạn đã nhắn cho khách, trợ lý **tự im 12 tiếng** với khách đó để không chen ngang.
+3. Trả lời xong, bấm **✅ Đã xử lý** để cả đội biết ca này đã có người lo (CRM ghi tên bạn và giờ xử lý).
 
 **3. Tự viết bài:** bấm **✍️ Viết bài đăng**, chọn trang, gõ nội dung. Để trống giờ thì bài đăng ngay. Chọn giờ thì bài đăng đúng giờ đó.
 
-**4. Xem trợ lý vừa làm gì:** ở cuối tab, bấm vào từng dòng để xem khách nói gì và trợ lý trả lời gì. Thấy trợ lý trả lời chưa đúng thì báo anh Sơn để chỉnh.
+**4. Xem trợ lý vừa làm gì:** nhật ký chia theo từng ngày, có dòng tóm tắt (bao nhiêu bình luận, tin nhắn, khách để số). Bấm vào từng dòng để xem khách nói gì (bên trái, ô xám) và trợ lý trả lời gì (bên phải, ô xanh). Hàng nút phía trên lọc theo loại việc. Muốn xem ngày cũ hơn thì bấm **Xem thêm các ngày trước** ở cuối. Thấy trợ lý trả lời chưa đúng thì báo anh Sơn để chỉnh.
 
 ## Cài đặt từng trang
 
-Mỗi trang có ô **⚙️ Cài đặt trang** (bấm để mở):
+Mục **📄 Fanpage đã kết nối** có mỗi trang 1 dòng: tên trang, đang bật hay tắt, giờ đăng bài. Bấm vào dòng (nút **⚙️ Cài đặt**) để mở cài đặt của trang:
+
+![Mỗi trang 1 dòng, bấm 1 Cài đặt để mở](/huong-dan/img/fp-trang.webp)
 
 - **Bật trợ lý cho trang này**: tắt thì trợ lý không làm gì trên trang đó.
 - **⚡ Mở Tự động hoá của Meta cho trang này**: khi bật trợ lý, bấm link này rồi tắt **Trả lời tức thì** của Meta. Nếu không, khách nhận 2 lời chào cùng lúc. Meta không cho phần mềm khác bật/tắt mục này, nên phải bấm tay một lần.
@@ -61,7 +73,7 @@ Mỗi trang có ô **⚙️ Cài đặt trang** (bấm để mở):
 - **Tin gửi quà**: `{link}` là link cẩm nang, `{nhom}` là link nhóm Zalo.
 - **Bài đăng**: bật "AI soạn bài đăng", chọn giờ đăng (ví dụ `11:30, 20:00`), chọn **Chờ duyệt** hoặc **Tự đăng**. Điền ô **"Trang này dành cho ai"** (ví dụ "mẹ bỉm sau sinh, giọng chị em tâm sự") để AI viết đúng giọng của trang.
 
-Sửa xong, bấm **💾 Lưu cài đặt**.
+Sửa xong, bấm **💾 Lưu cài đặt trang**.
 
 ## Trong lúc chờ Facebook duyệt: dùng tự động có sẵn của Meta
 
@@ -95,7 +107,7 @@ Anh làm trên **máy tính**, đăng nhập Facebook bằng tài khoản **qu�
    - URL chính sách quyền riêng tư: `https://thucduonglanh.vn/chinh-sach-bao-mat/`
    - Xoá dữ liệu người dùng: chọn **URL hướng dẫn xoá dữ liệu** và dán cùng link trên.
    - Biểu tượng ứng dụng: logo 1024×1024. Hạng mục: **Mua sắm** hoặc **Doanh nghiệp**. Bấm **Lưu**.
-6. Mở CRM → **📘 Fanpage** → **🔗 Kết nối Facebook**, dán App ID và App Secret → **💾 Lưu mã ứng dụng**.
+6. Mở CRM → **📘 Fanpage** → **🔗 Kết nối Facebook** (khi đã kết nối xong, mục này nằm cuối trang), dán App ID và App Secret → **💾 Lưu mã ứng dụng**.
 
 **Bước 2. Webhook (để Facebook báo bình luận, tin nhắn cho trợ lý)**
 

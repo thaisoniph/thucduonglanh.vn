@@ -5439,15 +5439,74 @@
   function viewFp() {
     if (!FP.d && !FP.err && !FP.busy) setTimeout(fpFetch, 0);
     var h = '<div class="page-head"><h1>📘 Trợ lý Fanpage</h1><div class="grow"></div><button class="btn pri" data-fp="send">✍️ Viết bài đăng</button></div>' +
-      '<p class="muted small lq-intro">Khách bình luận bài đăng hoặc quảng cáo → trợ lý <b>An Lành</b> thích, trả lời bình luận và nhắn riêng → tư vấn trong Messenger → xin số Zalo → gửi quà + link nhóm Zalo, khách vào tab Khách hỏi. AI soạn bài đăng cho từng trang để bạn duyệt. <a href="/huong-dan/fanpage/" target="_blank" rel="noopener">Xem hướng dẫn</a></p>';
+      '<p class="muted small lq-intro">Khách bình luận bài đăng hoặc quảng cáo → trợ lý <b>An Lành</b> thích, trả lời và nhắn riêng → tư vấn trong Messenger → xin số Zalo → gửi quà + link nhóm Zalo, khách vào tab Khách hỏi. AI soạn bài đăng cho từng trang để bạn duyệt. <a href="/huong-dan/fanpage/" target="_blank" rel="noopener">Xem hướng dẫn</a></p>';
     if (!FP.d) return h + '<div class="box"><p class="muted">' + (FP.err ? '⚠️ ' + esc(FP.err) + ' <button class="link" data-fp="reload">Thử lại</button>' : '⏳ Đang tải…') + '</p></div>';
-    var j = FP.d, A = j.app, ps = j.pages || [], n = {}, on = ps.filter(function (p) { return p.active; });
+    var j = FP.d, A = j.app, ps = j.pages || [], n = {}, on = ps.filter(function (p) { return p.active; }), bad = ps.filter(function (p) { return p.err; });
     (j.stats || []).forEach(function (r) { n[r.kind] = r.n; });
     var g = function (k) { return n[k] || 0; }, ready = A.id && A.secret && A.verified && ps.length;
-    // kết nối
-    h += '<details class="box zb-set"' + (ready ? '' : ' open') + '><summary><b>🔗 Kết nối Facebook</b> · ' + (ready ? '✅ đã kết nối ' + ps.length + ' trang, đang bật ' + on.length : '⏳ chưa xong (làm theo 4 bước)') + '</summary>';
-    if (!j.admin) h += '<p class="small muted">Chỉ Quản trị kết nối ứng dụng và fanpage.</p>';
-    else h += '<p class="zb-sub"><b>Bước 1.</b> Tạo ứng dụng trên developers.facebook.com (xem hướng dẫn), rồi dán 2 mã vào đây.</p>' +
+    var lastEv = ps.reduce(function (m, p) { return Math.max(m, p.last_ev || 0); }, 0);
+    // trạng thái (05/11/2026: giống tab Trợ lý Zalo — 1 khung nói ngay trợ lý có đang chạy không)
+    h += '<div class="box zb-status ' + (ready && on.length && !bad.length ? 'ok' : 'bad') + '"><p><b>' + (!ready ? '⚪ Chưa kết nối xong Facebook (làm theo 4 bước ngay dưới)' : !on.length ? '⏸ Trợ lý đang tắt trên mọi trang (bật ở 📄 Fanpage bên dưới)' : bad.length ? '⚠️ ' + bad.length + ' trang bị lỗi' : '🟢 Đang chạy trên ' + on.length + ' trang') + '</b>' +
+      (ps.length ? ' · đã kết nối ' + ps.length + ' trang' : '') + (lastEv ? ' · Facebook báo về lần cuối ' + fDateTime(lastEv) : '') + '</p>' +
+      (on.length ? '<p class="small">Trang đang bật: ' + on.map(function (p) { return '<b>' + esc(p.name) + '</b>' + (p.cfg.post ? '' : ' <span class="muted">(không soạn bài)</span>'); }).join(', ') + '</p>' : '') +
+      bad.map(function (p) { return '<p class="small">⚠️ <b>' + esc(p.name) + '</b>: ' + esc(p.err) + '</p>'; }).join('') +
+      (!j.aiOn ? '<p class="small">⚠️ Máy chủ chưa có khoá AI nên trợ lý chỉ trả lời theo câu mẫu, chưa tư vấn và chưa soạn bài được.</p>' : '') +
+      (on.length ? '<p class="small">Trợ lý tự quét bình luận mới 10 phút / lần (7h–22h). <button class="btn sm" data-fp="scan">🔄 Quét bình luận ngay</button></p>' : '') + '</div>';
+    if (!ready) h += fpConnHtml(j, true);
+    // 7 ngày qua
+    h += '<h2 class="zb-h">7 ngày qua</h2><div class="metrics dash-m3">' +
+      metric('💬 Bình luận đã xử lý', g('comment'), 'Thích + trả lời công khai + nhắn riêng (mỗi người 1 lần / 24 giờ).', '') +
+      metric('📩 Khách nhắn lại', j.talk || 0, 'Số người trò chuyện với trợ lý trong Messenger. Trợ lý trả lời ' + g('dm') + ' tin.', '') +
+      metric('🎁 Khách để số', g('lead'), 'Đã gửi quà + link nhóm Zalo, khách vào tab Khách hỏi. Xin số ' + g('gift_ask') + ' lần, nhắc ' + g('nudge') + ' lần.', '') +
+      metric('🙋 Cần người thật', g('handoff'), 'Đã báo Telegram để nhân sự trả lời trong hộp thư fanpage.', '') +
+      metric('📝 Bài đã đăng', g('post'), g('error') ? '⚠️ ' + g('error') + ' lỗi (xem nhật ký bên dưới).' : 'AI soạn, nhân sự duyệt.', '') + '</div>';
+    // 📝 bài đăng (05/11/2026 sắp lại giống Zalo): bài cần duyệt lên đầu + xem trước giống Facebook, bài đã đăng thu gọn 1 dòng
+    var days = [], P = {}, key = function (t) { var x = new Date(t + 7 * 3600e3); return x.getUTCFullYear() + pad(x.getUTCMonth() + 1) + pad(x.getUTCDate()); };
+    var tOf = function (d, sl) { return new Date(d.slice(0, 4) + '-' + d.slice(4, 6) + '-' + d.slice(6, 8) + 'T' + (sl || '00:00') + ':00+07:00').getTime(); };
+    (j.posts || []).forEach(function (p) { P[p.id] = p; if (days.indexOf(p.day) < 0) days.push(p.day); });
+    var posting = on.filter(function (p) { return p.cfg.post; });
+    if (posting.length) [key(j.now), key(j.now + DAY)].forEach(function (d) { if (days.indexOf(d) < 0) days.push(d); });
+    var items = [];
+    days.forEach(function (d) {
+      (j.posts || []).forEach(function (p) { if (p.day === d) items.push({ p: p, d: d, t: tOf(d, p.slot) }); });
+      posting.forEach(function (pg) { (pg.cfg.slots || []).forEach(function (sl) { var id = pg.id + '_' + d + '_' + sl.replace(':', ''), t = tOf(d, sl); if (!P[id] && t > j.now) items.push({ p: { id: id, page: pg.id, day: d, slot: sl, none: 1 }, d: d, t: t }); }); });
+    });
+    var isDone = function (it) { var s = it.p.status; return !it.p.none && (s === 'sent' || s === 'sending' || s === 'skip' || it.t + 2 * 3600e3 < j.now); };
+    var pf = FP.pf && items.some(function (it) { return it.p.page === FP.pf; }) ? FP.pf : '', inPf = function (it) { return !pf || it.p.page === pf; };
+    var todo = items.filter(function (it) { return !isDone(it); }), past = items.filter(isDone);
+    var needN = function (pid) { return todo.filter(function (it) { return (!pid || it.p.page === pid) && fpNeed(it.p); }).length; };
+    var pids = []; items.forEach(function (it) { if (pids.indexOf(it.p.page) < 0) pids.push(it.p.page); });
+    h += '<div class="zb-done-h"><h2 class="zb-h">📝 Bài đăng fanpage</h2><span class="small">' + posting.map(function (pg) { return esc(pg.name) + ': <b>' + (pg.cfg.mode === 'auto' ? '🤖 tự đăng' : '⏳ chờ duyệt') + '</b> lúc ' + (pg.cfg.slots || []).join(', '); }).join(' · ') + '</span></div>' +
+      '<details class="zb-info small"><summary>ⓘ Cách hoạt động</summary><p>AI soạn trước 1 ngày theo lịch chủ đề trong tuần, dùng đúng thông tin sản phẩm trên web, cuối bài mời bình luận “QUÀ” để trợ lý nhắn riêng. <b>Chờ duyệt</b>: chỉ bài đã bấm <b>✅ Duyệt</b> mới được đăng. <b>Tự đăng</b>: tới giờ trợ lý đăng bài AI soạn, thấy chưa ổn thì sửa hoặc bấm <b>⏸ Bỏ bài này</b>. Đổi ở <b>⚙️ cài đặt từng trang</b> (mục 📄 Fanpage).</p><p>Khung bên trái là <b>bài sẽ hiện trên Facebook</b>. Facebook không hiện chữ đậm nên bài chỉ có chữ thường + emoji. Bài có link sản phẩm sẽ hiện ảnh xem trước của trang sản phẩm. Muốn sửa bấm <b>✏️ Sửa chữ</b>.</p>' + (j.err ? '<p class="err">Lần soạn lỗi gần nhất: ' + esc(j.err) + '</p>' : '') + '</details>';
+    if (pids.length > 1) h += '<div class="chips zb-lf"><button class="chip' + (pf ? '' : ' on') + '" data-fp="pf|">Tất cả trang' + (needN() ? ' <em>' + needN() + '</em>' : '') + '</button>' + pids.map(function (pid) { var c = needN(pid); return '<button class="chip' + (pf === pid ? ' on' : '') + '" data-fp="pf|' + esc(pid) + '">' + esc(fpPageOf(pid).name) + (c ? ' <em>' + c + '</em>' : '') + '</button>'; }).join('') + '</div>';
+    if (!items.length) h += '<div class="box"><p class="muted">Chưa có bài. Bật “AI soạn bài đăng” trong cài đặt từng trang, hoặc bấm ✍️ Viết bài đăng.</p></div>';
+    // cần duyệt lên trước, rồi theo giờ đăng
+    todo.filter(inPf).sort(function (x, y) { return (fpNeed(y.p) - fpNeed(x.p)) || (x.t - y.t); }).forEach(function (it) { h += fpPostBox(it.p, it.d); });
+    past = past.filter(inPf).sort(function (x, y) { return y.t - x.t; });
+    if (past.length) {
+      h += '<h3 class="zb-h" style="font-size:1rem">📤 Đã đăng gần đây <span class="muted small">· bấm để xem lại</span></h3>';
+      past.forEach(function (it) {
+        var p = it.p, pg = fpPageOf(p.page);
+        var st = p.status === 'sent' ? '📤 ' + fDateTime(p.sent_at) : p.status === 'sending' ? '⏳ Đang đăng' : p.status === 'skip' ? '⏸ Đã bỏ' : p.status === 'err' ? '⚠️ Không đăng được' : '⌛ Quá giờ, chưa đăng';
+        h += '<details class="box zb-donei"><summary><span class="zb-donel"><b>' + zbDay(it.d) + ' · ' + p.slot + ' · ' + esc(pg.name) + '</b> <span class="muted small">' + st + '</span></span><span class="zb-donet">' + esc(p.topic) + '</span>' +
+          (p.fb_id ? '<a class="btn sm" href="https://facebook.com/' + esc(p.fb_id) + '" target="_blank" rel="noopener">👁 Xem trên Facebook</a>' : '') + '</summary>' +
+          '<div style="margin-top:10px">' + fpPreview(p, pg) + '</div>' + (p.status === 'err' ? '<p class="small err">' + esc(p.err) + '</p>' : '') +
+          (p.status === 'skip' ? '<div class="lq-btns" style="margin-top:8px"><button class="btn sm" data-fp="draft|' + esc(p.id) + '">▶️ Dùng lại bài này</button></div>' : p.status !== 'sent' && p.status !== 'sending' ? '<div class="lq-btns" style="margin-top:8px"><button class="btn sm" data-fp="now|' + esc(p.id) + '">📤 Đăng ngay</button></div>' : '') + '</details>';
+      });
+    }
+    // 📄 từng trang: thu gọn 1 dòng, bấm mở cài đặt
+    h += '<h2 class="zb-h">📄 Fanpage đã kết nối</h2>' + (ps.length ? '<p class="small muted" style="margin:-4px 0 8px">Bấm vào tên trang để bật / tắt trợ lý và cài đặt.</p>' + ps.slice().sort(function (a, b) { return (b.active - a.active) || (a.name < b.name ? -1 : 1); }).map(fpPageBox).join('') : '<div class="box"><p class="muted">Chưa kết nối trang nào (xem 🔗 Kết nối Facebook).</p></div>');
+    // 🕘 nhật ký
+    h += '<h2 class="zb-h">🕘 Trợ lý vừa làm gì</h2>' + fpLogHtml(j);
+    if (ready) h += fpConnHtml(j, false);
+    return h;
+  }
+  function fpNeed(p) { return p && !p.none && p.status !== 'ok' && p.status !== 'err' && fpPageOf(p.page).cfg.mode !== 'auto' ? 1 : 0; }
+  function fpConnHtml(j, open) {
+    var A = j.app, ps = j.pages || [], on = ps.filter(function (p) { return p.active; }), ready = A.id && A.secret && A.verified && ps.length;
+    var h = '<details class="box zb-set"' + (open ? ' open' : '') + '><summary><b>🔗 Kết nối Facebook</b> · ' + (ready ? '✅ đã kết nối ' + ps.length + ' trang, đang bật ' + on.length : '⏳ chưa xong (làm theo 4 bước)') + '</summary>';
+    if (!j.admin) return h + '<p class="small muted">Chỉ Quản trị kết nối ứng dụng và fanpage.</p></details>';
+    h += '<p class="zb-sub"><b>Bước 1.</b> Tạo ứng dụng trên developers.facebook.com (xem hướng dẫn), rồi dán 2 mã vào đây.</p>' +
       '<div class="row2c"><label class="f"><span>App ID</span><input id="fpAppId" inputmode="numeric" value="' + esc(A.id || '') + '" placeholder="vd: 1234567890123456"></label>' +
       '<label class="f"><span>App Secret ' + (A.secret ? '(đã lưu, để trống nếu không đổi)' : '') + '</span><input id="fpSecret" type="password" autocomplete="off" placeholder="' + (A.secret ? '••••••••' : '32 ký tự') + '"></label></div>' +
       '<label class="f"><span>Configuration ID (chỉ cần nếu ứng dụng loại Doanh nghiệp dùng “Facebook Login for Business”)</span><input id="fpConfig" inputmode="numeric" value="' + esc(A.config || '') + '"></label>' +
@@ -5459,51 +5518,20 @@
         '<p class="zb-sub"><b>Bước 4.</b> Kết nối fanpage (đăng nhập Facebook bằng tài khoản quản trị các trang, tích chọn tất cả trang cần dùng).</p>' +
         '<div class="lq-btns"><button class="btn pri" data-fp="connect">🔗 Kết nối fanpage</button></div>' +
         '<details class="small"><summary>Không đăng nhập được? Dán mã truy cập trang</summary><p class="muted">Lấy ở ứng dụng → Messenger → Cài đặt API → Tạo mã truy cập cho từng trang.</p><label class="f"><input class="zb-text" id="fpPtk" autocomplete="off" placeholder="EAA…"></label><button class="btn sm" data-fp="ptoken">Kết nối bằng mã</button></details>' : '');
-    h += '</details>';
-    if (!j.aiOn) h += '<div class="box zb-status bad"><p class="small">⚠️ Máy chủ chưa có khoá AI nên trợ lý chỉ trả lời theo câu mẫu, chưa tư vấn và chưa soạn bài được.</p></div>';
-    // 7 ngày qua
-    h += '<h2 class="zb-h">7 ngày qua</h2><div class="metrics dash-m3">' +
-      metric('💬 Bình luận đã xử lý', g('comment'), 'Thích + trả lời công khai + nhắn riêng (mỗi người 1 lần / 24 giờ).', '') +
-      metric('📩 Khách nhắn lại', j.talk || 0, 'Số người trò chuyện với trợ lý trong Messenger. Trợ lý trả lời ' + g('dm') + ' tin.', '') +
-      metric('🎁 Khách để số', g('lead'), 'Đã gửi quà + link nhóm Zalo, khách vào tab Khách hỏi. Xin số ' + g('gift_ask') + ' lần, nhắc ' + g('nudge') + ' lần.', '') +
-      metric('🙋 Cần người thật', g('handoff'), 'Đã báo Telegram để nhân sự trả lời trong hộp thư fanpage.', '') +
-      metric('📝 Bài đã đăng', g('post'), g('error') ? '⚠️ ' + g('error') + ' lỗi (xem nhật ký bên dưới).' : 'AI soạn, nhân sự duyệt.', '') + '</div>';
-    // từng trang
-    h += '<h2 class="zb-h">📄 Fanpage</h2>' + (on.length ? '<p class="small muted">Trợ lý tự quét bình luận mới 10 phút / lần (7h–22h). <button class="btn sm" data-fp="scan">🔄 Quét bình luận ngay</button></p>' : '') + (ps.length ? ps.map(fpPageBox).join('') : '<div class="box"><p class="muted">Chưa kết nối trang nào (xem 🔗 Kết nối Facebook ở trên).</p></div>');
-    // bài đăng
-    var days = [], P = {}, key = function (t) { var x = new Date(t + 7 * 3600e3); return x.getUTCFullYear() + pad(x.getUTCMonth() + 1) + pad(x.getUTCDate()); };
-    (j.posts || []).forEach(function (p) { P[p.id] = p; if (days.indexOf(p.day) < 0) days.push(p.day); });
-    var posting = on.filter(function (p) { return p.cfg.post; });
-    if (posting.length) [key(j.now), key(j.now + DAY)].forEach(function (d) { if (days.indexOf(d) < 0) days.push(d); });
-    days.sort();
-    h += '<h2 class="zb-h">📝 Bài đăng fanpage</h2><p class="muted small">AI soạn trước 1 ngày theo lịch chủ đề trong tuần, dùng đúng thông tin sản phẩm trên web, cuối bài mời bình luận “QUÀ” để trợ lý nhắn riêng. Trang ở chế độ <b>Chờ duyệt</b> chỉ đăng bài đã bấm <b>✅ Duyệt</b>.</p>';
-    if (!days.length) h += '<div class="box"><p class="muted">Chưa có bài. Bật “AI soạn bài đăng” trong cài đặt từng trang, hoặc bấm ✍️ Viết bài đăng.</p></div>';
-    days.forEach(function (d) {
-      var list = (j.posts || []).filter(function (p) { return p.day === d; });
-      posting.forEach(function (pg) { pg.cfg.slots.forEach(function (sl) { var id = pg.id + '_' + d + '_' + sl.replace(':', ''); if (!P[id] && new Date(d.slice(0, 4) + '-' + d.slice(4, 6) + '-' + d.slice(6, 8) + 'T' + sl + ':00+07:00').getTime() > j.now) list.push({ id: id, page: pg.id, day: d, slot: sl, none: 1 }); }); });
-      list.sort(function (a, b) { return a.slot < b.slot ? -1 : a.slot > b.slot ? 1 : fpPageOf(a.page).name < fpPageOf(b.page).name ? -1 : 1; });
-      list.forEach(function (p) { h += fpPostBox(p, d); });
-    });
-    h += '<p class="bar-legend">Facebook không hiện chữ đậm nên bài viết dạng chữ thường + emoji. Bài có link sản phẩm sẽ hiện ảnh xem trước của trang sản phẩm.' + (j.err ? ' Lần soạn lỗi gần nhất: ' + esc(j.err) : '') + '</p>';
-    // nhật ký
-    h += '<h2 class="zb-h">🕘 Trợ lý vừa làm gì</h2>' + ((j.log || []).length ? '<div class="box zb-log">' + j.log.map(function (l) {
-      var k = FP_KIND[l.kind] || ['•', l.kind], pg = l.page ? fpPageOf(l.page).name : '';
-      return '<details><summary><span class="zb-t">' + fDateTime(l.at) + '</span> ' + k[0] + ' <b>' + k[1] + '</b>' + (pg ? ' · ' + esc(pg) : '') + (l.name ? ' · ' + esc(l.name) : '') + (l.text ? ' <span class="muted">· ' + esc(l.text.slice(0, 80)) + '</span>' : '') + '</summary>' +
-        (l.text ? '<p class="small"><b>Khách:</b> ' + esc(l.text) + '</p>' : '') + (l.reply ? '<p class="small zb-rep"><b>Trợ lý:</b> ' + esc(l.reply).replace(/\n/g, '<br>') + '</p>' : '') + '</details>';
-    }).join('') + '</div>' : '<div class="box"><p class="muted">Chưa có hoạt động.</p></div>');
-    return h;
+    return h + '</details>';
   }
   function fpPageBox(p) {
     var c = p.cfg, live = p.last_ev && FP.d.now - p.last_ev < 3 * DAY;
     var ck = function (k, t, sub) { return '<label class="zb-ck"><input type="checkbox" data-fpc="' + k + '"' + (c[k] ? ' checked' : '') + '><span><b>' + t + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</span></label>'; };
     var ta = function (k, t, sub, rows) { return '<label class="f"><span>' + t + (sub ? ' <small class="muted">' + sub + '</small>' : '') + '</span><textarea class="zb-text" data-fpt="' + k + '" rows="' + (rows || 3) + '">' + esc(c[k] || '') + '</textarea></label>'; };
     var inp = function (k, t, sub) { return '<label class="f"><span>' + t + (sub ? ' <small class="muted">' + sub + '</small>' : '') + '</span><input class="zb-text" data-fpt="' + k + '" value="' + esc(c[k] || '') + '"></label>'; };
-    return '<div class="box zb-status ' + (p.active && !p.err ? 'ok' : 'bad') + '" data-fpbox="' + esc(p.id) + '"><p><b>' + esc(p.name) + '</b> · ' + (p.err ? '⚠️ ' + esc(p.err) : p.active ? '🟢 Trợ lý đang bật' : '⏸ Trợ lý đang tắt') +
-      (p.last_ev ? ' · <span class="muted">Facebook gửi sự kiện lần cuối ' + fDateTime(p.last_ev) + '</span>' : ' · <span class="muted">chưa nhận sự kiện nào</span>') + '</p>' +
+    var stt = p.err ? '⚠️ Lỗi' : p.active ? '🟢 Đang bật' : '⏸ Đang tắt';
+    return '<details class="box fp-pg zb-status ' + (p.active && !p.err ? 'ok' : 'bad') + '" data-fpbox="' + esc(p.id) + '"><summary><span class="fp-pgn"><b>' + esc(p.name) + '</b> <span class="zb-due">' + stt + '</span></span>' +
+      '<span class="small muted">' + (p.active ? (c.post ? '📝 ' + (c.mode === 'auto' ? 'tự đăng' : 'chờ duyệt') + ' ' + (c.slots || []).join(', ') : 'không soạn bài') + ' · ' : '') + (p.last_ev ? 'sự kiện cuối ' + fDateTime(p.last_ev) : 'chưa nhận sự kiện nào') + '</span><span class="fp-pgo">⚙️ Cài đặt</span></summary>' +
+      (p.err ? '<p class="small err">' + esc(p.err) + '</p>' : '') +
       (p.active && !live && !p.err ? '<p class="small muted">Chưa thấy bình luận / tin nhắn nào gần đây. Nếu ứng dụng chưa được Facebook duyệt, trợ lý chỉ thấy người có vai trò trong ứng dụng (quản trị, nhà phát triển, người thử).</p>' : '') +
       '<label class="zb-ck"><input type="checkbox" data-fpa' + (p.active ? ' checked' : '') + '><span><b>Bật trợ lý cho trang này</b></span></label>' +
       '<p class="small">⚡ <a href="https://business.facebook.com/latest/inbox/automations?asset_id=' + esc(p.id) + '" target="_blank" rel="noopener"><b>Mở Tự động hoá của Meta cho trang này</b></a> <span class="muted">· Khi trợ lý đang bật: tắt <b>Trả lời tức thì</b> để khách không nhận 2 lời chào. Meta không cho phần mềm khác bật / tắt mục này, phải bấm tay 1 lần.</span></p>' +
-      '<details class="zb-set"><summary><b>⚙️ Cài đặt trang</b></summary>' +
       '<p class="zb-sub"><b>Bình luận</b></p>' + ck('like', 'Thích bình luận', '') + ck('reply', 'Trả lời công khai dưới bình luận', 'Đổi câu mỗi lần để Facebook không coi là spam.') +
       ck('dm', 'Nhắn riêng cho người bình luận', 'Facebook chỉ cho 1 tin / bình luận; mỗi người tối đa 1 lần / 24 giờ.') + ck('hide', 'Ẩn bình luận có số điện thoại', 'Bảo vệ thông tin khách; số vẫn được ghi vào Khách hỏi.') +
       inp('kw', 'Chỉ trả lời bình luận có từ khoá', 'cách nhau dấu phẩy, vd: quà, giá, tư vấn. Để trống = mọi bình luận') +
@@ -5513,26 +5541,73 @@
       ta('gift_msg', 'Tin gửi quà khi khách để số', '{ten} = tên, {link} = link quà, {nhom} = link nhóm Zalo', 6) +
       inp('gift_link', 'Link quà', '') + inp('group', 'Link nhóm Zalo', '') +
       '<p class="zb-sub"><b>Bài đăng</b></p>' + ck('post', 'AI soạn bài đăng cho trang này', '') + ck('cta', 'Cuối bài mời bình luận “QUÀ”', 'Kéo khách bình luận để trợ lý nhắn riêng.') +
-      '<label class="zb-ck"><input type="radio" name="fpMode_' + esc(p.id) + '" value="approve"' + (c.mode !== 'auto' ? ' checked' : '') + '><span><b>Chờ duyệt</b><small>Chỉ đăng bài đã bấm Duyệt. AI soạn xong báo Telegram.</small></span></label>' +
-      '<label class="zb-ck"><input type="radio" name="fpMode_' + esc(p.id) + '" value="auto"' + (c.mode === 'auto' ? ' checked' : '') + '><span><b>Tự đăng</b><small>Tới giờ tự đăng bài nháp (vẫn sửa / bỏ được trước giờ đăng).</small></span></label>' +
+      '<div class="zb-mode"><label><input type="radio" name="fpMode_' + esc(p.id) + '" value="approve"' + (c.mode !== 'auto' ? ' checked' : '') + '> ⏳ Chờ duyệt</label>' +
+      '<label><input type="radio" name="fpMode_' + esc(p.id) + '" value="auto"' + (c.mode === 'auto' ? ' checked' : '') + '> 🤖 Tự đăng</label></div>' +
+      '<p class="small muted" style="margin:4px 0 8px"><b>Chờ duyệt</b> = chỉ đăng bài đã bấm ✅ Duyệt, AI soạn xong báo Telegram · <b>Tự đăng</b> = tới giờ tự đăng (vẫn sửa / bỏ được trước giờ đăng).</p>' +
       '<label class="f"><span>Giờ đăng <small class="muted">cách nhau dấu phẩy, tối đa 4 bài / ngày, vd: 11:30, 20:00</small></span><input class="zb-text" data-fpt="slots" value="' + esc((c.slots || []).join(', ')) + '"></label>' +
       ta('voice', 'Trang này dành cho ai, giọng thế nào', 'vd: mẹ bỉm sau sinh, giọng chị em tâm sự; AI viết theo', 2) +
-      '<div class="lq-btns"><button class="btn pri" data-fp="page|' + esc(p.id) + '">💾 Lưu cài đặt</button>' +
-      (FP.d.admin ? '<button class="btn sm ghost" data-fp="resub|' + esc(p.id) + '">🔄 Kết nối lại</button><button class="btn sm ghost" data-fp="del|' + esc(p.id) + '">🗑 Gỡ trang</button>' : '') + '</div></details></div>';
+      '<div class="lq-btns"><button class="btn pri" data-fp="page|' + esc(p.id) + '">💾 Lưu cài đặt trang</button>' +
+      (FP.d.admin ? '<button class="btn sm ghost" data-fp="resub|' + esc(p.id) + '">🔄 Kết nối lại</button><button class="btn sm ghost" data-fp="del|' + esc(p.id) + '">🗑 Gỡ trang</button>' : '') + '</div></details>';
+  }
+  function fpRender(t) { // xem trước như trên Facebook: không có chữ đậm, link xanh, xuống dòng
+    return esc(String(t || '')).replace(/\*\*([^*\n]+)\*\*/g, '$1').replace(/(https?:\/\/[^\s<]+)/g, '<span class="fp-lnk">$1</span>').replace(/\n/g, '<br>');
+  }
+  function fpPreview(p, pg) {
+    var nm = pg.name || '?', lk = String(p.link || ''), dom = lk.replace(/^https?:\/\//, '').split(/[\/?#]/)[0], path = lk.replace(/^https?:\/\/[^\/]+/, '').split(/[?#]/)[0].replace(/\/$/, '');
+    return '<div class="fp-card"><div class="fp-hd"><span class="fp-av">' + esc(nm.charAt(0).toUpperCase()) + '</span><span><b>' + esc(nm) + '</b><small>' + (p.sent_at ? fDateTime(p.sent_at) : p.slot + ' ' + zbDay(p.day).toLowerCase()) + ' · 🌐</small></span></div>' +
+      '<div class="fp-tx">' + fpRender(p.text) + '</div>' +
+      (lk ? '<div class="fp-lk"><small>' + esc(dom.toUpperCase()) + '</small><b>' + esc(decodeURIComponent(path.split('/').pop() || dom).replace(/-/g, ' ')) + '</b><span class="small muted">Ảnh xem trước lấy từ trang này</span></div>' : '') +
+      '<div class="fp-ft"><span>👍 Thích</span><span>💬 Bình luận</span><span>↗ Chia sẻ</span></div></div>';
   }
   function fpPostBox(p, d) {
-    var pg = fpPageOf(p.page), lbl = zbDay(d) + ' · ' + p.slot + ' · <b>' + esc(pg.name) + '</b>', auto = pg.cfg.mode === 'auto';
-    if (p.none) return '<div class="box zb-post zb-none"><p>' + lbl + ' · <span class="muted">⏳ chưa soạn – AI soạn trước giờ đăng</span></p><button class="btn sm" data-fp="regen|' + esc(p.id) + '">✍️ Soạn ngay</button></div>';
-    var done = p.status === 'sent' || p.status === 'sending';
-    var badge = p.status === 'sent' ? '📤 Đã đăng ' + fDateTime(p.sent_at) : p.status === 'sending' ? '⏳ Đang đăng' : p.status === 'err' ? '⚠️ Lỗi: ' + esc(p.err) : p.status === 'skip' ? '⏸ Đã bỏ, không đăng' : p.status === 'ok' ? '✅ Đã duyệt, sẽ đăng lúc ' + p.slot : auto ? '✍️ Nháp, sẽ tự đăng lúc ' + p.slot : '⏳ Chờ duyệt';
-    return '<div class="box zb-post zb-' + p.status + '"><div class="zb-ph"><span>' + lbl + '</span><span class="zb-badge">' + badge + '</span></div>' +
-      '<p class="small"><b>Chủ đề:</b> ' + esc(p.topic) + ' <span class="muted">· ' + (p.by_name && p.by_name !== 'AI' ? 'sửa bởi ' + esc(p.by_name) : 'AI soạn') + ' ' + fDateTime(p.at) + '</span>' + (p.fb_id ? ' · <a href="https://facebook.com/' + esc(p.fb_id) + '" target="_blank" rel="noopener">Xem bài</a>' : '') + '</p>' +
-      '<textarea class="zb-text" id="fpT_' + esc(p.id) + '" rows="' + Math.min(16, Math.max(4, String(p.text).split('\n').length + 1)) + '"' + (done ? ' readonly' : '') + '>' + esc(p.text) + '</textarea>' +
-      '<label class="f"><span>Link kèm bài <small class="muted">hiện ảnh xem trước; để trống = không kèm link</small></span><input class="zb-text" id="fpL_' + esc(p.id) + '" value="' + esc(p.link || '') + '"' + (done ? ' readonly' : '') + '></label>' +
-      (done ? '' : '<div class="lq-btns"><button class="btn sm pri" data-fp="save|' + esc(p.id) + '">💾 Lưu sửa</button>' + (p.status !== 'ok' ? '<button class="btn sm" data-fp="ok|' + esc(p.id) + '">✅ Duyệt</button>' : '') +
-        '<button class="btn sm" data-fp="now|' + esc(p.id) + '">📤 Đăng ngay</button>' +
-        (p.status === 'skip' ? '<button class="btn sm" data-fp="draft|' + esc(p.id) + '">▶️ Dùng lại bài này</button>' : '<button class="btn sm ghost" data-fp="skip|' + esc(p.id) + '">⏸ Bỏ bài này</button>') +
-        '<button class="btn sm ghost" data-fp="regen|' + esc(p.id) + '">🔄 Viết lại</button></div>') + '</div>';
+    var pg = fpPageOf(p.page), lbl = zbDay(d) + ' · ' + p.slot + ' · ' + esc(pg.name), auto = pg.cfg.mode === 'auto';
+    if (p.none) return '<div class="box zb-post zb-none"><p><b>' + lbl + '</b> · <span class="muted">⏳ chưa soạn – AI soạn trước giờ đăng</span></p><button class="btn sm" data-fp="regen|' + esc(p.id) + '">✍️ Soạn ngay</button></div>';
+    var when = p.slot + ' ' + zbDay(d).toLowerCase(), need = fpNeed(p), er = p.status === 'err';
+    var due = er ? '⚠️ Đăng lỗi' : p.status === 'ok' ? '✅ Đã duyệt · sẽ đăng ' + when : auto ? '🤖 Sẽ tự đăng ' + when : '⏳ Cần duyệt trước ' + when;
+    return '<div class="box zb-post zb-' + p.status + (need ? ' zb-need' : '') + (er ? ' fp-errc' : '') + '" data-fpcard="' + esc(p.id) + '"><div class="zb-ph"><b>' + lbl + '</b><span class="zb-due">' + due + '</span></div>' +
+      '<div class="zb-grid"><div>' + fpPreview(p, pg) + '</div><div class="zb-side">' +
+      '<p class="small" style="margin:6px 0"><b>Chủ đề:</b> ' + esc(p.topic) + '<br><span class="muted">' + (p.by_name && p.by_name !== 'AI' ? 'Sửa bởi ' + esc(p.by_name) : 'AI soạn') + ' · ' + fDateTime(p.at) + '</span></p>' +
+      (er ? '<p class="small err">Facebook báo: ' + esc(p.err) + '</p><button class="btn pri zb-act" data-fp="now|' + esc(p.id) + '">📤 Thử đăng lại ngay</button>' : '') +
+      (need ? '<button class="btn pri zb-act" data-fp="ok|' + esc(p.id) + '">✅ Duyệt bài này</button>' : '') +
+      '<div class="zb-more"><button class="btn sm" data-fp="edit|' + esc(p.id) + '">✏️ Sửa chữ</button>' + (er ? '' : '<button class="btn sm" data-fp="now|' + esc(p.id) + '">📤 Đăng ngay</button>') + '<button class="btn sm" data-fp="regen|' + esc(p.id) + '">🔄 Viết lại</button>' +
+      (p.status === 'ok' ? '<button class="btn sm ghost" data-fp="draft|' + esc(p.id) + '">↩️ Bỏ duyệt</button>' : '') + '<button class="btn sm ghost" data-fp="skip|' + esc(p.id) + '">⏸ Bỏ bài này</button></div>' +
+      '<div class="zb-edit"><textarea class="zb-text" id="fpT_' + esc(p.id) + '" rows="' + Math.min(16, Math.max(5, String(p.text).split('\n').length + 1)) + '">' + esc(p.text) + '</textarea>' +
+      '<label class="f"><span>Link kèm bài <small class="muted">hiện ảnh xem trước; để trống = không kèm link</small></span><input class="zb-text" id="fpL_' + esc(p.id) + '" value="' + esc(p.link || '') + '"></label>' +
+      '<div class="lq-btns"><button class="btn sm pri" data-fp="save|' + esc(p.id) + '">💾 Lưu</button><button class="btn sm ghost" data-fp="edit|' + esc(p.id) + '">Huỷ</button></div></div>' +
+      '</div></div></div>';
+  }
+  // 🕘 nhật ký Fanpage (05/11/2026, giống Zalo): ca cần người thật ghim đầu + nút Đã xử lý, lọc theo loại, chia theo ngày, mở ra dạng khung chat Messenger
+  var FP_LF = { all: ['Tất cả', null], need: ['🙋 Cần xử lý', ['handoff']], reply: ['💬 Trả lời khách', ['comment', 'dm', 'handoff']], lead: ['🎁 Xin số & quà', ['gift_ask', 'lead', 'nudge']], post: ['📝 Bài đăng', ['post']], err: ['⚠️ Lỗi', ['error', 'connect']] };
+  function fpLogHtml(j) {
+    var lf = FP.lf || 'all', ks = FP_LF[lf][1], seen = {}, open = j.open || [];
+    var hm = function (t) { var x = vnDate(t); return pad(x.h) + ':' + pad(x.mi); }, dk = function (t) { var x = vnDate(t); return x.y + pad(x.m) + pad(x.d); };
+    var all = (j.log || []).concat(FP.more || []).sort(function (a, b) { return b.at - a.at; }), L = all.filter(function (l) { return !ks || ks.indexOf(l.kind) >= 0; });
+    var cust = ['comment', 'dm', 'handoff', 'gift_ask', 'lead', 'nudge'];
+    var chat = function (l) {
+      var who = cust.indexOf(l.kind) >= 0;
+      return '<div class="zb-chat fp-chat">' + (who && l.text ? '<div class="zb-cl"><small>' + esc(l.name || 'Khách') + (l.kind === 'comment' ? ' · bình luận' : '') + '</small>' + fpRender(l.text) + '</div>' : !who && l.text ? '<p class="small" style="margin:0">' + fpRender(l.text) + '</p>' : '') +
+        (l.reply ? '<div class="zb-cr"><small>Trợ lý</small>' + fpRender(l.reply) + '</div>' : '') + '</div>';
+    };
+    var row = function (l, pin) {
+      var k = FP_KIND[l.kind] || ['•', l.kind], need = l.kind === 'handoff', pg = l.page ? fpPageOf(l.page).name : '';
+      var st = need ? (l.done_at ? '<span class="zb-ldone">✅ ' + esc(l.done_by || '') + ' đã xử lý ' + fDateTime(l.done_at) + '</span>' : '<span class="zb-due">⏳ Chưa xử lý</span>') : '';
+      var sm = String(l.text || '').replace(/\*\*/g, '').replace(/\s+/g, ' ').trim(); if (sm.length > 110) sm = sm.slice(0, 108) + '…';
+      return '<details class="zb-lrow' + (need && !l.done_at ? ' zb-pin' : '') + '"' + (pin ? ' open' : '') + '><summary><span class="zb-t">' + (pin ? fDateTime(l.at) : hm(l.at)) + '</span> ' + k[0] + ' <b>' + k[1] + '</b>' + (l.name ? ' · ' + esc(l.name) : '') + (pg ? ' <span class="muted small">· ' + esc(pg) + '</span>' : '') + ' ' + st + (sm ? '<span class="zb-lsum">' + esc(sm) + '</span>' : '') + '</summary>' + chat(l) +
+        (need ? '<div class="lq-btns">' + (l.page ? '<a class="btn sm" href="https://business.facebook.com/latest/inbox/all?asset_id=' + esc(l.page) + '" target="_blank" rel="noopener">💬 Mở hộp thư trang</a>' : '') + (l.done_at ? '<button class="btn sm ghost" data-fp="undone|' + l.rid + '">↩️ Bỏ đánh dấu</button>' : '<button class="btn sm pri" data-fp="done|' + l.rid + '">✅ Đã xử lý</button>') + '</div>' : '') + '</details>';
+    };
+    var hh = '<div class="chips zb-lf">' + Object.keys(FP_LF).map(function (k) { return '<button class="chip' + (lf === k ? ' on' : '') + '" data-fp="lf|' + k + '">' + FP_LF[k][0] + (k === 'need' && open.length ? ' <em>' + open.length + '</em>' : '') + '</button>'; }).join('') + '</div>';
+    if (open.length && (lf === 'all' || lf === 'need')) hh += '<div class="box zb-log zb-pinbox"><p class="small" style="margin:0 0 4px"><b>🙋 ' + open.length + ' ca cần người thật chưa xử lý</b> · trả lời khách trong hộp thư trang xong bấm <b>✅ Đã xử lý</b> để cả đội biết</p>' + open.map(function (l) { seen[l.rid] = 1; return row(l, true); }).join('') + '</div>';
+    var day = '', groups = [];
+    L.forEach(function (l) { if (seen[l.rid]) return; var d = fDate(l.at); if (d !== day) { groups.push({ at: l.at, rows: [] }); day = d; } groups[groups.length - 1].rows.push(l); });
+    var out = groups.map(function (g) {
+      var c2 = {}; g.rows.forEach(function (l) { c2[l.kind] = (c2[l.kind] || 0) + 1; });
+      var sum = [[c2.comment, 'bình luận'], [c2.dm, 'tin nhắn'], [c2.lead, 'khách để số'], [c2.handoff, 'cần người thật'], [c2.post, 'bài'], [c2.error, 'lỗi']].filter(function (x) { return x[0]; }).map(function (x) { return x[0] + ' ' + x[1]; }).join(' · ');
+      var dl = zbDay(dk(g.at));
+      return '<div class="zb-day"><b>' + dl + (dl.indexOf('/') < 0 ? ' · ' + fDate(g.at).slice(0, 5) : '') + '</b><span class="small muted">' + sum + '</span></div><div class="box zb-log">' + g.rows.map(function (l) { return row(l, false); }).join('') + '</div>';
+    }).join('');
+    hh += out || '<div class="box"><p class="muted">Chưa có hoạt động' + (lf !== 'all' ? ' loại này' : '') + '.</p></div>';
+    if (all.length >= 80 && !FP.moreEnd) hh += '<button class="btn ghost" data-fp="logmore" style="width:100%">Xem thêm các ngày trước</button>';
+    return hh;
   }
   function fpSendOpen() {
     var ps = ((FP.d && FP.d.pages) || []);
@@ -5558,6 +5633,11 @@
     if (v[0] === 'send') return fpSendOpen();
     if (v[0] === 'cp') return copy(id).then(function () { toast('Đã chép ✓'); });
     var after = function (msg) { return function () { toast(msg); fpFetch(); }; }, fail = function (e) { t.disabled = false; toast(e.message, true); };
+    if (v[0] === 'pf') { FP.pf = id; return render(); }
+    if (v[0] === 'lf') { FP.lf = id; return render(); }
+    if (v[0] === 'edit') { var cd = t.closest('[data-fpcard]'); if (cd) { cd.classList.toggle('zb-editing'); var te = document.getElementById('fpT_' + id); if (te && cd.classList.contains('zb-editing')) te.focus(); } return; }
+    if (v[0] === 'done' || v[0] === 'undone') { t.disabled = true; return api('fp_done', { rid: Number(id), undo: v[0] === 'undone' }).then(after(v[0] === 'done' ? 'Đã ghi: bạn xử lý ca này ✓' : 'Đã bỏ đánh dấu'), fail); }
+    if (v[0] === 'logmore') { var al = (FP.d.log || []).concat(FP.more || []), mn = al.reduce(function (m, l) { return Math.min(m, l.rid || 1e15); }, 1e15); t.disabled = true; t.textContent = '⏳ Đang tải…'; return api('fp_logmore', { before: mn }).then(function (r) { FP.more = (FP.more || []).concat(r.log || []); if ((r.log || []).length < 100) FP.moreEnd = 1; render(); }, fail); }
     if (v[0] === 'app') { t.disabled = true; return api('fp_app', { appId: $('#fpAppId').value.trim(), secret: $('#fpSecret').value.trim(), config: $('#fpConfig').value.trim() }).then(after('Đã lưu ✓ Làm tiếp bước 2.'), fail); }
     if (v[0] === 'connect') { t.disabled = true; return api('fp_connect', {}).then(function (j) { t.disabled = false; location.href = j.url; }, fail); }
     if (v[0] === 'ptoken') { t.disabled = true; return api('fp_ptoken', { ptk: $('#fpPtk').value.trim() }).then(function (j) { if (j.miss && j.miss.length) alert('Đã kết nối ' + j.pages.length + ' trang, nhưng mã còn THIẾU quyền: ' + j.miss.join(', ') + '.\n\nVào ứng dụng Meta thêm các quyền này (Trường hợp sử dụng → Quyền), rồi tạo mã mới và dán lại. Thiếu quyền thì trợ lý chưa trả lời bình luận / đăng bài được.'); else toast('Đã kết nối ' + j.pages.length + ' trang ✓'); fpFetch(); }, fail); }

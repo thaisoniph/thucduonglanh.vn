@@ -72,6 +72,7 @@ export async function fbSchema(db) {
   await run(db, 'CREATE INDEX IF NOT EXISTS fp_posts_day ON fp_posts(day)');
   await run(db, `CREATE TABLE IF NOT EXISTS fp_log (rid INTEGER PRIMARY KEY AUTOINCREMENT, at INTEGER, page TEXT DEFAULT '', kind TEXT, name TEXT DEFAULT '', text TEXT DEFAULT '', reply TEXT DEFAULT '')`);
   await run(db, 'CREATE INDEX IF NOT EXISTS fp_log_at ON fp_log(at)');
+  for (const c of ['done_at INTEGER', "done_by TEXT DEFAULT ''"]) { try { await run(db, 'ALTER TABLE fp_log ADD COLUMN ' + c); } catch (e) { } } // 05/11/2026: ca cần người thật → ai xử lý, lúc nào (giống Trợ lý Zalo)
 }
 const flog = (x, page, kind, o) => run(x.db, 'INSERT INTO fp_log (at, page, kind, name, text, reply) VALUES (?, ?, ?, ?, ?, ?)', Date.now(), page || '', kind, String(o.name || '').slice(0, 80), String(o.text || '').slice(0, 1000), String(o.reply || '').slice(0, 2000));
 
@@ -567,11 +568,12 @@ export async function crmFp(x, u, d, crmLog) {
     const app = await appCfg(x), from = fmtDate(now - DAY, 'yyyyMMdd');
     const pages = (await all(x.db, 'SELECT id, name, active, cfg, at, err, last_ev FROM fp_pages ORDER BY name')).map(r => Object.assign({}, r, { cfg: pageCfg(r.cfg) }));
     const posts = await all(x.db, 'SELECT id, page, day, slot, topic, text, link, prod, status, by_name, at, sent_at, fb_id, err FROM fp_posts WHERE day >= ? ORDER BY day, slot, page', from);
-    const log = await all(x.db, 'SELECT at, page, kind, name, text, reply FROM fp_log ORDER BY rid DESC LIMIT 80');
+    const log = await all(x.db, 'SELECT rid, at, page, kind, name, text, reply, done_at, done_by FROM fp_log ORDER BY rid DESC LIMIT 80');
+    const open = await all(x.db, "SELECT rid, at, page, kind, name, text, reply, done_at, done_by FROM fp_log WHERE kind = 'handoff' AND done_at IS NULL AND at > ? ORDER BY rid DESC LIMIT 30", now - 7 * DAY); // ca cần người thật chưa xử lý: ghim lên đầu
     const stats = await all(x.db, 'SELECT kind, count(*) AS n FROM fp_log WHERE at > ? GROUP BY kind', now - 7 * DAY);
     const talk = await first(x.db, "SELECT count(*) AS n FROM fp_users WHERE last_in > ?", now - 7 * DAY);
     return { ok: true, app: { id: app.id, secret: !!app.secret, verify: admin ? app.verify : '', config: app.config, hook: HOOK_URL, cb: CB_URL, verified: Number(await kvGet(x.db, 'fp_verified')) || 0 },
-      pages, posts, log, stats, talk: talk ? talk.n : 0, err: await kvGet(x.db, 'fp_write_err'), aiOn: !!x.env.ANTHROPIC_API_KEY, admin, now };
+      pages, posts, log, open, stats, talk: talk ? talk.n : 0, err: await kvGet(x.db, 'fp_write_err'), aiOn: !!x.env.ANTHROPIC_API_KEY, admin, now };
   }
   if (a === 'fp_app') {
     const app = await appCfg(x), id = String(d.appId || '').replace(/\D/g, ''), sec = String(d.secret || '').trim();
@@ -613,6 +615,15 @@ export async function crmFp(x, u, d, crmLog) {
     const pages = await savePages(x, list);
     await crmLog(x, u, 'Kết nối fanpage', '', '', pages.length + ' trang', pages.map(z => z.name).join(', ') + (miss.length ? ' · thiếu quyền: ' + miss.join(', ') : ''));
     return { ok: true, pages, miss };
+  }
+  if (a === 'fp_logmore') { // 🕘 xem thêm nhật ký cũ hơn
+    return { ok: true, log: await all(x.db, 'SELECT rid, at, page, kind, name, text, reply, done_at, done_by FROM fp_log WHERE rid < ? ORDER BY rid DESC LIMIT 100', Number(d.before) || 0) };
+  }
+  if (a === 'fp_done') { // ✅ đánh dấu ca cần người thật đã xử lý (bỏ đánh dấu: undo)
+    const r = await first(x.db, 'SELECT rid, name FROM fp_log WHERE rid = ?', Number(d.rid) || 0); if (!r) return { ok: false, error: 'Không tìm thấy.' };
+    await run(x.db, 'UPDATE fp_log SET done_at = ?, done_by = ? WHERE rid = ?', d.undo ? null : now, d.undo ? '' : u.name, r.rid);
+    await crmLog(x, u, 'Trợ lý Fanpage', String(r.rid), '', d.undo ? 'Bỏ đánh dấu đã xử lý' : 'Đã xử lý ca cần người thật', r.name || '');
+    return { ok: true };
   }
   if (a === 'fp_page') { // bật / tắt + cài đặt 1 trang
     const r = await first(x.db, 'SELECT * FROM fp_pages WHERE id = ?', String(d.id || '')); if (!r) return { ok: false, error: 'Không tìm thấy trang.' };
