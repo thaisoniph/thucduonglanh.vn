@@ -5,7 +5,7 @@
 // - "@cinfo {...}" → sửa tên / địa chỉ khách trên CRM → sửa ô tên, địa chỉ ở dòng đơn gần nhất của khách
 // - "@oed {...}" → sửa đơn trên CRM (tên, SĐT, địa chỉ, sản phẩm, tiền) → sửa các ô của dòng đơn; "@odel {...}" → Quản trị xoá đơn trên CRM → ô trạng thái "Huỷ" (không xoá dòng của sale)
 // Bấm trên CRM chỉ xếp hàng vào bảng wb_queue (nhanh); lịch 10 phút/lần wbTick ghi 1 lượt. Cần sale chia sẻ quyền CHỈNH SỬA file cho tài khoản Google của CRM.
-import { normPhone, nrm, fmtDate, all, run, allIn, kvGet, kvSet, TZ_MS, DAY } from './lib.js';
+import { normPhone, nrm, fmtDate, all, first, run, allIn, kvGet, kvSet, TZ_MS, DAY } from './lib.js';
 import { sheetValues, sheetBatchGet, sheetWrite, sheetAppend, a1 } from './google.js';
 import { fileIdOf, SRC_UTIL } from './sync.js';
 import { phoneAlias } from './crm.js';
@@ -281,4 +281,29 @@ export async function wbTick(x) {
     await run(x.db, 'DELETE FROM wb_queue WHERE done_at < ?', now - KEEP_MS); // giữ 60 ngày gần nhất
     return { n: done.length };
   } catch (e) { console.error('wbTick', e.message); return { error: e.message }; }
+}
+
+/** 📄 Đơn CRM → file lên đơn của sale (05/11/2026, Thuỷ: đơn lên trên CRM chưa thấy trong VTG_lendon): xem đơn đã ghi chưa, lỗi gì, file của ai;
+ *  d.retry → xếp hàng ghi lại (chỉ khi chưa ghi được và không còn đang chờ). Sale xem đơn của mình, quản lý xem mọi đơn. Không gửi link file. */
+export async function wbOrderInfo(x, u, d) {
+  await ensure(x.db);
+  const o = await first(x.db, 'SELECT id, time, name, phone, province, ward, address, items, total, status, ship, note, ca, otype, seller FROM orders WHERE id = ?', String(d.id || ''));
+  if (!o) return { ok: false, error: 'Không tìm thấy đơn ' + d.id };
+  const cv = await first(x.db, 'SELECT owner, orders FROM customers WHERE phone = ?', normPhone(o.phone)), owner = (cv && cv.owner) || o.seller || '';
+  if (u.level < 2 && o.seller !== u.name && owner !== u.name) return { ok: false, error: 'Đơn này không phải của bạn.' };
+  const key = '%' + JSON.stringify({ id: o.id }).slice(1, -1) + '%'; // "id":"…"
+  const q = (await all(x.db, "SELECT rid, time, src, text, result, done_at FROM wb_queue WHERE text LIKE ? ORDER BY rid", key)).map(r => ({ time: Number(r.time), kind: String(r.text).split(' ')[0], result: r.result || '', done: r.done_at ? Number(r.done_at) : 0, src: r.src }));
+  const files = (await all(x.db, 'SELECT id, sale, url, cfg FROM sources WHERE sale = ? ORDER BY rid', owner)).map(parseSrc).map(s => ({ id: s.id, writeBack: !!s.cfg.writeBack, sheets: orderSheets(s).map(c => c.name), orderSheet: s.cfg.orderSheet || '' }));
+  const added = q.some(r => r.kind === '@order' && /^Đã thêm đơn/.test(r.result)), waiting = q.some(r => r.kind === '@order' && !r.done);
+  if (d.retry) {
+    if (added) return { ok: false, error: 'Đơn đã có trong file rồi, không ghi thêm (tránh trùng dòng).' };
+    if (waiting) return { ok: false, error: 'Đơn đang chờ ghi (10 phút/lần), chưa cần ghi lại.' };
+    if (!(await wbSource(x, owner, true))) return { ok: false, error: owner ? 'File của ' + owner + ' chưa bật "Ghi ngược" hoặc chưa có sheet lên đơn. Vào Cài đặt → file sale của ' + owner + ' để bật.' : 'Khách chưa có người phụ trách.' };
+    const L = String(o.items || '').split('\n').map(t => t.trim()).filter(Boolean), real = L.filter(t => t.indexOf('🎁') !== 0).map(t => t.replace(/\s*=.*$/, '')), g = L.filter(t => t.indexOf('🎁') === 0)[0];
+    const gm = g && g.replace(/^🎁\s*/, '').replace(/\s*=.*$/, '').match(/^(.*?)(?:\s+x(\d+))?$/);
+    await wbOrderQueue(x, owner, { id: o.id, time: Number(o.time), name: o.name, phone: o.phone, address: [o.address, o.ward, o.province].filter(Boolean).join(', '), product: real.join(', '), qty: '', gift: gm ? gm[1] : '', giftQty: gm && gm[2] ? +gm[2] : '',
+      total: Number(o.total) || 0, status: o.status, ship: o.ship || '', note: '', ca: o.ca || '', otype: o.otype || '', old: !!cv && Number(cv.orders) > 1 });
+    return { ok: true, queued: true };
+  }
+  return { ok: true, owner, queue: q, files, added, waiting };
 }

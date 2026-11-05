@@ -15,7 +15,7 @@ import { crmVoucher, voucherSchema } from './voucher.js';
 import { journeySchema, wallHide } from './journey.js';
 import { crmLinks } from './links.js';
 import { crmAi } from './ai.js';
-import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, wbInfoQueue, WB_SHORT } from './wb.js';
+import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, wbInfoQueue, wbOrderInfo, WB_SHORT } from './wb.js';
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
@@ -1965,6 +1965,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (a === 'wall_hide') return wallHide(x, u, d); // 🌱 ẩn / hiện tên trên Bức tường Sống Lành (journey.js)
   if (a === 'quiz_cms') return quizCms(x, u, d); // 🖐 sửa trò chơi Bạn còn mấy ngón tay (cms.js)
   if (a === 'order_create') return crmOrderCreate(x, u, d);
+  if (a === 'wb_order') return wbOrderInfo(x, u, d); // 📄 đơn đã ghi vào file lên đơn của sale chưa (wb.js)
   if (a === 'check_phone') return crmCheckPhone(x, u, d);
   if (a === 'cust_orders') return crmCustOrders(x, u, d);
   if (a === 'sales_all') return crmSalesAll(x, u);
