@@ -2360,19 +2360,19 @@
   /** Số ngày đơn đã đi đường: tính từ ngày gửi (cột “Ngày gửi”, tự ghi khi chuyển Đang giao / nhập mã vận đơn); đơn cũ chưa có thì tính từ ngày đặt. */
   function shipDays(o) { return daysSince(o.shipAt || o.time); }
   // Mã trạng thái Viettel Post (máy chủ tự ghi từ tin báo của Viettel Post) cần gọi khách ngay: chuyển hoàn, khách vắng, hẹn ra bưu cục…
-  var VTP_WARN = { 502: 1, 503: 1, 505: 1, 506: 1, 507: 1, 515: 1 };
+  var VTP_WARN = { 502: 1, 503: 1, 505: 1, 506: 1, 507: 1, 515: 1, 900: 1 }; // 900 = file Hàng gửi của Best báo "kiện vấn đề" (khách không nghe máy…) khi đơn còn đang giao
   function trkWarn(o) { return o.status === 'Đang giao' && !!VTP_WARN[o.trkCode]; }
   /** Dòng hành trình mới nhất từ hãng vận chuyển (chỉ có khi máy chủ nhận được tin báo của hãng). */
   function trkLine(o) {
     if (!o.trk || !(/^(Mới|Đã xác nhận|Đang giao)$/.test(o.status) || /hoàn/i.test(o.status))) return '';
-    return '<div class="trkl' + (trkWarn(o) ? ' bad' : '') + '" title="Viettel Post tự báo – cập nhật ' + esc(o.trkAt ? fDate(o.trkAt) : '') + '">' + (trkWarn(o) ? '⚠️ ' : '📦 ') + esc(o.trk) + '</div>';
+    return '<div class="trkl' + (trkWarn(o) ? ' bad' : '') + '" title="' + (o.trkCode === 900 ? 'Theo file đối soát Best' : 'Viettel Post tự báo') + ' – cập nhật ' + esc(o.trkAt ? fDate(o.trkAt) : '') + '">' + (trkWarn(o) ? '⚠️ ' : '📦 ') + esc(o.trk) + '</div>';
   }
   function orderTodo() {
     var t0 = today(), d = function (o) { return daysSince(o.time); };
     var G = [
       { k: 'new', t: '🆕 Chờ xác nhận', tip: lvl() >= 2 ? 'gọi khách xác nhận đơn · chọn “Giao cho…” để giao nhân sự' : 'đơn quản lý giao cho bạn – gọi khách xác nhận', f: function (o) { return o.status === 'Mới' && newOrderSeen(o); } },
       { k: 'pack', t: '📦 Chờ gửi hàng', tip: 'đã xác nhận, chưa có mã vận đơn – đóng hàng, nhập mã vận đơn', f: function (o) { return o.status === 'Đã xác nhận' && !o.tracking; } },
-      { k: 'fail', t: '📵 Giao chưa được', tip: 'Viettel Post báo khách vắng / hẹn ra bưu cục / sắp hoàn – gọi khách ngay để giữ đơn', f: trkWarn },
+      { k: 'fail', t: '📵 Giao chưa được', tip: 'hãng (Viettel Post, file đối soát Best) báo khách vắng / không liên lạc được / hẹn ra bưu cục / sắp hoàn – gọi khách ngay để giữ đơn', f: trkWarn },
       { k: 'late', t: '🚚 Giao lâu chưa tới', tip: 'đang giao quá ' + SHIP_LATE + ' ngày – gọi hỏi khách, giục bưu cục để tránh hoàn', f: function (o) { return o.status === 'Đang giao' && shipDays(o) > SHIP_LATE && !trkWarn(o); } },
       { k: 'pay', t: '💳 Chưa nhận tiền', tip: 'chuyển khoản chưa thấy tiền về – kiểm tra tài khoản VCB', f: function (o) { return isBank(o) && !o.paid && !isVoid(o.status) && o.status !== 'Mới'; } },
       { k: 'otype', t: '⚠️ Kiểm tra loại đơn', tip: 'sale chọn loại đơn khác gợi ý của CRM – mở đơn, bấm ✓ Đúng hoặc đổi loại để tính hoa hồng đúng', f: function (o) { return lvl() >= 2 && !!o.oflag; } },
@@ -6598,6 +6598,7 @@
     wb: /^(ma van don|so van don|ma vd)#?$/, code: /^(ma don hang|ma don|ma dh|ma noi bo)$/, note: /^(ghi chu|ghi chu don hang|noi dung)$/,
     phone: /^(dien thoai cua nguoi nhan hang|dt nhan|sdt nhan|sdt nguoi nhan|so dien thoai nguoi nhan|sdt khach|sdt|so dien thoai|dien thoai)$/,
     st: /^(trang thai|tinh trang)$/, back: /^(co chieu tra ve hay khong|don chuyen hoan|hoan)$/, cod: /^(so tien thu ho|tien thu ho( \(4\))?|thu ho|cod)$/,
+    prob: /^co phai kien van de hay khong$/, probT: /^loai kien hang van de$/, place: /^buu cuc quet moi nhat$/, scan: /^thoi gian quet moi nhat$/, // 05/11/2026: file Hàng gửi của Best
     fee: /^(tong cuoc van chuyen|tong phi( \(9\).*)?|phi ship|phi van chuyen|cuoc|tien ship|phi giao|tien xe om|phi)$/, day: /^(thoi gian dat hang|ngay tao|ngay gui|ngay giao|ngay)$/
   };
   var RC_ST = { back: '↩️ Hoàn', ok: '✅ Giao thành công', ship: '🚚 Đang giao', cancel: '✖️ Huỷ vận đơn', '': '❔ Chưa rõ' };
@@ -6630,7 +6631,7 @@
           var g = function (k) { return ix[k] === undefined ? '' : r[ix[k]]; }, codes = [];
           [g('code'), String(g('note') || '').split(/[;,\n]/)[0]].forEach(function (c) { var k = rcKey(c); if (k && codes.indexOf(k) < 0) codes.push(k); });
           var ph = normPhone(g('phone')); if (!codes.length && !ph && !g('wb')) return;
-          out.push({ wb: String(g('wb') || '').trim(), codes: codes, label: [String(g('code') || '').trim(), String(g('note') || '').split(/[;,\n]/)[0].trim()].filter(function (v) { return /\d/.test(v); })[0] || (g('wb') ? 'Vận đơn ' + g('wb') : ''), phone: ph, st: rcSt(g('st'), g('back')), stTxt: String(g('st') || ''), fee: rcNum(g('fee')), cod: rcNum(g('cod')) || 0, day: rcDay(g('day')) });
+          out.push({ wb: String(g('wb') || '').trim(), codes: codes, label: [String(g('code') || '').trim(), String(g('note') || '').split(/[;,\n]/)[0].trim()].filter(function (v) { return /\d/.test(v); })[0] || (g('wb') ? 'Vận đơn ' + g('wb') : ''), phone: ph, st: rcSt(g('st'), g('back')), stTxt: String(g('st') || ''), prob: /^(yes|co)$/i.test(String(g('prob') || '').trim()) ? String(g('probT') || 'Kiện có vấn đề').trim() : '', place: String(g('place') || '').trim(), scan: String(g('scan') || '').trim(), fee: rcNum(g('fee')), cod: rcNum(g('cod')) || 0, day: rcDay(g('day')) });
         });
         best = { carrier: carrier, rows: out };
       }
@@ -6650,7 +6651,7 @@
       if (!o && r.phone) { o = near(r.phone, r.day); how = 'SĐT'; }
       if (!o) { if (c.length) doubt.push({ r: r, o: c[0] }); else none.push(r); return; }
       var m = M[o.row] || (M[o.row] = { o: o, rows: [], fee: null, how: how });
-      m.rows.push(r); if (r.fee !== null) m.fee = (m.fee || 0) + r.fee;
+      m.rows.push(r); if (r.prob) { m.prob = r.prob; m.place = r.place; m.scan = r.scan; } if (r.fee !== null) m.fee = (m.fee || 0) + r.fee;
     });
     var RANK = { back: 4, ok: 3, ship: 2, cancel: 1, '': 0 }, todo = [], same = 0;
     Object.keys(M).forEach(function (k) {
@@ -6684,7 +6685,7 @@
       var b = this, chk = {}; $$('[data-rcto]', m).forEach(function (x) { if (x.checked) chk[x.getAttribute('data-rcto')] = 1; });
       // 05/11/2026 (anh Sơn): đơn không có gì mới (trạng thái đã đúng, phí đã ghi, đã có hãng + mã vận đơn) thì bỏ qua → cập nhật nhanh
       var car = P.carrier === 'Khác' ? '' : P.carrier, skipN = 0;
-      var items = Object.keys(R.M).map(function (k) { var x = R.M[k], o = x.o; return { row: o.row, id: o.id, fee: x.fee, carrier: car, tracking: x.wb, status: chk[k] ? x.to : undefined, _new: (chk[k] && x.to) || (x.fee !== null && x.fee !== o.shipFee) || (car && !o.carrier) || (x.wb && !o.tracking) }; })
+      var items = Object.keys(R.M).map(function (k) { var x = R.M[k], o = x.o; var tk = rcTrk(x); return { row: o.row, id: o.id, trk: tk ? tk.trk : undefined, trkAt: tk ? tk.at : undefined, fee: x.fee, carrier: car, tracking: x.wb, status: chk[k] ? x.to : undefined, _new: !!rcTrk(x) || (chk[k] && x.to) || (x.fee !== null && x.fee !== o.shipFee) || (car && !o.carrier) || (x.wb && !o.tracking) }; })
         .filter(function (it) { if (it._new) { delete it._new; return true; } skipN++; return false; });
       if (!items.length) { closeModal(); toast('Tất cả ' + skipN + ' đơn đã đúng sẵn, không cần cập nhật ✓'); return; }
       var n = 0, st = 0, errs = [], step = function (i) {
@@ -6695,6 +6696,13 @@
       b.disabled = true; step(0);
     };
   }
+  /** File Best còn ghi Đang giao mà có "kiện vấn đề" → ghi dòng cảnh báo lên đơn (nhóm 📵 Giao chưa được); hết vấn đề thì xoá cảnh báo cũ. */
+  function rcTrk(x) {
+    var o = x.o; if (o.status !== 'Đang giao') return null;
+    if (x.prob && x.st === 'ship') { var t = rcDayTime(x.scan) || Date.now(), line = 'Best: ' + x.prob + (x.place ? ' · ' + x.place : '') + (x.scan ? ' · quét ' + x.scan.slice(5, 16) : ''); return o.trkCode === 900 && o.trk === line ? null : { trk: line, at: t }; }
+    return o.trkCode === 900 ? { trk: '', at: Date.now() } : null;
+  }
+  function rcDayTime(s) { var m = String(s || '').match(/(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/); return m ? Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4] - 7, +m[5]) : 0; }
   function rcShow(m, P, R) {
     var rows = P.rows, fees = rows.filter(function (r) { return r.fee !== null; }), fT = fees.reduce(function (s0, r) { return s0 + r.fee; }, 0), days = rows.map(function (r) { return r.day; }).filter(Boolean);
     var bk = Object.keys(R.M).map(function (k) { return R.M[k]; }).filter(function (x) { return x.st === 'back'; }), bF = bk.reduce(function (s0, x) { return s0 + (x.fee || 0); }, 0);

@@ -1010,6 +1010,7 @@ async function crmReconApply(x, u, d) {
     if (it.fee !== undefined && it.fee !== null && Number(it.fee) >= 0) { set.ship_fee = Math.round(Number(it.fee)); fee++; }
     if (it.carrier && !o.carrier) set.carrier = String(it.carrier).slice(0, 40);
     if (it.tracking && !o.tracking) set.tracking = String(it.tracking).trim().slice(0, 40);
+    if (typeof it.trk === 'string') { set.trk = it.trk.slice(0, 300); set.trk_at = Number(it.trkAt) || Date.now(); set.trk_code = it.trk ? 900 : 0; } // 05/11/2026: file Best báo "kiện vấn đề" khi đơn còn đang giao
     const ks = Object.keys(set); ups.push(x.db.prepare('UPDATE orders SET ' + ks.map(k => k + ' = ?').join(', ') + ' WHERE rid = ?').bind(...ks.map(k => set[k]), o.rid));
     if (it.status && it.status !== o.status && ORDER_STATUS.indexOf(it.status) >= 0) {
       const r = await crmOrderStatus(x, u, { row: o.rid, id: o.id, status: it.status, reason: 'Đối soát ' + tag });
