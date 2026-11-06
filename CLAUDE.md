@@ -21,6 +21,8 @@ Chủ dự án: anh Sơn (thaisoniph@gmail.com). Anh Sơn không chuyên kỹ th
 - `backend/google-apps-script.gs`: code Apps Script (đơn hàng + CRM, gắn với Google Sheet). Token Telegram nằm trong Script Properties (`TELEGRAM_TOKEN`), không có trong code.
 - `api/`: máy chủ Cloudflare Workers + D1 (api.thucduonglanh.vn) chạy chính thức từ 10/2026 (bản `2026-10-07d`). Nhận đơn web, phục vụ toàn bộ CRM API (hôm nay, khách hàng, đơn hàng, khách hỏi, hiệu quả, mức dùng CRM, góp ý...), nhận webhook Viettel Post, và đồng bộ 2 chiều với Google Sheet / file sale qua cron. Có cổng MCP `/mcp` (`api/src/mcp.js`, đăng nhập OAuth bằng mã email CRM) để ChatGPT / Gemini / Claude hỏi số liệu CRM. Apps Script (`backend/google-apps-script.gs`) làm cầu nối Google (gửi email, cấp quyền đọc Sheet, dọn trigger cũ).
 
+- **CRM và trợ lý Fanpage chỉ dùng cho Thực Dưỡng Lành / VitaGreen** (anh Sơn 06/11/2026). Trang dự án cá nhân (Trà Đỉnh, các page sau này) và phần marketing của chúng làm ở hệ thống Solo của repo `thaisoniph/dinhminhthaison.com` (solo.dinhminhthaison.com), không thêm vào repo này.
+
 ## Đăng lên (deploy)
 - Push lên nhánh `main` → GitHub Actions build → Cloudflare (website `thucduonglanh`, CRM `thucduonglanh-crm`, máy chủ api Worker + D1). Mỗi phần một workflow riêng (`deploy.yml`, `deploy-crm.yml`, `deploy-api.yml`), chỉ chạy khi phần đó đổi. Khoảng 1–2 phút sau là live.
 - Trước khi push: chạy `pip install -r requirements.txt` (nếu chưa cài) rồi `python3 build.py`. Build lỗi thì không push.

@@ -2,7 +2,7 @@
 title: Trợ lý Fanpage Facebook
 nav: Fanpage
 order: 7
-updated: 2026-11-06
+updated: 2026-11-05
 description: Trợ lý An Lành trả lời bình luận, nhắn tin Messenger, tặng quà, mời vào nhóm Zalo và soạn bài đăng cho các fanpage.
 ---
 
@@ -91,27 +91,6 @@ Facebook cần **2–4 tuần** để duyệt trợ lý. Trong thời gian đó,
 Khách để số trong hộp thư thì sale **tự thêm vào CRM** (tab Khách hỏi, kênh Facebook).
 
 > **Khi trợ lý An Lành đã chạy trên trang nào**, phải **tắt** mục 3 và mục 4 của trang đó. Nếu không, khách sẽ nhận 2 tin nhắn cùng lúc.
-
-## Trang dự án riêng của anh Sơn (Trà Đỉnh và các trang sau này)
-
-Chỉ **Quản trị** thấy phần này. Nhân sự Thực Dưỡng Lành không thấy trang riêng, bài đăng, nhật ký và khách của trang riêng.
-
-1. Kết nối trang như bình thường (Bước 4 ở mục dưới). Tài khoản Facebook của anh phải là **quản trị** trang đó. Đã kết nối các trang trước rồi thì bấm **🔗 Kết nối fanpage** lại và tích thêm trang mới.
-2. Mở **⚙️ Cài đặt** của trang → tích **🧩 Trang dự án riêng**.
-3. Điền **🧠 Bộ não của trang**:
-   - **Tên thương hiệu** (khách thấy) và **Tên trợ lý** (trợ lý xưng là gì, ví dụ "Đỉnh").
-   - **Tài liệu cho trợ lý**: bấm **📋 Chèn mẫu tài liệu**, điền menu, giá, địa chỉ, giờ mở cửa, cách đặt, ưu đãi, câu hỏi thường gặp. Trợ lý **chỉ** trả lời theo tài liệu này. Đổi giá, đổi ưu đãi thì sửa ở đây.
-   - **Giờ có người thật trực tin nhắn**, ví dụ `7h–22h hằng ngày`.
-   - **Báo Telegram tới**: để trống thì báo về Telegram của anh. Muốn báo vào nhóm của quán: thêm bot **@thucduonglanh_donhang_bot** vào nhóm, gõ `/start` trong nhóm, rồi bấm **🔎 Tìm mã nhóm Telegram** và chọn nhóm.
-4. Sửa phần quà: **Lời mời nhận quà**, **Câu xin số**, **Tin gửi quà** (ví dụ voucher tặng topping), link nhóm Zalo nếu có. Ô link để trống thì dòng đó tự bỏ.
-5. Tích **Bật trợ lý cho trang này** → **💾 Lưu cài đặt trang**.
-
-Khác với trang Thực Dưỡng Lành:
-
-- Khách để số **không vào Khách hỏi**. Xem ở mục **🎁 Khách để số ở trang này** trong cài đặt trang: bấm số để gọi, **💬 Zalo** để nhắn, **🗑 Xoá** khi khách xin xoá thông tin.
-- Khách nhắn đặt món kèm số điện thoại: trợ lý ghi số, báo Telegram ngay kèm nội dung khách nhắn, trả lời tiếp, rồi báo người thật gọi xác nhận. Trợ lý không tự xác nhận đơn.
-- Bài đăng AI soạn theo tài liệu và ô **Chủ đề bài đăng** của trang, không gắn sản phẩm Thực Dưỡng Lành.
-- Khi bấm **✍️ Viết bài đăng**, trang riêng không được tích sẵn. Muốn đăng lên trang riêng thì tự tích.
 
 ## Dành cho anh Sơn: kết nối trợ lý (làm 1 lần)
 
