@@ -173,12 +173,15 @@
       } else if (ev.key === 'Enter') {
         var it = list.querySelectorAll('.gs-item')[sel < 0 ? 0 : sel];
         if (it) { ev.preventDefault(); go(it); }
+        else if (input.value.trim().length > 2) { ev.preventDefault(); ask(input.value.trim()); }
       }
     });
     list.addEventListener('click', function (ev) {
+      if (ev.target.closest('[data-ai]')) { ask(input.value.trim()); return; }
+      if (ev.target.closest('[data-back]')) { render(input.value); input.focus(); return; }
       var c = ev.target.closest('[data-q]');
       if (c) { input.value = c.getAttribute('data-q'); render(input.value); input.focus(); }
-      var it = ev.target.closest('.gs-item');
+      var it = ev.target.closest('.gs-item, .gs-src');
       if (it) { ev.preventDefault(); go(it); }
     });
   }
@@ -195,13 +198,13 @@
   }
   function chips() { return '<div class="gs-chips">' + HINTS.map(function (h) { return '<button type="button" class="g-chip" data-q="' + esc(h) + '">' + esc(h) + '</button>'; }).join('') + '</div>'; }
   function render(q) {
-    lastQ = q; sel = -1;
+    lastQ = q; sel = -1; hist = [];
     if (!q.trim()) { list.innerHTML = '<p class="gs-tip">Hay tìm:</p>' + chips(); return; }
     load().then(function () {
       if (q !== lastQ) return;
       results = search(q);
       if (!results.length) {
-        list.innerHTML = '<div class="gs-none"><b>Chưa tìm thấy “' + esc(q) + '”.</b><br>Thử gõ ngắn hơn hoặc chữ khác (ví dụ “đơn” thay vì “đơn hàng mới”). Vẫn không thấy thì hỏi quản lý, hoặc bấm 💡 Góp ý trong CRM.</div>' + chips();
+        list.innerHTML = aiRow(q) + '<div class="gs-none"><b>Ô tìm chưa thấy “' + esc(q) + '”.</b><br>Bấm <b>✨ Hỏi trợ lý</b> ở trên, hoặc thử gõ ngắn hơn (ví dụ “đơn” thay vì “đơn hàng mới”).</div>' + chips();
         return;
       }
       var ws = words(q), h = '', page = '', order = [];
@@ -214,10 +217,84 @@
           '<span class="gs-h">' + (e.s ? '<span class="gs-par">' + esc(e.s) + ' › </span>' : '') + mark(e.h, ws) + '</span>' +
           '<span class="gs-x2">' + snippet(e, ws) + '</span></a>';
       });
-      list.innerHTML = '<p class="gs-tip">' + results.length + (results.length >= 30 ? '+' : '') + ' mục khớp</p>' + h;
+      list.innerHTML = aiRow(q) + '<p class="gs-tip">' + results.length + (results.length >= 30 ? '+' : '') + ' mục khớp</p>' + h;
       sel = 0; focusSel();
     });
   }
+  /* ---------------- ✨ hỏi trợ lý An Lành (AI đọc hướng dẫn, trả lời ngắn kèm link) – chỉ nhân sự đã đăng nhập CRM */
+  var API = document.body.getAttribute('data-api') || '', hist = [];
+  function token() { try { return localStorage.getItem('crm_token') || ''; } catch (e) { return ''; } }
+  function aiRow(q) {
+    if (!API) return '';
+    return '<button type="button" class="gs-ai" data-ai><span class="gs-ai-ic">✨</span><span><b>Hỏi trợ lý An Lành:</b> “' + esc(q) + '”' +
+      '<small>Trợ lý đọc hướng dẫn rồi trả lời ngắn, kèm link tới đúng mục</small></span></button>';
+  }
+  function entryOf(key) { // "crm#dang-nhap" → mục trong search.json
+    var p = key.split('#'), u = '/huong-dan/' + (p[0] === 'index' ? '' : p[0] + '/'), a = p[1] || '';
+    for (var i = 0; DATA && i < DATA.length; i++) if (DATA[i].u === u && DATA[i].a === a) return DATA[i];
+    return null;
+  }
+  function fmtAnswer(t) {
+    var keys = [], body = esc(t.replace(/\[\[([a-z0-9-]+#[a-z0-9-]*)\]\]/g, function (m, k) { if (keys.indexOf(k) < 0) keys.push(k); return ''; }));
+    body = body.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').split(/\n+/).map(function (l) { l = l.trim(); return l ? '<p>' + l + '</p>' : ''; }).join('');
+    var chips = keys.map(function (k) {
+      var e = entryOf(k); if (!e) return '';
+      return '<a class="gs-src" href="' + esc(e.u + (e.a ? '#' + e.a : '')) + '"><span>📖 ' + esc(e.p) + '</span>' + esc(e.s ? e.s + ' › ' + e.h : e.h) + '</a>';
+    }).join('');
+    return body + (chips ? '<div class="gs-srcs"><div class="gs-tip">Đọc kỹ trong hướng dẫn:</div>' + chips + '</div>' : '');
+  }
+  function aiPanel(inner) {
+    list.innerHTML = '<button type="button" class="gs-ret" data-back>← Về kết quả tìm</button>' + inner;
+    list.scrollTop = 0;
+  }
+  function convo() {
+    var h = '';
+    for (var i = 0; i < hist.length; i++) {
+      var m = hist[i];
+      h += m.r === 'u' ? '<div class="gs-qa-q">' + esc(m.t) + '</div>' : '<div class="gs-qa-a">' + fmtAnswer(m.t) + '</div>';
+    }
+    return h;
+  }
+  function ask(q) {
+    if (!API || !q) return;
+    if (!token()) {
+      aiPanel('<div class="gs-ans gs-login"><p><b>Trợ lý chỉ dành cho nhân sự đã đăng nhập CRM.</b></p><p>Bấm nút dưới để đăng nhập (mở tab mới), xong quay lại đây hỏi lại.</p>' +
+        '<a class="g-chip" href="/" target="_blank" rel="noopener">Đăng nhập CRM →</a></div>');
+      return;
+    }
+    var before = hist.slice(-4);
+    hist.push({ r: 'u', t: q });
+    aiPanel('<div class="gs-ans">' + convo() + '<div class="gs-qa-a gs-wait"><span class="gs-dots"><i></i><i></i><i></i></span> Trợ lý đang đọc hướng dẫn…</div></div>');
+    var ac = typeof AbortController === 'function' ? new AbortController() : null, tm = ac && setTimeout(function () { ac.abort(); }, 60e3);
+    Promise.all([load(), fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, signal: ac ? ac.signal : undefined,
+      body: JSON.stringify({ type: 'crm', action: 'guide_ask', token: token(), q: q, hist: before, page: document.title }) }).then(function (r) { return r.json(); })])
+      .then(function (rs) {
+        clearTimeout(tm);
+        var j = rs[1] || {};
+        if (j.ok) { hist.push({ r: 'a', t: j.a }); return show(j.left); }
+        hist.pop();
+        if (j.auth) {
+          return aiPanel('<div class="gs-ans gs-login"><p><b>Phiên đăng nhập CRM đã hết.</b></p><p>Đăng nhập lại CRM (mở tab mới), xong quay lại đây hỏi lại.</p><a class="g-chip" href="/" target="_blank" rel="noopener">Đăng nhập CRM →</a></div>');
+        }
+        fail(j.error || 'Trợ lý chưa trả lời được, thử lại nhé.');
+      }, function (er) { clearTimeout(tm); hist.pop(); fail(er && er.name === 'AbortError' ? 'Trợ lý trả lời chậm quá. Bạn thử lại nhé.' : 'Mất kết nối mạng. Bạn thử lại nhé.'); });
+  }
+  function fail(msg) { aiPanel('<div class="gs-ans">' + convo() + '<div class="gs-qa-a gs-err">⚠️ ' + esc(msg) + '</div>' + more() + '</div>'); bindMore(); }
+  function more() {
+    return '<form class="gs-more" data-more><input type="text" placeholder="Hỏi tiếp trợ lý…" autocomplete="off" enterkeyhint="send" aria-label="Hỏi tiếp trợ lý"><button type="submit">Gửi</button></form>' +
+      '<p class="gs-note">Trợ lý AI có thể nhầm. Việc quan trọng thì bấm link đọc lại hướng dẫn hoặc hỏi quản lý.</p>';
+  }
+  function bindMore() {
+    var f = list.querySelector('[data-more]');
+    if (f) f.addEventListener('submit', function (ev) { ev.preventDefault(); var v = f.querySelector('input').value.trim(); if (v.length > 2) ask(v); });
+  }
+  function show(left) {
+    aiPanel('<div class="gs-ans">' + convo() + (left != null && left < 10 ? '<p class="gs-note">Hôm nay bạn còn hỏi được ' + left + ' câu.</p>' : '') + more() + '</div>');
+    bindMore();
+    var last = list.querySelectorAll('.gs-qa-q');
+    if (last.length > 1) last[last.length - 1].scrollIntoView({ block: 'start' });
+  }
+
   function open(q) {
     if (!dlg) build();
     dlg.hidden = false;
@@ -241,7 +318,11 @@
     var bar = document.querySelector('.g-hlbar');
     if (bar) bar.remove();
     var q = new URLSearchParams(location.search).get('tim');
-    if (!q) return;
+    if (!q) {
+      var t0 = location.hash && document.getElementById(decodeURIComponent(location.hash.slice(1)));
+      if (t0) { t0.scrollIntoView(); t0.classList.remove('g-flash'); void t0.offsetWidth; t0.classList.add('g-flash'); }
+      return;
+    }
     var ws = words(q);
     if (!ws.length) return;
     // chỉ tô trong mục đã chọn (từ tiêu đề đó tới tiêu đề cùng cấp kế tiếp); không có mục thì tô cả trang

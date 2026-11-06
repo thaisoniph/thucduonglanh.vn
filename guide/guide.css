@@ -122,6 +122,35 @@ html.gs-open { overflow: hidden; }
   .gs-box { margin: 0; width: 100%; max-height: 100%; height: 100%; border-radius: 0; }
   .gs-foot { display: none; }
 }
+/* ✨ hỏi trợ lý An Lành */
+.gs-ai { display: flex; gap: 10px; align-items: flex-start; width: 100%; text-align: left; font: inherit; font-size: 15px; color: var(--ink); background: linear-gradient(135deg, #f3f0ff, #eaf3ec); border: 1px solid #d9d2f5; border-radius: 12px; padding: 10px 12px; margin: 2px 0 6px; cursor: pointer; }
+.gs-ai:hover { border-color: #a99be6; }
+.gs-ai-ic { font-size: 20px; line-height: 1.2; }
+.gs-ai small { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
+.gs-ret { font: inherit; font-size: 14px; font-weight: 600; color: var(--primary); background: none; border: 0; padding: 6px 4px; cursor: pointer; }
+.gs-ans { padding: 2px 4px 8px; }
+.gs-ans p { margin: 0 0 8px; }
+.gs-qa-q { margin: 8px 0 8px auto; max-width: 85%; width: fit-content; background: var(--primary); color: #fff; padding: 8px 12px; border-radius: 14px 14px 4px 14px; font-size: 15px; }
+.gs-qa-a { background: var(--bg); border: 1px solid var(--line); border-radius: 14px 14px 14px 4px; padding: 10px 14px; margin: 0 0 10px; font-size: 15px; line-height: 1.6; }
+.gs-qa-a p:last-child { margin-bottom: 0; }
+.gs-err { background: #fff4f2; border-color: #f2c9c0; }
+.gs-wait { color: var(--muted); display: flex; align-items: center; gap: 10px; }
+.gs-dots { display: inline-flex; gap: 4px; }
+.gs-dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--primary); opacity: .3; animation: gs-dot 1s infinite; }
+.gs-dots i:nth-child(2) { animation-delay: .15s; } .gs-dots i:nth-child(3) { animation-delay: .3s; }
+@keyframes gs-dot { 50% { opacity: 1; transform: translateY(-3px); } }
+.gs-srcs { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--line); }
+.gs-srcs .gs-tip { margin: 0 0 6px; }
+.gs-src { display: block; text-decoration: none; color: var(--ink); font-weight: 600; font-size: 14px; background: #fff; border: 1px solid #cfe2d4; border-radius: 10px; padding: 7px 10px; margin: 0 0 6px; }
+.gs-src:hover { border-color: var(--primary); background: var(--primary-light); }
+.gs-src span { display: block; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+.gs-more { display: flex; gap: 8px; margin: 6px 0 4px; }
+.gs-more input { flex: 1; min-width: 0; font: inherit; font-size: 16px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; outline: none; }
+.gs-more input:focus { border-color: var(--primary); }
+.gs-more button { font: inherit; font-weight: 700; color: #fff; background: var(--primary); border: 0; border-radius: 10px; padding: 0 16px; cursor: pointer; }
+.gs-note { color: var(--muted); font-size: 12.5px; margin: 6px 2px 0; }
+.gs-login .g-chip { display: inline-block; text-decoration: none; margin-top: 4px; }
+
 /* thanh "Đang tô vàng" sau khi mở kết quả */
 .g-hlbar { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 20; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; max-width: calc(100% - 24px); background: var(--ink); color: #fff; border-radius: 14px; padding: 8px 10px 8px 14px; font-size: 14px; box-shadow: 0 8px 24px rgba(0, 0, 0, .25); }
 .g-hlbar b { color: #ffe58a; }

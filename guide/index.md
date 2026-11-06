@@ -66,6 +66,7 @@ Từng việc được hướng dẫn kỹ ở [phần CRM](/huong-dan/crm/).
 
 ## Cần giúp đỡ?
 
+- Gõ việc bạn đang vướng vào ô **🔍 Tìm** ở đầu trang hướng dẫn. Không thấy đúng thì bấm **✨ Hỏi trợ lý An Lành**: trợ lý đọc hướng dẫn rồi trả lời ngắn, kèm link tới đúng mục (cần đăng nhập CRM trước).
 - Hỏi quản lý, hoặc nhắn anh Sơn.
 - Hoặc bấm **💡 Góp ý** trong CRM (điện thoại: **••• Thêm → Góp ý**; máy tính: nút trên đầu trang). Gõ vài chữ, gửi kèm ảnh chụp màn hình.
 - Khi gửi ảnh ra ngoài CRM, nhớ **che tên và số điện thoại khách**.

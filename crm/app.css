@@ -1735,3 +1735,10 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .kho-mr { display: grid; grid-template-columns: 1fr 80px 36px; gap: 6px; margin-bottom: 6px; align-items: center; }
 .kho-mr .rm { border: 0; background: none; font-size: 20px; color: var(--muted); cursor: pointer; height: 44px; }
 @media (max-width: 520px) { .kho-list { grid-template-columns: 1fr; } .kho-big { font-size: 20px; } .kho-need .btn { width: 100%; } }
+
+/* ✨ câu nhân sự hỏi trợ lý ở trang hướng dẫn (Cài đặt) */
+.gq-row { border: 1px solid var(--line, #e6e3da); border-radius: 10px; padding: 8px 12px; margin: 0 0 6px; background: #fff; }
+.gq-row summary { cursor: pointer; line-height: 1.45; }
+.gq-who { display: block; font-size: 12.5px; color: var(--muted, #74776c); }
+.gq-miss { display: inline-block; font-size: 12px; font-weight: 700; color: #a4511b; background: #fff1e3; border-radius: 6px; padding: 1px 6px; }
+.gq-ans { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line, #e6e3da); font-size: 14px; line-height: 1.55; }

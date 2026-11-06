@@ -3698,7 +3698,7 @@ def build_guide(out):
     shutil.copy(src / "guide.css", out / "guide.css")
     shutil.copy(src / "guide.js", out / "guide.js")
     ver = hashlib.md5((src / "guide.css").read_bytes() + (src / "guide.js").read_bytes()).hexdigest()[:8]
-    pages, index = [], []
+    pages, index, ai_doc = [], [], []
     # từ khoá thêm cho từng mục (cách nhân sự hay gõ khi gặp vấn đề): guide/tu-khoa.yml  "trang#mục": "từ, từ, …"
     kw = {}
     if (src / "tu-khoa.yml").exists():
@@ -3708,6 +3708,21 @@ def build_guide(out):
         h = re.sub(r"<figcaption>.*?</figcaption>", " ", h, flags=re.S)
         h = re.sub(r"</(p|li|tr|h\d|blockquote|figure|div)>|<br\s*/?>|</t[dh]>", " · ", h)
         return re.sub(r"(\s*·\s*)+", " · ", re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", "", h)))).strip(" ·")
+
+    def ai_text(h, slug):  # HTML -> chữ có xuống dòng cho trợ lý AI đọc; mỗi mục / câu hỏi đáp kèm mã [[trang#mục]] để AI trả link
+        h = re.sub(r"<table>.*?</table>", lambda m: re.sub(r">\s+<", "><", m.group(0)), h, flags=re.S)
+        h = re.sub(r"<figure>.*?<figcaption>(.*?)</figcaption></figure>", r"\n[Ảnh: \1]\n", h, flags=re.S)
+        h = re.sub(r'<h([23]) id="([^"]+)">(.*?)</h\1>', lambda m: "\n\n" + "#" * (int(m.group(1)) + 1) + " " + plain(m.group(3)) + f" [[{slug}#{m.group(2)}]]\n", h, flags=re.S)
+        h = re.sub(r'<p id="(h-[^"]+)" class="g-q"><strong>(.*?)</strong>', lambda m: f"\n\n**{plain(m.group(2))}** [[{slug}#{m.group(1)}]]", h, flags=re.S)
+        h = re.sub(r'<a href="/huong-dan/([a-z0-9-]*)/?(?:#([^"]*))?"[^>]*>(.*?)</a>', lambda m: f"{m.group(3)} [[{m.group(1) or 'index'}#{m.group(2) or ''}]]", h, flags=re.S)
+        h = re.sub(r"</?(strong|b)>", "**", h)
+        h = re.sub(r"<li>", "\n- ", h)
+        h = re.sub(r"<tr>", "\n", h)
+        h = re.sub(r"</t[dh]>(?!</tr>)", " | ", h)
+        h = re.sub(r"</p>|<br\s*/?>|</blockquote>|</ul>|</ol>", "\n", h)
+        h = html.unescape(re.sub(r"<[^>]+>", "", h))
+        h = "\n".join(l.strip() for l in h.split("\n"))
+        return re.sub(r"\n{3,}", "\n\n", h).strip()
     for f in src.glob("*.md"):
         meta, body = read_front(f)
         slug = "" if f.stem == "index" else f.stem
@@ -3747,6 +3762,9 @@ def build_guide(out):
             used.add(aid)
             return f'<p id="{aid}" class="g-q"><strong>{m.group(1)}</strong>'
         body = re.sub(r"<p><strong>(.*?)</strong>", qid, body)
+        if not meta.get("hidden"):
+            ai_doc.append(f"## Trang \"{meta.get('nav', '')}\": {meta.get('title', '')} [[{here or 'index'}#]]\n"
+                          + (str(meta.get("description", "")) + "\n" if meta.get("description") else "") + ai_text(body, here or "index"))
         if not meta.get("hidden"):  # mục lục tìm kiếm: mỗi tiêu đề ## / ### và mỗi câu hỏi đáp chữ đậm là 1 kết quả
             url = f'/huong-dan/{here + "/" if here else ""}'
             nav = meta.get("nav", meta.get("title", ""))
@@ -3784,7 +3802,7 @@ def build_guide(out):
 <link rel="icon" href="/icon-32.png" sizes="32x32">
 <link rel="stylesheet" href="/huong-dan/guide.css?v={ver}">
 </head>
-<body{' class="g-home"' if not here else ""}>
+<body{' class="g-home"' if not here else ""} data-api="{html.escape(SITE.get('api_endpoint') or '')}">
 <header class="g-top"><div class="g-in">
 <a class="g-brand" href="/huong-dan/"><img src="/icon-180.png" alt="" width="32" height="32"><span>Hướng dẫn nội bộ</span></a>
 <button type="button" class="g-find" data-find aria-label="Tìm trong hướng dẫn"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M16.5 16.5 21 21" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><span>Tìm</span><kbd>/</kbd></button>
@@ -3811,6 +3829,7 @@ def build_guide(out):
         (d / "index.html").write_text(page, "utf-8")
     for k in kw:
         print(f"⚠️  guide/tu-khoa.yml: không thấy mục {k} (tiêu đề đã đổi?)")
+    (out / "ai.txt").write_text("\n\n".join(ai_doc), "utf-8")  # trợ lý An Lành (api/src/guideask.js) đọc file này
     (out / "search.json").write_text(json.dumps(index, ensure_ascii=False, separators=(",", ":")), "utf-8")
 
 

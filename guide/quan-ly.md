@@ -329,4 +329,5 @@ Khi viết, nhớ: **câu ngắn, mỗi bước 1 việc, tên nút in đậm đ
 
 - Đặt tiêu đề mục theo **việc nhân sự cần làm** (ví dụ "Khách muốn huỷ đơn"), không đặt tên chung chung như "Lưu ý".
 - Câu hỏi hay gặp thì viết thành **1 đoạn bắt đầu bằng câu hỏi in đậm**, ví dụ: **Không nhận được mã đăng nhập?** rồi viết cách làm ngay sau. Ô Tìm tự biến mỗi đoạn như vậy thành 1 kết quả, bấm vào là nhảy thẳng tới đoạn đó.
+- Xem nhân sự đã hỏi trợ lý những gì: **⚙ Cài đặt → ✨ Nhân sự hỏi gì ở trang hướng dẫn → Xem câu đã hỏi**. Bấm **❓ Hướng dẫn chưa có** để lọc các câu trợ lý chưa trả lời được. Đó là những chỗ nên viết thêm vào hướng dẫn.
 - Nhân sự gõ tìm mà không ra đúng chỗ? Gửi anh Sơn câu họ đã gõ để thêm vào danh sách từ khoá.

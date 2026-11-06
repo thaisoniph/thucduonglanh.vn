@@ -8454,7 +8454,8 @@
       setGroup('ca', '🕘 Ca tối & ngày lễ', 'Ca tối từ ' + esc(ca.evening || '17:30') + ' · ' + hol.length + ' ngày lễ', caBox()) +
       setGroup('vc', '🎟 Mã ưu đãi đặt hàng web', 'Tạo mã giảm giá gửi riêng khách cũ, đối tác', vcBox()) +
       setGroup('pt', '🤝 Cộng tác viên & khách giới thiệu', 'Link, mã giảm giá, hoa hồng, đối soát CTV', ptBox()) +
-      setGroup('qz', '🖐 Trò chơi “Bạn còn mấy ngón tay?”', 'Sửa câu hỏi trò chơi trên web · màn hình chơi nhóm', qzeBox()));
+      setGroup('qz', '🖐 Trò chơi “Bạn còn mấy ngón tay?”', 'Sửa câu hỏi trò chơi trên web · màn hình chơi nhóm', qzeBox()) +
+      setGroup('gq', '✨ Nhân sự hỏi gì ở trang hướng dẫn', 'Câu nhân sự hỏi trợ lý An Lành · câu hướng dẫn chưa có thì nên viết thêm', '<div id="gqBox"><p class="hint" style="margin:0 0 10px">Ở trang <a href="/huong-dan/" target="_blank" rel="noopener">Hướng dẫn</a>, nhân sự gõ câu hỏi vào ô 🔍 Tìm rồi bấm <b>✨ Hỏi trợ lý An Lành</b>. Câu nào trợ lý báo <b>“hướng dẫn chưa có”</b> thì nên viết thêm vào hướng dẫn.</p><button class="btn" id="gqLoad">Xem câu đã hỏi</button></div>'));
     if (lvl() >= 3) {
       var src = S.d.sources || [], ads = S.d.ads, SB = syncBoxes(), cut = SB.indexOf('<div class="box"><h3>📣');
       h += setSec('🔌 Kết nối & báo cáo', setGroup('src', '📂 File Google Sheet của sale', src.length ? src.length + ' file' : '⚠️ Chưa có file nào', SB.slice(0, cut)) +
@@ -8507,6 +8508,21 @@
     };
   }
   /** Cài đặt: 1 nhóm (tiêu đề nhỏ + các mục thu gọn). */
+  /** ✨ câu nhân sự hỏi trợ lý ở trang hướng dẫn (api guide_ask_list) */
+  function gqList(miss) {
+    var box = $('#gqBox'); if (!box) return;
+    box.innerHTML = '<p class="hint">Đang tải…</p>';
+    api('guide_ask_list', { miss: miss ? 1 : 0 }).then(function (j) {
+      var rows = j.rows || [], nMiss = rows.filter(function (r) { return r.miss; }).length;
+      box.innerHTML = '<div class="steps" style="margin:0 0 10px"><button class="btn' + (miss ? '' : ' pri') + '" data-gqf="0">Tất cả</button><button class="btn' + (miss ? ' pri' : '') + '" data-gqf="1">❓ Hướng dẫn chưa có</button></div>' +
+        (rows.length ? '<p class="hint" style="margin:0 0 8px">' + rows.length + ' câu gần nhất' + (miss ? '' : ' · ' + nMiss + ' câu hướng dẫn chưa có') + '. Bấm vào câu để xem trợ lý trả lời gì.</p>' +
+          rows.map(function (r) {
+            return '<details class="gq-row"><summary>' + (r.miss ? '<span class="gq-miss">❓ chưa có</span> ' : '') + '<b>' + esc(r.q) + '</b><span class="gq-who">' + esc(r.name || '') + ' · ' + when(r.at) + '</span></summary>' +
+              '<div class="gq-ans">' + esc(String(r.a || '').replace(/\[\[[^\]]+\]\]/g, '')).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>') + '</div></details>';
+          }).join('') : '<p class="hint">Chưa có câu hỏi nào' + (miss ? ' mà hướng dẫn chưa có' : '') + '.</p>');
+      $$('[data-gqf]', box).forEach(function (b) { b.onclick = function () { gqList(b.getAttribute('data-gqf') === '1'); }; });
+    }, function (e) { box.innerHTML = '<p class="hint">⚠️ ' + esc(e.message) + '</p>'; });
+  }
   function setSec(title, body) { return '<section class="set-sec"><h2>' + title + '</h2>' + body + '</section>'; }
   /** 1 mục cài đặt thu gọn: tên + dòng tóm tắt đang cài thế nào; bấm mở ra phần sửa. Mở / đóng được nhớ trên máy (localStorage set_open: 1 mở, 0 đóng).
    *  def = mở sẵn khi người dùng chưa từng bấm mục này (Hướng dẫn nhanh; Telegram khi chưa kết nối). */
@@ -8518,6 +8534,7 @@
     $$('details[data-setk]').forEach(function (d) { d.addEventListener('toggle', function () { var o = S.f.setOpen || (S.f.setOpen = {}), k = d.getAttribute('data-setk'); o[k] = d.open ? 1 : 0; store('set_open', JSON.stringify(o)); }); });
     if ($('#dayLimSave')) $('#dayLimSave').onclick = function () { var n = Math.max(5, Math.min(200, parseInt($('#dayLim').value, 10) || DAY_LIMIT_DEF)); store('crm_daylimit', String(n)); toast('Mỗi ngày tối đa ' + n + ' khách ✓'); navBadges(); };
     $('#logout').onclick = function () { if (confirm('Đăng xuất khỏi CRM?')) logout(); };
+    if ($('#gqLoad')) $('#gqLoad').onclick = function () { gqList(false); };
     var syncTags = function () { $$('#tagRows [data-ti]').forEach(function (r) { var i = +r.getAttribute('data-ti'); $$('[data-tk]', r).forEach(function (x) { S.f.tags[i][x.getAttribute('data-tk')] = x.value; }); }); };
     if ($('#tagRows')) $('#tagRows').addEventListener('input', syncTags);
     if ($('#prefSave')) $('#prefSave').onclick = function () {

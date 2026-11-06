@@ -17,6 +17,7 @@ import { crmVoucher, voucherSchema } from './voucher.js';
 import { journeySchema, wallHide } from './journey.js';
 import { crmLinks } from './links.js';
 import { crmAi } from './ai.js';
+import { guideAsk, guideAskList } from './guideask.js';
 import { crmAsk, askAllowed } from './ask.js';
 import { crmMcp } from './mcp.js';
 import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, wbInfoQueue, wbOrderInfo, WB_SHORT } from './wb.js';
@@ -1960,7 +1961,7 @@ async function crmFbUpdate(x, u, d) {
 
 /* ================================================================ điều phối */
 /** Việc tài khoản Marketing được làm: xem tab Marketing, nhập chi phí (file / nhập tay), góp ý, Telegram, cài đặt màu, đo tốc độ. Mọi việc khác máy chủ từ chối. */
-const MKT_ACTIONS = { link_list: 1, link_save: 1, link_active: 1, load: 1, mktv: 1, mkt_tg_test: 1, mkt_goal: 1, mkt_import: 1, mkt_add: 1, mkt_list: 1, mkt_kpi: 1, mkt_fb_edit: 1, quiz_cms: 1, mkt_del: 1, prefs: 1, tg_link: 1, tg_check: 1, tg_off: 1, perf: 1, usage: 1, feedback: 1, fb_list: 1, fb_img: 1, offers: 1, offer_save: 1, offer_del: 1, wall_hide: 1, zb_view: 1, zb_cfg: 1, zb_post: 1, zb_regen: 1, zb_send: 1, zb_img: 1, zb_hist: 1, zb_logmore: 1, zb_done: 1, fp_view: 1, fp_page: 1, fp_resub: 1, fp_scan: 1, fp_post: 1, fp_now: 1, fp_regen: 1, fp_send: 1, fp_logmore: 1, fp_done: 1 };
+const MKT_ACTIONS = { guide_ask: 1, link_list: 1, link_save: 1, link_active: 1, load: 1, mktv: 1, mkt_tg_test: 1, mkt_goal: 1, mkt_import: 1, mkt_add: 1, mkt_list: 1, mkt_kpi: 1, mkt_fb_edit: 1, quiz_cms: 1, mkt_del: 1, prefs: 1, tg_link: 1, tg_check: 1, tg_off: 1, perf: 1, usage: 1, feedback: 1, fb_list: 1, fb_img: 1, offers: 1, offer_save: 1, offer_del: 1, wall_hide: 1, zb_view: 1, zb_cfg: 1, zb_post: 1, zb_regen: 1, zb_send: 1, zb_img: 1, zb_hist: 1, zb_logmore: 1, zb_done: 1, fp_view: 1, fp_page: 1, fp_resub: 1, fp_scan: 1, fp_post: 1, fp_now: 1, fp_regen: 1, fp_send: 1, fp_logmore: 1, fp_done: 1 };
 export async function crmApi(x, d, sync, mgr) {
   await ensureSchema(x.db);
   const a = d.action;
@@ -1972,6 +1973,8 @@ export async function crmApi(x, d, sync, mgr) {
   if (a === 'logout') { await run(x.db, 'DELETE FROM sessions WHERE token = ?', d.token); return { ok: true }; }
   if (u.role === 'Marketing' && !MKT_ACTIONS[a]) return { ok: false, error: 'Tài khoản Marketing chỉ xem được phần quảng cáo.' };
   if (a === 'load') return crmLoad(x, u, d);
+  if (a === 'guide_ask') return guideAsk(x, u, d); // ✨ Hỏi trợ lý An Lành trong trang hướng dẫn (guideask.js)
+  if (a === 'guide_ask_list') return guideAskList(x, u, d); // câu nhân sự đã hỏi trợ lý (Quản lý trở lên)
   if (a === 'ai_sum') return crmAi(x, u, d); // ✨ AI tóm tắt hồ sơ / gợi ý tin nhắn (chỉ khi có ANTHROPIC_API_KEY)
   if (/^mcp_/.test(a)) return crmMcp(x, u, d); // 🔌 kết nối ChatGPT / Gemini (mcp.js): xem, tạo Client ID, ngắt
   if (a === 'ai_ask') return crmAsk(x, u, d); // ✨ Hỏi số liệu: trợ lý AI tự tra số trong D1 (ask.js, ai dùng được: askAllowed)
