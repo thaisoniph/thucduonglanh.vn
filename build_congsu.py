@@ -203,27 +203,28 @@ TEA_GROW = [
     ("Thấy mình lớn lên", "vài tháng nhìn lại những lời hứa nhỏ đã giữ, bạn gặp một phiên bản khác của chính mình."),
 ]
 
-TEA_SVG = """<svg class="cs-tea-cup" viewBox="0 0 160 140" aria-hidden="true">
-<g class="cs-tea-steam"><path d="M58 44c-9-9 9-15 0-26"/><path d="M80 40c-9-9 9-15 0-28"/><path d="M102 44c-9-9 9-15 0-26"/></g>
-<ellipse cx="80" cy="124" rx="66" ry="10" fill="#B07B47"/>
-<path d="M28 62h104c0 34-22 56-52 56S28 96 28 62z" fill="#F3E0BD"/>
-<ellipse cx="80" cy="62" rx="52" ry="9" fill="#C97C17"/>
-<path d="M66 92c10-1 18-7 22-16-9 1-17 6-22 16zm0 0c5-5 10-8 16-10" fill="none" stroke="#24805B" stroke-width="3" stroke-linecap="round"/>
-</svg>"""
+TEA_PICS = [  # ảnh buổi trà đàm thật (anh Sơn gửi 06/11/2026), congsu/img/tra-dam-*.webp
+    ("tra-dam-ban-tra", "Bên bàn trà ở văn phòng"),
+    ("tra-dam-doc", "Cùng đọc, cùng học"),
+    ("tra-dam-viet", "Viết ra để nhìn rõ mình"),
+    ("tra-dam-cuoi", "Tuần mới, năng lượng mới"),
+]
 
 
 def tea_html():
     flow = "".join(f'<li class="cs-rv"><b>{i}</b><h4>{t}</h4><p>{d}</p></li>' for i, (t, d) in enumerate(TEA_FLOW, 1))
     grow = "".join(f'<li>{ic("check")}<span><b>{t}:</b> {d}</span></li>' for t, d in TEA_GROW)
+    pics = "".join(f'<figure class="cs-rv"><img src="/img/{f}.webp" alt="{c}" loading="lazy" width="800" height="600"><figcaption>{c}</figcaption></figure>' for f, c in TEA_PICS)
     return f"""<div class="cs-tea" id="tra-dam">
 <div class="cs-tea-top">
 <div><span class="cs-tea-chip">Mỗi tuần một buổi · Thứ Bảy</span>
 <h3 class="cs-tea-h">TRÀ ĐÀM <em>{nw("“MÁU CHẢY VỀ TIM”")}</em></h3>
 <p class="cs-tea-lead">Như máu chảy về tim để được làm mới rồi lại đi nuôi cả cơ thể, cuối mỗi tuần cả đội trở về bên bàn trà. Đây không phải buổi họp báo cáo, mà là nơi mỗi người được nhìn lại mình, được góp ý thật lòng và lớn thêm một chút.</p></div>
-{TEA_SVG}
+<figure class="cs-tea-main cs-rv"><img src="/img/tra-dam-chung.webp" alt="Cả đội trong buổi trà đàm, trên màn hình là 10 Quy tắc Danh dự" loading="lazy" width="1200" height="675"><figcaption>Buổi trà đàm cùng ôn 10 Quy tắc Danh dự</figcaption></figure>
 </div>
 <p class="cs-tea-sub">Một buổi trà đàm có 4 phần</p>
 <ol class="cs-tea-flow">{flow}</ol>
+<div class="cs-tea-pics">{pics}</div>
 <div class="cs-tea-grow cs-rv"><h4>Sau mỗi buổi, bạn mang về</h4><ul>{grow}</ul></div>
 <p class="cs-tea-foot">🍵 Trà bánh do Quỹ Văn hóa nội bộ lo. 🖐 Trò chơi nhỏ từ buổi trà đàm của đội, bạn chơi thử 1 phút: <a href="https://thucduonglanh.vn/ngon-tay-song-lanh/?tu=congsu" target="_blank" rel="noopener">Bạn còn mấy ngón tay?</a></p>
 </div>"""
