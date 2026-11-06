@@ -3,7 +3,7 @@
   'use strict';
   var DATA = null, loading = null;
   // việc hay tìm: hiện thành nút bấm ở trang Bắt đầu và khi ô tìm còn trống
-  var HINTS = ['Đăng nhập', 'Nối Telegram', 'Lên đơn', 'Mã vận đơn', 'Khách hỏi', 'Báo cáo cuối ngày', 'Đơn hoàn', 'Mục tiêu', 'Kiểm kho', 'Đăng bài'];
+  var HINTS = ['Đăng nhập', 'Nối Telegram', 'Lên đơn', 'Mã vận đơn', 'Khách hỏi', 'Báo cáo cuối ngày', 'Đơn hoàn', 'Mục tiêu', 'Đếm kho', 'Đăng bài'];
   // từ gần nghĩa: gõ chữ bên trái thì tìm cả chữ bên phải (viết không dấu). Cách nói theo từng mục thì ghi ở guide/tu-khoa.yml
   var SYN = {
     'dat hang': ['len don', 'tao don'], 'len don': ['tao don', 'dat hang'], 'tao don': ['len don', 'dat hang'],

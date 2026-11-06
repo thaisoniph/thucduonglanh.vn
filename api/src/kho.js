@@ -153,7 +153,7 @@ export async function khoSync(x, force) {
 }
 
 /* ================================================================ số tồn, mức báo */
-const LV_TXT = { nobase: '⚪ Chưa nhập số tồn', out: '🔴 Hết hàng', urgent: '🔴 Đặt gấp', order: '🟠 Cần đặt hàng', late: '🔴 Hàng về trễ', risk: '🟠 Có thể hết trước khi hàng về', wait: '⏳ Đã đặt, chờ hàng về', ok: '🟢 Đủ hàng' };
+const LV_TXT = { nobase: '⚪ Chưa đếm', out: '🔴 Hết hàng', urgent: '🔴 Sắp hết – đặt gấp', order: '🟠 Sắp hết – cần đặt', late: '🔴 Hàng về trễ hẹn', risk: '🟠 Có thể hết trước khi hàng về', wait: '⏳ Đang chờ hàng về', ok: '🟢 Đủ hàng' };
 const r1 = n => Math.round((Number(n) || 0) * 10) / 10;
 /** Tính cho từng sản phẩm đang dùng: còn, chờ gửi, đang đặt, bán / ngày, đủ bán bao nhiêu ngày, mức (lv), nên đặt bao nhiêu (sug). */
 export async function khoStats(x, items) {
@@ -200,10 +200,10 @@ const nf = n => String(r1(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.').replace(/\.(
 const dm = t => fmtDate(t, 'dd/MM');
 function khoLine(s, withSug) {
   const nm = '<b>' + esc(s.name) + '</b>', u = ' ' + esc(s.unit);
-  const have = s.avail === null ? 'chưa nhập số tồn' : s.avail <= 0 ? '<b>đã hết</b>' + (s.wait ? ' (còn ' + nf(s.wait) + u + ' đơn chờ gửi chưa có hàng)' : '') : 'còn ' + nf(s.avail) + u + (s.wait ? ' (đã trừ ' + nf(s.wait) + ' chờ gửi)' : '');
+  const have = s.avail === null ? 'chưa đếm' : s.avail <= 0 ? '<b>đã hết</b>' + (s.wait ? ' (còn ' + nf(s.wait) + u + ' đơn chờ gửi chưa có hàng)' : '') : 'còn ' + nf(s.avail) + u + (s.wait ? ' (đã trừ ' + nf(s.wait) + ' chờ gửi)' : '');
   const days = s.left !== null && s.avail > 0 ? ' · đủ bán ~' + s.left + ' ngày' : '';
   const po = s.open.length ? ' · đã đặt ' + nf(s.onOrder) + u + (s.eta ? ', hẹn về ' + dm(s.eta) : '') + (s.late ? ' <b>(trễ hẹn)</b>' : '') : '';
-  const sug = withSug && s.need ? '\n   → NCC giao mất ~' + s.lead + ' ngày, nên đặt <b>' + nf(s.sug) + u + '</b>' + (s.short ? ' nữa' : '') + (s.supplier ? ' · ' + esc(s.supplier) : '') : '';
+  const sug = withSug && s.need ? '\n   → nhà cung cấp giao mất ~' + s.lead + ' ngày, nên đặt <b>' + nf(s.sug) + u + '</b>' + (s.short ? ' nữa' : '') + (s.supplier ? ' · ' + esc(s.supplier) : '') : '';
   return '• ' + nm + ': ' + have + days + po + sug;
 }
 async function khoPeople(x) {
@@ -231,9 +231,9 @@ export async function khoCheck(x, opt) {
   list.forEach(s => { if (s.act) { A[s.id] = A0[s.id] || { since: now }; if (!A0[s.id]) fresh.push(s); } });
   if (fresh.length && opt.notify !== false && vnH(now) >= 7 && vnH(now) < 21) {
     const P = await khoPeople(x), who = P.staff.map(u => u.name).join(', ');
-    const msg = '📦 <b>SẮP HẾT HÀNG – cần đặt nhà cung cấp</b>\n' + fresh.map(s => khoLine(s, true)).join('\n') + '\n\n👉 Đặt xong bấm <b>🛒 Đã đặt NCC</b> trong CRM để máy thôi nhắc: ' + KHO_URL;
+    const msg = '📦 <b>SẮP HẾT HÀNG – cần đặt nhà cung cấp</b>\n' + fresh.map(s => khoLine(s, true)).join('\n') + '\n\n👉 Đặt xong, vào CRM → Kho bấm <b>✅ Tôi đã đặt hàng</b> để máy thôi nhắc: ' + KHO_URL;
     const solo = await toStaff(x, P, msg);
-    if (solo) await telegram(x.env, '📦 <b>Kho sắp hết</b>: ' + fresh.map(s => esc(s.name) + (s.left !== null && s.avail > 0 ? ' (~' + s.left + ' ngày)' : ' (hết)')).join(', ') + (who ? '\n👤 Đã báo ' + esc(who) + ' đặt NCC' : ''));
+    if (solo) await telegram(x.env, '📦 <b>Kho sắp hết</b>: ' + fresh.map(s => esc(s.name) + (s.left !== null && s.avail > 0 ? ' (~' + s.left + ' ngày)' : ' (hết)')).join(', ') + (who ? '\n👤 Đã báo ' + esc(who) + ' đặt thêm hàng' : ''));
     fresh.forEach(s => { A[s.id].sent = now; });
   }
   if (JSON.stringify(A) !== JSON.stringify(A0)) await kvSet(x.db, 'kho_alert', JSON.stringify(A));
@@ -255,19 +255,19 @@ export async function khoMorning(x) {
   const act = list.filter(s => s.act), late = list.filter(s => s.late && !s.act), risk = list.filter(s => s.lv === 'risk'), outW = list.filter(s => s.lv === 'out' && !s.act), nob = list.filter(s => s.lv === 'nobase');
   let unm = 0; try { unm = (await khoNames(x, await khoCtx(x, items), 14)).filter(r => !r.to).length; } catch (e) { }
   const parts = [];
-  if (act.length) parts.push('<b>🛒 Cần đặt nhà cung cấp (' + act.length + ')</b>\n' + act.map(s => khoLine(s, true) + (A[s.id] && now - A[s.id].since > 20 * 3600e3 ? '\n   ⚠️ Đã báo từ ' + fmtDate(A[s.id].since, 'HH:mm dd/MM') + ', chưa ghi đặt hàng' : '')).join('\n'));
+  if (act.length) parts.push('<b>🛒 Cần đặt thêm hàng (' + act.length + ')</b>\n' + act.map(s => khoLine(s, true) + (A[s.id] && now - A[s.id].since > 20 * 3600e3 ? '\n   ⚠️ Đã báo từ ' + fmtDate(A[s.id].since, 'HH:mm dd/MM') + ', chưa ghi đặt hàng' : '')).join('\n'));
   if (outW.length) parts.push('<b>🔴 Đang hết, chờ hàng về</b>\n' + outW.map(s => khoLine(s)).join('\n'));
-  if (late.length) parts.push('<b>⏰ Hàng về trễ hẹn – gọi giục NCC (' + late.length + ')</b>\n' + late.map(s => khoLine(s)).join('\n'));
+  if (late.length) parts.push('<b>⏰ Hàng về trễ hẹn – gọi giục nhà cung cấp (' + late.length + ')</b>\n' + late.map(s => khoLine(s)).join('\n'));
   if (risk.length) parts.push('<b>🟠 Có thể hết trước khi hàng về</b>\n' + risk.map(s => khoLine(s)).join('\n'));
-  if (nob.length) parts.push('⚪ ' + nob.length + ' sản phẩm chưa nhập số tồn: ' + nob.map(s => esc(s.name)).join(', ') + '. Đếm rồi nhập ở 🧮 Kiểm kho.');
-  if (unm) parts.push('❓ ' + unm + ' tên hàng trong đơn 14 ngày qua máy chưa biết là sản phẩm nào → vào Kho → 🔗 Ghép tên hàng.');
-  if (wd === cday) parts.push('🧮 <b>Hôm nay ' + (cday === 0 ? 'chủ nhật' : 'thứ ' + (cday + 1)) + ': kiểm kho cuối tuần.</b> Đếm từng sản phẩm, nhập ở CRM → Kho → 🧮 Kiểm kho. Máy tự sửa phần lệch.');
+  if (nob.length) parts.push('⚪ ' + nob.length + ' sản phẩm chưa đếm: ' + nob.map(s => esc(s.name)).join(', ') + '. Đếm rồi bấm 🧮 Đếm kho.');
+  if (unm) parts.push('❓ ' + unm + ' tên hàng trong đơn 14 ngày qua máy chưa biết là sản phẩm nào → vào Kho, bấm vào dòng ❓ để chỉ cho máy.');
+  if (wd === cday) parts.push('🧮 <b>Hôm nay ' + (cday === 0 ? 'chủ nhật' : 'thứ ' + (cday + 1)) + ': đếm kho cuối tuần.</b> Đếm từng sản phẩm, vào CRM → Kho bấm 🧮 Đếm kho. Máy tự sửa phần lệch.');
   if (parts.length) await toStaff(x, P, '📦 <b>Kho sáng ' + dm(now) + '</b>\n\n' + parts.join('\n\n') + '\n\n👉 ' + KHO_URL);
   if (P.staff.some(u => u.tg) && (act.length || late.length || outW.length)) await telegram(x.env, '📦 <b>Kho hôm nay</b>' + (act.length ? '\n🛒 Cần đặt: ' + act.map(s => esc(s.name) + (s.avail > 0 && s.left !== null ? ' (~' + s.left + ' ngày)' : ' (hết)')).join(', ') : '') + (outW.length ? '\n🔴 Đang hết: ' + outW.map(s => esc(s.name)).join(', ') : '') + (late.length ? '\n⏰ Hàng về trễ: ' + late.map(s => esc(s.name)).join(', ') : '') + '\n👤 ' + esc(who) + ' phụ trách');
   // Quản trị: việc bị bỏ quên
   const esc1 = act.filter(s => A[s.id] && now - A[s.id].since > 20 * 3600e3 && !s.open.length), late2 = list.filter(s => s.late), oldCnt = list.filter(s => s.countAt && now - s.countAt > 10 * DAY);
   const ap = [];
-  if (esc1.length) ap.push('<b>⚠️ Đã báo ' + esc(who) + ' nhưng chưa ghi đặt NCC</b>\n' + esc1.map(s => khoLine(s, true) + '\n   (báo từ ' + fmtDate(A[s.id].since, 'HH:mm dd/MM') + ')').join('\n'));
+  if (esc1.length) ap.push('<b>⚠️ Đã báo ' + esc(who) + ' nhưng chưa ghi đã đặt hàng</b>\n' + esc1.map(s => khoLine(s, true) + '\n   (báo từ ' + fmtDate(A[s.id].since, 'HH:mm dd/MM') + ')').join('\n'));
   if (late2.length) ap.push('<b>⏰ Hàng về trễ hẹn</b>\n' + late2.map(s => '• ' + esc(s.name) + ': hẹn ' + (s.eta ? dm(s.eta) : '?') + (s.supplier ? ' · ' + esc(s.supplier) : '')).join('\n'));
   if (oldCnt.length) ap.push('🧮 Quá 10 ngày chưa kiểm kho: ' + oldCnt.map(s => esc(s.name) + ' (lần cuối ' + dm(s.countAt) + ')').join(', '));
   if (ap.length) for (const u of P.admins) await telegramTo(x.env, u.tg, '📦 <b>Kho – cần anh/chị để ý</b>\n\n' + ap.join('\n\n') + '\n\n👉 ' + KHO_URL);
@@ -319,7 +319,7 @@ export async function crmKho(x, u, d, log) {
     const row = [name, String(v.unit || 'hộp').trim().slice(0, 20) || 'hộp', Math.round(lead), Math.round(safety), Math.round(cover), Math.round(min), String(v.supplier || '').trim().slice(0, 200), String(v.note || '').trim().slice(0, 300), now, u.name];
     if (o) await run(x.db, 'UPDATE kho_items SET name = ?, unit = ?, lead = ?, safety = ?, cover = ?, min_qty = ?, supplier = ?, note = ?, at = ?, by_name = ?, active = 1 WHERE id = ?', ...row, id);
     else { const m = await first(x.db, 'SELECT max(ord) AS m FROM kho_items'); await run(x.db, 'INSERT INTO kho_items (id, name, unit, lead, safety, cover, min_qty, supplier, note, at, by_name, active, ord) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)', 'k' + randHex(4), ...row, ((m && m.m) || 0) + 1); }
-    await log(x, u, 'Kho', '-', name, o ? 'Sửa sản phẩm kho' : 'Thêm sản phẩm kho', 'NCC giao ' + Math.round(lead) + ' ngày · dự phòng ' + Math.round(safety) + ' ngày');
+    await log(x, u, 'Kho', '-', name, o ? 'Sửa sản phẩm kho' : 'Thêm sản phẩm kho', 'nhà cung cấp giao ' + Math.round(lead) + ' ngày · dự phòng ' + Math.round(safety) + ' ngày');
     return khoLoad(x, u, {});
   }
   if (a === 'kho_move') { // 📥 nhập hàng / 📤 xuất khác
@@ -332,7 +332,7 @@ export async function crmKho(x, u, d, log) {
       if (po) await run(x.db, 'UPDATE kho_po SET got = got + ?, status = ?, done_at = ? WHERE id = ?', qty, d.keep ? 'open' : 'done', d.keep ? null : now, po.id);
     }
     await run(x.db, 'INSERT INTO kho_moves (item, kind, qty, reason, note, po, by_name, at, made) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', it.id, kind, qty, reason, note, po ? po.id : null, u.name, at, now);
-    await log(x, u, 'Kho', '-', it.name, (kind === 'in' ? 'Nhập kho ' : 'Xuất khác ') + nf(qty) + ' ' + it.unit + (reason ? ' · ' + reason : ''), note);
+    await log(x, u, 'Kho', '-', it.name, (kind === 'in' ? 'Hàng về kho ' : 'Lấy hàng ra ') + nf(qty) + ' ' + it.unit + (reason ? ' · ' + reason : ''), note);
     return khoLoad(x, u, {});
   }
   if (a === 'kho_count') { // 🧮 kiểm kho: số đếm thật của nhiều sản phẩm 1 lần
@@ -349,24 +349,24 @@ export async function crmKho(x, u, d, log) {
       await run(x.db, "INSERT INTO kho_moves (item, kind, qty, sys, note, by_name, at, made) VALUES (?, 'count', ?, ?, ?, ?, ?, ?)", id, q, sys, note, u.name, at, now);
       if (sys !== null && Math.abs(q - sys) >= 0.5) diffs.push('• ' + esc(it.name) + ': đếm ' + nf(q) + ', máy tính ' + nf(sys) + ' → <b>lệch ' + (q > sys ? '+' : '') + nf(q - sys) + ' ' + esc(it.unit) + '</b>');
     }
-    await log(x, u, 'Kho', '-', '', 'Kiểm kho ' + rows.length + ' sản phẩm' + (diffs.length ? ' · lệch ' + diffs.length : ''), note);
-    if (diffs.length) x.later((async () => { for (const z of (await khoPeople(x)).admins) await telegramTo(x.env, z.tg, '🧮 <b>' + esc(u.name) + ' vừa kiểm kho</b> (' + fmtDate(at, 'HH:mm dd/MM') + ')\n' + diffs.join('\n') + (note ? '\n📝 ' + esc(note) : '') + '\n\nLệch thường do quà tặng, hàng mẫu, hàng hỏng chưa ghi “Xuất khác”, hoặc đơn ngoài CRM. 👉 ' + KHO_URL); })());
+    await log(x, u, 'Kho', '-', '', 'Đếm kho ' + rows.length + ' sản phẩm' + (diffs.length ? ' · lệch ' + diffs.length : ''), note);
+    if (diffs.length) x.later((async () => { for (const z of (await khoPeople(x)).admins) await telegramTo(x.env, z.tg, '🧮 <b>' + esc(u.name) + ' vừa đếm kho</b> (' + fmtDate(at, 'HH:mm dd/MM') + ')\n' + diffs.join('\n') + (note ? '\n📝 ' + esc(note) : '') + '\n\nLệch thường do quà tặng, hàng mẫu, hàng hỏng chưa ghi “📤 Lấy hàng ra”, hoặc đơn ngoài CRM. 👉 ' + KHO_URL); })());
     return Object.assign(await khoLoad(x, u, {}), { diffs: diffs.length });
   }
   if (a === 'kho_po') { // 🛒 đã đặt NCC / đổi ngày hẹn / huỷ
     if (d.id) {
       const p = await first(x.db, 'SELECT * FROM kho_po WHERE id = ?', Number(d.id)); if (!p) return { ok: false, error: 'Không tìm thấy lần đặt hàng này.' };
       const it = await itemOf(x, p.item);
-      if (d.cancel) { await run(x.db, "UPDATE kho_po SET status = 'cancel', done_at = ? WHERE id = ?", now, p.id); await log(x, u, 'Kho', '-', it ? it.name : p.item, 'Huỷ đặt NCC ' + nf(p.qty), String(d.note || '')); }
-      else { const eta = dateOrBlank(d.eta); if (!eta) return { ok: false, error: 'Chọn ngày hẹn hàng về.' }; await run(x.db, 'UPDATE kho_po SET eta = ?, note = ? WHERE id = ?', eta, String(d.note != null ? d.note : p.note || '').slice(0, 300), p.id); await log(x, u, 'Kho', '-', it ? it.name : p.item, 'NCC hẹn lại ngày về ' + dm(eta), ''); }
+      if (d.cancel) { await run(x.db, "UPDATE kho_po SET status = 'cancel', done_at = ? WHERE id = ?", now, p.id); await log(x, u, 'Kho', '-', it ? it.name : p.item, 'Huỷ lần đặt hàng ' + nf(p.qty), String(d.note || '')); }
+      else { const eta = dateOrBlank(d.eta); if (!eta) return { ok: false, error: 'Chọn ngày hẹn hàng về.' }; await run(x.db, 'UPDATE kho_po SET eta = ?, note = ? WHERE id = ?', eta, String(d.note != null ? d.note : p.note || '').slice(0, 300), p.id); await log(x, u, 'Kho', '-', it ? it.name : p.item, 'Nhà cung cấp hẹn lại ngày về ' + dm(eta), ''); }
       return khoLoad(x, u, {});
     }
     const it = await itemOf(x, d.item), qty = num(d.qty, 0.01, 1e7), eta = dateOrBlank(d.eta);
     if (!it) return { ok: false, error: 'Chọn sản phẩm.' }; if (qty === null) return { ok: false, error: 'Số lượng đặt chưa đúng.' }; if (!eta) return { ok: false, error: 'Chọn ngày nhà cung cấp hẹn giao.' };
     const note = String(d.note || '').trim().slice(0, 300);
     await run(x.db, 'INSERT INTO kho_po (item, qty, eta, note, by_name, at) VALUES (?, ?, ?, ?, ?, ?)', it.id, qty, eta, note, u.name, now);
-    await log(x, u, 'Kho', '-', it.name, 'Đã đặt NCC ' + nf(qty) + ' ' + it.unit + ', hẹn về ' + dm(eta), note);
-    x.later(telegram(x.env, '🛒 <b>' + esc(u.name) + ' đã đặt nhà cung cấp</b>: ' + esc(it.name) + ' ' + nf(qty) + ' ' + esc(it.unit) + ', hẹn về ' + dm(eta) + (note ? '\n📝 ' + esc(note) : '')));
+    await log(x, u, 'Kho', '-', it.name, 'Đã đặt hàng ' + nf(qty) + ' ' + it.unit + ', hẹn về ' + dm(eta), note);
+    x.later(telegram(x.env, '🛒 <b>' + esc(u.name) + ' đã đặt thêm hàng</b>: ' + esc(it.name) + ' ' + nf(qty) + ' ' + esc(it.unit) + ', hẹn về ' + dm(eta) + (note ? '\n📝 ' + esc(note) : '')));
     return khoLoad(x, u, {});
   }
   if (a === 'kho_map') { // 🔗 ghép tay 1 tên hàng: comps [[mã sản phẩm, số đơn vị / suất]]; [] = không trừ kho; null = bỏ ghép tay
@@ -390,7 +390,7 @@ export async function crmKho(x, u, d, log) {
     await run(x.db, 'DELETE FROM kho_moves WHERE id = ?', m.id);
     if (m.po) await run(x.db, "UPDATE kho_po SET got = max(0, got - ?), status = 'open', done_at = NULL WHERE id = ?", m.qty, m.po);
     const it = await itemOf(x, m.item);
-    await log(x, u, 'Kho', '-', it ? it.name : m.item, 'Xoá dòng ' + ({ in: 'nhập kho', out: 'xuất khác', count: 'kiểm kho' })[m.kind] + ' ' + nf(m.qty), fmtDate(m.at, 'HH:mm dd/MM'));
+    await log(x, u, 'Kho', '-', it ? it.name : m.item, 'Xoá dòng ' + ({ in: 'hàng về kho', out: 'lấy hàng ra', count: 'đếm kho' })[m.kind] + ' ' + nf(m.qty), fmtDate(m.at, 'HH:mm dd/MM'));
     return khoLoad(x, u, {});
   }
   if (a === 'kho_cfg') {
