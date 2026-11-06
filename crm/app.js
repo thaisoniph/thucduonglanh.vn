@@ -95,6 +95,7 @@
     return c;
   }
   var I = {
+    spark: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>',
     today: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
     users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
     box: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"/></svg>',
@@ -225,7 +226,7 @@
     if (!CFG.endpoint) return Promise.reject(new Error('Chưa cấu hình máy chủ.'));
     tries = tries || 0; var t0 = Date.now();
     // chờ tối đa 30 giây (việc nặng của quản trị 90 giây) rồi báo, không để vòng quay mãi (16/10/2026)
-    var ac = typeof AbortController === 'function' ? new AbortController() : null, wait = API_HEAVY.test(action) ? 90e3 : 30e3, tm = ac && setTimeout(function () { ac.abort(); }, wait);
+    var ac = typeof AbortController === 'function' ? new AbortController() : null, wait = action === 'ai_ask' ? 180e3 : API_HEAVY.test(action) ? 90e3 : 30e3, tm = ac && setTimeout(function () { ac.abort(); }, wait);
     return fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), signal: ac ? ac.signal : undefined })
       .then(function (r) { clearTimeout(tm); return r.text().then(function (t) { return { t: t, st: r.status }; }); }, function (er) { clearTimeout(tm); var slow = er && er.name === 'AbortError', e0 = new Error(slow ? 'Máy chủ trả lời chậm quá ' + (wait / 1000) + ' giây. Bạn kiểm tra mạng rồi bấm lại nhé.' : 'Mất kết nối mạng. Bạn thử lại nhé.'); e0.net = true; throw e0; })
       .then(function (x) {
@@ -707,6 +708,7 @@
     { id: 'khach-hang', label: 'Khách đã mua', short: 'Khách', icon: 'users' },
     { id: 'don-hang', label: 'Đơn hàng', icon: 'box' },
     { id: 'bao-cao', label: 'Hiệu quả', icon: 'chart' },
+    { id: 'hoi-so-lieu', label: 'Hỏi số liệu', short: 'Hỏi', icon: 'spark', min: 2, ask: 1 }, // ✨ hỏi bằng lời, AI tự tra số (api/src/ask.js): Quản lý + Quản trị, vào từ Thêm / nút trên Tổng quan, Hiệu quả
     { id: 'marketing', label: 'Marketing', icon: 'mega', mkt: 1 }, // quyền Marketing: chỉ thấy tab này + Cài đặt; Quản trị vào từ Tổng quan (không chiếm chỗ trên menu)
     { id: 'link-qr', label: 'Link & QR', short: 'QR', icon: 'qr', lq: 1 }, // 📍 link / mã QR theo dõi nguồn khách: Marketing, Quản lý, Quản trị (Quản trị vào từ Tổng quan / Marketing)
     { id: 'tro-ly-zalo', label: 'Trợ lý Zalo', short: 'Zalo', icon: 'bot', lq: 1 }, // 🤖 trợ lý An Lành trong nhóm Zalo (api/src/zbot.js): cùng quyền với Link & QR
@@ -716,7 +718,7 @@
   ];
   // Marketing: tab Marketing, Link & QR, Khách hỏi (24/10/2026: chỉ xem khách để lại số trên web), Cài đặt
   function myViews() { if (isMkt()) return VIEWS.filter(function (v) { return v.mkt || v.lq || v.id === 'tiem-nang' || v.id === 'cai-dat'; }); return VIEWS.filter(function (v) { return (!v.min || lvl() >= v.min) && (!v.lq || lvl() >= 2 || (v.id === 'tro-ly-zalo' && S.user && S.user.zb)) && (!v.san || (S.d && S.d.sanOk) || lvl() >= 3) && (!v.mkt || lvl() >= 3 || mkvOnly()); }); }
-  function navViews() { return myViews().filter(function (v) { return !((v.san || v.lq) && lvl() >= 2 && !isMkt()); }); } // Quản trị: Marketing có trên menu (29/10/2026), Sàn / Link & QR / Zalo / Fanpage vào từ Thêm; Quản lý cũng vậy (anh Sơn 31/10/2026: menu máy tính rối)
+  function navViews() { return myViews().filter(function (v) { return !((v.san || v.lq || v.ask) && lvl() >= 2 && !isMkt()); }); } // Quản trị: Marketing có trên menu (29/10/2026), Sàn / Link & QR / Zalo / Fanpage vào từ Thêm; Quản lý cũng vậy (anh Sơn 31/10/2026: menu máy tính rối)
   /** Điện thoại (29/10/2026, kiểu Apple): thanh dưới chỉ 4 mục hay dùng + "Thêm"; mục còn lại, Cài đặt, Hướng dẫn, Góp ý nằm ở màn Thêm. Máy tính vẫn hiện đủ. */
   var NAV_FIRST = ['hom-nay', 'tiem-nang', 'khach-hang', 'don-hang', 'bao-cao'];
   var NAV_SALE = ['hom-nay', 'tiem-nang', 'bao-cao', 'don-hang']; // sale: Hiệu quả ở chính giữa thanh dưới (anh Sơn 29/10/2026); 31/10/2026 Đơn hàng (có số đang giao) thay Khách, Khách vào Thêm
@@ -732,9 +734,10 @@
     'tong-quan': 'Bức tranh kinh doanh cả công ty', 'hom-nay': 'Khách cần gọi, đơn mới hôm nay', 'tiem-nang': 'Người để lại số, chưa mua',
     'khach-hang': 'Hồ sơ, lịch sử mua, chăm sóc', 'don-hang': 'Đơn mới, đang giao, hoàn / huỷ', 'bao-cao': 'Doanh số, mục tiêu, thi đua',
     marketing: 'Quảng cáo, chi phí, giá 1 số điện thoại', 'link-qr': 'Link và mã QR theo dõi nguồn khách', 'tro-ly-zalo': 'Trợ lý An Lành trong nhóm Zalo',
-    fanpage: 'Trả lời bình luận, tin nhắn Fanpage', san: 'Doanh số Shopee, TikTok Shop', 'cai-dat': 'Nhân sự, mục tiêu, mẫu tin, tài khoản'
+    fanpage: 'Trả lời bình luận, tin nhắn Fanpage', san: 'Doanh số Shopee, TikTok Shop', 'cai-dat': 'Nhân sự, mục tiêu, mẫu tin, tài khoản',
+    'hoi-so-lieu': 'Hỏi bằng lời, AI tự tra số và báo cáo'
   };
-  var VIEW_TINT = { 'tong-quan': '#1f5f3a', 'hom-nay': '#34a853', 'tiem-nang': '#ff9500', 'khach-hang': '#007aff', 'don-hang': '#a2845e', 'bao-cao': '#5856d6', marketing: '#ff2d55', 'link-qr': '#636366', 'tro-ly-zalo': '#0068ff', fanpage: '#1877f2', san: '#ee4d2d', 'cai-dat': '#8e8e93' };
+  var VIEW_TINT = { 'tong-quan': '#1f5f3a', 'hom-nay': '#34a853', 'tiem-nang': '#ff9500', 'khach-hang': '#007aff', 'don-hang': '#a2845e', 'bao-cao': '#5856d6', marketing: '#ff2d55', 'link-qr': '#636366', 'tro-ly-zalo': '#0068ff', fanpage: '#1877f2', san: '#ee4d2d', 'cai-dat': '#8e8e93', 'hoi-so-lieu': '#af52de' };
   function viewMore() {
     var main = navMain(), n = navCounts(), info = navInfo();
     var rest = myViews().filter(function (v) { return main.indexOf(v.id) < 0 && v.id !== 'cai-dat'; });
@@ -746,7 +749,8 @@
     var h = '<div class="mr"><div class="page-head"><h1>Thêm</h1></div>' +
       '<div class="mr-me"><span class="mr-av">' + esc((S.user.name || '?').trim().split(/\s+/).pop().charAt(0).toUpperCase()) + '</span><span class="mr-t"><b>' + esc(S.user.name) + '</b><small>' + esc(S.user.role || '') + ' · ' + esc(S.user.email || '') + '</small></span></div>' +
       (isMkt() ? '' : '<button type="button" class="mr-search" data-mr="search">' + I.search + '<span>Tìm khách, số điện thoại, mã đơn</span></button>') +
-      group('Bán hàng', rest.filter(function (v) { return !isCh(v); }).map(vrow).join('')) +
+      group('', rest.filter(function (v) { return v.ask; }).map(vrow).join('')) +
+      group('Bán hàng', rest.filter(function (v) { return !isCh(v) && !v.ask; }).map(vrow).join('')) +
       group('Marketing & kênh bán', rest.filter(isCh).map(vrow).join('')) +
       group('Khác',
         vrow(VIEWS.filter(function (v) { return v.id === 'cai-dat'; })[0]) +
@@ -950,7 +954,7 @@
     var keepScroll = lastView === v, y = window.scrollY;
     var el = $('#view');
     var focusId = document.activeElement && document.activeElement.id, selStart = document.activeElement && document.activeElement.selectionStart;
-    el.innerHTML = ({ 'hom-nay': viewToday, 'khach-hang': viewCustomers, 'don-hang': viewOrders, 'tiem-nang': viewLeads, 'bao-cao': viewReport, 'cai-dat': viewSettings, 'tong-quan': viewDash, san: viewSan, marketing: viewMkt, 'link-qr': viewLinks, 'tro-ly-zalo': viewZbot, fanpage: viewFp, them: viewMore })[v]();
+    el.innerHTML = ({ 'hom-nay': viewToday, 'khach-hang': viewCustomers, 'don-hang': viewOrders, 'tiem-nang': viewLeads, 'bao-cao': viewReport, 'cai-dat': viewSettings, 'tong-quan': viewDash, san: viewSan, marketing: viewMkt, 'link-qr': viewLinks, 'tro-ly-zalo': viewZbot, fanpage: viewFp, 'hoi-so-lieu': viewAsk, them: viewMore })[v]();
     el.insertAdjacentHTML('beforeend', updatedLine());
     if (focusId && $('#' + focusId)) { var f = $('#' + focusId); f.focus(); try { f.setSelectionRange(selStart, selStart); } catch (e) { } }
     if (keepScroll) window.scrollTo(0, y); else window.scrollTo(0, 0);
@@ -962,6 +966,7 @@
     if (v === 'bao-cao') bindRep();
     if (v === 'marketing') bindMkv();
     if (v === 'tong-quan' || v === 'san') bindSan();
+    if (v === 'hoi-so-lieu') bindAsk(!keepScroll);
     if (r.id && !$('.modal')) {
       if (v === 'khach-hang' && cust(r.id)) openCustomer(r.id, true);
       if (v === 'don-hang') { var o = S.d.orders.filter(function (x) { return x.id === r.id; })[0]; if (o) openOrder(o.id, true); }
@@ -4756,7 +4761,7 @@
     var month = monthOf(Math.min(R[1] - 1, Date.now())), sj = snGet(R, P, month), M = mktCalc(key, R, P, sj), gl = dashGoal(month, sj);
     var sn = sj ? sanSum(sj.days, 2) : null, snp = sj ? sanSum(sj.prev, 1) : null;
     var T = { san: sn ? sn.g : 0, paid: b.paid + (sn ? sn.gp || 0 : 0), sanPaid: sn ? sn.gp || 0 : 0, rev: b.rev + (sn ? sn.g + sn.gv : 0), revP: bp.rev + (snp ? snp.g + snp.gv : 0), vRev: b.vRev + (sn ? sn.gv : 0), net: b.rev - b.vRev + (sn ? sn.g : 0), netP: bp.rev - bp.vRev + (snp ? snp.g : 0), sanV: sn ? sn.gv : 0, n: b.n + (sn ? sn.n + sn.c + sn.r : 0), nP: bp.n + (snp ? snp.n + snp.c + snp.r : 0), tr: dashSeries(R, P, sj), vs: voidStats(R), vsp: voidStats(P) };
-    var h = '<div class="page-head"><h1>Tổng quan</h1><div class="grow"></div><button class="btn ghost" data-dash="fresh" title="Lấy số mới nhất (quảng cáo, website)">↻ Cập nhật số</button></div>' + perChips('g', f.p);
+    var h = '<div class="page-head"><h1>Tổng quan</h1><div class="grow"></div>' + askBtn() + '<button class="btn ghost" data-dash="fresh" title="Lấy số mới nhất (quảng cáo, website)">↻ Cập nhật số</button></div>' + perChips('g', f.p);
     h += dashHero(T, b, bp, M, gl, month, sj, f.p);
     h += dashNotes(T, b, g, f.p, M, sj, gl);
     h += '<div class="section-h dash-more-h"><h2>🔎 Xem chi tiết từng phần</h2><span class="tip">bấm vào từng mục để mở / đóng</span></div>';
@@ -5465,6 +5470,103 @@
   }
   function zbDay(day) { var t = new Date(day.slice(0, 4) + '-' + day.slice(4, 6) + '-' + day.slice(6, 8) + 'T12:00:00+07:00').getTime(), d0 = today(); return dayStart(t) === d0 ? 'Hôm nay' : dayStart(t) === d0 + DAY ? 'Ngày mai' : dayStart(t) === d0 - DAY ? 'Hôm qua' : day.slice(6, 8) + '/' + day.slice(4, 6); }
   function zbSlot(id) { return (ZB.d.cfg.slots || []).filter(function (s) { return s.id === id; })[0] || { id: id, at: '', on: false }; }
+  /* ================================================================ ✨ Hỏi số liệu (06/11/2026, api/src/ask.js)
+   * Quản lý / Quản trị hỏi bằng lời ("doanh số tuần này so với tuần trước?"), máy chủ để Claude tự tra số trong D1 rồi trả lời.
+   * Cuộc hỏi lưu trên máy này (localStorage, 7 ngày, 30 tin). Gửi kèm 6 cặp hỏi–đáp gần nhất để hỏi tiếp được ("còn tháng trước?"). */
+  var ASK = { msgs: null, busy: false, draft: '', scroll: false };
+  var ASK_SUG = ['Doanh số tháng này thế nào, so với cùng kỳ tháng trước?', 'Tuần này ai bán nhiều nhất? Tỷ lệ hoàn từng người?', 'Sản phẩm nào bán chạy nhất 30 ngày qua?', 'Khách hỏi tuần này đến từ kênh nào, tỷ lệ chốt bao nhiêu?', 'Chi phí quảng cáo tháng này, giá 1 khách hỏi bao nhiêu?', 'Bao nhiêu khách sắp dùng hết hàng trong 7 ngày tới, của sale nào?'];
+  function askBtn() { return lvl() >= 2 && !isMkt() && S.d && S.d.rules && S.d.rules.ai ? '<a class="btn ghost" href="#hoi-so-lieu" title="Hỏi bằng lời, AI tự tra số trong CRM">✨ Hỏi số liệu</a>' : ''; }
+  function askKey() { return 'crm_ask_' + ((S.user && S.user.email) || ''); }
+  function askLoad() {
+    if (ASK.msgs) return;
+    try { var m = JSON.parse(store(askKey()) || 'null'); ASK.msgs = m && m.t > Date.now() - 7 * DAY && Array.isArray(m.m) ? m.m : []; } catch (e) { ASK.msgs = []; }
+  }
+  function askSave() { store(askKey(), ASK.msgs.length ? JSON.stringify({ t: Date.now(), m: ASK.msgs.slice(-30) }) : null); }
+  /** Chữ AI (markdown đơn giản) → HTML: **đậm**, _nghiêng_, gạch đầu dòng, danh sách số, bảng |…|. */
+  function askInline(s) {
+    return s.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/(^|[\s(])_(?!\s)(.+?)_(?=$|[\s).,;:!?])/g, '$1<i>$2</i>').replace(/(^|[\s(])\*(?![\s*])([^*]+?)\*(?=$|[\s).,;:!?])/g, '$1<i>$2</i>').replace(/`([^`]+)`/g, '<code>$1</code>');
+  }
+  function askMd(t) {
+    var h = '', list = '', tbl = [];
+    var endList = function () { if (list) { h += '</' + list + '>'; list = ''; } };
+    var endTbl = function () {
+      if (!tbl.length) return;
+      var rows = tbl.filter(function (r) { return !/^[\s|:-]+$/.test(r); }).map(function (r) { return r.replace(/^\|/, '').replace(/\|$/, '').split('|').map(function (c) { return askInline(esc(c.trim())); }); });
+      h += '<div class="ask-tbl"><table>' + rows.map(function (r, i) { var g = i === 0 ? 'th' : 'td'; return '<tr>' + r.map(function (c) { return '<' + g + '>' + c + '</' + g + '>'; }).join('') + '</tr>'; }).join('') + '</table></div>'; tbl = [];
+    };
+    String(t || '').replace(/\r/g, '').split('\n').forEach(function (ln) {
+      var s = ln.trim(), m;
+      if (/^\|.*\|$/.test(s)) { endList(); tbl.push(s); return; }
+      endTbl();
+      if (!s) { endList(); return; }
+      if ((m = s.match(/^[-*•]\s+(.*)$/))) { if (list !== 'ul') { endList(); h += '<ul>'; list = 'ul'; } h += '<li>' + askInline(esc(m[1])) + '</li>'; return; }
+      if ((m = s.match(/^\d+[.)]\s+(.*)$/))) { if (list !== 'ol') { endList(); h += '<ol>'; list = 'ol'; } h += '<li>' + askInline(esc(m[1])) + '</li>'; return; }
+      endList();
+      if ((m = s.match(/^#{1,6}\s+(.*)$/))) { h += '<p><b>' + askInline(esc(m[1])) + '</b></p>'; return; }
+      h += '<p>' + askInline(esc(s)) + '</p>';
+    });
+    endList(); endTbl();
+    return h;
+  }
+  function askMsg(m) {
+    if (m.r === 'u') return '<div class="ask-msg ask-u">' + esc(m.t).replace(/\n/g, '<br>') + '</div>';
+    if (m.err) return '<div class="ask-msg ask-a ask-err"><p>⚠️ ' + esc(m.t) + '</p><button type="button" class="link" data-ask="retry">↻ Hỏi lại</button></div>';
+    var n = (m.steps || []).length, cost = m.cost ? '≈ ' + money(m.cost) + ' tiền AI' : '';
+    var st = n ? '<details class="ask-steps"><summary>🔎 Đã tra ' + n + ' lần' + (cost ? ' · ' + cost : '') + '</summary><ol>' + m.steps.map(function (x) { return '<li>' + esc(x.t) + (x.sql && lvl() >= 3 ? '<pre>' + esc(x.sql) + '</pre>' : '') + '</li>'; }).join('') + '</ol></details>' : cost ? '<p class="ask-steps">' + cost + '</p>' : '';
+    return '<div class="ask-msg ask-a">' + askMd(m.t) + st + '</div>';
+  }
+  function viewAsk() {
+    askLoad();
+    var h = '<div class="ask-wrap"><div class="page-head"><h1>✨ Hỏi số liệu</h1><div class="grow"></div>' + (ASK.msgs.length && !ASK.busy ? '<button type="button" class="btn ghost" data-ask="new">🗑 Hỏi chuyện mới</button>' : '') + '</div>';
+    if (!(S.d.rules && S.d.rules.ai)) return h + '<div class="box"><p style="margin:0">⚠️ Máy chủ chưa bật AI (chưa có khoá ANTHROPIC_API_KEY). Quản trị bật ở Cloudflare → Workers → thucduonglanh-api → Settings → Variables and Secrets.</p></div></div>';
+    if (!ASK.msgs.length) h += '<div class="box ask-intro"><p><b>Hỏi bằng lời thường</b>, trợ lý AI tự tra số trong CRM (đơn hàng, khách, khách hỏi, chăm sóc, mục tiêu' + (lvl() >= 3 || (S.user && S.user.mkv) ? ', quảng cáo' : '') + (lvl() >= 3 || S.d.sanOk ? ', sàn' : '') + (lvl() >= 3 ? ', kế toán' : '') + ') rồi báo cáo. Hỏi tiếp được, vd “còn tháng trước?”, “chia theo nhân viên”.</p>' +
+      '<p class="small muted">Mỗi câu mất 10–60 giây, khoảng 2.000–5.000đ tiền AI. Tên khách chỉ hiện tên gọi, số điện thoại bị che. Số do AI tự tính: số quan trọng nên đối chiếu lại với Tổng quan / Hiệu quả.</p></div>' +
+      '<div class="ask-sug">' + ASK_SUG.map(function (q) { return '<button type="button" class="ask-chip" data-ask="sug">' + esc(q) + '</button>'; }).join('') + '</div>';
+    h += '<div class="ask-log">' + ASK.msgs.map(askMsg).join('') + (ASK.busy ? '<div class="ask-msg ask-a ask-wait"><span class="ask-dots" aria-hidden="true"><i></i><i></i><i></i></span>Đang tra số liệu… <small>(thường 10–60 giây)</small></div>' : '') + '</div>';
+    h += '<div class="ask-form"><textarea id="askIn" rows="2" maxlength="1500" aria-label="Câu hỏi về số liệu" placeholder="Hỏi gì cũng được, vd: Doanh số tuần này so với tuần trước?"' + (ASK.busy ? ' disabled' : '') + '>' + esc(ASK.draft) + '</textarea>' +
+      '<button type="button" class="btn pri" data-ask="send"' + (ASK.busy ? ' disabled' : '') + '>Gửi</button></div></div>';
+    return h;
+  }
+  function bindAsk(first) {
+    if (!(ASK.scroll || first)) return;
+    ASK.scroll = false;
+    var all = $$('.ask-msg'), last = all[all.length - 1], qs = $$('.ask-u'), lq = qs[qs.length - 1];
+    if (lq && !first && last.classList.contains('ask-a') && !last.classList.contains('ask-wait')) lq.scrollIntoView({ block: 'start' }); // vừa có câu trả lời: thấy câu hỏi + dòng đầu câu trả lời
+    else if (all.length) window.scrollTo(0, document.body.scrollHeight);
+  }
+  function askRedraw() { if (route().view === 'hoi-so-lieu') render(); }
+  function askSend(q, again) {
+    q = String(q || '').trim(); if (!q || ASK.busy) return;
+    askLoad();
+    var M = ASK.msgs, hist = [];
+    for (var i = 0; i < M.length - 1; i++) if (M[i].r === 'u' && M[i + 1].r === 'a' && !M[i + 1].err) hist.push({ q: M[i].t, a: M[i + 1].t });
+    if (!again) M.push({ r: 'u', t: q, at: Date.now() });
+    ASK.busy = true; ASK.draft = ''; ASK.scroll = true; askSave(); askRedraw();
+    api('ai_ask', { q: q, hist: hist.slice(-6) }).then(function (j) {
+      M.push({ r: 'a', t: String(j.text || ''), steps: j.steps || [], cost: j.cost || 0, at: Date.now() });
+    }, function (er) {
+      var em = (er && er.message) || 'Có lỗi, bạn thử lại nhé.';
+      if (/Không rõ thao tác/.test(em)) em = 'Máy chủ chưa có trợ lý số liệu (có thể đang cập nhật). Bạn thử lại sau vài phút.';
+      M.push({ r: 'a', t: em, err: 1, at: Date.now() });
+    }).then(function () {
+      ASK.busy = false; ASK.scroll = true; askSave(); askRedraw();
+      if (route().view !== 'hoi-so-lieu') toast('✨ Trợ lý số liệu đã trả lời: mở Thêm → Hỏi số liệu để xem');
+    });
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-ask]'); if (!b || !S.d) return;
+    e.preventDefault();
+    var k = b.getAttribute('data-ask'); askLoad();
+    if (k === 'send') { var ta = $('#askIn'); askSend(ta ? ta.value : ''); }
+    else if (k === 'sug') askSend(b.textContent);
+    else if (k === 'retry') { var M = ASK.msgs; if (M.length && M[M.length - 1].err) M.pop(); askSend(M.length && M[M.length - 1].r === 'u' ? M[M.length - 1].t : '', true); }
+    else if (k === 'new' && !ASK.busy) { ASK.msgs = []; askSave(); render(); }
+  });
+  document.addEventListener('input', function (e) { if (e.target && e.target.id === 'askIn') ASK.draft = e.target.value; });
+  document.addEventListener('keydown', function (e) { // máy tính: Enter = gửi, Shift+Enter = xuống dòng. Điện thoại: Enter xuống dòng, bấm Gửi
+    if (e.target && e.target.id === 'askIn' && e.key === 'Enter' && !e.shiftKey && !e.isComposing && !(window.matchMedia && matchMedia('(pointer: coarse)').matches)) { e.preventDefault(); askSend(e.target.value); }
+  });
+
   function viewZbot() {
     if (!ZB.d && !ZB.err && !ZB.busy) setTimeout(zbFetch, 0);
     var h = '<div class="page-head"><h1>🤖 Trợ lý Zalo An Lành</h1><div class="grow"></div><button class="btn pri" data-zb="send">📣 Gửi tin vào nhóm</button><button class="btn" data-zb="hist">📚 Bài đã đăng &amp; hiệu quả</button></div>' +
@@ -7237,7 +7339,7 @@
     cx.whole = f.p.k === 'month' || f.p.k === 'lmonth'; // đúng trọn 1 tháng → mục tiêu dùng luôn số trong kỳ
     cx.P = cmpRange(f.p);
     if (f.p.k === 'all') { cx.all = salesAllGet(); if (!cx.all) cx.allNote = S.salesAll ? '' : '<div class="notice">⏳ Đang lấy doanh số từ trước tới nay trên máy chủ…</div>'; else cx.allNote = '<p class="small muted">Mọi lúc: <b>doanh số, số đơn</b> tính đủ mọi đơn từ trước tới nay (cả đơn cũ nhập từ file sale). Các chỉ số khác (chăm sóc, tỷ lệ chốt, khách cũ) tính trên dữ liệu khoảng 13 tháng gần nhất.</p>'; }
-    return '<div class="page-head"><h1>Hiệu quả</h1><div class="grow"></div>' + whoSel() + '</div>' + perChips('r', f.p, ['all'], false, who !== '-') +
+    return '<div class="page-head"><h1>Hiệu quả</h1><div class="grow"></div>' + askBtn() + whoSel() + '</div>' + perChips('r', f.p, ['all'], false, who !== '-') +
       (cx.allNote || '') + (!who ? viewTeam(cx) : who === '-' ? viewNoOwner(cx) : viewPerson(who, cx));
   }
   /** Tổng doanh số từ trước tới nay theo nhân viên bán (hỏi máy chủ, nhớ 10 phút). null = đang tải / máy chủ cũ chưa có. */

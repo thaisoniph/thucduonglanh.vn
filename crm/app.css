@@ -1622,3 +1622,44 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .fin-r.mid .fin-b i { background: var(--mid); } .fin-r.bad .fin-b i { background: var(--red); }
 .fin-p { grid-area: p; font-size: 13px; color: var(--text); } .fin-p small { color: var(--muted); }
 .fin-adv { margin: 0; padding-left: 20px; } .fin-adv li { margin: 0 0 8px; line-height: 1.45; }
+
+/* ---------- ✨ Hỏi số liệu (06/11/2026, tiền tố ask-): chat với trợ lý AI tra số trong CRM */
+.ask-wrap { max-width: 780px; margin: 0 auto; }
+.ask-intro p { margin: 0 0 6px; }
+.ask-intro p:last-child { margin-bottom: 0; }
+.ask-sug { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 16px; }
+.ask-chip { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 8px 14px; font: inherit; font-size: 14px; line-height: 1.35; color: var(--ink); cursor: pointer; text-align: left; }
+.ask-chip:hover { border-color: var(--primary); color: var(--primary); }
+.ask-log { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+.ask-msg { max-width: 92%; padding: 10px 14px; border-radius: 16px; line-height: 1.55; overflow-wrap: anywhere; scroll-margin-top: 76px; } /* chừa thanh trên cố định */
+.ask-u { align-self: flex-end; background: var(--primary); color: #fff; border-bottom-right-radius: 4px; }
+.ask-a { align-self: flex-start; background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow); border-bottom-left-radius: 4px; color: var(--ink); }
+.ask-a p { margin: 0 0 8px; }
+.ask-a p:last-child { margin-bottom: 0; }
+.ask-a ul, .ask-a ol { margin: 0 0 8px; padding-left: 20px; }
+.ask-a li { margin: 2px 0; }
+.ask-a code { font-size: 13px; background: var(--bg); padding: 1px 4px; border-radius: 4px; }
+.ask-tbl { overflow-x: auto; margin: 0 0 8px; }
+.ask-tbl table { border-collapse: collapse; font-size: 14px; }
+.ask-tbl th, .ask-tbl td { padding: 5px 10px 5px 0; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
+.ask-tbl th { color: var(--muted); font-weight: 600; }
+.ask-err { background: var(--red-light); border-color: #f1c4c0; }
+.ask-wait { color: var(--muted); }
+.ask-dots { display: inline-flex; gap: 4px; margin-right: 8px; vertical-align: middle; }
+.ask-dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); animation: askDot 1.2s infinite ease-in-out; }
+.ask-dots i:nth-child(2) { animation-delay: .2s; }
+.ask-dots i:nth-child(3) { animation-delay: .4s; }
+@keyframes askDot { 0%, 80%, 100% { opacity: .25; transform: scale(.8); } 40% { opacity: 1; transform: scale(1); } }
+.ask-steps { margin: 8px 0 0; font-size: 13px; color: var(--muted); }
+.ask-steps summary { cursor: pointer; }
+.ask-steps ol { margin: 6px 0 0; padding-left: 20px; }
+.ask-steps pre { white-space: pre-wrap; font-size: 12px; background: var(--bg); padding: 6px 8px; border-radius: 8px; margin: 4px 0; max-height: 200px; overflow: auto; }
+.ask-form { position: sticky; bottom: 12px; display: flex; gap: 8px; align-items: flex-end; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 6px; box-shadow: var(--shadow-lg); }
+.ask-form textarea { flex: 1; min-height: 44px; max-height: 160px; border: 0; padding: 10px; resize: none; background: transparent; }
+.ask-form textarea:focus { outline: none; }
+.ask-form .btn { min-height: 44px; flex: 0 0 auto; }
+@media (max-width: 859px) {
+  .ask-form { bottom: calc(var(--nav-h) + var(--safe-b) + 8px); }
+  .ask-msg { max-width: 100%; scroll-margin-top: 100px; }
+}
+@media (prefers-reduced-motion: reduce) { .ask-dots i { animation: none; opacity: .6; } }

@@ -16,6 +16,7 @@ import { crmVoucher, voucherSchema } from './voucher.js';
 import { journeySchema, wallHide } from './journey.js';
 import { crmLinks } from './links.js';
 import { crmAi } from './ai.js';
+import { crmAsk } from './ask.js';
 import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, wbInfoQueue, wbOrderInfo, WB_SHORT } from './wb.js';
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
@@ -1968,6 +1969,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (u.role === 'Marketing' && !MKT_ACTIONS[a]) return { ok: false, error: 'Tài khoản Marketing chỉ xem được phần quảng cáo.' };
   if (a === 'load') return crmLoad(x, u, d);
   if (a === 'ai_sum') return crmAi(x, u, d); // ✨ AI tóm tắt hồ sơ / gợi ý tin nhắn (chỉ khi có ANTHROPIC_API_KEY)
+  if (a === 'ai_ask') return crmAsk(x, u, d); // ✨ Hỏi số liệu: trợ lý AI tự tra số trong D1 (ask.js, Quản lý + Quản trị)
   if (a === 'mktv') return u.level >= 3 || u.role === 'Marketing' || u.mkv ? mktView(x, u, d) : { ok: false, error: 'Chỉ Marketing, Quản trị và người được tích 📣 Xem Marketing xem được mục này.' };
   if (a === 'wall_hide') return wallHide(x, u, d); // 🌱 ẩn / hiện tên trên Bức tường Sống Lành (journey.js)
   if (a === 'quiz_cms') return quizCms(x, u, d); // 🖐 sửa trò chơi Bạn còn mấy ngón tay (cms.js)
