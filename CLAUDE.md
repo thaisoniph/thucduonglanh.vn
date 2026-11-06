@@ -19,7 +19,7 @@ Chủ dự án: anh Sơn (thaisoniph@gmail.com). Anh Sơn không chuyên kỹ th
   - CRM web: `crm/` → crm.thucduonglanh.vn.
   - Hướng dẫn nhân sự: `guide/*.md` → crm.thucduonglanh.vn/huong-dan/. **Đổi tính năng CRM hoặc /admin thì sửa luôn `guide/`.**
 - `backend/google-apps-script.gs`: code Apps Script (đơn hàng + CRM, gắn với Google Sheet). Token Telegram nằm trong Script Properties (`TELEGRAM_TOKEN`), không có trong code.
-- `api/`: máy chủ Cloudflare Workers + D1 (api.thucduonglanh.vn) chạy chính thức từ 10/2026 (bản `2026-10-07d`). Nhận đơn web, phục vụ toàn bộ CRM API (hôm nay, khách hàng, đơn hàng, khách hỏi, hiệu quả, mức dùng CRM, góp ý...), nhận webhook Viettel Post, và đồng bộ 2 chiều với Google Sheet / file sale qua cron. Apps Script (`backend/google-apps-script.gs`) làm cầu nối Google (gửi email, cấp quyền đọc Sheet, dọn trigger cũ).
+- `api/`: máy chủ Cloudflare Workers + D1 (api.thucduonglanh.vn) chạy chính thức từ 10/2026 (bản `2026-10-07d`). Nhận đơn web, phục vụ toàn bộ CRM API (hôm nay, khách hàng, đơn hàng, khách hỏi, hiệu quả, mức dùng CRM, góp ý...), nhận webhook Viettel Post, và đồng bộ 2 chiều với Google Sheet / file sale qua cron. Có cổng MCP `/mcp` (`api/src/mcp.js`, đăng nhập OAuth bằng mã email CRM) để ChatGPT / Gemini / Claude hỏi số liệu CRM. Apps Script (`backend/google-apps-script.gs`) làm cầu nối Google (gửi email, cấp quyền đọc Sheet, dọn trigger cũ).
 
 ## Đăng lên (deploy)
 - Push lên nhánh `main` → GitHub Actions build → Cloudflare (website `thucduonglanh`, CRM `thucduonglanh-crm`, máy chủ api Worker + D1). Mỗi phần một workflow riêng (`deploy.yml`, `deploy-crm.yml`, `deploy-api.yml`), chỉ chạy khi phần đó đổi. Khoảng 1–2 phút sau là live.

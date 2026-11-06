@@ -15,9 +15,10 @@ import { chat, chatLead } from './chat.js';
 import { zbot, zbotLead, zbImg } from './zbot.js';
 import { refMe, ctvMe, ctvApply } from './partner.js';
 import { fbRoute } from './fb.js';
+import { mcpRoute } from './mcp.js';
 export { AiRelay } from './airelay.js'; // Durable Object chuyển tiếp lời gọi AI qua Bắc Mỹ
 
-const API_VERSION = '2026-11-06b'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
+const API_VERSION = '2026-11-06c'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
 const ORIGINS = /^https:\/\/((www\.|crm\.|mkt\.|congsu\.|camnangsongkhoe\.)?thucduonglanh\.vn|([a-z0-9-]+\.)?(thucduonglanh(-crm|-congsu)?|camnang-song-khoe-thuc-duong-lanh)\.pages\.dev)$|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
 function ctxOf(env, ectx) { return { env, db: env.DB, later: p => ectx.waitUntil(Promise.resolve(p).catch(e => console.error('later', e && e.message))) }; }
@@ -105,6 +106,10 @@ export default {
     if (path.startsWith('/fb/')) { // 📘 trợ lý Fanpage: webhook Facebook + đăng nhập kết nối trang (fb.js)
       try { await ensureSchema(x.db); const r = await fbRoute(x, req, path, url); if (r) return r; }
       catch (err) { console.error('fb', err && err.stack || err); return new Response('error', { status: 500 }); }
+    }
+    if (path === '/mcp' || path.startsWith('/oauth/') || path.startsWith('/.well-known/')) { // 🔌 cổng MCP: ChatGPT / Gemini / Claude hỏi số liệu CRM (mcp.js)
+      try { await ensureSchema(x.db); const r = await mcpRoute(x, req, path, url); if (r) return r; }
+      catch (err) { console.error('mcp', err && err.stack || err); return new Response(JSON.stringify({ error: 'server_error' }), { status: 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }); }
     }
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: ORIGINS.test(origin) ? { 'Access-Control-Allow-Origin': origin, 'Access-Control-Allow-Methods': 'GET, POST', 'Access-Control-Allow-Headers': 'Content-Type', 'Access-Control-Max-Age': '86400' } : {} });
     try {

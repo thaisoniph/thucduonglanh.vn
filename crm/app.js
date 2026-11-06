@@ -5473,7 +5473,9 @@
   /* ================================================================ ✨ Hỏi số liệu (06/11/2026, api/src/ask.js)
    * Người được dùng (máy chủ gửi user.ask; tạm thời anh Sơn + anh Hiếu) hỏi bằng lời ("doanh số tuần này so với tuần trước?"), máy chủ để Claude tự tra số trong D1 rồi trả lời.
    * Cuộc hỏi lưu trên máy này (localStorage, 7 ngày, 30 tin). Gửi kèm 6 cặp hỏi–đáp gần nhất để hỏi tiếp được ("còn tháng trước?"). */
-  var ASK = { msgs: null, busy: false, draft: '', scroll: false };
+  var ASK = { msgs: null, busy: false, draft: '', scroll: false, rec: null, speakNext: false, mcpOpen: false, mcp: null };
+  var ASK_SR = window.SpeechRecognition || window.webkitSpeechRecognition; // 🎙 nhận giọng nói của trình duyệt (Chrome, Safari); không có thì dùng 🎤 trên bàn phím điện thoại
+  var MCP_URL = 'https://api.thucduonglanh.vn/mcp';
   var ASK_SUG = ['Doanh số tháng này thế nào, so với cùng kỳ tháng trước?', 'Tuần này ai bán nhiều nhất? Tỷ lệ hoàn từng người?', 'Sản phẩm nào bán chạy nhất 30 ngày qua?', 'Khách hỏi tuần này đến từ kênh nào, tỷ lệ chốt bao nhiêu?', 'Chi phí quảng cáo tháng này, giá 1 khách hỏi bao nhiêu?', 'Bao nhiêu khách sắp dùng hết hàng trong 7 ngày tới, của sale nào?'];
   function askBtn() { return S.user && S.user.ask && S.d && S.d.rules && S.d.rules.ai ? '<a class="btn ghost" href="#hoi-so-lieu" title="Hỏi bằng lời, AI tự tra số trong CRM">✨ Hỏi số liệu</a>' : ''; }
   function askKey() { return 'crm_ask_' + ((S.user && S.user.email) || ''); }
@@ -5508,22 +5510,73 @@
     endList(); endTbl();
     return h;
   }
-  function askMsg(m) {
+  /** Chữ câu trả lời → câu đọc to: bỏ ký hiệu markdown, dòng nghiêng cuối, đường kẻ bảng; "12,5 tr" → "12 phẩy 5 triệu", "đ" → "đồng", "%" → "phần trăm". */
+  function askPlain(t) {
+    return String(t || '').split('\n').filter(function (l) { return l.trim() && !/^\s*\|?[\s:|-]+\|?\s*$/.test(l) && !/^\s*_.*_\s*$/.test(l); }).map(function (l) { return l.replace(/^\s*[-*•]\s+/, '').replace(/^\s*\|/, '').replace(/\|\s*$/, ''); }).join('. ')
+      .replace(/\*\*|__|`|👉/g, '').replace(/\s*\|\s*/g, ', ').replace(/(\d+),(\d+)\s*tr\b/g, '$1 phẩy $2 triệu').replace(/(\d)\s*tr\b/g, '$1 triệu').replace(/(\d+),(\d+)\s*tỷ/g, '$1 phẩy $2 tỷ')
+      .replace(/(\d)\s?đ(?=[\s.,;:!?)]|$)/g, '$1 đồng').replace(/(\d+),(\d+)\s*%/g, '$1 phẩy $2 phần trăm').replace(/(\d)\s*%/g, '$1 phần trăm').replace(/\s+([.,])/g, '$1').replace(/\.\s*\./g, '.').replace(/\s+/g, ' ').trim();
+  }
+  function askSay(t) {
+    if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) { toast('Máy này chưa đọc to được', true); return; }
+    speechSynthesis.cancel();
+    var u = new SpeechSynthesisUtterance(askPlain(t).slice(0, 1500)), v = speechSynthesis.getVoices().filter(function (z) { return /^vi/i.test(z.lang); })[0];
+    u.lang = 'vi-VN'; if (v) u.voice = v; u.rate = 1.05;
+    speechSynthesis.speak(u);
+  }
+  function askMicUi() { var b = $('[data-ask="mic"]'), ta = $('#askIn'); if (b) { b.classList.toggle('on', !!ASK.rec); b.textContent = ASK.rec ? '⏹' : '🎙'; } if (ta) ta.placeholder = ASK.rec ? 'Đang nghe… nói câu hỏi rồi ngừng' : 'Hỏi gì cũng được, vd: Doanh số tuần này so với tuần trước?'; }
+  /** 🎙 Bấm rồi nói: nghe xong tự gửi, câu trả lời được đọc to (ngắn gọn hơn để nghe). */
+  function askMic() {
+    if (ASK.rec) { try { ASK.rec.stop(); } catch (e) { } return; }
+    if (!ASK_SR) { toast('Trình duyệt này chưa nghe được giọng nói. Bạn bấm 🎤 trên bàn phím điện thoại để nói câu hỏi nhé.', true); return; }
+    if (window.speechSynthesis && window.SpeechSynthesisUtterance) { speechSynthesis.cancel(); try { speechSynthesis.speak(new SpeechSynthesisUtterance(' ')); } catch (e) { } } // iPhone: phải mở khoá đọc to ngay lúc bấm
+    var r = new ASK_SR(), got = '';
+    r.lang = 'vi-VN'; r.interimResults = true; r.continuous = false; r.maxAlternatives = 1;
+    r.onresult = function (e) { got = ''; for (var i = 0; i < e.results.length; i++) got += e.results[i][0].transcript; var ta = $('#askIn'); if (ta) ta.value = got; ASK.draft = got; };
+    r.onerror = function (e) {
+      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') toast('Chưa cho dùng micro: cho phép Micro cho trang CRM trong cài đặt trình duyệt rồi thử lại.', true);
+      else if (e.error !== 'no-speech' && e.error !== 'aborted') toast('Không nghe rõ, bạn thử lại nhé (' + e.error + ')', true);
+    };
+    r.onend = function () { ASK.rec = null; askMicUi(); if (got.trim()) { ASK.speakNext = true; askSend(got); } };
+    try { r.start(); ASK.rec = r; askMicUi(); } catch (e) { ASK.rec = null; toast('Không bật được micro: ' + e.message, true); }
+  }
+  /** 🔌 Hỏi bằng ChatGPT / Gemini qua cổng MCP (api/src/mcp.js): cách kết nối, các kết nối đang mở, tạo Client ID / Secret. */
+  function askMcpLoad() { ASK.mcp = ASK.mcp || {}; ASK.mcp.busy = 1; api('mcp_list', {}).then(function (j) { ASK.mcp.list = j.list || []; ASK.mcp.err = ''; }, function (er) { ASK.mcp.err = /Không rõ thao tác/.test(er.message) ? 'Máy chủ chưa có cổng kết nối (đang cập nhật), thử lại sau vài phút.' : er.message; }).then(function () { ASK.mcp.busy = 0; askRedraw(); }); }
+  function askMcpBox() {
+    var M = ASK.mcp || {}, li = M.list;
+    return '<details class="box ask-mcp" id="askMcp"' + (ASK.mcpOpen ? ' open' : '') + '><summary><b>🔌 Hỏi bằng ChatGPT / Gemini</b> <span class="muted small">(nói chuyện bằng giọng được)</span></summary>' +
+      '<p class="small">Gắn CRM vào ChatGPT hoặc Gemini 1 lần, sau đó hỏi số liệu ngay trong app ChatGPT / Gemini, kể cả khi nói chuyện bằng giọng. Chỉ đọc số, tên khách đã che như ở đây.</p>' +
+      '<p class="ask-mcp-url"><span>Địa chỉ kết nối</span><code>' + MCP_URL + '</code><button type="button" class="btn sm" data-copy="' + MCP_URL + '">📋 Chép</button></p>' +
+      '<p><b>ChatGPT</b> <span class="small muted">(làm trên máy tính, chatgpt.com, gói Plus trở lên)</span></p><ol class="small">' +
+      '<li>Cài đặt → <b>Ứng dụng</b> (Apps) → <b>Nâng cao</b> → bật <b>Chế độ nhà phát triển</b> (Developer mode).</li>' +
+      '<li>Bấm <b>Tạo ứng dụng</b> (Create app): tên <i>CRM Thực Dưỡng Lành</i>, dán địa chỉ trên, xác thực chọn <b>OAuth</b> → Tạo.</li>' +
+      '<li>Trang CRM mở ra: nhập email CRM → nhập mã trong email → <b>✅ Cho phép kết nối</b>.</li>' +
+      '<li>Hỏi: trong khung chat bấm <b>+</b> chọn <i>CRM Thực Dưỡng Lành</i>, hoặc bấm 🎙 nói chuyện và nói “Hỏi CRM doanh số hôm nay”. Điện thoại dùng chung tài khoản là có.</li></ol>' +
+      '<p><b>Gemini</b> <span class="small muted">(làm trên máy tính, gemini.google.com)</span></p><ol class="small">' +
+      '<li>Cài đặt → <b>Ứng dụng đã kết nối</b> (Connected apps) → <b>Ứng dụng tùy chỉnh</b> → Thêm, dán địa chỉ trên.</li>' +
+      '<li>Đăng nhập như ChatGPT. Nếu Gemini bắt nhập <b>Client ID / Client Secret</b>: bấm nút dưới để tạo rồi dán vào.</li></ol>' +
+      '<p class="small muted">Tên menu có thể khác một chút theo bản cập nhật. Gemini “ứng dụng tùy chỉnh” có thể chưa mở ở Việt Nam; khi đó dùng ChatGPT, hoặc bấm 🎙 ngay ở CRM này.</p>' +
+      '<p><button type="button" class="btn sm" data-ask="mcpnew">🔑 Tạo Client ID / Secret</button></p>' +
+      (M.cid ? '<div class="ask-mcp-key small"><p>Client ID: <code>' + esc(M.cid) + '</code> <button type="button" class="btn sm" data-copy="' + esc(M.cid) + '">📋</button></p><p>Client Secret: <code>' + esc(M.sec) + '</code> <button type="button" class="btn sm" data-copy="' + esc(M.sec) + '">📋</button></p><p class="muted">Chỉ hiện 1 lần, chép ngay. Không gửi cho người khác.</p></div>' : '') +
+      '<p><b>Đang kết nối:</b> ' + (M.err ? '⚠️ ' + esc(M.err) : !li ? '⏳' : li.length ? li.map(function (c) { return esc(c.name) + ' <span class="muted small">(' + fDate(c.at) + ')</span>'; }).join(', ') + ' <button type="button" class="link" data-ask="mcpoff">Ngắt tất cả</button>' : '<span class="muted">chưa có</span>') + '</p></details>';
+  }
+  function askMsg(m, i) {
     if (m.r === 'u') return '<div class="ask-msg ask-u">' + esc(m.t).replace(/\n/g, '<br>') + '</div>';
     if (m.err) return '<div class="ask-msg ask-a ask-err"><p>⚠️ ' + esc(m.t) + '</p><button type="button" class="link" data-ask="retry">↻ Hỏi lại</button></div>';
     var n = (m.steps || []).length, cost = m.cost ? '≈ ' + money(m.cost) + ' tiền AI' : '';
     var st = n ? '<details class="ask-steps"><summary>🔎 Đã tra ' + n + ' lần' + (cost ? ' · ' + cost : '') + '</summary><ol>' + m.steps.map(function (x) { return '<li>' + esc(x.t) + (x.sql && lvl() >= 3 ? '<pre>' + esc(x.sql) + '</pre>' : '') + '</li>'; }).join('') + '</ol></details>' : cost ? '<p class="ask-steps">' + cost + '</p>' : '';
-    return '<div class="ask-msg ask-a">' + askMd(m.t) + st + '</div>';
+    var say = window.speechSynthesis ? '<button type="button" class="link ask-say" data-ask="say" data-i="' + i + '">🔊 Đọc to</button>' : '';
+    return '<div class="ask-msg ask-a">' + askMd(m.t) + say + st + '</div>';
   }
   function viewAsk() {
     askLoad();
     var h = '<div class="ask-wrap"><div class="page-head"><h1>✨ Hỏi số liệu</h1><div class="grow"></div>' + (ASK.msgs.length && !ASK.busy ? '<button type="button" class="btn ghost" data-ask="new">🗑 Hỏi chuyện mới</button>' : '') + '</div>';
     if (!(S.d.rules && S.d.rules.ai)) return h + '<div class="box"><p style="margin:0">⚠️ Máy chủ chưa bật AI (chưa có khoá ANTHROPIC_API_KEY). Quản trị bật ở Cloudflare → Workers → thucduonglanh-api → Settings → Variables and Secrets.</p></div></div>';
+    h += askMcpBox();
     if (!ASK.msgs.length) h += '<div class="box ask-intro"><p><b>Hỏi bằng lời thường</b>, trợ lý AI tự tra số trong CRM (đơn hàng, khách, khách hỏi, chăm sóc, mục tiêu' + (lvl() >= 3 || (S.user && S.user.mkv) ? ', quảng cáo' : '') + (lvl() >= 3 || S.d.sanOk ? ', sàn' : '') + (lvl() >= 3 ? ', kế toán' : '') + ') rồi báo cáo. Hỏi tiếp được, vd “còn tháng trước?”, “chia theo nhân viên”.</p>' +
-      '<p class="small muted">Mỗi câu mất 10–60 giây, khoảng 2.000–5.000đ tiền AI. Tên khách chỉ hiện tên gọi, số điện thoại bị che. Số do AI tự tính: số quan trọng nên đối chiếu lại với Tổng quan / Hiệu quả.</p></div>' +
+      '<p class="small muted">Bấm 🎙 để nói câu hỏi, câu trả lời sẽ được đọc to. Mỗi câu mất 10–60 giây, khoảng 2.000–5.000đ tiền AI. Tên khách chỉ hiện tên gọi, số điện thoại bị che. Số do AI tự tính: số quan trọng nên đối chiếu lại với Tổng quan / Hiệu quả.</p></div>' +
       '<div class="ask-sug">' + ASK_SUG.map(function (q) { return '<button type="button" class="ask-chip" data-ask="sug">' + esc(q) + '</button>'; }).join('') + '</div>';
     h += '<div class="ask-log">' + ASK.msgs.map(askMsg).join('') + (ASK.busy ? '<div class="ask-msg ask-a ask-wait"><span class="ask-dots" aria-hidden="true"><i></i><i></i><i></i></span>Đang tra số liệu… <small>(thường 10–60 giây)</small></div>' : '') + '</div>';
-    h += '<div class="ask-form"><textarea id="askIn" rows="2" maxlength="1500" aria-label="Câu hỏi về số liệu" placeholder="Hỏi gì cũng được, vd: Doanh số tuần này so với tuần trước?"' + (ASK.busy ? ' disabled' : '') + '>' + esc(ASK.draft) + '</textarea>' +
+    h += '<div class="ask-form">' + (ASK_SR ? '<button type="button" class="btn ask-mic' + (ASK.rec ? ' on' : '') + '" data-ask="mic" aria-label="Nói câu hỏi" title="Bấm rồi nói câu hỏi, nghe xong tự gửi và đọc to câu trả lời"' + (ASK.busy ? ' disabled' : '') + '>' + (ASK.rec ? '⏹' : '🎙') + '</button>' : '') + '<textarea id="askIn" rows="2" maxlength="1500" aria-label="Câu hỏi về số liệu" placeholder="Hỏi gì cũng được, vd: Doanh số tuần này so với tuần trước?"' + (ASK.busy ? ' disabled' : '') + '>' + esc(ASK.draft) + '</textarea>' +
       '<button type="button" class="btn pri" data-ask="send"' + (ASK.busy ? ' disabled' : '') + '>Gửi</button></div></div>';
     return h;
   }
@@ -5541,9 +5594,11 @@
     var M = ASK.msgs, hist = [];
     for (var i = 0; i < M.length - 1; i++) if (M[i].r === 'u' && M[i + 1].r === 'a' && !M[i + 1].err) hist.push({ q: M[i].t, a: M[i + 1].t });
     if (!again) M.push({ r: 'u', t: q, at: Date.now() });
+    var voice = ASK.speakNext; ASK.speakNext = false; if (!voice && window.speechSynthesis) speechSynthesis.cancel();
     ASK.busy = true; ASK.draft = ''; ASK.scroll = true; askSave(); askRedraw();
-    api('ai_ask', { q: q, hist: hist.slice(-6) }).then(function (j) {
+    api('ai_ask', { q: q, hist: hist.slice(-6), voice: voice ? 1 : 0 }).then(function (j) {
       M.push({ r: 'a', t: String(j.text || ''), steps: j.steps || [], cost: j.cost || 0, at: Date.now() });
+      if (voice) askSay(j.text);
     }, function (er) {
       var em = (er && er.message) || 'Có lỗi, bạn thử lại nhé.';
       if (/Không rõ thao tác/.test(em)) em = 'Máy chủ chưa có trợ lý số liệu (có thể đang cập nhật). Bạn thử lại sau vài phút.';
@@ -5561,7 +5616,12 @@
     else if (k === 'sug') askSend(b.textContent);
     else if (k === 'retry') { var M = ASK.msgs; if (M.length && M[M.length - 1].err) M.pop(); askSend(M.length && M[M.length - 1].r === 'u' ? M[M.length - 1].t : '', true); }
     else if (k === 'new' && !ASK.busy) { ASK.msgs = []; askSave(); render(); }
+    else if (k === 'mic') askMic();
+    else if (k === 'say') { var am = ASK.msgs[+b.getAttribute('data-i')]; if (am) askSay(am.t); }
+    else if (k === 'mcpnew') { b.disabled = true; api('mcp_client', { name: 'Gemini / ứng dụng AI' }).then(function (j) { ASK.mcp = ASK.mcp || {}; ASK.mcp.cid = j.client_id; ASK.mcp.sec = j.client_secret; askRedraw(); }, function (er) { b.disabled = false; toast(er.message, true); }); }
+    else if (k === 'mcpoff' && confirm('Ngắt mọi kết nối ChatGPT / Gemini của bạn? Muốn dùng lại phải đăng nhập lại trong app.')) api('mcp_off', {}).then(function (j) { toast('Đã ngắt ' + (j.n || 0) + ' mã kết nối'); askMcpLoad(); }, function (er) { toast(er.message, true); });
   });
+  document.addEventListener('toggle', function (e) { if (e.target && e.target.id === 'askMcp') { ASK.mcpOpen = e.target.open; if (ASK.mcpOpen && !(ASK.mcp && (ASK.mcp.list || ASK.mcp.busy))) askMcpLoad(); } }, true);
   document.addEventListener('input', function (e) { if (e.target && e.target.id === 'askIn') ASK.draft = e.target.value; });
   document.addEventListener('keydown', function (e) { // máy tính: Enter = gửi, Shift+Enter = xuống dòng. Điện thoại: Enter xuống dòng, bấm Gửi
     if (e.target && e.target.id === 'askIn' && e.key === 'Enter' && !e.shiftKey && !e.isComposing && !(window.matchMedia && matchMedia('(pointer: coarse)').matches)) { e.preventDefault(); askSend(e.target.value); }

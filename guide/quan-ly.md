@@ -209,6 +209,30 @@ Hỏi tiếp được: “còn tháng trước?”, “chia theo nhân viên”,
 - Khi mở cho Quản lý: Quản lý hỏi được số đơn, khách, khách hỏi, chăm sóc, mục tiêu; số quảng cáo chỉ khi được tích 📣 Xem Marketing; số sàn chỉ khi phụ trách sàn. Số kế toán, lãi lỗ chỉ **Quản trị** hỏi được.
 - Cuộc hỏi lưu trên máy đang dùng trong 7 ngày (máy khác không thấy).
 
+**🎙 Nói thay vì gõ**: bấm **🎙** cạnh ô hỏi, nói câu hỏi rồi ngừng. CRM tự gửi và **đọc to** câu trả lời (trả lời gọn hơn để nghe). Câu trả lời nào cũng có nút **🔊 Đọc to**. Lần đầu trình duyệt hỏi quyền dùng micro thì bấm **Cho phép**. Máy không hiện nút 🎙 thì bấm 🎤 trên bàn phím điện thoại để nói.
+
+### Hỏi bằng ChatGPT / Gemini (cả khi nói chuyện bằng giọng)
+
+Gắn CRM vào ChatGPT hoặc Gemini **1 lần**, sau đó hỏi số liệu ngay trong app ChatGPT / Gemini, kể cả chế độ nói chuyện bằng giọng. Trợ lý chỉ đọc số, dữ liệu khách đã che như trên. Địa chỉ kết nối: **https://api.thucduonglanh.vn/mcp** (có nút 📋 Chép ở mục **🔌 Hỏi bằng ChatGPT / Gemini** trên màn ✨ Hỏi số liệu).
+
+**ChatGPT** (làm trên máy tính, chatgpt.com, cần gói Plus trở lên):
+
+1. Cài đặt → **Ứng dụng** (Apps) → **Nâng cao** → bật **Chế độ nhà phát triển** (Developer mode).
+2. Bấm **Tạo ứng dụng** (Create app): tên *CRM Thực Dưỡng Lành*, dán địa chỉ kết nối, xác thực chọn **OAuth** → Tạo.
+3. Trang CRM mở ra: nhập email CRM → nhập mã trong email → **✅ Cho phép kết nối**.
+4. Hỏi: trong khung chat bấm **+** chọn *CRM Thực Dưỡng Lành*, hoặc bấm 🎙 nói chuyện và nói “Hỏi CRM doanh số hôm nay”. Mở app ChatGPT trên điện thoại cùng tài khoản là dùng được.
+
+**Gemini** (làm trên máy tính, gemini.google.com):
+
+1. Cài đặt → **Ứng dụng đã kết nối** (Connected apps) → **Ứng dụng tùy chỉnh** → Thêm, dán địa chỉ kết nối.
+2. Đăng nhập như ChatGPT. Nếu Gemini bắt nhập **Client ID / Client Secret**: bấm **🔑 Tạo Client ID / Secret** trong CRM rồi dán vào (Secret chỉ hiện 1 lần).
+
+Tên menu có thể khác một chút theo bản cập nhật của ChatGPT / Gemini. “Ứng dụng tùy chỉnh” của Gemini có thể chưa mở ở Việt Nam; khi đó dùng ChatGPT hoặc nút 🎙 ngay trong CRM.
+
+- Mỗi câu hỏi qua ChatGPT / Gemini vẫn tính vào giới hạn 60 câu / người / ngày, khoảng 2.000đ tiền AI của CRM (ngoài tiền gói ChatGPT / Gemini).
+- **Ngắt kết nối**: mục 🔌 → **Ngắt tất cả**. Tài khoản bị khoá hoặc bỏ quyền thì ChatGPT / Gemini cũng hết hỏi được ngay.
+- Chỉ người dùng được ✨ Hỏi số liệu mới kết nối được (tạm thời anh Sơn, anh Hiếu).
+
 ## Tổng quan (chỉ Quản trị)
 
 Tab đầu tiên, dành cho chủ doanh nghiệp. **Nhìn 5 giây là nắm được tình hình.**
