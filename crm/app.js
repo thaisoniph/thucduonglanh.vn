@@ -708,7 +708,7 @@
     { id: 'khach-hang', label: 'Khách đã mua', short: 'Khách', icon: 'users' },
     { id: 'don-hang', label: 'Đơn hàng', icon: 'box' },
     { id: 'bao-cao', label: 'Hiệu quả', icon: 'chart' },
-    { id: 'hoi-so-lieu', label: 'Hỏi số liệu', short: 'Hỏi', icon: 'spark', min: 2, ask: 1 }, // ✨ hỏi bằng lời, AI tự tra số (api/src/ask.js): Quản lý + Quản trị, vào từ Thêm / nút trên Tổng quan, Hiệu quả
+    { id: 'hoi-so-lieu', label: 'Hỏi số liệu', short: 'Hỏi', icon: 'spark', ask: 1 }, // ✨ hỏi bằng lời, AI tự tra số (api/src/ask.js): ai thấy do máy chủ quyết (user.ask, tạm thời anh Sơn + anh Hiếu), vào từ Thêm / nút trên Tổng quan, Hiệu quả
     { id: 'marketing', label: 'Marketing', icon: 'mega', mkt: 1 }, // quyền Marketing: chỉ thấy tab này + Cài đặt; Quản trị vào từ Tổng quan (không chiếm chỗ trên menu)
     { id: 'link-qr', label: 'Link & QR', short: 'QR', icon: 'qr', lq: 1 }, // 📍 link / mã QR theo dõi nguồn khách: Marketing, Quản lý, Quản trị (Quản trị vào từ Tổng quan / Marketing)
     { id: 'tro-ly-zalo', label: 'Trợ lý Zalo', short: 'Zalo', icon: 'bot', lq: 1 }, // 🤖 trợ lý An Lành trong nhóm Zalo (api/src/zbot.js): cùng quyền với Link & QR
@@ -717,7 +717,7 @@
     { id: 'cai-dat', label: 'Cài đặt', icon: 'gear' }
   ];
   // Marketing: tab Marketing, Link & QR, Khách hỏi (24/10/2026: chỉ xem khách để lại số trên web), Cài đặt
-  function myViews() { if (isMkt()) return VIEWS.filter(function (v) { return v.mkt || v.lq || v.id === 'tiem-nang' || v.id === 'cai-dat'; }); return VIEWS.filter(function (v) { return (!v.min || lvl() >= v.min) && (!v.lq || lvl() >= 2 || (v.id === 'tro-ly-zalo' && S.user && S.user.zb)) && (!v.san || (S.d && S.d.sanOk) || lvl() >= 3) && (!v.mkt || lvl() >= 3 || mkvOnly()); }); }
+  function myViews() { if (isMkt()) return VIEWS.filter(function (v) { return v.mkt || v.lq || v.id === 'tiem-nang' || v.id === 'cai-dat'; }); return VIEWS.filter(function (v) { return (!v.min || lvl() >= v.min) && (!v.ask || !!(S.user && S.user.ask)) && (!v.lq || lvl() >= 2 || (v.id === 'tro-ly-zalo' && S.user && S.user.zb)) && (!v.san || (S.d && S.d.sanOk) || lvl() >= 3) && (!v.mkt || lvl() >= 3 || mkvOnly()); }); }
   function navViews() { return myViews().filter(function (v) { return !((v.san || v.lq || v.ask) && lvl() >= 2 && !isMkt()); }); } // Quản trị: Marketing có trên menu (29/10/2026), Sàn / Link & QR / Zalo / Fanpage vào từ Thêm; Quản lý cũng vậy (anh Sơn 31/10/2026: menu máy tính rối)
   /** Điện thoại (29/10/2026, kiểu Apple): thanh dưới chỉ 4 mục hay dùng + "Thêm"; mục còn lại, Cài đặt, Hướng dẫn, Góp ý nằm ở màn Thêm. Máy tính vẫn hiện đủ. */
   var NAV_FIRST = ['hom-nay', 'tiem-nang', 'khach-hang', 'don-hang', 'bao-cao'];
@@ -5471,11 +5471,11 @@
   function zbDay(day) { var t = new Date(day.slice(0, 4) + '-' + day.slice(4, 6) + '-' + day.slice(6, 8) + 'T12:00:00+07:00').getTime(), d0 = today(); return dayStart(t) === d0 ? 'Hôm nay' : dayStart(t) === d0 + DAY ? 'Ngày mai' : dayStart(t) === d0 - DAY ? 'Hôm qua' : day.slice(6, 8) + '/' + day.slice(4, 6); }
   function zbSlot(id) { return (ZB.d.cfg.slots || []).filter(function (s) { return s.id === id; })[0] || { id: id, at: '', on: false }; }
   /* ================================================================ ✨ Hỏi số liệu (06/11/2026, api/src/ask.js)
-   * Quản lý / Quản trị hỏi bằng lời ("doanh số tuần này so với tuần trước?"), máy chủ để Claude tự tra số trong D1 rồi trả lời.
+   * Người được dùng (máy chủ gửi user.ask; tạm thời anh Sơn + anh Hiếu) hỏi bằng lời ("doanh số tuần này so với tuần trước?"), máy chủ để Claude tự tra số trong D1 rồi trả lời.
    * Cuộc hỏi lưu trên máy này (localStorage, 7 ngày, 30 tin). Gửi kèm 6 cặp hỏi–đáp gần nhất để hỏi tiếp được ("còn tháng trước?"). */
   var ASK = { msgs: null, busy: false, draft: '', scroll: false };
   var ASK_SUG = ['Doanh số tháng này thế nào, so với cùng kỳ tháng trước?', 'Tuần này ai bán nhiều nhất? Tỷ lệ hoàn từng người?', 'Sản phẩm nào bán chạy nhất 30 ngày qua?', 'Khách hỏi tuần này đến từ kênh nào, tỷ lệ chốt bao nhiêu?', 'Chi phí quảng cáo tháng này, giá 1 khách hỏi bao nhiêu?', 'Bao nhiêu khách sắp dùng hết hàng trong 7 ngày tới, của sale nào?'];
-  function askBtn() { return lvl() >= 2 && !isMkt() && S.d && S.d.rules && S.d.rules.ai ? '<a class="btn ghost" href="#hoi-so-lieu" title="Hỏi bằng lời, AI tự tra số trong CRM">✨ Hỏi số liệu</a>' : ''; }
+  function askBtn() { return S.user && S.user.ask && S.d && S.d.rules && S.d.rules.ai ? '<a class="btn ghost" href="#hoi-so-lieu" title="Hỏi bằng lời, AI tự tra số trong CRM">✨ Hỏi số liệu</a>' : ''; }
   function askKey() { return 'crm_ask_' + ((S.user && S.user.email) || ''); }
   function askLoad() {
     if (ASK.msgs) return;

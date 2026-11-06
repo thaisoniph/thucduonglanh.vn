@@ -16,7 +16,7 @@ import { crmVoucher, voucherSchema } from './voucher.js';
 import { journeySchema, wallHide } from './journey.js';
 import { crmLinks } from './links.js';
 import { crmAi } from './ai.js';
-import { crmAsk } from './ask.js';
+import { crmAsk, askAllowed } from './ask.js';
 import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, wbInfoQueue, wbOrderInfo, WB_SHORT } from './wb.js';
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
@@ -246,7 +246,7 @@ export async function unifyNames(x, ren) {
   return n;
 }
 async function crmUser(x, email) { email = String(email || '').trim().toLowerCase(); return (await crmUsers(x)).find(u => u.email === email && u.active) || null; }
-function publicUser(u) { return { email: u.email, name: u.name, role: u.role, level: u.level, tg: !!u.tg, prefix: u.prefix || slugName(u.name), mkv: !!u.mkv, zb: !!u.zb }; }
+function publicUser(u) { return { email: u.email, name: u.name, role: u.role, level: u.level, ask: askAllowed(u), tg: !!u.tg, prefix: u.prefix || slugName(u.name), mkv: !!u.mkv, zb: !!u.zb }; }
 async function userSet(x, email, field, value) {
   const r = await run(x.db, `UPDATE users SET ${field} = ? WHERE email = ?`, value, email);
   if (!r.meta.changes && email === SUPER_ADMIN) { await run(x.db, "INSERT INTO users (email, name, role, active, recv, ord) VALUES (?, 'Thái Sơn', 'Quản trị', 1, 'Không', -1)", SUPER_ADMIN); await run(x.db, `UPDATE users SET ${field} = ? WHERE email = ?`, value, email); }
@@ -1969,7 +1969,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (u.role === 'Marketing' && !MKT_ACTIONS[a]) return { ok: false, error: 'Tài khoản Marketing chỉ xem được phần quảng cáo.' };
   if (a === 'load') return crmLoad(x, u, d);
   if (a === 'ai_sum') return crmAi(x, u, d); // ✨ AI tóm tắt hồ sơ / gợi ý tin nhắn (chỉ khi có ANTHROPIC_API_KEY)
-  if (a === 'ai_ask') return crmAsk(x, u, d); // ✨ Hỏi số liệu: trợ lý AI tự tra số trong D1 (ask.js, Quản lý + Quản trị)
+  if (a === 'ai_ask') return crmAsk(x, u, d); // ✨ Hỏi số liệu: trợ lý AI tự tra số trong D1 (ask.js, ai dùng được: askAllowed)
   if (a === 'mktv') return u.level >= 3 || u.role === 'Marketing' || u.mkv ? mktView(x, u, d) : { ok: false, error: 'Chỉ Marketing, Quản trị và người được tích 📣 Xem Marketing xem được mục này.' };
   if (a === 'wall_hide') return wallHide(x, u, d); // 🌱 ẩn / hiện tên trên Bức tường Sống Lành (journey.js)
   if (a === 'quiz_cms') return quizCms(x, u, d); // 🖐 sửa trò chơi Bạn còn mấy ngón tay (cms.js)

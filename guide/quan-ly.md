@@ -179,7 +179,9 @@ Mã giảm giá gửi riêng cho **khách cũ, đối tác**. Trên web không q
 
 **Mã SONGLANH5 (quà chào mừng, giảm 5%)**: web tự tặng mã này cho khách vừa để số nhận cẩm nang, nhận ebook, nhận quà sau trò chơi / cam kết, hoặc vào nhóm Zalo. Mã tự lưu trên máy khách và tự trừ khi đặt hàng. Mỗi số dùng 1 lần. Đơn từ 300.000đ vẫn được miễn phí ship như bình thường. Muốn dừng tặng thì **⏸ Tắt** mã này trong danh sách mã.
 
-## ✨ Hỏi số liệu (Quản lý, Quản trị)
+## ✨ Hỏi số liệu (đang dùng thử)
+
+**Đang dùng thử: tạm thời chỉ tài khoản anh Sơn và anh Hiếu thấy chức năng này.**
 
 Hỏi CRM bằng lời thường, như hỏi một người trợ lý. Trợ lý AI (Claude) tự tra số trong CRM rồi trả lời ngắn gọn, có số in đậm và chia theo nhân viên, kênh, sản phẩm khi cần.
 
@@ -204,14 +206,14 @@ Hỏi tiếp được: “còn tháng trước?”, “chia theo nhân viên”,
 - Trợ lý tính **giống màn Tổng quan / Hiệu quả**: doanh số đã trừ đơn huỷ / hoàn, doanh thu = tiền đã thu. Dòng chữ nghiêng cuối câu trả lời ghi rõ kỳ đã tính. Số quan trọng (lương, thưởng, báo cáo gửi đi) thì đối chiếu lại với Tổng quan / Hiệu quả.
 - Trợ lý **chỉ đọc**, không sửa, không xoá được gì trong CRM.
 - Để bảo vệ dữ liệu khách: trợ lý chỉ thấy **tên gọi** của khách (vd “Lan”), **số điện thoại bị che** (vd 096****522), không thấy địa chỉ, email, ghi chú hồ sơ. Cần xem khách cụ thể thì mở CRM, tìm theo tên và 3 số cuối.
-- **Quản lý** thấy số đơn, khách, khách hỏi, chăm sóc, mục tiêu. Số quảng cáo chỉ khi được tích 📣 Xem Marketing; số sàn chỉ khi phụ trách sàn. Số kế toán, lãi lỗ chỉ **Quản trị** hỏi được.
+- Khi mở cho Quản lý: Quản lý hỏi được số đơn, khách, khách hỏi, chăm sóc, mục tiêu; số quảng cáo chỉ khi được tích 📣 Xem Marketing; số sàn chỉ khi phụ trách sàn. Số kế toán, lãi lỗ chỉ **Quản trị** hỏi được.
 - Cuộc hỏi lưu trên máy đang dùng trong 7 ngày (máy khác không thấy).
 
 ## Tổng quan (chỉ Quản trị)
 
 Tab đầu tiên, dành cho chủ doanh nghiệp. **Nhìn 5 giây là nắm được tình hình.**
 
-Trên điện thoại, thanh dưới của Quản trị là **Tổng quan · Hiệu quả · Marketing · Đơn hàng · ••• Thêm** (kết quả, đội sale, tiền quảng cáo, đơn và tiền chờ thu). ✨ Hỏi số liệu, Hôm nay, Khách hỏi, Khách đã mua, Sàn, Link & QR, Zalo, Fanpage, Cài đặt nằm trong **••• Thêm**; tìm 1 khách thì bấm 🔍 ở trên. Số đỏ trên nút Thêm không cộng việc gọi khách của sale.
+Trên điện thoại, thanh dưới của Quản trị là **Tổng quan · Hiệu quả · Marketing · Đơn hàng · ••• Thêm** (kết quả, đội sale, tiền quảng cáo, đơn và tiền chờ thu). ✨ Hỏi số liệu (anh Sơn, anh Hiếu), Hôm nay, Khách hỏi, Khách đã mua, Sàn, Link & QR, Zalo, Fanpage, Cài đặt nằm trong **••• Thêm**; tìm 1 khách thì bấm 🔍 ở trên. Số đỏ trên nút Thêm không cộng việc gọi khách của sale.
 
 **Con số trên tab**: mỗi người chỉ thấy số của việc mình, để nhìn là biết cần làm gì. Trên máy tính chỉ hiện số; đưa chuột vào tab sẽ có dòng giải thích.
 

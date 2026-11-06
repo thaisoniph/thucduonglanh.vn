@@ -1,5 +1,5 @@
 /* ================================================================ ✨ Hỏi số liệu (06/11/2026, anh Sơn: "nói chuyện với trợ lý để báo cáo số liệu các mục anh cần")
- * Lệnh CRM 'ai_ask' { q, hist: [{ q, a }] } → { text, steps: [{ t, sql? }], cost } . Chỉ Quản lý + Quản trị (Marketing / Sale không dùng được).
+ * Lệnh CRM 'ai_ask' { q, hist: [{ q, a }] } → { text, steps: [{ t, sql? }], cost } . Ai dùng được: askAllowed() (06/11/2026 anh Sơn: tạm thời chỉ anh Sơn + tài khoản Quản trị của anh Hiếu).
  * Claude tự tra số trong D1 bằng 3 công cụ:
  *   tra_cuu      – câu SELECT (SQLite) trên các bảng số liệu được phép. Máy chủ bọc câu lệnh thành "WITH <bảng đã che> SELECT * FROM (<câu của AI>) LIMIT 301"
  *                  → chỉ đọc được (lệnh sửa / xoá báo lỗi cú pháp), không đọc được bảng mật (kv, sessions, users, sources…), tên khách chỉ còn tên gọi, SĐT / email bị che.
@@ -9,7 +9,8 @@
  * Giới hạn ASK_DAY_MAX câu / ngày cả công ty, ASK_USER_MAX câu / người / ngày; mỗi câu tra tối đa ASK_STEPS lượt. Chi phí ghi vào kv ask_cost_yyMM. */
 import Anthropic from '@anthropic-ai/sdk';
 import { aiFetch } from './airelay.js';
-import { all, fmtDate, kvGet, kvSet, kvJson, startOfDay, DAY } from './lib.js';
+import { all, fmtDate, kvGet, kvSet, kvJson, startOfDay, nrm, DAY } from './lib.js';
+import { SUPER_ADMIN } from './crm.js';
 import { finMorning } from './fin.js';
 import { sanAllowed } from './san.js';
 
@@ -217,9 +218,13 @@ function timeCtx(now) {
   return 'Hôm nay: ' + ['Chủ nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'][d.getUTCDay()] + ' ' + fmtDate(now, 'dd/MM/yyyy HH:mm') + ' (giờ Việt Nam). Tháng này đã qua ' + Math.round((t0 - m0) / DAY + 1) + ' ngày.\nMốc mili giây:\n' + L.map(r => '- ' + r[0] + ' (' + fmtDate(r[1], 'dd/MM/yyyy HH:mm') + '): ' + r[1]).join('\n');
 }
 
+/** Ai dùng được ✨ Hỏi số liệu. 06/11/2026 anh Sơn: tạm thời chỉ anh Sơn (SUPER_ADMIN) và tài khoản Quản trị tên Hiếu.
+ *  Mở cho cả Quản trị: return u.level >= 3 · mở thêm Quản lý: return u.level >= 2 && u.role !== 'Marketing' (công cụ, bảng tra đã chia theo quyền sẵn). CRM đọc user.ask (publicUser) để hiện / ẩn. */
+export function askAllowed(u) { return !!u && (u.email === SUPER_ADMIN || (u.level >= 3 && /(^| )hieu( |$)/.test(nrm(u.name)))); }
+
 /** Lệnh CRM 'ai_ask'. */
 export async function crmAsk(x, u, d) {
-  if (u.level < 2 || u.role === 'Marketing') return { ok: false, error: 'Chỉ Quản lý và Quản trị dùng được ✨ Hỏi số liệu.' };
+  if (!askAllowed(u)) return { ok: false, error: '✨ Hỏi số liệu đang dùng thử, tạm thời chỉ anh Sơn và anh Hiếu dùng được.' };
   if (!x.env.ANTHROPIC_API_KEY) return { ok: false, off: true, error: 'AI chưa được bật (máy chủ chưa có khoá ANTHROPIC_API_KEY).' };
   const q = String(d.q || '').trim().slice(0, Q_LEN);
   if (!q) return { ok: false, error: 'Bạn chưa gõ câu hỏi.' };
