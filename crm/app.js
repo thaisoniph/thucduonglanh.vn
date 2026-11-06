@@ -6441,7 +6441,7 @@
       toast('⬇️ Đã tải ' + rows.length + ' số');
     };
   }
-  /** 🗺 Ảnh hệ thống Marketing (bản Canva): nút ở đầu tab Marketing; Quản trị đổi link ở Cài đặt → Kết nối & báo cáo. */
+  /** 🗺 Ảnh hệ thống Marketing (bản Canva): nút ở đầu tab Marketing; Quản trị đổi link ở Cài đặt → Kết nối & số liệu. */
   function mktDoc() { return (S.d && S.d.rules && S.d.rules.mktDoc) || {}; }
   function mktDocBtn() { var u = mktDoc().url; return u ? '<a class="btn ghost" href="' + esc(u) + '" target="_blank" rel="noopener" title="Sơ đồ hệ thống marketing của công ty (Canva)">🗺 Hệ thống Marketing</a>' : ''; }
   function viewMkt() {
@@ -8094,7 +8094,7 @@
     var P = S.d.rules.payplan || { tiers: [], senior: [] }, ed = lvl() >= 3, dis = ed ? '' : ' disabled', inp = function (v, id) { return '<input type="text" inputmode="decimal" value="' + esc(v) + '"' + (id ? ' id="' + id + '"' : '') + dis + '>'; };
     var sv = function (m) { var t = (P.senior || []).filter(function (z) { return z[0] === m; })[0]; return t ? t[1] : 0; }, wa = P.webAuto == null ? 50 : P.webAuto;
     return '<div class="box"><p class="hint" style="margin:0 0 8px">Theo <b>Phụ lục 01/CĐ2026</b>. Báo cáo BCDT tự tính lương cố định + hoa hồng tạm tính cho từng sale: bậc theo <b>doanh thu tháng</b> (cả đơn web, không tính huỷ / hoàn), cột theo <b>thâm niên</b> (ngày làm chính thức ở Cài đặt → Nhân sự), % theo <b>khách cũ / khách mới</b> trên tiền hàng. Đơn web tính như đơn sale lên. Dưới bậc đầu = hỗ trợ theo năng lực (quản lý quyết).' + (ed ? '' : ' Chỉ Quản trị sửa được.') + '</p>' +
-      '<label class="switch"><input type="checkbox" id="ppOn"' + (P.on ? ' checked' : '') + dis + '> Dùng bảng này để tính hoa hồng (tắt = quay về % theo loại đơn ở mục 💰 Hoa hồng)</label>' +
+      '<label class="switch"><input type="checkbox" id="ppOn"' + (P.on ? ' checked' : '') + dis + '> Dùng bảng này để tính hoa hồng (tắt = quay về % theo loại đơn ở mục 💵 % hoa hồng theo loại đơn)</label>' +
       '<div class="pp-grid"><div class="pp-tier pp-head"><span>Doanh thu từ (triệu)</span><span>Lương cơ bản</span><span>Trợ cấp BH</span><span>&lt;1 năm: cũ %</span><span>mới %</span><span>1–2 năm: cũ %</span><span>mới %</span><span>&gt;2 năm: cũ %</span><span>mới %</span></div>' +
       P.tiers.concat(ed ? [[0, 0, 0, [[0, 0], [0, 0], [0, 0]]]] : []).map(function (t) { return '<div class="pp-tier pp-row">' + inp(t[0] ? t[0] / 1e6 : '') + inp(t[1] ? t[1].toLocaleString('vi-VN') : '') + inp(t[2] ? t[2].toLocaleString('vi-VN') : '') + t[3].map(function (r) { return inp(t[0] ? r[0] : '') + inp(t[0] ? r[1] : ''); }).join('') + '</div>'; }).join('') + '</div>' +
       '<p class="small muted" style="margin:4px 0 8px">Dòng trống cuối: thêm bậc. Xoá số ở ô “Doanh thu từ” để bỏ bậc.</p>' +
@@ -8341,8 +8341,18 @@
   }
 
   /* ================================================================ CÀI ĐẶT */
+  /** Cài đặt: đầu trang có ô 🔍 tìm mục + 👉 Nên làm ngay (các mục đang ⚠️, bấm là mở đúng mục). Thân trang ở setBody(). */
   function viewSettings() {
-    var h = '<div class="page-head"><h1>Cài đặt</h1></div>', G = {};
+    S.f.setWarn = [];
+    var b = setBody(), W = S.f.setWarn;
+    return '<div class="page-head"><h1>⚙️ Cài đặt</h1></div>' +
+      '<div class="set-top"><input type="search" id="setQ" value="' + esc(S.f.setQ || '') + '" placeholder="🔍 Gõ để tìm, vd: hoa hồng, Telegram, giá vốn" autocomplete="off">' +
+      '<p class="small muted">Bấm vào 1 mục bên dưới để mở ra xem và sửa. Dòng chữ nhỏ dưới tên mục cho biết đang cài thế nào.</p></div>' +
+      (W.length ? '<div class="set-todo" id="setTodo"><b>👉 Nên làm ngay</b><div class="set-todo-l">' + W.map(function (w) { return '<button class="btn" data-setgo="' + w[0] + '">' + w[1] + ' ›</button>'; }).join('') + '</div></div>' : '') +
+      '<p class="set-none" id="setNone" hidden>Không thấy mục nào khớp. Thử gõ chữ khác ngắn hơn, ví dụ “lương”, “khách”, “màu”.</p>' + b;
+  }
+  function setBody() {
+    var h = '', G = {};
     G.acc = '<div class="box"><h3>Tài khoản</h3><p style="margin:0 0 10px"><b>' + esc(S.user.name) + '</b> · ' + esc(S.user.email) + (lvl() >= 2 ? ' · ' + esc(S.user.role) : '') + '</p><button class="btn danger" id="logout">Đăng xuất</button></div>';
     G.tg = '<div class="box"><h3>📲 Thông báo Telegram riêng</h3>' + (S.user.tg
       ? '<p style="margin:0 0 10px">✅ Đã kết nối. ' + (isMkt() ? 'Bạn nhận tin <b>📣 Marketing sáng nay</b> lúc 8h: tiến độ mục tiêu kênh của bạn, hôm qua, việc nên làm.' : 'Bạn nhận riêng: đơn mới của khách mình phụ trách, khách hỏi mới được giao, danh sách việc lúc 8h sáng.') + '</p><button class="btn ghost" id="tgOff">Ngắt kết nối</button>'
@@ -8363,33 +8373,32 @@
       '<li>Đầu tháng vào <b>Hiệu quả</b> bấm <b>🎯 Đặt mục tiêu</b>. Màu ở mọi màn hình: 🟢 tốt · 🟠 cần để ý · 🔴 cần xử lý (có dòng chú thích ngay trên màn hình).</li>' +
       '<li>Kết nối <b>📲 Telegram</b> (mục ngay dưới) để nhận việc mỗi sáng. Chỉ gửi ưu đãi khi khách đã đồng ý (ô <b>☐ Khách đồng ý nhận ưu đãi</b> trong hồ sơ).</li>' +
       '</ol><p style="margin:10px 0"><a class="btn" href="/huong-dan/crm/" target="_blank" rel="noopener">📖 Xem hướng dẫn đầy đủ</a></p><p class="small muted" style="margin:6px 0 0">Không chụp màn hình, không gửi danh sách khách ra ngoài: đây là dữ liệu cá nhân, pháp luật yêu cầu giữ kín (Nghị định 13/2023).</p></div>';
-    h += '<p class="small muted set-intro">Bấm vào từng mục để mở. Dòng nhỏ dưới tên mục là đang cài thế nào; có <b>⚠️</b> là nên làm.</p>';
-    h += setSec('🙋 Của tôi', setGroup('guide', '📖 Hướng dẫn nhanh', 'Những điều cần biết khi dùng CRM hằng ngày', G.guide, true) +
+    h += setSec('🙋 Của tôi', 'Chỉ ảnh hưởng tới bạn, không ảnh hưởng người khác.', setGroup('guide', '📖 Hướng dẫn nhanh', 'Những điều cần biết khi dùng CRM hằng ngày', G.guide, true) +
       setGroup('tg', '📲 Nhận thông báo qua Telegram', S.user.tg ? '✅ Đã kết nối' : '⚠️ Chưa kết nối · bấm để kết nối (30 giây)', G.tg, !S.user.tg) +
       setGroup('ref', '🌐 Link đặt hàng của tôi', 'Gửi khách tự đặt trên web, đơn vẫn tính cho bạn', '<div class="box ref-box"><p class="small muted" style="margin:0 0 8px">Khách bấm link rồi đặt trên web trong 30 ngày: đơn tự tính cho bạn (khách mới tự giao cho bạn phụ trách). Khách cũ đang do bạn phụ trách thì đặt bằng link nào cũng tính cho bạn. Web rẻ hơn Shopee, có quà ebook / 4 buổi Zoom cùng chuyên gia.</p>' + refLinks(S.user.name) + '</div>') +
       setGroup('acc', '👤 Tài khoản của tôi', esc(S.user.name) + ' · ' + esc(S.user.role), G.acc) +
       setGroup('lim', '🎯 Số khách chăm sóc mỗi ngày', 'Tối đa ' + dayLimit() + ' khách / ngày', G.lim) +
       setGroup('color', '🎨 Màu thẻ khách & nhãn riêng', myTags().length ? myTags().length + ' nhãn riêng' : 'Đổi màu, tạo nhãn riêng', G.color));
-    if (lvl() < 2) return h + setSec('🔗 Khách của tôi', setGroup('mrg', '🔗 Khách dùng nhiều số', '1 khách mua bằng 2–3 số: gộp về 1 hồ sơ', mrgBox()));
+    if (lvl() < 2) return h + setSec('🔗 Khách của tôi', 'Dọn hồ sơ khách bạn đang phụ trách.', setGroup('mrg', '🔗 Khách dùng nhiều số', '1 khách mua bằng 2–3 số: gộp về 1 hồ sơ', mrgBox()));
     var R = S.d.rules || {};
     G.rules = '<div class="box"><h3>⭐ Nhóm khách (VIP, Sắp mất)</h3><p class="hint" style="margin:0 0 10px">Máy tự xếp nhóm cho khách theo các mức dưới đây.</p>' +
       '<div class="row2c"><label class="f"><span>VIP khi mua từ (số đơn)</span><input type="number" id="rVipN" min="1" value="' + esc(R.vipOrders || 3) + '"></label>' +
       '<label class="f"><span>hoặc tổng chi từ</span><input type="text" id="rVipS" inputmode="decimal" value="' + esc(R.vipSpent || 2000000) + '" placeholder="vd 5tr"></label></div>' +
       '<label class="f"><span>“Sắp mất” khi bao nhiêu ngày chưa mua lại</span><input type="number" id="rRisk" min="7" value="' + esc(R.atRisk || 60) + '"></label>' +
       '<label class="f"><span>🕑 Khách vừa được chăm sóc thì bao nhiêu ngày sau mới nhắc lại</span><input type="number" id="rCool" min="0" max="60" value="' + esc(R.coolDays === undefined ? 14 : R.coolDays) + '"></label>' +
-      '<p class="hint">Khách đã trả lời (không tính “Không nghe máy”) trong số ngày này thì CRM <b>không</b> nhắc sắp hết hàng, xin cảm nhận, giới thiệu sản phẩm, mời quay lại. Vẫn nhắc <b>hẹn gọi lại</b> và <b>hỏi nhận hàng</b> đơn mới. Ghi <b>0</b> = tắt.</p>' +
+      '<details class="set-more"><summary>ℹ️ Ô trên nghĩa là gì?</summary><p class="hint">Khách đã trả lời (không tính “Không nghe máy”) trong số ngày này thì CRM <b>không</b> nhắc sắp hết hàng, xin cảm nhận, giới thiệu sản phẩm, mời quay lại. Vẫn nhắc <b>hẹn gọi lại</b> và <b>hỏi nhận hàng</b> đơn mới. Ghi <b>0</b> = tắt.</p></details>' +
       '<div class="row2c"><label class="f"><span>🚚 Số ngày giao: khách miền Bắc (gần)</span><input type="number" id="rShip" min="0" max="15" value="' + esc(R.shipDays === undefined ? 3 : R.shipDays) + '"></label>' +
       '<label class="f"><span>🚚 Số ngày giao: miền Trung, miền Nam (xa)</span><input type="number" id="rShipFar" min="0" max="15" value="' + esc(R.shipFar === undefined ? 5 : R.shipFar) + '"></label></div>' +
-      '<p class="hint">CRM tự đọc tỉnh trong địa chỉ khách. <b>Gần</b> = Hà Nội, các tỉnh miền Bắc, Thanh Hóa, Nghệ An, Hà Tĩnh. <b>Xa</b> = từ Quảng Trị trở vào. Không đọc được tỉnh thì lấy trung bình 2 mức. Hỏi nhận hàng vào <b>1 ngày sau</b> ngày hàng dự kiến tới (gần: ngày thứ 4, xa: ngày thứ 6 sau khi đặt). Nhắc đặt lại trước ngày hết hàng (số ngày giao + 1) để đơn mới tới kịp.</p>' +
+      '<details class="set-more"><summary>ℹ️ Gần / xa tính thế nào?</summary><p class="hint">CRM tự đọc tỉnh trong địa chỉ khách. <b>Gần</b> = Hà Nội, các tỉnh miền Bắc, Thanh Hóa, Nghệ An, Hà Tĩnh. <b>Xa</b> = từ Quảng Trị trở vào. Không đọc được tỉnh thì lấy trung bình 2 mức. Hỏi nhận hàng vào <b>1 ngày sau</b> ngày hàng dự kiến tới (gần: ngày thứ 4, xa: ngày thứ 6 sau khi đặt). Nhắc đặt lại trước ngày hết hàng (số ngày giao + 1) để đơn mới tới kịp.</p></details>' +
       '<label class="f"><span>🌟 Khách quen sản phẩm khi đã mua sản phẩm đó từ (lần)</span><input type="number" id="rFam" min="0" max="10" value="' + esc(R.famMin === undefined ? 1 : R.famMin) + '"></label>' +
-      '<p class="hint">Khách quen (mua lại đúng sản phẩm đã dùng, lần mua trước trong 6 tháng, đơn trước không bị hoàn) đã biết cách dùng: CRM <b>bỏ qua</b> hỏi nhận hàng, hỏi thăm 7 ngày, xin cảm nhận 14 ngày. Vẫn nhắc <b>sắp hết hàng</b>, giới thiệu sản phẩm 30 ngày, mời quay lại. Ghi <b>0</b> = tắt (ai cũng gọi đủ các mốc).</p>' +
-      '<p class="hint">Các mốc chăm sóc (hỏi nhận hàng, sắp hết hàng, xin cảm nhận…) tính từ <b>ngày khách nhận hàng</b>: ngày đơn chuyển “Đã giao”, hoặc ngày sale bấm “Đã nhận hàng” khi gọi. Chưa biết ngày nhận thì máy ước tính = <b>ngày gửi</b> + số ngày giao theo vùng (đơn chưa ghi ngày gửi: ngày đặt + số ngày giao).</p>' +
+      '<details class="set-more"><summary>ℹ️ Ô trên nghĩa là gì?</summary><p class="hint">Khách quen (mua lại đúng sản phẩm đã dùng, lần mua trước trong 6 tháng, đơn trước không bị hoàn) đã biết cách dùng: CRM <b>bỏ qua</b> hỏi nhận hàng, hỏi thăm 7 ngày, xin cảm nhận 14 ngày. Vẫn nhắc <b>sắp hết hàng</b>, giới thiệu sản phẩm 30 ngày, mời quay lại. Ghi <b>0</b> = tắt (ai cũng gọi đủ các mốc).</p></details>' +
+      '<details class="set-more"><summary>ℹ️ Các mốc chăm sóc tính từ ngày nào?</summary><p class="hint">Các mốc chăm sóc (hỏi nhận hàng, sắp hết hàng, xin cảm nhận…) tính từ <b>ngày khách nhận hàng</b>: ngày đơn chuyển “Đã giao”, hoặc ngày sale bấm “Đã nhận hàng” khi gọi. Chưa biết ngày nhận thì máy ước tính = <b>ngày gửi</b> + số ngày giao theo vùng (đơn chưa ghi ngày gửi: ngày đặt + số ngày giao).</p></details>' +
       '<p class="hint" id="rHint"></p><button class="btn pri" id="rSave">Lưu nhóm khách</button></div>';
     var CMc = R.commission || {};
     G.cm = '<div class="box"><h3>💰 Hoa hồng</h3><p class="hint" style="margin:0 0 10px">% hoa hồng trên tiền hàng của đơn (không gồm phí ship, đã trừ huỷ / hoàn). Báo cáo BCDT tự tính hoa hồng tháng cho từng sale. Để trống = chưa tính.</p><div class="row2c">' +
       OTYPES.map(function (t) { return '<label class="f"><span>' + OT[t][0] + ' ' + t + ' (%)</span><input type="text" inputmode="decimal" data-cm="' + esc(t) + '" value="' + esc(CMc[t] === undefined ? '' : CMc[t]) + '" placeholder="vd 5"></label>'; }).join('') +
       '<label class="f"><span>🌐 Đơn khách tự đặt trên web (%)</span><input type="text" inputmode="decimal" data-cm="' + CH_WEB + '" value="' + esc(CMc[CH_WEB] === undefined ? '' : CMc[CH_WEB]) + '" placeholder="vd 2"></label>' +
-      '</div><p class="hint">Đơn web (khách tự đặt trên thucduonglanh.vn) tính <b>riêng</b> theo % này, không theo 4 loại đơn. Hoa hồng đơn web tính cho sale đang phụ trách khách lúc khách đặt. Xem ở <b>Đơn hàng → Tất cả đơn → 🌐 Khách tự đặt trên web</b> và báo cáo BCDT.</p><p class="hint">Loại đơn do sale chọn khi lên đơn (CRM chọn sẵn theo gợi ý: Lễ → Ngoài giờ → Khách mới / cũ; khách để lại số qua quảng cáo trong 30 ngày tính là Khách mới). Đơn sale chọn khác gợi ý hiện ở <b>Đơn hàng → Cần xử lý → Kiểm tra loại đơn</b>.</p><button class="btn pri" id="cmSave">Lưu hoa hồng</button></div>';
+      '</div><details class="set-more"><summary>ℹ️ Đơn web và loại đơn tính thế nào?</summary><p class="hint">Đơn web (khách tự đặt trên thucduonglanh.vn) tính <b>riêng</b> theo % này, không theo 4 loại đơn. Hoa hồng đơn web tính cho sale đang phụ trách khách lúc khách đặt. Xem ở <b>Đơn hàng → Tất cả đơn → 🌐 Khách tự đặt trên web</b> và báo cáo BCDT.</p><p class="hint">Loại đơn do sale chọn khi lên đơn (CRM chọn sẵn theo gợi ý: Lễ → Ngoài giờ → Khách mới / cũ; khách để lại số qua quảng cáo trong 30 ngày tính là Khách mới). Đơn sale chọn khác gợi ý hiện ở <b>Đơn hàng → Cần xử lý → Kiểm tra loại đơn</b>.</p></details><button class="btn pri" id="cmSave">Lưu hoa hồng</button></div>';
     if (lvl() >= 3) { var DA = dashAds();
       G.da = '<div class="box"><h3>🚦 Mức đèn Tổng quan</h3><p class="hint" style="margin:0 0 10px">Ô <b>📣 Quảng cáo</b> ở tab Tổng quan và mục <b>Cần chú ý</b> tô màu theo <b>chi phí quảng cáo ÷ tiền khách mới mua</b>. Áp dụng cho mọi Quản trị.</p><div class="row2c">' +
         '<label class="f"><span>🟢 Xanh khi dưới (%)</span><input type="text" inputmode="decimal" id="daGood" value="' + DA[0] + '"></label>' +
@@ -8427,8 +8436,8 @@
       '</div><div class="steps" style="margin-top:10px"><button class="btn" data-add="tp">＋ Thêm mẫu</button><button class="btn pri" id="tpSave">Lưu mẫu tin</button></div></div>';
     if (lvl() >= 3) {
       var us = S.f.us || (S.f.us = S.d.users.map(function (u) { return { email: u.email, name: u.name, role: u.role, active: u.active !== false, alias: u.alias || '', prefix: u.prefix || '', web: !!u.web, mkv: !!u.mkv, zb: !!u.zb, kho: !!u.kho, phone: u.phone || '', full: u.full || '', acct: u.acct || '', joined: u.joined || '' }; }));
-      G.us = '<div class="box"><h3>Nhân sự được vào CRM</h3><p class="hint" style="margin:0 0 10px"><b>Quản trị</b>: toàn quyền. <b>Quản lý</b>: thêm xem doanh số, sửa chu kỳ & mẫu tin. <b>Sale & CSKH</b>: bán hàng, chăm sóc khách mình phụ trách, xử lý đơn. <b>Marketing</b>: tab 📣 Marketing (chi phí, hiệu quả quảng cáo, tự nhập chi phí) + xem (không sửa) khách để lại số trên web ở tab Khách hỏi; không thấy khách đã mua, đơn, doanh số công ty. Khách để lại số trên web luôn chờ Quản lý / Quản trị giao, sale không tự nhận. Muốn Quản lý / Sale xem thêm số marketing: tích <b>📣 Xem Marketing</b> dưới tên người đó (chỉ xem, không sửa). Nhân viên nghỉ việc: bỏ tích “Đang dùng” là không vào được nữa.</p>' +
-        '<p class="hint" style="margin:0 0 10px"><b>Tên trong file QC</b>: tên sale như đang ghi ở cột Sale của file số quảng cáo (nhiều cách viết thì cách nhau dấu phẩy, vd “Phương, PHƯƠNG”). <b>Tiền tố mã đơn</b>: vd “Phuong” → mã đơn Phuong300926-01. <b>SĐT, họ tên đầy đủ, số tài khoản</b>: CRM so với người đăng ký Cộng tác viên, trùng thì báo ⚠️ (nhân sự không được làm CTV); chỉ Quản trị thấy. <b>Ngày làm chính thức</b>: tính thâm niên cho lương & hoa hồng (Phụ lục 01).</p>' +
+      G.us = '<div class="box"><h3>Nhân sự được vào CRM</h3><p class="hint" style="margin:0 0 8px">Mỗi người 1 dòng: email, tên, quyền. Nhân viên nghỉ việc thì bỏ tích <b>Đang dùng</b>. Sửa xong bấm <b>Lưu nhân sự</b> ở cuối.</p><details class="set-more"><summary>ℹ️ Các quyền khác nhau thế nào?</summary><p class="hint" style="margin:0 0 10px"><b>Quản trị</b>: toàn quyền. <b>Quản lý</b>: thêm xem doanh số, sửa chu kỳ & mẫu tin. <b>Sale & CSKH</b>: bán hàng, chăm sóc khách mình phụ trách, xử lý đơn. <b>Marketing</b>: tab 📣 Marketing (chi phí, hiệu quả quảng cáo, tự nhập chi phí) + xem (không sửa) khách để lại số trên web ở tab Khách hỏi; không thấy khách đã mua, đơn, doanh số công ty. Khách để lại số trên web luôn chờ Quản lý / Quản trị giao, sale không tự nhận. Muốn Quản lý / Sale xem thêm số marketing: tích <b>📣 Xem Marketing</b> dưới tên người đó (chỉ xem, không sửa). Nhân viên nghỉ việc: bỏ tích “Đang dùng” là không vào được nữa.</p>' +
+        '<p class="hint" style="margin:0 0 10px"><b>Tên trong file QC</b>: tên sale như đang ghi ở cột Sale của file số quảng cáo (nhiều cách viết thì cách nhau dấu phẩy, vd “Phương, PHƯƠNG”). <b>Tiền tố mã đơn</b>: vd “Phuong” → mã đơn Phuong300926-01. <b>SĐT, họ tên đầy đủ, số tài khoản</b>: CRM so với người đăng ký Cộng tác viên, trùng thì báo ⚠️ (nhân sự không được làm CTV); chỉ Quản trị thấy. <b>Ngày làm chính thức</b>: tính thâm niên cho lương & hoa hồng (Phụ lục 01).</p></details>' +
         '<div class="edit-table" id="usT"><div class="edit-row usr head"><span>Email</span><span>Tên hiển thị</span><span>Quyền</span><span>Đang dùng</span><span></span></div>' +
         us.map(function (u, i) { return '<div class="edit-row usr" data-i="' + i + '"><input type="email" data-k="email" value="' + esc(u.email) + '" placeholder="email@gmail.com"><input type="text" data-k="name" value="' + esc(u.name) + '" placeholder="Tên"><select data-k="role">' + ['Quản trị', 'Quản lý', 'Marketing', 'Sale & CSKH'].map(function (r) { return '<option value="' + esc(r) + '"' + (r === u.role ? ' selected' : '') + '>' + esc(r) + '</option>'; }).join('') + '</select><label class="switch"><input type="checkbox" data-k="active"' + (u.active ? ' checked' : '') + '> Có</label><button class="rm" data-rm="us" data-i="' + i + '" aria-label="Xoá">✕</button>' +
           '<input type="text" data-k="alias" value="' + esc(u.alias || '') + '" placeholder="Tên trong file QC (vd Phương)" class="usr-x"><input type="text" data-k="prefix" value="' + esc(u.prefix || '') + '" placeholder="Tiền tố mã đơn (vd Phuong)" class="usr-x"><input type="tel" data-k="phone" value="' + esc(u.phone || '') + '" placeholder="SĐT cá nhân (chống tự làm CTV)" class="usr-x"><input type="text" data-k="full" value="' + esc(u.full || '') + '" placeholder="Họ tên đầy đủ (vd Nguyễn Thu Hương)" class="usr-x"><input type="text" inputmode="numeric" data-k="acct" value="' + esc(u.acct || '') + '" placeholder="Số tài khoản ngân hàng (chống tự làm CTV)" class="usr-x"><input type="text" data-k="joined" value="' + esc(u.joined || '') + '" placeholder="Ngày làm chính thức (vd 07/2024) – tính thâm niên" class="usr-x"><label class="switch usr-w"><input type="checkbox" data-k="web"' + (u.web || u.role === 'Quản trị' ? ' checked' : '') + (u.role === 'Quản trị' ? ' disabled' : '') + '> 🌐 Sửa website (đăng bài, sửa sản phẩm ở thucduonglanh.vn/admin)</label>' +
@@ -8443,23 +8452,23 @@
     // ---- gom thành nhóm, mỗi mục 1 dòng tóm tắt
     var ca = R.ca || {}, hol = ca.holidays || ['01/01', '30/04', '01/05', '02/09'], cmOn = Object.keys(CMc).filter(function (k) { return CMc[k] !== '' && CMc[k] != null; });
     var act = (S.d.users || []).filter(function (u) { return u.active !== false; }), mk = act.filter(function (u) { return u.role === 'Marketing'; }).length, recvN = staff.filter(function (u) { return u.recv; }).length;
-    if (G.us) h += setSec('👥 Nhân sự', setGroup('us', '🧑‍💼 Ai được vào CRM', act.length + ' người đang dùng' + (mk ? ' · ' + mk + ' marketing' : '') + ' · thêm / khoá người, đổi quyền', G.us));
-    h += setSec(G.us ? '🤝 Chia khách' : '👥 Chia khách', setGroup('mode', '🔀 Khách mới giao cho ai', MODE_INFO[md][0] + ' · ' + recvN + ' người nhận khách mới' + (noOwner ? ' · ⚠️ ' + noOwner + ' khách chưa ai phụ trách' : ''), G.mode) +
+    var GQ = setGroup('gq', '✨ Nhân sự hỏi gì ở trang hướng dẫn', 'Xem câu nhân sự hỏi trợ lý · câu nào hướng dẫn chưa có thì nên viết thêm', '<div id="gqBox"><p class="hint" style="margin:0 0 10px">Ở trang <a href="/huong-dan/" target="_blank" rel="noopener">Hướng dẫn</a>, nhân sự gõ câu hỏi vào ô 🔍 Tìm rồi bấm <b>✨ Hỏi trợ lý An Lành</b>. Câu nào trợ lý báo <b>“hướng dẫn chưa có”</b> thì nên viết thêm vào hướng dẫn.</p><button class="btn" id="gqLoad">Xem câu đã hỏi</button></div>');
+    h += setSec('👥 Nhân sự', 'Ai được vào CRM, được làm gì; nhân sự đang thắc mắc gì.', (G.us ? setGroup('us', '🧑‍💼 Ai được vào CRM', act.length + ' người đang dùng' + (mk ? ' · ' + mk + ' marketing' : '') + ' · thêm / khoá người, đổi quyền', G.us) : '') + GQ);
+    h += setSec('🤝 Chia khách', 'Khách mới giao cho ai, xử lý khách trùng hoặc dùng nhiều số.', setGroup('mode', '🔀 Khách mới giao cho ai', MODE_INFO[md][0] + ' · ' + recvN + ' người nhận khách mới' + (noOwner ? ' · ⚠️ ' + noOwner + ' khách chưa ai phụ trách' : ''), G.mode) +
       setGroup('dup', '👯 Khách trùng sale', 'Khách có ở file của 2 sale: chọn 1 người giữ', G.dup) +
       setGroup('mrg', '🔗 Khách dùng nhiều số', '1 khách mua bằng 2–3 số: gộp về 1 hồ sơ', G.mrg));
-    h += setSec('🛒 Bán hàng & chăm sóc', setGroup('rules', '⭐ Nhóm khách & lịch nhắc', 'VIP từ ' + (R.vipOrders || 3) + ' đơn hoặc ' + moneyShort(R.vipSpent || 2000000) + ' · Sắp mất sau ' + (R.atRisk || 60) + ' ngày · nhắc lại sau ' + (R.coolDays === undefined ? 14 : R.coolDays) + ' ngày', G.rules) +
+    h += setSec('📞 Chăm sóc khách', 'Khi nào CRM nhắc gọi khách, nhắn tin gì.', setGroup('rules', '⭐ Nhóm khách & lịch nhắc', 'VIP từ ' + (R.vipOrders || 3) + ' đơn hoặc ' + moneyShort(R.vipSpent || 2000000) + ' · Sắp mất sau ' + (R.atRisk || 60) + ' ngày · nhắc lại sau ' + (R.coolDays === undefined ? 14 : R.coolDays) + ' ngày', G.rules) +
       setGroup('cy', '📦 Bao lâu khách dùng hết 1 hộp', cy.length + ' sản phẩm · để nhắc khách đặt lại đúng lúc', G.cy) +
-      setGroup('tp', '💬 Mẫu tin nhắn chăm sóc', tp.length + ' mẫu', G.tp) +
-      setGroup('pp', '💰 Lương & hoa hồng (Phụ lục 01)', ppOn() ? '✅ Đang dùng · ' + S.d.rules.payplan.tiers.length + ' bậc doanh thu' : 'Đang tắt · đang dùng % theo loại đơn', ppSetHtml()) +
-      setGroup('cm', '💰 Hoa hồng', cmOn.length ? cmOn.map(function (k) { return esc(k) + ' ' + CMc[k] + '%'; }).join(' · ') : '⚠️ Chưa đặt % hoa hồng', G.cm) +
-      setGroup('ca', '🕘 Ca tối & ngày lễ', 'Ca tối từ ' + esc(ca.evening || '17:30') + ' · ' + hol.length + ' ngày lễ', caBox()) +
-      setGroup('vc', '🎟 Mã ưu đãi đặt hàng web', 'Tạo mã giảm giá gửi riêng khách cũ, đối tác', vcBox()) +
+      setGroup('tp', '💬 Mẫu tin nhắn chăm sóc', tp.length + ' mẫu · dùng khi bấm nhắn tin cho khách', G.tp));
+    h += setSec('💰 Lương & hoa hồng', 'Cách tính tiền cho sale. ' + (ppOn() ? 'Đang tính theo <b>bảng lương theo bậc</b>.' : 'Đang tính theo <b>% từng loại đơn</b>.'), setGroup('pp', '📑 Bảng lương theo bậc doanh thu (Phụ lục 01)', ppOn() ? '✅ Đang dùng · ' + S.d.rules.payplan.tiers.length + ' bậc doanh thu' : 'Đang tắt · bật lên thì thay cho % theo loại đơn', ppSetHtml()) +
+      setGroup('cm', '💵 % hoa hồng theo loại đơn', (cmOn.length ? cmOn.map(function (k) { return esc(k) + ' ' + CMc[k] + '%'; }).join(' · ') : (ppOn() ? 'Chưa đặt · đang dùng bảng lương theo bậc' : '⚠️ Chưa đặt % hoa hồng')) + (ppOn() && cmOn.length ? ' · đang không dùng' : ''), G.cm) +
+      setGroup('ca', '🕘 Ca tối & ngày lễ', 'Ca tối từ ' + esc(ca.evening || '17:30') + ' · ' + hol.length + ' ngày lễ', caBox()));
+    h += setSec('🌐 Website & khuyến mãi', 'Mã giảm giá, cộng tác viên, trò chơi trên web.', setGroup('vc', '🎟 Mã ưu đãi đặt hàng web', 'Tạo mã giảm giá gửi riêng khách cũ, đối tác', vcBox()) +
       setGroup('pt', '🤝 Cộng tác viên & khách giới thiệu', 'Link, mã giảm giá, hoa hồng, đối soát CTV', ptBox()) +
-      setGroup('qz', '🖐 Trò chơi “Bạn còn mấy ngón tay?”', 'Sửa câu hỏi trò chơi trên web · màn hình chơi nhóm', qzeBox()) +
-      setGroup('gq', '✨ Nhân sự hỏi gì ở trang hướng dẫn', 'Câu nhân sự hỏi trợ lý An Lành · câu hướng dẫn chưa có thì nên viết thêm', '<div id="gqBox"><p class="hint" style="margin:0 0 10px">Ở trang <a href="/huong-dan/" target="_blank" rel="noopener">Hướng dẫn</a>, nhân sự gõ câu hỏi vào ô 🔍 Tìm rồi bấm <b>✨ Hỏi trợ lý An Lành</b>. Câu nào trợ lý báo <b>“hướng dẫn chưa có”</b> thì nên viết thêm vào hướng dẫn.</p><button class="btn" id="gqLoad">Xem câu đã hỏi</button></div>'));
+      setGroup('qz', '🖐 Trò chơi “Bạn còn mấy ngón tay?”', 'Sửa câu hỏi trò chơi trên web · màn hình chơi nhóm', qzeBox()));
     if (lvl() >= 3) {
       var src = S.d.sources || [], ads = S.d.ads, SB = syncBoxes(), cut = SB.indexOf('<div class="box"><h3>📣');
-      h += setSec('🔌 Kết nối & báo cáo', setGroup('src', '📂 File Google Sheet của sale', src.length ? src.length + ' file' : '⚠️ Chưa có file nào', SB.slice(0, cut)) +
+      h += setSec('🔌 Kết nối & số liệu', 'Chỉ Quản trị thấy. File Google Sheet, quảng cáo, giá vốn, website.', setGroup('src', '📂 File Google Sheet của sale', src.length ? src.length + ' file' : '⚠️ Chưa có file nào', SB.slice(0, cut)) +
         setGroup('ads', '📣 File số quảng cáo chung', ads && ads.fileId ? '✅ ' + (ads.auto ? 'Tự lấy số 10 phút / lần' : 'Lấy số bằng tay') + (ads.last ? ' · lần cuối ' + when(ads.last) : '') : '⚠️ Chưa kết nối', SB.slice(cut)) +
         setGroup('mdoc', '🗺 Ảnh hệ thống Marketing', mktDoc().url ? '✅ Có link' + (mktDoc().at ? ' · đổi ' + esc(mktDoc().at) : '') + ' · nút ở đầu tab Marketing' : '⚠️ Chưa có link', '<div class="box"><p class="hint" style="margin:0 0 10px">Nút <b>🗺 Hệ thống Marketing</b> ở đầu tab Marketing mở link này. Cập nhật ảnh trên Canva thì dán link mới (Chia sẻ → Xem công khai → Sao chép liên kết).</p>' +
           '<div class="steps"><input type="url" id="mdocUrl" value="' + esc(mktDoc().url || '') + '" placeholder="https://www.canva.com/design/…/view" style="flex:1;min-width:220px"><button class="btn pri" id="mdocSave">Lưu link</button>' + (mktDoc().url ? '<a class="btn ghost" href="' + esc(mktDoc().url) + '" target="_blank" rel="noopener">Mở thử</a>' : '') + '</div></div>') +
@@ -8524,14 +8533,30 @@
       $$('[data-gqf]', box).forEach(function (b) { b.onclick = function () { gqList(b.getAttribute('data-gqf') === '1'); }; });
     }, function (e) { box.innerHTML = '<p class="hint">⚠️ ' + esc(e.message) + '</p>'; });
   }
-  function setSec(title, body) { return '<section class="set-sec"><h2>' + title + '</h2>' + body + '</section>'; }
+  function setSec(title, desc, body) { return '<section class="set-sec"><h2>' + title + '</h2><p class="set-sec-d">' + desc + '</p>' + body + '</section>'; }
   /** 1 mục cài đặt thu gọn: tên + dòng tóm tắt đang cài thế nào; bấm mở ra phần sửa. Mở / đóng được nhớ trên máy (localStorage set_open: 1 mở, 0 đóng).
    *  def = mở sẵn khi người dùng chưa từng bấm mục này (Hướng dẫn nhanh; Telegram khi chưa kết nối). */
   function setGroup(k, title, line, body, def) {
     var o = S.f.setOpen || (S.f.setOpen = (function () { try { return JSON.parse(store('set_open') || '{}') || {}; } catch (e) { return {}; } })());
-    return '<details class="dash-more set-g" data-setk="' + k + '"' + (o[k] === 1 || (o[k] === undefined && def) ? ' open' : '') + '><summary><b>' + title + '</b><span>' + line + '</span></summary><div class="dash-more-b">' + body + '</div></details>';
+    var warn = String(line).indexOf('⚠️') >= 0;
+    if (warn && S.f.setWarn) S.f.setWarn.push([k, title]);
+    return '<details class="dash-more set-g" data-setk="' + k + '"' + (o[k] === 1 || (o[k] === undefined && def) ? ' open' : '') + '><summary><b>' + title + '</b><span class="' + (warn ? 'set-warn' : /^✅/.test(line) ? 'set-ok' : '') + '">' + line + '</span></summary><div class="dash-more-b">' + body + '</div></details>';
+  }
+  /** Cài đặt: lọc mục theo ô 🔍 (gõ không dấu cũng được; mọi chữ gõ phải là đầu 1 từ trong tên / dòng tóm tắt / nội dung mục). */
+  function setFilter() {
+    var q = $('#setQ'); if (!q) return;
+    var w = norm(q.value).replace(/[^a-z0-9%]+/g, ' ').split(' ').filter(Boolean), any = 0;
+    $$('details[data-setk]').forEach(function (d) {
+      var t = d._q || (d._q = ' ' + norm(d.textContent).replace(/[^a-z0-9%]+/g, ' ')), hit = w.every(function (x) { return t.indexOf(' ' + x) >= 0; });
+      d.hidden = !hit; if (hit) any = 1;
+    });
+    $$('.set-sec').forEach(function (sec) { sec.hidden = !$$('details[data-setk]', sec).some(function (d) { return !d.hidden; }); });
+    if ($('#setTodo')) $('#setTodo').hidden = !!w.length;
+    $('#setNone').hidden = !!any;
   }
   function bindSettings() {
+    if ($('#setQ')) { $('#setQ').oninput = function () { S.f.setQ = this.value; setFilter(); }; if (S.f.setQ) setFilter(); }
+    $$('[data-setgo]').forEach(function (b) { b.onclick = function () { var d = $('details[data-setk="' + b.getAttribute('data-setgo') + '"]'); if (!d) return; d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }); }; });
     $$('details[data-setk]').forEach(function (d) { d.addEventListener('toggle', function () { var o = S.f.setOpen || (S.f.setOpen = {}), k = d.getAttribute('data-setk'); o[k] = d.open ? 1 : 0; store('set_open', JSON.stringify(o)); }); });
     if ($('#dayLimSave')) $('#dayLimSave').onclick = function () { var n = Math.max(5, Math.min(200, parseInt($('#dayLim').value, 10) || DAY_LIMIT_DEF)); store('crm_daylimit', String(n)); toast('Mỗi ngày tối đa ' + n + ' khách ✓'); navBadges(); };
     $('#logout').onclick = function () { if (confirm('Đăng xuất khỏi CRM?')) logout(); };

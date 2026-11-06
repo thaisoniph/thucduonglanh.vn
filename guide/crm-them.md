@@ -58,6 +58,8 @@ Khách chưa tiện thì bấm **⏭ Bỏ qua**. Muốn dừng thì bấm **✕*
 Mỗi bạn có **một link web riêng**, ví dụ `thucduonglanh.vn/?ref=thuy`. Khách bấm link của bạn rồi đặt trên web trong **30 ngày** thì đơn **tính cho bạn**.
 
 1. Vào **⚙ Cài đặt → 🌐 Link đặt hàng của tôi**.
+
+> 💡 Ở trang **⚙ Cài đặt**, gõ vài chữ vào ô **🔍 Gõ để tìm** ở trên cùng (không cần dấu, vd *link*, *mau*, *telegram*) là chỉ còn đúng mục cần sửa. Mục có chữ cam **⚠️** là nên làm, cũng hiện ở khung **👉 Nên làm ngay**.
 2. Bấm **📋 Copy** để lấy link.
 3. Gửi link cho khách qua Zalo.
 

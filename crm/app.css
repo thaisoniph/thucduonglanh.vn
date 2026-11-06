@@ -768,13 +768,35 @@ details.dash-more > summary span { font-size: 13px; color: var(--muted); }
 .dash-more-b > .section + .section { margin-top: 14px; }
 
 /* Cài đặt: nhóm (Của tôi, Nhân sự, Chia khách…) + mục thu gọn (dùng kiểu details.dash-more), phần sửa giữ nguyên khung cũ nhưng bỏ viền / tiêu đề trùng */
-.set-intro { margin: -4px 0 14px; }
 .set-sec { margin: 0 0 18px; }
 .set-sec > h2 { font-size: 15px; color: var(--muted); font-weight: 700; margin: 0 0 8px 2px; }
 details.set-g .dash-more-b > .box { background: transparent; border: 0; box-shadow: none; padding: 0; margin: 0; }
 details.set-g .dash-more-b > .box + .box { margin-top: 14px; }
 details.set-g .dash-more-b > .box > h3:first-child { display: none; }
 details.set-g .dash-more-b { background: #fff; }
+/* Cài đặt dễ dùng (06/11): ô tìm, 👉 Nên làm ngay, mô tả từng nhóm, chữ Mở / Đóng thay mũi tên, dòng ⚠️ màu cam, giải thích dài cất vào ℹ️ */
+.set-top { margin: 0 0 12px; }
+.set-top input[type=search] { width: 100%; font-size: 16px; padding: 12px 14px; border: 1.5px solid var(--line); border-radius: var(--radius); background: #fff; }
+.set-top input[type=search]:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+.set-top p { margin: 8px 2px 0; }
+.set-todo { background: var(--orange-light); border: 1px solid #f3d3a4; border-radius: var(--radius); padding: 12px 14px; margin: 0 0 18px; }
+.set-todo > b { display: block; color: var(--orange); margin-bottom: 8px; }
+.set-todo-l { display: flex; flex-wrap: wrap; gap: 8px; }
+.set-todo-l .btn { background: #fff; }
+.set-none { background: #fff; border: 1px dashed var(--line); border-radius: var(--radius); padding: 14px; text-align: center; color: var(--muted); }
+.set-sec > h2 { font-size: 17px; color: var(--ink); margin-bottom: 2px; }
+.set-sec-d { margin: 0 0 10px 2px; font-size: 13px; color: var(--muted); }
+details.set-g > summary { padding-right: 78px; }
+details.set-g > summary::after { content: 'Mở ›'; transform: none; font-size: 13px; font-weight: 600; color: var(--primary); background: var(--primary-light); border-radius: 999px; padding: 3px 10px; margin-top: -13px; }
+details.set-g[open] > summary::after { content: 'Đóng ✕'; transform: none; color: var(--muted); background: var(--bg); }
+details.set-g[open] > summary { background: var(--primary-soft); border-radius: var(--radius) var(--radius) 0 0; }
+details.set-g > summary span.set-warn { color: var(--orange); font-weight: 600; }
+details.set-g > summary span.set-ok { color: var(--primary); }
+details.set-more { margin: 4px 0 10px; }
+details.set-more > summary { cursor: pointer; font-size: 13px; color: var(--blue); list-style: none; padding: 2px 0; }
+details.set-more > summary::-webkit-details-marker { display: none; }
+details.set-more[open] > summary { margin-bottom: 4px; }
+details.set-more > .hint { background: var(--blue-light); border-radius: var(--radius-sm); padding: 8px 10px; margin: 0; }
 
 /* Chọn thời gian 1 chạm (Tổng quan, Marketing): 1 hàng nút, trên điện thoại vuốt ngang */
 .per-q { display: flex; gap: 6px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding: 2px 0 4px; margin: 0 0 2px; }

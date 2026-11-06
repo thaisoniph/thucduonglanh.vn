@@ -49,7 +49,7 @@ Tài khoản Quản trị không nằm trong bảng so sánh nhân sự. Doanh s
 
 **Đổi người phụ trách 1 khách:** mở hồ sơ khách → **⚙️ Sửa thông tin** → ô **Người phụ trách** → **Lưu thay đổi**.
 
-**Cài đặt → 👥 Chia khách & phân quyền:**
+**Cài đặt → 🤝 Chia khách → 🔀 Khách mới giao cho ai:**
 
 - **Khách mới được giao thế nào:**
     - *Tự chia đều*: lần lượt cho những người đang bật "Nhận khách mới".
@@ -60,7 +60,7 @@ Tài khoản Quản trị không nằm trong bảng so sánh nhân sự. Doanh s
 - **Chia đều khách chưa ai phụ trách**: dùng 1 lần cho khách cũ.
 - **Chuyển toàn bộ khách của A sang B**: dùng khi có người nghỉ việc.
 
-**Cài đặt → 🔀 Khách trùng sale:** khách có trong file của 2 sale trở lên. Mỗi khách chỉ để **1 người giữ**.
+**Cài đặt → 🤝 Chia khách → 👯 Khách trùng sale:** khách có trong file của 2 sale trở lên. Mỗi khách chỉ để **1 người giữ**.
 
 1. Xem khách có trong file của ai, ai đã bán bao nhiêu.
 2. Chọn người giữ (máy đã gợi ý sẵn). Bấm **Chốt**. Hoặc bấm **Chốt cả … khách theo lựa chọn đang hiện**.
@@ -70,7 +70,7 @@ Tài khoản Quản trị không nằm trong bảng so sánh nhân sự. Doanh s
 - Sale kia vẫn lên đơn cho khách đó thì doanh số vẫn tính cho người lên đơn. Chỉ việc chăm sóc là của người giữ.
 - Muốn xem ngay thì bấm **🔄 Quét lại file sale**.
 
-**Cài đặt → 🔗 Khách dùng nhiều số:** bấm **Xem khách nghi trùng**. Chọn số chính → **🔗 Gộp vào số đã chọn**. Không phải 1 người thì bấm **Không phải 1 người**.
+**Cài đặt → 🤝 Chia khách → 🔗 Khách dùng nhiều số:** bấm **Xem khách nghi trùng**. Chọn số chính → **🔗 Gộp vào số đã chọn**. Không phải 1 người thì bấm **Không phải 1 người**.
 
 ## Khách sale báo ngừng liên hệ
 
@@ -87,7 +87,7 @@ Sale chọn loại đơn khác với gợi ý của máy thì đơn có nhãn **
 1. Vào **Đơn hàng → Cần xử lý → Kiểm tra loại đơn**.
 2. Mở đơn. Bấm **✓ Đúng** (giữ lựa chọn của sale) hoặc **Đổi sang** loại khác.
 
-% hoa hồng từng loại đặt ở **Cài đặt → 💰 Hoa hồng**. Ô *🌐 Đơn khách tự đặt trên web (%)* là hoa hồng đơn web (để trống = chưa tính).
+% hoa hồng từng loại đặt ở **Cài đặt → 💰 Lương & hoa hồng → 💵 % hoa hồng theo loại đơn**. Ô *🌐 Đơn khách tự đặt trên web (%)* là hoa hồng đơn web (để trống = chưa tính).
 
 ## Đối soát vận chuyển (Best, Viettel Post, xe ôm)
 
@@ -141,7 +141,7 @@ Mức cho người tự đăng ký sửa ở **⚙️ Cài đặt chung**, dòng
 - Đơn khách tự đặt trên web tính như đơn sale lên: khách cũ theo % khách cũ, khách mới đặt qua **link riêng của sale** theo % khách mới. Khách mới tự tìm đến web (không qua link sale) thì tính **50%** mức khách mới.
 - Đơn sale chốt **tối / Chủ nhật** (loại đơn Ngoài giờ): **6%** cố định. Đơn **ngày lễ**: **10%** cố định. Không theo bậc, thâm niên, vẫn cộng vào doanh thu để xét bậc. Đơn khách tự đặt web lúc tối / lễ tính như đơn web thường.
 - Doanh thu dưới 80 triệu: hỗ trợ theo năng lực, quản lý tự quyết.
-- Thâm niên lấy từ ô **Ngày làm chính thức** ở Cài đặt → Nhân sự. Sửa bảng bậc / % ở **Cài đặt → 💰 Lương & hoa hồng (Phụ lục 01)** (chỉ Quản trị).
+- Thâm niên lấy từ ô **Ngày làm chính thức** ở Cài đặt → Nhân sự. Sửa bảng bậc / % ở **Cài đặt → 💰 Lương & hoa hồng → 📑 Bảng lương theo bậc doanh thu (Phụ lục 01)** (chỉ Quản trị).
 - Đây là số tạm tính để nhân sự theo dõi; số chốt lương vẫn do kế toán đối chiếu.
 
 **Cách tính tiền cho CTV:**
@@ -165,7 +165,7 @@ Mức cho người tự đăng ký sửa ở **⚙️ Cài đặt chung**, dòng
 
 Mã giảm giá gửi riêng cho **khách cũ, đối tác**. Trên web không quảng cáo mã này.
 
-1. Vào **Cài đặt → 🛒 Bán hàng & chăm sóc → 🎟 Mã ưu đãi đặt hàng web → Quản lý mã ưu đãi**.
+1. Vào **Cài đặt → 🌐 Website & khuyến mãi → 🎟 Mã ưu đãi đặt hàng web → Quản lý mã ưu đãi**.
 2. Bấm **＋ Tạo mã mới**.
 3. Chọn loại: giảm số tiền (ví dụ 50k), giảm % (có thể đặt giảm tối đa), hoặc miễn phí ship.
 4. Đặt điều kiện nếu cần: đơn từ bao nhiêu tiền, dùng đến ngày nào, bao nhiêu lượt. Muốn mã chỉ cho 1 khách thì điền số điện thoại của khách đó.
