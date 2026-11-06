@@ -7343,6 +7343,7 @@
     var CV = M && M.tot && M.newN && costCfg() ? custValue() : null, cac = CV && Math.round(M.tot / M.newN);
     if (CV && CV.gp90 !== null && CV.n >= 10 && cac > CV.gp90) L.push('🔴 <b>Quảng cáo đang lỗ:</b> có 1 khách mới tốn <b>' + moneyShort(cac) + '</b>, khách đó mang về lãi gộp khoảng <b>' + moneyShort(CV.gp90) + '</b> trong 90 ngày đầu. Cần giảm giá có 1 khách, hoặc chăm sóc để khách mua lại nhiều hơn.' + who('Marketing + Quản lý sale') + xem('mkt'));
     var bc = dashBadCamp(M); if (bc) L.push('🟠 Chiến dịch <b>' + esc(bc.r[1]) + '</b> chi ' + moneyShort(bc.r[3]) + (bc.r[8] ? ' mới ra ' + bc.r[8] + ' đơn (' + moneyShort(Math.round(bc.cpa)) + ' / đơn, gấp ' + oneDec(bc.x) + ' lần mức chung)' : ' mà chưa ra đơn nào') + '. Nên giảm tiền hoặc tắt.' + who('Marketing') + xem('mkt'));
+    if (lvl() >= 3 && !(S.d.kho && S.d.kho.n)) L.push('📦 <b>Kho chưa có sản phẩm:</b> thêm sản phẩm + số ngày nhà cung cấp giao, rồi 🧮 Kiểm kho lần đầu để máy bắt đầu tự trừ hàng và báo sắp hết.' + who(khoWho()) + xem('#kho'));
     var KS = khoCan() && S.d.kho; // 📦 kho: sản phẩm cần đặt NCC / đang hết / hàng về trễ (kho_sum, cập nhật 10 phút / lần)
     if (KS && (KS.need || KS.late)) L.splice(KS.out ? 0 : L.length, 0, (KS.out ? '🔴' : '🟠') + ' <b>Kho: ' + [KS.need ? KS.need + ' sản phẩm cần đặt nhà cung cấp' : '', KS.late ? KS.late + ' sản phẩm hàng về trễ hẹn' : ''].filter(Boolean).join(', ') + '</b>' + ((KS.top || []).length ? ': ' + KS.top.map(function (t) { return esc(t[0]) + (t[1] === 'out' ? ' (đang hết)' : t[1] === 'late' ? ' (hàng về trễ hẹn)' : t[2] !== null ? ' (~' + t[2] + ' ngày)' : ''); }).join(', ') : '') + '.' + who(khoWho()) + xem('#kho'));
     if (sj) { var by = sanLatest(sj); Object.keys(by).forEach(function (k) { var o = by[k]; if (o.late > (o.sheet ? 2 : 3)) L.push('⏰ ' + esc(k) + ' đã ' + o.late + (o.sheet ? ' ngày chưa gõ số vào Google Sheet báo cáo' : ' ngày chưa tải file đơn mới') + ', số sàn có thể đang thiếu.' + who('Phụ trách sàn') + xem('#san')); }); }
@@ -9390,7 +9391,7 @@
   }
   function khoEmpty() {
     var ps = (CFG.products || []).filter(function (p) { return !(p.parts && p.parts.length) && (p.variants || []).length; });
-    return '<div class="box"><h3>Bắt đầu theo dõi kho</h3><ol class="kho-ol"><li>Thêm các sản phẩm có trong kho, ghi rõ <b>loại + trọng lượng</b> (vd “Trà DILVANG hộp 75g”) và <b>số ngày nhà cung cấp giao hàng</b> của từng sản phẩm.</li><li>Đếm kho, nhập ở <b>🧮 Kiểm kho</b>.</li><li>Từ đó máy tự trừ hàng theo đơn (web, sale, sàn), tự báo Telegram khi cần đặt hàng.</li></ol>' +
+    return '<div class="box"><h3>Bắt đầu theo dõi kho</h3><p class="small muted" style="margin:0 0 8px">Nút <b>🧮 Kiểm kho</b>, <b>📥 Nhập hàng</b>, <b>📤 Xuất khác</b> hiện ra sau khi thêm sản phẩm.</p><ol class="kho-ol"><li>Thêm các sản phẩm có trong kho, ghi rõ <b>loại + trọng lượng</b> (vd “Trà DILVANG hộp 75g”) và <b>số ngày nhà cung cấp giao hàng</b> của từng sản phẩm.</li><li>Đếm kho, nhập ở <b>🧮 Kiểm kho</b>.</li><li>Từ đó máy tự trừ hàng theo đơn (web, sale, sàn), tự báo Telegram khi cần đặt hàng.</li></ol>' +
       (ps.length ? '<p class="small muted" style="margin:10px 0 6px">Thêm nhanh sản phẩm đang bán trên web. Ghi số ngày NCC giao (sửa lại sau được):</p><div class="kho-quick">' + ps.map(function (p, i) { return '<div class="kho-qr"><label class="kho-ck"><input type="checkbox" data-khq="' + i + '" checked> ' + esc(khoQuickName(p)) + ' <small class="muted">(' + khoUnitOf(p) + ')</small></label><label class="kho-ql">NCC giao <input type="number" inputmode="numeric" min="1" data-khl="' + i + '" value="10"> ngày</label></div>'; }).join('') + '</div>' +
         '<p class="err" id="khqErr"></p><div class="steps"><button class="btn pri" data-kho="quick">＋ Thêm các sản phẩm đã chọn</button><button class="btn" data-kho="add">＋ Thêm sản phẩm khác</button></div>' : '<div class="steps"><button class="btn pri" data-kho="add">＋ Thêm sản phẩm kho</button></div>') + '</div>';
   }
@@ -9472,7 +9473,7 @@
     if (!todo.length) { $('#khqErr').textContent = 'Chọn ít nhất 1 sản phẩm.'; return; }
     btn.disabled = true; btn.textContent = '⏳ Đang thêm…';
     var go = function (i, last) {
-      if (i >= todo.length) { khoSet(last); toast('Đã thêm ' + todo.length + ' sản phẩm ✓ Giờ đếm kho rồi bấm 🧮 Kiểm kho.'); render(); return; }
+      if (i >= todo.length) { khoSet(last); toast('Đã thêm ' + todo.length + ' sản phẩm ✓ Giờ nhập số đếm được của từng sản phẩm.'); render(); openKhoCount(); return; }
       api('kho_item', { item: todo[i] }).then(function (j) { go(i + 1, j); }, function (e) { btn.disabled = false; btn.textContent = '＋ Thêm các sản phẩm đã chọn'; $('#khqErr').textContent = todo[i].name + ': ' + e.message; if (last) khoSet(last); });
     };
     go(0, null);

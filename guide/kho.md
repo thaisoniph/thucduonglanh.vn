@@ -17,13 +17,14 @@ Trang này dành cho **người phụ trách kho**, **Quản lý** và **Quản 
 - Hàng quá ngày hẹn chưa về thì máy cũng nhắc để gọi giục nhà cung cấp (NCC).
 
 **Ai vào được:** người được Quản trị tích ô **📦 Phụ trách kho** (Cài đặt → Nhân sự), Quản lý, Quản trị.
-Người phụ trách kho mở CRM là vào thẳng tab **📦 Kho**. Quản lý, Quản trị mở ở **••• Thêm** → **Kho**.
+Người phụ trách kho mở CRM là vào thẳng tab **📦 Kho**. Quản lý, Quản trị mở ở **••• Thêm** → **Kho**, hoặc nút **📦 Kho** ở cuối tab Tổng quan.
+Nút **🧮 Kiểm kho**, **📥 Nhập hàng**, **📤 Xuất khác** chỉ hiện ra **sau khi đã thêm sản phẩm** (bước 2 bên dưới).
 
 ## Bắt đầu (làm 1 lần)
 
 **Bước 1: Nối Telegram** để nhận tin sắp hết hàng. Cách làm ở trang [CRM](/huong-dan/crm/) (mục Nối Telegram). Chưa nối thì tin chỉ vào nhóm chung, dễ bị trôi.
 
-**Bước 2: Thêm sản phẩm.** Lần đầu, tab Kho có sẵn danh sách sản phẩm trên web. Tích sản phẩm có trong kho, ghi **số ngày NCC giao hàng** của từng loại, bấm **＋ Thêm các sản phẩm đã chọn**.
+**Bước 2: Thêm sản phẩm.** Lần đầu, tab Kho có sẵn danh sách sản phẩm trên web. Tích sản phẩm có trong kho, ghi **số ngày NCC giao hàng** của từng loại, bấm **＋ Thêm các sản phẩm đã chọn**. Thêm xong, hộp **🧮 Kiểm kho** tự mở để nhập số đếm (bước 3).
 Sản phẩm khác (Progomax, Gafo, Mầm xôi…): bấm **＋ Thêm sản phẩm kho**.
 
 - **Tên:** ghi rõ **loại + trọng lượng**, ví dụ "Trà DILVANG hộp 75g", "Fucoidan Progomax 900g". Máy dựa vào tên này để nhận ra hàng trong đơn.
