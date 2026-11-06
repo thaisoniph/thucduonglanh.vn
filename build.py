@@ -3678,6 +3678,14 @@ def _slug_vi(value, separator="-"):
     return re.sub(r"[^a-z0-9]+", separator, s).strip(separator)
 
 
+SEARCH_HERO = """<div class="g-hero">
+<label class="g-hero-label" for="g-hero-q">🔍 Bạn cần làm gì? Gõ vài chữ để tìm</label>
+<div class="g-hero-box"><input id="g-hero-q" type="search" data-find-input placeholder="Ví dụ: lên đơn, hoàn hàng, nối Telegram…" autocomplete="off" enterkeyhint="search"></div>
+<p class="g-hero-hint">Gõ không dấu cũng được. Hay tìm:</p>
+<div class="g-chips" data-chips></div>
+</div>"""
+
+
 def build_guide(out):
     """Hướng dẫn nội bộ cho nhân sự: guide/*.md (sửa được ở trang quản trị) -> crm.thucduonglanh.vn/huong-dan/."""
     src = ROOT / "guide"
@@ -3688,8 +3696,14 @@ def build_guide(out):
     if (src / "img").exists():
         shutil.copytree(src / "img", out / "img")
     shutil.copy(src / "guide.css", out / "guide.css")
-    ver = hashlib.md5((src / "guide.css").read_bytes()).hexdigest()[:8]
-    pages = []
+    shutil.copy(src / "guide.js", out / "guide.js")
+    ver = hashlib.md5((src / "guide.css").read_bytes() + (src / "guide.js").read_bytes()).hexdigest()[:8]
+    pages, index = [], []
+
+    def plain(h):  # HTML -> chữ thường để tìm kiếm
+        h = re.sub(r"<figcaption>.*?</figcaption>", " ", h, flags=re.S)
+        h = re.sub(r"</(p|li|tr|h\d|blockquote|figure|div)>|<br\s*/?>|</t[dh]>", " · ", h)
+        return re.sub(r"(\s*·\s*)+", " · ", re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", "", h)))).strip(" ·")
     for f in src.glob("*.md"):
         meta, body = read_front(f)
         slug = "" if f.stem == "index" else f.stem
@@ -3715,6 +3729,20 @@ def build_guide(out):
         body = re.sub(r'<a href="(https?://[^"]+)"', r'<a href="\1" target="_blank" rel="noopener"', body)
         toc = "".join(f'<li><a href="#{t["id"]}">{t["name"]}</a></li>' for t in conv.toc_tokens)
         meta, here = pg["meta"], pg["slug"]
+        if not meta.get("hidden"):  # mục lục tìm kiếm: mỗi tiêu đề ## / ### là 1 kết quả
+            url = f'/huong-dan/{here + "/" if here else ""}'
+            nav = meta.get("nav", meta.get("title", ""))
+            parts = re.split(r'<h([23]) id="([^"]+)">(.*?)</h\1>', body, flags=re.S)
+            intro = plain(parts[0])
+            index.append({"p": nav, "u": url, "a": "", "h": meta.get("title", ""), "l": 1,
+                          "x": (str(meta.get("description", "")) + " · " + intro).strip(" ·")})
+            parent = ""
+            for i in range(1, len(parts), 4):
+                lv, aid, head, txt = parts[i], parts[i + 1], plain(parts[i + 2]), plain(parts[i + 3])
+                if lv == "2":
+                    parent = head
+                index.append({"p": nav, "u": url, "a": aid, "h": head, "l": int(lv),
+                              "s": parent if lv == "3" else "", "x": txt})
         tabs = "".join(
             f'<a href="/huong-dan/{p["slug"] + "/" if p["slug"] else ""}"{" class=on aria-current=page" if p["slug"] == here else ""}>'
             f'{html.escape(p["meta"].get("nav", p["meta"].get("title", "")))}</a>' for p in pages if not p["meta"].get("hidden") or p["slug"] == here)  # trang ẩn (hidden: true): chỉ ai có link mới thấy
@@ -3732,9 +3760,10 @@ def build_guide(out):
 <link rel="icon" href="/icon-32.png" sizes="32x32">
 <link rel="stylesheet" href="/huong-dan/guide.css?v={ver}">
 </head>
-<body>
+<body{' class="g-home"' if not here else ""}>
 <header class="g-top"><div class="g-in">
-<a class="g-brand" href="/huong-dan/"><img src="/icon-180.png" alt="" width="32" height="32">Hướng dẫn nội bộ</a>
+<a class="g-brand" href="/huong-dan/"><img src="/icon-180.png" alt="" width="32" height="32"><span>Hướng dẫn nội bộ</span></a>
+<button type="button" class="g-find" data-find aria-label="Tìm trong hướng dẫn"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M16.5 16.5 21 21" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><span>Tìm</span><kbd>/</kbd></button>
 <a class="g-crm" href="/">Mở CRM →</a>
 </div>
 <nav class="g-tabs g-in" aria-label="Các phần hướng dẫn">{tabs}</nav>
@@ -3744,16 +3773,19 @@ def build_guide(out):
 <main>
 <h1>{title}</h1>
 {f'<p class="g-lead">{html.escape(meta["description"])}</p>' if meta.get("description") else ""}
+{SEARCH_HERO if not here else ""}
 {body}
 <footer class="g-foot">{f"Cập nhật {upd} · " if upd else ""}Tài liệu nội bộ Thực Dưỡng Lành, không chia sẻ ra ngoài.</footer>
 </main>
 </div>
+<script src="/huong-dan/guide.js?v={ver}" defer></script>
 </body>
 </html>
 """
         d = out / here if here else out
         d.mkdir(parents=True, exist_ok=True)
         (d / "index.html").write_text(page, "utf-8")
+    (out / "search.json").write_text(json.dumps(index, ensure_ascii=False, separators=(",", ":")), "utf-8")
 
 
 if __name__ == "__main__":

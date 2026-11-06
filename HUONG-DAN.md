@@ -390,6 +390,7 @@ Apps Script giới hạn 200 phiên bản/dự án: báo lỗi "Không tạo đ�
 - Nguồn: `guide/*.md` (frontmatter: title, nav = tên trên menu, order, updated, description). Mỗi file là 1 tab; mỗi tiêu đề `##` tự thành 1 mục ở "Trong trang này". `index.md` → /huong-dan/, `crm.md` → /huong-dan/crm/.
 - `build_guide()` trong build.py sinh trang vào `dist-crm/huong-dan/`, deploy cùng CRM. Không cần đăng nhập (để người mới đọc được cách đăng nhập) nhưng có noindex + robots chặn; không đưa dữ liệu khách thật hay mã bí mật vào đây.
 - Sửa được trong /admin → **Hướng dẫn nội bộ** (ảnh tải lên vào `guide/img/`).
+- **🔍 Tìm kiếm** (06/11/2026): build.py sinh `huong-dan/search.json` (mỗi tiêu đề `##`/`###` của trang không ẩn = 1 mục: trang, tiêu đề, mục cha, chữ trong mục). `guide/guide.js`: nút **Tìm** trên đầu mọi trang (phím `/` hoặc Ctrl/⌘+K), ô tìm to + nút "Hay tìm" (`HINTS`) ở trang Bắt đầu; gõ không dấu được, khớp đầu chữ, mọi chữ phải có; tiêu đề khớp xếp trước; từ gần nghĩa trong `SYN` (đặt hàng ↔ lên đơn ↔ tạo đơn…). Bấm kết quả → mở `trang/?tim=…#mục`, tô vàng chữ trong mục đó + thanh "Đang tô vàng / Tìm lại / Bỏ tô". Mục lục "Trong trang này" tô đậm mục đang đọc. Thêm tiêu đề `##` rõ ràng (theo việc nhân sự cần làm) là cách tốt nhất để tìm ra đúng chỗ.
 - Ảnh chụp CRM dùng dữ liệu giả: `backend/crm-test/sync.sh` rồi `SCALE=2 ./shot.sh "g-care&as=sondmt.bsm@gmail.com" g-care.png 500 1900` (các kịch bản `g-…` trong flow.js), cắt và lưu WebP rộng 640px vào `guide/img/`.
 - **Khi thêm/đổi tính năng CRM hay /admin, sửa luôn `guide/` trong cùng lần đẩy code.**
 
