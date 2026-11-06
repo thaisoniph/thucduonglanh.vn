@@ -4,7 +4,7 @@
  * - Đăng nhập OAuth 2.1 (mã PKCE S256) bằng chính mã email của CRM: /oauth/authorize hiện trang nhập email → mã gửi về email → bấm Cho phép.
  *   Chỉ người askAllowed() (ask.js; tạm thời anh Sơn + anh Hiếu) kết nối được. Mỗi lần gọi đều kiểm tra lại (bị khoá / bỏ quyền là hết dùng ngay).
  *   Đăng ký ứng dụng: tự động (RFC 7591 /oauth/register), client_id là URL (CIMD), hoặc Client ID / Secret tạo trong CRM (lệnh mcp_client) cho app bắt nhập tay.
- *   Chỉ chuyển hướng về ChatGPT / OpenAI, Google (Gemini), Claude và máy mình (localhost, để thử) – REDIRECT_OK.
+ *   Chỉ chuyển hướng về ChatGPT / OpenAI, Google (Gemini – trả về oauth-redirect.googleusercontent.com, chỉ đúng tên miền này, 06/11/2026), Claude và máy mình (localhost, để thử) – REDIRECT_OK.
  *   Mã truy cập 30 ngày, mã làm mới 365 ngày (đổi mã mỗi lần làm mới); trong D1 chỉ lưu mã băm SHA-256 (kv oat_ / ort_ / oac_ / ocl_).
  * - Công cụ: hoi_so_lieu (trợ lý số liệu Claude của CRM tự tra và trả lời – chắc nhất), mo_ta_du_lieu + tra_cuu + san_pham_ban (+ tai_chinh cho Quản trị)
  *   để AI bên ngoài tự tra. Tất cả chỉ đọc; dữ liệu khách đã che như ✨ Hỏi số liệu. Giới hạn MCP_DAY_MAX lượt gọi / người / ngày. */
@@ -13,7 +13,7 @@ import { crmUser, crmLogin, crmVerify, crmLog } from './crm.js';
 import { askAllowed, askCtx, askTool, askGuide, crmAsk } from './ask.js';
 
 const AT_DAYS = 30, RT_DAYS = 365, CODE_MS = 10 * 60e3, MCP_DAY_MAX = 400, REG_IP_MAX = 30, SCOPE = 'crm.read';
-const REDIRECT_OK = /^https:\/\/([a-z0-9-]+\.)*(chatgpt\.com|openai\.com|google\.com|claude\.ai|claude\.com|anthropic\.com)(\/|$)|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?\//i;
+const REDIRECT_OK = /^https:\/\/([a-z0-9-]+\.)*(chatgpt\.com|openai\.com|google\.com|claude\.ai|claude\.com|anthropic\.com)(\/|$)|^https:\/\/oauth-redirect\.googleusercontent\.com\/|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?\//i;
 const NAME = 'CRM Thực Dưỡng Lành';
 const PROTO = ['2024-11-05', '2025-03-26', '2025-06-18', '2025-11-25'];
 const INSTR = 'Máy chủ số liệu CRM của Thực Dưỡng Lành (thực phẩm dinh dưỡng; bán qua sale, website, sàn). Chỉ đọc. Hỏi số liệu kinh doanh (doanh số, đơn, khách, khách hỏi, chăm sóc, nhân viên, quảng cáo, sàn, lãi lỗ…) thì gọi hoi_so_lieu với nguyên câu hỏi tiếng Việt, rồi kể lại cho người dùng. Người dùng có thể đang nói chuyện bằng giọng: trả lời tiếng Việt, ngắn, số tròn dễ nghe. Muốn tự tra chi tiết thì gọi mo_ta_du_lieu trước rồi dùng tra_cuu. Tên khách chỉ có tên gọi, số điện thoại đã che: đừng cố lấy số đầy đủ.';
