@@ -1824,3 +1824,10 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .gq-who { display: block; font-size: 12.5px; color: var(--muted, #74776c); }
 .gq-miss { display: inline-block; font-size: 12px; font-weight: 700; color: #a4511b; background: #fff1e3; border-radius: 6px; padding: 1px 6px; }
 .gq-ans { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line, #e6e3da); font-size: 14px; line-height: 1.55; }
+/* 🧩 Fanpage: trang dự án riêng (06/11/2026) */
+.fp-ownb { border: 1px dashed var(--line); border-radius: 10px; padding: 8px 10px; margin: 8px 0; background: #fbfbf8; }
+.fp-pg:not(.fp-is-own) .fp-own-only { display: none; }
+.fp-leads { border: 1px solid var(--line); border-radius: 10px; background: #fff; margin-bottom: 8px; }
+.fp-ldr { padding: 6px 10px; border-top: 1px solid var(--line); }
+.fp-ldr:first-child { border-top: 0; }
+.fp-ldr > summary { cursor: pointer; }
