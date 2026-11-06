@@ -12,6 +12,7 @@ import { zbotTick } from './zbot.js';
 import { fpTick } from './fb.js';
 import { refAuto, refSaleAuto } from './partner.js';
 import { finSync, finMorning } from './fin.js';
+import { khoTick, khoMorning } from './kho.js';
 
 function careMessage(items, leads, today, isGroup, who, R) {
   const block = (title, arr, tip) => !arr.length ? '' : '\n\n<b>' + title + ' (' + arr.length + ')</b> – ' + tip + '\n' + arr.slice(0, 25).map(c =>
@@ -71,7 +72,11 @@ const MIRROR = [
   ['CRM · Chi phí marketing', ['Ngày', 'Kênh', 'Tài khoản', 'Chiến dịch', 'Chi phí', 'Hiển thị', 'Lượt bấm', 'Tin nhắn', 'Khách để lại số', 'Đơn (theo kênh)', 'Nguồn', 'Ghi chú'],
     'SELECT * FROM ad_spend ORDER BY day DESC, channel, campaign', r => [r.day, r.channel, r.account, r.campaign, r.spend, r.impressions, r.clicks, r.msgs, r.leads, r.purchases, r.src, r.note]],
   ['CRM · Đơn sàn TMĐT', ['Ngày đặt', 'Sàn', 'Mã đơn', 'Trạng thái trên sàn', 'Tính doanh thu', 'Doanh thu đặt hàng', 'Hoàn tiền', 'Tiền về', 'Tiền về là số thật', 'Số lượng', 'Sản phẩm'],
-    'SELECT * FROM san_orders ORDER BY day DESC, shop, id', r => [r.day, r.shop, r.id, r.status, { ok: 'Có', cancel: 'Huỷ', 'return': 'Hoàn', wait: 'Chờ thanh toán' }[r.state] || r.state, r.gmv, r.refund, r.net, r.net_real ? 'Có' : 'Ước tính', r.qty, (() => { try { return JSON.parse(r.items || '[]').map(i => i[0] + ' x' + i[1]).join('; '); } catch (e) { return ''; } })()]]
+    'SELECT * FROM san_orders ORDER BY day DESC, shop, id', r => [r.day, r.shop, r.id, r.status, { ok: 'Có', cancel: 'Huỷ', 'return': 'Hoàn', wait: 'Chờ thanh toán' }[r.state] || r.state, r.gmv, r.refund, r.net, r.net_real ? 'Có' : 'Ước tính', r.qty, (() => { try { return JSON.parse(r.items || '[]').map(i => i[0] + ' x' + i[1]).join('; '); } catch (e) { return ''; } })()]],
+  ['CRM · Kho nhập xuất', ['Thời gian', 'Sản phẩm', 'Việc', 'Số lượng', 'Đơn vị', 'Máy tính lúc kiểm', 'Lý do', 'Ghi chú', 'Người ghi'], // 📦 kho.js: nhập hàng, xuất khác, kiểm kho
+    'SELECT m.*, i.name AS iname, i.unit AS iunit FROM kho_moves m LEFT JOIN kho_items i ON i.id = m.item ORDER BY m.at', r => [T(r.at), r.iname || r.item, { in: 'Nhập kho', out: 'Xuất khác', count: 'Kiểm kho' }[r.kind] || r.kind, r.qty, r.iunit || '', r.sys === null ? '' : r.sys, r.reason, r.note, r.by_name]],
+  ['CRM · Kho đặt NCC', ['Ngày đặt', 'Sản phẩm', 'Số lượng', 'Đơn vị', 'Hẹn về', 'Trạng thái', 'Đã nhận', 'Ngày nhận', 'Ghi chú', 'Người đặt'],
+    'SELECT p.*, i.name AS iname, i.unit AS iunit FROM kho_po p LEFT JOIN kho_items i ON i.id = p.item ORDER BY p.at', r => [T(r.at), r.iname || r.item, r.qty, r.iunit || '', r.eta ? fmtDate(r.eta, 'yyyy-MM-dd') : '', { open: 'Chờ hàng về', done: 'Đã nhập kho', cancel: 'Đã huỷ' }[r.status] || r.status, r.got, T(r.done_at), r.note, r.by_name]]
 ];
 const MIRROR_COLS = 35; // A…AI (ô AI1 của tab đầu ghi giờ sao lưu)
 /** Chép toàn bộ dữ liệu sang các tab "CRM · …" của file Sheet chính.
@@ -126,6 +131,8 @@ export async function scheduled(x, cron) {
     if (!await kvGet(x.db, key)) { await kvSet(x.db, key, '1', 2 * DAY); try { await refThanks(x); } catch (e) { console.error('refAuto', e.message); } try { await dailyCare(x); } catch (e) { console.error('dailyCare', e.message); } }
     const fm = 'fin_' + fmtDate(now, 'yyyyMMdd'); // 💼 tin tài chính buổi sáng: riêng cho Quản trị đã nối Telegram
     if (!await kvGet(x.db, fm)) { await kvSet(x.db, fm, '1', 2 * DAY); try { const t = await finMorning(x); if (t) for (const u of await crmUsers(x)) if (u.active && u.tg && u.level >= 3) await telegramTo(x.env, u.tg, t); } catch (e) { console.error('finMorning', e.message); } }
+    const kk = 'kho_' + fmtDate(now, 'yyyyMMdd'); // 📦 tin kho buổi sáng: cần đặt NCC, hàng trễ, thứ 6 kiểm kho (kho.js)
+    if (!await kvGet(x.db, kk)) { await kvSet(x.db, kk, '1', 2 * DAY); try { await khoMorning(x); } catch (e) { console.error('khoMorning', e.message); } }
     const mk = 'mktd_' + fmtDate(now, 'yyyyMMdd'); // tin Telegram marketing buổi sáng
     if (!await kvGet(x.db, mk)) { await kvSet(x.db, mk, '1', 2 * DAY); try { for (const m of await mktDailyMsgs(x, await crmUsers(x))) await telegramTo(x.env, m.tg, m.text); } catch (e) { console.error('mktDaily', e.message); } }
   }
@@ -146,6 +153,7 @@ export async function scheduled(x, cron) {
   }
   try { await sanSheetTick(x); } catch (e) { console.error('sanSheet', e.message); } // Google Sheet báo cáo sàn, 30 phút/lần
   try { await wbTick(x); } catch (e) { console.error('wbTick', e.message); } // ghi ngược vào file sale (hàng trống: 1 câu đọc theo chỉ mục)
+  try { await khoTick(x); } catch (e) { console.error('khoTick', e.message); } // 📦 trừ kho theo đơn vừa đổi, báo ngay khi sản phẩm chạm mức cần đặt
   if (!await kvGet(x.db, 'cus_src_v2')) { await kvSet(x.db, 'cus_src_v2', '1'); await kvSet(x.db, 'recalc_all', '1'); } // 12/10/2026: tính lại Nguồn khách cho mọi khách (custSource)
   if (await kvGet(x.db, 'recalc_all') === '1') { await kvSet(x.db, 'recalc_all', '0'); try { await recalcAll(x); } catch (e) { console.error('recalcAll', e.message); } } // 1 lần sau khi thêm cột ngày nhận / đơn hoàn / khách quen
   try { await backfillCustomerExtras(x); } catch (e) { console.error('backfill', e.message); } // 1 lần: Zalo / cộng đồng / ngày sinh từ Sheet cũ

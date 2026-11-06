@@ -3636,8 +3636,15 @@ def build_crm():
         shutil.copy(brand / f, out / f)
     shutil.copy(DATA / "vn-units.json", out / "vn-units.json")
     shutil.copy(DATA / "vn-units-old.json", out / "vn-units-old.json")  # địa chỉ cũ 63 tỉnh + xã mới tương ứng (scripts/vn-units-old.py)
-    products = [{"name": p["name"], "slug": p["slug"], "price": p.get("base_price"), "unit": p.get("unit", ""),
-                 "variants": [{"name": v["name"], "price": v["price"]} for v in p.get("base_variants", [])]} for p in PRODUCTS]
+    def combo_parts(p):  # 📦 Kho (06/11/2026): combo gồm những sản phẩm nào → máy chủ tự trừ kho từng sản phẩm (api/src/kho.js khoResolve)
+        out = []
+        for it in p.get("items") or []:
+            q = _BY_SLUG.get(it.get("product"))
+            if q and not q.get("combo"):
+                out.append([q["name"] + (" (" + it["variant"] + ")" if it.get("variant") else ""), max(1, num(it.get("qty")) or 1)])
+        return out
+    products = [dict({"name": p["name"], "slug": p["slug"], "price": p.get("base_price"), "unit": p.get("unit", ""),
+                 "variants": [{"name": v["name"], "price": v["price"]} for v in p.get("base_variants", [])]}, **({"parts": combo_parts(p)} if p.get("combo") and combo_parts(p) else {})) for p in PRODUCTS]
     cfg = {"endpoint": (SITE.get("api_endpoint") or SITE.get("order_endpoint", "")), "shipping_fee": SITE.get("shipping_fee", 0),
            "free_ship_threshold": SITE.get("free_ship_threshold", 0), "products": products,
            "zalo_group": SITE.get("zalo_group", ""), "gifts": crm_gifts(),

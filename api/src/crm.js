@@ -9,6 +9,7 @@ import { crmGa, crmGaProp } from './ga.js';
 import { crmMkt, mktFbEdit } from './mkt.js';
 import { mktView, mktBudgetSet, mktGoalSet, mktDailyMsgs } from './mktv.js';
 import { crmSan, sanSchema, sanAllowed } from './san.js';
+import { crmKho, khoSchema } from './kho.js';
 import { fetchXlsx, crmFin } from './fin.js';
 import { crmSaleMkt, crmOffers } from './salemkt.js';
 import { cmsTokenSet, quizCms } from './cms.js';
@@ -22,7 +23,7 @@ import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, wbInf
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-11-05e'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
+const SCHEMA_V = '2026-11-06k'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -56,7 +57,8 @@ export async function ensureSchema(db) {
     if (!ucols.includes('web')) { try { await run(db, "ALTER TABLE users ADD COLUMN web TEXT DEFAULT ''"); } catch (e) { } } // Sửa website: đăng nhập /admin bằng email (api/src/cms.js)
     for (const col of ['phone', 'full', 'acct', 'joined']) if (!ucols.includes(col)) { try { await run(db, `ALTER TABLE users ADD COLUMN ${col} TEXT DEFAULT ''`); } catch (e) { } } // 30/10/2026: SĐT + họ tên đầy đủ nhân sự → cảnh báo nhân sự / người nhà đăng ký CTV (partner.js staffHit)
     if (!ucols.includes('mkv')) { try { await run(db, "ALTER TABLE users ADD COLUMN mkv TEXT DEFAULT ''"); } catch (e) { } }
-    if (!ucols.includes('zb')) { try { await run(db, "ALTER TABLE users ADD COLUMN zb TEXT DEFAULT ''"); } catch (e) { } } // 31/10/2026: 🤖 Phụ trách Trợ lý Zalo (người được giao, kể cả Sale) // 26/10/2026: 📣 Xem Marketing (Quản lý / Sale chỉ xem tab Marketing)
+    if (!ucols.includes('zb')) { try { await run(db, "ALTER TABLE users ADD COLUMN zb TEXT DEFAULT ''"); } catch (e) { } }
+    if (!ucols.includes('kho')) { try { await run(db, "ALTER TABLE users ADD COLUMN kho TEXT DEFAULT ''"); } catch (e) { } } // 06/11/2026: 📦 Phụ trách kho (nhận tin sắp hết hàng, nhập / xuất / kiểm kho) // 31/10/2026: 🤖 Phụ trách Trợ lý Zalo (người được giao, kể cả Sale) // 26/10/2026: 📣 Xem Marketing (Quản lý / Sale chỉ xem tab Marketing)
     await run(db, "UPDATE users SET role = 'Sale & CSKH' WHERE role = 'Nhân viên'"); // 15/10/2026: đổi tên quyền
     if (!ccols.includes('zone')) await run(db, "INSERT INTO kv (k, v) VALUES ('recalc_all', '1') ON CONFLICT(k) DO UPDATE SET v = '1'"); // 27/10/2026: vùng giao hàng đọc từ địa chỉ → tính lại mọi khách 1 lần
     if (!ccols.includes('recv')) await run(db, "INSERT INTO kv (k, v) VALUES ('recalc_all', '1') ON CONFLICT(k) DO UPDATE SET v = '1'"); // cột mới (ngày nhận, số đơn hoàn, khách quen) → cron tính lại mọi khách 1 lần
@@ -120,6 +122,7 @@ export async function ensureSchema(db) {
       )`); // chi phí quảng cáo theo ngày (api/src/mkt.js)
     await run(db, 'CREATE INDEX IF NOT EXISTS ad_spend_batch ON ad_spend(batch)');
     await sanSchema(db); // đơn sàn TMĐT (api/src/san.js)
+    await khoSchema(db); // 📦 kho hàng (api/src/kho.js), sau sanSchema (thêm chỉ mục cho san_orders)
     await voucherSchema(db); // mã ưu đãi (api/src/voucher.js)
     await journeySchema(db); // lời cam kết sống lành (api/src/journey.js)
     await partnerSchema(db); // 🤝 CTV / đối tác + 🎁 khách giới thiệu (api/src/partner.js)
@@ -218,7 +221,7 @@ const USERS_SQL = 'SELECT * FROM users ORDER BY ord, rowid';
 function usersFrom(x, rows) {
   const list = rows.map(r => {
     const e = String(r.email || '').trim().toLowerCase(), role = roleOf(r.role);
-    return { email: e, name: String(r.name || e.split('@')[0]).trim(), role, active: !!r.active, recv: role === 'Marketing' ? false : String(r.recv || '').trim() === '' ? role === SALE : !no(r.recv), tg: String(r.tg || '').trim(), alias: String(r.alias || '').trim(), prefix: String(r.prefix || '').trim(), web: String(r.web || '').trim() === 'Có', phone: String(r.phone || '').trim(), full: String(r.full || '').trim(), acct: String(r.acct || '').trim(), joined: String(r.joined || '').trim(), mkv: role !== 'Marketing' && String(r.mkv || '').trim() === 'Có', zb: String(r.zb || '').trim() === 'Có' };
+    return { email: e, name: String(r.name || e.split('@')[0]).trim(), role, active: !!r.active, recv: role === 'Marketing' ? false : String(r.recv || '').trim() === '' ? role === SALE : !no(r.recv), tg: String(r.tg || '').trim(), alias: String(r.alias || '').trim(), prefix: String(r.prefix || '').trim(), web: String(r.web || '').trim() === 'Có', phone: String(r.phone || '').trim(), full: String(r.full || '').trim(), acct: String(r.acct || '').trim(), joined: String(r.joined || '').trim(), mkv: role !== 'Marketing' && String(r.mkv || '').trim() === 'Có', zb: String(r.zb || '').trim() === 'Có', kho: String(r.kho || '').trim() === 'Có' };
   }).filter(u => /@/.test(u.email));
   const sa = list.find(u => u.email === SUPER_ADMIN);
   if (!sa) list.unshift({ email: SUPER_ADMIN, name: 'Thái Sơn', role: 'Quản trị', active: true, recv: false, tg: '', alias: '', prefix: '', web: true });
@@ -247,7 +250,7 @@ export async function unifyNames(x, ren) {
   return n;
 }
 export async function crmUser(x, email) { email = String(email || '').trim().toLowerCase(); return (await crmUsers(x)).find(u => u.email === email && u.active) || null; }
-function publicUser(u) { return { email: u.email, name: u.name, role: u.role, level: u.level, ask: askAllowed(u), tg: !!u.tg, prefix: u.prefix || slugName(u.name), mkv: !!u.mkv, zb: !!u.zb }; }
+function publicUser(u) { return { email: u.email, name: u.name, role: u.role, level: u.level, ask: askAllowed(u), tg: !!u.tg, prefix: u.prefix || slugName(u.name), mkv: !!u.mkv, zb: !!u.zb, kho: !!u.kho }; }
 async function userSet(x, email, field, value) {
   const r = await run(x.db, `UPDATE users SET ${field} = ? WHERE email = ?`, value, email);
   if (!r.meta.changes && email === SUPER_ADMIN) { await run(x.db, "INSERT INTO users (email, name, role, active, recv, ord) VALUES (?, 'Thái Sơn', 'Quản trị', 1, 'Không', -1)", SUPER_ADMIN); await run(x.db, `UPDATE users SET ${field} = ? WHERE email = ?`, value, email); }
@@ -517,18 +520,18 @@ async function loadSmall(x, u, R, mode, adV) {
     b('SELECT name, variant, days, basis FROM cycles ORDER BY rid'),
     b('SELECT when_txt, purpose, text FROM templates ORDER BY rid')
   ]); smallQ.catch(() => { });
-  const users = (await crmUsers(x)).filter(y => y.active || u.level >= 3).map(y => u.level >= 3 ? { email: y.email, name: y.name, role: y.role, active: y.active, recv: y.recv, tg: !!y.tg, alias: y.alias, prefix: y.prefix || slugName(y.name), web: y.web || y.level >= 3, mkv: y.mkv || y.level >= 3, zb: !!y.zb, phone: y.phone, full: y.full, acct: y.acct, joined: y.joined } : u.level >= 2 ? { name: y.name, role: y.role, recv: y.recv, tg: !!y.tg, joined: y.joined } : { name: y.name, role: y.role, joined: y.name === u.name ? y.joined : '' }); // SĐT, họ tên, số tài khoản nhân sự: chỉ Quản trị; ngày vào làm: tính thâm niên (Phụ lục 01)
+  const users = (await crmUsers(x)).filter(y => y.active || u.level >= 3).map(y => u.level >= 3 ? { email: y.email, name: y.name, role: y.role, active: y.active, recv: y.recv, tg: !!y.tg, alias: y.alias, prefix: y.prefix || slugName(y.name), web: y.web || y.level >= 3, mkv: y.mkv || y.level >= 3, zb: !!y.zb, kho: !!y.kho, phone: y.phone, full: y.full, acct: y.acct, joined: y.joined } : u.level >= 2 ? { name: y.name, role: y.role, recv: y.recv, tg: !!y.tg, joined: y.joined } : { name: y.name, role: y.role, joined: y.name === u.name ? y.joined : '' }); // SĐT, họ tên, số tài khoản nhân sự: chỉ Quản trị; ngày vào làm: tính thâm niên (Phụ lục 01)
   const adsP = adRowsOf(x, u, adV); adsP.catch(() => { });
   const areasP = u.level === 1 ? areaStats(x) : Promise.resolve(undefined); areasP.catch(() => { }); // quản lý đã có đủ khách → máy tự đếm
-  const [ca, fbNew, prefs, tagColors, sources, ads, commission, sanOk, dash, qrLinks, mktDoc, cost, payplan, staffGuard, opex, fin, ktLink] = await Promise.all([caCfg(x), // hỏi song song: mỗi lần hỏi máy chủ dữ liệu mất một nhịp
+  const [ca, fbNew, prefs, tagColors, sources, ads, commission, sanOk, dash, qrLinks, mktDoc, cost, payplan, staffGuard, opex, fin, ktLink, kho] = await Promise.all([caCfg(x), // hỏi song song: mỗi lần hỏi máy chủ dữ liệu mất một nhịp
     u.level >= 2 ? first(x.db, "SELECT count(*) AS n FROM feedback WHERE status = 'Mới'").then(r => (r || {}).n || 0) : 0,
     prefsOf(x, u.email), allTagColors(x), u.level >= 3 ? srcList(x) : [], u.level >= 3 ? adsCfg(x) : null, kvJson(x.db, 'commission_cfg', {}).then(r => r || {}), sanAllowed(x, u).catch(() => false), kvJson(x.db, 'dash_cfg', {}).then(r => r || {}),
     all(x.db, 'SELECT code, name FROM links').then(r => r.map(l => [l.code, l.name])).catch(() => []),
     u.level >= 3 || u.role === 'Marketing' || u.mkv ? kvJson(x.db, 'mkt_doc', null).then(r => r || MKT_DOC_DEF) : null,
-    u.level >= 3 ? kvJson(x.db, 'cost_cfg', null) : null, kvJson(x.db, 'payplan_cfg', null).then(r => Object.assign({}, PAYPLAN, r || {})), u.level >= 3 ? kvJson(x.db, 'staff_guard', []).then(r => r || []) : [], u.level >= 3 ? kvJson(x.db, 'opex_cfg', {}).then(r => r || {}) : null, u.level >= 3 ? kvJson(x.db, 'fin_cfg', null) : null, u.level >= 3 ? kvJson(x.db, 'kt_link', null) : null]); // 💰 giá nhập sản phẩm: chỉ Quản trị (không nằm trong repo công khai) // 📍 tên link QR → nguồn đơn web hiện "📍 <tên>"
+    u.level >= 3 ? kvJson(x.db, 'cost_cfg', null) : null, kvJson(x.db, 'payplan_cfg', null).then(r => Object.assign({}, PAYPLAN, r || {})), u.level >= 3 ? kvJson(x.db, 'staff_guard', []).then(r => r || []) : [], u.level >= 3 ? kvJson(x.db, 'opex_cfg', {}).then(r => r || {}) : null, u.level >= 3 ? kvJson(x.db, 'fin_cfg', null) : null, u.level >= 3 ? kvJson(x.db, 'kt_link', null) : null, u.level >= 2 || u.kho ? kvJson(x.db, 'kho_sum', null) : null]); // 💰 giá nhập sản phẩm: chỉ Quản trị (không nằm trong repo công khai) // 📍 tên link QR → nguồn đơn web hiện "📍 <tên>"
   const [ct, tg, cy, tp] = (await smallQ).map(r => r.results || []), ar = await adsP, areas = await areasP.catch(() => undefined);
   return {
-    ok: true, user: publicUser(u), areas, sanOk, now: Date.now(), today: startOfDay(Date.now()), fbNew, users, prefs, tagColors, sources, ads, adV: ar.v, adRows: ar.rows, qrLinks,
+    ok: true, user: publicUser(u), areas, sanOk, kho, now: Date.now(), today: startOfDay(Date.now()), fbNew, users, prefs, tagColors, sources, ads, adV: ar.v, adRows: ar.rows, qrLinks,
     contacts: ct.reverse().map(contactOut), targets: tg.map(t => ({ month: t.month, name: t.name, amount: t.amount || 0, by: t.by_name || '', at: t.at })),
     cycles: cy.filter(r => r.name).map(r => [r.name, r.variant || '', Number(r.days) || 0, r.basis || '']), templates: tp.filter(r => r.text).map(r => [r.when_txt || '', r.purpose || '', r.text]),
     rules: { backCost: Number(dash.backCost) || 0, ai: !!x.env.ANTHROPIC_API_KEY && u.role !== 'Marketing', vipOrders: R.vipOrders, vipSpent: R.vipSpent, atRisk: R.atRisk, coolDays: R.coolDays, shipDays: R.shipDays, shipFar: R.shipFar, famMin: R.famMin, otypes: OTYPES, commission, payplan, staffGuard, dash: u.level >= 3 || u.role === 'Marketing' || u.mkv ? dash : null, mktDoc, cost, opex, fin, ktLink: ktLink && ktLink.link ? ktLink : null, statuses: ORDER_STATUS, results: CARE_RESULTS, leadStatus: LEAD_STATUS, assignMode: mode, bot: BOT_USERNAME, ca, lines: LINES.map(l => l[0]).concat(['Khác']) }
@@ -1545,11 +1548,11 @@ async function crmSaveUsers(x, u, d) {
   const seen = {}, rows = (d.users || []).map((y, i) => {
     const e = String(y.email || '').trim().toLowerCase(), o = cur[e] || {}, role = roleOf(y.role);
     return { email: e, name: String(y.name || '').trim(), role, active: y.active === false ? 0 : 1, recv: (y.recv !== undefined ? y.recv : o.recv !== undefined ? o.recv : role === SALE) ? 'Có' : 'Không', tg: o.tg || '',
-      alias: String(y.alias !== undefined ? y.alias : o.alias || '').trim(), prefix: String(y.prefix !== undefined ? y.prefix : o.prefix || '').replace(/[^A-Za-z0-9]/g, ''), web: (y.web !== undefined ? y.web : o.web) ? 'Có' : '', mkv: (y.mkv !== undefined ? y.mkv : o.mkv) ? 'Có' : '', zb: (y.zb !== undefined ? y.zb : o.zb) ? 'Có' : '', phone: normPhone(y.phone !== undefined ? y.phone : o.phone || '') || '', full: String(y.full !== undefined ? y.full : o.full || '').trim().slice(0, 80), acct: String(y.acct !== undefined ? y.acct : o.acct || '').replace(/\D/g, '').slice(0, 24), joined: String(y.joined !== undefined ? y.joined : o.joined || '').trim().slice(0, 30), ord: i };
+      alias: String(y.alias !== undefined ? y.alias : o.alias || '').trim(), prefix: String(y.prefix !== undefined ? y.prefix : o.prefix || '').replace(/[^A-Za-z0-9]/g, ''), web: (y.web !== undefined ? y.web : o.web) ? 'Có' : '', mkv: (y.mkv !== undefined ? y.mkv : o.mkv) ? 'Có' : '', zb: (y.zb !== undefined ? y.zb : o.zb) ? 'Có' : '', kho: (y.kho !== undefined ? y.kho : o.kho) ? 'Có' : '', phone: normPhone(y.phone !== undefined ? y.phone : o.phone || '') || '', full: String(y.full !== undefined ? y.full : o.full || '').trim().slice(0, 80), acct: String(y.acct !== undefined ? y.acct : o.acct || '').replace(/\D/g, '').slice(0, 24), joined: String(y.joined !== undefined ? y.joined : o.joined || '').trim().slice(0, 30), ord: i };
   }).filter(r => { if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(r.email) || seen[r.email]) return false; seen[r.email] = 1; return true; });
-  if (!seen[SUPER_ADMIN]) rows.unshift({ email: SUPER_ADMIN, name: 'Thái Sơn', role: 'Quản trị', active: 1, recv: 'Không', tg: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].tg || '' : '', alias: '', prefix: '', web: 'Có', mkv: '', zb: '', phone: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].phone || '' : '', full: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].full || '' : '', acct: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].acct || '' : '', joined: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].joined || '' : '', ord: -1 });
+  if (!seen[SUPER_ADMIN]) rows.unshift({ email: SUPER_ADMIN, name: 'Thái Sơn', role: 'Quản trị', active: 1, recv: 'Không', tg: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].tg || '' : '', alias: '', prefix: '', web: 'Có', mkv: '', zb: '', kho: cur[SUPER_ADMIN] && cur[SUPER_ADMIN].kho ? 'Có' : '', phone: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].phone || '' : '', full: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].full || '' : '', acct: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].acct || '' : '', joined: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].joined || '' : '', ord: -1 });
   const ren = {}; rows.forEach(r => { const o = cur[r.email]; if (o && o.name && r.name && o.name !== r.name && !rows.some(z => z.name === o.name)) ren[o.name] = r.name; }); // đổi tên → đơn, khách, file sale theo tên mới
-  await replaceRows(x.db, 'users', ['email', 'name', 'role', 'active', 'recv', 'tg', 'alias', 'prefix', 'web', 'mkv', 'zb', 'phone', 'full', 'acct', 'joined', 'ord'], rows); x._users = null;
+  await replaceRows(x.db, 'users', ['email', 'name', 'role', 'active', 'recv', 'tg', 'alias', 'prefix', 'web', 'mkv', 'zb', 'kho', 'phone', 'full', 'acct', 'joined', 'ord'], rows); x._users = null;
   try { await unifyNames(x, ren); } catch (e) { console.error('unifyNames', e.message); }
   await crmLog(x, u, 'Nhân sự', '-', '', 'Cập nhật ' + rows.length + ' tài khoản', '');
   return { ok: true, users: await crmUsers(x) };
@@ -2020,6 +2023,7 @@ export async function crmApi(x, d, sync, mgr) {
   }
   if (/^mkt(_|$)/.test(a)) return crmMkt(x, u, d); // chi phí marketing
   if (/^san(_|$)/.test(a)) return crmSan(x, u, d); // doanh thu sàn TMĐT + mục tiêu theo mảng
+  if (/^kho_/.test(a)) return crmKho(x, u, d, crmLog); // 📦 kho hàng: người tích Phụ trách kho, Quản lý, Quản trị (kho.js)
   if (a === 'merge_suggest') return crmMergeSuggest(x, u); // gộp khách nhiều số (Quản lý trở lên)
   if (a === 'merge_skip') return crmMergeSkip(x, u, d);
   if (a === 'merge') return crmMerge(x, u, d);
