@@ -1677,3 +1677,61 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .ask-mcp-key { background: var(--gold-light); border-radius: var(--radius-sm); padding: 8px 10px; margin-bottom: 8px; }
 .ask-mcp-key p { margin: 0 0 4px; }
 @media (prefers-reduced-motion: reduce) { .ask-dots i, .ask-mic.on { animation: none; } .ask-dots i { opacity: .6; } }
+
+/* ---------- 📦 Kho hàng (06/11/2026, viewKho trong app.js). Viền trái theo mức: đỏ = hết / đặt gấp / trễ, cam = cần đặt, xanh dương = chờ hàng, xám = chưa nhập số */
+.kho-sum { display: flex; flex-wrap: wrap; gap: 6px; margin: -4px 0 12px; }
+.kho-chip { display: inline-block; font-size: 14px; padding: 4px 10px; border-radius: 999px; background: #eee; color: #555; }
+.kho-chip.bad { background: var(--red-light); color: var(--red); }
+.kho-chip.info { background: var(--blue-light); color: var(--blue); }
+.kho-chip.ok { background: var(--primary-light); color: var(--primary); font-weight: 600; }
+.kho-chip.mute { background: #f0efe9; color: var(--muted); }
+.kho-warn { background: var(--orange-light); border-color: #f3d3a6; color: #5c3200; font-size: 14px; }
+.kho-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin-bottom: 12px; }
+.kho-list .kho-card { margin: 0; }
+.kho-card { border-left: 5px solid #cfd8d2; display: flex; flex-direction: column; gap: 6px; }
+.kho-lv-ok { border-left-color: #34a853; }
+.kho-lv-order, .kho-lv-risk { border-left-color: var(--mid); }
+.kho-lv-out, .kho-lv-urgent, .kho-lv-late { border-left-color: var(--red); }
+.kho-lv-wait { border-left-color: var(--blue); }
+.kho-lv-nobase { border-left-color: #b8b5ab; }
+.kho-ch { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.kho-nm { color: var(--ink); font-size: 15px; line-height: 1.35; }
+.kho-lv { flex-shrink: 0; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: #f0efe9; color: var(--muted); white-space: nowrap; }
+.kho-lv-ok .kho-lv { background: var(--primary-light); color: var(--primary); }
+.kho-lv-order .kho-lv, .kho-lv-risk .kho-lv { background: var(--orange-light); color: var(--orange); }
+.kho-lv-out .kho-lv, .kho-lv-urgent .kho-lv, .kho-lv-late .kho-lv { background: var(--red-light); color: var(--red); }
+.kho-lv-wait .kho-lv { background: var(--blue-light); color: var(--blue); }
+.kho-big { margin: 0; font-size: 22px; font-weight: 700; color: var(--ink); line-height: 1.25; }
+.kho-sub { margin: 0; font-size: 14px; color: var(--text); }
+.kho-po { background: var(--blue-light); border-radius: var(--radius-sm); padding: 8px 10px; font-size: 14px; }
+.kho-po.late { background: var(--red-light); color: #7a1a1a; }
+.kho-po small { display: block; color: var(--muted); }
+.kho-po .steps { margin-top: 6px; }
+.kho-need { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; background: var(--orange-light); border-radius: var(--radius-sm); padding: 8px 10px; font-size: 14px; }
+.kho-lv-nobase .kho-need { background: #f3f2ec; }
+.kho-need small { display: block; color: var(--muted); }
+.kho-info { margin: 0; font-size: 12.5px; color: var(--muted); }
+.kho-acts { margin-top: auto; }
+.kho-ol { margin: 0; padding-left: 20px; }
+.kho-ol li { margin-bottom: 4px; }
+.kho-quick { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+.kho-qr { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px 10px; border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 6px 10px; }
+.kho-ck { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; cursor: pointer; padding: 3px 0; }
+.kho-ck input { width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px; accent-color: var(--primary); }
+.kho-ql { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+.kho-ql input { width: 70px; min-height: 36px; padding: 4px 8px; }
+.kho-sec summary { cursor: pointer; }
+.kho-bad { color: var(--red); }
+.kho-names, .kho-hist { display: flex; flex-direction: column; margin-top: 6px; }
+.kho-name, .kho-hr { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); font-size: 14px; }
+.kho-name span, .kho-hr span { min-width: 0; overflow-wrap: anywhere; }
+.kho-name small, .kho-hr small { display: block; color: var(--muted); font-size: 12.5px; }
+.kho-name .btn, .kho-hr .btn { flex-shrink: 0; }
+.kho-subd { margin-top: 10px; }
+.kho-subd summary { color: var(--primary); font-size: 14px; font-weight: 600; cursor: pointer; }
+.kho-howt p { margin: 6px 0; }
+.kho-m input[type=datetime-local] { width: 100%; min-height: 44px; padding: 9px 12px; border: 1px solid #d8d4c8; border-radius: 10px; background: #fff; font-size: 16px; }
+.kho-lbl { display: block; font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+.kho-mr { display: grid; grid-template-columns: 1fr 80px 36px; gap: 6px; margin-bottom: 6px; align-items: center; }
+.kho-mr .rm { border: 0; background: none; font-size: 20px; color: var(--muted); cursor: pointer; height: 44px; }
+@media (max-width: 520px) { .kho-list { grid-template-columns: 1fr; } .kho-big { font-size: 20px; } .kho-need .btn { width: 100%; } }

@@ -111,6 +111,7 @@
     mega: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a1 1 0 0 0 1 1h3l6 4V6L7 10H4a1 1 0 0 0-1 1z"/><path d="M17 9a4 4 0 0 1 0 6"/><path d="M8 14l1.5 5h2.5l-1.5-5"/></svg>',
     bot: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="3"/><path d="M12 8V4M8 4h8M9 14h.01M15 14h.01"/></svg>',
     more: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>',
+    kho: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V8l9-5 9 5v13"/><path d="M7 21v-8h10v8"/><path d="M7 17h10"/></svg>',
     shop: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>'
   };
 
@@ -713,20 +714,22 @@
     { id: 'link-qr', label: 'Link & QR', short: 'QR', icon: 'qr', lq: 1 }, // 📍 link / mã QR theo dõi nguồn khách: Marketing, Quản lý, Quản trị (Quản trị vào từ Tổng quan / Marketing)
     { id: 'tro-ly-zalo', label: 'Trợ lý Zalo', short: 'Zalo', icon: 'bot', lq: 1 }, // 🤖 trợ lý An Lành trong nhóm Zalo (api/src/zbot.js): cùng quyền với Link & QR
     { id: 'fanpage', label: 'Fanpage', short: 'FB', icon: 'mail', lq: 1 }, // 📘 trợ lý Fanpage: trả lời bình luận, Messenger, bài đăng (api/src/fb.js): cùng quyền với Link & QR
+    { id: 'kho', label: 'Kho', icon: 'kho', kho: 1 }, // 📦 kho hàng (api/src/kho.js): người tích Phụ trách kho, Quản lý, Quản trị (Quản lý / Quản trị vào từ Thêm, Tổng quan)
     { id: 'san', label: 'Sàn', icon: 'shop', san: 1 }, // doanh số Shopee / TikTok Shop: Quản trị + người phụ trách sàn (Quản trị vào từ Tổng quan, không chiếm chỗ trên menu)
     { id: 'cai-dat', label: 'Cài đặt', icon: 'gear' }
   ];
   // Marketing: tab Marketing, Link & QR, Khách hỏi (24/10/2026: chỉ xem khách để lại số trên web), Cài đặt
-  function myViews() { if (isMkt()) return VIEWS.filter(function (v) { return v.mkt || v.lq || v.id === 'tiem-nang' || v.id === 'cai-dat'; }); return VIEWS.filter(function (v) { return (!v.min || lvl() >= v.min) && (!v.ask || !!(S.user && S.user.ask)) && (!v.lq || lvl() >= 2 || (v.id === 'tro-ly-zalo' && S.user && S.user.zb)) && (!v.san || (S.d && S.d.sanOk) || lvl() >= 3) && (!v.mkt || lvl() >= 3 || mkvOnly()); }); }
-  function navViews() { return myViews().filter(function (v) { return !((v.san || v.lq || v.ask) && lvl() >= 2 && !isMkt()); }); } // Quản trị: Marketing có trên menu (29/10/2026), Sàn / Link & QR / Zalo / Fanpage vào từ Thêm; Quản lý cũng vậy (anh Sơn 31/10/2026: menu máy tính rối)
+  function myViews() { if (isMkt()) return VIEWS.filter(function (v) { return v.mkt || v.lq || v.id === 'tiem-nang' || v.id === 'cai-dat'; }); return VIEWS.filter(function (v) { return (!v.min || lvl() >= v.min) && (!v.ask || !!(S.user && S.user.ask)) && (!v.lq || lvl() >= 2 || (v.id === 'tro-ly-zalo' && S.user && S.user.zb)) && (!v.san || (S.d && S.d.sanOk) || lvl() >= 3) && (!v.kho || khoCan()) && (!v.mkt || lvl() >= 3 || mkvOnly()); }); }
+  function navViews() { return myViews().filter(function (v) { return !((v.san || v.lq || v.ask || v.kho) && lvl() >= 2 && !isMkt()); }); } // Quản trị: Marketing có trên menu (29/10/2026), Sàn / Link & QR / Zalo / Fanpage vào từ Thêm; Quản lý cũng vậy (anh Sơn 31/10/2026: menu máy tính rối)
   /** Điện thoại (29/10/2026, kiểu Apple): thanh dưới chỉ 4 mục hay dùng + "Thêm"; mục còn lại, Cài đặt, Hướng dẫn, Góp ý nằm ở màn Thêm. Máy tính vẫn hiện đủ. */
   var NAV_FIRST = ['hom-nay', 'tiem-nang', 'khach-hang', 'don-hang', 'bao-cao'];
   var NAV_SALE = ['hom-nay', 'tiem-nang', 'bao-cao', 'don-hang']; // sale: Hiệu quả ở chính giữa thanh dưới (anh Sơn 29/10/2026); 31/10/2026 Đơn hàng (có số đang giao) thay Khách, Khách vào Thêm
+  var NAV_KHO = ['kho', 'don-hang', 'hom-nay', 'tiem-nang']; // 06/11/2026: Sale được tích 📦 Phụ trách kho (anh Hiệp) → Kho đầu tiên, Đơn hàng ngay sau
   var NAV_MGR = ['bao-cao', 'hom-nay', 'tiem-nang', 'don-hang']; // Quản lý (anh Sơn 31/10/2026): Đơn hàng thay Khách để theo sát đơn của đội sale; Khách vào Thêm
   var NAV_CEO = ['tong-quan', 'bao-cao', 'marketing', 'don-hang']; // Quản trị (anh Sơn 29/10/2026): kết quả, đội sale, tiền quảng cáo, đơn / tiền chờ thu. Hôm nay, Khách hỏi, Khách là việc của sale → Thêm
   function navMain() {
     var all = navViews().filter(function (v) { return v.id !== 'cai-dat'; }).map(function (v) { return v.id; }), out = [], sale = lvl() < 2 && !isMkt();
-    (sale ? NAV_SALE : lvl() >= 3 ? NAV_CEO : lvl() >= 2 && !isMkt() ? NAV_MGR : [homeView()]).concat(NAV_FIRST, all).forEach(function (id) { if (out.length < 4 && all.indexOf(id) >= 0 && out.indexOf(id) < 0) out.push(id); });
+    (sale ? (S.user && S.user.kho ? NAV_KHO : NAV_SALE) : lvl() >= 3 ? NAV_CEO : lvl() >= 2 && !isMkt() ? NAV_MGR : [homeView()]).concat(NAV_FIRST, all).forEach(function (id) { if (out.length < 4 && all.indexOf(id) >= 0 && out.indexOf(id) < 0) out.push(id); });
     return out;
   }
   function navSig() { return navViews().map(function (v) { return v.id; }).join() + '|' + navMain().join(); }
@@ -734,10 +737,10 @@
     'tong-quan': 'Bức tranh kinh doanh cả công ty', 'hom-nay': 'Khách cần gọi, đơn mới hôm nay', 'tiem-nang': 'Người để lại số, chưa mua',
     'khach-hang': 'Hồ sơ, lịch sử mua, chăm sóc', 'don-hang': 'Đơn mới, đang giao, hoàn / huỷ', 'bao-cao': 'Doanh số, mục tiêu, thi đua',
     marketing: 'Quảng cáo, chi phí, giá 1 số điện thoại', 'link-qr': 'Link và mã QR theo dõi nguồn khách', 'tro-ly-zalo': 'Trợ lý An Lành trong nhóm Zalo',
-    fanpage: 'Trả lời bình luận, tin nhắn Fanpage', san: 'Doanh số Shopee, TikTok Shop', 'cai-dat': 'Nhân sự, mục tiêu, mẫu tin, tài khoản',
+    fanpage: 'Trả lời bình luận, tin nhắn Fanpage', san: 'Doanh số Shopee, TikTok Shop', kho: 'Hàng còn, sắp hết, nhập / xuất, đặt NCC', 'cai-dat': 'Nhân sự, mục tiêu, mẫu tin, tài khoản',
     'hoi-so-lieu': 'Hỏi bằng lời, AI tự tra số và báo cáo'
   };
-  var VIEW_TINT = { 'tong-quan': '#1f5f3a', 'hom-nay': '#34a853', 'tiem-nang': '#ff9500', 'khach-hang': '#007aff', 'don-hang': '#a2845e', 'bao-cao': '#5856d6', marketing: '#ff2d55', 'link-qr': '#636366', 'tro-ly-zalo': '#0068ff', fanpage: '#1877f2', san: '#ee4d2d', 'cai-dat': '#8e8e93', 'hoi-so-lieu': '#af52de' };
+  var VIEW_TINT = { 'tong-quan': '#1f5f3a', 'hom-nay': '#34a853', 'tiem-nang': '#ff9500', 'khach-hang': '#007aff', 'don-hang': '#a2845e', 'bao-cao': '#5856d6', marketing: '#ff2d55', 'link-qr': '#636366', 'tro-ly-zalo': '#0068ff', fanpage: '#1877f2', san: '#ee4d2d', kho: '#8e5a2b', 'cai-dat': '#8e8e93', 'hoi-so-lieu': '#af52de' };
   function viewMore() {
     var main = navMain(), n = navCounts(), info = navInfo();
     var rest = myViews().filter(function (v) { return main.indexOf(v.id) < 0 && v.id !== 'cai-dat'; });
@@ -932,11 +935,12 @@
     var team = navWho();
     var part = function (a) { return a.filter(function (x) { return x[0]; }).map(function (x) { return x[0] + ' ' + x[1]; }).join(' · '); };
     return {
-      n: lvl() >= 3 ? { 'don-hang': no } : { 'hom-nay': no + q + hot, 'don-hang': no, 'tiem-nang': lvl() >= 2 && !S.who ? 0 : ld.length }, // Quản lý xem cả nhóm: Khách hỏi không có số đỏ (cả nhóm luôn 99+, khách vừa hỏi đã đếm ở Hôm nay), lọc 1 người thì có // Quản trị (anh Sơn 31/10/2026: số nhiều quá): chỉ số đỏ đơn mới; việc gọi khách của sale xem ở Tổng quan → Việc cần làm
+      n: Object.assign(lvl() >= 3 ? { 'don-hang': no } : { 'hom-nay': no + q + hot, 'don-hang': no, 'tiem-nang': lvl() >= 2 && !S.who ? 0 : ld.length }, khoCan() && S.d.kho && S.d.kho.need ? { kho: S.d.kho.need } : {}), // Quản lý xem cả nhóm: Khách hỏi không có số đỏ (cả nhóm luôn 99+, khách vừa hỏi đã đếm ở Hôm nay), lọc 1 người thì có // Quản trị (anh Sơn 31/10/2026: số nhiều quá): chỉ số đỏ đơn mới; việc gọi khách của sale xem ở Tổng quan → Việc cần làm
       tip: {
         'hom-nay': 'Việc cần làm hôm nay' + team + ': ' + part([[no, 'đơn mới chờ xác nhận'], [q, 'khách đến lịch chăm sóc'], [hot, 'khách vừa hỏi chưa ai gọi (cũng nằm ở Khách hỏi)']]),
         'tiem-nang': 'Khách hỏi cần liên hệ' + team + ': ' + part([[k.new, 'chưa gọi lần nào'], [k.callback, 'đến hẹn gọi lại'], [k.stale, 'quá 3 ngày chưa liên hệ lại']]),
-        'don-hang': no + ' đơn mới chờ xác nhận' + team
+        'don-hang': no + ' đơn mới chờ xác nhận' + team,
+        kho: (S.d.kho && S.d.kho.need || 0) + ' sản phẩm cần đặt nhà cung cấp'
       }
     };
   }
@@ -944,7 +948,7 @@
   /** Quản lý / Quản trị: số trên tab là của cả nhóm, hoặc của người đang lọc ở ô 👥. Sale: rỗng. */
   function navWho() { return lvl() >= 2 ? (S.who ? ' của ' + (S.who === '-' ? 'khách chưa giao' : S.who) : ' (cả nhóm)') : ''; }
   /** Tab mở mặc định theo quyền: Quản trị → Tổng quan, Quản lý → Hiệu quả, nhân viên → Hôm nay. */
-  function homeView() { return isMkt() || (MKT_HOST && myViews().some(function (x) { return x.id === 'marketing'; })) ? 'marketing' : lvl() >= 3 ? 'tong-quan' : lvl() >= 2 ? 'bao-cao' : 'hom-nay'; }
+  function homeView() { return isMkt() || (MKT_HOST && myViews().some(function (x) { return x.id === 'marketing'; })) ? 'marketing' : lvl() >= 3 ? 'tong-quan' : lvl() >= 2 ? 'bao-cao' : S.user && S.user.kho ? 'kho' : 'hom-nay'; }
   function route() { var h = (location.hash || '').slice(1).split('/'); return { view: h[0] === 'lien-he' ? 'tiem-nang' : h[0] || homeView(), id: decodeURIComponent(h[1] || '') }; }
   var lastView = '';
   function render() {
@@ -954,7 +958,7 @@
     var keepScroll = lastView === v, y = window.scrollY;
     var el = $('#view');
     var focusId = document.activeElement && document.activeElement.id, selStart = document.activeElement && document.activeElement.selectionStart;
-    el.innerHTML = ({ 'hom-nay': viewToday, 'khach-hang': viewCustomers, 'don-hang': viewOrders, 'tiem-nang': viewLeads, 'bao-cao': viewReport, 'cai-dat': viewSettings, 'tong-quan': viewDash, san: viewSan, marketing: viewMkt, 'link-qr': viewLinks, 'tro-ly-zalo': viewZbot, fanpage: viewFp, 'hoi-so-lieu': viewAsk, them: viewMore })[v]();
+    el.innerHTML = ({ 'hom-nay': viewToday, 'khach-hang': viewCustomers, 'don-hang': viewOrders, 'tiem-nang': viewLeads, 'bao-cao': viewReport, 'cai-dat': viewSettings, 'tong-quan': viewDash, san: viewSan, marketing: viewMkt, 'link-qr': viewLinks, 'tro-ly-zalo': viewZbot, fanpage: viewFp, 'hoi-so-lieu': viewAsk, kho: viewKho, them: viewMore })[v]();
     el.insertAdjacentHTML('beforeend', updatedLine());
     if (focusId && $('#' + focusId)) { var f = $('#' + focusId); f.focus(); try { f.setSelectionRange(selStart, selStart); } catch (e) { } }
     if (keepScroll) window.scrollTo(0, y); else window.scrollTo(0, 0);
@@ -967,6 +971,7 @@
     if (v === 'marketing') bindMkv();
     if (v === 'tong-quan' || v === 'san') bindSan();
     if (v === 'hoi-so-lieu') bindAsk(!keepScroll);
+    if (v === 'kho') bindKho();
     if (r.id && !$('.modal')) {
       if (v === 'khach-hang' && cust(r.id)) openCustomer(r.id, true);
       if (v === 'don-hang') { var o = S.d.orders.filter(function (x) { return x.id === r.id; })[0]; if (o) openOrder(o.id, true); }
@@ -4826,7 +4831,7 @@
       metric('Thời gian xem TB', g.cur.users ? fDur(g.cur.dur / g.cur.users) : '–', 'Thời gian 1 người thật sự xem web (tab đang mở) trong kỳ.', noGaCmp || !g.prev.users ? '' : delta(Math.round(g.cur.dur / g.cur.users), Math.round(g.prev.dur / g.prev.users)), '', eng ? sk(trendRate(gs(4), gU)) : '') +
       '</div><details class="dash-webmore"><summary>Xem thêm: khách vào web từ đâu, phễu mua hàng, trang xem nhiều, video</summary>' + gaBlocks(g, b, noGaCmp) + '</details>'; }
     h += dashMore('web', '🌐 Website thucduonglanh.vn', g ? g.cur.sessions.toLocaleString('vi-VN') + ' lượt vào · ' + b.web + ' đơn web' + (conv === null ? '' : ' · ' + oneDec(conv) + '% ra đơn') : gj ? '🔌 chưa kết nối Google Analytics' : GA.err ? '⚠️ chưa tải được' : '⏳ đang tải…', wh);
-    h += '<div class="dash-go dash-go-end"><span>Mở tab:</span><a class="btn" href="#bao-cao">📊 Bán hàng</a><a class="btn" href="#marketing">📣 Marketing</a><a class="btn" href="#san">🛒 Sàn</a><a class="btn" href="#link-qr">📍 Link & QR</a><a class="btn" href="#tro-ly-zalo">🤖 Trợ lý Zalo</a><a class="btn" href="#fanpage">📘 Fanpage</a></div>';
+    h += '<div class="dash-go dash-go-end"><span>Mở tab:</span><a class="btn" href="#bao-cao">📊 Bán hàng</a><a class="btn" href="#marketing">📣 Marketing</a><a class="btn" href="#san">🛒 Sàn</a><a class="btn" href="#kho">📦 Kho</a><a class="btn" href="#link-qr">📍 Link & QR</a><a class="btn" href="#tro-ly-zalo">🤖 Trợ lý Zalo</a><a class="btn" href="#fanpage">📘 Fanpage</a></div>';
     h += '<p class="small muted">Doanh số, đơn, khách lấy từ CRM (đơn 13 tháng gần nhất) và file sàn. Số website lấy từ Google Analytics, chỉ đếm khách đã bấm “Đồng ý” cookie (Luật Bảo vệ dữ liệu cá nhân 91/2025), nên thấp hơn số người vào thật.</p>' +
       '<p class="small muted">🔜 Sắp có: TikTok / Google Ads tự lấy chi phí · lãi gộp theo kênh, lãi gộp sàn · tỷ lệ giao thành công.</p>';
     return h;
@@ -7338,6 +7343,8 @@
     var CV = M && M.tot && M.newN && costCfg() ? custValue() : null, cac = CV && Math.round(M.tot / M.newN);
     if (CV && CV.gp90 !== null && CV.n >= 10 && cac > CV.gp90) L.push('🔴 <b>Quảng cáo đang lỗ:</b> có 1 khách mới tốn <b>' + moneyShort(cac) + '</b>, khách đó mang về lãi gộp khoảng <b>' + moneyShort(CV.gp90) + '</b> trong 90 ngày đầu. Cần giảm giá có 1 khách, hoặc chăm sóc để khách mua lại nhiều hơn.' + who('Marketing + Quản lý sale') + xem('mkt'));
     var bc = dashBadCamp(M); if (bc) L.push('🟠 Chiến dịch <b>' + esc(bc.r[1]) + '</b> chi ' + moneyShort(bc.r[3]) + (bc.r[8] ? ' mới ra ' + bc.r[8] + ' đơn (' + moneyShort(Math.round(bc.cpa)) + ' / đơn, gấp ' + oneDec(bc.x) + ' lần mức chung)' : ' mà chưa ra đơn nào') + '. Nên giảm tiền hoặc tắt.' + who('Marketing') + xem('mkt'));
+    var KS = khoCan() && S.d.kho; // 📦 kho: sản phẩm cần đặt NCC / đang hết / hàng về trễ (kho_sum, cập nhật 10 phút / lần)
+    if (KS && (KS.need || KS.late)) L.splice(KS.out ? 0 : L.length, 0, (KS.out ? '🔴' : '🟠') + ' <b>Kho: ' + [KS.need ? KS.need + ' sản phẩm cần đặt nhà cung cấp' : '', KS.late ? KS.late + ' sản phẩm hàng về trễ hẹn' : ''].filter(Boolean).join(', ') + '</b>' + ((KS.top || []).length ? ': ' + KS.top.map(function (t) { return esc(t[0]) + (t[1] === 'out' ? ' (đang hết)' : t[1] === 'late' ? ' (hàng về trễ hẹn)' : t[2] !== null ? ' (~' + t[2] + ' ngày)' : ''); }).join(', ') : '') + '.' + who(khoWho()) + xem('#kho'));
     if (sj) { var by = sanLatest(sj); Object.keys(by).forEach(function (k) { var o = by[k]; if (o.late > (o.sheet ? 2 : 3)) L.push('⏰ ' + esc(k) + ' đã ' + o.late + (o.sheet ? ' ngày chưa gõ số vào Google Sheet báo cáo' : ' ngày chưa tải file đơn mới') + ', số sàn có thể đang thiếu.' + who('Phụ trách sàn') + xem('#san')); }); }
     if (T.netP && CMP_LABEL && p.k !== 'today') { var d = Math.round((T.net - T.netP) * 100 / T.netP); if (d <= -10) L.push('🔴 <b>Doanh số giảm ' + Math.abs(d) + '%</b> so với ' + CMP_LABEL + ' (' + moneyShort(T.net) + ' so với ' + moneyShort(T.netP) + ').' + who('Quản lý sale') + xem('day')); else if (d >= 10) OK.push('doanh số tăng ' + d + '% so với ' + CMP_LABEL); }
     if (g) { var bad = g.land.filter(function (r) { return r[1] >= 20 && pct(r[2], r[1]) < 40; })[0]; if (bad) L.push('🟠 Trang <b>' + esc(bad[0] === '/' ? 'Trang chủ' : bad[0]) + '</b> có ' + bad[1] + ' lượt vào nhưng chỉ ' + pct(bad[2], bad[1]) + '% ở lại xem: nên sửa đầu trang.' + who('Marketing') + xem('web')); }
@@ -8418,14 +8425,15 @@
       '<div class="edit-table" id="tpT">' + tp.map(function (r, i) { return '<div class="edit-row tpl" data-i="' + i + '"><input type="text" data-k="0" value="' + esc(r[0]) + '" placeholder="Thời điểm"><input type="text" data-k="1" value="' + esc(r[1]) + '" placeholder="Mục đích"><button class="rm" data-rm="tp" data-i="' + i + '" aria-label="Xoá">✕</button><textarea data-k="2" rows="3" placeholder="Nội dung tin">' + esc(r[2]) + '</textarea></div>'; }).join('') +
       '</div><div class="steps" style="margin-top:10px"><button class="btn" data-add="tp">＋ Thêm mẫu</button><button class="btn pri" id="tpSave">Lưu mẫu tin</button></div></div>';
     if (lvl() >= 3) {
-      var us = S.f.us || (S.f.us = S.d.users.map(function (u) { return { email: u.email, name: u.name, role: u.role, active: u.active !== false, alias: u.alias || '', prefix: u.prefix || '', web: !!u.web, mkv: !!u.mkv, zb: !!u.zb, phone: u.phone || '', full: u.full || '', acct: u.acct || '', joined: u.joined || '' }; }));
+      var us = S.f.us || (S.f.us = S.d.users.map(function (u) { return { email: u.email, name: u.name, role: u.role, active: u.active !== false, alias: u.alias || '', prefix: u.prefix || '', web: !!u.web, mkv: !!u.mkv, zb: !!u.zb, kho: !!u.kho, phone: u.phone || '', full: u.full || '', acct: u.acct || '', joined: u.joined || '' }; }));
       G.us = '<div class="box"><h3>Nhân sự được vào CRM</h3><p class="hint" style="margin:0 0 10px"><b>Quản trị</b>: toàn quyền. <b>Quản lý</b>: thêm xem doanh số, sửa chu kỳ & mẫu tin. <b>Sale & CSKH</b>: bán hàng, chăm sóc khách mình phụ trách, xử lý đơn. <b>Marketing</b>: tab 📣 Marketing (chi phí, hiệu quả quảng cáo, tự nhập chi phí) + xem (không sửa) khách để lại số trên web ở tab Khách hỏi; không thấy khách đã mua, đơn, doanh số công ty. Khách để lại số trên web luôn chờ Quản lý / Quản trị giao, sale không tự nhận. Muốn Quản lý / Sale xem thêm số marketing: tích <b>📣 Xem Marketing</b> dưới tên người đó (chỉ xem, không sửa). Nhân viên nghỉ việc: bỏ tích “Đang dùng” là không vào được nữa.</p>' +
         '<p class="hint" style="margin:0 0 10px"><b>Tên trong file QC</b>: tên sale như đang ghi ở cột Sale của file số quảng cáo (nhiều cách viết thì cách nhau dấu phẩy, vd “Phương, PHƯƠNG”). <b>Tiền tố mã đơn</b>: vd “Phuong” → mã đơn Phuong300926-01. <b>SĐT, họ tên đầy đủ, số tài khoản</b>: CRM so với người đăng ký Cộng tác viên, trùng thì báo ⚠️ (nhân sự không được làm CTV); chỉ Quản trị thấy. <b>Ngày làm chính thức</b>: tính thâm niên cho lương & hoa hồng (Phụ lục 01).</p>' +
         '<div class="edit-table" id="usT"><div class="edit-row usr head"><span>Email</span><span>Tên hiển thị</span><span>Quyền</span><span>Đang dùng</span><span></span></div>' +
         us.map(function (u, i) { return '<div class="edit-row usr" data-i="' + i + '"><input type="email" data-k="email" value="' + esc(u.email) + '" placeholder="email@gmail.com"><input type="text" data-k="name" value="' + esc(u.name) + '" placeholder="Tên"><select data-k="role">' + ['Quản trị', 'Quản lý', 'Marketing', 'Sale & CSKH'].map(function (r) { return '<option value="' + esc(r) + '"' + (r === u.role ? ' selected' : '') + '>' + esc(r) + '</option>'; }).join('') + '</select><label class="switch"><input type="checkbox" data-k="active"' + (u.active ? ' checked' : '') + '> Có</label><button class="rm" data-rm="us" data-i="' + i + '" aria-label="Xoá">✕</button>' +
           '<input type="text" data-k="alias" value="' + esc(u.alias || '') + '" placeholder="Tên trong file QC (vd Phương)" class="usr-x"><input type="text" data-k="prefix" value="' + esc(u.prefix || '') + '" placeholder="Tiền tố mã đơn (vd Phuong)" class="usr-x"><input type="tel" data-k="phone" value="' + esc(u.phone || '') + '" placeholder="SĐT cá nhân (chống tự làm CTV)" class="usr-x"><input type="text" data-k="full" value="' + esc(u.full || '') + '" placeholder="Họ tên đầy đủ (vd Nguyễn Thu Hương)" class="usr-x"><input type="text" inputmode="numeric" data-k="acct" value="' + esc(u.acct || '') + '" placeholder="Số tài khoản ngân hàng (chống tự làm CTV)" class="usr-x"><input type="text" data-k="joined" value="' + esc(u.joined || '') + '" placeholder="Ngày làm chính thức (vd 07/2024) – tính thâm niên" class="usr-x"><label class="switch usr-w"><input type="checkbox" data-k="web"' + (u.web || u.role === 'Quản trị' ? ' checked' : '') + (u.role === 'Quản trị' ? ' disabled' : '') + '> 🌐 Sửa website (đăng bài, sửa sản phẩm ở thucduonglanh.vn/admin)</label>' +
           (u.role === 'Quản lý' || u.role === 'Sale & CSKH' ? '<label class="switch usr-w"><input type="checkbox" data-k="mkv"' + (u.mkv ? ' checked' : '') + '> 📣 Xem Marketing (chỉ xem tab Marketing: chi phí, hiệu quả quảng cáo; không sửa)</label>' : '') +
-          (u.role === 'Sale & CSKH' ? '<label class="switch usr-w"><input type="checkbox" data-k="zb"' + (u.zb ? ' checked' : '') + '> 🤖 Phụ trách Trợ lý Zalo (duyệt bài, đổi ảnh, gửi tin vào nhóm, cài đặt giờ đăng). Quản lý, Marketing đã có sẵn quyền này</label>' : '') + '</div>'; }).join('') +
+          (u.role === 'Sale & CSKH' ? '<label class="switch usr-w"><input type="checkbox" data-k="zb"' + (u.zb ? ' checked' : '') + '> 🤖 Phụ trách Trợ lý Zalo (duyệt bài, đổi ảnh, gửi tin vào nhóm, cài đặt giờ đăng). Quản lý, Marketing đã có sẵn quyền này</label>' : '') +
+          (u.role !== 'Marketing' ? '<label class="switch usr-w"><input type="checkbox" data-k="kho"' + (u.kho ? ' checked' : '') + '> 📦 Phụ trách kho (nhận tin Telegram sắp hết hàng, nhập / xuất / kiểm kho, ghi đặt nhà cung cấp)' + (u.role === 'Sale & CSKH' ? '' : '. Quản lý, Quản trị đã vào được tab Kho, tích để nhận tin') + '</label>' : '') + '</div>'; }).join('') +
         '</div><div class="steps" style="margin-top:10px"><button class="btn" data-add="us">＋ Thêm người</button><button class="btn pri" id="usSave">Lưu nhân sự</button></div>' +
         '<h3 style="margin:16px 0 4px">Nhân sự chưa có tài khoản CRM</h3><p class="hint" style="margin:0 0 6px">Mỗi dòng 1 người: <b>Họ tên | SĐT | Số tài khoản</b>. Chỉ để CRM cảnh báo khi họ (hoặc người dùng tài khoản của họ) đăng ký Cộng tác viên.</p>' +
         '<textarea id="sgTxt" rows="4" style="width:100%" placeholder="Nguyễn Văn A | 0912345678 | 0123456789">' + esc((S.d.rules.staffGuard || []).map(function (r) { return [r.full, r.phone, r.acct].join(' | '); }).join('\n')) + '</textarea>' +
@@ -9291,6 +9299,257 @@
       api('dup_scan').then(function (j) { got(j); toast('Đã đọc ' + j.scanned + ' sheet' + (j.errors.length ? ', ' + j.errors.length + ' sheet lỗi: ' + j.errors[0] : '') + ' ✓', !!j.errors.length); b.disabled = false; b.textContent = '🔄 Quét lại file sale'; },
         function (e) { toast(e.message, true); b.disabled = false; b.textContent = '🔄 Quét lại file sale'; });
     };
+  }
+
+  /* ================================================================ 📦 Kho hàng (06/11/2026, máy chủ api/src/kho.js)
+   * Ai thấy: người được tích 📦 Phụ trách kho (Cài đặt → Nhân sự), Quản lý, Quản trị. Số liệu tải riêng bằng lệnh kho_load (không nằm trong lệnh load chung).
+   * Máy chủ tính sẵn cho từng sản phẩm: còn (have), chờ gửi (wait), bán / ngày (rate), đủ bán mấy ngày (left), mức (lv) và số nên đặt (sug).
+   * Ở đây chỉ hiện + gửi lệnh: kho_item (thêm / sửa sản phẩm), kho_count (kiểm kho), kho_move (nhập / xuất khác), kho_po (đã đặt NCC), kho_map (ghép tên hàng), kho_undo, kho_cfg.
+   * Mỗi lệnh ghi xong trả lại toàn bộ số liệu tab (khoSet). Combo trên web (CFG.products[].parts, build.py) gửi kèm kho_load để máy chủ tự tách combo ra từng sản phẩm. */
+  var KH = { d: null, busy: false, err: '', at: 0 };
+  var KHO_ORD = { out: 0, urgent: 1, order: 2, late: 3, risk: 4, nobase: 5, wait: 6, ok: 7 };
+  var KHO_DAYS = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+  function khoCan() { return !isMkt() && (lvl() >= 2 || !!(S.user && S.user.kho)); }
+  function khoCombos() { return (CFG.products || []).filter(function (p) { return p.parts && p.parts.length; }).map(function (p) { return [p.name, p.parts]; }); }
+  function khoFetch() {
+    if (KH.busy) return; KH.busy = true; KH.err = '';
+    api('kho_load', { combos: khoCombos() }).then(function (j) { khoSet(j); }, function (e) { KH.err = /Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message; })
+      .then(function () { KH.busy = false; if (route().view === 'kho') softRender(true); });
+  }
+  function khoSet(j) {
+    KH.d = j; KH.at = Date.now(); KH.err = '';
+    if (S.d && j && j.list) { var L = j.list; S.d.kho = { n: L.length, need: L.filter(function (s) { return s.act; }).length, out: L.filter(function (s) { return s.lv === 'out'; }).length, late: L.filter(function (s) { return s.late; }).length, nobase: L.filter(function (s) { return s.lv === 'nobase'; }).length, top: L.filter(function (s) { return s.act || s.late || s.lv === 'out'; }).slice(0, 5).map(function (s) { return [s.name, s.lv, s.left, s.unit]; }) }; }
+    try { navBadges(); } catch (e) { }
+  }
+  function khoN(n) { return (Math.round((Number(n) || 0) * 10) / 10).toLocaleString('vi-VN'); }
+  function khoItem(id) { return ((KH.d && KH.d.items) || []).filter(function (i) { return i.id === id; })[0] || null; }
+  function khoStat(id) { return ((KH.d && KH.d.list) || []).filter(function (s) { return s.id === id; })[0] || null; }
+  function khoItemName(id) { var i = khoItem(id); return i ? i.name : '(sản phẩm đã xoá)'; }
+  /** Người phụ trách kho (tên) để ghi "ai làm" ở Tổng quan. */
+  function khoWho() { var a = (KH.d && KH.d.staff) || (S.d.users || []).filter(function (u) { return u.kho && u.active !== false; }); return a.length ? a.map(function (u) { return esc(u.name); }).join(', ') : 'Phụ trách kho'; }
+  function khoNowLocal(t) { var x = vnDate(t || Date.now()); return x.y + '-' + pad(x.m) + '-' + pad(x.d) + 'T' + pad(x.h) + ':' + pad(x.mi); }
+  function khoParseLocal(v) { var m = String(v || '').match(/^(\d{4})-(\d\d)-(\d\d)(?:T(\d\d):(\d\d))?/); return m ? Date.UTC(+m[1], +m[2] - 1, +m[3], +(m[4] || 9), +(m[5] || 0)) - 7 * 3600e3 : 0; }
+  function khoUnitOf(p) { var w = norm(((p.variants || [])[0] || {}).name || '').split(/\s+/)[0]; return ({ hop: 'hộp', hu: 'hũ', chai: 'chai', lon: 'lon', goi: 'gói', tui: 'túi' })[w] || 'hộp'; }
+  function khoQuickName(p) { var v = ((p.variants || [])[0] || {}).name || ''; return p.name + (v ? ' – ' + v.replace(/\s*\(.*\)\s*$/, '') : ''); }
+
+  function viewKho() {
+    if (!KH.d && !KH.err) setTimeout(khoFetch, 0); else if (KH.d && !KH.busy && Date.now() - KH.at > 5 * 60e3) setTimeout(khoFetch, 0); // số cũ hơn 5 phút: tải lại trong nền
+    var D = KH.d, act = D ? D.items.filter(function (i) { return i.active; }) : [];
+    var h = '<div class="page-head"><h1>📦 Kho</h1><div class="grow"></div>' + (act.length ? '<button class="btn pri" data-kho="count">🧮 Kiểm kho</button><button class="btn" data-kho="in">📥 Nhập hàng</button><button class="btn" data-kho="out">📤 Xuất khác</button>' : '') + '</div>';
+    if (!D) return h + '<div class="box"><p class="muted">' + (KH.err ? '⚠️ ' + esc(KH.err) + ' <button class="link" data-kho="reload">Thử lại</button>' : '⏳ Đang tải số liệu kho…') + '</p></div>';
+    if (!act.length) return h + khoEmpty() + khoHow(true);
+    var L = D.list.slice().sort(function (a, b) { return (a.act ? -10 : 0) - (b.act ? -10 : 0) || KHO_ORD[a.lv] - KHO_ORD[b.lv] || (a.left === null ? 1e9 : a.left) - (b.left === null ? 1e9 : b.left); });
+    var cnt = function (f) { return L.filter(f).length; }, need = cnt(function (s) { return s.act; }), out = cnt(function (s) { return s.lv === 'out'; }), late = cnt(function (s) { return s.late; }), nob = cnt(function (s) { return s.lv === 'nobase'; }), wait = cnt(function (s) { return s.open.length; });
+    var chip = function (n, t, cls) { return n ? '<span class="kho-chip ' + cls + '">' + t.replace('#', '<b>' + n + '</b>') + '</span>' : ''; };
+    h += '<div class="kho-sum">' + (need || out || late || nob || wait ? chip(need, '🛒 # cần đặt NCC', 'bad') + chip(out, '🔴 # đang hết', 'bad') + chip(late, '⏰ # hàng về trễ', 'bad') + chip(wait, '⏳ # đang chờ hàng về', 'info') + chip(nob, '⚪ # chưa nhập số tồn', 'mute') : '<span class="kho-chip ok">🟢 Tất cả sản phẩm đủ hàng</span>') + '</div>';
+    var st = D.staff || [];
+    if (!st.length) h += '<div class="box kho-warn">⚠️ Chưa ai được tích <b>📦 Phụ trách kho</b>: tin Telegram “sắp hết hàng” đang gửi vào nhóm chung.' + (lvl() >= 3 ? ' Tích ở <a href="#cai-dat">Cài đặt → Nhân sự</a>.' : ' Nhờ Quản trị tích ở Cài đặt → Nhân sự.') + '</div>';
+    else if (st.some(function (u) { return !u.tg; })) h += '<div class="box kho-warn">📲 ' + st.filter(function (u) { return !u.tg; }).map(function (u) { return '<b>' + esc(u.name) + '</b>'; }).join(', ') + ' chưa nối Telegram nên chưa nhận được tin báo sắp hết hàng. Vào <a href="#cai-dat">Cài đặt</a> → 📲 Thông báo Telegram riêng → bấm nối.</div>';
+    if (D.syncErr) h += '<div class="box kho-warn">⚠️ Chưa cập nhật được hàng theo đơn mới: ' + esc(D.syncErr) + '</div>';
+    h += '<div class="kho-list">' + L.map(khoCard).join('') + '</div>';
+    h += '<div class="steps" style="margin:2px 0 18px"><button class="btn" data-kho="add">＋ Thêm sản phẩm kho</button><button class="btn ghost" data-kho="reload">⟳ Tải lại</button></div>';
+    return h + khoNamesBox(D) + khoPoBox(D) + khoHistBox(D) + khoSetBox(D) + khoHow(false);
+  }
+  function khoCard(s) {
+    var u = esc(s.unit), today0 = today();
+    var big = s.have === null ? 'Chưa nhập số tồn' : s.have < 0 ? '⚠️ Máy tính ra ' + khoN(s.have) + ' ' + u : 'Còn ' + khoN(s.have) + ' ' + u;
+    var sub = [];
+    if (s.wait) sub.push(khoN(s.wait) + ' ' + u + ' đang chờ gửi cho khách');
+    if (s.have !== null && s.avail > 0 && s.left !== null) sub.push('đủ bán khoảng <b>' + s.left + ' ngày</b> (tới ' + fDate(today0 + s.left * DAY).slice(0, 5) + ')');
+    if (s.have !== null && s.avail <= 0) sub.push('<b>không còn hàng để gửi</b>');
+    if (s.have !== null && !s.rate) sub.push('30 ngày qua chưa bán');
+    if (s.have !== null && s.have < 0) sub.push('số âm: có hàng đi chưa được ghi, nên kiểm kho lại');
+    var h = '<div class="box kho-card kho-lv-' + s.lv + '" id="kho-' + esc(s.id) + '"><div class="kho-ch"><b class="kho-nm">' + esc(s.name) + '</b><span class="kho-lv">' + esc(s.lvTxt) + '</span></div>' +
+      '<p class="kho-big">' + big + '</p>' + (sub.length ? '<p class="kho-sub">' + sub.join(' · ') + '</p>' : '');
+    s.open.forEach(function (p) {
+      h += '<div class="kho-po' + (p.late ? ' late' : '') + '">⏳ Đã đặt <b>' + khoN(p.left) + ' ' + u + '</b>' + (p.got ? ' (đã nhận ' + khoN(p.got) + ')' : '') + ' ngày ' + fDate(p.at).slice(0, 5) + ' · hẹn về <b>' + (p.eta ? fDate(p.eta).slice(0, 5) : '?') + '</b>' + (p.late ? ' · <b>trễ hẹn, gọi giục NCC</b>' : '') + (p.note ? '<small>' + esc(p.note) + '</small>' : '') +
+        '<div class="steps"><button class="btn sm pri" data-kho="in|' + esc(s.id) + '|' + p.id + '">📥 Hàng về</button><button class="btn sm" data-kho="poedit|' + p.id + '">✏️ Đổi hẹn / huỷ</button></div></div>';
+    });
+    if (s.need) h += '<div class="kho-need"><span>👉 Nên đặt <b>' + khoN(s.sug) + ' ' + u + '</b>' + (s.short ? ' nữa' : '') + ' <small>(đủ bán khoảng ' + (s.lead + s.safety + s.cover) + ' ngày)</small>' + (s.supplier ? '<small>📞 ' + esc(s.supplier) + '</small>' : '') + '</span><button class="btn pri" data-kho="po|' + esc(s.id) + '">🛒 Đã đặt NCC</button></div>';
+    if (s.lv === 'nobase') h += '<div class="kho-need"><span>👉 Đếm số hàng đang có trong kho rồi nhập vào để máy bắt đầu tính.</span><button class="btn pri" data-kho="count|' + esc(s.id) + '">🧮 Nhập số đếm</button></div>';
+    h += '<p class="kho-info">Bán ~' + khoN(s.rate) + ' ' + u + ' / ngày · NCC giao ' + s.lead + ' ngày + dự phòng ' + s.safety + ' ngày' + (s.min ? ' · tối thiểu ' + khoN(s.min) + ' ' + u : '') + (s.countAt ? ' · kiểm kho ' + when(s.countAt).toLowerCase() : '') + '</p>' +
+      '<div class="steps kho-acts"><button class="btn sm" data-kho="in|' + esc(s.id) + '">📥 Nhập</button><button class="btn sm" data-kho="out|' + esc(s.id) + '">📤 Xuất khác</button>' + (s.need ? '' : '<button class="btn sm" data-kho="po|' + esc(s.id) + '">🛒 Đặt NCC</button>') + '<button class="btn sm" data-kho="count|' + esc(s.id) + '">🧮 Kiểm</button><button class="btn sm ghost" data-kho="edit|' + esc(s.id) + '">⚙️ Sửa</button></div></div>';
+    return h;
+  }
+  function khoEmpty() {
+    var ps = (CFG.products || []).filter(function (p) { return !(p.parts && p.parts.length) && (p.variants || []).length; });
+    return '<div class="box"><h3>Bắt đầu theo dõi kho</h3><ol class="kho-ol"><li>Thêm các sản phẩm có trong kho, ghi rõ <b>loại + trọng lượng</b> (vd “Trà DILVANG hộp 75g”) và <b>số ngày nhà cung cấp giao hàng</b> của từng sản phẩm.</li><li>Đếm kho, nhập ở <b>🧮 Kiểm kho</b>.</li><li>Từ đó máy tự trừ hàng theo đơn (web, sale, sàn), tự báo Telegram khi cần đặt hàng.</li></ol>' +
+      (ps.length ? '<p class="small muted" style="margin:10px 0 6px">Thêm nhanh sản phẩm đang bán trên web. Ghi số ngày NCC giao (sửa lại sau được):</p><div class="kho-quick">' + ps.map(function (p, i) { return '<div class="kho-qr"><label class="kho-ck"><input type="checkbox" data-khq="' + i + '" checked> ' + esc(khoQuickName(p)) + ' <small class="muted">(' + khoUnitOf(p) + ')</small></label><label class="kho-ql">NCC giao <input type="number" inputmode="numeric" min="1" data-khl="' + i + '" value="10"> ngày</label></div>'; }).join('') + '</div>' +
+        '<p class="err" id="khqErr"></p><div class="steps"><button class="btn pri" data-kho="quick">＋ Thêm các sản phẩm đã chọn</button><button class="btn" data-kho="add">＋ Thêm sản phẩm khác</button></div>' : '<div class="steps"><button class="btn pri" data-kho="add">＋ Thêm sản phẩm kho</button></div>') + '</div>';
+  }
+  function khoNamesBox(D) {
+    var un = D.names.filter(function (n) { return !n.to; }), ok = D.names.filter(function (n) { return n.to; });
+    var row = function (n) {
+      var to = n.to ? (n.to.length ? n.to.map(function (c) { return khoN(c[1]) + ' × ' + esc(khoItemName(c[0])); }).join(' + ') : 'không trừ kho') : '❓ máy chưa biết';
+      return '<div class="kho-name"><span><b>' + esc(n.t) + '</b><small>' + n.n + ' đơn · ' + esc(n.src) + ' · → ' + to + (n.manual ? ' (ghép tay)' : '') + '</small></span><button class="btn sm' + (n.to ? '' : ' pri') + '" data-kho="map" data-t="' + esc(n.t) + '">' + (n.to ? 'Sửa' : 'Ghép') + '</button></div>';
+    };
+    return '<details class="box kho-sec"' + (un.length ? ' open' : '') + '><summary><b>🔗 Ghép tên hàng</b> <span class="small ' + (un.length ? 'kho-bad' : 'muted') + '">' + (un.length ? '⚠️ ' + un.length + ' tên máy chưa biết là sản phẩm nào' : '✅ máy đọc được hết tên hàng 60 ngày qua') + '</span></summary>' +
+      '<p class="hint" style="margin:8px 0">Tên hàng trong đơn (web, sale, sàn) được tính vào sản phẩm kho nào. Máy tự đọc loại + trọng lượng, combo, “Mua 3 tặng 1”. Tên máy chưa biết thì <b>chưa bị trừ kho</b>: bấm <b>Ghép</b>. Thứ không nằm trong kho (phí ship, dịch vụ…) chọn <b>Không trừ kho</b>.</p>' +
+      (un.length ? '<div class="kho-names">' + un.map(row).join('') + '</div>' : '') +
+      (ok.length ? '<details class="kho-subd"><summary>Xem máy đang tính ' + ok.length + ' tên hàng như thế nào</summary><div class="kho-names">' + ok.map(row).join('') + '</div></details>' : '') + '</details>';
+  }
+  function khoPoBox(D) {
+    var P = D.pos || []; if (!P.length) return '';
+    var ST = { open: '⏳ Chờ hàng về', done: '✅ Đã nhập kho', cancel: '✖️ Đã huỷ' };
+    return '<details class="box kho-sec"><summary><b>🛒 Các lần đặt nhà cung cấp</b> <span class="muted small">' + P.length + ' lần · 120 ngày qua</span></summary><div class="kho-hist">' + P.map(function (p) {
+      var it = khoItem(p.item) || { unit: '' }, lead = p.status === 'done' && p.doneAt ? Math.round((p.doneAt - p.at) / DAY) : null;
+      return '<div class="kho-hr"><span><b>' + esc(khoItemName(p.item)) + '</b> · ' + khoN(p.qty) + ' ' + esc(it.unit) + '<small>Đặt ' + fDate(p.at).slice(0, 5) + ' (' + esc(p.by || '') + ') · hẹn ' + (p.eta ? fDate(p.eta).slice(0, 5) : '?') + ' · ' + ST[p.status] + (p.got && p.status !== 'cancel' ? ' · đã nhận ' + khoN(p.got) : '') + (lead !== null ? ' · NCC giao mất ' + lead + ' ngày' : '') + (p.note ? ' · ' + esc(p.note) : '') + '</small></span>' +
+        (p.status === 'open' ? '<button class="btn sm" data-kho="poedit|' + p.id + '">✏️</button>' : '') + '</div>';
+    }).join('') + '</div></details>';
+  }
+  function khoHistBox(D) {
+    var M = D.moves || []; if (!M.length) return '';
+    var K = { in: '📥 Nhập kho', out: '📤 Xuất khác', count: '🧮 Kiểm kho' };
+    return '<details class="box kho-sec"><summary><b>🕘 Lịch sử nhập / xuất / kiểm kho</b> <span class="muted small">90 ngày qua</span></summary><div class="kho-hist">' + M.map(function (m) {
+      var it = khoItem(m.item) || { unit: '' }, u = esc(it.unit), d = m.kind === 'count' && m.sys !== null ? m.qty - m.sys : null;
+      var what = m.kind === 'count' ? 'đếm được <b>' + khoN(m.qty) + ' ' + u + '</b>' + (d !== null ? ' (máy tính ' + khoN(m.sys) + (Math.abs(d) >= 0.5 ? ', <b class="kho-bad">lệch ' + (d > 0 ? '+' : '') + khoN(d) + '</b>' : ', khớp') + ')' : ' (lần đầu)') : '<b>' + (m.kind === 'in' ? '+' : '−') + khoN(m.qty) + ' ' + u + '</b>' + (m.reason ? ' · ' + esc(m.reason) : '');
+      var undo = Date.now() - (m.made || m.at) < 7 * DAY && (m.by === S.user.name || lvl() >= 2);
+      return '<div class="kho-hr"><span>' + K[m.kind] + ' · <b>' + esc(khoItemName(m.item)) + '</b>: ' + what + '<small>' + when(m.at) + ' · ' + esc(m.by || '') + (m.note ? ' · ' + esc(m.note) : '') + '</small></span>' + (undo ? '<button class="btn sm ghost" data-kho="undo|' + m.id + '" title="Xoá dòng ghi nhầm">↩️ Xoá</button>' : '') + '</div>';
+    }).join('') + '</div></details>';
+  }
+  function khoSetBox(D) {
+    var cd = D.cfg && D.cfg.countDay !== undefined ? Number(D.cfg.countDay) : 5, st = D.staff || [], off = D.items.filter(function (i) { return !i.active; });
+    return '<details class="box kho-sec"><summary><b>⚙️ Cài đặt kho</b> <span class="muted small">' + (cd >= 0 ? 'kiểm kho ' + KHO_DAYS[cd].toLowerCase() : 'không nhắc kiểm kho') + ' · ' + (st.length ? st.map(function (u) { return esc(u.name) + (u.tg ? ' 📲' : ''); }).join(', ') : 'chưa có người phụ trách') + '</span></summary>' +
+      '<label class="f" style="margin-top:10px"><span>Nhắc kiểm kho hằng tuần (tin Telegram 8h sáng)</span><select id="khDay">' + [-1, 1, 2, 3, 4, 5, 6, 0].map(function (v) { return '<option value="' + v + '"' + (v === cd ? ' selected' : '') + '>' + (v < 0 ? 'Không nhắc' : KHO_DAYS[v]) + '</option>'; }).join('') + '</select></label>' +
+      '<p class="hint">Người nhận tin Telegram: người được tích <b>📦 Phụ trách kho</b> ở Cài đặt → Nhân sự (' + (st.length ? st.map(function (u) { return esc(u.name) + (u.tg ? ' – đã nối Telegram' : ' – <b>chưa nối Telegram</b>'); }).join('; ') : 'chưa có ai') + '). Sáng hôm sau chưa ghi “Đã đặt NCC” thì máy báo thêm Quản trị.</p>' +
+      (off.length ? '<p class="small muted">Sản phẩm đã ngừng theo dõi: ' + off.map(function (i) { return '<button class="link" data-kho="edit|' + esc(i.id) + '">' + esc(i.name) + '</button>'; }).join(', ') + ' (bấm để bật lại)</p>' : '') + '</details>';
+  }
+  function khoHow(open) {
+    return '<details class="box kho-sec"' + (open ? ' open' : '') + '><summary><b>ⓘ Máy tính số kho thế nào?</b></summary><div class="small kho-howt">' +
+      '<p><b>Số còn</b> = số đếm ở lần 🧮 Kiểm kho gần nhất + 📥 hàng nhập − 📤 xuất khác − hàng theo đơn đã gửi + hàng hoàn đã về kho (tính từ lúc kiểm).</p>' +
+      '<p><b>Hàng theo đơn</b>: đơn chuyển sang <b>Đang giao</b> là trừ kho. Đơn <b>Mới / Đã xác nhận</b> là “chờ gửi” (đã có khách, máy trừ ra khi tính ngày còn đủ bán). Đơn <b>Huỷ</b> không trừ. Đơn hoàn: bấm <b>📦 Kho đã nhận</b> trên đơn thì hàng cộng lại. Đơn sàn trừ khi tải file đơn hàng của sàn ở tab Sàn. Quà tặng 🎁 trong đơn cũng trừ.</p>' +
+      '<p><b>Hàng ra ngoài đơn</b> (quà tặng, đại lý, livestream, hàng mẫu, hàng hỏng): bấm <b>📤 Xuất khác</b>. Không ghi thì đến lần kiểm kho sẽ thấy lệch.</p>' +
+      '<p><b>Bán mỗi ngày</b>: lấy số cao hơn giữa trung bình 30 ngày và 14 ngày gần nhất, nên tháng bán chạy máy báo sớm hơn.</p>' +
+      '<p><b>Khi nào báo đặt hàng</b>: khi số còn (trừ đơn chờ gửi, cộng hàng đã đặt chưa về) chỉ đủ bán dưới <b>số ngày NCC giao + số ngày dự phòng</b>, hoặc dưới mức tối thiểu. Máy gợi ý số nên đặt để đủ bán thêm “mỗi lần đặt đủ bán” ngày.</p>' +
+      '<p><b>Tin Telegram</b>: báo ngay khi một sản phẩm vừa chạm mức, 8h sáng nhắc lại cho đến khi bấm <b>🛒 Đã đặt NCC</b>. Hàng quá ngày hẹn chưa về cũng báo. Quá 1 buổi sáng chưa đặt thì báo Quản trị.</p>' +
+      '<p><b>Kiểm kho cuối tuần</b>: đếm thật rồi nhập, máy tự sửa phần lệch và báo Quản trị nếu lệch. Hàng đã đóng gói chờ hãng lấy vẫn đếm là còn trong kho.</p></div></details>';
+  }
+
+  function bindKho() {
+    $$('[data-kho]').forEach(function (el) {
+      el.onclick = function () {
+        var p = el.getAttribute('data-kho').split('|'), a = p[0];
+        if (a === 'reload') { KH.err = ''; KH.at = 0; khoFetch(); render(); }
+        else if (a === 'count') openKhoCount(p[1]);
+        else if (a === 'in' || a === 'out') openKhoMove(a, p[1], p[2]);
+        else if (a === 'po') openKhoPo(p[1]);
+        else if (a === 'poedit') openKhoPoEdit(+p[1]);
+        else if (a === 'add') openKhoItem('');
+        else if (a === 'edit') openKhoItem(p[1]);
+        else if (a === 'map') openKhoMap(el.getAttribute('data-t'));
+        else if (a === 'undo') { if (confirm('Xoá dòng ghi nhầm này? Số kho sẽ tính lại như chưa ghi.')) khoDo('kho_undo', { id: +p[1] }, el, null, 'Đã xoá dòng ✓'); }
+        else if (a === 'quick') khoQuick(el);
+      };
+    });
+    var dd = $('#khDay'); if (dd) dd.onchange = function () { khoDo('kho_cfg', { countDay: +dd.value }, null, null, 'Đã lưu ngày kiểm kho ✓'); };
+  }
+  function khoDo(action, payload, btn, errEl, msg) {
+    var t = btn ? btn.textContent : ''; if (btn) { btn.disabled = true; btn.textContent = '⏳ Đang lưu…'; }
+    return api(action, payload).then(function (j) { khoSet(j); closeModal(true); toast(msg || 'Đã lưu ✓'); render(); return j; },
+      function (e) { if (btn) { btn.disabled = false; btn.textContent = t; } if (errEl) errEl.textContent = e.message; else toast(e.message, true); });
+  }
+  /** Thêm nhanh sản phẩm web (lần đầu dùng): gửi lần lượt từng sản phẩm. */
+  function khoQuick(btn) {
+    var ps = (CFG.products || []).filter(function (p) { return !(p.parts && p.parts.length) && (p.variants || []).length; }), todo = [];
+    $$('[data-khq]').forEach(function (c) { if (!c.checked) return; var i = +c.getAttribute('data-khq'), p = ps[i], l = $('[data-khl="' + i + '"]'); if (p) todo.push({ name: khoQuickName(p), unit: khoUnitOf(p), lead: l ? l.value : 10, safety: 7, cover: 30 }); });
+    if (!todo.length) { $('#khqErr').textContent = 'Chọn ít nhất 1 sản phẩm.'; return; }
+    btn.disabled = true; btn.textContent = '⏳ Đang thêm…';
+    var go = function (i, last) {
+      if (i >= todo.length) { khoSet(last); toast('Đã thêm ' + todo.length + ' sản phẩm ✓ Giờ đếm kho rồi bấm 🧮 Kiểm kho.'); render(); return; }
+      api('kho_item', { item: todo[i] }).then(function (j) { go(i + 1, j); }, function (e) { btn.disabled = false; btn.textContent = '＋ Thêm các sản phẩm đã chọn'; $('#khqErr').textContent = todo[i].name + ': ' + e.message; if (last) khoSet(last); });
+    };
+    go(0, null);
+  }
+  function openKhoItem(id) {
+    var it = id ? khoItem(id) : null, v = it || { name: '', unit: 'hộp', lead: '', safety: 7, cover: 30, min: 0, supplier: '', note: '' };
+    var body = '<div class="kho-m"><label class="f"><span>Tên sản phẩm *</span><input type="text" id="khName" value="' + esc(v.name) + '" placeholder="vd Trà DILVANG hộp 75g"></label>' +
+      '<p class="hint">Ghi rõ <b>loại + trọng lượng</b> (vd “Bữa ăn VitaGreen hộp 500g”, “Ruốc rong biển 165g”, “Fucoidan Progomax 900g”) để máy tự nhận ra tên hàng trong đơn. Cùng loại có 2 cỡ thì tạo 2 sản phẩm.</p>' +
+      '<div class="row2c"><label class="f"><span>Đơn vị</span><input type="text" id="khUnit" value="' + esc(v.unit) + '" placeholder="hộp, hũ, chai…"></label><label class="f"><span>NCC giao mất mấy ngày? *</span><input type="number" inputmode="numeric" id="khLead" min="1" value="' + esc(v.lead) + '" placeholder="vd 10"></label></div>' +
+      '<p class="hint">Tính từ lúc đặt đến lúc hàng về tới kho.' + (it && it.realLead && it.realLead.length ? ' Các lần trước NCC giao thực tế: <b>' + it.realLead.join(', ') + ' ngày</b>.' : '') + '</p>' +
+      '<div class="row2c"><label class="f"><span>Dự phòng thêm (ngày)</span><input type="number" inputmode="numeric" id="khSafe" min="0" value="' + esc(v.safety) + '"></label><label class="f"><span>Mỗi lần đặt đủ bán (ngày)</span><input type="number" inputmode="numeric" id="khCover" min="1" value="' + esc(v.cover) + '"></label></div>' +
+      '<p class="hint">Máy báo đặt hàng khi hàng còn lại chỉ đủ bán (số ngày NCC giao + dự phòng). Dự phòng để kịp khi NCC giao trễ hoặc bán chạy hơn thường.</p>' +
+      '<div class="row2c"><label class="f"><span>Mức tối thiểu (không bắt buộc)</span><input type="number" inputmode="numeric" id="khMin" min="0" value="' + esc(v.min || '') + '" placeholder="vd 30"></label><label class="f"><span>Nhà cung cấp (tên, SĐT)</span><input type="text" id="khSup" value="' + esc(v.supplier || '') + '"></label></div>' +
+      '<label class="f"><span>Ghi chú</span><input type="text" id="khNote" value="' + esc(v.note || '') + '"></label><p class="err" id="khErr"></p></div>';
+    var m = modal(it ? '⚙️ ' + esc(it.name) : '＋ Thêm sản phẩm kho', body, (it && it.active ? '<button class="btn danger" id="khOff">Ngừng theo dõi</button>' : '') + '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="khSave">' + (it && !it.active ? 'Bật lại & lưu' : 'Lưu') + '</button>');
+    $('#khSave', m).onclick = function () {
+      khoDo('kho_item', { item: { id: id || '', name: $('#khName', m).value, unit: $('#khUnit', m).value, lead: $('#khLead', m).value, safety: $('#khSafe', m).value, cover: $('#khCover', m).value, min: $('#khMin', m).value || 0, supplier: $('#khSup', m).value, note: $('#khNote', m).value } }, this, $('#khErr', m), it ? 'Đã lưu ✓' : 'Đã thêm ✓ Nhớ đếm kho rồi bấm 🧮 Kiểm kho.');
+    };
+    var off = $('#khOff', m); if (off) off.onclick = function () { if (confirm('Ngừng theo dõi “' + it.name + '”? Lịch sử vẫn giữ, bật lại được.')) khoDo('kho_item', { item: { id: id, active: false } }, off, $('#khErr', m), 'Đã ngừng theo dõi'); };
+  }
+  function openKhoCount(only) {
+    var L = KH.d.list.filter(function (s) { return !only || s.id === only; });
+    var body = '<div class="kho-m"><p class="hint" style="margin:0 0 12px">Đếm số hàng <b>đang nằm trong kho</b>. Hàng đã đóng gói chờ hãng vận chuyển lấy vẫn đếm là còn. Ô nào chưa đếm thì để trống.</p>' +
+      L.map(function (s) { return '<label class="f"><span>' + esc(s.name) + (s.have !== null ? ' <small class="muted">· máy đang tính ' + khoN(s.have) + ' ' + esc(s.unit) + '</small>' : ' <small class="muted">· lần đầu</small>') + '</span><input type="text" inputmode="decimal" data-khc="' + esc(s.id) + '" placeholder="Số ' + esc(s.unit) + ' đếm được"></label>'; }).join('') +
+      '<div class="row2c"><label class="f"><span>Đếm lúc</span><input type="datetime-local" id="khcAt" value="' + khoNowLocal() + '"></label><label class="f"><span>Ghi chú</span><input type="text" id="khcNote" placeholder="vd kiểm cuối tuần"></label></div>' +
+      '<p class="hint">Đếm từ sáng mà chiều mới nhập thì sửa giờ “Đếm lúc”, để đơn gửi đi sau giờ đó vẫn được trừ.</p><p class="err" id="khcErr"></p></div>';
+    var m = modal('🧮 Kiểm kho', body, '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="khcSave">Lưu số đếm</button>');
+    var f = $('[data-khc]', m); if (f) setTimeout(function () { f.focus(); }, 50);
+    $('#khcSave', m).onclick = function () {
+      var rows = $$('[data-khc]', m).filter(function (i) { return i.value.trim() !== ''; }).map(function (i) { return [i.getAttribute('data-khc'), i.value.trim()]; });
+      if (!rows.length) { $('#khcErr', m).textContent = 'Nhập số đếm được của ít nhất 1 sản phẩm.'; return; }
+      khoDo('kho_count', { rows: rows, at: khoParseLocal($('#khcAt', m).value) || Date.now(), note: $('#khcNote', m).value }, this, $('#khcErr', m), 'Đã lưu số đếm ✓').then(function (j) { if (j && j.diffs) toast('🧮 Có ' + j.diffs + ' sản phẩm lệch so với máy tính, đã báo Quản trị. Xem ở 🕘 Lịch sử.'); });
+    };
+  }
+  function openKhoMove(kind, id, poId) {
+    var L = KH.d.list, isIn = kind === 'in';
+    id = id || (isIn ? ((L.filter(function (s) { return s.open.length; })[0] || L[0] || {}).id) : (L[0] || {}).id);
+    var body = '<div class="kho-m"><label class="f"><span>Sản phẩm</span><select id="khmItem">' + L.map(function (s) { return '<option value="' + esc(s.id) + '"' + (s.id === id ? ' selected' : '') + '>' + esc(s.name) + (s.open.length ? ' · ⏳ đang chờ hàng' : '') + '</option>'; }).join('') + '</select></label>' +
+      (isIn ? '<div id="khmPo"></div>' : '') +
+      '<label class="f"><span id="khmQl">Số lượng</span><input type="text" inputmode="decimal" id="khmQty"></label>' +
+      (isIn ? '' : '<label class="f"><span>Lý do</span><select id="khmWhy">' + (KH.d.reasons || []).map(function (r) { return '<option>' + esc(r) + '</option>'; }).join('') + '</select></label>') +
+      '<label class="f"><span>Ghi chú</span><input type="text" id="khmNote" placeholder="' + (isIn ? 'vd lô hạn dùng 12/2027' : 'vd tặng khách VIP, đại lý Hà Nội…') + '"></label><p class="err" id="khmErr"></p></div>';
+    var m = modal(isIn ? '📥 Nhập hàng vào kho' : '📤 Xuất khác (ngoài đơn)', body, '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="khmSave">' + (isIn ? 'Nhập kho' : 'Ghi xuất') + '</button>');
+    var paint = function () {
+      var s = khoStat($('#khmItem', m).value) || { open: [], unit: '' }; $('#khmQl', m).textContent = 'Số lượng (' + s.unit + ')';
+      if (!isIn) return;
+      var box = $('#khmPo', m), P = s.open; if (!P.length) { box.innerHTML = ''; return; }
+      var pick = P.filter(function (p) { return p.id === +poId; })[0] || P[0];
+      box.innerHTML = '<div class="f"><span class="kho-lbl">Hàng này của lần đặt nào?</span>' + P.map(function (p) { return '<label class="kho-ck"><input type="radio" name="khmPo" value="' + p.id + '"' + (p === pick ? ' checked' : '') + '> Đặt ' + fDate(p.at).slice(0, 5) + ': ' + khoN(p.left) + ' ' + esc(s.unit) + ' (hẹn ' + (p.eta ? fDate(p.eta).slice(0, 5) : '?') + ')</label>'; }).join('') +
+        '<label class="kho-ck"><input type="radio" name="khmPo" value=""> Không thuộc lần đặt nào</label><label class="kho-ck"><input type="checkbox" id="khmKeep"> NCC mới giao một phần, phần còn lại giao sau</label></div>';
+      $('#khmQty', m).value = khoN(pick.left).replace(/\./g, '');
+      $$('[name=khmPo]', m).forEach(function (r) { r.onchange = function () { var p = P.filter(function (x) { return x.id === +r.value; })[0]; if (p) $('#khmQty', m).value = khoN(p.left).replace(/\./g, ''); }; });
+    };
+    $('#khmItem', m).onchange = function () { poId = ''; paint(); }; paint();
+    $('#khmSave', m).onclick = function () {
+      var r = $('[name=khmPo]:checked', m), keep = $('#khmKeep', m);
+      khoDo('kho_move', { item: $('#khmItem', m).value, kind: kind, qty: $('#khmQty', m).value, reason: isIn ? '' : $('#khmWhy', m).value, note: $('#khmNote', m).value, po: r && r.value ? +r.value : 0, keep: !!(keep && keep.checked) }, this, $('#khmErr', m), isIn ? 'Đã nhập kho ✓' : 'Đã ghi xuất ✓');
+    };
+  }
+  function openKhoPo(id) {
+    var s = khoStat(id); if (!s) return;
+    var eta = khoNowLocal(today() + s.lead * DAY).slice(0, 10);
+    var body = '<div class="kho-m"><p style="margin:0 0 10px"><b>' + esc(s.name) + '</b>' + (s.have !== null ? ' · còn ' + khoN(s.have) + ' ' + esc(s.unit) + (s.left !== null && s.avail > 0 ? ', đủ bán ~' + s.left + ' ngày' : '') : '') + '</p>' +
+      '<div class="row2c"><label class="f"><span>Số lượng đã đặt (' + esc(s.unit) + ')</span><input type="text" inputmode="decimal" id="khpQty" value="' + (s.sug ? String(s.sug) : '') + '"></label><label class="f"><span>NCC hẹn giao ngày</span><input type="date" id="khpEta" value="' + eta + '"></label></div>' +
+      (s.sug ? '<p class="hint">Máy gợi ý ' + khoN(s.sug) + ' ' + esc(s.unit) + ' (đủ bán khoảng ' + (s.lead + s.safety + s.cover) + ' ngày). Ghi đúng số đã đặt với NCC.</p>' : '') +
+      '<label class="f"><span>Ghi chú</span><input type="text" id="khpNote" placeholder="vd đặt qua Zalo anh A, giá…" value="' + esc(s.supplier || '') + '"></label><p class="err" id="khpErr"></p></div>';
+    var m = modal('🛒 Đã đặt nhà cung cấp', body, '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="khpSave">Lưu</button>');
+    $('#khpSave', m).onclick = function () { khoDo('kho_po', { item: id, qty: $('#khpQty', m).value, eta: $('#khpEta', m).value, note: $('#khpNote', m).value }, this, $('#khpErr', m), 'Đã ghi đặt hàng ✓ Máy thôi nhắc, sẽ báo nếu hàng về trễ.'); };
+  }
+  function openKhoPoEdit(pid) {
+    var p = (KH.d.pos || []).filter(function (x) { return x.id === pid; })[0]; if (!p) return;
+    var it = khoItem(p.item) || { unit: '' };
+    var body = '<div class="kho-m"><p style="margin:0 0 10px"><b>' + esc(khoItemName(p.item)) + '</b> · đặt ' + khoN(p.qty) + ' ' + esc(it.unit) + ' ngày ' + fDate(p.at) + '</p>' +
+      '<label class="f"><span>NCC hẹn giao ngày</span><input type="date" id="khpEta" value="' + (p.eta ? khoNowLocal(p.eta).slice(0, 10) : '') + '"></label><label class="f"><span>Ghi chú</span><input type="text" id="khpNote" value="' + esc(p.note || '') + '"></label><p class="err" id="khpErr"></p></div>';
+    var m = modal('✏️ Lần đặt hàng', body, '<button class="btn danger" id="khpCancel">Huỷ lần đặt này</button><button class="btn" data-close>Đóng</button><button class="btn pri" id="khpSave">Lưu ngày hẹn</button>');
+    $('#khpSave', m).onclick = function () { khoDo('kho_po', { id: pid, eta: $('#khpEta', m).value, note: $('#khpNote', m).value }, this, $('#khpErr', m), 'Đã đổi ngày hẹn ✓'); };
+    $('#khpCancel', m).onclick = function () { if (confirm('Huỷ lần đặt này (NCC không giao)? Máy sẽ tính lại và nhắc đặt nếu cần.')) khoDo('kho_po', { id: pid, cancel: true }, this, $('#khpErr', m), 'Đã huỷ lần đặt'); };
+  }
+  function openKhoMap(text) {
+    var n = (KH.d.names || []).filter(function (x) { return x.t === text; })[0] || { t: text, to: null }, L = KH.d.items.filter(function (i) { return i.active; });
+    var cur = n.to && n.to.length ? n.to : [['', 1]];
+    var rowH = function (c) { return '<div class="kho-mr"><select data-kmi>' + '<option value="">– chọn sản phẩm kho –</option>' + L.map(function (i) { return '<option value="' + esc(i.id) + '"' + (i.id === c[0] ? ' selected' : '') + '>' + esc(i.name) + '</option>'; }).join('') + '</select><input type="text" inputmode="decimal" data-kmq value="' + esc(String(c[1]).replace('.', ',')) + '" aria-label="Số lượng"><button class="rm" data-kmx aria-label="Bỏ dòng">✕</button></div>'; };
+    var body = '<div class="kho-m"><p style="margin:0 0 4px"><b>' + esc(text) + '</b></p><p class="small muted" style="margin:0 0 10px">' + (n.n ? n.n + ' đơn trong 60 ngày qua · ' : '') + (n.to ? 'máy đang tính: ' + (n.to.length ? n.to.map(function (c) { return khoN(c[1]) + ' × ' + esc(khoItemName(c[0])); }).join(' + ') : 'không trừ kho') + (n.manual ? ' (ghép tay)' : '') : 'máy chưa biết là sản phẩm nào') + '</p>' +
+      '<p class="hint">1 suất tên hàng này (số lượng 1 trong đơn) gồm những gì trong kho? Combo nhiều sản phẩm thì thêm dòng.</p><div id="kmRows">' + cur.map(rowH).join('') + '</div><button class="btn sm" id="kmAdd">＋ Thêm sản phẩm</button><p class="err" id="kmErr"></p></div>';
+    var m = modal('🔗 Ghép tên hàng', body, (n.manual ? '<button class="btn ghost" id="kmAuto">Để máy tự đọc</button>' : '') + '<button class="btn" id="kmNone">Không trừ kho</button><button class="btn pri" id="kmSave">Lưu</button>');
+    var bindRm = function () { $$('[data-kmx]', m).forEach(function (b) { b.onclick = function () { b.parentNode.remove(); }; }); }; bindRm();
+    $('#kmAdd', m).onclick = function () { $('#kmRows', m).insertAdjacentHTML('beforeend', rowH(['', 1])); bindRm(); };
+    $('#kmSave', m).onclick = function () {
+      var comps = $$('.kho-mr', m).map(function (r) { return [$('[data-kmi]', r).value, $('[data-kmq]', r).value]; }).filter(function (c) { return c[0]; });
+      if (!comps.length) { $('#kmErr', m).textContent = 'Chọn sản phẩm kho (hoặc bấm Không trừ kho).'; return; }
+      khoDo('kho_map', { text: text, comps: comps }, this, $('#kmErr', m), 'Đã ghép ✓ Máy tính lại các đơn có tên này.');
+    };
+    $('#kmNone', m).onclick = function () { khoDo('kho_map', { text: text, comps: [] }, this, $('#kmErr', m), 'Đã ghi: tên này không trừ kho'); };
+    var au = $('#kmAuto', m); if (au) au.onclick = function () { khoDo('kho_map', { text: text, comps: null }, au, $('#kmErr', m), 'Đã bỏ ghép tay'); };
   }
 
   function modal(title, body, foot, opt) {
