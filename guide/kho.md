@@ -3,120 +3,159 @@ title: Kho hàng
 nav: Kho
 order: 4.5
 updated: 2026-11-06
-description: Xem hàng còn bao nhiêu, nhận tin khi sắp hết, ghi đã đặt hàng, hàng về kho, lấy hàng ra (quà tặng, đại lý), đếm kho cuối tuần.
+description: Xem hàng còn bao nhiêu, nhận tin khi sắp hết, ghi đã đặt hàng, hàng về kho, lấy hàng ra (quà tặng, đại lý), đếm kho cuối tuần. Có hình từng bước.
 ---
 
-Trang này dành cho **người lo kho**, **Quản lý** và **Quản trị**.
+Trang này dành cho **người lo kho**. Đọc khoảng 5 phút là làm được.
 
-## Kho trên CRM làm gì cho bạn?
+> **Mỗi ngày chỉ cần:** mở **📦 Kho**, làm hết các thẻ ở mục **👉 Việc cần làm hôm nay**. Làm hết thẻ là xong việc kho hôm đó.
 
-- **Tự trừ hàng** khi đơn được gửi đi: đơn web, đơn sale, đơn sàn. Quà 🎁 trong đơn cũng trừ.
-- Cho biết mỗi sản phẩm **còn bao nhiêu** và **đủ bán mấy ngày**.
-- Sắp hết thì **nhắn Telegram** cho bạn, ghi rõ **nên đặt bao nhiêu**.
-- Nhắc mỗi sáng **cho đến khi bạn bấm "✅ Tôi đã đặt hàng"**. Sáng hôm sau vẫn chưa bấm thì máy báo Quản trị.
-- Hàng quá ngày hẹn mà chưa về: máy nhắc gọi giục nhà cung cấp.
+**Cách xem hình:** ô khoanh đỏ có số **1, 2, 3** trên hình chính là **bước 1, 2, 3** viết ngay bên dưới hình.
 
-**Mở ở đâu:** người lo kho mở CRM là vào thẳng **📦 Kho**. Quản lý, Quản trị bấm **••• Thêm** → **Kho**, hoặc nút **📦 Kho** ở cuối tab Tổng quan.
-Người lo kho cần được Quản trị tích ô **📦 Phụ trách kho** ở Cài đặt → Nhân sự.
+## Kho trên CRM giúp gì cho bạn?
+
+- **Tự trừ hàng** mỗi khi đơn được gửi đi (đơn web, đơn sale, đơn sàn, cả quà 🎁 trong đơn).
+- Cho biết mỗi sản phẩm **còn bao nhiêu**, **đủ bán mấy ngày**.
+- Sắp hết thì **nhắn Telegram** cho bạn, ghi luôn **nên đặt bao nhiêu**.
+- Nhắc mỗi sáng **đến khi bạn bấm "✅ Tôi đã đặt hàng"**. Sáng hôm sau vẫn chưa bấm thì máy báo Quản trị.
+
+**Mở ở đâu:** người lo kho mở CRM là vào thẳng **📦 Kho**. Quản lý, Quản trị: bấm **••• Thêm** → **Kho**.
+
+## Lần đầu dùng (làm 1 lần)
+
+Lần đầu mở **📦 Kho**, máy hiện sẵn các sản phẩm đang bán trên web.
+
+![Lần đầu: tích sản phẩm (1), ghi số ngày giao (2), bấm Thêm (3)](/huong-dan/img/kho-bat-dau.webp)
+
+1. Tích ✓ các sản phẩm đang có trong kho.
+2. Ghi nhà cung cấp **giao hàng mất mấy ngày**, tính từ lúc đặt tới lúc hàng về kho. Chưa chắc thì đoán gần đúng, sửa sau được.
+3. Bấm **✅ Thêm các sản phẩm đã chọn**.
+
+Sau đó:
+
+- Hộp **🧮 Đếm kho** tự mở ra: đếm từng sản phẩm, ghi số, bấm **✅ Lưu số đếm** (xem hình ở mục [Đếm kho](#dem-kho-cuoi-tuan-thu-6)).
+- Nối Telegram để nhận tin sắp hết hàng: cách làm ở trang [CRM](/huong-dan/crm/), mục **Nối Telegram**.
+- Sản phẩm không có trong danh sách (Progomax, Gafo…): bấm **＋ Thêm sản phẩm khác**, ghi **tên + trọng lượng** như trên vỏ hộp, ví dụ "Fucoidan Progomax 900g".
 
 ## Màn hình Kho có gì?
 
-Từ trên xuống:
+Trên cùng là **👉 Việc cần làm hôm nay**. Mỗi việc là 1 thẻ. Ví dụ thẻ "Đặt gấp":
 
-1. **🚀 Bắt đầu dùng kho**: 3 bước làm lần đầu. Làm xong cả 3 bước thì khung này tự ẩn.
-2. **👉 Việc cần làm hôm nay**: mỗi việc là 1 thẻ, bấm nút xanh trên thẻ là xong. Không có việc gì thì thẻ báo "✅ Hôm nay kho không có việc gì gấp".
-3. **3 nút lớn**: **📥 Hàng về kho** · **📤 Lấy hàng ra** · **🧮 Đếm kho**.
-4. **📋 Hàng trong kho**: mỗi sản phẩm 1 dòng, số to bên phải là số còn. Bấm vào sản phẩm để xem thêm và làm việc với sản phẩm đó.
-5. **Khác**: tên hàng trong đơn, các lần đặt hàng, lịch sử, cài đặt.
+![Việc cần làm hôm nay: mỗi việc là 1 thẻ, bấm nút xanh là xong](/huong-dan/img/kho-viec-can-lam.webp)
 
-## Bắt đầu (làm 1 lần)
+1. Số máy gợi ý nên đặt.
+2. **📞 Gọi nhà cung cấp** (có nút này khi đã ghi số điện thoại nhà cung cấp).
+3. Đặt xong thì bấm **✅ Tôi đã đặt hàng**.
 
-**Bước 1: Thêm sản phẩm.** Lần đầu mở Kho, máy hiện sẵn các sản phẩm đang bán trên web.
-- Tích sản phẩm đang có trong kho.
-- Mỗi sản phẩm ghi **nhà cung cấp giao mất mấy ngày**, tính từ lúc đặt tới lúc hàng về kho. Đoán gần đúng cũng được, sửa sau.
-- Bấm **✅ Thêm các sản phẩm đã chọn**.
+Không có việc gì thì máy ghi "✅ Hôm nay kho không có việc gì gấp".
 
-Sản phẩm không có trên web (Progomax, Gafo, Mầm xôi…): bấm **＋ Thêm sản phẩm khác**. Tên ghi rõ **tên + trọng lượng** như trên vỏ hộp, ví dụ "Fucoidan Progomax 900g". Cùng loại mà có 2 cỡ thì thêm thành 2 sản phẩm.
+Kéo xuống dưới là 3 nút lớn và danh sách hàng:
 
-**Bước 2: Đếm kho lần đầu.** Thêm sản phẩm xong, hộp **🧮 Đếm kho** tự mở. Đếm từng sản phẩm, ghi số vào ô rồi bấm **✅ Lưu số đếm**.
-Hàng đã gói, đang chờ shipper lấy vẫn đếm là còn trong kho.
+![3 nút hay dùng (1, 2, 3) và danh sách hàng (4)](/huong-dan/img/kho-nut-lon.webp)
 
-**Bước 3: Nối Telegram** để nhận tin báo sắp hết hàng. Cách nối ở trang [CRM](/huong-dan/crm/), mục Nối Telegram.
+1. **📥 Hàng về kho**: khi nhà cung cấp giao hàng tới.
+2. **📤 Lấy hàng ra**: khi lấy hàng đi tặng, đưa đại lý, hàng hỏng…
+3. **🧮 Đếm kho**: khi đếm kho cuối tuần.
+4. **Hàng trong kho**: mỗi sản phẩm 1 dòng, số to bên phải là **số còn**. Bấm vào dòng để xem chi tiết.
 
-## Việc hằng ngày
-
-**Sáng 8 giờ:** đọc tin Telegram "📦 Kho sáng…". Hôm nào không có việc thì máy không gửi tin.
-
-**Máy báo sắp hết (thẻ "🛒 Đặt thêm" hoặc "🔴 Đặt gấp"):**
-1. Bấm **📞 Gọi nhà cung cấp** (nút này có khi bạn đã ghi số điện thoại nhà cung cấp), đặt theo số máy gợi ý "Nên đặt …".
-2. Bấm **✅ Tôi đã đặt hàng**.
-3. Ghi số lượng đã đặt và ngày nhà cung cấp hẹn giao (máy đã điền sẵn), bấm **✅ Lưu: đã đặt**. Máy thôi nhắc.
-
-**Hàng về:** bấm **📥 Hàng đã về** trên thẻ, hoặc nút lớn **📥 Hàng về kho**.
-1. Kiểm số lượng thật. Ô số lượng đã điền sẵn số đã đặt, sai thì sửa lại.
-2. Bấm **✅ Lưu: hàng đã về**.
-3. Nhà cung cấp mới giao một phần thì tích ô **"Nhà cung cấp còn giao tiếp … sau"**: máy vẫn chờ phần còn lại.
-
-Nhà cung cấp hẹn lại ngày khác: bấm **📅 Hẹn lại ngày**.
-
-**Lấy hàng ra mà không có đơn** (quà tặng, đại lý, livestream, hàng mẫu, hàng hỏng):
-1. Bấm nút lớn **📤 Lấy hàng ra**.
-2. Chọn sản phẩm, ghi số lượng.
-3. Bấm vào lý do, bấm **✅ Lưu: đã lấy ra**.
-
-Không ghi thì lần đếm kho sau sẽ thấy lệch.
-
-**Đơn bị hoàn:** khi nhận đủ hàng hoàn về, mở đơn ở tab **Đơn hàng**, bấm **📦 Kho đã nhận**. Máy tự cộng lại vào kho.
-
-## Đếm kho cuối tuần (thứ 6)
-
-Sáng thứ 6, thẻ **🧮 Đếm kho cuối tuần** hiện ở "Việc cần làm", tin Telegram cũng nhắc.
-
-1. Bấm **🧮 Bắt đầu đếm** (hoặc nút lớn **🧮 Đếm kho**).
-2. Đếm thật từng sản phẩm. Dưới tên sản phẩm có dòng **"Máy đang tính: …"**.
-3. Đếm ra đúng bằng số máy tính thì bấm nút **"Đúng …"** bên cạnh, khỏi phải gõ. Khác thì gõ số bạn đếm được.
-4. Bấm **✅ Lưu số đếm**. Máy lấy số bạn đếm làm số đúng. Nếu có lệch, máy báo Quản trị.
-
-Đếm từ sáng mà chiều mới ghi: mở dòng **"Đếm từ trước, giờ mới ghi?"** để sửa giờ đếm.
-Đổi ngày đếm kho: **Khác → ⚙️ Cài đặt kho**.
-
-## Màu trên từng sản phẩm
+Màu ở đầu mỗi dòng:
 
 | Màu | Nghĩa |
 | --- | --- |
-| 🟢 Đủ hàng | Chưa cần làm gì |
-| 🟠 Sắp hết, cần đặt thêm | Đặt hàng hôm nay |
-| 🔴 Sắp hết, cần đặt gấp | Sẽ hết trước khi hàng kịp về: gọi nhà cung cấp ngay |
-| 🔴 Hết hàng | Không còn hàng để gửi khách |
-| ⏳ Đang chờ hàng về | Đã ghi đặt hàng, đang chờ |
-| 🔴 Hàng hẹn về … mà chưa thấy | Quá ngày hẹn: gọi giục nhà cung cấp |
-| ⚪ Chưa đếm | Đếm rồi ghi ở 🧮 Đếm kho |
+| 🟢 | Đủ hàng, chưa cần làm gì |
+| 🟠 | Sắp hết, đặt thêm hôm nay |
+| 🔴 | Đặt gấp, đã hết, hoặc hàng về trễ hẹn |
+| ⏳ | Đã đặt, đang chờ hàng về |
+| ⚪ | Chưa đếm |
+
+## Việc hằng ngày
+
+### 🛒 Khi máy báo sắp hết
+
+Gọi nhà cung cấp đặt hàng theo số máy gợi ý. Đặt xong, bấm **✅ Tôi đã đặt hàng** trên thẻ. Hộp này hiện ra:
+
+![Ghi đã đặt hàng: số lượng (1), ngày hẹn giao (2), Lưu (3)](/huong-dan/img/kho-dat-hang.webp)
+
+1. Sửa cho đúng **số đã đặt** (máy đã điền sẵn số gợi ý).
+2. Kiểm **ngày nhà cung cấp hẹn giao** (máy đã điền sẵn ngày thường lệ).
+3. Bấm **✅ Lưu: đã đặt**. Máy thôi nhắc. Quá ngày hẹn mà hàng chưa về thì máy nhắc gọi giục.
+
+### 📥 Khi hàng về
+
+Bấm **📥 Hàng đã về** trên thẻ, hoặc nút lớn **📥 Hàng về kho**:
+
+![Hàng về kho: sản phẩm (1), số lượng (2), Lưu (3)](/huong-dan/img/kho-hang-ve.webp)
+
+1. Kiểm đúng sản phẩm. Sai thì bấm **Đổi sản phẩm khác**.
+2. Đếm số thật nhận được, sửa ô nếu khác.
+3. Bấm **✅ Lưu: hàng đã về**.
+
+Nhà cung cấp mới giao **một phần**: ghi số đã nhận, rồi tích ô **"Nhà cung cấp còn giao tiếp … sau"** (ô này hiện ra khi số nhận ít hơn số đã đặt).
+
+### 📤 Khi lấy hàng ra mà không có đơn
+
+Lấy hàng đi tặng, đưa đại lý, livestream, làm hàng mẫu, hàng hỏng: bấm nút lớn **📤 Lấy hàng ra**.
+
+![Lấy hàng ra: sản phẩm (1), số lượng (2), lý do (3), Lưu (4)](/huong-dan/img/kho-lay-ra.webp)
+
+1. Chọn sản phẩm.
+2. Ghi số lượng.
+3. Bấm vào lý do.
+4. Bấm **✅ Lưu: đã lấy ra**.
+
+Không ghi thì lần đếm kho sau sẽ thấy lệch.
+
+### 📦 Khi đơn bị hoàn
+
+Nhận đủ hàng hoàn về thì mở đơn ở tab **Đơn hàng**, bấm **📦 Kho đã nhận**. Máy tự cộng lại vào kho.
+
+## Đếm kho cuối tuần (thứ 6)
+
+Sáng thứ 6, thẻ **🧮 Đếm kho cuối tuần** hiện trong "Việc cần làm", Telegram cũng nhắc. Đếm thật từng sản phẩm trong kho, rồi bấm **🧮 Đếm kho**:
+
+![Đếm kho: ghi số đếm (1), hoặc bấm "Đúng …" (2), Lưu (3)](/huong-dan/img/kho-dem.webp)
+
+1. Ghi số đếm được vào ô.
+2. Đếm ra **đúng bằng** số "Máy đang tính" thì bấm nút **Đúng …**, khỏi phải gõ.
+3. Bấm **✅ Lưu số đếm**. Máy lấy số bạn đếm làm số đúng.
+
+Lưu ý:
+
+- Hàng đã gói, đang chờ shipper lấy: **vẫn đếm là còn**.
+- Đếm từ sáng mà chiều mới ghi: mở dòng **"Đếm từ trước, giờ mới ghi?"** để sửa giờ đếm.
+
+## Xem 1 sản phẩm
+
+Bấm vào 1 dòng ở **Hàng trong kho**:
+
+![Bấm vào 1 sản phẩm: số còn và tình trạng (1), các nút việc (2)](/huong-dan/img/kho-chi-tiet.webp)
+
+1. Còn bao nhiêu, đủ bán tới ngày nào, nhà cung cấp giao mất mấy ngày, lần đếm gần nhất.
+2. Các nút làm việc với riêng sản phẩm này: đặt hàng, hàng về, lấy ra, đếm lại, sửa thông tin.
 
 ## Tên hàng máy chưa hiểu
 
-Đơn sale, đơn sàn hay ghi tên sản phẩm mỗi người một kiểu. Máy tự đọc được tên + trọng lượng, combo, "Mua 3 tặng 1". Tên nào máy chưa hiểu thì **chưa trừ kho** và hiện thẻ **❓ … tên hàng máy chưa hiểu**.
+Đơn sale, đơn sàn hay ghi tên mỗi người một kiểu. Tên nào máy chưa hiểu thì **chưa trừ kho**, và hiện thẻ **❓ … tên hàng máy chưa hiểu**. Bấm **Xem và chọn** trên thẻ, rồi bấm vào tên hàng:
 
-1. Bấm **Xem và chọn**, rồi bấm vào tên hàng.
-2. Chọn đúng sản phẩm trong kho và số lượng trong 1 suất. Ví dụ "Combo quà Tết" gồm 2 hộp trà và 1 hũ ruốc: bấm **＋ Thêm sản phẩm** để có 2 dòng.
-3. Không phải hàng trong kho (phí ship, dịch vụ…): bấm **🚫 Không phải hàng trong kho**.
+![Chọn đúng sản phẩm (1), hoặc "Không phải hàng trong kho" (2), Lưu (3)](/huong-dan/img/kho-ten-hang.webp)
 
-Máy tự tính lại các đơn có tên đó.
+1. Chọn đúng sản phẩm trong kho. Combo nhiều sản phẩm thì bấm **＋ Thêm sản phẩm**.
+2. Không phải hàng trong kho (phí ship, dịch vụ…) thì bấm nút này, khỏi làm bước 1.
+3. Bấm **✅ Lưu**. Máy tự tính lại các đơn có tên đó.
 
 ## Ghi nhầm thì sao?
 
-- Vào **Khác → 🕘 Lịch sử**, bấm **↩️ Xoá** ở dòng ghi nhầm (xoá được trong 7 ngày), rồi ghi lại.
-- Ghi nhầm đã lâu hơn 7 ngày: đếm lại sản phẩm đó, máy lấy số mới.
+- Kéo xuống cuối tab Kho → **Khác** → **🕘 Lịch sử**. Bấm **↩️ Xoá** ở dòng ghi nhầm (trong 7 ngày), rồi ghi lại.
+- Nhầm lâu hơn 7 ngày: đếm lại sản phẩm đó, máy lấy số mới.
 
 ## Hỏi nhanh
 
-**Máy trừ kho lúc nào?** Khi đơn chuyển sang **Đang giao**. Đơn **Mới / Đã xác nhận** là "đang chờ gửi": chưa trừ, nhưng máy đã tính vào số ngày còn đủ bán. Đơn **Huỷ** không trừ.
+**Máy trừ kho lúc nào?** Khi đơn chuyển sang **Đang giao**. Đơn **Mới / Đã xác nhận** là "đang chờ gửi", chưa trừ. Đơn **Huỷ** không trừ.
 
-**Đơn sàn trừ kho lúc nào?** Khi người phụ trách sàn tải **file đơn hàng** của sàn lên tab Sàn. Số gõ tay vào Google Sheet báo cáo sàn không có tên sản phẩm nên máy không trừ được. Lần đếm kho cuối tuần sẽ sửa lại phần này.
+**Đơn sàn có trừ không?** Có, khi người phụ trách sàn tải **file đơn hàng** của sàn lên tab Sàn. Đếm kho cuối tuần sẽ sửa phần còn thiếu.
 
-**"Bán khoảng 3 hộp mỗi ngày" tính thế nào?** Máy lấy số cao hơn giữa trung bình 30 ngày và 14 ngày gần nhất, gồm đơn đã gửi và hàng lấy ra (không tính hàng hỏng). Tuần nào bán chạy thì máy báo đặt hàng sớm hơn.
+**Khi nào máy báo đặt hàng?** Khi hàng còn lại chỉ đủ bán ít hơn **số ngày nhà cung cấp giao + 7 ngày**. Tuần nào bán chạy thì máy báo sớm hơn.
 
-**Khi nào máy báo cần đặt?** Khi hàng còn lại chỉ đủ bán ít hơn **số ngày nhà cung cấp giao + 7 ngày báo sớm**. Hàng còn lại tính sau khi trừ đơn chờ gửi và cộng hàng đã đặt chưa về. Số 7 ngày sửa được ở sản phẩm → ✏️ Sửa → Tuỳ chỉnh thêm.
+**Sao số kho bị âm?** Có hàng ra mà chưa ghi (quà tặng, đơn ngoài CRM). Đếm lại sản phẩm đó.
 
-**Sao số kho bị âm?** Có hàng đi ra mà chưa ghi (đơn ngoài CRM, quà tặng chưa ghi Lấy hàng ra). Đếm lại sản phẩm đó.
-
-**Muốn xem trên Google Sheet?** File Sheet "Đơn hàng website Thực Dưỡng Lành" có tab **CRM · Kho nhập xuất** và **CRM · Kho đặt NCC**. Tab cập nhật 6 tiếng 1 lần, chỉ để xem.
+**Đổi ngày đếm kho, xem ai nhận tin Telegram?** Cuối tab Kho → **Khác** → **⚙️ Cài đặt kho**.
