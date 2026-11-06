@@ -1,5 +1,5 @@
 /* ================================================================ ✨ Hỏi số liệu (06/11/2026, anh Sơn: "nói chuyện với trợ lý để báo cáo số liệu các mục anh cần")
- * Lệnh CRM 'ai_ask' { q, hist: [{ q, a }] } → { text, steps: [{ t, sql? }], cost } . Ai dùng được: askAllowed() (06/11/2026 anh Sơn: tạm thời chỉ anh Sơn + tài khoản Quản trị của anh Hiếu).
+ * Lệnh CRM 'ai_ask' { q, hist: [{ q, a }], voice?, fast? } → { text, steps: [{ t, sql? }], cost } . Cổng MCP (mcp.js) dùng lại askCtx / askTool / askGuide / crmAsk. Ai dùng được: askAllowed() (06/11/2026 anh Sơn: tạm thời chỉ anh Sơn + tài khoản Quản trị của anh Hiếu).
  * Claude tự tra số trong D1 bằng 3 công cụ:
  *   tra_cuu      – câu SELECT (SQLite) trên các bảng số liệu được phép. Máy chủ bọc câu lệnh thành "WITH <bảng đã che> SELECT * FROM (<câu của AI>) LIMIT 301"
  *                  → chỉ đọc được (lệnh sửa / xoá báo lỗi cú pháp), không đọc được bảng mật (kv, sessions, users, sources…), tên khách chỉ còn tên gọi, SĐT / email bị che.
@@ -218,6 +218,23 @@ function timeCtx(now) {
   return 'Hôm nay: ' + ['Chủ nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'][d.getUTCDay()] + ' ' + fmtDate(now, 'dd/MM/yyyy HH:mm') + ' (giờ Việt Nam). Tháng này đã qua ' + Math.round((t0 - m0) / DAY + 1) + ' ngày.\nMốc mili giây:\n' + L.map(r => '- ' + r[0] + ' (' + fmtDate(r[1], 'dd/MM/yyyy HH:mm') + '): ' + r[1]).join('\n');
 }
 
+/** Bảng được tra theo quyền người hỏi (bảng chưa đọc được cột thì không cho tra: không dựng được bản đã che). Dùng chung cho ✨ Hỏi số liệu và cổng MCP (mcp.js). */
+export async function askCtx(x, u) {
+  const cols = await columns(x), tabs = BASE_T.concat(u.level >= 3 || u.mkv ? ADS_T : [], await sanAllowed(x, u) ? SAN_T : []).filter(t => cols[t]);
+  return { tabs, cols, u };
+}
+/** Chạy 1 công cụ tra số (tra_cuu / san_pham_ban / tai_chinh) cho người hỏi trong ctx. */
+export async function askTool(x, ctx, name, inp) {
+  try {
+    return name === 'tra_cuu' ? await toolSql(x, inp || {}, ctx) : name === 'san_pham_ban' ? await toolProducts(x, inp || {}) : name === 'tai_chinh' && ctx.u.level >= 3 ? await toolFin(x) : { error: 'Không có công cụ ' + name };
+  } catch (e) { return { error: 'Lỗi khi tra: ' + String(e && e.message || e).slice(0, 200) }; }
+}
+/** Cách tính + bảng + mốc thời gian dạng chữ: cho AI bên ngoài (ChatGPT, Gemini qua MCP) tự viết câu tra. */
+export function askGuide(ctx, now) {
+  return RULES + '\n\n# Bảng được tra\n' + schemaText(ctx.cols, ctx.tabs) + '\n\n# Bây giờ\n' + timeCtx(now || Date.now()) + '\n' + whoLine(ctx);
+}
+function whoLine(ctx) { const u = ctx.u; return 'Người hỏi: ' + u.name + ' (' + u.role + ').' + (ctx.tabs.includes('san_orders') ? '' : ' Người này không xem được số sàn, doanh số là chưa gồm sàn.') + (u.level >= 3 ? '' : ' Không có số kế toán / lãi lỗ.'); }
+
 /** Ai dùng được ✨ Hỏi số liệu. 06/11/2026 anh Sơn: tạm thời chỉ anh Sơn (SUPER_ADMIN) và tài khoản Quản trị tên Hiếu.
  *  Mở cho cả Quản trị: return u.level >= 3 · mở thêm Quản lý: return u.level >= 2 && u.role !== 'Marketing' (công cụ, bảng tra đã chia theo quyền sẵn). CRM đọc user.ask (publicUser) để hiện / ẩn. */
 export function askAllowed(u) { return !!u && (u.email === SUPER_ADMIN || (u.level >= 3 && /(^| )hieu( |$)/.test(nrm(u.name)))); }
@@ -234,11 +251,11 @@ export async function crmAsk(x, u, d) {
   if (nUser >= ASK_USER_MAX) return { ok: false, error: 'Hôm nay bạn đã hỏi ' + ASK_USER_MAX + ' câu. Mai hỏi tiếp nhé.' };
   await kvSet(x.db, dk, String(nDay + 1), 2 * DAY); await kvSet(x.db, uk, String(nUser + 1), 2 * DAY);
 
-  const cols = await columns(x), tabs = BASE_T.concat(u.level >= 3 || u.mkv ? ADS_T : [], await sanAllowed(x, u) ? SAN_T : []).filter(t => cols[t]), ctx = { tabs, cols }; // bảng chưa đọc được cột thì không cho tra (không dựng được bản đã che)
+  const ctx = await askCtx(x, u), { tabs, cols } = ctx;
   const tools = [T_SQL, T_SP].concat(u.level >= 3 ? [T_FIN] : []);
   const system = [
     { type: 'text', text: RULES + '\n\n# Bảng được tra\n' + schemaText(cols, tabs), cache_control: { type: 'ephemeral' } }, // phần dài, ít đổi → lưu đệm
-    { type: 'text', text: timeCtx(now) + '\nNgười hỏi: ' + u.name + ' (' + u.role + ').' + (tabs.includes('san_orders') ? '' : ' Người này không xem được số sàn, doanh số là chưa gồm sàn.') + (u.level >= 3 ? '' : ' Không có số kế toán / lãi lỗ.') }
+    { type: 'text', text: timeCtx(now) + '\n' + whoLine(ctx) + (d.voice ? '\nNgười hỏi đang nói chuyện bằng giọng: trả lời thật gọn (2–4 câu), nói số tròn dễ nghe, không bảng.' : '') }
   ];
   const messages = [];
   (Array.isArray(d.hist) ? d.hist : []).slice(-HIST_N).forEach(h => {
@@ -254,7 +271,7 @@ export async function crmAsk(x, u, d) {
     let res;
     try {
       res = await ai(x.env).beta.messages.create({
-        model: ASK_MODEL, max_tokens: 16000, output_config: { effort: 'medium' },
+        model: ASK_MODEL, max_tokens: 16000, output_config: { effort: d.fast ? 'low' : 'medium' }, // fast: gọi từ ChatGPT / Gemini (giọng nói cần nhanh)
         betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default', // bộ lọc an toàn từ chối nhầm → máy chủ Anthropic tự chạy lại bằng mô hình dự phòng
         cache_control: { type: 'ephemeral' }, // lưu đệm cả cuộc tra (mỗi lượt gửi lại phần trước)
         system, tools, messages, ...(last ? { tool_choice: { type: 'none' } } : {})
@@ -279,10 +296,7 @@ export async function crmAsk(x, u, d) {
     const results = await Promise.all(calls.map(async c => {
       const inp = c.input || {};
       steps.push({ t: String(inp.muc_dich || c.name).slice(0, 120), ...(c.name === 'tra_cuu' ? { sql: String(inp.sql || '').slice(0, 2000) } : {}) });
-      let out;
-      try {
-        out = c.name === 'tra_cuu' ? await toolSql(x, inp, ctx) : c.name === 'san_pham_ban' ? await toolProducts(x, inp) : c.name === 'tai_chinh' && u.level >= 3 ? await toolFin(x) : { error: 'Không có công cụ ' + c.name };
-      } catch (e) { out = { error: 'Lỗi khi tra: ' + String(e && e.message || e).slice(0, 200) }; }
+      const out = await askTool(x, ctx, c.name, inp);
       return { type: 'tool_result', tool_use_id: c.id, content: JSON.stringify(out), ...(out.error ? { is_error: true } : {}) };
     }));
     const content = results.slice();

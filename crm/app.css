@@ -1662,4 +1662,18 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
   .ask-form { bottom: calc(var(--nav-h) + var(--safe-b) + 8px); }
   .ask-msg { max-width: 100%; scroll-margin-top: 100px; }
 }
-@media (prefers-reduced-motion: reduce) { .ask-dots i { animation: none; opacity: .6; } }
+.ask-say { display: inline-block; margin-top: 6px; font-size: 13px; text-decoration: none; }
+.ask-mic { flex: 0 0 auto; min-width: 44px; padding: 8px 10px; font-size: 18px; }
+.ask-mic.on { background: var(--red-light); border-color: #f1c4c0; animation: askPulse 1.2s infinite ease-in-out; }
+@keyframes askPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(198, 40, 40, .35); } 50% { box-shadow: 0 0 0 6px rgba(198, 40, 40, 0); } }
+.ask-mcp summary { cursor: pointer; }
+.ask-mcp[open] summary { margin-bottom: 8px; }
+.ask-mcp p { margin: 0 0 8px; }
+.ask-mcp ol { margin: 0 0 10px; padding-left: 20px; }
+.ask-mcp li { margin: 2px 0; }
+.ask-mcp code { font-size: 13px; background: var(--bg); padding: 2px 6px; border-radius: 6px; overflow-wrap: anywhere; }
+.ask-mcp-url { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px; }
+.ask-mcp-url span { font-size: 13px; color: var(--muted); }
+.ask-mcp-key { background: var(--gold-light); border-radius: var(--radius-sm); padding: 8px 10px; margin-bottom: 8px; }
+.ask-mcp-key p { margin: 0 0 4px; }
+@media (prefers-reduced-motion: reduce) { .ask-dots i, .ask-mic.on { animation: none; } .ask-dots i { opacity: .6; } }

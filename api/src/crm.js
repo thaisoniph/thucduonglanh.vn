@@ -17,6 +17,7 @@ import { journeySchema, wallHide } from './journey.js';
 import { crmLinks } from './links.js';
 import { crmAi } from './ai.js';
 import { crmAsk, askAllowed } from './ask.js';
+import { crmMcp } from './mcp.js';
 import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, wbInfoQueue, wbOrderInfo, WB_SHORT } from './wb.js';
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
@@ -245,7 +246,7 @@ export async function unifyNames(x, ren) {
   }
   return n;
 }
-async function crmUser(x, email) { email = String(email || '').trim().toLowerCase(); return (await crmUsers(x)).find(u => u.email === email && u.active) || null; }
+export async function crmUser(x, email) { email = String(email || '').trim().toLowerCase(); return (await crmUsers(x)).find(u => u.email === email && u.active) || null; }
 function publicUser(u) { return { email: u.email, name: u.name, role: u.role, level: u.level, ask: askAllowed(u), tg: !!u.tg, prefix: u.prefix || slugName(u.name), mkv: !!u.mkv, zb: !!u.zb }; }
 async function userSet(x, email, field, value) {
   const r = await run(x.db, `UPDATE users SET ${field} = ? WHERE email = ?`, value, email);
@@ -811,7 +812,7 @@ async function crmTgCheck(x, u, d) {
 export async function telegramUser(x, name, text) { const y = (await crmUsers(x)).find(z => z.name === name && z.active); if (y && y.tg) await telegramTo(x.env, y.tg, text); }
 
 /* ================================================================ đăng nhập */
-async function crmLogin(x, d) {
+export async function crmLogin(x, d) {
   const email = String(d.email || '').trim().toLowerCase();
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return { ok: false, error: 'Email chưa đúng.' };
   const lu = await crmUser(x, email);
@@ -825,7 +826,7 @@ async function crmLogin(x, d) {
     body: 'Mã đăng nhập của bạn: ' + code + '\n\nMã dùng được trong 10 phút. Không đưa mã này cho người khác.\nNếu bạn không yêu cầu đăng nhập, hãy bỏ qua email này.\n\n' + (lu.role === 'Marketing' ? MKT_URL : CRM_URL) }).catch(e => console.error('mail', e.message))); // gửi nền: trả lời ngay, email tới sau vài giây
   return { ok: true };
 }
-async function crmVerify(x, d) {
+export async function crmVerify(x, d) {
   const email = String(d.email || '').trim().toLowerCase(), code = String(d.code || '').replace(/\D/g, ''), key = 'otp_' + email;
   const raw = await kvGet(x.db, key); if (!raw) return { ok: false, error: 'Mã đã hết hạn. Bấm "Gửi lại mã".' };
   const o = JSON.parse(raw);
@@ -1969,6 +1970,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (u.role === 'Marketing' && !MKT_ACTIONS[a]) return { ok: false, error: 'Tài khoản Marketing chỉ xem được phần quảng cáo.' };
   if (a === 'load') return crmLoad(x, u, d);
   if (a === 'ai_sum') return crmAi(x, u, d); // ✨ AI tóm tắt hồ sơ / gợi ý tin nhắn (chỉ khi có ANTHROPIC_API_KEY)
+  if (/^mcp_/.test(a)) return crmMcp(x, u, d); // 🔌 kết nối ChatGPT / Gemini (mcp.js): xem, tạo Client ID, ngắt
   if (a === 'ai_ask') return crmAsk(x, u, d); // ✨ Hỏi số liệu: trợ lý AI tự tra số trong D1 (ask.js, ai dùng được: askAllowed)
   if (a === 'mktv') return u.level >= 3 || u.role === 'Marketing' || u.mkv ? mktView(x, u, d) : { ok: false, error: 'Chỉ Marketing, Quản trị và người được tích 📣 Xem Marketing xem được mục này.' };
   if (a === 'wall_hide') return wallHide(x, u, d); // 🌱 ẩn / hiện tên trên Bức tường Sống Lành (journey.js)
