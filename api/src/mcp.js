@@ -48,7 +48,7 @@ const redirectOk = (c, ru) => !!c && REDIRECT_OK.test(String(ru || '')) && (!c.r
 async function register(x, req) {
   let d = {}; try { d = await req.json(); } catch (e) { return oerr('invalid_client_metadata', 'JSON không hợp lệ'); }
   const ru = Array.isArray(d.redirect_uris) ? d.redirect_uris.map(String).slice(0, 10) : [];
-  if (!ru.length || ru.some(u => !REDIRECT_OK.test(u))) return oerr('invalid_redirect_uri', 'Chỉ nhận địa chỉ trả về của ChatGPT, Gemini, Claude.');
+  if (!ru.length || ru.some(u => !REDIRECT_OK.test(u))) return console.log('mcp register bị từ chối', JSON.stringify({ ru: d.redirect_uris, ten: d.client_name })), oerr('invalid_redirect_uri', 'Chỉ nhận địa chỉ trả về của ChatGPT, Gemini, Claude.');
   const ik = 'oreg_' + (await sha(x.ip || '-')).slice(0, 16) + '_' + fmtDate(Date.now(), 'yyMMdd'), n = Number(await kvGet(x.db, ik) || 0);
   if (n >= REG_IP_MAX) return oerr('invalid_client_metadata', 'Đăng ký quá nhiều lần hôm nay.', 429);
   await kvSet(x.db, ik, String(n + 1), 2 * DAY);
