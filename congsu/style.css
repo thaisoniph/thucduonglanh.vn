@@ -198,6 +198,35 @@ img.cs-believe-2 { margin-top: 22px; }
 .cs-life h3 { color: var(--amber2); font-size: 17px; text-align: center; margin-bottom: 10px; }
 .cs-life p { margin: 0; font-size: 15.5px; }
 
+/* chương 5: trà đàm hằng tuần (#tra-dam) */
+.cs-week a { color: var(--amber2); font-weight: 600; white-space: nowrap; }
+.cs-tea { margin-top: 44px; padding: 40px 40px 30px; border-radius: 28px; color: #E3F0E8; box-shadow: var(--shadow);
+  background: radial-gradient(600px 300px at 90% 0%, rgba(224, 149, 47, .22) 0, rgba(224, 149, 47, 0) 70%), var(--g2); }
+.cs-tea-top { display: grid; grid-template-columns: 1fr 170px; gap: 28px; align-items: center; }
+.cs-tea-chip { display: inline-block; padding: 4px 14px; border-radius: 999px; background: var(--amber); color: #fff; font-size: 13px; font-weight: 700; letter-spacing: .04em; }
+.cs-tea-h { margin-top: 12px; color: #fff; font-size: clamp(26px, 3.6vw, 36px); font-weight: 800; }
+.cs-tea-h em { color: var(--cream2); }
+.cs-tea-lead { margin: 12px 0 0; font-size: 16.5px; }
+.cs-tea-cup { width: 100%; height: auto; }
+.cs-tea-steam path { fill: none; stroke: rgba(255, 255, 255, .55); stroke-width: 3.5; stroke-linecap: round; animation: cs-steam 3.2s ease-in-out infinite; }
+.cs-tea-steam path:nth-child(2) { animation-delay: .8s; }
+.cs-tea-steam path:nth-child(3) { animation-delay: 1.6s; }
+@keyframes cs-steam { 0%, 100% { opacity: .25; transform: translateY(4px); } 50% { opacity: 1; transform: translateY(-4px); } }
+.cs-tea-sub { margin: 30px 0 14px; font-weight: 700; color: var(--cream2); letter-spacing: .04em; text-transform: uppercase; font-size: 14px; }
+.cs-tea-flow { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.cs-tea-flow li { padding: 18px 18px 16px; border-radius: 18px; background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 255, 255, .12); }
+.cs-tea-flow b { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--amber); color: #fff; font-size: 17px; }
+.cs-tea-flow h4 { margin: 10px 0 6px; color: #fff; font-size: 17px; line-height: 1.3; }
+.cs-tea-flow p { margin: 0; font-size: 15px; }
+.cs-tea-grow { margin-top: 22px; padding: 22px 24px 20px; border-radius: 20px; background: var(--cream); color: var(--text); }
+.cs-tea-grow h4 { margin: 0 0 12px; color: var(--g2); font-size: 19px; }
+.cs-tea-grow ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; }
+.cs-tea-grow li { display: flex; gap: 10px; align-items: flex-start; font-size: 15.5px; }
+.cs-tea-grow li .cs-ic { margin-top: 4px; color: var(--g); }
+.cs-tea-grow b { color: var(--g2); }
+.cs-tea-foot { margin: 18px 0 0; font-size: 15px; color: #CFE3D7; }
+.cs-tea-foot a { color: var(--cream2); font-weight: 700; }
+
 /* chương 6: làm thật */
 .cs-proof-g { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 36px; }
 .cs-proof-g figure { margin: 0; background: #fff; border-radius: 20px; overflow: hidden; box-shadow: var(--shadow); display: flex; flex-direction: column; }
@@ -445,6 +474,7 @@ img.cs-believe-2 { margin-top: 22px; }
   .cs-believe-2 { display: none; }
   .cs-tree { max-width: 520px; }
   .cs-steps ol, .cs-proof-g { grid-template-columns: 1fr 1fr; }
+  .cs-tea-flow { grid-template-columns: 1fr 1fr; }
   .cs-stats { grid-template-columns: 1fr 1fr; }
   .cs-rule-grid { grid-template-columns: repeat(2, 1fr); text-align: left; }
   .cs-job { grid-template-columns: 1fr 1fr; }
@@ -477,6 +507,15 @@ img.cs-believe-2 { margin-top: 22px; }
   .cs-week li { grid-template-columns: 1fr; gap: 6px; padding: 8px 0 8px 30px; }
   .cs-week li::before { left: 1px; top: 15px; }
   .cs-week b { text-align: left; padding: 0; }
+  .cs-week a { white-space: normal; }
+  .cs-tea { margin-top: 34px; padding: 26px 16px 20px; border-radius: 22px; }
+  .cs-tea-top { grid-template-columns: 1fr; gap: 6px; }
+  .cs-tea-cup { order: -1; width: 110px; }
+  .cs-tea-flow, .cs-tea-grow ul { grid-template-columns: 1fr; }
+  .cs-tea-flow li { display: grid; grid-template-columns: 36px 1fr; column-gap: 12px; }
+  .cs-tea-flow b { grid-row: span 2; }
+  .cs-tea-flow h4 { margin-top: 5px; }
+  .cs-tea-grow { padding: 18px 16px; }
   .cs-rule-grid { grid-template-columns: 1fr; gap: 16px; }
   .cs-rule-grid li { display: grid; grid-template-columns: 46px 1fr; column-gap: 12px; text-align: left; }
   .cs-rule-grid b { grid-row: span 2; margin: 0; }
@@ -493,4 +532,4 @@ img.cs-believe-2 { margin-top: 22px; }
   .cs-jd-apply { padding: 20px 16px; }
   .cs-pn { font-size: 14px; padding: 8px 14px; }
 }
-@media (prefers-reduced-motion: reduce) { .cs-heart { animation: none; } html.cs-smooth { scroll-behavior: auto; } .js .cs-rv { opacity: 1; transform: none; transition: none; } }
+@media (prefers-reduced-motion: reduce) { .cs-heart, .cs-tea-steam path { animation: none; } html.cs-smooth { scroll-behavior: auto; } .js .cs-rv { opacity: 1; transform: none; transition: none; } }

@@ -73,7 +73,7 @@ def head(title, desc, path, extra=""):
 <div class="cs-progress" aria-hidden="true"><i></i></div>
 <header class="cs-top"><div class="cs-wrap cs-top-in">
 <a class="cs-logo" href="/" aria-label="Tuyển dụng Thực Dưỡng Lành"><img src="/logo.webp" alt="Thực Dưỡng Lành" width="85" height="60"></a>
-<nav class="cs-nav"><a href="/#cau-chuyen">Câu chuyện</a><a href="/#van-hoa">Văn hóa</a><a href="/#phu-hop">Ai phù hợp</a><a href="/#vi-tri">Vị trí tuyển</a><a href="/#quy-trinh">Quy trình</a></nav>
+<nav class="cs-nav"><a href="/#cau-chuyen">Câu chuyện</a><a href="/#van-hoa">Văn hóa</a><a href="/#tra-dam">Trà đàm</a><a href="/#phu-hop">Ai phù hợp</a><a href="/#vi-tri">Vị trí tuyển</a><a href="/#quy-trinh">Quy trình</a></nav>
 <a class="cs-btn cs-btn-sm" href="/#ung-tuyen">Ứng tuyển</a>
 </div></header>
 """
@@ -184,10 +184,50 @@ WEEK = [
     ("Mỗi sáng", "Viết lời biết ơn, uống một ly nước ấm, rồi mới mở máy làm việc."),
     ("Thứ Hai", "Chốt mục tiêu tuần. Ai cũng biết tuần này mình cần tạo ra kết quả gì."),
     ("Thứ Năm", "Cập nhật giữa tuần. Buổi tối, cả đội cùng chuyên gia chia sẻ kiến thức sức khỏe miễn phí qua Zoom cho cộng đồng."),
-    ("Thứ Bảy", "Trà đàm “Máu chảy về tim”: nói thật, nghe thật, cùng nhìn lại một tuần đã qua."),
+    ("Thứ Bảy", 'Trà đàm “Máu chảy về tim”: nói thật, nghe thật, cùng nhìn lại một tuần đã qua. <a href="#tra-dam">Xem buổi trà đàm diễn ra thế nào ↓</a>'),
     ("Mùng 1 & Rằm", "Cả đội ăn chay, lễ chùa, nghe pháp thoại. Không phải nghi lễ, mà để nhắc mình sống chậm và biết ơn."),
     ("Những dịp đặc biệt", "Thiện nguyện, du xuân đầu năm, sinh nhật đồng đội. Quỹ Văn hóa nội bộ lo trà bánh và những buổi gắn kết."),
 ]
+
+# Trà đàm hằng tuần (06/11/2026): buổi phát triển nhân sự cuối tuần, nằm trong chương 5, có neo #tra-dam (menu đầu trang trỏ tới)
+TEA_FLOW = [
+    ("Nhìn lại tuần", "Mỗi người kể ngắn: tuần này mình đạt gì so với mục tiêu đã chốt hôm Thứ Hai, việc gì làm tốt, việc gì chưa. Nói bằng con số và việc thật."),
+    ("Nói thật, nghe thật", "Đồng đội góp ý thẳng với trái tim rộng mở, kể cả với lãnh đạo. Người nghe giữ tâm thế mở: hỏi để hiểu, không vội giải thích."),
+    ("Học một điều", "Một bài học từ khách hàng, một cuốn sách hay, một cách dùng AI cho đỡ việc. Ai học được điều hay thì chia sẻ lại cho cả đội."),
+    ("Biết ơn & hẹn tuần mới", "Cảm ơn người đã giúp mình trong tuần, rồi mỗi người nói một lời hứa nhỏ cho tuần tới. Tuần sau, cả đội cùng nhìn lại lời hứa ấy."),
+]
+TEA_GROW = [
+    ("Phản hồi mỗi tuần", "không đợi cuối năm mới biết mình đang tiến bộ ở đâu, cần rèn thêm gì."),
+    ("Kỹ năng mềm", "trình bày ngắn gọn, lắng nghe, góp ý có thiện chí, nhận góp ý mà không tự ái."),
+    ("Hiểu đồng đội như người nhà", "biết ai đang gặp khó để giúp, ai vừa làm tốt để học."),
+    ("Thấy mình lớn lên", "vài tháng nhìn lại những lời hứa nhỏ đã giữ, bạn gặp một phiên bản khác của chính mình."),
+]
+
+TEA_SVG = """<svg class="cs-tea-cup" viewBox="0 0 160 140" aria-hidden="true">
+<g class="cs-tea-steam"><path d="M58 44c-9-9 9-15 0-26"/><path d="M80 40c-9-9 9-15 0-28"/><path d="M102 44c-9-9 9-15 0-26"/></g>
+<ellipse cx="80" cy="124" rx="66" ry="10" fill="#B07B47"/>
+<path d="M28 62h104c0 34-22 56-52 56S28 96 28 62z" fill="#F3E0BD"/>
+<ellipse cx="80" cy="62" rx="52" ry="9" fill="#C97C17"/>
+<path d="M66 92c10-1 18-7 22-16-9 1-17 6-22 16zm0 0c5-5 10-8 16-10" fill="none" stroke="#24805B" stroke-width="3" stroke-linecap="round"/>
+</svg>"""
+
+
+def tea_html():
+    flow = "".join(f'<li class="cs-rv"><b>{i}</b><h4>{t}</h4><p>{d}</p></li>' for i, (t, d) in enumerate(TEA_FLOW, 1))
+    grow = "".join(f'<li>{ic("check")}<span><b>{t}:</b> {d}</span></li>' for t, d in TEA_GROW)
+    return f"""<div class="cs-tea" id="tra-dam">
+<div class="cs-tea-top">
+<div><span class="cs-tea-chip">Mỗi tuần một buổi · Thứ Bảy</span>
+<h3 class="cs-tea-h">TRÀ ĐÀM <em>{nw("“MÁU CHẢY VỀ TIM”")}</em></h3>
+<p class="cs-tea-lead">Như máu chảy về tim để được làm mới rồi lại đi nuôi cả cơ thể, cuối mỗi tuần cả đội trở về bên bàn trà. Đây không phải buổi họp báo cáo, mà là nơi mỗi người được nhìn lại mình, được góp ý thật lòng và lớn thêm một chút.</p></div>
+{TEA_SVG}
+</div>
+<p class="cs-tea-sub">Một buổi trà đàm có 4 phần</p>
+<ol class="cs-tea-flow">{flow}</ol>
+<div class="cs-tea-grow cs-rv"><h4>Sau mỗi buổi, bạn mang về</h4><ul>{grow}</ul></div>
+<p class="cs-tea-foot">🍵 Trà bánh do Quỹ Văn hóa nội bộ lo. 🖐 Trò chơi nhỏ từ buổi trà đàm của đội, bạn chơi thử 1 phút: <a href="https://thucduonglanh.vn/ngon-tay-song-lanh/?tu=congsu" target="_blank" rel="noopener">Bạn còn mấy ngón tay?</a></p>
+</div>"""
+
 
 PROOF = [
     ("nha-may-gmp", "Tận mắt nhà máy", "Đội ngũ đến tận nhà máy đạt chuẩn GMP, đi qua từng phòng sạch trước khi đưa sản phẩm tới tay khách."),
@@ -288,7 +328,7 @@ def form_html(jobs, site, quiz):
         ("Thấu hiểu chính mình", "Không có câu trả lời đúng hay sai, chỉ có câu trả lời thật. Vài dòng là đủ.", f"""<div class="cs-fg">
 {ta("why", "Điều gì khiến bạn muốn đồng hành cùng VitaGreen – Thực Dưỡng Lành?", "Điều bạn thấy đồng điệu trong câu chuyện này, hoặc lý do riêng của bạn.", True)}
 {ta("hard", "Kể một việc khó nhất bạn từng theo đến cùng. Bạn đã làm gì?", "Công việc hay chuyện đời sống đều được.", True)}
-{ta("rules", "Trong 10 Quy tắc Danh dự, quy tắc nào bạn làm tốt nhất, quy tắc nào bạn cần rèn thêm?", "Xem lại ở chương 8.")}
+{ta("rules", "Trong 10 Quy tắc Danh dự, quy tắc nào bạn làm tốt nhất, quy tắc nào bạn cần rèn thêm?", "Xem lại ở chương 9.")}
 {ta("ai", "Bạn đang dùng AI hoặc công cụ số nào trong công việc?", "VD: ChatGPT, Claude, Canva, Excel, phần mềm kế toán…")}
 {ta("life", "Lối sống lành của bạn hiện nay thế nào?", "Ăn uống, vận động, nghỉ ngơi. Không bắt buộc.")}
 </div>"""),
@@ -441,6 +481,7 @@ def page_home(jobs, site, quiz):
 <h2 class="cs-h2">SỐNG & LÀM VIỆC<br><em>HẠNH PHÚC – HIỆU QUẢ – Ý NGHĨA</em></h2>
 <div class="cs-slider"><button class="cs-sl-btn prev" type="button" aria-label="Ảnh trước">‹</button><div class="cs-slides">{slides}</div><button class="cs-sl-btn next" type="button" aria-label="Ảnh tiếp">›</button></div>
 <ol class="cs-week">{week}</ol>
+{tea_html()}
 <div class="cs-lifes">
 <article class="cs-life cs-rv"><h3>HỌC MỖI NGÀY</h3><p>Đào tạo nội bộ về dinh dưỡng, kỹ năng và tư duy. Học xong có bài kiểm tra nhỏ, để chắc rằng mình hiểu đúng trước khi nói với khách.</p></article>
 <article class="cs-life cs-rv"><h3>LÀM VIỆC CÙNG AI & CÔNG NGHỆ</h3><p>Website, CRM, báo cáo quảng cáo tự động đều do chính đội ngũ xây. Bạn được khuyến khích dùng AI để bớt việc lặp lại, dành thời gian cho việc tạo ra giá trị.</p></article>
