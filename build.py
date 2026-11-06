@@ -3699,6 +3699,10 @@ def build_guide(out):
     shutil.copy(src / "guide.js", out / "guide.js")
     ver = hashlib.md5((src / "guide.css").read_bytes() + (src / "guide.js").read_bytes()).hexdigest()[:8]
     pages, index = [], []
+    # từ khoá thêm cho từng mục (cách nhân sự hay gõ khi gặp vấn đề): guide/tu-khoa.yml  "trang#mục": "từ, từ, …"
+    kw = {}
+    if (src / "tu-khoa.yml").exists():
+        kw = {str(k): ", ".join(v) if isinstance(v, list) else str(v or "") for k, v in (yaml.safe_load((src / "tu-khoa.yml").read_text("utf-8")) or {}).items()}
 
     def plain(h):  # HTML -> chữ thường để tìm kiếm
         h = re.sub(r"<figcaption>.*?</figcaption>", " ", h, flags=re.S)
@@ -3729,20 +3733,40 @@ def build_guide(out):
         body = re.sub(r'<a href="(https?://[^"]+)"', r'<a href="\1" target="_blank" rel="noopener"', body)
         toc = "".join(f'<li><a href="#{t["id"]}">{t["name"]}</a></li>' for t in conv.toc_tokens)
         meta, here = pg["meta"], pg["slug"]
-        if not meta.get("hidden"):  # mục lục tìm kiếm: mỗi tiêu đề ## / ### là 1 kết quả
+        # đoạn mở đầu bằng chữ đậm ("**Không nhận được mã?** …", "**Khi hàng về:** …") = 1 câu hỏi đáp: gắn id để tìm kiếm nhảy thẳng tới
+        used = set(re.findall(r' id="([^"]+)"', body))
+
+        def qid(m):
+            q = plain(m.group(1)).strip()
+            if len(q.strip(" ?:.")) < 6 or len(q) > 90:
+                return m.group(0)
+            base = "h-" + _slug_vi(q)[:56].strip("-")
+            i, aid = 2, base
+            while aid in used:
+                aid, i = f"{base}-{i}", i + 1
+            used.add(aid)
+            return f'<p id="{aid}" class="g-q"><strong>{m.group(1)}</strong>'
+        body = re.sub(r"<p><strong>(.*?)</strong>", qid, body)
+        if not meta.get("hidden"):  # mục lục tìm kiếm: mỗi tiêu đề ## / ### và mỗi câu hỏi đáp chữ đậm là 1 kết quả
             url = f'/huong-dan/{here + "/" if here else ""}'
             nav = meta.get("nav", meta.get("title", ""))
             parts = re.split(r'<h([23]) id="([^"]+)">(.*?)</h\1>', body, flags=re.S)
             intro = plain(parts[0])
             index.append({"p": nav, "u": url, "a": "", "h": meta.get("title", ""), "l": 1,
+                          "k": kw.pop((here or "index") + "#", ""),
                           "x": (str(meta.get("description", "")) + " · " + intro).strip(" ·")})
             parent = ""
             for i in range(1, len(parts), 4):
-                lv, aid, head, txt = parts[i], parts[i + 1], plain(parts[i + 2]), plain(parts[i + 3])
+                lv, aid, head, sec = parts[i], parts[i + 1], plain(parts[i + 2]), parts[i + 3]
                 if lv == "2":
                     parent = head
                 index.append({"p": nav, "u": url, "a": aid, "h": head, "l": int(lv),
-                              "s": parent if lv == "3" else "", "x": txt})
+                              "s": parent if lv == "3" else "", "k": kw.pop((here or "index") + "#" + aid, ""), "x": plain(sec)})
+                qs = list(re.finditer(r'<p id="(h-[^"]+)" class="g-q"><strong>(.*?)</strong>', sec))
+                for j, m in enumerate(qs):
+                    blk = sec[m.end():qs[j + 1].start() if j + 1 < len(qs) else len(sec)]
+                    index.append({"p": nav, "u": url, "a": m.group(1), "h": plain(m.group(2)).rstrip(":"), "l": 4,
+                                  "s": head, "k": "", "x": plain(blk)[:600]})
         tabs = "".join(
             f'<a href="/huong-dan/{p["slug"] + "/" if p["slug"] else ""}"{" class=on aria-current=page" if p["slug"] == here else ""}>'
             f'{html.escape(p["meta"].get("nav", p["meta"].get("title", "")))}</a>' for p in pages if not p["meta"].get("hidden") or p["slug"] == here)  # trang ẩn (hidden: true): chỉ ai có link mới thấy
@@ -3785,6 +3809,8 @@ def build_guide(out):
         d = out / here if here else out
         d.mkdir(parents=True, exist_ok=True)
         (d / "index.html").write_text(page, "utf-8")
+    for k in kw:
+        print(f"⚠️  guide/tu-khoa.yml: không thấy mục {k} (tiêu đề đã đổi?)")
     (out / "search.json").write_text(json.dumps(index, ensure_ascii=False, separators=(",", ":")), "utf-8")
 
 

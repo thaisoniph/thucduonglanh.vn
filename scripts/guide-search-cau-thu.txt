@@ -1,0 +1,69 @@
+không đăng nhập được
+không nhận được mã đăng nhập
+quên mã đăng nhập
+làm sao để tạo đơn cho khách
+khách gọi điện muốn mua hàng
+khách muốn trả lại hàng
+khách bom hàng
+đơn bị hoàn thì làm gì
+khách đổi địa chỉ giao hàng
+sửa đơn hàng
+huỷ đơn
+không thấy khách trong danh sách
+khách không nghe máy
+gọi khách không được
+khách hẹn gọi lại sau
+khách hỏi giá mà chưa mua
+cách gửi báo cáo cuối ngày
+xem doanh số của tôi
+xem hoa hồng
+thưởng bao nhiêu
+telegram không báo đơn
+không nhận được tin nhắn telegram
+nhập mã vận đơn ở đâu
+khách chuyển khoản rồi
+mã giảm giá cho khách
+khách hỏi có chữa được bệnh không
+khách đang uống thuốc
+thêm sản phẩm mới lên web
+đổi giá sản phẩm
+đăng bài viết lên web
+tải ảnh lên
+hết hàng trong kho
+nhập hàng về kho
+đặt hàng nhà cung cấp
+khách bị trùng số
+khách có 2 số điện thoại
+cài crm lên điện thoại
+khách lớn tuổi không biết dùng
+gửi link cho khách tự đặt
+khách giới thiệu bạn bè
+chạy quảng cáo facebook
+fanpage trả lời tin nhắn tự động
+trợ lý zalo trả lời sai
+máy báo lỗi
+em không vào được crm
+mã gửi về email không thấy
+crm bị đơ
+khách bảo chưa nhận được hàng
+đơn giao lâu quá
+khách nhận hàng rồi nhưng không trả tiền
+khách muốn đổi sản phẩm khác
+ghi chú cho khách ở đâu
+sao hôm nay không có khách nào
+khách cũ muốn mua lại
+nhắn tin zalo cho khách
+copy địa chỉ giao hàng
+đơn shopee
+bao giờ được tính doanh số
+khách chê đắt
+khách hỏi uống bao lâu thì có tác dụng
+xoá khách
+gửi quà cho khách
+xem khách nào sắp hết hàng
+in mã qr
+tắt trợ lý zalo
+sửa web xong không thấy thay đổi
+thêm nhân viên mới
+nhân viên nghỉ việc
+chia khách cho sale

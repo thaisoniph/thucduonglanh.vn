@@ -1,19 +1,25 @@
-/* Tìm kiếm trong hướng dẫn nội bộ – dữ liệu /huong-dan/search.json do build.py sinh (mỗi tiêu đề ##, ### là 1 kết quả) */
+/* Tìm kiếm trong hướng dẫn nội bộ – dữ liệu /huong-dan/search.json do build.py sinh (mỗi tiêu đề ##, ### và mỗi câu hỏi đáp chữ đậm là 1 kết quả) */
 (function () {
   'use strict';
   var DATA = null, loading = null;
   // việc hay tìm: hiện thành nút bấm ở trang Bắt đầu và khi ô tìm còn trống
   var HINTS = ['Đăng nhập', 'Nối Telegram', 'Lên đơn', 'Mã vận đơn', 'Khách hỏi', 'Báo cáo cuối ngày', 'Đơn hoàn', 'Mục tiêu', 'Kiểm kho', 'Đăng bài'];
-  // từ gần nghĩa: gõ chữ bên trái thì tìm cả chữ bên phải
+  // từ gần nghĩa: gõ chữ bên trái thì tìm cả chữ bên phải (viết không dấu). Cách nói theo từng mục thì ghi ở guide/tu-khoa.yml
   var SYN = {
-    'dat hang': ['len don', 'tao don'], 'len don': ['tao don', 'dat hang'], 'tao don': ['len don'],
-    'tra hang': ['hoan'], 'hoan hang': ['hoan', 'tra hang'], 'van don': ['ma van don', 'gui hang'],
-    'dang nhap': ['dang nhap', 'ma 6 so'], 'mat khau': ['dang nhap', 'ma 6 so'],
-    'tele': ['telegram'], 'zl': ['zalo'], 'fb': ['facebook', 'fanpage'], 'quang cao': ['quang cao', 'ads'],
-    'sdt': ['so dien thoai'], 'kpi': ['muc tieu'], 'doanh so': ['doanh so', 'doanh thu'],
-    'giam gia': ['ma uu dai', 'voucher', 'giam'], 'voucher': ['ma uu dai', 'giam'],
-    'bai viet': ['dang bai'], 'anh': ['hinh', 'anh'], 'kho': ['kho', 'ton']
+    'dat hang': ['len don', 'tao don'], 'len don': ['tao don', 'dat hang'], 'tao don': ['len don', 'dat hang'],
+    'tra hang': ['hoan'], 'tra lai': ['hoan'], 'hoan hang': ['hoan', 'tra lai hang'], 'bom': ['hoan', 'khong nhan hang'], 'boom': ['hoan'],
+    'van don': ['ma van don', 'gui hang'], 'ship': ['giao hang', 'van chuyen'], 'shipper': ['giao hang'],
+    'mat khau': ['dang nhap', 'ma 6 so'], 'pass': ['dang nhap'], 'login': ['dang nhap'], 'app': ['ung dung', 'man hinh chinh'],
+    'tele': ['telegram'], 'tl': ['telegram'], 'zl': ['zalo'], 'fb': ['facebook', 'fanpage'], 'ads': ['quang cao'],
+    'sdt': ['so dien thoai'], 'so dt': ['so dien thoai'], 'kpi': ['muc tieu'], 'chi tieu': ['muc tieu'], 'doanh thu': ['doanh so'],
+    'giam gia': ['ma uu dai', 'voucher'], 'khuyen mai': ['uu dai', 'voucher'], 'voucher': ['ma uu dai'], 'coupon': ['ma uu dai'],
+    'bai viet': ['dang bai'], 'hinh': ['anh'], 'ton kho': ['kho'], 'ncc': ['nha cung cap'], 'loi': ['su co', 'gop y'],
+    'xoa don': ['huy'], 'huy don': ['huy'], 'sua don': ['sua don', 'doi dia chi'], 'cskh': ['cham soc'], 'cham soc khach': ['cham soc'],
+    'goi lai': ['hen goi lai'], 'nghe may': ['bat may'], 'hoa hong': ['thuong', 'loai don']
   };
+  // chữ đệm, bỏ qua khi tìm (cụm 2 chữ bỏ trước)
+  var STOP2 = ['the nao', 'lam sao', 'lam gi', 'la gi', 'o dau', 'bao nhieu', 'tai sao', 'vi sao', 'duoc khong', 'co the', 'nhu nao', 'cho em', 'cho toi', 'giup em'];
+  var STOP = ' la sao gi cach de cho toi minh em chi bi duoc khong thi o nhu muon can co cua va voi mot nhung cac roi hay nen phai khi nay do a oi nhe vay ah ha ak ko k dc j sau truoc ';
 
   function fold(s) { // bỏ dấu, giữ đúng độ dài từng chữ để tô vàng đúng chỗ
     s = String(s || '').toLowerCase();
@@ -31,17 +37,27 @@
   function load() {
     if (DATA) return Promise.resolve(DATA);
     if (!loading) loading = fetch('/huong-dan/search.json', { cache: 'no-cache' }).then(function (r) { return r.json(); }).then(function (d) {
-      d.forEach(function (e) { e.fh = fold(e.h); e.fs = fold(e.s || ''); e.fp = fold(e.p); e.fx = fold(e.x); });
+      d.forEach(function (e) {
+        e.fh = fold(e.h); e.fs = fold(e.s || ''); e.fp = fold(e.p); e.fx = fold(e.x); e.fk = fold(e.k || '');
+        e.kp = e.fk.split(/\s*,\s*/).filter(function (x) { return x.length > 2; });
+      });
       return (DATA = d);
     }).catch(function () { loading = null; return []; });
     return loading;
   }
 
-  // mỗi cụm từ = danh sách cách viết (gốc + gần nghĩa); kết quả phải có đủ mọi cụm
+  function clean(q) { return ' ' + fold(q).replace(/[^a-z0-9]+/g, ' ').trim() + ' '; }
+  function core(q) { // bỏ chữ đệm; nếu bỏ hết thì giữ nguyên
+    var f = clean(q), c = f;
+    STOP2.forEach(function (w) { c = c.split(' ' + w + ' ').join(' '); });
+    c = c.split(' ').filter(function (w) { return w && STOP.indexOf(' ' + w + ' ') < 0; }).join(' ');
+    return c || f.trim();
+  }
+  // mỗi cụm = [chữ gốc, chữ gần nghĩa…]
   function parse(q) {
-    var f = fold(q).replace(/[^a-z0-9 ]+/g, ' ').trim();
-    if (!f) return [];
-    var words = f.split(/\s+/), groups = [], i = 0;
+    var c = core(q);
+    if (!c) return [];
+    var words = c.split(' '), groups = [], i = 0;
     while (i < words.length) {
       var two = words[i] + ' ' + (words[i + 1] || '');
       if (words[i + 1] && SYN[two]) { groups.push([two].concat(SYN[two])); i += 2; continue; }
@@ -49,32 +65,54 @@
     }
     return groups;
   }
-  function count(txt, w) { var n = 0, i = txt.indexOf(w); while (i >= 0 && n < 5) { if (i === 0 || !/[a-z0-9]/.test(txt[i - 1])) n++; i = txt.indexOf(w, i + 1); } return n; }
-  function has(txt, w) { // khớp đầu chữ: "don" khớp "don", "đơn" nhưng không khớp giữa chữ "london"
-    var i = txt.indexOf(w);
-    while (i >= 0) { if (i === 0 || !/[a-z0-9]/.test(txt[i - 1])) return true; i = txt.indexOf(w, i + 1); }
-    return false;
+  // khớp trọn tiếng: "ma" khớp "mã" nhưng không khớp "email", "màn"; chữ dài ≥ 5 (đang gõ dở "telegr") thì khớp đầu chữ
+  function at(txt, i, w) { return (i === 0 || !/[a-z0-9]/.test(txt[i - 1])) && (w.length >= 5 || i + w.length >= txt.length || !/[a-z0-9]/.test(txt[i + w.length])); }
+  function count(txt, w) { var n = 0, i = txt.indexOf(w); while (i >= 0 && n < 5) { if (at(txt, i, w)) n++; i = txt.indexOf(w, i + 1); } return n; }
+  function has(txt, w) { return count(txt, w) > 0; }
+  var IDF = {};
+  function idf(w) { // chữ càng hiếm trong hướng dẫn càng nặng ("telegram" nặng hơn "khách")
+    if (IDF[w] == null) {
+      var df = 0;
+      DATA.forEach(function (e) { if (has(e.fh, w) || has(e.fk, w) || has(e.fx, w)) df++; });
+      IDF[w] = Math.log(1 + DATA.length / (1 + df));
+    }
+    return IDF[w];
   }
   function search(q) {
-    var groups = parse(q), phrase = fold(q).trim();
-    if (!groups.length || !DATA) return [];
+    if (!DATA) return [];
+    var groups = parse(q), qn = clean(q), qc = ' ' + core(q) + ' ';
+    if (!groups.length) return [];
+    var total = 0, gi = groups.map(function (g) { var v = idf(g[0]); total += v; return v; });
+    var pairs = [];
+    for (var p = 0; p + 1 < groups.length; p++) pairs.push(groups[p][0] + ' ' + groups[p + 1][0]);
     var out = [];
     DATA.forEach(function (e) {
-      var score = 0;
-      for (var g = 0; g < groups.length; g++) {
+      var sum = 0, got = 0;
+      groups.forEach(function (g, gx) {
         var best = 0;
-        groups[g].forEach(function (w, k) {
-          var m = k ? 0.7 : 1; // chữ gần nghĩa kém chữ gốc một chút
-          if (has(e.fh, w)) best = Math.max(best, 10 * m);
-          else if (has(e.fs, w) || has(e.fp, w)) best = Math.max(best, 4 * m);
-          else { var c = count(e.fx, w); if (c) best = Math.max(best, (1 + 0.5 * (c - 1)) * m); }
+        g.forEach(function (w, k) {
+          var m = (k ? 0.75 : 1) * idf(w), f = 0;
+          if (has(e.fh, w)) f = 6;
+          else if (has(e.fk, w)) f = 5;
+          else if (has(e.fs, w) || has(e.fp, w)) f = 2;
+          else { var c = count(e.fx, w); if (c) f = Math.min(2.5, 1 + 0.4 * (c - 1)); }
+          best = Math.max(best, f * m);
         });
-        if (!best) return;
-        score += best;
-      }
-      if (phrase.length > 2 && e.fh.indexOf(phrase) >= 0) score += 15;
-      else if (phrase.length > 2 && phrase.indexOf(' ') > 0) score += 2 * count(e.fx, phrase);
-      if (e.l === 1) score -= 2; // phần mở đầu trang xếp sau các mục cụ thể
+        if (best) { sum += best; got += gi[gx]; }
+      });
+      // cả cụm từ khoá của mục nằm trong câu gõ (vd "khách bom hàng" chứa "bom hàng") → rất đúng mục
+      var kb = 0;
+      e.kp.forEach(function (kp) {
+        if (qn.indexOf(' ' + kp + ' ') >= 0 || qc.indexOf(' ' + kp + ' ') >= 0) kb = Math.max(kb, 8 + 4 * kp.split(' ').length);
+        else if (qc.length > 5 && (' ' + kp + ' ').indexOf(qc) >= 0) kb = Math.max(kb, 8);
+      });
+      var cov = total ? got / total : 0;
+      if (!kb && (cov < 0.5 || (groups.length === 1 && !got))) return;
+      var score = sum * (0.3 + 0.7 * cov * cov) + kb;
+      pairs.forEach(function (pp) { if (has(e.fh, pp)) score += 5; else if (has(e.fk, pp)) score += 3; else score += Math.min(3, count(e.fx, pp)); });
+      var qt = qc.trim();
+      if (qt.length > 3 && e.fh.indexOf(qt) >= 0) score += 6;
+      if (e.l === 1) score -= 1.5; // phần mở đầu trang xếp sau các mục cụ thể
       out.push({ e: e, s: score });
     });
     out.sort(function (a, b) { return b.s - a.s; });
@@ -88,7 +126,7 @@
   }
   function mark(text, ws) {
     var f = fold(text), hit = new Array(text.length + 1).join('0').split('');
-    ws.forEach(function (w) { var i = f.indexOf(w); while (i >= 0) { for (var k = 0; k < w.length; k++) hit[i + k] = '1'; i = f.indexOf(w, i + 1); } });
+    ws.forEach(function (w) { var i = f.indexOf(w); while (i >= 0) { if (at(f, i, w)) for (var k = 0; k < w.length; k++) hit[i + k] = '1'; i = f.indexOf(w, i + 1); } });
     var o = '', on = false;
     for (var i = 0; i < text.length; i++) {
       if (hit[i] === '1' && !on) { o += '<mark>'; on = true; }
@@ -98,11 +136,11 @@
     return o + (on ? '</mark>' : '');
   }
   function snippet(e, ws) {
-    var x = e.x || '', f = e.fx, at = -1;
-    ws.forEach(function (w) { var i = f.indexOf(w); if (i >= 0 && (at < 0 || i < at)) at = i; });
-    if (at < 0) return mark(x.slice(0, 140), ws) + (x.length > 140 ? '…' : '');
-    var a = Math.max(0, at - 50), b = Math.min(x.length, at + 110);
-    if (a > 0) { var sp = x.indexOf(' ', a); if (sp > 0 && sp < at) a = sp + 1; }
+    var x = e.x || '', f = e.fx, pos = -1;
+    ws.forEach(function (w) { var i = f.indexOf(w); while (i >= 0 && !at(f, i, w)) i = f.indexOf(w, i + 1); if (i >= 0 && (pos < 0 || i < pos)) pos = i; });
+    if (pos < 0) return mark(x.slice(0, 140), ws) + (x.length > 140 ? '…' : '');
+    var a = Math.max(0, pos - 50), b = Math.min(x.length, pos + 110);
+    if (a > 0) { var sp = x.indexOf(' ', a); if (sp > 0 && sp < pos) a = sp + 1; }
     return (a > 0 ? '…' : '') + mark(x.slice(a, b), ws) + (b < x.length ? '…' : '');
   }
   function link(e, q) { return e.u + '?tim=' + encodeURIComponent(q) + (e.a ? '#' + e.a : ''); }
@@ -208,12 +246,12 @@
     if (!ws.length) return;
     // chỉ tô trong mục đã chọn (từ tiêu đề đó tới tiêu đề cùng cấp kế tiếp); không có mục thì tô cả trang
     var start = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
-    var stopTags = start ? (start.tagName === 'H3' ? ['H2', 'H3'] : ['H2']) : [];
+    var isQ = start && start.classList.contains('g-q'), stopTags = start ? (start.tagName === 'H3' || isQ ? ['H2', 'H3'] : ['H2']) : [];
     var nodes = [], n, inside = !start, walker = document.createTreeWalker(main, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT);
     while ((n = walker.nextNode())) {
       if (n.nodeType === 1) {
         if (n === start) inside = true;
-        else if (start && inside && stopTags.indexOf(n.tagName) >= 0) break;
+        else if (start && inside && (stopTags.indexOf(n.tagName) >= 0 || (isQ && n.classList.contains('g-q')))) break;
         continue;
       }
       if (inside && n.nodeValue.trim() && !n.parentNode.closest('.g-hero, script')) nodes.push(n);
@@ -221,7 +259,7 @@
     var first = null, count = 0;
     nodes.forEach(function (t) {
       var txt = t.nodeValue, f = fold(txt), hits = [];
-      ws.forEach(function (w) { var i = f.indexOf(w); while (i >= 0) { hits.push([i, i + w.length]); i = f.indexOf(w, i + 1); } });
+      ws.forEach(function (w) { var i = f.indexOf(w); while (i >= 0) { if (at(f, i, w)) hits.push([i, i + w.length]); i = f.indexOf(w, i + 1); } });
       if (!hits.length) return;
       hits.sort(function (a, b) { return a[0] - b[0]; });
       var frag = document.createDocumentFragment(), pos = 0;

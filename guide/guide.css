@@ -127,7 +127,7 @@ html.gs-open { overflow: hidden; }
 .g-hlbar b { color: #ffe58a; }
 .g-hlbar button { font: inherit; font-weight: 600; font-size: 13px; border: 0; border-radius: 8px; padding: 6px 10px; cursor: pointer; background: rgba(255, 255, 255, .15); color: #fff; }
 .g-hlbar button:hover { background: rgba(255, 255, 255, .28); }
-h2.g-flash, h3.g-flash { animation: g-flash 1.6s ease-out; border-radius: 6px; }
+h2.g-flash, h3.g-flash, p.g-flash { animation: g-flash 1.6s ease-out; border-radius: 6px; }
 @keyframes g-flash { 0%, 30% { background: #ffe58a; } 100% { background: transparent; } }
 
 .g-foot { margin-top: 36px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; }

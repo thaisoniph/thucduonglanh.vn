@@ -324,3 +324,9 @@ Nút **💡 Góp ý** có số đỏ khi có góp ý mới (trên điện thoạ
 Vào [thucduonglanh.vn/admin](https://thucduonglanh.vn/admin/) → **Hướng dẫn nội bộ**. Bấm vào trang cần sửa, sửa xong bấm **Lưu**. Khoảng 2 phút sau trang được cập nhật.
 
 Khi viết, nhớ: **câu ngắn, mỗi bước 1 việc, tên nút in đậm đúng như trên màn hình.**
+
+**Viết sao cho ô 🔍 Tìm tìm ra:**
+
+- Đặt tiêu đề mục theo **việc nhân sự cần làm** (ví dụ "Khách muốn huỷ đơn"), không đặt tên chung chung như "Lưu ý".
+- Câu hỏi hay gặp thì viết thành **1 đoạn bắt đầu bằng câu hỏi in đậm**, ví dụ: **Không nhận được mã đăng nhập?** rồi viết cách làm ngay sau. Ô Tìm tự biến mỗi đoạn như vậy thành 1 kết quả, bấm vào là nhảy thẳng tới đoạn đó.
+- Nhân sự gõ tìm mà không ra đúng chỗ? Gửi anh Sơn câu họ đã gõ để thêm vào danh sách từ khoá.
