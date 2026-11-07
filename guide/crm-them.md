@@ -232,7 +232,7 @@ Máy tự tính ngày gọi, dựa vào **ngày khách nhận hàng**. Bạn kh�
 | 🤝 **Hỏi thăm sau 1 tuần** | 7 ngày sau (khách mua lần đầu) | Dùng có khó khăn gì không. Mời vào nhóm Zalo |
 | 💬 **Xin cảm nhận** | 14 ngày sau | Hỏi cảm nhận, xin phép chia sẻ |
 | 🌿 **Giới thiệu sản phẩm phù hợp** | 30 ngày sau | Giới thiệu sản phẩm khác hợp với khách |
-| ⏰ **Sắp hết hàng** | Trước ngày khách dùng hết (miền Bắc ~4 ngày, ở xa ~6 ngày) để hàng tới kịp | Nhắc đặt lại. Gợi ý thêm món cho đủ 300.000đ để miễn phí ship |
+| ⏰ **Sắp hết hàng** | Trước ngày khách dùng hết (miền Bắc ~4 ngày, ở xa ~6 ngày) để hàng tới kịp | Nhắc đặt lại. Gợi ý thêm món cho đủ 300.000đ để miễn phí ship. Đơn mới đặt còn đang chờ giao (chưa nhận hàng) thì chưa nhắc |
 | 💌 **Mời quay lại** | 60 ngày sau, chưa mua lại | Hỏi thăm, gửi ưu đãi khách cũ |
 | 🔁 **Khách cũ lâu chưa gọi** | Hơn 30 ngày khách chưa trả lời | Hỏi thăm, hỏi còn hàng không |
 
