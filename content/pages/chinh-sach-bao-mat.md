@@ -15,7 +15,7 @@ Thông tin chỉ được sử dụng nội bộ và chia sẻ cho đơn vị v�
 
 {brand} dùng Cloudflare Web Analytics để đếm tổng lượt truy cập. Công cụ này không dùng cookie và không thu thập thông tin nhận dạng cá nhân.
 
-Chỉ khi quý khách bấm "Đồng ý" ở thông báo cookie, {brand} mới bật Google Analytics, Microsoft Clarity và mã theo dõi của các nền tảng quảng cáo (Meta, TikTok, Google) để thống kê lượt truy cập, cải thiện giao diện và hiển thị sản phẩm, ưu đãi phù hợp trên các nền tảng đó. Nếu quý khách chọn "Không, cảm ơn" thì các công cụ này không chạy. Quý khách có thể <a href="#" data-cookie-reset>đổi lựa chọn cookie</a> bất kỳ lúc nào.
+Chỉ khi quý khách bấm "Cho phép tất cả" ở thông báo cookie, {brand} mới bật Google Analytics, Microsoft Clarity và mã theo dõi của các nền tảng quảng cáo (Meta, TikTok, Google) để thống kê lượt truy cập, cải thiện giao diện và hiển thị sản phẩm, ưu đãi phù hợp trên các nền tảng đó. Nếu quý khách chọn "Chỉ cookie cần thiết" thì các công cụ này không chạy. Quý khách có thể <a href="#" data-cookie-reset>đổi lựa chọn cookie</a> bất kỳ lúc nào.
 
 ## 4. Chăm sóc khách hàng và nhận thông tin ưu đãi
 
