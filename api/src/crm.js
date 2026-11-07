@@ -273,8 +273,8 @@ function usageDays(cycles, name, variant) {
   for (const r of cycles) if (full.indexOf(String(r[0]).toLowerCase()) >= 0 && (!r[1] || full.indexOf(String(r[1]).toLowerCase()) >= 0)) return Number(r[2]) || 0;
   return 0;
 }
-/** Ngày dự kiến hết hàng = ngày đặt + (số ngày dùng × số lượng) của món hết sớm nhất trong đơn. */
-function runOutDate(cycles, items, t) { let best = 0; (items || []).forEach(i => { const d = usageDays(cycles, i.name, i.variant) * (Number(i.qty) || 1); if (d && (!best || d < best)) best = d; }); return best ? t + best * DAY : null; }
+/** Ngày dự kiến hết hàng = ngày đặt + (số ngày dùng × số lượng) của món dùng LÂU nhất trong đơn (anh Sơn chốt 07/11/2026: đơn có nhiều món thì khách còn dùng món lâu hết, chưa cần nhắc). */
+function runOutDate(cycles, items, t) { let best = 0; (items || []).forEach(i => { const d = usageDays(cycles, i.name, i.variant) * (Number(i.qty) || 1); if (d && d > best) best = d; }); return best ? t + best * DAY : null; }
 /** Đọc dòng sản phẩm đã lưu: "Tên (quy cách) x2 = 280.000 ₫". Bỏ dòng quà tặng (🎁). */
 export function parseItemLines(text) { return String(text || '').split('\n').map(l => { if (/^🎁/.test(l)) return null; const m = l.match(/^(.*?)(?: \((.*?)\))? x(\d+) =/); return m ? { name: m[1], variant: m[2] || '', qty: +m[3] } : null; }).filter(Boolean); }
 
