@@ -9,7 +9,7 @@ const cases = [
   ['Đang giao', { last_status: 'Đang giao' }, false],
   ['Đang chuyển hoàn', { last_status: 'Đang chuyển hoàn' }, false],
   ['Đã giao', { last_status: 'Đã giao' }, true],
-  ['Đã xác nhận nhưng có ngày nhận', { last_status: 'Đã xác nhận', recv: t - DAY }, true],
+  ['Đã xác nhận nhưng có ngày nhận', { last_status: 'Đã xác nhận', recv: t - DAY, fam: 1 }, true],
   ['Đơn kẹt trạng thái 20 ngày', { last_status: 'Đang giao', last: t - 20 * DAY, runout: t + DAY }, true],
 ];
 let bad = 0;
