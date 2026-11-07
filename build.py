@@ -672,7 +672,7 @@ def footer():
   <a href="/gio-hang/" class="btn btn-outline btn-block">{t("Xem giỏ hàng")}</a><a href="/thanh-toan/" class="btn btn-block">{t("Thanh toán")}</a></div>
 </div></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<div class="cookie-bar" id="cookieBar" hidden role="dialog" aria-label="{t("Thông báo cookie")}"><p><span class="cb-long">{t('🍪 Anh/chị cho phép dùng cookie nhé? Nhờ đó Thực Dưỡng Lành gợi ý sản phẩm, ưu đãi hợp với anh/chị (cả trên Facebook, Google) và làm website tốt hơn. <a href="/chinh-sach-bao-mat/">Chi tiết</a>')}</span><span class="cb-short">{t('🍪 Cho phép cookie để gợi ý sản phẩm, ưu đãi hợp với anh/chị (cả trên Facebook, Google)? <a href="/chinh-sach-bao-mat/">Chi tiết</a>')}</span></p><div><button type="button" class="btn btn-sm cb-yes" data-consent="yes">{t("Đồng ý")}</button><button type="button" class="cb-no" data-consent="no">{t("Không, cảm ơn")}</button></div></div>
+<div class="cookie-bar" id="cookieBar" hidden role="dialog" aria-label="{t("Thông báo cookie")}"><p><span class="cb-long">{t('🍪 Anh/chị cho phép dùng cookie nhé? Nhờ đó Thực Dưỡng Lành gợi ý sản phẩm, ưu đãi hợp với anh/chị (cả trên Facebook, Google) và làm website tốt hơn. <a href="/chinh-sach-bao-mat/">Chi tiết</a>')}</span><span class="cb-short">{t('🍪 Cho phép cookie để gợi ý sản phẩm, ưu đãi hợp với anh/chị (cả trên Facebook, Google)? <a href="/chinh-sach-bao-mat/">Chi tiết</a>')}</span></p><div><button type="button" class="btn btn-sm cb-yes" data-consent="yes">{t("Cho phép tất cả")}</button><button type="button" class="cb-no" data-consent="no">{t("Chỉ cookie cần thiết")}</button></div></div>
 <button class="to-top" id="toTop" aria-label="{t("Lên đầu trang")}">{I["up"]}</button>{gift_dock()}'''
 
 
