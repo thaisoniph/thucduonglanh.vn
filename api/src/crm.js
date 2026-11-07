@@ -432,7 +432,7 @@ export function careTask(c, today, R) {
     if (s.key === 'd7') { const t7 = d7Task(c, today, R, last, care, toRun); if (t7) return t7; continue; }
     // Sắp hết hàng = lúc dễ ra đơn nhất: không bị giãn cách chặn, chỉ nhường khi sale đã hẹn gọi lại ngày sau (27/10/2026)
     // Đơn gần nhất còn đang chờ giao (Mới / Đã xác nhận / Đang giao, chưa có ngày nhận) trong 14 ngày đầu: khách chưa có hàng để dùng nên chưa nhắc đặt lại (sale Thùy góp ý 07/11/2026)
-    if (s.key === 'runout') { const waiting = OPEN_ST.test(c.last_status || '') && !(c.recv && startOfDay(c.recv) >= last) && days <= 14; if (!waiting && toRun !== null && toRun >= -7 && toRun <= lead && days >= 2 && !(cb != null && cb > today) && !(care != null && care >= runD - lead * DAY)) return { type: 'runout', days, late: toRun < 0 ? -toRun : 0, toRun }; continue; }
+    if (s.key === 'runout') { const waiting = (OPEN_ST.test(c.last_status || '') && !(c.recv && startOfDay(c.recv) >= last) && days <= 14) || c.last_status === 'Đang chuyển hoàn'; if (!waiting && toRun !== null && toRun >= -7 && toRun <= lead && days >= 2 && !(cb != null && cb > today) && !(care != null && care >= runD - lead * DAY)) return { type: 'runout', days, late: toRun < 0 ? -toRun : 0, toRun }; continue; }
     if (cool) continue;
     else { const at = s.key === 'winback' ? R.atRisk : s.at; if (days >= at && days <= at + s.win && !(care != null && care >= last + at * DAY)) return { type: s.key, days, late: 0, toRun }; }
   }
