@@ -83,6 +83,19 @@ Mỗi bài có một nhãn màu cho biết bài đó để làm gì:
 
 Tối Thứ 4 có **đố vui**, sáng Thứ 5 trợ lý **công bố đáp án**. Tối Thứ 5 là bài **cảm nhận khách hàng** (dùng ảnh feedback thật).
 
+### 📅 Ngày lễ, rằm, mùng 1
+
+Trợ lý biết lịch âm và các ngày lễ lớn. Hôm đó bài đổi theo dịp, **vẫn chờ duyệt** như bài thường:
+
+- **Mùng 1 âm**: sáng chúc mừng tháng mới.
+- **Rằm**: tối hôm trước gợi ý món chay để đi chợ; sáng chúc ngày rằm; tối mời khoe mâm cơm rằm hoặc kể 1 điều biết ơn.
+- **Lễ âm lịch**: Tết (từ 30 Tết tới mùng 3), ông Công ông Táo, rằm tháng Giêng, Hàn thực, Giỗ Tổ, Phật đản, Đoan Ngọ, Vu Lan, Trung thu, rằm tháng 10.
+- **Lễ dương lịch**: 1/1, 27/2, 8/3, 30/4, 1/6, 28/6, 27/7, 2/9, 20/10, 20/11, đêm 24/12.
+
+Ngày lễ là bài 🔵 chúc mừng, **không bán hàng**. Vài ngày trước các dịp tặng quà (Tết, 8/3, Vu Lan, Trung thu, 20/10, 20/11) có thêm 1 bài 🟠 **gợi ý quà sức khỏe**; Tết và Vu Lan có thêm 1 bài ⚪ kiến thức. Nếu ngày lễ rơi vào sáng Thứ 7 (bài bán), bài bán **dời sang sáng Chủ nhật**. Ngày đôi 11/11, 12/12 chỉ có bài bán khi Marketing đang chạy ưu đãi (CRM → Marketing → Ưu đãi).
+
+Xem trước các dịp trong 45 ngày tới: tab Zalo → **📅 Ngày lễ sắp tới**. Bài theo dịp có nhãn vàng **📅 tên dịp**. Những ngày này nên có **người thật** góp mặt: ví dụ ngày rằm chụp mâm cơm chay của đội ngũ đăng vào nhóm. Trợ lý cũng trả lời được khi khách hỏi hôm nay là ngày mấy âm lịch.
+
 Bài đã đăng có dòng **📊** cho biết trong 2 tiếng sau khi đăng có bao nhiêu người nhắn, gửi ảnh, thả cảm xúc. Nếu khách bấm link trong bài rồi đặt hàng trên web, dòng này hiện thêm **🛒 số đơn**. Đầu tab có bảng **Hiệu quả bài đăng theo phễu (30 ngày)** để so loại bài nào làm nhóm sôi nổi, loại nào ra đơn.
 
 ### Xem lại tất cả bài đã đăng

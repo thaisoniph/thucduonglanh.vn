@@ -1445,6 +1445,9 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .zb-fun-tofu { background: var(--blue-light); color: var(--blue); }
 .zb-fun-mofu { background: var(--bg); color: var(--mid); border: 1px solid var(--line); }
 .zb-fun-bofu { background: var(--orange-light); color: var(--orange); }
+.zb-evb { background: var(--gold-light); color: #7a5c1c; } /* 📅 bài theo ngày lễ (zday.js) */
+.zb-days ul { margin: 6px 0 0; padding-left: 18px; }
+.zb-days li { margin: 0 0 6px; }
 .zb-eng { background: var(--primary-soft); border-radius: var(--radius-sm); padding: 6px 10px; margin: 6px 0; }
 .zb-funs { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 12px; }
 .zb-funbox p { margin: 6px 0 0; }

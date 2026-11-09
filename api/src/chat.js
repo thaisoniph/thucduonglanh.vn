@@ -13,6 +13,7 @@ import { addLead, telegramUser } from './crm.js';
 import { botRef } from './partner.js';
 import { telegram } from './google.js';
 import { zbotLead } from './zbot.js';
+import { lunar } from './lunar.js';
 
 const CHAT_MODEL = 'claude-haiku-5-5';
 const KB_URL = 'https://thucduonglanh.vn/chat-kb.txt';
@@ -81,7 +82,7 @@ export async function kb() {
 /** Giờ làm việc chuyên viên: Thứ 2 – Thứ 7, 8h–17h (giờ Việt Nam). */
 export function workNow(now) {
   const d = new Date(now + TZ_MS), h = d.getUTCHours() + d.getUTCMinutes() / 60, wd = d.getUTCDay();
-  return { on: wd >= 1 && wd <= 6 && h >= 8 && h < 17, label: ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'][wd] + ' ' + fmtDate(now, 'HH:mm dd/MM/yyyy') };
+  return { on: wd >= 1 && wd <= 6 && h >= 8 && h < 17, label: ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'][wd] + ' ' + fmtDate(now, 'HH:mm dd/MM/yyyy') + ' (âm lịch: ' + lunar(fmtDate(now, 'yyyyMMdd')).text + ')' }; // 09/11/2026: trợ lý biết ngày âm (khách hỏi mùng 1, rằm…)
 }
 
 /** Lưới an toàn: câu khẳng định chữa bệnh lọt qua thì đổi thành "hỗ trợ". Bỏ qua câu phủ định ("không có tác dụng chữa…") và câu bắt buộc "không thay thế thuốc chữa bệnh". */
