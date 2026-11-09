@@ -98,6 +98,23 @@ Không có nút nào hợp? Bấm **Kết quả khác / tự chọn ngày hẹn*
 - Dòng **⏳ trễ 3 ngày** nghĩa là khách này lẽ ra phải gọi từ 3 ngày trước. Gọi sớm nhé.
 - Biểu tượng **Zalo** cạnh tên khách: bạn đã kết bạn Zalo với khách. Nên nhắn Zalo trước. Chưa kết bạn thì gọi trước, rồi xin kết bạn.
 
+### 🎉 Dịp chúc khách (ngày lễ, rằm, sinh nhật)
+
+Ngày lễ hoặc ngày sinh nhật khách, đầu tab **Hôm nay** có khung **🎉 Dịp chúc khách**. Một lời chúc đúng dịp giúp khách nhớ tới mình mà không thấy bị chào bán.
+
+- **Ngày lễ lớn** (Tết, 8/3, 20/10, Vu Lan, Trung thu, năm mới): chúc mọi khách đã mua và khách hỏi chưa mua trong 90 ngày.
+- **Mùng 1, rằm, nghỉ lễ 30/4, 2/9, Ngày Gia đình 28/6**: chúc **khách thân** (VIP hoặc mua từ 2 lần). Không bắt buộc, gửi được bao nhiêu thì gửi.
+- **🎁 Gợi ý quà** (vài ngày trước Tết, 8/3, 20/10, Vu Lan, Trung thu, 20/11): tin có nhắc mua, nên chỉ gửi khách **đồng ý nhận ưu đãi** và khách hỏi chưa mua.
+- **🎂 Sinh nhật**: khách có ngày sinh hôm nay. Dòng **Ngày mai sinh nhật** báo trước để bạn chuẩn bị.
+
+Cách gửi:
+
+1. Bấm **▶ Gửi lần lượt**. Xem lại tin mẫu, sửa nếu muốn, rồi bấm **▶ Bắt đầu gửi**.
+2. Với từng người: bấm **📋 Copy tin & mở Zalo**, dán vào khung chat, gửi.
+3. Quay lại CRM bấm **✅ Đã gửi → người tiếp**. Người đã nhận lời chúc dịp này sẽ không hiện lại.
+
+Lời chúc **không tính** vào 30 khách chăm sóc mỗi ngày. Gửi rải trong ngày, khách VIP trước. Khách trả lời thì ghi lại ở hồ sơ khách như bình thường. Quản lý muốn đổi tin mẫu: **Cài đặt → Mẫu tin**, thêm dòng có **Thời điểm** là tên dịp, ví dụ *Chúc Tết*, *Chúc rằm*, *Quà 8/3*, *Chúc sinh nhật*.
+
 ## Việc 2: Có đơn mới thì xác nhận và gửi hàng
 
 Khi khách đặt hàng trên web, Telegram báo ngay. Đơn hiện ở tab **Hôm nay** và tab **Đơn hàng**.

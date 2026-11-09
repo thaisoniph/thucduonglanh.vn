@@ -1445,6 +1445,14 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .zb-fun-tofu { background: var(--blue-light); color: var(--blue); }
 .zb-fun-mofu { background: var(--bg); color: var(--mid); border: 1px solid var(--line); }
 .zb-fun-bofu { background: var(--orange-light); color: var(--orange); }
+/* 🎉 Dịp chúc khách – tab Hôm nay (occBlock) */
+.occ-body { padding: 10px 12px 12px; }
+.occ-card { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 10px 12px; margin: 0 0 10px; background: var(--gold-light); }
+.occ-card.occ-qua { background: var(--orange-light); }
+.occ-h { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.occ-tip { margin: 6px 0 8px; }
+.occ-soon { margin: 4px 0 6px; padding-left: 18px; }
+.occ-foot { margin: 6px 0 0; }
 .zb-evb { background: var(--gold-light); color: #7a5c1c; } /* 📅 bài theo ngày lễ (zday.js) */
 .zb-days ul { margin: 6px 0 0; padding-left: 18px; }
 .zb-days li { margin: 0 0 6px; }

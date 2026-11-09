@@ -522,6 +522,7 @@
   function applyOp(op) {
     var p = op.p, c = cust(p.phone);
     if (op.action === 'gift') { if (!S.d.log.some(function (l) { return l.op === op.id; })) addLog({ op: op.id, time: op.at, by: S.user.name, what: 'Gửi quà tặng', ref: normPhone(p.phone), name: p.name, result: p.gift, note: '' }); return; }
+    if (op.action === 'greet') { if (!S.d.log.some(function (l) { return l.op === op.id; })) addLog({ op: op.id, time: op.at, by: S.user.name, what: 'Gửi lời chúc', ref: normPhone(p.phone), name: p.name, result: p.occ, note: '' }); return; } // 🎉 dịp chúc khách
     if (!c) return;
     invalidateCustomer(c); // xoá bộ nhớ đệm thuộc tính khách (tên / kết quả CSKH / người phụ trách vừa đổi)
     if (op.action === 'care') {
@@ -1105,9 +1106,9 @@
   }
   /* ---------- 📣 gửi ưu đãi lần lượt qua Zalo cá nhân: CRM điền tên, copy tin, mở khung chat; sale dán & gửi rồi bấm "Đã gửi → tiếp" */
   var PROMO_DEF = 'Dạ [Tên] ơi, em là nhân viên Thực Dưỡng Lành ạ. Tuần này bên em có ưu đãi dành riêng cho khách thân thiết: … [Tên] đang dùng [Sản phẩm], nếu cần đặt thêm thì em giữ suất ưu đãi cho mình nhé ❤️';
-  function promoStats() {
-    var g = {};
-    S.d.log.forEach(function (l) { if (l.what !== 'Gửi ưu đãi' || (lvl() < 2 && l.by !== S.user.name)) return; var x = g[l.result] || (g[l.result] = { name: l.result, first: l.time, ph: {} }); if (l.time < x.first) x.first = l.time; var ph = String(l.ref).replace(/^'/, ''); if (!x.ph[ph] || l.time < x.ph[ph]) x.ph[ph] = l.time; });
+  function promoStats(what) {
+    var g = {}; what = what || 'Gửi ưu đãi'; // 'Gửi lời chúc': đo khách đặt đơn trong 14 ngày sau lời chúc
+    S.d.log.forEach(function (l) { if (l.what !== what || (lvl() < 2 && l.by !== S.user.name)) return; var x = g[l.result] || (g[l.result] = { name: l.result, first: l.time, ph: {} }); if (l.time < x.first) x.first = l.time; var ph = String(l.ref).replace(/^'/, ''); if (!x.ph[ph] || l.time < x.ph[ph]) x.ph[ph] = l.time; });
     return Object.keys(g).map(function (k) {
       var x = g[k], phones = Object.keys(x.ph), conv = 0, rev = 0;
       phones.forEach(function (ph) { var t = x.ph[ph], hit = S.d.orders.filter(function (o) { return o.phone === ph && !isVoid(o.status) && o.time > t && o.time <= t + 14 * DAY; }); if (hit.length) { conv++; rev += hit.reduce(function (s0, o) { return s0 + o.total; }, 0); } });
@@ -1154,6 +1155,90 @@
     $('#pmZalo', m).onclick = function () { copy($('#pmMsg', m).value).then(function () { toast('Đã copy – dán vào khung chat Zalo'); }); window.open(zalo(c.phone), '_blank', 'noopener'); };
     $('#pmSkip', m).onclick = function () { P.skip++; P.i++; closeModal(true); promoStep(); };
     $('#pmDone', m).onclick = function () { sendOp('customer', { phone: c.phone, promo: P.name }); P.sent++; P.i++; closeModal(true); promoStep(); };
+  }
+  /* ---------- 🎉 Dịp chúc khách (09/11/2026, anh Sơn): ngày lễ, rằm, mùng 1, Tết (máy chủ api/src/zday.js gửi S.d.occ; máy chủ cũ không gửi → chỉ còn sinh nhật)
+   * + sinh nhật khách → khối ở đầu tab Hôm nay. Gửi lần lượt qua Zalo của sale như 📣 Gửi ưu đãi; nhật ký "Gửi lời chúc" (mỗi người 1 lần / dịp), đo đơn 14 ngày sau.
+   * Lời chúc (k = chuc, sn) không chào bán → gửi cả khách chưa đồng ý nhận ưu đãi. Gợi ý quà (k = qua) có nhắc mua → chỉ khách đồng ý nhận ưu đãi + khách hỏi.
+   * Không tính là chăm sóc: không chiếm chỗ 30 khách / ngày, không đổi ngày chăm sóc. Quản lý đổi mẫu: Cài đặt → Mẫu tin, Thời điểm = tên dịp (vd "Chúc Tết", "Chúc rằm"). */
+  var OCC_BDAY = 'Dạ [Tên] ơi, hôm nay là sinh nhật [Tên], em ở Thực Dưỡng Lành chúc [Tên] tuổi mới thật nhiều sức khỏe, bình an và niềm vui ạ 🎂';
+  var OCC_TIP = { close: 'Lời chúc, không chào bán. Gửi <b>khách thân</b> (VIP, mua từ 2 lần). Không bắt buộc, gửi được bao nhiêu thì gửi.', all: 'Lời chúc, không chào bán. Gửi khách đã mua và <b>khách hỏi chưa mua</b> (90 ngày), khách VIP trước.',
+    qua: 'Tin <b>gợi ý quà</b> (có nhắc mua): chỉ khách <b>đồng ý nhận ưu đãi</b> và khách hỏi chưa mua. Gửi trước ngày lễ để khách kịp đặt.', sn: 'Khách có ngày sinh hôm nay. Muốn tặng kèm quà nhỏ / ưu đãi thì hỏi quản lý.' };
+  function occDay(n) { var v = vnDate(Date.now() + (n || 0) * DAY); return v.y + pad(v.m) + pad(v.d); }
+  function occDm(d) { return d.slice(6, 8) + '/' + d.slice(4, 6); }
+  function occSent(camp) { var o = {}; S.d.log.forEach(function (l) { if (l.what === 'Gửi lời chúc' && l.result === camp) o[String(l.ref).replace(/^'/, '')] = 1; }); return o; }
+  function occBday() { var d0 = occDay(0); return { k: 'sn', n: 'Chúc sinh nhật', camp: 'Chúc sinh nhật ' + d0.slice(0, 4), t: OCC_BDAY, who: 'sn', from: d0, to: d0, ev: d0 }; }
+  /** Người nhận cho 1 dịp: khách của mình (không lạnh, không ngừng liên hệ, chưa nhận dịp này) + khách hỏi chưa mua (lời chúc cho mọi người, gợi ý quà). */
+  function occPool(o, opt) {
+    opt = opt || {}; var sent = occSent(o.camp), seen = {}, out = [];
+    S.d.customers.forEach(function (c) {
+      if (!mineOk(c) || coldOf(c) || isStopped(c) || sent[c.phone]) return;
+      if (o.k === 'sn' ? bdaySoon(c) !== 0 : o.k === 'qua' ? !c.consent : o.who === 'close' && !(isVip(c) || c.orders >= 2)) return;
+      if (opt.z && !c.zalo) return;
+      seen[c.phone] = 1; out.push({ phone: c.phone, name: c.name, products: c.products || [], c: c, r: isVip(c) ? 0 : 1, spent: c.spent || 0 });
+    });
+    if (o.who === 'all' && o.k !== 'sn' && opt.ld !== false) (S.d.leads || []).forEach(function (l) {
+      var ph = normPhone(l.phone); if (!isOpenLead(l) || !leadMine(l) || seen[ph] || cust(ph) || sent[ph] || today() - dayStart(l.time || 0) > 90 * DAY) return;
+      seen[ph] = 1; out.push({ phone: ph, name: l.name, products: [l.interest || 'sản phẩm bên em'], lead: l, r: 2, spent: 0 });
+    });
+    return out.sort(function (a, b) { return a.r - b.r || b.spent - a.spent; });
+  }
+  /** Khối 🎉 Dịp chúc khách ở tab Hôm nay: dịp đang gửi (nút ▶) + dịp 2 ngày tới (báo trước) + sinh nhật hôm nay / ngày mai. */
+  function occBlock() {
+    var d0 = occDay(0), d1 = occDay(1), d2 = occDay(2), L = (S.d.occ || []).filter(function (o) { return o.to >= d0 && o.from <= d2; });
+    var now = L.filter(function (o) { return o.from <= d0; }), soon = L.filter(function (o) { return o.from > d0; }), bd = occBday();
+    if (occPool(bd).length || S.d.log.some(function (l) { return l.what === 'Gửi lời chúc' && l.result === bd.camp && l.time >= today(); })) now.push(bd);
+    var bT = S.d.customers.filter(function (c) { return mineOk(c) && !coldOf(c) && !isStopped(c) && bdaySoon(c) === 1; });
+    if (!now.length && !soon.length && !bT.length) return '';
+    S.occNow = now; var total = 0;
+    var cards = now.map(function (o, i) {
+      var n = occPool(o, { z: o.k !== 'sn' }).length, done = Object.keys(occSent(o.camp)).length; total += n; // cùng bộ lọc mặc định với cửa sổ gửi
+      var when = o.k === 'sn' ? 'hôm nay' : o.k === 'qua' ? 'dịp ' + occDm(o.ev) + ' · gửi tới ' + (o.to === d0 ? 'hết hôm nay' : occDm(o.to)) : (o.ev === d0 ? 'hôm nay' : 'ngày lễ ' + occDm(o.ev)) + (o.to > d0 ? ' · gửi tới ' + occDm(o.to) : '') + ' · âm lịch: ' + esc(o.lu || '');
+      return '<div class="occ-card occ-' + o.k + '"><div class="occ-h"><b>' + (o.k === 'sn' ? '🎂' : o.k === 'qua' ? '🎁' : '🎉') + ' ' + esc(o.n) + '</b><span class="small muted">' + when + '</span></div>' +
+        '<p class="small occ-tip">' + OCC_TIP[o.k === 'chuc' ? o.who : o.k] + '</p>' +
+        (n ? '<button class="btn pri sm" data-occ="' + i + '">▶ Gửi lần lượt (' + n + ' người)</button>' : '<span class="small">✅ Đã gửi hết' + (done ? '' : ' (không có người phù hợp)') + '</span>') + (done ? ' <span class="small muted">đã gửi ' + done + '</span>' : '') + '</div>';
+    }).join('');
+    var heads = soon.map(function (o) { return '<li>📅 <b>' + (o.from === d1 ? 'Ngày mai' : occDm(o.from)) + '</b>: ' + esc(o.n) + (o.k === 'qua' ? ' (gợi ý quà cho dịp ' + occDm(o.ev) + ')' : '') + '</li>'; }).join('') +
+      (bT.length ? '<li>🎂 <b>Ngày mai</b> sinh nhật: ' + bT.slice(0, 6).map(function (c) { return esc(c.name || c.phone); }).join(', ') + (bT.length > 6 ? '… (' + bT.length + ' khách)' : '') + '</li>' : '');
+    var sum = now.length ? now.map(function (o) { return o.n; }).join(' · ') : 'sắp tới: ' + soon.map(function (o) { return o.n; }).concat(bT.length ? ['sinh nhật'] : []).join(' · ');
+    var op = S.f.gopen && 'occ' in S.f.gopen ? S.f.gopen.occ : now.some(function (o) { return o.k !== 'qua'; }) && total > 0; // ngày lễ / sinh nhật hôm nay: mở sẵn
+    return '<section class="section"><details class="grp occ-grp" data-grp="occ"' + (op ? ' open' : '') + '><summary><span class="g-t">🎉 Dịp chúc khách</span>' + (total ? '<span class="count">' + total + '</span>' : '') + '<span class="g-tip">' + esc(sum) + '</span></summary>' +
+      '<div class="occ-body">' + cards + (heads ? '<ul class="occ-soon small">' + heads + '</ul>' : '') + '<p class="small muted occ-foot">Gửi qua Zalo của bạn, rải trong ngày. Lời chúc không tính vào 30 khách chăm sóc mỗi ngày.</p></div></details></section>';
+  }
+  function openOcc(o) {
+    if (!o) return;
+    var tp = S.d.templates || [], own = tp.filter(function (t) { var k = norm(t[0]).trim(); return /^(chuc|qua)\b/.test(k) && norm(o.n).indexOf(k) === 0; }).sort(function (a, b) { return b[0].length - a[0].length; })[0]; // mẫu riêng ở Cài đặt → Mẫu tin
+    var st = promoStats('Gửi lời chúc').slice(0, 5), lead = o.who === 'all' && o.k !== 'sn';
+    var body = '<div class="box"><p style="margin:0 0 8px"><b>' + esc(o.n) + '</b>: gửi qua <b>Zalo của bạn</b> cho từng người. CRM tự điền tên, copy tin và mở khung chat; bạn dán, bấm gửi rồi bấm <b>✅ Đã gửi</b>.</p>' +
+      '<label class="switch"><input type="checkbox" id="ocZ"' + (o.k === 'sn' ? '' : ' checked') + '> Khách đã mua: chỉ người <b>đã kết bạn Zalo</b></label>' +
+      (lead ? '<br><label class="switch" style="margin-top:6px"><input type="checkbox" id="ocL" checked> Cả <b>khách hỏi chưa mua</b> (90 ngày)</label>' : '') +
+      '<p class="small muted" id="ocN" style="margin:8px 0 0"></p></div>' +
+      '<div class="box"><label class="f"><span>Tin gửi (viết [Tên], [Sản phẩm] để máy tự điền; sửa được từng người)</span><textarea id="ocText" rows="5">' + esc(own ? own[2] : o.t) + '</textarea></label></div>' +
+      (st.length ? '<div class="box"><h3>📊 Lời chúc gần đây</h3><table class="tg-help">' + st.map(function (x) { return '<tr><td><b>' + esc(x.name) + '</b><br><span class="small muted">' + fDate(x.first) + '</span></td><td>Đã gửi <b>' + x.sent + '</b> · <b>' + x.conv + '</b> người đặt đơn trong 14 ngày' + (x.rev ? ' (' + moneyShort(x.rev) + ')' : '') + '</td></tr>'; }).join('') + '</table></div>' : '');
+    var m = modal('🎉 ' + esc(o.n), body, '<button class="btn" data-close>Đóng</button><button class="btn pri" id="ocGo">▶ Bắt đầu gửi</button>');
+    var pool = function () { return occPool(o, { z: $('#ocZ', m).checked, ld: lead ? $('#ocL', m).checked : false }); };
+    var cnt = function () { var n = pool().length; $('#ocN', m).innerHTML = n ? 'Sẽ gửi cho <b>' + n + '</b> người (đã bỏ khách lạnh, khách ngừng liên hệ và người đã nhận dịp này).' : '<span class="bad-line">Không còn người nào phù hợp.</span>'; };
+    $$('#ocZ,#ocL', m).forEach(function (b) { b.onchange = cnt; }); cnt();
+    $('#ocGo', m).onclick = function () {
+      var text = $('#ocText', m).value.trim(), list = pool(); if (!text) { toast('Bạn soạn nội dung tin giúp nhé', true); return; } if (!list.length) return;
+      S.occRun = { o: o, text: text, list: list, i: 0, sent: 0, skip: 0 }; closeModal(true); occStep();
+    };
+  }
+  function occStep() {
+    var R = S.occRun; if (!R) return;
+    if (R.i >= R.list.length) { S.occRun = null; render(); modal('🎉 Xong', '<div class="box"><p style="margin:0">Đã gửi <b>' + R.sent + '</b> người' + (R.skip ? ', bỏ qua ' + R.skip : '') + ' cho “' + esc(R.o.n) + '”. Khách trả lời gì thì ghi lại ở hồ sơ khách nhé.</p></div>', '<button class="btn pri" data-close>Đóng</button>'); return; }
+    var x = R.list[R.i], msg = fillTpl(R.text, x);
+    var body = '<div class="flow-h"><div><b>Người ' + (R.i + 1) + ' / ' + R.list.length + '</b><span>🎉 ' + esc(R.o.n) + ' · đã gửi ' + R.sent + '</span></div><div class="bar"><i style="width:' + Math.round(R.i * 100 / R.list.length) + '%"></i></div></div>' +
+      '<div class="box"><div class="r1" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>' + cp(x.name) + '</b>' + (x.c ? custTags(x.c) + (x.c.zalo ? '<span class="zl on">' + ZI + ' Zalo</span>' : '') : '<span class="tag">🙋 Khách hỏi</span>') + '<span class="muted">' + cpPhone(x.phone) + '</span></div>' +
+      '<div class="small muted" style="margin-top:4px">' + (x.c ? esc(shortProducts(x.c.products, 2)) + ' · mua gần nhất ' + daysAgo(x.c.last) : 'Hỏi: ' + esc(x.lead.interest || '–') + ' · ' + daysAgo(x.lead.time)) + '</div></div>' +
+      '<div class="box"><label class="f"><span>Tin gửi (sửa được)</span><textarea id="ocMsg" rows="6">' + esc(msg) + '</textarea></label>' +
+      '<div class="steps"><button class="btn zalo" id="ocZalo">📋 Copy tin & mở Zalo</button><button class="btn" id="ocCopy">Copy tin</button></div>' +
+      '<p class="small muted" style="margin:8px 0 0">Dán tin vào khung chat Zalo, bấm gửi, rồi quay lại bấm <b>✅ Đã gửi</b>.</p></div>';
+    var m = modal('🎉 ' + esc(x.name || 'Khách'), body, '<button class="btn" id="ocSkip">⏭ Bỏ qua</button><button class="btn pri" id="ocDone">✅ Đã gửi → người tiếp</button>');
+    m.addEventListener('click', function (e) { if (e.target === m || e.target.closest('[data-close]')) { var R2 = S.occRun; S.occRun = null; render(); if (R2 && R2.sent) toast('Đã dừng. Đã gửi ' + R2.sent + ' người cho “' + R2.o.n + '”. Mở lại để gửi tiếp những người còn lại.'); } }, true);
+    $('#ocCopy', m).onclick = function () { copy($('#ocMsg', m).value).then(function () { toast('Đã copy tin'); }); };
+    $('#ocZalo', m).onclick = function () { copy($('#ocMsg', m).value).then(function () { toast('Đã copy – dán vào khung chat Zalo'); }); window.open(zalo(x.phone), '_blank', 'noopener'); };
+    $('#ocSkip', m).onclick = function () { R.skip++; R.i++; closeModal(true); occStep(); };
+    $('#ocDone', m).onclick = function () { sendOp('greet', { phone: x.phone, name: x.name || '', occ: R.o.camp }); R.sent++; R.i++; closeModal(true); occStep(); };
   }
   function consentTag(c) { return c.consent ? (canEdit(c) ? '<button type="button" class="tag st-xong" data-consent="' + c.phone + '" data-off="1" title="Khách đồng ý nhận tin ưu đãi. Bấm nếu khách không muốn nhận nữa">✓ Nhận ưu đãi</button>' : '<span class="tag st-xong" title="Khách đồng ý nhận tin ưu đãi">✓ Nhận ưu đãi</span>') : canEdit(c) ? '<button type="button" class="zl add" data-consent="' + c.phone + '" title="Bấm khi khách đồng ý nhận tin ưu đãi / khuyến mãi">☐ Khách đồng ý nhận ưu đãi</button>' : ''; }
   function canEdit(c) { return lvl() >= 2 || c.owner === S.user.name; }
@@ -1278,6 +1363,7 @@
       (q.list.length && (!wn || wn === S.user.name) ? '<button class="btn pri lg block" data-flow>▶ Bắt đầu gọi lần lượt</button>' : '') +
       (q.rest ? '<p class="small muted" style="margin:8px 0 0">Còn ' + q.rest + ' khách để các ngày sau (tối đa ' + dayLimit() + ' khách/ngày, đổi ở <a href="#cai-dat">Cài đặt</a>).</p>' : '') +
       (lvl() < 2 ? todayGoalLine() + refSaleLine() : '') + '</section>';
+    h += occBlock(); // 🎉 dịp chúc khách: ngày lễ, rằm, mùng 1, sinh nhật (09/11/2026)
     if (lvl() >= 2) h += stopWaitBlock(); // 📵 khách sale báo ngừng liên hệ, chờ quản lý xem (31/10/2026)
     // Đợt 2 (16/10/2026): sale mở máy thấy ngay khách cần gọi; mục tiêu chi tiết + thi đua + báo cáo cuối ngày chuyển xuống cuối trang. Quản lý giữ thi đua + ô số ở đầu.
     if (lvl() >= 2) {
@@ -9749,7 +9835,7 @@
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-gmore]'); if (!b) return; var r = b.previousElementSibling; if (r) r.hidden = false; b.remove(); });
   document.addEventListener('toggle', function (e) { var d = e.target; if (d && d.matches && d.matches('details[data-grp]')) { S.f.gopen = S.f.gopen || {}; S.f.gopen[d.getAttribute('data-grp')] = d.open; } }, true);
   document.addEventListener('click', function (e) {
-    var t = e.target.closest('[data-recon],[data-otab],[data-per],[data-pq],[data-promo],[data-rf],[data-vipgo],[data-stopgo],[data-stop],[data-taghelp],[data-consent],[data-daily],[data-usage],[data-flow],[data-zalo],[data-quick],[data-care],[data-next],[data-neworder],[data-cf],[data-os],[data-och],[data-tf],[data-cat],[data-addtag],[data-deltag],[data-claim],[data-bcdt],[data-srcadd],[data-srcedit],[data-srcsync],[data-srcdel],[data-adsedit],[data-adssync],[data-who],[data-target],[data-race],[data-offer],[data-myold],[data-more],[data-add],[data-rm],[data-consult],[data-leadorder],[data-newlead],[data-editlead],[data-leaddel],[data-cust],[data-order],[data-lead]');
+    var t = e.target.closest('[data-recon],[data-otab],[data-per],[data-pq],[data-promo],[data-occ],[data-rf],[data-vipgo],[data-stopgo],[data-stop],[data-taghelp],[data-consent],[data-daily],[data-usage],[data-flow],[data-zalo],[data-quick],[data-care],[data-next],[data-neworder],[data-cf],[data-os],[data-och],[data-tf],[data-cat],[data-addtag],[data-deltag],[data-claim],[data-bcdt],[data-srcadd],[data-srcedit],[data-srcsync],[data-srcdel],[data-adsedit],[data-adssync],[data-who],[data-target],[data-race],[data-offer],[data-myold],[data-more],[data-add],[data-rm],[data-consult],[data-leadorder],[data-newlead],[data-editlead],[data-leaddel],[data-cust],[data-order],[data-lead]');
     if (!t || !S.d) return;
     if (e.target.closest('a[href]') && !t.hasAttribute('data-myold')) return; // nút gọi / Zalo bên trong thẻ
     if (e.target.closest('select[data-oassign]')) return; // ô “Giao cho…” trên dòng đơn: không mở hộp đơn
@@ -9757,6 +9843,7 @@
     if (t.hasAttribute('data-flow')) { startFlow(); return; }
     if (t.hasAttribute('data-taghelp')) { openTagHelp(); return; }
     if (t.hasAttribute('data-promo')) { openPromo(); return; }
+    if (t.hasAttribute('data-occ')) { openOcc((S.occNow || [])[+t.getAttribute('data-occ')]); return; }
     if (t.hasAttribute('data-rf')) { var rf = a('data-rf').split('|'); S.f.r = S.f.r || {}; S.f.r[rf[0]] = rf[1]; render(); return; }
     if (t.hasAttribute('data-stopgo')) { e.preventDefault(); S.f.c = { q: '', k: 'stop', sort: 'last', n: 60 }; location.hash = '#khach-hang'; return; }
     if (t.hasAttribute('data-stop')) { e.preventDefault(); e.stopPropagation(); var sp = a('data-stop').split('|'); stopAct(sp[0], sp[1]); return; }
