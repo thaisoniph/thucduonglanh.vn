@@ -16,6 +16,7 @@ Trang này dành cho **kế toán**. Đọc khoảng 5 phút là làm được.
 
 - Chỉ có tab **💼 Kế toán** và **Cài đặt**.
 - Thấy đơn hàng: mã đơn, ngày, sale bán, sản phẩm, số tiền, trạng thái, hãng, mã vận đơn, **tên khách và 4 số cuối SĐT**.
+- Thấy **số hàng tồn kho** (chỉ xem, do người kho ghi trên CRM) và giá trị tồn kho tính bằng tiền.
 - **Không thấy** SĐT đầy đủ, địa chỉ, ghi chú chăm sóc. Không chăm sóc khách, không nhận khách mới.
 - 8h sáng nhận tin **💼 Tài chính** qua Telegram: tiền còn treo ở hãng, tiền về hôm qua, chuyển khoản chờ xác nhận, lãi lỗ. Nối Telegram ở **Cài đặt → 📲 Thông báo Telegram riêng** (làm 1 lần, 30 giây).
 
@@ -102,6 +103,19 @@ Ghi chú:
 - Quảng cáo máy tự lấy, không cần nhập.
 - **💰 Giá vốn sản phẩm** (giá nhập từng sản phẩm) sửa ở **Cài đặt**. Có giá vốn thì máy mới tính được lãi.
 - **🏦 Tiền & công nợ** (cuối trang): bấm **🔗 Nối link** để nối file Google Sheet kế toán (Sổ chi, Số dư ngân hàng, Công nợ). Máy tự đọc lại 3 tiếng 1 lần.
+
+## Hàng tồn kho tính bằng tiền
+
+Số lượng hàng do **người lo kho** ghi trên tab 📦 Kho (hàng về, lấy ra, đếm kho cuối tuần). Kế toán **không đếm lại**, chỉ xem số tiền.
+
+![Chọn ngày (1), giá trị tồn kho (2), sản phẩm chưa có giá (3), hàng về kho (4)](/huong-dan/img/ke-toan-ton-kho.webp)
+
+Kéo xuống mục **📦 Hàng tồn kho** ở cuối tab 💼 Kế toán:
+
+1. Chọn **Hôm nay**, hoặc **Cuối tháng …** khi chốt sổ cuối tháng.
+2. **Giá trị hàng tồn** = số hộp còn × giá nhập. Đây là số ghi vào báo cáo cuối tháng.
+3. Dòng **chưa có giá**: vào **Cài đặt → 💰 Giá vốn sản phẩm** thêm giá nhập. Dòng **chưa đếm**: nhắc người kho đếm sản phẩm đó.
+4. Bấm **📥 Hàng về kho** để xem từng lần hàng về (ngày, số lượng, người ghi). **Trước khi trả tiền nhà cung cấp**, so số trên hoá đơn với số ở đây. Hoá đơn ghi nhiều hơn số kho nhận thì hỏi người kho và nhà cung cấp trước khi trả.
 
 ## Theo dõi từ ngày nào?
 

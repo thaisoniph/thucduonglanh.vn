@@ -11,7 +11,7 @@ import { mktView, mktBudgetSet, mktGoalSet, mktDailyMsgs } from './mktv.js';
 import { crmSan, sanSchema, sanAllowed } from './san.js';
 import { crmKho, khoSchema, khoRetOut } from './kho.js';
 import { fetchXlsx, crmFin } from './fin.js';
-import { KT_ROLE_OK, ktSettingsOk, finOk, ktLoad, ktCfg, crmKt } from './kt.js';
+import { KT_ROLE_OK, ktSettingsOk, finOk, ktLoad, ktCfg, crmKt, ktKho } from './kt.js';
 import { crmSaleMkt, crmOffers } from './salemkt.js';
 import { cmsTokenSet, quizCms } from './cms.js';
 import { crmVoucher, voucherSchema } from './voucher.js';
@@ -2034,6 +2034,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (u.role === 'Marketing' && !MKT_ACTIONS[a]) return { ok: false, error: 'Tài khoản Marketing chỉ xem được phần quảng cáo.' };
   if (u.role === 'Kho' && !KHO_ROLE_OK[a] && !/^kho_/.test(a)) return { ok: false, error: 'Tài khoản Kho chỉ dùng được tab 📦 Kho.' };
   if (u.role === 'Kế toán' && ((!KT_ROLE_OK[a] && !/^kt_/.test(a)) || (a === 'settings' && !ktSettingsOk(d)))) return { ok: false, error: 'Tài khoản Kế toán chỉ dùng được tab 💼 Kế toán.' };
+  if (a === 'kt_kho') return ktKho(x, u); // 📦 giá trị tồn kho cho kế toán (chỉ đọc)
   if (a === 'kt_cash' || a === 'kt_cfg') return crmKt(x, u, d, crmLog); // 💼 tiền về tài khoản, ngày bắt đầu theo dõi (kt.js)
   if (u.role === 'Kế toán' && a === 'settings') return crmSettings(x, u, d); // chỉ chi phí / bảng lương / giá vốn (ktSettingsOk)
   if (a === 'kho_recv' || a === 'kho_find') return a === 'kho_recv' ? crmKhoRecv(x, u, d) : crmKhoFind(x, u, d); // ↩ hàng hoàn về kho (09/11/2026)

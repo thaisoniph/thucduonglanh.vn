@@ -19,6 +19,8 @@ Trang này dành cho **người lo kho**. Đọc khoảng 5 phút là làm đư�
 - Sắp hết thì **nhắn Telegram** cho bạn, ghi luôn **nên đặt bao nhiêu**.
 - Nhắc mỗi sáng **đến khi bạn bấm "✅ Tôi đã đặt hàng"**. Sáng hôm sau vẫn chưa bấm thì máy báo Quản trị.
 
+**Kế toán** xem được số hàng còn và hàng về kho (chỉ xem, không sửa) để tính giá trị tồn kho và so với hoá đơn nhà cung cấp. Vì vậy hãy ghi **📥 Hàng về kho** đúng ngày, đúng số lượng, ghi số hoá đơn ở ô ghi chú.
+
 **Mở ở đâu:** người lo kho mở CRM là vào thẳng **📦 Kho**. Quản lý, Quản trị: bấm **••• Thêm** → **Kho**.
 
 **Tài khoản Kho** (từ 09/11/2026): người chỉ lo kho được Quản trị cho quyền **Kho**. Tài khoản này chỉ thấy tab **📦 Kho** và **Cài đặt** (nối Telegram), không thấy khách, đơn, doanh số. Người vừa bán hàng vừa lo kho thì giữ quyền **Sale & CSKH** và được tích thêm ô **📦 Kiêm phụ trách kho**.

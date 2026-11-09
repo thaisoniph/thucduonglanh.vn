@@ -5164,6 +5164,7 @@
     var PL = dashPnl(T, b, bp, M, sj, R, P, month); h += dashMore('pnl', '🧮 Lãi lỗ sau mọi chi phí', PL.line, PL.body);
     var CO = dashCost(); if (CO) h += dashMore('cost', '📊 Chi phí lớn & cách tối ưu', CO.line, CO.body);
     h += '</section><section class="ktv-sec"><h2 class="ktv-h">🏦 Tiền & công nợ</h2>' + dashFin() + '</section>';
+    ktkLoad(); h += '<section class="ktv-sec"><h2 class="ktv-h">📦 Hàng tồn kho <small>tính bằng tiền</small></h2>' + ktkHTML() + '</section>';
     h += '<details class="box ktv-more"><summary>⚙️ Cài đặt kế toán</summary><p class="small">Theo dõi tiền về cho đơn đặt <b>từ ngày</b>: <input type="date" id="ktvFrom" value="' + esc(ktvCfg().from) + '"> <button class="btn sm" id="ktvFromSave">Lưu</button></p><p class="small muted">Đơn trước ngày này không tính vào tiền treo (thường là đơn đã đối soát xong ở sổ sách cũ).</p><p class="small muted">💰 Giá vốn sản phẩm sửa ở <a href="#cai-dat">Cài đặt</a>. Lương, mặt bằng… nhập ở mục 🧮 Lãi lỗ phía trên.</p></details>';
     return h + '</div>';
   }
@@ -5296,8 +5297,53 @@
     if (X.none.length) h += '<details class="small" style="margin-top:8px"><summary>❓ ' + X.none.length + ' dòng không thấy đơn trong CRM</summary><p class="muted">Đơn chưa lên CRM hoặc sai mã. Báo sale kiểm tra.</p>' + X.none.slice(0, 60).map(function (r) { return '<div>' + esc(r.label || r.wb) + ' · ' + esc(r.wb) + ' · ' + money(r.cod) + ' · ' + esc(r.payTxt) + '</div>'; }).join('') + '</details>';
     $('#ktvOut', m).innerHTML = h; var b = $('#ktvCodGo', m); b.hidden = !X.pay.length; b.textContent = '✅ Ghi tiền về ' + X.pay.length + ' đơn';
   }
+  /* ---------- 📦 Hàng tồn kho cho kế toán (09/11/2026): số lượng do người kho ghi trên tab Kho (chỉ xem), kế toán thấy thành tiền theo giá nhập (💰 Giá vốn ở Cài đặt).
+   * Lệnh kt_kho (api/src/kt.js ktKho): số còn hiện tại + số tồn đầu 3 tháng gần nhất (= cuối tháng trước) + hàng về kho 100 ngày (để so hoá đơn nhà cung cấp). */
+  var KTK = { d: null, busy: false, err: '', at: 0, sel: 'now' };
+  function ktkLoad(force) {
+    if (KTK.busy || (!force && KTK.d && Date.now() - KTK.at < 300e3)) return; KTK.busy = true; KTK.err = '';
+    api('kt_kho', {}).then(function (j) { KTK.d = j; KTK.at = Date.now(); }, function (e) { KTK.err = /Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message; })
+      .then(function () { KTK.busy = false; if (route().view === 'ke-toan') softRender(true); });
+  }
+  /** Giá nhập 1 đơn vị (chưa cộng % chi phí thêm), khớp tên như 💰 Giá vốn (costKey: loại + trọng lượng). null = chưa có giá. */
+  function ktkCost(name) {
+    var C = S.d.rules.cost; if (!C || !(C.items || []).length) return null;
+    var k = costKey(name), M = {}; C.items.forEach(function (r) { var q = costKey(r[0]); if (q.f === k.f && q.f) M[q.w] = r[1] / (q.m || 1); });
+    var ws = Object.keys(M); if (!ws.length) return null;
+    return M[k.w] || M[0] || (!k.w || ws.length === 1 ? M[Math.max.apply(null, ws.map(Number))] : null) || null; // bảng giá không ghi trọng lượng → dùng giá đó; tên kho không ghi trọng lượng → hộp lớn nhất
+  }
+  function ktkHTML() {
+    if (!KTK.d) return '<div class="box ktk-box"><h3>📦 Hàng tồn kho</h3><p class="muted small">' + (KTK.err ? '⚠️ ' + esc(KTK.err) + ' <button class="btn sm" data-ktk="re">Thử lại</button>' : '⏳ Đang lấy số kho…') + '</p></div>';
+    var D = KTK.d, items = D.items || [];
+    if (!items.length) return '<div class="box ktk-box"><h3>📦 Hàng tồn kho</h3><p class="small muted">Người lo kho chưa bật tab 📦 Kho trên CRM nên chưa có số hàng tồn.</p></div>';
+    var E = (D.ends || []).filter(function (e) { return items.some(function (it) { return e.q[it.id] != null; }); });
+    var sel = KTK.sel === 'now' ? null : E.filter(function (e) { return String(e.at) === KTK.sel; })[0];
+    if (KTK.sel !== 'now' && !sel) KTK.sel = 'now';
+    var endLbl = function (e) { var t = vnDate(e.at - 1000); return 'Cuối tháng ' + t.m + '/' + t.y; };
+    var tot = 0, miss = [], rows = items.map(function (it) {
+      var q = sel ? sel.q[it.id] : it.have, c = ktkCost(it.name), v = q != null && c != null ? q * c : null; if (v != null) tot += v; if (c == null) miss.push(it.name);
+      return '<tr><td>' + esc(it.name) + '</td><td class="num">' + (q == null ? '<span class="muted">chưa đếm</span>' : String(q).replace('.', ',') + ' ' + esc(it.unit || 'hộp')) + '</td><td class="num">' + (c == null ? '<span class="ktv-red">chưa có giá</span>' : money(Math.round(c))) + '</td><td class="num"><b>' + (v == null ? '–' : moneyShort(Math.round(v))) + '</b></td></tr>';
+    }).join('');
+    var name = {}; items.forEach(function (it) { name[it.id] = it.name; });
+    var ins = (D.ins || []).filter(function (m) { return name[m.item]; }), insV = 0;
+    var inRows = ins.slice(0, 60).map(function (m) { var c = ktkCost(name[m.item]), v = c != null ? c * m.qty : null; if (v != null) insV += v;
+      return '<tr><td>' + fDate(m.at).slice(0, 5) + '</td><td>' + esc(name[m.item]) + '</td><td class="num">' + String(m.qty).replace('.', ',') + '</td><td class="num">' + (v == null ? '–' : moneyShort(Math.round(v))) + '</td><td class="small muted">' + esc([m.by, m.note].filter(Boolean).join(' · ')) + '</td></tr>'; }).join('');
+    var h = '<div class="box ktk-box"><div class="ktk-h"><h3>📦 Hàng tồn kho <small>số lượng do kho ghi trên CRM, kế toán chỉ xem</small></h3>' +
+      '<select id="ktkSel" aria-label="Tính tồn kho tại"><option value="now"' + (sel ? '' : ' selected') + '>Hôm nay</option>' + E.map(function (e) { return '<option value="' + e.at + '"' + (sel === e ? ' selected' : '') + '>' + endLbl(e) + '</option>'; }).join('') + '</select></div>' +
+      '<p class="ktk-tot">Giá trị hàng tồn ' + (sel ? endLbl(sel).toLowerCase() : 'hôm nay') + ': <b>' + moneyShort(Math.round(tot)) + '</b> <small class="muted">(số lượng × giá nhập)</small></p>' +
+      (miss.length ? '<p class="small ktv-red">⚠️ ' + miss.length + ' sản phẩm chưa có giá nhập (' + esc(miss.slice(0, 3).join(', ')) + (miss.length > 3 ? '…' : '') + '): thêm ở Cài đặt → 💰 Giá vốn sản phẩm.</p>' : '') +
+      '<div class="ktk-scroll"><table class="ktk-t"><thead><tr><th>Sản phẩm</th><th class="num">Còn</th><th class="num">Giá nhập</th><th class="num">Thành tiền</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+      '<p class="small muted">Cuối tháng: chọn <b>Cuối tháng …</b> ở ô trên để lấy giá trị tồn kho chốt sổ. Số “chưa đếm” = kho chưa đếm sản phẩm đó lần nào trước ngày này.</p>' +
+      '<details class="ktk-in"' + (KTK.openIn ? ' open' : '') + '><summary>📥 Hàng về kho 100 ngày gần đây (' + ins.length + ' lần' + (insV ? ' · ' + moneyShort(Math.round(insV)) : '') + ') <small>so với hoá đơn nhà cung cấp trước khi trả tiền</small></summary>' +
+      (ins.length ? '<div class="ktk-scroll"><table class="ktk-t"><thead><tr><th>Ngày</th><th>Sản phẩm</th><th class="num">Số lượng</th><th class="num">Thành tiền</th><th>Người ghi · ghi chú</th></tr></thead><tbody>' + inRows + '</tbody></table></div>' : '<p class="small muted">Chưa có lần hàng về nào được ghi.</p>') +
+      '<p class="small muted">Hoá đơn ghi nhiều hơn số kho nhận: hỏi người kho và nhà cung cấp trước khi trả tiền.</p></details></div>';
+    return h;
+  }
   function bindKtab() {
     bindDash();
+    var ks = $('#ktkSel'); if (ks) ks.onchange = function () { KTK.sel = ks.value; softRender(true); };
+    var kr = $('[data-ktk="re"]'); if (kr) kr.onclick = function () { ktkLoad(true); softRender(true); };
+    var ki = $('.ktk-in'); if (ki) ki.ontoggle = function () { KTK.openIn = ki.open; };
     $$('[data-ktv]').forEach(function (el) {
       el.onclick = function () { var a = el.getAttribute('data-ktv').split('|'); if (a[0] === 'cod') openKtvCod(); else openKtvList(a[0], a[1] || ''); };
     });

@@ -4,6 +4,7 @@
 //   Kế toán tích tay từng đơn / nhiều đơn, hoặc tải file đối soát COD Best / Viettel Post (CRM đọc trên máy, khớp đơn, gửi lô kt_cash).
 // - 💤 Tiền treo ở hãng = đơn COD Đã giao / Đổi hàng từ ngày bắt đầu theo dõi (kv kt_cfg.from) mà chưa có cash_at. kt_cfg.on = lần đầu ghi tiền về → Tổng quan, tin 8h mới hiện số treo.
 import { all, run, allIn, kvJson, kvSet, fmtDate, startOfDay, esc, DAY } from './lib.js';
+import { khoItems, khoStats } from './kho.js';
 
 export const KT_ROLE = 'Kế toán';
 export const isKt = u => !!u && u.role === KT_ROLE;
@@ -93,5 +94,37 @@ export async function crmKt(x, u, d, log) {
   await log(x, u, 'Kế toán', items.length === 1 ? String(items[0].id || '-') : '-', '', off ? 'Bỏ ghi tiền về ' + done.length + ' đơn' : 'Tiền về ' + tag + ': ' + done.length + ' đơn, ' + sum.toLocaleString('vi-VN') + 'đ', errs.length ? 'Không thấy: ' + errs.slice(0, 20).join(', ') : '');
   const rows = done.length ? await allIn(x.db, 'SELECT * FROM orders WHERE rid IN (SELECT value FROM json_each(?))', done) : [];
   return { ok: true, n: done.length, sum, errors: errs, orders: rows.map(ktOrderOut), ktCfg: await ktCfg(x) };
+}
+/** 📦 kt_kho (09/11/2026): kế toán xem số hàng tồn (chỉ đọc, số do kho ghi trên CRM) để tính giá trị tồn kho + so hoá đơn nhà cung cấp với hàng về kho.
+ *  ends: số tồn lúc 0h ngày 1 của 3 tháng gần nhất (= cuối tháng trước), lùi từ số hiện tại: − nhập + xuất khác + hàng theo đơn đi − hàng hoàn về − chênh lệch kiểm kho (qty − sys).
+ *  Trước lần đếm kho đầu tiên: null (chưa có số gốc). Không trả khách / đơn nào. */
+export async function ktKho(x, u) {
+  if (!finOk(u)) return { ok: false, error: 'Chỉ Kế toán và Quản trị xem được mục này.' };
+  const items = (await khoItems(x)).filter(i => i.active);
+  if (!items.length) return { ok: true, items: [], ins: [], ends: [] };
+  const st = await khoStats(x, items), now = Date.now();
+  const mStart = (y, m) => new Date(Date.UTC(y, m, 1) - 7 * 3600e3).getTime(); // 0h ngày 1 giờ VN
+  const n = new Date(now + 7 * 3600e3), E = [0, 1, 2].map(k => mStart(n.getUTCFullYear(), n.getUTCMonth() - k)), e0 = E[2];
+  const [mv, outs, backs, first] = await Promise.all([
+    all(x.db, 'SELECT item, kind, qty, sys, at FROM kho_moves WHERE at > ?', e0),
+    all(x.db, "SELECT item, units, out_at FROM kho_out WHERE out_at > ? AND st IN ('o', 'b')", e0),
+    all(x.db, 'SELECT item, units, back_at FROM kho_out WHERE back_at > ?', e0),
+    all(x.db, "SELECT item, MIN(at) AS at FROM kho_moves WHERE kind = 'count' GROUP BY item")]);
+  const f0 = {}; first.forEach(r => { f0[r.item] = Number(r.at) || 0; });
+  const ends = E.map(t => {
+    const q = {};
+    st.forEach(s => {
+      if (s.have === null || !f0[s.id] || f0[s.id] > t) { q[s.id] = null; return; }
+      let h = s.have;
+      mv.forEach(m => { if (m.item !== s.id || m.at <= t) return; const v = Number(m.qty) || 0; if (m.kind === 'in') h -= v; else if (m.kind === 'out') h += v; else if (m.kind === 'count' && m.sys !== null) h -= v - (Number(m.sys) || 0); });
+      outs.forEach(o => { if (o.item === s.id && o.out_at > t) h += Number(o.units) || 0; });
+      backs.forEach(o => { if (o.item === s.id && o.back_at > t) h -= Number(o.units) || 0; });
+      q[s.id] = Math.round(h * 10) / 10;
+    });
+    return { at: t, q };
+  });
+  const ins = await all(x.db, "SELECT item, qty, note, by_name, at FROM kho_moves WHERE kind = 'in' AND at > ? ORDER BY at DESC LIMIT 300", now - 100 * DAY);
+  return { ok: true, items: st.map(s => ({ id: s.id, name: s.name, unit: s.unit, have: s.have, countAt: s.countAt })), ends,
+    ins: ins.map(m => ({ item: m.item, qty: Number(m.qty) || 0, note: m.note || '', by: m.by_name || '', at: m.at })) };
 }
 export { CARRIERS };
