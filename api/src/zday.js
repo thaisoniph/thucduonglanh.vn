@@ -91,6 +91,33 @@ const EVENTS = [
 ];
 for (const e of EVENTS) { const [cal, dm] = e.k.split(' '), [d, m] = dm.split('/').map(Number); e.cal = cal; e.d = d; e.m = m || 0; }
 
+/* ---------------------------------------------------------------- 🎉 Gợi ý chúc khách cho sale (CRM → Hôm nay, 09/11/2026)
+ * Mỗi dịp: k = chuc (lời chúc, không chào bán) | qua (gợi ý quà: chỉ khách đồng ý nhận ưu đãi), o..to = gửi từ ngày nào tới ngày nào so với ngày lễ,
+ * who = all (mọi khách + khách hỏi) | close (khách thân: VIP, mua từ 2 lần), t = tin mẫu ([Tên], [Sản phẩm] CRM tự điền). Sale sửa được trước khi gửi;
+ * quản lý đổi mẫu ở Cài đặt → Mẫu tin: dòng có Thời điểm = tên dịp (vd "Chúc Tết", "Chúc rằm", "Quà 8/3"). */
+const QUA = (lead, who, tail) => 'Dạ [Tên] ơi, ' + lead + '. Nếu [Tên] muốn ' + who + ' một món quà sức khỏe, [Tên] có thể chọn [Sản phẩm] hoặc để em gợi ý thêm món hợp với người nhận ạ. Đơn từ 300K được freeship, được kiểm hàng trước khi nhận.' + (tail || ' Mình đặt sớm vài ngày cho kịp nha.');
+const SALE = {
+  tet: [{ k: 'qua', o: -16, to: -8, n: 'Quà Tết', t: QUA('Tết sắp đến rồi ạ', 'biếu ông bà, cha mẹ hay người thân', ' Cận Tết bên giao hàng rất đông đơn, mình đặt sớm để kịp nhận trước Tết nha.') },
+    { k: 'chuc', o: -1, to: 2, who: 'all', n: 'Chúc Tết', t: c => 'Dạ [Tên] ơi, nhân dịp năm mới ' + c.l.yName + ', em ở Thực Dưỡng Lành kính chúc [Tên] và gia đình một năm an khang, mạnh khỏe, vạn sự như ý ạ 🌸 Cảm ơn [Tên] đã luôn tin tưởng và đồng hành cùng bên em.' }],
+  tetduong: [{ k: 'chuc', o: 0, to: 1, who: 'all', n: 'Chúc năm mới', t: c => 'Dạ [Tên] ơi, năm mới ' + c.s.y + ' em chúc [Tên] và gia đình luôn mạnh khỏe, bình an và thật nhiều niềm vui ạ 🌿 Cảm ơn [Tên] đã đồng hành cùng Thực Dưỡng Lành.' }],
+  nguyentieu: [{ k: 'chuc', o: 0, to: 0, who: 'close', n: 'Chúc rằm tháng Giêng', t: 'Dạ [Tên] ơi, hôm nay rằm tháng Giêng, em chúc [Tên] và gia đình một năm mới bình an, mọi điều hanh thông ạ 🌕' }],
+  pn83: [{ k: 'qua', o: -6, to: -2, n: 'Quà 8/3', t: QUA('8/3 sắp tới rồi ạ', 'tặng mẹ, vợ hay chị em') },
+    { k: 'chuc', o: 0, to: 0, who: 'all', n: 'Chúc 8/3', t: 'Dạ [Tên] ơi, nhân ngày Quốc tế Phụ nữ 8/3, em ở Thực Dưỡng Lành chúc [Tên] và những người phụ nữ trong gia đình luôn khỏe mạnh, rạng rỡ và được yêu thương ạ 🌷' }],
+  le304: [{ k: 'chuc', o: -1, to: 0, who: 'close', n: 'Chúc nghỉ lễ 30/4', t: 'Dạ [Tên] ơi, kỳ nghỉ lễ 30/4 – 1/5 này em chúc [Tên] và gia đình có những ngày nghỉ thật vui, an toàn và khỏe mạnh ạ ☀️' }],
+  giadinh: [{ k: 'chuc', o: 0, to: 0, who: 'close', n: 'Chúc Ngày Gia đình', t: 'Dạ [Tên] ơi, nhân Ngày Gia đình Việt Nam 28/6, em chúc [Tên] và cả nhà luôn khỏe mạnh, hạnh phúc, có thật nhiều bữa cơm sum vầy ạ 🏡' }],
+  vulan: [{ k: 'qua', o: -7, to: -2, n: 'Quà Vu Lan', t: QUA('mùa Vu Lan sắp đến rồi ạ', 'gửi ông bà, cha mẹ') },
+    { k: 'chuc', o: 0, to: 0, who: 'all', n: 'Chúc Vu Lan', t: 'Dạ [Tên] ơi, mùa Vu Lan báo hiếu, em chúc ông bà, cha mẹ của [Tên] luôn mạnh khỏe, bình an, và gia đình mình luôn đầm ấm, yêu thương ạ 🌿' }],
+  quockhanh: [{ k: 'chuc', o: -1, to: 0, who: 'close', n: 'Chúc nghỉ lễ 2/9', t: 'Dạ [Tên] ơi, nghỉ lễ Quốc khánh 2/9 này em chúc [Tên] và gia đình có những ngày nghỉ thật vui, an toàn và khỏe mạnh ạ 🇻🇳' }],
+  trungthu: [{ k: 'qua', o: -9, to: -3, n: 'Quà Trung thu', t: QUA('Trung thu sắp tới rồi ạ', 'biếu ông bà, cha mẹ, thầy cô hay đối tác') },
+    { k: 'chuc', o: 0, to: 0, who: 'all', n: 'Chúc Trung thu', t: 'Dạ [Tên] ơi, Trung thu này em chúc [Tên] và gia đình đoàn viên, ấm áp, các bé vui khỏe ạ 🌕' }],
+  pn2010: [{ k: 'qua', o: -6, to: -2, n: 'Quà 20/10', t: QUA('20/10 sắp tới rồi ạ', 'tặng mẹ, vợ hay chị em') },
+    { k: 'chuc', o: 0, to: 0, who: 'all', n: 'Chúc 20/10', t: 'Dạ [Tên] ơi, nhân ngày Phụ nữ Việt Nam 20/10, em ở Thực Dưỡng Lành chúc [Tên] và những người phụ nữ trong gia đình luôn khỏe mạnh, rạng rỡ và được yêu thương ạ 🌷' }],
+  hanguyen: [{ k: 'chuc', o: 0, to: 0, who: 'close', n: 'Chúc rằm tháng 10', t: 'Dạ [Tên] ơi, hôm nay rằm tháng Mười, mùa cơm mới. Em chúc [Tên] và gia đình ngày rằm bình an, bữa cơm nhà mình luôn đầm ấm ạ 🌾' }],
+  nhagiao: [{ k: 'qua', o: -6, to: -2, n: 'Quà 20/11', t: QUA('20/11 sắp tới rồi ạ', 'tặng thầy cô của mình hoặc của con') }],
+  mung1: [{ k: 'chuc', o: 0, to: 0, who: 'close', n: c => 'Chúc mùng 1 ' + mon(c), t: c => 'Dạ [Tên] ơi, hôm nay mùng 1 ' + mon(c) + ' âm lịch, em chúc [Tên] và gia đình tháng mới bình an, mạnh khỏe, mọi việc thuận lợi ạ 🌿' }],
+  ram: [{ k: 'chuc', o: 0, to: 0, who: 'close', n: c => 'Chúc rằm ' + mon(c), t: c => 'Dạ [Tên] ơi, hôm nay rằm ' + mon(c) + ', em chúc [Tên] và gia đình ngày rằm bình an, an lạc ạ 🌕' }]
+};
+
 /** 'yyyyMMdd' ± n ngày (lịch dương) */
 export const addDay = (day, n) => { const t = new Date(Date.UTC(+day.slice(0, 4), +day.slice(4, 6) - 1, +day.slice(6, 8) + n)); return t.getUTCFullYear() + String(t.getUTCMonth() + 1).padStart(2, '0') + String(t.getUTCDate()).padStart(2, '0'); };
 export const weekday = day => new Date(Date.UTC(+day.slice(0, 4), +day.slice(4, 6) - 1, +day.slice(6, 8))).getUTCDay(); // 0 = Chủ nhật
@@ -138,4 +165,22 @@ export function upcoming(from, n, base) {
     for (const s of ['sang', 'toi']) { const t = dayTheme(d, s, base, true); if (t.ev) out.push({ d, s, ev: t.ev, f: t.f, offer: t.offer ? 1 : 0, moved: t.moved ? 1 : 0, lu: ctx(d).l.text }); }
   }
   return out;
+}
+
+/** 🎉 Dịp chúc khách trong n ngày từ `from` (CRM → Hôm nay). Mỗi dịp: { id, k, n, camp, t, who, from, to, ev, lu }.
+ * camp = tên chương trình để ghi nhật ký "Gửi lời chúc" (mỗi khách 1 lần / dịp) và đo khách đặt đơn trong 14 ngày sau. Cùng loại trùng ngày → giữ dịp ưu tiên cao hơn (Tết > mùng 1). */
+export function saleDays(from, n) {
+  const got = {};
+  for (let i = 0; i < n; i++) {
+    const d = addDay(from, i);
+    for (const e of EVENTS) for (const sl of SALE[e.id] || []) for (let k = sl.o; k <= sl.to; k++) {
+      const ev = addDay(d, -k), c = ctx(ev); if (!hit(e, c)) continue;
+      const id = e.id + '_' + sl.k + '_' + ev; if (got[id]) continue;
+      const nm = val(sl.n, c);
+      got[id] = { id, k: sl.k, n: nm, camp: nm + ' ' + ev.slice(6, 8) + '/' + ev.slice(4, 6) + '/' + ev.slice(2, 4), t: val(sl.t, c), who: sl.who || 'all', from: addDay(ev, sl.o), to: addDay(ev, sl.to), ev, lu: c.l.text, p: e.p };
+    }
+  }
+  const L = Object.values(got).sort((a, b) => a.p - b.p);
+  const keep = L.filter((a, i) => !L.slice(0, i).some(b => b.k === a.k && b.p < a.p && b.from <= a.to && a.from <= b.to));
+  return keep.sort((a, b) => a.from < b.from ? -1 : a.from > b.from ? 1 : a.p - b.p).map(({ p, ...r }) => r);
 }

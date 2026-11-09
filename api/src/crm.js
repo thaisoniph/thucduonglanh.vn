@@ -20,6 +20,7 @@ import { crmAi } from './ai.js';
 import { guideAsk, guideAskList } from './guideask.js';
 import { crmAsk, askAllowed } from './ask.js';
 import { crmMcp } from './mcp.js';
+import { saleDays } from './zday.js';
 import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, wbInfoQueue, wbOrderInfo, WB_SHORT } from './wb.js';
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
@@ -534,6 +535,7 @@ async function loadSmall(x, u, R, mode, adV) {
   const [ct, tg, cy, tp] = (await smallQ).map(r => r.results || []), ar = await adsP, areas = await areasP.catch(() => undefined);
   return {
     ok: true, user: publicUser(u), areas, sanOk, kho, now: Date.now(), today: startOfDay(Date.now()), fbNew, users, prefs, tagColors, sources, ads, adV: ar.v, adRows: ar.rows, qrLinks,
+    occ: saleDays(fmtDate(Date.now() - 864e5, 'yyyyMMdd'), 5), // 🎉 dịp chúc khách hôm qua → 3 ngày tới (zday.js), CRM tự lọc theo ngày
     contacts: ct.reverse().map(contactOut), targets: tg.map(t => ({ month: t.month, name: t.name, amount: t.amount || 0, by: t.by_name || '', at: t.at })),
     cycles: cy.filter(r => r.name).map(r => [r.name, r.variant || '', Number(r.days) || 0, r.basis || '']), templates: tp.filter(r => r.text).map(r => [r.when_txt || '', r.purpose || '', r.text]),
     rules: { backCost: Number(dash.backCost) || 0, ai: !!x.env.ANTHROPIC_API_KEY && u.role !== 'Marketing', vipOrders: R.vipOrders, vipSpent: R.vipSpent, atRisk: R.atRisk, coolDays: R.coolDays, shipDays: R.shipDays, shipFar: R.shipFar, famMin: R.famMin, otypes: OTYPES, commission, payplan, staffGuard, dash: u.level >= 3 || u.role === 'Marketing' || u.mkv ? dash : null, mktDoc, cost, opex, fin, ktLink: ktLink && ktLink.link ? ktLink : null, statuses: ORDER_STATUS, results: CARE_RESULTS, leadStatus: LEAD_STATUS, assignMode: mode, bot: BOT_USERNAME, ca, lines: LINES.map(l => l[0]).concat(['Khác']) }
@@ -1407,6 +1409,13 @@ async function crmGift(x, u, d) {
   await crmLog(x, u, 'Gửi quà tặng', phone, String(d.name || '').slice(0, 100), String(d.gift || '').slice(0, 100), '');
   return { ok: true };
 }
+/** 🎉 Sale gửi lời chúc (ngày lễ, sinh nhật) cho khách / khách hỏi qua Zalo → Nhật ký "Gửi lời chúc" (kết quả = tên dịp). Không tính là chăm sóc, không đổi ngày chăm sóc. */
+async function crmGreet(x, u, d) {
+  const phone = normPhone(d.phone); if (!/^0\d{9,10}$/.test(phone)) return { ok: false, error: 'Số điện thoại chưa đúng.' };
+  if (u.level < 2) { const ow = await ownerOf(x, phone); if (ow && ow !== u.name) return { ok: false, error: 'Khách này do ' + ow + ' phụ trách.' }; }
+  await crmLog(x, u, 'Gửi lời chúc', phone, String(d.name || '').slice(0, 100), String(d.occ || '').slice(0, 100), '');
+  return { ok: true };
+}
 async function crmContact(x, u, d) {
   if (u.level < 2) return { ok: false, error: 'Chỉ quản lý xử lý liên hệ từ website.' }; // sale không thấy tab Liên hệ (16/10/2026)
   const r = await first(x.db, 'SELECT * FROM contacts WHERE rid = ?', Number(d.row) || 0); if (!r) return { ok: false, error: 'Không tìm thấy liên hệ' };
@@ -1790,7 +1799,7 @@ async function crmUsage(x, u, d) {
 const USE_CARE = { 'Tư vấn': 1, 'Trả lời liên hệ': 1, 'Ghi nhanh': 1 };
 Object.keys(TASK_LABEL).forEach(k => { USE_CARE[TASK_LABEL[k]] = 1; });
 const USE_ORDER = { 'Tạo đơn': 1, 'Sửa đơn': 1, 'Đơn hàng': 1, 'Loại đơn': 1 };
-function useKind(what) { return USE_CARE[what] ? 'care' : USE_ORDER[what] ? 'order' : what === 'Gửi ưu đãi' ? 'promo' : 'other'; }
+function useKind(what) { return USE_CARE[what] ? 'care' : USE_ORDER[what] ? 'order' : what === 'Gửi ưu đãi' || what === 'Gửi lời chúc' ? 'promo' : 'other'; }
 const USE_MILES = [['login', 'Đăng nhập lần đầu'], ['tg', 'Kết nối Telegram'], ['care', 'Ghi chăm sóc đầu tiên'], ['promo', 'Gửi ưu đãi Zalo'], ['order', 'Tạo đơn đầu tiên'], ['steady', 'Dùng đều 5/7 ngày']];
 const USE_IDLE_DAYS = 2;
 
@@ -2048,7 +2057,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (opKey) { const done = await kvGet(x.db, opKey); if (done) return JSON.parse(done); }
   const h = { care: crmCare, customer: crmCustomer, order_status: crmOrderStatus, recon_apply: crmReconApply, contact: crmContact, settings: crmSettings, users: crmSaveUsers, order_edit: crmOrderEdit,
     lead_save: crmLeadSave, lead_contact: crmLeadContact, target: crmTarget, assign: crmAssign, bulk: crmBulk, recv: crmRecv, claim: crmClaim,
-    order_delete: crmOrderDelete, customer_delete: crmCustomerDelete, lead_delete: crmLeadDelete, gift: crmGift, stop: crmStop }[a];
+    order_delete: crmOrderDelete, customer_delete: crmCustomerDelete, lead_delete: crmLeadDelete, gift: crmGift, greet: crmGreet, stop: crmStop }[a];
   if (h) {
     const res = await h(x, u, d);
     if (opKey && res && res.ok) { await kvSet(x.db, opKey, JSON.stringify(res), 6 * 3600e3); if (Math.random() < 0.02) await run(x.db, "DELETE FROM kv WHERE k LIKE 'op\\_%' ESCAPE '\\' AND exp < ?", Date.now()); }
