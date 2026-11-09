@@ -56,6 +56,7 @@ Tài khoản Quản trị không nằm trong bảng so sánh nhân sự. Doanh s
     - *Quản lý giao tay*: khách mới chờ quản lý giao.
     - *Kho chung*: khách mới nằm ở Kho chung. Ai xác nhận đơn hoặc chăm sóc trước thì được khách.
 - **Khách để lại số trên web** (nhận ebook, xin vào nhóm Zalo, form liên hệ): dù chọn chế độ nào, khách mới chưa từng mua **luôn chờ quản lý giao**. Sale không thấy và không tự nhận được. Giao ở tab **Hôm nay → 🧺 Kho chung**, hoặc tab **Khách hỏi** bấm mục **🧺 Chờ giao** để xem danh sách. Khách đã có người phụ trách từ trước thì vẫn về người đó.
+- **⏳ Số chưa chốt tự về Kho chung** (từ 09/11/2026, chỉ chạy ở chế độ *Kho chung*): khách hỏi do công ty giao (file số quảng cáo, web, quản lý giao) mà sale giữ quá **N ngày** (mặc định 7) chưa chốt và không có lịch hẹn thì tự về Kho chung, cả phòng thấy và ai cũng nhận được. Sale được Telegram báo trước 1 ngày; khi số về kho, Telegram báo sale đó và báo nhóm. Ghi **0** để tắt. Ô thứ hai: mỗi người nhận từ kho tối đa bao nhiêu số 1 ngày (mặc định 10, 0 = không giới hạn). Không áp dụng cho khách sale tự tìm, khách do khách cũ giới thiệu, file cũ; mỗi số về kho tối đa 2 lần. Nhật ký ghi dòng **Về kho chung** (người làm: *Kho chung (tự động)*). Số về kho mang nhãn **↩ từ [tên]** để người nhận đọc lịch sử trước.
 - **Ai được nhận khách mới**: bật hoặc tắt cho từng người. Ví dụ tắt khi nghỉ phép.
 - **Chia đều khách chưa ai phụ trách**: dùng 1 lần cho khách cũ.
 - **Chuyển toàn bộ khách của A sang B**: dùng khi có người nghỉ việc.

@@ -109,6 +109,8 @@ button.tag { border: 0; cursor: pointer; font-family: inherit; line-height: inhe
 .tag.st-xong { background: #e6f4ea; color: var(--primary); }
 .tag.st-huy { background: #eee; color: #888; text-decoration: line-through; }
 .tag.owner { background: var(--primary-soft); color: var(--primary); font-weight: 600; }
+.tag.pool { background: var(--blue-light); color: var(--blue); }
+.tag.pool-due { background: #fff3c4; color: #7a5a00; font-weight: 600; }
 .tag.noconsent { background: var(--orange-light); color: var(--orange); font-weight: 600; }
 
 /* ---------- nút */

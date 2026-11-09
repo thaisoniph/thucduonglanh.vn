@@ -211,6 +211,18 @@ Khách để lại số trên web hay quảng cáo thì **tự vào đây**, b�
 
 > **Khách mới hỏi rất dễ chốt.** Mục **🔥 Khách vừa hỏi** ở tab Hôm nay là người vừa hỏi trong 24 giờ. Gọi ngay khi thấy.
 
+**Số giữ quá 7 ngày chưa chốt thì về Kho chung (từ 09/11/2026):**
+
+Đôi khi mình chưa chốt được nhưng bạn khác lại hợp với khách hơn. Vì vậy số khách hỏi do **công ty giao** (file số quảng cáo, web, quản lý giao) mà bạn giữ **quá 7 ngày chưa chốt và không có lịch hẹn** sẽ tự về **Kho chung** để cả phòng cùng khai thác. Số ngày do quản lý đặt, có thể khác 7.
+
+1. **Trước 1 ngày**, Telegram báo riêng cho bạn: *"⏳ Ngày mai về Kho chung"* kèm danh sách. Trên thẻ khách hỏi cũng hiện nhãn **⏳ còn 1 ngày về Kho chung**.
+2. Muốn giữ số thì **gọi hoặc nhắn ngay**. Khách hẹn thì bấm **💬 Tư vấn → chọn ngày hẹn** (Mai / 3 ngày / 1 tuần): số được giữ tới ngày hẹn.
+3. Hết hạn mà vẫn chưa chốt, chưa hẹn: số về Kho chung, Telegram báo bạn và báo cả nhóm. Lịch sử tư vấn của bạn vẫn còn trong số đó.
+4. **Nhận số từ Kho chung:** tab **Hôm nay** kéo xuống mục **🧺 Kho chung – ai nhận cũng được** (hoặc tab **Khách hỏi** bấm mục **🧺 Kho chung**). Số có nhãn **↩ từ [tên]** là số người khác đã gọi. **Đọc lịch sử tư vấn trước** rồi bấm **✋ Nhận khách này**. Thử cách khác người trước: nhắn Zalo thay vì gọi, hỏi về nỗi lo khác, đổi giờ gọi.
+5. Mỗi ngày mỗi người nhận tối đa **10 số** từ kho (quản lý đặt được số khác) để ai cũng có phần. **Ai chốt thì người đó được tính doanh số.**
+
+**Không về kho:** khách bạn **tự tìm** (bạn tự thêm vào CRM), khách do **khách cũ giới thiệu**, khách trong file cũ, khách đã bấm **Không mua**. Mỗi số chỉ về kho tối đa 2 lần, sau đó ở lại với người đang giữ.
+
 ## Việc 5: Cuối ngày gửi báo cáo
 
 1. Vào tab **Hôm nay**, kéo xuống cuối trang.

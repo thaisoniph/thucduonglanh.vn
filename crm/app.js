@@ -627,7 +627,7 @@
   var MODE_INFO = {
     auto: ['Tự chia đều', 'Khách mới (đơn web, form liên hệ) tự giao lần lượt cho những người đang bật “Nhận khách mới”.'],
     manager: ['Quản lý giao tay', 'Khách mới nằm ở mục “Chờ giao” (chỉ quản lý thấy). Quản lý chọn người phụ trách cho từng khách.'],
-    pool: ['Kho chung', 'Khách mới chưa ai phụ trách nằm ở mục Kho chung tab Hôm nay (chỉ quản lý thấy) để quản lý giao. Nhân viên xác nhận đơn / chăm sóc khách đó trước thì khách thuộc về người đó.']
+    pool: ['Kho chung', 'Khách mới chưa ai phụ trách nằm ở mục Kho chung tab Hôm nay (chỉ quản lý thấy) để quản lý giao. Nhân viên xác nhận đơn / chăm sóc khách đó trước thì khách thuộc về người đó. Khách hỏi công ty giao mà quá hạn chưa chốt cũng tự về Kho chung cho cả phòng cùng khai thác (số ngày chỉnh ở ô ⏳ bên dưới).']
   };
   var phoneTimer = null;
   /** Hỏi máy chủ số điện thoại này đang do ai phụ trách (nhân viên không xem được khách của người khác). */
@@ -1412,6 +1412,7 @@
     // 30/10/2026 thứ tự theo tiền: đơn mới → khách vừa hỏi → chăm sóc (hẹn, sắp hết) → khách hỏi → 🌱 giới thiệu (tiền về sau, xây nguồn khách không tốn quảng cáo)
     h += refThanksBlock(); // 🎁 bạn bè khách cũ đã đặt → báo voucher / quà cảm ơn người giới thiệu
     h += ambBlock(q.list.reduce(function (m, c) { m[c.phone] = 1; return m; }, {}), hot.length ? '5️⃣' : '4️⃣');
+    if (isPoolStaff()) h += poolBlock(); // 🧺 việc dự phòng khi hết số quảng cáo: số chưa ai chốt, ai nhận cũng được
 
     if (doneToday.length) h += '<section class="section"><details class="grp" data-grp="done"' + (S.f.gopen && S.f.gopen.done ? ' open' : '') + '><summary><span class="g-t">✅ Đã làm hôm nay</span><span class="count">' + doneToday.length + '</span></summary><div class="timeline" style="padding:12px">' +
       doneToday.slice(0, 40).map(logItem).join('') + '</div></details></section>';
@@ -1450,6 +1451,13 @@
     S.d.orders.forEach(function (o) { var x = st[orderOwner(o)], y = st[o.seller]; if (x && o.status === 'Mới') x.newO++; if (y && o.time >= t0 && !isVoid(o.status)) { y.sold++; y.rev += Number(o.total) || 0; } });
     return st;
   }
+  /** Sale (chế độ Kho chung): khách hỏi chưa ai phụ trách, kể cả số người khác giữ quá hạn → đọc lịch sử rồi ✋ Nhận. Việc dự phòng khi hết số quảng cáo. */
+  function poolBlock() {
+    var ls = (S.d.leads || []).filter(function (l) { return !l.owner && isOpenLead(l); }).sort(function (a, b) { return (b.ownAt || b.time) - (a.ownAt || a.time); });
+    if (!ls.length) return '';
+    var R = S.d.rules || {}, t0 = today(), got = (S.d.log || []).filter(function (l) { return l.by === S.user.name && l.what === 'Nhận khách' && l.time >= t0; }).length;
+    return '<section class="section"><details class="grp" data-grp="pool"' + (S.f.gopen && S.f.gopen.pool ? ' open' : '') + '><summary><span class="g-t">🧺 Kho chung – ai nhận cũng được</span><span class="count">' + ls.length + '</span><span class="g-tip">khách hỏi chưa ai chốt · đọc lịch sử rồi bấm ✋ Nhận' + (R.poolMax ? ' · hôm nay bạn đã nhận ' + got + ' / ' + R.poolMax : '') + '</span></summary><div class="list cols" style="padding:10px">' + capRows(ls, leadCard) + '</div></details></section>';
+  }
   /** Quản lý: khách / khách hỏi chưa có người phụ trách → giao ngay tại chỗ. */
   function waitingBlock() {
     var cs = S.d.customers.filter(function (c) { return !c.owner && (c.task || (c.last && today() - dayStart(c.last) <= 30 * DAY)); }).sort(function (a, b) { return (b.last || 0) - (a.last || 0); });
@@ -1460,7 +1468,7 @@
     return '<section class="section"><details class="grp" data-grp="waiting"' + (S.f.gopen && S.f.gopen.waiting ? ' open' : '') + '><summary><span class="g-t">🧺 Kho chung – chờ giao người phụ trách</span><span class="count">' + (cs.length + ls.length) + '</span><span class="g-tip">chỉ quản lý thấy · chọn “Giao cho…” để giao khách · chế độ hiện tại: ' + MODE_INFO[mode()][0] + ' (đổi ở Cài đặt)</span></summary><div style="padding:10px">' +
       (cs.length + ls.length ? '<div class="list cols">' +
         cs.slice(0, 20).map(function (c) { return '<div class="card"><div class="r1"><b>' + esc(c.name) + '</b>' + custTags(c) + '<span class="end">' + moneyShort(c.spent) + '</span></div><div class="r2">' + fPhone(c.phone) + ' · mua ' + daysAgo(c.last) + '</div><div class="acts">' + sel('c', c.phone) + '</div></div>'; }).join('') +
-        ls.slice(0, 20).map(function (l) { return '<div class="card"><div class="r1"><b>' + esc(l.name) + '</b>' + leadTag(l) + '<span class="end small muted">' + esc(chLabel(l.channel)) + '</span></div><div class="r2">' + fPhone(l.phone) + (l.interest ? ' · ' + esc(l.interest) : '') + ' · hỏi ' + daysAgo(l.time) + '</div><div class="acts">' + sel('l', l.id) + '</div></div>'; }).join('') + '</div>' : '') +
+        ls.slice(0, 20).map(function (l) { return '<div class="card"><div class="r1"><b>' + esc(l.name) + '</b>' + leadTag(l) + '<span class="end small muted">' + esc(chLabel(l.channel)) + '</span></div><div class="r2">' + fPhone(l.phone) + (l.interest ? ' · ' + esc(l.interest) : '') + ' · hỏi ' + daysAgo(l.time) + (l.poolFrom ? ' · ↩ từ ' + esc(l.poolFrom) + (l.poolN > 1 ? ' (vòng ' + l.poolN + ')' : '') : '') + '</div><div class="acts">' + sel('l', l.id) + '</div></div>'; }).join('') + '</div>' : '') +
       (allC > cs.length ? '<p class="small muted">Tổng cộng ' + allC + ' khách (kể cả khách cũ) chưa ai phụ trách. Vào <a href="#cai-dat">Cài đặt → Chia khách</a> để chia đều một lần.</p>' : '') + '</div></details></section>';
   }
   /** Nhóm dài: chỉ hiện vài thẻ đầu, phần còn lại bấm “Xem thêm” mới hiện (đỡ dài dằng dặc). */
@@ -3377,10 +3385,22 @@
     return '';
   }
   function lastNote(l) { var n = leadNoteFmt(l.note).trim().split('\n').filter(Boolean); return n.length ? n[n.length - 1].replace(/^\[[^\]]*\]\s*/, '') : ''; }
+  /** 🧺 Kho chung (09/11/2026): số công ty giao quá N ngày chưa chốt, không có hẹn → tự về kho. Chỉ số công ty giao: không phải sale tự thêm, không phải khách giới thiệu, không phải file cũ, hỏi trong 45 ngày. */
+  function poolApplies(l) { return !!l.owner && (l.by || '') !== l.owner && !l.refPhone && !l.refName && !/^File cũ/.test(l.channel || '') && (l.poolN || 0) < 2 && Date.now() - l.time < 45 * DAY; }
+  /** Nhãn trên thẻ khách hỏi: người đang giữ thấy đếm ngược (còn ≤ 2 ngày); số đã về kho ghi “↩ từ …” để người nhận biết đọc lịch sử. */
+  function poolTag(l) {
+    var R = S.d.rules || {}, N = R.poolDays;
+    if (!isOpenLead(l) || mode() !== 'pool') return '';
+    if (!l.owner) return l.poolFrom ? '<span class="tag pool" title="' + esc(l.poolFrom) + ' giữ số này quá ' + N + ' ngày chưa chốt nên số về Kho chung. Đọc lịch sử tư vấn bên dưới rồi thử cách khác.">↩ từ ' + esc(l.poolFrom) + (l.poolN > 1 ? ' · vòng ' + l.poolN : '') + '</span>' : '';
+    if (!N || !poolApplies(l)) return '';
+    var cb = l.callback && l.callback > Date.now() - DAY, left = N - Math.floor((Date.now() - (l.ownAt || l.time)) / DAY);
+    if (cb || left > 2) return '';
+    return '<span class="tag pool-due" title="Khách hỏi công ty giao quá ' + N + ' ngày chưa chốt và không có lịch hẹn thì tự về Kho chung cho cả phòng khai thác. Khách hẹn thì bấm 💬 Tư vấn → chọn ngày hẹn, số được giữ tới ngày hẹn.">⏳ ' + (left > 0 ? 'còn ' + left + ' ngày' : 'sắp') + ' về Kho chung</span>';
+  }
   function leadCard(l) {
     var open = isOpenLead(l), due = /^(new|stale)$/.test(leadDue(l) || '') ? '' : leadDueLine(l), note = lastNote(l), c = cust(l.phone);
     return '<div class="card click" data-lead="' + esc(l.id) + '">' +
-      '<div class="r1"><b>' + esc((c && c.name) || l.name || 'Khách') + '</b>' + leadTags(l, c) + (c ? custTags(c) : '') + (l.owner ? (lvl() >= 2 || l.owner !== S.user.name ? '<span class="tag owner">👤 ' + esc(l.owner) + '</span>' : '') : '<span class="tag noconsent">Chưa ai phụ trách</span>') + '<span class="end small muted" title="' + esc(l.channel) + '">' + srcIcon(chLabel(l.channel)) + esc(chLabel(l.channel)) + '</span></div>' +
+      '<div class="r1"><b>' + esc((c && c.name) || l.name || 'Khách') + '</b>' + leadTags(l, c) + (c ? custTags(c) : '') + (l.owner ? (lvl() >= 2 || l.owner !== S.user.name ? '<span class="tag owner">👤 ' + esc(l.owner) + '</span>' : '') : '<span class="tag noconsent">Chưa ai phụ trách</span>') + poolTag(l) + '<span class="end small muted" title="' + esc(l.channel) + '">' + srcIcon(chLabel(l.channel)) + esc(chLabel(l.channel)) + '</span></div>' +
       '<div class="r2">' + cpPhone(l.phone) + (leadProv(l) ? ' · 📍 ' + esc(leadProv(l).old) : '') + (l.interest ? ' · Quan tâm: ' + esc(intLabel(l.interest)) : '') + (l.refPhone || l.refName ? ' · 🎁 ' + esc(refWho(l.refPhone, l.refName)) + ' giới thiệu' : '') + '</div>' +
       '<div class="r-age">' + leadAge(l) + (c ? '<button type="button" class="age-miss link-cust" data-cust="' + c.phone + '" title="Mở hồ sơ khách đã mua">👤 ' + c.orders + ' đơn · ' + moneyShort(c.spent) + ' · mua gần nhất ' + daysAgo(c.last) + ' ›</button>' : '') + '</div>' +
       (due || note ? '<div class="r3">' + due + (due && note ? '<br>' : '') + (note ? '📝 ' + esc(note.length > 90 ? note.slice(0, 90) + '…' : note) : '') + '</div>' : '') +
@@ -3400,6 +3420,7 @@
     { k: 'open', l: 'Đang theo dõi', f: isOpenLead },
     { k: 'mine', l: 'Của tôi', f: function (l) { return l.owner === S.user.name; } },
     { k: 'nogiao', l: '🧺 Chờ giao', f: function (l) { return isOpenLead(l) && !l.owner; } }, // quản lý / Marketing: khách chưa ai phụ trách (khách web chờ quản lý giao)
+    { k: 'pool', l: '🧺 Kho chung', f: function (l) { return isOpenLead(l) && !l.owner; } }, // sale (chế độ Kho chung): số chưa ai chốt, ai nhận cũng được
     { k: 'Mới hỏi', l: 'Mới hỏi', f: function (l) { return l.status === 'Mới hỏi'; } },
     { k: 'Đang tư vấn', l: 'Đang tư vấn', f: function (l) { return l.status === 'Đang tư vấn'; } },
     { k: 'Đã chốt', l: 'Đã chốt', f: function (l) { return l.status === 'Đã chốt'; } },
@@ -3437,7 +3458,7 @@
   function provNames() { var o = {}; Object.keys(PROV_MERGE).forEach(function (nw) { o[nw] = 1; PROV_MERGE[nw].forEach(function (x) { if (!/^(HCM|TPHCM|TP HCM|HN|HP|Kontum|Daklak|Đaklak|Đăk .*|Dak .*|Bắc Cạn)$/.test(x)) o[x] = 1; }); }); return Object.keys(o).sort(function (a, b) { return a.localeCompare(b, 'vi'); }); }
   function leadsCountText(base) { var f = S.f.t || {}; if (f.q && f.q.trim()) return searchCount(base.length, 'khách hỏi', f.q.trim()); return base.length + ' lượt hỏi · ' + base.filter(isOpenLead).length + ' người đang theo dõi (chưa mua)'; }
   function renderLeadsChips(base, cur) {
-    return LF.filter(function (x) { return x.k === 'mine' ? lvl() < 2 && !isMkt() : x.k === 'nogiao' ? lvl() >= 2 || isMkt() : true; }).map(function (x) {
+    return LF.filter(function (x) { return x.k === 'mine' ? lvl() < 2 && !isMkt() : x.k === 'nogiao' ? lvl() >= 2 || isMkt() : x.k === 'pool' ? isPoolStaff() : true; }).map(function (x) {
       var n = base.filter(x.f).length; if ((x.k === 'noorder' || x.k === 'nogiao') && !n && cur.k !== x.k) return '';
       return '<button class="chip' + (x.k === cur.k ? ' on' : '') + '" data-tf="' + esc(x.k) + '">' + x.l + ' <em>' + n + '</em></button>';
     }).join('');
@@ -8756,6 +8777,10 @@
       '<div class="f"><span style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--ink)">Khách mới được giao thế nào?</span>' +
       Object.keys(MODE_INFO).map(function (k) { return '<label class="mode"><input type="radio" name="amode" value="' + k + '"' + (k === md ? ' checked' : '') + '><span><b>' + MODE_INFO[k][0] + '</b>' + MODE_INFO[k][1] + '</span></label>'; }).join('') + '</div>' +
       '<button class="btn pri" id="modeSave">Lưu cách chia khách</button>' +
+      '<h3 style="margin:18px 0 8px">⏳ Số chưa chốt tự về Kho chung</h3><p class="hint" style="margin:0 0 8px">Khách hỏi do <b>công ty giao</b> (file số quảng cáo, web, quản lý giao) mà sale giữ quá số ngày dưới đây <b>chưa chốt và không có lịch hẹn</b> → tự về Kho chung, cả phòng thấy và ai cũng nhận được. Sale được báo Telegram <b>trước 1 ngày</b>. Không áp dụng cho khách sale tự tìm, khách do khách cũ giới thiệu, file cũ. Mỗi số về kho tối đa 2 lần. Ai chốt thì người đó được tính doanh số.</p>' +
+      '<div class="row2c"><label class="f"><span>Về Kho chung sau bao nhiêu ngày (0 = tắt)</span><input type="number" id="poolDays" min="0" max="60" value="' + esc(R.poolDays === undefined ? 7 : R.poolDays) + '"></label>' +
+      '<label class="f"><span>Mỗi người nhận từ kho tối đa (số / ngày, 0 = không giới hạn)</span><input type="number" id="poolMax" min="0" max="100" value="' + esc(R.poolMax === undefined ? 10 : R.poolMax) + '"></label></div>' +
+      '<button class="btn pri" id="poolSave">Lưu luật Kho chung</button>' +
       '<h3 style="margin:18px 0 8px">Ai được nhận khách mới?</h3><div class="edit-table">' + staff.map(function (u) {
         return '<div class="staff-row"><b>' + esc(u.name) + '</b><span class="muted small">' + esc(u.role) + (u.tg ? ' · 📲 Telegram ✓' : ' · chưa kết nối Telegram') + '</span><label class="switch"><input type="checkbox" data-recv="' + esc(u.name) + '"' + (u.recv ? ' checked' : '') + '> Nhận khách mới</label></div>';
       }).join('') + '</div>' +
@@ -8797,7 +8822,7 @@
     var act = (S.d.users || []).filter(function (u) { return u.active !== false; }), mk = act.filter(function (u) { return u.role === 'Marketing'; }).length, recvN = staff.filter(function (u) { return u.recv; }).length;
     var GQ = setGroup('gq', '✨ Nhân sự hỏi gì ở trang hướng dẫn', 'Xem câu nhân sự hỏi trợ lý · câu nào hướng dẫn chưa có thì nên viết thêm', '<div id="gqBox"><p class="hint" style="margin:0 0 10px">Ở trang <a href="/huong-dan/" target="_blank" rel="noopener">Hướng dẫn</a>, nhân sự gõ câu hỏi vào ô 🔍 Tìm rồi bấm <b>✨ Hỏi trợ lý An Lành</b>. Câu nào trợ lý báo <b>“hướng dẫn chưa có”</b> thì nên viết thêm vào hướng dẫn.</p><button class="btn" id="gqLoad">Xem câu đã hỏi</button></div>');
     h += setSec('👥 Nhân sự', 'Ai được vào CRM, được làm gì; nhân sự đang thắc mắc gì.', (G.us ? setGroup('us', '🧑‍💼 Ai được vào CRM', act.length + ' người đang dùng' + (mk ? ' · ' + mk + ' marketing' : '') + ' · thêm / khoá người, đổi quyền', G.us) : '') + GQ);
-    h += setSec('🤝 Chia khách', 'Khách mới giao cho ai, xử lý khách trùng hoặc dùng nhiều số.', setGroup('mode', '🔀 Khách mới giao cho ai', MODE_INFO[md][0] + ' · ' + recvN + ' người nhận khách mới' + (noOwner ? ' · ⚠️ ' + noOwner + ' khách chưa ai phụ trách' : ''), G.mode) +
+    h += setSec('🤝 Chia khách', 'Khách mới giao cho ai, xử lý khách trùng hoặc dùng nhiều số.', setGroup('mode', '🔀 Khách mới giao cho ai', MODE_INFO[md][0] + (md === 'pool' && R.poolDays ? ' · quá ' + R.poolDays + ' ngày chưa chốt → về kho' : '') + ' · ' + recvN + ' người nhận khách mới' + (noOwner ? ' · ⚠️ ' + noOwner + ' khách chưa ai phụ trách' : ''), G.mode) +
       setGroup('dup', '👯 Khách trùng sale', 'Khách có ở file của 2 sale: chọn 1 người giữ', G.dup) +
       setGroup('mrg', '🔗 Khách dùng nhiều số', '1 khách mua bằng 2–3 số: gộp về 1 hồ sơ', G.mrg));
     h += setSec('📞 Chăm sóc khách', 'Khi nào CRM nhắc gọi khách, nhắn tin gì.', setGroup('rules', '⭐ Nhóm khách & lịch nhắc', 'VIP từ ' + (R.vipOrders || 3) + ' đơn hoặc ' + moneyShort(R.vipSpent || 2000000) + ' · Sắp mất sau ' + (R.atRisk || 60) + ' ngày · nhắc lại sau ' + (R.coolDays === undefined ? 14 : R.coolDays) + ' ngày', G.rules) +
@@ -8916,6 +8941,10 @@
         var b = this; b.disabled = true;
         api('settings', { rules: { vipOrders: $('#rVipN').value, vipSpent: moneyIn($('#rVipS').value), atRisk: $('#rRisk').value, coolDays: $('#rCool').value, shipDays: $('#rShip').value, shipFar: $('#rShipFar').value, famMin: $('#rFam').value } }).then(function (j) { Object.assign(S.d.rules, j.rules); toast('Đã lưu. Nhóm khách được tính lại ✓'); load(true); }, function (e) { toast(e.message, true); b.disabled = false; });
       }; }
+    if ($('#poolSave')) $('#poolSave').onclick = function () {
+      var b = this; b.disabled = true;
+      api('settings', { pool: { days: $('#poolDays').value, max: $('#poolMax').value } }).then(function (j) { Object.assign(S.d.rules, j.rules); toast(j.rules.poolDays ? 'Đã lưu: quá ' + j.rules.poolDays + ' ngày chưa chốt thì về Kho chung ✓' : 'Đã tắt tự về Kho chung'); render(); }, function (e) { toast(e.message, true); b.disabled = false; });
+    };
     if ($('#sgSave')) $('#sgSave').onclick = function () {
       var b = this, L = $('#sgTxt').value.split('\n').map(function (ln) { var a = ln.split('|').map(function (z) { return z.trim(); }); return { full: a[0] || '', phone: a[1] || '', acct: a[2] || '' }; }).filter(function (r) { return r.full || r.phone || r.acct; }); b.disabled = true;
       api('settings', { staffGuard: L.length ? L : [{}] }).then(function (j) { S.d.rules.staffGuard = j.staffGuard; toast('Đã lưu ' + j.staffGuard.length + ' người ✓'); b.disabled = false; }, function (e) { toast(e.message, true); b.disabled = false; });
