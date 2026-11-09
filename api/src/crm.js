@@ -11,6 +11,7 @@ import { mktView, mktBudgetSet, mktGoalSet, mktDailyMsgs } from './mktv.js';
 import { crmSan, sanSchema, sanAllowed } from './san.js';
 import { crmKho, khoSchema, khoRetOut } from './kho.js';
 import { fetchXlsx, crmFin } from './fin.js';
+import { KT_ROLE_OK, ktSettingsOk, finOk, ktLoad, ktCfg, crmKt } from './kt.js';
 import { crmSaleMkt, crmOffers } from './salemkt.js';
 import { cmsTokenSet, quizCms } from './cms.js';
 import { crmVoucher, voucherSchema } from './voucher.js';
@@ -25,7 +26,7 @@ import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, wbInf
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-11-09a'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
+const SCHEMA_V = '2026-11-09t'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -49,6 +50,9 @@ export async function ensureSchema(db) {
     await addCol('addr_old', "TEXT DEFAULT ''");
     await addCol('ship_fee', 'INTEGER'); // 01/11/2026: phí thật trả hãng vận chuyển (từ file đối soát Best / Viettel Post / xe ôm)
     await addCol('recon', "TEXT DEFAULT ''"); // lần đối soát gần nhất: "Best 01/11"
+    await addCol('cash_at', 'INTEGER'); // 💼 09/11/2026: lúc tiền đơn về tài khoản công ty (kế toán ghi tay / file COD Best, Viettel Post) – kt.js
+    await addCol('cash_amt', 'INTEGER');
+    await addCol('cash_src', "TEXT DEFAULT ''");
  // 20/10/2026: địa chỉ cũ (63 tỉnh, có huyện) – Misa vẫn chọn theo địa chỉ cũ
     // Khách: đã kết bạn Zalo, nhóm cộng đồng, ngày sinh (bản Apps Script có, lúc chuyển sang D1 bị thiếu)
     const ccols = (await all(db, "PRAGMA table_info(customers)")).map(r => r.name);
@@ -139,7 +143,7 @@ export async function ensureSchema(db) {
 }
 
 export const SUPER_ADMIN = 'thaisoniph@gmail.com'; // luôn có quyền Quản trị
-const ROLES = { 'Quản trị': 3, 'Quản lý': 2, 'Sale & CSKH': 1, 'Marketing': 0, 'Kho': 0 }; // Kho (09/11/2026, anh Sơn tách khỏi Sale): chỉ tab 📦 Kho + nhận hàng hoàn (KHO_ROLE_OK), không thấy khách / doanh số
+const ROLES = { 'Quản trị': 3, 'Quản lý': 2, 'Sale & CSKH': 1, 'Marketing': 0, 'Kho': 0, 'Kế toán': 0 }; // Kế toán (09/11/2026): chỉ tab 💼 Kế toán (kt.js: tiền về, tiền treo ở hãng, chi phí, lãi lỗ), không thấy SĐT / địa chỉ khách // Kho (09/11/2026, anh Sơn tách khỏi Sale): chỉ tab 📦 Kho + nhận hàng hoàn (KHO_ROLE_OK), không thấy khách / doanh số
 // Marketing: chỉ thấy tab 📣 Marketing (MKT_ACTIONS), không thấy khách / đơn / doanh thu công ty
 const SALE = 'Sale & CSKH'; // 15/10/2026: đổi tên từ "Nhân viên" (tên cũ vẫn nhận, tự quy về tên mới)
 const roleOf = r => r === 'Nhân viên' ? SALE : Object.hasOwn(ROLES, r || '') ? r : SALE;
@@ -224,7 +228,7 @@ const USERS_SQL = 'SELECT * FROM users ORDER BY ord, rowid';
 function usersFrom(x, rows) {
   const list = rows.map(r => {
     const e = String(r.email || '').trim().toLowerCase(), role = roleOf(r.role);
-    return { email: e, name: String(r.name || e.split('@')[0]).trim(), role, active: !!r.active, recv: role === 'Marketing' || role === 'Kho' ? false : String(r.recv || '').trim() === '' ? role === SALE : !no(r.recv), tg: String(r.tg || '').trim(), alias: String(r.alias || '').trim(), prefix: String(r.prefix || '').trim(), web: String(r.web || '').trim() === 'Có', phone: String(r.phone || '').trim(), full: String(r.full || '').trim(), acct: String(r.acct || '').trim(), joined: String(r.joined || '').trim(), mkv: role !== 'Marketing' && role !== 'Kho' && String(r.mkv || '').trim() === 'Có', zb: role !== 'Kho' && String(r.zb || '').trim() === 'Có', kho: role === 'Kho' || String(r.kho || '').trim() === 'Có' };
+    return { email: e, name: String(r.name || e.split('@')[0]).trim(), role, active: !!r.active, recv: role === 'Marketing' || role === 'Kho' || role === 'Kế toán' ? false : String(r.recv || '').trim() === '' ? role === SALE : !no(r.recv), tg: String(r.tg || '').trim(), alias: String(r.alias || '').trim(), prefix: String(r.prefix || '').trim(), web: String(r.web || '').trim() === 'Có', phone: String(r.phone || '').trim(), full: String(r.full || '').trim(), acct: String(r.acct || '').trim(), joined: String(r.joined || '').trim(), mkv: role !== 'Marketing' && role !== 'Kho' && String(r.mkv || '').trim() === 'Có', zb: role !== 'Kho' && String(r.zb || '').trim() === 'Có', kho: role === 'Kho' || String(r.kho || '').trim() === 'Có' };
   }).filter(u => /@/.test(u.email));
   const sa = list.find(u => u.email === SUPER_ADMIN);
   if (!sa) list.unshift({ email: SUPER_ADMIN, name: 'Thái Sơn', role: 'Quản trị', active: true, recv: false, tg: '', alias: '', prefix: '', web: true });
@@ -450,7 +454,7 @@ export function leadDue(l, today) {
 const leadOut = r => ({ id: r.id, time: r.time, name: r.name || '', phone: r.phone || '', channel: r.channel || '', interest: r.interest || '', status: r.status || 'Mới hỏi', owner: r.owner || '', lastAt: r.last_at, callback: r.callback, reason: r.reason || '', note: r.note || '', orderId: r.order_id || '', by: r.by_name || '', refPhone: r.ref_phone || '', refName: r.ref_name || '' });
 const orderOut = r => ({ row: r.rid, time: r.time, id: r.id, name: r.name || '', phone: r.phone || '', email: r.email || '', province: r.province || '', ward: r.ward || '', address: r.address || '', items: r.items || '', subtotal: r.subtotal || 0,
   shipping: r.shipping || 0, total: r.total || 0, payment: r.payment || '', note: r.note || '', status: r.status || 'Mới', source: r.source || '', consent: !!r.consent, paid: r.paid || '', carrier: r.carrier || '', tracking: r.tracking || '', seller: r.seller || '', ca: r.ca || '', line: r.line || '', ship: r.ship || '',
-  shipAt: r.ship_at, receivedAt: r.received_at, otype: r.otype || '', oflag: r.oflag || '', trk: r.trk || '', trkAt: r.trk_at, trkCode: r.trk_code || 0, voucher: r.voucher || '', refPhone: r.ref_phone || '', refGift: r.ref_gift || '', refTold: r.ref_told ? 1 : 0, partner: r.partner || '', pRate: r.partner_rate || 0, discount: r.discount || 0, addrOld: r.addr_old || '', shipFee: r.ship_fee == null ? null : r.ship_fee, recon: r.recon || '' });
+  shipAt: r.ship_at, receivedAt: r.received_at, otype: r.otype || '', oflag: r.oflag || '', trk: r.trk || '', trkAt: r.trk_at, trkCode: r.trk_code || 0, voucher: r.voucher || '', refPhone: r.ref_phone || '', refGift: r.ref_gift || '', refTold: r.ref_told ? 1 : 0, partner: r.partner || '', pRate: r.partner_rate || 0, discount: r.discount || 0, addrOld: r.addr_old || '', shipFee: r.ship_fee == null ? null : r.ship_fee, recon: r.recon || '', cashAt: r.cash_at || null, cashAmt: r.cash_amt == null ? null : r.cash_amt, cashSrc: r.cash_src || '' });
 export async function leadsData(x, where, ...args) { return (await all(x.db, 'SELECT * FROM leads' + (where ? ' WHERE ' + where : '') + ' ORDER BY rid DESC LIMIT 3000', ...args)).reverse().map(leadOut); }
 
 async function prefsOf(x, email) { return await kvJson(x.db, 'prefs_' + email, {}) || {}; }
@@ -527,19 +531,20 @@ async function loadSmall(x, u, R, mode, adV) {
   const users = (await crmUsers(x)).filter(y => y.active || u.level >= 3).map(y => u.level >= 3 ? { email: y.email, name: y.name, role: y.role, active: y.active, recv: y.recv, tg: !!y.tg, alias: y.alias, prefix: y.prefix || slugName(y.name), web: y.web || y.level >= 3, mkv: y.mkv || y.level >= 3, zb: !!y.zb, kho: !!y.kho, phone: y.phone, full: y.full, acct: y.acct, joined: y.joined } : u.level >= 2 ? { name: y.name, role: y.role, recv: y.recv, tg: !!y.tg, joined: y.joined } : { name: y.name, role: y.role, joined: y.name === u.name ? y.joined : '' }); // SĐT, họ tên, số tài khoản nhân sự: chỉ Quản trị; ngày vào làm: tính thâm niên (Phụ lục 01)
   const adsP = adRowsOf(x, u, adV); adsP.catch(() => { });
   const areasP = u.level === 1 ? areaStats(x) : Promise.resolve(undefined); areasP.catch(() => { }); // quản lý đã có đủ khách → máy tự đếm
+  const ktP = finOk(u) ? ktCfg(x) : Promise.resolve(null); ktP.catch(() => { });
   const [ca, fbNew, prefs, tagColors, sources, ads, commission, sanOk, dash, qrLinks, mktDoc, cost, payplan, staffGuard, opex, fin, ktLink, kho] = await Promise.all([caCfg(x), // hỏi song song: mỗi lần hỏi máy chủ dữ liệu mất một nhịp
     u.level >= 2 ? first(x.db, "SELECT count(*) AS n FROM feedback WHERE status = 'Mới'").then(r => (r || {}).n || 0) : 0,
     prefsOf(x, u.email), allTagColors(x), u.level >= 3 ? srcList(x) : [], u.level >= 3 ? adsCfg(x) : null, kvJson(x.db, 'commission_cfg', {}).then(r => r || {}), sanAllowed(x, u).catch(() => false), kvJson(x.db, 'dash_cfg', {}).then(r => r || {}),
     all(x.db, 'SELECT code, name FROM links').then(r => r.map(l => [l.code, l.name])).catch(() => []),
     u.level >= 3 || u.role === 'Marketing' || u.mkv ? kvJson(x.db, 'mkt_doc', null).then(r => r || MKT_DOC_DEF) : null,
-    u.level >= 3 ? kvJson(x.db, 'cost_cfg', null) : null, kvJson(x.db, 'payplan_cfg', null).then(r => Object.assign({}, PAYPLAN, r || {})), u.level >= 3 ? kvJson(x.db, 'staff_guard', []).then(r => r || []) : [], u.level >= 3 ? kvJson(x.db, 'opex_cfg', {}).then(r => r || {}) : null, u.level >= 3 ? kvJson(x.db, 'fin_cfg', null) : null, u.level >= 3 ? kvJson(x.db, 'kt_link', null) : null, u.level >= 2 || u.kho ? kvJson(x.db, 'kho_sum', null) : null]); // 💰 giá nhập sản phẩm: chỉ Quản trị (không nằm trong repo công khai) // 📍 tên link QR → nguồn đơn web hiện "📍 <tên>"
+    finOk(u) ? kvJson(x.db, 'cost_cfg', null) : null, kvJson(x.db, 'payplan_cfg', null).then(r => Object.assign({}, PAYPLAN, r || {})), u.level >= 3 ? kvJson(x.db, 'staff_guard', []).then(r => r || []) : [], finOk(u) ? kvJson(x.db, 'opex_cfg', {}).then(r => r || {}) : null, finOk(u) ? kvJson(x.db, 'fin_cfg', null) : null, finOk(u) ? kvJson(x.db, 'kt_link', null) : null, u.level >= 2 || u.kho ? kvJson(x.db, 'kho_sum', null) : null]); // 💰 giá nhập sản phẩm: chỉ Quản trị (không nằm trong repo công khai) // 📍 tên link QR → nguồn đơn web hiện "📍 <tên>"
   const [ct, tg, cy, tp] = (await smallQ).map(r => r.results || []), ar = await adsP, areas = await areasP.catch(() => undefined);
   return {
     ok: true, user: publicUser(u), areas, sanOk, kho, now: Date.now(), today: startOfDay(Date.now()), fbNew, users, prefs, tagColors, sources, ads, adV: ar.v, adRows: ar.rows, qrLinks,
     occ: saleDays(fmtDate(Date.now() - 864e5, 'yyyyMMdd'), 5), // 🎉 dịp chúc khách hôm qua → 3 ngày tới (zday.js), CRM tự lọc theo ngày
     contacts: ct.reverse().map(contactOut), targets: tg.map(t => ({ month: t.month, name: t.name, amount: t.amount || 0, by: t.by_name || '', at: t.at })),
     cycles: cy.filter(r => r.name).map(r => [r.name, r.variant || '', Number(r.days) || 0, r.basis || '']), templates: tp.filter(r => r.text).map(r => [r.when_txt || '', r.purpose || '', r.text]),
-    rules: { backCost: Number(dash.backCost) || 0, ai: !!x.env.ANTHROPIC_API_KEY && u.role !== 'Marketing', vipOrders: R.vipOrders, vipSpent: R.vipSpent, atRisk: R.atRisk, coolDays: R.coolDays, shipDays: R.shipDays, shipFar: R.shipFar, famMin: R.famMin, otypes: OTYPES, commission, payplan, staffGuard, dash: u.level >= 3 || u.role === 'Marketing' || u.mkv ? dash : null, mktDoc, cost, opex, fin, ktLink: ktLink && ktLink.link ? ktLink : null, statuses: ORDER_STATUS, results: CARE_RESULTS, leadStatus: LEAD_STATUS, assignMode: mode, bot: BOT_USERNAME, ca, lines: LINES.map(l => l[0]).concat(['Khác']) }
+    rules: { backCost: Number(dash.backCost) || 0, ai: !!x.env.ANTHROPIC_API_KEY && u.role !== 'Marketing', vipOrders: R.vipOrders, vipSpent: R.vipSpent, atRisk: R.atRisk, coolDays: R.coolDays, shipDays: R.shipDays, shipFar: R.shipFar, famMin: R.famMin, otypes: OTYPES, commission, payplan, staffGuard, dash: u.level >= 3 || u.role === 'Marketing' || u.mkv || u.role === 'Kế toán' ? dash : null, ktCfg: await ktP, mktDoc, cost, opex, fin, ktLink: ktLink && ktLink.link ? ktLink : null, statuses: ORDER_STATUS, results: CARE_RESULTS, leadStatus: LEAD_STATUS, assignMode: mode, bot: BOT_USERNAME, ca, lines: LINES.map(l => l[0]).concat(['Khác']) }
   };
 }
 
@@ -552,6 +557,10 @@ async function crmLoad(x, u, d) {
   if (u.role === 'Kho') { // 09/11/2026: tài khoản Kho chỉ có khung + tab Kho (số liệu kho tải riêng bằng kho_load), không 1 dòng khách / đơn nào
     const [R0, mode0] = await Promise.all([rulesCfg(x), assignMode(x)]), s0 = await loadSmall(x, u, R0, mode0, '');
     return Object.assign(s0, { today: startOfDay(Date.now()), customers: [], orders: [], leads: [], log: [], contacts: [], targets: [], users: [], sources: [], areas: undefined, ads: null, adRows: [], adV: '', fbNew: 0, sanOk: false, sv: 0, lr: 0, qrLinks: [], occ: [] });
+  }
+  if (u.role === 'Kế toán') { // 09/11/2026: đơn đã che SĐT / địa chỉ / ghi chú (kt.js), không khách / khách hỏi / nhật ký
+    const [R0, mode0] = await Promise.all([rulesCfg(x), assignMode(x)]), sp = loadSmall(x, u, R0, mode0, ''); sp.catch(() => { });
+    return ktLoad(x, u, d, sp, NOW_MS, deltaOk);
   }
   if (u.role === 'Marketing') { // chỉ phần khung (tên, cài đặt màu…), không 1 dòng khách / đơn / khách hỏi / nhật ký nào
     const [R0, mode0] = await Promise.all([rulesCfg(x), assignMode(x)]), s0 = await loadSmall(x, u, R0, mode0, '');
@@ -707,7 +716,7 @@ export { refCode };
 /** Khách vào web qua link của sale → tên sale (đang dùng, không phải Marketing); không khớp → ''. */
 async function refUser(x, ref) {
   const k = refCode(ref); if (!k) return '';
-  const u = (await crmUsers(x)).find(r => r.active && r.role !== 'Marketing' && r.role !== 'Kho' && refCode(r.name) === k);
+  const u = (await crmUsers(x)).find(r => r.active && r.role !== 'Marketing' && r.role !== 'Kho' && r.role !== 'Kế toán' && refCode(r.name) === k);
   return u ? u.name : '';
 }
 export async function ownerOf(x, phone) { const r = await first(x.db, 'SELECT owner FROM customers WHERE phone = ?', normPhone(phone)); return r ? r.owner || '' : ''; }
@@ -1489,7 +1498,7 @@ async function crmSettings(x, u, d) {
     return { ok: true, dash: D };
   }
   if (d.cost) { // 💰 giá nhập từng sản phẩm + % chi phí thêm (vận chuyển, kho…) → giá vốn để Tổng quan tính lãi gộp. Chỉ Quản trị.
-    if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị sửa được mục này.' };
+    if (!finOk(u)) return { ok: false, error: 'Chỉ Quản trị và Kế toán sửa được mục này.' };
     const items = (Array.isArray(d.cost.items) ? d.cost.items : []).slice(0, 200).map(r => [String((r || [])[0] || '').trim().slice(0, 80), Math.max(0, Math.min(1e9, Math.round(Number(String((r || [])[1] || '').replace(/[^\d]/g, '')) || 0)))]).filter(r => r[0] && r[1]);
     const C = { items, oh: Math.min(100, Math.max(0, Number(String(d.cost.oh == null ? 15 : d.cost.oh).replace(',', '.')) || 0)), at: Date.now(), by: u.name };
     await kvSet(x.db, 'cost_cfg', JSON.stringify(C));
@@ -1497,7 +1506,7 @@ async function crmSettings(x, u, d) {
     return { ok: true, cost: C };
   }
   if (d.pay) { // 👥 bảng lương / tạm ứng kế toán gửi (02/11/2026): chỉ lưu tổng theo bộ phận, không lưu tên, số tài khoản. Chỉ Quản trị. Ghi vào opex_cfg[tháng].pay
-    if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị sửa được mục này.' };
+    if (!finOk(u)) return { ok: false, error: 'Chỉ Quản trị và Kế toán sửa được mục này.' };
     const m = String(d.pay.month || ''), P = d.pay.data || {}; if (!/^20\d\d-(0[1-9]|1[0-2])$/.test(m)) return { ok: false, error: 'Tháng không hợp lệ.' };
     const num = v => Math.max(0, Math.min(1e11, Math.round(Number(v) || 0)));
     const pay = { file: String(P.file || '').slice(0, 120), kind: P.kind === 'luong' ? 'luong' : 'tu', dept: (Array.isArray(P.dept) ? P.dept : []).slice(0, 20).map(r => [String((r || [])[0] || '').trim().slice(0, 40), num((r || [])[1]), num((r || [])[2])]).filter(r => r[0]), at: Date.now(), by: u.name };
@@ -1510,7 +1519,7 @@ async function crmSettings(x, u, d) {
     return { ok: true, opex: O };
   }
   if (d.opex) { // 🧮 chi phí văn phòng theo tháng (thuê nhà, lương, điện nước…) → Tổng quan tính lãi / lỗ ròng (01/11/2026). Chỉ Quản trị. kv opex_cfg = { 'YYYY-MM': { items: [[tên, số tiền]], at, by } }
-    if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị sửa được mục này.' };
+    if (!finOk(u)) return { ok: false, error: 'Chỉ Quản trị và Kế toán sửa được mục này.' };
     const m = String(d.opex.month || ''); if (!/^20\d\d-(0[1-9]|1[0-2])$/.test(m)) return { ok: false, error: 'Tháng không hợp lệ.' };
     const items = (Array.isArray(d.opex.items) ? d.opex.items : []).slice(0, 60).map(r => [String((r || [])[0] || '').trim().slice(0, 80), Math.max(0, Math.min(1e11, Math.round(Number(String((r || [])[1] || '').replace(/[^\d]/g, '')) || 0)))]).filter(r => r[0] && r[1]);
     const O = (await kvJson(x.db, 'opex_cfg', {})) || {};
@@ -2024,6 +2033,9 @@ export async function crmApi(x, d, sync, mgr) {
   if (a === 'logout') { await run(x.db, 'DELETE FROM sessions WHERE token = ?', d.token); return { ok: true }; }
   if (u.role === 'Marketing' && !MKT_ACTIONS[a]) return { ok: false, error: 'Tài khoản Marketing chỉ xem được phần quảng cáo.' };
   if (u.role === 'Kho' && !KHO_ROLE_OK[a] && !/^kho_/.test(a)) return { ok: false, error: 'Tài khoản Kho chỉ dùng được tab 📦 Kho.' };
+  if (u.role === 'Kế toán' && ((!KT_ROLE_OK[a] && !/^kt_/.test(a)) || (a === 'settings' && !ktSettingsOk(d)))) return { ok: false, error: 'Tài khoản Kế toán chỉ dùng được tab 💼 Kế toán.' };
+  if (a === 'kt_cash' || a === 'kt_cfg') return crmKt(x, u, d, crmLog); // 💼 tiền về tài khoản, ngày bắt đầu theo dõi (kt.js)
+  if (u.role === 'Kế toán' && a === 'settings') return crmSettings(x, u, d); // chỉ chi phí / bảng lương / giá vốn (ktSettingsOk)
   if (a === 'kho_recv' || a === 'kho_find') return a === 'kho_recv' ? crmKhoRecv(x, u, d) : crmKhoFind(x, u, d); // ↩ hàng hoàn về kho (09/11/2026)
   if (a === 'load') return crmLoad(x, u, d);
   if (a === 'guide_ask') return guideAsk(x, u, d); // ✨ Hỏi trợ lý An Lành trong trang hướng dẫn (guideask.js)
@@ -2092,7 +2104,7 @@ export async function crmApi(x, d, sync, mgr) {
     if (a === 'ref_gift' || a === 'ref_told') { const o = await first(x.db, 'SELECT ref_phone FROM orders WHERE id = ? ORDER BY rid LIMIT 1', String(d.id || '')); const g = o && o.ref_phone ? await guardPhone(x, u, o.ref_phone) : ''; if (g) return { ok: false, error: g }; }
     return crmPartner(x, u, d, crmLog, (await crmUsers(x)).map(z => z.name));
   }
-  if (a === 'kt_fetch') return u.level >= 3 ? crmKtFetch(x, d) : { ok: false, error: 'Bạn không có quyền làm việc này.' };
+  if (a === 'kt_fetch') return finOk(u) ? crmKtFetch(x, d) : { ok: false, error: 'Bạn không có quyền làm việc này.' };
   if (a === 'kt_link' || a === 'fin_save' || a === 'fin_test') return crmFin(x, u, d, a); // 💼 tài chính (05/11/2026)
   const need = { settings: 2, users: 3, assign: 2, bulk: 2, recv: 2 };
   if (need[a] && u.level < need[a]) return { ok: false, error: 'Bạn không có quyền làm việc này.' };

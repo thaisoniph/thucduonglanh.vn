@@ -15,6 +15,7 @@ Chào bạn! Trang này giúp bạn biết **mình cần đọc phần nào**. B
 | **Bán hàng, chăm sóc khách** | [CRM](/huong-dan/crm/) (đọc trước), rồi [CRM thêm](/huong-dan/crm-them/) khi cần |
 | **Quản lý nhóm bán hàng** | [CRM](/huong-dan/crm/), rồi [Quản lý](/huong-dan/quan-ly/) |
 | **Kho** (quyền Kho, hoặc kiêm phụ trách kho) | [Kho hàng](/huong-dan/kho/) |
+| **Kế toán** | [Kế toán](/huong-dan/ke-toan/) |
 | **Marketing, phụ trách sàn** | [Marketing](/huong-dan/marketing/) |
 | **Chăm fanpage Facebook** | [Fanpage](/huong-dan/fanpage/) |
 | **Đăng bài, sửa sản phẩm trên web** | [Website](/huong-dan/website/) |

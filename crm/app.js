@@ -34,7 +34,7 @@
   function backCost() { var v = Number(S.d && S.d.rules && S.d.rules.backCost); return v > 0 ? v : 60000; }
   /** Tiền ship mất của 1 đơn hoàn: phí thật từ file đối soát vận chuyển (o.shipFee) nếu có, chưa đối soát thì ước tính backCost(). */
   function backFee(o) { return o.shipFee != null ? o.shipFee : backCost(); }
-  function isPaidOrder(o) { return !isVoid(o.status) && (/^(Đã giao|Đổi hàng)$/.test(o.status || '') || !!o.paid); }
+  function isPaidOrder(o) { return !isVoid(o.status) && (/^(Đã giao|Đổi hàng)$/.test(o.status || '') || !!o.paid || !!o.cashAt); } // cashAt: kế toán ghi tiền về (09/11/2026)
   var NEXT = { 'Mới': 'Đã xác nhận', 'Đã xác nhận': 'Đang giao', 'Đang giao': 'Đã giao', 'Đang chuyển hoàn': 'Hoàn' };
   var NEXT_LABEL = { 'Mới': '✅ Xác nhận', 'Đã xác nhận': '🚚 Đang giao', 'Đang giao': '📬 Đã giao', 'Đang chuyển hoàn': '📦 Kho đã nhận' };
   var RESULTS = ['Đã đặt lại', 'Hẹn gọi lại', 'Không nghe máy', 'Đã hỏi thăm', 'Không có nhu cầu'];
@@ -111,6 +111,7 @@
     mega: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a1 1 0 0 0 1 1h3l6 4V6L7 10H4a1 1 0 0 0-1 1z"/><path d="M17 9a4 4 0 0 1 0 6"/><path d="M8 14l1.5 5h2.5l-1.5-5"/></svg>',
     bot: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="3"/><path d="M12 8V4M8 4h8M9 14h.01M15 14h.01"/></svg>',
     more: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>',
+    kt: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M16 13h2"/><path d="M2 10h20"/><path d="M6 6V4h12v2"/></svg>',
     kho: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V8l9-5 9 5v13"/><path d="M7 21v-8h10v8"/><path d="M7 17h10"/></svg>',
     shop: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>'
   };
@@ -716,12 +717,13 @@
     { id: 'tro-ly-zalo', label: 'Trợ lý Zalo', short: 'Zalo', icon: 'bot', lq: 1 }, // 🤖 trợ lý An Lành trong nhóm Zalo (api/src/zbot.js): cùng quyền với Link & QR
     { id: 'fanpage', label: 'Fanpage', short: 'FB', icon: 'mail', lq: 1 }, // 📘 trợ lý Fanpage: trả lời bình luận, Messenger, bài đăng (api/src/fb.js): cùng quyền với Link & QR
     { id: 'kho', label: 'Kho', icon: 'kho', kho: 1 }, // 📦 kho hàng (api/src/kho.js): người tích Phụ trách kho, Quản lý, Quản trị (Quản lý / Quản trị vào từ Thêm, Tổng quan)
+    { id: 'ke-toan', label: 'Kế toán', icon: 'kt', kt: 1 }, // 💼 tiền về, tiền treo ở hãng, chi phí, lãi lỗ (api/src/kt.js): quyền Kế toán + Quản trị (Quản trị vào từ Thêm)
     { id: 'san', label: 'Sàn', icon: 'shop', san: 1 }, // doanh số Shopee / TikTok Shop: Quản trị + người phụ trách sàn (Quản trị vào từ Tổng quan, không chiếm chỗ trên menu)
     { id: 'cai-dat', label: 'Cài đặt', icon: 'gear' }
   ];
   // Marketing: tab Marketing, Link & QR, Khách hỏi (24/10/2026: chỉ xem khách để lại số trên web), Cài đặt
-  function myViews() { if (isKho()) return VIEWS.filter(function (v) { return v.kho || v.id === 'cai-dat'; }); if (isMkt()) return VIEWS.filter(function (v) { return v.mkt || v.lq || v.id === 'tiem-nang' || v.id === 'cai-dat'; }); return VIEWS.filter(function (v) { return (!v.min || lvl() >= v.min) && (!v.ask || !!(S.user && S.user.ask)) && (!v.lq || lvl() >= 2 || (v.id === 'tro-ly-zalo' && S.user && S.user.zb)) && (!v.san || (S.d && S.d.sanOk) || lvl() >= 3) && (!v.kho || khoCan()) && (!v.mkt || lvl() >= 3 || mkvOnly()); }); }
-  function navViews() { return myViews().filter(function (v) { return !((v.san || v.lq || v.ask || v.kho) && lvl() >= 2 && !isMkt()); }); } // Quản trị: Marketing có trên menu (29/10/2026), Sàn / Link & QR / Zalo / Fanpage vào từ Thêm; Quản lý cũng vậy (anh Sơn 31/10/2026: menu máy tính rối)
+  function myViews() { if (isKt()) return VIEWS.filter(function (v) { return v.kt || v.id === 'cai-dat'; }); if (isKho()) return VIEWS.filter(function (v) { return v.kho || v.id === 'cai-dat'; }); if (isMkt()) return VIEWS.filter(function (v) { return v.mkt || v.lq || v.id === 'tiem-nang' || v.id === 'cai-dat'; }); return VIEWS.filter(function (v) { return (!v.min || lvl() >= v.min) && (!v.ask || !!(S.user && S.user.ask)) && (!v.lq || lvl() >= 2 || (v.id === 'tro-ly-zalo' && S.user && S.user.zb)) && (!v.san || (S.d && S.d.sanOk) || lvl() >= 3) && (!v.kho || khoCan()) && (!v.kt || lvl() >= 3) && (!v.mkt || lvl() >= 3 || mkvOnly()); }); }
+  function navViews() { return myViews().filter(function (v) { return !((v.san || v.lq || v.ask || v.kho || v.kt) && lvl() >= 2 && !isMkt()); }); } // Quản trị: Marketing có trên menu (29/10/2026), Sàn / Link & QR / Zalo / Fanpage vào từ Thêm; Quản lý cũng vậy (anh Sơn 31/10/2026: menu máy tính rối)
   /** Điện thoại (29/10/2026, kiểu Apple): thanh dưới chỉ 4 mục hay dùng + "Thêm"; mục còn lại, Cài đặt, Hướng dẫn, Góp ý nằm ở màn Thêm. Máy tính vẫn hiện đủ. */
   var NAV_FIRST = ['hom-nay', 'tiem-nang', 'khach-hang', 'don-hang', 'bao-cao'];
   var NAV_SALE = ['hom-nay', 'tiem-nang', 'bao-cao', 'don-hang']; // sale: Hiệu quả ở chính giữa thanh dưới (anh Sơn 29/10/2026); 31/10/2026 Đơn hàng (có số đang giao) thay Khách, Khách vào Thêm
@@ -729,7 +731,7 @@
   var NAV_MGR = ['bao-cao', 'hom-nay', 'tiem-nang', 'don-hang']; // Quản lý (anh Sơn 31/10/2026): Đơn hàng thay Khách để theo sát đơn của đội sale; Khách vào Thêm
   var NAV_CEO = ['tong-quan', 'bao-cao', 'marketing', 'don-hang']; // Quản trị (anh Sơn 29/10/2026): kết quả, đội sale, tiền quảng cáo, đơn / tiền chờ thu. Hôm nay, Khách hỏi, Khách là việc của sale → Thêm
   function navMain() {
-    var all = navViews().filter(function (v) { return v.id !== 'cai-dat'; }).map(function (v) { return v.id; }), out = [], sale = lvl() < 2 && !isMkt() && !isKho();
+    var all = navViews().filter(function (v) { return v.id !== 'cai-dat'; }).map(function (v) { return v.id; }), out = [], sale = lvl() < 2 && !isMkt() && !isKho() && !isKt();
     (sale ? (S.user && S.user.kho ? NAV_KHO : NAV_SALE) : lvl() >= 3 ? NAV_CEO : lvl() >= 2 && !isMkt() ? NAV_MGR : [homeView()]).concat(NAV_FIRST, all).forEach(function (id) { if (out.length < 4 && all.indexOf(id) >= 0 && out.indexOf(id) < 0) out.push(id); });
     return out;
   }
@@ -738,10 +740,10 @@
     'tong-quan': 'Bức tranh kinh doanh cả công ty', 'hom-nay': 'Khách cần gọi, đơn mới hôm nay', 'tiem-nang': 'Người để lại số, chưa mua',
     'khach-hang': 'Hồ sơ, lịch sử mua, chăm sóc', 'don-hang': 'Đơn mới, đang giao, hoàn / huỷ', 'bao-cao': 'Doanh số, mục tiêu, thi đua',
     marketing: 'Quảng cáo, chi phí, giá 1 số điện thoại', 'link-qr': 'Link và mã QR theo dõi nguồn khách', 'tro-ly-zalo': 'Trợ lý An Lành trong nhóm Zalo',
-    fanpage: 'Trả lời bình luận, tin nhắn Fanpage', san: 'Doanh số Shopee, TikTok Shop', kho: 'Hàng còn bao nhiêu, sắp hết, đặt thêm hàng', 'cai-dat': 'Nhân sự, mục tiêu, mẫu tin, tài khoản',
+    fanpage: 'Trả lời bình luận, tin nhắn Fanpage', san: 'Doanh số Shopee, TikTok Shop', kho: 'Hàng còn bao nhiêu, sắp hết, đặt thêm hàng', 'ke-toan': 'Tiền về tài khoản, tiền treo ở hãng, lãi lỗ', 'cai-dat': 'Nhân sự, mục tiêu, mẫu tin, tài khoản',
     'hoi-so-lieu': 'Hỏi bằng lời, AI tự tra số và báo cáo'
   };
-  var VIEW_TINT = { 'tong-quan': '#1f5f3a', 'hom-nay': '#34a853', 'tiem-nang': '#ff9500', 'khach-hang': '#007aff', 'don-hang': '#a2845e', 'bao-cao': '#5856d6', marketing: '#ff2d55', 'link-qr': '#636366', 'tro-ly-zalo': '#0068ff', fanpage: '#1877f2', san: '#ee4d2d', kho: '#8e5a2b', 'cai-dat': '#8e8e93', 'hoi-so-lieu': '#af52de' };
+  var VIEW_TINT = { 'tong-quan': '#1f5f3a', 'hom-nay': '#34a853', 'tiem-nang': '#ff9500', 'khach-hang': '#007aff', 'don-hang': '#a2845e', 'bao-cao': '#5856d6', marketing: '#ff2d55', 'link-qr': '#636366', 'tro-ly-zalo': '#0068ff', fanpage: '#1877f2', san: '#ee4d2d', kho: '#8e5a2b', 'ke-toan': '#0a7d5a', 'cai-dat': '#8e8e93', 'hoi-so-lieu': '#af52de' };
   function viewMore() {
     var main = navMain(), n = navCounts(), info = navInfo();
     var rest = myViews().filter(function (v) { return main.indexOf(v.id) < 0 && v.id !== 'cai-dat'; });
@@ -752,13 +754,13 @@
     var isCh = function (v) { return v.mkt || v.lq || v.san; };
     var h = '<div class="mr"><div class="page-head"><h1>Thêm</h1></div>' +
       '<div class="mr-me"><span class="mr-av">' + esc((S.user.name || '?').trim().split(/\s+/).pop().charAt(0).toUpperCase()) + '</span><span class="mr-t"><b>' + esc(S.user.name) + '</b><small>' + esc(S.user.role || '') + ' · ' + esc(S.user.email || '') + '</small></span></div>' +
-      (isMkt() || isKho() ? '' : '<button type="button" class="mr-search" data-mr="search">' + I.search + '<span>Tìm khách, số điện thoại, mã đơn</span></button>') +
+      (isMkt() || isKho() || isKt() ? '' : '<button type="button" class="mr-search" data-mr="search">' + I.search + '<span>Tìm khách, số điện thoại, mã đơn</span></button>') +
       group('', rest.filter(function (v) { return v.ask; }).map(vrow).join('')) +
       group('Bán hàng', rest.filter(function (v) { return !isCh(v) && !v.ask; }).map(vrow).join('')) +
       group('Marketing & kênh bán', rest.filter(isCh).map(vrow).join('')) +
       group('Khác',
         vrow(VIEWS.filter(function (v) { return v.id === 'cai-dat'; })[0]) +
-        row('<a class="mr-row" href="/huong-dan/' + (isMkt() ? 'marketing' : isKho() ? 'kho' : 'crm') + '/" target="_blank" rel="noopener">', I.help, '#30b0c7', 'Hướng dẫn sử dụng', 'Cách dùng từng màn hình, có hình', 0) + '</a>' +
+        row('<a class="mr-row" href="/huong-dan/' + (isMkt() ? 'marketing' : isKho() ? 'kho' : isKt() ? 'ke-toan' : 'crm') + '/" target="_blank" rel="noopener">', I.help, '#30b0c7', 'Hướng dẫn sử dụng', 'Cách dùng từng màn hình, có hình', 0) + '</a>' +
         row('<button type="button" class="mr-row" data-mr="fb">', '💡', '#ffcc00', 'Góp ý', 'Báo lỗi, chỗ khó dùng, ý tưởng', lvl() >= 2 ? S.d.fbNew : 0) + '</button>' +
         row('<button type="button" class="mr-row" data-mr="re">', I.refresh, '#34c759', 'Tải lại dữ liệu', 'Lấy số mới nhất từ máy chủ', 0) + '</button>') +
       '</div>';
@@ -782,9 +784,9 @@
       '<nav class="nav' + (navViews().length > 6 || lvl() >= 2 ? ' nav-many' : '') + (navViews().length < myViews().length ? ' nav-hasmore' : '') + '" data-sig="' + navSig() + '">' + navViews().map(function (v) { return '<a href="#' + v.id + '" data-v="' + v.id + '"' + (v.id === 'cai-dat' ? ' class="nav-set"' : main.indexOf(v.id) < 0 ? ' class="nav-x"' : '') + '>' + I[v.icon] + '<span' + (v.short ? ' data-short="' + v.short + '"' : '') + '>' + v.label + '</span></a>'; }).join('') +
       '<a href="#them" data-v="them" class="nav-more">' + I.more + '<span>Thêm</span></a></nav>' +
       '<div class="grow"></div><div class="me">' + meHTML() + '</div>' +
-      (isMkt() || isKho() ? '' : '<button class="icon-btn" id="gsBtn" title="Tìm ở mọi tab: khách đã mua, đơn hàng, khách hỏi" aria-label="Tìm ở mọi tab">' + I.search + '</button>') +
+      (isMkt() || isKho() || isKt() ? '' : '<button class="icon-btn" id="gsBtn" title="Tìm ở mọi tab: khách đã mua, đơn hàng, khách hỏi" aria-label="Tìm ở mọi tab">' + I.search + '</button>') +
       '<button class="icon-btn fb-btn" id="fbBtn" title="Góp ý: báo lỗi, chỗ khó dùng, ý tưởng" aria-label="Góp ý">💡<span class="fb-lbl">Góp ý</span></button>' +
-      '<a class="icon-btn" href="/huong-dan/' + (isMkt() ? 'marketing' : isKho() ? 'kho' : 'crm') + '/" target="_blank" rel="noopener" title="Hướng dẫn sử dụng" aria-label="Hướng dẫn sử dụng">' + I.help + '</a>' +
+      '<a class="icon-btn" href="/huong-dan/' + (isMkt() ? 'marketing' : isKho() ? 'kho' : isKt() ? 'ke-toan' : 'crm') + '/" target="_blank" rel="noopener" title="Hướng dẫn sử dụng" aria-label="Hướng dẫn sử dụng">' + I.help + '</a>' +
       '<a class="icon-btn top-set" href="#cai-dat" title="Cài đặt" aria-label="Cài đặt">' + I.gear + '</a>' +
       '<button class="icon-btn" id="refresh" title="Tải lại dữ liệu" aria-label="Tải lại dữ liệu">' + I.refresh + '</button>' +
       '</div></header><main id="view"></main>';
@@ -924,7 +926,7 @@
   }
   /** Sale: % mục tiêu tháng của chính mình + mức tiến độ (cùng cách tính với khối Mục tiêu ở Hiệu quả). null = không phải sale / chưa đặt mục tiêu. */
   function myPace() {
-    if (lvl() >= 2 || isMkt() || isKho() || !S.d) return null;
+    if (lvl() >= 2 || isMkt() || isKho() || isKt() || !S.d) return null;
     var me = S.user.name, mk = monthOf(Date.now()), t = targetOf(me, mk); if (!t || !t.amount) return null;
     var sales = perf(me, monthRange(mk)).sales;
     return { pct: pct(sales, t.amount), lv: goalCalc(sales, t.amount, mk).lv, v: sales, t: t.amount };
@@ -949,7 +951,7 @@
   /** Quản lý / Quản trị: số trên tab là của cả nhóm, hoặc của người đang lọc ở ô 👥. Sale: rỗng. */
   function navWho() { return lvl() >= 2 ? (S.who ? ' của ' + (S.who === '-' ? 'khách chưa giao' : S.who) : ' (cả nhóm)') : ''; }
   /** Tab mở mặc định theo quyền: Quản trị → Tổng quan, Quản lý → Hiệu quả, nhân viên → Hôm nay. */
-  function homeView() { return isKho() ? 'kho' : isMkt() || (MKT_HOST && myViews().some(function (x) { return x.id === 'marketing'; })) ? 'marketing' : lvl() >= 3 ? 'tong-quan' : lvl() >= 2 ? 'bao-cao' : S.user && S.user.kho ? 'kho' : 'hom-nay'; }
+  function homeView() { return isKt() ? 'ke-toan' : isKho() ? 'kho' : isMkt() || (MKT_HOST && myViews().some(function (x) { return x.id === 'marketing'; })) ? 'marketing' : lvl() >= 3 ? 'tong-quan' : lvl() >= 2 ? 'bao-cao' : S.user && S.user.kho ? 'kho' : 'hom-nay'; }
   function route() { var h = (location.hash || '').slice(1).split('/'); return { view: h[0] === 'lien-he' ? 'tiem-nang' : h[0] || homeView(), id: decodeURIComponent(h[1] || '') }; }
   var lastView = '';
   function render() {
@@ -959,7 +961,7 @@
     var keepScroll = lastView === v, y = window.scrollY;
     var el = $('#view');
     var focusId = document.activeElement && document.activeElement.id, selStart = document.activeElement && document.activeElement.selectionStart;
-    el.innerHTML = ({ 'hom-nay': viewToday, 'khach-hang': viewCustomers, 'don-hang': viewOrders, 'tiem-nang': viewLeads, 'bao-cao': viewReport, 'cai-dat': viewSettings, 'tong-quan': viewDash, san: viewSan, marketing: viewMkt, 'link-qr': viewLinks, 'tro-ly-zalo': viewZbot, fanpage: viewFp, 'hoi-so-lieu': viewAsk, kho: viewKho, them: viewMore })[v]();
+    el.innerHTML = ({ 'hom-nay': viewToday, 'khach-hang': viewCustomers, 'don-hang': viewOrders, 'tiem-nang': viewLeads, 'bao-cao': viewReport, 'cai-dat': viewSettings, 'tong-quan': viewDash, san: viewSan, marketing: viewMkt, 'link-qr': viewLinks, 'tro-ly-zalo': viewZbot, fanpage: viewFp, 'hoi-so-lieu': viewAsk, kho: viewKho, 'ke-toan': viewKtab, them: viewMore })[v]();
     el.insertAdjacentHTML('beforeend', updatedLine());
     if (focusId && $('#' + focusId)) { var f = $('#' + focusId); f.focus(); try { f.setSelectionRange(selStart, selStart); } catch (e) { } }
     if (keepScroll) window.scrollTo(0, y); else window.scrollTo(0, 0);
@@ -973,6 +975,7 @@
     if (v === 'tong-quan' || v === 'san') bindSan();
     if (v === 'hoi-so-lieu') bindAsk(!keepScroll);
     if (v === 'kho') bindKho();
+    if (v === 'ke-toan') { bindKtab(); bindSan(); }
     if (r.id && !$('.modal')) {
       if (v === 'khach-hang' && cust(r.id)) openCustomer(r.id, true);
       if (v === 'don-hang') { var o = S.d.orders.filter(function (x) { return x.id === r.id; })[0]; if (o) openOrder(o.id, true); }
@@ -2604,7 +2607,7 @@
       '<div class="box"><h3>Sản phẩm</h3><div class="pre">' + cp(o.items) + '</div>' +
       (o.ship ? '<p style="margin:10px 0 0"><b>Lên đơn:</b> ' + esc(o.ship) + ' <button class="btn ghost" id="oShipCopy" type="button">📋 Copy</button></p>' : '') +
       '<p class="small muted" style="margin:6px 0 0">Loại đơn: <b>' + esc(otLabel(otypeOf(o))) + '</b> · Dòng SP: <b>' + esc(o.line || '–') + '</b> · Nguồn: ' + esc(o.source || '–') + '</p><div class="sum" style="margin-top:10px"><div><span>Tạm tính</span><b>' + money(o.subtotal) + '</b></div><div><span>Phí ship</span><b>' + (o.shipping ? money(o.shipping) : 'Miễn phí') + '</b></div><div class="total"><span>Tổng</span><b>' + cpMoney(o.total) + '</b></div></div></div>' +
-      '<div class="box"><h3>Thanh toán: ' + esc(o.payment) + ' ' + paidTag(o) + '</h3>' + (isBank(o)
+      '<div class="box"><h3>Thanh toán: ' + esc(o.payment) + ' ' + paidTag(o) + '</h3>' + (o.cashAt ? '<p class="hint" style="margin:0 0 8px">💵 Kế toán đã ghi tiền về tài khoản ' + fDate(o.cashAt) + ': <b>' + money(o.cashAmt == null ? o.total : o.cashAmt) + '</b>' + (o.cashSrc ? ' · ' + esc(o.cashSrc) : '') + '</p>' : '') + (isBank(o)
         ? (o.paid ? '<p class="hint" style="margin:0 0 8px">✓ ' + esc(o.paid) + '</p><button class="btn ghost" id="oPaid">↩ Bỏ đánh dấu đã nhận tiền</button>'
           : '<p class="hint" style="margin:0 0 8px">Mở tài khoản VCB, thấy tiền về (nội dung có mã <b>' + cp(o.id) + '</b>, đúng ' + cpMoney(o.total) + ') thì mới bấm.</p><button class="btn pri" id="oPaid">💳 Xác nhận đã nhận tiền</button>')
         : '<p class="muted" style="margin:0">Khách trả tiền khi nhận hàng (COD).</p>') + '</div>' +
@@ -4353,7 +4356,7 @@
   }
   /** Khung 💵 đầu Tổng quan (chỉ Quản trị, kỳ ≤ 45 ngày): 3 số lớn + cột lãi / lỗ từng ngày + mức hoà vốn; bảng từng ngày thu gọn. */
   function dashDaily(R, b, M, sj, p, month) {
-    if (lvl() < 3 || !costCfg()) return '';
+    if ((lvl() < 3 && !isKt()) || !costCfg()) return '';
     var ms = function (v) { return moneyShort(Math.round(v)); };
     var X = dashDays(R, b, M, sj); if (!X) return '';
     var D = X.D, td = today(), last = D[D.length - 1], isT = last.a === td, full = isT ? D.slice(0, -1) : D, ML = monthLabel(month);
@@ -4450,7 +4453,7 @@
       return api('fin_save', { kt: ktParse(sh, nm), fin: finParseC(sh), file: nm });
     }).then(function (j) { S.d.rules.opex = j.opex; S.d.rules.fin = j.fin; if (!silent) toast('Đã lấy số mới từ file kế toán ✓'); }, function (e) {
       FIN.err = /Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message; if (!silent) toast(FIN.err, true);
-    }).then(function () { FIN.busy = false; if (route().view === 'tong-quan') render(); });
+    }).then(function () { FIN.busy = false; if (/^(tong-quan|ke-toan)$/.test(route().view)) render(); });
   }
   function finLinkEdit() {
     var L = S.d.rules.ktLink, md = modal('🔗 Nối file Google Sheet của kế toán', '<p>Dán link file <b>báo cáo doanh thu – chi phí</b> kế toán đang cập nhật. CRM tự đọc mỗi sáng 7h30 (và khi anh/chị mở Tổng quan), lấy: chi phí theo tháng, <b>Sổ chi</b> hằng ngày, <b>Số dư ngân hàng</b>, <b>Công nợ</b> nhà cung cấp.</p>' +
@@ -4478,7 +4481,7 @@
   function finCats(k) { var c = { cogs: k.cogs || 0 }; (k.groups || []).forEach(function (g) { var x = finCat(g[0]); c[x] = (c[x] || 0) + g[1]; }); return c; }
   /** Khung 🏦 đầu Tổng quan (Quản trị): tiền đang có, tiền sắp về, nợ nhà cung cấp, đã chi tháng này. */
   function dashFin() {
-    if (lvl() < 3) return '';
+    if (lvl() < 3 && !isKt()) return '';
     var F = S.d.rules.fin, L = S.d.rules.ktLink, KM = finKtMonths(), K = KM[0] && KM[0].k, ms = function (v) { return moneyShort(Math.round(v)); }, dd = function (d) { return d ? d.slice(8, 10) + '/' + d.slice(5, 7) : ''; };
     if (L && !FIN.busy && Date.now() - FIN.tried > 600e3 && (!F || Date.now() - F.at > 3 * 3600e3)) setTimeout(function () { finSyncC(true); }, 0);
     if (!F && !K) return '<div class="notice dash-goal-none">🏦 <b>Tiền & công nợ</b>: nối file Google Sheet của kế toán để xem tiền ngân hàng, nợ nhà cung cấp, khoản chi mỗi ngày. <button class="btn sm pri" data-dash="finlink">🔗 Nối link</button></div>';
@@ -4788,7 +4791,7 @@
       dashTile('biz', whole && G && G.isCur ? G.lv : dashTrend(T.net, T.netP), '💰 Doanh số', moneyShort(T.net), delta(T.net, T.netP),
         'Đã trừ hoàn / huỷ' + (!sj ? (SN.err ? ' · chưa gồm sàn (chưa tải được)' : ' · ⏳ đang cộng số sàn…') : T.san ? ' · gồm sàn ' + moneyShort(T.san) : ''), dashSpk(T.tr.rev, PT)) +
       dashGpTile(b, bp, M, sj) +
-      dashTile('biz', '', '💵 Tiền đã về', moneyShort(T.paid), '', T.net ? pct(T.paid, T.net) + '% doanh số' + (T.net > T.paid ? ' · còn ' + moneyShort(T.net - T.paid) + ' đang giao / chờ thu' : '') : 'Chưa có đơn', dashSpk(T.tr.paid, PT)) +
+      dashTile('biz', '', '💵 Tiền đã về', moneyShort(T.paid), '', (T.net ? pct(T.paid, T.net) + '% doanh số' + (T.net > T.paid ? ' · còn ' + moneyShort(T.net - T.paid) + ' đang giao / chờ thu' : '') : 'Chưa có đơn') + ktvTreoLine(), dashSpk(T.tr.paid, PT)) +
       dashTile('mkt', adLv, '📣 1đ quảng cáo thu về', ads === null ? '–' : oneDec(ads) + 'đ', ads !== null && M.totp && M.nrp ? dRate(ads, M.nrp / M.totp).replace(/điểm/, 'đ') : '',
         !M ? (MK.err ? '⚠️ Chưa tải được chi phí' : '⏳ đang tải…') : M.tot ? 'Chi ' + moneyShort(M.tot) + ' → ' + moneyShort(M.nr) + ' doanh số khách mới' : 'Chưa có chi phí quảng cáo trong kỳ', ads === null ? '' : dashSpk(dashAdsSeries(T.tr.B, M, sj), PT)) +
       dashTile('biz', dashTrend(b.firstN, bp.firstN), '🙋 Khách mới mua', b.firstN.toLocaleString('vi-VN'), delta(b.firstN, bp.firstN), 'Khách mua lần đầu trong kỳ', dashSpk(T.tr.nw, PT)) +
@@ -4974,7 +4977,7 @@
     if (MK.busy === key) return; MK.busy = key; MK.err = '';
     var k = key.split('_');
     api('mkt', { from: k[0], to: k[1], pf: k[2], pt: k[3] }).then(function (j) { MK.cache[key] = j; }, function (e) { MK.err = /Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message; })
-      .then(function () { MK.busy = ''; if (route().view === 'tong-quan') softRender(true); navBadges(); }); // navBadges: nhãn 1đ→…đ trên tab Marketing của Quản trị
+      .then(function () { MK.busy = ''; if (/^(tong-quan|ke-toan)$/.test(route().view)) softRender(true); navBadges(); }); // navBadges: nhãn 1đ→…đ trên tab Marketing của Quản trị
   }
   /** Chi phí: giảm là tốt → đổi màu mũi tên (xanh khi giảm). */
   function inv(h) { return String(h).replace(/class="delta (up|down)"/, function (_, c) { return 'class="delta ' + (c === 'up' ? 'down' : 'up') + '"'; }); }
@@ -5105,6 +5108,204 @@
    * Số tính sẵn trên máy chủ (lệnh mktv, api/src/mktv.js), chỉ có con số tổng theo kênh / chiến dịch: bộ phận marketing không thấy khách, đơn hay doanh số toàn công ty.
    * Cách tính giống mục 📣 ở Tổng quan (chanEff, closeStats) nên 2 nơi ra cùng số. */
   function isMkt() { return !!(S.user && S.user.role === 'Marketing'); }
+  function isKt() { return !!(S.user && S.user.role === 'Kế toán'); } // 09/11/2026: quyền Kế toán riêng (tab 💼 Kế toán + Cài đặt), không thấy SĐT / địa chỉ khách
+  /* ================================================================ 💼 KẾ TOÁN (09/11/2026, anh Sơn chọn PA 2)
+   * Tiền thật về tài khoản: đơn có cashAt (kế toán ghi tay, hoặc file đối soát COD Best / Viettel Post → lệnh kt_cash, api/src/kt.js).
+   * 💤 Tiền treo ở hãng = đơn COD Đã giao / Đổi hàng từ ngày bắt đầu theo dõi (rules.ktCfg.from) mà hãng chưa trả tiền (chưa có cashAt).
+   * 🏦 Chuyển khoản chờ xác nhận = đơn chuyển khoản (không huỷ / hoàn) chưa có cashAt. Lãi lỗ: dùng lại dashDaily + dashPnl của Tổng quan → cùng số. */
+  var KTV_OLD = 10; // quá 10 ngày đã giao mà hãng chưa trả tiền → đỏ
+  function ktvCfg() { return (S.d && S.d.rules && S.d.rules.ktCfg) || { from: '2026-10-01', on: 0 }; }
+  function ktvFrom() { return new Date(ktvCfg().from + 'T00:00:00+07:00').getTime(); }
+  function ktvSince(o) { return o.receivedAt || o.shipAt || o.time; }
+  function ktvPh(o) { return o.ph ? '…' + o.ph : o.phone ? '…' + String(o.phone).slice(-4) : ''; }
+  /** Đơn chờ tiền: treo = COD đã giao hãng chưa trả · bank = chuyển khoản chưa xác nhận · ship = COD đang giao (tiền sắp về). */
+  function ktvLists() {
+    var f = ktvFrom(), L = { treo: [], bank: [], ship: [] };
+    S.d.orders.forEach(function (o) {
+      if (o.time < f || o.cashAt || !(o.total > 0) || isVoid(o.status)) return;
+      if (isBank(o)) L.bank.push(o);
+      else if (/^(Đã giao|Đổi hàng)$/.test(o.status)) L.treo.push(o);
+      else if (o.status === 'Đang giao') L.ship.push(o);
+    });
+    L.treo.sort(function (a, b) { return ktvSince(a) - ktvSince(b); }); L.bank.sort(function (a, b) { return a.time - b.time; });
+    return L;
+  }
+  function ktvSum(a) { return a.reduce(function (s, o) { return s + (o.total || 0); }, 0); }
+  function ktvAge(o) { return Math.max(0, Math.floor((today() - dayStart(ktvSince(o))) / DAY)); }
+  /** Ô 💵 ở Tổng quan (Quản trị): "trong đó X treo ở hãng" – chỉ khi kế toán đã bắt đầu ghi tiền về. */
+  function ktvTreoLine() {
+    if (!ktvCfg().on) return '';
+    var t = ktvLists().treo; return t.length ? ' · 💤 ' + moneyShort(ktvSum(t)) + ' treo ở hãng' : '';
+  }
+  function viewKtab() {
+    var f = S.f.g || (S.f.g = {}); if (!f.p || f.p.k === 'all') f.p = { k: 'month' };
+    if (!f.open) { try { f.open = JSON.parse(store('dash_open') || '{}') || {}; } catch (e) { f.open = {}; } }
+    var R = perRange(f.p), P = cmpRange(f.p), b = bizStats(R), bp = bizStats(P), key = gaKey(R, P);
+    var month = monthOf(Math.min(R[1] - 1, Date.now())), sj = snGet(R, P, month), M = mktCalc(key, R, P, sj);
+    var sn = sj ? sanSum(sj.days, 2) : null, snp = sj ? sanSum(sj.prev, 1) : null;
+    var T = { san: sn ? sn.g : 0, paid: b.paid + (sn ? sn.gp || 0 : 0), rev: b.rev + (sn ? sn.g + sn.gv : 0), revP: bp.rev + (snp ? snp.g + snp.gv : 0), vRev: b.vRev + (sn ? sn.gv : 0), net: b.rev - b.vRev + (sn ? sn.g : 0), netP: bp.rev - bp.vRev + (snp ? snp.g : 0), n: b.n, nP: bp.n, tr: dashSeries(R, P, sj) };
+    var L = ktvLists(), tv = ktvSum(L.treo), old = L.treo.filter(function (o) { return ktvAge(o) > KTV_OLD; }), bv = ktvSum(L.bank);
+    var got = S.d.orders.filter(function (o) { return o.cashAt && o.cashAt >= R[0] && o.cashAt < R[1]; }), gv = got.reduce(function (s, o) { return s + (o.cashAmt == null ? o.total || 0 : o.cashAmt); }, 0);
+    var by = {}; L.treo.forEach(function (o) { var c = o.carrier || 'Chưa ghi hãng', x = by[c] || (by[c] = { c: c, n: 0, v: 0, old: 0, ov: 0, max: 0 }); x.n++; x.v += o.total; var a = ktvAge(o); if (a > KTV_OLD) { x.old++; x.ov += o.total; } if (a > x.max) x.max = a; });
+    var byL = Object.keys(by).map(function (k) { return by[k]; }).sort(function (a, b) { return b.v - a.v; });
+    var card = function (cls, l, v, sub, go) { return '<button type="button" class="ktv-c ' + cls + '"' + (go ? ' data-ktv="' + go + '"' : ' disabled') + '><span>' + l + '</span><b>' + v + '</b><small>' + sub + '</small>' + (go ? '<i aria-hidden="true">›</i>' : '') + '</button>'; };
+    var h = '<div class="ktv-wrap"><div class="page-head"><h1>💼 Kế toán</h1><div class="grow"></div><button class="btn ghost" data-dash="fresh" title="Lấy số mới nhất (quảng cáo)">↻ Cập nhật số</button></div>' + perChips('g', f.p);
+    if (!ktvCfg().on) h += '<div class="notice info ktv-start"><b>👋 Bắt đầu:</b> bấm <b>📥 Tải file đối soát COD</b> (file Best / Viettel Post, cả tháng) để máy tự ghi các đơn hãng đã trả tiền. Đơn chuyển khoản thì mở <b>🏦 Chuyển khoản chờ xác nhận</b>, xem sao kê VCB rồi tích. Máy đang theo dõi đơn từ <b>' + fDate(ktvFrom()) + '</b> (đổi ở cuối trang).</div>';
+    h += '<section class="ktv-sec"><h2 class="ktv-h">💵 Tiền về tài khoản <small>tiền thật, không phải doanh số</small></h2><div class="ktv-n">' +
+      card('ok', '✅ Đã về ' + esc(perLabel(f.p).toLowerCase()), moneyShort(gv), got.length + ' đơn đã ghi nhận tiền về', got.length ? 'got' : '') +
+      card(old.length ? 'bad' : L.treo.length ? 'mid' : 'ok', '💤 Đang treo ở hãng vận chuyển', moneyShort(tv), L.treo.length ? L.treo.length + ' đơn đã giao, hãng chưa trả tiền' + (old.length ? ' · <b>⚠️ ' + old.length + ' đơn quá ' + KTV_OLD + ' ngày</b>' : '') : 'Không có đơn nào', L.treo.length ? 'treo' : '') +
+      card(L.bank.length ? 'mid' : 'ok', '🏦 Chuyển khoản chờ xác nhận', moneyShort(bv), L.bank.length ? L.bank.length + ' đơn: xem sao kê VCB rồi tích' : 'Không có đơn nào', L.bank.length ? 'bank' : '') +
+      card('', '🚚 Tiền sắp về', moneyShort(ktvSum(L.ship)), L.ship.length + ' đơn COD đang giao', '') + '</div>' +
+      '<div class="ktv-big"><button class="btn pri lg" data-ktv="cod">📥 Tải file đối soát COD</button><button class="btn lg" data-ktv="treo">✅ Ghi tiền về bằng tay</button></div>' +
+      (byL.length ? '<div class="box ktv-by"><h3>💤 Tiền treo theo hãng <small>bấm để xem từng đơn</small></h3>' + byL.map(function (x) {
+        return '<button type="button" class="ktv-row" data-ktv="treo|' + esc(x.c) + '"><span><b>' + esc(x.c) + '</b><small>' + x.n + ' đơn · chờ lâu nhất ' + x.max + ' ngày' + (x.old ? ' · <em class="ktv-red">' + x.old + ' đơn quá ' + KTV_OLD + ' ngày (' + moneyShort(x.ov) + '): hỏi lại hãng</em>' : '') + '</small></span><b class="ktv-amt">' + moneyShort(x.v) + '</b><i aria-hidden="true">›</i></button>';
+      }).join('') + '</div>' : '') + '</section>';
+    h += '<section class="ktv-sec"><h2 class="ktv-h">📊 Lãi lỗ <small>cùng số với Tổng quan của Quản trị</small></h2>' + dashDaily(R, b, M, sj, f.p, month);
+    var PL = dashPnl(T, b, bp, M, sj, R, P, month); h += dashMore('pnl', '🧮 Lãi lỗ sau mọi chi phí', PL.line, PL.body);
+    var CO = dashCost(); if (CO) h += dashMore('cost', '📊 Chi phí lớn & cách tối ưu', CO.line, CO.body);
+    h += '</section><section class="ktv-sec"><h2 class="ktv-h">🏦 Tiền & công nợ</h2>' + dashFin() + '</section>';
+    h += '<details class="box ktv-more"><summary>⚙️ Cài đặt kế toán</summary><p class="small">Theo dõi tiền về cho đơn đặt <b>từ ngày</b>: <input type="date" id="ktvFrom" value="' + esc(ktvCfg().from) + '"> <button class="btn sm" id="ktvFromSave">Lưu</button></p><p class="small muted">Đơn trước ngày này không tính vào tiền treo (thường là đơn đã đối soát xong ở sổ sách cũ).</p><p class="small muted">💰 Giá vốn sản phẩm sửa ở <a href="#cai-dat">Cài đặt</a>. Lương, mặt bằng… nhập ở mục 🧮 Lãi lỗ phía trên.</p></details>';
+    return h + '</div>';
+  }
+  function ktvRowHTML(o, chk) {
+    var a = ktvAge(o), lt = o.cashAt;
+    return '<label class="ktv-o' + (!lt && a > KTV_OLD && !isBank(o) ? ' old' : '') + '">' + (chk ? '<input type="checkbox" data-ktvo="' + o.row + '">' : '') + '<span class="ktv-o-t"><b>' + esc(o.id) + ' · ' + esc(o.name) + ' ' + esc(ktvPh(o)) + '</b><small>' +
+      esc([o.carrier, o.tracking].filter(Boolean).join(' ') || o.payment || '') + ' · đặt ' + fDate(o.time).slice(0, 5) + (lt ? ' · 💵 về ' + fDate(lt).slice(0, 5) + (o.cashSrc ? ' (' + esc(o.cashSrc) + ')' : '') : isBank(o) ? (o.paid ? ' · sale ghi đã nhận' : '') : ' · đã giao ' + a + ' ngày') + (o.seller ? ' · ' + esc(o.seller) : '') + '</small></span><b class="ktv-amt">' + moneyShort(lt && o.cashAmt != null ? o.cashAmt : o.total) + '</b></label>';
+  }
+  /** Danh sách đơn + tích chọn → ✅ Đã nhận tiền (kt_cash). kind: treo (|hãng) · bank · got (đã về, bỏ ghi được). */
+  function openKtvList(kind, car) {
+    var L = ktvLists(), f = S.f.g, R = perRange(f.p), list, title, hint;
+    if (kind === 'bank') { list = L.bank; title = '🏦 Chuyển khoản chờ xác nhận'; hint = 'Mở sao kê VCB. Thấy tiền về đúng số tiền (nội dung thường có mã đơn hoặc tên khách) thì tích đơn đó, rồi bấm <b>✅ Đã nhận tiền</b>.'; }
+    else if (kind === 'got') { list = S.d.orders.filter(function (o) { return o.cashAt && o.cashAt >= R[0] && o.cashAt < R[1]; }).sort(function (a, b) { return b.cashAt - a.cashAt; }); title = '✅ Tiền đã về ' + perLabel(f.p).toLowerCase(); hint = 'Ghi nhầm đơn nào thì tích đơn đó rồi bấm <b>↩ Bỏ ghi tiền về</b>.'; }
+    else { list = L.treo.filter(function (o) { return !car || (o.carrier || 'Chưa ghi hãng') === car; }); title = '💤 Tiền treo' + (car ? ' · ' + car : ' ở hãng'); hint = 'Đơn đã giao xong mà hãng chưa trả tiền. Cách nhanh nhất: tải file đối soát COD của hãng. Hãng đã trả mà không có file thì tích đơn rồi bấm <b>✅ Đã nhận tiền</b>. Dòng đỏ = quá ' + KTV_OLD + ' ngày: hỏi lại hãng.'; }
+    var off = kind === 'got', shown = list.slice(0, 400);
+    var body = '<p class="small" style="margin:0 0 8px">' + hint + '</p>' + (list.length ? '<div class="ktv-tool"><label><input type="checkbox" id="ktvAll"> Chọn hết ' + shown.length + ' đơn</label><input type="search" id="ktvQ" placeholder="🔍 Mã đơn, mã vận đơn, tên, 4 số cuối"></div>' +
+      '<div class="ktv-list" id="ktvL">' + shown.map(function (o) { return ktvRowHTML(o, true); }).join('') + '</div>' + (list.length > shown.length ? '<p class="small muted">Hiện 400 / ' + list.length + ' đơn cũ nhất. Tải file đối soát để ghi nhanh cả lô.</p>' : '') : '<p class="ktv-ok">✅ Không có đơn nào.</p>') +
+      (off ? '' : '<p class="small muted" style="margin:8px 0 0">Ngày tiền về: <input type="date" id="ktvDay" value="' + isoDate(Date.now()) + '" max="' + isoDate(Date.now()) + '"></p>') + '<p class="err" id="ktvE"></p>';
+    var m = modal(title, body, '<button class="btn" data-close>Đóng</button>' + (list.length ? '<button class="btn pri" id="ktvGo" disabled>' + (off ? '↩ Bỏ ghi tiền về' : '✅ Đã nhận tiền') + '</button>' : ''));
+    if (!list.length) return;
+    var byRow = {}; shown.forEach(function (o) { byRow[o.row] = o; });
+    var upd = function () { var c = $$('[data-ktvo]:checked', m), s = 0; c.forEach(function (x) { s += byRow[x.getAttribute('data-ktvo')].total || 0; }); var b = $('#ktvGo', m); b.disabled = !c.length; b.textContent = (off ? '↩ Bỏ ghi tiền về' : '✅ Đã nhận tiền') + (c.length ? ' ' + c.length + ' đơn · ' + moneyShort(s) : ''); };
+    $$('[data-ktvo]', m).forEach(function (x) { x.onchange = upd; });
+    $('#ktvAll', m).onchange = function () { var v = this.checked; $$('.ktv-o', m).forEach(function (r) { if (!r.hidden) $('input', r).checked = v; }); upd(); };
+    $('#ktvQ', m).oninput = function () { var q = norm(this.value.trim()); $$('.ktv-o', m).forEach(function (r) { r.hidden = !!q && norm(r.textContent).indexOf(q) < 0; }); };
+    $('#ktvGo', m).onclick = function () {
+      var b = this, rows = $$('[data-ktvo]:checked', m).map(function (x) { return byRow[x.getAttribute('data-ktvo')]; }), dv = $('#ktvDay', m), day = dv && dv.value ? new Date(dv.value + 'T12:00:00+07:00').getTime() : Date.now();
+      if (!rows.length) return;
+      if (off && !confirm('Bỏ ghi tiền về ' + rows.length + ' đơn? Các đơn này sẽ quay lại danh sách chờ tiền.')) return;
+      b.disabled = true; b.textContent = '⏳ Đang ghi…';
+      ktvSend(rows.map(function (o) { return { row: o.row, id: o.id, day: day }; }), '', off).then(function (j) { closeModal(); toast(off ? 'Đã bỏ ghi ' + j.n + ' đơn' : 'Đã ghi tiền về ' + j.n + ' đơn · ' + moneyShort(j.sum) + ' ✓'); }, function (e) { b.disabled = false; upd(); $('#ktvE', m).textContent = e.message; });
+    };
+  }
+  /** Gửi kt_cash (lô 300 đơn), gộp đơn máy chủ trả về vào dữ liệu trên máy rồi vẽ lại. */
+  function ktvSend(items, src, off) {
+    var n = 0, sum = 0;
+    var step = function (i) {
+      if (i >= items.length) return Promise.resolve({ n: n, sum: sum });
+      return api('kt_cash', { items: items.slice(i, i + 300), src: src, off: off ? 1 : 0 }).then(function (j) {
+        n += j.n || 0; sum += j.sum || 0; ktvMerge(j.orders || []); if (j.ktCfg && S.d.rules) S.d.rules.ktCfg = j.ktCfg; return step(i + 300);
+      });
+    };
+    return step(0).then(function (r) { render(); return r; });
+  }
+  function ktvMerge(list) {
+    if (!list.length) return; var m = {}; list.forEach(function (o) { m[o.row] = o; });
+    S.d.orders = S.d.orders.map(function (o) { var x = m[o.row]; if (!x) return o; return isKt() ? x : Object.assign(o, { cashAt: x.cashAt, cashAmt: x.cashAmt, cashSrc: x.cashSrc, paid: x.paid || o.paid }); });
+    preIndexData(S.d); TREND_MEMO = {};
+  }
+  /* ---------- 📥 File đối soát COD: Best "Đối soát COD → Chi tiết đơn" (cột Số tiền thu hộ, COD khách hàng được nhận, Trạng thái thứ 2 = "Đã được cộng vào tài khoản",
+   *  Mã phiếu thanh toán, [VN]Bill Complete time) · Viettel Post "Danh sách vận đơn" (Tiền thu hộ (4), Trạng thái thanh toán = "Đã thanh toán"). Khớp đơn: mã đơn → mã vận đơn → 4 số cuối SĐT + số tiền (±10 ngày). */
+  var KTV_COL = { pay: /^(trang thai thanh toan)$/, net: /^cod khach hang duoc nhan$/, pday: /^\[vn\]bill complete time$/, batch: /^ma phieu thanh toan$/ };
+  function ktvParse(sheets) {
+    var out = null;
+    sheets.forEach(function (rows) {
+      for (var i = 0; i < Math.min(rows.length, 25) && !out; i++) {
+        var H = (rows[i] || []).map(function (c) { return norm(c).replace(/\s+/g, ' ').trim(); }), ix = {}, sts = [];
+        Object.keys(RC_COL).forEach(function (k) { for (var j = 0; j < H.length; j++) if (RC_COL[k].test(H[j])) { ix[k] = j; break; } });
+        Object.keys(KTV_COL).forEach(function (k) { for (var j = 0; j < H.length; j++) if (KTV_COL[k].test(H[j])) { ix[k] = j; break; } });
+        H.forEach(function (h, j) { if (/^(trang thai|tinh trang)$/.test(h)) sts.push(j); });
+        if (ix.pay === undefined && sts.length > 1) ix.pay = sts[1]; // Best: cột "Trạng thái" thứ 2 là trạng thái chuyển tiền
+        if (ix.cod === undefined || ix.pay === undefined || (ix.wb === undefined && ix.code === undefined && ix.note === undefined)) continue;
+        var hs = H.join('|'), carrier = /cod khach hang duoc nhan|co chieu tra ve hay khong/.test(hs) ? 'BEST Express' : /don chuyen hoan|bc goc|trang thai doi soat cod/.test(hs) ? 'Viettel Post' : '', L = [];
+        rows.slice(i + 1).forEach(function (r) {
+          var g = function (k) { return ix[k] === undefined ? '' : r[ix[k]]; }, codes = [];
+          [g('code'), String(g('note') || '').split(/[;,\n]/)[0]].forEach(function (c) { var k = rcKey(c); if (k && codes.indexOf(k) < 0) codes.push(k); });
+          var wb = String(g('wb') || '').replace(/\.0$/, '').trim(), cod = rcNum(g('cod')) || 0; if (!wb && !codes.length) return;
+          var ps = norm(g('pay')), paid = /da (duoc )?cong vao tai khoan|da (chuyen khoan|thanh toan|tra tien)|hoan tat/.test(ps), net = rcNum(g('net')), fee = rcNum(g('fee'));
+          var pd = String(g('pday') || '').match(/(\d{4})-(\d\d)-(\d\d)/);
+          L.push({ wb: wb, codes: codes, label: String(g('code') || String(g('note') || '').split(/[;,\n]/)[0] || wb).trim(), ph: normPhone(g('phone')).slice(-4), cod: cod, net: net, fee: fee, paid: paid, payTxt: String(g('pay') || ''), st: rcSt(g('st'), g('back')),
+            day: pd ? Date.UTC(+pd[1], +pd[2] - 1, +pd[3]) + 5 * 3600e3 : 0, ord: rcDay(g('day')), batch: String(g('batch') || '').trim() });
+        });
+        out = { carrier: carrier, rows: L };
+      }
+    });
+    return out;
+  }
+  function ktvMatch(P) {
+    var byId = {}, byWb = {}, byPh = {};
+    S.d.orders.forEach(function (o) { var k = rcKey(o.id); if (k) (byId[k] = byId[k] || []).push(o); if (o.tracking) byWb[String(o.tracking).replace(/\s/g, '')] = o; var p4 = o.ph || String(o.phone || '').slice(-4); if (p4) (byPh[p4] = byPh[p4] || []).push(o); });
+    var X = { pay: [], wait: [], done: 0, none: [], diff: 0, stNo: 0, noCod: 0 }, seen = {};
+    P.rows.forEach(function (r) {
+      if (!(r.cod > 0)) { X.noCod++; return; }
+      var o = byWb[r.wb] || null;
+      if (!o) r.codes.some(function (k) { var c = byId[k]; if (c) { o = c.filter(function (x) { return !r.ph || !(x.ph || x.phone) || (x.ph || String(x.phone).slice(-4)) === r.ph; })[0] || c[0]; } return !!o; });
+      if (!o && r.ph) o = (byPh[r.ph] || []).filter(function (x) { return x.total === r.cod && (!r.ord || Math.abs(x.time - r.ord) <= 10 * DAY); })[0] || null;
+      if (!o) { X.none.push(r); return; }
+      if (seen[o.row]) return; seen[o.row] = 1;
+      var it = { o: o, r: r, diff: Math.abs((o.total || 0) - r.cod) > 1000 };
+      if (!r.paid) { X.wait.push(it); return; }
+      if (o.cashAt) { X.done++; return; }
+      if (it.diff) X.diff++; if (r.st === 'ok' && !/^(Đã giao|Đổi hàng)$/.test(o.status)) { it.stNo = 1; X.stNo++; }
+      X.pay.push(it);
+    });
+    return X;
+  }
+  function openKtvCod() {
+    var body = '<p style="margin:0 0 8px">Tải file đối soát tiền thu hộ (COD) của hãng. Máy đọc ngay trên máy này, tìm đơn nào <b>hãng đã trả tiền</b>, cho xem lại trước rồi mới ghi.</p>' +
+      '<ol class="small ktv-how"><li><b>Best</b>: trang Best → <b>Đối soát COD</b> → Chi tiết đơn → <b>Xuất Excel</b> (chọn cả tháng).</li><li><b>Viettel Post</b>: Quản lý vận đơn → <b>Xuất danh sách vận đơn</b> (có cột Trạng thái thanh toán).</li></ol>' +
+      '<label class="f"><span>Chọn file (.xlsx hoặc .csv)</span><input type="file" id="ktvFile" accept=".xlsx,.csv,.txt"></label><p class="err" id="ktvFE"></p><div id="ktvOut"></div>';
+    var m = modal('📥 Tải file đối soát COD', body, '<button class="btn" data-close>Đóng</button><button class="btn pri" id="ktvCodGo" hidden>✅ Ghi tiền về</button>');
+    var P = null, X = null;
+    $('#ktvFile', m).onchange = function () {
+      var fl = this.files[0], err = $('#ktvFE', m); err.textContent = ''; $('#ktvOut', m).innerHTML = '<p class="muted">⏳ Đang đọc file…</p>'; $('#ktvCodGo', m).hidden = true; if (!fl) return;
+      sanReadFile(fl).then(function (sh) {
+        P = ktvParse(sh); if (!P || !P.rows.length) throw new Error('File này không có cột tiền thu hộ và trạng thái thanh toán. Best: xuất ở mục Đối soát COD → Chi tiết đơn. Viettel Post: Xuất danh sách vận đơn.');
+        P.file = fl.name; X = ktvMatch(P); ktvShow(m, P, X);
+      }).catch(function (e) { $('#ktvOut', m).innerHTML = ''; err.textContent = e.message; });
+    };
+    $('#ktvCodGo', m).onclick = function () {
+      var b = this, pick = {}; $$('[data-ktvp]', m).forEach(function (x) { pick[x.getAttribute('data-ktvp')] = x.checked; });
+      var items = X.pay.filter(function (it) { return pick[it.o.row] !== false; }).map(function (it) { return { row: it.o.row, id: it.o.id, amt: it.r.cod, fee: it.r.net != null ? Math.max(0, it.r.cod - it.r.net) : it.r.fee, day: it.r.day || Date.now(), ref: it.r.batch }; });
+      if (!items.length) { toast('Chưa chọn đơn nào', true); return; }
+      b.disabled = true; b.textContent = '⏳ Đang ghi ' + items.length + ' đơn…';
+      ktvSend(items, 'COD ' + (P.carrier === 'BEST Express' ? 'Best' : P.carrier || 'hãng'), false).then(function (j) { closeModal(); toast('Đã ghi tiền về ' + j.n + ' đơn · ' + moneyShort(j.sum) + ' ✓'); }, function (e) { b.disabled = false; b.textContent = 'Thử lại'; toast(e.message, true); });
+    };
+  }
+  function ktvShow(m, P, X) {
+    var sum = function (a) { return a.reduce(function (s, it) { return s + it.r.cod; }, 0); }, h = '<div class="notice info">📄 <b>' + esc(P.file) + '</b>' + (P.carrier ? ' · ' + esc(P.carrier) : '') + ': ' + P.rows.length + ' dòng.</div>';
+    h += '<div class="ktv-n ktv-n3"><div class="ktv-c ok"><span>✅ Hãng đã trả, chưa ghi</span><b>' + moneyShort(sum(X.pay)) + '</b><small>' + X.pay.length + ' đơn' + (X.done ? ' · ' + X.done + ' đơn đã ghi từ trước' : '') + '</small></div>' +
+      '<div class="ktv-c mid"><span>💤 Hãng chưa trả</span><b>' + moneyShort(sum(X.wait)) + '</b><small>' + X.wait.length + ' đơn (đang xử lý, chờ chuyển khoản)</small></div>' +
+      '<div class="ktv-c' + (X.none.length ? ' bad' : '') + '"><span>❓ Không thấy trong CRM</span><b>' + X.none.length + '</b><small>dòng có tiền thu hộ' + (X.noCod ? ' · bỏ qua ' + X.noCod + ' dòng không thu hộ' : '') + '</small></div></div>';
+    if (X.diff) h += '<p class="notice ktv-warn">⚠️ <b>' + X.diff + ' đơn hãng thu khác số tiền trên đơn</b> (tô đỏ bên dưới). Vẫn ghi theo số hãng thu; hỏi lại sale / hãng vì sao lệch.</p>';
+    if (X.stNo) h += '<p class="small notice">ℹ️ ' + X.stNo + ' đơn hãng báo giao thành công mà CRM chưa ghi Đã giao: báo Quản lý chạy <b>📦 Đối soát vận chuyển</b> ở tab Đơn hàng.</p>';
+    if (X.pay.length) h += '<p class="small" style="margin:10px 0 4px"><b>Đơn sẽ ghi tiền về</b> (bỏ tích đơn không muốn ghi):</p><div class="ktv-list">' + X.pay.slice().sort(function (a, b) { return b.diff - a.diff; }).map(function (it) {
+      var o = it.o, r = it.r;
+      return '<label class="ktv-o' + (it.diff ? ' old' : '') + '"><input type="checkbox" data-ktvp="' + o.row + '" checked><span class="ktv-o-t"><b>' + esc(o.id) + ' · ' + esc(o.name) + ' ' + esc(ktvPh(o)) + '</b><small>' + esc(r.wb) + (r.day ? ' · hãng trả ' + fDate(r.day).slice(0, 5) : '') + (r.batch ? ' · phiếu ' + esc(r.batch) : '') +
+        (it.diff ? ' · <b>đơn ' + money(o.total) + ', hãng thu ' + money(r.cod) + '</b>' : '') + '</small></span><b class="ktv-amt">' + moneyShort(r.cod) + '</b></label>';
+    }).join('') + '</div>';
+    if (X.none.length) h += '<details class="small" style="margin-top:8px"><summary>❓ ' + X.none.length + ' dòng không thấy đơn trong CRM</summary><p class="muted">Đơn chưa lên CRM hoặc sai mã. Báo sale kiểm tra.</p>' + X.none.slice(0, 60).map(function (r) { return '<div>' + esc(r.label || r.wb) + ' · ' + esc(r.wb) + ' · ' + money(r.cod) + ' · ' + esc(r.payTxt) + '</div>'; }).join('') + '</details>';
+    $('#ktvOut', m).innerHTML = h; var b = $('#ktvCodGo', m); b.hidden = !X.pay.length; b.textContent = '✅ Ghi tiền về ' + X.pay.length + ' đơn';
+  }
+  function bindKtab() {
+    bindDash();
+    $$('[data-ktv]').forEach(function (el) {
+      el.onclick = function () { var a = el.getAttribute('data-ktv').split('|'); if (a[0] === 'cod') openKtvCod(); else openKtvList(a[0], a[1] || ''); };
+    });
+    var sv = $('#ktvFromSave'); if (sv) sv.onclick = function () {
+      var v = $('#ktvFrom').value; if (!v) return; sv.disabled = true;
+      api('kt_cfg', { from: v }).then(function (j) { S.d.rules.ktCfg = j.ktCfg; toast('Đã lưu ✓'); render(); }, function (e) { sv.disabled = false; toast(e.message, true); });
+    };
+  }
   function isKho() { return !!(S.user && S.user.role === 'Kho'); } // 09/11/2026: quyền Kho riêng (chỉ tab Kho + hàng hoàn), tách khỏi Sale & CSKH
   /** 📣 Xem Marketing (Cài đặt → Nhân sự): Quản lý / Sale được xem tab Marketing, không nhập chi phí, không đặt mục tiêu. */
   function mkvOnly() { return !!(S.user && S.user.mkv) && !isMkt() && lvl() < 3; }
@@ -6811,7 +7012,7 @@
     if (SN.busy === key) return; SN.busy = key; SN.err = '';
     var k = key.split('_');
     api('san', { from: k[0], to: k[1], pf: k[2], pt: k[3], month: k[4] }).then(function (j) { SN.cache[key] = j; }, function (e) { SN.err = /Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message; })
-      .then(function () { SN.busy = ''; var v = route().view; if (v === 'tong-quan' || v === 'san') softRender(true); navBadges(); }); // navBadges: % mục tiêu công ty trên tab Tổng quan
+      .then(function () { SN.busy = ''; var v = route().view; if (v === 'tong-quan' || v === 'san' || v === 'ke-toan') softRender(true); navBadges(); }); // navBadges: % mục tiêu công ty trên tab Tổng quan
   }
   /** Số liệu sàn của kỳ đang xem (tự tải nếu chưa có). */
   function snGet(R, P, month) { var key = snKey(R, P, month), sj = SN.cache[key]; if (!sj && !SN.err) setTimeout(function () { snFetch(key); }, 0); return sj; }
@@ -8449,6 +8650,7 @@
     G.tg = '<div class="box"><h3>📲 Thông báo Telegram riêng</h3>' + (S.user.tg
       ? '<p style="margin:0 0 10px">✅ Đã kết nối. ' + (isKho() ? 'Bạn nhận tin kho: sản phẩm sắp hết cần đặt thêm, 8h sáng việc kho hôm nay và đơn hoàn đang về.' : isMkt() ? 'Bạn nhận tin <b>📣 Marketing sáng nay</b> lúc 8h: tiến độ mục tiêu kênh của bạn, hôm qua, việc nên làm.' : 'Bạn nhận riêng: đơn mới của khách mình phụ trách, khách hỏi mới được giao, danh sách việc lúc 8h sáng.') + '</p><button class="btn ghost" id="tgOff">Ngắt kết nối</button>'
       : '<p style="margin:0 0 10px">' + (isKho() ? 'Nhận tin kho qua Telegram (sắp hết hàng, việc kho 8h sáng, đơn hoàn đang về).' : isMkt() ? 'Nhận tin <b>📣 Marketing sáng nay</b> lúc 8h qua Telegram (tiến độ mục tiêu, việc nên làm).' : 'Nhận thông báo về khách <b>của riêng bạn</b> qua Telegram.') + ' Làm 1 lần, mất 30 giây:</p><ol style="margin:0 0 10px;padding-left:20px"><li>Bấm <b>“Kết nối Telegram”</b>.</li><li>Bấm <b>“Mở Telegram”</b> → trong Telegram bấm <b>Start / Bắt đầu</b>.</li><li>Quay lại đây bấm <b>“Tôi đã bấm Start”</b>.</li></ol><div class="steps" id="tgSteps"><button class="btn pri" id="tgLink">Kết nối Telegram</button></div>') + '</div>';
+    if (isKt()) return h + setGroup('acc', '👤 Tài khoản của tôi', esc(S.user.name) + ' · ' + esc(S.user.email), G.acc) + G.tg + setGroup('cost', '💰 Giá vốn sản phẩm', costLine(), costBox()) + '<div class="box"><h3>💼 Tài khoản Kế toán</h3><p style="margin:0 0 8px">Bạn dùng tab <b>💼 Kế toán</b>: ghi tiền về tài khoản (tải file đối soát COD hoặc tích tay), xem tiền còn treo ở hãng vận chuyển, nhập chi phí (lương, mặt bằng…), xem lãi lỗ theo ngày / tuần / tháng.</p><p class="small muted" style="margin:0">Tài khoản Kế toán không xem số điện thoại, địa chỉ khách, không chăm sóc khách. 8h sáng bạn nhận tin 💼 Tài chính qua Telegram (nối ở trên).</p></div>';
     if (isKho()) return h + setGroup('acc', '👤 Tài khoản của tôi', esc(S.user.name) + ' · ' + esc(S.user.email), G.acc) + G.tg + '<div class="box"><h3>📦 Tài khoản Kho</h3><p style="margin:0 0 8px">Bạn dùng tab <b>📦 Kho</b>: ghi hàng về kho, lấy hàng ra, đếm kho, đặt thêm hàng khi sắp hết.</p><p style="margin:0 0 8px"><b>↩ Hàng hoàn</b>: gói hàng khách không nhận, hãng trả về. Mở gói kiểm hàng, rồi bấm <b>📦 Đã nhận hàng</b> trên đúng đơn (ghi rõ nếu thiếu / hỏng). Máy tự cộng hàng lại vào kho và báo sale gọi hỏi khách.</p><p class="small muted" style="margin:0">Tài khoản Kho không xem khách, doanh số. Cần thêm quyền thì nhờ Quản trị.</p></div>';
     if (isMkt()) return h + setGroup('acc', '👤 Tài khoản của tôi', esc(S.user.name) + ' · ' + esc(S.user.email), G.acc) + G.tg + setGroup('qz', '🖐 Trò chơi “Bạn còn mấy ngón tay?”', 'Sửa câu hỏi trò chơi trên web · màn hình chơi nhóm', qzeBox()) + '<div class="box"><h3>📣 Tài khoản Marketing</h3><p style="margin:0 0 8px">Bạn xem được tab <b>Marketing</b>: chi phí quảng cáo, khách mới và tiền khách mới mỗi kênh mang về, data quảng cáo, chiến dịch. Chi phí TikTok, Google, KOL… bấm <b>⚙️ Nhập chi phí</b> để nhập file hoặc nhập tay.</p><p style="margin:0 0 8px">Tab <b>Khách hỏi</b>: xem khách để lại số trên web (chỉ xem, quản lý giao cho sale).</p><p class="small muted" style="margin:0 0 10px">Số điện thoại khách chỉ dùng cho công việc, không chép ra ngoài (Nghị định 13/2023).</p><a class="btn" href="/huong-dan/crm/" target="_blank" rel="noopener">📖 Xem hướng dẫn</a></div>';
     G.lim = '<div class="box"><h3>🎯 Số khách chăm sóc mỗi ngày</h3><p class="small muted" style="margin:0 0 8px">Tab Hôm nay chỉ đưa ra tối đa bấy nhiêu khách mỗi ngày (khách quan trọng trước). Khách chưa tới lượt tự dời sang hôm sau. Cài trên máy này.</p>' +
@@ -8532,12 +8734,13 @@
       G.us = '<div class="box"><h3>Nhân sự được vào CRM</h3><p class="hint" style="margin:0 0 8px">Mỗi người 1 dòng: email, tên, quyền. Nhân viên nghỉ việc thì bỏ tích <b>Đang dùng</b>. Sửa xong bấm <b>Lưu nhân sự</b> ở cuối.</p><details class="set-more"><summary>ℹ️ Các quyền khác nhau thế nào?</summary><p class="hint" style="margin:0 0 10px"><b>Quản trị</b>: toàn quyền. <b>Quản lý</b>: thêm xem doanh số, sửa chu kỳ & mẫu tin. <b>Sale & CSKH</b>: bán hàng, chăm sóc khách mình phụ trách, xử lý đơn. <b>Marketing</b>: tab 📣 Marketing (chi phí, hiệu quả quảng cáo, tự nhập chi phí) + xem (không sửa) khách để lại số trên web ở tab Khách hỏi; không thấy khách đã mua, đơn, doanh số công ty. <b>Kho</b>: chỉ tab 📦 Kho (hàng về, lấy ra, đếm kho, đặt thêm hàng, nhận hàng hoàn về); không thấy khách, doanh số; không nhận khách mới. Khách để lại số trên web luôn chờ Quản lý / Quản trị giao, sale không tự nhận. Muốn Quản lý / Sale xem thêm số marketing: tích <b>📣 Xem Marketing</b> dưới tên người đó (chỉ xem, không sửa). Nhân viên nghỉ việc: bỏ tích “Đang dùng” là không vào được nữa.</p>' +
         '<p class="hint" style="margin:0 0 10px"><b>Tên trong file QC</b>: tên sale như đang ghi ở cột Sale của file số quảng cáo (nhiều cách viết thì cách nhau dấu phẩy, vd “Phương, PHƯƠNG”). <b>Tiền tố mã đơn</b>: vd “Phuong” → mã đơn Phuong300926-01. <b>SĐT, họ tên đầy đủ, số tài khoản</b>: CRM so với người đăng ký Cộng tác viên, trùng thì báo ⚠️ (nhân sự không được làm CTV); chỉ Quản trị thấy. <b>Ngày làm chính thức</b>: tính thâm niên cho lương & hoa hồng (Phụ lục 01).</p></details>' +
         '<div class="edit-table" id="usT"><div class="edit-row usr head"><span>Email</span><span>Tên hiển thị</span><span>Quyền</span><span>Đang dùng</span><span></span></div>' +
-        us.map(function (u, i) { return '<div class="edit-row usr" data-i="' + i + '"><input type="email" data-k="email" value="' + esc(u.email) + '" placeholder="email@gmail.com"><input type="text" data-k="name" value="' + esc(u.name) + '" placeholder="Tên"><select data-k="role">' + ['Quản trị', 'Quản lý', 'Marketing', 'Sale & CSKH', 'Kho'].map(function (r) { return '<option value="' + esc(r) + '"' + (r === u.role ? ' selected' : '') + '>' + esc(r) + '</option>'; }).join('') + '</select><label class="switch"><input type="checkbox" data-k="active"' + (u.active ? ' checked' : '') + '> Có</label><button class="rm" data-rm="us" data-i="' + i + '" aria-label="Xoá">✕</button>' +
+        us.map(function (u, i) { return '<div class="edit-row usr" data-i="' + i + '"><input type="email" data-k="email" value="' + esc(u.email) + '" placeholder="email@gmail.com"><input type="text" data-k="name" value="' + esc(u.name) + '" placeholder="Tên"><select data-k="role">' + ['Quản trị', 'Quản lý', 'Marketing', 'Sale & CSKH', 'Kho', 'Kế toán'].map(function (r) { return '<option value="' + esc(r) + '"' + (r === u.role ? ' selected' : '') + '>' + esc(r) + '</option>'; }).join('') + '</select><label class="switch"><input type="checkbox" data-k="active"' + (u.active ? ' checked' : '') + '> Có</label><button class="rm" data-rm="us" data-i="' + i + '" aria-label="Xoá">✕</button>' +
           '<input type="text" data-k="alias" value="' + esc(u.alias || '') + '" placeholder="Tên trong file QC (vd Phương)" class="usr-x"><input type="text" data-k="prefix" value="' + esc(u.prefix || '') + '" placeholder="Tiền tố mã đơn (vd Phuong)" class="usr-x"><input type="tel" data-k="phone" value="' + esc(u.phone || '') + '" placeholder="SĐT cá nhân (chống tự làm CTV)" class="usr-x"><input type="text" data-k="full" value="' + esc(u.full || '') + '" placeholder="Họ tên đầy đủ (vd Nguyễn Thu Hương)" class="usr-x"><input type="text" inputmode="numeric" data-k="acct" value="' + esc(u.acct || '') + '" placeholder="Số tài khoản ngân hàng (chống tự làm CTV)" class="usr-x"><input type="text" data-k="joined" value="' + esc(u.joined || '') + '" placeholder="Ngày làm chính thức (vd 07/2024) – tính thâm niên" class="usr-x"><label class="switch usr-w"><input type="checkbox" data-k="web"' + (u.web || u.role === 'Quản trị' ? ' checked' : '') + (u.role === 'Quản trị' ? ' disabled' : '') + '> 🌐 Sửa website (đăng bài, sửa sản phẩm ở thucduonglanh.vn/admin)</label>' +
           (u.role === 'Quản lý' || u.role === 'Sale & CSKH' ? '<label class="switch usr-w"><input type="checkbox" data-k="mkv"' + (u.mkv ? ' checked' : '') + '> 📣 Xem Marketing (chỉ xem tab Marketing: chi phí, hiệu quả quảng cáo; không sửa)</label>' : '') +
           (u.role === 'Sale & CSKH' ? '<label class="switch usr-w"><input type="checkbox" data-k="zb"' + (u.zb ? ' checked' : '') + '> 🤖 Phụ trách Trợ lý Zalo (duyệt bài, đổi ảnh, gửi tin vào nhóm, cài đặt giờ đăng). Quản lý, Marketing đã có sẵn quyền này</label>' : '') +
+          (u.role === 'Kế toán' ? '<p class="small muted usr-w" style="margin:4px 0 0">💼 Quyền Kế toán: chỉ vào tab Kế toán (tiền về, tiền treo ở hãng, chi phí, lãi lỗ, giá vốn). Thấy tên khách + 4 số cuối SĐT, không thấy SĐT đầy đủ, địa chỉ.</p>' : '') +
           (u.role === 'Kho' ? '<p class="small muted usr-w" style="margin:4px 0 0">📦 Quyền Kho: chỉ vào tab Kho (hàng về, lấy ra, đếm kho, nhận hàng hoàn) và nhận tin Telegram kho. Không thấy khách, đơn, doanh số.</p>' : '') +
-          (u.role !== 'Marketing' && u.role !== 'Kho' ? '<label class="switch usr-w"><input type="checkbox" data-k="kho"' + (u.kho ? ' checked' : '') + '> 📦 Kiêm phụ trách kho (nhận tin Telegram sắp hết hàng, ghi hàng về / lấy ra / đếm kho, nhận hàng hoàn). Người chỉ lo kho thì chọn quyền “Kho” ở ô Quyền' + (u.role === 'Sale & CSKH' ? '' : '. Quản lý, Quản trị đã vào được tab Kho, tích để nhận tin') + '</label>' : '') + '</div>'; }).join('') +
+          (u.role !== 'Marketing' && u.role !== 'Kho' && u.role !== 'Kế toán' ? '<label class="switch usr-w"><input type="checkbox" data-k="kho"' + (u.kho ? ' checked' : '') + '> 📦 Kiêm phụ trách kho (nhận tin Telegram sắp hết hàng, ghi hàng về / lấy ra / đếm kho, nhận hàng hoàn). Người chỉ lo kho thì chọn quyền “Kho” ở ô Quyền' + (u.role === 'Sale & CSKH' ? '' : '. Quản lý, Quản trị đã vào được tab Kho, tích để nhận tin') + '</label>' : '') + '</div>'; }).join('') +
         '</div><div class="steps" style="margin-top:10px"><button class="btn" data-add="us">＋ Thêm người</button><button class="btn pri" id="usSave">Lưu nhân sự</button></div>' +
         '<h3 style="margin:16px 0 4px">Nhân sự chưa có tài khoản CRM</h3><p class="hint" style="margin:0 0 6px">Mỗi dòng 1 người: <b>Họ tên | SĐT | Số tài khoản</b>. Chỉ để CRM cảnh báo khi họ (hoặc người dùng tài khoản của họ) đăng ký Cộng tác viên.</p>' +
         '<textarea id="sgTxt" rows="4" style="width:100%" placeholder="Nguyễn Văn A | 0912345678 | 0123456789">' + esc((S.d.rules.staffGuard || []).map(function (r) { return [r.full, r.phone, r.acct].join(' | '); }).join('\n')) + '</textarea>' +

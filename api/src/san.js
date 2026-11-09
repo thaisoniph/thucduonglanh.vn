@@ -66,7 +66,7 @@ async function sanLoad(x, u, d) {
   const tgs = tg || {}, pm = prevMonth(month);
   return {
     ok: true, month, days: days.map(r => [r.day, r.shop].concat(agg(r))), prev: prev.map(r => [r.shop].concat(agg(r))), pdays: pdays.map(r => [r.day, r.g || 0, r.n || 0, r.gv || 0, r.nv || 0]), mon: mon.map(r => [r.shop, r.g || 0]),
-    prods: Object.values(P).sort((a, b) => b[3] - a[3]).slice(0, 15), pall: u.level >= 3 ? Object.values(P).sort((a, b) => b[3] - a[3]).slice(0, 500) : undefined, files: files.map(r => [r.shop, r.kind, r.at, r.dt]),
+    prods: Object.values(P).sort((a, b) => b[3] - a[3]).slice(0, 15), pall: u.level >= 3 || u.role === 'Kế toán' ? Object.values(P).sort((a, b) => b[3] - a[3]).slice(0, 500) : undefined, files: files.map(r => [r.shop, r.kind, r.at, r.dt]),
     targets: { [month]: tgs[month] || {}, [pm]: tgs[pm] || {} }, people: cfg.people || [], admin: u.level >= 3,
     sheet: { id: sheetIdOf(cfg), err: await kvGet(x.db, 'san_sheet_err') || '' }
   };
@@ -218,6 +218,7 @@ async function sanSheetCmd(x, u, d) {
 }
 
 export async function crmSan(x, u, d) {
+  if (u.role === 'Kế toán') return d.action === 'san' ? sanLoad(x, u, d) : { ok: false, error: 'Kế toán chỉ xem số sàn.' }; // 💼 09/11/2026: số sàn cho lãi lỗ
   if (!await sanAllowed(x, u)) return { ok: false, error: 'Bạn chưa được giao phụ trách sàn. Nhờ Quản trị thêm tên ở tab Sàn → ⚙️ Người phụ trách sàn.' };
   switch (d.action) {
     case 'san': return sanLoad(x, u, d);

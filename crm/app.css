@@ -1835,3 +1835,22 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .gq-who { display: block; font-size: 12.5px; color: var(--muted, #74776c); }
 .gq-miss { display: inline-block; font-size: 12px; font-weight: 700; color: #a4511b; background: #fff1e3; border-radius: 6px; padding: 1px 6px; }
 .gq-ans { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line, #e6e3da); font-size: 14px; line-height: 1.55; }
+/* 💼 Kế toán (09/11/2026): tab ke-toan (viewKtab trong app.js) */
+.ktv-sec { margin: 0 0 18px; } .ktv-h { font-size: 18px; margin: 14px 0 8px; } .ktv-h small { font-size: 13px; font-weight: 400; color: var(--muted); }
+.ktv-n { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; } .ktv-n3 { grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 10px 0; }
+@media (max-width: 760px) { .ktv-n, .ktv-n3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.ktv-c { position: relative; text-align: left; font: inherit; color: inherit; padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--line); border-left: 5px solid var(--line); background: var(--card); min-width: 0; cursor: pointer; }
+.ktv-c[disabled] { cursor: default; opacity: 1; } .ktv-c.ok { border-left-color: var(--primary); } .ktv-c.mid { border-left-color: var(--mid); background: var(--orange-light); } .ktv-c.bad { border-left-color: var(--red); background: var(--red-light); }
+.ktv-c span { display: block; font-size: 14px; color: var(--muted); padding-right: 14px; } .ktv-c > b { display: block; font-size: 22px; line-height: 1.25; color: var(--ink); white-space: nowrap; } .ktv-c.bad > b { color: var(--red); }
+.ktv-c > small { display: block; font-size: 13px; line-height: 1.4; color: var(--text); } .ktv-c > i { position: absolute; right: 10px; top: 8px; font-style: normal; color: var(--muted); font-size: 18px; }
+.ktv-big { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0; } .ktv-big .btn { flex: 1 1 200px; }
+.ktv-by h3 { margin: 0 0 6px; } .ktv-by h3 small { font-weight: 400; font-size: 13px; color: var(--muted); }
+.ktv-row { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; font: inherit; color: inherit; background: none; border: 0; border-top: 1px solid var(--line); padding: 10px 2px; cursor: pointer; }
+.ktv-row > span { flex: 1 1 auto; min-width: 0; } .ktv-row small { display: block; color: var(--muted); font-size: 13px; } .ktv-row > i { font-style: normal; color: var(--muted); font-size: 18px; }
+.ktv-amt { white-space: nowrap; font-size: 15px; } .ktv-red { color: var(--red); font-style: normal; font-weight: 600; }
+.ktv-tool { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0 0 6px; } .ktv-tool input[type=search] { flex: 1 1 180px; }
+.ktv-list { max-height: 55vh; overflow: auto; border: 1px solid var(--line); border-radius: var(--radius-sm); }
+.ktv-o { display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; border-bottom: 1px solid var(--line); cursor: pointer; } .ktv-o:last-child { border-bottom: 0; }
+.ktv-o input { margin-top: 3px; flex: none; width: 18px; height: 18px; } .ktv-o-t { flex: 1 1 auto; min-width: 0; } .ktv-o-t small { display: block; color: var(--muted); font-size: 13px; }
+.ktv-o.old { background: var(--red-light); } .ktv-o[hidden] { display: none; } .ktv-ok { color: var(--primary); } .ktv-how { margin: 0 0 10px; padding-left: 20px; } .ktv-warn { margin: 8px 0; }
+.ktv-more summary { cursor: pointer; font-weight: 600; } .ktv-start { margin: 0 0 12px; }

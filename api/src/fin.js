@@ -4,6 +4,7 @@
 // Lưu kv opex_cfg (chi phí theo tháng, như tải file) + kv fin_cfg (tiền, sổ chi, công nợ). Cron 7h30 rồi 3 tiếng / lần tới 20h (gói Workers $5, đọc 1 file ~70ms CPU); 8h sáng nhắn Telegram riêng cho Quản trị.
 import { esc, fmtDate, startOfDay, all, kvSet, kvJson, DAY, CRM_URL } from './lib.js';
 import { telegramTo } from './google.js';
+import { ktMorningLines } from './kt.js';
 
 function norm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd'); }
 function pad(n) { return (n < 10 ? '0' : '') + n; }
@@ -208,7 +209,7 @@ export async function finSync(x, by) {
 }
 /** Lệnh CRM (chỉ Quản trị): kt_link = nối / bỏ link · fin_save = CRM đọc file trên máy rồi gửi kết quả · fin_test = gửi thử tin sáng cho chính mình. */
 export async function crmFin(x, u, d, a) {
-  if (u.level < 3) return { ok: false, error: 'Bạn không có quyền làm việc này.' };
+  if (!(u.level >= 3 || u.role === 'Kế toán')) return { ok: false, error: 'Bạn không có quyền làm việc này.' };
   if (a === 'kt_link') {
     if (d.off) { await kvSet(x.db, 'kt_link', JSON.stringify({ link: '', by: u.name, at: Date.now() })); return { ok: true, ktLink: null }; }
     if (!sheetId(d.link)) return { ok: false, error: 'Link chưa đúng: cần link Google Sheet (docs.google.com/spreadsheets/d/…).' };
@@ -237,7 +238,8 @@ function baseCfg(O) {
 }
 export async function finMorning(x) {
   const O = (await kvJson(x.db, 'opex_cfg', {})) || {}, F = await kvJson(x.db, 'fin_cfg', null), C = baseCfg(O);
-  if (!C.fm && !F) return ''; // chưa có số kế toán → không gửi
+  const KL = await ktMorningLines(x).catch(() => []); // 💤 tiền treo ở hãng (kt.js, 09/11/2026)
+  if (!C.fm && !F) return KL.length ? ['💼 <b>Tài chính sáng ' + fmtDate(Date.now(), 'dd/MM') + '</b>', ''].concat(KL, ['', CRM_URL]).join('\n') : ''; // chưa có số kế toán → chỉ gửi phần tiền treo (nếu có)
   const t0 = startOfDay(Date.now()), y0 = t0 - DAY, ym = fmtDate(y0, 'yyyy-MM'), m0 = startOfDay(new Date(ym + '-01T00:00:00+07:00').getTime());
   const Y = await plRange(x, y0, t0, C.rate, C.fix), M = await plRange(x, m0, t0, C.rate, C.fix), md = Math.round((t0 - m0) / DAY);
   const L = ['💼 <b>Tài chính sáng ' + fmtDate(Date.now(), 'dd/MM') + '</b>',
@@ -259,6 +261,7 @@ export async function finMorning(x) {
     const last = F.chi.reduce((m, r) => r[0] > m ? r[0] : m, '');
     if (last && last < fmtDate(y0 - DAY, 'yyyy-MM-dd')) L.push('<i>Sổ chi chưa cập nhật từ ' + fmtDate(new Date(last + 'T12:00:00+07:00').getTime(), 'dd/MM') + '.</i>');
   }
+  if (KL.length) L.push('', ...KL);
   L.push('', '<i>Ước tính: giá vốn ' + Math.round(C.rate * 100) + '% (kế toán ' + (C.rm ? 'T' + +C.rm.slice(5) : 'mặc định') + '), chi phí cố định ' + tr(C.fix) + '/ngày' + (C.fm ? ' (T' + +C.fm.slice(5) + ')' : '') + ', chưa gồm sàn.</i>', CRM_URL);
   return L.filter((s, i) => s !== '' || L[i - 1] !== '').join('\n');
 }

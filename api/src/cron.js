@@ -130,7 +130,7 @@ export async function scheduled(x, cron) {
     const key = 'care_' + fmtDate(now, 'yyyyMMdd');
     if (!await kvGet(x.db, key)) { await kvSet(x.db, key, '1', 2 * DAY); try { await refThanks(x); } catch (e) { console.error('refAuto', e.message); } try { await dailyCare(x); } catch (e) { console.error('dailyCare', e.message); } }
     const fm = 'fin_' + fmtDate(now, 'yyyyMMdd'); // 💼 tin tài chính buổi sáng: riêng cho Quản trị đã nối Telegram
-    if (!await kvGet(x.db, fm)) { await kvSet(x.db, fm, '1', 2 * DAY); try { const t = await finMorning(x); if (t) for (const u of await crmUsers(x)) if (u.active && u.tg && u.level >= 3) await telegramTo(x.env, u.tg, t); } catch (e) { console.error('finMorning', e.message); } }
+    if (!await kvGet(x.db, fm)) { await kvSet(x.db, fm, '1', 2 * DAY); try { const t = await finMorning(x); if (t) for (const u of await crmUsers(x)) if (u.active && u.tg && (u.level >= 3 || u.role === 'Kế toán')) await telegramTo(x.env, u.tg, t); } catch (e) { console.error('finMorning', e.message); } }
     const kk = 'kho_' + fmtDate(now, 'yyyyMMdd'); // 📦 tin kho buổi sáng: cần đặt NCC, hàng trễ, thứ 6 kiểm kho (kho.js)
     if (!await kvGet(x.db, kk)) { await kvSet(x.db, kk, '1', 2 * DAY); try { await khoMorning(x); } catch (e) { console.error('khoMorning', e.message); } }
     const mk = 'mktd_' + fmtDate(now, 'yyyyMMdd'); // tin Telegram marketing buổi sáng
