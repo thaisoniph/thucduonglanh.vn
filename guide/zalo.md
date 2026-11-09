@@ -83,6 +83,8 @@ Mỗi bài có một nhãn màu cho biết bài đó để làm gì:
 
 Tối Thứ 4 có **đố vui**, sáng Thứ 5 trợ lý **công bố đáp án**. Tối Thứ 5 là bài **cảm nhận khách hàng** (dùng ảnh feedback thật).
 
+🌙 **Ngày mùng 1 âm lịch**: bài sáng đổi thành **lời chúc mừng tháng mới** (không bán hàng). Mùng 1 Tết thì chúc mừng năm mới. Bài này vẫn chờ duyệt như bài thường. Nếu mùng 1 rơi vào sáng Thứ 5 thì cuối bài vẫn có đáp án đố vui tối qua. Trợ lý cũng biết hôm nay là ngày mấy âm lịch khi khách hỏi.
+
 Bài đã đăng có dòng **📊** cho biết trong 2 tiếng sau khi đăng có bao nhiêu người nhắn, gửi ảnh, thả cảm xúc. Nếu khách bấm link trong bài rồi đặt hàng trên web, dòng này hiện thêm **🛒 số đơn**. Đầu tab có bảng **Hiệu quả bài đăng theo phễu (30 ngày)** để so loại bài nào làm nhóm sôi nổi, loại nào ra đơn.
 
 ### Xem lại tất cả bài đã đăng

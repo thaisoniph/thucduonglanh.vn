@@ -21,6 +21,7 @@ import { addLead } from './crm.js';
 import { kb, safe, workNow, TRUTH_RULES, REF_RULES, REF_TXT, PHONE_RE } from './chat.js';
 import { botRef } from './partner.js';
 import { offersLive } from './salemkt.js';
+import { lunar, monthName } from './lunar.js';
 
 const BOT = 'An Lành';
 const FAST = 'claude-haiku-5-5', WRITER = 'claude-opus-5-5';
@@ -57,6 +58,15 @@ const THEME = {
     { f: 'BOFU', t: 'Nhắc nhẹ cuối tuần: ưu đãi đang chạy (nếu có) hoặc hướng dẫn đặt hàng trên web 3 bước (được kiểm hàng trước khi nhận, freeship từ 300k), không thúc ép; để 1 link sản phẩm hợp nhất', link: 1 },
     { f: 'TOFU', t: 'Cuối tuần: mời mọi người khoe mâm cơm / bữa ăn lành của nhà mình, hoặc rủ cả nhà cùng nấu 1 món lành' }]
 };
+/** 🌙 Mùng 1 âm lịch (anh Sơn 09/11/2026): bài sáng thay chủ đề theo thứ bằng lời chúc tháng mới; mùng 1 tháng Giêng = chúc Tết. Giữ phần đáp án đố vui nếu hôm đó có. */
+function moonTheme(lu, base) {
+  if (lu.d !== 1) return null;
+  const no = ' Không bán hàng, không nhắc sản phẩm, không nói chuyện tâm linh / bói toán / ngày tốt xấu.';
+  const t = lu.m === 1 && !lu.leap
+    ? 'Mùng 1 Tết Nguyên Đán năm ' + lu.yName + ': chúc mừng năm mới cả nhà. Lời chúc năm mới an khang, mạnh khỏe, gia đình sum vầy; 1–2 ý nhẹ nhàng về ăn Tết lành (ăn uống điều độ, giữ nếp ngủ nghỉ, quây quần bên gia đình).' + no + ' Kết bằng lời mời mọi người gửi lời chúc / mong ước năm mới.'
+    : 'Hôm nay mùng 1 ' + monthName(lu.m, lu.leap) + ' âm lịch: chúc mừng cả nhà đón tháng mới. Lời chúc tháng mới bình an, mạnh khỏe, gia đình êm ấm, mọi việc hanh thông; 1–2 ý nhẹ nhàng hợp ngày đầu tháng theo nếp người Việt (sống chậm, biết ơn, bữa cơm thanh đạm hoặc ăn chay với ai có thói quen ngày rằm – mùng 1, chọn 1 thói quen lành để bắt đầu tháng mới).' + no + ' Kết bằng lời mời mọi người chia sẻ 1 mong muốn cho tháng mới.';
+  return { f: 'TOFU', t, quiz: base.quiz, moon: 1 };
+}
 /** 31/10/2026 11:14: chương trình Zalo bắt đầu đếm tương tác; bài trước giờ này không có số đo (không tính vào thống kê) */
 const TRACK_FROM = Date.UTC(2026, 9, 31, 4, 14);
 const FUNNEL = { TOFU: '🔵 Nhận biết – tương tác', MOFU: '⚪ Cân nhắc – tạo niềm tin', BOFU: '🟠 Chuyển đổi – bán hàng' };
@@ -472,7 +482,7 @@ export async function zWrite(x, day, slot, hint, by) {
   const know = await kb(), prods = prodMap(know), wd = new Date(slotTime(day, '12:00') + TZ_MS).getUTCDay();
   const recent = await all(x.db, "SELECT day, slot, topic, img FROM zb_posts WHERE topic != '' AND slot != 'chuc' ORDER BY day DESC LIMIT 20");
   const used = new Set(recent.map(r => r.img).filter(Boolean)), lib = (await imgLib()).filter(i => !used.has(i.url)); // không lặp ảnh đã dùng gần đây
-  const sang = slot !== 'toi', th = THEME[sang ? 'sang' : 'toi'][wd];
+  const sang = slot !== 'toi', base = THEME[sang ? 'sang' : 'toi'][wd], lu = lunar(day), th = (sang && moonTheme(lu, base)) || base;
   // ưu đãi đang chạy (Marketing nhập ở CRM) cho bài bán hàng
   const offers = th.f === 'BOFU' ? await offersLive(x) : [];
   // đố vui tối qua → sáng nay công bố đáp án
@@ -485,9 +495,9 @@ export async function zWrite(x, day, slot, hint, by) {
   const learn = scored.length >= 4 ? 'Bài cùng loại trong nhóm này được nhiều người hưởng ứng nhất (học cách đặt vấn đề, cách hỏi):\n' + scored.slice(0, 3).map(r => '- ' + r.topic + ' (' + r.eng_people + ' người)').join('\n') + '\nBài ít người hưởng ứng (tránh kiểu này):\n' + scored.slice(-2).map(r => '- ' + r.topic + ' (' + r.eng_people + ' người)').join('\n') : '';
   const ask = [
     'Viết 1 bài đăng nhóm Zalo cộng đồng "Sống khỏe cùng Thực Dưỡng Lành" (thành viên phần lớn là cô chú trung niên, mẹ bỉm, người ăn chay, dân văn phòng).',
-    'Ngày: ' + ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'][wd] + ' ' + day.slice(6, 8) + '/' + day.slice(4, 6) + ' · ' + (sang ? 'đăng lúc sáng sớm' : 'đăng buổi tối') + '.',
+    'Ngày: ' + ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'][wd] + ' ' + day.slice(6, 8) + '/' + day.slice(4, 6) + (th.moon ? ' (âm lịch: ' + lu.text + ')' : '') + ' · ' + (sang ? 'đăng lúc sáng sớm' : 'đăng buổi tối') + '.',
     'Chủ đề hôm nay: ' + th.t + ' (tầng phễu: ' + FUNNEL[th.f] + ')' + (hint ? '\nYêu cầu thêm của nhân sự: ' + hint : ''),
-    quiz ? 'CÂU ĐỐ TỐI QUA (công bố đáp án đúng, giải thích 1–2 câu):\n' + String(quiz.text).slice(0, 1200) : th.quiz ? 'Tối qua không có câu đố: bỏ phần đáp án, chỉ làm phần hỏi đáp.' : '',
+    quiz ? (th.moon ? 'CÂU ĐỐ TỐI QUA (sau lời chúc, công bố ngắn đáp án đúng ở cuối bài, giải thích 1 câu):\n' : 'CÂU ĐỐ TỐI QUA (công bố đáp án đúng, giải thích 1–2 câu):\n') + String(quiz.text).slice(0, 1200) : th.quiz && !th.moon ? 'Tối qua không có câu đố: bỏ phần đáp án, chỉ làm phần hỏi đáp.' : '',
     th.fb ? (fb ? 'CẢM NHẬN KHÁCH HÀNG (thật, khách đồng ý chia sẻ; chỉ dùng đúng ý này, không thêm chi tiết, không nêu họ tên đầy đủ – gọi "một chị khách", "anh khách quen"…):\n' + fb.note : 'Chưa có cảm nhận khách hàng mới: thay bằng câu hỏi mời mọi người kể trải nghiệm dùng sản phẩm của mình (không bịa cảm nhận).') : '',
     th.f === 'BOFU' ? (offers.length ? 'ƯU ĐÃI ĐANG CHẠY (chỉ nói đúng như sau):\n' + offers.map(o => '- ' + [o.title, o.prod ? 'sản phẩm: ' + o.prod : '', o.text, o.until ? 'hạn đến ' + o.until : ''].filter(Boolean).join(' · ')).join('\n') : 'Hiện không có ưu đãi riêng: không bịa khuyến mãi, chỉ nhắc freeship đơn từ 300k và được kiểm hàng trước khi nhận.') : '',
     learn,
