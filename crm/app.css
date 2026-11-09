@@ -110,6 +110,16 @@ button.tag { border: 0; cursor: pointer; font-family: inherit; line-height: inhe
 .tag.st-huy { background: #eee; color: #888; text-decoration: line-through; }
 .tag.owner { background: var(--primary-soft); color: var(--primary); font-weight: 600; }
 .tag.pool { background: var(--blue-light); color: var(--blue); }
+.idle-r { display: flex; gap: 10px; align-items: center; padding: 9px 0; }
+.idle-r + .idle-r { border-top: 1px solid #eee; }
+.idle-i { font-size: 22px; width: 30px; text-align: center; flex: none; }
+.idle-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.idle-a { flex: none; }
+.goal-self { margin: 8px 0 4px; font-size: 14px; }
+.goal-self .bar.sm { margin-top: 4px; }
+.src-share.ok { color: var(--primary); }
+.src-share.mid { color: var(--mid); }
+.src-share.bad { color: var(--red); }
 .tag.pool-due { background: #fff3c4; color: #7a5a00; font-weight: 600; }
 .tag.noconsent { background: var(--orange-light); color: var(--orange); font-weight: 600; }
 

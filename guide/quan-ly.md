@@ -33,6 +33,7 @@ Khi vào CRM: nhân viên vào thẳng **Hôm nay**, quản lý vào **Hiệu qu
 
 Đọc từ trên xuống:
 
+0. **Mục tiêu từng người** (bấm tên 1 người): ngoài số tiền, từ 10/11/2026 có ô **🙋 Khách tự tạo trong tháng** (số khách sale tự thêm không từ quảng cáo + khách do khách cũ của sale giới thiệu). Nên đặt cho mỗi sale, ví dụ 8 khách / tháng, để phòng kinh doanh không lệ thuộc số quảng cáo. Dòng **🙋 Khách tự tạo tháng này: x / 8** hiện ngay dưới thanh mục tiêu.
 1. **🎯 Mục tiêu cả nhóm**: đã bán bao nhiêu so với mục tiêu, mỗi ngày cần bao nhiêu tiền **≈ bao nhiêu đơn**. Ngay dưới: 💰 Doanh số (đã trừ hoàn / huỷ, cùng số với Tổng quan) và 💵 Đã thu.
 2. **👉 Quản lý làm 3 việc này trước**: việc gấp lên đầu (số quảng cáo chưa ai gọi, người đang chậm mục tiêu, khách hỏi đang chờ…). Bấm tên người để xem người đó. Bấm **＋ việc khác** để xem thêm.
 3. **🪜 Các bước bán hàng của cả nhóm**: 6 ô đánh số ① Khách hỏi nhận được → ② Gọi ngay trong ngày → ③ Chốt được → ④ Mỗi đơn → ⑤ Giao thành công → ⑥ Khách cũ mua lại. Dòng **"giỏi nhất …"** = mức của người làm tốt nhất nhóm ở bước đó. Ô đỏ là khâu cần sửa.
@@ -44,6 +45,12 @@ Khi vào CRM: nhân viên vào thẳng **Hôm nay**, quản lý vào **Hiệu qu
 Sale chỉ thấy mức "giỏi nhất nhóm" dưới dạng % (không thấy tên, không thấy tiền của người khác).
 
 Tài khoản Quản trị không nằm trong bảng so sánh nhân sự. Doanh số cả nhóm vẫn tính đủ.
+
+## Doanh số đến từ đâu (Tổng quan → 🧭 Doanh số theo nguồn khách)
+
+Từ 10/11/2026, ngay dưới **🧩 Theo từng mảng** ở tab **Tổng quan** có khối **🧭 Doanh số theo nguồn khách**. Mỗi đơn được xếp vào đúng 1 nguồn: **🤝 Cộng tác viên** → **🎁 Khách cũ giới thiệu** → **🧺 Kho chung** → **🔁 Khách cũ mua lại** → **🙋 Sale tự tìm** → **🌐 Web tự đặt** → **📣 Quảng cáo (khách mới)**.
+
+Dòng đầu cho biết **bao nhiêu % doanh số không cần quảng cáo mới** (tất cả nguồn trừ Quảng cáo) và so với kỳ trước. Mục tiêu **từ 30%**: 🟢 đạt, 🟠 20–30%, 🔴 dưới 20% nghĩa là đang lệ thuộc quảng cáo, tuần nào quảng cáo hỏng là cả phòng thiếu việc. Muốn tăng số này: đặt mục tiêu **khách tự tạo** cho từng sale, nhắc sale làm mục **🔎 Hết số quảng cáo? Tự tạo khách** ở tab Hôm nay, và duyệt thêm CTV.
 
 ## Giao khách và chuyển khách
 

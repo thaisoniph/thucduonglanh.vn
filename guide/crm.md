@@ -223,6 +223,17 @@ Khách để lại số trên web hay quảng cáo thì **tự vào đây**, b�
 
 **Không về kho:** khách bạn **tự tìm** (bạn tự thêm vào CRM), khách do **khách cũ giới thiệu**, khách trong file cũ, khách đã bấm **Không mua**. Mỗi số chỉ về kho tối đa 2 lần, sau đó ở lại với người đang giữ.
 
+**Hết số quảng cáo thì làm gì? (từ 10/11/2026)**
+
+Cuối tab **Hôm nay** có mục **🔎 Hết số quảng cáo? Tự tạo khách** với 4 việc, việc nào cũng ra đơn mà không tốn tiền quảng cáo:
+
+1. **🧺 Kho chung**: số người khác giữ quá hạn chưa chốt. Bấm **Xem kho**.
+2. **😴 Gọi lại khách hỏi cũ**: người đã nói "Không mua" 1,5–6 tháng trước (không tính số không liên lạc được). Người lâu nhất lên trước. Bấm **💬 Tư vấn lại** và mở lời bằng **lý do mới**: sản phẩm mới, ưu đãi tháng này, hỏi thăm sức khoẻ. Đừng hỏi lại y như lần trước.
+3. **🌱 Mời khách cũ giới thiệu**: khách vừa dùng 7–30 ngày. Hỏi cảm nhận, khách khen thì mời giới thiệu bạn bè (có sẵn tin nhắn).
+4. **🔗 Link riêng của bạn**: bấm **Copy link** rồi đăng bài Facebook, gửi nhóm Zalo. Khách vào qua link rồi đặt trong 30 ngày thì đơn tính cho bạn.
+
+Làm đủ 4 việc này mỗi ngày thì bạn luôn có khách, kể cả tuần nào quảng cáo ít số.
+
 ## Việc 5: Cuối ngày gửi báo cáo
 
 1. Vào tab **Hôm nay**, kéo xuống cuối trang.
@@ -247,9 +258,10 @@ Khách để lại số trên web hay quảng cáo thì **tự vào đây**, b�
 
 1. Vào tab **Hiệu quả**.
 2. Bấm **🎯 Đặt mục tiêu**. Gõ số tiền muốn bán trong tháng, ví dụ `30tr`.
-3. Bấm **Lưu mục tiêu**.
+3. Ô **🙋 Khách tự tạo trong tháng** (từ 10/11/2026): gõ số khách bạn sẽ tự tìm, ví dụ `8` (mỗi tuần 2 khách). Khách tự tạo = khách hỏi bạn **tự thêm** vào CRM (không từ quảng cáo) + khách do **khách cũ của bạn giới thiệu**. Để trống nếu chưa đặt.
+4. Bấm **Lưu mục tiêu**.
 
-Từ đó, CRM cho bạn biết mỗi ngày cần bán bao nhiêu. Thanh màu chạy qua **vạch đen** (vạch đen là hôm nay) nghĩa là bạn đang **đúng tiến độ**.
+Từ đó, CRM cho bạn biết mỗi ngày cần bán bao nhiêu. Thanh màu chạy qua **vạch đen** (vạch đen là hôm nay) nghĩa là bạn đang **đúng tiến độ**. Dưới thanh có dòng **🙋 Khách tự tạo tháng này: x / 8** để bạn biết mình đã tự tìm được bao nhiêu khách.
 
 ## Trên màn hình CRM có gì?
 

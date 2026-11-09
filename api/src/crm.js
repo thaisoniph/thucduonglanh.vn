@@ -26,7 +26,7 @@ import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, wbInf
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-11-09w'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
+const SCHEMA_V = '2026-11-10a'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -60,6 +60,8 @@ export async function ensureSchema(db) {
     const lcols = (await all(db, "PRAGMA table_info(leads)")).map(r => r.name); // 20/10/2026: khách hỏi do khách khác giới thiệu (SĐT + tên người giới thiệu)
     for (const col of ['ref_phone', 'ref_name']) if (!lcols.includes(col)) { try { await run(db, `ALTER TABLE leads ADD COLUMN ${col} TEXT DEFAULT ''`); } catch (e) { } }
     for (const [col, def] of [['own_at', 'INTEGER'], ['pool_n', 'INTEGER DEFAULT 0'], ['pool_from', "TEXT DEFAULT ''"], ['pool_warn', 'INTEGER']]) if (!lcols.includes(col)) { try { await run(db, `ALTER TABLE leads ADD COLUMN ${col} ${def}`); } catch (e) { } } // 09/11/2026 🧺 Kho chung: ngày giao người phụ trách, số lần về kho, người giữ trước, lúc đã báo trước 1 ngày
+    const tcols = (await all(db, "PRAGMA table_info(targets)")).map(r => r.name); // 10/11/2026: mục tiêu khách tự tạo trong tháng (số khách, không tốn quảng cáo)
+    if (!tcols.includes('self_n')) { try { await run(db, 'ALTER TABLE targets ADD COLUMN self_n INTEGER DEFAULT 0'); } catch (e) { } }
     const ucols = (await all(db, "PRAGMA table_info(users)")).map(r => r.name);
     if (!ucols.includes('web')) { try { await run(db, "ALTER TABLE users ADD COLUMN web TEXT DEFAULT ''"); } catch (e) { } } // Sửa website: đăng nhập /admin bằng email (api/src/cms.js)
     for (const col of ['phone', 'full', 'acct', 'joined']) if (!ucols.includes(col)) { try { await run(db, `ALTER TABLE users ADD COLUMN ${col} TEXT DEFAULT ''`); } catch (e) { } } // 30/10/2026: SĐT + họ tên đầy đủ nhân sự → cảnh báo nhân sự / người nhà đăng ký CTV (partner.js staffHit)
@@ -544,7 +546,7 @@ async function loadSmall(x, u, R, mode, adV) {
   return {
     ok: true, user: publicUser(u), areas, sanOk, kho, now: Date.now(), today: startOfDay(Date.now()), fbNew, users, prefs, tagColors, sources, ads, adV: ar.v, adRows: ar.rows, qrLinks,
     occ: saleDays(fmtDate(Date.now() - 864e5, 'yyyyMMdd'), 5), // 🎉 dịp chúc khách hôm qua → 3 ngày tới (zday.js), CRM tự lọc theo ngày
-    contacts: ct.reverse().map(contactOut), targets: tg.map(t => ({ month: t.month, name: t.name, amount: t.amount || 0, by: t.by_name || '', at: t.at })),
+    contacts: ct.reverse().map(contactOut), targets: tg.map(t => ({ month: t.month, name: t.name, amount: t.amount || 0, selfN: t.self_n || 0, by: t.by_name || '', at: t.at })),
     cycles: cy.filter(r => r.name).map(r => [r.name, r.variant || '', Number(r.days) || 0, r.basis || '']), templates: tp.filter(r => r.text).map(r => [r.when_txt || '', r.purpose || '', r.text]),
     rules: { backCost: Number(dash.backCost) || 0, ai: !!x.env.ANTHROPIC_API_KEY && u.role !== 'Marketing', vipOrders: R.vipOrders, vipSpent: R.vipSpent, atRisk: R.atRisk, coolDays: R.coolDays, shipDays: R.shipDays, shipFar: R.shipFar, famMin: R.famMin, poolDays: R.poolDays, poolMax: R.poolMax, otypes: OTYPES, commission, payplan, staffGuard, dash: u.level >= 3 || u.role === 'Marketing' || u.mkv || u.role === 'Kế toán' ? dash : null, ktCfg: await ktP, mktDoc, cost, opex, fin, ktLink: ktLink && ktLink.link ? ktLink : null, statuses: ORDER_STATUS, results: CARE_RESULTS, leadStatus: LEAD_STATUS, assignMode: mode, bot: BOT_USERNAME, ca, lines: LINES.map(l => l[0]).concat(['Khác']) }
   };
@@ -1636,9 +1638,10 @@ async function crmTarget(x, u, d) {
   if (!/^\d{4}-\d{2}$/.test(month)) return { ok: false, error: 'Tháng không hợp lệ.' };
   if (amount < 0 || amount > 1e11) return { ok: false, error: 'Số tiền chưa đúng.' };
   if (name !== u.name && u.level < 2) return { ok: false, error: 'Bạn chỉ đặt được mục tiêu của mình.' };
-  const old = await first(x.db, 'SELECT amount FROM targets WHERE month = ? AND name = ?', month, name);
-  await run(x.db, 'INSERT INTO targets (month, name, amount, by_name, at) VALUES (?, ?, ?, ?, ?) ON CONFLICT(month, name) DO UPDATE SET amount = excluded.amount, by_name = excluded.by_name, at = excluded.at', month, name, amount, u.name, Date.now());
-  await crmLog(x, u, 'Mục tiêu', month, name, fmt(old ? old.amount : 0) + ' → ' + fmt(amount), name !== u.name ? 'quản lý đặt' : '');
+  const selfN = d.selfN === undefined || d.selfN === null || d.selfN === '' ? null : Math.min(999, Math.max(0, Math.round(Number(d.selfN) || 0))); // 🙋 khách tự tạo / tháng (null = giữ số cũ)
+  const old = await first(x.db, 'SELECT amount, self_n FROM targets WHERE month = ? AND name = ?', month, name);
+  await run(x.db, 'INSERT INTO targets (month, name, amount, by_name, at, self_n) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(month, name) DO UPDATE SET amount = excluded.amount, by_name = excluded.by_name, at = excluded.at, self_n = coalesce(excluded.self_n, targets.self_n)', month, name, amount, u.name, Date.now(), selfN);
+  await crmLog(x, u, 'Mục tiêu', month, name, fmt(old ? old.amount : 0) + ' → ' + fmt(amount) + (selfN !== null ? ' · khách tự tạo ' + (old ? old.self_n || 0 : 0) + ' → ' + selfN : ''), name !== u.name ? 'quản lý đặt' : '');
   return { ok: true };
 }
 
