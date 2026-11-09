@@ -2,8 +2,8 @@
 title: Kho hàng
 nav: Kho
 order: 4.5
-updated: 2026-11-06
-description: Xem hàng còn bao nhiêu, nhận tin khi sắp hết, ghi đã đặt hàng, hàng về kho, lấy hàng ra (quà tặng, đại lý), đếm kho cuối tuần. Có hình từng bước.
+updated: 2026-11-09
+description: Xem hàng còn bao nhiêu, nhận tin khi sắp hết, ghi đã đặt hàng, hàng về kho, lấy hàng ra (quà tặng, đại lý), nhận hàng hoàn, đếm kho cuối tuần. Có hình từng bước.
 ---
 
 Trang này dành cho **người lo kho**. Đọc khoảng 5 phút là làm được.
@@ -20,6 +20,8 @@ Trang này dành cho **người lo kho**. Đọc khoảng 5 phút là làm đư�
 - Nhắc mỗi sáng **đến khi bạn bấm "✅ Tôi đã đặt hàng"**. Sáng hôm sau vẫn chưa bấm thì máy báo Quản trị.
 
 **Mở ở đâu:** người lo kho mở CRM là vào thẳng **📦 Kho**. Quản lý, Quản trị: bấm **••• Thêm** → **Kho**.
+
+**Tài khoản Kho** (từ 09/11/2026): người chỉ lo kho được Quản trị cho quyền **Kho**. Tài khoản này chỉ thấy tab **📦 Kho** và **Cài đặt** (nối Telegram), không thấy khách, đơn, doanh số. Người vừa bán hàng vừa lo kho thì giữ quyền **Sale & CSKH** và được tích thêm ô **📦 Kiêm phụ trách kho**.
 
 ## Lần đầu dùng (làm 1 lần)
 
@@ -105,9 +107,32 @@ Lấy hàng đi tặng, đưa đại lý, livestream, làm hàng mẫu, hàng h�
 
 Không ghi thì lần đếm kho sau sẽ thấy lệch.
 
-### 📦 Khi đơn bị hoàn
+## ↩ Nhận hàng hoàn
 
-Nhận đủ hàng hoàn về thì mở đơn ở tab **Đơn hàng**, bấm **📦 Kho đã nhận**. Máy tự cộng lại vào kho.
+Khách không nhận hàng thì hãng (Viettel Post, Best…) trả gói về kho. Trên CRM, đơn đó ở trạng thái **Đang chuyển hoàn** (hàng đang trên đường về). Khi gói về tới kho:
+
+![Danh sách hàng hoàn: bấm đúng đơn (1), gói không có trong danh sách thì tìm (2)](/huong-dan/img/kho-hang-hoan.webp)
+
+1. Mở gói, kiểm hàng. Ở mục **↩ Hàng hoàn về kho** bấm vào **đúng đơn** (so mã vận đơn, tên khách, 4 số cuối SĐT trên gói).
+2. Gói hoàn **không có** trong danh sách (hãng chưa báo cho CRM): bấm **🔍 Gói hoàn không có trong danh sách?**, gõ mã đơn, mã vận đơn, 4 số cuối SĐT hoặc tên khách, rồi bấm vào đúng đơn.
+
+Hộp **📦 Nhận hàng hoàn** mở ra:
+
+![Nhận hàng hoàn: hàng thế nào (1), ghi chú (2), bấm Đã nhận hàng (3)](/huong-dan/img/kho-nhan-hoan.webp)
+
+1. Bấm **✅ Đủ hàng, còn nguyên**, hoặc **⚠️ Thiếu hoặc hỏng**.
+2. Chọn "Thiếu hoặc hỏng" thì **bắt buộc ghi rõ** thiếu / hỏng gì (vd: thiếu 1 hộp Curcumin, 1 hộp bị móp).
+3. Bấm **📦 Đã nhận hàng**.
+
+Máy tự làm:
+
+- Đơn chuyển sang **Hoàn**, hàng **cộng lại vào kho**.
+- Ghi 1 dòng vào ghi chú đơn: ai nhận, lúc nào, đủ hay thiếu / hỏng gì.
+- Nhắn Telegram cho **sale bán đơn** (và người phụ trách khách) để gọi hỏi khách lý do. Thiếu / hỏng thì báo thêm **Quản lý, Quản trị**.
+
+Hộp hỏng không bán được: sau khi nhận, bấm **📤 Lấy hàng ra** → lý do **Hàng hỏng / hết hạn** để trừ khỏi kho.
+
+Muốn xem lại các đơn đã nhận: bấm **✅ Đã nhận 14 ngày qua** dưới danh sách. Sáng nào có đơn đang chuyển hoàn, tin Telegram **Kho sáng** lúc 8h cũng nhắc.
 
 ## Đếm kho cuối tuần (thứ 6)
 
@@ -150,7 +175,7 @@ Bấm vào 1 dòng ở **Hàng trong kho**:
 
 ## Hỏi nhanh
 
-**Máy trừ kho lúc nào?** Khi đơn chuyển sang **Đang giao**. Đơn **Mới / Đã xác nhận** là "đang chờ gửi", chưa trừ. Đơn **Huỷ** không trừ.
+**Máy trừ kho lúc nào?** Khi đơn chuyển sang **Đang giao**. Đơn **Mới / Đã xác nhận** là "đang chờ gửi", chưa trừ. Đơn **Huỷ** không trừ. Đơn **Đang chuyển hoàn** vẫn tính là đã đi, tới khi kho bấm **📦 Đã nhận hàng** mới cộng lại.
 
 **Đơn sàn có trừ không?** Có, khi người phụ trách sàn tải **file đơn hàng** của sàn lên tab Sàn. Đếm kho cuối tuần sẽ sửa phần còn thiếu.
 

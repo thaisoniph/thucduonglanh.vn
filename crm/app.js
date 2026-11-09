@@ -720,7 +720,7 @@
     { id: 'cai-dat', label: 'Cài đặt', icon: 'gear' }
   ];
   // Marketing: tab Marketing, Link & QR, Khách hỏi (24/10/2026: chỉ xem khách để lại số trên web), Cài đặt
-  function myViews() { if (isMkt()) return VIEWS.filter(function (v) { return v.mkt || v.lq || v.id === 'tiem-nang' || v.id === 'cai-dat'; }); return VIEWS.filter(function (v) { return (!v.min || lvl() >= v.min) && (!v.ask || !!(S.user && S.user.ask)) && (!v.lq || lvl() >= 2 || (v.id === 'tro-ly-zalo' && S.user && S.user.zb)) && (!v.san || (S.d && S.d.sanOk) || lvl() >= 3) && (!v.kho || khoCan()) && (!v.mkt || lvl() >= 3 || mkvOnly()); }); }
+  function myViews() { if (isKho()) return VIEWS.filter(function (v) { return v.kho || v.id === 'cai-dat'; }); if (isMkt()) return VIEWS.filter(function (v) { return v.mkt || v.lq || v.id === 'tiem-nang' || v.id === 'cai-dat'; }); return VIEWS.filter(function (v) { return (!v.min || lvl() >= v.min) && (!v.ask || !!(S.user && S.user.ask)) && (!v.lq || lvl() >= 2 || (v.id === 'tro-ly-zalo' && S.user && S.user.zb)) && (!v.san || (S.d && S.d.sanOk) || lvl() >= 3) && (!v.kho || khoCan()) && (!v.mkt || lvl() >= 3 || mkvOnly()); }); }
   function navViews() { return myViews().filter(function (v) { return !((v.san || v.lq || v.ask || v.kho) && lvl() >= 2 && !isMkt()); }); } // Quản trị: Marketing có trên menu (29/10/2026), Sàn / Link & QR / Zalo / Fanpage vào từ Thêm; Quản lý cũng vậy (anh Sơn 31/10/2026: menu máy tính rối)
   /** Điện thoại (29/10/2026, kiểu Apple): thanh dưới chỉ 4 mục hay dùng + "Thêm"; mục còn lại, Cài đặt, Hướng dẫn, Góp ý nằm ở màn Thêm. Máy tính vẫn hiện đủ. */
   var NAV_FIRST = ['hom-nay', 'tiem-nang', 'khach-hang', 'don-hang', 'bao-cao'];
@@ -729,7 +729,7 @@
   var NAV_MGR = ['bao-cao', 'hom-nay', 'tiem-nang', 'don-hang']; // Quản lý (anh Sơn 31/10/2026): Đơn hàng thay Khách để theo sát đơn của đội sale; Khách vào Thêm
   var NAV_CEO = ['tong-quan', 'bao-cao', 'marketing', 'don-hang']; // Quản trị (anh Sơn 29/10/2026): kết quả, đội sale, tiền quảng cáo, đơn / tiền chờ thu. Hôm nay, Khách hỏi, Khách là việc của sale → Thêm
   function navMain() {
-    var all = navViews().filter(function (v) { return v.id !== 'cai-dat'; }).map(function (v) { return v.id; }), out = [], sale = lvl() < 2 && !isMkt();
+    var all = navViews().filter(function (v) { return v.id !== 'cai-dat'; }).map(function (v) { return v.id; }), out = [], sale = lvl() < 2 && !isMkt() && !isKho();
     (sale ? (S.user && S.user.kho ? NAV_KHO : NAV_SALE) : lvl() >= 3 ? NAV_CEO : lvl() >= 2 && !isMkt() ? NAV_MGR : [homeView()]).concat(NAV_FIRST, all).forEach(function (id) { if (out.length < 4 && all.indexOf(id) >= 0 && out.indexOf(id) < 0) out.push(id); });
     return out;
   }
@@ -752,13 +752,13 @@
     var isCh = function (v) { return v.mkt || v.lq || v.san; };
     var h = '<div class="mr"><div class="page-head"><h1>Thêm</h1></div>' +
       '<div class="mr-me"><span class="mr-av">' + esc((S.user.name || '?').trim().split(/\s+/).pop().charAt(0).toUpperCase()) + '</span><span class="mr-t"><b>' + esc(S.user.name) + '</b><small>' + esc(S.user.role || '') + ' · ' + esc(S.user.email || '') + '</small></span></div>' +
-      (isMkt() ? '' : '<button type="button" class="mr-search" data-mr="search">' + I.search + '<span>Tìm khách, số điện thoại, mã đơn</span></button>') +
+      (isMkt() || isKho() ? '' : '<button type="button" class="mr-search" data-mr="search">' + I.search + '<span>Tìm khách, số điện thoại, mã đơn</span></button>') +
       group('', rest.filter(function (v) { return v.ask; }).map(vrow).join('')) +
       group('Bán hàng', rest.filter(function (v) { return !isCh(v) && !v.ask; }).map(vrow).join('')) +
       group('Marketing & kênh bán', rest.filter(isCh).map(vrow).join('')) +
       group('Khác',
         vrow(VIEWS.filter(function (v) { return v.id === 'cai-dat'; })[0]) +
-        row('<a class="mr-row" href="/huong-dan/' + (isMkt() ? 'marketing' : 'crm') + '/" target="_blank" rel="noopener">', I.help, '#30b0c7', 'Hướng dẫn sử dụng', 'Cách dùng từng màn hình, có hình', 0) + '</a>' +
+        row('<a class="mr-row" href="/huong-dan/' + (isMkt() ? 'marketing' : isKho() ? 'kho' : 'crm') + '/" target="_blank" rel="noopener">', I.help, '#30b0c7', 'Hướng dẫn sử dụng', 'Cách dùng từng màn hình, có hình', 0) + '</a>' +
         row('<button type="button" class="mr-row" data-mr="fb">', '💡', '#ffcc00', 'Góp ý', 'Báo lỗi, chỗ khó dùng, ý tưởng', lvl() >= 2 ? S.d.fbNew : 0) + '</button>' +
         row('<button type="button" class="mr-row" data-mr="re">', I.refresh, '#34c759', 'Tải lại dữ liệu', 'Lấy số mới nhất từ máy chủ', 0) + '</button>') +
       '</div>';
@@ -782,9 +782,9 @@
       '<nav class="nav' + (navViews().length > 6 || lvl() >= 2 ? ' nav-many' : '') + (navViews().length < myViews().length ? ' nav-hasmore' : '') + '" data-sig="' + navSig() + '">' + navViews().map(function (v) { return '<a href="#' + v.id + '" data-v="' + v.id + '"' + (v.id === 'cai-dat' ? ' class="nav-set"' : main.indexOf(v.id) < 0 ? ' class="nav-x"' : '') + '>' + I[v.icon] + '<span' + (v.short ? ' data-short="' + v.short + '"' : '') + '>' + v.label + '</span></a>'; }).join('') +
       '<a href="#them" data-v="them" class="nav-more">' + I.more + '<span>Thêm</span></a></nav>' +
       '<div class="grow"></div><div class="me">' + meHTML() + '</div>' +
-      (isMkt() ? '' : '<button class="icon-btn" id="gsBtn" title="Tìm ở mọi tab: khách đã mua, đơn hàng, khách hỏi" aria-label="Tìm ở mọi tab">' + I.search + '</button>') +
+      (isMkt() || isKho() ? '' : '<button class="icon-btn" id="gsBtn" title="Tìm ở mọi tab: khách đã mua, đơn hàng, khách hỏi" aria-label="Tìm ở mọi tab">' + I.search + '</button>') +
       '<button class="icon-btn fb-btn" id="fbBtn" title="Góp ý: báo lỗi, chỗ khó dùng, ý tưởng" aria-label="Góp ý">💡<span class="fb-lbl">Góp ý</span></button>' +
-      '<a class="icon-btn" href="/huong-dan/' + (isMkt() ? 'marketing' : 'crm') + '/" target="_blank" rel="noopener" title="Hướng dẫn sử dụng" aria-label="Hướng dẫn sử dụng">' + I.help + '</a>' +
+      '<a class="icon-btn" href="/huong-dan/' + (isMkt() ? 'marketing' : isKho() ? 'kho' : 'crm') + '/" target="_blank" rel="noopener" title="Hướng dẫn sử dụng" aria-label="Hướng dẫn sử dụng">' + I.help + '</a>' +
       '<a class="icon-btn top-set" href="#cai-dat" title="Cài đặt" aria-label="Cài đặt">' + I.gear + '</a>' +
       '<button class="icon-btn" id="refresh" title="Tải lại dữ liệu" aria-label="Tải lại dữ liệu">' + I.refresh + '</button>' +
       '</div></header><main id="view"></main>';
@@ -924,7 +924,7 @@
   }
   /** Sale: % mục tiêu tháng của chính mình + mức tiến độ (cùng cách tính với khối Mục tiêu ở Hiệu quả). null = không phải sale / chưa đặt mục tiêu. */
   function myPace() {
-    if (lvl() >= 2 || isMkt() || !S.d) return null;
+    if (lvl() >= 2 || isMkt() || isKho() || !S.d) return null;
     var me = S.user.name, mk = monthOf(Date.now()), t = targetOf(me, mk); if (!t || !t.amount) return null;
     var sales = perf(me, monthRange(mk)).sales;
     return { pct: pct(sales, t.amount), lv: goalCalc(sales, t.amount, mk).lv, v: sales, t: t.amount };
@@ -936,12 +936,12 @@
     var team = navWho();
     var part = function (a) { return a.filter(function (x) { return x[0]; }).map(function (x) { return x[0] + ' ' + x[1]; }).join(' · '); };
     return {
-      n: Object.assign(lvl() >= 3 ? { 'don-hang': no } : { 'hom-nay': no + q + hot, 'don-hang': no, 'tiem-nang': lvl() >= 2 && !S.who ? 0 : ld.length }, khoCan() && S.d.kho && S.d.kho.need ? { kho: S.d.kho.need } : {}), // Quản lý xem cả nhóm: Khách hỏi không có số đỏ (cả nhóm luôn 99+, khách vừa hỏi đã đếm ở Hôm nay), lọc 1 người thì có // Quản trị (anh Sơn 31/10/2026: số nhiều quá): chỉ số đỏ đơn mới; việc gọi khách của sale xem ở Tổng quan → Việc cần làm
+      n: Object.assign(lvl() >= 3 ? { 'don-hang': no } : { 'hom-nay': no + q + hot, 'don-hang': no, 'tiem-nang': lvl() >= 2 && !S.who ? 0 : ld.length }, khoCan() && S.d.kho && (S.d.kho.need || S.d.kho.ret) ? { kho: (S.d.kho.need || 0) + (S.d.kho.ret || 0) } : {}), // Quản lý xem cả nhóm: Khách hỏi không có số đỏ (cả nhóm luôn 99+, khách vừa hỏi đã đếm ở Hôm nay), lọc 1 người thì có // Quản trị (anh Sơn 31/10/2026: số nhiều quá): chỉ số đỏ đơn mới; việc gọi khách của sale xem ở Tổng quan → Việc cần làm
       tip: {
         'hom-nay': 'Việc cần làm hôm nay' + team + ': ' + part([[no, 'đơn mới chờ xác nhận'], [q, 'khách đến lịch chăm sóc'], [hot, 'khách vừa hỏi chưa ai gọi (cũng nằm ở Khách hỏi)']]),
         'tiem-nang': 'Khách hỏi cần liên hệ' + team + ': ' + part([[k.new, 'chưa gọi lần nào'], [k.callback, 'đến hẹn gọi lại'], [k.stale, 'quá 3 ngày chưa liên hệ lại']]),
         'don-hang': no + ' đơn mới chờ xác nhận' + team,
-        kho: (S.d.kho && S.d.kho.need || 0) + ' sản phẩm sắp hết, cần đặt thêm hàng'
+        kho: (S.d.kho && S.d.kho.need || 0) + ' sản phẩm sắp hết, cần đặt thêm hàng' + (S.d.kho && S.d.kho.ret ? ' · ' + S.d.kho.ret + ' đơn hoàn đang về' : '')
       }
     };
   }
@@ -949,7 +949,7 @@
   /** Quản lý / Quản trị: số trên tab là của cả nhóm, hoặc của người đang lọc ở ô 👥. Sale: rỗng. */
   function navWho() { return lvl() >= 2 ? (S.who ? ' của ' + (S.who === '-' ? 'khách chưa giao' : S.who) : ' (cả nhóm)') : ''; }
   /** Tab mở mặc định theo quyền: Quản trị → Tổng quan, Quản lý → Hiệu quả, nhân viên → Hôm nay. */
-  function homeView() { return isMkt() || (MKT_HOST && myViews().some(function (x) { return x.id === 'marketing'; })) ? 'marketing' : lvl() >= 3 ? 'tong-quan' : lvl() >= 2 ? 'bao-cao' : S.user && S.user.kho ? 'kho' : 'hom-nay'; }
+  function homeView() { return isKho() ? 'kho' : isMkt() || (MKT_HOST && myViews().some(function (x) { return x.id === 'marketing'; })) ? 'marketing' : lvl() >= 3 ? 'tong-quan' : lvl() >= 2 ? 'bao-cao' : S.user && S.user.kho ? 'kho' : 'hom-nay'; }
   function route() { var h = (location.hash || '').slice(1).split('/'); return { view: h[0] === 'lien-he' ? 'tiem-nang' : h[0] || homeView(), id: decodeURIComponent(h[1] || '') }; }
   var lastView = '';
   function render() {
@@ -5105,6 +5105,7 @@
    * Số tính sẵn trên máy chủ (lệnh mktv, api/src/mktv.js), chỉ có con số tổng theo kênh / chiến dịch: bộ phận marketing không thấy khách, đơn hay doanh số toàn công ty.
    * Cách tính giống mục 📣 ở Tổng quan (chanEff, closeStats) nên 2 nơi ra cùng số. */
   function isMkt() { return !!(S.user && S.user.role === 'Marketing'); }
+  function isKho() { return !!(S.user && S.user.role === 'Kho'); } // 09/11/2026: quyền Kho riêng (chỉ tab Kho + hàng hoàn), tách khỏi Sale & CSKH
   /** 📣 Xem Marketing (Cài đặt → Nhân sự): Quản lý / Sale được xem tab Marketing, không nhập chi phí, không đặt mục tiêu. */
   function mkvOnly() { return !!(S.user && S.user.mkv) && !isMkt() && lvl() < 3; }
   var MV = { cache: {}, pend: {}, err: '' };
@@ -8446,8 +8447,9 @@
     var h = '', G = {};
     G.acc = '<div class="box"><h3>Tài khoản</h3><p style="margin:0 0 10px"><b>' + esc(S.user.name) + '</b> · ' + esc(S.user.email) + (lvl() >= 2 ? ' · ' + esc(S.user.role) : '') + '</p><button class="btn danger" id="logout">Đăng xuất</button></div>';
     G.tg = '<div class="box"><h3>📲 Thông báo Telegram riêng</h3>' + (S.user.tg
-      ? '<p style="margin:0 0 10px">✅ Đã kết nối. ' + (isMkt() ? 'Bạn nhận tin <b>📣 Marketing sáng nay</b> lúc 8h: tiến độ mục tiêu kênh của bạn, hôm qua, việc nên làm.' : 'Bạn nhận riêng: đơn mới của khách mình phụ trách, khách hỏi mới được giao, danh sách việc lúc 8h sáng.') + '</p><button class="btn ghost" id="tgOff">Ngắt kết nối</button>'
-      : '<p style="margin:0 0 10px">' + (isMkt() ? 'Nhận tin <b>📣 Marketing sáng nay</b> lúc 8h qua Telegram (tiến độ mục tiêu, việc nên làm).' : 'Nhận thông báo về khách <b>của riêng bạn</b> qua Telegram.') + ' Làm 1 lần, mất 30 giây:</p><ol style="margin:0 0 10px;padding-left:20px"><li>Bấm <b>“Kết nối Telegram”</b>.</li><li>Bấm <b>“Mở Telegram”</b> → trong Telegram bấm <b>Start / Bắt đầu</b>.</li><li>Quay lại đây bấm <b>“Tôi đã bấm Start”</b>.</li></ol><div class="steps" id="tgSteps"><button class="btn pri" id="tgLink">Kết nối Telegram</button></div>') + '</div>';
+      ? '<p style="margin:0 0 10px">✅ Đã kết nối. ' + (isKho() ? 'Bạn nhận tin kho: sản phẩm sắp hết cần đặt thêm, 8h sáng việc kho hôm nay và đơn hoàn đang về.' : isMkt() ? 'Bạn nhận tin <b>📣 Marketing sáng nay</b> lúc 8h: tiến độ mục tiêu kênh của bạn, hôm qua, việc nên làm.' : 'Bạn nhận riêng: đơn mới của khách mình phụ trách, khách hỏi mới được giao, danh sách việc lúc 8h sáng.') + '</p><button class="btn ghost" id="tgOff">Ngắt kết nối</button>'
+      : '<p style="margin:0 0 10px">' + (isKho() ? 'Nhận tin kho qua Telegram (sắp hết hàng, việc kho 8h sáng, đơn hoàn đang về).' : isMkt() ? 'Nhận tin <b>📣 Marketing sáng nay</b> lúc 8h qua Telegram (tiến độ mục tiêu, việc nên làm).' : 'Nhận thông báo về khách <b>của riêng bạn</b> qua Telegram.') + ' Làm 1 lần, mất 30 giây:</p><ol style="margin:0 0 10px;padding-left:20px"><li>Bấm <b>“Kết nối Telegram”</b>.</li><li>Bấm <b>“Mở Telegram”</b> → trong Telegram bấm <b>Start / Bắt đầu</b>.</li><li>Quay lại đây bấm <b>“Tôi đã bấm Start”</b>.</li></ol><div class="steps" id="tgSteps"><button class="btn pri" id="tgLink">Kết nối Telegram</button></div>') + '</div>';
+    if (isKho()) return h + setGroup('acc', '👤 Tài khoản của tôi', esc(S.user.name) + ' · ' + esc(S.user.email), G.acc) + G.tg + '<div class="box"><h3>📦 Tài khoản Kho</h3><p style="margin:0 0 8px">Bạn dùng tab <b>📦 Kho</b>: ghi hàng về kho, lấy hàng ra, đếm kho, đặt thêm hàng khi sắp hết.</p><p style="margin:0 0 8px"><b>↩ Hàng hoàn</b>: gói hàng khách không nhận, hãng trả về. Mở gói kiểm hàng, rồi bấm <b>📦 Đã nhận hàng</b> trên đúng đơn (ghi rõ nếu thiếu / hỏng). Máy tự cộng hàng lại vào kho và báo sale gọi hỏi khách.</p><p class="small muted" style="margin:0">Tài khoản Kho không xem khách, doanh số. Cần thêm quyền thì nhờ Quản trị.</p></div>';
     if (isMkt()) return h + setGroup('acc', '👤 Tài khoản của tôi', esc(S.user.name) + ' · ' + esc(S.user.email), G.acc) + G.tg + setGroup('qz', '🖐 Trò chơi “Bạn còn mấy ngón tay?”', 'Sửa câu hỏi trò chơi trên web · màn hình chơi nhóm', qzeBox()) + '<div class="box"><h3>📣 Tài khoản Marketing</h3><p style="margin:0 0 8px">Bạn xem được tab <b>Marketing</b>: chi phí quảng cáo, khách mới và tiền khách mới mỗi kênh mang về, data quảng cáo, chiến dịch. Chi phí TikTok, Google, KOL… bấm <b>⚙️ Nhập chi phí</b> để nhập file hoặc nhập tay.</p><p style="margin:0 0 8px">Tab <b>Khách hỏi</b>: xem khách để lại số trên web (chỉ xem, quản lý giao cho sale).</p><p class="small muted" style="margin:0 0 10px">Số điện thoại khách chỉ dùng cho công việc, không chép ra ngoài (Nghị định 13/2023).</p><a class="btn" href="/huong-dan/crm/" target="_blank" rel="noopener">📖 Xem hướng dẫn</a></div>';
     G.lim = '<div class="box"><h3>🎯 Số khách chăm sóc mỗi ngày</h3><p class="small muted" style="margin:0 0 8px">Tab Hôm nay chỉ đưa ra tối đa bấy nhiêu khách mỗi ngày (khách quan trọng trước). Khách chưa tới lượt tự dời sang hôm sau. Cài trên máy này.</p>' +
       '<div style="display:flex;gap:8px;align-items:center"><input type="number" id="dayLim" min="5" max="200" value="' + dayLimit() + '" style="max-width:110px"><button class="btn" id="dayLimSave">Lưu</button></div></div>';
@@ -8527,14 +8529,15 @@
       '</div><div class="steps" style="margin-top:10px"><button class="btn" data-add="tp">＋ Thêm mẫu</button><button class="btn pri" id="tpSave">Lưu mẫu tin</button></div></div>';
     if (lvl() >= 3) {
       var us = S.f.us || (S.f.us = S.d.users.map(function (u) { return { email: u.email, name: u.name, role: u.role, active: u.active !== false, alias: u.alias || '', prefix: u.prefix || '', web: !!u.web, mkv: !!u.mkv, zb: !!u.zb, kho: !!u.kho, phone: u.phone || '', full: u.full || '', acct: u.acct || '', joined: u.joined || '' }; }));
-      G.us = '<div class="box"><h3>Nhân sự được vào CRM</h3><p class="hint" style="margin:0 0 8px">Mỗi người 1 dòng: email, tên, quyền. Nhân viên nghỉ việc thì bỏ tích <b>Đang dùng</b>. Sửa xong bấm <b>Lưu nhân sự</b> ở cuối.</p><details class="set-more"><summary>ℹ️ Các quyền khác nhau thế nào?</summary><p class="hint" style="margin:0 0 10px"><b>Quản trị</b>: toàn quyền. <b>Quản lý</b>: thêm xem doanh số, sửa chu kỳ & mẫu tin. <b>Sale & CSKH</b>: bán hàng, chăm sóc khách mình phụ trách, xử lý đơn. <b>Marketing</b>: tab 📣 Marketing (chi phí, hiệu quả quảng cáo, tự nhập chi phí) + xem (không sửa) khách để lại số trên web ở tab Khách hỏi; không thấy khách đã mua, đơn, doanh số công ty. Khách để lại số trên web luôn chờ Quản lý / Quản trị giao, sale không tự nhận. Muốn Quản lý / Sale xem thêm số marketing: tích <b>📣 Xem Marketing</b> dưới tên người đó (chỉ xem, không sửa). Nhân viên nghỉ việc: bỏ tích “Đang dùng” là không vào được nữa.</p>' +
+      G.us = '<div class="box"><h3>Nhân sự được vào CRM</h3><p class="hint" style="margin:0 0 8px">Mỗi người 1 dòng: email, tên, quyền. Nhân viên nghỉ việc thì bỏ tích <b>Đang dùng</b>. Sửa xong bấm <b>Lưu nhân sự</b> ở cuối.</p><details class="set-more"><summary>ℹ️ Các quyền khác nhau thế nào?</summary><p class="hint" style="margin:0 0 10px"><b>Quản trị</b>: toàn quyền. <b>Quản lý</b>: thêm xem doanh số, sửa chu kỳ & mẫu tin. <b>Sale & CSKH</b>: bán hàng, chăm sóc khách mình phụ trách, xử lý đơn. <b>Marketing</b>: tab 📣 Marketing (chi phí, hiệu quả quảng cáo, tự nhập chi phí) + xem (không sửa) khách để lại số trên web ở tab Khách hỏi; không thấy khách đã mua, đơn, doanh số công ty. <b>Kho</b>: chỉ tab 📦 Kho (hàng về, lấy ra, đếm kho, đặt thêm hàng, nhận hàng hoàn về); không thấy khách, doanh số; không nhận khách mới. Khách để lại số trên web luôn chờ Quản lý / Quản trị giao, sale không tự nhận. Muốn Quản lý / Sale xem thêm số marketing: tích <b>📣 Xem Marketing</b> dưới tên người đó (chỉ xem, không sửa). Nhân viên nghỉ việc: bỏ tích “Đang dùng” là không vào được nữa.</p>' +
         '<p class="hint" style="margin:0 0 10px"><b>Tên trong file QC</b>: tên sale như đang ghi ở cột Sale của file số quảng cáo (nhiều cách viết thì cách nhau dấu phẩy, vd “Phương, PHƯƠNG”). <b>Tiền tố mã đơn</b>: vd “Phuong” → mã đơn Phuong300926-01. <b>SĐT, họ tên đầy đủ, số tài khoản</b>: CRM so với người đăng ký Cộng tác viên, trùng thì báo ⚠️ (nhân sự không được làm CTV); chỉ Quản trị thấy. <b>Ngày làm chính thức</b>: tính thâm niên cho lương & hoa hồng (Phụ lục 01).</p></details>' +
         '<div class="edit-table" id="usT"><div class="edit-row usr head"><span>Email</span><span>Tên hiển thị</span><span>Quyền</span><span>Đang dùng</span><span></span></div>' +
-        us.map(function (u, i) { return '<div class="edit-row usr" data-i="' + i + '"><input type="email" data-k="email" value="' + esc(u.email) + '" placeholder="email@gmail.com"><input type="text" data-k="name" value="' + esc(u.name) + '" placeholder="Tên"><select data-k="role">' + ['Quản trị', 'Quản lý', 'Marketing', 'Sale & CSKH'].map(function (r) { return '<option value="' + esc(r) + '"' + (r === u.role ? ' selected' : '') + '>' + esc(r) + '</option>'; }).join('') + '</select><label class="switch"><input type="checkbox" data-k="active"' + (u.active ? ' checked' : '') + '> Có</label><button class="rm" data-rm="us" data-i="' + i + '" aria-label="Xoá">✕</button>' +
+        us.map(function (u, i) { return '<div class="edit-row usr" data-i="' + i + '"><input type="email" data-k="email" value="' + esc(u.email) + '" placeholder="email@gmail.com"><input type="text" data-k="name" value="' + esc(u.name) + '" placeholder="Tên"><select data-k="role">' + ['Quản trị', 'Quản lý', 'Marketing', 'Sale & CSKH', 'Kho'].map(function (r) { return '<option value="' + esc(r) + '"' + (r === u.role ? ' selected' : '') + '>' + esc(r) + '</option>'; }).join('') + '</select><label class="switch"><input type="checkbox" data-k="active"' + (u.active ? ' checked' : '') + '> Có</label><button class="rm" data-rm="us" data-i="' + i + '" aria-label="Xoá">✕</button>' +
           '<input type="text" data-k="alias" value="' + esc(u.alias || '') + '" placeholder="Tên trong file QC (vd Phương)" class="usr-x"><input type="text" data-k="prefix" value="' + esc(u.prefix || '') + '" placeholder="Tiền tố mã đơn (vd Phuong)" class="usr-x"><input type="tel" data-k="phone" value="' + esc(u.phone || '') + '" placeholder="SĐT cá nhân (chống tự làm CTV)" class="usr-x"><input type="text" data-k="full" value="' + esc(u.full || '') + '" placeholder="Họ tên đầy đủ (vd Nguyễn Thu Hương)" class="usr-x"><input type="text" inputmode="numeric" data-k="acct" value="' + esc(u.acct || '') + '" placeholder="Số tài khoản ngân hàng (chống tự làm CTV)" class="usr-x"><input type="text" data-k="joined" value="' + esc(u.joined || '') + '" placeholder="Ngày làm chính thức (vd 07/2024) – tính thâm niên" class="usr-x"><label class="switch usr-w"><input type="checkbox" data-k="web"' + (u.web || u.role === 'Quản trị' ? ' checked' : '') + (u.role === 'Quản trị' ? ' disabled' : '') + '> 🌐 Sửa website (đăng bài, sửa sản phẩm ở thucduonglanh.vn/admin)</label>' +
           (u.role === 'Quản lý' || u.role === 'Sale & CSKH' ? '<label class="switch usr-w"><input type="checkbox" data-k="mkv"' + (u.mkv ? ' checked' : '') + '> 📣 Xem Marketing (chỉ xem tab Marketing: chi phí, hiệu quả quảng cáo; không sửa)</label>' : '') +
           (u.role === 'Sale & CSKH' ? '<label class="switch usr-w"><input type="checkbox" data-k="zb"' + (u.zb ? ' checked' : '') + '> 🤖 Phụ trách Trợ lý Zalo (duyệt bài, đổi ảnh, gửi tin vào nhóm, cài đặt giờ đăng). Quản lý, Marketing đã có sẵn quyền này</label>' : '') +
-          (u.role !== 'Marketing' ? '<label class="switch usr-w"><input type="checkbox" data-k="kho"' + (u.kho ? ' checked' : '') + '> 📦 Phụ trách kho (nhận tin Telegram sắp hết hàng, ghi hàng về / lấy ra / đếm kho, ghi đã đặt hàng)' + (u.role === 'Sale & CSKH' ? '' : '. Quản lý, Quản trị đã vào được tab Kho, tích để nhận tin') + '</label>' : '') + '</div>'; }).join('') +
+          (u.role === 'Kho' ? '<p class="small muted usr-w" style="margin:4px 0 0">📦 Quyền Kho: chỉ vào tab Kho (hàng về, lấy ra, đếm kho, nhận hàng hoàn) và nhận tin Telegram kho. Không thấy khách, đơn, doanh số.</p>' : '') +
+          (u.role !== 'Marketing' && u.role !== 'Kho' ? '<label class="switch usr-w"><input type="checkbox" data-k="kho"' + (u.kho ? ' checked' : '') + '> 📦 Kiêm phụ trách kho (nhận tin Telegram sắp hết hàng, ghi hàng về / lấy ra / đếm kho, nhận hàng hoàn). Người chỉ lo kho thì chọn quyền “Kho” ở ô Quyền' + (u.role === 'Sale & CSKH' ? '' : '. Quản lý, Quản trị đã vào được tab Kho, tích để nhận tin') + '</label>' : '') + '</div>'; }).join('') +
         '</div><div class="steps" style="margin-top:10px"><button class="btn" data-add="us">＋ Thêm người</button><button class="btn pri" id="usSave">Lưu nhân sự</button></div>' +
         '<h3 style="margin:16px 0 4px">Nhân sự chưa có tài khoản CRM</h3><p class="hint" style="margin:0 0 6px">Mỗi dòng 1 người: <b>Họ tên | SĐT | Số tài khoản</b>. Chỉ để CRM cảnh báo khi họ (hoặc người dùng tài khoản của họ) đăng ký Cộng tác viên.</p>' +
         '<textarea id="sgTxt" rows="4" style="width:100%" placeholder="Nguyễn Văn A | 0912345678 | 0123456789">' + esc((S.d.rules.staffGuard || []).map(function (r) { return [r.full, r.phone, r.acct].join(' | '); }).join('\n')) + '</textarea>' +
@@ -9456,7 +9459,7 @@
   }
   function khoSet(j) {
     KH.d = j; KH.at = Date.now(); KH.err = '';
-    if (S.d && j && j.list) { var L = j.list; S.d.kho = { n: L.length, need: L.filter(function (s) { return s.act; }).length, out: L.filter(function (s) { return s.lv === 'out'; }).length, late: L.filter(function (s) { return s.late; }).length, nobase: L.filter(function (s) { return s.lv === 'nobase'; }).length, top: L.filter(function (s) { return s.act || s.late || s.lv === 'out'; }).slice(0, 5).map(function (s) { return [s.name, s.lv, s.left, s.unit]; }) }; }
+    if (S.d && j && j.list) { var L = j.list; S.d.kho = { ret: (j.ret || []).length, n: L.length, need: L.filter(function (s) { return s.act; }).length, out: L.filter(function (s) { return s.lv === 'out'; }).length, late: L.filter(function (s) { return s.late; }).length, nobase: L.filter(function (s) { return s.lv === 'nobase'; }).length, top: L.filter(function (s) { return s.act || s.late || s.lv === 'out'; }).slice(0, 5).map(function (s) { return [s.name, s.lv, s.left, s.unit]; }) }; }
     try { navBadges(); } catch (e) { }
   }
   function khoN(n) { return (Math.round((Number(n) || 0) * 10) / 10).toLocaleString('vi-VN'); }
@@ -9532,15 +9535,68 @@
     var D = KH.d, act = D ? D.items.filter(function (i) { return i.active; }) : [];
     var h = '<div class="kho-wrap"><div class="page-head"><h1>📦 Kho</h1><div class="grow"></div><button class="btn ghost" data-kho="reload" title="Tải lại số mới nhất">⟳ Tải lại</button></div>';
     if (!D) return h + '<div class="box"><p class="muted">' + (KH.err ? '⚠️ ' + esc(KH.err) + ' <button class="link" data-kho="reload">Thử lại</button>' : '⏳ Đang tải số liệu kho…') + '</p></div></div>';
-    if (!act.length) return h + khoEmpty() + khoMoreList(D, true) + '</div>';
+    if (!act.length) return h + khoEmpty() + khoRetSec(D) + khoMoreList(D, true) + '</div>';
     var setup = khoSetup(D);
-    h += setup + khoTodo(D, !!setup);
+    h += setup + khoTodo(D, !!setup) + khoRetSec(D);
     h += '<div class="kho-big3"><button class="kho-act" data-kho="in"><i>📥</i><b>Hàng về kho</b><small>nhà cung cấp giao</small></button><button class="kho-act" data-kho="out"><i>📤</i><b>Lấy hàng ra</b><small>quà, đại lý, hỏng…</small></button><button class="kho-act" data-kho="count"><i>🧮</i><b>Đếm kho</b><small>đếm thật cuối tuần</small></button></div>';
     var L = D.list.slice().sort(function (a, b) { return (a.act ? -10 : 0) - (b.act ? -10 : 0) || KHO_ORD[a.lv] - KHO_ORD[b.lv] || (a.left === null ? 1e9 : a.left) - (b.left === null ? 1e9 : b.left); });
     h += '<section class="kho-sec2"><h2 class="kho-h">📋 Hàng trong kho <small>bấm vào sản phẩm để xem thêm</small></h2><div class="kho-rows">' + L.map(khoRow).join('') +
       '<button class="kho-row kho-row-add" data-kho="add"><span class="kho-row-t"><b>＋ Thêm sản phẩm</b></span></button></div></section>';
     if (D.syncErr) h += '<p class="small kho-bad">⚠️ Chưa cập nhật được hàng theo đơn mới: ' + esc(D.syncErr) + '</p>';
     return h + khoMoreList(D, false) + '</div>';
+  }
+  /** ↩ Hàng hoàn về kho (09/11/2026, anh Sơn): đơn hãng đang trả về (Đang chuyển hoàn). Kho mở gói kiểm rồi bấm 📦 Đã nhận hàng
+   *  → máy chủ kho_recv: đơn → Hoàn (hàng cộng lại kho), ghi đủ / thiếu, hỏng vào ghi chú đơn, nhắn sale gọi khách. Gói hoàn mà CRM chưa báo: 🔍 tìm (kho_find). */
+  function khoRetSec(D) {
+    var R = D.ret || [], G = D.got || [];
+    var mrow = function (a, ic, t, sub) { return '<button class="kho-row kho-row-m" data-kho="' + a + '"><span class="kho-row-ic">' + ic + '</span><span class="kho-row-t"><b>' + t + '</b><small>' + sub + '</small></span><span class="kho-chev" aria-hidden="true">›</span></button>'; };
+    return '<section class="kho-sec2"><h2 class="kho-h">↩ Hàng hoàn về kho' + (R.length ? ' <em class="kho-badge">' + R.length + '</em>' : '') + ' <small>gói khách không nhận, hãng trả về</small></h2>' +
+      (R.length ? '<p class="small muted" style="margin:0 0 8px">Gói hoàn về tới kho: mở gói kiểm hàng rồi bấm vào đúng đơn.</p><div class="kho-rows">' + R.map(khoRetRow).join('') + '</div>' : '<p class="kho-note">✅ Không có đơn hoàn nào đang trên đường về kho.</p>') +
+      '<div class="kho-rows kho-mt">' + mrow('retfind', '🔍', 'Gói hoàn không có trong danh sách?', 'Tìm theo mã đơn, mã vận đơn, 4 số cuối SĐT hoặc tên khách') + (G.length ? mrow('retgot', '✅', 'Đã nhận 14 ngày qua', G.length + ' đơn') : '') + '</div></section>';
+  }
+  function khoRetItems(o) { return String(o.items || '').split('\n').map(function (l) { return l.replace(/\s*=\s*[\d.,]+\s*₫?\s*$/, '').trim(); }).filter(Boolean); }
+  function khoRetRow(o) {
+    var done = o.status === 'Hoàn';
+    return '<' + (done ? 'div class="kho-row kho-row-s"' : 'button class="kho-row" data-kho="ret|' + o.row + '"') + '><span class="kho-row-t"><b>' + esc(o.id) + ' · ' + esc(o.name) + ' ' + esc(o.ph) + '</b><small>' + esc(khoRetItems(o).join(', ')) + '</small><small>' +
+      esc([o.carrier, o.tracking].filter(Boolean).join(' ') || 'chưa có mã vận đơn') + ' · đặt ' + fDate(o.time).slice(0, 5) + (o.status !== 'Đang chuyển hoàn' ? ' · CRM: ' + esc(o.status) : '') + (done && o.note ? '<br>' + esc(o.note) : '') + '</small></span>' + (done ? '' : '<span class="kho-chev" aria-hidden="true">›</span>') + '</' + (done ? 'div' : 'button') + '>';
+  }
+  function khoRetOf(row) { return ((KH.d && KH.d.ret) || []).concat(KH.find || []).filter(function (o) { return String(o.row) === String(row); })[0] || null; }
+  function openKhoRecv(row) {
+    var o = khoRetOf(row); if (!o) return;
+    var body = '<div class="kho-m">' + (o.status !== 'Đang chuyển hoàn' ? '<p class="kho-note">⚠️ CRM đang ghi đơn này là <b>' + esc(o.status) + '</b>, hãng chưa báo hoàn. Chắc chắn gói này là hàng hoàn về thì vẫn bấm nhận; máy sẽ báo sale kiểm tra.</p>' : '') +
+      '<div class="kho-note"><b>' + esc(o.name) + ' ' + esc(o.ph) + '</b><small>Mã đơn ' + esc(o.id) + ' · đặt ' + fDate(o.time).slice(0, 5) + (o.seller ? ' · sale ' + esc(o.seller) : '') + '</small><small>' + esc([o.carrier, o.tracking].filter(Boolean).join(' ') || 'chưa có mã vận đơn') + '</small>' + (o.trk ? '<small>Hãng báo: ' + esc(String(o.trk).slice(0, 120)) + '</small>' : '') +
+      '<ul style="margin:6px 0 0;padding-left:18px">' + khoRetItems(o).map(function (l) { return '<li>' + esc(l) + '</li>'; }).join('') + '</ul></div>' +
+      '<div class="f"><span class="kho-lbl">1. Mở gói kiểm hàng: hàng thế nào?</span><div class="kho-chips"><label class="kho-chip2"><input type="radio" name="khRet" value="1" checked><span>✅ Đủ hàng, còn nguyên</span></label><label class="kho-chip2"><input type="radio" name="khRet" value="0"><span>⚠️ Thiếu hoặc hỏng</span></label></div></div>' +
+      '<div class="f"><span class="kho-lbl" id="khRetL">2. Ghi chú (không bắt buộc)</span><textarea id="khRetN" rows="2" placeholder="vd: thiếu 1 hộp Curcumin, 1 hộp bị móp"></textarea></div><p class="err" id="khRetE"></p>' +
+      '<p class="small muted" style="margin:0">Bấm <b>📦 Đã nhận hàng</b>: đơn chuyển sang <b>Hoàn</b>, máy cộng hàng lại vào kho và nhắn sale gọi hỏi khách. Hộp hỏng không bán được thì sau đó bấm 📤 Lấy hàng ra → Hàng hỏng.</p></div>';
+    var m = modal('📦 Nhận hàng hoàn', body, '<button class="btn pri lg block" id="khRetGo">📦 Đã nhận hàng</button>');
+    $$('[name=khRet]', m).forEach(function (r) { r.onchange = function () { var bad = $('[name=khRet]:checked', m).value === '0'; $('#khRetL').textContent = bad ? '2. Thiếu hoặc hỏng gì? (bắt buộc)' : '2. Ghi chú (không bắt buộc)'; if (bad) $('#khRetN').focus(); }; });
+    $('#khRetGo').onclick = function () {
+      var ok = $('[name=khRet]:checked', m).value === '1', note = $('#khRetN').value.trim();
+      if (!ok && !note) { $('#khRetE').textContent = 'Ghi rõ thiếu hoặc hỏng gì để sale và quản lý biết.'; $('#khRetN').focus(); return; }
+      khoDo('kho_recv', { id: o.id, row: o.row, ok: ok, note: note }, this, $('#khRetE'), ok ? 'Đã nhận hàng hoàn ✓ Hàng đã cộng lại vào kho' : 'Đã ghi ✓ Đã báo sale và quản lý phần thiếu / hỏng').then(function (j) { if (j) KH.find = null; });
+    };
+  }
+  function openKhoFind() {
+    var body = '<div class="kho-m"><p class="kho-todo-p" style="margin:0 0 10px">Gói hoàn về mà không thấy trong danh sách (hãng chưa báo cho CRM): gõ <b>mã đơn</b>, <b>mã vận đơn</b>, <b>4 số cuối SĐT</b> hoặc <b>tên khách</b> ghi trên gói.</p>' +
+      '<div style="display:flex;gap:8px"><input type="search" id="khFindQ" placeholder="vd: 1234 hoặc mã vận đơn" autocomplete="off" style="flex:1"><button class="btn pri" id="khFindGo">🔍 Tìm</button></div><p class="err" id="khFindE"></p><div id="khFindR"></div></div>';
+    modal('🔍 Tìm đơn của gói hoàn', body, '<button class="btn block" data-close>Đóng</button>');
+    var go = function () {
+      var q = $('#khFindQ').value.trim(), b = $('#khFindGo'); $('#khFindE').textContent = '';
+      if (q.length < 3) { $('#khFindE').textContent = 'Gõ ít nhất 3 chữ / số.'; return; }
+      b.disabled = true; b.textContent = '⏳';
+      api('kho_find', { q: q }).then(function (j) {
+        KH.find = j.list || [];
+        $('#khFindR').innerHTML = KH.find.length ? '<p class="small muted" style="margin:10px 0 6px">Bấm vào đúng đơn để nhận hàng hoàn:</p><div class="kho-rows">' + KH.find.map(khoRetRow).join('') + '</div>' : '<p class="kho-note" style="margin-top:10px">Không thấy đơn nào (6 tháng qua, đã gửi đi). Thử gõ cách khác, hoặc báo quản lý.</p>';
+        bindKho($('#khFindR'));
+      }, function (e) { $('#khFindE').textContent = e.message; }).then(function () { b.disabled = false; b.textContent = '🔍 Tìm'; });
+    };
+    $('#khFindGo').onclick = go; $('#khFindQ').onkeydown = function (e) { if (e.key === 'Enter') { e.preventDefault(); go(); } };
+    setTimeout(function () { var i = $('#khFindQ'); if (i) i.focus(); }, 60);
+  }
+  function openKhoGot() {
+    var G = (KH.d && KH.d.got) || [];
+    bindKho(modal('✅ Hàng hoàn đã nhận (14 ngày)', '<div class="kho-m">' + (G.length ? '<div class="kho-rows">' + G.map(khoRetRow).join('') + '</div>' : '<p class="kho-note">Chưa có.</p>') + '</div>', '<button class="btn block" data-close>Đóng</button>'));
   }
   function khoRow(s) {
     var n = s.have === null ? '–' : khoN(s.have);
@@ -9580,6 +9636,9 @@
     else if (a === 'how') openKhoHow();
     else if (a === 'undo') { if (confirm('Xoá dòng ghi nhầm này? Máy sẽ tính lại như chưa ghi.')) khoDo('kho_undo', { id: +p[1] }, el, null, 'Đã xoá dòng ✓'); }
     else if (a === 'quick') khoQuick(el);
+    else if (a === 'ret') openKhoRecv(p[1]);
+    else if (a === 'retfind') openKhoFind();
+    else if (a === 'retgot') openKhoGot();
   }
   function bindKho(root) {
     $$('[data-kho]', root).forEach(function (el) { el.onclick = function (e) { if (el.tagName === 'A') return; e.preventDefault(); khoAct(el.getAttribute('data-kho'), el); }; });

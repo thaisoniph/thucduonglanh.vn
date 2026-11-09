@@ -9,7 +9,7 @@ import { crmGa, crmGaProp } from './ga.js';
 import { crmMkt, mktFbEdit } from './mkt.js';
 import { mktView, mktBudgetSet, mktGoalSet, mktDailyMsgs } from './mktv.js';
 import { crmSan, sanSchema, sanAllowed } from './san.js';
-import { crmKho, khoSchema } from './kho.js';
+import { crmKho, khoSchema, khoRetOut } from './kho.js';
 import { fetchXlsx, crmFin } from './fin.js';
 import { crmSaleMkt, crmOffers } from './salemkt.js';
 import { cmsTokenSet, quizCms } from './cms.js';
@@ -139,7 +139,8 @@ export async function ensureSchema(db) {
 }
 
 export const SUPER_ADMIN = 'thaisoniph@gmail.com'; // luôn có quyền Quản trị
-const ROLES = { 'Quản trị': 3, 'Quản lý': 2, 'Sale & CSKH': 1, 'Marketing': 0 }; // Marketing: chỉ thấy tab 📣 Marketing (MKT_ACTIONS), không thấy khách / đơn / doanh thu công ty
+const ROLES = { 'Quản trị': 3, 'Quản lý': 2, 'Sale & CSKH': 1, 'Marketing': 0, 'Kho': 0 }; // Kho (09/11/2026, anh Sơn tách khỏi Sale): chỉ tab 📦 Kho + nhận hàng hoàn (KHO_ROLE_OK), không thấy khách / doanh số
+// Marketing: chỉ thấy tab 📣 Marketing (MKT_ACTIONS), không thấy khách / đơn / doanh thu công ty
 const SALE = 'Sale & CSKH'; // 15/10/2026: đổi tên từ "Nhân viên" (tên cũ vẫn nhận, tự quy về tên mới)
 const roleOf = r => r === 'Nhân viên' ? SALE : Object.hasOwn(ROLES, r || '') ? r : SALE;
 const BOT_USERNAME = 'thucduonglanh_donhang_bot';
@@ -223,7 +224,7 @@ const USERS_SQL = 'SELECT * FROM users ORDER BY ord, rowid';
 function usersFrom(x, rows) {
   const list = rows.map(r => {
     const e = String(r.email || '').trim().toLowerCase(), role = roleOf(r.role);
-    return { email: e, name: String(r.name || e.split('@')[0]).trim(), role, active: !!r.active, recv: role === 'Marketing' ? false : String(r.recv || '').trim() === '' ? role === SALE : !no(r.recv), tg: String(r.tg || '').trim(), alias: String(r.alias || '').trim(), prefix: String(r.prefix || '').trim(), web: String(r.web || '').trim() === 'Có', phone: String(r.phone || '').trim(), full: String(r.full || '').trim(), acct: String(r.acct || '').trim(), joined: String(r.joined || '').trim(), mkv: role !== 'Marketing' && String(r.mkv || '').trim() === 'Có', zb: String(r.zb || '').trim() === 'Có', kho: String(r.kho || '').trim() === 'Có' };
+    return { email: e, name: String(r.name || e.split('@')[0]).trim(), role, active: !!r.active, recv: role === 'Marketing' || role === 'Kho' ? false : String(r.recv || '').trim() === '' ? role === SALE : !no(r.recv), tg: String(r.tg || '').trim(), alias: String(r.alias || '').trim(), prefix: String(r.prefix || '').trim(), web: String(r.web || '').trim() === 'Có', phone: String(r.phone || '').trim(), full: String(r.full || '').trim(), acct: String(r.acct || '').trim(), joined: String(r.joined || '').trim(), mkv: role !== 'Marketing' && role !== 'Kho' && String(r.mkv || '').trim() === 'Có', zb: role !== 'Kho' && String(r.zb || '').trim() === 'Có', kho: role === 'Kho' || String(r.kho || '').trim() === 'Có' };
   }).filter(u => /@/.test(u.email));
   const sa = list.find(u => u.email === SUPER_ADMIN);
   if (!sa) list.unshift({ email: SUPER_ADMIN, name: 'Thái Sơn', role: 'Quản trị', active: true, recv: false, tg: '', alias: '', prefix: '', web: true });
@@ -548,6 +549,10 @@ async function loadSmall(x, u, R, mode, adV) {
  * Không có d.part (CRM bản cũ): tải 1 lần đủ hết. */
 async function crmLoad(x, u, d) {
   d = d || {};
+  if (u.role === 'Kho') { // 09/11/2026: tài khoản Kho chỉ có khung + tab Kho (số liệu kho tải riêng bằng kho_load), không 1 dòng khách / đơn nào
+    const [R0, mode0] = await Promise.all([rulesCfg(x), assignMode(x)]), s0 = await loadSmall(x, u, R0, mode0, '');
+    return Object.assign(s0, { today: startOfDay(Date.now()), customers: [], orders: [], leads: [], log: [], contacts: [], targets: [], users: [], sources: [], areas: undefined, ads: null, adRows: [], adV: '', fbNew: 0, sanOk: false, sv: 0, lr: 0, qrLinks: [], occ: [] });
+  }
   if (u.role === 'Marketing') { // chỉ phần khung (tên, cài đặt màu…), không 1 dòng khách / đơn / khách hỏi / nhật ký nào
     const [R0, mode0] = await Promise.all([rulesCfg(x), assignMode(x)]), s0 = await loadSmall(x, u, R0, mode0, '');
     const wl = await all(x.db, "SELECT * FROM leads WHERE by_name = 'Website' ORDER BY rid DESC LIMIT 3000"); // 24/10/2026: Marketing xem (chỉ đọc) khách để lại số trên web
@@ -702,7 +707,7 @@ export { refCode };
 /** Khách vào web qua link của sale → tên sale (đang dùng, không phải Marketing); không khớp → ''. */
 async function refUser(x, ref) {
   const k = refCode(ref); if (!k) return '';
-  const u = (await crmUsers(x)).find(r => r.active && r.role !== 'Marketing' && refCode(r.name) === k);
+  const u = (await crmUsers(x)).find(r => r.active && r.role !== 'Marketing' && r.role !== 'Kho' && refCode(r.name) === k);
   return u ? u.name : '';
 }
 export async function ownerOf(x, phone) { const r = await first(x.db, 'SELECT owner FROM customers WHERE phone = ?', normPhone(phone)); return r ? r.owner || '' : ''; }
@@ -971,9 +976,9 @@ async function orderFind(x, d) {
 }
 /** Nhân viên được xử lý đơn mình bán hoặc đơn của khách mình phụ trách. */
 async function orderGuard(x, u, o) { if (u.level >= 2 || o.seller === u.name) return ''; return guardPhone(x, u, o.phone); }
-async function crmOrderStatus(x, u, d) {
+async function crmOrderStatus(x, u, d, sys) { // sys: lệnh nội bộ đã tự kiểm quyền (kho nhận hàng hoàn)
   const o = await orderFind(x, d); if (!o) return { ok: false, error: 'Không tìm thấy đơn ' + d.id };
-  const gErr = await orderGuard(x, u, o); if (gErr) return { ok: false, error: gErr };
+  const gErr = sys ? '' : await orderGuard(x, u, o); if (gErr) return { ok: false, error: gErr };
   const old = String(o.status || ''), set = {}; let status = d.status;
   if (d.seller !== undefined && u.level < 2) return { ok: false, error: 'Chỉ quản lý đổi được nhân viên bán.' };
   if (status && status !== old && ORDER_STATUS.indexOf(status) < 0) return { ok: false, error: 'Trạng thái không hợp lệ' };
@@ -1971,6 +1976,42 @@ async function crmFbUpdate(x, u, d) {
 
 /* ================================================================ điều phối */
 /** Việc tài khoản Marketing được làm: xem tab Marketing, nhập chi phí (file / nhập tay), góp ý, Telegram, cài đặt màu, đo tốc độ. Mọi việc khác máy chủ từ chối. */
+// Tài khoản Kho (09/11/2026): ngoài các lệnh kho_* chỉ được những lệnh chung này
+const KHO_ROLE_OK = { load: 1, logout: 1, guide_ask: 1, prefs: 1, tg_link: 1, tg_check: 1, tg_off: 1, perf: 1, usage: 1, feedback: 1, fb_list: 1, fb_img: 1 };
+const RET_FROM = ['Đang chuyển hoàn', 'Đang giao', 'Đã giao', 'Đổi hàng']; // kho nhận được hàng hoàn từ các trạng thái này
+/** ↩ Kho nhận hàng hoàn (09/11/2026, anh Sơn tách quyền Kho): đơn → Hoàn, ghi 1 dòng vào ghi chú đơn (đủ hàng / thiếu, hỏng gì),
+ *  báo Telegram sale bán + người phụ trách khách (gọi hỏi lý do, giữ khách); thiếu / hỏng → báo thêm Quản lý, Quản trị. Trả lại số liệu tab Kho. */
+async function crmKhoRecv(x, u, d) {
+  if (!(u.level >= 2 || u.kho)) return { ok: false, error: 'Chỉ người phụ trách kho, Quản lý, Quản trị ghi được hàng hoàn về kho.' };
+  const o = await orderFind(x, { id: d.id, row: d.row }); if (!o) return { ok: false, error: 'Không tìm thấy đơn ' + (d.id || '') };
+  const old = String(o.status || '');
+  if (old === 'Hoàn') return { ok: false, error: 'Đơn ' + o.id + ' đã ghi hoàn về kho rồi.' };
+  if (RET_FROM.indexOf(old) < 0) return { ok: false, error: 'Đơn ' + o.id + ' đang ở trạng thái “' + old + '” (chưa gửi đi hoặc đã huỷ) nên không nhận hoàn được. Báo sale / quản lý kiểm tra.' };
+  const ok = d.ok !== false, note = String(d.note || '').replace(/\s+/g, ' ').trim().slice(0, 300);
+  if (!ok && !note) return { ok: false, error: 'Ghi rõ thiếu hoặc hỏng gì (vd: thiếu 1 hộp Curcumin, 1 hộp móp).' };
+  const line = '📦 Kho nhận hoàn ' + fmtDate(Date.now(), 'dd/MM HH:mm') + ' (' + u.name + '): ' + (ok ? 'đủ hàng, còn nguyên' : '⚠️ ' + note) + (ok && note ? ' · ' + note : '');
+  const r = await crmOrderStatus(x, u, { id: o.id, row: o.rid, status: 'Hoàn', note: (o.note ? o.note + '\n' : '') + line, reason: ok ? 'Kho nhận đủ hàng' + (note ? ': ' + note : '') : 'Kho nhận thiếu / hỏng: ' + note }, true);
+  if (!r.ok) return r;
+  try {
+    const ow = await ownerOf(x, o.phone), msg = '📦 <b>Kho đã nhận hàng hoàn</b>\nĐơn <b>' + esc(o.id) + '</b> · ' + esc(o.name) + (old !== 'Đang chuyển hoàn' ? ' (CRM đang ghi ' + esc(old) + ')' : '') + '\n' + esc(String(o.items || '').split('\n').slice(0, 4).join(', ')) +
+      '\n' + (ok ? '✅ Đủ hàng, còn nguyên' : '⚠️ ' + esc(note)) + '\n👉 Gọi hỏi khách lý do không nhận hàng để giữ khách.\n' + CRM_URL;
+    const to = [...new Set([o.seller, ow].filter(n => n && n !== u.name))];
+    for (const n of to) await telegramUser(x, n, msg);
+    if (!ok) for (const m of await crmUsers(x)) if (m.active && m.tg && m.level >= 2 && m.name !== u.name && to.indexOf(m.name) < 0) await telegramTo(x.env, m.tg, msg);
+  } catch (e) { console.error('khoRecv tg', e.message); }
+  const k = await crmKho(x, u, { action: 'kho_load' }, crmLog);
+  return Object.assign(k, { done: o.id });
+}
+/** 🔍 Kho tìm đơn theo mã đơn / mã vận đơn / 4+ số cuối SĐT / tên (hàng hoàn về mà CRM chưa báo hoàn). 180 ngày, đơn đã gửi đi. */
+async function crmKhoFind(x, u, d) {
+  if (!(u.level >= 2 || u.kho)) return { ok: false, error: 'Bạn không có quyền làm việc này.' };
+  const q = String(d.q || '').trim().slice(0, 60), dg = q.replace(/\D/g, '');
+  if (q.length < 3) return { ok: false, error: 'Gõ ít nhất 3 chữ / số.' };
+  const like = '%' + q.replace(/[%_]/g, '') + '%';
+  const rows = await all(x.db, "SELECT rid, id, time, name, phone, items, status, carrier, tracking, seller, trk, upd, note FROM orders WHERE time > ? AND status IN ('Đang chuyển hoàn', 'Đang giao', 'Đã giao', 'Đổi hàng', 'Hoàn') AND (id LIKE ? OR tracking LIKE ? OR name LIKE ? OR (? <> '' AND phone LIKE ?)) ORDER BY time DESC LIMIT 15",
+    Date.now() - 180 * DAY, like, like, like, dg.length >= 4 ? dg : '', '%' + dg);
+  return { ok: true, list: rows.map(khoRetOut) };
+}
 const MKT_ACTIONS = { guide_ask: 1, link_list: 1, link_save: 1, link_active: 1, load: 1, mktv: 1, mkt_tg_test: 1, mkt_goal: 1, mkt_import: 1, mkt_add: 1, mkt_list: 1, mkt_kpi: 1, mkt_fb_edit: 1, quiz_cms: 1, mkt_del: 1, prefs: 1, tg_link: 1, tg_check: 1, tg_off: 1, perf: 1, usage: 1, feedback: 1, fb_list: 1, fb_img: 1, offers: 1, offer_save: 1, offer_del: 1, wall_hide: 1, zb_view: 1, zb_cfg: 1, zb_post: 1, zb_regen: 1, zb_send: 1, zb_img: 1, zb_hist: 1, zb_logmore: 1, zb_done: 1, fp_view: 1, fp_page: 1, fp_resub: 1, fp_scan: 1, fp_post: 1, fp_now: 1, fp_regen: 1, fp_send: 1, fp_logmore: 1, fp_done: 1 };
 export async function crmApi(x, d, sync, mgr) {
   await ensureSchema(x.db);
@@ -1982,6 +2023,8 @@ export async function crmApi(x, d, sync, mgr) {
   x.user = u;
   if (a === 'logout') { await run(x.db, 'DELETE FROM sessions WHERE token = ?', d.token); return { ok: true }; }
   if (u.role === 'Marketing' && !MKT_ACTIONS[a]) return { ok: false, error: 'Tài khoản Marketing chỉ xem được phần quảng cáo.' };
+  if (u.role === 'Kho' && !KHO_ROLE_OK[a] && !/^kho_/.test(a)) return { ok: false, error: 'Tài khoản Kho chỉ dùng được tab 📦 Kho.' };
+  if (a === 'kho_recv' || a === 'kho_find') return a === 'kho_recv' ? crmKhoRecv(x, u, d) : crmKhoFind(x, u, d); // ↩ hàng hoàn về kho (09/11/2026)
   if (a === 'load') return crmLoad(x, u, d);
   if (a === 'guide_ask') return guideAsk(x, u, d); // ✨ Hỏi trợ lý An Lành trong trang hướng dẫn (guideask.js)
   if (a === 'guide_ask_list') return guideAskList(x, u, d); // câu nhân sự đã hỏi trợ lý (Quản lý trở lên)
