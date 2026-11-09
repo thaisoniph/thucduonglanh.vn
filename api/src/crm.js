@@ -1,6 +1,6 @@
 // CRM: đăng nhập, dữ liệu, đơn hàng, khách, tiềm năng, cài đặt. Chuyển từ Apps Script sang, giữ nguyên cách làm việc & dữ liệu trả về cho giao diện.
 import { normPhone, nrm, esc, fmt, startOfDay, TZ_MS, fmtDate, dateOrBlank, slugName, replaceRows, isVoid, randHex, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, DAY, CRM_URL, MKT_URL, refCode } from './lib.js';
-import { crmPartner, partnerSchema, orderAttrib, refClaim } from './partner.js';
+import { crmPartner, partnerSchema, orderAttrib, refClaim, staffOf, staffHit } from './partner.js';
 import { chatSchema } from './chat.js';
 import { zbotSchema, crmZbot } from './zbot.js';
 import { fbSchema, crmFp } from './fb.js';
@@ -26,7 +26,7 @@ import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, wbInf
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-11-10a'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
+const SCHEMA_V = '2026-11-10c'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -60,6 +60,7 @@ export async function ensureSchema(db) {
     const lcols = (await all(db, "PRAGMA table_info(leads)")).map(r => r.name); // 20/10/2026: khách hỏi do khách khác giới thiệu (SĐT + tên người giới thiệu)
     for (const col of ['ref_phone', 'ref_name']) if (!lcols.includes(col)) { try { await run(db, `ALTER TABLE leads ADD COLUMN ${col} TEXT DEFAULT ''`); } catch (e) { } }
     for (const [col, def] of [['own_at', 'INTEGER'], ['pool_n', 'INTEGER DEFAULT 0'], ['pool_from', "TEXT DEFAULT ''"], ['pool_warn', 'INTEGER']]) if (!lcols.includes(col)) { try { await run(db, `ALTER TABLE leads ADD COLUMN ${col} ${def}`); } catch (e) { } } // 09/11/2026 🧺 Kho chung: ngày giao người phụ trách, số lần về kho, người giữ trước, lúc đã báo trước 1 ngày
+    for (const [col, def] of [['own_src', "TEXT DEFAULT ''"], ['own_at', 'INTEGER'], ['own_by', "TEXT DEFAULT ''"]]) if (!ccols.includes(col)) { try { await run(db, `ALTER TABLE customers ADD COLUMN ${col} ${def}`); } catch (e) { } } // 10/11/2026 🙋 khách sale tự mang về: self / ref / no, ngày đơn đầu, sale được hưởng
     const tcols = (await all(db, "PRAGMA table_info(targets)")).map(r => r.name); // 10/11/2026: mục tiêu khách tự tạo trong tháng (số khách, không tốn quảng cáo)
     if (!tcols.includes('self_n')) { try { await run(db, 'ALTER TABLE targets ADD COLUMN self_n INTEGER DEFAULT 0'); } catch (e) { } }
     const ucols = (await all(db, "PRAGMA table_info(users)")).map(r => r.name);
@@ -472,13 +473,14 @@ export async function srcList(x) {
 }
 export async function adsCfg(x) { return kvJson(x.db, 'ads_cfg', null); }
 
-const CUS_SQL = `SELECT phone, name, address, province, ward, orders, spent, first, last, products, runout, consent, source, owner, care_at, care_result, substr(note, 1, ${NOTE_MAX}) AS note, length(note) > ${NOTE_MAX} AS cut, callback, flag, tag, last_status, last_ca, zalo, community, dob, recv, ok_n, back_n, last_back, fam, addr_old, zone, stop, stop_by, stop_at, stop_ok FROM customers`;
+const CUS_SQL = `SELECT phone, name, address, province, ward, orders, spent, first, last, products, runout, consent, source, owner, care_at, care_result, substr(note, 1, ${NOTE_MAX}) AS note, length(note) > ${NOTE_MAX} AS cut, callback, flag, tag, last_status, last_ca, zalo, community, dob, recv, ok_n, back_n, last_back, fam, addr_old, zone, stop, stop_by, stop_at, stop_ok, own_src, own_at, own_by FROM customers`;
 const cusOut = (v, today, R) => ({
   phone: v.phone, name: v.name || '', address: v.address || '', province: v.province || '', ward: v.ward || '', orders: v.orders || 0, spent: v.spent || 0, first: v.first, last: v.last,
   products: String(v.products || '').split('; ').filter(String), runout: v.runout, group: groupOf(v.orders || 0, v.spent || 0, v.last, R), consent: !!v.consent, source: v.source || '', owner: v.owner || '',
   careAt: v.care_at, careResult: v.care_result || '', note: v.note || '', noteCut: !!v.cut, callback: v.callback, flag: v.flag || '', tag: v.tag || '', task: careTask(v, today, R), lastStatus: v.last_status || '', lastCa: v.last_ca || '',
   zalo: !!v.zalo, community: v.community || '', dob: v.dob || '', recv: v.recv || null, okN: v.ok_n || 0, backN: v.back_n || 0, lastBack: v.last_back || 0, fam: !!v.fam, addrOld: v.addr_old || '', zone: v.zone || 0,
-  stop: v.stop || '', stopBy: v.stop_by || '', stopAt: v.stop_at || null, stopOk: !!v.stop_ok
+  stop: v.stop || '', stopBy: v.stop_by || '', stopAt: v.stop_at || null, stopOk: !!v.stop_ok,
+  ownSrc: v.own_src === 'self' || v.own_src === 'ref' ? v.own_src : '', ownAt: v.own_at || null, ownBy: v.own_by || '' // 🙋 khách sale tự mang về (ownTick)
 });
 const logOut = l => ({ time: l.time, by: l.by_name || '', what: l.what || '', ref: l.ref || '', name: l.name || '', result: l.result || '', note: l.note || '' });
 const contactOut = r => ({ row: r.rid, time: r.time, name: r.name || '', phone: r.phone || '', email: r.email || '', message: r.message || '', page: r.page || '', done: !!r.done, note: r.note || '' });
@@ -668,8 +670,9 @@ async function crmRace(x, u) {
   const a0 = Math.min(w0, m0), a1 = Math.max(w0 + 7 * DAY, m1);
   const ads = ((await kvJson(x.db, 'ads_rows', [])) || []).map(a => [Number(a[0]) || 0, normPhone(a[1]), String(a[2] || '')]).filter(a => a[1] && a[0] >= a0 && a[0] < a1);
   const adPh = [...new Set(ads.map(a => a[1]))];
-  const [os, tg, ao, al] = await Promise.all([
+  const [os, tg, ao, al, ownRows] = await Promise.all([
     all(x.db, `SELECT o.seller, o.time, o.total, o.phone, c.first FROM orders o LEFT JOIN customers c ON c.phone = o.phone WHERE o.time >= ? AND ${VOID.replace(/status/g, 'o.status')}`, from),
+    all(x.db, "SELECT own_by, own_at FROM customers WHERE own_src IN ('self', 'ref') AND own_at >= ?", from).catch(() => []), // 🙋 khách tự mang về (10/11/2026)
     all(x.db, 'SELECT name, amount FROM targets WHERE month = ?', mk),
     adPh.length ? allIn(x.db, `SELECT phone, time FROM orders WHERE phone IN (SELECT value FROM json_each(?)) AND time >= ? AND ${VOID}`, adPh, a0) : [],
     adPh.length ? allIn(x.db, 'SELECT phone, time, last_at, status FROM leads WHERE phone IN (SELECT value FROM json_each(?)) AND coalesce(last_at, time) >= ?', adPh, a0) : []]);
@@ -682,9 +685,9 @@ async function crmRace(x, u) {
     const rows = names.map(n => {
       const mine = os.filter(o => o.seller === n && o.time >= a && o.time < b), sales = mine.reduce((s, o) => s + (Number(o.total) || 0), 0);
       const back = {}; mine.forEach(o => { if (o.first && o.first < o.time - 3600e3) back[o.phone] = 1; });
-      const cs = closeOf(n, a, b), won = cs.won, prev = sum(pa, pb, n);
+      const cs = closeOf(n, a, b), won = cs.won, prev = sum(pa, pb, n), own = ownRows.filter(r => r.own_by === n && r.own_at >= a && r.own_at < b).length;
       const goal = (tgt[n] || 0) * gk;
-      return { n, sales, pct: goal > 0 ? Math.round(sales * 100 / goal) : null, orders: mine.length, back: Object.keys(back).length, data: cs.data, won, close: cs.data >= minLead ? Math.round(won * 100 / cs.data) : null,
+      return { n, sales, own, pct: goal > 0 ? Math.round(sales * 100 / goal) : null, orders: mine.length, back: Object.keys(back).length, data: cs.data, won, close: cs.data >= minLead ? Math.round(won * 100 / cs.data) : null,
         grow: prev >= 500000 ? Math.round((sales - prev) * 100 / prev) : null, prev };
     }).filter(r => us.find(v => v.name === r.n).level === 1 || r.orders > 0); // quản lý không bán thì không đưa vào bảng
     const cat = (k, f, money) => {
@@ -699,7 +702,7 @@ async function crmRace(x, u) {
       return out;
     };
     const mine = rows.find(r => r.n === u.name);
-    return { from: a, to: b, n: rows.length, cats: [cat('sales', r => r.pct, 1), cat('close', r => r.close), cat('back', r => r.back), cat('grow', r => r.grow)],
+    return { from: a, to: b, n: rows.length, cats: [cat('sales', r => r.pct, 1), cat('close', r => r.close), cat('own', r => r.own), cat('back', r => r.back), cat('grow', r => r.grow)],
       mine: mine ? { sales: mine.sales, orders: mine.orders, back: mine.back, data: mine.data, won: mine.won, close: mine.close, grow: mine.grow } : null };
   };
   const el = now - w0, mel = now - m0;
@@ -803,6 +806,42 @@ async function crmClaim(x, u, d) {
   if (d.phone) { const o = await ownerOf(x, d.phone); if (o && o !== u.name) return { ok: false, error: 'Khách này vừa được ' + o + ' nhận.' }; await setOwner(x, d.phone, u.name); }
   await crmLog(x, u, 'Nhận khách', normPhone(d.phone || ''), '', 'Kho chung', '');
   return { ok: true };
+}
+
+/* ================================================================ 🙋 Khách sale tự mang về (10/11/2026, anh Sơn): tự tìm hoặc được khách cũ giới thiệu → hoa hồng payplan.own % mọi đơn trong ownMonths tháng.
+ *  Phân loại 1 lần khi khách có đơn đầu (own_src: self / ref / no), chỉ khách mua lần đầu từ ownFrom. Rào chắn: số từng có trong file số quảng cáo / để lại trên web / kênh quảng cáo → không tính tự tìm;
+ *  số trùng nhân sự hoặc người nhà (staffHit) → không tính, báo quản lý. Người hưởng (own_by) = sale thêm khách hỏi / sale có link / sale của người giới thiệu. */
+const OWN_SYS = { name: 'Hoa hồng (tự động)', email: '', level: 3, role: 'Hệ thống' }, OWN_ADS = /^(quảng cáo|ebook|form website|facebook|fanpage|instagram|tiktok|shopee|lazada|file )/i;
+export async function ownPlan(x) { return Object.assign({}, PAYPLAN, await kvJson(x.db, 'payplan_cfg', null) || {}); }
+export async function ownTick(x) {
+  const PP = await ownPlan(x); if (!PP.own) return;
+  const from = (dateOrBlank(PP.ownFrom) || 9 * 3600e3) - 9 * 3600e3, now = Date.now(); // dateOrBlank = 9h sáng → lùi về 0h ngày đó
+  await run(x.db, "UPDATE customers SET own_src = 'no' WHERE orders > 0 AND first IS NOT NULL AND first < ? AND (own_src IS NULL OR own_src = '')", from); // khách cũ trước ngày áp dụng: không xét (1 câu, nhanh)
+  const rows = await all(x.db, "SELECT phone, name, first, owner FROM customers WHERE orders > 0 AND first IS NOT NULL AND first >= ? AND (own_src IS NULL OR own_src = '') ORDER BY first DESC LIMIT 150", from);
+  if (!rows.length) return;
+  const [staff, users] = await Promise.all([staffOf(x), crmUsers(x)]), saleNames = new Set(users.map(v => v.name)), bySale = {};
+  for (const c of rows) {
+    let src = 'no', by = '', why = '';
+    const [fo, lds, rs] = await Promise.all([
+      first(x.db, "SELECT id, time, seller, ref_phone, note FROM orders WHERE phone = ? AND status NOT LIKE '%uỷ%' AND status NOT LIKE '%ủy%' ORDER BY time LIMIT 1", c.phone),
+      all(x.db, 'SELECT by_name, channel, owner, ref_phone, ref_name, time FROM leads WHERE phone = ? ORDER BY time', c.phone),
+      first(x.db, 'SELECT sale, void FROM ref_sale WHERE phone = ?', c.phone)]);
+    const guard = staffHit(staff, { phone: c.phone, name: c.name || '' }), refLead = lds.find(l => l.ref_phone || l.ref_name);
+    const adsLead = lds.some(l => l.by_name === 'File QC' || l.by_name === 'Website' || OWN_ADS.test(l.channel || '') || /^File cũ/.test(l.channel || ''));
+    const lm = fo && String(fo.note || '').match(/🔗 Đặt qua link của ([^(·\n]+)/), linkBy = lm ? lm[1].trim() : '';
+    if (guard) why = guard;
+    else if ((rs && !rs.void) || (fo && fo.ref_phone) || refLead) { src = 'ref'; by = (rs && rs.sale) || (refLead && refLead.owner) || (fo && fo.seller) || c.owner || ''; }
+    else if (!adsLead) {
+      const selfLd = lds.find(l => l.by_name && saleNames.has(l.by_name) && l.time <= (fo ? fo.time : now) + 3600e3);
+      if (selfLd) { src = 'self'; by = selfLd.by_name; } else if (linkBy && saleNames.has(linkBy)) { src = 'self'; by = linkBy; }
+    }
+    if (src !== 'no' && !by) src = 'no';
+    await run(x.db, 'UPDATE customers SET own_src = ?, own_at = ?, own_by = ? WHERE phone = ?', src, src === 'no' ? null : c.first, by, c.phone);
+    const end = fmtDate(c.first + PP.ownMonths * 30.44 * DAY, 'dd/MM/yyyy'), kind = src === 'self' ? 'sale tự tìm' : 'khách cũ giới thiệu';
+    if (src !== 'no') { await crmLog(x, OWN_SYS, 'Khách tự mang về', c.phone, c.name, by, kind + ' · hoa hồng ' + PP.own + '% mọi đơn tới ' + end); (bySale[by] = bySale[by] || []).push('• ' + (c.name || 'Khách') + ' – ' + c.phone + ' (' + kind + ') → ' + PP.own + '% mọi đơn tới ' + end); }
+    else if (why) { await crmLog(x, OWN_SYS, 'Không tính tự mang về', c.phone, c.name, '', why); for (const m of users) if (m.active && m.tg && m.level >= 2) { try { await telegramTo(x.env, m.tg, '⛔ Không tính hoa hồng khách tự mang về cho ' + esc(c.name || c.phone) + ': ' + esc(why) + '. Quản lý xem lại.'); } catch (e) { } } }
+  }
+  for (const n of Object.keys(bySale)) { const y = users.find(v => v.name === n && v.active); if (y && y.tg) { try { await telegramTo(x.env, y.tg, '<b>🙋 Khách bạn tự mang về</b> – hoa hồng ' + PP.own + '% mọi đơn trong ' + PP.ownMonths + ' tháng:\n' + bySale[n].map(esc).join('\n') + '\n\nXem ở Hiệu quả → 💰 Thu nhập tạm tính.'); } catch (e) { } } }
 }
 
 /* ================================================================ 🧺 Kho chung: số quá hạn chưa chốt tự về kho (09/11/2026, ý anh Sơn + bạn anh: người này không chốt được, người khác có thể chốt) */
@@ -1487,7 +1526,7 @@ async function crmContact(x, u, d) {
 const COMM_KEYS = ['Khách mới', 'Khách cũ', 'Ngoài giờ', 'Ngày lễ', 'Đơn web'];
 // 💰 Phụ lục 01/CĐ2026 (anh Sơn gửi 30/10/2026): [doanh thu tháng từ, lương cơ bản, trợ cấp BH, [[% khách cũ, % khách mới] dưới 1 năm, 1–2 năm, trên 2 năm]].
 // Dưới bậc đầu (80 triệu) = "hỗ trợ theo năng lực" (quản lý quyết). senior: [số tháng làm từ, phụ cấp thâm niên / tháng]. webAuto: khách mới tự đặt web không qua link sale = % của mức khách mới.
-const PAYPLAN = { on: 1, webAuto: 50, off: 6, hol: 10, // off / hol: % cố định đơn sale chốt tối / Chủ nhật (Ngoài giờ) và ngày lễ (anh Sơn gửi 30/10/2026), không theo bậc / thâm niên
+const PAYPLAN = { on: 1, webAuto: 50, off: 6, hol: 10, own: 10, ownMonths: 6, ownFrom: '2026-11-10', // own: % mọi đơn của khách sale tự mang về (tự tìm / được giới thiệu) trong ownMonths tháng, khách mua lần đầu từ ownFrom (anh Sơn 10/11/2026) // off / hol: % cố định đơn sale chốt tối / Chủ nhật (Ngoài giờ) và ngày lễ (anh Sơn gửi 30/10/2026), không theo bậc / thâm niên
   senior: [[36, 300000], [60, 500000]], tiers: [
   [80e6, 5500000, 1000000, [[3, 2], [4.5, 2.5], [5, 2.5]]], [100e6, 6500000, 1000000, [[3, 2.5], [4.5, 2.5], [5, 2.5]]], [150e6, 7000000, 1000000, [[3.5, 2.5], [4.5, 2.5], [5, 2.5]]],
   [200e6, 7500000, 1000000, [[3.5, 3], [4.5, 3], [5, 3.5]]], [250e6, 8000000, 1000000, [[4, 3], [4.5, 3], [5, 3.5]]], [300e6, 8500000, 1000000, [[4, 3], [4.5, 3], [5, 3.5]]], [350e6, 9000000, 1000000, [[4, 3], [4.5, 3], [5, 3.5]]]] };
@@ -1529,9 +1568,11 @@ async function crmSettings(x, u, d) {
     if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị sửa được mục này.' };
     const P = d.payplan, n = v => Math.max(0, Number(String(v == null ? '' : v).replace(',', '.')) || 0);
     const tiers = (Array.isArray(P.tiers) ? P.tiers : []).map(t => [n(t[0]), n(t[1]), n(t[2]), [0, 1, 2].map(k => [Math.min(50, n((t[3] || [])[k] && t[3][k][0])), Math.min(50, n((t[3] || [])[k] && t[3][k][1]))])]).filter(t => t[0] > 0).sort((a, b) => a[0] - b[0]).slice(0, 12);
-    const PP = { on: P.on ? 1 : 0, tiers, senior: (Array.isArray(P.senior) ? P.senior : []).map(t => [Math.round(n(t[0])), n(t[1])]).filter(t => t[0] > 0).slice(0, 4), webAuto: Math.min(100, n(P.webAuto)), off: Math.min(50, n(P.off)), hol: Math.min(50, n(P.hol)) };
+    const cur = Object.assign({}, PAYPLAN, await kvJson(x.db, 'payplan_cfg', null) || {});
+    const PP = { on: P.on ? 1 : 0, tiers, senior: (Array.isArray(P.senior) ? P.senior : []).map(t => [Math.round(n(t[0])), n(t[1])]).filter(t => t[0] > 0).slice(0, 4), webAuto: Math.min(100, n(P.webAuto)), off: Math.min(50, n(P.off)), hol: Math.min(50, n(P.hol)),
+      own: P.own === undefined ? cur.own : Math.min(50, n(P.own)), ownMonths: P.ownMonths === undefined ? cur.ownMonths : Math.min(24, Math.max(1, Math.round(n(P.ownMonths)) || 6)), ownFrom: /^\d{4}-\d{2}-\d{2}$/.test(String(P.ownFrom || '')) ? P.ownFrom : cur.ownFrom }; // 🙋 khách tự mang về: client cũ không gửi thì giữ số cũ
     await kvSet(x.db, 'payplan_cfg', JSON.stringify(PP));
-    await crmLog(x, u, 'Cài đặt', '-', '', 'Lương & hoa hồng Phụ lục 01: ' + (PP.on ? 'bật' : 'tắt') + ' · ' + tiers.length + ' bậc · khách mới tự đặt web ' + PP.webAuto + '% mức khách mới · tối / CN ' + PP.off + '% · lễ ' + PP.hol + '%', '');
+    await crmLog(x, u, 'Cài đặt', '-', '', 'Lương & hoa hồng Phụ lục 01: ' + (PP.on ? 'bật' : 'tắt') + ' · ' + tiers.length + ' bậc · khách mới tự đặt web ' + PP.webAuto + '% mức khách mới · tối / CN ' + PP.off + '% · lễ ' + PP.hol + '% · khách tự mang về ' + PP.own + '% trong ' + PP.ownMonths + ' tháng (từ ' + PP.ownFrom + ')', '');
     return { ok: true, payplan: PP };
   }
   if (d.staffGuard) { // nhân sự chưa có tài khoản CRM: họ tên, SĐT, số tài khoản → cảnh báo tự làm CTV (partner.js staffHit)

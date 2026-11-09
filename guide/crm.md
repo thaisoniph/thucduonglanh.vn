@@ -234,6 +234,16 @@ Cuối tab **Hôm nay** có mục **🔎 Hết số quảng cáo? Tự tạo kh�
 
 Làm đủ 4 việc này mỗi ngày thì bạn luôn có khách, kể cả tuần nào quảng cáo ít số.
 
+**💰 Khách bạn tự mang về: hoa hồng 10% mọi đơn trong 6 tháng (từ 10/11/2026)**
+
+Khách **bạn tự tìm** (bạn tự thêm vào CRM, không từ số quảng cáo, không để số trên web) hoặc **khách cũ của bạn giới thiệu** mà mua hàng, thì **mọi đơn bạn bán cho khách đó trong 6 tháng đầu** được tính **10% tiền hàng**, thay cho 3–5% bình thường. Ngày lễ vẫn tính % lễ nếu cao hơn.
+
+- Máy tự nhận ra khi khách có đơn đầu, báo Telegram cho bạn: *"🙋 Khách bạn tự mang về … → 10% mọi đơn tới ngày …"*. Trong hồ sơ khách có nhãn **🙋 Tự tìm** hoặc **🙋 Được giới thiệu** kèm ngày hết hạn.
+- Xem tiền ở **Hiệu quả → 💰 Thu nhập tạm tính**, dòng **🙋 HH khách tự mang về**.
+- **Không tính** khi số đã có trong file số quảng cáo, số khách để lại trên web, hoặc trùng số nhân sự / người nhà. Đơn do người khác bán cho khách đó tính % thường cho người đó.
+
+Ví dụ: chị Hoa do bạn tự tìm, mua 350.000đ mỗi tháng trong 6 tháng = 2.100.000đ → bạn được **210.000đ**, gấp 5–7 lần một khách từ quảng cáo. Thêm khách tự tìm là thêm thu nhập đều mỗi tháng.
+
 ## Việc 5: Cuối ngày gửi báo cáo
 
 1. Vào tab **Hôm nay**, kéo xuống cuối trang.

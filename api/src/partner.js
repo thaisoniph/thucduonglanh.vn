@@ -352,12 +352,12 @@ async function pList(x) {
   };
 }
 /** CTV / người đăng ký trùng nhân sự: cùng email, cùng họ tên, hoặc tài khoản ngân hàng mang tên nhân sự (họ tên đầy đủ, không dấu). Trả câu cảnh báo hoặc ''. */
-async function staffOf(x) { // nhân sự có tài khoản CRM + nhân sự chưa có tài khoản (kv staff_guard, Cài đặt → Nhân sự)
+export async function staffOf(x) { // nhân sự có tài khoản CRM + nhân sự chưa có tài khoản (kv staff_guard, Cài đặt → Nhân sự)
   const us = await all(x.db, "SELECT email, name, coalesce(phone, '') AS phone, coalesce(full, '') AS full, coalesce(acct, '') AS acct FROM users");
   let g = []; try { g = JSON.parse((await kvGet(x.db, 'staff_guard')) || '[]') || []; } catch (e) { }
   return us.concat(g.map(r => ({ email: '', name: r.full, phone: r.phone, full: r.full, acct: r.acct })));
 }
-function staffHit(staff, p) {
+export function staffHit(staff, p) {
   const em = String(p.email || '').trim().toLowerCase(), nm = nrm(p.name), bk = ' ' + nrm(p.bank).replace(/[^a-z0-9]+/g, ' ') + ' ', ph = normPhone(p.phone || '');
   for (const s of staff) {
     if (ph && ph === normPhone(s.phone || '')) return '⚠️ Trùng số điện thoại nhân sự ' + s.name;

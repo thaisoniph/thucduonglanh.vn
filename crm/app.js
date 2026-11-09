@@ -1512,7 +1512,7 @@
   /* ---------- Bảng thi đua: Top 3 mỗi hạng mục + hạng của mình + còn cách người ngay trên bao nhiêu. Hỏi máy chủ lệnh 'race' (nhớ 10 phút);
    * máy chủ chỉ gửi cho nhân viên Top 3 và số của chính họ (người hạng 4 trở xuống không bị lộ). Máy chủ cũ chưa có lệnh này → ẩn khối. */
   // 17/10/2026: Doanh số xếp theo % mục tiêu (máy chủ gửi c.pct = 1); số tiền của người khác chỉ quản lý thấy. Máy chủ cũ (không có c.pct) vẫn hiện tiền như trước.
-  var RACE_CATS = { sales: ['🏆 Doanh số', '% mục tiêu đạt (không tính đơn huỷ / hoàn)'], close: ['🎯 Tỷ lệ chốt', 'data quảng cáo ra đơn (như tab Hiệu quả)'], back: ['💚 Khách cũ quay lại', 'số khách cũ mua thêm đơn'], grow: ['🚀 Tiến bộ nhất', 'doanh số so với cùng kỳ trước'] };
+  var RACE_CATS = { sales: ['🏆 Doanh số', '% mục tiêu đạt (không tính đơn huỷ / hoàn)'], close: ['🎯 Tỷ lệ chốt', 'data quảng cáo ra đơn (như tab Hiệu quả)'], own: ['🙋 Khách tự mang về', 'khách tự tìm + khách cũ giới thiệu đã mua (hoa hồng riêng)'], back: ['💚 Khách cũ quay lại', 'số khách cũ mua thêm đơn'], grow: ['🚀 Tiến bộ nhất', 'doanh số so với cùng kỳ trước'] };
   function raceGet() {
     var c = S.race;
     if ((!c || Date.now() - c.at > 600e3) && !S.raceBusy) {
@@ -1522,8 +1522,8 @@
     }
     return c ? c.d : undefined;
   }
-  function raceVal(k, v, pc) { return k === 'sales' && !pc ? moneyShort(v) : k === 'sales' ? v + '%' : k === 'back' ? v + ' khách' : k === 'grow' ? (v > 0 ? '+' : '') + v + '%' : v + '%'; }
-  function raceGap(k, g, pc) { return k === 'sales' && !pc ? moneyShort(g) : k === 'back' ? g + ' khách' : g + ' điểm %'; }
+  function raceVal(k, v, pc) { return k === 'sales' && !pc ? moneyShort(v) : k === 'sales' ? v + '%' : k === 'back' || k === 'own' ? v + ' khách' : k === 'grow' ? (v > 0 ? '+' : '') + v + '%' : v + '%'; }
+  function raceGap(k, g, pc) { return k === 'sales' && !pc ? moneyShort(g) : k === 'back' || k === 'own' ? g + ' khách' : g + ' điểm %'; }
   function raceCat(c, P, wk) {
     var lb = RACE_CATS[c.k], md = ['🥇', '🥈', '🥉'], list = lvl() >= 2 && c.all ? c.all : c.top;
     var money = function (s) { return s != null && c.pct ? ' <small class="race-money">' + moneyShort(s) + '</small>' : ''; }; // máy chủ chỉ gửi tiền của mình (hoặc của mọi người cho quản lý)
@@ -1928,7 +1928,7 @@
     var lateBuy = function () { return !!(st.gap && c.last && (today() - dayStart(c.last)) / DAY > st.gap); };
     var habit = function () { return '<span>🧺 Hay mua: <b>' + esc(st.top || '–') + '</b>' + (st.topN > 1 ? ' (' + st.topN + ' lần)' : '') + '</span>' + (st.gap ? '<span>🔁 Khoảng <b>' + st.gap + ' ngày</b> mua lại 1 lần</span>' : '') + (c.runout ? '<span>⏰ Dự kiến hết: <b>' + fDate(c.runout).slice(0, 5) + '</b> (' + daysAgo(c.runout) + ')</span>' : ''); };
     var body = '<div class="p-top"><div class="p-phone"><span class="p-ph" title="Bấm số để copy">' + cpPhone(c.phone) + '</span>' + zaloTag(c) + '</div>' +
-      '<div class="p-sub">' + (c.owner ? '<span>👤 Phụ trách: <b>' + esc(c.owner) + '</b></span>' : (isPoolStaff() ? claimBtn('c', c.phone) : '<span>Chưa ai phụ trách</span>')) + (custSrc(c) ? '<span title="Nguồn khách (theo đơn đầu tiên)">· ' + srcIcon(custSrc(c)) + esc(custSrc(c)) + '</span>' : '') + consentTag(c) + '</div>' +
+      '<div class="p-sub">' + (c.owner ? '<span>👤 Phụ trách: <b>' + esc(c.owner) + '</b></span>' : (isPoolStaff() ? claimBtn('c', c.phone) : '<span>Chưa ai phụ trách</span>')) + (custSrc(c) ? '<span title="Nguồn khách (theo đơn đầu tiên)">· ' + srcIcon(custSrc(c)) + esc(custSrc(c)) + '</span>' : '') + ownTag(c) + consentTag(c) + '</div>' +
       '<div class="acts p-acts"><a class="btn" href="tel:' + c.phone + '">📞 Gọi</a><a class="btn zalo" href="' + zalo(c.phone) + '" target="_blank" rel="noopener">Zalo</a><button class="btn pri" data-care="' + c.phone + '" data-task="' + (c.task ? c.task.type : 'other') + '">💬 Chăm sóc</button><button class="btn" data-neworder="' + c.phone + '">＋ Lên đơn</button></div>' +
       '<div class="acts p-acts2"><button class="btn" data-relink="' + c.phone + '" title="Link web có sẵn giỏ hàng như đơn trước, gửi khách tự đặt">🔗 Link đặt lại</button><button class="btn" data-refcode="' + c.phone + '" title="Có sẵn tin nhắn kèm mã giới thiệu riêng của khách và kịch bản gọi: bạn bè khách đặt lần đầu được giảm giá, khách được tặng quà">🌱 Mời giới thiệu bạn bè</button></div></div>' +
       (c.flag ? '<div class="notice" style="background:var(--red-light);color:var(--red)">⚠️ Khách có nhãn <b>' + esc(c.flag) + '</b>. Nên yêu cầu chuyển khoản trước khi gửi hàng.</div>' : '') +
@@ -3441,7 +3441,8 @@
     var me = S.user.name, pool = isPoolStaff() ? (S.d.leads || []).filter(function (l) { return !l.owner && isOpenLead(l); }).length : 0, idle = idleLeads(me), amb = 0;
     try { rbData(); var A = ambList(); amb = A ? A.list.length : 0; } catch (e) { amb = 0; }
     var row = function (icon, t, sub, act) { return '<div class="idle-r"><span class="idle-i">' + icon + '</span><span class="idle-t"><b>' + t + '</b><small class="muted">' + sub + '</small></span><span class="idle-a">' + act + '</span></div>'; };
-    return '<section class="section idle"><div class="section-h"><h2>🔎 Hết số quảng cáo? Tự tạo khách</h2><span class="tip">việc nào cũng ra đơn mà không tốn tiền quảng cáo</span></div><div class="box">' +
+    var PP = (S.d.rules && S.d.rules.payplan) || {}, ownTxt = PP.own && ppOn() ? ' · khách bạn tự mang về: hoa hồng <b>' + PP.own + '%</b> mọi đơn trong ' + (PP.ownMonths || 6) + ' tháng' : '';
+    return '<section class="section idle"><div class="section-h"><h2>🔎 Hết số quảng cáo? Tự tạo khách</h2><span class="tip">việc nào cũng ra đơn mà không tốn tiền quảng cáo' + ownTxt + '</span></div><div class="box">' +
       (isPoolStaff() ? row('🧺', 'Kho chung: ' + pool + ' số chưa ai chốt', 'số người khác giữ quá hạn · đọc lịch sử rồi thử cách khác', pool ? '<button class="btn sm" data-gopen="pool">Xem kho</button>' : '<span class="muted small">đang trống</span>') : '') +
       row('😴', 'Gọi lại khách hỏi cũ: ' + idle.length + ' người', '“Không mua” 1,5–6 tháng trước · mở lời bằng lý do mới: sản phẩm mới, ưu đãi tháng này', idle.length ? '<button class="btn sm" data-gopen="idle">Xem danh sách</button>' : '<span class="muted small">chưa có</span>') +
       row('🌱', 'Mời khách cũ giới thiệu: ' + amb + ' khách', 'khách vừa dùng 7–30 ngày · hỏi cảm nhận rồi mời (mục 🌱 Mời làm Đại sứ ở trên)', amb ? '<button class="btn sm" data-gopen="amb">Xem mục 🌱</button>' : '<span class="muted small">chưa có</span>') +
@@ -8483,21 +8484,30 @@
     m = t.match(/(\d{4})-(\d{1,2})(?:-(\d{1,2}))?/); return m ? new Date(+m[1], +m[2] - 1, +(m[3] || 1)).getTime() : 0;
   }
   var PP_SEN = ['dưới 1 năm', '1–2 năm', 'trên 2 năm'];
+  /** 🙋 Khách sale tự mang về (10/11/2026): máy chủ (ownTick) gắn c.ownSrc = self / ref, c.ownBy = sale hưởng, c.ownAt = đơn đầu. Đơn do chính sale đó bán trong ownMonths tháng → % riêng (payplan.own, mặc định 10). */
+  function ownEnd(c) { var P = (S.d.rules && S.d.rules.payplan) || {}; return c && c.ownAt ? c.ownAt + (P.ownMonths || 6) * 30.44 * DAY : 0; }
+  function ownOrder(o, c, name) { var P = (S.d.rules && S.d.rules.payplan) || {}; return !!(P.own && c && c.ownSrc && c.ownBy === name && o.time < ownEnd(c)); }
+  function ownTag(c) {
+    var P = (S.d.rules && S.d.rules.payplan) || {}; if (!c || !c.ownSrc || !P.own) return '';
+    var live = Date.now() < ownEnd(c);
+    return '<span class="own-tag' + (live ? '' : ' off') + '" title="Khách do sale tự mang về (' + (c.ownSrc === 'self' ? 'sale tự tìm, không từ quảng cáo' : 'khách cũ giới thiệu') + '). ' + esc(c.ownBy) + ' hưởng ' + P.own + '% tiền hàng mọi đơn mình bán cho khách này trong ' + (P.ownMonths || 6) + ' tháng đầu' + (live ? ', tới ' + fDate(ownEnd(c)) : ' (đã hết hạn ' + fDate(ownEnd(c)) + ', về % thường)') + '.">🙋 ' + (c.ownSrc === 'self' ? 'Tự tìm' : 'Được giới thiệu') + ' · ' + esc(c.ownBy) + ' ' + P.own + '%' + (live ? ' tới ' + fDate(ownEnd(c)).slice(0, 5) : ' (hết hạn)') + '</span>';
+  }
   function payOf(name, month) {
     if (!ppOn() || !name) return null;
     var P = S.d.rules.payplan, R = monthRange(month), u = (S.d.users || []).filter(function (z) { return z.name === name; })[0] || {}, jt = ppJoinTs(u.joined);
-    var sums = { old: 0, nw: 0, auto: 0, off: 0, hol: 0 }, rev = 0, n = 0;
+    var sums = { old: 0, nw: 0, auto: 0, off: 0, hol: 0, own: 0 }, rev = 0, n = 0, ownN = {};
     S.d.orders.forEach(function (o) {
       if (!o.time || o.time < R[0] || o.time >= R[1] || o.seller !== name || /hoàn/i.test(o.status) || isVoid(o.status)) return;
       var c = cust(o.phone), t0 = otypeOf(o), isNew = t0 === 'Khách mới' ? true : t0 === 'Khách cũ' ? false : !c || !c.first || c.first >= o.time - 3600e3;
       var web = isWebOrder(o), k = !web && t0 === 'Ngoài giờ' ? 'off' : !web && t0 === 'Ngày lễ' ? 'hol' : !isNew ? 'old' : web && String(o.note || '').indexOf('🔗 Đặt qua link của ' + name) < 0 ? 'auto' : 'nw';
+      if (ownOrder(o, c, name) && k !== 'hol') { k = 'own'; ownN[c.phone] = 1; } // 🙋 khách sale tự mang về: % riêng thay cho % thường (ngày lễ giữ % lễ nếu cao hơn)
       sums[k] += commBase(o); rev += o.total; n++;
     });
     var mo = jt ? (R[1] - jt) / (30.44 * DAY) : -1, si = mo < 12 ? 0 : mo < 24 ? 1 : 2, tier = null, ti = -1;
     P.tiers.forEach(function (t, i) { if (rev >= t[0]) { tier = t; ti = i; } });
-    var rt = tier ? tier[3][si] : [0, 0], cm = { old: Math.round(sums.old * rt[0] / 100), nw: Math.round(sums.nw * rt[1] / 100), auto: Math.round(sums.auto * rt[1] * (P.webAuto || 0) / 10000), off: Math.round(sums.off * (P.off || 0) / 100), hol: Math.round(sums.hol * (P.hol || 0) / 100) };
-    var sen = (P.senior || []).reduce(function (a, t) { return mo >= t[0] ? Math.max(a, t[1]) : a; }, 0), comm = cm.old + cm.nw + cm.auto + cm.off + cm.hol, fixed = tier ? tier[1] + tier[2] : 0;
-    return { rev: rev, n: n, tier: tier, ti: ti, si: si, mo: mo, joined: u.joined || '', tv: /^\s*tv/i.test(u.joined || ''), rt: rt, sums: sums, cm: cm, comm: comm, fixed: fixed, sen: sen, total: fixed + comm + sen, webAuto: P.webAuto || 0, off: P.off || 0, hol: P.hol || 0 };
+    var rt = tier ? tier[3][si] : [0, 0], cm = { old: Math.round(sums.old * rt[0] / 100), nw: Math.round(sums.nw * rt[1] / 100), auto: Math.round(sums.auto * rt[1] * (P.webAuto || 0) / 10000), off: Math.round(sums.off * (P.off || 0) / 100), hol: Math.round(sums.hol * (P.hol || 0) / 100), own: Math.round(sums.own * (P.own || 0) / 100) };
+    var sen = (P.senior || []).reduce(function (a, t) { return mo >= t[0] ? Math.max(a, t[1]) : a; }, 0), comm = cm.old + cm.nw + cm.auto + cm.off + cm.hol + cm.own, fixed = tier ? tier[1] + tier[2] : 0;
+    return { rev: rev, n: n, tier: tier, ti: ti, si: si, mo: mo, joined: u.joined || '', tv: /^\s*tv/i.test(u.joined || ''), rt: rt, sums: sums, cm: cm, comm: comm, fixed: fixed, sen: sen, total: fixed + comm + sen, webAuto: P.webAuto || 0, off: P.off || 0, hol: P.hol || 0, own: P.own || 0, ownMonths: P.ownMonths || 6, ownN: Object.keys(ownN).length };
   }
   function ppHtml(name, month) {
     var p = payOf(name, month); if (!p) return '';
@@ -8506,6 +8516,7 @@
       (p.tier ? '<div class="kpis" style="margin:0">' + kpi('Lương cố định', moneyShort(p.fixed), '', '', 'bậc từ ' + moneyShort(p.tier[0]) + ': cơ bản ' + moneyShort(p.tier[1]) + ' + BH ' + moneyShort(p.tier[2])) +
         kpi('🔁 HH khách cũ', moneyShort(p.cm.old), '', '', p.rt[0] + '% × ' + moneyShort(p.sums.old) + ' tiền hàng') +
         kpi('🆕 HH khách mới', moneyShort(p.cm.nw), '', '', p.rt[1] + '% × ' + moneyShort(p.sums.nw) + ' (sale chốt + qua link của bạn)') +
+        (p.sums.own || p.own ? kpi('🙋 HH khách tự mang về', moneyShort(p.cm.own), p.cm.own ? 'good' : '', '', p.own + '% × ' + moneyShort(p.sums.own) + (p.ownN ? ' · ' + p.ownN + ' khách' : '') + ' (khách bạn tự tìm hoặc được khách cũ giới thiệu, ' + p.ownMonths + ' tháng đầu)') : '') +
         (p.sums.auto ? kpi('🌐 Khách mới tự đặt web', moneyShort(p.cm.auto), '', '', (p.rt[1] * p.webAuto / 100) + '% × ' + moneyShort(p.sums.auto) + ' (không qua link sale: ' + p.webAuto + '% mức khách mới)') : '') +
         (p.sums.off ? kpi('🌙 Đơn tối / Chủ nhật', moneyShort(p.cm.off), '', '', p.off + '% cố định × ' + moneyShort(p.sums.off)) : '') +
         (p.sums.hol ? kpi('🎉 Đơn ngày lễ', moneyShort(p.cm.hol), '', '', p.hol + '% cố định × ' + moneyShort(p.sums.hol)) : '') +
@@ -8519,8 +8530,8 @@
     var R = monthRange(month), names = {}; S.d.orders.forEach(function (o) { if (o.seller && o.time >= R[0] && o.time < R[1]) names[o.seller] = 1; });
     var rows = Object.keys(names).map(function (nm) { return [nm, payOf(nm, month)]; }).filter(function (r) { return r[1] && r[1].rev; }).sort(function (a, b) { return b[1].rev - a[1].rev; });
     if (!rows.length) return '';
-    return '<div class="box pp-box"><h3 style="margin:0 0 6px">💰 Thu nhập tạm tính từng người (Phụ lục 01)</h3><div class="bcdt-wrap"><table class="bcdt"><thead><tr><th>Nhân sự</th><th>Doanh thu</th><th>Bậc</th><th>Thâm niên</th><th>Lương cố định</th><th>HH khách cũ</th><th>HH khách mới</th><th>HH web tự đặt</th><th>HH tối / CN / lễ</th><th>Phụ cấp</th><th>Tổng</th></tr></thead><tbody>' +
-      rows.map(function (r) { var p = r[1]; return '<tr><td>' + esc(r[0]) + '</td><td>' + money(p.rev) + '</td><td>' + (p.tier ? 'từ ' + moneyShort(p.tier[0]) : 'hỗ trợ theo năng lực') + '</td><td>' + (p.mo < 0 ? '⚠️ thiếu ngày' : PP_SEN[p.si]) + '</td><td>' + money(p.fixed) + '</td><td>' + money(p.cm.old) + '</td><td>' + money(p.cm.nw) + '</td><td>' + money(p.cm.auto) + '</td><td>' + money(p.cm.off + p.cm.hol) + '</td><td>' + money(p.sen) + '</td><td><b>' + money(p.total) + '</b></td></tr>'; }).join('') +
+    return '<div class="box pp-box"><h3 style="margin:0 0 6px">💰 Thu nhập tạm tính từng người (Phụ lục 01)</h3><div class="bcdt-wrap"><table class="bcdt"><thead><tr><th>Nhân sự</th><th>Doanh thu</th><th>Bậc</th><th>Thâm niên</th><th>Lương cố định</th><th>HH khách cũ</th><th>HH khách mới</th><th>🙋 HH tự mang về</th><th>HH web tự đặt</th><th>HH tối / CN / lễ</th><th>Phụ cấp</th><th>Tổng</th></tr></thead><tbody>' +
+      rows.map(function (r) { var p = r[1]; return '<tr><td>' + esc(r[0]) + '</td><td>' + money(p.rev) + '</td><td>' + (p.tier ? 'từ ' + moneyShort(p.tier[0]) : 'hỗ trợ theo năng lực') + '</td><td>' + (p.mo < 0 ? '⚠️ thiếu ngày' : PP_SEN[p.si]) + '</td><td>' + money(p.fixed) + '</td><td>' + money(p.cm.old) + '</td><td>' + money(p.cm.nw) + '</td><td>' + money(p.cm.own) + '</td><td>' + money(p.cm.auto) + '</td><td>' + money(p.cm.off + p.cm.hol) + '</td><td>' + money(p.sen) + '</td><td><b>' + money(p.total) + '</b></td></tr>'; }).join('') +
       '</tbody></table></div><p class="small muted" style="margin:8px 0 0">Bậc dưới ' + moneyShort(S.d.rules.payplan.tiers[0][0]) + ' = hỗ trợ theo năng lực (không tự tính lương cố định, hoa hồng). Chưa gồm thưởng.</p></div>';
   }
   function ppSetHtml() {
@@ -8534,6 +8545,9 @@
       '<div class="row2c"><label class="f"><span>🎖 Phụ cấp thâm niên trên 3 năm (đ/tháng)</span>' + inp(sv(36).toLocaleString('vi-VN'), 'ppS3') + '</label><label class="f"><span>🎖 Trên 5 năm (đ/tháng)</span>' + inp(sv(60).toLocaleString('vi-VN'), 'ppS5') + '</label></div>' +
       '<div class="row2c"><label class="f"><span>🌙 Đơn tối / Chủ nhật (Ngoài giờ): % cố định</span>' + inp(P.off == null ? 6 : P.off, 'ppOff') + '</label><label class="f"><span>🎉 Đơn ngày lễ: % cố định</span>' + inp(P.hol == null ? 10 : P.hol, 'ppHol') + '</label></div>' +
       '<label class="f"><span>🌐 Khách mới tự đặt trên web, không qua link của sale: tính bao nhiêu % mức khách mới</span>' + inp(wa, 'ppWa') + '</label>' +
+      '<h3 style="margin:14px 0 6px">🙋 Khách sale tự mang về</h3><p class="hint" style="margin:0 0 8px">Khách <b>sale tự tìm</b> (không từ quảng cáo, không để số trên web) hoặc <b>khách cũ giới thiệu</b>: sale hưởng % dưới đây trên tiền hàng <b>mọi đơn mình bán cho khách đó</b> trong số tháng đầu, thay cho % khách mới / khách cũ (ngày lễ vẫn tính % lễ nếu cao hơn). Máy tự nhận diện khi khách có đơn đầu và báo Telegram cho sale. Không tính: số đã có trong file số quảng cáo, số khách để lại trên web, số trùng nhân sự hoặc người nhà. Ghi <b>0</b> = tắt.</p>' +
+      '<div class="row2c"><label class="f"><span>% hoa hồng khách tự mang về</span>' + inp(P.own == null ? 10 : P.own, 'ppOwn') + '</label><label class="f"><span>Trong bao nhiêu tháng kể từ đơn đầu</span>' + inp(P.ownMonths == null ? 6 : P.ownMonths, 'ppOwnM') + '</label></div>' +
+      '<label class="f"><span>Áp dụng cho khách mua lần đầu từ ngày</span><input type="date" id="ppOwnFrom" value="' + esc(P.ownFrom || '2026-11-10') + '"' + dis + '></label>' +
       '<p class="hint">Khách mới đặt qua <b>link riêng của sale</b> tính đủ % khách mới. Khách tự tìm đến web (quảng cáo, Google) được máy chia cho sale thì sale chỉ gọi xác nhận, nên tính ' + wa + '%. Từ đơn thứ 2 là khách cũ, tính đủ % khách cũ.</p>' +
       (ed ? '<button class="btn pri" id="ppSave">Lưu bảng lương & hoa hồng</button>' : '') + '</div>';
   }
@@ -9026,7 +9040,7 @@
       var b = this, num = function (v) { return parseFloat(String(v).replace(/\./g, '').replace(',', '.')) || 0; }, pc = function (v) { return parseFloat(String(v).replace(',', '.')) || 0; };
       var tiers = $$('.pp-row').map(function (r) { var q = $$('input', r).map(function (i) { return i.value; }); return [pc(q[0]) * 1e6, num(q[1]), num(q[2]), [[pc(q[3]), pc(q[4])], [pc(q[5]), pc(q[6])], [pc(q[7]), pc(q[8])]]]; }).filter(function (t) { return t[0] > 0; });
       b.disabled = true;
-      api('settings', { payplan: { on: $('#ppOn').checked, tiers: tiers, webAuto: pc($('#ppWa').value), off: pc($('#ppOff').value), hol: pc($('#ppHol').value), senior: [[36, num($('#ppS3').value)], [60, num($('#ppS5').value)]] } }).then(function (j) { S.d.rules.payplan = j.payplan; toast('Đã lưu bảng lương & hoa hồng ✓'); b.disabled = false; }, function (e) { toast(e.message, true); b.disabled = false; });
+      api('settings', { payplan: { on: $('#ppOn').checked, tiers: tiers, webAuto: pc($('#ppWa').value), off: pc($('#ppOff').value), hol: pc($('#ppHol').value), own: pc($('#ppOwn').value), ownMonths: pc($('#ppOwnM').value), ownFrom: $('#ppOwnFrom').value, senior: [[36, num($('#ppS3').value)], [60, num($('#ppS5').value)]] } }).then(function (j) { S.d.rules.payplan = j.payplan; toast('Đã lưu bảng lương & hoa hồng ✓'); b.disabled = false; }, function (e) { toast(e.message, true); b.disabled = false; });
     };
     if ($('#cmSave')) $('#cmSave').onclick = function () {
       var b = this, cm = {}; $$('[data-cm]').forEach(function (x) { cm[x.getAttribute('data-cm')] = x.value.trim(); }); b.disabled = true;

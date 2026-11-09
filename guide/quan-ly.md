@@ -46,6 +46,15 @@ Sale chỉ thấy mức "giỏi nhất nhóm" dưới dạng % (không thấy t�
 
 Tài khoản Quản trị không nằm trong bảng so sánh nhân sự. Doanh số cả nhóm vẫn tính đủ.
 
+## Hoa hồng khách sale tự mang về (10% trong 6 tháng, từ 10/11/2026)
+
+Để sale chủ động tìm khách và mời khách cũ giới thiệu thay vì chỉ chờ số quảng cáo, công ty trả **10% tiền hàng mọi đơn** sale bán cho khách mình **tự mang về** trong **6 tháng** kể từ đơn đầu (thay cho % khách mới / khách cũ thường). Chi phí: khách tự tìm tốn đúng 10%; khách giới thiệu cộng cả giảm giá bạn bè và voucher khoảng 20–25% vòng đời, đều dưới mức 30% của quảng cáo.
+
+- **Máy tự làm**: khi khách có đơn đầu, CRM xét trong 25 phút: có khách hỏi do sale tự thêm (kênh không phải quảng cáo) hoặc đặt qua link riêng của sale → **🙋 Tự tìm**; có người giới thiệu → **🙋 Được giới thiệu**. Báo Telegram cho sale, ghi Nhật ký **Khách tự mang về** (người làm: *Hoa hồng (tự động)*).
+- **Rào chắn**: số đã có trong file số quảng cáo, số khách để lại trên web (ebook, nhóm Zalo, form), kênh Facebook / TikTok / Shopee: không tính tự tìm. Số trùng nhân sự hoặc người nhà (Cài đặt → Nhân sự): không tính, Telegram báo quản lý xem lại.
+- **Xem**: hồ sơ khách có nhãn 🙋 kèm tên sale và ngày hết hạn; **Hiệu quả → 💰 Thu nhập tạm tính** có dòng và cột **🙋 HH khách tự mang về**; **Bảng thi đua** có hạng mục **🙋 Khách tự mang về**.
+- **Chỉnh mức**: Cài đặt → 💰 Lương & hoa hồng → 📑 Bảng lương theo bậc → mục **🙋 Khách sale tự mang về** (%, số tháng, áp dụng cho khách mua lần đầu từ ngày). Ghi 0 = tắt.
+
 ## Doanh số đến từ đâu (Tổng quan → 🧭 Doanh số theo nguồn khách)
 
 Từ 10/11/2026, ngay dưới **🧩 Theo từng mảng** ở tab **Tổng quan** có khối **🧭 Doanh số theo nguồn khách**. Mỗi đơn được xếp vào đúng 1 nguồn: **🤝 Cộng tác viên** → **🎁 Khách cũ giới thiệu** → **🧺 Kho chung** → **🔁 Khách cũ mua lại** → **🙋 Sale tự tìm** → **🌐 Web tự đặt** → **📣 Quảng cáo (khách mới)**.
