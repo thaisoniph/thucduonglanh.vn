@@ -8851,7 +8851,7 @@
       Object.keys(MODE_INFO).map(function (k) { return '<label class="mode"><input type="radio" name="amode" value="' + k + '"' + (k === md ? ' checked' : '') + '><span><b>' + MODE_INFO[k][0] + '</b>' + MODE_INFO[k][1] + '</span></label>'; }).join('') + '</div>' +
       '<button class="btn pri" id="modeSave">Lưu cách chia khách</button>' +
       '<h3 style="margin:18px 0 8px">⏳ Số chưa chốt tự về Kho chung</h3><p class="hint" style="margin:0 0 8px">Khách hỏi do <b>công ty giao</b> (file số quảng cáo, web, quản lý giao) mà sale giữ quá số ngày dưới đây <b>chưa chốt và không có lịch hẹn</b> → tự về Kho chung, cả phòng thấy và ai cũng nhận được. Sale được báo Telegram <b>trước 1 ngày</b>. Không áp dụng cho khách sale tự tìm, khách do khách cũ giới thiệu, file cũ. Mỗi số về kho tối đa 2 lần. Ai chốt thì người đó được tính doanh số.</p>' +
-      '<div class="row2c"><label class="f"><span>Về Kho chung sau bao nhiêu ngày (0 = tắt)</span><input type="number" id="poolDays" min="0" max="60" value="' + esc(R.poolDays === undefined ? 7 : R.poolDays) + '"></label>' +
+      '<div class="row2c"><label class="f"><span>Về Kho chung sau bao nhiêu ngày (0 = tắt)</span><input type="number" id="poolDays" min="0" max="60" value="' + esc(R.poolDays === undefined ? 30 : R.poolDays) + '"></label>' +
       '<label class="f"><span>Mỗi người nhận từ kho tối đa (số / ngày, 0 = không giới hạn)</span><input type="number" id="poolMax" min="0" max="100" value="' + esc(R.poolMax === undefined ? 10 : R.poolMax) + '"></label></div>' +
       '<button class="btn pri" id="poolSave">Lưu luật Kho chung</button>' +
       '<h3 style="margin:18px 0 8px">Ai được nhận khách mới?</h3><div class="edit-table">' + staff.map(function (u) {

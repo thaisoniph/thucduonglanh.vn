@@ -806,7 +806,7 @@ async function crmClaim(x, u, d) {
 }
 
 /* ================================================================ 🧺 Kho chung: số quá hạn chưa chốt tự về kho (09/11/2026, ý anh Sơn + bạn anh: người này không chốt được, người khác có thể chốt) */
-const POOL_DAYS = 7, POOL_MAX = 10, POOL_ROUNDS = 2, POOL_FRESH = 45; // mặc định: về kho sau 7 ngày; nhận tối đa 10 số / ngày; mỗi số về kho tối đa 2 vòng; chỉ xét khách hỏi trong 45 ngày gần đây (file cũ, số rất cũ không đụng)
+const POOL_DAYS = 30, POOL_MAX = 10, POOL_ROUNDS = 2, POOL_FRESH = 45; // mặc định: về kho sau 30 ngày (anh Sơn 10/11/2026: tạm 30, họp sale rồi chỉnh ở Cài đặt); nhận tối đa 10 số / ngày; mỗi số về kho tối đa 2 vòng; chỉ xét khách hỏi trong 45 ngày gần đây (file cũ, số rất cũ không đụng)
 const POOL_SYS = { name: 'Kho chung (tự động)', email: '', level: 3, role: 'Hệ thống' };
 /** Mỗi người 1 ngày chỉ nhận tối đa poolMax khách từ Kho chung (0 = không giới hạn) → không ai vơ hết số. Đếm theo dòng Nhật ký "Nhận khách". */
 async function poolLimit(x, u) {

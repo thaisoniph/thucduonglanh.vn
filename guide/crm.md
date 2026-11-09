@@ -211,9 +211,9 @@ Khách để lại số trên web hay quảng cáo thì **tự vào đây**, b�
 
 > **Khách mới hỏi rất dễ chốt.** Mục **🔥 Khách vừa hỏi** ở tab Hôm nay là người vừa hỏi trong 24 giờ. Gọi ngay khi thấy.
 
-**Số giữ quá 7 ngày chưa chốt thì về Kho chung (từ 09/11/2026):**
+**Số giữ quá 30 ngày chưa chốt thì về Kho chung (từ 09/11/2026):**
 
-Đôi khi mình chưa chốt được nhưng bạn khác lại hợp với khách hơn. Vì vậy số khách hỏi do **công ty giao** (file số quảng cáo, web, quản lý giao) mà bạn giữ **quá 7 ngày chưa chốt và không có lịch hẹn** sẽ tự về **Kho chung** để cả phòng cùng khai thác. Số ngày do quản lý đặt, có thể khác 7.
+Đôi khi mình chưa chốt được nhưng bạn khác lại hợp với khách hơn. Vì vậy số khách hỏi do **công ty giao** (file số quảng cáo, web, quản lý giao) mà bạn giữ **quá 30 ngày chưa chốt và không có lịch hẹn** sẽ tự về **Kho chung** để cả phòng cùng khai thác. Mốc 30 ngày là tạm, phòng kinh doanh họp thống nhất rồi quản lý chỉnh lại ở Cài đặt.
 
 1. **Trước 1 ngày**, Telegram báo riêng cho bạn: *"⏳ Ngày mai về Kho chung"* kèm danh sách. Trên thẻ khách hỏi cũng hiện nhãn **⏳ còn 1 ngày về Kho chung**.
 2. Muốn giữ số thì **gọi hoặc nhắn ngay**. Khách hẹn thì bấm **💬 Tư vấn → chọn ngày hẹn** (Mai / 3 ngày / 1 tuần): số được giữ tới ngày hẹn.
