@@ -19,7 +19,7 @@ const PRICE = [
 ];
 /** Nhãn mục (header x-tdl-muc mỗi client AI gửi kèm). */
 export const MUC = {
-  chat: '💬 Chat An Lành trên web', zalo: '🤖 Trợ lý Zalo trả lời, chào, nhắn riêng', 'zalo-bai': '📝 Soạn bài nhóm Zalo',
+  chat: '💬 Chat An Lành trên web', zalo: '🤖 Trợ lý Zalo trả lời, chào, nhắn riêng', 'zalo-bai': '📝 Soạn bài nhóm Zalo', 'zalo-kh': '📋 Kế hoạch chủ đề nhóm Zalo',
   fanpage: '📘 Trợ lý Fanpage trả lời', 'fb-bai': '📝 Soạn bài Fanpage', 'web-bai': '📰 Trợ lý viết bài web', video: '🎬 Kịch bản video', insight: '🔍 Tìm / đọc insight', offer: '🎁 Viết offer', crm: '✨ AI trong CRM (tóm tắt khách, gợi ý tin)',
   hoi: '📊 Hỏi số liệu CRM', huongdan: '📖 Hỏi trợ lý ở trang hướng dẫn', khac: 'Khác',
 };

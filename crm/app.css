@@ -1963,3 +1963,31 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .inx-skb { display: flex; gap: 6px; }
 .inx-of summary { cursor: pointer; line-height: 1.5; }
 .inx-dk { color: var(--primary); font-weight: 600; }
+/* 📋 Kế hoạch chủ đề nhóm Zalo + ⏰ giờ đăng riêng từng bài (10/11/2026, viewZbot → zpHtml) */
+.zp-nag { margin: 0 0 10px; }
+.zp-sum p { margin: 4px 0; }
+.zp-week { padding: 10px 12px; margin: 0 0 10px; }
+.zp-week > summary { cursor: pointer; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
+.zp-week .zb-due { font-size: .78rem; padding: 1px 9px; }
+.zp-wait { background: var(--gold); color: #fff; }
+.zp-day { margin: 12px 0 0; }
+.zp-dh { margin: 0 0 6px; font-size: .95rem; }
+.zp-it { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 8px 10px; margin: 0 0 8px; background: var(--card); }
+.zp-it.zp-draft { border-color: var(--gold); background: var(--gold-light); }
+.zp-it.zp-skip { opacity: .6; }
+.zp-it.zp-sent { opacity: .75; }
+.zp-it p { margin: 4px 0; }
+.zp-ih { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
+.zp-ih .zb-fun { margin: 0; }
+.zp-when { font-weight: 700; white-space: nowrap; }
+.zp-st { font-size: 12px; font-weight: 600; border-radius: 999px; padding: 2px 10px; background: var(--bg); color: var(--mid); }
+.zp-st-ok { background: var(--primary-light); color: var(--primary); }
+.zp-st-draft { background: var(--gold); color: #fff; }
+.zp-topic { font-weight: 600; font-size: 1rem; }
+.zp-note { color: var(--mid); background: var(--bg); border-radius: 6px; padding: 4px 8px; }
+.zp-btns { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.zp-edit, .zp-tedit { display: none; margin-top: 10px; }
+.zp-editing .zp-edit, .zb-timing .zp-tedit { display: block; }
+.zp-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.zp-ok-t { color: var(--primary); font-weight: 600; }
+.zp-warn-t { color: var(--orange); font-weight: 600; }
