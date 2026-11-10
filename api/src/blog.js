@@ -33,6 +33,10 @@ const MIX = { TOFU: 0.5, MOFU: 0.3, BOFU: 0.2 };
 const CATS = ['kien-thuc-dinh-duong', 'song-lanh-moi-ngay', 'cau-chuyen-san-pham'];
 const BAN_RE = /(chữa|điều trị|khỏi bệnh|đặc trị|thần dược|thay thuốc|thay thế thuốc|trị bệnh|trị dứt|chữa khỏi)/gi;
 const DISCLAIMER = '*Sản phẩm là thực phẩm, không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh.*';
+/** Câu bắt buộc "không có tác dụng thay thế thuốc chữa bệnh" có chữ "chữa" → bộ lọc từ cấm không được đụng vào (10/11/2026: bài 11/11 bị đổi thành "thay thế thuốc hỗ trợ bệnh"). */
+const DISC_RE = /không có tác dụng thay thế thuốc[^.\n*]{0,20}bệnh/gi;
+const fixDisc = s => String(s || '').replace(DISC_RE, 'không có tác dụng thay thế thuốc chữa bệnh');
+const SAFE_BEFORE = /không|chẳng|chưa|đang|bác sĩ|thay thế/i; // "đang điều trị bệnh thì hỏi bác sĩ" là lời khuyên đúng, không phải quảng cáo công dụng
 
 /* ---------------------------------------------------------------- dữ liệu */
 let schemaOk = false;
@@ -189,8 +193,11 @@ async function write(x, cfg, day, row) {
     if (!title || body.length < 1500) throw new Error('AI chưa viết được bài hoàn chỉnh');
     // kiểm tra tự động
     const checks = [];
-    const bad = [...new Set((body.match(BAN_RE) || []).map(s => s.toLowerCase()))];
-    if (bad.length) { body = body.replace(BAN_RE, (m, a, off, all) => /không|chẳng|chưa/i.test(all.slice(Math.max(0, off - 24), off)) ? m : 'hỗ trợ'); checks.push('⚠️ Đã thay từ cấm: ' + bad.join(', ') + ' → kiểm tra lại câu có từ "hỗ trợ"'); }
+    const dk = []; body = fixDisc(body).replace(DISC_RE, m => { dk.push(m); return '\u0000' + (dk.length - 1) + '\u0000'; }); // giữ nguyên câu miễn trừ
+    const bad = [];
+    body = body.replace(BAN_RE, (m, a, off, all) => { if (SAFE_BEFORE.test(all.slice(Math.max(0, off - 30), off))) return m; bad.push(m.toLowerCase()); return 'hỗ trợ'; });
+    body = body.replace(/\u0000(\d+)\u0000/g, (m, i) => dk[+i]);
+    if (bad.length) checks.push('⚠️ Đã thay từ cấm: ' + [...new Set(bad)].join(', ') + ' → kiểm tra lại câu có từ "hỗ trợ"');
     let dropped = 0;
     body = body.replace(/(!?)\[([^\]]+)\]\(([^)\s]+)\)/g, (m, img, t, u) => {
       if (img) { dropped++; return ''; } // không nhận ảnh trong bài (đường dẫn ảnh AI tự đặt dễ sai)
@@ -252,7 +259,7 @@ async function aiWrite(env, system, ask) {
 async function publish(x, p, hidden) {
   const today = fmtDate(Date.now(), 'yyyy-MM-dd'), day = p.day < today ? today : p.day; // duyệt muộn → ngày đăng là hôm nay
   let slug = p.slug;
-  const md = p.md.replace(/^date: .*$/m, 'date: ' + day).replace(/^published: .*$/m, 'published: ' + (hidden ? 'false' : 'true'));
+  const md = fixDisc(p.md).replace(/^date: .*$/m, 'date: ' + day).replace(/^published: .*$/m, 'published: ' + (hidden ? 'false' : 'true'));
   await ghCommit(x, async () => {
     const slugs = new Set(await postSlugs(x)); if (slugs.has(slug)) slug = p.slug + '-' + day.slice(5).replace('-', '');
     const files = { [POSTS_DIR + '/' + slug + '.md']: md };
@@ -323,7 +330,7 @@ async function logIt(x, u, what, note) { try { await crmLog(x, u, 'Bài web', '-
 function stName(p) { return { writing: 'Đang viết', wait: 'Chờ duyệt', rewrite: 'Đang viết lại', approved: 'Đã duyệt, chờ tới giờ đăng', published: p.hidden ? 'Đã vào /admin (đang ẩn)' : 'Đã đăng', dropped: 'Đã bỏ', error: 'Viết lỗi' }[p.status] || p.status; }
 
 function view(p, note) {
-  const m = meta(p), body = p.md.replace(/^---[\s\S]*?\n---\n/, '');
+  const m = meta(p), body = fixDisc(p.md).replace(/^---[\s\S]*?\n---\n/, '');
   const can = p.status === 'wait' || p.status === 'error' && p.md;
   const st = '<p class="st">' + stName(p) + (p.by_name && p.status !== 'wait' ? ' · ' + esc(p.by_name) : '') + (p.url && p.status === 'published' && !p.hidden ? ' · <a href="' + esc(p.url) + '">Xem bài trên web</a>' : '') + '</p>';
   const form = can ? `<form method="post" class="acts"><input type="hidden" name="at" value="${p.at}">
@@ -404,7 +411,7 @@ export async function crmBlog(x, u, d) {
   if (a === 'bl_post') { // xem trước bài đầy đủ
     const p = await first(x.db, 'SELECT * FROM bl_posts WHERE day = ?', String(d.day || ''));
     if (!p || !p.md) return { ok: false, error: 'Chưa có nội dung bài cho ngày này.' };
-    return { ok: true, day: p.day, title: p.title, at: p.at, status: p.status, html: mdHtml(p.md.replace(/^---[\s\S]*?\n---\n/, '')), meta: meta(p) };
+    return { ok: true, day: p.day, title: p.title, at: p.at, status: p.status, html: mdHtml(fixDisc(p.md).replace(/^---[\s\S]*?\n---\n/, '')), meta: meta(p) };
   }
   if (a === 'bl_act') {
     const p = await first(x.db, 'SELECT * FROM bl_posts WHERE day = ?', String(d.day || ''));
