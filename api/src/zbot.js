@@ -779,8 +779,10 @@ export async function crmZbot(x, u, d, crmLog) {
     if (p.status === 'sent' && d.status !== 'draft') return { ok: false, error: 'Bài này đã đăng rồi.' };
     const st = ['draft', 'ok', 'skip'].includes(d.status) ? d.status : p.status;
     const text = d.text === undefined ? p.text : String(d.text).slice(0, 4000);
-    await run(x.db, 'UPDATE zb_posts SET text = ?, status = ?, by_name = ?, at = ? WHERE id = ?', text, st, u.name, now, p.id);
-    await crmLog(x, u, 'Bài Zalo', p.id, '', { ok: 'Duyệt', skip: 'Bỏ', draft: 'Sửa' }[st] || st, p.topic);
+    const topic = String(d.topic === undefined ? '' : d.topic).trim().slice(0, 120) || p.topic; // 11/11/2026: sửa nhãn chủ đề + tầng phễu khi nhân sự viết lại hẳn bài
+    const funnel = ['TOFU', 'MOFU', 'BOFU', 'TIN'].includes(d.funnel) ? d.funnel : p.funnel;
+    await run(x.db, 'UPDATE zb_posts SET text = ?, topic = ?, funnel = ?, status = ?, by_name = ?, at = ? WHERE id = ?', text, topic, funnel, st, u.name, now, p.id);
+    await crmLog(x, u, 'Bài Zalo', p.id, '', ({ ok: 'Duyệt', skip: 'Bỏ', draft: 'Sửa' }[st] || st) + (funnel !== p.funnel ? ' · phễu ' + (p.funnel || '–') + ' → ' + funnel : ''), topic);
     return { ok: true, warn: d.text !== undefined && d.text !== p.text ? await quizWarn(x, p) : '' };
   }
   if (a === 'zb_img') { // đổi ảnh bài: link trong kho / ảnh tải từ máy (data:image…) / '' = bỏ ảnh

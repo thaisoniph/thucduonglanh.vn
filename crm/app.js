@@ -6767,7 +6767,9 @@
         '<div class="zb-more"><button class="btn sm" data-zb="edit|' + p.id + '">✏️ Sửa chữ</button><button class="btn sm" data-zb="img|' + p.id + '">🖼 ' + (p.img ? 'Đổi ảnh' : 'Thêm ảnh') + '</button><button class="btn sm" data-zb="regen|' + p.id + '">🔄 Viết lại</button><button class="btn sm" data-zb="time|' + p.id + '">⏰ Đổi giờ</button>' +
         (p.status === 'ok' ? '<button class="btn sm ghost" data-zb="draft|' + p.id + '">↩️ Bỏ duyệt</button>' : '') + '<button class="btn sm ghost" data-zb="skip|' + p.id + '">⏸ Bỏ bài này</button></div>' +
         '<div class="zp-tedit" id="zbTm_' + p.id + '"><label class="f"><span>⏰ Giờ đăng riêng cho bài này <small class="muted">' + (sl.id === 'toi' ? 'bài tối: 12:00–21:45' : 'bài sáng: 6:00–11:59') + ' · giờ chung: ' + zbAt(sl, it.d) + '</small></span><input type="time" id="zbTmI_' + p.id + '" value="' + esc(zbWhen(sl, it.d)) + '" min="' + (sl.id === 'toi' ? '12:00' : '06:00') + '" max="' + (sl.id === 'toi' ? '21:45' : '11:59') + '"></label><div class="lq-btns"><button class="btn sm pri" data-zb="tsave|' + p.id + '">💾 Lưu giờ</button>' + (p.at_time ? '<button class="btn sm" data-zb="treset|' + p.id + '">↩️ Về giờ chung ' + zbAt(sl, it.d) + '</button>' : '') + '<button class="btn sm ghost" data-zb="time|' + p.id + '">Huỷ</button></div></div>' +
-        '<div class="zb-edit"><textarea class="zb-text" id="zbT_' + p.id + '" rows="' + Math.min(18, Math.max(6, String(p.text).split('\n').length + 2)) + '">' + esc(p.text) + '</textarea><div class="lq-btns"><button class="btn sm pri" data-zb="save|' + p.id + '">💾 Lưu</button><button class="btn sm ghost" data-zb="edit|' + p.id + '">Huỷ</button></div></div>' +
+        '<div class="zb-edit"><label class="f"><span>Chủ đề <small class="muted">nhãn để đo hiệu quả, không đăng lên nhóm</small></span><input type="text" id="zbTp_' + p.id + '" maxlength="120" value="' + esc(p.topic || '') + '"></label>' +
+        '<label class="f"><span>Tầng phễu</span><select id="zbFn_' + p.id + '">' + ['TOFU', 'MOFU', 'BOFU', 'TIN'].concat(p.funnel && !/^(TOFU|MOFU|BOFU|TIN)$/.test(p.funnel) ? [p.funnel] : []).map(function (k) { return '<option value="' + k + '"' + (k === p.funnel ? ' selected' : '') + '>' + esc(ZB_FUN[k] || k) + '</option>'; }).join('') + '</select></label>' +
+        '<textarea class="zb-text" id="zbT_' + p.id + '" rows="' + Math.min(18, Math.max(6, String(p.text).split('\n').length + 2)) + '">' + esc(p.text) + '</textarea><div class="lq-btns"><button class="btn sm pri" data-zb="save|' + p.id + '">💾 Lưu</button><button class="btn sm ghost" data-zb="edit|' + p.id + '">Huỷ</button></div></div>' +
         '</div></div></div>';
     });
     h += zpHtml(j, P, PL, zbAt, lead); // 📋 kế hoạch chủ đề tuần / tháng
@@ -6985,8 +6987,8 @@
       t.disabled = true; return api('zb_time', { id: id, at: zat }).then(after(zat ? 'Đã hẹn giờ đăng ' + zat.replace(':', 'h') + ' ✓' : 'Bài quay về giờ chung ✓'), fail);
     }
     if (v[0] === 'save' || v[0] === 'ok' || v[0] === 'skip' || v[0] === 'draft') {
-      var ta = $('#zbT_' + id); t.disabled = true;
-      return api('zb_post', { id: id, text: ta ? ta.value : undefined, status: v[0] === 'save' ? undefined : v[0] }).then(after({ save: 'Đã lưu bài ✓', ok: 'Đã duyệt ✓ Tới giờ trợ lý sẽ đăng.', skip: 'Đã bỏ bài này, trợ lý sẽ không đăng.', draft: 'Bài đã quay lại chờ duyệt ✓' }[v[0]]), fail);
+      var ta = $('#zbT_' + id), ztp = $('#zbTp_' + id), zfn = $('#zbFn_' + id); t.disabled = true; // 11/11/2026: sửa cả chủ đề + tầng phễu (nhãn đo hiệu quả)
+      return api('zb_post', { id: id, text: ta ? ta.value : undefined, topic: ztp ? ztp.value : undefined, funnel: zfn ? zfn.value : undefined, status: v[0] === 'save' ? undefined : v[0] }).then(after({ save: 'Đã lưu bài ✓', ok: 'Đã duyệt ✓ Tới giờ trợ lý sẽ đăng.', skip: 'Đã bỏ bài này, trợ lý sẽ không đăng.', draft: 'Bài đã quay lại chờ duyệt ✓' }[v[0]]), fail);
     }
     if (v[0] === 'img') return zbImgOpen(id);
     if (v[0] === 'lf') { ZB.lf = id; return render(); }
