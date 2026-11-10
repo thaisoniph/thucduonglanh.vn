@@ -6808,13 +6808,26 @@
     var m = modal('📣 Gửi tin vào nhóm', '<p class="small muted">Trợ lý đăng y nguyên nội dung này vào: ' + gs.map(function (x) { return '<b>' + esc(x.name) + '</b>'; }).join(', ') + '. Chữ trong **hai dấu sao** in đậm.</p>' +
       '<label class="f"><span>Nội dung</span><textarea id="zbSendT" rows="8" maxlength="4000" placeholder="vd: 🌿 Chào cả nhà, tối nay 20h có buổi live…"></textarea></label>' +
       '<label class="f"><span>Loại tin <small class="muted">để đo hiệu quả theo phễu</small></span><select id="zbSendK"><option value="TIN">📣 Thông báo (lịch live, nghỉ lễ, tin chung)</option><option value="TOFU">🔵 Tương tác (câu hỏi, đố vui, mẹo)</option><option value="MOFU">⚪ Tạo niềm tin (kiến thức, cảm nhận khách)</option><option value="BOFU">🟠 Bán hàng (ưu đãi, giới thiệu sản phẩm)</option></select></label>' +
+      '<div class="f"><span>Ảnh kèm tin <small class="muted">không bắt buộc</small></span><div class="zb-simg" id="zbSendImg"></div>' +
+      '<div class="zb-lib zb-slib" id="zbSendLib">' + ((ZB.d && ZB.d.lib) || []).map(function (i) { return '<button type="button" class="zb-libi" data-zbsp="' + esc(i.url) + '" title="' + esc(i.alt) + '"><img src="' + esc(i.thumb || i.url) + '" alt="' + esc(i.alt) + '" loading="lazy"><span>' + esc(i.alt) + '</span></button>'; }).join('') + '</div></div>' +
       '<label class="f"><span>Hẹn giờ (để trống = gửi ngay)</span><input type="datetime-local" id="zbSendAt"></label>',
       '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="zbSendGo">Gửi</button>');
     draftKeep($('#zbSendT', m), 'zbSend');
+    var simg = ''; // 🖼 ảnh kèm tin (11/11/2026): tải từ máy (data:image, máy chủ lưu zb_imgs) / chọn trong kho ảnh web / không ảnh
+    var sdraw = function () {
+      $('#zbSendImg', m).innerHTML = (simg ? '<img src="' + esc(simg) + '" alt="Ảnh kèm tin">' : '') + '<label class="btn">📷 ' + (simg ? 'Đổi ảnh' : 'Tải ảnh từ máy') + '<input type="file" id="zbSendFile" accept="image/*" hidden></label>' +
+        ((ZB.d && ZB.d.lib && ZB.d.lib.length) ? '<button type="button" class="btn ghost" data-zbslib>🖼 Chọn trong kho</button>' : '') + (simg ? '<button type="button" class="btn ghost" data-zbsp="">🚫 Bỏ ảnh</button>' : '');
+      $('#zbSendFile', m).onchange = function () { var f = this.files && this.files[0]; if (!f) return; shrinkImage(f).then(function (src) { simg = src; sdraw(); }, function () { toast('Không đọc được ảnh này, bạn chọn ảnh khác nhé.', true); }); };
+    };
+    sdraw();
+    m.addEventListener('click', function (e) {
+      if (e.target.closest('[data-zbslib]')) { $('#zbSendLib', m).classList.toggle('on'); return; }
+      var b = e.target.closest('[data-zbsp]'); if (!b) return; simg = b.getAttribute('data-zbsp'); $('#zbSendLib', m).classList.remove('on'); sdraw();
+    });
     $('#zbSendGo', m).onclick = function () {
       var b = this, t = $('#zbSendT', m).value.trim(), at = $('#zbSendAt', m).value;
       if (t.length < 5) return toast('Bạn chưa nhập nội dung.', true);
-      b.disabled = true; api('zb_send', { text: t, at: at, kind: $('#zbSendK', m).value }).then(function () { store('zbSend', null); closeModal(); toast(at ? 'Đã hẹn giờ ✓ Trợ lý sẽ đăng đúng giờ.' : 'Đã gửi ✓ Trợ lý đăng trong khoảng 1 phút.'); zbFetch(); }, function (e) { b.disabled = false; toast(e.message, true); });
+      b.disabled = true; api('zb_send', { text: t, at: at, kind: $('#zbSendK', m).value, img: simg }).then(function () { store('zbSend', null); closeModal(); toast(at ? 'Đã hẹn giờ ✓ Trợ lý sẽ đăng đúng giờ.' : 'Đã gửi ✓ Trợ lý đăng trong khoảng 1 phút.'); zbFetch(); }, function (e) { b.disabled = false; toast(e.message, true); });
     };
   }
   /* ---------------------------------------------------------------- 📋 Kế hoạch chủ đề nhóm Zalo (10/11/2026, api zbot.js zb_plan_*, anh Sơn yêu cầu)
@@ -7054,7 +7067,7 @@
     return hh;
   }
   function zbRender(t) { // xem trước như trên Zalo: **đậm**, @tên, link, xuống dòng
-    return esc(String(t || '')).replace(/\*\*([^*\n]+)\*\*/g, '<b>$1</b>').replace(/(https?:\/\/[^\s<]+)/g, '<span class="zb-link">$1</span>').replace(/(^|\s)(@[^\s,.!?]+)/g, '$1<span class="zb-at">$2</span>').replace(/\n/g, '<br>');
+    return esc(String(t || '')).replace(/\*\*([^*\n]+)\*\*/g, '<b>$1</b>').replace(/(https?:\/\/[^\s<]+)/g, '<span class="zb-link">$1</span>').replace(/(^|[\s(])((?:www\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:vn|com|net|org|me)(?:\/[^\s<]*)?)/gi, '$1<span class="zb-link">$2</span>').replace(/(^|\s)(@[^\s,.!?]+)/g, '$1<span class="zb-at">$2</span>').replace(/\n/g, '<br>');
   }
   function zbImgOpen(id) { // 🖼 đổi ảnh bài đăng: chọn trong kho ảnh thật của web / tải từ máy / bỏ ảnh
     var p = ((ZB.d && ZB.d.posts) || []).filter(function (x) { return x.id === id; })[0]; if (!p) return;

@@ -210,8 +210,9 @@ Dùng khi có thông báo, livestream, khuyến mãi.
 1. Bấm **📣 Gửi tin vào nhóm** (nút xanh trên cùng).
 2. Gõ nội dung.
 3. Chọn **Loại tin** (Thông báo / Tương tác / Tạo niềm tin / Bán hàng) để CRM đo hiệu quả đúng loại.
-4. Muốn gửi lúc khác thì chọn giờ. Để trống thì gửi ngay.
-5. Bấm **Gửi**.
+4. Muốn kèm ảnh thì bấm **📷 Tải ảnh từ máy** (ảnh trong điện thoại) hoặc **🖼 Chọn trong kho** (ảnh trên web). Không chọn thì chỉ gửi chữ.
+5. Muốn gửi lúc khác thì chọn giờ. Để trống thì gửi ngay.
+6. Bấm **Gửi**.
 
 Tin này cũng được đo như bài AI soạn (xem ở **📚 Bài đã đăng & hiệu quả**, lọc **📣 Nhân sự gửi**). Tin chúc mừng khách nhận quà thì lọc **🎉 Chúc mừng**.
 
