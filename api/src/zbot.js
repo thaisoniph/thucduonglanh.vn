@@ -23,7 +23,7 @@ import { botRef } from './partner.js';
 import { offersLive } from './salemkt.js';
 import { lunar } from './lunar.js';
 import { dayTheme, upcoming, addDay, weekday } from './zday.js';
-import { insPick, insBlock, insParse, insLog, insBank, INS_HEAD } from './insight.js';
+import { insPick, insBlock, insParse, insLog, insBank, insRisk, INS_HEAD } from './insight.js';
 
 const BOT = 'An Lành';
 const FAST = 'claude-haiku-5-5', WRITER = 'claude-opus-5-5';
@@ -529,7 +529,7 @@ export async function zWrite(x, day, slot, hint, by, grp) {
   const pick = lib[Number((head.match(/ẢNH:\s*(\d+)/) || [])[1]) - 1];
   const img = fb && fb.img ? fb.img : prods[code] && prods[code].img ? prods[code].img : pick ? pick.url : '';
   if (!body) throw new Error('AI chưa viết được bài');
-  const id = day + '_' + slot, now = Date.now(), ins = insParse(head, ip.bank, ip.g);
+  const id = day + '_' + slot, now = Date.now(), ins = Object.assign(insParse(head, ip.bank, ip.g), { w: insRisk(body) });
   // link web trong bài → gắn mã bài để CRM đếm đơn từ bài này (đơn ghi nguồn "zalo / nhom / <mã bài>")
   const tagged = tagLinks(body.replace(/(^|[\s(])_([^_\n]+)_(?=[\s).,!?]|$)/gm, '$1$2').replace(/(^|[\s(])\*([^*\n]+)\*(?=[\s).,!?]|$)/gm, '$1$2'), id);
   if (fb) { const all = (await kvJson(x.db, 'zb_fb', [])) || []; for (const f of all) if (f.id === fb.id) f.used = now; await kvSet(x.db, 'zb_fb', JSON.stringify(all)); }

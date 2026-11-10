@@ -1950,3 +1950,4 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .inx-g .inx-tl { margin: 4px 0 6px; padding-left: 20px; }
 .inx-g .inx-tl li { margin: 2px 0; }
 .inx-aud { display: flex; flex-wrap: wrap; gap: 0 14px; }
+.inx-warn { color: var(--orange); }

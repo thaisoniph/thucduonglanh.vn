@@ -200,18 +200,26 @@ Mỗi nơi khách nhìn thấy (tờ rơi ở sự kiện, standee ở đối t�
 
 Mở: menu **Thêm → 🎯 Insight & nội dung** (Marketing thấy ngay trên menu). Đây là "bộ não" chung của mọi trợ lý viết bài: **bài web, bài nhóm Zalo, bài Fanpage và kịch bản video** đều phải đi qua 4 bước này trước khi viết (theo khoá content anh Tuấn Hà):
 
-1. **Chọn 1 nhóm khách** (mẹ bỉm, dân văn phòng, trung niên, người ăn chay, con cái mua quà cho bố mẹ…).
+1. **Chọn 1 nhóm khách**: mẹ sau sinh, chồng chăm vợ sau sinh, bà chăm con ở cữ, dân văn phòng, trung niên, người ăn chay, con cái mua quà cho bố mẹ, khách cũ… Nhiều tension lấy từ bài tập khoá content K133 của anh Sơn (bảng insight DILVANG).
 2. **Chọn 1 tension** của nhóm đó: điều họ **mong** ↔ điều đang **cản** họ, trong 1 cảnh cụ thể. Ví dụ: *"Biết phải ăn sáng đủ chất ↔ sáng nào cũng vội, ăn tạm hoặc bỏ bữa"*.
 3. **Chọn tầng phễu**: 🔵 **TOFU** (giá trị nằm ở chính nội dung, không bán) · ⚪ **MOFU** (tạo niềm tin bằng bằng chứng thật: nguồn gốc, nhà máy, hồ sơ công bố, cảm nhận khách thật) · 🟠 **BOFU** (giới thiệu sản phẩm, ưu đãi thật, mời đặt hàng).
-4. **Viết**: câu mở chạm đúng tension, thân bài gỡ tension, cuối bài có **1 lối ra** (bình luận nhận quà, xem sản phẩm, đặt hàng).
+4. **Viết**: câu mở (hook) chạm đúng tension, **chạm cảm xúc trước, thông tin sau**, thân bài gỡ tension theo công thức hợp tầng phễu (TOFU: kể chuyện nhân vật, mở câu hỏi, 1-2-3 · MOFU: so sánh thật, giải thích, bằng chứng · BOFU: liệt kê giá trị, ưu đãi thật), cuối bài có **1 lối ra** (bình luận nhận quà, xem sản phẩm, đặt hàng).
+
+**Luật quảng cáo thực phẩm:** chỉ nói công dụng đúng hồ sơ công bố. Chuyện chè vằng, đinh lăng… chỉ nói là *kinh nghiệm dân gian*. Bài có cụm dễ phạm luật (lợi sữa, giảm cân, thanh lọc, không đường…) sẽ hiện dòng **⚠️ Đọc lại cụm…** trên thẻ bài: chỉ giữ nếu đúng hồ sơ công bố hoặc là câu phủ định.
 
 Trên thẻ bài ở tab Zalo, Fanpage, Bài web có dòng **🎯 nhóm khách · tension** và câu 💭 insight. Khi duyệt, đọc dòng này trước rồi hỏi: *bài có chạm đúng nỗi lòng đó không?* Chưa đúng thì bấm **🔄 Viết lại**, chọn nhóm khách khác hoặc ghi ý kiến.
 
 **Trong tab có 3 phần:**
 
 - **📊 30 ngày qua**: mỗi nhóm khách đã có bao nhiêu bài, ở kênh nào, tỉ lệ 🔵 ⚪ 🟠 từng kênh. Nhóm có ⚠️ "chưa có nội dung nào" thì trợ lý sẽ tự ưu tiên ở lần viết sau.
-- **🎬 Viết kịch bản video ngắn** (TikTok, Reels, Shorts): chọn nhóm khách (hoặc để tự chọn), tầng phễu, sản phẩm, độ dài, kiểu quay, bấm **🎬 Viết kịch bản**. Khoảng 30–60 giây sau có: 3 câu hook để quay thử, kịch bản từng cảnh (bảng 6 cột: cảnh, thời lượng, hình ảnh, lời thoại, chữ trên màn hình, nguồn hình, đúng mẫu khoá video Vinalink), caption và ghi chú quay. Bấm **📋 Copy kịch bản** để dán cho người quay hoặc đưa vào công cụ dựng video.
-- **👥 Ngân hàng insight**: chân dung, mong muốn, rào cản và các tension của từng nhóm. Bấm **✏️ Sửa** để thêm tension mới (mỗi dòng 1 cái, dạng *"Muốn … ↔ nhưng …"*), **⏸ Tạm tắt** nhóm chưa muốn nhắm, **➕ Thêm nhóm khách** khi có tệp mới. Sửa ở đây là cả 4 trợ lý dùng theo ngay.
+- **🎬 Viết kịch bản video ngắn** (TikTok, Reels, Shorts): chọn nhóm khách (hoặc để tự chọn), tầng phễu, sản phẩm, độ dài, kiểu quay, **thể loại** (diễn kịch ngắn, tình huống, review, giải thích, khoảnh khắc), bấm **🎬 Viết kịch bản**. Khoảng 30–60 giây sau có (theo công thức viral của khoá K133: Hook → Chẩn đoán → Giải pháp 1-2-3 → Kết):
+  - 3 câu hook (1 chính + 2 dự phòng) có chấm điểm,
+  - kịch bản từng cảnh (bảng AIDA 6 cột: cảnh, thời lượng, hình ảnh, lời thoại, chữ trên màn hình, nguồn hình, đúng mẫu khoá video Vinalink),
+  - **bản B** chỉ đổi cảnh đầu để thử A/B, **lời sạch** để dán vào máy đọc giọng,
+  - caption, ghi chú quay và **tự kiểm**.
+
+  Bấm **📋 Copy kịch bản** để dán cho người quay hoặc đưa vào skill dựng video (`/sieu-tro-ly-video`).
+- **👥 Ngân hàng insight**: chân dung, mong muốn, rào cản, các tension và ghi chú (nên nói gì, góc đã làm tốt) của từng nhóm. Nếu ngân hàng đã sửa riêng mà bản mặc định có nhóm mới, tab hiện ô **📚 Có N nhóm khách mới** → bấm **➕ Thêm vào ngân hàng**. Bấm **✏️ Sửa** để thêm tension mới (mỗi dòng 1 cái, dạng *"Muốn … ↔ nhưng …"*), **⏸ Tạm tắt** nhóm chưa muốn nhắm, **➕ Thêm nhóm khách** khi có tệp mới. Sửa ở đây là cả 4 trợ lý dùng theo ngay.
 
 **Mẹo làm insight tốt:** lấy từ lời khách thật (tin nhắn Zalo, bình luận, câu sale hay nghe), không lấy từ tính năng sản phẩm. Tension phải thấy rõ **2 cực đang giằng co**. Không viết tension khoét sâu nỗi sợ bệnh tật để ép mua.
 
