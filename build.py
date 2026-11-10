@@ -1265,15 +1265,16 @@ def page_camnang():
 
 
 def hub_items():
-    """3 cách bắt đầu miễn phí: quà cẩm nang, trò chơi 1 phút, ký cam kết (dải dưới hero trang chủ + /qua-tang/)."""
+    """3 cách bắt đầu miễn phí: quà cẩm nang, trò chơi 1 phút, ký cam kết (dải dưới hero trang chủ + /qua-tang/).
+    s = mô tả dài (máy tính), m = 1 dòng ngắn (điện thoại + nút nổi Quà & Trò chơi) để khách biết bấm vào được gì (10/11/2026)."""
     if not IS_VI:
         return []
     out = []
     if CN_PATH:
-        out.append({"k": "gift", "ic": "🎁", "eye": "Quà tặng miễn phí", "t": "Cẩm nang Sống khỏe chủ động", "s": "32 trang có sách nói: mâm cơm cân bằng, gạo lứt, vận động sau 45 tuổi. Đọc thử ngay, không cần đăng ký.", "href": CN_READ, "btn": "Đọc thử miễn phí"})
+        out.append({"k": "gift", "ic": "🎁", "eye": "Quà tặng miễn phí", "t": "Cẩm nang Sống khỏe chủ động", "s": "32 trang có sách nói: mâm cơm cân bằng, gạo lứt, vận động sau 45 tuổi. Đọc thử ngay, không cần đăng ký.", "m": "32 trang, có sách nói. Đọc thử ngay", "href": CN_READ, "btn": "Đọc thử miễn phí"})
     if QUIZ.get("questions"):
-        out.append({"k": "quiz", "ic": "🖐", "eye": "Trò chơi 1 phút", "t": "Bạn còn mấy ngón tay?", "s": "10 câu về thói quen hằng ngày. Xem lối sống của bạn được mấy điểm.", "href": QUIZ_PATH, "btn": "Chơi ngay"})
-    out.append({"k": "pledge", "ic": "🌱", "eye": "Hành trình 10 triệu người", "t": "Tôi chọn sống lành", "s": "Một lựa chọn nhỏ cho chính mình, nhận ảnh chứng nhận để chia sẻ.", "href": PLEDGE_PATH, "btn": "Tôi chọn sống lành"})
+        out.append({"k": "quiz", "ic": "🖐", "eye": "Trò chơi 1 phút", "t": "Bạn còn mấy ngón tay?", "s": "10 câu về thói quen hằng ngày. Xem lối sống của bạn được mấy điểm.", "m": "10 câu, chấm điểm lối sống của bạn", "href": QUIZ_PATH, "btn": "Chơi ngay"})
+    out.append({"k": "pledge", "ic": "🌱", "eye": "Hành trình 10 triệu người", "t": "Tôi chọn sống lành", "s": "Một lựa chọn nhỏ cho chính mình, nhận ảnh chứng nhận để chia sẻ.", "m": "Ghi tên, nhận ảnh chứng nhận để chia sẻ", "href": PLEDGE_PATH, "btn": "Tôi chọn sống lành"})
     return out
 
 
@@ -1282,7 +1283,7 @@ def gift_dock():
     JS initGiftDock: đánh dấu món đã nhận / đã chơi / đã ký (localStorage), số trên nút = món chưa thử; ẩn ở giỏ hàng / thanh toán. (17/10/2026)"""
     if not IS_VI:
         return ""
-    its = [(x["k"], x["ic"], x["t"], x["s"], x["href"]) for x in hub_items()]
+    its = [(x["k"], x["ic"], x["t"], x["m"], x["href"]) for x in hub_items()]
     eb = SITE.get("ebook") or {}
     if ebook_href("x"):
         its.insert(1, ("ebook", "🦴", eb.get("title", "Ebook miễn phí").replace("Tặng ebook ", "Ebook "), "Ăn gì cho cơ xương khớp + video thực đơn 7 ngày.", eb["url"]))
@@ -1347,7 +1348,7 @@ def page_zalo_gate():
 def hub_cards(medium):
     sep = lambda h: "&" if "?" in h else "?"
     return "".join(f'''<a class="hub-card hub-{x["k"]}" href="{esc(x["href"])}{sep(x["href"])}tu={medium}" data-cta="hub_{x["k"]}_{medium}"{" data-cn-read" if x["k"] == "gift" else ""}><span class="hub-ic" aria-hidden="true">{x["ic"]}</span>
-<span class="hub-tx"><small>{esc(x["eye"])}</small><b>{esc(x["t"])}</b><span>{esc(x["s"])}</span></span><span class="hub-btn">{esc(x["btn"])} →</span></a>''' for x in hub_items())
+<span class="hub-tx"><small>{esc(x["eye"])}</small><b>{esc(x["t"])}</b><span>{esc(x["s"])}</span><span class="hub-sm">{esc(x["m"])}</span></span><span class="hub-btn">{esc(x["btn"])} →</span></a>''' for x in hub_items())
 
 
 def hub_strip(medium):
@@ -1355,7 +1356,7 @@ def hub_strip(medium):
     if len(hub_items()) < 2:
         return ""
     return f'''<section class="section section-tight hub-sec"><div class="container">
-  <p class="hub-head"><b>Bắt đầu sống lành từ hôm nay</b><span>3 món miễn phí dành cho bạn</span></p>
+  <p class="hub-head"><b>Bắt đầu sống lành từ hôm nay</b><span>3 cách bắt đầu, đều miễn phí</span></p>
   <div class="hub-grid">{hub_cards(medium)}</div>
 </div></section>'''
 
