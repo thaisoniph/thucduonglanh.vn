@@ -3514,7 +3514,7 @@ def dd_api():
     if not c.get("enabled"):
         return {"enabled": False}
     return {"enabled": True, "name": c.get("name") or "Ngày Đôi Sống Lành", "free_ship": c.get("free_ship", True) is not False,
-            "gift_min": int(num(c.get("gift_min")) or 0), "gift": dd_item(c.get("gift_slug") or "", c.get("gift_label") or ""),
+            "free_ship_min": int(num(c.get("free_ship_min")) or 0), "gift_min": int(num(c.get("gift_min")) or 0), "gift": dd_item(c.get("gift_slug") or "", c.get("gift_label") or ""),
             "first_n": int(num(c.get("first_n")) or 0), "first_min": int(num(c.get("first_min")) or 0), "first": dd_item(c.get("first_slug") or "", c.get("first_label") or "")}
 
 
@@ -3524,7 +3524,7 @@ def dd_web():
     if not a.get("enabled"):
         return None
     c = SITE.get("double_day") or {}
-    return {"name": a["name"], "free_ship": a["free_ship"], "gift_min": a["gift_min"] if a["gift"] else 0, "gift": (a["gift"] or {}).get("label", ""),
+    return {"name": a["name"], "free_ship": a["free_ship"], "free_ship_min": a["free_ship_min"], "gift_min": a["gift_min"] if a["gift"] else 0, "gift": (a["gift"] or {}).get("label", ""),
             "first_n": a["first_n"] if a["first"] else 0, "first_min": a["first_min"], "first": (a["first"] or {}).get("label", ""), "teaser": c.get("teaser", True) is not False}
 
 

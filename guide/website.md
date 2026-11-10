@@ -168,7 +168,7 @@ Cột trái chọn **Cài đặt website**. Các mục hay dùng:
   - **Câu chào**: mỗi dòng 1 câu. Web tự đổi câu lần lượt sau vài giây. Bấm **Thêm** để thêm câu, kéo để đổi thứ tự (câu đầu hiện trước). Viết ngắn, xưng em – gọi anh/chị, không ghi công dụng chữa bệnh.
   - **Đổi câu sau mỗi (giây)**: nên để 6–8 giây.
   - **Các nút gợi ý**: chữ trên nút + đường dẫn (phần sau thucduonglanh.vn). Nên để 2–4 nút, ít lựa chọn thì khách dễ chọn hơn. Ô "Nhận cẩm nang" (đầu) và "Liên hệ tư vấn" (cuối) luôn có sẵn, không cần thêm.
-- **🎉 Ngày Đôi Sống Lành**: chương trình tự chạy vào các ngày 1/1, 2/2 … 12/12. Khách đặt trên web được miễn ship mọi đơn, đơn đủ mức thì có quà 1, vài đơn đầu tiên trong ngày có thêm quà 2. Sửa được: bật/tắt, mức tiền, sản phẩm làm quà, chữ hiện cho khách, số đơn đầu được quà, báo trước 1 ngày. Không cần tạo mã. Lưu xong 1–2 phút là web và máy nhận đơn đổi theo.
+- **🎉 Ngày Đôi Sống Lành**: chương trình tự chạy vào các ngày 1/1, 2/2 … 12/12. Khách đặt trên web được miễn ship từ mức đặt sẵn (đang là 150.000đ), đơn đủ mức thì có quà 1, vài đơn đầu tiên trong ngày có thêm quà 2. Đơn dùng mã giảm giá không kèm quà. Sửa được: bật/tắt, mức miễn ship, mức tiền, sản phẩm làm quà, chữ hiện cho khách, số đơn đầu được quà, báo trước 1 ngày. Không cần tạo mã. Lưu xong 1–2 phút là web và máy nhận đơn đổi theo.
 - **Mốc đơn hàng thứ 2**: để tắt. Chỉ bật khi công ty đã duyệt một quyền lợi thật.
 
 **Nhạc nền website:** nút ♪ trên đầu trang. Sửa được: bật/tắt, âm lượng (nên 20–30%), danh sách bài.

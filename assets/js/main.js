@@ -226,7 +226,7 @@
      Mốc 2 lấy từ Cài đặt (aov_milestone). Chưa bật / chưa có quyền lợi thật thì không hiện; có bật mà chưa ghi quyền lợi thì chỉ ghi nhãn trung tính, không hứa quà. */
   function milestone2() { var m = CFG.aov_milestone, th = +CFG.free_ship_threshold || 0; return (m && m.enabled && +m.amount > th) ? { amount: +m.amount, label: m.label || (T('Mốc ') + Math.round(m.amount / 1000) + 'K'), reward: m.reward || '' } : null; }
   function shipLevel(sub, items) {
-    var th = +CFG.free_ship_threshold || 0, m2 = milestone2(), fs = (th && sub >= th) || hasFS(items);
+    var th = fsTh(), m2 = milestone2(), fs = (th && sub >= th) || hasFS(items);
     var lv = { sub: sub, th: th, fs: !!fs, m2: m2, level: (fs ? 1 : 0) + (m2 && sub >= m2.amount ? 1 : 0) };
     lv.next = !fs ? 'free_shipping' : (m2 && sub < m2.amount ? 'milestone_2' : 'done');
     lv.gap = !fs ? th - sub : (m2 && sub < m2.amount ? m2.amount - sub : 0);
@@ -235,7 +235,7 @@
   function shipEv(lv) { return { currency: 'VND', value: lv.sub, milestone: lv.level >= 2 ? 'milestone_2' : (lv.level === 1 ? 'free_shipping' : 'none'), next_milestone: lv.next, gap: lv.gap, items: cart.map(function (it) { return gaItem(it.slug, it.vi, it.qty); }).filter(Boolean) }; }
   function shipProgressHTML(sub, items) {
     var fee = +CFG.shipping_fee || 0, lv = shipLevel(sub, items), th = lv.th, m2 = lv.m2; if (!th || !fee) return '';
-    var dd = ddBoxHTML(sub, 'sp'); if (dd) return dd; // 🎉 Ngày Đôi: miễn ship + tiến độ tới quà
+    var dd = ddBoxHTML(sub, 'sp', items); if (dd) return dd; // 🎉 Ngày Đôi: miễn ship + tiến độ tới quà
     if (lv.fs && !m2) return '<div class="sp ok sp-done"><p class="sp-msg">' + T('🎉 Đơn hàng được <b>miễn phí vận chuyển</b>') + '</p></div>'; // đã đủ, không còn mốc nào: 1 dòng gọn
     var max = m2 ? m2.amount : th, pct = Math.min(100, Math.max(lv.fs && !m2 ? 100 : 3, Math.round(sub / max * 100)));
     var msg;
@@ -507,8 +507,8 @@
   /* dòng ship trong khung giá (khớp ship_hint ở build.py): theo giá quy cách đang chọn và số lượng khách chọn */
   var UNIT_WORDS = ['hộp', 'hũ', 'chai', 'gói', 'túi', 'lọ', 'bịch'];
   function shipHint(p, v, q) {
-    var th = +CFG.free_ship_threshold || 0, fee = +CFG.shipping_fee || 0, price = v && v.price;
-    if (ddFree() && LANG === 'vi') return '🎉 <b>' + esc(CFG.dd.name || 'Ngày Đôi') + ' ' + ddOn().label + '</b>: miễn phí vận chuyển mọi đơn' + (CFG.dd.gift && CFG.dd.gift_min ? ', đơn từ ' + ddK(CFG.dd.gift_min) + ' tặng ' + esc(CFG.dd.gift) : '');
+    var th = fsTh(), fee = +CFG.shipping_fee || 0, price = v && v.price;
+    if (ddOn() && CFG.dd.free_ship && LANG === 'vi') return '🎉 <b>' + esc(CFG.dd.name || 'Ngày Đôi') + ' ' + ddOn().label + '</b>: ' + (p.fs || !th || (price && price * (q || 1) >= th) ? 'được <b>miễn phí vận chuyển</b>' : 'miễn phí vận chuyển đơn từ <b>' + ddK(th) + '</b>') + (CFG.dd.gift && CFG.dd.gift_min ? ', đơn từ ' + ddK(CFG.dd.gift_min) + ' tặng ' + esc(CFG.dd.gift) : '');
     if (p.fs || ddFree()) return T('🚚 Được <b>miễn phí vận chuyển</b>');
     if (!th || !fee || !price) return T('🚚 Giao hàng toàn quốc');
     if (price * (q || 1) >= th) return (q || 1) > 1 ? T('🚚 Số lượng này được <b>miễn phí vận chuyển</b>') : T('🚚 Được <b>miễn phí vận chuyển</b>');
@@ -632,7 +632,10 @@
   var VN_MS = 7 * 36e5, DDS = null; // DDS: { left, n } từ /api/ngay-doi
   function ddDate(add) { var d = new Date(Date.now() + VN_MS + (add || 0) * 864e5); return { d: d.getUTCDate(), m: d.getUTCMonth() + 1 }; }
   function ddOn() { if (!CFG.dd) return null; var t = ddDate(0); return t.d === t.m ? { label: t.d + '/' + t.m } : null; }
-  function ddFree() { return !!(CFG.dd && CFG.dd.free_ship && ddOn()); }
+  function ddFree() { return !!(CFG.dd && CFG.dd.free_ship && !(+CFG.dd.free_ship_min > 0) && ddOn()); } // Ngày Đôi miễn ship MỌI đơn (free_ship_min = 0)
+  /** mức freeship đang áp dụng: ngày thường 300k, Ngày Đôi hạ xuống free_ship_min (11/11/2026: 150k) */
+  function fsTh() { var th = +CFG.free_ship_threshold || 0, d = CFG.dd, m = d && d.free_ship && ddOn() ? +d.free_ship_min || 0 : 0; return m > 0 ? (th ? Math.min(th, m) : m) : th; }
+  function ddVcOff(items) { return items && VC ? coTotals(items).off > 0 : false; } // đơn đang dùng mã giảm tiền / %: không kèm quà Ngày Đôi
   function ddK(v) { return Math.round(v / 1000) + 'K'; }
   /** dòng quà theo tạm tính (giỏ mini, trang thanh toán): chỉ bản tiếng Việt */
   function ddLines(sub) {
@@ -645,10 +648,12 @@
     }
     return out;
   }
-  function ddBoxHTML(sub, cls) {
+  function ddBoxHTML(sub, cls, items) {
     var on = ddOn(), c = CFG.dd; if (!on || LANG !== 'vi') return '';
-    var lines = ddLines(sub), tgt = c.gift && c.gift_min ? c.gift_min : 0, pct = tgt ? Math.min(100, Math.max(4, Math.round(sub / tgt * 100))) : 100;
-    return '<div class="' + cls + ' ok dd-box"><p class="sp-msg">🎉 <b>' + esc(c.name || 'Ngày Đôi') + ' ' + on.label + '</b>: ' + (c.free_ship ? 'đơn được <b>miễn phí vận chuyển</b>' : 'đặt trên web có quà') + '</p>' +
+    var th = fsTh(), fs = !!c.free_ship && (!th || sub >= th || hasFS(items)), noGift = ddVcOff(items);
+    var lines = noGift ? ['🎟 Đơn đang dùng mã giảm giá nên không kèm quà Ngày Đôi (vẫn được miễn ship). Muốn nhận quà thì bấm “Bỏ mã”.'] : ddLines(sub);
+    var tgt = c.free_ship && !fs ? th : (!noGift && c.gift && c.gift_min && sub < c.gift_min ? c.gift_min : 0), pct = tgt ? Math.min(100, Math.max(4, Math.round(sub / tgt * 100))) : 100;
+    return '<div class="' + cls + (fs ? ' ok' : '') + ' dd-box"><p class="sp-msg">🎉 <b>' + esc(c.name || 'Ngày Đôi') + ' ' + on.label + '</b>: ' + (!c.free_ship ? 'đặt trên web có quà' : fs ? 'đơn được <b>miễn phí vận chuyển</b>' : 'thêm <b>' + money(th - sub) + '</b> để được <b>miễn phí vận chuyển</b> (từ ' + ddK(th) + ')') + '</p>' +
       lines.map(function (l) { return '<p class="dd-l">' + l + '</p>'; }).join('') + (tgt && sub < tgt ? '<div class="sp-track"><i style="width:' + pct + '%"></i></div>' : '') + '</div>';
   }
   function ddPad(n) { return (n < 10 ? '0' : '') + n; }
@@ -664,13 +669,13 @@
     var bar = document.createElement('div'); bar.className = 'dd-bar' + (pre ? ' dd-pre' : ''); bar.setAttribute('role', 'region'); bar.setAttribute('aria-label', (c.name || 'Ngày Đôi') + ' ' + label);
     var tb = $('.topbar'); if (tb && tb.parentNode) tb.parentNode.insertBefore(bar, tb); else document.body.insertBefore(bar, document.body.firstChild);
     var perks = function () {
-      var p = [c.free_ship ? 'Miễn ship mọi đơn' : '', c.gift && c.gift_min ? 'Đơn từ ' + ddK(c.gift_min) + ' tặng ' + esc(c.gift) : ''].filter(Boolean).join(' · ');
+      var p = [c.free_ship ? 'Miễn ship ' + (+c.free_ship_min > 0 ? 'đơn từ ' + ddK(c.free_ship_min) : 'mọi đơn') : '', c.gift && c.gift_min ? 'Đơn từ ' + ddK(c.gift_min) + ' tặng ' + esc(c.gift) : ''].filter(Boolean).join(' · ');
       if (c.first && c.first_n) p += '<span class="dd-f"> · ' + (DDS && DDS.left === 0 ? c.first_n + ' suất ' + esc(c.first) + ' đã có chủ 🎉' : c.first_n + ' đơn đầu' + (c.first_min ? ' từ ' + ddK(c.first_min) : '') + ' tặng thêm ' + esc(c.first) + (DDS ? ' <em>(còn ' + DDS.left + ' suất)</em>' : '')) + '</span>';
       return p;
     };
     var short = function () { // điện thoại: 1 dòng ngắn
       var q = c.first && c.first_n && DDS && DDS.left > 0 ? ' · <em>còn ' + DDS.left + ' suất ' + esc(c.first) + '</em>' : '';
-      return (c.free_ship ? 'Miễn ship mọi đơn + quà tặng' : 'Quà tặng') + (pre ? ' khi đặt trên web' : q);
+      return (c.free_ship ? 'Miễn ship ' + (+c.free_ship_min > 0 ? 'từ ' + ddK(c.free_ship_min) : 'mọi đơn') + ' + quà tặng' : 'Quà tặng') + (pre ? ' khi đặt trên web' : q);
     };
     var draw = function () {
       bar.innerHTML = '<a class="dd-in" href="' + U('/san-pham/') + '" data-cta="ngay_doi_bar"><b class="dd-t">' + (pre ? '⏰ Ngày mai ' + label + ': ' : '🎉 ') + esc(c.name || 'Ngày Đôi') + (pre ? '' : ' ' + label) + '</b>' +
@@ -690,7 +695,7 @@
   /* ---------- cart page ---------- */
   function hasFS(items) { return ddFree() || (items || cart).some(function (i) { return (BY[i.slug] || {}).fs; }); } // có gói "miễn phí ship" trong đơn, hoặc hôm nay là Ngày Đôi
   function shipInfo(sub, items) {
-    var fee = +CFG.shipping_fee || 0, th = +CFG.free_ship_threshold || 0;
+    var fee = +CFG.shipping_fee || 0, th = fsTh();
     if (hasFS(items)) return { fee: 0, label: T('Miễn phí') };
     if (th && sub >= th) return { fee: 0, label: T('Miễn phí') };
     if (fee) return { fee: fee, label: money(fee) };
@@ -846,8 +851,8 @@
   /* ---------- form đặt hàng dùng chung (trang Thanh toán + khung Mua ngay) ---------- */
   /* ---------- miễn phí vận chuyển ---------- */
   function freeShipHint(sub, items) {
-    var dd = ddBoxHTML(sub, 'fs-hint'); if (dd) return dd; // 🎉 Ngày Đôi
-    var th = +CFG.free_ship_threshold || 0, fee = +CFG.shipping_fee || 0; if (!th || !fee) return '';
+    var dd = ddBoxHTML(sub, 'fs-hint', items); if (dd) return dd; // 🎉 Ngày Đôi
+    var th = fsTh(), fee = +CFG.shipping_fee || 0; if (!th || !fee) return '';
     if (sub >= th || hasFS(items)) return '<div class="fs-hint ok">' + T('🎉 Đơn hàng được <b>miễn phí vận chuyển</b>') + '</div>';
     var gap = th - sub, pct = Math.max(4, Math.round(sub / th * 100));
     return '<div class="fs-hint">' + TF('🚚 Mua thêm <b>{0}</b> để được <b>miễn phí vận chuyển</b>', money(gap)) + '<span class="fs-bar"><i style="width:' + pct + '%"></i></span></div>';
@@ -868,7 +873,7 @@
   function comboClash(p, inSet) { return p.combo && (p.parts || []).some(function (x) { return inSet[x]; }); }
   function upsellList(items, max) {
     var inSet = {}; items.forEach(function (i) { inSet[i.slug] = 1; });
-    var sub = items.reduce(function (s, i) { return s + i.subtotal; }, 0), th = +CFG.free_ship_threshold || 0, gap = th && sub < th && !hasFS(items) ? th - sub : 0;
+    var sub = items.reduce(function (s, i) { return s + i.subtotal; }, 0), th = fsTh(), gap = th && sub < th && !hasFS(items) ? th - sub : 0;
     var paired = []; items.forEach(function (i) { ((BY[i.slug] || {}).upsell || []).forEach(function (x) { if (paired.indexOf(x) < 0) paired.push(x); }); });
     var cands = [];
     PRODUCTS.forEach(function (p) {
@@ -903,7 +908,7 @@
   var UP_FIRST = ['ruoc-rong-bien-vi-suon-non', 'tra-hoa-tan-dilvang-dinh-lang-che-vang']; // món nhỏ, dễ thêm
   function cartUpsell(items, max) {
     var inSet = {}; items.forEach(function (i) { inSet[i.slug] = 1; });
-    var sub = items.reduce(function (s, i) { return s + i.subtotal; }, 0), th = +CFG.free_ship_threshold || 0;
+    var sub = items.reduce(function (s, i) { return s + i.subtotal; }, 0), th = fsTh();
     var gap = th && sub < th && !hasFS(items) ? th - sub : 0, cap = gap + 100000;
     var paired = []; items.forEach(function (i) { ((BY[i.slug] || {}).upsell || []).forEach(function (x) { if (paired.indexOf(x) < 0) paired.push(x); }); });
     var out = [];
@@ -1390,7 +1395,7 @@
     var zaloNote = o.sent ? '' : '<div class="notice">' + TF('<b>Bước cuối:</b> bấm nút bên dưới để gửi đơn hàng cho {0} qua Zalo (nội dung đơn đã được tự động sao chép, bạn chỉ cần dán và gửi). Hoặc gọi {1}.', esc(CFG.brand), '<a href="tel:' + CFG.zalo + '">' + esc(CFG.hotline) + '</a>') + '</div>' +
       '<p><button class="btn btn-lg btn-zalo" id="sendZalo">' + T('Gửi đơn qua Zalo') + '</button></p>';
     var dd = o.dd && LANG === 'vi' ? '<div class="dd-thanks"><b>🎉 Ngày Đôi ' + esc(o.dd.label) + '</b>' + (o.dd.ship ? '<p>Đơn của bạn được <b>miễn phí vận chuyển</b>.</p>' : '') +
-      (o.dd.gifts && o.dd.gifts.length ? '<p>🎁 Quà tặng kèm trong đơn: <b>' + o.dd.gifts.map(esc).join(' + ') + '</b></p>' : '') + (o.dd.rank ? '<p>⚡ Bạn là đơn thứ <b>' + o.dd.rank + '/' + o.dd.n + '</b> hôm nay nên được tặng thêm quà. Chúc mừng bạn!</p>' : '') + '</div>' : '';
+      (o.dd.gifts && o.dd.gifts.length ? '<p>🎁 Quà tặng kèm trong đơn: <b>' + o.dd.gifts.map(esc).join(' + ') + '</b></p>' : '') + (o.dd.rank ? '<p>⚡ Bạn là đơn thứ <b>' + o.dd.rank + '/' + o.dd.n + '</b> hôm nay nên được tặng thêm quà. Chúc mừng bạn!</p>' : '') + (o.dd.noGift ? '<p>🎟 Đơn đã dùng mã giảm giá nên không kèm quà Ngày Đôi.</p>' : '') + '</div>' : '';
     var addr = LANG === 'vi' ? o.customer.address : o.customer.address.replace(/^\[(Nhà riêng|Văn phòng)\] /, function (m, k) { return '[' + T(k) + '] '; });
     el.innerHTML = '<div class="ok-ic">' + ICON.check + '</div><h1>' + TF('Cảm ơn {0}!', esc(o.customer.name)) + '</h1><p>' + TF('Đơn hàng <b>{0}</b> đã được ghi nhận. {1} sẽ gọi điện xác nhận tới số <b>{2}</b> trong thời gian sớm nhất.', esc(o.id), esc(CFG.brand), esc(o.customer.phone)) + '</p>' +
       dd + zaloNote + qr + '<div class="order-box">' + rows + (o.voucher ? '<div class="row"><span>🎟 ' + T('Mã ưu đãi') + ' ' + esc(o.voucher) + '</span><b>' + (o.discount ? '−' + money(o.discount) : T('Áp dụng')) + '</b></div>' : '') + '<div class="row"><span>' + T('Giao hàng') + '</span><span>' + (o.shipping ? money(o.shipping) : ((+CFG.shipping_fee && +CFG.free_ship_threshold) ? T('Miễn phí') : T('Báo khi xác nhận'))) + '</span></div><div class="row"><span><b>' + T('Tổng cộng') + '</b></span><b style="color:var(--primary-2)">' + money(o.total) + '</b></div>' +
