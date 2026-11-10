@@ -11018,6 +11018,32 @@
     if (!silent && modalRoute && route().id) { if (modalPushed) history.back(); else history.replaceState(null, '', modalRoute); }
     modalRoute = null; modalPushed = false;
   }
+  /* ---------- 🛡️ Chống bấm nhầm khi hộp tự trượt (Chang báo 10/11/2026). Gõ ghi chú bằng bộ gõ tiếng Việt của Windows: chữ cuối còn gạch chân (chưa chốt).
+   * Kéo xuống bấm "2 tuần" → Chrome chốt chữ rồi tự cuộn lên ô ghi chú NGAY LÚC BẤM → cú bấm rơi vào nút đang nằm dưới chuột (📴 Thuê bao) → lưu sai.
+   * Trong hộp (.modal), bấm bằng chuột: nút dưới con trỏ đã đổi mà người dùng không di chuột, không lăn chuột / bấm phím → huỷ cú bấm, cuộn về chỗ cũ, báo bấm lại.
+   * Cảm ứng (điện thoại) không áp dụng. JG.el = phần tử dưới chuột lúc người dùng nhìn thấy lần cuối (di chuột hoặc tự cuộn). */
+  var JG = { el: null, y: 0, x: 0, py: 0, box: null, st: 0, u: 0, stop: 0 };
+  function jgAct(el) { return el && el.closest ? el.closest('button, a, label, summary, input, select, textarea, [role=button]') : null; }
+  function jgSee(el) {
+    if (!el || !el.closest || !el.closest('.modal')) { JG.el = null; return; }
+    JG.el = el; JG.y = el.getBoundingClientRect().top; JG.box = el.closest('.sheet-b'); JG.st = JG.box ? JG.box.scrollTop : 0;
+  }
+  document.addEventListener('pointermove', function (e) { if (e.pointerType !== 'mouse') return; JG.x = e.clientX; JG.py = e.clientY; jgSee(e.target); }, { capture: true, passive: true });
+  ['wheel', 'keydown', 'touchstart'].forEach(function (ev) { document.addEventListener(ev, function () { JG.u = Date.now(); }, { capture: true, passive: true }); });
+  document.addEventListener('scroll', function () { if (JG.el && Date.now() - JG.u < 700) jgSee(document.elementFromPoint(JG.x, JG.py)); }, { capture: true, passive: true }); // tự lăn chuột / bấm phím cuộn: cập nhật phần tử dưới chuột
+  document.addEventListener('pointerdown', function (e) {
+    JG.stop = 0;
+    if (e.pointerType !== 'mouse' || !JG.el || !JG.el.isConnected || !e.target.closest || !e.target.closest('.modal')) return;
+    var was = jgAct(JG.el), now = jgAct(e.target);
+    if (!now || now === was || !JG.box || !JG.box.isConnected || JG.box.scrollTop === JG.st || Math.abs(JG.el.getBoundingClientRect().top - JG.y) < 8) return; // bấm chỗ trống / đúng nút đang thấy / hộp không tự cuộn
+    JG.stop = Date.now(); JG.box.scrollTop = JG.st; // cuộn về đúng chỗ đang xem: nút định bấm lại nằm dưới chuột
+  }, true);
+  document.addEventListener('pointerup', function () { if (JG.stop) setTimeout(function () { JG.stop = 0; }, 0); }, true);
+  window.addEventListener('click', function (e) { // gắn ở window: chạy trước mọi xử lý bấm khác
+    if (!JG.stop || Date.now() - JG.stop > 3000) return;
+    JG.stop = 0; e.preventDefault(); e.stopPropagation();
+    toast('⚠️ Hộp vừa tự trượt đúng lúc bạn bấm (thường do bộ gõ tiếng Việt chốt chữ cuối ghi chú), CRM chưa lưu gì. Bạn bấm lại nút cần chọn nhé.', true);
+  }, true);
 
   /* ================================================================ sự kiện chung */
   document.addEventListener('click', function (e) {
