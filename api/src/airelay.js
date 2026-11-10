@@ -6,6 +6,7 @@
  * (09/11 tài khoản hết tiền cả ngày: bài Zalo tối 09/11 + sáng 10/11 không được soạn, chỉ CRM ghi lỗi nhỏ, không ai biết.) */
 import { kvGet, kvSet, kvDel } from './lib.js';
 import { telegram } from './google.js';
+import { aiLog } from './aiuse.js';
 
 export class AiRelay {
   constructor(state, env) { }
@@ -47,13 +48,24 @@ async function watch(env, res) {
   } catch (e) { console.error('aiWatch', e && e.message); }
 }
 
-/** fetch cho thư viện Anthropic: đi qua AiRelay nếu có (không có → fetch thường). Bỏ signal vì không gửi được qua Durable Object. */
+/** Đọc model + usage từ kết quả /v1/messages (không stream) → ghi bảng ai_usage. Lỗi đọc thì bỏ qua, không ảnh hưởng lời gọi. */
+async function count(env, url, res, muc) {
+  try {
+    if (!res.ok || !/\/v1\/messages(\?|$)/.test(String(url))) return;
+    const j = await res.clone().json();
+    if (j && j.usage) await aiLog(env.DB, muc, j.model, j.usage);
+  } catch (e) { }
+}
+
+/** fetch cho thư viện Anthropic: đi qua AiRelay nếu có (không có → fetch thường). Bỏ signal vì không gửi được qua Durable Object.
+ * Header riêng x-tdl-muc (mục dùng AI: chat / zalo / zalo-bai / fanpage / fb-bai / crm / hoi / huongdan) được bóc ra để đếm chi phí, không gửi sang Anthropic. */
 export function aiFetch(env) {
   const stub = env.AI_RELAY ? env.AI_RELAY.get(env.AI_RELAY.idFromName('anthropic'), { locationHint: 'wnam' }) : null;
   return async (url, init) => {
-    const i = init || {};
-    const res = stub ? await stub.fetch(new Request(String(url), { method: i.method || 'GET', headers: i.headers, body: i.body })) : await fetch(url, init);
+    const i = init || {}, h = new Headers(i.headers || {}), muc = h.get('x-tdl-muc') || 'khac'; h.delete('x-tdl-muc');
+    const res = stub ? await stub.fetch(new Request(String(url), { method: i.method || 'GET', headers: h, body: i.body })) : await fetch(url, Object.assign({}, i, { headers: h }));
     await watch(env, res);
+    await count(env, url, res, muc);
     return res;
   };
 }

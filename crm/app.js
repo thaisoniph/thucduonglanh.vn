@@ -8934,6 +8934,7 @@
         setGroup('cost', '💰 Giá vốn sản phẩm', costLine(), costBox()) +
         setGroup('da', '🚦 Mức đèn quảng cáo ở Tổng quan', '🟢 dưới ' + DA[0] + '% · 🔴 trên ' + DA[1] + '%', G.da) +
         setGroup('kpi', '📊 Mức tốt chỉ số quảng cáo', (function (k) { var t = [k.cpm ? 'CPM < ' + moneyShort(k.cpm) : '', k.ctr ? 'CTR ≥ ' + oneDec(k.ctr) + '%' : '', k.cpc ? 'CPC < ' + moneyShort(k.cpc) : '', k.msg ? '1 tin < ' + moneyShort(k.msg) : '', k.sdt ? '1 SĐT < ' + moneyShort(k.sdt) : ''].filter(Boolean).join(' · '); return t || '⚠️ Chưa đặt, đang so với trung bình 7 ngày'; })(kpGoal()), G.kpi) +
+        setGroup('aiu', '🤖 Chi phí trợ lý AI', 'Tiền AI còn bao nhiêu, mục nào tốn bao nhiêu · nhắc Telegram khi sắp hết', '<div id="aiuBox"><p class="hint" style="margin:0 0 10px">Trợ lý Zalo, chat An Lành, Fanpage, ✨ AI trong CRM đều dùng chung 1 tài khoản Anthropic trả trước. Anthropic không cho máy chủ hỏi số dư, nên CRM tự đếm từng lời gọi theo bảng giá để ước tính. Số chính thức xem ở <a href="https://console.anthropic.com/settings/billing" target="_blank" rel="noopener">console.anthropic.com → Billing</a>.</p><button class="btn" id="aiuLoad">Xem mức dùng &amp; tiền còn lại</button></div>') +
         setGroup('cms', '🌐 Trang quản trị website', cmsLine(), cmsBox()));
     }
     return h;
@@ -8978,6 +8979,39 @@
   }
   /** Cài đặt: 1 nhóm (tiêu đề nhỏ + các mục thu gọn). */
   /** ✨ câu nhân sự hỏi trợ lý ở trang hướng dẫn (api guide_ask_list) */
+  /** Cài đặt → 🤖 Chi phí trợ lý AI (Quản trị): tiền còn lại ước tính, mức dùng theo mục / mô hình / ngày, ghi số tiền đã nạp. */
+  function aiuShow() {
+    var box = $('#aiuBox'); if (!box) return;
+    box.innerHTML = '<p class="hint">Đang tải…</p>';
+    api('ai_usage', {}).then(function (j) {
+      var b = j.bal || {}, rate = b.rate || 26500, usd = function (v) { v = Number(v) || 0; return (v < 10 ? v.toFixed(2) : v.toFixed(1)).replace('.', ',') + '$'; }, vnd = function (v) { return moneyShort(Math.round((Number(v) || 0) * rate)); };
+      var both = function (v) { return '<b>' + usd(v) + '</b> <span class="muted">(~' + vnd(v) + ')</span>'; };
+      var d8 = function (d) { return d ? d.slice(6, 8) + '/' + d.slice(4, 6) : ''; };
+      var top;
+      if (b.fund) {
+        var days = b.days === null ? '' : b.days < 1 ? ' · <b style="color:var(--red)">sắp hết hôm nay</b>' : ' · đủ khoảng <b>' + Math.floor(b.days) + ' ngày</b>', warn = b.left < 5 || (b.days !== null && b.days < 5);
+        top = '<div class="box" style="margin:0 0 10px' + (warn ? ';border-color:var(--orange)' : '') + '"><p style="margin:0 0 4px;font-size:16px">' + (warn ? '⚠️ ' : '💳 ') + 'Còn lại ước tính ' + both(Math.max(0, b.left)) + days + '</p>' +
+          '<p class="small muted" style="margin:0">Đã nạp ' + usd(b.fund.usd) + ' ngày ' + d8(b.fund.day) + (b.fund.by ? ' (' + esc(b.fund.by) + ' ghi)' : '') + ' · đã dùng từ đó ' + usd(b.spent) + ' · trung bình 7 ngày qua ' + usd(b.perDay) + '/ngày. Còn dưới 5 ngày hoặc dưới 5$ thì Telegram nhắc 1 lần/ngày.</p></div>';
+      } else top = '<div class="box" style="margin:0 0 10px;border-color:var(--orange)"><p style="margin:0">⚠️ <b>Chưa ghi số tiền đã nạp</b> nên CRM chưa tính được còn bao nhiêu và chưa nhắc được khi sắp hết. Xem số dư ở console.anthropic.com → Billing rồi ghi vào ô bên dưới (ghi số dư hiện tại + ngày hôm nay cũng được).</p></div>';
+      var today = fDate(j.now).split('/').reverse().join('-');
+      var form = '<div class="box" style="margin:0 0 12px"><b>Ghi số tiền đã nạp</b><div class="steps" style="margin:8px 0 0;align-items:flex-end;flex-wrap:wrap;gap:8px">' +
+        '<label class="small">Đã nạp (USD)<br><input id="aiuUsd" type="number" step="0.01" min="0" style="width:110px" placeholder="vd 50"></label>' +
+        '<label class="small">Ngày nạp<br><input id="aiuDay" type="date" value="' + today + '"></label>' +
+        '<label class="small">Tỷ giá (đ/USD)<br><input id="aiuRate" type="number" step="100" min="10000" max="50000" value="' + rate + '" style="width:100px"></label>' +
+        '<button class="btn pri" id="aiuSave">Lưu</button></div><p class="hint" style="margin:8px 0 0">Mỗi lần nạp thêm thì ghi lại: tổng số dư sau khi nạp + ngày nạp. CRM trừ dần theo mức dùng từ ngày đó.</p></div>';
+      var row = function (k, v, n) { return '<tr><td>' + k + '</td><td>' + both(v.usd) + '</td><td>' + (n === undefined ? v.n : n).toLocaleString('vi-VN') + '</td></tr>'; };
+      var tot = '<table class="bcdt" style="margin:0 0 12px"><tr><th>Thời gian</th><th>Tiền (ước tính)</th><th>Lượt gọi AI</th></tr>' + row('Hôm nay', j.today) + row('7 ngày qua', j.d7) + row('30 ngày qua', j.d30) + row('Tháng này', j.month) + '</table>';
+      var mucT = '<p style="margin:0 0 4px"><b>Mục nào tốn bao nhiêu</b> <span class="muted small">(30 ngày qua)</span></p>' + (j.byMuc.length ? '<table class="bcdt" style="margin:0 0 12px"><tr><th>Mục</th><th>Tiền</th><th>Lượt</th><th>1 lượt</th><th>Chữ vào / ra (nghìn token)</th></tr>' +
+        j.byMuc.map(function (r) { return '<tr><td>' + esc(j.muc[r.muc] || r.muc) + '</td><td>' + both(r.usd) + '</td><td>' + Number(r.n).toLocaleString('vi-VN') + '</td><td>' + money(Math.round(r.usd * rate / Math.max(1, r.n))) + '</td><td class="muted">' + Math.round((r.inp + r.cr) / 1000) + ' / ' + Math.round(r.out / 1000) + '</td></tr>'; }).join('') + '</table>' : '<p class="hint">Chưa có lời gọi AI nào được đếm (bắt đầu đếm từ 10/11/2026).</p>');
+      var modT = j.byModel.length ? '<p style="margin:0 0 4px"><b>Theo mô hình AI</b> <span class="muted small">(30 ngày)</span></p><table class="bcdt" style="margin:0 0 12px"><tr><th>Mô hình</th><th>Tiền</th><th>Lượt</th></tr>' + j.byModel.map(function (r) { return '<tr><td>' + esc(r.model) + '</td><td>' + both(r.usd) + '</td><td>' + Number(r.n).toLocaleString('vi-VN') + '</td></tr>'; }).join('') + '</table>' : '';
+      var dayT = j.byDay.length ? '<p style="margin:0 0 4px"><b>Từng ngày</b> <span class="muted small">(14 ngày)</span></p><table class="bcdt" style="margin:0 0 8px"><tr><th>Ngày</th><th>Tiền</th><th>Lượt</th></tr>' + j.byDay.slice().reverse().map(function (r) { return '<tr><td>' + d8(r.day) + '</td><td>' + both(r.usd) + '</td><td>' + Number(r.n).toLocaleString('vi-VN') + '</td></tr>'; }).join('') + '</table>' : '';
+      box.innerHTML = top + form + tot + mucT + modT + dayT + '<p class="hint" style="margin:0">Tính theo bảng giá Anthropic (Haiku 5.5: 0,10$ / 1 triệu chữ vào, 0,50$ ra; Opus 5.5: 4$ / 20$). Lệch vài % so với hoá đơn thật là bình thường.' + (j.since ? ' Đếm từ ' + d8(j.since) + '.' : '') + '</p>';
+      $('#aiuSave').onclick = function () {
+        var btn = this; btn.disabled = true;
+        api('ai_fund', { usd: $('#aiuUsd').value, day: $('#aiuDay').value, rate: $('#aiuRate').value }).then(function () { toast('Đã ghi số tiền nạp'); aiuShow(); }, function (e) { btn.disabled = false; toast(e.message, true); });
+      };
+    }, function (e) { box.innerHTML = '<p class="hint">⚠️ ' + esc(e.message) + '</p>'; });
+  }
   function gqList(miss) {
     var box = $('#gqBox'); if (!box) return;
     box.innerHTML = '<p class="hint">Đang tải…</p>';
@@ -9020,6 +9054,7 @@
     if ($('#dayLimSave')) $('#dayLimSave').onclick = function () { var n = Math.max(5, Math.min(200, parseInt($('#dayLim').value, 10) || DAY_LIMIT_DEF)); store('crm_daylimit', String(n)); toast('Mỗi ngày tối đa ' + n + ' khách ✓'); navBadges(); };
     $('#logout').onclick = function () { if (confirm('Đăng xuất khỏi CRM?')) logout(); };
     if ($('#gqLoad')) $('#gqLoad').onclick = function () { gqList(false); };
+    if ($('#aiuLoad')) { $('#aiuLoad').onclick = function () { aiuShow(); }; if ($('#aiuBox').closest('details').open) aiuShow(); }
     var syncTags = function () { $$('#tagRows [data-ti]').forEach(function (r) { var i = +r.getAttribute('data-ti'); $$('[data-tk]', r).forEach(function (x) { S.f.tags[i][x.getAttribute('data-tk')] = x.value; }); }); };
     if ($('#tagRows')) $('#tagRows').addEventListener('input', syncTags);
     if ($('#prefSave')) $('#prefSave').onclick = function () {

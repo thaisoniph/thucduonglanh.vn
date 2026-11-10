@@ -50,7 +50,7 @@ const FP_THEME = [ // 0 = Chủ nhật. Trang nhiều bài / ngày thì bài sau
 ];
 
 let client = null;
-function ai(env) { if (!client) client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 2, timeout: 60e3, fetch: aiFetch(env) }); return client; } // qua trạm Bắc Mỹ (airelay.js)
+function ai(env) { if (!client) client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 2, timeout: 60e3, fetch: aiFetch(env), defaultHeaders: { 'x-tdl-muc': 'fanpage' } }); return client; } // qua trạm Bắc Mỹ (airelay.js)
 const textOf = res => res.content.filter(b => b.type === 'text').map(b => b.text).join('\n').trim();
 const vnHour = t => { const d = new Date(t + TZ_MS); return d.getUTCHours() + d.getUTCMinutes() / 60; };
 const slotTime = (day, at) => { const [h, m] = String(at || '19:30').split(':').map(Number); return new Date(day.slice(0, 4) + '-' + day.slice(4, 6) + '-' + day.slice(6, 8) + 'T00:00:00+07:00').getTime() + ((h || 0) * 60 + (m || 0)) * 60e3; };
@@ -540,8 +540,8 @@ async function fpWrite(x, p, day, slot, hint, by) {
       { type: 'text', text: 'TÀI LIỆU (thông tin chính thức của Thực Dưỡng Lành):\n\n' + know, cache_control: { type: 'ephemeral' } }],
     messages: [{ role: 'user', content: ask }] };
   let res; // bị bộ lọc an toàn từ chối nhầm → máy chủ Anthropic tự chuyển mô hình dự phòng (như zbot.js)
-  try { res = await ai(x.env).beta.messages.create(Object.assign({ betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' }, req)); }
-  catch (e) { if (!(e instanceof Anthropic.BadRequestError)) throw e; res = await ai(x.env).messages.create(req); }
+  try { res = await ai(x.env).beta.messages.create(Object.assign({ betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' }, req), { headers: { 'x-tdl-muc': 'fb-bai' } }); }
+  catch (e) { if (!(e instanceof Anthropic.BadRequestError)) throw e; res = await ai(x.env).messages.create(req, { headers: { 'x-tdl-muc': 'fb-bai' } }); }
   if (res.stop_reason === 'refusal') throw new Error('AI từ chối viết bài');
   const raw = textOf(res), parts = raw.split(/\n-{3,}\n/);
   const head = parts.length > 1 ? parts[0] : '', body = plain(safe((parts.length > 1 ? parts.slice(1).join('\n---\n') : raw).trim()));

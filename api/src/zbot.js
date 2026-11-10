@@ -66,7 +66,7 @@ const TRACK_FROM = Date.UTC(2026, 9, 31, 4, 14);
 const FUNNEL = { TOFU: '🔵 Nhận biết – tương tác', MOFU: '⚪ Cân nhắc – tạo niềm tin', BOFU: '🟠 Chuyển đổi – bán hàng' };
 
 let client = null;
-function ai(env) { if (!client) client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 2, timeout: 60e3, fetch: aiFetch(env) }); return client; } // qua trạm Bắc Mỹ (airelay.js)
+function ai(env) { if (!client) client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 2, timeout: 60e3, fetch: aiFetch(env), defaultHeaders: { 'x-tdl-muc': 'zalo' } }); return client; } // qua trạm Bắc Mỹ (airelay.js)
 const textOf = res => res.content.filter(b => b.type === 'text').map(b => b.text).join('\n').trim();
 
 export async function zbotSchema(db) {
@@ -514,8 +514,8 @@ export async function zWrite(x, day, slot, hint, by) {
       { type: 'text', text: 'TÀI LIỆU (thông tin chính thức của Thực Dưỡng Lành):\n\n' + know, cache_control: { type: 'ephemeral' } }],
     messages: [{ role: 'user', content: ask }] };
   let res; // bị bộ lọc an toàn từ chối nhầm → máy chủ Anthropic tự chuyển mô hình dự phòng (fallbacks); tham số này lỗi thì gọi lại không kèm
-  try { res = await ai(x.env).beta.messages.create(Object.assign({ betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' }, req)); }
-  catch (e) { if (!(e instanceof Anthropic.BadRequestError)) throw e; res = await ai(x.env).messages.create(req); }
+  try { res = await ai(x.env).beta.messages.create(Object.assign({ betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' }, req), { headers: { 'x-tdl-muc': 'zalo-bai' } }); }
+  catch (e) { if (!(e instanceof Anthropic.BadRequestError)) throw e; res = await ai(x.env).messages.create(req, { headers: { 'x-tdl-muc': 'zalo-bai' } }); }
   if (res.stop_reason === 'refusal') throw new Error('AI từ chối viết bài');
   const raw = textOf(res), parts = raw.split(/\n-{3,}\n/);
   const head = parts.length > 1 ? parts[0] : '', body = safe((parts.length > 1 ? parts.slice(1).join('\n---\n') : raw).trim());

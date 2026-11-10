@@ -29,7 +29,7 @@ const RULES = `Bạn là trợ lý An Lành, giúp NHÂN SỰ NỘI BỘ của T
 - Câu hỏi có nhắc bệnh, thuốc, mang thai: nhắc nhân sự nói với khách rằng sản phẩm là thực phẩm, không phải là thuốc, không thay thế thuốc chữa bệnh, nên hỏi bác sĩ nếu đang điều trị.`;
 
 let client = null;
-function ai(env) { if (!client) client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 1, timeout: 45e3, fetch: aiFetch(env) }); return client; } // qua trạm Bắc Mỹ (airelay.js)
+function ai(env) { if (!client) client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 1, timeout: 45e3, fetch: aiFetch(env), defaultHeaders: { 'x-tdl-muc': 'huongdan' } }); return client; } // qua trạm Bắc Mỹ (airelay.js)
 
 let guideMem = null; // hướng dẫn giữ trong bộ nhớ 10 phút; lỗi mạng thì dùng bản cũ
 async function guide() {

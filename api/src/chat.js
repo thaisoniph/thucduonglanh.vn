@@ -60,7 +60,7 @@ export const REF_RULES = `# Khách được người quen giới thiệu
 const RULES = CHAT_RULES + '\n' + REF_RULES + '\n' + TRUTH_RULES;
 
 let client = null;
-function ai(env) { if (!client) client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 2, timeout: 30e3, fetch: aiFetch(env) }); return client; } // qua trạm Bắc Mỹ (airelay.js)
+function ai(env) { if (!client) client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 2, timeout: 30e3, fetch: aiFetch(env), defaultHeaders: { 'x-tdl-muc': 'chat' } }); return client; } // qua trạm Bắc Mỹ (airelay.js)
 
 export async function chatSchema(db) {
   await run(db, `CREATE TABLE IF NOT EXISTS chats (sid TEXT PRIMARY KEY, start INTEGER, last INTEGER, n INTEGER DEFAULT 0, page TEXT DEFAULT '', src TEXT DEFAULT '',

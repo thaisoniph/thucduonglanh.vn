@@ -20,7 +20,7 @@ const SYSTEM = [
 ].join('\n');
 
 let client = null;
-function ai(env) { if (!client) client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 1, timeout: 25e3, fetch: aiFetch(env) }); return client; } // qua trạm Bắc Mỹ (airelay.js)
+function ai(env) { if (!client) client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 1, timeout: 25e3, fetch: aiFetch(env), defaultHeaders: { 'x-tdl-muc': 'crm' } }); return client; } // qua trạm Bắc Mỹ (airelay.js)
 
 /** Che số điện thoại / email trong ghi chú trước khi gửi đi. */
 const scrub = s => String(s || '').replace(/(\+?84|0)[\d .]{8,12}\d/g, '[SĐT]').replace(/[\w.+-]+@[\w-]+\.[\w.]+/g, '[email]');

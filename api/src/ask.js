@@ -89,7 +89,7 @@ Bạn là trợ lý số liệu nội bộ trong CRM của Thực Dưỡng Lành
 - Không nhắc tới SQL, tên bảng, tên cột trong câu trả lời.`;
 
 let client = null;
-function ai(env) { if (!client) client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 1, timeout: 100e3, fetch: aiFetch(env) }); return client; } // qua trạm Bắc Mỹ (airelay.js)
+function ai(env) { if (!client) client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 1, timeout: 100e3, fetch: aiFetch(env), defaultHeaders: { 'x-tdl-muc': 'hoi' } }); return client; } // qua trạm Bắc Mỹ (airelay.js)
 
 /* ---------- cột thật của từng bảng (PRAGMA, giữ 1 giờ): dùng để viết mô tả cho AI + dựng bảng đã che */
 let colMem = null;
