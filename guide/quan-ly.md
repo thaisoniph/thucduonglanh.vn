@@ -55,6 +55,8 @@ Tài khoản Quản trị không nằm trong bảng so sánh nhân sự. Doanh s
 - **Xem**: hồ sơ khách có nhãn 🙋 kèm tên sale và ngày hết hạn; **Hiệu quả → 💰 Thu nhập tạm tính** có dòng và cột **🙋 HH khách tự mang về**; **Bảng thi đua** có hạng mục **🙋 Khách tự mang về**.
 - **Chỉnh mức**: Cài đặt → 💰 Lương & hoa hồng → 📑 Bảng lương theo bậc → mục **🙋 Khách sale tự mang về** (%, số tháng, áp dụng cho khách mua lần đầu từ ngày). Ghi 0 = tắt.
 
+**Công tắc ẩn / hiện (chỉ Quản trị):** Cài đặt → 🤝 Chia khách → **🔎 Tự tạo khách (tab Hôm nay của sale)**. Đang ẩn thì sale không thấy mục Hết số quảng cáo, dòng khách tự tạo, ô mục tiêu khách tự tạo, hạng thi đua và không nhận tin Telegram khách tự mang về; máy vẫn tính ngầm. Bật sau khi họp phòng kinh doanh thống nhất.
+
 ## Doanh số đến từ đâu (Tổng quan → 🧭 Doanh số theo nguồn khách)
 
 Từ 10/11/2026, ngay dưới **🧩 Theo từng mảng** ở tab **Tổng quan** có khối **🧭 Doanh số theo nguồn khách**. Mỗi đơn được xếp vào đúng 1 nguồn: **🤝 Cộng tác viên** → **🎁 Khách cũ giới thiệu** → **🧺 Kho chung** → **🔁 Khách cũ mua lại** → **🙋 Sale tự tìm** → **🌐 Web tự đặt** → **📣 Quảng cáo (khách mới)**.

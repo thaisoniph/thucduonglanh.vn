@@ -201,7 +201,7 @@ export async function rulesCfg(x) {
   const r = await kvJson(x.db, 'rules_cfg', {}) || {};
   return (x._rules = { vipOrders: Number(r.vipOrders) || VIP_ORDERS, vipSpent: Number(r.vipSpent) || VIP_SPENT, atRisk: Number(r.atRisk) || AT_RISK_DAYS, coolDays: r.coolDays !== undefined && r.coolDays !== '' ? Number(r.coolDays) : COOL_DAYS,
     shipDays: r.shipDays !== undefined && r.shipDays !== '' ? Number(r.shipDays) : SHIP_DAYS, shipFar: r.shipFar !== undefined && r.shipFar !== '' ? Number(r.shipFar) : SHIP_FAR, famMin: r.famMin !== undefined && r.famMin !== '' ? Number(r.famMin) : FAM_MIN,
-    poolDays: r.poolDays !== undefined && r.poolDays !== '' ? Number(r.poolDays) : POOL_DAYS, poolMax: r.poolMax !== undefined && r.poolMax !== '' ? Number(r.poolMax) : POOL_MAX });
+    poolDays: r.poolDays !== undefined && r.poolDays !== '' ? Number(r.poolDays) : POOL_DAYS, poolMax: r.poolMax !== undefined && r.poolMax !== '' ? Number(r.poolMax) : POOL_MAX, selfOn: r.selfOn ? 1 : 0 }); // selfOn: 10/11/2026 anh Sơn tạm ẩn mục Tự tạo khách tới sau họp sale, Quản trị bật ở Cài đặt
 }
 export async function caCfg(x) { if (!x._ca) x._ca = await kvJson(x.db, 'ca_cfg', {}) || {}; return x._ca; }
 export async function assignMode(x) { if (!x._mode) x._mode = (await kvGet(x.db, 'assign_mode')) || 'pool'; return x._mode; }
@@ -550,7 +550,7 @@ async function loadSmall(x, u, R, mode, adV) {
     occ: saleDays(fmtDate(Date.now() - 864e5, 'yyyyMMdd'), 5), // 🎉 dịp chúc khách hôm qua → 3 ngày tới (zday.js), CRM tự lọc theo ngày
     contacts: ct.reverse().map(contactOut), targets: tg.map(t => ({ month: t.month, name: t.name, amount: t.amount || 0, selfN: t.self_n || 0, by: t.by_name || '', at: t.at })),
     cycles: cy.filter(r => r.name).map(r => [r.name, r.variant || '', Number(r.days) || 0, r.basis || '']), templates: tp.filter(r => r.text).map(r => [r.when_txt || '', r.purpose || '', r.text]),
-    rules: { backCost: Number(dash.backCost) || 0, ai: !!x.env.ANTHROPIC_API_KEY && u.role !== 'Marketing', vipOrders: R.vipOrders, vipSpent: R.vipSpent, atRisk: R.atRisk, coolDays: R.coolDays, shipDays: R.shipDays, shipFar: R.shipFar, famMin: R.famMin, poolDays: R.poolDays, poolMax: R.poolMax, otypes: OTYPES, commission, payplan, staffGuard, dash: u.level >= 3 || u.role === 'Marketing' || u.mkv || u.role === 'Kế toán' ? dash : null, ktCfg: await ktP, mktDoc, cost, opex, fin, ktLink: ktLink && ktLink.link ? ktLink : null, statuses: ORDER_STATUS, results: CARE_RESULTS, leadStatus: LEAD_STATUS, assignMode: mode, bot: BOT_USERNAME, ca, lines: LINES.map(l => l[0]).concat(['Khác']) }
+    rules: { backCost: Number(dash.backCost) || 0, ai: !!x.env.ANTHROPIC_API_KEY && u.role !== 'Marketing', vipOrders: R.vipOrders, vipSpent: R.vipSpent, atRisk: R.atRisk, coolDays: R.coolDays, shipDays: R.shipDays, shipFar: R.shipFar, famMin: R.famMin, poolDays: R.poolDays, poolMax: R.poolMax, selfOn: R.selfOn, otypes: OTYPES, commission, payplan, staffGuard, dash: u.level >= 3 || u.role === 'Marketing' || u.mkv || u.role === 'Kế toán' ? dash : null, ktCfg: await ktP, mktDoc, cost, opex, fin, ktLink: ktLink && ktLink.link ? ktLink : null, statuses: ORDER_STATUS, results: CARE_RESULTS, leadStatus: LEAD_STATUS, assignMode: mode, bot: BOT_USERNAME, ca, lines: LINES.map(l => l[0]).concat(['Khác']) }
   };
 }
 
@@ -841,6 +841,7 @@ export async function ownTick(x) {
     if (src !== 'no') { await crmLog(x, OWN_SYS, 'Khách tự mang về', c.phone, c.name, by, kind + ' · hoa hồng ' + PP.own + '% mọi đơn tới ' + end); (bySale[by] = bySale[by] || []).push('• ' + (c.name || 'Khách') + ' – ' + c.phone + ' (' + kind + ') → ' + PP.own + '% mọi đơn tới ' + end); }
     else if (why) { await crmLog(x, OWN_SYS, 'Không tính tự mang về', c.phone, c.name, '', why); for (const m of users) if (m.active && m.tg && m.level >= 2) { try { await telegramTo(x.env, m.tg, '⛔ Không tính hoa hồng khách tự mang về cho ' + esc(c.name || c.phone) + ': ' + esc(why) + '. Quản lý xem lại.'); } catch (e) { } } }
   }
+  if (!(await rulesCfg(x)).selfOn) return; // chưa công bố với sale (Cài đặt → Tự tạo khách đang ẩn): phân loại vẫn ghi, chưa nhắn
   for (const n of Object.keys(bySale)) { const y = users.find(v => v.name === n && v.active); if (y && y.tg) { try { await telegramTo(x.env, y.tg, '<b>🙋 Khách bạn tự mang về</b> – hoa hồng ' + PP.own + '% mọi đơn trong ' + PP.ownMonths + ' tháng:\n' + bySale[n].map(esc).join('\n') + '\n\nXem ở Hiệu quả → 💰 Thu nhập tạm tính.'); } catch (e) { } } }
 }
 
@@ -1540,6 +1541,13 @@ async function crmSettings(x, u, d) {
     await crmLog(x, u, 'Cài đặt', '-', '', 'Ca tối từ ' + ev + ', lễ: ' + hol.join(', '), '');
     return { ok: true };
   }
+  if (d.self) { // 🔎 Tự tạo khách: mục ở tab Hôm nay của sale, ô mục tiêu khách tự tạo, hạng thi đua, tin Telegram “khách bạn tự mang về” (ẩn tới khi Quản trị bật)
+    if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị bật / tắt được mục này.' };
+    const cur = await rulesCfg(x), R = Object.assign({}, cur, { selfOn: d.self.on ? 1 : 0 });
+    await kvSet(x.db, 'rules_cfg', JSON.stringify(R)); x._rules = null;
+    await crmLog(x, u, 'Cài đặt', '-', '', (R.selfOn ? 'Bật' : 'Ẩn') + ' mục Tự tạo khách (tab Hôm nay của sale, mục tiêu khách tự tạo, thi đua, tin khách tự mang về)', '');
+    return { ok: true, rules: R };
+  }
   if (d.pool) { // 🧺 Kho chung (09/11/2026): số công ty giao quá N ngày chưa chốt tự về kho; mỗi người nhận tối đa M số / ngày
     const cur = await rulesCfg(x), R = Object.assign({}, cur, { poolDays: Math.min(60, Math.max(0, Math.round(Number(d.pool.days) || 0))), poolMax: Math.min(100, Math.max(0, Math.round(Number(d.pool.max) || 0))) });
     await kvSet(x.db, 'rules_cfg', JSON.stringify(R)); x._rules = null;
@@ -1548,7 +1556,7 @@ async function crmSettings(x, u, d) {
   }
   if (d.rules) {
     const cur = await rulesCfg(x);
-    const R = { poolDays: cur.poolDays, poolMax: cur.poolMax, vipOrders: Math.max(1, Math.round(Number(d.rules.vipOrders) || VIP_ORDERS)), vipSpent: Math.max(0, Math.round(Number(d.rules.vipSpent) || VIP_SPENT)), atRisk: Math.max(7, Math.round(Number(d.rules.atRisk) || AT_RISK_DAYS)),
+    const R = { poolDays: cur.poolDays, poolMax: cur.poolMax, selfOn: cur.selfOn, vipOrders: Math.max(1, Math.round(Number(d.rules.vipOrders) || VIP_ORDERS)), vipSpent: Math.max(0, Math.round(Number(d.rules.vipSpent) || VIP_SPENT)), atRisk: Math.max(7, Math.round(Number(d.rules.atRisk) || AT_RISK_DAYS)),
       coolDays: d.rules.coolDays === undefined || d.rules.coolDays === '' ? (await rulesCfg(x)).coolDays : Math.min(60, Math.max(0, Math.round(Number(d.rules.coolDays) || 0))),
       shipDays: d.rules.shipDays === undefined || d.rules.shipDays === '' ? (await rulesCfg(x)).shipDays : Math.min(15, Math.max(0, Math.round(Number(d.rules.shipDays) || 0))),
       shipFar: d.rules.shipFar === undefined || d.rules.shipFar === '' ? (await rulesCfg(x)).shipFar : Math.min(15, Math.max(0, Math.round(Number(d.rules.shipFar) || 0))),

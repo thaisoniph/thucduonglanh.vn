@@ -1413,7 +1413,7 @@
     h += refThanksBlock(); // 🎁 bạn bè khách cũ đã đặt → báo voucher / quà cảm ơn người giới thiệu
     h += ambBlock(q.list.reduce(function (m, c) { m[c.phone] = 1; return m; }, {}), hot.length ? '5️⃣' : '4️⃣');
     if (isPoolStaff()) h += poolBlock(); // 🧺 việc dự phòng khi hết số quảng cáo: số chưa ai chốt, ai nhận cũng được
-    if (lvl() < 2 && !isMkt()) h += idleBlock(); // 🔎 hết số quảng cáo thì làm gì: 4 việc tự tạo khách
+    if (lvl() < 2 && !isMkt() && selfOn()) h += idleBlock(); // 🔎 hết số quảng cáo thì làm gì: 4 việc tự tạo khách (Quản trị bật ở Cài đặt → Tự tạo khách)
 
     if (doneToday.length) h += '<section class="section"><details class="grp" data-grp="done"' + (S.f.gopen && S.f.gopen.done ? ' open' : '') + '><summary><span class="g-t">✅ Đã làm hôm nay</span><span class="count">' + doneToday.length + '</span></summary><div class="timeline" style="padding:12px">' +
       doneToday.slice(0, 40).map(logItem).join('') + '</div></details></section>';
@@ -1552,7 +1552,7 @@
     }
     // 🤝 Cả nhóm đứng trên cả tiêu đề bảng thi đua: nhìn mục tiêu chung trước, hạng cá nhân sau (17/10/2026)
     return '<section class="race-box">' + tb + '<div class="race-h"><b>🏁 Bảng thi đua</b><div class="race-tabs"><button class="btn sm' + (wk ? ' pri' : '') + '" data-race="week">Tuần này</button><button class="btn sm' + (wk ? '' : ' pri') + '" data-race="month">Tháng này</button></div></div>' +
-      '<div class="race-grid">' + P.cats.map(function (c) { return raceCat(c, P, wk); }).join('') + '</div>' +
+      '<div class="race-grid">' + P.cats.filter(function (c) { return c.k !== 'own' || selfOn(); }).map(function (c) { return raceCat(c, P, wk); }).join('') + '</div>' +
       '<p class="race-note">' + (wk ? 'Tuần tính từ thứ Hai, mỗi tuần bắt đầu lại từ 0. ' : '') + (P.cats[0] && P.cats[0].pct ? 'Doanh số xếp theo % mục tiêu' + (wk ? ' (mục tiêu tuần = mục tiêu tháng chia theo ngày)' : '') + ', số tiền chỉ bạn và quản lý thấy. ' : '') + 'Mọi người thấy Top 3, hạng của mỗi người chỉ người đó thấy.</p></section>';
   }
   function miniGoal() {
@@ -3426,8 +3426,9 @@
     (S.d.leads || []).forEach(function (l) { if (l.time < R[0] || l.time >= R[1]) return; if (l.refPhone || l.refName) { if (l.owner === name) b++; } else if (l.by === name && selfLead(l)) a++; });
     return { n: a + b, self: a, ref: b };
   }
+  function selfOn() { return !!(S.d && S.d.rules && S.d.rules.selfOn); } // 10/11/2026: mục Tự tạo khách ẩn tới khi Quản trị bật (sau họp sale)
   function selfLine(name, month, t) {
-    if (!t || !t.selfN) return '';
+    if (!t || !t.selfN || !selfOn()) return '';
     var sm = selfMade(name, month), p = Math.min(1, sm.n / t.selfN);
     return '<div class="goal-self"><span>🙋 Khách tự tạo tháng này: <b>' + sm.n + '</b> / ' + t.selfN + (sm.n ? ' <small class="muted">(' + sm.self + ' tự thêm · ' + sm.ref + ' được giới thiệu)</small>' : '') + (p >= 1 ? ' ✅' : '') + '</span><div class="bar sm"><i style="width:' + (p * 100).toFixed(1) + '%"></i></div></div>';
   }
@@ -8216,8 +8217,8 @@
       '<label class="f"><span>Số tiền (gõ số, ví dụ 30000000 hoặc 30tr)</span><input type="text" id="tgAmt" inputmode="decimal" value="' + (t ? t.amount : '') + '" autocomplete="off"></label>' +
       '<p class="hint" id="tgShow"></p>' +
       (last ? '<p class="hint">Tháng trước đạt: <b>' + money(last) + '</b>. <button class="btn ghost" id="tgSame" type="button">Lấy bằng tháng trước +10%</button></p>' : '') +
-      '<label class="f" style="margin-top:10px"><span>🙋 Khách tự tạo trong tháng (số khách, 0 = không đặt)</span><input type="number" id="tgSelf" min="0" max="999" value="' + (t && t.selfN ? t.selfN : '') + '" placeholder="vd 8"></label>' +
-      '<p class="hint">Khách tự tạo = khách hỏi bạn <b>tự thêm</b> (không từ quảng cáo) + khách do <b>khách cũ của bạn giới thiệu</b>. Ví dụ 8 = mỗi tuần 2 khách. Có khách tự tạo thì không lo quảng cáo hết số.</p>' +
+      (selfOn() ? '<label class="f" style="margin-top:10px"><span>🙋 Khách tự tạo trong tháng (số khách, 0 = không đặt)</span><input type="number" id="tgSelf" min="0" max="999" value="' + (t && t.selfN ? t.selfN : '') + '" placeholder="vd 8"></label>' +
+      '<p class="hint">Khách tự tạo = khách hỏi bạn <b>tự thêm</b> (không từ quảng cáo) + khách do <b>khách cũ của bạn giới thiệu</b>. Ví dụ 8 = mỗi tuần 2 khách. Có khách tự tạo thì không lo quảng cáo hết số.</p>' : '') +
       (t && t.by ? '<p class="small muted">Lần sửa gần nhất: ' + esc(t.by) + (t.at ? ', ' + fDateTime(t.at) : '') + '</p>' : '') + '<p class="err" id="tgErr"></p></div>';
     var m = modal('🎯 Mục tiêu ' + monthLabel(month), body, '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="tgSave">Lưu mục tiêu</button>');
     var inp = $('#tgAmt', m), show = $('#tgShow', m);
@@ -8228,8 +8229,8 @@
     $('#tgSave', m).onclick = function () {
       var v = val(), err = $('#tgErr', m); if (!v) { err.textContent = 'Nhập số tiền mục tiêu giúp em nhé.'; return; }
       var btn = this; btn.disabled = true; btn.textContent = 'Đang lưu…';
-      var sn = Math.max(0, Math.round(Number($('#tgSelf', m).value) || 0));
-      api('target', { month: month, name: name, amount: v, selfN: sn }).then(function () {
+      var sn = $('#tgSelf', m) ? Math.max(0, Math.round(Number($('#tgSelf', m).value) || 0)) : (t && t.selfN) || 0;
+      api('target', { month: month, name: name, amount: v, selfN: $('#tgSelf', m) ? sn : undefined }).then(function () {
         S.d.targets = (S.d.targets || []).filter(function (x) { return !(x.name === name && x.month === month); }).concat([{ month: month, name: name, amount: v, selfN: sn, by: S.user.name, at: Date.now() }]);
         closeModal(); toast('Đã lưu mục tiêu ' + money(v) + ' ✓'); render();
       }, function (e) { btn.disabled = false; btn.textContent = 'Lưu mục tiêu'; err.textContent = e.message; });
@@ -8875,6 +8876,8 @@
       '<p style="margin:0 0 8px">Có <b>' + noOwner + '</b> khách chưa ai phụ trách.</p><button class="btn" id="spreadBtn"' + (noOwner ? '' : ' disabled') + '>Chia đều cho những người đang “Nhận khách mới”</button>' +
       '<div class="row2c" style="margin-top:12px"><label class="f"><span>Chuyển toàn bộ khách của</span><select id="mvFrom">' + ownerOptions('', true) + '</select></label><label class="f"><span>sang</span><select id="mvTo">' + ownerOptions('', true) + '</select></label></div>' +
       '<button class="btn" id="moveBtn">Chuyển khách</button><p class="hint" style="margin:8px 0 0">Dùng khi nhân viên nghỉ việc hoặc đổi ca. Khách hỏi đang theo dõi cũng được chuyển theo.</p></div>';
+    G.self = '<div class="box"><h3>🔎 Tự tạo khách</h3><p class="hint" style="margin:0 0 10px">Bật thì sale thấy: mục <b>🔎 Hết số quảng cáo? Tự tạo khách</b> cuối tab Hôm nay, dòng <b>🙋 Khách tự tạo tháng này</b> dưới mục tiêu và ô đặt mục tiêu khách tự tạo, hạng <b>🙋 Khách tự mang về</b> trong bảng thi đua, và tin Telegram <i>“Khách bạn tự mang về → hoa hồng …%”</i>. Tắt thì ẩn hết các phần đó (máy vẫn tính hoa hồng và nhận diện khách ngầm, không mất dữ liệu). Kho chung và nguồn khách ở Tổng quan không bị ảnh hưởng.</p>' +
+      '<label class="switch"><input type="checkbox" id="selfOn"' + (selfOn() ? ' checked' : '') + '> Hiện mục Tự tạo khách cho sale</label><p></p><button class="btn pri" id="selfSave">Lưu</button></div>';
     G.dup = '<div class="box"><h3>🔀 Khách trùng sale</h3><p class="hint" style="margin:0 0 10px">Khách có trong file Sheet của 2 sale trở lên (trước khi gộp văn phòng, mỗi bạn chăm riêng). Mỗi khách chỉ để <b>1 sale phụ trách chính</b>: chọn người giữ rồi bấm <b>Chốt</b>. Đã chốt thì CRM không báo trùng nữa, các bạn không cần xoá dòng trong file.</p>' +
       '<button class="btn pri" id="dupOpen">Xem khách trùng sale</button></div>';
     G.mrg = mrgBox();
@@ -8910,6 +8913,7 @@
     var GQ = setGroup('gq', '✨ Nhân sự hỏi gì ở trang hướng dẫn', 'Xem câu nhân sự hỏi trợ lý · câu nào hướng dẫn chưa có thì nên viết thêm', '<div id="gqBox"><p class="hint" style="margin:0 0 10px">Ở trang <a href="/huong-dan/" target="_blank" rel="noopener">Hướng dẫn</a>, nhân sự gõ câu hỏi vào ô 🔍 Tìm rồi bấm <b>✨ Hỏi trợ lý An Lành</b>. Câu nào trợ lý báo <b>“hướng dẫn chưa có”</b> thì nên viết thêm vào hướng dẫn.</p><button class="btn" id="gqLoad">Xem câu đã hỏi</button></div>');
     h += setSec('👥 Nhân sự', 'Ai được vào CRM, được làm gì; nhân sự đang thắc mắc gì.', (G.us ? setGroup('us', '🧑‍💼 Ai được vào CRM', act.length + ' người đang dùng' + (mk ? ' · ' + mk + ' marketing' : '') + ' · thêm / khoá người, đổi quyền', G.us) : '') + GQ);
     h += setSec('🤝 Chia khách', 'Khách mới giao cho ai, xử lý khách trùng hoặc dùng nhiều số.', setGroup('mode', '🔀 Khách mới giao cho ai', MODE_INFO[md][0] + (md === 'pool' && R.poolDays ? ' · quá ' + R.poolDays + ' ngày chưa chốt → về kho' : '') + ' · ' + recvN + ' người nhận khách mới' + (noOwner ? ' · ⚠️ ' + noOwner + ' khách chưa ai phụ trách' : ''), G.mode) +
+      (lvl() >= 3 ? setGroup('self', '🔎 Tự tạo khách (tab Hôm nay của sale)', selfOn() ? '✅ Đang hiện cho sale' : '🙈 Đang ẩn · bật sau khi họp thống nhất', G.self) : '') +
       setGroup('dup', '👯 Khách trùng sale', 'Khách có ở file của 2 sale: chọn 1 người giữ', G.dup) +
       setGroup('mrg', '🔗 Khách dùng nhiều số', '1 khách mua bằng 2–3 số: gộp về 1 hồ sơ', G.mrg));
     h += setSec('📞 Chăm sóc khách', 'Khi nào CRM nhắc gọi khách, nhắn tin gì.', setGroup('rules', '⭐ Nhóm khách & lịch nhắc', 'VIP từ ' + (R.vipOrders || 3) + ' đơn hoặc ' + moneyShort(R.vipSpent || 2000000) + ' · Sắp mất sau ' + (R.atRisk || 60) + ' ngày · nhắc lại sau ' + (R.coolDays === undefined ? 14 : R.coolDays) + ' ngày', G.rules) +
@@ -9028,6 +9032,10 @@
         var b = this; b.disabled = true;
         api('settings', { rules: { vipOrders: $('#rVipN').value, vipSpent: moneyIn($('#rVipS').value), atRisk: $('#rRisk').value, coolDays: $('#rCool').value, shipDays: $('#rShip').value, shipFar: $('#rShipFar').value, famMin: $('#rFam').value } }).then(function (j) { Object.assign(S.d.rules, j.rules); toast('Đã lưu. Nhóm khách được tính lại ✓'); load(true); }, function (e) { toast(e.message, true); b.disabled = false; });
       }; }
+    if ($('#selfSave')) $('#selfSave').onclick = function () {
+      var b = this; b.disabled = true;
+      api('settings', { self: { on: $('#selfOn').checked } }).then(function (j) { Object.assign(S.d.rules, j.rules); toast(j.rules.selfOn ? 'Đã bật: sale thấy mục Tự tạo khách ✓' : 'Đã ẩn mục Tự tạo khách với sale'); render(); }, function (e) { toast(e.message, true); b.disabled = false; });
+    };
     if ($('#poolSave')) $('#poolSave').onclick = function () {
       var b = this; b.disabled = true;
       api('settings', { pool: { days: $('#poolDays').value, max: $('#poolMax').value } }).then(function (j) { Object.assign(S.d.rules, j.rules); toast(j.rules.poolDays ? 'Đã lưu: quá ' + j.rules.poolDays + ' ngày chưa chốt thì về Kho chung ✓' : 'Đã tắt tự về Kho chung'); render(); }, function (e) { toast(e.message, true); b.disabled = false; });
