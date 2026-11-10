@@ -330,7 +330,7 @@ Dòng chú thích màu đèn, ▲▼, đường nhỏ được thu gọn thành 
 
 Chọn thời gian ở hàng nút trên cùng. Kỳ đang chạy so với **cùng số ngày** của kỳ trước (ví dụ 1–12/10 so với 1–12/9), cho công bằng.
 
-Số website chỉ đếm khách đã bấm "Đồng ý" cookie, nên thấp hơn thực tế. Số đơn và doanh số thì đủ.
+Số website chỉ đếm khách đã bấm "Cho phép tất cả" ở thông báo cookie, nên thấp hơn thực tế. Số đơn và doanh số thì đủ.
 
 ## Theo dõi nhân viên dùng CRM (chỉ Quản trị)
 
