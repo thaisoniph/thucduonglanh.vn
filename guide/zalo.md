@@ -2,7 +2,7 @@
 title: Trợ lý Zalo An Lành
 nav: Trợ lý Zalo
 order: 8
-updated: 2026-11-05
+updated: 2026-11-10
 description: Cài đặt và sử dụng tài khoản Zalo "Trợ lý An Lành" trong nhóm Sống khỏe cùng Thực Dưỡng Lành – chào người mới, trả lời, đăng bài, chuyển ca khó cho người thật.
 ---
 
@@ -82,6 +82,8 @@ Mỗi bài có một nhãn màu cho biết bài đó để làm gì:
 - **🟠 Chuyển đổi · bán hàng** (2 bài/tuần, sáng Thứ 7 và tối Thứ 6): giới thiệu sản phẩm, ưu đãi đang chạy, cách đặt hàng.
 
 Tối Thứ 4 có **đố vui**, sáng Thứ 5 trợ lý **công bố đáp án**. Tối Thứ 5 là bài **cảm nhận khách hàng** (dùng ảnh feedback thật).
+
+**🎯 Mỗi bài nhắm 1 nhóm khách.** Trước khi viết, trợ lý chọn 1 nhóm (mẹ bỉm, dân văn phòng, trung niên, người ăn chay, con cái mua quà cho bố mẹ; xoay vòng nhóm ít được viết nhất) và 1 **tension** của nhóm đó (điều họ mong ↔ điều đang cản họ), rồi viết bài đúng chủ đề hôm nay nhưng chạm đúng nỗi lòng ấy. Thẻ bài có dòng **🎯 nhóm khách · tension**. Bấm **🔄 Viết lại** để chọn nhóm khách khác hoặc ghi ý kiến. Sửa nhóm khách, tension ở tab **🎯 Insight & nội dung** ([xem hướng dẫn](/huong-dan/marketing/#insight-noi-dung)).
 
 ### 📅 Ngày lễ, rằm, mùng 1
 

@@ -4,6 +4,7 @@
  * Luồng: cron 10 phút / lần (blogTick)
  *   1. Trước ngày đăng 1 ngày: viết bài nháp (Claude + tìm nguồn trên mạng), lưu D1 bảng bl_posts, nhắn Telegram riêng từng người duyệt kèm link duyệt.
  *      Chủ đề: chủ đề "Chờ viết" trên cùng ở /admin; hết thì tự chọn theo phễu TOFU/MOFU/BOFU (tỉ lệ 50/30/20) + insight, tension của tệp khách.
+ *      Mọi bài (kể cả chủ đề được giao) đi qua bước 🎯 Insight → Tension → Phễu (insight.js): chọn nhóm khách (chủ đề có ghi nhóm → nhóm đó, không thì nhóm ít được viết nhất) + 1 tension rồi mới viết.
  *   2. Người duyệt (Quản trị, Quản lý, người được bật "Sửa website" ở CRM → Cài đặt → Nhân sự; phải nối Telegram) mở link /bai/<ngày>:
  *      ✅ Đăng · ✍️ Viết lại theo ý kiến · 🖊 Tự sửa trong /admin · 🔁 Đổi chủ đề khác · ❌ Bỏ.
  *   3. Bài đã duyệt: tới giờ đăng của ngày đăng thì commit content/posts/<slug>.md vào main (cùng lúc đổi chủ đề sang "Đã đăng") → web tự build, báo IndexNow.
@@ -17,6 +18,7 @@ import { crmUsers, crmLog } from './crm.js';
 import { cmsToken } from './cms.js';
 import { kb } from './chat.js';
 import { imgLib, prodMap } from './zbot.js';
+import { insPick, insBlock, insParse, insLog, insBank, INS_HEAD } from './insight.js';
 
 const REPO = 'thaisoniph/thucduonglanh.vn', GH = 'https://api.github.com', SITE = 'https://thucduonglanh.vn', API = 'https://api.thucduonglanh.vn';
 const CFG_PATH = 'data/blog-auto.json', POSTS_DIR = 'content/posts';
@@ -159,12 +161,17 @@ async function write(x, cfg, day, row) {
     const [know, slugs, lib] = await Promise.all([kb(), postSlugs(x), imgLib()]);
     const prods = prodMap(know), imgs = lib.slice(0, 90);
     const keep = row && !newTopic && row.md ? row : null; // bản cũ khi viết lại
+    let km = {}; try { km = JSON.parse(keep && keep.meta || '{}') || {}; } catch (e) { }
+    // 🎯 nhóm khách: chủ đề có ghi nhóm → nhóm đó; viết lại → giữ nhóm cũ; còn lại xoay vòng nhóm ít được viết nhất (insight.js)
+    const ip = await insPick(x, 'web', (topic && topic.group) || km.g || '');
     const ask = [
       'Viết 1 bài cho mục "Góc Sống Lành" trên website thucduonglanh.vn. Ngày đăng: ' + dayTxt(day) + '/' + day.slice(0, 4) + '.',
       'Tầng phễu: ' + FUNNEL[funnel].name + '. Mục tiêu: ' + FUNNEL[funnel].goal,
       topic ? 'CHỦ ĐỀ do nhân sự giao: ' + topic.title + (topic.note ? '\nGhi chú: ' + topic.note : '') + (topic.product ? '\nSản phẩm muốn nhắc: ' + topic.product : '')
-        : 'Chưa có chủ đề được giao: TỰ CHỌN 1 chủ đề. Cách chọn: chọn 1 nhóm khách trong TỆP KHÁCH HÀNG, chọn 1 tension (mâu thuẫn giữa điều họ mong và điều đang cản họ) chưa được viết gần đây, rồi đặt chủ đề giải đúng tension đó ở tầng phễu trên. Ưu tiên chủ đề người Việt đang tìm trên Google, gắn với thời điểm (mùa, ngày lễ, ngày sức khỏe thế giới trong tháng) nếu hợp.',
-      'TỆP KHÁCH HÀNG, INSIGHT, TENSION:\n' + (cfg.audience || '(chưa có)'),
+        : 'Chưa có chủ đề được giao: TỰ CHỌN 1 chủ đề. Cách chọn: lấy 1 tension của nhóm khách mục tiêu bên dưới (chưa được viết gần đây), rồi đặt chủ đề giải đúng tension đó ở tầng phễu trên. Ưu tiên chủ đề người Việt đang tìm trên Google, gắn với thời điểm (mùa, ngày lễ, ngày sức khỏe thế giới trong tháng) nếu hợp.',
+      topic ? 'Chủ đề được giao vẫn phải đi qua bước insight: viết chủ đề này cho nhóm khách mục tiêu bên dưới, xoay quanh 1 tension của họ.' : '',
+      insBlock(ip, funnel),
+      cfg.audience ? 'GHI CHÚ THÊM VỀ TỆP KHÁCH (ô Tệp khách hàng ở /admin):\n' + cfg.audience : '',
       keep ? 'BẢN NHÁP TRƯỚC (viết lại bản này):\n' + keep.md.slice(0, 12000) : '',
       fb ? 'Ý KIẾN CỦA NGƯỜI DUYỆT (bắt buộc làm theo): ' + fb : '',
       recent.length ? 'Bài trợ lý viết gần đây (không lặp chủ đề):\n' + recent.map(r => '- ' + r.day + ' [' + r.funnel + '] ' + r.title).join('\n') : '',
@@ -181,7 +188,7 @@ async function write(x, cfg, day, row) {
       '',
       imgs.length ? 'KHO ẢNH THẬT (số. mô tả) – chọn 1 ảnh bìa khớp rõ nhất với nội dung bài; không ảnh nào khớp thì ghi "không":\n' + imgs.map((i, n) => (n + 1) + '. ' + i.alt).join('\n') : '',
       '',
-      'Trả về ĐÚNG định dạng sau (không thêm lời dẫn):\nTIÊU ĐỀ: <tiêu đề 50–80 ký tự, có từ khóa người đọc hay tìm>\nMÃ: <đường dẫn không dấu, chữ thường, nối bằng gạch ngang, tối đa 8 từ>\nMÔ TẢ: <1–2 câu, tối đa 160 ký tự, hiện khi chia sẻ Facebook/Zalo và trên Google>\nCHUYÊN MỤC: <một trong: ' + CATS.join(', ') + '>\nTẦNG PHỄU: <TOFU | MOFU | BOFU>\nNHÓM KHÁCH: <nhóm khách + tension bài này giải, tối đa 15 chữ>\nSẢN PHẨM: <mã sản phẩm chính nếu có, không thì "không">\nẢNH: <số ảnh hoặc "không">\n---\n<nội dung bài, Markdown, KHÔNG lặp lại tiêu đề>'
+      'Trả về ĐÚNG định dạng sau (không thêm lời dẫn):\nTIÊU ĐỀ: <tiêu đề 50–80 ký tự, có từ khóa người đọc hay tìm>\nMÃ: <đường dẫn không dấu, chữ thường, nối bằng gạch ngang, tối đa 8 từ>\nMÔ TẢ: <1–2 câu, tối đa 160 ký tự, hiện khi chia sẻ Facebook/Zalo và trên Google>\nCHUYÊN MỤC: <một trong: ' + CATS.join(', ') + '>\nTẦNG PHỄU: <TOFU | MOFU | BOFU>\n' + INS_HEAD + '\nSẢN PHẨM: <mã sản phẩm chính nếu có, không thì "không">\nẢNH: <số ảnh hoặc "không">\n---\n<nội dung bài, Markdown, KHÔNG lặp lại tiêu đề>'
     ].filter(Boolean).join('\n');
     const system = [{ type: 'text', text: 'Bạn là biên tập viên nội dung của Thực Dưỡng Lành (VitaGreen Nutrition): thực phẩm dinh dưỡng từ hạt, trà thảo mộc, đồ chay. Bạn viết bài chuẩn SEO, đúng sự thật, đúng luật quảng cáo thực phẩm Việt Nam.' },
       { type: 'text', text: 'TÀI LIỆU (thông tin chính thức của Thực Dưỡng Lành):\n\n' + know, cache_control: { type: 'ephemeral' } }];
@@ -223,9 +230,12 @@ async function write(x, cfg, day, row) {
     const excerpt = get('MÔ TẢ').slice(0, 200), f2 = funnelOf(get('TẦNG PHỄU')) || funnel;
     const q = s => JSON.stringify(String(s)); // chuỗi YAML an toàn (có dấu : vẫn đúng)
     const md = ['---', 'title: ' + q(title), 'date: ' + day, 'category: ' + cat, 'image: ' + cover, 'excerpt: ' + q(excerpt), 'published: true', '---', '', body, ''].join('\n');
-    const m = { excerpt, cat, cover, who: get('NHÓM KHÁCH').slice(0, 120), checks, hour: cfg.hour, sources: [...urls].slice(0, 30), fb };
+    const ins = insParse(head, ip.bank, ip.g);
+    const m = { excerpt, cat, cover, who: ins.gn, g: ins.g, t: ins.t, i: ins.i, checks, hour: cfg.hour, sources: [...urls].slice(0, 30), fb };
+    if (!ins.t) checks.push('⚠️ Trợ lý chưa ghi rõ tension bài này giải, nên đọc kỹ xem bài có chạm đúng nỗi lòng của nhóm khách không');
     await run(x.db, "UPDATE bl_posts SET status = 'wait', title = ?, slug = ?, funnel = ?, topic = ?, tkey = ?, md = ?, meta = ?, hint = '', at = ?, err = '', tries = 0, remind = 0 WHERE day = ?",
       title, slug, f2, topic ? topic.title : 'Trợ lý tự chọn', topic ? topic.title : '', md, JSON.stringify(m), Date.now(), day);
+    await insLog(x, 'web', { g: ins.g, gn: ins.gn, f: f2, t: ins.t, ref: day });
     const p = await first(x.db, 'SELECT * FROM bl_posts WHERE day = ?', day);
     await notifyApprovers(x, p, (row && row.md ? '✍️ <b>Bài web đã viết lại, chờ duyệt</b>' : '📝 <b>Bài web mới chờ duyệt</b>') + (topic ? ' · chủ đề được giao' : ' · trợ lý tự chọn chủ đề'));
     return { day, title };
@@ -406,7 +416,7 @@ export async function crmBlog(x, u, d) {
     const posts = (await all(x.db, 'SELECT day, status, title, slug, funnel, topic, meta, by_name, at, pub_at, url, err, hidden, tries FROM bl_posts ORDER BY day DESC LIMIT 60')).map(r => Object.assign(r, { meta: meta(r), st: stName(r) }));
     return { ok: true, now, today, next, posts, cerr, aiOn: !!x.env.ANTHROPIC_API_KEY, gh: !!await cmsToken(x),
       cfg: cfg && { on: cfg.on, per_week: cfg.per, hour: cfg.hour, audience: cfg.audience, topics: cfg.topics },
-      approvers: (await approvers(x)).map(y => ({ name: y.name, tg: !!y.tg })), dayNames: Object.fromEntries(Object.entries(DAYS).map(([k, v]) => [k, v.map(i => WD[i]).join(', ')])) };
+      approvers: (await approvers(x)).map(y => ({ name: y.name, tg: !!y.tg })), insG: (await insBank(x)).map(g => ({ id: g.id, name: g.name, on: g.on })), dayNames: Object.fromEntries(Object.entries(DAYS).map(([k, v]) => [k, v.map(i => WD[i]).join(', ')])) };
   }
   if (a === 'bl_post') { // xem trước bài đầy đủ
     const p = await first(x.db, 'SELECT * FROM bl_posts WHERE day = ?', String(d.day || ''));
@@ -426,7 +436,7 @@ export async function crmBlog(x, u, d) {
     if (d.per_week !== undefined) patch.per_week = Math.min(7, Math.max(1, Math.round(Number(d.per_week) || 3)));
     if (d.hour !== undefined) patch.hour = Math.min(21, Math.max(7, Math.round(Number(d.hour) || 9)));
     if (d.audience !== undefined) patch.audience = cut(d.audience, 8000);
-    const topics = Array.isArray(d.topics) ? d.topics.slice(0, 150).map(t => ({ title: cut(t.title, 200), note: cut(t.note, 1500), funnel: TOPIC_FN.includes(t.funnel) ? t.funnel : 'Tự chọn', product: cut(t.product, 80), status: TOPIC_ST.includes(t.status) ? t.status : 'Chờ viết', link: cut(t.link, 300) })).filter(t => t.title) : null;
+    const topics = Array.isArray(d.topics) ? d.topics.slice(0, 150).map(t => ({ title: cut(t.title, 200), note: cut(t.note, 1500), funnel: TOPIC_FN.includes(t.funnel) ? t.funnel : 'Tự chọn', group: cut(t.group, 80), product: cut(t.product, 80), status: TOPIC_ST.includes(t.status) ? t.status : 'Chờ viết', link: cut(t.link, 300) })).filter(t => t.title) : null;
     await ghCommit(x, async () => {
       const raw = await cfgRaw(x); Object.assign(raw, patch);
       if (topics) { // trợ lý có thể vừa đổi chủ đề sang "Đã đăng" sau lúc CRM tải → giữ trạng thái đó

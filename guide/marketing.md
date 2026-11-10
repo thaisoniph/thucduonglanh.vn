@@ -2,7 +2,7 @@
 title: Hướng dẫn cho Marketing và phụ trách sàn
 nav: Marketing
 order: 5
-updated: 2026-10-29
+updated: 2026-11-10
 description: Xem hiệu quả quảng cáo, nhập chi phí, tạo link và mã QR, cập nhật số liệu sàn.
 ---
 
@@ -195,6 +195,27 @@ Mỗi nơi khách nhìn thấy (tờ rơi ở sự kiện, standee ở đối t�
 - Không dùng nữa: **✏️ Sửa → ⏸ Ngừng dùng**. Không có nút xoá, để tờ rơi đã phát không bị hỏng link.
 
 **Đọc số:** **👀 Lượt quét** (mỗi điện thoại tính 1 lần mỗi ngày), **🛒 Đơn** và **💰 Tiền** (khách đặt trong 30 ngày sau khi quét), **🆕 Khách mới**. Xem riêng 1 sự kiện: chọn **📅** đúng ngày sự kiện.
+
+## 🎯 Insight & nội dung
+
+Mở: menu **Thêm → 🎯 Insight & nội dung** (Marketing thấy ngay trên menu). Đây là "bộ não" chung của mọi trợ lý viết bài: **bài web, bài nhóm Zalo, bài Fanpage và kịch bản video** đều phải đi qua 4 bước này trước khi viết (theo khoá content anh Tuấn Hà):
+
+1. **Chọn 1 nhóm khách** (mẹ bỉm, dân văn phòng, trung niên, người ăn chay, con cái mua quà cho bố mẹ…).
+2. **Chọn 1 tension** của nhóm đó: điều họ **mong** ↔ điều đang **cản** họ, trong 1 cảnh cụ thể. Ví dụ: *"Biết phải ăn sáng đủ chất ↔ sáng nào cũng vội, ăn tạm hoặc bỏ bữa"*.
+3. **Chọn tầng phễu**: 🔵 **TOFU** (giá trị nằm ở chính nội dung, không bán) · ⚪ **MOFU** (tạo niềm tin bằng bằng chứng thật: nguồn gốc, nhà máy, hồ sơ công bố, cảm nhận khách thật) · 🟠 **BOFU** (giới thiệu sản phẩm, ưu đãi thật, mời đặt hàng).
+4. **Viết**: câu mở chạm đúng tension, thân bài gỡ tension, cuối bài có **1 lối ra** (bình luận nhận quà, xem sản phẩm, đặt hàng).
+
+Trên thẻ bài ở tab Zalo, Fanpage, Bài web có dòng **🎯 nhóm khách · tension** và câu 💭 insight. Khi duyệt, đọc dòng này trước rồi hỏi: *bài có chạm đúng nỗi lòng đó không?* Chưa đúng thì bấm **🔄 Viết lại**, chọn nhóm khách khác hoặc ghi ý kiến.
+
+**Trong tab có 3 phần:**
+
+- **📊 30 ngày qua**: mỗi nhóm khách đã có bao nhiêu bài, ở kênh nào, tỉ lệ 🔵 ⚪ 🟠 từng kênh. Nhóm có ⚠️ "chưa có nội dung nào" thì trợ lý sẽ tự ưu tiên ở lần viết sau.
+- **🎬 Viết kịch bản video ngắn** (TikTok, Reels, Shorts): chọn nhóm khách (hoặc để tự chọn), tầng phễu, sản phẩm, độ dài, kiểu quay, bấm **🎬 Viết kịch bản**. Khoảng 30–60 giây sau có: 3 câu hook để quay thử, kịch bản từng cảnh (bảng 6 cột: cảnh, thời lượng, hình ảnh, lời thoại, chữ trên màn hình, nguồn hình, đúng mẫu khoá video Vinalink), caption và ghi chú quay. Bấm **📋 Copy kịch bản** để dán cho người quay hoặc đưa vào công cụ dựng video.
+- **👥 Ngân hàng insight**: chân dung, mong muốn, rào cản và các tension của từng nhóm. Bấm **✏️ Sửa** để thêm tension mới (mỗi dòng 1 cái, dạng *"Muốn … ↔ nhưng …"*), **⏸ Tạm tắt** nhóm chưa muốn nhắm, **➕ Thêm nhóm khách** khi có tệp mới. Sửa ở đây là cả 4 trợ lý dùng theo ngay.
+
+**Mẹo làm insight tốt:** lấy từ lời khách thật (tin nhắn Zalo, bình luận, câu sale hay nghe), không lấy từ tính năng sản phẩm. Tension phải thấy rõ **2 cực đang giằng co**. Không viết tension khoét sâu nỗi sợ bệnh tật để ép mua.
+
+Ngoài CRM: nếu anh chị dùng ChatGPT, Gemini hoặc Claude đã nối CRM, hỏi *"lấy insight khách hàng của Thực Dưỡng Lành rồi viết giúp tôi …"*, AI sẽ gọi công cụ **insight_noi_dung** để viết đúng quy trình.
 
 ## Trợ lý Zalo An Lành trong nhóm
 

@@ -1927,3 +1927,26 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .own-box .err:empty { display: none; }
 .own-wait .own-card { border-top: 1px solid var(--line, #eee); padding: 8px 0; }
 .own-wait .own-card .own-box { margin: 6px 0 0; }
+
+/* ================================================================ 🎯 Insight & nội dung (10/11/2026, viewIns trong app.js) – tiền tố inx- */
+.inx-tag { margin: 6px 0; padding: 6px 10px; border-left: 3px solid #d9480f; background: #fff4ec; border-radius: 0 8px 8px 0; line-height: 1.45; }
+.inx-stats .inx-srow { padding: 6px 0; border-bottom: 1px solid var(--line); }
+.inx-stats .inx-srow:last-of-type { border-bottom: 0; }
+.inx-sn { display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; }
+.inx-bar { height: 6px; background: var(--bg); border-radius: 99px; margin: 4px 0; overflow: hidden; }
+.inx-bar i { display: block; height: 100%; background: #d9480f; border-radius: 99px; min-width: 2px; }
+.inx-fun p { margin: 6px 0; }
+.inx-fun .zb-fun { margin: 2px 4px 2px 0; }
+.inx-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0 12px; }
+.inx-grid select { width: 100%; }
+.inx-list { margin-top: 10px; }
+.inx-sc summary { cursor: pointer; line-height: 1.5; }
+.inx-script { margin-top: 8px; }
+.inx-scenes { display: grid; gap: 8px; margin: 6px 0 10px; }
+.inx-scene { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; background: var(--card); }
+.inx-scene p { margin: 3px 0; font-size: 14px; line-height: 1.45; }
+.inx-sh { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+.inx-sh span { color: var(--muted); font-size: 13px; white-space: nowrap; }
+.inx-g .inx-tl { margin: 4px 0 6px; padding-left: 20px; }
+.inx-g .inx-tl li { margin: 2px 0; }
+.inx-aud { display: flex; flex-wrap: wrap; gap: 0 14px; }
