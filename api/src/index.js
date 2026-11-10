@@ -6,7 +6,7 @@ import { telegram, sendMail, tgConf, bridge } from './google.js';
 import { SYNC, DUPS } from './sync.js';
 import { migrate } from './migrate.js';
 import { scheduled, mirror, dailyCare } from './cron.js';
-import { blogRoute } from './blog.js';
+import { blogRoute, blogConv } from './blog.js';
 import { cmsRoute } from './cms.js';
 import { voucherCheck, voucherApply } from './voucher.js';
 import { qrGo } from './links.js';
@@ -64,7 +64,8 @@ async function website(x, data) {
         if (data.id && await first(x.db, 'SELECT rid FROM orders WHERE id = ?', String(data.id))) return { ok: true, id: data.id, dup: true };
         const v = await voucherApply(x, data); if (!v.ok) return { ok: false, voucher_error: v.error, error: v.error };
       } else { data.discount = 0; }
-      const r = await saveOrder(x, data, {}); return { ok: true, id: data.id, dup: !!r.dup, total: data.total };
+      const r = await saveOrder(x, data, {}); if (!r.dup && data.post) x.later(blogConv(x, data)); // 📰 khách đọc bài Góc Sống Lành trong 7 ngày trước khi đặt → đếm đơn cho bài (blog.js)
+      return { ok: true, id: data.id, dup: !!r.dup, total: data.total };
     }
     catch (e) { if (await rescue(x, data, e)) return { ok: true, id: data.id, rescued: true }; throw e; }
   }

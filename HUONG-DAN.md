@@ -413,6 +413,7 @@ Apps Script giới hạn 200 phiên bản/dự án: báo lỗi "Không tạo đ�
 - Người duyệt = Quản trị, Quản lý, người bật "Sửa website" (có Telegram). Link duyệt `api.thucduonglanh.vn/bai/<ngày>?u=&k=` ký HMAC (kv `bl_secret`) riêng từng người.
 - Duyệt xong: tới giờ đăng thì commit `content/posts/<mã>.md` và đổi chủ đề sang "Đã đăng" trong 1 commit → deploy.yml build + IndexNow. Chưa duyệt thì không bao giờ tự đăng.
 - CRM tab 📰 Bài web (`viewBlog` trong crm/app.js, lệnh `bl_view / bl_post / bl_act / bl_cfg` trong blog.js `crmBlog`): xem, duyệt, sửa cài đặt + chủ đề (ghi thẳng `data/blog-auto.json` bằng 1 commit). Quyền như người duyệt.
+- 📊 Hiệu quả (lệnh `bl_stats`): GA4 theo pagePath /goc-song-lanh/ (lượt xem, người đọc, thời gian, add_to_cart + cta_click; lưu tạm kv bl_ga_<ngày> 3 tiếng), đơn sau khi đọc = bảng `bl_conv` (main.js lưu `tdl_post` khi đọc bài, đơn gửi kèm `post` nếu đọc trong 7 ngày; index.js gọi `blogConv`), chi phí từ `ai_usage` mục web-bai.
 - Chi phí AI đếm ở mục "📰 Trợ lý viết bài web" (CRM → Chi phí AI). Ước tính 8–10 nghìn đồng / bài, chưa gồm phí tìm kiếm của Anthropic ($10 / 1.000 lượt, tối đa 6 lượt / bài).
 
 ## 7. Tên miền, DNS, chuyển hướng

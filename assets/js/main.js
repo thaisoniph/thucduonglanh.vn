@@ -103,6 +103,7 @@
       else if (document.referrer && document.referrer.indexOf(location.host) < 0) { var h = new URL(document.referrer).hostname.replace(/^www\./, ''); src = { source: h, medium: /google|bing|coccoc/.test(h) ? 'organic' : 'referral', campaign: '' }; }
       if (src) { src.t = now; src.landing = location.pathname; var first = load('tdl_src_first', null); if (!first || now - first.t > 30 * 864e5) save('tdl_src_first', src); save('tdl_src_last', src); }
     } catch (e) { }
+    try { var pm = location.pathname.match(/^\/goc-song-lanh\/([a-z0-9-]+)\/?$/); if (pm && pm[1] !== 'chuyen-muc') save('tdl_post', { s: pm[1], t: now }); } catch (e) { } // 📰 bài khách đọc gần nhất → đơn trong 7 ngày được tính cho bài (CRM → Bài web → Hiệu quả)
   }
   function refCode() { var r = load('tdl_ref', null); return r && r.r && Date.now() - r.t < 30 * 864e5 ? r.r : ''; }
   function sourceLabel() { var l = load('tdl_src_last', null), f = load('tdl_src_first', null); function fmt(x) { return x ? [x.source, x.medium, x.campaign].filter(Boolean).join(' / ') : ''; } return { last: fmt(l) || 'Truy cập trực tiếp', first: fmt(f) || '' }; } // ghi vào đơn cho nhân sự: luôn tiếng Việt
@@ -1042,7 +1043,7 @@
     // gửi tên tiếng Việt (name_vi) để CRM nhận đúng sản phẩm / chu kỳ dùng dù khách đặt ở bản ngôn ngữ khác
     var clean = items.map(function (i) { var b = BY[i.slug] || {}; return { slug: i.slug, name: i.name_vi || i.name, variant: i.variant_vi || i.variant, qty: i.qty, price: i.price, subtotal: i.subtotal, days: b.days || undefined }; });
     var src = sourceLabel();
-    var order = { type: 'order', id: id, created: d.toISOString(), customer: data.customer, payment: data.payment, items: clean, subtotal: sub, shipping: t.fee, total: t.total, voucher: t.on ? VC.code : '', discount: t.off, page: location.href, marketing_consent: !!data.marketing, source: src.last, first_source: src.first, ref: refCode(), ref_at: refCode() ? (load('tdl_ref', null) || {}).t || 0 : 0 }; // ref_at: lúc khách bấm link (CTV không được tính khách đã là khách hỏi của sale trước lúc này)
+    var order = { type: 'order', id: id, created: d.toISOString(), customer: data.customer, payment: data.payment, items: clean, subtotal: sub, shipping: t.fee, total: t.total, voucher: t.on ? VC.code : '', discount: t.off, page: location.href, marketing_consent: !!data.marketing, source: src.last, first_source: src.first, post: (function () { var p = load('tdl_post', null); return p && Date.now() - p.t < 7 * 864e5 ? p.s : ''; })(), ref: refCode(), ref_at: refCode() ? (load('tdl_ref', null) || {}).t || 0 : 0 }; // ref_at: lúc khách bấm link (CTV không được tính khách đã là khách hỏi của sale trước lúc này)
     var label = btn.innerHTML; btn.disabled = true; btn.textContent = T('Đang gửi đơn hàng…');
     send(order).then(function (r) { order.sent = r.sent; if (r.total) order.total = r.total; if (LANG !== 'vi') order.view = items.map(function (i) { return { name: i.name, variant: i.variant }; }); save('tdl_last_order', order); if (order.voucher) vcClear(); if (onSent) onSent(); location.href = U('/dat-hang-thanh-cong/') + '?id=' + id; })
       .catch(function (e) {

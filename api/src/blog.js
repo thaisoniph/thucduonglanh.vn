@@ -12,7 +12,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { aiFetch } from './airelay.js';
 import { esc, run, all, first, kvGet, kvSet, fmtDate, randHex, hashKey, TZ_MS, DAY, CRM_URL } from './lib.js';
-import { telegram, telegramTo } from './google.js';
+import { telegram, telegramTo, gInfo } from './google.js';
 import { crmUsers, crmLog } from './crm.js';
 import { cmsToken } from './cms.js';
 import { kb } from './chat.js';
@@ -41,6 +41,7 @@ async function schema(db) {
   await run(db, `CREATE TABLE IF NOT EXISTS bl_posts (day TEXT PRIMARY KEY, status TEXT, title TEXT DEFAULT '', slug TEXT DEFAULT '', funnel TEXT DEFAULT '', topic TEXT DEFAULT '',
     tkey TEXT DEFAULT '', md TEXT DEFAULT '', meta TEXT DEFAULT '{}', hint TEXT DEFAULT '', by_name TEXT DEFAULT '', at INTEGER DEFAULT 0, pub_at INTEGER DEFAULT 0,
     url TEXT DEFAULT '', err TEXT DEFAULT '', tries INTEGER DEFAULT 0, remind INTEGER DEFAULT 0, hidden INTEGER DEFAULT 0)`);
+  await run(db, "CREATE TABLE IF NOT EXISTS bl_conv (oid TEXT PRIMARY KEY, slug TEXT, at INTEGER, total INTEGER DEFAULT 0)"); // đơn đặt trong 7 ngày sau khi khách đọc 1 bài viết (bài đọc gần nhất)
   schemaOk = true;
 }
 const addDays = (d, n) => fmtDate(new Date(d + 'T12:00:00+07:00').getTime() + n * DAY, 'yyyy-MM-dd');
@@ -430,5 +431,47 @@ export async function crmBlog(x, u, d) {
     await logIt(x, u, topics ? 'Sửa chủ đề bài web' : 'Sửa cài đặt trợ lý viết bài', JSON.stringify(patch).slice(0, 200));
     return { ok: true };
   }
+  if (a === 'bl_stats') return Object.assign({ ok: true }, await blogStats(x, [7, 30, 90].includes(Number(d.days)) ? Number(d.days) : 30));
   return { ok: false, error: 'Không rõ thao tác.' };
+}
+
+/* ---------------------------------------------------------------- 📊 hiệu quả bài viết */
+/** Đơn web có kèm bài khách đọc gần nhất (main.js: localStorage tdl_post, 7 ngày) → bl_conv. */
+export async function blogConv(x, data) {
+  const slug = String(data.post || '').toLowerCase(); if (!/^[a-z0-9-]{3,120}$/.test(slug) || !data.id) return;
+  await schema(x.db);
+  await run(x.db, 'INSERT OR IGNORE INTO bl_conv (oid, slug, at, total) VALUES (?, ?, ?, ?)', String(data.id), slug, Date.now(), Math.round(Number(data.total) || 0));
+}
+/** Lượt xem từng bài từ GA4 (chỉ người bấm Đồng ý cookie), lưu tạm 3 tiếng. Chưa nối GA4 (tab Tổng quan) → null + lý do. */
+async function gaPosts(x, days) {
+  const ck = 'bl_ga_' + days, c = await kvGet(x.db, ck); if (c) { try { return JSON.parse(c); } catch (e) { } }
+  const prop = await kvGet(x.db, 'ga_prop'); if (!prop) return { err: 'Chưa nối Google Analytics (Quản trị nối ở tab Tổng quan → khối Website).' };
+  let tok; try { tok = (await gInfo(x.env)).token; } catch (e) { return { err: 'Chưa lấy được quyền đọc Google Analytics: ' + String(e.message).slice(0, 120) }; }
+  const range = [{ startDate: days + 'daysAgo', endDate: 'today' }], path = { filter: { fieldName: 'pagePath', stringFilter: { matchType: 'BEGINS_WITH', value: '/goc-song-lanh/' } } };
+  const body = { requests: [
+    { dateRanges: range, dimensions: [{ name: 'pagePath' }], metrics: [{ name: 'screenPageViews' }, { name: 'activeUsers' }, { name: 'userEngagementDuration' }], dimensionFilter: path, limit: 500 },
+    { dateRanges: range, dimensions: [{ name: 'pagePath' }, { name: 'eventName' }], metrics: [{ name: 'eventCount' }], limit: 1000,
+      dimensionFilter: { andGroup: { expressions: [path, { filter: { fieldName: 'eventName', inListFilter: { values: ['add_to_cart', 'cta_click'] } } }] } } }] };
+  const r = await fetch('https://analyticsdata.googleapis.com/v1beta/properties/' + prop + ':batchRunReports', { method: 'POST', headers: { Authorization: 'Bearer ' + tok, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) return { err: 'Google Analytics báo lỗi: ' + String((j.error && j.error.message) || r.status).slice(0, 150) };
+  const rows = k => ((j.reports || [])[k] || {}).rows || [], out = {};
+  const slugOf = p => (String(p).match(/^\/goc-song-lanh\/([a-z0-9-]+)\/?$/) || [])[1];
+  for (const w of rows(0)) { const s = slugOf(w.dimensionValues[0].value); if (!s || s === 'chuyen-muc') continue; const o = out[s] || (out[s] = { v: 0, u: 0, sec: 0, cart: 0, cta: 0 }); o.v += +w.metricValues[0].value || 0; o.u += +w.metricValues[1].value || 0; o.sec += +w.metricValues[2].value || 0; }
+  for (const w of rows(1)) { const s = slugOf(w.dimensionValues[0].value); if (!s || !out[s]) continue; if (w.dimensionValues[1].value === 'add_to_cart') out[s].cart += +w.metricValues[0].value || 0; else out[s].cta += +w.metricValues[0].value || 0; }
+  const res = { pages: out, at: Date.now() }; await kvSet(x.db, ck, JSON.stringify(res), 3 * 3600e3); return res;
+}
+async function blogStats(x, days) {
+  const now = Date.now(), since = now - days * DAY;
+  const mine = await all(x.db, "SELECT day, title, slug, funnel, url, pub_at FROM bl_posts WHERE status = 'published' AND hidden = 0 ORDER BY day DESC LIMIT 200");
+  const conv = await all(x.db, 'SELECT c.slug, c.total, o.status FROM bl_conv c LEFT JOIN orders o ON o.id = c.oid WHERE c.at >= ?', since);
+  const ord = {}; for (const c of conv) { if (/huỷ|hủy|hoàn/i.test(String(c.status || ''))) continue; const o = ord[c.slug] || (ord[c.slug] = { n: 0, rev: 0 }); o.n++; o.rev += c.total || 0; }
+  const ga = await gaPosts(x, days);
+  const cost = await first(x.db, "SELECT sum(usd) AS usd, sum(n) AS n FROM ai_usage WHERE muc = 'web-bai' AND day >= ?", fmtDate(since, 'yyyyMMdd')).catch(() => null);
+  const rate = Number(await kvGet(x.db, 'ai_rate')) || 26500;
+  const ai = new Set(mine.map(p => p.slug)), pages = (ga && ga.pages) || {}, slugs = new Set([...Object.keys(pages), ...Object.keys(ord), ...mine.map(p => p.slug)]);
+  const title = {}; try { for (const m of String(await kb()).matchAll(/\[([^\]]+)\]\(https:\/\/thucduonglanh\.vn\/goc-song-lanh\/([a-z0-9-]+)\/\)/g)) title[m[2]] = m[1]; } catch (e) { } // tên bài viết người viết tay
+  mine.forEach(p => { title[p.slug] = p.title; });
+  const list = [...slugs].map(s => { const g = pages[s] || {}, o = ord[s] || {}, m = mine.find(p => p.slug === s); return { slug: s, title: title[s] || '', ai: ai.has(s), funnel: m ? m.funnel : '', day: m ? m.day : '', v: g.v || 0, u: g.u || 0, sec: g.u ? Math.round(g.sec / g.u) : 0, cart: g.cart || 0, cta: g.cta || 0, n: o.n || 0, rev: o.rev || 0 }; });
+  return { days, list, gaErr: ga && ga.err || '', gaAt: ga && ga.at || 0, published: mine.filter(p => (p.pub_at || 0) >= since).length, costVnd: Math.round(((cost && cost.usd) || 0) * rate) };
 }
