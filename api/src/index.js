@@ -17,9 +17,10 @@ import { zbot, zbotLead, zbImg } from './zbot.js';
 import { refMe, ctvMe, ctvApply } from './partner.js';
 import { fbRoute } from './fb.js';
 import { mcpRoute } from './mcp.js';
+import { ddApply, ddStatus } from './ngaydoi.js';
 export { AiRelay } from './airelay.js'; // Durable Object chuyển tiếp lời gọi AI qua Bắc Mỹ
 
-const API_VERSION = '2026-11-10t'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
+const API_VERSION = '2026-11-10u'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
 const ORIGINS = /^https:\/\/((www\.|crm\.|quantri\.|mkt\.|kho\.|ketoan\.|congsu\.|camnangsongkhoe\.)?thucduonglanh\.vn|([a-z0-9-]+\.)?(thucduonglanh(-crm|-congsu)?|camnang-song-khoe-thuc-duong-lanh)\.pages\.dev)$|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
 function ctxOf(env, ectx) { return { env, db: env.DB, later: p => ectx.waitUntil(Promise.resolve(p).catch(e => console.error('later', e && e.message))) }; }
@@ -60,12 +61,14 @@ async function website(x, data) {
   if (data.type === 'zbot') { await ensureSchema(x.db); return await zbot(x, data); } // 🤖 chương trình Zalo "Trợ lý An Lành" (zbot.js, zalo-bot/); bảng mới (zb_act…) tạo cả khi chưa ai mở CRM
   if (data.type === 'order') {
     try {
-      if (data.voucher) { // đơn gửi lại (mạng chập chờn) đã lưu rồi thì không kiểm tra lại mã (mã 1 lần sẽ báo "đã dùng")
-        if (data.id && await first(x.db, 'SELECT rid FROM orders WHERE id = ?', String(data.id))) return { ok: true, id: data.id, dup: true };
+      // đơn gửi lại (mạng chập chờn) đã lưu rồi thì không kiểm tra lại mã (mã 1 lần sẽ báo "đã dùng") và không tính lại suất quà Ngày Đôi
+      if (data.id && await first(x.db, 'SELECT rid FROM orders WHERE id = ?', String(data.id))) return { ok: true, id: data.id, dup: true };
+      if (data.voucher) {
         const v = await voucherApply(x, data); if (!v.ok) return { ok: false, voucher_error: v.error, error: v.error };
       } else { data.discount = 0; }
+      let dd = null; try { dd = await ddApply(x, data); } catch (e) { console.error('ngaydoi', e.message); } // 🎉 Ngày Đôi 1/1…12/12: miễn ship + quà (ngaydoi.js)
       const r = await saveOrder(x, data, {}); if (!r.dup && data.post) x.later(blogConv(x, data)); // 📰 khách đọc bài Góc Sống Lành trong 7 ngày trước khi đặt → đếm đơn cho bài (blog.js)
-      return { ok: true, id: data.id, dup: !!r.dup, total: data.total };
+      return { ok: true, id: data.id, dup: !!r.dup, total: data.total, dd };
     }
     catch (e) { if (await rescue(x, data, e)) return { ok: true, id: data.id, rescued: true }; throw e; }
   }
@@ -135,6 +138,13 @@ export default {
           const ck = new Request(key.toString()), cache = caches.default;
           let r = await cache.match(ck);
           if (!r) { await ensureSchema(x.db); r = new Response(JSON.stringify(await wall(x, key.searchParams.get('q'), key.searchParams.get('p'), key.searchParams.get('b'))), { headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=120' } }); x.later(cache.put(ck, r.clone())); }
+          const h = new Headers(r.headers); h.set('Access-Control-Allow-Origin', '*');
+          return new Response(r.body, { headers: h });
+        }
+        if (path === '/api/ngay-doi') { // 🎉 Ngày Đôi: web hỏi còn mấy suất quà "N đơn đầu" (ngaydoi.js), lưu đệm 20 giây
+          const ck = new Request('https://api.thucduonglanh.vn/api/ngay-doi'), cache = caches.default;
+          let r = await cache.match(ck);
+          if (!r) { r = new Response(JSON.stringify(await ddStatus(x)), { headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=20' } }); x.later(cache.put(ck, r.clone())); }
           const h = new Headers(r.headers); h.set('Access-Control-Allow-Origin', '*');
           return new Response(r.body, { headers: h });
         }

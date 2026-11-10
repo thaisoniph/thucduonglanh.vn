@@ -235,6 +235,7 @@
   function shipEv(lv) { return { currency: 'VND', value: lv.sub, milestone: lv.level >= 2 ? 'milestone_2' : (lv.level === 1 ? 'free_shipping' : 'none'), next_milestone: lv.next, gap: lv.gap, items: cart.map(function (it) { return gaItem(it.slug, it.vi, it.qty); }).filter(Boolean) }; }
   function shipProgressHTML(sub, items) {
     var fee = +CFG.shipping_fee || 0, lv = shipLevel(sub, items), th = lv.th, m2 = lv.m2; if (!th || !fee) return '';
+    var dd = ddBoxHTML(sub, 'sp'); if (dd) return dd; // 🎉 Ngày Đôi: miễn ship + tiến độ tới quà
     if (lv.fs && !m2) return '<div class="sp ok sp-done"><p class="sp-msg">' + T('🎉 Đơn hàng được <b>miễn phí vận chuyển</b>') + '</p></div>'; // đã đủ, không còn mốc nào: 1 dòng gọn
     var max = m2 ? m2.amount : th, pct = Math.min(100, Math.max(lv.fs && !m2 ? 100 : 3, Math.round(sub / max * 100)));
     var msg;
@@ -507,7 +508,8 @@
   var UNIT_WORDS = ['hộp', 'hũ', 'chai', 'gói', 'túi', 'lọ', 'bịch'];
   function shipHint(p, v, q) {
     var th = +CFG.free_ship_threshold || 0, fee = +CFG.shipping_fee || 0, price = v && v.price;
-    if (p.fs) return T('🚚 Được <b>miễn phí vận chuyển</b>');
+    if (ddFree() && LANG === 'vi') return '🎉 <b>' + esc(CFG.dd.name || 'Ngày Đôi') + ' ' + ddOn().label + '</b>: miễn phí vận chuyển mọi đơn' + (CFG.dd.gift && CFG.dd.gift_min ? ', đơn từ ' + ddK(CFG.dd.gift_min) + ' tặng ' + esc(CFG.dd.gift) : '');
+    if (p.fs || ddFree()) return T('🚚 Được <b>miễn phí vận chuyển</b>');
     if (!th || !fee || !price) return T('🚚 Giao hàng toàn quốc');
     if (price * (q || 1) >= th) return (q || 1) > 1 ? T('🚚 Số lượng này được <b>miễn phí vận chuyển</b>') : T('🚚 Được <b>miễn phí vận chuyển</b>');
     var w = String((v === p ? p.unit : v.name) || '').trim().split(' ')[0].toLowerCase(); if (LANG !== 'vi' || UNIT_WORDS.indexOf(w) < 0) w = T('sản phẩm');
@@ -625,8 +627,68 @@
     });
   }
 
+  /* ---------- 🎉 Ngày Đôi Sống Lành (10/11/2026): ngày 1/1, 2/2 … 12/12 (giờ VN), đặt trên web được miễn ship + quà (site.json double_day → CFG.dd).
+     Máy chủ (api/src/ngaydoi.js) tự trừ ship + thêm quà vào đơn + đếm suất "N đơn đầu"; web chỉ hiện cho khách thấy trước. */
+  var VN_MS = 7 * 36e5, DDS = null; // DDS: { left, n } từ /api/ngay-doi
+  function ddDate(add) { var d = new Date(Date.now() + VN_MS + (add || 0) * 864e5); return { d: d.getUTCDate(), m: d.getUTCMonth() + 1 }; }
+  function ddOn() { if (!CFG.dd) return null; var t = ddDate(0); return t.d === t.m ? { label: t.d + '/' + t.m } : null; }
+  function ddFree() { return !!(CFG.dd && CFG.dd.free_ship && ddOn()); }
+  function ddK(v) { return Math.round(v / 1000) + 'K'; }
+  /** dòng quà theo tạm tính (giỏ mini, trang thanh toán): chỉ bản tiếng Việt */
+  function ddLines(sub) {
+    var c = CFG.dd, out = [];
+    if (c.gift && c.gift_min) out.push(sub >= c.gift_min ? '🎁 ' + 'Được tặng' + ' <b>' + esc(c.gift) + '</b>' : '🎁 ' + 'Thêm' + ' <b>' + money(c.gift_min - sub) + '</b> ' + 'để được tặng' + ' <b>' + esc(c.gift) + '</b>');
+    if (c.first && c.first_n && !(DDS && DDS.left === 0)) {
+      var left = DDS ? ' (' + 'còn' + ' <b>' + DDS.left + '/' + c.first_n + '</b> ' + 'suất' + ')' : '';
+      out.push(sub >= c.first_min ? '⚡ ' + c.first_n + ' ' + 'đơn đầu tiên hôm nay được tặng thêm' + ' <b>' + esc(c.first) + '</b>' + left
+        : '⚡ ' + 'Thêm' + ' <b>' + money(c.first_min - sub) + '</b> ' + 'để vào nhóm' + ' ' + c.first_n + ' ' + 'đơn đầu tiên được tặng thêm' + ' <b>' + esc(c.first) + '</b>' + left);
+    }
+    return out;
+  }
+  function ddBoxHTML(sub, cls) {
+    var on = ddOn(), c = CFG.dd; if (!on || LANG !== 'vi') return '';
+    var lines = ddLines(sub), tgt = c.gift && c.gift_min ? c.gift_min : 0, pct = tgt ? Math.min(100, Math.max(4, Math.round(sub / tgt * 100))) : 100;
+    return '<div class="' + cls + ' ok dd-box"><p class="sp-msg">🎉 <b>' + esc(c.name || 'Ngày Đôi') + ' ' + on.label + '</b>: ' + (c.free_ship ? 'đơn được <b>miễn phí vận chuyển</b>' : 'đặt trên web có quà') + '</p>' +
+      lines.map(function (l) { return '<p class="dd-l">' + l + '</p>'; }).join('') + (tgt && sub < tgt ? '<div class="sp-track"><i style="width:' + pct + '%"></i></div>' : '') + '</div>';
+  }
+  function ddPad(n) { return (n < 10 ? '0' : '') + n; }
+  function ddLoad(cb) {
+    if (!CFG.dd || !CFG.dd.first_n || !CFG.endpoint || !/\/api$/.test(CFG.endpoint)) return;
+    fetch(CFG.endpoint + '/ngay-doi').then(function (r) { return r.json(); }).then(function (j) { if (j && j.on) { DDS = { left: +j.left || 0, n: +j.n || 0 }; if (cb) cb(); } }).catch(function () { });
+  }
+  /** dải thông báo trên cùng: trong ngày đôi đếm ngược tới 24h, hôm trước báo trước (đếm ngược tới 0h) */
+  function initDD() {
+    var c = CFG.dd; if (!c || LANG !== 'vi') return;
+    var on = ddOn(), tm = ddDate(1), pre = !on && c.teaser && tm.d === tm.m; if (!on && !pre) return;
+    var end = (Math.floor((Date.now() + VN_MS) / 864e5) + 1) * 864e5 - VN_MS, label = on ? on.label : tm.d + '/' + tm.m;
+    var bar = document.createElement('div'); bar.className = 'dd-bar' + (pre ? ' dd-pre' : ''); bar.setAttribute('role', 'region'); bar.setAttribute('aria-label', (c.name || 'Ngày Đôi') + ' ' + label);
+    var tb = $('.topbar'); if (tb && tb.parentNode) tb.parentNode.insertBefore(bar, tb); else document.body.insertBefore(bar, document.body.firstChild);
+    var perks = function () {
+      var p = [c.free_ship ? 'Miễn ship mọi đơn' : '', c.gift && c.gift_min ? 'Đơn từ ' + ddK(c.gift_min) + ' tặng ' + esc(c.gift) : ''].filter(Boolean).join(' · ');
+      if (c.first && c.first_n) p += '<span class="dd-f"> · ' + (DDS && DDS.left === 0 ? c.first_n + ' suất ' + esc(c.first) + ' đã có chủ 🎉' : c.first_n + ' đơn đầu' + (c.first_min ? ' từ ' + ddK(c.first_min) : '') + ' tặng thêm ' + esc(c.first) + (DDS ? ' <em>(còn ' + DDS.left + ' suất)</em>' : '')) + '</span>';
+      return p;
+    };
+    var short = function () { // điện thoại: 1 dòng ngắn
+      var q = c.first && c.first_n && DDS && DDS.left > 0 ? ' · <em>còn ' + DDS.left + ' suất ' + esc(c.first) + '</em>' : '';
+      return (c.free_ship ? 'Miễn ship mọi đơn + quà tặng' : 'Quà tặng') + (pre ? ' khi đặt trên web' : q);
+    };
+    var draw = function () {
+      bar.innerHTML = '<a class="dd-in" href="' + U('/san-pham/') + '" data-cta="ngay_doi_bar"><b class="dd-t">' + (pre ? '⏰ Ngày mai ' + label + ': ' : '🎉 ') + esc(c.name || 'Ngày Đôi') + (pre ? '' : ' ' + label) + '</b>' +
+        '<span class="dd-p"><span class="dd-long">' + perks() + (pre ? ' khi đặt trên web' : '') + '</span><span class="dd-short">' + short() + '</span></span><span class="dd-c">' + (pre ? 'Bắt đầu sau' : 'Kết thúc sau') + ' <time data-dd-t></time></span></a>';
+      tick();
+    };
+    var tick = function () {
+      var ms = end - Date.now(); if (ms <= 0) { clearInterval(iv); bar.remove(); return; }
+      var t = bar.querySelector('[data-dd-t]'); if (t) t.textContent = ddPad(Math.floor(ms / 36e5)) + ':' + ddPad(Math.floor(ms % 36e5 / 6e4)) + ':' + ddPad(Math.floor(ms % 6e4 / 1e3));
+    };
+    var iv = setInterval(tick, 1000); draw();
+    bar.addEventListener('click', function (e) { if (e.target.closest('a')) track('select_promotion', { promotion_id: 'ngay-doi', promotion_name: 'Ngày Đôi ' + label, creative_slot: pre ? 'topbar_truoc' : 'topbar' }); });
+    track('view_promotion', { promotion_id: 'ngay-doi', promotion_name: 'Ngày Đôi ' + label, creative_slot: pre ? 'topbar_truoc' : 'topbar' });
+    if (on) { ddLoad(function () { draw(); renderMini(); vcRedraw(); }); setInterval(function () { ddLoad(draw); }, 120e3); }
+  }
+
   /* ---------- cart page ---------- */
-  function hasFS(items) { return (items || cart).some(function (i) { return (BY[i.slug] || {}).fs; }); } // có gói "miễn phí ship" trong đơn
+  function hasFS(items) { return ddFree() || (items || cart).some(function (i) { return (BY[i.slug] || {}).fs; }); } // có gói "miễn phí ship" trong đơn, hoặc hôm nay là Ngày Đôi
   function shipInfo(sub, items) {
     var fee = +CFG.shipping_fee || 0, th = +CFG.free_ship_threshold || 0;
     if (hasFS(items)) return { fee: 0, label: T('Miễn phí') };
@@ -685,7 +747,7 @@
     var body = JSON.stringify(payload);
     return fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: body })
       .then(function (r) { return r.json().catch(function () { return { ok: true }; }); })
-      .then(function (j) { if (j && j.voucher_error) { var ev = new Error(j.voucher_error); ev.voucher = true; throw ev; } if (j && j.ok === false) throw new Error(j.error || 'failed'); return { sent: true, total: j && j.total }; })
+      .then(function (j) { if (j && j.voucher_error) { var ev = new Error(j.voucher_error); ev.voucher = true; throw ev; } if (j && j.ok === false) throw new Error(j.error || 'failed'); return { sent: true, total: j && j.total, dd: j && j.dd }; })
       .catch(function (e) {
         if (e && e.voucher) throw e; // mã ưu đãi không hợp lệ: báo khách, không gửi lại
         return fetch(CFG.endpoint, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: body })
@@ -784,6 +846,7 @@
   /* ---------- form đặt hàng dùng chung (trang Thanh toán + khung Mua ngay) ---------- */
   /* ---------- miễn phí vận chuyển ---------- */
   function freeShipHint(sub, items) {
+    var dd = ddBoxHTML(sub, 'fs-hint'); if (dd) return dd; // 🎉 Ngày Đôi
     var th = +CFG.free_ship_threshold || 0, fee = +CFG.shipping_fee || 0; if (!th || !fee) return '';
     if (sub >= th || hasFS(items)) return '<div class="fs-hint ok">' + T('🎉 Đơn hàng được <b>miễn phí vận chuyển</b>') + '</div>';
     var gap = th - sub, pct = Math.max(4, Math.round(sub / th * 100));
@@ -1045,7 +1108,7 @@
     var src = sourceLabel();
     var order = { type: 'order', id: id, created: d.toISOString(), customer: data.customer, payment: data.payment, items: clean, subtotal: sub, shipping: t.fee, total: t.total, voucher: t.on ? VC.code : '', discount: t.off, page: location.href, marketing_consent: !!data.marketing, source: src.last, first_source: src.first, post: (function () { var p = load('tdl_post', null); return p && Date.now() - p.t < 7 * 864e5 ? p.s : ''; })(), ref: refCode(), ref_at: refCode() ? (load('tdl_ref', null) || {}).t || 0 : 0 }; // ref_at: lúc khách bấm link (CTV không được tính khách đã là khách hỏi của sale trước lúc này)
     var label = btn.innerHTML; btn.disabled = true; btn.textContent = T('Đang gửi đơn hàng…');
-    send(order).then(function (r) { order.sent = r.sent; if (r.total) order.total = r.total; if (LANG !== 'vi') order.view = items.map(function (i) { return { name: i.name, variant: i.variant }; }); save('tdl_last_order', order); if (order.voucher) vcClear(); if (onSent) onSent(); location.href = U('/dat-hang-thanh-cong/') + '?id=' + id; })
+    send(order).then(function (r) { order.sent = r.sent; if (r.total) order.total = r.total; if (r.dd) order.dd = r.dd; if (LANG !== 'vi') order.view = items.map(function (i) { return { name: i.name, variant: i.variant }; }); save('tdl_last_order', order); if (order.voucher) vcClear(); if (onSent) onSent(); location.href = U('/dat-hang-thanh-cong/') + '?id=' + id; })
       .catch(function (e) {
         btn.disabled = false; btn.innerHTML = label; msg.className = 'form-msg err';
         if (e && e.voucher) { track('voucher_fail', { coupon: order.voucher, reason: e.message, at: 'dat_hang' }); vcClear(); vcUi.open = true; vcUi.draft = order.voucher; vcUi.msg = e.message; vcUi.err = true; vcRedraw(); msg.textContent = '🎟 ' + e.message + T(' Đã bỏ mã, bạn xem lại tổng tiền rồi bấm Đặt hàng lại nhé.'); return; }
@@ -1313,7 +1376,7 @@
   function initThanks() {
     var el = $('#thanksPage'); if (!el) return;
     var o = load('tdl_last_order', null);
-    if (o && !o.tracked) { track('purchase', { transaction_id: o.id, currency: 'VND', value: o.total, shipping: o.shipping, coupon: o.voucher || undefined, payment_type: o.payment, items: o.items.map(function (i) { var g = gaItem(i.slug, -1, i.qty) || {}; g.item_variant = i.variant; g.price = i.price; g.quantity = i.qty; return g; }) }); o.tracked = true; save('tdl_last_order', o); }
+    if (o && !o.tracked) { track('purchase', { transaction_id: o.id, currency: 'VND', value: o.total, shipping: o.shipping, coupon: o.voucher || (o.dd ? 'NGAYDOI' + String(o.dd.label || '').replace('/', '') : undefined), payment_type: o.payment, items: o.items.map(function (i) { var g = gaItem(i.slug, -1, i.qty) || {}; g.item_variant = i.variant; g.price = i.price; g.quantity = i.qty; return g; }) }); o.tracked = true; save('tdl_last_order', o); }
     if (!o || (qs('id') && o.id !== qs('id'))) {
       el.innerHTML = '<h1>' + T('Không tìm thấy đơn hàng') + '</h1><p>' + TF('Nếu bạn vừa đặt hàng, vui lòng liên hệ hotline {0} để được hỗ trợ.', '<a href="tel:' + CFG.zalo + '">' + esc(CFG.hotline) + '</a>') + '</p><a class="btn" href="' + U('/') + '">' + T('Về trang chủ') + '</a>';
       return;
@@ -1326,9 +1389,11 @@
     }
     var zaloNote = o.sent ? '' : '<div class="notice">' + TF('<b>Bước cuối:</b> bấm nút bên dưới để gửi đơn hàng cho {0} qua Zalo (nội dung đơn đã được tự động sao chép, bạn chỉ cần dán và gửi). Hoặc gọi {1}.', esc(CFG.brand), '<a href="tel:' + CFG.zalo + '">' + esc(CFG.hotline) + '</a>') + '</div>' +
       '<p><button class="btn btn-lg btn-zalo" id="sendZalo">' + T('Gửi đơn qua Zalo') + '</button></p>';
+    var dd = o.dd && LANG === 'vi' ? '<div class="dd-thanks"><b>🎉 Ngày Đôi ' + esc(o.dd.label) + '</b>' + (o.dd.ship ? '<p>Đơn của bạn được <b>miễn phí vận chuyển</b>.</p>' : '') +
+      (o.dd.gifts && o.dd.gifts.length ? '<p>🎁 Quà tặng kèm trong đơn: <b>' + o.dd.gifts.map(esc).join(' + ') + '</b></p>' : '') + (o.dd.rank ? '<p>⚡ Bạn là đơn thứ <b>' + o.dd.rank + '/' + o.dd.n + '</b> hôm nay nên được tặng thêm quà. Chúc mừng bạn!</p>' : '') + '</div>' : '';
     var addr = LANG === 'vi' ? o.customer.address : o.customer.address.replace(/^\[(Nhà riêng|Văn phòng)\] /, function (m, k) { return '[' + T(k) + '] '; });
     el.innerHTML = '<div class="ok-ic">' + ICON.check + '</div><h1>' + TF('Cảm ơn {0}!', esc(o.customer.name)) + '</h1><p>' + TF('Đơn hàng <b>{0}</b> đã được ghi nhận. {1} sẽ gọi điện xác nhận tới số <b>{2}</b> trong thời gian sớm nhất.', esc(o.id), esc(CFG.brand), esc(o.customer.phone)) + '</p>' +
-      zaloNote + qr + '<div class="order-box">' + rows + (o.voucher ? '<div class="row"><span>🎟 ' + T('Mã ưu đãi') + ' ' + esc(o.voucher) + '</span><b>' + (o.discount ? '−' + money(o.discount) : T('Áp dụng')) + '</b></div>' : '') + '<div class="row"><span>' + T('Giao hàng') + '</span><span>' + (o.shipping ? money(o.shipping) : ((+CFG.shipping_fee && +CFG.free_ship_threshold) ? T('Miễn phí') : T('Báo khi xác nhận'))) + '</span></div><div class="row"><span><b>' + T('Tổng cộng') + '</b></span><b style="color:var(--primary-2)">' + money(o.total) + '</b></div>' +
+      dd + zaloNote + qr + '<div class="order-box">' + rows + (o.voucher ? '<div class="row"><span>🎟 ' + T('Mã ưu đãi') + ' ' + esc(o.voucher) + '</span><b>' + (o.discount ? '−' + money(o.discount) : T('Áp dụng')) + '</b></div>' : '') + '<div class="row"><span>' + T('Giao hàng') + '</span><span>' + (o.shipping ? money(o.shipping) : ((+CFG.shipping_fee && +CFG.free_ship_threshold) ? T('Miễn phí') : T('Báo khi xác nhận'))) + '</span></div><div class="row"><span><b>' + T('Tổng cộng') + '</b></span><b style="color:var(--primary-2)">' + money(o.total) + '</b></div>' +
       '<div class="row"><span>' + T('Người nhận') + '</span><span>' + esc(o.customer.name) + ' – ' + esc(o.customer.phone) + '</span></div><div class="row"><span>' + T('Địa chỉ') + '</span><span>' + esc(addr + ', ' + o.customer.district + ', ' + o.customer.province) + '</span></div>' +
       '<div class="row"><span>' + T('Thanh toán||payment') + '</span><span>' + (o.payment === 'bank' ? T('Chuyển khoản') : T('Thanh toán khi nhận hàng (COD)')) + '</span></div></div>' +
       (LANG === 'vi' && CFG.ref_path && o.sent ? '<div class="rf-thanks"><b>🎁 Giới thiệu bạn bè, cùng nhận quà</b><p>Bạn bè của bạn được giảm giá đơn đầu, bạn nhận voucher cảm ơn cho lần mua sau.</p><button type="button" class="btn" data-rf-get>Lấy link giới thiệu của tôi</button><div data-rf-out hidden></div><a class="rf-more" href="' + esc(CFG.ref_path) + '">Xem thể lệ</a></div>' : '') + (CFG.zalo_group ? '<div class="oa-cta"><b>👥 Mời anh/chị vào nhóm Zalo Sống khỏe cùng ' + esc(CFG.brand) + '</b><p>' + (CFG.gift ? '🎁 Quà tặng thành viên: <strong>' + esc(CFG.gift) + '</strong>. ' : '') + 'Nhận hướng dẫn dùng sản phẩm, thực đơn lành mỗi ngày và ưu đãi riêng cho thành viên.</p><a class="btn btn-zalo" href="' + esc(CFG.zalo_group) + '" target="_blank" rel="noopener" data-cta="zalo_group_thanks">Vào nhóm Zalo</a>' + (CFG.zalo_oa ? '<a class="oa-link" href="' + esc(CFG.zalo_oa) + '" target="_blank" rel="noopener" data-cta="zalo_oa_thanks">hoặc Quan tâm Zalo OA</a>' : '') + '</div>' : CFG.zalo_oa ? '<div class="oa-cta"><b>📲 Quan tâm Zalo OA Thực Dưỡng Lành</b><p>Để nhận hướng dẫn dùng sản phẩm, lịch nhắc và ưu đãi dành riêng cho khách đã mua.</p><a class="btn btn-zalo" href="' + esc(CFG.zalo_oa) + '" target="_blank" rel="noopener">Quan tâm Zalo OA</a></div>' : '') + '<a class="btn btn-outline" href="' + U('/san-pham/') + '">' + T('Tiếp tục mua sắm') + '</a>';
@@ -1681,7 +1746,7 @@
     captureSource(); initConsent(); trackPageEvents();
     renderCounts(); renderMini(); markWish();
     initHeader(); initClicks(); initRail(); initLightbox(); initProduct(); initCerts(); initProof(); initTabs(); initReadmore(); initSort();
-    initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initJourneyMap(); initPledge(); initRef(); initCtv(); initCtvJoin(); initWall(); initWallStrip(); initQuiz(); initGiftDock(); initZaloGate(); initOcx(); initMusic(); initBrandVideo(); initChat();
+    initDD(); initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initJourneyMap(); initPledge(); initRef(); initCtv(); initCtvJoin(); initWall(); initWallStrip(); initQuiz(); initGiftDock(); initZaloGate(); initOcx(); initMusic(); initBrandVideo(); initChat();
     window.addEventListener('storage', function (e) { if (e.key === 'tdl_cart') { cart = load('tdl_cart', []); cleanCart(); renderCounts(); renderMini(); } });
   }
   // ===== Hành trình 10 triệu người Việt sống khỏe hơn: bộ đếm [data-jr] + trang "Tôi chọn sống lành" /toi-chon-song-lanh/ (api journey.js) =====

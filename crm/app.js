@@ -8758,7 +8758,7 @@
       return '<div class="offer-card' + (old ? ' old' : '') + '"><div class="offer-h"><b>🎁 ' + esc(o.title) + '</b>' + (o.prod ? '<span class="tag">' + esc(o.prod) + '</span>' : '') + '</div>' +
         (o.text ? '<p>' + esc(o.text).replace(/\n/g, '<br>') + '</p>' : '') +
         '<small class="muted">' + (o.until ? (old ? 'Đã hết hạn ' : 'Đến hết ') + o.until.split('-').reverse().join('/') : 'Không ghi hạn') + (o.by ? ' · ' + esc(o.by) : '') + '</small>' +
-        (edit ? ' <button class="link" data-offer="' + esc(o.id) + '">Sửa</button>' : '') + '</div>';
+        (edit && !o.auto ? ' <button class="link" data-offer="' + esc(o.id) + '">Sửa</button>' : edit ? ' <small class="muted">· tự có trong Ngày Đôi, sửa ở /admin → Cài đặt chung</small>' : '') + '</div>';
     }).join('');
   }
   function offersGet() {

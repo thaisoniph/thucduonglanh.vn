@@ -2,6 +2,7 @@
 // mình chốt từng sản phẩm thế nào so với cả nhóm, gọi lại số mới nhanh hay chậm, và ưu đãi / thông điệp quảng cáo đang chạy (marketing ghi).
 // Nhân viên chỉ nhận số của chính mình + số tổng cả nhóm (không có tên người khác). Quản lý / Quản trị nhận đủ từng người.
 import { all, allIn, kvGet, kvJson, kvSet, normPhone, nrm, isVoid, startOfDay, randHex, DAY } from './lib.js';
+import { ddOffer } from './ngaydoi.js';
 
 const DAY_RE = /^\d{4}-\d\d-\d\d$/;
 const dayMs = s => new Date(s + 'T00:00:00+07:00').getTime();
@@ -103,10 +104,14 @@ export async function crmSaleMkt(x, u, d) {
 /* ---------- Ưu đãi / thông điệp quảng cáo đang chạy: Marketing + Quản trị ghi, mọi người đọc (kv mkt_offers) */
 async function offersAll(x) { return (await kvJson(x.db, 'mkt_offers', [])) || []; }
 /** at = mốc thời gian (mặc định bây giờ): bài Zalo soạn trước 2–3 ngày lấy ưu đãi còn hạn tới ngày đăng */
-export async function offersLive(x, at) { const t0 = startOfDay(at || Date.now()); return (await offersAll(x)).filter(o => !o.until || dayMs(o.until) >= t0); }
+export async function offersLive(x, at) {
+  const t0 = startOfDay(at || Date.now()), L = (await offersAll(x)).filter(o => !o.until || dayMs(o.until) >= t0);
+  try { const dd = await ddOffer(x, at); if (dd) L.unshift(dd); } catch (e) { console.error('ddOffer', e.message); } // 🎉 Ngày Đôi: tự có trong ưu đãi đang chạy đúng ngày (ngaydoi.js)
+  return L;
+}
 export async function crmOffers(x, u, d) {
   const a = d.action;
-  if (a === 'offers') return { ok: true, list: await offersAll(x) };
+  if (a === 'offers') { const L = await offersAll(x); try { const dd = await ddOffer(x); if (dd) L.unshift(dd); } catch (e) { } return { ok: true, list: L }; }
   if (u.level < 3 && u.role !== 'Marketing') return { ok: false, error: 'Chỉ Marketing và Quản trị sửa được ưu đãi.' };
   let L = await offersAll(x);
   if (a === 'offer_del') { L = L.filter(o => o.id !== d.id); await kvSet(x.db, 'mkt_offers', JSON.stringify(L)); return { ok: true, list: L }; }

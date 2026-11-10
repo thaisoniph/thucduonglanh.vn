@@ -101,6 +101,19 @@
     "code": "SONGLANH5",
     "label": "giảm 5%"
   },
+  "double_day": {
+    "enabled": true,
+    "name": "Ngày Đôi Sống Lành",
+    "free_ship": true,
+    "gift_min": 500000,
+    "gift_slug": "ruoc-rong-bien-vi-suon-non",
+    "gift_label": "1 hũ Ruốc Rong Biển 165g",
+    "first_n": 11,
+    "first_min": 300000,
+    "first_slug": "tra-hoa-tan-dilvang-dinh-lang-che-vang",
+    "first_label": "1 hộp Trà DILVANG",
+    "teaser": true
+  },
   "zalo_group": "https://zalo.me/g/tvepjg478",
   "ebook": {
     "url": "/ebook/",
