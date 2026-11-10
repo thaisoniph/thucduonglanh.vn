@@ -9509,7 +9509,12 @@
     return S._rb || null;
   }
   /** Bậc thưởng (30/10/2026 lần 3): tính cộng dồn tiền hàng khách mới mua trong 60 ngày. steps = [[mức tiền hàng, tổng thưởng]]. */
-  function rbSteps() { return (S._rb && S._rb.cfg.saleSteps) || [[300000, 20000], [700000, 50000]]; }
+  function rbSteps() { if (S._rb && S._rb.cfg.saleOff) return []; return (S._rb && S._rb.cfg.saleSteps) || [[300000, 20000], [700000, 50000]]; } // 10/11/2026: thưởng cố định đã thay bằng hoa hồng khách tự mang về
+  /** Câu quyền lợi sale trong ô 🌱: luật 10% (chỉ nói rõ khi Quản trị đã bật mục Tự tạo khách), hoặc mức thưởng cố định cũ nếu luật 10% tắt. */
+  function rbIntro(c) {
+    if (!c.saleOff) return 'Thưởng tính <b>cộng dồn</b> tiền hàng khách mới mua trong ' + (c.winDays || 60) + ' ngày đầu: <b>' + rbStepTxt(rbSteps()) + '</b> (đơn đã giao xong 7 ngày). Khách mua ít lần đầu thì chăm sóc để khách mua thêm. Hoa hồng % vẫn tính trên mọi đơn như khách cũ, thưởng này là cộng thêm.';
+    return selfOn() ? 'Khách được giới thiệu là <b>khách bạn tự mang về</b>: hoa hồng <b>' + c.ownPct + '%</b> tiền hàng <b>mọi đơn</b> bạn bán cho khách đó trong ' + c.ownMonths + ' tháng đầu (thay cho thưởng cố định trước đây). Xem tiền ở <b>💰 Thu nhập tạm tính</b>.' : 'Hoa hồng của khách được giới thiệu xem ở <b>💰 Thu nhập tạm tính</b>.';
+  }
   function rbStepTxt(st) { return st.map(function (t, i) { return 'đủ ' + moneyShort(t[0]) + (i ? ' thêm ' + moneyShort(t[1] - st[i - 1][1]) + ' (tổng ' + moneyShort(t[1]) + ')' : ' → ' + moneyShort(t[1])); }).join(', '); }
   function rbNext(r) { var st = rbSteps(); for (var i = 0; i < st.length; i++) if (r.earned < st[i][1]) return { at: st[i][0], add: st[i][1] - r.earned }; return null; }
   function rbMonth(L, mk) { // số của 1 người / cả nhóm trong tháng mk; thưởng theo tháng được ghi (sổ pays)
@@ -9523,6 +9528,7 @@
   function refSaleLine() {
     var rb = rbData(); if (!rb) return '';
     var mk = monthOf(Date.now()), M = rbMonth(rb.list.filter(function (r) { return r.sale === S.user.name; }), mk), tn = rb.team[mk] || 0, c = rb.cfg;
+    if (c.saleOff) return '<p class="td-goal">🌱 Khách giới thiệu tháng này: <b>' + M.nw + '</b> khách mới đã mua' + (c.goalN ? ' · cả nhóm <b>' + tn + '</b> / ' + c.goalN + ' khách' : '') + '</p>';
     return '<p class="td-goal">🌱 Khách giới thiệu: thưởng tháng này <b>' + moneyShort(M.okV) + '</b>' + (M.pend.length ? ' (+' + moneyShort(M.pendV) + ' đang chờ)' : '') + (c.goalN ? ' · cả nhóm <b>' + tn + '</b> / ' + c.goalN + ' khách' : '') + '</p>';
   }
   /** 1 dòng khách được giới thiệu: tiến độ tiền hàng 60 ngày → bậc thưởng tiếp theo. */
@@ -9539,8 +9545,8 @@
     var mk = monthOf(Date.now()), c = rb.cfg, mine = rb.list.filter(function (r) { return !name || r.sale === name; }), M = rbMonth(mine, mk);
     var tn = rb.team[mk] || 0, gp = c.goalN ? Math.min(100, pct(tn, c.goalN)) : 0;
     var h = '<div class="box rsb"><h3>🌱 Khách mới nhờ khách cũ giới thiệu · tháng ' + (+mk.slice(5)) + '</h3>' +
-      '<p class="small muted" style="margin:0 0 10px">Khách đang dùng tốt giới thiệu người thân. Người đó là <b>số mới, chưa có trong CRM</b> → khách thuộc về sale phụ trách khách cũ. Thưởng tính <b>cộng dồn</b> tiền hàng khách mới mua trong ' + (c.winDays || 60) + ' ngày đầu: <b>' + rbStepTxt(rbSteps()) + '</b> (đơn đã giao xong 7 ngày). Khách mua ít lần đầu thì chăm sóc để khách mua thêm. <b>Hoa hồng % vẫn tính trên mọi đơn như khách cũ</b>, thưởng này là cộng thêm.</p>' +
-      '<div class="rsb-n"><div><b>' + M.nw + '</b><span>khách mới đã mua</span></div><div><b>' + moneyShort(M.okV) + '</b><span>thưởng đã ghi tháng này</span></div><div><b>' + moneyShort(M.pendV) + '</b><span>đang chờ · ' + M.pend.length + ' khách đang giao / chờ đủ 7 ngày</span></div></div>' +
+      '<p class="small muted" style="margin:0 0 10px">Khách đang dùng tốt giới thiệu người thân. Người đó là <b>số mới, chưa có trong CRM</b> → khách thuộc về sale phụ trách khách cũ. ' + rbIntro(c) + '</p>' +
+      '<div class="rsb-n"><div><b>' + M.nw + '</b><span>khách mới đã mua</span></div>' + (c.saleOff && !M.okV && !M.pendV ? (selfOn() ? '<div><b>' + c.ownPct + '%</b><span>hoa hồng mọi đơn trong ' + c.ownMonths + ' tháng</span></div>' : '') : '<div><b>' + moneyShort(M.okV) + '</b><span>thưởng đã ghi tháng này</span></div><div><b>' + moneyShort(M.pendV) + '</b><span>đang chờ · ' + M.pend.length + ' khách đang giao / chờ đủ 7 ngày</span></div>') + '</div>' +
       (M.run.length ? '<p class="small" style="margin:8px 0 0">🛒 ' + M.run.length + ' khách mua chưa đủ mức thưởng: chăm sóc để khách mua thêm (xem danh sách bên dưới).</p>' : '') +
       (M.wait.length ? '<p class="small" style="margin:6px 0 0">⏳ ' + M.wait.length + ' người được giới thiệu chưa mua: gọi tư vấn để chốt.</p>' : '') +
       (c.goalN ? '<div class="rsb-goal"><div><b>🤝 Mục tiêu cả nhóm:</b> ' + tn + ' / ' + c.goalN + ' khách mới' + (c.goalGift ? ' → 🎉 ' + esc(c.goalGift) : '') + '<span>' + (tn >= c.goalN ? '✅ Đã đạt!' : 'còn ' + (c.goalN - tn) + ' khách') + '</span></div><div class="bar sm"><i style="width:' + gp + '%"></i></div></div>' : '');
@@ -9558,10 +9564,10 @@
   }
   function openRefGoal() {
     var c = (S._rb && S._rb.cfg) || { goalN: 20, goalGift: '' }, st = rbSteps();
-    var m = modal('🌱 Thưởng sale & mục tiêu nhóm', '<p class="small" style="margin:0 0 6px"><b>Thưởng sale theo tổng tiền hàng khách mới mua trong ' + (c.winDays || 60) + ' ngày</b> (cộng dồn, để trống dòng nào thì bỏ bậc đó)</p>' +
-      [0, 1, 2].map(function (i) { var t = st[i] || ['', '']; return '<div class="row2c rg-st"><label class="f"><span>Khi khách mua đủ (đ)</span><input type="text" inputmode="numeric" value="' + esc(t[0]) + '"></label><label class="f"><span>Tổng thưởng sale (đ)</span><input type="text" inputmode="numeric" value="' + esc(t[1]) + '"></label></div>'; }).join('') +
+    var m = modal('🌱 Thưởng sale & mục tiêu nhóm', (c.saleOff ? '<p class="notice" style="margin:0 0 10px">Thưởng cố định 20k / 30k <b>đã thay bằng hoa hồng ' + c.ownPct + '% mọi đơn trong ' + c.ownMonths + ' tháng</b> cho khách sale tự mang về (10/11/2026). Đổi mức ở Cài đặt → 💰 Lương & hoa hồng → 📑 Bảng lương theo bậc → 🙋. Ghi 0 ở đó thì mức thưởng cố định dưới đây có hiệu lực lại.</p>' : '<p class="small" style="margin:0 0 6px"><b>Thưởng sale theo tổng tiền hàng khách mới mua trong ' + (c.winDays || 60) + ' ngày</b> (cộng dồn, để trống dòng nào thì bỏ bậc đó)</p>' +
+      [0, 1, 2].map(function (i) { var t = st[i] || ['', '']; return '<div class="row2c rg-st"><label class="f"><span>Khi khách mua đủ (đ)</span><input type="text" inputmode="numeric" value="' + esc(t[0]) + '"></label><label class="f"><span>Tổng thưởng sale (đ)</span><input type="text" inputmode="numeric" value="' + esc(t[1]) + '"></label></div>'; }).join('')) +
       '<div class="row2c"><label class="f"><span>Mục tiêu cả nhóm (khách mới / tháng, 0 = tắt)</span><input type="number" min="0" max="1000" id="rgN" value="' + c.goalN + '"></label><label class="f"><span>Phần thưởng khi cả nhóm đạt</span><input type="text" maxlength="80" id="rgG" value="' + esc(c.goalGift || '') + '"></label></div>' +
-      '<p class="small muted">Tổng thưởng là số cộng dồn: ví dụ đủ 300.000đ → 20.000đ, đủ 700.000đ → 50.000đ thì khách đạt 700.000đ sale được thêm 30.000đ. Thưởng đã ghi không đổi.</p>', '<button class="btn pri" id="rgSv">Lưu</button><button class="btn ghost" data-close>Đóng</button>');
+      (c.saleOff ? '' : '<p class="small muted">Tổng thưởng là số cộng dồn: ví dụ đủ 300.000đ → 20.000đ, đủ 700.000đ → 50.000đ thì khách đạt 700.000đ sale được thêm 30.000đ. Thưởng đã ghi không đổi.</p>'), '<button class="btn pri" id="rgSv">Lưu</button><button class="btn ghost" data-close>Đóng</button>');
     $('#rgSv', m).onclick = function () { var b = this; b.disabled = true;
       api('ref_goal', { saleSteps: $$('.rg-st', m).map(function (r) { var q = $$('input', r); return [parseMoney(q[0].value), parseMoney(q[1].value)]; }).filter(function (t) { return t[1] > 0; }), goalN: +$('#rgN', m).value || 0, goalGift: $('#rgG', m).value }).then(function (j) { S._rb = j; toast('Đã lưu ✓'); closeModal(); render(); }, function (e) { toast(e.message, true); b.disabled = false; }); };
   }
@@ -9589,9 +9595,9 @@
   function ambBlock(busy, num) { // busy = khách đã có trong việc chăm sóc hôm nay → không lặp lại ở đây (thẻ đó có nhãn 🌱)
     rbData(); var A = ambList(); if (!A) return '';
     var L = A.list.filter(function (x) { return !busy[x.c.phone]; }); if (!L.length) return '';
-    var bonus = S._rb.cfg.bonus;
+    var bonus = S._rb.cfg.bonus, rc = S._rb.cfg, ownSay = !bonus && rc.saleOff && selfOn() ? ' Mỗi người bạn mới mua, bạn hưởng <b>' + rc.ownPct + '%</b> mọi đơn của họ trong ' + rc.ownMonths + ' tháng.' : '';
     return '<section class="section amb" data-grp="amb"><div class="section-h"><h2>' + (num || '') + ' 🌱 Mời làm Đại sứ</h2><span class="count">' + Math.min(5, L.length) + '</span></div>' +
-      '<p class="amb-sub">Khách đã dùng 7–30 ngày. Hỏi <i>“Chị dùng thấy thế nào ạ?”</i>, khách khen thì bấm <b>Mời giới thiệu</b>: có sẵn tin nhắn và kịch bản gọi.' + (bonus ? ' Mỗi người bạn mới mua, bạn được thưởng <b>đến ' + money(bonus) + '</b>.' : '') + '</p><div class="amb-list">' +
+      '<p class="amb-sub">Khách đã dùng 7–30 ngày. Hỏi <i>“Chị dùng thấy thế nào ạ?”</i>, khách khen thì bấm <b>Mời giới thiệu</b>: có sẵn tin nhắn và kịch bản gọi.' + (bonus ? ' Mỗi người bạn mới mua, bạn được thưởng <b>đến ' + money(bonus) + '</b>.' : ownSay) + '</p><div class="amb-list">' +
       L.slice(0, 5).map(function (x) { var c = x.c, nm = ambName(c.name) || c.phone;
         return '<div class="amb-row click" data-cust="' + c.phone + '"><span class="amb-av">' + esc(ambAv(c.name)) + '</span><span class="amb-t"><b>' + esc(nm) + (isVip(c) ? ' <em class="amb-vip">VIP</em>' : '') + '</b>' +
           '<small>' + (c.products.length ? esc(shortProducts(c.products, 1)) + ' · ' : '') + 'nhận ' + x.d + ' ngày trước · ' + c.orders + ' đơn</small></span>' +

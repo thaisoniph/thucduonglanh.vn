@@ -94,14 +94,14 @@ Voucher dùng cho đơn từ 300.000đ, hạn 90 ngày. Nói với khách cho d�
 - Bấm link của khách, mã giảm giá tự áp dụng.
 - Ở trang thanh toán, bấm **Có mã ưu đãi / người giới thiệu?**, rồi gõ **mã** (ví dụ `AN111`) hoặc **số điện thoại** của người giới thiệu.
 
-### 💰 Quyền lợi của bạn (sale): thưởng 50.000đ / khách mới
+### 💰 Quyền lợi của bạn (sale): hoa hồng 10% mọi đơn trong 6 tháng (từ 10/11/2026)
 
 - Người được giới thiệu là **số mới, chưa có trong CRM** (chưa từng mua, chưa từng hỏi) → khách đó **thuộc về bạn**, nếu bạn đang phụ trách người giới thiệu. Ai nhập khách cũng vậy, kể cả khi người bạn tự đặt trên web.
-- Thưởng tính **cộng dồn tiền hàng khách mới mua trong 60 ngày đầu** (đơn đã giao xong 7 ngày): đủ **300.000đ → 20.000đ**, đủ **700.000đ → thêm 30.000đ** (tổng 50.000đ). 8h sáng Telegram báo 🎉. Khách mua ít lần đầu thì chăm sóc để khách mua thêm: danh sách ở tab **Hiệu quả** ghi rõ *"đã mua 140k / 300k, còn 160k nữa là +20.000đ"*. Các đơn mua lại về sau của khách cũng tính doanh số cho bạn.
-- **Hoa hồng % vẫn tính như khách cũ** trên mọi đơn của khách được giới thiệu (CRM tự chọn loại đơn **Khách cũ**, ghi lý do "khách do khách cũ … giới thiệu"). Thưởng 20.000đ / 50.000đ là **cộng thêm**. Ví dụ khách mới mua đơn 5 triệu: hoa hồng như khách cũ trên 5 triệu + 50.000đ thưởng.
-- Khách mới mua chưa đủ 300.000đ thì chưa có tiền thưởng, nhưng khách **vẫn thuộc về bạn** và được tính vào **mục tiêu nhóm**.
-- Không được thưởng: số đã có trong CRM, đơn huỷ hoặc hoàn, khách mới **cùng địa chỉ** với người giới thiệu.
-- Xem thưởng của mình: tab **Hôm nay**, dòng 🌱 ở khung đầu trang, hoặc tab **Hiệu quả** → ô **🌱 Khách mới nhờ khách cũ giới thiệu**. Ô này có: số khách mới, tiền thưởng đã chắc, tiền đang chờ, và **🤝 mục tiêu cả nhóm** trong tháng.
+- Khách đó là **khách bạn tự mang về**: **mọi đơn bạn bán cho khách đó trong 6 tháng đầu** tính **10% tiền hàng**, thay cho 3–5% thường (ngày lễ giữ % lễ nếu cao hơn). Mức này **thay** cho thưởng cố định 20.000đ / 30.000đ trước đây: khách mua càng lâu bạn nhận càng nhiều, không bị chặn ở 50.000đ. Ví dụ khách mới mua đơn 350.000đ mỗi tháng trong 6 tháng → bạn nhận 210.000đ.
+- Xem tiền ở tab **Hiệu quả** → **📊 Bảng BCDT** → **💰 Thu nhập tạm tính**, dòng **🙋 HH khách tự mang về**. Hồ sơ khách có nhãn **🙋 Được giới thiệu** kèm ngày hết hạn.
+- Khách mới mua ít thì khách **vẫn thuộc về bạn**, tính vào **mục tiêu nhóm**, chăm sóc để khách mua thêm (mỗi đơn thêm là thêm 10%).
+- Không tính: số đã có trong CRM, đơn huỷ hoặc hoàn, khách mới **cùng địa chỉ** với người giới thiệu, số trùng nhân sự hoặc người nhà.
+- Xem khách được giới thiệu: tab **Hôm nay**, dòng 🌱 ở khung đầu trang, hoặc tab **Hiệu quả** → ô **🌱 Khách mới nhờ khách cũ giới thiệu** (số khách mới và **🤝 mục tiêu cả nhóm** trong tháng).
 
 **Việc của bạn (sale):**
 1. Tab **Hôm nay** có mục **🌱 Mời làm Đại sứ** (nằm sau Khách hỏi cần liên hệ): mỗi ngày tối đa 5 khách của bạn đã nhận hàng 7–30 ngày. Hỏi "Chị dùng thấy thế nào ạ?". Khách khen thì bấm **🌱 Mời giới thiệu**. Cửa sổ có 2 tin ngắn: bấm **📋 Copy tin ① & mở Zalo**, dán gửi khách (cảm ơn + mã + quà). Quay lại bấm **📋 Copy tin ②**, dán gửi tiếp: đây là tin khách chỉ việc chuyển tiếp cho bạn bè, có sẵn link giảm giá. Khách chưa hài lòng hoặc chưa tiện thì bấm **Để sau**, khách ẩn 30 ngày. Bấm vào tên khách là mở hồ sơ.

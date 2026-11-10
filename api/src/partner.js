@@ -30,7 +30,15 @@ const CTV_T = 1000; // ref_tiers.tier của mốc mời làm CTV = 1000 + ctvN (
 export function stepsOf(a) { return (Array.isArray(a) ? a : []).map(t => [Math.round(Number(t[0]) || 0), Math.round(Number(t[1]) || 0)]).filter(t => t[1] > 0).sort((x, y) => x[0] - y[0]); }
 const stepVal = (st, goods) => st.reduce((v, t) => goods >= t[0] ? Math.max(v, t[1]) : v, 0);
 export function ladder(c) { return (Array.isArray(c.tiers) ? c.tiers : [[c.tierN, c.tierGift]]).map(t => ({ n: Math.round(Number(t[0]) || 0), gift: String(t[1] || '').trim() })).filter(t => t.n > 0 && t.gift).sort((a, b) => a.n - b.n); }
-export async function partnerCfg(x) { let c = {}; try { c = JSON.parse((await kvGet(x.db, 'partner_cfg')) || '{}'); } catch (e) { } return Object.assign({}, DEF, c); }
+async function rawPartnerCfg(x) { let c = {}; try { c = JSON.parse((await kvGet(x.db, 'partner_cfg')) || '{}') || {}; } catch (e) { } return c; }
+/** 10/11/2026 (anh Sơn "Tắt 20k/30k"): luật hoa hồng khách tự mang về (payplan.own %, crm.js) thay thưởng sale cố định → khi own > 0, saleSteps hiệu lực = [] (refSaleAuto không ghi thưởng mới, thưởng đã ghi giữ nguyên).
+ *  Đọc kv payplan_cfg thẳng (mặc định own 10, 6 tháng như PAYPLAN) để không import vòng từ crm.js. Tắt luật 10% (own = 0) thì mức thưởng cũ trong kv tự có hiệu lực lại. */
+async function ownRule(x) { let q = {}; try { q = JSON.parse((await kvGet(x.db, 'payplan_cfg')) || '{}') || {}; } catch (e) { } return { own: q.own === undefined ? 10 : Number(q.own) || 0, months: Number(q.ownMonths) || 6 }; }
+export async function partnerCfg(x) {
+  const cfg = Object.assign({}, DEF, await rawPartnerCfg(x)), o = await ownRule(x);
+  if (o.own > 0) Object.assign(cfg, { saleSteps: [], bonus: 0, saleOff: 1, ownPct: o.own, ownMonths: o.months });
+  return cfg;
+}
 
 export async function partnerSchema(db) {
   await run(db, `CREATE TABLE IF NOT EXISTS partners (
@@ -238,7 +246,7 @@ async function bonusList(x, u) {
   }
   const pays = (await all(x.db, "SELECT who, amount, at FROM ref_pay WHERE kind = 'sale' AND at >= ?" + (u.level >= 2 ? '' : ' AND who = ?'), ...(u.level >= 2 ? [since] : [since, u.name]))).map(p => ({ sale: p.who, amount: p.amount, at: p.at }));
   const inv = (await all(x.db, "SELECT DISTINCT v.ref_phone AS p FROM vouchers v JOIN customers c ON c.phone = v.ref_phone WHERE coalesce(v.ref_phone, '') != ''" + (u.level >= 2 ? '' : ' AND c.owner = ?'), ...(u.level >= 2 ? [] : [u.name]))).map(r => r.p);
-  return { ok: true, cfg: { bonus: max, saleSteps: steps, winDays: cfg.winDays, goalN: cfg.goalN, goalGift: cfg.goalGift }, list: L, team, pays, inv };
+  return { ok: true, cfg: { bonus: max, saleSteps: steps, winDays: cfg.winDays, goalN: cfg.goalN, goalGift: cfg.goalGift, saleOff: cfg.saleOff ? 1 : 0, ownPct: cfg.ownPct || 0, ownMonths: cfg.ownMonths || 6 }, list: L, team, pays, inv };
 }
 
 /** 🤖 Trợ lý chat web / Zalo / Fanpage (31/10/2026): khách nói "chị Lan giới thiệu…" → tìm số người giới thiệu trong tin khách (số khác số của khách) hoặc tên,
@@ -504,7 +512,7 @@ export async function crmPartner(x, u, d, log, staffNames) {
   if (a === 'ref_find') return refFind(x, d);
   if (a === 'ref_goal') { // thưởng sale + mục tiêu nhóm: chỉ Quản lý trở lên
     if (u.level < 2) return { ok: false, error: 'Chỉ Quản lý và Quản trị đổi mục này.' };
-    const c = await partnerCfg(x), saleSteps = Array.isArray(d.saleSteps) ? stepsOf(d.saleSteps).slice(0, 4) : stepsOf(c.saleSteps), goalN = Math.round(Number(d.goalN)), goalGift = String(d.goalGift || '').trim().slice(0, 80);
+    const c = await partnerCfg(x), raw = await rawPartnerCfg(x), saleSteps = c.saleOff ? stepsOf(raw.saleSteps || DEF_STEPS) : Array.isArray(d.saleSteps) ? stepsOf(d.saleSteps).slice(0, 4) : stepsOf(c.saleSteps), goalN = Math.round(Number(d.goalN)), goalGift = String(d.goalGift || '').trim().slice(0, 80);
     if (saleSteps.some(t => t[1] > 1000000 || t[0] > 100000000) || !(goalN >= 0 && goalN <= 1000)) return { ok: false, error: 'Kiểm tra lại: thưởng tối đa 1.000.000đ, mục tiêu nhóm 0–1000 khách.' };
     await kvSet(x.db, 'partner_cfg', JSON.stringify(Object.assign({}, c, { saleSteps, bonus: stepVal(saleSteps, Infinity), goalN, goalGift })));
     await log(x, u, 'Cài đặt CTV', '', '', 'Thưởng sale: ' + saleSteps.map(t => 'mua đủ ' + fmt(t[0]) + ' → ' + fmt(t[1])).join(', ') + ' · mục tiêu nhóm ' + goalN + ' khách / tháng' + (goalGift ? ' → ' + goalGift : ''), '');
