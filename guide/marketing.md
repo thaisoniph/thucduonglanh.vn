@@ -224,6 +224,12 @@ Trên thẻ bài ở tab Zalo, Fanpage, Bài web có dòng **🎯 nhóm khách �
   - Gắn nhãn: khi ✏️ Sửa nhóm, thêm cuối dòng tension `[SP: dilvang]` (mã: `bua-an`, `curcumin`, `ruoc`, `dilvang`, `xi-dau`; nhiều sản phẩm cách nhau dấu phẩy). Không ghi = dùng chung.
   - Bài nói về 1 sản phẩm (chủ đề bài web có sản phẩm, kịch bản video chọn sản phẩm) thì trợ lý chỉ dùng tension riêng của sản phẩm đó hoặc tension dùng chung. Bấm **✏️ Sửa** để thêm tension mới (mỗi dòng 1 cái, dạng *"Muốn … ↔ nhưng …"*), **⏸ Tạm tắt** nhóm chưa muốn nhắm, **➕ Thêm nhóm khách** khi có tệp mới. Sửa ở đây là cả 4 trợ lý dùng theo ngay.
 
+**📥 Vừa chạy skill tìm insight (vd tim-insights-ta-3c)?** Không cần chép tay từng dòng:
+1. Trong skill, chép toàn bộ kết quả (hoặc phần Bản đồ Tension + Top Insight).
+2. Tab 🎯 Insight & nội dung → bấm **📥 Dán kết quả skill** → chọn sản phẩm của lần tìm insight đó (nếu có) → dán → **🔍 Đọc kết quả** (khoảng 20–40 giây).
+3. Màn **Xem trước**: AI đã tách sẵn nhóm khách, tension (xếp theo điểm), nhãn 🏷 sản phẩm / 🌐 dùng chung, câu insight, hook. Dòng đã có trong ngân hàng hoặc có cụm dễ phạm luật (⚠️) được bỏ tích sẵn. Đổi **Thêm vào nhóm** nếu AI ghép chưa đúng, hoặc để **➕ Nhóm mới**.
+4. Bấm **💾 Thêm vào ngân hàng**. Tension mới được thêm **lên đầu nhóm** (trợ lý ưu tiên tension xếp trên = sắc nhất), hook thêm vào ghi chú. Từ bài kế tiếp cả 4 trợ lý dùng ngay.
+
 **Mẹo làm insight tốt:** lấy từ lời khách thật (tin nhắn Zalo, bình luận, câu sale hay nghe), không lấy từ tính năng sản phẩm. Tension phải thấy rõ **2 cực đang giằng co**. Không viết tension khoét sâu nỗi sợ bệnh tật để ép mua.
 
 Ngoài CRM: nếu anh chị dùng ChatGPT, Gemini hoặc Claude đã nối CRM, hỏi *"lấy insight khách hàng của Thực Dưỡng Lành rồi viết giúp tôi …"*, AI sẽ gọi công cụ **insight_noi_dung** để viết đúng quy trình.
