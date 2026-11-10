@@ -254,7 +254,7 @@
     if (!CFG.endpoint) return Promise.reject(new Error('Chưa cấu hình máy chủ.'));
     tries = tries || 0; var t0 = Date.now();
     // chờ tối đa 30 giây (việc nặng của quản trị 90 giây) rồi báo, không để vòng quay mãi (16/10/2026)
-    var ac = typeof AbortController === 'function' ? new AbortController() : null, wait = action === 'ai_ask' ? 180e3 : API_HEAVY.test(action) ? 90e3 : 30e3, tm = ac && setTimeout(function () { ac.abort(); }, wait);
+    var ac = typeof AbortController === 'function' ? new AbortController() : null, wait = action === 'ai_ask' ? 180e3 : /^ins_(video|import|find|offer)$/.test(action) ? 180e3 : API_HEAVY.test(action) ? 90e3 : 30e3, tm = ac && setTimeout(function () { ac.abort(); }, wait);
     return fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), signal: ac ? ac.signal : undefined })
       .then(function (r) { clearTimeout(tm); return r.text().then(function (t) { return { t: t, st: r.status }; }); }, function (er) { clearTimeout(tm); var slow = er && er.name === 'AbortError', e0 = new Error(slow ? 'Máy chủ trả lời chậm quá ' + (wait / 1000) + ' giây. Bạn kiểm tra mạng rồi bấm lại nhé.' : 'Mất kết nối mạng. Bạn thử lại nhé.'); e0.net = true; throw e0; })
       .then(function (x) {
@@ -6011,11 +6011,40 @@
       .then(function () { IN.busy = 0; if (route().view === 'noi-dung') render(); });
   }
   function inCanEdit() { return lvl() >= 2 || isMkt(); }
+  /** Nhãn sản phẩm của tension: "… [SP: dilvang, bua-an]" → { t, sp: [mã đầy đủ] }; không nhãn = dùng chung (insight.js tenOf) */
+  function inSpCode(tok) {
+    var k = String(tok || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''), M = (IN.d && IN.d.sp) || {};
+    if (!k) return ''; if (M[k]) return M[k][0];
+    var hit = Object.keys(M).filter(function (a) { return M[a][0] === k || M[a][0].indexOf(k) >= 0 || k.indexOf(a) >= 0; })[0];
+    return hit ? M[hit][0] : k;
+  }
+  function inSpName(c) { var M = (IN.d && IN.d.sp) || {}, k = Object.keys(M).filter(function (a) { return M[a][0] === c; })[0]; return k ? M[k][1] : c; }
+  function inTen(line) {
+    var m = String(line || '').match(/\s*\[\s*sp\s*:\s*([^\]]*)\]\s*$/i);
+    return { t: m ? String(line).slice(0, m.index).trim() : String(line || '').trim(), sp: m ? m[1].split(/[,;]+/).map(inSpCode).filter(Boolean) : [] };
+  }
+  function inTenHtml(line) { var x = inTen(line); return esc(x.t) + ' ' + (x.sp.length ? '<span class="inx-sp">🏷 ' + esc(x.sp.map(inSpName).join(', ')) + '</span>' : '<span class="inx-sp inx-all">🌐 dùng chung</span>'); }
+  /** 🏷 Insight theo sản phẩm + 🌐 tension dùng chung */
+  function inProdHtml(bank) {
+    var M = (IN.d && IN.d.sp) || {}, on = bank.filter(function (g) { return g.on; });
+    var h = '<h2 class="zb-h">🏷 Insight theo sản phẩm</h2><p class="small muted">Tension có nhãn 🏷 là riêng của sản phẩm đó (trợ lý chỉ dùng khi bài nói về sản phẩm này). Tension 🌐 dùng chung hợp mọi sản phẩm và mọi bài thu hút (TOFU). Gắn nhãn bằng cách thêm <code>[SP: dilvang]</code> cuối dòng tension khi bấm ✏️ Sửa nhóm.</p>';
+    h += Object.keys(M).map(function (k) {
+      var c = M[k][0], rows = [], gs = on.filter(function (g) { return (g.prods || []).indexOf(c) >= 0 || g.tensions.some(function (t) { return inTen(t).sp.indexOf(c) >= 0; }); });
+      gs.forEach(function (g) { g.tensions.forEach(function (t) { var x = inTen(t); if (x.sp.indexOf(c) >= 0) rows.push('<li><b>' + esc(g.name) + ':</b> ' + esc(x.t) + '</li>'); }); });
+      var common = gs.reduce(function (n, g) { return n + g.tensions.filter(function (t) { return !inTen(t).sp.length; }).length; }, 0);
+      return '<details class="box inx-pd"><summary><b>' + esc(M[k][1]) + '</b> <span class="small muted">' + rows.length + ' tension riêng · ' + gs.length + ' nhóm khách · +' + common + ' tension dùng chung</span></summary>' +
+        '<p class="small">👥 ' + (gs.length ? esc(gs.map(function (g) { return g.name; }).join(', ')) : 'Chưa có nhóm khách nào gắn sản phẩm này') + '</p>' +
+        (rows.length ? '<ul class="small inx-tl">' + rows.join('') + '</ul>' : '<p class="small muted">Chưa có tension riêng: trợ lý dùng tension 🌐 dùng chung của các nhóm trên.</p>') + '</details>';
+    }).join('');
+    var all = []; on.forEach(function (g) { var L = g.tensions.filter(function (t) { return !inTen(t).sp.length; }); if (L.length) all.push('<p class="small" style="margin:8px 0 2px"><b>' + esc(g.name) + '</b></p><ul class="small inx-tl">' + L.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>'); });
+    h += '<details class="box inx-pd"><summary><b>🌐 Tension dùng chung cho mọi sản phẩm</b> <span class="small muted">' + on.reduce(function (n, g) { return n + g.tensions.filter(function (t) { return !inTen(t).sp.length; }).length; }, 0) + ' tension</span></summary>' + all.join('') + '</details>';
+    return h;
+  }
   /** 🎯 nhóm khách · tension của 1 bài (cột ins JSON ở Zalo / Fanpage, meta ở bài web) */
   function inTag(o) {
     if (typeof o === 'string') { try { o = JSON.parse(o || '{}'); } catch (e) { o = {}; } }
     if (!o || !(o.gn || o.t)) return '';
-    return '<p class="small inx-tag">🎯 <b>' + esc(o.gn || 'Nhóm khách') + '</b>' + (o.t ? ' · ' + esc(o.t) : '') + (o.i ? '<br><span class="muted">💭 “' + esc(o.i) + '”</span>' : '') +
+    return '<p class="small inx-tag">' + (o.is ? '🔎 <b>Issue:</b> ' + esc(o.is) + '<br>' : '') + '🎯 <b>' + esc(o.gn || 'Nhóm khách') + '</b>' + (o.t ? ' · ' + esc(o.t) : '') + (o.i ? '<br><span class="muted">💭 “' + esc(o.i) + '”</span>' : '') + (o.d ? '<br>💡 <b>Idea:</b> ' + esc(o.d) : '') +
       (o.w && o.w.length ? '<br><span class="inx-warn">⚠️ Đọc lại: <b>' + esc(o.w.join(', ')) + '</b> (cụm dễ phạm luật quảng cáo: chỉ giữ nếu đúng hồ sơ công bố hoặc là câu phủ định; số 0896 869 333 là hotline cũ, đổi thành 0966 326 522)</span>' : '') + '</p>';
   }
   /** Hỏi trước khi viết lại (Zalo, Fanpage): ý kiến + nhóm khách. cb(hint, grp) */
@@ -6054,6 +6083,8 @@
       return '<div class="inx-srow"><div class="inx-sn"><b>' + esc(g.name) + '</b> <span class="small muted">' + b.n + ' bài</span>' + (!b.n && g.on ? ' <span class="small">⚠️ chưa có nội dung nào</span>' : '') + '</div>' +
         '<div class="inx-bar"><i style="width:' + Math.round(b.n * 100 / max) + '%"></i></div><div class="small muted">' + Object.keys(IN_CH).filter(function (c) { return b[c]; }).map(function (c) { return IN_CH[c] + ' ' + b[c]; }).join(' · ') + '</div></div>';
     }).join('');
+    var bySp = {}; log.forEach(function (r) { var k = r.sp || ''; bySp[k] = (bySp[k] || 0) + 1; });
+    if (log.length) h += '<p class="small inx-fun">🏷 Theo sản phẩm: ' + Object.keys(bySp).sort(function (a, b) { return bySp[b] - bySp[a]; }).map(function (k) { return (k ? esc(inSpName(k)) : 'không nói sản phẩm') + ' <b>' + bySp[k] + '</b>'; }).join(' · ') + '</p>';
     var fc = Object.keys(IN_CH).filter(function (c) { return fun[c] && fun[c].n; });
     if (fc.length) h += '<div class="inx-fun small">' + fc.map(function (c) { var f = fun[c]; return '<p>' + IN_CH[c] + ': ' + ['TOFU', 'MOFU', 'BOFU'].map(function (k) { return '<span class="zb-fun zb-fun-' + k.toLowerCase() + '">' + k + ' ' + Math.round((f[k] || 0) * 100 / f.n) + '%</span>'; }).join(' ') + '</p>'; }).join('') + '</div>';
     if (!log.length) h += '<p class="small muted">Chưa có bài nào đi qua bước insight. Từ hôm nay, mỗi bài trợ lý viết sẽ được đếm ở đây.</p>';
@@ -6065,15 +6096,17 @@
       '<p class="muted small lq-intro">Mọi nội dung trợ lý AI viết (bài web, bài nhóm Zalo, Fanpage, kịch bản video) đều đi 4 bước: chọn <b>1 nhóm khách</b> → <b>1 tension</b> (điều họ mong ↔ điều đang cản họ) → <b>tầng phễu</b> → viết bài gỡ đúng tension đó. Sửa ngân hàng insight ở đây là cả 4 trợ lý dùng theo. <a href="/huong-dan/marketing/#insight-noi-dung" target="_blank" rel="noopener">Xem hướng dẫn</a></p>';
     if (!IN.d) return h + '<div class="box"><p class="muted">' + (IN.err ? '⚠️ ' + esc(IN.err) + ' <button class="link" data-in="reload">Thử lại</button>' : '⏳ Đang tải…') + '</p></div>';
     var j = IN.d, bank = j.bank || [], ed = inCanEdit();
-    h += '<details class="zb-info small"><summary>ⓘ Quy trình Insight → Tension → Phễu (khoá content Tuấn Hà)</summary><ol>' +
+    h += '<details class="zb-info small"><summary>ⓘ Quy trình 4Is: Issue → Insight → Idea → Implementation (khoá content K133)</summary><ol>' +
+      '<li><b>🔎 Issue</b>: 1 vấn đề cụ thể quan sát được của nhóm khách trong 1 cảnh (vd "2 giờ sáng cho con bú, khát mà không ai đun nước"). <b>🎯 Insight</b>: vì sao họ kẹt = tension. <b>💡 Idea</b>: góc tiếp cận gỡ tension. <b>✍️ Implementation</b>: viết đúng kênh, đúng tầng phễu. Thẻ bài ghi đủ 3 dòng 🔎 🎯 💡 để người duyệt kiểm tra.</li>' +
       '<li><b>Insight là tension</b>: thế giằng co khi điều khách <b>mong</b> va vào <b>rào cản</b> trong 1 cảnh đời cụ thể. Ví dụ: “Biết phải ăn sáng đủ chất ↔ sáng nào cũng vội, ăn tạm hoặc bỏ bữa”.</li>' +
       '<li>Mỗi bài chỉ nói với <b>1 nhóm khách</b> và gỡ <b>1 tension</b>: cắt bỏ, giảm (thời gian, tiền, công sức, rủi ro), đi vòng rào cản hoặc đổi cách nhìn. Không hù doạ, không hứa sai sự thật.</li>' +
       '<li><b>🔵 TOFU</b>: giá trị nằm ở chính nội dung (kiến thức, mẹo, câu chuyện), đạt 3/4 "4 MỚI" (mới, chưa ai nói, có giá trị, áp dụng ngay), không để tên sản phẩm ở tiêu đề. <b>⚪ MOFU</b>: giá trị là uy tín (nguồn gốc, nhà máy, kiểm nghiệm, hồ sơ công bố, so sánh thật, cảm nhận khách thật). <b>🟠 BOFU</b>: giá trị nằm ở sản phẩm, ưu đãi thật.</li>' +
       '<li>Khi viết, AI dùng thêm các công cụ của khoá K133: insight dạng <i>"tôi cần cách [điều mong] mà không phải [rào cản]"</i>, 1 động lực chính (nhu cầu, hình ảnh bản thân, nỗi đau, nỗi lo, kết quả, tò mò), 10 kiểu hook, nhịp C.A.R.E (nhân vật, cảm xúc, lối thoát, mời tương tác), "chạm cảm xúc trước, thông tin sau" và công thức hợp từng tầng (TOFU: Star–Story–Solution, Open Loop, 1-2-3 · MOFU: BAB, QUEST, FAB · BOFU: Value Stack, AIDA, PAS).</li>' +
       '<li>Luật quảng cáo thực phẩm: chỉ nói công dụng đúng hồ sơ công bố; kinh nghiệm dân gian về chè vằng, đinh lăng… phải nói là kinh nghiệm dân gian. Bài có cụm dễ phạm luật (lợi sữa, giảm cân, thanh lọc, không đường…) sẽ hiện ⚠️ để người duyệt đọc lại.</li>' +
       '<li>Mỗi bài có <b>1 lối ra</b>: TOFU mời bình luận, nhận quà, vào nhóm · MOFU mời xem sản phẩm, hỏi tư vấn · BOFU mời đặt hàng.</li>' +
-      '<li>Trên thẻ bài ở tab Zalo, Fanpage, Bài web có dòng <b>🎯 nhóm khách · tension</b> để người duyệt kiểm tra bài có chạm đúng nỗi lòng khách không.</li></ol></details>';
+      '<li>Tension gắn <b>🏷 nhãn sản phẩm</b> chỉ dùng khi bài nói về sản phẩm đó; tension <b>🌐 dùng chung</b> hợp mọi sản phẩm và mọi bài thu hút. Xem ở mục 🏷 Insight theo sản phẩm bên dưới.</li></ol></details>';
     h += inStatsHtml(j);
+    h += inToolsHtml(j, ed);
     // 🎬 kịch bản video
     var gOpt = '<option value="">🔄 Tự chọn (nhóm ít video nhất)</option>' + bank.filter(function (g) { return g.on; }).map(function (g) { return '<option value="' + esc(g.id) + '">' + esc(g.name) + '</option>'; }).join('');
     h += '<h2 class="zb-h">🎬 Viết kịch bản video ngắn</h2><div class="box inx-vd">' +
@@ -6095,18 +6128,145 @@
     }).join('') + '</div>';
     // 👥 ngân hàng insight
     h += '<div class="zb-done-h"><h2 class="zb-h">👥 Ngân hàng insight</h2><span class="small">' + (j.custom ? 'Đã chỉnh riêng' : 'Bản mặc định') + ' · ' + bank.filter(function (g) { return g.on; }).length + ' nhóm đang dùng</span></div>';
-    if (ed && (j.news || []).length) h += '<div class="box bw-todo"><b>📚 Có ' + j.news.length + ' nhóm khách mới từ tài liệu khoá học:</b> ' + esc(j.news.map(function (g) { return g.name + (g.on ? '' : ' (tắt sẵn)'); }).join(', ')) + '<div class="lq-btns"><button class="btn sm pri" data-in="addnew">➕ Thêm vào ngân hàng</button></div></div>';
+    if (ed && j.upd) h += '<div class="box bw-todo"><b>📚 Bản mặc định có cập nhật mới</b> (từ tài liệu khoá học): ' + [j.upd.groups ? j.upd.groups + ' nhóm khách mới' : '', j.upd.tensions ? j.upd.tensions + ' tension mới' : '', j.upd.tags ? j.upd.tags + ' nhãn sản phẩm' : ''].filter(Boolean).join(', ') + '. Gộp vào không xoá gì anh chị đã sửa.<div class="lq-btns"><button class="btn sm pri" data-in="merge">📚 Gộp vào ngân hàng</button></div></div>';
+    if (ed) h += '<div class="box inx-imp"><p class="small"><b>📥 Vừa chạy skill tìm insight?</b> Bấm <b>Dán kết quả skill</b>, dán nguyên báo cáo: AI tách nhóm khách, tension (xếp theo điểm), nhãn sản phẩm, hook; anh chị xem trước rồi bấm lưu. Tension mới được thêm lên đầu nhóm (trợ lý ưu tiên tension xếp trên).</p><div class="lq-btns"><button class="btn sm pri" data-in="imp">📥 Dán kết quả skill</button></div></div>';
     h += bank.map(function (g, i) {
       return '<div class="box inx-g' + (g.on ? '' : ' bw-off') + '"><div class="zb-ph"><b>' + esc(g.name) + '</b><span class="zb-due">' + (g.on ? '🟢 Đang dùng' : '⏸ Tạm tắt') + '</span></div>' +
         (g.who ? '<p class="small">' + esc(g.who) + '</p>' : '') + (g.want ? '<p class="small"><b>💚 Mong muốn:</b> ' + esc(g.want) + '</p>' : '') + (g.block ? '<p class="small"><b>🧱 Rào cản:</b> ' + esc(g.block) + '</p>' : '') +
-        '<p class="small"><b>⚡ Tension</b> (mong muốn ↔ rào cản):</p><ul class="small inx-tl">' + g.tensions.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>' + (g.note ? '<p class="small muted">📝 ' + esc(g.note) + '</p>' : '') +
+        ((g.prods || []).length ? '<p class="small"><b>🏷 Sản phẩm hợp:</b> ' + esc(g.prods.map(inSpName).join(', ')) + '</p>' : '') +
+        '<p class="small"><b>⚡ Tension</b> (mong muốn ↔ rào cản):</p><ul class="small inx-tl">' + g.tensions.map(function (t) { return '<li>' + inTenHtml(t) + '</li>'; }).join('') + '</ul>' + (g.note ? '<p class="small muted">📝 ' + esc(g.note) + '</p>' : '') +
         (ed ? '<div class="lq-btns"><button class="btn sm" data-in="ged|' + i + '">✏️ Sửa</button><button class="btn sm ghost" data-in="gon|' + i + '">' + (g.on ? '⏸ Tạm tắt' : '▶️ Bật lại') + '</button><button class="btn sm ghost" data-in="gdel|' + i + '">🗑 Xoá</button></div>' : '') + '</div>';
     }).join('');
-    if (ed) h += '<div class="lq-btns"><button class="btn pri" data-in="gnew">➕ Thêm nhóm khách</button>' + (j.custom ? '<button class="btn ghost" data-in="reset">↩️ Dùng lại bản mặc định</button>' : '') + '</div>';
+    if (ed) h += '<div class="lq-btns"><button class="btn pri" data-in="imp">📥 Dán kết quả skill</button><button class="btn" data-in="gnew">➕ Thêm nhóm khách</button>' + (j.custom ? '<button class="btn ghost" data-in="reset">↩️ Dùng lại bản mặc định</button>' : '') + '</div>';
+    h += inProdHtml(bank);
     return h;
   }
   function inSave(groups, msg) {
     return api('ins_save', { groups: groups }).then(function (r) { IN.d.bank = r.bank; IN.d.custom = true; toast(msg); render(); }, function (e) { toast(e.message, true); });
+  }
+  /** 📥 Dán kết quả skill tìm insight: bước 1 dán → AI tách (ins_import) → bước 2 xem trước, chọn dòng, chọn nhóm → thêm vào ngân hàng (ins_save).
+   * Tension mới thêm lên ĐẦU nhóm (sắc nhất trước, trợ lý ưu tiên tension xếp trên); hook thêm vào ghi chú; nhãn sản phẩm → [SP: …] cuối dòng. */
+  function inShort(c) { var M = (IN.d && IN.d.sp) || {}; return Object.keys(M).filter(function (k) { return M[k][0] === c; })[0] || c; }
+  function inImportForm(prevText) {
+    var M = (IN.d && IN.d.sp) || {};
+    var m = modal('📥 Dán kết quả skill tìm insight',
+      '<p class="small muted">Chạy skill tìm insight xong, chép toàn bộ kết quả (hoặc phần Bản đồ Tension + Top Insight) rồi dán vào đây. AI tách ra nhóm khách, tension, điểm, nhãn sản phẩm và hook; anh chị xem trước rồi mới lưu.</p>' +
+      '<label class="f"><span>Kết quả này làm cho sản phẩm nào? <small class="muted">giúp gắn nhãn đúng</small></span><select id="inImP"><option value="">Không riêng sản phẩm nào / nhiều sản phẩm</option>' + Object.keys(M).map(function (k) { return '<option value="' + esc(k) + '">' + esc(M[k][1]) + '</option>'; }).join('') + '</select></label>' +
+      '<label class="f"><span>Nội dung kết quả</span><textarea id="inImT" rows="12" placeholder="Dán kết quả skill vào đây…">' + esc(prevText || '') + '</textarea></label>',
+      '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="inImGo">🔍 Đọc kết quả</button>');
+    if (!prevText) draftKeep($('#inImT', m), 'crm_inimp');
+    $('#inImGo', m).onclick = function () {
+      var b = this, t = $('#inImT', m).value.trim(), pr = $('#inImP', m).value;
+      if (t.length < 80) return toast('Anh chị dán nội dung kết quả skill vào trước nhé.', true);
+      b.disabled = true; b.textContent = '⏳ AI đang đọc (khoảng 20–40 giây)…';
+      api('ins_import', { text: t, prod: pr }).then(function (r) { inImportPreview(r.groups || [], t); }, function (e) { b.disabled = false; b.textContent = '🔍 Đọc kết quả'; toast(e.message, true); });
+    };
+  }
+  /* 🧩 Công cụ từ khoá học (api/src/inskill.js): 🔍 Tìm insight, 🎁 Viết offer, 📤 tải skill lên thay phương pháp mặc định */
+  var IN_SLOT = { insight: '🔍 Tìm insight', offer: '🎁 Viết offer', video: '🎬 Kịch bản video' };
+  function inToolsHtml(j, ed) {
+    var sk = j.skills || {}, D = j.drafts || [], canLive = lvl() >= 3 || isMkt();
+    var h = '<h2 class="zb-h">🧩 Công cụ từ khoá học</h2><div class="box inx-tools">' +
+      (ed ? '<div class="lq-btns"><button class="btn pri" data-in="find">🔍 Tìm insight</button><button class="btn pri" data-in="offer">🎁 Viết offer</button></div>' : '') +
+      '<p class="small muted">🔍 Tìm insight: AI đọc câu khách thật 60 ngày (Fanpage, Zalo, chat web, ghi chú Khách hỏi) + thông tin sản phẩm, làm bản đồ tension có chấm điểm, anh chị chọn dòng để thêm vào ngân hàng. 🎁 Viết offer: dựng offer theo Hormozi cho 1 sản phẩm + 1 tension, lưu nháp để duyệt giá.</p>' +
+      '<p class="small" style="margin:10px 0 4px"><b>📘 Phương pháp đang dùng</b> <span class="muted">tải file skill (.skill, .zip hoặc SKILL.md) như trong Claude; tải bản mới là thay bản cũ</span></p>' +
+      Object.keys(IN_SLOT).map(function (k) {
+        var v = sk[k];
+        return '<div class="inx-skrow"><span class="small"><b>' + IN_SLOT[k] + ':</b> ' + (v ? '🧩 skill <b>' + esc(v.name) + '</b> <span class="muted">(' + (v.files || []).length + ' tệp, tải ' + fDateTime(v.at) + ' · ' + esc(v.by || '') + ')</span>' : '<span class="muted">phương pháp mặc định (tóm từ skill của khoá)</span>') + '</span>' +
+          (ed ? '<span class="inx-skb"><button class="btn sm" data-in="sk|' + k + '">📤 ' + (v ? 'Tải bản mới' : 'Tải skill lên') + '</button>' + (v ? '<button class="btn sm ghost" data-in="skdel|' + k + '">🗑</button>' : '') + '</span>' : '') + '</div>';
+      }).join('') + '<input type="file" id="inSkF" accept=".skill,.zip,.md,.txt" hidden></div>';
+    if (D.length) h += '<h2 class="zb-h">🎁 Offer nháp (' + D.length + ')</h2>' + D.map(function (o, i) {
+      var open = IN.openOf ? IN.openOf === o.id : i === 0;
+      return '<details class="box inx-of"' + (open ? ' open' : '') + '><summary><b>' + esc(o.title) + '</b> <span class="small muted">' + esc(inSpName(o.prod)) + ' · ' + fDateTime(o.at) + ' · ' + esc(o.by_name) + (o.skill ? ' · 🧩 ' + esc(o.skill) : '') + '</span></summary>' +
+        inTag({ gn: o.gn, t: o.t, w: o.w }) + (o.sum ? '<p class="small"><b>Tóm tắt ưu đãi:</b> ' + esc(o.sum) + '</p>' : '') + '<div class="inx-script">' + askMd(o.text) + '</div>' +
+        '<p class="small muted">Offer nháp chưa chạy. Duyệt giá, quà, số lượng xong mới đưa vào Ưu đãi, lúc đó sale và các trợ lý mới nhắc tới.</p><div class="lq-btns"><button class="btn sm" data-in="ocopy|' + o.id + '">📋 Copy offer</button><button class="btn sm" data-in="osum|' + o.id + '">📋 Copy tóm tắt</button>' +
+        (canLive ? '<button class="btn sm pri" data-in="olive|' + o.id + '">➕ Đưa vào Ưu đãi</button>' : '') + (ed ? '<button class="btn sm ghost" data-in="odel|' + o.id + '">🗑 Xoá</button>' : '') + '</div></details>';
+    }).join('');
+    return h;
+  }
+  function inSpOpts(req) { var M = (IN.d && IN.d.sp) || {}; return (req ? '' : '<option value="">Không riêng sản phẩm nào</option>') + Object.keys(M).map(function (k) { return '<option value="' + esc(k) + '">' + esc(M[k][1]) + '</option>'; }).join(''); }
+  function inGrpOpts(none) { return '<option value="">' + none + '</option>' + (IN.d.bank || []).filter(function (g) { return g.on; }).map(function (g) { return '<option value="' + esc(g.id) + '">' + esc(g.name) + '</option>'; }).join(''); }
+  function inFindForm() {
+    var m = modal('🔍 Tìm insight',
+      '<p class="small muted">' + (IN.d.skills && IN.d.skills.insight ? 'Dùng skill <b>' + esc(IN.d.skills.insight.name) + '</b> anh chị đã tải lên.' : 'Dùng phương pháp tìm insight 3C của khoá (ABC → Tension → WHY → chấm điểm /25).') + ' AI đọc thêm câu khách thật 60 ngày, đánh dấu tension nào có bằng chứng (DK) hay còn là giả thuyết (GT).</p>' +
+      '<label class="f"><span>Sản phẩm</span><select id="inFdP">' + inSpOpts(false) + '</select></label>' +
+      '<label class="f"><span>Nhóm khách mẫu</span><select id="inFdG">' + inGrpOpts('AI đề xuất 2–3 nhóm (hoặc ghi ở ô dưới)') + '</select></label>' +
+      '<label class="f"><span>Mô tả nhóm khách mới <small class="muted">nếu không chọn nhóm có sẵn</small></span><input id="inFdT" placeholder="Vd: nhân viên văn phòng nữ 30–40, hay đặt đồ ăn trưa"></label>' +
+      '<label class="f"><span>Mục tiêu</span><select id="inFdO"><option value="ban">Bán hàng (ra đơn)</option><option value="viral">Content viral (tiếp cận, chia sẻ)</option><option value="ca2" selected>Cả hai</option></select></label>' +
+      '<label class="f"><span>Ghi chú <small class="muted">không bắt buộc: dịp, khu vực, giá, điều đã thấy</small></span><textarea id="inFdN" rows="2"></textarea></label>' +
+      '<label class="switch"><input type="checkbox" id="inFdV" checked> Đọc câu khách thật 60 ngày qua (đã che số điện thoại)</label>',
+      '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="inFdGo">🔍 Tìm insight</button>');
+    $('#inFdGo', m).onclick = function () {
+      var b = this; b.disabled = true; b.textContent = '⏳ AI đang tìm (khoảng 1–2 phút)…';
+      api('ins_find', { prod: $('#inFdP', m).value, g: $('#inFdG', m).value, ta: $('#inFdT', m).value.trim(), goal: $('#inFdO', m).value, note: $('#inFdN', m).value.trim(), voc: $('#inFdV', m).checked })
+        .then(function (r) { inImportPreview(r.groups || [], null, inFindForm, '🔍 Insight tìm được' + (r.voc ? ' · đọc ' + r.voc + ' câu khách thật' : '')); }, function (e) { b.disabled = false; b.textContent = '🔍 Tìm insight'; toast(e.message, true); });
+    };
+  }
+  function inOfferForm() {
+    var m = modal('🎁 Viết offer',
+      '<p class="small muted">' + (IN.d.skills && IN.d.skills.offer ? 'Dùng skill <b>' + esc(IN.d.skills.offer.name) + '</b> anh chị đã tải lên.' : 'Dùng phương pháp Hormozi (Value Equation, Grand Slam Offer, value stack, bảo đảm).') + ' Offer lưu nháp, không tự chạy.</p>' +
+      '<label class="f"><span>Sản phẩm</span><select id="inOfP">' + inSpOpts(true) + '</select></label>' +
+      '<label class="f"><span>Nhóm khách</span><select id="inOfG">' + inGrpOpts('AI chọn nhóm hợp nhất') + '</select></label>' +
+      '<label class="f"><span>Tension offer gỡ</span><select id="inOfT"><option value="">AI chọn tension sắc nhất</option></select></label>' +
+      '<label class="f"><span>Loại offer</span><select id="inOfK"><option value="moi">Mồi / dùng thử</option><option value="chinh" selected>Offer chính</option><option value="combo">Combo / quà biếu</option><option value="mua-lai">Mua lại (khách cũ)</option></select></label>' +
+      '<label class="f"><span>Ghi chú <small class="muted">không bắt buộc: giá mục tiêu, dịp, ngân sách quà</small></span><textarea id="inOfN" rows="2"></textarea></label>',
+      '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="inOfGo">🎁 Viết offer</button>');
+    var fill = function () {
+      var g = (IN.d.bank || []).filter(function (b) { return b.id === $('#inOfG', m).value; })[0], c = inSpCode($('#inOfP', m).value);
+      $('#inOfT', m).innerHTML = '<option value="">AI chọn tension sắc nhất</option>' + (g ? g.tensions.map(inTen).filter(function (t) { return !t.sp.length || t.sp.indexOf(c) >= 0; }).map(function (t) { return '<option>' + esc(t.t) + '</option>'; }).join('') : '');
+    };
+    $('#inOfG', m).onchange = fill; $('#inOfP', m).onchange = fill;
+    $('#inOfGo', m).onclick = function () {
+      var b = this; b.disabled = true; b.textContent = '⏳ AI đang viết (khoảng 1 phút)…';
+      api('ins_offer', { prod: $('#inOfP', m).value, g: $('#inOfG', m).value, t: $('#inOfT', m).value, kind: $('#inOfK', m).value, note: $('#inOfN', m).value.trim() })
+        .then(function (r) { closeModal(); IN.d.drafts = [r.draft].concat(IN.d.drafts || []); IN.openOf = r.draft.id; toast('Đã viết xong offer nháp ✓'); render(); }, function (e) { b.disabled = false; b.textContent = '🎁 Viết offer'; toast(e.message, true); });
+    };
+  }
+  function inOfferLive(o) {
+    var m = modal('➕ Đưa offer vào Ưu đãi đang chạy',
+      '<p class="small">Sau khi lưu, sale thấy ưu đãi này ở tab Hôm nay và các trợ lý (Zalo, Fanpage, chat web) được phép nhắc tới. Chỉ lưu khi đã duyệt giá, quà, số lượng.</p>' +
+      '<label class="f"><span>Tên ưu đãi</span><input id="inLvT" value="' + esc(o.title) + '"></label>' +
+      '<label class="f"><span>Nội dung ngắn</span><textarea id="inLvX" rows="4">' + esc(o.sum || '') + '</textarea></label>' +
+      '<label class="f"><span>Chạy đến hết ngày <small class="muted">bỏ trống = không hạn</small></span><input type="date" id="inLvU"></label>',
+      '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="inLvGo">➕ Lưu vào Ưu đãi</button>');
+    $('#inLvGo', m).onclick = function () {
+      var b = this, t = $('#inLvT', m).value.trim(); if (!t) return toast('Cần tên ưu đãi.', true);
+      b.disabled = true; api('offer_save', { title: t, prod: inSpName(o.prod), text: $('#inLvX', m).value.trim(), until: $('#inLvU', m).value }).then(function () { closeModal(); toast('Đã đưa vào Ưu đãi đang chạy ✓'); }, function (e) { b.disabled = false; toast(e.message, true); });
+    };
+  }
+  function inImportPreview(G, text, back, title) {
+    var bank = IN.d.bank || [];
+    var opt = function (gi, gr) { return '<select data-inimg="' + gi + '"><option value="">➕ Nhóm mới: ' + esc(gr.name) + '</option>' + bank.map(function (b) { return '<option value="' + esc(b.id) + '"' + (b.id === gr.match ? ' selected' : '') + '>' + esc(b.name) + '</option>'; }).join('') + '</select>'; };
+    var body = '<p class="small muted">Tích những dòng muốn thêm. Dòng đã có trong ngân hàng hoặc có cụm dễ phạm luật (⚠️) được bỏ tích sẵn. Tension mới thêm lên đầu nhóm, theo thứ tự điểm.</p>' + G.map(function (gr, gi) {
+      return '<div class="box inx-impg"><label class="f"><span>Thêm vào nhóm</span>' + opt(gi, gr) + '</label>' +
+        gr.tensions.map(function (t, ti) {
+          return '<label class="zb-ck"><input type="checkbox" data-init="' + gi + '|' + ti + '"' + (t.dup || (t.w && t.w.length) ? '' : ' checked') + '><span>' + esc(t.t) + ' ' + (t.sp.length ? '<span class="inx-sp">🏷 ' + esc(t.sp.map(inSpName).join(', ')) + '</span>' : '<span class="inx-sp inx-all">🌐 dùng chung</span>') +
+            (t.score ? ' <b class="small">' + t.score + 'đ</b>' : '') + (t.ev ? ' <span class="small ' + (t.ev === 'DK' ? 'inx-dk' : 'muted') + '">' + (t.ev === 'DK' ? '📌 có bằng chứng' : 'giả thuyết') + '</span>' : '') + (t.quote ? '<small>📌 Khách nói: “' + esc(t.quote) + '”</small>' : '') + (t.dup ? ' <span class="small muted">(đã có)</span>' : '') + (t.insight ? '<small>💭 “' + esc(t.insight) + '”</small>' : '') + (t.w && t.w.length ? '<small class="inx-warn">⚠️ ' + esc(t.w.join(', ')) + '</small>' : '') + '</span></label>';
+        }).join('') +
+        (gr.hooks.length ? '<label class="zb-ck"><input type="checkbox" data-inih="' + gi + '" checked><span><b>Thêm hook vào ghi chú</b><small>' + esc(gr.hooks.join(' · ')) + '</small></span></label>' : '') + '</div>';
+    }).join('');
+    var m = modal(title || '📥 Xem trước kết quả', body, '<button class="btn" id="inImBack">↩️ ' + (back ? 'Tìm lại' : 'Dán lại') + '</button><button class="btn pri" id="inImSave">💾 Thêm vào ngân hàng</button>');
+    $('#inImBack', m).onclick = function () { if (back) back(); else inImportForm(text); };
+    $('#inImSave', m).onclick = function () {
+      var nb = bank.map(function (g) { return Object.assign({}, g, { tensions: g.tensions.slice(), prods: (g.prods || []).slice() }); }), nT = 0, nG = 0;
+      var key = function (x) { return inTen(x).t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/[^a-z0-9]+/g, ''); };
+      G.forEach(function (gr, gi) {
+        var lines = gr.tensions.filter(function (t, ti) { var c = $('[data-init="' + gi + '|' + ti + '"]', m); return c && c.checked; }).map(function (t) { return t.t + (t.sp.length ? ' [SP: ' + t.sp.map(inShort).join(', ') + ']' : ''); });
+        var hk = $('[data-inih="' + gi + '"]', m), hooks = hk && hk.checked ? gr.hooks : [];
+        if (!lines.length && !hooks.length) return;
+        var sp = []; gr.tensions.forEach(function (t) { t.sp.forEach(function (c) { if (sp.indexOf(c) < 0) sp.push(c); }); });
+        var hookTxt = hooks.length ? 'Hook từ skill: ' + hooks.join(' · ') : '', tid = $('[data-inimg="' + gi + '"]', m).value, g = nb.filter(function (b) { return b.id === tid; })[0];
+        if (g) {
+          var have = lines.map(key); g.tensions = lines.concat(g.tensions.filter(function (x) { return have.indexOf(key(x)) < 0; }));
+          if (hookTxt) g.note = (g.note ? g.note + '\n' : '') + hookTxt;
+          sp.forEach(function (c) { if (g.prods.indexOf(c) < 0) g.prods.push(c); });
+        } else { nb.push({ name: gr.name, who: gr.who, want: gr.want, block: gr.block, tensions: lines, prods: sp, note: hookTxt, on: true }); nG++; }
+        nT += lines.length;
+      });
+      if (!nT && !nG) return toast('Anh chị chưa tích dòng nào.', true);
+      this.disabled = true; closeModal(); store('crm_inimp', null);
+      inSave(nb, 'Đã thêm ' + nT + ' tension' + (nG ? ', ' + nG + ' nhóm mới' : '') + ' từ kết quả skill ✓');
+    };
   }
   function inGroupForm(i) {
     var bank = (IN.d.bank || []).slice(), g = i == null ? { on: true, tensions: [] } : bank[i];
@@ -6115,13 +6275,14 @@
       '<label class="f"><span>Chân dung <small class="muted">họ là ai, sống thế nào, hay ở đâu</small></span><textarea id="inGw" rows="2">' + esc(g.who || '') + '</textarea></label>' +
       '<label class="f"><span>💚 Mong muốn <small class="muted">điều họ nói ra được + khát vọng sâu hơn</small></span><textarea id="inGa" rows="2">' + esc(g.want || '') + '</textarea></label>' +
       '<label class="f"><span>🧱 Rào cản <small class="muted">tiền, thời gian, thói quen, người khác, nỗi sợ…</small></span><textarea id="inGb" rows="2">' + esc(g.block || '') + '</textarea></label>' +
-      '<label class="f"><span>⚡ Tension <small class="muted">mỗi dòng 1 cái, dạng “Muốn … ↔ nhưng …”</small></span><textarea id="inGt" rows="7" placeholder="Muốn ăn sáng đủ chất ↔ sáng nào cũng vội, ăn tạm hoặc bỏ bữa">' + esc((g.tensions || []).join('\n')) + '</textarea></label>' +
+      '<p class="small" style="margin:8px 0 2px"><b>🏷 Sản phẩm hợp với nhóm</b></p><div class="inx-aud">' + Object.keys((IN.d && IN.d.sp) || {}).map(function (k) { var c = IN.d.sp[k][0]; return '<label class="zb-ck"><input type="checkbox" data-ingp="' + esc(c) + '"' + ((g.prods || []).indexOf(c) >= 0 ? ' checked' : '') + '><span>' + esc(IN.d.sp[k][1]) + '</span></label>'; }).join('') + '</div>' +
+      '<label class="f"><span>⚡ Tension <small class="muted">mỗi dòng 1 cái, dạng “Muốn … ↔ nhưng …”. Tension chỉ hợp 1 sản phẩm thì thêm cuối dòng <code>[SP: ' + Object.keys((IN.d && IN.d.sp) || {}).join(' / ') + ']</code>; không ghi = dùng chung</small></span><textarea id="inGt" rows="7" placeholder="Muốn ăn sáng đủ chất ↔ sáng nào cũng vội, ăn tạm hoặc bỏ bữa">' + esc((g.tensions || []).join('\n')) + '</textarea></label>' +
       '<label class="f"><span>📝 Ghi chú cho trợ lý <small class="muted">không bắt buộc: nên nói gì, tránh gì</small></span><textarea id="inGo" rows="2">' + esc(g.note || '') + '</textarea></label>' +
       '<label class="switch"><input type="checkbox" id="inGon"' + (g.on !== false ? ' checked' : '') + '> Đang dùng (trợ lý viết cho nhóm này)</label>',
       '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="inGsave">Lưu</button>');
     $('#inGsave', m).onclick = function () {
       var t = $('#inGt', m).value.split('\n').map(function (s) { return s.trim(); }).filter(Boolean).map(function (s) { return s.replace(/\s*(<->|<=>|->|=>)\s*/, ' ↔ '); });
-      var ng = { id: g.id || '', name: $('#inGn', m).value.trim(), who: $('#inGw', m).value.trim(), want: $('#inGa', m).value.trim(), block: $('#inGb', m).value.trim(), tensions: t, note: $('#inGo', m).value.trim(), on: $('#inGon', m).checked };
+      var ng = { id: g.id || '', prods: $$('[data-ingp]', m).filter(function (x) { return x.checked; }).map(function (x) { return x.getAttribute('data-ingp'); }), name: $('#inGn', m).value.trim(), who: $('#inGw', m).value.trim(), want: $('#inGa', m).value.trim(), block: $('#inGb', m).value.trim(), tensions: t, note: $('#inGo', m).value.trim(), on: $('#inGon', m).checked };
       if (!ng.name) return toast('Bạn ghi tên nhóm trước nhé.', true);
       if (!t.length) return toast('Ghi ít nhất 1 tension nhé.', true);
       if (t.some(function (s) { return s.indexOf('↔') < 0; }) && !confirm('Có dòng tension chưa có dấu ↔ (2 cực: điều họ mong ↔ điều đang cản họ). Vẫn lưu?')) return;
@@ -6134,7 +6295,20 @@
     var v = t.getAttribute('data-in').split('|'), a = v[0], bank = IN.d ? (IN.d.bank || []).slice() : [], i = Number(v[1]);
     if (a === 'reload') { IN.err = ''; IN.d = null; return render(); }
     if (a === 'gnew') return inGroupForm(null);
-    if (a === 'addnew') { t.disabled = true; return inSave(bank.concat(IN.d.news || []), 'Đã thêm ' + (IN.d.news || []).length + ' nhóm khách mới ✓').then(function () { IN.d.news = []; render(); }); }
+    if (a === 'imp') return inImportForm();
+    if (a === 'find') return inFindForm();
+    if (a === 'offer') return inOfferForm();
+    if (a === 'sk') { var fi = $('#inSkF'); fi.value = ''; fi.onchange = function () {
+      var f = fi.files && fi.files[0]; if (!f) return; if (f.size > 3e6) return toast('File quá lớn (tối đa 3 MB).', true);
+      var rd = new FileReader(); rd.onload = function () { t.disabled = true; toast('⏳ Đang tải skill lên…'); api('ins_skill', { slot: v[1], file: rd.result, fname: f.name }).then(function (r) { IN.d.skills = r.skills; toast('Đã tải skill ' + (r.skills[v[1]] || {}).name + ' ✓'); render(); }, function (er) { t.disabled = false; toast(er.message, true); }); };
+      rd.readAsDataURL(f); }; return fi.click(); }
+    if (a === 'skdel') { if (!confirm('Bỏ skill này, quay về phương pháp mặc định?')) return; t.disabled = true; return api('ins_skilldel', { slot: v[1] }).then(function (r) { IN.d.skills = r.skills; toast('Đã bỏ skill'); render(); }, function (er) { t.disabled = false; toast(er.message, true); }); }
+    var od = (IN.d.drafts || []).filter(function (o) { return o.id === i; })[0];
+    if (a === 'ocopy' && od) return copy('# ' + od.title + '\nNhóm khách: ' + od.gn + '\nTension: ' + od.t + '\nTóm tắt ưu đãi: ' + od.sum + '\n\n' + od.text).then(function () { toast('📋 Đã copy offer'); });
+    if (a === 'osum' && od) return copy(od.sum || od.title).then(function () { toast('📋 Đã copy tóm tắt'); });
+    if (a === 'olive' && od) return inOfferLive(od);
+    if (a === 'odel' && od) { if (!confirm('Xoá offer nháp “' + od.title + '”?')) return; t.disabled = true; return api('ins_odel', { id: od.id }).then(function () { IN.d.drafts = IN.d.drafts.filter(function (o) { return o.id !== od.id; }); render(); }, function (er) { t.disabled = false; toast(er.message, true); }); }
+    if (a === 'merge') { t.disabled = true; return api('ins_merge', {}).then(function (r) { IN.d.bank = r.bank; IN.d.custom = true; IN.d.upd = null; toast('Đã gộp bản mặc định mới ✓'); render(); }, function (er) { t.disabled = false; toast(er.message, true); }); }
     if (a === 'ged') return inGroupForm(i);
     if (a === 'gon') { bank[i] = Object.assign({}, bank[i], { on: !bank[i].on }); t.disabled = true; return inSave(bank, bank[i].on ? 'Đã bật lại nhóm ✓' : 'Đã tạm tắt nhóm'); }
     if (a === 'gdel') { if (!confirm('Xoá nhóm “' + bank[i].name + '” khỏi ngân hàng insight?')) return; bank.splice(i, 1); t.disabled = true; return inSave(bank, 'Đã xoá nhóm'); }
@@ -6262,7 +6436,7 @@
       var m = p.meta || {}, need = p.status === 'wait', warn = (m.checks || []).filter(function (x) { return /^⚠️/.test(x); }).length;
       h += '<div class="box zb-post' + (need ? ' zb-need' : '') + '">' + head(need ? '⏳ chờ duyệt' : '✅ ' + esc(p.st) + (p.by_name ? ' · ' + esc(p.by_name) : '')) +
         '<div class="bw-row">' + (m.cover ? '<img class="bw-cover" src="https://thucduonglanh.vn' + esc(m.cover) + '" alt="" loading="lazy">' : '') + '<div class="bw-tx"><p class="bw-title">' + esc(p.title) + '</p>' +
-        '<p class="small">' + bwFun(p.funnel) + '</p>' + inTag({ gn: m.who, t: m.t, i: m.i, w: m.w }) + '<p class="small muted">' + esc(m.excerpt || '') + '</p>' +
+        '<p class="small">' + bwFun(p.funnel) + '</p>' + inTag({ gn: m.who, is: m.is, t: m.t, i: m.i, d: m.d, w: m.w }) + '<p class="small muted">' + esc(m.excerpt || '') + '</p>' +
         '<p class="small muted">' + (p.topic && p.topic !== 'Trợ lý tự chọn' ? '💡 Chủ đề được giao: ' + esc(p.topic) : '🤖 Trợ lý tự chọn chủ đề') + '</p></div></div>' +
         (m.checks && m.checks.length ? '<details class="zb-info small"' + (warn ? ' open' : '') + '><summary>' + (warn ? '⚠️ Trợ lý tự kiểm tra: ' + warn + ' điểm cần xem' : '✅ Trợ lý tự kiểm tra: không có lỗi') + '</summary><ul>' + m.checks.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></details>' : '') +
         (m.fb ? '<p class="small muted">✍️ Đã viết lại theo ý kiến: “' + esc(m.fb) + '”</p>' : '') + (p.err ? '<p class="small">⚠️ ' + esc(p.err) + '</p>' : '') + bwBtns(p) + '</div>';

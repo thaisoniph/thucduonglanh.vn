@@ -536,7 +536,7 @@ export async function zWrite(x, day, slot, hint, by, grp) {
   await run(x.db, `INSERT INTO zb_posts (id, day, slot, topic, text, img, prod, status, by_name, at, funnel, ev, ins) VALUES (?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET topic = excluded.topic, text = excluded.text, img = excluded.img, prod = excluded.prod, status = 'draft', by_name = excluded.by_name, at = excluded.at, funnel = excluded.funnel, ev = excluded.ev, ins = excluded.ins`,
     id, day, slot, topic, tagged.slice(0, 4000), img, prods[code] ? code : '', by || 'AI', now, th.f, th.ev || '', JSON.stringify(ins));
-  await insLog(x, 'zalo', { g: ins.g, gn: ins.gn, f: th.f, t: ins.t, ref: id });
+  await insLog(x, 'zalo', { g: ins.g, gn: ins.gn, f: th.f, t: ins.t, ref: id, sp: prods[code] ? code : '' });
   const cfg = await zCfg(x);
   if (!slotAuto(cfg, slot) && !by) x.later(telegram(x.env, '📝 <b>Bài Zalo chờ duyệt</b> – ' + (SLOT_NAME[slot] || slot) + ' ' + day.slice(6, 8) + '/' + day.slice(4, 6) + (th.ev ? ' · 📅 ' + esc(th.ev) : '') + ': ' + esc(topic) + '\n👉 Duyệt / sửa: ' + CRM_URL + '/#tro-ly-zalo'));
   return { id, topic };
