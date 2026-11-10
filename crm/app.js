@@ -2290,7 +2290,7 @@
       '<button type="button" class="link small" id="kCopy">Chỉ copy tin (không mở Zalo)</button>' + (S.d.rules && S.d.rules.ai ? ' · <button type="button" class="link small" data-ai="msg" data-aiph="' + c.phone + '" data-aitask="' + esc(type || 'other') + '">✨ Nhờ AI viết tin</button>' : '') + '</details>' + careScript(c, type) + '</div>' +
       commBox(c, type, true) + giftBox(giftPerson(c.phone), type, true) + // thu gọn: để Bước 2 không bị đẩy xuống xa
       '<div class="box"><h3>Bước 2 · Ghi lại kết quả</h3>' +
-      '<label class="f"><span>✍️ Khách nói gì? <span class="muted" style="font-weight:400">(không bắt buộc)</span></span><textarea id="kNote" class="k-note" rows="2" placeholder="vd: chị bảo ngủ ngon hơn, còn nửa hộp…"></textarea></label>' +
+      '<label class="f k-note-w"><span>✍️ Khách nói gì? <span class="muted" style="font-weight:400">(không bắt buộc)</span></span><textarea id="kNote" class="k-note" rows="2" placeholder="vd: chị bảo ngủ ngon hơn, còn nửa hộp…"></textarea></label>' +
       '<p class="k-tap" id="kTap"></p>' + // dòng hướng dẫn đổi theo việc đã gõ ghi chú hay chưa → sale biết ghi chú được lưu khi bấm nút
       quickHtml(type) +
       '<details class="k-more"><summary>Kết quả khác / tự chọn ngày hẹn</summary><div style="margin-top:10px">' +
@@ -3768,7 +3768,7 @@
       '<label class="f" style="margin-top:8px"><span>Tỉnh của khách</span><input type="text" id="cProv" autocomplete="off" placeholder="Gõ để tìm, vd: nghe an" value="' + esc(leadProv(l) ? leadProv(l).old : '') + '"></label><div id="cArea"></div></details></div>' +
       giftBox(giftPerson(l.phone), 'lead', true) +
       '<div class="box"><h3>Bước 2 · Ghi lại kết quả</h3>' +
-      '<label class="f"><span>✍️ Khách nói gì? <span class="muted" style="font-weight:400">(không bắt buộc)</span></span><textarea id="cNote" class="k-note" rows="2" placeholder="Khách nói gì, băn khoăn gì…"></textarea></label><p class="k-tap" id="cTap"></p>' +
+      '<label class="f k-note-w"><span>✍️ Khách nói gì? <span class="muted" style="font-weight:400">(không bắt buộc)</span></span><textarea id="cNote" class="k-note" rows="2" placeholder="Khách nói gì, băn khoăn gì…"></textarea></label><p class="k-tap" id="cTap"></p>' +
       '<div class="quick q4">' + [['📵 Không nghe máy', 'Không nghe máy', 'gọi lại sau 1 ngày'], ['🤔 Đang cân nhắc', 'Đã tư vấn, khách cân nhắc', 'hẹn lại sau 2 ngày'], ['🛒 Chốt mua', 'Khách chốt mua', 'mở form lên đơn']].map(function (x) { return '<button type="button" class="btn' + (x[2] === 'mở form lên đơn' ? ' k-q-buy' : '') + '" data-cq="' + esc(x[1]) + '">' + x[0] + '<small>' + x[2] + '</small></button>'; }).join('') +
         '<button type="button" class="btn" id="cLostBtn">🚫 Không mua<small>chọn lý do</small></button></div>' +
       '<div class="k-cb" id="cLostQ" hidden><span>Khách không mua vì:</span>' + LOST_REASONS.map(function (r) { return '<button type="button" class="chip" data-cqr="' + esc(r) + '">' + esc(r) + '</button>'; }).join('') + '</div>' + // lý do cất sau nút Không mua cho gọn
@@ -11020,30 +11020,40 @@
   }
   /* ---------- 🛡️ Chống bấm nhầm khi hộp tự trượt (Chang báo 10/11/2026). Gõ ghi chú bằng bộ gõ tiếng Việt của Windows: chữ cuối còn gạch chân (chưa chốt).
    * Kéo xuống bấm "2 tuần" → Chrome chốt chữ rồi tự cuộn lên ô ghi chú NGAY LÚC BẤM → cú bấm rơi vào nút đang nằm dưới chuột (📴 Thuê bao) → lưu sai.
-   * Trong hộp (.modal), bấm bằng chuột: nút dưới con trỏ đã đổi mà người dùng không di chuột, không lăn chuột / bấm phím → huỷ cú bấm, cuộn về chỗ cũ, báo bấm lại.
-   * Cảm ứng (điện thoại) không áp dụng. JG.el = phần tử dưới chuột lúc người dùng nhìn thấy lần cuối (di chuột hoặc tự cuộn). */
-  var JG = { el: null, y: 0, x: 0, py: 0, box: null, st: 0, u: 0, stop: 0 };
+   * Lớp 1 (CSS .k-note-w): ô ghi chú đang gõ ghim trên cùng hộp khi kéo xuống → luôn nhìn thấy → Chrome không phải cuộn nữa.
+   * Lớp 2 (đây, dự phòng): trong hộp (.modal), bấm bằng chuột mà hộp vừa tự cuộn (≤ 300ms, người dùng không lăn chuột / bấm phím) làm nút dưới chuột đổi
+   * → cuộn về chỗ cũ, bỏ cú bấm lạc, tự bấm đúng nút người dùng đang trỏ. Sale không phải làm gì thêm. Cảm ứng (điện thoại) không áp dụng.
+   * JG.el = phần tử dưới chuột lúc người dùng nhìn thấy lần cuối (di chuột hoặc tự cuộn). */
+  var JG = { el: null, y: 0, x: 0, py: 0, box: null, st: 0, u: 0, fix: null, sAt: 0, sBox: null, sTop: 0 };
   function jgAct(el) { return el && el.closest ? el.closest('button, a, label, summary, input, select, textarea, [role=button]') : null; }
   function jgSee(el) {
     if (!el || !el.closest || !el.closest('.modal')) { JG.el = null; return; }
     JG.el = el; JG.y = el.getBoundingClientRect().top; JG.box = el.closest('.sheet-b'); JG.st = JG.box ? JG.box.scrollTop : 0;
   }
+  function jgFix() { // bấm hộ đúng nút người dùng đang trỏ lúc hộp chưa trượt
+    var f = JG.fix; JG.fix = null; if (!f || !f.el || !f.el.isConnected || f.el.disabled) return;
+    if (f.el.matches('textarea, select, input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit])')) f.el.focus({ preventScroll: true }); else f.el.click();
+  }
   document.addEventListener('pointermove', function (e) { if (e.pointerType !== 'mouse') return; JG.x = e.clientX; JG.py = e.clientY; jgSee(e.target); }, { capture: true, passive: true });
   ['wheel', 'keydown', 'touchstart'].forEach(function (ev) { document.addEventListener(ev, function () { JG.u = Date.now(); }, { capture: true, passive: true }); });
-  document.addEventListener('scroll', function () { if (JG.el && Date.now() - JG.u < 700) jgSee(document.elementFromPoint(JG.x, JG.py)); }, { capture: true, passive: true }); // tự lăn chuột / bấm phím cuộn: cập nhật phần tử dưới chuột
+  document.addEventListener('scroll', function (e) {
+    var t = e.target; if (t && t.classList && t.classList.contains('sheet-b')) { JG.sAt = Date.now(); JG.sBox = t; JG.sTop = t.scrollTop; }
+    if (JG.el && Date.now() - JG.u < 700) jgSee(document.elementFromPoint(JG.x, JG.py)); // tự lăn chuột / bấm phím cuộn: cập nhật phần tử dưới chuột
+  }, { capture: true, passive: true });
   document.addEventListener('pointerdown', function (e) {
-    JG.stop = 0;
+    JG.fix = null;
     if (e.pointerType !== 'mouse' || !JG.el || !JG.el.isConnected || !e.target.closest || !e.target.closest('.modal')) return;
-    var was = jgAct(JG.el), now = jgAct(e.target);
-    if (!now || now === was || !JG.box || !JG.box.isConnected || JG.box.scrollTop === JG.st || Math.abs(JG.el.getBoundingClientRect().top - JG.y) < 8) return; // bấm chỗ trống / đúng nút đang thấy / hộp không tự cuộn
-    JG.stop = Date.now(); JG.box.scrollTop = JG.st; // cuộn về đúng chỗ đang xem: nút định bấm lại nằm dưới chuột
+    var b = JG.box, was = jgAct(JG.el), now = jgAct(e.target);
+    if (!now || now === was || !b || !b.isConnected || b.scrollTop === JG.st || Math.abs(JG.el.getBoundingClientRect().top - JG.y) < 8) return; // bấm chỗ trống / đúng nút đang thấy / hộp không tự cuộn
+    var justNow = JG.sBox !== b || b.scrollTop !== JG.sTop || Date.now() - JG.sAt < 300; // cuộn ngay lúc bấm (sự kiện cuộn chưa kịp chạy, hoặc vừa chạy) – cuộn từ trước thì người dùng đã thấy, để bình thường
+    if (!justNow || Date.now() - JG.u < 700) return;
+    JG.fix = { el: was, at: Date.now() }; b.scrollTop = JG.st; // cuộn về đúng chỗ đang xem
   }, true);
-  document.addEventListener('pointerup', function () { if (JG.stop) setTimeout(function () { JG.stop = 0; }, 0); }, true);
   window.addEventListener('click', function (e) { // gắn ở window: chạy trước mọi xử lý bấm khác
-    if (!JG.stop || Date.now() - JG.stop > 3000) return;
-    JG.stop = 0; e.preventDefault(); e.stopPropagation();
-    toast('⚠️ Hộp vừa tự trượt đúng lúc bạn bấm (thường do bộ gõ tiếng Việt chốt chữ cuối ghi chú), CRM chưa lưu gì. Bạn bấm lại nút cần chọn nhé.', true);
+    if (!JG.fix || Date.now() - JG.fix.at > 3000) { JG.fix = null; return; }
+    e.preventDefault(); e.stopPropagation(); jgFix();
   }, true);
+  document.addEventListener('pointerup', function () { if (JG.fix) setTimeout(function () { if (JG.fix) jgFix(); }, 0); }, true); // trình duyệt không phát cú bấm (nhấn, nhả ở 2 chỗ khác nhau) → vẫn bấm hộ
 
   /* ================================================================ sự kiện chung */
   document.addEventListener('click', function (e) {
