@@ -987,3 +987,38 @@ collections:
             fields:
               - { label: "Tên chuyên mục", name: name, i18n: true, widget: string }
               - { label: "Mã (không dấu)", name: slug, widget: string }
+
+      - name: blog_auto
+        label: "🤖 Trợ lý viết bài tự động"
+        file: data/blog-auto.json
+        format: json
+        description: "Trợ lý tự viết bài cho Góc Sống Lành. Trước ngày đăng 1 ngày, trợ lý viết bài nháp rồi nhắn Telegram cho người duyệt (Quản trị, Quản lý, người được bật “Sửa website”). Bấm ✅ Đăng là bài tự lên web đúng giờ đăng. Chưa ai duyệt thì bài không lên."
+        fields:
+          - { label: "Bật trợ lý", name: on, widget: boolean, default: true, hint: "Tắt thì trợ lý ngừng viết bài mới. Bài đã duyệt vẫn lên web đúng hẹn." }
+          - label: "Số bài mỗi tuần"
+            name: per_week
+            widget: select
+            default: 3
+            options:
+              - { label: "1 bài (thứ 4)", value: 1 }
+              - { label: "2 bài (thứ 3, thứ 6)", value: 2 }
+              - { label: "3 bài (thứ 2, thứ 4, thứ 6)", value: 3 }
+              - { label: "4 bài (thứ 2, thứ 3, thứ 5, thứ 7)", value: 4 }
+              - { label: "5 bài (thứ 2 đến thứ 6)", value: 5 }
+              - { label: "6 bài (thứ 2 đến thứ 7)", value: 6 }
+              - { label: "7 bài (mỗi ngày)", value: 7 }
+          - { label: "Giờ đăng (giờ Việt Nam)", name: hour, widget: number, value_type: int, min: 7, max: 21, default: 9, hint: "Bài đã duyệt lên web vào giờ này của ngày đăng. Duyệt muộn hơn giờ đăng thì bài lên ngay khi duyệt." }
+          - { label: "Tệp khách hàng, insight và tension", name: audience, widget: text, hint: "Khi danh sách chủ đề trống, trợ lý tự chọn chủ đề từ đây, theo phễu 3 tầng (Nhận biết 🔵, Cân nhắc ⚪, Mua hàng 🟠). Viết càng sát nỗi lòng thật của khách, bài càng trúng." }
+          - label: "Chủ đề chờ viết"
+            name: topics
+            widget: list
+            required: false
+            summary: "{{fields.status}} · {{fields.title}}"
+            hint: "Trợ lý lấy chủ đề “Chờ viết” trên cùng trước. Hết chủ đề thì tự chọn theo tệp khách bên trên. Bài đăng xong, trợ lý tự đổi trạng thái sang “Đã đăng” và ghi link."
+            fields:
+              - { label: "Chủ đề / tiêu đề gợi ý", name: title, widget: string }
+              - { label: "Ghi chú cho trợ lý", name: note, widget: text, required: false, hint: "Ý chính muốn nói, nhóm khách nhắm tới, nguồn tin nên dùng…" }
+              - { label: "Tầng phễu", name: funnel, widget: select, default: "Tự chọn", options: ["Tự chọn", "TOFU – Nhận biết", "MOFU – Cân nhắc", "BOFU – Mua hàng"] }
+              - { label: "Sản phẩm muốn nhắc (mã, không bắt buộc)", name: product, widget: string, required: false, hint: "Ví dụ: bua-an-dinh-duong-vitagreen" }
+              - { label: "Trạng thái", name: status, widget: select, default: "Chờ viết", options: ["Chờ viết", "Đã đăng", "Bỏ qua"] }
+              - { label: "Link bài đã đăng", name: link, widget: string, required: false }

@@ -44,6 +44,27 @@ Máy nhớ bạn 30 ngày.
 
 Muốn ẩn bài mà không xoá: tắt ô **Hiển thị trên web**.
 
+## Trợ lý viết bài tự động
+
+Trợ lý tự viết bài cho Góc Sống Lành. **Bài chỉ lên web khi có người bấm Đăng.**
+
+**Ai duyệt bài:** Quản trị, Quản lý và người được bật "Sửa website" ở CRM → Cài đặt → Nhân sự. Phải nối Telegram ở CRM thì mới nhận được tin duyệt.
+
+**Lịch chạy:**
+1. Trước ngày đăng 1 ngày, trợ lý viết bài nháp rồi nhắn Telegram riêng cho từng người duyệt.
+2. Bấm link trong tin nhắn để xem bài và bản tự kiểm tra (từ cấm, nguồn dẫn, độ dài, ảnh bìa).
+3. Chọn một trong các nút:
+   - **✅ Đăng bài này**: bài tự lên web đúng giờ đăng. Duyệt muộn hơn giờ đăng thì bài lên ngay.
+   - **✍️ Viết lại theo ý kiến**: ghi ý kiến vào ô, khoảng 10–20 phút sau trợ lý nhắn lại bản mới.
+   - **🖊 Tôi tự sửa trong /admin**: bài vào /admin ở dạng ẩn. Sửa xong bật "Hiển thị trên web" rồi bấm Xuất bản.
+   - **🔁 Đổi chủ đề khác** hoặc **❌ Bỏ**.
+4. Tới giờ đăng mà chưa ai duyệt, trợ lý nhắc thêm 1 lần.
+
+**Cài đặt:** /admin → Cài đặt website → 🤖 Trợ lý viết bài tự động.
+- **Số bài mỗi tuần** (1–7) và **Giờ đăng**.
+- **Chủ đề chờ viết**: thêm chủ đề muốn viết, trợ lý lấy chủ đề trên cùng trước. Bài đăng xong, chủ đề tự chuyển sang "Đã đăng" kèm link.
+- Hết chủ đề, trợ lý tự chọn theo phễu 3 tầng (Nhận biết, Cân nhắc, Mua hàng) và theo ô **Tệp khách hàng, insight và tension**.
+
 ## Sửa giá sản phẩm
 
 1. Cột trái chọn **Sản phẩm**. Bấm vào sản phẩm cần sửa.

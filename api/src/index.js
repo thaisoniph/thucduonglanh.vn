@@ -6,6 +6,7 @@ import { telegram, sendMail, tgConf, bridge } from './google.js';
 import { SYNC, DUPS } from './sync.js';
 import { migrate } from './migrate.js';
 import { scheduled, mirror, dailyCare } from './cron.js';
+import { blogRoute } from './blog.js';
 import { cmsRoute } from './cms.js';
 import { voucherCheck, voucherApply } from './voucher.js';
 import { qrGo } from './links.js';
@@ -102,6 +103,10 @@ export default {
     if (path.startsWith('/gh/') || path.startsWith('/cms/')) { // trang quản trị website đăng nhập bằng email (cms.js)
       try { await ensureSchema(x.db); const r = await cmsRoute(x, req, path); if (r) return r; }
       catch (err) { console.error('cms', err && err.stack || err); return json({ ok: false, message: String(err && err.message || err) }, origin, 500); }
+    }
+    if (path.startsWith('/bai/')) { // 🤖 trang duyệt bài web do trợ lý viết (blog.js), mở từ link Telegram
+      try { await ensureSchema(x.db); const r = await blogRoute(x, req, path, url); if (r) return r; }
+      catch (err) { console.error('blog', err && err.stack || err); return new Response('Có lỗi, vui lòng thử lại sau ít phút.', { status: 500, headers: { 'Content-Type': 'text/plain; charset=utf-8' } }); }
     }
     if (path.startsWith('/fb/')) { // 📘 trợ lý Fanpage: webhook Facebook + đăng nhập kết nối trang (fb.js)
       try { await ensureSchema(x.db); const r = await fbRoute(x, req, path, url); if (r) return r; }
