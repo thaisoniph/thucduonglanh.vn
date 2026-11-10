@@ -8984,9 +8984,9 @@
     var box = $('#aiuBox'); if (!box) return;
     box.innerHTML = '<p class="hint">Đang tải…</p>';
     api('ai_usage', {}).then(function (j) {
-      var b = j.bal || {}, rate = b.rate || 26500, usd = function (v) { v = Number(v) || 0; return (v < 10 ? v.toFixed(2) : v.toFixed(1)).replace('.', ',') + '$'; }, vnd = function (v) { return moneyShort(Math.round((Number(v) || 0) * rate)); };
+      var b = j.bal || {}, rate = b.rate || 26500, usd = function (v) { v = Number(v) || 0; return (v > 0 && v < 0.01 ? v.toFixed(4) : v < 10 ? v.toFixed(2) : v.toFixed(1)).replace('.', ',') + '$'; }, vnd = function (v) { return moneyShort(Math.round((Number(v) || 0) * rate)); };
       var both = function (v) { return '<b>' + usd(v) + '</b> <span class="muted">(~' + vnd(v) + ')</span>'; };
-      var d8 = function (d) { return d ? d.slice(6, 8) + '/' + d.slice(4, 6) : ''; };
+      var d8 = function (d) { return d ? d.slice(6, 8) + '/' + d.slice(4, 6) : ''; }, kTok = function (n) { n = (Number(n) || 0) / 1000; return (n < 10 ? n.toFixed(1) : Math.round(n).toString()).replace('.', ','); };
       var top;
       if (b.fund) {
         var days = b.days === null ? '' : b.days < 1 ? ' · <b style="color:var(--red)">sắp hết hôm nay</b>' : ' · đủ khoảng <b>' + Math.floor(b.days) + ' ngày</b>', warn = b.left < 5 || (b.days !== null && b.days < 5);
@@ -9002,7 +9002,7 @@
       var row = function (k, v, n) { return '<tr><td>' + k + '</td><td>' + both(v.usd) + '</td><td>' + (n === undefined ? v.n : n).toLocaleString('vi-VN') + '</td></tr>'; };
       var tot = '<table class="bcdt" style="margin:0 0 12px"><tr><th>Thời gian</th><th>Tiền (ước tính)</th><th>Lượt gọi AI</th></tr>' + row('Hôm nay', j.today) + row('7 ngày qua', j.d7) + row('30 ngày qua', j.d30) + row('Tháng này', j.month) + '</table>';
       var mucT = '<p style="margin:0 0 4px"><b>Mục nào tốn bao nhiêu</b> <span class="muted small">(30 ngày qua)</span></p>' + (j.byMuc.length ? '<table class="bcdt" style="margin:0 0 12px"><tr><th>Mục</th><th>Tiền</th><th>Lượt</th><th>1 lượt</th><th>Chữ vào / ra (nghìn token)</th></tr>' +
-        j.byMuc.map(function (r) { return '<tr><td>' + esc(j.muc[r.muc] || r.muc) + '</td><td>' + both(r.usd) + '</td><td>' + Number(r.n).toLocaleString('vi-VN') + '</td><td>' + money(Math.round(r.usd * rate / Math.max(1, r.n))) + '</td><td class="muted">' + Math.round((r.inp + r.cr) / 1000) + ' / ' + Math.round(r.out / 1000) + '</td></tr>'; }).join('') + '</table>' : '<p class="hint">Chưa có lời gọi AI nào được đếm (bắt đầu đếm từ 10/11/2026).</p>');
+        j.byMuc.map(function (r) { return '<tr><td>' + esc(j.muc[r.muc] || r.muc) + '</td><td>' + both(r.usd) + '</td><td>' + Number(r.n).toLocaleString('vi-VN') + '</td><td>' + money(Math.round(r.usd * rate / Math.max(1, r.n))) + '</td><td class="muted">' + kTok(r.inp + r.cr) + ' / ' + kTok(r.out) + '</td></tr>'; }).join('') + '</table>' : '<p class="hint">Chưa có lời gọi AI nào được đếm (bắt đầu đếm từ 10/11/2026).</p>');
       var modT = j.byModel.length ? '<p style="margin:0 0 4px"><b>Theo mô hình AI</b> <span class="muted small">(30 ngày)</span></p><table class="bcdt" style="margin:0 0 12px"><tr><th>Mô hình</th><th>Tiền</th><th>Lượt</th></tr>' + j.byModel.map(function (r) { return '<tr><td>' + esc(r.model) + '</td><td>' + both(r.usd) + '</td><td>' + Number(r.n).toLocaleString('vi-VN') + '</td></tr>'; }).join('') + '</table>' : '';
       var dayT = j.byDay.length ? '<p style="margin:0 0 4px"><b>Từng ngày</b> <span class="muted small">(14 ngày)</span></p><table class="bcdt" style="margin:0 0 8px"><tr><th>Ngày</th><th>Tiền</th><th>Lượt</th></tr>' + j.byDay.slice().reverse().map(function (r) { return '<tr><td>' + d8(r.day) + '</td><td>' + both(r.usd) + '</td><td>' + Number(r.n).toLocaleString('vi-VN') + '</td></tr>'; }).join('') + '</table>' : '';
       box.innerHTML = top + form + tot + mucT + modT + dayT + '<p class="hint" style="margin:0">Tính theo bảng giá Anthropic (Haiku 5.5: 0,10$ / 1 triệu chữ vào, 0,50$ ra; Opus 5.5: 4$ / 20$). Lệch vài % so với hoá đơn thật là bình thường.' + (j.since ? ' Đếm từ ' + d8(j.since) + '.' : '') + '</p>';
