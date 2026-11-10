@@ -7,6 +7,7 @@ import { fbSchema, crmFp } from './fb.js';
 import { crmBlog } from './blog.js';
 import { sendMail, telegram, telegramTo, telegramPhoto, tgUpdates, tgConf, bridge } from './google.js';
 import { crmGa, crmGaProp } from './ga.js';
+import { crmCfToken } from './cfweb.js';
 import { crmMkt, mktFbEdit } from './mkt.js';
 import { mktView, mktBudgetSet, mktGoalSet, mktDailyMsgs } from './mktv.js';
 import { crmSan, sanSchema, sanAllowed } from './san.js';
@@ -2177,6 +2178,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (a === 'cms_pat') return cmsTokenSet(x, u, d); // Cài đặt → 🌐 Trang quản trị website: mã GitHub của công ty
   if (a === 'ga') return crmGa(x, u, d); // tab Tổng quan: số liệu Google Analytics
   if (a === 'ga_prop') return crmGaProp(x, u, d);
+  if (a === 'cf_token') return crmCfToken(x, u, d); // Tổng quan → Website: dán mã API Cloudflare Web Analytics (lượt vào đủ 100%)
   if (a === 'mkt_tg_test') { // gửi thử tin 📣 Marketing 8h sáng cho chính mình
     if (u.role !== 'Marketing' && u.level < 3) return { ok: false, error: 'Chỉ Marketing và Quản trị.' };
     if (!u.tg) return { ok: false, error: 'Bạn chưa kết nối Telegram: vào Cài đặt → 📲 Thông báo Telegram riêng.' };

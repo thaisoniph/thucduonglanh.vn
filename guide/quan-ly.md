@@ -57,6 +57,19 @@ Tài khoản Quản trị không nằm trong bảng so sánh nhân sự. Doanh s
 
 **Công tắc ẩn / hiện (chỉ Quản trị):** Cài đặt → 🤝 Chia khách → **🔎 Tự tạo khách (tab Hôm nay của sale)**. Đang ẩn thì sale không thấy mục Hết số quảng cáo, dòng khách tự tạo, ô mục tiêu khách tự tạo, hạng thi đua và không nhận tin Telegram khách tự mang về; máy vẫn tính ngầm. Bật sau khi họp phòng kinh doanh thống nhất.
 
+## Bao nhiêu người vào website (Tổng quan → 🌐 Website thucduonglanh.vn)
+
+Mở tab **Tổng quan**, kéo xuống mục **🌐 Website thucduonglanh.vn** rồi bấm vào để mở. Có 2 nguồn số:
+
+- **Cloudflare** đếm **lượt vào web**: đếm đủ mọi người vì không dùng cookie. Ô **Lượt vào web** và **Tỷ lệ ra đơn** (đơn web ÷ lượt vào) lấy từ đây.
+- **Google Analytics** chỉ đếm khách đã bấm **Đồng ý** ở thông báo cookie, nên ít hơn số thật. Dùng để xem **hành vi**: khách ở lại xem bao lâu, rơi ở bước nào trong phễu mua hàng, vào từ bài đăng nào (link UTM).
+
+Dưới ô Lượt vào web có dòng *Google Analytics chỉ thấy … lượt (≈ …% khách bấm Đồng ý)*: đó là tỷ lệ khách chịu bấm Đồng ý cookie.
+
+**Lần đầu kết nối Cloudflare (Quản trị, làm 1 lần, trên máy tính):** trong mục Website, mở hộp **🔌 Đếm đủ 100% lượt vào web bằng Cloudflare**, làm theo 3 bước ghi sẵn (tạo mã API ở Cloudflare với quyền *Account Analytics: Read*, dán vào ô, bấm **Kết nối**). Mã chỉ lưu trên máy chủ CRM. Muốn bỏ thì bấm **ngắt Cloudflare** ở dòng chú thích đầu mục.
+
+Bấm **Xem thêm** ở cuối mục để xem khách vào từ đâu (Facebook, Google, vào thẳng…), trang nào xem nhiều, điện thoại hay máy tính.
+
 ## Doanh số đến từ đâu (Tổng quan → 🧭 Doanh số theo nguồn khách)
 
 Từ 10/11/2026, ngay dưới **🧩 Theo từng mảng** ở tab **Tổng quan** có khối **🧭 Doanh số theo nguồn khách**. Mỗi đơn được xếp vào đúng 1 nguồn: **🤝 Cộng tác viên** → **🎁 Khách cũ giới thiệu** → **🧺 Kho chung** → **🔁 Khách cũ mua lại** → **🙋 Sale tự tìm** → **🌐 Web tự đặt** → **📣 Quảng cáo (khách mới)**.

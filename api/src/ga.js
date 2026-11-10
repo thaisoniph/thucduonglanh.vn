@@ -4,6 +4,7 @@
 // Kết quả lưu tạm trong kv (khoảng đã qua: 12 tiếng, có hôm nay: 30 phút) → mở Tổng quan không tốn lượt đọc D1 đáng kể.
 import { kvGet, kvSet, kvDel, kvJson, startOfDay, fmtDate } from './lib.js';
 import { gInfo } from './google.js';
+import { cfPart } from './cfweb.js'; // lượt vào đếm bằng Cloudflare Web Analytics (đủ 100%, không cookie)
 
 const DATA = 'https://analyticsdata.googleapis.com/v1beta/';
 const ADMIN = 'https://analyticsadmin.googleapis.com/v1beta/';
@@ -87,16 +88,20 @@ export async function crmGa(x, u, d) {
   if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị xem được số liệu website.' };
   if (![d.from, d.to, d.pf, d.pt].every(s => DAY_RE.test(String(s || '')))) return { ok: false, error: 'Khoảng thời gian chưa đúng.' };
   const todayIso = fmtDate(startOfDay(Date.now()), 'yyyy-MM-dd'), key = 'gac2_' + [d.from, d.to, d.pf, d.pt].join('_');
-  if (!d.fresh) { const c = await kvJson(x.db, key, null); if (c) return { ok: true, ga: c, cached: true }; }
+  const [g, cf] = await Promise.all([gaPart(x, d, key, todayIso), cfPart(x, d, todayIso)]); // 2 nguồn chạy song song, nguồn này lỗi không kéo theo nguồn kia
+  return Object.assign({ ok: true }, g, cf);
+}
+async function gaPart(x, d, key, todayIso) {
+  if (!d.fresh) { const c = await kvJson(x.db, key, null); if (c) return { ga: c, cached: true }; }
   try {
     const prop = await propId(x);
     const ga = await gaReport(x, prop, d.from, d.to > todayIso ? todayIso : d.to, d.pf, d.pt);
     ga.at = Date.now(); ga.prop = prop;
     await kvSet(x.db, key, JSON.stringify(ga), d.to >= todayIso ? 30 * 60e3 : 12 * 3600e3);
-    return { ok: true, ga };
+    return { ga };
   } catch (e) {
-    if (e.setup) return { ok: true, ga: null, setup: e.setup, msg: e.message, account: e.account, prop: await kvGet(x.db, 'ga_prop') || '' };
-    throw e;
+    if (e.setup) return { ga: null, setup: e.setup, msg: e.message, account: e.account, prop: await kvGet(x.db, 'ga_prop') || '' };
+    return { ga: null, gaErr: e.message }; // trước đây ném lỗi → cả lệnh hỏng; nay chỉ phần Google Analytics báo lỗi, Cloudflare vẫn hiện
   }
 }
 

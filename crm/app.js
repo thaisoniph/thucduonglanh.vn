@@ -5028,21 +5028,28 @@
     var rf = refDash(R), rfp = refDash(P);
     h += dashMore('ref', '🌱 Khách giới thiệu & CTV', rf.n ? rf.n + ' đơn · ' + moneyShort(rf.rev) + ' · ' + rf.pct + '% đơn' + (rf.newPct !== null ? ' · ' + rf.newPct + '% khách mới' : '') : 'Chưa có đơn nhờ giới thiệu trong kỳ',
       rf.n || rfp.n ? refDashBlock(rf, rfp, trendEachMemo('refd', DB, refDash), sk) : '<div class="box"><p>Chưa có đơn nhờ khách cũ giới thiệu hay Cộng tác viên trong kỳ này và kỳ trước.</p><p class="small muted">Khách cũ tự lấy link giới thiệu ở thucduonglanh.vn/gioi-thieu-ban-be/. Sale nhắc khách khi gọi chăm sóc. Có đơn đầu tiên thì mục này tự hiện đủ số.</p></div>');
-    // ---- website
-    var conv = g && g.cur.sessions ? b.web * 100 / g.cur.sessions : null, convP = g && g.prev.sessions ? bp.web * 100 / g.prev.sessions : null, wh;
-    if (!g) wh = gaSetupBox(gj);
-    else { var GD = g.days || [], eng = GD.length && GD[0][3] !== undefined, gs = function (i) { return trendSum(DB, GD, function (r) { return dayMs(r[0]); }, function (r) { return r[i] || 0; }); }, gS = gs(1), gU = gs(2);
-    wh = '<p class="small muted">Google Analytics · cập nhật ' + fDateTime(g.at) + '</p><div class="metrics dash-m3">' +
-      metric('Lượt truy cập', g.cur.sessions.toLocaleString('vi-VN'), g.cur.views.toLocaleString('vi-VN') + ' lượt xem trang · mỗi lượt xem TB ' + (g.cur.sessions ? oneDec(g.cur.views / g.cur.sessions) : 0) + ' trang.', noGaCmp ? '' : delta(g.cur.sessions, g.prev.sessions), '', sk(gS)) +
-      metric('Người xem', g.cur.users.toLocaleString('vi-VN'), g.cur.newUsers.toLocaleString('vi-VN') + ' người lần đầu vào web.', noGaCmp ? '' : delta(g.cur.users, g.prev.users), '', sk(gU)) +
-      metric('Đơn đặt trên web', b.web, moneyShort(b.webRev) + ' · đếm từ CRM, đủ cả khách không bấm đồng ý cookie.', delta(b.web, bp.web), '', sk(trendPick(BZ, 'web'))) +
-      metric('Tỷ lệ ra đơn', conv === null ? '–' : oneDec(conv) + '%', 'Đơn web ÷ lượt truy cập. Web bán lẻ thường đạt 1–3%. Hơi cao hơn thực tế vì Analytics chỉ đếm khách bấm đồng ý cookie.', conv === null || noGaCmp ? '' : dRate(conv, convP), '', sk(trendRate(trendPick(BZ, 'web'), gS, 100))) +
-      metric('Khách ở lại xem', g.cur.sessions ? pct(g.cur.engaged, g.cur.sessions) + '%' : '–', 'Lượt truy cập có xem ≥ 10 giây, hoặc xem ≥ 2 trang, hoặc bấm mua / gọi. Thấp = trang vào đầu không hợp với khách.', noGaCmp || !g.prev.sessions ? '' : delta(pct(g.cur.engaged, g.cur.sessions), pct(g.prev.engaged, g.prev.sessions), 'rate'), '', eng ? sk(trendRate(gs(3), gS, 100)) : '') +
-      metric('Thời gian xem TB', g.cur.users ? fDur(g.cur.dur / g.cur.users) : '–', 'Thời gian 1 người thật sự xem web (tab đang mở) trong kỳ.', noGaCmp || !g.prev.users ? '' : delta(Math.round(g.cur.dur / g.cur.users), Math.round(g.prev.dur / g.prev.users)), '', eng ? sk(trendRate(gs(4), gU)) : '') +
-      '</div><details class="dash-webmore"><summary>Xem thêm: khách vào web từ đâu, phễu mua hàng, trang xem nhiều, video</summary>' + gaBlocks(g, b, noGaCmp) + '</details>'; }
-    h += dashMore('web', '🌐 Website thucduonglanh.vn', g ? g.cur.sessions.toLocaleString('vi-VN') + ' lượt vào · ' + b.web + ' đơn web' + (conv === null ? '' : ' · ' + oneDec(conv) + '% ra đơn') : gj ? '🔌 chưa kết nối Google Analytics' : GA.err ? '⚠️ chưa tải được' : '⏳ đang tải…', wh);
+    // ---- website. Lượt vào: ưu tiên Cloudflare Web Analytics (đếm đủ 100%, không cookie, 10/11/2026); Google Analytics chỉ đếm khách bấm Đồng ý → dùng cho hành vi (người xem, ở lại xem, phễu, nguồn UTM)
+    var cf = gj && gj.cf, vis = cf ? cf.cur.visits : g ? g.cur.sessions : 0, visP = cf ? cf.prev.visits : g ? g.prev.sessions : 0;
+    var conv = (cf || g) && vis ? b.web * 100 / vis : null, convP = (cf || g) && visP ? bp.web * 100 / visP : null, wh = '';
+    var GD = g ? g.days || [] : [], eng = GD.length && GD[0][3] !== undefined, gs = function (i) { return trendSum(DB, GD, function (r) { return dayMs(r[0]); }, function (r) { return r[i] || 0; }); }, gS = g ? gs(1) : null, gU = g ? gs(2) : null;
+    var cfS = cf ? trendSum(DB, cf.days || [], function (r) { return dayMs(r[0]); }, function (r) { return r[1] || 0; }) : null, vS = cf ? cfS : gS;
+    var okPct = cf && g && cf.cur.visits ? Math.min(100, pct(g.cur.sessions, cf.cur.visits)) : null; // ước tỷ lệ khách bấm Đồng ý cookie
+    if (cf || g) {
+      wh = '<p class="small muted">' + (cf ? 'Lượt vào: Cloudflare (đếm đủ 100%, không cần cookie)' : '') + (cf && g ? ' · ' : '') + (g ? 'Hành vi: Google Analytics (chỉ khách bấm Đồng ý cookie)' : '') + ' · cập nhật ' + fDateTime((cf || g).at) + (cf ? ' · <button class="link" data-dash="cfoff">ngắt Cloudflare</button>' : '') + '</p><div class="metrics dash-m3">' +
+        metric('Lượt vào web', vis.toLocaleString('vi-VN'), cf ? cf.cur.views.toLocaleString('vi-VN') + ' lượt xem trang. Cloudflare đếm không cần cookie nên đủ mọi khách.' + (g ? ' Google Analytics chỉ thấy ' + g.cur.sessions.toLocaleString('vi-VN') + ' lượt (≈ ' + okPct + '% khách bấm Đồng ý).' : '') : g.cur.views.toLocaleString('vi-VN') + ' lượt xem trang · mỗi lượt xem TB ' + (g.cur.sessions ? oneDec(g.cur.views / g.cur.sessions) : 0) + ' trang. Chỉ đếm khách bấm Đồng ý cookie.', noGaCmp ? '' : delta(vis, visP), '', sk(vS)) +
+        (g ? metric('Người xem', g.cur.users.toLocaleString('vi-VN'), g.cur.newUsers.toLocaleString('vi-VN') + ' người lần đầu vào web (Google Analytics).', noGaCmp ? '' : delta(g.cur.users, g.prev.users), '', sk(gU)) : '') +
+        metric('Đơn đặt trên web', b.web, moneyShort(b.webRev) + ' · đếm từ CRM, đủ cả khách không bấm đồng ý cookie.', delta(b.web, bp.web), '', sk(trendPick(BZ, 'web'))) +
+        metric('Tỷ lệ ra đơn', conv === null ? '–' : oneDec(conv) + '%', 'Đơn web ÷ lượt vào. Web bán lẻ thường đạt 1–3%.' + (cf ? '' : ' Hơi cao hơn thực tế vì Analytics chỉ đếm khách bấm đồng ý cookie.'), conv === null || noGaCmp ? '' : dRate(conv, convP), '', sk(trendRate(trendPick(BZ, 'web'), vS, 100))) +
+        (g ? metric('Khách ở lại xem', g.cur.sessions ? pct(g.cur.engaged, g.cur.sessions) + '%' : '–', 'Lượt truy cập có xem ≥ 10 giây, hoặc xem ≥ 2 trang, hoặc bấm mua / gọi. Thấp = trang vào đầu không hợp với khách.', noGaCmp || !g.prev.sessions ? '' : delta(pct(g.cur.engaged, g.cur.sessions), pct(g.prev.engaged, g.prev.sessions), 'rate'), '', eng ? sk(trendRate(gs(3), gS, 100)) : '') +
+          metric('Thời gian xem TB', g.cur.users ? fDur(g.cur.dur / g.cur.users) : '–', 'Thời gian 1 người thật sự xem web (tab đang mở) trong kỳ.', noGaCmp || !g.prev.users ? '' : delta(Math.round(g.cur.dur / g.cur.users), Math.round(g.prev.dur / g.prev.users)), '', eng ? sk(trendRate(gs(4), gU)) : '') : '') +
+        '</div>';
+      if (!g) wh += gaSetupBox(gj);
+      if (!cf) wh += cfwSetupBox(gj);
+      wh += '<details class="dash-webmore"><summary>Xem thêm: khách vào web từ đâu' + (g ? ', phễu mua hàng, trang xem nhiều, video' : ', trang xem nhiều') + '</summary>' + (cf ? cfwBlocks(cf) : '') + (g ? gaBlocks(g, b, noGaCmp) : '') + '</details>';
+    } else wh = gaSetupBox(gj) + cfwSetupBox(gj);
+    h += dashMore('web', '🌐 Website thucduonglanh.vn', cf || g ? vis.toLocaleString('vi-VN') + ' lượt vào · ' + b.web + ' đơn web' + (conv === null ? '' : ' · ' + oneDec(conv) + '% ra đơn') : gj ? '🔌 chưa kết nối' : GA.err ? '⚠️ chưa tải được' : '⏳ đang tải…', wh);
     h += '<div class="dash-go dash-go-end"><span>Mở tab:</span><a class="btn" href="#bao-cao">📊 Bán hàng</a><a class="btn" href="#marketing">📣 Marketing</a><a class="btn" href="#san">🛒 Sàn</a><a class="btn" href="#kho">📦 Kho</a><a class="btn" href="#link-qr">📍 Link & QR</a><a class="btn" href="#tro-ly-zalo">🤖 Trợ lý Zalo</a><a class="btn" href="#fanpage">📘 Fanpage</a><a class="btn" href="#bai-web">📰 Bài web</a></div>';
-    h += '<p class="small muted">Doanh số, đơn, khách lấy từ CRM (đơn 13 tháng gần nhất) và file sàn. Số website lấy từ Google Analytics, chỉ đếm khách đã bấm “Đồng ý” cookie (Luật Bảo vệ dữ liệu cá nhân 91/2025), nên thấp hơn số người vào thật.</p>' +
+    h += '<p class="small muted">Doanh số, đơn, khách lấy từ CRM (đơn 13 tháng gần nhất) và file sàn. Lượt vào website đếm bằng Cloudflare (không cookie, đủ 100%); hành vi trên web lấy từ Google Analytics, chỉ đếm khách đã bấm “Đồng ý” cookie (Luật Bảo vệ dữ liệu cá nhân 91/2025) nên thấp hơn số thật.</p>' +
       '<p class="small muted">🔜 Sắp có: TikTok / Google Ads tự lấy chi phí · lãi gộp theo kênh, lãi gộp sàn · tỷ lệ giao thành công.</p>';
     return h;
   }
@@ -7934,6 +7941,7 @@
   function fDur(sec) { sec = Math.round(sec || 0); return sec < 60 ? sec + ' giây' : Math.floor(sec / 60) + ' phút ' + pad(sec % 60) + ' giây'; }
   function gaSetupBox(gj) {
     if (!gj) return '<div class="box"><p class="muted">' + (GA.err ? '⚠️ ' + esc(GA.err) + ' <button class="link" data-dash="fresh">Thử lại</button>' : '⏳ Đang lấy số liệu Google Analytics…') + '</p></div>';
+    if (gj.gaErr) return '<div class="box"><p class="muted">⚠️ Google Analytics: ' + esc(gj.gaErr) + ' <button class="link" data-dash="fresh">Thử lại</button></p></div>';
     var st = gj.setup, acc = gj.account ? '<b>' + esc(gj.account) + '</b>' : 'tài khoản Google chạy Apps Script';
     var steps = st === 'access' ? ['Mở <a href="https://analytics.google.com/" target="_blank" rel="noopener">Google Analytics</a> → ⚙️ Quản trị → <b>Quản lý quyền truy cập thuộc tính</b>.', 'Bấm ＋ → Thêm người dùng → nhập ' + acc + ' → vai trò <b>Người xem</b> → Thêm.', 'Quay lại đây bấm <b>Kiểm tra lại</b>.']
       : st === 'prop' ? ['Mở <a href="https://analytics.google.com/" target="_blank" rel="noopener">Google Analytics</a> → ⚙️ Quản trị → <b>Chi tiết thuộc tính</b>.', 'Copy <b>Mã thuộc tính</b> (dãy số ở góc phải, không phải mã G-…), dán vào ô dưới rồi bấm Lưu.']
@@ -7941,6 +7949,38 @@
     return '<div class="box dash-setup"><h3>🔌 Kết nối Google Analytics (làm 1 lần)</h3><p class="small muted">' + esc(gj.msg || '') + '</p><ol>' + steps.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ol>' +
       (st === 'prop' ? '<div class="row2c"><label class="f"><span>Mã thuộc tính GA4</span><input type="text" id="gaProp" inputmode="numeric" value="' + esc(gj.prop || '') + '" placeholder="ví dụ 412345678"></label></div><button class="btn pri" data-dash="prop">Lưu</button> ' : '') +
       '<button class="btn" data-dash="fresh">Kiểm tra lại</button><p class="small muted" style="margin-top:8px">Trong lúc chờ, phần kinh doanh ở trên vẫn đúng vì lấy từ CRM.</p></div>';
+  }
+  /** Khối cài Cloudflare Web Analytics (10/11/2026): đếm đủ 100% lượt vào vì không dùng cookie. Chưa dán mã → hướng dẫn thu gọn; đang dở (chọn tài khoản, mã site) hoặc lỗi → mở sẵn. */
+  function cfwSetupBox(gj) {
+    if (!gj) return '';
+    var st = gj.cfSetup || (gj.cfErr ? 'err' : ''), msg = gj.cfMsg || gj.cfErr || '', body;
+    if (st === 'acct' && GA.cfAccts && GA.cfAccts.length) body = '<p>Mã API xem được nhiều tài khoản Cloudflare. Chọn tài khoản chứa website thucduonglanh.vn:</p><div class="dash-cfw-accts">' + GA.cfAccts.map(function (a) { return '<button class="btn" data-dash="cfacct" data-acct="' + esc(a.id) + '">' + esc(a.name || a.id) + '</button>'; }).join('') + '</div>';
+    else if (st === 'acct') body = '<p>' + esc(msg) + '</p><div class="row2c"><label class="f"><span>Mã tài khoản Cloudflare (Account ID, 32 ký tự – ở cột phải trang tổng quan tên miền)</span><input type="text" id="cfwAcct" autocomplete="off" placeholder="ví dụ 0123abcd…"></label></div><button class="btn pri" data-dash="cfacct">Lưu</button> ';
+    else if (st === 'site') body = '<p>' + esc(msg) + '</p><ol><li>Mở <a href="https://dash.cloudflare.com/?to=/:account/web-analytics" target="_blank" rel="noopener">Cloudflare → Web Analytics</a> → site <b>thucduonglanh.vn</b> → <b>Manage site</b>.</li><li>Trong đoạn mã JS, copy dãy 32 ký tự sau <b>token=</b>, dán vào ô dưới → Lưu.</li></ol><div class="row2c"><label class="f"><span>Mã site Web Analytics</span><input type="text" id="cfwSite" autocomplete="off" placeholder="32 chữ và số"></label></div><button class="btn pri" data-dash="cfsite">Lưu</button> ';
+    else if (st === 'err') body = '<p>⚠️ ' + esc(msg) + '</p><button class="btn" data-dash="fresh">Thử lại</button> ';
+    else body = (msg ? '<p class="notice">⚠️ ' + esc(msg) + '</p>' : '') + '<p class="small muted">Google Analytics chỉ đếm khách đã bấm “Đồng ý” cookie. Cloudflare đếm không cần cookie nên biết đúng bao nhiêu người vào web. Làm 1 lần, khoảng 3 phút, trên máy tính:</p><ol>' +
+      '<li>Mở <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" rel="noopener">Cloudflare → API Tokens</a> (đăng nhập tài khoản có website) → <b>Create Token</b> → kéo xuống cuối → <b>Create Custom Token → Get started</b>.</li>' +
+      '<li>Token name: <b>CRM Web Analytics</b>. Permissions chọn 3 ô: <b>Account</b> → <b>Account Analytics</b> → <b>Read</b>. Account Resources: Include → <b>tài khoản chứa thucduonglanh.vn</b>. Bấm <b>Continue to summary → Create Token</b>.</li>' +
+      '<li>Bấm <b>Copy</b> rồi dán vào ô dưới → <b>Kết nối</b>. Mã chỉ hiện 1 lần; CRM lưu trên máy chủ, không hiện lại.</li></ol>' +
+      '<div class="row2c"><label class="f"><span>Mã API Cloudflare</span><input type="password" id="cfwTok" autocomplete="off" placeholder="dãy ~40 chữ và số"></label></div><button class="btn pri" data-dash="cftok">Kết nối</button> ' +
+      '<p class="small muted" style="margin-top:8px">Chưa bật Web Analytics? Cloudflare → Workers &amp; Pages → thucduonglanh → Metrics → Web Analytics → Enable (đã bật 15/10/2026).</p>';
+    var open = st && st !== 'token';
+    return '<details class="box dash-setup dash-cfw"' + (open ? ' open' : '') + '><summary><b>🔌 Đếm đủ 100% lượt vào web bằng Cloudflare</b> <span class="muted">(làm 1 lần' + (open ? ' · đang dở' : '') + ')</span></summary>' + body + (st && st !== 'token' ? '<button class="btn ghost" data-dash="cfoff">Ngắt kết nối</button>' : '') + '</details>';
+  }
+  var CFW_REF = [[/^$/, 'Vào thẳng / Zalo / tin nhắn'], [/facebook\.com$|^fb\.me$|instagram\.com$/, 'Facebook / Instagram'], [/google\./, 'Google'], [/tiktok\.com$/, 'TikTok'], [/zalo\.me$|zaloapp\.com$/, 'Zalo'], [/youtube\.com$|youtu\.be$/, 'YouTube'], [/shopee\.vn$/, 'Shopee'], [/bing\.com$|coccoc\.com$|duckduckgo\.com$/, 'Tìm kiếm khác'], [/thucduonglanh\.vn$|ladipage|ladi\.page/, 'Trang khác của mình']];
+  function cfwRefName(h) { h = String(h || '').toLowerCase(); for (var i = 0; i < CFW_REF.length; i++) if (CFW_REF[i][0].test(h)) return CFW_REF[i][1]; return h.replace(/^www\./, ''); }
+  /** Phần "Xem thêm" của Cloudflare: đến từ đâu (theo trang giới thiệu), trang xem nhiều, thiết bị. */
+  function cfwBlocks(cf) {
+    var tot = cf.cur.visits || 1, ref = {}, dev = {};
+    (cf.ref || []).forEach(function (r) { var k = cfwRefName(r[0]); ref[k] = (ref[k] || 0) + r[1]; });
+    (cf.dev || []).forEach(function (r) { var k = GA_DEV[r[0]] || r[0] || 'Khác'; dev[k] = (dev[k] || 0) + r[1]; });
+    var refs = Object.keys(ref).map(function (k) { return { l: k, v: ref[k], sub: pct(ref[k], tot) + '%' }; }).sort(function (x, y) { return y.v - x.v; });
+    var devs = Object.keys(dev).sort(function (x, y) { return dev[y] - dev[x]; }).map(function (k) { return k + ' ' + pct(dev[k], tot) + '%'; });
+    var n = function (v) { return v.toLocaleString('vi-VN'); };
+    return '<section class="section"><div class="section-h"><h2>🌍 Khách vào web từ đâu</h2><span class="tip">Cloudflare · đủ 100% lượt vào · theo trang giới thiệu</span></div><div class="dash-grid"><div class="box"><h3>Đến từ</h3>' + barList(refs, n, 'Chưa có lượt vào trong kỳ.', { below: 1 }) +
+      '<p class="bar-legend">Cloudflare chỉ biết trang giới thiệu (Facebook, Google…), không biết bài đăng nào. “Vào thẳng” gồm cả link bấm trong Zalo, tin nhắn, app. Muốn biết bài nào ra khách: dùng link UTM và xem phần Google Analytics bên dưới.</p></div>' +
+      '<div class="box"><h3>Trang xem nhiều</h3>' + barList((cf.pages || []).map(function (r) { return { l: r[0] === '/' ? 'Trang chủ' : r[0], v: r[1], sub: n(r[2]) + ' lượt vào', tip: r[0] }; }), n, 'Chưa có số liệu.', { below: 1 }) + '</div></div>' +
+      (devs.length ? '<p class="small muted">Thiết bị (Cloudflare): ' + devs.join(' · ') + '</p>' : '') + '</section>';
   }
   function gaBlocks(g, b, noCmp) {
     var h = '', sess = g.cur.sessions || 1;
@@ -8036,6 +8076,16 @@
         if (a === 'cogs') { store('dash_cogs', store('dash_cogs') === 'kt' ? '' : 'kt'); render(); return; }
         if (a === 'sfb') { f.sfb = f.sfb === false; store('dash_sfb', f.sfb ? '1' : '0'); render(); return; }
         if (a === 'fresh') { delete MK.cache[key]; MK.err = ''; delete GA.cache[key]; GA.err = ''; GA.busy = ''; gaFetch(key, true); render(); return; }
+        if (a === 'cftok' || a === 'cfacct' || a === 'cfsite' || a === 'cfoff') { // Cloudflare Web Analytics (cfwSetupBox)
+          var cd = {}, v0 = function (id) { return (($(id) || {}).value || '').trim(); };
+          if (a === 'cftok') { cd.cfToken = v0('#cfwTok'); if (!cd.cfToken) { toast('Dán mã API Cloudflare vào ô trước đã.', true); return; } }
+          if (a === 'cfacct') { cd.acct = el.getAttribute('data-acct') || v0('#cfwAcct'); if (!cd.acct) { toast('Chưa có mã tài khoản.', true); return; } }
+          if (a === 'cfsite') { cd.site = v0('#cfwSite'); if (!cd.site) { toast('Dán mã site vào ô trước đã.', true); return; } }
+          if (a === 'cfoff') { if (!confirm('Ngắt kết nối Cloudflare Web Analytics? Lượt vào sẽ chỉ còn số Google Analytics (thiếu khách không bấm Đồng ý cookie).')) return; cd.off = 1; }
+          el.disabled = true;
+          api('cf_token', cd).then(function (j) { GA.cfAccts = j.accts || null; GA.cache = {}; GA.err = ''; GA.busy = ''; if (j.setup) toast('⚠️ ' + j.msg, true); else if (j.accts) toast('Chọn tài khoản Cloudflare bên dưới'); else toast(cd.off ? 'Đã ngắt Cloudflare' : '✅ Đã kết nối Cloudflare, đang lấy số…'); render(); }, function (e) { el.disabled = false; toast(e.message, true); });
+          return;
+        }
         if (a === 'prop') { el.disabled = true; api('ga_prop', { prop: ($('#gaProp') || {}).value || '' }).then(function () { GA.cache = {}; GA.err = ''; toast('Đã lưu mã thuộc tính'); render(); }, function (e) { el.disabled = false; toast(e.message, true); }); }
       };
     });

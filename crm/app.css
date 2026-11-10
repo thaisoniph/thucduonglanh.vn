@@ -1907,3 +1907,6 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .bw-top .box { margin-top: 8px; color: var(--ink, inherit); }
 .zb-info ol { margin: 6px 0 0; padding-left: 20px; }
 .zb-info ol li { margin: 4px 0; }
+/* Cloudflare Web Analytics trong khối 🌐 Website (Tổng quan, 10/11/2026) */
+.dash-cfw { margin-top: 12px; } .dash-cfw > summary { cursor: pointer; } .dash-cfw > summary b { color: var(--primary); } .dash-cfw[open] > summary { margin-bottom: 8px; }
+.dash-cfw-accts { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 12px; }
