@@ -1565,10 +1565,11 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .zb-due { font-size: .85rem; font-weight: 600; border-radius: 999px; padding: 3px 12px; background: var(--primary-light); color: var(--primary); }
 .zb-need .zb-due { background: var(--gold); color: #fff; }
 .zb-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 8px; }
+.zb-grid > * { min-width: 0; } /* link dài không kéo rộng thẻ bài (11/11/2026) */
 @media (min-width: 900px) { .zb-grid { grid-template-columns: minmax(320px, 420px) 1fr; align-items: start; } }
-.zb-prev { background: #e2e9f1; border-radius: 14px; padding: 10px; max-width: 460px; }
-.zb-prev img { display: block; width: 100%; max-height: 360px; object-fit: cover; border-radius: 12px; margin-bottom: 6px; }
-.zb-bub { background: #fff; border-radius: 12px; padding: 10px 12px; font-size: 15px; line-height: 1.5; color: #081c36; word-wrap: break-word; box-shadow: 0 1px 1px rgba(0,0,0,.06); }
+.zb-prev { background: #e2e9f1; border-radius: 14px; padding: 10px; max-width: 460px; min-width: 0; }
+.zb-prev img { display: block; width: 100%; height: auto; max-height: 520px; object-fit: contain; background: #d3dce7; border-radius: 12px; margin-bottom: 6px; } /* hiện đủ ảnh như trên Zalo, không cắt */
+.zb-bub { background: #fff; border-radius: 12px; padding: 10px 12px; font-size: 15px; line-height: 1.5; color: #081c36; word-wrap: break-word; overflow-wrap: anywhere; box-shadow: 0 1px 1px rgba(0,0,0,.06); }
 .zb-link { color: #0068ff; word-break: break-all; }
 .zb-at { color: #0068ff; font-weight: 600; }
 .zb-side { min-width: 0; }
@@ -1582,8 +1583,11 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .zb-donel { white-space: nowrap; }
 .zb-donet { flex: 1 1 200px; min-width: 0; }
 .zb-donei .zb-eng { margin: 0; padding: 3px 10px; }
-@media (max-width: 899px) { .zb-grid .zb-side { order: -1; } .zb-prev img { max-height: 240px; } }
-@media (min-width: 900px) { .zb-prev img { max-height: 300px; } }
+@media (max-width: 899px) { .zb-grid .zb-side { order: -1; } }
+.zb-simg { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 4px 0 6px; }
+.zb-simg img { width: 96px; height: 96px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); }
+.zb-slib { display: none; max-height: 300px; overflow-y: auto; margin-top: 6px; }
+.zb-slib.on { display: grid; }
 .zb-best { border: 2px solid var(--gold); }
 .zb-hours { display: grid; grid-template-columns: repeat(24, 1fr); gap: 3px; align-items: end; height: 150px; padding: 12px 10px 22px; }
 .zb-hcol { position: relative; height: 100%; display: flex; align-items: flex-end; }

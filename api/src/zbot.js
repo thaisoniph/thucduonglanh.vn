@@ -786,13 +786,7 @@ export async function crmZbot(x, u, d, crmLog) {
   if (a === 'zb_img') { // đổi ảnh bài: link trong kho / ảnh tải từ máy (data:image…) / '' = bỏ ảnh
     const p = await first(x.db, 'SELECT id, status, topic FROM zb_posts WHERE id = ?', String(d.id || '')); if (!p) return { ok: false, error: 'Không tìm thấy bài.' };
     if (p.status === 'sent') return { ok: false, error: 'Bài này đã đăng rồi.' };
-    let img = String(d.img || '');
-    if (img.startsWith('data:image/')) {
-      if (img.length > 1.5e6) return { ok: false, error: 'Ảnh lớn quá, bạn chọn ảnh khác giúp nhé.' };
-      const iid = 'u' + now.toString(36) + Math.random().toString(36).slice(2, 6);
-      await run(x.db, 'INSERT INTO zb_imgs (id, data, at) VALUES (?, ?, ?)', iid, img, now);
-      img = API_URL + '/zb-img/' + iid;
-    } else if (img && !img.startsWith(SITE + '/') && !img.startsWith(API_URL + '/zb-img/')) return { ok: false, error: 'Ảnh không hợp lệ.' };
+    const im = await zImgSave(x, d.img, now); if (im.error) return { ok: false, error: im.error }; const img = im.img;
     await run(x.db, 'UPDATE zb_posts SET img = ?, by_name = ?, at = ? WHERE id = ?', img, u.name, now, p.id);
     await crmLog(x, u, 'Bài Zalo', p.id, '', img ? 'Đổi ảnh' : 'Bỏ ảnh', p.topic);
     return { ok: true, img };
@@ -833,10 +827,11 @@ export async function crmZbot(x, u, d, crmLog) {
     if (isNaN(at)) return { ok: false, error: 'Giờ hẹn chưa đúng.' };
     const gs = (Array.isArray(d.groups) && d.groups.length ? d.groups.map(String) : cfg.groups).filter(g => cfg.groups.includes(g));
     if (!gs.length) return { ok: false, error: 'Chưa chọn nhóm cho trợ lý.' };
+    const im = await zImgSave(x, d.img, now); if (im.error) return { ok: false, error: im.error }; // 🖼 ảnh kèm tin (11/11/2026): kho ảnh web / tải từ máy / không ảnh
     const id = 'm' + now.toString(36) + Math.random().toString(36).slice(2, 5), kind = ['TOFU', 'MOFU', 'BOFU', 'TIN'].includes(d.kind) ? d.kind : 'TIN';
-    await run(x.db, "INSERT INTO zb_posts (id, day, slot, topic, text, status, by_name, at, funnel) VALUES (?, ?, 'tay', ?, ?, 'ok', ?, ?, ?)", id, fmtDate(Math.max(at, now), 'yyyyMMdd'), text.replace(/\*/g, '').split('\n').find(l => l.trim()).trim().slice(0, 100), tagLinks(safe(text), id), u.name, now, kind); // tin nhân sự gửi: lưu để đo như bài AI
-    for (const gid of gs) await run(x.db, "INSERT INTO zb_out (kind, gid, text, due, at, ref) VALUES ('post', ?, ?, ?, ?, ?)", gid, tagLinks(safe(text), id), Math.max(at, now), now, id);
-    await crmLog(x, u, 'Gửi tin vào nhóm Zalo', '', '', at > now + 60e3 ? 'Hẹn ' + fmtDate(at, 'HH:mm dd/MM') : 'Gửi ngay', text.slice(0, 200));
+    await run(x.db, "INSERT INTO zb_posts (id, day, slot, topic, text, status, by_name, at, funnel, img) VALUES (?, ?, 'tay', ?, ?, 'ok', ?, ?, ?, ?)", id, fmtDate(Math.max(at, now), 'yyyyMMdd'), text.replace(/\*/g, '').split('\n').find(l => l.trim()).trim().slice(0, 100), tagLinks(safe(text), id), u.name, now, kind, im.img); // tin nhân sự gửi: lưu để đo như bài AI
+    for (const gid of gs) await run(x.db, "INSERT INTO zb_out (kind, gid, text, img, due, at, ref) VALUES ('post', ?, ?, ?, ?, ?, ?)", gid, tagLinks(safe(text), id), im.img, Math.max(at, now), now, id);
+    await crmLog(x, u, 'Gửi tin vào nhóm Zalo', '', '', (at > now + 60e3 ? 'Hẹn ' + fmtDate(at, 'HH:mm dd/MM') : 'Gửi ngay') + (im.img ? ' · có ảnh' : ''), text.slice(0, 200));
     return { ok: true };
   }
   if (a === 'zb_time') { // ⏰ giờ đăng riêng cho 1 bài (sáng / tối); at trống = về giờ của khung
@@ -911,6 +906,18 @@ async function quizWarn(x, p) {
   const nx = addDay(p.day, 1); if (!dayTheme(nx, 'sang', baseTheme, false).quiz) return '';
   const m = await first(x.db, "SELECT status FROM zb_posts WHERE id = ? AND status IN ('draft', 'ok')", nx + '_sang');
   return m ? 'Bài sáng ' + WD[weekday(nx)] + ' ' + dm(nx) + ' công bố đáp án câu đố của bài này và đã được soạn trước: nhớ bấm 🔄 Viết lại bài sáng đó cho khớp câu đố mới.' : '';
+}
+
+/** Ảnh kèm bài / tin: link trong kho ảnh web (SITE/…), ảnh đã tải (API_URL/zb-img/…) hoặc data:image… mới tải từ máy (lưu zb_imgs). '' = không ảnh. */
+async function zImgSave(x, v, now) {
+  let img = String(v || '');
+  if (img.startsWith('data:image/')) {
+    if (img.length > 1.5e6) return { error: 'Ảnh lớn quá, bạn chọn ảnh khác giúp nhé.' };
+    const iid = 'u' + now.toString(36) + Math.random().toString(36).slice(2, 6);
+    await run(x.db, 'INSERT INTO zb_imgs (id, data, at) VALUES (?, ?, ?)', iid, img, now);
+    img = API_URL + '/zb-img/' + iid;
+  } else if (img && !img.startsWith(SITE + '/') && !img.startsWith(API_URL + '/zb-img/')) return { error: 'Ảnh không hợp lệ.' };
+  return { img };
 }
 
 /** GET api.thucduonglanh.vn/zb-img/<id>: ảnh nhân sự tải lên cho bài đăng (chương trình Zalo tải về để đăng, CRM xem trước) */
