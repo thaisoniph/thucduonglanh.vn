@@ -3655,11 +3655,13 @@ def build_crm():
         "name": "CRM Thực Dưỡng Lành", "short_name": "CRM TDL", "start_url": "/", "display": "standalone",
         "background_color": "#f5f4ef", "theme_color": "#24805B",
         "icons": [{"src": "/icon-180.png", "sizes": "180x180", "type": "image/png"}, {"src": "/icon-512.png", "sizes": "512x512", "type": "image/png"}]}, ensure_ascii=False), "utf-8")
-    # mkt.thucduonglanh.vn dùng chung CRM; app.js đổi sang manifest này để lưu ra màn hình mang tên Marketing
-    (out / "manifest-mkt.webmanifest").write_text(json.dumps({
-        "name": "Marketing Thực Dưỡng Lành", "short_name": "Marketing TDL", "start_url": "/", "display": "standalone",
-        "background_color": "#f5f4ef", "theme_color": "#24805B",
-        "icons": [{"src": "/icon-180.png", "sizes": "180x180", "type": "image/png"}, {"src": "/icon-512.png", "sizes": "512x512", "type": "image/png"}]}, ensure_ascii=False), "utf-8")
+    # quantri. / mkt. / kho. / ketoan.thucduonglanh.vn dùng chung CRM (10/11/2026); app.js đổi sang manifest theo tên miền để biểu tượng ngoài màn hình mang tên vai trò
+    for key, nm, sn in (("quantri", "Quản trị Thực Dưỡng Lành", "Quản trị TDL"), ("mkt", "Marketing Thực Dưỡng Lành", "Marketing TDL"),
+                        ("kho", "Kho Thực Dưỡng Lành", "Kho TDL"), ("ketoan", "Kế toán Thực Dưỡng Lành", "Kế toán TDL")):
+        (out / f"manifest-{key}.webmanifest").write_text(json.dumps({
+            "name": nm, "short_name": sn, "start_url": "/", "display": "standalone",
+            "background_color": "#f5f4ef", "theme_color": "#24805B",
+            "icons": [{"src": "/icon-180.png", "sizes": "180x180", "type": "image/png"}, {"src": "/icon-512.png", "sizes": "512x512", "type": "image/png"}]}, ensure_ascii=False), "utf-8")
     (out / "robots.txt").write_text("User-agent: *\nDisallow: /\n", "utf-8")
     (out / "_headers").write_text(
         "/*\n  X-Robots-Tag: noindex, nofollow\n  X-Content-Type-Options: nosniff\n  X-Frame-Options: DENY\n  Referrer-Policy: no-referrer\n"

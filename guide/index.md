@@ -26,12 +26,17 @@ Chào bạn! Trang này giúp bạn biết **mình cần đọc phần nào**. B
 
 | Để làm gì | Địa chỉ |
 | --- | --- |
-| **CRM** (bán hàng, chăm sóc khách) | [crm.thucduonglanh.vn](https://crm.thucduonglanh.vn) |
+| **CRM** – sale, chăm sóc khách, quản lý | [crm.thucduonglanh.vn](https://crm.thucduonglanh.vn) |
+| **Trang Quản trị** – chủ doanh nghiệp | [quantri.thucduonglanh.vn](https://quantri.thucduonglanh.vn) |
 | **Trang Marketing** | [mkt.thucduonglanh.vn](https://mkt.thucduonglanh.vn) |
+| **Trang Kho** | [kho.thucduonglanh.vn](https://kho.thucduonglanh.vn) |
+| **Trang Kế toán** | [ketoan.thucduonglanh.vn](https://ketoan.thucduonglanh.vn) |
 | Website bán hàng | [thucduonglanh.vn](https://thucduonglanh.vn) |
 | Sửa website (đăng bài, sửa sản phẩm) | [thucduonglanh.vn/admin](https://thucduonglanh.vn/admin/) |
 | Trang hướng dẫn này | [crm.thucduonglanh.vn/huong-dan](https://crm.thucduonglanh.vn/huong-dan/) |
 | Hotline / Zalo của công ty | 0966 326 522 |
+
+> Năm địa chỉ trên là **cùng một hệ thống**, chỉ khác tên và màn hình mở đầu. Mỗi người chỉ cần nhớ **địa chỉ của vai trò mình** (email mã đăng nhập cũng ghi sẵn địa chỉ đó). Mở nhầm địa chỉ của vai trò khác thì máy chỉ sang đúng địa chỉ.
 
 > **Mẹo:** đưa CRM ra màn hình điện thoại để mở nhanh như một ứng dụng. Cách làm ở mục [Đăng nhập](/huong-dan/crm/#dang-nhap).
 

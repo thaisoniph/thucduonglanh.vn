@@ -199,9 +199,33 @@
   function zalo(p) { return 'https://zalo.me/' + normPhone(p); }
   var ZI = '<svg class="zi" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0068ff"/><text x="16" y="20.5" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="11.5" font-weight="700" fill="#fff">Zalo</text></svg>'; // biểu tượng Zalo: khách đã kết bạn (khác 💬 = chăm sóc / nhắn tin)
   function lvl() { return S.user ? S.user.level : 0; }
-  /* mkt.thucduonglanh.vn = cùng CRM này (thêm tên miền vào project Pages), mở thẳng tab Marketing và đổi tên hiển thị */
-  var MKT_HOST = /^mkt\./.test(location.hostname), APP_NM = MKT_HOST ? 'Marketing Thực Dưỡng Lành' : 'CRM Thực Dưỡng Lành';
-  if (MKT_HOST) { document.title = APP_NM; var mfl = document.querySelector('link[rel=manifest]'); if (mfl) mfl.href = '/manifest-mkt.webmanifest'; }
+  /* Mỗi vai trò một địa chỉ (anh Sơn 10/11/2026; mkt. có từ 19/10/2026), nhưng đều là CRM này – tên miền thêm vào project Pages thucduonglanh-crm (workflow deploy-crm.yml tự gắn):
+     crm. = Sale & CSKH, Quản lý · quantri. = chủ doanh nghiệp (Quản trị) · mkt. = Marketing · kho. = Kho · ketoan. = Kế toán.
+     Tên miền chỉ đổi tên hiển thị, chữ góc trái, biểu tượng ngoài màn hình (manifest riêng, build.py tạo) và tab mở đầu (homeView). Quyền vẫn lấy từ Nhân sự:
+     ai không có tab đó mà mở nhầm thì shell() hiện hostGate() chỉ sang đúng địa chỉ; trên crm. người có địa chỉ riêng thấy dòng gợi ý hostTip() (tắt được). Trùng ROLE_URL ở api/src/lib.js. */
+  var HOSTS = {
+    quantri: { nm: 'Quản trị Thực Dưỡng Lành', short: 'Quản trị', home: 'tong-quan', who: 'chủ doanh nghiệp (quyền Quản trị)', guide: '' },
+    mkt: { nm: 'Marketing Thực Dưỡng Lành', short: 'Marketing', home: 'marketing', who: 'người làm marketing', guide: 'marketing/' },
+    kho: { nm: 'Kho Thực Dưỡng Lành', short: 'Kho', home: 'kho', who: 'người lo kho', guide: 'kho/' },
+    ketoan: { nm: 'Kế toán Thực Dưỡng Lành', short: 'Kế toán', home: 'ke-toan', who: 'kế toán', guide: 'ke-toan/' }
+  };
+  var HOST_KEY = (location.hostname.match(/^(quantri|mkt|kho|ketoan)\./) || [])[1] || '', HOST = HOSTS[HOST_KEY] || null, APP_NM = HOST ? HOST.nm : 'CRM Thực Dưỡng Lành';
+  if (HOST) { document.title = APP_NM; var mfl = document.querySelector('link[rel=manifest]'); if (mfl) mfl.href = '/manifest-' + HOST_KEY + '.webmanifest'; }
+  function roleHost(role) { return 'https://' + (role === 'Quản trị' ? 'quantri' : role === 'Marketing' ? 'mkt' : role === 'Kho' ? 'kho' : role === 'Kế toán' ? 'ketoan' : 'crm') + '.thucduonglanh.vn'; }
+  function hostOk() { return !HOST || !S.user || myViews().some(function (v) { return v.id === HOST.home; }); } // tên miền vai trò: chỉ ai có tab đó mới dùng được (Quản trị có mọi tab nên vào đâu cũng được)
+  function hostGate() {
+    var u = roleHost(S.user.role);
+    return '<div class="login"><div class="login-box"><img src="/logo.webp" alt="Thực Dưỡng Lành"><h1>' + APP_NM + '</h1>' +
+      '<p class="sub">Địa chỉ này dành cho <b>' + HOST.who + '</b>.<br>Tài khoản <b>' + esc(S.user.name) + '</b> (' + esc(S.user.role) + ') dùng địa chỉ:</p>' +
+      '<a class="btn pri lg block" href="' + u + '">Mở ' + u.replace('https://', '') + '</a>' +
+      '<p class="small muted" style="text-align:center;margin:14px 0 0">Lưu địa chỉ đó lại để lần sau mở nhanh. Nếu bạn nghĩ mình phải vào được đây, nhờ Quản trị xem lại quyền ở Cài đặt → Nhân sự.</p>' +
+      '<p style="text-align:center;margin:10px 0 0"><button type="button" class="link" data-gout>Đăng xuất</button></p></div></div>';
+  }
+  function hostTip() { // trên crm.: tài khoản có địa chỉ riêng được gợi ý, bấm "Đã biết" là thôi
+    if (HOST || !S.user) return '';
+    var u = roleHost(S.user.role); if (u === roleHost('') || store('crm_hosttip') === S.user.role) return '';
+    return '<div class="host-tip" id="hostTip"><span>📍 Địa chỉ dành riêng cho <b>' + esc(S.user.role) + '</b>: <a href="' + u + '"><b>' + u.replace('https://', '') + '</b></a> – mở thẳng màn hình của bạn; lưu ra màn hình điện thoại sẽ có tên riêng.</span><span class="grow"></span><a class="btn sm pri" href="' + u + '">Mở</a><button type="button" class="btn sm" data-ht>Đã biết</button></div>';
+  }
   function toast(msg, err) {
     var el = document.createElement('div'); if (err) el.className = 'err'; el.textContent = msg; $('#toast').appendChild(el);
     setTimeout(function () { el.remove(); }, err ? (msg.length > 120 ? 15000 : 6000) : 2800);
@@ -291,7 +315,7 @@
         : '<p class="sub">Đăng nhập bằng email công việc. Chúng tôi sẽ gửi mã 6 số vào email của bạn.</p>' +
           '<label class="f"><span>Email</span><input type="email" name="email" autocomplete="email" inputmode="email" required value="' + esc(email || store('crm_email') || '') + '" placeholder="ten@gmail.com"></label>' +
           '<button class="btn pri lg block" type="submit">Gửi mã đăng nhập</button><p class="err" role="alert">' + esc(msg || '') + '</p>') +
-      '<p class="small" style="text-align:center;margin:14px 0 0"><a href="/huong-dan/" target="_blank" rel="noopener">Hướng dẫn sử dụng CRM</a></p>' +
+      '<p class="small" style="text-align:center;margin:14px 0 0"><a href="/huong-dan/' + (HOST ? HOST.guide : '') + '" target="_blank" rel="noopener">Hướng dẫn sử dụng</a></p>' +
       '</form></div>';
     var form = $('.login-box'), btn = $('button[type=submit]', form), err = $('.err', form);
     var inp = $('input', form); setTimeout(function () { inp.focus(); }, 50);
@@ -779,10 +803,11 @@
     return '<p class="updated">' + (S.stale ? '⏳ Đang cập nhật… (đang xem dữ liệu lúc ' + fDateTime(S.loadedAt) + ')' : 'Cập nhật lúc ' + fDateTime(S.loadedAt)) + (S.d && S.d.partial ? ' · ⏳ đang tải thêm đơn & nhật ký cũ…' : '') + ' · dữ liệu lưu trên máy chủ CRM (bản sao ở Google Sheet)' + sp + '</p>';
   }
   function shell() {
+    if (!hostOk()) { $('#app').innerHTML = hostGate(); $('[data-gout]').onclick = function () { logout(); }; return; } // mở nhầm địa chỉ của vai trò khác
     var main = navMain(), tc = $('meta[name="theme-color"]');
     if (tc && window.matchMedia) tc.content = matchMedia('(max-width: 859px)').matches ? '#f7f7f4' : '#1f5f3a'; // điện thoại: thanh trên sáng màu
     $('#app').innerHTML = '<header class="top"><div class="top-in">' +
-      '<a class="brand" href="#' + homeView() + '"><img src="/icon-180.png" alt="">CRM</a>' +
+      '<a class="brand" href="#' + homeView() + '"><img src="/icon-180.png" alt="">' + (HOST ? HOST.short : 'CRM') + '</a>' +
       '<nav class="nav' + (navViews().length > 6 || lvl() >= 2 ? ' nav-many' : '') + (navViews().length < myViews().length ? ' nav-hasmore' : '') + '" data-sig="' + navSig() + '">' + navViews().map(function (v) { return '<a href="#' + v.id + '" data-v="' + v.id + '"' + (v.id === 'cai-dat' ? ' class="nav-set"' : main.indexOf(v.id) < 0 ? ' class="nav-x"' : '') + '>' + I[v.icon] + '<span' + (v.short ? ' data-short="' + v.short + '"' : '') + '>' + v.label + '</span></a>'; }).join('') +
       '<a href="#them" data-v="them" class="nav-more">' + I.more + '<span>Thêm</span></a></nav>' +
       '<div class="grow"></div><div class="me">' + meHTML() + '</div>' +
@@ -791,7 +816,8 @@
       '<a class="icon-btn" href="/huong-dan/' + (isMkt() ? 'marketing' : isKho() ? 'kho' : isKt() ? 'ke-toan' : 'crm') + '/" target="_blank" rel="noopener" title="Hướng dẫn sử dụng" aria-label="Hướng dẫn sử dụng">' + I.help + '</a>' +
       '<a class="icon-btn top-set" href="#cai-dat" title="Cài đặt" aria-label="Cài đặt">' + I.gear + '</a>' +
       '<button class="icon-btn" id="refresh" title="Tải lại dữ liệu" aria-label="Tải lại dữ liệu">' + I.refresh + '</button>' +
-      '</div></header><main id="view"></main>';
+      '</div></header>' + hostTip() + '<main id="view"></main>';
+    var ht = $('#hostTip'); if (ht) $('[data-ht]', ht).onclick = function () { store('crm_hosttip', S.user.role); ht.remove(); };
     $('#refresh').onclick = function () { load(); };
     $('#fbBtn').onclick = function () { openFeedback(); };
     if ($('#gsBtn')) $('#gsBtn').onclick = function () { openGlobalSearch(); };
@@ -953,7 +979,7 @@
   /** Quản lý / Quản trị: số trên tab là của cả nhóm, hoặc của người đang lọc ở ô 👥. Sale: rỗng. */
   function navWho() { return lvl() >= 2 ? (S.who ? ' của ' + (S.who === '-' ? 'khách chưa giao' : S.who) : ' (cả nhóm)') : ''; }
   /** Tab mở mặc định theo quyền: Quản trị → Tổng quan, Quản lý → Hiệu quả, nhân viên → Hôm nay. */
-  function homeView() { return isKt() ? 'ke-toan' : isKho() ? 'kho' : isMkt() || (MKT_HOST && myViews().some(function (x) { return x.id === 'marketing'; })) ? 'marketing' : lvl() >= 3 ? 'tong-quan' : lvl() >= 2 ? 'bao-cao' : S.user && S.user.kho ? 'kho' : 'hom-nay'; }
+  function homeView() { if (HOST && myViews().some(function (x) { return x.id === HOST.home; })) return HOST.home; return isKt() ? 'ke-toan' : isKho() ? 'kho' : isMkt() ? 'marketing' : lvl() >= 3 ? 'tong-quan' : lvl() >= 2 ? 'bao-cao' : S.user && S.user.kho ? 'kho' : 'hom-nay'; } // tên miền vai trò (quantri. / mkt. / kho. / ketoan.) mở thẳng tab của vai trò đó
   function route() { var h = (location.hash || '').slice(1).split('/'); return { view: h[0] === 'lien-he' ? 'tiem-nang' : h[0] || homeView(), id: decodeURIComponent(h[1] || '') }; }
   var lastView = '';
   function render() {

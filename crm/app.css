@@ -205,6 +205,11 @@ input:focus, select:focus, textarea:focus { outline: 2px solid rgba(31, 95, 58, 
 .err { color: var(--red); font-size: 14px; margin: 8px 0 0; min-height: 1em; }
 .notice { background: var(--orange-light); color: #7a3e00; border-radius: 10px; padding: 10px 12px; font-size: 14px; margin-bottom: 12px; }
 .notice.info { background: var(--primary-light); color: var(--primary); }
+/* crm.: dòng gợi ý địa chỉ riêng của vai trò (quantri. / mkt. / kho. / ketoan., 10/11/2026) */
+.host-tip { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 10px 16px 0; padding: 10px 14px; background: var(--primary-light); color: var(--primary); border-radius: 10px; font-size: 14px; line-height: 1.45; }
+.host-tip .grow { flex: 1; }
+.host-tip a:not(.btn) { color: inherit; }
+@media (min-width: 860px) { .host-tip { max-width: 1148px; margin: 12px auto 0; } }
 
 /* ---------- hộp thoại */
 .modal { position: fixed; inset: 0; z-index: 50; background: rgba(20, 28, 18, .45); display: flex; align-items: flex-end; justify-content: center; animation: fade .15s; }

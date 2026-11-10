@@ -29,7 +29,7 @@ Quản trị vào **Cài đặt → Nhân sự được vào CRM**, thêm email 
 1. Ở ô **Quyền**, chọn **Kế toán**.
 2. Bấm **Lưu nhân sự**.
 
-Kế toán đăng nhập CRM bằng email đó (mã 6 số gửi về email) là vào thẳng tab **💼 Kế toán**. Quản trị muốn xem tab này: bấm **••• Thêm** → **Kế toán**.
+Kế toán mở **[ketoan.thucduonglanh.vn](https://ketoan.thucduonglanh.vn)**, đăng nhập bằng email đó (mã 6 số gửi về email) là vào thẳng tab **💼 Kế toán**. Đưa ra màn hình điện thoại sẽ có biểu tượng **Kế toán TDL**. Quản trị muốn xem tab này: bấm **••• Thêm** → **Kế toán**.
 
 ## Màn hình 💼 Kế toán
 

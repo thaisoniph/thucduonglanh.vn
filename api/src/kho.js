@@ -18,6 +18,7 @@ import { crmUsers } from './crm.js';
 const WIN = 130 * DAY; // đơn cũ hơn không ảnh hưởng số tồn (lần kiểm kho đầu tiên làm sau ngày bật tính năng)
 const WAIT_DAYS = 21; // đơn "Mới / Đã xác nhận" quá 21 ngày không còn tính là đang giữ hàng
 const KHO_URL = CRM_URL + '/#kho';
+const KHO_ROLE_URL = 'https://kho.thucduonglanh.vn'; // tài khoản quyền Kho có địa chỉ riêng (10/11/2026); người kiêm kho vẫn dùng crm.
 export const KHO_REASONS = ['Quà tặng', 'Đại lý / bán sỉ', 'Livestream / sự kiện', 'Hàng mẫu', 'Hàng hỏng / hết hạn', 'Khác'];
 const BROKEN = /hỏng|hết hạn/i; // xuất vì hỏng không tính là bán
 
@@ -214,7 +215,7 @@ async function khoPeople(x) {
 async function toStaff(x, P, text) {
   const tg = P.staff.filter(u => u.tg);
   if (!tg.length) { await telegram(x.env, text + (P.staff.length ? '' : '\n\n<i>Chưa ai được tích 📦 Phụ trách kho ở CRM → Cài đặt → Nhân sự.</i>')); return false; }
-  for (const u of tg) await telegramTo(x.env, u.tg, text);
+  for (const u of tg) await telegramTo(x.env, u.tg, u.role === 'Kho' ? text.split(KHO_URL).join(KHO_ROLE_URL) : text);
   return true;
 }
 const vnH = t => new Date(t + 7 * 3600e3).getUTCHours();

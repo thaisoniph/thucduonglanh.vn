@@ -21,7 +21,7 @@ Trang này dành cho **người lo kho**. Đọc khoảng 5 phút là làm đư�
 
 **Kế toán** xem được số hàng còn và hàng về kho (chỉ xem, không sửa) để tính giá trị tồn kho và so với hoá đơn nhà cung cấp. Vì vậy hãy ghi **📥 Hàng về kho** đúng ngày, đúng số lượng, ghi số hoá đơn ở ô ghi chú.
 
-**Mở ở đâu:** người lo kho mở CRM là vào thẳng **📦 Kho**. Quản lý, Quản trị: bấm **••• Thêm** → **Kho**.
+**Mở ở đâu:** tài khoản Kho mở **[kho.thucduonglanh.vn](https://kho.thucduonglanh.vn)** là vào thẳng **📦 Kho** (đưa ra màn hình điện thoại sẽ có biểu tượng **Kho TDL**). Người bán hàng kiêm kho mở crm.thucduonglanh.vn như thường, bấm vào tab **Kho**. Quản lý, Quản trị: bấm **••• Thêm** → **Kho**.
 
 **Tài khoản Kho** (từ 09/11/2026): người chỉ lo kho được Quản trị cho quyền **Kho**. Tài khoản này chỉ thấy tab **📦 Kho** và **Cài đặt** (nối Telegram), không thấy khách, đơn, doanh số. Người vừa bán hàng vừa lo kho thì giữ quyền **Sale & CSKH** và được tích thêm ô **📦 Kiêm phụ trách kho**.
 

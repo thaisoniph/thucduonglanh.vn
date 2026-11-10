@@ -1,5 +1,5 @@
 // CRM: đăng nhập, dữ liệu, đơn hàng, khách, tiềm năng, cài đặt. Chuyển từ Apps Script sang, giữ nguyên cách làm việc & dữ liệu trả về cho giao diện.
-import { normPhone, nrm, esc, fmt, startOfDay, TZ_MS, fmtDate, dateOrBlank, slugName, replaceRows, isVoid, randHex, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, DAY, CRM_URL, MKT_URL, refCode } from './lib.js';
+import { normPhone, nrm, esc, fmt, startOfDay, TZ_MS, fmtDate, dateOrBlank, slugName, replaceRows, isVoid, randHex, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, DAY, CRM_URL, ROLE_URL, refCode } from './lib.js';
 import { crmPartner, partnerSchema, orderAttrib, refClaim, staffOf, staffHit } from './partner.js';
 import { chatSchema } from './chat.js';
 import { zbotSchema, crmZbot } from './zbot.js';
@@ -7,6 +7,7 @@ import { fbSchema, crmFp } from './fb.js';
 import { crmBlog } from './blog.js';
 import { sendMail, telegram, telegramTo, telegramPhoto, tgUpdates, tgConf, bridge } from './google.js';
 import { crmGa, crmGaProp } from './ga.js';
+import { crmCfToken } from './cfweb.js';
 import { crmMkt, mktFbEdit } from './mkt.js';
 import { mktView, mktBudgetSet, mktGoalSet, mktDailyMsgs } from './mktv.js';
 import { crmSan, sanSchema, sanAllowed } from './san.js';
@@ -930,7 +931,7 @@ export async function crmLogin(x, d) {
   const b = new Uint32Array(1); crypto.getRandomValues(b); const code = String(b[0] % 900000 + 100000);
   await kvSet(x.db, 'otp_' + email, JSON.stringify({ c: code, t: 0 }), 600e3);
   x.later(sendMail(x.env, { to: email, name: 'CRM Thực Dưỡng Lành', subject: code + ' là mã đăng nhập CRM Thực Dưỡng Lành',
-    body: 'Mã đăng nhập của bạn: ' + code + '\n\nMã dùng được trong 10 phút. Không đưa mã này cho người khác.\nNếu bạn không yêu cầu đăng nhập, hãy bỏ qua email này.\n\n' + (lu.role === 'Marketing' ? MKT_URL : CRM_URL) }).catch(e => console.error('mail', e.message))); // gửi nền: trả lời ngay, email tới sau vài giây
+    body: 'Mã đăng nhập của bạn: ' + code + '\n\nMã dùng được trong 10 phút. Không đưa mã này cho người khác.\nNếu bạn không yêu cầu đăng nhập, hãy bỏ qua email này.\n\n' + ROLE_URL(lu.role) }).catch(e => console.error('mail', e.message))); // địa chỉ đúng vai trò (quantri. / mkt. / kho. / ketoan. / crm.) // gửi nền: trả lời ngay, email tới sau vài giây
   return { ok: true };
 }
 export async function crmVerify(x, d) {
@@ -2177,6 +2178,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (a === 'cms_pat') return cmsTokenSet(x, u, d); // Cài đặt → 🌐 Trang quản trị website: mã GitHub của công ty
   if (a === 'ga') return crmGa(x, u, d); // tab Tổng quan: số liệu Google Analytics
   if (a === 'ga_prop') return crmGaProp(x, u, d);
+  if (a === 'cf_token') return crmCfToken(x, u, d); // Tổng quan → Website: dán mã API Cloudflare Web Analytics (lượt vào đủ 100%)
   if (a === 'mkt_tg_test') { // gửi thử tin 📣 Marketing 8h sáng cho chính mình
     if (u.role !== 'Marketing' && u.level < 3) return { ok: false, error: 'Chỉ Marketing và Quản trị.' };
     if (!u.tg) return { ok: false, error: 'Bạn chưa kết nối Telegram: vào Cài đặt → 📲 Thông báo Telegram riêng.' };
