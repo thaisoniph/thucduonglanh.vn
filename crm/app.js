@@ -254,7 +254,7 @@
     if (!CFG.endpoint) return Promise.reject(new Error('Chưa cấu hình máy chủ.'));
     tries = tries || 0; var t0 = Date.now();
     // chờ tối đa 30 giây (việc nặng của quản trị 90 giây) rồi báo, không để vòng quay mãi (16/10/2026)
-    var ac = typeof AbortController === 'function' ? new AbortController() : null, wait = action === 'ai_ask' ? 180e3 : /^ins_(video|import)$/.test(action) ? 150e3 : API_HEAVY.test(action) ? 90e3 : 30e3, tm = ac && setTimeout(function () { ac.abort(); }, wait);
+    var ac = typeof AbortController === 'function' ? new AbortController() : null, wait = action === 'ai_ask' ? 180e3 : /^ins_(video|import|find|offer)$/.test(action) ? 180e3 : API_HEAVY.test(action) ? 90e3 : 30e3, tm = ac && setTimeout(function () { ac.abort(); }, wait);
     return fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), signal: ac ? ac.signal : undefined })
       .then(function (r) { clearTimeout(tm); return r.text().then(function (t) { return { t: t, st: r.status }; }); }, function (er) { clearTimeout(tm); var slow = er && er.name === 'AbortError', e0 = new Error(slow ? 'Máy chủ trả lời chậm quá ' + (wait / 1000) + ' giây. Bạn kiểm tra mạng rồi bấm lại nhé.' : 'Mất kết nối mạng. Bạn thử lại nhé.'); e0.net = true; throw e0; })
       .then(function (x) {
@@ -6106,6 +6106,7 @@
       '<li>Mỗi bài có <b>1 lối ra</b>: TOFU mời bình luận, nhận quà, vào nhóm · MOFU mời xem sản phẩm, hỏi tư vấn · BOFU mời đặt hàng.</li>' +
       '<li>Tension gắn <b>🏷 nhãn sản phẩm</b> chỉ dùng khi bài nói về sản phẩm đó; tension <b>🌐 dùng chung</b> hợp mọi sản phẩm và mọi bài thu hút. Xem ở mục 🏷 Insight theo sản phẩm bên dưới.</li></ol></details>';
     h += inStatsHtml(j);
+    h += inToolsHtml(j, ed);
     // 🎬 kịch bản video
     var gOpt = '<option value="">🔄 Tự chọn (nhóm ít video nhất)</option>' + bank.filter(function (g) { return g.on; }).map(function (g) { return '<option value="' + esc(g.id) + '">' + esc(g.name) + '</option>'; }).join('');
     h += '<h2 class="zb-h">🎬 Viết kịch bản video ngắn</h2><div class="box inx-vd">' +
@@ -6161,19 +6162,91 @@
       api('ins_import', { text: t, prod: pr }).then(function (r) { inImportPreview(r.groups || [], t); }, function (e) { b.disabled = false; b.textContent = '🔍 Đọc kết quả'; toast(e.message, true); });
     };
   }
-  function inImportPreview(G, text) {
+  /* 🧩 Công cụ từ khoá học (api/src/inskill.js): 🔍 Tìm insight, 🎁 Viết offer, 📤 tải skill lên thay phương pháp mặc định */
+  var IN_SLOT = { insight: '🔍 Tìm insight', offer: '🎁 Viết offer', video: '🎬 Kịch bản video' };
+  function inToolsHtml(j, ed) {
+    var sk = j.skills || {}, D = j.drafts || [], canLive = lvl() >= 3 || isMkt();
+    var h = '<h2 class="zb-h">🧩 Công cụ từ khoá học</h2><div class="box inx-tools">' +
+      (ed ? '<div class="lq-btns"><button class="btn pri" data-in="find">🔍 Tìm insight</button><button class="btn pri" data-in="offer">🎁 Viết offer</button></div>' : '') +
+      '<p class="small muted">🔍 Tìm insight: AI đọc câu khách thật 60 ngày (Fanpage, Zalo, chat web, ghi chú Khách hỏi) + thông tin sản phẩm, làm bản đồ tension có chấm điểm, anh chị chọn dòng để thêm vào ngân hàng. 🎁 Viết offer: dựng offer theo Hormozi cho 1 sản phẩm + 1 tension, lưu nháp để duyệt giá.</p>' +
+      '<p class="small" style="margin:10px 0 4px"><b>📘 Phương pháp đang dùng</b> <span class="muted">tải file skill (.skill, .zip hoặc SKILL.md) như trong Claude; tải bản mới là thay bản cũ</span></p>' +
+      Object.keys(IN_SLOT).map(function (k) {
+        var v = sk[k];
+        return '<div class="inx-skrow"><span class="small"><b>' + IN_SLOT[k] + ':</b> ' + (v ? '🧩 skill <b>' + esc(v.name) + '</b> <span class="muted">(' + (v.files || []).length + ' tệp, tải ' + fDateTime(v.at) + ' · ' + esc(v.by || '') + ')</span>' : '<span class="muted">phương pháp mặc định (tóm từ skill của khoá)</span>') + '</span>' +
+          (ed ? '<span class="inx-skb"><button class="btn sm" data-in="sk|' + k + '">📤 ' + (v ? 'Tải bản mới' : 'Tải skill lên') + '</button>' + (v ? '<button class="btn sm ghost" data-in="skdel|' + k + '">🗑</button>' : '') + '</span>' : '') + '</div>';
+      }).join('') + '<input type="file" id="inSkF" accept=".skill,.zip,.md,.txt" hidden></div>';
+    if (D.length) h += '<h2 class="zb-h">🎁 Offer nháp (' + D.length + ')</h2>' + D.map(function (o, i) {
+      var open = IN.openOf ? IN.openOf === o.id : i === 0;
+      return '<details class="box inx-of"' + (open ? ' open' : '') + '><summary><b>' + esc(o.title) + '</b> <span class="small muted">' + esc(inSpName(o.prod)) + ' · ' + fDateTime(o.at) + ' · ' + esc(o.by_name) + (o.skill ? ' · 🧩 ' + esc(o.skill) : '') + '</span></summary>' +
+        inTag({ gn: o.gn, t: o.t, w: o.w }) + (o.sum ? '<p class="small"><b>Tóm tắt ưu đãi:</b> ' + esc(o.sum) + '</p>' : '') + '<div class="inx-script">' + askMd(o.text) + '</div>' +
+        '<p class="small muted">Offer nháp chưa chạy. Duyệt giá, quà, số lượng xong mới đưa vào Ưu đãi, lúc đó sale và các trợ lý mới nhắc tới.</p><div class="lq-btns"><button class="btn sm" data-in="ocopy|' + o.id + '">📋 Copy offer</button><button class="btn sm" data-in="osum|' + o.id + '">📋 Copy tóm tắt</button>' +
+        (canLive ? '<button class="btn sm pri" data-in="olive|' + o.id + '">➕ Đưa vào Ưu đãi</button>' : '') + (ed ? '<button class="btn sm ghost" data-in="odel|' + o.id + '">🗑 Xoá</button>' : '') + '</div></details>';
+    }).join('');
+    return h;
+  }
+  function inSpOpts(req) { var M = (IN.d && IN.d.sp) || {}; return (req ? '' : '<option value="">Không riêng sản phẩm nào</option>') + Object.keys(M).map(function (k) { return '<option value="' + esc(k) + '">' + esc(M[k][1]) + '</option>'; }).join(''); }
+  function inGrpOpts(none) { return '<option value="">' + none + '</option>' + (IN.d.bank || []).filter(function (g) { return g.on; }).map(function (g) { return '<option value="' + esc(g.id) + '">' + esc(g.name) + '</option>'; }).join(''); }
+  function inFindForm() {
+    var m = modal('🔍 Tìm insight',
+      '<p class="small muted">' + (IN.d.skills && IN.d.skills.insight ? 'Dùng skill <b>' + esc(IN.d.skills.insight.name) + '</b> anh chị đã tải lên.' : 'Dùng phương pháp tìm insight 3C của khoá (ABC → Tension → WHY → chấm điểm /25).') + ' AI đọc thêm câu khách thật 60 ngày, đánh dấu tension nào có bằng chứng (DK) hay còn là giả thuyết (GT).</p>' +
+      '<label class="f"><span>Sản phẩm</span><select id="inFdP">' + inSpOpts(false) + '</select></label>' +
+      '<label class="f"><span>Nhóm khách mẫu</span><select id="inFdG">' + inGrpOpts('AI đề xuất 2–3 nhóm (hoặc ghi ở ô dưới)') + '</select></label>' +
+      '<label class="f"><span>Mô tả nhóm khách mới <small class="muted">nếu không chọn nhóm có sẵn</small></span><input id="inFdT" placeholder="Vd: nhân viên văn phòng nữ 30–40, hay đặt đồ ăn trưa"></label>' +
+      '<label class="f"><span>Mục tiêu</span><select id="inFdO"><option value="ban">Bán hàng (ra đơn)</option><option value="viral">Content viral (tiếp cận, chia sẻ)</option><option value="ca2" selected>Cả hai</option></select></label>' +
+      '<label class="f"><span>Ghi chú <small class="muted">không bắt buộc: dịp, khu vực, giá, điều đã thấy</small></span><textarea id="inFdN" rows="2"></textarea></label>' +
+      '<label class="switch"><input type="checkbox" id="inFdV" checked> Đọc câu khách thật 60 ngày qua (đã che số điện thoại)</label>',
+      '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="inFdGo">🔍 Tìm insight</button>');
+    $('#inFdGo', m).onclick = function () {
+      var b = this; b.disabled = true; b.textContent = '⏳ AI đang tìm (khoảng 1–2 phút)…';
+      api('ins_find', { prod: $('#inFdP', m).value, g: $('#inFdG', m).value, ta: $('#inFdT', m).value.trim(), goal: $('#inFdO', m).value, note: $('#inFdN', m).value.trim(), voc: $('#inFdV', m).checked })
+        .then(function (r) { inImportPreview(r.groups || [], null, inFindForm, '🔍 Insight tìm được' + (r.voc ? ' · đọc ' + r.voc + ' câu khách thật' : '')); }, function (e) { b.disabled = false; b.textContent = '🔍 Tìm insight'; toast(e.message, true); });
+    };
+  }
+  function inOfferForm() {
+    var m = modal('🎁 Viết offer',
+      '<p class="small muted">' + (IN.d.skills && IN.d.skills.offer ? 'Dùng skill <b>' + esc(IN.d.skills.offer.name) + '</b> anh chị đã tải lên.' : 'Dùng phương pháp Hormozi (Value Equation, Grand Slam Offer, value stack, bảo đảm).') + ' Offer lưu nháp, không tự chạy.</p>' +
+      '<label class="f"><span>Sản phẩm</span><select id="inOfP">' + inSpOpts(true) + '</select></label>' +
+      '<label class="f"><span>Nhóm khách</span><select id="inOfG">' + inGrpOpts('AI chọn nhóm hợp nhất') + '</select></label>' +
+      '<label class="f"><span>Tension offer gỡ</span><select id="inOfT"><option value="">AI chọn tension sắc nhất</option></select></label>' +
+      '<label class="f"><span>Loại offer</span><select id="inOfK"><option value="moi">Mồi / dùng thử</option><option value="chinh" selected>Offer chính</option><option value="combo">Combo / quà biếu</option><option value="mua-lai">Mua lại (khách cũ)</option></select></label>' +
+      '<label class="f"><span>Ghi chú <small class="muted">không bắt buộc: giá mục tiêu, dịp, ngân sách quà</small></span><textarea id="inOfN" rows="2"></textarea></label>',
+      '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="inOfGo">🎁 Viết offer</button>');
+    var fill = function () {
+      var g = (IN.d.bank || []).filter(function (b) { return b.id === $('#inOfG', m).value; })[0], c = inSpCode($('#inOfP', m).value);
+      $('#inOfT', m).innerHTML = '<option value="">AI chọn tension sắc nhất</option>' + (g ? g.tensions.map(inTen).filter(function (t) { return !t.sp.length || t.sp.indexOf(c) >= 0; }).map(function (t) { return '<option>' + esc(t.t) + '</option>'; }).join('') : '');
+    };
+    $('#inOfG', m).onchange = fill; $('#inOfP', m).onchange = fill;
+    $('#inOfGo', m).onclick = function () {
+      var b = this; b.disabled = true; b.textContent = '⏳ AI đang viết (khoảng 1 phút)…';
+      api('ins_offer', { prod: $('#inOfP', m).value, g: $('#inOfG', m).value, t: $('#inOfT', m).value, kind: $('#inOfK', m).value, note: $('#inOfN', m).value.trim() })
+        .then(function (r) { closeModal(); IN.d.drafts = [r.draft].concat(IN.d.drafts || []); IN.openOf = r.draft.id; toast('Đã viết xong offer nháp ✓'); render(); }, function (e) { b.disabled = false; b.textContent = '🎁 Viết offer'; toast(e.message, true); });
+    };
+  }
+  function inOfferLive(o) {
+    var m = modal('➕ Đưa offer vào Ưu đãi đang chạy',
+      '<p class="small">Sau khi lưu, sale thấy ưu đãi này ở tab Hôm nay và các trợ lý (Zalo, Fanpage, chat web) được phép nhắc tới. Chỉ lưu khi đã duyệt giá, quà, số lượng.</p>' +
+      '<label class="f"><span>Tên ưu đãi</span><input id="inLvT" value="' + esc(o.title) + '"></label>' +
+      '<label class="f"><span>Nội dung ngắn</span><textarea id="inLvX" rows="4">' + esc(o.sum || '') + '</textarea></label>' +
+      '<label class="f"><span>Chạy đến hết ngày <small class="muted">bỏ trống = không hạn</small></span><input type="date" id="inLvU"></label>',
+      '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="inLvGo">➕ Lưu vào Ưu đãi</button>');
+    $('#inLvGo', m).onclick = function () {
+      var b = this, t = $('#inLvT', m).value.trim(); if (!t) return toast('Cần tên ưu đãi.', true);
+      b.disabled = true; api('offer_save', { title: t, prod: inSpName(o.prod), text: $('#inLvX', m).value.trim(), until: $('#inLvU', m).value }).then(function () { closeModal(); toast('Đã đưa vào Ưu đãi đang chạy ✓'); }, function (e) { b.disabled = false; toast(e.message, true); });
+    };
+  }
+  function inImportPreview(G, text, back, title) {
     var bank = IN.d.bank || [];
     var opt = function (gi, gr) { return '<select data-inimg="' + gi + '"><option value="">➕ Nhóm mới: ' + esc(gr.name) + '</option>' + bank.map(function (b) { return '<option value="' + esc(b.id) + '"' + (b.id === gr.match ? ' selected' : '') + '>' + esc(b.name) + '</option>'; }).join('') + '</select>'; };
     var body = '<p class="small muted">Tích những dòng muốn thêm. Dòng đã có trong ngân hàng hoặc có cụm dễ phạm luật (⚠️) được bỏ tích sẵn. Tension mới thêm lên đầu nhóm, theo thứ tự điểm.</p>' + G.map(function (gr, gi) {
       return '<div class="box inx-impg"><label class="f"><span>Thêm vào nhóm</span>' + opt(gi, gr) + '</label>' +
         gr.tensions.map(function (t, ti) {
           return '<label class="zb-ck"><input type="checkbox" data-init="' + gi + '|' + ti + '"' + (t.dup || (t.w && t.w.length) ? '' : ' checked') + '><span>' + esc(t.t) + ' ' + (t.sp.length ? '<span class="inx-sp">🏷 ' + esc(t.sp.map(inSpName).join(', ')) + '</span>' : '<span class="inx-sp inx-all">🌐 dùng chung</span>') +
-            (t.score ? ' <b class="small">' + t.score + 'đ</b>' : '') + (t.dup ? ' <span class="small muted">(đã có)</span>' : '') + (t.insight ? '<small>💭 “' + esc(t.insight) + '”</small>' : '') + (t.w && t.w.length ? '<small class="inx-warn">⚠️ ' + esc(t.w.join(', ')) + '</small>' : '') + '</span></label>';
+            (t.score ? ' <b class="small">' + t.score + 'đ</b>' : '') + (t.ev ? ' <span class="small ' + (t.ev === 'DK' ? 'inx-dk' : 'muted') + '">' + (t.ev === 'DK' ? '📌 có bằng chứng' : 'giả thuyết') + '</span>' : '') + (t.quote ? '<small>📌 Khách nói: “' + esc(t.quote) + '”</small>' : '') + (t.dup ? ' <span class="small muted">(đã có)</span>' : '') + (t.insight ? '<small>💭 “' + esc(t.insight) + '”</small>' : '') + (t.w && t.w.length ? '<small class="inx-warn">⚠️ ' + esc(t.w.join(', ')) + '</small>' : '') + '</span></label>';
         }).join('') +
         (gr.hooks.length ? '<label class="zb-ck"><input type="checkbox" data-inih="' + gi + '" checked><span><b>Thêm hook vào ghi chú</b><small>' + esc(gr.hooks.join(' · ')) + '</small></span></label>' : '') + '</div>';
     }).join('');
-    var m = modal('📥 Xem trước kết quả', body, '<button class="btn" id="inImBack">↩️ Dán lại</button><button class="btn pri" id="inImSave">💾 Thêm vào ngân hàng</button>');
-    $('#inImBack', m).onclick = function () { inImportForm(text); };
+    var m = modal(title || '📥 Xem trước kết quả', body, '<button class="btn" id="inImBack">↩️ ' + (back ? 'Tìm lại' : 'Dán lại') + '</button><button class="btn pri" id="inImSave">💾 Thêm vào ngân hàng</button>');
+    $('#inImBack', m).onclick = function () { if (back) back(); else inImportForm(text); };
     $('#inImSave', m).onclick = function () {
       var nb = bank.map(function (g) { return Object.assign({}, g, { tensions: g.tensions.slice(), prods: (g.prods || []).slice() }); }), nT = 0, nG = 0;
       var key = function (x) { return inTen(x).t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/[^a-z0-9]+/g, ''); };
@@ -6223,6 +6296,18 @@
     if (a === 'reload') { IN.err = ''; IN.d = null; return render(); }
     if (a === 'gnew') return inGroupForm(null);
     if (a === 'imp') return inImportForm();
+    if (a === 'find') return inFindForm();
+    if (a === 'offer') return inOfferForm();
+    if (a === 'sk') { var fi = $('#inSkF'); fi.value = ''; fi.onchange = function () {
+      var f = fi.files && fi.files[0]; if (!f) return; if (f.size > 3e6) return toast('File quá lớn (tối đa 3 MB).', true);
+      var rd = new FileReader(); rd.onload = function () { t.disabled = true; toast('⏳ Đang tải skill lên…'); api('ins_skill', { slot: v[1], file: rd.result, fname: f.name }).then(function (r) { IN.d.skills = r.skills; toast('Đã tải skill ' + (r.skills[v[1]] || {}).name + ' ✓'); render(); }, function (er) { t.disabled = false; toast(er.message, true); }); };
+      rd.readAsDataURL(f); }; return fi.click(); }
+    if (a === 'skdel') { if (!confirm('Bỏ skill này, quay về phương pháp mặc định?')) return; t.disabled = true; return api('ins_skilldel', { slot: v[1] }).then(function (r) { IN.d.skills = r.skills; toast('Đã bỏ skill'); render(); }, function (er) { t.disabled = false; toast(er.message, true); }); }
+    var od = (IN.d.drafts || []).filter(function (o) { return o.id === i; })[0];
+    if (a === 'ocopy' && od) return copy('# ' + od.title + '\nNhóm khách: ' + od.gn + '\nTension: ' + od.t + '\nTóm tắt ưu đãi: ' + od.sum + '\n\n' + od.text).then(function () { toast('📋 Đã copy offer'); });
+    if (a === 'osum' && od) return copy(od.sum || od.title).then(function () { toast('📋 Đã copy tóm tắt'); });
+    if (a === 'olive' && od) return inOfferLive(od);
+    if (a === 'odel' && od) { if (!confirm('Xoá offer nháp “' + od.title + '”?')) return; t.disabled = true; return api('ins_odel', { id: od.id }).then(function () { IN.d.drafts = IN.d.drafts.filter(function (o) { return o.id !== od.id; }); render(); }, function (er) { t.disabled = false; toast(er.message, true); }); }
     if (a === 'merge') { t.disabled = true; return api('ins_merge', {}).then(function (r) { IN.d.bank = r.bank; IN.d.custom = true; IN.d.upd = null; toast('Đã gộp bản mặc định mới ✓'); render(); }, function (er) { t.disabled = false; toast(er.message, true); }); }
     if (a === 'ged') return inGroupForm(i);
     if (a === 'gon') { bank[i] = Object.assign({}, bank[i], { on: !bank[i].on }); t.disabled = true; return inSave(bank, bank[i].on ? 'Đã bật lại nhóm ✓' : 'Đã tạm tắt nhóm'); }

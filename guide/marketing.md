@@ -224,6 +224,21 @@ Trên thẻ bài ở tab Zalo, Fanpage, Bài web có dòng **🎯 nhóm khách �
   - Gắn nhãn: khi ✏️ Sửa nhóm, thêm cuối dòng tension `[SP: dilvang]` (mã: `bua-an`, `curcumin`, `ruoc`, `dilvang`, `xi-dau`; nhiều sản phẩm cách nhau dấu phẩy). Không ghi = dùng chung.
   - Bài nói về 1 sản phẩm (chủ đề bài web có sản phẩm, kịch bản video chọn sản phẩm) thì trợ lý chỉ dùng tension riêng của sản phẩm đó hoặc tension dùng chung. Bấm **✏️ Sửa** để thêm tension mới (mỗi dòng 1 cái, dạng *"Muốn … ↔ nhưng …"*), **⏸ Tạm tắt** nhóm chưa muốn nhắm, **➕ Thêm nhóm khách** khi có tệp mới. Sửa ở đây là cả 4 trợ lý dùng theo ngay.
 
+### 🧩 Công cụ từ khoá học (không cần chạy skill bên ngoài)
+
+Trong tab có khu **🧩 Công cụ từ khoá học**:
+
+- **🔍 Tìm insight**: chọn sản phẩm, nhóm khách mẫu (hoặc để AI đề xuất), mục tiêu (bán hàng / viral / cả hai), ghi chú nếu có → bấm **🔍 Tìm insight** (1–2 phút).
+  - AI đọc thêm **câu khách thật 60 ngày qua** (bình luận, tin nhắn Fanpage, câu hỏi trong nhóm Zalo, chat web, ghi chú "quan tâm" và "lý do chưa mua" ở Khách hỏi; đã che số điện thoại).
+  - AI chấm điểm từng tension /25 và ghi rõ: **📌 có bằng chứng** (kèm câu khách nói thật) hoặc **giả thuyết**.
+  - Màn xem trước giống nút 📥: tích dòng muốn giữ → **💾 Thêm vào ngân hàng**.
+- **🎁 Viết offer**: chọn sản phẩm, nhóm khách, tension cần gỡ (hoặc để AI chọn tension sắc nhất), loại offer (mồi / chính / combo quà / mua lại), ghi chú giá mục tiêu → **🎁 Viết offer** (khoảng 1 phút).
+  - Ra **offer nháp**: tên offer, lời hứa, bảng giá trị (value stack), giá đề xuất, bảo đảm, lý do mua ngay, 3 hook quảng cáo, mục ⚠️ cần duyệt.
+  - Offer nháp **chưa chạy**. Duyệt giá, quà, số lượng xong mới bấm **➕ Đưa vào Ưu đãi** (Marketing, Quản trị). Lúc đó sale và các trợ lý mới được nhắc tới.
+- **📘 Phương pháp đang dùng**: mặc định là phương pháp tóm từ skill của khoá. Muốn dùng đúng skill anh chị đang có (hoặc bản mới hơn), bấm **📤 Tải skill lên** ở dòng tương ứng (🔍 Tìm insight, 🎁 Viết offer, 🎬 Kịch bản video), chọn file **.skill** / **.zip** (như khi tải skill vào Claude) hoặc **SKILL.md**.
+  - Máy chủ tự giải nén, lấy phần hướng dẫn và các tệp tham khảo .md trong skill.
+  - Tải bản mới là thay bản cũ; bấm 🗑 để quay về phương pháp mặc định.
+
 **📥 Vừa chạy skill tìm insight (vd tim-insights-ta-3c)?** Không cần chép tay từng dòng:
 1. Trong skill, chép toàn bộ kết quả (hoặc phần Bản đồ Tension + Top Insight).
 2. Tab 🎯 Insight & nội dung → bấm **📥 Dán kết quả skill** → chọn sản phẩm của lần tìm insight đó (nếu có) → dán → **🔍 Đọc kết quả** (khoảng 20–40 giây).

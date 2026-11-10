@@ -1957,3 +1957,7 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .inx-imp { border: 1px dashed #d9480f; }
 .inx-impg .zb-ck small { display: block; }
 .inx-impg select { width: 100%; }
+.inx-skrow { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px 8px; padding: 6px 0; border-top: 1px solid var(--line); }
+.inx-skb { display: flex; gap: 6px; }
+.inx-of summary { cursor: pointer; line-height: 1.5; }
+.inx-dk { color: var(--primary); font-weight: 600; }

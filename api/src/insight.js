@@ -13,6 +13,7 @@ import { aiFetch } from './airelay.js';
 import { run, all, first, kvGet, kvJson, kvSet, kvDel, nrm, fmtDate, DAY } from './lib.js';
 import { kb, safe, TRUTH_RULES } from './chat.js';
 import { prodMap } from './zbot.js';
+import { crmInSkill, skillsInfo, offerDrafts, skillOf, methodBlock } from './inskill.js';
 
 const WRITER = 'claude-opus-5-5';
 export const CH = { web: '🌐 Web', zalo: '💬 Zalo', fb: '📘 Fanpage', video: '🎬 Video' };
@@ -290,6 +291,21 @@ function mergeDefault(bank) {
 }
 
 /* ---------------------------------------------------------------- 📥 đọc kết quả skill tìm insight (tim-insights-ta-3c…) */
+/** JSON { groups: [{ match, name, who, want, block, hooks, tensions: [{ t, sp, score, insight, ev, quote }] }] } của AI → nhóm chuẩn để CRM xem trước (ghép nhóm có sẵn, đánh dấu trùng, lọc mã sản phẩm lạ, cảnh báo cụm dễ phạm luật) */
+export function importGroups(bank, j) {
+  const key = s => nrm(tenOf(s).t).replace(/[^a-z0-9]+/g, ''), codes = Object.values(SP).map(v => v[0]);
+  return (Array.isArray(j.groups) ? j.groups : []).slice(0, 12).map(gr => {
+    const ex = bank.find(b => b.id === gr.match) || bank.find(b => nrm(b.name) === nrm(gr.name)) || (gr.match ? insFind(bank, gr.name) : null), have = new Set((ex ? ex.tensions : []).map(key));
+    const tensions = (Array.isArray(gr.tensions) ? gr.tensions : []).slice(0, 15).map(t => {
+      const line = cut(String(t.t || '').replace(/\s*(<->|<=>|->|=>)\s*/, ' ↔ '), 280), sp = [...new Set((Array.isArray(t.sp) ? t.sp : []).map(spCode))].filter(c => codes.includes(c));
+      return { t: line, sp, score: Number(t.score) || 0, insight: cut(t.insight, 300), ev: /^dk$/i.test(String(t.ev || '')) ? 'DK' : /^gt$/i.test(String(t.ev || '')) ? 'GT' : '', quote: cut(t.quote, 160), dup: have.has(key(line)), w: insRisk(line) };
+    }).filter(t => t.t).sort((p, q) => q.score - p.score);
+    const isNew = !ex;
+    return { match: ex ? ex.id : '', name: ex ? ex.name : cut(gr.name, 80), who: isNew ? cut(gr.who, 300) : '', want: isNew ? cut(gr.want, 300) : '', block: isNew ? cut(gr.block, 300) : '',
+      hooks: (Array.isArray(gr.hooks) ? gr.hooks : []).map(h => cut(h, 200)).filter(Boolean).slice(0, 5), tensions };
+  }).filter(g => g.name && g.tensions.length);
+}
+
 const shortOf = c => (Object.entries(SP).find(([, v]) => v[0] === c) || [c])[0];
 async function insImport(x, d) {
   if (!x.env.ANTHROPIC_API_KEY) return { ok: false, error: 'Máy chủ chưa có khoá AI.' };
@@ -318,17 +334,7 @@ async function insImport(x, d) {
   const raw = textOf(res), a = raw.indexOf('{'), b = raw.lastIndexOf('}');
   let j = null; try { j = JSON.parse(raw.slice(a, b + 1)); } catch (e) { }
   if (!j || !Array.isArray(j.groups)) return { ok: false, error: 'AI chưa tách được kết quả, anh chị bấm đọc lại hoặc dán phần "Top Insight" thôi.' };
-  const key = s => nrm(tenOf(s).t).replace(/[^a-z0-9]+/g, ''), codes = Object.values(SP).map(v => v[0]);
-  const groups = j.groups.slice(0, 12).map(gr => {
-    const ex = bank.find(b => b.id === gr.match) || bank.find(b => nrm(b.name) === nrm(gr.name)) || (gr.match ? insFind(bank, gr.name) : null), have = new Set((ex ? ex.tensions : []).map(key));
-    const tensions = (Array.isArray(gr.tensions) ? gr.tensions : []).slice(0, 15).map(t => {
-      const line = cut(String(t.t || '').replace(/\s*(<->|<=>|->|=>)\s*/, ' ↔ '), 280), sp = [...new Set((Array.isArray(t.sp) ? t.sp : []).map(spCode))].filter(c => codes.includes(c));
-      return { t: line, sp, score: Number(t.score) || 0, insight: cut(t.insight, 300), dup: have.has(key(line)), w: insRisk(line) };
-    }).filter(t => t.t).sort((p, q) => q.score - p.score);
-    const isNew = !ex;
-    return { match: ex ? ex.id : '', name: ex ? ex.name : cut(gr.name, 80), who: isNew ? cut(gr.who, 300) : '', want: isNew ? cut(gr.want, 300) : '', block: isNew ? cut(gr.block, 300) : '',
-      hooks: (Array.isArray(gr.hooks) ? gr.hooks : []).map(h => cut(h, 200)).filter(Boolean).slice(0, 5), tensions };
-  }).filter(g => g.name && g.tensions.length);
+  const groups = importGroups(bank, j);
   if (!groups.length) return { ok: false, error: 'Không tìm thấy tension nào trong nội dung đã dán.' };
   return { ok: true, groups };
 }
@@ -352,7 +358,7 @@ async function vdWrite(x, u, d) {
   if (!x.env.ANTHROPIC_API_KEY) return { ok: false, error: 'Máy chủ chưa có khoá AI.' };
   await schema(x.db);
   const sec = [15, 30, 45, 60, 90].includes(Number(d.sec)) ? Number(d.sec) : 60, kind = KIND[d.kind] ? d.kind : 'noi', f = funOf(d.f), hint = cut(d.hint, 1000), genre = GENRE[d.genre] ? d.genre : '';
-  const know = await kb(), prods = prodMap(know), pc = prods[cut(d.prod, 80)] ? cut(d.prod, 80) : '', p = await insPick(x, 'video', cut(d.g, 80), { prod: pc });
+  const know = await kb(), prods = prodMap(know), pc = prods[cut(d.prod, 80)] ? cut(d.prod, 80) : '', p = await insPick(x, 'video', cut(d.g, 80), { prod: pc }), vsk = await skillOf(x, 'video');
   if (!p.g && !live(p.bank).length) return { ok: false, error: 'Ngân hàng insight chưa có nhóm khách nào đang bật.' };
   const scenes = sec <= 15 ? '3–5' : sec <= 30 ? '5–8' : sec <= 60 ? '8–14' : '12–20';
   const T = { 15: [2, 6, 12], 30: [3, 9, 25], 45: [3, 12, 38], 60: [3, 15, 50], 90: [4, 22, 76] }[sec]; // mốc AIDA theo bảng GCAO (90 giây giữ tỉ lệ)
@@ -365,6 +371,7 @@ async function vdWrite(x, u, d) {
     '',
     insBlock(p, f),
     '',
+    vsk ? methodBlock(vsk, '') + '\nPhương pháp trong skill bổ sung cho các quy tắc dưới đây; luật quảng cáo thực phẩm và ĐỊNH DẠNG ĐẦU RA ở cuối vẫn bắt buộc.\n' : '',
     '# Cách viết kịch bản',
     '- Mạch AIDA theo công thức viral (Vinh Giang): A · Hook ' + '0–' + T[0] + 's (phá trạng thái lướt: nỗi đau gấp, thói quen sai hoặc khao khát, kèm 1 hình / hành động bất ngờ ngay giây đầu) → I · Chẩn đoán ' + T[0] + '–' + T[1] + 's (cảnh đời, vì sao họ kẹt, điều ai cũng làm sai) → D · Giải pháp ' + T[1] + '–' + T[2] + 's (1 ý lớn duy nhất, gói thành 1-2-3 bước có tên, mỗi bước: tên ngắn → ví dụ đời thực → làm ngay; mỗi đoạn kết bằng 1 lời hứa nhỏ để xem tiếp) → A · Kết ' + T[2] + '–' + sec + 's (1 câu đúc kết dễ nhớ + đúng 1 lối ra của tầng phễu).',
     '- Hook: nghĩ 5 câu theo 6 dạng (Cách + tình huống khó + dễ dàng / Đừng + thói quen sai + việc thay thế / Con số + cách + kết quả / Cách làm X khi biết Y / Cho thấy trước, giải thích sau / Chuyện mở giữa khoảnh khắc căng nhất), tự chấm 1–5 theo: dừng lướt trong 3 giây, đúng nỗi đau, hứa giá trị cụ thể, nói xong trong 3 giây (≤12 âm tiết). Giữ 1 hook chính + 2 dự phòng. Chữ hook trên màn hình ≤7 chữ.',
@@ -423,7 +430,7 @@ export async function crmIns(x, u, d, crmLog) {
     const scripts = (await all(x.db, 'SELECT id, at, by_name, g, gn, f, t, i, prod, sec, kind, title, text FROM vd_scripts ORDER BY id DESC LIMIT 30')).map(r => Object.assign(r, { w: insRisk(r.text) }));
     const upd = custom ? mergeDefault(bank).n : null; // bản mặc định có nhóm / tension / nhãn sản phẩm mới mà ngân hàng đã sửa riêng chưa có
     const prods = Object.entries(prodMap(await kb())).map(([k, v]) => ({ code: k, name: v.name }));
-    return { ok: true, now, bank, custom, upd, sp: SP, log: log.slice(-300), scripts, prods, aiOn: !!x.env.ANTHROPIC_API_KEY, fun: Object.fromEntries(Object.entries(FUN).map(([k, v]) => [k, v.name])) };
+    return { ok: true, now, bank, custom, upd, sp: SP, skills: await skillsInfo(x), drafts: await offerDrafts(x), log: log.slice(-300), scripts, prods, aiOn: !!x.env.ANTHROPIC_API_KEY, fun: Object.fromEntries(Object.entries(FUN).map(([k, v]) => [k, v.name])) };
   }
   if (a === 'ins_save') {
     if (u.level < 2 && u.role !== 'Marketing') return { ok: false, error: 'Chỉ Marketing, Quản lý, Quản trị sửa được ngân hàng insight.' };
@@ -442,6 +449,7 @@ export async function crmIns(x, u, d, crmLog) {
     await kvSet(x.db, dk, String(n + 1), 2 * DAY);
     try { return await insImport(x, d); } catch (e) { return { ok: false, error: 'AI chưa đọc được: ' + String(e.message).slice(0, 150) }; }
   }
+  if (['ins_skill', 'ins_skilldel', 'ins_odel', 'ins_find', 'ins_offer'].includes(a)) return crmInSkill(x, u, d, crmLog); // 🧩 skill trong CRM (inskill.js)
   if (a === 'ins_merge') { // 📚 gộp bản mặc định mới vào ngân hàng đã sửa riêng (không xoá gì của anh chị đã sửa)
     if (u.level < 2 && u.role !== 'Marketing') return { ok: false, error: 'Chỉ Marketing, Quản lý, Quản trị sửa được ngân hàng insight.' };
     const m = mergeDefault(await insBank(x));
