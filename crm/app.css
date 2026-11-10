@@ -1910,3 +1910,10 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 /* Cloudflare Web Analytics trong khối 🌐 Website (Tổng quan, 10/11/2026) */
 .dash-cfw { margin-top: 12px; } .dash-cfw > summary { cursor: pointer; } .dash-cfw > summary b { color: var(--primary); } .dash-cfw[open] > summary { margin-bottom: 8px; }
 .dash-cfw-accts { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 12px; }
+
+/* 📋 Chốt doanh số theo sale (10/11/2026) */
+.ktc-t td:first-child { min-width: 150px; } .ktc-t tr.b td { font-weight: 700; } .ktc-t tr.low td { color: var(--red, #c0392b); } .ktc-t tr.mut td { color: var(--muted); font-size: 13px; }
+.ktc-t tr.ktc-sub td { background: var(--bg-soft, #f5f7f5); font-weight: 600; font-size: 13px; color: var(--muted); padding-top: 10px; }
+.ktc-low summary { cursor: pointer; } .ktc-o { cursor: default; align-items: center; flex-wrap: wrap; } .ktc-o select { flex: 0 0 auto; max-width: 220px; }
+.ktc-t td:first-child, .ktc-t th:first-child { position: sticky; left: 0; background: var(--card, #fff); z-index: 1; }
+@media (max-width: 600px) { .ktc-t td:first-child { min-width: 118px; max-width: 140px; font-size: 13px; } }

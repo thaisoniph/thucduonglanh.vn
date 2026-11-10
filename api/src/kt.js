@@ -14,9 +14,13 @@ export const finOk = u => !!u && (u.level >= 3 || u.role === KT_ROLE);
 export const KT_ROLE_OK = { load: 1, logout: 1, guide_ask: 1, prefs: 1, tg_link: 1, tg_check: 1, tg_off: 1, perf: 1, usage: 1, feedback: 1, fb_list: 1, fb_img: 1, settings: 1, mkt: 1, san: 1, fin_save: 1, fin_test: 1 };
 export function ktSettingsOk(d) { return Object.keys(d).every(k => ['type', 'action', 'token', 'opId', 'cost', 'opex', 'pay'].indexOf(k) >= 0); }
 const KT_FROM_DEF = '2026-10-01';
+// 10/11/2026 (file đối soát T10 của kế toán): tiền về tài khoản nào – Best / xe ôm có khi về TK công ty, có khi về TK anh Sơn, có đơn lên Hộ kinh doanh. Kế toán sửa danh sách ở ⚙️ Cài đặt kế toán.
+const ACCTS_DEF = ['Công ty', 'Anh Sơn', 'Hộ kinh doanh'];
+export const WHY_LIST = ['Hạ COD hỗ trợ ship', 'Sale nhập sai tiền', 'Khách trả thiếu', 'Giảm giá thêm cho khách', 'Khác'];
+const cleanAccts = a => (Array.isArray(a) ? a : []).map(v => String(v || '').trim().slice(0, 40)).filter((v, i, z) => v && z.indexOf(v) === i).slice(0, 8);
 const CARRIERS = ['BEST Express', 'Viettel Post'];
 
-export async function ktCfg(x) { const c = (await kvJson(x.db, 'kt_cfg', null)) || {}; return { from: /^20\d\d-\d\d-\d\d$/.test(c.from || '') ? c.from : KT_FROM_DEF, on: Number(c.on) || 0, by: c.by || '', at: c.at || 0 }; }
+export async function ktCfg(x) { const c = (await kvJson(x.db, 'kt_cfg', null)) || {}; const ac = cleanAccts(c.accts); return { from: /^20\d\d-\d\d-\d\d$/.test(c.from || '') ? c.from : KT_FROM_DEF, on: Number(c.on) || 0, by: c.by || '', at: c.at || 0, accts: ac.length ? ac : ACCTS_DEF.slice(), whys: WHY_LIST }; }
 const fromMs = c => new Date(c.from + 'T00:00:00+07:00').getTime();
 const last4 = p => String(p || '').replace(/\D/g, '').slice(-4);
 
@@ -25,7 +29,7 @@ export function ktOrderOut(r) {
   return { row: r.rid, time: r.time, id: r.id, name: r.name || '', phone: '', ph: last4(r.phone), email: '', province: '', ward: '', address: '', items: r.items || '', subtotal: r.subtotal || 0,
     shipping: r.shipping || 0, total: r.total || 0, payment: r.payment || '', note: '', status: r.status || 'Mới', source: r.source || '', consent: false, paid: r.paid || '', carrier: r.carrier || '', tracking: r.tracking || '', seller: r.seller || '', ca: r.ca || '', line: r.line || '', ship: r.ship || '',
     shipAt: r.ship_at, receivedAt: r.received_at, otype: r.otype || '', oflag: '', trk: '', trkAt: null, trkCode: 0, voucher: r.voucher || '', refPhone: '', refGift: '', refTold: 0, partner: r.partner || '', pRate: r.partner_rate || 0, discount: r.discount || 0, addrOld: '', shipFee: r.ship_fee == null ? null : r.ship_fee, recon: r.recon || '',
-    cashAt: r.cash_at || null, cashAmt: r.cash_amt == null ? null : r.cash_amt, cashSrc: r.cash_src || '' };
+    cashAt: r.cash_at || null, cashAmt: r.cash_amt == null ? null : r.cash_amt, cashSrc: r.cash_src || '', cashAcct: r.cash_acct || '', cashWhy: r.cash_why || '' };
 }
 
 /** Lệnh load của Kế toán: khung (loadSmall) + đơn 400 ngày đã che. d.part = 'delta' → chỉ đơn đổi từ lần trước. */
@@ -64,26 +68,38 @@ export async function ktMorningLines(x) {
   return L;
 }
 
-/** kt_cash {items: [{row, id, amt, fee, day}], src, off}: ghi / bỏ ghi tiền về. kt_cfg {from}: ngày bắt đầu theo dõi. Chỉ Kế toán, Quản trị. */
+/** kt_cash {items: [{row, id, amt, fee, day}], src, acct, off}: ghi / bỏ ghi tiền về (acct = tài khoản nhận). kt_cfg {from?, accts?}: ngày bắt đầu theo dõi, danh sách tài khoản. kt_why {row, id, why}: lý do lệch tiền thu hộ. Chỉ Kế toán, Quản trị. */
 export async function crmKt(x, u, d, log) {
   if (!finOk(u)) return { ok: false, error: 'Chỉ Kế toán và Quản trị làm được việc này.' };
   if (d.action === 'kt_cfg') {
-    if (!/^20\d\d-\d\d-\d\d$/.test(d.from || '')) return { ok: false, error: 'Ngày chưa đúng.' };
-    const c = await ktCfg(x), n = Object.assign(c, { from: d.from, by: u.name, at: Date.now() }); await kvSet(x.db, 'kt_cfg', JSON.stringify(n));
-    await log(x, u, 'Kế toán', '-', '', 'Theo dõi tiền về từ ngày ' + d.from.split('-').reverse().join('/'), '');
-    return { ok: true, ktCfg: n };
+    const c = await ktCfg(x), n = Object.assign(c, { by: u.name, at: Date.now() }), msg = [];
+    if (d.from != null) { if (!/^20\d\d-\d\d-\d\d$/.test(d.from || '')) return { ok: false, error: 'Ngày chưa đúng.' }; n.from = d.from; msg.push('Theo dõi tiền về từ ngày ' + d.from.split('-').reverse().join('/')); }
+    if (d.accts != null) { const ac = cleanAccts(d.accts); if (!ac.length) return { ok: false, error: 'Cần ít nhất 1 tài khoản nhận tiền.' }; n.accts = ac; msg.push('Tài khoản nhận tiền: ' + ac.join(', ')); }
+    delete n.whys; await kvSet(x.db, 'kt_cfg', JSON.stringify(n));
+    await log(x, u, 'Kế toán', '-', '', msg.join(' · ') || 'Lưu cài đặt kế toán', '');
+    return { ok: true, ktCfg: await ktCfg(x) };
+  }
+  if (d.action === 'kt_why') { // lý do hãng thu khác tiền trên đơn (danh sách ⚠️ Đơn lệch tiền thu hộ ở tab Kế toán)
+    const o = await x.db.prepare('SELECT * FROM orders WHERE rid = ?').bind(Number(d.row) || 0).first();
+    if (!o || String(o.id) !== String(d.id)) return { ok: false, error: 'Không thấy đơn ' + (d.id || '') + '.' };
+    const why = String(d.why || '').trim().slice(0, 120);
+    await run(x.db, 'UPDATE orders SET cash_why = ? WHERE rid = ?', why, o.rid);
+    await log(x, u, 'Kế toán', String(o.id), '', why ? 'Lý do lệch tiền thu hộ: ' + why : 'Bỏ lý do lệch tiền thu hộ', '');
+    const r = await x.db.prepare('SELECT * FROM orders WHERE rid = ?').bind(o.rid).first();
+    return { ok: true, orders: [ktOrderOut(r)] };
   }
   if (d.action !== 'kt_cash') return { ok: false, error: 'Không rõ thao tác: ' + d.action };
   const items = (Array.isArray(d.items) ? d.items : []).slice(0, 3000), off = !!d.off, now = Date.now();
   if (!items.length) return { ok: false, error: 'Chưa chọn đơn nào.' };
-  const src = String(d.src || '').trim().slice(0, 80) || 'Tay – ' + u.name, tag = src + ' ' + fmtDate(now, 'dd/MM');
+  const src = String(d.src || '').trim().slice(0, 80) || 'Tay – ' + u.name, acct = String(d.acct || '').trim().slice(0, 40), tag = src + ' ' + fmtDate(now, 'dd/MM');
   const byRid = {}; (await allIn(x.db, 'SELECT * FROM orders WHERE rid IN (SELECT value FROM json_each(?))', items.map(it => Number(it.row) || 0))).forEach(o => { byRid[o.rid] = o; });
   const ups = [], done = [], errs = []; let sum = 0;
   for (const it of items) {
     const o = byRid[Number(it.row) || 0]; if (!o || String(o.id) !== String(it.id)) { errs.push(it.id); continue; }
-    if (off) { ups.push(x.db.prepare("UPDATE orders SET cash_at = NULL, cash_amt = NULL, cash_src = '' WHERE rid = ?").bind(o.rid)); done.push(o.rid); continue; }
+    if (off) { ups.push(x.db.prepare("UPDATE orders SET cash_at = NULL, cash_amt = NULL, cash_src = '', cash_acct = '', cash_why = '' WHERE rid = ?").bind(o.rid)); done.push(o.rid); continue; }
     const amt = it.amt == null || it.amt === '' ? Number(o.total) || 0 : Math.max(0, Math.round(Number(it.amt) || 0)), day = Number(it.day) > 1.5e12 && Number(it.day) < now + DAY ? Math.round(Number(it.day)) : now;
     const set = { cash_at: day, cash_amt: amt, cash_src: (it.ref ? src + ' · ' + String(it.ref).slice(0, 30) : src).slice(0, 120) };
+    if (acct) set.cash_acct = acct;
     if (/chuyển khoản/i.test(o.payment || '') && !o.paid) set.paid = 'Có – ' + u.name + (u.role === KT_ROLE ? ' (kế toán) ' : ' ') + fmtDate(now, 'dd/MM HH:mm');
     if (it.fee != null && it.fee !== '' && Number(it.fee) >= 0 && o.ship_fee == null) set.ship_fee = Math.round(Number(it.fee));
     const ks = Object.keys(set); ups.push(x.db.prepare('UPDATE orders SET ' + ks.map(k => k + ' = ?').join(', ') + ' WHERE rid = ?').bind(...ks.map(k => set[k]), o.rid));
@@ -91,7 +107,7 @@ export async function crmKt(x, u, d, log) {
   }
   for (let i = 0; i < ups.length; i += 100) await x.db.batch(ups.slice(i, i + 100));
   if (!off && done.length) { const c = await ktCfg(x); if (!c.on) { c.on = now; await kvSet(x.db, 'kt_cfg', JSON.stringify(c)); } }
-  await log(x, u, 'Kế toán', items.length === 1 ? String(items[0].id || '-') : '-', '', off ? 'Bỏ ghi tiền về ' + done.length + ' đơn' : 'Tiền về ' + tag + ': ' + done.length + ' đơn, ' + sum.toLocaleString('vi-VN') + 'đ', errs.length ? 'Không thấy: ' + errs.slice(0, 20).join(', ') : '');
+  await log(x, u, 'Kế toán', items.length === 1 ? String(items[0].id || '-') : '-', '', off ? 'Bỏ ghi tiền về ' + done.length + ' đơn' : 'Tiền về ' + tag + (acct ? ' (TK ' + acct + ')' : '') + ': ' + done.length + ' đơn, ' + sum.toLocaleString('vi-VN') + 'đ', errs.length ? 'Không thấy: ' + errs.slice(0, 20).join(', ') : '');
   const rows = done.length ? await allIn(x.db, 'SELECT * FROM orders WHERE rid IN (SELECT value FROM json_each(?))', done) : [];
   return { ok: true, n: done.length, sum, errors: errs, orders: rows.map(ktOrderOut), ktCfg: await ktCfg(x) };
 }

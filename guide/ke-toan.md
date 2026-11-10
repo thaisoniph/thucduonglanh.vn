@@ -2,7 +2,7 @@
 title: Kế toán
 nav: Kế toán
 order: 4.6
-updated: 2026-11-09
+updated: 2026-11-10
 description: Ghi tiền về tài khoản (tải file đối soát COD Best / Viettel Post hoặc tích tay), xem tiền còn treo ở hãng vận chuyển, nhập chi phí, xem lãi lỗ theo ngày / tuần / tháng. Có hình từng bước.
 ---
 
@@ -58,9 +58,9 @@ Lấy file trên trang của hãng:
 
 ![Chọn file (1), số tiền hãng đã trả (2), đơn lệch tiền (3), bấm Ghi tiền về (4)](/huong-dan/img/ke-toan-cod.webp)
 
-1. Bấm **📥 Tải file đối soát COD** → **Chọn tệp** → chọn file vừa tải.
+1. Bấm **📥 Tải file đối soát COD**. Chọn **tiền của file này về tài khoản nào** (Công ty, Anh Sơn…), rồi bấm **Chọn tệp** → chọn file vừa tải.
 2. Máy đọc file ngay, chia 3 ô: **✅ Hãng đã trả, chưa ghi**, **💤 Hãng chưa trả**, **❓ Không thấy trong CRM**.
-3. Đơn **tô đỏ** = hãng thu khác số tiền trên đơn. Máy vẫn ghi theo số hãng thu. Hỏi sale hoặc hãng vì sao lệch. Đơn nào không muốn ghi thì bỏ tích.
+3. Đơn **tô đỏ** = hãng thu khác số tiền trên đơn. Máy vẫn ghi theo số hãng thu. Ghi xong, chọn lý do lệch ở mục **⚠️ Đơn hãng thu khác tiền trên đơn** (xem phần Chốt doanh số bên dưới). Đơn nào không muốn ghi thì bỏ tích.
 4. Bấm **✅ Ghi tiền về … đơn**. Xong.
 
 Ghi chú:
@@ -78,10 +78,28 @@ Bấm ô **🏦 Chuyển khoản chờ xác nhận** (hoặc nút **✅ Ghi ti�
 
 1. Gõ **mã đơn**, **mã vận đơn**, **tên** hoặc **4 số cuối SĐT** để tìm nhanh. Nội dung chuyển khoản thường có mã đơn hoặc tên khách.
 2. Thấy tiền về **đúng số tiền** thì tích ✓ đơn đó. Tích được nhiều đơn một lúc.
-3. Chọn **ngày tiền về** (mặc định hôm nay).
+3. Chọn **ngày tiền về** (mặc định hôm nay) và **tài khoản nhận tiền**.
 4. Bấm **✅ Đã nhận tiền**.
 
 **Ghi nhầm?** Bấm ô **✅ Đã về** → tích đơn ghi nhầm → **↩ Bỏ ghi tiền về**. Đơn quay lại danh sách chờ tiền.
+
+## Chốt doanh số tháng theo sale
+
+Mục **📋 Chốt doanh số theo sale** thay cho tab "Tổng kết" trong file đối soát. Máy tự cộng, không cần gõ tay. Chọn **Tháng trước** ở thanh thời gian trên cùng để chốt tháng vừa xong.
+
+Mỗi sale 1 cột, cột cuối là **Tổng**. Các dòng:
+
+- **Doanh số (sale nhập)**: đơn đặt trong tháng, trừ đơn hoàn và huỷ. Cùng số với Tổng quan.
+- **Chia theo cách thu tiền**: Best, Viettel Post, Xe ôm / tự giao, Chuyển khoản.
+- **− Hãng thu khác tiền đơn**: phần hạ COD hoặc lệch tiền (có số sau khi tải file đối soát COD).
+- **= Thực thu**: doanh số trừ phần lệch.
+- **trong đó còn đang giao**: đơn chưa giao xong, tiền chưa chắc về.
+- **Chia theo loại khách**: Khách mới, Khách tối + CN, Khách cũ, Lễ Tết (theo Loại đơn sale chọn).
+- **Tiền về tài khoản**: tiền đã về từng tài khoản, và tiền chưa về.
+
+Bấm **📋 Chép bảng** rồi dán vào Google Sheet nếu cần gửi file.
+
+**⚠️ Đơn hãng thu khác tiền trên đơn** (ngay dưới bảng): mỗi đơn có ô **Chọn lý do**: Hạ COD hỗ trợ ship, Sale nhập sai tiền, Khách trả thiếu, Giảm giá thêm cho khách, Khác. Chọn là lưu luôn. Lý do là **Sale nhập sai tiền** thì nhắn sale sửa lại số tiền trên đơn.
 
 ## Nhập chi phí và xem lãi lỗ
 
@@ -120,6 +138,8 @@ Kéo xuống mục **📦 Hàng tồn kho** ở cuối tab 💼 Kế toán:
 ## Theo dõi từ ngày nào?
 
 Cuối trang, mục **⚙️ Cài đặt kế toán**: chọn **ngày bắt đầu theo dõi tiền về** rồi bấm Lưu. Đơn đặt trước ngày này không tính vào tiền treo (thường là đơn đã đối soát xong ở sổ sách cũ). Mặc định: 01/10/2026.
+
+Cũng ở đây: **Tài khoản nhận tiền**, mỗi dòng 1 tài khoản (mặc định: Công ty, Anh Sơn, Hộ kinh doanh). Sửa xong bấm **Lưu tài khoản**.
 
 ## Câu hỏi hay gặp
 
