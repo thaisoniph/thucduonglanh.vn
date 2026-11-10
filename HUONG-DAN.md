@@ -429,7 +429,13 @@ Apps Script giới hạn 200 phiên bản/dự án: báo lỗi "Không tạo đ�
 - 🎬 Kịch bản video: lệnh `ins_video` (`vdWrite`, cùng mô hình AI với bài Zalo, effort medium, mục chi phí AI `video`), bảng D1 `vd_scripts`. Đầu ra: 3 hook + bảng AIDA 6 cột (cảnh, thời lượng, hình ảnh, lời thoại, chữ trên màn hình, nguồn hình – đúng mẫu skill `sieu-tro-ly-video` / khoá K133 Vinalink) + caption + ghi chú quay. `ins_vdel` xoá.
 - CRM tab **🎯 Insight & nội dung** (`#noi-dung`, `viewIns` trong crm/app.js, CSS `inx-…`): thống kê 30 ngày theo nhóm × kênh × tầng phễu, form kịch bản video, sửa ngân hàng (`ins_view / ins_save`, `reset` = về bản mặc định). Quyền xem: Marketing, Quản lý, Quản trị, người phụ trách Trợ lý Zalo / Sửa website (`canIns`); sửa ngân hàng: Marketing, Quản lý, Quản trị. Thẻ bài ở tab Zalo, Fanpage, Bài web có dòng `inTag` 🎯 nhóm · tension · 💭 insight.
 - MCP: công cụ `insight_noi_dung` (`insText`) trả ngân hàng + quy trình để ChatGPT / Gemini / Claude bên ngoài viết đúng quy trình.
-- Thêm nhóm khách / tension: sửa ở CRM (không cần code). Đổi nhóm mặc định trong code (`INS0`) chỉ có tác dụng khi chưa ai sửa ở CRM.
+- Thêm nhóm khách / tension: sửa ở CRM (không cần code). Đổi nhóm mặc định trong code (`INS0`) chỉ có tác dụng khi chưa ai sửa ở CRM; nhóm mới (id chưa có) hiện ở CRM để bấm ➕ thêm (`ins_view` → `news`).
+- 10/11/2026 tối (api `2026-11-10p`), học từ thư mục Drive khoá **K133 "VNL Content Agentic AI"** (6 buổi, anh Sơn chia sẻ):
+  - `INS0` 10 nhóm (8 bật): thêm Chồng chăm vợ sau sinh, Bà chăm con ở cữ, Khách cũ (bật), Người quen chè vằng, Nam hay tiếp khách (tắt sẵn); tension mẹ sau sinh / văn phòng / quà biếu lấy từ `DILVANG_Insights_Tension.xlsx` (chấm /25). Không đưa tên người thật trong tài liệu vào repo.
+  - `insBlock`: insight dạng "tôi cần cách [B] mà không phải [C]", 1 động lực chính (6 nhóm, nỗi lo không được dọa bệnh), 10 kiểu hook, nhịp C.A.R.E, "chạm cảm xúc trước, thông tin sau" (điểm mù của AI: giàu thông tin nghèo cảm xúc). TOFU đạt 3/4 "4 MỚI", tên sản phẩm không ở tiêu đề. `FORMULA` = công thức hợp từng tầng (11 công thức quảng cáo chuyển đổi, Buổi 6).
+  - `LAW`: luật quảng cáo thực phẩm (Playbook DILVANG): công dụng đúng hồ sơ công bố, kinh nghiệm dân gian phải nói là dân gian, cụm cấm. `insRisk` dò cụm dễ phạm luật → bài web thêm ⚠️ vào ô tự kiểm tra; Zalo / Fanpage / kịch bản lưu `w` trong `ins`, thẻ bài hiện ⚠️.
+  - Kịch bản video (Buổi 5: công thức viral Vinh Giang + bộ prompt GCAO): mạch Hook → Chẩn đoán → Giải pháp 1-2-3 → Kết theo mốc AIDA của GCAO (15/30/45/60s), 5 hook tự chấm giữ 1 + 2 dự phòng, câu thoại 1 nhịp thở (≤20 âm tiết, ~3,3 âm tiết / giây), thể loại (`genre`: kich / tinh / review / giai / trai), bản B, lời sạch cho máy đọc, tự kiểm.
+  - Tỉ lệ phễu theo khoá: bắt đầu 60/25/15, kênh mới 70/20/10, kênh ấm 50/30/20, mùa cao điểm BOFU 30–40% trong 2 tuần (lịch chủ đề Zalo / Fanpage / web hiện đã gần các mức này, chưa đổi).
 
 ## 7. Tên miền, DNS, chuyển hướng
 

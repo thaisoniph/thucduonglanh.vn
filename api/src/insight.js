@@ -17,41 +17,67 @@ import { prodMap } from './zbot.js';
 const WRITER = 'claude-opus-5-5';
 export const CH = { web: '🌐 Web', zalo: '💬 Zalo', fb: '📘 Fanpage', video: '🎬 Video' };
 
-/** Ngân hàng mặc định (từ ô "Tệp khách hàng, insight và tension" của trợ lý viết bài web + chân dung trong skill vtg). Tension: "mong muốn ↔ rào cản – cảnh". */
+/** Ngân hàng mặc định. 10/11/2026: bổ sung insight thật từ bài tập khoá content K133 của anh Sơn (DILVANG_Insights_Tension.xlsx – 21 tension chấm điểm /25,
+ * Kế hoạch content DILVANG mẹ sau sinh, Playbook trà DILVANG): thêm nhóm Chồng chăm vợ sau sinh (điểm cao nhất), Bà chăm con ở cữ, Khách cũ; nhóm ít ưu tiên để tắt sẵn.
+ * Tension: "mong muốn ↔ rào cản – cảnh". Ghi chú (note) = điều nên / không nên nói + góc đã làm. */
 export const INS0 = [
-  { id: 'me-bim', name: 'Mẹ bỉm, mẹ sau sinh', on: true,
-    who: '25–38 tuổi, đang nuôi con nhỏ, nhiều người đang cho con bú. Ngày xoay quanh con, ngủ không đủ giấc, hay hỏi trong nhóm mẹ bỉm, hỏi bà, hỏi bạn.',
-    want: 'Đủ sữa cho con; lấy lại sức và vóc dáng; con ăn ngon; có chút thời gian cho mình. Sâu hơn: là người mẹ tốt mà vẫn là chính mình, được người nhà ghi nhận sự vất vả.',
-    block: 'Không có thời gian nấu riêng; thiếu ngủ; sợ ăn gì ảnh hưởng sữa và con; mỗi người khuyên một kiểu (bà, mẹ chồng, mạng); ngại tiêu tiền cho bản thân; ngại than mệt.',
+  { id: 'me-bim', name: 'Mẹ sau sinh, mẹ bỉm', on: true,
+    who: '22–38 tuổi, con 0–12 tháng, nhiều người đang cho con bú, ở cữ cùng bà nội / ngoại. Ngày xoay quanh con, thức đêm, hay hỏi trong nhóm mẹ bỉm.',
+    want: 'Ăn uống đủ để có sức chăm con, không ảnh hưởng con đang bú, lấy lại sức và vóc dáng. Sâu hơn: là người mẹ tốt mà vẫn là chính mình, có chút khoảnh khắc của riêng mình, được người nhà ghi nhận.',
+    block: 'Thức đêm, một tay bế con, không ai nấu; lời khuyên trái chiều (bà, mạng, bác sĩ); ngại nồi nước lá phải đun mỗi ngày; thứ gì cũng sợ ảnh hưởng con; ngại tiêu tiền cho bản thân; ngại than mệt.',
     tensions: [
-      'Muốn ăn đủ chất để có sữa cho con ↔ cả ngày bế con, không có thời gian nấu một bữa tử tế cho mình',
-      'Muốn lấy lại vóc dáng ↔ sợ ăn kiêng làm ít sữa, ảnh hưởng tới con',
+      'Muốn uống như bà dặn ↔ sợ ảnh hưởng con đang bú vì nghe đồn trái chiều, uống mà nơm nớp, hỏi khắp nơi',
+      'Muốn uống đủ nước ấm khi cho con bú ↔ 2 giờ sáng một tay bế con, không ai đun, đành uống nước nguội',
+      'Muốn "đẻ xong vẫn là mình" ↔ cả ngày xoay quanh con, không có nổi 10 phút của riêng mình',
+      'Muốn lấy lại vóc dáng ↔ sợ ăn kiêng làm ít sữa, dễ tin lời quảng cáo "uống là gọn"',
+      'Muốn ở cữ theo kiến thức mới ↔ ngại trái ý bà, mẹ chồng chuyện kiêng cữ',
       'Mệt rã rời, muốn được nghỉ ↔ ngại than vì sợ bị nói "ai đẻ chẳng thế"',
-      'Muốn chăm con theo kiến thức mới ↔ ngại trái ý bà, mẹ chồng',
-      'Muốn chăm mình một chút ↔ thấy có lỗi khi tiêu tiền, thời gian cho bản thân thay vì cho con',
-      'Muốn biết ăn gì là đúng ↔ mỗi nguồn nói một kiểu, không biết tin ai'] },
+      'Muốn biết ăn uống gì là đúng ↔ mỗi nguồn nói một kiểu, không biết tin ai'],
+    note: 'Không nhắm phụ nữ đang mang thai. Không hứa lợi sữa, giảm cân: chuyện chè vằng, đinh lăng… chỉ nói là kinh nghiệm dân gian. Góc đã làm tốt: "Uống gì, mẹ cũng nghĩ đến con trước"; "2 giờ sáng, một tay bế con, mẹ vẫn có cốc ấm"; "10 giây của riêng mẹ"; "Bà vẫn đúng, mẹ vẫn được nghỉ"; checklist 42 ngày ở cữ: lời bà dặn nào nên giữ, lời nào nên đổi.' },
+  { id: 'chong-vo-sinh', name: 'Chồng chăm vợ sau sinh', on: true,
+    who: '25–40 tuổi, vợ vừa sinh hoặc đang ở cữ, đi làm cả ngày, ít khi vào nhóm mẹ bỉm.',
+    want: 'Chăm vợ cho đúng, tặng vợ món quà thiết thực. Sâu hơn: được vợ và nhà vợ thấy mình "hiểu chuyện", không đứng ngoài việc chăm con.',
+    block: 'Không biết vợ đang kiêng gì; sợ mẹ vợ chê; không biết nấu nướng; ngại hỏi; vợ bảo "không cần gì".',
+    tensions: [
+      'Muốn tặng vợ món quà cho thấy chồng hiểu chuyện ↔ sợ mua sai thứ vợ đang kiêng, bị mẹ vợ chê, rốt cuộc lại đưa tiền',
+      'Muốn tự tay chăm vợ mỗi ngày ↔ đi làm cả ngày, không biết nấu, thấy mình đứng ngoài',
+      'Muốn mua đồ tốt cho vợ ↔ ngại vào nhóm mẹ bỉm hỏi, vợ thì bảo "không cần gì"'],
+    note: 'Nhóm có điểm cao nhất trong bảng insight. Góc đã làm: "Vợ mới sinh, tặng gì để mẹ vợ không chê?"; "Việc của bố chỉ mất 15 giây"; "Bố ơi, 10 việc bố làm được trong tháng ở cữ".' },
+  { id: 'ba-o-cu', name: 'Bà nội, bà ngoại chăm con ở cữ', on: true,
+    who: '50–65 tuổi, chăm con dâu / con gái ở cữ, giữ nhiều kinh nghiệm truyền thống.',
+    want: 'Con cháu được chăm đúng kiểu truyền thống, khỏe mạnh. Sâu hơn: kinh nghiệm của mình được tôn trọng, được lắng nghe.',
+    block: 'Tin đồ tự nấu hơn đồ đóng gói; tự nấu nồi to mỗi ngày nên mệt; con cái chỉ tin trên mạng, hay vênh nhau chuyện kiêng cữ.',
+    tensions: [
+      'Muốn con dâu được chăm đúng kiểu truyền thống ↔ nghĩ đồ gói sẵn "không thật bằng lá nấu", nên ngày nào cũng tự nấu nồi to, mệt',
+      'Muốn kinh nghiệm của mình được nghe ↔ con cái chỉ tin trên mạng, nói ra là thành vênh nhau',
+      'Muốn con cháu ăn uống đủ chất ↔ mỗi người một ý, nói nhiều sợ mất lòng'],
+    note: 'Không chê kinh nghiệm của bà. Góc: "Bà vẫn đúng, mẹ vẫn được nghỉ"; "Ở cữ cùng bà: 3 thứ đừng cãi, 1 thứ nên đổi".' },
   { id: 'van-phong', name: 'Dân văn phòng bận rộn', on: true,
     who: '25–45 tuổi, làm 8–10 tiếng, ngồi nhiều, ăn vội; bắt đầu lo cân nặng và các chỉ số khi khám sức khỏe định kỳ.',
-    want: 'Tỉnh táo cả ngày; giữ cân; bữa sáng nhanh mà đủ chất; đỡ mệt cuối ngày. Sâu hơn: làm chủ sức khỏe để đi đường dài, không muốn "già trước tuổi".',
-    block: 'Buổi sáng vội; đồ ăn quanh công ty nhiều dầu mỡ, đường; căng thẳng là thèm đồ ngọt; không có thói quen nấu; dễ bỏ cuộc; chi tiêu phải tính.',
+    want: 'Tỉnh táo cả ngày; giữ cân; bữa sáng nhanh mà đủ chất; đồ uống ít đường. Sâu hơn: làm chủ sức khỏe để đi đường dài, không muốn "già trước tuổi", vẫn hợp với hội đồng nghiệp.',
+    block: 'Buổi sáng vội; đồ ăn quanh công ty nhiều dầu mỡ, đường; căng thẳng là thèm đồ ngọt; nghĩ trà thảo mộc là "đồ người già", nhạt, đắng; ngại bị trêu; quảng cáo lố nên không tin; chi tiêu phải tính.',
     tensions: [
       'Biết phải ăn sáng đủ chất ↔ sáng nào cũng vội, ăn tạm hoặc bỏ bữa',
-      'Muốn bớt đồ ngọt ↔ chiều nào căng thẳng cũng thèm trà sữa',
-      'Muốn ăn lành ↔ cơm văn phòng quanh công ty nhiều dầu mỡ, không tự nấu được',
+      'Muốn bỏ ly trà sữa 3 giờ chiều ↔ sợ bị trêu "uống thuốc bắc à", lạc khỏi hội',
+      'Muốn đồ uống ít đường ↔ trà thảo mộc nhạt, đắng, uống 2 hôm lại quay về nước ngọt',
+      'Muốn uống đồ lành mỗi ngày ↔ thấy người ta tìm "tác hại của …", mua về rồi để đó',
+      'Muốn thay ly cà phê chiều ↔ quảng cáo đồ uống "thần kỳ" lố quá, không tin',
+      'Muốn ăn lành ↔ cơm văn phòng nhiều dầu mỡ, không tự nấu được',
       'Khám định kỳ thấy chỉ số bắt đầu vượt ngưỡng, muốn thay đổi ↔ không biết bắt đầu từ đâu, sợ phải kiêng khem khổ sở',
-      'Muốn sống khỏe ↔ tối về mệt chỉ muốn nằm, thức khuya lướt điện thoại',
-      'Muốn đầu tư cho sức khỏe ↔ sợ mua đồ "healthy" đắt tiền rồi bỏ dở'] },
+      'Muốn đầu tư cho sức khỏe ↔ sợ mua đồ "healthy" đắt tiền rồi bỏ dở'],
+    note: 'Góc đã làm: "Uống lành mà vẫn hợp hội"; "Ai cũng tìm \'tác hại của …\'. Đây là sự thật". Không dùng chữ "không đường" nếu sản phẩm có đường / năng lượng.' },
   { id: 'trung-nien', name: 'Trung niên, nghỉ hưu', on: true,
-    who: '50–70 tuổi, đã hoặc sắp nghỉ hưu, sống cùng hoặc gần con cháu; quan tâm đường huyết, mỡ máu, giấc ngủ, xương khớp; đọc nhiều tin sức khỏe trên Facebook, Zalo.',
-    want: 'Khỏe để tự lo, không phiền con cháu; ngủ ngon; ăn uống điều độ. Sâu hơn: sống vui bên con cháu, vẫn thấy mình hữu ích.',
-    block: 'Quá nhiều quảng cáo thổi phồng, sợ bị lừa; răng yếu, ăn khó; quen vị cũ; con cái lo lắng, can thiệp; lương hưu có hạn; đang dùng thuốc nên sợ ăn thêm thứ không hợp.',
+    who: '45–70 tuổi, đã hoặc sắp nghỉ hưu, sống cùng hoặc gần con cháu; quan tâm đường huyết, mỡ máu, giấc ngủ, xương khớp; hay ở Zalo, Facebook, câu lạc bộ dưỡng sinh.',
+    want: 'Đồ ăn, đồ uống hằng ngày rõ nguồn gốc; khỏe để tự lo, không phiền con cháu; ngủ ngon; ăn uống điều độ. Sâu hơn: sống vui bên con cháu, vẫn thấy mình hữu ích.',
+    block: 'Sợ hàng trôi nổi, quảng cáo thổi phồng; răng yếu, ăn khó; quen vị cũ; con cái lo lắng, can thiệp; lương hưu có hạn; đang dùng thuốc nên sợ ăn thêm thứ không hợp.',
     tensions: [
-      'Muốn ăn uống lành để tự lo cho mình ↔ quá nhiều lời quảng cáo, không biết tin nguồn nào',
+      'Muốn đồ uống hằng ngày rõ nguồn gốc ↔ quá nhiều hàng trôi nổi, quảng cáo thổi phồng, không biết tin ai',
       'Muốn ngủ một giấc tròn ↔ nửa đêm tỉnh giấc, trằn trọc tới sáng',
       'Muốn bớt đồ ngọt, đồ chế biến sẵn ↔ quen vị cũ, ăn nhạt thì mất ngon',
       'Muốn không làm phiền con cháu ↔ đang mỏi mệt nhưng ngại nói vì sợ con lo',
       'Muốn thử thực phẩm tốt cho sức khỏe ↔ lương hưu có hạn, sợ tiền mất mà không thấy gì',
-      'Đang làm theo lời bác sĩ ↔ sợ ăn thêm thứ gì đó không hợp với thuốc đang dùng'] },
+      'Đang làm theo lời bác sĩ ↔ sợ ăn thêm thứ gì đó không hợp với thuốc đang dùng'],
+    note: 'Cần thấy bằng chứng thật: nhà máy, tiêu chuẩn cơ sở, phiếu kiểm nghiệm, người quen giới thiệu. Góc: "Một gói làm từ bao nhiêu lá khô?"; "Vị này có giống nước lá mẹ nấu không?".' },
   { id: 'an-chay', name: 'Người ăn chay, Phật tử, theo thực dưỡng', on: true,
     who: 'Ăn chay trường hoặc ăn chay ngày rằm, mùng 1; nhiều người sinh hoạt ở chùa, đọc về thực dưỡng.',
     want: 'Ăn chay đủ đạm, đủ chất; món chay ngon, thanh nhẹ. Sâu hơn: sống đúng niềm tin, cho người nhà thấy ăn chay vẫn khỏe.',
@@ -63,21 +89,52 @@ export const INS0 = [
       'Muốn cả nhà ăn chay cùng ngày rằm ↔ con cháu chê nhạt, phải nấu hai mâm',
       'Muốn sống đúng niềm tin ↔ ngại bị xem là khác người khi đi ăn cùng bạn bè, đồng nghiệp'] },
   { id: 'mua-qua', name: 'Con cái mua quà sức khỏe cho bố mẹ', on: true,
-    who: '28–45 tuổi, sống xa bố mẹ hoặc bận rộn; muốn thể hiện sự quan tâm dịp Tết, Vu Lan, 8/3, 20/10, sinh nhật.',
-    want: 'Món quà thiết thực, bố mẹ thích và dùng thật. Sâu hơn: là người con chu đáo dù ở xa, bù đắp vì ít về thăm.',
-    block: 'Sợ mua nhầm hàng thổi phồng, không rõ nguồn gốc; bố mẹ tiếc tiền, cất đi không dùng; không biết bố mẹ hợp loại nào, có đang dùng thuốc; ngân sách có hạn; không có thời gian đi chọn.',
+    who: '28–45 tuổi, sống xa bố mẹ hoặc bận rộn; mua quà dịp Tết, Vu Lan, 8/3, 20/10, sinh nhật, đi thăm người ốm.',
+    want: 'Món quà thiết thực, bố mẹ thích và dùng thật, nhìn tươm tất. Sâu hơn: là người con chu đáo dù ở xa, bù đắp vì ít về thăm.',
+    block: 'Sợ mua nhầm hàng thổi phồng, không rõ nguồn gốc; bố mẹ tiếc tiền, cất đi không dùng; không biết bố mẹ hợp loại nào, có đang dùng thuốc; hộp nhỏ sợ không sang; ngân sách có hạn.',
     tensions: [
       'Muốn biếu bố mẹ món quà sức khỏe thật sự ↔ sợ mua nhầm hàng thổi phồng, không rõ nguồn gốc',
       'Muốn bố mẹ dùng đều quà mình mua ↔ bố mẹ tiếc tiền, cất tủ hoặc đem cho người khác',
       'Ở xa muốn chăm bố mẹ ↔ chỉ gửi được quà, không ở bên nhắc bố mẹ ăn uống',
-      'Muốn quà tươm tất để biếu ↔ ngân sách có hạn, không muốn mua hộp quà toàn vỏ'] }
+      'Muốn quà biếu có ý nghĩa ↔ hộp nhỏ nhìn không sang, đành chọn giỏ hoa quả',
+      'Muốn quà tươm tất để biếu ↔ ngân sách có hạn, không muốn mua hộp quà toàn vỏ'],
+    note: 'Góc: "Đi thăm bố mẹ, mang gì ngoài trái cây?".' },
+  { id: 'khach-cu', name: 'Khách cũ của Thực Dưỡng Lành', on: true,
+    who: 'Đã mua sữa hạt hoặc sản phẩm khác của Thực Dưỡng Lành, nhiều người đang ở nhóm Zalo.',
+    want: 'Cả nhà cùng sống lành với hãng mình đã tin; dùng đúng, đủ. Sâu hơn: được hãng nhớ tới, được giới thiệu điều tốt cho người thân.',
+    block: 'Đã chi đều cho sản phẩm đang dùng, thêm món mới thấy nặng; không rõ món mới dành cho ai, dùng lúc nào, khác gì món đang dùng; muốn giới thiệu bạn mà không có cớ mở lời.',
+    tensions: [
+      'Tin hãng ↔ đã chi đều cho sản phẩm đang dùng mỗi tháng, thêm món mới thấy nặng',
+      'Muốn cả nhà cùng một nếp sống lành ↔ không biết món mới cho ai, uống lúc nào, khác món đang dùng chỗ nào',
+      'Muốn giới thiệu cho bạn ↔ không có cớ để mở lời'],
+    note: 'Khách cũ cần được dẫn đường, không cần được thuyết phục: chỉ rõ ai dùng, lúc nào, kết hợp với món đang dùng thế nào (vd "sáng sữa hạt, chiều trà ấm").' },
+  { id: 'quen-che-vang', name: 'Người đã quen uống chè vằng, đinh lăng', on: false,
+    who: 'Nhiều người gốc miền Trung, quen uống nước lá, cao chè vằng miếng.',
+    want: 'Uống đúng vị quen mà tiện hơn.',
+    block: 'Tính ra đắt hơn cao miếng nhiều lần; nghi đồ hòa tan "toàn đường, bột độn".',
+    tensions: [
+      'Muốn tiện ↔ tính ra đắt gấp mấy lần cao chè vằng miếng tự cắt',
+      'Muốn thử dạng hòa tan ↔ nghi "toàn đường, bột độn", chưa đọc được thành phần'],
+    note: 'Bật khi đẩy trà DILVANG. Góc: "Chán cắt cao chè vằng?"; "Đọc thành phần trước". Không nói "không đường".' },
+  { id: 'nam-tiep-khach', name: 'Nam 30–50 hay tiếp khách', on: false,
+    who: 'Đi làm, hay tiếp khách, nhậu; thường ngại đồ "healthy".',
+    want: 'Bớt bia, nước ngọt mà vẫn giữ được nhịp làm việc, quan hệ.',
+    block: 'Thấy trà thảo mộc là "đồ phụ nữ đẻ"; ngại bị anh em trêu.',
+    tensions: ['Muốn bớt bia, nước ngọt ↔ thấy trà thảo mộc là "đồ phụ nữ đẻ", ngại bị anh em trêu'],
+    note: 'Nhóm điểm thấp, tắt sẵn; bật khi muốn thử.' }
 ];
 
 /** 3 tầng phễu (khoá content Tuấn Hà): mỗi tầng 1 nguồn giá trị + 1 lối ra */
 export const FUN = {
-  TOFU: { name: '🔵 TOFU – Nhận biết', rule: 'Giá trị nằm ở CHÍNH NỘI DUNG: kiến thức, mẹo, cảnh đời thường chạm đúng tension, hữu ích kể cả khi người đọc chưa từng nghe tên Thực Dưỡng Lành. Không bán hàng, không giới thiệu sản phẩm (tối đa 1 câu rất nhẹ ở cuối nếu kênh cho phép). Lối ra nhẹ: mời bình luận, chia sẻ, lưu lại, nhận quà, vào nhóm.' },
-  MOFU: { name: '⚪ MOFU – Cân nhắc', rule: 'Giá trị là UY TÍN của Thực Dưỡng Lành: giúp người đang tìm giải pháp biết cách chọn, so sánh, hiểu tiêu chí; tạo niềm tin bằng bằng chứng CÓ THẬT trong TÀI LIỆU (nguồn gốc nguyên liệu, nhà máy, hồ sơ công bố, cách làm, đội ngũ, cảm nhận khách thật đã đồng ý chia sẻ). Sản phẩm xuất hiện như 1 lựa chọn gỡ tension, không ép. Lối ra: xem sản phẩm, hỏi tư vấn, nhận quà / ưu đãi.' },
+  TOFU: { name: '🔵 TOFU – Nhận biết', rule: 'Giá trị nằm ở CHÍNH NỘI DUNG: kiến thức, mẹo, checklist, cảnh đời thường chạm đúng tension, hữu ích kể cả khi người đọc chưa từng nghe tên Thực Dưỡng Lành. Đạt ít nhất 3/4 "4 MỚI": mới, chưa ai nói, có giá trị, áp dụng được ngay. Tên sản phẩm KHÔNG ở tiêu đề / câu mở; không bán (tối đa 1 câu cầu nối rất nhẹ ở cuối nếu kênh cho phép). Lối ra nhẹ: mời bình luận, chia sẻ, lưu lại, nhận quà, vào nhóm.' },
+  MOFU: { name: '⚪ MOFU – Cân nhắc', rule: 'Giá trị là UY TÍN của Thực Dưỡng Lành: giúp người đang tìm giải pháp biết cách chọn, so sánh thật (vd tự nấu ↔ dùng sẵn), hiểu tiêu chí, giải thích "vì sao mình làm / không làm điều X"; tạo niềm tin bằng bằng chứng CÓ THẬT trong TÀI LIỆU (nguồn gốc nguyên liệu, nhà máy, tiêu chuẩn cơ sở, phiếu kiểm nghiệm, hồ sơ công bố, cách làm, đội ngũ, cảm nhận khách thật đã đồng ý chia sẻ). Sản phẩm xuất hiện như 1 lựa chọn gỡ tension, không ép. Lối ra: xem sản phẩm, hỏi tư vấn, nhận quà / ưu đãi.' },
   BOFU: { name: '🟠 BOFU – Mua hàng', rule: 'Giá trị nằm ở SẢN PHẨM / ƯU ĐÃI: 1 sản phẩm cụ thể gỡ đúng tension (ai hợp, dùng lúc nào, cách dùng trong ngày, ai nên hỏi bác sĩ), ưu đãi thật đang chạy nếu có, lý do thật để đặt ngay (không bịa khan hiếm, không bịa khuyến mãi). Lối ra: đúng 1 lời mời đặt hàng (web được kiểm hàng trước khi nhận, freeship đơn từ 300.000đ).' }
+};
+/** Công thức viết hợp từng tầng (Buổi 6 khoá K133: 11 công thức quảng cáo chuyển đổi) – AI chọn 1 */
+export const FORMULA = {
+  TOFU: 'Star–Story–Solution (nhân vật → chuyện có xung đột → lời giải), Open Loop (mở câu hỏi, giữ người đọc tới cuối), 1-2-3 (vấn đề → nguyên nhân → cách làm), PAS nhẹ (vấn đề → chạm cảm xúc → gợi hướng, không dọa)',
+  MOFU: 'BAB (hiện tại → khi gỡ được rào cản → cầu nối, KHÔNG trước–sau về cơ thể), QUEST (gọi đúng người → thấu hiểu → giải thích → khơi gợi → mời bước tiếp), FAB (đặc điểm → điểm hơn → lợi ích cho họ), 4P (vẽ cảnh → cam kết đúng sự thật → bằng chứng thật → mời)',
+  BOFU: 'Value Stack (liệt kê đúng những gì nhận được so với giá, chỉ dùng ưu đãi thật), AIDA (chú ý → quan tâm → mong muốn → hành động), PAS (vấn đề → chạm cảm xúc → sản phẩm là cách gỡ)'
 };
 export const funOf = s => (String(s || '').match(/TOFU|MOFU|BOFU/) || [''])[0];
 
@@ -138,14 +195,23 @@ export function insBlock(p, f, opt) {
     grp,
     'Làm lần lượt (nghĩ trong đầu, chỉ ghi kết quả vào 3 dòng NHÓM KHÁCH / TENSION / INSIGHT ở phần đầu câu trả lời):',
     '1. Chọn ĐÚNG 1 tension hợp nhất với chủ đề' + (f ? ' và tầng phễu' : '') + ' (được diễn đạt tension mới của cùng nhóm, nhưng phải đủ 2 cực: điều họ mong ↔ điều đang cản họ, trong 1 cảnh đời cụ thể: ai, lúc nào, ở đâu).',
-    '2. Insight: nói tension đó bằng lời người trong nhóm, ngôi thứ nhất, 1–2 câu (đây là giả thuyết của người viết, KHÔNG trình bày như lời khách thật).',
-    '3. Chọn cách gỡ: cắt bỏ rào cản / giảm rào cản (thời gian, tiền, công sức, rủi ro) / đi vòng rào cản / đổi cách nhìn (không hứa sai sự thật).',
-    '4. Viết: câu mở (hook) làm người trong nhóm nhận ra chính mình trong 1–2 giây; thân bài gỡ đúng tension đó; kết bằng đúng 1 lối ra của tầng phễu.',
+    '2. Insight: nói tension đó bằng lời người trong nhóm, ngôi thứ nhất, 1–2 câu, dạng "Tôi cần một cách [điều mong] mà không phải [đánh đổi / rào cản]" hoặc lời tự sự (giả thuyết của người viết, KHÔNG trình bày như lời khách thật). Insight đúng là khi người đọc thốt lên "sao hiểu mình thế".',
+    '3. Chọn cách gỡ: cắt bỏ rào cản / giảm rào cản (thời gian, tiền, công sức, rủi ro) / đi vòng rào cản / đổi cách nhìn (không hứa sai sự thật). Chọn 1 động lực chính để kể: nhu cầu, mong muốn hình ảnh bản thân, nỗi đau, nỗi lo (chỉ lo về sự bất tiện, lời đồn, bị đánh giá – KHÔNG dọa bệnh), kết quả cụ thể, hoặc tò mò.',
+    '4. Viết theo công thức chạm khát vọng + nêu rõ điều họ mong + gỡ rào cản, nhịp C.A.R.E: Nhân vật (1 người cụ thể trong cảnh) → Cảm xúc → Lối thoát (cách gỡ) → Mời tương tác / lối ra.',
+    '   - Câu mở (hook) làm người trong nhóm nhận ra chính mình trong 1–2 giây, chọn 1 kiểu: gọi tên nhóm, câu hỏi chạm nỗi đau, cảnh báo kèm đối tượng, con số, ngược số đông, hậu trường, danh sách, thử thách, câu chuyện mở giữa chừng (không dùng trước–sau về cơ thể).',
+    '   - Chạm cảm xúc trước, đưa thông tin sau. AI hay "giàu thông tin, nghèo cảm xúc": bán cảm giác, không kể thông số; dùng hình ảnh, âm thanh, từ láy, nhịp câu, chất văn hóa Việt (có thể mượn ca dao, cách nói dân gian nếu hợp).',
+    '   - Kết bằng đúng 1 lối ra của tầng phễu.',
     opt.light ? 'Bài này là bài theo dịp (chúc mừng / tương tác): giữ đúng chủ đề dịp, tension chỉ dùng để chọn góc chạm gần gũi (1–2 câu), không biến thành bài bán.' : '',
-    F ? 'TẦNG PHỄU: ' + F.name + '. ' + F.rule : 'TẦNG PHỄU: tự chọn 1 tầng hợp với tension và chủ đề:\n' + Object.values(FUN).map(v => '- ' + v.name + ': ' + v.rule).join('\n'),
-    'Đạo đức: nội dung phải GỠ tension, không khoét sâu nỗi sợ bệnh tật, mặc cảm cơ thể, áp lực gia đình để ép mua; không bịa lời khách, số liệu, khuyến mãi.'
+    F ? 'TẦNG PHỄU: ' + F.name + '. ' + F.rule + '\nCông thức viết hợp tầng này (chọn 1): ' + FORMULA[f] + '.' : 'TẦNG PHỄU: tự chọn 1 tầng hợp với tension và chủ đề:\n' + Object.entries(FUN).map(([k, v]) => '- ' + v.name + ': ' + v.rule + ' Công thức hợp: ' + FORMULA[k] + '.').join('\n'),
+    'Đạo đức: nội dung phải GỠ tension, không khoét sâu nỗi sợ bệnh tật, mặc cảm cơ thể, áp lực gia đình để ép mua; không bịa lời khách, số liệu, khuyến mãi; không đóng vai khách tự hỏi tự trả lời.',
+    LAW
   ].filter(Boolean).join('\n');
 }
+/** Luật quảng cáo thực phẩm (Playbook trà DILVANG + kế hoạch content khoá K133, Nghị định 15/2018): chỉ công dụng đúng hồ sơ công bố */
+export const LAW = 'Luật quảng cáo thực phẩm: chỉ nói công dụng đúng nguyên văn hồ sơ công bố trong TÀI LIỆU. Kinh nghiệm dân gian về dược liệu (chè vằng, đinh lăng, thảo mộc…) phải nói rõ là "kinh nghiệm dân gian", không phải công dụng sản phẩm. Các cụm sau CHỈ dùng khi đúng nguyên văn hồ sơ công bố của chính sản phẩm đó: lợi sữa, gọi sữa, giảm cân, co hồi, ngủ ngon, mất ngủ, hạ huyết áp, hạ mỡ máu, tiểu đường, mát gan, giải độc, thanh lọc, tăng đề kháng. Không bao giờ dùng: an toàn tuyệt đối, không tác dụng phụ, thần dược, bài thuốc, ai dùng cũng hợp, chuẩn quốc tế; không nói "không đường" khi sản phẩm có đường / năng lượng; nhà máy chỉ nói đúng như TÀI LIỆU (không tự thêm GMP, chứng nhận). Không nhắm phụ nữ đang mang thai. Ai có bệnh lý, đang dùng thuốc thì khuyên hỏi bác sĩ.';
+/** Cụm dễ phạm luật → cảnh báo trên thẻ bài để người duyệt đọc lại (không tự sửa: câu phủ định như "không in chữ lợi sữa" vẫn có thể đúng) */
+const RISK_RE = /lợi sữa|gọi sữa|giảm cân|co hồi|không đường|thần dược|bài thuốc|an toàn tuyệt đối|không (có )?tác dụng phụ|chuẩn quốc tế|ai dùng cũng|giải độc|thanh lọc|mát gan|hạ huyết áp|hạ mỡ máu|\bGMP\b/gi;
+export function insRisk(text) { return [...new Set((String(text || '').match(RISK_RE) || []).map(w => w.toLowerCase()))].slice(0, 8); }
 /** 3 dòng AI phải ghi ở phần đầu (trước ---) */
 export const INS_HEAD = 'NHÓM KHÁCH: <tên nhóm khách>\nTENSION: <điều họ mong> ↔ <điều đang cản họ>\nINSIGHT: <1 câu, lời người trong nhóm, ngôi thứ nhất>';
 /** Đọc 3 dòng trên từ phần đầu câu trả lời → { gn, t, i, g } (g = id nhóm nếu khớp ngân hàng) */
@@ -164,7 +230,8 @@ export async function insText(x) {
     '1. Chọn 1 nhóm khách mục tiêu và 1 tension (điều họ mong ↔ điều đang cản họ, trong 1 cảnh cụ thể).',
     '2. Viết insight bằng lời khách (giả thuyết, không phải lời khách thật).',
     '3. Chọn tầng phễu và lối ra:', ...Object.values(FUN).map(v => '   ' + v.name + ': ' + v.rule),
-    '4. Viết: hook chạm tension trong 1–2 giây → gỡ tension → 1 lối ra. Không dùng "chữa / điều trị / khỏi bệnh"; nhắc sản phẩm thì có dòng "Sản phẩm là thực phẩm, không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh."',
+    '4. Viết: hook chạm tension trong 1–2 giây → chạm cảm xúc trước, thông tin sau → gỡ tension → 1 lối ra. Công thức hợp từng tầng:', ...Object.entries(FORMULA).map(([k, v]) => '   ' + k + ': ' + v),
+    '5. ' + LAW + ' Không dùng "chữa / điều trị / khỏi bệnh"; nhắc sản phẩm thì có dòng "Sản phẩm là thực phẩm, không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh."',
     '', 'NGÂN HÀNG INSIGHT (nhóm khách mục tiêu):',
     ...bank.map(g => ['## ' + g.name + (g.on ? '' : ' (đang tạm tắt)'), g.who, 'Mong muốn: ' + g.want, 'Rào cản: ' + g.block, 'Tension:', ...g.tensions.map(t => '- ' + t), g.note ? 'Ghi chú: ' + g.note : ''].filter(Boolean).join('\n'))].join('\n');
 }
@@ -177,6 +244,8 @@ async function schema(db) {
     t TEXT DEFAULT '', i TEXT DEFAULT '', prod TEXT DEFAULT '', sec INTEGER DEFAULT 60, kind TEXT DEFAULT '', title TEXT DEFAULT '', text TEXT DEFAULT '', hint TEXT DEFAULT '')`);
   schemaOk = true;
 }
+/** Thể loại video ngắn (bộ prompt GCAO, Buổi 5) */
+const GENRE = { kich: 'Diễn kịch ngắn: 1 tình huống đời thường có xung đột, 2 vai, có câu thoại', tinh: 'Tình huống: 1 cảnh khó quen thuộc của nhóm khách và cách gỡ', review: 'Review / trải nghiệm thật khi dùng (chỉ cảm nhận vị, cách dùng, không hứa công dụng)', giai: 'Giải thích: 1 điều người xem hiểu sai / chưa biết, gói thành 1-2-3 bước', trai: 'Một ngày / một khoảnh khắc trải nghiệm (POV), cảm xúc là chính' };
 const KIND = { noi: 'Người thật nói trước máy (nhân viên / chuyên viên tư vấn quay bằng điện thoại)', canh: 'Quay cảnh (pha, nấu, nguyên liệu, sinh hoạt) + giọng đọc, không cần lộ mặt', chu: 'Không quay: ảnh có sẵn + chữ trên màn hình + giọng đọc' };
 let client = null;
 function ai(env) { if (!client) client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 1, timeout: 120e3, fetch: aiFetch(env), defaultHeaders: { 'x-tdl-muc': 'video' } }); return client; }
@@ -185,35 +254,44 @@ const textOf = res => res.content.filter(b => b.type === 'text').map(b => b.text
 async function vdWrite(x, u, d) {
   if (!x.env.ANTHROPIC_API_KEY) return { ok: false, error: 'Máy chủ chưa có khoá AI.' };
   await schema(x.db);
-  const sec = [15, 30, 45, 60, 90].includes(Number(d.sec)) ? Number(d.sec) : 60, kind = KIND[d.kind] ? d.kind : 'noi', f = funOf(d.f), hint = cut(d.hint, 1000);
+  const sec = [15, 30, 45, 60, 90].includes(Number(d.sec)) ? Number(d.sec) : 60, kind = KIND[d.kind] ? d.kind : 'noi', f = funOf(d.f), hint = cut(d.hint, 1000), genre = GENRE[d.genre] ? d.genre : '';
   const p = await insPick(x, 'video', cut(d.g, 80)), know = await kb(), prods = prodMap(know), pc = prods[cut(d.prod, 80)] ? cut(d.prod, 80) : '';
   if (!p.g && !live(p.bank).length) return { ok: false, error: 'Ngân hàng insight chưa có nhóm khách nào đang bật.' };
-  const scenes = sec <= 30 ? '4–6' : sec <= 60 ? '6–9' : '8–12';
+  const scenes = sec <= 15 ? '3–5' : sec <= 30 ? '5–8' : sec <= 60 ? '8–14' : '12–20';
+  const T = { 15: [2, 6, 12], 30: [3, 9, 25], 45: [3, 12, 38], 60: [3, 15, 50], 90: [4, 22, 76] }[sec]; // mốc AIDA theo bảng GCAO (90 giây giữ tỉ lệ)
   const ask = [
-    'Viết 1 kịch bản video ngắn dọc 9:16 (TikTok, Facebook Reels, YouTube Shorts) cho Thực Dưỡng Lành, dài khoảng ' + sec + ' giây (lời thoại ~' + Math.round(sec * 2.6) + ' chữ).',
-    'Kiểu video: ' + KIND[kind] + '.',
+    'Viết 1 kịch bản video ngắn dọc 9:16 (TikTok, Facebook Reels, YouTube Shorts) cho Thực Dưỡng Lành, dài khoảng ' + sec + ' giây (lời thoại khoảng ' + Math.round(sec * 3.3) + ' âm tiết, ~3–3,5 âm tiết / giây).',
+    'Kiểu quay: ' + KIND[kind] + '.',
+    genre ? 'Thể loại: ' + GENRE[genre] + '.' : 'Thể loại: tự chọn 1 trong: ' + Object.values(GENRE).map(v => v.split(':')[0]).join(', ') + ' (hợp nhất với tension).',
     pc ? 'Sản phẩm muốn nhắc: ' + prods[pc].name + ' (mã ' + pc + ').' : 'Sản phẩm: tự chọn nếu tầng phễu cần (MOFU / BOFU), TOFU thì không nhắc sản phẩm.',
     hint ? 'Yêu cầu thêm của nhân sự: ' + hint : '',
     '',
     insBlock(p, f),
     '',
     '# Cách viết kịch bản',
-    '- Theo AIDA: Attention (hook 0–3 giây chạm đúng tension) → Interest (cảnh đời / vì sao kẹt) → Desire (cách gỡ, lối đi khả thi) → Action (đúng 1 lối ra của tầng phễu).',
-    '- Lời thoại nói tự nhiên như người thật, câu ngắn, xưng "mình" hoặc "em", gọi người xem "bạn" / "anh chị" / "cô chú" hợp với nhóm khách. Không đọc như quảng cáo.',
-    '- Mỗi cảnh 2–8 giây, ' + scenes + ' cảnh, tổng thời lượng đúng ' + sec + ' giây. Chữ trên màn hình ngắn (tối đa 8 chữ / cảnh), nhấn từ khoá.',
+    '- Mạch AIDA theo công thức viral (Vinh Giang): A · Hook ' + '0–' + T[0] + 's (phá trạng thái lướt: nỗi đau gấp, thói quen sai hoặc khao khát, kèm 1 hình / hành động bất ngờ ngay giây đầu) → I · Chẩn đoán ' + T[0] + '–' + T[1] + 's (cảnh đời, vì sao họ kẹt, điều ai cũng làm sai) → D · Giải pháp ' + T[1] + '–' + T[2] + 's (1 ý lớn duy nhất, gói thành 1-2-3 bước có tên, mỗi bước: tên ngắn → ví dụ đời thực → làm ngay; mỗi đoạn kết bằng 1 lời hứa nhỏ để xem tiếp) → A · Kết ' + T[2] + '–' + sec + 's (1 câu đúc kết dễ nhớ + đúng 1 lối ra của tầng phễu).',
+    '- Hook: nghĩ 5 câu theo 6 dạng (Cách + tình huống khó + dễ dàng / Đừng + thói quen sai + việc thay thế / Con số + cách + kết quả / Cách làm X khi biết Y / Cho thấy trước, giải thích sau / Chuyện mở giữa khoảnh khắc căng nhất), tự chấm 1–5 theo: dừng lướt trong 3 giây, đúng nỗi đau, hứa giá trị cụ thể, nói xong trong 3 giây (≤12 âm tiết). Giữ 1 hook chính + 2 dự phòng. Chữ hook trên màn hình ≤7 chữ.',
+    '- Lời thoại nói tự nhiên như người thật: mỗi câu 1 nhịp thở (8–15 âm tiết, tối đa 20), tránh từ Hán Việt nặng và thuật ngữ, câu kết luận ngắn, hạ giọng. Xưng "mình" hoặc "em", gọi người xem "bạn" / "anh chị" / "cô chú" hợp với nhóm khách. Chạm cảm xúc trước, thông tin sau; không đọc như quảng cáo.',
+    '- ' + scenes + ' cảnh, mỗi cảnh 2–8 giây (đổi hình mỗi 2–4 giây), tổng thời lượng cộng đúng ' + sec + ' giây. Chữ trên màn hình ngắn (≤7 chữ / cảnh) để người xem tắt tiếng vẫn hiểu. Dùng ẩn dụ hình ảnh / đạo cụ khi hợp (vd ly nước đầy tràn = quá tải).',
     '- Hình ảnh quay được bằng điện thoại, đồ dùng sẵn có (bếp, bàn làm việc, sản phẩm thật). Nguồn hình: "quay mới", "ảnh sản phẩm có sẵn", "ảnh minh hoạ tự vẽ".',
     '- Đúng sự thật: thông tin sản phẩm, thành phần, giá, ưu đãi CHỈ lấy từ TÀI LIỆU. Không số liệu nghiên cứu, không trích chuyên gia, không bịa lời khách / trước–sau.',
     '- Không dùng "chữa", "điều trị", "khỏi bệnh", "đặc trị", "thay thuốc", "thần dược". Có nhắc sản phẩm thì cảnh cuối có chữ nhỏ "Sản phẩm là thực phẩm, không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh."',
     '',
     'Trả về ĐÚNG định dạng (không lời dẫn):',
     'TIÊU ĐỀ: <tên video, tối đa 12 chữ>\n' + INS_HEAD + '\nTẦNG PHỄU: <TOFU | MOFU | BOFU>\nSẢN PHẨM: <mã sản phẩm hoặc "không">\n---',
-    '🎯 HOOK 3 GIÂY (3 phương án để quay thử, mỗi dòng 1 câu)\n1. …\n2. …\n3. …',
+    '🎯 HOOK 3 GIÂY (1 chính + 2 dự phòng, ghi dạng hook và điểm /20)\n1. (chính) …\n2. …\n3. …',
     '',
-    '🎬 KỊCH BẢN (bảng 6 cột, mỗi cảnh 1 dòng, cột Cảnh ghi số + phần AIDA, vd "1 · A"):\n| Cảnh | Thời lượng | Hình ảnh | Lời thoại | Chữ trên màn hình | Nguồn hình |\n|---|---|---|---|---|---|',
+    '🎬 KỊCH BẢN (bảng AIDA 6 cột, mỗi cảnh 1 dòng; cột Cảnh ghi số + phần, vd "1 · A Hook", "2 · I Chẩn đoán"; dưới 4 cảnh thì gộp, vd "1 · A+I"; cột Lời thoại có thể thêm (chậm / ấm / ngừng 1s); thời lượng cộng đúng tổng):\n| Cảnh | Thời lượng | Hình ảnh | Lời thoại | Chữ trên màn hình | Nguồn hình |\n|---|---|---|---|---|---|',
+    '',
+    '🅱️ BẢN B: chỉ đổi cảnh 1 (hình + lời) dùng hook dự phòng 1, để thử A/B.',
+    '',
+    '🗣 LỜI SẠCH (chỉ lời thoại, nối liền, đánh dấu [ngắt 1s] chỗ cần ngừng, số viết thành chữ) để dán vào máy đọc giọng.',
     '',
     '📝 CAPTION đăng kèm (2–4 câu, kết bằng lối ra) + 3–5 hashtag',
     '',
-    '💡 GHI CHÚ QUAY (2–4 gạch đầu dòng: góc máy, ánh sáng, đạo cụ)'
+    '💡 GHI CHÚ QUAY (2–4 gạch đầu dòng: góc máy, ánh sáng, đạo cụ, âm thanh / chuyển cảnh)',
+    '',
+    '✅ TỰ KIỂM (mỗi dòng ✅ hoặc ⚠️): hook có hình bất ngờ ở giây đầu · đúng 1 nhóm khách + 1 tension · 1 ý lớn · thời lượng cộng đúng · câu thoại ≤20 âm tiết · đúng 1 lối ra · không nói công dụng ngoài hồ sơ công bố, có câu "không phải là thuốc" nếu nhắc sản phẩm'
   ].join('\n');
   const req = { model: WRITER, max_tokens: 6000, output_config: { effort: 'medium' },
     system: [{ type: 'text', text: 'Bạn là biên kịch video ngắn của Thực Dưỡng Lành (VitaGreen Nutrition): thực phẩm dinh dưỡng từ hạt, trà thảo mộc, đồ chay. Tiếng Việt chuẩn, tự nhiên, đúng luật quảng cáo thực phẩm Việt Nam.\n' + TRUTH_RULES },
@@ -233,7 +311,8 @@ async function vdWrite(x, u, d) {
     Date.now(), u.name, ins.g, ins.gn, ff, ins.t, ins.i, prods[code] ? code : pc, sec, kind, title, text.slice(0, 20000), hint);
   const id = r && r.meta && r.meta.last_row_id;
   await insLog(x, 'video', { g: ins.g, gn: ins.gn, f: ff, t: ins.t, ref: 'vd' + id });
-  return { ok: true, id, script: await first(x.db, 'SELECT * FROM vd_scripts WHERE id = ?', id) };
+  const sc = await first(x.db, 'SELECT * FROM vd_scripts WHERE id = ?', id); if (sc) sc.w = insRisk(sc.text);
+  return { ok: true, id, script: sc };
 }
 
 /* ---------------------------------------------------------------- CRM → tab 🎯 Insight & nội dung (Marketing, Quản lý, Quản trị, người phụ trách Trợ lý Zalo) */
@@ -244,9 +323,10 @@ export async function crmIns(x, u, d, crmLog) {
   const a = d.action, now = Date.now();
   if (a === 'ins_view') {
     const bank = await insBank(x), custom = !!await kvJson(x.db, 'ins_bank', null), log = (await logGet(x)).filter(r => now - r.at < 30 * DAY);
-    const scripts = await all(x.db, 'SELECT id, at, by_name, g, gn, f, t, i, prod, sec, kind, title, text FROM vd_scripts ORDER BY id DESC LIMIT 30');
+    const scripts = (await all(x.db, 'SELECT id, at, by_name, g, gn, f, t, i, prod, sec, kind, title, text FROM vd_scripts ORDER BY id DESC LIMIT 30')).map(r => Object.assign(r, { w: insRisk(r.text) }));
+    const news = custom ? clean(INS0).filter(g => !bank.some(b => b.id === g.id)) : []; // nhóm mới thêm vào bản mặc định (vd từ tài liệu khoá học) mà ngân hàng đã sửa riêng chưa có
     const prods = Object.entries(prodMap(await kb())).map(([k, v]) => ({ code: k, name: v.name }));
-    return { ok: true, now, bank, custom, log: log.slice(-300), scripts, prods, aiOn: !!x.env.ANTHROPIC_API_KEY, fun: Object.fromEntries(Object.entries(FUN).map(([k, v]) => [k, v.name])) };
+    return { ok: true, now, bank, custom, news, log: log.slice(-300), scripts, prods, aiOn: !!x.env.ANTHROPIC_API_KEY, fun: Object.fromEntries(Object.entries(FUN).map(([k, v]) => [k, v.name])) };
   }
   if (a === 'ins_save') {
     if (u.level < 2 && u.role !== 'Marketing') return { ok: false, error: 'Chỉ Marketing, Quản lý, Quản trị sửa được ngân hàng insight.' };

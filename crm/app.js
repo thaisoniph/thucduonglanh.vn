@@ -6003,6 +6003,7 @@
   var IN = { d: null, busy: 0, err: '' };
   var IN_CH = { web: '🌐 Web', zalo: '💬 Zalo', fb: '📘 Fanpage', video: '🎬 Video' };
   var IN_FN = { TOFU: '🔵 TOFU · Nhận biết', MOFU: '⚪ MOFU · Cân nhắc', BOFU: '🟠 BOFU · Mua hàng' };
+  var IN_GENRE = { '': 'Tự chọn theo tension', kich: '🎭 Diễn kịch ngắn', tinh: '🧩 Tình huống', review: '⭐ Review / trải nghiệm thật', giai: '💡 Giải thích 1-2-3', trai: '🎥 Một khoảnh khắc (POV)' };
   var IN_KIND = { noi: '🙋 Người thật nói trước máy', canh: '🎥 Quay cảnh + giọng đọc (không lộ mặt)', chu: '🖼 Ảnh có sẵn + chữ + giọng đọc (không quay)' };
   function inFetch() {
     IN.busy = 1; IN.err = '';
@@ -6014,7 +6015,8 @@
   function inTag(o) {
     if (typeof o === 'string') { try { o = JSON.parse(o || '{}'); } catch (e) { o = {}; } }
     if (!o || !(o.gn || o.t)) return '';
-    return '<p class="small inx-tag">🎯 <b>' + esc(o.gn || 'Nhóm khách') + '</b>' + (o.t ? ' · ' + esc(o.t) : '') + (o.i ? '<br><span class="muted">💭 “' + esc(o.i) + '”</span>' : '') + '</p>';
+    return '<p class="small inx-tag">🎯 <b>' + esc(o.gn || 'Nhóm khách') + '</b>' + (o.t ? ' · ' + esc(o.t) : '') + (o.i ? '<br><span class="muted">💭 “' + esc(o.i) + '”</span>' : '') +
+      (o.w && o.w.length ? '<br><span class="inx-warn">⚠️ Đọc lại cụm dễ phạm luật quảng cáo: <b>' + esc(o.w.join(', ')) + '</b> (chỉ giữ nếu đúng hồ sơ công bố hoặc là câu phủ định)</span>' : '') + '</p>';
   }
   /** Hỏi trước khi viết lại (Zalo, Fanpage): ý kiến + nhóm khách. cb(hint, grp) */
   function inRegenAsk(groups, cur, cb) {
@@ -6055,7 +6057,7 @@
     var fc = Object.keys(IN_CH).filter(function (c) { return fun[c] && fun[c].n; });
     if (fc.length) h += '<div class="inx-fun small">' + fc.map(function (c) { var f = fun[c]; return '<p>' + IN_CH[c] + ': ' + ['TOFU', 'MOFU', 'BOFU'].map(function (k) { return '<span class="zb-fun zb-fun-' + k.toLowerCase() + '">' + k + ' ' + Math.round((f[k] || 0) * 100 / f.n) + '%</span>'; }).join(' ') + '</p>'; }).join('') + '</div>';
     if (!log.length) h += '<p class="small muted">Chưa có bài nào đi qua bước insight. Từ hôm nay, mỗi bài trợ lý viết sẽ được đếm ở đây.</p>';
-    return h + '<p class="small muted">Nhóm nào ít bài thì trợ lý tự ưu tiên viết cho nhóm đó ở lần sau. Tỉ lệ phễu nên giữ khoảng: Zalo 🔵 55% ⚪ 30% 🟠 15%, Fanpage 🔵 55–60%, web 🔵 50% ⚪ 30% 🟠 20%.</p></div>';
+    return h + '<p class="small muted">Nhóm nào ít bài thì trợ lý tự ưu tiên viết cho nhóm đó ở lần sau. Tỉ lệ phễu theo khoá học: bắt đầu 🔵 60% ⚪ 25% 🟠 15%; kênh mới 70/20/10; kênh đã có khách ấm (nhóm Zalo, khách cũ) 50/30/20; mùa cao điểm (Tết, 8/3, Vu Lan…) tăng 🟠 lên 30–40% trong 2 tuần rồi trở lại.</p></div>';
   }
   function viewIns() {
     if (!IN.d && !IN.err && !IN.busy) setTimeout(inFetch, 0);
@@ -6066,19 +6068,22 @@
     h += '<details class="zb-info small"><summary>ⓘ Quy trình Insight → Tension → Phễu (khoá content Tuấn Hà)</summary><ol>' +
       '<li><b>Insight là tension</b>: thế giằng co khi điều khách <b>mong</b> va vào <b>rào cản</b> trong 1 cảnh đời cụ thể. Ví dụ: “Biết phải ăn sáng đủ chất ↔ sáng nào cũng vội, ăn tạm hoặc bỏ bữa”.</li>' +
       '<li>Mỗi bài chỉ nói với <b>1 nhóm khách</b> và gỡ <b>1 tension</b>: cắt bỏ, giảm (thời gian, tiền, công sức, rủi ro), đi vòng rào cản hoặc đổi cách nhìn. Không hù doạ, không hứa sai sự thật.</li>' +
-      '<li><b>🔵 TOFU</b>: giá trị nằm ở chính nội dung (kiến thức, mẹo, câu chuyện), không bán. <b>⚪ MOFU</b>: giá trị là uy tín (nguồn gốc, nhà máy, hồ sơ công bố, cảm nhận khách thật). <b>🟠 BOFU</b>: giá trị nằm ở sản phẩm, ưu đãi thật.</li>' +
+      '<li><b>🔵 TOFU</b>: giá trị nằm ở chính nội dung (kiến thức, mẹo, câu chuyện), đạt 3/4 "4 MỚI" (mới, chưa ai nói, có giá trị, áp dụng ngay), không để tên sản phẩm ở tiêu đề. <b>⚪ MOFU</b>: giá trị là uy tín (nguồn gốc, nhà máy, kiểm nghiệm, hồ sơ công bố, so sánh thật, cảm nhận khách thật). <b>🟠 BOFU</b>: giá trị nằm ở sản phẩm, ưu đãi thật.</li>' +
+      '<li>Khi viết, AI dùng thêm các công cụ của khoá K133: insight dạng <i>"tôi cần cách [điều mong] mà không phải [rào cản]"</i>, 1 động lực chính (nhu cầu, hình ảnh bản thân, nỗi đau, nỗi lo, kết quả, tò mò), 10 kiểu hook, nhịp C.A.R.E (nhân vật, cảm xúc, lối thoát, mời tương tác), "chạm cảm xúc trước, thông tin sau" và công thức hợp từng tầng (TOFU: Star–Story–Solution, Open Loop, 1-2-3 · MOFU: BAB, QUEST, FAB · BOFU: Value Stack, AIDA, PAS).</li>' +
+      '<li>Luật quảng cáo thực phẩm: chỉ nói công dụng đúng hồ sơ công bố; kinh nghiệm dân gian về chè vằng, đinh lăng… phải nói là kinh nghiệm dân gian. Bài có cụm dễ phạm luật (lợi sữa, giảm cân, thanh lọc, GMP…) sẽ hiện ⚠️ để người duyệt đọc lại.</li>' +
       '<li>Mỗi bài có <b>1 lối ra</b>: TOFU mời bình luận, nhận quà, vào nhóm · MOFU mời xem sản phẩm, hỏi tư vấn · BOFU mời đặt hàng.</li>' +
       '<li>Trên thẻ bài ở tab Zalo, Fanpage, Bài web có dòng <b>🎯 nhóm khách · tension</b> để người duyệt kiểm tra bài có chạm đúng nỗi lòng khách không.</li></ol></details>';
     h += inStatsHtml(j);
     // 🎬 kịch bản video
     var gOpt = '<option value="">🔄 Tự chọn (nhóm ít video nhất)</option>' + bank.filter(function (g) { return g.on; }).map(function (g) { return '<option value="' + esc(g.id) + '">' + esc(g.name) + '</option>'; }).join('');
     h += '<h2 class="zb-h">🎬 Viết kịch bản video ngắn</h2><div class="box inx-vd">' +
-      '<p class="small muted">Video dọc 9:16 cho TikTok, Reels, Shorts. Kịch bản theo AIDA, bảng 6 cột (cảnh, thời lượng, hình ảnh, lời thoại, chữ trên màn hình, nguồn hình) đúng mẫu khoá video Vinalink, có 3 câu hook để quay thử.</p>' +
+      '<p class="small muted">Video dọc 9:16 cho TikTok, Reels, Shorts, theo công thức viral của khoá K133: Hook → Chẩn đoán → Giải pháp 1-2-3 → Kết + 1 lối ra. Có 3 câu hook (1 chính + 2 dự phòng), bảng AIDA 6 cột đúng mẫu khoá video Vinalink, bản B để thử A/B, lời sạch để dán vào máy đọc giọng, caption và tự kiểm.</p>' +
       '<div class="inx-grid"><label class="f"><span>🎯 Nhóm khách</span><select id="inVg">' + gOpt + '</select></label>' +
       '<label class="f"><span>Tầng phễu</span><select id="inVf"><option value="">Tự chọn theo tension</option>' + ['TOFU', 'MOFU', 'BOFU'].map(function (k) { return '<option value="' + k + '">' + IN_FN[k] + '</option>'; }).join('') + '</select></label>' +
       '<label class="f"><span>Sản phẩm (không bắt buộc)</span><select id="inVp"><option value="">Không / để AI chọn</option>' + (j.prods || []).map(function (p) { return '<option value="' + esc(p.code) + '">' + esc(p.name) + '</option>'; }).join('') + '</select></label>' +
       '<label class="f"><span>Độ dài</span><select id="inVs">' + [15, 30, 45, 60, 90].map(function (n) { return '<option value="' + n + '"' + (n === 45 ? ' selected' : '') + '>' + n + ' giây</option>'; }).join('') + '</select></label>' +
-      '<label class="f"><span>Kiểu quay</span><select id="inVk">' + Object.keys(IN_KIND).map(function (k) { return '<option value="' + k + '">' + IN_KIND[k] + '</option>'; }).join('') + '</select></label></div>' +
+      '<label class="f"><span>Kiểu quay</span><select id="inVk">' + Object.keys(IN_KIND).map(function (k) { return '<option value="' + k + '">' + IN_KIND[k] + '</option>'; }).join('') + '</select></label>' +
+      '<label class="f"><span>Thể loại</span><select id="inVt">' + Object.keys(IN_GENRE).map(function (k) { return '<option value="' + k + '">' + IN_GENRE[k] + '</option>'; }).join('') + '</select></label></div>' +
       '<label class="f"><span>Yêu cầu thêm <small class="muted">không bắt buộc</small></span><textarea id="inVh" rows="2" placeholder="Vd: quay ở bếp buổi sáng, chị Lan nói; nhắc ưu đãi 11/11…"></textarea></label>' +
       (j.aiOn ? '<button class="btn pri" data-in="vd">🎬 Viết kịch bản</button>' : '<p class="small">⚠️ Máy chủ chưa có khoá AI.</p>') + '</div>';
     var sc = j.scripts || [];
@@ -6090,6 +6095,7 @@
     }).join('') + '</div>';
     // 👥 ngân hàng insight
     h += '<div class="zb-done-h"><h2 class="zb-h">👥 Ngân hàng insight</h2><span class="small">' + (j.custom ? 'Đã chỉnh riêng' : 'Bản mặc định') + ' · ' + bank.filter(function (g) { return g.on; }).length + ' nhóm đang dùng</span></div>';
+    if (ed && (j.news || []).length) h += '<div class="box bw-todo"><b>📚 Có ' + j.news.length + ' nhóm khách mới từ tài liệu khoá học:</b> ' + esc(j.news.map(function (g) { return g.name + (g.on ? '' : ' (tắt sẵn)'); }).join(', ')) + '<div class="lq-btns"><button class="btn sm pri" data-in="addnew">➕ Thêm vào ngân hàng</button></div></div>';
     h += bank.map(function (g, i) {
       return '<div class="box inx-g' + (g.on ? '' : ' bw-off') + '"><div class="zb-ph"><b>' + esc(g.name) + '</b><span class="zb-due">' + (g.on ? '🟢 Đang dùng' : '⏸ Tạm tắt') + '</span></div>' +
         (g.who ? '<p class="small">' + esc(g.who) + '</p>' : '') + (g.want ? '<p class="small"><b>💚 Mong muốn:</b> ' + esc(g.want) + '</p>' : '') + (g.block ? '<p class="small"><b>🧱 Rào cản:</b> ' + esc(g.block) + '</p>' : '') +
@@ -6128,12 +6134,13 @@
     var v = t.getAttribute('data-in').split('|'), a = v[0], bank = IN.d ? (IN.d.bank || []).slice() : [], i = Number(v[1]);
     if (a === 'reload') { IN.err = ''; IN.d = null; return render(); }
     if (a === 'gnew') return inGroupForm(null);
+    if (a === 'addnew') { t.disabled = true; return inSave(bank.concat(IN.d.news || []), 'Đã thêm ' + (IN.d.news || []).length + ' nhóm khách mới ✓').then(function () { IN.d.news = []; render(); }); }
     if (a === 'ged') return inGroupForm(i);
     if (a === 'gon') { bank[i] = Object.assign({}, bank[i], { on: !bank[i].on }); t.disabled = true; return inSave(bank, bank[i].on ? 'Đã bật lại nhóm ✓' : 'Đã tạm tắt nhóm'); }
     if (a === 'gdel') { if (!confirm('Xoá nhóm “' + bank[i].name + '” khỏi ngân hàng insight?')) return; bank.splice(i, 1); t.disabled = true; return inSave(bank, 'Đã xoá nhóm'); }
     if (a === 'reset') { if (!confirm('Bỏ mọi chỉnh sửa, dùng lại ngân hàng insight mặc định?')) return; t.disabled = true; return api('ins_save', { reset: 1 }).then(function (r) { IN.d.bank = r.bank; IN.d.custom = false; toast('Đã dùng lại bản mặc định'); render(); }, function (er) { t.disabled = false; toast(er.message, true); }); }
     if (a === 'vd') {
-      var q = { g: $('#inVg').value, f: $('#inVf').value, prod: $('#inVp').value, sec: Number($('#inVs').value), kind: $('#inVk').value, hint: $('#inVh').value.trim() };
+      var q = { g: $('#inVg').value, f: $('#inVf').value, prod: $('#inVp').value, sec: Number($('#inVs').value), kind: $('#inVk').value, genre: $('#inVt').value, hint: $('#inVh').value.trim() };
       t.disabled = true; t.textContent = '⏳ AI đang viết (khoảng 30–60 giây)…';
       return api('ins_video', q).then(function (r) { IN.d.scripts = [r.script].concat(IN.d.scripts || []); IN.open = r.script.id; $('#inVh').value = ''; toast('Đã viết xong kịch bản ✓'); render(); inFetch(); },
         function (er) { t.disabled = false; t.textContent = '🎬 Viết kịch bản'; toast(er.message, true); });
@@ -6255,7 +6262,7 @@
       var m = p.meta || {}, need = p.status === 'wait', warn = (m.checks || []).filter(function (x) { return /^⚠️/.test(x); }).length;
       h += '<div class="box zb-post' + (need ? ' zb-need' : '') + '">' + head(need ? '⏳ chờ duyệt' : '✅ ' + esc(p.st) + (p.by_name ? ' · ' + esc(p.by_name) : '')) +
         '<div class="bw-row">' + (m.cover ? '<img class="bw-cover" src="https://thucduonglanh.vn' + esc(m.cover) + '" alt="" loading="lazy">' : '') + '<div class="bw-tx"><p class="bw-title">' + esc(p.title) + '</p>' +
-        '<p class="small">' + bwFun(p.funnel) + '</p>' + inTag({ gn: m.who, t: m.t, i: m.i }) + '<p class="small muted">' + esc(m.excerpt || '') + '</p>' +
+        '<p class="small">' + bwFun(p.funnel) + '</p>' + inTag({ gn: m.who, t: m.t, i: m.i, w: m.w }) + '<p class="small muted">' + esc(m.excerpt || '') + '</p>' +
         '<p class="small muted">' + (p.topic && p.topic !== 'Trợ lý tự chọn' ? '💡 Chủ đề được giao: ' + esc(p.topic) : '🤖 Trợ lý tự chọn chủ đề') + '</p></div></div>' +
         (m.checks && m.checks.length ? '<details class="zb-info small"' + (warn ? ' open' : '') + '><summary>' + (warn ? '⚠️ Trợ lý tự kiểm tra: ' + warn + ' điểm cần xem' : '✅ Trợ lý tự kiểm tra: không có lỗi') + '</summary><ul>' + m.checks.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></details>' : '') +
         (m.fb ? '<p class="small muted">✍️ Đã viết lại theo ý kiến: “' + esc(m.fb) + '”</p>' : '') + (p.err ? '<p class="small">⚠️ ' + esc(p.err) + '</p>' : '') + bwBtns(p) + '</div>';

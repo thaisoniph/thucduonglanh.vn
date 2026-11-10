@@ -15,7 +15,7 @@ import { aiFetch } from './airelay.js';
 import { esc, run, all, first, kvGet, kvSet, kvDel, kvJson, normPhone, nrm, fmtDate, randHex, CRM_URL, TZ_MS, DAY } from './lib.js';
 import { telegram } from './google.js';
 import { addLead, telegramUser } from './crm.js';
-import { insPick, insBlock, insParse, insLog, insBank, INS_HEAD, FUN } from './insight.js';
+import { insPick, insBlock, insParse, insLog, insBank, insRisk, INS_HEAD, FUN } from './insight.js';
 import { kb, safe, workNow, TRUTH_RULES, REF_RULES, REF_TXT, PHONE_RE } from './chat.js';
 import { botRef } from './partner.js';
 import { prodMap, zbotLead } from './zbot.js';
@@ -559,7 +559,7 @@ async function fpWrite(x, p, day, slot, hint, by, grp) {
   if (!body) throw new Error('AI chưa viết được bài');
   const camp = nrm(p.name).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'fanpage';
   const link = prods[code] ? prods[code].url + '?utm_source=facebook&utm_medium=fanpage&utm_campaign=' + camp : '';
-  const now = Date.now(), ins = insParse(head, ip.bank, ip.g);
+  const now = Date.now(), ins = Object.assign(insParse(head, ip.bank, ip.g), { w: insRisk(body) });
   await run(x.db, `INSERT INTO fp_posts (id, page, day, slot, topic, text, link, prod, status, by_name, at, funnel, ins) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET topic = excluded.topic, text = excluded.text, link = excluded.link, prod = excluded.prod, status = 'draft', by_name = excluded.by_name, at = excluded.at, err = '', funnel = excluded.funnel, ins = excluded.ins`,
     id, p.id, day, slot, topic, body.slice(0, 5000), link, prods[code] ? code : '', by || 'AI', now, theme.f, JSON.stringify(ins));

@@ -18,7 +18,7 @@ import { crmUsers, crmLog } from './crm.js';
 import { cmsToken } from './cms.js';
 import { kb } from './chat.js';
 import { imgLib, prodMap } from './zbot.js';
-import { insPick, insBlock, insParse, insLog, insBank, INS_HEAD } from './insight.js';
+import { insPick, insBlock, insParse, insLog, insBank, insRisk, INS_HEAD } from './insight.js';
 
 const REPO = 'thaisoniph/thucduonglanh.vn', GH = 'https://api.github.com', SITE = 'https://thucduonglanh.vn', API = 'https://api.thucduonglanh.vn';
 const CFG_PATH = 'data/blog-auto.json', POSTS_DIR = 'content/posts';
@@ -230,8 +230,9 @@ async function write(x, cfg, day, row) {
     const excerpt = get('MÔ TẢ').slice(0, 200), f2 = funnelOf(get('TẦNG PHỄU')) || funnel;
     const q = s => JSON.stringify(String(s)); // chuỗi YAML an toàn (có dấu : vẫn đúng)
     const md = ['---', 'title: ' + q(title), 'date: ' + day, 'category: ' + cat, 'image: ' + cover, 'excerpt: ' + q(excerpt), 'published: true', '---', '', body, ''].join('\n');
-    const ins = insParse(head, ip.bank, ip.g);
-    const m = { excerpt, cat, cover, who: ins.gn, g: ins.g, t: ins.t, i: ins.i, checks, hour: cfg.hour, sources: [...urls].slice(0, 30), fb };
+    const ins = insParse(head, ip.bank, ip.g), rw = insRisk(body);
+    if (rw.length) checks.push('⚠️ Có cụm dễ phạm luật quảng cáo thực phẩm: ' + rw.join(', ') + ' → chỉ giữ nếu đúng hồ sơ công bố hoặc là câu phủ định');
+    const m = { excerpt, cat, cover, who: ins.gn, g: ins.g, t: ins.t, i: ins.i, w: rw, checks, hour: cfg.hour, sources: [...urls].slice(0, 30), fb };
     if (!ins.t) checks.push('⚠️ Trợ lý chưa ghi rõ tension bài này giải, nên đọc kỹ xem bài có chạm đúng nỗi lòng của nhóm khách không');
     await run(x.db, "UPDATE bl_posts SET status = 'wait', title = ?, slug = ?, funnel = ?, topic = ?, tkey = ?, md = ?, meta = ?, hint = '', at = ?, err = '', tries = 0, remind = 0 WHERE day = ?",
       title, slug, f2, topic ? topic.title : 'Trợ lý tự chọn', topic ? topic.title : '', md, JSON.stringify(m), Date.now(), day);
