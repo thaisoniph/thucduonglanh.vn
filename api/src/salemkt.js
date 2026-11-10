@@ -102,7 +102,8 @@ export async function crmSaleMkt(x, u, d) {
 
 /* ---------- Ưu đãi / thông điệp quảng cáo đang chạy: Marketing + Quản trị ghi, mọi người đọc (kv mkt_offers) */
 async function offersAll(x) { return (await kvJson(x.db, 'mkt_offers', [])) || []; }
-export async function offersLive(x) { const t0 = startOfDay(Date.now()); return (await offersAll(x)).filter(o => !o.until || dayMs(o.until) >= t0); }
+/** at = mốc thời gian (mặc định bây giờ): bài Zalo soạn trước 2–3 ngày lấy ưu đãi còn hạn tới ngày đăng */
+export async function offersLive(x, at) { const t0 = startOfDay(at || Date.now()); return (await offersAll(x)).filter(o => !o.until || dayMs(o.until) >= t0); }
 export async function crmOffers(x, u, d) {
   const a = d.action;
   if (a === 'offers') return { ok: true, list: await offersAll(x) };

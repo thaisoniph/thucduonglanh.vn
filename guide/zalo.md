@@ -20,7 +20,9 @@ Trợ lý tự làm 6 việc:
    Tin chào người mới và tin chúc mừng có **link mời kết bạn** với trợ lý. Kết bạn rồi trợ lý mới nhắn riêng được cho khách. Trợ lý tự đồng ý tối đa **30 lời mời mỗi ngày**, cách nhau ít nhất 3 phút.
 4. 🎉 **Chúc mừng** người vừa nhận quà trên web.
 5. ✅ **Duyệt** người xin vào nhóm, nếu họ đã để số trên web.
-6. 📝 **Đăng bài** lúc 7h30 và 20h. Khung giờ nào để **Chờ duyệt** thì chỉ đăng bài đã được duyệt; khung giờ để **Tự đăng** thì tới giờ trợ lý tự đăng.
+6. 📝 **Đăng bài** sáng và tối (giờ chung 7h30 và 20h, mỗi bài đổi giờ riêng được). Khung giờ nào để **Chờ duyệt** thì chỉ đăng bài đã được duyệt; khung giờ để **Tự đăng** thì tới giờ trợ lý tự đăng.
+
+Trợ lý **soạn bài trước 3 ngày** để bạn kịp duyệt, và **lên kế hoạch chủ đề** cho cả tuần / cả tháng để anh Sơn và người phụ trách duyệt chủ đề trước (xem [Kế hoạch chủ đề](#ke-hoach-chu-de)).
 
 ## Trợ lý và người thật chia việc
 
@@ -51,6 +53,8 @@ Vào CRM, bấm **Zalo** trên thanh menu. Quản trị thì vào **Tổng quan 
 
 Khi Telegram báo **"📝 Bài Zalo chờ duyệt"**, bạn vào tab Zalo. **Bài cần duyệt nằm trên cùng, có viền vàng** và ghi rõ hạn, ví dụ "⏳ Cần duyệt trước 20:00 ngày mai".
 
+Trợ lý soạn trước **3 ngày** (đổi được thành 1 hoặc 2 ngày ở ⚙️ Cài đặt trợ lý), nên trong tab luôn có bài của hôm nay và 3 ngày tới. Mỗi ngày chỉ cần duyệt bài của ngày thứ 3; ngày bận thì duyệt dồn vẫn kịp.
+
 Khung xanh nhạt bên dưới là **bài sẽ hiện y như vậy trên Zalo** (ảnh, chữ đậm, link).
 
 ![Bài cần duyệt: 1 Duyệt bài này, 2 Sửa chữ, 3 Viết lại, 4 Bỏ bài này](/huong-dan/img/zalo-duyet.webp)
@@ -68,6 +72,16 @@ Khung xanh nhạt bên dưới là **bài sẽ hiện y như vậy trên Zalo** 
 2. Bấm **💾 Lưu**, rồi bấm **✅ Duyệt bài này**. Bấm **Huỷ** nếu không muốn sửa nữa.
 
 Bài đã duyệt hiện **✅ Đã duyệt · sẽ đăng…**. Đổi ý thì bấm **↩️ Bỏ duyệt**.
+
+### ⏰ Hẹn giờ đăng riêng cho 1 bài
+
+Bài nào cần đăng giờ khác giờ chung (ví dụ hôm có livestream, hay muốn đăng sáng sớm hơn):
+
+1. Bấm **⏰ Đổi giờ** trên thẻ bài.
+2. Chọn giờ: **bài sáng từ 6:00 đến 11:59**, **bài tối từ 12:00 đến 21:45** (sau 21h45 trợ lý không đăng vào nhóm).
+3. Bấm **💾 Lưu giờ**. Thẻ bài hiện giờ mới kèm dấu ⏰, hạn duyệt cũng đổi theo.
+
+Muốn bỏ giờ riêng thì bấm lại **⏰ Đổi giờ** → **↩️ Về giờ chung**. Bài chưa soạn thì đặt giờ ở **📋 Kế hoạch chủ đề** (✏️ Sửa → ô **⏰ Giờ đăng**). Đổi giờ chung cho mọi ngày thì sửa ở ⚙️ Cài đặt trợ lý.
 
 **Bài đã đăng** được thu gọn ở mục **📤 Đã đăng gần đây**, mỗi bài 1 dòng kèm số 👥 người · 💬 tin · ❤️ cảm xúc. Bấm vào dòng để xem lại bài.
 
@@ -120,6 +134,50 @@ Từ **10/11 đến 23/11**, bài sáng được thử ở 2 giờ, mỗi giờ 
 Hạn duyệt bài sáng cũng đổi theo (ví dụ "Cần duyệt trước 6h15 ngày mai"), nên tuần đầu **duyệt bài sáng từ tối hôm trước**.
 
 Trong tab Zalo, ô **🧪 Thử giờ đăng bài sáng** so số người tương tác trung bình mỗi bài ở 7h30 (trước đây), 6h15 và 9h00. Giờ tốt nhất có ⭐. Biểu đồ **🕐 Giờ thành viên hay nhắn tin** cho biết nhóm đông người nói chuyện nhất vào giờ nào. Thử xong, anh Sơn sẽ chốt 1 giờ cố định.
+
+## Kế hoạch chủ đề
+
+Mục **📋 Kế hoạch chủ đề** (nút ở đầu tab Zalo, hoặc kéo xuống dưới các bài chờ duyệt) là danh sách **chủ đề của từng bài trong tuần / trong tháng**. Anh Sơn và bạn phụ trách duyệt chủ đề trước, trợ lý viết bài **đúng chủ đề đã duyệt**.
+
+Mỗi chủ đề có:
+
+- Giờ đăng (☀️ sáng / 🌙 tối) và **tầng phễu** 🔵 Nhận biết · ⚪ Cân nhắc · 🟠 Chuyển đổi.
+- **Chủ đề cụ thể** (ví dụ "Bếp lành: cháo hạt sen nấu nồi cơm điện 10 phút").
+- 💡 Góc viết / câu mở gợi ý, 👉 lối ra (cuối bài mời mọi người làm gì).
+- 🎯 Nhóm khách + tension bài nhắm tới, 🛍 sản phẩm (nếu bài nói về sản phẩm).
+
+**Duyệt chủ đề:**
+
+1. Mở tuần có nhãn vàng **⏳ chờ duyệt**.
+2. Đọc từng chủ đề. Ổn thì bấm **✅ Duyệt**. Duyệt hết 1 lần thì bấm **✅ Duyệt cả tuần**.
+3. Muốn sửa thì bấm **✏️ Sửa**: đổi chủ đề, tầng phễu, nhóm khách, tension, sản phẩm, giờ đăng → **✅ Lưu & duyệt**.
+4. Muốn chủ đề khác hẳn thì bấm **🔄 Đổi chủ đề**, gõ ý (ví dụ "nói về hạt sen, hợp người ăn chay") hoặc để trống, chờ khoảng 30 giây.
+5. Hôm đó không muốn đăng bài thì bấm **⏸ Không đăng**. Đổi ý thì bấm **▶️ Dùng lại**.
+
+**Trợ lý viết bài thế nào:**
+
+- Chủ đề **đã duyệt**: trợ lý soạn bài sớm 3 ngày, đúng chủ đề đó. Thẻ bài có dòng **📋 Theo chủ đề đã duyệt**.
+- Chủ đề **chưa duyệt**: trợ lý chờ. Còn 24 tiếng tới giờ đăng mà vẫn chưa duyệt thì trợ lý viết theo chủ đề nháp (thẻ bài ghi **📋 Theo chủ đề kế hoạch chưa duyệt**), để nhóm không bị trống bài.
+- Bài đã soạn trước mà sau đó bạn duyệt / sửa chủ đề: nếu chưa ai sửa hay duyệt bài đó, trợ lý tự **soạn lại bài theo chủ đề mới** trong khoảng 10 phút. Bài đã duyệt hoặc sửa tay thì giữ nguyên; muốn theo chủ đề mới thì bấm **🔄 Viết lại** ở thẻ bài.
+
+**Lập kế hoạch tuần / tháng:**
+
+Trợ lý **tự lập kế hoạch tuần kế tiếp** (luôn có chủ đề cho khoảng 10 ngày tới) và báo Telegram **"📋 Kế hoạch chủ đề nhóm Zalo"**. Mỗi ngày (sau 9h) nếu còn chủ đề 3 ngày tới chưa duyệt, Telegram nhắc 1 lần.
+
+Muốn tự lập (ví dụ cả tháng 12 cho mùa quà Tết):
+
+1. Bấm **✨ Lập kế hoạch tuần / tháng**.
+2. Chọn **Từ ngày**, rồi **1 tuần / 2 tuần / Cả tháng**.
+3. Chọn **Tỉ lệ 3 tầng phễu**:
+   - **Theo lịch tuần đã duyệt** (mặc định): mỗi tuần 8 🔵 · 4 ⚪ · 2 🟠.
+   - **Nhóm ấm 50/30/20**: khoá Content khuyên cho kênh khách đã quen (người trong nhóm đã để số nhận quà).
+   - **Mùa cao điểm** (🟠 30–40%): dịp quà, Tết, ưu đãi lớn. Chỉ dùng tối đa 2 tuần.
+4. Ghi **🎯 Trọng tâm kỳ này** nếu có (ví dụ "tháng 12 tập trung trà DILVANG làm quà Tết cho bố mẹ").
+5. Bấm **✨ Lập kế hoạch**. Mỗi tuần mất khoảng 1 phút, cả tháng khoảng 4–5 phút: giữ màn hình mở tới khi xong.
+
+Chủ đề đã duyệt, bài đã đăng / đã duyệt / đã sửa tay được giữ nguyên; chỉ chủ đề chưa duyệt được lập lại. Ô **Tỉ lệ phễu** ở đầu mục cho biết các bài sắp tới đang chia 🔵 ⚪ 🟠 bao nhiêu phần trăm, kèm mức khoá Content gợi ý (nhóm mới 70/20/10 · khởi đầu 60/25/15 · nhóm ấm 50/30/20).
+
+Lối tắt: bài chưa soạn ở phần **📝 Bài đăng nhóm** cũng có nút **✅ Duyệt chủ đề**.
 
 ## Đổi ảnh kèm bài
 
@@ -186,11 +244,16 @@ Mỗi khung giờ đăng bài chọn riêng 1 trong 2 cách:
 
 ![Cài đặt giờ đăng: 1 bài sáng, 2 bài tối, 3 Lưu cài đặt](/huong-dan/img/zalo-gio-dang.webp)
 
-1. Bài sáng: chọn **⏳ Chờ duyệt** hoặc **🤖 Tự đăng**. Muốn đổi giờ thì sửa ô giờ.
-2. Bài tối: chọn tương tự.
+1. Bài sáng: chọn **⏳ Chờ duyệt** hoặc **🤖 Tự đăng**. Muốn đổi giờ chung thì sửa ô giờ (6:00–11:59).
+2. Bài tối: chọn tương tự (giờ chung 12:00–21:45).
 3. Bấm **Lưu cài đặt**. Khoảng 1 phút sau trợ lý làm theo.
 
-Muốn tắt hẳn một khung giờ thì bỏ tích ô vuông cạnh chữ **Bài sáng** hoặc **Bài tối**.
+Muốn tắt hẳn một khung giờ thì bỏ tích ô vuông cạnh chữ **Bài sáng** hoặc **Bài tối**. Chỉ 1 bài cần giờ khác thì dùng **⏰ Đổi giờ** trên thẻ bài, không cần đổi giờ chung.
+
+Cũng trong phần cài đặt:
+
+- **Soạn bài trước mấy ngày**: 1, 2 hoặc 3 ngày (mặc định 3).
+- **📋 Tự lập kế hoạch chủ đề tuần kế tiếp**: bỏ tích nếu muốn tự lập kế hoạch bằng tay.
 
 ## Giao người phụ trách trợ lý
 
@@ -202,7 +265,7 @@ Muốn tắt hẳn một khung giờ thì bỏ tích ô vuông cạnh chữ **B�
 
 ![Ô 1: Phụ trách Trợ lý Zalo](/huong-dan/img/zalo-phu-trach.webp)
 
-Bạn đó đăng nhập lại CRM là thấy tab **Zalo**. Từ đó bạn ấy duyệt bài, đổi ảnh, gửi tin vào nhóm và chỉnh giờ đăng được.
+Bạn đó đăng nhập lại CRM là thấy tab **Zalo**. Từ đó bạn ấy duyệt bài, duyệt kế hoạch chủ đề, đổi ảnh, gửi tin vào nhóm và chỉnh giờ đăng được.
 
 ## Cài đặt lần đầu (làm 1 lần)
 

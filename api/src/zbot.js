@@ -9,6 +9,8 @@
  *   friend – khách gửi lời mời kết bạn → đồng ý + lời chào
  *   login  – tài khoản bị đăng xuất, cần quét mã QR → báo Telegram
  * Bài đăng hằng ngày: cron (zbotTick) soạn trước bằng AI theo lịch chủ đề trong tuần + bước 🎯 insight (insight.js: nhóm khách + tension, xoay vòng nhóm), lưu bảng zb_posts → nhân sự xem / sửa / bỏ ở CRM → tab 🤖 Trợ lý Zalo.
+ * 📋 Kế hoạch chủ đề (10/11/2026, anh Sơn): bảng zb_plan = chủ đề cụ thể từng bài (tuần / tháng, theo 3 tầng phễu) → anh Sơn + người phụ trách duyệt trước → trợ lý viết bài đúng chủ đề đã duyệt.
+ *   Soạn bài trước cfg.lead ngày (mặc định 3). Chủ đề chưa duyệt thì chờ, tới 24 tiếng trước giờ đăng mới viết theo chủ đề nháp. Mỗi bài đặt được giờ đăng riêng (zb_posts.at_time / zb_plan.at_time).
  *   Chế độ 'auto': tới giờ tự đăng (trừ bài đã bấm Bỏ). Chế độ 'approve': chỉ đăng bài đã bấm Duyệt.
  * Báo đăng ký (như nhóm Sống Khỏe 365): khách để số trên web mà đang ở trong nhóm → trợ lý chúc mừng @tên trong nhóm (chỉ tên Zalo + quà đã nhận, không số điện thoại, không bệnh).
  * Tự duyệt người xin vào nhóm: chỉ người đã để số qua web (tìm được tài khoản Zalo theo số) – người lạ báo Telegram để nhân sự duyệt tay (cổng nhóm 17/10/2026).
@@ -23,7 +25,7 @@ import { botRef } from './partner.js';
 import { offersLive } from './salemkt.js';
 import { lunar } from './lunar.js';
 import { dayTheme, upcoming, addDay, weekday } from './zday.js';
-import { insPick, insBlock, insParse, insLog, insBank, insRisk, INS_HEAD } from './insight.js';
+import { insPick, insBlock, insParse, insLog, insBank, insRisk, INS_HEAD, FUN, spName } from './insight.js';
 
 const BOT = 'An Lành';
 const FAST = 'claude-haiku-5-5', WRITER = 'claude-opus-5-5';
@@ -32,6 +34,8 @@ const CFG0 = {
   on: true, groups: [], // nhóm trợ lý chăm sóc (mã nhóm Zalo). Trống → lần đầu tự chọn nhóm có tên "Thực Dưỡng Lành"
   welcome: true, answer: true, announce: true, approve: true, approveAll: false,
   mode: 'approve', // approve: chỉ đăng bài đã duyệt (anh Sơn chọn 27/10/2026) · auto: tới giờ tự đăng bài nháp
+  lead: 3, // soạn bài trước mấy ngày (anh Sơn 10/11/2026: hiện trước 2–3 ngày để nhân sự kịp duyệt)
+  planAuto: true, // 📋 tự lập kế hoạch chủ đề tuần kế tiếp (chờ duyệt)
   slots: [{ id: 'sang', at: '07:30', on: true }, { id: 'toi', at: '20:00', on: true }],
   maxHour: 8 // số câu trả lời tối đa / nhóm / giờ (tránh "nói nhiều", Zalo khoá)
 };
@@ -39,6 +43,14 @@ const SLOT_NAME = { sang: 'Bài sáng', toi: 'Bài tối' };
 /** 🧪 Thử giờ đăng bài sáng (anh Sơn duyệt 05/11/2026): mỗi khung 1 tuần, cùng chủ đề theo thứ → so người tương tác trung bình rồi chốt 1 giờ */
 export const TIME_TRIAL = [{ from: '20261110', to: '20261116', slot: 'sang', at: '06:15' }, { from: '20261117', to: '20261123', slot: 'sang', at: '09:00' }];
 const slotAt = (sl, day) => { const t = TIME_TRIAL.find(z => z.slot === sl.id && day >= z.from && day <= z.to); return t ? t.at : sl.at; };
+/** ⏰ Giờ đăng hợp lệ (10/11/2026: nhân sự hẹn giờ riêng từng bài): bài sáng 06:00–11:59, bài tối 12:00–21:45 (21h45–6h trợ lý không đăng). Trả 'HH:mm' hoặc '' nếu sai */
+export function okTime(slot, at) {
+  const m = String(at || '').trim().match(/^(\d{1,2})[:hH](\d{2})$/); if (!m) return '';
+  const h = +m[1], mi = +m[2], v = h * 60 + mi; if (mi > 59 || v < 360 || v > 21 * 60 + 45 || (slot === 'toi' ? v < 720 : v >= 720)) return '';
+  return String(h).padStart(2, '0') + ':' + String(mi).padStart(2, '0');
+}
+const TIME_RULE = { sang: 'Bài sáng đăng từ 6:00 đến 11:59.', toi: 'Bài tối đăng từ 12:00 đến 21:45 (sau 21h45 trợ lý không đăng vào nhóm).' };
+const leadOf = cfg => Math.max(1, Math.min(3, Number(cfg.lead) || 3));
 // Lịch chủ đề trong tuần (0 = Chủ nhật). Sửa ở đây là bài soạn sau sẽ theo.
 /** Lịch chủ đề theo phễu nội dung (31/10/2026, anh Sơn duyệt): người trong nhóm đã để số nhận quà → nhóm chủ yếu giữ chân + tạo niềm tin, bán vừa phải.
  * TOFU 🔵 tương tác, giá trị (8 bài/tuần) · MOFU ⚪ tạo niềm tin (4 bài) · BOFU 🟠 chuyển đổi (2 bài). Chỉ số = thứ trong tuần (0 = Chủ nhật). */
@@ -55,7 +67,7 @@ const THEME = {
     { f: 'TOFU', t: 'Chúc cả nhà tuần mới bình an + 1 câu hỏi nhỏ để mọi người chia sẻ' },
     { f: 'TOFU', t: 'Câu hỏi tương tác: hỏi thói quen ăn uống / sinh hoạt của mọi người, dễ trả lời 1 dòng' },
     { f: 'TOFU', t: 'Mẹo nhỏ buổi tối: 1 mẹo để ngủ ngon / thư giãn / chuẩn bị bữa sáng mai' },
-    { f: 'TOFU', t: 'Mini đố vui về dinh dưỡng (1 câu, 3 lựa chọn A/B/C, đáp án là kiến thức phổ thông chắc chắn đúng), mời mọi người trả lời bằng 1 chữ cái, hẹn sáng mai công bố đáp án' },
+    { f: 'TOFU', q: 1, t: 'Mini đố vui về dinh dưỡng (1 câu, 3 lựa chọn A/B/C, đáp án là kiến thức phổ thông chắc chắn đúng), mời mọi người trả lời bằng 1 chữ cái, hẹn sáng mai công bố đáp án' },
     { f: 'MOFU', t: 'Câu chuyện khách hàng thật: dựa ĐÚNG vào CẢM NHẬN KHÁCH HÀNG được cung cấp bên dưới (không thêm thắt, không nói về bệnh / công dụng chữa trị), kể ngắn gọn ấm áp, cảm ơn khách đã chia sẻ, mời mọi người kể trải nghiệm của mình', fb: 1 },
     { f: 'BOFU', t: 'Nhắc nhẹ cuối tuần: ưu đãi đang chạy (nếu có) hoặc hướng dẫn đặt hàng trên web 3 bước (được kiểm hàng trước khi nhận, freeship từ 300k), không thúc ép; để 1 link sản phẩm hợp nhất', link: 1 },
     { f: 'TOFU', t: 'Cuối tuần: mời mọi người khoe mâm cơm / bữa ăn lành của nhà mình, hoặc rủ cả nhà cùng nấu 1 món lành' }]
@@ -82,12 +94,18 @@ export async function zbotSchema(db) {
   await run(db, `CREATE TABLE IF NOT EXISTS zb_posts (id TEXT PRIMARY KEY, day TEXT, slot TEXT, topic TEXT DEFAULT '', text TEXT DEFAULT '', img TEXT DEFAULT '', prod TEXT DEFAULT '',
     status TEXT DEFAULT 'draft', by_name TEXT DEFAULT '', at INTEGER, sent_at INTEGER)`); // bài đăng hằng ngày (id = yyyyMMdd_slot)
   await run(db, 'CREATE INDEX IF NOT EXISTS zb_posts_day ON zb_posts(day)');
-  for (const c of ["funnel TEXT DEFAULT ''", 'eng_msgs INTEGER DEFAULT 0', 'eng_people INTEGER DEFAULT 0', 'eng_reacts INTEGER DEFAULT 0', "ev TEXT DEFAULT ''", "ins TEXT DEFAULT ''"]) { try { await run(db, 'ALTER TABLE zb_posts ADD COLUMN ' + c); } catch (e) { } } // 31/10/2026: nhãn phễu + tương tác 2 tiếng sau khi đăng · 09/11/2026: ev = tên dịp lễ (zday.js) · 10/11/2026: ins = nhóm khách + tension bài nhắm tới (insight.js, JSON)
+  for (const c of ["funnel TEXT DEFAULT ''", 'eng_msgs INTEGER DEFAULT 0', 'eng_people INTEGER DEFAULT 0', 'eng_reacts INTEGER DEFAULT 0', "ev TEXT DEFAULT ''", "ins TEXT DEFAULT ''", "at_time TEXT DEFAULT ''", "plan TEXT DEFAULT ''"]) { try { await run(db, 'ALTER TABLE zb_posts ADD COLUMN ' + c); } catch (e) { } } // 31/10/2026: nhãn phễu + tương tác 2 tiếng sau khi đăng · 09/11/2026: ev = tên dịp lễ (zday.js) · 10/11/2026: ins = nhóm khách + tension bài nhắm tới (insight.js, JSON)
   await run(db, `CREATE TABLE IF NOT EXISTS zb_log (rid INTEGER PRIMARY KEY AUTOINCREMENT, at INTEGER, kind TEXT, gid TEXT DEFAULT '', uid TEXT DEFAULT '', name TEXT DEFAULT '',
     text TEXT DEFAULT '', reply TEXT DEFAULT '')`); // nhật ký trợ lý (CRM xem)
   await run(db, 'CREATE INDEX IF NOT EXISTS zb_log_at ON zb_log(at)');
   for (const c of ['done_at INTEGER', "done_by TEXT DEFAULT ''"]) { try { await run(db, 'ALTER TABLE zb_log ADD COLUMN ' + c); } catch (e) { } } // 05/11/2026: ca cần người thật → ai xử lý, lúc nào
-  await run(db, 'CREATE TABLE IF NOT EXISTS zb_act (dh TEXT PRIMARY KEY, msgs INTEGER DEFAULT 0, people INTEGER DEFAULT 0)'); // 05/11/2026: tin nhắn thành viên theo giờ (dh = yyyyMMddHH giờ VN), chọn giờ đăng
+  await run(db, 'CREATE TABLE IF NOT EXISTS zb_act (dh TEXT PRIMARY KEY, msgs INTEGER DEFAULT 0, people INTEGER DEFAULT 0)');
+  // 10/11/2026: zb_posts.at_time = giờ đăng riêng của bài (HH:mm, trống = giờ của khung) · plan = bài viết theo chủ đề kế hoạch ('ok' đã duyệt / 'draft' chưa duyệt / '' không có)
+  // 📋 kế hoạch chủ đề: 1 dòng / bài (id = yyyyMMdd_slot như zb_posts). status draft (chờ duyệt) | ok (đã duyệt → trợ lý viết theo) | skip (không đăng bài này)
+  await run(db, `CREATE TABLE IF NOT EXISTS zb_plan (id TEXT PRIMARY KEY, day TEXT, slot TEXT, f TEXT DEFAULT '', topic TEXT DEFAULT '', idea TEXT DEFAULT '', cta TEXT DEFAULT '',
+    g TEXT DEFAULT '', gn TEXT DEFAULT '', tn TEXT DEFAULT '', sp TEXT DEFAULT '', ev TEXT DEFAULT '', frame TEXT DEFAULT '', at_time TEXT DEFAULT '', status TEXT DEFAULT 'draft',
+    by_name TEXT DEFAULT '', at INTEGER, ok_by TEXT DEFAULT '', ok_at INTEGER)`);
+  await run(db, 'CREATE INDEX IF NOT EXISTS zb_plan_day ON zb_plan(day)'); // 05/11/2026: tin nhắn thành viên theo giờ (dh = yyyyMMddHH giờ VN), chọn giờ đăng
 }
 
 /** Khung giờ này tự đăng hay chờ duyệt (31/10/2026: mỗi khung giờ chọn riêng; khung chưa chọn thì theo chế độ chung) */
@@ -175,7 +193,7 @@ async function zPoll(x, d) {
     const day = fmtDate(now, 'yyyyMMdd');
     for (const p of await all(x.db, "SELECT * FROM zb_posts WHERE day = ? AND status IN ('draft', 'ok')", day)) {
       const sl = cfg.slots.find(s => s.id === p.slot); if (!sl || !sl.on) continue;
-      const t = slotTime(day, slotAt(sl, day)); if (now < t || now > t + 2 * 3600e3) continue;
+      const t = slotTime(day, p.at_time || slotAt(sl, day)); if (now < t || now > t + 2 * 3600e3) continue; // ⏰ bài có giờ riêng thì theo giờ đó
       if (p.status === 'draft' && !slotAuto(cfg, p.slot)) continue;
       if (!String(p.text || '').trim()) continue;
       await run(x.db, "UPDATE zb_posts SET status = 'sent', sent_at = ? WHERE id = ? AND status = ?", now, p.id, p.status);
@@ -449,13 +467,174 @@ export async function zbotTick(x) {
     await telegram(x.env, '⚠️ <b>Trợ lý Zalo An Lành mất kết nối</b> từ ' + fmtDate(st.at, 'HH:mm dd/MM') + '.\n👉 Kiểm tra máy đang chạy trợ lý (bật máy, có mạng), xem zalo-bot/README.md.');
   }
   if (!cfg.on || !st || !x.env.ANTHROPIC_API_KEY) return; // chưa từng chạy chương trình Zalo → chưa soạn
-  const days = [fmtDate(now, 'yyyyMMdd'), fmtDate(now + DAY, 'yyyyMMdd')];
-  const have = new Set((await all(x.db, 'SELECT id FROM zb_posts WHERE day IN (?, ?)', days[0], days[1])).map(r => r.id));
+  // soạn trước cfg.lead ngày (10/11/2026: 3 ngày, trước đây hôm nay + ngày mai) để nhân sự có 2–3 ngày duyệt
+  const today = fmtDate(now, 'yyyyMMdd'), days = Array.from({ length: leadOf(cfg) + 1 }, (_, i) => addDay(today, i)), last = days[days.length - 1];
+  const have = new Set((await all(x.db, 'SELECT id FROM zb_posts WHERE day >= ? AND day <= ?', today, last)).map(r => r.id));
+  const plan = {}; for (const r of await all(x.db, 'SELECT id, status, at_time FROM zb_plan WHERE day >= ? AND day <= ?', today, last)) plan[r.id] = r;
   for (const day of days) for (const sl of cfg.slots) {
-    if (!sl.on || have.has(day + '_' + sl.id) || slotTime(day, slotAt(sl, day)) < now + 20 * 60e3) continue;
+    const id = day + '_' + sl.id, pl = plan[id];
+    if (!sl.on || have.has(id) || (pl && pl.status === 'skip')) continue; // 📋 kế hoạch ghi "không đăng bài này"
+    const t = slotTime(day, (pl && pl.at_time) || slotAt(sl, day));
+    if (t < now + 20 * 60e3) continue;
+    if (pl && pl.status === 'draft' && t - now > DAY) continue; // 📋 chủ đề chưa duyệt: chờ duyệt, còn dưới 24 tiếng mới viết theo chủ đề nháp (vẫn kịp duyệt bài)
     try { await zWrite(x, day, sl.id, ''); } catch (e) { console.error('zWrite', e.message); await kvSet(x.db, 'zb_write_err', fmtDate(now, 'HH:mm dd/MM') + ': ' + String(e.message).slice(0, 200)); }
     return;
   }
+  try { await planTick(x, cfg, now); } catch (e) { console.error('planTick', e.message); await kvSet(x.db, 'zb_plan_err', fmtDate(now, 'HH:mm dd/MM') + ': ' + String(e.message).slice(0, 200)); }
+}
+
+/* ---------------------------------------------------------------- 📋 Kế hoạch chủ đề (10/11/2026, anh Sơn: "hiển thị kế hoạch nội dung là các chủ đề chính trong tuần hay cả tháng
+ * để anh và bạn phụ trách duyệt trước, duyệt rồi trợ lý dựa vào đó viết bài; chủ đề phân bổ theo 3 tầng như khoá Content").
+ * Khung mỗi bài vẫn là lịch theo thứ (THEME) + ngày lễ (zday.js); AI chọn chủ đề cụ thể + nhóm khách + tension + sản phẩm cho từng bài.
+ * Tỉ lệ phễu (khoá Content): lịch tuần ≈ 57/29/14 (mặc định, giữ đúng tầng của khung) · nhóm ấm 50/30/20 · mùa cao điểm 🟠 30–40% (tối đa 2 tuần). */
+export const MIX = {
+  frame: { name: 'Theo lịch tuần đã duyệt (🔵 57% · ⚪ 29% · 🟠 14%)', rule: '' },
+  warm: { name: 'Nhóm ấm (🔵 50% · ⚪ 30% · 🟠 20%)', rule: 'Tỉ lệ mục tiêu cả kỳ: khoảng 50% 🔵 TOFU · 30% ⚪ MOFU · 20% 🟠 BOFU (khoá Content: kênh ấm – người trong nhóm đã để số nhận quà). Được đổi tầng của bài không có 🔒 để đạt tỉ lệ; không để 2 bài 🟠 liền nhau.' },
+  peak: { name: 'Mùa cao điểm (🟠 30–40%, tối đa 2 tuần)', rule: 'Mùa cao điểm (dịp quà, Tết, ưu đãi lớn đang chạy): khoảng 40% 🔵 TOFU · 25% ⚪ MOFU · 35% 🟠 BOFU. Được đổi tầng của bài không có 🔒 để đạt tỉ lệ; không để 2 bài 🟠 liền nhau; bài 🟠 phải dựa trên ưu đãi / lý do mua có thật.' }
+};
+const WD = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+const dm = day => day.slice(6, 8) + '/' + day.slice(4, 6);
+const cutS = (s, n) => String(s == null ? '' : s).replace(/\s+/g, ' ').trim().slice(0, n);
+
+/** Cron (khi không có bài cần soạn): nhắc duyệt chủ đề 3 ngày tới (1 lần / ngày, sau 9h) + tự lập kế hoạch tuần kế tiếp (tối đa 1 lần / 6 tiếng) */
+async function planTick(x, cfg, now) {
+  const today = fmtDate(now, 'yyyyMMdd'), lead = leadOf(cfg), on = cfg.slots.filter(s => s.on).map(s => s.id); if (!on.length) return;
+  const rk = 'zb_plan_rem_' + fmtDate(now, 'yyMMdd');
+  if (vnHour(now) >= 9 && vnHour(now) < 20 && !(await kvGet(x.db, rk))) {
+    const wait = await all(x.db, "SELECT id, day, slot, topic FROM zb_plan WHERE status = 'draft' AND day >= ? AND day <= ? AND id NOT IN (SELECT id FROM zb_posts) ORDER BY day, slot", today, addDay(today, lead + 1));
+    if (wait.length) {
+      await kvSet(x.db, rk, '1', 2 * DAY);
+      await telegram(x.env, '📋 <b>Còn ' + wait.length + ' chủ đề bài Zalo chưa duyệt</b> (' + lead + ' ngày tới). Trợ lý chỉ viết bài sớm khi chủ đề đã duyệt; chưa duyệt thì 24 tiếng trước giờ đăng mới viết theo chủ đề nháp.\n' +
+        wait.slice(0, 6).map(r => '• ' + WD[weekday(r.day)] + ' ' + dm(r.day) + ' ' + (SLOT_NAME[r.slot] || r.slot).toLowerCase() + ': ' + esc(r.topic)).join('\n') + '\n👉 Duyệt: ' + CRM_URL + '/#tro-ly-zalo');
+    }
+  }
+  if (cfg.planAuto === false || now - Number(await kvGet(x.db, 'zb_plan_auto') || 0) < 6 * 3600e3) return;
+  const start = addDay(today, lead + 1), end = addDay(today, 10); // luôn có chủ đề tới ít nhất 10 ngày tới
+  const have = new Set((await all(x.db, 'SELECT id FROM zb_plan WHERE day >= ? AND day <= ? UNION SELECT id FROM zb_posts WHERE day >= ? AND day <= ?', start, end, start, end)).map(r => r.id));
+  let from = ''; for (let d = start; d <= end && !from; d = addDay(d, 1)) if (on.some(s => !have.has(d + '_' + s))) from = d;
+  if (!from) return;
+  await kvSet(x.db, 'zb_plan_auto', String(now));
+  const pm = cfg.pmix || {}, use = pm.to && pm.to >= from; // trọng tâm / tỉ lệ người lập kế hoạch gần nhất chọn, còn hạn thì dùng tiếp
+  const r = await zPlanMake(x, from, 7, { mix: use ? pm.mix : 'frame', focus: use ? pm.focus : '', by: 'AI', fill: 1 });
+  if (r.n) await telegram(x.env, '📋 <b>Kế hoạch chủ đề nhóm Zalo ' + dm(from) + '–' + dm(addDay(from, 6)) + '</b>: trợ lý đã lập ' + r.n + ' chủ đề theo 3 tầng phễu (' + r.mixTxt + '). Mời duyệt trước để trợ lý viết bài theo.\n👉 ' + CRM_URL + '/#tro-ly-zalo');
+}
+
+/** Khung từng bài trong khoảng ngày: { id, day, slot, fr (dayTheme), lock } */
+async function frames(x, cfg, from, n) {
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const day = addDay(from, i), live = await offersLive(x, slotTime(day, '12:00'));
+    for (const sl of cfg.slots) {
+      if (!sl.on) continue;
+      const fr = dayTheme(day, sl.id === 'toi' ? 'toi' : 'sang', baseTheme, live.length > 0);
+      out.push({ id: day + '_' + sl.id, day, slot: sl.id, sl, fr, live, lock: !!(fr.ev || fr.quiz || fr.q) }); // 🔒 ngày lễ, đố vui tối Thứ 4 → đáp án sáng Thứ 5: giữ tầng
+    }
+  }
+  return out;
+}
+
+/** Lập (lại) chủ đề cho n ngày từ `from` (yyyyMMdd), tối đa 7 ngày / lần gọi (CRM gọi nhiều lần cho cả tháng).
+ * Giữ nguyên: chủ đề đã duyệt / đã bỏ, bài đã đăng / đã duyệt / nhân sự đã sửa. opt: { mix, focus, by, only: [id] (lập lại đúng các bài này), hint } */
+export async function zPlanMake(x, from, n, opt) {
+  opt = opt || {};
+  const cfg = await zCfg(x), now = Date.now(), mix = MIX[opt.mix] ? opt.mix : 'frame', to = addDay(from, Math.max(1, Math.min(7, n)) - 1);
+  const fr = await frames(x, cfg, from, Math.max(1, Math.min(7, n)));
+  const posts = {}; for (const r of await all(x.db, 'SELECT id, day, slot, topic, funnel, status, by_name FROM zb_posts WHERE day >= ? AND day <= ?', addDay(from, -14), addDay(to, 7))) posts[r.id] = r;
+  const plans = {}; for (const r of await all(x.db, 'SELECT * FROM zb_plan WHERE day >= ? AND day <= ?', addDay(from, -7), addDay(to, 7))) plans[r.id] = r;
+  const only = Array.isArray(opt.only) ? opt.only : null;
+  const todo = fr.filter(z => {
+    const p = posts[z.id], pl = plans[z.id];
+    if (slotTime(z.day, (pl && pl.at_time) || slotAt(z.sl, z.day)) < now + 30 * 60e3) return false; // đã qua / sắp tới giờ
+    if (p && (p.status === 'sent' || p.status === 'ok' || (p.by_name && p.by_name !== 'AI'))) return false; // bài đã chốt: giữ
+    if (only) return only.includes(z.id);
+    return !pl || (pl.status === 'draft' && !opt.fill); // tự lập (fill): chỉ điền bài chưa có chủ đề, không ghi đè chủ đề nhân sự đang sửa dở
+  });
+  if (!todo.length) return { n: 0, items: [], mixTxt: MIX[mix].name };
+  const know = await kb(), prods = prodMap(know), bank = (await insBank(x)).filter(g => g.on && g.tensions.length);
+  const done = [];
+  for (const p of Object.values(posts)) if (p.topic && !todo.find(z => z.id === p.id)) done.push({ k: p.id, t: '- ' + WD[weekday(p.day)] + ' ' + dm(p.day) + ' ' + (SLOT_NAME[p.slot] || p.slot).toLowerCase() + (p.status === 'sent' ? ' (đã đăng)' : '') + ': ' + p.topic + (p.funnel ? ' [' + p.funnel + ']' : '') });
+  for (const p of Object.values(plans)) if (p.topic && p.status !== 'skip' && !posts[p.id] && !todo.find(z => z.id === p.id)) done.push({ k: p.id, t: '- ' + WD[weekday(p.day)] + ' ' + dm(p.day) + ' ' + (SLOT_NAME[p.slot] || p.slot).toLowerCase() + (p.status === 'ok' ? ' (đã duyệt)' : ' (kế hoạch)') + ': ' + p.topic + ' [' + p.f + (p.gn ? ' · ' + p.gn : '') + ']' });
+  done.sort((a, b) => a.k < b.k ? -1 : 1);
+  const offers = [...new Map(todo.flatMap(z => z.live).map(o => [o.id || o.title, o])).values()];
+  const ask = [
+    'Lập KẾ HOẠCH CHỦ ĐỀ cho nhóm Zalo cộng đồng "Sống khỏe cùng Thực Dưỡng Lành" (thành viên đã để số nhận quà trên web: cô chú trung niên, mẹ bỉm, người ăn chay, dân văn phòng; nhóm chủ yếu giữ chân + tạo niềm tin, bán vừa phải).',
+    'Mỗi dòng ở mục CÁC BÀI CẦN LẬP là 1 bài sẽ đăng. Chọn cho mỗi bài 1 chủ đề CỤ THỂ để quản lý duyệt trước; sau khi duyệt, trợ lý viết bài đúng chủ đề này.',
+    '', '# 3 TẦNG PHỄU (khoá Content Tuấn Hà – K133)', ...Object.values(FUN).map(v => '- ' + v.name + ': ' + v.rule),
+    MIX[mix].rule ? '\n# TỈ LỆ PHỄU KỲ NÀY\n' + MIX[mix].rule : '\n# TẦNG PHỄU: giữ ĐÚNG tầng ghi ở từng bài (lịch tuần anh Sơn đã duyệt).',
+    opt.focus ? '\n# TRỌNG TÂM KỲ NÀY (quản lý giao, ưu tiên bám theo): ' + cutS(opt.focus, 500) : '',
+    '', '# NGÂN HÀNG INSIGHT (id nhóm: tên – chân dung | tension: điều mong ↔ điều cản [SP: sản phẩm riêng, không nhãn = dùng chung])',
+    ...bank.map(g => '- ' + g.id + ': ' + g.name + (g.who ? ' – ' + cutS(g.who, 140) : '') + (g.prods.length ? ' | hợp: ' + g.prods.map(spName).join(', ') : '') + '\n  ' + g.tensions.slice(0, 8).join('\n  ')),
+    '', '# SẢN PHẨM (mã – tên)', ...Object.entries(prods).map(([c, p]) => '- ' + c + ': ' + p.name),
+    offers.length ? '\n# ƯU ĐÃI ĐANG CHẠY (chỉ dùng đúng như sau)\n' + offers.map(o => '- ' + [o.title, o.prod ? 'sản phẩm: ' + o.prod : '', o.text, o.until ? 'hạn đến ' + o.until : ''].filter(Boolean).join(' · ')).join('\n') : '\nHiện không có ưu đãi riêng: bài 🟠 không bịa khuyến mãi (chỉ freeship đơn từ 300k, được kiểm hàng trước khi nhận).',
+    done.length ? '\n# BÀI ĐÃ ĐĂNG / ĐÃ CHỐT QUANH KỲ NÀY (không lặp chủ đề, món, nguyên liệu, sản phẩm trong 7 ngày)\n' + done.map(d => d.t).join('\n') : '',
+    '', '# CÁC BÀI CẦN LẬP (id · ngày · buổi · tầng · khung chủ đề)' + (mix === 'frame' ? '' : ' – 🔒 = giữ nguyên tầng'),
+    ...todo.map(z => { const old = plans[z.id]; return '- ' + z.id + ' · ' + WD[weekday(z.day)] + ' ' + dm(z.day) + ' (âm ' + lunar(z.day).text + ') · ' + (z.slot === 'toi' ? 'tối' : 'sáng') + ' · ' + z.fr.f + (z.lock && mix !== 'frame' ? ' 🔒' : '') + (z.fr.ev ? ' · dịp: ' + z.fr.ev : '') + '\n  khung: ' + cutS(z.fr.t, 400) + (only && old && old.topic ? '\n  chủ đề cũ (cần đổi khác): ' + old.topic : ''); }),
+    opt.hint ? '\nYêu cầu của quản lý cho lần lập này: ' + cutS(opt.hint, 300) : '',
+    '', 'Yêu cầu:',
+    '- Giữ đúng khung của từng bài (ngày lễ, đố vui tối Thứ 4 → đáp án sáng Thứ 5, cảm nhận khách tối Thứ 5, góc sản phẩm cuối tuần…). Chủ đề cụ thể = khung + 1 món / nguyên liệu / mẹo / câu hỏi / sản phẩm cụ thể.',
+    '- 🔵 TOFU: giá trị nằm ở nội dung, tên sản phẩm KHÔNG có trong chủ đề. ⚪ MOFU: bằng chứng / kiến thức có thật trong TÀI LIỆU. 🟠 BOFU: đúng 1 sản phẩm (ghi mã ở "sp") gỡ đúng tension.',
+    '- Mỗi bài 1 nhóm khách (id trong ngân hàng) + 1 tension của nhóm đó (được diễn đạt lại nhưng đủ 2 cực). Rải đều các nhóm trong kỳ, không 1 nhóm quá 2 bài liền; bài theo dịp lễ chọn nhóm rộng nhất.',
+    '- Xen kẽ sản phẩm ở các bài MOFU / BOFU; không lặp món / nguyên liệu / sản phẩm trong 7 ngày.',
+    '- Bài cảm nhận khách hàng: chủ đề chỉ ghi hướng kể (vd "Cảm nhận thật của khách về bữa sáng"), KHÔNG tự đặt nội dung cảm nhận; trợ lý dùng cảm nhận thật khi viết. Bài đố vui: chủ đề nêu rõ câu đố về điều gì; bài đáp án sáng hôm sau ghi "Đáp án đố vui + …".',
+    '- Chỉ dùng thông tin có trong TÀI LIỆU; không bịa ưu đãi, cảm nhận khách, số liệu; không dùng "chữa / điều trị / khỏi bệnh"; tránh cụm dễ phạm luật quảng cáo.',
+    '', 'Trả về DUY NHẤT 1 mảng JSON (không giải thích), mỗi bài 1 phần tử đúng thứ tự trên:',
+    '[{"id": "<id>", "f": "TOFU|MOFU|BOFU", "topic": "<chủ đề cụ thể, tối đa 18 chữ>", "idea": "<góc viết / câu mở gợi ý, 1 câu>", "cta": "<lối ra của bài, tối đa 10 chữ>", "g": "<id nhóm khách>", "tn": "<điều họ mong> ↔ <điều đang cản họ>", "sp": "<mã sản phẩm hoặc rỗng>"}]'
+  ].filter(s => s !== '').join('\n');
+  const req = { model: WRITER, max_tokens: 12000, output_config: { effort: 'medium' },
+    system: [{ type: 'text', text: 'Bạn là người lập kế hoạch nội dung cho nhóm Zalo cộng đồng của Thực Dưỡng Lành (VitaGreen Nutrition). Tiếng Việt chuẩn, tự nhiên.\n' + TRUTH_RULES },
+      { type: 'text', text: 'TÀI LIỆU (thông tin chính thức của Thực Dưỡng Lành):\n\n' + know, cache_control: { type: 'ephemeral' } }],
+    messages: [{ role: 'user', content: ask }] };
+  const ro = { timeout: 170e3, headers: { 'x-tdl-muc': 'zalo-kh' } };
+  let res;
+  try { res = await ai(x.env).beta.messages.create(Object.assign({ betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' }, req), ro); }
+  catch (e) { if (!(e instanceof Anthropic.BadRequestError)) throw e; res = await ai(x.env).messages.create(req, ro); }
+  if (res.stop_reason === 'refusal') throw new Error('AI từ chối lập kế hoạch');
+  const raw = textOf(res), m = raw.match(/\[[\s\S]*\]/);
+  let list = []; try { list = JSON.parse(m ? m[0] : '[]'); } catch (e) { throw new Error('AI trả kế hoạch sai định dạng, bấm lập lại nhé'); }
+  if (!Array.isArray(list)) list = [];
+  const items = [];
+  for (const z of todo) {
+    const it = list.find(v => v && String(v.id) === z.id) || (list.length === todo.length ? list[todo.indexOf(z)] : null);
+    if (!it || !cutS(it.topic, 200)) continue;
+    const f = mix !== 'frame' && !z.lock && FUNNEL[String(it.f).toUpperCase()] ? String(it.f).toUpperCase() : z.fr.f;
+    const g = bank.find(v => v.id === String(it.g || '').trim()) || null, sp = prods[String(it.sp || '').trim()] ? String(it.sp).trim() : '';
+    const row = { id: z.id, day: z.day, slot: z.slot, f, topic: cutS(it.topic, 200), idea: cutS(it.idea, 300), cta: cutS(it.cta, 120), g: g ? g.id : '', gn: g ? g.name : '', tn: cutS(it.tn, 300).replace(/<->|<=>|->/g, '↔'), sp, ev: z.fr.ev || '', frame: cutS(z.fr.t, 600) };
+    await run(x.db, `INSERT INTO zb_plan (id, day, slot, f, topic, idea, cta, g, gn, tn, sp, ev, frame, status, by_name, at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?)
+      ON CONFLICT(id) DO UPDATE SET f = excluded.f, topic = excluded.topic, idea = excluded.idea, cta = excluded.cta, g = excluded.g, gn = excluded.gn, tn = excluded.tn, sp = excluded.sp, ev = excluded.ev, frame = excluded.frame,
+      status = 'draft', by_name = excluded.by_name, at = excluded.at, ok_by = '', ok_at = NULL`,
+      row.id, row.day, row.slot, row.f, row.topic, row.idea, row.cta, row.g, row.gn, row.tn, row.sp, row.ev, row.frame, opt.by || 'AI', now);
+    items.push(row);
+  }
+  if (!items.length) throw new Error('AI chưa lập được chủ đề, bấm lập lại nhé');
+  return { n: items.length, items, mixTxt: MIX[mix].name };
+}
+
+/** 📋 Chủ đề vừa duyệt / sửa mà bài AI đã soạn trước theo chủ đề cũ (chưa ai sửa, chưa duyệt, còn > 1 tiếng tới giờ đăng) → xoá bài để trợ lý soạn lại đúng chủ đề (≈ 10 phút) */
+async function planReset(x, id) {
+  const p = await first(x.db, 'SELECT id, day, slot, status, by_name, at_time FROM zb_posts WHERE id = ?', id); if (!p) return '';
+  if (p.status === 'sent') return 'sent';
+  const cfg = await zCfg(x), sl = cfg.slots.find(s => s.id === p.slot) || { id: p.slot, at: '07:30' };
+  if (p.status === 'draft' && p.by_name === 'AI' && slotTime(p.day, p.at_time || slotAt(sl, p.day)) > Date.now() + 3600e3) {
+    if (p.at_time) await run(x.db, "UPDATE zb_plan SET at_time = ? WHERE id = ? AND COALESCE(at_time, '') = ''", p.at_time, id); // giữ giờ riêng đã đặt cho bài
+    await run(x.db, 'DELETE FROM zb_posts WHERE id = ?', id); return 'redo';
+  }
+  return 'kept';
+}
+
+/** ⏰ Đặt giờ đăng riêng cho 1 bài (id = yyyyMMdd_slot): ghi vào bài đã soạn + chủ đề kế hoạch. at = '' → về giờ của khung */
+async function setTime(x, id, at) {
+  const [day, slot] = String(id).split('_'); if (!/^\d{8}$/.test(day || '') || !/^(sang|toi)$/.test(slot || '')) return { ok: false, error: 'Không rõ bài.' };
+  let v = '';
+  if (at) {
+    v = okTime(slot, at); if (!v) return { ok: false, error: 'Giờ chưa hợp lệ. ' + TIME_RULE[slot] };
+    if (slotTime(day, v) < Date.now() + 5 * 60e3) return { ok: false, error: 'Giờ này đã qua (hoặc còn dưới 5 phút), chọn giờ muộn hơn nhé.' };
+  }
+  const p = await first(x.db, 'SELECT status FROM zb_posts WHERE id = ?', id), pl = await first(x.db, 'SELECT status FROM zb_plan WHERE id = ?', id);
+  if (p && p.status === 'sent') return { ok: false, error: 'Bài này đã đăng rồi.' };
+  if (!p && !pl) return { ok: false, error: 'Bài này chưa có chủ đề / chưa soạn: lập kế hoạch hoặc bấm ✍️ Soạn ngay trước.' };
+  if (p) await run(x.db, 'UPDATE zb_posts SET at_time = ? WHERE id = ?', v, id);
+  if (pl) await run(x.db, 'UPDATE zb_plan SET at_time = ? WHERE id = ?', v, id);
+  return { ok: true, at: v };
 }
 
 /** Soạn 1 bài (hint: ý nhân sự gõ khi bấm "Viết lại") */
@@ -477,27 +656,38 @@ export async function zWrite(x, day, slot, hint, by, grp) {
   const know = await kb(), prods = prodMap(know), wd = new Date(slotTime(day, '12:00') + TZ_MS).getUTCDay();
   const recent = await all(x.db, "SELECT day, slot, topic, img FROM zb_posts WHERE topic != '' AND slot != 'chuc' ORDER BY day DESC LIMIT 20");
   const used = new Set(recent.map(r => r.img).filter(Boolean)), lib = (await imgLib()).filter(i => !used.has(i.url)); // không lặp ảnh đã dùng gần đây
-  // 📅 ngày lễ, rằm, mùng 1 (zday.js) thay chủ đề theo thứ; ngày đôi 11/11, 12/12 chỉ đăng khi có ưu đãi đang chạy
-  const sang = slot !== 'toi', live = await offersLive(x), th = dayTheme(day, sang ? 'sang' : 'toi', baseTheme, live.length > 0), lu = lunar(day), evTxt = th.ev && !th.moved;
+  // 📅 ngày lễ, rằm, mùng 1 (zday.js) thay chủ đề theo thứ; ngày đôi 11/11, 12/12 chỉ đăng khi có ưu đãi đang chạy. Ưu đãi tính tới ngày đăng (bài soạn trước 2–3 ngày)
+  const cfg = await zCfg(x), sang = slot !== 'toi', live = await offersLive(x, slotTime(day, '12:00')), fr = dayTheme(day, sang ? 'sang' : 'toi', baseTheme, live.length > 0), lu = lunar(day);
+  // 📋 chủ đề trong kế hoạch (đã duyệt, hoặc nháp khi còn < 24 tiếng): giữ khung theo thứ / dịp, đổi tầng phễu thì bỏ các phần riêng của khung (đố vui, cảm nhận khách)
+  const pl = await first(x.db, "SELECT * FROM zb_plan WHERE id = ? AND status IN ('ok', 'draft') AND topic != ''", day + '_' + slot);
+  const pf = pl && FUNNEL[pl.f] ? pl.f : fr.f, same = pf === fr.f;
+  const th = pl ? Object.assign({}, fr, { f: pf, quiz: same ? fr.quiz : 0, fb: same ? fr.fb : 0, link: pf === 'BOFU' ? 1 : same ? fr.link : 0 }) : fr, evTxt = th.ev && !th.moved;
   // ưu đãi đang chạy (Marketing nhập ở CRM) cho bài bán hàng
   const offers = th.f === 'BOFU' ? live : [];
   // đố vui tối qua → sáng nay công bố đáp án
   const quiz = th.quiz && !dayTheme(addDay(day, -1), 'toi', baseTheme, live.length > 0).ev ? await first(x.db, "SELECT text FROM zb_posts WHERE day = ? AND slot = 'toi'", addDay(day, -1)) : null; // tối qua là bài ngày lễ thì không có đố vui
+  // ⏰ giờ đăng thật của bài (giờ riêng nhân sự đặt / giờ khung / giờ thử) → AI viết lời chào hợp buổi
+  const sl0 = cfg.slots.find(z => z.id === slot) || { id: slot, at: sang ? '07:30' : '20:00' };
   // cảm nhận khách hàng thật (anh Sơn cho phép đăng trong nhóm 31/10/2026): lấy cái lâu chưa dùng nhất
   const fbs = th.fb ? ((await kvJson(x.db, 'zb_fb', [])) || []).filter(f => f.on !== false).sort((a, b) => (a.used || 0) - (b.used || 0)) : [];
   const fb = fbs[0] || null;
   // học từ số đo: bài cùng tầng phễu nhiều người tương tác nhất / ít nhất trong 45 ngày
   const scored = await all(x.db, "SELECT topic, funnel, eng_people, eng_msgs FROM zb_posts WHERE status = 'sent' AND sent_at >= ? AND funnel = ? ORDER BY eng_people DESC, eng_msgs DESC", Math.max(TRACK_FROM, Date.now() - 45 * DAY), th.f);
   // 🎯 nhóm khách + tension (insight.js): viết lại giữ nhóm cũ, còn lại xoay vòng nhóm ít được viết nhất trong nhóm Zalo
-  const old = await first(x.db, 'SELECT ins FROM zb_posts WHERE id = ?', day + '_' + slot); let og = ''; try { og = hint && old && old.ins ? JSON.parse(old.ins).g || '' : ''; } catch (e) { }
-  const ip = await insPick(x, 'zalo', grp || og);
+  const old = await first(x.db, 'SELECT ins, at_time FROM zb_posts WHERE id = ?', day + '_' + slot); let og = ''; try { og = hint && old && old.ins ? JSON.parse(old.ins).g || '' : ''; } catch (e) { }
+  const atT = (old && old.at_time) || (pl && pl.at_time) || '', at = atT || slotAt(sl0, day), hh = Number(at.slice(0, 2));
+  const tod = hh < 9 ? 'sáng sớm' : hh < 11 ? 'buổi sáng' : hh < 13 ? 'buổi trưa' : hh < 18 ? 'buổi chiều' : 'buổi tối';
+  const ip = await insPick(x, 'zalo', grp || og || (pl ? pl.g : ''), pl && pl.sp ? { prod: pl.sp } : undefined); // nhân sự chọn nhóm khi viết lại > nhóm cũ > nhóm trong kế hoạch
+  const plTn = pl && pl.tn && ip.g && ip.g.id === pl.g ? pl.tn : '';
   const learn = scored.length >= 4 ? 'Bài cùng loại trong nhóm này được nhiều người hưởng ứng nhất (học cách đặt vấn đề, cách hỏi):\n' + scored.slice(0, 3).map(r => '- ' + r.topic + ' (' + r.eng_people + ' người)').join('\n') + '\nBài ít người hưởng ứng (tránh kiểu này):\n' + scored.slice(-2).map(r => '- ' + r.topic + ' (' + r.eng_people + ' người)').join('\n') : '';
   const ask = [
     'Viết 1 bài đăng nhóm Zalo cộng đồng "Sống khỏe cùng Thực Dưỡng Lành" (thành viên phần lớn là cô chú trung niên, mẹ bỉm, người ăn chay, dân văn phòng).',
-    'Ngày: ' + ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'][wd] + ' ' + day.slice(6, 8) + '/' + day.slice(4, 6) + (evTxt ? ' (âm lịch: ' + lu.text + ') · dịp: ' + th.ev : '') + ' · ' + (sang ? 'đăng lúc sáng sớm' : 'đăng buổi tối') + '.',
-    'Chủ đề hôm nay: ' + th.t + ' (tầng phễu: ' + FUNNEL[th.f] + ')' + (hint ? '\nYêu cầu thêm của nhân sự: ' + hint : ''),
-    '', insBlock(ip, th.f, { light: !!(th.ev && !th.moved && th.f === 'TOFU') }), 'Chủ đề hôm nay là khung bắt buộc: giữ đúng chủ đề, chỉ chọn góc viết (món, mẹo, câu hỏi, sản phẩm) chạm đúng tension của nhóm khách trên.', '',
-    quiz ? (th.ev ? 'CÂU ĐỐ TỐI QUA (giữ chủ đề hôm nay, công bố ngắn đáp án đúng ở cuối bài, giải thích 1 câu):\n' : 'CÂU ĐỐ TỐI QUA (công bố đáp án đúng, giải thích 1–2 câu):\n') + String(quiz.text).slice(0, 1200) : th.quiz && !th.ev ? 'Tối qua không có câu đố: bỏ phần đáp án, chỉ làm phần hỏi đáp.' : '',
+    'Ngày: ' + ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'][wd] + ' ' + day.slice(6, 8) + '/' + day.slice(4, 6) + (evTxt ? ' (âm lịch: ' + lu.text + ') · dịp: ' + th.ev : '') + ' · đăng lúc ' + at.replace(':', 'h') + ' (' + tod + ').',
+    pl ? 'Chủ đề ' + (pl.status === 'ok' ? 'ĐÃ DUYỆT' : 'đã lên') + ' trong kế hoạch nội dung (viết đúng chủ đề này): ' + pl.topic + ' (tầng phễu: ' + FUNNEL[th.f] + ')' + (pl.idea ? '\nGóc viết / câu mở gợi ý: ' + pl.idea : '') + (pl.cta ? '\nLối ra của bài: ' + pl.cta : '') +
+      (pl.sp ? '\nSản phẩm của bài: ' + ((prods[pl.sp] || {}).name || spName(pl.sp)) : '') + (same ? '\nKhung chủ đề theo thứ / dịp (giữ nhịp nhóm): ' + fr.t : '') + (hint ? '\nYêu cầu thêm của nhân sự: ' + hint : '')
+      : 'Chủ đề hôm nay: ' + th.t + ' (tầng phễu: ' + FUNNEL[th.f] + ')' + (hint ? '\nYêu cầu thêm của nhân sự: ' + hint : ''),
+    '', insBlock(ip, th.f, { light: !!(th.ev && !th.moved && th.f === 'TOFU') }), plTn ? 'TENSION ĐÃ CHỌN TRONG KẾ HOẠCH (dùng đúng tension này): ' + plTn : '', 'Chủ đề hôm nay là khung bắt buộc: giữ đúng chủ đề, chỉ chọn góc viết (món, mẹo, câu hỏi, sản phẩm) chạm đúng tension của nhóm khách trên.', '',
+    quiz ? (th.ev ? 'CÂU ĐỐ TỐI QUA (giữ chủ đề hôm nay, công bố ngắn đáp án đúng ở cuối bài, giải thích 1 câu; bài tối qua không phải câu đố thì bỏ phần này):\n' : 'CÂU ĐỐ TỐI QUA (công bố đáp án đúng, giải thích 1–2 câu; bài tối qua không phải câu đố thì bỏ phần đáp án):\n') + String(quiz.text).slice(0, 1200) : th.quiz && !th.ev ? 'Tối qua không có câu đố: bỏ phần đáp án, chỉ làm phần hỏi đáp.' : '',
     th.fb ? (fb ? 'CẢM NHẬN KHÁCH HÀNG (thật, khách đồng ý chia sẻ; chỉ dùng đúng ý này, không thêm chi tiết, không nêu họ tên đầy đủ – gọi "một chị khách", "anh khách quen"…):\n' + fb.note : 'Chưa có cảm nhận khách hàng mới: thay bằng câu hỏi mời mọi người kể trải nghiệm dùng sản phẩm của mình (không bịa cảm nhận).') : '',
     th.f === 'BOFU' ? (offers.length ? 'ƯU ĐÃI ĐANG CHẠY (chỉ nói đúng như sau):\n' + offers.map(o => '- ' + [o.title, o.prod ? 'sản phẩm: ' + o.prod : '', o.text, o.until ? 'hạn đến ' + o.until : ''].filter(Boolean).join(' · ')).join('\n') : 'Hiện không có ưu đãi riêng: không bịa khuyến mãi, chỉ nhắc freeship đơn từ 300k và được kiểm hàng trước khi nhận.') : '',
     learn,
@@ -533,12 +723,11 @@ export async function zWrite(x, day, slot, hint, by, grp) {
   // link web trong bài → gắn mã bài để CRM đếm đơn từ bài này (đơn ghi nguồn "zalo / nhom / <mã bài>")
   const tagged = tagLinks(body.replace(/(^|[\s(])_([^_\n]+)_(?=[\s).,!?]|$)/gm, '$1$2').replace(/(^|[\s(])\*([^*\n]+)\*(?=[\s).,!?]|$)/gm, '$1$2'), id);
   if (fb) { const all = (await kvJson(x.db, 'zb_fb', [])) || []; for (const f of all) if (f.id === fb.id) f.used = now; await kvSet(x.db, 'zb_fb', JSON.stringify(all)); }
-  await run(x.db, `INSERT INTO zb_posts (id, day, slot, topic, text, img, prod, status, by_name, at, funnel, ev, ins) VALUES (?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?, ?, ?, ?)
-    ON CONFLICT(id) DO UPDATE SET topic = excluded.topic, text = excluded.text, img = excluded.img, prod = excluded.prod, status = 'draft', by_name = excluded.by_name, at = excluded.at, funnel = excluded.funnel, ev = excluded.ev, ins = excluded.ins`,
-    id, day, slot, topic, tagged.slice(0, 4000), img, prods[code] ? code : '', by || 'AI', now, th.f, th.ev || '', JSON.stringify(ins));
+  await run(x.db, `INSERT INTO zb_posts (id, day, slot, topic, text, img, prod, status, by_name, at, funnel, ev, ins, at_time, plan) VALUES (?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET topic = excluded.topic, text = excluded.text, img = excluded.img, prod = excluded.prod, status = 'draft', by_name = excluded.by_name, at = excluded.at, funnel = excluded.funnel, ev = excluded.ev, ins = excluded.ins, at_time = excluded.at_time, plan = excluded.plan`,
+    id, day, slot, topic, tagged.slice(0, 4000), img, prods[code] ? code : '', by || 'AI', now, th.f, th.ev || '', JSON.stringify(ins), atT, pl ? pl.status : '');
   await insLog(x, 'zalo', { g: ins.g, gn: ins.gn, f: th.f, t: ins.t, ref: id, sp: prods[code] ? code : '' });
-  const cfg = await zCfg(x);
-  if (!slotAuto(cfg, slot) && !by) x.later(telegram(x.env, '📝 <b>Bài Zalo chờ duyệt</b> – ' + (SLOT_NAME[slot] || slot) + ' ' + day.slice(6, 8) + '/' + day.slice(4, 6) + (th.ev ? ' · 📅 ' + esc(th.ev) : '') + ': ' + esc(topic) + '\n👉 Duyệt / sửa: ' + CRM_URL + '/#tro-ly-zalo'));
+  if (!slotAuto(cfg, slot) && !by) x.later(telegram(x.env, '📝 <b>Bài Zalo chờ duyệt</b> – ' + (SLOT_NAME[slot] || slot) + ' ' + WD[wd] + ' ' + day.slice(6, 8) + '/' + day.slice(4, 6) + ' lúc ' + at.replace(':', 'h') + (th.ev ? ' · 📅 ' + esc(th.ev) : '') + (pl ? (pl.status === 'ok' ? ' · 📋 theo chủ đề đã duyệt' : ' · ⚠️ chủ đề kế hoạch chưa duyệt') : '') + ': ' + esc(topic) + '\n👉 Duyệt / sửa: ' + CRM_URL + '/#tro-ly-zalo'));
   return { id, topic };
 }
 
@@ -549,7 +738,8 @@ export async function crmZbot(x, u, d, crmLog) {
   if (a === 'zb_view') {
     const cfg = await zCfg(x), st = await kvJson(x.db, 'zb_status', null);
     const from = fmtDate(now - DAY, 'yyyyMMdd');
-    const posts = await all(x.db, 'SELECT id, day, slot, topic, text, img, prod, status, by_name, at, sent_at, funnel, ev, ins, eng_msgs, eng_people, eng_reacts FROM zb_posts WHERE day >= ? ORDER BY day, slot', from);
+    const posts = await all(x.db, 'SELECT id, day, slot, topic, text, img, prod, status, by_name, at, sent_at, funnel, ev, ins, eng_msgs, eng_people, eng_reacts, at_time, plan FROM zb_posts WHERE day >= ? ORDER BY day, slot', from);
+    const plan = await all(x.db, 'SELECT * FROM zb_plan WHERE day >= ? ORDER BY day, slot LIMIT 200', fmtDate(now, 'yyyyMMdd')); // 📋 kế hoạch chủ đề từ hôm nay
     // 30 ngày: bài đã đăng + tương tác + đơn từ link trong bài (nguồn đơn "zalo / nhom / <mã bài>")
     const since = now - 30 * DAY, done = await all(x.db, "SELECT id, funnel, eng_msgs, eng_people, eng_reacts FROM zb_posts WHERE status = 'sent' AND sent_at >= ?", since);
     const ords = await all(x.db, "SELECT source, first_source, total, status FROM orders WHERE time >= ? AND (source LIKE 'zalo / nhom / %' OR first_source LIKE 'zalo / nhom / %')", since);
@@ -564,9 +754,11 @@ export async function crmZbot(x, u, d, crmLog) {
     // 🕐 giờ nhóm hoạt động 14 ngày + 🧪 kết quả thử giờ đăng bài sáng (theo giờ đăng thật)
     const act = await all(x.db, "SELECT substr(dh, 9, 2) AS h, sum(msgs) AS msgs, sum(people) AS people, count(*) AS n FROM zb_act WHERE dh >= ? GROUP BY h", fmtDate(now - 14 * DAY, 'yyyyMMddHH'));
     const actDays = (await first(x.db, 'SELECT count(DISTINCT substr(dh, 1, 8)) AS n FROM zb_act WHERE dh >= ?', fmtDate(now - 14 * DAY, 'yyyyMMddHH'))).n || 0;
-    const morn = await all(x.db, "SELECT sent_at, eng_people, eng_msgs, eng_reacts FROM zb_posts WHERE slot = 'sang' AND status = 'sent' AND sent_at >= ? AND COALESCE(ev, '') = ''", TRACK_FROM); // bài ngày lễ không tính vào thử giờ (chủ đề khác ngày thường)
+    const morn = await all(x.db, "SELECT sent_at, eng_people, eng_msgs, eng_reacts FROM zb_posts WHERE slot = 'sang' AND status = 'sent' AND sent_at >= ? AND COALESCE(ev, '') = '' AND COALESCE(at_time, '') = ''", TRACK_FROM); // bài ngày lễ (chủ đề khác ngày thường) và bài nhân sự đặt giờ riêng không tính vào thử giờ
     const trialRes = {}; for (const p of morn) { const k = fmtDate(p.sent_at, 'HH'), r = trialRes[k] || (trialRes[k] = { posts: 0, people: 0, msgs: 0, reacts: 0 }); r.posts++; r.people += p.eng_people || 0; r.msgs += p.eng_msgs || 0; r.reacts += p.eng_reacts || 0; }
-    return { ok: true, cfg, status: st, posts, log, open, lib, funnel, act, actDays, trial: TIME_TRIAL, trialRes, days: upcoming(fmtDate(now, 'yyyyMMdd'), 45, baseTheme), stats, users, err: await kvGet(x.db, 'zb_write_err'), key: !!x.env.ZBOT_KEY, aiOn: !!x.env.ANTHROPIC_API_KEY, now, insG: (await insBank(x)).map(g => ({ id: g.id, name: g.name, on: g.on })) };
+    const prods = Object.entries(prodMap(await kb())).map(([c, p]) => ({ c, n: p.name }));
+    return { ok: true, cfg, status: st, posts, plan, prods, mix: Object.fromEntries(Object.entries(MIX).map(([k, v]) => [k, v.name])), log, open, lib, funnel, act, actDays, trial: TIME_TRIAL, trialRes, days: upcoming(fmtDate(now, 'yyyyMMdd'), 45, baseTheme), stats, users, err: await kvGet(x.db, 'zb_write_err'), planErr: await kvGet(x.db, 'zb_plan_err'), key: !!x.env.ZBOT_KEY, aiOn: !!x.env.ANTHROPIC_API_KEY, now,
+      insG: (await insBank(x)).map(g => ({ id: g.id, name: g.name, on: g.on, tn: g.tensions.slice(0, 30) })) };
   }
   if (a === 'zb_cfg') {
     const cfg = await zCfg(x), c = d.cfg || {};
@@ -574,7 +766,10 @@ export async function crmZbot(x, u, d, crmLog) {
     if (c.mode === 'auto' || c.mode === 'approve') cfg.mode = c.mode;
     if (Array.isArray(c.groups)) cfg.groups = c.groups.map(String).slice(0, 10);
     if (c.maxHour !== undefined) cfg.maxHour = Math.max(1, Math.min(30, Number(c.maxHour) || 8));
-    if (Array.isArray(c.slots)) cfg.slots = cfg.slots.map(s => { const n = c.slots.find(z => z.id === s.id) || {}; return { id: s.id, at: /^\d{1,2}:\d{2}$/.test(n.at || '') ? n.at.padStart(5, '0') : s.at, on: n.on === undefined ? s.on : !!n.on, mode: n.mode === 'auto' || n.mode === 'approve' ? n.mode : s.mode || cfg.mode }; });
+    if (c.lead !== undefined) cfg.lead = Math.max(1, Math.min(3, Number(c.lead) || 3)); // soạn trước 1–3 ngày
+    if (c.planAuto !== undefined) cfg.planAuto = !!c.planAuto;
+    if (Array.isArray(c.slots)) for (const n of c.slots) if (n.at && !okTime(n.id, n.at)) return { ok: false, error: 'Giờ ' + (n.id === 'toi' ? 'bài tối' : 'bài sáng') + ' chưa hợp lệ. ' + (TIME_RULE[n.id] || '') };
+    if (Array.isArray(c.slots)) cfg.slots = cfg.slots.map(s => { const n = c.slots.find(z => z.id === s.id) || {}; return { id: s.id, at: okTime(s.id, n.at) || s.at, on: n.on === undefined ? s.on : !!n.on, mode: n.mode === 'auto' || n.mode === 'approve' ? n.mode : s.mode || cfg.mode }; });
     await kvSet(x.db, 'zb_cfg', JSON.stringify(cfg));
     await crmLog(x, u, 'Cài đặt trợ lý Zalo', '', '', '', JSON.stringify(c).slice(0, 300));
     return { ok: true, cfg };
@@ -586,7 +781,7 @@ export async function crmZbot(x, u, d, crmLog) {
     const text = d.text === undefined ? p.text : String(d.text).slice(0, 4000);
     await run(x.db, 'UPDATE zb_posts SET text = ?, status = ?, by_name = ?, at = ? WHERE id = ?', text, st, u.name, now, p.id);
     await crmLog(x, u, 'Bài Zalo', p.id, '', { ok: 'Duyệt', skip: 'Bỏ', draft: 'Sửa' }[st] || st, p.topic);
-    return { ok: true };
+    return { ok: true, warn: d.text !== undefined && d.text !== p.text ? await quizWarn(x, p) : '' };
   }
   if (a === 'zb_img') { // đổi ảnh bài: link trong kho / ảnh tải từ máy (data:image…) / '' = bỏ ảnh
     const p = await first(x.db, 'SELECT id, status, topic FROM zb_posts WHERE id = ?', String(d.id || '')); if (!p) return { ok: false, error: 'Không tìm thấy bài.' };
@@ -628,7 +823,7 @@ export async function crmZbot(x, u, d, crmLog) {
     const dk = 'zb_regen_' + fmtDate(now, 'yyMMdd'), n = Number(await kvGet(x.db, dk) || 0);
     if (n >= 30) return { ok: false, error: 'Hôm nay đã viết lại 30 lần, mai thử tiếp nhé.' };
     await kvSet(x.db, dk, String(n + 1), 2 * DAY);
-    try { const r = await zWrite(x, day, slot, String(d.hint || '').slice(0, 300), u.name, String(d.grp || '').slice(0, 80)); return { ok: true, id: r.id }; }
+    try { const r = await zWrite(x, day, slot, String(d.hint || '').slice(0, 300), u.name, String(d.grp || '').slice(0, 80)); return { ok: true, id: r.id, warn: await quizWarn(x, { day, slot }) }; }
     catch (e) { return { ok: false, error: 'AI chưa viết được: ' + e.message }; }
   }
   if (a === 'zb_send') { // nhân sự tự viết, trợ lý đăng vào nhóm (ngay / hẹn giờ)
@@ -644,7 +839,78 @@ export async function crmZbot(x, u, d, crmLog) {
     await crmLog(x, u, 'Gửi tin vào nhóm Zalo', '', '', at > now + 60e3 ? 'Hẹn ' + fmtDate(at, 'HH:mm dd/MM') : 'Gửi ngay', text.slice(0, 200));
     return { ok: true };
   }
+  if (a === 'zb_time') { // ⏰ giờ đăng riêng cho 1 bài (sáng / tối); at trống = về giờ của khung
+    const r = await setTime(x, String(d.id || ''), String(d.at || '').trim());
+    if (r.ok) await crmLog(x, u, 'Bài Zalo', String(d.id), '', r.at ? 'Hẹn giờ đăng ' + r.at : 'Về giờ mặc định', '');
+    return r;
+  }
+  if (a === 'zb_plan_make') { // 📋 lập kế hoạch chủ đề: tối đa 7 ngày / lần (CRM gọi lần lượt cho 14 ngày / cả tháng)
+    const from = String(d.from || ''); if (!/^\d{8}$/.test(from) || from < fmtDate(now, 'yyyyMMdd') || from > fmtDate(now + 90 * DAY, 'yyyyMMdd')) return { ok: false, error: 'Ngày bắt đầu chưa đúng.' };
+    if (!x.env.ANTHROPIC_API_KEY) return { ok: false, error: 'Máy chủ chưa có khoá AI.' };
+    const dk = 'zb_plan_n_' + fmtDate(now, 'yyMMdd'), cnt = Number(await kvGet(x.db, dk) || 0);
+    if (cnt >= 25) return { ok: false, error: 'Hôm nay đã lập kế hoạch 25 lần, mai thử tiếp nhé.' };
+    await kvSet(x.db, dk, String(cnt + 1), 2 * DAY);
+    const mix = MIX[d.mix] ? d.mix : 'frame', focus = cutS(d.focus, 500), n = Math.max(1, Math.min(7, Number(d.n) || 7));
+    if (d.save) { const cfg = await zCfg(x); cfg.pmix = { mix, focus, to: String(d.save).match(/^\d{8}$/) ? String(d.save) : addDay(from, n - 1) }; await kvSet(x.db, 'zb_cfg', JSON.stringify(cfg)); } // tự lập tuần sau dùng tiếp trọng tâm / tỉ lệ này tới hết kỳ
+    try {
+      const r = await zPlanMake(x, from, n, { mix, focus, by: u.name, hint: cutS(d.hint, 300) });
+      await crmLog(x, u, 'Kế hoạch chủ đề Zalo', from, '', 'Lập ' + r.n + ' chủ đề từ ' + dm(from), MIX[mix].name + (focus ? ' · ' + focus : ''));
+      await kvSet(x.db, 'zb_plan_err', '');
+      return { ok: true, n: r.n };
+    } catch (e) { return { ok: false, error: 'AI chưa lập được: ' + e.message }; }
+  }
+  if (a === 'zb_plan_redo') { // 🔄 đổi 1 chủ đề (AI gợi ý chủ đề khác cho đúng bài đó)
+    const pl = await first(x.db, 'SELECT * FROM zb_plan WHERE id = ?', String(d.id || '')); if (!pl) return { ok: false, error: 'Không tìm thấy chủ đề.' };
+    if (!x.env.ANTHROPIC_API_KEY) return { ok: false, error: 'Máy chủ chưa có khoá AI.' };
+    const dk = 'zb_plan_n_' + fmtDate(now, 'yyMMdd'), cnt = Number(await kvGet(x.db, dk) || 0);
+    if (cnt >= 25) return { ok: false, error: 'Hôm nay đã lập kế hoạch 25 lần, mai thử tiếp nhé.' };
+    await kvSet(x.db, dk, String(cnt + 1), 2 * DAY);
+    try {
+      const pm = (await zCfg(x)).pmix || {}, use = pm.to && pm.to >= pl.day;
+      const r = await zPlanMake(x, pl.day, 1, { mix: use ? pm.mix : 'frame', focus: use ? pm.focus : '', by: u.name, only: [pl.id], hint: cutS(d.hint, 300) });
+      if (!r.n) return { ok: false, error: 'Bài này đã chốt (đã đăng / đã duyệt bài / sắp tới giờ) nên không đổi chủ đề được.' };
+      await crmLog(x, u, 'Kế hoạch chủ đề Zalo', pl.id, '', 'Đổi chủ đề', r.items[0].topic);
+      return { ok: true };
+    } catch (e) { return { ok: false, error: 'AI chưa viết được: ' + e.message }; }
+  }
+  if (a === 'zb_plan_set') { // ✅ duyệt / ✏️ sửa / ⏸ bỏ chủ đề (1 bài, hoặc ids = duyệt cả tuần)
+    const ids = (Array.isArray(d.ids) ? d.ids : [d.id]).map(String).filter(Boolean).slice(0, 62);
+    const st = ['draft', 'ok', 'skip'].includes(d.status) ? d.status : '';
+    const bank = await insBank(x), prods = d.sp !== undefined ? prodMap(await kb()) : {};
+    let n = 0, redo = 0, kept = 0;
+    for (const id of ids) {
+      const pl = await first(x.db, 'SELECT * FROM zb_plan WHERE id = ?', id); if (!pl) continue;
+      const v = Object.assign({}, pl);
+      if (ids.length === 1) { // sửa nội dung chủ đề (chỉ khi sửa từng bài)
+        for (const [k, nmax] of [['topic', 200], ['idea', 300], ['cta', 120], ['tn', 300]]) if (d[k] !== undefined) v[k] = cutS(d[k], nmax);
+        if (d.f !== undefined && FUNNEL[d.f]) v.f = d.f;
+        if (d.g !== undefined) { const g = bank.find(z => z.id === String(d.g)); v.g = g ? g.id : ''; v.gn = g ? g.name : ''; }
+        if (d.sp !== undefined) v.sp = prods[String(d.sp)] ? String(d.sp) : '';
+        if (!v.topic) return { ok: false, error: 'Chủ đề không được để trống.' };
+      }
+      if (st) v.status = st;
+      if (st === 'ok' && st === pl.status && ids.length > 1) continue; // duyệt cả tuần: bỏ qua bài đã duyệt
+      const changed = ['topic', 'idea', 'cta', 'tn', 'f', 'g', 'sp'].some(k => v[k] !== pl[k]);
+      await run(x.db, 'UPDATE zb_plan SET topic = ?, idea = ?, cta = ?, tn = ?, f = ?, g = ?, gn = ?, sp = ?, status = ?, by_name = ?, at = ?, ok_by = ?, ok_at = ? WHERE id = ?',
+        v.topic, v.idea, v.cta, v.tn, v.f, v.g, v.gn, v.sp, v.status, changed ? u.name : pl.by_name, changed ? now : pl.at, v.status === 'ok' ? (pl.status === 'ok' && !changed ? pl.ok_by : u.name) : '', v.status === 'ok' ? (pl.status === 'ok' && !changed ? pl.ok_at : now) : null, id);
+      n++;
+      if (v.status === 'ok' && (pl.status !== 'ok' || changed)) { const r = await planReset(x, id); if (r === 'redo') redo++; else if (r === 'kept') kept++; } // bài AI soạn trước theo chủ đề cũ → soạn lại
+      if (v.status === 'skip') await run(x.db, "UPDATE zb_posts SET status = 'skip' WHERE id = ? AND status IN ('draft', 'ok')", id); // không đăng bài này
+      if (pl.status === 'skip' && v.status !== 'skip') await run(x.db, "UPDATE zb_posts SET status = 'draft' WHERE id = ? AND status = 'skip'", id);
+    }
+    if (d.at !== undefined && ids.length === 1) { const r = await setTime(x, ids[0], String(d.at || '').trim()); if (!r.ok) return Object.assign(r, { n }); }
+    await crmLog(x, u, 'Kế hoạch chủ đề Zalo', ids.length === 1 ? ids[0] : ids.length + ' bài', '', { ok: 'Duyệt chủ đề', skip: 'Không đăng bài này', draft: 'Bỏ duyệt chủ đề' }[st] || 'Sửa chủ đề', '');
+    return { ok: true, n, redo, kept };
+  }
   return { ok: false, error: 'Không rõ thao tác: ' + a };
+}
+
+/** Sửa / viết lại bài tối có câu đố → nhắc bài sáng hôm sau (công bố đáp án, đã soạn sẵn vì soạn trước 2–3 ngày) cần viết lại cho khớp */
+async function quizWarn(x, p) {
+  if (!p || p.slot !== 'toi') return '';
+  const nx = addDay(p.day, 1); if (!dayTheme(nx, 'sang', baseTheme, false).quiz) return '';
+  const m = await first(x.db, "SELECT status FROM zb_posts WHERE id = ? AND status IN ('draft', 'ok')", nx + '_sang');
+  return m ? 'Bài sáng ' + WD[weekday(nx)] + ' ' + dm(nx) + ' công bố đáp án câu đố của bài này và đã được soạn trước: nhớ bấm 🔄 Viết lại bài sáng đó cho khớp câu đố mới.' : '';
 }
 
 /** GET api.thucduonglanh.vn/zb-img/<id>: ảnh nhân sự tải lên cho bài đăng (chương trình Zalo tải về để đăng, CRM xem trước) */
