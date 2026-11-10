@@ -2,7 +2,7 @@
 title: Hướng dẫn sửa website
 nav: Website
 order: 6
-updated: 2026-10-22
+updated: 2026-11-10
 description: Đăng bài, sửa giá, sửa sản phẩm, đăng tin tuyển dụng. Làm trên máy tính.
 ---
 
@@ -71,7 +71,9 @@ Trợ lý tự viết bài cho Góc Sống Lành. **Bài chỉ lên web khi có 
 **Cài đặt:** CRM → 📰 Bài web → ⚙️ Cài đặt và ➕ Thêm chủ đề. Sửa ở /admin → Cài đặt website → 🤖 Trợ lý viết bài tự động cũng được, hai chỗ dùng chung một bản.
 - **Số bài mỗi tuần** (1–7) và **Giờ đăng**.
 - **Chủ đề chờ viết**: thêm chủ đề muốn viết, trợ lý lấy chủ đề trên cùng trước. Bài đăng xong, chủ đề tự chuyển sang "Đã đăng" kèm link.
-- Hết chủ đề, trợ lý tự chọn theo phễu 3 tầng (Nhận biết, Cân nhắc, Mua hàng) và theo ô **Tệp khách hàng, insight và tension**.
+- Khi giao chủ đề, chọn được **🎯 Nhóm khách bài nhắm tới** (để trống = trợ lý tự chọn nhóm ít được viết nhất).
+- Mọi bài, kể cả chủ đề được giao, đều qua bước **🎯 insight**: trợ lý chọn 1 nhóm khách + 1 tension (điều họ mong ↔ điều đang cản họ) rồi mới viết. Thẻ bài chờ duyệt có dòng 🎯 để bạn kiểm tra.
+- Hết chủ đề, trợ lý tự chọn chủ đề theo phễu 3 tầng (Nhận biết, Cân nhắc, Mua hàng) từ **ngân hàng insight** chung ở CRM → **🎯 Insight & nội dung** ([xem hướng dẫn](/huong-dan/marketing/#insight-noi-dung)). Ô **Ghi chú thêm về tệp khách** ở ⚙️ Cài đặt chỉ để ghi điều riêng cho bài web.
 
 ## Sửa giá sản phẩm
 

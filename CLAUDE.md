@@ -59,6 +59,7 @@ Nếu CRM web (`crm/`) cần Apps Script bản mới mới chạy được thì 
 
 ## Nguyên tắc nội dung
 - Chỉ ghi công dụng đúng hồ sơ công bố. Không dùng các từ "chữa/điều trị/khỏi bệnh". Thực phẩm bổ sung phải có dòng "không phải là thuốc…".
+- Mọi nội dung (bài web, nhóm Zalo, Fanpage, kịch bản video, quảng cáo) theo quy trình **Insight → Tension → Phễu TOFU/MOFU/BOFU** (anh Sơn 10/11/2026, khoá content Tuấn Hà): mỗi bài nhắm 1 nhóm khách + 1 tension (điều họ mong ↔ điều đang cản họ), đúng 1 tầng phễu, có 1 lối ra. Ngân hàng insight ở CRM → 🎯 Insight & nội dung (kv `ins_bank`, code `api/src/insight.js`, HUONG-DAN.md mục 6c). Thêm trợ lý viết nội dung mới thì dùng `insPick` + `insBlock` + `insParse` của insight.js.
 - Thông tin sản phẩm lấy từ skill vtg (trước tên là vitagreen-company-info), nếu phiên làm việc có skill này. Nếu không có thì dựa vào `content/products/*.json` và không tự bịa thông tin.
 
 ## Ảnh từ điện thoại

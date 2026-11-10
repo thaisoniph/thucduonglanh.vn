@@ -416,6 +416,20 @@ Apps Script giới hạn 200 phiên bản/dự án: báo lỗi "Không tạo đ�
 - CRM tab 📰 Bài web (`viewBlog` trong crm/app.js, lệnh `bl_view / bl_post / bl_act / bl_cfg` trong blog.js `crmBlog`): xem, duyệt, sửa cài đặt + chủ đề (ghi thẳng `data/blog-auto.json` bằng 1 commit). Quyền như người duyệt.
 - 📊 Hiệu quả (lệnh `bl_stats`): GA4 theo pagePath /goc-song-lanh/ (lượt xem, người đọc, thời gian, add_to_cart + cta_click; lưu tạm kv bl_ga_<ngày> 3 tiếng), đơn sau khi đọc = bảng `bl_conv` (main.js lưu `tdl_post` khi đọc bài, đơn gửi kèm `post` nếu đọc trong 7 ngày; index.js gọi `blogConv`), chi phí từ `ai_usage` mục web-bai.
 - Chi phí AI đếm ở mục "📰 Trợ lý viết bài web" (CRM → Chi phí AI). Ước tính 8–10 nghìn đồng / bài, chưa gồm phí tìm kiếm của Anthropic ($10 / 1.000 lượt, tối đa 6 lượt / bài).
+- 10/11/2026: mọi bài (kể cả chủ đề được giao) đi qua bước 🎯 insight (mục 6c). Chủ đề có thêm trường `group` (id nhóm khách). Ô `audience` giờ chỉ là "ghi chú thêm riêng cho bài web"; ngân hàng chính ở kv `ins_bank`. `meta` của bài lưu `who` (tên nhóm), `g`, `t` (tension), `i` (insight).
+
+## 6c. 🎯 Insight → Tension → Phễu cho mọi nội dung AI viết (10/11/2026, api `2026-11-10n`)
+- Anh Sơn: "tất cả nội dung đăng nhóm Zalo, fanpage, website hay kịch bản video đều phải dựa trên insight / tension của nhóm khách mục tiêu và theo 3 tầng phễu TOFU, MOFU, BOFU" (khoá content Tuấn Hà – Vinalink; cùng tư duy với skill `tim-insights-ta-3c` và `kehoachcontent`).
+- Code chung: `api/src/insight.js`. Ngân hàng insight: kv `ins_bank` ({ groups: [{ id, name, on, who, want, block, tensions[], note }] }); chưa sửa lần nào → `INS0` trong code (5 nhóm: me-bim, van-phong, trung-nien, an-chay, mua-qua). `FUN` = luật 3 tầng phễu (TOFU giá trị ở nội dung, MOFU uy tín / bằng chứng thật, BOFU sản phẩm / ưu đãi; mỗi bài 1 lối ra).
+- Mỗi trợ lý: `insPick(x, kênh, nhómChỉĐịnh, { only })` chọn nhóm (chỉ định → nhóm đó; không thì nhóm ít bài nhất ở kênh đó trong 14 ngày, hoà → ít nhất mọi kênh → xoay theo ngày) → `insBlock(p, tầng)` chèn vào prompt (chân dung, mong muốn, rào cản, tension, tension vừa dùng, quy trình 4 bước, luật tầng phễu, đạo đức) → AI trả thêm 3 dòng `NHÓM KHÁCH / TENSION / INSIGHT` (`INS_HEAD`) → `insParse` → lưu cùng bài + `insLog` (kv `ins_log`, 90 ngày / 600 dòng; viết lại cùng bài thì thay dòng cũ).
+  - Bài web `blog.js write` (kênh `web`): chủ đề có `group` → nhóm đó; viết lại giữ nhóm cũ.
+  - Bài nhóm Zalo `zbot.js zWrite` (kênh `zalo`): cột mới `zb_posts.ins` (JSON). Chủ đề theo thứ trong tuần / ngày lễ vẫn là khung bắt buộc, tension chỉ chọn góc viết; bài lễ 🔵 dùng `light` (không biến thành bài bán).
+  - Bài Fanpage `fb.js fpWrite` (kênh `fb`): `FP_THEME` giờ có tầng phễu (🔵 4 · ⚪ 2 · 🟠 1 / tuần); cột mới `fp_posts.funnel`, `fp_posts.ins`; cài đặt trang `cfg.aud` = nhóm khách trang nhắm tới (trống = mọi nhóm). Bài 🟠 lối ra là link sản phẩm.
+  - Viết lại (`zb_regen`, `fp_regen`) nhận thêm `grp` (id nhóm); CRM hỏi bằng hộp thoại `inRegenAsk` thay `prompt()`.
+- 🎬 Kịch bản video: lệnh `ins_video` (`vdWrite`, cùng mô hình AI với bài Zalo, effort medium, mục chi phí AI `video`), bảng D1 `vd_scripts`. Đầu ra: 3 hook + bảng AIDA 6 cột (cảnh, thời lượng, hình ảnh, lời thoại, chữ trên màn hình, nguồn hình – đúng mẫu skill `sieu-tro-ly-video` / khoá K133 Vinalink) + caption + ghi chú quay. `ins_vdel` xoá.
+- CRM tab **🎯 Insight & nội dung** (`#noi-dung`, `viewIns` trong crm/app.js, CSS `inx-…`): thống kê 30 ngày theo nhóm × kênh × tầng phễu, form kịch bản video, sửa ngân hàng (`ins_view / ins_save`, `reset` = về bản mặc định). Quyền xem: Marketing, Quản lý, Quản trị, người phụ trách Trợ lý Zalo / Sửa website (`canIns`); sửa ngân hàng: Marketing, Quản lý, Quản trị. Thẻ bài ở tab Zalo, Fanpage, Bài web có dòng `inTag` 🎯 nhóm · tension · 💭 insight.
+- MCP: công cụ `insight_noi_dung` (`insText`) trả ngân hàng + quy trình để ChatGPT / Gemini / Claude bên ngoài viết đúng quy trình.
+- Thêm nhóm khách / tension: sửa ở CRM (không cần code). Đổi nhóm mặc định trong code (`INS0`) chỉ có tác dụng khi chưa ai sửa ở CRM.
 
 ## 7. Tên miền, DNS, chuyển hướng
 

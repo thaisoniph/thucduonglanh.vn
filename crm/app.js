@@ -110,6 +110,7 @@
     qr: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></svg>',
     mega: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a1 1 0 0 0 1 1h3l6 4V6L7 10H4a1 1 0 0 0-1 1z"/><path d="M17 9a4 4 0 0 1 0 6"/><path d="M8 14l1.5 5h2.5l-1.5-5"/></svg>',
     doc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>',
+    aim: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>',
     bot: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="3"/><path d="M12 8V4M8 4h8M9 14h.01M15 14h.01"/></svg>',
     more: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>',
     kt: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M16 13h2"/><path d="M2 10h20"/><path d="M6 6V4h12v2"/></svg>',
@@ -741,6 +742,7 @@
     { id: 'link-qr', label: 'Link & QR', short: 'QR', icon: 'qr', lq: 1 }, // 📍 link / mã QR theo dõi nguồn khách: Marketing, Quản lý, Quản trị (Quản trị vào từ Tổng quan / Marketing)
     { id: 'tro-ly-zalo', label: 'Trợ lý Zalo', short: 'Zalo', icon: 'bot', lq: 1 }, // 🤖 trợ lý An Lành trong nhóm Zalo (api/src/zbot.js): cùng quyền với Link & QR
     { id: 'fanpage', label: 'Fanpage', short: 'FB', icon: 'mail', lq: 1 }, // 📘 trợ lý Fanpage: trả lời bình luận, Messenger, bài đăng (api/src/fb.js): cùng quyền với Link & QR
+    { id: 'noi-dung', label: 'Insight & nội dung', short: 'Insight', icon: 'aim', lq: 1 }, // 🎯 ngân hàng insight chung + 🎬 kịch bản video (api/src/insight.js): cùng quyền với Link & QR
     { id: 'bai-web', label: 'Bài web', short: 'Bài', icon: 'doc', bw: 1 }, // 📰 trợ lý viết bài cho Góc Sống Lành (api/src/blog.js): Quản lý, Quản trị, người bật Sửa website
     { id: 'kho', label: 'Kho', icon: 'kho', kho: 1 }, // 📦 kho hàng (api/src/kho.js): người tích Phụ trách kho, Quản lý, Quản trị (Quản lý / Quản trị vào từ Thêm, Tổng quan)
     { id: 'ke-toan', label: 'Kế toán', icon: 'kt', kt: 1 }, // 💼 tiền về, tiền treo ở hãng, chi phí, lãi lỗ (api/src/kt.js): quyền Kế toán + Quản trị (Quản trị vào từ Thêm)
@@ -766,10 +768,10 @@
     'tong-quan': 'Bức tranh kinh doanh cả công ty', 'hom-nay': 'Khách cần gọi, đơn mới hôm nay', 'tiem-nang': 'Người để lại số, chưa mua',
     'khach-hang': 'Hồ sơ, lịch sử mua, chăm sóc', 'don-hang': 'Đơn mới, đang giao, hoàn / huỷ', 'bao-cao': 'Doanh số, mục tiêu, thi đua',
     marketing: 'Quảng cáo, chi phí, giá 1 số điện thoại', 'link-qr': 'Link và mã QR theo dõi nguồn khách', 'tro-ly-zalo': 'Trợ lý An Lành trong nhóm Zalo',
-    fanpage: 'Trả lời bình luận, tin nhắn Fanpage', 'bai-web': 'Trợ lý viết bài cho Góc Sống Lành', san: 'Doanh số Shopee, TikTok Shop', kho: 'Hàng còn bao nhiêu, sắp hết, đặt thêm hàng', 'ke-toan': 'Tiền về tài khoản, tiền treo ở hãng, lãi lỗ', 'cai-dat': 'Nhân sự, mục tiêu, mẫu tin, tài khoản',
+    fanpage: 'Trả lời bình luận, tin nhắn Fanpage', 'bai-web': 'Trợ lý viết bài cho Góc Sống Lành', 'noi-dung': 'Nhóm khách, tension, phễu; kịch bản video', san: 'Doanh số Shopee, TikTok Shop', kho: 'Hàng còn bao nhiêu, sắp hết, đặt thêm hàng', 'ke-toan': 'Tiền về tài khoản, tiền treo ở hãng, lãi lỗ', 'cai-dat': 'Nhân sự, mục tiêu, mẫu tin, tài khoản',
     'hoi-so-lieu': 'Hỏi bằng lời, AI tự tra số và báo cáo'
   };
-  var VIEW_TINT = { 'tong-quan': '#1f5f3a', 'hom-nay': '#34a853', 'tiem-nang': '#ff9500', 'khach-hang': '#007aff', 'don-hang': '#a2845e', 'bao-cao': '#5856d6', marketing: '#ff2d55', 'link-qr': '#636366', 'tro-ly-zalo': '#0068ff', fanpage: '#1877f2', 'bai-web': '#24805b', san: '#ee4d2d', kho: '#8e5a2b', 'ke-toan': '#0a7d5a', 'cai-dat': '#8e8e93', 'hoi-so-lieu': '#af52de' };
+  var VIEW_TINT = { 'tong-quan': '#1f5f3a', 'hom-nay': '#34a853', 'tiem-nang': '#ff9500', 'khach-hang': '#007aff', 'don-hang': '#a2845e', 'bao-cao': '#5856d6', marketing: '#ff2d55', 'link-qr': '#636366', 'tro-ly-zalo': '#0068ff', fanpage: '#1877f2', 'bai-web': '#24805b', 'noi-dung': '#d9480f', san: '#ee4d2d', kho: '#8e5a2b', 'ke-toan': '#0a7d5a', 'cai-dat': '#8e8e93', 'hoi-so-lieu': '#af52de' };
   function viewMore() {
     var main = navMain(), n = navCounts(), info = navInfo();
     var rest = myViews().filter(function (v) { return main.indexOf(v.id) < 0 && v.id !== 'cai-dat'; });
@@ -989,7 +991,7 @@
     var keepScroll = lastView === v, y = window.scrollY;
     var el = $('#view');
     var focusId = document.activeElement && document.activeElement.id, selStart = document.activeElement && document.activeElement.selectionStart;
-    el.innerHTML = ({ 'hom-nay': viewToday, 'khach-hang': viewCustomers, 'don-hang': viewOrders, 'tiem-nang': viewLeads, 'bao-cao': viewReport, 'cai-dat': viewSettings, 'tong-quan': viewDash, san: viewSan, marketing: viewMkt, 'link-qr': viewLinks, 'tro-ly-zalo': viewZbot, fanpage: viewFp, 'bai-web': viewBlog, 'hoi-so-lieu': viewAsk, kho: viewKho, 'ke-toan': viewKtab, them: viewMore })[v]();
+    el.innerHTML = ({ 'hom-nay': viewToday, 'khach-hang': viewCustomers, 'don-hang': viewOrders, 'tiem-nang': viewLeads, 'bao-cao': viewReport, 'cai-dat': viewSettings, 'tong-quan': viewDash, san: viewSan, marketing: viewMkt, 'link-qr': viewLinks, 'tro-ly-zalo': viewZbot, fanpage: viewFp, 'bai-web': viewBlog, 'noi-dung': viewIns, 'hoi-so-lieu': viewAsk, kho: viewKho, 'ke-toan': viewKtab, them: viewMore })[v]();
     el.insertAdjacentHTML('beforeend', updatedLine());
     if (focusId && $('#' + focusId)) { var f = $('#' + focusId); f.focus(); try { f.setSelectionRange(selStart, selStart); } catch (e) { } }
     if (keepScroll) window.scrollTo(0, y); else window.scrollTo(0, 0);
@@ -5995,6 +5997,152 @@
   /* ---------------------------------------------------------------- 🤖 Trợ lý Zalo An Lành (api/src/zbot.js, chương trình ở zalo-bot/)
    * Tài khoản Zalo "Trợ lý An Lành" làm phó nhóm: chào người mới, trả lời câu hỏi, chúc mừng khách nhận quà trên web, tự duyệt người đã để số, đăng bài sáng / tối.
    * Tab này: xem trợ lý có đang chạy không, sửa / duyệt / bỏ bài AI soạn trước, gửi tin vào nhóm, cài đặt, xem trợ lý vừa làm gì. Quản lý, Quản trị, Marketing. */
+  /* ================================================================ 🎯 Insight & nội dung (10/11/2026, api/src/insight.js)
+   * Ngân hàng insight chung (nhóm khách, mong muốn, rào cản, tension) cho mọi trợ lý viết: bài web, nhóm Zalo, Fanpage, 🎬 kịch bản video.
+   * Quy trình (khoá content Tuấn Hà): nhóm khách → 1 tension → tầng phễu TOFU / MOFU / BOFU → viết bài gỡ tension, có 1 lối ra. */
+  var IN = { d: null, busy: 0, err: '' };
+  var IN_CH = { web: '🌐 Web', zalo: '💬 Zalo', fb: '📘 Fanpage', video: '🎬 Video' };
+  var IN_FN = { TOFU: '🔵 TOFU · Nhận biết', MOFU: '⚪ MOFU · Cân nhắc', BOFU: '🟠 BOFU · Mua hàng' };
+  var IN_KIND = { noi: '🙋 Người thật nói trước máy', canh: '🎥 Quay cảnh + giọng đọc (không lộ mặt)', chu: '🖼 Ảnh có sẵn + chữ + giọng đọc (không quay)' };
+  function inFetch() {
+    IN.busy = 1; IN.err = '';
+    api('ins_view', {}).then(function (j) { IN.d = j; }, function (e) { IN.err = /Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message; })
+      .then(function () { IN.busy = 0; if (route().view === 'noi-dung') render(); });
+  }
+  function inCanEdit() { return lvl() >= 2 || isMkt(); }
+  /** 🎯 nhóm khách · tension của 1 bài (cột ins JSON ở Zalo / Fanpage, meta ở bài web) */
+  function inTag(o) {
+    if (typeof o === 'string') { try { o = JSON.parse(o || '{}'); } catch (e) { o = {}; } }
+    if (!o || !(o.gn || o.t)) return '';
+    return '<p class="small inx-tag">🎯 <b>' + esc(o.gn || 'Nhóm khách') + '</b>' + (o.t ? ' · ' + esc(o.t) : '') + (o.i ? '<br><span class="muted">💭 “' + esc(o.i) + '”</span>' : '') + '</p>';
+  }
+  /** Hỏi trước khi viết lại (Zalo, Fanpage): ý kiến + nhóm khách. cb(hint, grp) */
+  function inRegenAsk(groups, cur, cb) {
+    var opts = '<option value="">' + (cur ? 'Giữ nhóm đang viết (' + esc(cur) + ')' : 'Trợ lý tự chọn (xoay vòng nhóm ít được viết)') + '</option>' + (groups || []).filter(function (g) { return g.on; }).map(function (g) { return '<option value="' + esc(g.id) + '">' + esc(g.name) + '</option>'; }).join('');
+    var m = modal('🔄 Viết lại bài này',
+      '<label class="f"><span>Muốn AI viết lại thế nào? <small class="muted">để trống = viết bài khác cùng chủ đề</small></span><textarea id="inRgH" rows="3" placeholder="Vd: nói về hạt óc chó, ngắn hơn, vui hơn…"></textarea></label>' +
+      '<label class="f"><span>🎯 Nhóm khách bài nhắm tới</span><select id="inRgG">' + opts + '</select><small class="muted">Trợ lý chọn 1 tension của nhóm này rồi mới viết. Sửa nhóm và tension ở tab 🎯 Insight & nội dung.</small></label>',
+      '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="inRgGo">✍️ Viết lại</button>');
+    $('#inRgGo', m).onclick = function () { var h = $('#inRgH', m).value.trim(), g = $('#inRgG', m).value; closeModal(); cb(h, g); };
+  }
+  /** Kịch bản video: bảng 6 cột → thẻ từng cảnh (dễ đọc trên điện thoại), phần còn lại như Hỏi số liệu */
+  function inScriptHtml(t) {
+    var out = '', rest = [], tbl = [];
+    var flush = function () {
+      if (rest.length) { out += askMd(rest.join('\n')); rest = []; }
+      if (!tbl.length) return;
+      var rows = tbl.filter(function (r) { return !/^[\s|:-]+$/.test(r); }).map(function (r) { return r.replace(/^\|/, '').replace(/\|$/, '').split('|').map(function (c) { return c.trim(); }); });
+      var head = rows.shift() || [];
+      out += '<div class="inx-scenes">' + rows.map(function (r) {
+        return '<div class="inx-scene"><div class="inx-sh"><b>🎬 Cảnh ' + esc(r[0] || '') + '</b><span>' + esc(r[1] || '') + '</span></div>' +
+          r.slice(2).map(function (c, i) { return c ? '<p><span class="muted">' + esc(head[i + 2] || '') + ':</span> ' + esc(c) + '</p>' : ''; }).join('') + '</div>';
+      }).join('') + '</div>'; tbl = [];
+    };
+    String(t || '').replace(/\r/g, '').split('\n').forEach(function (ln) { var s = ln.trim(); if (/^\|.*\|$/.test(s)) { if (rest.length) { out += askMd(rest.join('\n')); rest = []; } tbl.push(s); } else { if (tbl.length) flush(); rest.push(ln); } });
+    flush();
+    return out;
+  }
+  function inStatsHtml(j) {
+    var log = j.log || [], bank = j.bank || [], by = {}, fun = {};
+    log.forEach(function (r) { var k = r.g || r.gn || '?'; (by[k] = by[k] || { n: 0 })[r.ch] = (by[k][r.ch] || 0) + 1; by[k].n++; if (r.f) { (fun[r.ch] = fun[r.ch] || { n: 0 })[r.f] = (fun[r.ch][r.f] || 0) + 1; fun[r.ch].n++; } });
+    var max = Math.max.apply(null, [1].concat(Object.keys(by).map(function (k) { return by[k].n; })));
+    var h = '<h2 class="zb-h">📊 30 ngày qua: nội dung theo nhóm khách</h2><div class="box inx-stats">';
+    h += bank.filter(function (g) { return g.on || by[g.id]; }).map(function (g) {
+      var b = by[g.id] || { n: 0 };
+      return '<div class="inx-srow"><div class="inx-sn"><b>' + esc(g.name) + '</b> <span class="small muted">' + b.n + ' bài</span>' + (!b.n && g.on ? ' <span class="small">⚠️ chưa có nội dung nào</span>' : '') + '</div>' +
+        '<div class="inx-bar"><i style="width:' + Math.round(b.n * 100 / max) + '%"></i></div><div class="small muted">' + Object.keys(IN_CH).filter(function (c) { return b[c]; }).map(function (c) { return IN_CH[c] + ' ' + b[c]; }).join(' · ') + '</div></div>';
+    }).join('');
+    var fc = Object.keys(IN_CH).filter(function (c) { return fun[c] && fun[c].n; });
+    if (fc.length) h += '<div class="inx-fun small">' + fc.map(function (c) { var f = fun[c]; return '<p>' + IN_CH[c] + ': ' + ['TOFU', 'MOFU', 'BOFU'].map(function (k) { return '<span class="zb-fun zb-fun-' + k.toLowerCase() + '">' + k + ' ' + Math.round((f[k] || 0) * 100 / f.n) + '%</span>'; }).join(' ') + '</p>'; }).join('') + '</div>';
+    if (!log.length) h += '<p class="small muted">Chưa có bài nào đi qua bước insight. Từ hôm nay, mỗi bài trợ lý viết sẽ được đếm ở đây.</p>';
+    return h + '<p class="small muted">Nhóm nào ít bài thì trợ lý tự ưu tiên viết cho nhóm đó ở lần sau. Tỉ lệ phễu nên giữ khoảng: Zalo 🔵 55% ⚪ 30% 🟠 15%, Fanpage 🔵 55–60%, web 🔵 50% ⚪ 30% 🟠 20%.</p></div>';
+  }
+  function viewIns() {
+    if (!IN.d && !IN.err && !IN.busy) setTimeout(inFetch, 0);
+    var h = '<div class="page-head"><h1>🎯 Insight & nội dung</h1></div>' +
+      '<p class="muted small lq-intro">Mọi nội dung trợ lý AI viết (bài web, bài nhóm Zalo, Fanpage, kịch bản video) đều đi 4 bước: chọn <b>1 nhóm khách</b> → <b>1 tension</b> (điều họ mong ↔ điều đang cản họ) → <b>tầng phễu</b> → viết bài gỡ đúng tension đó. Sửa ngân hàng insight ở đây là cả 4 trợ lý dùng theo. <a href="/huong-dan/marketing/#insight-noi-dung" target="_blank" rel="noopener">Xem hướng dẫn</a></p>';
+    if (!IN.d) return h + '<div class="box"><p class="muted">' + (IN.err ? '⚠️ ' + esc(IN.err) + ' <button class="link" data-in="reload">Thử lại</button>' : '⏳ Đang tải…') + '</p></div>';
+    var j = IN.d, bank = j.bank || [], ed = inCanEdit();
+    h += '<details class="zb-info small"><summary>ⓘ Quy trình Insight → Tension → Phễu (khoá content Tuấn Hà)</summary><ol>' +
+      '<li><b>Insight là tension</b>: thế giằng co khi điều khách <b>mong</b> va vào <b>rào cản</b> trong 1 cảnh đời cụ thể. Ví dụ: “Biết phải ăn sáng đủ chất ↔ sáng nào cũng vội, ăn tạm hoặc bỏ bữa”.</li>' +
+      '<li>Mỗi bài chỉ nói với <b>1 nhóm khách</b> và gỡ <b>1 tension</b>: cắt bỏ, giảm (thời gian, tiền, công sức, rủi ro), đi vòng rào cản hoặc đổi cách nhìn. Không hù doạ, không hứa sai sự thật.</li>' +
+      '<li><b>🔵 TOFU</b>: giá trị nằm ở chính nội dung (kiến thức, mẹo, câu chuyện), không bán. <b>⚪ MOFU</b>: giá trị là uy tín (nguồn gốc, nhà máy, hồ sơ công bố, cảm nhận khách thật). <b>🟠 BOFU</b>: giá trị nằm ở sản phẩm, ưu đãi thật.</li>' +
+      '<li>Mỗi bài có <b>1 lối ra</b>: TOFU mời bình luận, nhận quà, vào nhóm · MOFU mời xem sản phẩm, hỏi tư vấn · BOFU mời đặt hàng.</li>' +
+      '<li>Trên thẻ bài ở tab Zalo, Fanpage, Bài web có dòng <b>🎯 nhóm khách · tension</b> để người duyệt kiểm tra bài có chạm đúng nỗi lòng khách không.</li></ol></details>';
+    h += inStatsHtml(j);
+    // 🎬 kịch bản video
+    var gOpt = '<option value="">🔄 Tự chọn (nhóm ít video nhất)</option>' + bank.filter(function (g) { return g.on; }).map(function (g) { return '<option value="' + esc(g.id) + '">' + esc(g.name) + '</option>'; }).join('');
+    h += '<h2 class="zb-h">🎬 Viết kịch bản video ngắn</h2><div class="box inx-vd">' +
+      '<p class="small muted">Video dọc 9:16 cho TikTok, Reels, Shorts. Kịch bản theo AIDA, bảng 6 cột (cảnh, thời lượng, hình ảnh, lời thoại, chữ trên màn hình, nguồn hình) đúng mẫu khoá video Vinalink, có 3 câu hook để quay thử.</p>' +
+      '<div class="inx-grid"><label class="f"><span>🎯 Nhóm khách</span><select id="inVg">' + gOpt + '</select></label>' +
+      '<label class="f"><span>Tầng phễu</span><select id="inVf"><option value="">Tự chọn theo tension</option>' + ['TOFU', 'MOFU', 'BOFU'].map(function (k) { return '<option value="' + k + '">' + IN_FN[k] + '</option>'; }).join('') + '</select></label>' +
+      '<label class="f"><span>Sản phẩm (không bắt buộc)</span><select id="inVp"><option value="">Không / để AI chọn</option>' + (j.prods || []).map(function (p) { return '<option value="' + esc(p.code) + '">' + esc(p.name) + '</option>'; }).join('') + '</select></label>' +
+      '<label class="f"><span>Độ dài</span><select id="inVs">' + [15, 30, 45, 60, 90].map(function (n) { return '<option value="' + n + '"' + (n === 45 ? ' selected' : '') + '>' + n + ' giây</option>'; }).join('') + '</select></label>' +
+      '<label class="f"><span>Kiểu quay</span><select id="inVk">' + Object.keys(IN_KIND).map(function (k) { return '<option value="' + k + '">' + IN_KIND[k] + '</option>'; }).join('') + '</select></label></div>' +
+      '<label class="f"><span>Yêu cầu thêm <small class="muted">không bắt buộc</small></span><textarea id="inVh" rows="2" placeholder="Vd: quay ở bếp buổi sáng, chị Lan nói; nhắc ưu đãi 11/11…"></textarea></label>' +
+      (j.aiOn ? '<button class="btn pri" data-in="vd">🎬 Viết kịch bản</button>' : '<p class="small">⚠️ Máy chủ chưa có khoá AI.</p>') + '</div>';
+    var sc = j.scripts || [];
+    if (sc.length) h += '<div class="inx-list">' + sc.map(function (s, i) {
+      var open = IN.open ? IN.open === s.id : i === 0;
+      return '<details class="box inx-sc"' + (open ? ' open' : '') + '><summary><b>' + esc(s.title) + '</b> <span class="small muted">' + s.sec + ' giây · ' + fDateTime(s.at) + ' · ' + esc(s.by_name) + '</span><br>' +
+        (s.f ? '<span class="zb-fun zb-fun-' + s.f.toLowerCase() + '">' + (IN_FN[s.f] || s.f) + '</span> ' : '') + '</summary>' + inTag(s) +
+        '<div class="inx-script">' + inScriptHtml(s.text) + '</div><div class="lq-btns"><button class="btn sm pri" data-in="vcopy|' + s.id + '">📋 Copy kịch bản</button><button class="btn sm ghost" data-in="vdel|' + s.id + '">🗑 Xoá</button></div></details>';
+    }).join('') + '</div>';
+    // 👥 ngân hàng insight
+    h += '<div class="zb-done-h"><h2 class="zb-h">👥 Ngân hàng insight</h2><span class="small">' + (j.custom ? 'Đã chỉnh riêng' : 'Bản mặc định') + ' · ' + bank.filter(function (g) { return g.on; }).length + ' nhóm đang dùng</span></div>';
+    h += bank.map(function (g, i) {
+      return '<div class="box inx-g' + (g.on ? '' : ' bw-off') + '"><div class="zb-ph"><b>' + esc(g.name) + '</b><span class="zb-due">' + (g.on ? '🟢 Đang dùng' : '⏸ Tạm tắt') + '</span></div>' +
+        (g.who ? '<p class="small">' + esc(g.who) + '</p>' : '') + (g.want ? '<p class="small"><b>💚 Mong muốn:</b> ' + esc(g.want) + '</p>' : '') + (g.block ? '<p class="small"><b>🧱 Rào cản:</b> ' + esc(g.block) + '</p>' : '') +
+        '<p class="small"><b>⚡ Tension</b> (mong muốn ↔ rào cản):</p><ul class="small inx-tl">' + g.tensions.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>' + (g.note ? '<p class="small muted">📝 ' + esc(g.note) + '</p>' : '') +
+        (ed ? '<div class="lq-btns"><button class="btn sm" data-in="ged|' + i + '">✏️ Sửa</button><button class="btn sm ghost" data-in="gon|' + i + '">' + (g.on ? '⏸ Tạm tắt' : '▶️ Bật lại') + '</button><button class="btn sm ghost" data-in="gdel|' + i + '">🗑 Xoá</button></div>' : '') + '</div>';
+    }).join('');
+    if (ed) h += '<div class="lq-btns"><button class="btn pri" data-in="gnew">➕ Thêm nhóm khách</button>' + (j.custom ? '<button class="btn ghost" data-in="reset">↩️ Dùng lại bản mặc định</button>' : '') + '</div>';
+    return h;
+  }
+  function inSave(groups, msg) {
+    return api('ins_save', { groups: groups }).then(function (r) { IN.d.bank = r.bank; IN.d.custom = true; toast(msg); render(); }, function (e) { toast(e.message, true); });
+  }
+  function inGroupForm(i) {
+    var bank = (IN.d.bank || []).slice(), g = i == null ? { on: true, tensions: [] } : bank[i];
+    var m = modal(i == null ? '➕ Thêm nhóm khách' : '✏️ Sửa nhóm khách',
+      '<label class="f"><span>Tên nhóm</span><input id="inGn" value="' + esc(g.name || '') + '" placeholder="Vd: Người tập gym, chạy bộ"></label>' +
+      '<label class="f"><span>Chân dung <small class="muted">họ là ai, sống thế nào, hay ở đâu</small></span><textarea id="inGw" rows="2">' + esc(g.who || '') + '</textarea></label>' +
+      '<label class="f"><span>💚 Mong muốn <small class="muted">điều họ nói ra được + khát vọng sâu hơn</small></span><textarea id="inGa" rows="2">' + esc(g.want || '') + '</textarea></label>' +
+      '<label class="f"><span>🧱 Rào cản <small class="muted">tiền, thời gian, thói quen, người khác, nỗi sợ…</small></span><textarea id="inGb" rows="2">' + esc(g.block || '') + '</textarea></label>' +
+      '<label class="f"><span>⚡ Tension <small class="muted">mỗi dòng 1 cái, dạng “Muốn … ↔ nhưng …”</small></span><textarea id="inGt" rows="7" placeholder="Muốn ăn sáng đủ chất ↔ sáng nào cũng vội, ăn tạm hoặc bỏ bữa">' + esc((g.tensions || []).join('\n')) + '</textarea></label>' +
+      '<label class="f"><span>📝 Ghi chú cho trợ lý <small class="muted">không bắt buộc: nên nói gì, tránh gì</small></span><textarea id="inGo" rows="2">' + esc(g.note || '') + '</textarea></label>' +
+      '<label class="switch"><input type="checkbox" id="inGon"' + (g.on !== false ? ' checked' : '') + '> Đang dùng (trợ lý viết cho nhóm này)</label>',
+      '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="inGsave">Lưu</button>');
+    $('#inGsave', m).onclick = function () {
+      var t = $('#inGt', m).value.split('\n').map(function (s) { return s.trim(); }).filter(Boolean).map(function (s) { return s.replace(/\s*(<->|<=>|->|=>)\s*/, ' ↔ '); });
+      var ng = { id: g.id || '', name: $('#inGn', m).value.trim(), who: $('#inGw', m).value.trim(), want: $('#inGa', m).value.trim(), block: $('#inGb', m).value.trim(), tensions: t, note: $('#inGo', m).value.trim(), on: $('#inGon', m).checked };
+      if (!ng.name) return toast('Bạn ghi tên nhóm trước nhé.', true);
+      if (!t.length) return toast('Ghi ít nhất 1 tension nhé.', true);
+      if (t.some(function (s) { return s.indexOf('↔') < 0; }) && !confirm('Có dòng tension chưa có dấu ↔ (2 cực: điều họ mong ↔ điều đang cản họ). Vẫn lưu?')) return;
+      if (i == null) bank.push(ng); else bank[i] = ng;
+      this.disabled = true; closeModal(); inSave(bank, i == null ? 'Đã thêm nhóm khách ✓' : 'Đã lưu nhóm khách ✓');
+    };
+  }
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-in]'); if (!t || !IN.d && t.getAttribute('data-in') !== 'reload') return;
+    var v = t.getAttribute('data-in').split('|'), a = v[0], bank = IN.d ? (IN.d.bank || []).slice() : [], i = Number(v[1]);
+    if (a === 'reload') { IN.err = ''; IN.d = null; return render(); }
+    if (a === 'gnew') return inGroupForm(null);
+    if (a === 'ged') return inGroupForm(i);
+    if (a === 'gon') { bank[i] = Object.assign({}, bank[i], { on: !bank[i].on }); t.disabled = true; return inSave(bank, bank[i].on ? 'Đã bật lại nhóm ✓' : 'Đã tạm tắt nhóm'); }
+    if (a === 'gdel') { if (!confirm('Xoá nhóm “' + bank[i].name + '” khỏi ngân hàng insight?')) return; bank.splice(i, 1); t.disabled = true; return inSave(bank, 'Đã xoá nhóm'); }
+    if (a === 'reset') { if (!confirm('Bỏ mọi chỉnh sửa, dùng lại ngân hàng insight mặc định?')) return; t.disabled = true; return api('ins_save', { reset: 1 }).then(function (r) { IN.d.bank = r.bank; IN.d.custom = false; toast('Đã dùng lại bản mặc định'); render(); }, function (er) { t.disabled = false; toast(er.message, true); }); }
+    if (a === 'vd') {
+      var q = { g: $('#inVg').value, f: $('#inVf').value, prod: $('#inVp').value, sec: Number($('#inVs').value), kind: $('#inVk').value, hint: $('#inVh').value.trim() };
+      t.disabled = true; t.textContent = '⏳ AI đang viết (khoảng 30–60 giây)…';
+      return api('ins_video', q).then(function (r) { IN.d.scripts = [r.script].concat(IN.d.scripts || []); IN.open = r.script.id; $('#inVh').value = ''; toast('Đã viết xong kịch bản ✓'); render(); inFetch(); },
+        function (er) { t.disabled = false; t.textContent = '🎬 Viết kịch bản'; toast(er.message, true); });
+    }
+    var sc = (IN.d.scripts || []).filter(function (s) { return s.id === i; })[0];
+    if (a === 'vcopy' && sc) return copy('# ' + sc.title + '\nNhóm khách: ' + (sc.gn || '') + '\nTension: ' + (sc.t || '') + '\nInsight: ' + (sc.i || '') + '\nTầng phễu: ' + (sc.f || '') + ' · ' + sc.sec + ' giây\n\n' + sc.text).then(function () { toast('📋 Đã copy kịch bản'); });
+    if (a === 'vdel' && sc) { if (!confirm('Xoá kịch bản “' + sc.title + '”?')) return; t.disabled = true; return api('ins_vdel', { id: sc.id }).then(function () { IN.d.scripts = IN.d.scripts.filter(function (s) { return s.id !== sc.id; }); render(); }, function (er) { t.disabled = false; toast(er.message, true); }); }
+  });
+
   var ZB = { d: null, busy: 0, err: '' };
   var ZB_FUN = { TOFU: '🔵 Nhận biết · tương tác', MOFU: '⚪ Cân nhắc · tạo niềm tin', BOFU: '🟠 Chuyển đổi · bán hàng', TIN: '📣 Thông báo · nhân sự gửi', CHUC: '🎉 Chúc mừng nhận quà' }; // nhãn phễu nội dung (zbot.js THEME)
   var ZB_KIND = { welcome: ['👋', 'Chào người mới'], answer: ['💬', 'Trả lời trong nhóm'], handoff: ['🙋', 'Cần người thật (nhóm)'], react: ['❤️', 'Thả tim'], dm: ['📩', 'Trả lời tin riêng'], dm_handoff: ['🙋', 'Cần người thật (tin riêng)'],
@@ -6092,6 +6240,7 @@
     if (waits.length) h += '<div class="box bw-todo"><b>👉 Có ' + waits.length + ' bài chờ bạn duyệt.</b> Đọc rồi bấm ✅ Đăng, hoặc ghi ý kiến để trợ lý viết lại.' + (noTg.length ? '' : '') + '</div>';
     h += '<details class="zb-info small"><summary>ⓘ Cách hoạt động</summary><ol>' +
       '<li><b>Trước ngày đăng 1 ngày</b>, trợ lý lấy chủ đề trên cùng trong 💡 Chủ đề chờ viết. Hết chủ đề thì tự chọn theo tệp khách và phễu 3 tầng: 🔵 Nhận biết (thu hút người mới), ⚪ Cân nhắc (tạo niềm tin), 🟠 Mua hàng (hướng dẫn dùng, chốt đơn).</li>' +
+      '<li>Mọi bài (kể cả chủ đề được giao) đều qua bước <b>🎯 insight</b>: chọn 1 nhóm khách + 1 tension (điều họ mong ↔ điều đang cản họ) rồi mới viết. Thẻ bài có dòng 🎯 để bạn kiểm tra. Sửa nhóm khách ở tab <a href="#noi-dung">🎯 Insight & nội dung</a>.</li>' +
       '<li>Trợ lý tìm nguồn tin uy tín, viết bài 900–1500 chữ, tự bỏ link không có thật, thay từ cấm ("chữa", "điều trị"…), thêm dòng "không phải là thuốc".</li>' +
       '<li>Bài nháp hiện ở đây và nhắn Telegram cho người duyệt. Bấm <b>✅ Đăng</b> là xong: tới giờ đăng bài tự lên web, Google và Bing được báo ngay.</li>' +
       '<li>Chưa ưng thì <b>✍️ Viết lại</b> kèm ý kiến, <b>🖊 Tự sửa trong /admin</b>, <b>🔁 Đổi chủ đề</b> hoặc <b>❌ Bỏ</b>. Tới giờ đăng mà chưa ai duyệt, trợ lý nhắc 1 lần.</li></ol></details>';
@@ -6106,7 +6255,7 @@
       var m = p.meta || {}, need = p.status === 'wait', warn = (m.checks || []).filter(function (x) { return /^⚠️/.test(x); }).length;
       h += '<div class="box zb-post' + (need ? ' zb-need' : '') + '">' + head(need ? '⏳ chờ duyệt' : '✅ ' + esc(p.st) + (p.by_name ? ' · ' + esc(p.by_name) : '')) +
         '<div class="bw-row">' + (m.cover ? '<img class="bw-cover" src="https://thucduonglanh.vn' + esc(m.cover) + '" alt="" loading="lazy">' : '') + '<div class="bw-tx"><p class="bw-title">' + esc(p.title) + '</p>' +
-        '<p class="small">' + bwFun(p.funnel) + (m.who ? ' · ' + esc(m.who) : '') + '</p><p class="small muted">' + esc(m.excerpt || '') + '</p>' +
+        '<p class="small">' + bwFun(p.funnel) + '</p>' + inTag({ gn: m.who, t: m.t, i: m.i }) + '<p class="small muted">' + esc(m.excerpt || '') + '</p>' +
         '<p class="small muted">' + (p.topic && p.topic !== 'Trợ lý tự chọn' ? '💡 Chủ đề được giao: ' + esc(p.topic) : '🤖 Trợ lý tự chọn chủ đề') + '</p></div></div>' +
         (m.checks && m.checks.length ? '<details class="zb-info small"' + (warn ? ' open' : '') + '><summary>' + (warn ? '⚠️ Trợ lý tự kiểm tra: ' + warn + ' điểm cần xem' : '✅ Trợ lý tự kiểm tra: không có lỗi') + '</summary><ul>' + m.checks.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></details>' : '') +
         (m.fb ? '<p class="small muted">✍️ Đã viết lại theo ý kiến: “' + esc(m.fb) + '”</p>' : '') + (p.err ? '<p class="small">⚠️ ' + esc(p.err) + '</p>' : '') + bwBtns(p) + '</div>';
@@ -6119,7 +6268,7 @@
     if (!tp.length) h += '<div class="box"><p class="small muted">Muốn trợ lý viết về điều gì (mùa, sự kiện, câu khách hay hỏi, sản phẩm cần đẩy) thì bấm <b>➕ Giao chủ đề</b>.</p></div>';
     else h += '<div class="box bw-topics">' + tp.map(function (t, i) {
       var st = t.status || 'Chờ viết';
-      return '<div class="bw-trow' + (st === 'Chờ viết' ? '' : ' bw-off') + '"><div class="bw-tx"><b>' + esc(t.title) + '</b> <span class="bw-tag">' + (st === 'Chờ viết' ? '⏳ ' : st === 'Đã đăng' ? '✅ ' : '⏭ ') + esc(st) + '</span>' + (t.funnel && t.funnel !== 'Tự chọn' ? ' <span class="small muted">' + esc(t.funnel) + '</span>' : '') +
+      return '<div class="bw-trow' + (st === 'Chờ viết' ? '' : ' bw-off') + '"><div class="bw-tx"><b>' + esc(t.title) + '</b> <span class="bw-tag">' + (st === 'Chờ viết' ? '⏳ ' : st === 'Đã đăng' ? '✅ ' : '⏭ ') + esc(st) + '</span>' + (t.funnel && t.funnel !== 'Tự chọn' ? ' <span class="small muted">' + esc(t.funnel) + '</span>' : '') + (t.group ? ' <span class="small muted">🎯 ' + esc(((BW.d.insG || []).filter(function (g) { return g.id === t.group; })[0] || { name: t.group }).name) + '</span>' : '') +
         (t.note ? '<br><span class="small muted">' + esc(t.note) + '</span>' : '') + (t.link ? '<br><a class="small" href="' + esc(t.link) + '" target="_blank" rel="noopener">Xem bài đã đăng</a>' : '') + '</div>' +
         '<div class="bw-tb">' + (i ? '<button class="btn sm" data-bw="tup|' + i + '" title="Đưa lên trên">⬆️ Lên</button>' : '') + '<button class="btn sm" data-bw="ted|' + i + '">✏️ Sửa</button><button class="btn sm" data-bw="tdel|' + i + '">🗑 Xoá</button></div></div>';
     }).join('') + '</div>';
@@ -6138,11 +6287,12 @@
       '<label class="f"><span>Chủ đề / tiêu đề gợi ý</span><input id="bwTt" value="' + esc(t.title || '') + '" placeholder="Ví dụ: Bữa sáng 5 phút cho dân văn phòng không bị đói giữa buổi"></label>' +
       '<label class="f"><span>Ghi chú cho trợ lý (không bắt buộc)</span><textarea id="bwTn" rows="3" placeholder="Ý chính muốn nói, nhóm khách nhắm tới, nguồn tin nên dùng…">' + esc(t.note || '') + '</textarea></label>' +
       '<label class="f"><span>Tầng phễu</span>' + sel('bwTf', BW_TFN, t.funnel || 'Tự chọn') + '</label>' +
+      '<label class="f"><span>🎯 Nhóm khách bài nhắm tới</span><select id="bwTg"><option value="">Trợ lý tự chọn (nhóm ít được viết nhất)</option>' + (BW.d.insG || []).filter(function (g) { return g.on || g.id === t.group; }).map(function (g) { return '<option value="' + esc(g.id) + '"' + (g.id === t.group ? ' selected' : '') + '>' + esc(g.name) + '</option>'; }).join('') + '</select><small class="muted">Trợ lý chọn 1 tension của nhóm này rồi mới viết. Sửa nhóm ở tab 🎯 Insight & nội dung.</small></label>' +
       '<label class="f"><span>Sản phẩm muốn nhắc (mã, không bắt buộc)</span><input id="bwTp" value="' + esc(t.product || '') + '" placeholder="Ví dụ: bua-an-dinh-duong-vitagreen"></label>' +
       (i == null ? '' : '<label class="f"><span>Trạng thái</span>' + sel('bwTs', BW_TST, t.status || 'Chờ viết') + '</label>'),
       '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="bwTsave">Lưu</button>');
     $('#bwTsave', m).onclick = function () {
-      var nt = { title: $('#bwTt', m).value.trim(), note: $('#bwTn', m).value.trim(), funnel: $('#bwTf', m).value, product: $('#bwTp', m).value.trim(), status: i == null ? 'Chờ viết' : $('#bwTs', m).value, link: t.link || '' };
+      var nt = { title: $('#bwTt', m).value.trim(), note: $('#bwTn', m).value.trim(), funnel: $('#bwTf', m).value, group: $('#bwTg', m).value, product: $('#bwTp', m).value.trim(), status: i == null ? 'Chờ viết' : $('#bwTs', m).value, link: t.link || '' };
       if (!nt.title) return toast('Bạn ghi chủ đề trước nhé.', true);
       if (i == null) tp.push(nt); else tp[i] = nt;
       this.disabled = true; closeModal(); bwSaveTopics(tp, i == null ? 'Đã thêm chủ đề ✓' : 'Đã lưu chủ đề ✓');
@@ -6155,7 +6305,7 @@
       '<label class="switch"><input type="checkbox" id="bwOn"' + (c.on ? ' checked' : '') + '> Bật trợ lý (tắt thì ngừng viết bài mới, bài đã duyệt vẫn lên đúng hẹn)</label>' +
       '<label class="f"><span>Số bài mỗi tuần</span><select id="bwPer">' + [1, 2, 3, 4, 5, 6, 7].map(function (n) { return '<option value="' + n + '"' + (n === c.per_week ? ' selected' : '') + '>' + n + ' bài (' + esc(dn[n] || '') + ')</option>'; }).join('') + '</select></label>' +
       '<label class="f"><span>Giờ đăng (giờ Việt Nam)</span><select id="bwHr">' + hrs + '</select><small class="muted">Duyệt muộn hơn giờ đăng thì bài lên ngay khi duyệt.</small></label>' +
-      '<label class="f"><span>Tệp khách hàng, insight và tension</span><textarea id="bwAud" rows="12">' + esc(c.audience || '') + '</textarea><small class="muted">Hết chủ đề, trợ lý chọn chủ đề từ đây theo phễu 3 tầng. Viết càng sát nỗi lòng thật của khách, bài càng trúng.</small></label>',
+      '<label class="f"><span>Ghi chú thêm về tệp khách (riêng bài web)</span><textarea id="bwAud" rows="8">' + esc(c.audience || '') + '</textarea><small class="muted">Nhóm khách, mong muốn, rào cản, tension dùng chung cho mọi trợ lý nằm ở tab <a href="#noi-dung">🎯 Insight & nội dung</a>. Ô này chỉ để ghi thêm điều riêng cho bài web (có thể để trống).</small></label>',
       '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="bwSsave">Lưu cài đặt</button>');
     $('#bwSsave', m).onclick = function () {
       var b = this; b.disabled = true; b.textContent = '⏳ Đang lưu…';
@@ -6406,7 +6556,7 @@
         '<div class="box zb-hours" role="img" aria-label="Số tin nhắn trung bình theo giờ">' + Array.from({ length: 24 }, function (_, H3) { var v = per(H3); return '<div class="zb-hcol' + (postH[H3] ? ' on' : '') + '" title="' + H3 + 'h: ' + String(Math.round(v * 10) / 10).replace('.', ',') + ' tin/ngày"><span style="height:' + Math.max(2, Math.round(v / mx * 100)) + '%"></span><i>' + (H3 % 3 === 0 ? H3 : '') + '</i></div>'; }).join('') + '</div>';
     }
     h += '<div class="zb-done-h"><h2 class="zb-h">📝 Bài đăng nhóm</h2><span class="small">' + (c.slots || []).filter(function (q) { return q.on; }).map(function (q) { return slotTxt(q, today) + ': <b>' + (slA(q.id) ? '🤖 tự đăng' : '⏳ chờ duyệt') + '</b>'; }).join(' · ') + '</span></div>' +
-      '<details class="zb-info small"><summary>ⓘ Cách hoạt động</summary><p>AI soạn trước theo lịch chủ đề trong tuần, dùng đúng thông tin sản phẩm trên web. <b>Chờ duyệt</b>: chỉ bài đã bấm <b>✅ Duyệt</b> mới được đăng. <b>Tự đăng</b>: tới giờ trợ lý đăng bài AI soạn, thấy chưa ổn thì sửa hoặc bấm <b>⏸ Bỏ bài này</b>. Đổi ở <b>⚙️ Cài đặt trợ lý</b>.</p><p>AI tự chọn ảnh: bài về sản phẩm kèm ảnh sản phẩm, bài khác chọn ảnh thật hợp chủ đề (không có ảnh hợp thì chỉ đăng chữ). Không đăng từ 21h45 tới 6h sáng. Khung bên trái là <b>bài sẽ hiện trên Zalo</b>; muốn sửa chữ bấm <b>✏️ Sửa chữ</b> (chữ trong **hai dấu sao** sẽ in đậm).</p>' + (j.err ? '<p class="err">Lần soạn lỗi gần nhất: ' + esc(j.err) + '</p>' : '') + '</details>';
+      '<details class="zb-info small"><summary>ⓘ Cách hoạt động</summary><p>AI soạn trước theo lịch chủ đề trong tuần (mỗi chủ đề có tầng phễu 🔵 ⚪ 🟠), dùng đúng thông tin sản phẩm trên web. Trước khi viết, AI chọn <b>🎯 1 nhóm khách + 1 tension</b> (xoay vòng nhóm ít được viết nhất) rồi viết bài chạm đúng nỗi lòng đó; dòng 🎯 trên thẻ bài cho biết bài nhắm ai. Sửa nhóm khách ở tab <a href="#noi-dung">🎯 Insight & nội dung</a>. <b>Chờ duyệt</b>: chỉ bài đã bấm <b>✅ Duyệt</b> mới được đăng. <b>Tự đăng</b>: tới giờ trợ lý đăng bài AI soạn, thấy chưa ổn thì sửa hoặc bấm <b>⏸ Bỏ bài này</b>. Đổi ở <b>⚙️ Cài đặt trợ lý</b>.</p><p>AI tự chọn ảnh: bài về sản phẩm kèm ảnh sản phẩm, bài khác chọn ảnh thật hợp chủ đề (không có ảnh hợp thì chỉ đăng chữ). Không đăng từ 21h45 tới 6h sáng. Khung bên trái là <b>bài sẽ hiện trên Zalo</b>; muốn sửa chữ bấm <b>✏️ Sửa chữ</b> (chữ trong **hai dấu sao** sẽ in đậm).</p>' + (j.err ? '<p class="err">Lần soạn lỗi gần nhất: ' + esc(j.err) + '</p>' : '') + '</details>';
     // 📅 ngày lễ, rằm, mùng 1 sắp tới (api zday.js): bài hôm đó đổi chủ đề theo dịp. Máy chủ bản cũ không gửi j.days → không hiện
     var zbEv = {}; (j.days || []).forEach(function (e) { zbEv[e.d + '_' + e.s] = e; });
     if ((j.days || []).length) h += '<details class="zb-info small zb-days"><summary>📅 Ngày lễ sắp tới (45 ngày): ' + j.days.filter(function (e) { return !e.moved; }).length + ' bài theo dịp</summary><p class="muted">Mùng 1, rằm, lễ Tết: bài 🔵 chúc mừng, không bán. Trước dịp tặng quà có bài 🟠 gợi ý quà. Bài bán bị ngày lễ chiếm chỗ thì dời sang hôm sau. Ngày đôi chỉ đăng khi Marketing có ưu đãi đang chạy.</p><ul>' +
@@ -6420,7 +6570,7 @@
       h += '<div class="box zb-post zb-' + p.status + (need ? ' zb-need' : '') + '" data-zbcard="' + p.id + '"><div class="zb-ph"><b>' + lbl + '</b><span class="zb-due">' + due + '</span></div>' +
         '<div class="zb-grid"><div class="zb-prev">' + (p.img ? '<img src="' + esc(p.img) + '" alt="Ảnh kèm bài" loading="lazy">' : '') + '<div class="zb-bub">' + zbRender(p.text) + '</div>' + (p.img ? '' : '<p class="small muted" style="margin:6px 2px 0">Bài này không kèm ảnh</p>') + '</div>' +
         '<div class="zb-side">' + (p.funnel ? '<span class="zb-fun zb-fun-' + p.funnel.toLowerCase() + '">' + ZB_FUN[p.funnel] + '</span>' : '') + (p.ev ? ' <span class="zb-fun zb-evb">📅 ' + esc(p.ev) + '</span>' : '') +
-        '<p class="small" style="margin:6px 0"><b>Chủ đề:</b> ' + esc(p.topic) + '<br><span class="muted">' + (p.by_name && p.by_name !== 'AI' ? 'Sửa bởi ' + esc(p.by_name) : 'AI soạn') + ' · ' + fDateTime(p.at) + '</span></p>' +
+        '<p class="small" style="margin:6px 0"><b>Chủ đề:</b> ' + esc(p.topic) + '<br><span class="muted">' + (p.by_name && p.by_name !== 'AI' ? 'Sửa bởi ' + esc(p.by_name) : 'AI soạn') + ' · ' + fDateTime(p.at) + '</span></p>' + inTag(p.ins) +
         (need ? '<button class="btn pri zb-act" data-zb="ok|' + p.id + '">✅ Duyệt bài này</button>' : '') +
         '<div class="zb-more"><button class="btn sm" data-zb="edit|' + p.id + '">✏️ Sửa chữ</button><button class="btn sm" data-zb="img|' + p.id + '">🖼 ' + (p.img ? 'Đổi ảnh' : 'Thêm ảnh') + '</button><button class="btn sm" data-zb="regen|' + p.id + '">🔄 Viết lại</button>' +
         (p.status === 'ok' ? '<button class="btn sm ghost" data-zb="draft|' + p.id + '">↩️ Bỏ duyệt</button>' : '') + '<button class="btn sm ghost" data-zb="skip|' + p.id + '">⏸ Bỏ bài này</button></div>' +
@@ -6486,10 +6636,12 @@
     if (v[0] === 'done' || v[0] === 'undone') { t.disabled = true; return api('zb_done', { rid: Number(id), undo: v[0] === 'undone' }).then(after(v[0] === 'done' ? 'Đã ghi: bạn xử lý ca này ✓' : 'Đã bỏ đánh dấu'), fail); }
     if (v[0] === 'logmore') { var all = (ZB.d.log || []).concat(ZB.more || []), min = all.reduce(function (m, l) { return Math.min(m, l.rid); }, 1e15); t.disabled = true; t.textContent = '⏳ Đang tải…'; return api('zb_logmore', { before: min }).then(function (r) { ZB.more = (ZB.more || []).concat(r.log || []); if (!(r.log || []).length || r.log.length < 100) ZB.moreEnd = 1; render(); }, fail); }
     if (v[0] === 'edit') { var cd = t.closest('[data-zbcard]'); if (cd) { cd.classList.toggle('zb-editing'); var ta2 = $('#zbT_' + id); if (ta2 && cd.classList.contains('zb-editing')) ta2.focus(); } return; }
-    if (v[0] === 'regen') {
-      var hint = prompt('Muốn AI viết lại thế nào? (vd: “nói về hạt óc chó”, “ngắn hơn”, “vui hơn”). Để trống = viết bài khác cùng chủ đề.', ''); if (hint === null) return;
-      var p = id.split('_'); t.disabled = true; t.textContent = '⏳ AI đang viết (khoảng 30 giây)…';
-      return api('zb_regen', { id: id, day: p[0], slot: p[1], hint: hint }).then(after('AI đã viết lại ✓ Xem và sửa nếu cần.'), fail);
+    if (v[0] === 'regen') { // 10/11/2026: hỏi ý kiến + nhóm khách (🎯 insight) bằng hộp thoại thay prompt
+      var zp = (ZB.d.posts || []).filter(function (x) { return x.id === id; })[0], zi = {}; try { zi = JSON.parse(zp && zp.ins || '{}') || {}; } catch (er) { }
+      return inRegenAsk(ZB.d.insG, zi.gn, function (hint, grp) {
+        var p = id.split('_'); t.disabled = true; t.textContent = '⏳ AI đang viết (khoảng 30 giây)…';
+        api('zb_regen', { id: id, day: p[0], slot: p[1], hint: hint, grp: grp }).then(after('AI đã viết lại ✓ Xem và sửa nếu cần.'), fail);
+      });
     }
     if (v[0] === 'cfg') {
       var box = t.closest('.zb-set'), cfg = { groups: [], slots: [] };
@@ -6624,7 +6776,7 @@
     var needN = function (pid) { return todo.filter(function (it) { return (!pid || it.p.page === pid) && fpNeed(it.p); }).length; };
     var pids = []; items.forEach(function (it) { if (pids.indexOf(it.p.page) < 0) pids.push(it.p.page); });
     h += '<div class="zb-done-h"><h2 class="zb-h">📝 Bài đăng fanpage</h2><span class="small">' + posting.map(function (pg) { return esc(pg.name) + ': <b>' + (pg.cfg.mode === 'auto' ? '🤖 tự đăng' : '⏳ chờ duyệt') + '</b> lúc ' + (pg.cfg.slots || []).join(', '); }).join(' · ') + '</span></div>' +
-      '<details class="zb-info small"><summary>ⓘ Cách hoạt động</summary><p>AI soạn trước 1 ngày theo lịch chủ đề trong tuần, dùng đúng thông tin sản phẩm trên web, cuối bài mời bình luận “QUÀ” để trợ lý nhắn riêng. <b>Chờ duyệt</b>: chỉ bài đã bấm <b>✅ Duyệt</b> mới được đăng. <b>Tự đăng</b>: tới giờ trợ lý đăng bài AI soạn, thấy chưa ổn thì sửa hoặc bấm <b>⏸ Bỏ bài này</b>. Đổi ở <b>⚙️ cài đặt từng trang</b> (mục 📄 Fanpage).</p><p>Khung bên trái là <b>bài sẽ hiện trên Facebook</b>. Facebook không hiện chữ đậm nên bài chỉ có chữ thường + emoji. Bài có link sản phẩm sẽ hiện ảnh xem trước của trang sản phẩm. Muốn sửa bấm <b>✏️ Sửa chữ</b>.</p>' + (j.err ? '<p class="err">Lần soạn lỗi gần nhất: ' + esc(j.err) + '</p>' : '') + '</details>';
+      '<details class="zb-info small"><summary>ⓘ Cách hoạt động</summary><p>AI soạn trước 1 ngày theo lịch chủ đề trong tuần (mỗi chủ đề có tầng phễu: 4 bài 🔵 thu hút, 2 bài ⚪ tạo niềm tin, 1 bài 🟠 bán / tuần), dùng đúng thông tin sản phẩm trên web, cuối bài mời bình luận “QUÀ” để trợ lý nhắn riêng (bài 🟠 thì mời đặt qua link sản phẩm). Trước khi viết, AI chọn <b>🎯 1 nhóm khách + 1 tension</b> (trong các nhóm tích ở cài đặt trang) rồi mới viết; dòng 🎯 trên thẻ bài cho biết bài nhắm ai. <b>Chờ duyệt</b>: chỉ bài đã bấm <b>✅ Duyệt</b> mới được đăng. <b>Tự đăng</b>: tới giờ trợ lý đăng bài AI soạn, thấy chưa ổn thì sửa hoặc bấm <b>⏸ Bỏ bài này</b>. Đổi ở <b>⚙️ cài đặt từng trang</b> (mục 📄 Fanpage).</p><p>Khung bên trái là <b>bài sẽ hiện trên Facebook</b>. Facebook không hiện chữ đậm nên bài chỉ có chữ thường + emoji. Bài có link sản phẩm sẽ hiện ảnh xem trước của trang sản phẩm. Muốn sửa bấm <b>✏️ Sửa chữ</b>.</p>' + (j.err ? '<p class="err">Lần soạn lỗi gần nhất: ' + esc(j.err) + '</p>' : '') + '</details>';
     if (pids.length > 1) h += '<div class="chips zb-lf"><button class="chip' + (pf ? '' : ' on') + '" data-fp="pf|">Tất cả trang' + (needN() ? ' <em>' + needN() + '</em>' : '') + '</button>' + pids.map(function (pid) { var c = needN(pid); return '<button class="chip' + (pf === pid ? ' on' : '') + '" data-fp="pf|' + esc(pid) + '">' + esc(fpPageOf(pid).name) + (c ? ' <em>' + c + '</em>' : '') + '</button>'; }).join('') + '</div>';
     if (!items.length) h += '<div class="box"><p class="muted">Chưa có bài. Bật “AI soạn bài đăng” trong cài đặt từng trang, hoặc bấm ✍️ Viết bài đăng.</p></div>';
     // cần duyệt lên trước, rồi theo giờ đăng
@@ -6693,6 +6845,8 @@
       '<p class="small muted" style="margin:4px 0 8px"><b>Chờ duyệt</b> = chỉ đăng bài đã bấm ✅ Duyệt, AI soạn xong báo Telegram · <b>Tự đăng</b> = tới giờ tự đăng (vẫn sửa / bỏ được trước giờ đăng).</p>' +
       '<label class="f"><span>Giờ đăng <small class="muted">cách nhau dấu phẩy, tối đa 4 bài / ngày, vd: 11:30, 20:00</small></span><input class="zb-text" data-fpt="slots" value="' + esc((c.slots || []).join(', ')) + '"></label>' +
       ta('voice', 'Trang này dành cho ai, giọng thế nào', 'vd: mẹ bỉm sau sinh, giọng chị em tâm sự; AI viết theo', 2) +
+      '<p class="small" style="margin:8px 0 2px"><b>🎯 Nhóm khách trang này nhắm tới</b> <span class="muted">không tích = mọi nhóm, xoay vòng. Mỗi bài AI chọn 1 nhóm + 1 tension rồi mới viết (sửa ở tab 🎯 Insight & nội dung).</span></p><div class="inx-aud">' +
+      (FP.d.insG || []).filter(function (g) { return g.on; }).map(function (g) { return '<label class="zb-ck"><input type="checkbox" data-fpg="' + esc(g.id) + '"' + ((c.aud || []).indexOf(g.id) >= 0 ? ' checked' : '') + '><span>' + esc(g.name) + '</span></label>'; }).join('') + '</div>' +
       '<div class="lq-btns"><button class="btn pri" data-fp="page|' + esc(p.id) + '">💾 Lưu cài đặt trang</button>' +
       (FP.d.admin ? '<button class="btn sm ghost" data-fp="resub|' + esc(p.id) + '">🔄 Kết nối lại</button><button class="btn sm ghost" data-fp="del|' + esc(p.id) + '">🗑 Gỡ trang</button>' : '') + '</div></details>';
   }
@@ -6713,7 +6867,8 @@
     var due = er ? '⚠️ Đăng lỗi' : p.status === 'ok' ? '✅ Đã duyệt · sẽ đăng ' + when : auto ? '🤖 Sẽ tự đăng ' + when : '⏳ Cần duyệt trước ' + when;
     return '<div class="box zb-post zb-' + p.status + (need ? ' zb-need' : '') + (er ? ' fp-errc' : '') + '" data-fpcard="' + esc(p.id) + '"><div class="zb-ph"><b>' + lbl + '</b><span class="zb-due">' + due + '</span></div>' +
       '<div class="zb-grid"><div>' + fpPreview(p, pg) + '</div><div class="zb-side">' +
-      '<p class="small" style="margin:6px 0"><b>Chủ đề:</b> ' + esc(p.topic) + '<br><span class="muted">' + (p.by_name && p.by_name !== 'AI' ? 'Sửa bởi ' + esc(p.by_name) : 'AI soạn') + ' · ' + fDateTime(p.at) + '</span></p>' +
+      (p.funnel ? '<span class="zb-fun zb-fun-' + p.funnel.toLowerCase() + '">' + (ZB_FUN[p.funnel] || p.funnel) + '</span>' : '') +
+      '<p class="small" style="margin:6px 0"><b>Chủ đề:</b> ' + esc(p.topic) + '<br><span class="muted">' + (p.by_name && p.by_name !== 'AI' ? 'Sửa bởi ' + esc(p.by_name) : 'AI soạn') + ' · ' + fDateTime(p.at) + '</span></p>' + inTag(p.ins) +
       (er ? '<p class="small err">Facebook báo: ' + esc(p.err) + '</p><button class="btn pri zb-act" data-fp="now|' + esc(p.id) + '">📤 Thử đăng lại ngay</button>' : '') +
       (need ? '<button class="btn pri zb-act" data-fp="ok|' + esc(p.id) + '">✅ Duyệt bài này</button>' : '') +
       '<div class="zb-more"><button class="btn sm" data-fp="edit|' + esc(p.id) + '">✏️ Sửa chữ</button>' + (er ? '' : '<button class="btn sm" data-fp="now|' + esc(p.id) + '">📤 Đăng ngay</button>') + '<button class="btn sm" data-fp="regen|' + esc(p.id) + '">🔄 Viết lại</button>' +
@@ -6794,6 +6949,7 @@
       $$('[data-fpt]', box).forEach(function (x) { cfg[x.getAttribute('data-fpt')] = x.value; });
       cfg.replies = cfg.replies.split('\n'); cfg.slots = cfg.slots.split(/[,;\s]+/);
       var md = $('input[name="fpMode_' + id + '"]:checked', box); if (md) cfg.mode = md.value;
+      cfg.aud = $$('[data-fpg]', box).filter(function (x) { return x.checked; }).map(function (x) { return x.getAttribute('data-fpg'); }); // 🎯 nhóm khách trang nhắm tới
       t.disabled = true; return api('fp_page', { id: id, active: $('[data-fpa]', box).checked, cfg: cfg }).then(after('Đã lưu cài đặt trang ✓'), fail);
     }
     if (v[0] === 'scan') { t.disabled = true; return api('fp_scan', {}).then(function (j) { toast(j.n ? 'Đã xử lý ' + j.n + ' bình luận mới ✓' : 'Không có bình luận mới cần trả lời.'); fpFetch(); }, fail); }
@@ -6808,10 +6964,12 @@
       var ta2 = $('#fpT_' + id), ln2 = $('#fpL_' + id); t.disabled = true;
       return api('fp_post', { id: id, text: ta2 ? ta2.value : undefined, link: ln2 ? ln2.value : undefined }).then(function () { return api('fp_now', { id: id }); }).then(after('Đã đăng lên fanpage ✓'), fail);
     }
-    if (v[0] === 'regen') {
-      var hint = prompt('Muốn AI viết lại thế nào? (vd: “nói về hạt óc chó”, “ngắn hơn”, “vui hơn”). Để trống = viết bài khác cùng chủ đề.', ''); if (hint === null) return;
-      var q = id.split('_'), hm = q[2] || ''; t.disabled = true; t.textContent = '⏳ AI đang viết (khoảng 30 giây)…';
-      return api('fp_regen', { id: id, page: q[0], day: q[1], slot: hm.slice(0, 2) + ':' + hm.slice(2, 4), hint: hint }).then(after('AI đã viết xong ✓ Xem và sửa nếu cần.'), fail);
+    if (v[0] === 'regen') { // 10/11/2026: hỏi ý kiến + nhóm khách (🎯 insight) bằng hộp thoại thay prompt
+      var fq = (FP.d.posts || []).filter(function (x) { return x.id === id; })[0], fi = {}; try { fi = JSON.parse(fq && fq.ins || '{}') || {}; } catch (er) { }
+      return inRegenAsk(FP.d.insG, fi.gn, function (hint, grp) {
+        var q = id.split('_'), hm = q[2] || ''; t.disabled = true; t.textContent = '⏳ AI đang viết (khoảng 30 giây)…';
+        api('fp_regen', { id: id, page: q[0], day: q[1], slot: hm.slice(0, 2) + ':' + hm.slice(2, 4), hint: hint, grp: grp }).then(after('AI đã viết xong ✓ Xem và sửa nếu cần.'), fail);
+      });
     }
   });
   /** 💎 Giá trị 1 khách mới (90 ngày đầu) → nên chi tối đa bao nhiêu để có 1 khách mới. */

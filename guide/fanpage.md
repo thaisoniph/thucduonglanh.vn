@@ -2,7 +2,7 @@
 title: Trợ lý Fanpage Facebook
 nav: Fanpage
 order: 7
-updated: 2026-11-05
+updated: 2026-11-10
 description: Trợ lý An Lành trả lời bình luận, nhắn tin Messenger, tặng quà, mời vào nhóm Zalo và soạn bài đăng cho các fanpage.
 ---
 
@@ -41,7 +41,7 @@ Trong CRM, bấm **FB** trên thanh menu. Quản trị vào bằng cách bấm *
 1. Bài ổn: bấm **✅ Duyệt bài này**. Tới giờ, bài tự đăng lên trang.
 2. Muốn sửa chữ hoặc đổi link: bấm **✏️ Sửa chữ**, sửa trong ô hiện ra rồi bấm **💾 Lưu**.
 3. Muốn đăng luôn: bấm **📤 Đăng ngay**.
-4. Muốn AI viết bài khác: bấm **🔄 Viết lại** và gõ ý muốn (ví dụ "nói về mè đen", "ngắn hơn"). Chờ khoảng 30 giây.
+4. Muốn AI viết bài khác: bấm **🔄 Viết lại**, gõ ý muốn (ví dụ "nói về mè đen", "ngắn hơn") và chọn **🎯 nhóm khách** bài nhắm tới nếu muốn đổi. Chờ khoảng 30 giây.
 5. Không muốn đăng: bấm **⏸ Bỏ bài này**.
 
 Bài đã đăng thu gọn thành 1 dòng ở mục **📤 Đã đăng gần đây**. Bấm vào dòng để xem lại, hoặc bấm **👁 Xem trên Facebook**.
@@ -72,6 +72,9 @@ Mục **📄 Fanpage đã kết nối** có mỗi trang 1 dòng: tên trang, đa
 - **Câu trả lời công khai**: mỗi dòng một câu. `{ten}` sẽ được thay bằng tên khách.
 - **Tin gửi quà**: `{link}` là link cẩm nang, `{nhom}` là link nhóm Zalo.
 - **Bài đăng**: bật "AI soạn bài đăng", chọn giờ đăng (ví dụ `11:30, 20:00`), chọn **Chờ duyệt** hoặc **Tự đăng**. Điền ô **"Trang này dành cho ai"** (ví dụ "mẹ bỉm sau sinh, giọng chị em tâm sự") để AI viết đúng giọng của trang.
+- **🎯 Nhóm khách trang này nhắm tới**: tích 1 vài nhóm (ví dụ trang cho mẹ bỉm chỉ tích "Mẹ bỉm, mẹ sau sinh"). Không tích = mọi nhóm, xoay vòng.
+
+**Bài đăng theo phễu và insight.** Mỗi tuần AI soạn 4 bài 🔵 thu hút (kiến thức, bếp lành, thói quen, tâm an), 2 bài ⚪ tạo niềm tin (nguyên liệu, hỏi đáp), 1 bài 🟠 bán (góc sản phẩm, có link). Trước khi viết, AI chọn 1 nhóm khách + 1 tension (điều họ mong ↔ điều đang cản họ) rồi mới viết; thẻ bài có dòng **🎯** để bạn kiểm tra. Sửa nhóm khách ở tab **🎯 Insight & nội dung** ([xem hướng dẫn](/huong-dan/marketing/#insight-noi-dung)).
 
 Sửa xong, bấm **💾 Lưu cài đặt trang**.
 
