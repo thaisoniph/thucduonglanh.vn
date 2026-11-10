@@ -412,6 +412,7 @@ Apps Script giới hạn 200 phiên bản/dự án: báo lỗi "Không tạo đ�
 - Trước ngày đăng 1 ngày: Claude Opus 5.5 + công cụ web_search viết nháp (lưu D1 `bl_posts`), chỉ giữ link có trong kết quả tìm kiếm hoặc thucduonglanh.vn, tự thay từ cấm, thêm dòng "không phải là thuốc" khi có link sản phẩm.
 - Người duyệt = Quản trị, Quản lý, người bật "Sửa website" (có Telegram). Link duyệt `api.thucduonglanh.vn/bai/<ngày>?u=&k=` ký HMAC (kv `bl_secret`) riêng từng người.
 - Duyệt xong: tới giờ đăng thì commit `content/posts/<mã>.md` và đổi chủ đề sang "Đã đăng" trong 1 commit → deploy.yml build + IndexNow. Chưa duyệt thì không bao giờ tự đăng.
+- CRM tab 📰 Bài web (`viewBlog` trong crm/app.js, lệnh `bl_view / bl_post / bl_act / bl_cfg` trong blog.js `crmBlog`): xem, duyệt, sửa cài đặt + chủ đề (ghi thẳng `data/blog-auto.json` bằng 1 commit). Quyền như người duyệt.
 - Chi phí AI đếm ở mục "📰 Trợ lý viết bài web" (CRM → Chi phí AI). Ước tính 8–10 nghìn đồng / bài, chưa gồm phí tìm kiếm của Anthropic ($10 / 1.000 lượt, tối đa 6 lượt / bài).
 
 ## 7. Tên miền, DNS, chuyển hướng

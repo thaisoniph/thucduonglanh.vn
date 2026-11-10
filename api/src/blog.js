@@ -11,7 +11,7 @@
  * Link duyệt ký bằng HMAC riêng từng người (không cần đăng nhập, không chứa email). Không có ANTHROPIC_API_KEY hoặc mã GitHub (gh_cms_token) thì không chạy. */
 import Anthropic from '@anthropic-ai/sdk';
 import { aiFetch } from './airelay.js';
-import { esc, run, all, first, kvGet, kvSet, fmtDate, randHex, hashKey, TZ_MS, DAY } from './lib.js';
+import { esc, run, all, first, kvGet, kvSet, fmtDate, randHex, hashKey, TZ_MS, DAY, CRM_URL } from './lib.js';
 import { telegram, telegramTo } from './google.js';
 import { crmUsers, crmLog } from './crm.js';
 import { cmsToken } from './cms.js';
@@ -94,7 +94,7 @@ async function notifyApprovers(x, p, head) {
   const m = meta(p), list = (await approvers(x)).filter(u => u.tg);
   const body = head + '\n<b>' + esc(p.title) + '</b>\n' + esc(m.excerpt || '') + '\n' + (FUNNEL[p.funnel] ? FUNNEL[p.funnel].name : '') + (m.who ? ' · ' + esc(m.who) : '') + '\n📅 Đăng ' + dayTxt(p.day) + ' lúc ' + (m.hour || 9) + 'h';
   if (!list.length) return telegram(x.env, body + '\n\n⚠️ Chưa có người duyệt nào nối Telegram. Quản trị / Quản lý vào CRM → Cài đặt để nối Telegram rồi mới nhận được link duyệt.');
-  for (const u of list) await telegramTo(x.env, u.tg, body + '\n\n👉 Xem và duyệt: ' + esc(await linkFor(x, p.day, u)));
+  for (const u of list) await telegramTo(x.env, u.tg, body + '\n\n👉 Xem và duyệt: ' + esc(await linkFor(x, p.day, u)) + '\n📰 Hoặc trong CRM: ' + CRM_URL + '/#bai-web');
 }
 
 /* ---------------------------------------------------------------- lịch (cron 10 phút / lần, 7h–22h) */
@@ -281,36 +281,42 @@ export async function blogRoute(x, req, path, url) {
   let note = '';
   if (req.method === 'POST') {
     const f = await req.formData(), act = String(f.get('act') || ''), at = Number(f.get('at') || 0), hint = String(f.get('hint') || '').trim().slice(0, 1500);
-    if (p.status !== 'wait' && p.status !== 'approved' && p.status !== 'error') note = 'Bài đang ở trạng thái “' + stName(p) + '”, chưa làm được việc này.';
-    else if (at !== p.at) note = 'Bài vừa được viết lại hoặc có người khác vừa xử lý. Đây là bản mới nhất, bạn xem lại nhé.';
-    else if (act === 'ok') {
-      await run(x.db, "UPDATE bl_posts SET status = 'approved', by_name = ? WHERE day = ?", u.name, day);
-      const cfg = cfgOf(await cfgRaw(x).catch(() => ({}))), now = Date.now(), today = fmtDate(now, 'yyyy-MM-dd');
-      const late = day < today || (day === today && new Date(now + TZ_MS).getUTCHours() >= cfg.hour);
-      if (late) { p = await first(x.db, 'SELECT * FROM bl_posts WHERE day = ?', day); try { await publish(x, p, false); note = '✅ Đã đăng. Khoảng 1–2 phút nữa bài có trên web.'; } catch (e) { note = '✅ Đã duyệt. Đăng lên chưa được (' + esc(e.message) + '), máy chủ sẽ tự thử lại trong 10 phút.'; } }
-      else note = '✅ Đã duyệt. Bài tự lên web lúc ' + cfg.hour + 'h ' + dayTxt(day) + '.';
-      await telegram(x.env, '👍 ' + esc(u.name) + ' đã duyệt bài web: ' + esc(p.title));
-      await logIt(x, u, 'Duyệt bài web', p.title);
-    } else if (act === 'rewrite' || act === 'new') {
-      if (act === 'rewrite' && !hint) note = 'Bạn ghi ý kiến cần sửa vào ô bên dưới rồi bấm lại nhé.';
-      else {
-        await run(x.db, "UPDATE bl_posts SET status = 'rewrite', hint = ?, by_name = ? WHERE day = ?", act === 'new' ? '__new__' : hint, u.name, day);
-        note = '✍️ Đã nhận. Trợ lý sẽ ' + (act === 'new' ? 'viết bài chủ đề khác' : 'viết lại theo ý kiến của bạn') + ' trong khoảng 10–20 phút rồi nhắn Telegram cho bạn.';
-        await logIt(x, u, act === 'new' ? 'Đổi chủ đề bài web' : 'Yêu cầu viết lại bài web', p.title + (hint ? ' – ' + hint : ''));
-      }
-    } else if (act === 'admin') {
-      await run(x.db, 'UPDATE bl_posts SET by_name = ? WHERE day = ?', u.name, day); p.by_name = u.name;
-      try { const slug = (await publish(x, p, true)).split('/').slice(-2)[0]; note = '🖊 Bài đã vào /admin ở dạng ẩn. <a href="' + SITE + '/admin/#/collections/posts/entries/' + slug + '">Mở /admin để sửa</a>, sửa xong bật “Hiển thị trên web” rồi bấm Xuất bản.'; }
-      catch (e) { note = 'Chưa đưa được bài vào /admin: ' + esc(e.message); }
-      await logIt(x, u, 'Tự sửa bài web trong /admin', p.title);
-    } else if (act === 'skip') {
-      await run(x.db, "UPDATE bl_posts SET status = 'dropped', by_name = ? WHERE day = ?", u.name, day);
-      note = '❌ Đã bỏ bài này. ' + dayTxt(day) + ' không đăng bài.';
-      await logIt(x, u, 'Bỏ bài web', p.title);
-    }
+    note = await doAct(x, u, p, act, at, hint);
     p = await first(x.db, 'SELECT * FROM bl_posts WHERE day = ?', day);
   }
   return page(p.title || 'Bài web', view(p, note));
+}
+/** Việc của người duyệt (trang /bai và tab 📰 Bài web trong CRM): ok | rewrite | new | admin | skip. Trả lời nhắn (HTML ngắn). */
+async function doAct(x, u, p, act, at, hint) {
+  const day = p.day; let note = '';
+  if (p.status !== 'wait' && p.status !== 'approved' && p.status !== 'error') note = 'Bài đang ở trạng thái “' + stName(p) + '”, chưa làm được việc này.';
+  else if (at !== p.at) note = 'Bài vừa được viết lại hoặc có người khác vừa xử lý. Đây là bản mới nhất, bạn xem lại nhé.';
+  else if (act === 'ok') {
+    await run(x.db, "UPDATE bl_posts SET status = 'approved', by_name = ? WHERE day = ?", u.name, day);
+    const cfg = cfgOf(await cfgRaw(x).catch(() => ({}))), now = Date.now(), today = fmtDate(now, 'yyyy-MM-dd');
+    const late = day < today || (day === today && new Date(now + TZ_MS).getUTCHours() >= cfg.hour);
+    if (late) { p = await first(x.db, 'SELECT * FROM bl_posts WHERE day = ?', day); try { await publish(x, p, false); note = '✅ Đã đăng. Khoảng 1–2 phút nữa bài có trên web.'; } catch (e) { note = '✅ Đã duyệt. Đăng lên chưa được (' + esc(e.message) + '), máy chủ sẽ tự thử lại trong 10 phút.'; } }
+    else note = '✅ Đã duyệt. Bài tự lên web lúc ' + cfg.hour + 'h ' + dayTxt(day) + '.';
+    await telegram(x.env, '👍 ' + esc(u.name) + ' đã duyệt bài web: ' + esc(p.title));
+    await logIt(x, u, 'Duyệt bài web', p.title);
+  } else if (act === 'rewrite' || act === 'new') {
+    if (act === 'rewrite' && !hint) note = 'Bạn ghi ý kiến cần sửa vào ô bên dưới rồi bấm lại nhé.';
+    else {
+      await run(x.db, "UPDATE bl_posts SET status = 'rewrite', hint = ?, by_name = ? WHERE day = ?", act === 'new' ? '__new__' : hint, u.name, day);
+      note = '✍️ Đã nhận. Trợ lý sẽ ' + (act === 'new' ? 'viết bài chủ đề khác' : 'viết lại theo ý kiến của bạn') + ' trong khoảng 10–20 phút rồi nhắn Telegram cho bạn.';
+      await logIt(x, u, act === 'new' ? 'Đổi chủ đề bài web' : 'Yêu cầu viết lại bài web', p.title + (hint ? ' – ' + hint : ''));
+    }
+  } else if (act === 'admin') {
+    await run(x.db, 'UPDATE bl_posts SET by_name = ? WHERE day = ?', u.name, day); p.by_name = u.name;
+    try { const slug = (await publish(x, p, true)).split('/').slice(-2)[0]; note = '🖊 Bài đã vào /admin ở dạng ẩn. <a href="' + SITE + '/admin/#/collections/posts/entries/' + slug + '">Mở /admin để sửa</a>, sửa xong bật “Hiển thị trên web” rồi bấm Xuất bản.'; }
+    catch (e) { note = 'Chưa đưa được bài vào /admin: ' + esc(e.message); }
+    await logIt(x, u, 'Tự sửa bài web trong /admin', p.title);
+  } else if (act === 'skip') {
+    await run(x.db, "UPDATE bl_posts SET status = 'dropped', by_name = ? WHERE day = ?", u.name, day);
+    note = '❌ Đã bỏ bài này. ' + dayTxt(day) + ' không đăng bài.';
+    await logIt(x, u, 'Bỏ bài web', p.title);
+  }
+  return note;
 }
 async function logIt(x, u, what, note) { try { await crmLog(x, u, 'Bài web', '-', '', what, String(note).slice(0, 300)); } catch (e) { } }
 function stName(p) { return { writing: 'Đang viết', wait: 'Chờ duyệt', rewrite: 'Đang viết lại', approved: 'Đã duyệt, chờ tới giờ đăng', published: p.hidden ? 'Đã vào /admin (đang ẩn)' : 'Đã đăng', dropped: 'Đã bỏ', error: 'Viết lỗi' }[p.status] || p.status; }
@@ -375,4 +381,54 @@ article h1{font-size:26px;line-height:1.3;margin:12px 0}article h2{font-size:21p
 blockquote{margin:12px 0;padding:6px 14px;border-left:3px solid var(--g);color:var(--m)}.err{color:#B5523B;font-size:14px}
 </style></head><body><main><p class="top">🤖 Trợ lý viết bài · Góc Sống Lành · thucduonglanh.vn</p>${html}</main></body></html>`,
     { status: status || 200, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' } });
+}
+
+/* ---------------------------------------------------------------- CRM → tab 📰 Bài web (cùng chỗ với Trợ lý Zalo, Fanpage) */
+export function canBlog(u) { return !!u && u.active && (u.level >= 2 || !!u.web); }
+const TOPIC_ST = ['Chờ viết', 'Đã đăng', 'Bỏ qua'], TOPIC_FN = ['Tự chọn', 'TOFU – Nhận biết', 'MOFU – Cân nhắc', 'BOFU – Mua hàng'];
+const cut = (s, n) => String(s == null ? '' : s).trim().slice(0, n);
+export async function crmBlog(x, u, d) {
+  if (!canBlog(u)) return { ok: false, error: 'Bạn chưa có quyền duyệt bài web. Nhờ Quản trị bật “Sửa website” cho bạn ở Cài đặt → Nhân sự.' };
+  await schema(x.db);
+  const a = d.action, now = Date.now();
+  if (a === 'bl_view') {
+    let raw = null, cerr = ''; try { raw = await cfgRaw(x); } catch (e) { cerr = e.message; }
+    const cfg = raw ? cfgOf(raw) : null, today = fmtDate(now, 'yyyy-MM-dd'), next = [];
+    if (cfg) for (let i = 0; i < 15; i++) { const dd = addDays(today, i); if (cfg.days.includes(wdOf(dd))) next.push(dd); }
+    const posts = (await all(x.db, 'SELECT day, status, title, slug, funnel, topic, meta, by_name, at, pub_at, url, err, hidden, tries FROM bl_posts ORDER BY day DESC LIMIT 60')).map(r => Object.assign(r, { meta: meta(r), st: stName(r) }));
+    return { ok: true, now, today, next, posts, cerr, aiOn: !!x.env.ANTHROPIC_API_KEY, gh: !!await cmsToken(x),
+      cfg: cfg && { on: cfg.on, per_week: cfg.per, hour: cfg.hour, audience: cfg.audience, topics: cfg.topics },
+      approvers: (await approvers(x)).map(y => ({ name: y.name, tg: !!y.tg })), dayNames: Object.fromEntries(Object.entries(DAYS).map(([k, v]) => [k, v.map(i => WD[i]).join(', ')])) };
+  }
+  if (a === 'bl_post') { // xem trước bài đầy đủ
+    const p = await first(x.db, 'SELECT * FROM bl_posts WHERE day = ?', String(d.day || ''));
+    if (!p || !p.md) return { ok: false, error: 'Chưa có nội dung bài cho ngày này.' };
+    return { ok: true, day: p.day, title: p.title, at: p.at, status: p.status, html: mdHtml(p.md.replace(/^---[\s\S]*?\n---\n/, '')), meta: meta(p) };
+  }
+  if (a === 'bl_act') {
+    const p = await first(x.db, 'SELECT * FROM bl_posts WHERE day = ?', String(d.day || ''));
+    if (!p) return { ok: false, error: 'Không thấy bài này, tải lại trang nhé.' };
+    const note = await doAct(x, u, p, String(d.act || ''), Number(d.at) || 0, cut(d.hint, 1500));
+    const q = await first(x.db, 'SELECT status, slug FROM bl_posts WHERE day = ?', p.day);
+    return { ok: true, note: note.replace(/<[^>]+>/g, ''), status: q && q.status, admin: q && q.status === 'published' && d.act === 'admin' ? SITE + '/admin/#/collections/posts/entries/' + q.slug : '' };
+  }
+  if (a === 'bl_cfg') { // lưu vào data/blog-auto.json (cùng file /admin sửa) → 1 commit
+    const patch = {};
+    if (d.on !== undefined) patch.on = !!d.on;
+    if (d.per_week !== undefined) patch.per_week = Math.min(7, Math.max(1, Math.round(Number(d.per_week) || 3)));
+    if (d.hour !== undefined) patch.hour = Math.min(21, Math.max(7, Math.round(Number(d.hour) || 9)));
+    if (d.audience !== undefined) patch.audience = cut(d.audience, 8000);
+    const topics = Array.isArray(d.topics) ? d.topics.slice(0, 150).map(t => ({ title: cut(t.title, 200), note: cut(t.note, 1500), funnel: TOPIC_FN.includes(t.funnel) ? t.funnel : 'Tự chọn', product: cut(t.product, 80), status: TOPIC_ST.includes(t.status) ? t.status : 'Chờ viết', link: cut(t.link, 300) })).filter(t => t.title) : null;
+    await ghCommit(x, async () => {
+      const raw = await cfgRaw(x); Object.assign(raw, patch);
+      if (topics) { // trợ lý có thể vừa đổi chủ đề sang "Đã đăng" sau lúc CRM tải → giữ trạng thái đó
+        const old = {}; (raw.topics || []).forEach(t => { old[t.title] = t; });
+        raw.topics = topics.map(t => old[t.title] && old[t.title].status === 'Đã đăng' && !t.link ? Object.assign(t, { status: 'Đã đăng', link: old[t.title].link || '' }) : t);
+      }
+      return { [CFG_PATH]: JSON.stringify(raw, null, 2) + '\n' };
+    }, '🤖 Trợ lý viết bài: ' + u.name + ' sửa ' + (topics ? 'chủ đề' : 'cài đặt') + ' (CRM)');
+    await logIt(x, u, topics ? 'Sửa chủ đề bài web' : 'Sửa cài đặt trợ lý viết bài', JSON.stringify(patch).slice(0, 200));
+    return { ok: true };
+  }
+  return { ok: false, error: 'Không rõ thao tác.' };
 }

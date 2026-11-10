@@ -50,6 +50,8 @@ Trợ lý tự viết bài cho Góc Sống Lành. **Bài chỉ lên web khi có 
 
 **Ai duyệt bài:** Quản trị, Quản lý và người được bật "Sửa website" ở CRM → Cài đặt → Nhân sự. Phải nối Telegram ở CRM thì mới nhận được tin duyệt.
 
+**Duyệt ở đâu:** trong CRM, tab **📰 Bài web** (máy tính: menu **Thêm**, cạnh Trợ lý Zalo và Fanpage), hoặc bấm link trong tin Telegram. Hai chỗ cùng một việc, ai bấm trước thì bài theo người đó.
+
 **Lịch chạy:**
 1. Trước ngày đăng 1 ngày, trợ lý viết bài nháp rồi nhắn Telegram riêng cho từng người duyệt.
 2. Bấm link trong tin nhắn để xem bài và bản tự kiểm tra (từ cấm, nguồn dẫn, độ dài, ảnh bìa).
@@ -60,7 +62,7 @@ Trợ lý tự viết bài cho Góc Sống Lành. **Bài chỉ lên web khi có 
    - **🔁 Đổi chủ đề khác** hoặc **❌ Bỏ**.
 4. Tới giờ đăng mà chưa ai duyệt, trợ lý nhắc thêm 1 lần.
 
-**Cài đặt:** /admin → Cài đặt website → 🤖 Trợ lý viết bài tự động.
+**Cài đặt:** CRM → 📰 Bài web → ⚙️ Cài đặt và ➕ Thêm chủ đề. Sửa ở /admin → Cài đặt website → 🤖 Trợ lý viết bài tự động cũng được, hai chỗ dùng chung một bản.
 - **Số bài mỗi tuần** (1–7) và **Giờ đăng**.
 - **Chủ đề chờ viết**: thêm chủ đề muốn viết, trợ lý lấy chủ đề trên cùng trước. Bài đăng xong, chủ đề tự chuyển sang "Đã đăng" kèm link.
 - Hết chủ đề, trợ lý tự chọn theo phễu 3 tầng (Nhận biết, Cân nhắc, Mua hàng) và theo ô **Tệp khách hàng, insight và tension**.

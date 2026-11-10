@@ -1877,3 +1877,20 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .ktk-t { width: 100%; border-collapse: collapse; font-size: 14px; } .ktk-t th, .ktk-t td { padding: 7px 6px; border-top: 1px solid var(--line); text-align: left; vertical-align: top; }
 .ktk-t th { font-size: 12px; color: var(--muted); font-weight: 600; } .ktk-t .num { text-align: right; white-space: nowrap; }
 .ktk-in { margin-top: 10px; } .ktk-in summary { cursor: pointer; font-weight: 600; } .ktk-in summary small { font-weight: 400; color: var(--muted); }
+
+/* 📰 Trợ lý viết bài web (viewBlog) */
+.bw-row { display: flex; gap: 12px; align-items: flex-start; margin-top: 6px; }
+.bw-cover { width: 96px; height: 96px; object-fit: cover; border-radius: var(--radius-sm); flex: none; }
+.bw-tx { min-width: 0; flex: 1; }
+.bw-tx p { margin: 2px 0; }
+.bw-title { font-weight: 700; font-size: 1.05rem; line-height: 1.35; }
+.bw-topics { padding: 4px 12px; }
+.bw-trow { display: flex; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.bw-trow:last-child { border-bottom: 0; }
+.bw-tb { display: flex; gap: 6px; flex: none; }
+.bw-art { line-height: 1.65; }
+.bw-art img { max-width: 100%; border-radius: var(--radius-sm); display: block; }
+.bw-art h1 { font-size: 1.4rem; line-height: 1.3; margin: 10px 0; }
+.bw-art h2 { font-size: 1.15rem; margin: 20px 0 6px; }
+.bw-art blockquote { margin: 10px 0; padding: 4px 12px; border-left: 3px solid var(--primary); color: var(--mid); }
+@media (max-width: 520px) { .bw-cover { width: 72px; height: 72px; } .bw-trow { flex-wrap: wrap; } }
