@@ -139,6 +139,8 @@ Mỗi đơn đi qua 4 bước: **Mới → Đã xác nhận → Đang giao → �
 
 > **Phí ship:** đơn dưới 300.000đ cộng thêm 30.000đ. Đơn từ 300.000đ được miễn phí ship.
 
+> **🎉 Ngày Đôi (1/1, 2/2 … 12/12):** khách **tự đặt trên web** trong ngày này được miễn ship mọi đơn và có quà. Máy tự thêm quà vào đơn (dòng có 🎁, giá 0đ) và ghi chú "🎉 Ngày Đôi…". Khi gói hàng nhớ **bỏ quà vào**. Khi gọi xác nhận, chúc mừng khách được quà (nhất là khách "đơn thứ … hôm nay"). Đơn khách gọi điện, nhắn Zalo cho sale **không** có ưu đãi này. Muốn khách được ưu đãi thì gửi khách link web để khách tự đặt.
+
 ## Việc 3: Khách nhắn Zalo hoặc gọi điện đặt hàng
 
 Khách đặt qua Zalo, Facebook, điện thoại… thì bạn **tạo đơn trên CRM**. Có đơn trên CRM thì khách mới được nhắc chăm sóc, và doanh số mới tính cho bạn.

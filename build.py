@@ -3344,7 +3344,7 @@ def main():
            "ga4_id": SITE.get("ga4_id", ""), "clarity_id": SITE.get("clarity_id", ""), "meta_pixel": SITE.get("meta_pixel", ""), "tiktok_pixel": SITE.get("tiktok_pixel", ""),
            "endpoint": (SITE.get("api_endpoint") or SITE.get("order_endpoint", "")), "bank": SITE["bank"] if SITE["bank"].get("enabled") else None,
            "shipping_fee": SITE.get("shipping_fee", 0), "free_ship_threshold": SITE.get("free_ship_threshold", 0),
-           "aov_milestone": SITE.get("aov_milestone") or {},
+           "aov_milestone": SITE.get("aov_milestone") or {}, "dd": dd_web(),
            "music": {"tracks": music_tracks(), "auto": (SITE.get("music") or {}).get("autoplay", True) is not False, "vol": max(5, min(100, num((SITE.get("music") or {}).get("volume")) or 25)) / 100} if music_tracks() else None,
            "needs": [{"slug": n["slug"], "name": n["name"], "icon": n.get("icon") or "", "url": lp(n["url"])} for n in NEEDS], "chat": chat_cfg()}
     js = "window.TDL_PRODUCTS=" + json.dumps(js_products, ensure_ascii=False) + ";\nwindow.TDL_CONFIG=" + json.dumps(cfg, ensure_ascii=False) + ";\n"
@@ -3378,6 +3378,7 @@ def main():
     (DIST / "llms.txt").write_text(llms_txt(), "utf-8")
     (DIST / "chat-kb.txt").write_text(chat_kb(), "utf-8")  # kiến thức cho trợ lý chat (api/src/chat.js)
     (DIST / "bot-proofs.json").write_text(json.dumps(bot_proofs(), ensure_ascii=False), "utf-8")  # ảnh giấy tờ cho trợ lý Fanpage (api/src/fb.js)
+    (DIST / "ngay-doi.json").write_text(json.dumps(dd_api(), ensure_ascii=False), "utf-8")  # 🎉 Ngày Đôi: máy chủ đọc để miễn ship + thêm quà vào đơn (api/src/ngaydoi.js)
     (DIST / "anh-zalo.json").write_text(json.dumps(zalo_imgs(), ensure_ascii=False), "utf-8")  # kho ảnh thật cho bài đăng nhóm Zalo (api/src/zbot.js)
     if SITE.get("indexnow_key"):  # file xác minh IndexNow (Bing, Yandex…): workflow deploy.yml báo các trang mới sửa sau mỗi lần đăng
         (DIST / f'{SITE["indexnow_key"]}.txt').write_text(SITE["indexnow_key"], "utf-8")
@@ -3492,6 +3493,39 @@ def zalo_imgs():
         for m in re.finditer(r'<img[^>]*?src="([^"]+)"[^>]*?alt="([^"]*)"|<img[^>]*?alt="([^"]*)"[^>]*?src="([^"]+)"', p["content"]):
             add(m.group(1) or m.group(4), m.group(2) or m.group(3), p["title"])
     return out
+
+
+def dd_item(slug, label):
+    """Quà Ngày Đôi: tên tiếng Việt + quy cách đầu tiên của sản phẩm (để kho gói đúng)."""
+    p = next((x for x in PRODUCTS if x["slug"] == slug), None)
+    if not p:
+        if slug:
+            print(f"⚠️ Ngày Đôi: không có sản phẩm {slug} → bỏ quà này")
+        return None
+    vs = p.get("base_variants") or p.get("variants") or []
+    v = vs[0] if vs else None
+    return {"name": p.get("name_vi") or p["name"], "variant": ((v.get("name_vi") or v.get("name")) if v else (p.get("unit_vi") or p.get("unit") or "")),
+            "label": label or ("1 " + (p.get("name_vi") or p["name"]))}
+
+
+def dd_api():
+    """🎉 Ngày Đôi Sống Lành (site.json → double_day): /ngay-doi.json cho máy chủ api (ngaydoi.js)."""
+    c = SITE.get("double_day") or {}
+    if not c.get("enabled"):
+        return {"enabled": False}
+    return {"enabled": True, "name": c.get("name") or "Ngày Đôi Sống Lành", "free_ship": c.get("free_ship", True) is not False,
+            "gift_min": int(num(c.get("gift_min")) or 0), "gift": dd_item(c.get("gift_slug") or "", c.get("gift_label") or ""),
+            "first_n": int(num(c.get("first_n")) or 0), "first_min": int(num(c.get("first_min")) or 0), "first": dd_item(c.get("first_slug") or "", c.get("first_label") or "")}
+
+
+def dd_web():
+    """TDL_CONFIG.dd cho main.js: dải thông báo + đếm ngược, miễn ship trong giỏ, dòng quà ở thanh toán."""
+    a = dd_api()
+    if not a.get("enabled"):
+        return None
+    c = SITE.get("double_day") or {}
+    return {"name": a["name"], "free_ship": a["free_ship"], "gift_min": a["gift_min"] if a["gift"] else 0, "gift": (a["gift"] or {}).get("label", ""),
+            "first_n": a["first_n"] if a["first"] else 0, "first_min": a["first_min"], "first": (a["first"] or {}).get("label", ""), "teaser": c.get("teaser", True) is not False}
 
 
 def bot_proofs():

@@ -2399,3 +2399,20 @@ body.ch-on .float-widget,body.ch-on .gd-btn,body.ch-on .bvb,body.ch-on .to-top{o
 .cj-done{text-align:center;padding:8px 0}
 .cj-done .cj-ic{font-size:44px;line-height:1;margin:0 0 8px}
 .cj-done h2{margin:0 0 8px}
+
+/* 🎉 Ngày Đôi Sống Lành 1/1…12/12 (main.js initDD: dải trên cùng + đếm ngược; ddBoxHTML: giỏ mini / thanh toán; dd-thanks: trang cảm ơn) */
+.dd-bar{background:linear-gradient(90deg,#b8322a,#e0751f);color:#fff;font-size:14px;line-height:1.35}
+.dd-bar.dd-pre{background:linear-gradient(90deg,#7b3a8f,#b8322a)}
+.dd-in{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:3px 10px;max-width:1240px;margin:0 auto;padding:6px 16px;color:#fff;text-align:center}
+.dd-in:hover,.dd-in:focus{color:#fff}
+.dd-t{white-space:nowrap}
+.dd-p em{font-style:normal;font-weight:700;color:#ffe08a}
+.dd-c{white-space:nowrap;background:rgba(0,0,0,.2);border-radius:999px;padding:1px 10px;font-variant-numeric:tabular-nums}
+.dd-c time{font-weight:700}
+.dd-short{display:none}
+@media (max-width:767.98px){.dd-bar{font-size:12.5px}.dd-in{padding:5px 12px;gap:2px 8px}.dd-p{order:3;flex-basis:100%}.dd-long{display:none}.dd-short{display:inline}.dd-c{padding:0 8px}}
+.dd-box .sp-msg{margin:0}
+.dd-box .dd-l{margin:5px 0 0;font-size:13.5px;line-height:1.4}
+.dd-box .sp-track{margin-top:8px}
+.dd-thanks{border:1px solid #f0c27b;background:#fff8ec;color:#6b3d00;border-radius:12px;padding:12px 16px;margin:14px auto;max-width:560px;text-align:left}
+.dd-thanks p{margin:4px 0 0}

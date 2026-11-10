@@ -741,6 +741,24 @@ collections:
               - { label: "Bật", name: enabled, widget: boolean, default: true }
               - { label: "Mã", name: code, widget: string, required: false }
               - { label: "Mức ưu đãi (chữ hiện cho khách)", name: label, widget: string, required: false, hint: "Ví dụ: giảm 5%" }
+          - label: "🎉 Ngày Đôi Sống Lành (1/1, 2/2 … 12/12)"
+            name: double_day
+            widget: object
+            collapsed: true
+            required: false
+            hint: "Đúng các ngày 1/1, 2/2 … 12/12 (giờ VN), khách tự đặt trên web được miễn ship + quà. Không cần mã: máy chủ tự trừ ship, tự thêm quà vào đơn (dòng 🎁) và ghi chú '🎉 Ngày Đôi'. Web tự hiện dải thông báo + đồng hồ đếm ngược trong ngày, ngày hôm trước hiện lời báo trước. Đơn sale nhập tay không áp dụng."
+            fields:
+              - { label: "Bật", name: enabled, widget: boolean, default: true }
+              - { label: "Tên chương trình", name: name, widget: string, default: "Ngày Đôi Sống Lành" }
+              - { label: "Miễn ship mọi đơn", name: free_ship, widget: boolean, default: true }
+              - { label: "Quà 1: đơn từ (đồng)", name: gift_min, widget: number, value_type: int, default: 500000, hint: "Tính theo tạm tính (giá web, trước mã ưu đãi). 0 = không tặng quà 1." }
+              - { label: "Quà 1: mã sản phẩm", name: gift_slug, widget: string, default: "ruoc-rong-bien-vi-suon-non", hint: "Tên file sản phẩm (vd ruoc-rong-bien-vi-suon-non, tra-hoa-tan-dilvang-dinh-lang-che-vang). Kho gói quy cách đầu tiên của sản phẩm." }
+              - { label: "Quà 1: chữ hiện cho khách", name: gift_label, widget: string, default: "1 hũ Ruốc Rong Biển 165g" }
+              - { label: "Quà 2: số đơn đầu tiên trong ngày", name: first_n, widget: number, value_type: int, default: 11, hint: "Vd 11 = 11 đơn đầu tiên đủ điều kiện. 0 = không có quà 2." }
+              - { label: "Quà 2: đơn từ (đồng)", name: first_min, widget: number, value_type: int, default: 300000 }
+              - { label: "Quà 2: mã sản phẩm", name: first_slug, widget: string, default: "tra-hoa-tan-dilvang-dinh-lang-che-vang" }
+              - { label: "Quà 2: chữ hiện cho khách", name: first_label, widget: string, default: "1 hộp Trà DILVANG" }
+              - { label: "Báo trước 1 ngày trên web", name: teaser, widget: boolean, default: true }
           - { label: "Link nhóm Zalo Sống khỏe", name: zalo_group, widget: string, required: false, hint: "Nhóm đầy thì dán link nhóm mới vào đây: mọi nút trên web và link cố định thucduonglanh.vn/nhom-zalo/ (dùng cho QR, sách cẩm nang, bài đăng) tự chuyển sang nhóm mới. Để trống thì ẩn." }
           - label: "Ebook quà tặng (trang /ebook/ + lời mời ở trang chủ, cuối bài viết, hộp tư vấn, menu)"
             name: ebook
