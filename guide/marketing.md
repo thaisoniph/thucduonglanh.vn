@@ -198,7 +198,7 @@ Mỗi nơi khách nhìn thấy (tờ rơi ở sự kiện, standee ở đối t�
 
 ## 🎯 Insight & nội dung
 
-Mở: menu **Thêm → 🎯 Insight & nội dung** (Marketing thấy ngay trên menu). Đây là "bộ não" chung của mọi trợ lý viết bài: **bài web, bài nhóm Zalo, bài Fanpage và kịch bản video** đều phải đi qua 4 bước này trước khi viết (theo khoá content anh Tuấn Hà):
+Mở: menu **Thêm → 🎯 Insight & nội dung** (Marketing thấy ngay trên menu). Đây là "bộ não" chung của mọi trợ lý viết bài: **bài web, bài nhóm Zalo, bài Fanpage và kịch bản video** đều đi theo quy trình **4Is** của khoá content K133: **🔎 Issue** (1 vấn đề cụ thể khách gặp trong 1 cảnh) → **🎯 Insight** (vì sao họ kẹt: tension) → **💡 Idea** (góc tiếp cận gỡ tension) → **✍️ Implementation** (viết đúng kênh, đúng tầng phễu). Thẻ bài ghi đủ 🔎 🎯 💡 để người duyệt kiểm tra. Cụ thể:
 
 1. **Chọn 1 nhóm khách**: mẹ sau sinh, chồng chăm vợ sau sinh, bà chăm con ở cữ, dân văn phòng, trung niên, người ăn chay, con cái mua quà cho bố mẹ, khách cũ… Nhiều tension lấy từ bài tập khoá content K133 của anh Sơn (bảng insight DILVANG).
 2. **Chọn 1 tension** của nhóm đó: điều họ **mong** ↔ điều đang **cản** họ, trong 1 cảnh cụ thể. Ví dụ: *"Biết phải ăn sáng đủ chất ↔ sáng nào cũng vội, ăn tạm hoặc bỏ bữa"*.
@@ -219,7 +219,10 @@ Trên thẻ bài ở tab Zalo, Fanpage, Bài web có dòng **🎯 nhóm khách �
   - caption, ghi chú quay và **tự kiểm**.
 
   Bấm **📋 Copy kịch bản** để dán cho người quay hoặc đưa vào skill dựng video (`/sieu-tro-ly-video`).
-- **👥 Ngân hàng insight**: chân dung, mong muốn, rào cản, các tension và ghi chú (nên nói gì, góc đã làm tốt) của từng nhóm. Nếu ngân hàng đã sửa riêng mà bản mặc định có nhóm mới, tab hiện ô **📚 Có N nhóm khách mới** → bấm **➕ Thêm vào ngân hàng**. Bấm **✏️ Sửa** để thêm tension mới (mỗi dòng 1 cái, dạng *"Muốn … ↔ nhưng …"*), **⏸ Tạm tắt** nhóm chưa muốn nhắm, **➕ Thêm nhóm khách** khi có tệp mới. Sửa ở đây là cả 4 trợ lý dùng theo ngay.
+- **👥 Ngân hàng insight**: chân dung, mong muốn, rào cản, **🏷 sản phẩm hợp**, các tension và ghi chú (nên nói gì, góc đã làm tốt) của từng nhóm. Nếu ngân hàng đã sửa riêng mà bản mặc định có cập nhật (nhóm, tension, nhãn sản phẩm mới), tab hiện ô **📚 Bản mặc định có cập nhật mới** → bấm **📚 Gộp vào ngân hàng** (không xoá gì anh chị đã sửa).
+- **🏷 Insight theo sản phẩm**: mỗi sản phẩm (Bữa Ăn Dinh Dưỡng, Sữa hạt Curcumin, Ruốc rong biển, Xì dầu 2S, Trà DILVANG) có danh sách nhóm khách hợp và **tension riêng**. Mục **🌐 Tension dùng chung** gom các tension dùng được cho mọi sản phẩm (hợp nhất cho bài thu hút TOFU).
+  - Gắn nhãn: khi ✏️ Sửa nhóm, thêm cuối dòng tension `[SP: dilvang]` (mã: `bua-an`, `curcumin`, `ruoc`, `dilvang`, `xi-dau`; nhiều sản phẩm cách nhau dấu phẩy). Không ghi = dùng chung.
+  - Bài nói về 1 sản phẩm (chủ đề bài web có sản phẩm, kịch bản video chọn sản phẩm) thì trợ lý chỉ dùng tension riêng của sản phẩm đó hoặc tension dùng chung. Bấm **✏️ Sửa** để thêm tension mới (mỗi dòng 1 cái, dạng *"Muốn … ↔ nhưng …"*), **⏸ Tạm tắt** nhóm chưa muốn nhắm, **➕ Thêm nhóm khách** khi có tệp mới. Sửa ở đây là cả 4 trợ lý dùng theo ngay.
 
 **Mẹo làm insight tốt:** lấy từ lời khách thật (tin nhắn Zalo, bình luận, câu sale hay nghe), không lấy từ tính năng sản phẩm. Tension phải thấy rõ **2 cực đang giằng co**. Không viết tension khoét sâu nỗi sợ bệnh tật để ép mua.
 

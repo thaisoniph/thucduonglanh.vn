@@ -163,7 +163,7 @@ async function write(x, cfg, day, row) {
     const keep = row && !newTopic && row.md ? row : null; // bản cũ khi viết lại
     let km = {}; try { km = JSON.parse(keep && keep.meta || '{}') || {}; } catch (e) { }
     // 🎯 nhóm khách: chủ đề có ghi nhóm → nhóm đó; viết lại → giữ nhóm cũ; còn lại xoay vòng nhóm ít được viết nhất (insight.js)
-    const ip = await insPick(x, 'web', (topic && topic.group) || km.g || '');
+    const ip = await insPick(x, 'web', (topic && topic.group) || km.g || '', { prod: topic && topic.product || '' }); // chủ đề có sản phẩm → chỉ tension riêng của sản phẩm đó + tension dùng chung
     const ask = [
       'Viết 1 bài cho mục "Góc Sống Lành" trên website thucduonglanh.vn. Ngày đăng: ' + dayTxt(day) + '/' + day.slice(0, 4) + '.',
       'Tầng phễu: ' + FUNNEL[funnel].name + '. Mục tiêu: ' + FUNNEL[funnel].goal,
@@ -232,11 +232,11 @@ async function write(x, cfg, day, row) {
     const md = ['---', 'title: ' + q(title), 'date: ' + day, 'category: ' + cat, 'image: ' + cover, 'excerpt: ' + q(excerpt), 'published: true', '---', '', body, ''].join('\n');
     const ins = insParse(head, ip.bank, ip.g), rw = insRisk(body);
     if (rw.length) checks.push('⚠️ Đọc lại: ' + rw.join(', ') + ' → cụm dễ phạm luật quảng cáo chỉ giữ nếu đúng hồ sơ công bố hoặc là câu phủ định; hotline cũ 0896 869 333 đổi thành 0966 326 522');
-    const m = { excerpt, cat, cover, who: ins.gn, g: ins.g, t: ins.t, i: ins.i, w: rw, checks, hour: cfg.hour, sources: [...urls].slice(0, 30), fb };
+    const m = { excerpt, cat, cover, who: ins.gn, g: ins.g, is: ins.is, t: ins.t, i: ins.i, d: ins.d, w: rw, checks, hour: cfg.hour, sources: [...urls].slice(0, 30), fb };
     if (!ins.t) checks.push('⚠️ Trợ lý chưa ghi rõ tension bài này giải, nên đọc kỹ xem bài có chạm đúng nỗi lòng của nhóm khách không');
     await run(x.db, "UPDATE bl_posts SET status = 'wait', title = ?, slug = ?, funnel = ?, topic = ?, tkey = ?, md = ?, meta = ?, hint = '', at = ?, err = '', tries = 0, remind = 0 WHERE day = ?",
       title, slug, f2, topic ? topic.title : 'Trợ lý tự chọn', topic ? topic.title : '', md, JSON.stringify(m), Date.now(), day);
-    await insLog(x, 'web', { g: ins.g, gn: ins.gn, f: f2, t: ins.t, ref: day });
+    await insLog(x, 'web', { g: ins.g, gn: ins.gn, f: f2, t: ins.t, ref: day, sp: prods[code] ? code : '' });
     const p = await first(x.db, 'SELECT * FROM bl_posts WHERE day = ?', day);
     await notifyApprovers(x, p, (row && row.md ? '✍️ <b>Bài web đã viết lại, chờ duyệt</b>' : '📝 <b>Bài web mới chờ duyệt</b>') + (topic ? ' · chủ đề được giao' : ' · trợ lý tự chọn chủ đề'));
     return { day, title };

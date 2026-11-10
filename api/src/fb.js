@@ -563,7 +563,7 @@ async function fpWrite(x, p, day, slot, hint, by, grp) {
   await run(x.db, `INSERT INTO fp_posts (id, page, day, slot, topic, text, link, prod, status, by_name, at, funnel, ins) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET topic = excluded.topic, text = excluded.text, link = excluded.link, prod = excluded.prod, status = 'draft', by_name = excluded.by_name, at = excluded.at, err = '', funnel = excluded.funnel, ins = excluded.ins`,
     id, p.id, day, slot, topic, body.slice(0, 5000), link, prods[code] ? code : '', by || 'AI', now, theme.f, JSON.stringify(ins));
-  await insLog(x, 'fb', { g: ins.g, gn: ins.gn, f: theme.f, t: ins.t, ref: id });
+  await insLog(x, 'fb', { g: ins.g, gn: ins.gn, f: theme.f, t: ins.t, ref: id, sp: prods[code] ? code : '' });
   if (c.mode !== 'auto' && !by) x.later(telegram(x.env, '📝 <b>Bài fanpage chờ duyệt</b> – ' + esc(p.name) + ' · ' + slot + ' ' + day.slice(6, 8) + '/' + day.slice(4, 6) + ': ' + esc(topic) + '\n👉 Duyệt / sửa: ' + CRM_URL + '/#fanpage'));
   return { id, topic };
 }

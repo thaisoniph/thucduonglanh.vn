@@ -17,56 +17,81 @@ import { prodMap } from './zbot.js';
 const WRITER = 'claude-opus-5-5';
 export const CH = { web: '🌐 Web', zalo: '💬 Zalo', fb: '📘 Fanpage', video: '🎬 Video' };
 
+/** Mã ngắn sản phẩm để gắn nhãn (10/11/2026, anh Sơn: "insight / tension phân theo từng sản phẩm, cái nào dùng chung thì ghi lại").
+ * Cuối dòng tension ghi [SP: dilvang, bua-an] = tension riêng của sản phẩm đó; không ghi = DÙNG CHUNG cho mọi sản phẩm (và hợp nhất cho bài TOFU).
+ * prods của nhóm = sản phẩm hợp với nhóm khách. Mã đầy đủ (vd tra-hoa-tan-dilvang-dinh-lang-che-vang) cũng nhận. */
+export const SP = {
+  'bua-an': ['bua-an-dinh-duong-vitagreen', 'Bữa Ăn Dinh Dưỡng VitaGreen'], curcumin: ['dinh-duong-tu-hat-va-curcumin', 'Dinh Dưỡng Từ Hạt và Curcumin'],
+  ruoc: ['ruoc-rong-bien-vi-suon-non', 'Ruốc Rong Biển Vị Sườn Non'], dilvang: ['tra-hoa-tan-dilvang-dinh-lang-che-vang', 'Trà hòa tan DILVANG'],
+  'xi-dau': ['xi-dau-2s-do-den-nguu-bang', 'Xì Dầu 2S Đỗ Đen Ngưu Bàng']
+};
+/** "dilvang" / "DILVANG" / mã đầy đủ → mã đầy đủ */
+export function spCode(tok) {
+  const k = nrm(tok).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); if (!k) return '';
+  if (SP[k]) return SP[k][0];
+  const hit = Object.entries(SP).find(([a, v]) => v[0] === k || v[0].includes(k) || k.includes(a) || nrm(v[1]).replace(/[^a-z0-9]+/g, '-') === k);
+  return hit ? hit[1][0] : k;
+}
+export const spName = c => (Object.values(SP).find(v => v[0] === c) || [c, c])[1];
+/** Dòng tension → { t: chữ, sp: [mã sản phẩm] } ([] = dùng chung) */
+export function tenOf(line) {
+  const m = String(line || '').match(/\s*\[\s*sp\s*:\s*([^\]]*)\]\s*$/i);
+  return { t: m ? String(line).slice(0, m.index).trim() : String(line || '').trim(), sp: m ? m[1].split(/[,;]+/).map(spCode).filter(Boolean) : [] };
+}
+
 /** Ngân hàng mặc định. 10/11/2026: bổ sung insight thật từ bài tập khoá content K133 của anh Sơn (DILVANG_Insights_Tension.xlsx – 21 tension chấm điểm /25,
  * Kế hoạch content DILVANG mẹ sau sinh, Playbook trà DILVANG): thêm nhóm Chồng chăm vợ sau sinh (điểm cao nhất), Bà chăm con ở cữ, Khách cũ; nhóm ít ưu tiên để tắt sẵn.
  * Tension: "mong muốn ↔ rào cản – cảnh". Ghi chú (note) = điều nên / không nên nói + góc đã làm. */
 export const INS0 = [
-  { id: 'me-bim', name: 'Mẹ sau sinh, mẹ bỉm', on: true,
+  { id: 'me-bim', name: 'Mẹ sau sinh, mẹ bỉm', on: true, prods: 'dilvang, bua-an, curcumin, ruoc',
     who: '22–38 tuổi, con 0–12 tháng, nhiều người đang cho con bú, ở cữ cùng bà nội / ngoại. Ngày xoay quanh con, thức đêm, hay hỏi trong nhóm mẹ bỉm.',
     want: 'Ăn uống đủ để có sức chăm con, không ảnh hưởng con đang bú, lấy lại sức và vóc dáng. Sâu hơn: là người mẹ tốt mà vẫn là chính mình, có chút khoảnh khắc của riêng mình, được người nhà ghi nhận.',
     block: 'Thức đêm, một tay bế con, không ai nấu; lời khuyên trái chiều (bà, mạng, bác sĩ); ngại nồi nước lá phải đun mỗi ngày; thứ gì cũng sợ ảnh hưởng con; ngại tiêu tiền cho bản thân; ngại than mệt.',
     tensions: [
-      'Muốn uống như bà dặn ↔ sợ ảnh hưởng con đang bú vì nghe đồn trái chiều, uống mà nơm nớp, hỏi khắp nơi',
-      'Muốn uống đủ nước ấm khi cho con bú ↔ 2 giờ sáng một tay bế con, không ai đun, đành uống nước nguội',
+      'Muốn uống như bà dặn ↔ sợ ảnh hưởng con đang bú vì nghe đồn trái chiều, uống mà nơm nớp, hỏi khắp nơi [SP: dilvang]',
+      'Muốn uống đủ nước ấm khi cho con bú ↔ 2 giờ sáng một tay bế con, không ai đun, đành uống nước nguội [SP: dilvang]',
       'Muốn "đẻ xong vẫn là mình" ↔ cả ngày xoay quanh con, không có nổi 10 phút của riêng mình',
       'Muốn lấy lại vóc dáng ↔ sợ ăn kiêng làm ít sữa, dễ tin lời quảng cáo "uống là gọn"',
       'Muốn ở cữ theo kiến thức mới ↔ ngại trái ý bà, mẹ chồng chuyện kiêng cữ',
       'Mệt rã rời, muốn được nghỉ ↔ ngại than vì sợ bị nói "ai đẻ chẳng thế"',
-      'Muốn biết ăn uống gì là đúng ↔ mỗi nguồn nói một kiểu, không biết tin ai'],
+      'Muốn biết ăn uống gì là đúng ↔ mỗi nguồn nói một kiểu, không biết tin ai',
+      'Muốn có bữa phụ đủ chất giữa buổi, giữa đêm ↔ một tay bế con, không kịp nấu, toàn ăn tạm bánh kẹo [SP: bua-an, curcumin]',
+      'Muốn con lớn ăn được đồ lành, ít phụ gia ↔ đồ ăn sẵn cho bé nhiều chất bảo quản, tự làm thì không có thời gian [SP: ruoc]'],
     note: 'Không nhắm phụ nữ đang mang thai. Không hứa lợi sữa, giảm cân: chuyện chè vằng, đinh lăng… chỉ nói là kinh nghiệm dân gian. Góc đã làm tốt: "Uống gì, mẹ cũng nghĩ đến con trước"; "2 giờ sáng, một tay bế con, mẹ vẫn có cốc ấm"; "10 giây của riêng mẹ"; "Bà vẫn đúng, mẹ vẫn được nghỉ"; checklist 42 ngày ở cữ: lời bà dặn nào nên giữ, lời nào nên đổi.' },
-  { id: 'chong-vo-sinh', name: 'Chồng chăm vợ sau sinh', on: true,
+  { id: 'chong-vo-sinh', name: 'Chồng chăm vợ sau sinh', on: true, prods: 'dilvang, bua-an',
     who: '25–40 tuổi, vợ vừa sinh hoặc đang ở cữ, đi làm cả ngày, ít khi vào nhóm mẹ bỉm.',
     want: 'Chăm vợ cho đúng, tặng vợ món quà thiết thực. Sâu hơn: được vợ và nhà vợ thấy mình "hiểu chuyện", không đứng ngoài việc chăm con.',
     block: 'Không biết vợ đang kiêng gì; sợ mẹ vợ chê; không biết nấu nướng; ngại hỏi; vợ bảo "không cần gì".',
     tensions: [
-      'Muốn tặng vợ món quà cho thấy chồng hiểu chuyện ↔ sợ mua sai thứ vợ đang kiêng, bị mẹ vợ chê, rốt cuộc lại đưa tiền',
-      'Muốn tự tay chăm vợ mỗi ngày ↔ đi làm cả ngày, không biết nấu, thấy mình đứng ngoài',
+      'Muốn tặng vợ món quà cho thấy chồng hiểu chuyện ↔ sợ mua sai thứ vợ đang kiêng, bị mẹ vợ chê, rốt cuộc lại đưa tiền [SP: dilvang, bua-an]',
+      'Muốn tự tay chăm vợ mỗi ngày ↔ đi làm cả ngày, không biết nấu, thấy mình đứng ngoài [SP: dilvang, bua-an]',
       'Muốn mua đồ tốt cho vợ ↔ ngại vào nhóm mẹ bỉm hỏi, vợ thì bảo "không cần gì"'],
     note: 'Nhóm có điểm cao nhất trong bảng insight. Góc đã làm: "Vợ mới sinh, tặng gì để mẹ vợ không chê?"; "Việc của bố chỉ mất 15 giây"; "Bố ơi, 10 việc bố làm được trong tháng ở cữ".' },
-  { id: 'ba-o-cu', name: 'Bà nội, bà ngoại chăm con ở cữ', on: true,
+  { id: 'ba-o-cu', name: 'Bà nội, bà ngoại chăm con ở cữ', on: true, prods: 'dilvang',
     who: '50–65 tuổi, chăm con dâu / con gái ở cữ, giữ nhiều kinh nghiệm truyền thống.',
     want: 'Con cháu được chăm đúng kiểu truyền thống, khỏe mạnh. Sâu hơn: kinh nghiệm của mình được tôn trọng, được lắng nghe.',
     block: 'Tin đồ tự nấu hơn đồ đóng gói; tự nấu nồi to mỗi ngày nên mệt; con cái chỉ tin trên mạng, hay vênh nhau chuyện kiêng cữ.',
     tensions: [
-      'Muốn con dâu được chăm đúng kiểu truyền thống ↔ nghĩ đồ gói sẵn "không thật bằng lá nấu", nên ngày nào cũng tự nấu nồi to, mệt',
+      'Muốn con dâu được chăm đúng kiểu truyền thống ↔ nghĩ đồ gói sẵn "không thật bằng lá nấu", nên ngày nào cũng tự nấu nồi to, mệt [SP: dilvang]',
       'Muốn kinh nghiệm của mình được nghe ↔ con cái chỉ tin trên mạng, nói ra là thành vênh nhau',
       'Muốn con cháu ăn uống đủ chất ↔ mỗi người một ý, nói nhiều sợ mất lòng'],
     note: 'Không chê kinh nghiệm của bà. Góc: "Bà vẫn đúng, mẹ vẫn được nghỉ"; "Ở cữ cùng bà: 3 thứ đừng cãi, 1 thứ nên đổi".' },
-  { id: 'van-phong', name: 'Dân văn phòng bận rộn', on: true,
+  { id: 'van-phong', name: 'Dân văn phòng bận rộn', on: true, prods: 'bua-an, curcumin, dilvang, ruoc',
     who: '25–45 tuổi, làm 8–10 tiếng, ngồi nhiều, ăn vội; bắt đầu lo cân nặng và các chỉ số khi khám sức khỏe định kỳ.',
     want: 'Tỉnh táo cả ngày; giữ cân; bữa sáng nhanh mà đủ chất; đồ uống ít đường. Sâu hơn: làm chủ sức khỏe để đi đường dài, không muốn "già trước tuổi", vẫn hợp với hội đồng nghiệp.',
     block: 'Buổi sáng vội; đồ ăn quanh công ty nhiều dầu mỡ, đường; căng thẳng là thèm đồ ngọt; nghĩ trà thảo mộc là "đồ người già", nhạt, đắng; ngại bị trêu; quảng cáo lố nên không tin; chi tiêu phải tính.',
     tensions: [
-      'Biết phải ăn sáng đủ chất ↔ sáng nào cũng vội, ăn tạm hoặc bỏ bữa',
-      'Muốn bỏ ly trà sữa 3 giờ chiều ↔ sợ bị trêu "uống thuốc bắc à", lạc khỏi hội',
-      'Muốn đồ uống ít đường ↔ trà thảo mộc nhạt, đắng, uống 2 hôm lại quay về nước ngọt',
+      'Biết phải ăn sáng đủ chất ↔ sáng nào cũng vội, ăn tạm hoặc bỏ bữa [SP: bua-an, curcumin]',
+      'Muốn bỏ ly trà sữa 3 giờ chiều ↔ sợ bị trêu "uống thuốc bắc à", lạc khỏi hội [SP: dilvang, curcumin]',
+      'Muốn đồ uống ít đường ↔ trà thảo mộc nhạt, đắng, uống 2 hôm lại quay về nước ngọt [SP: dilvang]',
       'Muốn uống đồ lành mỗi ngày ↔ thấy người ta tìm "tác hại của …", mua về rồi để đó',
-      'Muốn thay ly cà phê chiều ↔ quảng cáo đồ uống "thần kỳ" lố quá, không tin',
+      'Muốn thay ly cà phê chiều ↔ quảng cáo đồ uống "thần kỳ" lố quá, không tin [SP: dilvang]',
       'Muốn ăn lành ↔ cơm văn phòng nhiều dầu mỡ, không tự nấu được',
       'Khám định kỳ thấy chỉ số bắt đầu vượt ngưỡng, muốn thay đổi ↔ không biết bắt đầu từ đâu, sợ phải kiêng khem khổ sở',
-      'Muốn đầu tư cho sức khỏe ↔ sợ mua đồ "healthy" đắt tiền rồi bỏ dở'],
+      'Muốn đầu tư cho sức khỏe ↔ sợ mua đồ "healthy" đắt tiền rồi bỏ dở',
+      'Muốn mang cơm hộp lành đi làm ↔ tối về mệt, không nấu nổi món mặn, cơm trắng ăn nhạt miệng [SP: ruoc, xi-dau]'],
     note: 'Góc đã làm: "Uống lành mà vẫn hợp hội"; "Ai cũng tìm \'tác hại của …\'. Đây là sự thật". Không dùng chữ "không đường" nếu sản phẩm có đường / năng lượng.' },
-  { id: 'trung-nien', name: 'Trung niên, nghỉ hưu', on: true,
+  { id: 'trung-nien', name: 'Trung niên, nghỉ hưu', on: true, prods: 'curcumin, bua-an, dilvang, xi-dau',
     who: '45–70 tuổi, đã hoặc sắp nghỉ hưu, sống cùng hoặc gần con cháu; quan tâm đường huyết, mỡ máu, giấc ngủ, xương khớp; hay ở Zalo, Facebook, câu lạc bộ dưỡng sinh.',
     want: 'Đồ ăn, đồ uống hằng ngày rõ nguồn gốc; khỏe để tự lo, không phiền con cháu; ngủ ngon; ăn uống điều độ. Sâu hơn: sống vui bên con cháu, vẫn thấy mình hữu ích.',
     block: 'Sợ hàng trôi nổi, quảng cáo thổi phồng; răng yếu, ăn khó; quen vị cũ; con cái lo lắng, can thiệp; lương hưu có hạn; đang dùng thuốc nên sợ ăn thêm thứ không hợp.',
@@ -76,19 +101,21 @@ export const INS0 = [
       'Muốn bớt đồ ngọt, đồ chế biến sẵn ↔ quen vị cũ, ăn nhạt thì mất ngon',
       'Muốn không làm phiền con cháu ↔ đang mỏi mệt nhưng ngại nói vì sợ con lo',
       'Muốn thử thực phẩm tốt cho sức khỏe ↔ lương hưu có hạn, sợ tiền mất mà không thấy gì',
-      'Đang làm theo lời bác sĩ ↔ sợ ăn thêm thứ gì đó không hợp với thuốc đang dùng'],
+      'Đang làm theo lời bác sĩ ↔ sợ ăn thêm thứ gì đó không hợp với thuốc đang dùng',
+      'Muốn bữa phụ chiều tối nhẹ bụng mà đủ chất ↔ răng yếu, ăn khó, ăn nhiều lại đầy bụng [SP: curcumin, bua-an]',
+      'Muốn món ăn hằng ngày đậm đà bằng gia vị lành ↔ sợ nước tương công nghiệp nhiều phụ gia, không biết đọc nhãn [SP: xi-dau]'],
     note: 'Cần thấy bằng chứng thật: nhà máy, tiêu chuẩn cơ sở, phiếu kiểm nghiệm, người quen giới thiệu. Góc: "Một gói làm từ bao nhiêu lá khô?"; "Vị này có giống nước lá mẹ nấu không?".' },
-  { id: 'an-chay', name: 'Người ăn chay, Phật tử, theo thực dưỡng', on: true,
+  { id: 'an-chay', name: 'Người ăn chay, Phật tử, theo thực dưỡng', on: true, prods: 'ruoc, xi-dau, curcumin',
     who: 'Ăn chay trường hoặc ăn chay ngày rằm, mùng 1; nhiều người sinh hoạt ở chùa, đọc về thực dưỡng.',
     want: 'Ăn chay đủ đạm, đủ chất; món chay ngon, thanh nhẹ. Sâu hơn: sống đúng niềm tin, cho người nhà thấy ăn chay vẫn khỏe.',
     block: 'Món chay ngoài hàng nhiều dầu, bột ngọt, đồ giả mặn; ít món, dễ chán; người nhà lo ăn chay thì yếu; chưa biết phối hợp đạm thực vật; nấu riêng tốn thời gian.',
     tensions: [
       'Muốn ăn chay lâu dài ↔ lo thiếu đạm, sắt, B12, người nhà sợ mình yếu',
-      'Muốn ăn chay thanh tịnh ↔ món chay ngoài hàng nhiều dầu, bột ngọt, đồ giả mặn',
-      'Muốn bữa chay ngon, đổi món ↔ quanh quẩn đậu phụ, rau luộc nên dễ chán',
-      'Muốn cả nhà ăn chay cùng ngày rằm ↔ con cháu chê nhạt, phải nấu hai mâm',
+      'Muốn ăn chay thanh tịnh ↔ món chay ngoài hàng nhiều dầu, bột ngọt, đồ giả mặn [SP: xi-dau, ruoc]',
+      'Muốn bữa chay ngon, đổi món ↔ quanh quẩn đậu phụ, rau luộc nên dễ chán [SP: ruoc, xi-dau]',
+      'Muốn cả nhà ăn chay cùng ngày rằm ↔ con cháu chê nhạt, phải nấu hai mâm [SP: xi-dau, ruoc]',
       'Muốn sống đúng niềm tin ↔ ngại bị xem là khác người khi đi ăn cùng bạn bè, đồng nghiệp'] },
-  { id: 'mua-qua', name: 'Con cái mua quà sức khỏe cho bố mẹ', on: true,
+  { id: 'mua-qua', name: 'Con cái mua quà sức khỏe cho bố mẹ', on: true, prods: 'dilvang, bua-an, curcumin',
     who: '28–45 tuổi, sống xa bố mẹ hoặc bận rộn; mua quà dịp Tết, Vu Lan, 8/3, 20/10, sinh nhật, đi thăm người ốm.',
     want: 'Món quà thiết thực, bố mẹ thích và dùng thật, nhìn tươm tất. Sâu hơn: là người con chu đáo dù ở xa, bù đắp vì ít về thăm.',
     block: 'Sợ mua nhầm hàng thổi phồng, không rõ nguồn gốc; bố mẹ tiếc tiền, cất đi không dùng; không biết bố mẹ hợp loại nào, có đang dùng thuốc; hộp nhỏ sợ không sang; ngân sách có hạn.',
@@ -96,10 +123,10 @@ export const INS0 = [
       'Muốn biếu bố mẹ món quà sức khỏe thật sự ↔ sợ mua nhầm hàng thổi phồng, không rõ nguồn gốc',
       'Muốn bố mẹ dùng đều quà mình mua ↔ bố mẹ tiếc tiền, cất tủ hoặc đem cho người khác',
       'Ở xa muốn chăm bố mẹ ↔ chỉ gửi được quà, không ở bên nhắc bố mẹ ăn uống',
-      'Muốn quà biếu có ý nghĩa ↔ hộp nhỏ nhìn không sang, đành chọn giỏ hoa quả',
+      'Muốn quà biếu có ý nghĩa ↔ hộp nhỏ nhìn không sang, đành chọn giỏ hoa quả [SP: dilvang]',
       'Muốn quà tươm tất để biếu ↔ ngân sách có hạn, không muốn mua hộp quà toàn vỏ'],
     note: 'Góc: "Đi thăm bố mẹ, mang gì ngoài trái cây?".' },
-  { id: 'khach-cu', name: 'Khách cũ của Thực Dưỡng Lành', on: true,
+  { id: 'khach-cu', name: 'Khách cũ của Thực Dưỡng Lành', on: true, prods: 'bua-an, curcumin, dilvang, ruoc, xi-dau',
     who: 'Đã mua sữa hạt hoặc sản phẩm khác của Thực Dưỡng Lành, nhiều người đang ở nhóm Zalo.',
     want: 'Cả nhà cùng sống lành với hãng mình đã tin; dùng đúng, đủ. Sâu hơn: được hãng nhớ tới, được giới thiệu điều tốt cho người thân.',
     block: 'Đã chi đều cho sản phẩm đang dùng, thêm món mới thấy nặng; không rõ món mới dành cho ai, dùng lúc nào, khác gì món đang dùng; muốn giới thiệu bạn mà không có cớ mở lời.',
@@ -108,19 +135,19 @@ export const INS0 = [
       'Muốn cả nhà cùng một nếp sống lành ↔ không biết món mới cho ai, uống lúc nào, khác món đang dùng chỗ nào',
       'Muốn giới thiệu cho bạn ↔ không có cớ để mở lời'],
     note: 'Khách cũ cần được dẫn đường, không cần được thuyết phục: chỉ rõ ai dùng, lúc nào, kết hợp với món đang dùng thế nào (vd "sáng sữa hạt, chiều trà ấm").' },
-  { id: 'quen-che-vang', name: 'Người đã quen uống chè vằng, đinh lăng', on: false,
+  { id: 'quen-che-vang', name: 'Người đã quen uống chè vằng, đinh lăng', on: false, prods: 'dilvang',
     who: 'Nhiều người gốc miền Trung, quen uống nước lá, cao chè vằng miếng.',
     want: 'Uống đúng vị quen mà tiện hơn.',
     block: 'Tính ra đắt hơn cao miếng nhiều lần; nghi đồ hòa tan "toàn đường, bột độn".',
     tensions: [
-      'Muốn tiện ↔ tính ra đắt gấp mấy lần cao chè vằng miếng tự cắt',
-      'Muốn thử dạng hòa tan ↔ nghi "toàn đường, bột độn", chưa đọc được thành phần'],
+      'Muốn tiện ↔ tính ra đắt gấp mấy lần cao chè vằng miếng tự cắt [SP: dilvang]',
+      'Muốn thử dạng hòa tan ↔ nghi "toàn đường, bột độn", chưa đọc được thành phần [SP: dilvang]'],
     note: 'Bật khi đẩy trà DILVANG. Góc: "Chán cắt cao chè vằng?"; "Đọc thành phần trước". Không nói "không đường".' },
-  { id: 'nam-tiep-khach', name: 'Nam 30–50 hay tiếp khách', on: false,
+  { id: 'nam-tiep-khach', name: 'Nam 30–50 hay tiếp khách', on: false, prods: 'dilvang',
     who: 'Đi làm, hay tiếp khách, nhậu; thường ngại đồ "healthy".',
     want: 'Bớt bia, nước ngọt mà vẫn giữ được nhịp làm việc, quan hệ.',
     block: 'Thấy trà thảo mộc là "đồ phụ nữ đẻ"; ngại bị anh em trêu.',
-    tensions: ['Muốn bớt bia, nước ngọt ↔ thấy trà thảo mộc là "đồ phụ nữ đẻ", ngại bị anh em trêu'],
+    tensions: ['Muốn bớt bia, nước ngọt ↔ thấy trà thảo mộc là "đồ phụ nữ đẻ", ngại bị anh em trêu [SP: dilvang]'],
     note: 'Nhóm điểm thấp, tắt sẵn; bật khi muốn thử.' }
 ];
 
@@ -146,7 +173,8 @@ function clean(list) {
     let id = nrm(g.id || g.name).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30) || 'nhom-' + (i + 1);
     while (seen[id]) id += '-2'; seen[id] = 1;
     const tensions = (Array.isArray(g.tensions) ? g.tensions : String(g.tensions || '').split('\n')).map(t => cut(String(t).replace(/^[-•*\d.)\s]+/, ''), 300)).filter(Boolean).slice(0, 20);
-    return { id, name: cut(g.name, 80), on: g.on !== false, who: cut(g.who, 800), want: cut(g.want, 800), block: cut(g.block, 800), tensions, note: cut(g.note, 800) };
+    const prods = [...new Set((Array.isArray(g.prods) ? g.prods : String(g.prods || '').split(/[,;\s]+/)).map(spCode).filter(Boolean))].slice(0, 12);
+    return { id, name: cut(g.name, 80), on: g.on !== false, who: cut(g.who, 800), want: cut(g.want, 800), block: cut(g.block, 800), tensions, prods, note: cut(g.note, 800) };
   }).filter(g => g.name);
 }
 export async function insBank(x) { const b = await kvJson(x.db, 'ins_bank', null); return b && Array.isArray(b.groups) && b.groups.length ? clean(b.groups) : clean(INS0); }
@@ -161,7 +189,7 @@ async function logGet(x) { const l = await kvJson(x.db, 'ins_log', []); return A
 export async function insLog(x, ch, rec) {
   try {
     const now = Date.now(), l = (await logGet(x)).filter(r => now - r.at < 90 * DAY && !(rec.ref && r.ch === ch && r.ref === rec.ref)); // viết lại cùng bài → thay dòng cũ
-    l.push({ at: now, ch, g: rec.g || '', gn: cut(rec.gn, 80), f: funOf(rec.f), t: cut(rec.t, 300), ref: cut(rec.ref, 60) });
+    l.push({ at: now, ch, g: rec.g || '', gn: cut(rec.gn, 80), f: funOf(rec.f), t: cut(rec.t, 300), ref: cut(rec.ref, 60), sp: rec.sp ? spCode(rec.sp) : '' });
     await kvSet(x.db, 'ins_log', JSON.stringify(l.slice(-600)));
   } catch (e) { console.error('insLog', e.message); }
 }
@@ -170,7 +198,9 @@ export async function insLog(x, ch, rec) {
  * opt.only = danh sách id được phép (vd fanpage chỉ nói với 1–2 nhóm). Trả { bank, g, recent: tension nhóm này đã dùng 14 ngày qua } */
 export async function insPick(x, ch, want, opt) {
   const bank = await insBank(x), on = live(bank), only = opt && Array.isArray(opt.only) && opt.only.length ? opt.only : null;
-  const pool = (only ? on.filter(g => only.includes(g.id)) : on).length ? (only ? on.filter(g => only.includes(g.id)) : on) : on;
+  let pool = (only ? on.filter(g => only.includes(g.id)) : on).length ? (only ? on.filter(g => only.includes(g.id)) : on) : on;
+  const prod = opt && opt.prod ? spCode(opt.prod) : '';
+  if (prod) { const pp = pool.filter(g => g.prods.includes(prod) || g.tensions.some(t => tenOf(t).sp.includes(prod))); if (pp.length) pool = pp; } // bài về 1 sản phẩm → nhóm khách hợp sản phẩm đó
   const now = Date.now(), log = (await logGet(x)).filter(r => now - r.at < 14 * DAY);
   let g = insFind(bank, want);
   if (!g && pool.length) {
@@ -178,26 +208,31 @@ export async function insPick(x, ch, want, opt) {
     g = pool.map((v, i) => ({ v, a: n(v.id, ch), b: n(v.id), c: (i - rot + pool.length) % pool.length })).sort((p, q) => p.a - q.a || p.b - q.b || p.c - q.c)[0].v;
   }
   const recent = g ? log.filter(r => r.g === g.id).slice(-8).map(r => (CH[r.ch] || r.ch) + ': ' + r.t).filter(s => !/: $/.test(s)) : [];
-  return { bank, g, recent };
+  return { bank, g, recent, prod };
 }
 
-/** Đoạn hướng dẫn gửi AI: bước insight bắt buộc trước khi viết + luật tầng phễu.
- * f = TOFU | MOFU | BOFU (hoặc '' để AI tự chọn tầng hợp nhất); opt.light = bài chúc mừng ngày lễ (tension chỉ để chọn góc chạm, không biến thành bài bán). */
+/** Đoạn hướng dẫn gửi AI: quy trình 4Is của khoá content K133 (Issue → Insight → Idea → Implementation) + luật tầng phễu.
+ * f = TOFU | MOFU | BOFU (hoặc '' để AI tự chọn tầng hợp nhất); opt.light = bài chúc mừng ngày lễ (tension chỉ để chọn góc chạm, không biến thành bài bán);
+ * opt.prod / p.prod = mã sản phẩm bài nói tới → chỉ đưa tension riêng của sản phẩm đó + tension dùng chung. */
 export function insBlock(p, f, opt) {
   opt = opt || {};
-  const g = p && p.g, F = FUN[f];
+  const g = p && p.g, F = FUN[f], prod = spCode(opt.prod || (p && p.prod) || '');
+  const tline = x => '- ' + x.t + (x.sp.length ? '  [riêng: ' + x.sp.map(spName).join(', ') + ']' : '  [dùng chung]');
+  const T = g ? g.tensions.map(tenOf).filter(x => !prod || !x.sp.length || x.sp.includes(prod)) : [];
   const grp = g ? ['NHÓM KHÁCH MỤC TIÊU của bài này: ' + g.name + (g.who ? ' – ' + g.who : ''),
-    g.want ? 'Họ mong (nói ra được / sâu hơn): ' + g.want : '', g.block ? 'Rào cản: ' + g.block : '', g.note ? 'Ghi chú: ' + g.note : '',
-    'Tension đã biết (mong muốn ↔ rào cản):\n' + g.tensions.map(t => '- ' + t).join('\n'),
+    g.want ? 'Họ mong (nói ra được / sâu hơn): ' + g.want : '', g.block ? 'Rào cản / vấn đề (issue) thường gặp: ' + g.block : '', g.note ? 'Ghi chú: ' + g.note : '',
+    g.prods.length ? 'Sản phẩm hợp với nhóm: ' + g.prods.map(spName).join(', ') : '',
+    'Tension đã biết (mong muốn ↔ rào cản):\n' + T.map(tline).join('\n'),
     p.recent && p.recent.length ? 'Tension nhóm này vừa dùng gần đây (ưu tiên tension KHÁC, hoặc góc khác hẳn):\n' + p.recent.map(t => '- ' + t).join('\n') : ''].filter(Boolean).join('\n')
-    : 'NHÓM KHÁCH: tự chọn 1 nhóm trong NGÂN HÀNG INSIGHT bên dưới.\n' + live(p && p.bank || []).map(v => '- ' + v.name + ': ' + v.tensions.slice(0, 4).join(' | ')).join('\n');
-  return ['# BƯỚC BẮT BUỘC TRƯỚC KHI VIẾT: INSIGHT → TENSION → PHỄU',
+    : 'NHÓM KHÁCH: tự chọn 1 nhóm trong NGÂN HÀNG INSIGHT bên dưới.\n' + live(p && p.bank || []).map(v => '- ' + v.name + ': ' + v.tensions.map(tenOf).filter(x => !prod || !x.sp.length || x.sp.includes(prod)).slice(0, 4).map(x => x.t).join(' | ')).join('\n');
+  return ['# QUY TRÌNH 4Is BẮT BUỘC TRƯỚC KHI VIẾT: ISSUE → INSIGHT → IDEA → IMPLEMENTATION (khoá content K133)',
     grp,
-    'Làm lần lượt (nghĩ trong đầu, chỉ ghi kết quả vào 3 dòng NHÓM KHÁCH / TENSION / INSIGHT ở phần đầu câu trả lời):',
-    '1. Chọn ĐÚNG 1 tension hợp nhất với chủ đề' + (f ? ' và tầng phễu' : '') + ' (được diễn đạt tension mới của cùng nhóm, nhưng phải đủ 2 cực: điều họ mong ↔ điều đang cản họ, trong 1 cảnh đời cụ thể: ai, lúc nào, ở đâu).',
-    '2. Insight: nói tension đó bằng lời người trong nhóm, ngôi thứ nhất, 1–2 câu, dạng "Tôi cần một cách [điều mong] mà không phải [đánh đổi / rào cản]" hoặc lời tự sự (giả thuyết của người viết, KHÔNG trình bày như lời khách thật). Insight đúng là khi người đọc thốt lên "sao hiểu mình thế".',
-    '3. Chọn cách gỡ: cắt bỏ rào cản / giảm rào cản (thời gian, tiền, công sức, rủi ro) / đi vòng rào cản / đổi cách nhìn (không hứa sai sự thật). Chọn 1 động lực chính để kể: nhu cầu, mong muốn hình ảnh bản thân, nỗi đau, nỗi lo (chỉ lo về sự bất tiện, lời đồn, bị đánh giá – KHÔNG dọa bệnh), kết quả cụ thể, hoặc tò mò.',
-    '4. Viết theo công thức chạm khát vọng + nêu rõ điều họ mong + gỡ rào cản, nhịp C.A.R.E: Nhân vật (1 người cụ thể trong cảnh) → Cảm xúc → Lối thoát (cách gỡ) → Mời tương tác / lối ra.',
+    prod ? 'Bài này nói về sản phẩm: ' + spName(prod) + ' → chọn tension [riêng] của sản phẩm này hoặc tension [dùng chung].' : 'Tension [riêng: …] chỉ dùng khi bài nói về đúng sản phẩm đó (thường MOFU / BOFU); tension [dùng chung] hợp mọi bài, nhất là TOFU.',
+    'Làm lần lượt (nghĩ trong đầu, chỉ ghi kết quả vào các dòng NHÓM KHÁCH / ISSUE / TENSION / INSIGHT / IDEA ở phần đầu câu trả lời):',
+    '1. ISSUE – vấn đề: 1 nỗi đau / bất tiện / rào cản CỤ THỂ quan sát được của nhóm khách trong 1 cảnh đời (6W: chuyện gì, ở đâu, khi nào, ai, cùng ai, họ đang xoay xở thế nào). Là điều thấy được, không phải suy diễn.',
+    '2. INSIGHT – vì sao họ kẹt: chọn ĐÚNG 1 tension hợp nhất với issue, chủ đề' + (f ? ' và tầng phễu' : '') + ' (được diễn đạt tension mới của cùng nhóm, nhưng phải đủ 2 cực: điều họ mong ↔ điều đang cản họ). Hỏi "để làm gì?" 2 lần để chạm khát vọng sâu. Câu insight nói bằng lời người trong nhóm, ngôi thứ nhất, dạng "Tôi cần một cách [điều mong] mà không phải [đánh đổi / rào cản]" hoặc lời tự sự (giả thuyết của người viết, KHÔNG trình bày như lời khách thật). Đúng là khi người đọc thốt lên "sao hiểu mình thế".',
+    '3. IDEA – góc tiếp cận khác biệt gỡ tension: cắt bỏ / giảm (thời gian, tiền, công sức, rủi ro) / đi vòng rào cản, hoặc đổi cách nhìn (không hứa sai sự thật); chọn 1 động lực chính để kể (nhu cầu, hình ảnh bản thân, nỗi đau, nỗi lo về bất tiện / lời đồn / bị đánh giá – KHÔNG dọa bệnh, kết quả cụ thể, tò mò). Gói thành 1 câu ý tưởng của bài. Idea phải tác động vào ít nhất 1 cực của tension, không chỉ "mới lạ".',
+    '4. IMPLEMENTATION – viết cho đúng kênh và tầng phễu, theo công thức chạm khát vọng + nêu rõ điều họ mong + gỡ rào cản, nhịp C.A.R.E: Nhân vật (1 người cụ thể trong cảnh) → Cảm xúc → Lối thoát (chính là idea) → Mời tương tác / lối ra.',
     '   - Câu mở (hook) làm người trong nhóm nhận ra chính mình trong 1–2 giây, chọn 1 kiểu: gọi tên nhóm, câu hỏi chạm nỗi đau, cảnh báo kèm đối tượng, con số, ngược số đông, hậu trường, danh sách, thử thách, câu chuyện mở giữa chừng (không dùng trước–sau về cơ thể).',
     '   - Chạm cảm xúc trước, đưa thông tin sau. AI hay "giàu thông tin, nghèo cảm xúc": bán cảm giác, không kể thông số; dùng hình ảnh, âm thanh, từ láy, nhịp câu, chất văn hóa Việt (có thể mượn ca dao, cách nói dân gian nếu hợp).',
     '   - Kết bằng đúng 1 lối ra của tầng phễu.',
@@ -212,13 +247,13 @@ export const LAW = 'Luật quảng cáo thực phẩm: chỉ nói công dụng �
 /** Cụm dễ phạm luật → cảnh báo trên thẻ bài để người duyệt đọc lại (không tự sửa: câu phủ định như "không in chữ lợi sữa" vẫn có thể đúng) */
 const RISK_RE = /lợi sữa|gọi sữa|giảm cân|co hồi|không đường|thần dược|bài thuốc|an toàn tuyệt đối|không (có )?tác dụng phụ|chuẩn quốc tế|ai dùng cũng|giải độc|thanh lọc|mát gan|hạ huyết áp|hạ mỡ máu|0896 ?869 ?333/gi; // GMP: nhà máy đạt GMP là đúng (anh Sơn 10/11/2026), không cảnh báo · 0896 869 333: hotline cũ, chỉ dùng 0966 326 522
 export function insRisk(text) { return [...new Set((String(text || '').match(RISK_RE) || []).map(w => w.toLowerCase()))].slice(0, 8); }
-/** 3 dòng AI phải ghi ở phần đầu (trước ---) */
-export const INS_HEAD = 'NHÓM KHÁCH: <tên nhóm khách>\nTENSION: <điều họ mong> ↔ <điều đang cản họ>\nINSIGHT: <1 câu, lời người trong nhóm, ngôi thứ nhất>';
-/** Đọc 3 dòng trên từ phần đầu câu trả lời → { gn, t, i, g } (g = id nhóm nếu khớp ngân hàng) */
+/** Các dòng 4Is AI phải ghi ở phần đầu (trước ---) */
+export const INS_HEAD = 'NHÓM KHÁCH: <tên nhóm khách>\nISSUE: <vấn đề cụ thể trong 1 cảnh, tối đa 20 chữ>\nTENSION: <điều họ mong> ↔ <điều đang cản họ>\nINSIGHT: <1 câu, lời người trong nhóm, ngôi thứ nhất>\nIDEA: <góc tiếp cận gỡ tension, 1 câu>';
+/** Đọc các dòng trên từ phần đầu câu trả lời → { g, gn, is (issue), t (tension), i (insight), d (idea) } (g = id nhóm nếu khớp ngân hàng) */
 export function insParse(head, bank, fb) {
   const get = k => ((String(head || '').match(new RegExp('^\\s*\\**' + k + '\\**\\s*:\\s*(.+)$', 'mi')) || [])[1] || '').replace(/\*/g, '').trim();
   const gn = get('NHÓM KHÁCH').slice(0, 120), g = insFind(bank || [], gn) || fb || null; // nhóm đã giao cho AI: AI gọi tên khác đi một chút vẫn tính đúng nhóm
-  return { g: g ? g.id : '', gn: g ? g.name : gn, t: get('TENSION').replace(/<->|<=>|->/g, '↔').slice(0, 300), i: get('INSIGHT').replace(/^["“']|["”']$/g, '').slice(0, 300) };
+  return { g: g ? g.id : '', gn: g ? g.name : gn, is: get('ISSUE').slice(0, 300), t: get('TENSION').replace(/<->|<=>|->/g, '↔').slice(0, 300), i: get('INSIGHT').replace(/^["“']|["”']$/g, '').slice(0, 300), d: get('IDEA').slice(0, 300) };
 }
 /** Thẻ ngắn hiện ở CRM: "🎯 Nhóm · tension" */
 export const insTag = o => o && (o.gn || o.t) ? '🎯 ' + [o.gn, o.t].filter(Boolean).join(' · ') : '';
@@ -226,14 +261,31 @@ export const insTag = o => o && (o.gn || o.t) ? '🎯 ' + [o.gn, o.t].filter(Boo
 /** Bản tóm tắt ngân hàng + quy trình (MCP cho ChatGPT / Gemini / Claude bên ngoài, và cho nhân sự copy) */
 export async function insText(x) {
   const bank = await insBank(x);
-  return ['QUY TRÌNH NỘI DUNG THỰC DƯỠNG LÀNH: Insight → Tension → Phễu (TOFU / MOFU / BOFU). Mọi bài web, bài nhóm Zalo, Fanpage, kịch bản video đều làm theo:',
-    '1. Chọn 1 nhóm khách mục tiêu và 1 tension (điều họ mong ↔ điều đang cản họ, trong 1 cảnh cụ thể).',
-    '2. Viết insight bằng lời khách (giả thuyết, không phải lời khách thật).',
+  return ['QUY TRÌNH NỘI DUNG THỰC DƯỠNG LÀNH: 4Is (Issue → Insight → Idea → Implementation) + phễu TOFU / MOFU / BOFU. Mọi bài web, bài nhóm Zalo, Fanpage, kịch bản video đều làm theo:',
+    '1. Issue: 1 vấn đề cụ thể quan sát được của 1 nhóm khách trong 1 cảnh. Insight: 1 tension (điều họ mong ↔ điều đang cản họ) + câu insight bằng lời khách (giả thuyết). Idea: 1 góc tiếp cận gỡ tension.',
+    '2. Tension có nhãn [SP: …] là riêng của sản phẩm đó; không nhãn = dùng chung cho mọi sản phẩm (hợp nhất cho bài TOFU).',
     '3. Chọn tầng phễu và lối ra:', ...Object.values(FUN).map(v => '   ' + v.name + ': ' + v.rule),
     '4. Viết: hook chạm tension trong 1–2 giây → chạm cảm xúc trước, thông tin sau → gỡ tension → 1 lối ra. Công thức hợp từng tầng:', ...Object.entries(FORMULA).map(([k, v]) => '   ' + k + ': ' + v),
     '5. ' + LAW + ' Không dùng "chữa / điều trị / khỏi bệnh"; nhắc sản phẩm thì có dòng "Sản phẩm là thực phẩm, không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh."',
     '', 'NGÂN HÀNG INSIGHT (nhóm khách mục tiêu):',
-    ...bank.map(g => ['## ' + g.name + (g.on ? '' : ' (đang tạm tắt)'), g.who, 'Mong muốn: ' + g.want, 'Rào cản: ' + g.block, 'Tension:', ...g.tensions.map(t => '- ' + t), g.note ? 'Ghi chú: ' + g.note : ''].filter(Boolean).join('\n'))].join('\n');
+    ...bank.map(g => ['## ' + g.name + (g.on ? '' : ' (đang tạm tắt)'), g.who, 'Mong muốn: ' + g.want, 'Rào cản: ' + g.block, g.prods.length ? 'Sản phẩm hợp: ' + g.prods.map(spName).join(', ') : '', 'Tension:', ...g.tensions.map(tenOf).map(x => '- ' + x.t + (x.sp.length ? ' [riêng: ' + x.sp.map(spName).join(', ') + ']' : ' [dùng chung]')), g.note ? 'Ghi chú: ' + g.note : ''].filter(Boolean).join('\n'))].join('\n');
+}
+
+/** Gộp INS0 vào ngân hàng đã sửa riêng: thêm nhóm chưa có, thêm tension chưa có, gắn nhãn sản phẩm cho tension trùng chữ, điền "sản phẩm hợp" còn trống */
+function mergeDefault(bank) {
+  const out = bank.map(g => Object.assign({}, g, { tensions: g.tensions.slice(), prods: g.prods.slice() })), n = { groups: 0, tensions: 0, tags: 0 };
+  const key = t => nrm(tenOf(t).t).replace(/[^a-z0-9]+/g, '');
+  for (const d of clean(INS0)) {
+    const g = out.find(v => v.id === d.id);
+    if (!g) { out.push(d); n.groups++; continue; }
+    for (const t of d.tensions) {
+      const i = g.tensions.findIndex(v => key(v) === key(t));
+      if (i < 0) { g.tensions.push(t); n.tensions++; }
+      else if (!tenOf(g.tensions[i]).sp.length && tenOf(t).sp.length) { g.tensions[i] = t; n.tags++; }
+    }
+    if (!g.prods.length && d.prods.length) { g.prods = d.prods.slice(); n.tags++; }
+  }
+  return { groups: clean(out), n: n.groups + n.tensions + n.tags ? n : null };
 }
 
 /* ---------------------------------------------------------------- 🎬 kịch bản video */
@@ -255,7 +307,7 @@ async function vdWrite(x, u, d) {
   if (!x.env.ANTHROPIC_API_KEY) return { ok: false, error: 'Máy chủ chưa có khoá AI.' };
   await schema(x.db);
   const sec = [15, 30, 45, 60, 90].includes(Number(d.sec)) ? Number(d.sec) : 60, kind = KIND[d.kind] ? d.kind : 'noi', f = funOf(d.f), hint = cut(d.hint, 1000), genre = GENRE[d.genre] ? d.genre : '';
-  const p = await insPick(x, 'video', cut(d.g, 80)), know = await kb(), prods = prodMap(know), pc = prods[cut(d.prod, 80)] ? cut(d.prod, 80) : '';
+  const know = await kb(), prods = prodMap(know), pc = prods[cut(d.prod, 80)] ? cut(d.prod, 80) : '', p = await insPick(x, 'video', cut(d.g, 80), { prod: pc });
   if (!p.g && !live(p.bank).length) return { ok: false, error: 'Ngân hàng insight chưa có nhóm khách nào đang bật.' };
   const scenes = sec <= 15 ? '3–5' : sec <= 30 ? '5–8' : sec <= 60 ? '8–14' : '12–20';
   const T = { 15: [2, 6, 12], 30: [3, 9, 25], 45: [3, 12, 38], 60: [3, 15, 50], 90: [4, 22, 76] }[sec]; // mốc AIDA theo bảng GCAO (90 giây giữ tỉ lệ)
@@ -310,7 +362,7 @@ async function vdWrite(x, u, d) {
   const r = await run(x.db, 'INSERT INTO vd_scripts (at, by_name, g, gn, f, t, i, prod, sec, kind, title, text, hint) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     Date.now(), u.name, ins.g, ins.gn, ff, ins.t, ins.i, prods[code] ? code : pc, sec, kind, title, text.slice(0, 20000), hint);
   const id = r && r.meta && r.meta.last_row_id;
-  await insLog(x, 'video', { g: ins.g, gn: ins.gn, f: ff, t: ins.t, ref: 'vd' + id });
+  await insLog(x, 'video', { g: ins.g, gn: ins.gn, f: ff, t: ins.t, ref: 'vd' + id, sp: prods[code] ? code : pc });
   const sc = await first(x.db, 'SELECT * FROM vd_scripts WHERE id = ?', id); if (sc) sc.w = insRisk(sc.text);
   return { ok: true, id, script: sc };
 }
@@ -324,9 +376,9 @@ export async function crmIns(x, u, d, crmLog) {
   if (a === 'ins_view') {
     const bank = await insBank(x), custom = !!await kvJson(x.db, 'ins_bank', null), log = (await logGet(x)).filter(r => now - r.at < 30 * DAY);
     const scripts = (await all(x.db, 'SELECT id, at, by_name, g, gn, f, t, i, prod, sec, kind, title, text FROM vd_scripts ORDER BY id DESC LIMIT 30')).map(r => Object.assign(r, { w: insRisk(r.text) }));
-    const news = custom ? clean(INS0).filter(g => !bank.some(b => b.id === g.id)) : []; // nhóm mới thêm vào bản mặc định (vd từ tài liệu khoá học) mà ngân hàng đã sửa riêng chưa có
+    const upd = custom ? mergeDefault(bank).n : null; // bản mặc định có nhóm / tension / nhãn sản phẩm mới mà ngân hàng đã sửa riêng chưa có
     const prods = Object.entries(prodMap(await kb())).map(([k, v]) => ({ code: k, name: v.name }));
-    return { ok: true, now, bank, custom, news, log: log.slice(-300), scripts, prods, aiOn: !!x.env.ANTHROPIC_API_KEY, fun: Object.fromEntries(Object.entries(FUN).map(([k, v]) => [k, v.name])) };
+    return { ok: true, now, bank, custom, upd, sp: SP, log: log.slice(-300), scripts, prods, aiOn: !!x.env.ANTHROPIC_API_KEY, fun: Object.fromEntries(Object.entries(FUN).map(([k, v]) => [k, v.name])) };
   }
   if (a === 'ins_save') {
     if (u.level < 2 && u.role !== 'Marketing') return { ok: false, error: 'Chỉ Marketing, Quản lý, Quản trị sửa được ngân hàng insight.' };
@@ -337,6 +389,13 @@ export async function crmIns(x, u, d, crmLog) {
     await kvSet(x.db, 'ins_bank', JSON.stringify({ groups, by: u.name, at: now }));
     await crmLog(x, u, 'Insight & nội dung', '-', '', 'Sửa ngân hàng insight', groups.map(g => g.name + ' (' + g.tensions.length + ')').join(', ').slice(0, 300));
     return { ok: true, bank: groups };
+  }
+  if (a === 'ins_merge') { // 📚 gộp bản mặc định mới vào ngân hàng đã sửa riêng (không xoá gì của anh chị đã sửa)
+    if (u.level < 2 && u.role !== 'Marketing') return { ok: false, error: 'Chỉ Marketing, Quản lý, Quản trị sửa được ngân hàng insight.' };
+    const m = mergeDefault(await insBank(x));
+    await kvSet(x.db, 'ins_bank', JSON.stringify({ groups: m.groups, by: u.name, at: now }));
+    await crmLog(x, u, 'Insight & nội dung', '-', '', 'Gộp bản mặc định mới', JSON.stringify(m.n));
+    return { ok: true, bank: m.groups, n: m.n };
   }
   if (a === 'ins_video') {
     const r = await vdWrite(x, u, d);

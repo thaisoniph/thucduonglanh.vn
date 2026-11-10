@@ -1951,3 +1951,6 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .inx-g .inx-tl li { margin: 2px 0; }
 .inx-aud { display: flex; flex-wrap: wrap; gap: 0 14px; }
 .inx-warn { color: var(--orange); }
+.inx-sp { display: inline; font-size: 11.5px; padding: 1px 7px; border-radius: 99px; background: #fff4ec; color: #9a3412; box-decoration-break: clone; -webkit-box-decoration-break: clone; line-height: 1.9; }
+.inx-sp.inx-all { background: var(--blue-light); color: var(--blue); }
+.inx-pd summary { cursor: pointer; line-height: 1.5; }
