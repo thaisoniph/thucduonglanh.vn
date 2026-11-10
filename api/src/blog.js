@@ -231,7 +231,7 @@ async function write(x, cfg, day, row) {
     const q = s => JSON.stringify(String(s)); // chuỗi YAML an toàn (có dấu : vẫn đúng)
     const md = ['---', 'title: ' + q(title), 'date: ' + day, 'category: ' + cat, 'image: ' + cover, 'excerpt: ' + q(excerpt), 'published: true', '---', '', body, ''].join('\n');
     const ins = insParse(head, ip.bank, ip.g), rw = insRisk(body);
-    if (rw.length) checks.push('⚠️ Có cụm dễ phạm luật quảng cáo thực phẩm: ' + rw.join(', ') + ' → chỉ giữ nếu đúng hồ sơ công bố hoặc là câu phủ định');
+    if (rw.length) checks.push('⚠️ Đọc lại: ' + rw.join(', ') + ' → cụm dễ phạm luật quảng cáo chỉ giữ nếu đúng hồ sơ công bố hoặc là câu phủ định; hotline cũ 0896 869 333 đổi thành 0966 326 522');
     const m = { excerpt, cat, cover, who: ins.gn, g: ins.g, t: ins.t, i: ins.i, w: rw, checks, hour: cfg.hour, sources: [...urls].slice(0, 30), fb };
     if (!ins.t) checks.push('⚠️ Trợ lý chưa ghi rõ tension bài này giải, nên đọc kỹ xem bài có chạm đúng nỗi lòng của nhóm khách không');
     await run(x.db, "UPDATE bl_posts SET status = 'wait', title = ?, slug = ?, funnel = ?, topic = ?, tkey = ?, md = ?, meta = ?, hint = '', at = ?, err = '', tries = 0, remind = 0 WHERE day = ?",

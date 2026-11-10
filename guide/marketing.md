@@ -205,7 +205,7 @@ Mở: menu **Thêm → 🎯 Insight & nội dung** (Marketing thấy ngay trên 
 3. **Chọn tầng phễu**: 🔵 **TOFU** (giá trị nằm ở chính nội dung, không bán) · ⚪ **MOFU** (tạo niềm tin bằng bằng chứng thật: nguồn gốc, nhà máy, hồ sơ công bố, cảm nhận khách thật) · 🟠 **BOFU** (giới thiệu sản phẩm, ưu đãi thật, mời đặt hàng).
 4. **Viết**: câu mở (hook) chạm đúng tension, **chạm cảm xúc trước, thông tin sau**, thân bài gỡ tension theo công thức hợp tầng phễu (TOFU: kể chuyện nhân vật, mở câu hỏi, 1-2-3 · MOFU: so sánh thật, giải thích, bằng chứng · BOFU: liệt kê giá trị, ưu đãi thật), cuối bài có **1 lối ra** (bình luận nhận quà, xem sản phẩm, đặt hàng).
 
-**Luật quảng cáo thực phẩm:** chỉ nói công dụng đúng hồ sơ công bố. Chuyện chè vằng, đinh lăng… chỉ nói là *kinh nghiệm dân gian*. Bài có cụm dễ phạm luật (lợi sữa, giảm cân, thanh lọc, GMP, không đường…) sẽ hiện dòng **⚠️ Đọc lại cụm…** trên thẻ bài: chỉ giữ nếu đúng hồ sơ công bố hoặc là câu phủ định.
+**Luật quảng cáo thực phẩm:** chỉ nói công dụng đúng hồ sơ công bố. Chuyện chè vằng, đinh lăng… chỉ nói là *kinh nghiệm dân gian*. Bài có cụm dễ phạm luật (lợi sữa, giảm cân, thanh lọc, không đường…) sẽ hiện dòng **⚠️ Đọc lại cụm…** trên thẻ bài: chỉ giữ nếu đúng hồ sơ công bố hoặc là câu phủ định.
 
 Trên thẻ bài ở tab Zalo, Fanpage, Bài web có dòng **🎯 nhóm khách · tension** và câu 💭 insight. Khi duyệt, đọc dòng này trước rồi hỏi: *bài có chạm đúng nỗi lòng đó không?* Chưa đúng thì bấm **🔄 Viết lại**, chọn nhóm khách khác hoặc ghi ý kiến.
 

@@ -6016,7 +6016,7 @@
     if (typeof o === 'string') { try { o = JSON.parse(o || '{}'); } catch (e) { o = {}; } }
     if (!o || !(o.gn || o.t)) return '';
     return '<p class="small inx-tag">🎯 <b>' + esc(o.gn || 'Nhóm khách') + '</b>' + (o.t ? ' · ' + esc(o.t) : '') + (o.i ? '<br><span class="muted">💭 “' + esc(o.i) + '”</span>' : '') +
-      (o.w && o.w.length ? '<br><span class="inx-warn">⚠️ Đọc lại cụm dễ phạm luật quảng cáo: <b>' + esc(o.w.join(', ')) + '</b> (chỉ giữ nếu đúng hồ sơ công bố hoặc là câu phủ định)</span>' : '') + '</p>';
+      (o.w && o.w.length ? '<br><span class="inx-warn">⚠️ Đọc lại: <b>' + esc(o.w.join(', ')) + '</b> (cụm dễ phạm luật quảng cáo: chỉ giữ nếu đúng hồ sơ công bố hoặc là câu phủ định; số 0896 869 333 là hotline cũ, đổi thành 0966 326 522)</span>' : '') + '</p>';
   }
   /** Hỏi trước khi viết lại (Zalo, Fanpage): ý kiến + nhóm khách. cb(hint, grp) */
   function inRegenAsk(groups, cur, cb) {
@@ -6070,7 +6070,7 @@
       '<li>Mỗi bài chỉ nói với <b>1 nhóm khách</b> và gỡ <b>1 tension</b>: cắt bỏ, giảm (thời gian, tiền, công sức, rủi ro), đi vòng rào cản hoặc đổi cách nhìn. Không hù doạ, không hứa sai sự thật.</li>' +
       '<li><b>🔵 TOFU</b>: giá trị nằm ở chính nội dung (kiến thức, mẹo, câu chuyện), đạt 3/4 "4 MỚI" (mới, chưa ai nói, có giá trị, áp dụng ngay), không để tên sản phẩm ở tiêu đề. <b>⚪ MOFU</b>: giá trị là uy tín (nguồn gốc, nhà máy, kiểm nghiệm, hồ sơ công bố, so sánh thật, cảm nhận khách thật). <b>🟠 BOFU</b>: giá trị nằm ở sản phẩm, ưu đãi thật.</li>' +
       '<li>Khi viết, AI dùng thêm các công cụ của khoá K133: insight dạng <i>"tôi cần cách [điều mong] mà không phải [rào cản]"</i>, 1 động lực chính (nhu cầu, hình ảnh bản thân, nỗi đau, nỗi lo, kết quả, tò mò), 10 kiểu hook, nhịp C.A.R.E (nhân vật, cảm xúc, lối thoát, mời tương tác), "chạm cảm xúc trước, thông tin sau" và công thức hợp từng tầng (TOFU: Star–Story–Solution, Open Loop, 1-2-3 · MOFU: BAB, QUEST, FAB · BOFU: Value Stack, AIDA, PAS).</li>' +
-      '<li>Luật quảng cáo thực phẩm: chỉ nói công dụng đúng hồ sơ công bố; kinh nghiệm dân gian về chè vằng, đinh lăng… phải nói là kinh nghiệm dân gian. Bài có cụm dễ phạm luật (lợi sữa, giảm cân, thanh lọc, GMP…) sẽ hiện ⚠️ để người duyệt đọc lại.</li>' +
+      '<li>Luật quảng cáo thực phẩm: chỉ nói công dụng đúng hồ sơ công bố; kinh nghiệm dân gian về chè vằng, đinh lăng… phải nói là kinh nghiệm dân gian. Bài có cụm dễ phạm luật (lợi sữa, giảm cân, thanh lọc, không đường…) sẽ hiện ⚠️ để người duyệt đọc lại.</li>' +
       '<li>Mỗi bài có <b>1 lối ra</b>: TOFU mời bình luận, nhận quà, vào nhóm · MOFU mời xem sản phẩm, hỏi tư vấn · BOFU mời đặt hàng.</li>' +
       '<li>Trên thẻ bài ở tab Zalo, Fanpage, Bài web có dòng <b>🎯 nhóm khách · tension</b> để người duyệt kiểm tra bài có chạm đúng nỗi lòng khách không.</li></ol></details>';
     h += inStatsHtml(j);
