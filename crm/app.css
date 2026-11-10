@@ -1917,3 +1917,13 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .ktc-low summary { cursor: pointer; } .ktc-o { cursor: default; align-items: center; flex-wrap: wrap; } .ktc-o select { flex: 0 0 auto; max-width: 220px; }
 .ktc-t td:first-child, .ktc-t th:first-child { position: sticky; left: 0; background: var(--card, #fff); z-index: 1; }
 @media (max-width: 600px) { .ktc-t td:first-child { min-width: 118px; max-width: 140px; font-size: 13px; } }
+/* 🙋 chặn lách luật khách tự mang về (10/11/2026) */
+.own-how { margin: 10px 0 4px; padding: 10px; border-radius: 10px; background: #f3f8f4; display: grid; gap: 6px; }
+.own-how-t { font-weight: 600; }
+.own-box { display: grid; gap: 4px; background: #eef7f0; color: inherit; }
+.own-box.warn { background: #fff6e0; }
+.own-box.off { background: #eee; color: #666; }
+.own-box .own-why { margin-top: 6px; }
+.own-box .err:empty { display: none; }
+.own-wait .own-card { border-top: 1px solid var(--line, #eee); padding: 8px 0; }
+.own-wait .own-card .own-box { margin: 6px 0 0; }

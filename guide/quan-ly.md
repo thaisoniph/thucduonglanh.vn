@@ -51,7 +51,16 @@ Tài khoản Quản trị không nằm trong bảng so sánh nhân sự. Doanh s
 Để sale chủ động tìm khách và mời khách cũ giới thiệu thay vì chỉ chờ số quảng cáo, công ty trả **10% tiền hàng mọi đơn** sale bán cho khách mình **tự mang về** trong **6 tháng** kể từ đơn đầu (thay cho % khách mới / khách cũ thường). Chi phí: khách tự tìm tốn đúng 10%; khách giới thiệu cộng cả giảm giá bạn bè và voucher khoảng 20–25% vòng đời, đều dưới mức 30% của quảng cáo.
 
 - **Máy tự làm**: khi khách có đơn đầu, CRM xét trong 25 phút: có khách hỏi do sale tự thêm (kênh không phải quảng cáo) hoặc đặt qua link riêng của sale → **🙋 Tự tìm**; có người giới thiệu → **🙋 Được giới thiệu**. Báo Telegram cho sale, ghi Nhật ký **Khách tự mang về** (người làm: *Hoa hồng (tự động)*).
-- **Rào chắn**: số đã có trong file số quảng cáo, số khách để lại trên web (ebook, nhóm Zalo, form), kênh Facebook / TikTok / Shopee: không tính tự tìm. Số trùng nhân sự hoặc người nhà (Cài đặt → Nhân sự): không tính, Telegram báo quản lý xem lại.
+- **Rào chắn máy tự làm** (cập nhật 10/11/2026):
+  - Số có trong **file số quảng cáo** (cả danh sách số 100 ngày, kể cả khi sale đã thêm số trước lúc file về), số để lại trên web, kênh Facebook / TikTok / Shopee **trước đơn đầu** → không tính tự tìm.
+  - Có trong quảng cáo **trước khi** sale ghi người giới thiệu → không tính "được giới thiệu" (chặn kiểu ghi bừa khách giới thiệu cho khách quảng cáo).
+  - Trùng **tên + địa chỉ** khách cũ (khách cũ đổi số), cùng địa chỉ với **người giới thiệu**, trùng nhân sự / người nhà → không tính.
+  - Sale thêm khách hỏi phải chọn **🙋 Khách biết bạn qua đâu?**; chọn 📣 quảng cáo công ty thì không tính.
+  - **Chờ chốt 14 ngày**: trong 14 ngày máy xét lại mỗi 6 tiếng; file quảng cáo về muộn có số đó → tự gỡ, báo sale + quản lý (Nhật ký **Gỡ khách tự mang về**). Hết 14 ngày không có cờ → **Chốt khách tự mang về**.
+- **⚠️ Cờ cần quản lý duyệt** (chưa tính 10% tới khi duyệt): sale chưa ghi khách biết qua đâu; cùng địa chỉ khách cũ; cùng địa chỉ với khách 🙋 khác của cùng sale; sale có **trên 40%** khách mới 30 ngày là khách 🙋 (từ 5 khách); khách 🙋 của sale có đơn hoàn (≥ 2 khách và ≥ 30%). Telegram báo quản lý.
+- **Duyệt ở Hôm nay → 🙋 Khách tự mang về chờ quản lý xem**: bấm **✅ Tính hoa hồng** hoặc ghi lý do rồi **⛔ Không tính** (sale nhận tin kèm lý do).
+- **📞 Gọi xác minh**: thứ 2 hằng tuần máy chọn ngẫu nhiên **2 khách 🙋 / sale** (đơn đầu trong 45 ngày), báo Telegram. Gọi hỏi *"Chị biết Thực Dưỡng Lành qua đâu ạ?"*, so với sale ghi, bấm **✅ Đúng** hoặc ghi lý do rồi **⛔ Sai – không tính**. Không cần gọi hết: sale biết là có kiểm tra thì sẽ ghi đúng.
+- **Luật nên công bố khi họp**: khai sai thì thu hồi hoa hồng khách đó; tái phạm thì tạm dừng quyền hưởng 10% (CRM chưa tự làm phần tạm dừng).
 - **Xem**: hồ sơ khách có nhãn 🙋 kèm tên sale và ngày hết hạn; **Hiệu quả → 💰 Thu nhập tạm tính** có dòng và cột **🙋 HH khách tự mang về**; **Bảng thi đua** có hạng mục **🙋 Khách tự mang về**.
 - **Chỉnh mức**: Cài đặt → 💰 Lương & hoa hồng → 📑 Bảng lương theo bậc → mục **🙋 Khách sale tự mang về** (%, số tháng, áp dụng cho khách mua lần đầu từ ngày). Ghi 0 = tắt.
 

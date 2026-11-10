@@ -100,7 +100,7 @@ Voucher dùng cho đơn từ 300.000đ, hạn 90 ngày. Nói với khách cho d�
 - Khách đó là **khách bạn tự mang về**: **mọi đơn bạn bán cho khách đó trong 6 tháng đầu** tính **10% tiền hàng**, thay cho 3–5% thường (ngày lễ giữ % lễ nếu cao hơn). Mức này **thay** cho thưởng cố định 20.000đ / 30.000đ trước đây: khách mua càng lâu bạn nhận càng nhiều, không bị chặn ở 50.000đ. Ví dụ khách mới mua đơn 350.000đ mỗi tháng trong 6 tháng → bạn nhận 210.000đ.
 - Xem tiền ở tab **Hiệu quả** → **📊 Bảng BCDT** → **💰 Thu nhập tạm tính**, dòng **🙋 HH khách tự mang về**. Hồ sơ khách có nhãn **🙋 Được giới thiệu** kèm ngày hết hạn.
 - Khách mới mua ít thì khách **vẫn thuộc về bạn**, tính vào **mục tiêu nhóm**, chăm sóc để khách mua thêm (mỗi đơn thêm là thêm 10%).
-- Không tính: số đã có trong CRM, đơn huỷ hoặc hoàn, khách mới **cùng địa chỉ** với người giới thiệu, số trùng nhân sự hoặc người nhà.
+- Không tính: số đã có trong CRM hoặc trong file số quảng cáo trước khi bạn ghi người giới thiệu, đơn huỷ hoặc hoàn, khách mới **cùng địa chỉ** với người giới thiệu, số trùng nhân sự hoặc người nhà. Khách mới chờ chốt 14 ngày; quản lý có thể gọi hỏi khách để xác minh.
 - Xem khách được giới thiệu: tab **Hôm nay**, dòng 🌱 ở khung đầu trang, hoặc tab **Hiệu quả** → ô **🌱 Khách mới nhờ khách cũ giới thiệu** (số khách mới và **🤝 mục tiêu cả nhóm** trong tháng).
 
 **Việc của bạn (sale):**

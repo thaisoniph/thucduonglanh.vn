@@ -1395,6 +1395,7 @@
       (q.rest ? '<p class="small muted" style="margin:8px 0 0">Còn ' + q.rest + ' khách để các ngày sau (tối đa ' + dayLimit() + ' khách/ngày, đổi ở <a href="#cai-dat">Cài đặt</a>).</p>' : '') +
       (lvl() < 2 ? todayGoalLine() + refSaleLine() : '') + '</section>';
     h += occBlock(); // 🎉 dịp chúc khách: ngày lễ, rằm, mùng 1, sinh nhật (09/11/2026)
+    if (lvl() >= 2) h += ownWaitBlock(); // 🙋 khách tự mang về có cờ / gọi xác minh (10/11/2026)
     if (lvl() >= 2) h += stopWaitBlock(); // 📵 khách sale báo ngừng liên hệ, chờ quản lý xem (31/10/2026)
     // Đợt 2 (16/10/2026): sale mở máy thấy ngay khách cần gọi; mục tiêu chi tiết + thi đua + báo cáo cuối ngày chuyển xuống cuối trang. Quản lý giữ thi đua + ô số ở đầu.
     if (lvl() >= 2) {
@@ -1961,7 +1962,7 @@
       '<div class="acts p-acts2"><button class="btn" data-relink="' + c.phone + '" title="Link web có sẵn giỏ hàng như đơn trước, gửi khách tự đặt">🔗 Link đặt lại</button><button class="btn" data-refcode="' + c.phone + '" title="Có sẵn tin nhắn kèm mã giới thiệu riêng của khách và kịch bản gọi: bạn bè khách đặt lần đầu được giảm giá, khách được tặng quà">🌱 Mời giới thiệu bạn bè</button></div></div>' +
       (c.flag ? '<div class="notice" style="background:var(--red-light);color:var(--red)">⚠️ Khách có nhãn <b>' + esc(c.flag) + '</b>. Nên yêu cầu chuyển khoản trước khi gửi hàng.</div>' : '') +
       (live ? '<div class="notice click" data-poid="' + esc(live.id) + '">' + (trkWarn(live) ? '⚠️' : '🚚') + ' Khách đang có đơn <b>' + fDate(live.time).slice(0, 5) + '</b> (' + esc(live.status) + (live.trk ? ': ' + esc(live.trk) : '') + ') chưa giao xong. Hỏi thăm đơn này trước, chưa nên chào thêm. <u>Xem đơn</u></div>' : '') +
-      stopNotice(c) +
+      stopNotice(c) + ownBox(c) +
       (coldOf(c) && !isStopped(c) ? '<div class="notice" style="background:#eef2f7;color:#334">❄️ <b>Khách lạnh</b> (' + esc(coldOf(c)) + '): không đưa vào danh sách gọi hằng ngày. ' + (coldOf(c) === 'Không dùng nữa' ? 'Sau 6 tháng tự quay lại để chào lại 1 lần; khách đặt đơn mới là hết lạnh.' : 'Nếu bán lại, nên nhờ khách chuyển khoản trước.') + '</div>' : '') +
       '<div class="p-now"><div class="p-h">📌 Lần trước nói chuyện</div>' + (c.task ? '<div>' + TASKS[c.task.type].icon + ' Hôm nay: <b>' + TASKS[c.task.type].title + '</b> · ' + taskLine(c) + '</div>' : '') +
       (c.callback && dayStart(c.callback) > today() ? '<div>📅 Đã hẹn gọi lại: <b>' + fDate(c.callback).slice(0, 5) + '</b> (' + daysAgo(c.callback) + ')</div>' : '') +
@@ -3417,7 +3418,7 @@
   /* ---------- 10/11/2026 bước 2 bớt phụ thuộc quảng cáo: nguồn của từng đơn, khách sale tự tạo, việc khi hết số */
   var ADS_CH = /quảng cáo|facebook|fanpage|instagram|tiktok|^file /i;
   /** Khách hỏi do sale tự thêm, không phải kênh quảng cáo (số công ty giao thì by = File QC / Website). */
-  function selfLead(l) { return !!l && !!l.by && l.by !== 'Website' && l.by !== 'File QC' && l.by !== 'File sale' && !ADS_CH.test(l.channel || '') && !/^File cũ/.test(l.channel || ''); }
+  function selfLead(l) { return !!l && !!l.by && l.by !== 'Website' && l.by !== 'File QC' && l.by !== 'File sale' && !ADS_CH.test(l.channel || '') && !/^File cũ/.test(l.channel || '') && !/^📣/.test(l.how || ''); } // 📣 sale tự ghi khách biết qua quảng cáo công ty
   function leadByOrder() {
     var n = (S.d.leads || []).length; if (S._lbo && S._lbo.d === S.d && S._lbo.n === n) return S._lbo.m;
     var m = {}; (S.d.leads || []).forEach(function (l) { if (l.orderId) m[l.orderId] = l; }); S._lbo = { d: S.d, n: n, m: m }; return m;
@@ -3650,6 +3651,7 @@
       '<div class="lf-ref" id="lfRef" hidden><span class="lf-ref-t">🎁 Ai giới thiệu khách này?</span><div id="lfRefSel"></div>' +
         '<div id="lfRefFind"><input type="text" id="lfRefQ" autocomplete="off" placeholder="Gõ tên hoặc số điện thoại người giới thiệu"><div class="ref-sug" id="lfRefSug"></div></div>' +
         '<p class="small muted" style="margin:6px 0 0">Ghi đúng người giới thiệu để CRM đếm họ đã giới thiệu bao nhiêu người, mang về bao nhiêu doanh thu → tặng quà cảm ơn.</p></div>' +
+      '<div id="lfHowBox" hidden>' + ownHowSel('lf', l.how) + '</div>' +
       '<div class="row2c"><label class="f"><span>Hẹn liên hệ lại ngày</span><input type="date" name="callback" value="' + (l.callback ? isoDate(l.callback) : '') + '"></label>' +
       (lvl() >= 2 ? '<label class="f"><span>Người phụ trách</span><select name="owner">' + ownerOptions(l.owner, true) + '</select></label>' : '<div class="f"><span>Người phụ trách</span><div class="lf-me">👤 ' + esc(l.owner || S.user.name) + '</div></div>') + '</div>' +
       (edit ? '<div class="row2c"><label class="f"><span>Trạng thái</span><select name="status">' + LEAD_ST.filter(function (s) { return s !== 'Đã chốt' || lvl() >= 2 || l.status === 'Đã chốt' || l.orderId; }).map(function (s) { return '<option' + (s === l.status ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select></label>' +
@@ -3685,8 +3687,10 @@
       $$('[data-refi]', refSug).forEach(function (b) { b.onclick = function () { var r = out[+b.getAttribute('data-refi')]; ref = { phone: r.phone, name: r.name || '' }; refSug.innerHTML = ''; drawRef(); var rn = $('#lfRefName', m); if (rn) rn.focus(); }; });
     }
     refQ.addEventListener('input', findRef);
-    F.channel.addEventListener('change', function () { drawRef(); if (isRefCh(F.channel.value) && !ref) refQ.focus(); });
-    drawRef();
+    var phNew = !edit; // 🙋 số mới (chưa là khách, chưa có khách hỏi đang mở) → bắt ghi khách biết qua đâu
+    function drawHow() { $('#lfHowBox', m).hidden = OWN_HOW_CH.indexOf(F.channel.value) < 0 || (!edit && !phNew && !l.how); }
+    F.channel.addEventListener('change', function () { drawRef(); drawHow(); if (isRefCh(F.channel.value) && !ref) refQ.focus(); });
+    drawRef(); drawHow();
 
     /* ---- số điện thoại: tự thêm số 0 / bỏ +84, dấu cách; số đã có → hiện thông tin khách ngay */
     function fixPhone() {
@@ -3699,6 +3703,7 @@
       var c = ok && cust(ph), ol = ok && (S.d.leads || []).filter(function (x) { return normPhone(x.phone) === ph && isOpenLead(x) && x.id !== l.id; })[0], by = ok && refByOf(ph);
       save.disabled = false;
       if (!edit) save.textContent = ol ? 'Ghi thêm vào khách này' : c ? 'Lưu lượt hỏi lại' : 'Tạo khách hỏi';
+      if (!edit) { phNew = !c && !ol; drawHow(); }
       if (!ok) { hint.innerHTML = ''; return; }
       if (!c && !ol) {
         hint.innerHTML = edit ? '' : '<p class="lf-new">✨ Số mới, chưa có trong CRM. Bấm <b>Tạo khách hỏi</b> để tạo hồ sơ mới.</p>';
@@ -3731,6 +3736,9 @@
       var p = { id: edit ? l.id : '', phone: ph, name: F.name.value.trim() || 'Khách ' + ph.slice(-4), channel: F.channel.value, interest: F.interest.value.trim(), owner: F.owner ? F.owner.value : S.user.name, callback: F.callback.value, note: F.note.value.trim(),
         refPhone: isRef && ref ? ref.phone : '', refName: isRef && ref ? (ref.name || (cust(ref.phone) || {}).name || '') : '' };
       if (edit) { p.status = F.status.value; p.reason = F.reason.value.trim(); if (p.status === 'Không mua' && !p.reason) { err.textContent = 'Ghi lý do khách không mua giúp em nhé.'; return; } }
+      if (!$('#lfHowBox', m).hidden) { var hv = ownHowVal(m, 'lf'); if (hv.err) { err.textContent = hv.err; $('#lfHowD', m).focus(); return; }
+        if (!hv.v && !edit) { err.textContent = 'Chọn “Khách biết bạn qua đâu?” giúp em (khách từ quảng cáo / fanpage công ty thì chọn 📣).'; $('#lfHow', m).focus(); return; }
+        if (hv.v || edit) p.how = hv.v; }
       var btn = this, label = btn.textContent; btn.disabled = true; btn.textContent = 'Đang lưu…';
       api('lead_save', p).then(function (j) {
         closeModal(true); if (edit) history.replaceState(null, '', '#tiem-nang');
@@ -8815,11 +8823,70 @@
   var PP_SEN = ['dưới 1 năm', '1–2 năm', 'trên 2 năm'];
   /** 🙋 Khách sale tự mang về (10/11/2026): máy chủ (ownTick) gắn c.ownSrc = self / ref, c.ownBy = sale hưởng, c.ownAt = đơn đầu. Đơn do chính sale đó bán trong ownMonths tháng → % riêng (payplan.own, mặc định 10). */
   function ownEnd(c) { var P = (S.d.rules && S.d.rules.payplan) || {}; return c && c.ownAt ? c.ownAt + (P.ownMonths || 6) * 30.44 * DAY : 0; }
-  function ownOrder(o, c, name) { var P = (S.d.rules && S.d.rules.payplan) || {}; return !!(P.own && c && c.ownSrc && c.ownBy === name && o.time < ownEnd(c)); }
+  function ownOrder(o, c, name) { var P = (S.d.rules && S.d.rules.payplan) || {}; return !!(P.own && c && c.ownSrc && c.ownBy === name && o.time < ownEnd(c) && ownState(c) !== 'flag'); } // ⚠️ có cờ chưa duyệt → chưa tính 10%
+  /** 🙋 Chặn lách luật khách tự mang về (10/11/2026, anh Sơn chọn lớp 1 + 2): máy chủ ownTick gắn c.ownOk (0 chờ chốt · 1 đã chốt · -1 đã gỡ), c.ownFlag (cờ ⚠️ cần quản lý duyệt / lý do gỡ), c.ownHow (khách biết sale qua đâu), c.ownChk (1 = máy chọn gọi xác minh tuần này, 2 đúng, 3 sai).
+   *  Khách có cờ và chưa duyệt → chưa tính 10%. Sale ghi "khách biết qua đâu" ngay lúc thêm khách hỏi (OWN_HOW, kênh không phải quảng cáo / giới thiệu). */
+  var OWN_HOW = ['👥 Người quen của tôi (bạn bè, họ hàng, hàng xóm)', '💬 Nhóm Zalo / Facebook tôi tham gia', '📱 Bài tôi tự đăng trên trang cá nhân', '🎪 Sự kiện / hội thảo / phát quà', '🏪 Gặp trực tiếp (chợ, chùa, cửa hàng…)', '✏️ Khác', '📣 Khách xem quảng cáo / fanpage công ty'];
+  var OWN_HOW_CH = ['Zalo', 'Điện thoại', 'Sự kiện / hội thảo', 'Khác'], OWN_WAIT_D = 14;
+  function ownHowSel(pre, val) {
+    var v = String(val || ''), i = OWN_HOW.map(function (o) { return v.indexOf(o) === 0 ? 1 : 0; }).indexOf(1), det = i >= 0 ? v.slice(OWN_HOW[i].length).replace(/^ · /, '') : v;
+    return '<div class="own-how"><span class="own-how-t">🙋 Khách biết bạn qua đâu?</span>' +
+      '<select id="' + pre + 'How"><option value="">– Chọn –</option>' + OWN_HOW.map(function (o, k) { return '<option value="' + k + '"' + (k === i ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join('') + '</select>' +
+      '<input type="text" id="' + pre + 'HowD" maxlength="100" value="' + esc(det) + '" placeholder="Ghi rõ: tên nhóm, sự kiện, người quen là ai…">' +
+      '<p class="small muted" style="margin:4px 0 0">Ghi đúng để được tính <b>khách bạn tự mang về</b>. Quản lý có thể gọi hỏi lại khách. Khách đến từ quảng cáo hay fanpage công ty thì chọn 📣.</p></div>';
+  }
+  /** Đọc ô "biết qua đâu" → { v: chuỗi lưu, err } (v rỗng = chưa chọn). */
+  function ownHowVal(root, pre) {
+    var s = $('#' + pre + 'How', root), d = $('#' + pre + 'HowD', root); if (!s || s.value === '') return { v: '' };
+    var o = OWN_HOW[+s.value], det = d ? d.value.trim() : '';
+    if (o.indexOf('📣') !== 0 && det.length < 3) return { v: '', err: 'Ghi rõ khách biết bạn qua đâu (tên nhóm, sự kiện, người quen…).' };
+    return { v: o + (det ? ' · ' + det : '') };
+  }
+  function ownState(c) { return !c || !c.ownSrc ? '' : c.ownOk === 1 ? 'ok' : c.ownFlag ? 'flag' : 'wait'; }
+  function ownBox(c) {
+    if (!c || !c.ownBy || (c.ownBy !== S.user.name && lvl() < 2)) return '';
+    if (c.ownOk === -1) return c.ownFlag ? '<div class="notice own-box off">↩ <b>Không tính khách tự mang về</b> (' + esc(c.ownBy) + '): ' + esc(c.ownFlag) + '</div>' : '';
+    var st = ownState(c); if (!st || (st === 'ok' && c.ownChk !== 1)) return '';
+    var boss = lvl() >= 2, h = '<div class="notice own-box' + (st === 'flag' ? ' warn' : '') + '" data-ownbox="' + c.phone + '"><div>🙋 <b>Khách tự mang về</b> của ' + esc(c.ownBy) + ' (' + (c.ownSrc === 'self' ? 'sale tự tìm' : 'khách cũ giới thiệu') + ')' + (c.ownHow ? ' · biết qua: <b>' + esc(c.ownHow) + '</b>' : '') + '</div>';
+    if (st === 'wait') h += '<div class="small">⏳ Chờ chốt tới <b>' + fDate(c.ownAt + OWN_WAIT_D * DAY).slice(0, 5) + '</b>. Trong thời gian này nếu số có trong file quảng cáo thì máy tự gỡ. Hoa hồng 10% đang tạm tính.</div>';
+    if (st === 'flag') h += '<div class="small">⚠️ <b>Chờ quản lý duyệt</b>, hoa hồng 10% chưa tính: ' + esc(c.ownFlag) + '</div>';
+    if (st !== 'ok' && !c.ownHow && c.ownSrc === 'self' && c.ownBy === S.user.name) h += ownHowSel('ob' + c.phone, '') + '<button class="btn sm" data-ownhow="' + c.phone + '">Lưu nguồn khách</button>';
+    if (boss && (st === 'flag' || c.ownChk === 1)) {
+      h += (c.ownChk === 1 ? '<div class="small" style="margin-top:6px">📞 <b>Máy chọn gọi xác minh tuần này.</b> Gọi hỏi khách: <i>"Chị biết Thực Dưỡng Lành qua đâu ạ?"</i> rồi so với sale ghi. <a href="tel:' + c.phone + '">Gọi ' + fPhone(c.phone) + '</a></div>' : '') +
+        '<input type="text" class="own-why" placeholder="Lý do (bắt buộc nếu không tính, sale sẽ thấy)" maxlength="200"><div class="acts" style="margin-top:6px">' +
+        (c.ownChk === 1 ? '<button class="btn sm pri" data-ownact="' + c.phone + '|chk_ok">✅ Đúng như sale ghi' + (st === 'flag' ? ' – tính hoa hồng' : '') + '</button><button class="btn sm" data-ownact="' + c.phone + '|chk_no">⛔ Sai – không tính</button>'
+          : '<button class="btn sm pri" data-ownact="' + c.phone + '|ok">✅ Tính hoa hồng</button><button class="btn sm" data-ownact="' + c.phone + '|no">⛔ Không tính</button>') + '</div>';
+    }
+    return h + '<p class="err own-err"></p></div>';
+  }
+  /** Hôm nay (Quản lý): khách 🙋 có cờ chờ duyệt + khách máy chọn gọi xác minh tuần này. */
+  function ownWaitBlock() {
+    var P = (S.d.rules && S.d.rules.payplan) || {}; if (!P.own) return '';
+    var L = S.d.customers.filter(function (c) { return c.ownSrc && ((c.ownOk === 0 && c.ownFlag) || c.ownChk === 1) && whoOk(c.ownBy); });
+    if (!L.length) return '';
+    var nf = L.filter(function (c) { return c.ownOk === 0 && c.ownFlag; }).length, nc = L.length - nf;
+    return '<section class="box own-wait"><h3 style="margin:0 0 4px">🙋 Khách tự mang về chờ quản lý xem</h3><p class="small muted" style="margin:0 0 8px">' +
+      (nf ? '<b>' + nf + '</b> khách có dấu hiệu lạ (chưa tính 10% tới khi bạn duyệt)' : '') + (nf && nc ? ' · ' : '') + (nc ? '<b>' + nc + '</b> khách máy chọn ngẫu nhiên để gọi xác minh tuần này' : '') + '. Sale biết là có kiểm tra thì sẽ ghi đúng.</p>' +
+      L.slice(0, 20).map(function (c) { return '<div class="own-card"><div><b class="link" data-cust="' + c.phone + '">' + esc(c.name || 'Khách') + '</b> · <a href="tel:' + c.phone + '">' + fPhone(c.phone) + '</a> · ' + c.orders + ' đơn ' + moneyShort(c.spent) + '</div>' + ownBox(c) + '</div>'; }).join('') +
+      (L.length > 20 ? '<p class="small muted">… và ' + (L.length - 20) + ' khách nữa (xử lý xong mấy khách trên sẽ hiện tiếp).</p>' : '') + '</section>';
+  }
+  function ownSet(c, j) { ['ownSrc', 'ownOk', 'ownFlag', 'ownHow', 'ownChk'].forEach(function (k) { if (j[k] !== undefined) c[k] = j[k]; }); }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-ownact],[data-ownhow]'); if (!b || !S.d) return;
+    e.preventDefault(); e.stopPropagation();
+    var box = b.closest('[data-ownbox]'), err = box && $('.own-err', box), ph, p; if (err) err.textContent = '';
+    if (b.hasAttribute('data-ownhow')) { ph = b.getAttribute('data-ownhow'); var hv = ownHowVal(box, 'ob' + ph); if (hv.err || !hv.v) { if (err) err.textContent = hv.err || 'Chọn khách biết bạn qua đâu.'; return; } p = { phone: ph, act: 'how', how: hv.v }; }
+    else { var sp = b.getAttribute('data-ownact').split('|'); ph = sp[0]; p = { phone: ph, act: sp[1], why: box && $('.own-why', box) ? $('.own-why', box).value.trim() : '' };
+      if ((p.act === 'no' || p.act === 'chk_no') && !p.why) { if (err) err.textContent = 'Ghi lý do không tính giúp em (sale sẽ thấy lý do này).'; var w = $('.own-why', box); if (w) w.focus(); return; } }
+    var c = cust(ph), t = b.textContent; b.disabled = true; b.textContent = 'Đang lưu…';
+    api('own', p).then(function (j) { if (c) { ownSet(c, j); if (!j.ownSrc) c.ownOk = -1; } toast(p.act === 'how' ? 'Đã lưu nguồn khách ✓' : p.act === 'ok' ? 'Đã duyệt: tính hoa hồng 10% ✓' : p.act === 'chk_ok' ? 'Đã ghi: gọi xác minh đúng ✓' : 'Đã ghi: không tính khách tự mang về'); render(); if ($('.modal [data-ownbox="' + ph + '"]')) { var nb = $('.modal [data-ownbox="' + ph + '"]'); nb.outerHTML = ownBox(c); } },
+      function (er) { b.disabled = false; b.textContent = t; if (err) err.textContent = er.message; else toast(er.message, true); });
+  }, true);
+
   function ownTag(c) {
     var P = (S.d.rules && S.d.rules.payplan) || {}; if (!c || !c.ownSrc || !P.own) return '';
     var live = Date.now() < ownEnd(c);
-    return '<span class="own-tag' + (live ? '' : ' off') + '" title="Khách do sale tự mang về (' + (c.ownSrc === 'self' ? 'sale tự tìm, không từ quảng cáo' : 'khách cũ giới thiệu') + '). ' + esc(c.ownBy) + ' hưởng ' + P.own + '% tiền hàng mọi đơn mình bán cho khách này trong ' + (P.ownMonths || 6) + ' tháng đầu' + (live ? ', tới ' + fDate(ownEnd(c)) : ' (đã hết hạn ' + fDate(ownEnd(c)) + ', về % thường)') + '.">🙋 ' + (c.ownSrc === 'self' ? 'Tự tìm' : 'Được giới thiệu') + ' · ' + esc(c.ownBy) + ' ' + P.own + '%' + (live ? ' tới ' + fDate(ownEnd(c)).slice(0, 5) : ' (hết hạn)') + '</span>';
+    return '<span class="own-tag' + (live ? '' : ' off') + '" title="Khách do sale tự mang về (' + (c.ownSrc === 'self' ? 'sale tự tìm, không từ quảng cáo' : 'khách cũ giới thiệu') + '). ' + esc(c.ownBy) + ' hưởng ' + P.own + '% tiền hàng mọi đơn mình bán cho khách này trong ' + (P.ownMonths || 6) + ' tháng đầu' + (live ? ', tới ' + fDate(ownEnd(c)) : ' (đã hết hạn ' + fDate(ownEnd(c)) + ', về % thường)') + '.">🙋 ' + (c.ownSrc === 'self' ? 'Tự tìm' : 'Được giới thiệu') + ' · ' + esc(c.ownBy) + ' ' + P.own + '%' + (live ? ' tới ' + fDate(ownEnd(c)).slice(0, 5) : ' (hết hạn)') + (ownState(c) === 'flag' ? ' · ⚠️ chờ duyệt' : ownState(c) === 'wait' ? ' · ⏳ chờ chốt' : '') + '</span>';
   }
   function payOf(name, month) {
     if (!ppOn() || !name) return null;
