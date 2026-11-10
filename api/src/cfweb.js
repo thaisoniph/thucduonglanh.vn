@@ -27,12 +27,20 @@ async function gql(token, query) {
   return j.data || {};
 }
 
-/** Các tài khoản Cloudflare mà mã API xem được → [{id, name}]. */
+/** Kiểm tra mã API còn dùng được không (GET /user/tokens/verify – mọi mã đều gọi được). */
+async function verifyToken(token) {
+  const r = await fetch(REST + 'user/tokens/verify', { headers: { Authorization: 'Bearer ' + token } });
+  let j = {}; try { j = await r.json(); } catch (e) { }
+  if (r.ok && j.success && j.result && /active/i.test(j.result.status || '')) return;
+  const m = (((j.errors || [])[0] || {}).message) || ('lỗi ' + r.status);
+  throw setupErr('token', 'Cloudflare không nhận mã này (' + m + '). Mã thật dài khoảng 40 ký tự và chỉ hiện 1 lần lúc bấm Create Token hoặc Roll; dãy 32 ký tự "Token ID" ở danh sách không phải mã. Nếu đã lỡ đóng màn hình thì bấm ⋯ → Roll ở dòng token để lấy mã mới.');
+}
+/** Các tài khoản Cloudflare mà mã API xem được → [{id, name}]. Mã hợp lệ nhưng không liệt kê được → [] (CRM hỏi Account ID). */
 async function listAccounts(token) {
+  await verifyToken(token);
   const r = await fetch(REST + 'accounts?per_page=50', { headers: { Authorization: 'Bearer ' + token } });
   let j = {}; try { j = await r.json(); } catch (e) { }
-  if (r.status === 401 || r.status === 403 || (!r.ok && !j.success)) throw setupErr('token', 'Cloudflare không nhận mã API này: ' + (((j.errors || [])[0] || {}).message || 'lỗi ' + r.status) + '.');
-  return (j.result || []).map(a => ({ id: a.id, name: a.name }));
+  return r.ok && j.success ? (j.result || []).map(a => ({ id: a.id, name: a.name })) : [];
 }
 
 const iso = t => new Date(t).toISOString().replace(/\.\d{3}Z$/, 'Z');
@@ -69,7 +77,7 @@ export async function crmCfToken(x, u, d) {
     let acct = String(d.acct || '').trim();
     if (!/^[0-9a-f]{32}$/.test(acct)) {
       const accts = await listAccounts(token);
-      if (!accts.length) throw setupErr('acct', 'Mã API đúng nhưng không thấy tài khoản nào. Khi tạo mã, phần Account Resources phải chọn tài khoản chứa website.');
+      if (!accts.length) throw setupErr('acct', 'Mã API đúng nhưng chưa tự lấy được danh sách tài khoản. Dán Mã tài khoản (Account ID) bằng tay: Cloudflare → Workers & Pages → cột phải có dòng Account ID → Copy.');
       if (accts.length > 1 && !d.acct) { await kvSet(x.db, 'cf_wa', JSON.stringify({ token })); return { ok: true, accts }; }
       acct = accts[0].id;
     }
@@ -79,7 +87,8 @@ export async function crmCfToken(x, u, d) {
     await kvSet(x.db, 'cf_wa', JSON.stringify({ token, acct, site, host, at: Date.now() }));
     return { ok: true };
   } catch (e) {
-    if (e.setup) { await kvSet(x.db, 'cf_wa', JSON.stringify({ token, acct: d.acct || '' })); return { ok: true, setup: e.setup, msg: e.message }; }
+    if (e.setup === 'token') { await kvDel(x.db, 'cf_wa'); return { ok: true, setup: 'token', msg: e.message }; } // mã sai: không giữ lại, để hộp cài quay về bước dán mã
+    if (e.setup) { await kvSet(x.db, 'cf_wa', JSON.stringify({ token, acct: /^[0-9a-f]{32}$/.test(String(d.acct || '')) ? d.acct : '' })); return { ok: true, setup: e.setup, msg: e.message }; }
     throw e;
   }
 }
@@ -110,7 +119,7 @@ async function cfReport(c, from, to, pf, pt) {
 export async function cfPart(x, d, todayIso) {
   const c = await kvJson(x.db, 'cf_wa', null);
   if (!c || !c.token) return { cf: null, cfSetup: 'token' };
-  if (!c.acct) return { cf: null, cfSetup: 'acct', cfMsg: 'Chọn tài khoản Cloudflare chứa website.' };
+  if (!c.acct) return { cf: null, cfSetup: 'acct', cfMsg: 'Mã API đã nhận. Chọn tài khoản Cloudflare chứa website, hoặc dán Mã tài khoản (Account ID: Cloudflare → Workers & Pages → cột phải → Account ID).' };
   if (!c.site) return { cf: null, cfSetup: 'site', cfMsg: 'Chưa tìm thấy site Web Analytics của thucduonglanh.vn. Dán mã site bằng tay.' };
   if (![d.from, d.to, d.pf, d.pt].every(s => DAY_RE.test(String(s || '')))) return { cf: null, cfErr: 'Khoảng thời gian chưa đúng.' };
   const to = d.to > todayIso ? todayIso : d.to, key = 'cfw_' + c.site.slice(0, 8) + '_' + [d.from, to, d.pf, d.pt].join('_');
