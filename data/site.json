@@ -105,6 +105,7 @@
     "enabled": true,
     "name": "Ngày Đôi Sống Lành",
     "free_ship": true,
+    "free_ship_min": 150000,
     "gift_min": 500000,
     "gift_slug": "ruoc-rong-bien-vi-suon-non",
     "gift_label": "1 hũ Ruốc Rong Biển 165g",

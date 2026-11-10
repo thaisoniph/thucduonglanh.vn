@@ -746,11 +746,12 @@ collections:
             widget: object
             collapsed: true
             required: false
-            hint: "Đúng các ngày 1/1, 2/2 … 12/12 (giờ VN), khách tự đặt trên web được miễn ship + quà. Không cần mã: máy chủ tự trừ ship, tự thêm quà vào đơn (dòng 🎁) và ghi chú '🎉 Ngày Đôi'. Web tự hiện dải thông báo + đồng hồ đếm ngược trong ngày, ngày hôm trước hiện lời báo trước. Đơn sale nhập tay không áp dụng."
+            hint: "Đúng các ngày 1/1, 2/2 … 12/12 (giờ VN), khách tự đặt trên web được miễn ship (từ mức dưới đây) + quà. Đơn dùng mã giảm giá vẫn miễn ship nhưng không kèm quà. Không cần mã: máy chủ tự trừ ship, tự thêm quà vào đơn (dòng 🎁) và ghi chú '🎉 Ngày Đôi'. Web tự hiện dải thông báo + đồng hồ đếm ngược trong ngày, ngày hôm trước hiện lời báo trước. Đơn sale nhập tay không áp dụng."
             fields:
               - { label: "Bật", name: enabled, widget: boolean, default: true }
               - { label: "Tên chương trình", name: name, widget: string, default: "Ngày Đôi Sống Lành" }
-              - { label: "Miễn ship mọi đơn", name: free_ship, widget: boolean, default: true }
+              - { label: "Miễn ship", name: free_ship, widget: boolean, default: true }
+              - { label: "Miễn ship cho đơn từ (đồng)", name: free_ship_min, widget: number, value_type: int, default: 150000, hint: "Tính theo tạm tính. 0 = miễn ship mọi đơn. Ngày thường vẫn là 300.000đ." }
               - { label: "Quà 1: đơn từ (đồng)", name: gift_min, widget: number, value_type: int, default: 500000, hint: "Tính theo tạm tính (giá web, trước mã ưu đãi). 0 = không tặng quà 1." }
               - { label: "Quà 1: mã sản phẩm", name: gift_slug, widget: string, default: "ruoc-rong-bien-vi-suon-non", hint: "Tên file sản phẩm (vd ruoc-rong-bien-vi-suon-non, tra-hoa-tan-dilvang-dinh-lang-che-vang). Kho gói quy cách đầu tiên của sản phẩm." }
               - { label: "Quà 1: chữ hiện cho khách", name: gift_label, widget: string, default: "1 hũ Ruốc Rong Biển 165g" }

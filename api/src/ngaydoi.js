@@ -1,12 +1,13 @@
 // 🎉 Ngày Đôi Sống Lành (10/11/2026, anh Sơn): các ngày 1/1, 2/2 … 12/12 (giờ Việt Nam), đơn ĐẶT TRÊN WEB được:
-//   miễn ship mọi đơn + đơn từ gift_min tặng quà + first_n đơn đầu tiên trong ngày (từ first_min) tặng thêm quà.
+//   miễn ship đơn từ free_ship_min (0 = mọi đơn) + đơn từ gift_min tặng quà + first_n đơn đầu tiên trong ngày (từ first_min) tặng thêm quà.
+//   11/11/2026 anh Sơn: miễn ship từ 150k; đơn dùng mã giảm tiền / % (discount > 0) vẫn miễn ship nhưng KHÔNG kèm quà (không cộng dồn).
 // Không cần mã: máy chủ tự trừ ship, tự thêm quà vào đơn (dòng 🎁, giá 0) và ghi chú "🎉 Ngày Đôi d/m: …" để kho gói kèm.
 // Cài đặt: /admin → Cài đặt chung → 🎉 Ngày Đôi (data/site.json → double_day) → build.py ghi https://thucduonglanh.vn/ngay-doi.json.
 // Máy chủ đọc file đó (giữ 10 phút, bản đọc được gần nhất lưu kv dd_cfg); chưa đọc được lần nào thì dùng DEF.
 // Đếm suất "N đơn đầu": kv dd_<YYYY-MM-DD> (tăng 1 cho mỗi đơn đủ điều kiện, đơn huỷ không trả suất).
 import { first, kvGet, kvSet, fmt } from './lib.js';
 
-const DEF = { enabled: true, name: 'Ngày Đôi Sống Lành', free_ship: true, gift_min: 500000, first_n: 11, first_min: 300000,
+const DEF = { enabled: true, name: 'Ngày Đôi Sống Lành', free_ship: true, free_ship_min: 150000, gift_min: 500000, first_n: 11, first_min: 300000,
   gift: { name: 'Ruốc Rong Biển Vị Sườn Non Thuần Chay', variant: 'Hũ 165g', label: '1 hũ Ruốc Rong Biển 165g' },
   first: { name: 'Trà Hòa Tan DILVANG – Đinh Lăng Chè Vằng', variant: 'Hộp lẻ 75g (15 gói x 5g)', label: '1 hộp Trà DILVANG' } };
 const VN = 7 * 3600e3;
@@ -33,8 +34,8 @@ const k = v => Math.round(num(v) / 1000) + 'K';
 
 /** Câu mô tả ưu đãi (CRM → Ưu đãi đang chạy, bài trợ lý Zalo) */
 export function ddText(c, label) {
-  return [c.free_ship ? 'miễn phí ship mọi đơn' : '', c.gift && num(c.gift_min) ? 'đơn từ ' + k(c.gift_min) + ' tặng ' + c.gift.label : '',
-    c.first && num(c.first_n) ? num(c.first_n) + ' đơn đầu tiên' + (num(c.first_min) ? ' từ ' + k(c.first_min) : '') + ' tặng thêm ' + c.first.label : ''].filter(Boolean).join('; ');
+  const g = [c.gift && num(c.gift_min) ? 'đơn từ ' + k(c.gift_min) + ' tặng ' + c.gift.label : '', c.first && num(c.first_n) ? num(c.first_n) + ' đơn đầu tiên' + (num(c.first_min) ? ' từ ' + k(c.first_min) : '') + ' tặng thêm ' + c.first.label : ''].filter(Boolean);
+  return [c.free_ship ? 'miễn phí ship ' + (num(c.free_ship_min) ? 'đơn từ ' + k(c.free_ship_min) : 'mọi đơn') : '', ...g].filter(Boolean).join('; ') + (g.length ? ' (quà không áp dụng cùng mã giảm giá)' : '');
 }
 /** Ưu đãi ảo cho danh sách "Ưu đãi đang chạy" vào đúng ngày đôi (at = mốc thời gian, mặc định bây giờ) */
 export async function ddOffer(x, at) {
@@ -57,16 +58,20 @@ export async function ddApply(x, data) {
   const day = ddDay(); if (!day) return null;
   const c = await ddCfg(x); if (!c.enabled) return null;
   const sub = num(data.subtotal), cu = data.customer || (data.customer = {}), items = Array.isArray(data.items) ? data.items : (data.items = []);
-  const out = { label: day.label, ship: !!c.free_ship, gifts: [] }, why = [];
-  if (c.free_ship) { const sh = num(data.shipping); if (sh) { data.total = Math.max(0, (Number(data.total) || 0) - sh); data.shipping = 0; } why.push('miễn ship'); }
+  const out = { label: day.label, ship: false, gifts: [] }, why = [], n = num(c.first_n);
+  if (c.free_ship && sub >= num(c.free_ship_min)) { const sh = num(data.shipping); if (sh) { data.total = Math.max(0, (Number(data.total) || 0) - sh); data.shipping = 0; } out.ship = true; why.push('miễn ship'); }
+  const low = Math.min(c.gift && c.gift.name && num(c.gift_min) ? num(c.gift_min) : Infinity, c.first && c.first.name && n ? num(c.first_min) : Infinity);
+  if (num(data.discount) > 0 && sub >= low) { out.noGift = true; why.push('không kèm quà vì đơn đã dùng mã giảm ' + fmt(data.discount)); } // không cộng dồn quà với mã giảm giá
+  else {
   const give = (g, txt) => { items.push({ name: g.name, variant: g.variant || '', qty: 1, price: 0, subtotal: 0, gift: true }); out.gifts.push(g.label); why.push('🎁 ' + g.label + ' (' + txt + ')'); };
   if (c.gift && c.gift.name && num(c.gift_min) && sub >= num(c.gift_min)) give(c.gift, 'đơn từ ' + fmt(c.gift_min));
-  const n = num(c.first_n);
   if (c.first && c.first.name && n && sub >= num(c.first_min)) {
     const r = await first(x.db, "INSERT INTO kv (k, v, exp) VALUES (?, '1', ?) ON CONFLICT(k) DO UPDATE SET v = CAST(v AS INTEGER) + 1 RETURNING v", 'dd_' + day.key, Date.now() + 40 * 864e5);
     const i = Number(r && r.v) || 0;
     if (i && i <= n) { out.rank = i; out.n = n; give(c.first, 'đơn thứ ' + i + '/' + n + ' hôm nay'); }
   }
+  }
+  if (!why.length) return null; // đơn nhỏ hơn mức miễn ship, không có quà: đơn bình thường
   cu.note = (cu.note ? cu.note + ' · ' : '') + '🎉 Ngày Đôi ' + day.label + ': ' + why.join(', ');
   return out;
 }
