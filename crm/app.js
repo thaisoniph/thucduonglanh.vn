@@ -8989,9 +8989,9 @@
       var d8 = function (d) { return d ? d.slice(6, 8) + '/' + d.slice(4, 6) : ''; }, kTok = function (n) { n = (Number(n) || 0) / 1000; return (n < 10 ? n.toFixed(1) : Math.round(n).toString()).replace('.', ','); };
       var top;
       if (b.fund) {
-        var days = b.days === null ? '' : b.days < 1 ? ' · <b style="color:var(--red)">sắp hết hôm nay</b>' : ' · đủ khoảng <b>' + Math.floor(b.days) + ' ngày</b>', warn = b.left < 5 || (b.days !== null && b.days < 5);
+        var days = b.days === null ? (b.enough ? '' : ' · <span class="muted">chưa đủ số liệu để đoán đủ mấy ngày (cần 2 ngày đếm)</span>') : b.days < 1 ? ' · <b style="color:var(--red)">sắp hết hôm nay</b>' : ' · đủ khoảng <b>' + Math.floor(b.days) + ' ngày</b>', warn = b.left < 5 || (b.days !== null && b.days < 5);
         top = '<div class="box" style="margin:0 0 10px' + (warn ? ';border-color:var(--orange)' : '') + '"><p style="margin:0 0 4px;font-size:16px">' + (warn ? '⚠️ ' : '💳 ') + 'Còn lại ước tính ' + both(Math.max(0, b.left)) + days + '</p>' +
-          '<p class="small muted" style="margin:0">Đã nạp ' + usd(b.fund.usd) + ' ngày ' + d8(b.fund.day) + (b.fund.by ? ' (' + esc(b.fund.by) + ' ghi)' : '') + ' · đã dùng từ đó ' + usd(b.spent) + ' · trung bình 7 ngày qua ' + usd(b.perDay) + '/ngày. Còn dưới 5 ngày hoặc dưới 5$ thì Telegram nhắc 1 lần/ngày.</p></div>';
+          '<p class="small muted" style="margin:0">Đã nạp ' + usd(b.fund.usd) + ' ngày ' + d8(b.fund.day) + (b.fund.by ? ' (' + esc(b.fund.by) + ' ghi)' : '') + ' · đã dùng từ đó ' + usd(b.spent) + ' · trung bình ' + (b.tracked || 0) + ' ngày đếm được ' + usd(b.perDay) + '/ngày. Còn dưới 5 ngày hoặc dưới 5$ thì Telegram nhắc 1 lần/ngày.</p></div>';
       } else top = '<div class="box" style="margin:0 0 10px;border-color:var(--orange)"><p style="margin:0">⚠️ <b>Chưa ghi số tiền đã nạp</b> nên CRM chưa tính được còn bao nhiêu và chưa nhắc được khi sắp hết. Xem số dư ở console.anthropic.com → Billing rồi ghi vào ô bên dưới (ghi số dư hiện tại + ngày hôm nay cũng được).</p></div>';
       var today = fDate(j.now).split('/').reverse().join('-');
       var form = '<div class="box" style="margin:0 0 12px"><b>Ghi số tiền đã nạp</b><div class="steps" style="margin:8px 0 0;align-items:flex-end;flex-wrap:wrap;gap:8px">' +

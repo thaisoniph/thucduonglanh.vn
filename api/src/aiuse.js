@@ -24,6 +24,7 @@ export const MUC = {
   hoi: '📊 Hỏi số liệu CRM', huongdan: '📖 Hỏi trợ lý ở trang hướng dẫn', khac: 'Khác',
 };
 const RATE_DEF = 26500; // đ / USD, Quản trị sửa được
+const slotDay = d => Date.UTC(+d.slice(0, 4), +d.slice(4, 6) - 1, +d.slice(6, 8)); // 'yyyyMMdd' → mốc ngày để trừ nhau
 
 export function usdOf(model, u) {
   const m = String(model || ''), p = PRICE.find(r => m.startsWith(r[0])) || PRICE[0];
@@ -54,12 +55,14 @@ export async function aiBalance(db) {
   await schema(db);
   const f = await kvJson(db, 'ai_fund', null), now = Date.now();
   const d7 = fmtDate(now - 7 * DAY, 'yyyyMMdd');
-  const w = await first(db, 'SELECT COALESCE(SUM(usd), 0) s FROM ai_usage WHERE day > ?', d7);
-  const perDay = (w ? Number(w.s) : 0) / 7, rate = Number(await kvGet(db, 'ai_rate')) || RATE_DEF;
-  if (!f || !(Number(f.usd) > 0)) return { fund: null, perDay, rate };
+  const w = await first(db, 'SELECT COALESCE(SUM(usd), 0) s, MIN(day) d0 FROM ai_usage WHERE day > ?', d7), today = fmtDate(now, 'yyyyMMdd');
+  // số ngày đã có số liệu trong 7 ngày qua (mới bắt đầu đếm thì chia cho số ngày thật, không chia 7 → khỏi ra "đủ 14.000 ngày")
+  const tracked = w && w.d0 ? Math.min(7, Math.round((slotDay(today) - slotDay(String(w.d0))) / DAY) + 1) : 0;
+  const perDay = tracked ? (Number(w.s) || 0) / tracked : 0, rate = Number(await kvGet(db, 'ai_rate')) || RATE_DEF, enough = tracked >= 2; // cần ≥ 2 ngày số liệu mới ước tính được số ngày còn lại
+  if (!f || !(Number(f.usd) > 0)) return { fund: null, perDay, tracked, enough, rate };
   const s = await first(db, 'SELECT COALESCE(SUM(usd), 0) s FROM ai_usage WHERE day >= ?', String(f.day || ''));
   const spent = s ? Number(s.s) : 0, left = Number(f.usd) - spent;
-  return { fund: f, spent, left, perDay, days: perDay > 0 ? left / perDay : null, rate };
+  return { fund: f, spent, left, perDay, tracked, enough, days: enough && perDay > 0 ? left / perDay : null, rate };
 }
 
 /** CRM → Cài đặt → 🤖 Chi phí trợ lý AI (Quản trị). */
