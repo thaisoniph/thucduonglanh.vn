@@ -97,7 +97,7 @@ Không có nút nào hợp? Bấm **Kết quả khác / tự chọn ngày hẹn*
 - Mỗi ngày CRM đưa ra tối đa **30 khách**. Khách chưa tới lượt tự sang hôm sau, không mất.
 - Dòng **⏳ trễ 3 ngày** nghĩa là khách này lẽ ra phải gọi từ 3 ngày trước. Gọi sớm nhé.
 - Biểu tượng **Zalo** cạnh tên khách: bạn đã kết bạn Zalo với khách. Nên nhắn Zalo trước. Chưa kết bạn thì gọi trước, rồi xin kết bạn.
-- Gõ ghi chú bằng bộ gõ tiếng Việt của Windows, chữ cuối hay có **gạch chân** (máy chưa chốt chữ). Gõ xong bấm thêm **phím cách** rồi mới kéo xuống bấm nút. Nếu CRM báo **⚠️ Hộp vừa tự trượt đúng lúc bạn bấm** thì chưa lưu gì: bấm lại đúng nút cần chọn là được.
+- Trên máy tính: đang gõ ghi chú mà kéo xuống chọn nút thì ô **Khách nói gì?** tự ghim ở trên cùng, bạn vẫn thấy chữ vừa gõ. Cứ bấm nút như bình thường.
 
 ### 🎉 Dịp chúc khách (ngày lễ, rằm, sinh nhật)
 
