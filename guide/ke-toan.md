@@ -8,7 +8,7 @@ description: Ghi tiền về tài khoản (tải file đối soát COD Best / Vi
 
 Trang này dành cho **kế toán**. Đọc khoảng 5 phút là làm được.
 
-> **Thứ 2, 4, 6 (ngày hãng chuyển tiền):** tải file phiếu đối soát của Best / Viettel Post, rồi mở sao kê VCB: phiếu nào thấy đúng số tiền thì bấm **✅ Đã về**. **Mỗi ngày:** tích các đơn chuyển khoản đã thấy tiền trên sao kê. Xong là anh Sơn xem được lãi lỗ và tiền thật gần như ngay lúc đó.
+> **Thứ 2, 4, 6 (ngày hãng chuyển tiền):** tải file phiếu đối soát của Best / Viettel Post. **Mỗi ngày:** tải file sao kê VCB, máy tự tìm phiếu và đơn chuyển khoản đã có tiền, kế toán xem lại rồi bấm ghi. Xong là anh Sơn xem được lãi lỗ và tiền thật gần như ngay lúc đó.
 
 **Cách xem hình:** ô khoanh đỏ có số **1, 2, 3** trên hình chính là **bước 1, 2, 3** viết ngay bên dưới hình.
 
@@ -64,7 +64,7 @@ Bấm **📥 Tải file đối soát COD** → **Chọn tệp** → chọn **cù
 
 1. Nút **📥 Tải file đối soát COD**: chọn file phiếu ở đây.
 2. **Số tiền phải về tài khoản** của phiếu. Best: đã trừ cước và **5.000đ phí chuyển khoản**, đúng bằng số hiện trên sao kê.
-3. Mở sao kê VCB. Thấy **đúng số tiền** đó thì bấm **✅ Đã về**, chọn **ngày tiền về** và **tài khoản nhận**, bấm **Ghi tiền về**. Mọi đơn có thu hộ trong phiếu được ghi tiền về một lần.
+3. Mở sao kê VCB. Thấy **đúng số tiền** đó thì bấm **✅ Đã về** (hoặc tải sao kê VCB như mục dưới để máy tự khớp), chọn **ngày tiền về** và **tài khoản nhận**, bấm **Ghi tiền về**. Mọi đơn có thu hộ trong phiếu được ghi tiền về một lần.
 4. Phiếu **tô đỏ** = tạo quá 3 ngày mà chưa thấy tiền: gọi hỏi hãng. Dòng **"… mã không có trong CRM"** = đơn sale chưa lên CRM hoặc chưa ghi mã vận đơn: báo sale.
 
 Ghi chú:
@@ -95,6 +95,25 @@ Ghi chú:
 - Máy ghi luôn **ngày hãng trả tiền**, **mã phiếu thanh toán** (Best) và **phí ship thật** của đơn.
 - **❓ Không thấy trong CRM**: đơn chưa lên CRM hoặc sai mã. Mở dòng đó xem mã vận đơn rồi báo sale.
 - Hãng báo giao thành công mà CRM còn ghi "Đang giao": máy nhắc báo Quản lý chạy **📦 Đối soát vận chuyển** ở tab Đơn hàng. Kế toán không đổi trạng thái đơn.
+
+## Tải sao kê VCB: máy tự khớp tiền về
+
+![Nút Tải sao kê VCB (1)](/huong-dan/img/ke-toan-sao-ke.webp)
+
+Lấy file trên **VCB DigiBiz** → **Lịch sử giao dịch** → chọn ngày → **Xuất Excel** (file `.xls` để nguyên, không cần đổi).
+
+1. Bấm **🏦 Tải sao kê VCB**. Chọn **sao kê này của tài khoản nào** (Công ty, Anh Sơn…), rồi chọn file.
+
+Máy chỉ đọc **tiền vào** và chia thành:
+
+- **🧾 Phiếu hãng đã chuyển tiền**: tiền Best về có ghi mã phiếu **NO…** nên máy khớp đúng phiếu. Tiền Viettel Post về (ghi "VTP NDUG…") khớp phiếu có **đúng số tiền**. Dòng tô đỏ = số tiền về khác số trên phiếu: hỏi lại hãng.
+- **⚠️ Khoản hãng chuyển nhưng chưa có phiếu trong CRM**: tải file phiếu đó (theo mã NO… hoặc ngày Viettel Post chuyển) ở mục trên, rồi tải lại sao kê.
+- **🏦 Đơn khách chuyển khoản**: khoản tiền khớp đúng số tiền một đơn chuyển khoản đang chờ, đặt trong khoảng 15 ngày trước ngày tiền vào. Dòng **tô đỏ, chưa tích** = có nhiều đơn cùng số tiền, máy đoán đơn gần ngày nhất: đọc tên trong nội dung chuyển khoản, đúng thì mới tích.
+- **❔ Khoản tiền vào khác**: không khớp đơn nào. Đúng là tiền đơn thì ghi tay ở **🏦 Chuyển khoản chờ xác nhận**.
+
+Bấm **✅ Ghi tiền về …**. Ngày tiền về lấy theo ngày trên sao kê.
+
+Tải lại cùng sao kê (hoặc sao kê có ngày trùng) không sao: khoản đã ghi rồi máy bỏ qua. Tiền chuyển nội bộ, lãi ngân hàng máy không tính.
 
 ## Ghi tiền về bằng tay (chuyển khoản VCB, hoặc không có file)
 

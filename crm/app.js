@@ -5344,7 +5344,7 @@
       card(old.length ? 'bad' : L.treo.length ? 'mid' : 'ok', '💤 Đang treo ở hãng vận chuyển', moneyShort(tv), L.treo.length ? L.treo.length + ' đơn đã giao, hãng chưa trả tiền' + (old.length ? ' · <b>⚠️ ' + old.length + ' đơn quá ' + KTV_OLD + ' ngày</b>' : '') : 'Không có đơn nào', L.treo.length ? 'treo' : '') +
       card(L.bank.length ? 'mid' : 'ok', '🏦 Chuyển khoản chờ xác nhận', moneyShort(bv), L.bank.length ? L.bank.length + ' đơn: xem sao kê VCB rồi tích' : 'Không có đơn nào', L.bank.length ? 'bank' : '') +
       card('', '🚚 Tiền sắp về', moneyShort(ktvSum(L.ship)), L.ship.length + ' đơn COD đang giao', '') + '</div>' +
-      '<div class="ktv-big"><button class="btn pri lg" data-ktv="cod">📥 Tải file đối soát COD</button><button class="btn lg" data-ktv="treo">✅ Ghi tiền về bằng tay</button></div>' +
+      '<div class="ktv-big"><button class="btn pri lg" data-ktv="cod">📥 Tải file đối soát COD</button><button class="btn lg" data-ktv="vcb">🏦 Tải sao kê VCB</button><button class="btn lg" data-ktv="treo">✅ Ghi tiền về bằng tay</button></div>' +
       ktbHTML() +
       (byL.length ? '<div class="box ktv-by"><h3>💤 Tiền treo theo hãng <small>bấm để xem từng đơn</small></h3>' + byL.map(function (x) {
         return '<button type="button" class="ktv-row" data-ktv="treo|' + esc(x.c) + '"><span><b>' + esc(x.c) + '</b><small>' + x.n + ' đơn · chờ lâu nhất ' + x.max + ' ngày' + (x.old ? ' · <em class="ktv-red">' + x.old + ' đơn quá ' + KTV_OLD + ' ngày (' + moneyShort(x.ov) + '): hỏi lại hãng</em>' : '') + '</small></span><b class="ktv-amt">' + moneyShort(x.v) + '</b><i aria-hidden="true">›</i></button>';
@@ -5648,7 +5648,7 @@
   }
   function ktbAge(b) { return b.made ? Math.max(0, Math.floor((today() - dayStart(b.made)) / DAY)) : 0; }
   function ktbHTML() {
-    var hd = '<div class="box ktb-box"><h3>🧾 Phiếu đối soát chờ tiền về <small>hãng thường chuyển tiền thứ 2, 4, 6. Thấy <b>đúng số tiền</b> trên sao kê thì bấm ✅ Đã về</small></h3>';
+    var hd = '<div class="box ktb-box"><h3>🧾 Phiếu đối soát chờ tiền về <small>hãng thường chuyển tiền thứ 2, 4, 6. Thấy <b>đúng số tiền</b> trên sao kê thì bấm ✅ Đã về, hoặc tải <b>🏦 sao kê VCB</b> để máy tự khớp</small></h3>';
     if (!KTB.d) return hd + '<p class="muted small">' + (KTB.err ? '⚠️ ' + esc(KTB.err) + ' <button class="btn sm" data-ktb="re">Thử lại</button>' : '⏳ Đang lấy danh sách phiếu…') + '</p></div>';
     var W = KTB.d.filter(function (b) { return b.st === 'wait'; }).sort(function (a, b) { return (a.made || a.at) - (b.made || b.at); }), D = KTB.d.filter(function (b) { return b.st === 'paid'; });
     var row = function (b, paid) {
@@ -5695,6 +5695,117 @@
         api(k === 'del' ? 'kt_bdel' : 'kt_bpay', { id: id, off: 1 }).then(function (j) { KTB.d = j.batches || KTB.d; ktvMerge(j.orders || []); toast(k === 'del' ? 'Đã xoá phiếu' : 'Đã bỏ ghi ' + (j.n || 0) + ' đơn'); render(); }, function (e) { el.disabled = false; toast(e.message, true); });
       };
     });
+  }
+  /* ---------- 🏦 Sao kê VCB tự khớp (11/11/2026, mẫu "lich-su-giao-dich-tai-khoan.xls" VCB DigiBiz kế toán gửi). Chỉ đọc dòng ghi có (tiền vào).
+   * Best: nội dung có mã phiếu "NO1000… BEST TT COD" → khớp phiếu chờ cùng mã. Viettel Post: "VTP NDUG…" → phiếu VTP chờ có đúng số tiền.
+   * Còn lại (khách chuyển khoản): khớp đơn chuyển khoản chưa ghi tiền về, đúng số tiền, đặt trong 15 ngày trước → 3 ngày sau ngày tiền vào; nhiều đơn cùng số → để kế toán chọn.
+   * Ghi: phiếu → kt_bpay (ngày = ngày sao kê, got = số tiền), đơn → kt_cash (src "Sao kê VCB", ref = số CT để lần sau không khớp lại). */
+  function ktsParse(sheets) {
+    var out = null;
+    sheets.forEach(function (rows) {
+      if (out) return; var acctNo = '', acctName = '';
+      for (var i = 0; i < Math.min(rows.length, 40); i++) {
+        var H = (rows[i] || []).map(function (c) { return norm(c).replace(/\s+/g, ' ').trim(); }), j;
+        if (/^so tai khoan/.test(H[0] || '')) acctNo = String((rows[i] || []).filter(function (c, k) { return k > 0 && String(c).trim(); })[0] || '');
+        if (/^chu tai khoan/.test(H[0] || '')) acctName = String((rows[i] || []).filter(function (c, k) { return k > 0 && String(c).trim(); })[0] || '');
+        var col = function (re) { for (j = 0; j < H.length; j++) if (re.test(H[j])) return j; return -1; };
+        var cr = col(/^so tien ghi co/), det = col(/^noi dung/), dt = col(/^ngay ?1|tnx date/), ef = col(/^ngay hieu luc/);
+        if (cr < 0 || det < 0 || (dt < 0 && ef < 0)) continue;
+        var L = [];
+        rows.slice(i + 1).forEach(function (r) {
+          var amt = rcNum(String(r[cr] == null ? '' : r[cr]).replace(/[^\d.,]/g, '')); if (!(amt > 0)) return;
+          var ds = String(r[dt >= 0 ? dt : ef] || ''), m = ds.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/) || String(r[ef] || '').match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/); if (!m) return;
+          var doc = (ds.match(/\/\s*([\d]+\s*-\s*[\d]+)/) || ['', ''])[1].replace(/\s/g, ''), txt = String(r[det] || '').replace(/\s+/g, ' ').trim();
+          L.push({ day: Date.UTC(+m[3], +m[2] - 1, +m[1]) + 5 * 3600e3, amt: Math.round(amt), txt: txt, doc: doc || (m[0] + '·' + amt) });
+        });
+        out = { rows: L, acctNo: acctNo, acctName: acctName }; break;
+      }
+    });
+    return out;
+  }
+  function ktsMatch(P) {
+    var B = KTB.d || [], used = {}, X = { bat: [], batDone: 0, noBat: [], ord: [], multi: 0, other: [], seenDoc: 0 };
+    S.d.orders.forEach(function (o) { var m = String(o.cashSrc || '').match(/Sao kê VCB · ([\d-]+)/); if (m) used[m[1]] = 1; });
+    var codeDone = {}; S.d.orders.forEach(function (o) { var m = String(o.cashSrc || '').match(/NO\d{10,}/); if (m) codeDone[m[0]] = 1; });
+    B.forEach(function (b) { if (b.st === 'paid') codeDone[b.code] = 1; });
+    var bank = S.d.orders.filter(function (o) { return isBank(o) && !o.cashAt && o.total > 0 && !isVoid(o.status); }), taken = {}, batTaken = {};
+    P.rows.forEach(function (r) {
+      var t = norm(r.txt), no = (r.txt.match(/NO\d{10,}/) || [''])[0];
+      if (no && /best/.test(t)) {
+        var b = B.filter(function (x) { return x.carrier !== 'Viettel Post' && x.code === no; })[0];
+        if (b && b.st === 'wait') X.bat.push({ r: r, b: b }); else if (b || codeDone[no]) X.batDone++; else X.noBat.push({ r: r, code: no, car: 'Best' });
+        return;
+      }
+      if (/\bvtp\b|viettel/.test(t)) {
+        var v = B.filter(function (x) { return x.carrier === 'Viettel Post' && x.st === 'wait' && !batTaken[x.id] && x.exp === r.amt; })[0];
+        if (v) { batTaken[v.id] = 1; X.bat.push({ r: r, b: v }); }
+        else if (B.some(function (x) { return x.carrier === 'Viettel Post' && x.st === 'paid' && (x.got || x.exp) === r.amt; })) X.batDone++;
+        else X.noBat.push({ r: r, code: (r.txt.match(/VTP \S+ \S+/) || ['VTP'])[0], car: 'Viettel Post' });
+        return;
+      }
+      if (/noi bo|interest|lai nhap goc|tra lai|vitagreen/.test(t)) return; // tiền nội bộ / lãi ngân hàng
+      if (used[r.doc]) { X.seenDoc++; return; }
+      var c = bank.filter(function (o) { return !taken[o.row] && o.total === r.amt && o.time <= r.day + 3 * DAY && o.time >= r.day - 15 * DAY; });
+      if (!c.length) { X.other.push(r); return; }
+      var hit = c.filter(function (o) { var nm = norm(o.name).replace(/[^a-z ]/g, ' ').split(/\s+/).filter(function (w) { return w.length > 1; }); return nm.length && nm.slice(-2).every(function (w) { return t.indexOf(w) >= 0; }); });
+      var pick = (hit.length === 1 ? hit : c.length === 1 ? c : []).concat([])[0] || null;
+      var best = pick || c.slice().sort(function (a, b) { return Math.abs(a.time - r.day) - Math.abs(b.time - r.day); })[0];
+      taken[best.row] = 1; if (!pick) X.multi++;
+      X.ord.push({ r: r, o: best, sure: !!pick, n: c.length });
+    });
+    return X;
+  }
+  function openKts() {
+    ktbLoad();
+    var body = '<p style="margin:0 0 8px">Tải file sao kê tài khoản VCB (VCB DigiBiz → Tra cứu → <b>Lịch sử giao dịch</b> → Xuất Excel). Máy chỉ đọc <b>tiền vào</b>, tự tìm phiếu Best / Viettel Post và đơn chuyển khoản khớp số tiền, cho xem lại rồi mới ghi.</p>' +
+      '<p class="small" style="margin:0 0 8px">' + ktvAcctSel('Sao kê này là của tài khoản') + '</p><label class="f"><span>Chọn file sao kê (.xls hoặc .xlsx)</span><input type="file" id="ktsFile" accept=".xls,.xlsx,.csv"></label><p class="err" id="ktsE"></p><div id="ktsOut"></div>';
+    var m = modal('🏦 Tải sao kê VCB', body, '<button class="btn" data-close>Đóng</button><button class="btn pri" id="ktsGo" hidden>✅ Ghi tiền về</button>');
+    var X = null;
+    $('#ktsFile', m).onchange = function () {
+      var fl = this.files[0], err = $('#ktsE', m); err.textContent = ''; $('#ktsOut', m).innerHTML = '<p class="muted">⏳ Đang đọc file…</p>'; $('#ktsGo', m).hidden = true; if (!fl) return;
+      var wait = function () { return KTB.d ? Promise.resolve() : new Promise(function (ok) { var n = 0, t = setInterval(function () { if (KTB.d || ++n > 40) { clearInterval(t); ok(); } }, 250); }); };
+      sanReadFile(fl).then(function (sh) {
+        var P = ktsParse(sh); if (!P || !P.rows.length) throw new Error('Không thấy cột "Số tiền ghi có" và "Nội dung chi tiết". Xuất lại sao kê từ VCB DigiBiz (Lịch sử giao dịch → Excel).');
+        return wait().then(function () { X = ktsMatch(P); X.P = P; X.file = fl.name; ktsShow(m, X); });
+      }).catch(function (e) { $('#ktsOut', m).innerHTML = ''; err.textContent = e.message; });
+    };
+    $('#ktsGo', m).onclick = function () { ktsSave(m, X, this); };
+  }
+  function ktsShow(m, X) {
+    var P = X.P, d0 = Math.min.apply(null, P.rows.map(function (r) { return r.day; })), d1 = Math.max.apply(null, P.rows.map(function (r) { return r.day; }));
+    var h = '<div class="notice info">📄 <b>' + esc(X.file) + '</b>' + (P.acctNo ? ' · TK ' + esc(P.acctNo) : '') + ': ' + P.rows.length + ' khoản tiền vào, ' + fDate(d0).slice(0, 5) + ' – ' + fDate(d1).slice(0, 5) + '.</div>';
+    h += '<h3 class="kts-h">🧾 Phiếu hãng đã chuyển tiền <small>' + X.bat.length + ' phiếu khớp' + (X.batDone ? ' · ' + X.batDone + ' phiếu đã ghi từ trước' : '') + '</small></h3>';
+    h += X.bat.length ? '<div class="ktv-list">' + X.bat.map(function (it, i) {
+      var dif = it.r.amt - (it.b.exp || 0);
+      return '<label class="ktv-o' + (dif ? ' old' : '') + '"><input type="checkbox" data-ktsb="' + i + '" checked><span class="ktv-o-t"><b>' + ktbCar(it.b.carrier) + ' · ' + esc(it.b.code) + '</b><small>về ' + fDate(it.r.day).slice(0, 5) + ' · ' + it.b.n + ' đơn' + (dif ? ' · <b>phiếu ' + money(it.b.exp) + ', về ' + money(it.r.amt) + '</b>' : ' · đúng số phiếu') + '</small></span><b class="ktv-amt">' + money(it.r.amt) + '</b></label>';
+    }).join('') + '</div>' : '<p class="small muted">Không có phiếu nào đang chờ khớp với sao kê này.</p>';
+    if (X.noBat.length) h += '<details class="small kts-nob" open><summary class="ktv-red">⚠️ ' + X.noBat.length + ' khoản hãng chuyển nhưng chưa có phiếu trong CRM (' + money(X.noBat.reduce(function (s, x) { return s + x.r.amt; }, 0)) + ')</summary><p class="muted">Tải file phiếu này trên trang của hãng (Best: Đối soát COD → bấm mã phiếu; Viettel Post: Tiền hàng đã trả), lưu vào CRM rồi tải lại sao kê.</p>' +
+      X.noBat.map(function (x) { return '<div>' + fDate(x.r.day).slice(0, 5) + ' · ' + esc(x.car) + ' · <b>' + esc(x.code) + '</b> · ' + money(x.r.amt) + '</div>'; }).join('') + '</details>';
+    h += '<h3 class="kts-h">🏦 Đơn khách chuyển khoản <small>' + X.ord.length + ' khoản khớp đơn' + (X.seenDoc ? ' · ' + X.seenDoc + ' khoản đã ghi từ trước' : '') + '</small></h3>';
+    if (X.multi) h += '<p class="small ktv-red">⚠️ ' + X.multi + ' khoản có nhiều đơn cùng số tiền: máy đoán đơn gần ngày nhất, <b>chưa tích</b>. Xem tên trong nội dung chuyển khoản rồi mới tích.</p>';
+    h += X.ord.length ? '<div class="ktv-list">' + X.ord.map(function (it, i) {
+      return '<label class="ktv-o' + (it.sure ? '' : ' old') + '"><input type="checkbox" data-ktso="' + i + '"' + (it.sure ? ' checked' : '') + '><span class="ktv-o-t"><b>' + esc(it.o.id) + ' · ' + esc(it.o.name) + ' ' + esc(ktvPh(it.o)) + '</b><small>đặt ' + fDate(it.o.time).slice(0, 5) + ' · tiền vào ' + fDate(it.r.day).slice(0, 5) + (it.n > 1 ? ' · ' + it.n + ' đơn cùng số tiền' : '') + '<br>“' + esc(it.r.txt.slice(0, 90)) + '”</small></span><b class="ktv-amt">' + money(it.r.amt) + '</b></label>';
+    }).join('') + '</div>' : '<p class="small muted">Không có khoản nào khớp đơn chuyển khoản đang chờ.</p>';
+    if (X.other.length) h += '<details class="small" style="margin-top:8px"><summary>❔ ' + X.other.length + ' khoản tiền vào khác không khớp đơn nào (' + money(X.other.reduce(function (s, r) { return s + r.amt; }, 0)) + ')</summary><p class="muted">Có thể là đơn chưa lên CRM, đơn ghi COD nhưng khách chuyển khoản, hoặc tiền khác. Ghi tay ở 🏦 Chuyển khoản chờ xác nhận nếu đúng là tiền đơn.</p>' + X.other.slice(0, 80).map(function (r) { return '<div>' + fDate(r.day).slice(0, 5) + ' · ' + money(r.amt) + ' · ' + esc(r.txt.slice(0, 80)) + '</div>'; }).join('') + '</details>';
+    $('#ktsOut', m).innerHTML = h;
+    var b = $('#ktsGo', m), upd = function () { var nb = $$('[data-ktsb]:checked', m).length, no = $$('[data-ktso]:checked', m).length; b.hidden = !(nb + no); b.textContent = '✅ Ghi tiền về ' + [nb ? nb + ' phiếu' : '', no ? no + ' đơn chuyển khoản' : ''].filter(Boolean).join(' + '); };
+    $$('[data-ktsb],[data-ktso]', m).forEach(function (x) { x.onchange = upd; }); upd();
+  }
+  function ktsSave(m, X, b) {
+    var acct = ktvAcctGet(m), bats = $$('[data-ktsb]:checked', m).map(function (x) { return X.bat[+x.getAttribute('data-ktsb')]; }), ords = $$('[data-ktso]:checked', m).map(function (x) { return X.ord[+x.getAttribute('data-ktso')]; });
+    if (!bats.length && !ords.length) return;
+    b.disabled = true; b.textContent = '⏳ Đang ghi…'; var nB = 0, nO = 0, sum = 0;
+    var step = function (i) {
+      if (i >= bats.length) return Promise.resolve();
+      var it = bats[i]; return api('kt_bpay', { id: it.b.id, day: it.r.day, got: it.r.amt, acct: acct }).then(function (j) { KTB.d = j.batches || KTB.d; ktvMerge(j.orders || []); if (j.ktCfg && S.d.rules) S.d.rules.ktCfg = j.ktCfg; nB++; sum += it.r.amt; return step(i + 1); });
+    };
+    var groups = {}; ords.forEach(function (it) { (groups[it.r.doc] = groups[it.r.doc] || []).push(it); });
+    step(0).then(function () {
+      return Object.keys(groups).reduce(function (pr, doc) {
+        return pr.then(function () { var g = groups[doc]; return ktvSend(g.map(function (it) { return { row: it.o.row, id: it.o.id, amt: it.r.amt, day: it.r.day, ref: doc }; }), 'Sao kê VCB', false, acct).then(function (j) { nO += j.n; sum += j.sum; }); });
+      }, Promise.resolve());
+    }).then(function () { closeModal(); toast('Đã ghi tiền về ' + [nB ? nB + ' phiếu' : '', nO ? nO + ' đơn chuyển khoản' : ''].filter(Boolean).join(' + ') + ' · ' + moneyShort(sum) + ' ✓'); render(); },
+      function (e) { b.disabled = false; b.textContent = 'Thử lại'; toast(/Không rõ thao tác|chỉ dùng được/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message, true); render(); });
   }
   /* ---------- 📦 Hàng tồn kho cho kế toán (09/11/2026): số lượng do người kho ghi trên tab Kho (chỉ xem), kế toán thấy thành tiền theo giá nhập (💰 Giá vốn ở Cài đặt).
    * Lệnh kt_kho (api/src/kt.js ktKho): số còn hiện tại + số tồn đầu 3 tháng gần nhất (= cuối tháng trước) + hàng về kho 100 ngày (để so hoá đơn nhà cung cấp). */
@@ -5745,7 +5856,7 @@
     bindKtb();
     var ki = $('.ktk-in'); if (ki) ki.ontoggle = function () { KTK.openIn = ki.open; };
     $$('[data-ktv]').forEach(function (el) {
-      el.onclick = function () { var a = el.getAttribute('data-ktv').split('|'); if (a[0] === 'cod') openKtvCod(); else openKtvList(a[0], a[1] || ''); };
+      el.onclick = function () { var a = el.getAttribute('data-ktv').split('|'); if (a[0] === 'cod') openKtvCod(); else if (a[0] === 'vcb') openKts(); else openKtvList(a[0], a[1] || ''); };
     });
     var as = $('#ktvAcctSave'); if (as) as.onclick = function () {
       var a = $('#ktvAccts').value.split('\n').map(function (v) { return v.trim(); }).filter(Boolean); if (!a.length) { toast('Cần ít nhất 1 tài khoản', true); return; } as.disabled = true;
@@ -8620,7 +8731,7 @@
     return f.arrayBuffer().then(function (buf) {
       var u8 = new Uint8Array(buf);
       if (u8[0] === 0x50 && u8[1] === 0x4B) return xlsxSheets(u8);
-      if (u8[0] === 0xD0 && u8[1] === 0xCF) throw new Error('Đây là file Excel đời cũ (.xls). Mở file bằng Excel hoặc Google Sheets → Lưu dưới dạng .xlsx rồi tải lại.');
+      if (u8[0] === 0xD0 && u8[1] === 0xCF) return xlsBiff(u8); // .xls đời cũ (sao kê VCB DigiBiz, 11/11/2026)
       var enc = u8[0] === 0xFF && u8[1] === 0xFE ? 'utf-16le' : u8[0] === 0xFE && u8[1] === 0xFF ? 'utf-16be' : 'utf-8';
       return [csvRows(new TextDecoder(enc).decode(buf).replace(/^﻿/, ''))];
     });
@@ -8664,6 +8775,73 @@
       rows.push(row); return '';
     });
     return rows;
+  }
+  /** Đọc file Excel đời cũ .xls (BIFF8 trong vỏ OLE/CFB) → [[hàng ô]] mỗi trang. Đủ cho sao kê VCB: chuỗi (SST, LABEL), số (NUMBER, RK, MULRK), công thức (giá trị đã tính). */
+  function xlsBiff(u8) {
+    var dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength), ss = 1 << dv.getUint16(30, true), mss = 1 << dv.getUint16(32, true);
+    var bad = function () { throw new Error('Không đọc được file .xls này. Mở bằng Excel hoặc Google Sheets → Lưu dưới dạng .xlsx rồi tải lại.'); };
+    var sec = function (id) { return 512 + id * ss; }, difat = [], i;
+    for (i = 0; i < 109; i++) { var v = dv.getUint32(76 + i * 4, true); if (v < 0xFFFFFFFA) difat.push(v); }
+    for (var dsec = dv.getUint32(68, true), nd = dv.getUint32(72, true); nd-- > 0 && dsec < 0xFFFFFFFA;) {
+      for (i = 0; i < ss / 4 - 1; i++) { var w = dv.getUint32(sec(dsec) + i * 4, true); if (w < 0xFFFFFFFA) difat.push(w); }
+      dsec = dv.getUint32(sec(dsec) + ss - 4, true);
+    }
+    var fat = []; difat.forEach(function (f) { for (var k = 0; k < ss / 4; k++) fat.push(dv.getUint32(sec(f) + k * 4, true)); });
+    var chain = function (start, F, size, base, unit) {
+      var out = [], id = start, n = 0; while (id < 0xFFFFFFFA && n++ < 200000) { out.push(id); id = F[id]; }
+      var buf = new Uint8Array(out.length * unit); out.forEach(function (id, k) { var o = base(id); buf.set(u8.subarray(o, o + unit), k * unit); });
+      return size == null ? buf : buf.subarray(0, size);
+    };
+    var dir = chain(dv.getUint32(48, true), fat, null, sec, ss), dd = new DataView(dir.buffer), root = null, wb = null;
+    for (i = 0; i + 128 <= dir.length; i += 128) {
+      var nl = dd.getUint16(i + 64, true), nm = ''; for (var c = 0; c + 2 < nl; c += 2) nm += String.fromCharCode(dd.getUint16(i + c, true));
+      var e = { t: dir[i + 66], st: dd.getUint32(i + 116, true), sz: dd.getUint32(i + 120, true) };
+      if (e.t === 5) root = e; else if (e.t === 2 && /^(workbook|book)$/i.test(nm)) wb = e;
+    }
+    if (!wb) bad();
+    var data;
+    if (wb.sz >= dv.getUint32(56, true)) data = chain(wb.st, fat, wb.sz, sec, ss);
+    else {
+      var mfat = [], mf = chain(dv.getUint32(60, true), fat, null, sec, ss), mv = new DataView(mf.buffer); for (i = 0; i + 4 <= mf.length; i += 4) mfat.push(mv.getUint32(i, true));
+      var ms = chain(root.st, fat, null, sec, ss);
+      data = (function () { var out = new Uint8Array(wb.sz), id = wb.st, k = 0; while (id < 0xFFFFFFFA && k < wb.sz) { out.set(ms.subarray(id * mss, id * mss + mss).subarray(0, Math.min(mss, wb.sz - k)), k); k += mss; id = mfat[id]; } return out; })();
+    }
+    var bv = new DataView(data.buffer, data.byteOffset, data.byteLength), p = 0, sst = [], sheets = [], cur = null, fpos = null;
+    var put = function (r, c, v) { if (!cur) return; (cur[r] = cur[r] || [])[c] = v; };
+    var rk = function (x) { var n; if (x & 2) n = x >> 2; else { var t = new DataView(new ArrayBuffer(8)); t.setUint32(4, x & 0xFFFFFFFC, true); n = t.getFloat64(0, true); } return x & 1 ? n / 100 : n; };
+    var str16 = function (o, n, wide) { var s = ''; for (var k = 0; k < n; k++) s += String.fromCharCode(wide ? bv.getUint16(o + k * 2, true) : data[o + k]); return s; };
+    var recs = [];
+    while (p + 4 <= data.length) { var ty = bv.getUint16(p, true), ln = bv.getUint16(p + 2, true); recs.push({ t: ty, o: p + 4, l: ln }); p += 4 + ln; }
+    for (var ri = 0; ri < recs.length; ri++) {
+      var R = recs[ri], o = R.o;
+      if (R.t === 0x0809) { if (bv.getUint16(o + 2, true) === 0x10) { cur = []; sheets.push(cur); } else cur = null; }
+      else if (R.t === 0x00FC) { // SST + CONTINUE: chuỗi có thể vắt qua nhiều bản ghi, mỗi CONTINUE bắt đầu lại bằng 1 byte cờ (8 hay 16 bit)
+        var parts = [R]; while (recs[ri + 1] && recs[ri + 1].t === 0x003C) parts.push(recs[++ri]);
+        var pi = 0, q = R.o + 8, end = R.o + R.l, cnt = bv.getUint32(R.o + 4, true);
+        var need = function (n) { if (q + n > end && pi + 1 < parts.length) { pi++; q = parts[pi].o; end = q + parts[pi].l; } };
+        for (var k = 0; k < cnt; k++) {
+          need(3); var cch = bv.getUint16(q, true), fl = data[q + 2]; q += 3; var rich = 0, ext = 0;
+          if (fl & 8) { rich = bv.getUint16(q, true); q += 2; } if (fl & 4) { ext = bv.getUint32(q, true); q += 4; }
+          var sv = '', left = cch, wide = fl & 1;
+          while (left > 0) {
+            var can = Math.min(left, Math.floor((end - q) / (wide ? 2 : 1)));
+            if (can <= 0) { if (pi + 1 >= parts.length) break; pi++; q = parts[pi].o; end = q + parts[pi].l; wide = data[q] & 1; q++; continue; }
+            sv += str16(q, can, wide); q += can * (wide ? 2 : 1); left -= can;
+          }
+          var skip = rich * 4 + ext; while (skip > 0) { var d = Math.min(skip, end - q); q += d; skip -= d; if (skip > 0) { if (pi + 1 >= parts.length) break; pi++; q = parts[pi].o; end = q + parts[pi].l; } }
+          sst.push(sv);
+        }
+      }
+      else if (R.t === 0x00FD) put(bv.getUint16(o, true), bv.getUint16(o + 2, true), sst[bv.getUint32(o + 6, true)] || '');
+      else if (R.t === 0x0203) put(bv.getUint16(o, true), bv.getUint16(o + 2, true), bv.getFloat64(o + 6, true));
+      else if (R.t === 0x027E) put(bv.getUint16(o, true), bv.getUint16(o + 2, true), rk(bv.getUint32(o + 6, true)));
+      else if (R.t === 0x00BD) { var row = bv.getUint16(o, true), c0 = bv.getUint16(o + 2, true), nn = (R.l - 6) / 6; for (var j = 0; j < nn; j++) put(row, c0 + j, rk(bv.getUint32(o + 4 + j * 6 + 2, true))); }
+      else if (R.t === 0x0204) { var n2 = bv.getUint16(o + 6, true); put(bv.getUint16(o, true), bv.getUint16(o + 2, true), str16(o + 9, n2, data[o + 8] & 1)); }
+      else if (R.t === 0x0006) { var r6 = bv.getUint16(o, true), c6 = bv.getUint16(o + 2, true); if (bv.getUint16(o + 12, true) === 0xFFFF) { if (data[o + 6] === 0) fpos = [r6, c6]; } else put(r6, c6, bv.getFloat64(o + 6, true)); }
+      else if (R.t === 0x0207 && fpos) { var n3 = bv.getUint16(o, true); put(fpos[0], fpos[1], str16(o + 3, n3, data[o + 2] & 1)); fpos = null; }
+    }
+    if (!sheets.length) bad();
+    return sheets.map(function (sh) { var out = []; for (var r = 0; r < sh.length; r++) { var row = sh[r] || []; var a = []; for (var c = 0; c < row.length; c++) a.push(row[c] == null ? '' : row[c]); out.push(a); } return out; });
   }
   function xlsxSheets(u8) {
     var z = zipDir(u8);
