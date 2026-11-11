@@ -2089,6 +2089,8 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 /* 📅 Dịp sắp tới, 🔥 chuyện đang nóng, 📸 câu lệnh ảnh (11/11/2026, khoá K131 việc 5, 8) */
 .inx-ev-l { margin: 4px 0 6px; padding-left: 18px; }
 .inx-ev-l li { margin: 3px 0; }
+.inx-kw-l { margin: 4px 0 6px; padding-left: 18px; max-height: 320px; overflow: auto; }
+.inx-kw-l li { margin: 2px 0; }
 .inx-ev-now { color: var(--orange); }
 .inx-ev-tr { background: var(--orange-light); border-radius: 8px; padding: 6px 10px; }
 .inx-img-b { margin-top: 10px; }

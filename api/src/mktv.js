@@ -190,7 +190,7 @@ export async function mktView(x, u, d) {
     eff: onlyPaid(EF), effPrev: onlyPaid(EP), newNDay: byDay(EF, spDays, 'dn'), newNDayPrev: byDay(EP, spPrev, 'dn'), newDay: byDay(EF, spDays), newDayPrev: byDay(EP, spPrev), ad, adPrev: ads.length ? adStat(P) : null,
     tot, totPrev: sumT(spPrev), cpr, mid,
     prod: Object.values(PR).filter(p => p.sp || p.n || p.rev).sort((a, b) => b.sp - a.sp || b.rev - a.rev),
-    sale: saleFb(R, u.level >= 3), ltv: await ltvOf(x),
+    sale: saleFb(R, u.level >= 3), ltv: await ltvOf(x), cv: await commValOf(x).catch(() => null),
     // tiền khách mới mọi kênh marketing (kể cả kênh chưa có chi phí, vd sàn) → tiến độ mục tiêu từng kênh
     revAll: Object.assign(Object.fromEntries(Object.keys(EF).filter(k => GOAL_CH.indexOf(k) >= 0).map(k => [k, EF[k].newRev])), { [COMM]: commOf(R).rev, [WEB]: wbR.newRev + wbR.oldRev }), comm: commOf(R), commPrev: commOf(P), web: Object.assign(webOut(wbR), { list: wbR.list.slice(-300).reverse() }), webPrev: webOut(wbP),
     fb: { on: !!fb.token, last: fb.last || null },
@@ -204,7 +204,7 @@ export async function mktView(x, u, d) {
 
 /** Giá trị 1 khách mới trong 90 ngày đầu: khách mua lần đầu cách đây 90–270 ngày (đã đủ 90 ngày để xem họ mua tiếp không), theo nguồn khách.
  *  Tính 1 lần / ngày (kv mkt_ltv_<ngày>) cho đỡ tốn lượt đọc. → { n, avg (tiền 90 ngày / khách), first (đơn đầu / khách), rep (% mua lại), by: {nguồn: {n, avg, rep}} } */
-async function ltvOf(x) {
+export async function ltvOf(x) {
   const now = startOfDay(Date.now()), k = 'mkt_ltv_' + iso(now), c = await kvJson(x.db, k, null); if (c) return c;
   const A = now - 270 * DAY, B = now - 90 * DAY;
   const ords = (await all(x.db, 'SELECT phone, time, total, status FROM orders WHERE time >= ? ORDER BY time', A)).filter(o => !isVoid(o.status) && normPhone(o.phone));
@@ -224,6 +224,17 @@ async function ltvOf(x) {
   return out;
 }
 
+/** 👥 Giá trị 1 thành viên nhóm Zalo (khoá Marketing Plan K218, 11/11/2026): tiền mua lại 90 ngày qua của khách đã vào nhóm (bỏ đơn đầu, bỏ hoàn / huỷ) ÷ số khách đã vào nhóm.
+ *  → biết được chi tối đa bao nhiêu để kéo 1 người vào nhóm. Tính 1 lần / ngày (kv mkt_cv_<ngày>). */
+export async function commValOf(x) {
+  const now = startOfDay(Date.now()), k = 'mkt_cv_' + iso(now), c = await kvJson(x.db, k, null); if (c) return c;
+  const mem = {}; (await all(x.db, "SELECT phone, first FROM customers WHERE community = 'Đã vào'")).forEach(r => { const p = normPhone(r.phone); if (p) mem[p] = Number(r.first) || 0; });
+  const n = Object.keys(mem).length, buyers = {}; let rev = 0;
+  if (n) (await all(x.db, 'SELECT phone, time, total, status FROM orders WHERE time >= ?', now - 90 * DAY)).forEach(o => { const p = normPhone(o.phone), f = mem[p]; if (!f || isVoid(o.status) || (Number(o.time) || 0) <= f) return; rev += Number(o.total) || 0; buyers[p] = 1; });
+  const out = { n, rev, buyers: Object.keys(buyers).length, per: n ? Math.round(rev / n) : 0, y: n ? Math.round(rev * 365 / 90 / n) : 0 };
+  await kvSet(x.db, k, JSON.stringify(out), DAY);
+  return out;
+}
 /** Ngân sách quảng cáo tháng này (kv mkt_budget {yyyy-MM: số tiền}, Quản trị đặt) + đã chi từ đầu tháng. Không lưu tạm: đổi ngân sách là thấy ngay. */
 async function budgetOf(x) {
   const now = Date.now(), m = fmtDate(now, 'yyyy-MM'), all0 = await kvJson(x.db, 'mkt_budget', {});

@@ -13,6 +13,7 @@ import { aiFetch } from './airelay.js';
 import { run, all, first, kvGet, kvJson, kvSet, kvDel, nrm, fmtDate, DAY } from './lib.js';
 import { kb, safe, TRUTH_RULES } from './chat.js';
 import { prodMap } from './zbot.js';
+import { ltvOf, commValOf } from './mktv.js';
 import { crmInSkill, skillsInfo, offerDrafts, skillOf, methodBlock } from './inskill.js';
 import { lrnPosts, lrnBlock } from './learn.js';
 import { eventsAhead } from './zday.js';
@@ -181,6 +182,21 @@ export const funOf = s => (String(s || '').match(/TOFU|MOFU|BOFU/) || [''])[0];
 
 /* ---------------------------------------------------------------- ngân hàng */
 const cut = (s, n) => String(s == null ? '' : s).trim().slice(0, n);
+// Khoá Marketing Plan K218 (11/11/2026): 3 vai (người mua / người dùng / người quyết định), lý do nói ra → lý do thật ("Tôi biết mình nên… nhưng thật ra tôi…"), cái cớ để mua, khả năng chi trả. Giả thuyết, cần kiểm chứng với khách thật.
+const P4 = ['trust', 'kw', 'where', 'roles', 'real', 'excuse', 'pay'];
+const K218P = {
+  'me-bim': { roles: 'Mua: mẹ (hoặc chồng, bà mua giúp) · Dùng: mẹ · Quyết định: mẹ, hay hỏi ý mẹ ruột / mẹ chồng', real: 'Nói ra: "mình muốn ăn uống đủ chất cho con" → thật ra: "mình cần được nghỉ một chút mà không bị coi là lười, không bị bà chê"', excuse: '"Vì con": lo cho mẹ cũng là lo cho con; "bà ngày xưa cũng uống nước lá"', pay: 'Thu nhập giảm khi nghỉ sinh; chi cho mẹ thì cân nhắc, chi cho con dễ hơn; hợp giá theo ngày, gói nhỏ dùng thử' },
+  'chong-vo-sinh': { roles: 'Mua: chồng · Dùng: vợ · Quyết định: vợ, mẹ vợ là người khen / chê', real: 'Nói ra: "mua cho vợ đủ chất" → thật ra: "muốn được ghi nhận là chồng chu đáo, không bị mẹ vợ chê vụng"', excuse: '"Quà cho vợ", "để mẹ đỡ vất vả"', pay: 'Sẵn sàng chi 300k–1 triệu cho món trông tử tế, ngại so giá, cần chọn nhanh' },
+  'ba-o-cu': { roles: 'Mua: bà hoặc con cái mua giúp · Dùng: con dâu / con gái · Quyết định: bà', real: 'Nói ra: "giữ đúng kiêng cữ như ngày xưa" → thật ra: "sợ con cháu chê lạc hậu, muốn lời mình vẫn được nghe"', excuse: '"Vẫn là nước lá như ngày xưa, chỉ là tiện hơn"', pay: 'Lương hưu hoặc con cái cho; thích giá rõ, ngại mua online, hay nhờ con đặt' },
+  'van-phong': { roles: 'Mua, dùng, quyết định: chính họ (đôi khi mua chung cả phòng)', real: 'Nói ra: "mình muốn ăn uống lành" → thật ra: "muốn thấy mình còn kiểm soát được bản thân giữa lịch quá tải, mà không phải bỏ vui với đồng nghiệp"', excuse: '"Đầu tư cho bản thân", "thay ly trà sữa mỗi chiều"', pay: 'Quen chi 30–60k/ngày cho cà phê, trà sữa; so giá theo ngày thì dễ chấp nhận' },
+  'trung-nien': { roles: 'Mua: chính họ hoặc con cái · Dùng: họ · Quyết định: họ cùng vợ / chồng, hay hỏi bác sĩ hoặc con', real: 'Nói ra: "giữ sức khoẻ" → thật ra: "không muốn thành gánh nặng cho con cái, muốn còn tự lo được"', excuse: '"Ăn uống đúng cách cho con cái yên tâm", "con mua cho thì dùng"', pay: 'Có lương hưu, tích luỹ; cẩn thận, sợ bị lừa; trả được khi đã tin' },
+  'an-chay': { roles: 'Mua, dùng, quyết định: chính họ; có khi mua chung cho đạo tràng', real: 'Nói ra: "ăn chay vì niềm tin" → thật ra: "muốn chứng minh ăn chay vẫn khoẻ, vẫn ngon, để người nhà thôi lo, thôi can"', excuse: '"Đồ chay sạch, rõ nguồn gốc", "mua chung cho đạo tràng"', pay: 'Chi đều cho món ăn hằng ngày, nhạy giá theo đơn vị (gói, hũ)' },
+  'mua-qua': { roles: 'Mua: con cái · Dùng: bố mẹ · Quyết định: con chọn, nhưng bố mẹ có dùng không mới quyết định có mua lại', real: 'Nói ra: "mua quà sức khoẻ cho bố mẹ" → thật ra: "hiếu thảo nhưng bận, muốn yên tâm mình đã làm điều đúng mà không phải về chăm mỗi lần bố mẹ mệt"', excuse: '"Biếu bố mẹ một thói quen tốt"; dịp lễ, Tết là cái cớ để tặng mà bố mẹ không gạt đi "tốn tiền làm gì"', pay: 'Chi 300k–1,5 triệu cho quà; sợ quà "trông rẻ", mất mặt hơn là sợ đắt' },
+  'khach-cu': { roles: 'Mua, dùng, quyết định: chính họ; hay mua thêm cho người nhà', real: 'Nói ra: "hết thì mua tiếp" → thật ra: "muốn giữ thói quen mà không phải nghĩ, ngại phải chọn lại từ đầu"', excuse: '"Đang dùng quen", "mua thêm cho bố mẹ, cho bạn"', pay: 'Đã biết giá; quan tâm ưu đãi khách cũ, gói dài ngày rẻ hơn mỗi ngày' },
+  'quen-che-vang': { roles: 'Mua, dùng, quyết định: chính họ', real: 'Nói ra: "quen uống rồi" → thật ra: "muốn tiện hơn mà vẫn đúng vị, không phải đun nấu"', excuse: '"Như nước lá nhà nấu, chỉ là pha nhanh"', pay: 'So với giá lá khô ngoài chợ; cần thấy rõ tiện hơn đáng bao nhiêu' },
+  'nam-tiep-khach': { roles: 'Mua: chính họ hoặc vợ mua giúp · Dùng: họ · Quyết định: vợ hay mua thay', real: 'Nói ra: "muốn uống thứ gì lành hơn" → thật ra: "muốn vẫn hợp hội, giữ được quan hệ mà vợ con bớt lo"', excuse: '"Thay trà đá, nước ngọt ở bàn làm việc"', pay: 'Chi tiêu thoải mái, ngại mất thời gian chọn' },
+};
+for (const g of INS0) Object.assign(g, K218P[g.id] || {});
 function clean(list) {
   const seen = {};
   return (Array.isArray(list) ? list : []).slice(0, 12).map((g, i) => {
@@ -189,13 +205,13 @@ function clean(list) {
     const tensions = (Array.isArray(g.tensions) ? g.tensions : String(g.tensions || '').split('\n')).map(t => cut(String(t).replace(/^[-•*\d.)\s]+/, ''), 300)).filter(Boolean).slice(0, 30);
     const prods = [...new Set((Array.isArray(g.prods) ? g.prods : String(g.prods || '').split(/[,;\s]+/)).map(spCode).filter(Boolean))].slice(0, 12);
     const bigs = (Array.isArray(g.bigs) ? g.bigs : []).slice(0, 4).map(b => ({ t: cut(b && b.t, 300), ang: (Array.isArray(b && b.ang) ? b.ang : String((b && b.ang) || '').split('\n')).map(a => cut(String(a).replace(/^[-•*\d.)\s]+/, ''), 200)).filter(Boolean).slice(0, 15), on: !b || b.on !== false, until: /^\d{4}-\d{2}-\d{2}$/.test(String(b && b.until || '')) ? b.until : '' })).filter(b => b.t);
-    return { id, name: cut(g.name, 80), on: g.on !== false, who: cut(g.who, 800), want: cut(g.want, 800), block: cut(g.block, 800), tensions, prods, note: cut(g.note, 1500), bigs, trust: cut(g.trust, 500), kw: cut(g.kw, 500), where: cut(g.where, 500) };
+    return { id, name: cut(g.name, 80), on: g.on !== false, who: cut(g.who, 800), want: cut(g.want, 800), block: cut(g.block, 800), tensions, prods, note: cut(g.note, 1500), bigs, trust: cut(g.trust, 500), kw: cut(g.kw, 500), where: cut(g.where, 500), roles: cut(g.roles, 500), real: cut(g.real, 600), excuse: cut(g.excuse, 500), pay: cut(g.pay, 500) };
   }).filter(g => g.name);
 }
 export async function insBank(x) {
   const b = await kvJson(x.db, 'ins_bank', null); if (!(b && Array.isArray(b.groups) && b.groups.length)) return clean(INS0);
   const G = clean(b.groups), D = clean(INS0); // chân dung 8 ô (khoá K133): ô "họ tin ai / từ khoá họ tìm / nơi tụ tập" còn trống thì dùng bản mặc định cùng nhóm, không cần bấm Gộp
-  for (const g of G) { const d = D.find(v => v.id === g.id); if (d) { for (const k of ['trust', 'kw', 'where']) if (!g[k] && d[k]) g[k] = d[k]; if (!(g.bigs || []).length && (d.bigs || []).length) g.bigs = d.bigs; } } // nhóm chưa có big idea → dùng big idea mặc định (vd chiến dịch Tết), anh chị sửa ở CRM là thay
+  for (const g of G) { const d = D.find(v => v.id === g.id); if (d) { for (const k of P4) if (!g[k] && d[k]) g[k] = d[k]; if (!(g.bigs || []).length && (d.bigs || []).length) g.bigs = d.bigs; } } // nhóm chưa có big idea → dùng big idea mặc định (vd chiến dịch Tết), anh chị sửa ở CRM là thay
   return G;
 }
 const live = bank => bank.filter(g => g.on && g.tensions.length);
@@ -273,6 +289,10 @@ export function insBlock(p, f, opt) {
     g.want ? 'Họ mong (nói ra được / sâu hơn): ' + g.want : '', g.block ? 'Rào cản / vấn đề (issue) thường gặp: ' + g.block : '', g.note ? 'Ghi chú: ' + g.note : '',
     g.prods.length ? 'Sản phẩm hợp với nhóm: ' + g.prods.map(spName).join(', ') : '',
     g.trust ? 'Họ tin ai / nghe ai: ' + g.trust + ' (dùng làm nhân vật, người kể, nguồn dẫn khi hợp; không bịa lời người thật)' : '', g.kw ? 'Họ hay tìm trên Google / mạng xã hội: ' + g.kw + ' (bài web dùng làm từ khoá chính, viết đúng cách họ gõ; từ khoá chỉ để hiểu họ đang tìm gì, KHÔNG vì thế mà hứa công dụng ngoài hồ sơ công bố)' : '', g.where ? 'Họ hay tụ tập ở: ' + g.where : '',
+    g.roles ? '3 vai trong một lần mua (khoá K218): ' + g.roles + ' → biết bài đang nói với vai nào: nói với người MUA thì cho họ thấy người DÙNG được gì; người QUYẾT ĐỊNH lo gì thì gỡ đúng điều đó.' : '',
+    g.real ? 'Lý do nói ra → lý do thật (khoá K218, "Tôi biết mình nên… nhưng thật ra tôi…"): ' + g.real + ' → chạm lý do thật một cách tế nhị, không vạch trần hay chê người đọc.' : '',
+    g.excuse ? 'Cái cớ để mua (lý do an toàn để họ nói với người thân và với chính mình): ' + g.excuse + ' → bài BOFU và bài quà biếu nên trao sẵn cái cớ này.' : '',
+    g.pay ? 'Khả năng chi trả: ' + g.pay + ' → khi nói giá, quy ra tiền mỗi ngày nếu hợp; không ép gói lớn, không bịa giảm giá.' : '',
     'Tension đã biết (mong muốn ↔ rào cản):\n' + T.map(tline).join('\n'),
     T.length > 1 ? 'Tension xếp trên cùng là tension sắc nhất (điểm cao khi tìm insight): ưu tiên dùng nếu hợp chủ đề và chưa dùng gần đây.' : '',
     p.recent && p.recent.length ? 'Tension nhóm này vừa dùng gần đây (ưu tiên tension KHÁC, hoặc góc khác hẳn):\n' + p.recent.map(t => '- ' + t).join('\n') : '',
@@ -297,6 +317,7 @@ export function insBlock(p, f, opt) {
     p && p.ev && p.ev.length && !opt.light ? '📅 DỊP SẮP TỚI: ' + p.ev.map(e => e.n + ' (' + e.d.slice(6, 8) + '/' + e.d.slice(4, 6) + (e.in ? ', còn ' + e.in + ' ngày' : ', hôm nay') + ')').join('; ') + '. Bài đăng 1–3 ngày trước dịp là lúc người ta đang nghĩ tới nó (khoá K131: trend theo mùa chuẩn bị trước, đăng trước 1 ngày hoặc vài tiếng). Nếu dịp hợp nhóm khách và tension thì kể big idea / góc kể gắn với dịp, vẫn đúng tầng phễu; không biến bài thành lời chúc chung chung. Không hợp thì bỏ qua.' : '',
     p && p.trend && p.trend.t ? '🔥 CHUYỆN ĐANG NÓNG (Marketing ghi lúc ' + fmtDate(p.trend.at, 'HH:mm dd/MM') + '): ' + p.trend.t + '\nChỉ dùng khi nối được tự nhiên với tension của nhóm khách: KHÔNG đăng lại tin, mà đưa 1 góc nhìn mới gắn với nỗi lòng của nhóm khách (đăng chậm hơn người khác vẫn thắng nếu góc nhìn mới). Không dùng nếu là tin buồn, tai nạn, bệnh dịch, chính trị, chuyện riêng của người nổi tiếng; không gắn sản phẩm vào chuyện đó; không bịa chi tiết ngoài điều Marketing ghi.' : '',
     opt.light ? 'Bài này là bài theo dịp (chúc mừng / tương tác): giữ đúng chủ đề dịp, tension chỉ dùng để chọn góc chạm gần gũi (1–2 câu), không biến thành bài bán.' : '',
+    f !== 'TOFU' ? '🏛 THÁP NIỀM TIN (khoá Marketing Plan K218), áp dụng cho bài tạo niềm tin và bài bán: mỗi câu khen sản phẩm phải đi kèm 1 bằng chứng có thật trong TÀI LIỆU, ưu tiên theo thứ tự: pháp lý (số bản tự công bố, chứng nhận nhà máy) → khoa học (phiếu kiểm nghiệm, thành phần có định lượng) → nguồn gốc (vùng nguyên liệu, chỉ dẫn địa lý, nhà máy) → xã hội (số khách, cộng đồng có thật; không bịa) → trải nghiệm / cam kết (dùng thử, đổi trả đúng chính sách) → thương hiệu. Câu khen không có bằng chứng thì bỏ.' : '',
     F ? 'TẦNG PHỄU: ' + F.name + '. ' + F.rule + '\nCông thức viết hợp tầng này (chọn 1): ' + FORMULA[f] + '.' : 'TẦNG PHỄU: tự chọn 1 tầng hợp với tension và chủ đề:\n' + Object.entries(FUN).map(([k, v]) => '- ' + v.name + ': ' + v.rule + ' Công thức hợp: ' + FORMULA[k] + '.').join('\n'),
     'Đạo đức: nội dung phải GỠ tension, không khoét sâu nỗi sợ bệnh tật, mặc cảm cơ thể, áp lực gia đình để ép mua; không bịa lời khách, số liệu, khuyến mãi; không đóng vai khách tự hỏi tự trả lời.',
     LAW
@@ -351,7 +372,7 @@ export async function insText(x) {
     '4c. ' + VIET,
     '5. ' + LAW + ' Không dùng "chữa / điều trị / khỏi bệnh"; nhắc sản phẩm thì có dòng "Sản phẩm là thực phẩm, không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh."',
     '', 'NGÂN HÀNG INSIGHT (nhóm khách mục tiêu):',
-    ...bank.map(g => ['## ' + g.name + (g.on ? '' : ' (đang tạm tắt)'), g.who, 'Mong muốn: ' + g.want, 'Rào cản: ' + g.block, g.trust ? 'Họ tin ai: ' + g.trust : '', g.kw ? 'Từ khoá họ tìm: ' + g.kw : '', g.where ? 'Nơi họ tụ tập: ' + g.where : '', g.prods.length ? 'Sản phẩm hợp: ' + g.prods.map(spName).join(', ') : '', 'Tension:', ...g.tensions.map(tenOf).map(x => '- ' + x.t + (x.sp.length ? ' [riêng: ' + x.sp.map(spName).join(', ') + ']' : ' [dùng chung]')), ...(g.bigs || []).map((b, k) => '🌟 Big idea' + (b.on ? ' (đang chạy)' : ' (để dành)') + ': ' + b.t + '\n' + b.ang.map(v => '   - ' + v).join('\n')), g.note ? 'Ghi chú: ' + g.note : ''].filter(Boolean).join('\n'))].join('\n');
+    ...bank.map(g => ['## ' + g.name + (g.on ? '' : ' (đang tạm tắt)'), g.who, 'Mong muốn: ' + g.want, 'Rào cản: ' + g.block, g.trust ? 'Họ tin ai: ' + g.trust : '', g.kw ? 'Từ khoá họ tìm: ' + g.kw : '', g.where ? 'Nơi họ tụ tập: ' + g.where : '', g.roles ? '3 vai: ' + g.roles : '', g.real ? 'Lý do nói ra → lý do thật: ' + g.real : '', g.excuse ? 'Cái cớ để mua: ' + g.excuse : '', g.pay ? 'Khả năng chi trả: ' + g.pay : '', g.prods.length ? 'Sản phẩm hợp: ' + g.prods.map(spName).join(', ') : '', 'Tension:', ...g.tensions.map(tenOf).map(x => '- ' + x.t + (x.sp.length ? ' [riêng: ' + x.sp.map(spName).join(', ') + ']' : ' [dùng chung]')), ...(g.bigs || []).map((b, k) => '🌟 Big idea' + (b.on ? ' (đang chạy)' : ' (để dành)') + ': ' + b.t + '\n' + b.ang.map(v => '   - ' + v).join('\n')), g.note ? 'Ghi chú: ' + g.note : ''].filter(Boolean).join('\n'))].join('\n');
 }
 
 /** Gộp INS0 vào ngân hàng đã sửa riêng: thêm nhóm chưa có, thêm tension chưa có, gắn nhãn sản phẩm cho tension trùng chữ, điền "sản phẩm hợp" còn trống */
@@ -367,7 +388,7 @@ function mergeDefault(bank) {
       else if (!tenOf(g.tensions[i]).sp.length && tenOf(t).sp.length) { g.tensions[i] = t; n.tags++; }
     }
     if (!g.prods.length && d.prods.length) { g.prods = d.prods.slice(); n.tags++; }
-    for (const k of ['trust', 'kw', 'where']) if (!g[k] && d[k]) { g[k] = d[k]; n.persona = (n.persona || 0) + 1; } // chân dung 8 ô (khoá K133) điền vào ô còn trống
+    for (const k of P4) if (!g[k] && d[k]) { g[k] = d[k]; n.persona = (n.persona || 0) + 1; } // chân dung 8 ô (khoá K133) điền vào ô còn trống
   }
   return { groups: clean(out), n: n.groups + n.tensions + n.tags + (n.persona || 0) ? n : null };
 }
@@ -569,6 +590,49 @@ async function bigWrite(x, d) {
   return { ok: true, text: text.slice(0, 6000) };
 }
 
+/* ---------------------------------------------------------------- 🔑 Ngân hàng 100 từ khoá SEO / GEO theo insight (khoá Marketing Plan K218, 11/11/2026)
+ * 100 từ khoá người Việt thật sự gõ (Google + hỏi AI), mỗi từ gắn 1 nhóm khách + 1 tầng phễu → trợ lý bài web (blog.js) mỗi lần TỰ CHỌN chủ đề thì lấy 1 từ khoá chưa viết,
+ * viết hết dần trong vài tháng để Google và các AI gợi ý Thực Dưỡng Lành. kv bl_kw { list: [{ k, g, f, used: yyyy-mm-dd | '' }], at, by } */
+export async function kwBank(x) { const b = await kvJson(x.db, 'bl_kw', null); return b && Array.isArray(b.list) ? b : { list: [] }; }
+function kwClean(list, old) {
+  const U = {}, seen = {}; (old || []).forEach(v => { if (v.used) U[nrm(v.k)] = v.used; });
+  return (Array.isArray(list) ? list : []).map(v => ({ k: cut(String(v.k || '').replace(/^[-•*\d.)\s]+/, ''), 120), g: cut(v.g, 30), f: /^(TOFU|MOFU|BOFU)$/.test(v.f) ? v.f : 'TOFU', used: /^\d{4}-\d\d-\d\d$/.test(v.used || '') ? v.used : '' }))
+    .filter(v => v.k && !seen[nrm(v.k)] && (seen[nrm(v.k)] = 1)).slice(0, 150).map(v => Object.assign(v, { used: v.used || U[nrm(v.k)] || '' }));
+}
+/** Dòng "từ khoá | nhóm | tầng" → danh sách (nhóm ghi id hoặc tên) */
+function kwParse(text, bank) {
+  return String(text || '').split('\n').map(l => l.split('|').map(v => v.trim())).filter(a => a[0] && !/^từ khoá$/i.test(a[0])).map(([k, g, f]) => {
+    const G = bank.find(b => b.id === g || nrm(b.name) === nrm(g || '')); return { k, g: G ? G.id : '', f: (String(f || '').toUpperCase().match(/TOFU|MOFU|BOFU/) || ['TOFU'])[0] };
+  });
+}
+/** Trợ lý bài web lấy 1 từ khoá chưa viết: ưu tiên đúng tầng phễu, nhóm đang bật */
+export async function kwPick(x, f) {
+  const b = await kwBank(x), on = new Set(live(await insBank(x)).map(g => g.id)), free = b.list.filter(v => !v.used && (!v.g || on.has(v.g)));
+  return free.find(v => v.f === f) || free[0] || null;
+}
+export async function kwUse(x, k, day) {
+  const b = await kwBank(x), v = b.list.find(y => nrm(y.k) === nrm(k)); if (!v || v.used) return;
+  v.used = day; await kvSet(x.db, 'bl_kw', JSON.stringify(b));
+}
+async function kwWrite(x, n) {
+  if (!x.env.ANTHROPIC_API_KEY) return { ok: false, error: 'Máy chủ chưa có khoá AI.' };
+  const bank = live(await insBank(x)), old = (await kwBank(x)).list;
+  const ask = ['Lập NGÂN HÀNG ' + n + ' TỪ KHOÁ cho các bài viết trên website thucduonglanh.vn (mục Góc Sống Lành), theo khoá Marketing Plan: mỗi ngày 1 bài theo 1 từ khoá, viết hết trong vài tháng để Google và các trợ lý AI (ChatGPT, Gemini, Google AI) gợi ý Thực Dưỡng Lành khi người ta hỏi.',
+    'Từ khoá = đúng câu người Việt thật sự gõ lên Google hoặc hỏi AI, sinh ra từ tension (muốn… nhưng…) và lý do thật của từng nhóm khách. Gồm: từ khoá dài 3–8 chữ, câu hỏi kiểu "… có nên …", "… ăn gì …", "cách …", "… khác gì …", so sánh, theo dịp (Tết, ở cữ, biếu bố mẹ). Viết thường, có dấu, đúng cách người ta gõ (không viết hoa, không dấu câu).',
+    'Chia gần đúng 60% TOFU (người chưa biết sản phẩm: kiến thức đời sống, KHÔNG có tên thương hiệu), 20% MOFU (đang tìm cách chọn, so sánh, tiêu chí, nguồn gốc), 20% BOFU (sắp mua: cách dùng, quà biếu, mua ở đâu, giá theo ngày). Mỗi nhóm khách đang bật có ít nhất 6 từ khoá, nhóm có điểm tension cao nhiều hơn.',
+    'Không trùng nhau, không trùng danh sách đã có. Không dùng từ khoá hứa chữa bệnh, điều trị, giảm cân, lợi sữa, hạ đường huyết, hạ mỡ máu, chống ung thư, không nêu tên thuốc hay tên bệnh làm lời hứa (người ta có thể tìm vậy nhưng bài không được hứa); từ khoá về bệnh chỉ dùng dạng "người … nên ăn uống thế nào" và bài sẽ khuyên hỏi bác sĩ.',
+    '', 'NHÓM KHÁCH (id: tên – từ khoá họ hay tìm – tension):',
+    ...bank.map(g => '- ' + g.id + ': ' + g.name + (g.kw ? ' – tìm: ' + g.kw : '') + (g.real ? ' – lý do thật: ' + g.real : '') + ' – tension: ' + g.tensions.map(tenOf).slice(0, 4).map(t => t.t).join(' | ')),
+    old.length ? '\nTỪ KHOÁ ĐÃ CÓ (không lặp):\n' + old.map(v => v.k).join(', ') : '',
+    '', 'ĐẦU RA: đúng ' + n + ' dòng, mỗi dòng: từ khoá | id nhóm | TOFU hoặc MOFU hoặc BOFU. Không đánh số, không tiêu đề, không lời dẫn.'].filter(Boolean).join('\n');
+  const res = await ai(x.env).messages.create({ model: WRITER, max_tokens: 8000, output_config: { effort: 'low' },
+    system: 'Bạn là chuyên gia SEO và tối ưu cho công cụ tìm kiếm AI (GEO) ở Việt Nam, hiểu sâu cách người Việt gõ tìm kiếm về ăn uống, sức khoẻ gia đình, quà biếu. Trung thực, đúng luật quảng cáo thực phẩm.',
+    messages: [{ role: 'user', content: ask }] }, { headers: { 'x-tdl-muc': 'insight-kw' } });
+  const L = kwParse(textOf(res), bank);
+  if (L.length < 20) return { ok: false, error: 'AI chưa lập được danh sách, bấm lại nhé.' };
+  return { ok: true, list: L };
+}
+
 /* ---------------------------------------------------------------- CRM → tab 🎯 Insight & nội dung (Marketing, Quản lý, Quản trị, người phụ trách Trợ lý Zalo) */
 export function canIns(u) { return !!u && (u.level >= 2 || u.role === 'Marketing' || !!u.zb || !!u.web); }
 export async function crmIns(x, u, d, crmLog) {
@@ -583,8 +647,8 @@ export async function crmIns(x, u, d, crmLog) {
     let learn = {}; try { learn = await lrnPosts(x, 'all'); } catch (e) { }
     const evs = eventsAhead(fmtDate(now, 'yyyyMMdd'), 120).filter(e => e.in <= 45 || e.in <= e.prep), // 45 ngày tới + dịp xa đã tới lúc chuẩn bị (Tết: 90 ngày)
       trend = await kvJson(x.db, 'ins_trend', null);
-    const fpNf = await kvJson(x.db, 'fp_nf_err', null);
-    return { ok: true, now, bank, custom, upd, learn, evs, trend, fpNf, sp: SP, skills: await skillsInfo(x), drafts: await offerDrafts(x), log: log.slice(-300), scripts, prods, aiOn: !!x.env.ANTHROPIC_API_KEY, fun: Object.fromEntries(Object.entries(FUN).map(([k, v]) => [k, v.name])) };
+    const fpNf = await kvJson(x.db, 'fp_nf_err', null), kwb = await kwBank(x);
+    return { ok: true, now, bank, kw: kwb, custom, upd, learn, evs, trend, fpNf, sp: SP, skills: await skillsInfo(x), drafts: await offerDrafts(x), log: log.slice(-300), scripts, prods, aiOn: !!x.env.ANTHROPIC_API_KEY, fun: Object.fromEntries(Object.entries(FUN).map(([k, v]) => [k, v.name])) };
   }
   if (a === 'ins_save') {
     if (u.level < 2 && u.role !== 'Marketing') return { ok: false, error: 'Chỉ Marketing, Quản lý, Quản trị sửa được ngân hàng insight.' };
@@ -639,6 +703,23 @@ export async function crmIns(x, u, d, crmLog) {
     try { const r = await bigWrite(x, d); if (r.ok) await crmLog(x, u, 'Insight & nội dung', '-', '', 'AI gợi ý big idea', cut(d.name || d.g, 100)); return r; }
     catch (e) { return { ok: false, error: 'AI chưa làm xong: ' + String(e.message).slice(0, 150) }; }
   }
+  if (a === 'ins_kw' || a === 'ins_kwsave') { // 🔑 100 từ khoá cho bài web (khoá K218): ins_kw = AI lập thêm, ins_kwsave = lưu danh sách anh chị sửa (dòng "từ khoá | nhóm | tầng")
+    if (u.level < 2 && u.role !== 'Marketing') return { ok: false, error: 'Chỉ Marketing, Quản lý, Quản trị sửa được từ khoá.' };
+    const cur = await kwBank(x); let L;
+    if (a === 'ins_kw') {
+      const dk = 'ins_ai_' + fmtDate(now, 'yyMMdd'), c = Number(await kvGet(x.db, dk) || 0);
+      if (c >= 40) return { ok: false, error: 'Hôm nay đã dùng 40 lần, mai thử tiếp nhé.' };
+      await kvSet(x.db, dk, String(c + 1), 2 * DAY);
+      const free = cur.list.filter(v => !v.used).length, n = Math.max(20, Math.min(100, 150 - cur.list.length, 100 - free));
+      if (cur.list.length >= 150 || free >= 100) return { ok: false, error: 'Đã đủ ' + free + ' từ khoá chưa viết, viết bớt rồi lập thêm nhé.' };
+      let r; try { r = await kwWrite(x, n); } catch (e) { return { ok: false, error: 'AI chưa làm xong: ' + String(e.message).slice(0, 150) }; }
+      if (!r.ok) return r; L = cur.list.concat(r.list);
+    } else L = kwParse(d.text, await insBank(x));
+    const out = { list: kwClean(L, cur.list), at: now, by: u.name };
+    await kvSet(x.db, 'bl_kw', JSON.stringify(out));
+    await crmLog(x, u, 'Insight & nội dung', '-', '', a === 'ins_kw' ? 'AI lập từ khoá bài web' : 'Sửa từ khoá bài web', out.list.length + ' từ khoá');
+    return { ok: true, kw: out };
+  }
   if (a === 'ins_vdel') { await run(x.db, 'DELETE FROM vd_scripts WHERE id = ?', Number(d.id) || 0); return { ok: true }; }
   return { ok: false, error: 'Không rõ thao tác.' };
 }
@@ -661,6 +742,12 @@ export async function insWeekly(x) {
   try { const ev = eventsAhead(fmtDate(now, 'yyyyMMdd'), 120).filter(e => e.in <= e.prep && e.p <= 2); if (ev.length) L.push('⏰ Đến lúc chuẩn bị: ' + ev.slice(0, 4).map(e => esc_(e.n) + ' ' + e.d.slice(6, 8) + '/' + e.d.slice(4, 6) + ' (còn ' + e.in + ' ngày)').join(' · ')); } catch (e) { }
   const tr = await kvJson(x.db, 'ins_trend', null); L.push(tr && tr.t ? '🔥 Chuyện đang nóng đang dùng: ' + esc_(tr.t.slice(0, 80)) : '🔥 Chưa ghi chuyện đang nóng tuần này: thấy chuyện cả mạng đang bàn thì ghi vào ô 🔥 để trợ lý đổi góc nhìn.');
   try { const sp = await first(x.db, "SELECT SUM(CASE WHEN status = 'ok' THEN 1 ELSE 0 END) AS ok, SUM(copies) AS cp FROM sp_posts"); if (sp) L.push('📣 Bài Facebook cá nhân cho sale: ' + (sp.ok || 0) + ' bài đang dùng, ' + (sp.cp || 0) + ' lần sale copy' + (!(sp.ok > 0) ? ' → nên viết 3–5 bài mỗi tuần' : '')); } catch (e) { }
+  try { // 🔁 tầng giữ chân (khoá Marketing Plan K218): khách mới có quay lại không, 1 thành viên nhóm Zalo đáng bao nhiêu
+    const lt = await ltvOf(x), cv = await commValOf(x);
+    if (lt && lt.n) L.push('🔁 Khách mới (mua lần đầu ' + lt.from.slice(8, 10) + '/' + lt.from.slice(5, 7) + '–' + lt.to.slice(8, 10) + '/' + lt.to.slice(5, 7) + '): ' + lt.rep + '% mua lại trong 90 ngày, mỗi khách mang về ' + Math.round(lt.avg / 1000) + 'k');
+    if (cv && cv.n) L.push('👥 1 thành viên nhóm Zalo mang về ~' + Math.round(cv.per / 1000) + 'k tiền mua lại / 90 ngày (' + cv.n + ' người trong nhóm) → kéo 1 người vào nhóm nên tốn ít hơn mức này');
+  } catch (e) { }
+  L.push('🧭 <b>3 câu hỏi họp thứ Hai</b> (khoá K218): 1) Kênh nào ra khách rẻ nhất tuần qua → dồn tiền sang. 2) Bài, quảng cáo nào thắng → làm thêm đúng góc đó. 3) Tension đang dùng còn đúng không (xem lý do không mua ở tab Marketing) → sửa ngân hàng insight.');
   L.push('👉 ' + 'https://crm.thucduonglanh.vn/#noi-dung');
   return L.join('\n');
 }

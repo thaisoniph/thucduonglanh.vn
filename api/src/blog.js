@@ -18,7 +18,7 @@ import { crmUsers, crmLog } from './crm.js';
 import { cmsToken } from './cms.js';
 import { kb } from './chat.js';
 import { imgLib, prodMap } from './zbot.js';
-import { insPick, insBlock, insParse, insLog, insBank, insRisk, insViet, insStyle, INS_HEAD } from './insight.js';
+import { insPick, insBlock, insParse, insLog, insBank, insRisk, insViet, insStyle, INS_HEAD, kwPick, kwUse } from './insight.js';
 
 const REPO = 'thaisoniph/thucduonglanh.vn', GH = 'https://api.github.com', SITE = 'https://thucduonglanh.vn', API = 'https://api.thucduonglanh.vn';
 const CFG_PATH = 'data/blog-auto.json', POSTS_DIR = 'content/posts';
@@ -163,12 +163,15 @@ async function write(x, cfg, day, row) {
     const keep = row && !newTopic && row.md ? row : null; // bản cũ khi viết lại
     let km = {}; try { km = JSON.parse(keep && keep.meta || '{}') || {}; } catch (e) { }
     // 🎯 nhóm khách: chủ đề có ghi nhóm → nhóm đó; viết lại → giữ nhóm cũ; còn lại xoay vòng nhóm ít được viết nhất (insight.js)
-    const ip = await insPick(x, 'web', (topic && topic.group) || km.g || '', { prod: topic && topic.product || '' }); // chủ đề có sản phẩm → chỉ tension riêng của sản phẩm đó + tension dùng chung
+    // 🔑 trợ lý tự chọn chủ đề → lấy 1 từ khoá chưa viết trong ngân hàng 100 từ khoá (khoá K218); viết lại thì giữ từ khoá cũ
+    const kw = topic ? null : km.kw ? { k: km.kw, g: km.g } : await kwPick(x, funnel).catch(() => null);
+    const ip = await insPick(x, 'web', (topic && topic.group) || km.g || (kw && kw.g) || '', { prod: topic && topic.product || '' }); // chủ đề có sản phẩm → chỉ tension riêng của sản phẩm đó + tension dùng chung
     const ask = [
       'Viết 1 bài cho mục "Góc Sống Lành" trên website thucduonglanh.vn. Ngày đăng: ' + dayTxt(day) + '/' + day.slice(0, 4) + '.',
       'Tầng phễu: ' + FUNNEL[funnel].name + '. Mục tiêu: ' + FUNNEL[funnel].goal,
       topic ? 'CHỦ ĐỀ do nhân sự giao: ' + topic.title + (topic.note ? '\nGhi chú: ' + topic.note : '') + (topic.product ? '\nSản phẩm muốn nhắc: ' + topic.product : '')
         : 'Chưa có chủ đề được giao: TỰ CHỌN 1 chủ đề. Cách chọn: lấy 1 tension của nhóm khách mục tiêu bên dưới (chưa được viết gần đây), rồi đặt chủ đề giải đúng tension đó ở tầng phễu trên. Ưu tiên chủ đề người Việt đang tìm trên Google, gắn với thời điểm (mùa, ngày lễ, ngày sức khỏe thế giới trong tháng) nếu hợp.',
+      kw ? '🔑 TỪ KHOÁ CHÍNH của bài (ngân hàng từ khoá theo insight): "' + kw.k + '". Chủ đề bài = trả lời đúng và đủ điều người gõ từ khoá này đang muốn biết (để Google và các trợ lý AI chọn bài làm câu trả lời: có đoạn trả lời thẳng ngay sau mở bài, có mục hỏi đáp). Tiêu đề, câu mở và 1 tiêu đề mục chứa từ khoá đúng cách người ta gõ, tự nhiên, không nhồi. Từ khoá chỉ để hiểu người đọc, KHÔNG vì thế mà hứa công dụng ngoài hồ sơ công bố.' : '',
       topic ? 'Chủ đề được giao vẫn phải đi qua bước insight: viết chủ đề này cho nhóm khách mục tiêu bên dưới, xoay quanh 1 tension của họ.' : '',
       insBlock(ip, funnel),
       cfg.audience ? 'GHI CHÚ THÊM VỀ TỆP KHÁCH (ô Tệp khách hàng ở /admin):\n' + cfg.audience : '',
@@ -233,8 +236,9 @@ async function write(x, cfg, day, row) {
     const ins = insParse(head, ip.bank, ip.g), rw = insRisk(body), rv = insStyle(body); if (ip.angle) ins.a = ip.angle;
     if (rv.length) checks.push('✍️ Văn còn giống AI: ' + rv.join(', ') + ' → sửa cho liền mạch, dùng dấu phẩy');
     if (rw.length) checks.push('⚠️ Đọc lại: ' + rw.join(', ') + ' → cụm dễ phạm luật quảng cáo chỉ giữ nếu đúng hồ sơ công bố hoặc là câu phủ định; hotline cũ 0896 869 333 đổi thành 0966 326 522');
-    const m = { excerpt, cat, cover, who: ins.gn, g: ins.g, is: ins.is, t: ins.t, i: ins.i, d: ins.d, a: ins.a, b: ip.big ? ip.big.t : '', w: rw, v: rv, checks, hour: cfg.hour, sources: [...urls].slice(0, 30), fb };
+    const m = { excerpt, cat, cover, who: ins.gn, g: ins.g, is: ins.is, t: ins.t, i: ins.i, d: ins.d, a: ins.a, b: ip.big ? ip.big.t : '', kw: kw ? kw.k : '', w: rw, v: rv, checks, hour: cfg.hour, sources: [...urls].slice(0, 30), fb };
     if (!ins.t) checks.push('⚠️ Trợ lý chưa ghi rõ tension bài này giải, nên đọc kỹ xem bài có chạm đúng nỗi lòng của nhóm khách không');
+    if (kw) { checks.unshift('🔑 Từ khoá chính: ' + kw.k); await kwUse(x, kw.k, day).catch(() => { }); }
     await run(x.db, "UPDATE bl_posts SET status = 'wait', title = ?, slug = ?, funnel = ?, topic = ?, tkey = ?, md = ?, meta = ?, hint = '', at = ?, err = '', tries = 0, remind = 0 WHERE day = ?",
       title, slug, f2, topic ? topic.title : 'Trợ lý tự chọn', topic ? topic.title : '', md, JSON.stringify(m), Date.now(), day);
     await insLog(x, 'web', { g: ins.g, gn: ins.gn, f: f2, t: ins.t, ref: day, sp: prods[code] ? code : '', a: ins.a, b: ip.big ? ip.big.t : '' });

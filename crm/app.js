@@ -259,7 +259,7 @@
     if (!CFG.endpoint) return Promise.reject(new Error('Chưa cấu hình máy chủ.'));
     tries = tries || 0; var t0 = Date.now();
     // chờ tối đa 30 giây (việc nặng của quản trị 90 giây) rồi báo, không để vòng quay mãi (16/10/2026)
-    var ac = typeof AbortController === 'function' ? new AbortController() : null, wait = action === 'ai_ask' ? 180e3 : /^(spf_write|ins_(video|import|find|offer|big|img)|zb_(regen|plan_make|plan_redo))$/.test(action) ? 180e3 : API_HEAVY.test(action) ? 90e3 : 30e3, tm = ac && setTimeout(function () { ac.abort(); }, wait);
+    var ac = typeof AbortController === 'function' ? new AbortController() : null, wait = action === 'ai_ask' ? 180e3 : /^(spf_write|ins_(video|import|find|offer|big|img|kw)|zb_(regen|plan_make|plan_redo))$/.test(action) ? 180e3 : API_HEAVY.test(action) ? 90e3 : 30e3, tm = ac && setTimeout(function () { ac.abort(); }, wait);
     return fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), signal: ac ? ac.signal : undefined })
       .then(function (r) { clearTimeout(tm); return r.text().then(function (t) { return { t: t, st: r.status }; }); }, function (er) { clearTimeout(tm); var slow = er && er.name === 'AbortError', e0 = new Error(slow ? 'Máy chủ trả lời chậm quá ' + (wait / 1000) + ' giây. Bạn kiểm tra mạng rồi bấm lại nhé.' : 'Mất kết nối mạng. Bạn thử lại nhé.'); e0.net = true; throw e0; })
       .then(function (x) {
@@ -6921,7 +6921,7 @@
         (s.f ? '<span class="zb-fun zb-fun-' + s.f.toLowerCase() + '">' + (IN_FN[s.f] || s.f) + '</span> ' : '') + '</summary>' + inTag(s) +
         '<div class="inx-script">' + inScriptHtml(s.text) + '</div><div class="lq-btns"><button class="btn sm pri" data-in="vcopy|' + s.id + '">📋 Copy kịch bản</button><button class="btn sm ghost" data-in="vdel|' + s.id + '">🗑 Xoá</button></div></details>';
     }).join('') + '</div>';
-    h += inEvHtml(j, ed) + inLearnHtml(j.learn, j.fpNf);
+    h += inEvHtml(j, ed) + inLearnHtml(j.learn, j.fpNf) + inKwHtml(j, ed);
     h += '<div class="box inx-img"><div class="zb-ph"><b>📸 Câu lệnh tạo ảnh</b></div><p class="small">Chọn sản phẩm hoặc dán nội dung bài, AI viết 3 câu lệnh theo ngôn ngữ nhiếp ảnh (góc máy, ống kính, ánh sáng, màu, bố cục) để dán vào ChatGPT hoặc Gemini, kèm câu <b>giữ nguyên bao bì thật</b>.</p><div class="lq-btns"><button class="btn sm" data-in="img">📸 Viết câu lệnh tạo ảnh</button></div></div>';
     if (ed) h += '<div class="box spf-intro"><div class="zb-ph"><b>📣 Bài viết sẵn cho sale đăng Facebook cá nhân</b></div><p class="small">AI viết bài kể chuyện đời thường (không link, không giá) theo nhóm khách, big idea, góc kể. Kèm <b>bình luận ghim</b> không link và <b>câu trả lời có link riêng</b> của từng sale. Bấm <b>✅ Cho sale dùng</b> thì sale thấy ở <b>Cài đặt → 📣 Bài đăng Facebook cá nhân</b> và khung <b>🔎 Tự tạo khách</b> ở Hôm nay.</p><div class="lq-btns"><button class="btn sm pri" data-spf="admin">📣 Mở bài Facebook cá nhân</button></div></div>';
     // 👥 ngân hàng insight
@@ -6932,6 +6932,7 @@
       return '<div class="box inx-g' + (g.on ? '' : ' bw-off') + '"><div class="zb-ph"><b>' + esc(g.name) + '</b><span class="zb-due">' + (g.on ? '🟢 Đang dùng' : '⏸ Tạm tắt') + '</span></div>' +
         (g.who ? '<p class="small">' + esc(g.who) + '</p>' : '') + (g.want ? '<p class="small"><b>💚 Mong muốn:</b> ' + esc(g.want) + '</p>' : '') + (g.block ? '<p class="small"><b>🧱 Rào cản:</b> ' + esc(g.block) + '</p>' : '') +
         (g.trust ? '<p class="small"><b>🤝 Họ tin ai:</b> ' + esc(g.trust) + '</p>' : '') + (g.kw ? '<p class="small"><b>🔍 Họ hay tìm:</b> ' + esc(g.kw) + '</p>' : '') + (g.where ? '<p class="small"><b>📍 Nơi họ tụ tập:</b> ' + esc(g.where) + '</p>' : '') +
+        (g.roles ? '<p class="small"><b>👥 3 vai:</b> ' + esc(g.roles) + '</p>' : '') + (g.real ? '<p class="small"><b>🗣 Lý do nói ra → lý do thật:</b> ' + esc(g.real) + '</p>' : '') + (g.excuse ? '<p class="small"><b>🎁 Cái cớ để mua:</b> ' + esc(g.excuse) + '</p>' : '') + (g.pay ? '<p class="small"><b>💰 Khả năng chi trả:</b> ' + esc(g.pay) + '</p>' : '') +
         ((g.prods || []).length ? '<p class="small"><b>🏷 Sản phẩm hợp:</b> ' + esc(g.prods.map(inSpName).join(', ')) + '</p>' : '') +
         '<p class="small"><b>⚡ Tension</b> (mong muốn ↔ rào cản):</p><ul class="small inx-tl">' + g.tensions.map(function (t) { return '<li>' + inTenHtml(t) + '</li>'; }).join('') + '</ul>' + inBigHtml(g) + (g.note ? '<p class="small muted">📝 ' + esc(g.note) + '</p>' : '') +
         (ed ? '<div class="lq-btns"><button class="btn sm" data-in="ged|' + i + '">✏️ Sửa</button><button class="btn sm ghost" data-in="gon|' + i + '">' + (g.on ? '⏸ Tạm tắt' : '▶️ Bật lại') + '</button><button class="btn sm ghost" data-in="gdel|' + i + '">🗑 Xoá</button></div>' : '') + '</div>';
@@ -6967,6 +6968,29 @@
       '<p class="small" style="margin:10px 0 4px"><b>🔥 Chuyện đang nóng</b> <span class="muted">(mọi trợ lý đọc trong 2 ngày, tự đổi sang góc nhìn mới gắn với nỗi lòng khách; tin buồn, tai nạn, chính trị thì trợ lý bỏ qua)</span></p>' +
       (tr && tr.t ? '<p class="small inx-ev-tr">' + esc(tr.t) + ' <span class="muted">· ' + esc(tr.by || '') + ' ghi lúc ' + fDateTime(tr.at) + '</span></p>' : '<p class="small muted">Chưa ghi chuyện nào.</p>') +
       (ed ? '<label class="f"><span>Ghi chuyện mọi người đang bàn tán hôm nay <small class="muted">1–3 câu: chuyện gì, ở đâu, người ta đang nói gì</small></span><textarea id="inTrT" rows="2" placeholder="Vd: Cả mạng đang chia sẻ clip cô giáo mầm non ôm từng bạn nhỏ trước kỳ nghỉ 20/11">' + esc(tr && tr.t || '') + '</textarea></label><div class="lq-btns"><button class="btn sm pri" data-in="trend">💾 Lưu cho trợ lý dùng</button>' + (tr && tr.t ? '<button class="btn sm ghost" data-in="trendx">🗑 Xoá</button>' : '') + '</div>' : '') + '</div>';
+  }
+  /** 🔑 Ngân hàng từ khoá bài web (khoá Marketing Plan K218, kv bl_kw): trợ lý bài web tự chọn chủ đề thì lấy 1 từ khoá chưa viết */
+  function inKwHtml(j, ed) {
+    var L = (j.kw && j.kw.list) || [], used = L.filter(function (v) { return v.used; }).length, bank = j.bank || [], cnt = { TOFU: 0, MOFU: 0, BOFU: 0 };
+    var gname = function (id) { var g = bank.find(function (b) { return b.id === id; }); return g ? g.name : 'nhóm tự chọn'; };
+    L.forEach(function (v) { cnt[v.f] = (cnt[v.f] || 0) + 1; });
+    return '<div class="box inx-kw"><div class="zb-ph"><b>🔑 Từ khoá cho bài web (Google + AI gợi ý)</b>' + (L.length ? '<span class="zb-due">' + used + ' / ' + L.length + ' đã viết</span>' : '') + '</div>' +
+      '<p class="small muted">Khoảng 100 từ khoá người ta thật sự gõ, theo nỗi lòng từng nhóm khách (khoá Marketing Plan K218). Mỗi lần trợ lý bài web tự chọn chủ đề, nó lấy 1 từ khoá chưa viết, đúng tầng phễu. Viết hết dần thì Google và ChatGPT, Gemini dễ gợi ý Thực Dưỡng Lành hơn.</p>' +
+      (L.length ? '<p class="small">🔵 Nhận biết ' + cnt.TOFU + ' · ⚪ Cân nhắc ' + cnt.MOFU + ' · 🟠 Mua hàng ' + cnt.BOFU + '</p><details class="small"><summary>Xem danh sách từ khoá</summary><ul class="small inx-kw-l">' + L.map(function (v) {
+        return '<li' + (v.used ? ' class="muted"' : '') + '>' + (v.used ? '✅ ' : '') + esc(v.k) + ' <span class="muted">· ' + esc(gname(v.g)) + ' · ' + v.f + (v.used ? ' · viết ' + v.used.slice(8, 10) + '/' + v.used.slice(5, 7) : '') + '</span></li>';
+      }).join('') + '</ul></details>' : '<p class="small">Chưa có từ khoá nào: trợ lý vẫn tự chọn chủ đề theo tension như cũ.</p>') +
+      (ed ? '<div class="lq-btns">' + (j.aiOn ? '<button class="btn sm pri" data-in="kwai">✨ AI lập ' + (L.length ? 'thêm' : '100') + ' từ khoá</button>' : '') + '<button class="btn sm" data-in="kwed">✏️ Sửa danh sách</button></div>' : '') + '</div>';
+  }
+  function inKwForm() {
+    var L = (IN.d.kw && IN.d.kw.list) || [], m = modal('🔑 Sửa từ khoá bài web',
+      '<p class="small muted" style="margin-top:0">Mỗi dòng: <b>từ khoá | mã nhóm khách | TOFU hoặc MOFU hoặc BOFU</b>. Xoá dòng là bỏ từ khoá. Từ khoá đã viết vẫn giữ dấu ✅.</p>' +
+      '<p class="small muted">Mã nhóm: ' + (IN.d.bank || []).map(function (g) { return '<b>' + esc(g.id) + '</b> ' + esc(g.name); }).join(' · ') + '</p>' +
+      '<textarea id="inKwT" rows="16" style="width:100%">' + esc(L.map(function (v) { return v.k + ' | ' + v.g + ' | ' + v.f; }).join('\n')) + '</textarea>',
+      '<button class="btn" data-close>Đóng</button><button class="btn pri" id="inKwS">💾 Lưu</button>');
+    $('#inKwS', m).onclick = function () {
+      var b = this; b.disabled = true;
+      api('ins_kwsave', { text: $('#inKwT', m).value }).then(function (r) { IN.d.kw = r.kw; closeModal(); toast('Đã lưu ' + r.kw.list.length + ' từ khoá ✓'); render(); }, function (er) { b.disabled = false; toast(er.message, true); });
+    };
   }
   /** 📸 Câu lệnh tạo ảnh (ins_img): 3 hướng, mỗi hướng 1 câu lệnh tiếng Anh + câu chỉnh tiếng Việt */
   function inImgForm() {
@@ -7181,6 +7205,10 @@
       '<label class="f"><span>🤝 Họ tin ai, nghe ai <small class="muted">người thân, chuyên gia, người có ảnh hưởng… (chân dung 8 ô, khoá K133)</small></span><textarea id="inGtr" rows="2">' + esc(g.trust || '') + '</textarea></label>' +
       '<label class="f"><span>🔍 Họ hay tìm gì trên Google, mạng xã hội <small class="muted">viết đúng cách họ gõ, cách nhau dấu phẩy; bài web dùng làm từ khoá</small></span><textarea id="inGkw" rows="2">' + esc(g.kw || '') + '</textarea></label>' +
       '<label class="f"><span>📍 Họ hay tụ tập ở đâu <small class="muted">nhóm Facebook, Zalo, CLB, chùa, chợ… để tìm cửa vào</small></span><textarea id="inGwh" rows="2">' + esc(g.where || '') + '</textarea></label>' +
+      '<label class="f"><span>👥 3 vai: ai mua, ai dùng, ai quyết định <small class="muted">vd "Mua: con cái · Dùng: bố mẹ · Quyết định: con" (khoá K218)</small></span><textarea id="inGro" rows="2">' + esc(g.roles || '') + '</textarea></label>' +
+      '<label class="f"><span>🗣 Lý do nói ra → lý do thật <small class="muted">"Tôi biết mình nên… nhưng thật ra tôi…"</small></span><textarea id="inGre" rows="2">' + esc(g.real || '') + '</textarea></label>' +
+      '<label class="f"><span>🎁 Cái cớ để mua <small class="muted">lý do an toàn để họ nói với người thân và với chính mình</small></span><textarea id="inGex" rows="2">' + esc(g.excuse || '') + '</textarea></label>' +
+      '<label class="f"><span>💰 Khả năng chi trả <small class="muted">họ quen chi bao nhiêu, sợ đắt hay sợ rẻ</small></span><textarea id="inGpa" rows="2">' + esc(g.pay || '') + '</textarea></label>' +
       '<p class="small" style="margin:8px 0 2px"><b>🏷 Sản phẩm hợp với nhóm</b></p><div class="inx-aud">' + Object.keys((IN.d && IN.d.sp) || {}).map(function (k) { var c = IN.d.sp[k][0]; return '<label class="zb-ck"><input type="checkbox" data-ingp="' + esc(c) + '"' + ((g.prods || []).indexOf(c) >= 0 ? ' checked' : '') + '><span>' + esc(IN.d.sp[k][1]) + '</span></label>'; }).join('') + '</div>' +
       '<label class="f"><span>⚡ Tension <small class="muted">mỗi dòng 1 cái, dạng “Muốn … ↔ nhưng …”. Tension chỉ hợp 1 sản phẩm thì thêm cuối dòng <code>[SP: ' + Object.keys((IN.d && IN.d.sp) || {}).join(' / ') + ']</code>; không ghi = dùng chung</small></span><textarea id="inGt" rows="7" placeholder="Muốn ăn sáng đủ chất ↔ sáng nào cũng vội, ăn tạm hoặc bỏ bữa">' + esc((g.tensions || []).join('\n')) + '</textarea></label>' +
       '<label class="f"><span>🌟 Big idea và góc kể <small class="muted">ý lớn chạy 2–4 tuần cho nhóm này. Dòng đầu là big idea, mỗi dòng sau bắt đầu bằng “-” là 1 góc kể (1 bài). Nhiều big idea thì cách nhau 1 dòng trống: <b>cái đầu tiên đang chạy</b>, các cái sau để dành (muốn đổi thì kéo lên đầu). Để trống = trợ lý tự chọn góc kể từng bài.</small></span><textarea id="inGbi" rows="8" placeholder="Bà vẫn đúng, mẹ vẫn được nghỉ&#10;- Hai trường phái: bà dặn uống nước lá ↔ mạng bảo kiêng, nghe ai?&#10;- Khoảnh khắc: 2 giờ sáng, một tay bế con, cốc nước ấm&#10;…">' + esc(inBigTxt(g.bigs)) + '</textarea></label>' +
@@ -7199,7 +7227,7 @@
     };
     $('#inGsave', m).onclick = function () {
       var t = $('#inGt', m).value.split('\n').map(function (s) { return s.trim(); }).filter(Boolean).map(function (s) { return s.replace(/\s*(<->|<=>|->|=>)\s*/, ' ↔ '); });
-      var ng = { id: g.id || '', prods: $$('[data-ingp]', m).filter(function (x) { return x.checked; }).map(function (x) { return x.getAttribute('data-ingp'); }), name: $('#inGn', m).value.trim(), who: $('#inGw', m).value.trim(), want: $('#inGa', m).value.trim(), block: $('#inGb', m).value.trim(), tensions: t, note: $('#inGo', m).value.trim(), on: $('#inGon', m).checked, trust: $('#inGtr', m).value.trim(), kw: $('#inGkw', m).value.trim(), where: $('#inGwh', m).value.trim(), bigs: inBigParse($('#inGbi', m).value, $('#inGbiOn', m).checked) };
+      var ng = { id: g.id || '', prods: $$('[data-ingp]', m).filter(function (x) { return x.checked; }).map(function (x) { return x.getAttribute('data-ingp'); }), name: $('#inGn', m).value.trim(), who: $('#inGw', m).value.trim(), want: $('#inGa', m).value.trim(), block: $('#inGb', m).value.trim(), tensions: t, note: $('#inGo', m).value.trim(), on: $('#inGon', m).checked, trust: $('#inGtr', m).value.trim(), kw: $('#inGkw', m).value.trim(), where: $('#inGwh', m).value.trim(), roles: $('#inGro', m).value.trim(), real: $('#inGre', m).value.trim(), excuse: $('#inGex', m).value.trim(), pay: $('#inGpa', m).value.trim(), bigs: inBigParse($('#inGbi', m).value, $('#inGbiOn', m).checked) };
       ng.bigs.forEach(function (b) { var o = (g.bigs || []).filter(function (x) { return x.t === b.t && x.until; })[0]; if (o) b.until = o.until; }); // giữ hạn chạy (vd big idea Tết tự tắt sau tất niên)
       if (ng.bigs.some(function (b) { return !b.ang.length; }) && !confirm('Có big idea chưa có góc kể nào (dòng bắt đầu bằng “-”). Big idea không có góc kể thì trợ lý chưa dùng được. Vẫn lưu?')) return;
       if (!ng.name) return toast('Bạn ghi tên nhóm trước nhé.', true);
@@ -7216,6 +7244,8 @@
     if (a === 'gnew') return inGroupForm(null);
     if (a === 'imp') return inImportForm();
     if (a === 'img') return inImgForm();
+    if (a === 'kwed') return inKwForm();
+    if (a === 'kwai') { t.disabled = true; t.textContent = '⏳ AI đang lập (khoảng 1 phút)…'; return api('ins_kw', {}).then(function (r) { IN.d.kw = r.kw; toast('Đã có ' + r.kw.list.length + ' từ khoá ✓'); render(); }, function (er) { t.disabled = false; t.textContent = '✨ AI lập từ khoá'; toast(er.message, true); }); }
     if (a === 'trend' || a === 'trendx') { var tv = a === 'trend' ? ($('#inTrT') || {}).value || '' : ''; if (a === 'trend' && !tv.trim()) return toast('Ghi chuyện trước nhé.', true); t.disabled = true; return api('ins_trend', { t: tv.trim() }).then(function (r) { IN.d.trend = r.trend; toast(r.trend ? 'Đã lưu, các trợ lý dùng trong 2 ngày ✓' : 'Đã xoá'); render(); }, function (er) { t.disabled = false; toast(er.message, true); }); }
     if (a === 'find') return inFindForm();
     if (a === 'offer') return inOfferForm();
@@ -8572,6 +8602,14 @@
       if (g.rev && C.p >= 1) L.push('Vượt mục tiêu ' + moneyShort(rev - g.rev) + '. Tuyệt vời!');
       if (g.pct) L.push((clv ? DASH_LV[clv] + ' ' : '') + 'Chi phí ' + moneyShort(s) + (cp !== null ? ' = <b>' + Math.round(cp) + '%</b> ' + w : s ? ' mà chưa có ' + w : '') + ' (mục tiêu dưới ' + g.pct + '%).');
       if (g.pct && g.rev) L.push('<span class="muted">Đạt mục tiêu thì được chi tối đa ' + moneyShort(Math.round(g.rev * g.pct / 100)) + ' cả tháng · đã chi ' + pct(s, g.rev * g.pct / 100) + '%.</span>');
+      // 🧮 Tính ngược (khoá Marketing Plan K218, 11/11/2026): mục tiêu tiền → số khách mới cần → số data cần (theo tỷ lệ chốt data quảng cáo) → mỗi data được chi tối đa bao nhiêu
+      var ef = gm.eff && gm.eff[k], aov = ef && ef.newN >= 3 ? ef.newRev / ef.newN : 0;
+      if (g.rev && aov && k !== MK_COMM && !c.san) {
+        var need = Math.ceil(g.rev / aov), cr = gm.ad && gm.ad.n >= 20 && gm.ad.won ? gm.ad.won / gm.ad.n : 0, leads = cr ? Math.ceil(need / cr) : 0, cap = g.pct ? g.rev * g.pct / 100 : 0, maxL = leads && cap ? cap / leads : 0, cur = gm.cpr && gm.cpr[k];
+        L.push('🧮 <b>Tính ngược:</b> 1 khách mới mua trung bình ' + moneyShort(Math.round(aov / 1000) * 1000) + ' → cả tháng cần khoảng <b>' + need + ' khách mới</b> (đã có ' + ef.newN + ')' +
+          (leads ? ', chốt ' + Math.round(cr * 100) + '% số quảng cáo → cần khoảng <b>' + leads + ' số / tin nhắn</b>' : '') +
+          (maxL ? ' → mỗi số được chi tối đa <b>' + moneyShort(Math.round(maxL / 1000) * 1000) + '</b>' + (cur ? ' (đang ' + moneyShort(Math.round(cur / 1000) * 1000) + ' ' + (cur <= maxL ? '🟢' : '🔴') + ')' : '') : '') + '.');
+      }
       // tiến độ mục tiêu đã hiện ngay trên thẻ của từng người → không nhắc lại ở ✅ Nên làm gì (29/10/2026)
       if (clv === 'bad') T.push({ p: 1, t: '💸 <b>' + esc(k) + '</b>: chi phí ' + (cp !== null ? 'bằng ' + Math.round(cp) + '%' : moneyShort(s) + ' chưa ra') + ' ' + w + ', vượt mức ' + g.pct + '%. %ADV%' });
       return '<div class="goal mk-goal ' + lv + '"><div class="goal-h"><b>' + c.icon + ' ' + esc(k) + '</b>' + (g.who ? '<span class="tag owner">' + esc(g.who) + '</span>' : '') + '<span class="goal-st">' + label + '</span></div>' +
@@ -8699,9 +8737,10 @@
         '</div><p class="bar-legend">Mục tiêu Website = tiền khách mới + khách cũ đặt trên web (không gồm phần quảng cáo Facebook). Khách cũ = đã từng mua trước kỳ này. Muốn tăng khách cũ đặt web: gửi link web trong nhóm Zalo, tin nhắn CSKH, thẻ trong đơn sàn.</p>' + mkWebList(wb, S.f.m));
     }
     var cm = mj.comm, cmp = mj.commPrev, csp = 0; mj.days.forEach(function (r) { if (r[1] === MK_COMM) csp += r[2]; });
-    if (cm && (cm.rev || csp)) D.comm = mkMore('comm', '👥 Khách trong nhóm Zalo mua lại bao nhiêu?', moneyShort(cm.rev) + ' tiền mua lại · ' + cm.buyers + ' khách', '<div class="metrics dash-m3">' +
+    if (cm && (cm.rev || csp || (mj.cv && mj.cv.n))) D.comm = mkMore('comm', '👥 Khách trong nhóm Zalo mua lại bao nhiêu?', moneyShort(cm.rev) + ' tiền mua lại · ' + cm.buyers + ' khách', '<div class="metrics dash-m3">' +
       metric('Tiền mua lại', moneyShort(cm.rev), 'Đơn mua lại (không tính đơn đầu) của khách đã vào nhóm Zalo cộng đồng.', delta(cm.rev, cmp ? cmp.rev : null)) +
       metric('Khách trong nhóm đã mua lại', cm.buyers, cm.n + ' đơn' + (cm.buyers ? ' · trung bình ' + moneyShort(Math.round(cm.rev / cm.buyers)) + ' / khách' : '') + '.', delta(cm.buyers, cmp ? cmp.buyers : null)) +
+      (mj.cv && mj.cv.n ? metric('Giá trị 1 thành viên nhóm', moneyShort(mj.cv.per), mj.cv.n + ' khách đã vào nhóm mang về ' + moneyShort(mj.cv.rev) + ' tiền mua lại trong 90 ngày qua (' + mj.cv.buyers + ' người mua). Ước cả năm khoảng ' + moneyShort(mj.cv.y) + ' / người → chi phí kéo 1 người vào nhóm (quà, quảng cáo) nên thấp hơn mức này.', '') : '') +
       metric('Chi phí cộng đồng', csp ? moneyShort(csp) : '–', csp && cm.rev ? 'Bằng ' + Math.round(csp * 100 / cm.rev) + '% tiền mua lại. Quà tặng, minigame… nhập ở ⚙️ Nhập chi phí → kênh Cộng đồng Zalo.' : 'Quà tặng, minigame… nhập ở ⚙️ Nhập chi phí → kênh Cộng đồng Zalo.', '') +
       '</div><p class="bar-legend">Khách được tính là trong nhóm khi sale / CSKH bấm "Đã vào" ở ô Cộng đồng trên hồ sơ khách. Đánh dấu đủ thì số này mới đúng.</p>');
     var PL = mkPledgeBlock(mj.pledge); if (PL) D.pledge = mkMore('pledge', '🌱 Bao nhiêu người bấm "Tôi chọn sống lành" trên web?', PL.line, PL.h);

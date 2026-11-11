@@ -39,6 +39,8 @@ Màn hình đầu chỉ có **số quan trọng nhất**. Phần chi tiết thu 
 
 - **✅ Nên làm gì**: tối đa 5 việc quan trọng nhất, việc gấp đứng trước. Mỗi dòng ghi rõ **ai làm** (Marketing / Sale). Làm theo từ trên xuống.
 - **🎯 Mục tiêu & ngân sách tháng** (dưới khối 📘 Quảng cáo Facebook): tiến độ mục tiêu của từng bạn, từ 2 người có mục tiêu trở lên thì có bảng thi đua xếp theo **% mục tiêu** (vượt mức chi phí thì không đứng hạng 1); thanh ngân sách đã chi so với ngân sách (chỉ Quản trị đặt).
+  - Dòng **🧮 Tính ngược** trên thẻ từng kênh (từ 11/11/2026): từ mục tiêu tiền, CRM tính ra **cần khoảng bao nhiêu khách mới**, **bao nhiêu số / tin nhắn** (theo tỷ lệ chốt thật), và **mỗi số được chi tối đa bao nhiêu**. 🟢 = giá mỗi số đang thấp hơn mức đó, 🔴 = đang đắt quá, cần sửa quảng cáo.
+- **👥 Khách trong nhóm Zalo mua lại bao nhiêu?** có ô **Giá trị 1 thành viên nhóm**: 1 người trong nhóm mang về bao nhiêu tiền mua lại trong 90 ngày. Kéo 1 người vào nhóm (quà, minigame, quảng cáo) nên tốn **ít hơn** con số này.
 - **🗺 Hệ thống Marketing** (nút góc trên): sơ đồ hệ thống marketing của công ty.
 
 **Đèn:** 🟢 tốt · 🟠 cần để ý · 🔴 cần xử lý. Với ô chi phí, *đang xuống* là tốt (màu xanh).
@@ -230,6 +232,23 @@ Theo khoá K131: muốn AI ra ảnh đẹp thì phải **nói bằng ngôn ngữ
 4. Có sản phẩm thì **đính kèm ảnh sản phẩm thật** (bấm link "mở ảnh" để lưu về). Câu lệnh đã có câu bắt AI giữ nguyên bao bì, logo và chữ trên nhãn.
 
 Ảnh AI chỉ dùng minh hoạ. Không dùng ảnh AI làm "ảnh khách thật" hay ảnh trước / sau.
+
+### 🔑 Từ khoá cho bài web (từ 11/11/2026)
+
+Theo khoá Marketing Plan K218: có khoảng **100 từ khoá** người ta thật sự gõ lên Google hoặc hỏi ChatGPT, mỗi ngày viết dần 1 bài thì Google và các AI dễ gợi ý Thực Dưỡng Lành hơn.
+
+1. Vào tab **🎯 Insight & nội dung**, tìm ô **🔑 Từ khoá cho bài web**.
+2. Bấm **✨ AI lập 100 từ khoá**. Khoảng 1 phút sau có danh sách, mỗi từ khoá gắn 1 nhóm khách và 1 tầng phễu.
+3. Bấm **Xem danh sách từ khoá** để đọc. Từ nào không hợp thì bấm **✏️ Sửa danh sách**, xoá dòng đó rồi **💾 Lưu**.
+4. Từ đó, mỗi lần trợ lý bài web **tự chọn chủ đề**, nó lấy 1 từ khoá chưa viết. Từ đã viết có dấu ✅. Bài chờ duyệt có dòng **🔑 Từ khoá chính** ở ô tự kiểm tra.
+
+### 👥 4 ô mới của nhóm khách (từ 11/11/2026)
+
+Khi bấm **✏️ Sửa** một nhóm khách có thêm 4 ô (khoá K218). Em đã điền sẵn cho 10 nhóm, anh chị sửa nếu thấy chưa đúng với khách thật:
+- **👥 3 vai**: ai mua, ai dùng, ai quyết định. Ví dụ quà biếu: con mua, bố mẹ dùng.
+- **🗣 Lý do nói ra → lý do thật**: điều khách nói khác điều khách thật sự muốn.
+- **🎁 Cái cớ để mua**: câu khách nói được với người nhà mà không ngại.
+- **💰 Khả năng chi trả**: họ quen chi bao nhiêu, sợ đắt hay sợ "trông rẻ".
 
 ### 🌟 Big idea và góc kể (từ 11/11/2026)
 

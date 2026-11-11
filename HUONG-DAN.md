@@ -484,6 +484,14 @@ Apps Script giới hạn 200 phiên bản/dự án: báo lỗi "Không tạo đ�
   - **👀 % người chưa theo dõi Fanpage**: `fpEng` gọi thêm `/{post}/insights?metric=post_impressions_unique,post_impressions_fan_unique` → `fp_posts.eng_reach / eng_fan` (cột mới); lỗi quyền → kv `fp_nf_err` (7 ngày), CRM hiện lý do (`ins_view.fpNf`). learn.js gắn `nf` % vào dòng bài Fanpage.
 - 11/11/2026 (api `2026-11-11z`): `insBank` tự điền ô chân dung 8 ô còn trống từ `INS0` cùng id (không cần bấm 📚 Gộp). **📊 Tin content hằng tuần** `insWeekly` (insight.js, không dùng AI): thứ Hai 8h (cron.js, kv `insw_<ngày>`) gửi Telegram Quản lý, Quản trị, Marketing đã nối Telegram: số bài trợ lý viết 7 ngày theo tầng so với 60/20/20, bài tốt nhất TOFU / BOFU mỗi kênh, nhóm chưa có big idea, dịp lớn đến lúc chuẩn bị, chuyện đang nóng, bài Facebook cá nhân đang dùng / số lần copy.
 
+- 11/11/2026 (api `2026-11-12u`), **đợt 5: khoá Marketing Plan K218** (6 buổi YouTube, ghi chép ở Drive `09_Phòng Marketing AI/04_Thư viện mẫu/Khoá Marketing Plan K218/`):
+  - **Nhóm khách thêm 4 ô** `roles` (3 vai mua / dùng / quyết định), `real` (lý do nói ra → lý do thật), `excuse` (cái cớ để mua), `pay` (khả năng chi trả): `K218P` điền sẵn 10 nhóm vào `INS0`; `P4` = danh sách ô chân dung tự điền từ bản mặc định (insBank, mergeDefault); `insBlock`, `insText`, form CRM (`inGro/inGre/inGex/inGpa`), thẻ nhóm.
+  - `insBlock` thêm **🏛 tháp niềm tin** cho bài không phải TOFU (mỗi câu khen = 1 bằng chứng, thứ tự pháp lý → khoa học → nguồn gốc → xã hội → trải nghiệm → thương hiệu).
+  - **🔑 Ngân hàng từ khoá bài web** (kv `bl_kw` { list: [{ k, g, f, used }] }): lệnh `ins_kw` (AI `kwWrite` lập tới 100 từ khoá theo nhóm khách + tension, 60/20/20, chung hạn mức `ins_ai_`), `ins_kwsave` (sửa dạng "từ khoá | nhóm | tầng", giữ dấu đã viết). blog.js `write`: không có chủ đề được giao → `kwPick(x, funnel)` (ưu tiên đúng tầng, nhóm đang bật) → prompt có TỪ KHOÁ CHÍNH, `meta.kw`, `kwUse` đánh dấu ngày. CRM: ô 🔑 trong tab 🎯 (`inKwHtml`, `inKwForm`, CSS `.inx-kw-l`).
+  - **🧮 Tính ngược** (crm/app.js `mkGoalBlock`): thẻ mục tiêu kênh có giá trị khách mới (`eff.newRev / eff.newN`, ≥3 khách) → số khách mới cần → số data cần (tỷ lệ chốt `ad.won / ad.n`, ≥20 data) → chi tối đa mỗi data (`rev × pct / số data`) so với `cpr` của kênh.
+  - **👥 Giá trị 1 thành viên nhóm Zalo**: `commValOf` (mktv.js, kv `mkt_cv_<ngày>`): tiền mua lại 90 ngày của khách `community = 'Đã vào'` (bỏ đơn đầu, hoàn / huỷ) ÷ số khách đã vào nhóm → `mktv.cv`, ô trong khối 👥 tab Marketing.
+  - Tin content thứ Hai (`insWeekly`): thêm 🔁 % khách mới mua lại 90 ngày (`ltvOf`), 👥 giá trị 1 thành viên, 🧭 3 câu hỏi vòng lặp (kênh nào rẻ nhất, bài nào thắng, tension còn đúng không).
+
 ## 7. Tên miền, DNS, chuyển hướng
 
 - Nameserver: `liberty.ns.cloudflare.com`, `randy.ns.cloudflare.com`. **Mọi thay đổi DNS làm trên Cloudflare**, không làm ở Tenten.
