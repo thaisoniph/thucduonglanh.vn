@@ -32,10 +32,10 @@ export function ladder(c) { return (Array.isArray(c.tiers) ? c.tiers : [[c.tierN
 async function rawPartnerCfg(x) { let c = {}; try { c = JSON.parse((await kvGet(x.db, 'partner_cfg')) || '{}') || {}; } catch (e) { } return c; }
 /** 10/11/2026 (anh Sơn "Tắt 20k/30k"): luật hoa hồng khách tự mang về (payplan.own %, crm.js) thay thưởng sale cố định → khi own > 0, saleSteps hiệu lực = [] (refSaleAuto không ghi thưởng mới, thưởng đã ghi giữ nguyên).
  *  Đọc kv payplan_cfg thẳng (mặc định own 10, 6 tháng như PAYPLAN) để không import vòng từ crm.js. Tắt luật 10% (own = 0) thì mức thưởng cũ trong kv tự có hiệu lực lại. */
-async function ownRule(x) { let q = {}; try { q = JSON.parse((await kvGet(x.db, 'payplan_cfg')) || '{}') || {}; } catch (e) { } return { own: q.own === undefined ? 10 : Number(q.own) || 0, months: Number(q.ownMonths) || 6 }; }
+async function ownRule(x) { let q = {}; try { q = JSON.parse((await kvGet(x.db, 'payplan_cfg')) || '{}') || {}; } catch (e) { } return { own: q.own === undefined ? 5 : Number(q.own) || 0, months: Number(q.ownMonths) || 6 }; }
 export async function partnerCfg(x) {
   const cfg = Object.assign({}, DEF, await rawPartnerCfg(x)), o = await ownRule(x);
-  if (o.own > 0) Object.assign(cfg, { saleSteps: [], bonus: 0, saleOff: 1, ownPct: o.own, ownMonths: o.months });
+  if (o.own > 0) Object.assign(cfg, { ownPct: o.own, ownMonths: o.months, ownBonus: 1 }); // 11/11/2026 anh Sơn: 5% + thưởng bậc saleSteps cho MỌI khách tự mang về (tự tìm + giới thiệu), trả khi đã chốt (refSaleAuto)
   return cfg;
 }
 
@@ -213,6 +213,19 @@ export async function refClaim(x, phone, refPhone, src, by, skipLead) {
 /** Cron 8h: tiền hàng khách mới mua (đã giao + 7 ngày) trong winDays ngày đầu đạt bậc saleSteps → ghi phần thưởng còn thiếu cho sale (sổ ref_pay). Trả [{owner, text}] báo Telegram. */
 export async function refSaleAuto(x) {
   const cfg = await partnerCfg(x), steps = stepsOf(cfg.saleSteps), max = stepVal(steps, Infinity), out = [];
+  if (cfg.ownBonus) { // 11/11/2026: khách sale tự mang về (customers.own_src self / ref) đã chốt (own_ok = 1: qua 14 ngày không cờ, hoặc quản lý duyệt) → thưởng bậc theo tiền hàng winDays ngày đầu
+    let R = {}; try { R = JSON.parse((await kvGet(x.db, 'rules_cfg')) || '{}') || {}; } catch (e) { }
+    for (const c of await all(x.db, "SELECT phone, name, own_by, own_src FROM customers WHERE own_src IN ('self', 'ref') AND own_ok = 1 AND own_at >= ?", Date.now() - (cfg.winDays + 400) * DAY)) {
+      const given = Number((await first(x.db, "SELECT coalesce(sum(amount), 0) AS v FROM ref_pay WHERE phone = ? AND kind = 'sale'", c.phone)).v) || 0; if (given >= max) continue;
+      const G = await newGoods(x, c.phone, cfg.winDays); if (!G) continue;
+      const due = stepVal(steps, G.ready); if (due <= given) continue;
+      const add = due - given, next = steps.filter(t => t[1] > due)[0], nm = c.name || G.first.name || c.phone;
+      await run(x.db, "INSERT INTO ref_pay (phone, who, kind, amount, at, note) VALUES (?, ?, 'sale', ?, ?, ?)", c.phone, c.own_by, add, Date.now(), (c.own_src === 'self' ? 'Khách tự tìm' : 'Khách được giới thiệu') + ' mua ' + fmt(G.ready));
+      await run(x.db, 'INSERT INTO logs (time, by_name, what, ref, name, result, note) VALUES (?, ?, ?, ?, ?, ?, ?)', Date.now(), 'Hoa hồng (tự động)', 'Thưởng khách tự mang về', c.phone, nm, c.own_by + ' +' + fmt(add), 'Khách mua ' + fmt(G.ready));
+      if (R.selfOn) out.push({ owner: c.own_by, text: '🎉 ' + c.own_by + ' +' + fmt(add) + ' thưởng khách tự mang về: ' + nm + ' (' + (c.own_src === 'self' ? 'bạn tự tìm' : 'được giới thiệu') + ') đã mua ' + fmt(G.ready) + '.' + (next && Date.now() < G.end ? ' Mua đủ ' + fmt(next[0]) + ' trước ' + vnDay(G.end).split('-').reverse().join('/') + ' là thêm ' + fmt(next[1] - due) + '.' : '') });
+    }
+    return out;
+  }
   for (const r of await all(x.db, 'SELECT * FROM ref_sale WHERE void = 0 AND amount < ? AND at >= ?', max, Date.now() - (cfg.winDays + 400) * DAY)) {
     const G = await newGoods(x, r.phone, cfg.winDays); if (!G) continue;
     const due = stepVal(steps, G.ready); if (due <= (r.amount || 0)) continue;
@@ -246,7 +259,7 @@ async function bonusList(x, u) {
   }
   const pays = (await all(x.db, "SELECT who, amount, at FROM ref_pay WHERE kind = 'sale' AND at >= ?" + (u.level >= 2 ? '' : ' AND who = ?'), ...(u.level >= 2 ? [since] : [since, u.name]))).map(p => ({ sale: p.who, amount: p.amount, at: p.at }));
   const inv = (await all(x.db, "SELECT DISTINCT v.ref_phone AS p FROM vouchers v JOIN customers c ON c.phone = v.ref_phone WHERE coalesce(v.ref_phone, '') != ''" + (u.level >= 2 ? '' : ' AND c.owner = ?'), ...(u.level >= 2 ? [] : [u.name]))).map(r => r.p);
-  return { ok: true, cfg: { bonus: max, saleSteps: steps, winDays: cfg.winDays, goalN: cfg.goalN, goalGift: cfg.goalGift, saleOff: cfg.saleOff ? 1 : 0, ownPct: cfg.ownPct || 0, ownMonths: cfg.ownMonths || 6 }, list: L, team, pays, inv };
+  return { ok: true, cfg: { bonus: max, saleSteps: steps, winDays: cfg.winDays, goalN: cfg.goalN, goalGift: cfg.goalGift, saleOff: cfg.saleOff ? 1 : 0, ownBonus: cfg.ownBonus ? 1 : 0, ownPct: cfg.ownPct || 0, ownMonths: cfg.ownMonths || 6 }, list: L, team, pays, inv };
 }
 
 /** 🤖 Trợ lý chat web / Zalo / Fanpage (31/10/2026): khách nói "chị Lan giới thiệu…" → tìm số người giới thiệu trong tin khách (số khác số của khách) hoặc tên,

@@ -30,7 +30,7 @@ import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, wbInf
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-11-11b'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
+const SCHEMA_V = '2026-11-11c'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -129,6 +129,7 @@ export async function ensureSchema(db) {
     for (const t of ['customers', 'leads']) await run(db, `CREATE TRIGGER IF NOT EXISTS ${t}_owner_chg AFTER UPDATE OF owner ON ${t}
       WHEN coalesce(OLD.owner, '') != '' AND coalesce(NEW.owner, '') != '' AND OLD.owner != NEW.owner${t === 'leads' ? " AND NEW.status IN ('Mới hỏi', 'Đang tư vấn')" : ''}
       BEGIN INSERT INTO owner_chg (phone, owner, at) VALUES (NEW.phone, NEW.owner, ${NOW_MS}); END`);
+    await run(db, `CREATE TABLE IF NOT EXISTS own_proof (phone TEXT PRIMARY KEY, data TEXT NOT NULL, at INTEGER, by_name TEXT DEFAULT '')`); // 11/11/2026 ảnh tin nhắn khách giới thiệu (crmOwn proof)
     await run(db, `CREATE TABLE IF NOT EXISTS phone_seen (phone TEXT PRIMARY KEY, at INTEGER, src TEXT DEFAULT '')`); // 11/11/2026 lần đầu số có trong file quảng cáo (crmSeen)
     await run(db, `CREATE TABLE IF NOT EXISTS dup_done (phone TEXT PRIMARY KEY, owner TEXT DEFAULT '', sales TEXT DEFAULT '', by_name TEXT DEFAULT '', at INTEGER)`);
     await run(db, `CREATE TABLE IF NOT EXISTS ad_spend (
@@ -172,14 +173,23 @@ const OTYPES = ['Khách mới', 'Khách cũ', 'Ngoài giờ', 'Ngày lễ'], AD_
 function otypeCa(t) { return t === 'Ngày lễ' ? 'Lễ' : t === 'Ngoài giờ' ? 'Tối/CN' : 'Ngày'; }
 async function otypeSuggest(x, phone, t) {
   const ca = caOf(t, await caCfg(x)), dm = v => fmtDate(v, 'dd/MM');
-  if (ca === 'Lễ') return { t: 'Ngày lễ', why: 'đơn tạo ngày lễ ' + dm(t) };
-  if (ca === 'Tối/CN') return { t: 'Ngoài giờ', why: 'đơn tạo ' + (new Date(t + 7 * 3600e3).getUTCDay() === 0 ? 'Chủ nhật' : 'sau giờ ca tối') };
+  const b = await otypeBase(x, phone, t); // 11/11/2026 (Phụ lục 01 + Thủy): % tối / Chủ nhật / lễ chỉ cho khách mới (từ quảng cáo); khách cũ nhắn Zalo sale tối / lễ → % khách cũ
+  if (b.t !== 'Khách mới') return ca === 'Ngày' ? b : { t: b.t, why: b.why + ' (đơn ' + (ca === 'Lễ' ? 'ngày lễ' : 'tối / Chủ nhật') + ' của khách cũ tính % khách cũ)' };
+  if (ca === 'Lễ') return { t: 'Ngày lễ', why: 'khách mới, đơn tạo ngày lễ ' + dm(t) };
+  if (ca === 'Tối/CN') return { t: 'Ngoài giờ', why: 'khách mới, đơn tạo ' + (new Date(t + 7 * 3600e3).getUTCDay() === 0 ? 'Chủ nhật' : 'sau giờ ca tối') };
+  return b;
+}
+/** Khách mới / khách cũ theo Phụ lục 01: khách mới = từ quảng cáo (hoặc khách cũ nhắn lên page); khách cũ = sale chăm (mua lại, được giới thiệu, tự tìm). */
+async function otypeBase(x, phone, t) {
+  const dm = v => fmtDate(v, 'dd/MM');
   phone = normPhone(phone);
   // 31/10/2026 (anh Sơn duyệt, như chế độ cũ): khách mới do khách cũ giới thiệu → hoa hồng như Khách cũ (cộng thêm thưởng giới thiệu, partner.js)
   const rf = (await first(x.db, 'SELECT ref_phone FROM ref_sale WHERE phone = ? AND void = 0', phone)) || (await first(x.db, "SELECT ref_phone FROM leads WHERE phone = ? AND coalesce(ref_phone, '') != '' ORDER BY rid DESC LIMIT 1", phone));
   if (rf && rf.ref_phone) { const rc = await first(x.db, 'SELECT name FROM customers WHERE phone = ?', rf.ref_phone); return { t: 'Khách cũ', why: 'khách do khách cũ ' + ((rc && rc.name) || rf.ref_phone) + ' giới thiệu (hoa hồng theo luật khách tự mang về, xem 💰 Thu nhập tạm tính)' }; }
   const ad = (await all(x.db, 'SELECT channel, time FROM leads WHERE phone = ? AND time >= ? AND time <= ? ORDER BY time DESC', phone, t - AD_LEAD_DAYS * DAY, t + DAY)).find(l => AD_CH.test(l.channel || ''));
   if (ad) return { t: 'Khách mới', why: 'khách để lại số qua ' + ad.channel + ' ngày ' + dm(ad.time) };
+  const sf = await first(x.db, "SELECT how FROM leads WHERE phone = ? AND coalesce(how, '') != '' AND how NOT LIKE '📣%' AND time <= ? ORDER BY time LIMIT 1", phone, t + 3600e3);
+  if (sf) return { t: 'Khách cũ', why: 'khách sale tự tìm (' + String(sf.how).slice(0, 60) + '): hoa hồng như khách cũ' };
   const v = await first(x.db, 'SELECT first, orders FROM customers WHERE phone = ?', phone);
   if (v && v.first && v.first < t - 3600e3) return { t: 'Khách cũ', why: 'đã mua từ ' + fmtDate(v.first, 'dd/MM/yy') + ' (' + (Number(v.orders) || 1) + ' đơn)' };
   return { t: 'Khách mới', why: 'lần đầu mua' };
@@ -482,14 +492,14 @@ export async function srcList(x) {
 }
 export async function adsCfg(x) { return kvJson(x.db, 'ads_cfg', null); }
 
-const CUS_SQL = `SELECT phone, name, address, province, ward, orders, spent, first, last, products, runout, consent, source, owner, care_at, care_result, substr(note, 1, ${NOTE_MAX}) AS note, length(note) > ${NOTE_MAX} AS cut, callback, flag, tag, last_status, last_ca, zalo, community, dob, recv, ok_n, back_n, last_back, fam, addr_old, zone, stop, stop_by, stop_at, stop_ok, own_src, own_at, own_by, own_ok, own_flag, own_how, own_chk FROM customers`;
+const CUS_SQL = `SELECT phone, name, address, province, ward, orders, spent, first, last, products, runout, consent, source, owner, care_at, care_result, substr(note, 1, ${NOTE_MAX}) AS note, length(note) > ${NOTE_MAX} AS cut, callback, flag, tag, last_status, last_ca, zalo, community, dob, recv, ok_n, back_n, last_back, fam, addr_old, zone, stop, stop_by, stop_at, stop_ok, own_src, own_at, own_by, own_ok, own_flag, own_how, own_chk, CASE WHEN own_src = 'ref' THEN EXISTS (SELECT 1 FROM own_proof p WHERE p.phone = customers.phone) ELSE 0 END AS own_pf FROM customers`;
 const cusOut = (v, today, R) => ({
   phone: v.phone, name: v.name || '', address: v.address || '', province: v.province || '', ward: v.ward || '', orders: v.orders || 0, spent: v.spent || 0, first: v.first, last: v.last,
   products: String(v.products || '').split('; ').filter(String), runout: v.runout, group: groupOf(v.orders || 0, v.spent || 0, v.last, R), consent: !!v.consent, source: v.source || '', owner: v.owner || '',
   careAt: v.care_at, careResult: v.care_result || '', note: v.note || '', noteCut: !!v.cut, callback: v.callback, flag: v.flag || '', tag: v.tag || '', task: careTask(v, today, R), lastStatus: v.last_status || '', lastCa: v.last_ca || '',
   zalo: !!v.zalo, community: v.community || '', dob: v.dob || '', recv: v.recv || null, okN: v.ok_n || 0, backN: v.back_n || 0, lastBack: v.last_back || 0, fam: !!v.fam, addrOld: v.addr_old || '', zone: v.zone || 0,
   stop: v.stop || '', stopBy: v.stop_by || '', stopAt: v.stop_at || null, stopOk: !!v.stop_ok,
-  ownSrc: v.own_src === 'self' || v.own_src === 'ref' ? v.own_src : '', ownAt: v.own_at || null, ownBy: v.own_by || '', ownOk: Number(v.own_ok) || 0, ownFlag: v.own_flag || '', ownHow: v.own_how || '', ownChk: Number(v.own_chk) || 0 // 🙋 khách sale tự mang về (ownTick)
+  ownSrc: v.own_src === 'self' || v.own_src === 'ref' ? v.own_src : '', ownAt: v.own_at || null, ownBy: v.own_by || '', ownOk: Number(v.own_ok) || 0, ownFlag: v.own_flag || '', ownHow: v.own_how || '', ownChk: Number(v.own_chk) || 0, ownPf: Number(v.own_pf) || 0 // 🙋 khách sale tự mang về (ownTick)
 });
 const logOut = l => ({ time: l.time, by: l.by_name || '', what: l.what || '', ref: l.ref || '', name: l.name || '', result: l.result || '', note: l.note || '' });
 const contactOut = r => ({ row: r.rid, time: r.time, name: r.name || '', phone: r.phone || '', email: r.email || '', message: r.message || '', page: r.page || '', done: !!r.done, note: r.note || '' });
@@ -828,6 +838,7 @@ async function crmClaim(x, u, d) {
  *   Lớp 2 – quản lý: khách có cờ nằm ở Hôm nay → "🙋 Chờ quản lý duyệt" (Tính / Không tính); mỗi tuần máy chọn OWN_AUDIT khách 🙋 / sale để quản lý gọi xác minh (own_chk 1 → 2 đúng / 3 sai).
  *  own_ok: 0 chờ chốt · 1 đã chốt (máy hoặc quản lý) · -1 đã gỡ (own_src = 'no', own_flag = lý do). Hoa hồng 10% tính khi own_ok ≥ 0 và (own_ok = 1 hoặc chưa có cờ). */
 const OWN_SYS = { name: 'Hoa hồng (tự động)', email: '', level: 3, role: 'Hệ thống' }, OWN_ADS = /^(quảng cáo|ebook|form website|facebook|fanpage|instagram|tiktok|shopee|lazada|file )/i;
+const OWN_NOPF = 'Chưa có ảnh tin nhắn khách giới thiệu', OWN_PF_DAYS = 120; // 11/11/2026 (Thủy, Hiếu, anh Sơn chọn 3 lớp): có ảnh → máy tự chốt; không ảnh → quản lý gọi hỏi người được giới thiệu rồi duyệt. Ảnh xoá sau OWN_PF_DAYS ngày (dữ liệu cá nhân)
 const OWN_WAIT = 14, OWN_AUDIT = 2, OWN_SHARE = 40, OWN_RECHK = 6 * 3600e3, OWN_HOW_ADS = /^📣/, OWN_SOFT = /^(Chưa ghi|Chỉ đặt qua link)/;
 export async function ownPlan(x) { return Object.assign({}, PAYPLAN, await kvJson(x.db, 'payplan_cfg', null) || {}); }
 const addrKey = c => { const k = nrm([c.address, c.ward, c.province].filter(Boolean).join(' ')).replace(/[^a-z0-9]+/g, ' ').trim(); return k.length >= 12 && /\d/.test(k) ? k : ''; }; // phải có số nhà, đủ dài → tránh trùng kiểu "xã A, tỉnh B"
@@ -880,6 +891,7 @@ async function ownCheck(x, C, c) {
   const refPh = R.src === 'ref' ? normPhone((refLead && refLead.ref_phone) || (fo && fo.ref_phone) || (rs && rs.ref_phone) || '') : '';
   if (refPh && same.some(o => o.phone === refPh)) { R.src = 'no'; R.why = 'Cùng địa chỉ với người giới thiệu ' + refPh + ' (người nhà mua thay)'; return R; }
   if (old) flags.push('Cùng địa chỉ khách cũ ' + (old.name || '') + ' ' + old.phone + ' (có thể người nhà)');
+  if (R.src === 'ref' && !(await first(x.db, 'SELECT phone FROM own_proof WHERE phone = ?', c.phone))) flags.push(OWN_NOPF + ' → quản lý gọi hỏi người được giới thiệu "Chị biết bên em qua ai ạ?" rồi duyệt (sale gửi ảnh thì máy tự bỏ cờ này)');
   const mates = same.filter(o => o.own_by === R.by && (o.own_src === 'self' || o.own_src === 'ref'));
   if (mates.length) flags.push('Cùng địa chỉ với ' + mates.length + ' khách 🙋 khác của ' + R.by);
   (C.saleFlag[R.by] || []).forEach(f => flags.push(f));
@@ -887,6 +899,12 @@ async function ownCheck(x, C, c) {
 }
 const ownBoss = (C, text) => Promise.all(C.users.filter(m => m.active && m.tg && m.level >= 2).map(m => telegramTo(C.env, m.tg, text).catch(() => { })));
 export async function ownTick(x) {
+  if (!(await kvGet(x.db, 'own5_mig'))) { // 11/11/2026 anh Sơn chốt (sau họp với Thủy, Hiếu): khách tự mang về 10% → 5% + thưởng bậc theo tiền hàng (partner.js refSaleAuto)
+    const q = await kvJson(x.db, 'payplan_cfg', null);
+    if (q && (q.own === undefined || Number(q.own) === 10)) { q.own = 5; await kvSet(x.db, 'payplan_cfg', JSON.stringify(q)); await crmLog(x, OWN_SYS, 'Cài đặt', '-', '', 'Khách tự mang về: 10% → 5% + thưởng bậc', 'anh Sơn chốt 11/11/2026'); }
+    await kvSet(x.db, 'own5_mig', '1');
+  }
+  await run(x.db, 'DELETE FROM own_proof WHERE at < ?', Date.now() - OWN_PF_DAYS * DAY).catch(() => { });
   const PP = await ownPlan(x); if (!PP.own) return;
   const from = (dateOrBlank(PP.ownFrom) || 9 * 3600e3) - 9 * 3600e3, now = Date.now(); // dateOrBlank = 9h sáng → lùi về 0h ngày đó
   await run(x.db, "UPDATE customers SET own_src = 'no' WHERE orders > 0 AND first IS NOT NULL AND first < ? AND (own_src IS NULL OR own_src = '')", from); // khách cũ trước ngày áp dụng: không xét (1 câu, nhanh)
@@ -951,7 +969,21 @@ async function ownAudit(x) {
 async function crmOwn(x, u, d) {
   const phone = normPhone(d.phone), act = String(d.act || ''), c = await first(x.db, "SELECT phone, name, own_src, own_by, coalesce(own_ok, 0) AS own_ok, coalesce(own_flag, '') AS own_flag, coalesce(own_chk, 0) AS own_chk FROM customers WHERE phone = ?", phone);
   if (!c || (c.own_src !== 'self' && c.own_src !== 'ref')) return { ok: false, error: 'Khách này không phải khách tự mang về (hoặc đã bị gỡ).' };
-  const why = String(d.why || '').trim().slice(0, 200), out = () => first(x.db, "SELECT own_src, own_ok, coalesce(own_flag, '') AS own_flag, coalesce(own_how, '') AS own_how, coalesce(own_chk, 0) AS own_chk FROM customers WHERE phone = ?", phone).then(r => ({ ok: true, ownSrc: r.own_src === 'no' ? '' : r.own_src, ownOk: r.own_ok || 0, ownFlag: r.own_flag, ownHow: r.own_how, ownChk: r.own_chk }));
+  const why = String(d.why || '').trim().slice(0, 200), out = () => first(x.db, "SELECT own_src, own_ok, coalesce(own_flag, '') AS own_flag, coalesce(own_how, '') AS own_how, coalesce(own_chk, 0) AS own_chk, EXISTS (SELECT 1 FROM own_proof p WHERE p.phone = customers.phone) AS own_pf FROM customers WHERE phone = ?", phone).then(r => ({ ok: true, ownPf: Number(r.own_pf) || 0, ownSrc: r.own_src === 'no' ? '' : r.own_src, ownOk: r.own_ok || 0, ownFlag: r.own_flag, ownHow: r.own_how, ownChk: r.own_chk }));
+  if (act === 'proof_get') {
+    if (c.own_by !== u.name && u.level < 2) return { ok: false, error: 'Chỉ ' + c.own_by + ' hoặc quản lý xem được.' };
+    const pf = await first(x.db, 'SELECT data, at, by_name FROM own_proof WHERE phone = ?', phone); if (!pf) return { ok: false, error: 'Chưa có ảnh (hoặc ảnh đã tự xoá sau ' + OWN_PF_DAYS + ' ngày).' };
+    return { ok: true, src: pf.data, at: pf.at, by: pf.by_name };
+  }
+  if (act === 'proof') { // sale gửi ảnh chụp tin nhắn khách cũ giới thiệu → bỏ cờ thiếu ảnh (máy tự chốt sau 14 ngày nếu không còn cờ khác)
+    if (c.own_by !== u.name && u.level < 2) return { ok: false, error: 'Chỉ ' + c.own_by + ' hoặc quản lý gửi được.' };
+    if (c.own_src !== 'ref') return { ok: false, error: 'Chỉ khách được giới thiệu mới cần ảnh tin nhắn.' };
+    const img = String(d.img || ''); if (!/^data:image\/(jpeg|png|webp);base64,/.test(img)) return { ok: false, error: 'Chọn 1 ảnh chụp màn hình tin nhắn.' };
+    if (img.length > 900000) return { ok: false, error: 'Ảnh lớn quá, chụp lại phần tin nhắn thôi nhé.' };
+    await run(x.db, 'INSERT INTO own_proof (phone, data, at, by_name) VALUES (?, ?, ?, ?) ON CONFLICT(phone) DO UPDATE SET data = excluded.data, at = excluded.at, by_name = excluded.by_name', phone, img, Date.now(), u.name);
+    await run(x.db, 'UPDATE customers SET own_flag = ? WHERE phone = ?', c.own_flag.split(' · ').filter(f => f && f.indexOf(OWN_NOPF) !== 0).join(' · '), phone);
+    await crmLog(x, u, 'Ảnh tin nhắn giới thiệu', phone, c.name, c.own_by, 'Gửi ảnh bằng chứng khách giới thiệu'); return out();
+  }
   if (act === 'how') {
     if (c.own_by !== u.name && u.level < 2) return { ok: false, error: 'Chỉ ' + c.own_by + ' hoặc quản lý ghi được.' };
     const how = String(d.how || '').trim().slice(0, 160); if (how.length < 4) return { ok: false, error: 'Chọn khách biết bạn qua đâu và ghi rõ thêm (tên nhóm, sự kiện, người quen…).' };
@@ -1704,7 +1736,7 @@ async function crmContact(x, u, d) {
 const COMM_KEYS = ['Khách mới', 'Khách cũ', 'Ngoài giờ', 'Ngày lễ', 'Đơn web'];
 // 💰 Phụ lục 01/CĐ2026 (anh Sơn gửi 30/10/2026): [doanh thu tháng từ, lương cơ bản, trợ cấp BH, [[% khách cũ, % khách mới] dưới 1 năm, 1–2 năm, trên 2 năm]].
 // Dưới bậc đầu (80 triệu) = "hỗ trợ theo năng lực" (quản lý quyết). senior: [số tháng làm từ, phụ cấp thâm niên / tháng]. webAuto: khách mới tự đặt web không qua link sale = % của mức khách mới.
-const PAYPLAN = { on: 1, webAuto: 50, off: 6, hol: 10, own: 10, ownMonths: 6, ownFrom: '2026-11-10', // own: % mọi đơn của khách sale tự mang về (tự tìm / được giới thiệu) trong ownMonths tháng, khách mua lần đầu từ ownFrom (anh Sơn 10/11/2026) // off / hol: % cố định đơn sale chốt tối / Chủ nhật (Ngoài giờ) và ngày lễ (anh Sơn gửi 30/10/2026), không theo bậc / thâm niên
+const PAYPLAN = { on: 1, webAuto: 50, off: 6, hol: 10, own: 5, ownMonths: 6, ownFrom: '2026-11-10', // own: % mọi đơn của khách sale tự mang về (tự tìm / được giới thiệu) trong ownMonths tháng, khách mua lần đầu từ ownFrom (anh Sơn 10/11/2026) // off / hol: % cố định đơn sale chốt tối / Chủ nhật (Ngoài giờ) và ngày lễ (anh Sơn gửi 30/10/2026), không theo bậc / thâm niên
   senior: [[36, 300000], [60, 500000]], tiers: [
   [80e6, 5500000, 1000000, [[3, 2], [4.5, 2.5], [5, 2.5]]], [100e6, 6500000, 1000000, [[3, 2.5], [4.5, 2.5], [5, 2.5]]], [150e6, 7000000, 1000000, [[3.5, 2.5], [4.5, 2.5], [5, 2.5]]],
   [200e6, 7500000, 1000000, [[3.5, 3], [4.5, 3], [5, 3.5]]], [250e6, 8000000, 1000000, [[4, 3], [4.5, 3], [5, 3.5]]], [300e6, 8500000, 1000000, [[4, 3], [4.5, 3], [5, 3.5]]], [350e6, 9000000, 1000000, [[4, 3], [4.5, 3], [5, 3.5]]]] };

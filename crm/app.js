@@ -2953,16 +2953,24 @@
   function linkByCode(c) { c = String(c || '').trim().toLowerCase(); var r = c ? ((S.d && S.d.qrLinks) || []).filter(function (l) { return l[0] === c; })[0] : null; return r ? { code: r[0], name: r[1] } : null; } // 📍 tab Link & QR (máy chủ trả qrLinks khi tải CRM)
   var CH_WEB = 'Đơn web'; // khoá % hoa hồng riêng cho đơn web
   function otLabel(t) { return t ? (OT[t] ? OT[t][0] + ' ' : '') + t : '–'; }
-  function otypeOf(o) { if (o.otype) return o.otype; if (o.ca === 'Lễ') return 'Ngày lễ'; if (o.ca === 'Tối/CN') return 'Ngoài giờ'; var c = cust(o.phone); return !c || !c.first || c.first >= o.time - 3600e3 ? 'Khách mới' : 'Khách cũ'; } // đơn cũ chưa có cột Loại đơn: suy ra
-  function otypeSug(phone, t) {
-    var ca = caNow(t), ph = normPhone(phone);
-    if (ca === 'Lễ') return { t: 'Ngày lễ', why: 'đơn tạo ngày lễ' };
-    if (ca === 'Tối/CN') return { t: 'Ngoài giờ', why: new Date(t + 7 * 3600e3).getUTCDay() === 0 ? 'đơn tạo Chủ nhật' : 'đơn tạo sau ' + (((S.d.rules || {}).ca || {}).evening || '17:30') };
+  function otypeOf(o) { if (o.otype) return o.otype; var c = cust(o.phone), nw = !c || !c.first || c.first >= o.time - 3600e3; if (nw && o.ca === 'Lễ') return 'Ngày lễ'; if (nw && o.ca === 'Tối/CN') return 'Ngoài giờ'; return nw ? 'Khách mới' : 'Khách cũ'; } // đơn cũ chưa có cột Loại đơn: suy ra
+  function otypeSug(phone, t) { // 11/11/2026 (Phụ lục 01 + Thủy): % tối / Chủ nhật / lễ chỉ cho khách mới từ quảng cáo; khách cũ nhắn Zalo sale tối / lễ → % khách cũ (trùng otypeSuggest ở api/src/crm.js)
+    var ca = caNow(t), b = otypeBase(phone, t);
+    if (b.t !== 'Khách mới') return ca === 'Ngày' ? b : { t: b.t, why: b.why + ' (đơn ' + (ca === 'Lễ' ? 'ngày lễ' : 'tối / Chủ nhật') + ' của khách cũ tính % khách cũ)' };
+    if (ca === 'Lễ') return { t: 'Ngày lễ', why: 'khách mới, đơn tạo ngày lễ' };
+    if (ca === 'Tối/CN') return { t: 'Ngoài giờ', why: 'khách mới, đơn tạo ' + (new Date(t + 7 * 3600e3).getUTCDay() === 0 ? 'Chủ nhật' : 'sau ' + (((S.d.rules || {}).ca || {}).evening || '17:30')) };
+    return b;
+  }
+  /** Khách mới (từ quảng cáo / khách cũ nhắn lên page) hay khách cũ (sale chăm: mua lại, được giới thiệu, tự tìm) theo Phụ lục 01. */
+  function otypeBase(phone, t) {
+    var ph = normPhone(phone);
     // 31/10/2026: khách mới do khách cũ giới thiệu → hoa hồng như Khách cũ (trùng otypeSuggest ở api/src/crm.js)
     var rl = (S.d.leads || []).filter(function (l) { return l.phone === ph && l.refPhone; })[0], rs = S._rb && S._rb.list.filter(function (r) { return r.phone === ph && r.st !== 'void'; })[0], rp = (rl && rl.refPhone) || (rs && rs.refPhone);
     if (rp) return { t: 'Khách cũ', why: 'khách do khách cũ ' + (((cust(rp) || {}).name) || rp) + ' giới thiệu (hoa hồng như khách cũ)' };
     var ad = (S.d.leads || []).filter(function (l) { return l.phone === ph && /^(quảng cáo|ebook|form website)/i.test(l.channel || '') && l.time && l.time >= t - 30 * DAY && l.time <= t + DAY; }).sort(function (a, b) { return b.time - a.time; })[0];
     if (ad) return { t: 'Khách mới', why: 'khách để lại số qua ' + ad.channel + ' ngày ' + fDate(ad.time).slice(0, 5) };
+    var sf = (S.d.leads || []).filter(function (l) { return l.phone === ph && l.how && l.how.indexOf('📣') !== 0 && l.time && l.time <= t + 3600e3; })[0];
+    if (sf) return { t: 'Khách cũ', why: 'khách sale tự tìm (' + sf.how.slice(0, 60) + '): hoa hồng như khách cũ' };
     var c = cust(ph); if (c && c.first && c.first < t - 3600e3) return { t: 'Khách cũ', why: 'đã mua từ ' + fDate(c.first) + ' (' + c.orders + ' đơn)' };
     return { t: 'Khách mới', why: ph.length >= 10 ? 'lần đầu mua' : 'chưa nhập số điện thoại' };
   }
@@ -9800,8 +9808,10 @@
     if (c.ownOk === -1) return c.ownFlag ? '<div class="notice own-box off">↩ <b>Không tính khách tự mang về</b> (' + esc(c.ownBy) + '): ' + esc(c.ownFlag) + '</div>' : '';
     var st = ownState(c); if (!st || (st === 'ok' && c.ownChk !== 1)) return '';
     var boss = lvl() >= 2, h = '<div class="notice own-box' + (st === 'flag' ? ' warn' : '') + '" data-ownbox="' + c.phone + '"><div>🙋 <b>Khách tự mang về</b> của ' + esc(c.ownBy) + ' (' + (c.ownSrc === 'self' ? 'sale tự tìm' : 'khách cũ giới thiệu') + ')' + (c.ownHow ? ' · biết qua: <b>' + esc(c.ownHow) + '</b>' : '') + '</div>';
-    if (st === 'wait') h += '<div class="small">⏳ Chờ chốt tới <b>' + fDate(c.ownAt + OWN_WAIT_D * DAY).slice(0, 5) + '</b>. Trong thời gian này nếu số có trong file quảng cáo thì máy tự gỡ. Hoa hồng 10% đang tạm tính.</div>';
-    if (st === 'flag') h += '<div class="small">⚠️ <b>Chờ quản lý duyệt</b>, hoa hồng 10% chưa tính: ' + esc(c.ownFlag) + '</div>';
+    if (st === 'wait') h += '<div class="small">⏳ Chờ chốt tới <b>' + fDate(c.ownAt + OWN_WAIT_D * DAY).slice(0, 5) + '</b>. Trong thời gian này nếu số có trong file quảng cáo thì máy tự gỡ. Hoa hồng ' + ownPctTxt() + ' đang tạm tính.</div>';
+    if (st === 'flag') h += '<div class="small">⚠️ <b>Chờ quản lý duyệt</b>, hoa hồng ' + ownPctTxt() + ' chưa tính: ' + esc(c.ownFlag) + '</div>';
+    if (c.ownSrc === 'ref' && st !== 'ok') h += c.ownPf ? '<div class="small" style="margin-top:4px">📎 Đã có ảnh tin nhắn khách giới thiệu. <button class="btn sm ghost" data-ownpf="' + c.phone + '|get">🖼 Xem ảnh</button></div>'
+      : (c.ownBy === S.user.name || lvl() >= 2 ? '<div class="small" style="margin-top:4px">📎 <b>Gửi ảnh chụp tin nhắn</b> khách cũ giới thiệu bạn này (Zalo, Messenger…) để được tính nhanh. Không có tin nhắn thì quản lý sẽ gọi hỏi người được giới thiệu. <label class="btn sm">📎 Chọn ảnh<input type="file" accept="image/*" data-ownpf="' + c.phone + '|up" hidden></label></div>' : '');
     if (st !== 'ok' && !c.ownHow && c.ownSrc === 'self' && c.ownBy === S.user.name) h += ownHowSel('ob' + c.phone, '') + '<button class="btn sm" data-ownhow="' + c.phone + '">Lưu nguồn khách</button>';
     if (boss && (st === 'flag' || c.ownChk === 1)) {
       h += (c.ownChk === 1 ? '<div class="small" style="margin-top:6px">📞 <b>Máy chọn gọi xác minh tuần này.</b> Gọi hỏi khách: <i>"Chị biết Thực Dưỡng Lành qua đâu ạ?"</i> rồi so với sale ghi. <a href="tel:' + c.phone + '">Gọi ' + fPhone(c.phone) + '</a></div>' : '') +
@@ -9818,11 +9828,25 @@
     if (!L.length) return '';
     var nf = L.filter(function (c) { return c.ownOk === 0 && c.ownFlag; }).length, nc = L.length - nf;
     return '<section class="box own-wait"><h3 style="margin:0 0 4px">🙋 Khách tự mang về chờ quản lý xem</h3><p class="small muted" style="margin:0 0 8px">' +
-      (nf ? '<b>' + nf + '</b> khách có dấu hiệu lạ (chưa tính 10% tới khi bạn duyệt)' : '') + (nf && nc ? ' · ' : '') + (nc ? '<b>' + nc + '</b> khách máy chọn ngẫu nhiên để gọi xác minh tuần này' : '') + '. Sale biết là có kiểm tra thì sẽ ghi đúng.</p>' +
+      (nf ? '<b>' + nf + '</b> khách có dấu hiệu lạ hoặc thiếu ảnh tin nhắn giới thiệu (chưa tính ' + ownPctTxt() + ' tới khi bạn duyệt)' : '') + (nf && nc ? ' · ' : '') + (nc ? '<b>' + nc + '</b> khách máy chọn ngẫu nhiên để gọi xác minh tuần này' : '') + '. Sale biết là có kiểm tra thì sẽ ghi đúng.</p>' +
       L.slice(0, 20).map(function (c) { return '<div class="own-card"><div><b class="link" data-cust="' + c.phone + '">' + esc(c.name || 'Khách') + '</b> · <a href="tel:' + c.phone + '">' + fPhone(c.phone) + '</a> · ' + c.orders + ' đơn ' + moneyShort(c.spent) + '</div>' + ownBox(c) + '</div>'; }).join('') +
       (L.length > 20 ? '<p class="small muted">… và ' + (L.length - 20) + ' khách nữa (xử lý xong mấy khách trên sẽ hiện tiếp).</p>' : '') + '</section>';
   }
-  function ownSet(c, j) { ['ownSrc', 'ownOk', 'ownFlag', 'ownHow', 'ownChk'].forEach(function (k) { if (j[k] !== undefined) c[k] = j[k]; }); }
+  function ownPctTxt() { return (((S.d.rules && S.d.rules.payplan) || {}).own || 5) + '%'; }
+  /* 📎 Ảnh tin nhắn khách giới thiệu (11/11/2026, 3 lớp anh Sơn chọn): sale gửi ảnh → máy chủ bỏ cờ thiếu ảnh; quản lý / sale đó xem lại được. Ảnh tự xoá sau 120 ngày. */
+  document.addEventListener('change', function (e) {
+    var f = e.target; if (!f || !f.matches || !f.matches('input[data-ownpf]') || !f.files || !f.files[0]) return;
+    var ph = f.getAttribute('data-ownpf').split('|')[0], c = cust(ph), lb = f.closest('label'); if (lb) lb.firstChild.textContent = 'Đang gửi…';
+    shrinkImage(f.files[0]).then(function (img) { return api('own', { phone: ph, act: 'proof', img: img }); }).then(function (j) { if (c) ownSet(c, j); toast('Đã gửi ảnh tin nhắn giới thiệu ✓'); render(); var nb = $('.modal [data-ownbox="' + ph + '"]'); if (nb && c) nb.outerHTML = ownBox(c); },
+      function (er) { if (lb) lb.firstChild.textContent = '📎 Chọn ảnh'; toast(er.message || 'Không gửi được ảnh', true); });
+  });
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('button[data-ownpf]'); if (!b) return; e.preventDefault(); e.stopPropagation();
+    var ph = b.getAttribute('data-ownpf').split('|')[0]; b.disabled = true;
+    api('own', { phone: ph, act: 'proof_get' }).then(function (j) { b.disabled = false; modal('📎 Ảnh tin nhắn khách giới thiệu', '<p class="small muted" style="margin:0 0 8px">' + esc(j.by || '') + ' gửi ' + fDate(j.at) + '. Ảnh tự xoá sau 120 ngày.</p><img src="' + j.src + '" alt="Ảnh tin nhắn" style="max-width:100%;border-radius:8px">', '<button class="btn ghost" data-close>Đóng</button>'); },
+      function (er) { b.disabled = false; toast(er.message, true); });
+  }, true);
+  function ownSet(c, j) { ['ownSrc', 'ownOk', 'ownFlag', 'ownHow', 'ownChk', 'ownPf'].forEach(function (k) { if (j[k] !== undefined) c[k] = j[k]; }); }
   document.addEventListener('click', function (e) {
     var b = e.target.closest && e.target.closest('[data-ownact],[data-ownhow]'); if (!b || !S.d) return;
     e.preventDefault(); e.stopPropagation();
@@ -9831,7 +9855,7 @@
     else { var sp = b.getAttribute('data-ownact').split('|'); ph = sp[0]; p = { phone: ph, act: sp[1], why: box && $('.own-why', box) ? $('.own-why', box).value.trim() : '' };
       if ((p.act === 'no' || p.act === 'chk_no') && !p.why) { if (err) err.textContent = 'Ghi lý do không tính giúp em (sale sẽ thấy lý do này).'; var w = $('.own-why', box); if (w) w.focus(); return; } }
     var c = cust(ph), t = b.textContent; b.disabled = true; b.textContent = 'Đang lưu…';
-    api('own', p).then(function (j) { if (c) { ownSet(c, j); if (!j.ownSrc) c.ownOk = -1; } toast(p.act === 'how' ? 'Đã lưu nguồn khách ✓' : p.act === 'ok' ? 'Đã duyệt: tính hoa hồng 10% ✓' : p.act === 'chk_ok' ? 'Đã ghi: gọi xác minh đúng ✓' : 'Đã ghi: không tính khách tự mang về'); render(); if ($('.modal [data-ownbox="' + ph + '"]')) { var nb = $('.modal [data-ownbox="' + ph + '"]'); nb.outerHTML = ownBox(c); } },
+    api('own', p).then(function (j) { if (c) { ownSet(c, j); if (!j.ownSrc) c.ownOk = -1; } toast(p.act === 'how' ? 'Đã lưu nguồn khách ✓' : p.act === 'ok' ? 'Đã duyệt: tính hoa hồng ' + ownPctTxt() + ' ✓' : p.act === 'chk_ok' ? 'Đã ghi: gọi xác minh đúng ✓' : 'Đã ghi: không tính khách tự mang về'); render(); if ($('.modal [data-ownbox="' + ph + '"]')) { var nb = $('.modal [data-ownbox="' + ph + '"]'); nb.outerHTML = ownBox(c); } },
       function (er) { b.disabled = false; b.textContent = t; if (err) err.textContent = er.message; else toast(er.message, true); });
   }, true);
 
@@ -9848,14 +9872,16 @@
       if (!o.time || o.time < R[0] || o.time >= R[1] || o.seller !== name || /hoàn/i.test(o.status) || isVoid(o.status)) return;
       var c = cust(o.phone), t0 = otypeOf(o), isNew = t0 === 'Khách mới' ? true : t0 === 'Khách cũ' ? false : !c || !c.first || c.first >= o.time - 3600e3;
       var web = isWebOrder(o), k = !web && t0 === 'Ngoài giờ' ? 'off' : !web && t0 === 'Ngày lễ' ? 'hol' : !isNew ? 'old' : web && String(o.note || '').indexOf('🔗 Đặt qua link của ' + name) < 0 && String(o.note || '').indexOf('🤝 ' + name + ' đã chăm') < 0 ? 'auto' : 'nw'; // 🤝 = sale đã liên hệ khách trong 30 ngày trước khi khách tự đặt web (máy chủ ghi) → đủ % khách mới
-      if (ownOrder(o, c, name) && k !== 'hol') { k = 'own'; ownN[c.phone] = 1; } // 🙋 khách sale tự mang về: % riêng thay cho % thường (ngày lễ giữ % lễ nếu cao hơn)
+      if ((k === 'off' || k === 'hol') && otypeBase(o.phone, o.time).t !== 'Khách mới') k = 'old'; // 11/11/2026: % tối / CN / lễ chỉ cho khách mới từ quảng cáo (Phụ lục 01 + Thủy)
+      if (ownOrder(o, c, name)) { k = 'own'; ownN[c.phone] = 1; } // 🙋 khách sale tự mang về: % riêng thay cho % thường (khách cũ nên không có % tối / lễ)
       sums[k] += commBase(o); rev += o.total; n++;
     });
     var mo = jt ? (R[1] - jt) / (30.44 * DAY) : -1, si = mo < 12 ? 0 : mo < 24 ? 1 : 2, tier = null, ti = -1;
     P.tiers.forEach(function (t, i) { if (rev >= t[0]) { tier = t; ti = i; } });
     var rt = tier ? tier[3][si] : [0, 0], cm = { old: Math.round(sums.old * rt[0] / 100), nw: Math.round(sums.nw * rt[1] / 100), auto: Math.round(sums.auto * rt[1] * (P.webAuto || 0) / 10000), off: Math.round(sums.off * (P.off || 0) / 100), hol: Math.round(sums.hol * (P.hol || 0) / 100), own: Math.round(sums.own * (P.own || 0) / 100) };
     var sen = (P.senior || []).reduce(function (a, t) { return mo >= t[0] ? Math.max(a, t[1]) : a; }, 0), comm = cm.old + cm.nw + cm.auto + cm.off + cm.hol + cm.own, fixed = tier ? tier[1] + tier[2] : 0;
-    return { rev: rev, n: n, tier: tier, ti: ti, si: si, mo: mo, joined: u.joined || '', tv: /^\s*tv/i.test(u.joined || ''), rt: rt, sums: sums, cm: cm, comm: comm, fixed: fixed, sen: sen, total: fixed + comm + sen, webAuto: P.webAuto || 0, off: P.off || 0, hol: P.hol || 0, own: P.own || 0, ownMonths: P.ownMonths || 6, ownN: Object.keys(ownN).length };
+    var rb = rbData(), bon = ((rb && rb.pays) || []).reduce(function (a, p) { return p.sale === name && p.at >= R[0] && p.at < R[1] ? a + p.amount : a; }, 0); // 🎁 thưởng bậc khách tự mang về / giới thiệu (sổ ref_pay, ghi lúc 8h khi đủ mốc)
+    return { bon: bon, rev: rev, n: n, tier: tier, ti: ti, si: si, mo: mo, joined: u.joined || '', tv: /^\s*tv/i.test(u.joined || ''), rt: rt, sums: sums, cm: cm, comm: comm, fixed: fixed, sen: sen, total: fixed + comm + sen + bon, webAuto: P.webAuto || 0, off: P.off || 0, hol: P.hol || 0, own: P.own || 0, ownMonths: P.ownMonths || 6, ownN: Object.keys(ownN).length };
   }
   function ppHtml(name, month) {
     var p = payOf(name, month); if (!p) return '';
@@ -9868,19 +9894,20 @@
         (p.sums.auto ? kpi('🌐 Khách mới tự đặt web', moneyShort(p.cm.auto), '', '', (p.rt[1] * p.webAuto / 100) + '% × ' + moneyShort(p.sums.auto) + ' (không qua link sale, sale chưa chăm trong 30 ngày trước khi đặt: ' + p.webAuto + '% mức khách mới)') : '') +
         (p.sums.off ? kpi('🌙 Đơn tối / Chủ nhật', moneyShort(p.cm.off), '', '', p.off + '% cố định × ' + moneyShort(p.sums.off)) : '') +
         (p.sums.hol ? kpi('🎉 Đơn ngày lễ', moneyShort(p.cm.hol), '', '', p.hol + '% cố định × ' + moneyShort(p.sums.hol)) : '') +
-        (p.sen ? kpi('🎖 Phụ cấp thâm niên', moneyShort(p.sen), '', '', '') : '') + kpi('Tổng tạm tính', moneyShort(p.total), 'good', '', 'chưa gồm thưởng') + '</div>' +
+        (p.bon ? kpi('🎁 Thưởng khách tự mang về', moneyShort(p.bon), 'good', '', 'khách bạn tự tìm / được giới thiệu mua đủ mốc tiền hàng (ghi trong tháng)') : '') +
+        (p.sen ? kpi('🎖 Phụ cấp thâm niên', moneyShort(p.sen), '', '', '') : '') + kpi('Tổng tạm tính', moneyShort(p.total), 'good', '', 'chưa gồm thưởng nóng') + '</div>' +
         (nx ? '<p class="small" style="margin:8px 0 0">📈 Thêm <b>' + money(nx[0] - p.rev) + '</b> doanh thu nữa là lên bậc ' + moneyShort(nx[0]) + ': lương cơ bản ' + moneyShort(nx[1]) + ', hoa hồng ' + nx[3][p.si][0] + '% / ' + nx[3][p.si][1] + '%.</p>' : '')
-        : '<p class="notice" style="margin:0">Doanh thu dưới ' + money(T[0][0]) + ': <b>hỗ trợ theo năng lực</b> (quản lý quyết). Còn ' + money(T[0][0] - p.rev) + ' nữa là vào bậc đầu.</p>') +
-      '<p class="small muted" style="margin:8px 0 0">Hoa hồng tính trên tiền hàng (không gồm phí ship). Đơn sale chốt tối / Chủ nhật và ngày lễ tính % cố định (theo loại đơn sale chọn khi lên đơn); đơn khách tự đặt web lúc tối / lễ tính như đơn web thường. Tạm tính theo dữ liệu CRM, số chốt lương do kế toán đối chiếu.</p></div>';
+        : '<p class="notice" style="margin:0">Doanh thu dưới ' + money(T[0][0]) + ': <b>hỗ trợ theo năng lực</b> (quản lý quyết). Còn ' + money(T[0][0] - p.rev) + ' nữa là vào bậc đầu.' + (p.bon ? ' 🎁 Thưởng khách tự mang về tháng này: <b>' + money(p.bon) + '</b>.' : '') + '</p>') +
+      '<p class="small muted" style="margin:8px 0 0">Hoa hồng tính trên tiền hàng (không gồm phí ship). Đơn tối / Chủ nhật và ngày lễ tính % cố định <b>chỉ với khách mới từ quảng cáo</b> (khách cũ nhắn sale tối / lễ tính % khách cũ); đơn khách tự đặt web lúc tối / lễ tính như đơn web thường. Tạm tính theo dữ liệu CRM, số chốt lương do kế toán đối chiếu.</p></div>';
   }
   function ppTable(month) {
     if (!ppOn()) return '';
     var R = monthRange(month), names = {}; S.d.orders.forEach(function (o) { if (o.seller && o.time >= R[0] && o.time < R[1]) names[o.seller] = 1; });
     var rows = Object.keys(names).map(function (nm) { return [nm, payOf(nm, month)]; }).filter(function (r) { return r[1] && r[1].rev; }).sort(function (a, b) { return b[1].rev - a[1].rev; });
     if (!rows.length) return '';
-    return '<div class="box pp-box"><h3 style="margin:0 0 6px">💰 Thu nhập tạm tính từng người (Phụ lục 01)</h3><div class="bcdt-wrap"><table class="bcdt"><thead><tr><th>Nhân sự</th><th>Doanh thu</th><th>Bậc</th><th>Thâm niên</th><th>Lương cố định</th><th>HH khách cũ</th><th>HH khách mới</th><th>🙋 HH tự mang về</th><th>HH web tự đặt</th><th>HH tối / CN / lễ</th><th>Phụ cấp</th><th>Tổng</th></tr></thead><tbody>' +
-      rows.map(function (r) { var p = r[1]; return '<tr><td>' + esc(r[0]) + '</td><td>' + money(p.rev) + '</td><td>' + (p.tier ? 'từ ' + moneyShort(p.tier[0]) : 'hỗ trợ theo năng lực') + '</td><td>' + (p.mo < 0 ? '⚠️ thiếu ngày' : PP_SEN[p.si]) + '</td><td>' + money(p.fixed) + '</td><td>' + money(p.cm.old) + '</td><td>' + money(p.cm.nw) + '</td><td>' + money(p.cm.own) + '</td><td>' + money(p.cm.auto) + '</td><td>' + money(p.cm.off + p.cm.hol) + '</td><td>' + money(p.sen) + '</td><td><b>' + money(p.total) + '</b></td></tr>'; }).join('') +
-      '</tbody></table></div><p class="small muted" style="margin:8px 0 0">Bậc dưới ' + moneyShort(S.d.rules.payplan.tiers[0][0]) + ' = hỗ trợ theo năng lực (không tự tính lương cố định, hoa hồng). Chưa gồm thưởng.</p></div>';
+    return '<div class="box pp-box"><h3 style="margin:0 0 6px">💰 Thu nhập tạm tính từng người (Phụ lục 01)</h3><div class="bcdt-wrap"><table class="bcdt"><thead><tr><th>Nhân sự</th><th>Doanh thu</th><th>Bậc</th><th>Thâm niên</th><th>Lương cố định</th><th>HH khách cũ</th><th>HH khách mới</th><th>🙋 HH tự mang về</th><th>HH web tự đặt</th><th>HH tối / CN / lễ</th><th>🎁 Thưởng tự mang về</th><th>Phụ cấp</th><th>Tổng</th></tr></thead><tbody>' +
+      rows.map(function (r) { var p = r[1]; return '<tr><td>' + esc(r[0]) + '</td><td>' + money(p.rev) + '</td><td>' + (p.tier ? 'từ ' + moneyShort(p.tier[0]) : 'hỗ trợ theo năng lực') + '</td><td>' + (p.mo < 0 ? '⚠️ thiếu ngày' : PP_SEN[p.si]) + '</td><td>' + money(p.fixed) + '</td><td>' + money(p.cm.old) + '</td><td>' + money(p.cm.nw) + '</td><td>' + money(p.cm.own) + '</td><td>' + money(p.cm.auto) + '</td><td>' + money(p.cm.off + p.cm.hol) + '</td><td>' + money(p.bon) + '</td><td>' + money(p.sen) + '</td><td><b>' + money(p.total) + '</b></td></tr>'; }).join('') +
+      '</tbody></table></div><p class="small muted" style="margin:8px 0 0">Bậc dưới ' + moneyShort(S.d.rules.payplan.tiers[0][0]) + ' = hỗ trợ theo năng lực (không tự tính lương cố định, hoa hồng). % tối / CN / lễ chỉ tính đơn khách mới từ quảng cáo. Đã gồm thưởng khách tự mang về, chưa gồm thưởng nóng.</p></div>';
   }
   function ppSetHtml() {
     var P = S.d.rules.payplan || { tiers: [], senior: [] }, ed = lvl() >= 3, dis = ed ? '' : ' disabled', inp = function (v, id) { return '<input type="text" inputmode="decimal" value="' + esc(v) + '"' + (id ? ' id="' + id + '"' : '') + dis + '>'; };
@@ -10897,7 +10924,7 @@
   function rbSteps() { if (S._rb && S._rb.cfg.saleOff) return []; return (S._rb && S._rb.cfg.saleSteps) || [[300000, 20000], [700000, 50000]]; } // 10/11/2026: thưởng cố định đã thay bằng hoa hồng khách tự mang về
   /** Câu quyền lợi sale trong ô 🌱: luật 10% (chỉ nói rõ khi Quản trị đã bật mục Tự tạo khách), hoặc mức thưởng cố định cũ nếu luật 10% tắt. */
   function rbIntro(c) {
-    if (!c.saleOff) return 'Thưởng tính <b>cộng dồn</b> tiền hàng khách mới mua trong ' + (c.winDays || 60) + ' ngày đầu: <b>' + rbStepTxt(rbSteps()) + '</b> (đơn đã giao xong 7 ngày). Khách mua ít lần đầu thì chăm sóc để khách mua thêm. Hoa hồng % vẫn tính trên mọi đơn như khách cũ, thưởng này là cộng thêm.';
+    if (!c.saleOff) return 'Thưởng tính <b>cộng dồn</b> tiền hàng khách mới mua trong ' + (c.winDays || 60) + ' ngày đầu: <b>' + rbStepTxt(rbSteps()) + '</b> (đơn đã giao xong 7 ngày). Khách mua ít lần đầu thì chăm sóc để khách mua thêm. ' + (c.ownBonus && selfOn() ? 'Cộng thêm hoa hồng <b>' + c.ownPct + '%</b> mọi đơn bạn bán cho khách đó trong ' + c.ownMonths + ' tháng đầu. Khách giới thiệu: gửi <b>ảnh tin nhắn</b> khách cũ giới thiệu ở hồ sơ khách để được tính nhanh.' : 'Hoa hồng % vẫn tính trên mọi đơn như khách cũ, thưởng này là cộng thêm.');
     return selfOn() ? 'Khách được giới thiệu là <b>khách bạn tự mang về</b>: hoa hồng <b>' + c.ownPct + '%</b> tiền hàng <b>mọi đơn</b> bạn bán cho khách đó trong ' + c.ownMonths + ' tháng đầu (thay cho thưởng cố định trước đây). Xem tiền ở <b>💰 Thu nhập tạm tính</b>.' : 'Hoa hồng của khách được giới thiệu xem ở <b>💰 Thu nhập tạm tính</b>.';
   }
   function rbStepTxt(st) { return st.map(function (t, i) { return 'đủ ' + moneyShort(t[0]) + (i ? ' thêm ' + moneyShort(t[1] - st[i - 1][1]) + ' (tổng ' + moneyShort(t[1]) + ')' : ' → ' + moneyShort(t[1])); }).join(', '); }
