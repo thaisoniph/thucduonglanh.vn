@@ -27,6 +27,7 @@ Phần "bộ não" (AI, quyết định, bài đăng) nằm ở máy chủ: `api
 Từ 28/10/2026 trợ lý chạy **24/7 trên VPS của công ty** (cùng máy với n8n, không đụng n8n): dịch vụ systemd `tdl-zalo-bot`, thư mục `/opt/tdl-zalo-bot`, người dùng `tdlbot`. Trên Mac của anh Sơn có tên tắt SSH `tdl-vps` (IP và cổng chỉ lưu trong `~/.ssh/config`, không ghi vào repo). Bản trên Mac đã tắt.
 
 - Cập nhật code sau khi sửa `bot.js`: `bash zalo-bot/cai-vps.sh tdl-vps` (giữ nguyên phiên đăng nhập trên VPS).
+- Bản `2026-11-11a`: lúc đăng bài gửi kèm mã tin (msgId + cliMsgId) để CRM **↩️ Thu hồi** được; làm việc `undo` (thu hồi). Chưa cập nhật bản này thì CRM báo "trợ lý bản cũ" và chỉ thu hồi tay được.
 - Xem nhật ký: `ssh tdl-vps journalctl -u tdl-zalo-bot -f`
 - Khởi động lại: `ssh tdl-vps systemctl restart tdl-zalo-bot`
 - Zalo bắt đăng nhập lại: `ssh tdl-vps 'cd /opt/tdl-zalo-bot && sudo -u tdlbot node bot.js --dang-nhap'`, chép `qr.png` về (`scp tdl-vps:/opt/tdl-zalo-bot/qr.png .`) rồi quét, xong `systemctl restart tdl-zalo-bot`.

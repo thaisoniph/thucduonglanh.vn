@@ -30,6 +30,7 @@ import { insPick, insBlock, insParse, insLog, insBank, insRisk, INS_HEAD, FUN, s
 const BOT = 'An Lành';
 const FAST = 'claude-haiku-5-5', WRITER = 'claude-opus-5-5';
 const SITE = 'https://thucduonglanh.vn', API_URL = 'https://api.thucduonglanh.vn';
+const RECALL_VER = '2026-11-11a'; // chương trình Zalo từ bản này mới gửi mã tin khi đăng + làm việc 'undo' (thu hồi)
 const CFG0 = {
   on: true, groups: [], // nhóm trợ lý chăm sóc (mã nhóm Zalo). Trống → lần đầu tự chọn nhóm có tên "Thực Dưỡng Lành"
   welcome: true, answer: true, announce: true, approve: true, approveAll: false,
@@ -90,6 +91,7 @@ export async function zbotSchema(db) {
   await run(db, `CREATE TABLE IF NOT EXISTS zb_out (id INTEGER PRIMARY KEY AUTOINCREMENT, kind TEXT, gid TEXT DEFAULT '', uid TEXT DEFAULT '', phone TEXT DEFAULT '', text TEXT DEFAULT '',
     img TEXT DEFAULT '', mentions TEXT DEFAULT '', due INTEGER, status TEXT DEFAULT 'new', at INTEGER, done_at INTEGER, ref TEXT DEFAULT '')`); // việc chờ chương trình Zalo làm
   await run(db, 'CREATE INDEX IF NOT EXISTS zb_out_due ON zb_out(status, due)');
+  for (const c of ["msgs TEXT DEFAULT ''", 'undone INTEGER DEFAULT 0']) { try { await run(db, 'ALTER TABLE zb_out ADD COLUMN ' + c); } catch (e) { } } // 11/11/2026: mã tin Zalo đã đăng [{m, c}] để ↩️ thu hồi; undone = đã thu hồi
   await run(db, 'CREATE TABLE IF NOT EXISTS zb_imgs (id TEXT PRIMARY KEY, data TEXT, at INTEGER)'); // ảnh nhân sự tải lên cho bài đăng (data:image/jpeg;base64…), xem ở api.thucduonglanh.vn/zb-img/<id>
   await run(db, `CREATE TABLE IF NOT EXISTS zb_posts (id TEXT PRIMARY KEY, day TEXT, slot TEXT, topic TEXT DEFAULT '', text TEXT DEFAULT '', img TEXT DEFAULT '', prod TEXT DEFAULT '',
     status TEXT DEFAULT 'draft', by_name TEXT DEFAULT '', at INTEGER, sent_at INTEGER)`); // bài đăng hằng ngày (id = yyyyMMdd_slot)
@@ -144,7 +146,7 @@ export async function zbot(x, d) {
 async function zPoll(x, d) {
   const now = Date.now(), cfg = await zCfg(x), old = await kvJson(x.db, 'zb_status', null);
   const st = { at: now, me: d.me || null, groups: (d.groups || []).slice(0, 50), ver: String(d.ver || '') };
-  if (!old || now - old.at > 4 * 60e3 || JSON.stringify(old.groups) !== JSON.stringify(st.groups) || (old.down && !st.down)) await kvSet(x.db, 'zb_status', JSON.stringify(st)); // ghi 4 phút / lần cho đỡ tốn
+  if (!old || now - old.at > 4 * 60e3 || old.ver !== st.ver || JSON.stringify(old.groups) !== JSON.stringify(st.groups) || (old.down && !st.down)) await kvSet(x.db, 'zb_status', JSON.stringify(st)); // ghi 4 phút / lần cho đỡ tốn
   if (old && old.down) x.later(telegram(x.env, '✅ <b>Trợ lý Zalo An Lành đã chạy lại</b>'));
   for (const a of (Array.isArray(d.act) ? d.act : []).slice(0, 6)) if (/^\d{10}$/.test(String(a.dh))) // tin nhắn thành viên theo giờ (chương trình Zalo đếm, gửi số cộng dồn của giờ đó)
     try { await run(x.db, 'INSERT INTO zb_act (dh, msgs, people) VALUES (?, ?, ?) ON CONFLICT(dh) DO UPDATE SET msgs = max(zb_act.msgs, excluded.msgs), people = max(zb_act.people, excluded.people)', String(a.dh), Number(a.msgs) || 0, Number(a.people) || 0); } catch (e) { console.error('zb_act', e.message); } // lỗi đếm giờ không được chặn việc đăng bài
@@ -208,7 +210,7 @@ async function zPoll(x, d) {
   if (lk) { await kvSet(x.db, lkDay, String(lkN + 1), 2 * 86400e3); await kvSet(x.db, 'zb_lk_last', String(now)); }
   if (jobs.length) {
     await run(x.db, "UPDATE zb_out SET status = 'sent', done_at = ? WHERE id IN (SELECT value FROM json_each(?))", now, JSON.stringify(jobs.map(j => j.id)));
-    out.jobs = jobs.filter(j => j.kind === 'lookup' || !quiet(now) || j.kind === 'dm').map(j => ({ id: j.id, kind: j.kind, ref: j.ref || '', gid: j.gid, uid: j.uid, phone: j.phone, text: j.text, img: j.img, mentions: j.mentions ? JSON.parse(j.mentions) : [] }));
+    out.jobs = jobs.filter(j => j.kind === 'lookup' || !quiet(now) || j.kind === 'dm' || j.kind === 'undo').map(j => ({ id: j.id, kind: j.kind, ref: j.ref || '', gid: j.gid, uid: j.uid, phone: j.phone, text: j.text, img: j.img, mentions: j.mentions ? JSON.parse(j.mentions) : [] }));
     const late = jobs.filter(j => !out.jobs.find(o => o.id === j.id)); // ban đêm: dời sang 6h sáng
     for (const j of late) await run(x.db, "UPDATE zb_out SET status = 'new', due = ? WHERE id = ?", nextMorning(now), j.id);
   }
@@ -221,6 +223,12 @@ async function zAck(x, d) {
   const j = await first(x.db, 'SELECT * FROM zb_out WHERE id = ?', Number(d.id) || 0); if (!j) return { ok: true };
   await run(x.db, 'UPDATE zb_out SET status = ?, done_at = ? WHERE id = ?', d.ok ? 'done' : 'err', Date.now(), j.id);
   if (j.kind === 'lookup' && d.ok && d.uid) await zFound(x, j, String(d.uid), String(d.zname || ''), d.inGroups || []);
+  if (j.kind === 'post' && d.ok && Array.isArray(d.msgs) && d.msgs.length) await run(x.db, 'UPDATE zb_out SET msgs = ? WHERE id = ?', JSON.stringify(d.msgs.slice(0, 10).map(m => ({ m: String(m.m || ''), c: String(m.c || '') }))), j.id); // ↩️ để thu hồi (trợ lý ≥ RECALL_VER)
+  if (j.kind === 'undo') { // ↩️ thu hồi xong / lỗi
+    if (d.ok) { await run(x.db, "UPDATE zb_out SET undone = 1 WHERE ref = ? AND gid = ? AND kind = 'post'", j.ref, j.gid); await run(x.db, "UPDATE zb_posts SET status = 'recalled' WHERE id = ?", j.ref); await zlog(x, 'recall', { gid: j.gid, text: 'Đã thu hồi tin ' + j.ref }); }
+    else await zlog(x, 'error', { gid: j.gid, text: 'Không thu hồi được tin ' + j.ref + ': ' + String(d.error || '').slice(0, 200) });
+    return { ok: true };
+  }
   const p = j.kind === 'post' && j.ref && j.ref !== 'announce' ? await first(x.db, 'SELECT id, slot FROM zb_posts WHERE id = ?', j.ref) : null; // mọi tin đăng vào nhóm đều là 1 dòng zb_posts để đo (04/11/2026)
   if (p && d.ok && (p.slot === 'tay' || p.slot === 'chuc')) await run(x.db, "UPDATE zb_posts SET status = 'sent', sent_at = COALESCE(sent_at, ?) WHERE id = ?", Date.now(), p.id);
   if (p && !d.ok) await run(x.db, "UPDATE zb_posts SET status = 'fail' WHERE id = ?", p.id); // gửi lỗi: không tính là đã đăng
@@ -757,7 +765,12 @@ export async function crmZbot(x, u, d, crmLog) {
     const morn = await all(x.db, "SELECT sent_at, eng_people, eng_msgs, eng_reacts FROM zb_posts WHERE slot = 'sang' AND status = 'sent' AND sent_at >= ? AND COALESCE(ev, '') = '' AND COALESCE(at_time, '') = ''", TRACK_FROM); // bài ngày lễ (chủ đề khác ngày thường) và bài nhân sự đặt giờ riêng không tính vào thử giờ
     const trialRes = {}; for (const p of morn) { const k = fmtDate(p.sent_at, 'HH'), r = trialRes[k] || (trialRes[k] = { posts: 0, people: 0, msgs: 0, reacts: 0 }); r.posts++; r.people += p.eng_people || 0; r.msgs += p.eng_msgs || 0; r.reacts += p.eng_reacts || 0; }
     const prods = Object.entries(prodMap(await kb())).map(([c, p]) => ({ c, n: p.name }));
-    return { ok: true, cfg, status: st, posts, plan, prods, mix: Object.fromEntries(Object.entries(MIX).map(([k, v]) => [k, v.name])), log, open, lib, funnel, act, actDays, trial: TIME_TRIAL, trialRes, days: upcoming(fmtDate(now, 'yyyyMMdd'), 45, baseTheme), stats, users, err: await kvGet(x.db, 'zb_write_err'), planErr: await kvGet(x.db, 'zb_plan_err'), key: !!x.env.ZBOT_KEY, aiOn: !!x.env.ANTHROPIC_API_KEY, now,
+    // 📣 tin nhân sự gửi (11/11/2026): hẹn giờ (huỷ được) / đã đăng (thu hồi được nếu trợ lý đã lưu mã tin)
+    const man = posts.filter(p => p.slot === 'tay'), mo = man.length ? await all(x.db, "SELECT ref, kind, status, due, msgs, undone FROM zb_out WHERE ref IN (SELECT value FROM json_each(?))", JSON.stringify(man.map(p => p.id))) : [];
+    const manual = man.map(p => { const r = mo.filter(o => o.ref === p.id), po = r.filter(o => o.kind === 'post'), wait = po.filter(o => o.status === 'new');
+      return { id: p.id, text: p.text, img: p.img, by: p.by_name, at: p.at, status: p.status, sent_at: p.sent_at, funnel: p.funnel, due: wait.length ? Math.min(...wait.map(o => o.due)) : 0, wait: wait.length, err: po.some(o => o.status === 'err'),
+        can: po.some(o => o.status === 'done' && o.msgs && !o.undone), undone: po.length > 0 && po.every(o => o.undone), undoing: r.some(o => o.kind === 'undo' && (o.status === 'new' || o.status === 'sent')) }; }).sort((a, b) => (b.due || b.sent_at || b.at) - (a.due || a.sent_at || a.at));
+    return { ok: true, manual, recallOk: !!(st && String(st.ver || '') >= RECALL_VER), cfg, status: st, posts, plan, prods, mix: Object.fromEntries(Object.entries(MIX).map(([k, v]) => [k, v.name])), log, open, lib, funnel, act, actDays, trial: TIME_TRIAL, trialRes, days: upcoming(fmtDate(now, 'yyyyMMdd'), 45, baseTheme), stats, users, err: await kvGet(x.db, 'zb_write_err'), planErr: await kvGet(x.db, 'zb_plan_err'), key: !!x.env.ZBOT_KEY, aiOn: !!x.env.ANTHROPIC_API_KEY, now,
       insG: (await insBank(x)).map(g => ({ id: g.id, name: g.name, on: g.on, tn: g.tensions.slice(0, 30) })) };
   }
   if (a === 'zb_cfg') {
@@ -844,6 +857,26 @@ export async function crmZbot(x, u, d, crmLog) {
     await run(x.db, "INSERT INTO zb_posts (id, day, slot, topic, text, status, by_name, at, funnel, img) VALUES (?, ?, 'tay', ?, ?, 'ok', ?, ?, ?, ?)", id, fmtDate(Math.max(at, now), 'yyyyMMdd'), text.replace(/\*/g, '').split('\n').find(l => l.trim()).trim().slice(0, 100), tagLinks(safe(text), id), u.name, now, kind, im.img); // tin nhân sự gửi: lưu để đo như bài AI
     for (const gid of gs) await run(x.db, "INSERT INTO zb_out (kind, gid, text, img, due, at, ref) VALUES ('post', ?, ?, ?, ?, ?, ?)", gid, tagLinks(safe(text), id), im.img, Math.max(at, now), now, id);
     await crmLog(x, u, 'Gửi tin vào nhóm Zalo', '', '', (at > now + 60e3 ? 'Hẹn ' + fmtDate(at, 'HH:mm dd/MM') : 'Gửi ngay') + (im.img ? ' · có ảnh' : ''), text.slice(0, 200));
+    return { ok: true };
+  }
+  if (a === 'zb_cancel') { // 🗑 huỷ tin nhân sự gửi đang hẹn giờ (chưa tới giờ đăng)
+    const p = await first(x.db, 'SELECT id, topic, status FROM zb_posts WHERE id = ?', String(d.id || '')); if (!p) return { ok: false, error: 'Không tìm thấy tin.' };
+    if (p.status === 'skip') return { ok: true, already: 1 };
+    const r = await run(x.db, "UPDATE zb_out SET status = 'cancel' WHERE ref = ? AND kind = 'post' AND status = 'new'", p.id);
+    if (!(r && r.meta && r.meta.changes)) return { ok: false, error: 'Tin này trợ lý đã đăng (hoặc đang đăng) rồi, không huỷ được. Dùng ↩️ Thu hồi.' };
+    await run(x.db, "UPDATE zb_posts SET status = 'skip', by_name = ?, at = ? WHERE id = ?", u.name, now, p.id);
+    await crmLog(x, u, 'Bài Zalo', p.id, '', 'Huỷ tin hẹn giờ', p.topic);
+    return { ok: true };
+  }
+  if (a === 'zb_recall') { // ↩️ thu hồi tin đã đăng trong nhóm (trợ lý dùng mã tin đã lưu lúc đăng)
+    const p = await first(x.db, 'SELECT id, topic FROM zb_posts WHERE id = ?', String(d.id || '')); if (!p) return { ok: false, error: 'Không tìm thấy tin.' };
+    const st = await kvJson(x.db, 'zb_status', null);
+    if (!st || String(st.ver || '') < RECALL_VER) return { ok: false, error: 'Trợ lý trên máy đang chạy bản cũ nên chưa thu hồi được. Cập nhật trợ lý trên máy (xem hướng dẫn) rồi thử lại. Tin này anh/chị có thể thu hồi tay trên Zalo.' };
+    if (await first(x.db, "SELECT id FROM zb_out WHERE ref = ? AND kind = 'undo' AND status IN ('new', 'sent')", p.id)) return { ok: true, already: 1 };
+    const rows = await all(x.db, "SELECT gid, msgs FROM zb_out WHERE ref = ? AND kind = 'post' AND status = 'done' AND COALESCE(undone, 0) = 0", p.id), ok = rows.filter(r => r.msgs && r.msgs !== '[]');
+    if (!ok.length) return { ok: false, error: rows.length ? 'Tin này đăng lúc trợ lý chưa lưu mã tin (trước bản cập nhật thu hồi) nên không thu hồi tự động được. Anh/chị thu hồi tay trên Zalo nhé.' : 'Tin này chưa đăng hoặc đã thu hồi rồi.' };
+    for (const r of ok) await run(x.db, "INSERT INTO zb_out (kind, gid, text, due, at, ref) VALUES ('undo', ?, ?, ?, ?, ?)", r.gid, r.msgs, now, now, p.id);
+    await crmLog(x, u, 'Bài Zalo', p.id, '', 'Thu hồi tin đã đăng', p.topic);
     return { ok: true };
   }
   if (a === 'zb_time') { // ⏰ giờ đăng riêng cho 1 bài (sáng / tối); at trống = về giờ của khung
