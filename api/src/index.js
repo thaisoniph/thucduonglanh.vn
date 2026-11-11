@@ -17,10 +17,10 @@ import { zbot, zbotLead, zbImg } from './zbot.js';
 import { refMe, ctvMe, ctvApply } from './partner.js';
 import { fbRoute } from './fb.js';
 import { mcpRoute } from './mcp.js';
-import { ddApply, ddStatus } from './ngaydoi.js';
+import { ddApply, ddStatus, qtetApply } from './ngaydoi.js';
 export { AiRelay } from './airelay.js'; // Durable Object chuyển tiếp lời gọi AI qua Bắc Mỹ
 
-const API_VERSION = '2026-11-12v'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
+const API_VERSION = '2026-11-12w'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
 const ORIGINS = /^https:\/\/((www\.|crm\.|quantri\.|mkt\.|kho\.|ketoan\.|congsu\.|camnangsongkhoe\.)?thucduonglanh\.vn|([a-z0-9-]+\.)?(thucduonglanh(-crm|-congsu)?|camnang-song-khoe-thuc-duong-lanh)\.pages\.dev)$|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
 function ctxOf(env, ectx) { return { env, db: env.DB, later: p => ectx.waitUntil(Promise.resolve(p).catch(e => console.error('later', e && e.message))) }; }
@@ -67,8 +67,9 @@ async function website(x, data) {
         const v = await voucherApply(x, data); if (!v.ok) return { ok: false, voucher_error: v.error, error: v.error };
       } else { data.discount = 0; }
       let dd = null; try { dd = await ddApply(x, data); } catch (e) { console.error('ngaydoi', e.message); } // 🎉 Ngày Đôi 1/1…12/12: miễn ship + quà (ngaydoi.js)
+      let qt = null; try { qt = qtetApply(data); } catch (e) { console.error('qtet', e.message); } // 🧧 Quà Tết đặt sớm: tặng 1 hũ ruốc (ngaydoi.js)
       const r = await saveOrder(x, data, {}); if (!r.dup && data.post) x.later(blogConv(x, data)); // 📰 khách đọc bài Góc Sống Lành trong 7 ngày trước khi đặt → đếm đơn cho bài (blog.js)
-      return { ok: true, id: data.id, dup: !!r.dup, total: data.total, dd };
+      return { ok: true, id: data.id, dup: !!r.dup, total: data.total, dd, qt };
     }
     catch (e) { if (await rescue(x, data, e)) return { ok: true, id: data.id, rescued: true }; throw e; }
   }

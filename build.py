@@ -2216,6 +2216,7 @@ QTET_PATH = "/qua-tet/"  # trang Quà Tết 2027 (11/11/2026, chiến dịch V-2
 QTET = {
     "sets": ["set-qua-tet-sum-vay", "set-qua-tet-bo-me-khoe", "set-qua-tet-tron-nam"],  # content/combos/*.json
     "until_far": "27/1/2027", "until_hn": "30/1/2027",  # hạn đặt: giao tỉnh / nội thành Hà Nội. Sau Tết: đặt published=false cho 3 set để tắt trang
+    "early_end": "2026-12-15", "early_gift": "1 hũ Ruốc Rong Biển Vị Sườn Non",  # 🧧 quà đặt sớm (anh Sơn chốt 11/11/2026): set từ 849k, đặt hết 15/12; máy chủ tự thêm quà (api/src/ngaydoi.js qtetApply)
     "tiers": [("10–29 set", "giảm thêm 5%"), ("30–49 set", "giảm thêm 8%"), ("Từ 50 set", "giảm thêm 10%")],
 }
 
@@ -2233,13 +2234,15 @@ def page_qtet():
     opts = "".join(f'<label><input type="radio" name="pack" value="{esc(x["name"])}"{" checked" if i == 1 else ""}><span><b>{esc(x.get("short_name") or x["name"])}</b><em>{vnd(x["price"])} / set</em></span></label>' for i, x in enumerate(sets))
     disc = "Bữa Ăn Dinh Dưỡng VitaGreen và Dinh Dưỡng Từ Hạt &amp; Curcumin là thực phẩm bổ sung. Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh."
     hero = img_url(sets[min(1, len(sets) - 1)]["images"][0], 900)
+    early = (f'<p class="qtet-early">🧧 <b>Quà đặt sớm:</b> đơn set quà Tết từ {vnd(849000)} (vd 1 set Bố Mẹ Khỏe) đặt đến hết 15/12 được tặng kèm <b>{esc(QTET["early_gift"])}</b>, đóng chung hộp.</p>'
+             if datetime.date.today().isoformat() <= QTET["early_end"] else "")
     body = f"""<div class="ocx qtet">
 <section class="ocx-band qtet-hero"><div class="ocx-wrap qtet-hg">
   <div class="ocx-stack">
     <span class="ocx-eye">Quà Tết 2027 · đặt trước {QTET["until_far"]}</span>
     <h1>Tết này biếu bố mẹ <span class="nw">một thói quen,</span> <span class="nw">không biếu thêm</span> <span class="nw">một món để dành</span></h1>
     <p class="ocx-lead">3 set quà Tết Sống khỏe chủ động: bữa sáng từ hạt, chén trà chè vằng Quảng Trị, xì dầu lên men 99 ngày. Món nào cũng dùng được hằng ngày, mở hộp là dùng ngay sáng mùng 1.</p>
-    <ul class="qtet-ticks"><li>Gửi thẳng tới bố mẹ, miễn phí giao hàng</li><li>Thiệp viết tay đúng lời bạn nhắn</li><li>Kiểm tra hàng trước khi trả tiền</li></ul>
+    {early}<ul class="qtet-ticks"><li>Gửi thẳng tới bố mẹ, miễn phí giao hàng</li><li>Thiệp viết tay đúng lời bạn nhắn</li><li>Kiểm tra hàng trước khi trả tiền</li></ul>
     <div class="ocx-cta"><a class="ocx-btn" href="#set" data-cta="qtet_hero_set">Chọn set quà, từ {vnd(lo)}</a><a class="ocx-btn ghost" href="#mua-chung" data-cta="qtet_hero_b2b">Mua cho hội, công ty</a></div>
   </div>
   <img class="qtet-hero-img" src="{hero}" alt="Set quà Tết Sống khỏe chủ động" width="600" height="600" fetchpriority="high">

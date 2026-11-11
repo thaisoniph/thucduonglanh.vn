@@ -2427,6 +2427,7 @@ body.ch-on .float-widget,body.ch-on .gd-btn,body.ch-on .bvb,body.ch-on .to-top{o
 .qtet-why>div{background:#fff;border-radius:var(--radius);padding:20px;display:flex;flex-direction:column;gap:8px;border:1px solid var(--ox-line)}
 .qtet-why b{color:var(--ox-leaf);font-size:1.05rem}
 .qtet-steps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:12px;max-width:760px}
+.qtet-early{margin:4px 0 12px;padding:10px 14px;background:#fff3e0;border:1px solid #f3c78a;border-radius:10px;font-size:.95rem}
 .qtet-dead{margin-top:20px!important;padding:14px 16px;background:var(--ox-tea-soft);border-radius:10px;max-width:760px}
 .qtet-tiers{margin:4px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
 .qtet .qtet-form{border:1px solid var(--ox-line)}

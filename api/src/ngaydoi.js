@@ -81,3 +81,17 @@ export async function ddApply(x, data) {
   cu.note = (cu.note ? cu.note + ' · ' : '') + '🎉 Ngày Đôi ' + day.label + ': ' + why.join(', ');
   return out;
 }
+
+/** 🧧 Quà Tết 2027 đặt sớm (anh Sơn chốt 11/11/2026, kế hoạch V-2026-11-024): đơn web có set Quà Tết (slug set-qua-tet-*) từ 849.000đ trở lên,
+ *  đặt trước 16/12/2026 (giờ Việt Nam) → tặng 1 hũ Ruốc Rong Biển Vị Sườn Non: thêm dòng quà vào đơn (giá 0) + ghi chú cho kho. Cộng dồn được với mã giảm giá và Ngày Đôi. */
+export const QT_EARLY_END = Date.UTC(2026, 11, 15, 17, 0, 0); // 00:00 ngày 16/12/2026 giờ Việt Nam
+export function qtetApply(data, now) {
+  if ((now || Date.now()) >= QT_EARLY_END) return null;
+  const items = Array.isArray(data.items) ? data.items : [];
+  const v = items.filter(i => i && !i.gift && /^set-qua-tet-/.test(String(i.slug || ''))).reduce((a, i) => a + (Number(i.subtotal) || (Number(i.price) || 0) * (Number(i.qty) || 1)), 0);
+  if (v < 849000) return null;
+  items.push({ name: 'Ruốc Rong Biển Vị Sườn Non', variant: 'Hũ 165g', qty: 1, price: 0, subtotal: 0, gift: true });
+  const cu = data.customer || (data.customer = {});
+  cu.note = (cu.note ? cu.note + ' · ' : '') + '🧧 Quà Tết đặt sớm (trước 16/12): tặng 1 hũ ruốc rong biển, nhớ đóng kèm';
+  return '1 hũ Ruốc Rong Biển Vị Sườn Non';
+}
