@@ -207,7 +207,7 @@ export async function rulesCfg(x) {
   const r = await kvJson(x.db, 'rules_cfg', {}) || {};
   return (x._rules = { vipOrders: Number(r.vipOrders) || VIP_ORDERS, vipSpent: Number(r.vipSpent) || VIP_SPENT, atRisk: Number(r.atRisk) || AT_RISK_DAYS, coolDays: r.coolDays !== undefined && r.coolDays !== '' ? Number(r.coolDays) : COOL_DAYS,
     shipDays: r.shipDays !== undefined && r.shipDays !== '' ? Number(r.shipDays) : SHIP_DAYS, shipFar: r.shipFar !== undefined && r.shipFar !== '' ? Number(r.shipFar) : SHIP_FAR, famMin: r.famMin !== undefined && r.famMin !== '' ? Number(r.famMin) : FAM_MIN,
-    poolDays: r.poolDays !== undefined && r.poolDays !== '' ? Number(r.poolDays) : POOL_DAYS, poolMax: r.poolMax !== undefined && r.poolMax !== '' ? Number(r.poolMax) : POOL_MAX, selfOn: r.selfOn ? 1 : 0 }); // selfOn: 10/11/2026 anh Sơn tạm ẩn mục Tự tạo khách tới sau họp sale, Quản trị bật ở Cài đặt
+    poolDays: r.poolDays !== undefined && r.poolDays !== '' ? Number(r.poolDays) : POOL_DAYS, poolMax: r.poolMax !== undefined && r.poolMax !== '' ? Number(r.poolMax) : POOL_MAX, selfOn: r.selfOn ? 1 : 0, poolOn: r.poolOn ? 1 : 0 }); // poolOn: 11/11/2026 anh Sơn tạm ẩn Kho chung (tự về kho + mục 🧺 của sale) tới sau họp sale. selfOn: 10/11/2026 anh Sơn tạm ẩn mục Tự tạo khách tới sau họp sale, Quản trị bật ở Cài đặt
 }
 export async function caCfg(x) { if (!x._ca) x._ca = await kvJson(x.db, 'ca_cfg', {}) || {}; return x._ca; }
 export async function assignMode(x) { if (!x._mode) x._mode = (await kvGet(x.db, 'assign_mode')) || 'pool'; return x._mode; }
@@ -556,7 +556,7 @@ async function loadSmall(x, u, R, mode, adV) {
     occ: saleDays(fmtDate(Date.now() - 864e5, 'yyyyMMdd'), 5), // 🎉 dịp chúc khách hôm qua → 3 ngày tới (zday.js), CRM tự lọc theo ngày
     contacts: ct.reverse().map(contactOut), targets: tg.map(t => ({ month: t.month, name: t.name, amount: t.amount || 0, selfN: t.self_n || 0, by: t.by_name || '', at: t.at })),
     cycles: cy.filter(r => r.name).map(r => [r.name, r.variant || '', Number(r.days) || 0, r.basis || '']), templates: tp.filter(r => r.text).map(r => [r.when_txt || '', r.purpose || '', r.text]),
-    rules: { backCost: Number(dash.backCost) || 0, ai: !!x.env.ANTHROPIC_API_KEY && u.role !== 'Marketing', vipOrders: R.vipOrders, vipSpent: R.vipSpent, atRisk: R.atRisk, coolDays: R.coolDays, shipDays: R.shipDays, shipFar: R.shipFar, famMin: R.famMin, poolDays: R.poolDays, poolMax: R.poolMax, selfOn: R.selfOn, otypes: OTYPES, commission, payplan, staffGuard, dash: u.level >= 3 || u.role === 'Marketing' || u.mkv || u.role === 'Kế toán' ? dash : null, ktCfg: await ktP, mktDoc, cost, opex, fin, ktLink: ktLink && ktLink.link ? ktLink : null, statuses: ORDER_STATUS, results: CARE_RESULTS, leadStatus: LEAD_STATUS, assignMode: mode, bot: BOT_USERNAME, ca, lines: LINES.map(l => l[0]).concat(['Khác']) }
+    rules: { backCost: Number(dash.backCost) || 0, ai: !!x.env.ANTHROPIC_API_KEY && u.role !== 'Marketing', vipOrders: R.vipOrders, vipSpent: R.vipSpent, atRisk: R.atRisk, coolDays: R.coolDays, shipDays: R.shipDays, shipFar: R.shipFar, famMin: R.famMin, poolDays: R.poolDays, poolMax: R.poolMax, selfOn: R.selfOn, poolOn: R.poolOn, otypes: OTYPES, commission, payplan, staffGuard, dash: u.level >= 3 || u.role === 'Marketing' || u.mkv || u.role === 'Kế toán' ? dash : null, ktCfg: await ktP, mktDoc, cost, opex, fin, ktLink: ktLink && ktLink.link ? ktLink : null, statuses: ORDER_STATUS, results: CARE_RESULTS, leadStatus: LEAD_STATUS, assignMode: mode, bot: BOT_USERNAME, ca, lines: LINES.map(l => l[0]).concat(['Khác']) }
   };
 }
 
@@ -980,7 +980,7 @@ const POOL_WHERE = "FROM leads WHERE status IN ('Mới hỏi', 'Đang tư vấn'
 /** Chạy theo lịch (25 phút / lần, giờ làm việc). Bước 1: số đã báo trước ≥ 20 tiếng mà vẫn chưa chốt / chưa hẹn → về kho, báo người giữ cũ + nhóm Telegram. Bước 2: số sắp quá hạn (còn ≤ 1 ngày) → báo riêng người đang giữ 1 lần. */
 export async function poolTick(x) {
   if (await assignMode(x) !== 'pool') return;
-  const R = await rulesCfg(x), N = R.poolDays; if (!N) return;
+  const R = await rulesCfg(x), N = R.poolDays; if (!N || !R.poolOn) return; // tắt Kho chung (Cài đặt) → không báo, không trả số về kho
   const now = Date.now(), fresh = now - POOL_FRESH * DAY, cbLim = now - DAY;
   const users = await crmUsers(x), tgOf = n => { const y = users.find(z => z.name === n && z.active); return y && y.tg; };
   const line = l => '• ' + (l.name || 'Khách') + ' – ' + l.phone + (l.interest ? ' · ' + String(l.interest).slice(0, 40) : '') + ' (hỏi ' + fmtDate(l.time, 'dd/MM') + ')';
@@ -1668,14 +1668,15 @@ async function crmSettings(x, u, d) {
     return { ok: true, rules: R };
   }
   if (d.pool) { // 🧺 Kho chung (09/11/2026): số công ty giao quá N ngày chưa chốt tự về kho; mỗi người nhận tối đa M số / ngày
-    const cur = await rulesCfg(x), R = Object.assign({}, cur, { poolDays: Math.min(60, Math.max(0, Math.round(Number(d.pool.days) || 0))), poolMax: Math.min(100, Math.max(0, Math.round(Number(d.pool.max) || 0))) });
+    const cur = await rulesCfg(x), R = Object.assign({}, cur, { poolDays: Math.min(60, Math.max(0, Math.round(Number(d.pool.days) || 0))), poolMax: Math.min(100, Math.max(0, Math.round(Number(d.pool.max) || 0))), poolOn: d.pool.on === undefined ? cur.poolOn : (d.pool.on ? 1 : 0) });
+    if (d.pool.on !== undefined && u.level < 3) return { ok: false, error: 'Chỉ Quản trị bật / tắt được Kho chung.' };
     await kvSet(x.db, 'rules_cfg', JSON.stringify(R)); x._rules = null;
-    await crmLog(x, u, 'Cài đặt', '-', '', R.poolDays ? 'Khách hỏi quá ' + R.poolDays + ' ngày chưa chốt → về Kho chung; nhận tối đa ' + (R.poolMax || 'không giới hạn') + ' số / ngày' : 'Tắt tự về Kho chung', '');
+    await crmLog(x, u, 'Cài đặt', '-', '', (R.poolOn ? '🧺 Kho chung BẬT · ' : '🧺 Kho chung ĐANG ẨN · ') + (R.poolDays ? 'Khách hỏi quá ' + R.poolDays + ' ngày chưa chốt → về Kho chung; nhận tối đa ' + (R.poolMax || 'không giới hạn') + ' số / ngày' : 'Tắt tự về Kho chung'), '');
     return { ok: true, rules: R };
   }
   if (d.rules) {
     const cur = await rulesCfg(x);
-    const R = { poolDays: cur.poolDays, poolMax: cur.poolMax, selfOn: cur.selfOn, vipOrders: Math.max(1, Math.round(Number(d.rules.vipOrders) || VIP_ORDERS)), vipSpent: Math.max(0, Math.round(Number(d.rules.vipSpent) || VIP_SPENT)), atRisk: Math.max(7, Math.round(Number(d.rules.atRisk) || AT_RISK_DAYS)),
+    const R = { poolDays: cur.poolDays, poolMax: cur.poolMax, selfOn: cur.selfOn, poolOn: cur.poolOn, vipOrders: Math.max(1, Math.round(Number(d.rules.vipOrders) || VIP_ORDERS)), vipSpent: Math.max(0, Math.round(Number(d.rules.vipSpent) || VIP_SPENT)), atRisk: Math.max(7, Math.round(Number(d.rules.atRisk) || AT_RISK_DAYS)),
       coolDays: d.rules.coolDays === undefined || d.rules.coolDays === '' ? (await rulesCfg(x)).coolDays : Math.min(60, Math.max(0, Math.round(Number(d.rules.coolDays) || 0))),
       shipDays: d.rules.shipDays === undefined || d.rules.shipDays === '' ? (await rulesCfg(x)).shipDays : Math.min(15, Math.max(0, Math.round(Number(d.rules.shipDays) || 0))),
       shipFar: d.rules.shipFar === undefined || d.rules.shipFar === '' ? (await rulesCfg(x)).shipFar : Math.min(15, Math.max(0, Math.round(Number(d.rules.shipFar) || 0))),

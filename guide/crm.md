@@ -216,6 +216,8 @@ Khách để lại số trên web hay quảng cáo thì **tự vào đây**, b�
 
 **Số giữ quá 30 ngày chưa chốt thì về Kho chung (từ 09/11/2026):**
 
+> 🙈 **Phần này đang tạm tắt.** Công ty sẽ họp phổ biến và thống nhất mốc ngày rồi mới bật. Trong lúc chờ, bạn không thấy mục 🧺 Kho chung, và không số nào của bạn bị chuyển về kho.
+
 Đôi khi mình chưa chốt được nhưng bạn khác lại hợp với khách hơn. Vì vậy số khách hỏi do **công ty giao** (file số quảng cáo, web, quản lý giao) mà bạn giữ **quá 30 ngày chưa chốt và không có lịch hẹn** sẽ tự về **Kho chung** để cả phòng cùng khai thác. Mốc 30 ngày là tạm, phòng kinh doanh họp thống nhất rồi quản lý chỉnh lại ở Cài đặt.
 
 1. **Trước 1 ngày**, Telegram báo riêng cho bạn: *"⏳ Ngày mai về Kho chung"* kèm danh sách. Trên thẻ khách hỏi cũng hiện nhãn **⏳ còn 1 ngày về Kho chung**.

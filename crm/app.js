@@ -1460,7 +1460,7 @@
     // 30/10/2026 thứ tự theo tiền: đơn mới → khách vừa hỏi → chăm sóc (hẹn, sắp hết) → khách hỏi → 🌱 giới thiệu (tiền về sau, xây nguồn khách không tốn quảng cáo)
     h += refThanksBlock(); // 🎁 bạn bè khách cũ đã đặt → báo voucher / quà cảm ơn người giới thiệu
     h += ambBlock(q.list.reduce(function (m, c) { m[c.phone] = 1; return m; }, {}), hot.length ? '5️⃣' : '4️⃣');
-    if (isPoolStaff()) h += poolBlock(); // 🧺 việc dự phòng khi hết số quảng cáo: số chưa ai chốt, ai nhận cũng được
+    if (isPoolStaff() && poolOn()) h += poolBlock(); // 🧺 việc dự phòng khi hết số quảng cáo: số chưa ai chốt, ai nhận cũng được
     if (lvl() < 2 && !isMkt() && selfOn()) h += idleBlock(); // 🔎 hết số quảng cáo thì làm gì: 4 việc tự tạo khách (Quản trị bật ở Cài đặt → Tự tạo khách)
 
     if (doneToday.length) h += '<section class="section"><details class="grp" data-grp="done"' + (S.f.gopen && S.f.gopen.done ? ' open' : '') + '><summary><span class="g-t">✅ Đã làm hôm nay</span><span class="count">' + doneToday.length + '</span></summary><div class="timeline" style="padding:12px">' +
@@ -3474,6 +3474,7 @@
     (S.d.leads || []).forEach(function (l) { if (l.time < R[0] || l.time >= R[1]) return; if (l.refPhone || l.refName) { if (l.owner === name) b++; } else if (l.by === name && selfLead(l)) a++; });
     return { n: a + b, self: a, ref: b };
   }
+  function poolOn() { return !!(S.d && S.d.rules && S.d.rules.poolOn); } // 11/11/2026: Kho chung (mục 🧺 của sale, nhãn ⏳, tự về kho) ẩn tới khi Quản trị bật (sau họp sale)
   function selfOn() { return !!(S.d && S.d.rules && S.d.rules.selfOn); } // 10/11/2026: mục Tự tạo khách ẩn tới khi Quản trị bật (sau họp sale)
   function selfLine(name, month, t) {
     if (!t || !t.selfN || !selfOn()) return '';
@@ -3487,12 +3488,12 @@
       .sort(function (a, b) { return (a.lastAt || a.time) - (b.lastAt || b.time); });
   }
   function idleBlock() {
-    var me = S.user.name, pool = isPoolStaff() ? (S.d.leads || []).filter(function (l) { return !l.owner && isOpenLead(l); }).length : 0, idle = idleLeads(me), amb = 0;
+    var me = S.user.name, pool = isPoolStaff() && poolOn() ? (S.d.leads || []).filter(function (l) { return !l.owner && isOpenLead(l); }).length : 0, idle = idleLeads(me), amb = 0;
     try { rbData(); var A = ambList(); amb = A ? A.list.length : 0; } catch (e) { amb = 0; }
     var row = function (icon, t, sub, act) { return '<div class="idle-r"><span class="idle-i">' + icon + '</span><span class="idle-t"><b>' + t + '</b><small class="muted">' + sub + '</small></span><span class="idle-a">' + act + '</span></div>'; };
     var PP = (S.d.rules && S.d.rules.payplan) || {}, ownTxt = PP.own && ppOn() ? ' · khách bạn tự mang về: hoa hồng <b>' + PP.own + '%</b> mọi đơn trong ' + (PP.ownMonths || 6) + ' tháng' : '';
     return '<section class="section idle"><div class="section-h"><h2>🔎 Hết số quảng cáo? Tự tạo khách</h2><span class="tip">việc nào cũng ra đơn mà không tốn tiền quảng cáo' + ownTxt + '</span></div><div class="box">' +
-      (isPoolStaff() ? row('🧺', 'Kho chung: ' + pool + ' số chưa ai chốt', 'số người khác giữ quá hạn · đọc lịch sử rồi thử cách khác', pool ? '<button class="btn sm" data-gopen="pool">Xem kho</button>' : '<span class="muted small">đang trống</span>') : '') +
+      (isPoolStaff() && poolOn() ? row('🧺', 'Kho chung: ' + pool + ' số chưa ai chốt', 'số người khác giữ quá hạn · đọc lịch sử rồi thử cách khác', pool ? '<button class="btn sm" data-gopen="pool">Xem kho</button>' : '<span class="muted small">đang trống</span>') : '') +
       row('😴', 'Gọi lại khách hỏi cũ: ' + idle.length + ' người', '“Không mua” 1,5–6 tháng trước · mở lời bằng lý do mới: sản phẩm mới, ưu đãi tháng này', idle.length ? '<button class="btn sm" data-gopen="idle">Xem danh sách</button>' : '<span class="muted small">chưa có</span>') +
       row('🌱', 'Mời khách cũ giới thiệu: ' + amb + ' khách', 'khách vừa dùng 7–30 ngày · hỏi cảm nhận rồi mời (mục 🌱 Mời làm Đại sứ ở trên)', amb ? '<button class="btn sm" data-gopen="amb">Xem mục 🌱</button>' : '<span class="muted small">chưa có</span>') +
       row('🔗', 'Đăng bài, gửi Zalo link riêng của bạn', 'khách vào qua link rồi đặt trong 30 ngày thì đơn tính cho bạn', '<button type="button" class="btn sm" data-copy="' + esc(refLink(me)) + '">📋 Copy link</button>') + '</div>' +
@@ -3509,7 +3510,7 @@
   /** Nhãn trên thẻ khách hỏi: người đang giữ thấy đếm ngược (còn ≤ 2 ngày); số đã về kho ghi “↩ từ …” để người nhận biết đọc lịch sử. */
   function poolTag(l) {
     var R = S.d.rules || {}, N = R.poolDays;
-    if (!isOpenLead(l) || mode() !== 'pool') return '';
+    if (!isOpenLead(l) || mode() !== 'pool' || !poolOn()) return '';
     if (!l.owner) return l.poolFrom ? '<span class="tag pool" title="' + esc(l.poolFrom) + ' giữ số này quá ' + N + ' ngày chưa chốt nên số về Kho chung. Đọc lịch sử tư vấn bên dưới rồi thử cách khác.">↩ từ ' + esc(l.poolFrom) + (l.poolN > 1 ? ' · vòng ' + l.poolN : '') + '</span>' : '';
     if (!N || !poolApplies(l)) return '';
     var cb = l.callback && l.callback > Date.now() - DAY, left = N - Math.floor((Date.now() - (l.ownAt || l.time)) / DAY);
@@ -3577,7 +3578,7 @@
   function provNames() { var o = {}; Object.keys(PROV_MERGE).forEach(function (nw) { o[nw] = 1; PROV_MERGE[nw].forEach(function (x) { if (!/^(HCM|TPHCM|TP HCM|HN|HP|Kontum|Daklak|Đaklak|Đăk .*|Dak .*|Bắc Cạn)$/.test(x)) o[x] = 1; }); }); return Object.keys(o).sort(function (a, b) { return a.localeCompare(b, 'vi'); }); }
   function leadsCountText(base) { var f = S.f.t || {}; if (f.q && f.q.trim()) return searchCount(base.length, 'khách hỏi', f.q.trim()); return base.length + ' lượt hỏi · ' + base.filter(isOpenLead).length + ' người đang theo dõi (chưa mua)'; }
   function renderLeadsChips(base, cur) {
-    return LF.filter(function (x) { return x.k === 'mine' ? lvl() < 2 && !isMkt() : x.k === 'nogiao' ? lvl() >= 2 || isMkt() : x.k === 'pool' ? isPoolStaff() : true; }).map(function (x) {
+    return LF.filter(function (x) { return x.k === 'mine' ? lvl() < 2 && !isMkt() : x.k === 'nogiao' ? lvl() >= 2 || isMkt() : x.k === 'pool' ? isPoolStaff() && poolOn() : true; }).map(function (x) {
       var n = base.filter(x.f).length; if ((x.k === 'noorder' || x.k === 'nogiao') && !n && cur.k !== x.k) return '';
       return '<button class="chip' + (x.k === cur.k ? ' on' : '') + '" data-tf="' + esc(x.k) + '">' + x.l + ' <em>' + n + '</em></button>';
     }).join('');
@@ -9838,7 +9839,7 @@
       '<div class="f"><span style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--ink)">Khách mới được giao thế nào?</span>' +
       Object.keys(MODE_INFO).map(function (k) { return '<label class="mode"><input type="radio" name="amode" value="' + k + '"' + (k === md ? ' checked' : '') + '><span><b>' + MODE_INFO[k][0] + '</b>' + MODE_INFO[k][1] + '</span></label>'; }).join('') + '</div>' +
       '<button class="btn pri" id="modeSave">Lưu cách chia khách</button>' +
-      '<h3 style="margin:18px 0 8px">⏳ Số chưa chốt tự về Kho chung</h3><p class="hint" style="margin:0 0 8px">Khách hỏi do <b>công ty giao</b> (file số quảng cáo, web, quản lý giao) mà sale giữ quá số ngày dưới đây <b>chưa chốt và không có lịch hẹn</b> → tự về Kho chung, cả phòng thấy và ai cũng nhận được. Sale được báo Telegram <b>trước 1 ngày</b>. Không áp dụng cho khách sale tự tìm, khách do khách cũ giới thiệu, file cũ. Mỗi số về kho tối đa 2 lần. Ai chốt thì người đó được tính doanh số.</p>' +
+      '<h3 style="margin:18px 0 8px">⏳ Số chưa chốt tự về Kho chung</h3>' + (lvl() >= 3 ? '<label class="switch" style="margin:0 0 8px"><input type="checkbox" id="poolOn"' + (R.poolOn ? ' checked' : '') + '> <b>Bật Kho chung</b> (sale thấy mục 🧺 Kho chung, nhãn ⏳, máy tự trả số quá hạn về kho). Đang tắt thì ẩn hết, không số nào bị trả về kho.</label>' : (R.poolOn ? '' : '<p class="hint" style="margin:0 0 8px">🙈 Kho chung đang ẩn với sale (Quản trị bật sau khi họp).</p>')) + '<p class="hint" style="margin:0 0 8px">Khách hỏi do <b>công ty giao</b> (file số quảng cáo, web, quản lý giao) mà sale giữ quá số ngày dưới đây <b>chưa chốt và không có lịch hẹn</b> → tự về Kho chung, cả phòng thấy và ai cũng nhận được. Sale được báo Telegram <b>trước 1 ngày</b>. Không áp dụng cho khách sale tự tìm, khách do khách cũ giới thiệu, file cũ. Mỗi số về kho tối đa 2 lần. Ai chốt thì người đó được tính doanh số.</p>' +
       '<div class="row2c"><label class="f"><span>Về Kho chung sau bao nhiêu ngày (0 = tắt)</span><input type="number" id="poolDays" min="0" max="60" value="' + esc(R.poolDays === undefined ? 30 : R.poolDays) + '"></label>' +
       '<label class="f"><span>Mỗi người nhận từ kho tối đa (số / ngày, 0 = không giới hạn)</span><input type="number" id="poolMax" min="0" max="100" value="' + esc(R.poolMax === undefined ? 10 : R.poolMax) + '"></label></div>' +
       '<button class="btn pri" id="poolSave">Lưu luật Kho chung</button>' +
@@ -9885,7 +9886,7 @@
     var act = (S.d.users || []).filter(function (u) { return u.active !== false; }), mk = act.filter(function (u) { return u.role === 'Marketing'; }).length, recvN = staff.filter(function (u) { return u.recv; }).length;
     var GQ = setGroup('gq', '✨ Nhân sự hỏi gì ở trang hướng dẫn', 'Xem câu nhân sự hỏi trợ lý · câu nào hướng dẫn chưa có thì nên viết thêm', '<div id="gqBox"><p class="hint" style="margin:0 0 10px">Ở trang <a href="/huong-dan/" target="_blank" rel="noopener">Hướng dẫn</a>, nhân sự gõ câu hỏi vào ô 🔍 Tìm rồi bấm <b>✨ Hỏi trợ lý An Lành</b>. Câu nào trợ lý báo <b>“hướng dẫn chưa có”</b> thì nên viết thêm vào hướng dẫn.</p><button class="btn" id="gqLoad">Xem câu đã hỏi</button></div>');
     h += setSec('👥 Nhân sự', 'Ai được vào CRM, được làm gì; nhân sự đang thắc mắc gì.', (G.us ? setGroup('us', '🧑‍💼 Ai được vào CRM', act.length + ' người đang dùng' + (mk ? ' · ' + mk + ' marketing' : '') + ' · thêm / khoá người, đổi quyền', G.us) : '') + GQ);
-    h += setSec('🤝 Chia khách', 'Khách mới giao cho ai, xử lý khách trùng hoặc dùng nhiều số.', setGroup('mode', '🔀 Khách mới giao cho ai', MODE_INFO[md][0] + (md === 'pool' && R.poolDays ? ' · quá ' + R.poolDays + ' ngày chưa chốt → về kho' : '') + ' · ' + recvN + ' người nhận khách mới' + (noOwner ? ' · ⚠️ ' + noOwner + ' khách chưa ai phụ trách' : ''), G.mode) +
+    h += setSec('🤝 Chia khách', 'Khách mới giao cho ai, xử lý khách trùng hoặc dùng nhiều số.', setGroup('mode', '🔀 Khách mới giao cho ai', MODE_INFO[md][0] + (md === 'pool' ? (!R.poolOn ? ' · 🙈 Kho chung đang ẩn' : R.poolDays ? ' · quá ' + R.poolDays + ' ngày chưa chốt → về kho' : '') : '') + ' · ' + recvN + ' người nhận khách mới' + (noOwner ? ' · ⚠️ ' + noOwner + ' khách chưa ai phụ trách' : ''), G.mode) +
       (lvl() >= 3 ? setGroup('self', '🔎 Tự tạo khách (tab Hôm nay của sale)', selfOn() ? '✅ Đang hiện cho sale' : '🙈 Đang ẩn · bật sau khi họp thống nhất', G.self) : '') +
       setGroup('dup', '👯 Khách trùng sale', 'Khách có ở file của 2 sale: chọn 1 người giữ', G.dup) +
       setGroup('mrg', '🔗 Khách dùng nhiều số', '1 khách mua bằng 2–3 số: gộp về 1 hồ sơ', G.mrg));
@@ -10046,7 +10047,7 @@
     };
     if ($('#poolSave')) $('#poolSave').onclick = function () {
       var b = this; b.disabled = true;
-      api('settings', { pool: { days: $('#poolDays').value, max: $('#poolMax').value } }).then(function (j) { Object.assign(S.d.rules, j.rules); toast(j.rules.poolDays ? 'Đã lưu: quá ' + j.rules.poolDays + ' ngày chưa chốt thì về Kho chung ✓' : 'Đã tắt tự về Kho chung'); render(); }, function (e) { toast(e.message, true); b.disabled = false; });
+      api('settings', { pool: Object.assign({ days: $('#poolDays').value, max: $('#poolMax').value }, $('#poolOn') ? { on: $('#poolOn').checked } : {}) }).then(function (j) { Object.assign(S.d.rules, j.rules); toast(!j.rules.poolOn ? 'Đã lưu · Kho chung đang ẩn với sale' : j.rules.poolDays ? 'Đã lưu: quá ' + j.rules.poolDays + ' ngày chưa chốt thì về Kho chung ✓' : 'Đã tắt tự về Kho chung'); render(); }, function (e) { toast(e.message, true); b.disabled = false; });
     };
     if ($('#sgSave')) $('#sgSave').onclick = function () {
       var b = this, L = $('#sgTxt').value.split('\n').map(function (ln) { var a = ln.split('|').map(function (z) { return z.trim(); }); return { full: a[0] || '', phone: a[1] || '', acct: a[2] || '' }; }).filter(function (r) { return r.full || r.phone || r.acct; }); b.disabled = true;
