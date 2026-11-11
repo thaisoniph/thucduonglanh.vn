@@ -259,7 +259,7 @@
     if (!CFG.endpoint) return Promise.reject(new Error('Chưa cấu hình máy chủ.'));
     tries = tries || 0; var t0 = Date.now();
     // chờ tối đa 30 giây (việc nặng của quản trị 90 giây) rồi báo, không để vòng quay mãi (16/10/2026)
-    var ac = typeof AbortController === 'function' ? new AbortController() : null, wait = action === 'ai_ask' ? 180e3 : /^(ins_(video|import|find|offer)|zb_(regen|plan_make|plan_redo))$/.test(action) ? 180e3 : API_HEAVY.test(action) ? 90e3 : 30e3, tm = ac && setTimeout(function () { ac.abort(); }, wait);
+    var ac = typeof AbortController === 'function' ? new AbortController() : null, wait = action === 'ai_ask' ? 180e3 : /^(ins_(video|import|find|offer|big)|zb_(regen|plan_make|plan_redo))$/.test(action) ? 180e3 : API_HEAVY.test(action) ? 90e3 : 30e3, tm = ac && setTimeout(function () { ac.abort(); }, wait);
     return fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), signal: ac ? ac.signal : undefined })
       .then(function (r) { clearTimeout(tm); return r.text().then(function (t) { return { t: t, st: r.status }; }); }, function (er) { clearTimeout(tm); var slow = er && er.name === 'AbortError', e0 = new Error(slow ? 'Máy chủ trả lời chậm quá ' + (wait / 1000) + ' giây. Bạn kiểm tra mạng rồi bấm lại nhé.' : 'Mất kết nối mạng. Bạn thử lại nhé.'); e0.net = true; throw e0; })
       .then(function (x) {
@@ -6571,7 +6571,8 @@
   function inTag(o) {
     if (typeof o === 'string') { try { o = JSON.parse(o || '{}'); } catch (e) { o = {}; } }
     if (!o || !(o.gn || o.t)) return '';
-    return '<p class="small inx-tag">' + (o.is ? '🔎 <b>Issue:</b> ' + esc(o.is) + '<br>' : '') + '🎯 <b>' + esc(o.gn || 'Nhóm khách') + '</b>' + (o.t ? ' · ' + esc(o.t) : '') + (o.i ? '<br><span class="muted">💭 “' + esc(o.i) + '”</span>' : '') + (o.d ? '<br>💡 <b>Idea:</b> ' + esc(o.d) : '') +
+    return '<p class="small inx-tag">' + (o.is ? '🔎 <b>Issue:</b> ' + esc(o.is) + '<br>' : '') + '🎯 <b>' + esc(o.gn || 'Nhóm khách') + '</b>' + (o.t ? ' · ' + esc(o.t) : '') + (o.i ? '<br><span class="muted">💭 “' + esc(o.i) + '”</span>' : '') + (o.d ? '<br>💡 <b>Idea:</b> ' + esc(o.d) : '') + (o.b ? '<br>🌟 <b>Big idea:</b> ' + esc(o.b) : '') + (o.a ? '<br>🎭 <b>Góc kể:</b> ' + esc(o.a) : '') +
+      (o.v && o.v.length ? '<br><span class="inx-warn">✍️ Văn còn giống AI: <b>' + esc(o.v.join(', ')) + '</b> (sửa cho liền mạch, dùng dấu phẩy thay chuỗi câu ngắn chấm liên tục)</span>' : '') +
       (o.w && o.w.length ? '<br><span class="inx-warn">⚠️ Đọc lại: <b>' + esc(o.w.join(', ')) + '</b> (cụm dễ phạm luật quảng cáo: chỉ giữ nếu đúng hồ sơ công bố hoặc là câu phủ định; số 0896 869 333 là hotline cũ, đổi thành 0966 326 522)</span>' : '') + '</p>';
   }
   /** Hỏi trước khi viết lại (Zalo, Fanpage): ý kiến + nhóm khách. cb(hint, grp) */
@@ -6626,6 +6627,8 @@
     h += '<details class="zb-info small"><summary>ⓘ Quy trình 4Is: Issue → Insight → Idea → Implementation (khoá content K133)</summary><ol>' +
       '<li><b>🔎 Issue</b>: 1 vấn đề cụ thể quan sát được của nhóm khách trong 1 cảnh (vd "2 giờ sáng cho con bú, khát mà không ai đun nước"). <b>🎯 Insight</b>: vì sao họ kẹt = tension. <b>💡 Idea</b>: góc tiếp cận gỡ tension. <b>✍️ Implementation</b>: viết đúng kênh, đúng tầng phễu. Thẻ bài ghi đủ 3 dòng 🔎 🎯 💡 để người duyệt kiểm tra.</li>' +
       '<li><b>Insight là tension</b>: thế giằng co khi điều khách <b>mong</b> va vào <b>rào cản</b> trong 1 cảnh đời cụ thể. Ví dụ: “Biết phải ăn sáng đủ chất ↔ sáng nào cũng vội, ăn tạm hoặc bỏ bữa”.</li>' +
+      '<li><b>🌟 Big idea → 🎭 góc kể</b> (khoá K131): mỗi nhóm khách nên có 1 ý lớn chạy 2–4 tuần để mọi kênh nói nhất quán; big idea chia thành ~10 góc kể (người trong cuộc, hai trường phái, xoá hiểu lầm, hướng dẫn, khoảnh khắc…), mỗi bài 1 góc, trợ lý tự xoay vòng góc ít dùng nhất. Chưa có big idea thì trợ lý tự chọn góc kể khác góc vừa dùng. Bài nhận biết (TOFU) không xoay quanh sản phẩm.</li>' +
+      '<li><b>✍️ Văn như người Việt viết</b>: trợ lý tự bỏ dấu gạch ngang dài (—); thẻ bài báo ✍️ khi còn chuỗi câu vụn chấm liên tục hoặc cảm thán sáo đầu câu để người duyệt sửa.</li>' +
       '<li>Mỗi bài chỉ nói với <b>1 nhóm khách</b> và gỡ <b>1 tension</b>: cắt bỏ, giảm (thời gian, tiền, công sức, rủi ro), đi vòng rào cản hoặc đổi cách nhìn. Không hù doạ, không hứa sai sự thật.</li>' +
       '<li><b>🔵 TOFU</b>: giá trị nằm ở chính nội dung (kiến thức, mẹo, câu chuyện), đạt 3/4 "4 MỚI" (mới, chưa ai nói, có giá trị, áp dụng ngay), không để tên sản phẩm ở tiêu đề. <b>⚪ MOFU</b>: giá trị là uy tín (nguồn gốc, nhà máy, kiểm nghiệm, hồ sơ công bố, so sánh thật, cảm nhận khách thật). <b>🟠 BOFU</b>: giá trị nằm ở sản phẩm, ưu đãi thật.</li>' +
       '<li>Khi viết, AI dùng thêm các công cụ của khoá K133: insight dạng <i>"tôi cần cách [điều mong] mà không phải [rào cản]"</i>, 1 động lực chính (nhu cầu, hình ảnh bản thân, nỗi đau, nỗi lo, kết quả, tò mò), 10 kiểu hook, nhịp C.A.R.E (nhân vật, cảm xúc, lối thoát, mời tương tác), "chạm cảm xúc trước, thông tin sau" và công thức hợp từng tầng (TOFU: Star–Story–Solution, Open Loop, 1-2-3 · MOFU: BAB, QUEST, FAB · BOFU: Value Stack, AIDA, PAS).</li>' +
@@ -6661,12 +6664,27 @@
       return '<div class="box inx-g' + (g.on ? '' : ' bw-off') + '"><div class="zb-ph"><b>' + esc(g.name) + '</b><span class="zb-due">' + (g.on ? '🟢 Đang dùng' : '⏸ Tạm tắt') + '</span></div>' +
         (g.who ? '<p class="small">' + esc(g.who) + '</p>' : '') + (g.want ? '<p class="small"><b>💚 Mong muốn:</b> ' + esc(g.want) + '</p>' : '') + (g.block ? '<p class="small"><b>🧱 Rào cản:</b> ' + esc(g.block) + '</p>' : '') +
         ((g.prods || []).length ? '<p class="small"><b>🏷 Sản phẩm hợp:</b> ' + esc(g.prods.map(inSpName).join(', ')) + '</p>' : '') +
-        '<p class="small"><b>⚡ Tension</b> (mong muốn ↔ rào cản):</p><ul class="small inx-tl">' + g.tensions.map(function (t) { return '<li>' + inTenHtml(t) + '</li>'; }).join('') + '</ul>' + (g.note ? '<p class="small muted">📝 ' + esc(g.note) + '</p>' : '') +
+        '<p class="small"><b>⚡ Tension</b> (mong muốn ↔ rào cản):</p><ul class="small inx-tl">' + g.tensions.map(function (t) { return '<li>' + inTenHtml(t) + '</li>'; }).join('') + '</ul>' + inBigHtml(g) + (g.note ? '<p class="small muted">📝 ' + esc(g.note) + '</p>' : '') +
         (ed ? '<div class="lq-btns"><button class="btn sm" data-in="ged|' + i + '">✏️ Sửa</button><button class="btn sm ghost" data-in="gon|' + i + '">' + (g.on ? '⏸ Tạm tắt' : '▶️ Bật lại') + '</button><button class="btn sm ghost" data-in="gdel|' + i + '">🗑 Xoá</button></div>' : '') + '</div>';
     }).join('');
     if (ed) h += '<div class="lq-btns"><button class="btn pri" data-in="imp">📥 Dán kết quả skill</button><button class="btn" data-in="gnew">➕ Thêm nhóm khách</button>' + (j.custom ? '<button class="btn ghost" data-in="reset">↩️ Dùng lại bản mặc định</button>' : '') + '</div>';
     h += inProdHtml(bank);
     return h;
+  }
+  /** 🌟 big idea của nhóm (khoá K131): khối đầu đang bật = đang chạy, trợ lý xoay vòng 10 góc kể của nó; các khối sau để dành */
+  function inBigHtml(g) {
+    var B = g.bigs || []; if (!B.length) return '<p class="small muted">🌟 Chưa có big idea: trợ lý tự chọn góc kể từng bài. Bấm ✏️ Sửa → ✨ AI gợi ý big idea để cả 4 kênh nói nhất quán.</p>';
+    return B.map(function (b, k) {
+      var run = b.on && k === B.findIndex(function (v) { return v.on && v.ang.length; });
+      return '<details class="small inx-big"' + (run ? ' open' : '') + '><summary>🌟 <b>' + esc(b.t) + '</b> ' + (run ? '<span class="zb-due">▶️ Đang chạy</span>' : '<span class="muted">· để dành</span>') + ' <span class="muted">· ' + b.ang.length + ' góc kể</span></summary><ol>' + b.ang.map(function (a) { return '<li>' + esc(a) + '</li>'; }).join('') + '</ol></details>';
+    }).join('');
+  }
+  function inBigTxt(B) { return (B || []).map(function (b) { return b.t + '\n' + b.ang.map(function (a) { return '- ' + a; }).join('\n'); }).join('\n\n'); }
+  function inBigParse(txt, run) {
+    return String(txt || '').split(/\n\s*\n/).map(function (blk, k) {
+      var L = blk.split('\n').map(function (v) { return v.trim(); }).filter(Boolean), t = (L.shift() || '').replace(/^🌟\s*/, '').replace(/^[-•*]\s*/, '');
+      return { t: t, ang: L.map(function (v) { return v.replace(/^[-•*\d.)\s]+/, ''); }).filter(Boolean), on: run && k === 0 };
+    }).filter(function (b) { return b.t; });
   }
   function inSave(groups, msg) {
     return api('ins_save', { groups: groups }).then(function (r) { IN.d.bank = r.bank; IN.d.custom = true; toast(msg); render(); }, function (e) { toast(e.message, true); });
@@ -6804,12 +6822,24 @@
       '<label class="f"><span>🧱 Rào cản <small class="muted">tiền, thời gian, thói quen, người khác, nỗi sợ…</small></span><textarea id="inGb" rows="2">' + esc(g.block || '') + '</textarea></label>' +
       '<p class="small" style="margin:8px 0 2px"><b>🏷 Sản phẩm hợp với nhóm</b></p><div class="inx-aud">' + Object.keys((IN.d && IN.d.sp) || {}).map(function (k) { var c = IN.d.sp[k][0]; return '<label class="zb-ck"><input type="checkbox" data-ingp="' + esc(c) + '"' + ((g.prods || []).indexOf(c) >= 0 ? ' checked' : '') + '><span>' + esc(IN.d.sp[k][1]) + '</span></label>'; }).join('') + '</div>' +
       '<label class="f"><span>⚡ Tension <small class="muted">mỗi dòng 1 cái, dạng “Muốn … ↔ nhưng …”. Tension chỉ hợp 1 sản phẩm thì thêm cuối dòng <code>[SP: ' + Object.keys((IN.d && IN.d.sp) || {}).join(' / ') + ']</code>; không ghi = dùng chung</small></span><textarea id="inGt" rows="7" placeholder="Muốn ăn sáng đủ chất ↔ sáng nào cũng vội, ăn tạm hoặc bỏ bữa">' + esc((g.tensions || []).join('\n')) + '</textarea></label>' +
+      '<label class="f"><span>🌟 Big idea và góc kể <small class="muted">ý lớn chạy 2–4 tuần cho nhóm này. Dòng đầu là big idea, mỗi dòng sau bắt đầu bằng “-” là 1 góc kể (1 bài). Nhiều big idea thì cách nhau 1 dòng trống: <b>cái đầu tiên đang chạy</b>, các cái sau để dành (muốn đổi thì kéo lên đầu). Để trống = trợ lý tự chọn góc kể từng bài.</small></span><textarea id="inGbi" rows="8" placeholder="Bà vẫn đúng, mẹ vẫn được nghỉ&#10;- Hai trường phái: bà dặn uống nước lá ↔ mạng bảo kiêng, nghe ai?&#10;- Khoảnh khắc: 2 giờ sáng, một tay bế con, cốc nước ấm&#10;…">' + esc(inBigTxt(g.bigs)) + '</textarea></label>' +
+      '<div class="lq-btns" style="margin-top:-4px"><button class="btn sm" type="button" id="inGbiAi">✨ AI gợi ý big idea</button><label class="switch small"><input type="checkbox" id="inGbiOn"' + (!(g.bigs || []).length || (g.bigs || []).some(function (b) { return b.on; }) ? ' checked' : '') + '> Chạy big idea đầu tiên</label></div>' +
       '<label class="f"><span>📝 Ghi chú cho trợ lý <small class="muted">không bắt buộc: nên nói gì, tránh gì</small></span><textarea id="inGo" rows="2">' + esc(g.note || '') + '</textarea></label>' +
       '<label class="switch"><input type="checkbox" id="inGon"' + (g.on !== false ? ' checked' : '') + '> Đang dùng (trợ lý viết cho nhóm này)</label>',
       '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="inGsave">Lưu</button>');
+    $('#inGbiAi', m).onclick = function () {
+      var b = this, t = $('#inGt', m).value.split('\n').map(function (s) { return s.trim(); }).filter(Boolean), cur = $('#inGbi', m).value.trim();
+      if (!$('#inGn', m).value.trim() || !t.length) return toast('Ghi tên nhóm và ít nhất 1 tension trước nhé.', true);
+      b.disabled = true; b.textContent = '⏳ AI đang nghĩ (khoảng 1 phút)…';
+      api('ins_big', { name: $('#inGn', m).value.trim(), who: $('#inGw', m).value.trim(), want: $('#inGa', m).value.trim(), block: $('#inGb', m).value.trim(), note: $('#inGo', m).value.trim(), tensions: t, cur: cur }).then(function (r) {
+        $('#inGbi', m).value = (cur ? cur + '\n\n' : '') + r.text; b.disabled = false; b.textContent = '✨ AI gợi ý thêm';
+        toast('AI đã gợi ý 3 big idea ✓ Giữ cái anh chị ưng, xoá cái không hợp, cái muốn chạy để lên đầu rồi bấm Lưu.');
+      }, function (e) { b.disabled = false; b.textContent = '✨ AI gợi ý big idea'; toast(e.message, true); });
+    };
     $('#inGsave', m).onclick = function () {
       var t = $('#inGt', m).value.split('\n').map(function (s) { return s.trim(); }).filter(Boolean).map(function (s) { return s.replace(/\s*(<->|<=>|->|=>)\s*/, ' ↔ '); });
-      var ng = { id: g.id || '', prods: $$('[data-ingp]', m).filter(function (x) { return x.checked; }).map(function (x) { return x.getAttribute('data-ingp'); }), name: $('#inGn', m).value.trim(), who: $('#inGw', m).value.trim(), want: $('#inGa', m).value.trim(), block: $('#inGb', m).value.trim(), tensions: t, note: $('#inGo', m).value.trim(), on: $('#inGon', m).checked };
+      var ng = { id: g.id || '', prods: $$('[data-ingp]', m).filter(function (x) { return x.checked; }).map(function (x) { return x.getAttribute('data-ingp'); }), name: $('#inGn', m).value.trim(), who: $('#inGw', m).value.trim(), want: $('#inGa', m).value.trim(), block: $('#inGb', m).value.trim(), tensions: t, note: $('#inGo', m).value.trim(), on: $('#inGon', m).checked, bigs: inBigParse($('#inGbi', m).value, $('#inGbiOn', m).checked) };
+      if (ng.bigs.some(function (b) { return !b.ang.length; }) && !confirm('Có big idea chưa có góc kể nào (dòng bắt đầu bằng “-”). Big idea không có góc kể thì trợ lý chưa dùng được. Vẫn lưu?')) return;
       if (!ng.name) return toast('Bạn ghi tên nhóm trước nhé.', true);
       if (!t.length) return toast('Ghi ít nhất 1 tension nhé.', true);
       if (t.some(function (s) { return s.indexOf('↔') < 0; }) && !confirm('Có dòng tension chưa có dấu ↔ (2 cực: điều họ mong ↔ điều đang cản họ). Vẫn lưu?')) return;

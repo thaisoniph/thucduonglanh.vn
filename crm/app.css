@@ -1960,6 +1960,9 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .inx-sh span { color: var(--muted); font-size: 13px; white-space: nowrap; }
 .inx-g .inx-tl { margin: 4px 0 6px; padding-left: 20px; }
 .inx-g .inx-tl li { margin: 2px 0; }
+.inx-g .inx-big { margin: 4px 0; }
+.inx-g .inx-big ol { margin: 4px 0 6px; padding-left: 22px; }
+.inx-g .inx-big li { margin: 2px 0; }
 .inx-aud { display: flex; flex-wrap: wrap; gap: 0 14px; }
 .inx-warn { color: var(--orange); }
 .inx-sp { display: inline; font-size: 11.5px; padding: 1px 7px; border-radius: 99px; background: #fff4ec; color: #9a3412; box-decoration-break: clone; -webkit-box-decoration-break: clone; line-height: 1.9; }

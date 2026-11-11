@@ -206,6 +206,31 @@ Mở: menu **Thêm → 🎯 Insight & nội dung** (Marketing thấy ngay trên 
 3. **Chọn tầng phễu**: 🔵 **TOFU** (giá trị nằm ở chính nội dung, không bán) · ⚪ **MOFU** (tạo niềm tin bằng bằng chứng thật: nguồn gốc, nhà máy, hồ sơ công bố, cảm nhận khách thật) · 🟠 **BOFU** (giới thiệu sản phẩm, ưu đãi thật, mời đặt hàng).
 4. **Viết**: câu mở (hook) chạm đúng tension, **chạm cảm xúc trước, thông tin sau**, thân bài gỡ tension theo công thức hợp tầng phễu (TOFU: kể chuyện nhân vật, mở câu hỏi, 1-2-3 · MOFU: so sánh thật, giải thích, bằng chứng · BOFU: liệt kê giá trị, ưu đãi thật), cuối bài có **1 lối ra** (bình luận nhận quà, xem sản phẩm, đặt hàng).
 
+### 🌟 Big idea và góc kể (từ 11/11/2026)
+
+Theo khoá content K131: **mỗi nhóm khách nên có 1 big idea**, tức là 1 ý lớn chạy 2–4 tuần, để cả web, nhóm Zalo, Fanpage và video cùng nói một điều, khách nghe nhiều lần thì nhớ. Ví dụ với mẹ sau sinh: *"Bà vẫn đúng, mẹ vẫn được nghỉ"*.
+
+Mỗi big idea chia thành khoảng **10 góc kể**, mỗi góc là 1 bài. Ví dụ: kể từ chính người mẹ, đặt lời bà dặn cạnh lời trên mạng, xoá một hiểu lầm, hướng dẫn 1-2-3, phóng to khoảnh khắc 2 giờ sáng. Trợ lý tự lấy **góc ít dùng nhất** ở từng kênh, nên các bài không lặp nhau.
+
+**Cách làm:**
+
+1. Ở **👥 Ngân hàng insight**, bấm **✏️ Sửa** nhóm khách.
+2. Kéo xuống ô **🌟 Big idea và góc kể**, bấm **✨ AI gợi ý big idea**. Khoảng 1 phút sau, AI điền 3 big idea, mỗi cái 10 góc kể.
+3. **Giữ 1 cái ưng nhất ở trên cùng** (đó là cái đang chạy), xoá hoặc để dành mấy cái còn lại (cách nhau 1 dòng trống), sửa chữ nếu cần, rồi bấm **Lưu**.
+
+   Cách ghi trong ô: dòng đầu là big idea, mỗi dòng sau bắt đầu bằng dấu **"-"** là 1 góc kể. Bỏ tích **Chạy big idea đầu tiên** để tạm dừng.
+4. Hết 2–4 tuần, hoặc đã dùng hết góc, thì kéo big idea để dành lên đầu, hoặc bấm ✨ để AI gợi ý thêm.
+
+Thẻ bài sẽ có thêm dòng **🌟 Big idea** và **🎭 Góc kể** để người duyệt kiểm tra. Nhóm chưa có big idea thì trợ lý tự chọn góc kể từng bài, khác các góc vừa dùng.
+
+**Bài nhận biết (🔵 TOFU) không xoay quanh sản phẩm.** Khoảng 10 bài loại này mới có 1 bài nhắc sản phẩm, và chỉ nhắc 1 câu ở cuối. Sản phẩm là cầu nối để gỡ nỗi lòng của khách, không phải điểm bắt đầu của bài.
+
+### ✍️ Văn như người Việt viết
+
+Trợ lý **tự đổi dấu gạch ngang dài (—) thành dấu phẩy**. Nếu bài còn chuỗi câu ngắn chấm liên tục (kiểu *"Mệt. Rất mệt. Nhưng vẫn cố."*) hoặc câu cảm thán sáo ở đầu (*"Ôi!"*, *"Wow!"*), thẻ bài hiện dòng **✍️ Văn còn giống AI**.
+
+Khi duyệt, nối các câu đó lại cho liền mạch, dùng dấu phẩy. Câu ngắn chỉ để nhấn 1 ý, rồi tiếp bằng câu giải thích.
+
 **Luật quảng cáo thực phẩm:** chỉ nói công dụng đúng hồ sơ công bố. Chuyện chè vằng, đinh lăng… chỉ nói là *kinh nghiệm dân gian*. Bài có cụm dễ phạm luật (lợi sữa, giảm cân, thanh lọc, không đường…) sẽ hiện dòng **⚠️ Đọc lại cụm…** trên thẻ bài: chỉ giữ nếu đúng hồ sơ công bố hoặc là câu phủ định.
 
 Trên thẻ bài ở tab Zalo, Fanpage, Bài web có dòng **🎯 nhóm khách · tension** và câu 💭 insight. Khi duyệt, đọc dòng này trước rồi hỏi: *bài có chạm đúng nỗi lòng đó không?* Chưa đúng thì bấm **🔄 Viết lại**, chọn nhóm khách khác hoặc ghi ý kiến.

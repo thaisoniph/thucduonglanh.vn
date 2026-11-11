@@ -18,7 +18,7 @@ import { crmUsers, crmLog } from './crm.js';
 import { cmsToken } from './cms.js';
 import { kb } from './chat.js';
 import { imgLib, prodMap } from './zbot.js';
-import { insPick, insBlock, insParse, insLog, insBank, insRisk, INS_HEAD } from './insight.js';
+import { insPick, insBlock, insParse, insLog, insBank, insRisk, insViet, insStyle, INS_HEAD } from './insight.js';
 
 const REPO = 'thaisoniph/thucduonglanh.vn', GH = 'https://api.github.com', SITE = 'https://thucduonglanh.vn', API = 'https://api.thucduonglanh.vn';
 const CFG_PATH = 'data/blog-auto.json', POSTS_DIR = 'content/posts';
@@ -195,7 +195,7 @@ async function write(x, cfg, day, row) {
     const { text, urls } = await aiWrite(x.env, system, ask);
     const parts = text.split(/\n-{3,}\n/), head = parts.length > 1 ? parts[0] : '';
     const get = k => ((head.match(new RegExp(k + ':\\s*(.+)')) || [])[1] || '').trim();
-    let body = (parts.length > 1 ? parts.slice(1).join('\n---\n') : '').trim();
+    let body = insViet((parts.length > 1 ? parts.slice(1).join('\n---\n') : '').trim()); // ✍️ bỏ gạch ngang dài (khoá K131)
     const title = get('TIÊU ĐỀ').replace(/\*/g, '').slice(0, 120);
     if (!title || body.length < 1500) throw new Error('AI chưa viết được bài hoàn chỉnh');
     // kiểm tra tự động
@@ -230,13 +230,14 @@ async function write(x, cfg, day, row) {
     const excerpt = get('MÔ TẢ').slice(0, 200), f2 = funnelOf(get('TẦNG PHỄU')) || funnel;
     const q = s => JSON.stringify(String(s)); // chuỗi YAML an toàn (có dấu : vẫn đúng)
     const md = ['---', 'title: ' + q(title), 'date: ' + day, 'category: ' + cat, 'image: ' + cover, 'excerpt: ' + q(excerpt), 'published: true', '---', '', body, ''].join('\n');
-    const ins = insParse(head, ip.bank, ip.g), rw = insRisk(body);
+    const ins = insParse(head, ip.bank, ip.g), rw = insRisk(body), rv = insStyle(body); if (ip.angle) ins.a = ip.angle;
+    if (rv.length) checks.push('✍️ Văn còn giống AI: ' + rv.join(', ') + ' → sửa cho liền mạch, dùng dấu phẩy');
     if (rw.length) checks.push('⚠️ Đọc lại: ' + rw.join(', ') + ' → cụm dễ phạm luật quảng cáo chỉ giữ nếu đúng hồ sơ công bố hoặc là câu phủ định; hotline cũ 0896 869 333 đổi thành 0966 326 522');
-    const m = { excerpt, cat, cover, who: ins.gn, g: ins.g, is: ins.is, t: ins.t, i: ins.i, d: ins.d, w: rw, checks, hour: cfg.hour, sources: [...urls].slice(0, 30), fb };
+    const m = { excerpt, cat, cover, who: ins.gn, g: ins.g, is: ins.is, t: ins.t, i: ins.i, d: ins.d, a: ins.a, b: ip.big ? ip.big.t : '', w: rw, v: rv, checks, hour: cfg.hour, sources: [...urls].slice(0, 30), fb };
     if (!ins.t) checks.push('⚠️ Trợ lý chưa ghi rõ tension bài này giải, nên đọc kỹ xem bài có chạm đúng nỗi lòng của nhóm khách không');
     await run(x.db, "UPDATE bl_posts SET status = 'wait', title = ?, slug = ?, funnel = ?, topic = ?, tkey = ?, md = ?, meta = ?, hint = '', at = ?, err = '', tries = 0, remind = 0 WHERE day = ?",
       title, slug, f2, topic ? topic.title : 'Trợ lý tự chọn', topic ? topic.title : '', md, JSON.stringify(m), Date.now(), day);
-    await insLog(x, 'web', { g: ins.g, gn: ins.gn, f: f2, t: ins.t, ref: day, sp: prods[code] ? code : '' });
+    await insLog(x, 'web', { g: ins.g, gn: ins.gn, f: f2, t: ins.t, ref: day, sp: prods[code] ? code : '', a: ins.a, b: ip.big ? ip.big.t : '' });
     const p = await first(x.db, 'SELECT * FROM bl_posts WHERE day = ?', day);
     await notifyApprovers(x, p, (row && row.md ? '✍️ <b>Bài web đã viết lại, chờ duyệt</b>' : '📝 <b>Bài web mới chờ duyệt</b>') + (topic ? ' · chủ đề được giao' : ' · trợ lý tự chọn chủ đề'));
     return { day, title };

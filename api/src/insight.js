@@ -175,7 +175,8 @@ function clean(list) {
     while (seen[id]) id += '-2'; seen[id] = 1;
     const tensions = (Array.isArray(g.tensions) ? g.tensions : String(g.tensions || '').split('\n')).map(t => cut(String(t).replace(/^[-•*\d.)\s]+/, ''), 300)).filter(Boolean).slice(0, 30);
     const prods = [...new Set((Array.isArray(g.prods) ? g.prods : String(g.prods || '').split(/[,;\s]+/)).map(spCode).filter(Boolean))].slice(0, 12);
-    return { id, name: cut(g.name, 80), on: g.on !== false, who: cut(g.who, 800), want: cut(g.want, 800), block: cut(g.block, 800), tensions, prods, note: cut(g.note, 1500) };
+    const bigs = (Array.isArray(g.bigs) ? g.bigs : []).slice(0, 4).map(b => ({ t: cut(b && b.t, 300), ang: (Array.isArray(b && b.ang) ? b.ang : String((b && b.ang) || '').split('\n')).map(a => cut(String(a).replace(/^[-•*\d.)\s]+/, ''), 200)).filter(Boolean).slice(0, 15), on: !b || b.on !== false })).filter(b => b.t);
+    return { id, name: cut(g.name, 80), on: g.on !== false, who: cut(g.who, 800), want: cut(g.want, 800), block: cut(g.block, 800), tensions, prods, note: cut(g.note, 1500), bigs };
   }).filter(g => g.name);
 }
 export async function insBank(x) { const b = await kvJson(x.db, 'ins_bank', null); return b && Array.isArray(b.groups) && b.groups.length ? clean(b.groups) : clean(INS0); }
@@ -190,7 +191,7 @@ async function logGet(x) { const l = await kvJson(x.db, 'ins_log', []); return A
 export async function insLog(x, ch, rec) {
   try {
     const now = Date.now(), l = (await logGet(x)).filter(r => now - r.at < 90 * DAY && !(rec.ref && r.ch === ch && r.ref === rec.ref)); // viết lại cùng bài → thay dòng cũ
-    l.push({ at: now, ch, g: rec.g || '', gn: cut(rec.gn, 80), f: funOf(rec.f), t: cut(rec.t, 300), ref: cut(rec.ref, 60), sp: rec.sp ? spCode(rec.sp) : '' });
+    l.push({ at: now, ch, g: rec.g || '', gn: cut(rec.gn, 80), f: funOf(rec.f), t: cut(rec.t, 300), ref: cut(rec.ref, 60), sp: rec.sp ? spCode(rec.sp) : '', a: cut(rec.a, 200), b: cut(rec.b, 300) });
     await kvSet(x.db, 'ins_log', JSON.stringify(l.slice(-600)));
   } catch (e) { console.error('insLog', e.message); }
 }
@@ -209,8 +210,33 @@ export async function insPick(x, ch, want, opt) {
     g = pool.map((v, i) => ({ v, a: n(v.id, ch), b: n(v.id), c: (i - rot + pool.length) % pool.length })).sort((p, q) => p.a - q.a || p.b - q.b || p.c - q.c)[0].v;
   }
   const recent = g ? log.filter(r => r.g === g.id).slice(-8).map(r => (CH[r.ch] || r.ch) + ': ' + r.t).filter(s => !/: $/.test(s)) : [];
-  return { bank, g, recent, prod };
+  // 🌟 big idea đang chạy của nhóm (khoá K131): mọi kênh nói quanh 1 ý lớn, mỗi bài 1 góc kể; góc ít dùng nhất ở kênh này (90 ngày) đi trước, hoà thì theo thứ tự anh chị xếp
+  const all90 = await logGet(x), big = g && !(opt && opt.noBig) ? (g.bigs || []).find(b => b.on && b.ang.length) || null : null;
+  let angle = '';
+  if (big) { const used = a => all90.filter(r => r.g === g.id && r.ch === ch && r.b === big.t && r.a && nrm(r.a) === nrm(a)).length; angle = big.ang.map((a, i) => ({ a, n: used(a), i })).sort((p, q) => p.n - q.n || p.i - q.i)[0].a; }
+  const recentA = g ? all90.filter(r => r.g === g.id && r.a).slice(-6).map(r => r.a) : [];
+  return { bank, g, recent, prod, big, angle, recentA };
 }
+
+/** 🎭 Kho góc kể chuyện (narrative angle, khoá content K131 Buổi 2, 5, 6): cùng 1 sự thật, kể từ cửa khác nhau thành bài khác hẳn. Mỗi bài 1 góc chính (+ 1 kỹ thuật phụ). */
+export const ANGLES = [
+  'Người trong cuộc (nạn nhân): kể từ chính người đang kẹt trong tension, ngôi thứ nhất, thật thà',
+  'Kẻ nổi loạn: phản đối 1 điều ai cũng làm / ai cũng khuyên, rồi giải thích vì sao',
+  'Người đi trước: "mình đã thử cách này", kể cách làm mới gỡ được rào cản',
+  'Người nhìn xa: điều sẽ xảy ra nếu cứ tiếp tục như hiện tại (không doạ bệnh)',
+  'Người hoài nghi: nghi ngờ 1 lời đồn / lời quảng cáo phổ biến, kiểm chứng bằng lẽ thường',
+  'Hướng dẫn: how-to, quy trình 1-2-3, checklist làm được ngay, không cần mua gì',
+  'Hai trường phái: đặt 2 quan điểm trái nhau (vd bà ↔ mạng, tự nấu ↔ dùng sẵn) cạnh nhau, công bằng cho cả hai',
+  'Xoá hiểu lầm: 1 điều nhiều người hiểu sai, nói lại cho đúng (giấu tên người nói sai)',
+  'Tổng hợp: gom 5–10 mẹo / dấu hiệu / câu hỏi hay gặp thành 1 bài để lưu lại',
+  'So sánh, phân biệt: 2 lựa chọn cùng loại, tiêu chí chọn, cách nhận biết (không chê đối thủ có tên)',
+  'Cách dùng mới: 1 cách dùng quen thuộc khác đi cho đời sống hằng ngày',
+  'Hậu trường: chuyện người trồng, nhà máy, người làm ra sản phẩm, vì sao mình làm / không làm điều X',
+  'Lời người thân: kể qua mắt người bên cạnh (chồng, con, bà, đồng nghiệp)',
+  'Khoảnh khắc: 1 thời điểm cụ thể (2 giờ sáng, 3 giờ chiều, ngày rằm, sáng thứ Hai) phóng to thành câu chuyện'
+];
+/** ✍️ Việt hoá văn AI (khoá K131 Buổi 5): văn dịch từ tiếng Anh lộ ngay là AI */
+export const VIET = 'Viết như người Việt viết, không như văn dịch: KHÔNG dùng dấu gạch ngang dài (—) để nối ý (dùng dấu phẩy, dấu hai chấm hoặc tách câu); KHÔNG ngắt chuỗi câu vụn chấm liên tục kiểu "Mệt. Rất mệt. Nhưng vẫn cố." (3 câu ngắn liền nhau trở lên), câu ngắn chỉ để nhấn 1 ý rồi tiếp bằng câu giải thích liền mạch có dấu phẩy; không mở câu bằng cảm thán sáo ("Ôi!", "Wow!", "Thật tuyệt vời!"); không lặp "Không chỉ… mà còn…", "Hãy cùng…", "Bạn có biết?" ở đầu bài; dùng từ đời thường, đúng cách nói của nhóm khách.';
 
 /** Đoạn hướng dẫn gửi AI: quy trình 4Is của khoá content K133 (Issue → Insight → Idea → Implementation) + luật tầng phễu.
  * f = TOFU | MOFU | BOFU (hoặc '' để AI tự chọn tầng hợp nhất); opt.light = bài chúc mừng ngày lễ (tension chỉ để chọn góc chạm, không biến thành bài bán);
@@ -225,12 +251,13 @@ export function insBlock(p, f, opt) {
     g.prods.length ? 'Sản phẩm hợp với nhóm: ' + g.prods.map(spName).join(', ') : '',
     'Tension đã biết (mong muốn ↔ rào cản):\n' + T.map(tline).join('\n'),
     T.length > 1 ? 'Tension xếp trên cùng là tension sắc nhất (điểm cao khi tìm insight): ưu tiên dùng nếu hợp chủ đề và chưa dùng gần đây.' : '',
-    p.recent && p.recent.length ? 'Tension nhóm này vừa dùng gần đây (ưu tiên tension KHÁC, hoặc góc khác hẳn):\n' + p.recent.map(t => '- ' + t).join('\n') : ''].filter(Boolean).join('\n')
+    p.recent && p.recent.length ? 'Tension nhóm này vừa dùng gần đây (ưu tiên tension KHÁC, hoặc góc khác hẳn):\n' + p.recent.map(t => '- ' + t).join('\n') : '',
+    p.big && !opt.light ? '🌟 BIG IDEA ĐANG CHẠY cho nhóm này (mọi kênh cùng nói quanh ý lớn này vài tuần để khách nhớ, không đổi chủ đề lung tung): ' + p.big.t + '\n🎭 GÓC KỂ CỦA BÀI NÀY (bắt buộc dùng đúng góc này): ' + p.angle + '\nIssue, tension, idea của bài phải khớp với big idea và góc kể trên; chủ đề hôm nay chỉ là chất liệu để kể big idea theo góc đó.' : ''].filter(Boolean).join('\n')
     : 'NHÓM KHÁCH: tự chọn 1 nhóm trong NGÂN HÀNG INSIGHT bên dưới.\n' + live(p && p.bank || []).map(v => '- ' + v.name + ': ' + v.tensions.map(tenOf).filter(x => !prod || !x.sp.length || x.sp.includes(prod)).slice(0, 4).map(x => x.t).join(' | ')).join('\n');
   return ['# QUY TRÌNH 4Is BẮT BUỘC TRƯỚC KHI VIẾT: ISSUE → INSIGHT → IDEA → IMPLEMENTATION (khoá content K133)',
     grp,
     prod ? 'Bài này nói về sản phẩm: ' + spName(prod) + ' → chọn tension [riêng] của sản phẩm này hoặc tension [dùng chung].' : 'Tension [riêng: …] chỉ dùng khi bài nói về đúng sản phẩm đó (thường MOFU / BOFU); tension [dùng chung] hợp mọi bài, nhất là TOFU.',
-    'Làm lần lượt (nghĩ trong đầu, chỉ ghi kết quả vào các dòng NHÓM KHÁCH / ISSUE / TENSION / INSIGHT / IDEA ở phần đầu câu trả lời):',
+    'Làm lần lượt (nghĩ trong đầu, chỉ ghi kết quả vào các dòng NHÓM KHÁCH / ISSUE / TENSION / INSIGHT / IDEA / GÓC KỂ ở phần đầu câu trả lời):',
     '1. ISSUE – vấn đề: 1 nỗi đau / bất tiện / rào cản CỤ THỂ quan sát được của nhóm khách trong 1 cảnh đời (6W: chuyện gì, ở đâu, khi nào, ai, cùng ai, họ đang xoay xở thế nào). Là điều thấy được, không phải suy diễn.',
     '2. INSIGHT – vì sao họ kẹt: chọn ĐÚNG 1 tension hợp nhất với issue, chủ đề' + (f ? ' và tầng phễu' : '') + ' (được diễn đạt tension mới của cùng nhóm, nhưng phải đủ 2 cực: điều họ mong ↔ điều đang cản họ). Hỏi "để làm gì?" 2 lần để chạm khát vọng sâu. Câu insight nói bằng lời người trong nhóm, ngôi thứ nhất, dạng "Tôi cần một cách [điều mong] mà không phải [đánh đổi / rào cản]" hoặc lời tự sự (giả thuyết của người viết, KHÔNG trình bày như lời khách thật). Đúng là khi người đọc thốt lên "sao hiểu mình thế".',
     '3. IDEA – góc tiếp cận khác biệt gỡ tension: cắt bỏ / giảm (thời gian, tiền, công sức, rủi ro) / đi vòng rào cản, hoặc đổi cách nhìn (không hứa sai sự thật); chọn 1 động lực chính để kể (nhu cầu, hình ảnh bản thân, nỗi đau, nỗi lo về bất tiện / lời đồn / bị đánh giá – KHÔNG dọa bệnh, kết quả cụ thể, tò mò). Gói thành 1 câu ý tưởng của bài. Idea phải tác động vào ít nhất 1 cực của tension, không chỉ "mới lạ".',
@@ -238,6 +265,9 @@ export function insBlock(p, f, opt) {
     '   - Câu mở (hook) làm người trong nhóm nhận ra chính mình trong 1–2 giây, chọn 1 kiểu: gọi tên nhóm, câu hỏi chạm nỗi đau, cảnh báo kèm đối tượng, con số, ngược số đông, hậu trường, danh sách, thử thách, câu chuyện mở giữa chừng (không dùng trước–sau về cơ thể).',
     '   - Chạm cảm xúc trước, đưa thông tin sau. AI hay "giàu thông tin, nghèo cảm xúc": bán cảm giác, không kể thông số; dùng hình ảnh, âm thanh, từ láy, nhịp câu, chất văn hóa Việt (có thể mượn ca dao, cách nói dân gian nếu hợp).',
     '   - Kết bằng đúng 1 lối ra của tầng phễu.',
+    p && p.big && !opt.light ? '' : '   - GÓC KỂ (narrative angle): chọn 1 góc trong kho dưới đây hợp với tension' + (p && p.recentA && p.recentA.length ? ', KHÁC các góc nhóm này vừa dùng (' + p.recentA.join(' | ') + ')' : '') + '; được kết hợp thêm 1 kỹ thuật phụ (vd câu chuyện + checklist):\n' + ANGLES.map(a => '     · ' + a).join('\n'),
+    '   - Bài TOFU: góc kể KHÔNG xoay quanh sản phẩm, viết về điều nhóm khách quan tâm trong đời sống (khoảng 10 bài nhận biết mới có 1 bài nhắc sản phẩm, và chỉ 1 câu cầu nối ở cuối). Bài MOFU / BOFU: sản phẩm là cầu nối gỡ tension, không phải điểm xuất phát.',
+    '   - ' + VIET,
     opt.light ? 'Bài này là bài theo dịp (chúc mừng / tương tác): giữ đúng chủ đề dịp, tension chỉ dùng để chọn góc chạm gần gũi (1–2 câu), không biến thành bài bán.' : '',
     F ? 'TẦNG PHỄU: ' + F.name + '. ' + F.rule + '\nCông thức viết hợp tầng này (chọn 1): ' + FORMULA[f] + '.' : 'TẦNG PHỄU: tự chọn 1 tầng hợp với tension và chủ đề:\n' + Object.entries(FUN).map(([k, v]) => '- ' + v.name + ': ' + v.rule + ' Công thức hợp: ' + FORMULA[k] + '.').join('\n'),
     'Đạo đức: nội dung phải GỠ tension, không khoét sâu nỗi sợ bệnh tật, mặc cảm cơ thể, áp lực gia đình để ép mua; không bịa lời khách, số liệu, khuyến mãi; không đóng vai khách tự hỏi tự trả lời.',
@@ -250,12 +280,33 @@ export const LAW = 'Luật quảng cáo thực phẩm: chỉ nói công dụng �
 const RISK_RE = /lợi sữa|gọi sữa|giảm cân|co hồi|không đường|thần dược|bài thuốc|an toàn tuyệt đối|không (có )?tác dụng phụ|chuẩn quốc tế|ai dùng cũng|giải độc|thanh lọc|mát gan|hạ huyết áp|hạ mỡ máu|0896 ?869 ?333/gi; // GMP: nhà máy đạt GMP là đúng (anh Sơn 10/11/2026), không cảnh báo · 0896 869 333: hotline cũ, chỉ dùng 0966 326 522
 export function insRisk(text) { return [...new Set((String(text || '').match(RISK_RE) || []).map(w => w.toLowerCase()))].slice(0, 8); }
 /** Các dòng 4Is AI phải ghi ở phần đầu (trước ---) */
-export const INS_HEAD = 'NHÓM KHÁCH: <tên nhóm khách>\nISSUE: <vấn đề cụ thể trong 1 cảnh, tối đa 20 chữ>\nTENSION: <điều họ mong> ↔ <điều đang cản họ>\nINSIGHT: <1 câu, lời người trong nhóm, ngôi thứ nhất>\nIDEA: <góc tiếp cận gỡ tension, 1 câu>';
+export const INS_HEAD = 'NHÓM KHÁCH: <tên nhóm khách>\nISSUE: <vấn đề cụ thể trong 1 cảnh, tối đa 20 chữ>\nTENSION: <điều họ mong> ↔ <điều đang cản họ>\nINSIGHT: <1 câu, lời người trong nhóm, ngôi thứ nhất>\nIDEA: <góc tiếp cận gỡ tension, 1 câu>\nGÓC KỂ: <tên góc kể đã dùng, ngắn>';
 /** Đọc các dòng trên từ phần đầu câu trả lời → { g, gn, is (issue), t (tension), i (insight), d (idea) } (g = id nhóm nếu khớp ngân hàng) */
 export function insParse(head, bank, fb) {
   const get = k => ((String(head || '').match(new RegExp('^\\s*\\**' + k + '\\**\\s*:\\s*(.+)$', 'mi')) || [])[1] || '').replace(/\*/g, '').trim();
   const gn = get('NHÓM KHÁCH').slice(0, 120), g = insFind(bank || [], gn) || fb || null; // nhóm đã giao cho AI: AI gọi tên khác đi một chút vẫn tính đúng nhóm
-  return { g: g ? g.id : '', gn: g ? g.name : gn, is: get('ISSUE').slice(0, 300), t: get('TENSION').replace(/<->|<=>|->/g, '↔').slice(0, 300), i: get('INSIGHT').replace(/^["“']|["”']$/g, '').slice(0, 300), d: get('IDEA').slice(0, 300) };
+  return { g: g ? g.id : '', gn: g ? g.name : gn, is: get('ISSUE').slice(0, 300), t: get('TENSION').replace(/<->|<=>|->/g, '↔').slice(0, 300), i: get('INSIGHT').replace(/^["“']|["”']$/g, '').slice(0, 300), d: get('IDEA').slice(0, 300), a: get('GÓC KỂ').replace(/[.。]$/, '').slice(0, 200) };
+}
+/** ✍️ Sửa tự động dấu gạch ngang dài (—) trong bài AI viết → dấu phẩy (không đụng gạch nối "–" của khoảng số, vd 120–250) */
+export function insViet(text) {
+  return String(text || '').replace(/^(\s*)—\s*/gm, '$1- ').replace(/\s*—\s*/g, ', ').replace(/,\s*([,.!?:;])/g, '$1').replace(/,\s*$/gm, '');
+}
+/** ✍️ Dấu hiệu văn AI còn sót → nhắc người duyệt (không tự sửa): chuỗi 3 câu vụn trở lên (≤5 chữ / câu), cảm thán sáo đầu câu */
+export function insStyle(text) {
+  const out = [], T = String(text || '');
+  for (const line of T.split('\n')) {
+    const ss = line.replace(/^[\s>*\-•\d.)]+/, '').split(/(?<=[.!?…])\s+/).map(v => v.trim()).filter(Boolean);
+    let run = [];
+    for (const v of ss.concat([''])) {
+      const n = v.replace(/[^\p{L}\p{N}\s]/gu, ' ').trim().split(/\s+/).filter(Boolean).length;
+      if (v && n <= 5 && /[.!?…]$/.test(v)) { run.push(v); continue; }
+      if (run.length >= 3) out.push('câu vụn: "' + run.join(' ').slice(0, 60) + '"');
+      run = [];
+    }
+  }
+  const ex = T.match(/(^|\n)\s*(Ôi|Wow|Woa|Thật tuyệt vời|Tuyệt vời quá)\b[^\n]{0,20}/i); if (ex) out.push('cảm thán đầu câu: "' + ex[0].trim().slice(0, 30) + '"');
+  if (/—/.test(T)) out.push('còn dấu gạch ngang dài (—)');
+  return [...new Set(out)].slice(0, 4);
 }
 /** Thẻ ngắn hiện ở CRM: "🎯 Nhóm · tension" */
 export const insTag = o => o && (o.gn || o.t) ? '🎯 ' + [o.gn, o.t].filter(Boolean).join(' · ') : '';
@@ -268,9 +319,11 @@ export async function insText(x) {
     '2. Tension có nhãn [SP: …] là riêng của sản phẩm đó; không nhãn = dùng chung cho mọi sản phẩm (hợp nhất cho bài TOFU).',
     '3. Chọn tầng phễu và lối ra:', ...Object.values(FUN).map(v => '   ' + v.name + ': ' + v.rule),
     '4. Viết: hook chạm tension trong 1–2 giây → chạm cảm xúc trước, thông tin sau → gỡ tension → 1 lối ra. Công thức hợp từng tầng:', ...Object.entries(FORMULA).map(([k, v]) => '   ' + k + ': ' + v),
+    '4b. Big idea (nếu nhóm có): mọi kênh nói quanh 1 ý lớn vài tuần, mỗi bài 1 góc kể trong danh sách của big idea. Không có thì chọn 1 góc kể trong kho (khác góc vừa dùng). Bài TOFU không xoay quanh sản phẩm.', 'KHO GÓC KỂ:', ...ANGLES.map(v => '   · ' + v),
+    '4c. ' + VIET,
     '5. ' + LAW + ' Không dùng "chữa / điều trị / khỏi bệnh"; nhắc sản phẩm thì có dòng "Sản phẩm là thực phẩm, không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh."',
     '', 'NGÂN HÀNG INSIGHT (nhóm khách mục tiêu):',
-    ...bank.map(g => ['## ' + g.name + (g.on ? '' : ' (đang tạm tắt)'), g.who, 'Mong muốn: ' + g.want, 'Rào cản: ' + g.block, g.prods.length ? 'Sản phẩm hợp: ' + g.prods.map(spName).join(', ') : '', 'Tension:', ...g.tensions.map(tenOf).map(x => '- ' + x.t + (x.sp.length ? ' [riêng: ' + x.sp.map(spName).join(', ') + ']' : ' [dùng chung]')), g.note ? 'Ghi chú: ' + g.note : ''].filter(Boolean).join('\n'))].join('\n');
+    ...bank.map(g => ['## ' + g.name + (g.on ? '' : ' (đang tạm tắt)'), g.who, 'Mong muốn: ' + g.want, 'Rào cản: ' + g.block, g.prods.length ? 'Sản phẩm hợp: ' + g.prods.map(spName).join(', ') : '', 'Tension:', ...g.tensions.map(tenOf).map(x => '- ' + x.t + (x.sp.length ? ' [riêng: ' + x.sp.map(spName).join(', ') + ']' : ' [dùng chung]')), ...(g.bigs || []).map((b, k) => '🌟 Big idea' + (b.on ? ' (đang chạy)' : ' (để dành)') + ': ' + b.t + '\n' + b.ang.map(v => '   - ' + v).join('\n')), g.note ? 'Ghi chú: ' + g.note : ''].filter(Boolean).join('\n'))].join('\n');
 }
 
 /** Gộp INS0 vào ngân hàng đã sửa riêng: thêm nhóm chưa có, thêm tension chưa có, gắn nhãn sản phẩm cho tension trùng chữ, điền "sản phẩm hợp" còn trống */
@@ -406,17 +459,43 @@ async function vdWrite(x, u, d) {
   catch (e) { if (!(e instanceof Anthropic.BadRequestError)) throw e; res = await ai(x.env).messages.create(req); }
   if (res.stop_reason === 'refusal') return { ok: false, error: 'AI từ chối viết kịch bản này, thử đổi yêu cầu.' };
   const raw = textOf(res), parts = raw.split(/\n-{3,}\n/), head = parts.length > 1 ? parts[0] : '';
-  const text = safe((parts.length > 1 ? parts.slice(1).join('\n---\n') : raw).trim());
+  const text = insViet(safe((parts.length > 1 ? parts.slice(1).join('\n---\n') : raw).trim()));
   if (text.length < 200) return { ok: false, error: 'AI chưa viết được kịch bản, bấm viết lại nhé.' };
   const get = k => ((head.match(new RegExp(k + ':\\s*(.+)')) || [])[1] || '').replace(/\*/g, '').trim();
-  const ins = insParse(head, p.bank, p.g), ff = funOf(get('TẦNG PHỄU')) || f || 'TOFU', code = (get('SẢN PHẨM').match(/[a-z0-9-]+/) || [''])[0];
+  const ins = insParse(head, p.bank, p.g); if (p.angle) ins.a = p.angle;
+  const ff = funOf(get('TẦNG PHỄU')) || f || 'TOFU', code = (get('SẢN PHẨM').match(/[a-z0-9-]+/) || [''])[0];
   const title = get('TIÊU ĐỀ').slice(0, 120) || 'Kịch bản ' + sec + ' giây';
   const r = await run(x.db, 'INSERT INTO vd_scripts (at, by_name, g, gn, f, t, i, prod, sec, kind, title, text, hint) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     Date.now(), u.name, ins.g, ins.gn, ff, ins.t, ins.i, prods[code] ? code : pc, sec, kind, title, text.slice(0, 20000), hint);
   const id = r && r.meta && r.meta.last_row_id;
-  await insLog(x, 'video', { g: ins.g, gn: ins.gn, f: ff, t: ins.t, ref: 'vd' + id, sp: prods[code] ? code : pc });
-  const sc = await first(x.db, 'SELECT * FROM vd_scripts WHERE id = ?', id); if (sc) sc.w = insRisk(sc.text);
+  await insLog(x, 'video', { g: ins.g, gn: ins.gn, f: ff, t: ins.t, ref: 'vd' + id, sp: prods[code] ? code : pc, a: ins.a, b: p.big ? p.big.t : '' });
+  const sc = await first(x.db, 'SELECT * FROM vd_scripts WHERE id = ?', id); if (sc) { sc.w = insRisk(sc.text); sc.v = insStyle(sc.text); }
   return { ok: true, id, script: sc };
+}
+
+/** 🌟 Big idea (khoá K131 Buổi 2–3): 1 ý lớn chạy vài tuần để mọi kênh nói nhất quán với 1 nhóm khách, sinh ra 10 góc kể (mỗi góc 1 bài / 1 tập video).
+ * d = nhóm đang sửa trong form (chưa lưu cũng được): name, who, want, block, tensions[], note. Trả { text } đúng định dạng ô Big idea. */
+async function bigWrite(x, d) {
+  if (!x.env.ANTHROPIC_API_KEY) return { ok: false, error: 'Máy chủ chưa có khoá AI.' };
+  const g = { name: cut(d.name, 80), who: cut(d.who, 800), want: cut(d.want, 800), block: cut(d.block, 800), note: cut(d.note, 1500), tensions: (Array.isArray(d.tensions) ? d.tensions : []).map(t => tenOf(cut(t, 300)).t).filter(Boolean).slice(0, 20) };
+  if (!g.name || !g.tensions.length) return { ok: false, error: 'Ghi tên nhóm và ít nhất 1 tension trước nhé.' };
+  const know = await kb(), old = cut(d.cur, 3000);
+  const ask = ['Đề xuất 3 BIG IDEA cho nhóm khách dưới đây của Thực Dưỡng Lành (thực phẩm dinh dưỡng từ hạt, trà thảo mộc, đồ chay; bán qua website, nhóm Zalo, Fanpage).',
+    'Big idea = 1 ý lớn chạy 2–4 tuần, giúp mọi kênh nói NHẤT QUÁN với nhóm khách này, là lời giải làm dịu 1 tension sâu (muốn… nhưng…) của họ; xuất phát từ tension của con người, KHÔNG xuất phát từ sản phẩm, sản phẩm chỉ là cầu nối. Big idea là 1 câu ngắn, có hình ảnh, nghe là nhớ, người trong nhóm muốn chia sẻ vì nó nói hộ họ (vd kiểu "Bà vẫn đúng, mẹ vẫn được nghỉ", "Uống lành mà vẫn hợp hội").',
+    'Mỗi big idea ra đúng 10 GÓC KỂ, mỗi góc là 1 bài / 1 video cụ thể: ghi tên góc (lấy từ kho góc kể) + 1 câu nội dung cụ thể của bài đó. Ít nhất 7/10 góc không nhắc sản phẩm (bài nhận biết, chỉ nói điều nhóm khách quan tâm); tối đa 3 góc dùng sản phẩm làm cầu nối (bài cân nhắc / mua hàng).',
+    'KHO GÓC KỂ:\n' + ANGLES.map(a => '- ' + a).join('\n'),
+    '', 'NHÓM KHÁCH: ' + g.name + (g.who ? ' – ' + g.who : ''), g.want ? 'Họ mong: ' + g.want : '', g.block ? 'Rào cản: ' + g.block : '', 'Tension đã biết:\n' + g.tensions.map(t => '- ' + t).join('\n'), g.note ? 'Ghi chú: ' + g.note : '',
+    old ? 'BIG IDEA ĐÃ CÓ (đừng lặp, nghĩ hướng khác):\n' + old : '',
+    '', LAW, 'Không doạ bệnh, không hứa công dụng, không khoét sâu mặc cảm. ' + VIET,
+    '', 'ĐỊNH DẠNG ĐẦU RA: đúng 3 khối, cách nhau 1 dòng trống, không lời dẫn, không đánh số big idea, không in đậm:',
+    '<big idea, 1 câu>\n- <Tên góc>: <nội dung bài cụ thể, 1 câu>\n- … (đủ 10 dòng)'].filter(Boolean).join('\n');
+  const res = await ai(x.env).messages.create({ model: WRITER, max_tokens: 4000, output_config: { effort: 'medium' },
+    system: [{ type: 'text', text: 'Bạn là trưởng nhóm sáng tạo nội dung cho thương hiệu thực phẩm dinh dưỡng Việt Nam, làm theo phương pháp 4I (Issue → Insight → Big idea → Góc kể), trung thực, đúng luật quảng cáo thực phẩm.\n' + TRUTH_RULES },
+      { type: 'text', text: 'TÀI LIỆU (thông tin chính thức của Thực Dưỡng Lành):\n\n' + know, cache_control: { type: 'ephemeral' } }],
+    messages: [{ role: 'user', content: ask }] }, { headers: { 'x-tdl-muc': 'insight-big' } });
+  const text = insViet(textOf(res)).replace(/\*\*/g, '').replace(/^\s*(big idea\s*\d*\s*[:.-]|\d+[.)])\s*/gim, '').trim();
+  if (text.length < 100) return { ok: false, error: 'AI chưa gợi ý được, bấm lại nhé.' };
+  return { ok: true, text: text.slice(0, 6000) };
 }
 
 /* ---------------------------------------------------------------- CRM → tab 🎯 Insight & nội dung (Marketing, Quản lý, Quản trị, người phụ trách Trợ lý Zalo) */
@@ -427,7 +506,7 @@ export async function crmIns(x, u, d, crmLog) {
   const a = d.action, now = Date.now();
   if (a === 'ins_view') {
     const bank = await insBank(x), custom = !!await kvJson(x.db, 'ins_bank', null), log = (await logGet(x)).filter(r => now - r.at < 30 * DAY);
-    const scripts = (await all(x.db, 'SELECT id, at, by_name, g, gn, f, t, i, prod, sec, kind, title, text FROM vd_scripts ORDER BY id DESC LIMIT 30')).map(r => Object.assign(r, { w: insRisk(r.text) }));
+    const scripts = (await all(x.db, 'SELECT id, at, by_name, g, gn, f, t, i, prod, sec, kind, title, text FROM vd_scripts ORDER BY id DESC LIMIT 30')).map(r => Object.assign(r, { w: insRisk(r.text), v: insStyle(r.text) }));
     const upd = custom ? mergeDefault(bank).n : null; // bản mặc định có nhóm / tension / nhãn sản phẩm mới mà ngân hàng đã sửa riêng chưa có
     const prods = Object.entries(prodMap(await kb())).map(([k, v]) => ({ code: k, name: v.name }));
     return { ok: true, now, bank, custom, upd, sp: SP, skills: await skillsInfo(x), drafts: await offerDrafts(x), log: log.slice(-300), scripts, prods, aiOn: !!x.env.ANTHROPIC_API_KEY, fun: Object.fromEntries(Object.entries(FUN).map(([k, v]) => [k, v.name])) };
@@ -461,6 +540,14 @@ export async function crmIns(x, u, d, crmLog) {
     const r = await vdWrite(x, u, d);
     if (r.ok) await crmLog(x, u, 'Insight & nội dung', '-', '', 'Viết kịch bản video', (r.script && r.script.title || '').slice(0, 200));
     return r;
+  }
+  if (a === 'ins_big') { // 🌟 AI gợi ý 3 big idea × 10 góc kể cho 1 nhóm khách → điền vào ô Big idea trong form sửa nhóm (người sửa, chọn rồi mới lưu)
+    if (u.level < 2 && u.role !== 'Marketing') return { ok: false, error: 'Chỉ Marketing, Quản lý, Quản trị sửa được ngân hàng insight.' };
+    const dk = 'ins_ai_' + fmtDate(now, 'yyMMdd'), n = Number(await kvGet(x.db, dk) || 0);
+    if (n >= 40) return { ok: false, error: 'Hôm nay đã dùng 40 lần, mai thử tiếp nhé.' };
+    await kvSet(x.db, dk, String(n + 1), 2 * DAY);
+    try { const r = await bigWrite(x, d); if (r.ok) await crmLog(x, u, 'Insight & nội dung', '-', '', 'AI gợi ý big idea', cut(d.name || d.g, 100)); return r; }
+    catch (e) { return { ok: false, error: 'AI chưa làm xong: ' + String(e.message).slice(0, 150) }; }
   }
   if (a === 'ins_vdel') { await run(x.db, 'DELETE FROM vd_scripts WHERE id = ?', Number(d.id) || 0); return { ok: true }; }
   return { ok: false, error: 'Không rõ thao tác.' };

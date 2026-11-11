@@ -25,7 +25,7 @@ import { botRef } from './partner.js';
 import { offersLive } from './salemkt.js';
 import { lunar } from './lunar.js';
 import { dayTheme, upcoming, addDay, weekday } from './zday.js';
-import { insPick, insBlock, insParse, insLog, insBank, insRisk, INS_HEAD, FUN, spName } from './insight.js';
+import { insPick, insBlock, insParse, insLog, insBank, insRisk, insViet, insStyle, INS_HEAD, FUN, spName } from './insight.js';
 
 const BOT = 'An Lành';
 const FAST = 'claude-haiku-5-5', WRITER = 'claude-opus-5-5';
@@ -747,7 +747,7 @@ export async function zWrite(x, day, slot, hint, by, grp) {
   const old = await first(x.db, 'SELECT ins, at_time FROM zb_posts WHERE id = ?', day + '_' + slot); let og = ''; try { og = hint && old && old.ins ? JSON.parse(old.ins).g || '' : ''; } catch (e) { }
   const atT = (old && old.at_time) || (pl && pl.at_time) || '', at = atT || slotAt(sl0, day), hh = Number(at.slice(0, 2));
   const tod = hh < 9 ? 'sáng sớm' : hh < 11 ? 'buổi sáng' : hh < 13 ? 'buổi trưa' : hh < 18 ? 'buổi chiều' : 'buổi tối';
-  const ip = await insPick(x, 'zalo', grp || og || (pl ? pl.g : ''), pl && pl.sp ? { prod: pl.sp } : undefined); // nhân sự chọn nhóm khi viết lại > nhóm cũ > nhóm trong kế hoạch
+  const ip = await insPick(x, 'zalo', grp || og || (pl ? pl.g : ''), Object.assign(pl && pl.sp ? { prod: pl.sp } : {}, { noBig: !!(th.ev && !th.moved && th.f === 'TOFU') })); // nhân sự chọn nhóm khi viết lại > nhóm cũ > nhóm trong kế hoạch; bài chúc dịp lễ không theo big idea
   const plTn = pl && pl.tn && ip.g && ip.g.id === pl.g ? pl.tn : '';
   const learn = scored.length >= 4 ? 'Bài cùng loại trong nhóm này được nhiều người hưởng ứng nhất (học cách đặt vấn đề, cách hỏi):\n' + scored.slice(0, 3).map(r => '- ' + r.topic + ' (' + r.eng_people + ' người)').join('\n') + '\nBài ít người hưởng ứng (tránh kiểu này):\n' + scored.slice(-2).map(r => '- ' + r.topic + ' (' + r.eng_people + ' người)').join('\n') : '';
   const ask = [
@@ -783,20 +783,20 @@ export async function zWrite(x, day, slot, hint, by, grp) {
   catch (e) { if (!(e instanceof Anthropic.BadRequestError)) throw e; res = await ai(x.env).messages.create(req, { headers: { 'x-tdl-muc': 'zalo-bai' } }); }
   if (res.stop_reason === 'refusal') throw new Error('AI từ chối viết bài');
   const raw = textOf(res), parts = raw.split(/\n-{3,}\n/);
-  const head = parts.length > 1 ? parts[0] : '', body = safe((parts.length > 1 ? parts.slice(1).join('\n---\n') : raw).trim());
+  const head = parts.length > 1 ? parts[0] : '', body = insViet(safe((parts.length > 1 ? parts.slice(1).join('\n---\n') : raw).trim()));
   const topic = ((head.match(/CHỦ ĐỀ:\s*(.+)/) || [])[1] || body.split('\n')[0]).replace(/\*/g, '').trim().slice(0, 120);
   const code = ((head.match(/SẢN PHẨM:\s*([a-z0-9-]+)/) || [])[1] || '');
   const pick = lib[Number((head.match(/ẢNH:\s*(\d+)/) || [])[1]) - 1];
   const img = fb && fb.img ? fb.img : prods[code] && prods[code].img ? prods[code].img : pick ? pick.url : '';
   if (!body) throw new Error('AI chưa viết được bài');
-  const id = day + '_' + slot, now = Date.now(), ins = Object.assign(insParse(head, ip.bank, ip.g), { w: insRisk(body) });
+  const id = day + '_' + slot, now = Date.now(), ins = Object.assign(insParse(head, ip.bank, ip.g), { w: insRisk(body), v: insStyle(body), b: ip.big ? ip.big.t : '' }); if (ip.angle) ins.a = ip.angle;
   // link web trong bài → gắn mã bài để CRM đếm đơn từ bài này (đơn ghi nguồn "zalo / nhom / <mã bài>")
   const tagged = tagLinks(body.replace(/(^|[\s(])_([^_\n]+)_(?=[\s).,!?]|$)/gm, '$1$2').replace(/(^|[\s(])\*([^*\n]+)\*(?=[\s).,!?]|$)/gm, '$1$2'), id);
   if (fb) { const all = (await kvJson(x.db, 'zb_fb', [])) || []; for (const f of all) if (f.id === fb.id) f.used = now; await kvSet(x.db, 'zb_fb', JSON.stringify(all)); }
   await run(x.db, `INSERT INTO zb_posts (id, day, slot, topic, text, img, prod, status, by_name, at, funnel, ev, ins, at_time, plan) VALUES (?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET topic = excluded.topic, text = excluded.text, img = excluded.img, prod = excluded.prod, status = 'draft', by_name = excluded.by_name, at = excluded.at, funnel = excluded.funnel, ev = excluded.ev, ins = excluded.ins, at_time = excluded.at_time, plan = excluded.plan`,
     id, day, slot, topic, tagged.slice(0, 4000), img, prods[code] ? code : '', by || 'AI', now, th.f, th.ev || '', JSON.stringify(ins), atT, pl ? pl.status : '');
-  await insLog(x, 'zalo', { g: ins.g, gn: ins.gn, f: th.f, t: ins.t, ref: id, sp: prods[code] ? code : '' });
+  await insLog(x, 'zalo', { g: ins.g, gn: ins.gn, f: th.f, t: ins.t, ref: id, sp: prods[code] ? code : '', a: ins.a, b: ins.b });
   if (!slotAuto(cfg, slot) && !by) x.later(telegram(x.env, '📝 <b>Bài Zalo chờ duyệt</b> – ' + (SLOT_NAME[slot] || slot) + ' ' + WD[wd] + ' ' + day.slice(6, 8) + '/' + day.slice(4, 6) + ' lúc ' + at.replace(':', 'h') + (th.ev ? ' · 📅 ' + esc(th.ev) : '') + (pl ? (pl.status === 'ok' ? ' · 📋 theo chủ đề đã duyệt' : ' · ⚠️ chủ đề kế hoạch chưa duyệt') : '') + ': ' + esc(topic) + '\n👉 Duyệt / sửa: ' + CRM_URL + '/#tro-ly-zalo'));
   return { id, topic };
 }
