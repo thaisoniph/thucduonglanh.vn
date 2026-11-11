@@ -9765,7 +9765,7 @@
   function lineOfTxt(t) { t = String(t || ''); return /progomax|fucoidan pro|fu ?pro/i.test(t) ? 'Fucoidan Pro' : /curcumin|nghệ/i.test(t) ? 'Curcumin' : /bữa ăn|badd|bua an/i.test(t) ? 'BADD' : 'Khác'; }
   var BC_LINES = ['Curcumin', 'BADD', 'Fucoidan Pro', 'Khác'];
   /* 💰 Lương & hoa hồng theo Phụ lục 01/CĐ2026 (30/10/2026, máy chủ crm.js PAYPLAN, sửa ở Cài đặt → 💰 Lương & hoa hồng): bậc theo doanh thu tháng của sale × thâm niên
-     (ngày vào làm ở Cài đặt → Nhân sự) × khách cũ / mới. Đơn web tính như đơn sale; khách mới tự đặt web không qua link sale = webAuto % mức khách mới. */
+     (ngày vào làm ở Cài đặt → Nhân sự) × khách cũ / mới. Đơn web tính như đơn sale; khách mới tự đặt web không qua link sale và sale chưa chăm trước đó (không có dấu 🤝 trong ghi chú đơn) = webAuto % mức khách mới. */
   function ppOn() { var P = S.d.rules.payplan; return !!(P && P.on && P.tiers && P.tiers.length); }
   function ppJoinTs(v) {
     var t = String(v || ''), m = t.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/); if (m) return new Date(+m[3], +m[2] - 1, +m[1]).getTime();
@@ -9847,7 +9847,7 @@
     S.d.orders.forEach(function (o) {
       if (!o.time || o.time < R[0] || o.time >= R[1] || o.seller !== name || /hoàn/i.test(o.status) || isVoid(o.status)) return;
       var c = cust(o.phone), t0 = otypeOf(o), isNew = t0 === 'Khách mới' ? true : t0 === 'Khách cũ' ? false : !c || !c.first || c.first >= o.time - 3600e3;
-      var web = isWebOrder(o), k = !web && t0 === 'Ngoài giờ' ? 'off' : !web && t0 === 'Ngày lễ' ? 'hol' : !isNew ? 'old' : web && String(o.note || '').indexOf('🔗 Đặt qua link của ' + name) < 0 ? 'auto' : 'nw';
+      var web = isWebOrder(o), k = !web && t0 === 'Ngoài giờ' ? 'off' : !web && t0 === 'Ngày lễ' ? 'hol' : !isNew ? 'old' : web && String(o.note || '').indexOf('🔗 Đặt qua link của ' + name) < 0 && String(o.note || '').indexOf('🤝 ' + name + ' đã chăm') < 0 ? 'auto' : 'nw'; // 🤝 = sale đã liên hệ khách trong 30 ngày trước khi khách tự đặt web (máy chủ ghi) → đủ % khách mới
       if (ownOrder(o, c, name) && k !== 'hol') { k = 'own'; ownN[c.phone] = 1; } // 🙋 khách sale tự mang về: % riêng thay cho % thường (ngày lễ giữ % lễ nếu cao hơn)
       sums[k] += commBase(o); rev += o.total; n++;
     });
@@ -9865,7 +9865,7 @@
         kpi('🔁 HH khách cũ', moneyShort(p.cm.old), '', '', p.rt[0] + '% × ' + moneyShort(p.sums.old) + ' tiền hàng') +
         kpi('🆕 HH khách mới', moneyShort(p.cm.nw), '', '', p.rt[1] + '% × ' + moneyShort(p.sums.nw) + ' (sale chốt + qua link của bạn)') +
         (p.sums.own || p.own ? kpi('🙋 HH khách tự mang về', moneyShort(p.cm.own), p.cm.own ? 'good' : '', '', p.own + '% × ' + moneyShort(p.sums.own) + (p.ownN ? ' · ' + p.ownN + ' khách' : '') + ' (khách bạn tự tìm hoặc được khách cũ giới thiệu, ' + p.ownMonths + ' tháng đầu)') : '') +
-        (p.sums.auto ? kpi('🌐 Khách mới tự đặt web', moneyShort(p.cm.auto), '', '', (p.rt[1] * p.webAuto / 100) + '% × ' + moneyShort(p.sums.auto) + ' (không qua link sale: ' + p.webAuto + '% mức khách mới)') : '') +
+        (p.sums.auto ? kpi('🌐 Khách mới tự đặt web', moneyShort(p.cm.auto), '', '', (p.rt[1] * p.webAuto / 100) + '% × ' + moneyShort(p.sums.auto) + ' (không qua link sale, sale chưa chăm trong 30 ngày trước khi đặt: ' + p.webAuto + '% mức khách mới)') : '') +
         (p.sums.off ? kpi('🌙 Đơn tối / Chủ nhật', moneyShort(p.cm.off), '', '', p.off + '% cố định × ' + moneyShort(p.sums.off)) : '') +
         (p.sums.hol ? kpi('🎉 Đơn ngày lễ', moneyShort(p.cm.hol), '', '', p.hol + '% cố định × ' + moneyShort(p.sums.hol)) : '') +
         (p.sen ? kpi('🎖 Phụ cấp thâm niên', moneyShort(p.sen), '', '', '') : '') + kpi('Tổng tạm tính', moneyShort(p.total), 'good', '', 'chưa gồm thưởng') + '</div>' +

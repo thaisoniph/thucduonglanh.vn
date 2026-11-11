@@ -292,6 +292,7 @@ Khi tạo đơn, chọn 1 trong 4 loại:
 - Hoa hồng tính trên **tiền hàng** (không tính phí ship, không tính đơn huỷ hay trả lại).
 - Khách đã từng mua nhưng **vừa để lại số qua quảng cáo** (trong 30 ngày) vẫn là **Khách mới**.
 - Đơn khách tự đặt trên web có cách tính hoa hồng riêng. Đơn này tính cho người đang phụ trách khách.
+- Khách mới bạn **đã gọi hoặc nhắn trong 30 ngày** rồi tự lên web đặt (không bấm link của bạn) thì bạn vẫn được **đủ hoa hồng khách mới**. Nhớ **ghi chăm sóc vào CRM** mỗi lần gọi / nhắn. Không ghi thì CRM không biết bạn đã chăm, đơn chỉ tính 50%.
 - Mục **⚙️ Tuỳ chọn khác** trong trang tạo đơn: nhớ chọn đúng **Khách đặt qua** (Facebook, Zalo, người quen giới thiệu…). Đây là nơi khách biết đến mình.
 - Khách đã có đơn **cùng số tiền trong 1 giờ qua**, CRM hỏi lại để tránh trùng. Chỉ bấm **OK** khi khách thật sự đặt thêm.
 

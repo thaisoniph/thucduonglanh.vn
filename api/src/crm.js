@@ -970,6 +970,7 @@ const POOL_DAYS = 30, POOL_MAX = 10, POOL_ROUNDS = 2, POOL_FRESH = 45; // mặc 
 // Hẹn gọi lại giữ số, nhưng mỗi lần hẹn tối đa POOL_CB_MAX ngày (hẹn xa hơn coi như không hẹn → tránh hẹn ảo để giữ số). Liên hệ = leads.last_at (💬 Tư vấn) hoặc nhật ký chăm sóc của chính người giữ (CONTACT_WHAT).
 const POOL_NOCALL = 2, POOL_IDLE = 10, POOL_CB_MAX = 14;
 const CONTACT_WHAT = "('Tư vấn', 'Ghi nhanh', 'Trả lời liên hệ', 'Gửi ưu đãi', 'Gửi quà tặng', 'Gửi lời chúc', 'Gọi xác minh', 'Cộng đồng')";
+const CARED_DAYS = 30; // đơn web: sale có liên hệ khách trong bấy nhiêu ngày trước khi đặt → tính như đặt qua link (đủ % khách mới)
 const LEAD_OWN = 'coalesce(own_at, time)';
 const LEAD_LASTC = "max(coalesce(last_at, 0), coalesce((SELECT max(g.time) FROM logs g WHERE g.ref IN (leads.phone, '''' || leads.phone) AND g.by_name = leads.owner AND g.what IN " + CONTACT_WHAT + "), 0))"; // lần liên hệ cuối của người đang giữ
 export function poolRuleTxt(R) {
@@ -1187,6 +1188,9 @@ export async function saveOrder(x, data, opt) {
   if (opt.otype === 'Khách mới' && data.voucher && !manual) { try { const rv2 = await first(x.db, 'SELECT ref_phone FROM vouchers WHERE code = ?', String(data.voucher)); if (rv2 && rv2.ref_phone) opt.otype = 'Khách cũ'; } catch (e) { } } // đặt web bằng mã / SĐT người giới thiệu → hoa hồng như khách cũ
   if (!owner && !opt.by) owner = assigned = refBy || await autoOwner(x); // khách mới: giao cho sale gửi link, không thì theo chế độ "Tự chia đều"
   const seller = opt.by || owner;
+  // 11/11/2026 (anh Sơn): khách sale đã chăm (có ghi nhật ký liên hệ trong 30 ngày trước khi đặt) tự lên web đặt, không bấm link → vẫn đủ % khách mới như đặt qua link (CRM payOf đọc dấu 🤝)
+  if (!manual && seller && seller !== refBy) { try { const lg = await first(x.db, "SELECT time FROM logs WHERE ref IN (?, '''' || ?) AND by_name = ? AND what IN " + CONTACT_WHAT + ' AND time >= ? AND time < ? ORDER BY time DESC LIMIT 1', phone, phone, seller, now - CARED_DAYS * DAY, now);
+    if (lg) c.note = (c.note ? c.note + ' · ' : '') + '🤝 ' + seller + ' đã chăm khách trước khi đặt (' + fmtDate(lg.time, 'dd/MM') + ')'; } catch (e) { console.error('cared', e.message); } }
   await insertMany(x.db, 'orders', ORDER_COLS, [{ id: String(data.id || ''), time: now, name: c.name || '', phone, email: c.email || '', province: c.province || '', ward: c.district || '', address: c.address || '', items,
     subtotal: Number(data.subtotal) || 0, shipping: Number(data.shipping) || 0, total: Number(data.total) || 0, payment: pay, note: c.note || '', status: opt.status || 'Mới', source: data.source || '', first_source: data.first_source || '',
     consent: data.marketing_consent ? 1 : 0, paid: '', carrier: '', tracking: '', seller: seller || '', ca, line, ship }]);
