@@ -17,7 +17,7 @@
  * Chi phí AI: trả lời, chào dùng claude-haiku-5-5 (vài chục đồng/lần); bài đăng dùng claude-opus-5-5 (~2.500đ/bài, 2 bài/ngày ≈ 150k/tháng). */
 import Anthropic from '@anthropic-ai/sdk';
 import { aiFetch } from './airelay.js';
-import { esc, run, all, first, kvGet, kvSet, kvJson, normPhone, fmtDate, isVoid, CRM_URL, TZ_MS, DAY } from './lib.js';
+import { esc, run, all, first, kvGet, kvSet, kvJson, normPhone, fmtDate, isVoid, nrm, fmt, CRM_URL, TZ_MS, DAY } from './lib.js';
 import { telegram } from './google.js';
 import { addLead, telegramUser } from './crm.js';
 import { kb, safe, workNow, TRUTH_RULES, REF_RULES, REF_TXT, PHONE_RE } from './chat.js';
@@ -358,13 +358,14 @@ async function zMsg(x, d) {
   if (n >= (cfg.maxHour || 8) && !direct) return { ok: true };
   const st = await kvJson(x.db, 'zb_status', null), gname = groupName(st, gid), know = await kb(), w = workNow(now);
   const known = d.uid ? await first(x.db, "SELECT phone FROM zb_users WHERE uid = ? AND phone != ''", String(d.uid)) : null; // đội ngũ đã có số → hứa gọi lại, khỏi bảo khách nhắn riêng
+  const od = await findOrder(x, d, text, known && known.phone, now); // 🧾 khách báo đã đặt hàng → trợ lý tự tìm đơn 3 ngày gần nhất
   const ctx = (d.ctx || []).slice(-12).map(m => (m.bot ? 'Em (' + BOT + ')' : m.staff ? '[Đội ngũ] ' + m.name : m.name) + ': ' + String(m.text || '').slice(0, 300)).join('\n');
   let reply = '';
   try {
     const res = await ai(x.env).messages.create({ model: FAST, max_tokens: 1500, output_config: { effort: 'low' },
       system: [{ type: 'text', text: GROUP_RULES + '\n' + TRUTH_RULES.replace(/mời nhắn Zalo/g, 'mời nhắn riêng') },
         { type: 'text', text: 'TÀI LIỆU (thông tin chính thức của Thực Dưỡng Lành):\n\n' + know, cache_control: { type: 'ephemeral' } },
-        { type: 'text', text: 'Nhóm: "' + gname + '". Bây giờ là ' + w.label + '. Chuyên viên ' + (w.on ? 'đang trực.' : 'ngoài giờ (trực Thứ 2 – Thứ 7, 8h–17h).') + ' Đội ngũ ' + (known ? 'ĐÃ CÓ' : 'CHƯA có') + ' số điện thoại của người nhắn.' }],
+        { type: 'text', text: 'Nhóm: "' + gname + '". Bây giờ là ' + w.label + '. Chuyên viên ' + (w.on ? 'đang trực.' : 'ngoài giờ (trực Thứ 2 – Thứ 7, 8h–17h).') + ' Đội ngũ ' + (known || od ? 'ĐÃ CÓ' : 'CHƯA có') + ' số điện thoại của người nhắn.' + (od ? '\nĐÃ TÌM THẤY ĐƠN của người nhắn: đặt lúc ' + fmtDate(od.time, 'HH:mm dd/MM') + ', trạng thái "' + (od.status || 'Mới') + '". Nói cho khách yên tâm là bên em đã nhận đơn (nêu giờ đặt), chuyên viên sẽ kiểm tra ưu đãi, quà rồi gọi xác nhận; thêm [[zalo]]. KHÔNG nêu mã đơn, số tiền, số điện thoại, địa chỉ trong nhóm; không bảo khách gọi hotline hay nhắn riêng.' : '') }],
       messages: [{ role: 'user', content: (ctx ? 'Các tin trước trong nhóm:\n' + ctx + '\n\n' : '') + 'TIN CẦN XỬ LÝ – ' + (d.name || 'Thành viên') + (direct ? ' (gọi em / trả lời tin của em)' : '') + ': ' + text }] });
     if (res.stop_reason === 'refusal') return { ok: true };
     reply = textOf(res);
@@ -374,8 +375,25 @@ async function zMsg(x, d) {
   const z = zText(safe(reply.replace(/\[(TIM|BO_QUA)\]/g, '')), prodMap(know));
   await kvSet(x.db, hk, String(n + 1), 2 * 3600e3);
   await zlog(x, z.zalo ? 'handoff' : 'answer', { gid, uid: d.uid, name: d.name, text, reply: z.text });
-  if (z.zalo) x.later(handoff(x, { where: 'nhóm "' + gname + '"', name: d.name, uid: d.uid, text, reply: z.text }));
+  if (z.zalo || od) x.later(handoff(x, { where: 'nhóm "' + gname + '"', name: d.name, uid: d.uid, text, reply: z.text, order: od }));
   return { ok: true, reply: z.text, quote: true };
+}
+/** 🧾 Khách nói đã đặt hàng → tìm đơn 3 ngày gần nhất theo số đã biết, hoặc theo tên (tên Zalo / tên khách gõ trong tin). Chỉ nhận khi đúng 1 khách khớp. */
+const ORDER_TALK = /đặt|đơn|mua|nhận hàng|giao hàng|ship|chốt/i;
+async function findOrder(x, d, text, phone, now) {
+  const ctxT = (d.ctx || []).slice(-4).map(m => m.text || '').join(' ');
+  if (!ORDER_TALK.test(text + ' ' + ctxT)) return null;
+  const rows = await all(x.db, "SELECT id, time, name, phone, total, status FROM orders WHERE time > ? ORDER BY time DESC LIMIT 400", now - 3 * DAY);
+  const live = rows.filter(o => !isVoid(o.status));
+  let hit = phone ? live.filter(o => normPhone(o.phone) === phone) : [];
+  if (!hit.length) {
+    const said = ' ' + nrm(text + ' ' + d.name).replace(/[^a-z0-9 ]/g, ' ') + ' ';
+    hit = live.filter(o => { const w = nrm(o.name).replace(/[^a-z0-9 ]/g, ' ').split(' ').filter(Boolean); if (w.length < 2) return false; return said.indexOf(' ' + w.slice(-2).join(' ') + ' ') >= 0; });
+  }
+  if (!hit.length || new Set(hit.map(o => normPhone(o.phone))).size > 1) return null; // không thấy, hoặc nhiều khách trùng tên → để chuyên viên tự tìm
+  const o = hit[0];
+  if (d.uid && /^0\d{9}$/.test(normPhone(o.phone))) await run(x.db, `INSERT INTO zb_users (uid, phone, zname, at) VALUES (?, ?, ?, ?) ON CONFLICT(uid) DO UPDATE SET phone = CASE WHEN zb_users.phone = '' THEN excluded.phone ELSE zb_users.phone END`, String(d.uid), normPhone(o.phone), String(d.name || '').slice(0, 80), now);
+  return o;
 }
 
 /* ---------------------------------------------------------------- 🔒 khách gửi số điện thoại / địa chỉ vào nhóm (11/11/2026)
@@ -416,8 +434,9 @@ async function zPii(x, d) {
 
 /** Câu cần người thật → Telegram (kèm số điện thoại nếu đã biết từ web) */
 async function handoff(x, o) {
-  const u = o.uid ? await first(x.db, 'SELECT phone, name FROM zb_users WHERE uid = ?', o.uid) : null;
+  const u = o.uid ? await first(x.db, 'SELECT phone, name FROM zb_users WHERE uid = ?', o.uid) : null, od = o.order;
   await telegram(x.env, '🤖 <b>TRỢ LÝ ZALO CẦN NGƯỜI THẬT</b> – ' + esc(o.where) + '\n👤 ' + esc(o.name || '') + (u && u.phone ? ' – <b>' + esc(u.phone) + '</b>' : ' (chưa biết số)') + '\n💬 ' + esc(o.text.slice(0, 300)) + '\n🤖 Đã trả lời: ' + esc(o.reply.slice(0, 300))
+    + (od ? '\n🧾 Trợ lý tìm thấy đơn <b>' + esc(od.id) + '</b> – ' + esc(od.name) + ' – ' + esc(od.phone) + ' – ' + fmt(od.total) + ' – đặt ' + fmtDate(od.time, 'HH:mm dd/MM') + ' (' + esc(od.status || 'Mới') + ')\n👉 GỌI KHÁCH XÁC NHẬN ĐƠN, ưu đãi, quà.' : '')
     + '\n👉 ' + (u && u.phone ? 'Gọi / nhắn từ Zalo hotline 0966 326 522 theo số trên, hoặc ' : '') + 'trả lời ngay trên điện thoại "Trợ lý An Lành" (' + (o.where === 'tin nhắn riêng' ? 'mở cuộc trò chuyện với khách' : 'tìm tên khách trong nhóm') + '). Người nhắn tay thì trợ lý tự nhường 2 tiếng.');
 }
 
