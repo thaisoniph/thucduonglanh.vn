@@ -5924,18 +5924,18 @@
     });
     return X;
   }
-  /* ---------- 💸 Tiền ra từ sao kê (11/11/2026, anh Sơn: mọi khoản chi qua tài khoản → tải sao kê là đủ). Máy đoán nhóm theo nội dung (ktcGuess) hoặc theo
-   * lần kế toán đã chọn cho cùng người nhận (KTCH.map, khoá ktcKey). Lưu kt_chis → bảng kt_chi; máy chủ gộp vào S.d.rules.fin.chi (finFull) nên lãi lỗ từng ngày, 📊 Chi phí lớn,
+  /* ---------- 💸 Tiền ra từ sao kê (11/11/2026, anh Sơn: mọi khoản chi qua tài khoản → tải sao kê là đủ). Máy đoán nhóm theo nội dung (kcxGuess) hoặc theo
+   * lần kế toán đã chọn cho cùng người nhận (KTCH.map, khoá kcxKey). Lưu kt_chis → bảng kt_chi; máy chủ gộp vào S.d.rules.fin.chi (finFull) nên lãi lỗ từng ngày, 📊 Chi phí lớn,
    * tin 8h dùng luôn. Nhóm quyết định cách tính (fxPlan): lương / thuê nhà / điện nước chia đều; nhà cung cấp / nội bộ / rút tiền mặt / thuế không tính; còn lại trừ đúng ngày. */
   var KTCH = { d: null, map: {}, busy: false, at: 0 };
-  var KTC_GROUPS = ['Tiếp khách', 'Mua sắm thiết bị', 'Văn phòng phẩm, tạp vụ', 'Sửa chữa', 'Quà tặng khách', 'Hỗ trợ marketing (TikTok, livestream)', 'Công tác phí', 'Phí ngân hàng', 'Khác',
+  var KCX_GROUPS = ['Tiếp khách', 'Mua sắm thiết bị', 'Văn phòng phẩm, tạp vụ', 'Sửa chữa', 'Quà tặng khách', 'Hỗ trợ marketing (TikTok, livestream)', 'Công tác phí', 'Phí ngân hàng', 'Khác',
     'Lương nhân viên', 'Bảo hiểm xã hội', 'Thuê văn phòng', 'Thuê kho', 'Điện nước', 'Internet & điện thoại', 'Phần mềm & công cụ', 'Tiền ship trả hãng vận chuyển',
     'Quảng cáo Facebook', 'Phí sàn TMĐT', 'Trả nợ nhà cung cấp', 'Nhập hàng', 'Chuyển nội bộ', 'Rút tiền mặt', 'Thuế'];
   function ktchLoad(force) {
     if (KTCH.busy || (!force && KTCH.d && Date.now() - KTCH.at < 120e3)) return; KTCH.busy = true;
     api('kt_chi', {}).then(function (j) { KTCH.d = j.rows || []; KTCH.map = j.map || {}; KTCH.at = Date.now(); }, function () { KTCH.d = KTCH.d || []; }).then(function () { KTCH.busy = false; });
   }
-  function ktcGuess(t0) {
+  function kcxGuess(t0) {
     var t = norm(t0);
     if (/noi bo/.test(t)) return 'Chuyển nội bộ';
     if (/rut sec|withdrawal|rut tien/.test(t)) return 'Rút tiền mặt';
@@ -5954,21 +5954,21 @@
     return '';
   }
   /** Khoá nhớ nhóm theo người nhận / nội dung: bỏ mã giao dịch, số, tên công ty mình → 6 chữ đầu. */
-  function ktcKey(t0) { return norm(t0).replace(/ct tnhh tap doan vitagreen nutrition/g, ' ').split(/[\s.+:\/-]+/).filter(function (w) { return w && !/\d/.test(w) && !/^(ib|mb)biz/.test(w); }).slice(0, 8).join(' '); }
-  function ktcTxt(t) { var x = String(t || '').replace(/^(?:IB|MB)BIZ\.?\d+\.\w+\./i, '').replace(/^CT TNHH TAP DOAN VITAGREEN NUTRITION\s*/i, '').trim(); return (x || String(t || '')).slice(0, 140); } // bỏ mã giao dịch + tên công ty mình cho dễ đọc
-  function ktcOpts(g) { return '<option value="">— Chọn nhóm —</option>' + KTC_GROUPS.concat(g && KTC_GROUPS.indexOf(g) < 0 ? [g] : []).map(function (x) { return '<option' + (x === g ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join(''); }
-  function ktcHow() { return '<p class="small muted" style="margin:6px 0 0">Nhóm quyết định cách tính lãi lỗ: <b>lương, bảo hiểm, thuê nhà, điện nước, internet, ship</b> chia đều mỗi ngày theo chi phí tháng; <b>trả nhà cung cấp, nhập hàng, chuyển nội bộ, rút tiền mặt, thuế</b> không tính là chi phí; <b>quảng cáo Facebook, phí sàn</b> máy đã tự lấy; còn lại trừ đúng ngày. Tiền mặt rút ra rồi chi thì ghi ở trang Sổ chi của file kế toán.</p>'; }
-  function ktcHTML(X) {
+  function kcxKey(t0) { return norm(t0).replace(/ct tnhh tap doan vitagreen nutrition/g, ' ').split(/[\s.+:\/-]+/).filter(function (w) { return w && !/\d/.test(w) && !/^(ib|mb)biz/.test(w); }).slice(0, 8).join(' '); }
+  function kcxTxt(t) { var x = String(t || '').replace(/^(?:IB|MB)BIZ\.?\d+\.\w+\./i, '').replace(/^CT TNHH TAP DOAN VITAGREEN NUTRITION\s*/i, '').trim(); return (x || String(t || '')).slice(0, 140); } // bỏ mã giao dịch + tên công ty mình cho dễ đọc
+  function kcxOpts(g) { return '<option value="">— Chọn nhóm —</option>' + KCX_GROUPS.concat(g && KCX_GROUPS.indexOf(g) < 0 ? [g] : []).map(function (x) { return '<option' + (x === g ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join(''); }
+  function kcxHow() { return '<p class="small muted" style="margin:6px 0 0">Nhóm quyết định cách tính lãi lỗ: <b>lương, bảo hiểm, thuê nhà, điện nước, internet, ship</b> chia đều mỗi ngày theo chi phí tháng; <b>trả nhà cung cấp, nhập hàng, chuyển nội bộ, rút tiền mặt, thuế</b> không tính là chi phí; <b>quảng cáo Facebook, phí sàn</b> máy đã tự lấy; còn lại trừ đúng ngày. Tiền mặt rút ra rồi chi thì ghi ở trang Sổ chi của file kế toán.</p>'; }
+  function kcxHTML(X) {
     var P = X.P, have = {}, acct = String(P.acctNo || '').replace(/\D/g, ''); (KTCH.d || []).forEach(function (r) { have[r.id] = r; });
-    X.chi = P.out.map(function (r) { var id = acct + ':' + r.doc, old = have[id], key = ktcKey(r.txt), mem = KTCH.map[key]; return { r: r, id: id, old: old, key: key, g: old ? old.grp : mem || ktcGuess(r.txt), mem: mem ? 1 : 0 }; });
+    X.chi = P.out.map(function (r) { var id = acct + ':' + r.doc, old = have[id], key = kcxKey(r.txt), mem = KTCH.map[key]; return { r: r, id: id, old: old, key: key, g: old ? old.grp : mem || kcxGuess(r.txt), mem: mem ? 1 : 0 }; });
     if (!P.out.length) return '';
     var neu = X.chi.map(function (c, i) { return { c: c, i: i }; }).filter(function (x) { return !x.c.old; }), nOld = X.chi.length - neu.length, unk = neu.filter(function (x) { return !x.c.g; }).length;
     var h = '<h3 class="kts-h">💸 Tiền ra <small>' + neu.length + ' khoản mới · ' + money(neu.reduce(function (s, x) { return s + x.c.r.amt; }, 0)) + (nOld ? ' · ' + nOld + ' khoản đã lưu từ trước' : '') + '</small></h3>';
     if (!acct) return h + '<p class="small ktv-red">⚠️ File không có số tài khoản nên chưa lưu được tiền ra. Xuất lại sao kê từ VCB DigiBiz (Lịch sử giao dịch → Excel).</p>';
     if (unk) h += '<p class="small ktv-red">⚠️ <b>' + unk + ' khoản</b> máy chưa đoán được nhóm (tô đỏ): chọn nhóm, lần sau gặp cùng người nhận máy tự xếp.</p>';
     neu.sort(function (a, b) { return (a.c.g ? 1 : 0) - (b.c.g ? 1 : 0) || a.c.r.day - b.c.r.day; });
-    h += neu.length ? '<div class="ktv-list">' + neu.map(function (x) { var c = x.c; return '<div class="kts-chi' + (c.g ? '' : ' unk') + '"><span class="ktv-o-t"><b>' + fDate(c.r.day).slice(0, 5) + ' · ' + money(c.r.amt) + '</b><small>' + esc(ktcTxt(c.r.txt)) + '</small></span><select data-ktsc="' + x.i + '" aria-label="Nhóm chi phí">' + ktcOpts(c.g) + '</select></div>'; }).join('') + '</div>' : '<p class="small muted">Các khoản tiền ra trong file này đã lưu từ lần trước. Sửa nhóm ở nút 💸 Tiền ra đã lưu.</p>';
-    return h + ktcHow();
+    h += neu.length ? '<div class="ktv-list">' + neu.map(function (x) { var c = x.c; return '<div class="kts-chi' + (c.g ? '' : ' unk') + '"><span class="ktv-o-t"><b>' + fDate(c.r.day).slice(0, 5) + ' · ' + money(c.r.amt) + '</b><small>' + esc(kcxTxt(c.r.txt)) + '</small></span><select data-ktsc="' + x.i + '" aria-label="Nhóm chi phí">' + kcxOpts(c.g) + '</select></div>'; }).join('') + '</div>' : '<p class="small muted">Các khoản tiền ra trong file này đã lưu từ lần trước. Sửa nhóm ở nút 💸 Tiền ra đã lưu.</p>';
+    return h + kcxHow();
   }
   /** 💸 Tiền ra đã lưu: xem / sửa nhóm các khoản 90 ngày gần nhất (chưa chọn nhóm lên đầu). */
   function openKtch() {
@@ -5977,12 +5977,12 @@
       var R = (KTCH.d || []).slice().sort(function (a, b) { return (a.grp ? 1 : 0) - (b.grp ? 1 : 0) || (a.day < b.day ? 1 : a.day > b.day ? -1 : 0); }), unk = R.filter(function (r) { return !r.grp; }).length;
       $('#ktchOut', m).innerHTML = !R.length ? '<p class="muted">Chưa có khoản nào. Bấm 🏦 Tải sao kê VCB để máy đọc tiền ra.</p>' :
         '<p class="small" style="margin:0 0 8px">' + R.length + ' khoản (120 ngày gần nhất)' + (unk ? ' · <b class="ktv-red">' + unk + ' khoản chưa chọn nhóm</b>' : '') + '. Đổi nhóm là lãi lỗ tính lại ngay.</p><div class="ktv-list">' + R.map(function (r) {
-          return '<div class="kts-chi' + (r.grp ? '' : ' unk') + '"><span class="ktv-o-t"><b>' + r.day.slice(8, 10) + '/' + r.day.slice(5, 7) + ' · ' + money(r.amt) + ' <small style="display:inline">TK …' + esc(String(r.acct).slice(-3)) + '</small></b><small>' + esc(ktcTxt(r.txt)) + '</small></span><select data-ktchg="' + esc(r.id) + '" aria-label="Nhóm chi phí">' + ktcOpts(r.grp) + '</select></div>';
-        }).join('') + '</div>' + ktcHow();
+          return '<div class="kts-chi' + (r.grp ? '' : ' unk') + '"><span class="ktv-o-t"><b>' + r.day.slice(8, 10) + '/' + r.day.slice(5, 7) + ' · ' + money(r.amt) + ' <small style="display:inline">TK …' + esc(String(r.acct).slice(-3)) + '</small></b><small>' + esc(kcxTxt(r.txt)) + '</small></span><select data-ktchg="' + esc(r.id) + '" aria-label="Nhóm chi phí">' + kcxOpts(r.grp) + '</select></div>';
+        }).join('') + '</div>' + kcxHow();
       $$('[data-ktchg]', m).forEach(function (el) {
         el.onchange = function () {
           var id = el.getAttribute('data-ktchg'), r = (KTCH.d || []).filter(function (x) { return x.id === id; })[0]; if (!el.value || !r) return; el.disabled = true;
-          api('kt_chig', { id: id, grp: el.value, key: ktcKey(r.txt) }).then(function (j) { KTCH.d = j.rows; KTCH.map = j.map || {}; if (j.fin && S.d.rules) S.d.rules.fin = j.fin; toast('Đã đổi nhóm ✓'); draw(); softRender(true); }, function (e) { el.disabled = false; toast(e.message, true); });
+          api('kt_chig', { id: id, grp: el.value, key: kcxKey(r.txt) }).then(function (j) { KTCH.d = j.rows; KTCH.map = j.map || {}; if (j.fin && S.d.rules) S.d.rules.fin = j.fin; toast('Đã đổi nhóm ✓'); draw(); softRender(true); }, function (e) { el.disabled = false; toast(e.message, true); });
         };
       });
     };
@@ -6020,7 +6020,7 @@
       return '<label class="ktv-o' + (it.sure ? '' : ' old') + '"><input type="checkbox" data-ktso="' + i + '"' + (it.sure ? ' checked' : '') + '><span class="ktv-o-t"><b>' + esc(it.o.id) + ' · ' + esc(it.o.name) + ' ' + esc(ktvPh(it.o)) + '</b><small>đặt ' + fDate(it.o.time).slice(0, 5) + ' · tiền vào ' + fDate(it.r.day).slice(0, 5) + (it.n > 1 ? ' · ' + it.n + ' đơn cùng số tiền' : '') + '<br>“' + esc(it.r.txt.slice(0, 90)) + '”</small></span><b class="ktv-amt">' + money(it.r.amt) + '</b></label>';
     }).join('') + '</div>' : '<p class="small muted">Không có khoản nào khớp đơn chuyển khoản đang chờ.</p>';
     if (X.other.length) h += '<details class="small" style="margin-top:8px"><summary>❔ ' + X.other.length + ' khoản tiền vào khác không khớp đơn nào (' + money(X.other.reduce(function (s, r) { return s + r.amt; }, 0)) + ')</summary><p class="muted">Có thể là đơn chưa lên CRM, đơn ghi COD nhưng khách chuyển khoản, hoặc tiền khác. Ghi tay ở 🏦 Chuyển khoản chờ xác nhận nếu đúng là tiền đơn.</p>' + X.other.slice(0, 80).map(function (r) { return '<div>' + fDate(r.day).slice(0, 5) + ' · ' + money(r.amt) + ' · ' + esc(r.txt.slice(0, 80)) + '</div>'; }).join('') + '</details>';
-    h += ktcHTML(X);
+    h += kcxHTML(X);
     $('#ktsOut', m).innerHTML = h;
     var nc = X.chi.filter(function (c) { return !c.old; }).length, nbal = Object.keys(P.bal || {}).length;
     var b = $('#ktsGo', m), upd = function () { var nb = $$('[data-ktsb]:checked', m).length, no = $$('[data-ktso]:checked', m).length; b.hidden = !(nb + no + nc + nbal); b.textContent = '✅ Lưu ' + [nb ? nb + ' phiếu' : '', no ? no + ' đơn chuyển khoản' : '', nc ? nc + ' khoản chi' : '', !nb && !no && !nc ? 'số dư' : ''].filter(Boolean).join(' + '); };
