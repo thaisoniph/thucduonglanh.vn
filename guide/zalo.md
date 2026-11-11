@@ -105,7 +105,7 @@ Mỗi bài có một nhãn màu cho biết bài đó để làm gì:
 
 - **🔵 Nhận biết · tương tác** (8 bài/tuần): câu hỏi dễ trả lời, đố vui, mẹo, món ăn. Giúp nhóm vui, mọi người quen nói chuyện.
 - **⚪ Cân nhắc · tạo niềm tin** (4 bài/tuần): kiến thức dinh dưỡng, hỏi đáp sản phẩm, cảm nhận khách hàng thật.
-- **🟠 Chuyển đổi · bán hàng** (2 bài/tuần, sáng Thứ 7 và tối Thứ 6): giới thiệu sản phẩm, ưu đãi đang chạy, cách đặt hàng.
+- **🟠 Chuyển đổi · bán hàng** (2 bài/tuần, **tối Thứ 3 và tối Thứ 7**): giới thiệu sản phẩm, ưu đãi đang chạy, cách đặt hàng. Từ 11/11/2026 (khoá K133): **buổi sáng không đăng bài bán**, sáng chỉ đăng kiến thức, mẹo, chuyện đang được bàn tán.
 
 Tối Thứ 4 có **đố vui**, sáng Thứ 5 trợ lý **công bố đáp án**. Tối Thứ 5 là bài **cảm nhận khách hàng** (dùng ảnh feedback thật).
 
@@ -120,7 +120,7 @@ Trợ lý biết lịch âm và các ngày lễ lớn. Hôm đó bài đổi the
 - **Lễ âm lịch**: Tết (từ 30 Tết tới mùng 3), ông Công ông Táo, rằm tháng Giêng, Hàn thực, Giỗ Tổ, Phật đản, Đoan Ngọ, Vu Lan, Trung thu, rằm tháng 10.
 - **Lễ dương lịch**: 1/1, 27/2, 8/3, 30/4, 1/6, 28/6, 27/7, 2/9, 20/10, 20/11, đêm 24/12.
 
-Ngày lễ là bài 🔵 chúc mừng, **không bán hàng**. Vài ngày trước các dịp tặng quà (Tết, 8/3, Vu Lan, Trung thu, 20/10, 20/11) có thêm 1 bài 🟠 **gợi ý quà sức khỏe**; Tết và Vu Lan có thêm 1 bài ⚪ kiến thức. Nếu ngày lễ rơi vào sáng Thứ 7 (bài bán), bài bán **dời sang sáng Chủ nhật**. Ngày đôi 11/11, 12/12 chỉ có bài bán khi Marketing đang chạy ưu đãi (CRM → Marketing → Ưu đãi).
+Ngày lễ là bài 🔵 chúc mừng, **không bán hàng**. Vài ngày trước các dịp tặng quà (Tết, 8/3, Vu Lan, Trung thu, 20/10, 20/11) có thêm 1 bài 🟠 **gợi ý quà sức khỏe** (đăng **buổi tối**); Tết và Vu Lan có thêm 1 bài ⚪ kiến thức. Nếu ngày lễ rơi vào sáng Thứ 7 (bài bán), bài bán **dời sang sáng Chủ nhật**. Ngày đôi 11/11, 12/12 chỉ có bài bán khi Marketing đang chạy ưu đãi (CRM → Marketing → Ưu đãi).
 
 Xem trước các dịp trong 45 ngày tới: tab Zalo → **📅 Ngày lễ sắp tới**. Bài theo dịp có nhãn vàng **📅 tên dịp**. Những ngày này nên có **người thật** góp mặt: ví dụ ngày rằm chụp mâm cơm chay của đội ngũ đăng vào nhóm. Trợ lý cũng trả lời được khi khách hỏi hôm nay là ngày mấy âm lịch.
 

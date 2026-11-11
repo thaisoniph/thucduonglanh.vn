@@ -3,7 +3,7 @@
  *   per_week 1–7 bài / tuần (ngày đăng cố định theo DAYS), hour = giờ đăng, audience = tệp khách + insight + tension, topics = chủ đề chờ viết.
  * Luồng: cron 10 phút / lần (blogTick)
  *   1. Trước ngày đăng 1 ngày: viết bài nháp (Claude + tìm nguồn trên mạng), lưu D1 bảng bl_posts, nhắn Telegram riêng từng người duyệt kèm link duyệt.
- *      Chủ đề: chủ đề "Chờ viết" trên cùng ở /admin; hết thì tự chọn theo phễu TOFU/MOFU/BOFU (tỉ lệ 50/30/20) + insight, tension của tệp khách.
+ *      Chủ đề: chủ đề "Chờ viết" trên cùng ở /admin; hết thì tự chọn theo phễu TOFU/MOFU/BOFU (tỉ lệ 60/20/20) + insight, tension của tệp khách.
  *      Mọi bài (kể cả chủ đề được giao) đi qua bước 🎯 Insight → Tension → Phễu (insight.js): chọn nhóm khách (chủ đề có ghi nhóm → nhóm đó, không thì nhóm ít được viết nhất) + 1 tension rồi mới viết.
  *   2. Người duyệt (Quản trị, Quản lý, người được bật "Sửa website" ở CRM → Cài đặt → Nhân sự; phải nối Telegram) mở link /bai/<ngày>:
  *      ✅ Đăng · ✍️ Viết lại theo ý kiến · 🖊 Tự sửa trong /admin · 🔁 Đổi chủ đề khác · ❌ Bỏ.
@@ -31,7 +31,7 @@ const FUNNEL = {
   MOFU: { name: '⚪ Cân nhắc (MOFU)', goal: 'Giúp người đang tìm giải pháp so sánh, biết cách chọn, hiểu tiêu chí; tạo niềm tin bằng nguồn gốc, thành phần, hồ sơ chất lượng thật. Có 1 mục "Giải pháp từ Thực Dưỡng Lành" giới thiệu 1–2 sản phẩm phù hợp, có link.' },
   BOFU: { name: '🟠 Mua hàng (BOFU)', goal: 'Bài cho người đã sẵn sàng mua: hướng dẫn dùng 1 sản phẩm cụ thể trong đời sống hằng ngày (cách pha, thời điểm, kết hợp bữa ăn), ai nên dùng, ai cần hỏi bác sĩ, câu hỏi thường gặp, cách đặt trên web (freeship đơn từ 300.000đ, được kiểm hàng). Không bịa khuyến mãi.' },
 };
-const MIX = { TOFU: 0.5, MOFU: 0.3, BOFU: 0.2 };
+const MIX = { TOFU: 0.6, MOFU: 0.2, BOFU: 0.2 }; // 11/11/2026 khoá K133: 60/20/20 (trước 50/30/20)
 const CATS = ['kien-thuc-dinh-duong', 'song-lanh-moi-ngay', 'cau-chuyen-san-pham'];
 const BAN_RE = /(chữa|điều trị|khỏi bệnh|đặc trị|thần dược|thay thuốc|thay thế thuốc|trị bệnh|trị dứt|chữa khỏi)/gi;
 const DISCLAIMER = '*Sản phẩm là thực phẩm, không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh.*';

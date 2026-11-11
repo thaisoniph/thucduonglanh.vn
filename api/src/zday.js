@@ -2,6 +2,7 @@
  * Ngày thường: bài theo thứ trong tuần (THEME trong zbot.js). Mùng 1, rằm, lễ Tết âm + dương: bài đổi theo dịp.
  * Phễu: ngày lễ = 🔵 chúc mừng, tương tác, KHÔNG bán. Trước các dịp tặng quà (Tết, 8/3, Vu Lan, Trung thu, 20/10, 20/11)
  * thêm 1 bài 🟠 gợi ý quà (vài ngày trước, lúc khách cần mua thật) + với Tết, Vu Lan thêm 1 bài ⚪ kiến thức.
+ * 11/11/2026 (khoá K133): bài bán (gợi ý quà, ngày đôi) đăng BUỔI TỐI, buổi sáng không bán. Dòng dưới là luật cũ, giờ không còn bài bán buổi sáng nên ít khi xảy ra.
  * Bài bán buổi sáng (sáng Thứ 7) bị ngày lễ chiếm chỗ → dời sang sáng hôm sau, nếu hôm sau là bài 🔵 thường và chưa có bài bán (bài bán buổi tối thì bỏ, tránh 2 bài bán liền nhau).
  * Ưu tiên: Tết > lễ có tên > mùng 1 / rằm > bài trước dịp quà > ngày đôi 11/11, 12/12 (chỉ khi Marketing có ưu đãi đang chạy).
  * Mỗi dịp: k = 'L d/m' (âm lịch, không tính tháng nhuận) · 'L d' (ngày âm d của mọi tháng, kể cả nhuận) · 'S d/m' (dương lịch).
@@ -18,7 +19,7 @@ const mon = c => monthName(c.l.m, c.l.leap);
 const EVENTS = [
   // ---------------------------------------------------------------- Tết Nguyên Đán (ngày lễ = mùng 1 tháng Giêng)
   { id: 'tet', n: 'Mùng 1 Tết', k: 'L 1/1', p: P.TET, parts: [
-    { o: -14, s: 'sang', f: 'BOFU', n: 'Quà Tết', t: GIFT('Tết', 'ông bà, cha mẹ, họ hàng, thầy cô, đối tác') },
+    { o: -14, s: 'toi', f: 'BOFU', n: 'Quà Tết', t: GIFT('Tết', 'ông bà, cha mẹ, họ hàng, thầy cô, đối tác') },
     { o: -10, s: 'toi', f: 'BOFU', n: 'Nhắc đặt quà Tết sớm', t: 'Nhắc nhẹ: ai định biếu quà Tết sức khỏe thì nên đặt sớm vì cận Tết bên giao hàng rất đông đơn (không hứa ngày giao cụ thể); 1 câu về sản phẩm hợp làm quà + ưu đãi nếu có; được kiểm hàng trước khi nhận, freeship từ 300k; để 1 link sản phẩm. Không thúc ép.' },
     { o: -4, s: 'sang', f: 'MOFU', n: 'Chuẩn bị Tết lành', t: 'Chuẩn bị Tết lành: đi chợ Tết vừa đủ, mâm cỗ cân bằng (thêm rau xanh, dưa góp, món luộc / hấp bên cạnh món chiên, đồ ngọt), uống đủ nước, giữ giờ ngủ những ngày cận Tết. Kiến thức phổ thông, dễ làm.' + NO_SELL },
     { o: -1, s: 'sang', f: 'TOFU', p: P.TET, n: 'Tất niên (ngày cuối năm âm lịch)', t: 'Ngày cuối năm âm lịch (tất niên): chúc cả nhà chiều nay sum họp bữa cơm tất niên ấm áp; gợi ý mâm cơm cuối năm vừa đủ, nhẹ nhàng; cảm ơn mọi người đã đồng hành cùng nhóm suốt năm qua.' + NO_SELL + NO_SPIRIT },
@@ -42,10 +43,10 @@ const EVENTS = [
     { o: 0, s: 'sang', f: 'TOFU', t: 'Tết Đoan Ngọ (mùng 5 tháng 5 âm lịch): nếp xưa ăn trái cây, cơm rượu nếp, chè kê đầu hè; gợi ý ăn trái cây theo mùa vừa đủ và 1 món giải nhiệt mùa hè dễ làm; hỏi nhà mình có giữ nếp này không.' + NO_SELL + NO_SPIRIT }] },
   { id: 'vulan', n: 'Lễ Vu Lan (rằm tháng 7)', k: 'L 15/7', p: P.BIG, parts: [
     { o: -10, s: 'sang', f: 'MOFU', n: 'Trước mùa Vu Lan', t: 'Mùa Vu Lan sắp tới: chăm cha mẹ lớn tuổi bằng bữa ăn hằng ngày (đồ mềm dễ ăn, đủ đạm, nhiều rau, uống đủ nước, vận động nhẹ); kiến thức phổ thông, ấm áp, dễ làm. Có thể nhắc 1 sản phẩm hợp người lớn tuổi đúng tài liệu, không để link.' },
-    { o: -5, s: 'sang', f: 'BOFU', n: 'Quà Vu Lan', t: GIFT('Vu Lan báo hiếu', 'cha mẹ, ông bà') },
+    { o: -5, s: 'toi', f: 'BOFU', n: 'Quà Vu Lan', t: GIFT('Vu Lan báo hiếu', 'cha mẹ, ông bà') },
     { o: 0, s: 'sang', f: 'TOFU', t: 'Rằm tháng 7, mùa Vu Lan báo hiếu: lời nhắc yêu thương cha mẹ khi còn có thể, gọi điện hoặc về thăm, cùng cha mẹ ăn 1 bữa cơm; mời mọi người kể 1 kỷ niệm đẹp với cha mẹ.' + NO_SELL + NO_SPIRIT }] },
   { id: 'trungthu', n: 'Tết Trung thu (rằm tháng 8)', k: 'L 15/8', p: P.BIG, parts: [
-    { o: -7, s: 'sang', f: 'BOFU', n: 'Quà Trung thu', t: GIFT('Trung thu', 'ông bà, cha mẹ, thầy cô, đối tác (đi kèm hộp bánh)') },
+    { o: -7, s: 'toi', f: 'BOFU', n: 'Quà Trung thu', t: GIFT('Trung thu', 'ông bà, cha mẹ, thầy cô, đối tác (đi kèm hộp bánh)') },
     { o: -1, s: 'toi', f: 'TOFU', p: P.BIG, n: 'Tối trước Trung thu', t: 'Mai là Tết Trung thu: rủ cả nhà cùng con làm đèn lồng, bày mâm cỗ đơn giản (trái cây, bánh tự làm ít ngọt); hỏi nhà mình chuẩn bị gì.' + NO_SELL },
     { o: 0, s: 'sang', f: 'TOFU', t: 'Tết Trung thu (rằm tháng 8 âm lịch): chúc các gia đình đoàn viên, các bé vui Trung thu; gợi ý làm bánh / mâm cỗ Trung thu ít ngọt tại nhà cùng con, ăn bánh vừa phải.' + NO_SELL },
     { o: 0, s: 'toi', f: 'TOFU', n: 'Đêm Trung thu', t: 'Đêm Trung thu: mời cả nhà khoe mâm cỗ, đèn lồng, ảnh cả nhà ngắm trăng; lời chúc đoàn viên.' + NO_SELL }] },
@@ -65,7 +66,7 @@ const EVENTS = [
   { id: 'thaythuoc', n: 'Ngày Thầy thuốc Việt Nam 27/2', k: 'S 27/2', p: P.BIG, parts: [
     { o: 0, s: 'sang', f: 'MOFU', t: 'Ngày Thầy thuốc Việt Nam 27/2: tri ân các y bác sĩ (cả thành viên trong nhóm làm nghề y); nhắc nhẹ thói quen khám sức khỏe định kỳ, làm theo lời khuyên của bác sĩ, ăn uống lành mỗi ngày.' + NO_SELL }] },
   { id: 'pn83', n: 'Quốc tế Phụ nữ 8/3', k: 'S 8/3', p: P.BIG, parts: [
-    { o: -4, s: 'sang', f: 'BOFU', n: 'Quà 8/3', t: GIFT('8/3', 'mẹ, vợ, chị em, đồng nghiệp nữ') },
+    { o: -4, s: 'toi', f: 'BOFU', n: 'Quà 8/3', t: GIFT('8/3', 'mẹ, vợ, chị em, đồng nghiệp nữ') },
     { o: 0, s: 'sang', f: 'TOFU', t: WOMEN('Quốc tế Phụ nữ 8/3') }] },
   { id: 'le304', n: 'Lễ 30/4 – 1/5', k: 'S 30/4', p: P.BIG, parts: [
     { o: 0, s: 'sang', f: 'TOFU', t: 'Kỷ niệm ngày Giải phóng miền Nam, thống nhất đất nước 30/4 và kỳ nghỉ lễ 30/4 – 1/5: lời chúc kỳ nghỉ vui, an toàn; gợi ý giữ ăn uống lành khi đi chơi xa (mang nước, trái cây, ăn đúng bữa, ngủ đủ).' + NO_SELL }] },
@@ -78,16 +79,16 @@ const EVENTS = [
   { id: 'quockhanh', n: 'Quốc khánh 2/9', k: 'S 2/9', p: P.BIG, parts: [
     { o: 0, s: 'sang', f: 'TOFU', t: 'Quốc khánh 2/9: chúc mừng ngày Tết Độc lập, tự hào dân tộc; chúc cả nhà kỳ nghỉ lễ vui, an toàn; gợi ý giữ nếp ăn uống lành khi đi chơi, tụ họp.' + NO_SELL }] },
   { id: 'pn2010', n: 'Phụ nữ Việt Nam 20/10', k: 'S 20/10', p: P.BIG, parts: [
-    { o: -4, s: 'sang', f: 'BOFU', n: 'Quà 20/10', t: GIFT('20/10', 'mẹ, vợ, chị em, đồng nghiệp nữ') },
+    { o: -4, s: 'toi', f: 'BOFU', n: 'Quà 20/10', t: GIFT('20/10', 'mẹ, vợ, chị em, đồng nghiệp nữ') },
     { o: 0, s: 'sang', f: 'TOFU', t: WOMEN('Phụ nữ Việt Nam 20/10') }] },
   { id: 'nhagiao', n: 'Nhà giáo Việt Nam 20/11', k: 'S 20/11', p: P.BIG, parts: [
-    { o: -4, s: 'sang', f: 'BOFU', n: 'Quà 20/11', t: GIFT('tri ân thầy cô 20/11', 'thầy cô của mình và của con') },
+    { o: -4, s: 'toi', f: 'BOFU', n: 'Quà 20/11', t: GIFT('tri ân thầy cô 20/11', 'thầy cô của mình và của con') },
     { o: 0, s: 'sang', f: 'TOFU', t: 'Ngày Nhà giáo Việt Nam 20/11: tri ân thầy cô; chúc các thầy cô trong nhóm; mời mọi người kể về 1 thầy cô mình nhớ mãi.' + NO_SELL }] },
   { id: 'noel', n: 'Đêm Giáng sinh', k: 'S 24/12', p: P.BIG, parts: [
     { o: 0, s: 'toi', f: 'TOFU', t: 'Đêm Giáng sinh: lời chúc an lành, ấm áp, sum vầy; gợi ý 1 thức uống ấm cho tối nay (trà gừng, sữa ấm…).' + NO_SELL }] },
   // ---------------------------------------------------------------- ngày đôi mua sắm: chỉ đăng khi Marketing có ưu đãi đang chạy (CRM → Marketing → Ưu đãi)
   ...['11/11', '12/12'].map(dm => ({ id: 'sale' + dm.slice(0, 2), n: 'Ngày đôi ' + dm, k: 'S ' + dm, p: P.SALE, offer: 1, parts: [
-    { o: 0, s: 'sang', f: 'BOFU', t: 'Ngày đôi ' + dm + ', nhiều nhà mua sắm: giới thiệu ưu đãi đang chạy (chỉ nói đúng như mục ƯU ĐÃI), sản phẩm hợp với ai; cách đặt trên web (được kiểm hàng trước khi nhận, freeship từ 300k); vui vẻ, không thúc ép; để 1 link sản phẩm.' }] }))
+    { o: 0, s: 'toi', f: 'BOFU', t: 'Ngày đôi ' + dm + ', nhiều nhà mua sắm: giới thiệu ưu đãi đang chạy (chỉ nói đúng như mục ƯU ĐÃI), sản phẩm hợp với ai; cách đặt trên web (được kiểm hàng trước khi nhận, freeship từ 300k); vui vẻ, không thúc ép; để 1 link sản phẩm.' }] }))
 ];
 for (const e of EVENTS) { const [cal, dm] = e.k.split(' '), [d, m] = dm.split('/').map(Number); e.cal = cal; e.d = d; e.m = m || 0; }
 
@@ -186,13 +187,13 @@ export function saleDays(from, n) {
 }
 
 /** 📅 Dịp có tên trong n ngày tới cho mọi trợ lý viết bài (khoá content K131: big idea + trend theo mùa). Bỏ ngày đôi bán hàng.
- * prep = nên chuẩn bị trước bao nhiêu ngày (Tết 30, lễ lớn 7, mùng 1 / rằm 2, còn lại 3). Trả [{ id, n, d, in (còn mấy ngày), lu, prep, p }] */
+ * prep = nên chuẩn bị trước bao nhiêu ngày (Tết 90 – khoá K133: chiến dịch Tết bắt đầu từ giữa tháng 10, lễ lớn 7, mùng 1 / rằm 2, còn lại 3). Trả [{ id, n, d, in (còn mấy ngày), lu, prep, p }] */
 export function eventsAhead(from, n) {
   const out = [];
   for (let i = 0; i < n; i++) {
     const d = addDay(from, i), c = ctx(d);
     const E = EVENTS.filter(e => !e.offer && hit(e, c)).sort((a, b) => a.p - b.p)[0]; // trùng ngày (vd Rằm tháng 10 + rằm) → giữ dịp ưu tiên cao hơn
-    if (E) out.push({ id: E.id, n: val(E.n, c), d, in: i, lu: c.l.text, prep: E.p === P.TET ? 30 : E.p === P.BIG ? 7 : E.p === P.MOON ? 2 : 3, p: E.p });
+    if (E) out.push({ id: E.id, n: val(E.n, c), d, in: i, lu: c.l.text, prep: E.p === P.TET ? 90 : E.p === P.BIG ? 7 : E.p === P.MOON ? 2 : 3, p: E.p });
   }
   return out;
 }

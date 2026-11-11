@@ -209,7 +209,7 @@ Mở: menu **Thêm → 🎯 Insight & nội dung** (Marketing thấy ngay trên 
 ### 📅 Dịp sắp tới và 🔥 chuyện đang nóng (từ 11/11/2026)
 
 Ô **📅 Dịp sắp tới** liệt kê các dịp trong 45 ngày (Nhà giáo 20/11, rằm, Giáng sinh, Tết…), kèm ngày **nên bắt đầu chuẩn bị**:
-- Tết: chuẩn bị trước 1 tháng.
+- Tết: chuẩn bị trước khoảng 90 ngày (khoá K133: chiến dịch Tết bắt đầu từ giữa tháng 10).
 - Lễ lớn: chuẩn bị trước 1 tuần.
 - Mùng 1, rằm: chuẩn bị trước 2 ngày.
 
@@ -258,14 +258,42 @@ Khi duyệt, nối các câu đó lại cho liền mạch, dùng dấu phẩy. C
 
 ### 📈 Học từ tương tác (từ 11/11/2026)
 
-Trong tab có mục **📈 Học từ tương tác**: 3 bài **nhiều** người hưởng ứng nhất (👍 nên học) và 3 bài **ít** nhất (👎 nên tránh) của từng kênh trong 60 ngày.
-- **Nhóm Zalo** đếm người tương tác và tin nhắn.
-- **Fanpage** đếm cảm xúc, bình luận, chia sẻ. Máy lấy số từ Facebook mỗi ngày 1 lần.
-- Bài mới đăng dưới 2 ngày chưa tính. Cần ít nhất 6 bài có số thì mới so sánh.
+Trong tab có mục **📈 Học từ tương tác**: bài hiệu quả nhất (👍 nên học) và kém nhất (👎 nên tránh) của **từng loại bài** trong 60 ngày.
 
-**Trợ lý viết bài đọc đúng danh sách này trước khi viết**, để học cách mở bài, độ dài, góc kể của bài được hưởng ứng và tránh kiểu bài ít người đọc. Đây là cách khoá content K131 dạy để AI ngày càng hiểu khách thật.
+**Chỉ so bài cùng loại** (khoá K133):
+- 🔵 Thu hút so với 🔵, ⚪ Tạo niềm tin so với ⚪, 🟠 Bán hàng so với 🟠.
+- Bài ⚪ vốn ít tương tác hơn bài 🔵 nhưng **bắt buộc phải có**: phần lớn người thấy bài là người lạ, họ bấm vào trang để xem mình có đáng tin không.
+- Bài 🟠 ở nhóm Zalo xếp theo **số đơn từ link trong bài** và số tin nhắn, không xếp theo lượt thích.
 
-Mỗi tuần nên mở ra xem 1 lần: bài 👍 giống nhau ở điểm nào, bài 👎 sai ở đâu. Rút được điều gì thì ghi vào **📝 Ghi chú** của nhóm khách để trợ lý viết theo.
+**Cách tính:**
+- **Nhóm Zalo** đếm người tương tác, tin nhắn và đơn từ link trong bài.
+- **Fanpage** đếm cảm xúc, bình luận, chia sẻ, và **👀 % người chưa theo dõi** trong số người thấy bài. Bài lan tốt thường trên 80–90%. Số này cần Facebook cho quyền đọc thống kê trang; chưa có quyền thì CRM ghi rõ lý do. Máy lấy số mỗi ngày 1 lần.
+- Bài mới đăng dưới 2 ngày chưa tính. Mỗi loại cần ít nhất 3 bài mới hiện; từ 6 bài trở lên mới có bài 👎.
+
+**Trợ lý viết bài chỉ học bài cùng loại với bài đang viết**, để học cách mở bài, độ dài, góc kể. Mỗi tuần nên mở ra xem 1 lần: bài 👍 giống nhau ở điểm nào, bài 👎 sai ở đâu. Rút được điều gì thì ghi vào **📝 Ghi chú** của nhóm khách để trợ lý viết theo.
+
+### 🎯 Mỗi bài 1 mục tiêu tương tác (từ 11/11/2026)
+
+Theo khoá K133, trợ lý chọn cho mỗi bài **1 mục tiêu chính**:
+- **Theo dõi:** chia thành nhiều tập, hẹn tập sau.
+- **Chia sẻ, lưu lại:** bài kỹ, checklist, tổng hợp đáng để dành.
+- **Bình luận:** câu hỏi chọn A / B, mời kể chuyện của mình.
+- **Lượt xem:** câu mở gợi tò mò.
+
+**Lời mời bình luận phải siêu dễ**: trả lời bằng 1 chữ, 1 con số hoặc 1 biểu tượng (ví dụ: "ai muốn nhận thực đơn thì bình luận MUỐN").
+
+Kho góc kể có thêm 2 góc:
+- **Nhị đoạn bẻ lái 80/20:** 80% đầu kể chuyện đời thường hoặc chuyện đang được bàn tán, 20% cuối bẻ sang thông điệp.
+- **Phản biện:** góp ý kiến khác về một quan điểm đang được chia sẻ nhiều, lịch sự, giấu tên người nói.
+
+### 👥 Chân dung 8 ô (từ 11/11/2026)
+
+Mỗi nhóm khách có thêm 3 ô:
+- **🤝 Họ tin ai**
+- **🔍 Họ hay tìm gì** trên Google và mạng xã hội (bài web dùng làm từ khoá)
+- **📍 Nơi họ tụ tập** (nhóm Facebook, Zalo, CLB, chùa…) để tìm cửa vào cộng đồng.
+
+Bản mặc định đã điền sẵn cho 8 nhóm. Nếu tab hiện ô **📚 Bản mặc định có cập nhật mới**, bấm **📚 Gộp vào ngân hàng** để điền vào các ô còn trống (không đổi gì anh chị đã sửa).
 
 ### 📣 Bài viết sẵn cho sale đăng Facebook cá nhân (từ 11/11/2026)
 

@@ -56,6 +56,7 @@ const leadOf = cfg => Math.max(1, Math.min(3, Number(cfg.lead) || 3));
 /** Lịch chủ đề theo phễu nội dung (31/10/2026, anh Sơn duyệt): người trong nhóm đã để số nhận quà → nhóm chủ yếu giữ chân + tạo niềm tin, bán vừa phải.
  * TOFU 🔵 tương tác, giá trị (8 bài/tuần) · MOFU ⚪ tạo niềm tin (4 bài) · BOFU 🟠 chuyển đổi (2 bài). Chỉ số = thứ trong tuần (0 = Chủ nhật). */
 const THEME = {
+  // 11/11/2026 (khoá K133): buổi sáng KHÔNG đăng bài bán (sáng là giờ kiến thức, trend); bài bán chỉ buổi tối Thứ 3 và Thứ 7, không 2 tối bán liền nhau
   sang: [
     { f: 'TOFU', t: 'Tâm an cuối tuần: lời chúc nhẹ nhàng + 1 suy ngẫm ngắn về sống chậm, biết ơn, gia đình (không bịa chuyện khách hàng)' },
     { f: 'MOFU', t: 'Kiến thức dinh dưỡng nền tảng: 1 điều dễ hiểu, áp dụng được ngay trong bữa ăn gia đình' },
@@ -63,15 +64,15 @@ const THEME = {
     { f: 'TOFU', t: 'Bếp lành: 1 món ăn / thức uống lành, dễ làm, nguyên liệu dễ mua (có thể là món chay)' },
     { f: 'MOFU', t: 'Mở đầu bằng ĐÁP ÁN câu đố tối qua (giải thích ngắn, cảm ơn mọi người đã trả lời), rồi hỏi đáp: chọn 1 câu khách hay hỏi trong phần hỏi đáp của 1 sản phẩm và trả lời rõ ràng, gần gũi', quiz: 1 },
     { f: 'TOFU', t: 'Thói quen sống lành: ngủ, vận động nhẹ, uống nước, thở, ăn chậm… 1 việc nhỏ làm được hôm nay' },
-    { f: 'BOFU', t: 'Góc sản phẩm cuối tuần: giới thiệu nhẹ nhàng 1 sản phẩm (ai hợp, cách dùng, quy cách, giá đúng tài liệu) + ưu đãi đang chạy nếu có; nhắc đặt trên web được kiểm hàng trước khi nhận, freeship đơn từ 300k; để 1 link sản phẩm', link: 1 }],
+    { f: 'TOFU', t: 'Sáng cuối tuần: mời mọi người khoe bữa sáng / mâm cơm lành cuối tuần của nhà mình, hoặc rủ cả nhà cùng nấu 1 món lành hôm nay' }],
   toi: [
     { f: 'TOFU', t: 'Chúc cả nhà tuần mới bình an + 1 câu hỏi nhỏ để mọi người chia sẻ' },
     { f: 'TOFU', t: 'Câu hỏi tương tác: hỏi thói quen ăn uống / sinh hoạt của mọi người, dễ trả lời 1 dòng' },
-    { f: 'TOFU', t: 'Mẹo nhỏ buổi tối: 1 mẹo để ngủ ngon / thư giãn / chuẩn bị bữa sáng mai' },
+    { f: 'BOFU', t: 'Nhắc nhẹ giữa tuần: ưu đãi đang chạy (nếu có) hoặc hướng dẫn đặt hàng trên web 3 bước (được kiểm hàng trước khi nhận, freeship từ 300k), không thúc ép; để 1 link sản phẩm hợp nhất', link: 1 },
     { f: 'TOFU', q: 1, t: 'Mini đố vui về dinh dưỡng (1 câu, 3 lựa chọn A/B/C, đáp án là kiến thức phổ thông chắc chắn đúng), mời mọi người trả lời bằng 1 chữ cái, hẹn sáng mai công bố đáp án' },
     { f: 'MOFU', t: 'Câu chuyện khách hàng thật: dựa ĐÚNG vào CẢM NHẬN KHÁCH HÀNG được cung cấp bên dưới (không thêm thắt, không nói về bệnh / công dụng chữa trị), kể ngắn gọn ấm áp, cảm ơn khách đã chia sẻ, mời mọi người kể trải nghiệm của mình', fb: 1 },
-    { f: 'BOFU', t: 'Nhắc nhẹ cuối tuần: ưu đãi đang chạy (nếu có) hoặc hướng dẫn đặt hàng trên web 3 bước (được kiểm hàng trước khi nhận, freeship từ 300k), không thúc ép; để 1 link sản phẩm hợp nhất', link: 1 },
-    { f: 'TOFU', t: 'Cuối tuần: mời mọi người khoe mâm cơm / bữa ăn lành của nhà mình, hoặc rủ cả nhà cùng nấu 1 món lành' }]
+    { f: 'TOFU', t: 'Mẹo nhỏ buổi tối: 1 mẹo để ngủ ngon / thư giãn / chuẩn bị bữa sáng mai' },
+    { f: 'BOFU', t: 'Góc sản phẩm cuối tuần: giới thiệu nhẹ nhàng 1 sản phẩm (ai hợp, cách dùng, quy cách, giá đúng tài liệu) + ưu đãi đang chạy nếu có; nhắc đặt trên web được kiểm hàng trước khi nhận, freeship đơn từ 300k; để 1 link sản phẩm', link: 1 }]
 };
 /** Chủ đề theo thứ trong tuần cho 1 ngày (ngày lễ, rằm, mùng 1 đổi chủ đề ở zday.js) */
 const baseTheme = (day, slot) => THEME[slot === 'toi' ? 'toi' : 'sang'][weekday(day)];
