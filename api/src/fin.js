@@ -233,7 +233,7 @@ export async function finFull(x, F) {
   const ks = Object.keys(B).filter(k => B[k] && B[k].d && Object.keys(B[k].d).length);
   if (ks.length) {
     const sb = G.bank && G.bank.rows ? G.bank : { acc: [], rows: [] }, acc = sb.acc.slice(), src = acc.map(() => null);
-    ks.forEach(k => { const j = acc.findIndex(a => String(a).replace(/\D/g, '').slice(-3) === k.slice(-3)); if (j >= 0) src[j] = k; else { acc.push((B[k].name ? B[k].name + ' ' : 'TK ') + '…' + k.slice(-3)); src.push(k); } });
+    ks.forEach(k => { let j = acc.findIndex((a, i) => !src[i] && String(a).replace(/\D/g, '').slice(-3) === k.slice(-3)); const bn = norm(B[k].name || ''); if (j < 0 && bn) j = acc.findIndex((a, i) => !src[i] && !/\d{3}/.test(a) && norm(a).split(/[^a-z0-9]+/).indexOf(bn) >= 0); if (j >= 0) src[j] = k; else { acc.push((B[k].name ? B[k].name + ' ' : 'TK ') + '…' + k.slice(-3)); src.push(k); } });
     const days = {}; sb.rows.forEach(r => { days[r[0]] = 1; }); ks.forEach(k => Object.keys(B[k].d).forEach(d => { days[d] = 1; }));
     const sheetAt = (j, d) => { let v = null; sb.rows.forEach(r => { if (r[0] <= d && r[2] && r[2][j] != null && r[2][j] !== 0) v = r[2][j]; }); return v; };
     const bankAt = (k, d) => { let v = null, best = ''; Object.keys(B[k].d).forEach(x2 => { if (x2 <= d && x2 > best) { best = x2; v = B[k].d[x2]; } }); return v; };

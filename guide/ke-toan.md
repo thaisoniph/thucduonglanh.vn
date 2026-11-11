@@ -8,7 +8,7 @@ description: Ghi tiền về tài khoản (tải file đối soát COD Best / Vi
 
 Trang này dành cho **kế toán**. Đọc khoảng 5 phút là làm được.
 
-> **Thứ 2, 4, 6 (ngày hãng chuyển tiền):** tải file phiếu đối soát của Best / Viettel Post. **Mỗi ngày:** tải file sao kê VCB của từng tài khoản. Máy tự tìm phiếu và đơn chuyển khoản đã có tiền, tự xếp nhóm các khoản chi, lấy số dư cuối ngày; kế toán xem lại rồi bấm Lưu. Không cần ghi Sổ chi cho khoản chuyển khoản. Xong là anh Sơn xem được lãi lỗ và tiền thật gần như ngay lúc đó.
+> **Thứ 2, 4, 6 (ngày hãng chuyển tiền):** tải file phiếu đối soát của Best / Viettel Post. **Mỗi ngày:** tải file sao kê VCB / MB của từng tài khoản. Máy tự tìm phiếu và đơn chuyển khoản đã có tiền, tự xếp nhóm các khoản chi, lấy số dư cuối ngày; kế toán xem lại rồi bấm Lưu. Không cần ghi Sổ chi cho khoản chuyển khoản. Xong là anh Sơn xem được lãi lỗ và tiền thật gần như ngay lúc đó.
 
 **Cách xem hình:** ô khoanh đỏ có số **1, 2, 3** trên hình chính là **bước 1, 2, 3** viết ngay bên dưới hình.
 
@@ -96,13 +96,16 @@ Ghi chú:
 - **❓ Không thấy trong CRM**: đơn chưa lên CRM hoặc sai mã. Mở dòng đó xem mã vận đơn rồi báo sale.
 - Hãng báo giao thành công mà CRM còn ghi "Đang giao": máy nhắc báo Quản lý chạy **📦 Đối soát vận chuyển** ở tab Đơn hàng. Kế toán không đổi trạng thái đơn.
 
-## Tải sao kê VCB: máy tự khớp tiền về
+## Tải sao kê VCB / MB: máy tự khớp tiền về, xếp khoản chi
 
 ![Nút Tải sao kê VCB (1)](/huong-dan/img/ke-toan-sao-ke.webp)
 
-Lấy file trên **VCB DigiBiz** → **Lịch sử giao dịch** → chọn ngày → **Xuất Excel** (file `.xls` để nguyên, không cần đổi).
+Lấy file Excel, để nguyên không cần đổi:
 
-1. Bấm **🏦 Tải sao kê VCB**. Chọn **sao kê này của tài khoản nào** (Công ty, Anh Sơn…), rồi chọn file.
+- **VCB**: **VCB DigiBiz** → **Lịch sử giao dịch** → chọn ngày → **Xuất Excel** (file `.xls`).
+- **MB**: **MB BIZ** → **Sao kê chi tiết tài khoản** → chọn ngày → **Xuất Excel** (file `.xlsx`). Tài khoản MB chủ yếu trả quảng cáo Facebook: máy để nhóm **Quảng cáo Facebook** (không trừ lần 2), dòng phí nhỏ đi kèm mỗi lần trừ thẻ thì để nhóm **Phí ngân hàng**.
+
+1. Bấm **🏦 Tải sao kê VCB / MB**. Chọn **sao kê này của tài khoản nào** (Công ty, Anh Sơn…), rồi chọn file.
 
 Máy đọc **tiền vào**, **tiền ra** và **số dư cuối ngày**. Tiền vào chia thành:
 
@@ -229,7 +232,7 @@ Lãi lỗ ở tab này **cùng số** với Tổng quan của anh Sơn.
 3. Mở **🧮 Lãi lỗ sau mọi chi phí** → **✏️ Nhập chi phí tháng …**: gõ từng khoản (thuê văn phòng, lương, điện, nước, tiền ship trả hãng…), bấm Lưu.
 4. Hoặc **📎 Tải file kế toán** (file báo cáo tháng) và **👥 Tải bảng lương**: máy tự đọc các khoản chi phí.
 
-5. **Khoản chi chuyển khoản** máy lấy từ sao kê (mục 🏦 Tải sao kê VCB ở trên). **Khoản chi tiền mặt** ghi vào trang **Sổ chi** trong file Google Sheet kế toán: 1 dòng **đúng ngày chi**. Lãi lỗ ngày đó trừ đúng số tiền đó.
+5. **Khoản chi chuyển khoản** máy lấy từ sao kê (mục 🏦 Tải sao kê VCB / MB ở trên). **Khoản chi tiền mặt** ghi vào trang **Sổ chi** trong file Google Sheet kế toán: 1 dòng **đúng ngày chi**. Lãi lỗ ngày đó trừ đúng số tiền đó.
 
 ### Khoản chi (sao kê + Sổ chi) tính vào lãi lỗ thế nào
 
