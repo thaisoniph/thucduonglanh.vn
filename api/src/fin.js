@@ -5,6 +5,7 @@
 import { esc, fmtDate, startOfDay, all, run, kvSet, kvJson, DAY, CRM_URL } from './lib.js';
 import { telegramTo } from './google.js';
 import { ktMorningLines } from './kt.js';
+import { nccMerge } from './ncc.js';
 
 function norm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd'); }
 function pad(n) { return (n < 10 ? '0' : '') + n; }
@@ -219,7 +220,9 @@ async function kcSchema(db) {
 }
 const KC_DAYS = 400;
 function kcLabel(acct) { const a = String(acct || ''); return a ? 'TK …' + a.slice(-3) : ''; }
-export async function finFull(x, F) {
+/** Số tài chính đầy đủ = file kế toán + sao kê (finFull0) + sổ công nợ nhà cung cấp trong CRM (ncc.js, 12/11/2026). */
+export async function finFull(x, F) { return nccMerge(x, await finFull0(x, F)); }
+async function finFull0(x, F) {
   let R = [], B = {};
   try { await kcSchema(x.db); R = await all(x.db, 'SELECT acct, day, amt, grp, txt FROM kt_chi WHERE day >= ? ORDER BY day', fmtDate(Date.now() - KC_DAYS * DAY, 'yyyy-MM-dd')); B = (await kvJson(x.db, 'kt_bal', null)) || {}; } catch (e) { return F; }
   if (!R.length && !Object.keys(B).length) return F;
@@ -330,7 +333,7 @@ export async function finMorning(x) {
   if (F && F.pay && F.pay.length) {
     const tot = F.pay.reduce((s, r) => s + r[4], 0), td = fmtDate(t0, 'yyyy-MM-dd'), d7 = fmtDate(t0 + 7 * DAY, 'yyyy-MM-dd');
     const due = F.pay.filter(r => r[3] && r[3] <= d7).sort((a, b) => a[3] < b[3] ? -1 : 1), noHan = F.pay.filter(r => !r[3]).length;
-    L.push('🧾 <b>Nợ nhà cung cấp</b>: ' + tr(tot) + (due.length ? '\n' + due.slice(0, 5).map(r => '• ' + (r[3] < td ? '⚠️ QUÁ HẠN ' : '') + esc(r[0]) + ': ' + tr(r[4]) + ' – hạn ' + fmtDate(new Date(r[3] + 'T12:00:00+07:00').getTime(), 'dd/MM')).join('\n') : ' · không khoản nào tới hạn 7 ngày tới') + (noHan ? '\n<i>' + noHan + ' hoá đơn chưa ghi hạn thanh toán</i>' : ''));
+    L.push('🧾 <b>Nợ nhà cung cấp</b>: ' + tr(tot) + (due.length ? '\n' + due.slice(0, 5).map(r => '• ' + (r[3] < td ? '⚠️ QUÁ HẠN ' : '') + esc(r[0]) + ': ' + tr(r[4]) + ' – hạn ' + fmtDate(new Date(r[3] + 'T12:00:00+07:00').getTime(), 'dd/MM')).join('\n') : ' · không khoản nào tới hạn 7 ngày tới') + (noHan ? '\n<i>' + noHan + ' hoá đơn chưa ghi hạn thanh toán</i>' : '') + (F.payUnk ? '\n👉 ' + F.payUnk + ' khoản trả nhà cung cấp trên sao kê (' + tr(F.payUnkV || 0) + ') chưa rõ trả cho ai: kế toán chọn ở tab Kế toán → 🧾 Công nợ nhà cung cấp' : ''));
   }
   if (F && F.chi) {
     const yd = fmtDate(y0, 'yyyy-MM-dd'), big = F.chi.filter(r => r[0] === yd && !chiKind(r[1]) && r[2] >= 5e6);

@@ -2,13 +2,13 @@
 title: Kế toán
 nav: Kế toán
 order: 4.6
-updated: 2026-11-11
-description: Ghi tiền về tài khoản (tải file đối soát COD Best / Viettel Post hoặc tích tay), đối soát Shopee từng đơn, xem tiền còn treo ở hãng vận chuyển, nhập chi phí, xem lãi lỗ theo ngày / tuần / tháng. Có hình từng bước.
+updated: 2026-11-12
+description: Ghi tiền về tài khoản (tải file đối soát COD Best / Viettel Post hoặc tích tay), đối soát Shopee từng đơn, ghi công nợ nhà cung cấp, xem tiền còn treo ở hãng vận chuyển, nhập chi phí, xem lãi lỗ theo ngày / tuần / tháng. Có hình từng bước.
 ---
 
 Trang này dành cho **kế toán**. Đọc khoảng 5 phút là làm được.
 
-> **Thứ 2, 4, 6 (ngày hãng chuyển tiền):** tải file phiếu đối soát của Best / Viettel Post. **Mỗi ngày:** tải file sao kê VCB / MB của từng tài khoản. Máy tự tìm phiếu và đơn chuyển khoản đã có tiền, tự xếp nhóm các khoản chi, lấy số dư cuối ngày; kế toán xem lại rồi bấm Lưu. Không cần ghi Sổ chi cho khoản chuyển khoản. Xong là anh Sơn xem được lãi lỗ và tiền thật gần như ngay lúc đó.
+> **Thứ 2, 4, 6 (ngày hãng chuyển tiền):** tải file phiếu đối soát của Best / Viettel Post. **Mỗi ngày:** tải file sao kê VCB / MB của từng tài khoản. Máy tự tìm phiếu và đơn chuyển khoản đã có tiền, tự xếp nhóm các khoản chi, lấy số dư cuối ngày; kế toán xem lại rồi bấm Lưu. Không cần ghi Sổ chi cho khoản chuyển khoản. **Khi nhận hoá đơn nhập hàng:** ghi vào **🧾 Công nợ nhà cung cấp**, máy tự trừ khi sao kê có khoản trả. Xong là anh Sơn xem được lãi lỗ và tiền thật gần như ngay lúc đó.
 
 **Cách xem hình:** ô khoanh đỏ có số **1, 2, 3** trên hình chính là **bước 1, 2, 3** viết ngay bên dưới hình.
 
@@ -18,7 +18,7 @@ Trang này dành cho **kế toán**. Đọc khoảng 5 phút là làm được.
 - Thấy đơn hàng: mã đơn, ngày, sale bán, sản phẩm, số tiền, trạng thái, hãng, mã vận đơn, **tên khách và 4 số cuối SĐT**.
 - Thấy **số hàng tồn kho** (chỉ xem, do người kho ghi trên CRM) và giá trị tồn kho tính bằng tiền.
 - **Không thấy** SĐT đầy đủ, địa chỉ, ghi chú chăm sóc. Không chăm sóc khách, không nhận khách mới.
-- 8h sáng nhận tin **💼 Tài chính** qua Telegram: tiền còn treo ở hãng, tiền về hôm qua, chuyển khoản chờ xác nhận, lãi lỗ. Nối Telegram ở **Cài đặt → 📲 Thông báo Telegram riêng** (làm 1 lần, 30 giây).
+- 8h sáng nhận tin **💼 Tài chính** qua Telegram: tiền còn treo ở hãng, tiền về hôm qua, chuyển khoản chờ xác nhận, nợ nhà cung cấp sắp tới hạn, lãi lỗ. Nối Telegram ở **Cài đặt → 📲 Thông báo Telegram riêng** (làm 1 lần, 30 giây).
 
 ## Quản trị cấp quyền Kế toán (làm 1 lần)
 
@@ -218,6 +218,34 @@ Mục **✏️ Đơn hạ COD / ký 1 phần / đổi hàng** (dưới bảng Ch
 
 Thấy đơn hãng thu ít hơn mà sale chưa ghi (nằm ở **⚠️ Đơn hãng thu khác tiền trên đơn**) thì nhắn sale mở đơn ghi hạ COD / ký 1 phần.
 
+## Công nợ nhà cung cấp
+
+Ghi công nợ ngay trên CRM, **không cần trang Công nợ trong file Google Sheet nữa**. Tiền trả qua tài khoản VCB / MB máy tự trừ khi tải sao kê.
+
+![Tổng nợ (1), khoản sao kê chưa rõ (2), từng nhà cung cấp (3), ghi hoá đơn (4), ghi trả tiền mặt (5)](/huong-dan/img/ke-toan-cong-no.webp)
+
+Mục **🧾 Công nợ nhà cung cấp** trên tab 💼 Kế toán:
+
+1. **Còn nợ / Quá hạn / Tới hạn 7 ngày**: ô đỏ = có khoản quá hạn, cần trả ngay hoặc gọi hẹn lại.
+2. **⚠️ Khoản trả nhà cung cấp trên sao kê máy chưa biết trả cho ai**: bấm vào, chọn nhà cung cấp cho từng khoản. Máy nhớ chữ trong nội dung chuyển khoản, lần sau tự nhận ra. Khoản không phải trả nhà cung cấp thì chọn **✖ Không phải trả nhà cung cấp**.
+3. **Từng nhà cung cấp**: số còn nợ, hạn gần nhất. Bấm vào để xem từng hoá đơn (còn nợ bao nhiêu, hạn ngày nào) và các lần đã trả. Bấm 1 hoá đơn để sửa hoặc xoá khi ghi nhầm.
+4. **＋ Hoá đơn nhập hàng**: mỗi lần nhận hoá đơn thì ghi: chọn nhà cung cấp, số tiền, số hoá đơn, ngày hoá đơn. **Hạn trả máy tự tính** = ngày hoá đơn + số ngày được nợ. Hoá đơn ghi hạn khác thì sửa ô Hạn trả.
+5. **＋ Ghi đã trả (tiền mặt)**: chỉ ghi khoản trả bằng **tiền mặt** hoặc tài khoản không tải sao kê. Khoản chuyển từ VCB / MB **không ghi ở đây** (máy đã tự lấy, ghi thêm là trừ 2 lần).
+
+**Làm lần đầu:**
+
+- Bấm **＋ Nhà cung cấp** cho từng nơi nhập hàng: tên, **được nợ bao nhiêu ngày**, người liên hệ. Ô **Chữ nhận ra trên sao kê** để trống cũng được.
+- **Nợ cũ** đang còn: ghi 1 hoá đơn, ghi chú "Nợ cũ", số tiền = số còn nợ hôm nay, hạn trả = ngày phải trả. Máy chỉ tự trừ khoản trả trên sao kê **từ ngày hoá đơn đầu tiên** của nhà cung cấp đó trở đi.
+- Nếu file kế toán đã có trang **Công nợ**: bấm **📥 Chép vào sổ CRM** (hiện khi sổ còn trống), rồi mở từng nhà cung cấp sửa số ngày được nợ.
+
+**Máy trừ tiền trả vào hoá đơn nào?** Hoá đơn có **hạn sớm nhất** trước, không phải chọn. Trả dư thì hiện **đã trả trước**, trừ vào hoá đơn sau.
+
+**Khoản sao kê bị trừ nhầm nhà cung cấp:** mở nhà cung cấp đó, ở dòng đã trả bấm **↩ Không phải**.
+
+**Trước khi trả tiền:** so hoá đơn với **📥 Hàng về kho** (mục Hàng tồn kho bên dưới) xem kho đã nhận đủ chưa.
+
+Số công nợ này cũng hiện ở ô **🧾 Nợ nhà cung cấp** (Tổng quan của anh Sơn) và tin Telegram 8h sáng (khoản quá hạn, tới hạn 7 ngày). Nút **📋 Chép bảng công nợ** chép cả sổ để dán vào Google Sheet khi cần gửi báo cáo.
+
 ## Nhập chi phí và xem lãi lỗ
 
 Lãi lỗ ở tab này **cùng số** với Tổng quan của anh Sơn.
@@ -253,7 +281,7 @@ Ghi chú:
 - Tháng này chưa nhập chi phí thì máy **tạm lấy theo tháng gần nhất** đã có, ghi rõ trên màn hình.
 - Quảng cáo máy tự lấy, không cần nhập.
 - **💰 Giá vốn sản phẩm** (giá nhập từng sản phẩm) sửa ở **Cài đặt**. Có giá vốn thì máy mới tính được lãi.
-- **🏦 Tiền & công nợ** (cuối trang): bấm **🔗 Nối link** để nối file Google Sheet kế toán (Sổ chi, Số dư ngân hàng, Công nợ). Máy tự đọc lại 3 tiếng 1 lần.
+- **🏦 Tiền & công nợ** (cuối trang): bấm **🔗 Nối link** để nối file Google Sheet kế toán (Sổ chi, Số dư ngân hàng). Công nợ nhà cung cấp ghi ở mục **🧾 Công nợ nhà cung cấp** phía trên. Máy tự đọc lại 3 tiếng 1 lần.
 
 ## Hàng tồn kho tính bằng tiền
 

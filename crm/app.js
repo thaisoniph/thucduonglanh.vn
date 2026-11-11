@@ -4777,11 +4777,11 @@
         (days !== null ? 'Đủ chi khoảng <b>' + days + ' ngày</b>' : 'Chưa có số dư') + (wk ? ' · ' + (bank[1] >= wk[1] ? '▲ ' : '▼ ') + ms(Math.abs(bank[1] - wk[1])) + ' so với 7 ngày trước' : '')) +
       card('', '💵 Tiền sắp về', ms(coming), cn + ' đơn đang giao / chờ thu (45 ngày gần đây)') +
       card(over.length ? 'bad' : due7.length ? 'mid' : '', '🧾 Nợ nhà cung cấp', ptot != null ? ms(ptot) : '–',
-        pay ? (over.length ? '⚠️ <b>Quá hạn ' + ms(over.reduce(function (s, r) { return s + r[4]; }, 0)) + '</b> · ' : '') + (due7.length ? 'Tới hạn 7 ngày: <b>' + ms(due7.reduce(function (s, r) { return s + r[4]; }, 0)) + '</b>' : 'Không khoản nào tới hạn 7 ngày') + (noHan ? ' · ' + noHan + ' hoá đơn chưa ghi hạn' : '') : 'Kế toán chưa ghi trang Công nợ') +
+        (pay ? (over.length ? '⚠️ <b>Quá hạn ' + ms(over.reduce(function (s, r) { return s + r[4]; }, 0)) + '</b> · ' : '') + (due7.length ? 'Tới hạn 7 ngày: <b>' + ms(due7.reduce(function (s, r) { return s + r[4]; }, 0)) + '</b>' : 'Không khoản nào tới hạn 7 ngày') + (noHan ? ' · ' + noHan + ' hoá đơn chưa ghi hạn' : '') : 'Kế toán chưa ghi công nợ') + (F && F.paySrc === 'crm' ? ' · sổ CRM' + (F.payUnk ? ' · <b>⚠️ ' + F.payUnk + ' khoản sao kê chưa rõ trả ai</b>' : '') : '')) +
       card('', '💸 Đã chi ' + monthLabel(mk).replace(/^tháng /, 'T'), chi ? ms(cost) : '–', chi ? (top ? 'Lớn nhất: ' + esc(top) + ' ' + ms(G[top]) : '') + (nccPaid ? ' · trả nhà cung cấp ' + ms(nccPaid) : '') + (lastChi && lastChi < isoDate(Date.now() - 2 * DAY) ? ' · ⚠️ sổ chi chưa ghi từ ' + dd(lastChi) : '') : 'Chưa có trang Sổ chi') + '</div>';
     if (cash != null && pay && due30) { var gap = cash + coming - due30; h += '<p class="dpl-be">' + (gap < 0 ? '🔴 <b>Tiền đang có + sắp về chưa đủ trả nợ tới hạn trong 30 ngày (' + ms(due30) + '), thiếu khoảng ' + ms(-gap) + '.</b> Cần hẹn lại lịch trả hoặc thu tiền đơn đang giao sớm.' : '🟢 Tiền đang có + sắp về đủ trả nợ tới hạn trong 30 ngày (' + ms(due30) + '), còn dư khoảng ' + ms(gap) + '.') + '</p>'; }
     if (over.length || due7.length) h += '<ul class="small fin-due">' + over.concat(due7).slice(0, 5).map(function (r) { return '<li>' + (r[3] < td ? '⚠️ <b>quá hạn</b> ' : '') + esc(r[0]) + (r[1] ? ' (HĐ ' + esc(r[1]) + ')' : '') + ': <b>' + ms(r[4]) + '</b> · hạn ' + dd(r[3]) + '</li>'; }).join('') + '</ul>';
-    h += '<p class="small muted" style="margin:6px 0 0">' + (F ? 'Số kế toán đọc lúc ' + fDateTime(F.at) + (F.by ? ' (' + esc(F.by) + ')' : '') : 'Số tiền / nợ lấy từ file kế toán ' + monthLabel(KM[0].m)) + '. Tiền sắp về tính từ đơn CRM.' + (FIN.err ? ' <span class="bad-line">⚠️ ' + esc(FIN.err) + '</span>' : L && L.err ? ' <span class="bad-line">⚠️ ' + esc(L.err) + '</span>' : '') +
+    h += '<p class="small muted" style="margin:6px 0 0">' + (F && F.at ? 'Số kế toán đọc lúc ' + fDateTime(F.at) + (F.by ? ' (' + esc(F.by) + ')' : '') : KM[0] ? 'Số tiền / nợ lấy từ file kế toán ' + monthLabel(KM[0].m) : 'Nợ nhà cung cấp lấy từ sổ công nợ trong CRM') + '. Tiền sắp về tính từ đơn CRM.' + (FIN.err ? ' <span class="bad-line">⚠️ ' + esc(FIN.err) + '</span>' : L && L.err ? ' <span class="bad-line">⚠️ ' + esc(L.err) + '</span>' : '') +
       (L ? ' <button class="btn sm ghost" data-dash="fintest">📲 Gửi thử tin sáng</button>' : '') + '</p></div>';
     return h;
   }
@@ -5471,6 +5471,184 @@
     if (!ktvCfg().on) return '';
     var t = ktvLists().treo; return t.length ? ' · 💤 ' + moneyShort(ktvSum(t)) + ' treo ở hãng' : '';
   }
+  /* ---------- 🧾 Sổ công nợ nhà cung cấp (12/11/2026, anh Sơn: ghi công nợ ngay trong CRM thay trang "Công nợ" của file kế toán). Máy chủ api/src/ncc.js, lệnh kt_ncc {op}.
+   * Kế toán ghi hoá đơn nhập hàng (hạn tự tính theo số ngày được nợ). Tiền trả qua VCB / MB máy tự lấy từ sao kê (từ khoá nhà cung cấp trong nội dung chuyển khoản);
+   * khoản "Trả nợ nhà cung cấp" chưa rõ trả ai → kế toán chọn 1 lần, máy nhớ. Còn nợ = trả dồn vào hoá đơn hạn sớm nhất (knCalc giống nccOpen trong ncc.js).
+   * Có sổ này thì ô 🧾 Nợ nhà cung cấp ở Tổng quan, tin 8h, trợ lý lấy số từ đây (finFull → nccMerge). */
+  var KN = { d: null, busy: false, at: 0, err: '' };
+  function knLoad(force) {
+    if (KN.busy || (!force && KN.d && Date.now() - KN.at < 120e3)) return; KN.busy = true; KN.err = '';
+    api('kt_ncc', { op: 'list' }).then(function (j) { KN.d = j; KN.at = Date.now(); }, function (e) { KN.err = /Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message; })
+      .then(function () { KN.busy = false; if (route().view === 'ke-toan') softRender(true); });
+  }
+  function knSet(j) { KN.d = j; KN.at = Date.now(); if (j.fin !== undefined && S.d.rules) S.d.rules.fin = j.fin; }
+  function knNum(v) { return Math.round(Number(String(v == null ? '' : v).replace(/[^\d]/g, '')) || 0); }
+  function knDd(d) { return d ? d.slice(8, 10) + '/' + d.slice(5, 7) + '/' + d.slice(0, 4) : ''; }
+  function knCalc() {
+    var D = KN.d || { ncc: [], bills: [], pays: [] }, paid = {}, by = {}, left = {}, pre = {};
+    D.pays.forEach(function (p) { if (p.ncc) paid[p.ncc] = (paid[p.ncc] || 0) + p.amt; });
+    D.bills.forEach(function (b) { (by[b.ncc] = by[b.ncc] || []).push(b); });
+    Object.keys(by).forEach(function (k) {
+      var l = paid[k] || 0;
+      by[k].slice().sort(function (a, b) { var x = a.due || a.day, y = b.due || b.day; return x < y ? -1 : x > y ? 1 : a.id - b.id; }).forEach(function (b) { var u = Math.min(b.amt, Math.max(0, l)); l -= u; left[b.id] = b.amt - u; });
+      if (l > 0) pre[k] = l;
+    });
+    var td = isoDate(Date.now()), d7 = isoDate(Date.now() + 7 * DAY), S2 = D.ncc.map(function (s) {
+      var B = (by[s.id] || []).filter(function (b) { return left[b.id] > 0; }), owe = B.reduce(function (t, b) { return t + left[b.id]; }, 0);
+      var over = B.filter(function (b) { return b.due && b.due < td; }), due7 = B.filter(function (b) { return b.due && b.due >= td && b.due <= d7; });
+      var nx = B.map(function (b) { return b.due; }).filter(Boolean).sort()[0] || '';
+      return { s: s, open: B, owe: owe, over: over.reduce(function (t, b) { return t + left[b.id]; }, 0), due7: due7.reduce(function (t, b) { return t + left[b.id]; }, 0), next: nx, pre: pre[s.id] || 0, nb: (by[s.id] || []).length };
+    });
+    return { left: left, rows: S2, td: td };
+  }
+  function knHTML() {
+    var hd = '<section class="ktv-sec"><h2 class="ktv-h">🧾 Công nợ nhà cung cấp <small>ghi hoá đơn nhập hàng, máy tự trừ khi sao kê có khoản trả</small></h2>';
+    if (!KN.d) return hd + '<p class="muted small">' + (KN.err ? '⚠️ ' + esc(KN.err) + ' <button class="btn sm" data-kn="re">Thử lại</button>' : '⏳ Đang lấy sổ công nợ…') + '</p></section>';
+    var C = knCalc(), D = KN.d, tot = 0, over = 0, d7 = 0; C.rows.forEach(function (r) { tot += r.owe; over += r.over; d7 += r.due7; });
+    var nOver = C.rows.filter(function (r) { return r.over; }).length, card = function (cls, l, v, sub) { return '<div class="ktv-c ' + cls + '"><span>' + l + '</span><b>' + v + '</b><small>' + sub + '</small></div>'; };
+    var h = hd, F = S.d.rules && S.d.rules.fin, sheet = F && F.paySrc !== 'crm' && F.pay && F.pay.length ? F.pay : null;
+    if (!D.bills.length) {
+      h += '<div class="notice info kn-start"><b>👋 Bắt đầu:</b> 1. Bấm <b>＋ Nhà cung cấp</b> cho từng nơi mình nhập hàng (ghi số ngày được nợ, vd 30). 2. Mỗi lần nhận hoá đơn bấm <b>＋ Hoá đơn nhập hàng</b>, hạn trả máy tự tính. 3. Nợ cũ chưa trả thì ghi 1 hoá đơn "Nợ cũ" với số còn nợ hôm nay. Tiền trả qua tài khoản VCB / MB máy tự lấy khi anh/chị tải sao kê.</div>';
+      if (sheet) h += '<p class="small">File kế toán đang có trang <b>Công nợ</b> với ' + sheet.length + ' khoản còn nợ (' + moneyShort(sheet.reduce(function (t, r) { return t + r[4]; }, 0)) + '). <button class="btn sm pri" data-kn="import">📥 Chép vào sổ CRM</button></p>';
+    } else {
+      h += '<div class="ktv-n ktv-n3">' + card(tot ? 'mid' : 'ok', '🧾 Còn nợ', moneyShort(tot), C.rows.filter(function (r) { return r.owe; }).length + ' nhà cung cấp') +
+        card(over ? 'bad' : 'ok', '⚠️ Quá hạn', moneyShort(over), over ? nOver + ' nhà cung cấp: trả ngay hoặc hẹn lại' : 'Không khoản nào quá hạn') +
+        card(d7 ? 'mid' : 'ok', '📅 Tới hạn 7 ngày', moneyShort(d7), d7 ? 'chuẩn bị tiền' : 'Không khoản nào') + '</div>';
+    }
+    if (D.unk && D.unk.length) h += '<button type="button" class="notice kn-unk" data-kn="unk">⚠️ <b>' + D.unk.length + ' khoản trả nhà cung cấp trên sao kê</b> (' + moneyShort(D.unk.reduce(function (t, r) { return t + r.amt; }, 0)) + ') máy chưa biết trả cho ai. <u>Bấm để chọn</u>, lần sau máy tự nhận ra.</button>';
+    var R = C.rows.filter(function (r) { return !r.s.off || r.owe; }).sort(function (a, b) { return (b.over ? 1 : 0) - (a.over ? 1 : 0) || (a.next || '9') .localeCompare(b.next || '9') || b.owe - a.owe; });
+    if (R.length) h += '<div class="box kn-list">' + R.map(function (r) {
+      var sub = r.owe ? (r.over ? '<em class="ktv-red">⚠️ quá hạn ' + moneyShort(r.over) + '</em> · ' : '') + r.open.length + ' hoá đơn chưa trả hết' + (r.next ? ' · hạn gần nhất ' + knDd(r.next).slice(0, 5) : '') : r.pre ? 'Đã trả trước ' + moneyShort(r.pre) : r.nb ? '✅ Đã trả hết' : 'Chưa có hoá đơn';
+      return '<button type="button" class="ktv-row' + (r.over ? ' kn-late' : '') + '" data-kn="sup|' + r.s.id + '"><span><b>' + esc(r.s.name) + '</b><small>' + sub + '</small></span><b class="ktv-amt">' + (r.owe ? moneyShort(r.owe) : '–') + '</b><i aria-hidden="true">›</i></button>';
+    }).join('') + '</div>';
+    h += '<div class="ktv-big kn-btns"><button class="btn pri" data-kn="bill">＋ Hoá đơn nhập hàng</button><button class="btn" data-kn="pay">＋ Ghi đã trả (tiền mặt)</button><button class="btn" data-kn="new">＋ Nhà cung cấp</button>' + (D.bills.length ? '<button class="btn ghost" data-kn="copy">📋 Chép bảng công nợ</button>' : '') + '</div>';
+    return h + '</section>';
+  }
+  function knSupOpts(sel) { return '<option value="">— Chọn nhà cung cấp —</option>' + (KN.d ? KN.d.ncc : []).filter(function (s) { return !s.off || +s.id === +sel; }).map(function (s) { return '<option value="' + s.id + '"' + (+s.id === +sel ? ' selected' : '') + '>' + esc(s.name) + '</option>'; }).join(''); }
+  function knSup(id) { return (KN.d ? KN.d.ncc : []).filter(function (s) { return +s.id === +id; })[0]; }
+  function knErr(m, e) { var x = $('.kn-err', m); if (x) x.textContent = /Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message; }
+  function knDo(m, b, data, msg, after) {
+    b.disabled = true; var t = b.textContent; b.textContent = '⏳ Đang lưu…';
+    return api('kt_ncc', data).then(function (j) { knSet(j); toast(msg); if (after) after(); else closeModal(); render(); }, function (e) { b.disabled = false; b.textContent = t; knErr(m, e); });
+  }
+  function knMoneyIn(el) { el.oninput = function () { var v = knNum(el.value); el.value = v ? v.toLocaleString('vi-VN') : ''; }; }
+  /** Thêm / sửa nhà cung cấp. back = id để mở lại hộp chi tiết sau khi lưu. */
+  function openKnEdit(id) {
+    var s = knSup(id) || { name: '', phone: '', terms: 30, keys: '', note: '' };
+    var body = '<label class="f"><span>Tên nhà cung cấp</span><input type="text" id="knN" value="' + esc(s.name) + '" placeholder="vd Công ty TNHH Dược liệu Xanh"></label>' +
+      '<label class="f"><span>Được nợ bao nhiêu ngày (tính từ ngày hoá đơn)</span><input type="text" inputmode="numeric" id="knT" value="' + esc(s.terms) + '" placeholder="vd 30"></label>' +
+      '<label class="f"><span>Người liên hệ, số điện thoại</span><input type="text" id="knP" value="' + esc(s.phone) + '" placeholder="vd Chị Lan – 0912 345 678"></label>' +
+      '<label class="f"><span>Chữ nhận ra trên sao kê (không bắt buộc)</span><textarea id="knK" rows="2" placeholder="vd DUOC LIEU XANH">' + esc(String(s.keys || '').split('|').join('\n')) + '</textarea><small class="muted">Mỗi dòng 1 cụm chữ có trong nội dung chuyển khoản khi trả tiền cho nhà cung cấp này. Để trống cũng được: máy tự dò theo tên, khi gặp khoản lạ sẽ hỏi.</small></label>' +
+      '<label class="f"><span>Ghi chú</span><input type="text" id="knNo" value="' + esc(s.note) + '" placeholder="vd số tài khoản, điều kiện chiết khấu"></label>' +
+      (id ? '<label class="small"><input type="checkbox" id="knOff"' + (s.off ? ' checked' : '') + '> Không nhập hàng ở đây nữa (ẩn khỏi danh sách khi đã trả hết)</label>' : '') + '<p class="err kn-err"></p>';
+    var m = modal(id ? '✏️ Sửa nhà cung cấp' : '＋ Thêm nhà cung cấp', body, '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="knGo">Lưu</button>');
+    $('#knGo', m).onclick = function () {
+      var n = $('#knN', m).value.trim(); if (!n) { $('.kn-err', m).textContent = 'Ghi tên nhà cung cấp.'; return; }
+      knDo(m, this, { op: 'sup', id: id || '', name: n, terms: knNum($('#knT', m).value), phone: $('#knP', m).value, keys: $('#knK', m).value, note: $('#knNo', m).value, off: $('#knOff', m) && $('#knOff', m).checked ? 1 : 0 }, 'Đã lưu nhà cung cấp ✓', id ? function () { openKnSup(id); } : null);
+    };
+  }
+  function openKnBill(nid, bid) {
+    if (KN.d && !KN.d.ncc.length) { toast('Thêm nhà cung cấp trước'); openKnEdit(); return; }
+    var b = bid ? (KN.d.bills || []).filter(function (x) { return x.id === bid; })[0] : null; nid = b ? b.ncc : nid;
+    var dueAuto = function (day, sid) { var s = knSup(sid); return s && day ? isoDate(new Date(day + 'T12:00:00+07:00').getTime() + (Number(s.terms) || 0) * DAY) : ''; };
+    var day0 = b ? b.day : isoDate(Date.now());
+    var body = '<label class="f"><span>Nhà cung cấp</span><select id="knS">' + knSupOpts(nid) + '</select></label>' +
+      '<label class="f"><span>Số tiền trên hoá đơn</span><input type="text" inputmode="numeric" id="knA" value="' + (b ? b.amt.toLocaleString('vi-VN') : '') + '" placeholder="vd 25.000.000"></label>' +
+      '<label class="f"><span>Số hoá đơn (không bắt buộc)</span><input type="text" id="knD" value="' + esc(b ? b.doc : '') + '" placeholder="vd 0001234"></label>' +
+      '<div class="kn-2"><label class="f"><span>Ngày hoá đơn</span><input type="date" id="knDay" value="' + day0 + '"></label><label class="f"><span>Hạn trả</span><input type="date" id="knDue" value="' + esc(b ? b.due : dueAuto(day0, nid)) + '"></label></div>' +
+      '<p class="small muted" id="knDueH"></p><label class="f"><span>Ghi chú</span><input type="text" id="knNo" value="' + esc(b ? b.note : '') + '" placeholder="vd 200 hộp trà, nợ cũ đến 12/11"></label><p class="err kn-err"></p>';
+    var m = modal(b ? '✏️ Sửa hoá đơn nhập hàng' : '＋ Hoá đơn nhập hàng', body, (b ? '<button class="btn danger" id="knDel">🗑 Xoá</button>' : '') + '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="knGo">Lưu</button>');
+    var touched = !!b, hint = function () { var s = knSup($('#knS', m).value); $('#knDueH', m).textContent = s ? 'Hạn tự tính: ngày hoá đơn + ' + (s.terms || 0) + ' ngày được nợ. Sửa được nếu hoá đơn ghi hạn khác.' : ''; };
+    var re = function () { if (!touched) $('#knDue', m).value = dueAuto($('#knDay', m).value, $('#knS', m).value); hint(); };
+    $('#knS', m).onchange = re; $('#knDay', m).onchange = re; $('#knDue', m).onchange = function () { touched = true; }; hint(); knMoneyIn($('#knA', m));
+    $('#knGo', m).onclick = function () {
+      var sid = $('#knS', m).value, a = knNum($('#knA', m).value); if (!sid) { $('.kn-err', m).textContent = 'Chọn nhà cung cấp.'; return; } if (!a) { $('.kn-err', m).textContent = 'Ghi số tiền hoá đơn.'; return; }
+      knDo(m, this, { op: 'bill', id: b ? b.id : '', ncc: sid, amt: a, doc: $('#knD', m).value, day: $('#knDay', m).value, due: $('#knDue', m).value, note: $('#knNo', m).value }, b ? 'Đã sửa hoá đơn ✓' : 'Đã ghi hoá đơn ✓', function () { openKnSup(sid); });
+    };
+    if (b) $('#knDel', m).onclick = function () { if (confirm('Xoá hoá đơn ' + (b.doc || money(b.amt)) + '? Chỉ xoá khi ghi nhầm.')) knDo(m, this, { op: 'bill', id: b.id, del: 1 }, 'Đã xoá hoá đơn', function () { openKnSup(b.ncc); }); };
+  }
+  function openKnPay(nid) {
+    if (KN.d && !KN.d.ncc.length) { toast('Thêm nhà cung cấp trước'); openKnEdit(); return; }
+    var body = '<p class="small" style="margin:0 0 8px">Chỉ ghi ở đây khoản trả bằng <b>tiền mặt</b> hoặc tài khoản <b>không tải sao kê</b> vào CRM. Khoản chuyển từ VCB / MB máy tự lấy khi tải sao kê, ghi thêm ở đây là trừ 2 lần.</p>' +
+      '<label class="f"><span>Nhà cung cấp</span><select id="knS">' + knSupOpts(nid) + '</select></label><label class="f"><span>Số tiền đã trả</span><input type="text" inputmode="numeric" id="knA" placeholder="vd 10.000.000"></label>' +
+      '<label class="f"><span>Ngày trả</span><input type="date" id="knDay" value="' + isoDate(Date.now()) + '" max="' + isoDate(Date.now()) + '"></label><label class="f"><span>Ghi chú</span><input type="text" id="knNo" placeholder="vd tiền mặt, anh Sơn trả"></label><p class="err kn-err"></p>';
+    var m = modal('＋ Ghi đã trả nhà cung cấp', body, '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="knGo">Lưu</button>'); knMoneyIn($('#knA', m));
+    $('#knGo', m).onclick = function () {
+      var sid = $('#knS', m).value, a = knNum($('#knA', m).value); if (!sid) { $('.kn-err', m).textContent = 'Chọn nhà cung cấp.'; return; } if (!a) { $('.kn-err', m).textContent = 'Ghi số tiền đã trả.'; return; }
+      knDo(m, this, { op: 'pay', ncc: sid, amt: a, day: $('#knDay', m).value, note: $('#knNo', m).value }, 'Đã ghi đã trả ✓', function () { openKnSup(sid); });
+    };
+  }
+  /** Chi tiết 1 nhà cung cấp: hoá đơn còn nợ, đã trả, lịch sử trả. */
+  function openKnSup(id) {
+    var s = knSup(id); if (!s) return; var C = knCalc(), r = C.rows.filter(function (x) { return +x.s.id === +id; })[0];
+    var B = KN.d.bills.filter(function (b) { return +b.ncc === +id; }), P = KN.d.pays.filter(function (p) { return +p.ncc === +id; });
+    var h = '<p style="margin:0 0 4px">' + (s.phone ? '📞 ' + esc(s.phone) + ' · ' : '') + 'được nợ ' + (s.terms || 0) + ' ngày' + (s.note ? ' · ' + esc(s.note) : '') + '</p>' +
+      '<p class="kn-big">Còn nợ <b>' + money(r ? r.owe : 0) + '</b>' + (r && r.over ? ' · <b class="ktv-red">quá hạn ' + money(r.over) + '</b>' : '') + (r && r.pre ? ' · đã trả trước ' + money(r.pre) : '') + '</p>';
+    h += '<h3 class="kts-h">Hoá đơn <small>' + B.length + ' hoá đơn · bấm để sửa</small></h3>' + (B.length ? '<div class="ktv-list">' + B.map(function (b) {
+      var l = C.left[b.id] || 0, late = l > 0 && b.due && b.due < C.td;
+      return '<button type="button" class="ktv-row kn-bill' + (late ? ' kn-late' : '') + '" data-knb="' + b.id + '"><span><b>' + (b.doc ? 'HĐ ' + esc(b.doc) + ' · ' : '') + knDd(b.day).slice(0, 5) + '</b><small>' + money(b.amt) + (b.due ? ' · hạn ' + knDd(b.due) : '') + (b.note ? ' · ' + esc(b.note) : '') + '</small></span><b class="ktv-amt">' + (l > 0 ? (late ? '⚠️ ' : '') + 'còn ' + moneyShort(l) : '<span class="ktv-ok">✅ đã trả</span>') + '</b></button>';
+    }).join('') + '</div>' : '<p class="small muted">Chưa có hoá đơn.</p>');
+    h += '<h3 class="kts-h">Đã trả <small>' + P.length + ' lần · ' + money(P.reduce(function (t, p) { return t + p.amt; }, 0)) + '</small></h3>' + (P.length ? '<div class="ktv-list">' + P.map(function (p) {
+      return '<div class="ktb-row"><span><b>' + knDd(p.day) + ' · ' + money(p.amt) + '</b><small>' + esc(p.src || '') + (p.note ? ' · ' + esc(p.note) : '') + (p.by ? ' · ' + esc(p.by) : '') + '</small></span>' +
+        (/^tay:/.test(p.id) ? '<button class="btn sm ghost" data-knp="del|' + esc(p.id) + '" aria-label="Xoá lần trả">🗑</button>' : '<button class="btn sm ghost" data-knp="un|' + esc(p.id) + '" title="Khoản sao kê này không phải trả cho nhà cung cấp này">↩ Không phải</button>') + '</div>';
+    }).join('') + '</div>' : '<p class="small muted">Chưa có lần trả nào. Tải sao kê VCB / MB là máy tự lấy khoản chuyển khoản cho nhà cung cấp này.</p>') + '<p class="small muted">Tiền trả trừ dần vào hoá đơn có hạn sớm nhất.</p><p class="err kn-err"></p>';
+    var m = modal('🧾 ' + esc(s.name), h, '<button class="btn" id="knE">✏️ Sửa thông tin</button><button class="btn" id="knP2">＋ Đã trả</button><button class="btn pri" id="knB2">＋ Hoá đơn</button>');
+    $('#knE', m).onclick = function () { openKnEdit(id); }; $('#knP2', m).onclick = function () { openKnPay(id); }; $('#knB2', m).onclick = function () { openKnBill(id); };
+    $$('[data-knb]', m).forEach(function (el) { el.onclick = function () { openKnBill(id, +el.getAttribute('data-knb')); }; });
+    $$('[data-knp]', m).forEach(function (el) {
+      el.onclick = function () {
+        var a = el.getAttribute('data-knp').split('|'), del = a[0] === 'del';
+        if (!confirm(del ? 'Xoá lần trả ghi tay này?' : 'Khoản sao kê này không phải trả cho ' + s.name + '? Máy bỏ khoản này khỏi sổ công nợ.')) return;
+        knDo(m, el, del ? { op: 'pay', id: a[1], del: 1 } : { op: 'unlink', id: a[1] }, del ? 'Đã xoá' : 'Đã bỏ khoản này', function () { openKnSup(id); });
+      };
+    });
+  }
+  /** Cụm chữ liền nhau dài nhất không có số trong nội dung chuyển khoản (≤ 4 chữ) → máy nhớ để lần sau tự nhận ra nhà cung cấp. */
+  function knKey(t) {
+    var w = norm(kcxTxt(t)).replace(/ct tnhh tap doan vitagreen nutrition|vitagreen|thuc duong lanh/g, ' 0 ').replace(/[^a-z0-9 ]/g, ' ').split(/\s+/), best = [], cur = []; // bỏ tên công ty mình (có trong mọi khoản chuyển đi)
+    w.concat(['0']).forEach(function (x) { if (x && !/\d/.test(x) && !/^(ct|cty|tt|ck|chuyen|khoan|thanh|toan|tien|hang|cho|ibft|ibbiz|mbbiz|mbvcb|ft|tnhh|cong|ty|hd|nop|tra|no)$/.test(x)) cur.push(x); else { if (cur.length > best.length) best = cur; cur = []; } });
+    return best.slice(0, 4).join(' ');
+  }
+  function openKnUnk() {
+    var U = (KN.d && KN.d.unk) || []; if (!U.length) return;
+    var body = '<p class="small" style="margin:0 0 8px">Các khoản tiền ra nhóm <b>Trả nợ nhà cung cấp / Nhập hàng</b> trên sao kê mà máy chưa biết trả cho ai. Chọn nhà cung cấp: máy trừ vào công nợ và nhớ chữ trong nội dung chuyển khoản để lần sau tự nhận ra.</p><div class="ktv-list">' + U.map(function (r, i) {
+      return '<div class="kts-chi"><span class="ktv-o-t"><b>' + knDd(r.day).slice(0, 5) + ' · ' + money(r.amt) + ' <small style="display:inline">TK …' + esc(r.acct) + '</small></b><small>' + esc(kcxTxt(r.txt)) + '</small></span><select data-knu="' + i + '" aria-label="Trả cho nhà cung cấp">' + knSupOpts('') + '<option value="0">✖ Không phải trả nhà cung cấp</option></select></div>';
+    }).join('') + '</div><p class="small muted">Nhà cung cấp chưa có trong danh sách: đóng hộp này, bấm ＋ Nhà cung cấp rồi mở lại.</p><p class="err kn-err"></p>';
+    var m = modal('⚠️ Khoản trả nhà cung cấp chưa rõ', body, '<button class="btn" data-close>Đóng</button>');
+    $$('[data-knu]', m).forEach(function (el) {
+      el.onchange = function () {
+        var r = U[+el.getAttribute('data-knu')]; if (el.value === '' || !r) return; el.disabled = true;
+        api('kt_ncc', el.value === '0' ? { op: 'skip', chi: r.id } : { op: 'link', chi: r.id, ncc: el.value, key: knKey(r.txt) }).then(function (j) {
+          knSet(j); toast(el.value === '0' ? 'Đã bỏ khoản này' : 'Đã trừ vào công nợ ✓'); el.closest('.kts-chi').classList.add('kn-done'); softRender(true);
+          if (!(j.unk || []).length) { closeModal(); render(); }
+        }, function (e) { el.disabled = false; knErr(m, e); });
+      };
+    });
+  }
+  function knTsv() {
+    var C = knCalc(), nm = {}; KN.d.ncc.forEach(function (s) { nm[s.id] = s.name; });
+    return [['Nhà cung cấp', 'Số hoá đơn', 'Ngày hoá đơn', 'Hạn thanh toán', 'Giá trị', 'Đã thanh toán', 'Còn phải trả', 'Ghi chú'].join('\t')].concat(KN.d.bills.slice().sort(function (a, b) { return (nm[a.ncc] || '').localeCompare(nm[b.ncc] || '') || (a.day < b.day ? -1 : 1); }).map(function (b) {
+      var l = C.left[b.id] || 0; return [nm[b.ncc] || '', b.doc, knDd(b.day), knDd(b.due), b.amt, b.amt - l, l, String(b.note || '').replace(/\t/g, ' ')].join('\t');
+    })).join('\n');
+  }
+  function bindKn() {
+    $$('[data-kn]').forEach(function (el) {
+      el.onclick = function () {
+        var a = el.getAttribute('data-kn').split('|');
+        if (a[0] === 're') { knLoad(true); softRender(true); }
+        else if (a[0] === 'sup') openKnSup(+a[1]);
+        else if (a[0] === 'bill') openKnBill('');
+        else if (a[0] === 'pay') openKnPay('');
+        else if (a[0] === 'new') openKnEdit();
+        else if (a[0] === 'unk') openKnUnk();
+        else if (a[0] === 'copy') copy(knTsv()).then(function () { toast('Đã chép bảng ✓ Mở Google Sheet, bấm ô A1 rồi Ctrl+V (Mac: ⌘+V)'); });
+        else if (a[0] === 'import') {
+          var F = S.d.rules.fin; if (!F || !F.pay || !confirm('Chép ' + F.pay.length + ' khoản còn nợ từ trang Công nợ vào sổ CRM? Từ nay ghi công nợ trong CRM, không cần cập nhật trang Công nợ nữa.')) return; el.disabled = true;
+          api('kt_ncc', { op: 'import', rows: F.pay }).then(function (j) { knSet(j); toast('Đã chép ' + F.pay.length + ' khoản ✓ Mở từng nhà cung cấp, sửa số ngày được nợ cho đúng.'); render(); }, function (e) { el.disabled = false; toast(e.message, true); });
+        }
+      };
+    });
+  }
   function viewKtab() {
     var f = S.f.g || (S.f.g = {}); if (!f.p || f.p.k === 'all') f.p = { k: 'month' };
     if (!f.open) { try { f.open = JSON.parse(store('dash_open') || '{}') || {}; } catch (e) { f.open = {}; } }
@@ -5498,6 +5676,7 @@
     h += kspHTML(R);
     h += ktcHTML(R, f.p);
     h += ktAdjHTML(R, f.p);
+    knLoad(); h += knHTML();
     h += '<section class="ktv-sec"><h2 class="ktv-h">📊 Lãi lỗ <small>cùng số với Tổng quan của Quản trị</small></h2>' + dashDaily(R, b, M, sj, f.p, month);
     var PL = dashPnl(T, b, bp, M, sj, R, P, month); h += dashMore('pnl', '🧮 Lãi lỗ sau mọi chi phí', PL.line, PL.body);
     var CO = dashCost(); if (CO) h += dashMore('cost', '📊 Chi phí lớn & cách tối ưu', CO.line, CO.body);
@@ -6321,7 +6500,7 @@
     bindDash();
     var ks = $('#ktkSel'); if (ks) ks.onchange = function () { KTK.sel = ks.value; softRender(true); };
     var kr = $('[data-ktk="re"]'); if (kr) kr.onclick = function () { ktkLoad(true); softRender(true); };
-    bindKtb(); bindKsp();
+    bindKtb(); bindKsp(); bindKn();
     var ki = $('.ktk-in'); if (ki) ki.ontoggle = function () { KTK.openIn = ki.open; };
     $$('[data-ktv]').forEach(function (el) {
       el.onclick = function () { var a = el.getAttribute('data-ktv').split('|'); if (a[0] === 'cod') openKtvCod(); else if (a[0] === 'vcb') openKts(); else if (a[0] === 'chi') openKtch(); else openKtvList(a[0], a[1] || ''); };

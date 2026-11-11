@@ -2094,3 +2094,8 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .inx-ev-now { color: var(--orange); }
 .inx-ev-tr { background: var(--orange-light); border-radius: 8px; padding: 6px 10px; }
 .inx-img-b { margin-top: 10px; }
+/* 🧾 Sổ công nợ nhà cung cấp (tab Kế toán, 12/11/2026) */
+.kn-start { margin: 0 0 10px; } .kn-list { margin: 10px 0; padding-top: 0; padding-bottom: 0; } .kn-late { background: var(--red-light); }
+.kn-unk { display: block; width: 100%; text-align: left; font: inherit; cursor: pointer; margin: 10px 0; background: var(--orange-light); border: 1px solid var(--mid); }
+.kn-btns { flex-wrap: wrap; } .kn-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; } .kn-big { font-size: 17px; margin: 6px 0 10px; }
+.kn-bill { padding-left: 10px; padding-right: 10px; } .kn-bill:first-child { border-top: 0; } .kts-chi.kn-done { opacity: .45; }
