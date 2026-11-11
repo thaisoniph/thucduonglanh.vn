@@ -253,6 +253,7 @@ Khách **bạn tự tìm** (bạn tự thêm vào CRM, không từ số quảng 
 
 - Máy tự nhận ra khi khách có đơn đầu, báo Telegram cho bạn: *"🙋 Khách bạn tự mang về … → 10% mọi đơn tới ngày …"*. Trong hồ sơ khách có nhãn **🙋 Tự tìm** hoặc **🙋 Được giới thiệu** kèm ngày hết hạn.
 - Xem tiền ở **Hiệu quả → 💰 Thu nhập tạm tính**, dòng **🙋 HH khách tự mang về**.
+- **Số phải chưa từng có trong CRM** (từ 11/11/2026). Nếu trước lúc bạn thêm khách, số đó đã có ở bất kỳ đâu trong CRM thì **không tính**: số trong file quảng cáo (bao lâu cũng tính), khách hỏi ở Kho chung, khách hỏi của sale khác, đơn cũ (cả đơn huỷ), form liên hệ trên web. Lý do ghi trong hồ sơ khách. Những khách này công ty đã trả tiền quảng cáo để có, nên chỉ tính hoa hồng thường.
 - **Lúc thêm khách hỏi** (kênh Zalo, Điện thoại, Sự kiện, Khác) bạn phải chọn **🙋 Khách biết bạn qua đâu?** và ghi rõ (tên nhóm, sự kiện, người quen là ai). Khách xem quảng cáo hay fanpage công ty thì chọn **📣**. Quên ghi thì mở hồ sơ khách, chọn rồi bấm **Lưu nguồn khách**.
 - **Chờ chốt 14 ngày**: nhãn có chữ **⏳ chờ chốt**. Trong 14 ngày đó nếu số có trong file số quảng cáo thì máy tự gỡ và báo bạn. Hết 14 ngày không có gì lạ thì chốt hẳn.
 - **⚠️ chờ duyệt**: khách có dấu hiệu lạ (chưa ghi khách biết qua đâu, cùng địa chỉ khách cũ…) thì **chưa tính 10%** tới khi quản lý duyệt.

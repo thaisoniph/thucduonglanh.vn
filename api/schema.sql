@@ -128,3 +128,6 @@ INSERT OR IGNORE INTO links (code, name, kind, dest, note, active, by_name, at) 
   ('goi', 'Tờ rơi gửi kèm đơn hàng', 'goi-hang', '/', 'Bỏ vào hộp khi đóng gói đơn (đơn sàn, đơn sale): kéo khách cũ về đặt lại trên web.', 1, 'Thái Sơn', 1792138276354);
 -- chống đếm trùng lượt quét: 1 lượt / máy / mã / ngày (khoá = ngày:mã:băm IP+trình duyệt, xoá sau 2 ngày)
 CREATE TABLE IF NOT EXISTS qr_seen (k TEXT PRIMARY KEY, day TEXT);
+
+-- 11/11/2026: lần đầu mỗi số có trong file số quảng cáo (mọi dòng, không giới hạn ngày) → xét số đã có trong CRM chưa (hoa hồng sale tự tìm / giới thiệu / CTV)
+CREATE TABLE IF NOT EXISTS phone_seen (phone TEXT PRIMARY KEY, at INTEGER, src TEXT DEFAULT '');

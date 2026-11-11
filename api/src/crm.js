@@ -1,5 +1,5 @@
 // CRM: đăng nhập, dữ liệu, đơn hàng, khách, tiềm năng, cài đặt. Chuyển từ Apps Script sang, giữ nguyên cách làm việc & dữ liệu trả về cho giao diện.
-import { normPhone, nrm, esc, fmt, startOfDay, TZ_MS, fmtDate, dateOrBlank, slugName, replaceRows, isVoid, randHex, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, DAY, CRM_URL, ROLE_URL, refCode } from './lib.js';
+import { normPhone, nrm, esc, fmt, startOfDay, TZ_MS, fmtDate, dateOrBlank, slugName, replaceRows, isVoid, randHex, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, DAY, CRM_URL, ROLE_URL, refCode, crmSeen } from './lib.js';
 import { crmPartner, partnerSchema, orderAttrib, refClaim, staffOf, staffHit } from './partner.js';
 import { chatSchema } from './chat.js';
 import { zbotSchema, crmZbot } from './zbot.js';
@@ -30,7 +30,7 @@ import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, wbInf
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-11-11a'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
+const SCHEMA_V = '2026-11-11b'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -129,6 +129,7 @@ export async function ensureSchema(db) {
     for (const t of ['customers', 'leads']) await run(db, `CREATE TRIGGER IF NOT EXISTS ${t}_owner_chg AFTER UPDATE OF owner ON ${t}
       WHEN coalesce(OLD.owner, '') != '' AND coalesce(NEW.owner, '') != '' AND OLD.owner != NEW.owner${t === 'leads' ? " AND NEW.status IN ('Mới hỏi', 'Đang tư vấn')" : ''}
       BEGIN INSERT INTO owner_chg (phone, owner, at) VALUES (NEW.phone, NEW.owner, ${NOW_MS}); END`);
+    await run(db, `CREATE TABLE IF NOT EXISTS phone_seen (phone TEXT PRIMARY KEY, at INTEGER, src TEXT DEFAULT '')`); // 11/11/2026 lần đầu số có trong file quảng cáo (crmSeen)
     await run(db, `CREATE TABLE IF NOT EXISTS dup_done (phone TEXT PRIMARY KEY, owner TEXT DEFAULT '', sales TEXT DEFAULT '', by_name TEXT DEFAULT '', at INTEGER)`);
     await run(db, `CREATE TABLE IF NOT EXISTS ad_spend (
         day TEXT NOT NULL, channel TEXT NOT NULL, account TEXT NOT NULL DEFAULT '', campaign TEXT NOT NULL DEFAULT '',
@@ -817,6 +818,7 @@ async function crmClaim(x, u, d) {
 /* ================================================================ 🙋 Khách sale tự mang về (10/11/2026, anh Sơn): tự tìm hoặc được khách cũ giới thiệu → hoa hồng payplan.own % mọi đơn trong ownMonths tháng.
  *  Phân loại khi khách có đơn đầu (own_src: self / ref / no), chỉ khách mua lần đầu từ ownFrom. Người hưởng (own_by) = sale thêm khách hỏi / sale có link / sale của người giới thiệu.
  *  Chặn lách luật (10/11/2026, anh Sơn chọn lớp 1 + 2):
+ *   Lớp 0 (11/11/2026, anh Sơn): số phải CHƯA có trong CRM trước lúc sale mang về / ghi người giới thiệu (crmSeen: khách hỏi mọi kênh, đơn cũ, form liên hệ, file quảng cáo mọi ngày) → không thì không tính.
  *   Lớp 1 – máy tự chặn: số có trong quảng cáo (lead File QC / web / kênh QC, hoặc danh sách số quảng cáo ads_rows 100 ngày) trước đơn đầu → không tính tự tìm; có trong quảng cáo TRƯỚC khi ghi người giới thiệu → không tính giới thiệu;
  *     trùng nhân sự → không tính; trùng tên + địa chỉ khách cũ (số khác) → không tính; sale tự chọn "📣 khách xem quảng cáo" → không tính.
  *     Cờ ⚠️ (cần quản lý duyệt): chưa ghi khách biết qua đâu, cùng địa chỉ khách cũ / khách 🙋 khác của cùng sale, tỷ lệ khách 🙋 của sale cao bất thường, khách 🙋 của sale hay hoàn.
@@ -845,7 +847,7 @@ async function ownCtx(x) { // dữ liệu dùng chung 1 lượt: nhân sự, s�
 async function ownCheck(x, C, c) {
   const [fo, lds, rs] = await Promise.all([
     first(x.db, "SELECT id, time, seller, ref_phone, note FROM orders WHERE phone = ? AND status NOT LIKE '%uỷ%' AND status NOT LIKE '%ủy%' ORDER BY time LIMIT 1", c.phone),
-    all(x.db, 'SELECT by_name, channel, owner, ref_phone, ref_name, time, coalesce(how, \'\') AS how FROM leads WHERE phone = ? ORDER BY time', c.phone),
+    all(x.db, 'SELECT id, by_name, channel, owner, ref_phone, ref_name, time, coalesce(how, \'\') AS how FROM leads WHERE phone = ? ORDER BY time', c.phone),
     first(x.db, 'SELECT sale, void, at, ref_phone FROM ref_sale WHERE phone = ?', c.phone)]);
   const t0 = fo ? fo.time : c.first, flags = [], R = { src: 'no', by: '', how: c.own_how || '', why: '', flags };
   const guard = staffHit(C.staff, { phone: c.phone, name: c.name || '' }); if (guard) { R.why = guard; return R; }
@@ -854,6 +856,8 @@ async function ownCheck(x, C, c) {
   const refLead = lds.find(l => l.ref_phone || l.ref_name), refTs = [refLead && refLead.time, rs && !rs.void && rs.at, fo && fo.ref_phone && fo.time].filter(Boolean), refT = refTs.length ? Math.min(...refTs) : 0;
   if (refT) {
     if (adsT && adsT < refT - 3600e3) { R.why = 'Số đã có trong quảng cáo / web từ ' + fmtDate(adsT, 'dd/MM') + ', trước khi ghi người giới thiệu (' + fmtDate(refT, 'dd/MM') + ')'; return R; }
+    const sn = await crmSeen(x.db, c.phone, refT - 3600e3, [refLead && refLead.id]); // 11/11/2026: số phải chưa có trong CRM trước lúc ghi người giới thiệu
+    if (sn) { R.why = 'Số đã có trong CRM từ ' + fmtDate(sn.at, 'dd/MM/yyyy') + ' (' + sn.what + '), trước khi ghi người giới thiệu ' + fmtDate(refT, 'dd/MM'); R.quiet = !c.own_src; return R; }
     R.src = 'ref'; R.by = (rs && !rs.void && rs.sale) || (refLead && refLead.owner) || (fo && fo.seller) || c.owner || '';
   } else {
     if (adsT) { R.why = c.own_src === 'self' ? 'Số có trong quảng cáo / web từ ' + fmtDate(adsT, 'dd/MM') + ' (file quảng cáo về sau)' : ''; return R; }
@@ -861,6 +865,10 @@ async function ownCheck(x, C, c) {
     const lm = fo && String(fo.note || '').match(/🔗 Đặt qua link của ([^(·\n]+)/), linkBy = lm ? lm[1].trim() : '';
     if (selfLd) { R.src = 'self'; R.by = selfLd.by_name; R.how = R.how || selfLd.how || ''; if (!R.how) flags.push('Chưa ghi khách biết sale qua đâu'); }
     else if (linkBy && C.saleNames.has(linkBy)) { R.src = 'self'; R.by = linkBy; if (!R.how) flags.push('Chỉ đặt qua link riêng, chưa ghi khách biết sale qua đâu'); }
+    if (R.src === 'self') { // 11/11/2026 (anh Sơn): số phải chưa có trong CRM trước lúc sale thêm khách / khách đặt qua link sale (khách hỏi mọi kênh, đơn cũ, form, file quảng cáo mọi ngày)
+      const at = selfLd && selfLd.by_name === R.by ? selfLd.time : (fo ? fo.time : t0), sn = await crmSeen(x.db, c.phone, at - 3600e3, [selfLd && selfLd.id]);
+      if (sn) { R.src = 'no'; R.why = 'Số đã có trong CRM từ ' + fmtDate(sn.at, 'dd/MM/yyyy') + ' (' + sn.what + '), trước khi ' + R.by + ' mang về'; R.quiet = !c.own_src; return R; }
+    }
     if (R.src === 'self' && OWN_HOW_ADS.test(R.how)) { R.src = 'no'; R.why = c.own_src ? 'Sale ghi khách biết qua quảng cáo / fanpage công ty' : ''; return R; }
   }
   if (!R.by) { R.src = 'no'; return R; }
@@ -895,7 +903,7 @@ export async function ownTick(x) {
         await crmLog(x, OWN_SYS, 'Khách tự mang về', c.phone, c.name, r.by, kind + ' · hoa hồng ' + PP.own + '% mọi đơn tới ' + end + (r.how ? ' · biết qua: ' + r.how : '') + (fl ? ' · ⚠️ chờ quản lý duyệt: ' + fl : ' · chờ chốt ' + OWN_WAIT + ' ngày'));
         (bySale[r.by] = bySale[r.by] || []).push('• ' + (c.name || 'Khách') + ' – ' + c.phone + ' (' + kind + ') → ' + PP.own + '% mọi đơn tới ' + end + (fl ? '\n   ⚠️ Chờ quản lý duyệt: ' + fl : ''));
         if (fl) boss.push('• ' + (c.name || c.phone) + ' – ' + c.phone + ' (' + r.by + ', ' + kind + '): ' + fl);
-      } else if (r.why) { await crmLog(x, OWN_SYS, 'Không tính tự mang về', c.phone, c.name, '', r.why); boss.push('• ⛔ Không tính ' + (c.name || c.phone) + ' – ' + c.phone + ': ' + r.why); }
+      } else if (r.why) { await crmLog(x, OWN_SYS, 'Không tính tự mang về', c.phone, c.name, '', r.why); if (!r.quiet) boss.push('• ⛔ Không tính ' + (c.name || c.phone) + ' – ' + c.phone + ': ' + r.why); }
     }
     for (const c of pend) { // ⏳ đang chờ chốt: xét lại (file quảng cáo nhập muộn, địa chỉ mới, sale bổ sung nguồn…)
       const r = await ownCheck(x, C, c), fl = r.flags.join(' · ');

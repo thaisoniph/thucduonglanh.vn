@@ -62,6 +62,21 @@ export async function insertMany(db, table, cols, rows, extra) {
   const sql = `INSERT INTO ${table} (${cols.join(',')}) SELECT ${sel} FROM json_each(?) WHERE true ${extra || ''}`;
   for (let i = 0; i < rows.length; i += 300) await db.prepare(sql).bind(JSON.stringify(rows.slice(i, i + 300))).run();
 }
+/** 11/11/2026 (anh Sơn): hoa hồng sale tự tìm / khách cũ giới thiệu / CTV chỉ tính khi số CHƯA từng có trong CRM trước lúc người đó mang về.
+ *  Trả lần đầu tiên số này có trong CRM trước mốc `before` (ms): { at, what } hoặc null. Nguồn: khách hỏi (mọi kênh, mọi sale, kể cả Kho chung), đơn cũ (cả đơn huỷ / hoàn),
+ *  form liên hệ, file số quảng cáo (bảng phone_seen giữ mọi dòng, không giới hạn 100 ngày). skip = id khách hỏi của chính lượt mang về (không tính). */
+export async function crmSeen(db, phone, before, skip) {
+  if (!phone || !before) return null;
+  const sk = JSON.stringify((skip || []).filter(Boolean).map(String)), q = (sql, ...a) => db.prepare(sql).bind(...a).first().catch(() => null);
+  const [l, o, c, a] = await Promise.all([
+    q("SELECT time t, coalesce(nullif(channel, ''), nullif(by_name, ''), '') w, coalesce(owner, '') ow FROM leads WHERE phone = ? AND time < ? AND id NOT IN (SELECT value FROM json_each(?)) ORDER BY time LIMIT 1", phone, before, sk),
+    q('SELECT time t FROM orders WHERE phone = ? AND time < ? ORDER BY time LIMIT 1', phone, before),
+    q('SELECT time t FROM contacts WHERE phone = ? AND time < ? ORDER BY time LIMIT 1', phone, before),
+    q('SELECT at t, src w FROM phone_seen WHERE phone = ? AND at < ?', phone, before)]);
+  const hits = [l && { at: l.t, what: 'khách hỏi' + (l.w ? ' ' + l.w : '') + (l.ow ? ' (' + l.ow + ')' : '') }, o && { at: o.t, what: 'đơn cũ' }, c && { at: c.t, what: 'form liên hệ web' },
+    a && { at: a.t, what: 'file số quảng cáo' + (a.w ? ' – ' + a.w : '') }].filter(h => h && h.at);
+  return hits.length ? hits.sort((x, y) => x.at - y.at)[0] : null;
+}
 /** Thay toàn bộ bảng (xoá + ghi lại) trong 1 lần batch của D1 = 1 giao dịch: lỗi giữa chừng thì không mất dữ liệu cũ (16/10/2026, trước đây xoá xong mới ghi). */
 export async function replaceRows(db, table, cols, rows) {
   const sel = cols.map(c => `json_extract(value,'$.${c}')`).join(',');

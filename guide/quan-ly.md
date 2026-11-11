@@ -52,6 +52,7 @@ Tài khoản Quản trị không nằm trong bảng so sánh nhân sự. Doanh s
 
 - **Máy tự làm**: khi khách có đơn đầu, CRM xét trong 25 phút: có khách hỏi do sale tự thêm (kênh không phải quảng cáo) hoặc đặt qua link riêng của sale → **🙋 Tự tìm**; có người giới thiệu → **🙋 Được giới thiệu**. Báo Telegram cho sale, ghi Nhật ký **Khách tự mang về** (người làm: *Hoa hồng (tự động)*).
 - **Rào chắn máy tự làm** (cập nhật 10/11/2026):
+  - **Số đã có trong CRM** trước lúc sale thêm khách / ghi người giới thiệu → không tính (từ 11/11/2026). "Có trong CRM" gồm: số trong file số quảng cáo (mọi dòng, không giới hạn ngày), khách hỏi mọi kênh (cả Kho chung, cả của sale khác), đơn cũ (cả đơn huỷ / hoàn), form liên hệ web. Nhật ký **Không tính tự mang về** ghi rõ có từ ngày nào, ở đâu.
   - Số có trong **file số quảng cáo** (cả danh sách số 100 ngày, kể cả khi sale đã thêm số trước lúc file về), số để lại trên web, kênh Facebook / TikTok / Shopee **trước đơn đầu** → không tính tự tìm.
   - Có trong quảng cáo **trước khi** sale ghi người giới thiệu → không tính "được giới thiệu" (chặn kiểu ghi bừa khách giới thiệu cho khách quảng cáo).
   - Trùng **tên + địa chỉ** khách cũ (khách cũ đổi số), cùng địa chỉ với **người giới thiệu**, trùng nhân sự / người nhà → không tính.
@@ -174,7 +175,7 @@ Vào **Cài đặt → 🤝 Cộng tác viên & khách giới thiệu → Quản
 Mức cho người tự đăng ký sửa ở **⚙️ Cài đặt chung**, dòng 📝. Đổi thì sửa luôn chữ trên web: **/admin → Cài đặt chung → Đăng ký cộng tác viên**. CTV tự mua bằng chính số của mình thì máy không tính hoa hồng.
 
 **🛡 Chống sale lách qua CTV (từ 30/10/2026):**
-- Khách đã là **khách hỏi của sale** (có trong CRM trong 90 ngày, trước lúc bấm link CTV) mà đặt qua link / mã CTV: **không tính** hoa hồng CTV, khách vẫn thuộc sale. Đơn ghi "⚠️ … không tính hoa hồng CTV".
+- CTV chỉ được hoa hồng khi **số chưa từng có trong CRM** trước lúc khách bấm link CTV (từ 11/11/2026; trước đây chỉ chặn khách hỏi có sale trong 90 ngày). Số đã có trong file quảng cáo (bao lâu cũng tính), khách hỏi ở Kho chung, khách hỏi của sale, đơn cũ, form liên hệ → **không tính** hoa hồng CTV, khách vẫn thuộc sale. Đơn ghi "⚠️ … số đã có trong CRM từ … → không tính hoa hồng CTV", Nhật ký **CTV không tính**.
 - Thẻ CTV hiện ô đỏ ⚠️ khi: có khách đã được nhân sự gọi / ghi chăm sóc **trước** khi khách thuộc CTV; có lần đặt bị chặn như trên; CTV trùng SĐT, email, họ tên hoặc tài khoản ngân hàng mang tên nhân sự. Thấy ⚠️ thì xem kỹ trước khi bấm ✅ Đã chuyển tiền.
 - Để CRM nhận ra nhân sự: Quản trị điền **SĐT cá nhân**, **Họ tên đầy đủ**, **Số tài khoản** của từng người ở **Cài đặt → Nhân sự** rồi bấm Lưu. Người chưa có tài khoản CRM (kho, marketing mới…) ghi vào ô **Nhân sự chưa có tài khoản CRM** ngay bên dưới.
 

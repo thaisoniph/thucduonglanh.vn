@@ -10,7 +10,7 @@
 //   giới thiệu vào ô mã ưu đãi cũng được (voucher.js). Đơn của bạn đã giao + 7 ngày → refAuto tự phát voucher CAMON = rwPct % tiền hàng của bạn
 //   (gắn SĐT người giới thiệu, hạn 90 ngày), sale chỉ việc báo khách. Đủ tierN bạn mua → tặng tierGift (1 hộp Trà DILVANG), đủ ctvN → mời làm CTV.
 //   Chống gian lận: không tính đơn trùng SĐT / trùng địa chỉ người giới thiệu, đơn huỷ / hoàn.
-import { all, first, run, kvGet, kvSet, normPhone, fmt, nrm, isVoid, refCode, randHex, esc } from './lib.js';
+import { all, first, run, kvGet, kvSet, normPhone, fmt, nrm, isVoid, refCode, randHex, esc, crmSeen } from './lib.js';
 import { vcNorm, vcLabel, makeRefCode } from './voucher.js';
 import { telegram } from './google.js';
 
@@ -24,7 +24,6 @@ const DEF_TIERS = [[3, '1 hộp Trà DILVANG'], [5, 'Combo 3 hũ Ruốc Rong Bi�
 const DEF_STEPS = [[300000, 20000], [700000, 50000]];
 const DEF = { rate: 10, months: 6, refPct: 10, rwPct: 10, rwAmt: 50000, rwSteps: DEF_STEPS, saleSteps: DEF_STEPS, winDays: 60, vcMin: 300000, auto: 1, tiers: DEF_TIERS, tierN: 3, tierGift: '1 hộp Trà DILVANG', ctvN: 5, bonus: 50000, goalN: 20, goalGift: 'Liên hoan cả nhóm', appRate: 10, appVpct: 10 };
 // 30/10/2026: người ngoài tự đăng ký CTV ở thucduonglanh.vn/cong-tac-vien/ → quản lý duyệt. Khi duyệt: hoa hồng appRate %, khách mới của CTV giảm appVpct % đơn đầu.
-const LEAD_DAYS = 90; // khách hỏi của sale trong 90 ngày → không tính cho CTV
 const CTV_T = 1000; // ref_tiers.tier của mốc mời làm CTV = 1000 + ctvN (để không trùng mốc quà cùng số người)
 /** Bậc quà đã sắp xếp: [{n, gift}] */
 export function stepsOf(a) { return (Array.isArray(a) ? a : []).map(t => [Math.round(Number(t[0]) || 0), Math.round(Number(t[1]) || 0)]).filter(t => t[1] > 0).sort((x, y) => x[0] - y[0]); }
@@ -97,12 +96,13 @@ export async function orderAttrib(x, { id, phone, ref, refAt, voucher, isNew }) 
   if (ref) { const p = await first(x.db, 'SELECT code FROM partners WHERE code = ? AND active = 1', refCode(ref)); if (p) pc = p.code; }
   if (!pc && v && v.partner) pc = v.partner;
   if (pc && await first(x.db, 'SELECT code FROM partners WHERE code = ? AND phone = ?', pc, phone)) pc = ''; // CTV tự mua bằng số của mình: không tính hoa hồng
-  if (pc && isNew) { // 30/10/2026 chống sale lách: khách đã là khách hỏi có sale phụ trách (trong LEAD_DAYS ngày, trước lúc bấm link CTV) thì thuộc sale, không tính CTV
-    const now = Date.now(), at0 = Number(refAt) > now - 31 * DAY && Number(refAt) <= now ? Number(refAt) : now - DAY; // không có lúc bấm link (khách gõ mã) → chỉ tính khách hỏi có từ 1 ngày trước
-    const ld = await first(x.db, "SELECT owner, time FROM leads WHERE phone = ? AND coalesce(owner, '') != '' AND time >= ? AND time < ? ORDER BY time LIMIT 1", phone, now - LEAD_DAYS * DAY, at0);
-    if (ld) {
-      out.ctvSkip = '⚠️ Đặt qua link / mã CTV ' + pc + ' nhưng đã là khách hỏi của ' + ld.owner + ' từ ' + new Date(Number(ld.time) + 7 * 3600e3).toISOString().slice(0, 10).split('-').reverse().join('/') + ' → không tính hoa hồng CTV';
-      await run(x.db, 'INSERT INTO logs (time, by_name, what, ref, name, result, note) VALUES (?, ?, ?, ?, ?, ?, ?)', now, 'Tự động', 'CTV không tính', phone, pc, 'Khách hỏi của ' + ld.owner, String(id || ''));
+  if (pc && isNew) { // 11/11/2026 (anh Sơn): CTV chỉ được hoa hồng khi số CHƯA có trong CRM trước lúc khách bấm link CTV (khách hỏi mọi kênh / mọi thời gian, đơn cũ, form, file quảng cáo) – trước đây chỉ chặn khách hỏi có sale trong 90 ngày
+    const now = Date.now(), at0 = Number(refAt) > now - 31 * DAY && Number(refAt) <= now ? Number(refAt) : now - DAY; // không có lúc bấm link (khách gõ mã) → tính mọi thứ có từ 1 ngày trước
+    const sn = await crmSeen(x.db, phone, at0);
+    if (sn) {
+      const d = new Date(Number(sn.at) + 7 * 3600e3).toISOString().slice(0, 10).split('-').reverse().join('/');
+      out.ctvSkip = '⚠️ Đặt qua link / mã CTV ' + pc + ' nhưng số đã có trong CRM từ ' + d + ' (' + sn.what + ') → không tính hoa hồng CTV';
+      await run(x.db, 'INSERT INTO logs (time, by_name, what, ref, name, result, note) VALUES (?, ?, ?, ?, ?, ?, ?)', now, 'Tự động', 'CTV không tính', phone, pc, 'Đã có trong CRM từ ' + d + ': ' + sn.what, String(id || ''));
       pc = '';
     }
   }

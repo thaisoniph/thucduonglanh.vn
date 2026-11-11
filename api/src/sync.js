@@ -780,7 +780,7 @@ export async function adsSync(x, u, dry) {
   const since = cfg.since ? new Date(cfg.since + 'T00:00:00+07:00').getTime() : Date.now() - 3 * DAY;
   const rows = [], perSale = {}, perSheet = {}, writes = [], rr = {}; let skipped = 0, merged = 0;
   const nextFrom = async (pool, key) => { if (!(key in rr)) rr[key] = (await kvGet(x.db, key)) || ''; const n = pool[(pool.indexOf(rr[key]) + 1) % pool.length]; rr[key] = n; return n; };
-  const scan = [], reg = [], regFrom = Date.now() - 100 * DAY; // reg: mọi dòng có SĐT trong 100 ngày → đếm data quảng cáo (tỷ lệ chốt), không phụ thuộc việc tạo khách hỏi
+  const scan = [], reg = [], seen = {}, regFrom = Date.now() - 100 * DAY; // reg: mọi dòng có SĐT trong 100 ngày → đếm data quảng cáo (tỷ lệ chốt), không phụ thuộc việc tạo khách hỏi
   const keep = {}, keepRaw = {}, rowsOf = {}, AL = await phoneAlias(x), mp = p => AL[p] || p; // mp: số phụ của khách đã gộp → số chính. Cột Trùng sale: {sđt: sale phụ trách khách} (dòng dưới cùng có ghi thắng) – không phụ thuộc file sale nào nhập trước
   const sheets = [], missing = [];
   for (const sc of (cfg.sheets || []).filter(s => s.on)) {
@@ -800,11 +800,18 @@ export async function adsSync(x, u, dry) {
     const days = adsDays(vals.map(r => cell(r, m, 'date')));
     vals.forEach((r, i) => {
       const when = days[i], fp = toPhone(cell(r, m, 'phone')), phone = mp(fp); if (!when || !phone) return;
+      for (const p of phone === fp ? [phone] : [phone, fp]) if (!seen[p] || when < seen[p][0]) seen[p] = [when, String(cell(r, m, 'src') || sc.name).trim().slice(0, 60)];
       if (when >= regFrom) { const st = String(cell(r, m, 'sale') || '').trim(); reg.push([dayOf(when), phone, keep[phone] || who(st) || st, String(cell(r, m, 'src') || sc.name).trim()]); }
       if (when < since) return; scan.push({ sc, m, hr, r, i, when, phone, id: 'QC' + hashKey(sc.name + '|' + fp + '|' + fmtDate(when, 'yyyyMMdd')) });
     });
   }
   if (!dry) { const js = JSON.stringify(reg), v = hashKey(js); if ((await kvGet(x.db, 'ads_rows_v')) !== v) { await kvSet(x.db, 'ads_rows', js); await kvSet(x.db, 'ads_rows_v', v); } }
+  if (!dry) try { // 11/11/2026: nhớ lần đầu mỗi số có trong file quảng cáo (mọi ngày) → bảng phone_seen cho crmSeen. Ghi cả file 1 lần / 7 ngày, còn lại chỉ dòng 10 ngày gần đây (đỡ ghi)
+    const full = Date.now() - (Number(await kvGet(x.db, 'phone_seen_full')) || 0) >= 7 * DAY, from = full ? 0 : Date.now() - 10 * DAY;
+    const sv = Object.keys(seen).filter(p => seen[p][0] >= from).map(p => ({ phone: p, at: seen[p][0], src: seen[p][1] }));
+    await insertMany(x.db, 'phone_seen', ['phone', 'at', 'src'], sv, 'ON CONFLICT(phone) DO UPDATE SET at = excluded.at, src = excluded.src WHERE excluded.at < phone_seen.at');
+    if (full) await kvSet(x.db, 'phone_seen_full', String(Date.now()));
+  } catch (e) { console.error('phone_seen', e.message); }
   const ids = {}, openBy = {};
   (await allIn(x.db, 'SELECT id FROM leads WHERE id IN (SELECT value FROM json_each(?))', scan.map(s => s.id))).forEach(r => { ids[r.id] = 1; });
   const phones = [...new Set(scan.map(s => s.phone))];

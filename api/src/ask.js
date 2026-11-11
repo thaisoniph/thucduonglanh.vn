@@ -23,7 +23,7 @@ const ASK_DAY_MAX = 200, ASK_USER_MAX = 60, ASK_STEPS = 8, Q_LEN = 1500, HIST_N 
 const BASE_T = ['orders', 'customers', 'leads', 'logs', 'targets', 'cycles', 'links', 'qr_hits', 'vouchers', 'partners', 'partner_pay', 'ref_sale', 'ref_pay', 'ref_tiers', 'usage', 'chats'];
 const ADS_T = ['ad_spend'], SAN_T = ['san_orders', 'san_files'];
 const ALL_T = ['ad_spend', 'applicants', 'chats', 'contacts', 'customers', 'cycles', 'dup_done', 'feedback', 'feedback_images', 'fp_cmts', 'fp_log', 'fp_pages', 'fp_posts', 'fp_users', 'kv', 'leads', 'links', 'logs', 'orders', 'owner_chg',
-  'partner_apps', 'partner_pay', 'partners', 'perf', 'pledges', 'qr_hits', 'qr_seen', 'quizzes', 'ref_pay', 'ref_sale', 'ref_tiers', 'sale_phones', 'san_files', 'san_orders', 'sessions', 'sources', 'targets', 'templates', 'usage', 'users', 'vouchers',
+  'partner_apps', 'partner_pay', 'partners', 'perf', 'phone_seen', 'pledges', 'qr_hits', 'qr_seen', 'quizzes', 'ref_pay', 'ref_sale', 'ref_tiers', 'sale_phones', 'san_files', 'san_orders', 'sessions', 'sources', 'targets', 'templates', 'usage', 'users', 'vouchers',
   'wb_queue', 'zb_act', 'zb_imgs', 'zb_log', 'zb_out', 'zb_posts', 'zb_users']; // mọi bảng trong D1: câu lệnh nhắc tới bảng không được phép → từ chối
 const NAME_C = { orders: ['name'], customers: ['name'], leads: ['name', 'ref_name'], logs: ['name'], chats: ['name'], partners: ['name'] }; // tên khách → chỉ còn tên gọi
 const DROP_C = { orders: ['email', 'address', 'addr_old', 'note'], customers: ['address', 'addr_old', 'note', 'dob'], leads: ['note'], partners: ['email', 'bank', 'idno', 'note'], usage: ['email'] }; // không gửi cho AI
