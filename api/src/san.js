@@ -16,8 +16,9 @@ export const SHOPS = ['Shopee', 'TikTok Shop', 'Lazada'];
 const GOAL_KEYS = ['Sale', 'Website', 'Shopee', 'TikTok Shop', 'Lazada', 'Khác'];
 const STATES = ['ok', 'cancel', 'return', 'wait'];
 const DAY_RE = /^\d{4}-\d\d-\d\d$/, MONTH_RE = /^\d{4}-\d\d$/;
-const COLS = ['shop', 'id', 'day', 'status', 'state', 'gmv', 'refund', 'net', 'net_real', 'qty', 'items', 'batch', 'at'];
+const COLS = ['shop', 'id', 'day', 'status', 'state', 'gmv', 'refund', 'net', 'net_real', 'qty', 'items', 'batch', 'at', 'done_day'];
 const UPSERT = 'ON CONFLICT(shop, id) DO UPDATE SET day = excluded.day, status = excluded.status, state = excluded.state, gmv = excluded.gmv, refund = excluded.refund, qty = excluded.qty, items = excluded.items, batch = excluded.batch, at = excluded.at, ' +
+  "done_day = CASE WHEN excluded.done_day <> '' THEN excluded.done_day ELSE san_orders.done_day END, " +
   'net = CASE WHEN san_orders.net_real = 1 THEN san_orders.net ELSE excluded.net END'; // số tiền về thật (file Thu nhập) giữ nguyên
 const num = v => Math.max(0, Math.round(Number(v) || 0));
 
@@ -28,6 +29,11 @@ export async function sanSchema(db) {
       batch TEXT DEFAULT '', ibatch TEXT DEFAULT '', at INTEGER, PRIMARY KEY (shop, id)
     )`);
   await run(db, 'CREATE INDEX IF NOT EXISTS san_orders_day ON san_orders(day)');
+  // 11/11/2026 🟠 đối soát Shopee từng đơn cho kế toán: paid_day = "Ngày hoàn thành thanh toán" (file Doanh thu / số dư ví), done_day = "Thời gian hoàn thành đơn hàng" (file đơn hàng),
+  //   adj = tiền điều chỉnh sau thanh toán (tab Adjustment của file Doanh thu / dòng "Điều chỉnh" file Số dư: hoàn tiền, phí trả hàng, hoa hồng tiếp thị liên kết…).
+  //   aff / aff_note = hoa hồng Tiếp thị liên kết của đơn (file SellerConversionReport: Chi phí, tên đối tác, trạng thái khấu trừ).
+  const sc = (await all(db, 'PRAGMA table_info(san_orders)')).map(r => r.name);
+  for (const [c, def] of [['paid_day', "TEXT DEFAULT ''"], ['done_day', "TEXT DEFAULT ''"], ['adj', 'INTEGER DEFAULT 0'], ['aff', 'INTEGER DEFAULT 0'], ['aff_note', "TEXT DEFAULT ''"]]) if (!sc.includes(c)) { try { await run(db, `ALTER TABLE san_orders ADD COLUMN ${c} ${def}`); } catch (e) { } }
   await run(db, `CREATE TABLE IF NOT EXISTS san_files (batch TEXT PRIMARY KEY, shop TEXT, kind TEXT, file TEXT, n INTEGER DEFAULT 0, fresh INTEGER DEFAULT 0, d_from TEXT, d_to TEXT, gmv INTEGER DEFAULT 0, by_name TEXT, at INTEGER)`);
 }
 
@@ -74,27 +80,40 @@ async function sanLoad(x, u, d) {
 function prevMonth(m) { const y = +m.slice(0, 4), mo = +m.slice(5, 7); return mo === 1 ? (y - 1) + '-12' : y + '-' + String(mo - 1).padStart(2, '0'); }
 
 /** san_import: kind 'orders' – các đơn đọc từ file đơn hàng; kind 'income' – [{id, net}] từ file Thu nhập / Đối soát (tiền thực về). */
-async function sanImport(x, u, d) {
+export async function sanImport(x, u, d) {
   const shop = SHOPS.indexOf(d.shop) >= 0 ? d.shop : '';
   if (!shop) return { ok: false, error: 'Chọn sàn (Shopee / TikTok Shop / Lazada).' };
-  const batch = (d.kind === 'income' ? 'i' : 'o') + randHex(5), now = Date.now(), file = String(d.file || 'file').slice(0, 150);
+  const batch = (d.kind === 'income' ? 'i' : d.kind === 'aff' ? 'a' : 'o') + randHex(5), now = Date.now(), file = String(d.file || 'file').slice(0, 150);
   const ids = r => String(r.id || '').trim().slice(0, 60);
-  if (d.kind === 'income') {
-    const rows = (d.rows || []).filter(r => ids(r)).slice(0, 30000);
-    if (!rows.length) return { ok: false, error: 'File không có dòng tiền về nào đọc được.' };
-    const sql = 'UPDATE san_orders SET net = ?, net_real = 1, ibatch = ? WHERE shop = ? AND id = ?';
-    let hit = 0;
+  if (d.kind === 'aff') { // 🤝 file Tiếp thị liên kết (Shopee Affiliate → Báo cáo chuyển đổi): [{id, aff, note}]
+    const rows = (d.rows || []).filter(r => ids(r)).slice(0, 30000); let hit = 0; const miss = [];
+    if (!rows.length) return { ok: false, error: 'File tiếp thị liên kết không có đơn nào đọc được.' };
     for (let i = 0; i < rows.length; i += 200) {
-      const res = await x.db.batch(rows.slice(i, i + 200).map(r => x.db.prepare(sql).bind(Math.round(Number(r.net) || 0), batch, shop, ids(r))));
-      res.forEach(r => { hit += (r.meta && r.meta.changes) || 0; });
+      const part = rows.slice(i, i + 200), res = await x.db.batch(part.map(r => x.db.prepare('UPDATE san_orders SET aff = ?, aff_note = ? WHERE shop = ? AND id = ?').bind(Math.round(Number(r.aff) || 0), String(r.note || '').slice(0, 120), shop, ids(r))));
+      res.forEach((r, k) => { const c = (r.meta && r.meta.changes) || 0; hit += c; if (!c) miss.push(ids(part[k])); });
     }
-    await run(x.db, 'INSERT INTO san_files (batch, shop, kind, file, n, fresh, d_from, d_to, gmv, by_name, at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', batch, shop, 'income', file, rows.length, hit, '', '', rows.reduce((s, r) => s + (Math.round(Number(r.net) || 0)), 0), u.name, now);
-    return { ok: true, rows: rows.length, hit, miss: rows.length - hit };
+    await run(x.db, 'INSERT INTO san_files (batch, shop, kind, file, n, fresh, d_from, d_to, gmv, by_name, at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', batch, shop, 'aff', file, rows.length, hit, '', '', rows.reduce((s, r) => s + (Math.round(Number(r.aff) || 0)), 0), u.name, now);
+    return { ok: true, rows: rows.length, hit, miss: rows.length - hit, missIds: miss.slice(0, 300) };
+  }
+  if (d.kind === 'income') {
+    const rows = (d.rows || []).filter(r => ids(r)).slice(0, 30000), adj = (d.adj || []).filter(r => ids(r)).slice(0, 5000);
+    if (!rows.length && !adj.length) return { ok: false, error: 'File không có dòng tiền về nào đọc được.' };
+    const pd = r => DAY_RE.test(r.pday || '') ? r.pday : ''; // ngày Shopee trả tiền vào Số dư TK Shopee
+    const sql = "UPDATE san_orders SET net = ?, net_real = 1, ibatch = ?, paid_day = CASE WHEN ? <> '' THEN ? ELSE paid_day END WHERE shop = ? AND id = ?";
+    let hit = 0; const miss = [];
+    for (let i = 0; i < rows.length; i += 200) {
+      const part = rows.slice(i, i + 200), res = await x.db.batch(part.map(r => x.db.prepare(sql).bind(Math.round(Number(r.net) || 0), batch, pd(r), pd(r), shop, ids(r))));
+      res.forEach((r, k) => { const c = (r.meta && r.meta.changes) || 0; hit += c; if (!c) miss.push(ids(part[k])); });
+    }
+    for (let i = 0; i < adj.length; i += 200) await x.db.batch(adj.slice(i, i + 200).map(r => x.db.prepare('UPDATE san_orders SET adj = ? WHERE shop = ? AND id = ?').bind(Math.round(Number(r.adj) || 0), shop, ids(r))));
+    const pds = rows.map(pd).filter(Boolean).sort();
+    await run(x.db, 'INSERT INTO san_files (batch, shop, kind, file, n, fresh, d_from, d_to, gmv, by_name, at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', batch, shop, 'income', file, rows.length, hit, pds[0] || '', pds[pds.length - 1] || '', rows.reduce((s, r) => s + (Math.round(Number(r.net) || 0)), 0), u.name, now);
+    return { ok: true, rows: rows.length, hit, miss: rows.length - hit, missIds: miss.slice(0, 300), adj: adj.length, from: pds[0] || '', to: pds[pds.length - 1] || '' };
   }
   const rows = (d.rows || []).filter(r => ids(r) && DAY_RE.test(r.day)).slice(0, 30000).map(r => ({
     shop, id: ids(r), day: r.day, status: String(r.status || '').slice(0, 80), state: STATES.indexOf(r.state) >= 0 ? r.state : 'ok',
     gmv: num(r.gmv), refund: num(r.refund), net: r.net == null || r.net === '' ? null : Math.round(Number(r.net) || 0), net_real: 0, qty: num(r.qty),
-    items: JSON.stringify((r.items || []).slice(0, 20).map(i => [String(i[0] || '').slice(0, 120), num(i[1]), num(i[2])])), batch, at: now
+    items: JSON.stringify((r.items || []).slice(0, 20).map(i => [String(i[0] || '').slice(0, 120), num(i[1]), num(i[2])])), batch, at: now, done_day: DAY_RE.test(r.done || '') ? r.done : ''
   }));
   if (!rows.length) return { ok: false, error: 'File không có đơn nào đọc được (cần cột Mã đơn hàng và Ngày đặt hàng).' };
   const known = {}; // đơn đã có từ lần tải trước → để báo "mới / cập nhật"
@@ -130,9 +149,10 @@ async function sanList(x) {
 /** Xoá 1 lần tải: file đơn → xoá các đơn mà lần tải gần nhất là file này; file thu nhập → bỏ số tiền về thật của file đó (về lại ước tính khi tải lại file đơn). */
 async function sanDel(x, u, d) {
   const b = String(d.batch || '');
-  if (!/^[oi][a-f0-9]{10}$/.test(b)) return { ok: false, error: 'Không rõ lần tải.' };
+  if (!/^[oia][a-f0-9]{10}$/.test(b)) return { ok: false, error: 'Không rõ lần tải.' };
   if (b[0] === 'o') { await run(x.db, 'DELETE FROM san_orders WHERE batch = ?', b); await kvDel(x.db, 'san_sheet_h'); } // lần đồng bộ Sheet sau lấy lại số các ngày đó
-  else await run(x.db, 'UPDATE san_orders SET net = NULL, net_real = 0, ibatch = \'\' WHERE ibatch = ?', b);
+  else if (b[0] === 'a') await run(x.db, "UPDATE san_orders SET aff = 0, aff_note = '' WHERE aff_note <> ''"); // không lưu lần tải theo từng đơn: xoá hết hoa hồng, tải lại file mới nhất
+  else await run(x.db, "UPDATE san_orders SET net = NULL, net_real = 0, ibatch = '', paid_day = '', adj = 0 WHERE ibatch = ?", b);
   await run(x.db, 'DELETE FROM san_files WHERE batch = ?', b);
   return { ok: true };
 }
@@ -170,8 +190,8 @@ export function sheetParse(values) {
 function sheetOrders(shop, day, r, at) {
   const okG = Math.max(0, r.gmv - r.cv), nBad = r.cn, nOk = Math.max(r.n - r.cn, okG ? 1 : 0), qOk = Math.max(r.qty - nBad, 0), out = [];
   const split = (tot, k, i) => Math.floor(tot / k) + (i < tot % k ? 1 : 0);
-  for (let i = 0; i < nOk; i++) out.push({ shop, id: 'S:' + day + ':' + (i + 1), day, status: 'Theo Google Sheet báo cáo', state: 'ok', gmv: split(okG, nOk, i), refund: 0, net: null, net_real: 0, qty: split(qOk, nOk, i), items: '[]', batch: 'sheet', at });
-  for (let i = 0; i < nBad; i++) out.push({ shop, id: 'S:' + day + ':h' + (i + 1), day, status: 'Hoàn / huỷ (Google Sheet)', state: 'cancel', gmv: split(r.cv, nBad, i), refund: 0, net: null, net_real: 0, qty: 1, items: '[]', batch: 'sheet', at });
+  for (let i = 0; i < nOk; i++) out.push({ shop, id: 'S:' + day + ':' + (i + 1), day, status: 'Theo Google Sheet báo cáo', state: 'ok', gmv: split(okG, nOk, i), refund: 0, net: null, net_real: 0, qty: split(qOk, nOk, i), items: '[]', batch: 'sheet', at, done_day: '' });
+  for (let i = 0; i < nBad; i++) out.push({ shop, id: 'S:' + day + ':h' + (i + 1), day, status: 'Hoàn / huỷ (Google Sheet)', state: 'cancel', gmv: split(r.cv, nBad, i), refund: 0, net: null, net_real: 0, qty: 1, items: '[]', batch: 'sheet', at, done_day: '' });
   return out;
 }
 /** Đọc Google Sheet báo cáo sàn, ghi lại những ngày thay đổi. force: bỏ qua so sánh (bấm 🔄). */
@@ -230,4 +250,37 @@ export async function crmSan(x, u, d) {
     case 'san_sheet': return sanSheetCmd(x, u, d);
   }
   return { ok: false, error: 'Không rõ thao tác: ' + d.action };
+}
+
+/* ---------- 🟠 Đối soát Shopee từng đơn cho kế toán (11/11/2026, thay VLOOKUP file đơn hàng × file số dư / Doanh thu Shopee).
+ * Kế toán tải ở tab 💼 Kế toán: file đơn hàng Order.all (trạng thái, ngày hoàn thành) + file Doanh thu "Đã thanh toán" (Income…) hoặc lịch sử Số dư TK Shopee (tiền từng đơn, ngày trả).
+ * kt_shp {from, to}: đơn Shopee đặt trong kỳ (bỏ đơn giả từ Google Sheet), + hạn đối soát = ngày cuối của file tiền về mới nhất (incEnd), + số ngày trong kỳ mới có số Sheet (chưa có file đơn).
+ * kt_simp: như san_import nhưng cho Kế toán (chỉ Shopee). Phân nhóm làm ở CRM (kspGroup). */
+export async function ktShopee(x, u, d) {
+  if (!(u.level >= 3 || u.role === 'Kế toán')) return { ok: false, error: 'Chỉ Kế toán và Quản trị xem được phần này.' };
+  if (d.action === 'kt_simp') {
+    if (d.shop !== 'Shopee') return { ok: false, error: 'Phần này chỉ nhận file Shopee. File TikTok / Lazada: người phụ trách sàn tải ở tab Sàn.' };
+    return sanImport(x, u, d);
+  }
+  if (![d.from, d.to].every(s => DAY_RE.test(String(s || '')))) return { ok: false, error: 'Khoảng thời gian chưa đúng.' };
+  const [rows, sh, inc, files] = await Promise.all([
+    all(x.db, "SELECT id, day, status, state, gmv, refund, net, net_real, COALESCE(paid_day, '') AS pd, COALESCE(done_day, '') AS dd, COALESCE(adj, 0) AS adj, COALESCE(aff, 0) AS aff, COALESCE(aff_note, '') AS an FROM san_orders WHERE shop = 'Shopee' AND id NOT LIKE 'S:%' AND day BETWEEN ? AND ? ORDER BY day LIMIT 8000", d.from, d.to),
+    first(x.db, "SELECT COUNT(DISTINCT day) AS n, MIN(day) AS a, MAX(day) AS b FROM san_orders WHERE shop = 'Shopee' AND id LIKE 'S:%' AND day BETWEEN ? AND ?", d.from, d.to),
+    first(x.db, "SELECT MAX(d_to) AS e FROM san_files WHERE shop = 'Shopee' AND kind = 'income' AND d_to <> ''"),
+    all(x.db, "SELECT kind, file, n, fresh, d_from, d_to, by_name, at FROM san_files WHERE shop = 'Shopee' AND kind IN ('orders', 'income', 'aff') ORDER BY at DESC LIMIT 10")
+  ]);
+  return {
+    ok: true, incEnd: (inc && inc.e) || '', sheetDays: sh && sh.n ? [sh.n, sh.a, sh.b] : null,
+    rows: rows.map(r => [r.id, r.day, r.status || '', r.state, r.gmv || 0, r.refund || 0, r.net == null ? null : r.net, r.net_real ? 1 : 0, r.pd, r.dd, r.adj || 0, r.aff || 0, r.an]),
+    files: files.map(r => ({ kind: r.kind, file: r.file, n: r.n, hit: r.fresh, from: r.d_from, to: r.d_to, by: r.by_name, at: r.at }))
+  };
+}
+export const KSP_LATE = 3; // đơn hoàn thành trước ngày cuối file tiền về quá 3 ngày mà chưa có tiền = cần hỏi Shopee
+/** Dòng tin 8h cho kế toán: đơn Shopee đã hoàn thành, quá hạn mà chưa thấy tiền (chỉ khi đã từng tải file tiền về trong 45 ngày). */
+export async function kspMorningLine(x) {
+  const inc = await first(x.db, "SELECT MAX(d_to) AS e, MAX(at) AS at FROM san_files WHERE shop = 'Shopee' AND kind = 'income' AND d_to <> ''");
+  if (!inc || !inc.e || inc.at < Date.now() - 45 * 864e5) return '';
+  const lim = new Date(new Date(inc.e + 'T12:00:00Z').getTime() - KSP_LATE * 864e5).toISOString().slice(0, 10);
+  const r = await first(x.db, "SELECT COUNT(*) AS n, SUM(gmv - refund) AS v FROM san_orders WHERE shop = 'Shopee' AND id NOT LIKE 'S:%' AND state = 'ok' AND net_real = 0 AND COALESCE(done_day, '') <> '' AND done_day <= ? AND day >= ?", lim, new Date(Date.now() - 120 * 864e5).toISOString().slice(0, 10));
+  return r && r.n ? '🟠 Shopee: ' + r.n + ' đơn đã hoàn thành mà chưa thấy tiền về (giá bán ' + Math.round((r.v || 0) / 1000).toLocaleString('vi-VN') + 'k) – xem tab Kế toán → Shopee, hỏi Shopee.' : '';
 }

@@ -11,7 +11,7 @@ import { crmGa, crmGaProp } from './ga.js';
 import { crmCfToken } from './cfweb.js';
 import { crmMkt, mktFbEdit } from './mkt.js';
 import { mktView, mktBudgetSet, mktGoalSet, mktDailyMsgs } from './mktv.js';
-import { crmSan, sanSchema, sanAllowed } from './san.js';
+import { crmSan, sanSchema, sanAllowed, ktShopee } from './san.js';
 import { crmKho, khoSchema, khoRetOut } from './kho.js';
 import { fetchXlsx, crmFin } from './fin.js';
 import { KT_ROLE_OK, ktSettingsOk, finOk, ktLoad, ktCfg, crmKt, ktKho, crmKtBatch } from './kt.js';
@@ -30,7 +30,7 @@ import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, wbInf
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-11-11c'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
+const SCHEMA_V = '2026-11-11k'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -2351,6 +2351,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (u.role === 'Kế toán' && ((!KT_ROLE_OK[a] && !/^kt_/.test(a)) || (a === 'settings' && !ktSettingsOk(d)))) return { ok: false, error: 'Tài khoản Kế toán chỉ dùng được tab 💼 Kế toán.' };
   if (a === 'kt_bl' || a === 'kt_badd' || a === 'kt_bpay' || a === 'kt_bdel') return crmKtBatch(x, u, d, crmLog); // 🧾 phiếu đối soát COD chờ tiền về (kt.js)
   if (a === 'kt_kho') return ktKho(x, u); // 📦 giá trị tồn kho cho kế toán (chỉ đọc)
+  if (a === 'kt_shp' || a === 'kt_simp') return ktShopee(x, u, d); // 🟠 đối soát Shopee từng đơn (san.js, 11/11/2026)
   if (a === 'kt_cash' || a === 'kt_cfg' || a === 'kt_why') return crmKt(x, u, d, crmLog); // 💼 tiền về tài khoản, ngày bắt đầu theo dõi (kt.js)
   if (u.role === 'Kế toán' && a === 'settings') return crmSettings(x, u, d); // chỉ chi phí / bảng lương / giá vốn (ktSettingsOk)
   if (a === 'kho_recv' || a === 'kho_find') return a === 'kho_recv' ? crmKhoRecv(x, u, d) : crmKhoFind(x, u, d); // ↩ hàng hoàn về kho (09/11/2026)

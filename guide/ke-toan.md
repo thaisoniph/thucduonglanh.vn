@@ -3,7 +3,7 @@ title: Kế toán
 nav: Kế toán
 order: 4.6
 updated: 2026-11-11
-description: Ghi tiền về tài khoản (tải file đối soát COD Best / Viettel Post hoặc tích tay), xem tiền còn treo ở hãng vận chuyển, nhập chi phí, xem lãi lỗ theo ngày / tuần / tháng. Có hình từng bước.
+description: Ghi tiền về tài khoản (tải file đối soát COD Best / Viettel Post hoặc tích tay), đối soát Shopee từng đơn, xem tiền còn treo ở hãng vận chuyển, nhập chi phí, xem lãi lỗ theo ngày / tuần / tháng. Có hình từng bước.
 ---
 
 Trang này dành cho **kế toán**. Đọc khoảng 5 phút là làm được.
@@ -127,6 +127,44 @@ Bấm ô **🏦 Chuyển khoản chờ xác nhận** (hoặc nút **✅ Ghi ti�
 4. Bấm **✅ Đã nhận tiền**.
 
 **Ghi nhầm?** Bấm ô **✅ Đã về** → tích đơn ghi nhầm → **↩ Bỏ ghi tiền về**. Đơn quay lại danh sách chờ tiền.
+
+## Shopee: đơn nào Shopee đã trả tiền (thay cho VLOOKUP)
+
+Ở tab 💼 Kế toán, kéo xuống mục **🟠 Shopee – tiền về từng đơn**. Máy tự ghép file đơn hàng với file tiền Shopee trả **theo mã đơn**, kế toán không phải VLOOKUP nữa.
+
+**Tải file (1 tuần 1 lần, hoặc cuối tháng):** bấm **📤 Tải file Shopee**, chọn **cùng lúc** các file xuất từ Kênh Người Bán Shopee:
+
+| File | Lấy ở đâu trên Shopee | Tên file thường bắt đầu bằng |
+|---|---|---|
+| 📦 Đơn hàng | Đơn hàng → tab **Tất cả** → chọn ngày → Xuất | `Order.all` |
+| 💵 Số dư TK Shopee | Tài Chính → **Số dư TK Shopee** → Xuất | `my_balance_transaction_report` |
+| 💵 Doanh thu (thay được file Số dư) | Tài Chính → **Doanh Thu** → tab Đã thanh toán → Xuất | `Income` |
+| 🤝 Tiếp thị liên kết (không bắt buộc) | Marketing → Tiếp thị liên kết → **Báo cáo chuyển đổi** → Xuất | `SellerConversionReport` |
+
+Máy đọc file và cho xem trước rồi mới bấm **Nhập**. Tải lại file trùng ngày không sao: máy cập nhật, không cộng đôi.
+
+**Đọc kết quả:** các ô theo **ngày đặt đơn** trong kỳ chọn ở đầu trang.
+
+| Ô | Nghĩa là | Kế toán làm gì |
+|---|---|---|
+| ✅ **Shopee đã trả** | Đơn đã có tiền vào Số dư TK Shopee: số tiền, ngày trả | Không phải làm gì |
+| 🔴 **Quá hạn, chưa thấy tiền** | Đơn đã hoàn thành trước ngày cuối của file tiền về hơn 3 ngày mà vẫn chưa có tiền | **Hỏi Shopee** (Kênh Người Bán → Hỗ trợ) |
+| ⏳ **Chờ Shopee trả** | Đơn mới hoàn thành, file tiền về chưa tới ngày đó | Chờ, tuần sau tải file mới |
+| 🚚 **Đang giao** | Đơn chưa hoàn thành theo file đơn hàng mới nhất | Chờ |
+
+Bấm vào ô hoặc nút nhóm để xem từng đơn. Các nhóm khác:
+- **⚠️ Tiền về thấp**: Shopee trả dưới 50% giá bán (phí sàn, voucher, hoa hồng quá cao). Xem lại đơn đó.
+- **✏️ Có điều chỉnh**: Shopee trừ hoặc cộng thêm sau khi đã trả (hoàn tiền, phí trả hàng, khấu trừ hoa hồng tiếp thị liên kết).
+- **🤝 Qua tiếp thị liên kết**: đơn có hoa hồng cho đối tác (KOL, CreatorX…), hiện tên đối tác, kênh và đã trừ hay chưa.
+- **↩️ Hoàn / huỷ**.
+
+Bấm **📋 Chép bảng** rồi dán vào Google Sheet nếu cần nộp file đối soát.
+
+**Khi tải file Số dư**, máy báo luôn **tiền rút về ngân hàng** (để so với sao kê VCB) và **tiền trừ nạp quảng cáo Shopee**.
+
+Máy báo **"… đơn có tiền về nhưng chưa có trong CRM"**: đó là các đơn đặt ngoài khoảng ngày của file đơn hàng. Tải thêm file đơn hàng các tháng đó rồi tải lại file tiền về.
+
+Tin Telegram 8h sáng có dòng 🟠 khi có đơn Shopee quá hạn chưa thấy tiền.
 
 ## Chốt doanh số tháng theo sale
 

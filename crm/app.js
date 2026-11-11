@@ -5416,6 +5416,7 @@
       (byL.length ? '<div class="box ktv-by"><h3>💤 Tiền treo theo hãng <small>bấm để xem từng đơn</small></h3>' + byL.map(function (x) {
         return '<button type="button" class="ktv-row" data-ktv="treo|' + esc(x.c) + '"><span><b>' + esc(x.c) + '</b><small>' + x.n + ' đơn · chờ lâu nhất ' + x.max + ' ngày' + (x.old ? ' · <em class="ktv-red">' + x.old + ' đơn quá ' + KTV_OLD + ' ngày (' + moneyShort(x.ov) + '): hỏi lại hãng</em>' : '') + '</small></span><b class="ktv-amt">' + moneyShort(x.v) + '</b><i aria-hidden="true">›</i></button>';
       }).join('') + '</div>' : '') + '</section>';
+    h += kspHTML(R);
     h += ktcHTML(R, f.p);
     h += '<section class="ktv-sec"><h2 class="ktv-h">📊 Lãi lỗ <small>cùng số với Tổng quan của Quản trị</small></h2>' + dashDaily(R, b, M, sj, f.p, month);
     var PL = dashPnl(T, b, bp, M, sj, R, P, month); h += dashMore('pnl', '🧮 Lãi lỗ sau mọi chi phí', PL.line, PL.body);
@@ -5916,11 +5917,147 @@
       '<p class="small muted">Hoá đơn ghi nhiều hơn số kho nhận: hỏi người kho và nhà cung cấp trước khi trả tiền.</p></details></div>';
     return h;
   }
+  /* ---------- 🟠 Shopee – đối soát từng đơn (11/11/2026, anh Sơn: kế toán đang VLOOKUP tay file đơn hàng × file số dư Shopee).
+   * Kế toán tải file đơn hàng (Order.all) + file Doanh thu "Đã thanh toán" (Income…) hoặc lịch sử Số dư TK Shopee ngay ở đây (kt_simp = san_import chỉ Shopee).
+   * Máy chủ trả từng đơn Shopee đặt trong kỳ (kt_shp): [id, ngày đặt, trạng thái, state, giá bán, hoàn, tiền về, có số thật, ngày trả, ngày hoàn thành, điều chỉnh].
+   * Nhóm (kspGroup): ✅ đã trả · 🔴 quá hạn (hoàn thành trước ngày cuối file tiền về mới nhất − KSP_LATE ngày mà chưa có tiền) · ⏳ chờ trả · 🚚 đang giao · ↩️ hoàn / huỷ.
+   * ⚠️ tiền về thấp: tiền về + điều chỉnh < 50% giá bán (phí sàn thường ~30–45%). */
+  var KSP = { d: null, key: '', busy: false, err: '', f: '', n: 100 }, KSP_LATE = 3, KSP_LOW = 0.5;
+  var KSP_G = [['late', '🔴 Quá hạn, chưa thấy tiền'], ['wait', '⏳ Chờ Shopee trả'], ['ship', '🚚 Đang giao'], ['paid', '✅ Shopee đã trả'], ['low', '⚠️ Tiền về thấp'], ['adj', '✏️ Có điều chỉnh'], ['aff', '🤝 Qua tiếp thị liên kết'], ['void', '↩️ Hoàn / huỷ']];
+  function kspLoad(R, force) {
+    var from = isoDate(R[0]), to = isoDate(R[1] - 1), key = from + '|' + to;
+    if (KSP.busy || (!force && KSP.key === key && KSP.d)) return; KSP.busy = true; KSP.err = ''; if (KSP.key !== key) { KSP.d = null; KSP.n = 100; } KSP.key = key;
+    api('kt_shp', { from: from, to: to }).then(function (j) { if (KSP.key === key) KSP.d = j; }, function (e) { KSP.err = /Không rõ thao tác|chỉ dùng được/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message; })
+      .then(function () { KSP.busy = false; if (route().view === 'ke-toan') softRender(true); });
+  }
+  function kspSt(s) { var t = String(s || '').split(' · ')[0]; return /đã nhận được hàng/i.test(t) ? 'Đã nhận hàng' : t.slice(0, 30); }
+  function kspDayAdd(d, n) { return isoDate(new Date(d + 'T12:00:00+07:00').getTime() + n * DAY); }
+  function kspFd(d) { return d ? d.slice(8, 10) + '/' + d.slice(5, 7) : ''; }
+  /** r → { g: nhóm, low, adj, got (tiền về + điều chỉnh), v (giá bán sau hoàn), done } */
+  function kspGroup(r, incEnd) {
+    var st = norm(r[2]), v = (r[4] || 0) - (r[5] || 0), got = r[7] ? (r[6] || 0) + (r[10] || 0) : null;
+    var done = r[9] || (/hoan thanh|da nhan duoc hang|completed/.test(st) ? r[1] : ''), x = { v: v, got: got, done: done, adj: r[10] || 0, aff: r[11] || 0, an: r[12] || '', low: false };
+    if (r[3] === 'cancel' || r[3] === 'return') x.g = 'void';
+    else if (r[3] === 'wait') x.g = 'skip';
+    else if (r[7]) { x.g = 'paid'; x.low = v > 0 && got < v * KSP_LOW; }
+    else if (done) x.g = incEnd && done <= kspDayAdd(incEnd, -KSP_LATE) ? 'late' : 'wait';
+    else x.g = 'ship';
+    return x;
+  }
+  function kspHTML(R) {
+    kspLoad(R);
+    var hd = '<section class="ktv-sec" id="kspSec"><h2 class="ktv-h">🟠 Shopee – tiền về từng đơn <small>máy tự đối chiếu file đơn hàng với file tiền Shopee trả, thay cho VLOOKUP</small></h2>';
+    var btns = '<div class="ktv-big"><button class="btn pri lg" data-ksp="up">📤 Tải file Shopee</button>' + (KSP.d && KSP.d.rows.length ? '<button class="btn lg" data-ksp="copy">📋 Chép bảng (dán Google Sheet)</button>' : '') + '</div>';
+    if (!KSP.d) return hd + btns + '<p class="muted small">' + (KSP.err ? '⚠️ ' + esc(KSP.err) + ' <button class="btn sm" data-ksp="re">Thử lại</button>' : '⏳ Đang lấy đơn Shopee…') + '</p></section>';
+    var D = KSP.d, inc = D.incEnd, G = {}, list = [];
+    KSP_G.forEach(function (g) { G[g[0]] = { n: 0, v: 0, got: 0 }; });
+    D.rows.forEach(function (r) {
+      var x = kspGroup(r, inc); if (x.g === 'skip') return; x.r = r; list.push(x);
+      var z = G[x.g]; z.n++; z.v += x.v; z.got += x.got || 0;
+      if (x.low) { G.low.n++; G.low.v += x.v; G.low.got += x.got; }
+      if (x.adj) { G.adj.n++; G.adj.v += x.v; G.adj.got += x.adj; }
+      if (x.an) { G.aff.n++; G.aff.v += x.v; G.aff.got += x.aff; }
+    });
+    KSP.list = list;
+    var h = hd;
+    if (!list.length) return h + btns + '<div class="notice info"><b>Chưa có đơn Shopee nào trong kỳ này.</b> Tải 2 file từ Kênh Người Bán Shopee (hướng dẫn trong nút 📤). ' + (D.sheetDays ? 'Kỳ này mới có số tổng theo ngày từ Google Sheet báo cáo sàn, chưa có từng đơn.' : '') + '</div></section>';
+    var f = KSP.f || (G.late.n ? 'late' : G.wait.n ? 'wait' : 'paid');
+    var tile = function (k, cls, l, val, sub) { return '<button type="button" class="ktv-c ' + cls + (f === k ? ' on' : '') + '" data-ksp="f|' + k + '"><span>' + l + '</span><b>' + val + '</b><small>' + sub + '</small><i aria-hidden="true">›</i></button>'; };
+    h += '<div class="ktv-n">' +
+      tile('paid', 'ok', '✅ Shopee đã trả', moneyShort(G.paid.got), G.paid.n + ' đơn · giá bán ' + moneyShort(G.paid.v) + (G.paid.v ? ' · về ' + pct(G.paid.got, G.paid.v) + '%' : '')) +
+      tile('late', G.late.n ? 'bad' : 'ok', '🔴 Quá hạn, chưa thấy tiền', G.late.n ? moneyShort(G.late.v) : '0', G.late.n ? G.late.n + ' đơn hoàn thành trước ' + kspFd(kspDayAdd(inc, -KSP_LATE)) + ': <b>hỏi Shopee</b>' : inc ? 'Không có đơn nào' : 'Chưa tải file tiền về') +
+      tile('wait', G.wait.n ? 'mid' : 'ok', '⏳ Chờ Shopee trả', moneyShort(G.wait.v), G.wait.n + ' đơn đã hoàn thành' + (inc ? ', sau ngày file tiền về' : '')) +
+      tile('ship', '', '🚚 Đang giao', moneyShort(G.ship.v), G.ship.n + ' đơn chưa hoàn thành (theo file đơn hàng mới nhất)') + '</div>';
+    h += btns;
+    h += '<p class="small muted">' + (inc ? 'Tiền về tính tới <b>' + kspFd(inc) + '</b> (ngày cuối trong file tiền về mới nhất). Đơn hoàn thành sau ngày này là đơn <b>chờ</b>, chưa phải quá hạn.' : '⚠️ Chưa có file tiền về Shopee: tải file <b>Doanh thu → Đã thanh toán</b> để biết đơn nào đã được trả.') +
+      ' Kỳ: theo <b>ngày đặt</b> đơn, đổi ở ô thời gian đầu trang.' + (G.aff.n ? ' 🤝 Hoa hồng tiếp thị liên kết: <b>' + money(G.aff.got) + '</b> (' + G.aff.n + ' đơn, ' + pct(G.aff.got, G.aff.v) + '% giá bán).' : '') + '</p>';
+    if (D.sheetDays) h += '<p class="small ktv-red">⚠️ ' + D.sheetDays[0] + ' ngày (' + kspFd(D.sheetDays[1]) + ' – ' + kspFd(D.sheetDays[2]) + ') mới có số tổng từ Google Sheet báo cáo sàn, chưa có từng đơn: tải file đơn hàng Shopee các ngày này.</p>';
+    var chips = KSP_G.filter(function (g) { return G[g[0]].n; }).map(function (g) { return '<button class="chip' + (f === g[0] ? ' on' : '') + '" data-ksp="f|' + g[0] + '">' + g[1] + ' · ' + G[g[0]].n + '</button>'; }).join('');
+    var sel = list.filter(function (x) { return f === 'low' ? x.low : f === 'adj' ? x.adj : f === 'aff' ? x.an : x.g === f; });
+    sel.sort(function (a, b) { return f === 'paid' ? (b.r[8] || '').localeCompare(a.r[8] || '') : (a.done || a.r[1]).localeCompare(b.done || b.r[1]); });
+    var note = function (x) {
+      var r = x.r, L = [];
+      if (x.g === 'late') L.push('<em class="ktv-red">' + Math.max(0, Math.round((new Date(inc + 'T12:00:00+07:00') - new Date(x.done + 'T12:00:00+07:00')) / DAY)) + ' ngày trước ngày cuối file tiền về</em>');
+      if (x.low) L.push('<em class="ktv-red">về ' + pct(x.got, x.v) + '% giá bán</em>');
+      if (x.adj) L.push('điều chỉnh ' + (x.adj > 0 ? '+' : '−') + money(Math.abs(x.adj)));
+      if (x.an) L.push('🤝 hoa hồng ' + money(x.aff) + ' · ' + esc(x.an));
+      if (x.g === 'wait' && r[6] != null) L.push('dự kiến ~' + moneyShort(r[6]));
+      if (x.g === 'paid' && !r[8]) L.push('chưa rõ ngày trả (tải lại file Doanh thu)');
+      return L.join(' · ');
+    };
+    h += '<div class="box ksp-box"><div class="chips">' + chips + '</div>' +
+      (sel.length ? '<div class="ktk-scroll"><table class="ktk-t ksp-t"><thead><tr><th>Mã đơn Shopee</th><th>Đặt</th><th>Hoàn thành</th><th>Trạng thái</th><th class="num">Giá bán</th><th class="num">Tiền về</th><th>Ngày trả</th><th>Ghi chú</th></tr></thead><tbody>' +
+        sel.slice(0, KSP.n).map(function (x) { var r = x.r; return '<tr class="' + (x.g === 'late' || x.low ? 'ksp-bad' : '') + '"><td class="ksp-id">' + esc(r[0]) + '</td><td>' + kspFd(r[1]) + '</td><td>' + kspFd(x.done) + '</td><td class="ksp-st" title="' + esc(r[2]) + '">' + esc(kspSt(r[2])) + '</td><td class="num">' + money(x.v) + '</td><td class="num">' + (x.got == null ? '<span class="muted">–</span>' : money(x.got)) + '</td><td>' + kspFd(r[8]) + '</td><td class="small">' + note(x) + '</td></tr>'; }).join('') +
+        '</tbody></table></div>' + (sel.length > KSP.n ? '<p><button class="btn sm" data-ksp="more">Xem thêm (' + (sel.length - KSP.n) + ' đơn nữa)</button></p>' : '')
+        : '<p class="muted small">Không có đơn nào trong nhóm này.</p>') +
+      '<p class="small muted">Tổng nhóm đang xem: ' + sel.length + ' đơn · giá bán ' + money(sel.reduce(function (s0, x) { return s0 + x.v; }, 0)) + (f === 'paid' || f === 'low' ? ' · tiền về ' + money(sel.reduce(function (s0, x) { return s0 + (x.got || 0); }, 0)) : '') + '. Tiền về = số Shopee trả vào Số dư TK Shopee (đã trừ phí sàn, voucher shop) + điều chỉnh sau đó (hoàn tiền, phí trả hàng…).</p></div>';
+    if (D.files && D.files.length) h += '<details class="box ktv-more"><summary>📁 File Shopee đã tải gần đây</summary>' + D.files.map(function (x) { return '<div class="small">' + (x.kind === 'income' ? '💵 Tiền về' : x.kind === 'aff' ? '🤝 Tiếp thị liên kết' : '📦 Đơn hàng') + ' · ' + esc(x.file) + ' · ' + x.n + ' đơn' + (x.kind !== 'orders' ? ', khớp ' + x.hit : '') + (x.from ? ' · ' + kspFd(x.from) + ' – ' + kspFd(x.to) : '') + ' · ' + esc(x.by || '') + ' ' + fDateTime(x.at) + '</div>'; }).join('') + '</details>';
+    return h + '</section>';
+  }
+  function kspTsv() {
+    var inc = KSP.d && KSP.d.incEnd, nm = {}; KSP_G.forEach(function (g) { nm[g[0]] = g[1].replace(/^\S+\s/, ''); });
+    return ['Mã đơn', 'Ngày đặt', 'Ngày hoàn thành', 'Trạng thái', 'Giá bán', 'Tiền Shopee trả', 'Điều chỉnh', 'Tiền về (gồm điều chỉnh)', 'Ngày trả', 'Hoa hồng tiếp thị liên kết', 'Đối tác', 'Đối soát'].join('\t') + '\n' +
+      (KSP.list || []).map(function (x) { var r = x.r; return [r[0], r[1], x.done, r[2], x.v, r[7] ? r[6] : '', x.adj || '', x.got == null ? '' : x.got, r[8], x.aff || '', x.an, nm[x.g] + (x.low ? ' · tiền về thấp' : '')].join('\t'); }).join('\n') + (inc ? '\n\nTiền về tính tới\t' + inc : '');
+  }
+  function openKspUp() {
+    var body = '<p style="margin:0 0 8px">Chọn <b>1 hoặc nhiều file</b> tải từ Kênh Người Bán Shopee (chọn cùng lúc được). Máy đọc ngay trên máy, ghép theo <b>mã đơn</b> rồi mới gửi lên.</p>' +
+      '<ol class="small" style="margin:0 0 10px;padding-left:18px"><li><b>File đơn hàng</b>: Đơn hàng → tab <b>Tất cả</b> → chọn ngày → <b>Xuất</b> (tên file bắt đầu bằng <b>Order.all</b>). Cho biết đơn nào đã hoàn thành, hoàn / huỷ.</li>' +
+      '<li><b>File tiền về</b>: Tài Chính → <b>Doanh Thu</b> → tab <b>Đã thanh toán</b> → chọn ngày → <b>Xuất</b> (tên bắt đầu bằng <b>Income</b>). Cho biết từng đơn Shopee trả bao nhiêu, ngày nào, cả tiền điều chỉnh. Hoặc file <b>Số dư TK Shopee</b> (Tài Chính → Số dư TK Shopee → Xuất, tên bắt đầu bằng <b>my_balance_transaction_report</b>).</li>' +
+      '<li><b>File tiếp thị liên kết</b> (không bắt buộc): Marketing → Tiếp thị liên kết → <b>Báo cáo chuyển đổi</b> → Xuất (tên <b>SellerConversionReport</b>). Cho biết hoa hồng từng đơn.</li></ol>' +
+      '<p class="small muted" style="margin:0 0 10px">Tải file đơn hàng trước (hoặc chọn cả 2 cùng lúc). Tải lại file trùng ngày không sao: máy cập nhật, không nhân đôi.</p>' +
+      '<label class="f"><span>Chọn file (.xlsx / .csv)</span><input type="file" id="kspFile" multiple accept=".xlsx,.xls,.csv"></label><div id="kspPrev" class="small"></div><p class="err" id="kspE"></p>';
+    var m = modal('📤 Tải file Shopee', body, '<button class="btn" data-close>Đóng</button><button class="btn pri" id="kspGo" disabled>Nhập</button>'), F = [];
+    $('#kspFile', m).onchange = function () {
+      var fs = Array.prototype.slice.call(this.files || []), pv = $('#kspPrev', m); F = []; $('#kspGo', m).disabled = true; $('#kspE', m).textContent = ''; if (!fs.length) return; pv.innerHTML = '<p>⏳ Đang đọc ' + fs.length + ' file…</p>';
+      Promise.all(fs.map(function (f0) { return sanReadFile(f0).then(function (sh) { var P = sanParse(sh); P.file = f0.name; return P; }, function (e) { return { err: esc(e.message), file: f0.name }; }); })).then(function (L) {
+        L.forEach(function (P) { if (!P.err && P.shop !== 'Shopee') P.err = 'Đây là file ' + esc(P.shop) + ', không phải Shopee.'; });
+        F = L.filter(function (P) { return !P.err; }).sort(function (a, b) { return (a.kind !== 'orders') - (b.kind !== 'orders'); }); // file đơn hàng trước
+        pv.innerHTML = L.map(function (P) {
+          return '<div class="notice ' + (P.err ? 'warn' : 'info') + '" style="margin:6px 0"><b>' + esc(P.file) + '</b><br>' + (P.err ? '⚠️ ' + P.err : P.kind === 'income'
+            ? '💵 Tiền về' + (P.wallet ? ' (Số dư TK Shopee ' + kspFd(P.from) + ' – ' + kspFd(P.to) + ')' : '') + ': <b>' + P.rows.length + '</b> đơn · ' + money(P.sum) + (P.adj && P.adj.length ? ' · ' + P.adj.length + ' khoản điều chỉnh theo đơn (' + money(P.adjSum) + ')' : '') + (P.rows.some(function (r) { return r.pday; }) ? '' : ' · <span class="ktv-red">không thấy ngày trả</span>') +
+              (P.wallet ? '<br>🏦 Rút về ngân hàng: ' + P.wd[0] + ' lần · <b>' + money(P.wd[1]) + '</b> (đối chiếu sao kê VCB) · 📣 Trừ nạp quảng cáo Shopee: ' + P.ads[0] + ' lần · ' + money(P.ads[1]) : '')
+            : P.kind === 'aff' ? '🤝 Tiếp thị liên kết: <b>' + P.rows.length + '</b> đơn · hoa hồng ' + money(P.sum)
+            : '📦 Đơn hàng: <b>' + P.rows.length + '</b> đơn, đặt ' + kspFd(P.from) + ' – ' + kspFd(P.to) + ' · ' + P.n.ok + ' đơn tính doanh số, huỷ ' + P.n.cancel + ', hoàn ' + P.n['return']) + '</div>';
+        }).join('');
+        $('#kspGo', m).disabled = !F.length;
+      });
+    };
+    $('#kspGo', m).onclick = function () {
+      var bt = this, i = 0, msg = [], miss = []; bt.disabled = true; bt.textContent = '⏳ Đang nhập…';
+      var next = function () {
+        if (i >= F.length) {
+          KSP.f = ''; kspLoad(perRange(S.f.g.p), true);
+          if (miss.length) { $('#kspPrev', m).innerHTML = '<div class="notice warn">✅ ' + msg.join('<br>') + '<br><br>⚠️ <b>' + miss.length + ' đơn có tiền về nhưng chưa có trong CRM</b>: đơn đặt ngoài khoảng ngày của file đơn hàng. Muốn đối soát cả các đơn này thì tải thêm file đơn hàng các tháng đó rồi tải lại file tiền về.<br><span class="muted">' + esc(miss.slice(0, 12).join(', ')) + (miss.length > 12 ? '…' : '') + '</span></div>'; bt.hidden = true; return; }
+          closeModal(true); toast(msg.join(' · ')); return;
+        }
+        var P = F[i++];
+        api('kt_simp', { shop: 'Shopee', kind: P.kind, file: P.file, rows: P.rows, adj: P.adj || [] }).then(function (j) {
+          if (P.kind === 'income') { msg.push('Tiền về: khớp ' + j.hit + '/' + j.rows + ' đơn' + (j.adj ? ', ' + j.adj + ' điều chỉnh' : '')); (j.missIds || []).forEach(function (id) { if (miss.indexOf(id) < 0) miss.push(id); }); }
+          else if (P.kind === 'aff') msg.push('Tiếp thị liên kết: khớp ' + j.hit + '/' + j.rows + ' đơn');
+          else msg.push('Đơn hàng: ' + j.rows + ' đơn (' + j.fresh + ' mới)');
+          next();
+        }, function (e) { bt.disabled = false; bt.textContent = 'Thử lại'; $('#kspE', m).textContent = P.file + ': ' + e.message; i--; });
+      };
+      next();
+    };
+  }
+  function bindKsp() {
+    $$('[data-ksp]').forEach(function (el) {
+      el.onclick = function () {
+        var a = el.getAttribute('data-ksp').split('|');
+        if (a[0] === 'up') openKspUp();
+        else if (a[0] === 're') { kspLoad(perRange(S.f.g.p), true); softRender(true); }
+        else if (a[0] === 'f') { KSP.f = a[1]; KSP.n = 100; softRender(true); }
+        else if (a[0] === 'more') { KSP.n += 200; softRender(true); }
+        else if (a[0] === 'copy') copy(kspTsv()).then(function () { toast('Đã chép ' + (KSP.list || []).length + ' đơn ✓ Mở Google Sheet, bấm ô A1 rồi Ctrl+V (Mac: ⌘+V)'); });
+      };
+    });
+  }
   function bindKtab() {
     bindDash();
     var ks = $('#ktkSel'); if (ks) ks.onchange = function () { KTK.sel = ks.value; softRender(true); };
     var kr = $('[data-ktk="re"]'); if (kr) kr.onclick = function () { ktkLoad(true); softRender(true); };
-    bindKtb();
+    bindKtb(); bindKsp();
     var ki = $('.ktk-in'); if (ki) ki.ontoggle = function () { KTK.openIn = ki.open; };
     $$('[data-ktv]').forEach(function (el) {
       el.onclick = function () { var a = el.getAttribute('data-ktv').split('|'); if (a[0] === 'cod') openKtvCod(); else if (a[0] === 'vcb') openKts(); else openKtvList(a[0], a[1] || ''); };
@@ -8614,8 +8751,8 @@
       var fd = function (d) { return d ? fDate(new Date(d + 'T12:00:00+07:00').getTime()) : ''; };
       $('#slList', m).innerHTML = j.list.length ? j.list.map(function (r) {
         var sh = r.kind === 'sheet';
-        return '<div class="card"><div class="r1"><b>' + sanIcon(r.shop) + ' ' + esc(r.shop) + ' · ' + (sh ? '📗 Google Sheet báo cáo' : r.kind === 'income' ? '💵 tiền về' : '📦 đơn hàng') + '</b><span class="end">' + moneyShort(r.gmv) + '</span></div>' +
-          '<div class="r3">' + esc(r.file) + '<br>' + (sh ? r.n + ' đơn' + (r.from ? ' · ngày ' + fd(r.from) + ' – ' + fd(r.to) : '') + ' · lấy tự động lúc ' + fDateTime(r.at) : (r.kind === 'income' ? r.n + ' đơn, khớp ' + r.fresh : r.n + ' đơn (' + r.fresh + ' mới) · đặt ' + fd(r.from) + ' – ' + fd(r.to)) + ' · ' + esc(r.by || '') + ' · ' + fDateTime(r.at) + ' <button class="link" data-sdel="' + esc(r.batch) + '">Xoá</button>') + '</div></div>';
+        return '<div class="card"><div class="r1"><b>' + sanIcon(r.shop) + ' ' + esc(r.shop) + ' · ' + (sh ? '📗 Google Sheet báo cáo' : r.kind === 'income' ? '💵 tiền về' : r.kind === 'aff' ? '🤝 tiếp thị liên kết' : '📦 đơn hàng') + '</b><span class="end">' + moneyShort(r.gmv) + '</span></div>' +
+          '<div class="r3">' + esc(r.file) + '<br>' + (sh ? r.n + ' đơn' + (r.from ? ' · ngày ' + fd(r.from) + ' – ' + fd(r.to) : '') + ' · lấy tự động lúc ' + fDateTime(r.at) : (r.kind !== 'orders' ? r.n + ' đơn, khớp ' + r.fresh : r.n + ' đơn (' + r.fresh + ' mới) · đặt ' + fd(r.from) + ' – ' + fd(r.to)) + ' · ' + esc(r.by || '') + ' · ' + fDateTime(r.at) + ' <button class="link" data-sdel="' + esc(r.batch) + '">Xoá</button>') + '</div></div>';
       }).join('') : '<p class="muted">Chưa tải file nào.</p>';
       $$('[data-sdel]', m).forEach(function (b0) {
         b0.onclick = function () {
@@ -8642,14 +8779,15 @@
     };
     $('#suGo', m).onclick = function () {
       if (!P) return; var btn = this; btn.disabled = true; btn.textContent = 'Đang nhập…';
-      api('san_import', { shop: $('#suShop', m).value, kind: P.kind, file: file, rows: P.rows }).then(function (j) {
+      api('san_import', { shop: $('#suShop', m).value, kind: P.kind, file: file, rows: P.rows, adj: P.adj || [] }).then(function (j) {
         closeModal(true);
-        sanDone(P.kind === 'income' ? 'Đã cập nhật tiền về ' + j.hit + ' đơn' + (j.miss ? ' · ' + j.miss + ' đơn chưa có (tải file đơn hàng trước rồi tải lại file này)' : '') : 'Đã nhập ' + j.rows + ' đơn (' + j.fresh + ' mới, ' + j.upd + ' cập nhật) · ' + moneyShort(j.gmv));
+        sanDone(P.kind === 'aff' ? 'Đã ghi hoa hồng tiếp thị liên kết ' + j.hit + ' đơn' : P.kind === 'income' ? 'Đã cập nhật tiền về ' + j.hit + ' đơn' + (j.miss ? ' · ' + j.miss + ' đơn chưa có (tải file đơn hàng trước rồi tải lại file này)' : '') : 'Đã nhập ' + j.rows + ' đơn (' + j.fresh + ' mới, ' + j.upd + ' cập nhật) · ' + moneyShort(j.gmv));
       }, function (e) { btn.disabled = false; btn.textContent = 'Nhập'; toast(e.message, true); });
     };
   }
   function sanPreview(P) {
     var fd = function (d) { return fDate(new Date(d + 'T12:00:00+07:00').getTime()); };
+    if (P.kind === 'aff') return '<div class="notice info">🤝 File <b>tiếp thị liên kết</b>: ' + P.rows.length + ' đơn · hoa hồng ' + money(P.sum) + '. Xem từng đơn ở tab 💼 Kế toán → Shopee.</div>';
     if (P.kind === 'income') return '<div class="notice info">💵 File <b>tiền về</b> ' + esc(P.shop) + ': <b>' + P.rows.length + '</b> đơn · tổng ' + money(P.sum) + '. CRM ghi số tiền thật vào các đơn đã có, thay cho số ước tính.</div>';
     var n = P.n, st = Object.keys(P.st).sort(function (a, b) { return P.st[b][0] - P.st[a][0]; });
     var NM = { ok: 'tính doanh số', cancel: 'huỷ', 'return': 'hoàn', wait: 'chờ thanh toán (chưa tính)' };
@@ -8939,7 +9077,9 @@
     price0: /^(gia goc|sku unit original price)$/,
     voucher: /^(ma giam gia cua shop|voucher cua shop|shop voucher)$/,
     fee: /^(phi co dinh|phi dich vu|phi thanh toan|phi xu ly giao dich)$/,
-    lvl: /^(don hang \/ san pham)$/, // file Thu nhập Shopee: mỗi đơn có 1 dòng Order + các dòng Sku lặp lại số tiền
+    lvl: /^(don hang \/ san pham)$/,
+    done: /^(thoi gian hoan thanh don hang|order completed time|completed time)$/, // 🟠 đối soát Shopee (11/11/2026): đơn hoàn thành ngày nào
+    pday: /^(ngay hoan thanh thanh toan|payout completed date|payout date)$/, // file Doanh thu Shopee: ngày Shopee trả tiền đơn vào Số dư TK Shopee // file Thu nhập Shopee: mỗi đơn có 1 dòng Order + các dòng Sku lặp lại số tiền
     refund: /^(order refund amount|so tien hoan tra|so tien hoan lai|so tien hoan tien)$/,
     net: /^(tong tien da thanh toan|tong so tien da thanh toan|so tien thanh toan|tong thu nhap|so tien quyet toan|total settlement amount|settlement amount|so tien da nhan|tong so tien nguoi ban nhan duoc|so tien nguoi ban nhan duoc|thanh toan cho nguoi ban)$/
   };
@@ -8963,8 +9103,69 @@
     }
     return y > 2000 && mo >= 1 && mo <= 12 && d >= 1 && d <= 31 ? y + '-' + pad(mo) + '-' + pad(d) : '';
   }
+  /** Tab "Adjustment" của file Doanh thu Shopee: tiền điều chỉnh sau khi đã trả (hoàn tiền, phí trả hàng, marketing…) → [{id, adj}] cộng theo mã đơn. */
+  function sanAdj(sheets) {
+    var out = { rows: [], sum: 0 };
+    sheets.forEach(function (rows) {
+      for (var i = 0; i < Math.min(rows.length, 60); i++) {
+        var H = (rows[i] || []).map(function (c) { return norm(c).replace(/\s+/g, ' ').trim(); }), ci = H.indexOf('ma don hang lien quan'), ca = H.indexOf('so tien dieu chinh');
+        if (ci < 0 || ca < 0) continue;
+        var A = {}; rows.slice(i + 1).forEach(function (r) { var id = sanId(r[ci]); if (!id) return; var v = sanNum(r[ca]); A[id] = (A[id] || 0) + v; out.sum += v; });
+        Object.keys(A).forEach(function (id) { out.rows.push({ id: id, adj: A[id] }); }); return;
+      }
+    });
+    return out;
+  }
+  /** Tìm hàng tiêu đề có đủ các cột (regex trên tên cột đã bỏ dấu) → { rows, hi, c: {tên: cột} } hoặc null. */
+  function sanFind(sheets, need, opt) {
+    var out = null;
+    sheets.forEach(function (rows) {
+      for (var i = 0; !out && i < Math.min(rows.length, 40); i++) {
+        var H = (rows[i] || []).map(function (c) { return norm(c).replace(/[*:]/g, '').replace(/\s+/g, ' ').trim(); }), c = {}, ok = true;
+        var f = function (re) { for (var j = 0; j < H.length; j++) if (re.test(H[j])) return j; return -1; };
+        Object.keys(need).forEach(function (k) { c[k] = f(need[k]); if (c[k] < 0) ok = false; });
+        if (!ok) continue; Object.keys(opt || {}).forEach(function (k) { c[k] = f(opt[k]); });
+        out = { rows: rows.slice(i + 1), c: c };
+      }
+    });
+    return out;
+  }
+  /** Lịch sử Số dư TK Shopee (Tài Chính → Số dư TK Shopee → Xuất, file my_balance_transaction_report…): Ngày · Loại giao dịch · Chi tiết · Mã đơn hàng · Dòng tiền · Số tiền · Trạng thái.
+   *  "Doanh Thu Đơn Hàng" → tiền Shopee trả từng đơn (có thể âm khi đơn hoàn), "Điều chỉnh" có mã đơn → điều chỉnh (hoàn phí trả hàng, khấu trừ hoa hồng tiếp thị liên kết…),
+   *  "Rút Tiền" → tiền rút về ngân hàng (đối chiếu sao kê VCB), "Cấn trừ Số dư" → nạp quảng cáo Shopee. Chỉ lấy dòng "thành công". */
+  function sanWallet(sheets) {
+    var F = sanFind(sheets, { day: /^(ngay|thoi gian|ngay giao dich)$/, amt: /^(so tien|amount)$/, type: /^(loai giao dich|transaction type)$/ }, { id: /^(ma don hang|order id)$/, det: /^(chi tiet|mo ta|description)$/, st: /^(trang thai|status)$/ });
+    if (!F) return null;
+    var c = F.c, dmy = sanDmy(F.rows.map(function (r) { return r[c.day]; })), I = {}, PD = {}, A = {}, sum = 0, adjSum = 0, wd = [0, 0], ads = [0, 0], from = '', to = '';
+    F.rows.forEach(function (r) {
+      var v = sanNum(r[c.amt]), ty = norm(r[c.type]), det = String(c.det >= 0 ? r[c.det] : ''), pd = sanDay(r[c.day], dmy);
+      if (!v || !pd || (c.st >= 0 && String(r[c.st]).trim() && !/thanh cong|success|completed/.test(norm(r[c.st])))) return;
+      if (!from || pd < from) from = pd; if (pd > to) to = pd;
+      var id = c.id >= 0 ? sanId(r[c.id]) : ''; if (!id) { var m = det.match(/#?\b(\d{6}[A-Z0-9]{8})\b/); id = m ? m[1] : ''; }
+      if (/rut tien|withdraw/.test(ty)) { wd[0]++; wd[1] += -v; return; }
+      if (!id) { if (/can tru|quang cao/.test(ty + ' ' + norm(det))) { ads[0]++; ads[1] += -v; } return; }
+      if (/doanh thu/.test(ty)) { I[id] = (I[id] || 0) + v; sum += v; if (!PD[id] || pd > PD[id]) PD[id] = pd; }
+      else { A[id] = (A[id] || 0) + v; adjSum += v; }
+    });
+    var ir = Object.keys(I).map(function (id) { return { id: id, net: I[id], pday: PD[id] }; });
+    return ir.length || Object.keys(A).length ? { kind: 'income', shop: 'Shopee', rows: ir, sum: sum, adj: Object.keys(A).map(function (id) { return { id: id, adj: A[id] }; }), adjSum: adjSum, wallet: 1, wd: wd, ads: ads, from: from, to: to } : { err: 'File Số dư TK Shopee không có giao dịch nào theo đơn hàng.' };
+  }
+  /** File Tiếp thị liên kết Shopee (Marketing → Tiếp thị liên kết → Báo cáo chuyển đổi, SellerConversionReport…csv): 1 dòng / sản phẩm.
+   *  Cộng "Chi phí" (hoa hồng shop trả) theo mã đơn; ghi chú = đối tác · kênh · trạng thái khấu trừ. */
+  function sanAffParse(sheets) {
+    var F = sanFind(sheets, { id: /^ma don hang$/, cost: /^chi phi/, who: /^(ten doi tac|tai khoan tiep thi lien ket)$/ }, { ch: /^kenh$/, st: /^trang thai khau tru$/, ost: /^trang thai don hang$/ });
+    if (!F) return null;
+    var c = F.c, O = {}, sum = 0;
+    F.rows.forEach(function (r) {
+      var id = sanId(r[c.id]); if (!id) return; var v = Math.round(sanNum(r[c.cost])), o = O[id] || (O[id] = { id: id, aff: 0, who: String(r[c.who] || '').trim(), ch: c.ch >= 0 ? String(r[c.ch] || '').trim() : '', st: c.st >= 0 ? String(r[c.st] || '').trim() : '' });
+      o.aff += v; sum += v;
+    });
+    var rows = Object.keys(O).map(function (k) { var o = O[k]; return { id: o.id, aff: o.aff, note: [o.who, o.ch, o.st || 'chưa trừ'].filter(Boolean).join(' · ') }; });
+    return rows.length ? { kind: 'aff', shop: 'Shopee', rows: rows, sum: sum } : { err: 'File tiếp thị liên kết không có đơn nào.' };
+  }
   /** Đọc các trang tính đã lấy từ file → { kind: 'orders' | 'income', shop, rows, … } hoặc { err }. */
   function sanParse(sheets) {
+    var AF = sanAffParse(sheets) || sanWallet(sheets); if (AF) return AF; // Số dư TK: có Mã đơn hàng + Trạng thái nhưng là giao dịch ví // 🤝 tiếp thị liên kết: có cột Mã đơn hàng + Trạng thái đơn hàng như file đơn → nhận trước
     var best = null;
     sheets.forEach(function (rows) {
       for (var i = 0; !best && i < Math.min(rows.length, 25); i++) { var mm = sanCols(rows[i]); if (mm.id != null && (mm.day != null || mm.net != null)) best = { rows: rows, hi: i, mm: mm }; }
@@ -8979,16 +9180,17 @@
     var shop = /order id|id don hang|sku id|order\/adjustment id|tiktok/.test(hn) ? 'TikTok Shop' : /ordernumber|orderitemid|lazada/.test(hn) ? 'Lazada' : 'Shopee';
     var kind = mm.status == null && mm.net != null ? 'income' : 'orders';
     if (kind === 'income') {
-      var I = {}, sum = 0; R.forEach(function (r) { var id = sanId(g(r, 'id')); if (!id || norm(g(r, 'lvl')).trim() === 'sku') return; var v = nb(r, 'net'); I[id] = (I[id] || 0) + v; sum += v; });
-      var ir = Object.keys(I).map(function (id) { return { id: id, net: I[id] }; });
-      return ir.length ? { kind: kind, shop: shop, rows: ir, sum: sum } : { err: 'File tiền về không có dòng nào có mã đơn.' };
+      var I = {}, PD = {}, sum = 0, pdm = sanDmy(R.map(function (r) { return g(r, 'pday'); }));
+      R.forEach(function (r) { var id = sanId(g(r, 'id')); if (!id || norm(g(r, 'lvl')).trim() === 'sku') return; var v = nb(r, 'net'); I[id] = (I[id] || 0) + v; sum += v; var pd = sanDay(g(r, 'pday'), pdm); if (pd && (!PD[id] || pd > PD[id])) PD[id] = pd; });
+      var ir = Object.keys(I).map(function (id) { return { id: id, net: I[id], pday: PD[id] || '' }; }), A = sanAdj(sheets);
+      return ir.length ? { kind: kind, shop: shop, rows: ir, sum: sum, adj: A.rows, adjSum: A.sum } : { err: 'File tiền về không có dòng nào có mã đơn.' };
     }
     if (mm.day == null) return { err: 'File không có cột Ngày đặt hàng.' };
     var dmy = sanDmy(R.map(function (r) { return g(r, 'day'); })), O = {}, list = [];
     R.forEach(function (r) {
       var id = sanId(g(r, 'id')), day = sanDay(g(r, 'day'), dmy); if (!id || !day) return;
       var o = O[id];
-      if (!o) { o = O[id] = { id: id, day: day, status: String(g(r, 'status') || '').trim(), sub: String(g(r, 'sub') || '').trim(), ret: '', gmv: 0, rv: 0, qty: 0, items: {}, voucher: Math.abs(nb(r, 'voucher')), fee: mm.fee.reduce(function (s0, j) { return s0 + Math.abs(sanNum(r[j])); }, 0), rf: Math.abs(nb(r, 'refund')) }; list.push(o); }
+      if (!o) { o = O[id] = { id: id, day: day, done: sanDay(g(r, 'done'), dmy), status: String(g(r, 'status') || '').trim(), sub: String(g(r, 'sub') || '').trim(), ret: '', gmv: 0, rv: 0, qty: 0, items: {}, voucher: Math.abs(nb(r, 'voucher')), fee: mm.fee.reduce(function (s0, j) { return s0 + Math.abs(sanNum(r[j])); }, 0), rf: Math.abs(nb(r, 'refund')) }; list.push(o); }
       var rt = String(g(r, 'ret') || '').trim(); if (rt) o.ret = rt;
       var q = nb(r, 'qty') || 1, val = mm.line != null ? nb(r, 'line') : mm.before != null ? nb(r, 'before') - nb(r, 'sdisc') : mm.after != null ? nb(r, 'after') : (nb(r, 'price1') || nb(r, 'price0')) * q, rq = Math.min(q, nb(r, 'rqty'));
       o.gmv += val; o.qty += q; if (rq > 0) o.rv += val * rq / q;
@@ -9008,7 +9210,7 @@
       }
       n[state]++; var sk = o.status + (o.ret ? ' · ' + o.ret : ''); (st[sk] = st[sk] || [0, state])[0]++;
       if (state === 'ok') sum2 += o.gmv - refund; days.push(o.day);
-      return { id: o.id, day: o.day, status: sk, state: state, gmv: Math.round(o.gmv), refund: Math.round(refund), qty: o.qty,
+      return { id: o.id, day: o.day, done: o.done || '', status: sk, state: state, gmv: Math.round(o.gmv), refund: Math.round(refund), qty: o.qty,
         net: mm.fee.length ? Math.round(o.gmv - refund - o.voucher - o.fee) : null,
         items: Object.keys(o.items).map(function (k) { var it = o.items[k]; return [it[0], it[1], Math.round(it[2])]; }) };
     });

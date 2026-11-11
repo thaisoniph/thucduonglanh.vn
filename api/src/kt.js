@@ -5,6 +5,7 @@
 // - 💤 Tiền treo ở hãng = đơn COD Đã giao / Đổi hàng từ ngày bắt đầu theo dõi (kv kt_cfg.from) mà chưa có cash_at. kt_cfg.on = lần đầu ghi tiền về → Tổng quan, tin 8h mới hiện số treo.
 import { all, run, allIn, kvJson, kvSet, fmtDate, startOfDay, esc, DAY } from './lib.js';
 import { khoItems, khoStats } from './kho.js';
+import { kspMorningLine } from './san.js';
 
 export const KT_ROLE = 'Kế toán';
 export const isKt = u => !!u && u.role === KT_ROLE;
@@ -70,6 +71,7 @@ export async function ktMorningLines(x) {
     const late = B.filter(b => b.made && b.made < Date.now() - KTB_LATE * DAY);
     L.push('🧾 Phiếu đối soát chờ tiền về: ' + B.length + ' phiếu · ' + tr(B.reduce((s, b) => s + (b.exp || 0), 0)) + (late.length ? ' · ⚠️ ' + late.length + ' phiếu quá ' + KTB_LATE + ' ngày chưa thấy tiền: hỏi hãng' : ''));
   }
+  const SP = await kspMorningLine(x).catch(() => ''); if (SP) L.push(SP);
   return L;
 }
 
