@@ -311,17 +311,19 @@ function prodKeys(items) {
   return String(items || '').split(/\n|;\s*/).map(l => l.trim()).filter(l => l && !/^🎁/.test(l)).map(l => l.replace(/=.*$/, '').replace(/\s*x\s*\d+\s*$/i, '').toLowerCase().replace(/\(.*?\)/g, ' ')
     .replace(/\d+([.,]\d+)?\s*(g|gr|gram|kg|ml|l|gói|goi|hộp|hop|hũ|hu|lon)(?=\s|$)/g, ' ').replace(/[^0-9a-zà-ỹđ]+/g, ' ').replace(/\s+/g, ' ').trim()).filter(k => k.length >= 3);
 }
-/** Khách quen sản phẩm: mọi sản phẩm trong đơn gần nhất (không huỷ/hoàn) khách đã nhận ≥ min lần trước đó (lần gần nhất trong FAM_GAP ngày), đơn liền trước không bị hoàn.
+/** Khách quen sản phẩm: mọi sản phẩm trong đơn gần nhất (không huỷ/hoàn) khách đã nhận ≥ min lần trước đó (bao lâu cũng được), đơn liền trước không bị hoàn.
  *  → đã biết cách dùng: không nhắc hỏi nhận hàng / 14 ngày. min = 0: tắt. list: đơn của 1 khách, xếp theo thời gian. */
 function famOf(list, min) {
   if (!min) return false;
   let xi = -1; for (let i = list.length - 1; i >= 0; i--) if (!isVoid(list[i].status) && list[i].time) { xi = i; break; }
   if (xi < 0) return false;
-  const x = list[xi], keys = prodKeys(x.items), t = x.time || 0; if (!keys.length) return false;
+  const pk1 = items => [...new Set(prodKeys(items).map(prodKey).filter(Boolean))]; // gộp tên gọi khác (promax = progomax)
+  const x = list[xi], keys = pk1(x.items), t = x.time || 0; if (!keys.length) return false;
   const prev = list.slice(0, xi).filter(o => (o.time || 0) < t); if (!prev.length) return false;
   if (/hoàn/i.test(prev[prev.length - 1].status || '')) return false; // đơn trước bị hoàn: gọi lại cho chắc
-  const pk = prev.filter(o => !isVoid(o.status)).map(o => ({ time: o.time || 0, keys: prodKeys(o.items) })), same = (a, b) => a === b || a.indexOf(b) >= 0 || b.indexOf(a) >= 0;
-  return keys.every(k => { const hit = pk.filter(o => o.keys.some(q => same(k, q))); return hit.length >= min && t - hit[hit.length - 1].time <= FAM_GAP * DAY; });
+  const pk = prev.filter(o => !isVoid(o.status)).map(o => ({ time: o.time || 0, keys: pk1(o.items) })), same = (a, b) => a === b || a.indexOf(b) >= 0 || b.indexOf(a) >= 0;
+  // 11/11/2026 (sale Thùy): bỏ giới hạn "lần trước trong 180 ngày" – khách đã mua đúng sản phẩm này rồi thì đã biết cách dùng, mua lại sau bao lâu cũng không hỏi nhận hàng / hướng dẫn dùng
+  return keys.every(k => pk.filter(o => o.keys.some(q => same(k, q))).length >= min);
 }
 /** Nguồn khách (theo đơn đầu tiên): Website (khách tự đặt trên web) hoặc kênh sale chọn khi lên đơn / kênh khách hỏi.
  *  Anh Sơn 12/10/2026: trước ngày 13/10/2026 mọi khách đều từ quảng cáo Facebook, trừ khách tự đặt web (chị Vân là khách web đầu tiên). */
