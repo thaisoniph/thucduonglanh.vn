@@ -576,6 +576,7 @@ collections:
       - { label: "Số lượng", name: quantity, widget: number, value_type: int, default: 1 }
       - { label: "Địa điểm làm việc", name: location, widget: string, default: "Hà Nội (Vinhomes Ocean Park, Gia Lâm)" }
       - { label: "Mức lương", name: salary, widget: string, default: "Thỏa thuận theo năng lực", hint: "VD: 12 – 18 triệu + thưởng" }
+      - { label: "Lương cứng thấp nhất (số, để Google Việc làm hiện mức lương)", name: salary_min, widget: number, value_type: int, required: false, hint: "VD: 10000000. Để trống nếu lương thỏa thuận" }
       - { label: "Hình thức làm việc", name: work_type, widget: string, default: "Toàn thời gian, tại văn phòng" }
       - { label: "Hạn ứng tuyển (chữ hiện trên trang)", name: deadline, widget: string, default: "Đến khi tuyển đủ", hint: "VD: 30/11/2026" }
       - { label: "Hạn ứng tuyển cho Google (không bắt buộc)", name: valid_through, widget: datetime, format: "YYYY-MM-DD", time_format: false, required: false, hint: "Google Việc làm dùng ngày này để tự ẩn tin khi hết hạn." }

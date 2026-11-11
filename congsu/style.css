@@ -457,6 +457,12 @@ img.cs-believe-2 { margin-top: 22px; }
 .cs-jd-body ul { margin: 0 0 12px; padding-left: 22px; }
 .cs-jd-body li { margin-bottom: 6px; }
 .cs-jd-body li::marker { color: var(--g); }
+.cs-jd-body table { width: 100%; margin: 6px 0 16px; border-collapse: collapse; font-size: 15px; }
+.cs-jd-body th, .cs-jd-body td { padding: 10px 12px; border: 1px solid var(--mint2, #dcebe0); text-align: left; vertical-align: top; }
+.cs-jd-body th { background: var(--g); color: #fff; }
+.cs-jd-body td:first-child { font-weight: 600; }
+.cs-jd-body li ul { margin: 6px 0 0; }
+@media (max-width: 560px) { .cs-jd-body th, .cs-jd-body td { padding: 8px; font-size: 14px; } }
 .cs-jd-apply { display: grid; grid-template-columns: 1.3fr 1fr; gap: 20px; align-items: center; margin-top: 44px; padding: 26px; border: 1.5px solid var(--ink); border-radius: 22px; }
 .cs-jd-apply h2 { margin: 0 0 10px; font-size: 22px; font-weight: 800; color: var(--ink); }
 .cs-jd-apply img { border-radius: 16px; aspect-ratio: 4/3; object-fit: cover; }

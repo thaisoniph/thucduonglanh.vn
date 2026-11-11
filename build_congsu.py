@@ -601,6 +601,9 @@ def page_job(j, prev, nxt, site):
           "jobLocation": {"@type": "Place", "address": {"@type": "PostalAddress", "streetAddress": "HA10-SP8A-15, Đường Hải Âu 8A, KĐT Vinhomes Ocean Park",
                                                          "addressLocality": "Gia Lâm", "addressRegion": "Hà Nội", "addressCountry": "VN"}},
           "totalJobOpenings": j.get("quantity", 1)}
+    if str(j.get("salary_min") or "").isdigit():
+        ld["baseSalary"] = {"@type": "MonetaryAmount", "currency": "VND",
+                            "value": {"@type": "QuantitativeValue", "minValue": int(j["salary_min"]), "unitText": "MONTH"}}
     if re.match(r"\d{4}-\d{2}-\d{2}$", str(j.get("valid_through") or "")):
         ld["validThrough"] = str(j["valid_through"]) + "T23:59:59+07:00"
     title = j["title"]
