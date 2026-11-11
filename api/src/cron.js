@@ -15,6 +15,7 @@ import { fpTick } from './fb.js';
 import { refAuto, refSaleAuto } from './partner.js';
 import { finSync, finMorning } from './fin.js';
 import { khoTick, khoMorning } from './kho.js';
+import { insWeekly } from './insight.js';
 
 function careMessage(items, leads, today, isGroup, who, R) {
   const block = (title, arr, tip) => !arr.length ? '' : '\n\n<b>' + title + ' (' + arr.length + ')</b> – ' + tip + '\n' + arr.slice(0, 25).map(c =>
@@ -135,6 +136,8 @@ export async function scheduled(x, cron) {
     if (!await kvGet(x.db, fm)) { await kvSet(x.db, fm, '1', 2 * DAY); try { const t = await finMorning(x); if (t) for (const u of await crmUsers(x)) if (u.active && u.tg && (u.level >= 3 || u.role === 'Kế toán')) await telegramTo(x.env, u.tg, t); } catch (e) { console.error('finMorning', e.message); } }
     const kk = 'kho_' + fmtDate(now, 'yyyyMMdd'); // 📦 tin kho buổi sáng: cần đặt NCC, hàng trễ, thứ 6 kiểm kho (kho.js)
     if (!await kvGet(x.db, kk)) { await kvSet(x.db, kk, '1', 2 * DAY); try { await khoMorning(x); } catch (e) { console.error('khoMorning', e.message); } }
+    const wk = 'insw_' + fmtDate(now, 'yyyyMMdd'); // 📊 thứ Hai: tin content tuần (insight.js insWeekly) cho Quản trị, Quản lý, Marketing
+    if (vn.getUTCDay() === 1 && !await kvGet(x.db, wk)) { await kvSet(x.db, wk, '1', 2 * DAY); try { const t = await insWeekly(x); for (const u of await crmUsers(x)) if (u.active && u.tg && (u.level >= 2 || u.role === 'Marketing')) await telegramTo(x.env, u.tg, t); } catch (e) { console.error('insWeekly', e.message); } }
     const mk = 'mktd_' + fmtDate(now, 'yyyyMMdd'); // tin Telegram marketing buổi sáng
     if (!await kvGet(x.db, mk)) { await kvSet(x.db, mk, '1', 2 * DAY); try { for (const m of await mktDailyMsgs(x, await crmUsers(x))) await telegramTo(x.env, m.tg, m.text); } catch (e) { console.error('mktDaily', e.message); } }
   }

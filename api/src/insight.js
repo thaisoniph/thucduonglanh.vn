@@ -181,7 +181,12 @@ function clean(list) {
     return { id, name: cut(g.name, 80), on: g.on !== false, who: cut(g.who, 800), want: cut(g.want, 800), block: cut(g.block, 800), tensions, prods, note: cut(g.note, 1500), bigs, trust: cut(g.trust, 500), kw: cut(g.kw, 500), where: cut(g.where, 500) };
   }).filter(g => g.name);
 }
-export async function insBank(x) { const b = await kvJson(x.db, 'ins_bank', null); return b && Array.isArray(b.groups) && b.groups.length ? clean(b.groups) : clean(INS0); }
+export async function insBank(x) {
+  const b = await kvJson(x.db, 'ins_bank', null); if (!(b && Array.isArray(b.groups) && b.groups.length)) return clean(INS0);
+  const G = clean(b.groups), D = clean(INS0); // chân dung 8 ô (khoá K133): ô "họ tin ai / từ khoá họ tìm / nơi tụ tập" còn trống thì dùng bản mặc định cùng nhóm, không cần bấm Gộp
+  for (const g of G) { const d = D.find(v => v.id === g.id); if (d) for (const k of ['trust', 'kw', 'where']) if (!g[k] && d[k]) g[k] = d[k]; }
+  return G;
+}
 const live = bank => bank.filter(g => g.on && g.tensions.length);
 export function insFind(bank, want) {
   const w = nrm(want); if (!w) return null;
@@ -625,4 +630,26 @@ export async function crmIns(x, u, d, crmLog) {
   }
   if (a === 'ins_vdel') { await run(x.db, 'DELETE FROM vd_scripts WHERE id = ?', Number(d.id) || 0); return { ok: true }; }
   return { ok: false, error: 'Không rõ thao tác.' };
+}
+
+/* ---------------------------------------------------------------- 📊 Tin content hằng tuần (thứ Hai 8h, Telegram Quản trị + Quản lý + Marketing)
+ * Khoá K131 / K133: "AI viết, người vận hành hệ thống" — mỗi tuần nhìn lại số, chỉnh big idea, chuẩn bị dịp, ghi chuyện nóng. Không dùng AI (không tốn tiền). */
+export async function insWeekly(x) {
+  const now = Date.now(), esc_ = t => String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const log = (await logGet(x)).filter(r => now - r.at < 7 * DAY), n = { TOFU: 0, MOFU: 0, BOFU: 0 }; log.forEach(r => { if (n[r.f] != null) n[r.f]++; });
+  const tot = n.TOFU + n.MOFU + n.BOFU, pc = k => tot ? Math.round(100 * n[k] / tot) : 0;
+  const L = []; L.push('📊 <b>Content tuần qua</b> (' + fmtDate(now - 7 * DAY, 'dd/MM') + '–' + fmtDate(now - DAY, 'dd/MM') + ')');
+  L.push('✍️ Trợ lý đã viết ' + tot + ' bài: 🔵 ' + n.TOFU + ' (' + pc('TOFU') + '%) · ⚪ ' + n.MOFU + ' (' + pc('MOFU') + '%) · 🟠 ' + n.BOFU + ' (' + pc('BOFU') + '%) · khoá học khuyên 60/20/20' + (tot && pc('MOFU') < 12 ? ' → ⚠️ thiếu bài tạo niềm tin' : tot && pc('BOFU') > 35 ? ' → ⚠️ bán hơi nhiều' : ''));
+  try {
+    const lr = await lrnPosts(x, 'all'), CHN = { zalo: 'Nhóm Zalo', fb: 'Fanpage' };
+    for (const k of Object.keys(lr)) for (const f of ['TOFU', 'BOFU']) { const T = lr[k].tiers[f]; if (T && T.top[0]) L.push((f === 'BOFU' ? '🟠' : '👍') + ' ' + CHN[k] + ' ' + f + ' tốt nhất 60 ngày: ' + esc_(T.top[0].m) + (T.top[0].a ? ' · góc ' + esc_(T.top[0].a) : '') + '\n   “' + esc_(T.top[0].text.slice(0, 90)) + '…”'); }
+  } catch (e) { }
+  const bank = await insBank(x), noBig = live(bank).filter(g => !(g.bigs || []).some(b => b.on && b.ang.length));
+  if (noBig.length) L.push('🌟 ' + noBig.length + ' nhóm khách chưa có big idea: ' + esc_(noBig.slice(0, 4).map(g => g.name).join(', ')) + (noBig.length > 4 ? '…' : '') + ' → ✏️ Sửa nhóm → ✨ AI gợi ý big idea');
+  else { const used = log.filter(r => r.b).length; L.push('🌟 Mọi nhóm đều có big idea; tuần qua ' + used + ' bài kể theo big idea. Big idea chạy quá 4 tuần thì nên đổi.'); }
+  try { const ev = eventsAhead(fmtDate(now, 'yyyyMMdd'), 120).filter(e => e.in <= e.prep && e.p <= 2); if (ev.length) L.push('⏰ Đến lúc chuẩn bị: ' + ev.slice(0, 4).map(e => esc_(e.n) + ' ' + e.d.slice(6, 8) + '/' + e.d.slice(4, 6) + ' (còn ' + e.in + ' ngày)').join(' · ')); } catch (e) { }
+  const tr = await kvJson(x.db, 'ins_trend', null); L.push(tr && tr.t ? '🔥 Chuyện đang nóng đang dùng: ' + esc_(tr.t.slice(0, 80)) : '🔥 Chưa ghi chuyện đang nóng tuần này: thấy chuyện cả mạng đang bàn thì ghi vào ô 🔥 để trợ lý đổi góc nhìn.');
+  try { const sp = await first(x.db, "SELECT SUM(CASE WHEN status = 'ok' THEN 1 ELSE 0 END) AS ok, SUM(copies) AS cp FROM sp_posts"); if (sp) L.push('📣 Bài Facebook cá nhân cho sale: ' + (sp.ok || 0) + ' bài đang dùng, ' + (sp.cp || 0) + ' lần sale copy' + (!(sp.ok > 0) ? ' → nên viết 3–5 bài mỗi tuần' : '')); } catch (e) { }
+  L.push('👉 ' + 'https://crm.thucduonglanh.vn/#noi-dung');
+  return L.join('\n');
 }

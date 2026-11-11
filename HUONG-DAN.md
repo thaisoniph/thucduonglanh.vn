@@ -481,6 +481,7 @@ Apps Script giới hạn 200 phiên bản/dự án: báo lỗi "Không tạo đ�
   - `insBlock`: mục tiêu tương tác (theo dõi / chia sẻ, lưu / bình luận / lượt xem), lời mời bình luận siêu dễ; `ANGLES` thêm "Nhị đoạn bẻ lái 80/20", "Phản biện" (16 góc).
   - **Chân dung 8 ô**: nhóm khách thêm `trust`, `kw`, `where` (clean, form `inGtr/inGkw/inGwh`, thẻ nhóm, insBlock, insText). `INS0` điền sẵn 8 nhóm; `mergeDefault` điền ô còn trống (`n.persona`) → banner 📚 Gộp.
   - **👀 % người chưa theo dõi Fanpage**: `fpEng` gọi thêm `/{post}/insights?metric=post_impressions_unique,post_impressions_fan_unique` → `fp_posts.eng_reach / eng_fan` (cột mới); lỗi quyền → kv `fp_nf_err` (7 ngày), CRM hiện lý do (`ins_view.fpNf`). learn.js gắn `nf` % vào dòng bài Fanpage.
+- 11/11/2026 (api `2026-11-11z`): `insBank` tự điền ô chân dung 8 ô còn trống từ `INS0` cùng id (không cần bấm 📚 Gộp). **📊 Tin content hằng tuần** `insWeekly` (insight.js, không dùng AI): thứ Hai 8h (cron.js, kv `insw_<ngày>`) gửi Telegram Quản lý, Quản trị, Marketing đã nối Telegram: số bài trợ lý viết 7 ngày theo tầng so với 60/20/20, bài tốt nhất TOFU / BOFU mỗi kênh, nhóm chưa có big idea, dịp lớn đến lúc chuẩn bị, chuyện đang nóng, bài Facebook cá nhân đang dùng / số lần copy.
 
 ## 7. Tên miền, DNS, chuyển hướng
 

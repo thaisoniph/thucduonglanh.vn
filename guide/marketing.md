@@ -286,6 +286,18 @@ Kho góc kể có thêm 2 góc:
 - **Nhị đoạn bẻ lái 80/20:** 80% đầu kể chuyện đời thường hoặc chuyện đang được bàn tán, 20% cuối bẻ sang thông điệp.
 - **Phản biện:** góp ý kiến khác về một quan điểm đang được chia sẻ nhiều, lịch sự, giấu tên người nói.
 
+### 📊 Tin content mỗi sáng thứ Hai (từ 11/11/2026)
+
+Sáng thứ Hai lúc 8h, ai có quyền Marketing, Quản lý, Quản trị và đã nối Telegram sẽ nhận tin **📊 Content tuần qua**:
+- Số bài trợ lý đã viết theo từng loại, so với tỷ lệ 60/20/20.
+- Bài tốt nhất của mỗi kênh.
+- Nhóm khách nào chưa có big idea.
+- Dịp lớn nào đã đến lúc chuẩn bị (ví dụ Tết).
+- Đã ghi chuyện đang nóng chưa.
+- Bài Facebook cá nhân của sale đang dùng bao nhiêu bài, được copy bao nhiêu lần.
+
+Đọc xong thì vào tab 🎯 làm ngay việc được nhắc.
+
 ### 👥 Chân dung 8 ô (từ 11/11/2026)
 
 Mỗi nhóm khách có thêm 3 ô:
@@ -293,7 +305,7 @@ Mỗi nhóm khách có thêm 3 ô:
 - **🔍 Họ hay tìm gì** trên Google và mạng xã hội (bài web dùng làm từ khoá)
 - **📍 Nơi họ tụ tập** (nhóm Facebook, Zalo, CLB, chùa…) để tìm cửa vào cộng đồng.
 
-Bản mặc định đã điền sẵn cho 8 nhóm. Nếu tab hiện ô **📚 Bản mặc định có cập nhật mới**, bấm **📚 Gộp vào ngân hàng** để điền vào các ô còn trống (không đổi gì anh chị đã sửa).
+Bản mặc định đã điền sẵn cho 8 nhóm, ô nào còn trống thì trợ lý tự dùng bản mặc định. Bấm **📚 Gộp vào ngân hàng** (nếu tab hiện ô này) để lưu hẳn vào ngân hàng và sửa lại theo ý mình.
 
 ### 📣 Bài viết sẵn cho sale đăng Facebook cá nhân (từ 11/11/2026)
 
