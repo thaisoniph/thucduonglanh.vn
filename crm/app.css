@@ -2012,3 +2012,46 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
   .top.ceo .nav a svg { display: inline-block; }
 }
 .dash-todo-more > summary { cursor: pointer; font-size: 13.5px; font-weight: 600; color: var(--primary); padding: 4px 0; }
+
+/* ===== Tổng quan cho chủ (11/11/2026): 🩺 sức khỏe công ty, 🧭 nguồn khách dạng thanh chồng, 🏆 đội bán hàng ===== */
+.dash-hl { border-left: 6px solid var(--primary); }
+.dash-hl.mid { border-left-color: var(--mid); } .dash-hl.bad { border-left-color: var(--red); }
+.dash-hl-h { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; }
+.dash-hl-h h3 { margin: 0; } .dash-hl-s { font-size: 15px; }
+.dash-hl-bar { display: flex; gap: 3px; height: 8px; margin: 10px 0 12px; }
+.dash-hl-bar i { flex: 1; border-radius: 4px; background: var(--primary); } .dash-hl-bar i.mid { background: var(--mid); } .dash-hl-bar i.bad { background: var(--red); }
+.dash-hl-g { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.dash-hl-c { display: flex; align-items: flex-start; gap: 8px; width: 100%; text-align: left; font: inherit; color: inherit; text-decoration: none; cursor: pointer; background: #fff; border: 1px solid var(--line); border-left: 5px solid var(--primary); border-radius: var(--radius); padding: 9px 10px; min-width: 0; }
+.dash-hl-c.mid { border-left-color: var(--mid); background: #fffaf0; } .dash-hl-c.bad { border-left-color: var(--red); background: var(--red-light); }
+.dash-hl-c:hover { border-color: #cfd8cc; }
+.dash-hl-i { font-size: 22px; line-height: 1.1; }
+.dash-hl-t { flex: 1; min-width: 0; display: block; }
+.dash-hl-t small { display: block; font-size: 13px; color: var(--muted); }
+.dash-hl-t b { display: block; font-size: 20px; line-height: 1.25; color: var(--ink); font-variant-numeric: tabular-nums; }
+.dash-hl-t em { display: block; font-style: normal; font-size: 13px; line-height: 1.35; color: var(--ink); margin-top: 2px; overflow-wrap: anywhere; }
+.dash-hl-c u { text-decoration: none; font-size: 14px; }
+@media (max-width: 520px) { .dash-hl-g { grid-template-columns: 1fr; } }
+
+.dash-src { border-left: 6px solid var(--primary); } .dash-src.mid { border-left-color: var(--mid); } .dash-src.bad { border-left-color: var(--red); }
+.dsrc-top { display: flex; align-items: center; gap: 12px; margin: 4px 0 10px; }
+.dsrc-top > b { font-size: 38px; line-height: 1; font-variant-numeric: tabular-nums; }
+.dsrc-top > span { font-size: 14px; line-height: 1.35; min-width: 0; }
+.dsrc-bar { display: flex; height: 16px; border-radius: 8px; overflow: hidden; background: var(--line); gap: 2px; }
+.dsrc-bar i { display: block; height: 100%; min-width: 3px; }
+.dsrc-k-ads { background: #c62828; } .dsrc-k-old { background: #1b7f4b; } .dsrc-k-ref { background: #7bc67e; } .dsrc-k-ctv { background: #1f5fa8; }
+.dsrc-k-pool { background: #8e6bbf; } .dsrc-k-self { background: #f0a030; } .dsrc-k-web { background: #2aa5a5; }
+.dsrc-l { margin-top: 10px; }
+.dsrc-r { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; gap: 2px 8px; align-items: center; padding: 6px 0; border-bottom: 1px dashed var(--line); }
+.dsrc-r:last-child { border-bottom: 0; }
+.dsrc-dot { width: 12px; height: 12px; border-radius: 4px; }
+.dsrc-n { font-size: 14px; min-width: 0; } .dsrc-r > b { font-size: 15px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.dsrc-r > small { grid-column: 2 / 4; font-size: 13px; color: var(--muted); }
+.dsrc-act { margin: 8px 0 4px; font-size: 14px; font-weight: 600; } .dsrc-act.bad { color: var(--red); } .dsrc-act.mid { color: var(--orange); } .dsrc-act.ok { color: var(--primary); }
+
+.dteam-r { display: grid; grid-template-columns: minmax(96px, 30%) 1fr auto; gap: 6px 10px; align-items: center; padding: 6px 0; border-bottom: 1px dashed var(--line); }
+.dteam-r:last-child { border-bottom: 0; }
+.dteam-n { font-size: 14px; min-width: 0; overflow-wrap: anywhere; }
+.dteam-t { height: 12px; background: var(--bg); border-radius: 6px; overflow: hidden; } .dteam-t i { display: block; height: 100%; background: var(--primary); border-radius: 6px; }
+.dteam-v { text-align: right; white-space: nowrap; } .dteam-v b { display: block; font-size: 15px; } .dteam-v small { font-size: 12.5px; color: var(--muted); }
+.dteam-v em { font-style: normal; font-weight: 700; } .dteam-v em.up { color: var(--primary); } .dteam-v em.down { color: var(--red); }
+@media (max-width: 520px) { .dteam-r { grid-template-columns: 1fr auto; } .dteam-t { grid-column: 1 / 3; order: 3; height: 8px; } }

@@ -310,6 +310,7 @@ Dòng chú thích màu đèn, ▲▼, đường nhỏ được thu gọn thành 
 
  Đọc từ trên xuống theo 3 câu hỏi: *Tháng này có ổn không? Vì sao? Phải làm gì?*
 
+0. **🩺 Sức khỏe công ty** (đầu trang, từ 11/11/2026): chủ nhìn 5 giây biết ổn hay không. Mỗi chỉ số một ô có đèn 🟢 tốt / 🟠 để ý / 🔴 xử lý ngay và **một câu việc cần làm**: mục tiêu tháng, doanh số so kỳ trước, lãi gộp, quảng cáo, không lệ thuộc quảng cáo, khách hỏi chờ gọi, đơn đang kẹt, tỷ lệ hoàn, kho. Ô đỏ xếp trước, bấm vào ô để mở chi tiết. Phía dưới còn có **🧭 Doanh số theo nguồn khách** (thanh màu), **🏆 Đội bán hàng** (xếp hạng doanh số từng người, quản lý trở lên) và biểu đồ doanh số theo ngày.
 1. **👉 Cần anh xử lý hôm nay** (đầu trang, từ 11/11/2026): tối đa **3 việc gấp nhất**, mỗi việc ghi **👤 ai làm** và nút **Xem →** mở đúng chỗ. Việc về đơn và tiền đứng đầu: **đơn mới chờ xác nhận quá 2 giờ**, **đơn đang giao có cảnh báo vận chuyển**, **đơn chuyển khoản quá 2 ngày chưa thấy tiền**; sau đó là khách hỏi quá hạn chưa ai gọi (30 ngày gần đây, từ 10 khách là 🔴, kèm tên sale tồn nhiều nhất), khách trễ chăm sóc, kho, quảng cáo, tỷ lệ hoàn… Còn việc nhỏ hơn thì bấm **Xem thêm … việc**. Không có gì gấp thì chỉ 1 dòng **✅ Mọi thứ ổn**. Tin tốt gom vào dòng **🌟 Điểm sáng**.
 2. **Câu kết luận** (ngay dưới, có đèn): tháng này dự kiến đạt bao nhiêu so với mục tiêu, còn thiếu bao nhiêu, khâu nào yếu nhất.
 3. **💵 Lãi lỗ thật** (chỉ Quản trị thấy, ngay dưới câu kết luận): trả lời *hôm nay lãi hay lỗ, từ đầu tháng tới giờ lãi hay lỗ*.
