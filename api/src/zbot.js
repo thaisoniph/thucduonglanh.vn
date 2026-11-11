@@ -199,7 +199,7 @@ async function zPoll(x, d) {
       if (p.status === 'draft' && !slotAuto(cfg, p.slot)) continue;
       if (!String(p.text || '').trim()) continue;
       await run(x.db, "UPDATE zb_posts SET status = 'sent', sent_at = ? WHERE id = ? AND status = ?", now, p.id, p.status);
-      for (const gid of cfg.groups) await run(x.db, "INSERT INTO zb_out (kind, gid, text, img, due, at, ref) VALUES ('post', ?, ?, ?, ?, ?, ?)", gid, p.text, p.img || '', now, now, p.id);
+      for (const gid of cfg.groups) await run(x.db, "INSERT INTO zb_out (kind, gid, text, img, due, at, ref) VALUES ('post', ?, ?, ?, ?, ?, ?)", gid, tagLinks(p.text, p.id), p.img || '', now, now, p.id); // 11/11/2026: bài sửa tay (✏️ Sửa chữ) cũng gắn mã theo dõi
     }
   }
   // việc chờ: giao 1 lần (không gửi lại khi lỗi → không đăng trùng vào nhóm)
@@ -659,7 +659,11 @@ export async function imgLib() {
 const friendLink = st => st && st.me && /^0\d{9}$/.test(String(st.me.phone || '')) ? 'https://zalo.me/' + st.me.phone : '';
 const friendAsk = link => link ? '\n\n👉 Anh/chị bấm kết bạn với em để em gửi quà, nhắc lịch sống khỏe và hỗ trợ riêng nha: ' + link : '';
 /** Link web trong tin đăng nhóm → gắn mã tin để CRM đếm đơn (đơn ghi nguồn "zalo / nhom / <mã>") */
-const tagLinks = (t, id) => String(t).replace(/https:\/\/thucduonglanh\.vn[^\s)]*/g, u => u.replace(/[?#].*$/, '') + '?utm_source=zalo&utm_medium=nhom&utm_campaign=' + id);
+// link web trong bài → gắn mã theo dõi theo từng bài (nguồn đơn "zalo / nhom / <mã bài>", CRM đếm 🛒 đơn mỗi bài). 11/11/2026: giữ tham số khác (vd ?uudai=MÃ), bỏ utm cũ, không nuốt dấu câu cuối link
+const tagLinks = (t, id) => String(t).replace(/https:\/\/thucduonglanh\.vn[^\s)]*/g, u => {
+  const tail = (u.match(/[.,!?;:…]+$/) || [''])[0], [b, q = ''] = u.slice(0, u.length - tail.length).split('#')[0].split('?');
+  return b + '?' + q.split('&').filter(s => s && !/^utm_/i.test(s)).concat(['utm_source=zalo', 'utm_medium=nhom', 'utm_campaign=' + id]).join('&') + tail;
+});
 export async function zWrite(x, day, slot, hint, by, grp) {
   const know = await kb(), prods = prodMap(know), wd = new Date(slotTime(day, '12:00') + TZ_MS).getUTCDay();
   const recent = await all(x.db, "SELECT day, slot, topic, img FROM zb_posts WHERE topic != '' AND slot != 'chuc' ORDER BY day DESC LIMIT 20");
@@ -791,7 +795,7 @@ export async function crmZbot(x, u, d, crmLog) {
     const p = await first(x.db, 'SELECT * FROM zb_posts WHERE id = ?', String(d.id || '')); if (!p) return { ok: false, error: 'Không tìm thấy bài.' };
     if (p.status === 'sent' && d.status !== 'draft') return { ok: false, error: 'Bài này đã đăng rồi.' };
     const st = ['draft', 'ok', 'skip'].includes(d.status) ? d.status : p.status;
-    const text = d.text === undefined ? p.text : String(d.text).slice(0, 4000);
+    const text = d.text === undefined ? p.text : tagLinks(String(d.text).slice(0, 4000), p.id); // link web tự gắn mã theo dõi của bài này
     const topic = String(d.topic === undefined ? '' : d.topic).trim().slice(0, 120) || p.topic; // 11/11/2026: sửa nhãn chủ đề + tầng phễu khi nhân sự viết lại hẳn bài
     const funnel = ['TOFU', 'MOFU', 'BOFU', 'TIN'].includes(d.funnel) ? d.funnel : p.funnel;
     let ins = p.ins || ''; // 11/11/2026: sửa nhóm khách + tension; đổi nhóm / tension thì bỏ insight, idea, issue cũ (không còn khớp)
