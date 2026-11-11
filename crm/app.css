@@ -2055,3 +2055,17 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .dteam-v { text-align: right; white-space: nowrap; } .dteam-v b { display: block; font-size: 15px; } .dteam-v small { font-size: 12.5px; color: var(--muted); }
 .dteam-v em { font-style: normal; font-weight: 700; } .dteam-v em.up { color: var(--primary); } .dteam-v em.down { color: var(--red); }
 @media (max-width: 520px) { .dteam-r { grid-template-columns: 1fr auto; } .dteam-t { grid-column: 1 / 3; order: 3; height: 8px; } }
+
+/* 11/11/2026: ô số liệu (.metric) bị tràn ngang màn hình điện thoại: cột 1fr bị nội dung không xuống dòng đẩy rộng ra → ép cột co lại, chữ tự xuống dòng */
+.metrics > * { min-width: 0; overflow-wrap: anywhere; }
+.metrics.dash-m3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 760px) { .metrics.dash-m3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) {
+  .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .metric { padding: 10px; }
+  .metric b { font-size: 24px; overflow-wrap: anywhere; }
+  .metric .mv { flex-wrap: wrap; gap: 2px 6px; }
+  .mv > b { white-space: normal; }
+  .metric .mv .spk-w { display: none; }
+  .metric .mv .spk svg { width: 40px; }
+}
