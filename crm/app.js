@@ -5947,7 +5947,7 @@
   function kspHTML(R) {
     kspLoad(R);
     var hd = '<section class="ktv-sec" id="kspSec"><h2 class="ktv-h">🟠 Shopee – tiền về từng đơn <small>máy tự đối chiếu file đơn hàng với file tiền Shopee trả, thay cho VLOOKUP</small></h2>';
-    var btns = '<div class="ktv-big"><button class="btn pri lg" data-ksp="up">📤 Tải file Shopee</button>' + (KSP.d && KSP.d.rows.length ? '<button class="btn lg" data-ksp="copy">📋 Chép bảng (dán Google Sheet)</button>' : '') + '</div>';
+    var btns = '<div class="ktv-big"><button class="btn pri lg" data-ksp="up">📤 Tải file Shopee</button><button class="btn lg" data-ksp="list">🧾 Xem kết quả &amp; hạch toán từng đơn</button>' + (KSP.d && KSP.d.rows.length ? '<button class="btn lg" data-ksp="copy">📋 Chép bảng (dán Google Sheet)</button>' : '') + '</div>';
     if (!KSP.d) return hd + btns + '<p class="muted small">' + (KSP.err ? '⚠️ ' + esc(KSP.err) + ' <button class="btn sm" data-ksp="re">Thử lại</button>' : '⏳ Đang lấy đơn Shopee…') + '</p></section>';
     var D = KSP.d, inc = D.incEnd, G = {}, list = [];
     KSP_G.forEach(function (g) { G[g[0]] = { n: 0, v: 0, got: 0 }; });
@@ -6027,25 +6027,91 @@
       var next = function () {
         if (i >= F.length) {
           KSP.f = ''; kspLoad(perRange(S.f.g.p), true);
-          if (miss.length) { $('#kspPrev', m).innerHTML = '<div class="notice warn">✅ ' + msg.join('<br>') + '<br><br>⚠️ <b>' + miss.length + ' đơn có tiền về nhưng chưa có trong CRM</b>: đơn đặt ngoài khoảng ngày của file đơn hàng. Muốn đối soát cả các đơn này thì tải thêm file đơn hàng các tháng đó rồi tải lại file tiền về.<br><span class="muted">' + esc(miss.slice(0, 12).join(', ')) + (miss.length > 12 ? '…' : '') + '</span></div>'; bt.hidden = true; return; }
-          closeModal(true); toast(msg.join(' · ')); return;
+          if (miss.length) { $('#kspPrev', m).innerHTML = '<div class="notice warn">✅ ' + msg.join('<br>') + '<br><br>⚠️ <b>' + miss.length + ' đơn có tiền về nhưng chưa có trong CRM</b>: đơn đặt ngoài khoảng ngày của file đơn hàng. Muốn đối soát cả các đơn này thì tải thêm file đơn hàng các tháng đó rồi tải lại file tiền về.<br><span class="muted">' + esc(miss.slice(0, 12).join(', ')) + (miss.length > 12 ? '…' : '') + '</span></div>' +
+            '<p><button class="btn pri" id="kspSee">🧾 Xem kết quả đối soát &amp; hạch toán</button></p>'; bt.hidden = true; $('#kspSee', m).onclick = function () { closeModal(true); openKspList(); }; return; }
+          closeModal(true); toast('Đã nhập ' + F.length + ' file ✓'); openKspList(); return;
         }
         var P = F[i++];
         api('kt_simp', { shop: 'Shopee', kind: P.kind, file: P.file, rows: P.rows, adj: P.adj || [] }).then(function (j) {
-          if (P.kind === 'income') { msg.push('Tiền về: khớp ' + j.hit + '/' + j.rows + ' đơn' + (j.adj ? ', ' + j.adj + ' điều chỉnh' : '')); (j.missIds || []).forEach(function (id) { if (miss.indexOf(id) < 0) miss.push(id); }); }
-          else if (P.kind === 'aff') msg.push('Tiếp thị liên kết: khớp ' + j.hit + '/' + j.rows + ' đơn');
-          else msg.push('Đơn hàng: ' + j.rows + ' đơn (' + j.fresh + ' mới)');
+          if (P.kind === 'income') { msg.push('💵 ' + esc(P.file) + ': tiền về khớp ' + j.hit + '/' + j.rows + ' đơn' + (j.adj ? ', ' + j.adj + ' điều chỉnh' : '')); (j.missIds || []).forEach(function (id) { if (miss.indexOf(id) < 0) miss.push(id); }); }
+          else if (P.kind === 'aff') msg.push('🤝 ' + esc(P.file) + ': tiếp thị liên kết khớp ' + j.hit + '/' + j.rows + ' đơn');
+          else msg.push('📦 ' + esc(P.file) + ': ' + j.rows + ' đơn hàng (' + j.fresh + ' mới)');
           next();
         }, function (e) { bt.disabled = false; bt.textContent = 'Thử lại'; $('#kspE', m).textContent = P.file + ': ' + e.message; i--; });
       };
       next();
     };
   }
+  /* ---------- 🧾 Đối soát & hạch toán từng đơn Shopee (11/11/2026, anh Sơn: "như bên Best / Viettel Post để kế toán hạch toán đơn đó").
+   * Giống màn 💤 Tiền treo: danh sách đơn + tích chọn → ✅ Đã hạch toán (kt_shk, cột san_orders.kt_at / kt_by), tab ✅ Đã hạch toán bỏ được.
+   * Lấy mọi đơn Shopee đặt từ ngày bắt đầu theo dõi (kt_cfg.from), không theo kỳ đầu trang. Nhóm theo kspGroup; đã hạch toán → tab done. */
+  var KSPA = { d: null, busy: false };
+  var KSPL_T = [['todo', '🧾 Đã trả, chưa hạch toán'], ['late', '🔴 Quá hạn chưa thấy tiền'], ['wait', '⏳ Chờ Shopee trả'], ['ship', '🚚 Đang giao'], ['void', '↩️ Hoàn / huỷ'], ['done', '✅ Đã hạch toán']];
+  function kspTab(x) { return x.r[13] ? 'done' : x.g === 'paid' ? 'todo' : x.g; }
+  function kspRows(D) { var L = []; (D.rows || []).forEach(function (r) { var x = kspGroup(r, D.incEnd); if (x.g === 'skip') return; x.r = r; x.t = kspTab(x); x.fee = r[7] ? x.v - (r[6] || 0) : null; L.push(x); }); return L; }
+  function kspRowTxt(x) {
+    var r = x.r, L = ['đặt ' + kspFd(r[1])];
+    if (x.done) L.push('hoàn thành ' + kspFd(x.done));
+    if (r[7]) L.push('Shopee trả ' + (r[8] ? kspFd(r[8]) : '(chưa rõ ngày)'));
+    L.push('giá bán ' + money(x.v));
+    if (x.fee != null) L.push('Shopee trừ ' + money(x.fee) + (x.v ? ' (' + pct(x.fee, x.v) + '%)' : ''));
+    if (x.adj) L.push('điều chỉnh ' + (x.adj > 0 ? '+' : '−') + money(Math.abs(x.adj)));
+    if (x.an) L.push('🤝 hoa hồng ' + money(x.aff) + ' · ' + esc(x.an));
+    if (x.t === 'late') L.push('<em class="ktv-red">quá hạn: hỏi Shopee</em>');
+    if (x.low) L.push('<em class="ktv-red">⚠️ về ' + pct(x.got, x.v) + '% giá bán</em>');
+    if (x.t === 'done') L.push('✅ hạch toán ' + fDate(r[13]).slice(0, 5) + (r[14] ? ' · ' + esc(r[14]) : ''));
+    return L.join(' · ');
+  }
+  function kspHkTsv(list) {
+    return ['Mã đơn Shopee', 'Ngày đặt', 'Ngày hoàn thành', 'Ngày Shopee trả', 'Trạng thái', 'Giá bán (doanh thu)', 'Shopee trả', 'Shopee trừ (phí sàn, voucher, hoa hồng)', 'Điều chỉnh sau đó', 'Thực nhận', 'Hoa hồng tiếp thị liên kết', 'Đối tác tiếp thị liên kết', 'Đối soát', 'Hạch toán'].join('\t') + '\n' +
+      list.map(function (x) { var r = x.r; return [r[0], r[1], x.done, r[8], kspSt(r[2]), x.v, r[7] ? r[6] : '', x.fee == null ? '' : x.fee, x.adj || '', x.got == null ? '' : x.got, x.aff || '', x.an, (KSPL_T.filter(function (t) { return t[0] === (x.t === 'done' ? (x.g === 'paid' ? 'todo' : x.g) : x.t); })[0] || ['', ''])[1].replace(/^\S+\s/, ''), r[13] ? isoDate(r[13]) + ' ' + (r[14] || '') : ''].join('\t'); }).join('\n');
+  }
+  function openKspList(tab0) {
+    var from = ktvCfg().from || '2026-10-01', tab = tab0 || '', m = modal('🟠 Đối soát Shopee · hạch toán từng đơn', '<div id="kspM"><p class="muted">⏳ Đang lấy đơn Shopee…</p></div>', '<button class="btn" data-close>Đóng</button><button class="btn" id="kspCp" hidden>📋 Chép</button><button class="btn pri" id="kspHk" disabled hidden>✅ Đã hạch toán</button>');
+    var box = $('#kspM', m), L = [];
+    var draw = function () {
+      var C = {}; KSPL_T.forEach(function (t) { C[t[0]] = { n: 0, v: 0, got: 0 }; }); L.forEach(function (x) { var c = C[x.t]; c.n++; c.v += x.v; c.got += x.got || 0; });
+      if (!tab) tab = C.todo.n ? 'todo' : C.late.n ? 'late' : 'done';
+      var sel = L.filter(function (x) { return x.t === tab; }).sort(function (a, b) { return tab === 'done' ? b.r[13] - a.r[13] : (a.r[8] || a.done || a.r[1]).localeCompare(b.r[8] || b.done || b.r[1]); }), shown = sel.slice(0, 500), c = C[tab];
+      var HINT = { todo: 'Đơn Shopee đã trả tiền vào Số dư TK Shopee. Hạch toán xong thì tích đơn rồi bấm <b>✅ Đã hạch toán</b>.', late: 'Đơn đã hoàn thành lâu mà file tiền về chưa có tiền: <b>hỏi Shopee</b> (Kênh Người Bán → Hỗ trợ). Có tiền rồi thì tải lại file Số dư.', wait: 'Đơn mới hoàn thành, file tiền về chưa tới ngày đó. Tuần sau tải file Số dư mới.', ship: 'Đơn chưa hoàn thành theo file đơn hàng mới nhất.', 'void': 'Đơn huỷ / hoàn. Đơn hoàn mà Shopee vẫn trừ phí thì có số ở cột tiền về (âm).', done: 'Đơn đã hạch toán. Bấm nhầm thì tích đơn rồi bấm <b>↩ Bỏ hạch toán</b>.' };
+      box.innerHTML = '<div class="chips ksp-tabs">' + KSPL_T.map(function (t) { return '<button class="chip' + (t[0] === tab ? ' on' : '') + '" data-kspt="' + t[0] + '">' + t[1] + ' · ' + C[t[0]].n + '</button>'; }).join('') + '</div>' +
+        '<p class="small" style="margin:6px 0">' + HINT[tab] + '</p>' +
+        (sel.length ? '<p class="small ksp-sum"><b>' + sel.length + ' đơn</b> · giá bán ' + money(c.v) + (c.got ? ' · thực nhận <b>' + money(c.got) + '</b>' : '') + '</p>' +
+          '<div class="ktv-tool"><label><input type="checkbox" id="kspAll"> Chọn hết ' + shown.length + ' đơn</label><input type="search" id="kspQ" placeholder="🔍 Mã đơn Shopee, đối tác"></div>' +
+          '<div class="ktv-list">' + shown.map(function (x) { return '<label class="ktv-o' + (x.t === 'late' || x.low ? ' old' : '') + '"><input type="checkbox" data-kspo="' + esc(x.r[0]) + '"><span class="ktv-o-t"><b>' + esc(x.r[0]) + ' · ' + esc(kspSt(x.r[2])) + '</b><small>' + kspRowTxt(x) + '</small></span><b class="ktv-amt">' + (x.got == null ? '<span class="muted">' + moneyShort(x.v) + '</span>' : moneyShort(x.got)) + '</b></label>'; }).join('') + '</div>' +
+          (sel.length > shown.length ? '<p class="small muted">Hiện 500 / ' + sel.length + ' đơn.</p>' : '')
+          : '<p class="ktv-ok">✅ Không có đơn nào.</p>') +
+        '<p class="small muted" style="margin:8px 0 0">Đơn Shopee đặt từ <b>' + kspFd(from) + '/' + from.slice(0, 4) + '</b> (ngày bắt đầu theo dõi, đổi ở ⚙️ Cài đặt kế toán). ' + (KSPA.d.incEnd ? 'Tiền về tính tới <b>' + kspFd(KSPA.d.incEnd) + '</b>.' : 'Chưa tải file tiền về.') + ' Số bên phải = tiền thực nhận (đơn chưa trả: giá bán, chữ xám).</p><p class="err" id="kspLE"></p>';
+      var byId = {}; shown.forEach(function (x) { byId[x.r[0]] = x; });
+      var off = tab === 'done', hk = $('#kspHk', m), cp = $('#kspCp', m);
+      hk.hidden = !sel.length || tab === 'ship'; cp.hidden = !sel.length;
+      var chk = function () { return $$('[data-kspo]:checked', m).map(function (i) { return byId[i.getAttribute('data-kspo')]; }); };
+      var upd = function () { var a = chk(), t = a.reduce(function (s0, x) { return s0 + (x.got == null ? x.v : x.got); }, 0); hk.disabled = !a.length; hk.textContent = (off ? '↩ Bỏ hạch toán' : '✅ Đã hạch toán') + (a.length ? ' ' + a.length + ' đơn · ' + moneyShort(t) : ''); cp.textContent = a.length ? '📋 Chép ' + a.length + ' đơn' : '📋 Chép cả nhóm'; };
+      upd();
+      $$('[data-kspt]', m).forEach(function (b) { b.onclick = function () { tab = b.getAttribute('data-kspt'); draw(); }; });
+      $$('[data-kspo]', m).forEach(function (i) { i.onchange = upd; });
+      var all = $('#kspAll', m); if (all) all.onchange = function () { var v = this.checked; $$('.ktv-o', m).forEach(function (r) { if (!r.hidden) $('input', r).checked = v; }); upd(); };
+      var q = $('#kspQ', m); if (q) q.oninput = function () { var k = norm(this.value.trim()); $$('.ktv-o', m).forEach(function (r) { r.hidden = !!k && norm(r.textContent).indexOf(k) < 0; }); };
+      cp.onclick = function () { var a = chk(); a = a.length ? a : sel; copy(kspHkTsv(a)).then(function () { toast('Đã chép ' + a.length + ' đơn ✓ Dán vào Google Sheet / Excel (Ctrl+V, Mac ⌘+V)'); }); };
+      hk.onclick = function () {
+        var a = chk(); if (!a.length) return;
+        if (off && !confirm('Bỏ hạch toán ' + a.length + ' đơn? Đơn quay lại danh sách chưa hạch toán.')) return;
+        if (!off && tab !== 'todo' && !confirm('Các đơn này Shopee chưa trả tiền (theo file). Vẫn ghi đã hạch toán?')) return;
+        hk.disabled = true; hk.textContent = '⏳ Đang ghi…';
+        api('kt_shk', { ids: a.map(function (x) { return x.r[0]; }), off: off ? 1 : 0 }).then(function (j) {
+          a.forEach(function (x) { x.r[13] = j.at || 0; x.r[14] = j.by || ''; x.t = kspTab(x); });
+          toast((off ? 'Đã bỏ hạch toán ' : 'Đã hạch toán ') + j.n + ' đơn Shopee ✓'); draw();
+        }, function (e) { $('#kspLE', m).textContent = e.message; upd(); });
+      };
+    };
+    api('kt_shp', { all: 1, from: from, to: from }).then(function (j) { KSPA.d = j; L = kspRows(j); draw(); }, function (e) { box.innerHTML = '<p class="err">' + esc(/Không rõ thao tác|chỉ dùng được/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message) + '</p>'; });
+  }
   function bindKsp() {
     $$('[data-ksp]').forEach(function (el) {
       el.onclick = function () {
         var a = el.getAttribute('data-ksp').split('|');
         if (a[0] === 'up') openKspUp();
+        else if (a[0] === 'list') openKspList();
         else if (a[0] === 're') { kspLoad(perRange(S.f.g.p), true); softRender(true); }
         else if (a[0] === 'f') { KSP.f = a[1]; KSP.n = 100; softRender(true); }
         else if (a[0] === 'more') { KSP.n += 200; softRender(true); }

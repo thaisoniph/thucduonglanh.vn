@@ -160,6 +160,15 @@ Bấm vào ô hoặc nút nhóm để xem từng đơn. Các nhóm khác:
 
 Bấm **📋 Chép bảng** rồi dán vào Google Sheet nếu cần nộp file đối soát.
 
+**Hạch toán từng đơn (giống màn Tiền treo của Best / Viettel Post):** bấm **🧾 Xem kết quả & hạch toán từng đơn**. Tải file xong máy cũng tự mở màn này.
+
+1. Nhóm **🧾 Đã trả, chưa hạch toán**: đơn Shopee đã trả tiền. Mỗi dòng có: ngày đặt, ngày hoàn thành, **ngày Shopee trả**, giá bán, **Shopee trừ bao nhiêu** (phí sàn, voucher, hoa hồng), điều chỉnh, hoa hồng tiếp thị liên kết. Số bên phải là **tiền thực nhận**.
+2. Hạch toán xong đơn nào thì **tích** đơn đó (hoặc **Chọn hết**), bấm **✅ Đã hạch toán**. Đơn chuyển sang nhóm **✅ Đã hạch toán**, có ngày và tên người bấm.
+3. Bấm nhầm: vào nhóm **✅ Đã hạch toán**, tích đơn, bấm **↩ Bỏ hạch toán**.
+4. **📋 Chép**: chép các đơn đang tích (không tích thì chép cả nhóm), dán vào Google Sheet / Excel / Misa với đủ cột giá bán, Shopee trừ, thực nhận.
+
+Màn này lấy mọi đơn Shopee đặt từ **ngày bắt đầu theo dõi** (⚙️ Cài đặt kế toán), không theo ô thời gian đầu trang. Ô 🔍 tìm theo mã đơn Shopee hoặc tên đối tác.
+
 **Khi tải file Số dư**, máy báo luôn **tiền rút về ngân hàng** (để so với sao kê VCB) và **tiền trừ nạp quảng cáo Shopee**.
 
 Máy báo **"… đơn có tiền về nhưng chưa có trong CRM"**: đó là các đơn đặt ngoài khoảng ngày của file đơn hàng. Tải thêm file đơn hàng các tháng đó rồi tải lại file tiền về.

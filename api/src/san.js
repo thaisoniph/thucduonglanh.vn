@@ -31,9 +31,10 @@ export async function sanSchema(db) {
   await run(db, 'CREATE INDEX IF NOT EXISTS san_orders_day ON san_orders(day)');
   // 11/11/2026 🟠 đối soát Shopee từng đơn cho kế toán: paid_day = "Ngày hoàn thành thanh toán" (file Doanh thu / số dư ví), done_day = "Thời gian hoàn thành đơn hàng" (file đơn hàng),
   //   adj = tiền điều chỉnh sau thanh toán (tab Adjustment của file Doanh thu / dòng "Điều chỉnh" file Số dư: hoàn tiền, phí trả hàng, hoa hồng tiếp thị liên kết…).
+  //   kt_at / kt_by = lúc kế toán bấm ✅ Đã hạch toán đơn đó (lệnh kt_shk), giống ✅ Đã nhận tiền của đơn Best / Viettel Post.
   //   aff / aff_note = hoa hồng Tiếp thị liên kết của đơn (file SellerConversionReport: Chi phí, tên đối tác, trạng thái khấu trừ).
   const sc = (await all(db, 'PRAGMA table_info(san_orders)')).map(r => r.name);
-  for (const [c, def] of [['paid_day', "TEXT DEFAULT ''"], ['done_day', "TEXT DEFAULT ''"], ['adj', 'INTEGER DEFAULT 0'], ['aff', 'INTEGER DEFAULT 0'], ['aff_note', "TEXT DEFAULT ''"]]) if (!sc.includes(c)) { try { await run(db, `ALTER TABLE san_orders ADD COLUMN ${c} ${def}`); } catch (e) { } }
+  for (const [c, def] of [['paid_day', "TEXT DEFAULT ''"], ['done_day', "TEXT DEFAULT ''"], ['adj', 'INTEGER DEFAULT 0'], ['aff', 'INTEGER DEFAULT 0'], ['aff_note', "TEXT DEFAULT ''"], ['kt_at', 'INTEGER'], ['kt_by', "TEXT DEFAULT ''"]]) if (!sc.includes(c)) { try { await run(db, `ALTER TABLE san_orders ADD COLUMN ${c} ${def}`); } catch (e) { } }
   await run(db, `CREATE TABLE IF NOT EXISTS san_files (batch TEXT PRIMARY KEY, shop TEXT, kind TEXT, file TEXT, n INTEGER DEFAULT 0, fresh INTEGER DEFAULT 0, d_from TEXT, d_to TEXT, gmv INTEGER DEFAULT 0, by_name TEXT, at INTEGER)`);
 }
 
@@ -256,22 +257,34 @@ export async function crmSan(x, u, d) {
  * Kế toán tải ở tab 💼 Kế toán: file đơn hàng Order.all (trạng thái, ngày hoàn thành) + file Doanh thu "Đã thanh toán" (Income…) hoặc lịch sử Số dư TK Shopee (tiền từng đơn, ngày trả).
  * kt_shp {from, to}: đơn Shopee đặt trong kỳ (bỏ đơn giả từ Google Sheet), + hạn đối soát = ngày cuối của file tiền về mới nhất (incEnd), + số ngày trong kỳ mới có số Sheet (chưa có file đơn).
  * kt_simp: như san_import nhưng cho Kế toán (chỉ Shopee). Phân nhóm làm ở CRM (kspGroup). */
-export async function ktShopee(x, u, d) {
+export async function ktShopee(x, u, d, log) {
   if (!(u.level >= 3 || u.role === 'Kế toán')) return { ok: false, error: 'Chỉ Kế toán và Quản trị xem được phần này.' };
+  if (d.action === 'kt_shk') { // ✅ Đã hạch toán / ↩ bỏ hạch toán nhiều đơn Shopee
+    const ids = (d.ids || []).map(v => String(v || '').trim().slice(0, 60)).filter(Boolean).slice(0, 3000), off = !!d.off, at = Date.now();
+    if (!ids.length) return { ok: false, error: 'Chưa chọn đơn nào.' };
+    let n = 0;
+    for (let i = 0; i < ids.length; i += 400) {
+      const r = await run(x.db, "UPDATE san_orders SET kt_at = ?, kt_by = ? WHERE shop = 'Shopee' AND id IN (SELECT value FROM json_each(?))", off ? null : at, off ? '' : u.name, JSON.stringify(ids.slice(i, i + 400)));
+      n += (r.meta && r.meta.changes) || 0;
+    }
+    if (log) await log(x, u, 'Kế toán', '-', '', (off ? 'Bỏ hạch toán ' : 'Hạch toán ') + n + ' đơn Shopee', ids.slice(0, 20).join(', ') + (ids.length > 20 ? '…' : ''));
+    return { ok: true, n, at: off ? null : at, by: off ? '' : u.name };
+  }
   if (d.action === 'kt_simp') {
     if (d.shop !== 'Shopee') return { ok: false, error: 'Phần này chỉ nhận file Shopee. File TikTok / Lazada: người phụ trách sàn tải ở tab Sàn.' };
     return sanImport(x, u, d);
   }
+  if (d.all) d.to = '2999-12-31'; // màn hình hạch toán: mọi đơn từ ngày bắt đầu theo dõi
   if (![d.from, d.to].every(s => DAY_RE.test(String(s || '')))) return { ok: false, error: 'Khoảng thời gian chưa đúng.' };
   const [rows, sh, inc, files] = await Promise.all([
-    all(x.db, "SELECT id, day, status, state, gmv, refund, net, net_real, COALESCE(paid_day, '') AS pd, COALESCE(done_day, '') AS dd, COALESCE(adj, 0) AS adj, COALESCE(aff, 0) AS aff, COALESCE(aff_note, '') AS an FROM san_orders WHERE shop = 'Shopee' AND id NOT LIKE 'S:%' AND day BETWEEN ? AND ? ORDER BY day LIMIT 8000", d.from, d.to),
+    all(x.db, "SELECT id, day, status, state, gmv, refund, net, net_real, COALESCE(paid_day, '') AS pd, COALESCE(done_day, '') AS dd, COALESCE(adj, 0) AS adj, COALESCE(aff, 0) AS aff, COALESCE(aff_note, '') AS an, kt_at, COALESCE(kt_by, '') AS kb FROM san_orders WHERE shop = 'Shopee' AND id NOT LIKE 'S:%' AND day BETWEEN ? AND ? ORDER BY day LIMIT 12000", d.from, d.to),
     first(x.db, "SELECT COUNT(DISTINCT day) AS n, MIN(day) AS a, MAX(day) AS b FROM san_orders WHERE shop = 'Shopee' AND id LIKE 'S:%' AND day BETWEEN ? AND ?", d.from, d.to),
     first(x.db, "SELECT MAX(d_to) AS e FROM san_files WHERE shop = 'Shopee' AND kind = 'income' AND d_to <> ''"),
     all(x.db, "SELECT kind, file, n, fresh, d_from, d_to, by_name, at FROM san_files WHERE shop = 'Shopee' AND kind IN ('orders', 'income', 'aff') ORDER BY at DESC LIMIT 10")
   ]);
   return {
     ok: true, incEnd: (inc && inc.e) || '', sheetDays: sh && sh.n ? [sh.n, sh.a, sh.b] : null,
-    rows: rows.map(r => [r.id, r.day, r.status || '', r.state, r.gmv || 0, r.refund || 0, r.net == null ? null : r.net, r.net_real ? 1 : 0, r.pd, r.dd, r.adj || 0, r.aff || 0, r.an]),
+    rows: rows.map(r => [r.id, r.day, r.status || '', r.state, r.gmv || 0, r.refund || 0, r.net == null ? null : r.net, r.net_real ? 1 : 0, r.pd, r.dd, r.adj || 0, r.aff || 0, r.an, r.kt_at || 0, r.kb]),
     files: files.map(r => ({ kind: r.kind, file: r.file, n: r.n, hit: r.fresh, from: r.d_from, to: r.d_to, by: r.by_name, at: r.at }))
   };
 }
