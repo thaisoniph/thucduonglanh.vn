@@ -120,9 +120,10 @@ Sale cần biết quảng cáo đang hứa gì, để nói đúng với khách.
 
 1. Trong tab Marketing, tìm mục **🎁 Ưu đãi / thông điệp đang chạy**. Bấm **＋ Thêm**.
 2. Ghi tên ưu đãi, sản phẩm, nội dung sale cần nói đúng (giá, quà, điều kiện) và ngày hết hạn.
+   - Ô **Mẫu tin sale gửi khách**: viết sẵn tin cho sale. Sale chọn ưu đãi này ở **📣 Gửi ưu đãi lần lượt** là có ngay tin, chỉ việc gửi. Viết **[Tên]**, **[Sản phẩm]**, **[Link]**, máy tự điền tên khách, sản phẩm khách hay mua và link đặt hàng riêng của từng khách (đơn tính cho sale phụ trách).
 3. Bấm **Lưu**.
 
-Sale thấy ngay ở đầu tab **Khách hỏi**. Hết hạn thì tự ẩn.
+Sale thấy ngay ở đầu tab **Khách hỏi**. Hết hạn thì tự ẩn. Ngày Đôi (1/1 … 12/12) tự có trong danh sách, kèm mẫu tin, không cần thêm tay.
 
 ## Xem chi tiết: 4 câu hỏi, đọc từ trên xuống
 

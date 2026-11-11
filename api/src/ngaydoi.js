@@ -42,7 +42,11 @@ export function ddText(c, label) {
 export async function ddOffer(x, at) {
   const day = ddDay(at); if (!day) return null;
   const c = await ddCfg(x); if (!c.enabled) return null;
-  return { id: 'ngaydoi', auto: 1, title: '🎉 ' + (c.name || 'Ngày Đôi') + ' ' + day.label + ' (chỉ khi đặt trên web)', prod: '',
+  const L = [c.free_ship ? '✅ ' + (num(c.free_ship_min) ? 'Đơn từ ' + k(c.free_ship_min) + ' miễn ship' : 'Miễn ship mọi đơn') : '', c.gift && num(c.gift_min) ? '🎁 Đơn từ ' + k(c.gift_min) + ' tặng ' + c.gift.label : '',
+    c.gift2 && num(c.gift2_min) ? '🎁 Đơn từ ' + k(c.gift2_min) + ' tặng ' + c.gift2.label + (c.gift && num(c.gift_min) ? ' (thay quà trên)' : '') : '', c.first && num(c.first_n) ? '⚡ ' + num(c.first_n) + ' đơn đầu tiên' + (num(c.first_min) ? ' từ ' + k(c.first_min) : '') + ' tặng thêm ' + c.first.label : ''].filter(Boolean);
+  const msg = 'Dạ em chào [Tên] ạ 🌿 Hôm nay ' + day.label + ' nhà Thực Dưỡng Lành có ' + (c.name || 'Ngày Đôi') + ', chỉ trong hôm nay thôi ạ:\n' + L.join('\n') +
+    '\nNếu nhà mình sắp dùng hết [Sản phẩm] thì đặt hôm nay là lợi nhất ạ. [Tên] bấm link này đặt trên web là quà tự vào đơn: [Link]\nNếu [Tên] ngại thao tác, cứ nhắn em tên, số điện thoại, địa chỉ, em đặt giúp luôn ạ.';
+  return { id: 'ngaydoi', auto: 1, msg, title: '🎉 ' + (c.name || 'Ngày Đôi') + ' ' + day.label + ' (chỉ khi đặt trên web)', prod: '',
     text: 'Chỉ trong ngày ' + day.label + ', khách tự đặt trên web thucduonglanh.vn: ' + ddText(c, day.label) + '. Không cần mã, quà tự ghi vào đơn. Đặt qua sale / gọi điện không áp dụng.', until: day.key, by: 'Tự động', at: 0 };
 }
 
