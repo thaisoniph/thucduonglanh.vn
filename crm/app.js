@@ -3530,14 +3530,24 @@
   /** 🧺 Kho chung (09/11/2026): số công ty giao quá N ngày chưa chốt, không có hẹn → tự về kho. Chỉ số công ty giao: không phải sale tự thêm, không phải khách giới thiệu, không phải file cũ, hỏi trong 45 ngày. */
   function poolApplies(l) { return !!l.owner && (l.by || '') !== l.owner && !l.refPhone && !l.refName && !/^File cũ/.test(l.channel || '') && (l.poolN || 0) < 2 && Date.now() - l.time < 45 * DAY; }
   /** Nhãn trên thẻ khách hỏi: người đang giữ thấy đếm ngược (còn ≤ 2 ngày); số đã về kho ghi “↩ từ …” để người nhận biết đọc lịch sử. */
+  /** 11/11/2026: 3 mốc về Kho chung (Cài đặt): chưa liên hệ sau poolNoCall ngày · poolIdle ngày không chăm lại · giữ tối đa poolDays ngày. Hẹn gọi lại ≤ 14 ngày thì giữ. Trả số ngày còn lại (nhỏ nhất) hoặc null. Liên hệ = lastAt (💬 Tư vấn); máy chủ còn tính cả nhật ký chăm sóc. */
+  function poolDaysLeft(l) {
+    var R = S.d.rules || {}, now = Date.now(), own = l.ownAt || l.time, lc = l.lastAt || 0, cb = l.callback || 0, left = [];
+    if (cb >= now - DAY && cb <= now + 14 * DAY) return null;
+    if (R.poolNoCall && lc < own) left.push(R.poolNoCall - Math.floor((now - own) / DAY));
+    if (R.poolIdle && lc >= own) left.push(R.poolIdle - Math.floor((now - lc) / DAY));
+    if (R.poolDays) left.push(R.poolDays - Math.floor((now - own) / DAY));
+    return left.length ? Math.min.apply(null, left) : null;
+  }
+  function poolRuleLine(R) { var t = [R.poolNoCall ? 'chưa liên hệ sau ' + R.poolNoCall + ' ngày' : '', R.poolIdle ? R.poolIdle + ' ngày không chăm' : '', R.poolDays ? 'giữ quá ' + R.poolDays + ' ngày' : ''].filter(Boolean); return t.join(' / '); }
   function poolTag(l) {
     var R = S.d.rules || {}, N = R.poolDays;
     if (!isOpenLead(l) || mode() !== 'pool' || !poolOn()) return '';
-    if (!l.owner) return l.poolFrom ? '<span class="tag pool" title="' + esc(l.poolFrom) + ' giữ số này quá ' + N + ' ngày chưa chốt nên số về Kho chung. Đọc lịch sử tư vấn bên dưới rồi thử cách khác.">↩ từ ' + esc(l.poolFrom) + (l.poolN > 1 ? ' · vòng ' + l.poolN : '') + '</span>' : '';
-    if (!N || !poolApplies(l)) return '';
-    var cb = l.callback && l.callback > Date.now() - DAY, left = N - Math.floor((Date.now() - (l.ownAt || l.time)) / DAY);
-    if (cb || left > 2) return '';
-    return '<span class="tag pool-due" title="Khách hỏi công ty giao quá ' + N + ' ngày chưa chốt và không có lịch hẹn thì tự về Kho chung cho cả phòng khai thác. Khách hẹn thì bấm 💬 Tư vấn → chọn ngày hẹn, số được giữ tới ngày hẹn.">⏳ ' + (left > 0 ? 'còn ' + left + ' ngày' : 'sắp') + ' về Kho chung</span>';
+    if (!l.owner) return l.poolFrom ? '<span class="tag pool" title="' + esc(l.poolFrom) + ' giữ số này quá hạn chưa chốt (hoặc không chăm) nên số về Kho chung. Đọc lịch sử tư vấn bên dưới rồi thử cách khác.">↩ từ ' + esc(l.poolFrom) + (l.poolN > 1 ? ' · vòng ' + l.poolN : '') + '</span>' : '';
+    if (!poolApplies(l)) return '';
+    var left = poolDaysLeft(l);
+    if (left === null || left > 2) return '';
+    return '<span class="tag pool-due" title="Khách hỏi công ty giao tự về Kho chung khi ' + esc(poolRuleLine(R)) + ' (chưa chốt, không có lịch hẹn). Gọi / nhắn xong thì ghi 💬 Tư vấn; khách hẹn thì chọn ngày hẹn (tối đa 14 ngày), số được giữ tới ngày hẹn.">⏳ ' + (left > 0 ? 'còn ' + left + ' ngày' : 'sắp') + ' về Kho chung</span>';
   }
   function leadCard(l) {
     var open = isOpenLead(l), due = /^(new|stale)$/.test(leadDue(l) || '') ? '' : leadDueLine(l), note = lastNote(l), c = cust(l.phone);
@@ -10025,7 +10035,10 @@
       Object.keys(MODE_INFO).map(function (k) { return '<label class="mode"><input type="radio" name="amode" value="' + k + '"' + (k === md ? ' checked' : '') + '><span><b>' + MODE_INFO[k][0] + '</b>' + MODE_INFO[k][1] + '</span></label>'; }).join('') + '</div>' +
       '<button class="btn pri" id="modeSave">Lưu cách chia khách</button>' +
       '<h3 style="margin:18px 0 8px">⏳ Số chưa chốt tự về Kho chung</h3>' + (lvl() >= 3 ? '<label class="switch" style="margin:0 0 8px"><input type="checkbox" id="poolOn"' + (R.poolOn ? ' checked' : '') + '> <b>Bật Kho chung</b> (sale thấy mục 🧺 Kho chung, nhãn ⏳, máy tự trả số quá hạn về kho). Đang tắt thì ẩn hết, không số nào bị trả về kho.</label>' : (R.poolOn ? '' : '<p class="hint" style="margin:0 0 8px">🙈 Kho chung đang ẩn với sale (Quản trị bật sau khi họp).</p>')) + '<p class="hint" style="margin:0 0 8px">Khách hỏi do <b>công ty giao</b> (file số quảng cáo, web, quản lý giao) mà sale giữ quá số ngày dưới đây <b>chưa chốt và không có lịch hẹn</b> → tự về Kho chung, cả phòng thấy và ai cũng nhận được. Sale được báo Telegram <b>trước 1 ngày</b>. Không áp dụng cho khách sale tự tìm, khách do khách cũ giới thiệu, file cũ. Mỗi số về kho tối đa 2 lần. Ai chốt thì người đó được tính doanh số.</p>' +
-      '<div class="row2c"><label class="f"><span>Về Kho chung sau bao nhiêu ngày (0 = tắt)</span><input type="number" id="poolDays" min="0" max="60" value="' + esc(R.poolDays === undefined ? 30 : R.poolDays) + '"></label>' +
+      '<p class="small muted" style="margin:0 0 8px">Khách hỏi công ty giao (không phải khách sale tự mang về) chưa chốt sẽ tự về Kho chung khi chạm <b>1 trong 3 mốc</b> dưới đây. Ghi 0 để tắt mốc đó. Có <b>hẹn gọi lại</b> (tối đa 14 ngày) thì vẫn giữ. Liên hệ = sale ghi 💬 Tư vấn / Ghi nhanh / Gửi ưu đãi trên CRM. Trước 1 ngày, máy báo Telegram cho sale. Khách hỏi đặt đơn web qua link của sale khác thì đơn tính cho người đang chăm, bỏ quá mốc thì tính cho người chốt được.</p>' +
+      '<div class="row2c"><label class="f"><span>① Chưa liên hệ lần nào sau (ngày)</span><input type="number" id="poolNoCall" min="0" max="60" value="' + esc(R.poolNoCall === undefined ? 2 : R.poolNoCall) + '"></label>' +
+      '<label class="f"><span>② Đã liên hệ nhưng không chăm lại (ngày)</span><input type="number" id="poolIdle" min="0" max="60" value="' + esc(R.poolIdle === undefined ? 10 : R.poolIdle) + '"></label></div>' +
+      '<div class="row2c"><label class="f"><span>③ Giữ tối đa chưa chốt (ngày)</span><input type="number" id="poolDays" min="0" max="60" value="' + esc(R.poolDays === undefined ? 30 : R.poolDays) + '"></label>' +
       '<label class="f"><span>Mỗi người nhận từ kho tối đa (số / ngày, 0 = không giới hạn)</span><input type="number" id="poolMax" min="0" max="100" value="' + esc(R.poolMax === undefined ? 10 : R.poolMax) + '"></label></div>' +
       '<button class="btn pri" id="poolSave">Lưu luật Kho chung</button>' +
       '<h3 style="margin:18px 0 8px">Ai được nhận khách mới?</h3><div class="edit-table">' + staff.map(function (u) {
@@ -10071,7 +10084,7 @@
     var act = (S.d.users || []).filter(function (u) { return u.active !== false; }), mk = act.filter(function (u) { return u.role === 'Marketing'; }).length, recvN = staff.filter(function (u) { return u.recv; }).length;
     var GQ = setGroup('gq', '✨ Nhân sự hỏi gì ở trang hướng dẫn', 'Xem câu nhân sự hỏi trợ lý · câu nào hướng dẫn chưa có thì nên viết thêm', '<div id="gqBox"><p class="hint" style="margin:0 0 10px">Ở trang <a href="/huong-dan/" target="_blank" rel="noopener">Hướng dẫn</a>, nhân sự gõ câu hỏi vào ô 🔍 Tìm rồi bấm <b>✨ Hỏi trợ lý An Lành</b>. Câu nào trợ lý báo <b>“hướng dẫn chưa có”</b> thì nên viết thêm vào hướng dẫn.</p><button class="btn" id="gqLoad">Xem câu đã hỏi</button></div>');
     h += setSec('👥 Nhân sự', 'Ai được vào CRM, được làm gì; nhân sự đang thắc mắc gì.', (G.us ? setGroup('us', '🧑‍💼 Ai được vào CRM', act.length + ' người đang dùng' + (mk ? ' · ' + mk + ' marketing' : '') + ' · thêm / khoá người, đổi quyền', G.us) : '') + GQ);
-    h += setSec('🤝 Chia khách', 'Khách mới giao cho ai, xử lý khách trùng hoặc dùng nhiều số.', setGroup('mode', '🔀 Khách mới giao cho ai', MODE_INFO[md][0] + (md === 'pool' ? (!R.poolOn ? ' · 🙈 Kho chung đang ẩn' : R.poolDays ? ' · quá ' + R.poolDays + ' ngày chưa chốt → về kho' : '') : '') + ' · ' + recvN + ' người nhận khách mới' + (noOwner ? ' · ⚠️ ' + noOwner + ' khách chưa ai phụ trách' : ''), G.mode) +
+    h += setSec('🤝 Chia khách', 'Khách mới giao cho ai, xử lý khách trùng hoặc dùng nhiều số.', setGroup('mode', '🔀 Khách mới giao cho ai', MODE_INFO[md][0] + (md === 'pool' ? (!R.poolOn ? ' · 🙈 Kho chung đang ẩn' : poolRuleLine(R) ? ' · về kho khi ' + poolRuleLine(R) : '') : '') + ' · ' + recvN + ' người nhận khách mới' + (noOwner ? ' · ⚠️ ' + noOwner + ' khách chưa ai phụ trách' : ''), G.mode) +
       (lvl() >= 3 ? setGroup('self', '🔎 Tự tạo khách (tab Hôm nay của sale)', selfOn() ? '✅ Đang hiện cho sale' : '🙈 Đang ẩn · bật sau khi họp thống nhất', G.self) : '') +
       setGroup('dup', '👯 Khách trùng sale', 'Khách có ở file của 2 sale: chọn 1 người giữ', G.dup) +
       setGroup('mrg', '🔗 Khách dùng nhiều số', '1 khách mua bằng 2–3 số: gộp về 1 hồ sơ', G.mrg));
@@ -10232,7 +10245,7 @@
     };
     if ($('#poolSave')) $('#poolSave').onclick = function () {
       var b = this; b.disabled = true;
-      api('settings', { pool: Object.assign({ days: $('#poolDays').value, max: $('#poolMax').value }, $('#poolOn') ? { on: $('#poolOn').checked } : {}) }).then(function (j) { Object.assign(S.d.rules, j.rules); toast(!j.rules.poolOn ? 'Đã lưu · Kho chung đang ẩn với sale' : j.rules.poolDays ? 'Đã lưu: quá ' + j.rules.poolDays + ' ngày chưa chốt thì về Kho chung ✓' : 'Đã tắt tự về Kho chung'); render(); }, function (e) { toast(e.message, true); b.disabled = false; });
+      api('settings', { pool: Object.assign({ days: $('#poolDays').value, noCall: $('#poolNoCall').value, idle: $('#poolIdle').value, max: $('#poolMax').value }, $('#poolOn') ? { on: $('#poolOn').checked } : {}) }).then(function (j) { Object.assign(S.d.rules, j.rules); toast(!j.rules.poolOn ? 'Đã lưu · Kho chung đang ẩn với sale' : poolRuleLine(j.rules) ? 'Đã lưu: về Kho chung khi ' + poolRuleLine(j.rules) + ' ✓' : 'Đã tắt tự về Kho chung'); render(); }, function (e) { toast(e.message, true); b.disabled = false; });
     };
     if ($('#sgSave')) $('#sgSave').onclick = function () {
       var b = this, L = $('#sgTxt').value.split('\n').map(function (ln) { var a = ln.split('|').map(function (z) { return z.trim(); }); return { full: a[0] || '', phone: a[1] || '', acct: a[2] || '' }; }).filter(function (r) { return r.full || r.phone || r.acct; }); b.disabled = true;
