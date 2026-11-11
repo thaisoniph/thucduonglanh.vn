@@ -9,7 +9,7 @@ import { execFile } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const VER = '2026-11-11a'; // 11/11/2026: gửi mã tin khi đăng + thu hồi tin (undo)
+const VER = '2026-11-11b'; // 11/11/2026: gửi mã tin khi đăng + thu hồi tin (undo); 🔒 tự ẩn tin khách có SĐT / địa chỉ
 const DIR = dirname(fileURLToPath(import.meta.url)), TMP = join(DIR, 'tmp'), CREDS = join(DIR, 'creds.json'), QR = join(DIR, 'qr.png');
 for (const l of (existsSync(join(DIR, '.env')) ? readFileSync(join(DIR, '.env'), 'utf8') : '').split('\n')) { const m = l.match(/^\s*([A-Z_]+)\s*=\s*(.*)\s*$/); if (m && !process.env[m[1]]) process.env[m[1]] = m[2]; }
 const API = process.env.API_URL || 'https://api.thucduonglanh.vn/', KEY = process.env.ZBOT_KEY;
@@ -188,6 +188,7 @@ async function onMessage(m) {
   const staff = g.admins && g.admins.has(d.uidFrom);
   if (!staff) { watchMsg(gid, d.uidFrom); actMsg(gid, d.uidFrom); } // đếm cả ảnh, sticker (khoe mâm cơm…)
   if (!text) return;
+  if (!staff && isMine(gid) && CFG.on && CFG.pii !== false && piiKind(text)) return hidePii(gid, g, d, text);
   remember(gid, { uid: d.uidFrom, name: d.dName, text, staff: staff ? 1 : 0 });
   if (!isMine(gid) || !CFG.on) return;
   if (staff) { // đội ngũ trả lời ai thì đánh dấu người đó
@@ -209,6 +210,31 @@ async function onMessage(m) {
     await reply(gid, ThreadType.Group, r.reply, { quote });
     remember(gid, { uid: me, name: myName, text: r.reply, bot: 1 });
   }
+}
+
+/* ---------------------------------------------------------------- 🔒 khách gửi số điện thoại / địa chỉ vào nhóm (11/11/2026)
+ * Nhóm công khai → kẻ xấu đọc được số, gọi lừa khách. Trợ lý (phó nhóm) ẩn tin ngay, rồi nhắn trong nhóm cho khách biết vì sao
+ * và ai sẽ liên hệ; máy chủ ghi khách tiềm năng + báo Telegram cho sale gọi. Không trích dẫn tin của khách (trích lại là lộ số). */
+const PHONE = /(?:\+?84|0)(?:[\s.-]?\d){9}(?!\d)/g, HOTLINE = ['0966326522'];
+const ADDR = /(?:^|[\s,.:;(])(số nhà|ngõ|ngách|hẻm|kiệt|đường|phố|thôn|xóm|ấp|khu phố|tổ dân phố|phường|xã|quận|huyện|thị xã|thị trấn|tỉnh|thành phố|tp|chung cư|toà|tòa)(?=[\s,.:;\d])/gi;
+function piiKind(text) {
+  const phones = (String(text).match(PHONE) || []).map(p => p.replace(/\D/g, '').replace(/^84/, '0')).filter(p => !HOTLINE.includes(p) && p !== myPhone);
+  if (phones.length) return 'phone';
+  const kw = new Set((String(text).match(ADDR) || []).map(k => k.trim().replace(/^[,.:;(]/, '').toLowerCase()));
+  const fine = ['số nhà', 'ngõ', 'ngách', 'hẻm', 'kiệt', 'thôn', 'xóm', 'ấp', 'tổ dân phố', 'chung cư'].some(k => kw.has(k)); // "cô ở quận 1 thành phố HCM" chưa tính là địa chỉ
+  if (kw.size >= 3 || (kw.size >= 2 && fine)) return 'addr';
+  return '';
+}
+async function hidePii(gid, g, d, text) {
+  let del = false;
+  if (g.boss) {
+    try { await sleep(rnd(800, 2000)); await api.deleteMessage({ data: { cliMsgId: d.cliMsgId, msgId: d.msgId, uidFrom: d.uidFrom }, threadId: gid, type: ThreadType.Group }, false); del = true; log('🔒 đã ẩn tin có thông tin riêng của', d.dName); }
+    catch (e) { log('🔒 ẩn tin', e.message); }
+  }
+  remember(gid, { uid: d.uidFrom, name: d.dName, text: '[đã gửi thông tin đặt hàng – trợ lý đã ẩn]', staff: 0 });
+  handled[gid + d.uidFrom] = Date.now(); // trợ lý không trả lời thêm tin này
+  const r = await call('pii', { gid, uid: d.uidFrom, name: d.dName, text, del });
+  if (r.reply) { await post(gid, r.reply, '', r.mentions); remember(gid, { uid: me, name: myName, text: r.reply, bot: 1 }); }
 }
 
 /* ---------------------------------------------------------------- vào nhóm: gom 60 giây rồi chào 1 lần */

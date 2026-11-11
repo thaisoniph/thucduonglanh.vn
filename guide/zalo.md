@@ -36,6 +36,17 @@ Trợ lý **soạn bài trước 3 ngày** để bạn kịp duyệt, và **lên
 1. Tin có **số điện thoại** của khách → gọi hoặc nhắn khách từ **hotline 0966 326 522**.
 2. Tin **chưa có số** → mở **điện thoại của trợ lý**, nhắn tay cho khách.
 
+**Khi Telegram báo "🔒 KHÁCH GỬI THÔNG TIN RIÊNG TRONG NHÓM ZALO":**
+
+Khách lỡ gửi số điện thoại hoặc địa chỉ vào nhóm. Trợ lý đã **tự ẩn tin** để kẻ xấu không lấy được số, và đã nhắn trong nhóm cho khách biết nhân viên sẽ liên hệ. Việc của bạn:
+
+1. **Gọi khách trong 15 phút** từ hotline 0966 326 522 (ngoài giờ thì 8h sáng hôm sau): lên đơn, hoặc kiểm tra đơn, ưu đãi, quà.
+2. Ghi kết quả vào CRM (khách đã có sẵn ở **Khách hỏi**).
+
+Nếu tin báo "⚠️ Trợ lý CHƯA ẩn được tin" thì phó nhóm vào xoá tay ngay.
+
+👉 **Bạn tự xoá tin của khách** (khi trợ lý chưa kịp): xoá xong **nhắn ngay 1 câu trong nhóm**, gọi tên khách, ví dụ: *"Dạ em cảm ơn cô ạ. Tin của cô có số điện thoại, địa chỉ nên em ẩn đi để giữ an toàn cho cô. Em gọi cô ngay ạ."* Rồi **gọi khách luôn**. Đừng xoá mà không nói gì: khách sẽ nghĩ mình bị lơ.
+
 Bạn nhắn tay thì trợ lý **tự im 2 tiếng** với khách đó. Trong nhóm, bạn trả lời ai thì trợ lý không chen vào với người đó.
 
 ⚠️ Tài khoản trợ lý **chỉ dùng trên điện thoại**. Đừng đăng nhập Zalo máy tính hay Zalo web, vì đăng nhập vào là trợ lý ngừng chạy.

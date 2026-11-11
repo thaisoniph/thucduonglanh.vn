@@ -19,7 +19,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { aiFetch } from './airelay.js';
 import { esc, run, all, first, kvGet, kvSet, kvJson, normPhone, fmtDate, isVoid, CRM_URL, TZ_MS, DAY } from './lib.js';
 import { telegram } from './google.js';
-import { addLead } from './crm.js';
+import { addLead, telegramUser } from './crm.js';
 import { kb, safe, workNow, TRUTH_RULES, REF_RULES, REF_TXT, PHONE_RE } from './chat.js';
 import { botRef } from './partner.js';
 import { offersLive } from './salemkt.js';
@@ -139,7 +139,7 @@ function zText(s, prods) {
 /* ---------------------------------------------------------------- điều phối (index.js gọi khi type === 'zbot') */
 export async function zbot(x, d) {
   if (!x.env.ZBOT_KEY || d.key !== x.env.ZBOT_KEY) return { ok: false, error: 'key' };
-  const h = { poll: zPoll, ack: zAck, join: zJoin, msg: zMsg, dm: zDm, friend: zFriend, friend_ok: zFriendOk, login: zLogin, human: zHuman }[d.ev];
+  const h = { poll: zPoll, ack: zAck, join: zJoin, msg: zMsg, dm: zDm, friend: zFriend, friend_ok: zFriendOk, login: zLogin, human: zHuman, pii: zPii }[d.ev];
   return h ? await h(x, d) : { ok: false, error: 'ev' };
 }
 
@@ -332,7 +332,8 @@ Bạn là "${BOT}" – thành viên đội chăm sóc khách hàng của Thực 
 - Tránh câu "nghe là biết máy": "Chắc chắn rồi", "Rất vui được hỗ trợ", "Cảm ơn bạn đã đặt câu hỏi", "Tuyệt vời!", "Hy vọng thông tin trên hữu ích", "Nếu còn thắc mắc gì…". Không nhắc lại câu hỏi của người ta. Không phải câu nào cũng mở bằng "Dạ"; đổi cách mở (dạ / vâng / ôi / gọi tên…) cho tự nhiên.
 - Không gọi người nhắn là "bạn" (khách đa số là cô chú, anh chị). Viết đúng chính tả, có dấu đầy đủ, không viết tắt kiểu "k", "dc".
 - Trả lời thẳng điều được hỏi. Gợi ý sản phẩm chỉ khi người ta hỏi hoặc rõ nhu cầu; khi gợi ý thêm [[sp:mã]] (tối đa 1).
-- Việc riêng tư (đơn hàng, đổi trả, khiếu nại, giá sỉ, bệnh cụ thể, người muốn mua) → trả lời ngắn và mời nhắn riêng: "anh/chị nhắn riêng em nha, em hỗ trợ kỹ hơn" + thêm [[zalo]] để chuyên viên biết. Không hỏi số điện thoại trong nhóm.
+- Việc riêng tư (đơn hàng, đổi trả, khiếu nại, giá sỉ, bệnh cụ thể, người muốn mua) → trả lời ngắn + thêm [[zalo]] để chuyên viên gọi lại. Khách đa số lớn tuổi, ít biết nhắn riêng: KHÔNG bảo khách "nhắn riêng em mã đơn / tên / địa chỉ". Nếu đội ngũ đã có số của khách thì nói "em báo chuyên viên gọi lại cho mình ngay nha"; chưa có số thì mời gọi hoặc nhắn Zalo hotline 0966 326 522, bên em gọi lại liền. Không hỏi số điện thoại, địa chỉ trong nhóm (khách lỡ gửi thì hệ thống tự ẩn tin).
+- Khách báo "đã đặt hàng rồi": cảm ơn, nói chuyên viên sẽ kiểm tra đơn, ưu đãi, quà và gọi xác nhận cho mình; thêm [[zalo]]. Không đòi mã đơn.
 
 # Khi nào lên tiếng
 Bạn đọc một tin trong nhóm (kèm vài tin trước đó). Quyết định:
@@ -342,7 +343,8 @@ Bạn đọc một tin trong nhóm (kèm vài tin trước đó). Quyết địn
 Khi trả lời thì chỉ viết nội dung tin (không ghi [TIM] / [BO_QUA]).
 
 # Ví dụ giọng nhắn (chỉ để học giọng; thông tin thật lấy từ phần kiến thức, không lấy từ ví dụ)
-- Hỏi: "Đặt hàng thế nào em ơi" → "Dạ chị nhắn riêng em tên với địa chỉ, em lên đơn cho chị luôn nha. Hàng tới chị được kiểm rồi mới trả tiền ạ."
+- Hỏi: "Đặt hàng thế nào em ơi" → "Dạ chị đặt ngay trên web thucduonglanh.vn, hoặc gọi hay nhắn Zalo hotline 0966 326 522 là bên em lên đơn giúp chị liền ạ. Hàng tới chị được kiểm rồi mới trả tiền nha."
+- Kể: "Cô đã đặt hàng rồi nha" → "Dạ con cảm ơn cô ạ! Con báo chị chuyên viên kiểm tra đơn, ưu đãi với quà của cô rồi gọi xác nhận cho cô liền nha." [[zalo]]
 - Hỏi: "Có ai dùng thử chưa mọi người" → [BO_QUA] nếu thành viên khác đang trả lời; nếu chưa ai trả lời sau một lúc: "Nhiều cô chú trong nhóm đang dùng đó chị ạ, mọi người chia sẻ thêm cho chị với nha 😊"
 - Kể: "Mấy hôm nay mất ngủ quá" → "Ôi mất ngủ mệt lắm chị ạ. Chị thử ăn tối sớm, bớt điện thoại trước giờ ngủ xem sao. Cần gì chị cứ nhắn riêng em nha."`;
 
@@ -355,13 +357,14 @@ async function zMsg(x, d) {
   const hk = 'zb_n_' + gid + '_' + fmtDate(now, 'yyMMddHH'), n = Number(await kvGet(x.db, hk) || 0);
   if (n >= (cfg.maxHour || 8) && !direct) return { ok: true };
   const st = await kvJson(x.db, 'zb_status', null), gname = groupName(st, gid), know = await kb(), w = workNow(now);
+  const known = d.uid ? await first(x.db, "SELECT phone FROM zb_users WHERE uid = ? AND phone != ''", String(d.uid)) : null; // đội ngũ đã có số → hứa gọi lại, khỏi bảo khách nhắn riêng
   const ctx = (d.ctx || []).slice(-12).map(m => (m.bot ? 'Em (' + BOT + ')' : m.staff ? '[Đội ngũ] ' + m.name : m.name) + ': ' + String(m.text || '').slice(0, 300)).join('\n');
   let reply = '';
   try {
     const res = await ai(x.env).messages.create({ model: FAST, max_tokens: 1500, output_config: { effort: 'low' },
       system: [{ type: 'text', text: GROUP_RULES + '\n' + TRUTH_RULES.replace(/mời nhắn Zalo/g, 'mời nhắn riêng') },
         { type: 'text', text: 'TÀI LIỆU (thông tin chính thức của Thực Dưỡng Lành):\n\n' + know, cache_control: { type: 'ephemeral' } },
-        { type: 'text', text: 'Nhóm: "' + gname + '". Bây giờ là ' + w.label + '. Chuyên viên ' + (w.on ? 'đang trực.' : 'ngoài giờ (trực Thứ 2 – Thứ 7, 8h–17h).') }],
+        { type: 'text', text: 'Nhóm: "' + gname + '". Bây giờ là ' + w.label + '. Chuyên viên ' + (w.on ? 'đang trực.' : 'ngoài giờ (trực Thứ 2 – Thứ 7, 8h–17h).') + ' Đội ngũ ' + (known ? 'ĐÃ CÓ' : 'CHƯA có') + ' số điện thoại của người nhắn.' }],
       messages: [{ role: 'user', content: (ctx ? 'Các tin trước trong nhóm:\n' + ctx + '\n\n' : '') + 'TIN CẦN XỬ LÝ – ' + (d.name || 'Thành viên') + (direct ? ' (gọi em / trả lời tin của em)' : '') + ': ' + text }] });
     if (res.stop_reason === 'refusal') return { ok: true };
     reply = textOf(res);
@@ -373,6 +376,42 @@ async function zMsg(x, d) {
   await zlog(x, z.zalo ? 'handoff' : 'answer', { gid, uid: d.uid, name: d.name, text, reply: z.text });
   if (z.zalo) x.later(handoff(x, { where: 'nhóm "' + gname + '"', name: d.name, uid: d.uid, text, reply: z.text }));
   return { ok: true, reply: z.text, quote: true };
+}
+
+/* ---------------------------------------------------------------- 🔒 khách gửi số điện thoại / địa chỉ vào nhóm (11/11/2026)
+ * Chương trình Zalo tự nhận ra, ẩn tin (trợ lý là phó nhóm) rồi gọi vào đây: ghi khách tiềm năng, báo Telegram cho sale gọi,
+ * trả về câu trợ lý nói trong nhóm để khách biết vì sao tin bị ẩn và ai sẽ liên hệ (không để khách bị "xoá tin không lời giải thích"). */
+const HOTLINES = ['0966326522'];
+async function zPii(x, d) {
+  const cfg = await zCfg(x), gid = String(d.gid || ''), uid = String(d.uid || ''), nm = String(d.name || 'Khách').trim().slice(0, 60), now = Date.now();
+  if (!cfg.on || !cfg.groups.includes(gid)) return { ok: true };
+  const text = String(d.text || '').replace(/\s+/g, ' ').trim().slice(0, 800), del = !!d.del, w = workNow(now);
+  const pm = text.match(PHONE_RE); let phone = pm ? normPhone(pm[0]) : '';
+  if (!/^0\d{9}$/.test(phone) || HOTLINES.includes(phone)) phone = '';
+  const u = uid ? await first(x.db, 'SELECT phone, lead FROM zb_users WHERE uid = ?', uid) : null;
+  const callPhone = phone || (u && u.phone) || '';
+  const st = await kvJson(x.db, 'zb_status', null), gname = groupName(st, gid);
+  let ld = null;
+  if (phone) {
+    ld = await addLead(x, { name: nm, phone, channel: 'Zalo nhóm', interest: 'Gửi thông tin trong nhóm Zalo', addInterest: true, note: 'Khách gửi trong nhóm "' + gname + '" (tên Zalo: ' + nm + '): ' + text.slice(0, 400), by: 'Website', auto: true });
+    await run(x.db, `INSERT INTO zb_users (uid, phone, zname, lead, at) VALUES (?, ?, ?, ?, ?) ON CONFLICT(uid) DO UPDATE SET phone = CASE WHEN zb_users.phone = '' THEN excluded.phone ELSE zb_users.phone END, lead = CASE WHEN zb_users.lead = '' THEN excluded.lead ELSE zb_users.lead END`, uid, phone, nm, ld.id, now);
+  }
+  await zlog(x, 'handoff', { gid, uid, name: nm, text: '🔒 ' + text, reply: del ? 'Trợ lý đã ẩn tin (có số điện thoại / địa chỉ) và báo khách nhân viên sẽ liên hệ.' : 'Trợ lý CHƯA ẩn được tin – phó nhóm xoá tay.' });
+  const owner = ld && ld.owner || '';
+  const tg = '🔒 <b>KHÁCH GỬI THÔNG TIN RIÊNG TRONG NHÓM ZALO</b> – nhóm "' + esc(gname) + '"\n👤 ' + esc(nm) + (callPhone ? ' – <b>' + esc(callPhone) + '</b>' : ' (chưa biết số)') + '\n💬 ' + esc(text.slice(0, 400))
+    + '\n' + (del ? '✅ Trợ lý đã ẩn tin để bảo vệ khách và nhắn trong nhóm: nhân viên sẽ liên hệ.' : '⚠️ Trợ lý CHƯA ẩn được tin → phó nhóm vào xoá tay ngay.')
+    + '\n👉 ' + (callPhone ? 'GỌI KHÁCH ' + (w.on ? 'TRONG 15 PHÚT' : 'LÚC 8H SÁNG NGÀY LÀM VIỆC TỚI') + ' từ hotline 0966 326 522: lên đơn / kiểm tra đơn, ưu đãi, quà.' : 'Chưa có số: nhắn tay cho khách trên điện thoại "Trợ lý An Lành" (tìm tên khách trong nhóm).')
+    + (owner ? '\n👤 Khách của: ' + esc(owner) : ld ? '\n⚠️ Chưa có người phụ trách – vào CRM để giao' : '') + (ld ? '\n' + CRM_URL + '/#tiem-nang' : '');
+  x.later(telegram(x.env, tg));
+  if (owner) x.later(telegramUser(x, owner, tg).catch(() => {}));
+  const k = 'zb_pii_' + gid + '_' + uid; // khách gửi liền mấy tin: chỉ nói trong nhóm 1 lần / 30 phút
+  if (await kvGet(x.db, k)) return { ok: true };
+  await kvSet(x.db, k, '1', 30 * 60e3);
+  const when = w.on ? 'ngay' : 'từ 8h sáng ngày làm việc tới';
+  const reply = del
+    ? 'Dạ em cảm ơn @' + nm + ' ạ 💚 Tin vừa rồi có số điện thoại, địa chỉ nên em đã ẩn đi để giữ an toàn cho mình (nhóm đông người). Em ghi lại đủ rồi, chuyên viên bên em sẽ ' + (callPhone ? 'gọi' : 'nhắn Zalo') + ' cho mình ' + when + ' ạ.'
+    : 'Dạ em cảm ơn @' + nm + ' ạ 💚 Em ghi lại thông tin rồi, chuyên viên bên em sẽ ' + (callPhone ? 'gọi' : 'nhắn Zalo') + ' cho mình ' + when + '. Nhóm đông người, mình bấm giữ tin vừa gửi rồi chọn Thu hồi giúp em để giữ an toàn số điện thoại, địa chỉ nha.';
+  return { ok: true, reply, mentions: [{ uid, name: nm }] };
 }
 
 /** Câu cần người thật → Telegram (kèm số điện thoại nếu đã biết từ web) */
