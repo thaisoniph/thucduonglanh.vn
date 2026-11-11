@@ -2696,6 +2696,7 @@
       (o.trk ? trkLine(o).replace('class="trkl', 'class="trkl full') || '<div class="trkl full">📦 ' + esc(o.trk) + '</div>' : '') +
       '<div class="steps"><button class="btn" id="oTrackSave">Lưu vận đơn</button>' + (o.tracking ? '<button class="btn" id="oTrackGo">🔎 Tra cứu hành trình</button>' : '') + '</div>' +
       (o.tracking ? '' : '<p class="hint" style="margin:8px 0 0">Nhập mã vận đơn xong, đơn tự chuyển sang “Đang giao”.' + (carrierOf(o) === 'Viettel Post' ? ' Mã đơn ' + esc(o.id) + ' là mã của sale, không tra cứu được trên Viettel Post – cần mã vận đơn Viettel Post cấp (in trên phiếu gửi). Khi tạo đơn trên Viettel Post có ghi mã đơn này vào ô mã đơn hàng riêng / tham chiếu thì CRM tự điền mã vận đơn.' : '') + '</p>') + '</div>' +
+      adjBox(o) +
       (/^(Nhập tay|Tiềm năng)/.test(o.source || '') ? '<div class="box" id="oWb"><h3>📄 File lên đơn của sale</h3><p class="small muted" style="margin:0 0 8px">Đơn tạo trên CRM tự ghi vào sheet lên đơn (VTG_lendon) của sale phụ trách, khoảng 10 phút/lần (7h–22h).</p><button class="btn" id="oWbChk" type="button">🔎 Kiểm tra đã vào file chưa</button><div id="oWbRes"></div></div>' : '') +
       '<div class="box"><label class="f" style="margin:0"><span>Ghi chú đơn</span><textarea id="oNote" rows="2">' + esc(o.note) + '</textarea></label><button class="btn" id="oNoteSave" style="margin-top:8px">Lưu ghi chú</button></div>' +
       (logs.length ? '<div class="box"><h3>Lịch sử</h3><div class="timeline">' + logs.map(logItem).join('') + '</div></div>' : '') +
@@ -2763,6 +2764,8 @@
       if (!u) { toast('Đã copy mã vận đơn ' + o.tracking); return; }
       toast('Đã copy mã ' + o.tracking + (u.indexOf('{c}') < 0 ? ' – dán vào ô tra cứu' : '')); window.open(u.replace('{c}', encodeURIComponent(o.tracking)), '_blank', 'noopener');
     };
+    if ($('#oAdjBtn', m)) $('#oAdjBtn', m).onclick = function () { openAdj(o); };
+    if ($('#oAdjOff', m)) $('#oAdjOff', m).onclick = function () { if (confirm('Bỏ ghi ' + o.adj.t + ' của đơn ' + o.id + '? Tiền đơn trở lại ' + money(o.adj.from) + '.')) adjSave(o, { kind: '' }); };
     $('#oNoteSave', m).onclick = function () {
       var note = $('#oNote', m).value.trim(), oldNote = o.note;
       o.note = note; toast('Đã lưu ghi chú ✓'); render();
@@ -2770,6 +2773,53 @@
         o.note = oldNote; toast(e.message, true); render();
       });
     };
+  }
+  /* ---------- ✏️ Hạ COD / Ký 1 phần / Đổi hàng (11/11/2026, thay file Google Sheet kế toán theo dõi). Sale ghi trong đơn → total = tiền thực thu (anh Sơn chốt:
+   * doanh số, thi đua, hoa hồng tính theo thực thu), tiền ban đầu giữ ở o.adj.from. Kế toán xem danh sách ở tab 💼 Kế toán → ✏️ Đơn điều chỉnh tiền (ktAdjHTML). */
+  var ADJ_T = [['Hạ COD', '💸 Hạ COD', 'Khách xin giảm tiền thu hộ (hỗ trợ ship, giảm giá thêm…)'], ['Ký 1 phần', '✂️ Ký nhận 1 phần', 'Khách chỉ nhận 1 phần hàng, phần còn lại hãng trả về'], ['Đổi hàng', '🔁 Đổi hàng', 'Khách đổi sang hàng khác, có thể thu thêm tiền']];
+  function adjLine(a) { return money(a.from) + (a.down ? ' − ' + money(a.down) : '') + (a.up ? ' + ' + money(a.up) : '') + ' = <b>' + money(a.from - a.down + a.up) + '</b>'; }
+  function adjBox(o) {
+    var a = o.adj;
+    if (!a) return isVoid(o.status) ? '' : '<div class="box" id="oAdj"><h3>✏️ Hạ COD / Ký 1 phần / Đổi hàng</h3><p class="small muted" style="margin:0 0 8px">Khách xin giảm tiền thu hộ, chỉ nhận 1 phần hàng hoặc đổi hàng thì bấm ghi lại. Kế toán xuất hoá đơn theo số tiền thực thu, doanh số cũng tính theo số này.</p><button class="btn" id="oAdjBtn">✏️ Ghi hạ COD / ký 1 phần / đổi hàng</button></div>';
+    return '<div class="box" id="oAdj"><h3>✏️ ' + esc(a.t) + '</h3><p style="margin:0 0 6px">Tiền ban đầu ' + adjLine(a) + ' thực thu</p><p class="small muted" style="margin:0 0 8px">' +
+      [a.trk ? 'Mã vận đơn mới: <b>' + esc(a.trk) + '</b>' : '', a.at ? 'xử lý ' + fDate(a.at) : '', a.by ? 'bởi ' + esc(a.by) : '', a.note ? '“' + esc(a.note) + '”' : ''].filter(Boolean).join(' · ') + '</p>' +
+      '<div class="steps"><button class="btn" id="oAdjBtn">✏️ Sửa</button><button class="btn ghost" id="oAdjOff">↩ Bỏ điều chỉnh</button></div></div>';
+  }
+  function openAdj(o) {
+    var a = o.adj || {}, from = a.t ? a.from : o.total, t0 = a.t || 'Hạ COD';
+    var inp = function (id, lbl, v, ph) { return '<label class="f" id="' + id + 'L"><span>' + lbl + '</span><input type="text" id="' + id + '" inputmode="numeric" value="' + (v ? money(v).replace('đ', '') : '') + '" placeholder="' + (ph || 'VD: 50k, 1tr') + '" autocomplete="off"></label>'; };
+    var body = '<p class="small" style="margin:0 0 10px">Đơn <b>' + esc(o.id) + '</b> · ' + esc(o.name) + ' · tiền ban đầu <b>' + money(from) + '</b>' + (o.tracking ? ' · mã vận đơn ' + esc(o.tracking) : '') + '</p>' +
+      '<div class="radios adj-t">' + ADJ_T.map(function (x) { return '<label><input type="radio" name="adjT" value="' + x[0] + '"' + (x[0] === t0 ? ' checked' : '') + '><span>' + x[1] + '</span></label>'; }).join('') + '</div><p class="small muted" id="adjHint" style="margin:6px 0 10px"></p>' +
+      '<div class="row2c">' + inp('adjDown', 'Số tiền hạ', a.down) + inp('adjUp', 'Số tiền thu thêm', a.up, 'Không có thì để trống') + '</div>' +
+      '<p class="notice" id="adjSum" style="margin:4px 0 10px"></p>' +
+      '<div class="row2c"><label class="f"><span>Mã vận đơn mới <small class="muted">(nếu có)</small></span><input type="text" id="adjTrk" value="' + esc(a.trk || '') + '" autocomplete="off"></label>' +
+      '<label class="f"><span>Ngày xử lý</span><input type="date" id="adjDay" value="' + isoDate(a.at || Date.now()) + '" max="' + isoDate(Date.now()) + '"></label></div>' +
+      '<label class="f"><span>Ghi chú <small class="muted">(lý do, hàng trả về gồm gì…)</small></span><input type="text" id="adjNote" value="' + esc(a.note || '') + '" placeholder="VD: 1 lon không có date"></label><p class="err" id="adjE"></p>';
+    var m = modal('✏️ Hạ COD / Ký 1 phần / Đổi hàng', body, '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="adjGo">💾 Lưu</button>');
+    var typ = function () { return ($('input[name=adjT]:checked', m) || {}).value; };
+    var upd = function () {
+      var t = typ(), d = moneyIn($('#adjDown', m).value), u = moneyIn($('#adjUp', m).value), tot = from - d + u;
+      $('#adjHint', m).textContent = ADJ_T.filter(function (x) { return x[0] === t; })[0][2] + '.';
+      $('#adjDownL span', m).textContent = t === 'Ký 1 phần' ? 'Tiền phần hàng khách trả lại' : t === 'Đổi hàng' ? 'Số tiền giảm (nếu có)' : 'Số tiền hạ COD';
+      $('#adjSum', m).innerHTML = tot < 0 ? '⚠️ Tiền hạ lớn hơn tiền đơn.' : 'Thực thu: ' + adjLine({ from: from, down: d, up: u }) + (tot !== from ? '<br><small>Doanh số đơn này tính theo ' + money(tot) + '.</small>' : '');
+    };
+    $$('input[name=adjT]', m).forEach(function (r) { r.onchange = upd; }); ['#adjDown', '#adjUp'].forEach(function (k) { $(k, m).oninput = upd; }); upd();
+    $('#adjGo', m).onclick = function () {
+      var t = typ(), d = moneyIn($('#adjDown', m).value), u = moneyIn($('#adjUp', m).value), e = $('#adjE', m);
+      if (from - d + u < 0) { e.textContent = 'Tiền hạ lớn hơn tiền đơn.'; return; }
+      if (!d && !u && t !== 'Đổi hàng') { e.textContent = t === 'Ký 1 phần' ? 'Gõ tiền phần hàng khách trả lại.' : 'Gõ số tiền hạ COD.'; return; }
+      this.disabled = true; this.textContent = 'Đang lưu…';
+      adjSave(o, { kind: t, down: d, up: u, trk: $('#adjTrk', m).value.trim(), day: $('#adjDay', m).value, note: $('#adjNote', m).value.trim() }, this);
+    };
+  }
+  function adjSave(o, p, btn) {
+    api('order_adj', Object.assign({ id: o.id, row: o.row }, p)).then(function () {
+      var from = o.adj ? o.adj.from : o.total;
+      if (!p.kind) { o.total = from; o.adj = null; }
+      else { o.adj = { t: p.kind, from: from, down: p.down, up: p.up, trk: p.trk, at: p.day ? new Date(p.day + 'T12:00:00+07:00').getTime() : Date.now(), by: S.user.name, note: p.note }; o.total = from - p.down + p.up; }
+      o.subtotal = Math.max(0, o.total - (o.shipping || 0));
+      toast(p.kind ? 'Đã ghi ' + p.kind + ' ✓ Thực thu ' + money(o.total) : 'Đã bỏ điều chỉnh ✓'); render(); openOrder(o.id, true);
+    }).catch(function (e) { toast(e.message, true); if (btn) { btn.disabled = false; btn.textContent = '💾 Lưu'; } });
   }
   function setStatus(o, st, done) {
     if (st === o.status) return;
@@ -5447,6 +5497,7 @@
       }).join('') + '</div>' : '') + '</section>';
     h += kspHTML(R);
     h += ktcHTML(R, f.p);
+    h += ktAdjHTML(R, f.p);
     h += '<section class="ktv-sec"><h2 class="ktv-h">📊 Lãi lỗ <small>cùng số với Tổng quan của Quản trị</small></h2>' + dashDaily(R, b, M, sj, f.p, month);
     var PL = dashPnl(T, b, bp, M, sj, R, P, month); h += dashMore('pnl', '🧮 Lãi lỗ sau mọi chi phí', PL.line, PL.body);
     var CO = dashCost(); if (CO) h += dashMore('cost', '📊 Chi phí lớn & cách tối ưu', CO.line, CO.body);
@@ -5467,6 +5518,23 @@
   function ktcWay(o) { if (isBank(o)) return 'ck'; var c = String(o.carrier || ''); return /best/i.test(c) ? 'best' : /viettel|vtp/i.test(c) ? 'vtp' : 'xe'; }
   function ktcLow(o) { return o.cashAmt != null && o.cashAt && Math.abs((o.total || 0) - o.cashAmt) > 1000 ? (o.total || 0) - o.cashAmt : 0; } // >0: hãng thu ít hơn đơn
   function ktcShort(n, all) { var w = String(n).trim().split(/\s+/), l = w[w.length - 1]; return all.filter(function (x) { return String(x).trim().split(/\s+/).pop() === l; }).length > 1 ? n : l; }
+  /* ---------- ✏️ Đơn hạ COD / ký 1 phần / đổi hàng cho kế toán (11/11/2026): thay file Google Sheet sale tự điền. Cột giống file cũ.
+   * Lấy đơn đặt trong kỳ hoặc xử lý (adj.at) trong kỳ. Thực thu = tiền ban đầu − hạ + thu thêm = o.total (doanh số đã theo số này). */
+  var KTA_TSV = '';
+  function ktAdjHTML(R, p) {
+    var L = S.d.orders.filter(function (o) { return o.adj && ((o.time >= R[0] && o.time < R[1]) || (o.adj.at >= R[0] && o.adj.at < R[1])); }).sort(function (a, b) { return a.time - b.time; });
+    var T = { from: 0, down: 0, up: 0 }, n = {}; L.forEach(function (o) { T.from += o.adj.from; T.down += o.adj.down; T.up += o.adj.up; n[o.adj.t] = (n[o.adj.t] || 0) + 1; });
+    var hd = ['STT', 'Ngày lên đơn', 'Mã đơn', 'Khách hàng', 'SĐT (4 số cuối)', 'Mã vận đơn cũ', 'Đơn vị vận chuyển', 'Loại đơn', 'Tổng tiền ban đầu', 'Số tiền hạ', 'Số tiền thu thêm', 'Tổng tiền thực thu', 'Ngày xử lý', 'Mã vận đơn mới', 'Người xử lý', 'Ghi chú', 'Sale'];
+    var ph = function (o) { return o.ph || String(o.phone || '').slice(-4); };
+    KTA_TSV = hd.join('\t') + '\n' + L.map(function (o, i) { var a = o.adj; return [i + 1, fDate(o.time), o.id, o.name, ph(o), o.tracking, o.carrier, a.t, a.from, a.down || '', a.up || '', a.from - a.down + a.up, a.at ? fDate(a.at) : '', a.trk, a.by, a.note, o.seller].map(function (v) { return String(v == null ? '' : v).replace(/[\t\n]/g, ' '); }).join('\t'); }).join('\n');
+    var h = '<section class="ktv-sec"><h2 class="ktv-h">✏️ Đơn hạ COD / ký 1 phần / đổi hàng <small>' + esc(perLabel(p).toLowerCase()) + ' · sale ghi trong từng đơn, thay file Google Sheet</small></h2>';
+    if (!L.length) return h + '<p class="muted small">Chưa có đơn nào. Sale mở đơn → ✏️ Ghi hạ COD / ký 1 phần / đổi hàng.</p></section>';
+    h += '<div class="box"><p style="margin:0 0 8px">' + L.length + ' đơn' + ADJ_T.map(function (x) { return n[x[0]] ? ' · ' + x[1] + ' ' + n[x[0]] : ''; }).join('') + '<br>Tiền ban đầu <b>' + money(T.from) + '</b>' + (T.down ? ' − hạ ' + money(T.down) : '') + (T.up ? ' + thu thêm ' + money(T.up) : '') + ' = thực thu <b>' + money(T.from - T.down + T.up) + '</b></p>' +
+      '<div class="ktk-scroll"><table class="ktk-t"><thead><tr><th>Ngày đơn</th><th>Đơn · Khách</th><th>Loại</th><th class="num">Ban đầu</th><th class="num">Hạ</th><th class="num">Thu thêm</th><th class="num">Thực thu</th><th>Vận đơn cũ → mới</th><th>Xử lý</th></tr></thead><tbody>' +
+      L.map(function (o) { var a = o.adj; return '<tr><td>' + fDate(o.time).slice(0, 5) + '</td><td><b>' + esc(o.id) + '</b><br><small>' + esc(o.name) + ' ' + esc(ph(o)) + (o.seller ? ' · ' + esc(o.seller) : '') + '</small></td><td>' + esc(a.t) + '</td><td class="num">' + money(a.from) + '</td><td class="num">' + (a.down ? '−' + money(a.down) : '–') + '</td><td class="num">' + (a.up ? '+' + money(a.up) : '–') + '</td><td class="num"><b>' + money(a.from - a.down + a.up) + '</b></td><td><small>' + esc([o.carrier, o.tracking].filter(Boolean).join(' ') || '–') + (a.trk ? '<br>→ ' + esc(a.trk) : '') + '</small></td><td><small>' + (a.at ? fDate(a.at).slice(0, 5) : '') + ' ' + esc(a.by) + (a.note ? '<br>“' + esc(a.note) + '”' : '') + '</small></td></tr>'; }).join('') +
+      '</tbody></table></div><p class="small muted">Doanh số và tiền treo ở hãng đã tính theo tiền thực thu. Khi tải file đối soát COD, đơn đã ghi ở đây không bị báo lệch tiền.</p><p><button class="btn" id="ktaCopy">📋 Chép bảng (dán vào Google Sheet)</button></p></div>';
+    return h + '</section>';
+  }
   function ktcHTML(R, p) {
     var by = {}, mk = function () { return { sum: 0, n: 0, way: {}, type: {}, acct: {}, low: 0, ship: 0 }; }, T = mk(), lows = [];
     var add = function (x, k, sub, v) { x[k][sub] = (x[k][sub] || 0) + v; };
@@ -6167,6 +6235,7 @@
         api('kt_why', { row: a[0], id: a[1], why: el.value }).then(function (j) { ktvMerge(j.orders || []); toast(el.value ? 'Đã ghi lý do ✓' : 'Đã bỏ lý do'); render(); }, function (e) { el.disabled = false; toast(/Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message, true); });
       };
     });
+    var ka = $('#ktaCopy'); if (ka) ka.onclick = function () { copy(KTA_TSV).then(function () { toast('Đã chép bảng ✓ Mở Google Sheet, bấm ô A1 rồi Ctrl+V (Mac: ⌘+V)'); }); };
     var kc = $('#ktcCopy'); if (kc) kc.onclick = function () { copy(KTC_TSV).then(function () { toast('Đã chép bảng ✓ Mở Google Sheet, bấm ô A1 rồi Ctrl+V (Mac: ⌘+V)'); }); };
     var sv = $('#ktvFromSave'); if (sv) sv.onclick = function () {
       var v = $('#ktvFrom').value; if (!v) return; sv.disabled = true;

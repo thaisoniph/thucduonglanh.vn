@@ -193,6 +193,18 @@ Bấm **📋 Chép bảng** rồi dán vào Google Sheet nếu cần gửi file.
 
 **⚠️ Đơn hãng thu khác tiền trên đơn** (ngay dưới bảng): mỗi đơn có ô **Chọn lý do**: Hạ COD hỗ trợ ship, Sale nhập sai tiền, Khách trả thiếu, Giảm giá thêm cho khách, Khác. Chọn là lưu luôn. Lý do là **Sale nhập sai tiền** thì nhắn sale sửa lại số tiền trên đơn.
 
+## Đơn hạ COD, ký 1 phần, đổi hàng
+
+Mục **✏️ Đơn hạ COD / ký 1 phần / đổi hàng** (dưới bảng Chốt doanh số) thay cho file Google Sheet sale tự điền. Sale ghi ngay trong từng đơn, kế toán chỉ cần xem.
+
+- Mỗi dòng có: ngày đơn, mã đơn, khách (4 số cuối SĐT), sale, loại, **tiền ban đầu**, **tiền hạ**, **thu thêm**, **thực thu**, mã vận đơn cũ → mới, ngày xử lý, người xử lý, ghi chú.
+- Xuất hoá đơn theo cột **Thực thu**.
+- Danh sách lấy đơn **đặt** hoặc **xử lý** trong khoảng thời gian chọn ở trên cùng (Tháng này, Tháng trước…).
+- Bấm **📋 Chép bảng** rồi dán vào Google Sheet nếu cần gửi file. Các cột giống file cũ.
+- Doanh số, tiền treo ở hãng đã tính theo thực thu. Tải file đối soát COD thì đơn đã ghi ở đây **không** bị báo lệch tiền.
+
+Thấy đơn hãng thu ít hơn mà sale chưa ghi (nằm ở **⚠️ Đơn hãng thu khác tiền trên đơn**) thì nhắn sale mở đơn ghi hạ COD / ký 1 phần.
+
 ## Nhập chi phí và xem lãi lỗ
 
 Lãi lỗ ở tab này **cùng số** với Tổng quan của anh Sơn.

@@ -100,3 +100,5 @@ export async function kvGet(db, k) {
 export async function kvSet(db, k, v, ttlMs) { await run(db, 'INSERT INTO kv (k, v, exp) VALUES (?, ?, ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v, exp = excluded.exp', k, String(v), ttlMs ? Date.now() + ttlMs : null); }
 export async function kvDel(db, k) { await run(db, 'DELETE FROM kv WHERE k = ?', k); }
 export async function kvJson(db, k, dflt) { const v = await kvGet(db, k); if (v == null) return dflt; try { return JSON.parse(v); } catch (e) { return dflt; } }
+/** ✏️ Điều chỉnh tiền đơn (11/11/2026): sale ghi Hạ COD / Ký 1 phần / Đổi hàng → total = tiền thực thu, adj_from = tiền ban đầu. */
+export const adjOut = r => r.adj_type ? { t: r.adj_type, from: r.adj_from || 0, down: r.adj_down || 0, up: r.adj_up || 0, trk: r.adj_trk || '', at: r.adj_at || null, by: r.adj_by || '', note: r.adj_note || '' } : null;

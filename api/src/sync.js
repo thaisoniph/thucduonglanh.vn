@@ -342,7 +342,7 @@ async function importOrders(x, src, shCfg, data, dry) {
     const key = valid ? codeRaw : nk, alt = (valid ? [nk, old] : [old]).concat(prev); // alt: mã NK… cùng dòng (Apps Script cũ băm chữ có dấu thành "?"; sale điền mã đơn sau khi đã nhập; ngày cũ theo ô trước khi lấy theo mã)
     parsed.push({ r, phone, when, sw, fill: D.fill, dc: D.code && D.old ? (D.byCode ? 1 : 2) : 0, product, amount, codeRaw, valid, key, alt, yk: valid ? codeRaw + '-' + fp.slice(-4) : '', sig: fp + '|' + fmtDate(when, 'yyyyMMdd') + '|' + amount + '|' + nrm(product || cell(r, m, 'gift1')) });
   }
-  const ex = {}; (await allIn(x.db, 'SELECT rid, id, status, source, seller, name, phone, time, total, shipping, items, line, ship, note, address, ward, province FROM orders WHERE id IN (SELECT value FROM json_each(?))', [...new Set(parsed.flatMap(p => [p.key, p.yk].concat(p.alt)).filter(String))])).forEach(o => { ex[o.id] = o; });
+  const ex = {}; (await allIn(x.db, 'SELECT rid, id, status, source, seller, name, phone, time, total, shipping, items, line, ship, note, address, ward, province, adj_type FROM orders WHERE id IN (SELECT value FROM json_each(?))', [...new Set(parsed.flatMap(p => [p.key, p.yk].concat(p.alt)).filter(String))])).forEach(o => { ex[o.id] = o; });
   // Mã đơn không có năm → trùng giữa các năm / giữa các sheet ("Chang101001" năm 2025 và 2026 là 2 khách khác nhau). Mã đã thuộc đơn của khách khác
   // (khác SĐT) → đơn này dùng mã + 4 số cuối SĐT. 12/10/2026: 64 đơn VTG_lendon của Chang bị coi là "đã có", 8 đơn cũ bị ghi đè.
   // Nhưng sale sửa SĐT của chính đơn đó (16/10/2026: Phương sửa số Thầy Chùa An 0395045379 → 0395045179 → CRM tạo thêm Phuong051004-5179, doanh số dư 1,8 triệu):
@@ -438,7 +438,7 @@ async function importOrders(x, src, shCfg, data, dry) {
     if (ex[key] && !seen['n' + ex[key].rid]) { const co = codeOwner(codeRaw, sale), cur = ex[key]; seen['n' + cur.rid] = 1; if (co && String(cur.note || '').indexOf(co) < 0) noteAdd.push({ rid: cur.rid, note: co + (cur.note ? ' · ' + cur.note : '') }); }
     if (ex[key]) { // đã nhập: file cũ đổi sang Đã giao / Hoàn / Huỷ / Đổi hàng thì cập nhật theo (không đè thay đổi làm trên CRM)
       const st1 = mapStatus(cell(r, m, 'status'), when), cur = ex[key];
-      if (sync2(cur) && (p.edited || chkIds.indexOf(cur.id) >= 0) && !handEdit[cur.id] && !seen['c' + cur.rid]) {
+      if (sync2(cur) && (p.edited || chkIds.indexOf(cur.id) >= 0) && !handEdit[cur.id] && !cur.adj_type && !seen['c' + cur.rid]) { // đơn đã ✏️ Hạ COD / Ký 1 phần / Đổi hàng trên CRM: giữ tiền thực thu, không lấy lại tiền trong file
         seen['c' + cur.rid] = 1; const amt = amount, items = rowItems(r, product, amt); // ô tiền trống / 0 → đơn 0đ (30/10/2026 anh Sơn: theo file)
         if (!isFileO(cur)) { // đơn tạo trên CRM: tiền gồm ship; cùng sản phẩm thì giữ nguyên các dòng hàng / quà; cùng ngày thì giữ giờ
           const sameP = multiP(cur) || prodOf(cur.items) === p.prod, sh = Math.min(Number(cur.shipping) || 0, amt);

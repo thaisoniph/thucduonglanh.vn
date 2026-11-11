@@ -135,6 +135,15 @@ Mỗi đơn đi qua 4 bước: **Mới → Đã xác nhận → Đang giao → �
 
 **Khách muốn huỷ:** mở đơn, chọn **Huỷ**, ghi lý do.
 
+**Khách xin hạ COD, chỉ nhận 1 phần hàng, hoặc đổi hàng:** mở đơn, kéo xuống mục **✏️ Hạ COD / Ký 1 phần / Đổi hàng**, bấm **✏️ Ghi hạ COD / ký 1 phần / đổi hàng**.
+
+1. Chọn loại: **💸 Hạ COD**, **✂️ Ký nhận 1 phần** hoặc **🔁 Đổi hàng**.
+2. Gõ **số tiền hạ** (ký 1 phần: tiền phần hàng khách trả lại). Có thu thêm thì gõ vào ô **Số tiền thu thêm**. Gõ tắt được: 30k, 1tr.
+3. Máy tự tính **Thực thu**. Ví dụ đơn 3.600.000đ, khách trả lại 1.000.000đ tiền hàng → thực thu 2.600.000đ.
+4. Có mã vận đơn mới (hàng trả về, đơn đổi) thì gõ vào. Ghi chú lý do nếu cần (ví dụ: 1 lon không có date). Bấm **💾 Lưu**.
+
+Doanh số của bạn tính theo **tiền thực thu**. Kế toán xem đơn này ngay trong CRM để xuất hoá đơn, **không cần điền file Google Sheet theo dõi hạ COD nữa**. CRM tự sửa ô tiền trong file lên đơn của bạn. Ghi nhầm thì mở lại bấm **✏️ Sửa** hoặc **↩ Bỏ điều chỉnh**.
+
 **Bấm nhầm?** Mở đơn, chọn lại cho đúng. Máy có lưu lịch sử, không sao cả.
 
 > **Phí ship:** đơn dưới 300.000đ cộng thêm 30.000đ. Đơn từ 300.000đ được miễn phí ship.

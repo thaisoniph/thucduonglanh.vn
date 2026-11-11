@@ -3,7 +3,7 @@
 // - Tiền về tài khoản: cột orders.cash_at (lúc tiền về) / cash_amt (tiền hãng thu hộ hoặc tiền khách chuyển) / cash_src ("COD Best 09/11 · NO100…", "Tay – Lan").
 //   Kế toán tích tay từng đơn / nhiều đơn, hoặc tải file đối soát COD Best / Viettel Post (CRM đọc trên máy, khớp đơn, gửi lô kt_cash).
 // - 💤 Tiền treo ở hãng = đơn COD Đã giao / Đổi hàng từ ngày bắt đầu theo dõi (kv kt_cfg.from) mà chưa có cash_at. kt_cfg.on = lần đầu ghi tiền về → Tổng quan, tin 8h mới hiện số treo.
-import { all, run, allIn, kvJson, kvSet, fmtDate, startOfDay, esc, DAY } from './lib.js';
+import { all, run, allIn, kvJson, kvSet, fmtDate, startOfDay, esc, DAY, adjOut } from './lib.js';
 import { khoItems, khoStats } from './kho.js';
 import { kspMorningLine } from './san.js';
 
@@ -30,7 +30,7 @@ export function ktOrderOut(r) {
   return { row: r.rid, time: r.time, id: r.id, name: r.name || '', phone: '', ph: last4(r.phone), email: '', province: '', ward: '', address: '', items: r.items || '', subtotal: r.subtotal || 0,
     shipping: r.shipping || 0, total: r.total || 0, payment: r.payment || '', note: '', status: r.status || 'Mới', source: r.source || '', consent: false, paid: r.paid || '', carrier: r.carrier || '', tracking: r.tracking || '', seller: r.seller || '', ca: r.ca || '', line: r.line || '', ship: r.ship || '',
     shipAt: r.ship_at, receivedAt: r.received_at, otype: r.otype || '', oflag: '', trk: '', trkAt: null, trkCode: 0, voucher: r.voucher || '', refPhone: '', refGift: '', refTold: 0, partner: r.partner || '', pRate: r.partner_rate || 0, discount: r.discount || 0, addrOld: '', shipFee: r.ship_fee == null ? null : r.ship_fee, recon: r.recon || '',
-    cashAt: r.cash_at || null, cashAmt: r.cash_amt == null ? null : r.cash_amt, cashSrc: r.cash_src || '', cashAcct: r.cash_acct || '', cashWhy: r.cash_why || '' };
+    cashAt: r.cash_at || null, cashAmt: r.cash_amt == null ? null : r.cash_amt, cashSrc: r.cash_src || '', cashAcct: r.cash_acct || '', cashWhy: r.cash_why || '', adj: adjOut(r) };
 }
 
 /** Lệnh load của Kế toán: khung (loadSmall) + đơn 400 ngày đã che. d.part = 'delta' → chỉ đơn đổi từ lần trước. */

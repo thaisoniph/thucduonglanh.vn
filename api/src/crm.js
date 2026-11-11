@@ -1,5 +1,5 @@
 // CRM: đăng nhập, dữ liệu, đơn hàng, khách, tiềm năng, cài đặt. Chuyển từ Apps Script sang, giữ nguyên cách làm việc & dữ liệu trả về cho giao diện.
-import { normPhone, nrm, esc, fmt, startOfDay, TZ_MS, fmtDate, dateOrBlank, slugName, replaceRows, isVoid, randHex, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, DAY, CRM_URL, ROLE_URL, refCode, crmSeen } from './lib.js';
+import { normPhone, nrm, esc, fmt, startOfDay, TZ_MS, fmtDate, dateOrBlank, slugName, replaceRows, isVoid, randHex, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, DAY, CRM_URL, ROLE_URL, refCode, crmSeen, adjOut } from './lib.js';
 import { crmPartner, partnerSchema, orderAttrib, refClaim, staffOf, staffHit } from './partner.js';
 import { chatSchema } from './chat.js';
 import { zbotSchema, crmZbot } from './zbot.js';
@@ -31,7 +31,7 @@ import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, wbInf
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-11-11p'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
+const SCHEMA_V = '2026-11-11q'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -60,6 +60,7 @@ export async function ensureSchema(db) {
     await addCol('cash_src', "TEXT DEFAULT ''");
     await addCol('cash_acct', "TEXT DEFAULT ''"); // 10/11/2026: tiền về tài khoản nào (Công ty / Anh Sơn / Hộ kinh doanh… – kt_cfg.accts)
     await addCol('cash_why', "TEXT DEFAULT ''"); // 10/11/2026: lý do hãng thu khác tiền trên đơn (Hạ COD hỗ trợ ship, Sale nhập sai…)
+    for (const [col, def] of [['adj_type', "TEXT DEFAULT ''"], ['adj_from', 'INTEGER'], ['adj_down', 'INTEGER DEFAULT 0'], ['adj_up', 'INTEGER DEFAULT 0'], ['adj_trk', "TEXT DEFAULT ''"], ['adj_at', 'INTEGER'], ['adj_by', "TEXT DEFAULT ''"], ['adj_note', "TEXT DEFAULT ''"]]) await addCol(col, def); // 11/11/2026: ✏️ Hạ COD / Ký 1 phần / Đổi hàng (crmOrderAdj)
  // 20/10/2026: địa chỉ cũ (63 tỉnh, có huyện) – Misa vẫn chọn theo địa chỉ cũ
     // Khách: đã kết bạn Zalo, nhóm cộng đồng, ngày sinh (bản Apps Script có, lúc chuyển sang D1 bị thiếu)
     const ccols = (await all(db, "PRAGMA table_info(customers)")).map(r => r.name);
@@ -477,9 +478,10 @@ export function leadDue(l, today) {
 
 /* ================================================================ đọc dữ liệu cho giao diện */
 const leadOut = r => ({ id: r.id, time: r.time, name: r.name || '', phone: r.phone || '', channel: r.channel || '', interest: r.interest || '', status: r.status || 'Mới hỏi', owner: r.owner || '', lastAt: r.last_at, callback: r.callback, reason: r.reason || '', note: r.note || '', orderId: r.order_id || '', by: r.by_name || '', refPhone: r.ref_phone || '', refName: r.ref_name || '', ownAt: r.own_at || r.time, poolN: r.pool_n || 0, poolFrom: r.pool_from || '', how: r.how || '' });
+/** ✏️ Điều chỉnh tiền đơn (11/11/2026): sale ghi Hạ COD / Ký 1 phần / Đổi hàng → total = tiền thực thu, adj_from = tiền ban đầu. */
 const orderOut = r => ({ row: r.rid, time: r.time, id: r.id, name: r.name || '', phone: r.phone || '', email: r.email || '', province: r.province || '', ward: r.ward || '', address: r.address || '', items: r.items || '', subtotal: r.subtotal || 0,
   shipping: r.shipping || 0, total: r.total || 0, payment: r.payment || '', note: r.note || '', status: r.status || 'Mới', source: r.source || '', consent: !!r.consent, paid: r.paid || '', carrier: r.carrier || '', tracking: r.tracking || '', seller: r.seller || '', ca: r.ca || '', line: r.line || '', ship: r.ship || '',
-  shipAt: r.ship_at, receivedAt: r.received_at, otype: r.otype || '', oflag: r.oflag || '', trk: r.trk || '', trkAt: r.trk_at, trkCode: r.trk_code || 0, voucher: r.voucher || '', refPhone: r.ref_phone || '', refGift: r.ref_gift || '', refTold: r.ref_told ? 1 : 0, partner: r.partner || '', pRate: r.partner_rate || 0, discount: r.discount || 0, addrOld: r.addr_old || '', shipFee: r.ship_fee == null ? null : r.ship_fee, recon: r.recon || '', cashAt: r.cash_at || null, cashAmt: r.cash_amt == null ? null : r.cash_amt, cashSrc: r.cash_src || '', cashAcct: r.cash_acct || '', cashWhy: r.cash_why || '' });
+  shipAt: r.ship_at, receivedAt: r.received_at, otype: r.otype || '', oflag: r.oflag || '', trk: r.trk || '', trkAt: r.trk_at, trkCode: r.trk_code || 0, voucher: r.voucher || '', refPhone: r.ref_phone || '', refGift: r.ref_gift || '', refTold: r.ref_told ? 1 : 0, partner: r.partner || '', pRate: r.partner_rate || 0, discount: r.discount || 0, addrOld: r.addr_old || '', shipFee: r.ship_fee == null ? null : r.ship_fee, recon: r.recon || '', cashAt: r.cash_at || null, cashAmt: r.cash_amt == null ? null : r.cash_amt, cashSrc: r.cash_src || '', cashAcct: r.cash_acct || '', cashWhy: r.cash_why || '', adj: adjOut(r) });
 export async function leadsData(x, where, ...args) { return (await all(x.db, 'SELECT * FROM leads' + (where ? ' WHERE ' + where : '') + ' ORDER BY rid DESC LIMIT 3000', ...args)).reverse().map(leadOut); }
 
 async function prefsOf(x, email) { return await kvJson(x.db, 'prefs_' + email, {}) || {}; }
@@ -1367,6 +1369,36 @@ async function crmOrderEdit(x, u, d) {
   });
   if (set.addr_old) await run(x.db, 'UPDATE customers SET addr_old = ? WHERE phone = ?', set.addr_old, phone);
   return { ok: true, row: o.rid };
+}
+/** ✏️ Hạ COD / Ký 1 phần / Đổi hàng (11/11/2026, thay file Google Sheet theo dõi của kế toán).
+ *  d: { row, id, kind ('' = bỏ điều chỉnh), down (tiền hạ / khách trả lại hàng), up (thu thêm), trk (mã vận đơn mới), day (yyyy-mm-dd), note }.
+ *  Doanh số / doanh thu theo tiền thực thu (anh Sơn chốt 11/11): total = tiền ban đầu − hạ + thu thêm; tiền ban đầu giữ ở adj_from để bỏ / sửa lại được. */
+export const ADJ_TYPES = ['Hạ COD', 'Ký 1 phần', 'Đổi hàng'];
+async function crmOrderAdj(x, u, d) {
+  const o = await orderFind(x, d); if (!o) return { ok: false, error: 'Không tìm thấy đơn ' + d.id };
+  const gErr = await orderGuard(x, u, o); if (gErr) return { ok: false, error: gErr };
+  const ship = Number(o.shipping) || 0, from = o.adj_type ? Number(o.adj_from) || 0 : Number(o.total) || 0, t = String(d.kind || '');
+  const wbTot = async tot => wbSafe(async () => { // ghi tiền thực thu vào dòng đơn trong file lên đơn của sale (như ✏️ Sửa đơn); chỉ ô tiền, ô khác giữ nguyên
+    const ow = await ownerOf(x, o.phone), m = String(o.source || '').match(/^File .+? – (.+)$/);
+    await wbEditQueue(x, [o.seller, ow], { id: o.id, sheet: m ? m[1] : '', time: Number(o.time) || 0, prev: { phone: o.phone, total: Number(o.total) || 0 }, name: o.name, phone: o.phone, total: tot });
+  });
+  if (!t) {
+    if (!o.adj_type) return { ok: true, row: o.rid };
+    await run(x.db, "UPDATE orders SET total = ?, subtotal = ?, adj_type = '', adj_from = NULL, adj_down = 0, adj_up = 0, adj_trk = '', adj_at = NULL, adj_by = '', adj_note = '' WHERE rid = ?", from, Math.max(0, from - ship), o.rid);
+    await crmLog(x, u, 'Điều chỉnh đơn', o.id, o.name, 'Bỏ ' + o.adj_type + ': ' + fmt(o.total) + ' → ' + fmt(from), d.note || '');
+    await recalc(x, [o.phone]); await wbTot(from); return { ok: true, row: o.rid };
+  }
+  if (ADJ_TYPES.indexOf(t) < 0) return { ok: false, error: 'Loại điều chỉnh không hợp lệ.' };
+  const down = Math.max(0, Math.round(Number(d.down) || 0)), up = Math.max(0, Math.round(Number(d.up) || 0)), tot = from - down + up;
+  if (tot < 0) return { ok: false, error: 'Tiền hạ lớn hơn tiền đơn (' + fmt(from) + ').' };
+  if (!down && !up && t !== 'Đổi hàng') return { ok: false, error: 'Gõ số tiền ' + (t === 'Ký 1 phần' ? 'khách trả lại (hoặc tiền thực thu)' : 'hạ COD') + '.' };
+  const day = /^\d{4}-\d{2}-\d{2}$/.test(d.day || '') ? new Date(d.day + 'T12:00:00+07:00').getTime() : Date.now();
+  const set = { adj_type: t, adj_from: from, adj_down: down, adj_up: up, adj_trk: String(d.trk || '').trim().slice(0, 40), adj_at: day, adj_by: u.name, adj_note: String(d.note || '').trim().slice(0, 300), total: tot, subtotal: Math.max(0, tot - ship) };
+  const ks = Object.keys(set);
+  await run(x.db, 'UPDATE orders SET ' + ks.map(k => k + ' = ?').join(', ') + ' WHERE rid = ?', ...ks.map(k => set[k]), o.rid);
+  await crmLog(x, u, 'Điều chỉnh đơn', o.id, o.name, t + ': ' + fmt(from) + (down ? ' − ' + fmt(down) : '') + (up ? ' + ' + fmt(up) : '') + ' = ' + fmt(tot) + (set.adj_trk ? ' · mã mới ' + set.adj_trk : ''), set.adj_note);
+  await recalc(x, [o.phone]); if (tot !== Number(o.total)) await wbTot(tot);
+  return { ok: true, row: o.rid, total: tot };
 }
 /* ---------- Quản trị xoá dữ liệu nhập thử / nhập nhầm (không hoàn tác được) */
 const DEL_KEY = 'del_log', DEL_IDS = 'del_order_ids';
@@ -2435,7 +2467,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (need[a] && u.level < need[a]) return { ok: false, error: 'Bạn không có quyền làm việc này.' };
   const opKey = d.opId ? 'op_' + String(d.opId).slice(0, 40) : ''; // CRM gửi lại việc khi mạng chập chờn: việc đã làm rồi thì trả kết quả cũ, không ghi trùng
   if (opKey) { const done = await kvGet(x.db, opKey); if (done) return JSON.parse(done); }
-  const h = { care: crmCare, customer: crmCustomer, order_status: crmOrderStatus, recon_apply: crmReconApply, contact: crmContact, settings: crmSettings, users: crmSaveUsers, order_edit: crmOrderEdit,
+  const h = { care: crmCare, customer: crmCustomer, order_status: crmOrderStatus, recon_apply: crmReconApply, contact: crmContact, settings: crmSettings, users: crmSaveUsers, order_edit: crmOrderEdit, order_adj: crmOrderAdj,
     lead_save: crmLeadSave, lead_contact: crmLeadContact, target: crmTarget, assign: crmAssign, bulk: crmBulk, recv: crmRecv, claim: crmClaim,
     order_delete: crmOrderDelete, customer_delete: crmCustomerDelete, lead_delete: crmLeadDelete, gift: crmGift, greet: crmGreet, stop: crmStop, own: crmOwn }[a];
   if (h) {
