@@ -231,6 +231,31 @@ Trợ lý **tự đổi dấu gạch ngang dài (—) thành dấu phẩy**. N�
 
 Khi duyệt, nối các câu đó lại cho liền mạch, dùng dấu phẩy. Câu ngắn chỉ để nhấn 1 ý, rồi tiếp bằng câu giải thích.
 
+### 📈 Học từ tương tác (từ 11/11/2026)
+
+Trong tab có mục **📈 Học từ tương tác**: 3 bài **nhiều** người hưởng ứng nhất (👍 nên học) và 3 bài **ít** nhất (👎 nên tránh) của từng kênh trong 60 ngày.
+- **Nhóm Zalo** đếm người tương tác và tin nhắn.
+- **Fanpage** đếm cảm xúc, bình luận, chia sẻ. Máy lấy số từ Facebook mỗi ngày 1 lần.
+- Bài mới đăng dưới 2 ngày chưa tính. Cần ít nhất 6 bài có số thì mới so sánh.
+
+**Trợ lý viết bài đọc đúng danh sách này trước khi viết**, để học cách mở bài, độ dài, góc kể của bài được hưởng ứng và tránh kiểu bài ít người đọc. Đây là cách khoá content K131 dạy để AI ngày càng hiểu khách thật.
+
+Mỗi tuần nên mở ra xem 1 lần: bài 👍 giống nhau ở điểm nào, bài 👎 sai ở đâu. Rút được điều gì thì ghi vào **📝 Ghi chú** của nhóm khách để trợ lý viết theo.
+
+### 📣 Bài viết sẵn cho sale đăng Facebook cá nhân (từ 11/11/2026)
+
+Theo khoá K131, với **Facebook cá nhân thì AI viết, người đăng**. Link không đặt trong bài mà đặt ở **bình luận ghim**: bài không có link thì Facebook cho nhiều người thấy hơn.
+
+1. Trong tab này bấm **📣 Mở bài Facebook cá nhân**.
+2. Chọn nhóm khách (hoặc để trợ lý tự chọn), loại bài (🔵 nhận biết: không nhắc sản phẩm; ⚪ tạo niềm tin: nhắc chuyện nghề), và bình luận ghim mời khách đi đâu (**nhóm Zalo**, **quà tặng** hoặc **trang chủ**). Bấm **✨ Viết 1 bài**.
+3. Khoảng 1 phút sau có bài nháp, gồm 3 phần:
+   - bài đăng (không link, không giá),
+   - bình luận ghim (không link),
+   - câu trả lời có chữ **[LINK]**. Khi sale copy, chữ [LINK] tự đổi thành link riêng `?ref=` của từng người.
+4. Đọc lại, bấm **✏️ Sửa** nếu cần, rồi bấm **✅ Cho sale dùng**. Sale sẽ thấy bài ở **Cài đặt → 📣 Bài đăng Facebook cá nhân**. Bấm **⏸ Ẩn** khi bài đã cũ.
+
+Thẻ bài ghi số lần sale copy bài (📋). Nên giữ khoảng 5–10 bài đang dùng, thay bài mới mỗi tuần.
+
 **Luật quảng cáo thực phẩm:** chỉ nói công dụng đúng hồ sơ công bố. Chuyện chè vằng, đinh lăng… chỉ nói là *kinh nghiệm dân gian*. Bài có cụm dễ phạm luật (lợi sữa, giảm cân, thanh lọc, không đường…) sẽ hiện dòng **⚠️ Đọc lại cụm…** trên thẻ bài: chỉ giữ nếu đúng hồ sơ công bố hoặc là câu phủ định.
 
 Trên thẻ bài ở tab Zalo, Fanpage, Bài web có dòng **🎯 nhóm khách · tension** và câu 💭 insight. Khi duyệt, đọc dòng này trước rồi hỏi: *bài có chạm đúng nỗi lòng đó không?* Chưa đúng thì bấm **🔄 Viết lại**, chọn nhóm khách khác hoặc ghi ý kiến.

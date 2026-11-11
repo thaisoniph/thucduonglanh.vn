@@ -72,7 +72,7 @@ export async function fbSchema(db) {
   await run(db, 'CREATE INDEX IF NOT EXISTS fp_cmts_uid ON fp_cmts(page, uid, at)');
   await run(db, `CREATE TABLE IF NOT EXISTS fp_posts (id TEXT PRIMARY KEY, page TEXT, day TEXT, slot TEXT, topic TEXT DEFAULT '', text TEXT DEFAULT '', link TEXT DEFAULT '', prod TEXT DEFAULT '',
     status TEXT DEFAULT 'draft', by_name TEXT DEFAULT '', at INTEGER, sent_at INTEGER, fb_id TEXT DEFAULT '', err TEXT DEFAULT '')`); // id = trang_yyyyMMdd_HHmm
-  for (const c of ["funnel TEXT DEFAULT ''", "ins TEXT DEFAULT ''"]) { try { await run(db, 'ALTER TABLE fp_posts ADD COLUMN ' + c); } catch (e) { } } // 10/11/2026: tầng phễu + nhóm khách / tension (insight.js, JSON)
+  for (const c of ["funnel TEXT DEFAULT ''", "ins TEXT DEFAULT ''", 'eng_react INTEGER DEFAULT 0', 'eng_cmt INTEGER DEFAULT 0', 'eng_share INTEGER DEFAULT 0', 'eng_at INTEGER DEFAULT 0']) { try { await run(db, 'ALTER TABLE fp_posts ADD COLUMN ' + c); } catch (e) { } } // 10/11/2026: tầng phễu + nhóm khách / tension (insight.js, JSON)
   await run(db, 'CREATE INDEX IF NOT EXISTS fp_posts_day ON fp_posts(day)');
   await run(db, `CREATE TABLE IF NOT EXISTS fp_log (rid INTEGER PRIMARY KEY AUTOINCREMENT, at INTEGER, page TEXT DEFAULT '', kind TEXT, name TEXT DEFAULT '', text TEXT DEFAULT '', reply TEXT DEFAULT '')`);
   await run(db, 'CREATE INDEX IF NOT EXISTS fp_log_at ON fp_log(at)');
@@ -468,6 +468,20 @@ async function fpScan(x, p) {
   }
   return n;
 }
+/** 📈 Số tương tác bài fanpage (learn.js học từ bài nhiều / ít tương tác): mỗi ngày 1 lần sau 9h, bài đã đăng trong 21 ngày, tối đa 40 bài.
+ * Thiếu quyền đọc tương tác (app chưa duyệt pages_read_engagement) thì dừng, mai thử lại; không báo lỗi trang. */
+async function fpEng(x, P, now, day) {
+  if (vnHour(now) < 9 || await kvGet(x.db, 'fp_eng_' + day)) return;
+  await kvSet(x.db, 'fp_eng_' + day, '1', 2 * DAY);
+  for (const r of await all(x.db, "SELECT id, page, fb_id FROM fp_posts WHERE status = 'sent' AND fb_id != '' AND sent_at >= ? ORDER BY sent_at DESC LIMIT 40", now - 21 * DAY)) {
+    const p = P[r.page]; if (!p) continue;
+    try {
+      const j = await graph(r.fb_id + '?fields=reactions.summary(total_count).limit(0),comments.summary(total_count).limit(0),shares', p.token);
+      const n = k => (j[k] && j[k].summary && j[k].summary.total_count) || 0;
+      await run(x.db, 'UPDATE fp_posts SET eng_react = ?, eng_cmt = ?, eng_share = ?, eng_at = ? WHERE id = ?', n('reactions'), n('comments'), (j.shares && j.shares.count) || 0, now, r.id);
+    } catch (e) { if ([10, 200, 190].includes(e.code)) break; }
+  }
+}
 export async function fpTick(x) {
   useEnv(x);
   const pages = await all(x.db, 'SELECT * FROM fp_pages WHERE active = 1'); if (!pages.length) return;
@@ -483,6 +497,7 @@ export async function fpTick(x) {
     }
   }
   const day = fmtDate(now, 'yyyyMMdd');
+  try { await fpEng(x, P, now, day); } catch (e) { console.error('fpEng', e.message); }
   // đăng bài tới giờ (trong 2 tiếng sau giờ hẹn)
   for (const r of await all(x.db, "SELECT * FROM fp_posts WHERE day = ? AND status IN ('draft', 'ok')", day)) {
     const p = P[r.page]; if (!p) continue;

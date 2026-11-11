@@ -6,6 +6,7 @@ import { zbotSchema, crmZbot } from './zbot.js';
 import { fbSchema, crmFp } from './fb.js';
 import { crmBlog } from './blog.js';
 import { crmIns } from './insight.js';
+import { crmSpf } from './spost.js';
 import { sendMail, telegram, telegramTo, telegramPhoto, tgUpdates, tgConf, bridge } from './google.js';
 import { crmGa, crmGaProp } from './ga.js';
 import { crmCfToken } from './cfweb.js';
@@ -2336,7 +2337,7 @@ async function crmKhoFind(x, u, d) {
     Date.now() - 180 * DAY, like, like, like, dg.length >= 4 ? dg : '', '%' + dg);
   return { ok: true, list: rows.map(khoRetOut) };
 }
-const MKT_ACTIONS = { guide_ask: 1, link_list: 1, link_save: 1, link_active: 1, load: 1, mktv: 1, mkt_tg_test: 1, mkt_goal: 1, mkt_import: 1, mkt_add: 1, mkt_list: 1, mkt_kpi: 1, mkt_fb_edit: 1, quiz_cms: 1, mkt_del: 1, prefs: 1, tg_link: 1, tg_check: 1, tg_off: 1, perf: 1, usage: 1, feedback: 1, fb_list: 1, fb_img: 1, offers: 1, offer_save: 1, offer_del: 1, wall_hide: 1, zb_view: 1, zb_cfg: 1, zb_post: 1, zb_regen: 1, zb_send: 1, zb_cancel: 1, zb_recall: 1, zb_img: 1, zb_hist: 1, zb_logmore: 1, zb_done: 1, zb_time: 1, zb_plan_make: 1, zb_plan_set: 1, zb_plan_redo: 1, fp_view: 1, fp_page: 1, fp_resub: 1, fp_scan: 1, fp_post: 1, fp_now: 1, fp_regen: 1, fp_send: 1, fp_logmore: 1, fp_done: 1, bl_view: 1, bl_post: 1, bl_act: 1, bl_cfg: 1, bl_stats: 1, ins_view: 1, ins_save: 1, ins_video: 1, ins_vdel: 1, ins_merge: 1, ins_import: 1, ins_skill: 1, ins_skilldel: 1, ins_odel: 1, ins_find: 1, ins_big: 1, ins_offer: 1 };
+const MKT_ACTIONS = { guide_ask: 1, link_list: 1, link_save: 1, link_active: 1, load: 1, mktv: 1, mkt_tg_test: 1, mkt_goal: 1, mkt_import: 1, mkt_add: 1, mkt_list: 1, mkt_kpi: 1, mkt_fb_edit: 1, quiz_cms: 1, mkt_del: 1, prefs: 1, tg_link: 1, tg_check: 1, tg_off: 1, perf: 1, usage: 1, feedback: 1, fb_list: 1, fb_img: 1, offers: 1, offer_save: 1, offer_del: 1, wall_hide: 1, zb_view: 1, zb_cfg: 1, zb_post: 1, zb_regen: 1, zb_send: 1, zb_cancel: 1, zb_recall: 1, zb_img: 1, zb_hist: 1, zb_logmore: 1, zb_done: 1, zb_time: 1, zb_plan_make: 1, zb_plan_set: 1, zb_plan_redo: 1, fp_view: 1, fp_page: 1, fp_resub: 1, fp_scan: 1, fp_post: 1, fp_now: 1, fp_regen: 1, fp_send: 1, fp_logmore: 1, fp_done: 1, bl_view: 1, bl_post: 1, bl_act: 1, bl_cfg: 1, bl_stats: 1, ins_view: 1, ins_save: 1, ins_video: 1, ins_vdel: 1, ins_merge: 1, ins_import: 1, ins_skill: 1, ins_skilldel: 1, ins_odel: 1, ins_find: 1, ins_big: 1, spf_list: 1, spf_used: 1, spf_write: 1, spf_save: 1, spf_del: 1, ins_offer: 1 };
 export async function crmApi(x, d, sync, mgr) {
   await ensureSchema(x.db);
   const a = d.action;
@@ -2419,6 +2420,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (/^zb_/.test(a)) return crmZbot(x, u, d, crmLog); // 🤖 Trợ lý Zalo An Lành (Quản lý, Quản trị, Marketing)
   if (/^bl_/.test(a)) return crmBlog(x, u, d); // 📰 Trợ lý viết bài web (Quản lý, Quản trị, người bật Sửa website)
   if (/^fp_/.test(a)) return crmFp(x, u, d, crmLog); // 📘 Trợ lý Fanpage (Quản lý, Quản trị, Marketing; kết nối: Quản trị)
+  if (/^spf_/.test(a)) return crmSpf(x, u, d, crmLog); // 📣 bài viết sẵn cho sale đăng Facebook cá nhân (spost.js)
   if (/^ins_/.test(a)) return crmIns(x, u, d, crmLog); // 🎯 Insight & nội dung: ngân hàng insight chung + 🎬 kịch bản video (insight.js)
   if (/^link_/.test(a)) return crmLinks(x, u, d, crmLog); // 📍 Link & mã QR (Marketing, Quản lý, Quản trị)
   if (/^voucher_/.test(a)) return crmVoucher(x, u, d, crmLog); // 🎟 Mã ưu đãi (Quản lý trở lên)

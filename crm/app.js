@@ -259,7 +259,7 @@
     if (!CFG.endpoint) return Promise.reject(new Error('Chưa cấu hình máy chủ.'));
     tries = tries || 0; var t0 = Date.now();
     // chờ tối đa 30 giây (việc nặng của quản trị 90 giây) rồi báo, không để vòng quay mãi (16/10/2026)
-    var ac = typeof AbortController === 'function' ? new AbortController() : null, wait = action === 'ai_ask' ? 180e3 : /^(ins_(video|import|find|offer|big)|zb_(regen|plan_make|plan_redo))$/.test(action) ? 180e3 : API_HEAVY.test(action) ? 90e3 : 30e3, tm = ac && setTimeout(function () { ac.abort(); }, wait);
+    var ac = typeof AbortController === 'function' ? new AbortController() : null, wait = action === 'ai_ask' ? 180e3 : /^(spf_write|ins_(video|import|find|offer|big)|zb_(regen|plan_make|plan_redo))$/.test(action) ? 180e3 : API_HEAVY.test(action) ? 90e3 : 30e3, tm = ac && setTimeout(function () { ac.abort(); }, wait);
     return fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), signal: ac ? ac.signal : undefined })
       .then(function (r) { clearTimeout(tm); return r.text().then(function (t) { return { t: t, st: r.status }; }); }, function (er) { clearTimeout(tm); var slow = er && er.name === 'AbortError', e0 = new Error(slow ? 'Máy chủ trả lời chậm quá ' + (wait / 1000) + ' giây. Bạn kiểm tra mạng rồi bấm lại nhé.' : 'Mất kết nối mạng. Bạn thử lại nhé.'); e0.net = true; throw e0; })
       .then(function (x) {
@@ -3536,6 +3536,7 @@
       (isPoolStaff() && poolOn() ? row('🧺', 'Kho chung: ' + pool + ' số chưa ai chốt', 'số người khác giữ quá hạn · đọc lịch sử rồi thử cách khác', pool ? '<button class="btn sm" data-gopen="pool">Xem kho</button>' : '<span class="muted small">đang trống</span>') : '') +
       row('😴', 'Gọi lại khách hỏi cũ: ' + idle.length + ' người', '“Không mua” 1,5–6 tháng trước · mở lời bằng lý do mới: sản phẩm mới, ưu đãi tháng này', idle.length ? '<button class="btn sm" data-gopen="idle">Xem danh sách</button>' : '<span class="muted small">chưa có</span>') +
       row('🌱', 'Mời khách cũ giới thiệu: ' + amb + ' khách', 'khách vừa dùng 7–30 ngày · hỏi cảm nhận rồi mời (mục 🌱 Mời làm Đại sứ ở trên)', amb ? '<button class="btn sm" data-gopen="amb">Xem mục 🌱</button>' : '<span class="muted small">chưa có</span>') +
+      row('📣', 'Đăng bài Facebook cá nhân viết sẵn', 'bài kể chuyện + bình luận ghim có link riêng của bạn · 2–3 bài / tuần', '<button type="button" class="btn sm" data-spf="sale">Xem bài</button>') +
       row('🔗', 'Đăng bài, gửi Zalo link riêng của bạn', 'khách vào qua link rồi đặt trong 30 ngày thì đơn tính cho bạn', '<button type="button" class="btn sm" data-copy="' + esc(refLink(me)) + '">📋 Copy link</button>') + '</div>' +
       (idle.length ? '<details class="grp" data-grp="idle"' + (S.f.gopen && S.f.gopen.idle ? ' open' : '') + '><summary><span class="g-t">😴 Khách hỏi cũ gọi lại</span><span class="count">' + idle.length + '</span><span class="g-tip">lâu nhất lên trước · bấm 💬 Tư vấn lại, ghi kết quả như bình thường</span></summary><div class="list cols" style="padding:10px">' + capRows(idle.slice(0, 30), idleCard) + '</div></details>' : '') + '</section>';
   }
@@ -6722,6 +6723,8 @@
         (s.f ? '<span class="zb-fun zb-fun-' + s.f.toLowerCase() + '">' + (IN_FN[s.f] || s.f) + '</span> ' : '') + '</summary>' + inTag(s) +
         '<div class="inx-script">' + inScriptHtml(s.text) + '</div><div class="lq-btns"><button class="btn sm pri" data-in="vcopy|' + s.id + '">📋 Copy kịch bản</button><button class="btn sm ghost" data-in="vdel|' + s.id + '">🗑 Xoá</button></div></details>';
     }).join('') + '</div>';
+    h += inLearnHtml(j.learn);
+    if (ed) h += '<div class="box spf-intro"><div class="zb-ph"><b>📣 Bài viết sẵn cho sale đăng Facebook cá nhân</b></div><p class="small">AI viết bài kể chuyện đời thường (không link, không giá) theo nhóm khách, big idea, góc kể. Kèm <b>bình luận ghim</b> không link và <b>câu trả lời có link riêng</b> của từng sale. Bấm <b>✅ Cho sale dùng</b> thì sale thấy ở <b>Cài đặt → 📣 Bài đăng Facebook cá nhân</b> và khung <b>🔎 Tự tạo khách</b> ở Hôm nay.</p><div class="lq-btns"><button class="btn sm pri" data-spf="admin">📣 Mở bài Facebook cá nhân</button></div></div>';
     // 👥 ngân hàng insight
     h += '<div class="zb-done-h"><h2 class="zb-h">👥 Ngân hàng insight</h2><span class="small">' + (j.custom ? 'Đã chỉnh riêng' : 'Bản mặc định') + ' · ' + bank.filter(function (g) { return g.on; }).length + ' nhóm đang dùng</span></div>';
     if (ed && j.upd) h += '<div class="box bw-todo"><b>📚 Bản mặc định có cập nhật mới</b> (từ tài liệu khoá học): ' + [j.upd.groups ? j.upd.groups + ' nhóm khách mới' : '', j.upd.tensions ? j.upd.tensions + ' tension mới' : '', j.upd.tags ? j.upd.tags + ' nhãn sản phẩm' : ''].filter(Boolean).join(', ') + '. Gộp vào không xoá gì anh chị đã sửa.<div class="lq-btns"><button class="btn sm pri" data-in="merge">📚 Gộp vào ngân hàng</button></div></div>';
@@ -6752,6 +6755,57 @@
       return { t: t, ang: L.map(function (v) { return v.replace(/^[-•*\d.)\s]+/, ''); }).filter(Boolean), on: run && k === 0 };
     }).filter(function (b) { return b.t; });
   }
+  /** 📈 Học từ tương tác (learn.js): 3 bài nhiều / ít tương tác nhất mỗi kênh, 60 ngày; trợ lý viết đọc đúng danh sách này trước khi viết */
+  function inLearnHtml(L) {
+    var CHN = { zalo: '💬 Nhóm Zalo', fb: '📘 Fanpage' }, ks = Object.keys(L || {});
+    var one = function (r, good) { return '<li><span class="' + (good ? 'spf-up' : 'spf-down') + '">' + (good ? '👍 ' : '👎 ') + esc(r.m) + '</span> <span class="muted">· ' + fDate(r.at) + (r.a ? ' · 🎭 ' + esc(r.a) : '') + (r.gn ? ' · 🎯 ' + esc(r.gn) : '') + '</span><br>' + esc(r.text.slice(0, 220)) + (r.text.length > 220 ? '…' : '') + '</li>'; };
+    var body = ks.length ? ks.map(function (k) { return '<p class="small" style="margin:8px 0 2px"><b>' + CHN[k] + '</b> <span class="muted">(' + L[k].n + ' bài có số)</span></p><p class="small" style="margin:4px 0 2px"><b>Nên học</b> (nhiều người hưởng ứng nhất):</p><ul class="small inx-lrn">' + L[k].top.map(function (r) { return one(r, true); }).join('') + '</ul><p class="small" style="margin:4px 0 2px"><b>Nên tránh</b> (ít người hưởng ứng nhất):</p><ul class="small inx-lrn">' + L[k].flop.map(function (r) { return one(r, false); }).join('') + '</ul>'; }).join('')
+      : '<p class="small muted">Chưa đủ số: cần ít nhất 6 bài đã đăng hơn 2 ngày có số tương tác ở 1 kênh (nhóm Zalo đếm người tương tác, Fanpage đếm cảm xúc, bình luận, chia sẻ, lấy mỗi ngày 1 lần).</p>';
+    return '<details class="box spf-learn"><summary><b>📈 Học từ tương tác</b> <span class="small muted">bài nhiều / ít người hưởng ứng 60 ngày qua, trợ lý đọc trước khi viết</span></summary>' + body + '<p class="small muted" style="margin:8px 0 0">Mỗi tuần nên xem lại: bài 👍 giống nhau ở cách mở bài, độ dài, góc kể nào? Bài 👎 sai ở đâu? Ghi nhận xét vào Ghi chú của nhóm khách để trợ lý viết theo.</p></details>';
+  }
+  /** 📣 Bài viết sẵn cho Facebook cá nhân (spost.js): sale copy bài, bình luận ghim, câu trả lời có link riêng ?ref= */
+  var SPF = { to: {} };
+  function spfReply(p) { return String(p.reply || '').replace(/\[LINK\]/g, refLink(S.user.name, p.path)); }
+  function spfCard(p, admin) {
+    var st = { draft: '📝 Nháp, sale chưa thấy', ok: '✅ Sale đang dùng', off: '⏸ Đã ẩn' }[p.status] || '';
+    return '<div class="box spf-card" data-spfid="' + p.id + '"><div class="zb-ph"><b>' + (p.f === 'MOFU' ? '⚪ Tạo niềm tin' : '🔵 Nhận biết') + (p.gn ? ' · ' + esc(p.gn) : '') + '</b>' + (admin || p.copies ? '<span class="zb-due">' + [admin ? st : '', p.copies ? '📋 ' + p.copies + ' lần copy' : ''].filter(Boolean).join(' · ') + '</span>' : '') + '</div>' +
+      (admin && p.ins ? inTag(p.ins) : '') +
+      '<p class="small spf-lab">Bước 1 · Bài đăng (không có link):</p><div class="spf-txt">' + esc(p.text) + '</div>' +
+      '<p class="small spf-lab">Bước 3 · Bình luận ghim (không link):</p><div class="spf-txt">' + esc(p.cmt) + '</div>' +
+      '<p class="small spf-lab">Bước 4 · Trả lời ngay dưới bình luận ghim (có link ' + esc(SPF.to[p.to] || '') + ' của bạn):</p><div class="spf-txt">' + esc(admin ? p.reply : spfReply(p)) + '</div>' +
+      '<div class="lq-btns">' + (admin ? '<button class="btn sm" data-spf="edit|' + p.id + '">✏️ Sửa</button>' + (p.status !== 'ok' ? '<button class="btn sm pri" data-spf="st|' + p.id + '|ok">✅ Cho sale dùng</button>' : '<button class="btn sm ghost" data-spf="st|' + p.id + '|off">⏸ Ẩn</button>') + '<button class="btn sm ghost" data-spf="del|' + p.id + '">🗑 Xoá</button>'
+        : '<button class="btn sm pri" data-spf="cp|' + p.id + '|text">📋 Copy bài</button><button class="btn sm" data-spf="cp|' + p.id + '|cmt">📋 Copy bình luận</button><button class="btn sm" data-spf="cp|' + p.id + '|reply">📋 Copy câu có link</button>') + '</div></div>';
+  }
+  var SPF_STEPS = '<ol class="small spf-steps"><li>Copy <b>bài</b>, đăng lên Facebook cá nhân như bài bình thường (sửa vài chữ cho giống giọng mình càng tốt). <b>Không dán link vào bài</b>: bài có link ít người thấy.</li><li><b>Chờ bài có tương tác</b> (vài chục bình luận, hoặc 2–3 tiếng). Trả lời từng bình luận của bạn bè.</li><li>Viết <b>bình luận ghim</b> (không có link) dưới bài.</li><li><b>Trả lời ngay dưới bình luận đó</b> bằng câu có link riêng của bạn.</li><li>Trên <b>điện thoại</b>, giữ tay vào bình luận ở bước 3 → <b>Ghim</b>. Facebook không cho ghim bình luận có link, nên link phải nằm ở câu trả lời.</li></ol><p class="small muted">Khách bấm link rồi đặt trên web trong 30 ngày: đơn tính cho bạn. Mỗi tuần 2–3 bài là đủ, đừng đăng liền nhiều bài.</p>';
+  function spfOpen(admin) {
+    var m = modal(admin ? '📣 Bài Facebook cá nhân cho sale' : '📣 Bài đăng Facebook cá nhân', '<div id="spfBody"><p class="muted">⏳ Đang tải…</p></div>', '<button class="btn" data-close>Đóng</button>');
+    var draw = function () {
+      var P = SPF.posts || [], b = $('#spfBody', m); if (!b) return;
+      var gs = ((IN.d && IN.d.bank) || []).filter(function (g) { return g.on; });
+      b.innerHTML = (admin ? (SPF.write ? '<div class="box"><p class="small"><b>✨ Viết bài mới</b> (khoảng 1 phút). Trợ lý chọn nhóm khách, tension, góc kể như các kênh khác.</p><div class="row2c"><label class="f"><span>Nhóm khách</span><select id="spfG"><option value="">Trợ lý tự chọn</option>' + gs.map(function (g) { return '<option value="' + esc(g.id) + '">' + esc(g.name) + '</option>'; }).join('') + '</select></label><label class="f"><span>Loại bài</span><select id="spfF"><option value="TOFU">🔵 Nhận biết (không nhắc sản phẩm)</option><option value="MOFU">⚪ Tạo niềm tin (nhắc chuyện nghề)</option></select></label></div><label class="f"><span>Bình luận ghim mời khách</span><select id="spfTo">' + Object.keys(SPF.to).map(function (k) { return '<option value="' + k + '">' + esc(SPF.to[k]) + '</option>'; }).join('') + '</select></label><label class="f"><span>Yêu cầu thêm <small class="muted">không bắt buộc</small></span><input type="text" id="spfH" placeholder="Vd: kể chuyện mùa lạnh, nhắc ngày 20/11"></label><div class="lq-btns"><button class="btn pri" data-spf="write">✨ Viết 1 bài</button></div></div>' : '') : SPF_STEPS) +
+        (P.length ? P.map(function (p) { return spfCard(p, admin); }).join('') : '<p class="muted small">' + (admin ? 'Chưa có bài nào. Bấm ✨ Viết 1 bài.' : 'Chưa có bài nào được duyệt. Nhờ Marketing / Quản lý viết thêm ở tab 🎯 Insight & nội dung.') + '</p>') +
+        (admin ? '<details class="small"><summary>Sale sẽ thấy hướng dẫn đăng như sau</summary>' + SPF_STEPS + '</details>' : '');
+    };
+    SPF.draw = draw; SPF.admin = admin;
+    api('spf_list', { all: admin ? 1 : 0 }).then(function (r) { SPF.posts = r.posts; SPF.to = r.to; SPF.write = r.write; draw(); }, function (e) { var b = $('#spfBody', m); if (b) b.innerHTML = '<p class="muted">⚠️ ' + esc(e.message) + '</p>'; });
+  }
+  function spfEdit(p) {
+    var m = modal('✏️ Sửa bài Facebook cá nhân', '<label class="f"><span>Bước 1 · Bài đăng (không link)</span><textarea id="spfEt" rows="10">' + esc(p.text) + '</textarea></label><label class="f"><span>Bước 3 · Bình luận ghim (không link)</span><textarea id="spfEc" rows="2">' + esc(p.cmt) + '</textarea></label><label class="f"><span>Bước 4 · Trả lời có link <small class="muted">giữ chữ [LINK], CRM tự thay bằng link riêng của từng sale</small></span><textarea id="spfEr" rows="2">' + esc(p.reply) + '</textarea></label><label class="f"><span>Link dẫn tới</span><select id="spfEo">' + Object.keys(SPF.to).map(function (k) { return '<option value="' + k + '"' + (k === p.to ? ' selected' : '') + '>' + esc(SPF.to[k]) + '</option>'; }).join('') + '</select></label>',
+      '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="spfEs">Lưu</button>');
+    $('#spfEs', m).onclick = function () { this.disabled = true; api('spf_save', { id: p.id, text: $('#spfEt', m).value, cmt: $('#spfEc', m).value, reply: $('#spfEr', m).value, to: $('#spfEo', m).value }).then(function (r) { closeModal(); spfPut(r.post); toast('Đã lưu ✓'); spfOpen(true); }, function (e) { toast(e.message, true); }); };
+  }
+  function spfPut(np) { SPF.posts = (SPF.posts || []).map(function (q) { return q.id === np.id ? np : q; }); }
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-spf]'); if (!t) return;
+    var v = t.getAttribute('data-spf').split('|'), a = v[0], id = Number(v[1]), p = (SPF.posts || []).filter(function (q) { return q.id === id; })[0];
+    if (a === 'admin' || a === 'sale') return spfOpen(a === 'admin');
+    if (a === 'cp' && p) { var txt = v[2] === 'text' ? p.text : v[2] === 'cmt' ? p.cmt : spfReply(p); copy(txt).then(function () { toast('📋 Đã copy ' + (v[2] === 'text' ? 'bài' : v[2] === 'cmt' ? 'bình luận ghim' : 'câu có link')); }); if (v[2] === 'text') api('spf_used', { id: id }).catch(function () { }); return; }
+    if (a === 'write') { t.disabled = true; t.textContent = '⏳ AI đang viết (khoảng 1 phút)…'; return api('spf_write', { g: $('#spfG').value, f: $('#spfF').value, to: $('#spfTo').value, hint: $('#spfH').value.trim() }).then(function (r) { SPF.posts = [r.post].concat(SPF.posts || []); SPF.draw(); toast('Đã viết xong ✓ Đọc lại rồi bấm ✅ Cho sale dùng.'); }, function (er) { t.disabled = false; t.textContent = '✨ Viết 1 bài'; toast(er.message, true); }); }
+    if (!p) return;
+    if (a === 'edit') { closeModal(); return spfEdit(p); }
+    if (a === 'st') { t.disabled = true; return api('spf_save', { id: id, status: v[2] }).then(function (r) { spfPut(r.post); SPF.draw(); toast(v[2] === 'ok' ? 'Sale đã thấy bài này ✓' : 'Đã ẩn bài'); }, function (er) { t.disabled = false; toast(er.message, true); }); }
+    if (a === 'del') { if (!confirm('Xoá hẳn bài này?')) return; return api('spf_del', { id: id }).then(function () { SPF.posts = SPF.posts.filter(function (q) { return q.id !== id; }); SPF.draw(); toast('Đã xoá'); }, function (er) { toast(er.message, true); }); }
+  });
   function inSave(groups, msg) {
     return api('ins_save', { groups: groups }).then(function (r) { IN.d.bank = r.bank; IN.d.custom = true; toast(msg); render(); }, function (e) { toast(e.message, true); });
   }
@@ -10557,6 +10611,7 @@
     h += setSec('🙋 Của tôi', 'Chỉ ảnh hưởng tới bạn, không ảnh hưởng người khác.', setGroup('guide', '📖 Hướng dẫn nhanh', 'Những điều cần biết khi dùng CRM hằng ngày', G.guide, true) +
       setGroup('tg', '📲 Nhận thông báo qua Telegram', S.user.tg ? '✅ Đã kết nối' : '⚠️ Chưa kết nối · bấm để kết nối (30 giây)', G.tg, !S.user.tg) +
       setGroup('ref', '🌐 Link đặt hàng của tôi', 'Gửi khách tự đặt trên web, đơn vẫn tính cho bạn', '<div class="box ref-box"><p class="small muted" style="margin:0 0 8px">Khách bấm link rồi đặt trên web trong 30 ngày: đơn tự tính cho bạn (khách mới tự giao cho bạn phụ trách). Khách cũ đang do bạn phụ trách thì đặt bằng link nào cũng tính cho bạn. Web rẻ hơn Shopee, có quà ebook / 4 buổi Zoom cùng chuyên gia.</p>' + refLinks(S.user.name) + '</div>') +
+      setGroup('fbcn', '📣 Bài đăng Facebook cá nhân', 'Bài viết sẵn + bình luận ghim có link riêng của bạn', '<div class="box"><p class="small muted" style="margin:0 0 8px">Marketing viết sẵn bài kể chuyện đời thường để bạn đăng Facebook cá nhân. Link riêng của bạn nằm ở bình luận ghim: khách bấm rồi đặt trên web trong 30 ngày thì đơn tính cho bạn.</p><button class="btn sm pri" data-spf="sale">📣 Xem bài viết sẵn</button></div>') +
       setGroup('acc', '👤 Tài khoản của tôi', esc(S.user.name) + ' · ' + esc(S.user.role), G.acc) +
       setGroup('lim', '🎯 Số khách chăm sóc mỗi ngày', 'Tối đa ' + dayLimit() + ' khách / ngày', G.lim) +
       setGroup('color', '🎨 Màu thẻ khách & nhãn riêng', myTags().length ? myTags().length + ' nhãn riêng' : 'Đổi màu, tạo nhãn riêng', G.color));

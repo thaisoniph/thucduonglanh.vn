@@ -73,6 +73,22 @@ Mỗi bạn có **một link web riêng**, ví dụ `thucduonglanh.vn/?ref=thuy`
 
 **Link đặt lại (giỏ hàng có sẵn):** trong hồ sơ khách bấm **🔗 Link đặt lại**, hoặc trong cửa sổ Chăm sóc bấm **🔗 Gửi link cho khách tự đặt** (khung *Khách muốn mua?*). Khách muốn bạn lên đơn luôn thì bấm nút xanh **🛒 Lên đơn ngay** bên cạnh. CRM tạo link đã có sẵn sản phẩm của đơn trước. Bấm **📋 Copy tin & mở Zalo**, gửi khách. Khách chỉ cần xem lại địa chỉ rồi bấm Đặt hàng. Nên dùng khi khách **sắp hết hàng**.
 
+## Đăng bài Facebook cá nhân viết sẵn
+
+Marketing viết sẵn **bài kể chuyện đời thường** để bạn đăng lên Facebook cá nhân. Link riêng của bạn không nằm trong bài mà nằm ở **bình luận ghim**: bài không có link thì Facebook cho nhiều bạn bè thấy hơn.
+
+**Mở:** Cài đặt → **📣 Bài đăng Facebook cá nhân** → **Xem bài viết sẵn**. Nếu ở Hôm nay có khung **🔎 Tự tạo khách** thì bấm **Xem bài** ở dòng 📣.
+
+**Làm 5 bước:**
+
+1. Bấm **📋 Copy bài**, đăng lên Facebook cá nhân như bài bình thường. Sửa vài chữ cho giống giọng mình càng tốt. **Không dán link vào bài.**
+2. **Chờ bài có tương tác** (vài chục bình luận, hoặc sau 2–3 tiếng). Trả lời từng bình luận của bạn bè.
+3. Bấm **📋 Copy bình luận**, dán làm bình luận dưới bài. Bình luận này không có link.
+4. Bấm **📋 Copy câu có link**, dán làm **trả lời ngay dưới bình luận ở bước 3**. Link trong câu này đã có mã riêng của bạn.
+5. Trên **điện thoại**, giữ tay vào bình luận ở bước 3 → **Ghim**. Facebook không cho ghim bình luận có link, nên link phải nằm ở câu trả lời.
+
+Khách bấm link rồi đặt trên web trong 30 ngày thì đơn tính cho bạn. Mỗi tuần đăng 2–3 bài là đủ, đừng đăng liền nhiều bài một lúc.
+
 ## Khách cũ giới thiệu bạn bè (🌱 Đại sứ Sống Lành)
 
 Khách đã mua thì ai cũng có **link giới thiệu riêng**. Bạn bè của khách **mua lần đầu** trên web được **giảm 10%**. Quà cho khách (từ 30/10/2026, cộng dồn):

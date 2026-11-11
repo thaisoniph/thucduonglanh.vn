@@ -14,9 +14,10 @@ import { run, all, first, kvGet, kvJson, kvSet, kvDel, nrm, fmtDate, DAY } from 
 import { kb, safe, TRUTH_RULES } from './chat.js';
 import { prodMap } from './zbot.js';
 import { crmInSkill, skillsInfo, offerDrafts, skillOf, methodBlock } from './inskill.js';
+import { lrnPosts, lrnBlock } from './learn.js';
 
 const WRITER = 'claude-opus-5-5';
-export const CH = { web: '🌐 Web', zalo: '💬 Zalo', fb: '📘 Fanpage', video: '🎬 Video' };
+export const CH = { web: '🌐 Web', zalo: '💬 Zalo', fb: '📘 Fanpage', video: '🎬 Video', fbcn: '📣 FB cá nhân' };
 
 /** Mã ngắn sản phẩm để gắn nhãn (10/11/2026, anh Sơn: "insight / tension phân theo từng sản phẩm, cái nào dùng chung thì ghi lại").
  * Cuối dòng tension ghi [SP: dilvang, bua-an] = tension riêng của sản phẩm đó; không ghi = DÙNG CHUNG cho mọi sản phẩm (và hợp nhất cho bài TOFU).
@@ -215,7 +216,8 @@ export async function insPick(x, ch, want, opt) {
   let angle = '';
   if (big) { const used = a => all90.filter(r => r.g === g.id && r.ch === ch && r.b === big.t && r.a && nrm(r.a) === nrm(a)).length; angle = big.ang.map((a, i) => ({ a, n: used(a), i })).sort((p, q) => p.n - q.n || p.i - q.i)[0].a; }
   const recentA = g ? all90.filter(r => r.g === g.id && r.a).slice(-6).map(r => r.a) : [];
-  return { bank, g, recent, prod, big, angle, recentA };
+  let learn = {}; try { learn = await lrnPosts(x, ch); } catch (e) { } // 📈 bài nhiều / ít tương tác thật (learn.js)
+  return { bank, g, recent, prod, big, angle, recentA, learn };
 }
 
 /** 🎭 Kho góc kể chuyện (narrative angle, khoá content K131 Buổi 2, 5, 6): cùng 1 sự thật, kể từ cửa khác nhau thành bài khác hẳn. Mỗi bài 1 góc chính (+ 1 kỹ thuật phụ). */
@@ -268,6 +270,7 @@ export function insBlock(p, f, opt) {
     p && p.big && !opt.light ? '' : '   - GÓC KỂ (narrative angle): chọn 1 góc trong kho dưới đây hợp với tension' + (p && p.recentA && p.recentA.length ? ', KHÁC các góc nhóm này vừa dùng (' + p.recentA.join(' | ') + ')' : '') + '; được kết hợp thêm 1 kỹ thuật phụ (vd câu chuyện + checklist):\n' + ANGLES.map(a => '     · ' + a).join('\n'),
     '   - Bài TOFU: góc kể KHÔNG xoay quanh sản phẩm, viết về điều nhóm khách quan tâm trong đời sống (khoảng 10 bài nhận biết mới có 1 bài nhắc sản phẩm, và chỉ 1 câu cầu nối ở cuối). Bài MOFU / BOFU: sản phẩm là cầu nối gỡ tension, không phải điểm xuất phát.',
     '   - ' + VIET,
+    p && p.learn ? lrnBlock(p.learn) : '',
     opt.light ? 'Bài này là bài theo dịp (chúc mừng / tương tác): giữ đúng chủ đề dịp, tension chỉ dùng để chọn góc chạm gần gũi (1–2 câu), không biến thành bài bán.' : '',
     F ? 'TẦNG PHỄU: ' + F.name + '. ' + F.rule + '\nCông thức viết hợp tầng này (chọn 1): ' + FORMULA[f] + '.' : 'TẦNG PHỄU: tự chọn 1 tầng hợp với tension và chủ đề:\n' + Object.entries(FUN).map(([k, v]) => '- ' + v.name + ': ' + v.rule + ' Công thức hợp: ' + FORMULA[k] + '.').join('\n'),
     'Đạo đức: nội dung phải GỠ tension, không khoét sâu nỗi sợ bệnh tật, mặc cảm cơ thể, áp lực gia đình để ép mua; không bịa lời khách, số liệu, khuyến mãi; không đóng vai khách tự hỏi tự trả lời.',
@@ -509,7 +512,8 @@ export async function crmIns(x, u, d, crmLog) {
     const scripts = (await all(x.db, 'SELECT id, at, by_name, g, gn, f, t, i, prod, sec, kind, title, text FROM vd_scripts ORDER BY id DESC LIMIT 30')).map(r => Object.assign(r, { w: insRisk(r.text), v: insStyle(r.text) }));
     const upd = custom ? mergeDefault(bank).n : null; // bản mặc định có nhóm / tension / nhãn sản phẩm mới mà ngân hàng đã sửa riêng chưa có
     const prods = Object.entries(prodMap(await kb())).map(([k, v]) => ({ code: k, name: v.name }));
-    return { ok: true, now, bank, custom, upd, sp: SP, skills: await skillsInfo(x), drafts: await offerDrafts(x), log: log.slice(-300), scripts, prods, aiOn: !!x.env.ANTHROPIC_API_KEY, fun: Object.fromEntries(Object.entries(FUN).map(([k, v]) => [k, v.name])) };
+    let learn = {}; try { learn = await lrnPosts(x, 'all'); } catch (e) { }
+    return { ok: true, now, bank, custom, upd, learn, sp: SP, skills: await skillsInfo(x), drafts: await offerDrafts(x), log: log.slice(-300), scripts, prods, aiOn: !!x.env.ANTHROPIC_API_KEY, fun: Object.fromEntries(Object.entries(FUN).map(([k, v]) => [k, v.name])) };
   }
   if (a === 'ins_save') {
     if (u.level < 2 && u.role !== 'Marketing') return { ok: false, error: 'Chỉ Marketing, Quản lý, Quản trị sửa được ngân hàng insight.' };
