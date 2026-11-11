@@ -15,7 +15,7 @@ quote: Một đại lý tin mình, là cả nghìn gia đình được dùng s�
 
 ## Dành cho ai?
 
-**Vị trí này dành cho người đã làm kinh doanh đại lý, phân phối và muốn tự tay dựng cả một kênh bán hàng.** Bạn không phải bắt đầu từ con số 0: sản phẩm, khách hàng, thương hiệu và hệ thống công ty đã có sẵn. Mỗi đại lý bạn mở thêm là thu nhập của bạn tăng thêm.
+**Vị trí này dành cho người đã có kinh nghiệm kinh doanh đại lý, phân phối và muốn tự tay dựng cả một kênh bán hàng.** Bạn đang là trưởng phòng, trưởng nhóm, hay đang là nhân viên kinh doanh muốn tiến lên vị trí Trưởng phòng đều phù hợp. Bạn không phải bắt đầu từ con số 0: sản phẩm, khách hàng, thương hiệu và hệ thống công ty đã có sẵn. Mỗi đại lý bạn mở thêm là thu nhập của bạn tăng thêm.
 
 Nếu bạn đang giỏi việc nhưng thấy mình chỉ là "một mắt xích" ở công ty lớn, bị giao chỉ tiêu mà không được quyết cách làm, thì hãy đọc tiếp.
 
@@ -100,7 +100,8 @@ Nếu bạn đang giỏi việc nhưng thấy mình chỉ là "một mắt xích
 **Bạn là người phù hợp nếu bạn:**
 
 - Tốt nghiệp trung cấp trở lên các ngành Quản trị kinh doanh, Kinh tế thương mại, Marketing hoặc ngành liên quan.
-- Có từ 3 năm kinh doanh kênh đại lý, phân phối, bán sỉ (GT / MT), trong đó ít nhất 1 năm làm trưởng nhóm hoặc quản lý đội bán hàng.
+- Có kinh nghiệm kinh doanh kênh đại lý, phân phối, bán sỉ (GT / MT) và **thật sự muốn phát triển lên vị trí Trưởng phòng Kinh doanh**. Bạn chưa từng làm quản lý vẫn có thể ứng tuyển: chúng tôi kèm cặp bạn lớn lên cùng kênh.
+- Đã từng làm trưởng nhóm hoặc quản lý đội bán hàng là một lợi thế.
 - Có kinh nghiệm ngành thực phẩm, dinh dưỡng, dược phẩm, mỹ phẩm – spa hoặc FMCG là lợi thế lớn. **Đã có sẵn quan hệ với spa, phòng khám y học cổ truyền, nhà thuốc hoặc nhà phân phối là lợi thế rất lớn.**
 - Giao tiếp tốt, đàm phán chắc. Thích đi thị trường, gặp người thật, làm việc thật.
 - Biết lập kế hoạch, đọc số và quản lý đội bằng chỉ tiêu. Dùng thành thạo tin học văn phòng; sẵn sàng dùng CRM và AI trong công việc.
