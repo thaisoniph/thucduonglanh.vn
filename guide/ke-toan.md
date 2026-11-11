@@ -207,6 +207,21 @@ Lãi lỗ ở tab này **cùng số** với Tổng quan của anh Sơn.
 3. Mở **🧮 Lãi lỗ sau mọi chi phí** → **✏️ Nhập chi phí tháng …**: gõ từng khoản (thuê văn phòng, lương, điện, nước, tiền ship trả hãng…), bấm Lưu.
 4. Hoặc **📎 Tải file kế toán** (file báo cáo tháng) và **👥 Tải bảng lương**: máy tự đọc các khoản chi phí.
 
+5. **Mỗi ngày ghi Sổ chi** (trong file Google Sheet kế toán, xem mục dưới): khoản nào chi ra hôm nay (tiếp khách, mua đồ, sửa chữa, hỗ trợ TikTok…) ghi 1 dòng **đúng ngày chi**. Lãi lỗ ngày đó trừ đúng số tiền đó.
+
+### Sổ chi tính vào lãi lỗ thế nào
+
+| Loại khoản | Máy làm gì |
+|---|---|
+| Lương, bảo hiểm, thuê nhà / kho, điện nước, internet, phần mềm, ship trả hãng | **Chia đều mỗi ngày** theo chi phí cả tháng (bước 3, 4). Ghi vào Sổ chi vẫn được, máy không trừ lần 2. |
+| Khoản phát sinh khác (tiếp khách, mua đồ, sửa chữa, quà, hỗ trợ marketing…) | **Trừ đúng ngày** ghi trong Sổ chi. |
+| Quảng cáo Facebook, phí sàn | Máy tự lấy, **không trừ lần 2**. |
+| Trả nợ / nhập hàng nhà cung cấp, chuyển tiền nội bộ, thuế | **Không phải chi phí** (giá vốn đã tính theo hàng bán ra). |
+
+- Bảng **Xem từng ngày**, cột **Chi phí**: ngày có 📒 là có khoản phát sinh (rê chuột vào số để xem từng khoản). Ngày có **~** là Sổ chi chưa ghi tới ngày đó nên máy tạm tính trung bình. Vì vậy **ghi Sổ chi mỗi ngày** để anh Sơn xem số đúng.
+- Cột **Nhóm** trong Sổ chi nên ghi rõ (ví dụ "Tiếp khách", "Lương nhân viên", "Trả nợ nhà cung cấp") để máy xếp đúng loại.
+- Máy đọc lại file 3 tiếng 1 lần. Muốn thấy ngay thì bấm **↻ Lấy số mới** ở mục 🏦 Tiền & công nợ.
+
 Ghi chú:
 
 - Tháng này chưa nhập chi phí thì máy **tạm lấy theo tháng gần nhất** đã có, ghi rõ trên màn hình.

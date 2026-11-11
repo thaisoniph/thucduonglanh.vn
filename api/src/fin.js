@@ -118,7 +118,7 @@ function isoDay(v) {
 }
 function num(v) { if (typeof v === 'number') return v; const s = String(v || '').replace(/[^\d-]/g, ''); return s && s !== '-' ? +s : 0; }
 /** Nhóm trong sổ chi không phải chi phí (chỉ là tiền ra): trả nợ / nhập hàng / chuyển nội bộ / thuế. */
-export function chiKind(g) { const n = norm(g); return /chuyen (giua|noi bo)|chuyen tien/.test(n) ? 'move' : /tra no|nha cung cap|nhap hang/.test(n) ? 'ncc' : /^thue\b(?! (van phong|mat bang|nha))/.test(n) ? 'tax' : ''; }
+export function chiKind(g) { const n = norm(g); return /chuyen (giua|noi bo)|chuyen tien/.test(n) ? 'move' : /tra no|nha cung cap|nhap hang/.test(n) ? 'ncc' : /^thue\b(?! (van phong|mat bang|nha|kho))/.test(n) ? 'tax' : ''; }
 /** Tìm dòng tiêu đề có đủ các cột (mỗi mục là regex trên tên cột đã bỏ dấu) → { r: số dòng, c: { tên: vị trí } }. */
 function findHead(rows, want, max) {
   for (let i = 0; i < Math.min(rows.length, max || 30); i++) {
@@ -224,24 +224,35 @@ export async function crmFin(x, u, d, a) {
 function money(n) { return Math.round(n).toLocaleString('vi-VN') + 'đ'; }
 function tr(n) { const a = Math.abs(n); return (n < 0 ? '−' : '') + (a >= 1e6 ? (Math.round(a / 1e5) / 10).toString().replace('.', ',') + ' tr' : money(a)); }
 /** Lãi lỗ ước tính kỳ [a, b): doanh số đơn (đã trừ hoàn / huỷ) × (1 − tỷ lệ giá vốn kế toán) − quảng cáo − chi phí cố định theo ngày. Chưa gồm sàn. */
-async function plRange(x, a, b, rate, fixDay) {
+/* Sổ chi → chi phí từng ngày (11/11/2026), giống fxPlan / fxDay trong crm/app.js (sửa 1 bên sửa cả 2): khoản trả theo tháng (FX_PER) chia đều theo chi phí văn phòng tháng gần nhất,
+ * khoản phát sinh trừ đúng ngày trong Sổ chi; ngày sau dòng Sổ chi mới nhất / tháng chưa có Sổ chi → tạm tính trung bình như cũ. */
+const FX_PER = /luong|nhan vien|nhan su|bhxh|bao hiem|thue (van phong|mat bang|nha|kho)|mat bang|^dien|dien nuoc|nuoc|internet|dien thoai|phan mem|khau hao|van chuyen|ship/;
+function fxSkip(g) { const n = norm(g); return !!chiKind(g) || (/quang cao|\bads\b/.test(n) && !/tiktok/.test(n)) || /san tmdt|shopee|lazada/.test(n) || FX_PER.test(n); }
+function fxPlan(F) {
+  const by = {}, mon = {}; let last = '';
+  if (F && F.chi) F.chi.forEach(r => { if (chiKind(r[1]) === 'move') return; if (r[0] > last) last = r[0]; mon[r[0].slice(0, 7)] = 1; if (!fxSkip(r[1])) by[r[0]] = (by[r[0]] || 0) + r[2]; });
+  return { by, last, mon };
+}
+async function plRange(x, a, b, rate, fixDay, C, P) {
+  let fix = 0;
+  for (let t = a; t < b; t += DAY) { const d = fmtDate(t, 'yyyy-MM-dd'); fix += P && C && P.mon[d.slice(0, 7)] ? C.per + (d <= P.last ? P.by[d] || 0 : fixDay - C.per) : fixDay; }
   const [o] = await all(x.db, "SELECT COALESCE(SUM(total), 0) AS v, COUNT(*) AS n FROM orders WHERE time >= ? AND time < ? AND status NOT LIKE '%hoàn%' AND status NOT LIKE '%huỷ%' AND status NOT LIKE '%hủy%'", a, b);
   const [s] = await all(x.db, 'SELECT COALESCE(SUM(spend), 0) AS v FROM ad_spend WHERE day BETWEEN ? AND ?', fmtDate(a, 'yyyy-MM-dd'), fmtDate(b - 1, 'yyyy-MM-dd'));
   const days = Math.round((b - a) / DAY), gp = o.v * (1 - rate);
-  return { rev: o.v, n: o.n, ads: s.v, fix: fixDay * days, net: gp - s.v - fixDay * days };
+  return { rev: o.v, n: o.n, ads: s.v, fix, net: gp - s.v - fix };
 }
 /** Số liệu chung cho tin sáng + kiểm tra: tỷ lệ giá vốn + chi phí cố định 1 ngày từ tháng kế toán gần nhất. */
 function baseCfg(O) {
-  const ks = Object.keys(O || {}).sort().reverse(); let rate = 0.3, rm = '', fix = 0, fm = '';
-  for (const k of ks) { const t = O[k] && O[k].kt; if (!rm && t && t.cogs > 0 && t.dt > 0) { rate = t.cogs / t.dt; rm = k; } if (!fm && O[k] && (O[k].items || []).length) { const y = +k.slice(0, 4), m = +k.slice(5, 7), dim = new Date(Date.UTC(y, m, 0)).getUTCDate(); fix = O[k].items.reduce((s, r) => s + (r[1] || 0), 0) / dim; fm = k; } }
-  return { rate, rm, fix, fm };
+  const ks = Object.keys(O || {}).sort().reverse(); let rate = 0.3, rm = '', fix = 0, per = 0, fm = '';
+  for (const k of ks) { const t = O[k] && O[k].kt; if (!rm && t && t.cogs > 0 && t.dt > 0) { rate = t.cogs / t.dt; rm = k; } if (!fm && O[k] && (O[k].items || []).length) { const y = +k.slice(0, 4), m = +k.slice(5, 7), dim = new Date(Date.UTC(y, m, 0)).getUTCDate(); fix = O[k].items.reduce((s, r) => s + (r[1] || 0), 0) / dim; per = O[k].items.reduce((s, r) => s + (FX_PER.test(norm(r[0])) ? r[1] || 0 : 0), 0) / dim; fm = k; } }
+  return { rate, rm, fix, per, fm };
 }
 export async function finMorning(x) {
   const O = (await kvJson(x.db, 'opex_cfg', {})) || {}, F = await kvJson(x.db, 'fin_cfg', null), C = baseCfg(O);
   const KL = await ktMorningLines(x).catch(() => []); // 💤 tiền treo ở hãng (kt.js, 09/11/2026)
   if (!C.fm && !F) return KL.length ? ['💼 <b>Tài chính sáng ' + fmtDate(Date.now(), 'dd/MM') + '</b>', ''].concat(KL, ['', CRM_URL]).join('\n') : ''; // chưa có số kế toán → chỉ gửi phần tiền treo (nếu có)
   const t0 = startOfDay(Date.now()), y0 = t0 - DAY, ym = fmtDate(y0, 'yyyy-MM'), m0 = startOfDay(new Date(ym + '-01T00:00:00+07:00').getTime());
-  const Y = await plRange(x, y0, t0, C.rate, C.fix), M = await plRange(x, m0, t0, C.rate, C.fix), md = Math.round((t0 - m0) / DAY);
+  const P = fxPlan(F), Y = await plRange(x, y0, t0, C.rate, C.fix, C, P), M = await plRange(x, m0, t0, C.rate, C.fix, C, P), md = Math.round((t0 - m0) / DAY);
   const L = ['💼 <b>Tài chính sáng ' + fmtDate(Date.now(), 'dd/MM') + '</b>',
     '', '<b>Hôm qua ' + fmtDate(y0, 'dd/MM') + '</b>: bán ' + tr(Y.rev) + ' (' + Y.n + ' đơn) → ' + (Y.net < 0 ? '🔴 lỗ ' : '🟢 lãi ') + tr(Math.abs(Y.net)),
     '<b>Từ đầu tháng</b> (' + md + ' ngày): bán ' + tr(M.rev) + ' → ' + (M.net < 0 ? '🔴 lỗ ' : '🟢 lãi ') + tr(Math.abs(M.net)) + (M.rev ? ' · quảng cáo ' + Math.round(M.ads * 100 / M.rev) + '% doanh số' : ''),
@@ -262,6 +273,6 @@ export async function finMorning(x) {
     if (last && last < fmtDate(y0 - DAY, 'yyyy-MM-dd')) L.push('<i>Sổ chi chưa cập nhật từ ' + fmtDate(new Date(last + 'T12:00:00+07:00').getTime(), 'dd/MM') + '.</i>');
   }
   if (KL.length) L.push('', ...KL);
-  L.push('', '<i>Ước tính: giá vốn ' + Math.round(C.rate * 100) + '% (kế toán ' + (C.rm ? 'T' + +C.rm.slice(5) : 'mặc định') + '), chi phí cố định ' + tr(C.fix) + '/ngày' + (C.fm ? ' (T' + +C.fm.slice(5) + ')' : '') + ', chưa gồm sàn.</i>', CRM_URL);
+  L.push('', '<i>Ước tính: giá vốn ' + Math.round(C.rate * 100) + '% (kế toán ' + (C.rm ? 'T' + +C.rm.slice(5) : 'mặc định') + '), chi phí cố định ' + tr(C.fix) + '/ngày' + (C.fm ? ' (T' + +C.fm.slice(5) + ')' : '') + (P.last ? ', khoản phát sinh theo Sổ chi' : '') + ', chưa gồm sàn.</i>', CRM_URL);
   return L.filter((s, i) => s !== '' || L[i - 1] !== '').join('\n');
 }
