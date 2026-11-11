@@ -136,6 +136,17 @@ Hộp hỏng không bán được: sau khi nhận, bấm **📤 Lấy hàng ra**
 
 Muốn xem lại các đơn đã nhận: bấm **✅ Đã nhận 14 ngày qua** dưới danh sách. Sáng nào có đơn đang chuyển hoàn, tin Telegram **Kho sáng** lúc 8h cũng nhắc.
 
+## ✂️ Nhận hàng trả về của đơn ký nhận 1 phần
+
+Khách chỉ nhận 1 phần hàng, phần còn lại hãng gửi trả về kho. Sale ghi trong đơn, đơn hiện ở mục **✂️ Hàng trả về của đơn ký nhận 1 phần** (ngay dưới **↩ Hàng hoàn về kho**).
+
+1. Gói hàng trả về tới kho: bấm vào đúng đơn (so **mã vận đơn trả về**, tên khách, 4 số cuối SĐT).
+2. Chọn **hàng trả về** và gõ **số lượng**. Trả về nhiều loại thì bấm **＋ Thêm loại hàng**.
+3. Mở gói kiểm hàng: chọn **✅ Đủ hàng, còn nguyên** hoặc **⚠️ Thiếu hoặc hỏng** (bắt buộc ghi thiếu, hỏng gì).
+4. Bấm **📦 Đã nhận hàng**. Máy cộng số hàng đó vào kho và nhắn sale.
+
+Khác với hàng hoàn: đơn **không** chuyển sang Hoàn, vì khách đã nhận phần còn lại.
+
 ## Đếm kho cuối tuần (thứ 6)
 
 Sáng thứ 6, thẻ **🧮 Đếm kho cuối tuần** hiện trong "Việc cần làm", Telegram cũng nhắc. Đếm thật từng sản phẩm trong kho, rồi bấm **🧮 Đếm kho**:

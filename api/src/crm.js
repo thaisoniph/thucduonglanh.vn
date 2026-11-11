@@ -31,7 +31,7 @@ import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, wbInf
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-11-11q'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
+const SCHEMA_V = '2026-11-11r'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -60,7 +60,7 @@ export async function ensureSchema(db) {
     await addCol('cash_src', "TEXT DEFAULT ''");
     await addCol('cash_acct', "TEXT DEFAULT ''"); // 10/11/2026: tiền về tài khoản nào (Công ty / Anh Sơn / Hộ kinh doanh… – kt_cfg.accts)
     await addCol('cash_why', "TEXT DEFAULT ''"); // 10/11/2026: lý do hãng thu khác tiền trên đơn (Hạ COD hỗ trợ ship, Sale nhập sai…)
-    for (const [col, def] of [['adj_type', "TEXT DEFAULT ''"], ['adj_from', 'INTEGER'], ['adj_down', 'INTEGER DEFAULT 0'], ['adj_up', 'INTEGER DEFAULT 0'], ['adj_trk', "TEXT DEFAULT ''"], ['adj_at', 'INTEGER'], ['adj_by', "TEXT DEFAULT ''"], ['adj_note', "TEXT DEFAULT ''"]]) await addCol(col, def); // 11/11/2026: ✏️ Hạ COD / Ký 1 phần / Đổi hàng (crmOrderAdj)
+    for (const [col, def] of [['adj_type', "TEXT DEFAULT ''"], ['adj_from', 'INTEGER'], ['adj_down', 'INTEGER DEFAULT 0'], ['adj_up', 'INTEGER DEFAULT 0'], ['adj_trk', "TEXT DEFAULT ''"], ['adj_at', 'INTEGER'], ['adj_by', "TEXT DEFAULT ''"], ['adj_note', "TEXT DEFAULT ''"], ['adj_kho_at', 'INTEGER'], ['adj_kho_by', "TEXT DEFAULT ''"], ['adj_kho_note', "TEXT DEFAULT ''"]]) await addCol(col, def); // 11/11/2026: ✏️ Hạ COD / Ký 1 phần / Đổi hàng (crmOrderAdj)
  // 20/10/2026: địa chỉ cũ (63 tỉnh, có huyện) – Misa vẫn chọn theo địa chỉ cũ
     // Khách: đã kết bạn Zalo, nhóm cộng đồng, ngày sinh (bản Apps Script có, lúc chuyển sang D1 bị thiếu)
     const ccols = (await all(db, "PRAGMA table_info(customers)")).map(r => r.name);
@@ -2359,6 +2359,32 @@ async function crmKhoRecv(x, u, d) {
   const k = await crmKho(x, u, { action: 'kho_load' }, crmLog);
   return Object.assign(k, { done: o.id });
 }
+/** ✂️ Kho nhận hàng trả về của đơn ký nhận 1 phần (11/11/2026): đơn giữ nguyên trạng thái (khách đã nhận phần còn lại).
+ *  d: { id, row, ok, note, back: [{ item, qty }] } → ghi adj_kho_*, cộng hàng trả về vào kho (kho_moves 'in'), báo sale. */
+async function crmKhoPart(x, u, d) {
+  if (!(u.level >= 2 || u.kho)) return { ok: false, error: 'Chỉ người phụ trách kho, Quản lý, Quản trị ghi được.' };
+  const o = await orderFind(x, { id: d.id, row: d.row }); if (!o) return { ok: false, error: 'Không tìm thấy đơn ' + (d.id || '') };
+  if (o.adj_type !== 'Ký 1 phần') return { ok: false, error: 'Đơn ' + o.id + ' không phải đơn ký nhận 1 phần.' };
+  if (o.adj_kho_at) return { ok: false, error: 'Đơn ' + o.id + ' đã ghi nhận hàng trả về rồi.' };
+  const ok = d.ok !== false, note = String(d.note || '').replace(/\s+/g, ' ').trim().slice(0, 300);
+  if (!ok && !note) return { ok: false, error: 'Ghi rõ thiếu hoặc hỏng gì.' };
+  const items = {}; (await all(x.db, 'SELECT id, name, unit FROM kho_items')).forEach(i => { items[i.id] = i; });
+  const back = (Array.isArray(d.back) ? d.back : []).slice(0, 10).map(b => ({ it: items[b.item], qty: Math.round((Number(b.qty) || 0) * 100) / 100 })).filter(b => b.it && b.qty > 0 && b.qty < 1e5);
+  if (!back.length) return { ok: false, error: 'Chọn hàng trả về và số lượng (để cộng lại vào kho).' };
+  const now = Date.now(), txt = back.map(b => b.qty + ' ' + (b.it.unit || '') + ' ' + b.it.name).join(', ');
+  for (const b of back) await run(x.db, 'INSERT INTO kho_moves (item, kind, qty, reason, note, po, by_name, at, made) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', b.it.id, 'in', b.qty, '', ('Hàng trả về đơn ' + o.id + ' (ký 1 phần)').slice(0, 300), null, u.name, now, now);
+  const kn = (ok ? 'Đủ: ' : '⚠️ ' + note + ' · Nhận: ') + txt + (ok && note ? ' · ' + note : '');
+  await run(x.db, 'UPDATE orders SET adj_kho_at = ?, adj_kho_by = ?, adj_kho_note = ? WHERE rid = ?', now, u.name, kn.slice(0, 300), o.rid);
+  await crmLog(x, u, 'Điều chỉnh đơn', o.id, o.name, 'Kho nhận hàng trả về (ký 1 phần): ' + txt, ok ? note : 'Thiếu / hỏng: ' + note);
+  try {
+    const ow = await ownerOf(x, o.phone), msg = '✂️ <b>Kho đã nhận hàng trả về (ký 1 phần)</b>\nĐơn <b>' + esc(o.id) + '</b> · ' + esc(o.name) + '\n' + esc(txt) + '\n' + (ok ? '✅ Đủ hàng, còn nguyên' + (note ? ' · ' + esc(note) : '') : '⚠️ ' + esc(note)) + '\n' + CRM_URL;
+    const to = [...new Set([o.seller, ow].filter(n => n && n !== u.name))];
+    for (const n of to) await telegramUser(x, n, msg);
+    if (!ok) for (const m of await crmUsers(x)) if (m.active && m.tg && m.level >= 2 && m.name !== u.name && to.indexOf(m.name) < 0) await telegramTo(x.env, m.tg, msg);
+  } catch (e) { console.error('khoPart tg', e.message); }
+  const k = await crmKho(x, u, { action: 'kho_load' }, crmLog);
+  return Object.assign(k, { done: o.id });
+}
 /** 🔍 Kho tìm đơn theo mã đơn / mã vận đơn / 4+ số cuối SĐT / tên (hàng hoàn về mà CRM chưa báo hoàn). 180 ngày, đơn đã gửi đi. */
 async function crmKhoFind(x, u, d) {
   if (!(u.level >= 2 || u.kho)) return { ok: false, error: 'Bạn không có quyền làm việc này.' };
@@ -2387,6 +2413,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (a === 'kt_shp' || a === 'kt_simp' || a === 'kt_shk') return ktShopee(x, u, d, crmLog); // 🟠 đối soát Shopee từng đơn (san.js, 11/11/2026)
   if (a === 'kt_cash' || a === 'kt_cfg' || a === 'kt_why') return crmKt(x, u, d, crmLog); // 💼 tiền về tài khoản, ngày bắt đầu theo dõi (kt.js)
   if (u.role === 'Kế toán' && a === 'settings') return crmSettings(x, u, d); // chỉ chi phí / bảng lương / giá vốn (ktSettingsOk)
+  if (a === 'kho_part') return crmKhoPart(x, u, d); // ✂️ hàng trả về của đơn ký 1 phần (11/11/2026)
   if (a === 'kho_recv' || a === 'kho_find') return a === 'kho_recv' ? crmKhoRecv(x, u, d) : crmKhoFind(x, u, d); // ↩ hàng hoàn về kho (09/11/2026)
   if (a === 'load') return crmLoad(x, u, d);
   if (a === 'guide_ask') return guideAsk(x, u, d); // ✨ Hỏi trợ lý An Lành trong trang hướng dẫn (guideask.js)

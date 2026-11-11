@@ -144,6 +144,8 @@ Mỗi đơn đi qua 4 bước: **Mới → Đã xác nhận → Đang giao → �
 
 Doanh số của bạn tính theo **tiền thực thu**. Kế toán xem đơn này ngay trong CRM để xuất hoá đơn, **không cần điền file Google Sheet theo dõi hạ COD nữa**. CRM tự sửa ô tiền trong file lên đơn của bạn. Ghi nhầm thì mở lại bấm **✏️ Sửa** hoặc **↩ Bỏ điều chỉnh**.
 
+Đơn **ký 1 phần**: kho nhận hàng trả về thì Telegram báo bạn, trong đơn hiện dòng **📦 Kho đã nhận hàng trả về**.
+
 **Bấm nhầm?** Mở đơn, chọn lại cho đúng. Máy có lưu lịch sử, không sao cả.
 
 > **Phí ship:** đơn dưới 300.000đ cộng thêm 30.000đ. Đơn từ 300.000đ được miễn phí ship.

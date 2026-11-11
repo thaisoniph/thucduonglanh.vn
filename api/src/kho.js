@@ -295,15 +295,16 @@ async function khoLoad(x, u, d) {
   const [chk, pos, moves, cfg, P, C] = await Promise.all([khoCheck(x, {}), all(x.db, "SELECT * FROM kho_po WHERE status = 'open' OR at > ? ORDER BY id DESC LIMIT 120", now - 120 * DAY),
     all(x.db, 'SELECT * FROM kho_moves WHERE at > ? ORDER BY at DESC, id DESC LIMIT 200', now - 90 * DAY), kvJson(x.db, 'kho_cfg', {}), khoPeople(x), khoCtx(x, items)]);
   const names = await khoNames(x, C, 60), map = await kvJson(x.db, 'kho_map', {}) || {};
-  const [ret, got] = await Promise.all([all(x.db, "SELECT " + RET_COLS + " FROM orders WHERE status = 'Đang chuyển hoàn' ORDER BY time LIMIT 300"),
-    all(x.db, "SELECT " + RET_COLS + " FROM orders WHERE status = 'Hoàn' AND upd > ? ORDER BY upd DESC LIMIT 60", now - 14 * DAY)]); // ↩ hàng hoàn đang về / vừa về
+  const [ret, got, part] = await Promise.all([all(x.db, "SELECT " + RET_COLS + " FROM orders WHERE status = 'Đang chuyển hoàn' ORDER BY time LIMIT 300"),
+    all(x.db, "SELECT " + RET_COLS + " FROM orders WHERE status = 'Hoàn' AND upd > ? ORDER BY upd DESC LIMIT 60", now - 14 * DAY), // ↩ hàng hoàn đang về / vừa về
+    all(x.db, "SELECT " + RET_COLS + ", adj_trk, adj_note, adj_at, adj_kho_at, adj_kho_by, adj_kho_note FROM orders WHERE adj_type = 'Ký 1 phần' AND (adj_kho_at IS NULL AND time > ? OR adj_kho_at > ?) ORDER BY time LIMIT 200", now - 120 * DAY, now - 14 * DAY)]); // ✂️ hàng trả về của đơn ký 1 phần (11/11/2026)
   const done = pos.filter(p => p.status === 'done' && p.done_at && p.at), realLead = {};
   done.forEach(p => { const r = realLead[p.item] || (realLead[p.item] = []); r.push(Math.round((p.done_at - p.at) / DAY)); });
   return { ok: true, list: chk.list, items: items.map(i => ({ id: i.id, name: i.name, unit: i.unit, lead: i.lead, safety: i.safety, cover: i.cover, min: i.min_qty, supplier: i.supplier, note: i.note, active: !!i.active, realLead: realLead[i.id] || [] })),
     pos: pos.map(p => ({ id: p.id, item: p.item, qty: r1(p.qty), got: r1(p.got), eta: p.eta, note: p.note, by: p.by_name, at: p.at, status: p.status, doneAt: p.done_at })),
     moves: moves.map(m => ({ id: m.id, item: m.item, kind: m.kind, qty: r1(m.qty), sys: m.sys === null ? null : r1(m.sys), reason: m.reason, note: m.note, po: m.po, by: m.by_name, at: m.at, made: m.made || m.at })),
     names, manual: Object.keys(map).length, cfg: Object.assign({ countDay: 5 }, cfg || {}), reasons: KHO_REASONS, alert: chk.A,
-    staff: P.staff.map(s => ({ name: s.name, tg: !!s.tg })), syncErr, ret: ret.map(khoRetOut), got: got.map(khoRetOut) };
+    staff: P.staff.map(s => ({ name: s.name, tg: !!s.tg })), syncErr, ret: ret.map(khoRetOut), got: got.map(khoRetOut), part: part.map(o => Object.assign(khoRetOut(o), { trk2: o.adj_trk || '', snote: o.adj_note || '', adjAt: o.adj_at || null, kAt: o.adj_kho_at || null, kBy: o.adj_kho_by || '', kNote: o.adj_kho_note || '' })) };
 }
 /** ↩ Đơn hoàn cho tab Kho (09/11/2026): chỉ phần kho cần để khớp gói hàng (mã đơn, tên, 4 số cuối SĐT, hàng, hãng + mã vận đơn), không gửi địa chỉ / tiền. */
 export function khoRetOut(o) {

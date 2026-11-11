@@ -2782,7 +2782,7 @@
     var a = o.adj;
     if (!a) return isVoid(o.status) ? '' : '<div class="box" id="oAdj"><h3>✏️ Hạ COD / Ký 1 phần / Đổi hàng</h3><p class="small muted" style="margin:0 0 8px">Khách xin giảm tiền thu hộ, chỉ nhận 1 phần hàng hoặc đổi hàng thì bấm ghi lại. Kế toán xuất hoá đơn theo số tiền thực thu, doanh số cũng tính theo số này.</p><button class="btn" id="oAdjBtn">✏️ Ghi hạ COD / ký 1 phần / đổi hàng</button></div>';
     return '<div class="box" id="oAdj"><h3>✏️ ' + esc(a.t) + '</h3><p style="margin:0 0 6px">Tiền ban đầu ' + adjLine(a) + ' thực thu</p><p class="small muted" style="margin:0 0 8px">' +
-      [a.trk ? 'Mã vận đơn mới: <b>' + esc(a.trk) + '</b>' : '', a.at ? 'xử lý ' + fDate(a.at) : '', a.by ? 'bởi ' + esc(a.by) : '', a.note ? '“' + esc(a.note) + '”' : ''].filter(Boolean).join(' · ') + '</p>' +
+      [a.trk ? 'Mã vận đơn mới: <b>' + esc(a.trk) + '</b>' : '', a.at ? 'xử lý ' + fDate(a.at) : '', a.by ? 'bởi ' + esc(a.by) : '', a.note ? '“' + esc(a.note) + '”' : ''].filter(Boolean).join(' · ') + '</p>' + (a.t === 'Ký 1 phần' ? '<p class="small" style="margin:0 0 8px">' + (a.kAt ? '📦 Kho đã nhận hàng trả về ' + fDate(a.kAt).slice(0, 5) + ' (' + esc(a.kBy) + '): ' + esc(a.kNote) : '⏳ Kho chưa nhận hàng trả về') + '</p>' : '') +
       '<div class="steps"><button class="btn" id="oAdjBtn">✏️ Sửa</button><button class="btn ghost" id="oAdjOff">↩ Bỏ điều chỉnh</button></div></div>';
   }
   function openAdj(o) {
@@ -11887,6 +11887,7 @@
     var mrow = function (a, ic, t, sub) { return '<button class="kho-row kho-row-m" data-kho="' + a + '"><span class="kho-row-ic">' + ic + '</span><span class="kho-row-t"><b>' + t + '</b><small>' + sub + '</small></span><span class="kho-chev" aria-hidden="true">›</span></button>'; };
     return '<section class="kho-sec2"><h2 class="kho-h">↩ Hàng hoàn về kho' + (R.length ? ' <em class="kho-badge">' + R.length + '</em>' : '') + ' <small>gói khách không nhận, hãng trả về</small></h2>' +
       (R.length ? '<p class="small muted" style="margin:0 0 8px">Gói hoàn về tới kho: mở gói kiểm hàng rồi bấm vào đúng đơn.</p><div class="kho-rows">' + R.map(khoRetRow).join('') + '</div>' : '<p class="kho-note">✅ Không có đơn hoàn nào đang trên đường về kho.</p>') +
+      khoPartSec(D) +
       '<div class="kho-rows kho-mt">' + mrow('retfind', '🔍', 'Gói hoàn không có trong danh sách?', 'Tìm theo mã đơn, mã vận đơn, 4 số cuối SĐT hoặc tên khách') + (G.length ? mrow('retgot', '✅', 'Đã nhận 14 ngày qua', G.length + ' đơn') : '') + '</div></section>';
   }
   function khoRetItems(o) { return String(o.items || '').split('\n').map(function (l) { return l.replace(/\s*=\s*[\d.,]+\s*₫?\s*$/, '').trim(); }).filter(Boolean); }
@@ -11910,6 +11911,47 @@
       var ok = $('[name=khRet]:checked', m).value === '1', note = $('#khRetN').value.trim();
       if (!ok && !note) { $('#khRetE').textContent = 'Ghi rõ thiếu hoặc hỏng gì để sale và quản lý biết.'; $('#khRetN').focus(); return; }
       khoDo('kho_recv', { id: o.id, row: o.row, ok: ok, note: note }, this, $('#khRetE'), ok ? 'Đã nhận hàng hoàn ✓ Hàng đã cộng lại vào kho' : 'Đã ghi ✓ Đã báo sale và quản lý phần thiếu / hỏng').then(function (j) { if (j) KH.find = null; });
+    };
+  }
+  /* ---------- ✂️ Hàng trả về của đơn ký nhận 1 phần (11/11/2026): sale ghi ✏️ Ký 1 phần trong đơn (adjBox) → gói phần hàng khách không nhận về kho.
+   * Kho chọn hàng + số lượng trả về → kho_part: cộng lại vào kho (kho_moves 'in'), ghi vào đơn, báo sale. Đơn giữ trạng thái (khách đã nhận phần còn lại). */
+  function khoPartSec(D) {
+    var P = (D.part || []).filter(function (o) { return !o.kAt; }), G = (D.part || []).filter(function (o) { return o.kAt; });
+    if (!P.length && !G.length) return '';
+    return '<h3 class="kho-h" style="margin-top:14px;font-size:15px">✂️ Hàng trả về của đơn ký nhận 1 phần' + (P.length ? ' <em class="kho-badge">' + P.length + '</em>' : '') + ' <small>khách chỉ nhận 1 phần, phần còn lại hãng trả về</small></h3>' +
+      (P.length ? '<div class="kho-rows">' + P.map(khoPartRow).join('') + '</div>' : '<p class="kho-note">✅ Đã nhận hết hàng trả về.</p>') +
+      (G.length ? '<details class="kho-mt"><summary class="small">✅ Đã nhận 14 ngày qua (' + G.length + ')</summary><div class="kho-rows">' + G.map(khoPartRow).join('') + '</div></details>' : '');
+  }
+  function khoPartRow(o) {
+    var done = !!o.kAt;
+    return '<' + (done ? 'div class="kho-row kho-row-s"' : 'button class="kho-row" data-kho="part|' + o.row + '"') + '><span class="kho-row-t"><b>' + esc(o.id) + ' · ' + esc(o.name) + ' ' + esc(o.ph) + '</b><small>Đơn gồm: ' + esc(khoRetItems(o).join(', ')) + '</small><small>' +
+      (o.trk2 ? 'Mã vận đơn trả về: ' + esc(o.trk2) : 'Mã cũ: ' + esc([o.carrier, o.tracking].filter(Boolean).join(' ') || '–')) + (o.snote ? ' · sale ghi: “' + esc(o.snote) + '”' : '') + (o.adjAt ? ' · ghi ' + fDate(o.adjAt).slice(0, 5) : '') +
+      (done ? '<br>📦 ' + fDate(o.kAt).slice(0, 5) + ' ' + esc(o.kBy) + ': ' + esc(o.kNote) : '') + '</small></span>' + (done ? '' : '<span class="kho-chev" aria-hidden="true">›</span>') + '</' + (done ? 'div' : 'button') + '>';
+  }
+  function openKhoPart(row) {
+    var o = ((KH.d && KH.d.part) || []).filter(function (z) { return String(z.row) === String(row); })[0]; if (!o) return;
+    var its = ((KH.d && KH.d.items) || []).filter(function (i) { return i.active; });
+    if (!its.length) { toast('Tab Kho chưa có sản phẩm nào để cộng hàng trả về.', true); return; }
+    var guess = function (line) { var n = norm(line); return its.filter(function (i) { return n.indexOf(norm(i.name)) >= 0; })[0] || null; };
+    var sel = function (v) { return '<select class="khp-it"><option value="">— Chọn hàng —</option>' + its.map(function (i) { return '<option value="' + esc(i.id) + '"' + (v === i.id ? ' selected' : '') + '>' + esc(i.name) + '</option>'; }).join('') + '</select>'; };
+    var line = function (v) { return '<div class="khp-l" style="display:flex;gap:8px;margin-bottom:6px">' + sel(v) + '<input type="number" class="khp-q" min="0" step="1" inputmode="numeric" placeholder="SL" style="width:80px"></div>'; };
+    var g0 = guess(khoRetItems(o)[0] || '');
+    var body = '<div class="kho-m"><div class="kho-note"><b>' + esc(o.name) + ' ' + esc(o.ph) + '</b><small>Mã đơn ' + esc(o.id) + (o.seller ? ' · sale ' + esc(o.seller) : '') + '</small><small>' + (o.trk2 ? 'Mã vận đơn trả về: <b>' + esc(o.trk2) + '</b>' : 'Mã vận đơn: ' + esc([o.carrier, o.tracking].filter(Boolean).join(' ') || '–')) + '</small>' +
+      '<small>Đơn ban đầu gồm:</small><ul style="margin:4px 0 0;padding-left:18px">' + khoRetItems(o).map(function (l) { return '<li>' + esc(l) + '</li>'; }).join('') + '</ul>' + (o.snote ? '<small>Sale ghi: “' + esc(o.snote) + '”</small>' : '') + '</div>' +
+      '<div class="f"><span class="kho-lbl">1. Hàng trả về gồm gì? (máy cộng lại vào kho)</span><div id="khpL">' + line(g0 ? g0.id : '') + '</div><button class="btn sm" type="button" id="khpAdd">＋ Thêm loại hàng</button></div>' +
+      '<div class="f"><span class="kho-lbl">2. Mở gói kiểm hàng: hàng thế nào?</span><div class="kho-chips"><label class="kho-chip2"><input type="radio" name="khp" value="1" checked><span>✅ Đủ hàng, còn nguyên</span></label><label class="kho-chip2"><input type="radio" name="khp" value="0"><span>⚠️ Thiếu hoặc hỏng</span></label></div></div>' +
+      '<div class="f"><span class="kho-lbl" id="khpNL">3. Ghi chú (không bắt buộc)</span><textarea id="khpN" rows="2" placeholder="vd: 1 hộp bị móp"></textarea></div><p class="err" id="khpE"></p>' +
+      '<p class="small muted" style="margin:0">Bấm <b>📦 Đã nhận hàng</b>: máy cộng số hàng trên vào kho và nhắn sale. Đơn vẫn giữ trạng thái (khách đã nhận phần còn lại).</p></div>';
+    var m = modal('✂️ Nhận hàng trả về (ký 1 phần)', body, '<button class="btn pri lg block" id="khpGo">📦 Đã nhận hàng</button>');
+    setTimeout(function () { var q = $('.khp-q', m); if (q) q.focus(); }, 60);
+    $('#khpAdd', m).onclick = function () { $('#khpL', m).insertAdjacentHTML('beforeend', line('')); };
+    $$('[name=khp]', m).forEach(function (r) { r.onchange = function () { var bad = $('[name=khp]:checked', m).value === '0'; $('#khpNL', m).textContent = bad ? '3. Thiếu hoặc hỏng gì? (bắt buộc)' : '3. Ghi chú (không bắt buộc)'; }; });
+    $('#khpGo', m).onclick = function () {
+      var ok = $('[name=khp]:checked', m).value === '1', note = $('#khpN', m).value.trim(), e = $('#khpE', m);
+      var back = $$('.khp-l', m).map(function (l) { return { item: $('.khp-it', l).value, qty: Number($('.khp-q', l).value) || 0 }; }).filter(function (b) { return b.item && b.qty > 0; });
+      if (!back.length) { e.textContent = 'Chọn hàng và gõ số lượng trả về.'; return; }
+      if (!ok && !note) { e.textContent = 'Ghi rõ thiếu hoặc hỏng gì.'; $('#khpN', m).focus(); return; }
+      khoDo('kho_part', { id: o.id, row: o.row, ok: ok, note: note, back: back }, this, e, 'Đã nhận ✓ Hàng trả về đã cộng lại vào kho');
     };
   }
   function openKhoFind() {
@@ -11972,6 +12014,7 @@
     else if (a === 'undo') { if (confirm('Xoá dòng ghi nhầm này? Máy sẽ tính lại như chưa ghi.')) khoDo('kho_undo', { id: +p[1] }, el, null, 'Đã xoá dòng ✓'); }
     else if (a === 'quick') khoQuick(el);
     else if (a === 'ret') openKhoRecv(p[1]);
+    else if (a === 'part') openKhoPart(p[1]);
     else if (a === 'retfind') openKhoFind();
     else if (a === 'retgot') openKhoGot();
   }
