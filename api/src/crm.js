@@ -18,7 +18,7 @@ import { fetchXlsx, crmFin, crmKtChi, finFull } from './fin.js';
 import { crmNcc } from './ncc.js';
 import { KT_ROLE_OK, ktSettingsOk, finOk, ktLoad, ktCfg, crmKt, ktKho, crmKtBatch } from './kt.js';
 import { crmSaleMkt, crmOffers } from './salemkt.js';
-import { cmsTokenSet, quizCms } from './cms.js';
+import { cmsTokenSet, quizCms, webProds, cmsSso } from './cms.js';
 import { crmVoucher, voucherSchema } from './voucher.js';
 import { journeySchema, wallHide } from './journey.js';
 import { crmLinks } from './links.js';
@@ -2396,7 +2396,7 @@ async function crmKhoFind(x, u, d) {
     Date.now() - 180 * DAY, like, like, like, dg.length >= 4 ? dg : '', '%' + dg);
   return { ok: true, list: rows.map(khoRetOut) };
 }
-const MKT_ACTIONS = { guide_ask: 1, link_list: 1, link_save: 1, link_active: 1, load: 1, mktv: 1, mkt_tg_test: 1, mkt_goal: 1, mkt_import: 1, mkt_add: 1, mkt_list: 1, mkt_kpi: 1, mkt_fb_edit: 1, quiz_cms: 1, mkt_del: 1, prefs: 1, tg_link: 1, tg_check: 1, tg_off: 1, perf: 1, usage: 1, feedback: 1, fb_list: 1, fb_img: 1, offers: 1, offer_save: 1, offer_del: 1, wall_hide: 1, zb_view: 1, zb_cfg: 1, zb_post: 1, zb_regen: 1, zb_send: 1, zb_cancel: 1, zb_recall: 1, zb_img: 1, zb_hist: 1, zb_logmore: 1, zb_done: 1, zb_time: 1, zb_plan_make: 1, zb_plan_set: 1, zb_plan_redo: 1, fp_view: 1, fp_page: 1, fp_resub: 1, fp_scan: 1, fp_post: 1, fp_now: 1, fp_regen: 1, fp_send: 1, fp_logmore: 1, fp_done: 1, bl_view: 1, bl_post: 1, bl_act: 1, bl_cfg: 1, bl_stats: 1, ins_view: 1, ins_save: 1, ins_video: 1, ins_vdel: 1, ins_merge: 1, ins_import: 1, ins_skill: 1, ins_skilldel: 1, ins_odel: 1, ins_find: 1, ins_big: 1, ins_kw: 1, ins_kwsave: 1, ins_trend: 1, ins_img: 1, spf_list: 1, spf_used: 1, spf_write: 1, spf_save: 1, spf_del: 1, ins_offer: 1 };
+const MKT_ACTIONS = { guide_ask: 1, link_list: 1, link_save: 1, link_active: 1, load: 1, mktv: 1, mkt_tg_test: 1, mkt_goal: 1, mkt_import: 1, mkt_add: 1, mkt_list: 1, mkt_kpi: 1, mkt_fb_edit: 1, quiz_cms: 1, web_prods: 1, cms_sso: 1, mkt_del: 1, prefs: 1, tg_link: 1, tg_check: 1, tg_off: 1, perf: 1, usage: 1, feedback: 1, fb_list: 1, fb_img: 1, offers: 1, offer_save: 1, offer_del: 1, wall_hide: 1, zb_view: 1, zb_cfg: 1, zb_post: 1, zb_regen: 1, zb_send: 1, zb_cancel: 1, zb_recall: 1, zb_img: 1, zb_hist: 1, zb_logmore: 1, zb_done: 1, zb_time: 1, zb_plan_make: 1, zb_plan_set: 1, zb_plan_redo: 1, fp_view: 1, fp_page: 1, fp_resub: 1, fp_scan: 1, fp_post: 1, fp_now: 1, fp_regen: 1, fp_send: 1, fp_logmore: 1, fp_done: 1, bl_view: 1, bl_post: 1, bl_act: 1, bl_cfg: 1, bl_stats: 1, ins_view: 1, ins_save: 1, ins_video: 1, ins_vdel: 1, ins_merge: 1, ins_import: 1, ins_skill: 1, ins_skilldel: 1, ins_odel: 1, ins_find: 1, ins_big: 1, ins_kw: 1, ins_kwsave: 1, ins_trend: 1, ins_img: 1, spf_list: 1, spf_used: 1, spf_write: 1, spf_save: 1, spf_del: 1, ins_offer: 1 };
 export async function crmApi(x, d, sync, mgr) {
   await ensureSchema(x.db);
   const a = d.action;
@@ -2427,6 +2427,8 @@ export async function crmApi(x, d, sync, mgr) {
   if (a === 'mktv') return u.level >= 3 || u.role === 'Marketing' || u.mkv ? mktView(x, u, d) : { ok: false, error: 'Chỉ Marketing, Quản trị và người được tích 📣 Xem Marketing xem được mục này.' };
   if (a === 'wall_hide') return wallHide(x, u, d); // 🌱 ẩn / hiện tên trên Bức tường Sống Lành (journey.js)
   if (a === 'quiz_cms') return quizCms(x, u, d); // 🖐 sửa trò chơi Bạn còn mấy ngón tay (cms.js)
+  if (a === 'web_prods') return webProds(x, u, d); // 🛍 bật / tắt sản phẩm trên website (cms.js, 11/11/2026)
+  if (a === 'cms_sso') return cmsSso(x, u); // 🖊 mở /admin từ CRM không cần mã email (cms.js)
   if (a === 'order_create') return crmOrderCreate(x, u, d);
   if (a === 'wb_order') return wbOrderInfo(x, u, d); // 📄 đơn đã ghi vào file lên đơn của sale chưa (wb.js)
   if (a === 'check_phone') return crmCheckPhone(x, u, d);

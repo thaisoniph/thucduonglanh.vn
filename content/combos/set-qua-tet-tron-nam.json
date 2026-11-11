@@ -3,6 +3,7 @@
   "short_name": "Set Trọn Năm",
   "published": true,
   "featured": false,
+  "home": false,
   "order": 4,
   "badge": "Quà Tết 2027",
   "price": 1390000,

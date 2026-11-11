@@ -144,6 +144,12 @@ export async function cmsRoute(x, req, path) {
     if (!sub) return jres(req, { message: 'Not Found' }, 404);
     return ghProxy(x, req, sub);
   }
+  if (path === '/cms/sso') { // 🖊 mở /admin từ CRM: đổi mã 1 lần lấy phiên (gọi từ thucduonglanh.vn/admin, text/plain nên không cần hỏi trước CORS)
+    if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: Object.assign(cors(req), { 'Access-Control-Allow-Methods': 'POST', 'Access-Control-Allow-Headers': 'Content-Type', 'Access-Control-Max-Age': '86400' }) });
+    if (req.method !== 'POST') return jres(req, { ok: false }, 405);
+    let d = {}; try { d = JSON.parse(await req.text() || '{}'); } catch (e) { }
+    return jres(req, await cmsSsoRedeem(x, d));
+  }
   if (path === '/cms/auth' && req.method === 'GET') return new Response(AUTH_PAGE, { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'X-Frame-Options': 'DENY', 'Referrer-Policy': 'no-referrer' } });
   if ((path === '/cms/login' || path === '/cms/verify') && req.method === 'POST') {
     let d = {}; try { d = JSON.parse(await req.text() || '{}'); } catch (e) { }
@@ -237,4 +243,80 @@ export async function quizCms(x, u, d) {
   const j = await r.json();
   await crmLog(x, u, 'Website', '-', '', 'Sửa trò chơi Bạn còn mấy ngón tay', qs.length + ' câu');
   return { ok: true, sha: j.content && j.content.sha };
+}
+
+/* ---------- 🛍 Bật / tắt sản phẩm trên website ngay trong CRM (11/11/2026, CRM → Marketing → 🌱 Kênh tự có).
+ * Đọc / ghi content/products/*.json và content/combos/*.json trên GitHub bằng mã công ty (cùng file /admin sửa). Ghi xong web tự đăng lại ~1–2 phút.
+ * 2 công tắc: "Hiện trên web" (published) và "Hiện ở trang chủ": sản phẩm lẻ = featured, gói / set = home (build.py on_home). Quyền như canQuiz. */
+const WP_DIRS = ['content/products', 'content/combos'];
+const WP_PATH = /^content\/(products|combos)\/[a-z0-9-]+\.json$/;
+async function ghJson(t, path) {
+  const r = await fetch(GH + '/repos/' + REPO + '/contents/' + path + '?ref=main', { headers: ghHeaders(t) });
+  if (!r.ok) throw new Error('Chưa đọc được ' + path + ' (GitHub trả ' + r.status + ').');
+  const j = await r.json(), txt = b64dec(j.content);
+  return { o: JSON.parse(txt), sha: j.sha, nl: /\n$/.test(txt) };
+}
+function wpRow(path, o) {
+  const combo = path.indexOf('content/combos/') === 0;
+  return { path, slug: path.split('/').pop().replace(/\.json$/, ''), combo, name: String(o.name || ''), price: Number(o.price) || Number(((o.variants || [])[0] || {}).price) || 0,
+    img: String((o.images || [])[0] || ''), order: Number(o.order) || 99, badge: String(o.badge || ''),
+    pub: o.published !== false, home: combo ? o.home !== false : !!o.featured, items: combo ? (o.items || []).map(i => i && i.product).filter(Boolean) : [] };
+}
+export async function webProds(x, u, d) {
+  if (!canQuiz(u)) return { ok: false, error: 'Bạn chưa có quyền bật / tắt sản phẩm. Nhờ Quản trị bật ô 🌐 Sửa website ở Cài đặt → Nhân sự.' };
+  const t = await cmsToken(x); if (!t) return { ok: false, error: NO_TOKEN };
+  try {
+    if (d.op !== 'set') {
+      const files = [];
+      for (const dir of WP_DIRS) {
+        const r = await fetch(GH + '/repos/' + REPO + '/contents/' + dir + '?ref=main', { headers: ghHeaders(t) });
+        if (r.status === 404) continue;
+        if (!r.ok) return { ok: false, error: 'Chưa đọc được danh sách sản phẩm (GitHub trả ' + r.status + ').' };
+        (await r.json()).forEach(f => { if (f.type === 'file' && WP_PATH.test(f.path) && !/\.[a-z]{2}\.json$/.test(f.path)) files.push(f.path); });
+      }
+      const rows = await Promise.all(files.map(async p => wpRow(p, (await ghJson(t, p)).o)));
+      rows.sort((a, b) => (a.combo - b.combo) || (a.order - b.order) || a.name.localeCompare(b.name));
+      return { ok: true, rows };
+    }
+    const path = String(d.path || ''), key = d.key === 'home' ? 'home' : d.key === 'pub' ? 'pub' : '', on = !!d.on;
+    if (!WP_PATH.test(path) || /\.[a-z]{2}\.json$/.test(path) || !key) return { ok: false, error: 'Yêu cầu không hợp lệ.' };
+    const f = await ghJson(t, path), o = f.o, combo = path.indexOf('content/combos/') === 0;
+    if (key === 'pub' && !on && !combo && !d.force) { // tắt sản phẩm lẻ đang nằm trong gói đang bán → gói thiếu món, hỏi lại
+      const slug = path.split('/').pop().replace(/\.json$/, ''), used = [];
+      const r = await fetch(GH + '/repos/' + REPO + '/contents/content/combos?ref=main', { headers: ghHeaders(t) });
+      if (r.ok) for (const c of (await r.json()).filter(c => WP_PATH.test(c.path) && !/\.[a-z]{2}\.json$/.test(c.path))) {
+        const g = (await ghJson(t, c.path)).o;
+        if (g.published !== false && (g.items || []).some(i => i && i.product === slug)) used.push(String(g.name || c.name));
+      }
+      if (used.length) return { ok: false, ask: true, used, error: 'Sản phẩm này đang nằm trong: ' + used.join(', ') + '. Tắt thì các gói này sẽ thiếu món.' };
+    }
+    if (key === 'pub') o.published = on; else if (combo) o.home = on; else o.featured = on;
+    const what = (key === 'pub' ? (on ? 'Hiện trên web' : 'Ẩn khỏi web') : (on ? 'Hiện ở trang chủ' : 'Ẩn khỏi trang chủ')) + ': ' + String(o.name || path);
+    const body = JSON.stringify({ message: 'CRM: ' + u.name + ' · ' + what, content: b64enc(JSON.stringify(o, null, 2) + (f.nl ? '\n' : '')), sha: f.sha, branch: 'main' });
+    const r = await fetch(GH + '/repos/' + REPO + '/contents/' + path, { method: 'PUT', headers: Object.assign({ 'Content-Type': 'application/json' }, ghHeaders(t)), body });
+    if (r.status === 409 || r.status === 422) return { ok: false, error: 'Vừa có người khác sửa sản phẩm này. Bấm ↻ tải lại rồi bật / tắt lại nhé.' };
+    if (!r.ok) return { ok: false, error: 'Chưa lưu được (GitHub trả ' + r.status + ').' };
+    await crmLog(x, u, 'Website', '-', '', what.slice(0, 200), '');
+    return { ok: true, row: wpRow(path, o) };
+  } catch (e) { return { ok: false, error: e.message }; }
+}
+
+/* ---------- 🖊 Mở trang quản trị web từ CRM, không phải xin mã email lại (11/11/2026).
+ * CRM xin 1 mã dùng 1 lần (2 phút) → mở thucduonglanh.vn/admin/#sso=<mã> → admin/index.html đổi mã lấy phiên /admin (như đăng nhập email) rồi mới tải Sveltia. */
+export async function cmsSso(x, u) {
+  if (!canWeb(u)) return { ok: false, error: 'Bạn chưa có quyền sửa website. Nhờ Quản trị bật ô 🌐 Sửa website ở Cài đặt → Nhân sự.' };
+  if (!await cmsToken(x)) return { ok: false, error: NO_TOKEN };
+  const code = randHex(24);
+  await kvSet(x.db, 'csso_' + code, u.email, 120e3);
+  return { ok: true, url: ADMIN_URL + '#sso=' + code };
+}
+async function cmsSsoRedeem(x, d) {
+  const code = String(d.code || ''); if (!/^[a-f0-9]{48}$/.test(code)) return { ok: false, error: 'Mã không hợp lệ.' };
+  const email = await kvGet(x.db, 'csso_' + code); if (!email) return { ok: false, error: 'Link đã hết hạn. Mở lại từ CRM nhé.' };
+  await kvDel(x.db, 'csso_' + code);
+  const u = await webUser(x, email); if (!u) return { ok: false, error: 'Tài khoản đã bị khoá hoặc tắt quyền sửa website.' };
+  const token = randHex(32);
+  await kvSet(x.db, 'cms_' + token, email, SESSION_DAYS * DAY);
+  await crmLog(x, u, 'Website', '-', '', 'Đăng nhập trang quản trị (mở từ CRM)', '');
+  return { ok: true, token, name: u.name };
 }

@@ -3,6 +3,7 @@
   "short_name": "Set Bố Mẹ Khỏe",
   "published": true,
   "featured": false,
+  "home": false,
   "order": 3,
   "badge": "Quà Tết 2027",
   "price": 849000,

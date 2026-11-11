@@ -2099,3 +2099,12 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .kn-unk { display: block; width: 100%; text-align: left; font: inherit; cursor: pointer; margin: 10px 0; background: var(--orange-light); border: 1px solid var(--mid); }
 .kn-btns { flex-wrap: wrap; } .kn-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; } .kn-big { font-size: 17px; margin: 6px 0 10px; }
 .kn-bill { padding-left: 10px; padding-right: 10px; } .kn-bill:first-child { border-top: 0; } .kts-chi.kn-done { opacity: .45; }
+
+/* 🛍 Bật / tắt sản phẩm trên website (wpBox / openWebProds, 11/11/2026) */
+.wpe-h { margin: 14px 0 6px; font-size: 15px; }
+.wpe-r { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-top: 1px solid var(--line, #e5e7eb); }
+.wpe-r img, .wpe-ph { width: 52px; height: 52px; border-radius: 8px; object-fit: cover; flex: none; background: #f2f4f1; }
+.wpe-r.off img { opacity: .45; filter: grayscale(1); }
+.wpe-i { flex: 1; min-width: 0; }
+.wpe-s { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 6px; }
+.wpe-sw { font-weight: 500; }

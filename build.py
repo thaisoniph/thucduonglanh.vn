@@ -83,7 +83,7 @@ def lp(path, lang=None):
     return f"/{lang}/" + "".join(s + "/" for s in segs) + rest
 
 
-TRANSLATABLE_SKIP = {"price", "regular_price", "web_discount", "images", "image", "category", "sku", "order", "published", "featured",
+TRANSLATABLE_SKIP = {"price", "regular_price", "web_discount", "images", "image", "category", "sku", "order", "published", "featured", "home",
                      "upsell", "needs", "slug", "free_ship", "days", "product", "qty", "variant", "url", "file", "roadmap_link",
                      "servings", "rating", "img", "video", "style", "icon", "test_cert_img", "label_imgs", "youtube"}
 
@@ -1520,7 +1520,7 @@ def page_home():
             media = f'<img src="{pimg(image, True)}" alt="" width="480" height="480" loading="lazy">'
         cat_html += f'<a class="cat-card" href="{href}"><div class="cat-media">{media}</div><span>{esc(name)}</span></a>'
 
-    featured = [p for p in PRODUCTS if p.get("featured")][:8]
+    featured = [p for p in home_products() if not p.get("combo")][:8]
 
     posts = sorted(POSTS["posts"], key=lambda x: x["date"], reverse=True)[:3]
     post_cards = "".join(post_card(p) for p in posts)
@@ -2219,12 +2219,14 @@ QTET = {
     "early_end": "2026-12-15", "early_gift": "1 hũ Ruốc Rong Biển Vị Sườn Non",  # 🧧 quà đặt sớm (anh Sơn chốt 11/11/2026): set từ 849k, đặt hết 15/12; máy chủ tự thêm quà (api/src/ngaydoi.js qtetApply)
     "tiers": [("10–29 set", "giảm thêm 5%"), ("30–49 set", "giảm thêm 8%"), ("Từ 50 set", "giảm thêm 10%")],
 }
-QTET_ON_HOME = False  # 11/11/2026 anh Sơn: ẩn 3 set quà Tết khỏi trang chủ, chờ ảnh thật + chốt gói & giá. Đổi True khi chạy chiến dịch (trang /qua-tet/ vẫn mở)
+def on_home(p):
+    """Có hiện ở trang chủ không. Sản phẩm lẻ: ô "Sản phẩm nổi bật" (featured). Gói / set: ô "Hiện ở trang chủ" (home, mặc định bật).
+    Bật / tắt ngay trong CRM → Marketing → 🛍 Sản phẩm trên website (api web_prods, 11/11/2026), hoặc ở /admin."""
+    return p.get("home") is not False if p.get("combo") else bool(p.get("featured"))
 
 
 def home_products():
-    """Sản phẩm được hiện ở trang chủ (bỏ set quà Tết khi QTET_ON_HOME = False)."""
-    return [p for p in PRODUCTS if QTET_ON_HOME or p["slug"] not in QTET["sets"]]
+    return [p for p in PRODUCTS if on_home(p)]
 
 
 def page_qtet():

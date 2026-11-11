@@ -8923,6 +8923,7 @@
       metric('Chi phí cộng đồng', csp ? moneyShort(csp) : '–', csp && cm.rev ? 'Bằng ' + Math.round(csp * 100 / cm.rev) + '% tiền mua lại. Quà tặng, minigame… nhập ở ⚙️ Nhập chi phí → kênh Cộng đồng Zalo.' : 'Quà tặng, minigame… nhập ở ⚙️ Nhập chi phí → kênh Cộng đồng Zalo.', '') +
       '</div><p class="bar-legend">Khách được tính là trong nhóm khi sale / CSKH bấm "Đã vào" ở ô Cộng đồng trên hồ sơ khách. Đánh dấu đủ thì số này mới đúng.</p>');
     var PL = mkPledgeBlock(mj.pledge); if (PL) D.pledge = mkMore('pledge', '🌱 Bao nhiêu người bấm "Tôi chọn sống lành" trên web?', PL.line, PL.h);
+    D.site = mkMore('site', '🛍 Sản phẩm nào đang hiện trên website?', 'Bật / tắt sản phẩm, set quà · mở trang quản trị web', wpBox());
     var QZ = mkQuizBlock(mj.quiz) || { line: 'Chưa có lượt chơi trong kỳ', h: '' }; D.quiz = mkMore('quiz', '🖐 Trò chơi "Bạn còn mấy ngón tay": khách thấy khó điều gì?', QZ.line, QZ.h + qzeBox());
     D.camp = mkMore('camp', '🎬 Tính cả kỳ: chiến dịch nào nên tăng, nên tắt?', CB.line, CB.h);
     D.sale = mkMore('sale', '🤝 Sale kể lại: vì sao khách không mua?', SB.line, SB.h);
@@ -8952,7 +8953,7 @@
     h += mkGroup('1', '💰 Tiền quảng cáo có lời không?', !tot ? 'Kỳ này chưa có chi phí quảng cáo.' : adsA === 'ok' ? '🟢 Có lời: bỏ 1đ quảng cáo, khách mới mua ' + oneDec(nr / tot) + 'đ.' : adsA === 'mid' ? '🟠 Tạm ổn: bỏ 1đ, khách mới mua ' + oneDec(nr / tot) + 'đ. Cần rẻ hơn chút nữa.' : '🔴 Chưa có lời: bỏ 1đ quảng cáo, khách mới chỉ mua ' + oneDec(nr / (tot || 1)) + 'đ. Mở các mục dưới để xem kênh, chiến dịch nào kéo xuống.', mins(['ch', 'tr', 'ltv', 'goal']));
     h += mkGroup('2', '📣 Quảng cáo nào tốt, quảng cáo nào dở?', CB.line || 'Chưa có chiến dịch trong kỳ', mins(['camp', 'prod', 'fun']));
     h += mkGroup('3', '📇 Số điện thoại về sale có ra đơn không?', ad ? ad.n + ' số điện thoại · ' + pct(ad.won, ad.n) + '% đã mua' + (ad.idle ? ' · ⏳ ' + ad.idle + ' số sale chưa gọi xong' : '') : 'Chưa có file số quảng cáo của sale.', mins(['data', 'sale']));
-    h += mkGroup('4', '🌱 Kênh tự có: website & nhóm Zalo (không tốn tiền quảng cáo)', [wb && wb.share !== null ? '🌐 Web = ' + oneDec(wb.share) + '% doanh số' : '', cm && cm.rev ? '👥 Nhóm Zalo mua lại ' + moneyShort(cm.rev) : ''].filter(Boolean).join(' · ') || 'Website, nhóm Zalo, hoạt động trên web', mins(['web', 'comm', 'pledge', 'quiz']));
+    h += mkGroup('4', '🌱 Kênh tự có: website & nhóm Zalo (không tốn tiền quảng cáo)', [wb && wb.share !== null ? '🌐 Web = ' + oneDec(wb.share) + '% doanh số' : '', cm && cm.rev ? '👥 Nhóm Zalo mua lại ' + moneyShort(cm.rev) : ''].filter(Boolean).join(' · ') || 'Website, nhóm Zalo, hoạt động trên web', mins(['site', 'web', 'comm', 'pledge', 'quiz']));
     h += '<p class="small mk-tgline">📲 Mỗi sáng 8h, Telegram gửi tin <b>📣 Marketing sáng nay</b> (tiến độ mục tiêu, hôm qua, việc nên làm) cho bạn marketing đã kết nối Telegram ở Cài đặt.' + (mkvOnly() ? '' : ' <button class="link" data-mkv="tgtest">Gửi thử cho tôi</button>') + '</p>';
     h += '<p class="small muted" style="margin-top:12px">' + (mj.fb.on ? '📘 Facebook Ads tự cập nhật' + (mj.fb.last ? ' · lần gần nhất ' + fDateTime(mj.fb.last) : '') + ' · ' : '') + 'Số tính lúc ' + fDateTime(mj.at) + (mj.cached ? ' (bấm ↻ để tính lại)' : '') + '. Tiền khách mới = tiền khách mua lần đầu mang về trong kỳ (cả các đơn sau của họ trong kỳ), gắn theo kênh đã đưa khách tới.</p>';
     return h;
@@ -11054,7 +11055,7 @@
       : '<p style="margin:0 0 10px">' + (isKho() ? 'Nhận tin kho qua Telegram (sắp hết hàng, việc kho 8h sáng, đơn hoàn đang về).' : isMkt() ? 'Nhận tin <b>📣 Marketing sáng nay</b> lúc 8h qua Telegram (tiến độ mục tiêu, việc nên làm).' : 'Nhận thông báo về khách <b>của riêng bạn</b> qua Telegram.') + ' Làm 1 lần, mất 30 giây:</p><ol style="margin:0 0 10px;padding-left:20px"><li>Bấm <b>“Kết nối Telegram”</b>.</li><li>Bấm <b>“Mở Telegram”</b> → trong Telegram bấm <b>Start / Bắt đầu</b>.</li><li>Quay lại đây bấm <b>“Tôi đã bấm Start”</b>.</li></ol><div class="steps" id="tgSteps"><button class="btn pri" id="tgLink">Kết nối Telegram</button></div>') + '</div>';
     if (isKt()) return h + setGroup('acc', '👤 Tài khoản của tôi', esc(S.user.name) + ' · ' + esc(S.user.email), G.acc) + G.tg + setGroup('cost', '💰 Giá vốn sản phẩm', costLine(), costBox()) + '<div class="box"><h3>💼 Tài khoản Kế toán</h3><p style="margin:0 0 8px">Bạn dùng tab <b>💼 Kế toán</b>: ghi tiền về tài khoản (tải file đối soát COD hoặc tích tay), xem tiền còn treo ở hãng vận chuyển, nhập chi phí (lương, mặt bằng…), xem lãi lỗ theo ngày / tuần / tháng.</p><p class="small muted" style="margin:0">Tài khoản Kế toán không xem số điện thoại, địa chỉ khách, không chăm sóc khách. 8h sáng bạn nhận tin 💼 Tài chính qua Telegram (nối ở trên).</p></div>';
     if (isKho()) return h + setGroup('acc', '👤 Tài khoản của tôi', esc(S.user.name) + ' · ' + esc(S.user.email), G.acc) + G.tg + '<div class="box"><h3>📦 Tài khoản Kho</h3><p style="margin:0 0 8px">Bạn dùng tab <b>📦 Kho</b>: ghi hàng về kho, lấy hàng ra, đếm kho, đặt thêm hàng khi sắp hết.</p><p style="margin:0 0 8px"><b>↩ Hàng hoàn</b>: gói hàng khách không nhận, hãng trả về. Mở gói kiểm hàng, rồi bấm <b>📦 Đã nhận hàng</b> trên đúng đơn (ghi rõ nếu thiếu / hỏng). Máy tự cộng hàng lại vào kho và báo sale gọi hỏi khách.</p><p class="small muted" style="margin:0">Tài khoản Kho không xem khách, doanh số. Cần thêm quyền thì nhờ Quản trị.</p></div>';
-    if (isMkt()) return h + setGroup('acc', '👤 Tài khoản của tôi', esc(S.user.name) + ' · ' + esc(S.user.email), G.acc) + G.tg + setGroup('qz', '🖐 Trò chơi “Bạn còn mấy ngón tay?”', 'Sửa câu hỏi trò chơi trên web · màn hình chơi nhóm', qzeBox()) + '<div class="box"><h3>📣 Tài khoản Marketing</h3><p style="margin:0 0 8px">Bạn xem được tab <b>Marketing</b>: chi phí quảng cáo, khách mới và tiền khách mới mỗi kênh mang về, data quảng cáo, chiến dịch. Chi phí TikTok, Google, KOL… bấm <b>⚙️ Nhập chi phí</b> để nhập file hoặc nhập tay.</p><p style="margin:0 0 8px">Tab <b>Khách hỏi</b>: xem khách để lại số trên web (chỉ xem, quản lý giao cho sale).</p><p class="small muted" style="margin:0 0 10px">Số điện thoại khách chỉ dùng cho công việc, không chép ra ngoài (Nghị định 13/2023).</p><a class="btn" href="/huong-dan/crm/" target="_blank" rel="noopener">📖 Xem hướng dẫn</a></div>';
+    if (isMkt()) return h + setGroup('acc', '👤 Tài khoản của tôi', esc(S.user.name) + ' · ' + esc(S.user.email), G.acc) + G.tg + setGroup('wp', '🛍 Sản phẩm trên website', 'Bật / tắt sản phẩm, set quà · mở trang quản trị web', wpBox()) + setGroup('qz', '🖐 Trò chơi “Bạn còn mấy ngón tay?”', 'Sửa câu hỏi trò chơi trên web · màn hình chơi nhóm', qzeBox()) + '<div class="box"><h3>📣 Tài khoản Marketing</h3><p style="margin:0 0 8px">Bạn xem được tab <b>Marketing</b>: chi phí quảng cáo, khách mới và tiền khách mới mỗi kênh mang về, data quảng cáo, chiến dịch. Chi phí TikTok, Google, KOL… bấm <b>⚙️ Nhập chi phí</b> để nhập file hoặc nhập tay.</p><p style="margin:0 0 8px">Tab <b>Khách hỏi</b>: xem khách để lại số trên web (chỉ xem, quản lý giao cho sale).</p><p class="small muted" style="margin:0 0 10px">Số điện thoại khách chỉ dùng cho công việc, không chép ra ngoài (Nghị định 13/2023).</p><a class="btn" href="/huong-dan/crm/" target="_blank" rel="noopener">📖 Xem hướng dẫn</a></div>';
     G.lim = '<div class="box"><h3>🎯 Số khách chăm sóc mỗi ngày</h3><p class="small muted" style="margin:0 0 8px">Tab Hôm nay chỉ đưa ra tối đa bấy nhiêu khách mỗi ngày (khách quan trọng trước). Khách chưa tới lượt tự dời sang hôm sau. Cài trên máy này.</p>' +
       '<div style="display:flex;gap:8px;align-items:center"><input type="number" id="dayLim" min="5" max="200" value="' + dayLimit() + '" style="max-width:110px"><button class="btn" id="dayLimSave">Lưu</button></div></div>';
     var cc = {}; CAT_ORDER.forEach(function (k) { cc[k] = catColor(k); });
@@ -11173,7 +11174,7 @@
     h += setSec('💰 Lương & hoa hồng', 'Cách tính tiền cho sale. ' + (ppOn() ? 'Đang tính theo <b>bảng lương theo bậc</b>.' : 'Đang tính theo <b>% từng loại đơn</b>.'), setGroup('pp', '📑 Bảng lương theo bậc doanh thu (Phụ lục 01)', ppOn() ? '✅ Đang dùng · ' + S.d.rules.payplan.tiers.length + ' bậc doanh thu' : 'Đang tắt · bật lên thì thay cho % theo loại đơn', ppSetHtml()) +
       setGroup('cm', '💵 % hoa hồng theo loại đơn', (cmOn.length ? cmOn.map(function (k) { return esc(k) + ' ' + CMc[k] + '%'; }).join(' · ') : (ppOn() ? 'Chưa đặt · đang dùng bảng lương theo bậc' : '⚠️ Chưa đặt % hoa hồng')) + (ppOn() && cmOn.length ? ' · đang không dùng' : ''), G.cm) +
       setGroup('ca', '🕘 Ca tối & ngày lễ', 'Ca tối từ ' + esc(ca.evening || '17:30') + ' · ' + hol.length + ' ngày lễ', caBox()));
-    h += setSec('🌐 Website & khuyến mãi', 'Mã giảm giá, cộng tác viên, trò chơi trên web.', setGroup('vc', '🎟 Mã ưu đãi đặt hàng web', 'Tạo mã giảm giá gửi riêng khách cũ, đối tác', vcBox()) +
+    h += setSec('🌐 Website & khuyến mãi', 'Bật / tắt sản phẩm, mã giảm giá, cộng tác viên, trò chơi trên web.', setGroup('wp', '🛍 Sản phẩm trên website', 'Bật / tắt sản phẩm, set quà · mở trang quản trị web', wpBox()) + setGroup('vc', '🎟 Mã ưu đãi đặt hàng web', 'Tạo mã giảm giá gửi riêng khách cũ, đối tác', vcBox()) +
       setGroup('pt', '🤝 Cộng tác viên & khách giới thiệu', 'Link, mã giảm giá, hoa hồng, đối soát CTV', ptBox()) +
       setGroup('qz', '🖐 Trò chơi “Bạn còn mấy ngón tay?”', 'Sửa câu hỏi trò chơi trên web · màn hình chơi nhóm', qzeBox()));
     if (lvl() >= 3) {
@@ -11587,6 +11588,61 @@
     $$('.qze-r', m).forEach(function (d) { var r = Q.results[Number(d.getAttribute('data-r'))]; if (!r) return; r.min = Number(val(d, 'min')) || 0; ['icon', 'title', 'text'].forEach(function (k) { r[k] = val(d, k); }); });
   }
   document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('[data-quiz-edit]')) { e.preventDefault(); openQuizEdit(); } });
+  /* ---------- 🛍 Bật / tắt sản phẩm trên website ngay trong CRM (11/11/2026). api web_prods (api/src/cms.js) đọc / ghi content/products|combos/*.json trên GitHub;
+   * lưu xong web tự cập nhật sau 1–2 phút. 2 công tắc: Hiện trên web (published) · Hiện ở trang chủ (sản phẩm lẻ = Nổi bật, gói = home).
+   * 🖊 Mở trang quản trị web: api cms_sso cho mã 1 lần → /admin vào thẳng (cần ô 🌐 Sửa website). Quyền bật / tắt: Quản lý+, Marketing, người có ô 🌐 Sửa website. */
+  function wpBox() {
+    return '<div class="box"><p class="small muted" style="margin:0 0 10px">Ẩn / hiện sản phẩm, gói, set quà trên thucduonglanh.vn mà không cần vào trang quản trị. Ví dụ: set quà Tết chưa có ảnh thật thì tắt <b>Hiện ở trang chủ</b>, tới ngày chạy chiến dịch thì bật lại. Bấm xong khoảng 1–2 phút web tự cập nhật.</p>' +
+      '<button class="btn pri" type="button" data-wp-open>🛍 Bật / tắt sản phẩm trên web</button> <button class="btn" type="button" data-cms-sso>🖊 Mở trang quản trị web</button>' +
+      '<p class="small muted" style="margin:8px 0 0">Trang quản trị web dùng để sửa giá, ảnh, chữ, bài viết. Mở từ đây là vào thẳng, không phải nhập mã email.</p></div>';
+  }
+  var WPE = null;
+  function openWebProds() {
+    var m = modal('🛍 Sản phẩm trên website', '<p class="muted">⏳ Đang tải danh sách sản phẩm…</p>', '<a class="btn" href="https://thucduonglanh.vn/" target="_blank" rel="noopener">Xem trang chủ ↗</a><button class="btn" data-close>Đóng</button>');
+    api('web_prods', { op: 'get' }).then(function (j) {
+      if (!j || !j.ok) { $('.sheet-b', m).innerHTML = '<div class="notice">' + esc((j && j.error) || 'Chưa tải được.') + '</div>'; return; }
+      WPE = { rows: j.rows || [] }; wpeRender(m);
+    }, function (e) { $('.sheet-b', m).innerHTML = '<div class="notice">' + esc(e.message) + '</div>'; });
+  }
+  function wpeRow(r) {
+    var sw = function (k, on, lb, dis) { return '<label class="switch wpe-sw"><input type="checkbox" data-wpk="' + k + '"' + (on ? ' checked' : '') + (dis ? ' disabled' : '') + '> ' + lb + '</label>'; };
+    var st = !r.pub ? '<span class="tag">⛔ Đang ẩn khỏi web</span>' : r.home ? '<span class="tag">🏠 Có ở trang chủ</span>' : '<span class="tag">🔗 Chỉ mở bằng link</span>';
+    return '<div class="wpe-r' + (r.pub ? '' : ' off') + '" data-wpp="' + esc(r.path) + '">' + (r.img ? '<img src="https://thucduonglanh.vn' + esc(r.img) + '" alt="" width="52" height="52" loading="lazy">' : '<span class="wpe-ph"></span>') +
+      '<div class="wpe-i"><b>' + esc(r.name) + '</b><div class="small muted">' + (r.price ? money(r.price) + ' · ' : '') + st + ' · <a href="https://thucduonglanh.vn/san-pham/' + esc(r.slug) + '/" target="_blank" rel="noopener">Xem ↗</a></div>' +
+      '<div class="wpe-s">' + sw('pub', r.pub, 'Hiện trên web') + sw('home', r.home, r.combo ? 'Hiện ở trang chủ' : 'Hiện ở trang chủ (mục Được yêu thích nhất)', !r.pub) + '</div></div></div>';
+  }
+  function wpeRender(m) {
+    var R = WPE.rows, P = R.filter(function (r) { return !r.combo; }), C = R.filter(function (r) { return r.combo; }), B = $('.sheet-b', m);
+    B.innerHTML = '<p class="small muted" style="margin:0 0 10px"><b>Hiện trên web</b> tắt = sản phẩm biến mất hẳn khỏi web (khách không xem, không đặt được). <b>Hiện ở trang chủ</b> tắt = không nằm ở trang chủ nhưng vẫn mở được bằng link (hợp khi chạy quảng cáo thử). Bấm xong 1–2 phút web tự cập nhật, CRM ghi vào Nhật ký.</p>' +
+      '<h3 class="wpe-h">🧴 Sản phẩm lẻ</h3>' + P.map(wpeRow).join('') + (C.length ? '<h3 class="wpe-h">🎁 Gói & set quà</h3>' + C.map(wpeRow).join('') : '');
+    B.onchange = function (e) {
+      var cb = e.target.closest('[data-wpk]'); if (!cb) return;
+      var row = cb.closest('[data-wpp]'), path = row.getAttribute('data-wpp'), key = cb.getAttribute('data-wpk'), on = cb.checked;
+      var go = function (force) {
+        row.querySelectorAll('input').forEach(function (i) { i.disabled = true; });
+        api('web_prods', { op: 'set', path: path, key: key, on: on, force: force ? 1 : 0 }).then(function (j) {
+          if (j && j.ask) { if (confirm(j.error + '\n\nVẫn ẩn sản phẩm này?')) return go(true); return wpeRender(m); }
+          if (!j || !j.ok) { toast((j && j.error) || 'Chưa lưu được.', true); return wpeRender(m); }
+          WPE.rows = WPE.rows.map(function (r) { return r.path === path ? j.row : r; }); wpeRender(m);
+          toast('Đã lưu ✓ Khoảng 1–2 phút nữa web cập nhật');
+        }, function (er) { toast(er.message, true); wpeRender(m); });
+      };
+      go(false);
+    };
+  }
+  function cmsSsoOpen(b) {
+    var w = window.open('about:blank', '_blank'); // mở cửa sổ ngay lúc bấm để trình duyệt điện thoại không chặn
+    if (b) b.disabled = true;
+    api('cms_sso', {}).then(function (j) {
+      if (b) b.disabled = false;
+      if (!j || !j.ok) { if (w) w.close(); return toast((j && j.error) || 'Chưa mở được.', true); }
+      if (w) w.location.href = j.url; else location.href = j.url;
+    }, function (er) { if (b) b.disabled = false; if (w) w.close(); toast(er.message, true); });
+  }
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest && e.target.closest('[data-wp-open],[data-cms-sso]'); if (!t) return;
+    e.preventDefault(); if (t.hasAttribute('data-wp-open')) openWebProds(); else cmsSsoOpen(t);
+  });
   function vcBox() {
     return '<div class="box"><h3>🎟 Mã ưu đãi đặt hàng web</h3><p class="hint" style="margin:0 0 10px">Mã giảm giá gửi riêng cho khách cũ, đối tác. Trên web chỉ có dòng chữ nhỏ <b>“Có mã ưu đãi?”</b> ở trang thanh toán, khách mua bình thường gần như không để ý. Cách gửi tiện nhất: bấm <b>📋 Copy tin gửi khách</b> → dán vào Zalo. Khách bấm link là mã tự áp dụng khi đặt hàng.</p>' +
       '<p class="hint" style="margin:0 0 10px">Mỗi đơn dùng 1 mã. Freeship vẫn tính theo tiền hàng <b>trước</b> khi giảm. Đơn huỷ / hoàn thì mã được trả lại lượt dùng.</p><button class="btn pri" id="vcOpen">Quản lý mã ưu đãi</button></div>';

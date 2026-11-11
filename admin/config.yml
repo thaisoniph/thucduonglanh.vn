@@ -98,7 +98,7 @@ collections:
         search_fields: ["categories.*.name"]
         display_fields: ["categories.*.name"]
       - { label: "Hiển thị trên web", name: published, widget: boolean, default: true, hint: "Tắt để tạm ẩn sản phẩm (hết hàng, ngừng bán)." }
-      - { label: "Sản phẩm nổi bật", name: featured, widget: boolean, default: false, hint: "Hiện ở mục “Sản phẩm được yêu thích nhất” trên trang chủ." }
+      - { label: "Sản phẩm nổi bật", name: featured, widget: boolean, default: false, hint: "Hiện ở mục “Sản phẩm được yêu thích nhất” trên trang chủ. Bật / tắt nhanh ở CRM → Marketing." }
       - { label: "Thứ tự hiển thị", name: order, widget: number, value_type: int, default: 50, hint: "Số nhỏ đứng trước." }
       - { label: "Nhãn trên ảnh", name: badge, i18n: true, widget: string, required: false, hint: "Ví dụ: Bán chạy, Mới, Thuần chay. Để trống nếu không cần." }
       - { label: "Mã SKU", name: sku, widget: string, required: false }
@@ -363,6 +363,7 @@ collections:
       - { label: "Tên ngắn", name: short_name, i18n: true, widget: string, required: false }
       - { label: "Hiển thị trên web", name: published, widget: boolean, default: true }
       - { label: "Nổi bật (hiện ở hộp tư vấn)", name: featured, widget: boolean, default: true }
+      - { label: "Hiện ở trang chủ", name: home, widget: boolean, default: true, required: false, hint: "Tắt để gói không hiện ở trang chủ (vẫn mở được bằng link). Bật / tắt nhanh ở CRM → Marketing." }
       - { label: "Thứ tự hiển thị", name: order, widget: number, value_type: int, default: 1, hint: "Số nhỏ đứng trước." }
       - { label: "Nhãn trên ảnh", name: badge, i18n: true, widget: string, required: false, default: "Gói giải pháp" }
       - label: "Sản phẩm trong gói"

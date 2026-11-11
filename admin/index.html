@@ -8,7 +8,23 @@
   <link rel="icon" type="image/png" href="/assets/img/brand/icon-32.png">
 </head>
 <body>
-  <script src="https://unpkg.com/@sveltia/cms@0/dist/sveltia-cms.js"></script>
+  <script>
+    // Mở từ CRM (nút 🖊 Mở trang quản trị web, 11/11/2026): link có #sso=<mã dùng 1 lần, 2 phút> → đổi lấy phiên đăng nhập (api/src/cms.js cmsSso)
+    // rồi lưu vào chỗ Sveltia tự đọc (localStorage "sveltia-cms.user") trước khi tải Sveltia → vào thẳng, không phải xin mã email.
+    (function () {
+      var SRC = 'https://unpkg.com/@sveltia/cms@0/dist/sveltia-cms.js', m = /[#&]sso=([a-f0-9]{48})/.exec(location.hash);
+      if (!m) { document.write('<script src="' + SRC + '"><\/script>'); return; }
+      history.replaceState(null, '', location.pathname + location.search);
+      function load() { var s = document.createElement('script'); s.src = SRC; document.body.appendChild(s); }
+      fetch('https://api.thucduonglanh.vn/cms/sso', { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ code: m[1] }) })
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          if (j && j.ok && j.token) { try { localStorage.setItem('sveltia-cms.user', JSON.stringify({ backendName: 'github', token: j.token })); } catch (e) { } }
+          else if (j && j.error) alert(j.error + ' Bạn vẫn đăng nhập bằng email được.');
+        }, function () { })
+        .then(load);
+    })();
+  </script>
   <script>
     // Màn hình đăng nhập: nút "Đăng nhập bằng GitHub" thật ra mở cửa sổ đăng nhập bằng email (api/src/cms.js) → đổi chữ cho nhân sự khỏi nhầm.
     // Ẩn nút "Đăng nhập bằng mã truy cập": máy chủ chỉ nhận đăng nhập bằng email.

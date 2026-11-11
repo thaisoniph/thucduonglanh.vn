@@ -137,7 +137,21 @@ Phần dưới màn hình là **4 câu hỏi** theo đúng thứ tự người l
    - 🎬 Tính cả kỳ: chiến dịch nào nên tăng, nên tắt (gồm cả chiến dịch đã tắt) · 🧴 Sản phẩm nào chạy quảng cáo có lời · 🪜 Khách rơi rụng ở bước nào (thấy → bấm → nhắn → để số → mua).
 3. **📇 Số điện thoại về sale có ra đơn không?**
    - 📇 Bao nhiêu số, giá 1 số, còn bao nhiêu sale chưa gọi · 🤝 Sale kể lại: vì sao khách không mua, nguồn nào số tốt. Nếu các sale chênh nhau nhiều, vấn đề có thể nằm ở khâu tư vấn, chưa chắc do quảng cáo.
-4. **🌱 Kênh tự có (không tốn tiền quảng cáo)**: 🌐 website, 👥 nhóm Zalo, 🌱 "Tôi chọn sống lành", 🖐 trò chơi trên web.
+4. **🌱 Kênh tự có (không tốn tiền quảng cáo)**: 🛍 sản phẩm trên website, 🌐 website, 👥 nhóm Zalo, 🌱 "Tôi chọn sống lành", 🖐 trò chơi trên web.
+
+## 🛍 Bật / tắt sản phẩm trên website
+
+Dùng khi muốn ẩn hay hiện một sản phẩm, gói, set quà trên thucduonglanh.vn mà không cần vào trang quản trị web.
+
+1. Tab **📣 Marketing** → kéo xuống câu hỏi số **4 🌱 Kênh tự có** → bấm mục **🛍 Sản phẩm nào đang hiện trên website?** (Quản lý, Quản trị: còn có ở **Cài đặt → 🌐 Website & khuyến mãi**).
+2. Bấm **🛍 Bật / tắt sản phẩm trên web**. Mỗi sản phẩm có 2 ô:
+   - **Hiện trên web**: bỏ dấu tích thì sản phẩm biến mất hẳn khỏi web, khách không xem và không đặt được. Dùng khi hết hàng, ngừng bán.
+   - **Hiện ở trang chủ**: bỏ dấu tích thì sản phẩm không nằm ở trang chủ nhưng vẫn mở được bằng link. Dùng khi chạy quảng cáo thử, hoặc set quà chưa có ảnh thật.
+3. Bấm xong, thấy chữ **Đã lưu ✓** là được. Khoảng 1–2 phút sau web tự cập nhật. Nhật ký CRM ghi tên người bấm.
+
+Sản phẩm lẻ đang nằm trong một gói mà bạn bỏ ô **Hiện trên web** thì CRM hỏi lại, vì gói đó sẽ thiếu món.
+
+**Sửa giá, ảnh, chữ, bài viết:** bấm **🖊 Mở trang quản trị web** ngay cạnh đó. Trang quản trị mở ra là đã đăng nhập, không phải nhập mã email. Cần ô **🌐 Sửa website** (Quản trị bật ở Cài đặt → Nhân sự).
 
 ## Trò chơi và "Tôi chọn sống lành" trên website
 
