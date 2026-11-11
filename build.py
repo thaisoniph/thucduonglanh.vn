@@ -1385,7 +1385,7 @@ def benefits_banner():
     <p class="bb-sub">{t("Hệ sinh thái sản phẩm thực dưỡng chất lượng – lành mạnh – bền vững cho gia đình Việt")}</p>
     <div class="bb-pills">{pills}</div>
   </div>
-  <div class="bb-mid">{"".join(f'<img src="{pimg(p["images"][0], True)}" alt="" width="480" height="480" loading="lazy">' for p in (PRODUCTS[2:3] + PRODUCTS[1:2] + PRODUCTS[3:4] or PRODUCTS[:3]))}</div>
+  <div class="bb-mid">{"".join(f'<img src="{pimg(p["images"][0], True)}" alt="" width="480" height="480" loading="lazy">' for p in (lambda L: L[2:3] + L[1:2] + L[3:4] or L[:3])(home_products()))}</div>
   <div class="bb-right">{feats}</div>
 </a>'''
 
@@ -2219,6 +2219,12 @@ QTET = {
     "early_end": "2026-12-15", "early_gift": "1 hũ Ruốc Rong Biển Vị Sườn Non",  # 🧧 quà đặt sớm (anh Sơn chốt 11/11/2026): set từ 849k, đặt hết 15/12; máy chủ tự thêm quà (api/src/ngaydoi.js qtetApply)
     "tiers": [("10–29 set", "giảm thêm 5%"), ("30–49 set", "giảm thêm 8%"), ("Từ 50 set", "giảm thêm 10%")],
 }
+QTET_ON_HOME = False  # 11/11/2026 anh Sơn: ẩn 3 set quà Tết khỏi trang chủ, chờ ảnh thật + chốt gói & giá. Đổi True khi chạy chiến dịch (trang /qua-tet/ vẫn mở)
+
+
+def home_products():
+    """Sản phẩm được hiện ở trang chủ (bỏ set quà Tết khi QTET_ON_HOME = False)."""
+    return [p for p in PRODUCTS if QTET_ON_HOME or p["slug"] not in QTET["sets"]]
 
 
 def page_qtet():
@@ -2510,7 +2516,7 @@ def combo_card_v2(c):
 
 
 def combos_home():
-    cs = [c for c in PRODUCTS if c.get("combo") and c.get("price")]
+    cs = [c for c in home_products() if c.get("combo") and c.get("price")]
     if not cs:
         return ""
     cards = ""
