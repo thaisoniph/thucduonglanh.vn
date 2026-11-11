@@ -55,4 +55,5 @@ VitaGreen đang lớn lên mỗi tháng: nhiều sản phẩm hơn, nhiều nhà
 
 - Lương cứng thỏa thuận theo năng lực, xem xét tăng lương theo hiệu quả công việc.
 - Ký hợp đồng lao động và đóng bảo hiểm theo quy định pháp luật.
+- Du lịch cùng công ty hằng năm và teambuilding gắn kết đội ngũ.
 - Được dùng sản phẩm của công ty và tham gia các hoạt động tập thể: du xuân đầu năm, lễ chùa mùng 1 và rằm, thiện nguyện.

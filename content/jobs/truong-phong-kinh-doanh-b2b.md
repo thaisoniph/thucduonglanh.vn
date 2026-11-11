@@ -52,6 +52,7 @@ Nếu bạn đang giỏi việc nhưng thấy mình chỉ là "một mắt xích
 - **Hỗ trợ chi phí đi lại, công tác thị trường** theo kế hoạch được duyệt.
 - **Quyền tự xây kênh theo cách của bạn:** chính sách, đội ngũ, quy trình.
 - **Lộ trình lên Giám đốc Kinh doanh** khi kênh lớn lên.
+- Du lịch cùng công ty hằng năm, teambuilding gắn kết đội ngũ.
 - Hợp đồng lao động, bảo hiểm đầy đủ; được dùng sản phẩm công ty; đào tạo nội bộ, trà đàm cùng đội ngũ.
 
 ## Cam kết của chúng tôi với bạn
@@ -122,4 +123,5 @@ Nếu bạn đang giỏi việc nhưng thấy mình chỉ là "một mắt xích
 - **Lương cứng từ 10 triệu đồng/tháng** + thưởng doanh số kênh đại lý (không giới hạn) + thưởng mở đại lý mới.
 - Hỗ trợ chi phí đi lại, công tác thị trường theo kế hoạch được duyệt.
 - Ký hợp đồng lao động và đóng bảo hiểm theo quy định pháp luật.
+- Du lịch cùng công ty hằng năm và teambuilding gắn kết đội ngũ.
 - Được dùng sản phẩm của công ty và tham gia các hoạt động tập thể: du xuân đầu năm, lễ chùa mùng 1 và rằm, thiện nguyện.

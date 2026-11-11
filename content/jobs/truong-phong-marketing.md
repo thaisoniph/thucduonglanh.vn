@@ -49,4 +49,5 @@ Thực Dưỡng Lành đã có sản phẩm thật, khách hàng thật, một w
 
 - Thu nhập gồm lương cứng và thưởng hiệu suất theo mục tiêu doanh thu, chi phí quảng cáo của từng kênh. Mức cụ thể trao đổi trực tiếp, tương xứng năng lực.
 - Ký hợp đồng lao động và đóng bảo hiểm theo quy định pháp luật.
+- Du lịch cùng công ty hằng năm và teambuilding gắn kết đội ngũ.
 - Được dùng sản phẩm của công ty và tham gia các hoạt động tập thể: du xuân đầu năm, lễ chùa mùng 1 và rằm, thiện nguyện.
