@@ -7,9 +7,9 @@
 // Đếm suất "N đơn đầu": kv dd_<YYYY-MM-DD> (tăng 1 cho mỗi đơn đủ điều kiện, đơn huỷ không trả suất).
 import { first, kvGet, kvSet, fmt } from './lib.js';
 
-const DEF = { enabled: true, name: 'Ngày Đôi Sống Lành', free_ship: true, free_ship_min: 150000, // từ trưa 11/11/2026: Ruốc từ 300k, Trà từ 700k (thay Ruốc), 11 đơn đầu từ 500k tặng thêm Trà
+const DEF = { enabled: true, name: 'Ngày Đôi Sống Lành', free_ship: true, free_ship_min: 150000, // 11/11/2026 (bản đơn giản kiểu Hormozi): miễn ship từ 150k · từ 300k tặng Ruốc · 11 đơn đầu từ 500k tặng thêm Trà
   gift_min: 300000, gift: { name: 'Ruốc Rong Biển Vị Sườn Non Thuần Chay', variant: 'Hũ 165g', label: '1 hũ Ruốc Rong Biển 165g' },
-  gift2_min: 700000, gift2: { name: 'Trà Hòa Tan DILVANG – Đinh Lăng Chè Vằng', variant: 'Hộp lẻ 75g (15 gói x 5g)', label: '1 hộp Trà DILVANG' }, // gift2: quà bậc 2, đủ mức thì nhận THAY quà 1
+  gift2_min: 0, gift2: null, // bậc 2 (quà thay quà 1 khi đơn đủ mức): đang tắt từ 11/11/2026 trưa cho chương trình đơn giản // gift2: quà bậc 2, đủ mức thì nhận THAY quà 1
   first_n: 11, first_min: 500000, first: { name: 'Trà Hòa Tan DILVANG – Đinh Lăng Chè Vằng', variant: 'Hộp lẻ 75g (15 gói x 5g)', label: '1 hộp Trà DILVANG' } };
 const VN = 7 * 3600e3;
 let mem = null;
