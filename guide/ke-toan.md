@@ -2,13 +2,13 @@
 title: Kế toán
 nav: Kế toán
 order: 4.6
-updated: 2026-11-10
+updated: 2026-11-11
 description: Ghi tiền về tài khoản (tải file đối soát COD Best / Viettel Post hoặc tích tay), xem tiền còn treo ở hãng vận chuyển, nhập chi phí, xem lãi lỗ theo ngày / tuần / tháng. Có hình từng bước.
 ---
 
 Trang này dành cho **kế toán**. Đọc khoảng 5 phút là làm được.
 
-> **Mỗi ngày chỉ cần:** mở **💼 Kế toán**, tải file đối soát COD mới nhất của hãng, rồi tích các đơn chuyển khoản đã thấy tiền trên sao kê VCB. Xong là anh Sơn xem được lãi lỗ và tiền thật gần như ngay lúc đó.
+> **Thứ 2, 4, 6 (ngày hãng chuyển tiền):** tải file phiếu đối soát của Best / Viettel Post, rồi mở sao kê VCB: phiếu nào thấy đúng số tiền thì bấm **✅ Đã về**. **Mỗi ngày:** tích các đơn chuyển khoản đã thấy tiền trên sao kê. Xong là anh Sơn xem được lãi lỗ và tiền thật gần như ngay lúc đó.
 
 **Cách xem hình:** ô khoanh đỏ có số **1, 2, 3** trên hình chính là **bước 1, 2, 3** viết ngay bên dưới hình.
 
@@ -49,9 +49,35 @@ Kế toán mở **[ketoan.thucduonglanh.vn](https://ketoan.thucduonglanh.vn)**, 
 | 🏦 **Chuyển khoản chờ xác nhận** | Đơn khách chuyển khoản, kế toán chưa đối chiếu sao kê |
 | 🚚 **Tiền sắp về** | Đơn COD còn đang giao |
 
-## Tải file đối soát COD (mỗi ngày hoặc mỗi tuần)
+## Phiếu đối soát chờ tiền về (thứ 2, 4, 6)
 
-Lấy file trên trang của hãng:
+Hãng gom nhiều đơn vào **1 phiếu** rồi chuyển **1 khoản tiền** về tài khoản. Kế toán chỉ cần xem khoản đó đã về chưa, không phải tích từng đơn.
+
+Lấy file phiếu trên trang của hãng (mỗi phiếu 1 file):
+
+- **Best**: **Đối soát COD** → bấm vào **mã phiếu NO…** → **Xuất Excel**.
+- **Viettel Post**: **Tiền hàng đã trả** → bấm **mã bảng kê PCOD…** → xuất **Báo cáo chi tiết bảng kê**.
+
+Bấm **📥 Tải file đối soát COD** → **Chọn tệp** → chọn **cùng lúc** mọi file phiếu vừa tải. Máy cho xem từng phiếu: số đơn, tiền thu hộ, cước hãng trừ và **số tiền sẽ về tài khoản**. File Viettel Post không ghi mã bảng kê: gõ mã **PCOD-…** (xem trên trang Tiền hàng đã trả) vào ô trống. Bấm **💾 Lưu … phiếu vào danh sách chờ tiền về**.
+
+![Tải file phiếu (1), số tiền phải về (2), bấm Đã về (3), phiếu chờ quá lâu (4)](/huong-dan/img/ke-toan-phieu.webp)
+
+1. Nút **📥 Tải file đối soát COD**: chọn file phiếu ở đây.
+2. **Số tiền phải về tài khoản** của phiếu. Best: đã trừ cước và **5.000đ phí chuyển khoản**, đúng bằng số hiện trên sao kê.
+3. Mở sao kê VCB. Thấy **đúng số tiền** đó thì bấm **✅ Đã về**, chọn **ngày tiền về** và **tài khoản nhận**, bấm **Ghi tiền về**. Mọi đơn có thu hộ trong phiếu được ghi tiền về một lần.
+4. Phiếu **tô đỏ** = tạo quá 3 ngày mà chưa thấy tiền: gọi hỏi hãng. Dòng **"… mã không có trong CRM"** = đơn sale chưa lên CRM hoặc chưa ghi mã vận đơn: báo sale.
+
+Ghi chú:
+
+- Số tiền về trên sao kê khác số phiếu: gõ số thật vào ô **Số tiền thực về**. Máy báo lệch, vẫn ghi được. Nên hỏi lại hãng.
+- Bấm nhầm: mở **✅ Phiếu đã về gần đây** → **↩ Bỏ ghi**. Tải nhầm phiếu: bấm 🗑 để xoá (chỉ xoá được phiếu chưa về).
+- Tải lại cùng phiếu không sao: máy cập nhật, không tạo trùng.
+- Dòng quà tặng, đổi hàng (thu hộ 0đ) không ghi tiền về, nhưng máy vẫn ghi **phí ship thật** cho đơn đó.
+- 8h sáng tin Telegram **💼 Tài chính** báo số phiếu đang chờ tiền và phiếu quá 3 ngày.
+
+## Tải file chi tiết đơn cả tháng (khi cần đối soát lại)
+
+Cách cũ vẫn dùng được, hợp khi cần rà lại cả tháng:
 
 - **Best**: trang Best → **Đối soát COD** → Chi tiết đơn → **Xuất Excel** (chọn cả tháng).
 - **Viettel Post**: Quản lý vận đơn → **Xuất danh sách vận đơn** (file có cột **Trạng thái thanh toán**).

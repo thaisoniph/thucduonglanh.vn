@@ -5300,19 +5300,20 @@
     var month = monthOf(Math.min(R[1] - 1, Date.now())), sj = snGet(R, P, month), M = mktCalc(key, R, P, sj);
     var sn = sj ? sanSum(sj.days, 2) : null, snp = sj ? sanSum(sj.prev, 1) : null;
     var T = { san: sn ? sn.g : 0, paid: b.paid + (sn ? sn.gp || 0 : 0), rev: b.rev + (sn ? sn.g + sn.gv : 0), revP: bp.rev + (snp ? snp.g + snp.gv : 0), vRev: b.vRev + (sn ? sn.gv : 0), net: b.rev - b.vRev + (sn ? sn.g : 0), netP: bp.rev - bp.vRev + (snp ? snp.g : 0), n: b.n, nP: bp.n, tr: dashSeries(R, P, sj) };
-    var L = ktvLists(), tv = ktvSum(L.treo), old = L.treo.filter(function (o) { return ktvAge(o) > KTV_OLD; }), bv = ktvSum(L.bank);
+    ktbLoad(); var L = ktvLists(), tv = ktvSum(L.treo), old = L.treo.filter(function (o) { return ktvAge(o) > KTV_OLD; }), bv = ktvSum(L.bank);
     var got = S.d.orders.filter(function (o) { return o.cashAt && o.cashAt >= R[0] && o.cashAt < R[1]; }), gv = got.reduce(function (s, o) { return s + (o.cashAmt == null ? o.total || 0 : o.cashAmt); }, 0);
     var by = {}; L.treo.forEach(function (o) { var c = o.carrier || 'Chưa ghi hãng', x = by[c] || (by[c] = { c: c, n: 0, v: 0, old: 0, ov: 0, max: 0 }); x.n++; x.v += o.total; var a = ktvAge(o); if (a > KTV_OLD) { x.old++; x.ov += o.total; } if (a > x.max) x.max = a; });
     var byL = Object.keys(by).map(function (k) { return by[k]; }).sort(function (a, b) { return b.v - a.v; });
     var card = function (cls, l, v, sub, go) { return '<button type="button" class="ktv-c ' + cls + '"' + (go ? ' data-ktv="' + go + '"' : ' disabled') + '><span>' + l + '</span><b>' + v + '</b><small>' + sub + '</small>' + (go ? '<i aria-hidden="true">›</i>' : '') + '</button>'; };
     var h = '<div class="ktv-wrap"><div class="page-head"><h1>💼 Kế toán</h1><div class="grow"></div><button class="btn ghost" data-dash="fresh" title="Lấy số mới nhất (quảng cáo)">↻ Cập nhật số</button></div>' + perChips('g', f.p);
-    if (!ktvCfg().on) h += '<div class="notice info ktv-start"><b>👋 Bắt đầu:</b> bấm <b>📥 Tải file đối soát COD</b> (file Best / Viettel Post, cả tháng) để máy tự ghi các đơn hãng đã trả tiền. Đơn chuyển khoản thì mở <b>🏦 Chuyển khoản chờ xác nhận</b>, xem sao kê VCB rồi tích. Máy đang theo dõi đơn từ <b>' + fDate(ktvFrom()) + '</b> (đổi ở cuối trang).</div>';
+    if (!ktvCfg().on) h += '<div class="notice info ktv-start"><b>👋 Bắt đầu:</b> ngày hãng chuyển tiền (thứ 2, 4, 6), bấm <b>📥 Tải file đối soát COD</b> và chọn file phiếu (Best NO…, Viettel Post bảng kê). Phiếu vào danh sách <b>🧾 chờ tiền về</b>; thấy đúng số tiền trên sao kê thì bấm ✅ Đã về. Đơn chuyển khoản thì mở <b>🏦 Chuyển khoản chờ xác nhận</b>, xem sao kê VCB rồi tích. Máy đang theo dõi đơn từ <b>' + fDate(ktvFrom()) + '</b> (đổi ở cuối trang).</div>';
     h += '<section class="ktv-sec"><h2 class="ktv-h">💵 Tiền về tài khoản <small>tiền thật, không phải doanh số</small></h2><div class="ktv-n">' +
       card('ok', '✅ Đã về ' + esc(perLabel(f.p).toLowerCase()), moneyShort(gv), got.length + ' đơn đã ghi nhận tiền về', got.length ? 'got' : '') +
       card(old.length ? 'bad' : L.treo.length ? 'mid' : 'ok', '💤 Đang treo ở hãng vận chuyển', moneyShort(tv), L.treo.length ? L.treo.length + ' đơn đã giao, hãng chưa trả tiền' + (old.length ? ' · <b>⚠️ ' + old.length + ' đơn quá ' + KTV_OLD + ' ngày</b>' : '') : 'Không có đơn nào', L.treo.length ? 'treo' : '') +
       card(L.bank.length ? 'mid' : 'ok', '🏦 Chuyển khoản chờ xác nhận', moneyShort(bv), L.bank.length ? L.bank.length + ' đơn: xem sao kê VCB rồi tích' : 'Không có đơn nào', L.bank.length ? 'bank' : '') +
       card('', '🚚 Tiền sắp về', moneyShort(ktvSum(L.ship)), L.ship.length + ' đơn COD đang giao', '') + '</div>' +
       '<div class="ktv-big"><button class="btn pri lg" data-ktv="cod">📥 Tải file đối soát COD</button><button class="btn lg" data-ktv="treo">✅ Ghi tiền về bằng tay</button></div>' +
+      ktbHTML() +
       (byL.length ? '<div class="box ktv-by"><h3>💤 Tiền treo theo hãng <small>bấm để xem từng đơn</small></h3>' + byL.map(function (x) {
         return '<button type="button" class="ktv-row" data-ktv="treo|' + esc(x.c) + '"><span><b>' + esc(x.c) + '</b><small>' + x.n + ' đơn · chờ lâu nhất ' + x.max + ' ngày' + (x.old ? ' · <em class="ktv-red">' + x.old + ' đơn quá ' + KTV_OLD + ' ngày (' + moneyShort(x.ov) + '): hỏi lại hãng</em>' : '') + '</small></span><b class="ktv-amt">' + moneyShort(x.v) + '</b><i aria-hidden="true">›</i></button>';
       }).join('') + '</div>' : '') + '</section>';
@@ -5469,18 +5470,28 @@
   }
   function openKtvCod() {
     var body = '<p style="margin:0 0 8px">Tải file đối soát tiền thu hộ (COD) của hãng. Máy đọc ngay trên máy này, tìm đơn nào <b>hãng đã trả tiền</b>, cho xem lại trước rồi mới ghi.</p>' +
-      '<ol class="small ktv-how"><li><b>Best</b>: trang Best → <b>Đối soát COD</b> → Chi tiết đơn → <b>Xuất Excel</b> (chọn cả tháng).</li><li><b>Viettel Post</b>: Quản lý vận đơn → <b>Xuất danh sách vận đơn</b> (có cột Trạng thái thanh toán).</li></ol>' +
-      '<p class="small" style="margin:0 0 8px">' + ktvAcctSel('Tiền của file này về') + '</p><label class="f"><span>Chọn file (.xlsx hoặc .csv)</span><input type="file" id="ktvFile" accept=".xlsx,.csv,.txt"></label><p class="err" id="ktvFE"></p><div id="ktvOut"></div>';
+      '<p class="small" style="margin:0 0 4px"><b>Ngày hãng chuyển tiền (thứ 2, 4, 6): tải file phiếu</b>, chọn được nhiều file một lúc:</p><ol class="small ktv-how"><li><b>Best</b>: Đối soát COD → bấm vào <b>mã phiếu NO…</b> → Xuất Excel (mỗi phiếu 1 file).</li><li><b>Viettel Post</b>: <b>Tiền hàng đã trả</b> → bấm mã bảng kê PCOD… → Xuất báo cáo chi tiết bảng kê.</li></ol>' +
+      '<p class="small muted" style="margin:0 0 8px">Máy lưu phiếu vào danh sách <b>🧾 chờ tiền về</b>. Thấy đúng số tiền phiếu trên sao kê thì bấm ✅ Đã về: cả phiếu được ghi một lần. Vẫn đọc được file <b>Chi tiết đơn</b> cả tháng (Best) và <b>Danh sách vận đơn</b> (Viettel Post) như trước.</p>' +
+      '<p class="small" style="margin:0 0 8px">' + ktvAcctSel('Tiền file chi tiết đơn về') + '</p><label class="f"><span>Chọn file (.xlsx hoặc .csv)</span><input type="file" id="ktvFile" accept=".xlsx,.csv,.txt" multiple></label><p class="err" id="ktvFE"></p><div id="ktvOut"></div>';
     var m = modal('📥 Tải file đối soát COD', body, '<button class="btn" data-close>Đóng</button><button class="btn pri" id="ktvCodGo" hidden>✅ Ghi tiền về</button>');
-    var P = null, X = null;
+    var P = null, X = null, PS = null;
+    ktbLoad();
     $('#ktvFile', m).onchange = function () {
-      var fl = this.files[0], err = $('#ktvFE', m); err.textContent = ''; $('#ktvOut', m).innerHTML = '<p class="muted">⏳ Đang đọc file…</p>'; $('#ktvCodGo', m).hidden = true; if (!fl) return;
-      sanReadFile(fl).then(function (sh) {
-        P = ktvParse(sh); if (!P || !P.rows.length) throw new Error('File này không có cột tiền thu hộ và trạng thái thanh toán. Best: xuất ở mục Đối soát COD → Chi tiết đơn. Viettel Post: Xuất danh sách vận đơn.');
-        P.file = fl.name; X = ktvMatch(P); ktvShow(m, P, X);
+      var fs = [].slice.call(this.files || []), err = $('#ktvFE', m); err.textContent = ''; $('#ktvOut', m).innerHTML = '<p class="muted">⏳ Đang đọc file…</p>'; $('#ktvCodGo', m).hidden = true; P = PS = null; if (!fs.length) return;
+      Promise.all(fs.map(function (fl) { return sanReadFile(fl).then(function (sh) { return { fl: fl, sh: sh, b: ktbParse(sh, fl.name) }; }); })).then(function (R) {
+        var ph = R.filter(function (r) { return r.b; }), other = R.filter(function (r) { return !r.b; });
+        if (ph.length) {
+          PS = ph.map(function (r) { r.b.X = ktbMatch(r.b); return r.b; }); ktbShow(m, PS);
+          if (other.length) err.textContent = 'Bỏ qua ' + other.length + ' file không phải phiếu đối soát: ' + other.map(function (r) { return r.fl.name; }).join(', ') + '. File chi tiết đơn cả tháng thì tải riêng.';
+          return;
+        }
+        if (R.length > 1) throw new Error('Chọn nhiều file chỉ dùng cho file phiếu (Best NO…, Viettel Post bảng kê). File chi tiết đơn cả tháng thì tải từng file.');
+        P = ktvParse(R[0].sh); if (!P || !P.rows.length) throw new Error('Máy không đọc được file này. Best: bấm mã phiếu NO… → Xuất Excel, hoặc Đối soát COD → Chi tiết đơn. Viettel Post: Tiền hàng đã trả → mã bảng kê → báo cáo chi tiết, hoặc Xuất danh sách vận đơn.');
+        P.file = R[0].fl.name; X = ktvMatch(P); ktvShow(m, P, X);
       }).catch(function (e) { $('#ktvOut', m).innerHTML = ''; err.textContent = e.message; });
     };
     $('#ktvCodGo', m).onclick = function () {
+      if (PS) { ktbSave(m, PS, this); return; }
       var b = this, pick = {}; $$('[data-ktvp]', m).forEach(function (x) { pick[x.getAttribute('data-ktvp')] = x.checked; });
       var items = X.pay.filter(function (it) { return pick[it.o.row] !== false; }).map(function (it) { return { row: it.o.row, id: it.o.id, amt: it.r.cod, fee: it.r.net != null ? Math.max(0, it.r.cod - it.r.net) : it.r.fee, day: it.r.day || Date.now(), ref: it.r.batch }; });
       if (!items.length) { toast('Chưa chọn đơn nào', true); return; }
@@ -5502,6 +5513,156 @@
     }).join('') + '</div>';
     if (X.none.length) h += '<details class="small" style="margin-top:8px"><summary>❓ ' + X.none.length + ' dòng không thấy đơn trong CRM</summary><p class="muted">Đơn chưa lên CRM hoặc sai mã. Báo sale kiểm tra.</p>' + X.none.slice(0, 60).map(function (r) { return '<div>' + esc(r.label || r.wb) + ' · ' + esc(r.wb) + ' · ' + money(r.cod) + ' · ' + esc(r.payTxt) + '</div>'; }).join('') + '</details>';
     $('#ktvOut', m).innerHTML = h; var b = $('#ktvCodGo', m); b.hidden = !X.pay.length; b.textContent = '✅ Ghi tiền về ' + X.pay.length + ' đơn';
+  }
+  /* ---------- 🧾 Phiếu đối soát chờ tiền về (11/11/2026). Hãng chốt 1 phiếu nhiều đơn rồi chuyển 1 khoản (thứ 2 / 4 / 6).
+   * Best: file phiếu "Mã phiếu thanh toán：NO…" (dòng 1–2 có Tổng COD, Tổng chi phí vận chuyển, COD cần chuyển khách; bảng: Mã vận đơn, Số tiền COD trên phiếu thanh toán, Tổng cước vận chuyển, Khách hàng nhận COD).
+   * Viettel Post: "Báo cáo chi tiết bảng kê" (Mã vận đơn, Tiền thu hộ(VNĐ), Tiền cước (VNĐ), Tiền thu về (VNĐ)) – file không ghi mã bảng kê → kế toán gõ (PCOD-…).
+   * Tiền về TK: Best = COD cần chuyển khách − 5.000đ phí chuyển khoản; VTP = tổng Tiền thu về. Lệnh kt_badd / kt_bpay / kt_bdel / kt_bl (api/src/kt.js crmKtBatch). */
+  var KTB = { d: null, busy: false, err: '', at: 0 }, KTB_LATE = 3, KTB_TF = 5000;
+  function ktbLoad(force) {
+    if (KTB.busy || (!force && KTB.d && Date.now() - KTB.at < 120e3)) return; KTB.busy = true; KTB.err = '';
+    api('kt_bl', {}).then(function (j) { KTB.d = j.batches || []; KTB.at = Date.now(); }, function (e) { KTB.err = /Không rõ thao tác|chỉ dùng được/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message; })
+      .then(function () { KTB.busy = false; if (route().view === 'ke-toan') softRender(true); });
+  }
+  function ktbNum(s) { var n = String(s == null ? '' : s).replace(/[^\d-]/g, ''); return n ? Number(n) : null; }
+  function ktbParse(sheets, fname) {
+    var out = null;
+    sheets.forEach(function (rows) {
+      if (out) return;
+      var top = norm(rows.slice(0, 6).map(function (r) { return (r || []).join(' | '); }).join('\n')), best = top.match(/ma phieu thanh toan\s*[：:]\s*([a-z0-9-]+)/);
+      for (var i = 0; i < Math.min(rows.length, 30) && !out; i++) {
+        var H = (rows[i] || []).map(function (c) { return norm(c).replace(/\s+/g, ' ').trim(); });
+        var col = function (re) { for (var j = 0; j < H.length; j++) if (re.test(H[j])) return j; return -1; };
+        var wb = col(/^ma van don$/), cod, fee, net, ph, sign, kien = -1, dt = -1, nm = col(/^nguoi nhan$/), carrier;
+        if (wb < 0) continue;
+        if ((cod = col(/^so tien cod tren phieu thanh toan$/)) >= 0) { carrier = 'BEST Express'; fee = col(/^tong cuoc van chuyen$/); net = col(/^khach hang nhan cod$/); ph = col(/^sdt nguoi nhan$/); sign = col(/^thoi gian ky nhan$/); kien = col(/^ma so kien$/); dt = col(/^ma doi tac$/); }
+        else if ((cod = col(/^tien thu ho ?\(vnd\)$/)) >= 0 && (net = col(/^tien thu ve ?\(vnd\)$/)) >= 0) { carrier = 'Viettel Post'; fee = col(/^tien cuoc ?\(vnd\)$/); ph = col(/^so dien thoai$/); sign = col(/^ngay phat thanh cong$/); }
+        else continue;
+        var L = [];
+        rows.slice(i + 1).forEach(function (r) {
+          var g = function (j) { return j < 0 ? '' : r[j]; }, w = String(g(wb) || '').replace(/\.0$/, '').trim(); if (!w) return;
+          var codes = []; [g(kien), g(dt)].forEach(function (c) { var k = rcKey(c); if (k && k.length <= 24 && codes.indexOf(k) < 0) codes.push(k); });
+          var sg = String(g(sign) || ''), t = rcDayTime(sg) || (function () { var m = sg.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/); return m ? Date.UTC(+m[3], +m[2] - 1, +m[1]) - 7 * 3600e3 : 0; })();
+          L.push({ wb: w, codes: codes, ph: normPhone(g(ph)).slice(-4), cod: rcNum(g(cod)) || 0, fee: rcNum(g(fee)), net: rcNum(g(net)), sign: t, name: String(g(nm) || '').trim(), label: String(g(dt) || g(kien) || w).trim() });
+        });
+        if (!L.length) continue;
+        var sum = function (k) { return L.reduce(function (s, r) { return s + (r[k] || 0); }, 0); }, P = { carrier: carrier, rows: L, file: fname, cod: sum('cod'), fee: sum('fee'), code: '', made: 0 };
+        if (carrier === 'BEST Express') {
+          var hv = function (re) { var m = top.match(re); return m ? ktbNum(m[1]) : null; }, mt = top.match(/thoi gian tao phieu doi soat\s*[：:]\s*(\d{4}-\d\d-\d\d \d\d:\d\d)/);
+          P.code = best ? best[1].toUpperCase() : ((String(fname).match(/NO\d{8,}/i) || [''])[0]).toUpperCase(); P.made = mt ? rcDayTime(mt[1]) : 0;
+          var hc = hv(/tong cod\s*[：:]\s*([\d.,]+)/), hf = hv(/tong chi phi van chuyen\s*[：:]\s*([\d.,]+)/), hn = hv(/cod can chuyen khach\s*[：:]\s*(-?[\d.,]+)/);
+          if (hc != null) P.cod = hc; if (hf != null) P.fee = hf;
+          P.net = hn != null ? hn : sum('net'); P.exp = P.net - KTB_TF;
+        } else {
+          P.code = ((String(fname).match(/PCOD[-A-Z0-9]+/i) || [''])[0]).toUpperCase(); P.net = sum('net'); P.exp = P.net;
+          P.made = L.reduce(function (m, r) { return Math.max(m, r.sign || 0); }, 0);
+        }
+        out = P;
+      }
+    });
+    return out;
+  }
+  function ktbMatch(P) {
+    var byId = {}, byWb = {}, byPh = {};
+    S.d.orders.forEach(function (o) { var k = rcKey(o.id); if (k) (byId[k] = byId[k] || []).push(o); if (o.tracking) byWb[String(o.tracking).replace(/\s/g, '')] = o; var p4 = o.ph || String(o.phone || '').slice(-4); if (p4) (byPh[p4] = byPh[p4] || []).push(o); });
+    var X = { items: [], miss: [], diff: 0, stNo: 0, had: 0, zero: 0 }, seen = {};
+    P.rows.forEach(function (r) {
+      var o = byWb[r.wb] || null;
+      if (!o) r.codes.some(function (k) { var c = byId[k]; if (c) o = c.filter(function (x) { return !r.ph || (x.ph || String(x.phone || '').slice(-4)) === r.ph; })[0] || null; return !!o; });
+      if (!o && r.ph && r.cod > 0) o = (byPh[r.ph] || []).filter(function (x) { return x.total === r.cod && !seen[x.row] && (!r.sign || Math.abs(x.time - r.sign) <= 20 * DAY); })[0] || null;
+      if (!o) { if (r.cod > 0) X.miss.push(r); else X.zero++; return; }
+      if (seen[o.row]) return; seen[o.row] = 1;
+      var it = { o: o, r: r, diff: r.cod > 0 && Math.abs((o.total || 0) - r.cod) > 1000 };
+      if (it.diff) X.diff++; if (r.cod > 0 && o.cashAt) X.had++; if (r.cod > 0 && !/^(Đã giao|Đổi hàng)$/.test(o.status)) X.stNo++;
+      X.items.push(it);
+    });
+    return X;
+  }
+  function ktbId(P) { return (P.carrier === 'Viettel Post' ? 'VTP:' : 'BEST:') + String(P.code || '').toUpperCase(); }
+  function ktbCar(c) { return c === 'Viettel Post' ? '📮 Viettel Post' : '📦 Best'; }
+  function ktbShow(m, PS) {
+    var known = {}; (KTB.d || []).forEach(function (b) { known[b.id] = b; });
+    var h = PS.map(function (P, i) {
+      var X = P.X, k = known[ktbId(P)], paid = k && k.st === 'paid';
+      return '<div class="box ktb-p' + (paid ? ' done' : '') + '"><h3>' + ktbCar(P.carrier) + ' · ' + (P.carrier === 'Viettel Post' ? '<label>Mã bảng kê <input data-ktbc="' + i + '" value="' + esc(P.code) + '" placeholder="PCOD-A-…" size="22"></label>' : 'phiếu <b>' + esc(P.code || '?') + '</b>') + (P.made ? ' <small>' + (P.carrier === 'Viettel Post' ? 'giao xong tới ' : 'tạo ') + fDate(P.made).slice(0, 5) + '</small>' : '') + '</h3>' +
+        '<p class="small" style="margin:0">' + P.rows.length + ' đơn · thu hộ ' + money(P.cod) + ' · hãng trừ cước ' + money(P.fee) + '</p>' +
+        '<p class="ktb-exp">Số tiền sẽ về tài khoản: <b>' + money(P.exp) + '</b>' + (P.carrier === 'BEST Express' ? ' <small class="muted">(đã trừ ' + money(KTB_TF) + ' phí chuyển khoản)</small>' : '') + '</p>' +
+        '<p class="small" style="margin:0">✅ Khớp ' + X.items.length + ' đơn trong CRM' + (X.zero ? ' · ' + X.zero + ' dòng không thu hộ (quà, đổi hàng…)' : '') + '</p>' +
+        (X.miss.length ? '<details class="small"><summary class="ktv-red">❓ ' + X.miss.length + ' mã vận đơn có thu hộ không thấy trong CRM (' + money(X.miss.reduce(function (s, r) { return s + r.cod; }, 0)) + ')</summary><p class="muted">Đơn chưa lên CRM hoặc sale chưa ghi mã vận đơn. Báo sale kiểm tra. Tiền vẫn về chung trong phiếu.</p>' + X.miss.map(function (r) { return '<div>' + esc(r.wb) + ' · ' + esc(r.name) + (r.ph ? ' …' + esc(r.ph) : '') + ' · ' + money(r.cod) + '</div>'; }).join('') + '</details>' : '') +
+        (X.diff ? '<p class="small ktv-red">⚠️ ' + X.diff + ' đơn hãng thu khác tiền trên đơn: sau khi ghi tiền về, chọn lý do ở mục ⚠️ Đơn hãng thu khác tiền.</p>' : '') +
+        (X.stNo ? '<p class="small muted">ℹ️ ' + X.stNo + ' đơn CRM chưa ghi Đã giao: báo Quản lý chạy 📦 Đối soát vận chuyển.</p>' : '') +
+        (X.had ? '<p class="small muted">' + X.had + ' đơn đã ghi tiền về từ trước, máy bỏ qua.</p>' : '') +
+        (paid ? '<p class="small ktv-ok"><b>Phiếu này đã ghi tiền về ngày ' + fDate(k.paidAt).slice(0, 5) + '</b>, không lưu lại.</p>' : k ? '<p class="small muted">Phiếu đã có trong danh sách chờ: lưu lại sẽ cập nhật.</p>' : '') + '</div>';
+    }).join('');
+    $('#ktvOut', m).innerHTML = h;
+    var go = PS.filter(function (P) { var k = known[ktbId(P)]; return !(k && k.st === 'paid'); }).length, b = $('#ktvCodGo', m);
+    b.hidden = !go; b.textContent = '💾 Lưu ' + go + ' phiếu vào danh sách chờ tiền về';
+  }
+  function ktbSave(m, PS, b) {
+    var bad = '';
+    $$('[data-ktbc]', m).forEach(function (x) { var P = PS[+x.getAttribute('data-ktbc')]; P.code = x.value.trim().toUpperCase(); if (!P.code) bad = 'Gõ mã bảng kê Viettel Post (PCOD-…, xem trên trang Tiền hàng đã trả) rồi bấm lưu.'; });
+    if (bad) { toast(bad, true); return; }
+    var known = {}; (KTB.d || []).forEach(function (k) { known[k.id] = k; });
+    var list = PS.filter(function (P) { var k = known[ktbId(P)]; return !(k && k.st === 'paid'); }).map(function (P) {
+      return { carrier: P.carrier, code: P.code, made: P.made, n: P.rows.length, cod: P.cod, fee: P.fee, exp: P.exp, file: P.file,
+        items: P.X.items.map(function (it) { return { row: it.o.row, id: it.o.id, wb: it.r.wb, cod: it.r.cod, fee: it.r.fee }; }), miss: P.X.miss.map(function (r) { return { wb: r.wb, cod: r.cod, label: r.name }; }) };
+    });
+    if (!list.length) return;
+    b.disabled = true; b.textContent = '⏳ Đang lưu…';
+    api('kt_badd', { list: list }).then(function (j) {
+      KTB.d = j.batches || KTB.d; KTB.at = Date.now(); ktvMerge(j.orders || []); closeModal();
+      toast('Đã lưu ' + (j.saved || []).length + ' phiếu ✓ Thấy tiền về trên sao kê thì bấm ✅ Đã về' + ((j.skip || []).length ? ' · bỏ qua ' + j.skip.length + ' phiếu đã về' : '')); render();
+    }, function (e) { b.disabled = false; b.textContent = 'Thử lại'; toast(/Không rõ thao tác|chỉ dùng được/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message, true); });
+  }
+  function ktbAge(b) { return b.made ? Math.max(0, Math.floor((today() - dayStart(b.made)) / DAY)) : 0; }
+  function ktbHTML() {
+    var hd = '<div class="box ktb-box"><h3>🧾 Phiếu đối soát chờ tiền về <small>hãng thường chuyển tiền thứ 2, 4, 6. Thấy <b>đúng số tiền</b> trên sao kê thì bấm ✅ Đã về</small></h3>';
+    if (!KTB.d) return hd + '<p class="muted small">' + (KTB.err ? '⚠️ ' + esc(KTB.err) + ' <button class="btn sm" data-ktb="re">Thử lại</button>' : '⏳ Đang lấy danh sách phiếu…') + '</p></div>';
+    var W = KTB.d.filter(function (b) { return b.st === 'wait'; }).sort(function (a, b) { return (a.made || a.at) - (b.made || b.at); }), D = KTB.d.filter(function (b) { return b.st === 'paid'; });
+    var row = function (b, paid) {
+      var age = ktbAge(b), late = !paid && age > KTB_LATE, nm = (b.miss || []).length;
+      return '<div class="ktb-row' + (late ? ' late' : '') + '"><span><b>' + ktbCar(b.carrier) + ' · ' + esc(b.code) + '</b><small>' +
+        (paid ? 'về ngày ' + fDate(b.paidAt).slice(0, 5) + (b.acct ? ' · TK ' + esc(b.acct) : '') + ' · ' + (b.items || []).length + ' đơn' + (b.got != null && b.got !== b.exp ? ' · <em class="ktv-red">dự kiến ' + money(b.exp) + '</em>' : '')
+          : (b.made ? (b.carrier === 'Viettel Post' ? 'giao xong tới ' : 'tạo ') + fDate(b.made).slice(0, 5) + ' · ' : '') + b.n + ' đơn · thu hộ ' + moneyShort(b.cod) + (nm ? ' · <em class="ktv-red">' + nm + ' mã không có trong CRM</em>' : '') + (late ? ' · <em class="ktv-red">⚠️ ' + age + ' ngày chưa thấy tiền: hỏi hãng</em>' : '')) +
+        '</small></span><b class="ktv-amt">' + money(paid && b.got != null ? b.got : b.exp) + '</b>' +
+        (paid ? '<button class="btn sm ghost" data-ktb="off|' + esc(b.id) + '">↩ Bỏ ghi</button>' : '<button class="btn sm pri" data-ktb="pay|' + esc(b.id) + '">✅ Đã về</button><button class="btn sm ghost" data-ktb="del|' + esc(b.id) + '" title="Xoá phiếu tải nhầm" aria-label="Xoá phiếu">🗑</button>') + '</div>';
+    };
+    var h = hd + (W.length ? '<p class="ktb-sum">' + W.length + ' phiếu đang chờ · tổng <b>' + money(W.reduce(function (s, b) { return s + (b.exp || 0); }, 0)) + '</b></p>' + W.map(function (b) { return row(b, false); }).join('')
+      : '<p class="small muted">Không có phiếu nào đang chờ tiền. Ngày hãng chuyển tiền: tải file phiếu ở nút <b>📥 Tải file đối soát COD</b> phía trên.</p>');
+    if (D.length) h += '<details class="ktb-done"><summary>✅ Phiếu đã về gần đây (' + D.length + ')</summary>' + D.slice(0, 40).map(function (b) { return row(b, true); }).join('') + '</details>';
+    return h + '</div>';
+  }
+  function ktbPay(id) {
+    var b = (KTB.d || []).filter(function (x) { return x.id === id; })[0]; if (!b) return;
+    var nCod = (b.items || []).filter(function (it) { return it.cod > 0; }).length;
+    var body = '<p style="margin:0 0 6px"><b>' + ktbCar(b.carrier) + ' · ' + esc(b.code) + '</b> · ' + b.n + ' đơn</p><p class="small" style="margin:0 0 10px">Số tiền phiếu: <b>' + money(b.exp) + '</b>. Mở sao kê VCB, thấy khoản tiền này về thì ghi lại.</p>' +
+      '<label class="f"><span>Số tiền thực về trên sao kê</span><input type="number" id="ktbGot" value="' + (b.exp || 0) + '" min="0" step="1"></label><p class="small ktv-red" id="ktbGotW" hidden></p>' +
+      '<p class="small">Ngày tiền về: <input type="date" id="ktbDay" value="' + isoDate(Date.now()) + '" max="' + isoDate(Date.now()) + '"> · ' + ktvAcctSel() + '</p>' +
+      '<p class="small muted">Máy ghi tiền về cho ' + nCod + ' đơn có thu hộ trong phiếu' + ((b.miss || []).length ? ' (' + b.miss.length + ' mã không có trong CRM thì không ghi được: báo sale)' : '') + '.</p><p class="err" id="ktbE"></p>';
+    var m = modal('✅ Tiền phiếu đã về', body, '<button class="btn" data-close>Đóng</button><button class="btn pri" id="ktbGo">✅ Ghi tiền về ' + nCod + ' đơn</button>');
+    var gi = $('#ktbGot', m), w = $('#ktbGotW', m);
+    gi.oninput = function () { var v = Number(gi.value) || 0; w.hidden = Math.abs(v - b.exp) < 1; w.textContent = '⚠️ Lệch ' + money(v - b.exp) + ' so với số trên phiếu. Vẫn ghi được, nhưng nên hỏi lại hãng.'; };
+    $('#ktbGo', m).onclick = function () {
+      var bt = this, dv = $('#ktbDay', m).value, day = dv ? new Date(dv + 'T12:00:00+07:00').getTime() : Date.now(); bt.disabled = true; bt.textContent = '⏳ Đang ghi…';
+      api('kt_bpay', { id: b.id, day: day, got: Number(gi.value) || 0, acct: ktvAcctGet(m) }).then(function (j) {
+        KTB.d = j.batches || KTB.d; ktvMerge(j.orders || []); if (j.ktCfg && S.d.rules) S.d.rules.ktCfg = j.ktCfg; closeModal();
+        toast('Đã ghi tiền về ' + j.n + ' đơn · ' + moneyShort(j.sum) + ' ✓' + (j.had ? ' (' + j.had + ' đơn đã ghi từ trước)' : '')); render();
+      }, function (e) { bt.disabled = false; bt.textContent = 'Thử lại'; $('#ktbE', m).textContent = e.message; });
+    };
+  }
+  function bindKtb() {
+    $$('[data-ktb]').forEach(function (el) {
+      el.onclick = function () {
+        var a = el.getAttribute('data-ktb'), k = a.split('|')[0], id = a.slice(k.length + 1);
+        if (k === 're') { ktbLoad(true); softRender(true); return; }
+        if (k === 'pay') { ktbPay(id); return; }
+        var b = (KTB.d || []).filter(function (x) { return x.id === id; })[0]; if (!b) return;
+        if (k === 'del' && !confirm('Xoá phiếu ' + b.code + ' khỏi danh sách chờ? (Chỉ xoá khi tải nhầm. Tải lại file phiếu là có lại.)')) return;
+        if (k === 'off' && !confirm('Bỏ ghi tiền về phiếu ' + b.code + '? Các đơn của phiếu quay lại danh sách chờ tiền.')) return;
+        el.disabled = true;
+        api(k === 'del' ? 'kt_bdel' : 'kt_bpay', { id: id, off: 1 }).then(function (j) { KTB.d = j.batches || KTB.d; ktvMerge(j.orders || []); toast(k === 'del' ? 'Đã xoá phiếu' : 'Đã bỏ ghi ' + (j.n || 0) + ' đơn'); render(); }, function (e) { el.disabled = false; toast(e.message, true); });
+      };
+    });
   }
   /* ---------- 📦 Hàng tồn kho cho kế toán (09/11/2026): số lượng do người kho ghi trên tab Kho (chỉ xem), kế toán thấy thành tiền theo giá nhập (💰 Giá vốn ở Cài đặt).
    * Lệnh kt_kho (api/src/kt.js ktKho): số còn hiện tại + số tồn đầu 3 tháng gần nhất (= cuối tháng trước) + hàng về kho 100 ngày (để so hoá đơn nhà cung cấp). */
@@ -5549,6 +5710,7 @@
     bindDash();
     var ks = $('#ktkSel'); if (ks) ks.onchange = function () { KTK.sel = ks.value; softRender(true); };
     var kr = $('[data-ktk="re"]'); if (kr) kr.onclick = function () { ktkLoad(true); softRender(true); };
+    bindKtb();
     var ki = $('.ktk-in'); if (ki) ki.ontoggle = function () { KTK.openIn = ki.open; };
     $$('[data-ktv]').forEach(function (el) {
       el.onclick = function () { var a = el.getAttribute('data-ktv').split('|'); if (a[0] === 'cod') openKtvCod(); else openKtvList(a[0], a[1] || ''); };

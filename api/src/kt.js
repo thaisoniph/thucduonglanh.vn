@@ -65,6 +65,11 @@ export async function ktMorningLines(x) {
   if (T.ln) L.push('👉 Kế toán đối chiếu file COD, hỏi hãng các đơn quá 10 ngày.');
   if (T.got.n) L.push('💵 Hôm qua ghi nhận tiền về: ' + tr(T.got.v) + ' (' + T.got.n + ' đơn)');
   if (T.bank.n) L.push('🏦 Chuyển khoản chờ kế toán xác nhận: ' + T.bank.n + ' đơn · ' + tr(T.bank.v));
+  const B = await ktbWait(x).catch(() => []);
+  if (B.length) {
+    const late = B.filter(b => b.made && b.made < Date.now() - KTB_LATE * DAY);
+    L.push('🧾 Phiếu đối soát chờ tiền về: ' + B.length + ' phiếu · ' + tr(B.reduce((s, b) => s + (b.exp || 0), 0)) + (late.length ? ' · ⚠️ ' + late.length + ' phiếu quá ' + KTB_LATE + ' ngày chưa thấy tiền: hỏi hãng' : ''));
+  }
   return L;
 }
 
@@ -142,5 +147,85 @@ export async function ktKho(x, u) {
   const ins = await all(x.db, "SELECT item, qty, note, by_name, at FROM kho_moves WHERE kind = 'in' AND at > ? ORDER BY at DESC LIMIT 300", now - 100 * DAY);
   return { ok: true, items: st.map(s => ({ id: s.id, name: s.name, unit: s.unit, have: s.have, countAt: s.countAt })), ends,
     ins: ins.map(m => ({ item: m.item, qty: Number(m.qty) || 0, note: m.note || '', by: m.by_name || '', at: m.at })) };
+}
+
+/* 🧾 Phiếu đối soát (11/11/2026, anh Sơn gửi mẫu Best "NO…" + Viettel Post "bảng kê PCOD…"): hãng chốt 1 phiếu nhiều đơn, chuyển 1 khoản vào thứ 2 / 4 / 6.
+ * Kế toán tải file phiếu → CRM đọc trên máy, khớp đơn (mã vận đơn → mã → 4 số cuối SĐT + tiền) → kt_badd lưu phiếu (chờ tiền về, ghi luôn phí ship thật).
+ * Thấy đúng số tiền phiếu trên sao kê → kt_bpay: 1 lần bấm ghi tiền về cho mọi đơn có thu hộ trong phiếu (cash_src "COD Best · NO…").
+ * Best: tiền về TK = "COD cần chuyển khách" − 5.000đ phí chuyển khoản (khớp ảnh "Số tiền đã thanh toán" 29.499.600 / 35.188.500). Viettel Post: tổng "Tiền thu về". */
+const KTB_LATE = 3; // phiếu tạo quá 3 ngày chưa thấy tiền → đỏ, nhắc hỏi hãng
+let kbOk = false;
+async function kbSchema(db) {
+  if (kbOk) return;
+  await run(db, `CREATE TABLE IF NOT EXISTS kt_batch (id TEXT PRIMARY KEY, carrier TEXT DEFAULT '', code TEXT DEFAULT '', made INTEGER, n INTEGER DEFAULT 0, cod INTEGER DEFAULT 0, fee INTEGER DEFAULT 0,
+    exp INTEGER DEFAULT 0, items TEXT DEFAULT '[]', miss TEXT DEFAULT '[]', file TEXT DEFAULT '', st TEXT DEFAULT 'wait', got INTEGER, paid_at INTEGER, acct TEXT DEFAULT '', by_name TEXT DEFAULT '', at INTEGER, paid_by TEXT DEFAULT '')`);
+  kbOk = true;
+}
+const pj = (s, d) => { try { return JSON.parse(s || '') || d; } catch (e) { return d; } };
+const kbOut = r => ({ id: r.id, carrier: r.carrier, code: r.code, made: r.made, n: r.n, cod: r.cod, fee: r.fee, exp: r.exp, items: pj(r.items, []), miss: pj(r.miss, []), file: r.file, st: r.st, got: r.got, paidAt: r.paid_at, acct: r.acct, by: r.by_name, at: r.at, paidBy: r.paid_by });
+async function ktbWait(x) { await kbSchema(x.db); return (await all(x.db, "SELECT * FROM kt_batch WHERE st = 'wait' ORDER BY made")).map(kbOut); }
+async function ktbList(x) { await kbSchema(x.db); return (await all(x.db, "SELECT * FROM kt_batch WHERE st = 'wait' OR COALESCE(paid_at, at) > ? ORDER BY COALESCE(made, at) DESC LIMIT 300", Date.now() - 120 * DAY)).map(kbOut); }
+const int = v => Math.round(Number(v) || 0);
+
+/** kt_bl: danh sách phiếu · kt_badd {list: [phiếu]} · kt_bpay {id, day, got, acct, off} · kt_bdel {id}. Chỉ Kế toán, Quản trị. */
+export async function crmKtBatch(x, u, d, log) {
+  if (!finOk(u)) return { ok: false, error: 'Chỉ Kế toán và Quản trị làm được việc này.' };
+  await kbSchema(x.db); const now = Date.now();
+  if (d.action === 'kt_bl') return { ok: true, batches: await ktbList(x) };
+  if (d.action === 'kt_badd') {
+    const list = (Array.isArray(d.list) ? d.list : []).slice(0, 30); if (!list.length) return { ok: false, error: 'Chưa có phiếu nào.' };
+    const saved = [], skip = [], fees = [];
+    for (const b of list) {
+      const carrier = CARRIERS.indexOf(b.carrier) >= 0 ? b.carrier : 'BEST Express', code = String(b.code || '').trim().slice(0, 60);
+      if (!code) return { ok: false, error: 'Phiếu chưa có mã. Gõ mã phiếu / mã bảng kê rồi lưu lại.' };
+      const id = (carrier === 'Viettel Post' ? 'VTP:' : 'BEST:') + code.toUpperCase();
+      const old = await x.db.prepare('SELECT st FROM kt_batch WHERE id = ?').bind(id).first();
+      if (old && old.st === 'paid') { skip.push(code); continue; }
+      const items = (Array.isArray(b.items) ? b.items : []).slice(0, 2000).map(it => ({ row: int(it.row), id: String(it.id || '').slice(0, 40), wb: String(it.wb || '').slice(0, 30), cod: int(it.cod), fee: it.fee == null ? null : int(it.fee) }));
+      const miss = (Array.isArray(b.miss) ? b.miss : []).slice(0, 300).map(m => ({ wb: String(m.wb || '').slice(0, 30), cod: int(m.cod), label: String(m.label || '').slice(0, 60) }));
+      await run(x.db, `INSERT INTO kt_batch (id, carrier, code, made, n, cod, fee, exp, items, miss, file, st, by_name, at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'wait', ?, ?)
+        ON CONFLICT(id) DO UPDATE SET made = excluded.made, n = excluded.n, cod = excluded.cod, fee = excluded.fee, exp = excluded.exp, items = excluded.items, miss = excluded.miss, file = excluded.file, by_name = excluded.by_name, at = excluded.at`,
+        id, carrier, code, int(b.made) || now, int(b.n) || items.length + miss.length, int(b.cod), int(b.fee), int(b.exp), JSON.stringify(items), JSON.stringify(miss), String(b.file || '').slice(0, 120), u.name, now);
+      items.forEach(it => { if (it.row && it.fee != null && it.fee >= 0) fees.push(x.db.prepare('UPDATE orders SET ship_fee = ? WHERE rid = ? AND id = ? AND ship_fee IS NULL').bind(it.fee, it.row, it.id)); });
+      saved.push(code);
+    }
+    for (let i = 0; i < fees.length; i += 100) await x.db.batch(fees.slice(i, i + 100));
+    if (saved.length) await log(x, u, 'Kế toán', '-', '', 'Lưu phiếu đối soát chờ tiền về: ' + saved.join(', '), '');
+    const rows = fees.length ? await allIn(x.db, 'SELECT * FROM orders WHERE rid IN (SELECT value FROM json_each(?))', list.flatMap(b => (b.items || []).map(it => int(it.row))).filter(Boolean)) : [];
+    return { ok: true, saved, skip, batches: await ktbList(x), orders: rows.map(ktOrderOut) };
+  }
+  const b = await x.db.prepare('SELECT * FROM kt_batch WHERE id = ?').bind(String(d.id || '')).first();
+  if (!b) return { ok: false, error: 'Không thấy phiếu này. Tải lại trang rồi thử lại.' };
+  const B = kbOut(b);
+  if (d.action === 'kt_bdel') {
+    if (b.st === 'paid') return { ok: false, error: 'Phiếu đã ghi tiền về. Bấm ↩ Bỏ ghi trước rồi mới xoá.' };
+    await run(x.db, 'DELETE FROM kt_batch WHERE id = ?', b.id);
+    await log(x, u, 'Kế toán', '-', '', 'Xoá phiếu đối soát ' + b.code, '');
+    return { ok: true, batches: await ktbList(x) };
+  }
+  if (d.action !== 'kt_bpay') return { ok: false, error: 'Không rõ thao tác: ' + d.action };
+  const off = !!d.off, src = 'COD ' + (b.carrier === 'Viettel Post' ? 'Viettel Post' : 'Best') + ' · ' + b.code, rids = B.items.map(it => it.row).filter(Boolean);
+  const byRid = {}; (rids.length ? await allIn(x.db, 'SELECT * FROM orders WHERE rid IN (SELECT value FROM json_each(?))', rids) : []).forEach(o => { byRid[o.rid] = o; });
+  const ups = [], done = []; let sum = 0, had = 0;
+  if (off) {
+    B.items.forEach(it => { const o = byRid[it.row]; if (o && String(o.id) === it.id && String(o.cash_src || '') === src) { ups.push(x.db.prepare("UPDATE orders SET cash_at = NULL, cash_amt = NULL, cash_src = '', cash_acct = '' WHERE rid = ?").bind(o.rid)); done.push(o.rid); } });
+    ups.push(x.db.prepare("UPDATE kt_batch SET st = 'wait', got = NULL, paid_at = NULL, acct = '', paid_by = '' WHERE id = ?").bind(b.id));
+  } else {
+    const day = Number(d.day) > 1.5e12 && Number(d.day) < now + DAY ? Math.round(Number(d.day)) : now, acct = String(d.acct || '').trim().slice(0, 40), got = d.got == null || d.got === '' ? b.exp : int(d.got);
+    B.items.forEach(it => {
+      const o = byRid[it.row]; if (!o || String(o.id) !== it.id || !(it.cod > 0)) return;
+      if (o.cash_at) { had++; return; }
+      const set = { cash_at: day, cash_amt: it.cod, cash_src: src.slice(0, 120) }; if (acct) set.cash_acct = acct;
+      if (it.fee != null && it.fee >= 0 && o.ship_fee == null) set.ship_fee = it.fee;
+      const ks = Object.keys(set); ups.push(x.db.prepare('UPDATE orders SET ' + ks.map(k => k + ' = ?').join(', ') + ' WHERE rid = ?').bind(...ks.map(k => set[k]), o.rid));
+      done.push(o.rid); sum += it.cod;
+    });
+    ups.push(x.db.prepare("UPDATE kt_batch SET st = 'paid', got = ?, paid_at = ?, acct = ?, paid_by = ? WHERE id = ?").bind(got, day, acct, u.name, b.id));
+    const c = await ktCfg(x); if (!c.on) { c.on = now; delete c.whys; await kvSet(x.db, 'kt_cfg', JSON.stringify(c)); }
+  }
+  for (let i = 0; i < ups.length; i += 100) await x.db.batch(ups.slice(i, i + 100));
+  await log(x, u, 'Kế toán', '-', '', off ? 'Bỏ ghi tiền về phiếu ' + b.code + ' (' + done.length + ' đơn)' : 'Tiền về phiếu ' + b.code + ' ngày ' + fmtDate(Number(d.day) || now, 'dd/MM') + (d.acct ? ' (TK ' + d.acct + ')' : '') + ': ' + done.length + ' đơn, thu hộ ' + sum.toLocaleString('vi-VN') + 'đ' + (had ? ', ' + had + ' đơn đã ghi từ trước' : ''), '');
+  const rows = done.length ? await allIn(x.db, 'SELECT * FROM orders WHERE rid IN (SELECT value FROM json_each(?))', done) : [];
+  return { ok: true, n: done.length, sum, had, orders: rows.map(ktOrderOut), batches: await ktbList(x), ktCfg: await ktCfg(x) };
 }
 export { CARRIERS };

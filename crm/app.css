@@ -1868,6 +1868,10 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .ktv-c[disabled] { cursor: default; opacity: 1; } .ktv-c.ok { border-left-color: var(--primary); } .ktv-c.mid { border-left-color: var(--mid); background: var(--orange-light); } .ktv-c.bad { border-left-color: var(--red); background: var(--red-light); }
 .ktv-c span { display: block; font-size: 14px; color: var(--muted); padding-right: 14px; } .ktv-c > b { display: block; font-size: 22px; line-height: 1.25; color: var(--ink); white-space: nowrap; } .ktv-c.bad > b { color: var(--red); }
 .ktv-c > small { display: block; font-size: 13px; line-height: 1.4; color: var(--text); } .ktv-c > i { position: absolute; right: 10px; top: 8px; font-style: normal; color: var(--muted); font-size: 18px; }
+.ktb-box h3 { margin: 0 0 6px; } .ktb-box h3 small { display: block; font-weight: 400; font-size: 13px; color: var(--muted); margin-top: 2px; } .ktb-sum { margin: 0 0 4px; font-size: 15px; }
+.ktb-row { display: flex; align-items: center; gap: 8px; border-top: 1px solid var(--line); padding: 10px 2px; } .ktb-row > span { flex: 1 1 auto; min-width: 0; } .ktb-row small { display: block; color: var(--muted); font-size: 13px; } .ktb-row.late { background: var(--red-light); }
+@media (max-width: 560px) { .ktb-row { flex-wrap: wrap; } .ktb-row > span { flex-basis: 100%; } }
+.ktb-done summary { cursor: pointer; padding: 8px 0; color: var(--muted); } .ktb-p { margin: 10px 0; } .ktb-p h3 { margin: 0 0 4px; font-size: 16px; } .ktb-p.done { opacity: .7; } .ktb-exp { margin: 6px 0; font-size: 16px; } .ktb-p details summary { cursor: pointer; }
 .ktv-big { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0; } .ktv-big .btn { flex: 1 1 200px; }
 .ktv-by h3 { margin: 0 0 6px; } .ktv-by h3 small { font-weight: 400; font-size: 13px; color: var(--muted); }
 .ktv-row { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; font: inherit; color: inherit; background: none; border: 0; border-top: 1px solid var(--line); padding: 10px 2px; cursor: pointer; }
