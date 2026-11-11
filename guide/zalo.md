@@ -217,6 +217,12 @@ Dùng khi có thông báo, livestream, khuyến mãi.
 
 Tin này cũng được đo như bài AI soạn (xem ở **📚 Bài đã đăng & hiệu quả**, lọc **📣 Nhân sự gửi**). Tin chúc mừng khách nhận quà thì lọc **🎉 Chúc mừng**.
 
+**Gửi nhầm, muốn huỷ hoặc thu hồi:** tin bạn gửi trong 2 ngày gần đây nằm ở mục **📣 Tin anh/chị gửi vào nhóm** (dưới các bài chờ đăng). Bấm vào tin để mở:
+
+- Tin **⏰ hẹn giờ**, chưa tới giờ: bấm **🗑 Huỷ tin này**. Trợ lý sẽ không đăng.
+- Tin **📤 đã đăng**: bấm **↩️ Thu hồi trên nhóm**. Khoảng 1 phút sau, trong nhóm hiện dòng "tin nhắn đã được thu hồi". Bài AI đã đăng trong 24 giờ cũng có nút này ở mục **📤 Đã đăng gần đây**.
+- Không thấy nút thu hồi (tin đăng trước khi có tính năng này, hoặc trợ lý trên máy chưa cập nhật): cầm **điện thoại Trợ lý An Lành**, mở nhóm, nhấn giữ tin, chọn **Thu hồi**. Không đăng nhập Zalo PC / web bằng tài khoản trợ lý.
+
 ## Xem trợ lý vừa làm gì
 
 Kéo xuống cuối tab, tới mục **🕘 Trợ lý vừa làm gì**.

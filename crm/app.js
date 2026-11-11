@@ -6327,7 +6327,7 @@
   var ZB = { d: null, busy: 0, err: '' };
   var ZB_FUN = { TOFU: '🔵 Nhận biết · tương tác', MOFU: '⚪ Cân nhắc · tạo niềm tin', BOFU: '🟠 Chuyển đổi · bán hàng', TIN: '📣 Thông báo · nhân sự gửi', CHUC: '🎉 Chúc mừng nhận quà' }; // nhãn phễu nội dung (zbot.js THEME)
   var ZB_KIND = { welcome: ['👋', 'Chào người mới'], answer: ['💬', 'Trả lời trong nhóm'], handoff: ['🙋', 'Cần người thật (nhóm)'], react: ['❤️', 'Thả tim'], dm: ['📩', 'Trả lời tin riêng'], dm_handoff: ['🙋', 'Cần người thật (tin riêng)'],
-    post: ['📝', 'Đăng bài'], send: ['📣', 'Đăng tin nhân sự gửi'], announce: ['🎉', 'Soạn tin chúc mừng nhận quà (chờ đăng)'], announced: ['✅', 'Đã đăng tin chúc mừng vào nhóm'], friend: ['🤝', 'Kết bạn'], human: ['🧑', 'Nhân sự nhắn tay, trợ lý nhường 2 tiếng'], error: ['⚠️', 'Lỗi'], skip: ['🤐', 'Không trả lời'] };
+    post: ['📝', 'Đăng bài'], send: ['📣', 'Đăng tin nhân sự gửi'], recall: ['↩️', 'Đã thu hồi tin trong nhóm'], announce: ['🎉', 'Soạn tin chúc mừng nhận quà (chờ đăng)'], announced: ['✅', 'Đã đăng tin chúc mừng vào nhóm'], friend: ['🤝', 'Kết bạn'], human: ['🧑', 'Nhân sự nhắn tay, trợ lý nhường 2 tiếng'], error: ['⚠️', 'Lỗi'], skip: ['🤐', 'Không trả lời'] };
   function zbFetch() {
     ZB.busy = 1; ZB.err = '';
     api('zb_view', {}).then(function (j) { ZB.d = j; }, function (e) { ZB.err = /Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message; })
@@ -6721,7 +6721,7 @@
     // 📝 bài đăng (05/11/2026 sắp lại): bài cần duyệt lên đầu + xem trước giống Zalo, bài đã đăng thu gọn 1 dòng
     var items = [];
     days.forEach(function (d) { (c.slots || []).forEach(function (sl) { var p = P[d + '_' + sl.id]; if (!p && !sl.on) return; items.push({ d: d, sl: sl, p: p, q: PL[d + '_' + sl.id], t: new Date(d.slice(0, 4) + '-' + d.slice(4, 6) + '-' + d.slice(6, 8) + 'T' + (zbWhen(sl, d) || '00:00') + ':00+07:00').getTime() }); }); });
-    var isDone = function (it) { return it.p && (it.p.status === 'sent' || it.p.status === 'skip' || it.p.status === 'fail' || it.t + 2 * 3600e3 < j.now); };
+    var isDone = function (it) { return it.p && (it.p.status === 'sent' || it.p.status === 'skip' || it.p.status === 'fail' || it.p.status === 'recalled' || it.t + 2 * 3600e3 < j.now); };
     var todo = items.filter(function (it) { return !isDone(it) && (it.p || it.t > j.now); }).sort(function (x, y) { return x.t - y.t; });
     var past = items.filter(isDone).sort(function (x, y) { return y.t - x.t; });
     var slotTxt = function (sl, d) { return (sl.id === 'toi' ? '🌙 Bài tối ' : '☀️ Bài sáng ') + zbWhen(sl, d) + (zbOwn(sl, d) ? ' ⏰' : ''); };
@@ -6773,16 +6773,18 @@
         '<textarea class="zb-text" id="zbT_' + p.id + '" rows="' + Math.min(18, Math.max(6, String(p.text).split('\n').length + 2)) + '">' + esc(p.text) + '</textarea><div class="lq-btns"><button class="btn sm pri" data-zb="save|' + p.id + '">💾 Lưu</button><button class="btn sm ghost" data-zb="edit|' + p.id + '">Huỷ</button></div></div>' +
         '</div></div></div>';
     });
+    h += zbManualHtml(j); // 📣 tin nhân sự gửi: hẹn giờ (🗑 huỷ) / đã đăng (↩️ thu hồi)
     h += zpHtml(j, P, PL, zbAt, lead); // 📋 kế hoạch chủ đề tuần / tháng
     if (past.length) {
       h += '<h3 class="zb-h" style="font-size:1rem">📤 Đã đăng gần đây <span class="muted small">· bấm để xem lại, xem hết ở 📚 Bài đã đăng &amp; hiệu quả</span></h3>';
       past.forEach(function (it) {
         var p = it.p; if (!p) return;
-        var st = p.status === 'sent' ? '📤 ' + fDateTime(p.sent_at) : p.status === 'fail' ? '⚠️ Không đăng được' : p.status === 'skip' ? '⏸ Đã bỏ' : '⌛ Quá giờ, chưa đăng';
+        var st = p.status === 'sent' ? '📤 ' + fDateTime(p.sent_at) : p.status === 'recalled' ? '↩️ Đã thu hồi' : p.status === 'fail' ? '⚠️ Không đăng được' : p.status === 'skip' ? '⏸ Đã bỏ' : '⌛ Quá giờ, chưa đăng';
         h += '<details class="box zb-donei"><summary><span class="zb-donel"><b>' + zbDay(it.d) + ' · ' + slotTxt(it.sl, it.d) + '</b> <span class="muted small">' + st + '</span></span><span class="zb-donet">' + esc(p.topic) + '</span>' +
           (p.status === 'sent' ? '<span class="zb-eng small">👥 <b>' + (p.eng_people || 0) + '</b> · 💬 ' + (p.eng_msgs || 0) + ' · ❤️ ' + (p.eng_reacts || 0) + (p.orders ? ' · 🛒 <b>' + p.orders + '</b>' : '') + '</span>' : '') + '</summary>' +
           '<div class="zb-prev" style="margin-top:10px">' + (p.img ? '<img src="' + esc(p.img) + '" alt="" loading="lazy">' : '') + '<div class="zb-bub">' + zbRender(p.text) + '</div></div>' +
-          (p.status === 'skip' ? '<div class="lq-btns" style="margin-top:8px"><button class="btn sm" data-zb="draft|' + p.id + '">▶️ Dùng lại bài này</button></div>' : '') + '</details>';
+          (p.status === 'skip' ? '<div class="lq-btns" style="margin-top:8px"><button class="btn sm" data-zb="draft|' + p.id + '">▶️ Dùng lại bài này</button></div>' : '') +
+          (p.status === 'sent' && j.now - (p.sent_at || 0) < DAY ? '<div class="lq-btns" style="margin-top:8px"><button class="btn sm ghost" data-zb="recall|' + p.id + '">↩️ Thu hồi bài này trên nhóm</button></div>' : '') + '</details>';
       });
     }
     // cài đặt
@@ -6992,6 +6994,10 @@
       return api('zb_post', { id: id, text: ta ? ta.value : undefined, topic: ztp ? ztp.value : undefined, funnel: zfn ? zfn.value : undefined, ins_g: zig ? zig.value : undefined, ins_t: zit ? zit.value : undefined, status: v[0] === 'save' ? undefined : v[0] }).then(after({ save: 'Đã lưu bài ✓', ok: 'Đã duyệt ✓ Tới giờ trợ lý sẽ đăng.', skip: 'Đã bỏ bài này, trợ lý sẽ không đăng.', draft: 'Bài đã quay lại chờ duyệt ✓' }[v[0]]), fail);
     }
     if (v[0] === 'img') return zbImgOpen(id);
+    if (v[0] === 'cancel' || v[0] === 'recall') { // 🗑 huỷ tin hẹn giờ / ↩️ thu hồi tin đã đăng (11/11/2026)
+      if (!confirm(v[0] === 'cancel' ? 'Huỷ tin này? Trợ lý sẽ không đăng nữa.' : 'Thu hồi tin này trên nhóm Zalo? Thành viên sẽ thấy dòng "tin nhắn đã được thu hồi".')) return;
+      t.disabled = true; return api('zb_' + v[0], { id: id }).then(after(v[0] === 'cancel' ? 'Đã huỷ tin ✓' : 'Đã gửi lệnh thu hồi ✓ Trợ lý thu hồi trong khoảng 1 phút.'), fail);
+    }
     if (v[0] === 'lf') { ZB.lf = id; return render(); }
     if (v[0] === 'done' || v[0] === 'undone') { t.disabled = true; return api('zb_done', { rid: Number(id), undo: v[0] === 'undone' }).then(after(v[0] === 'done' ? 'Đã ghi: bạn xử lý ca này ✓' : 'Đã bỏ đánh dấu'), fail); }
     if (v[0] === 'logmore') { var all = (ZB.d.log || []).concat(ZB.more || []), min = all.reduce(function (m, l) { return Math.min(m, l.rid); }, 1e15); t.disabled = true; t.textContent = '⏳ Đang tải…'; return api('zb_logmore', { before: min }).then(function (r) { ZB.more = (ZB.more || []).concat(r.log || []); if (!(r.log || []).length || r.log.length < 100) ZB.moreEnd = 1; render(); }, fail); }
@@ -7071,6 +7077,18 @@
   }
   function zbRender(t) { // xem trước như trên Zalo: **đậm**, @tên, link, xuống dòng
     return esc(String(t || '')).replace(/\*\*([^*\n]+)\*\*/g, '<b>$1</b>').replace(/(https?:\/\/[^\s<]+)/g, '<span class="zb-link">$1</span>').replace(/(^|[\s(])((?:www\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:vn|com|net|org|me)(?:\/[^\s<]*)?)/gi, '$1<span class="zb-link">$2</span>').replace(/(^|\s)(@[^\s,.!?]+)/g, '$1<span class="zb-at">$2</span>').replace(/\n/g, '<br>');
+  }
+  /** 📣 Tin nhân sự gửi vào nhóm (2 ngày): chờ hẹn giờ → 🗑 Huỷ; đã đăng → ↩️ Thu hồi (trợ lý bản ≥ 2026-11-11a, tin đăng sau bản đó) */
+  function zbManualHtml(j) {
+    var L = j.manual || []; if (!L.length) return '';
+    return '<h3 class="zb-h" style="font-size:1rem">📣 Tin anh/chị gửi vào nhóm <span class="muted small">· 2 ngày gần đây</span></h3>' + L.map(function (m) {
+      var st = m.undone ? '↩️ Đã thu hồi' : m.undoing ? '⏳ Đang thu hồi…' : m.status === 'skip' ? '🗑 Đã huỷ' : m.wait ? '⏰ Hẹn ' + fDateTime(m.due) : m.err ? '⚠️ Không đăng được' : m.sent_at ? '📤 Đã đăng ' + fDateTime(m.sent_at) : '⏳ Đang đăng…';
+      var first = String(m.text || '').replace(/\*\*/g, '').split('\n').filter(function (s) { return s.trim(); })[0] || '';
+      var btn = m.wait && m.status !== 'skip' ? '<button class="btn sm" data-zb="cancel|' + esc(m.id) + '">🗑 Huỷ tin này</button>'
+        : m.sent_at && !m.undone && !m.undoing ? (m.can && j.recallOk ? '<button class="btn sm ghost" data-zb="recall|' + esc(m.id) + '">↩️ Thu hồi trên nhóm</button>' : '<span class="small muted">' + (j.recallOk ? 'Tin này đăng trước khi trợ lý lưu mã tin: thu hồi tay trên Zalo.' : 'Muốn thu hồi tự động: cập nhật trợ lý trên máy (xem hướng dẫn). Giờ thì thu hồi tay trên Zalo.') + '</span>') : '';
+      return '<details class="box zb-donei"><summary><span class="zb-donel"><b>' + esc(st) + '</b> <span class="muted small">· ' + esc(m.by || '') + '</span></span><span class="zb-donet">' + esc(first.slice(0, 90)) + '</span></summary>' +
+        '<div class="zb-prev" style="margin-top:10px">' + (m.img ? '<img src="' + esc(m.img) + '" alt="" loading="lazy">' : '') + '<div class="zb-bub">' + zbRender(m.text) + '</div></div>' + (btn ? '<div class="lq-btns" style="margin-top:8px">' + btn + '</div>' : '') + '</details>';
+    }).join('');
   }
   /** ✏️ Sửa chữ: ô nhóm khách + tension (gợi ý tension của nhóm đang chọn từ ngân hàng insight, gõ tự do cũng được) */
   function zbTnOpts(g) { return ((g && g.tn) || []).map(function (l) { return '<option value="' + esc(String(l).replace(/\s*\[\s*sp\s*:[^\]]*\]\s*$/i, '').trim()) + '">'; }).join(''); }

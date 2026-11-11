@@ -9,7 +9,7 @@ import { execFile } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const VER = '2026-11-05b';
+const VER = '2026-11-11a'; // 11/11/2026: gửi mã tin khi đăng + thu hồi tin (undo)
 const DIR = dirname(fileURLToPath(import.meta.url)), TMP = join(DIR, 'tmp'), CREDS = join(DIR, 'creds.json'), QR = join(DIR, 'qr.png');
 for (const l of (existsSync(join(DIR, '.env')) ? readFileSync(join(DIR, '.env'), 'utf8') : '').split('\n')) { const m = l.match(/^\s*([A-Z_]+)\s*=\s*(.*)\s*$/); if (m && !process.env[m[1]]) process.env[m[1]] = m[2]; }
 const API = process.env.API_URL || 'https://api.thucduonglanh.vn/', KEY = process.env.ZBOT_KEY;
@@ -49,6 +49,9 @@ async function typing(tid, type, text) { try { await api.sendTypingEvent(tid, ty
 /* tin do trợ lý gửi (để phân biệt với tin nhân sự nhắn tay trên điện thoại "Trợ lý An Lành") */
 const SENT = new Map();
 function mine(id, text) { const now = Date.now(); if (id) SENT.set('i' + id, now); if (text) SENT.set('t' + String(text).trim().slice(0, 200), now); for (const [k, t] of SENT) if (now - t > 10 * 60e3) SENT.delete(k); }
+const CLI = new Map(); // msgId → cliMsgId của tin chính trợ lý vừa gửi (Zalo cần cả 2 mã để thu hồi)
+function cliKeep(d) { if (!d || !d.msgId) return; CLI.set(String(d.msgId), { c: String(d.cliMsgId || ''), t: Date.now() }); if (CLI.size > 300) for (const [k, v] of CLI) if (Date.now() - v.t > 30 * 60e3) CLI.delete(k); }
+async function cliWait(ids, ms) { const end = Date.now() + ms; while (Date.now() < end && ids.some(id => !CLI.has(id))) await sleep(500); return ids.map(id => ({ m: id, c: (CLI.get(id) || {}).c || '' })); }
 const isBotMsg = d => SENT.has('i' + d.msgId) || SENT.has('i' + d.realMsgId) || (typeof d.content === 'string' && SENT.has('t' + d.content.trim().slice(0, 200)));
 function say(tid, type, text, extra) {
   const c = Object.assign(rich(text, extra && extra.mentions), extra && extra.quote ? { quote: extra.quote } : {});
@@ -153,7 +156,11 @@ async function doJob(j) {
       if (!uid) return call('ack', { id: j.id, ok: false, error: 'không tìm thấy' });
       return call('ack', { id: j.id, ok: true, uid, zname: u.zalo_name || u.display_name || '', inGroups: Object.entries(G).filter(([, g]) => g.members && g.members.has(String(uid))).map(([id]) => id) });
     }
-    if (j.kind === 'post') { const ids = await post(j.gid, j.text, j.img, j.mentions); if (j.ref && j.ref !== 'announce') watchPost(j.gid, j.ref, ids); remember(j.gid, { uid: me, name: myName, text: j.text, bot: 1 }); return call('ack', { id: j.id, ok: true }); }
+    if (j.kind === 'post') { const ids = await post(j.gid, j.text, j.img, j.mentions); if (j.ref && j.ref !== 'announce') watchPost(j.gid, j.ref, ids); remember(j.gid, { uid: me, name: myName, text: j.text, bot: 1 }); return call('ack', { id: j.id, ok: true, msgs: await cliWait(ids, 8000) }); }
+    if (j.kind === 'undo') { // ↩️ thu hồi tin đã đăng (CRM → Trợ lý Zalo)
+      let n = 0, err = ''; for (const x of JSON.parse(j.text || '[]')) { try { await queue(() => api.undo({ msgId: x.m, cliMsgId: x.c }, j.gid, ThreadType.Group)); n++; } catch (e) { err = e.message; } }
+      log('↩️ thu hồi tin', j.ref, n + ' tin', err); return call('ack', { id: j.id, ok: n > 0, error: err });
+    }
     if (j.kind === 'dm') { await say(j.uid, ThreadType.User, j.text); return call('ack', { id: j.id, ok: true }); }
   } catch (e) { log('việc', j.kind, e.message); call('ack', { id: j.id, ok: false, error: e.message }); }
 }
@@ -165,6 +172,7 @@ const humanOn = tid => HUMAN[tid] && Date.now() - HUMAN[tid] < HUMAN_MS;
 async function onMessage(m) {
   const d = m.data, text = typeof d.content === 'string' ? d.content.trim() : '';
   if (m.isSelf) {
+    if (m.type === ThreadType.Group) cliKeep(d); // lưu mã tin của chính mình (để thu hồi)
     if (!text || isBotMsg(d)) return; // ảnh / tin trợ lý vừa gửi quay về
     if (m.type === ThreadType.User) { if (!humanOn(m.threadId)) call('human', { uid: m.threadId, text }); HUMAN[m.threadId] = Date.now(); log('🧑 nhân sự nhắn tay, trợ lý nhường', m.threadId); }
     else { remember(m.threadId, { uid: me, name: 'Đội ngũ', text, staff: 1 }); if (d.quote && d.quote.ownerId) handled[m.threadId + d.quote.ownerId] = Date.now(); for (const x of d.mentions || []) handled[m.threadId + x.uid] = Date.now(); }
