@@ -4683,7 +4683,7 @@
     m = s.match(/^(20\d\d)-(\d\d)-(\d\d)/); return m ? m[0] : '';
   }
   function finNum(v) { if (typeof v === 'number') return v; var s = String(v || '').replace(/[^\d-]/g, ''); return s && s !== '-' ? +s : 0; }
-  function finChiKind(g) { var n = norm(g); return /chuyen (giua|noi bo)|chuyen tien/.test(n) ? 'move' : /tra no|nha cung cap|nhap hang/.test(n) ? 'ncc' : /^thue\b(?! (van phong|mat bang|nha|kho))/.test(n) ? 'tax' : ''; }
+  function finChiKind(g) { var n = norm(g); return /chuyen (giua|noi bo)|chuyen tien|rut tien/.test(n) ? 'move' : /tra no|nha cung cap|nhap hang/.test(n) ? 'ncc' : /^thue\b(?! (van phong|mat bang|nha|kho))/.test(n) ? 'tax' : ''; }
   function finHead(rows, want, max) {
     for (var i = 0; i < Math.min(rows.length, max || 30); i++) {
       var H = rows[i].map(function (x) { return norm(x).replace(/\s+/g, ' ').trim(); }), c = {}, ok = true;
@@ -5490,7 +5490,7 @@
       card(old.length ? 'bad' : L.treo.length ? 'mid' : 'ok', '💤 Đang treo ở hãng vận chuyển', moneyShort(tv), L.treo.length ? L.treo.length + ' đơn đã giao, hãng chưa trả tiền' + (old.length ? ' · <b>⚠️ ' + old.length + ' đơn quá ' + KTV_OLD + ' ngày</b>' : '') : 'Không có đơn nào', L.treo.length ? 'treo' : '') +
       card(L.bank.length ? 'mid' : 'ok', '🏦 Chuyển khoản chờ xác nhận', moneyShort(bv), L.bank.length ? L.bank.length + ' đơn: xem sao kê VCB rồi tích' : 'Không có đơn nào', L.bank.length ? 'bank' : '') +
       card('', '🚚 Tiền sắp về', moneyShort(ktvSum(L.ship)), L.ship.length + ' đơn COD đang giao', '') + '</div>' +
-      '<div class="ktv-big"><button class="btn pri lg" data-ktv="cod">📥 Tải file đối soát COD</button><button class="btn lg" data-ktv="vcb">🏦 Tải sao kê VCB</button><button class="btn lg" data-ktv="treo">✅ Ghi tiền về bằng tay</button></div>' +
+      '<div class="ktv-big"><button class="btn pri lg" data-ktv="cod">📥 Tải file đối soát COD</button><button class="btn lg" data-ktv="vcb">🏦 Tải sao kê VCB</button><button class="btn lg" data-ktv="chi">💸 Tiền ra đã lưu</button><button class="btn lg" data-ktv="treo">✅ Ghi tiền về bằng tay</button></div>' +
       ktbHTML() +
       (byL.length ? '<div class="box ktv-by"><h3>💤 Tiền treo theo hãng <small>bấm để xem từng đơn</small></h3>' + byL.map(function (x) {
         return '<button type="button" class="ktv-row" data-ktv="treo|' + esc(x.c) + '"><span><b>' + esc(x.c) + '</b><small>' + x.n + ' đơn · chờ lâu nhất ' + x.max + ' ngày' + (x.old ? ' · <em class="ktv-red">' + x.old + ' đơn quá ' + KTV_OLD + ' ngày (' + moneyShort(x.ov) + '): hỏi lại hãng</em>' : '') + '</small></span><b class="ktv-amt">' + moneyShort(x.v) + '</b><i aria-hidden="true">›</i></button>';
@@ -5874,16 +5874,20 @@
         if (/^so tai khoan/.test(H[0] || '')) acctNo = String((rows[i] || []).filter(function (c, k) { return k > 0 && String(c).trim(); })[0] || '');
         if (/^chu tai khoan/.test(H[0] || '')) acctName = String((rows[i] || []).filter(function (c, k) { return k > 0 && String(c).trim(); })[0] || '');
         var col = function (re) { for (j = 0; j < H.length; j++) if (re.test(H[j])) return j; return -1; };
-        var cr = col(/^so tien ghi co/), det = col(/^noi dung/), dt = col(/^ngay ?1|tnx date/), ef = col(/^ngay hieu luc/);
+        var cr = col(/^so tien ghi co/), det = col(/^noi dung/), dt = col(/^ngay ?1|tnx date/), ef = col(/^ngay hieu luc/), dr = col(/^so tien ghi no/), bl = col(/^so du/);
         if (cr < 0 || det < 0 || (dt < 0 && ef < 0)) continue;
-        var L = [];
+        var L = [], O = [], BAL = {};
         rows.slice(i + 1).forEach(function (r) {
-          var amt = rcNum(String(r[cr] == null ? '' : r[cr]).replace(/[^\d.,]/g, '')); if (!(amt > 0)) return;
+          var nm = function (c) { return c < 0 ? 0 : rcNum(String(r[c] == null ? '' : r[c]).replace(/[^\d.,]/g, '')) || 0; }, amt = nm(cr), out = nm(dr); // 11/11/2026: đọc cả tiền ra (ghi nợ) + số dư
+          if (!(amt > 0) && !(out > 0)) return;
           var ds = String(r[dt >= 0 ? dt : ef] || ''), m = ds.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/) || String(r[ef] || '').match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/); if (!m) return;
           var doc = (ds.match(/\/\s*([\d]+\s*-\s*[\d]+)/) || ['', ''])[1].replace(/\s/g, ''), txt = String(r[det] || '').replace(/\s+/g, ' ').trim();
-          L.push({ day: Date.UTC(+m[3], +m[2] - 1, +m[1]) + 5 * 3600e3, amt: Math.round(amt), txt: txt, doc: doc || (m[0] + '·' + amt) });
+          var day = Date.UTC(+m[3], +m[2] - 1, +m[1]) + 5 * 3600e3;
+          if (bl >= 0 && String(r[bl] == null ? '' : r[bl]).trim()) BAL[isoDate(day)] = Math.round(nm(bl)); // dòng cuối của ngày = số dư cuối ngày (sao kê xếp theo giờ)
+          if (amt > 0) L.push({ day: day, amt: Math.round(amt), txt: txt, doc: doc || (m[0] + '·' + amt) });
+          if (out > 0) O.push({ day: day, amt: Math.round(out), txt: txt, doc: doc || (m[0] + '·' + out + '·o') });
         });
-        out = { rows: L, acctNo: acctNo, acctName: acctName }; break;
+        out = { rows: L, out: O, bal: BAL, acctNo: acctNo, acctName: acctName }; break;
       }
     });
     return out;
@@ -5920,25 +5924,89 @@
     });
     return X;
   }
+  /* ---------- 💸 Tiền ra từ sao kê (11/11/2026, anh Sơn: mọi khoản chi qua tài khoản → tải sao kê là đủ). Máy đoán nhóm theo nội dung (ktcGuess) hoặc theo
+   * lần kế toán đã chọn cho cùng người nhận (KTCH.map, khoá ktcKey). Lưu kt_chis → bảng kt_chi; máy chủ gộp vào S.d.rules.fin.chi (finFull) nên lãi lỗ từng ngày, 📊 Chi phí lớn,
+   * tin 8h dùng luôn. Nhóm quyết định cách tính (fxPlan): lương / thuê nhà / điện nước chia đều; nhà cung cấp / nội bộ / rút tiền mặt / thuế không tính; còn lại trừ đúng ngày. */
+  var KTCH = { d: null, map: {}, busy: false, at: 0 };
+  var KTC_GROUPS = ['Tiếp khách', 'Mua sắm thiết bị', 'Văn phòng phẩm, tạp vụ', 'Sửa chữa', 'Quà tặng khách', 'Hỗ trợ marketing (TikTok, livestream)', 'Công tác phí', 'Phí ngân hàng', 'Khác',
+    'Lương nhân viên', 'Bảo hiểm xã hội', 'Thuê văn phòng', 'Thuê kho', 'Điện nước', 'Internet & điện thoại', 'Phần mềm & công cụ', 'Tiền ship trả hãng vận chuyển',
+    'Quảng cáo Facebook', 'Phí sàn TMĐT', 'Trả nợ nhà cung cấp', 'Nhập hàng', 'Chuyển nội bộ', 'Rút tiền mặt', 'Thuế'];
+  function ktchLoad(force) {
+    if (KTCH.busy || (!force && KTCH.d && Date.now() - KTCH.at < 120e3)) return; KTCH.busy = true;
+    api('kt_chi', {}).then(function (j) { KTCH.d = j.rows || []; KTCH.map = j.map || {}; KTCH.at = Date.now(); }, function () { KTCH.d = KTCH.d || []; }).then(function () { KTCH.busy = false; });
+  }
+  function ktcGuess(t0) {
+    var t = norm(t0);
+    if (/noi bo/.test(t)) return 'Chuyển nội bộ';
+    if (/rut sec|withdrawal|rut tien/.test(t)) return 'Rút tiền mặt';
+    if (/bhxh|bao hiem xa hoi/.test(t)) return 'Bảo hiểm xã hội';
+    if (/luong/.test(t)) return 'Lương nhân viên';
+    if (/tien dien|tien nuoc/.test(t)) return 'Điện nước';
+    if (/thue kho/.test(t)) return 'Thuê kho';
+    if (/thue nha|tien nha|mat bang|thue van phong/.test(t)) return 'Thuê văn phòng';
+    if (/ntdt|kbnn|nop thue|thue gtgt|thue tndn|thue tncn|\bthue\b/.test(t)) return 'Thuế';
+    if (/thu phi|phi qltk|phi dich vu|sms ?banking|phi chuyen tien/.test(t)) return 'Phí ngân hàng';
+    if (/facebook|meta platforms|fb ads|quang cao/.test(t)) return 'Quảng cáo Facebook';
+    if (/shopee|lazada|tiktok shop/.test(t)) return 'Phí sàn TMĐT';
+    if (/viettel post|\bvtp\b|best express|ghtk|\bghn\b|giao hang|van chuyen|cuoc ship/.test(t)) return 'Tiền ship trả hãng vận chuyển';
+    if (/internet|fpt telecom|cuoc dien thoai|vnpt/.test(t)) return 'Internet & điện thoại';
+    if (/tien hang|nhap hang|not tien|tra no|cong no|nguyen lieu|bao bi|duoc lieu|thanh toan tien .*cho (ct|cty|cong ty|htx)/.test(t)) return 'Trả nợ nhà cung cấp';
+    return '';
+  }
+  /** Khoá nhớ nhóm theo người nhận / nội dung: bỏ mã giao dịch, số, tên công ty mình → 6 chữ đầu. */
+  function ktcKey(t0) { return norm(t0).replace(/ct tnhh tap doan vitagreen nutrition/g, ' ').split(/[\s.+:\/-]+/).filter(function (w) { return w && !/\d/.test(w) && !/^(ib|mb)biz/.test(w); }).slice(0, 8).join(' '); }
+  function ktcTxt(t) { var x = String(t || '').replace(/^(?:IB|MB)BIZ\.?\d+\.\w+\./i, '').replace(/^CT TNHH TAP DOAN VITAGREEN NUTRITION\s*/i, '').trim(); return (x || String(t || '')).slice(0, 140); } // bỏ mã giao dịch + tên công ty mình cho dễ đọc
+  function ktcOpts(g) { return '<option value="">— Chọn nhóm —</option>' + KTC_GROUPS.concat(g && KTC_GROUPS.indexOf(g) < 0 ? [g] : []).map(function (x) { return '<option' + (x === g ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join(''); }
+  function ktcHow() { return '<p class="small muted" style="margin:6px 0 0">Nhóm quyết định cách tính lãi lỗ: <b>lương, bảo hiểm, thuê nhà, điện nước, internet, ship</b> chia đều mỗi ngày theo chi phí tháng; <b>trả nhà cung cấp, nhập hàng, chuyển nội bộ, rút tiền mặt, thuế</b> không tính là chi phí; <b>quảng cáo Facebook, phí sàn</b> máy đã tự lấy; còn lại trừ đúng ngày. Tiền mặt rút ra rồi chi thì ghi ở trang Sổ chi của file kế toán.</p>'; }
+  function ktcHTML(X) {
+    var P = X.P, have = {}, acct = String(P.acctNo || '').replace(/\D/g, ''); (KTCH.d || []).forEach(function (r) { have[r.id] = r; });
+    X.chi = P.out.map(function (r) { var id = acct + ':' + r.doc, old = have[id], key = ktcKey(r.txt), mem = KTCH.map[key]; return { r: r, id: id, old: old, key: key, g: old ? old.grp : mem || ktcGuess(r.txt), mem: mem ? 1 : 0 }; });
+    if (!P.out.length) return '';
+    var neu = X.chi.map(function (c, i) { return { c: c, i: i }; }).filter(function (x) { return !x.c.old; }), nOld = X.chi.length - neu.length, unk = neu.filter(function (x) { return !x.c.g; }).length;
+    var h = '<h3 class="kts-h">💸 Tiền ra <small>' + neu.length + ' khoản mới · ' + money(neu.reduce(function (s, x) { return s + x.c.r.amt; }, 0)) + (nOld ? ' · ' + nOld + ' khoản đã lưu từ trước' : '') + '</small></h3>';
+    if (!acct) return h + '<p class="small ktv-red">⚠️ File không có số tài khoản nên chưa lưu được tiền ra. Xuất lại sao kê từ VCB DigiBiz (Lịch sử giao dịch → Excel).</p>';
+    if (unk) h += '<p class="small ktv-red">⚠️ <b>' + unk + ' khoản</b> máy chưa đoán được nhóm (tô đỏ): chọn nhóm, lần sau gặp cùng người nhận máy tự xếp.</p>';
+    neu.sort(function (a, b) { return (a.c.g ? 1 : 0) - (b.c.g ? 1 : 0) || a.c.r.day - b.c.r.day; });
+    h += neu.length ? '<div class="ktv-list">' + neu.map(function (x) { var c = x.c; return '<div class="kts-chi' + (c.g ? '' : ' unk') + '"><span class="ktv-o-t"><b>' + fDate(c.r.day).slice(0, 5) + ' · ' + money(c.r.amt) + '</b><small>' + esc(ktcTxt(c.r.txt)) + '</small></span><select data-ktsc="' + x.i + '" aria-label="Nhóm chi phí">' + ktcOpts(c.g) + '</select></div>'; }).join('') + '</div>' : '<p class="small muted">Các khoản tiền ra trong file này đã lưu từ lần trước. Sửa nhóm ở nút 💸 Tiền ra đã lưu.</p>';
+    return h + ktcHow();
+  }
+  /** 💸 Tiền ra đã lưu: xem / sửa nhóm các khoản 90 ngày gần nhất (chưa chọn nhóm lên đầu). */
+  function openKtch() {
+    var m = modal('💸 Tiền ra từ sao kê', '<div id="ktchOut"><p class="muted">⏳ Đang tải…</p></div>', '<button class="btn" data-close>Đóng</button>');
+    var draw = function () {
+      var R = (KTCH.d || []).slice().sort(function (a, b) { return (a.grp ? 1 : 0) - (b.grp ? 1 : 0) || (a.day < b.day ? 1 : a.day > b.day ? -1 : 0); }), unk = R.filter(function (r) { return !r.grp; }).length;
+      $('#ktchOut', m).innerHTML = !R.length ? '<p class="muted">Chưa có khoản nào. Bấm 🏦 Tải sao kê VCB để máy đọc tiền ra.</p>' :
+        '<p class="small" style="margin:0 0 8px">' + R.length + ' khoản (120 ngày gần nhất)' + (unk ? ' · <b class="ktv-red">' + unk + ' khoản chưa chọn nhóm</b>' : '') + '. Đổi nhóm là lãi lỗ tính lại ngay.</p><div class="ktv-list">' + R.map(function (r) {
+          return '<div class="kts-chi' + (r.grp ? '' : ' unk') + '"><span class="ktv-o-t"><b>' + r.day.slice(8, 10) + '/' + r.day.slice(5, 7) + ' · ' + money(r.amt) + ' <small style="display:inline">TK …' + esc(String(r.acct).slice(-3)) + '</small></b><small>' + esc(ktcTxt(r.txt)) + '</small></span><select data-ktchg="' + esc(r.id) + '" aria-label="Nhóm chi phí">' + ktcOpts(r.grp) + '</select></div>';
+        }).join('') + '</div>' + ktcHow();
+      $$('[data-ktchg]', m).forEach(function (el) {
+        el.onchange = function () {
+          var id = el.getAttribute('data-ktchg'), r = (KTCH.d || []).filter(function (x) { return x.id === id; })[0]; if (!el.value || !r) return; el.disabled = true;
+          api('kt_chig', { id: id, grp: el.value, key: ktcKey(r.txt) }).then(function (j) { KTCH.d = j.rows; KTCH.map = j.map || {}; if (j.fin && S.d.rules) S.d.rules.fin = j.fin; toast('Đã đổi nhóm ✓'); draw(); softRender(true); }, function (e) { el.disabled = false; toast(e.message, true); });
+        };
+      });
+    };
+    KTCH.at = 0; ktchLoad(true); var n = 0, t = setInterval(function () { if (!KTCH.busy || ++n > 40) { clearInterval(t); draw(); } }, 250);
+  }
   function openKts() {
-    ktbLoad();
-    var body = '<p style="margin:0 0 8px">Tải file sao kê tài khoản VCB (VCB DigiBiz → Tra cứu → <b>Lịch sử giao dịch</b> → Xuất Excel). Máy chỉ đọc <b>tiền vào</b>, tự tìm phiếu Best / Viettel Post và đơn chuyển khoản khớp số tiền, cho xem lại rồi mới ghi.</p>' +
+    ktbLoad(); ktchLoad();
+    var body = '<p style="margin:0 0 8px">Tải file sao kê tài khoản VCB (VCB DigiBiz → Tra cứu → <b>Lịch sử giao dịch</b> → Xuất Excel). Máy đọc <b>tiền vào</b> (tự tìm phiếu Best / Viettel Post và đơn chuyển khoản khớp số tiền), <b>tiền ra</b> (tự xếp nhóm chi phí) và <b>số dư cuối ngày</b>, cho xem lại rồi mới lưu. Mỗi ngày tải sao kê của từng tài khoản.</p>' +
       '<p class="small" style="margin:0 0 8px">' + ktvAcctSel('Sao kê này là của tài khoản') + '</p><label class="f"><span>Chọn file sao kê (.xls hoặc .xlsx)</span><input type="file" id="ktsFile" accept=".xls,.xlsx,.csv"></label><p class="err" id="ktsE"></p><div id="ktsOut"></div>';
-    var m = modal('🏦 Tải sao kê VCB', body, '<button class="btn" data-close>Đóng</button><button class="btn pri" id="ktsGo" hidden>✅ Ghi tiền về</button>');
+    var m = modal('🏦 Tải sao kê VCB', body, '<button class="btn" data-close>Đóng</button><button class="btn pri" id="ktsGo" hidden>✅ Lưu</button>');
     var X = null;
     $('#ktsFile', m).onchange = function () {
       var fl = this.files[0], err = $('#ktsE', m); err.textContent = ''; $('#ktsOut', m).innerHTML = '<p class="muted">⏳ Đang đọc file…</p>'; $('#ktsGo', m).hidden = true; if (!fl) return;
-      var wait = function () { return KTB.d ? Promise.resolve() : new Promise(function (ok) { var n = 0, t = setInterval(function () { if (KTB.d || ++n > 40) { clearInterval(t); ok(); } }, 250); }); };
+      var wait = function () { return KTB.d && KTCH.d ? Promise.resolve() : new Promise(function (ok) { var n = 0, t = setInterval(function () { if ((KTB.d && KTCH.d) || ++n > 40) { clearInterval(t); ok(); } }, 250); }); };
       sanReadFile(fl).then(function (sh) {
-        var P = ktsParse(sh); if (!P || !P.rows.length) throw new Error('Không thấy cột "Số tiền ghi có" và "Nội dung chi tiết". Xuất lại sao kê từ VCB DigiBiz (Lịch sử giao dịch → Excel).');
+        var P = ktsParse(sh); if (!P || !(P.rows.length + P.out.length)) throw new Error('Không thấy cột "Số tiền ghi có" và "Nội dung chi tiết". Xuất lại sao kê từ VCB DigiBiz (Lịch sử giao dịch → Excel).');
         return wait().then(function () { X = ktsMatch(P); X.P = P; X.file = fl.name; ktsShow(m, X); });
       }).catch(function (e) { $('#ktsOut', m).innerHTML = ''; err.textContent = e.message; });
     };
     $('#ktsGo', m).onclick = function () { ktsSave(m, X, this); };
   }
   function ktsShow(m, X) {
-    var P = X.P, d0 = Math.min.apply(null, P.rows.map(function (r) { return r.day; })), d1 = Math.max.apply(null, P.rows.map(function (r) { return r.day; }));
-    var h = '<div class="notice info">📄 <b>' + esc(X.file) + '</b>' + (P.acctNo ? ' · TK ' + esc(P.acctNo) : '') + ': ' + P.rows.length + ' khoản tiền vào, ' + fDate(d0).slice(0, 5) + ' – ' + fDate(d1).slice(0, 5) + '.</div>';
+    var P = X.P, AD = P.rows.concat(P.out).map(function (r) { return r.day; }), d0 = Math.min.apply(null, AD), d1 = Math.max.apply(null, AD);
+    var h = '<div class="notice info">📄 <b>' + esc(X.file) + '</b>' + (P.acctNo ? ' · TK ' + esc(P.acctNo) : '') + ': ' + P.rows.length + ' khoản tiền vào, ' + P.out.length + ' khoản tiền ra, ' + fDate(d0).slice(0, 5) + ' – ' + fDate(d1).slice(0, 5) + '.</div>';
     h += '<h3 class="kts-h">🧾 Phiếu hãng đã chuyển tiền <small>' + X.bat.length + ' phiếu khớp' + (X.batDone ? ' · ' + X.batDone + ' phiếu đã ghi từ trước' : '') + '</small></h3>';
     h += X.bat.length ? '<div class="ktv-list">' + X.bat.map(function (it, i) {
       var dif = it.r.amt - (it.b.exp || 0);
@@ -5952,24 +6020,31 @@
       return '<label class="ktv-o' + (it.sure ? '' : ' old') + '"><input type="checkbox" data-ktso="' + i + '"' + (it.sure ? ' checked' : '') + '><span class="ktv-o-t"><b>' + esc(it.o.id) + ' · ' + esc(it.o.name) + ' ' + esc(ktvPh(it.o)) + '</b><small>đặt ' + fDate(it.o.time).slice(0, 5) + ' · tiền vào ' + fDate(it.r.day).slice(0, 5) + (it.n > 1 ? ' · ' + it.n + ' đơn cùng số tiền' : '') + '<br>“' + esc(it.r.txt.slice(0, 90)) + '”</small></span><b class="ktv-amt">' + money(it.r.amt) + '</b></label>';
     }).join('') + '</div>' : '<p class="small muted">Không có khoản nào khớp đơn chuyển khoản đang chờ.</p>';
     if (X.other.length) h += '<details class="small" style="margin-top:8px"><summary>❔ ' + X.other.length + ' khoản tiền vào khác không khớp đơn nào (' + money(X.other.reduce(function (s, r) { return s + r.amt; }, 0)) + ')</summary><p class="muted">Có thể là đơn chưa lên CRM, đơn ghi COD nhưng khách chuyển khoản, hoặc tiền khác. Ghi tay ở 🏦 Chuyển khoản chờ xác nhận nếu đúng là tiền đơn.</p>' + X.other.slice(0, 80).map(function (r) { return '<div>' + fDate(r.day).slice(0, 5) + ' · ' + money(r.amt) + ' · ' + esc(r.txt.slice(0, 80)) + '</div>'; }).join('') + '</details>';
+    h += ktcHTML(X);
     $('#ktsOut', m).innerHTML = h;
-    var b = $('#ktsGo', m), upd = function () { var nb = $$('[data-ktsb]:checked', m).length, no = $$('[data-ktso]:checked', m).length; b.hidden = !(nb + no); b.textContent = '✅ Ghi tiền về ' + [nb ? nb + ' phiếu' : '', no ? no + ' đơn chuyển khoản' : ''].filter(Boolean).join(' + '); };
+    var nc = X.chi.filter(function (c) { return !c.old; }).length, nbal = Object.keys(P.bal || {}).length;
+    var b = $('#ktsGo', m), upd = function () { var nb = $$('[data-ktsb]:checked', m).length, no = $$('[data-ktso]:checked', m).length; b.hidden = !(nb + no + nc + nbal); b.textContent = '✅ Lưu ' + [nb ? nb + ' phiếu' : '', no ? no + ' đơn chuyển khoản' : '', nc ? nc + ' khoản chi' : '', !nb && !no && !nc ? 'số dư' : ''].filter(Boolean).join(' + '); };
     $$('[data-ktsb],[data-ktso]', m).forEach(function (x) { x.onchange = upd; }); upd();
+    $$('[data-ktsc]', m).forEach(function (x) { x.onchange = function () { x.closest('.kts-chi').classList.toggle('unk', !x.value); }; });
   }
   function ktsSave(m, X, b) {
     var acct = ktvAcctGet(m), bats = $$('[data-ktsb]:checked', m).map(function (x) { return X.bat[+x.getAttribute('data-ktsb')]; }), ords = $$('[data-ktso]:checked', m).map(function (x) { return X.ord[+x.getAttribute('data-ktso')]; });
-    if (!bats.length && !ords.length) return;
-    b.disabled = true; b.textContent = '⏳ Đang ghi…'; var nB = 0, nO = 0, sum = 0;
+    var nC = 0, chiSave = function () { // 💸 tiền ra + số dư cuối ngày (kt_chis)
+      var P = X.P, rows = [], map = {}; X.chi.forEach(function (c, i) { if (c.old) return; var el = $('[data-ktsc="' + i + '"]', m), g = el ? el.value : c.g, man = g !== c.g || !c.g ? 1 : c.mem; if (man && g) map[c.key] = g; rows.push({ doc: c.r.doc, day: isoDate(c.r.day), amt: c.r.amt, txt: c.r.txt, grp: g, man: man ? 1 : 0 }); });
+      if (!rows.length && !Object.keys(P.bal || {}).length) return Promise.resolve();
+      return api('kt_chis', { acct: P.acctNo, name: 'VCB', rows: rows, bal: P.bal, map: map }).then(function (j) { nC = j.n || 0; KTCH.d = j.rows; KTCH.map = j.map || {}; KTCH.at = Date.now(); if (j.fin && S.d.rules) S.d.rules.fin = j.fin; });
+    };
+    b.disabled = true; b.textContent = '⏳ Đang lưu…'; var nB = 0, nO = 0, sum = 0;
     var step = function (i) {
       if (i >= bats.length) return Promise.resolve();
       var it = bats[i]; return api('kt_bpay', { id: it.b.id, day: it.r.day, got: it.r.amt, acct: acct }).then(function (j) { KTB.d = j.batches || KTB.d; ktvMerge(j.orders || []); if (j.ktCfg && S.d.rules) S.d.rules.ktCfg = j.ktCfg; nB++; sum += it.r.amt; return step(i + 1); });
     };
     var groups = {}; ords.forEach(function (it) { (groups[it.r.doc] = groups[it.r.doc] || []).push(it); });
-    step(0).then(function () {
+    step(0).then(chiSave).then(function () {
       return Object.keys(groups).reduce(function (pr, doc) {
         return pr.then(function () { var g = groups[doc]; return ktvSend(g.map(function (it) { return { row: it.o.row, id: it.o.id, amt: it.r.amt, day: it.r.day, ref: doc }; }), 'Sao kê VCB', false, acct).then(function (j) { nO += j.n; sum += j.sum; }); });
       }, Promise.resolve());
-    }).then(function () { closeModal(); toast('Đã ghi tiền về ' + [nB ? nB + ' phiếu' : '', nO ? nO + ' đơn chuyển khoản' : ''].filter(Boolean).join(' + ') + ' · ' + moneyShort(sum) + ' ✓'); render(); },
+    }).then(function () { closeModal(); toast('Đã lưu ' + [nB ? nB + ' phiếu' : '', nO ? nO + ' đơn chuyển khoản (' + moneyShort(sum) + ')' : '', nC ? nC + ' khoản chi' : '', 'số dư'].filter(Boolean).join(' + ') + ' ✓'); render(); },
       function (e) { b.disabled = false; b.textContent = 'Thử lại'; toast(/Không rõ thao tác|chỉ dùng được/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message, true); render(); });
   }
   /* ---------- 📦 Hàng tồn kho cho kế toán (09/11/2026): số lượng do người kho ghi trên tab Kho (chỉ xem), kế toán thấy thành tiền theo giá nhập (💰 Giá vốn ở Cài đặt).
@@ -6223,7 +6298,7 @@
     bindKtb(); bindKsp();
     var ki = $('.ktk-in'); if (ki) ki.ontoggle = function () { KTK.openIn = ki.open; };
     $$('[data-ktv]').forEach(function (el) {
-      el.onclick = function () { var a = el.getAttribute('data-ktv').split('|'); if (a[0] === 'cod') openKtvCod(); else if (a[0] === 'vcb') openKts(); else openKtvList(a[0], a[1] || ''); };
+      el.onclick = function () { var a = el.getAttribute('data-ktv').split('|'); if (a[0] === 'cod') openKtvCod(); else if (a[0] === 'vcb') openKts(); else if (a[0] === 'chi') openKtch(); else openKtvList(a[0], a[1] || ''); };
     });
     var as = $('#ktvAcctSave'); if (as) as.onclick = function () {
       var a = $('#ktvAccts').value.split('\n').map(function (v) { return v.trim(); }).filter(Boolean); if (!a.length) { toast('Cần ít nhất 1 tài khoản', true); return; } as.disabled = true;

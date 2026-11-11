@@ -2,7 +2,7 @@
 // Đọc: trang Tổng hợp + Chi phí (như 📎 Tải file kế toán ở CRM: ktParse, chép y từ crm/app.js — sửa 1 bên thì sửa cả 2),
 // và 3 trang hằng ngày: "Sổ chi" (mỗi khoản chi 1 dòng), "Số dư ngân hàng" (số dư cuối ngày từng tài khoản), "Công nợ" (nợ nhà cung cấp + hạn thanh toán).
 // Lưu kv opex_cfg (chi phí theo tháng, như tải file) + kv fin_cfg (tiền, sổ chi, công nợ). Cron 7h30 rồi 3 tiếng / lần tới 20h (gói Workers $5, đọc 1 file ~70ms CPU); 8h sáng nhắn Telegram riêng cho Quản trị.
-import { esc, fmtDate, startOfDay, all, kvSet, kvJson, DAY, CRM_URL } from './lib.js';
+import { esc, fmtDate, startOfDay, all, run, kvSet, kvJson, DAY, CRM_URL } from './lib.js';
 import { telegramTo } from './google.js';
 import { ktMorningLines } from './kt.js';
 
@@ -118,7 +118,7 @@ function isoDay(v) {
 }
 function num(v) { if (typeof v === 'number') return v; const s = String(v || '').replace(/[^\d-]/g, ''); return s && s !== '-' ? +s : 0; }
 /** Nhóm trong sổ chi không phải chi phí (chỉ là tiền ra): trả nợ / nhập hàng / chuyển nội bộ / thuế. */
-export function chiKind(g) { const n = norm(g); return /chuyen (giua|noi bo)|chuyen tien/.test(n) ? 'move' : /tra no|nha cung cap|nhap hang/.test(n) ? 'ncc' : /^thue\b(?! (van phong|mat bang|nha|kho))/.test(n) ? 'tax' : ''; }
+export function chiKind(g) { const n = norm(g); return /chuyen (giua|noi bo)|chuyen tien|rut tien/.test(n) ? 'move' : /tra no|nha cung cap|nhap hang/.test(n) ? 'ncc' : /^thue\b(?! (van phong|mat bang|nha|kho))/.test(n) ? 'tax' : ''; }
 /** Tìm dòng tiêu đề có đủ các cột (mỗi mục là regex trên tên cột đã bỏ dấu) → { r: số dòng, c: { tên: vị trí } }. */
 function findHead(rows, want, max) {
   for (let i = 0; i < Math.min(rows.length, max || 30); i++) {
@@ -197,7 +197,7 @@ export async function finStore(x, P, F, fname, by) {
     pay: Array.isArray(F.pay) ? F.pay.slice(0, 200).map(r => [String(r[0] || '').slice(0, 80), String(r[1] || '').slice(0, 30), String(r[2] || '').slice(0, 10), String(r[3] || '').slice(0, 10), Math.round(Number(r[4]) || 0), Math.round(Number(r[5]) || 0)]) : null };
   await kvSet(x.db, 'fin_cfg', JSON.stringify(fin));
   const L = await kvJson(x.db, 'kt_link', null); if (L) { L.last = now; delete L.err; await kvSet(x.db, 'kt_link', JSON.stringify(L)); }
-  return { ok: true, opex: O, fin, saved };
+  return { ok: true, opex: O, fin: await finFull(x, fin), saved };
 }
 /** Máy chủ tự đọc link đã nối (cron 7h30). Trang quá nặng (vd "Doanh thu" kê từng hoá đơn) và trang không cần thì bỏ qua cho nhẹ. */
 export async function finSync(x, by) {
@@ -206,6 +206,72 @@ export async function finSync(x, by) {
   if (f.error) { L.err = f.error; L.errAt = Date.now(); await kvSet(x.db, 'kt_link', JSON.stringify(L)); return { ok: false, error: f.error }; }
   const sh = await xlsxNamed(f.buf, 0.6);
   return finStore(x, ktParse(sh, f.name), finParse(sh), f.name, by);
+}
+/* ---------- 🏦 Tiền ra + số dư từ sao kê ngân hàng (11/11/2026, anh Sơn: mọi khoản chi đều qua tài khoản → tải sao kê là đủ, không ghi Sổ chi).
+ * CRM đọc sao kê VCB trên máy (ktsParse), tự xếp nhóm theo nội dung (ktcGuess + bộ nhớ kt_chi_map theo người nhận), kế toán xem lại rồi gửi kt_chis.
+ * Bảng kt_chi: mỗi khoản tiền ra 1 dòng (id = số TK:số CT). kv kt_bal = {số TK: {name, d: {ngày: số dư cuối ngày}}}.
+ * finFull gộp vào fin_cfg trước khi trả CRM / tin 8h / trợ lý: chi += dòng sao kê (bỏ dòng Sổ chi trùng ngày + số tiền), bank += số dư theo tài khoản (khớp tên trang Số dư theo 3 số cuối TK). */
+let kcOk = false;
+async function kcSchema(db) {
+  if (kcOk) return;
+  await run(db, "CREATE TABLE IF NOT EXISTS kt_chi (id TEXT PRIMARY KEY, acct TEXT DEFAULT '', day TEXT, amt INTEGER DEFAULT 0, grp TEXT DEFAULT '', txt TEXT DEFAULT '', man INTEGER DEFAULT 0, by_name TEXT DEFAULT '', at INTEGER)");
+  kcOk = true;
+}
+const KC_DAYS = 400;
+function kcLabel(acct) { const a = String(acct || ''); return a ? 'TK …' + a.slice(-3) : ''; }
+export async function finFull(x, F) {
+  let R = [], B = {};
+  try { await kcSchema(x.db); R = await all(x.db, 'SELECT acct, day, amt, grp, txt FROM kt_chi WHERE day >= ? ORDER BY day', fmtDate(Date.now() - KC_DAYS * DAY, 'yyyy-MM-dd')); B = (await kvJson(x.db, 'kt_bal', null)) || {}; } catch (e) { return F; }
+  if (!R.length && !Object.keys(B).length) return F;
+  const G = Object.assign({}, F || { at: 0, file: '', chi: null, bank: null, pay: null });
+  if (R.length) {
+    const seen = {}; R.forEach(r => { seen[r.day + ':' + r.amt] = (seen[r.day + ':' + r.amt] || 0) + 1; });
+    const sheet = (G.chi || []).filter(r => { const k = r[0] + ':' + r[2]; if (seen[k]) { seen[k]--; return false; } return true; }); // khoản chuyển khoản kế toán lỡ ghi cả Sổ chi → giữ dòng sao kê
+    G.chi = sheet.concat(R.map(r => [r.day, r.grp || 'Chưa chọn nhóm', r.amt, String(r.txt || '').slice(0, 80), kcLabel(r.acct)])).sort((a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0);
+    G.chiBank = R.length;
+  }
+  const ks = Object.keys(B).filter(k => B[k] && B[k].d && Object.keys(B[k].d).length);
+  if (ks.length) {
+    const sb = G.bank && G.bank.rows ? G.bank : { acc: [], rows: [] }, acc = sb.acc.slice(), src = acc.map(() => null);
+    ks.forEach(k => { const j = acc.findIndex(a => String(a).replace(/\D/g, '').slice(-3) === k.slice(-3)); if (j >= 0) src[j] = k; else { acc.push((B[k].name ? B[k].name + ' ' : 'TK ') + '…' + k.slice(-3)); src.push(k); } });
+    const days = {}; sb.rows.forEach(r => { days[r[0]] = 1; }); ks.forEach(k => Object.keys(B[k].d).forEach(d => { days[d] = 1; }));
+    const sheetAt = (j, d) => { let v = null; sb.rows.forEach(r => { if (r[0] <= d && r[2] && r[2][j] != null && r[2][j] !== 0) v = r[2][j]; }); return v; };
+    const bankAt = (k, d) => { let v = null, best = ''; Object.keys(B[k].d).forEach(x2 => { if (x2 <= d && x2 > best) { best = x2; v = B[k].d[x2]; } }); return v; };
+    const rows = Object.keys(days).sort().slice(-62).map(d => { const v = acc.map((a, j) => { const w = src[j] ? bankAt(src[j], d) : null; return Math.round(w != null ? w : j < sb.acc.length ? sheetAt(j, d) || 0 : 0); }); return [d, v.reduce((a, b) => a + b, 0), v]; });
+    G.bank = { acc, rows, fromBank: ks.map(kcLabel) };
+  }
+  return G;
+}
+/** kt_chi {from?}: danh sách tiền ra + bộ nhớ nhóm · kt_chis {acct, name, rows: [{doc, day, amt, txt, grp, man}], bal: {ngày: số dư}, map: {khoá: nhóm}} · kt_chig {id, grp, key}. Kế toán + Quản trị. */
+export async function crmKtChi(x, u, d, log) {
+  if (!(u.level >= 3 || u.role === 'Kế toán')) return { ok: false, error: 'Chỉ Kế toán và Quản trị làm được việc này.' };
+  await kcSchema(x.db); const now = Date.now(), map = (await kvJson(x.db, 'kt_chi_map', null)) || {};
+  const list = async () => (await all(x.db, 'SELECT * FROM kt_chi WHERE day >= ? ORDER BY day DESC, id LIMIT 3000', /^20\d\d-\d\d-\d\d$/.test(d.from || '') ? d.from : fmtDate(now - 120 * DAY, 'yyyy-MM-dd'))).map(r => ({ id: r.id, acct: r.acct, day: r.day, amt: r.amt, grp: r.grp, txt: r.txt, man: r.man, by: r.by_name, at: r.at }));
+  const putMap = async M => { let n = 0; Object.keys(M || {}).slice(0, 300).forEach(k => { const g = String(M[k] || '').trim().slice(0, 60), kk = String(k).slice(0, 60); if (kk && g) { map[kk] = g; n++; } }); if (n) { const ks = Object.keys(map); if (ks.length > 800) ks.slice(0, ks.length - 800).forEach(k => delete map[k]); await kvSet(x.db, 'kt_chi_map', JSON.stringify(map)); } };
+  const fin = async () => finFull(x, await kvJson(x.db, 'fin_cfg', null));
+  if (d.action === 'kt_chi') return { ok: true, rows: await list(), map };
+  if (d.action === 'kt_chig') {
+    const id = String(d.id || ''), g = String(d.grp || '').trim().slice(0, 60); if (!id || !g) return { ok: false, error: 'Thiếu khoản chi hoặc nhóm.' };
+    await run(x.db, 'UPDATE kt_chi SET grp = ?, man = 1, by_name = ?, at = ? WHERE id = ?', g, u.name, now, id);
+    if (d.key) await putMap({ [d.key]: g });
+    return { ok: true, rows: await list(), map, fin: await fin() };
+  }
+  if (d.action !== 'kt_chis') return { ok: false, error: 'Không rõ thao tác: ' + d.action };
+  const acct = String(d.acct || '').replace(/\D/g, '').slice(0, 20); if (!acct) return { ok: false, error: 'Sao kê không có số tài khoản.' };
+  const rows = (Array.isArray(d.rows) ? d.rows : []).slice(0, 2000).filter(r => /^20\d\d-\d\d-\d\d$/.test(r.day || '') && Number(r.amt) > 0);
+  const st = rows.map(r => x.db.prepare(`INSERT INTO kt_chi (id, acct, day, amt, grp, txt, man, by_name, at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET day = excluded.day, amt = excluded.amt, txt = excluded.txt, grp = CASE WHEN kt_chi.man = 1 AND excluded.man = 0 THEN kt_chi.grp ELSE excluded.grp END, man = MAX(kt_chi.man, excluded.man), by_name = excluded.by_name, at = excluded.at`)
+    .bind(acct + ':' + String(r.doc || r.day + '·' + r.amt).slice(0, 60), acct, r.day, Math.round(Number(r.amt)), String(r.grp || '').trim().slice(0, 60), String(r.txt || '').slice(0, 200), r.man ? 1 : 0, u.name, now));
+  for (let i = 0; i < st.length; i += 100) await x.db.batch(st.slice(i, i + 100));
+  await putMap(d.map);
+  const bal = d.bal && typeof d.bal === 'object' ? d.bal : {}, bd = Object.keys(bal).filter(k => /^20\d\d-\d\d-\d\d$/.test(k));
+  if (bd.length) {
+    const B = (await kvJson(x.db, 'kt_bal', null)) || {}, cut = fmtDate(now - KC_DAYS * DAY, 'yyyy-MM-dd'), o = B[acct] || { name: '', d: {} };
+    o.name = String(d.name || o.name || '').slice(0, 30); bd.forEach(k => { o.d[k] = Math.round(Number(bal[k]) || 0); }); Object.keys(o.d).forEach(k => { if (k < cut) delete o.d[k]; });
+    B[acct] = o; await kvSet(x.db, 'kt_bal', JSON.stringify(B));
+  }
+  if (rows.length) await log(x, u, 'Kế toán', '-', '', 'Lưu ' + rows.length + ' khoản tiền ra từ sao kê TK …' + acct.slice(-3), '');
+  return { ok: true, n: rows.length, rows: await list(), map, fin: await fin() };
 }
 /** Lệnh CRM (chỉ Quản trị): kt_link = nối / bỏ link · fin_save = CRM đọc file trên máy rồi gửi kết quả · fin_test = gửi thử tin sáng cho chính mình. */
 export async function crmFin(x, u, d, a) {
@@ -248,7 +314,7 @@ function baseCfg(O) {
   return { rate, rm, fix, per, fm };
 }
 export async function finMorning(x) {
-  const O = (await kvJson(x.db, 'opex_cfg', {})) || {}, F = await kvJson(x.db, 'fin_cfg', null), C = baseCfg(O);
+  const O = (await kvJson(x.db, 'opex_cfg', {})) || {}, F = await finFull(x, await kvJson(x.db, 'fin_cfg', null)), C = baseCfg(O);
   const KL = await ktMorningLines(x).catch(() => []); // 💤 tiền treo ở hãng (kt.js, 09/11/2026)
   if (!C.fm && !F) return KL.length ? ['💼 <b>Tài chính sáng ' + fmtDate(Date.now(), 'dd/MM') + '</b>', ''].concat(KL, ['', CRM_URL]).join('\n') : ''; // chưa có số kế toán → chỉ gửi phần tiền treo (nếu có)
   const t0 = startOfDay(Date.now()), y0 = t0 - DAY, ym = fmtDate(y0, 'yyyy-MM'), m0 = startOfDay(new Date(ym + '-01T00:00:00+07:00').getTime());

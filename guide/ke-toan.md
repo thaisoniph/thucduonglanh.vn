@@ -8,7 +8,7 @@ description: Ghi tiền về tài khoản (tải file đối soát COD Best / Vi
 
 Trang này dành cho **kế toán**. Đọc khoảng 5 phút là làm được.
 
-> **Thứ 2, 4, 6 (ngày hãng chuyển tiền):** tải file phiếu đối soát của Best / Viettel Post. **Mỗi ngày:** tải file sao kê VCB, máy tự tìm phiếu và đơn chuyển khoản đã có tiền, kế toán xem lại rồi bấm ghi. Xong là anh Sơn xem được lãi lỗ và tiền thật gần như ngay lúc đó.
+> **Thứ 2, 4, 6 (ngày hãng chuyển tiền):** tải file phiếu đối soát của Best / Viettel Post. **Mỗi ngày:** tải file sao kê VCB của từng tài khoản. Máy tự tìm phiếu và đơn chuyển khoản đã có tiền, tự xếp nhóm các khoản chi, lấy số dư cuối ngày; kế toán xem lại rồi bấm Lưu. Không cần ghi Sổ chi cho khoản chuyển khoản. Xong là anh Sơn xem được lãi lỗ và tiền thật gần như ngay lúc đó.
 
 **Cách xem hình:** ô khoanh đỏ có số **1, 2, 3** trên hình chính là **bước 1, 2, 3** viết ngay bên dưới hình.
 
@@ -104,16 +104,26 @@ Lấy file trên **VCB DigiBiz** → **Lịch sử giao dịch** → chọn ngà
 
 1. Bấm **🏦 Tải sao kê VCB**. Chọn **sao kê này của tài khoản nào** (Công ty, Anh Sơn…), rồi chọn file.
 
-Máy chỉ đọc **tiền vào** và chia thành:
+Máy đọc **tiền vào**, **tiền ra** và **số dư cuối ngày**. Tiền vào chia thành:
 
 - **🧾 Phiếu hãng đã chuyển tiền**: tiền Best về có ghi mã phiếu **NO…** nên máy khớp đúng phiếu. Tiền Viettel Post về (ghi "VTP NDUG…") khớp phiếu có **đúng số tiền**. Dòng tô đỏ = số tiền về khác số trên phiếu: hỏi lại hãng.
 - **⚠️ Khoản hãng chuyển nhưng chưa có phiếu trong CRM**: tải file phiếu đó (theo mã NO… hoặc ngày Viettel Post chuyển) ở mục trên, rồi tải lại sao kê.
 - **🏦 Đơn khách chuyển khoản**: khoản tiền khớp đúng số tiền một đơn chuyển khoản đang chờ, đặt trong khoảng 15 ngày trước ngày tiền vào. Dòng **tô đỏ, chưa tích** = có nhiều đơn cùng số tiền, máy đoán đơn gần ngày nhất: đọc tên trong nội dung chuyển khoản, đúng thì mới tích.
 - **❔ Khoản tiền vào khác**: không khớp đơn nào. Đúng là tiền đơn thì ghi tay ở **🏦 Chuyển khoản chờ xác nhận**.
 
-Bấm **✅ Ghi tiền về …**. Ngày tiền về lấy theo ngày trên sao kê.
+**💸 Tiền ra**: mỗi khoản chi 1 dòng, máy **tự chọn nhóm** theo nội dung chuyển khoản (lương, BHXH, tiền điện, thuê nhà, trả tiền hàng nhà cung cấp, chuyển nội bộ, rút séc, thuế, phí ngân hàng…).
 
-Tải lại cùng sao kê (hoặc sao kê có ngày trùng) không sao: khoản đã ghi rồi máy bỏ qua. Tiền chuyển nội bộ, lãi ngân hàng máy không tính.
+- Dòng **tô đỏ** = máy chưa đoán được: chọn nhóm trong ô bên phải. Lần sau gặp cùng người nhận, máy tự xếp theo nhóm bạn đã chọn.
+- Thấy nhóm máy chọn chưa đúng thì đổi luôn trong ô.
+- Nhóm quyết định cách tính lãi lỗ: **lương, bảo hiểm, thuê nhà, điện nước, internet, ship** chia đều mỗi ngày; **trả nhà cung cấp, nhập hàng, chuyển nội bộ, rút tiền mặt, thuế** không phải chi phí; **quảng cáo Facebook, phí sàn** máy đã tự lấy; còn lại (tiếp khách, mua sắm, phí ngân hàng…) trừ đúng ngày.
+
+Bấm **✅ Lưu …**: máy ghi tiền về cho các phiếu / đơn đã tích, lưu các khoản chi và số dư cuối ngày (hiện ở **🏦 Tiền & công nợ**).
+
+Tải lại cùng sao kê (hoặc sao kê có ngày trùng) không sao: khoản đã ghi rồi máy bỏ qua, nhóm bạn đã chọn được giữ nguyên.
+
+**Sửa nhóm sau khi đã lưu:** bấm **💸 Tiền ra đã lưu** (cạnh nút tải sao kê). Khoản chưa chọn nhóm nằm trên cùng, đổi nhóm là lãi lỗ tính lại ngay.
+
+**Tiền mặt:** khoản rút ra rồi chi bằng tiền mặt không có trên sao kê, nên ghi vào trang **Sổ chi** trong file Google Sheet kế toán (mục dưới).
 
 ## Ghi tiền về bằng tay (chuyển khoản VCB, hoặc không có file)
 
@@ -219,9 +229,9 @@ Lãi lỗ ở tab này **cùng số** với Tổng quan của anh Sơn.
 3. Mở **🧮 Lãi lỗ sau mọi chi phí** → **✏️ Nhập chi phí tháng …**: gõ từng khoản (thuê văn phòng, lương, điện, nước, tiền ship trả hãng…), bấm Lưu.
 4. Hoặc **📎 Tải file kế toán** (file báo cáo tháng) và **👥 Tải bảng lương**: máy tự đọc các khoản chi phí.
 
-5. **Mỗi ngày ghi Sổ chi** (trong file Google Sheet kế toán, xem mục dưới): khoản nào chi ra hôm nay (tiếp khách, mua đồ, sửa chữa, hỗ trợ TikTok…) ghi 1 dòng **đúng ngày chi**. Lãi lỗ ngày đó trừ đúng số tiền đó.
+5. **Khoản chi chuyển khoản** máy lấy từ sao kê (mục 🏦 Tải sao kê VCB ở trên). **Khoản chi tiền mặt** ghi vào trang **Sổ chi** trong file Google Sheet kế toán: 1 dòng **đúng ngày chi**. Lãi lỗ ngày đó trừ đúng số tiền đó.
 
-### Sổ chi tính vào lãi lỗ thế nào
+### Khoản chi (sao kê + Sổ chi) tính vào lãi lỗ thế nào
 
 | Loại khoản | Máy làm gì |
 |---|---|
@@ -230,7 +240,8 @@ Lãi lỗ ở tab này **cùng số** với Tổng quan của anh Sơn.
 | Quảng cáo Facebook, phí sàn | Máy tự lấy, **không trừ lần 2**. |
 | Trả nợ / nhập hàng nhà cung cấp, chuyển tiền nội bộ, thuế | **Không phải chi phí** (giá vốn đã tính theo hàng bán ra). |
 
-- Bảng **Xem từng ngày**, cột **Chi phí**: ngày có 📒 là có khoản phát sinh (rê chuột vào số để xem từng khoản). Ngày có **~** là Sổ chi chưa ghi tới ngày đó nên máy tạm tính trung bình. Vì vậy **ghi Sổ chi mỗi ngày** để anh Sơn xem số đúng.
+- Bảng **Xem từng ngày**, cột **Chi phí**: ngày có 📒 là có khoản phát sinh (rê chuột vào số để xem từng khoản). Ngày có **~** là chưa có sao kê / Sổ chi tới ngày đó nên máy tạm tính trung bình. Vì vậy **tải sao kê mỗi ngày** để anh Sơn xem số đúng.
+- Khoản chuyển khoản lỡ ghi cả Sổ chi (cùng ngày, cùng số tiền) thì máy chỉ tính 1 lần.
 - Cột **Nhóm** trong Sổ chi nên ghi rõ (ví dụ "Tiếp khách", "Lương nhân viên", "Trả nợ nhà cung cấp") để máy xếp đúng loại.
 - Máy đọc lại file 3 tiếng 1 lần. Muốn thấy ngay thì bấm **↻ Lấy số mới** ở mục 🏦 Tiền & công nợ.
 

@@ -11,7 +11,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { aiFetch } from './airelay.js';
 import { all, fmtDate, kvGet, kvSet, kvJson, startOfDay, nrm, DAY } from './lib.js';
 import { SUPER_ADMIN } from './crm.js';
-import { finMorning } from './fin.js';
+import { finMorning, finFull } from './fin.js';
 import { sanAllowed } from './san.js';
 
 const ASK_MODEL = 'claude-opus-5-5'; // tra số cần chính xác (tự viết SQL, đối chiếu nhiều bảng) → Opus. ~2.000–5.000đ / câu. Muốn rẻ hơn: 'claude-sonnet-5-5' (~½) hoặc 'claude-haiku-5-5' (~1/30, kém chính xác hơn)
@@ -188,7 +188,7 @@ async function toolProducts(x, inp) {
 
 /* ---------- công cụ 3: tai_chinh (Quản trị) */
 async function toolFin(x) {
-  const O = (await kvJson(x.db, 'opex_cfg', {})) || {}, F = await kvJson(x.db, 'fin_cfg', null);
+  const O = (await kvJson(x.db, 'opex_cfg', {})) || {}, F = await finFull(x, await kvJson(x.db, 'fin_cfg', null));
   const morning = String(await finMorning(x) || '').replace(/<[^>]+>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/https?:\/\/\S+/g, '').trim();
   const months = Object.keys(O).sort().slice(-6).map(m => {
     const k = O[m] && O[m].kt || {}, it = (O[m] && O[m].items) || [];

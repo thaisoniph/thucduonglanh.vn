@@ -14,7 +14,7 @@ import { crmMkt, mktFbEdit } from './mkt.js';
 import { mktView, mktBudgetSet, mktGoalSet, mktDailyMsgs } from './mktv.js';
 import { crmSan, sanSchema, sanAllowed, ktShopee } from './san.js';
 import { crmKho, khoSchema, khoRetOut } from './kho.js';
-import { fetchXlsx, crmFin } from './fin.js';
+import { fetchXlsx, crmFin, crmKtChi, finFull } from './fin.js';
 import { KT_ROLE_OK, ktSettingsOk, finOk, ktLoad, ktCfg, crmKt, ktKho, crmKtBatch } from './kt.js';
 import { crmSaleMkt, crmOffers } from './salemkt.js';
 import { cmsTokenSet, quizCms } from './cms.js';
@@ -565,7 +565,7 @@ async function loadSmall(x, u, R, mode, adV) {
     prefsOf(x, u.email), allTagColors(x), u.level >= 3 ? srcList(x) : [], u.level >= 3 ? adsCfg(x) : null, kvJson(x.db, 'commission_cfg', {}).then(r => r || {}), sanAllowed(x, u).catch(() => false), kvJson(x.db, 'dash_cfg', {}).then(r => r || {}),
     all(x.db, 'SELECT code, name FROM links').then(r => r.map(l => [l.code, l.name])).catch(() => []),
     u.level >= 3 || u.role === 'Marketing' || u.mkv ? kvJson(x.db, 'mkt_doc', null).then(r => r || MKT_DOC_DEF) : null,
-    finOk(u) ? kvJson(x.db, 'cost_cfg', null) : null, kvJson(x.db, 'payplan_cfg', null).then(r => Object.assign({}, PAYPLAN, r || {})), u.level >= 3 ? kvJson(x.db, 'staff_guard', []).then(r => r || []) : [], finOk(u) ? kvJson(x.db, 'opex_cfg', {}).then(r => r || {}) : null, finOk(u) ? kvJson(x.db, 'fin_cfg', null) : null, finOk(u) ? kvJson(x.db, 'kt_link', null) : null, u.level >= 2 || u.kho ? kvJson(x.db, 'kho_sum', null) : null]); // 💰 giá nhập sản phẩm: chỉ Quản trị (không nằm trong repo công khai) // 📍 tên link QR → nguồn đơn web hiện "📍 <tên>"
+    finOk(u) ? kvJson(x.db, 'cost_cfg', null) : null, kvJson(x.db, 'payplan_cfg', null).then(r => Object.assign({}, PAYPLAN, r || {})), u.level >= 3 ? kvJson(x.db, 'staff_guard', []).then(r => r || []) : [], finOk(u) ? kvJson(x.db, 'opex_cfg', {}).then(r => r || {}) : null, finOk(u) ? kvJson(x.db, 'fin_cfg', null).then(F => finFull(x, F)) : null, finOk(u) ? kvJson(x.db, 'kt_link', null) : null, u.level >= 2 || u.kho ? kvJson(x.db, 'kho_sum', null) : null]); // 💰 giá nhập sản phẩm: chỉ Quản trị (không nằm trong repo công khai) // 📍 tên link QR → nguồn đơn web hiện "📍 <tên>"
   const [ct, tg, cy, tp] = (await smallQ).map(r => r.results || []), ar = await adsP, areas = await areasP.catch(() => undefined);
   return {
     ok: true, user: publicUser(u), areas, sanOk, kho, now: Date.now(), today: startOfDay(Date.now()), fbNew, users, prefs, tagColors, sources, ads, adV: ar.v, adRows: ar.rows, qrLinks,
@@ -2489,6 +2489,7 @@ export async function crmApi(x, d, sync, mgr) {
     return crmPartner(x, u, d, crmLog, (await crmUsers(x)).map(z => z.name));
   }
   if (a === 'kt_fetch') return finOk(u) ? crmKtFetch(x, d) : { ok: false, error: 'Bạn không có quyền làm việc này.' };
+  if (a === 'kt_chi' || a === 'kt_chis' || a === 'kt_chig') return crmKtChi(x, u, d, crmLog); // 🏦 tiền ra + số dư từ sao kê (fin.js, 11/11/2026)
   if (a === 'kt_link' || a === 'fin_save' || a === 'fin_test') return crmFin(x, u, d, a); // 💼 tài chính (05/11/2026)
   const need = { settings: 2, users: 3, assign: 2, bulk: 2, recv: 2 };
   if (need[a] && u.level < need[a]) return { ok: false, error: 'Bạn không có quyền làm việc này.' };
