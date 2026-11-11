@@ -286,6 +286,20 @@ Kho góc kể có thêm 2 góc:
 - **Nhị đoạn bẻ lái 80/20:** 80% đầu kể chuyện đời thường hoặc chuyện đang được bàn tán, 20% cuối bẻ sang thông điệp.
 - **Phản biện:** góp ý kiến khác về một quan điểm đang được chia sẻ nhiều, lịch sự, giấu tên người nói.
 
+### 🧧 Chiến dịch Quà Tết 2027 (từ 11/11/2026)
+
+- **Trang web:** thucduonglanh.vn/qua-tet/ có 3 set quà:
+  - Set Sum Vầy 379.000đ
+  - Set Bố Mẹ Khỏe 849.000đ
+  - Set Trọn Năm 1.390.000đ
+
+  Trang có thêm form **mua chung cho hội, công ty**: giảm thêm 5% từ 10 set, 8% từ 30 set, 10% từ 50 set; người gom đơn được tặng 1 Set Sum Vầy cho mỗi 20 set.
+- **Khách mua chung điền form** thì về CRM Khách hỏi (kênh "Form website"), nội dung bắt đầu bằng "🧧 QUÀ TẾT MUA CHUNG". Sale gọi gửi báo giá trong ngày.
+- **Khách đặt set gửi bố mẹ:** địa chỉ nhận là nhà bố mẹ, lời chúc nằm ở **Ghi chú** của đơn. Kho viết tay lên thiệp. Ghi chú có chữ "hỏi thăm" thì sau 7 ngày gọi hỏi thăm người nhận 1 lần, không mời mua.
+- **Big idea Tết** "Tết này biếu bố mẹ một thói quen, không biếu thêm một món để dành" đã chạy sẵn cho nhóm **Con cái mua quà sức khỏe cho bố mẹ**, tự tắt sau tất niên (5/2/2027).
+- **📣 Bài Facebook cá nhân:** chọn lối ra **Quà Tết 2027** để câu có link dẫn về trang quà Tết.
+- Chi tiết chiến dịch (quảng cáo, ảnh, Google Ads, tiếp cận hội): Drive → Phòng Marketing AI → `08_Kết quả công việc/2026-11/V-2026-11-022…` và `V-2026-11-023…`.
+
 ### 📊 Tin content mỗi sáng thứ Hai (từ 11/11/2026)
 
 Sáng thứ Hai lúc 8h, ai có quyền Marketing, Quản lý, Quản trị và đã nối Telegram sẽ nhận tin **📊 Content tuần qua**:

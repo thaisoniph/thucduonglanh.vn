@@ -1755,7 +1755,7 @@
     captureSource(); initConsent(); trackPageEvents();
     renderCounts(); renderMini(); markWish();
     initHeader(); initClicks(); initRail(); initLightbox(); initProduct(); initCerts(); initProof(); initTabs(); initReadmore(); initSort();
-    initDD(); initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initJourneyMap(); initPledge(); initRef(); initCtv(); initCtvJoin(); initWall(); initWallStrip(); initQuiz(); initGiftDock(); initZaloGate(); initOcx(); initMusic(); initBrandVideo(); initChat();
+    initDD(); initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initJourneyMap(); initPledge(); initRef(); initCtv(); initCtvJoin(); initWall(); initWallStrip(); initQuiz(); initGiftDock(); initZaloGate(); initOcx(); initQtet(); initMusic(); initBrandVideo(); initChat();
     window.addEventListener('storage', function (e) { if (e.key === 'tdl_cart') { cart = load('tdl_cart', []); cleanCart(); renderCounts(); renderMini(); } });
   }
   // ===== Hành trình 10 triệu người Việt sống khỏe hơn: bộ đếm [data-jr] + trang "Tôi chọn sống lành" /toi-chon-song-lanh/ (api journey.js) =====
@@ -2262,6 +2262,26 @@
       save('tdl_ocx', { name: l.name, phone: l.phone, t: Date.now() });
       var g = giftLead() || {}; save('tdl_lead', { name: l.name, phone: l.phone, concern: g.concern || [], gifts: g.gifts || [], t: Date.now() });
       show(l); box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+  /* ---------- 🧧 Quà Tết 2027 /qua-tet/ (build.py page_qtet): form mua chung cho hội / công ty → khách hỏi "Form website" + Telegram ---------- */
+  function initQtet() {
+    var box = $('#qtetBox'); if (!box) return;
+    var form = $('#qtetForm', box), done = $('.ocx-done', box), bar = $('.ocx-bar'), set = $('#set');
+    if (bar && set && 'IntersectionObserver' in window) new IntersectionObserver(function (es) { bar.classList.toggle('off', es[0].isIntersecting); }).observe(set);
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var msg = $('.form-msg', form); msg.className = 'form-msg';
+      if (form.elements.website.value) return;
+      if (!validate(form)) { msg.className = 'form-msg err'; msg.textContent = 'Bạn điền giúp họ tên và số điện thoại đúng (10 số) nhé.'; return; }
+      var f = form.elements, l = { name: f.name.value.trim(), phone: normPhone(f.phone.value) }, pk = (form.querySelector('input[name=pack]:checked') || {}).value || '', src = sourceLabel();
+      var org = f.org.value.trim().slice(0, 150), qty = f.qty.value.trim().slice(0, 30), when = f.when.value.trim().slice(0, 60);
+      send({ type: 'contact', name: l.name, phone: l.phone, email: '', source: src.last, created: new Date().toISOString(), page: location.href,
+        message: '🧧 QUÀ TẾT MUA CHUNG (hội / CLB / công ty)' + (org ? '\n🏢 ' + org : '') + (qty ? '\n📦 Số set: ' + qty : '') + '\n🎁 ' + pk + (when ? '\n📅 Cần nhận trước: ' + when : '') + '\n🔗 Nguồn: ' + src.last + '\n👉 Gửi báo giá theo bậc (10–29 set −5%, 30–49 −8%, từ 50 −10%) trong ngày' }).catch(function () { });
+      track('generate_lead', { form: 'qua_tet_b2b' });
+      var g = giftLead() || {}; save('tdl_lead', { name: l.name, phone: l.phone, concern: g.concern || [], gifts: g.gifts || [], t: Date.now() });
+      $('[data-qtet-name]', done).textContent = l.name; $('[data-qtet-phone]', done).textContent = l.phone; form.hidden = true; done.hidden = false;
+      box.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   }
   // ===== Nút nổi "🎁 Quà & Trò chơi" (build.py gift_dock): luôn thấy ở góc trái dưới, bấm mở bảng chọn từ dưới lên =====

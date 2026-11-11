@@ -1,0 +1,167 @@
+{
+  "name": "Set Quà Tết Trọn Năm",
+  "short_name": "Set Trọn Năm",
+  "published": true,
+  "featured": false,
+  "order": 4,
+  "badge": "Quà Tết 2027",
+  "price": 1390000,
+  "free_ship": true,
+  "web_discount": 0,
+  "eyebrow": "Quà Tết Sống khỏe chủ động",
+  "headline": "Set Trọn Năm",
+  "tagline": "Đủ cho một năm mới bắt đầu bằng thói quen sống khỏe: 5 món, 3 hộp trà.",
+  "subline": "Gửi thẳng tới bố mẹ · Thiệp viết tay · Freeship",
+  "cta": "Đặt Set Trọn Năm",
+  "cta_short": "Đặt quà",
+  "cta_note": "Đặt trước 27/1/2027 để kịp giao trước Tết.",
+  "roadmap_link": "",
+  "items": [
+    {
+      "product": "dinh-duong-tu-hat-va-curcumin",
+      "variant": "Hộp 400g",
+      "qty": 1,
+      "icon": "🥛",
+      "benefit": "Cốc ấm mỗi sáng",
+      "title": "Dinh Dưỡng Từ Hạt & Curcumin",
+      "note": "15 loại hạt và ngũ cốc, có tảo biển, không đường tinh luyện.",
+      "detail": "15 loại hạt và ngũ cốc, có tảo biển, không đường tinh luyện. Nguyên liệu Curcuminoid do Viện Hóa học Công nghiệp Việt Nam sản xuất (nguyên liệu được NIFC kiểm nghiệm hàm lượng Curcuminoid 95,6%). Vị thơm, dễ uống.",
+      "quote": "Một thói quen dễ giữ: mỗi sáng một cốc."
+    },
+    {
+      "product": "bua-an-dinh-duong-vitagreen",
+      "variant": "Hộp 500g (20 gói x 25g)",
+      "qty": 1,
+      "icon": "🥣",
+      "benefit": "Bữa sáng của bố mẹ",
+      "title": "Bữa Ăn Dinh Dưỡng VitaGreen",
+      "note": "12 loại hạt, thuần chay, ngọt bằng cỏ ngọt: người đang kiêng đường dùng được.",
+      "detail": "Bổ sung dinh dưỡng từ ngũ cốc và hạt, pha 1 gói là có bữa sáng hoặc bữa phụ ấm bụng. 12 loại hạt, thuần chay, không đậu nành, ngọt bằng cỏ ngọt, đã kiểm nghiệm NIFC.",
+      "quote": "Sáng mùng 1, bố mẹ pha một cốc là dùng ngay."
+    },
+    {
+      "product": "tra-hoa-tan-dilvang-dinh-lang-che-vang",
+      "variant": "Combo 3 hộp",
+      "qty": 1,
+      "icon": "🍵",
+      "benefit": "Chén trà buổi chiều",
+      "title": "Trà DILVANG Đinh Lăng Chè Vằng",
+      "note": "Chè vằng Quảng Trị, 1 gói với nước ấm là có trà, không đun, không bã.",
+      "detail": "Tinh chất đinh lăng và chè vằng từ Quảng Trị, vùng chè vằng được bảo hộ chỉ dẫn địa lý. Pha 1 gói với nước ấm 40–50°C, không đun, không hãm, không bã. Vỏ hộp in 4 chữ không: không chất bảo quản, không chất chống đông vón, không hương liệu tổng hợp, không phẩm màu nhân tạo.",
+      "quote": "Chén trà ấm mời khách ngày Tết, pha trong 1 phút."
+    },
+    {
+      "product": "xi-dau-2s-do-den-nguu-bang",
+      "variant": "Chai 500ml",
+      "qty": 1,
+      "icon": "🍶",
+      "benefit": "Mâm cơm ngày Tết",
+      "title": "Xì Dầu 2S Đỗ Đen Ngưu Bàng",
+      "note": "Lên men tự nhiên 99 ngày, làm thủ công.",
+      "detail": "Lên men tự nhiên 99 ngày, làm thủ công; không chất tạo màu, không hương liệu tổng hợp. Đề tài nghiên cứu đạt Giải Khoa học Sáng tạo TP Hà Nội 2025. Hợp cả người ăn thường và người ăn thuần thực vật.",
+      "quote": "Chấm bánh chưng, rim đậu, kho nấm: đậm đà mà mộc."
+    },
+    {
+      "product": "ruoc-rong-bien-vi-suon-non",
+      "variant": "Hũ 165g",
+      "qty": 1,
+      "icon": "🍙",
+      "benefit": "Món ăn kèm",
+      "title": "Ruốc Rong Biển Vị Sườn Non Thuần Chay",
+      "note": "Thuần chay, thơm lá chanh và mè rang, rất đưa cơm.",
+      "detail": "Thuần chay, thơm lá chanh và mè rang, vị bùi, đậm đà. Ăn kèm cơm nóng, cháo, xôi, bánh mì; hợp người ăn chay và người lớn tuổi.",
+      "quote": "Mâm cơm chay ngày rằm, mùng 1 thêm một món."
+    }
+  ],
+  "images": [
+    "/assets/img/products/qua-tet-tron-nam.webp",
+    "/assets/img/products/curcumin-1.webp",
+    "/assets/img/products/bua-an-dinh-duong-1.webp",
+    "/assets/img/products/tra-dilvang-2.webp"
+  ],
+  "summary": "Set quà Tết đầy đủ nhất: 2 dòng dinh dưỡng từ hạt, 3 hộp trà DILVANG, xì dầu 2S, ruốc chay; gói quà Tết, thiệp viết tay.",
+  "hero": {
+    "eyebrow": "Quà Tết 2027 · Sống khỏe chủ động",
+    "title": "Set Trọn Năm\nquà biếu sang, dùng được",
+    "sub": "2 dòng dinh dưỡng từ hạt, 3 hộp trà chè vằng Quảng Trị, xì dầu lên men 99 ngày, ruốc chay.\nHợp biếu ông bà, bố mẹ hai bên, đối tác.",
+    "desc": "Tết này biếu bố mẹ một thói quen, không biếu thêm một món để dành."
+  },
+  "pains": {
+    "title": "Quà Tết biếu bố mẹ, bạn có từng lo…",
+    "items": [
+      "Biếu xong, bố mẹ tiếc không dùng, cất tủ đến Tết năm sau?",
+      "Ở xa, chỉ gửi được quà về, không ở bên nhắc bố mẹ ăn uống?",
+      "Giỏ quà nhìn sang nhưng toàn vỏ, mở ra không biết dùng gì?",
+      "Sợ mua nhầm hàng quảng cáo thổi phồng, không rõ nguồn gốc?"
+    ],
+    "callout": "Tết này biếu bố mẹ một thói quen, không biếu thêm một món để dành.\nMỗi món trong set đều dùng được hằng ngày: bữa sáng, chén trà chiều, mâm cơm."
+  },
+  "solution": {
+    "title": "Mỗi món là một\nthói quen trong ngày",
+    "intro": "Set được chọn để bố mẹ dùng hằng ngày, không phải để trưng:"
+  },
+  "journey": {
+    "title": "Đặt trước để kịp Tết",
+    "sub": "Tết Đinh Mùi: mùng 1 là 6/2/2027.",
+    "steps": [
+      {
+        "label": "Trước 27/1/2027",
+        "text": "Giao các tỉnh, thành kịp trước Tết."
+      },
+      {
+        "label": "Trước 30/1/2027",
+        "text": "Giao nội thành Hà Nội (23 tháng Chạp)."
+      },
+      {
+        "label": "Sáng mùng 1",
+        "text": "Bố mẹ mở hộp là dùng được ngay."
+      }
+    ],
+    "quote": "Quà Tết không cần to, cần được dùng."
+  },
+  "receive": {
+    "title": "Bạn nhận được",
+    "extras": [
+      "Hộp quà Tết và thiệp viết tay đúng lời bạn muốn nhắn (ghi lời chúc ở ô Ghi chú khi đặt)",
+      "Gửi thẳng tới bố mẹ: điền địa chỉ người nhận khi đặt hàng, miễn phí giao hàng",
+      "Tờ hướng dẫn chữ to: món nào dùng lúc nào trong ngày",
+      "Kiểm tra hàng trước khi trả tiền, đổi trả 7 ngày nếu lỗi nhà sản xuất"
+    ]
+  },
+  "final": {
+    "title": "Tết này, quà về trước người",
+    "sub": "Đặt hôm nay, Thực Dưỡng Lành gói quà, viết thiệp và gửi tận tay bố mẹ.",
+    "note": "Hộp quà Tết · Thiệp viết tay · Freeship · Kiểm hàng khi nhận"
+  },
+  "highlights": [],
+  "sections": [
+    {
+      "title": "Cách đặt quà gửi bố mẹ",
+      "style": "list",
+      "items": [
+        "**Địa chỉ nhận:** điền địa chỉ, số điện thoại của bố mẹ ở bước thanh toán.",
+        "**Lời chúc:** ghi lời bạn muốn nhắn ở ô Ghi chú, Thực Dưỡng Lành viết tay lên thiệp.",
+        "**Không cần trả tiền khi giao cho bố mẹ:** chọn chuyển khoản để bố mẹ chỉ việc nhận quà.",
+        "**Mua cho hội, công ty từ 10 set:** xem giá riêng ở trang thucduonglanh.vn/qua-tet/."
+      ]
+    },
+    {
+      "title": "Lưu ý",
+      "style": "box",
+      "text": "Người đang dùng thuốc hoặc đang theo chế độ ăn của bác sĩ nên hỏi ý kiến bác sĩ trước khi dùng thực phẩm bổ sung."
+    }
+  ],
+  "disclaimer": "Bữa Ăn Dinh Dưỡng VitaGreen và Dinh Dưỡng Từ Hạt & Curcumin là thực phẩm bổ sung. Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh.",
+  "keywords": [
+    "quà tết",
+    "quà tết bố mẹ",
+    "quà biếu",
+    "quà tết sức khỏe",
+    "quà tết cho người già",
+    "quà tết ý nghĩa",
+    "set quà",
+    "tết 2027"
+  ],
+  "needs": [],
+  "pitch": "Curcumin + VitaGreen + 3 trà DILVANG + xì dầu + ruốc, gói quà Tết"
+}

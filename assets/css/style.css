@@ -2416,3 +2416,19 @@ body.ch-on .float-widget,body.ch-on .gd-btn,body.ch-on .bvb,body.ch-on .to-top{o
 .dd-box .sp-track{margin-top:8px}
 .dd-thanks{border:1px solid #f0c27b;background:#fff8ec;color:#6b3d00;border-radius:12px;padding:12px 16px;margin:14px auto;max-width:560px;text-align:left}
 .dd-thanks p{margin:4px 0 0}
+
+/* ===== Quà Tết 2027 /qua-tet/ (build.py page_qtet, 11/11/2026): dùng chung khung .ocx-… của /bo-o-cu/ ===== */
+.qtet{--ox-tea:#A8322A;--ox-tea-soft:#FBE9E4}
+.qtet-hg{display:grid;grid-template-columns:1.15fr .85fr;gap:40px;align-items:center}
+.qtet-hero-img{width:100%;height:auto;border-radius:var(--radius);box-shadow:0 12px 32px rgba(120,40,20,.12)}
+.qtet-ticks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.qtet-ticks li::before{content:"✓ ";color:var(--ox-leaf);font-weight:700}
+.qtet-why{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.qtet-why>div{background:#fff;border-radius:var(--radius);padding:20px;display:flex;flex-direction:column;gap:8px;border:1px solid var(--ox-line)}
+.qtet-why b{color:var(--ox-leaf);font-size:1.05rem}
+.qtet-steps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:12px;max-width:760px}
+.qtet-dead{margin-top:20px!important;padding:14px 16px;background:var(--ox-tea-soft);border-radius:10px;max-width:760px}
+.qtet-tiers{margin:4px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+.qtet .qtet-form{border:1px solid var(--ox-line)}
+.qtet-grid{margin-top:8px}
+@media (max-width:860px){.qtet-hg{grid-template-columns:1fr;gap:24px}.qtet-why{grid-template-columns:1fr}}

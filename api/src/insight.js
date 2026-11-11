@@ -118,7 +118,18 @@ export const INS0 = [
       'Muốn bữa chay ngon, đổi món ↔ quanh quẩn đậu phụ, rau luộc nên dễ chán [SP: ruoc, xi-dau]',
       'Muốn cả nhà ăn chay cùng ngày rằm ↔ con cháu chê nhạt, phải nấu hai mâm [SP: xi-dau, ruoc]',
       'Muốn sống đúng niềm tin ↔ ngại bị xem là khác người khi đi ăn cùng bạn bè, đồng nghiệp'], trust: 'Thầy cô ở chùa, đạo tràng, người ăn chay lâu năm, chuyên gia thực dưỡng', kw: 'ăn chay đủ chất, món chay ngon, ăn chay thiếu chất gì, đạm thực vật', where: 'Chùa, đạo tràng, nhóm Facebook ăn chay / thực dưỡng, nhóm Zalo Phật tử' },
-  { id: 'mua-qua', name: 'Con cái mua quà sức khỏe cho bố mẹ', on: true, prods: 'dilvang, bua-an, curcumin',
+  { id: 'mua-qua', name: 'Con cái mua quà sức khỏe cho bố mẹ', on: true,
+    bigs: [{ t: 'Tết này biếu bố mẹ một thói quen, không biếu thêm một món để dành', until: '2027-02-05', on: true, ang: [ // chiến dịch Tết 2027 (V-2026-11-022, anh Sơn duyệt 11/11/2026), tự hết hạn sau tất niên
+      'Khoảnh khắc: mùng 4 dọn tủ, thấy hộp quà biếu Tết năm ngoái còn nguyên tem',
+      'Người trong cuộc: mẹ có cả tủ quà biếu, nhưng sáng nào cũng chỉ ăn cháo trắng',
+      'Hai trường phái: biếu tiền hay biếu quà? Hai cách nghĩ, ai cũng có lý',
+      'Tổng hợp: 7 dấu hiệu món quà Tết sẽ bị cất tủ (bài để dành, chia sẻ)',
+      'Hướng dẫn: chọn quà sức khỏe cho bố mẹ: đọc nhãn, hỏi bố mẹ đang kiêng gì, chọn món dùng mỗi ngày',
+      'Nhị đoạn bẻ lái 80/20: chuyện nhân viên về quê dịp Tết, cuối bài bẻ sang "quà là một thói quen"',
+      'Lời người thân: kể qua mắt người mẹ nhận hộp quà có tờ hướng dẫn chữ to và thiệp viết tay của con',
+      'Hậu trường: đóng set quà Tết ở kho, viết thiệp tay cho từng đơn, gói giấy đỏ',
+      'So sánh, phân biệt: giỏ quà Tết toàn vỏ và set quà dùng hằng ngày (không chê đối thủ có tên)',
+      'Bán hàng (BOFU): 3 set quà Tết Sống khỏe chủ động trên thucduonglanh.vn/qua-tet/, gửi thẳng tới bố mẹ, đặt trước 27/1/2027']}], prods: 'dilvang, bua-an, curcumin',
     who: '28–45 tuổi, sống xa bố mẹ hoặc bận rộn; mua quà dịp Tết, Vu Lan, 8/3, 20/10, sinh nhật, đi thăm người ốm.',
     want: 'Món quà thiết thực, bố mẹ thích và dùng thật, nhìn tươm tất. Sâu hơn: là người con chu đáo dù ở xa, bù đắp vì ít về thăm.',
     block: 'Sợ mua nhầm hàng thổi phồng, không rõ nguồn gốc; bố mẹ tiếc tiền, cất đi không dùng; không biết bố mẹ hợp loại nào, có đang dùng thuốc; hộp nhỏ sợ không sang; ngân sách có hạn.',
@@ -177,14 +188,14 @@ function clean(list) {
     while (seen[id]) id += '-2'; seen[id] = 1;
     const tensions = (Array.isArray(g.tensions) ? g.tensions : String(g.tensions || '').split('\n')).map(t => cut(String(t).replace(/^[-•*\d.)\s]+/, ''), 300)).filter(Boolean).slice(0, 30);
     const prods = [...new Set((Array.isArray(g.prods) ? g.prods : String(g.prods || '').split(/[,;\s]+/)).map(spCode).filter(Boolean))].slice(0, 12);
-    const bigs = (Array.isArray(g.bigs) ? g.bigs : []).slice(0, 4).map(b => ({ t: cut(b && b.t, 300), ang: (Array.isArray(b && b.ang) ? b.ang : String((b && b.ang) || '').split('\n')).map(a => cut(String(a).replace(/^[-•*\d.)\s]+/, ''), 200)).filter(Boolean).slice(0, 15), on: !b || b.on !== false })).filter(b => b.t);
+    const bigs = (Array.isArray(g.bigs) ? g.bigs : []).slice(0, 4).map(b => ({ t: cut(b && b.t, 300), ang: (Array.isArray(b && b.ang) ? b.ang : String((b && b.ang) || '').split('\n')).map(a => cut(String(a).replace(/^[-•*\d.)\s]+/, ''), 200)).filter(Boolean).slice(0, 15), on: !b || b.on !== false, until: /^\d{4}-\d{2}-\d{2}$/.test(String(b && b.until || '')) ? b.until : '' })).filter(b => b.t);
     return { id, name: cut(g.name, 80), on: g.on !== false, who: cut(g.who, 800), want: cut(g.want, 800), block: cut(g.block, 800), tensions, prods, note: cut(g.note, 1500), bigs, trust: cut(g.trust, 500), kw: cut(g.kw, 500), where: cut(g.where, 500) };
   }).filter(g => g.name);
 }
 export async function insBank(x) {
   const b = await kvJson(x.db, 'ins_bank', null); if (!(b && Array.isArray(b.groups) && b.groups.length)) return clean(INS0);
   const G = clean(b.groups), D = clean(INS0); // chân dung 8 ô (khoá K133): ô "họ tin ai / từ khoá họ tìm / nơi tụ tập" còn trống thì dùng bản mặc định cùng nhóm, không cần bấm Gộp
-  for (const g of G) { const d = D.find(v => v.id === g.id); if (d) for (const k of ['trust', 'kw', 'where']) if (!g[k] && d[k]) g[k] = d[k]; }
+  for (const g of G) { const d = D.find(v => v.id === g.id); if (d) { for (const k of ['trust', 'kw', 'where']) if (!g[k] && d[k]) g[k] = d[k]; if (!(g.bigs || []).length && (d.bigs || []).length) g.bigs = d.bigs; } } // nhóm chưa có big idea → dùng big idea mặc định (vd chiến dịch Tết), anh chị sửa ở CRM là thay
   return G;
 }
 const live = bank => bank.filter(g => g.on && g.tensions.length);
@@ -218,7 +229,7 @@ export async function insPick(x, ch, want, opt) {
   }
   const recent = g ? log.filter(r => r.g === g.id).slice(-8).map(r => (CH[r.ch] || r.ch) + ': ' + r.t).filter(s => !/: $/.test(s)) : [];
   // 🌟 big idea đang chạy của nhóm (khoá K131): mọi kênh nói quanh 1 ý lớn, mỗi bài 1 góc kể; góc ít dùng nhất ở kênh này (90 ngày) đi trước, hoà thì theo thứ tự anh chị xếp
-  const all90 = await logGet(x), big = g && !(opt && opt.noBig) ? (g.bigs || []).find(b => b.on && b.ang.length) || null : null;
+  const all90 = await logGet(x), today = fmtDate(now, 'yyyy-MM-dd'), big = g && !(opt && opt.noBig) ? (g.bigs || []).find(b => b.on && b.ang.length && (!b.until || b.until >= today)) || null : null;
   let angle = '';
   if (big) { const used = a => all90.filter(r => r.g === g.id && r.ch === ch && r.b === big.t && r.a && nrm(r.a) === nrm(a)).length; angle = big.ang.map((a, i) => ({ a, n: used(a), i })).sort((p, q) => p.n - q.n || p.i - q.i)[0].a; }
   const recentA = g ? all90.filter(r => r.g === g.id && r.a).slice(-6).map(r => r.a) : [];

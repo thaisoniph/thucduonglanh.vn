@@ -6944,8 +6944,8 @@
   function inBigHtml(g) {
     var B = g.bigs || []; if (!B.length) return '<p class="small muted">🌟 Chưa có big idea: trợ lý tự chọn góc kể từng bài. Bấm ✏️ Sửa → ✨ AI gợi ý big idea để cả 4 kênh nói nhất quán.</p>';
     return B.map(function (b, k) {
-      var run = b.on && k === B.findIndex(function (v) { return v.on && v.ang.length; });
-      return '<details class="small inx-big"' + (run ? ' open' : '') + '><summary>🌟 <b>' + esc(b.t) + '</b> ' + (run ? '<span class="zb-due">▶️ Đang chạy</span>' : '<span class="muted">· để dành</span>') + ' <span class="muted">· ' + b.ang.length + ' góc kể</span></summary><ol>' + b.ang.map(function (a) { return '<li>' + esc(a) + '</li>'; }).join('') + '</ol></details>';
+      var td = isoDate(Date.now()), live = function (v) { return v.on && v.ang.length && (!v.until || v.until >= td); }, run = live(b) && k === B.findIndex(live);
+      return '<details class="small inx-big"' + (run ? ' open' : '') + '><summary>🌟 <b>' + esc(b.t) + '</b> ' + (run ? '<span class="zb-due">▶️ Đang chạy' + (b.until ? ' đến ' + b.until.slice(8, 10) + '/' + b.until.slice(5, 7) : '') + '</span>' : '<span class="muted">· ' + (b.until && b.until < td ? 'đã hết hạn ' + b.until.slice(8, 10) + '/' + b.until.slice(5, 7) : 'để dành') + '</span>') + ' <span class="muted">· ' + b.ang.length + ' góc kể</span></summary><ol>' + b.ang.map(function (a) { return '<li>' + esc(a) + '</li>'; }).join('') + '</ol></details>';
     }).join('');
   }
   function inBigTxt(B) { return (B || []).map(function (b) { return b.t + '\n' + b.ang.map(function (a) { return '- ' + a; }).join('\n'); }).join('\n\n'); }
@@ -7200,6 +7200,7 @@
     $('#inGsave', m).onclick = function () {
       var t = $('#inGt', m).value.split('\n').map(function (s) { return s.trim(); }).filter(Boolean).map(function (s) { return s.replace(/\s*(<->|<=>|->|=>)\s*/, ' ↔ '); });
       var ng = { id: g.id || '', prods: $$('[data-ingp]', m).filter(function (x) { return x.checked; }).map(function (x) { return x.getAttribute('data-ingp'); }), name: $('#inGn', m).value.trim(), who: $('#inGw', m).value.trim(), want: $('#inGa', m).value.trim(), block: $('#inGb', m).value.trim(), tensions: t, note: $('#inGo', m).value.trim(), on: $('#inGon', m).checked, trust: $('#inGtr', m).value.trim(), kw: $('#inGkw', m).value.trim(), where: $('#inGwh', m).value.trim(), bigs: inBigParse($('#inGbi', m).value, $('#inGbiOn', m).checked) };
+      ng.bigs.forEach(function (b) { var o = (g.bigs || []).filter(function (x) { return x.t === b.t && x.until; })[0]; if (o) b.until = o.until; }); // giữ hạn chạy (vd big idea Tết tự tắt sau tất niên)
       if (ng.bigs.some(function (b) { return !b.ang.length; }) && !confirm('Có big idea chưa có góc kể nào (dòng bắt đầu bằng “-”). Big idea không có góc kể thì trợ lý chưa dùng được. Vẫn lưu?')) return;
       if (!ng.name) return toast('Bạn ghi tên nhóm trước nhé.', true);
       if (!t.length) return toast('Ghi ít nhất 1 tension nhé.', true);

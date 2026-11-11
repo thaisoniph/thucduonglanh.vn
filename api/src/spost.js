@@ -15,7 +15,8 @@ const WRITER = 'claude-opus-5-5';
 export const SPF_TO = {
   nhom: ['/nhom-zalo/', 'Vào nhóm Zalo', 'vào nhóm Zalo "Sống khỏe cùng Thực Dưỡng Lành" (mẹo sống khỏe mỗi ngày, hỏi đáp, quà cho thành viên), miễn phí'],
   qua: ['/qua-tang/', 'Nhận quà tặng', 'nhận quà tặng miễn phí trên website Thực Dưỡng Lành (cẩm nang sống khỏe)'],
-  web: ['/', 'Trang chủ web', 'xem website Thực Dưỡng Lành (sản phẩm, ưu đãi, đặt hàng có kiểm hàng)']
+  web: ['/', 'Trang chủ web', 'xem website Thực Dưỡng Lành (sản phẩm, ưu đãi, đặt hàng có kiểm hàng)'],
+  tet: ['/qua-tet/', 'Quà Tết 2027', 'xem 3 set quà Tết Sống khỏe chủ động trên website, gửi thẳng tới bố mẹ, đặt trước 27/1/2027'] // chiến dịch Tết 2027 (V-2026-11-022); sau Tết bỏ dòng này
 };
 const cut = (s, n) => String(s == null ? '' : s).trim().slice(0, n);
 let client = null, schemaOk = false;

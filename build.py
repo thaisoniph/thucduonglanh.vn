@@ -2212,6 +2212,124 @@ def page_ocx():
                   body, og=img_url("/assets/img/products/tra-dilvang-5.webp", 1000), body_class="page-ocx", noindex=True)
 
 
+QTET_PATH = "/qua-tet/"  # trang Quà Tết 2027 (11/11/2026, chiến dịch V-2026-11-022 khoá content K131 + K133, anh Sơn duyệt giá)
+QTET = {
+    "sets": ["set-qua-tet-sum-vay", "set-qua-tet-bo-me-khoe", "set-qua-tet-tron-nam"],  # content/combos/*.json
+    "until_far": "27/1/2027", "until_hn": "30/1/2027",  # hạn đặt: giao tỉnh / nội thành Hà Nội. Sau Tết: đặt published=false cho 3 set để tắt trang
+    "tiers": [("10–29 set", "giảm thêm 5%"), ("30–49 set", "giảm thêm 8%"), ("Từ 50 set", "giảm thêm 10%")],
+}
+
+
+def page_qtet():
+    """Trang Quà Tết 2027 /qua-tet/: big idea "biếu bố mẹ một thói quen" → 3 set (combo, đặt bằng giỏ hàng) → cách gửi thẳng bố mẹ → mua chung cho hội / công ty (form → khách hỏi + Telegram).
+    Khoá K133: offer gỡ đúng vế "nhưng" của tension (quà bị cất tủ, ở xa, sợ hàng thổi phồng). JS main.js initQtet, CSS .qtet-… (dùng chung khung .ocx-… của /bo-o-cu/)."""
+    sets = [x for slug in QTET["sets"] for x in PRODUCTS if x["slug"] == slug]
+    if len(sets) < 2:
+        return None
+    hot, zl = SITE["hotline"], zalo_link("Chào shop, mình muốn hỏi quà Tết")
+    lo = min(x["price"] for x in sets)
+    vnd = lambda x: f"{int(x):,}".replace(",", ".") + "đ"
+    tiers = "".join(f'<li><b>{esc(a)}</b>: {esc(b)}</li>' for a, b in QTET["tiers"])
+    opts = "".join(f'<label><input type="radio" name="pack" value="{esc(x["name"])}"{" checked" if i == 1 else ""}><span><b>{esc(x.get("short_name") or x["name"])}</b><em>{vnd(x["price"])} / set</em></span></label>' for i, x in enumerate(sets))
+    disc = "Bữa Ăn Dinh Dưỡng VitaGreen và Dinh Dưỡng Từ Hạt &amp; Curcumin là thực phẩm bổ sung. Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh."
+    hero = img_url(sets[min(1, len(sets) - 1)]["images"][0], 900)
+    body = f"""<div class="ocx qtet">
+<section class="ocx-band qtet-hero"><div class="ocx-wrap qtet-hg">
+  <div class="ocx-stack">
+    <span class="ocx-eye">Quà Tết 2027 · đặt trước {QTET["until_far"]}</span>
+    <h1>Tết này biếu bố mẹ <span class="nw">một thói quen,</span> <span class="nw">không biếu thêm</span> <span class="nw">một món để dành</span></h1>
+    <p class="ocx-lead">3 set quà Tết Sống khỏe chủ động: bữa sáng từ hạt, chén trà chè vằng Quảng Trị, xì dầu lên men 99 ngày. Món nào cũng dùng được hằng ngày, mở hộp là dùng ngay sáng mùng 1.</p>
+    <ul class="qtet-ticks"><li>Gửi thẳng tới bố mẹ, miễn phí giao hàng</li><li>Thiệp viết tay đúng lời bạn nhắn</li><li>Kiểm tra hàng trước khi trả tiền</li></ul>
+    <div class="ocx-cta"><a class="ocx-btn" href="#set" data-cta="qtet_hero_set">Chọn set quà, từ {vnd(lo)}</a><a class="ocx-btn ghost" href="#mua-chung" data-cta="qtet_hero_b2b">Mua cho hội, công ty</a></div>
+  </div>
+  <img class="qtet-hero-img" src="{hero}" alt="Set quà Tết Sống khỏe chủ động" width="600" height="600" fetchpriority="high">
+</div></section>
+
+<section><div class="ocx-wrap">
+  <div class="ocx-head"><h2>Quà biếu bố mẹ, <span class="nw">có bị cất tủ không?</span></h2>
+  <p class="ocx-lead">Nhiều nhà mùng 4 dọn tủ vẫn thấy hộp quà Tết năm ngoái còn nguyên tem. Bố mẹ tiếc, để dành, rồi đem biếu lại người khác. Còn mình ở xa, chỉ gửi được quà về, không ở bên nhắc bố mẹ ăn uống.</p></div>
+  <div class="qtet-why">
+    <div><b>🥣 Bữa sáng</b><p>Ngũ cốc 12 loại hạt, ngọt bằng cỏ ngọt, người đang kiêng đường dùng được. Pha một cốc là có bữa sáng ấm bụng.</p></div>
+    <div><b>🍵 Buổi chiều</b><p>Trà chè vằng Quảng Trị, vùng được bảo hộ chỉ dẫn địa lý. 1 gói với nước ấm, không đun, không bã, mời khách ngày Tết trong 1 phút.</p></div>
+    <div><b>🍶 Mâm cơm</b><p>Xì dầu 2S lên men tự nhiên 99 ngày, làm thủ công. Chấm bánh chưng, kho nấm, rim đậu.</p></div>
+  </div>
+</div></section>
+
+<section class="ocx-band" id="set"><div class="ocx-wrap">
+  <div class="ocx-head"><h2>Chọn 1 trong 3 set</h2><p class="ocx-lead">Bấm vào set để xem từng món. Thêm vào giỏ như mua hàng bình thường, ở bước thanh toán điền địa chỉ của bố mẹ.</p></div>
+  {grid(sets, "p-grid shop-grid qtet-grid")}
+</div></section>
+
+<section><div class="ocx-wrap">
+  <div class="ocx-head"><h2>Gửi thẳng tới bố mẹ <span class="nw">trong 3 bước</span></h2></div>
+  <ol class="qtet-steps">
+    <li><b>Chọn set, thêm vào giỏ.</b> Gửi nhiều nhà thì đặt mỗi nhà một đơn.</li>
+    <li><b>Điền địa chỉ, số điện thoại của bố mẹ</b> ở bước thanh toán. Ghi lời bạn muốn nhắn vào ô Ghi chú, shop viết tay lên thiệp. Muốn shop gọi hỏi thăm bố mẹ sau 7 ngày xem dùng có hợp không thì ghi thêm chữ "hỏi thăm".</li>
+    <li><b>Chọn chuyển khoản</b> để bố mẹ chỉ việc nhận quà, không phải trả tiền. Shop gói hộp quà Tết, kèm tờ hướng dẫn chữ to: món nào dùng lúc nào trong ngày.</li>
+  </ol>
+  <p class="qtet-dead">⏰ Đặt trước <b>{QTET["until_far"]}</b> để giao các tỉnh, thành kịp Tết; nội thành Hà Nội đặt trước <b>{QTET["until_hn"]}</b> (23 tháng Chạp). Mùng 1 Tết Đinh Mùi là 6/2/2027.</p>
+</div></section>
+
+<section class="ocx-band"><div class="ocx-wrap">
+  <div class="ocx-head"><h2>Đọc được nguồn gốc <span class="nw">từng món</span></h2></div>
+  <div class="qtet-why">
+    <div><b>Chè vằng Quảng Trị</b><p>Vùng chè vằng được Nhà nước bảo hộ chỉ dẫn địa lý; trà sản xuất tại nhà máy dược liệu Gold Herbal, Quảng Trị. Vỏ hộp in 4 chữ không: không chất bảo quản, không chất chống đông vón, không hương liệu tổng hợp, không phẩm màu nhân tạo.</p></div>
+    <div><b>Ngũ cốc từ hạt</b><p>Bữa Ăn VitaGreen 12 loại hạt, thuần chay, không đậu nành, đã kiểm nghiệm NIFC. Dinh Dưỡng Từ Hạt &amp; Curcumin 15 loại hạt, không đường tinh luyện.</p></div>
+    <div><b>Xì dầu lên men</b><p>Lên men tự nhiên 99 ngày, không chất tạo màu, không hương liệu tổng hợp. Đề tài nghiên cứu đạt Giải Khoa học Sáng tạo TP Hà Nội 2025.</p></div>
+  </div>
+</div></section>
+
+<section id="mua-chung"><div class="ocx-wrap">
+  <div class="ocx-head"><span class="ocx-eye">Hội, CLB, công ty, đạo tràng</span><h2>Mua chung quà Tết <span class="nw">giá riêng theo số lượng</span></h2>
+  <p class="ocx-lead">Quà Tết cho hội viên, nhân viên, đối tác: thứ mọi người dùng được hằng ngày thay vì giỏ quà để dành. In tên hội hoặc công ty lên thiệp, giao về 1 điểm hoặc tận từng người.</p>
+  <ul class="qtet-tiers">{tiers}<li><b>Người đứng ra gom đơn</b>: tặng 1 Set Sum Vầy cho mỗi 20 set</li></ul></div>
+  <div class="ocx-two">
+    <div class="ocx-box qtet-form" id="qtetBox">
+      <form id="qtetForm" novalidate>
+        <span class="ocx-n">Nhận báo giá trong ngày</span>
+        <label>Họ và tên người liên hệ *<input name="name" required autocomplete="name" placeholder="Ví dụ: Nguyễn Văn An"></label>
+        <label>Số điện thoại (Zalo) *<input name="phone" type="tel" required autocomplete="tel" inputmode="tel" placeholder="Ví dụ: 0912 345 678"></label>
+        <label>Tên hội, CLB hoặc công ty <small>(không bắt buộc)</small><input name="org" autocomplete="organization" placeholder="Ví dụ: CLB dưỡng sinh phường Yên Hòa"></label>
+        <label>Số set dự kiến <small>(ước chừng cũng được)</small><input name="qty" inputmode="numeric" placeholder="Ví dụ: 30"></label>
+        <fieldset class="ocx-packs"><legend>Set quan tâm</legend>{opts}<label><input type="radio" name="pack" value="Chưa chọn, cần tư vấn"><span><b>Chưa chọn, cần tư vấn</b></span></label></fieldset>
+        <label>Cần nhận trước ngày <small>(không bắt buộc)</small><input name="when" placeholder="Ví dụ: 20/1/2027"></label>
+        <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <button class="ocx-btn" type="submit">Nhận báo giá</button>
+        <p class="form-msg" role="status"></p>
+        <p class="ocx-legal">Khi bấm, bạn đồng ý để {BRAND} gọi hoặc nhắn Zalo gửi báo giá, theo <a href="/chinh-sach-bao-mat/" target="_blank">Chính sách bảo mật</a>. Không chia sẻ thông tin cho bên thứ ba.</p>
+      </form>
+      <div class="ocx-done" hidden>
+        <h3>🧧 Đã nhận yêu cầu của <span data-qtet-name></span></h3>
+        <p>Trong giờ làm việc, shop gọi hoặc nhắn Zalo số <b data-qtet-phone></b> để gửi báo giá trong ngày. Ngoài giờ, shop liên hệ vào sáng hôm sau.</p>
+        <a class="ocx-btn zalo" href="{zl}" target="_blank" rel="noopener" data-cta="qtet_done_zalo">💬 Nhắn Zalo {esc(hot)}</a>
+      </div>
+    </div>
+    <div class="ocx-box qtet-form">
+      <span class="ocx-n">Hoặc nhắn, gọi ngay</span>
+      <p>Nhắn Zalo mã dưới đây, shop gửi bảng giá theo số lượng:</p>
+      <span class="ocx-code">QUÀ TẾT</span>
+      <a class="ocx-btn zalo" href="{zl}" target="_blank" rel="noopener" data-cta="qtet_zalo">💬 Nhắn Zalo “QUÀ TẾT”</a>
+      <a class="ocx-btn ghost" href="tel:{tel(hot)}" data-cta="qtet_call">📞 Gọi {esc(hot)}</a>
+    </div>
+  </div>
+</div></section>
+
+<section class="ocx-band" id="hoi-dap"><div class="ocx-wrap ocx-faq">
+  <div class="ocx-head"><h2>Câu hỏi thường gặp</h2></div>
+  <details><summary>Đặt muộn nhất ngày nào thì kịp Tết?</summary><p>Giao các tỉnh, thành: đặt trước {QTET["until_far"]}. Nội thành Hà Nội: đặt trước {QTET["until_hn"]} (23 tháng Chạp). Cận Tết bên giao hàng rất đông đơn, đặt sớm thì yên tâm hơn.</p></details>
+  <details><summary>Gửi quà cho bố mẹ ở quê, bố mẹ có phải trả tiền không?</summary><p>Bạn chọn chuyển khoản khi đặt, bố mẹ chỉ việc nhận quà. Nếu chọn trả tiền khi nhận hàng thì người nhận trả.</p></details>
+  <details><summary>Có tự chọn món trong set được không?</summary><p>Có. Nhắn Zalo {esc(hot)}, shop ghép set theo món bố mẹ hay dùng, báo giá trước khi giao.</p></details>
+  <details><summary>Bố mẹ đang dùng thuốc, có dùng được không?</summary><p>Sản phẩm là thực phẩm, không phải thuốc. Người đang dùng thuốc hoặc đang theo chế độ ăn của bác sĩ nên hỏi ý kiến bác sĩ trước khi dùng thực phẩm bổ sung.</p></details>
+  <details><summary>Đổi trả thế nào?</summary><p>Kiểm tra hàng trước khi trả tiền. Đổi trả trong 7 ngày nếu lỗi nhà sản xuất. Xem <a href="/chinh-sach-doi-tra/">Chính sách đổi trả</a>.</p></details>
+  <p class="ocx-disc">{disc}</p>
+</div></section>
+</div>
+<div class="ocx-bar"><span><b>Từ {vnd(lo)}</b> · set quà Tết, freeship</span><a class="ocx-btn" href="#set" data-cta="qtet_bar">Chọn set</a></div>"""
+    return layout(QTET_PATH, "Quà Tết 2027 cho bố mẹ: set quà sức khỏe dùng mỗi ngày",
+                  f"Tết này biếu bố mẹ một thói quen: 3 set quà Tết từ {vnd(lo)} gồm ngũ cốc từ hạt, trà chè vằng Quảng Trị, xì dầu lên men 99 ngày. Gửi thẳng tới bố mẹ, thiệp viết tay, freeship. Mua chung cho hội, công ty giá riêng.",
+                  body, og=img_url(sets[min(1, len(sets) - 1)]["images"][0], 1000), body_class="page-ocx page-qtet")
+
+
 def page_quiz_group():
     """Màn hình lớn chơi nhóm (trà đàm, hội thảo, sự kiện): người dẫn chiếu lên TV/máy chiếu, bấm → / Space / bút trình chiếu để sang câu.
     Cuối buổi hiện mã QR: nhận quà cẩm nang, chơi lại trên điện thoại (thử thách 7 ngày), vào nhóm Zalo; link gắn utm_campaign = tên buổi để CRM đếm khách từ sự kiện.
@@ -3288,6 +3406,8 @@ def main():
         write(ZALO_GATE, page_zalo_gate())  # 17/10/2026: cổng để lại tên + số Zalo rồi mới vào nhóm (không vào sitemap)
     if IS_VI and (ocx := page_ocx()):
         write(OCX_PATH, ocx)  # landing quảng cáo Bộ Ở Cữ (không vào sitemap)
+    if IS_VI and (qtet := page_qtet()):
+        routes.append(write(QTET_PATH, qtet))  # Quà Tết 2027 (có trong sitemap: khách tìm "quà tết cho bố mẹ")
     routes.append(write("/san-pham/", page_listing("/san-pham/", t("Toàn bộ sản phẩm"), PRODUCTS, "", [(t("Toàn bộ sản phẩm"), None)])))
     sale =[p for p in PRODUCTS if p["on_sale"]]
     if HAS_SALE and sale: routes.append(write("/khuyen-mai/", page_listing("/khuyen-mai/", t("Khuyến Mãi"), sale, t("Các sản phẩm đang có chương trình ưu đãi tại ") + BRAND + ".", [(t("Sản phẩm"), "/san-pham/"), (t("Khuyến Mãi"), None)])))
