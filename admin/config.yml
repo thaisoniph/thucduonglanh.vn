@@ -755,6 +755,9 @@ collections:
               - { label: "Quà 1: đơn từ (đồng)", name: gift_min, widget: number, value_type: int, default: 500000, hint: "Tính theo tạm tính (giá web, trước mã ưu đãi). 0 = không tặng quà 1." }
               - { label: "Quà 1: mã sản phẩm", name: gift_slug, widget: string, default: "ruoc-rong-bien-vi-suon-non", hint: "Tên file sản phẩm (vd ruoc-rong-bien-vi-suon-non, tra-hoa-tan-dilvang-dinh-lang-che-vang). Kho gói quy cách đầu tiên của sản phẩm." }
               - { label: "Quà 1: chữ hiện cho khách", name: gift_label, widget: string, default: "1 hũ Ruốc Rong Biển 165g" }
+              - { label: "Quà bậc 2: đơn từ (đồng)", name: gift2_min, widget: number, value_type: int, default: 0, required: false, hint: "Đơn đủ mức này nhận quà bậc 2 THAY quà 1 (không nhận cả hai). 0 = không có bậc 2." }
+              - { label: "Quà bậc 2: mã sản phẩm", name: gift2_slug, widget: string, required: false, hint: "Vd tra-hoa-tan-dilvang-dinh-lang-che-vang" }
+              - { label: "Quà bậc 2: chữ hiện cho khách", name: gift2_label, widget: string, required: false, hint: "Vd 1 hộp Trà DILVANG" }
               - { label: "Quà 2: số đơn đầu tiên trong ngày", name: first_n, widget: number, value_type: int, default: 11, hint: "Vd 11 = 11 đơn đầu tiên đủ điều kiện. 0 = không có quà 2." }
               - { label: "Quà 2: đơn từ (đồng)", name: first_min, widget: number, value_type: int, default: 300000 }
               - { label: "Quà 2: mã sản phẩm", name: first_slug, widget: string, default: "tra-hoa-tan-dilvang-dinh-lang-che-vang" }

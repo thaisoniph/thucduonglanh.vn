@@ -69,7 +69,7 @@ Khung xanh nhạt bên dưới là **bài sẽ hiện y như vậy trên Zalo** 
 ![Ô sửa chữ: 1 sửa nội dung, 2 Lưu](/huong-dan/img/zalo-sua-chu.webp)
 
 1. Sửa ngay trong ô. Chữ muốn in đậm thì để trong **hai dấu sao**, ví dụ `**Hạt sen**`.
-2. Nếu viết lại hẳn sang nội dung khác (ví dụ đổi bài đố vui thành bài nhắc ưu đãi) thì sửa luôn ô **Chủ đề** và **Tầng phễu** phía trên ô chữ, để bảng hiệu quả tính đúng loại bài. Hai ô này không đăng lên nhóm.
+2. Nếu viết lại hẳn sang nội dung khác (ví dụ đổi bài đố vui thành bài nhắc ưu đãi) thì sửa luôn các ô **Chủ đề**, **Tầng phễu**, **🎯 Nhóm khách** và **Tension** phía trên ô chữ, để bảng hiệu quả tính đúng loại bài. Ô Tension có gợi ý sẵn các tension của nhóm khách đang chọn, gõ câu khác cũng được. Các ô này không đăng lên nhóm.
 3. Bấm **💾 Lưu**, rồi bấm **✅ Duyệt bài này**. Bấm **Huỷ** nếu không muốn sửa nữa.
 
 Bài đã duyệt hiện **✅ Đã duyệt · sẽ đăng…**. Đổi ý thì bấm **↩️ Bỏ duyệt**.

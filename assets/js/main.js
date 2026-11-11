@@ -508,7 +508,7 @@
   var UNIT_WORDS = ['hộp', 'hũ', 'chai', 'gói', 'túi', 'lọ', 'bịch'];
   function shipHint(p, v, q) {
     var th = fsTh(), fee = +CFG.shipping_fee || 0, price = v && v.price;
-    if (ddOn() && CFG.dd.free_ship && LANG === 'vi') return '🎉 <b>' + esc(CFG.dd.name || 'Ngày Đôi') + ' ' + ddOn().label + '</b>: ' + (p.fs || !th || (price && price * (q || 1) >= th) ? 'được <b>miễn phí vận chuyển</b>' : 'miễn phí vận chuyển đơn từ <b>' + ddK(th) + '</b>') + (CFG.dd.gift && CFG.dd.gift_min ? ', đơn từ ' + ddK(CFG.dd.gift_min) + ' tặng ' + esc(CFG.dd.gift) : '');
+    if (ddOn() && CFG.dd.free_ship && LANG === 'vi') return '🎉 <b>' + esc(CFG.dd.name || 'Ngày Đôi') + ' ' + ddOn().label + '</b>: ' + (p.fs || !th || (price && price * (q || 1) >= th) ? 'được <b>miễn phí vận chuyển</b>' : 'miễn phí vận chuyển đơn từ <b>' + ddK(th) + '</b>') + (CFG.dd.gift && CFG.dd.gift_min ? ', đơn từ ' + ddK(CFG.dd.gift_min) + ' tặng ' + esc(CFG.dd.gift) : '') + (CFG.dd.gift2 && CFG.dd.gift2_min ? ', từ ' + ddK(CFG.dd.gift2_min) + ' tặng ' + esc(CFG.dd.gift2) : '');
     if (p.fs || ddFree()) return T('🚚 Được <b>miễn phí vận chuyển</b>');
     if (!th || !fee || !price) return T('🚚 Giao hàng toàn quốc');
     if (price * (q || 1) >= th) return (q || 1) > 1 ? T('🚚 Số lượng này được <b>miễn phí vận chuyển</b>') : T('🚚 Được <b>miễn phí vận chuyển</b>');
@@ -639,8 +639,11 @@
   function ddK(v) { return Math.round(v / 1000) + 'K'; }
   /** dòng quà theo tạm tính (giỏ mini, trang thanh toán): chỉ bản tiếng Việt */
   function ddLines(sub) {
-    var c = CFG.dd, out = [];
-    if (c.gift && c.gift_min) out.push(sub >= c.gift_min ? '🎁 ' + 'Được tặng' + ' <b>' + esc(c.gift) + '</b>' : '🎁 ' + 'Thêm' + ' <b>' + money(c.gift_min - sub) + '</b> ' + 'để được tặng' + ' <b>' + esc(c.gift) + '</b>');
+    var c = CFG.dd, out = [], g1 = c.gift && c.gift_min, g2 = c.gift2 && c.gift2_min; // quà theo bậc: đủ bậc 2 thì nhận quà 2 THAY quà 1
+    if (g2 && sub >= c.gift2_min) out.push('🎁 Được tặng <b>' + esc(c.gift2) + '</b>');
+    else if (g1 && sub >= c.gift_min) out.push('🎁 Được tặng <b>' + esc(c.gift) + '</b>' + (g2 ? ' · thêm <b>' + money(c.gift2_min - sub) + '</b> để nhận <b>' + esc(c.gift2) + '</b> thay thế' : ''));
+    else if (g1) out.push('🎁 Thêm <b>' + money(c.gift_min - sub) + '</b> để được tặng <b>' + esc(c.gift) + '</b>' + (g2 ? ' (từ ' + ddK(c.gift2_min) + ': ' + esc(c.gift2) + ')' : ''));
+    else if (g2) out.push('🎁 Thêm <b>' + money(c.gift2_min - sub) + '</b> để được tặng <b>' + esc(c.gift2) + '</b>');
     if (c.first && c.first_n && !(DDS && DDS.left === 0)) {
       var left = DDS ? ' (' + 'còn' + ' <b>' + DDS.left + '/' + c.first_n + '</b> ' + 'suất' + ')' : '';
       out.push(sub >= c.first_min ? '⚡ ' + c.first_n + ' ' + 'đơn đầu tiên hôm nay được tặng thêm' + ' <b>' + esc(c.first) + '</b>' + left
@@ -652,7 +655,8 @@
     var on = ddOn(), c = CFG.dd; if (!on || LANG !== 'vi') return '';
     var th = fsTh(), fs = !!c.free_ship && (!th || sub >= th || hasFS(items)), noGift = ddVcOff(items);
     var lines = noGift ? ['🎟 Đơn đang dùng mã giảm giá nên không kèm quà Ngày Đôi (vẫn được miễn ship). Muốn nhận quà thì bấm “Bỏ mã”.'] : ddLines(sub);
-    var tgt = c.free_ship && !fs ? th : (!noGift && c.gift && c.gift_min && sub < c.gift_min ? c.gift_min : 0), pct = tgt ? Math.min(100, Math.max(4, Math.round(sub / tgt * 100))) : 100;
+    var gn = [c.gift && c.gift_min, c.gift2 && c.gift2_min].filter(function (v) { return v && sub < v; })[0] || 0; // bậc quà kế tiếp
+    var tgt = c.free_ship && !fs ? th : (!noGift ? gn : 0), pct = tgt ? Math.min(100, Math.max(4, Math.round(sub / tgt * 100))) : 100;
     return '<div class="' + cls + (fs ? ' ok' : '') + ' dd-box"><p class="sp-msg">🎉 <b>' + esc(c.name || 'Ngày Đôi') + ' ' + on.label + '</b>: ' + (!c.free_ship ? 'đặt trên web có quà' : fs ? 'đơn được <b>miễn phí vận chuyển</b>' : 'thêm <b>' + money(th - sub) + '</b> để được <b>miễn phí vận chuyển</b> (từ ' + ddK(th) + ')') + '</p>' +
       lines.map(function (l) { return '<p class="dd-l">' + l + '</p>'; }).join('') + (tgt && sub < tgt ? '<div class="sp-track"><i style="width:' + pct + '%"></i></div>' : '') + '</div>';
   }
@@ -669,7 +673,7 @@
     var bar = document.createElement('div'); bar.className = 'dd-bar' + (pre ? ' dd-pre' : ''); bar.setAttribute('role', 'region'); bar.setAttribute('aria-label', (c.name || 'Ngày Đôi') + ' ' + label);
     var tb = $('.topbar'); if (tb && tb.parentNode) tb.parentNode.insertBefore(bar, tb); else document.body.insertBefore(bar, document.body.firstChild);
     var perks = function () {
-      var p = [c.free_ship ? 'Miễn ship ' + (+c.free_ship_min > 0 ? 'đơn từ ' + ddK(c.free_ship_min) : 'mọi đơn') : '', c.gift && c.gift_min ? 'Đơn từ ' + ddK(c.gift_min) + ' tặng ' + esc(c.gift) : ''].filter(Boolean).join(' · ');
+      var p = [c.free_ship ? 'Miễn ship ' + (+c.free_ship_min > 0 ? 'đơn từ ' + ddK(c.free_ship_min) : 'mọi đơn') : '', c.gift && c.gift_min ? 'Đơn từ ' + ddK(c.gift_min) + ' tặng ' + esc(c.gift) : '', c.gift2 && c.gift2_min ? (c.gift && c.gift_min ? 'từ ' : 'Đơn từ ') + ddK(c.gift2_min) + ' tặng ' + esc(c.gift2) : ''].filter(Boolean).join(' · ');
       if (c.first && c.first_n) p += '<span class="dd-f"> · ' + (DDS && DDS.left === 0 ? c.first_n + ' suất ' + esc(c.first) + ' đã có chủ 🎉' : c.first_n + ' đơn đầu' + (c.first_min ? ' từ ' + ddK(c.first_min) : '') + ' tặng thêm ' + esc(c.first) + (DDS ? ' <em>(còn ' + DDS.left + ' suất)</em>' : '')) + '</span>';
       return p;
     };
