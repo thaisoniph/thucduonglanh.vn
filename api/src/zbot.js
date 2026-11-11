@@ -781,7 +781,17 @@ export async function crmZbot(x, u, d, crmLog) {
     const text = d.text === undefined ? p.text : String(d.text).slice(0, 4000);
     const topic = String(d.topic === undefined ? '' : d.topic).trim().slice(0, 120) || p.topic; // 11/11/2026: sửa nhãn chủ đề + tầng phễu khi nhân sự viết lại hẳn bài
     const funnel = ['TOFU', 'MOFU', 'BOFU', 'TIN'].includes(d.funnel) ? d.funnel : p.funnel;
-    await run(x.db, 'UPDATE zb_posts SET text = ?, topic = ?, funnel = ?, status = ?, by_name = ?, at = ? WHERE id = ?', text, topic, funnel, st, u.name, now, p.id);
+    let ins = p.ins || ''; // 11/11/2026: sửa nhóm khách + tension; đổi nhóm / tension thì bỏ insight, idea, issue cũ (không còn khớp)
+    if (d.ins_g !== undefined || d.ins_t !== undefined) {
+      let o = {}; try { o = JSON.parse(p.ins || '{}') || {}; } catch (e) { o = {}; }
+      const gid = d.ins_g === undefined ? (o.g || '') : String(d.ins_g).slice(0, 60), tt = d.ins_t === undefined ? (o.t || '') : String(d.ins_t).trim().replace(/<->|<=>|->/g, '↔').slice(0, 300);
+      if (gid !== (o.g || '') || tt !== (o.t || '')) {
+        const g = gid ? (await insBank(x)).find(b => b.id === gid) : null;
+        o = Object.assign(o, { g: gid, gn: g ? g.name : gid ? (o.g === gid ? o.gn : gid) : '', t: tt }); delete o.i; delete o.d; delete o.is; delete o.w;
+        ins = o.gn || o.t ? JSON.stringify(o) : '';
+      }
+    }
+    await run(x.db, 'UPDATE zb_posts SET text = ?, topic = ?, funnel = ?, ins = ?, status = ?, by_name = ?, at = ? WHERE id = ?', text, topic, funnel, ins, st, u.name, now, p.id);
     await crmLog(x, u, 'Bài Zalo', p.id, '', ({ ok: 'Duyệt', skip: 'Bỏ', draft: 'Sửa' }[st] || st) + (funnel !== p.funnel ? ' · phễu ' + (p.funnel || '–') + ' → ' + funnel : ''), topic);
     return { ok: true, warn: d.text !== undefined && d.text !== p.text ? await quizWarn(x, p) : '' };
   }

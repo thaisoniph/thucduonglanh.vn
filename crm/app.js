@@ -6769,6 +6769,7 @@
         '<div class="zp-tedit" id="zbTm_' + p.id + '"><label class="f"><span>⏰ Giờ đăng riêng cho bài này <small class="muted">' + (sl.id === 'toi' ? 'bài tối: 12:00–21:45' : 'bài sáng: 6:00–11:59') + ' · giờ chung: ' + zbAt(sl, it.d) + '</small></span><input type="time" id="zbTmI_' + p.id + '" value="' + esc(zbWhen(sl, it.d)) + '" min="' + (sl.id === 'toi' ? '12:00' : '06:00') + '" max="' + (sl.id === 'toi' ? '21:45' : '11:59') + '"></label><div class="lq-btns"><button class="btn sm pri" data-zb="tsave|' + p.id + '">💾 Lưu giờ</button>' + (p.at_time ? '<button class="btn sm" data-zb="treset|' + p.id + '">↩️ Về giờ chung ' + zbAt(sl, it.d) + '</button>' : '') + '<button class="btn sm ghost" data-zb="time|' + p.id + '">Huỷ</button></div></div>' +
         '<div class="zb-edit"><label class="f"><span>Chủ đề <small class="muted">nhãn để đo hiệu quả, không đăng lên nhóm</small></span><input type="text" id="zbTp_' + p.id + '" maxlength="120" value="' + esc(p.topic || '') + '"></label>' +
         '<label class="f"><span>Tầng phễu</span><select id="zbFn_' + p.id + '">' + ['TOFU', 'MOFU', 'BOFU', 'TIN'].concat(p.funnel && !/^(TOFU|MOFU|BOFU|TIN)$/.test(p.funnel) ? [p.funnel] : []).map(function (k) { return '<option value="' + k + '"' + (k === p.funnel ? ' selected' : '') + '>' + esc(ZB_FUN[k] || k) + '</option>'; }).join('') + '</select></label>' +
+        zbInsEdit(p) +
         '<textarea class="zb-text" id="zbT_' + p.id + '" rows="' + Math.min(18, Math.max(6, String(p.text).split('\n').length + 2)) + '">' + esc(p.text) + '</textarea><div class="lq-btns"><button class="btn sm pri" data-zb="save|' + p.id + '">💾 Lưu</button><button class="btn sm ghost" data-zb="edit|' + p.id + '">Huỷ</button></div></div>' +
         '</div></div></div>';
     });
@@ -6987,8 +6988,8 @@
       t.disabled = true; return api('zb_time', { id: id, at: zat }).then(after(zat ? 'Đã hẹn giờ đăng ' + zat.replace(':', 'h') + ' ✓' : 'Bài quay về giờ chung ✓'), fail);
     }
     if (v[0] === 'save' || v[0] === 'ok' || v[0] === 'skip' || v[0] === 'draft') {
-      var ta = $('#zbT_' + id), ztp = $('#zbTp_' + id), zfn = $('#zbFn_' + id); t.disabled = true; // 11/11/2026: sửa cả chủ đề + tầng phễu (nhãn đo hiệu quả)
-      return api('zb_post', { id: id, text: ta ? ta.value : undefined, topic: ztp ? ztp.value : undefined, funnel: zfn ? zfn.value : undefined, status: v[0] === 'save' ? undefined : v[0] }).then(after({ save: 'Đã lưu bài ✓', ok: 'Đã duyệt ✓ Tới giờ trợ lý sẽ đăng.', skip: 'Đã bỏ bài này, trợ lý sẽ không đăng.', draft: 'Bài đã quay lại chờ duyệt ✓' }[v[0]]), fail);
+      var ta = $('#zbT_' + id), ztp = $('#zbTp_' + id), zfn = $('#zbFn_' + id), zig = $('#zbIg_' + id), zit = $('#zbIt_' + id); t.disabled = true; // 11/11/2026: sửa cả chủ đề + tầng phễu + nhóm khách + tension (nhãn đo hiệu quả)
+      return api('zb_post', { id: id, text: ta ? ta.value : undefined, topic: ztp ? ztp.value : undefined, funnel: zfn ? zfn.value : undefined, ins_g: zig ? zig.value : undefined, ins_t: zit ? zit.value : undefined, status: v[0] === 'save' ? undefined : v[0] }).then(after({ save: 'Đã lưu bài ✓', ok: 'Đã duyệt ✓ Tới giờ trợ lý sẽ đăng.', skip: 'Đã bỏ bài này, trợ lý sẽ không đăng.', draft: 'Bài đã quay lại chờ duyệt ✓' }[v[0]]), fail);
     }
     if (v[0] === 'img') return zbImgOpen(id);
     if (v[0] === 'lf') { ZB.lf = id; return render(); }
@@ -7071,6 +7072,21 @@
   function zbRender(t) { // xem trước như trên Zalo: **đậm**, @tên, link, xuống dòng
     return esc(String(t || '')).replace(/\*\*([^*\n]+)\*\*/g, '<b>$1</b>').replace(/(https?:\/\/[^\s<]+)/g, '<span class="zb-link">$1</span>').replace(/(^|[\s(])((?:www\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:vn|com|net|org|me)(?:\/[^\s<]*)?)/gi, '$1<span class="zb-link">$2</span>').replace(/(^|\s)(@[^\s,.!?]+)/g, '$1<span class="zb-at">$2</span>').replace(/\n/g, '<br>');
   }
+  /** ✏️ Sửa chữ: ô nhóm khách + tension (gợi ý tension của nhóm đang chọn từ ngân hàng insight, gõ tự do cũng được) */
+  function zbTnOpts(g) { return ((g && g.tn) || []).map(function (l) { return '<option value="' + esc(String(l).replace(/\s*\[\s*sp\s*:[^\]]*\]\s*$/i, '').trim()) + '">'; }).join(''); }
+  function zbInsEdit(p) {
+    var o = {}; try { o = typeof p.ins === 'string' ? JSON.parse(p.ins || '{}') : (p.ins || {}); } catch (e) { o = {}; }
+    var G = ((ZB.d && ZB.d.insG) || []).filter(function (g) { return g.on || g.id === o.g; }), has = G.some(function (g) { return g.id === o.g; });
+    var cur = G.filter(function (g) { return g.id === o.g; })[0];
+    return '<label class="f"><span>🎯 Nhóm khách</span><select id="zbIg_' + p.id + '" data-zbig="' + p.id + '"><option value="">(Không ghi)</option>' + (o.g && !has ? '<option value="' + esc(o.g) + '" selected>' + esc(o.gn || o.g) + '</option>' : '') +
+      G.map(function (g) { return '<option value="' + esc(g.id) + '"' + (g.id === o.g ? ' selected' : '') + '>' + esc(g.name) + '</option>'; }).join('') + '</select></label>' +
+      '<label class="f"><span>Tension <small class="muted">điều họ mong ↔ điều đang cản họ</small></span><input type="text" id="zbIt_' + p.id + '" list="zbItL_' + p.id + '" maxlength="300" value="' + esc(o.t || '') + '"><datalist id="zbItL_' + p.id + '">' + zbTnOpts(cur) + '</datalist></label>';
+  }
+  document.addEventListener('change', function (e) { // đổi nhóm khách → gợi ý tension của nhóm đó
+    var s = e.target.closest && e.target.closest('[data-zbig]'); if (!s) return;
+    var g = ((ZB.d && ZB.d.insG) || []).filter(function (x) { return x.id === s.value; })[0], dl = document.getElementById('zbItL_' + s.getAttribute('data-zbig'));
+    if (dl) dl.innerHTML = zbTnOpts(g);
+  });
   function zbImgOpen(id) { // 🖼 đổi ảnh bài đăng: chọn trong kho ảnh thật của web / tải từ máy / bỏ ảnh
     var p = ((ZB.d && ZB.d.posts) || []).filter(function (x) { return x.id === id; })[0]; if (!p) return;
     var lib = (ZB.d && ZB.d.lib) || [];

@@ -7,7 +7,8 @@
 // Đếm suất "N đơn đầu": kv dd_<YYYY-MM-DD> (tăng 1 cho mỗi đơn đủ điều kiện, đơn huỷ không trả suất).
 import { first, kvGet, kvSet, fmt } from './lib.js';
 
-const DEF = { enabled: true, name: 'Ngày Đôi Sống Lành', free_ship: true, free_ship_min: 150000, gift_min: 500000, first_n: 11, first_min: 300000,
+const DEF = { enabled: true, name: 'Ngày Đôi Sống Lành', free_ship: true, free_ship_min: 150000, gift_min: 500000, gift2_min: 0, gift2: null, // gift2: quà bậc 2, đủ mức thì nhận THAY quà 1
+  first_n: 11, first_min: 300000,
   gift: { name: 'Ruốc Rong Biển Vị Sườn Non Thuần Chay', variant: 'Hũ 165g', label: '1 hũ Ruốc Rong Biển 165g' },
   first: { name: 'Trà Hòa Tan DILVANG – Đinh Lăng Chè Vằng', variant: 'Hộp lẻ 75g (15 gói x 5g)', label: '1 hộp Trà DILVANG' } };
 const VN = 7 * 3600e3;
@@ -34,7 +35,7 @@ const k = v => Math.round(num(v) / 1000) + 'K';
 
 /** Câu mô tả ưu đãi (CRM → Ưu đãi đang chạy, bài trợ lý Zalo) */
 export function ddText(c, label) {
-  const g = [c.gift && num(c.gift_min) ? 'đơn từ ' + k(c.gift_min) + ' tặng ' + c.gift.label : '', c.first && num(c.first_n) ? num(c.first_n) + ' đơn đầu tiên' + (num(c.first_min) ? ' từ ' + k(c.first_min) : '') + ' tặng thêm ' + c.first.label : ''].filter(Boolean);
+  const g = [c.gift && num(c.gift_min) ? 'đơn từ ' + k(c.gift_min) + ' tặng ' + c.gift.label : '', c.gift2 && num(c.gift2_min) ? 'đơn từ ' + k(c.gift2_min) + ' tặng ' + c.gift2.label + (c.gift && num(c.gift_min) ? ' (thay cho quà trên)' : '') : '', c.first && num(c.first_n) ? num(c.first_n) + ' đơn đầu tiên' + (num(c.first_min) ? ' từ ' + k(c.first_min) : '') + ' tặng thêm ' + c.first.label : ''].filter(Boolean);
   return [c.free_ship ? 'miễn phí ship ' + (num(c.free_ship_min) ? 'đơn từ ' + k(c.free_ship_min) : 'mọi đơn') : '', ...g].filter(Boolean).join('; ') + (g.length ? ' (quà không áp dụng cùng mã giảm giá)' : '');
 }
 /** Ưu đãi ảo cho danh sách "Ưu đãi đang chạy" vào đúng ngày đôi (at = mốc thời gian, mặc định bây giờ) */
@@ -60,11 +61,12 @@ export async function ddApply(x, data) {
   const sub = num(data.subtotal), cu = data.customer || (data.customer = {}), items = Array.isArray(data.items) ? data.items : (data.items = []);
   const out = { label: day.label, ship: false, gifts: [] }, why = [], n = num(c.first_n);
   if (c.free_ship && sub >= num(c.free_ship_min)) { const sh = num(data.shipping); if (sh) { data.total = Math.max(0, (Number(data.total) || 0) - sh); data.shipping = 0; } out.ship = true; why.push('miễn ship'); }
-  const low = Math.min(c.gift && c.gift.name && num(c.gift_min) ? num(c.gift_min) : Infinity, c.first && c.first.name && n ? num(c.first_min) : Infinity);
+  const low = Math.min(c.gift && c.gift.name && num(c.gift_min) ? num(c.gift_min) : Infinity, c.gift2 && c.gift2.name && num(c.gift2_min) ? num(c.gift2_min) : Infinity, c.first && c.first.name && n ? num(c.first_min) : Infinity);
   if (num(data.discount) > 0 && sub >= low) { out.noGift = true; why.push('không kèm quà vì đơn đã dùng mã giảm ' + fmt(data.discount)); } // không cộng dồn quà với mã giảm giá
   else {
   const give = (g, txt) => { items.push({ name: g.name, variant: g.variant || '', qty: 1, price: 0, subtotal: 0, gift: true }); out.gifts.push(g.label); why.push('🎁 ' + g.label + ' (' + txt + ')'); };
-  if (c.gift && c.gift.name && num(c.gift_min) && sub >= num(c.gift_min)) give(c.gift, 'đơn từ ' + fmt(c.gift_min));
+  if (c.gift2 && c.gift2.name && num(c.gift2_min) && sub >= num(c.gift2_min)) give(c.gift2, 'đơn từ ' + fmt(c.gift2_min)); // bậc 2 thay bậc 1
+  else if (c.gift && c.gift.name && num(c.gift_min) && sub >= num(c.gift_min)) give(c.gift, 'đơn từ ' + fmt(c.gift_min));
   if (c.first && c.first.name && n && sub >= num(c.first_min)) {
     const r = await first(x.db, "INSERT INTO kv (k, v, exp) VALUES (?, '1', ?) ON CONFLICT(k) DO UPDATE SET v = CAST(v AS INTEGER) + 1 RETURNING v", 'dd_' + day.key, Date.now() + 40 * 864e5);
     const i = Number(r && r.v) || 0;
