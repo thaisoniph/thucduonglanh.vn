@@ -164,14 +164,19 @@
     }
     return { p: best, vi: vi, qty: it.qty || 1 };
   }
-  /** 🔗 Link đặt lại: giỏ hàng web điền sẵn như đơn gần nhất + mã ?ref= của người phụ trách (đơn tính cho người đó). */
-  function openRelink(phone, back) {
-    var c = cust(phone); if (!c) return;
+  /** Link đặt hàng riêng cho 1 khách: giỏ web điền sẵn như đơn gần nhất (nếu món có trên web) + ?ref= người phụ trách (đơn tính cho người đó); chưa có đơn → trang sản phẩm. Dùng cho 🔗 Link đặt lại và chữ [Link] trong mẫu tin. */
+  function relinkInfo(c) {
     var lo = ordersOf(c.phone).filter(function (o) { return !isVoid(o.status) && parseItems(o.items).length; }).sort(function (a, b) { return (b.time || 0) - (a.time || 0); })[0];
     var got = [], miss = [];
     (lo ? parseItems(lo.items) : []).forEach(function (it) { if (it.gift) return; var w = webMatch(it); if (!w) { miss.push(it.name); return; } var same = got.filter(function (g) { return g.p.slug === w.p.slug && g.vi === w.vi; })[0]; if (same) same.qty += w.qty; else got.push(w); });
     var who = c.owner || S.user.name, url = got.length ? 'https://thucduonglanh.vn/thanh-toan/?add=' + got.map(function (g) { return g.p.slug + '.' + (g.vi >= 0 ? g.vi : '') + '.' + g.qty; }).join(',') + '&ref=' + refCode(who) : refLink(who, '/san-pham/');
     var list = got.map(function (g) { return g.qty + ' ' + g.p.name + (g.vi >= 0 ? ' (' + g.p.variants[g.vi].name + ')' : ''); }).join(', ');
+    return { lo: lo, got: got, miss: miss, who: who, url: url, list: list };
+  }
+  /** 🔗 Link đặt lại: giỏ hàng web điền sẵn như đơn gần nhất + mã ?ref= của người phụ trách (đơn tính cho người đó). */
+  function openRelink(phone, back) {
+    var c = cust(phone); if (!c) return;
+    var R = relinkInfo(c), lo = R.lo, got = R.got, miss = R.miss, who = R.who, url = R.url, list = R.list;
     var txt = fillTpl(got.length ? 'Dạ [Tên] ơi, em gửi [Tên] link đặt lại ' + list + ' trên web Thực Dưỡng Lành ạ. Giỏ hàng đã có sẵn, [Tên] chỉ cần xem lại địa chỉ rồi bấm Đặt hàng: ' + url : 'Dạ [Tên] ơi, em gửi [Tên] link xem và đặt sản phẩm trên web Thực Dưỡng Lành ạ: ' + url, c) +
       '\nĐặt trên web giá tốt hơn trên sàn' + (CFG.web_gift ? ', kèm quà ' + CFG.web_gift : '') + '. Cần đổi số lượng hay hỏi gì, [Tên] cứ nhắn em nhé ❤️';
     txt = fillTpl(txt, c);
@@ -1155,7 +1160,12 @@
     modal('ⓘ Giải thích nhãn', body, '<button class="btn pri" data-close>Đã hiểu</button>');
   }
   /* ---------- 📣 gửi ưu đãi lần lượt qua Zalo cá nhân: CRM điền tên, copy tin, mở khung chat; sale dán & gửi rồi bấm "Đã gửi → tiếp" */
-  var PROMO_DEF = 'Dạ [Tên] ơi, em là nhân viên Thực Dưỡng Lành ạ. Tuần này bên em có ưu đãi dành riêng cho khách thân thiết: … [Tên] đang dùng [Sản phẩm], nếu cần đặt thêm thì em giữ suất ưu đãi cho mình nhé ❤️';
+  var PROMO_DEF = 'Dạ [Tên] ơi, em là nhân viên Thực Dưỡng Lành ạ. Tuần này bên em có ưu đãi dành riêng cho khách thân thiết: … [Tên] đang dùng [Sản phẩm], nếu cần đặt thêm thì bấm link này đặt nhanh trên web ạ: [Link] ❤️';
+  /** Ưu đãi còn hạn (Marketing ghi + 🎉 Ngày Đôi tự có) để chọn nhanh ở 📣 Gửi ưu đãi lần lượt */
+  function liveOffers() { var t0 = isoDate(Date.now()); return ((S.offers && S.offers.list) || []).filter(function (o) { return !o.until || o.until >= t0; }); }
+  function promoOfferTpl(o) { // mẫu tin gửi khách của 1 ưu đãi: Marketing viết sẵn (o.msg) hoặc ghép từ tên + nội dung
+    return o.msg || ('Dạ [Tên] ơi, em gửi [Tên] ưu đãi đang có bên Thực Dưỡng Lành ạ: ' + o.title + (o.text ? '\n' + o.text : '') + '\n[Tên] bấm link này đặt nhanh trên web ạ: [Link] ❤️');
+  }
   function promoStats(what) {
     var g = {}; what = what || 'Gửi ưu đãi'; // 'Gửi lời chúc': đo khách đặt đơn trong 14 ngày sau lời chúc
     S.d.log.forEach(function (l) { if (l.what !== what || (lvl() < 2 && l.by !== S.user.name)) return; var x = g[l.result] || (g[l.result] = { name: l.result, first: l.time, ph: {} }); if (l.time < x.first) x.first = l.time; var ph = String(l.ref).replace(/^'/, ''); if (!x.ph[ph] || l.time < x.ph[ph]) x.ph[ph] = l.time; });
@@ -1174,15 +1184,26 @@
       '<label class="switch" style="margin-top:6px"><input type="checkbox" id="prC" checked> Chỉ khách <b>đồng ý nhận ưu đãi</b> (đúng Nghị định 13)</label>' +
       '<p class="small muted" id="prN" style="margin:8px 0 0"></p></div>' +
       '<div class="box"><label class="f"><span>Tên chương trình (để đo hiệu quả)</span><input type="text" id="prName" value="' + esc('Ưu đãi ' + fDate(Date.now()).slice(0, 5)) + '"></label>' +
-      '<label class="f"><span>Mẫu tin có sẵn</span><select id="prTpl"><option value="-1">– Mẫu ưu đãi mặc định –</option>' + tplOpts(tp, -1) + '</select></label>' +
-      '<label class="f"><span>Nội dung (viết [Tên], [Sản phẩm] để máy tự điền; nhớ sửa phần “…”)</span><textarea id="prText" rows="5">' + esc(PROMO_DEF) + '</textarea></label></div>' +
+      '<label class="f"><span>Chọn ưu đãi / mẫu tin</span><select id="prTpl"><option value="-1">– Mẫu ưu đãi mặc định –</option><optgroup label="🎁 Ưu đãi đang chạy" id="prOffG"></optgroup><optgroup label="📝 Mẫu tin của công ty">' + tplOpts(tp, -1) + '</optgroup></select></label>' +
+      '<label class="f"><span>Nội dung (máy tự điền [Tên], [Sản phẩm] và <b>[Link]</b> = link đặt hàng riêng của từng khách, đơn tính cho người phụ trách)</span><textarea id="prText" rows="7">' + esc(PROMO_DEF) + '</textarea></label></div>' +
       (stats.length ? '<div class="box"><h3>📊 Chương trình gần đây</h3><table class="tg-help">' + stats.map(function (x) { return '<tr><td><b>' + esc(x.name) + '</b><br><span class="small muted">' + fDate(x.first) + '</span></td><td>Đã gửi <b>' + x.sent + '</b> khách · <b>' + x.conv + '</b> khách mua trong 14 ngày (' + (x.sent ? pct(x.conv, x.sent) : 0) + '%) · ' + moneyShort(x.rev) + '</td></tr>'; }).join('') + '</table></div>' : '') +
       '<p class="small muted">Lưu ý: gửi rải trong ngày, không gửi dồn liên tục vài trăm tin để Zalo không hạn chế tài khoản. Tin gửi từ chính Zalo của bạn nên khách thấy gần gũi.</p>';
     var m = modal('📣 Gửi ưu đãi lần lượt', body, '<button class="btn" data-close>Đóng</button><button class="btn pri" id="prGo">▶ Bắt đầu gửi</button>');
     var pool = function () { var z = $('#prZ', m).checked, cs = $('#prC', m).checked, nm = $('#prName', m).value.trim(); return pick.list.filter(function (c) { return !coldOf(c) && (!z || c.zalo) && (!cs || c.consent) && !promoSent(c.phone, nm); }); };
     var cnt = function () { var n = pool().length; $('#prN', m).innerHTML = n ? 'Sẽ gửi cho <b>' + n + '</b> khách (đã bỏ khách lạnh và khách đã nhận chương trình này).' : '<span class="bad-line">Không còn khách nào phù hợp.</span> Thử bỏ tích “đồng ý nhận ưu đãi” nếu bạn đã hỏi ý khách, hoặc đổi bộ lọc ở trang danh sách.'; $('#prGo', m).disabled = !n; };
     ['#prZ', '#prC', '#prName'].forEach(function (k) { $(k, m).addEventListener(k === '#prName' ? 'input' : 'change', cnt); }); cnt();
-    $('#prTpl', m).onchange = function () { var i = +this.value; $('#prText', m).value = i >= 0 ? tp[i][2] : PROMO_DEF; };
+    var offs = []; // 🎁 ưu đãi đang chạy: chọn là có sẵn tên chương trình + mẫu tin (có [Link]); có ưu đãi thì chọn sẵn cái đầu
+    var offFill = function () {
+      offs = liveOffers(); var g = $('#prOffG', m); if (!g) return;
+      g.innerHTML = offs.map(function (o, k) { return '<option value="o' + k + '">' + esc(o.title) + '</option>'; }).join('');
+      if (offs.length && $('#prTpl', m).value === '-1' && $('#prText', m).value === PROMO_DEF) { $('#prTpl', m).value = 'o0'; $('#prTpl', m).onchange(); }
+    };
+    $('#prTpl', m).onchange = function () {
+      var v = String(this.value);
+      if (v.charAt(0) === 'o') { var o = offs[+v.slice(1)]; if (!o) return; $('#prText', m).value = promoOfferTpl(o); $('#prName', m).value = String(o.title).replace(/^[^0-9A-Za-zÀ-ỹ]+/, '').replace(/\s*\(.*\)\s*$/, '').slice(0, 60); cnt(); return; }
+      var i = +v; $('#prText', m).value = i >= 0 ? tp[i][2] : PROMO_DEF;
+    };
+    if (S.offers && Date.now() - S.offers.at < 600e3) offFill(); else api('offers', {}).then(function (j) { S.offers = { at: Date.now(), list: j && j.ok ? j.list : null }; if (document.body.contains(m)) offFill(); }, function () { });
     $('#prGo', m).onclick = function () {
       var name = $('#prName', m).value.trim() || 'Ưu đãi', text = $('#prText', m).value.trim(); if (!text) { toast('Bạn soạn nội dung tin giúp nhé', true); return; }
       S.promo = { name: name, text: text, list: pool().map(function (c) { return c.phone; }), i: 0, sent: 0, skip: 0 }; closeModal(true); promoStep();
@@ -2284,6 +2305,7 @@
     var use = function () { return useLines(c).map(function (u) { return u.n + ': ' + u.u; }).join('\n'); };
     text = String(text).replace(/\[Cách dùng\]/gi, function () { return use() || 'em gửi mình ngay ạ'; });
     if (/cách dùng[^:\n]{0,60}:\s*…/i.test(text) && use()) text = text.replace(/(cách dùng[^:\n]{0,60}:)\s*…[ \t]*/i, function (x, h) { return h + '\n' + use() + '\n'; }); // mẫu "Hỏi nhận hàng": điền sẵn cách dùng thay cho "…"
+    if (/\[Link\]/i.test(text)) { var lk = relinkInfo(c).url; text = text.replace(/\[Link\]/gi, function () { return lk; }); } // 11/11/2026: link đặt hàng riêng của khách (giỏ có sẵn + mã người phụ trách)
     return text.replace(/\[Tên\]/gi, name).replace(/\[Sản phẩm\]/gi, shortProducts(c.products, 2) || 'sản phẩm');
   }
   function openCare(phone, type, opt) {
@@ -9026,10 +9048,11 @@
     var body = '<div class="box"><label class="f"><span>Tên ưu đãi / thông điệp (khách đã thấy trên quảng cáo)</span><input type="text" id="ofT" maxlength="120" value="' + esc(o.title || '') + '" placeholder="vd Mua 2 tặng 1 Gafo Fucoidan"></label>' +
       '<label class="f"><span>Sản phẩm</span><input type="text" id="ofP" maxlength="60" value="' + esc(o.prod || '') + '" placeholder="vd Gafo Fucoidan"></label>' +
       '<label class="f"><span>Nội dung sale cần nói đúng (giá, quà, điều kiện, câu quảng cáo chính)</span><textarea id="ofX" rows="5" maxlength="800">' + esc(o.text || '') + '</textarea></label>' +
+      '<label class="f"><span>Mẫu tin sale gửi khách <small class="muted">(📣 Gửi ưu đãi lần lượt chọn ưu đãi này là có sẵn; viết [Tên], [Sản phẩm], [Link] để máy tự điền)</small></span><textarea id="ofM" rows="5" maxlength="1000" placeholder="vd Dạ [Tên] ơi, …  [Tên] bấm link này đặt nhanh: [Link]">' + esc(o.msg || '') + '</textarea></label>' +
       '<label class="f"><span>Áp dụng đến hết ngày (bỏ trống = chưa có hạn)</span><input type="date" id="ofU" value="' + esc(o.until || '') + '"></label><p class="err" id="ofE"></p></div>';
     var m = modal(id === 'new' ? '🎁 Thêm ưu đãi' : '🎁 Sửa ưu đãi', body, (id !== 'new' ? '<button class="btn ghost" id="ofDel">Xoá</button>' : '') + '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="ofSave">Lưu</button>');
     var done = function (j) { S.offers = { at: Date.now(), list: j.list }; closeModal(); toast('Đã lưu'); render(); }, fail = function (e) { $('#ofE', m).textContent = e.message; };
-    $('#ofSave', m).onclick = function () { api('offer_save', { id: o.id || '', title: $('#ofT', m).value, prod: $('#ofP', m).value, text: $('#ofX', m).value, until: $('#ofU', m).value }).then(done, fail); };
+    $('#ofSave', m).onclick = function () { api('offer_save', { id: o.id || '', title: $('#ofT', m).value, prod: $('#ofP', m).value, text: $('#ofX', m).value, msg: $('#ofM', m).value, until: $('#ofU', m).value }).then(done, fail); };
     if ($('#ofDel', m)) $('#ofDel', m).onclick = function () { if (confirm('Xoá ưu đãi này?')) api('offer_del', { id: o.id }).then(done, fail); };
   }
 

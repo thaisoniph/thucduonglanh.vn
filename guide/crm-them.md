@@ -45,7 +45,9 @@ Dùng khi công ty có chương trình ưu đãi, muốn báo cho nhiều khách
 1. Vào tab **Khách**. Lọc nhóm khách muốn gửi. Ví dụ bấm **Đã kết bạn Zalo**, hoặc **VIP**.
 2. Bấm **📣 Gửi ưu đãi lần lượt**.
 3. Giữ dấu tích **Chỉ khách đã kết bạn Zalo** và **Chỉ khách đồng ý nhận ưu đãi**. Đây là quy định của pháp luật.
-4. Đặt **tên chương trình** (ví dụ "Ưu đãi 10/10"). Soạn tin. Viết **[Tên]** và **[Sản phẩm]**, máy tự thay bằng tên khách và sản phẩm khách hay mua.
+4. Ở ô **Chọn ưu đãi / mẫu tin**, chọn ưu đãi trong nhóm **🎁 Ưu đãi đang chạy** (ví dụ 🎉 Ngày Đôi). Máy điền sẵn **tên chương trình** và **tin mẫu**, bạn không phải soạn. Có ưu đãi đang chạy thì máy chọn sẵn ưu đãi đầu tiên.
+   - Tự soạn cũng được: viết **[Tên]**, **[Sản phẩm]**, **[Link]**. Máy tự thay bằng tên khách, sản phẩm khách hay mua, và **link đặt hàng riêng của khách đó**.
+   - **[Link]** đã gắn sẵn mã của người phụ trách khách (đơn tính cho người đó). Khách đã từng mua thì link mở ra **giỏ hàng có sẵn món khách hay mua**, khách chỉ cần điền địa chỉ và bấm Đặt hàng. Bạn không cần vào Cài đặt lấy link.
 5. Bấm **▶ Bắt đầu gửi**.
 6. Với mỗi khách: bấm **📋 Copy tin & mở Zalo**, dán, gửi. Quay lại bấm **✅ Đã gửi → khách tiếp**.
 
@@ -62,6 +64,8 @@ Mỗi bạn có **một link web riêng**, ví dụ `thucduonglanh.vn/?ref=thuy`
 > 💡 Ở trang **⚙ Cài đặt**, gõ vài chữ vào ô **🔍 Gõ để tìm** ở trên cùng (không cần dấu, vd *link*, *mau*, *telegram*) là chỉ còn đúng mục cần sửa. Mục có chữ cam **⚠️** là nên làm, cũng hiện ở khung **👉 Nên làm ngay**.
 2. Bấm **📋 Copy** để lấy link.
 3. Gửi link cho khách qua Zalo.
+
+> 💡 Gửi tin bằng **📣 Gửi ưu đãi lần lượt** hoặc mẫu tin có chữ **[Link]** thì máy tự chèn link riêng cho từng khách, không cần copy link ở đây.
 
 - Khách cũ bạn đang phụ trách đặt trên web bằng link nào cũng tính cho bạn.
 - Lý do mời khách đặt web: **giá rẻ hơn Shopee**, có thêm quà.
