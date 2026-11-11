@@ -184,3 +184,15 @@ export function saleDays(from, n) {
   const keep = L.filter((a, i) => !L.slice(0, i).some(b => b.k === a.k && b.p < a.p && b.from <= a.to && a.from <= b.to));
   return keep.sort((a, b) => a.from < b.from ? -1 : a.from > b.from ? 1 : a.p - b.p).map(({ p, ...r }) => r);
 }
+
+/** 📅 Dịp có tên trong n ngày tới cho mọi trợ lý viết bài (khoá content K131: big idea + trend theo mùa). Bỏ ngày đôi bán hàng.
+ * prep = nên chuẩn bị trước bao nhiêu ngày (Tết 30, lễ lớn 7, mùng 1 / rằm 2, còn lại 3). Trả [{ id, n, d, in (còn mấy ngày), lu, prep, p }] */
+export function eventsAhead(from, n) {
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const d = addDay(from, i), c = ctx(d);
+    const E = EVENTS.filter(e => !e.offer && hit(e, c)).sort((a, b) => a.p - b.p)[0]; // trùng ngày (vd Rằm tháng 10 + rằm) → giữ dịp ưu tiên cao hơn
+    if (E) out.push({ id: E.id, n: val(E.n, c), d, in: i, lu: c.l.text, prep: E.p === P.TET ? 30 : E.p === P.BIG ? 7 : E.p === P.MOON ? 2 : 3, p: E.p });
+  }
+  return out;
+}

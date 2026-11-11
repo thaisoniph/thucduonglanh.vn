@@ -259,7 +259,7 @@
     if (!CFG.endpoint) return Promise.reject(new Error('Chưa cấu hình máy chủ.'));
     tries = tries || 0; var t0 = Date.now();
     // chờ tối đa 30 giây (việc nặng của quản trị 90 giây) rồi báo, không để vòng quay mãi (16/10/2026)
-    var ac = typeof AbortController === 'function' ? new AbortController() : null, wait = action === 'ai_ask' ? 180e3 : /^(spf_write|ins_(video|import|find|offer|big)|zb_(regen|plan_make|plan_redo))$/.test(action) ? 180e3 : API_HEAVY.test(action) ? 90e3 : 30e3, tm = ac && setTimeout(function () { ac.abort(); }, wait);
+    var ac = typeof AbortController === 'function' ? new AbortController() : null, wait = action === 'ai_ask' ? 180e3 : /^(spf_write|ins_(video|import|find|offer|big|img)|zb_(regen|plan_make|plan_redo))$/.test(action) ? 180e3 : API_HEAVY.test(action) ? 90e3 : 30e3, tm = ac && setTimeout(function () { ac.abort(); }, wait);
     return fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), signal: ac ? ac.signal : undefined })
       .then(function (r) { clearTimeout(tm); return r.text().then(function (t) { return { t: t, st: r.status }; }); }, function (er) { clearTimeout(tm); var slow = er && er.name === 'AbortError', e0 = new Error(slow ? 'Máy chủ trả lời chậm quá ' + (wait / 1000) + ' giây. Bạn kiểm tra mạng rồi bấm lại nhé.' : 'Mất kết nối mạng. Bạn thử lại nhé.'); e0.net = true; throw e0; })
       .then(function (x) {
@@ -6739,7 +6739,7 @@
       '<div class="inx-grid"><label class="f"><span>🎯 Nhóm khách</span><select id="inVg">' + gOpt + '</select></label>' +
       '<label class="f"><span>Tầng phễu</span><select id="inVf"><option value="">Tự chọn theo tension</option>' + ['TOFU', 'MOFU', 'BOFU'].map(function (k) { return '<option value="' + k + '">' + IN_FN[k] + '</option>'; }).join('') + '</select></label>' +
       '<label class="f"><span>Sản phẩm (không bắt buộc)</span><select id="inVp"><option value="">Không / để AI chọn</option>' + (j.prods || []).map(function (p) { return '<option value="' + esc(p.code) + '">' + esc(p.name) + '</option>'; }).join('') + '</select></label>' +
-      '<label class="f"><span>Độ dài</span><select id="inVs">' + [15, 30, 45, 60, 90].map(function (n) { return '<option value="' + n + '"' + (n === 45 ? ' selected' : '') + '>' + n + ' giây</option>'; }).join('') + '</select></label>' +
+      '<label class="f"><span>Độ dài</span><select id="inVs">' + [15, 30, 45, 60, 90, 180, 300].map(function (n) { return '<option value="' + n + '"' + (n === 45 ? ' selected' : '') + '>' + (n > 90 ? n / 60 + ' phút (video dài ngang, YouTube)' : n + ' giây') + '</option>'; }).join('') + '</select></label>' +
       '<label class="f"><span>Kiểu quay</span><select id="inVk">' + Object.keys(IN_KIND).map(function (k) { return '<option value="' + k + '">' + IN_KIND[k] + '</option>'; }).join('') + '</select></label>' +
       '<label class="f"><span>Thể loại</span><select id="inVt">' + Object.keys(IN_GENRE).map(function (k) { return '<option value="' + k + '">' + IN_GENRE[k] + '</option>'; }).join('') + '</select></label></div>' +
       '<label class="f"><span>Yêu cầu thêm <small class="muted">không bắt buộc</small></span><textarea id="inVh" rows="2" placeholder="Vd: quay ở bếp buổi sáng, chị Lan nói; nhắc ưu đãi 11/11…"></textarea></label>' +
@@ -6747,11 +6747,12 @@
     var sc = j.scripts || [];
     if (sc.length) h += '<div class="inx-list">' + sc.map(function (s, i) {
       var open = IN.open ? IN.open === s.id : i === 0;
-      return '<details class="box inx-sc"' + (open ? ' open' : '') + '><summary><b>' + esc(s.title) + '</b> <span class="small muted">' + s.sec + ' giây · ' + fDateTime(s.at) + ' · ' + esc(s.by_name) + '</span><br>' +
+      return '<details class="box inx-sc"' + (open ? ' open' : '') + '><summary><b>' + esc(s.title) + '</b> <span class="small muted">' + (s.sec > 90 ? s.sec / 60 + ' phút' : s.sec + ' giây') + ' · ' + fDateTime(s.at) + ' · ' + esc(s.by_name) + '</span><br>' +
         (s.f ? '<span class="zb-fun zb-fun-' + s.f.toLowerCase() + '">' + (IN_FN[s.f] || s.f) + '</span> ' : '') + '</summary>' + inTag(s) +
         '<div class="inx-script">' + inScriptHtml(s.text) + '</div><div class="lq-btns"><button class="btn sm pri" data-in="vcopy|' + s.id + '">📋 Copy kịch bản</button><button class="btn sm ghost" data-in="vdel|' + s.id + '">🗑 Xoá</button></div></details>';
     }).join('') + '</div>';
-    h += inLearnHtml(j.learn);
+    h += inEvHtml(j, ed) + inLearnHtml(j.learn);
+    h += '<div class="box inx-img"><div class="zb-ph"><b>📸 Câu lệnh tạo ảnh</b></div><p class="small">Chọn sản phẩm hoặc dán nội dung bài, AI viết 3 câu lệnh theo ngôn ngữ nhiếp ảnh (góc máy, ống kính, ánh sáng, màu, bố cục) để dán vào ChatGPT hoặc Gemini, kèm câu <b>giữ nguyên bao bì thật</b>.</p><div class="lq-btns"><button class="btn sm" data-in="img">📸 Viết câu lệnh tạo ảnh</button></div></div>';
     if (ed) h += '<div class="box spf-intro"><div class="zb-ph"><b>📣 Bài viết sẵn cho sale đăng Facebook cá nhân</b></div><p class="small">AI viết bài kể chuyện đời thường (không link, không giá) theo nhóm khách, big idea, góc kể. Kèm <b>bình luận ghim</b> không link và <b>câu trả lời có link riêng</b> của từng sale. Bấm <b>✅ Cho sale dùng</b> thì sale thấy ở <b>Cài đặt → 📣 Bài đăng Facebook cá nhân</b> và khung <b>🔎 Tự tạo khách</b> ở Hôm nay.</p><div class="lq-btns"><button class="btn sm pri" data-spf="admin">📣 Mở bài Facebook cá nhân</button></div></div>';
     // 👥 ngân hàng insight
     h += '<div class="zb-done-h"><h2 class="zb-h">👥 Ngân hàng insight</h2><span class="small">' + (j.custom ? 'Đã chỉnh riêng' : 'Bản mặc định') + ' · ' + bank.filter(function (g) { return g.on; }).length + ' nhóm đang dùng</span></div>';
@@ -6782,6 +6783,38 @@
       var L = blk.split('\n').map(function (v) { return v.trim(); }).filter(Boolean), t = (L.shift() || '').replace(/^🌟\s*/, '').replace(/^[-•*]\s*/, '');
       return { t: t, ang: L.map(function (v) { return v.replace(/^[-•*\d.)\s]+/, ''); }).filter(Boolean), on: run && k === 0 };
     }).filter(function (b) { return b.t; });
+  }
+  /** 📅 Dịp sắp tới (zday.js eventsAhead, 45 ngày) + 🔥 chuyện đang nóng (kv ins_trend, 2 ngày): mọi trợ lý viết bài đọc */
+  function inEvHtml(j, ed) {
+    var td = isoDate(Date.now()).replace(/-/g, ''), dm = function (d) { return d.slice(6, 8) + '/' + d.slice(4, 6); };
+    var back = function (d, n) { var t = new Date(Date.UTC(+d.slice(0, 4), +d.slice(4, 6) - 1, +d.slice(6, 8) - n)); return t.getUTCFullYear() + pad(t.getUTCMonth() + 1) + pad(t.getUTCDate()); };
+    var ev = (j.evs || []).map(function (e) { var from = back(e.d, e.prep), now = td >= from; return '<li' + (now ? ' class="inx-ev-now"' : '') + '><b>' + esc(dm(e.d)) + ' · ' + esc(e.n) + '</b> <span class="muted">(' + (e.in ? 'còn ' + e.in + ' ngày' : 'hôm nay') + ')</span> · ' + (now ? '⏰ <b>đến lúc chuẩn bị</b>: lên big idea / bài gắn dịp, đăng trước 1–3 ngày' : 'nên chuẩn bị từ ' + dm(from)) + '</li>'; }).join('');
+    var tr = j.trend;
+    return '<div class="box inx-ev"><div class="zb-ph"><b>📅 Dịp sắp tới & 🔥 chuyện đang nóng</b></div>' +
+      '<p class="small muted">Trợ lý viết bài (web, Fanpage, video, Facebook cá nhân) tự biết các dịp trong 8 ngày tới để gắn bài khi hợp. Bài nhóm Zalo đã có lịch ngày lễ riêng.</p>' +
+      (ev ? '<ul class="small inx-ev-l">' + ev + '</ul>' : '<p class="small muted">45 ngày tới chưa có dịp nào.</p>') +
+      '<p class="small" style="margin:10px 0 4px"><b>🔥 Chuyện đang nóng</b> <span class="muted">(mọi trợ lý đọc trong 2 ngày, tự đổi sang góc nhìn mới gắn với nỗi lòng khách; tin buồn, tai nạn, chính trị thì trợ lý bỏ qua)</span></p>' +
+      (tr && tr.t ? '<p class="small inx-ev-tr">' + esc(tr.t) + ' <span class="muted">· ' + esc(tr.by || '') + ' ghi lúc ' + fDateTime(tr.at) + '</span></p>' : '<p class="small muted">Chưa ghi chuyện nào.</p>') +
+      (ed ? '<label class="f"><span>Ghi chuyện mọi người đang bàn tán hôm nay <small class="muted">1–3 câu: chuyện gì, ở đâu, người ta đang nói gì</small></span><textarea id="inTrT" rows="2" placeholder="Vd: Cả mạng đang chia sẻ clip cô giáo mầm non ôm từng bạn nhỏ trước kỳ nghỉ 20/11">' + esc(tr && tr.t || '') + '</textarea></label><div class="lq-btns"><button class="btn sm pri" data-in="trend">💾 Lưu cho trợ lý dùng</button>' + (tr && tr.t ? '<button class="btn sm ghost" data-in="trendx">🗑 Xoá</button>' : '') + '</div>' : '') + '</div>';
+  }
+  /** 📸 Câu lệnh tạo ảnh (ins_img): 3 hướng, mỗi hướng 1 câu lệnh tiếng Anh + câu chỉnh tiếng Việt */
+  function inImgForm() {
+    var j = IN.d, m = modal('📸 Câu lệnh tạo ảnh',
+      '<p class="small muted" style="margin-top:0">Dán câu lệnh vào ChatGPT hoặc Gemini. Có sản phẩm thì <b>đính kèm ảnh sản phẩm thật</b> cùng câu lệnh để AI giữ đúng bao bì.</p>' +
+      '<label class="f"><span>Sản phẩm trong ảnh</span><select id="inImP"><option value="">Không có sản phẩm (ảnh minh hoạ bài)</option>' + (j.prods || []).map(function (p) { return '<option value="' + esc(p.code) + '">' + esc(p.name) + '</option>'; }).join('') + '</select></label>' +
+      '<div class="row2c"><label class="f"><span>Dùng để</span><select id="inImU"><option value="bai">Ảnh kèm bài đăng</option><option value="poster">Poster / banner quảng cáo</option><option value="bia">Ảnh bìa bài web</option><option value="sp">Ảnh sản phẩm đẹp</option></select></label>' +
+      '<label class="f"><span>Khổ ảnh</span><select id="inImR"><option value="">Tự chọn</option><option value="1:1">Vuông 1:1</option><option value="4:5">Dọc 4:5 (Facebook)</option><option value="9:16">Dọc 9:16 (story, video)</option><option value="16:9">Ngang 16:9 (web)</option></select></label></div>' +
+      '<label class="f"><span>Nội dung bài cần ảnh <small class="muted">không bắt buộc, dán bài vào để ảnh khớp câu chuyện</small></span><textarea id="inImT" rows="4"></textarea></label><div id="inImOut"></div>',
+      '<button class="btn" data-close>Đóng</button><button class="btn pri" id="inImGo">📸 Viết câu lệnh</button>');
+    $('#inImGo', m).onclick = function () {
+      var b = this; b.disabled = true; b.textContent = '⏳ AI đang viết (khoảng 30 giây)…';
+      api('ins_img', { prod: $('#inImP', m).value, use: $('#inImU', m).value, ratio: $('#inImR', m).value, text: $('#inImT', m).value.trim() }).then(function (r) {
+        b.disabled = false; b.textContent = '📸 Viết lại';
+        var blocks = r.text.split(/\n(?=📸)/).filter(function (x) { return /^📸/.test(x.trim()); }); if (!blocks.length) blocks = [r.text];
+        $('#inImOut', m).innerHTML = (r.img ? '<p class="small">🖼 Ảnh sản phẩm thật để đính kèm: <a href="' + esc(r.img) + '" target="_blank" rel="noopener">mở ảnh ' + esc(r.prod) + '</a> (giữ tay / chuột phải → Lưu ảnh)</p>' : '') +
+          blocks.map(function (bl) { var cmd = (bl.match(/Câu lệnh:\s*\n?([\s\S]*?)(?:\n\s*Nếu ảnh chưa ưng|$)/) || [])[1] || bl; return '<div class="box inx-img-b"><div class="spf-txt">' + esc(bl.trim()) + '</div><div class="lq-btns"><button type="button" class="btn sm pri" data-copy="' + esc(cmd.trim()) + '">📋 Copy câu lệnh</button></div></div>'; }).join('');
+      }, function (e) { b.disabled = false; b.textContent = '📸 Viết câu lệnh'; toast(e.message, true); });
+    };
   }
   /** 📈 Học từ tương tác (learn.js): 3 bài nhiều / ít tương tác nhất mỗi kênh, 60 ngày; trợ lý viết đọc đúng danh sách này trước khi viết */
   function inLearnHtml(L) {
@@ -7001,6 +7034,8 @@
     if (a === 'reload') { IN.err = ''; IN.d = null; return render(); }
     if (a === 'gnew') return inGroupForm(null);
     if (a === 'imp') return inImportForm();
+    if (a === 'img') return inImgForm();
+    if (a === 'trend' || a === 'trendx') { var tv = a === 'trend' ? ($('#inTrT') || {}).value || '' : ''; if (a === 'trend' && !tv.trim()) return toast('Ghi chuyện trước nhé.', true); t.disabled = true; return api('ins_trend', { t: tv.trim() }).then(function (r) { IN.d.trend = r.trend; toast(r.trend ? 'Đã lưu, các trợ lý dùng trong 2 ngày ✓' : 'Đã xoá'); render(); }, function (er) { t.disabled = false; toast(er.message, true); }); }
     if (a === 'find') return inFindForm();
     if (a === 'offer') return inOfferForm();
     if (a === 'sk') { var fi = $('#inSkF'); fi.value = ''; fi.onchange = function () {

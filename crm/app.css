@@ -2075,7 +2075,7 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 
 /* 📣 Bài Facebook cá nhân cho sale + 📈 Học từ tương tác (11/11/2026, spost.js / learn.js) */
 .spf-card .spf-lab { margin: 8px 0 2px; font-weight: 600; }
-.spf-card .spf-txt { white-space: pre-wrap; font-size: 14px; line-height: 1.5; background: var(--primary-soft); border-radius: 8px; padding: 8px 10px; }
+.spf-card .spf-txt, .inx-img-b .spf-txt { white-space: pre-wrap; font-size: 14px; line-height: 1.5; background: var(--primary-soft); border-radius: 8px; padding: 8px 10px; }
 .spf-steps { margin: 4px 0 6px; padding-left: 20px; }
 .spf-steps li { margin: 3px 0; }
 .spf-learn summary { cursor: pointer; }
@@ -2083,3 +2083,10 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .inx-lrn li { margin: 4px 0; }
 .spf-up { color: var(--primary); font-weight: 600; }
 .spf-down { color: var(--red); font-weight: 600; }
+
+/* 📅 Dịp sắp tới, 🔥 chuyện đang nóng, 📸 câu lệnh ảnh (11/11/2026, khoá K131 việc 5, 8) */
+.inx-ev-l { margin: 4px 0 6px; padding-left: 18px; }
+.inx-ev-l li { margin: 3px 0; }
+.inx-ev-now { color: var(--orange); }
+.inx-ev-tr { background: var(--orange-light); border-radius: 8px; padding: 6px 10px; }
+.inx-img-b { margin-top: 10px; }

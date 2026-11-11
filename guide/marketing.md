@@ -206,6 +206,31 @@ Mở: menu **Thêm → 🎯 Insight & nội dung** (Marketing thấy ngay trên 
 3. **Chọn tầng phễu**: 🔵 **TOFU** (giá trị nằm ở chính nội dung, không bán) · ⚪ **MOFU** (tạo niềm tin bằng bằng chứng thật: nguồn gốc, nhà máy, hồ sơ công bố, cảm nhận khách thật) · 🟠 **BOFU** (giới thiệu sản phẩm, ưu đãi thật, mời đặt hàng).
 4. **Viết**: câu mở (hook) chạm đúng tension, **chạm cảm xúc trước, thông tin sau**, thân bài gỡ tension theo công thức hợp tầng phễu (TOFU: kể chuyện nhân vật, mở câu hỏi, 1-2-3 · MOFU: so sánh thật, giải thích, bằng chứng · BOFU: liệt kê giá trị, ưu đãi thật), cuối bài có **1 lối ra** (bình luận nhận quà, xem sản phẩm, đặt hàng).
 
+### 📅 Dịp sắp tới và 🔥 chuyện đang nóng (từ 11/11/2026)
+
+Ô **📅 Dịp sắp tới** liệt kê các dịp trong 45 ngày (Nhà giáo 20/11, rằm, Giáng sinh, Tết…), kèm ngày **nên bắt đầu chuẩn bị**:
+- Tết: chuẩn bị trước 1 tháng.
+- Lễ lớn: chuẩn bị trước 1 tuần.
+- Mùng 1, rằm: chuẩn bị trước 2 ngày.
+
+Dòng nào hiện **⏰ đến lúc chuẩn bị** thì lên big idea hoặc bài gắn dịp ngay. Bài gắn dịp nên đăng **trước dịp 1–3 ngày**, lúc mọi người đang nghĩ tới nó. Trợ lý viết bài web, Fanpage, video, Facebook cá nhân tự biết các dịp trong 8 ngày tới và gắn bài khi hợp. Bài nhóm Zalo đã có lịch ngày lễ riêng.
+
+Ô **🔥 Chuyện đang nóng**: thấy chuyện cả mạng đang bàn tán thì ghi 1–3 câu rồi bấm **💾 Lưu cho trợ lý dùng**.
+- Mọi trợ lý đọc chuyện này trong 2 ngày.
+- Trợ lý không đăng lại tin, mà **đổi sang góc nhìn mới gắn với nỗi lòng của nhóm khách**. Theo khoá K131: đăng chậm hơn người khác vẫn thắng nếu góc nhìn mới.
+- Tin buồn, tai nạn, bệnh dịch, chính trị, chuyện riêng người nổi tiếng thì trợ lý tự bỏ qua.
+
+### 📸 Câu lệnh tạo ảnh (từ 11/11/2026)
+
+Theo khoá K131: muốn AI ra ảnh đẹp thì phải **nói bằng ngôn ngữ nhiếp ảnh**, gồm góc máy, ống kính, độ xoá phông, ánh sáng, màu, bố cục.
+
+1. Bấm **📸 Viết câu lệnh tạo ảnh**.
+2. Chọn sản phẩm (hoặc không), mục đích (ảnh kèm bài, poster, ảnh bìa web, ảnh sản phẩm), khổ ảnh, và dán nội dung bài nếu có. Bấm **📸 Viết câu lệnh**.
+3. AI viết **3 hướng ảnh**, mỗi hướng có ý tưởng, câu lệnh và câu để chỉnh nếu chưa ưng. Bấm **📋 Copy câu lệnh**, dán vào ChatGPT hoặc Gemini.
+4. Có sản phẩm thì **đính kèm ảnh sản phẩm thật** (bấm link "mở ảnh" để lưu về). Câu lệnh đã có câu bắt AI giữ nguyên bao bì, logo và chữ trên nhãn.
+
+Ảnh AI chỉ dùng minh hoạ. Không dùng ảnh AI làm "ảnh khách thật" hay ảnh trước / sau.
+
 ### 🌟 Big idea và góc kể (từ 11/11/2026)
 
 Theo khoá content K131: **mỗi nhóm khách nên có 1 big idea**, tức là 1 ý lớn chạy 2–4 tuần, để cả web, nhóm Zalo, Fanpage và video cùng nói một điều, khách nghe nhiều lần thì nhớ. Ví dụ với mẹ sau sinh: *"Bà vẫn đúng, mẹ vẫn được nghỉ"*.
@@ -265,9 +290,12 @@ Trên thẻ bài ở tab Zalo, Fanpage, Bài web có dòng **🎯 nhóm khách �
 - **📊 30 ngày qua**: mỗi nhóm khách đã có bao nhiêu bài, ở kênh nào, tỉ lệ 🔵 ⚪ 🟠 từng kênh. Nhóm có ⚠️ "chưa có nội dung nào" thì trợ lý sẽ tự ưu tiên ở lần viết sau.
 - **🎬 Viết kịch bản video ngắn** (TikTok, Reels, Shorts): chọn nhóm khách (hoặc để tự chọn), tầng phễu, sản phẩm, độ dài, kiểu quay, **thể loại** (diễn kịch ngắn, tình huống, review, giải thích, khoảnh khắc), bấm **🎬 Viết kịch bản**. Khoảng 30–60 giây sau có (theo công thức viral của khoá K133: Hook → Chẩn đoán → Giải pháp 1-2-3 → Kết):
   - 3 câu hook (1 chính + 2 dự phòng) có chấm điểm,
-  - kịch bản từng cảnh (bảng AIDA 6 cột: cảnh, thời lượng, hình ảnh, lời thoại, chữ trên màn hình, nguồn hình, đúng mẫu khoá video Vinalink),
+  - **kịch bản quay 8 cột** (từ 11/11/2026, theo khoá K131): cảnh, thời lượng, **góc máy**, hình ảnh (người trong cảnh làm gì, đạo cụ), lời thoại, chữ trên màn hình, **âm thanh**, nguồn hình. Đưa cho ai cũng quay được,
+  - **danh sách quay** gom theo bối cảnh (quay 1 lượt cho nhanh, có ánh sáng và đạo cụ cần chuẩn bị), **cảnh trám quay dư** và **hướng dẫn dựng**,
   - **bản B** chỉ đổi cảnh đầu để thử A/B, **lời sạch** để dán vào máy đọc giọng,
   - caption, ghi chú quay và **tự kiểm**.
+
+  Người nói được nói tự do bằng lời của mình, miễn đủ ý từng cảnh; điều bắt buộc là **quay đủ mọi cảnh** và quay dư cảnh trám. Chọn độ dài **3 phút** hoặc **5 phút** để có kịch bản **video dài ngang** cho YouTube, theo công thức 5 tầng, có **lời mời nhẹ ở giữa video** (vì nhiều người xem không tới cuối).
 
   Bấm **📋 Copy kịch bản** để dán cho người quay hoặc đưa vào skill dựng video (`/sieu-tro-ly-video`).
 - **👥 Ngân hàng insight**: chân dung, mong muốn, rào cản, **🏷 sản phẩm hợp**, các tension và ghi chú (nên nói gì, góc đã làm tốt) của từng nhóm. Nếu ngân hàng đã sửa riêng mà bản mặc định có cập nhật (nhóm, tension, nhãn sản phẩm mới), tab hiện ô **📚 Bản mặc định có cập nhật mới** → bấm **📚 Gộp vào ngân hàng** (không xoá gì anh chị đã sửa).
