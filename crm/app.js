@@ -763,6 +763,7 @@
     (sale ? (S.user && S.user.kho ? NAV_KHO : NAV_SALE) : lvl() >= 3 ? NAV_CEO : lvl() >= 2 && !isMkt() ? NAV_MGR : [homeView()]).concat(NAV_FIRST, all).forEach(function (id) { if (out.length < 4 && all.indexOf(id) >= 0 && out.indexOf(id) < 0) out.push(id); });
     return out;
   }
+  function isCeo() { return lvl() >= 3 && !isMkt() && !isKho() && !isKt(); }
   function navSig() { return navViews().map(function (v) { return v.id; }).join() + '|' + navMain().join(); }
   var VIEW_DESC = {
     'tong-quan': 'Bức tranh kinh doanh cả công ty', 'hom-nay': 'Khách cần gọi, đơn mới hôm nay', 'tiem-nang': 'Người để lại số, chưa mua',
@@ -783,6 +784,7 @@
     var h = '<div class="mr"><div class="page-head"><h1>Thêm</h1></div>' +
       '<div class="mr-me"><span class="mr-av">' + esc((S.user.name || '?').trim().split(/\s+/).pop().charAt(0).toUpperCase()) + '</span><span class="mr-t"><b>' + esc(S.user.name) + '</b><small>' + esc(S.user.role || '') + ' · ' + esc(S.user.email || '') + '</small></span></div>' +
       (isMkt() || isKho() || isKt() ? '' : '<button type="button" class="mr-search" data-mr="search">' + I.search + '<span>Tìm khách, số điện thoại, mã đơn</span></button>') +
+      (isCeo() ? moreCeo(rest, vrow, row, group) : // Quản trị (11/11/2026, PA A): chia 4 nhóm theo việc
       group('', rest.filter(function (v) { return v.ask; }).map(vrow).join('')) +
       group('Bán hàng', rest.filter(function (v) { return !isCh(v) && !v.ask; }).map(vrow).join('')) +
       group('Marketing & kênh bán', rest.filter(isCh).map(vrow).join('')) +
@@ -790,9 +792,23 @@
         vrow(VIEWS.filter(function (v) { return v.id === 'cai-dat'; })[0]) +
         row('<a class="mr-row" href="/huong-dan/' + (isMkt() ? 'marketing' : isKho() ? 'kho' : isKt() ? 'ke-toan' : 'crm') + '/" target="_blank" rel="noopener">', I.help, '#30b0c7', 'Hướng dẫn sử dụng', 'Cách dùng từng màn hình, có hình', 0) + '</a>' +
         row('<button type="button" class="mr-row" data-mr="fb">', '💡', '#ffcc00', 'Góp ý', 'Báo lỗi, chỗ khó dùng, ý tưởng', lvl() >= 2 ? S.d.fbNew : 0) + '</button>' +
-        row('<button type="button" class="mr-row" data-mr="re">', I.refresh, '#34c759', 'Tải lại dữ liệu', 'Lấy số mới nhất từ máy chủ', 0) + '</button>') +
+        row('<button type="button" class="mr-row" data-mr="re">', I.refresh, '#34c759', 'Tải lại dữ liệu', 'Lấy số mới nhất từ máy chủ', 0) + '</button>')) +
       '</div>';
     return h;
+  }
+  /** Màn Thêm của Quản trị: Việc của sale / Tiền & hàng / Kênh marketing / Công cụ. */
+  function moreCeo(rest, vrow, row, group) {
+    var pick = function (ids) { return ids.map(function (id) { return rest.filter(function (v) { return v.id === id; })[0]; }).filter(Boolean).map(vrow).join(''); };
+    var known = ['hom-nay', 'tiem-nang', 'khach-hang', 'ke-toan', 'kho', 'san', 'link-qr', 'tro-ly-zalo', 'fanpage', 'noi-dung', 'bai-web', 'hoi-so-lieu'];
+    return group('Việc của sale', pick(['hom-nay', 'tiem-nang', 'khach-hang'])) +
+      group('Tiền & hàng', pick(['ke-toan', 'kho', 'san'])) +
+      group('Kênh marketing', pick(['link-qr', 'tro-ly-zalo', 'fanpage', 'noi-dung', 'bai-web'])) +
+      group('Công cụ',
+        pick(['hoi-so-lieu']) + rest.filter(function (v) { return known.indexOf(v.id) < 0; }).map(vrow).join('') +
+        vrow(VIEWS.filter(function (v) { return v.id === 'cai-dat'; })[0]) +
+        row('<a class="mr-row" href="/huong-dan/crm/" target="_blank" rel="noopener">', I.help, '#30b0c7', 'Hướng dẫn sử dụng', 'Cách dùng từng màn hình, có hình', 0) + '</a>' +
+        row('<button type="button" class="mr-row" data-mr="fb">', '💡', '#ffcc00', 'Góp ý', 'Báo lỗi, chỗ khó dùng, ý tưởng', S.d.fbNew) + '</button>' +
+        row('<button type="button" class="mr-row" data-mr="re">', I.refresh, '#34c759', 'Tải lại dữ liệu', 'Lấy số mới nhất từ máy chủ', 0) + '</button>');
   }
   function bindMore() {
     $$('[data-mr]').forEach(function (b) {
@@ -808,7 +824,8 @@
     if (!hostOk()) { $('#app').innerHTML = hostGate(); $('[data-gout]').onclick = function () { logout(); }; return; } // mở nhầm địa chỉ của vai trò khác
     var main = navMain(), tc = $('meta[name="theme-color"]');
     if (tc && window.matchMedia) tc.content = matchMedia('(max-width: 859px)').matches ? '#f7f7f4' : '#1f5f3a'; // điện thoại: thanh trên sáng màu
-    $('#app').innerHTML = '<header class="top"><div class="top-in">' +
+    $('#app').innerHTML = '<header class="top' + (isCeo() ? ' ceo' : '') + '"><div class="top-in">' + // Quản trị (anh Sơn 11/11/2026, PA A): máy tính chỉ 4 mục + Thêm như điện thoại, nút tròn chỉ còn 🔍 + ⚙
+
       '<a class="brand" href="#' + homeView() + '"><img src="/icon-180.png" alt="">' + (HOST ? HOST.short : 'CRM') + '</a>' +
       '<nav class="nav' + (navViews().length > 6 || lvl() >= 2 ? ' nav-many' : '') + (navViews().length < myViews().length ? ' nav-hasmore' : '') + '" data-sig="' + navSig() + '">' + navViews().map(function (v) { return '<a href="#' + v.id + '" data-v="' + v.id + '"' + (v.id === 'cai-dat' ? ' class="nav-set"' : main.indexOf(v.id) < 0 ? ' class="nav-x"' : '') + '>' + I[v.icon] + '<span' + (v.short ? ' data-short="' + v.short + '"' : '') + '>' + v.label + '</span></a>'; }).join('') +
       '<a href="#them" data-v="them" class="nav-more">' + I.more + '<span>Thêm</span></a></nav>' +
@@ -987,7 +1004,7 @@
   function render() {
     if (!S.d || !$('#view')) return;
     var wide = window.matchMedia && matchMedia('(min-width: 860px)').matches, r = route(), v = r.view === 'them' ? 'them' : myViews().some(function (x) { return x.id === r.view; }) ? r.view : homeView(), main = navMain();
-    $$('.nav a').forEach(function (a) { var d = a.getAttribute('data-v'); a.classList.toggle('on', d === v || (d === 'them' && (wide ? !navViews().some(function (x) { return x.id === v; }) : main.indexOf(v) < 0))); }); var ts = $('.top-set'); if (ts) ts.classList.toggle('on', v === 'cai-dat');
+    $$('.nav a').forEach(function (a) { var d = a.getAttribute('data-v'); a.classList.toggle('on', d === v || (d === 'them' && (wide && !isCeo() ? !navViews().some(function (x) { return x.id === v; }) : main.indexOf(v) < 0))); }); var ts = $('.top-set'); if (ts) ts.classList.toggle('on', v === 'cai-dat');
     var keepScroll = lastView === v, y = window.scrollY;
     var el = $('#view');
     var focusId = document.activeElement && document.activeElement.id, selStart = document.activeElement && document.activeElement.selectionStart;
@@ -4987,8 +5004,8 @@
     var sn = sj ? sanSum(sj.days, 2) : null, snp = sj ? sanSum(sj.prev, 1) : null;
     var T = { san: sn ? sn.g : 0, paid: b.paid + (sn ? sn.gp || 0 : 0), sanPaid: sn ? sn.gp || 0 : 0, rev: b.rev + (sn ? sn.g + sn.gv : 0), revP: bp.rev + (snp ? snp.g + snp.gv : 0), vRev: b.vRev + (sn ? sn.gv : 0), net: b.rev - b.vRev + (sn ? sn.g : 0), netP: bp.rev - bp.vRev + (snp ? snp.g : 0), sanV: sn ? sn.gv : 0, n: b.n + (sn ? sn.n + sn.c + sn.r : 0), nP: bp.n + (snp ? snp.n + snp.c + snp.r : 0), tr: dashSeries(R, P, sj), vs: voidStats(R), vsp: voidStats(P) };
     var h = '<div class="page-head"><h1>Tổng quan</h1><div class="grow"></div>' + askBtn() + '<button class="btn ghost" data-dash="fresh" title="Lấy số mới nhất (quảng cáo, website)">↻ Cập nhật số</button></div>' + perChips('g', f.p);
+    h += dashNotes(T, b, g, f.p, M, sj, gl); // 👉 Cần anh xử lý hôm nay: đầu trang (anh Sơn 11/11/2026, PA A)
     h += dashHero(T, b, bp, M, gl, month, sj, f.p);
-    h += dashNotes(T, b, g, f.p, M, sj, gl);
     h += '<div class="section-h dash-more-h"><h2>🔎 Xem chi tiết từng phần</h2><span class="tip">bấm vào từng mục để mở / đóng</span></div>';
     if (lvl() >= 3) { var PL = dashPnl(T, b, bp, M, sj, R, P, month); h += dashMore('pnl', '🧮 Lãi lỗ sau mọi chi phí', PL.line, PL.body); }
     if (lvl() >= 3) { var CO = dashCost(); if (CO) h += dashMore('cost', '📊 Chi phí lớn & cách tối ưu', CO.line, CO.body); }
@@ -8659,9 +8676,18 @@
     if (sj) { var by = sanLatest(sj); Object.keys(by).forEach(function (k) { var o = by[k]; if (o.late > (o.sheet ? 2 : 3)) L.push('⏰ ' + esc(k) + ' đã ' + o.late + (o.sheet ? ' ngày chưa gõ số vào Google Sheet báo cáo' : ' ngày chưa tải file đơn mới') + ', số sàn có thể đang thiếu.' + who('Phụ trách sàn') + xem('#san')); }); }
     if (T.netP && CMP_LABEL && p.k !== 'today') { var d = Math.round((T.net - T.netP) * 100 / T.netP); if (d <= -10) L.push('🔴 <b>Doanh số giảm ' + Math.abs(d) + '%</b> so với ' + CMP_LABEL + ' (' + moneyShort(T.net) + ' so với ' + moneyShort(T.netP) + ').' + who('Quản lý sale') + xem('day')); else if (d >= 10) OK.push('doanh số tăng ' + d + '% so với ' + CMP_LABEL); }
     if (g) { var bad = g.land.filter(function (r) { return r[1] >= 20 && pct(r[2], r[1]) < 40; })[0]; if (bad) L.push('🟠 Trang <b>' + esc(bad[0] === '/' ? 'Trang chủ' : bad[0]) + '</b> có ' + bad[1] + ' lượt vào nhưng chỉ ' + pct(bad[2], bad[1]) + '% ở lại xem: nên sửa đầu trang.' + who('Marketing') + xem('web')); }
+    // việc gấp về đơn và tiền (11/11/2026): đơn kẹt chưa xác nhận, đơn đang giao có cảnh báo, chuyển khoản lâu chưa thấy tiền → đứng đầu
+    var now = Date.now(), U = [], sumT = function (a) { return a.reduce(function (s2, o) { return s2 + (o.total || 0); }, 0); };
+    var stuck = newOrders().filter(function (o) { return now - (o.time || 0) > 2 * 3600e3; });
+    if (stuck.length) U.push('🔴 <b>' + stuck.length + ' đơn mới chờ xác nhận quá 2 giờ</b> (' + moneyShort(sumT(stuck)) + '): khách đợi lâu dễ huỷ.' + who('Sale') + xem('#don-hang'));
+    var warn = S.d.orders.filter(trkWarn);
+    if (warn.length) U.push('🟠 <b>' + warn.length + ' đơn đang giao có cảnh báo vận chuyển</b>: gọi khách ngay để không bị hoàn.' + who('Sale phụ trách') + xem('#don-hang'));
+    var unp = unpaidOrders().filter(function (o) { return now - (o.time || 0) > 2 * DAY; });
+    if (unp.length) U.push('🟠 <b>' + unp.length + ' đơn chuyển khoản quá 2 ngày chưa thấy tiền</b> (' + moneyShort(sumT(unp)) + ').' + who('Kế toán') + xem(myViews().some(function (v) { return v.id === 'ke-toan'; }) ? '#ke-toan' : '#don-hang'));
+    L = U.concat(L.filter(function (x) { return x.indexOf('Chậm mục tiêu tháng') < 0; }), L.filter(function (x) { return x.indexOf('Chậm mục tiêu tháng') >= 0; })); // mục tiêu tháng đã có ngay dòng đỏ bên dưới → xếp cuối
     var h = '';
-    if (L.length) h += '<div class="box dash-notes"><h3>✅ Việc cần làm <small class="muted" style="font-weight:400">· việc gấp trước · ghi rõ ai làm</small></h3>' + L.slice(0, 4).map(function (x, i) { return '<p><b class="dash-todo-n">' + (i + 1) + '.</b> ' + x + '</p>'; }).join('') + (L.length > 4 ? '<p class="small muted">Còn ' + (L.length - 4) + ' việc nhỏ hơn, làm xong việc trên rồi xem tiếp.</p>' : '') + '</div>';
-    else h += '<div class="box dash-notes"><h3>✅ Việc cần làm</h3><p>🟢 Chưa thấy việc gì cần xử lý gấp.</p></div>';
+    if (L.length) h += '<div class="box dash-notes"><h3>👉 Cần anh xử lý hôm nay <small class="muted" style="font-weight:400">· việc gấp trước · ghi rõ ai làm</small></h3>' + L.slice(0, 3).map(function (x, i) { return '<p><b class="dash-todo-n">' + (i + 1) + '.</b> ' + x + '</p>'; }).join('') + (L.length > 3 ? '<details class="dash-todo-more"><summary>Xem thêm ' + (L.length - 3) + ' việc nhỏ hơn</summary>' + L.slice(3).map(function (x, i) { return '<p><b class="dash-todo-n">' + (i + 4) + '.</b> ' + x + '</p>'; }).join('') + '</details>' : '') + '</div>';
+    else h += '<div class="box dash-notes"><p>✅ <b>Mọi thứ ổn</b>, chưa thấy việc gì cần anh xử lý gấp.</p></div>';
     if (OK.length) h += '<p class="dash-bright">🌟 <b>Điểm sáng:</b> ' + OK.slice(0, 3).join(' · ') + '.</p>';
     return h;
   }

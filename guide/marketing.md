@@ -176,7 +176,7 @@ Mỗi bài đăng, mỗi quảng cáo dẫn khách về web thì dùng **link th
 
 Mỗi nơi khách nhìn thấy (tờ rơi ở sự kiện, standee ở đối tác, tờ rơi trong hộp hàng…) dùng **1 link riêng**. Khách quét QR → vào web → đơn tự ghi đến từ đâu.
 
-**Mở:** trong CRM bấm **QR** trên thanh menu (Quản trị: **Tổng quan → 📍 Link & QR**).
+**Mở:** trong CRM bấm **QR** trên thanh menu (Quản trị: **••• Thêm → Link & QR**).
 
 **Tạo link mới:**
 

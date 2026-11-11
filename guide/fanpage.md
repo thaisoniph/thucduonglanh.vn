@@ -30,7 +30,7 @@ Bình luận có **số điện thoại** sẽ được trợ lý **ẩn đi** �
 
 ## Mở tab Fanpage
 
-Trong CRM, bấm **FB** trên thanh menu. Quản trị vào bằng cách bấm **Tổng quan → 📘 Fanpage**.
+Trong CRM, bấm **FB** trên thanh menu. Quản trị bấm **••• Thêm → Fanpage**.
 
 ## Việc hằng ngày của bạn
 

@@ -1995,3 +1995,15 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .zp-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .zp-ok-t { color: var(--primary); font-weight: 600; }
 .zp-warn-t { color: var(--orange); font-weight: 600; }
+
+/* ---------- Quản trị (anh Sơn 11/11/2026, PA A): máy tính giống điện thoại – 4 mục + Thêm; nút tròn chỉ 🔍 + ⚙; Góp ý, Hướng dẫn, Tải lại nằm trong Thêm */
+@media (min-width: 860px) {
+  .top.ceo .nav a.nav-x, .top.ceo .nav a.nav-set { display: none; }
+  .top.ceo .nav a.nav-more { display: flex; }
+  .top.ceo .top-set { display: grid; }
+  .top.ceo .top-set.on { background: rgba(255, 255, 255, .32); }
+  .top.ceo .fb-btn, .top.ceo a.icon-btn[href^="/huong-dan/"], .top.ceo #refresh { display: none; }
+  .top.ceo .nav a { padding: 8px 14px; }
+  .top.ceo .nav a svg { display: inline-block; }
+}
+.dash-todo-more > summary { cursor: pointer; font-size: 13.5px; font-weight: 600; color: var(--primary); padding: 4px 0; }

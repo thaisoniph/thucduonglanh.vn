@@ -42,7 +42,7 @@ Bạn nhắn tay thì trợ lý **tự im 2 tiếng** với khách đó. Trong n
 
 ## Mở tab Trợ lý Zalo
 
-Vào CRM, bấm **Zalo** trên thanh menu. Quản trị thì vào **Tổng quan → 🤖 Trợ lý Zalo**.
+Vào CRM, bấm **Zalo** trên thanh menu. Quản trị thì vào **••• Thêm → Trợ lý Zalo**.
 
 ![Ô trên cùng: 🟢 Đang chạy](/huong-dan/img/zalo-status.webp)
 
