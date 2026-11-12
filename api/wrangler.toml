@@ -11,6 +11,9 @@ binding = "DB"
 database_name = "thucduonglanh-crm"
 database_id = "__D1_ID__" # GitHub Actions tự điền khi triển khai
 
+[ai]
+binding = "AI" # Workers AI: Whisper nghe lời thoại video khi 🧪 chấm bài (score.js)
+
 [vars]
 # Apps Script (cầu nối Google: gửi email, mã truy cập Google Sheets). Cùng link với order_endpoint cũ.
 BRIDGE_URL = "https://script.google.com/macros/s/AKfycbylMjHmg2kXJZHcMSEzDWeI8YC_He35HcCrTTDgslYz8ftI9jMJ6fSFUx5qnPpTAnW-/exec"

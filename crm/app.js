@@ -7308,11 +7308,12 @@
       '<label class="f"><span>Loại</span>' + sel('csxK', Object.keys(d.kinds).map(function (k) { return [k, d.kinds[k]]; }), kind) + '</label>' +
       '<label class="f"><span>Nhóm khách nhắm tới</span>' + sel('csxG', [['', '🔄 Để AI tự nhận ra']].concat(bank.map(function (g) { return [g.id, g.name]; })), f.csxG) + '</label>' +
       '<label class="f"><span>Loại bài</span>' + sel('csxF', [['', 'Để AI tự nhận ra'], ['TOFU', IN_FN.TOFU], ['MOFU', IN_FN.MOFU], ['BOFU', IN_FN.BOFU]], f.csxF) + '</label></div>' +
-      '<label class="f"><span>' + (kind === 'video' ? 'Kịch bản hoặc lời thoại video' : kind === 'anh' ? 'Chữ trên ảnh + caption đăng kèm' : 'Nội dung bài') + ' <small class="muted">dán nguyên văn, gồm cả tiêu đề, caption</small></span><textarea id="csxT" rows="8" placeholder="' + (kind === 'video' ? 'Dán lời thoại từng cảnh. Có file video thì thêm ở nút bên dưới để AI xem hình mở đầu.' : 'Dán bài các bạn viết vào đây…') + '">' + esc(f.csxT || '') + '</textarea></label>' +
-      '<div class="csx-media"><button type="button" class="btn sm" data-csx="pick">' + (kind === 'video' ? '🎬 Thêm file video' : '🖼 Thêm ảnh (tối đa 4)') + '</button> <span class="small muted">' + (kind === 'video' ? 'CRM cắt 8 khung hình để AI xem (không tải cả video lên).' : 'Không bắt buộc.') + '</span><input type="file" id="csxFile" hidden accept="' + (kind === 'video' ? 'video/*' : 'image/*') + '"' + (kind === 'video' ? '' : ' multiple') + '>' +
+      (kind === 'video' ? '<label class="f"><span>🔗 Link video trên Google Drive <small class="muted">dán link là đủ: máy tự xem hình và tự nghe lời thoại</small></span><input id="csxL" inputmode="url" value="' + esc(f.csxL || '') + '" placeholder="https://drive.google.com/file/d/…"></label><p class="small muted csx-tip">Video trên Drive phải để chế độ chia sẻ <b>"Bất kỳ ai có đường liên kết"</b>. Máy tự nghe lời thoại nên ô bên dưới không bắt buộc.</p>' : '') +
+      '<label class="f"><span>' + (kind === 'video' ? 'Caption hoặc kịch bản (không bắt buộc)' : kind === 'anh' ? 'Chữ trên ảnh + caption đăng kèm' : 'Nội dung bài') + ' <small class="muted">dán nguyên văn, gồm cả tiêu đề, caption</small></span><textarea id="csxT" rows="' + (kind === 'video' ? 3 : 8) + '" placeholder="' + (kind === 'video' ? 'Có caption đăng kèm thì dán vào đây để AI chấm cả caption.' : 'Dán bài các bạn viết vào đây…') + '">' + esc(f.csxT || '') + '</textarea></label>' +
+      '<div class="csx-media"><button type="button" class="btn sm' + (kind === 'video' ? ' ghost' : '') + '" data-csx="pick">' + (kind === 'video' ? '📁 Hoặc chọn file video trong máy' : '🖼 Thêm ảnh (tối đa 4)') + '</button> <span class="small muted">' + (kind === 'video' ? '' : 'Không bắt buộc.') + '</span><input type="file" id="csxFile" hidden accept="' + (kind === 'video' ? 'video/*' : 'image/*') + '"' + (kind === 'video' ? '' : ' multiple') + '>' +
       (CS.frames.length ? '<div class="csx-thumbs">' + CS.frames.map(function (s) { return '<img src="' + s + '" alt="">'; }).join('') + '<button type="button" class="link" data-csx="clear">✕ Bỏ</button></div>' : '') + '</div>' +
       '<label class="f"><span>Ghi chú <small class="muted">không bắt buộc: mục tiêu, sản phẩm, ưu đãi đang chạy</small></span><input id="csxN" value="' + esc(f.csxN || '') + '" placeholder="Vd: quảng cáo tin nhắn cho DILVANG, tặng 1 hộp khi mua 3"></label>' +
-      (d.aiOn ? '<div class="lq-btns"><button class="btn pri" data-csx="go"' + (CS.run ? ' disabled' : '') + '>' + (CS.run ? '⏳ AI đang chấm (khoảng 1 phút)…' : '🧪 Chấm điểm') + '</button>' + (CS.parent || f.csxT ? '<button class="btn ghost" data-csx="new">Bài mới</button>' : '') + '</div>' : '<p class="small">⚠️ Máy chủ chưa có khoá AI.</p>') +
+      (d.aiOn ? '<div class="lq-btns"><button class="btn pri" data-csx="go"' + (CS.run ? ' disabled' : '') + '>' + (CS.run ? '⏳ ' + esc(CS.runMsg || 'AI đang chấm (khoảng 1 phút)…') : '🧪 Chấm điểm') + '</button>' + (CS.parent || f.csxT ? '<button class="btn ghost" data-csx="new">Bài mới</button>' : '') + '</div>' : '<p class="small">⚠️ Máy chủ chưa có khoá AI.</p>') +
       '<details class="small csx-how"><summary>ⓘ AI chấm theo 9 tiêu chí nào?</summary><ul>' + (d.crit || []).map(function (c) { return '<li><b>' + esc(c.name) + ' (' + c.max + ' điểm):</b> ' + esc(c.tip) + '</li>'; }).join('') + '</ul><p>🟢 80 điểm trở lên: đăng được · 🟡 60–79: sửa nhẹ · 🔴 dưới 60: nên làm lại · ⛔ có lỗi luật quảng cáo thực phẩm thì phải sửa trước, dù điểm cao.</p></details></div>';
     // 📏 điểm có khớp kết quả thật không + điểm theo người
     var cb = d.calib || [], nRes = cb.reduce(function (n, b) { return n + b.n; }, 0);
@@ -7337,6 +7338,7 @@
       ((R.hooks || []).length ? '<p class="small"><b>🪝 Câu mở khác để thử:</b></p><ul class="small">' + R.hooks.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ul>' : '') +
       ((R.style || []).length ? '<p class="small">✍️ Văn còn giống AI: ' + esc(R.style.join(', ')) + '</p>' : '') +
       (R.rewrite ? '<details class="csx-rw"><summary><b>✨ Bản AI sửa giúp</b> <span class="small muted">giữ ý của bạn, sửa đúng chỗ đã chỉ</span></summary><div class="spf-txt">' + esc(R.rewrite) + '</div></details>' : '') +
+      (R.link ? '<p class="small"><a href="' + esc(R.link) + '" target="_blank" rel="noopener">▶️ Mở video đã chấm</a>' + (R.heard ? ' · 🎧 lời thoại do máy tự nghe, xem ở mục Bài gốc' : '') + '</p>' : '') +
       '<details class="small"><summary>📄 Bài gốc đã gửi chấm' + (r.nimg ? ' (+' + r.nimg + ' hình)' : '') + '</summary><div class="spf-txt">' + esc(r.text || '') + '</div></details>' +
       (r.r_at ? '<p class="small csx-real">📈 <b>Kết quả thật:</b> ' + esc(csxRes(r)) + (r.r_note ? ' · ' + esc(r.r_note) : '') + ' <span class="muted">(' + esc(r.r_by) + ' ghi ' + fDate(r.r_at) + ')</span></p>' : '') +
       '<div class="lq-btns">' + (R.rewrite ? '<button class="btn sm pri" data-csx="cp|' + r.id + '">📋 Copy bản sửa</button>' : '') + '<button class="btn sm" data-csx="redo|' + r.id + '">🔁 Sửa rồi chấm lại</button><button class="btn sm" data-csx="res|' + r.id + '">📈 ' + (r.r_at ? 'Sửa kết quả thật' : 'Ghi kết quả thật') + '</button><button class="btn sm ghost" data-csx="del|' + r.id + '">🗑 Xoá</button></div>';
@@ -7363,6 +7365,36 @@
       };
     });
   }
+  /** 🔗 Tải video từ link Google Drive qua máy chủ (/drive-video, score.js) → Blob để cắt hình + tách tiếng ngay trên trình duyệt */
+  function csxDrive(link) {
+    return fetch(String(CFG.endpoint).replace(/\/api$/, '') + '/drive-video', { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ token: S.token, link: link }) })
+      .then(function (r) {
+        if (/json/.test(r.headers.get('content-type') || '')) return r.json().then(function (j) { throw new Error(j.error || 'Không tải được video.'); });
+        if (!r.ok) throw new Error('Không tải được video (lỗi ' + r.status + ').');
+        return r.blob().then(function (b) { return /^video\//.test(b.type) ? b : new Blob([b], { type: 'video/mp4' }); });
+      }, function () { throw new Error('Mạng chập chờn, chưa tải được video. Bấm Chấm điểm lại nhé.'); });
+  }
+  /** 🎧 Tách tiếng video → WAV 16 kHz 1 kênh (tối đa 4 phút) → base64 để máy chủ nghe lời thoại (Whisper). Video không có tiếng → '' */
+  function csxAudio(blob) {
+    var AC = window.AudioContext || window.webkitAudioContext, OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    if (!AC || !OAC || !blob.arrayBuffer) return Promise.resolve('');
+    return blob.arrayBuffer().then(function (buf) {
+      var ac = new AC();
+      return new Promise(function (ok, no) { ac.decodeAudioData(buf, ok, no); }).then(function (au) {
+        try { ac.close(); } catch (e) {}
+        var dur = Math.min(au.duration, 240), oc = new OAC(1, Math.ceil(dur * 16000), 16000), src = oc.createBufferSource();
+        src.buffer = au; src.connect(oc.destination); src.start(0);
+        return oc.startRendering();
+      }).then(function (out) {
+        var x = out.getChannelData(0), n = x.length, v = new DataView(new ArrayBuffer(44 + n * 2)), w = function (o, t) { for (var i = 0; i < t.length; i++) v.setUint8(o + i, t.charCodeAt(i)); };
+        w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVE'); w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, 16000, true); v.setUint32(28, 32000, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, n * 2, true);
+        var peak = 0; for (var i = 0; i < n; i++) { var s0 = Math.max(-1, Math.min(1, x[i])); if (Math.abs(s0) > peak) peak = Math.abs(s0); v.setInt16(44 + i * 2, s0 < 0 ? s0 * 0x8000 : s0 * 0x7FFF, true); }
+        if (peak < 0.01) return ''; // video không có tiếng / chỉ im lặng
+        var u8 = new Uint8Array(v.buffer), bin = '', CH = 0x8000; for (var k = 0; k < u8.length; k += CH) bin += String.fromCharCode.apply(null, u8.subarray(k, k + CH));
+        return btoa(bin);
+      });
+    }).catch(function () { return ''; });
+  }
   function csxImage(file) {
     return new Promise(function (ok, no) {
       var rd = new FileReader(); rd.onerror = function () { no(new Error('Không đọc được ảnh.')); };
@@ -7388,34 +7420,43 @@
         .then(function () { closeModal(); toast('Đã lưu kết quả ✓'); CS.open = r.id; csxFetch(); }, function (e) { b.disabled = false; toast(e.message, true); });
     };
   }
-  document.addEventListener('input', function (e) { var t = e.target; if (t && t.id && /^csx[ACKGFTN]$/.test(t.id)) CS.f[t.id] = t.value; });
+  document.addEventListener('input', function (e) { var t = e.target; if (t && t.id && /^csx[ATNL]$/.test(t.id)) CS.f[t.id] = t.value; });
   document.addEventListener('change', function (e) {
     var t = e.target; if (!t || !t.id) return;
-    if (/^csx[ACKGF]$/.test(t.id)) { var was = CS.f.csxK; CS.f[t.id] = t.value; if (t.id === 'csxK' && was !== t.value) { CS.frames = []; render(); } return; }
+    if (/^csx[ACKGF]$/.test(t.id)) { var was = CS.f.csxK; CS.f[t.id] = t.value; if (t.id === 'csxK' && was !== t.value) { CS.frames = []; CS.audio = ''; render(); } return; }
     if (t.id !== 'csxFile' || !t.files || !t.files.length) return;
     var fs = Array.prototype.slice.call(t.files), vid = (CS.f.csxK || 'bai') === 'video';
     if (vid && fs[0].size > 800e6) return toast('Video quá lớn (tối đa 800 MB).', true);
     toast(vid ? '⏳ Đang cắt khung hình…' : '⏳ Đang đọc ảnh…');
-    (vid ? csxVideoFrames(fs[0]) : Promise.all(fs.slice(0, 4).map(csxImage))).then(function (L) { CS.frames = L; render(); toast('Đã thêm ' + L.length + (vid ? ' khung hình ✓' : ' ảnh ✓')); }, function (er) { toast(er.message, true); });
+    (vid ? csxVideoFrames(fs[0]) : Promise.all(fs.slice(0, 4).map(csxImage))).then(function (L) { CS.frames = L; CS.src = 'file'; render(); toast('Đã thêm ' + L.length + (vid ? ' khung hình ✓' : ' ảnh ✓')); }, function (er) { toast(er.message, true); });
+    if (vid) { CS.audio = ''; csxAudio(fs[0]).then(function (a) { CS.audio = a; }, function () { CS.audio = ''; }); }
   });
   document.addEventListener('click', function (e) {
     var t = e.target.closest('[data-csx]'); if (!t) return;
     var v = t.getAttribute('data-csx').split('|'), a = v[0], id = Number(v[1]), r = CS.d && (CS.d.items || []).filter(function (x) { return x.id === id; })[0];
     if (a === 'reload') { CS.err = ''; CS.d = null; return render(); }
     if (a === 'pick') return $('#csxFile').click();
-    if (a === 'clear') { CS.frames = []; return render(); }
-    if (a === 'new') { CS.f = { csxA: CS.f.csxA, csxC: CS.f.csxC }; CS.frames = []; CS.parent = 0; return render(); }
+    if (a === 'clear') { CS.frames = []; CS.audio = ''; CS.src = ''; return render(); }
+    if (a === 'new') { CS.f = { csxA: CS.f.csxA, csxC: CS.f.csxC }; CS.frames = []; CS.audio = ''; CS.src = ''; CS.parent = 0; return render(); }
     if (a === 'go') {
-      var f = CS.f, txt = (f.csxT || '').trim();
-      if (txt.length < 20 && !CS.frames.length) return toast('Dán nội dung bài vào trước nhé.', true);
-      CS.run = 1; render();
-      return api('ins_score', { text: txt, ch: f.csxC || 'qc', kind: f.csxK || 'bai', g: f.csxG || '', f: f.csxF || '', author: (f.csxA || '').trim(), note: (f.csxN || '').trim(), frames: CS.frames, parent: CS.parent })
-        .then(function (res) { CS.run = 0; CS.d.items = [res.item].concat(CS.d.items || []); CS.open = res.item.id; toast('Đã chấm xong: ' + res.item.score + '/100'); render(); var el = $('.csx-it[open]'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); csxFetch(); },
-          function (er) { CS.run = 0; render(); toast(er.message, true); });
+      var f = CS.f, txt = (f.csxT || '').trim(), isV = (f.csxK || 'bai') === 'video', link = isV ? (f.csxL || '').trim() : '';
+      if (link && !/drive\.google\.com|docs\.google\.com/.test(link)) return toast('Link phải là link Google Drive (drive.google.com/file/d/…).', true);
+      if (txt.length < 20 && !CS.frames.length && !link) return toast(isV ? 'Dán link video Google Drive (hoặc lời thoại) trước nhé.' : 'Dán nội dung bài vào trước nhé.', true);
+      var step = function (m) { CS.runMsg = m; var b = $('[data-csx=go]'); if (b) b.textContent = '⏳ ' + m; };
+      CS.run = 1; CS.runMsg = ''; render();
+      var prep = link && CS.src !== link ? (step('Đang tải video từ Google Drive…'), csxDrive(link).then(function (blob) {
+        step('Đang xem hình và nghe lời thoại…');
+        return Promise.all([csxVideoFrames(blob), csxAudio(blob).catch(function () { return ''; })]).then(function (o) { CS.frames = o[0]; CS.audio = o[1]; CS.src = link; });
+      })) : Promise.resolve();
+      return prep.then(function () {
+        step('AI đang chấm (khoảng 1 phút)…');
+        return api('ins_score', { text: txt, ch: f.csxC || 'qc', kind: f.csxK || 'bai', g: f.csxG || '', f: f.csxF || '', author: (f.csxA || '').trim(), note: (f.csxN || '').trim(), frames: CS.frames, audio: isV ? CS.audio || '' : '', link: link, parent: CS.parent });
+      }).then(function (res) { CS.run = 0; CS.runMsg = ''; CS.d.items = [res.item].concat(CS.d.items || []); CS.open = res.item.id; toast('Đã chấm xong: ' + res.item.score + '/100'); render(); var el = $('.csx-it[open]'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); csxFetch(); },
+          function (er) { CS.run = 0; CS.runMsg = ''; render(); toast(er.message, true); });
     }
     if (!r) return;
     if (a === 'cp') return copy(r.res.rewrite || '').then(function () { toast('📋 Đã copy bản sửa'); });
-    if (a === 'redo') { CS.f = { csxA: r.author, csxC: r.ch, csxK: r.kind, csxG: r.g, csxF: r.f, csxT: r.res && r.res.rewrite || r.text, csxN: r.note }; CS.frames = []; CS.parent = r.parent || r.id; render(); var fm = $('#csxForm'); if (fm) fm.scrollIntoView({ behavior: 'smooth', block: 'start' }); return toast('Đã đưa bản sửa vào ô, bạn chỉnh thêm rồi bấm Chấm điểm'); }
+    if (a === 'redo') { CS.f = { csxA: r.author, csxC: r.ch, csxK: r.kind, csxG: r.g, csxF: r.f, csxT: r.res && r.res.rewrite || r.text, csxN: r.note, csxL: r.res && r.res.link || '' }; CS.audio = ''; CS.src = ''; CS.frames = []; CS.parent = r.parent || r.id; render(); var fm = $('#csxForm'); if (fm) fm.scrollIntoView({ behavior: 'smooth', block: 'start' }); return toast('Đã đưa bản sửa vào ô, bạn chỉnh thêm rồi bấm Chấm điểm'); }
     if (a === 'res') return csxResForm(r);
     if (a === 'del') { if (!confirm('Xoá bài đã chấm này?')) return; t.disabled = true; return api('ins_sdel', { id: r.id }).then(function () { CS.d.items = CS.d.items.filter(function (x) { return x.id !== r.id; }); toast('Đã xoá'); render(); }, function (er) { t.disabled = false; toast(er.message, true); }); }
   });

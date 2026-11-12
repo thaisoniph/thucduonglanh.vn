@@ -1,7 +1,9 @@
 // Máy chủ CRM + nhận đơn Thực Dưỡng Lành trên Cloudflare Workers (api.thucduonglanh.vn), dữ liệu ở Cloudflare D1.
 // Giao diện gửi POST (text/plain, JSON) giống hệt Apps Script trước đây: {type:'crm', action, token, …} / {type:'order'} / {type:'contact'}.
 import { esc, run, first, kvGet, normPhone, CRM_URL } from './lib.js';
-import { crmApi, saveOrder, addLead, telegramUser, vtpWebhook, ensureSchema, adminByToken } from './crm.js';
+import { crmApi, saveOrder, addLead, telegramUser, vtpWebhook, ensureSchema, adminByToken, userByToken } from './crm.js';
+import { driveVideo } from './score.js';
+import { canIns } from './insight.js';
 import { telegram, sendMail, tgConf, bridge } from './google.js';
 import { SYNC, DUPS } from './sync.js';
 import { migrate } from './migrate.js';
@@ -20,7 +22,7 @@ import { mcpRoute } from './mcp.js';
 import { ddApply, ddStatus, qtetApply } from './ngaydoi.js';
 export { AiRelay } from './airelay.js'; // Durable Object chuyển tiếp lời gọi AI qua Bắc Mỹ
 
-const API_VERSION = '2026-11-12zd'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
+const API_VERSION = '2026-11-12ze'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
 const ORIGINS = /^https:\/\/((www\.|crm\.|quantri\.|mkt\.|kho\.|ketoan\.|congsu\.|camnangsongkhoe\.)?thucduonglanh\.vn|([a-z0-9-]+\.)?(thucduonglanh(-crm|-congsu)?|camnang-song-khoe-thuc-duong-lanh)\.pages\.dev)$|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
 function ctxOf(env, ectx) { return { env, db: env.DB, later: p => ectx.waitUntil(Promise.resolve(p).catch(e => console.error('later', e && e.message))) }; }
@@ -117,6 +119,11 @@ export default {
       try { await ensureSchema(x.db); const r = await fbRoute(x, req, path, url); if (r) return r; }
       catch (err) { console.error('fb', err && err.stack || err); return new Response('error', { status: 500 }); }
     }
+    if (path === '/drive-video' && req.method === 'POST') { // 🧪 chấm bài: tải video từ link Google Drive cho CRM cắt khung hình + tách tiếng (score.js)
+      const cors = origin && ORIGINS.test(origin) ? { 'Access-Control-Allow-Origin': origin, 'Vary': 'Origin' } : {};
+      try { const d = JSON.parse(await req.text() || '{}'), u = await userByToken(x, d.token); if (!u || !canIns(u)) return json({ ok: false, error: 'Bạn cần đăng nhập CRM (quyền Marketing / Quản lý) để tải video.' }, origin, 403); return await driveVideo(x, d, cors); }
+      catch (err) { console.error('drive', err && err.stack || err); return json({ ok: false, error: 'Không tải được video: ' + String(err && err.message || err).slice(0, 150) }, origin, 500); }
+    }
     if (path === '/mcp' || path.startsWith('/oauth/') || path.startsWith('/.well-known/')) { // 🔌 cổng MCP: ChatGPT / Gemini / Claude hỏi số liệu CRM (mcp.js)
       try { await ensureSchema(x.db); const r = await mcpRoute(x, req, path, url); if (r) return r; }
       catch (err) { console.error('mcp', err && err.stack || err); return new Response(JSON.stringify({ error: 'server_error' }), { status: 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }); }
@@ -173,7 +180,7 @@ export default {
       if (req.method !== 'POST') return json({ ok: false, error: 'method' }, origin, 405);
       const t0 = Date.now();
       await ensureSchema(x.db);
-      const text = await req.text(); if (text.length > (text.startsWith('{"type":"apply"') ? 8e6 : 2e6)) return json({ ok: false, error: 'Dữ liệu quá lớn' }, origin, 413); // hồ sơ ứng tuyển kèm file CV tới 5 MB
+      const text = await req.text(); if (text.length > (text.startsWith('{"type":"apply"') ? 8e6 : text.startsWith('{"type":"crm","action":"ins_score"') ? 16e6 : 2e6)) return json({ ok: false, error: 'Dữ liệu quá lớn' }, origin, 413); // hồ sơ ứng tuyển kèm file CV tới 5 MB · 🧪 chấm bài kèm 8 khung hình + tiếng video ≤ 4 phút (~10 MB)
       const d = JSON.parse(text || '{}');
       if (d.type === 'crm') { const out = await crmApi(x, d, ADMIN, DUPS); out.v = API_VERSION; out.sms = Date.now() - t0; return json(out, origin); } // sms: thời gian máy chủ xử lý → CRM ghi vào "Đo tốc độ CRM"
       if (d.type === 'vtp') return json(await vtpWebhook(x, d.payload), origin);

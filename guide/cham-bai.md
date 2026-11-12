@@ -35,11 +35,25 @@ CRM → menu **Thêm → 🎯 Insight & nội dung** → thẻ **🧪 Chấm bà
 1. **Người làm bài:** gõ tên bạn làm bài (máy nhớ tên đã gõ).
 2. **Định đăng ở đâu:** quảng cáo, Fanpage, hội nhóm Facebook, nhóm Zalo, Facebook cá nhân, TikTok, bài web. Mỗi nơi chấm khác nhau một chút. Ví dụ, hội nhóm thì không được bán lộ liễu, còn quảng cáo thì phải có lời mời ra tin nhắn.
 3. **Loại:** bài viết, video hoặc ảnh / poster.
-4. **Dán nguyên văn bài**, gồm cả tiêu đề và caption. Video thì dán **lời thoại hoặc kịch bản**.
-5. **Thêm ảnh hoặc video** (không bắt buộc). Chọn file video thì CRM tự cắt 8 hình trong video để AI xem câu mở, chữ trên màn hình. Cả video **không** bị tải lên.
+4. **Dán nguyên văn bài**, gồm cả tiêu đề và caption. Video thì dán link Google Drive (xem mục *Chấm video* bên dưới).
+5. **Thêm ảnh** (không bắt buộc) để AI chấm cả ảnh.
 6. Bấm **🧪 Chấm điểm**, chờ khoảng 1 phút.
 
 > Hai ô "Nhóm khách nhắm tới" và "Loại bài" để **AI tự nhận ra** cũng được. Nếu bạn chọn, AI sẽ chấm xem bài có đúng cái bạn định không.
+
+## Chấm video: chỉ cần dán link Google Drive
+
+![Chấm video: 1 chọn Video, 2 dán link Drive, 3 Chấm điểm](/huong-dan/img/cham-video.webp)
+
+1. Ô **Loại** chọn **🎬 Video / kịch bản**.
+2. Dán **link video trên Google Drive** vào ô 🔗.
+3. Bấm **🧪 Chấm điểm**. Máy tự làm 3 việc: tải video → xem 8 hình trong video (nhất là 3 giây đầu) → **tự nghe lời thoại** → AI chấm. Tổng cộng khoảng 1–2 phút.
+
+> ⚠️ Trước khi dán link, mở video trên Drive → bấm **Chia sẻ** → mục **Quyền truy cập chung** chọn **"Bất kỳ ai có đường liên kết"** → **Xong**. Chưa làm bước này thì máy báo "file chưa chia sẻ công khai".
+
+- Có caption đăng kèm thì dán vào ô **Caption** để AI chấm cả caption.
+- Video nằm sẵn trong máy thì bấm **📁 Hoặc chọn file video trong máy**, không cần đưa lên Drive.
+- Máy nghe tối đa 4 phút lời thoại đầu. Lời thoại do máy nghe có thể sai chính tả, AI chấm theo ý chứ không trừ điểm vì lỗi chính tả.
 
 ## Bước 2: Đọc kết quả và sửa
 

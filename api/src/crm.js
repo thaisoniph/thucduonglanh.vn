@@ -1149,6 +1149,8 @@ export async function crmVerify(x, d) {
   return { ok: true, token, user: publicUser(u) };
 }
 /** Trang kiểm tra kỹ thuật (GET /api/status…) chỉ cho Quản trị: ?token=<phiên đăng nhập CRM>. */
+/** Phiên đăng nhập CRM bất kỳ (🧪 tải video Drive để chấm bài, score.js) */
+export async function userByToken(x, token) { return crmSession(x, token); }
 export async function adminByToken(x, token) { const u = await crmSession(x, token); return u && u.level >= 3 ? u : null; }
 async function crmSession(x, token) {
   if (!/^[a-f0-9]{64}$/.test(String(token || ''))) return null;

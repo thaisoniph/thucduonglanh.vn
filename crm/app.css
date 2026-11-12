@@ -2228,3 +2228,4 @@ b.csx-c-ok { color: var(--primary-2); } b.csx-c-sua { color: var(--orange); } b.
 .csx-rw { margin: 8px 0; background: var(--primary-soft); border-radius: var(--radius-sm); padding: 8px 12px; }
 .csx-real { background: var(--blue-light); border-radius: var(--radius-sm); padding: 6px 10px; }
 .csx-it .spf-txt { white-space: pre-wrap; font-size: 14px; line-height: 1.5; background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; margin-top: 6px; max-height: 420px; overflow: auto; }
+.csx-tip { margin: -4px 0 8px; }
