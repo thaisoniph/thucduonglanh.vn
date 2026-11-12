@@ -156,7 +156,7 @@ export async function scheduled(x, cron) {
     try { await fixAdsLeads(x); } catch (e) { console.error('fixAdsLeads', e.message); } // 1 lần: khách hỏi ngày tương lai / file QC đã có số tiền đơn
     try { await autoCloseLeads(x, null); } catch (e) { console.error('autoCloseLeads', e.message); } // quét bù khách hỏi đã có đơn (25 phút 1 lần)
     try { await poolTick(x); } catch (e) { console.error('poolTick', e.message); } // 🧺 số công ty giao quá N ngày chưa chốt → báo trước 1 ngày rồi về Kho chung
-    try { await ownTick(x); } catch (e) { console.error('ownTick', e.message); } // 🙋 khách mới có đơn đầu: sale tự mang về? → hoa hồng 10% trong 6 tháng, báo sale
+    try { await ownTick(x); } catch (e) { console.error('ownTick', e.message); } // 🙋 khách mới có đơn đầu: sale tự mang về? → hoa hồng payplan.own % (5% từ 11/11/2026) trong 6 tháng, báo sale
   }
   try { await sanSheetTick(x); } catch (e) { console.error('sanSheet', e.message); } // Google Sheet báo cáo sàn, 30 phút/lần
   try { await wbTick(x); } catch (e) { console.error('wbTick', e.message); } // ghi ngược vào file sale (hàng trống: 1 câu đọc theo chỉ mục)
