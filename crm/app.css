@@ -2160,3 +2160,29 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .inx-gs::after { content: '›'; position: absolute; right: 2px; top: -2px; color: var(--muted); font-size: 20px; transition: transform .15s; }
 .inx-g[open] .inx-gs::after { transform: rotate(90deg); }
 .inx-g[open] > summary { margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+
+/* 📲 Cài CRM ra màn hình điện thoại (12/11/2026) */
+.inst-btn { margin-top: 12px; background: var(--primary-light); color: var(--primary); border-color: transparent; font-weight: 700; white-space: normal; }
+.inst-tip { background: #fff8e6; color: #6b4a00; }
+.inst-intro { margin: 0 0 10px; }
+.inst-ok { margin: 0 0 10px; padding: 10px 12px; border-radius: 12px; background: var(--primary-light); color: var(--primary); }
+.inst .chips { margin: 4px 0 10px; }
+.inst-steps { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; margin: 0 0 14px; }
+.inst .stp { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 12px; display: flex; gap: 12px; align-items: center; }
+.inst .stp .art { flex: none; width: 118px; }
+.inst .stp .ph { width: 118px; height: auto; display: block; }
+.inst .stp .num { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: var(--primary); color: #fff; font-weight: 800; margin-bottom: 6px; }
+.inst .stp p { margin: 0; font-size: 15px; line-height: 1.45; }
+.inst-help { background: var(--primary-soft); border-radius: 12px; padding: 10px 12px; font-size: 14px; }
+.inst-help ul { margin: 6px 0 0; padding-left: 18px; }
+.inst-help li { margin: 3px 0; }
+@media (max-width: 520px) {
+  .inst .stp { flex-direction: column; align-items: stretch; }
+  .inst .stp .art { width: 100%; display: flex; justify-content: center; }
+  .inst .stp .ph { width: 190px; }
+  .inst .stp .txt { display: flex; gap: 10px; align-items: flex-start; }
+  .inst .stp .num { flex: none; margin: 0; }
+}
+.inst-btn .nw { white-space: nowrap; display: inline-block; }
+.inst-btn .small { font-weight: 500; font-size: 13px; }
+.inst-btn { flex-wrap: wrap; justify-content: center; text-align: center; column-gap: 4px; row-gap: 0; }

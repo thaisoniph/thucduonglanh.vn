@@ -216,7 +216,7 @@
     ketoan: { nm: 'Kế toán Thực Dưỡng Lành', short: 'Kế toán', home: 'ke-toan', who: 'kế toán', guide: 'ke-toan/' }
   };
   var HOST_KEY = (location.hostname.match(/^(quantri|mkt|kho|ketoan)\./) || [])[1] || '', HOST = HOSTS[HOST_KEY] || null, APP_NM = HOST ? HOST.nm : 'CRM Thực Dưỡng Lành';
-  if (HOST) { document.title = APP_NM; var mfl = document.querySelector('link[rel=manifest]'); if (mfl) mfl.href = '/manifest-' + HOST_KEY + '.webmanifest'; }
+  if (HOST) { document.title = APP_NM; var mfl = document.querySelector('link[rel=manifest]'); if (mfl) mfl.href = '/manifest-' + HOST_KEY + '.webmanifest'; var amt = document.querySelector('meta[name=apple-mobile-web-app-title]'); if (amt) amt.content = HOST.short + ' TDL'; }
   function roleHost(role) { return 'https://' + (role === 'Quản trị' ? 'quantri' : role === 'Marketing' ? 'mkt' : role === 'Kho' ? 'kho' : role === 'Kế toán' ? 'ketoan' : 'crm') + '.thucduonglanh.vn'; }
   function hostOk() { return !HOST || !S.user || myViews().some(function (v) { return v.id === HOST.home; }); } // tên miền vai trò: chỉ ai có tab đó mới dùng được (Quản trị có mọi tab nên vào đâu cũng được)
   function hostGate() {
@@ -231,6 +231,81 @@
     if (HOST || !S.user) return '';
     var u = roleHost(S.user.role); if (u === roleHost('') || store('crm_hosttip') === S.user.role) return '';
     return '<div class="host-tip" id="hostTip"><span>📍 Địa chỉ dành riêng cho <b>' + esc(S.user.role) + '</b>: <a href="' + u + '"><b>' + u.replace('https://', '') + '</b></a> – mở thẳng màn hình của bạn; lưu ra màn hình điện thoại sẽ có tên riêng.</span><span class="grow"></span><a class="btn sm pri" href="' + u + '">Mở</a><button type="button" class="btn sm" data-ht>Đã biết</button></div>';
+  }
+  /* ================================================================ 📲 Cài CRM ra màn hình điện thoại (anh Sơn 12/11/2026, cùng cách làm với Trà Đỉnh)
+     Nhân sự mới mở lần đầu: hướng dẫn từng bước có hình (điện thoại vẽ bằng SVG, ô đỏ + 👆 chỉ đúng chỗ bấm), chọn iPhone / Android.
+     Hiện ở: màn đăng nhập (nút 📲), dải gợi ý đầu màn hình trên điện thoại chưa cài (bấm "Để sau" là thôi, crm_inst), Thêm → Cài ra màn hình điện thoại.
+     Android Chrome có beforeinstallprompt → nút "Cài ngay" 1 chạm. iPhone: ứng dụng ngoài màn hình lưu dữ liệu riêng với Safari → đăng nhập mã email 1 lần nữa. */
+  var INSTALL = null;
+  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); INSTALL = e; });
+  window.addEventListener('appinstalled', function () { INSTALL = null; store('crm_inst', '1'); var t = $('#instTip'); if (t) t.remove(); });
+  function isApp() { return (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true; }
+  var INST_OS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1) ? 'ios' : /android/i.test(navigator.userAgent) ? 'android' : '';
+  function instName() { return HOST ? HOST.short + ' TDL' : 'CRM TDL'; }
+  function instTip() {
+    if (isApp() || !INST_OS || store('crm_inst')) return '';
+    return '<div class="host-tip inst-tip" id="instTip"><span>📲 <b>Cài CRM ra màn hình điện thoại</b>: có biểu tượng ' + esc(instName()) + ', mở 1 chạm như Zalo, không phải tìm lại link.</span><span class="grow"></span><button type="button" class="btn sm pri" data-inst>Xem cách cài</button><button type="button" class="btn sm" data-inst-x>Để sau</button></div>';
+  }
+  function bindInstTip() {
+    var t = $('#instTip'); if (!t) return;
+    $('[data-inst]', t).onclick = function () { openInstall(); };
+    $('[data-inst-x]', t).onclick = function () { store('crm_inst', '1'); t.remove(); toast('Lúc nào cần: Thêm → Cài ra màn hình điện thoại'); };
+  }
+  function instPhone(inner, hl) {
+    return '<svg class="ph" viewBox="0 0 180 320" role="img" aria-hidden="true"><rect x="4" y="4" width="172" height="312" rx="26" fill="#1c2a20"/><rect x="12" y="12" width="156" height="296" rx="19" fill="#fff"/>' +
+      '<rect x="66" y="16" width="48" height="10" rx="5" fill="#1c2a20"/>' + inner +
+      (hl ? '<rect x="' + hl[0] + '" y="' + hl[1] + '" width="' + hl[2] + '" height="' + hl[3] + '" rx="8" fill="none" stroke="#e11d2e" stroke-width="3.5"/><text x="' + (hl[0] + hl[2] - 4) + '" y="' + (hl[1] + hl[3] + 22) + '" font-size="22">👆</text>' : '') + '</svg>';
+  }
+  function instArt() {
+    var T = function (x, y, s, size, w, c) { return '<text x="' + x + '" y="' + y + '" font-size="' + (size || 10) + '" font-weight="' + (w || 400) + '" fill="' + (c || '#1c2a20') + '" font-family="system-ui,sans-serif">' + s + '</text>'; };
+    var R = function (x, y, w, h, c, r) { return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="' + (r || 4) + '" fill="' + c + '"/>'; };
+    var nm = esc(instName()), url = esc(location.hostname), urlS = esc(location.hostname.slice(0, 17)) + '…';
+    var page = R(20, 52, 140, 40, '#1f5f3a', 6) + T(30, 76, esc(HOST ? HOST.short : 'CRM'), 12, 700, '#fff') + R(20, 100, 140, 30, '#eaf3ec') + R(20, 136, 140, 30, '#eaf3ec') + R(20, 172, 90, 30, '#eaf3ec');
+    var bar = function (dots) { return R(12, 30, 156, 22, '#f2f2f2') + T(22, 45, urlS, 9, 400, '#555') + T(dots === '⋮' ? 150 : 146, 45, dots, dots === '⋮' ? 14 : 12, 700); };
+    var openIn = function (br) { return R(70, 60, 92, 54, '#fff', 6) + '<rect x="70" y="60" width="92" height="54" rx="6" fill="none" stroke="#ccc"/>' + T(78, 80, 'Mở bằng', 9) + T(78, 94, 'trình duyệt', 9, 700) + T(78, 107, br, 8, 400, '#888'); };
+    return {
+      zalo_i: instPhone(bar('•••') + page + openIn('Safari'), [72, 66, 88, 44]),
+      share_i: instPhone(page + R(12, 276, 156, 32, '#f6f6f6') + T(26, 297, '‹', 16) + T(52, 297, '›', 16, 400, '#bbb') + '<g transform="translate(83,282)"><rect x="0" y="6" width="14" height="14" rx="2" fill="none" stroke="#0a66ff" stroke-width="2"/><path d="M7 0v13M3 4l4-4 4 4" stroke="#0a66ff" stroke-width="2" fill="none"/></g>' + T(118, 297, '📖', 12) + T(146, 297, '⧉', 13), [76, 278, 28, 28]),
+      add_i: instPhone(R(12, 130, 156, 178, '#f2f2f7', 14) + T(26, 154, 'Chia sẻ', 11, 700) + R(20, 166, 140, 24, '#fff', 6) + T(30, 182, 'Sao chép', 9) + R(20, 194, 140, 24, '#fff', 6) + T(30, 210, 'Thêm vào Mục ưa thích', 9) + R(20, 222, 140, 24, '#fff', 6) + T(30, 238, 'Thêm vào MH chính', 9, 700) + T(140, 239, '⊞', 12) + R(20, 250, 140, 24, '#fff', 6) + T(30, 266, 'Đánh dấu', 9), [18, 220, 144, 28]),
+      ok_i: instPhone(R(12, 30, 156, 120, '#f2f2f7') + T(22, 50, 'Huỷ', 10, 400, '#0a66ff') + T(44, 50, 'Thêm vào MH chính', 8, 700) + T(140, 50, 'Thêm', 10, 700, '#0a66ff') + '<image href="/icon-180.png" x="24" y="66" width="40" height="40"/>' + R(72, 72, 86, 20, '#fff') + T(78, 86, nm, 10) + T(24, 128, url, 7, 400, '#888'), [132, 36, 34, 22]),
+      home: instPhone(R(12, 12, 156, 296, '#2f5d8a', 19) + [0, 1, 2, 3].map(function (k) { return R(26 + k * 36, 52, 26, 26, 'rgba(255,255,255,.35)', 7); }).join('') + [0, 1, 2].map(function (k) { return R(26 + k * 36, 96, 26, 26, 'rgba(255,255,255,.35)', 7); }).join('') +
+        '<image href="/icon-180.png" x="134" y="96" width="26" height="26"/>' + '<text x="147" y="133" text-anchor="middle" font-size="7" font-weight="600" fill="#fff" font-family="system-ui,sans-serif">' + nm + '</text>', [124, 92, 46, 46]),
+      zalo_a: instPhone(bar('⋮') + page + openIn('Chrome'), [72, 66, 88, 44]),
+      menu_a: instPhone(bar('⋮') + page, [144, 31, 20, 20]),
+      add_a: instPhone(page + R(66, 30, 100, 168, '#fff', 8) + '<rect x="66" y="30" width="100" height="168" rx="8" fill="none" stroke="#ddd"/>' + T(74, 52, 'Thẻ mới', 9) + T(74, 74, 'Dấu trang', 9) + T(74, 96, 'Lịch sử', 9) + T(74, 118, 'Tải xuống', 9) + T(74, 140, 'Chia sẻ…', 9) + T(74, 162, 'Thêm vào màn', 9, 700) + T(74, 174, 'hình chính / Cài', 9, 700) + T(74, 192, 'Cài đặt', 9, 400, '#888'), [68, 150, 96, 30]),
+      ok_a: instPhone(page + R(24, 120, 132, 92, '#fff', 12) + '<rect x="24" y="120" width="132" height="92" rx="12" fill="none" stroke="#ddd"/>' + T(34, 142, 'Cài đặt ứng dụng?', 10, 700) + '<image href="/icon-180.png" x="34" y="152" width="22" height="22"/>' + T(62, 167, nm, 9) + T(66, 200, 'Huỷ', 10, 400, '#0a66ff') + T(112, 200, 'Cài đặt', 10, 700, '#0a66ff'), [104, 186, 46, 22])
+    };
+  }
+  function instSteps(os) {
+    var nm = '<b>' + esc(instName()) + '</b>', done = 'Xong! Ra màn hình chính, bấm biểu tượng ' + nm + ' để mở. Từ nay mở 1 chạm như Zalo.';
+    return os === 'android'
+      ? [['zalo_a', 'Đang mở link trong Zalo? Bấm <b>⋮</b> góc trên bên phải → <b>Mở bằng trình duyệt</b> (Chrome). Đã ở Chrome thì bỏ qua bước này.'],
+        ['menu_a', 'Ở Chrome, bấm <b>⋮</b> (3 chấm) góc trên bên phải.'],
+        ['add_a', 'Chọn <b>Thêm vào màn hình chính</b> hoặc <b>Cài đặt ứng dụng</b>.'],
+        ['ok_a', 'Bấm <b>Cài đặt</b> (hoặc <b>Thêm</b>).'],
+        ['home', done + ' Vào lần đầu thì đăng nhập bằng mã email như thường.']]
+      : [['zalo_i', 'Đang mở link trong Zalo? Bấm <b>•••</b> góc trên bên phải → <b>Mở bằng trình duyệt</b> (Safari). Đã ở Safari thì bỏ qua bước này.'],
+        ['share_i', 'Ở Safari, bấm nút <b>Chia sẻ</b> (hình vuông có mũi tên chỉ lên) ở thanh dưới cùng. Không thấy thì bấm <b>•••</b> rồi chọn <b>Chia sẻ</b>.'],
+        ['add_i', 'Kéo danh sách lên, chọn <b>Thêm vào MH chính</b> (Add to Home Screen).'],
+        ['ok_i', 'Giữ tên ' + nm + ', bấm <b>Thêm</b> ở góc trên bên phải.'],
+        ['home', done + ' Lần đầu mở từ biểu tượng, iPhone bắt <b>đăng nhập mã email 1 lần nữa</b> (ứng dụng lưu riêng với Safari), sau đó không phải làm lại.']];
+  }
+  function openInstall(os) {
+    os = os || openInstall.os || INST_OS || 'ios'; openInstall.os = os;
+    var A = instArt();
+    var body = '<div class="inst">' +
+      '<p class="inst-intro">Cài 1 lần (khoảng 1 phút), sau đó có biểu tượng <b>' + esc(instName()) + '</b> ngoài màn hình chính, mở như ứng dụng, không phải tìm lại link. Làm theo từng bước có hình dưới đây.</p>' +
+      (isApp() ? '<p class="inst-ok">✅ Máy này đã cài rồi: bạn đang mở CRM từ biểu tượng ngoài màn hình chính.</p>' : '') +
+      (INSTALL ? '<div class="inst-ok"><b>Máy này cài được ngay bằng 1 chạm</b><button type="button" class="btn pri lg block" data-inst-now style="margin-top:8px">📲 Cài ngay</button></div>' : '') +
+      '<div class="chips">' + [['ios', '📱 iPhone (iOS)'], ['android', '🤖 Android']].map(function (o) { return '<button type="button" class="chip' + (os === o[0] ? ' on' : '') + '" data-inst-os="' + o[0] + '">' + o[1] + '</button>'; }).join('') + '</div>' +
+      '<div class="inst-steps">' + instSteps(os).map(function (s, k) { return '<div class="stp"><div class="art">' + A[s[0]] + '</div><div class="txt"><span class="num">' + (k + 1) + '</span><p>' + s[1] + '</p></div></div>'; }).join('') + '</div>' +
+      '<div class="inst-help"><b>❓ Gặp khó khăn</b><ul><li>Phải mở bằng <b>Safari</b> (iPhone) hoặc <b>Chrome</b> (Android). Mở trong Zalo, Facebook thì không có nút cài.</li>' +
+      '<li>Mỗi vai trò có địa chỉ riêng (crm., kho., mkt., ketoan., quantri.thucduonglanh.vn). Mở đúng địa chỉ của mình rồi mới cài, biểu tượng sẽ mang đúng tên.</li>' +
+      '<li>Lỡ xoá biểu tượng: mở lại link CRM rồi làm lại các bước trên.</li></ul></div></div>';
+    var m = $('.modal .inst') ? $('.modal') : null;
+    if (m) $('.sheet-b', m).innerHTML = body; else m = modal('📲 Cài CRM ra màn hình điện thoại', body); // đổi iPhone ↔ Android: chỉ thay nội dung, không mở lại hộp
+    $$('[data-inst-os]', m).forEach(function (b) { b.onclick = function () { openInstall(b.getAttribute('data-inst-os')); }; });
+    var now = $('[data-inst-now]', m); if (now) now.onclick = function () { INSTALL.prompt(); INSTALL.userChoice.then(function (c) { INSTALL = null; if (c && c.outcome === 'accepted') { store('crm_inst', '1'); closeModal(); toast('Đã cài. Mở bằng biểu tượng ' + instName() + ' ngoài màn hình chính.'); } else openInstall(os); }); };
   }
   function toast(msg, err) {
     var el = document.createElement('div'); if (err) el.className = 'err'; el.textContent = msg; $('#toast').appendChild(el);
@@ -321,8 +396,10 @@
         : '<p class="sub">Đăng nhập bằng email công việc. Chúng tôi sẽ gửi mã 6 số vào email của bạn.</p>' +
           '<label class="f"><span>Email</span><input type="email" name="email" autocomplete="email" inputmode="email" required value="' + esc(email || store('crm_email') || '') + '" placeholder="ten@gmail.com"></label>' +
           '<button class="btn pri lg block" type="submit">Gửi mã đăng nhập</button><p class="err" role="alert">' + esc(msg || '') + '</p>') +
-      '<p class="small" style="text-align:center;margin:14px 0 0"><a href="/huong-dan/' + (HOST ? HOST.guide : '') + '" target="_blank" rel="noopener">Hướng dẫn sử dụng</a></p>' +
+      (INST_OS && !isApp() ? '<button type="button" class="btn block inst-btn" data-inst>📲 <span class="nw">Cài CRM ra màn hình điện thoại</span> <span class="nw small">(có hình từng bước)</span></button>' : '') +
+      '<p class="small" style="text-align:center;margin:14px 0 0"><a href="/huong-dan/' + (HOST ? HOST.guide : '') + '" target="_blank" rel="noopener">Hướng dẫn sử dụng</a>' + (!INST_OS && !isApp() ? ' · <button type="button" class="link" data-inst>📲 Cài ra màn hình điện thoại</button>' : '') + '</p>' +
       '</form></div>';
+    $$('[data-inst]').forEach(function (b) { b.onclick = function () { openInstall(); }; });
     var form = $('.login-box'), btn = $('button[type=submit]', form), err = $('.err', form);
     var inp = $('input', form); setTimeout(function () { inp.focus(); }, 50);
     function busy(on, label) { btn.disabled = on; btn.textContent = on ? label : (step === 'code' ? 'Đăng nhập' : 'Gửi mã đăng nhập'); }
@@ -797,6 +874,7 @@
         vrow(VIEWS.filter(function (v) { return v.id === 'cai-dat'; })[0]) +
         row('<a class="mr-row" href="/huong-dan/' + (isMkt() ? 'marketing' : isKho() ? 'kho' : isKt() ? 'ke-toan' : 'crm') + '/" target="_blank" rel="noopener">', I.help, '#30b0c7', 'Hướng dẫn sử dụng', 'Cách dùng từng màn hình, có hình', 0) + '</a>' +
         row('<button type="button" class="mr-row" data-mr="fb">', '💡', '#ffcc00', 'Góp ý', 'Báo lỗi, chỗ khó dùng, ý tưởng', lvl() >= 2 ? S.d.fbNew : 0) + '</button>' +
+        (isApp() ? '' : row('<button type="button" class="mr-row" data-mr="inst">', '📲', '#5856d6', 'Cài ra màn hình điện thoại', 'Mở CRM 1 chạm như ứng dụng, có hình từng bước', 0) + '</button>') +
         row('<button type="button" class="mr-row" data-mr="re">', I.refresh, '#34c759', 'Tải lại dữ liệu', 'Lấy số mới nhất từ máy chủ', 0) + '</button>')) +
       '</div>';
     return h;
@@ -813,11 +891,12 @@
         vrow(VIEWS.filter(function (v) { return v.id === 'cai-dat'; })[0]) +
         row('<a class="mr-row" href="/huong-dan/crm/" target="_blank" rel="noopener">', I.help, '#30b0c7', 'Hướng dẫn sử dụng', 'Cách dùng từng màn hình, có hình', 0) + '</a>' +
         row('<button type="button" class="mr-row" data-mr="fb">', '💡', '#ffcc00', 'Góp ý', 'Báo lỗi, chỗ khó dùng, ý tưởng', S.d.fbNew) + '</button>' +
+        (isApp() ? '' : row('<button type="button" class="mr-row" data-mr="inst">', '📲', '#5856d6', 'Cài ra màn hình điện thoại', 'Mở CRM 1 chạm như ứng dụng, có hình từng bước', 0) + '</button>') +
         row('<button type="button" class="mr-row" data-mr="re">', I.refresh, '#34c759', 'Tải lại dữ liệu', 'Lấy số mới nhất từ máy chủ', 0) + '</button>');
   }
   function bindMore() {
     $$('[data-mr]').forEach(function (b) {
-      b.onclick = function () { var k = b.getAttribute('data-mr'); if (k === 'search') openGlobalSearch(); else if (k === 'fb') openFeedback(); else { load(); toast('Đang tải lại dữ liệu…'); } };
+      b.onclick = function () { var k = b.getAttribute('data-mr'); if (k === 'search') openGlobalSearch(); else if (k === 'fb') openFeedback(); else if (k === 'inst') openInstall(); else { load(); toast('Đang tải lại dữ liệu…'); } };
     });
   }
   function meHTML() { return '<b>' + esc(S.user.name) + '</b>'; } // chỉ tên: mỗi người là chủ công việc của mình
@@ -840,8 +919,9 @@
       '<a class="icon-btn" href="/huong-dan/' + (isMkt() ? 'marketing' : isKho() ? 'kho' : isKt() ? 'ke-toan' : 'crm') + '/" target="_blank" rel="noopener" title="Hướng dẫn sử dụng" aria-label="Hướng dẫn sử dụng">' + I.help + '</a>' +
       '<a class="icon-btn top-set" href="#cai-dat" title="Cài đặt" aria-label="Cài đặt">' + I.gear + '</a>' +
       '<button class="icon-btn" id="refresh" title="Tải lại dữ liệu" aria-label="Tải lại dữ liệu">' + I.refresh + '</button>' +
-      '</div></header>' + hostTip() + '<main id="view"></main>';
+      '</div></header>' + hostTip() + instTip() + '<main id="view"></main>';
     var ht = $('#hostTip'); if (ht) $('[data-ht]', ht).onclick = function () { store('crm_hosttip', S.user.role); ht.remove(); };
+    bindInstTip();
     $('#refresh').onclick = function () { load(); };
     $('#fbBtn').onclick = function () { openFeedback(); };
     if ($('#gsBtn')) $('#gsBtn').onclick = function () { openGlobalSearch(); };

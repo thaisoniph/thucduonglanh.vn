@@ -25,10 +25,10 @@ Mã chỉ dùng được trong 10 phút. Vào được rồi thì máy nhớ b�
 
 > **Máy báo "Email này chưa được cấp quyền"?** Nhờ quản lý hoặc anh Sơn thêm email của bạn.
 
-**Đưa CRM ra màn hình điện thoại** (để mở nhanh như một ứng dụng):
+**Đưa CRM ra màn hình điện thoại** (để mở nhanh như một ứng dụng). Trong CRM có sẵn hướng dẫn **có hình từng bước**: ở màn đăng nhập bấm **📲 Cài CRM ra màn hình điện thoại**; đã vào CRM thì bấm **••• Thêm** → **Cài ra màn hình điện thoại**. Tóm tắt:
 
-- **iPhone:** mở bằng Safari. Bấm nút **Chia sẻ** (ô vuông có mũi tên đi lên). Chọn **Thêm vào MH chính**.
-- **Android:** mở bằng Chrome. Bấm **⋮** ở góc trên. Chọn **Thêm vào màn hình chính**.
+- **iPhone:** mở bằng Safari (đang ở Zalo thì bấm **•••** → **Mở bằng trình duyệt**). Bấm nút **Chia sẻ** (ô vuông có mũi tên đi lên). Chọn **Thêm vào MH chính** → **Thêm**. Lần đầu mở từ biểu tượng, iPhone bắt đăng nhập mã email 1 lần nữa.
+- **Android:** mở bằng Chrome. Bấm **⋮** ở góc trên. Chọn **Thêm vào màn hình chính** (hoặc **Cài đặt ứng dụng**) → **Cài đặt**.
 
 **Nối Telegram** (làm 1 lần, mất 30 giây). Telegram sẽ báo bạn khi có đơn mới, có khách mới hỏi, và gửi việc cần làm lúc 8 giờ sáng.
 
