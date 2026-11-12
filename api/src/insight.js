@@ -734,7 +734,7 @@ export async function insWeekly(x) {
   const L = []; L.push('📊 <b>Content tuần qua</b> (' + fmtDate(now - 7 * DAY, 'dd/MM') + '–' + fmtDate(now - DAY, 'dd/MM') + ')');
   L.push('✍️ Trợ lý đã viết ' + tot + ' bài: 🔵 ' + n.TOFU + ' (' + pc('TOFU') + '%) · ⚪ ' + n.MOFU + ' (' + pc('MOFU') + '%) · 🟠 ' + n.BOFU + ' (' + pc('BOFU') + '%) · khoá học khuyên 60/20/20' + (tot && pc('MOFU') < 12 ? ' → ⚠️ thiếu bài tạo niềm tin' : tot && pc('BOFU') > 35 ? ' → ⚠️ bán hơi nhiều' : ''));
   try {
-    const lr = await lrnPosts(x, 'all'), CHN = { zalo: 'Nhóm Zalo', fb: 'Fanpage' };
+    const lr = await lrnPosts(x, 'all'), CHN = { zalo: 'Nhóm Zalo', fb: 'Fanpage', web: 'Bài web' };
     for (const k of Object.keys(lr)) for (const f of ['TOFU', 'BOFU']) { const T = lr[k].tiers[f]; if (T && T.top[0]) L.push((f === 'BOFU' ? '🟠' : '👍') + ' ' + CHN[k] + ' ' + f + ' tốt nhất 60 ngày: ' + esc_(T.top[0].m) + (T.top[0].a ? ' · góc ' + esc_(T.top[0].a) : '') + '\n   “' + esc_(T.top[0].text.slice(0, 90)) + '…”'); }
   } catch (e) { }
   const bank = await insBank(x), noBig = live(bank).filter(g => !(g.bigs || []).some(b => b.on && b.ang.length));

@@ -7,8 +7,12 @@
  * 11/11/2026 (khoá K133): CHỈ SO TRONG CÙNG TẦNG PHỄU. Bài MOFU (tạo niềm tin) vốn ít tương tác nhưng bắt buộc phải có (~91% người thấy bài là người lạ, vào trang để "thẩm định"),
  *   bài BOFU đo bằng đơn / tin nhắn chứ không bằng lượt thích → xếp chung sẽ luôn coi MOFU, BOFU là "nên tránh" (sai). Mỗi tầng: ≥ 6 bài → 3 cao + 3 thấp; 3–5 bài → chỉ 2 bài cao nhất.
  *   Bài BOFU nhóm Zalo: điểm = đơn từ link trong bài (nguồn "zalo / nhom / <mã bài>") × 20 + tin nhắn × 3 + người tương tác.
+ *   🌐 Bài web (bl_posts, 12/11/2026 anh Sơn: "luôn đo lường và cải tiến"): GA4 60 ngày (chỉ người bấm Đồng ý cookie) + đơn trong 7 ngày sau khi đọc (bl_conv).
+ *     Bài đăng sớm có nhiều ngày hơn để gom lượt đọc → tính NGƯỜI ĐỌC / TUẦN. TOFU/MOFU: người đọc / tuần × (1 + thời gian đọc ≤ 4 phút) + bấm mua × 3 + đơn × 20; BOFU: đơn × 20 + bấm mua × 3 + bấm nút × 2 + người đọc / tuần × 0,2.
+ *     Bài web chỉ học từ bài web (khác cách đọc với mạng xã hội); Zalo, Fanpage, video vẫn học từ nhóm Zalo + Fanpage.
  * Dùng ở: insPick (insight.js) gắn p.learn → insBlock chèn lrnBlock vào prompt; CRM 🎯 Insight & nội dung → 📈 Học từ tương tác (ins_view.learn). */
 import { all, DAY } from './lib.js';
+import { gaPosts } from './blog.js';
 
 const cut = (s, n) => String(s == null ? '' : s).replace(/\s+/g, ' ').trim().slice(0, n);
 const insOf = s => { try { return JSON.parse(s || '{}') || {}; } catch (e) { return {}; } };
@@ -30,6 +34,17 @@ async function rowsOf(x, ch, since, until) {
       .map(r => { const n = od[r.id] || 0, bo = r.funnel === 'BOFU'; return { ch, id: r.id, at: r.sent_at, f: r.funnel || '', ins: insOf(r.ins), text: r.text, s: bo ? n * 20 + (r.eng_msgs || 0) * 3 + (r.eng_people || 0) : (r.eng_people || 0) * 3 + (r.eng_msgs || 0) + (r.eng_reacts || 0), m: (bo || n ? n + ' đơn, ' : '') + (r.eng_people || 0) + ' người tương tác, ' + (r.eng_msgs || 0) + ' tin nhắn' }; }); }
     if (ch === 'fb') return (await all(x.db, "SELECT id, sent_at, text, funnel, ins, eng_react, eng_cmt, eng_share, eng_reach, eng_fan FROM fp_posts WHERE status = 'sent' AND eng_at > 0 AND sent_at BETWEEN ? AND ?", since, until))
       .map(r => ({ nf: r.eng_reach > 0 ? Math.max(0, Math.round(100 * (r.eng_reach - (r.eng_fan || 0)) / r.eng_reach)) : null, ch, id: r.id, at: r.sent_at, f: r.funnel || '', ins: insOf(r.ins), text: r.text, s: (r.eng_react || 0) + (r.eng_cmt || 0) * 3 + (r.eng_share || 0) * 5, m: (r.eng_react || 0) + ' cảm xúc, ' + (r.eng_cmt || 0) + ' bình luận, ' + (r.eng_share || 0) + ' chia sẻ' }));
+    if (ch === 'web') {
+      const ga = await gaPosts(x, 60), pages = (ga && ga.pages) || {}, od = {};
+      for (const c of await all(x.db, 'SELECT c.slug, o.status FROM bl_conv c LEFT JOIN orders o ON o.id = c.oid WHERE c.at >= ?', since)) { if (/huỷ|hủy|hoàn/i.test(String(c.status || ''))) continue; od[c.slug] = (od[c.slug] || 0) + 1; }
+      if (!Object.keys(pages).length && !Object.keys(od).length) return []; // GA4 chưa nối / lỗi và chưa có đơn → chưa đủ số
+      return (await all(x.db, "SELECT day, title, slug, funnel, md, meta, pub_at FROM bl_posts WHERE status = 'published' AND hidden = 0 AND pub_at BETWEEN ? AND ?", since, until)).map(r => {
+        const g = pages[r.slug] || {}, n = od[r.slug] || 0, wk = Math.max(1, (Date.now() - r.pub_at) / (7 * DAY)), pw = (g.u || 0) / wk, sec = g.u ? Math.round(g.sec / g.u) : 0, bo = r.funnel === 'BOFU';
+        const s = bo ? n * 20 + (g.cart || 0) * 3 + (g.cta || 0) * 2 + pw * 0.2 : pw * (1 + Math.min(sec, 240) / 240) + (g.cart || 0) * 3 + n * 20;
+        return { ch, id: r.day, at: r.pub_at, f: r.funnel || '', ins: insOf(r.meta), text: r.title + ': ' + String(r.md || '').replace(/^---[\s\S]*?\n---\n/, '').replace(/[#*>_`\[\]]/g, ''), s: Math.round(s * 10) / 10,
+          m: (g.u || 0) + ' người đọc (~' + Math.round(pw) + '/tuần), đọc trung bình ' + sec + ' giây, ' + (g.cart || 0) + ' bấm thêm giỏ' + (n ? ', ' + n + ' đơn' : '') };
+      });
+    }
   } catch (e) { } // bảng chưa có (kênh chưa dùng lần nào)
   return [];
 }
@@ -39,7 +54,7 @@ export const TIERS = ['TOFU', 'MOFU', 'BOFU'];
 /** { kênh: { n, tiers: { TOFU: { n, top[], flop[] }, … } } } cho từng kênh có đủ bài. ch = 'zalo' | 'fb' → chỉ kênh đó; kênh khác → cả 2. */
 export async function lrnPosts(x, ch) {
   const now = Date.now(), since = now - 60 * DAY, until = now - 2 * DAY, out = {};
-  for (const c of ch === 'zalo' || ch === 'fb' ? [ch] : ['zalo', 'fb']) {
+  for (const c of ch === 'zalo' || ch === 'fb' || ch === 'web' ? [ch] : ch === 'all' ? ['zalo', 'fb', 'web'] : ['zalo', 'fb']) {
     const all_ = await rowsOf(x, c, since, until), tiers = {};
     for (const f of TIERS) {
       const R = all_.filter(r => r.f === f).sort((a, b) => b.s - a.s);
@@ -51,7 +66,7 @@ export async function lrnPosts(x, ch) {
   return out;
 }
 
-const CHN = { zalo: 'Nhóm Zalo', fb: 'Fanpage' };
+const CHN = { zalo: 'Nhóm Zalo', fb: 'Fanpage', web: 'Bài web' };
 /** Đoạn chèn vào prompt (rỗng nếu chưa đủ số). f = tầng phễu của bài đang viết → chỉ học bài CÙNG TẦNG; không rõ tầng → bài TOFU. */
 export function lrnBlock(L, f) {
   const t = TIERS.includes(f) ? f : 'TOFU', ks = Object.keys(L || {}).filter(k => L[k].tiers && L[k].tiers[t]); if (!ks.length) return '';

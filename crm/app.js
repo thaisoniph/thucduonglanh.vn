@@ -7329,7 +7329,7 @@
   }
   /** 📈 Học từ tương tác (learn.js): 3 bài nhiều / ít tương tác nhất mỗi kênh, 60 ngày; trợ lý viết đọc đúng danh sách này trước khi viết */
   function inLearnHtml(L, nfErr) {
-    var CHN = { zalo: '💬 Nhóm Zalo', fb: '📘 Fanpage' }, TN = { TOFU: '🔵 Thu hút (TOFU)', MOFU: '⚪ Tạo niềm tin (MOFU)', BOFU: '🟠 Bán hàng (BOFU)' }, ks = Object.keys(L || {});
+    var CHN = { zalo: '💬 Nhóm Zalo', fb: '📘 Fanpage', web: '🌐 Bài web' }, TN = { TOFU: '🔵 Thu hút (TOFU)', MOFU: '⚪ Tạo niềm tin (MOFU)', BOFU: '🟠 Bán hàng (BOFU)' }, ks = Object.keys(L || {});
     var one = function (r, good) { return '<li><span class="' + (good ? 'spf-up' : 'spf-down') + '">' + (good ? '👍 ' : '👎 ') + esc(r.m) + '</span> <span class="muted">· ' + fDate(r.at) + (r.a ? ' · 🎭 ' + esc(r.a) : '') + (r.gn ? ' · 🎯 ' + esc(r.gn) : '') + '</span><br>' + esc(r.text.slice(0, 220)) + (r.text.length > 220 ? '…' : '') + '</li>'; };
     var body = ks.length ? ks.map(function (k) {
       return '<p class="small" style="margin:10px 0 2px"><b>' + CHN[k] + '</b> <span class="muted">(' + L[k].n + ' bài có số)</span></p>' + ['TOFU', 'MOFU', 'BOFU'].filter(function (f) { return L[k].tiers[f]; }).map(function (f) {
@@ -7337,7 +7337,7 @@
         return '<p class="small" style="margin:6px 0 2px"><b>' + TN[f] + '</b> <span class="muted">· ' + T.n + ' bài' + (f === 'BOFU' && k === 'zalo' ? ' · xếp theo đơn từ link trong bài và tin nhắn' : '') + '</span></p><ul class="small inx-lrn">' + T.top.map(function (r) { return one(r, true); }).join('') + T.flop.map(function (r) { return one(r, false); }).join('') + '</ul>';
       }).join('');
     }).join('')
-      : '<p class="small muted">Chưa đủ số: mỗi loại bài cần ít nhất 3 bài đã đăng hơn 2 ngày có số tương tác (nhóm Zalo đếm người tương tác, tin nhắn, đơn từ link trong bài; Fanpage đếm cảm xúc, bình luận, chia sẻ, lấy mỗi ngày 1 lần).</p>';
+      : '<p class="small muted">Chưa đủ số: mỗi loại bài cần ít nhất 3 bài đã đăng hơn 2 ngày có số tương tác (nhóm Zalo đếm người tương tác, tin nhắn, đơn từ link trong bài; Fanpage đếm cảm xúc, bình luận, chia sẻ, lấy mỗi ngày 1 lần; bài web đếm người đọc mỗi tuần, thời gian đọc, bấm thêm giỏ, đơn trong 7 ngày sau khi đọc).</p>';
     return '<details class="box spf-learn"><summary><b>📈 Học từ tương tác</b> <span class="small muted">bài tốt nhất / kém nhất 60 ngày qua, trợ lý học trước khi viết</span></summary>' + body + '<p class="small muted" style="margin:8px 0 0">Chỉ so bài cùng loại (khoá K133): bài tạo niềm tin ⚪ vốn ít tương tác hơn bài thu hút 🔵 nhưng bắt buộc phải có, vì phần lớn người thấy bài là người lạ, họ vào trang để xem mình có đáng tin không. Bài bán 🟠 đo bằng đơn và tin nhắn. Mỗi tuần nên xem lại: bài 👍 giống nhau ở điểm nào, bài 👎 sai ở đâu, ghi vào Ghi chú của nhóm khách.</p>' +
       '<p class="small muted" style="margin:6px 0 0">👀 Fanpage còn ghi <b>% người chưa theo dõi</b> trong số người thấy bài: bài lan tốt thường trên 80–90% (khoá K133). ' + (nfErr && nfErr.msg ? '⚠️ Hiện Facebook chưa cho đọc số này (' + esc(nfErr.msg) + '), thường vì ứng dụng chưa được duyệt quyền đọc thống kê trang; khi được duyệt máy tự lấy.' : 'Số này có sau khi bài đăng được ít nhất 2 ngày.') + '</p></details>';
   }

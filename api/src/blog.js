@@ -488,7 +488,7 @@ export async function blogConv(x, data) {
   await run(x.db, 'INSERT OR IGNORE INTO bl_conv (oid, slug, at, total) VALUES (?, ?, ?, ?)', String(data.id), slug, Date.now(), Math.round(Number(data.total) || 0));
 }
 /** Lượt xem từng bài từ GA4 (chỉ người bấm Đồng ý cookie), lưu tạm 3 tiếng. Chưa nối GA4 (tab Tổng quan) → null + lý do. */
-async function gaPosts(x, days) {
+export async function gaPosts(x, days) { // learn.js dùng chung (kênh 'web')
   const ck = 'bl_ga_' + days, c = await kvGet(x.db, ck); if (c) { try { return JSON.parse(c); } catch (e) { } }
   const prop = await kvGet(x.db, 'ga_prop'); if (!prop) return { err: 'Chưa nối Google Analytics (Quản trị nối ở tab Tổng quan → khối Website).' };
   let tok; try { tok = (await gInfo(x.env)).token; } catch (e) { return { err: 'Chưa lấy được quyền đọc Google Analytics: ' + String(e.message).slice(0, 120) }; }

@@ -70,6 +70,8 @@ Trợ lý tự viết bài cho Góc Sống Lành. **Bài chỉ lên web khi có 
 - **Chi phí AI**: tiền trợ lý viết bài, chia ra mỗi bài bao nhiêu.
 - **🏆 Bài được đọc nhiều nhất**: cả bài viết tay để so với bài trợ lý viết.
 
+**📈 Trợ lý tự học từ số đọc:** trước khi viết bài mới, trợ lý xem các bài web cùng loại (🔵 thu hút, ⚪ tạo niềm tin, 🟠 bán hàng) đã đăng trong 60 ngày. Trợ lý học theo bài được đọc nhiều, đọc lâu, nhiều người bấm mua, và tránh kiểu bài ít người đọc. Xem danh sách này ở CRM → 🎯 Insight & nội dung → **📈 Học từ tương tác** (dòng 🌐 Bài web). Mỗi loại cần ít nhất 3 bài đã đăng hơn 2 ngày mới bắt đầu so.
+
 **Cài đặt:** CRM → 📰 Bài web → ⚙️ Cài đặt và ➕ Thêm chủ đề. Sửa ở /admin → Cài đặt website → 🤖 Trợ lý viết bài tự động cũng được, hai chỗ dùng chung một bản.
 - **Số bài mỗi tuần** (1–7) và **Giờ đăng**.
 - **Chủ đề chờ viết**: thêm chủ đề muốn viết, trợ lý lấy chủ đề trên cùng trước. Bài đăng xong, chủ đề tự chuyển sang "Đã đăng" kèm link.
