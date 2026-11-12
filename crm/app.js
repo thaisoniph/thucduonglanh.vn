@@ -2170,7 +2170,7 @@
     [/progomax|promax/, 'Fucoidan Progomax', 'Pha 5 muỗng (khoảng 45g) với 200ml nước ấm 60–70°C, khuấy đều. Uống 1 ly, 2–3 lần mỗi ngày. Mở nắp dùng trong 30 ngày.'],
     [/gafo/, 'Gafo Fucoidan', 'Pha theo hướng dẫn in trên hộp. Uống buổi sáng sau ăn 30 phút, hoặc buổi tối trước khi ngủ 1 tiếng. Mở hộp dùng trong 30–45 ngày.'],
     [/curcumin|sua hat c/, 'Dinh Dưỡng Từ Hạt và Curcumin', 'Pha 3 muỗng (khoảng 30g) với 150–180ml nước ấm 60–70°C, khuấy đều. Uống 1 ly, 2–3 lần mỗi ngày. Người mới dùng nên bắt đầu nửa liều rồi tăng dần. Mở nắp dùng trong 30 ngày.'],
-    [/bua an|vitagreen/, 'Bữa Ăn Dinh Dưỡng VitaGreen', 'Pha 25–30g (3 thìa gạt ngang) với 150–180ml nước khoảng 60°C, khuấy đều, uống ngay. Ngày 2–3 lần. Có thể xay sinh tố cùng hoa quả. Mở nắp dùng trong 30 ngày.'],
+    [/bua an|vitagreen/, 'Bữa Ăn Dinh Dưỡng VitaGreen', 'Mỗi lần xé 1 gói 25g (đã chia sẵn, không cần đong), pha với 150–180ml nước khoảng 60°C, khuấy đều, uống ngay. Ngày 2–3 gói. Có thể xay sinh tố cùng hoa quả.'],
     [/dilvang|che vang|dinh lang/, 'Trà DILVANG', 'Cho 1 gói vào cốc, thêm 300–400ml nước ấm 40–50°C, khuấy đều là uống được (không cần đun sôi, không cần hãm). Ngày 2–3 gói.'],
     [/mam xoi/, 'Trà Mâm Xôi', 'Cho 1 túi trà vào 300–400ml nước sôi, hãm 7–10 phút. Ngày 2–3 túi, mỗi túi hãm lại được 1–2 lần.'],
     [/dau xanh|rau ma/, 'Bột Đậu Xanh Rau Má', 'Pha 2–3 thìa bột với nước ấm, khuấy đều. Thêm đá hoặc sữa tuỳ khẩu vị, uống lạnh ngon hơn. Mở nắp dùng trong 2–3 tháng.'],

@@ -49,7 +49,7 @@ Với những buổi sáng thật sự không kịp, [Bữa Ăn Dinh Dưỡng Vi
 
 Mỗi gói có 12 loại hạt và ngũ cốc không đậu nành (yến mạch, gạo lứt, đậu Hà Lan, đậu gà, đậu đen, đậu trắng, macca, óc chó, hạnh nhân, mè đen, hạt sen, cacao), đạm đậu Hà Lan và chất xơ FOS. Sản phẩm có thêm Curcumin 95%, Spirulina và Fucoidan chiết xuất từ tảo nâu Okinawa Mozuku, dùng đường cỏ ngọt, không dùng đường tinh luyện.
 
-Trên 100g bột có 436 kcal, 11,2g đạm, 68,5g carbohydrate và 13,6g chất béo. Bạn pha 3 thìa gạt ngang (25 đến 30g) với 150 đến 180ml nước khoảng 60 độ C, khuấy đều là uống được. Có thể xay cùng trái cây thành sinh tố. Người từ 3 tuổi trở lên dùng được.
+Trên 100g bột có 436 kcal, 11,2g đạm, 68,5g carbohydrate và 13,6g chất béo. Bột đã chia sẵn gói 25g, bạn xé 1 gói pha với 150 đến 180ml nước khoảng 60 độ C, khuấy đều là uống được. Có thể xay cùng trái cây thành sinh tố. Người từ 3 tuổi trở lên dùng được.
 
 Sản phẩm sản xuất theo tiêu chuẩn GMP và ISO 22000:2018, kiểm nghiệm tại Viện Kiểm nghiệm An toàn Vệ sinh Thực phẩm Quốc gia (NIFC).
 

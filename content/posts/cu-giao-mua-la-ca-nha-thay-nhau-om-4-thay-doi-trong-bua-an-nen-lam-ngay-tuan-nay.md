@@ -53,7 +53,7 @@ Sốt cao trên 39 độ C, sốt quá 3 ngày, khó thở, thở nhanh, trẻ b
 
 Buổi sáng bận là lúc dễ bỏ bữa nhất, cũng là lúc dễ thiếu đạm nhất.
 
-**[Bữa Ăn Dinh Dưỡng VitaGreen](https://thucduonglanh.vn/san-pham/bua-an-dinh-duong-vitagreen/)** pha trong 1 phút: 3 thìa gạt (25 đến 30g) với 150 đến 180ml nước khoảng 60 độ C. Mỗi gói có 12 loại hạt và ngũ cốc, không đậu nành (yến mạch, gạo lứt, đậu gà, đậu đen, macca, óc chó, mè đen, hạt sen...), đạm đậu Hà Lan, Fucoidan từ tảo nâu Okinawa Mozuku, tảo Spirulina và Curcumin 95%. Sản phẩm dùng đường cỏ ngọt, không đường tinh luyện, dùng được cho người từ 3 tuổi. Kiểm nghiệm tại Viện Kiểm nghiệm An toàn Vệ sinh Thực phẩm Quốc gia (NIFC), sản xuất theo GMP và ISO 22000:2018.
+**[Bữa Ăn Dinh Dưỡng VitaGreen](https://thucduonglanh.vn/san-pham/bua-an-dinh-duong-vitagreen/)** pha trong 1 phút: xé 1 gói 25g, pha với 150 đến 180ml nước khoảng 60 độ C. Mỗi gói có 12 loại hạt và ngũ cốc, không đậu nành (yến mạch, gạo lứt, đậu gà, đậu đen, macca, óc chó, mè đen, hạt sen...), đạm đậu Hà Lan, Fucoidan từ tảo nâu Okinawa Mozuku, tảo Spirulina và Curcumin 95%. Sản phẩm dùng đường cỏ ngọt, không đường tinh luyện, dùng được cho người từ 3 tuổi. Kiểm nghiệm tại Viện Kiểm nghiệm An toàn Vệ sinh Thực phẩm Quốc gia (NIFC), sản xuất theo GMP và ISO 22000:2018.
 
 ![Hộp Bữa Ăn Dinh Dưỡng VitaGreen](/assets/img/products/bua-an-dinh-duong-1.webp)
 

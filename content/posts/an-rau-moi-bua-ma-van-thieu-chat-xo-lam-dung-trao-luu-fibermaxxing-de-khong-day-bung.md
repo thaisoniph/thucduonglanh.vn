@@ -58,7 +58,7 @@ Uống thêm nước mỗi khi tăng chất xơ. Người đang có bệnh đư�
 
 Tuần 3 là bước nhiều người bỏ dở, vì buổi sáng không kịp nấu yến mạch hay cháo đậu.
 
-**[Bữa Ăn Dinh Dưỡng VitaGreen](https://thucduonglanh.vn/san-pham/bua-an-dinh-duong-vitagreen/)** gom sẵn 12 loại hạt và ngũ cốc, trong đó có yến mạch, gạo lứt, đậu Hà Lan, đậu gà, đậu đen, đậu trắng, kèm FOS (một loại chất xơ hòa tan). Pha 3 thìa gạt (25 đến 30g) với 150 đến 180ml nước ấm là có bữa sáng trong 1 phút.
+**[Bữa Ăn Dinh Dưỡng VitaGreen](https://thucduonglanh.vn/san-pham/bua-an-dinh-duong-vitagreen/)** gom sẵn 12 loại hạt và ngũ cốc, trong đó có yến mạch, gạo lứt, đậu Hà Lan, đậu gà, đậu đen, đậu trắng, kèm FOS (một loại chất xơ hòa tan). Xé 1 gói 25g pha với 150 đến 180ml nước ấm là có bữa sáng trong 1 phút.
 
 ![Hộp Bữa Ăn Dinh Dưỡng VitaGreen](/assets/img/products/bua-an-dinh-duong-1.webp)
 
