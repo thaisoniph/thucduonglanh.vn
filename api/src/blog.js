@@ -12,12 +12,13 @@
  * Link duyệt ký bằng HMAC riêng từng người (không cần đăng nhập, không chứa email). Không có ANTHROPIC_API_KEY hoặc mã GitHub (gh_cms_token) thì không chạy. */
 import Anthropic from '@anthropic-ai/sdk';
 import { aiFetch } from './airelay.js';
-import { esc, run, all, first, kvGet, kvSet, fmtDate, randHex, hashKey, TZ_MS, DAY, CRM_URL } from './lib.js';
+import { esc, run, all, first, kvGet, kvSet, kvJson, fmtDate, randHex, hashKey, TZ_MS, DAY, CRM_URL } from './lib.js';
 import { telegram, telegramTo, gInfo } from './google.js';
 import { crmUsers, crmLog } from './crm.js';
 import { cmsToken } from './cms.js';
 import { kb } from './chat.js';
 import { imgLib, prodMap } from './zbot.js';
+import { edAdd, edBlock, edNorm } from './edlearn.js';
 import { insPick, insBlock, insParse, insLog, insBank, insRisk, insViet, insStyle, INS_HEAD, kwPick, kwUse } from './insight.js';
 
 const REPO = 'thaisoniph/thucduonglanh.vn', GH = 'https://api.github.com', SITE = 'https://thucduonglanh.vn', API = 'https://api.thucduonglanh.vn';
@@ -110,6 +111,7 @@ export async function blogTick(x) {
   await schema(x.db);
   let raw; try { raw = await cfgRaw(x); } catch (e) { console.error('blog cfg', e.message); return; }
   const cfg = cfgOf(raw), now = Date.now(), today = fmtDate(now, 'yyyy-MM-dd'), h = new Date(now + TZ_MS).getUTCHours();
+  try { await blogLearn(x, now); } catch (e) { console.error('blog learn', e.message); }
   // 1. bài đã duyệt tới giờ đăng → đăng
   for (const p of await all(x.db, "SELECT * FROM bl_posts WHERE status = 'approved' AND day <= ? ORDER BY day", today)) {
     if (p.day === today && h < cfg.hour) continue;
@@ -177,6 +179,7 @@ async function write(x, cfg, day, row) {
       cfg.audience ? 'GHI CHÚ THÊM VỀ TỆP KHÁCH (ô Tệp khách hàng ở /admin):\n' + cfg.audience : '',
       keep ? 'BẢN NHÁP TRƯỚC (viết lại bản này):\n' + keep.md.slice(0, 12000) : '',
       fb ? 'Ý KIẾN CỦA NGƯỜI DUYỆT (bắt buộc làm theo): ' + fb : '',
+      await edBlock(x, 'blog', { n: 4, len: 1500 }), // ✍️ 12/11/2026: học từ ý kiến + bài nhân sự đã sửa trong /admin
       recent.length ? 'Bài trợ lý viết gần đây (không lặp chủ đề):\n' + recent.map(r => '- ' + r.day + ' [' + r.funnel + '] ' + r.title).join('\n') : '',
       'Bài đã có trên web (không viết trùng; có thể dẫn link nội bộ tới 1–2 bài liên quan dạng ' + SITE + '/goc-song-lanh/<mã>/):\n' + slugs.join(', '),
       '',
@@ -271,6 +274,24 @@ async function aiWrite(env, system, ask) {
   return { text: text.trim(), urls };
 }
 
+/* ---------------------------------------------------------------- ✍️ học từ bài nhân sự sửa trong /admin (12/11/2026)
+ * 6 tiếng / lần: 8 bài trợ lý viết đã lên web trong 45 ngày → đọc file trên GitHub, phần nội dung khác bản AI (bl_posts.md) → ghi cặp vào edlearn 'blog'.
+ * Bài đang ẩn (nhân sự chưa sửa xong) thì chưa học. */
+const mdBody = t => String(t || '').replace(/^---[\s\S]*?\n---\n/, '').trim();
+async function blogLearn(x, now) {
+  if (Number(await kvGet(x.db, 'ed_blog_chk')) > now - 6 * 3600e3) return;
+  await kvSet(x.db, 'ed_blog_chk', String(now));
+  const have = {}; for (const e of (await kvJson(x.db, 'ed_blog', [])) || []) if (e && e.id) have[e.id] = e;
+  for (const p of await all(x.db, "SELECT day, title, slug, md FROM bl_posts WHERE status = 'published' AND pub_at > ? AND slug != '' AND md != '' ORDER BY pub_at DESC LIMIT 8", now - 45 * DAY)) {
+    let cur; try { cur = await ghText(x, POSTS_DIR + '/' + p.slug + '.md'); } catch (e) { continue; }
+    if (!/^published:\s*true/m.test(cur)) continue;
+    const ai = mdBody(fixDisc(p.md)), hu = mdBody(cur);
+    const bare = t => edNorm(String(t).replace(/[*_#>`\\-]/g, '')); // /admin có thể đổi ký hiệu markdown khi lưu → chỉ tính khi chữ đổi thật
+    if (bare(ai) === bare(hu) || (have['adm' + p.day] && bare(String(have['adm' + p.day].hu).replace(/…$/, '')) === bare(hu.slice(0, 3000)))) continue;
+    await edAdd(x, 'blog', { id: 'adm' + p.day, by: 'sửa trong /admin', t: p.title, ai, hu });
+  }
+}
+
 /* ---------------------------------------------------------------- đăng lên web */
 async function publish(x, p, hidden) {
   const today = fmtDate(Date.now(), 'yyyy-MM-dd'), day = p.day < today ? today : p.day; // duyệt muộn → ngày đăng là hôm nay
@@ -327,6 +348,7 @@ async function doAct(x, u, p, act, at, hint) {
     if (act === 'rewrite' && !hint) note = 'Bạn ghi ý kiến cần sửa vào ô bên dưới rồi bấm lại nhé.';
     else {
       await run(x.db, "UPDATE bl_posts SET status = 'rewrite', hint = ?, by_name = ? WHERE day = ?", act === 'new' ? '__new__' : hint, u.name, day);
+      if (act === 'rewrite') await edAdd(x, 'blog', { id: 'yk' + day, by: u.name, t: p.title, note: hint }); // ✍️ ý kiến người duyệt → nhớ cho các bài sau
       note = '✍️ Đã nhận. Trợ lý sẽ ' + (act === 'new' ? 'viết bài chủ đề khác' : 'viết lại theo ý kiến của bạn') + ' trong khoảng 10–20 phút rồi nhắn Telegram cho bạn.';
       await logIt(x, u, act === 'new' ? 'Đổi chủ đề bài web' : 'Yêu cầu viết lại bài web', p.title + (hint ? ' – ' + hint : ''));
     }

@@ -250,7 +250,12 @@ Kéo xuống cuối tab, tới mục **🕘 Trợ lý vừa làm gì**.
 2. **Ca cần người thật** (khung vàng) luôn nằm trên cùng. Bạn nhắn hoặc gọi khách xong thì bấm **✅ Đã xử lý**. CRM ghi tên bạn và giờ xử lý, để bạn khác không nhắn trùng. Bấm nhầm thì mở lại dòng đó, bấm **↩️ Bỏ đánh dấu**.
 3. **Mỗi ngày một nhóm**, kèm tóm tắt (ví dụ "2 bài · 3 trả lời · 1 lượt chào"). Bấm vào một dòng để xem **khách hỏi gì (bên trái)** và **trợ lý trả lời gì (bên phải)**, giống khung chat Zalo.
 
-Muốn xem các ngày cũ hơn thì bấm **Xem thêm các ngày trước** ở cuối. Thấy trợ lý trả lời chưa đúng thì chụp màn hình gửi anh Sơn.
+Muốn xem các ngày cũ hơn thì bấm **Xem thêm các ngày trước** ở cuối.
+
+**✍️ Dạy trợ lý trả lời:** thấy trợ lý trả lời chưa đúng ý, bạn mở dòng đó và bấm **✍️ Dạy trợ lý trả lời**. Sửa câu trả lời ngay trong ô (có thể ghi thêm 1 dòng dặn, ví dụ "khách hỏi giá thì báo giá luôn"), rồi bấm **💾 Lưu để trợ lý học**.
+- Tin đã gửi cho khách **không đổi**. Trợ lý chỉ ghi nhớ để lần sau gặp câu hỏi giống thì trả lời theo cách của bạn.
+- Trợ lý trả lời ở nhóm Zalo, Zalo riêng, Fanpage và chat trên web đều học chung từ các câu bạn sửa.
+- Dòng đã dạy hiện nút **✍️ Đã dạy trợ lý · sửa lại**.
 
 ## Cài đặt trợ lý
 

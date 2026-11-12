@@ -7,6 +7,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { aiFetch } from './airelay.js';
 import { run, all, first, kvGet, kvSet, fmtDate, DAY } from './lib.js';
+import { edAdd, edBlock, edCount } from './edlearn.js';
 import { kb, safe, TRUTH_RULES } from './chat.js';
 import { insPick, insBlock, insParse, insLog, insRisk, insViet, insStyle, canIns, INS_HEAD, funOf } from './insight.js';
 
@@ -46,6 +47,7 @@ async function spWrite(x, u, d) {
     'Lối ra (chỉ dùng trong bình luận ghim và câu trả lời): mời ' + SPF_TO[to][2] + '.',
     hint ? 'Yêu cầu thêm của người giao việc: ' + hint : '',
     '', insBlock(p, f), '',
+    await edBlock(x, 'sp'), // ✍️ 12/11/2026: học từ bài người duyệt đã sửa
     '# Luật riêng của bài Facebook cá nhân',
     '- Xưng "mình", gọi người đọc "mọi người" / "các bạn" / "anh chị" hợp với nhóm khách. Kể từ góc nhìn của chính người đăng (một ngày làm việc, điều mình để ý, điều mình từng nghĩ sai). KHÔNG bịa lời khách, tên khách, câu chuyện khách cụ thể, số liệu, kết quả dùng sản phẩm.',
     '- 120–300 chữ, đoạn 1–3 câu. Câu cuối là 1 câu hỏi mở, dễ trả lời, để bạn bè bình luận (kể chuyện của họ, chọn A hay B).',
@@ -83,7 +85,7 @@ export async function crmSpf(x, u, d, crmLog) {
   const a = d.action, now = Date.now(), id = Number(d.id) || 0;
   if (a === 'spf_list') { // sale: bài đã duyệt; người quản lý (d.all): mọi bài
     const all_ = !!d.all && canEdit(u), rows = await all(x.db, all_ ? 'SELECT * FROM sp_posts ORDER BY id DESC LIMIT 40' : "SELECT * FROM sp_posts WHERE status = 'ok' ORDER BY id DESC LIMIT 15");
-    return { ok: true, posts: rows.map(r => shape(r, all_)), to: Object.fromEntries(Object.entries(SPF_TO).map(([k, v]) => [k, v[1]])), edit: canEdit(u), write: canIns(u) };
+    return { ok: true, posts: rows.map(r => shape(r, all_)), to: Object.fromEntries(Object.entries(SPF_TO).map(([k, v]) => [k, v[1]])), edit: canEdit(u), write: canIns(u), learnEd: await edCount(x, 'sp') };
   }
   if (a === 'spf_used') { await run(x.db, 'UPDATE sp_posts SET copies = copies + 1 WHERE id = ?', id); return { ok: true }; }
   if (a === 'spf_write') {
@@ -103,6 +105,7 @@ export async function crmSpf(x, u, d, crmLog) {
     const to = SPF_TO[d.to] ? d.to : row.to_k;
     await run(x.db, 'UPDATE sp_posts SET text = ?, cmt = ?, reply = ?, to_k = ?, status = ?, ok_by = ?, ok_at = ? WHERE id = ?', text, cmt, reply, to, st,
       st === 'ok' && row.status !== 'ok' ? u.name : row.ok_by, st === 'ok' && row.status !== 'ok' ? now : row.ok_at, id);
+    if (d.text != null || d.cmt != null) await edAdd(x, 'sp', { id: 'sp' + id, by: u.name, t: '', ai: row.text + '\n[BÌNH LUẬN GHIM] ' + row.cmt, hu: text + '\n[BÌNH LUẬN GHIM] ' + cmt }); // ✍️ trợ lý học từ bản sửa
     if (st !== row.status) await crmLog(x, u, 'Bài Facebook cá nhân', '-', '', st === 'ok' ? 'Cho sale dùng' : st === 'off' ? 'Ẩn bài' : 'Về nháp', row.text.slice(0, 120));
     return { ok: true, post: shape(await first(x.db, 'SELECT * FROM sp_posts WHERE id = ?', id), true) };
   }

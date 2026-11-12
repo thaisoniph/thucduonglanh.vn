@@ -16,6 +16,7 @@
  * Tự duyệt người xin vào nhóm: chỉ người đã để số qua web (tìm được tài khoản Zalo theo số) – người lạ báo Telegram để nhân sự duyệt tay (cổng nhóm 17/10/2026).
  * Chi phí AI: trả lời, chào dùng claude-haiku-5-5 (vài chục đồng/lần); bài đăng dùng claude-opus-5-5 (~2.500đ/bài, 2 bài/ngày ≈ 150k/tháng). */
 import Anthropic from '@anthropic-ai/sdk';
+import { edAdd, edBlock, edCount } from './edlearn.js';
 import { aiFetch } from './airelay.js';
 import { esc, run, all, first, kvGet, kvSet, kvJson, normPhone, fmtDate, isVoid, nrm, fmt, CRM_URL, TZ_MS, DAY } from './lib.js';
 import { telegram } from './google.js';
@@ -367,6 +368,7 @@ async function zMsg(x, d) {
     const res = await ai(x.env).messages.create({ model: FAST, max_tokens: 1500, output_config: { effort: 'low' },
       system: [{ type: 'text', text: GROUP_RULES + '\n' + TRUTH_RULES.replace(/mời nhắn Zalo/g, 'mời nhắn riêng') },
         { type: 'text', text: 'TÀI LIỆU (thông tin chính thức của Thực Dưỡng Lành):\n\n' + know, cache_control: { type: 'ephemeral' } },
+        { type: 'text', text: (await edBlock(x, 'reply', { n: 5, len: 400 })) || '(chưa có câu trả lời nào được nhân sự sửa)' },
         { type: 'text', text: 'Nhóm: "' + gname + '". Bây giờ là ' + w.label + '. Chuyên viên ' + (w.on ? 'đang trực.' : 'ngoài giờ (trực Thứ 2 – Thứ 7, 8h–17h).') + ' Đội ngũ ' + (known || od ? 'ĐÃ CÓ' : 'CHƯA có') + ' số điện thoại của người nhắn.' + (od ? '\nĐÃ TÌM THẤY ĐƠN của người nhắn: đặt lúc ' + fmtDate(od.time, 'HH:mm dd/MM') + ', trạng thái "' + (od.status || 'Mới') + '". Nói cho khách yên tâm là bên em đã nhận đơn (nêu giờ đặt), chuyên viên sẽ kiểm tra ưu đãi, quà rồi gọi xác nhận; thêm [[zalo]]. KHÔNG nêu mã đơn, số tiền, số điện thoại, địa chỉ trong nhóm; không bảo khách gọi hotline hay nhắn riêng.' : '') }],
       messages: [{ role: 'user', content: (ctx ? 'Các tin trước trong nhóm:\n' + ctx + '\n\n' : '') + 'TIN CẦN XỬ LÝ – ' + (d.name || 'Thành viên') + (direct ? ' (gọi em / trả lời tin của em)' : '') + ': ' + text }] });
     if (res.stop_reason === 'refusal') return { ok: true };
@@ -478,6 +480,7 @@ async function zDm(x, d) {
     const res = await ai(x.env).messages.create({ model: FAST, max_tokens: 1500, output_config: { effort: 'low' },
       system: [{ type: 'text', text: DM_RULES + '\n' + REF_RULES + '\n' + TRUTH_RULES.replace(/mời nhắn Zalo/g, 'thêm [[zalo]] để chuyên viên hỗ trợ') },
         { type: 'text', text: 'TÀI LIỆU (thông tin chính thức của Thực Dưỡng Lành):\n\n' + know, cache_control: { type: 'ephemeral' } },
+        { type: 'text', text: (await edBlock(x, 'reply', { n: 5, len: 400 })) || '(chưa có câu trả lời nào được nhân sự sửa)' },
         { type: 'text', text: 'Bây giờ là ' + w.label + '. Chuyên viên ' + (w.on ? 'đang trực.' : 'ngoài giờ (trực Thứ 2 – Thứ 7, 8h–17h): gọi lại từ 8h sáng hôm sau.') + ' Tên Zalo của khách: ' + String(d.name || '').slice(0, 60) + '.' + (u && u.what ? ' Khách đã nhận trên web: ' + u.what + '.' : '') + (gotPhone ? '\n(Khách vừa gửi số điện thoại, hệ thống đã chuyển cho chuyên viên. Hãy cảm ơn và báo chuyên viên sẽ liên hệ.)' : '') }],
       messages: hist.map(m => ({ role: m.r === 'u' ? 'user' : 'assistant', content: m.t })) });
     reply = res.stop_reason === 'refusal' ? 'Dạ câu này em xin phép chưa trả lời được ạ, để chuyên viên bên em nhắn lại cho mình nha. [[zalo]]' : textOf(res);
@@ -850,7 +853,7 @@ export async function crmZbot(x, u, d, crmLog) {
     const manual = man.map(p => { const r = mo.filter(o => o.ref === p.id), po = r.filter(o => o.kind === 'post'), wait = po.filter(o => o.status === 'new');
       return { id: p.id, text: p.text, img: p.img, by: p.by_name, at: p.at, status: p.status, sent_at: p.sent_at, funnel: p.funnel, due: wait.length ? Math.min(...wait.map(o => o.due)) : 0, wait: wait.length, err: po.some(o => o.status === 'err'),
         can: po.some(o => o.status === 'done' && o.msgs && !o.undone), undone: po.length > 0 && po.every(o => o.undone), undoing: r.some(o => o.kind === 'undo' && (o.status === 'new' || o.status === 'sent')) }; }).sort((a, b) => (b.due || b.sent_at || b.at) - (a.due || a.sent_at || a.at));
-    return { ok: true, learnEd, manual, recallOk: !!(st && String(st.ver || '') >= RECALL_VER), cfg, status: st, posts, plan, prods, mix: Object.fromEntries(Object.entries(MIX).map(([k, v]) => [k, v.name])), log, open, lib, funnel, act, actDays, trial: TIME_TRIAL, trialRes, days: upcoming(fmtDate(now, 'yyyyMMdd'), 45, baseTheme), stats, users, err: await kvGet(x.db, 'zb_write_err'), planErr: await kvGet(x.db, 'zb_plan_err'), key: !!x.env.ZBOT_KEY, aiOn: !!x.env.ANTHROPIC_API_KEY, now,
+    return { ok: true, learnEd, edR: (await edCount(x, 'reply')).ids, manual, recallOk: !!(st && String(st.ver || '') >= RECALL_VER), cfg, status: st, posts, plan, prods, mix: Object.fromEntries(Object.entries(MIX).map(([k, v]) => [k, v.name])), log, open, lib, funnel, act, actDays, trial: TIME_TRIAL, trialRes, days: upcoming(fmtDate(now, 'yyyyMMdd'), 45, baseTheme), stats, users, err: await kvGet(x.db, 'zb_write_err'), planErr: await kvGet(x.db, 'zb_plan_err'), key: !!x.env.ZBOT_KEY, aiOn: !!x.env.ANTHROPIC_API_KEY, now,
       insG: (await insBank(x)).map(g => ({ id: g.id, name: g.name, on: g.on, tn: g.tensions.slice(0, 30) })) };
   }
   if (a === 'zb_cfg') {
@@ -901,6 +904,13 @@ export async function crmZbot(x, u, d, crmLog) {
   if (a === 'zb_logmore') { // 🕘 xem thêm nhật ký cũ hơn
     const rows = await all(x.db, 'SELECT rid, at, kind, gid, uid, name, text, reply, done_at, done_by FROM zb_log WHERE rid < ? ORDER BY rid DESC LIMIT 100', Number(d.before) || 0);
     return { ok: true, log: rows };
+  }
+  if (a === 'zb_teach') { // ✍️ 12/11/2026: nhân sự sửa câu trả lời của trợ lý trong nhật ký → trợ lý học cho các lần sau (không sửa tin đã gửi)
+    const l = await first(x.db, 'SELECT rid, kind, gid, name, text, reply FROM zb_log WHERE rid = ?', Number(d.rid) || 0); if (!l || !l.reply) return { ok: false, error: 'Không tìm thấy câu trả lời.' };
+    const hu = String(d.text || '').trim().slice(0, 2000); if (!hu) return { ok: false, error: 'Bạn chưa ghi câu trả lời đúng.' };
+    const ok = await edAdd(x, 'reply', { id: 'zb' + l.rid, by: u.name, ch: /^dm/.test(l.kind) ? 'Zalo nhắn riêng' : 'nhóm Zalo', t: l.text, ai: l.reply, hu, note: String(d.note || '').trim().slice(0, 300) });
+    await crmLog(x, u, 'Dạy trợ lý Zalo', String(l.rid), '', 'Sửa câu trả lời', hu.slice(0, 120));
+    return { ok: true, saved: ok };
   }
   if (a === 'zb_done') { // ✅ đánh dấu ca cần người thật đã xử lý (bỏ đánh dấu: undo)
     const r = await first(x.db, 'SELECT rid, kind, name FROM zb_log WHERE rid = ?', Number(d.rid) || 0); if (!r) return { ok: false, error: 'Không tìm thấy.' };

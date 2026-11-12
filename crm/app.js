@@ -7360,12 +7360,12 @@
     var draw = function () {
       var P = SPF.posts || [], b = $('#spfBody', m); if (!b) return;
       var gs = ((IN.d && IN.d.bank) || []).filter(function (g) { return g.on; });
-      b.innerHTML = (admin ? (SPF.write ? '<div class="box"><p class="small"><b>✨ Viết bài mới</b> (khoảng 1 phút). Trợ lý chọn nhóm khách, tension, góc kể như các kênh khác.</p><div class="row2c"><label class="f"><span>Nhóm khách</span><select id="spfG"><option value="">Trợ lý tự chọn</option>' + gs.map(function (g) { return '<option value="' + esc(g.id) + '">' + esc(g.name) + '</option>'; }).join('') + '</select></label><label class="f"><span>Loại bài</span><select id="spfF"><option value="TOFU">🔵 Nhận biết (không nhắc sản phẩm)</option><option value="MOFU">⚪ Tạo niềm tin (nhắc chuyện nghề)</option></select></label></div><label class="f"><span>Bình luận ghim mời khách</span><select id="spfTo">' + Object.keys(SPF.to).map(function (k) { return '<option value="' + k + '">' + esc(SPF.to[k]) + '</option>'; }).join('') + '</select></label><label class="f"><span>Yêu cầu thêm <small class="muted">không bắt buộc</small></span><input type="text" id="spfH" placeholder="Vd: kể chuyện mùa lạnh, nhắc ngày 20/11"></label><div class="lq-btns"><button class="btn pri" data-spf="write">✨ Viết 1 bài</button></div></div>' : '') : SPF_STEPS) +
+      b.innerHTML = (admin ? aiLearnLine(SPF.learnEd, 'bài') : '') + (admin ? (SPF.write ? '<div class="box"><p class="small"><b>✨ Viết bài mới</b> (khoảng 1 phút). Trợ lý chọn nhóm khách, tension, góc kể như các kênh khác.</p><div class="row2c"><label class="f"><span>Nhóm khách</span><select id="spfG"><option value="">Trợ lý tự chọn</option>' + gs.map(function (g) { return '<option value="' + esc(g.id) + '">' + esc(g.name) + '</option>'; }).join('') + '</select></label><label class="f"><span>Loại bài</span><select id="spfF"><option value="TOFU">🔵 Nhận biết (không nhắc sản phẩm)</option><option value="MOFU">⚪ Tạo niềm tin (nhắc chuyện nghề)</option></select></label></div><label class="f"><span>Bình luận ghim mời khách</span><select id="spfTo">' + Object.keys(SPF.to).map(function (k) { return '<option value="' + k + '">' + esc(SPF.to[k]) + '</option>'; }).join('') + '</select></label><label class="f"><span>Yêu cầu thêm <small class="muted">không bắt buộc</small></span><input type="text" id="spfH" placeholder="Vd: kể chuyện mùa lạnh, nhắc ngày 20/11"></label><div class="lq-btns"><button class="btn pri" data-spf="write">✨ Viết 1 bài</button></div></div>' : '') : SPF_STEPS) +
         (P.length ? P.map(function (p) { return spfCard(p, admin); }).join('') : '<p class="muted small">' + (admin ? 'Chưa có bài nào. Bấm ✨ Viết 1 bài.' : 'Chưa có bài nào được duyệt. Nhờ Marketing / Quản lý viết thêm ở tab 🎯 Insight & nội dung.') + '</p>') +
         (admin ? '<details class="small"><summary>Sale sẽ thấy hướng dẫn đăng như sau</summary>' + SPF_STEPS + '</details>' : '');
     };
     SPF.draw = draw; SPF.admin = admin;
-    api('spf_list', { all: admin ? 1 : 0 }).then(function (r) { SPF.posts = r.posts; SPF.to = r.to; SPF.write = r.write; draw(); }, function (e) { var b = $('#spfBody', m); if (b) b.innerHTML = '<p class="muted">⚠️ ' + esc(e.message) + '</p>'; });
+    api('spf_list', { all: admin ? 1 : 0 }).then(function (r) { SPF.posts = r.posts; SPF.to = r.to; SPF.write = r.write; SPF.learnEd = r.learnEd; draw(); }, function (e) { var b = $('#spfBody', m); if (b) b.innerHTML = '<p class="muted">⚠️ ' + esc(e.message) + '</p>'; });
   }
   function spfEdit(p) {
     var m = modal('✏️ Sửa bài Facebook cá nhân', '<label class="f"><span>Bước 1 · Bài đăng (không link)</span><textarea id="spfEt" rows="10">' + esc(p.text) + '</textarea></label><label class="f"><span>Bước 3 · Bình luận ghim (không link)</span><textarea id="spfEc" rows="2">' + esc(p.cmt) + '</textarea></label><label class="f"><span>Bước 4 · Trả lời có link <small class="muted">giữ chữ [LINK], CRM tự thay bằng link riêng của từng sale</small></span><textarea id="spfEr" rows="2">' + esc(p.reply) + '</textarea></label><label class="f"><span>Link dẫn tới</span><select id="spfEo">' + Object.keys(SPF.to).map(function (k) { return '<option value="' + k + '"' + (k === p.to ? ' selected' : '') + '>' + esc(SPF.to[k]) + '</option>'; }).join('') + '</select></label>',
@@ -8273,6 +8273,7 @@
       t.disabled = true; return api('zb_' + v[0], { id: id }).then(after(v[0] === 'cancel' ? 'Đã huỷ tin ✓' : 'Đã gửi lệnh thu hồi ✓ Trợ lý thu hồi trong khoảng 1 phút.'), fail);
     }
     if (v[0] === 'lf') { ZB.lf = id; return render(); }
+    if (v[0] === 'teach') return aiTeachOpen('zb', (ZB.d.log || []).concat(ZB.more || [], ZB.d.open || []).filter(function (l) { return String(l.rid) === id; })[0], zbFetch);
     if (v[0] === 'done' || v[0] === 'undone') { t.disabled = true; return api('zb_done', { rid: Number(id), undo: v[0] === 'undone' }).then(after(v[0] === 'done' ? 'Đã ghi: bạn xử lý ca này ✓' : 'Đã bỏ đánh dấu'), fail); }
     if (v[0] === 'logmore') { var all = (ZB.d.log || []).concat(ZB.more || []), min = all.reduce(function (m, l) { return Math.min(m, l.rid); }, 1e15); t.disabled = true; t.textContent = '⏳ Đang tải…'; return api('zb_logmore', { before: min }).then(function (r) { ZB.more = (ZB.more || []).concat(r.log || []); if (!(r.log || []).length || r.log.length < 100) ZB.moreEnd = 1; render(); }, fail); }
     if (v[0] === 'edit') { var cd = t.closest('[data-zbcard]'); if (cd) { cd.classList.toggle('zb-editing'); var ta2 = $('#zbT_' + id); if (ta2 && cd.classList.contains('zb-editing')) ta2.focus(); } return; }
@@ -8320,6 +8321,29 @@
   }
   var ZB_LF = { all: ['Tất cả', null], need: ['🙋 Cần xử lý', ['handoff', 'dm_handoff']], reply: ['💬 Trả lời khách', ['answer', 'dm', 'react', 'skip', 'handoff', 'dm_handoff']], people: ['👋 Người mới & kết bạn', ['welcome', 'friend', 'announce', 'announced', 'human']], post: ['📝 Bài đăng', ['post', 'send', 'announced']], err: ['⚠️ Lỗi', ['error']] };
   function zbLogTxt(l) { var t = String(l.text || '').replace(/\*\*/g, '').replace(/\s+/g, ' ').trim(); return t.length > 110 ? t.slice(0, 108) + '…' : t; }
+  // ✍️ 12/11/2026 (anh Sơn: trợ lý học từ người thật sửa): nút + hộp "Dạy trợ lý trả lời" dùng chung cho nhật ký Zalo (src 'zb') và Fanpage ('fp')
+  function aiLearnLine(le, what) { // "✍️ Trợ lý đang học từ X bài anh chị sửa" (api edCount)
+    return '<p class="small zb-learn">✍️ ' + (le && le.n ? 'Trợ lý đang học cách viết từ <b>' + le.n + ' ' + what + '</b> anh chị đã sửa' + (le.by && le.by.length ? ' (' + esc(le.by.join(', ')) + ')' : '') + '. Bài mới sẽ viết theo cách anh chị sửa.' : 'Anh chị sửa chữ bài AI viết rồi bấm Lưu: trợ lý sẽ học cách anh chị sửa (giọng văn, độ dài, câu mở, câu kết) cho các bài sau.') + '</p>';
+  }
+  function aiTeachBtn(src, l, ids) {
+    var done = (ids || []).indexOf(src + l.rid) >= 0;
+    return '<div class="lq-btns ai-teach-b"><button class="btn sm ' + (done ? 'ghost' : '') + '" data-' + src + '="teach|' + l.rid + '">' + (done ? '✍️ Đã dạy trợ lý · sửa lại' : '✍️ Dạy trợ lý trả lời') + '</button></div>';
+  }
+  function aiTeachOpen(src, l, done) {
+    if (!l) return toast('Không tìm thấy tin này, bấm tải lại trang thử nhé.', true);
+    var m = modal('✍️ Dạy trợ lý trả lời',
+      '<p class="small muted">Tin đã gửi cho khách <b>không đổi</b>. Bạn sửa câu trả lời cho đúng ý mình, trợ lý ghi nhớ để lần sau gặp câu hỏi giống thì trả lời như vậy.</p>' +
+      '<div class="zb-chat"><div class="zb-cl"><small>' + esc(l.name || 'Khách') + '</small>' + zbRender(l.text || '') + '</div><div class="zb-cr"><small>Trợ lý đã trả lời</small>' + zbRender(l.reply || '') + '</div></div>' +
+      '<label class="f"><span>Câu trả lời đúng (bạn sửa ngay trong ô)</span><textarea class="zb-text" id="aiTeachT" rows="6">' + esc(l.reply || '') + '</textarea></label>' +
+      '<label class="f"><span>Ghi chú cho trợ lý <small class="muted">không bắt buộc, ví dụ: "khách hỏi giá thì báo giá luôn, đừng hỏi lại"</small></span><input type="text" id="aiTeachN" maxlength="300"></label>',
+      '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="aiTeachS">💾 Lưu để trợ lý học</button>');
+    $('#aiTeachS', m).addEventListener('click', function () {
+      var b = this, tx = $('#aiTeachT', m).value.trim(), nt = $('#aiTeachN', m).value.trim();
+      if (!tx) return toast('Bạn ghi câu trả lời đúng vào ô nhé.', true);
+      b.disabled = true;
+      api(src + '_teach', { rid: l.rid, text: tx, note: nt }).then(function (r) { closeModal(); toast(r.saved ? 'Đã lưu ✓ Trợ lý sẽ học cách trả lời này.' : 'Câu trả lời giống hệt bản cũ nên không có gì để học.'); done(); }, function (e) { b.disabled = false; toast(e.message, true); });
+    });
+  }
   function zbLogHtml(j) {
     var lf = ZB.lf || 'all', ks = ZB_LF[lf][1], seen = {}, open = j.open || [];
     var hm = function (t) { var x = vnDate(t); return pad(x.h) + ':' + pad(x.mi); }, dk = function (t) { var x = vnDate(t); return x.y + pad(x.m) + pad(x.d); };
@@ -8333,6 +8357,7 @@
       var k = ZB_KIND[l.kind] || ['•', l.kind], need = l.kind === 'handoff' || l.kind === 'dm_handoff';
       var st = need ? (l.done_at ? '<span class="zb-ldone">✅ ' + esc(l.done_by || '') + ' đã xử lý ' + fDateTime(l.done_at) + '</span>' : '<span class="zb-due">⏳ Chưa xử lý</span>') : '';
       return '<details class="zb-lrow' + (need && !l.done_at ? ' zb-pin' : '') + '"' + (pin ? ' open' : '') + '><summary><span class="zb-t">' + (pin ? fDateTime(l.at) : hm(l.at)) + '</span> ' + k[0] + ' <b>' + k[1] + '</b>' + (l.name ? ' · ' + esc(l.name) : '') + ' ' + st + (zbLogTxt(l) ? '<span class="zb-lsum">' + esc(zbLogTxt(l)) + '</span>' : '') + '</summary>' + chat(l) +
+        (l.reply && l.text && ['answer', 'dm', 'handoff', 'dm_handoff'].indexOf(l.kind) >= 0 ? aiTeachBtn('zb', l, j.edR) : '') +
         (need ? '<div class="lq-btns">' + (l.done_at ? '<button class="btn sm ghost" data-zb="undone|' + l.rid + '">↩️ Bỏ đánh dấu</button>' : '<button class="btn sm pri" data-zb="done|' + l.rid + '">✅ Đã xử lý</button>') + '</div>' : '') + '</details>';
     };
     var hh = '<div class="chips zb-lf">' + Object.keys(ZB_LF).map(function (k) { return '<button class="chip' + (lf === k ? ' on' : '') + '" data-zb="lf|' + k + '">' + ZB_LF[k][0] + (k === 'need' && open.length ? ' <em>' + open.length + '</em>' : '') + '</button>'; }).join('') + '</div>';
@@ -8445,6 +8470,7 @@
     var pids = []; items.forEach(function (it) { if (pids.indexOf(it.p.page) < 0) pids.push(it.p.page); });
     h += '<div class="zb-done-h"><h2 class="zb-h">📝 Bài đăng fanpage</h2><span class="small">' + posting.map(function (pg) { return esc(pg.name) + ': <b>' + (pg.cfg.mode === 'auto' ? '🤖 tự đăng' : '⏳ chờ duyệt') + '</b> lúc ' + (pg.cfg.slots || []).join(', '); }).join(' · ') + '</span></div>' +
       '<details class="zb-info small"><summary>ⓘ Cách hoạt động</summary><p>AI soạn trước 1 ngày theo lịch chủ đề trong tuần (mỗi chủ đề có tầng phễu: 4 bài 🔵 thu hút, 2 bài ⚪ tạo niềm tin, 1 bài 🟠 bán / tuần), dùng đúng thông tin sản phẩm trên web, cuối bài mời bình luận “QUÀ” để trợ lý nhắn riêng (bài 🟠 thì mời đặt qua link sản phẩm). Trước khi viết, AI chọn <b>🎯 1 nhóm khách + 1 tension</b> (trong các nhóm tích ở cài đặt trang) rồi mới viết; dòng 🎯 trên thẻ bài cho biết bài nhắm ai. <b>Chờ duyệt</b>: chỉ bài đã bấm <b>✅ Duyệt</b> mới được đăng. <b>Tự đăng</b>: tới giờ trợ lý đăng bài AI soạn, thấy chưa ổn thì sửa hoặc bấm <b>⏸ Bỏ bài này</b>. Đổi ở <b>⚙️ cài đặt từng trang</b> (mục 📄 Fanpage).</p><p>Khung bên trái là <b>bài sẽ hiện trên Facebook</b>. Facebook không hiện chữ đậm nên bài chỉ có chữ thường + emoji. Bài có link sản phẩm sẽ hiện ảnh xem trước của trang sản phẩm. Muốn sửa bấm <b>✏️ Sửa chữ</b>.</p>' + (j.err ? '<p class="err">Lần soạn lỗi gần nhất: ' + esc(j.err) + '</p>' : '') + '</details>';
+    h += aiLearnLine(j.learnEd, 'bài'); // ✍️ 12/11/2026
     if (pids.length > 1) h += '<div class="chips zb-lf"><button class="chip' + (pf ? '' : ' on') + '" data-fp="pf|">Tất cả trang' + (needN() ? ' <em>' + needN() + '</em>' : '') + '</button>' + pids.map(function (pid) { var c = needN(pid); return '<button class="chip' + (pf === pid ? ' on' : '') + '" data-fp="pf|' + esc(pid) + '">' + esc(fpPageOf(pid).name) + (c ? ' <em>' + c + '</em>' : '') + '</button>'; }).join('') + '</div>';
     if (!items.length) h += '<div class="box"><p class="muted">Chưa có bài. Bật “AI soạn bài đăng” trong cài đặt từng trang, hoặc bấm ✍️ Viết bài đăng.</p></div>';
     // cần duyệt lên trước, rồi theo giờ đăng
@@ -8563,6 +8589,7 @@
       var st = need ? (l.done_at ? '<span class="zb-ldone">✅ ' + esc(l.done_by || '') + ' đã xử lý ' + fDateTime(l.done_at) + '</span>' : '<span class="zb-due">⏳ Chưa xử lý</span>') : '';
       var sm = String(l.text || '').replace(/\*\*/g, '').replace(/\s+/g, ' ').trim(); if (sm.length > 110) sm = sm.slice(0, 108) + '…';
       return '<details class="zb-lrow' + (need && !l.done_at ? ' zb-pin' : '') + '"' + (pin ? ' open' : '') + '><summary><span class="zb-t">' + (pin ? fDateTime(l.at) : hm(l.at)) + '</span> ' + k[0] + ' <b>' + k[1] + '</b>' + (l.name ? ' · ' + esc(l.name) : '') + (pg ? ' <span class="muted small">· ' + esc(pg) + '</span>' : '') + ' ' + st + (sm ? '<span class="zb-lsum">' + esc(sm) + '</span>' : '') + '</summary>' + chat(l) +
+        (l.reply && l.text && cust.indexOf(l.kind) >= 0 ? aiTeachBtn('fp', l, j.edR) : '') +
         (need ? '<div class="lq-btns">' + (l.page ? '<a class="btn sm" href="https://business.facebook.com/latest/inbox/all?asset_id=' + esc(l.page) + '" target="_blank" rel="noopener">💬 Mở hộp thư trang</a>' : '') + (l.done_at ? '<button class="btn sm ghost" data-fp="undone|' + l.rid + '">↩️ Bỏ đánh dấu</button>' : '<button class="btn sm pri" data-fp="done|' + l.rid + '">✅ Đã xử lý</button>') + '</div>' : '') + '</details>';
     };
     var hh = '<div class="chips zb-lf">' + Object.keys(FP_LF).map(function (k) { return '<button class="chip' + (lf === k ? ' on' : '') + '" data-fp="lf|' + k + '">' + FP_LF[k][0] + (k === 'need' && open.length ? ' <em>' + open.length + '</em>' : '') + '</button>'; }).join('') + '</div>';
@@ -8607,6 +8634,7 @@
     if (v[0] === 'lf') { FP.lf = id; return render(); }
     if (v[0] === 'edit') { var cd = t.closest('[data-fpcard]'); if (cd) { cd.classList.toggle('zb-editing'); var te = document.getElementById('fpT_' + id); if (te && cd.classList.contains('zb-editing')) te.focus(); } return; }
     if (v[0] === 'done' || v[0] === 'undone') { t.disabled = true; return api('fp_done', { rid: Number(id), undo: v[0] === 'undone' }).then(after(v[0] === 'done' ? 'Đã ghi: bạn xử lý ca này ✓' : 'Đã bỏ đánh dấu'), fail); }
+    if (v[0] === 'teach') return aiTeachOpen('fp', (FP.d.log || []).concat(FP.more || [], FP.d.open || []).filter(function (l) { return String(l.rid) === id; })[0], fpFetch);
     if (v[0] === 'logmore') { var al = (FP.d.log || []).concat(FP.more || []), mn = al.reduce(function (m, l) { return Math.min(m, l.rid || 1e15); }, 1e15); t.disabled = true; t.textContent = '⏳ Đang tải…'; return api('fp_logmore', { before: mn }).then(function (r) { FP.more = (FP.more || []).concat(r.log || []); if ((r.log || []).length < 100) FP.moreEnd = 1; render(); }, fail); }
     if (v[0] === 'app') { t.disabled = true; return api('fp_app', { appId: $('#fpAppId').value.trim(), secret: $('#fpSecret').value.trim(), config: $('#fpConfig').value.trim() }).then(after('Đã lưu ✓ Làm tiếp bước 2.'), fail); }
     if (v[0] === 'connect') { t.disabled = true; return api('fp_connect', {}).then(function (j) { t.disabled = false; location.href = j.url; }, fail); }

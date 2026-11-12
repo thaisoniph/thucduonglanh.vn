@@ -8,6 +8,7 @@
  * Chi phí: claude-haiku-5-5 ($0,10 / $0,50 mỗi 1 triệu token), phần kiến thức (~20 nghìn token) được lưu đệm nên mỗi câu trả lời chỉ vài chục đồng. */
 import Anthropic from '@anthropic-ai/sdk';
 import { aiFetch } from './airelay.js';
+import { edAdd, edBlock, edCount } from './edlearn.js';
 import { esc, run, first, kvGet, kvSet, normPhone, fmtDate, md5hex, CRM_URL, TZ_MS, DAY } from './lib.js';
 import { addLead, telegramUser } from './crm.js';
 import { botRef } from './partner.js';
@@ -119,6 +120,7 @@ export async function chat(x, d) {
       system: [
         { type: 'text', text: RULES },
         { type: 'text', text: 'TÀI LIỆU (thông tin chính thức của Thực Dưỡng Lành):\n\n' + know, cache_control: { type: 'ephemeral' } }, // phần lớn, ít đổi → lưu đệm
+        { type: 'text', text: (await edBlock(x, 'reply', { n: 5, len: 400 })) || '(chưa có câu trả lời nào được nhân sự sửa)' }, // ✍️ học từ câu trả lời nhân sự sửa (edlearn.js)
         { type: 'text', text: 'Bây giờ là ' + w.label + '. Chuyên viên ' + (w.on ? 'ĐANG trực Zalo, trả lời ngay.' : 'ngoài giờ làm việc (trực Thứ 2 – Thứ 7, 8h–17h): nhắn Zalo thì sáng hôm sau từ 8h chuyên viên trả lời.') + (d.page ? ' Khách đang xem trang: ' + String(d.page).slice(0, 200) : '') + note }
       ],
       messages

@@ -39,7 +39,7 @@ Trong CRM, bấm **FB** trên thanh menu. Quản trị bấm **••• Thêm �
 ![Bài cần duyệt: 1 Duyệt bài này, 2 Sửa chữ, 3 Đăng ngay, 4 Viết lại, 5 Bỏ bài này](/huong-dan/img/fp-duyet.webp)
 
 1. Bài ổn: bấm **✅ Duyệt bài này**. Tới giờ, bài tự đăng lên trang.
-2. Muốn sửa chữ hoặc đổi link: bấm **✏️ Sửa chữ**, sửa trong ô hiện ra rồi bấm **💾 Lưu**.
+2. Muốn sửa chữ hoặc đổi link: bấm **✏️ Sửa chữ**, sửa trong ô hiện ra rồi bấm **💾 Lưu**. Trợ lý giữ lại bản nó viết và bản bạn sửa để học: các bài sau sẽ viết giống cách bạn sửa (giọng văn, độ dài, câu mở, câu kết). Dòng **✍️ Trợ lý đang học…** trên đầu mục bài đăng cho biết trợ lý đã học từ bao nhiêu bài.
 3. Muốn đăng luôn: bấm **📤 Đăng ngay**.
 4. Muốn AI viết bài khác: bấm **🔄 Viết lại**, gõ ý muốn (ví dụ "nói về mè đen", "ngắn hơn") và chọn **🎯 nhóm khách** bài nhắm tới nếu muốn đổi. Chờ khoảng 30 giây.
 5. Không muốn đăng: bấm **⏸ Bỏ bài này**.
@@ -58,7 +58,12 @@ Kiểm tra kỹ trước khi duyệt: giá và ưu đãi phải đúng với web
 
 **3. Tự viết bài:** bấm **✍️ Viết bài đăng**, chọn trang, gõ nội dung. Để trống giờ thì bài đăng ngay. Chọn giờ thì bài đăng đúng giờ đó.
 
-**4. Xem trợ lý vừa làm gì:** nhật ký chia theo từng ngày, có dòng tóm tắt (bao nhiêu bình luận, tin nhắn, khách để số). Bấm vào từng dòng để xem khách nói gì (bên trái, ô xám) và trợ lý trả lời gì (bên phải, ô xanh). Hàng nút phía trên lọc theo loại việc. Muốn xem ngày cũ hơn thì bấm **Xem thêm các ngày trước** ở cuối. Thấy trợ lý trả lời chưa đúng thì báo anh Sơn để chỉnh.
+**4. Xem trợ lý vừa làm gì:** nhật ký chia theo từng ngày, có dòng tóm tắt (bao nhiêu bình luận, tin nhắn, khách để số). Bấm vào từng dòng để xem khách nói gì (bên trái, ô xám) và trợ lý trả lời gì (bên phải, ô xanh). Hàng nút phía trên lọc theo loại việc. Muốn xem ngày cũ hơn thì bấm **Xem thêm các ngày trước** ở cuối.
+
+**✍️ Dạy trợ lý trả lời:** thấy trợ lý trả lời chưa đúng ý, bạn mở dòng đó và bấm **✍️ Dạy trợ lý trả lời**. Sửa câu trả lời ngay trong ô (có thể ghi thêm 1 dòng dặn, ví dụ "khách hỏi giá thì báo giá luôn"), rồi bấm **💾 Lưu để trợ lý học**.
+- Tin đã gửi cho khách trên Facebook **không đổi**. Trợ lý chỉ ghi nhớ để lần sau gặp câu hỏi giống thì trả lời theo cách của bạn.
+- Trợ lý trả lời ở nhóm Zalo, Zalo riêng, Fanpage và chat trên web đều học chung từ các câu bạn sửa.
+- Dòng đã dạy hiện nút **✍️ Đã dạy trợ lý · sửa lại**.
 
 ## Cài đặt từng trang
 

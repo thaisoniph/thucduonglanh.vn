@@ -62,6 +62,8 @@ Trợ lý tự viết bài cho Góc Sống Lành. **Bài chỉ lên web khi có 
    - **🔁 Đổi chủ đề khác** hoặc **❌ Bỏ**.
 4. Tới giờ đăng mà chưa ai duyệt, trợ lý nhắc thêm 1 lần.
 
+**✍️ Trợ lý học từ bạn:** ý kiến bạn ghi khi bấm **✍️ Viết lại theo ý kiến** được trợ lý nhớ cho cả các bài sau, không chỉ bài đó. Bài bạn **tự sửa trong /admin** rồi bật hiển thị cũng vậy: khoảng 6 tiếng sau, trợ lý so bản nó viết với bản bạn sửa để học cách viết. Vì vậy hãy ghi ý kiến cụ thể, ví dụ "mở bài bằng tình huống thật, bớt số liệu", "câu ngắn hơn".
+
 **Xem hiệu quả:** CRM → 📰 Bài web → 📊 Hiệu quả bài viết (chọn 7, 30 hoặc 90 ngày):
 - **Lượt xem, thời gian đọc, bấm mua trong bài**: lấy từ Google Analytics, chỉ đếm người bấm Đồng ý cookie nên số thật cao hơn.
 - **Đơn sau khi đọc**: khách đọc bài rồi đặt hàng trên web trong 7 ngày (tính cho bài đọc gần nhất, không tính đơn huỷ, hoàn).

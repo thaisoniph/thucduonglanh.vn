@@ -19,6 +19,7 @@ import { insPick, insBlock, insParse, insLog, insBank, insRisk, insViet, insStyl
 import { kb, safe, workNow, TRUTH_RULES, REF_RULES, REF_TXT, PHONE_RE } from './chat.js';
 import { botRef } from './partner.js';
 import { prodMap, zbotLead } from './zbot.js';
+import { edAdd, edBlock, edCount } from './edlearn.js';
 
 let GRAPH = 'https://graph.facebook.com/v23.0/';
 const useEnv = x => { if (x.env.FB_GRAPH) GRAPH = x.env.FB_GRAPH; }; // chạy thử trên máy: wrangler dev đặt FB_GRAPH = Facebook giả
@@ -203,7 +204,7 @@ async function commentOpener(x, p, name, text, post, hasPhone) {
       const know = await kb(), pt = await postText(x, p, post);
       const res = await ai(x.env).messages.create({ model: FAST, max_tokens: 800, output_config: { effort: 'low' },
         system: [{ type: 'text', text: MSG_RULES + '\n' + REF_RULES + '\n' + TRUTH_RULES.replace(/mời nhắn Zalo/g, 'thêm [[zalo]]') },
-          { type: 'text', text: 'TÀI LIỆU (thông tin chính thức của Thực Dưỡng Lành):\n\n' + know, cache_control: { type: 'ephemeral' } }],
+          { type: 'text', text: 'TÀI LIỆU (thông tin chính thức của Thực Dưỡng Lành):\n\n' + know, cache_control: { type: 'ephemeral' } }, { type: 'text', text: (await edBlock(x, 'reply', { n: 5, len: 400 })) || '(chưa có câu trả lời nào được nhân sự sửa)' }],
         messages: [{ role: 'user', content: (pt ? 'Bài viết trên fanpage "' + p.name + '":\n' + pt + '\n\n' : '') + 'Khách "' + name + '" bình luận dưới bài: "' + text + '"\n\nViết 1–2 câu (dưới 50 chữ) trả lời thẳng điều khách hỏi trong bình luận, để gửi trong tin nhắn riêng. Không chào (đã chào rồi), không mời nhận quà (đã có câu riêng). Bình luận không có câu hỏi thì viết đúng: [KHONG]' }] });
       ans = res.stop_reason === 'refusal' ? '' : textOf(res);
       if (/\[KHONG\]/.test(ans)) ans = '';
@@ -374,6 +375,7 @@ async function onMessage(x, p, m, app) {
     const res = await ai(x.env).messages.create({ model: FAST, max_tokens: 1500, output_config: { effort: 'low' },
       system: [{ type: 'text', text: MSG_RULES + '\n' + REF_RULES + '\n' + TRUTH_RULES.replace(/mời nhắn Zalo/g, 'thêm [[zalo]] để chuyên viên hỗ trợ') },
         { type: 'text', text: 'TÀI LIỆU (thông tin chính thức của Thực Dưỡng Lành):\n\n' + know, cache_control: { type: 'ephemeral' } },
+        { type: 'text', text: (await edBlock(x, 'reply', { n: 5, len: 400 })) || '(chưa có câu trả lời nào được nhân sự sửa)' },
         { type: 'text', text: 'Fanpage: "' + p.name + '". Bây giờ là ' + w.label + '. Chuyên viên ' + (w.on ? 'đang trực.' : 'ngoài giờ (trực Thứ 2 – Thứ 7, 8h–17h): nhắn lại từ 8h sáng hôm sau.') + (u.name ? ' Tên Facebook của khách: ' + u.name + '.' : '') + (src.text ? ' Khách đến từ bình luận: "' + src.text + '".' : '') + (u.phone ? ' (Ghi chú nội bộ, không nhắc lại với khách: khách đã để số và đã nhận quà, đừng mời nhận quà nữa. Không gọi khách là "khách" khi nói chuyện.)' : u.gift ? ' (Ghi chú nội bộ: đã xin số để gửi quà, khách chưa gửi.)' : '') }],
       messages: merged });
     reply = res.stop_reason === 'refusal' ? 'Câu này em xin phép chưa trả lời được ạ, để chị chuyên viên bên em nhắn lại cho mình nha. [[zalo]]' : textOf(res);
@@ -556,6 +558,7 @@ async function fpWrite(x, p, day, slot, hint, by, grp) {
     'Ngày: ' + ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'][wd] + ' ' + day.slice(6, 8) + '/' + day.slice(4, 6) + ', đăng lúc ' + slot + '.',
     'Chủ đề: ' + theme.t + ' (tầng phễu: ' + FUN[theme.f].name + ')' + (hint ? '\nYêu cầu thêm của nhân sự: ' + hint : ''),
     '', insBlock(ip, theme.f), 'Chủ đề là khung bắt buộc: giữ đúng chủ đề, chỉ chọn góc viết (món, mẹo, nguyên liệu, câu hỏi, sản phẩm) chạm đúng tension của nhóm khách trên.', '',
+    await edBlock(x, 'fb'), // ✍️ 12/11/2026: học từ bài nhân sự đã sửa
     recent.length ? 'Các bài gần đây của mọi fanpage (KHÔNG lặp lại chủ đề / nguyên liệu / món / sản phẩm đã viết):\n' + recent.map(r => '- ' + r.day.slice(6, 8) + '/' + r.day.slice(4, 6) + ': ' + r.topic).join('\n') : '',
     '',
     'Cách viết cho Facebook: dòng đầu là câu mở thu hút (câu hỏi, điều bất ngờ, hình ảnh gần gũi), không giật tít, không hù dọa bệnh tật. 100–200 chữ, đoạn ngắn 1–2 câu, mỗi ý bắt đầu bằng 1 emoji. KHÔNG dùng dấu ** hay # (Facebook không hiện). Giọng ấm áp, gần gũi, kính trọng, xưng "Thực Dưỡng Lành" hoặc "em".',
@@ -606,7 +609,7 @@ export async function crmFp(x, u, d, crmLog) {
     const stats = await all(x.db, 'SELECT kind, count(*) AS n FROM fp_log WHERE at > ? GROUP BY kind', now - 7 * DAY);
     const talk = await first(x.db, "SELECT count(*) AS n FROM fp_users WHERE last_in > ?", now - 7 * DAY);
     const insG = (await insBank(x)).map(g => ({ id: g.id, name: g.name, on: g.on }));
-    return { ok: true, insG, app: { id: app.id, secret: !!app.secret, verify: admin ? app.verify : '', config: app.config, hook: HOOK_URL, cb: CB_URL, verified: Number(await kvGet(x.db, 'fp_verified')) || 0 },
+    return { ok: true, learnEd: await edCount(x, 'fb'), edR: (await edCount(x, 'reply')).ids, insG, app: { id: app.id, secret: !!app.secret, verify: admin ? app.verify : '', config: app.config, hook: HOOK_URL, cb: CB_URL, verified: Number(await kvGet(x.db, 'fp_verified')) || 0 },
       pages, posts, log, open, stats, talk: talk ? talk.n : 0, err: await kvGet(x.db, 'fp_write_err'), aiOn: !!x.env.ANTHROPIC_API_KEY, admin, now };
   }
   if (a === 'fp_app') {
@@ -649,6 +652,13 @@ export async function crmFp(x, u, d, crmLog) {
     const pages = await savePages(x, list);
     await crmLog(x, u, 'Kết nối fanpage', '', '', pages.length + ' trang', pages.map(z => z.name).join(', ') + (miss.length ? ' · thiếu quyền: ' + miss.join(', ') : ''));
     return { ok: true, pages, miss };
+  }
+  if (a === 'fp_teach') { // ✍️ 12/11/2026: nhân sự sửa câu trả lời của trợ lý trong nhật ký → trợ lý học cho các lần sau (không sửa tin đã gửi)
+    const l = await first(x.db, 'SELECT rid, kind, name, text, reply FROM fp_log WHERE rid = ?', Number(d.rid) || 0); if (!l || !l.reply) return { ok: false, error: 'Không tìm thấy câu trả lời.' };
+    const hu = String(d.text || '').trim().slice(0, 2000); if (!hu) return { ok: false, error: 'Bạn chưa ghi câu trả lời đúng.' };
+    const ok = await edAdd(x, 'reply', { id: 'fp' + l.rid, by: u.name, ch: l.kind === 'comment' ? 'bình luận Fanpage' : 'tin nhắn Fanpage', t: l.text, ai: l.reply, hu, note: String(d.note || '').trim().slice(0, 300) });
+    await crmLog(x, u, 'Dạy trợ lý Fanpage', String(l.rid), '', 'Sửa câu trả lời', hu.slice(0, 120));
+    return { ok: true, saved: ok };
   }
   if (a === 'fp_logmore') { // 🕘 xem thêm nhật ký cũ hơn
     return { ok: true, log: await all(x.db, 'SELECT rid, at, page, kind, name, text, reply, done_at, done_by FROM fp_log WHERE rid < ? ORDER BY rid DESC LIMIT 100', Number(d.before) || 0) };
@@ -694,6 +704,7 @@ export async function crmFp(x, u, d, crmLog) {
     const st = ['draft', 'ok', 'skip'].includes(d.status) ? d.status : p.status === 'err' ? 'draft' : p.status;
     const text = d.text === undefined ? p.text : String(d.text).slice(0, 5000), link = d.link === undefined ? p.link : /^https:\/\/\S+$/.test(String(d.link).trim()) ? String(d.link).trim().slice(0, 500) : '';
     await run(x.db, "UPDATE fp_posts SET text = ?, link = ?, status = ?, by_name = ?, at = ?, err = '' WHERE id = ?", text, link, st, u.name, now, p.id);
+    if (d.text !== undefined) await edAdd(x, 'fb', { id: p.id, by: u.name, t: p.topic, ai: p.text, hu: text }); // ✍️ trợ lý học từ bản sửa
     await crmLog(x, u, 'Bài fanpage', p.id, '', { ok: 'Duyệt', skip: 'Bỏ', draft: 'Sửa' }[st] || st, p.topic);
     return { ok: true };
   }

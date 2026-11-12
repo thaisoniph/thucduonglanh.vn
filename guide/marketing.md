@@ -382,7 +382,7 @@ Theo khoá K131, với **Facebook cá nhân thì AI viết, người đăng**. L
    - bài đăng (không link, không giá),
    - bình luận ghim (không link),
    - câu trả lời có chữ **[LINK]**. Khi sale copy, chữ [LINK] tự đổi thành link riêng `?ref=` của từng người.
-4. Đọc lại, bấm **✏️ Sửa** nếu cần, rồi bấm **✅ Cho sale dùng**. Sale sẽ thấy bài ở **Cài đặt → 📣 Bài đăng Facebook cá nhân**. Bấm **⏸ Ẩn** khi bài đã cũ.
+4. Đọc lại, bấm **✏️ Sửa** nếu cần, rồi bấm **✅ Cho sale dùng**. Bài bạn sửa được trợ lý ghi nhớ: bài sau sẽ viết giống cách bạn sửa (dòng **✍️ Trợ lý đang học…** ở đầu hộp cho biết số bài). Sale sẽ thấy bài ở **Cài đặt → 📣 Bài đăng Facebook cá nhân**. Bấm **⏸ Ẩn** khi bài đã cũ.
 
 Thẻ bài ghi số lần sale copy bài (📋). Nên giữ khoảng 5–10 bài đang dùng, thay bài mới mỗi tuần.
 
