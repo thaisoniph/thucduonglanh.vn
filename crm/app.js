@@ -8357,7 +8357,7 @@
       var k = ZB_KIND[l.kind] || ['•', l.kind], need = l.kind === 'handoff' || l.kind === 'dm_handoff';
       var st = need ? (l.done_at ? '<span class="zb-ldone">✅ ' + esc(l.done_by || '') + ' đã xử lý ' + fDateTime(l.done_at) + '</span>' : '<span class="zb-due">⏳ Chưa xử lý</span>') : '';
       return '<details class="zb-lrow' + (need && !l.done_at ? ' zb-pin' : '') + '"' + (pin ? ' open' : '') + '><summary><span class="zb-t">' + (pin ? fDateTime(l.at) : hm(l.at)) + '</span> ' + k[0] + ' <b>' + k[1] + '</b>' + (l.name ? ' · ' + esc(l.name) : '') + ' ' + st + (zbLogTxt(l) ? '<span class="zb-lsum">' + esc(zbLogTxt(l)) + '</span>' : '') + '</summary>' + chat(l) +
-        (l.reply && l.text && ['answer', 'dm', 'handoff', 'dm_handoff'].indexOf(l.kind) >= 0 ? aiTeachBtn('zb', l, j.edR) : '') +
+        (l.reply && l.text && ['answer', 'dm'].indexOf(l.kind) >= 0 ? aiTeachBtn('zb', l, j.edR) : '') +
         (need ? '<div class="lq-btns">' + (l.done_at ? '<button class="btn sm ghost" data-zb="undone|' + l.rid + '">↩️ Bỏ đánh dấu</button>' : '<button class="btn sm pri" data-zb="done|' + l.rid + '">✅ Đã xử lý</button>') + '</div>' : '') + '</details>';
     };
     var hh = '<div class="chips zb-lf">' + Object.keys(ZB_LF).map(function (k) { return '<button class="chip' + (lf === k ? ' on' : '') + '" data-zb="lf|' + k + '">' + ZB_LF[k][0] + (k === 'need' && open.length ? ' <em>' + open.length + '</em>' : '') + '</button>'; }).join('') + '</div>';
@@ -8589,7 +8589,7 @@
       var st = need ? (l.done_at ? '<span class="zb-ldone">✅ ' + esc(l.done_by || '') + ' đã xử lý ' + fDateTime(l.done_at) + '</span>' : '<span class="zb-due">⏳ Chưa xử lý</span>') : '';
       var sm = String(l.text || '').replace(/\*\*/g, '').replace(/\s+/g, ' ').trim(); if (sm.length > 110) sm = sm.slice(0, 108) + '…';
       return '<details class="zb-lrow' + (need && !l.done_at ? ' zb-pin' : '') + '"' + (pin ? ' open' : '') + '><summary><span class="zb-t">' + (pin ? fDateTime(l.at) : hm(l.at)) + '</span> ' + k[0] + ' <b>' + k[1] + '</b>' + (l.name ? ' · ' + esc(l.name) : '') + (pg ? ' <span class="muted small">· ' + esc(pg) + '</span>' : '') + ' ' + st + (sm ? '<span class="zb-lsum">' + esc(sm) + '</span>' : '') + '</summary>' + chat(l) +
-        (l.reply && l.text && cust.indexOf(l.kind) >= 0 ? aiTeachBtn('fp', l, j.edR) : '') +
+        (l.reply && l.text && (l.kind === 'comment' || l.kind === 'dm') ? aiTeachBtn('fp', l, j.edR) : '') +
         (need ? '<div class="lq-btns">' + (l.page ? '<a class="btn sm" href="https://business.facebook.com/latest/inbox/all?asset_id=' + esc(l.page) + '" target="_blank" rel="noopener">💬 Mở hộp thư trang</a>' : '') + (l.done_at ? '<button class="btn sm ghost" data-fp="undone|' + l.rid + '">↩️ Bỏ đánh dấu</button>' : '<button class="btn sm pri" data-fp="done|' + l.rid + '">✅ Đã xử lý</button>') + '</div>' : '') + '</details>';
     };
     var hh = '<div class="chips zb-lf">' + Object.keys(FP_LF).map(function (k) { return '<button class="chip' + (lf === k ? ' on' : '') + '" data-fp="lf|' + k + '">' + FP_LF[k][0] + (k === 'need' && open.length ? ' <em>' + open.length + '</em>' : '') + '</button>'; }).join('') + '</div>';
