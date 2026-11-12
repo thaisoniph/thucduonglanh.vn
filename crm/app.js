@@ -347,7 +347,7 @@
     if (!CFG.endpoint) return Promise.reject(new Error('Chưa cấu hình máy chủ.'));
     tries = tries || 0; var t0 = Date.now();
     // chờ tối đa 30 giây (việc nặng của quản trị 90 giây) rồi báo, không để vòng quay mãi (16/10/2026)
-    var ac = typeof AbortController === 'function' ? new AbortController() : null, wait = action === 'ai_ask' ? 180e3 : /^(spf_write|ins_(video|import|find|offer|big|img|kw|score)|zb_(regen|plan_make|plan_redo))$/.test(action) ? 180e3 : API_HEAVY.test(action) ? 90e3 : 30e3, tm = ac && setTimeout(function () { ac.abort(); }, wait);
+    var ac = typeof AbortController === 'function' ? new AbortController() : null, wait = action === 'ins_score' ? 240e3 : action === 'ai_ask' ? 180e3 : /^(spf_write|ins_(video|import|find|offer|big|img|kw|stt)|zb_(regen|plan_make|plan_redo))$/.test(action) ? 180e3 : API_HEAVY.test(action) ? 90e3 : 30e3, tm = ac && setTimeout(function () { ac.abort(); }, wait);
     return fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), signal: ac ? ac.signal : undefined })
       .then(function (r) { clearTimeout(tm); return r.text().then(function (t) { return { t: t, st: r.status }; }); }, function (er) { clearTimeout(tm); var slow = er && er.name === 'AbortError', e0 = new Error(slow ? 'Máy chủ trả lời chậm quá ' + (wait / 1000) + ' giây. Bạn kiểm tra mạng rồi bấm lại nhé.' : 'Mất kết nối mạng. Bạn thử lại nhé.'); e0.net = true; throw e0; })
       .then(function (x) {
@@ -7279,7 +7279,7 @@
     return h;
   }
   /* ---------------------------------------------------------------- 🧪 Chấm bài trước khi đăng (12/11/2026, api score.js: ins_sview / ins_score / ins_sres / ins_sdel)
-   * Dán bài / kịch bản / lời thoại + tối đa 8 khung hình video (cắt ở trình duyệt) hoặc 4 ảnh → AI chấm 9 tiêu chí /100 → ghi kết quả thật → so điểm với kết quả. */
+   * Dán bài / kịch bản / lời thoại + tối đa 20 khung hình video (cắt ở trình duyệt, có ghi giây) hoặc 4 ảnh → AI chấm 9 tiêu chí /100 → ghi kết quả thật → so điểm với kết quả. */
   var CS = { d: null, busy: 0, err: '', f: {}, frames: [], fname: '', parent: 0, open: 0, run: 0 };
   var CSX_V = { ok: ['🟢', 'Đăng được'], sua: ['🟡', 'Sửa nhẹ rồi đăng'], lai: ['🔴', 'Nên làm lại'], luat: ['⛔', 'Sửa lỗi luật trước khi đăng'] };
   var CSX_CONV = { cao: '📈 Khả năng ra đơn / số: cao', vua: '➖ Khả năng ra đơn / số: vừa', thap: '📉 Khả năng ra đơn / số: thấp' };
@@ -7314,6 +7314,7 @@
       (CS.frames.length ? '<div class="csx-thumbs">' + CS.frames.map(function (s) { return '<img src="' + s + '" alt="">'; }).join('') + '<button type="button" class="link" data-csx="clear">✕ Bỏ</button></div>' : '') + '</div>' +
       '<label class="f"><span>Ghi chú <small class="muted">không bắt buộc: mục tiêu, sản phẩm, ưu đãi đang chạy</small></span><input id="csxN" value="' + esc(f.csxN || '') + '" placeholder="Vd: quảng cáo tin nhắn cho DILVANG, tặng 1 hộp khi mua 3"></label>' +
       (d.aiOn ? '<div class="lq-btns"><button class="btn pri" data-csx="go"' + (CS.run ? ' disabled' : '') + '>' + (CS.run ? '⏳ ' + esc(CS.runMsg || 'AI đang chấm (khoảng 1 phút)…') : '🧪 Chấm điểm') + '</button>' + (CS.parent || f.csxT ? '<button class="btn ghost" data-csx="new">Bài mới</button>' : '') + '</div>' : '<p class="small">⚠️ Máy chủ chưa có khoá AI.</p>') +
+      (d.lastErr && d.lastErr.err && !CS.run && Date.now() - d.lastErr.at < 864e5 ? '<div class="csx-law"><b>⚠️ Lần chấm gần nhất chưa xong</b> <span class="muted">(' + fDateTime(d.lastErr.at) + (d.lastErr.by ? ' · ' + esc(d.lastErr.by) : '') + ')</span><br>' + esc(d.lastErr.err) + '<br><span class="muted">Bấm Chấm điểm lại. Vẫn lỗi thì chụp ô này gửi quản trị.</span></div>' : '') +
       '<details class="small csx-how"><summary>ⓘ AI chấm theo 9 tiêu chí nào?</summary><ul>' + (d.crit || []).map(function (c) { return '<li><b>' + esc(c.name) + ' (' + c.max + ' điểm):</b> ' + esc(c.tip) + '</li>'; }).join('') + '</ul><p>🟢 80 điểm trở lên: đăng được · 🟡 60–79: sửa nhẹ · 🔴 dưới 60: nên làm lại · ⛔ có lỗi luật quảng cáo thực phẩm thì phải sửa trước, dù điểm cao.</p></details></div>';
     // 📏 điểm có khớp kết quả thật không + điểm theo người
     var cb = d.calib || [], nRes = cb.reduce(function (n, b) { return n + b.n; }, 0);
@@ -7345,7 +7346,7 @@
     return '<details class="box csx-it"' + (open ? ' open' : '') + '><summary>' + (r.thumb ? '<img class="csx-th" src="' + r.thumb + '" alt="">' : '') + '<span class="csx-score csx-c-' + (r.v === 'luat' ? 'lai' : csxLv(r.score)) + '">' + r.score + '</span><span class="csx-st"><b>' + esc(r.title) + '</b><br><span class="small">' + V[0] + ' ' + V[1] + '</span><br><span class="small muted">' +
       esc((CS.d.ch || {})[r.ch] || r.ch) + ' · ' + esc(r.author || r.by_name) + ' · ' + fDateTime(r.at) + (r.parent ? ' · 🔁 chấm lại' : '') + (r.r_at ? ' · 📈 ' + esc(csxRes(r)) : '') + '</span></span></summary>' + body + '</details>';
   }
-  /** Cắt 8 khung hình từ video ngay trên trình duyệt (giây 0, 1,5, 3 rồi cách đều) → ảnh JPEG nhỏ */
+  /** Cắt khung hình từ video ngay trên trình duyệt (giây 0, 1,5, 3 rồi ~10 giây 1 hình, tối đa 20) → ảnh JPEG nhỏ, out.t = giây của từng hình */
   function csxVideoFrames(file) {
     return new Promise(function (ok, no) {
       // gắn video ẩn vào trang: Safari đôi khi không mở video chưa nằm trong trang (anh Sơn báo lỗi 12/11/2026)
@@ -7358,15 +7359,16 @@
       v.onerror = function () { var me = v.error || {}; end(out.length ? null : new Error('Trình duyệt không mở được hình của video này (mã ' + (me.code || '?') + (me.message ? ': ' + String(me.message).slice(0, 80) : '') + ', ' + Math.round((file.size || 0) / 1e6) + ' MB ' + (file.type || '') + ').')); };
       v.onloadedmetadata = function () {
         var D = v.duration || 0; if (!isFinite(D) || D <= 0) D = 30;
-        T = [0.05, 1.5, 3].filter(function (t) { return t < D; }); for (var k = 1; k <= 5; k++) T.push(3 + (D * 0.95 - 3) * k / 5);
-        T = T.filter(function (t) { return t >= 0 && t < D; }).slice(0, 8);
+        // 3 hình 3 giây đầu (câu mở) + cứ ~10 giây 1 hình (video ngắn dày hơn), tối đa 20 hình (anh Sơn 12/11/2026: video 2–3 phút 8 hình là thiếu)
+        T = [0.05, 1.5, 3].filter(function (t) { return t < D; }); var rest = Math.max(1, Math.min(17, Math.round((D * 0.97 - 3) / (D <= 30 ? 3 : 10)))); for (var k = 1; k <= rest; k++) T.push(3 + (D * 0.97 - 3) * k / rest);
+        T = T.filter(function (t) { return t >= 0 && t < D; }).slice(0, 20); out.t = [];
         var go = function () { next(); }; if (v.readyState >= 2) go(); else { v.onloadeddata = function () { v.onloadeddata = null; go(); }; try { var pp = v.play(); if (pp && pp.then) pp.then(function () { v.pause(); }, function () {}); } catch (e) {} }
       };
       function next() { if (!T.length) return end(); v.currentTime = T.shift(); }
       v.onseeked = function () {
         if (done) return;
         try { var w = v.videoWidth || 480, hh = v.videoHeight || 852, sc = Math.min(1, 480 / Math.max(w, hh)), c = document.createElement('canvas');
-          c.width = Math.round(w * sc); c.height = Math.round(hh * sc); c.getContext('2d').drawImage(v, 0, 0, c.width, c.height); out.push(c.toDataURL('image/jpeg', 0.7)); } catch (e) {}
+          c.width = Math.round(w * sc); c.height = Math.round(hh * sc); c.getContext('2d').drawImage(v, 0, 0, c.width, c.height); out.push(c.toDataURL('image/jpeg', 0.65)); out.t.push(Math.round(v.currentTime * 10) / 10); } catch (e) {}
         next();
       };
       v.src = url; v.load();
@@ -7435,16 +7437,16 @@
     var fs = Array.prototype.slice.call(t.files), vid = (CS.f.csxK || 'bai') === 'video';
     if (vid && fs[0].size > 800e6) return toast('Video quá lớn (tối đa 800 MB).', true);
     toast(vid ? '⏳ Đang cắt khung hình…' : '⏳ Đang đọc ảnh…');
-    (vid ? csxVideoFrames(fs[0]) : Promise.all(fs.slice(0, 4).map(csxImage))).then(function (L) { CS.frames = L; CS.src = 'file'; render(); toast('Đã thêm ' + L.length + (vid ? ' khung hình ✓' : ' ảnh ✓')); }, function (er) { toast(er.message, true); });
-    if (vid) { CS.audio = ''; csxAudio(fs[0]).then(function (a) { CS.audio = a; }, function () { CS.audio = ''; }); }
+    (vid ? csxVideoFrames(fs[0]) : Promise.all(fs.slice(0, 4).map(csxImage))).then(function (L) { CS.frames = L; CS.ft = L.t || []; CS.src = 'file'; render(); toast('Đã thêm ' + L.length + (vid ? ' khung hình ✓' : ' ảnh ✓')); }, function (er) { toast(er.message, true); });
+    if (vid) { CS.audio = ''; CS.heard = null; csxAudio(fs[0]).then(function (a) { CS.audio = a; }, function () { CS.audio = ''; }); }
   });
   document.addEventListener('click', function (e) {
     var t = e.target.closest('[data-csx]'); if (!t) return;
     var v = t.getAttribute('data-csx').split('|'), a = v[0], id = Number(v[1]), r = CS.d && (CS.d.items || []).filter(function (x) { return x.id === id; })[0];
     if (a === 'reload') { CS.err = ''; CS.d = null; return render(); }
     if (a === 'pick') return $('#csxFile').click();
-    if (a === 'clear') { CS.frames = []; CS.audio = ''; CS.src = ''; return render(); }
-    if (a === 'new') { CS.f = { csxA: CS.f.csxA, csxC: CS.f.csxC }; CS.frames = []; CS.audio = ''; CS.src = ''; CS.parent = 0; return render(); }
+    if (a === 'clear') { CS.frames = []; CS.audio = ''; CS.heard = null; CS.src = ''; return render(); }
+    if (a === 'new') { CS.f = { csxA: CS.f.csxA, csxC: CS.f.csxC }; CS.frames = []; CS.audio = ''; CS.heard = null; CS.src = ''; CS.parent = 0; return render(); }
     if (a === 'go') {
       var f = CS.f, txt = (f.csxT || '').trim(), isV = (f.csxK || 'bai') === 'video', link = isV ? (f.csxL || '').trim() : '';
       if (link && !/drive\.google\.com|docs\.google\.com/.test(link)) return toast('Link phải là link Google Drive (drive.google.com/file/d/…).', true);
@@ -7457,18 +7459,24 @@
         return Promise.all([csxVideoFrames(blob).catch(function (e) { vErr = e; return []; }), csxAudio(blob).catch(function () { return ''; })]).then(function (o) {
           if (!o[0].length && !o[1] && txt.length < 20) throw vErr || new Error('Không đọc được hình lẫn tiếng của video này.');
           if (vErr) toast('⚠️ ' + vErr.message + ' AI sẽ chấm theo lời thoại' + (txt ? ' và caption.' : '.'), true);
-          CS.frames = o[0]; CS.audio = o[1]; CS.src = link;
+          CS.frames = o[0]; CS.ft = o[0].t || []; CS.audio = o[1]; CS.heard = null; CS.src = link;
         });
       })) : Promise.resolve();
       return prep.then(function () {
-        step('AI đang chấm (khoảng 1 phút)…');
-        return api('ins_score', { text: txt, ch: f.csxC || 'qc', kind: f.csxK || 'bai', g: f.csxG || '', f: f.csxF || '', author: (f.csxA || '').trim(), note: (f.csxN || '').trim(), frames: CS.frames, audio: isV ? CS.audio || '' : '', link: link, parent: CS.parent });
-      }).then(function (res) { CS.run = 0; CS.runMsg = ''; CS.d.items = [res.item].concat(CS.d.items || []); CS.open = res.item.id; toast('Đã chấm xong: ' + res.item.score + '/100'); render(); var el = $('.csx-it[open]'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); csxFetch(); },
-          function (er) { CS.run = 0; CS.runMsg = ''; render(); toast(er.message, true); });
+        if (!isV || !CS.audio || CS.heard != null) return;
+        step('Đang nghe lời thoại (khoảng 30 giây)…');
+        return api('ins_stt', { audio: CS.audio }).then(function (r) { CS.heard = r.text || ''; if (!CS.heard) toast('Video không có lời thoại nghe được, AI chấm theo hình' + (txt ? ' và caption.' : '.')); },
+          function (er) { CS.heard = ''; toast('⚠️ ' + er.message + ' AI chấm theo hình' + (txt ? ' và caption.' : '.'), true); });
+      }).then(function () {
+        if (!CS.frames.length && !CS.heard && txt.length < 20) throw new Error('Chưa có gì để chấm: máy không xem được hình, không nghe được lời thoại. Dán kịch bản / lời thoại vào ô Caption rồi bấm lại nhé.');
+        step('AI đang chấm (1–2 phút, đừng tắt trang)…');
+        return api('ins_score', { text: txt, ch: f.csxC || 'qc', kind: f.csxK || 'bai', g: f.csxG || '', f: f.csxF || '', author: (f.csxA || '').trim(), note: (f.csxN || '').trim(), frames: CS.frames, ft: CS.ft || [], heard: isV ? CS.heard || '' : '', link: link, parent: CS.parent });
+      }).then(function (res) { CS.run = 0; CS.runMsg = ''; CS.d.lastErr = null; CS.d.items = [res.item].concat(CS.d.items || []); CS.open = res.item.id; toast('Đã chấm xong: ' + res.item.score + '/100'); render(); var el = $('.csx-it[open]'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); csxFetch(); },
+          function (er) { CS.run = 0; CS.runMsg = ''; if (CS.d) CS.d.lastErr = { at: Date.now(), err: er.message }; render(); toast(er.message, true); });
     }
     if (!r) return;
     if (a === 'cp') return copy(r.res.rewrite || '').then(function () { toast('📋 Đã copy bản sửa'); });
-    if (a === 'redo') { CS.f = { csxA: r.author, csxC: r.ch, csxK: r.kind, csxG: r.g, csxF: r.f, csxT: r.res && r.res.rewrite || r.text, csxN: r.note, csxL: r.res && r.res.link || '' }; CS.audio = ''; CS.src = ''; CS.frames = []; CS.parent = r.parent || r.id; render(); var fm = $('#csxForm'); if (fm) fm.scrollIntoView({ behavior: 'smooth', block: 'start' }); return toast('Đã đưa bản sửa vào ô, bạn chỉnh thêm rồi bấm Chấm điểm'); }
+    if (a === 'redo') { CS.f = { csxA: r.author, csxC: r.ch, csxK: r.kind, csxG: r.g, csxF: r.f, csxT: r.res && r.res.rewrite || r.text, csxN: r.note, csxL: r.res && r.res.link || '' }; CS.audio = ''; CS.heard = null; CS.src = ''; CS.frames = []; CS.parent = r.parent || r.id; render(); var fm = $('#csxForm'); if (fm) fm.scrollIntoView({ behavior: 'smooth', block: 'start' }); return toast('Đã đưa bản sửa vào ô, bạn chỉnh thêm rồi bấm Chấm điểm'); }
     if (a === 'res') return csxResForm(r);
     if (a === 'del') { if (!confirm('Xoá bài đã chấm này?')) return; t.disabled = true; return api('ins_sdel', { id: r.id }).then(function () { CS.d.items = CS.d.items.filter(function (x) { return x.id !== r.id; }); toast('Đã xoá'); render(); }, function (er) { t.disabled = false; toast(er.message, true); }); }
   });

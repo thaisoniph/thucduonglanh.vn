@@ -47,7 +47,7 @@ CRM → menu **Thêm → 🎯 Insight & nội dung** → thẻ **🧪 Chấm bà
 
 1. Ô **Loại** chọn **🎬 Video / kịch bản**.
 2. Dán **link video trên Google Drive** vào ô 🔗.
-3. Bấm **🧪 Chấm điểm**. Máy tự làm 3 việc: tải video → xem 8 hình trong video (nhất là 3 giây đầu) → **tự nghe lời thoại** → AI chấm. Tổng cộng khoảng 1–2 phút.
+3. Bấm **🧪 Chấm điểm**. Máy tự làm 3 việc: tải video → xem hình trong video (3 hình ở 3 giây đầu, sau đó cứ khoảng 10 giây 1 hình, tối đa 20 hình) → **tự nghe lời thoại** → AI chấm. Tổng cộng khoảng 1–2 phút.
 
 > ⚠️ Trước khi dán link, mở video trên Drive → bấm **Chia sẻ** → mục **Quyền truy cập chung** chọn **"Bất kỳ ai có đường liên kết"** → **Xong**. Chưa làm bước này thì máy báo "file chưa chia sẻ công khai".
 

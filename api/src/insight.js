@@ -669,7 +669,7 @@ export async function crmIns(x, u, d, crmLog) {
     await kvSet(x.db, dk, String(n + 1), 2 * DAY);
     try { return await insImport(x, d); } catch (e) { return { ok: false, error: 'AI chưa đọc được: ' + String(e.message).slice(0, 150) }; }
   }
-  if (/^ins_s(view|core|res|del)$/.test(a)) return crmScore(x, u, d, crmLog); // 🧪 chấm bài trước khi đăng (score.js)
+  if (/^ins_s(view|core|res|del|tt)$/.test(a)) return crmScore(x, u, d, crmLog); // 🧪 chấm bài trước khi đăng (score.js)
   if (['ins_skill', 'ins_skilldel', 'ins_odel', 'ins_find', 'ins_offer'].includes(a)) return crmInSkill(x, u, d, crmLog); // 🧩 skill trong CRM (inskill.js)
   if (a === 'ins_merge') { // 📚 gộp bản mặc định mới vào ngân hàng đã sửa riêng (không xoá gì của anh chị đã sửa)
     if (u.level < 2 && u.role !== 'Marketing') return { ok: false, error: 'Chỉ Marketing, Quản lý, Quản trị sửa được ngân hàng insight.' };
