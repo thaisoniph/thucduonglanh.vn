@@ -241,7 +241,13 @@
   window.addEventListener('appinstalled', function () { INSTALL = null; store('crm_inst', '1'); var t = $('#instTip'); if (t) t.remove(); });
   function isApp() { return (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true; }
   var INST_OS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1) ? 'ios' : /android/i.test(navigator.userAgent) ? 'android' : '';
+  var INST_INAPP = /Zalo|FBAN|FBAV|FB_IAB|Instagram|Messenger/i.test(navigator.userAgent); // đang mở link trong Zalo / Facebook: không có nút cài, phải mở bằng trình duyệt trước
   function instName() { return HOST ? HOST.short + ' TDL' : 'CRM TDL'; }
+  /** Điện thoại chưa cài, lần đầu vào CRM trên máy này → tự mở hướng dẫn 1 lần (anh Sơn 12/11/2026: lần đầu đăng nhập bằng điện thoại phải thấy nổi bật). */
+  function instAuto() {
+    if (!INST_OS || isApp() || store('crm_inst_auto') || store('crm_inst') || $('.modal')) return;
+    store('crm_inst_auto', '1'); setTimeout(function () { if (!$('.modal')) openInstall(); }, 800);
+  }
   function instTip() {
     if (isApp() || !INST_OS || store('crm_inst')) return '';
     return '<div class="host-tip inst-tip" id="instTip"><span>📲 <b>Cài CRM ra màn hình điện thoại</b>: có biểu tượng ' + esc(instName()) + ', mở 1 chạm như Zalo, không phải tìm lại link.</span><span class="grow"></span><button type="button" class="btn sm pri" data-inst>Xem cách cài</button><button type="button" class="btn sm" data-inst-x>Để sau</button></div>';
@@ -259,8 +265,14 @@
   function instArt() {
     var T = function (x, y, s, size, w, c) { return '<text x="' + x + '" y="' + y + '" font-size="' + (size || 10) + '" font-weight="' + (w || 400) + '" fill="' + (c || '#1c2a20') + '" font-family="system-ui,sans-serif">' + s + '</text>'; };
     var R = function (x, y, w, h, c, r) { return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="' + (r || 4) + '" fill="' + c + '"/>'; };
-    var nm = esc(instName()), url = esc(location.hostname), urlS = esc(location.hostname.slice(0, 17)) + '…';
-    var page = R(20, 52, 140, 40, '#1f5f3a', 6) + T(30, 76, esc(HOST ? HOST.short : 'CRM'), 12, 700, '#fff') + R(20, 100, 140, 30, '#eaf3ec') + R(20, 136, 140, 30, '#eaf3ec') + R(20, 172, 90, 30, '#eaf3ec');
+    // hình mẫu = màn hình của nhân sự sale (tab Hôm nay, thanh dưới Hôm nay · Khách hỏi · Hiệu quả · Đơn hàng · Thêm), không dùng màn Quản trị (anh Sơn 12/11/2026)
+    var host = (HOST ? HOST_KEY : 'crm') + '.thucduonglanh.vn', nm = esc(instName()), url = host, urlS = host.slice(0, 17) + '…';
+    var card = function (y, a, b) { return R(18, y, 144, 30, '#fff', 6) + '<rect x="18" y="' + y + '" width="144" height="30" rx="6" fill="none" stroke="#e3e3dc"/>' + '<circle cx="31" cy="' + (y + 15) + '" r="7" fill="#eaf3ec"/>' + T(27, y + 18, '☎', 7, 400, '#1f5f3a') + T(43, y + 13, a, 7.5, 700) + T(43, y + 23, b, 6, 400, '#888') + R(128, y + 8, 28, 14, '#1f5f3a', 7) + T(135, y + 18, 'Gọi', 7, 700, '#fff'); };
+    var page = R(12, 52, 156, 216, '#f5f4ef', 0) + R(12, 52, 156, 20, '#1f5f3a', 0) + '<image href="/icon-180.png" x="18" y="55" width="14" height="14"/>' + T(36, 66, 'CRM', 9, 700, '#fff') +
+      T(18, 88, 'Hôm nay', 12, 800) + T(18, 99, '3 khách cần gọi hôm nay', 6.5, 400, '#666') +
+      card(106, 'Chị Hoa', 'Hết hàng · gọi hỏi thăm') + card(140, 'Anh Tuấn', 'Hẹn gọi lại hôm nay') + card(174, 'Cô Mai', 'Đơn đang giao · hỏi nhận') +
+      R(12, 244, 156, 24, '#fff', 0) + '<line x1="12" y1="244" x2="168" y2="244" stroke="#e3e3dc"/>' +
+      ['Hôm nay', 'Khách hỏi', 'Hiệu quả', 'Đơn hàng', 'Thêm'].map(function (l, k) { return '<text x="' + (27 + k * 31.5) + '" y="259" text-anchor="middle" font-size="5.5" font-weight="' + (k ? 400 : 700) + '" fill="' + (k ? '#888' : '#1f5f3a') + '" font-family="system-ui,sans-serif">' + l + '</text>'; }).join('');
     var bar = function (dots) { return R(12, 30, 156, 22, '#f2f2f2') + T(22, 45, urlS, 9, 400, '#555') + T(dots === '⋮' ? 150 : 146, 45, dots, dots === '⋮' ? 14 : 12, 700); };
     var openIn = function (br) { return R(70, 60, 92, 54, '#fff', 6) + '<rect x="70" y="60" width="92" height="54" rx="6" fill="none" stroke="#ccc"/>' + T(78, 80, 'Mở bằng', 9) + T(78, 94, 'trình duyệt', 9, 700) + T(78, 107, br, 8, 400, '#888'); };
     return {
@@ -295,6 +307,7 @@
     var A = instArt();
     var body = '<div class="inst">' +
       '<p class="inst-intro">Cài 1 lần (khoảng 1 phút), sau đó có biểu tượng <b>' + esc(instName()) + '</b> ngoài màn hình chính, mở như ứng dụng, không phải tìm lại link. Làm theo từng bước có hình dưới đây.</p>' +
+      (INST_INAPP && !isApp() ? '<p class="inst-warn">⚠️ Bạn đang mở CRM <b>trong Zalo / Facebook</b>, ở đây không cài được. Làm <b>bước 1</b> trước: bấm <b>' + (os === 'android' ? '⋮' : '•••') + '</b> góc trên bên phải → <b>Mở bằng trình duyệt</b>, rồi làm tiếp các bước sau.</p>' : '') +
       (isApp() ? '<p class="inst-ok">✅ Máy này đã cài rồi: bạn đang mở CRM từ biểu tượng ngoài màn hình chính.</p>' : '') +
       (INSTALL ? '<div class="inst-ok"><b>Máy này cài được ngay bằng 1 chạm</b><button type="button" class="btn pri lg block" data-inst-now style="margin-top:8px">📲 Cài ngay</button></div>' : '') +
       '<div class="chips">' + [['ios', '📱 iPhone (iOS)'], ['android', '🤖 Android']].map(function (o) { return '<button type="button" class="chip' + (os === o[0] ? ' on' : '') + '" data-inst-os="' + o[0] + '">' + o[1] + '</button>'; }).join('') + '</div>' +
@@ -396,6 +409,7 @@
         : '<p class="sub">Đăng nhập bằng email công việc. Chúng tôi sẽ gửi mã 6 số vào email của bạn.</p>' +
           '<label class="f"><span>Email</span><input type="email" name="email" autocomplete="email" inputmode="email" required value="' + esc(email || store('crm_email') || '') + '" placeholder="ten@gmail.com"></label>' +
           '<button class="btn pri lg block" type="submit">Gửi mã đăng nhập</button><p class="err" role="alert">' + esc(msg || '') + '</p>') +
+      (INST_INAPP ? '<p class="inst-warn" style="margin:12px 0 0">⚠️ Bạn đang mở trong <b>Zalo / Facebook</b>. Nên bấm <b>' + (INST_OS === 'android' ? '⋮' : '•••') + '</b> góc trên bên phải → <b>Mở bằng trình duyệt</b> rồi đăng nhập, để cài được CRM ra màn hình điện thoại.</p>' : '') +
       (INST_OS && !isApp() ? '<button type="button" class="btn block inst-btn" data-inst>📲 <span class="nw">Cài CRM ra màn hình điện thoại</span> <span class="nw small">(có hình từng bước)</span></button>' : '') +
       '<p class="small" style="text-align:center;margin:14px 0 0"><a href="/huong-dan/' + (HOST ? HOST.guide : '') + '" target="_blank" rel="noopener">Hướng dẫn sử dụng</a>' + (!INST_OS && !isApp() ? ' · <button type="button" class="link" data-inst>📲 Cài ra màn hình điện thoại</button>' : '') + '</p>' +
       '</form></div>';
@@ -921,7 +935,7 @@
       '<button class="icon-btn" id="refresh" title="Tải lại dữ liệu" aria-label="Tải lại dữ liệu">' + I.refresh + '</button>' +
       '</div></header>' + hostTip() + instTip() + '<main id="view"></main>';
     var ht = $('#hostTip'); if (ht) $('[data-ht]', ht).onclick = function () { store('crm_hosttip', S.user.role); ht.remove(); };
-    bindInstTip();
+    bindInstTip(); instAuto();
     $('#refresh').onclick = function () { load(); };
     $('#fbBtn').onclick = function () { openFeedback(); };
     if ($('#gsBtn')) $('#gsBtn').onclick = function () { openGlobalSearch(); };
