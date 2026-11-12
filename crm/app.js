@@ -7045,79 +7045,120 @@
     flush();
     return out;
   }
+  /** 📊 30 ngày qua (12/11/2026 gọn lại): 3 ô số → nhóm có bài (thanh) → nhóm chưa có bài gộp 1 dòng có nút viết → phễu từng kênh (thanh 3 màu) */
   function inStatsHtml(j) {
     var log = j.log || [], bank = j.bank || [], by = {}, fun = {};
     log.forEach(function (r) { var k = r.g || r.gn || '?'; (by[k] = by[k] || { n: 0 })[r.ch] = (by[k][r.ch] || 0) + 1; by[k].n++; if (r.f) { (fun[r.ch] = fun[r.ch] || { n: 0 })[r.f] = (fun[r.ch][r.f] || 0) + 1; fun[r.ch].n++; } });
-    var max = Math.max.apply(null, [1].concat(Object.keys(by).map(function (k) { return by[k].n; })));
-    var h = '<h2 class="zb-h">📊 30 ngày qua: nội dung theo nhóm khách</h2><div class="box inx-stats">';
-    h += bank.filter(function (g) { return g.on || by[g.id]; }).map(function (g) {
-      var b = by[g.id] || { n: 0 };
-      return '<div class="inx-srow"><div class="inx-sn"><b>' + esc(g.name) + '</b> <span class="small muted">' + b.n + ' bài</span>' + (!b.n && g.on ? ' <span class="small">⚠️ chưa có nội dung nào</span>' : '') + '</div>' +
+    var on = bank.filter(function (g) { return g.on; }), nb = function (g) { return (by[g.id] || {}).n || 0; };
+    var has = bank.filter(function (g) { return nb(g); }).sort(function (a, b) { return nb(b) - nb(a); }), zero = on.filter(function (g) { return !nb(g); });
+    var max = Math.max.apply(null, [1].concat(has.map(nb)));
+    var h = '<div class="kpis inx-kpis">' + kpi('Bài trợ lý đã viết', log.length, '', '', 'web, Zalo, Fanpage, video') +
+      kpi('Nhóm khách đã có bài', (on.length - zero.length) + ' / ' + on.length, zero.length ? 'warn' : 'good', '', zero.length ? zero.length + ' nhóm chưa có bài nào' : 'nhóm nào cũng có bài') + '</div>';
+    h += '<div class="box inx-stats"><div class="zb-ph"><b>👥 Bài theo nhóm khách</b></div>';
+    if (!log.length) h += '<p class="small muted">Chưa có bài nào đi qua bước insight. Mỗi bài trợ lý viết từ nay sẽ được đếm ở đây.</p>';
+    h += has.map(function (g) {
+      var b = by[g.id];
+      return '<div class="inx-srow"><div class="inx-sn"><b>' + esc(g.name) + '</b><span class="inx-n">' + b.n + ' bài</span></div>' +
         '<div class="inx-bar"><i style="width:' + Math.round(b.n * 100 / max) + '%"></i></div><div class="small muted">' + Object.keys(IN_CH).filter(function (c) { return b[c]; }).map(function (c) { return IN_CH[c] + ' ' + b[c]; }).join(' · ') + '</div></div>';
     }).join('');
+    if (zero.length) h += '<div class="inx-zero"><p class="small"><b>⚠️ ' + zero.length + ' nhóm chưa có bài nào</b> <span class="muted">· trợ lý tự ưu tiên các nhóm này ở lần viết sau. Muốn có ngay: bấm tên nhóm để viết kịch bản video.</span></p><div class="chips wrap">' +
+      zero.map(function (g) { return '<button class="chip" data-in="vgo|' + esc(g.id) + '">🎬 ' + esc(g.name) + '</button>'; }).join('') + '</div></div>';
     var bySp = {}; log.forEach(function (r) { var k = r.sp || ''; bySp[k] = (bySp[k] || 0) + 1; });
-    if (log.length) h += '<p class="small inx-fun">🏷 Theo sản phẩm: ' + Object.keys(bySp).sort(function (a, b) { return bySp[b] - bySp[a]; }).map(function (k) { return (k ? esc(inSpName(k)) : 'không nói sản phẩm') + ' <b>' + bySp[k] + '</b>'; }).join(' · ') + '</p>';
+    if (log.length) h += '<p class="small inx-prd">🏷 <b>Theo sản phẩm:</b> ' + Object.keys(bySp).sort(function (a, b) { return bySp[b] - bySp[a]; }).map(function (k) { return (k ? esc(inSpName(k)) : 'không nói sản phẩm') + ' <b>' + bySp[k] + '</b>'; }).join(' · ') + '</p>';
+    h += '</div>';
     var fc = Object.keys(IN_CH).filter(function (c) { return fun[c] && fun[c].n; });
-    if (fc.length) h += '<div class="inx-fun small">' + fc.map(function (c) { var f = fun[c]; return '<p>' + IN_CH[c] + ': ' + ['TOFU', 'MOFU', 'BOFU'].map(function (k) { return '<span class="zb-fun zb-fun-' + k.toLowerCase() + '">' + k + ' ' + Math.round((f[k] || 0) * 100 / f.n) + '%</span>'; }).join(' ') + '</p>'; }).join('') + '</div>';
-    if (!log.length) h += '<p class="small muted">Chưa có bài nào đi qua bước insight. Từ hôm nay, mỗi bài trợ lý viết sẽ được đếm ở đây.</p>';
-    return h + '<p class="small muted">Nhóm nào ít bài thì trợ lý tự ưu tiên viết cho nhóm đó ở lần sau. Tỉ lệ phễu theo khoá học: bắt đầu 🔵 60% ⚪ 25% 🟠 15%; kênh mới 70/20/10; kênh đã có khách ấm (nhóm Zalo, khách cũ) 50/30/20; mùa cao điểm (Tết, 8/3, Vu Lan…) tăng 🟠 lên 30–40% trong 2 tuần rồi trở lại.</p></div>';
+    if (fc.length) h += '<div class="box"><div class="zb-ph"><b>🔻 Tầng phễu theo kênh</b></div><p class="small muted" style="margin-top:0">Nên giữ khoảng <span class="inx-dot t"></span> Thu hút 60% · <span class="inx-dot m"></span> Tạo niềm tin 25% · <span class="inx-dot b"></span> Bán hàng 15%.</p>' +
+      fc.map(function (c) {
+        var f = fun[c], seg = function (k, cl) { var p = Math.round((f[k] || 0) * 100 / f.n); return p ? '<i class="' + cl + '" style="width:' + p + '%">' + (p >= 12 ? p + '%' : '') + '</i>' : ''; };
+        return '<div class="inx-frow"><span class="small">' + IN_CH[c] + '</span><div class="inx-fbar">' + seg('TOFU', 't') + seg('MOFU', 'm') + seg('BOFU', 'b') + '</div></div>';
+      }).join('') +
+      '<details class="small muted"><summary>Khi nào đổi tỉ lệ?</summary><p>Kênh mới: 70/20/10. Kênh đã có khách ấm (nhóm Zalo, khách cũ): 50/30/20. Mùa cao điểm (Tết, 8/3, Vu Lan…): tăng 🟠 Bán hàng lên 30–40% trong 2 tuần rồi trở lại.</p></details></div>';
+    return h;
   }
+  /** dịp đã tới lúc chuẩn bị (cùng cách tính với inEvHtml) */
+  function inEvNow(e) { var d = e.d, t = new Date(Date.UTC(+d.slice(0, 4), +d.slice(4, 6) - 1, +d.slice(6, 8) - e.prep)); return isoDate(Date.now()).replace(/-/g, '') >= t.getUTCFullYear() + pad(t.getUTCMonth() + 1) + pad(t.getUTCDate()); }
+  /** 👉 Nên làm ngay: tối đa 3 việc, mỗi việc 1 nút */
+  function inTodoHtml(j, ed) {
+    var L = [], on = (j.bank || []).filter(function (g) { return g.on; }), has = {}, ev = (j.evs || []).filter(inEvNow)[0];
+    (j.log || []).forEach(function (r) { has[r.g || r.gn] = 1; });
+    var zero = on.filter(function (g) { return !has[g.id]; });
+    if (ed && j.upd) L.push(['📚 Bản insight mặc định có cập nhật mới từ tài liệu khoá học. Gộp vào không xoá gì anh chị đã sửa.', '<button class="btn sm pri" data-in="merge">📚 Gộp ngay</button>']);
+    if (ev) L.push(['📅 <b>' + esc(ev.n) + '</b> ' + (ev.in ? 'còn ' + ev.in + ' ngày' : 'là hôm nay') + ': đến lúc chuẩn bị bài gắn dịp.', '<button class="btn sm" data-in="tab|tao">✍️ Tạo nội dung</button>']);
+    if (zero.length) L.push(['⚠️ <b>' + zero.length + ' nhóm khách</b> chưa có bài nào 30 ngày qua (' + esc(zero.slice(0, 2).map(function (g) { return g.name; }).join(', ')) + (zero.length > 2 ? '…' : '') + ').', '<button class="btn sm" data-in="vgo|' + esc(zero[0].id) + '">🎬 Viết video cho nhóm này</button>']);
+    if (ed && !((j.kw && j.kw.list) || []).length) L.push(['🔑 Chưa có từ khoá cho bài web: Google và ChatGPT khó gợi ý Thực Dưỡng Lành.', '<button class="btn sm" data-in="tab|cai">🔑 Lập từ khoá</button>']);
+    L = L.slice(0, 3);
+    return '<div class="box inx-todo"><div class="zb-ph"><b>👉 Nên làm ngay</b></div>' + (L.length ? L.map(function (x) { return '<div class="inx-todo-r"><p class="small">' + x[0] + '</p>' + x[1] + '</div>'; }).join('') : '<p class="small">✅ Mọi thứ đang ổn. Trợ lý tự viết bài theo lịch, anh chị chỉ cần duyệt bài.</p>') + '</div>';
+  }
+  var IN_TABS = [['tong', '📊 Tổng quan'], ['tao', '✍️ Tạo nội dung'], ['nhom', '👥 Nhóm khách'], ['cai', '⚙️ Cài đặt']];
   function viewIns() {
     if (!IN.d && !IN.err && !IN.busy) setTimeout(inFetch, 0);
+    if (!IN.tab) { try { IN.tab = localStorage.getItem('inTab') || 'tong'; } catch (e) { IN.tab = 'tong'; } }
     var h = '<div class="page-head"><h1>🎯 Insight & nội dung</h1></div>' +
-      '<p class="muted small lq-intro">Mọi nội dung trợ lý AI viết (bài web, bài nhóm Zalo, Fanpage, kịch bản video) đều đi 4 bước: chọn <b>1 nhóm khách</b> → <b>1 tension</b> (điều họ mong ↔ điều đang cản họ) → <b>tầng phễu</b> → viết bài gỡ đúng tension đó. Sửa ngân hàng insight ở đây là cả 4 trợ lý dùng theo. <a href="/huong-dan/marketing/#insight-noi-dung" target="_blank" rel="noopener">Xem hướng dẫn</a></p>';
+      '<p class="muted small lq-intro">Nơi dạy trợ lý AI <b>viết cho ai, chạm nỗi lòng gì</b>. Sửa ở đây là cả 4 trợ lý (bài web, nhóm Zalo, Fanpage, video) viết theo. <a href="/huong-dan/marketing/#insight-noi-dung" target="_blank" rel="noopener">Xem hướng dẫn</a></p>';
     if (!IN.d) return h + '<div class="box"><p class="muted">' + (IN.err ? '⚠️ ' + esc(IN.err) + ' <button class="link" data-in="reload">Thử lại</button>' : '⏳ Đang tải…') + '</p></div>';
-    var j = IN.d, bank = j.bank || [], ed = inCanEdit();
-    h += '<details class="zb-info small"><summary>ⓘ Quy trình 4Is: Issue → Insight → Idea → Implementation (khoá content K133)</summary><ol>' +
+    var j = IN.d, bank = j.bank || [], ed = inCanEdit(), tab = IN.tab;
+    h += '<div class="inx-flow"><div><b>1</b>👥 Chọn<br>nhóm khách</div><div><b>2</b>⚡ Chọn tension<br><small>điều họ mong ↔ điều cản họ</small></div><div><b>3</b>🔻 Chọn<br>tầng phễu</div><div><b>4</b>✍️ Viết bài<br>gỡ tension đó</div></div>';
+    h += '<details class="zb-info small"><summary>ⓘ Tìm hiểu thêm: quy trình 4Is (khoá content K133)</summary><ol>' +
       '<li><b>🔎 Issue</b>: 1 vấn đề cụ thể quan sát được của nhóm khách trong 1 cảnh (vd "2 giờ sáng cho con bú, khát mà không ai đun nước"). <b>🎯 Insight</b>: vì sao họ kẹt = tension. <b>💡 Idea</b>: góc tiếp cận gỡ tension. <b>✍️ Implementation</b>: viết đúng kênh, đúng tầng phễu. Thẻ bài ghi đủ 3 dòng 🔎 🎯 💡 để người duyệt kiểm tra.</li>' +
       '<li><b>Insight là tension</b>: thế giằng co khi điều khách <b>mong</b> va vào <b>rào cản</b> trong 1 cảnh đời cụ thể. Ví dụ: “Biết phải ăn sáng đủ chất ↔ sáng nào cũng vội, ăn tạm hoặc bỏ bữa”.</li>' +
-      '<li><b>🌟 Big idea → 🎭 góc kể</b> (khoá K131): mỗi nhóm khách nên có 1 ý lớn chạy 2–4 tuần để mọi kênh nói nhất quán; big idea chia thành ~10 góc kể (người trong cuộc, hai trường phái, xoá hiểu lầm, hướng dẫn, khoảnh khắc…), mỗi bài 1 góc, trợ lý tự xoay vòng góc ít dùng nhất. Chưa có big idea thì trợ lý tự chọn góc kể khác góc vừa dùng. Bài nhận biết (TOFU) không xoay quanh sản phẩm.</li>' +
-      '<li><b>✍️ Văn như người Việt viết</b>: trợ lý tự bỏ dấu gạch ngang dài (—); thẻ bài báo ✍️ khi còn chuỗi câu vụn chấm liên tục hoặc cảm thán sáo đầu câu để người duyệt sửa.</li>' +
-      '<li>Mỗi bài chỉ nói với <b>1 nhóm khách</b> và gỡ <b>1 tension</b>: cắt bỏ, giảm (thời gian, tiền, công sức, rủi ro), đi vòng rào cản hoặc đổi cách nhìn. Không hù doạ, không hứa sai sự thật.</li>' +
-      '<li><b>🔵 TOFU</b>: giá trị nằm ở chính nội dung (kiến thức, mẹo, câu chuyện), đạt 3/4 "4 MỚI" (mới, chưa ai nói, có giá trị, áp dụng ngay), không để tên sản phẩm ở tiêu đề. <b>⚪ MOFU</b>: giá trị là uy tín (nguồn gốc, nhà máy, kiểm nghiệm, hồ sơ công bố, so sánh thật, cảm nhận khách thật). <b>🟠 BOFU</b>: giá trị nằm ở sản phẩm, ưu đãi thật.</li>' +
-      '<li>Khi viết, AI dùng thêm các công cụ của khoá K133: insight dạng <i>"tôi cần cách [điều mong] mà không phải [rào cản]"</i>, 1 động lực chính (nhu cầu, hình ảnh bản thân, nỗi đau, nỗi lo, kết quả, tò mò), 10 kiểu hook, nhịp C.A.R.E (nhân vật, cảm xúc, lối thoát, mời tương tác), "chạm cảm xúc trước, thông tin sau" và công thức hợp từng tầng (TOFU: Star–Story–Solution, Open Loop, 1-2-3 · MOFU: BAB, QUEST, FAB · BOFU: Value Stack, AIDA, PAS).</li>' +
-      '<li>Luật quảng cáo thực phẩm: chỉ nói công dụng đúng hồ sơ công bố; kinh nghiệm dân gian về chè vằng, đinh lăng… phải nói là kinh nghiệm dân gian. Bài có cụm dễ phạm luật (lợi sữa, giảm cân, thanh lọc, không đường…) sẽ hiện ⚠️ để người duyệt đọc lại.</li>' +
-      '<li>Mỗi bài có <b>1 lối ra</b>: TOFU mời bình luận, nhận quà, vào nhóm · MOFU mời xem sản phẩm, hỏi tư vấn · BOFU mời đặt hàng.</li>' +
-      '<li>Tension gắn <b>🏷 nhãn sản phẩm</b> chỉ dùng khi bài nói về sản phẩm đó; tension <b>🌐 dùng chung</b> hợp mọi sản phẩm và mọi bài thu hút. Xem ở mục 🏷 Insight theo sản phẩm bên dưới.</li></ol></details>';
-    h += inStatsHtml(j);
-    h += inToolsHtml(j, ed);
-    // 🎬 kịch bản video
-    var gOpt = '<option value="">🔄 Tự chọn (nhóm ít video nhất)</option>' + bank.filter(function (g) { return g.on; }).map(function (g) { return '<option value="' + esc(g.id) + '">' + esc(g.name) + '</option>'; }).join('');
-    h += '<h2 class="zb-h">🎬 Viết kịch bản video ngắn</h2><div class="box inx-vd">' +
-      '<p class="small muted">Video dọc 9:16 cho TikTok, Reels, Shorts, theo công thức viral của khoá K133: Hook → Chẩn đoán → Giải pháp 1-2-3 → Kết + 1 lối ra. Có 3 câu hook (1 chính + 2 dự phòng), bảng AIDA 6 cột đúng mẫu khoá video Vinalink, bản B để thử A/B, lời sạch để dán vào máy đọc giọng, caption và tự kiểm.</p>' +
-      '<div class="inx-grid"><label class="f"><span>🎯 Nhóm khách</span><select id="inVg">' + gOpt + '</select></label>' +
-      '<label class="f"><span>Tầng phễu</span><select id="inVf"><option value="">Tự chọn theo tension</option>' + ['TOFU', 'MOFU', 'BOFU'].map(function (k) { return '<option value="' + k + '">' + IN_FN[k] + '</option>'; }).join('') + '</select></label>' +
-      '<label class="f"><span>Sản phẩm (không bắt buộc)</span><select id="inVp"><option value="">Không / để AI chọn</option>' + (j.prods || []).map(function (p) { return '<option value="' + esc(p.code) + '">' + esc(p.name) + '</option>'; }).join('') + '</select></label>' +
-      '<label class="f"><span>Độ dài</span><select id="inVs">' + [15, 30, 45, 60, 90, 180, 300].map(function (n) { return '<option value="' + n + '"' + (n === 45 ? ' selected' : '') + '>' + (n > 90 ? n / 60 + ' phút (video dài ngang, YouTube)' : n + ' giây') + '</option>'; }).join('') + '</select></label>' +
-      '<label class="f"><span>Kiểu quay</span><select id="inVk">' + Object.keys(IN_KIND).map(function (k) { return '<option value="' + k + '">' + IN_KIND[k] + '</option>'; }).join('') + '</select></label>' +
-      '<label class="f"><span>Thể loại</span><select id="inVt">' + Object.keys(IN_GENRE).map(function (k) { return '<option value="' + k + '">' + IN_GENRE[k] + '</option>'; }).join('') + '</select></label></div>' +
-      '<label class="f"><span>Yêu cầu thêm <small class="muted">không bắt buộc</small></span><textarea id="inVh" rows="2" placeholder="Vd: quay ở bếp buổi sáng, chị Lan nói; nhắc ưu đãi 11/11…"></textarea></label>' +
-      (j.aiOn ? '<button class="btn pri" data-in="vd">🎬 Viết kịch bản</button>' : '<p class="small">⚠️ Máy chủ chưa có khoá AI.</p>') + '</div>';
-    var sc = j.scripts || [];
-    if (sc.length) h += '<div class="inx-list">' + sc.map(function (s, i) {
-      var open = IN.open ? IN.open === s.id : i === 0;
-      return '<details class="box inx-sc"' + (open ? ' open' : '') + '><summary><b>' + esc(s.title) + '</b> <span class="small muted">' + (s.sec > 90 ? s.sec / 60 + ' phút' : s.sec + ' giây') + ' · ' + fDateTime(s.at) + ' · ' + esc(s.by_name) + '</span><br>' +
-        (s.f ? '<span class="zb-fun zb-fun-' + s.f.toLowerCase() + '">' + (IN_FN[s.f] || s.f) + '</span> ' : '') + '</summary>' + inTag(s) +
-        '<div class="inx-script">' + inScriptHtml(s.text) + '</div><div class="lq-btns"><button class="btn sm pri" data-in="vcopy|' + s.id + '">📋 Copy kịch bản</button><button class="btn sm ghost" data-in="vdel|' + s.id + '">🗑 Xoá</button></div></details>';
-    }).join('') + '</div>';
-    h += inEvHtml(j, ed) + inLearnHtml(j.learn, j.fpNf) + inKwHtml(j, ed);
-    h += '<div class="box inx-img"><div class="zb-ph"><b>📸 Câu lệnh tạo ảnh</b></div><p class="small">Chọn sản phẩm hoặc dán nội dung bài, AI viết 3 câu lệnh theo ngôn ngữ nhiếp ảnh (góc máy, ống kính, ánh sáng, màu, bố cục) để dán vào ChatGPT hoặc Gemini, kèm câu <b>giữ nguyên bao bì thật</b>.</p><div class="lq-btns"><button class="btn sm" data-in="img">📸 Viết câu lệnh tạo ảnh</button></div></div>';
-    if (ed) h += '<div class="box spf-intro"><div class="zb-ph"><b>📣 Bài viết sẵn cho sale đăng Facebook cá nhân</b></div><p class="small">AI viết bài kể chuyện đời thường (không link, không giá) theo nhóm khách, big idea, góc kể. Kèm <b>bình luận ghim</b> không link và <b>câu trả lời có link riêng</b> của từng sale. Bấm <b>✅ Cho sale dùng</b> thì sale thấy ở <b>Cài đặt → 📣 Bài đăng Facebook cá nhân</b> và khung <b>🔎 Tự tạo khách</b> ở Hôm nay.</p><div class="lq-btns"><button class="btn sm pri" data-spf="admin">📣 Mở bài Facebook cá nhân</button></div></div>';
-    // 👥 ngân hàng insight
-    h += '<div class="zb-done-h"><h2 class="zb-h">👥 Ngân hàng insight</h2><span class="small">' + (j.custom ? 'Đã chỉnh riêng' : 'Bản mặc định') + ' · ' + bank.filter(function (g) { return g.on; }).length + ' nhóm đang dùng</span></div>';
-    if (ed && j.upd) h += '<div class="box bw-todo"><b>📚 Bản mặc định có cập nhật mới</b> (từ tài liệu khoá học): ' + [j.upd.groups ? j.upd.groups + ' nhóm khách mới' : '', j.upd.tensions ? j.upd.tensions + ' tension mới' : '', j.upd.tags ? j.upd.tags + ' nhãn sản phẩm' : '', j.upd.persona ? j.upd.persona + ' ô chân dung mới (họ tin ai, từ khoá họ tìm, nơi tụ tập)' : ''].filter(Boolean).join(', ') + '. Gộp vào không xoá gì anh chị đã sửa.<div class="lq-btns"><button class="btn sm pri" data-in="merge">📚 Gộp vào ngân hàng</button></div></div>';
-    if (ed) h += '<div class="box inx-imp"><p class="small"><b>📥 Vừa chạy skill tìm insight?</b> Bấm <b>Dán kết quả skill</b>, dán nguyên báo cáo: AI tách nhóm khách, tension (xếp theo điểm), nhãn sản phẩm, hook; anh chị xem trước rồi bấm lưu. Tension mới được thêm lên đầu nhóm (trợ lý ưu tiên tension xếp trên).</p><div class="lq-btns"><button class="btn sm pri" data-in="imp">📥 Dán kết quả skill</button></div></div>';
-    h += bank.map(function (g, i) {
-      return '<div class="box inx-g' + (g.on ? '' : ' bw-off') + '"><div class="zb-ph"><b>' + esc(g.name) + '</b><span class="zb-due">' + (g.on ? '🟢 Đang dùng' : '⏸ Tạm tắt') + '</span></div>' +
-        (g.who ? '<p class="small">' + esc(g.who) + '</p>' : '') + (g.want ? '<p class="small"><b>💚 Mong muốn:</b> ' + esc(g.want) + '</p>' : '') + (g.block ? '<p class="small"><b>🧱 Rào cản:</b> ' + esc(g.block) + '</p>' : '') +
-        (g.trust ? '<p class="small"><b>🤝 Họ tin ai:</b> ' + esc(g.trust) + '</p>' : '') + (g.kw ? '<p class="small"><b>🔍 Họ hay tìm:</b> ' + esc(g.kw) + '</p>' : '') + (g.where ? '<p class="small"><b>📍 Nơi họ tụ tập:</b> ' + esc(g.where) + '</p>' : '') +
-        (g.roles ? '<p class="small"><b>👥 3 vai:</b> ' + esc(g.roles) + '</p>' : '') + (g.real ? '<p class="small"><b>🗣 Lý do nói ra → lý do thật:</b> ' + esc(g.real) + '</p>' : '') + (g.excuse ? '<p class="small"><b>🎁 Cái cớ để mua:</b> ' + esc(g.excuse) + '</p>' : '') + (g.pay ? '<p class="small"><b>💰 Khả năng chi trả:</b> ' + esc(g.pay) + '</p>' : '') +
-        ((g.prods || []).length ? '<p class="small"><b>🏷 Sản phẩm hợp:</b> ' + esc(g.prods.map(inSpName).join(', ')) + '</p>' : '') +
-        '<p class="small"><b>⚡ Tension</b> (mong muốn ↔ rào cản):</p><ul class="small inx-tl">' + g.tensions.map(function (t) { return '<li>' + inTenHtml(t) + '</li>'; }).join('') + '</ul>' + inBigHtml(g) + (g.note ? '<p class="small muted">📝 ' + esc(g.note) + '</p>' : '') +
-        (ed ? '<div class="lq-btns"><button class="btn sm" data-in="ged|' + i + '">✏️ Sửa</button><button class="btn sm ghost" data-in="gon|' + i + '">' + (g.on ? '⏸ Tạm tắt' : '▶️ Bật lại') + '</button><button class="btn sm ghost" data-in="gdel|' + i + '">🗑 Xoá</button></div>' : '') + '</div>';
-    }).join('');
-    if (ed) h += '<div class="lq-btns"><button class="btn pri" data-in="imp">📥 Dán kết quả skill</button><button class="btn" data-in="gnew">➕ Thêm nhóm khách</button>' + (j.custom ? '<button class="btn ghost" data-in="reset">↩️ Dùng lại bản mặc định</button>' : '') + '</div>';
-    h += inProdHtml(bank);
+      '<li><b>🌟 Big idea → 🎭 góc kể</b> (khoá K131): mỗi nhóm khách nên có 1 ý lớn chạy 2–4 tuần để mọi kênh nói nhất quán; big idea chia thành ~10 góc kể, mỗi bài 1 góc, trợ lý tự xoay vòng góc ít dùng nhất. Bài thu hút (TOFU) không xoay quanh sản phẩm.</li>' +
+      '<li>Mỗi bài chỉ nói với <b>1 nhóm khách</b> và gỡ <b>1 tension</b>, có <b>1 lối ra</b>: 🔵 Thu hút mời bình luận, nhận quà, vào nhóm · ⚪ Tạo niềm tin mời xem sản phẩm, hỏi tư vấn · 🟠 Bán hàng mời đặt hàng.</li>' +
+      '<li><b>🔵 TOFU</b>: giá trị nằm ở chính nội dung (kiến thức, mẹo, câu chuyện), không để tên sản phẩm ở tiêu đề. <b>⚪ MOFU</b>: giá trị là uy tín (nguồn gốc, nhà máy, kiểm nghiệm, cảm nhận khách thật). <b>🟠 BOFU</b>: giá trị nằm ở sản phẩm, ưu đãi thật.</li>' +
+      '<li>Khi viết, AI dùng thêm công cụ của khoá K133: insight dạng <i>"tôi cần cách [điều mong] mà không phải [rào cản]"</i>, 10 kiểu hook, nhịp C.A.R.E, "chạm cảm xúc trước, thông tin sau", công thức hợp từng tầng (TOFU: Star–Story–Solution, Open Loop · MOFU: BAB, QUEST, FAB · BOFU: Value Stack, AIDA, PAS). Trợ lý tự bỏ dấu gạch ngang dài; thẻ bài báo ✍️ khi văn còn giống AI.</li>' +
+      '<li>Luật quảng cáo thực phẩm: chỉ nói công dụng đúng hồ sơ công bố; kinh nghiệm dân gian phải nói là kinh nghiệm dân gian. Bài có cụm dễ phạm luật (lợi sữa, giảm cân, thanh lọc…) sẽ hiện ⚠️ để người duyệt đọc lại.</li>' +
+      '<li>Tension gắn <b>🏷 nhãn sản phẩm</b> chỉ dùng khi bài nói về sản phẩm đó; tension <b>🌐 dùng chung</b> hợp mọi sản phẩm. Xem ở thẻ 👥 Nhóm khách → 🏷 Insight theo sản phẩm.</li></ol></details>';
+    h += inTodoHtml(j, ed);
+    h += '<div class="tabs inx-tabs">' + IN_TABS.map(function (x) { return '<button class="' + (tab === x[0] ? 'on' : '') + '" data-in="tab|' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div>';
+    if (tab === 'tao') {
+      // 🎬 kịch bản video
+      var gOpt = '<option value="">🔄 Tự chọn (nhóm ít video nhất)</option>' + bank.filter(function (g) { return g.on; }).map(function (g) { return '<option value="' + esc(g.id) + '"' + (IN.vg === g.id ? ' selected' : '') + '>' + esc(g.name) + '</option>'; }).join('');
+      h += '<p class="small muted inx-tabi">Bài web, nhóm Zalo, Fanpage trợ lý <b>tự viết theo lịch</b> (duyệt ở từng tab). Ở đây anh chị tự tạo thêm khi cần.</p>';
+      h += '<div class="box inx-vd" id="inVd"><div class="zb-ph"><b>🎬 Viết kịch bản video ngắn</b></div>' +
+        '<p class="small muted" style="margin-top:0">Video dọc 9:16 cho TikTok, Reels, Shorts: Hook → Chẩn đoán → Giải pháp 1-2-3 → Kết + 1 lối ra. Có 3 câu hook, bảng cảnh quay, lời đọc sạch, caption. Chỉ cần bấm nút, các ô dưới để AI tự chọn cũng được.</p>' +
+        '<div class="inx-grid"><label class="f"><span>🎯 Nhóm khách</span><select id="inVg">' + gOpt + '</select></label>' +
+        '<label class="f"><span>Tầng phễu</span><select id="inVf"><option value="">Tự chọn theo tension</option>' + ['TOFU', 'MOFU', 'BOFU'].map(function (k) { return '<option value="' + k + '">' + IN_FN[k] + '</option>'; }).join('') + '</select></label>' +
+        '<label class="f"><span>Sản phẩm (không bắt buộc)</span><select id="inVp"><option value="">Không / để AI chọn</option>' + (j.prods || []).map(function (p) { return '<option value="' + esc(p.code) + '">' + esc(p.name) + '</option>'; }).join('') + '</select></label>' +
+        '<label class="f"><span>Độ dài</span><select id="inVs">' + [15, 30, 45, 60, 90, 180, 300].map(function (n) { return '<option value="' + n + '"' + (n === 45 ? ' selected' : '') + '>' + (n > 90 ? n / 60 + ' phút (video dài ngang, YouTube)' : n + ' giây') + '</option>'; }).join('') + '</select></label>' +
+        '<label class="f"><span>Kiểu quay</span><select id="inVk">' + Object.keys(IN_KIND).map(function (k) { return '<option value="' + k + '">' + IN_KIND[k] + '</option>'; }).join('') + '</select></label>' +
+        '<label class="f"><span>Thể loại</span><select id="inVt">' + Object.keys(IN_GENRE).map(function (k) { return '<option value="' + k + '">' + IN_GENRE[k] + '</option>'; }).join('') + '</select></label></div>' +
+        '<label class="f"><span>Yêu cầu thêm <small class="muted">không bắt buộc</small></span><textarea id="inVh" rows="2" placeholder="Vd: quay ở bếp buổi sáng, chị Lan nói; nhắc ưu đãi 11/11…"></textarea></label>' +
+        (j.aiOn ? '<button class="btn pri" data-in="vd">🎬 Viết kịch bản</button>' : '<p class="small">⚠️ Máy chủ chưa có khoá AI.</p>') + '</div>';
+      var sc = j.scripts || [];
+      if (sc.length) h += '<h2 class="zb-h">📂 Kịch bản đã viết (' + sc.length + ')</h2><div class="inx-list">' + sc.map(function (s, i) {
+        var open = IN.open ? IN.open === s.id : i === 0;
+        return '<details class="box inx-sc"' + (open ? ' open' : '') + '><summary><b>' + esc(s.title) + '</b> <span class="small muted">' + (s.sec > 90 ? s.sec / 60 + ' phút' : s.sec + ' giây') + ' · ' + fDateTime(s.at) + ' · ' + esc(s.by_name) + '</span><br>' +
+          (s.f ? '<span class="zb-fun zb-fun-' + s.f.toLowerCase() + '">' + (IN_FN[s.f] || s.f) + '</span> ' : '') + '</summary>' + inTag(s) +
+          '<div class="inx-script">' + inScriptHtml(s.text) + '</div><div class="lq-btns"><button class="btn sm pri" data-in="vcopy|' + s.id + '">📋 Copy kịch bản</button><button class="btn sm ghost" data-in="vdel|' + s.id + '">🗑 Xoá</button></div></details>';
+      }).join('') + '</div>';
+      h += '<h2 class="zb-h">🧰 Công cụ khác</h2><div class="inx-cards">' +
+        '<div class="box"><b>📸 Câu lệnh tạo ảnh</b><p class="small muted">AI viết 3 câu lệnh để dán vào ChatGPT hoặc Gemini, giữ nguyên bao bì thật.</p><button class="btn sm" data-in="img">📸 Viết câu lệnh</button></div>' +
+        (ed ? '<div class="box"><b>📣 Bài Facebook cá nhân cho sale</b><p class="small muted">Bài kể chuyện đời thường + bình luận ghim có link riêng từng sale.</p><button class="btn sm" data-spf="admin">📣 Mở</button></div>' +
+          '<div class="box"><b>🎁 Viết offer</b><p class="small muted">Dựng ưu đãi "khó từ chối" cho 1 sản phẩm + 1 tension, lưu nháp để duyệt giá.</p><button class="btn sm" data-in="offer">🎁 Viết offer</button></div>' : '') + '</div>';
+      h += inOffersHtml(j, ed);
+    } else if (tab === 'nhom') {
+      var nOn = bank.filter(function (g) { return g.on; }).length;
+      h += '<p class="small muted inx-tabi">Bấm vào tên nhóm để xem. Mỗi nhóm khách có <b>💚 mong muốn</b>, <b>🧱 rào cản</b> và các <b>⚡ tension</b>. Trợ lý chọn 1 tension rồi mới viết; tension xếp trên được ưu tiên. ' + (j.custom ? 'Đã chỉnh riêng' : 'Đang dùng bản mặc định') + ' · ' + nOn + ' / ' + bank.length + ' nhóm đang dùng.</p>';
+      if (ed) h += '<div class="lq-btns inx-acts"><button class="btn pri" data-in="find">🔍 AI tìm insight mới</button><button class="btn" data-in="imp">📥 Dán kết quả skill</button><button class="btn" data-in="gnew">➕ Thêm nhóm khách</button></div>';
+      h += bank.map(function (g, i) {
+        var more = (g.trust ? '<p><b>🤝 Họ tin ai:</b> ' + esc(g.trust) + '</p>' : '') + (g.kw ? '<p><b>🔍 Họ hay tìm:</b> ' + esc(g.kw) + '</p>' : '') + (g.where ? '<p><b>📍 Nơi họ tụ tập:</b> ' + esc(g.where) + '</p>' : '') +
+          (g.roles ? '<p><b>👥 3 vai:</b> ' + esc(g.roles) + '</p>' : '') + (g.real ? '<p><b>🗣 Lý do nói ra → lý do thật:</b> ' + esc(g.real) + '</p>' : '') + (g.excuse ? '<p><b>🎁 Cái cớ để mua:</b> ' + esc(g.excuse) + '</p>' : '') + (g.pay ? '<p><b>💰 Khả năng chi trả:</b> ' + esc(g.pay) + '</p>' : '') +
+          ((g.prods || []).length ? '<p><b>🏷 Sản phẩm hợp:</b> ' + esc(g.prods.map(inSpName).join(', ')) + '</p>' : '') + (g.note ? '<p class="muted">📝 ' + esc(g.note) + '</p>' : '');
+        var td = isoDate(Date.now()), run = (g.bigs || []).some(function (b) { return b.on && b.ang.length && (!b.until || b.until >= td); });
+        return '<details class="box inx-g' + (g.on ? '' : ' bw-off') + '"' + (IN.gOpen === i ? ' open' : '') + '><summary><span class="inx-gs"><b>' + esc(g.name) + '</b><span class="small muted">' + (g.on ? '🟢 Đang dùng' : '⏸ Tạm tắt') + ' · ' + g.tensions.length + ' tension' + (run ? ' · 🌟 có big idea' : '') + '</span></span></summary>' +
+          (g.who ? '<p class="small muted">' + esc(g.who) + '</p>' : '') +
+          (g.want || g.block ? '<div class="inx-wb">' + (g.want ? '<div><b>💚 Họ mong</b><p class="small">' + esc(g.want) + '</p></div>' : '') + (g.block ? '<div><b>🧱 Điều cản họ</b><p class="small">' + esc(g.block) + '</p></div>' : '') + '</div>' : '') +
+          '<p class="small" style="margin:8px 0 0"><b>⚡ Tension</b> <span class="muted">(mong ↔ cản)</span></p><ul class="small inx-tl">' + g.tensions.map(function (t) { return '<li>' + inTenHtml(t) + '</li>'; }).join('') + '</ul>' + inBigHtml(g) +
+          (more ? '<details class="small inx-more"><summary>📋 Chân dung đầy đủ (họ tin ai, hay tìm gì, ở đâu…)</summary>' + more + '</details>' : '') +
+          (ed ? '<div class="lq-btns"><button class="btn sm" data-in="ged|' + i + '">✏️ Sửa</button><button class="btn sm ghost" data-in="gon|' + i + '">' + (g.on ? '⏸ Tạm tắt' : '▶️ Bật lại') + '</button><button class="btn sm ghost" data-in="gdel|' + i + '">🗑 Xoá</button></div>' : '') + '</details>';
+      }).join('');
+      h += inProdHtml(bank);
+      if (ed && j.custom) h += '<div class="lq-btns"><button class="btn ghost" data-in="reset">↩️ Dùng lại bản mặc định</button></div>';
+    } else if (tab === 'cai') {
+      h += '<p class="small muted inx-tabi">Những thứ trợ lý đọc thêm trước khi viết. Thường chỉ cần ghi <b>🔥 chuyện đang nóng</b> khi có, còn lại để nguyên.</p>';
+      h += inEvHtml(j, ed) + inKwHtml(j, ed) + inSkillsHtml(j, ed);
+    } else {
+      h += inStatsHtml(j) + inLearnHtml(j.learn, j.fpNf);
+    }
     return h;
   }
   /** 🌟 big idea của nhóm (khoá K131): khối đầu đang bật = đang chạy, trợ lý xoay vòng 10 góc kể của nó; các khối sau để dành */
@@ -7201,7 +7242,7 @@
       }).join('');
     }).join('')
       : '<p class="small muted">Chưa đủ số: mỗi loại bài cần ít nhất 3 bài đã đăng hơn 2 ngày có số tương tác (nhóm Zalo đếm người tương tác, tin nhắn, đơn từ link trong bài; Fanpage đếm cảm xúc, bình luận, chia sẻ, lấy mỗi ngày 1 lần).</p>';
-    return '<details class="box spf-learn"><summary><b>📈 Học từ tương tác</b> <span class="small muted">bài hiệu quả nhất / kém nhất của TỪNG LOẠI bài, 60 ngày qua; trợ lý chỉ học bài cùng loại trước khi viết</span></summary>' + body + '<p class="small muted" style="margin:8px 0 0">Chỉ so bài cùng loại (khoá K133): bài tạo niềm tin ⚪ vốn ít tương tác hơn bài thu hút 🔵 nhưng bắt buộc phải có, vì phần lớn người thấy bài là người lạ, họ vào trang để xem mình có đáng tin không. Bài bán 🟠 đo bằng đơn và tin nhắn. Mỗi tuần nên xem lại: bài 👍 giống nhau ở điểm nào, bài 👎 sai ở đâu, ghi vào Ghi chú của nhóm khách.</p>' +
+    return '<details class="box spf-learn"><summary><b>📈 Học từ tương tác</b> <span class="small muted">bài tốt nhất / kém nhất 60 ngày qua, trợ lý học trước khi viết</span></summary>' + body + '<p class="small muted" style="margin:8px 0 0">Chỉ so bài cùng loại (khoá K133): bài tạo niềm tin ⚪ vốn ít tương tác hơn bài thu hút 🔵 nhưng bắt buộc phải có, vì phần lớn người thấy bài là người lạ, họ vào trang để xem mình có đáng tin không. Bài bán 🟠 đo bằng đơn và tin nhắn. Mỗi tuần nên xem lại: bài 👍 giống nhau ở điểm nào, bài 👎 sai ở đâu, ghi vào Ghi chú của nhóm khách.</p>' +
       '<p class="small muted" style="margin:6px 0 0">👀 Fanpage còn ghi <b>% người chưa theo dõi</b> trong số người thấy bài: bài lan tốt thường trên 80–90% (khoá K133). ' + (nfErr && nfErr.msg ? '⚠️ Hiện Facebook chưa cho đọc số này (' + esc(nfErr.msg) + '), thường vì ứng dụng chưa được duyệt quyền đọc thống kê trang; khi được duyệt máy tự lấy.' : 'Số này có sau khi bài đăng được ít nhất 2 ngày.') + '</p></details>';
   }
   /** 📣 Bài viết sẵn cho Facebook cá nhân (spost.js): sale copy bài, bình luận ghim, câu trả lời có link riêng ?ref= */
@@ -7270,25 +7311,27 @@
   }
   /* 🧩 Công cụ từ khoá học (api/src/inskill.js): 🔍 Tìm insight, 🎁 Viết offer, 📤 tải skill lên thay phương pháp mặc định */
   var IN_SLOT = { insight: '🔍 Tìm insight', offer: '🎁 Viết offer', video: '🎬 Kịch bản video' };
-  function inToolsHtml(j, ed) {
-    var sk = j.skills || {}, D = j.drafts || [], canLive = lvl() >= 3 || isMkt();
-    var h = '<h2 class="zb-h">🧩 Công cụ từ khoá học</h2><div class="box inx-tools">' +
-      (ed ? '<div class="lq-btns"><button class="btn pri" data-in="find">🔍 Tìm insight</button><button class="btn pri" data-in="offer">🎁 Viết offer</button></div>' : '') +
-      '<p class="small muted">🔍 Tìm insight: AI đọc câu khách thật 60 ngày (Fanpage, Zalo, chat web, ghi chú Khách hỏi) + thông tin sản phẩm, làm bản đồ tension có chấm điểm, anh chị chọn dòng để thêm vào ngân hàng. 🎁 Viết offer: dựng offer theo Hormozi cho 1 sản phẩm + 1 tension, lưu nháp để duyệt giá.</p>' +
-      '<p class="small" style="margin:10px 0 4px"><b>📘 Phương pháp đang dùng</b> <span class="muted">tải file skill (.skill, .zip hoặc SKILL.md) như trong Claude; tải bản mới là thay bản cũ</span></p>' +
+  /** 📘 Phương pháp đang dùng (tab ⚙️ Cài đặt): tải skill thay phương pháp mặc định */
+  function inSkillsHtml(j, ed) {
+    var sk = j.skills || {};
+    return '<div class="box inx-tools"><div class="zb-ph"><b>📘 Phương pháp trợ lý đang dùng</b></div><p class="small muted" style="margin-top:0">Mặc định trợ lý dùng phương pháp tóm từ khoá học. Có file skill mới (.skill, .zip hoặc SKILL.md) thì tải lên để thay.</p>' +
       Object.keys(IN_SLOT).map(function (k) {
         var v = sk[k];
-        return '<div class="inx-skrow"><span class="small"><b>' + IN_SLOT[k] + ':</b> ' + (v ? '🧩 skill <b>' + esc(v.name) + '</b> <span class="muted">(' + (v.files || []).length + ' tệp, tải ' + fDateTime(v.at) + ' · ' + esc(v.by || '') + ')</span>' : '<span class="muted">phương pháp mặc định (tóm từ skill của khoá)</span>') + '</span>' +
+        return '<div class="inx-skrow"><span class="small"><b>' + IN_SLOT[k] + ':</b> ' + (v ? '🧩 skill <b>' + esc(v.name) + '</b> <span class="muted">(' + (v.files || []).length + ' tệp, tải ' + fDateTime(v.at) + ' · ' + esc(v.by || '') + ')</span>' : '<span class="muted">mặc định</span>') + '</span>' +
           (ed ? '<span class="inx-skb"><button class="btn sm" data-in="sk|' + k + '">📤 ' + (v ? 'Tải bản mới' : 'Tải skill lên') + '</button>' + (v ? '<button class="btn sm ghost" data-in="skdel|' + k + '">🗑</button>' : '') + '</span>' : '') + '</div>';
       }).join('') + '<input type="file" id="inSkF" accept=".skill,.zip,.md,.txt" hidden></div>';
-    if (D.length) h += '<h2 class="zb-h">🎁 Offer nháp (' + D.length + ')</h2>' + D.map(function (o, i) {
+  }
+  /** 🎁 Offer nháp (tab ✍️ Tạo nội dung) */
+  function inOffersHtml(j, ed) {
+    var D = j.drafts || [], canLive = lvl() >= 3 || isMkt();
+    if (!D.length) return '';
+    return '<h2 class="zb-h">🎁 Offer nháp (' + D.length + ')</h2>' + D.map(function (o, i) {
       var open = IN.openOf ? IN.openOf === o.id : i === 0;
       return '<details class="box inx-of"' + (open ? ' open' : '') + '><summary><b>' + esc(o.title) + '</b> <span class="small muted">' + esc(inSpName(o.prod)) + ' · ' + fDateTime(o.at) + ' · ' + esc(o.by_name) + (o.skill ? ' · 🧩 ' + esc(o.skill) : '') + '</span></summary>' +
         inTag({ gn: o.gn, t: o.t, w: o.w }) + (o.sum ? '<p class="small"><b>Tóm tắt ưu đãi:</b> ' + esc(o.sum) + '</p>' : '') + '<div class="inx-script">' + askMd(o.text) + '</div>' +
         '<p class="small muted">Offer nháp chưa chạy. Duyệt giá, quà, số lượng xong mới đưa vào Ưu đãi, lúc đó sale và các trợ lý mới nhắc tới.</p><div class="lq-btns"><button class="btn sm" data-in="ocopy|' + o.id + '">📋 Copy offer</button><button class="btn sm" data-in="osum|' + o.id + '">📋 Copy tóm tắt</button>' +
         (canLive ? '<button class="btn sm pri" data-in="olive|' + o.id + '">➕ Đưa vào Ưu đãi</button>' : '') + (ed ? '<button class="btn sm ghost" data-in="odel|' + o.id + '">🗑 Xoá</button>' : '') + '</div></details>';
     }).join('');
-    return h;
   }
   function inSpOpts(req) { var M = (IN.d && IN.d.sp) || {}; return (req ? '' : '<option value="">Không riêng sản phẩm nào</option>') + Object.keys(M).map(function (k) { return '<option value="' + esc(k) + '">' + esc(M[k][1]) + '</option>'; }).join(''); }
   function inGrpOpts(none) { return '<option value="">' + none + '</option>' + (IN.d.bank || []).filter(function (g) { return g.on; }).map(function (g) { return '<option value="' + esc(g.id) + '">' + esc(g.name) + '</option>'; }).join(''); }
@@ -7420,6 +7463,9 @@
     var t = e.target.closest('[data-in]'); if (!t || !IN.d && t.getAttribute('data-in') !== 'reload') return;
     var v = t.getAttribute('data-in').split('|'), a = v[0], bank = IN.d ? (IN.d.bank || []).slice() : [], i = Number(v[1]);
     if (a === 'reload') { IN.err = ''; IN.d = null; return render(); }
+    if (a === 'tab') { IN.tab = v[1]; try { localStorage.setItem('inTab', v[1]); } catch (er) {} return render(); }
+    if (/^g(ed|on|del)$/.test(a)) IN.gOpen = i;
+    if (a === 'vgo') { IN.tab = 'tao'; IN.vg = v[1]; try { localStorage.setItem('inTab', 'tao'); } catch (er) {} render(); var vd = $('#inVd'); if (vd) vd.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
     if (a === 'gnew') return inGroupForm(null);
     if (a === 'imp') return inImportForm();
     if (a === 'img') return inImgForm();

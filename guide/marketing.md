@@ -217,6 +217,18 @@ Mỗi nơi khách nhìn thấy (tờ rơi ở sự kiện, standee ở đối t�
 
 Mở: menu **Thêm → 🎯 Insight & nội dung** (Marketing thấy ngay trên menu). Đây là "bộ não" chung của mọi trợ lý viết bài: **bài web, bài nhóm Zalo, bài Fanpage và kịch bản video** đều đi theo quy trình **4Is** của khoá content K133: **🔎 Issue** (1 vấn đề cụ thể khách gặp trong 1 cảnh) → **🎯 Insight** (vì sao họ kẹt: tension) → **💡 Idea** (góc tiếp cận gỡ tension) → **✍️ Implementation** (viết đúng kênh, đúng tầng phễu). Thẻ bài ghi đủ 🔎 🎯 💡 để người duyệt kiểm tra. Cụ thể:
 
+### Màn hình gồm những gì (gọn lại 12/11/2026)
+
+Trên cùng là sơ đồ 4 bước (nhóm khách → tension → tầng phễu → viết bài) và ô cam **👉 Nên làm ngay**: tối đa 3 việc nên làm, mỗi việc có 1 nút bấm (vd dịp sắp tới, nhóm khách chưa có bài, chưa có từ khoá). Không có việc gì thì ô báo ✅ mọi thứ đang ổn.
+
+Bên dưới có 4 thẻ, bấm để chuyển (máy nhớ thẻ anh chị mở lần trước):
+- **📊 Tổng quan**: số bài trợ lý viết 30 ngày qua, bài theo từng nhóm khách. Nhóm chưa có bài gom vào 1 ô cam, bấm tên nhóm là mở ngay form viết kịch bản video cho nhóm đó. Thanh **🔻 Tầng phễu** 3 màu cho biết mỗi kênh đang viết bao nhiêu % bài thu hút / tạo niềm tin / bán hàng. Cuối thẻ là **📈 Học từ tương tác**.
+- **✍️ Tạo nội dung**: viết kịch bản video, kịch bản đã viết, và 3 công cụ khác (📸 câu lệnh tạo ảnh, 📣 bài Facebook cá nhân cho sale, 🎁 viết offer), offer nháp.
+- **👥 Nhóm khách**: ngân hàng insight. Mỗi nhóm thu gọn thành 1 dòng, bấm tên nhóm để mở: 💚 họ mong, 🧱 điều cản họ, ⚡ tension, 🌟 big idea, 📋 chân dung đầy đủ. Nút **🔍 AI tìm insight mới**, **📥 Dán kết quả skill**, **➕ Thêm nhóm khách** nằm đầu thẻ. Cuối thẻ là 🏷 Insight theo sản phẩm.
+- **⚙️ Cài đặt**: 📅 dịp sắp tới + 🔥 chuyện đang nóng, 🔑 từ khoá bài web, 📘 phương pháp trợ lý đang dùng (tải skill).
+
+### Trợ lý viết theo 4 bước
+
 1. **Chọn 1 nhóm khách**: mẹ sau sinh, chồng chăm vợ sau sinh, bà chăm con ở cữ, dân văn phòng, trung niên, người ăn chay, con cái mua quà cho bố mẹ, khách cũ… Nhiều tension lấy từ bài tập khoá content K133 của anh Sơn (bảng insight DILVANG).
 2. **Chọn 1 tension** của nhóm đó: điều họ **mong** ↔ điều đang **cản** họ, trong 1 cảnh cụ thể. Ví dụ: *"Biết phải ăn sáng đủ chất ↔ sáng nào cũng vội, ăn tạm hoặc bỏ bữa"*.
 3. **Chọn tầng phễu**: 🔵 **TOFU** (giá trị nằm ở chính nội dung, không bán) · ⚪ **MOFU** (tạo niềm tin bằng bằng chứng thật: nguồn gốc, nhà máy, hồ sơ công bố, cảm nhận khách thật) · 🟠 **BOFU** (giới thiệu sản phẩm, ưu đãi thật, mời đặt hàng).
@@ -224,7 +236,7 @@ Mở: menu **Thêm → 🎯 Insight & nội dung** (Marketing thấy ngay trên 
 
 ### 📅 Dịp sắp tới và 🔥 chuyện đang nóng (từ 11/11/2026)
 
-Ô **📅 Dịp sắp tới** liệt kê các dịp trong 45 ngày (Nhà giáo 20/11, rằm, Giáng sinh, Tết…), kèm ngày **nên bắt đầu chuẩn bị**:
+Ô **📅 Dịp sắp tới** (thẻ ⚙️ Cài đặt) liệt kê các dịp trong 45 ngày (Nhà giáo 20/11, rằm, Giáng sinh, Tết…), kèm ngày **nên bắt đầu chuẩn bị**:
 - Tết: chuẩn bị trước khoảng 90 ngày (khoá K133: chiến dịch Tết bắt đầu từ giữa tháng 10).
 - Lễ lớn: chuẩn bị trước 1 tuần.
 - Mùng 1, rằm: chuẩn bị trước 2 ngày.
@@ -240,7 +252,7 @@ Dòng nào hiện **⏰ đến lúc chuẩn bị** thì lên big idea hoặc bà
 
 Theo khoá K131: muốn AI ra ảnh đẹp thì phải **nói bằng ngôn ngữ nhiếp ảnh**, gồm góc máy, ống kính, độ xoá phông, ánh sáng, màu, bố cục.
 
-1. Bấm **📸 Viết câu lệnh tạo ảnh**.
+1. Thẻ **✍️ Tạo nội dung** → ô **📸 Câu lệnh tạo ảnh** → bấm **📸 Viết câu lệnh**.
 2. Chọn sản phẩm (hoặc không), mục đích (ảnh kèm bài, poster, ảnh bìa web, ảnh sản phẩm), khổ ảnh, và dán nội dung bài nếu có. Bấm **📸 Viết câu lệnh**.
 3. AI viết **3 hướng ảnh**, mỗi hướng có ý tưởng, câu lệnh và câu để chỉnh nếu chưa ưng. Bấm **📋 Copy câu lệnh**, dán vào ChatGPT hoặc Gemini.
 4. Có sản phẩm thì **đính kèm ảnh sản phẩm thật** (bấm link "mở ảnh" để lưu về). Câu lệnh đã có câu bắt AI giữ nguyên bao bì, logo và chữ trên nhãn.
@@ -251,7 +263,7 @@ Theo khoá K131: muốn AI ra ảnh đẹp thì phải **nói bằng ngôn ngữ
 
 Theo khoá Marketing Plan K218: có khoảng **100 từ khoá** người ta thật sự gõ lên Google hoặc hỏi ChatGPT, mỗi ngày viết dần 1 bài thì Google và các AI dễ gợi ý Thực Dưỡng Lành hơn.
 
-1. Vào tab **🎯 Insight & nội dung**, tìm ô **🔑 Từ khoá cho bài web**.
+1. Vào tab **🎯 Insight & nội dung** → thẻ **⚙️ Cài đặt**, tìm ô **🔑 Từ khoá cho bài web**.
 2. Bấm **✨ AI lập 100 từ khoá**. Khoảng 1 phút sau có danh sách, mỗi từ khoá gắn 1 nhóm khách và 1 tầng phễu.
 3. Bấm **Xem danh sách từ khoá** để đọc. Từ nào không hợp thì bấm **✏️ Sửa danh sách**, xoá dòng đó rồi **💾 Lưu**.
 4. Từ đó, mỗi lần trợ lý bài web **tự chọn chủ đề**, nó lấy 1 từ khoá chưa viết. Từ đã viết có dấu ✅. Bài chờ duyệt có dòng **🔑 Từ khoá chính** ở ô tự kiểm tra.
