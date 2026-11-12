@@ -2372,6 +2372,26 @@ async function crmKhoRecv(x, u, d) {
   const k = await crmKho(x, u, { action: 'kho_load' }, crmLog);
   return Object.assign(k, { done: o.id });
 }
+/** 🚚 Kho gửi hàng (12/11/2026, anh Hiệp báo số kho không đổi khi sale gửi đơn): đơn tạo trên CRM mặc định "Đã xác nhận", chỉ sang "Đang giao" khi có người gõ mã vận đơn
+ *  → không ai gõ thì máy coi hàng chưa rời kho. Kho gói hàng giao hãng xong bấm ✅ Đã gửi: đơn → Đang giao (ship_at = lúc bấm, máy trừ kho ngay), mã vận đơn nếu có.
+ *  d.rows = [{ row, id, tracking?, carrier? }] (tối đa 100 đơn / lần). Đổi trạng thái như bấm tay trên đơn (nhật ký, ghi file sale, tính lại khách). */
+async function crmKhoShip(x, u, d) {
+  if (!(u.level >= 2 || u.kho)) return { ok: false, error: 'Chỉ người phụ trách kho, Quản lý, Quản trị ghi được đơn đã gửi.' };
+  const rows = (Array.isArray(d.rows) ? d.rows : []).slice(0, 100); if (!rows.length) return { ok: false, error: 'Chọn đơn đã gửi đi.' };
+  let n = 0; const errs = [], now = Date.now(), cut = Number(((await first(x.db, "SELECT max(at) AS m FROM kho_moves WHERE kind = 'count'")) || {}).m) || 0;
+  // Đơn đặt trước lần đếm kho gần nhất: hàng đã rời kho trước lúc đếm (số đếm đã không có) → giờ đi = trước lúc đếm, kho không trừ lần nữa. Đơn sau lần đếm: giờ đi = lúc bấm.
+  const shipAt = o => cut && Number(o.time) && Number(o.time) < cut ? Math.min(Number(o.time) + DAY, cut - 60e3) : now;
+  for (const it of rows) {
+    const o = await orderFind(x, { id: it.id, row: it.row }); if (!o) { errs.push((it.id || '?') + ': không tìm thấy đơn'); continue; }
+    if (!/^(Mới|Đã xác nhận)$/.test(String(o.status || ''))) { errs.push(o.id + ': đang ở trạng thái ' + o.status); continue; }
+    if (!o.ship_at) await run(x.db, 'UPDATE orders SET ship_at = ? WHERE rid = ?', shipAt(o), o.rid); // đơn đặt trước lần đếm kho: hàng đã đi trước lúc đếm, không trừ thêm
+    const p = { id: o.id, row: o.rid, status: 'Đang giao', reason: 'Kho gửi hàng' }, tr = String(it.tracking || '').replace(/\s+/g, '').slice(0, 40);
+    if (tr) { p.tracking = tr; if (it.carrier) p.carrier = String(it.carrier).slice(0, 40); }
+    const r = await crmOrderStatus(x, u, p, true); if (r.ok) n++; else errs.push(o.id + ': ' + r.error);
+  }
+  const k = await crmKho(x, u, { action: 'kho_load' }, crmLog);
+  return Object.assign(k, { shipped: n, errs });
+}
 /** ✂️ Kho nhận hàng trả về của đơn ký nhận 1 phần (11/11/2026): đơn giữ nguyên trạng thái (khách đã nhận phần còn lại).
  *  d: { id, row, ok, note, back: [{ item, qty }] } → ghi adj_kho_*, cộng hàng trả về vào kho (kho_moves 'in'), báo sale. */
 async function crmKhoPart(x, u, d) {
@@ -2441,6 +2461,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (a === 'kt_shp' || a === 'kt_simp' || a === 'kt_shk') return ktShopee(x, u, d, crmLog); // 🟠 đối soát Shopee từng đơn (san.js, 11/11/2026)
   if (a === 'kt_cash' || a === 'kt_cfg' || a === 'kt_why') return crmKt(x, u, d, crmLog); // 💼 tiền về tài khoản, ngày bắt đầu theo dõi (kt.js)
   if (u.role === 'Kế toán' && a === 'settings') return crmSettings(x, u, d); // chỉ chi phí / bảng lương / giá vốn (ktSettingsOk)
+  if (a === 'kho_ship') return crmKhoShip(x, u, d); // 🚚 kho gửi hàng: đơn chờ gửi → Đang giao, máy trừ kho (12/11/2026)
   if (a === 'kho_part') return crmKhoPart(x, u, d); // ✂️ hàng trả về của đơn ký 1 phần (11/11/2026)
   if (a === 'kho_recv' || a === 'kho_find') return a === 'kho_recv' ? crmKhoRecv(x, u, d) : crmKhoFind(x, u, d); // ↩ hàng hoàn về kho (09/11/2026)
   if (a === 'load') return crmLoad(x, u, d);

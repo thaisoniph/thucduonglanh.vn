@@ -2242,3 +2242,10 @@ b.csx-c-ok { color: var(--primary-2); } b.csx-c-sua { color: var(--orange); } b.
 .csx-doan { margin: 8px 0; }
 .csx-dn { border-left: 3px solid var(--line); padding: 2px 0 2px 10px; margin: 6px 0; }
 .csx-dn p { margin: 2px 0; }
+/* 🚚 Đơn chờ gửi trong tab Kho (12/11/2026, khoShipSec): tích đơn đã gửi → nút ✅ Đã gửi dính đáy màn hình */
+.kho-ship-r { cursor: pointer; align-items: flex-start; }
+.kho-ship-r input { width: 26px; height: 26px; flex-shrink: 0; margin: 2px 0 0; accent-color: var(--primary); }
+.kho-ship-r:has(input:checked) { background: var(--primary-soft); }
+.kho-ship-bar { position: sticky; bottom: calc(var(--nav-h) + var(--safe-b) + 8px); z-index: 5; margin-top: 10px; }
+.kho-ship-bar .btn:disabled { opacity: 1; background: #e9e7df; border-color: #e9e7df; color: var(--muted); }
+@media (min-width: 860px) { .kho-ship-bar { bottom: 12px; } }
