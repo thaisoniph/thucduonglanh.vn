@@ -2,7 +2,7 @@
 title: CRM cho người bán hàng
 nav: CRM
 order: 2
-updated: 2026-10-19
+updated: 2026-11-12
 description: 6 việc bạn làm mỗi ngày trên CRM. Mỗi việc chỉ vài bước.
 ---
 
@@ -140,7 +140,19 @@ Mỗi đơn đi qua 4 bước: **Mới → Đã xác nhận → Đang giao → �
 1. Chọn loại: **💸 Hạ COD**, **✂️ Ký nhận 1 phần** hoặc **🔁 Đổi hàng**.
 2. Gõ **số tiền hạ** (ký 1 phần: tiền phần hàng khách trả lại). Có thu thêm thì gõ vào ô **Số tiền thu thêm**. Gõ tắt được: 30k, 1tr.
 3. Máy tự tính **Thực thu**. Ví dụ đơn 3.600.000đ, khách trả lại 1.000.000đ tiền hàng → thực thu 2.600.000đ.
-4. Có mã vận đơn mới (hàng trả về, đơn đổi) thì gõ vào. Ghi chú lý do nếu cần (ví dụ: 1 lon không có date). Bấm **💾 Lưu**.
+4. Ghi chú lý do nếu cần (ví dụ: 1 lon không có date). Bấm **💾 Lưu**.
+
+- **Hạ COD** không có mã vận đơn mới nên không có ô này. **Lên đơn sai giá** (vd lên 900k, giá đúng 870k) cũng ghi là **Hạ COD**, ghi chú "sale nhập sai giá".
+- **Ký 1 phần**: có mã vận đơn hàng trả về thì gõ vào.
+
+**🔁 Đổi hàng** (hãng giao hàng mới cho khách, đồng thời lấy hàng cũ về kho):
+
+1. Ghi **📤 Hàng mới gửi khách** (sản phẩm, số lượng, vd "2 hộp Trà DILVANG") và **📥 Hàng cũ lấy về**. Không cần ghi ra trang tính hay nhắn riêng anh Hiệp nữa.
+2. **Giá trị hàng cũ khách trả lại**: tiền của số hàng cũ. Kế toán dùng số này để giảm hoá đơn cũ, doanh số của bạn **không bị trừ**.
+3. **Tiền thu thêm**: khách bù tiền thì gõ vào, hãng thu qua COD của **mã vận đơn mới**. Đổi ngang giá thì để trống.
+4. Gõ **mã vận đơn mới**, bấm **💾 Lưu**.
+
+Lưu xong: đơn tự chuyển sang trạng thái **Đổi hàng**, máy nhắn Telegram cho kho gửi hàng. Kho gửi hàng mới và nhận hàng cũ về thì máy báo bạn, trong đơn hiện ✅ / ⏳ từng bước. Bấm chọn trạng thái **Đổi hàng** ở đơn chưa ghi thì máy cũng mở form này.
 
 Doanh số của bạn tính theo **tiền thực thu**. Kế toán xem đơn này ngay trong CRM để xuất hoá đơn, **không cần điền file Google Sheet theo dõi hạ COD nữa**. CRM tự sửa ô tiền trong file lên đơn của bạn. Ghi nhầm thì mở lại bấm **✏️ Sửa** hoặc **↩ Bỏ điều chỉnh**.
 

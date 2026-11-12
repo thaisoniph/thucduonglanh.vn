@@ -2191,3 +2191,4 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 /* ✍️ 12/11/2026 trợ lý Zalo học từ bài nhân sự sửa */
 .zb-learn{margin:4px 0 10px;padding:6px 10px;border-radius:8px;background:color-mix(in srgb,var(--primary) 8%,transparent)}
 .zb-learn-t{color:var(--primary)}
+.kho-red { color: var(--red); font-style: normal; font-weight: 600; } /* 🔁 đơn đổi hàng chưa gửi (tab Kho) */

@@ -2,7 +2,7 @@
 title: Kho hàng
 nav: Kho
 order: 4.5
-updated: 2026-11-09
+updated: 2026-11-12
 description: Xem hàng còn bao nhiêu, nhận tin khi sắp hết, ghi đã đặt hàng, hàng về kho, lấy hàng ra (quà tặng, đại lý), nhận hàng hoàn, đếm kho cuối tuần. Có hình từng bước.
 ---
 
@@ -136,9 +136,25 @@ Hộp hỏng không bán được: sau khi nhận, bấm **📤 Lấy hàng ra**
 
 Muốn xem lại các đơn đã nhận: bấm **✅ Đã nhận 14 ngày qua** dưới danh sách. Sáng nào có đơn đang chuyển hoàn, tin Telegram **Kho sáng** lúc 8h cũng nhắc.
 
+## 🔁 Gửi hàng đổi, nhận hàng cũ về
+
+Khách đổi hàng: hãng giao **hàng mới** cho khách và lấy **hàng cũ** về kho. Sale ghi trong đơn, máy nhắn Telegram cho bạn. Đơn hiện ở mục **✂️ Ký nhận 1 phần · 🔁 Đổi hàng** (ngay dưới **↩ Hàng hoàn về kho**), dòng có chữ đỏ **chưa gửi**.
+
+**Bước 1: gửi hàng mới**
+
+1. Bấm vào đơn. Xem dòng **📤 Sale ghi gửi khách** (sản phẩm, số lượng) và **mã vận đơn mới**.
+2. Đóng gói, gửi hãng. Chọn **hàng mới đã gửi** và gõ **số lượng** (máy đã chọn sẵn sản phẩm nếu đoán được).
+3. Bấm **📤 Đã gửi hàng mới**. Máy trừ số hàng đó khỏi kho và nhắn sale.
+
+**Bước 2: nhận hàng cũ về** (vài ngày sau, khi hãng mang hàng cũ về)
+
+1. Bấm lại vào đúng đơn đó.
+2. Chọn **hàng cũ nhận về**, gõ số lượng, mở gói kiểm hàng (**✅ Đủ** hoặc **⚠️ Thiếu hoặc hỏng**).
+3. Bấm **📦 Đã nhận hàng**. Máy cộng hàng cũ vào kho, nhắn sale. Đơn rời khỏi danh sách.
+
 ## ✂️ Nhận hàng trả về của đơn ký nhận 1 phần
 
-Khách chỉ nhận 1 phần hàng, phần còn lại hãng gửi trả về kho. Sale ghi trong đơn, đơn hiện ở mục **✂️ Hàng trả về của đơn ký nhận 1 phần** (ngay dưới **↩ Hàng hoàn về kho**).
+Khách chỉ nhận 1 phần hàng, phần còn lại hãng gửi trả về kho. Sale ghi trong đơn, đơn hiện ở mục **✂️ Ký nhận 1 phần · 🔁 Đổi hàng** (ngay dưới **↩ Hàng hoàn về kho**).
 
 1. Gói hàng trả về tới kho: bấm vào đúng đơn (so **mã vận đơn trả về**, tên khách, 4 số cuối SĐT).
 2. Chọn **hàng trả về** và gõ **số lượng**. Trả về nhiều loại thì bấm **＋ Thêm loại hàng**.

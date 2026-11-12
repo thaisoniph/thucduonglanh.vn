@@ -210,8 +210,9 @@ Bấm **📋 Chép bảng** rồi dán vào Google Sheet nếu cần gửi file.
 
 Mục **✏️ Đơn hạ COD / ký 1 phần / đổi hàng** (dưới bảng Chốt doanh số) thay cho file Google Sheet sale tự điền. Sale ghi ngay trong từng đơn, kế toán chỉ cần xem.
 
-- Mỗi dòng có: ngày đơn, mã đơn, khách (4 số cuối SĐT), sale, loại, **tiền ban đầu**, **tiền hạ**, **thu thêm**, **thực thu**, mã vận đơn cũ → mới, ngày xử lý, người xử lý, ghi chú.
-- Xuất hoá đơn theo cột **Thực thu**.
+- Mỗi dòng có: ngày đơn, mã đơn, khách (4 số cuối SĐT), sale, loại, **tiền ban đầu**, **tiền hạ**, **thu thêm**, **thực thu**, **hoá đơn mới**, mã vận đơn cũ → mới, ngày xử lý, người xử lý, ghi chú.
+- **Hạ COD, ký 1 phần**: xuất hoá đơn theo cột **Thực thu**. Hạ COD không có mã vận đơn mới.
+- **Đổi hàng**: dòng ghi rõ **📤 hàng gửi khách** và **📥 hàng lấy về**. Cột **Hạ** là **giá trị hàng cũ khách trả lại**: giảm hoá đơn cũ đúng số này. Cột **Hoá đơn mới** = giá trị hàng cũ trả lại + tiền thu thêm (thu qua COD của mã vận đơn mới). Doanh số = tiền ban đầu + thu thêm.
 - Danh sách lấy đơn **đặt** hoặc **xử lý** trong khoảng thời gian chọn ở trên cùng (Tháng này, Tháng trước…).
 - Bấm **📋 Chép bảng** rồi dán vào Google Sheet nếu cần gửi file. Các cột giống file cũ.
 - Doanh số, tiền treo ở hãng đã tính theo thực thu. Tải file đối soát COD thì đơn đã ghi ở đây **không** bị báo lệch tiền.

@@ -1,5 +1,5 @@
 // CRM: đăng nhập, dữ liệu, đơn hàng, khách, tiềm năng, cài đặt. Chuyển từ Apps Script sang, giữ nguyên cách làm việc & dữ liệu trả về cho giao diện.
-import { normPhone, nrm, esc, fmt, startOfDay, TZ_MS, fmtDate, dateOrBlank, slugName, replaceRows, isVoid, randHex, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, DAY, CRM_URL, ROLE_URL, refCode, crmSeen, adjOut } from './lib.js';
+import { normPhone, nrm, esc, fmt, startOfDay, TZ_MS, fmtDate, dateOrBlank, slugName, replaceRows, isVoid, randHex, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, DAY, CRM_URL, ROLE_URL, refCode, crmSeen, adjOut, adjTot } from './lib.js';
 import { crmPartner, partnerSchema, orderAttrib, refClaim, staffOf, staffHit } from './partner.js';
 import { chatSchema } from './chat.js';
 import { zbotSchema, crmZbot } from './zbot.js';
@@ -13,7 +13,7 @@ import { crmCfToken } from './cfweb.js';
 import { crmMkt, mktFbEdit } from './mkt.js';
 import { mktView, mktBudgetSet, mktGoalSet, mktDailyMsgs } from './mktv.js';
 import { crmSan, sanSchema, sanAllowed, ktShopee } from './san.js';
-import { crmKho, khoSchema, khoRetOut } from './kho.js';
+import { crmKho, khoSchema, khoRetOut, khoTell } from './kho.js';
 import { fetchXlsx, crmFin, crmKtChi, finFull } from './fin.js';
 import { crmNcc } from './ncc.js';
 import { KT_ROLE_OK, ktSettingsOk, finOk, ktLoad, ktCfg, crmKt, ktKho, crmKtBatch } from './kt.js';
@@ -32,7 +32,7 @@ import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, wbInf
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-11-12e'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
+const SCHEMA_V = '2026-11-12f'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -61,7 +61,7 @@ export async function ensureSchema(db) {
     await addCol('cash_src', "TEXT DEFAULT ''");
     await addCol('cash_acct', "TEXT DEFAULT ''"); // 10/11/2026: tiền về tài khoản nào (Công ty / Anh Sơn / Hộ kinh doanh… – kt_cfg.accts)
     await addCol('cash_why', "TEXT DEFAULT ''"); // 10/11/2026: lý do hãng thu khác tiền trên đơn (Hạ COD hỗ trợ ship, Sale nhập sai…)
-    for (const [col, def] of [['adj_type', "TEXT DEFAULT ''"], ['adj_from', 'INTEGER'], ['adj_down', 'INTEGER DEFAULT 0'], ['adj_up', 'INTEGER DEFAULT 0'], ['adj_trk', "TEXT DEFAULT ''"], ['adj_at', 'INTEGER'], ['adj_by', "TEXT DEFAULT ''"], ['adj_note', "TEXT DEFAULT ''"], ['adj_kho_at', 'INTEGER'], ['adj_kho_by', "TEXT DEFAULT ''"], ['adj_kho_note', "TEXT DEFAULT ''"]]) await addCol(col, def); // 11/11/2026: ✏️ Hạ COD / Ký 1 phần / Đổi hàng (crmOrderAdj)
+    for (const [col, def] of [['adj_type', "TEXT DEFAULT ''"], ['adj_from', 'INTEGER'], ['adj_down', 'INTEGER DEFAULT 0'], ['adj_up', 'INTEGER DEFAULT 0'], ['adj_trk', "TEXT DEFAULT ''"], ['adj_at', 'INTEGER'], ['adj_by', "TEXT DEFAULT ''"], ['adj_note', "TEXT DEFAULT ''"], ['adj_kho_at', 'INTEGER'], ['adj_kho_by', "TEXT DEFAULT ''"], ['adj_kho_note', "TEXT DEFAULT ''"], ['adj_out', "TEXT DEFAULT ''"], ['adj_back', "TEXT DEFAULT ''"], ['adj_kho_sent', 'INTEGER'], ['adj_kho_sent_by', "TEXT DEFAULT ''"]]) await addCol(col, def); // 11/11/2026: ✏️ Hạ COD / Ký 1 phần / Đổi hàng (crmOrderAdj)
  // 20/10/2026: địa chỉ cũ (63 tỉnh, có huyện) – Misa vẫn chọn theo địa chỉ cũ
     // Khách: đã kết bạn Zalo, nhóm cộng đồng, ngày sinh (bản Apps Script có, lúc chuyển sang D1 bị thiếu)
     const ccols = (await all(db, "PRAGMA table_info(customers)")).map(r => r.name);
@@ -1383,23 +1383,33 @@ async function crmOrderAdj(x, u, d) {
     const ow = await ownerOf(x, o.phone), m = String(o.source || '').match(/^File .+? – (.+)$/);
     await wbEditQueue(x, [o.seller, ow], { id: o.id, sheet: m ? m[1] : '', time: Number(o.time) || 0, prev: { phone: o.phone, total: Number(o.total) || 0 }, name: o.name, phone: o.phone, total: tot });
   });
+  const undoSwap = async () => { if (o.adj_type === 'Đổi hàng' && o.status === 'Đổi hàng') await crmOrderStatus(x, u, { id: o.id, row: o.rid, status: 'Đã giao', reason: 'Bỏ ghi đổi hàng' }, true); };
   if (!t) {
     if (!o.adj_type) return { ok: true, row: o.rid };
-    await run(x.db, "UPDATE orders SET total = ?, subtotal = ?, adj_type = '', adj_from = NULL, adj_down = 0, adj_up = 0, adj_trk = '', adj_at = NULL, adj_by = '', adj_note = '' WHERE rid = ?", from, Math.max(0, from - ship), o.rid);
+    await run(x.db, "UPDATE orders SET total = ?, subtotal = ?, adj_type = '', adj_from = NULL, adj_down = 0, adj_up = 0, adj_trk = '', adj_at = NULL, adj_by = '', adj_note = '', adj_out = '', adj_back = '' WHERE rid = ?", from, Math.max(0, from - ship), o.rid);
+    await undoSwap();
     await crmLog(x, u, 'Điều chỉnh đơn', o.id, o.name, 'Bỏ ' + o.adj_type + ': ' + fmt(o.total) + ' → ' + fmt(from), d.note || '');
     await recalc(x, [o.phone]); await wbTot(from); return { ok: true, row: o.rid };
   }
   if (ADJ_TYPES.indexOf(t) < 0) return { ok: false, error: 'Loại điều chỉnh không hợp lệ.' };
-  const down = Math.max(0, Math.round(Number(d.down) || 0)), up = Math.max(0, Math.round(Number(d.up) || 0)), tot = from - down + up;
+  const down = Math.max(0, Math.round(Number(d.down) || 0)), up = Math.max(0, Math.round(Number(d.up) || 0)), tot = adjTot(t, from, down, up), swap = t === 'Đổi hàng';
+  const outT = swap ? String(d.out || '').replace(/\s+/g, ' ').trim().slice(0, 300) : '', backT = swap ? String(d.back || '').replace(/\s+/g, ' ').trim().slice(0, 300) : '';
+  if (swap && !outT) return { ok: false, error: 'Ghi hàng mới gửi khách (sản phẩm, số lượng) để kho gửi đúng.' };
   if (tot < 0) return { ok: false, error: 'Tiền hạ lớn hơn tiền đơn (' + fmt(from) + ').' };
   if (!down && !up && t !== 'Đổi hàng') return { ok: false, error: 'Gõ số tiền ' + (t === 'Ký 1 phần' ? 'khách trả lại (hoặc tiền thực thu)' : 'hạ COD') + '.' };
   const day = /^\d{4}-\d{2}-\d{2}$/.test(d.day || '') ? new Date(d.day + 'T12:00:00+07:00').getTime() : Date.now();
-  const set = { adj_type: t, adj_from: from, adj_down: down, adj_up: up, adj_trk: String(d.trk || '').trim().slice(0, 40), adj_at: day, adj_by: u.name, adj_note: String(d.note || '').trim().slice(0, 300), total: tot, subtotal: Math.max(0, tot - ship) };
+  const set = { adj_type: t, adj_from: from, adj_down: down, adj_up: up, adj_trk: t === 'Hạ COD' ? '' : String(d.trk || '').trim().slice(0, 40), adj_out: outT, adj_back: backT, adj_at: day, adj_by: u.name, adj_note: String(d.note || '').trim().slice(0, 300), total: tot, subtotal: Math.max(0, tot - ship) };
   const ks = Object.keys(set);
   await run(x.db, 'UPDATE orders SET ' + ks.map(k => k + ' = ?').join(', ') + ' WHERE rid = ?', ...ks.map(k => set[k]), o.rid);
   await crmLog(x, u, 'Điều chỉnh đơn', o.id, o.name, t + ': ' + fmt(from) + (down ? ' − ' + fmt(down) : '') + (up ? ' + ' + fmt(up) : '') + ' = ' + fmt(tot) + (set.adj_trk ? ' · mã mới ' + set.adj_trk : ''), set.adj_note);
   await recalc(x, [o.phone]); if (tot !== Number(o.total)) await wbTot(tot);
-  return { ok: true, row: o.rid, total: tot };
+  let status = o.status; // 🔁 đổi hàng (kế toán 12/11/2026): đơn chuyển sang trạng thái Đổi hàng, báo kho gửi hàng mới + lấy hàng cũ về
+  if (swap && o.status !== 'Đổi hàng' && !/huỷ|hủy|hoàn/i.test(o.status || '')) { await crmOrderStatus(x, u, { id: o.id, row: o.rid, status: 'Đổi hàng', reason: 'Sale ghi đổi hàng' }, true); status = 'Đổi hàng'; }
+  if (!swap) await undoSwap(), status = o.adj_type === 'Đổi hàng' && o.status === 'Đổi hàng' ? 'Đã giao' : status;
+  if (swap && (o.adj_type !== 'Đổi hàng' || o.adj_out !== outT || o.adj_back !== backT)) {
+    try { await khoTell(x, '🔁 <b>' + (o.adj_type === 'Đổi hàng' ? 'Sửa đơn đổi hàng' : 'Đơn đổi hàng cần gửi') + '</b>\nĐơn <b>' + esc(o.id) + '</b> · ' + esc(o.name) + (u.name ? ' · sale ' + esc(u.name) : '') + '\n📤 Gửi khách: ' + esc(outT) + (backT ? '\n📥 Lấy hàng cũ về: ' + esc(backT) : '') + (up ? '\n💵 Thu thêm qua COD mã mới: ' + fmt(up) : '') + (set.adj_trk ? '\nMã vận đơn mới: ' + esc(set.adj_trk) : '') + (set.adj_note ? '\n“' + esc(set.adj_note) + '”' : '') + '\n👉 Gửi xong, nhận hàng cũ về thì bấm ở tab Kho → 🔁 Đơn đổi hàng'); } catch (e) { console.error('swap tg', e.message); }
+  }
+  return { ok: true, row: o.rid, total: tot, status };
 }
 /* ---------- Quản trị xoá dữ liệu nhập thử / nhập nhầm (không hoàn tác được) */
 const DEL_KEY = 'del_log', DEL_IDS = 'del_order_ids';
@@ -2365,7 +2375,22 @@ async function crmKhoRecv(x, u, d) {
 async function crmKhoPart(x, u, d) {
   if (!(u.level >= 2 || u.kho)) return { ok: false, error: 'Chỉ người phụ trách kho, Quản lý, Quản trị ghi được.' };
   const o = await orderFind(x, { id: d.id, row: d.row }); if (!o) return { ok: false, error: 'Không tìm thấy đơn ' + (d.id || '') };
-  if (o.adj_type !== 'Ký 1 phần') return { ok: false, error: 'Đơn ' + o.id + ' không phải đơn ký nhận 1 phần.' };
+  if (o.adj_type !== 'Ký 1 phần' && o.adj_type !== 'Đổi hàng') return { ok: false, error: 'Đơn ' + o.id + ' không phải đơn ký nhận 1 phần / đổi hàng.' };
+  const swap = o.adj_type === 'Đổi hàng', lbl = swap ? 'đổi hàng' : 'ký 1 phần';
+  if (d.step === 'sent') { // 🔁 đổi hàng bước 1: kho gửi hàng mới cho khách → trừ khỏi kho
+    if (!swap) return { ok: false, error: 'Chỉ đơn đổi hàng mới có bước gửi hàng mới.' };
+    if (o.adj_kho_sent) return { ok: false, error: 'Đơn ' + o.id + ' đã ghi gửi hàng mới rồi.' };
+    const its = {}; (await all(x.db, 'SELECT id, name, unit FROM kho_items')).forEach(i => { its[i.id] = i; });
+    const out = (Array.isArray(d.out) ? d.out : []).slice(0, 10).map(b => ({ it: its[b.item], qty: Math.round((Number(b.qty) || 0) * 100) / 100 })).filter(b => b.it && b.qty > 0 && b.qty < 1e5);
+    if (!out.length) return { ok: false, error: 'Chọn hàng mới đã gửi và số lượng (để trừ khỏi kho).' };
+    const now = Date.now(), txt = out.map(b => b.qty + ' ' + (b.it.unit || '') + ' ' + b.it.name).join(', ');
+    for (const b of out) await run(x.db, 'INSERT INTO kho_moves (item, kind, qty, reason, note, po, by_name, at, made) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', b.it.id, 'out', b.qty, 'Khác', ('Gửi hàng đổi cho đơn ' + o.id).slice(0, 300), null, u.name, now, now);
+    await run(x.db, 'UPDATE orders SET adj_kho_sent = ?, adj_kho_sent_by = ? WHERE rid = ?', now, u.name, o.rid);
+    await crmLog(x, u, 'Điều chỉnh đơn', o.id, o.name, 'Kho đã gửi hàng đổi: ' + txt, String(d.note || '').slice(0, 300));
+    try { const ow = await ownerOf(x, o.phone); for (const n of [...new Set([o.seller, ow].filter(n => n && n !== u.name))]) await telegramUser(x, n, '🔁 <b>Kho đã gửi hàng đổi</b>\nĐơn <b>' + esc(o.id) + '</b> · ' + esc(o.name) + '\n' + esc(txt) + '\n' + CRM_URL); } catch (e) { console.error('swap sent tg', e.message); }
+    const k = await crmKho(x, u, { action: 'kho_load' }, crmLog);
+    return Object.assign(k, { done: o.id });
+  }
   if (o.adj_kho_at) return { ok: false, error: 'Đơn ' + o.id + ' đã ghi nhận hàng trả về rồi.' };
   const ok = d.ok !== false, note = String(d.note || '').replace(/\s+/g, ' ').trim().slice(0, 300);
   if (!ok && !note) return { ok: false, error: 'Ghi rõ thiếu hoặc hỏng gì.' };
@@ -2373,12 +2398,12 @@ async function crmKhoPart(x, u, d) {
   const back = (Array.isArray(d.back) ? d.back : []).slice(0, 10).map(b => ({ it: items[b.item], qty: Math.round((Number(b.qty) || 0) * 100) / 100 })).filter(b => b.it && b.qty > 0 && b.qty < 1e5);
   if (!back.length) return { ok: false, error: 'Chọn hàng trả về và số lượng (để cộng lại vào kho).' };
   const now = Date.now(), txt = back.map(b => b.qty + ' ' + (b.it.unit || '') + ' ' + b.it.name).join(', ');
-  for (const b of back) await run(x.db, 'INSERT INTO kho_moves (item, kind, qty, reason, note, po, by_name, at, made) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', b.it.id, 'in', b.qty, '', ('Hàng trả về đơn ' + o.id + ' (ký 1 phần)').slice(0, 300), null, u.name, now, now);
+  for (const b of back) await run(x.db, 'INSERT INTO kho_moves (item, kind, qty, reason, note, po, by_name, at, made) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', b.it.id, 'in', b.qty, '', ('Hàng trả về đơn ' + o.id + ' (' + lbl + ')').slice(0, 300), null, u.name, now, now);
   const kn = (ok ? 'Đủ: ' : '⚠️ ' + note + ' · Nhận: ') + txt + (ok && note ? ' · ' + note : '');
   await run(x.db, 'UPDATE orders SET adj_kho_at = ?, adj_kho_by = ?, adj_kho_note = ? WHERE rid = ?', now, u.name, kn.slice(0, 300), o.rid);
-  await crmLog(x, u, 'Điều chỉnh đơn', o.id, o.name, 'Kho nhận hàng trả về (ký 1 phần): ' + txt, ok ? note : 'Thiếu / hỏng: ' + note);
+  await crmLog(x, u, 'Điều chỉnh đơn', o.id, o.name, 'Kho nhận hàng trả về (' + lbl + '): ' + txt, ok ? note : 'Thiếu / hỏng: ' + note);
   try {
-    const ow = await ownerOf(x, o.phone), msg = '✂️ <b>Kho đã nhận hàng trả về (ký 1 phần)</b>\nĐơn <b>' + esc(o.id) + '</b> · ' + esc(o.name) + '\n' + esc(txt) + '\n' + (ok ? '✅ Đủ hàng, còn nguyên' + (note ? ' · ' + esc(note) : '') : '⚠️ ' + esc(note)) + '\n' + CRM_URL;
+    const ow = await ownerOf(x, o.phone), msg = (swap ? '🔁' : '✂️') + ' <b>Kho đã nhận hàng trả về (' + lbl + ')</b>\nĐơn <b>' + esc(o.id) + '</b> · ' + esc(o.name) + '\n' + esc(txt) + '\n' + (ok ? '✅ Đủ hàng, còn nguyên' + (note ? ' · ' + esc(note) : '') : '⚠️ ' + esc(note)) + '\n' + CRM_URL;
     const to = [...new Set([o.seller, ow].filter(n => n && n !== u.name))];
     for (const n of to) await telegramUser(x, n, msg);
     if (!ok) for (const m of await crmUsers(x)) if (m.active && m.tg && m.level >= 2 && m.name !== u.name && to.indexOf(m.name) < 0) await telegramTo(x.env, m.tg, msg);

@@ -2870,53 +2870,72 @@
   }
   /* ---------- ✏️ Hạ COD / Ký 1 phần / Đổi hàng (11/11/2026, thay file Google Sheet kế toán theo dõi). Sale ghi trong đơn → total = tiền thực thu (anh Sơn chốt:
    * doanh số, thi đua, hoa hồng tính theo thực thu), tiền ban đầu giữ ở o.adj.from. Kế toán xem danh sách ở tab 💼 Kế toán → ✏️ Đơn điều chỉnh tiền (ktAdjHTML). */
-  var ADJ_T = [['Hạ COD', '💸 Hạ COD', 'Khách xin giảm tiền thu hộ (hỗ trợ ship, giảm giá thêm…)'], ['Ký 1 phần', '✂️ Ký nhận 1 phần', 'Khách chỉ nhận 1 phần hàng, phần còn lại hãng trả về'], ['Đổi hàng', '🔁 Đổi hàng', 'Khách đổi sang hàng khác, có thể thu thêm tiền']];
-  function adjLine(a) { return money(a.from) + (a.down ? ' − ' + money(a.down) : '') + (a.up ? ' + ' + money(a.up) : '') + ' = <b>' + money(a.from - a.down + a.up) + '</b>'; }
+  var ADJ_T = [['Hạ COD', '💸 Hạ COD', 'Khách xin giảm tiền thu hộ (hỗ trợ ship, giảm giá thêm), hoặc sale nhập sai giá. Không có mã vận đơn mới'], ['Ký 1 phần', '✂️ Ký nhận 1 phần', 'Khách chỉ nhận 1 phần hàng, phần còn lại hãng trả về kho'], ['Đổi hàng', '🔁 Đổi hàng', 'Hãng giao hàng mới cho khách và lấy hàng cũ về kho. Tiền thu thêm (nếu có) thu qua COD của mã vận đơn mới. Đơn tự chuyển sang trạng thái Đổi hàng, máy báo kho']];
+  /** Tiền thực thu sau điều chỉnh (trùng adjTot ở api/src/lib.js). Đổi hàng: down = giá trị hàng cũ khách trả lại (để kế toán giảm hoá đơn cũ), không trừ doanh số. */
+  function adjTot(a) { return a.t === 'Đổi hàng' ? a.from + a.up : a.from - a.down + a.up; }
+  /** Đổi hàng: giá trị hoá đơn mới = giá trị hàng cũ trả lại + tiền thu thêm (kế toán 12/11/2026). */
+  function adjNewBill(a) { return a.t === 'Đổi hàng' ? a.down + a.up : null; }
+  function adjLine(a) { return a.t === 'Đổi hàng' ? money(a.from) + (a.up ? ' + thu thêm ' + money(a.up) : '') + ' = <b>' + money(adjTot(a)) + '</b>' : money(a.from) + (a.down ? ' − ' + money(a.down) : '') + (a.up ? ' + ' + money(a.up) : '') + ' = <b>' + money(adjTot(a)) + '</b>'; }
+  function adjKho(a) {
+    if (a.t === 'Ký 1 phần') return '<p class="small" style="margin:0 0 8px">' + (a.kAt ? '📦 Kho đã nhận hàng trả về ' + fDate(a.kAt).slice(0, 5) + ' (' + esc(a.kBy) + '): ' + esc(a.kNote) : '⏳ Kho chưa nhận hàng trả về') + '</p>';
+    if (a.t !== 'Đổi hàng') return '';
+    return '<p class="small" style="margin:0 0 4px">📤 Gửi khách: <b>' + esc(a.out || '–') + '</b>' + (a.back ? '<br>📥 Lấy về: <b>' + esc(a.back) + '</b>' : '') + (a.down ? '<br>🧾 Hoá đơn mới: ' + money(a.down) + (a.up ? ' + ' + money(a.up) : '') + ' = <b>' + money(adjNewBill(a)) + '</b>' : '') + '</p>' +
+      '<p class="small" style="margin:0 0 8px">' + (a.kSent ? '✅ Kho đã gửi hàng mới ' + fDate(a.kSent).slice(0, 5) + ' (' + esc(a.kSentBy) + ')' : '⏳ Kho chưa gửi hàng mới') + ' · ' + (a.kAt ? '📦 đã nhận hàng cũ ' + fDate(a.kAt).slice(0, 5) + ': ' + esc(a.kNote) : '⏳ chưa nhận hàng cũ về') + '</p>';
+  }
   function adjBox(o) {
     var a = o.adj;
-    if (!a) return isVoid(o.status) ? '' : '<div class="box" id="oAdj"><h3>✏️ Hạ COD / Ký 1 phần / Đổi hàng</h3><p class="small muted" style="margin:0 0 8px">Khách xin giảm tiền thu hộ, chỉ nhận 1 phần hàng hoặc đổi hàng thì bấm ghi lại. Kế toán xuất hoá đơn theo số tiền thực thu, doanh số cũng tính theo số này.</p><button class="btn" id="oAdjBtn">✏️ Ghi hạ COD / ký 1 phần / đổi hàng</button></div>';
+    if (!a) return isVoid(o.status) ? '' : '<div class="box" id="oAdj"><h3>✏️ Hạ COD / Ký 1 phần / Đổi hàng</h3><p class="small muted" style="margin:0 0 8px">Khách xin giảm tiền thu hộ, chỉ nhận 1 phần hàng hoặc đổi hàng thì bấm ghi lại. Kế toán xuất hoá đơn theo số này, doanh số tính theo tiền thực thu.</p><button class="btn" id="oAdjBtn">✏️ Ghi hạ COD / ký 1 phần / đổi hàng</button></div>';
     return '<div class="box" id="oAdj"><h3>✏️ ' + esc(a.t) + '</h3><p style="margin:0 0 6px">Tiền ban đầu ' + adjLine(a) + ' thực thu</p><p class="small muted" style="margin:0 0 8px">' +
-      [a.trk ? 'Mã vận đơn mới: <b>' + esc(a.trk) + '</b>' : '', a.at ? 'xử lý ' + fDate(a.at) : '', a.by ? 'bởi ' + esc(a.by) : '', a.note ? '“' + esc(a.note) + '”' : ''].filter(Boolean).join(' · ') + '</p>' + (a.t === 'Ký 1 phần' ? '<p class="small" style="margin:0 0 8px">' + (a.kAt ? '📦 Kho đã nhận hàng trả về ' + fDate(a.kAt).slice(0, 5) + ' (' + esc(a.kBy) + '): ' + esc(a.kNote) : '⏳ Kho chưa nhận hàng trả về') + '</p>' : '') +
+      [a.trk ? 'Mã vận đơn mới: <b>' + esc(a.trk) + '</b>' : '', a.at ? 'xử lý ' + fDate(a.at) : '', a.by ? 'bởi ' + esc(a.by) : '', a.note ? '“' + esc(a.note) + '”' : ''].filter(Boolean).join(' · ') + '</p>' + adjKho(a) +
       '<div class="steps"><button class="btn" id="oAdjBtn">✏️ Sửa</button><button class="btn ghost" id="oAdjOff">↩ Bỏ điều chỉnh</button></div></div>';
   }
-  function openAdj(o) {
-    var a = o.adj || {}, from = a.t ? a.from : o.total, t0 = a.t || 'Hạ COD';
+  function openAdj(o, tPick) {
+    var a = o.adj || {}, from = a.t ? a.from : o.total, t0 = tPick || a.t || 'Hạ COD';
     var inp = function (id, lbl, v, ph) { return '<label class="f" id="' + id + 'L"><span>' + lbl + '</span><input type="text" id="' + id + '" inputmode="numeric" value="' + (v ? money(v).replace('đ', '') : '') + '" placeholder="' + (ph || 'VD: 50k, 1tr') + '" autocomplete="off"></label>'; };
     var body = '<p class="small" style="margin:0 0 10px">Đơn <b>' + esc(o.id) + '</b> · ' + esc(o.name) + ' · tiền ban đầu <b>' + money(from) + '</b>' + (o.tracking ? ' · mã vận đơn ' + esc(o.tracking) : '') + '</p>' +
       '<div class="radios adj-t">' + ADJ_T.map(function (x) { return '<label><input type="radio" name="adjT" value="' + x[0] + '"' + (x[0] === t0 ? ' checked' : '') + '><span>' + x[1] + '</span></label>'; }).join('') + '</div><p class="small muted" id="adjHint" style="margin:6px 0 10px"></p>' +
+      '<div id="adjSw"><label class="f"><span>📤 Hàng mới gửi khách <small class="muted">(sản phẩm, số lượng – kho gửi theo dòng này)</small></span><input type="text" id="adjOut" value="' + esc(a.out || '') + '" placeholder="VD: 2 hộp Trà DILVANG 30 gói" autocomplete="off"></label>' +
+      '<label class="f"><span>📥 Hàng cũ lấy về <small class="muted">(nếu có)</small></span><input type="text" id="adjBack" value="' + esc(a.back || '') + '" placeholder="VD: 2 hộp Trà Mâm Xôi" autocomplete="off"></label></div>' +
       '<div class="row2c">' + inp('adjDown', 'Số tiền hạ', a.down) + inp('adjUp', 'Số tiền thu thêm', a.up, 'Không có thì để trống') + '</div>' +
       '<p class="notice" id="adjSum" style="margin:4px 0 10px"></p>' +
-      '<div class="row2c"><label class="f"><span>Mã vận đơn mới <small class="muted">(nếu có)</small></span><input type="text" id="adjTrk" value="' + esc(a.trk || '') + '" autocomplete="off"></label>' +
+      '<div class="row2c"><label class="f" id="adjTrkL"><span>Mã vận đơn mới <small class="muted">(nếu có)</small></span><input type="text" id="adjTrk" value="' + esc(a.trk || '') + '" autocomplete="off"></label>' +
       '<label class="f"><span>Ngày xử lý</span><input type="date" id="adjDay" value="' + isoDate(a.at || Date.now()) + '" max="' + isoDate(Date.now()) + '"></label></div>' +
-      '<label class="f"><span>Ghi chú <small class="muted">(lý do, hàng trả về gồm gì…)</small></span><input type="text" id="adjNote" value="' + esc(a.note || '') + '" placeholder="VD: 1 lon không có date"></label><p class="err" id="adjE"></p>';
+      '<label class="f"><span>Ghi chú <small class="muted">(lý do…)</small></span><input type="text" id="adjNote" value="' + esc(a.note || '') + '" placeholder="VD: sale nhập sai giá 900k, đúng là 870k"></label><p class="err" id="adjE"></p>';
     var m = modal('✏️ Hạ COD / Ký 1 phần / Đổi hàng', body, '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="adjGo">💾 Lưu</button>');
     var typ = function () { return ($('input[name=adjT]:checked', m) || {}).value; };
     var upd = function () {
-      var t = typ(), d = moneyIn($('#adjDown', m).value), u = moneyIn($('#adjUp', m).value), tot = from - d + u;
+      var t = typ(), d = moneyIn($('#adjDown', m).value), u = moneyIn($('#adjUp', m).value), A = { t: t, from: from, down: d, up: u }, tot = adjTot(A), sw = t === 'Đổi hàng';
       $('#adjHint', m).textContent = ADJ_T.filter(function (x) { return x[0] === t; })[0][2] + '.';
-      $('#adjDownL span', m).textContent = t === 'Ký 1 phần' ? 'Tiền phần hàng khách trả lại' : t === 'Đổi hàng' ? 'Số tiền giảm (nếu có)' : 'Số tiền hạ COD';
-      $('#adjSum', m).innerHTML = tot < 0 ? '⚠️ Tiền hạ lớn hơn tiền đơn.' : 'Thực thu: ' + adjLine({ from: from, down: d, up: u }) + (tot !== from ? '<br><small>Doanh số đơn này tính theo ' + money(tot) + '.</small>' : '');
+      $('#adjSw', m).hidden = !sw; $('#adjTrkL', m).hidden = t === 'Hạ COD';
+      $('#adjTrkL span', m).innerHTML = sw ? 'Mã vận đơn mới <small class="muted">(đơn giao hàng đổi)</small>' : 'Mã vận đơn hàng trả về <small class="muted">(nếu có)</small>';
+      $('#adjDownL span', m).textContent = t === 'Ký 1 phần' ? 'Tiền phần hàng khách trả lại' : sw ? 'Giá trị hàng cũ khách trả lại' : 'Số tiền hạ COD';
+      $('#adjUpL span', m).textContent = sw ? 'Tiền thu thêm (COD mã mới)' : 'Số tiền thu thêm';
+      $('#adjSum', m).innerHTML = tot < 0 ? '⚠️ Tiền hạ lớn hơn tiền đơn.' : 'Thực thu: ' + adjLine(A) + (tot !== from ? '<br><small>Doanh số đơn này tính theo ' + money(tot) + '.</small>' : '') +
+        (sw ? '<br><small>Giá trị hoá đơn mới (kế toán) = hàng cũ trả lại + thu thêm = <b>' + money(adjNewBill(A)) + '</b>. Đổi ngang giá thì gõ giá trị hàng cũ, để trống thu thêm.</small>' : '');
     };
     $$('input[name=adjT]', m).forEach(function (r) { r.onchange = upd; }); ['#adjDown', '#adjUp'].forEach(function (k) { $(k, m).oninput = upd; }); upd();
     $('#adjGo', m).onclick = function () {
-      var t = typ(), d = moneyIn($('#adjDown', m).value), u = moneyIn($('#adjUp', m).value), e = $('#adjE', m);
-      if (from - d + u < 0) { e.textContent = 'Tiền hạ lớn hơn tiền đơn.'; return; }
-      if (!d && !u && t !== 'Đổi hàng') { e.textContent = t === 'Ký 1 phần' ? 'Gõ tiền phần hàng khách trả lại.' : 'Gõ số tiền hạ COD.'; return; }
+      var t = typ(), d = moneyIn($('#adjDown', m).value), u = moneyIn($('#adjUp', m).value), e = $('#adjE', m), sw = t === 'Đổi hàng', out = $('#adjOut', m).value.trim();
+      if (adjTot({ t: t, from: from, down: d, up: u }) < 0) { e.textContent = 'Tiền hạ lớn hơn tiền đơn.'; return; }
+      if (!d && !u && !sw) { e.textContent = t === 'Ký 1 phần' ? 'Gõ tiền phần hàng khách trả lại.' : 'Gõ số tiền hạ COD.'; return; }
+      if (sw && !out) { e.textContent = 'Ghi hàng mới gửi khách (sản phẩm, số lượng) để kho gửi đúng.'; $('#adjOut', m).focus(); return; }
       this.disabled = true; this.textContent = 'Đang lưu…';
-      adjSave(o, { kind: t, down: d, up: u, trk: $('#adjTrk', m).value.trim(), day: $('#adjDay', m).value, note: $('#adjNote', m).value.trim() }, this);
+      adjSave(o, { kind: t, down: d, up: u, trk: t === 'Hạ COD' ? '' : $('#adjTrk', m).value.trim(), out: sw ? out : '', back: sw ? $('#adjBack', m).value.trim() : '', day: $('#adjDay', m).value, note: $('#adjNote', m).value.trim() }, this);
     };
   }
   function adjSave(o, p, btn) {
-    api('order_adj', Object.assign({ id: o.id, row: o.row }, p)).then(function () {
-      var from = o.adj ? o.adj.from : o.total;
+    api('order_adj', Object.assign({ id: o.id, row: o.row }, p)).then(function (j) {
+      var from = o.adj ? o.adj.from : o.total, a0 = o.adj || {};
       if (!p.kind) { o.total = from; o.adj = null; }
-      else { o.adj = { t: p.kind, from: from, down: p.down, up: p.up, trk: p.trk, at: p.day ? new Date(p.day + 'T12:00:00+07:00').getTime() : Date.now(), by: S.user.name, note: p.note }; o.total = from - p.down + p.up; }
+      else { o.adj = { t: p.kind, from: from, down: p.down, up: p.up, trk: p.trk, out: p.out, back: p.back, at: p.day ? new Date(p.day + 'T12:00:00+07:00').getTime() : Date.now(), by: S.user.name, note: p.note, kAt: a0.kAt || null, kBy: a0.kBy || '', kNote: a0.kNote || '', kSent: a0.kSent || null, kSentBy: a0.kSentBy || '' }; o.total = adjTot(o.adj); }
+      if (j && j.status) o.status = j.status;
       o.subtotal = Math.max(0, o.total - (o.shipping || 0));
-      toast(p.kind ? 'Đã ghi ' + p.kind + ' ✓ Thực thu ' + money(o.total) : 'Đã bỏ điều chỉnh ✓'); render(); openOrder(o.id, true);
+      toast(p.kind ? 'Đã ghi ' + p.kind + ' ✓ Thực thu ' + money(o.total) + (p.kind === 'Đổi hàng' ? ' · đã báo kho' : '') : 'Đã bỏ điều chỉnh ✓'); render(); openOrder(o.id, true);
     }).catch(function (e) { toast(e.message, true); if (btn) { btn.disabled = false; btn.textContent = '💾 Lưu'; } });
   }
   function setStatus(o, st, done) {
     if (st === o.status) return;
+    if (st === 'Đổi hàng' && (!o.adj || o.adj.t !== 'Đổi hàng')) { render(); openAdj(o, 'Đổi hàng'); return; } // 12/11/2026: đổi hàng ghi qua form để có hàng gửi / lấy về, kho được báo
     var reason = '', old0 = o.status;
     if (st === 'Huỷ' || st === 'Đang chuyển hoàn' || (st === 'Hoàn' && old0 !== 'Đang chuyển hoàn') || st === 'Đổi hàng') { reason = prompt('Lý do ' + st.toLowerCase() + ' đơn ' + o.id + '? (không bắt buộc)', ''); if (reason === null) { render(); var r = $('input[name=oSt][value="' + o.status + '"]'); if (r) r.checked = true; return; } }
     var old = o.status; o.status = st; if (st === 'Đang giao' && !o.shipAt) o.shipAt = Date.now(); navBadges(); render(); if (done) done();
@@ -5796,16 +5815,16 @@
   var KTA_TSV = '';
   function ktAdjHTML(R, p) {
     var L = S.d.orders.filter(function (o) { return o.adj && ((o.time >= R[0] && o.time < R[1]) || (o.adj.at >= R[0] && o.adj.at < R[1])); }).sort(function (a, b) { return a.time - b.time; });
-    var T = { from: 0, down: 0, up: 0 }, n = {}; L.forEach(function (o) { T.from += o.adj.from; T.down += o.adj.down; T.up += o.adj.up; n[o.adj.t] = (n[o.adj.t] || 0) + 1; });
-    var hd = ['STT', 'Ngày lên đơn', 'Mã đơn', 'Khách hàng', 'SĐT (4 số cuối)', 'Mã vận đơn cũ', 'Đơn vị vận chuyển', 'Loại đơn', 'Tổng tiền ban đầu', 'Số tiền hạ', 'Số tiền thu thêm', 'Tổng tiền thực thu', 'Ngày xử lý', 'Mã vận đơn mới', 'Người xử lý', 'Ghi chú', 'Sale'];
+    var T = { from: 0, down: 0, up: 0, tot: 0 }, n = {}; L.forEach(function (o) { T.from += o.adj.from; if (o.adj.t !== 'Đổi hàng') T.down += o.adj.down; T.up += o.adj.up; T.tot += adjTot(o.adj); n[o.adj.t] = (n[o.adj.t] || 0) + 1; });
+    var hd = ['STT', 'Ngày lên đơn', 'Mã đơn', 'Khách hàng', 'SĐT (4 số cuối)', 'Mã vận đơn cũ', 'Đơn vị vận chuyển', 'Loại đơn', 'Tổng tiền ban đầu', 'Số tiền hạ / giá trị hàng cũ trả lại', 'Số tiền thu thêm', 'Tổng tiền thực thu', 'Giá trị hoá đơn mới (đổi hàng)', 'Hàng gửi khách', 'Hàng lấy về', 'Ngày xử lý', 'Mã vận đơn mới', 'Người xử lý', 'Ghi chú', 'Sale'];
     var ph = function (o) { return o.ph || String(o.phone || '').slice(-4); };
-    KTA_TSV = hd.join('\t') + '\n' + L.map(function (o, i) { var a = o.adj; return [i + 1, fDate(o.time), o.id, o.name, ph(o), o.tracking, o.carrier, a.t, a.from, a.down || '', a.up || '', a.from - a.down + a.up, a.at ? fDate(a.at) : '', a.trk, a.by, a.note, o.seller].map(function (v) { return String(v == null ? '' : v).replace(/[\t\n]/g, ' '); }).join('\t'); }).join('\n');
+    KTA_TSV = hd.join('\t') + '\n' + L.map(function (o, i) { var a = o.adj; return [i + 1, fDate(o.time), o.id, o.name, ph(o), o.tracking, o.carrier, a.t, a.from, a.down || '', a.up || '', adjTot(a), adjNewBill(a) == null ? '' : adjNewBill(a), a.out || '', a.back || '', a.at ? fDate(a.at) : '', a.trk, a.by, a.note, o.seller].map(function (v) { return String(v == null ? '' : v).replace(/[\t\n]/g, ' '); }).join('\t'); }).join('\n');
     var h = '<section class="ktv-sec"><h2 class="ktv-h">✏️ Đơn hạ COD / ký 1 phần / đổi hàng <small>' + esc(perLabel(p).toLowerCase()) + ' · sale ghi trong từng đơn, thay file Google Sheet</small></h2>';
     if (!L.length) return h + '<p class="muted small">Chưa có đơn nào. Sale mở đơn → ✏️ Ghi hạ COD / ký 1 phần / đổi hàng.</p></section>';
-    h += '<div class="box"><p style="margin:0 0 8px">' + L.length + ' đơn' + ADJ_T.map(function (x) { return n[x[0]] ? ' · ' + x[1] + ' ' + n[x[0]] : ''; }).join('') + '<br>Tiền ban đầu <b>' + money(T.from) + '</b>' + (T.down ? ' − hạ ' + money(T.down) : '') + (T.up ? ' + thu thêm ' + money(T.up) : '') + ' = thực thu <b>' + money(T.from - T.down + T.up) + '</b></p>' +
-      '<div class="ktk-scroll"><table class="ktk-t"><thead><tr><th>Ngày đơn</th><th>Đơn · Khách</th><th>Loại</th><th class="num">Ban đầu</th><th class="num">Hạ</th><th class="num">Thu thêm</th><th class="num">Thực thu</th><th>Vận đơn cũ → mới</th><th>Xử lý</th></tr></thead><tbody>' +
-      L.map(function (o) { var a = o.adj; return '<tr><td>' + fDate(o.time).slice(0, 5) + '</td><td><b>' + esc(o.id) + '</b><br><small>' + esc(o.name) + ' ' + esc(ph(o)) + (o.seller ? ' · ' + esc(o.seller) : '') + '</small></td><td>' + esc(a.t) + '</td><td class="num">' + money(a.from) + '</td><td class="num">' + (a.down ? '−' + money(a.down) : '–') + '</td><td class="num">' + (a.up ? '+' + money(a.up) : '–') + '</td><td class="num"><b>' + money(a.from - a.down + a.up) + '</b></td><td><small>' + esc([o.carrier, o.tracking].filter(Boolean).join(' ') || '–') + (a.trk ? '<br>→ ' + esc(a.trk) : '') + '</small></td><td><small>' + (a.at ? fDate(a.at).slice(0, 5) : '') + ' ' + esc(a.by) + (a.note ? '<br>“' + esc(a.note) + '”' : '') + '</small></td></tr>'; }).join('') +
-      '</tbody></table></div><p class="small muted">Doanh số và tiền treo ở hãng đã tính theo tiền thực thu. Khi tải file đối soát COD, đơn đã ghi ở đây không bị báo lệch tiền.</p><p><button class="btn" id="ktaCopy">📋 Chép bảng (dán vào Google Sheet)</button></p></div>';
+    h += '<div class="box"><p style="margin:0 0 8px">' + L.length + ' đơn' + ADJ_T.map(function (x) { return n[x[0]] ? ' · ' + x[1] + ' ' + n[x[0]] : ''; }).join('') + '<br>Tiền ban đầu <b>' + money(T.from) + '</b>' + (T.down ? ' − hạ ' + money(T.down) : '') + (T.up ? ' + thu thêm ' + money(T.up) : '') + ' = thực thu <b>' + money(T.tot) + '</b></p>' +
+      '<div class="ktk-scroll"><table class="ktk-t"><thead><tr><th>Ngày đơn</th><th>Đơn · Khách</th><th>Loại</th><th class="num">Ban đầu</th><th class="num">Hạ</th><th class="num">Thu thêm</th><th class="num">Thực thu</th><th class="num">Hoá đơn mới</th><th>Vận đơn cũ → mới</th><th>Xử lý</th></tr></thead><tbody>' +
+      L.map(function (o) { var a = o.adj; return '<tr><td>' + fDate(o.time).slice(0, 5) + '</td><td><b>' + esc(o.id) + '</b><br><small>' + esc(o.name) + ' ' + esc(ph(o)) + (o.seller ? ' · ' + esc(o.seller) : '') + '</small></td><td>' + esc(a.t) + (a.t === 'Đổi hàng' && (a.out || a.back) ? '<br><small>📤 ' + esc(a.out) + (a.back ? '<br>📥 ' + esc(a.back) : '') + '</small>' : '') + '</td><td class="num">' + money(a.from) + '</td><td class="num">' + (a.down ? (a.t === 'Đổi hàng' ? '<small>hàng cũ</small> ' : '−') + money(a.down) : '–') + '</td><td class="num">' + (a.up ? '+' + money(a.up) : '–') + '</td><td class="num"><b>' + money(adjTot(a)) + '</b></td><td class="num">' + (adjNewBill(a) == null ? '–' : money(adjNewBill(a))) + '</td><td><small>' + esc([o.carrier, o.tracking].filter(Boolean).join(' ') || '–') + (a.trk ? '<br>→ ' + esc(a.trk) : '') + '</small></td><td><small>' + (a.at ? fDate(a.at).slice(0, 5) : '') + ' ' + esc(a.by) + (a.note ? '<br>“' + esc(a.note) + '”' : '') + '</small></td></tr>'; }).join('') +
+      '</tbody></table></div><p class="small muted">Đổi hàng: <b>hoá đơn mới = giá trị hàng cũ trả lại + tiền thu thêm</b>; hoá đơn cũ giảm đúng giá trị hàng cũ. Doanh số và tiền treo ở hãng đã tính theo tiền thực thu. Khi tải file đối soát COD, đơn đã ghi ở đây không bị báo lệch tiền.</p><p><button class="btn" id="ktaCopy">📋 Chép bảng (dán vào Google Sheet)</button></p></div>';
     return h + '</section>';
   }
   function ktcHTML(R, p) {
@@ -12476,14 +12495,15 @@
   function khoPartSec(D) {
     var P = (D.part || []).filter(function (o) { return !o.kAt; }), G = (D.part || []).filter(function (o) { return o.kAt; });
     if (!P.length && !G.length) return '';
-    return '<h3 class="kho-h" style="margin-top:14px;font-size:15px">✂️ Hàng trả về của đơn ký nhận 1 phần' + (P.length ? ' <em class="kho-badge">' + P.length + '</em>' : '') + ' <small>khách chỉ nhận 1 phần, phần còn lại hãng trả về</small></h3>' +
+    return '<h3 class="kho-h" style="margin-top:14px;font-size:15px">✂️ Ký nhận 1 phần · 🔁 Đổi hàng' + (P.length ? ' <em class="kho-badge">' + P.length + '</em>' : '') + ' <small>đổi hàng: gửi hàng mới cho khách, rồi nhận hàng cũ về · ký 1 phần: nhận phần hàng khách không lấy</small></h3>' +
       (P.length ? '<div class="kho-rows">' + P.map(khoPartRow).join('') + '</div>' : '<p class="kho-note">✅ Đã nhận hết hàng trả về.</p>') +
       (G.length ? '<details class="kho-mt"><summary class="small">✅ Đã nhận 14 ngày qua (' + G.length + ')</summary><div class="kho-rows">' + G.map(khoPartRow).join('') + '</div></details>' : '');
   }
   function khoPartRow(o) {
-    var done = !!o.kAt;
-    return '<' + (done ? 'div class="kho-row kho-row-s"' : 'button class="kho-row" data-kho="part|' + o.row + '"') + '><span class="kho-row-t"><b>' + esc(o.id) + ' · ' + esc(o.name) + ' ' + esc(o.ph) + '</b><small>Đơn gồm: ' + esc(khoRetItems(o).join(', ')) + '</small><small>' +
-      (o.trk2 ? 'Mã vận đơn trả về: ' + esc(o.trk2) : 'Mã cũ: ' + esc([o.carrier, o.tracking].filter(Boolean).join(' ') || '–')) + (o.snote ? ' · sale ghi: “' + esc(o.snote) + '”' : '') + (o.adjAt ? ' · ghi ' + fDate(o.adjAt).slice(0, 5) : '') +
+    var done = !!o.kAt, sw = o.t === 'Đổi hàng';
+    return '<' + (done ? 'div class="kho-row kho-row-s"' : 'button class="kho-row" data-kho="part|' + o.row + '"') + '><span class="kho-row-t"><b>' + (sw ? '🔁 ' : '✂️ ') + esc(o.id) + ' · ' + esc(o.name) + ' ' + esc(o.ph) + '</b>' +
+      (sw ? '<small>📤 Gửi khách: <b>' + esc(o.out || '–') + '</b>' + (o.kSent ? ' · ✅ đã gửi ' + fDate(o.kSent).slice(0, 5) : ' · <em class="kho-red">chưa gửi</em>') + '</small><small>📥 Lấy về: ' + esc(o.back || 'xem đơn') + '</small>' : '<small>Đơn gồm: ' + esc(khoRetItems(o).join(', ')) + '</small>') + '<small>' +
+      (o.trk2 ? (sw ? 'Mã vận đơn mới: ' : 'Mã vận đơn trả về: ') + esc(o.trk2) : 'Mã cũ: ' + esc([o.carrier, o.tracking].filter(Boolean).join(' ') || '–')) + (o.snote ? ' · sale ghi: “' + esc(o.snote) + '”' : '') + (o.adjAt ? ' · ghi ' + fDate(o.adjAt).slice(0, 5) : '') +
       (done ? '<br>📦 ' + fDate(o.kAt).slice(0, 5) + ' ' + esc(o.kBy) + ': ' + esc(o.kNote) : '') + '</small></span>' + (done ? '' : '<span class="kho-chev" aria-hidden="true">›</span>') + '</' + (done ? 'div' : 'button') + '>';
   }
   function openKhoPart(row) {
@@ -12493,14 +12513,16 @@
     var guess = function (line) { var n = norm(line); return its.filter(function (i) { return n.indexOf(norm(i.name)) >= 0; })[0] || null; };
     var sel = function (v) { return '<select class="khp-it"><option value="">— Chọn hàng —</option>' + its.map(function (i) { return '<option value="' + esc(i.id) + '"' + (v === i.id ? ' selected' : '') + '>' + esc(i.name) + '</option>'; }).join('') + '</select>'; };
     var line = function (v) { return '<div class="khp-l" style="display:flex;gap:8px;margin-bottom:6px">' + sel(v) + '<input type="number" class="khp-q" min="0" step="1" inputmode="numeric" placeholder="SL" style="width:80px"></div>'; };
-    var g0 = guess(khoRetItems(o)[0] || '');
+    var sw = o.t === 'Đổi hàng', sent = sw && !o.kSent;
+    var g0 = guess(sw ? (sent ? o.out : o.back) || khoRetItems(o)[0] || '' : khoRetItems(o)[0] || '');
+    if (sent) return openKhoSwapSend(o, line, g0);
     var body = '<div class="kho-m"><div class="kho-note"><b>' + esc(o.name) + ' ' + esc(o.ph) + '</b><small>Mã đơn ' + esc(o.id) + (o.seller ? ' · sale ' + esc(o.seller) : '') + '</small><small>' + (o.trk2 ? 'Mã vận đơn trả về: <b>' + esc(o.trk2) + '</b>' : 'Mã vận đơn: ' + esc([o.carrier, o.tracking].filter(Boolean).join(' ') || '–')) + '</small>' +
-      '<small>Đơn ban đầu gồm:</small><ul style="margin:4px 0 0;padding-left:18px">' + khoRetItems(o).map(function (l) { return '<li>' + esc(l) + '</li>'; }).join('') + '</ul>' + (o.snote ? '<small>Sale ghi: “' + esc(o.snote) + '”</small>' : '') + '</div>' +
+      '<small>Đơn ban đầu gồm:</small><ul style="margin:4px 0 0;padding-left:18px">' + khoRetItems(o).map(function (l) { return '<li>' + esc(l) + '</li>'; }).join('') + '</ul>' + (sw ? '<small>📥 Sale ghi hàng cũ lấy về: <b>' + esc(o.back || '–') + '</b></small>' : '') + (o.snote ? '<small>Sale ghi: “' + esc(o.snote) + '”</small>' : '') + '</div>' +
       '<div class="f"><span class="kho-lbl">1. Hàng trả về gồm gì? (máy cộng lại vào kho)</span><div id="khpL">' + line(g0 ? g0.id : '') + '</div><button class="btn sm" type="button" id="khpAdd">＋ Thêm loại hàng</button></div>' +
       '<div class="f"><span class="kho-lbl">2. Mở gói kiểm hàng: hàng thế nào?</span><div class="kho-chips"><label class="kho-chip2"><input type="radio" name="khp" value="1" checked><span>✅ Đủ hàng, còn nguyên</span></label><label class="kho-chip2"><input type="radio" name="khp" value="0"><span>⚠️ Thiếu hoặc hỏng</span></label></div></div>' +
       '<div class="f"><span class="kho-lbl" id="khpNL">3. Ghi chú (không bắt buộc)</span><textarea id="khpN" rows="2" placeholder="vd: 1 hộp bị móp"></textarea></div><p class="err" id="khpE"></p>' +
-      '<p class="small muted" style="margin:0">Bấm <b>📦 Đã nhận hàng</b>: máy cộng số hàng trên vào kho và nhắn sale. Đơn vẫn giữ trạng thái (khách đã nhận phần còn lại).</p></div>';
-    var m = modal('✂️ Nhận hàng trả về (ký 1 phần)', body, '<button class="btn pri lg block" id="khpGo">📦 Đã nhận hàng</button>');
+      '<p class="small muted" style="margin:0">Bấm <b>📦 Đã nhận hàng</b>: máy cộng số hàng trên vào kho và nhắn sale. Đơn vẫn giữ trạng thái' + (sw ? ' Đổi hàng.' : ' (khách đã nhận phần còn lại).') + '</p></div>';
+    var m = modal(sw ? '🔁 Nhận hàng cũ về (đổi hàng)' : '✂️ Nhận hàng trả về (ký 1 phần)', body, '<button class="btn pri lg block" id="khpGo">📦 Đã nhận hàng</button>');
     setTimeout(function () { var q = $('.khp-q', m); if (q) q.focus(); }, 60);
     $('#khpAdd', m).onclick = function () { $('#khpL', m).insertAdjacentHTML('beforeend', line('')); };
     $$('[name=khp]', m).forEach(function (r) { r.onchange = function () { var bad = $('[name=khp]:checked', m).value === '0'; $('#khpNL', m).textContent = bad ? '3. Thiếu hoặc hỏng gì? (bắt buộc)' : '3. Ghi chú (không bắt buộc)'; }; });
@@ -12510,6 +12532,21 @@
       if (!back.length) { e.textContent = 'Chọn hàng và gõ số lượng trả về.'; return; }
       if (!ok && !note) { e.textContent = 'Ghi rõ thiếu hoặc hỏng gì.'; $('#khpN', m).focus(); return; }
       khoDo('kho_part', { id: o.id, row: o.row, ok: ok, note: note, back: back }, this, e, 'Đã nhận ✓ Hàng trả về đã cộng lại vào kho');
+    };
+  }
+  /** 🔁 Đổi hàng bước 1 (12/11/2026): kho gửi hàng mới cho khách → chọn hàng + số lượng để trừ khỏi kho, nhắn sale. */
+  function openKhoSwapSend(o, line, g0) {
+    var body = '<div class="kho-m"><div class="kho-note"><b>' + esc(o.name) + ' ' + esc(o.ph) + '</b><small>Mã đơn ' + esc(o.id) + (o.seller ? ' · sale ' + esc(o.seller) : '') + '</small>' +
+      '<small>📤 Sale ghi gửi khách: <b>' + esc(o.out || '–') + '</b></small>' + (o.back ? '<small>📥 Hãng lấy hàng cũ về: ' + esc(o.back) + '</small>' : '') + (o.trk2 ? '<small>Mã vận đơn mới: <b>' + esc(o.trk2) + '</b></small>' : '') + (o.snote ? '<small>Sale ghi: “' + esc(o.snote) + '”</small>' : '') + '</div>' +
+      '<div class="f"><span class="kho-lbl">Hàng mới đã gửi khách (máy trừ khỏi kho)</span><div id="khpL">' + line(g0 ? g0.id : '') + '</div><button class="btn sm" type="button" id="khpAdd">＋ Thêm loại hàng</button></div><p class="err" id="khpE"></p>' +
+      '<p class="small muted" style="margin:0">Hàng cũ khách trả về thì khi nhận được, bấm lại vào đơn này để ghi nhận.</p></div>';
+    var m = modal('🔁 Gửi hàng đổi', body, '<button class="btn pri lg block" id="khpGo">📤 Đã gửi hàng mới</button>');
+    setTimeout(function () { var q = $('.khp-q', m); if (q) q.focus(); }, 60);
+    $('#khpAdd', m).onclick = function () { $('#khpL', m).insertAdjacentHTML('beforeend', line('')); };
+    $('#khpGo', m).onclick = function () {
+      var out = $$('.khp-l', m).map(function (l) { return { item: $('.khp-it', l).value, qty: Number($('.khp-q', l).value) || 0 }; }).filter(function (b) { return b.item && b.qty > 0; });
+      if (!out.length) { $('#khpE', m).textContent = 'Chọn hàng và gõ số lượng đã gửi.'; return; }
+      khoDo('kho_part', { id: o.id, row: o.row, step: 'sent', out: out }, this, $('#khpE', m), 'Đã ghi gửi hàng đổi ✓ Hàng đã trừ khỏi kho');
     };
   }
   function openKhoFind() {
