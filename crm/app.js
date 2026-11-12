@@ -7348,21 +7348,28 @@
   /** Cắt 8 khung hình từ video ngay trên trình duyệt (giây 0, 1,5, 3 rồi cách đều) → ảnh JPEG nhỏ */
   function csxVideoFrames(file) {
     return new Promise(function (ok, no) {
-      var v = document.createElement('video'), url = URL.createObjectURL(file), out = [], T = [];
-      v.muted = true; v.playsInline = true; v.preload = 'auto'; v.src = url;
-      var fail = setTimeout(function () { URL.revokeObjectURL(url); no(new Error('Không đọc được video này, thử file .mp4 khác.')); }, 45e3);
-      v.onerror = function () { clearTimeout(fail); URL.revokeObjectURL(url); no(new Error('Trình duyệt không mở được video này (thử file .mp4).')); };
+      // gắn video ẩn vào trang: Safari đôi khi không mở video chưa nằm trong trang (anh Sơn báo lỗi 12/11/2026)
+      var v = document.createElement('video'), url = URL.createObjectURL(file), out = [], T = [], done = false;
+      v.muted = true; v.defaultMuted = true; v.playsInline = true; v.setAttribute('playsinline', ''); v.setAttribute('muted', ''); v.preload = 'auto';
+      v.style.cssText = 'position:fixed;left:-9999px;top:0;width:2px;height:2px;opacity:0;pointer-events:none';
+      document.body.appendChild(v);
+      var end = function (err) { if (done) return; done = true; clearTimeout(fail); try { v.removeAttribute('src'); v.load(); v.parentNode.removeChild(v); } catch (e) {} URL.revokeObjectURL(url); err ? no(err) : ok(out); };
+      var fail = setTimeout(function () { end(out.length ? null : new Error('Không đọc được hình trong video (quá 60 giây).')); }, 60e3);
+      v.onerror = function () { var me = v.error || {}; end(out.length ? null : new Error('Trình duyệt không mở được hình của video này (mã ' + (me.code || '?') + (me.message ? ': ' + String(me.message).slice(0, 80) : '') + ', ' + Math.round((file.size || 0) / 1e6) + ' MB ' + (file.type || '') + ').')); };
       v.onloadedmetadata = function () {
         var D = v.duration || 0; if (!isFinite(D) || D <= 0) D = 30;
         T = [0.05, 1.5, 3].filter(function (t) { return t < D; }); for (var k = 1; k <= 5; k++) T.push(3 + (D * 0.95 - 3) * k / 5);
-        T = T.filter(function (t) { return t >= 0 && t < D; }).slice(0, 8); next();
+        T = T.filter(function (t) { return t >= 0 && t < D; }).slice(0, 8);
+        var go = function () { next(); }; if (v.readyState >= 2) go(); else { v.onloadeddata = function () { v.onloadeddata = null; go(); }; try { var pp = v.play(); if (pp && pp.then) pp.then(function () { v.pause(); }, function () {}); } catch (e) {} }
       };
-      function next() { if (!T.length) { clearTimeout(fail); URL.revokeObjectURL(url); return ok(out); } v.currentTime = T.shift(); }
+      function next() { if (!T.length) return end(); v.currentTime = T.shift(); }
       v.onseeked = function () {
-        var w = v.videoWidth || 480, hh = v.videoHeight || 852, sc = Math.min(1, 480 / Math.max(w, hh)), c = document.createElement('canvas');
-        c.width = Math.round(w * sc); c.height = Math.round(hh * sc); c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
-        out.push(c.toDataURL('image/jpeg', 0.7)); next();
+        if (done) return;
+        try { var w = v.videoWidth || 480, hh = v.videoHeight || 852, sc = Math.min(1, 480 / Math.max(w, hh)), c = document.createElement('canvas');
+          c.width = Math.round(w * sc); c.height = Math.round(hh * sc); c.getContext('2d').drawImage(v, 0, 0, c.width, c.height); out.push(c.toDataURL('image/jpeg', 0.7)); } catch (e) {}
+        next();
       };
+      v.src = url; v.load();
     });
   }
   /** 🔗 Tải video từ link Google Drive qua máy chủ (/drive-video, score.js) → Blob để cắt hình + tách tiếng ngay trên trình duyệt */
@@ -7446,7 +7453,12 @@
       CS.run = 1; CS.runMsg = ''; render();
       var prep = link && CS.src !== link ? (step('Đang tải video từ Google Drive…'), csxDrive(link).then(function (blob) {
         step('Đang xem hình và nghe lời thoại…');
-        return Promise.all([csxVideoFrames(blob), csxAudio(blob).catch(function () { return ''; })]).then(function (o) { CS.frames = o[0]; CS.audio = o[1]; CS.src = link; });
+        var vErr = null;
+        return Promise.all([csxVideoFrames(blob).catch(function (e) { vErr = e; return []; }), csxAudio(blob).catch(function () { return ''; })]).then(function (o) {
+          if (!o[0].length && !o[1] && txt.length < 20) throw vErr || new Error('Không đọc được hình lẫn tiếng của video này.');
+          if (vErr) toast('⚠️ ' + vErr.message + ' AI sẽ chấm theo lời thoại' + (txt ? ' và caption.' : '.'), true);
+          CS.frames = o[0]; CS.audio = o[1]; CS.src = link;
+        });
       })) : Promise.resolve();
       return prep.then(function () {
         step('AI đang chấm (khoảng 1 phút)…');

@@ -155,9 +155,10 @@ export async function driveVideo(x, d, cors) {
   const r = await fetch('https://drive.usercontent.google.com/download?id=' + id + '&export=download&confirm=t', { redirect: 'follow', headers: { 'User-Agent': 'Mozilla/5.0' } });
   const ct = r.headers.get('content-type') || '', len = Number(r.headers.get('content-length') || 0);
   if (d.probe) { // 🔎 kiểm tra kỹ thuật: Google trả gì cho máy chủ (không trả nội dung video)
-    const rd = r.body.getReader(), c = await rd.read(); try { await rd.cancel(); } catch (e) { }
+    const rd = r.body.getReader(), c = await rd.read(); let total = c.value ? c.value.length : 0, t0 = Date.now(), cut0 = '';
+    if (d.probe === 2) { try { for (;;) { const n = await rd.read(); if (n.done) break; total += n.value.length; } } catch (e) { cut0 = String(e.message).slice(0, 120); } } else { try { await rd.cancel(); } catch (e) { } }
     const h = [...(c.value || new Uint8Array()).slice(0, 16)].map(v => v.toString(16).padStart(2, '0')).join(' ');
-    return new Response(JSON.stringify({ ok: true, st: r.status, ct, len, url: r.url.replace(/\?.*/, ''), head: h, enc: r.headers.get('content-encoding') || '' }), { headers: Object.assign({ 'Content-Type': 'application/json; charset=utf-8' }, cors) });
+    return new Response(JSON.stringify({ ok: true, st: r.status, ct, len, url: r.url.replace(/\?.*/, ''), head: h, enc: r.headers.get('content-encoding') || '', total, ms: Date.now() - t0, cut: cut0 }), { headers: Object.assign({ 'Content-Type': 'application/json; charset=utf-8' }, cors) });
   }
   if (!r.ok || /text\/html/.test(ct)) return err('Không tải được video: file chưa chia sẻ công khai. Mở Drive → bấm Chia sẻ → mục "Quyền truy cập chung" chọn "Bất kỳ ai có đường liên kết" → Xong, rồi bấm Chấm điểm lại.');
   if (len > 500e6) return err('Video lớn quá (trên 500 MB). Xuất bản nhẹ hơn hoặc cắt ngắn rồi thử lại.');
