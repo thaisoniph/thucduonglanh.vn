@@ -121,7 +121,7 @@ export default {
     }
     if (path === '/drive-video' && req.method === 'POST') { // 🧪 chấm bài: tải video từ link Google Drive cho CRM cắt khung hình + tách tiếng (score.js)
       const cors = origin && ORIGINS.test(origin) ? { 'Access-Control-Allow-Origin': origin, 'Vary': 'Origin' } : {};
-      try { const d = JSON.parse(await req.text() || '{}'); if (d.probe) return await driveVideo(x, d, cors); const u = await userByToken(x, d.token); if (!u || !canIns(u)) return json({ ok: false, error: 'Bạn cần đăng nhập CRM (quyền Marketing / Quản lý) để tải video.' }, origin, 403); return await driveVideo(x, d, cors); }
+      try { const d = JSON.parse(await req.text() || '{}'); if (d.probe === 1) return await driveVideo(x, d, cors); const u = await userByToken(x, d.token); if (!u || !canIns(u)) return json({ ok: false, error: 'Bạn cần đăng nhập CRM (quyền Marketing / Quản lý) để tải video.' }, origin, 403); return await driveVideo(x, d, cors); }
       catch (err) { console.error('drive', err && err.stack || err); return json({ ok: false, error: 'Không tải được video: ' + String(err && err.message || err).slice(0, 150) }, origin, 500); }
     }
     if (path === '/mcp' || path.startsWith('/oauth/') || path.startsWith('/.well-known/')) { // 🔌 cổng MCP: ChatGPT / Gemini / Claude hỏi số liệu CRM (mcp.js)
