@@ -84,8 +84,8 @@ async function khoCtx(x, items) {
 
 /* ================================================================ sổ hàng đi theo đơn */
 /** Trạng thái đơn CRM → w / o / b / '' (không giữ hàng). */
-function stOf(s, shipAt) {
-  s = nrm(s);
+function stOf(s, shipAt, trk) {
+  s = nrm(s); if (trk) shipAt = shipAt || 1; // có mã vận đơn = hàng đã giao hãng (12/11/2026: sale hay quên chuyển Đang giao)
   if (/chuyen hoan/.test(s)) return 'o';
   if (/hoan/.test(s)) return 'b';
   if (/huy/.test(s)) return '';
@@ -101,16 +101,16 @@ export async function khoSync(x, force) {
   const C = await khoCtx(x, items), now = Date.now(), cur = await kvJson(x.db, 'kho_cur', null) || {}, LIM = 2000;
   const init = !cur.o, full = force || init || cur.v !== C.v || now - (cur.full || 0) > 3 * DAY; // 3 ngày tính lại 1 lần: dọn đơn đã xoá
   const curO = full ? ((await first(x.db, 'SELECT max(upd) AS m FROM orders')) || {}).m || 0 : 0, curS = full ? ((await first(x.db, 'SELECT max(at) AS m FROM san_orders')) || {}).m || 0 : 0;
-  const ord = full ? await all(x.db, 'SELECT rid, time, items, status, ship_at, upd FROM orders WHERE time > ?', now - WIN)
-    : await all(x.db, 'SELECT rid, time, items, status, ship_at, upd FROM orders WHERE upd > ? ORDER BY upd LIMIT ' + LIM, cur.o || 0);
+  const ord = full ? await all(x.db, 'SELECT rid, time, items, status, ship_at, tracking, upd FROM orders WHERE time > ?', now - WIN)
+    : await all(x.db, 'SELECT rid, time, items, status, ship_at, tracking, upd FROM orders WHERE upd > ? ORDER BY upd LIMIT ' + LIM, cur.o || 0);
   const san = full ? await all(x.db, "SELECT shop, id, day, state, items, at FROM san_orders WHERE day >= ? AND items NOT IN ('', '[]')", fmtDate(now - WIN, 'yyyy-MM-dd'))
     : await all(x.db, 'SELECT shop, id, day, state, items, at FROM san_orders WHERE at > ? ORDER BY at LIMIT ' + LIM, cur.s || 0);
   const want = []; // [src, ref, t0, st, shipAt, {mã sản phẩm kho: số đơn vị}]
   const unitsOf = (lines, C) => { const u = {}; lines.forEach(([t, q]) => { const r = khoResolve(t, C); if (r) r.forEach(([id, n]) => { u[id] = (u[id] || 0) + n * q; }); }); return u; };
   ord.forEach(o => {
     const t0 = Number(o.time) || Number(o.upd) || now; if (!full && t0 < now - WIN) return;
-    const st = stOf(o.status, o.ship_at);
-    want.push(['o', String(o.rid), t0, st, Number(o.ship_at) || 0, st ? unitsOf(khoLines(o.items), C) : {}, /da giao|doi hang|giao thanh cong|da nhan/.test(nrm(o.status))]);
+    const st = stOf(o.status, o.ship_at, String(o.tracking || '').trim());
+    want.push(['o', String(o.rid), t0, st, Number(o.ship_at) || (String(o.tracking || '').trim() ? Math.min(now, t0 + DAY) : 0), st ? unitsOf(khoLines(o.items), C) : {}, /da giao|doi hang|giao thanh cong|da nhan/.test(nrm(o.status))]);
   });
   san.forEach(o => {
     const t0 = dateOrBlank(o.day) || now, st = SAN_ST[o.state] === undefined ? 'o' : SAN_ST[o.state];
@@ -171,10 +171,10 @@ export async function khoStats(x, items) {
     all(x.db, "SELECT * FROM kho_po WHERE status = 'open' ORDER BY eta, id")]);
   return items.map(it => {
     const b = base[it.id], s = { id: it.id, name: it.name, unit: it.unit || 'hộp', lead: it.lead, safety: it.safety, cover: it.cover, min: it.min_qty, supplier: it.supplier || '', note: it.note || '' };
-    let have = b ? b.qty : null, u30 = 0, u14 = 0, other30 = 0;
-    moves.forEach(m => { if (m.item !== it.id) return; const q = Number(m.qty) || 0; if (b && m.at > b.at) have += m.kind === 'in' ? q : -q; if (m.kind === 'out' && !BROKEN.test(m.reason || '') && m.at > t30) { other30 += q; if (m.at > t14) u14 += q; } });
-    outs.forEach(o => { if (o.item !== it.id) return; const q = Number(o.units) || 0; if (b && o.out_at > b.at) have -= q; if (o.st === 'o' && o.out_at > t30) { u30 += q; if (o.out_at > t14) u14 += q; } });
-    backs.forEach(o => { if (o.item === it.id && b && o.back_at > b.at) have += Number(o.units) || 0; });
+    let have = b ? b.qty : null, u30 = 0, u14 = 0, other30 = 0; const since = { sentN: 0, sent: 0, back: 0, inQ: 0, outQ: 0 }; // từ lần đếm gần nhất
+    moves.forEach(m => { if (m.item !== it.id) return; const q = Number(m.qty) || 0; if (b && m.at > b.at) { have += m.kind === 'in' ? q : -q; since[m.kind === 'in' ? 'inQ' : 'outQ'] += q; } if (m.kind === 'out' && !BROKEN.test(m.reason || '') && m.at > t30) { other30 += q; if (m.at > t14) u14 += q; } });
+    outs.forEach(o => { if (o.item !== it.id) return; const q = Number(o.units) || 0; if (b && o.out_at > b.at) { have -= q; since.sentN++; since.sent += q; } if (o.st === 'o' && o.out_at > t30) { u30 += q; if (o.out_at > t14) u14 += q; } });
+    backs.forEach(o => { if (o.item === it.id && b && o.back_at > b.at) { have += Number(o.units) || 0; since.back += Number(o.units) || 0; } });
     u30 += other30;
     const wait = pend.filter(p => p.item === it.id && (p.src !== 's' || p.t0 > now - 7 * DAY)).reduce((a, p) => a + (Number(p.units) || 0), 0);
     const open = pos.filter(p => p.item === it.id).map(p => ({ id: p.id, qty: r1(p.qty), got: r1(p.got), left: r1(Math.max(0, p.qty - (p.got || 0))), eta: p.eta || null, at: p.at, by: p.by_name || '', note: p.note || '', late: !!(p.eta && p.eta < today) }));
@@ -192,7 +192,7 @@ export async function khoStats(x, items) {
     else if (open.length) lv = 'wait';
     else lv = 'ok';
     const target = Math.max(rate * (it.lead + it.safety + it.cover), it.min_qty), sug = position === null ? 0 : Math.max(0, Math.ceil(target - position));
-    return Object.assign(s, { have: have === null ? null : r1(have), wait: r1(wait), avail: avail === null ? null : r1(avail), onOrder: r1(onOrder), rate: Math.round(rate * 100) / 100, sold30: r1(u30), left, lv, lvTxt: LV_TXT[lv], need, act: need, late, eta: eta || null, sug: need ? Math.max(1, sug) : sug, open, countAt: b ? b.at : null, short: need && open.length > 0 });
+    return Object.assign(s, { have: have === null ? null : r1(have), wait: r1(wait), avail: avail === null ? null : r1(avail), onOrder: r1(onOrder), rate: Math.round(rate * 100) / 100, sold30: r1(u30), left, lv, lvTxt: LV_TXT[lv], need, act: need, late, eta: eta || null, sug: need ? Math.max(1, sug) : sug, open, countAt: b ? b.at : null, countQty: b ? r1(b.qty) : null, since: b ? { sentN: since.sentN, sent: r1(since.sent), back: r1(since.back), inQ: r1(since.inQ), outQ: r1(since.outQ) } : null, short: need && open.length > 0 });
   });
 }
 
@@ -264,6 +264,7 @@ export async function khoMorning(x) {
   if (risk.length) parts.push('<b>🟠 Có thể hết trước khi hàng về</b>\n' + risk.map(s => khoLine(s)).join('\n'));
   if (nob.length) parts.push('⚪ ' + nob.length + ' sản phẩm chưa đếm: ' + nob.map(s => esc(s.name)).join(', ') + '. Đếm rồi bấm 🧮 Đếm kho.');
   if (unm) parts.push('❓ ' + unm + ' tên hàng trong đơn 14 ngày qua máy chưa biết là sản phẩm nào → vào Kho, bấm vào dòng ❓ để chỉ cho máy.');
+  try { const cut = Number(((await first(x.db, "SELECT max(at) AS m FROM kho_moves WHERE kind = 'count'")) || {}).m) || 0, ws = await first(x.db, "SELECT count(*) AS n FROM orders WHERE status IN ('Mới', 'Đã xác nhận') AND time > ?", Math.max(cut, now - 45 * DAY)); if (ws && ws.n) parts.push('🚚 <b>' + ws.n + ' đơn chờ gửi.</b> Gói hàng giao hãng xong thì vào Kho → 🚚 Đơn chờ gửi, tích đơn, bấm ✅ Đã gửi. Không bấm thì máy không trừ kho.'); } catch (e) { } // 12/11/2026
   try { const rt = await first(x.db, "SELECT count(*) AS n FROM orders WHERE status = 'Đang chuyển hoàn'"); if (rt && rt.n) parts.push('↩ <b>' + rt.n + ' đơn hoàn đang trên đường về kho.</b> Gói hàng hoàn về: mở hàng kiểm đủ chưa, rồi vào Kho → ↩ Hàng hoàn bấm 📦 Đã nhận hàng.'); } catch (e) { }
   if (wd === cday) parts.push('🧮 <b>Hôm nay ' + (cday === 0 ? 'chủ nhật' : 'thứ ' + (cday + 1)) + ': đếm kho cuối tuần.</b> Đếm từng sản phẩm, vào CRM → Kho bấm 🧮 Đếm kho. Máy tự sửa phần lệch.');
   if (parts.length) await toStaff(x, P, '📦 <b>Kho sáng ' + dm(now) + '</b>\n\n' + parts.join('\n\n') + '\n\n👉 ' + KHO_URL);
@@ -297,6 +298,7 @@ async function khoLoad(x, u, d) {
   const [chk, pos, moves, cfg, P, C] = await Promise.all([khoCheck(x, {}), all(x.db, "SELECT * FROM kho_po WHERE status = 'open' OR at > ? ORDER BY id DESC LIMIT 120", now - 120 * DAY),
     all(x.db, 'SELECT * FROM kho_moves WHERE at > ? ORDER BY at DESC, id DESC LIMIT 200', now - 90 * DAY), kvJson(x.db, 'kho_cfg', {}), khoPeople(x), khoCtx(x, items)]);
   const names = await khoNames(x, C, 60), map = await kvJson(x.db, 'kho_map', {}) || {};
+  const ship = await all(x.db, "SELECT " + RET_COLS + " FROM orders WHERE status IN ('Mới', 'Đã xác nhận') AND time > ? ORDER BY time LIMIT 300", now - 45 * DAY); // 🚚 đơn chờ gửi (12/11/2026)
   const [ret, got, part] = await Promise.all([all(x.db, "SELECT " + RET_COLS + " FROM orders WHERE status = 'Đang chuyển hoàn' ORDER BY time LIMIT 300"),
     all(x.db, "SELECT " + RET_COLS + " FROM orders WHERE status = 'Hoàn' AND upd > ? ORDER BY upd DESC LIMIT 60", now - 14 * DAY), // ↩ hàng hoàn đang về / vừa về
     all(x.db, "SELECT " + RET_COLS + ", adj_type, adj_out, adj_back, adj_kho_sent, adj_kho_sent_by, adj_trk, adj_note, adj_at, adj_kho_at, adj_kho_by, adj_kho_note FROM orders WHERE adj_type IN ('Ký 1 phần', 'Đổi hàng') AND (adj_kho_at IS NULL AND time > ? OR adj_kho_at > ?) ORDER BY time LIMIT 200", now - 120 * DAY, now - 14 * DAY)]); // ✂️ hàng trả về của đơn ký 1 phần (11/11/2026)
@@ -306,7 +308,7 @@ async function khoLoad(x, u, d) {
     pos: pos.map(p => ({ id: p.id, item: p.item, qty: r1(p.qty), got: r1(p.got), eta: p.eta, note: p.note, by: p.by_name, at: p.at, status: p.status, doneAt: p.done_at })),
     moves: moves.map(m => ({ id: m.id, item: m.item, kind: m.kind, qty: r1(m.qty), sys: m.sys === null ? null : r1(m.sys), reason: m.reason, note: m.note, po: m.po, by: m.by_name, at: m.at, made: m.made || m.at })),
     names, manual: Object.keys(map).length, cfg: Object.assign({ countDay: 5 }, cfg || {}), reasons: KHO_REASONS, alert: chk.A,
-    staff: P.staff.map(s => ({ name: s.name, tg: !!s.tg })), syncErr, ret: ret.map(khoRetOut), got: got.map(khoRetOut), part: part.map(o => Object.assign(khoRetOut(o), { t: o.adj_type, out: o.adj_out || '', back: o.adj_back || '', kSent: o.adj_kho_sent || null, kSentBy: o.adj_kho_sent_by || '', trk2: o.adj_trk || '', snote: o.adj_note || '', adjAt: o.adj_at || null, kAt: o.adj_kho_at || null, kBy: o.adj_kho_by || '', kNote: o.adj_kho_note || '' })) };
+    staff: P.staff.map(s => ({ name: s.name, tg: !!s.tg })), syncErr, ship: ship.map(khoRetOut), ret: ret.map(khoRetOut), got: got.map(khoRetOut), part: part.map(o => Object.assign(khoRetOut(o), { t: o.adj_type, out: o.adj_out || '', back: o.adj_back || '', kSent: o.adj_kho_sent || null, kSentBy: o.adj_kho_sent_by || '', trk2: o.adj_trk || '', snote: o.adj_note || '', adjAt: o.adj_at || null, kAt: o.adj_kho_at || null, kBy: o.adj_kho_by || '', kNote: o.adj_kho_note || '' })) };
 }
 /** ↩ Đơn hoàn cho tab Kho (09/11/2026): chỉ phần kho cần để khớp gói hàng (mã đơn, tên, 4 số cuối SĐT, hàng, hãng + mã vận đơn), không gửi địa chỉ / tiền. */
 export function khoRetOut(o) {

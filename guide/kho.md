@@ -9,6 +9,8 @@ description: Xem hàng còn bao nhiêu, nhận tin khi sắp hết, ghi đã đ�
 Trang này dành cho **người lo kho**. Đọc khoảng 5 phút là làm được.
 
 > **Mỗi ngày chỉ cần:** mở **📦 Kho**, làm hết các thẻ ở mục **👉 Việc cần làm hôm nay**. Làm hết thẻ là xong việc kho hôm đó.
+>
+> **Quan trọng nhất:** gửi hàng cho hãng xong thì bấm **✅ Đã gửi** ở mục **🚚 Đơn chờ gửi**. Không bấm thì máy **không trừ kho**, số còn sẽ đứng yên.
 
 **Cách xem hình:** ô khoanh đỏ có số **1, 2, 3** trên hình chính là **bước 1, 2, 3** viết ngay bên dưới hình.
 
@@ -73,6 +75,25 @@ Màu ở đầu mỗi dòng:
 | ⚪ | Chưa đếm |
 
 ## Việc hằng ngày
+
+### 🚚 Khi gửi hàng đi (làm mỗi ngày)
+
+Đơn sale lên trên CRM nằm ở mục **🚚 Đơn chờ gửi** (gần đầu tab Kho). Gói hàng, giao cho hãng vận chuyển xong thì:
+
+![Đơn chờ gửi: tích đơn đã gửi (1), bấm Đã gửi (2)](/huong-dan/img/kho-gui-hang.webp)
+
+1. Tích ✓ vào đơn vừa gửi (tích được nhiều đơn 1 lần).
+2. Bấm **✅ Đã gửi … đơn** ở dưới.
+
+Hộp xác nhận hiện ra:
+
+![Xác nhận đã gửi: hãng vận chuyển (1), mã vận đơn (2), Xác nhận (3)](/huong-dan/img/kho-gui-hang-2.webp)
+
+1. Bấm vào hãng vận chuyển (không bắt buộc).
+2. Có **mã vận đơn** (in trên phiếu gửi) thì gõ vào để sale tra hành trình. Không có thì để trống.
+3. Bấm **✅ Xác nhận đã gửi**. Đơn chuyển sang **Đang giao**, máy **trừ kho ngay**.
+
+Đơn đặt **trước lần đếm kho** gần nhất mà vẫn ghi "chờ gửi" nằm riêng trong dòng **📦 … đơn đặt trước lần đếm kho**. Hàng các đơn này thường đã đi trước lúc đếm, nên bấm **✅ Đã gửi** chỉ để dọn danh sách, máy **không trừ kho thêm**. Dùng nút **☑️ Chọn hết** cho nhanh.
 
 ### 🛒 Khi máy báo sắp hết
 
@@ -204,7 +225,7 @@ Bấm vào 1 dòng ở **Hàng trong kho**:
 
 ## Hỏi nhanh
 
-**Máy trừ kho lúc nào?** Khi đơn chuyển sang **Đang giao**. Đơn **Mới / Đã xác nhận** là "đang chờ gửi", chưa trừ. Đơn **Huỷ** không trừ. Đơn **Đang chuyển hoàn** vẫn tính là đã đi, tới khi kho bấm **📦 Đã nhận hàng** mới cộng lại.
+**Máy trừ kho lúc nào?** Khi đơn chuyển sang **Đang giao**: kho bấm **✅ Đã gửi** ở mục 🚚 Đơn chờ gửi, hoặc sale gõ mã vận đơn trên đơn. Đơn **Mới / Đã xác nhận** là "đang chờ gửi", chưa trừ. Đơn **Huỷ** không trừ. Đơn **Đang chuyển hoàn** vẫn tính là đã đi, tới khi kho bấm **📦 Đã nhận hàng** mới cộng lại.
 
 **Đơn sàn có trừ không?** Có, khi người phụ trách sàn tải **file đơn hàng** của sàn lên tab Sàn. Đếm kho cuối tuần sẽ sửa phần còn thiếu.
 

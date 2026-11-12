@@ -58,6 +58,7 @@
 "kho#lan-dau-dung-lam-1-lan": "bắt đầu dùng kho, thêm sản phẩm kho, lần đầu, cài kho, số ngày giao hàng"
 "kho#man-hinh-kho-co-gi": "màu kho, màu đỏ, màu cam, việc cần làm kho, số còn"
 "kho#xem-1-san-pham": "chi tiết sản phẩm, đủ bán bao lâu, còn bao nhiêu hàng"
+"kho#khi-gui-hang-di-lam-moi-ngay": "gửi hàng, đã gửi, đơn chờ gửi, số kho không đổi, không trừ kho, kho không giảm, đóng gói, giao hãng, mã vận đơn"
 "kho#viec-hang-ngay": "nhập hàng, hàng về, nhập kho, xuất kho, xuất hàng, lấy hàng ra, tôi đã đặt hàng, quà tặng, hàng hỏng, hàng mẫu, đặt hàng nhà cung cấp, đặt ncc, đơn hoàn về kho, hết hàng, sắp hết"
 "kho#dem-kho-cuoi-tuan-thu-6": "kiểm kho, đếm hàng, đếm kho, lệch kho, số kho sai"
 "kho#ten-hang-may-chua-hieu": "tên hàng lạ, ghép tên, ghép tên hàng, sản phẩm không nhận ra, máy chưa hiểu"
