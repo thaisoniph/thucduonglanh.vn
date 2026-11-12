@@ -347,7 +347,7 @@
     if (!CFG.endpoint) return Promise.reject(new Error('Chưa cấu hình máy chủ.'));
     tries = tries || 0; var t0 = Date.now();
     // chờ tối đa 30 giây (việc nặng của quản trị 90 giây) rồi báo, không để vòng quay mãi (16/10/2026)
-    var ac = typeof AbortController === 'function' ? new AbortController() : null, wait = action === 'ai_ask' ? 180e3 : /^(spf_write|ins_(video|import|find|offer|big|img|kw)|zb_(regen|plan_make|plan_redo))$/.test(action) ? 180e3 : API_HEAVY.test(action) ? 90e3 : 30e3, tm = ac && setTimeout(function () { ac.abort(); }, wait);
+    var ac = typeof AbortController === 'function' ? new AbortController() : null, wait = action === 'ai_ask' ? 180e3 : /^(spf_write|ins_(video|import|find|offer|big|img|kw|score)|zb_(regen|plan_make|plan_redo))$/.test(action) ? 180e3 : API_HEAVY.test(action) ? 90e3 : 30e3, tm = ac && setTimeout(function () { ac.abort(); }, wait);
     return fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), signal: ac ? ac.signal : undefined })
       .then(function (r) { clearTimeout(tm); return r.text().then(function (t) { return { t: t, st: r.status }; }); }, function (er) { clearTimeout(tm); var slow = er && er.name === 'AbortError', e0 = new Error(slow ? 'Máy chủ trả lời chậm quá ' + (wait / 1000) + ' giây. Bạn kiểm tra mạng rồi bấm lại nhé.' : 'Mất kết nối mạng. Bạn thử lại nhé.'); e0.net = true; throw e0; })
       .then(function (x) {
@@ -7204,7 +7204,7 @@
   }
   /** 1 dòng đầu mỗi thẻ: 📌 dùng để · 👉 nên làm (12/11/2026) */
   function inTabi(dung, lam, note) { return '<div class="inx-tabi"><p>📌 <b>Dùng để:</b> ' + dung + '</p><p>👉 <b>Nên làm:</b> ' + lam + '</p>' + (note ? '<p class="muted">' + note + '</p>' : '') + '</div>'; }
-  var IN_TABS = [['tong', '📊 Tổng quan'], ['tao', '✍️ Tạo nội dung'], ['nhom', '👥 Nhóm khách'], ['cai', '⚙️ Cài đặt']];
+  var IN_TABS = [['tong', '📊 Tổng quan'], ['tao', '✍️ Tạo nội dung'], ['cham', '🧪 Chấm bài'], ['nhom', '👥 Nhóm khách'], ['cai', '⚙️ Cài đặt']];
   function viewIns() {
     if (!IN.d && !IN.err && !IN.busy) setTimeout(inFetch, 0);
     if (!IN.tab) { try { IN.tab = localStorage.getItem('inTab') || 'tong'; } catch (e) { IN.tab = 'tong'; } }
@@ -7268,6 +7268,8 @@
       }).join('');
       h += inProdHtml(bank);
       if (ed && j.custom) h += '<div class="lq-btns"><button class="btn ghost" data-in="reset">↩️ Dùng lại bản mặc định</button></div>';
+    } else if (tab === 'cham') {
+      h += csxHtml(j);
     } else if (tab === 'cai') {
       h += inTabi('Những điều trợ lý đọc thêm trước khi viết: dịp sắp tới, chuyện đang nóng, từ khoá bài web, phương pháp.', 'Thường chỉ cần ghi <b>🔥 Chuyện đang nóng</b> khi có. Còn lại để nguyên.');
       h += inEvHtml(j, ed) + inKwHtml(j, ed) + inSkillsHtml(j, ed);
@@ -7276,6 +7278,147 @@
     }
     return h;
   }
+  /* ---------------------------------------------------------------- 🧪 Chấm bài trước khi đăng (12/11/2026, api score.js: ins_sview / ins_score / ins_sres / ins_sdel)
+   * Dán bài / kịch bản / lời thoại + tối đa 8 khung hình video (cắt ở trình duyệt) hoặc 4 ảnh → AI chấm 9 tiêu chí /100 → ghi kết quả thật → so điểm với kết quả. */
+  var CS = { d: null, busy: 0, err: '', f: {}, frames: [], fname: '', parent: 0, open: 0, run: 0 };
+  var CSX_V = { ok: ['🟢', 'Đăng được'], sua: ['🟡', 'Sửa nhẹ rồi đăng'], lai: ['🔴', 'Nên làm lại'], luat: ['⛔', 'Sửa lỗi luật trước khi đăng'] };
+  var CSX_CONV = { cao: '📈 Khả năng ra đơn / số: cao', vua: '➖ Khả năng ra đơn / số: vừa', thap: '📉 Khả năng ra đơn / số: thấp' };
+  function csxFetch() {
+    CS.busy = 1; CS.err = '';
+    api('ins_sview', {}).then(function (j) { CS.d = j; }, function (e) { CS.err = /Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message; })
+      .then(function () { CS.busy = 0; if (route().view === 'noi-dung') render(); });
+  }
+  function csxLv(s) { return s >= 80 ? 'ok' : s >= 60 ? 'sua' : 'lai'; }
+  function csxRes(r) {
+    var L = [];
+    if (r.r_spend) L.push('💰 ' + moneyShort(r.r_spend));
+    if (r.r_leads) L.push('📞 ' + r.r_leads + ' số' + (r.r_spend ? ' · ' + moneyShort(Math.round(r.r_spend / r.r_leads)) + '/số' : ''));
+    if (r.r_eng) L.push('👍 ' + r.r_eng + ' tương tác');
+    if (r.r_orders) L.push('🛒 ' + r.r_orders + ' đơn' + (r.r_rev ? ' · ' + moneyShort(r.r_rev) : ''));
+    return L.join(' · ');
+  }
+  function csxHtml(j) {
+    var h = inTabi('Chấm bài các bạn làm <b>trước khi đăng hoặc chạy quảng cáo</b>: có thu hút không, có chạm đúng nỗi lòng khách không, có dẫn tới đơn không.', 'Dán bài (hoặc lời thoại video), chọn kênh, bấm <b>🧪 Chấm điểm</b>. Sau khi đăng vài ngày, bấm <b>📈 Ghi kết quả thật</b> để biết điểm chấm có đúng không. <a href="/huong-dan/cham-bai/" target="_blank" rel="noopener">Xem hướng dẫn có hình</a>');
+    if (!CS.d) { if (!CS.busy && !CS.err) setTimeout(csxFetch, 0); return h + '<div class="box"><p class="muted">' + (CS.err ? '⚠️ ' + esc(CS.err) + ' <button class="link" data-csx="reload">Thử lại</button>' : '⏳ Đang tải…') + '</p></div>'; }
+    var d = CS.d, f = CS.f, bank = (j.bank || []).filter(function (g) { return g.on; }), sel = function (id, o, v) { return '<select id="' + id + '">' + o.map(function (x) { return '<option value="' + esc(x[0]) + '"' + (String(v || '') === x[0] ? ' selected' : '') + '>' + esc(x[1]) + '</option>'; }).join('') + '</select>'; };
+    var kind = f.csxK || 'bai', authors = (d.authors || []).map(function (a) { return '<option value="' + esc(a.name) + '">'; }).join('');
+    h += '<div class="box csx-form" id="csxForm"><div class="zb-ph"><b>🧪 Chấm bài trước khi đăng</b>' + (CS.parent ? ' <span class="small muted">· đang chấm lại bản đã sửa</span>' : '') + '</div>' +
+      '<div class="inx-grid"><label class="f"><span>Người làm bài</span><input id="csxA" list="csxAl" value="' + esc(f.csxA || '') + '" placeholder="Tên bạn làm bài"><datalist id="csxAl">' + authors + '</datalist></label>' +
+      '<label class="f"><span>Định đăng ở đâu</span>' + sel('csxC', Object.keys(d.ch).map(function (k) { return [k, d.ch[k]]; }), f.csxC || 'qc') + '</label>' +
+      '<label class="f"><span>Loại</span>' + sel('csxK', Object.keys(d.kinds).map(function (k) { return [k, d.kinds[k]]; }), kind) + '</label>' +
+      '<label class="f"><span>Nhóm khách nhắm tới</span>' + sel('csxG', [['', '🔄 Để AI tự nhận ra']].concat(bank.map(function (g) { return [g.id, g.name]; })), f.csxG) + '</label>' +
+      '<label class="f"><span>Loại bài</span>' + sel('csxF', [['', 'Để AI tự nhận ra'], ['TOFU', IN_FN.TOFU], ['MOFU', IN_FN.MOFU], ['BOFU', IN_FN.BOFU]], f.csxF) + '</label></div>' +
+      '<label class="f"><span>' + (kind === 'video' ? 'Kịch bản hoặc lời thoại video' : kind === 'anh' ? 'Chữ trên ảnh + caption đăng kèm' : 'Nội dung bài') + ' <small class="muted">dán nguyên văn, gồm cả tiêu đề, caption</small></span><textarea id="csxT" rows="8" placeholder="' + (kind === 'video' ? 'Dán lời thoại từng cảnh. Có file video thì thêm ở nút bên dưới để AI xem hình mở đầu.' : 'Dán bài các bạn viết vào đây…') + '">' + esc(f.csxT || '') + '</textarea></label>' +
+      '<div class="csx-media"><button type="button" class="btn sm" data-csx="pick">' + (kind === 'video' ? '🎬 Thêm file video' : '🖼 Thêm ảnh (tối đa 4)') + '</button> <span class="small muted">' + (kind === 'video' ? 'CRM cắt 8 khung hình để AI xem (không tải cả video lên).' : 'Không bắt buộc.') + '</span><input type="file" id="csxFile" hidden accept="' + (kind === 'video' ? 'video/*' : 'image/*') + '"' + (kind === 'video' ? '' : ' multiple') + '>' +
+      (CS.frames.length ? '<div class="csx-thumbs">' + CS.frames.map(function (s) { return '<img src="' + s + '" alt="">'; }).join('') + '<button type="button" class="link" data-csx="clear">✕ Bỏ</button></div>' : '') + '</div>' +
+      '<label class="f"><span>Ghi chú <small class="muted">không bắt buộc: mục tiêu, sản phẩm, ưu đãi đang chạy</small></span><input id="csxN" value="' + esc(f.csxN || '') + '" placeholder="Vd: quảng cáo tin nhắn cho DILVANG, tặng 1 hộp khi mua 3"></label>' +
+      (d.aiOn ? '<div class="lq-btns"><button class="btn pri" data-csx="go"' + (CS.run ? ' disabled' : '') + '>' + (CS.run ? '⏳ AI đang chấm (khoảng 1 phút)…' : '🧪 Chấm điểm') + '</button>' + (CS.parent || f.csxT ? '<button class="btn ghost" data-csx="new">Bài mới</button>' : '') + '</div>' : '<p class="small">⚠️ Máy chủ chưa có khoá AI.</p>') +
+      '<details class="small csx-how"><summary>ⓘ AI chấm theo 9 tiêu chí nào?</summary><ul>' + (d.crit || []).map(function (c) { return '<li><b>' + esc(c.name) + ' (' + c.max + ' điểm):</b> ' + esc(c.tip) + '</li>'; }).join('') + '</ul><p>🟢 80 điểm trở lên: đăng được · 🟡 60–79: sửa nhẹ · 🔴 dưới 60: nên làm lại · ⛔ có lỗi luật quảng cáo thực phẩm thì phải sửa trước, dù điểm cao.</p></details></div>';
+    // 📏 điểm có khớp kết quả thật không + điểm theo người
+    var cb = d.calib || [], nRes = cb.reduce(function (n, b) { return n + b.n; }, 0);
+    h += '<div class="inx-cards"><div class="box"><b>📏 Điểm AI có khớp kết quả thật không?</b>' + (nRes ? '<table class="csx-tb small"><tr><th>Điểm</th><th>Bài</th><th>Giá 1 số</th><th>Tương tác TB</th><th>Đơn</th></tr>' + cb.map(function (b) { return '<tr><td>' + b.l + '</td><td>' + b.n + '</td><td>' + (b.cpl ? moneyShort(b.cpl) : '–') + '</td><td>' + (b.n ? b.eng : '–') + '</td><td>' + b.orders + '</td></tr>'; }).join('') + '</table><p class="small muted">Bài điểm cao phải có giá 1 số rẻ hơn, nhiều tương tác hơn. Nếu ngược lại thì báo anh Sơn để chỉnh cách chấm.</p>' : '<p class="small muted">Chưa có bài nào ghi kết quả thật. Đăng xong vài ngày, mở bài đã chấm → bấm <b>📈 Ghi kết quả thật</b>.</p>') + '</div>' +
+      ((d.authors || []).length ? '<div class="box"><b>👤 Điểm trung bình theo người làm</b> <span class="small muted">60 ngày, lần chấm đầu của mỗi bài</span><table class="csx-tb small"><tr><th>Người làm</th><th>Bài</th><th>Điểm TB</th><th>🟢</th></tr>' + d.authors.map(function (a) { return '<tr><td>' + esc(a.name) + '</td><td>' + a.n + '</td><td><b class="csx-c-' + csxLv(a.avg) + '">' + a.avg + '</b></td><td>' + a.ok + '</td></tr>'; }).join('') + '</table></div>' : '') + '</div>';
+    var it = d.items || [];
+    if (it.length) h += '<h2 class="zb-h">📂 Bài đã chấm (' + it.length + ')</h2><div class="inx-list">' + it.map(function (r, i) { return csxItem(r, CS.open ? CS.open === r.id : i === 0); }).join('') + '</div>';
+    return h;
+  }
+  function csxItem(r, open) {
+    var R = r.res || {}, V = CSX_V[r.v] || CSX_V.lai, C = R.crit || {}, crit = (CS.d.crit || []);
+    var body = '<p class="csx-sum">' + esc(R.sum || '') + '</p>' +
+      '<p class="small"><b>' + (CSX_CONV[R.conv] || '') + '</b>' + (R.conv_why ? ' · ' + esc(R.conv_why) : '') + '</p>' +
+      (r.gn || r.t ? '<p class="small">🎯 <b>' + esc(r.gn || '') + '</b>' + (r.t ? ' · ⚡ ' + esc(r.t) : '') + '</p>' : '') +
+      ((R.law && R.law.issues || []).length ? '<div class="csx-law"><b>⛔ Lỗi luật quảng cáo thực phẩm, sửa trước khi đăng:</b><ul>' + R.law.issues.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ul></div>' : '') +
+      ((R.risk || []).length ? '<p class="small">⚠️ Cụm chữ dễ phạm luật, đọc lại: ' + esc(R.risk.join(', ')) + '</p>' : '') +
+      ((R.top3 || []).length ? '<div class="csx-top"><b>👉 3 việc sửa quan trọng nhất</b><ol>' + R.top3.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ol></div>' : '') +
+      '<div class="csx-crit">' + crit.map(function (c) { var x = C[c.k] || { s: 0 }, p = Math.round(x.s / c.max * 100);
+        return '<details class="csx-cr"><summary><span class="csx-cn">' + esc(c.name) + '</span><span class="csx-bar"><i class="csx-b-' + csxLv(p) + '" style="width:' + p + '%"></i></span><b>' + x.s + '/' + c.max + '</b></summary>' +
+          (x.why ? '<p class="small"><b>Vì sao:</b> ' + esc(x.why) + '</p>' : '') + (x.fix ? '<p class="small"><b>Sửa:</b> ' + esc(x.fix) + '</p>' : '') + '</details>'; }).join('') + '</div>' +
+      ((R.good || []).length ? '<p class="small"><b>👍 Nên giữ:</b> ' + R.good.map(esc).join(' · ') + '</p>' : '') +
+      ((R.hooks || []).length ? '<p class="small"><b>🪝 Câu mở khác để thử:</b></p><ul class="small">' + R.hooks.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ul>' : '') +
+      ((R.style || []).length ? '<p class="small">✍️ Văn còn giống AI: ' + esc(R.style.join(', ')) + '</p>' : '') +
+      (R.rewrite ? '<details class="csx-rw"><summary><b>✨ Bản AI sửa giúp</b> <span class="small muted">giữ ý của bạn, sửa đúng chỗ đã chỉ</span></summary><div class="spf-txt">' + esc(R.rewrite) + '</div></details>' : '') +
+      '<details class="small"><summary>📄 Bài gốc đã gửi chấm' + (r.nimg ? ' (+' + r.nimg + ' hình)' : '') + '</summary><div class="spf-txt">' + esc(r.text || '') + '</div></details>' +
+      (r.r_at ? '<p class="small csx-real">📈 <b>Kết quả thật:</b> ' + esc(csxRes(r)) + (r.r_note ? ' · ' + esc(r.r_note) : '') + ' <span class="muted">(' + esc(r.r_by) + ' ghi ' + fDate(r.r_at) + ')</span></p>' : '') +
+      '<div class="lq-btns">' + (R.rewrite ? '<button class="btn sm pri" data-csx="cp|' + r.id + '">📋 Copy bản sửa</button>' : '') + '<button class="btn sm" data-csx="redo|' + r.id + '">🔁 Sửa rồi chấm lại</button><button class="btn sm" data-csx="res|' + r.id + '">📈 ' + (r.r_at ? 'Sửa kết quả thật' : 'Ghi kết quả thật') + '</button><button class="btn sm ghost" data-csx="del|' + r.id + '">🗑 Xoá</button></div>';
+    return '<details class="box csx-it"' + (open ? ' open' : '') + '><summary>' + (r.thumb ? '<img class="csx-th" src="' + r.thumb + '" alt="">' : '') + '<span class="csx-score csx-c-' + (r.v === 'luat' ? 'lai' : csxLv(r.score)) + '">' + r.score + '</span><span class="csx-st"><b>' + esc(r.title) + '</b><br><span class="small">' + V[0] + ' ' + V[1] + '</span><br><span class="small muted">' +
+      esc((CS.d.ch || {})[r.ch] || r.ch) + ' · ' + esc(r.author || r.by_name) + ' · ' + fDateTime(r.at) + (r.parent ? ' · 🔁 chấm lại' : '') + (r.r_at ? ' · 📈 ' + esc(csxRes(r)) : '') + '</span></span></summary>' + body + '</details>';
+  }
+  /** Cắt 8 khung hình từ video ngay trên trình duyệt (giây 0, 1,5, 3 rồi cách đều) → ảnh JPEG nhỏ */
+  function csxVideoFrames(file) {
+    return new Promise(function (ok, no) {
+      var v = document.createElement('video'), url = URL.createObjectURL(file), out = [], T = [];
+      v.muted = true; v.playsInline = true; v.preload = 'auto'; v.src = url;
+      var fail = setTimeout(function () { URL.revokeObjectURL(url); no(new Error('Không đọc được video này, thử file .mp4 khác.')); }, 45e3);
+      v.onerror = function () { clearTimeout(fail); URL.revokeObjectURL(url); no(new Error('Trình duyệt không mở được video này (thử file .mp4).')); };
+      v.onloadedmetadata = function () {
+        var D = v.duration || 0; if (!isFinite(D) || D <= 0) D = 30;
+        T = [0.05, 1.5, 3].filter(function (t) { return t < D; }); for (var k = 1; k <= 5; k++) T.push(3 + (D * 0.95 - 3) * k / 5);
+        T = T.filter(function (t) { return t >= 0 && t < D; }).slice(0, 8); next();
+      };
+      function next() { if (!T.length) { clearTimeout(fail); URL.revokeObjectURL(url); return ok(out); } v.currentTime = T.shift(); }
+      v.onseeked = function () {
+        var w = v.videoWidth || 480, hh = v.videoHeight || 852, sc = Math.min(1, 480 / Math.max(w, hh)), c = document.createElement('canvas');
+        c.width = Math.round(w * sc); c.height = Math.round(hh * sc); c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+        out.push(c.toDataURL('image/jpeg', 0.7)); next();
+      };
+    });
+  }
+  function csxImage(file) {
+    return new Promise(function (ok, no) {
+      var rd = new FileReader(); rd.onerror = function () { no(new Error('Không đọc được ảnh.')); };
+      rd.onload = function () { var im = new Image(); im.onerror = function () { no(new Error('Không mở được ảnh.')); }; im.onload = function () {
+        var sc = Math.min(1, 900 / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.round(im.width * sc); c.height = Math.round(im.height * sc);
+        c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); ok(c.toDataURL('image/jpeg', 0.75)); }; im.src = rd.result; };
+      rd.readAsDataURL(file);
+    });
+  }
+  function csxResForm(r) {
+    var m = modal('📈 Kết quả thật', '<p class="small muted" style="margin-top:0">Ghi số sau khi đăng hoặc chạy quảng cáo vài ngày (xem trong Trình quản lý quảng cáo, Fanpage, nhóm). Ô nào không có thì để trống.</p>' +
+      '<p class="small"><b>' + esc(r.title) + '</b> · AI chấm ' + r.score + '/100</p>' +
+      '<div class="row2c"><label class="f"><span>💰 Tiền quảng cáo đã chi</span><input id="csxRs" inputmode="decimal" value="' + (r.r_spend || '') + '" placeholder="vd 500k"></label>' +
+      '<label class="f"><span>📞 Số tin nhắn / số điện thoại</span><input id="csxRl" inputmode="numeric" value="' + (r.r_leads || '') + '"></label></div>' +
+      '<div class="row2c"><label class="f"><span>👍 Tương tác (cảm xúc + bình luận + chia sẻ)</span><input id="csxRe" inputmode="numeric" value="' + (r.r_eng || '') + '"></label>' +
+      '<label class="f"><span>🛒 Số đơn</span><input id="csxRo" inputmode="numeric" value="' + (r.r_orders || '') + '"></label></div>' +
+      '<label class="f"><span>💵 Doanh thu từ bài</span><input id="csxRv" inputmode="decimal" value="' + (r.r_rev || '') + '" placeholder="vd 2tr4"></label>' +
+      '<label class="f"><span>Ghi chú</span><input id="csxRn" value="' + esc(r.r_note || '') + '" placeholder="Vd: chạy 3 ngày, tệp mẹ bỉm Hà Nội"></label>',
+      '<button class="btn" data-close>Đóng</button><button class="btn pri" id="csxRgo">💾 Lưu</button>');
+    $('#csxRgo', m).onclick = function () {
+      var b = this; b.disabled = true;
+      api('ins_sres', { id: r.id, spend: moneyIn($('#csxRs', m).value), leads: $('#csxRl', m).value, eng: $('#csxRe', m).value, orders: $('#csxRo', m).value, rev: moneyIn($('#csxRv', m).value), note: $('#csxRn', m).value.trim() })
+        .then(function () { closeModal(); toast('Đã lưu kết quả ✓'); CS.open = r.id; csxFetch(); }, function (e) { b.disabled = false; toast(e.message, true); });
+    };
+  }
+  document.addEventListener('input', function (e) { var t = e.target; if (t && t.id && /^csx[ACKGFTN]$/.test(t.id)) CS.f[t.id] = t.value; });
+  document.addEventListener('change', function (e) {
+    var t = e.target; if (!t || !t.id) return;
+    if (/^csx[ACKGF]$/.test(t.id)) { var was = CS.f.csxK; CS.f[t.id] = t.value; if (t.id === 'csxK' && was !== t.value) { CS.frames = []; render(); } return; }
+    if (t.id !== 'csxFile' || !t.files || !t.files.length) return;
+    var fs = Array.prototype.slice.call(t.files), vid = (CS.f.csxK || 'bai') === 'video';
+    if (vid && fs[0].size > 800e6) return toast('Video quá lớn (tối đa 800 MB).', true);
+    toast(vid ? '⏳ Đang cắt khung hình…' : '⏳ Đang đọc ảnh…');
+    (vid ? csxVideoFrames(fs[0]) : Promise.all(fs.slice(0, 4).map(csxImage))).then(function (L) { CS.frames = L; render(); toast('Đã thêm ' + L.length + (vid ? ' khung hình ✓' : ' ảnh ✓')); }, function (er) { toast(er.message, true); });
+  });
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-csx]'); if (!t) return;
+    var v = t.getAttribute('data-csx').split('|'), a = v[0], id = Number(v[1]), r = CS.d && (CS.d.items || []).filter(function (x) { return x.id === id; })[0];
+    if (a === 'reload') { CS.err = ''; CS.d = null; return render(); }
+    if (a === 'pick') return $('#csxFile').click();
+    if (a === 'clear') { CS.frames = []; return render(); }
+    if (a === 'new') { CS.f = { csxA: CS.f.csxA, csxC: CS.f.csxC }; CS.frames = []; CS.parent = 0; return render(); }
+    if (a === 'go') {
+      var f = CS.f, txt = (f.csxT || '').trim();
+      if (txt.length < 20 && !CS.frames.length) return toast('Dán nội dung bài vào trước nhé.', true);
+      CS.run = 1; render();
+      return api('ins_score', { text: txt, ch: f.csxC || 'qc', kind: f.csxK || 'bai', g: f.csxG || '', f: f.csxF || '', author: (f.csxA || '').trim(), note: (f.csxN || '').trim(), frames: CS.frames, parent: CS.parent })
+        .then(function (res) { CS.run = 0; CS.d.items = [res.item].concat(CS.d.items || []); CS.open = res.item.id; toast('Đã chấm xong: ' + res.item.score + '/100'); render(); var el = $('.csx-it[open]'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); csxFetch(); },
+          function (er) { CS.run = 0; render(); toast(er.message, true); });
+    }
+    if (!r) return;
+    if (a === 'cp') return copy(r.res.rewrite || '').then(function () { toast('📋 Đã copy bản sửa'); });
+    if (a === 'redo') { CS.f = { csxA: r.author, csxC: r.ch, csxK: r.kind, csxG: r.g, csxF: r.f, csxT: r.res && r.res.rewrite || r.text, csxN: r.note }; CS.frames = []; CS.parent = r.parent || r.id; render(); var fm = $('#csxForm'); if (fm) fm.scrollIntoView({ behavior: 'smooth', block: 'start' }); return toast('Đã đưa bản sửa vào ô, bạn chỉnh thêm rồi bấm Chấm điểm'); }
+    if (a === 'res') return csxResForm(r);
+    if (a === 'del') { if (!confirm('Xoá bài đã chấm này?')) return; t.disabled = true; return api('ins_sdel', { id: r.id }).then(function () { CS.d.items = CS.d.items.filter(function (x) { return x.id !== r.id; }); toast('Đã xoá'); render(); }, function (er) { t.disabled = false; toast(er.message, true); }); }
+  });
   /** 🌟 big idea của nhóm (khoá K131): khối đầu đang bật = đang chạy, trợ lý xoay vòng 10 góc kể của nó; các khối sau để dành */
   function inBigHtml(g) {
     var B = g.bigs || []; if (!B.length) return '<p class="small muted">🌟 Chưa có ý lớn (big idea) để cả 4 kênh nói chung một chuyện. Bấm ✏️ Sửa → ✨ AI gợi ý.</p>';
