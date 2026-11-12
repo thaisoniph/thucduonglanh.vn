@@ -7279,7 +7279,7 @@
     return h;
   }
   /* ---------------------------------------------------------------- 🧪 Chấm bài trước khi đăng (12/11/2026, api score.js: ins_sview / ins_score / ins_sres / ins_sdel)
-   * Dán bài / kịch bản / lời thoại + tối đa 20 khung hình video (cắt ở trình duyệt, có ghi giây) hoặc 4 ảnh → AI chấm 9 tiêu chí /100 → ghi kết quả thật → so điểm với kết quả. */
+   * Dán bài / kịch bản / lời thoại + tối đa 43 khung hình video (cắt ở trình duyệt, có ghi giây, 7 hình 3 giây đầu) hoặc 4 ảnh → AI chấm 9 tiêu chí /100 → ghi kết quả thật → so điểm với kết quả. */
   var CS = { d: null, busy: 0, err: '', f: {}, frames: [], fname: '', parent: 0, open: 0, run: 0 };
   var CSX_V = { ok: ['🟢', 'Đăng được'], sua: ['🟡', 'Sửa nhẹ rồi đăng'], lai: ['🔴', 'Nên làm lại'], luat: ['⛔', 'Sửa lỗi luật trước khi đăng'] };
   var CSX_CONV = { cao: '📈 Khả năng ra đơn / số: cao', vua: '➖ Khả năng ra đơn / số: vừa', thap: '📉 Khả năng ra đơn / số: thấp' };
@@ -7328,6 +7328,7 @@
     var R = r.res || {}, V = CSX_V[r.v] || CSX_V.lai, C = R.crit || {}, crit = (CS.d.crit || []);
     var body = '<p class="csx-sum">' + esc(R.sum || '') + '</p>' +
       '<p class="small"><b>' + (CSX_CONV[R.conv] || '') + '</b>' + (R.conv_why ? ' · ' + esc(R.conv_why) : '') + '</p>' +
+      csxHook(R, r.kind) +
       (r.gn || r.t ? '<p class="small">🎯 <b>' + esc(r.gn || '') + '</b>' + (r.t ? ' · ⚡ ' + esc(r.t) : '') + '</p>' : '') +
       ((R.law && R.law.issues || []).length ? '<div class="csx-law"><b>⛔ Lỗi luật quảng cáo thực phẩm, sửa trước khi đăng:</b><ul>' + R.law.issues.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ul></div>' : '') +
       ((R.risk || []).length ? '<p class="small">⚠️ Cụm chữ dễ phạm luật, đọc lại: ' + esc(R.risk.join(', ')) + '</p>' : '') +
@@ -7335,6 +7336,7 @@
       '<div class="csx-crit">' + crit.map(function (c) { var x = C[c.k] || { s: 0 }, p = Math.round(x.s / c.max * 100);
         return '<details class="csx-cr"><summary><span class="csx-cn">' + esc(c.name) + '</span><span class="csx-bar"><i class="csx-b-' + csxLv(p) + '" style="width:' + p + '%"></i></span><b>' + x.s + '/' + c.max + '</b></summary>' +
           (x.why ? '<p class="small"><b>Vì sao:</b> ' + esc(x.why) + '</p>' : '') + (x.fix ? '<p class="small"><b>Sửa:</b> ' + esc(x.fix) + '</p>' : '') + '</details>'; }).join('') + '</div>' +
+      ((R.doan || []).length ? '<details class="csx-doan"><summary><b>🎞 Chấm từng ' + (r.kind === 'video' ? 'đoạn video' : 'đoạn bài') + '</b> <span class="small muted">(' + R.doan.length + ' đoạn)</span></summary>' + R.doan.map(function (x) { return '<div class="csx-dn"><b>' + esc(x.t) + '</b><p class="small">' + esc(x.xet) + '</p>' + (x.sua ? '<p class="small">👉 <b>Sửa:</b> ' + esc(x.sua) + '</p>' : '') + '</div>'; }).join('') + '</details>' : '') +
       ((R.good || []).length ? '<p class="small"><b>👍 Nên giữ:</b> ' + R.good.map(esc).join(' · ') + '</p>' : '') +
       ((R.hooks || []).length ? '<p class="small"><b>🪝 Câu mở khác để thử:</b></p><ul class="small">' + R.hooks.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ul>' : '') +
       ((R.style || []).length ? '<p class="small">✍️ Văn còn giống AI: ' + esc(R.style.join(', ')) + '</p>' : '') +
@@ -7346,7 +7348,16 @@
     return '<details class="box csx-it"' + (open ? ' open' : '') + '><summary>' + (r.thumb ? '<img class="csx-th" src="' + r.thumb + '" alt="">' : '') + '<span class="csx-score csx-c-' + (r.v === 'luat' ? 'lai' : csxLv(r.score)) + '">' + r.score + '</span><span class="csx-st"><b>' + esc(r.title) + '</b><br><span class="small">' + V[0] + ' ' + V[1] + '</span><br><span class="small muted">' +
       esc((CS.d.ch || {})[r.ch] || r.ch) + ' · ' + esc(r.author || r.by_name) + ' · ' + fDateTime(r.at) + (r.parent ? ' · 🔁 chấm lại' : '') + (r.r_at ? ' · 📈 ' + esc(csxRes(r)) : '') + '</span></span></summary>' + body + '</details>';
   }
-  /** Cắt khung hình từ video ngay trên trình duyệt (giây 0, 1,5, 3 rồi ~10 giây 1 hình, tối đa 20) → ảnh JPEG nhỏ, out.t = giây của từng hình */
+  /** 🎯 Ô chấm riêng 3 giây đầu (video) / phần mở (bài viết): 4 mục /10 + kết luận + 2 phương án làm lại (anh Sơn 12/11/2026: phần cần chấm kỹ đầu tiên) */
+  function csxHook(R, kind) {
+    var H = R && R.hook3; if (!H) return '';
+    var L = [['hinh', '🖼 Hình'], ['loi', '🗣 Lời'], ['chu', '🔤 Chữ trên màn hình'], ['khop', '🔗 Hình, lời, chữ cùng 1 ý']], tot = L.reduce(function (n, k) { return n + ((H[k[0]] || {}).s || 0); }, 0);
+    return '<div class="csx-h3"><div class="csx-h3h"><b>🎯 ' + (kind === 'video' ? '3 giây đầu' : 'Phần mở bài') + '</b><span class="csx-score sm csx-c-' + csxLv(tot / 40 * 100) + '">' + tot + '</span><span class="small muted">/40 · phần quyết định người xem có dừng lại không</span></div>' +
+      (H.ket_luan ? '<p class="csx-h3k">' + esc(H.ket_luan) + '</p>' : '') +
+      L.map(function (k) { var x = H[k[0]] || { s: 0 }; return '<div class="csx-h3r"><span>' + k[1] + '</span><span class="csx-bar"><i class="csx-b-' + csxLv(x.s * 10) + '" style="width:' + x.s * 10 + '%"></i></span><b>' + x.s + '/10</b>' + (x.why ? '<p class="small">' + esc(x.why) + '</p>' : '') + '</div>'; }).join('') +
+      ((H.sua || []).length ? '<div class="csx-h3s"><b>✨ ' + (kind === 'video' ? 'Làm lại 3 giây đầu' : 'Viết lại phần mở') + ': 2 phương án</b>' + H.sua.map(function (v, i) { return '<p class="small"><b>' + (i + 1) + '.</b> ' + esc(v) + '</p>'; }).join('') + '</div>' : '') + '</div>';
+  }
+  /** Cắt khung hình từ video ngay trên trình duyệt (7 hình 3 giây đầu nét hơn, rồi 2–5 giây 1 hình, tối đa 43) → ảnh JPEG, out.t = giây của từng hình */
   function csxVideoFrames(file) {
     return new Promise(function (ok, no) {
       // gắn video ẩn vào trang: Safari đôi khi không mở video chưa nằm trong trang (anh Sơn báo lỗi 12/11/2026)
@@ -7360,15 +7371,16 @@
       v.onloadedmetadata = function () {
         var D = v.duration || 0; if (!isFinite(D) || D <= 0) D = 30;
         // 3 hình 3 giây đầu (câu mở) + cứ ~10 giây 1 hình (video ngắn dày hơn), tối đa 20 hình (anh Sơn 12/11/2026: video 2–3 phút 8 hình là thiếu)
-        T = [0.05, 1.5, 3].filter(function (t) { return t < D; }); var rest = Math.max(1, Math.min(17, Math.round((D * 0.97 - 3) / (D <= 30 ? 3 : 10)))); for (var k = 1; k <= rest; k++) T.push(3 + (D * 0.97 - 3) * k / rest);
-        T = T.filter(function (t) { return t >= 0 && t < D; }).slice(0, 20); out.t = [];
+        // 12/11/2026 anh Sơn: 3 giây đầu chấm kỹ nhất → 7 hình (nửa giây 1 hình, nét hơn); sau đó 2 giây (video ≤30s) / 4 giây (≤90s) / 5 giây 1 hình, tối đa 36 hình phần sau
+        T = [0.05, 0.5, 1, 1.5, 2, 2.5, 3].filter(function (t) { return t < D; }); var step = D <= 30 ? 2 : D <= 90 ? 4 : 5, rest = Math.max(1, Math.min(36, Math.round((D * 0.97 - 3) / step))); for (var k = 1; k <= rest; k++) T.push(3 + (D * 0.97 - 3) * k / rest);
+        T = T.filter(function (t) { return t >= 0 && t < D; }).slice(0, 43); out.t = [];
         var go = function () { next(); }; if (v.readyState >= 2) go(); else { v.onloadeddata = function () { v.onloadeddata = null; go(); }; try { var pp = v.play(); if (pp && pp.then) pp.then(function () { v.pause(); }, function () {}); } catch (e) {} }
       };
       function next() { if (!T.length) return end(); v.currentTime = T.shift(); }
       v.onseeked = function () {
         if (done) return;
-        try { var w = v.videoWidth || 480, hh = v.videoHeight || 852, sc = Math.min(1, 480 / Math.max(w, hh)), c = document.createElement('canvas');
-          c.width = Math.round(w * sc); c.height = Math.round(hh * sc); c.getContext('2d').drawImage(v, 0, 0, c.width, c.height); out.push(c.toDataURL('image/jpeg', 0.65)); out.t.push(Math.round(v.currentTime * 10) / 10); } catch (e) {}
+        try { var hook = v.currentTime <= 3.05, w = v.videoWidth || 480, hh = v.videoHeight || 852, sc = Math.min(1, (hook ? 768 : 480) / Math.max(w, hh)), c = document.createElement('canvas');
+          c.width = Math.round(w * sc); c.height = Math.round(hh * sc); c.getContext('2d').drawImage(v, 0, 0, c.width, c.height); out.push(c.toDataURL('image/jpeg', hook ? 0.78 : 0.65)); out.t.push(Math.round(v.currentTime * 10) / 10); if (!out.thumb) { var c2 = document.createElement('canvas'), s2 = 160 / Math.max(w, hh); c2.width = Math.round(w * s2); c2.height = Math.round(hh * s2); c2.getContext('2d').drawImage(v, 0, 0, c2.width, c2.height); out.thumb = c2.toDataURL('image/jpeg', 0.7); } } catch (e) {}
         next();
       };
       v.src = url; v.load();
@@ -7437,7 +7449,7 @@
     var fs = Array.prototype.slice.call(t.files), vid = (CS.f.csxK || 'bai') === 'video';
     if (vid && fs[0].size > 800e6) return toast('Video quá lớn (tối đa 800 MB).', true);
     toast(vid ? '⏳ Đang cắt khung hình…' : '⏳ Đang đọc ảnh…');
-    (vid ? csxVideoFrames(fs[0]) : Promise.all(fs.slice(0, 4).map(csxImage))).then(function (L) { CS.frames = L; CS.ft = L.t || []; CS.src = 'file'; render(); toast('Đã thêm ' + L.length + (vid ? ' khung hình ✓' : ' ảnh ✓')); }, function (er) { toast(er.message, true); });
+    (vid ? csxVideoFrames(fs[0]) : Promise.all(fs.slice(0, 4).map(csxImage))).then(function (L) { CS.frames = L; CS.ft = L.t || []; CS.thumb = L.thumb || ''; CS.src = 'file'; render(); toast('Đã thêm ' + L.length + (vid ? ' khung hình ✓' : ' ảnh ✓')); }, function (er) { toast(er.message, true); });
     if (vid) { CS.audio = ''; CS.heard = null; csxAudio(fs[0]).then(function (a) { CS.audio = a; }, function () { CS.audio = ''; }); }
   });
   document.addEventListener('click', function (e) {
@@ -7459,18 +7471,18 @@
         return Promise.all([csxVideoFrames(blob).catch(function (e) { vErr = e; return []; }), csxAudio(blob).catch(function () { return ''; })]).then(function (o) {
           if (!o[0].length && !o[1] && txt.length < 20) throw vErr || new Error('Không đọc được hình lẫn tiếng của video này.');
           if (vErr) toast('⚠️ ' + vErr.message + ' AI sẽ chấm theo lời thoại' + (txt ? ' và caption.' : '.'), true);
-          CS.frames = o[0]; CS.ft = o[0].t || []; CS.audio = o[1]; CS.heard = null; CS.src = link;
+          CS.frames = o[0]; CS.ft = o[0].t || []; CS.thumb = o[0].thumb || ''; CS.audio = o[1]; CS.heard = null; CS.src = link;
         });
       })) : Promise.resolve();
       return prep.then(function () {
         if (!isV || !CS.audio || CS.heard != null) return;
         step('Đang nghe lời thoại (khoảng 30 giây)…');
         return api('ins_stt', { audio: CS.audio }).then(function (r) { CS.heard = r.text || ''; if (!CS.heard) toast('Video không có lời thoại nghe được, AI chấm theo hình' + (txt ? ' và caption.' : '.')); },
-          function (er) { CS.heard = ''; toast('⚠️ ' + er.message + ' AI chấm theo hình' + (txt ? ' và caption.' : '.'), true); });
+          function (er) { CS.heard = ''; toast('⚠️ ' + er.message + '. Vẫn chấm tiếp theo hình' + (txt ? ' và caption.' : '.'), true); });
       }).then(function () {
         if (!CS.frames.length && !CS.heard && txt.length < 20) throw new Error('Chưa có gì để chấm: máy không xem được hình, không nghe được lời thoại. Dán kịch bản / lời thoại vào ô Caption rồi bấm lại nhé.');
         step('AI đang chấm (1–2 phút, đừng tắt trang)…');
-        return api('ins_score', { text: txt, ch: f.csxC || 'qc', kind: f.csxK || 'bai', g: f.csxG || '', f: f.csxF || '', author: (f.csxA || '').trim(), note: (f.csxN || '').trim(), frames: CS.frames, ft: CS.ft || [], heard: isV ? CS.heard || '' : '', link: link, parent: CS.parent });
+        return api('ins_score', { text: txt, ch: f.csxC || 'qc', kind: f.csxK || 'bai', g: f.csxG || '', f: f.csxF || '', author: (f.csxA || '').trim(), note: (f.csxN || '').trim(), frames: CS.frames, ft: CS.ft || [], thumb: CS.thumb || '', heard: isV ? CS.heard || '' : '', link: link, parent: CS.parent });
       }).then(function (res) { CS.run = 0; CS.runMsg = ''; CS.d.lastErr = null; CS.d.items = [res.item].concat(CS.d.items || []); CS.open = res.item.id; toast('Đã chấm xong: ' + res.item.score + '/100'); render(); var el = $('.csx-it[open]'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); csxFetch(); },
           function (er) { CS.run = 0; CS.runMsg = ''; if (CS.d) CS.d.lastErr = { at: Date.now(), err: er.message }; render(); toast(er.message, true); });
     }

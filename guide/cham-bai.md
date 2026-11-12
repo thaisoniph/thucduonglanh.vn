@@ -47,13 +47,24 @@ CRM → menu **Thêm → 🎯 Insight & nội dung** → thẻ **🧪 Chấm bà
 
 1. Ô **Loại** chọn **🎬 Video / kịch bản**.
 2. Dán **link video trên Google Drive** vào ô 🔗.
-3. Bấm **🧪 Chấm điểm**. Máy tự làm 3 việc: tải video → xem hình trong video (3 hình ở 3 giây đầu, sau đó cứ khoảng 10 giây 1 hình, tối đa 20 hình) → **tự nghe lời thoại** → AI chấm. Tổng cộng khoảng 1–2 phút.
+3. Bấm **🧪 Chấm điểm**. Máy tự làm 3 việc: tải video → xem hình trong video (7 hình nét ở 3 giây đầu, sau đó cứ 2–5 giây 1 hình, tối đa khoảng 40 hình) → **tự nghe lời thoại** → AI chấm. Tổng cộng khoảng 1–2 phút.
 
 > ⚠️ Trước khi dán link, mở video trên Drive → bấm **Chia sẻ** → mục **Quyền truy cập chung** chọn **"Bất kỳ ai có đường liên kết"** → **Xong**. Chưa làm bước này thì máy báo "file chưa chia sẻ công khai".
 
 - Có caption đăng kèm thì dán vào ô **Caption** để AI chấm cả caption.
 - Video nằm sẵn trong máy thì bấm **📁 Hoặc chọn file video trong máy**, không cần đưa lên Drive.
 - Máy nghe tối đa 4 phút lời thoại đầu. Lời thoại do máy nghe có thể sai chính tả, AI chấm theo ý chứ không trừ điểm vì lỗi chính tả.
+
+### 🎯 3 giây đầu được chấm riêng
+
+80% người xem quyết định lướt qua hay xem tiếp ngay trong 3 giây đầu, nên phần này được chấm kỹ nhất, có ô riêng nằm trên cùng kết quả. AI chấm 4 mục, mỗi mục 10 điểm:
+
+- **🖼 Hình:** khung đầu có làm người đang lướt dừng lại không (có chuyển động, khuôn mặt, điều bất ngờ hay chỉ là cảnh tĩnh, logo).
+- **🗣 Lời:** câu nói đầu tiên có chạm ngay nỗi lo hoặc mong muốn của khách không, hay đang chào hỏi, giới thiệu dài dòng.
+- **🔤 Chữ trên màn hình:** có to, ngắn (dưới 7 chữ), đọc được trên điện thoại khi tắt tiếng không.
+- **🔗 Hình, lời, chữ cùng 1 ý:** cả 3 có cùng nói với 1 nhóm khách và 1 nỗi lòng không.
+
+Dưới 4 mục là **2 phương án làm lại 3 giây đầu**, mỗi phương án ghi rõ HÌNH · LỜI · CHỮ để quay lại được ngay bằng điện thoại. Sau đó là **🎞 Chấm từng đoạn video**: 0–3 giây, các đoạn thân, phần kết. Đoạn nào người xem dễ bỏ đi, AI ghi rõ và gợi ý cách sửa.
 
 ## Bước 2: Đọc kết quả và sửa
 

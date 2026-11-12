@@ -2229,3 +2229,16 @@ b.csx-c-ok { color: var(--primary-2); } b.csx-c-sua { color: var(--orange); } b.
 .csx-real { background: var(--blue-light); border-radius: var(--radius-sm); padding: 6px 10px; }
 .csx-it .spf-txt { white-space: pre-wrap; font-size: 14px; line-height: 1.5; background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; margin-top: 6px; max-height: 420px; overflow: auto; }
 .csx-tip { margin: -4px 0 8px; }
+/* 🎯 3 giây đầu + 🎞 từng đoạn (chấm bài, 12/11/2026) */
+.csx-h3 { border: 2px solid var(--primary-2); border-radius: var(--radius-sm); padding: 10px 12px; margin: 10px 0; background: var(--primary-soft); }
+.csx-h3h { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.csx-score.sm { width: 36px; height: 36px; font-size: 14px; }
+.csx-h3k { margin: 6px 0; color: var(--ink); }
+.csx-h3r { display: grid; grid-template-columns: minmax(0, 1fr) 90px 46px; gap: 8px; align-items: center; padding: 5px 0; border-top: 1px solid var(--line); font-size: 14px; }
+.csx-h3r b { text-align: right; }
+.csx-h3r p { grid-column: 1 / -1; margin: 0; }
+.csx-h3s { margin-top: 8px; background: var(--card); border-radius: 8px; padding: 6px 10px; }
+.csx-h3s p { margin: 4px 0; }
+.csx-doan { margin: 8px 0; }
+.csx-dn { border-left: 3px solid var(--line); padding: 2px 0 2px 10px; margin: 6px 0; }
+.csx-dn p { margin: 2px 0; }
