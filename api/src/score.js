@@ -25,6 +25,15 @@ export const CRIT = [
   ['van', 5, '✍️ Văn tự nhiên, đúng giọng khách', 'Viết như người Việt nói, đúng cách xưng hô của nhóm khách; không văn AI (gạch ngang dài, chuỗi câu vụn, cảm thán sáo, "Không chỉ… mà còn…").'],
   ['luat', 10, '⚖️ Đúng luật quảng cáo thực phẩm', 'Công dụng đúng hồ sơ công bố trong TÀI LIỆU, không "chữa / điều trị / khỏi bệnh / thần dược", có câu "không phải là thuốc…" khi nhắc thực phẩm bổ sung, hotline đúng, không nhắm phụ nữ mang thai. Có lỗi luật thì chấm thấp và ghi vào law.']
 ];
+/** Khuôn trả lời bắt buộc (structured outputs): AI không thể trả sai định dạng / thiếu trường */
+const STR = { type: 'string' }, ARR = { type: 'array', items: STR };
+const OBJ = (props) => ({ type: 'object', properties: props, required: Object.keys(props), additionalProperties: false });
+const SCHEMA = OBJ({
+  title: STR, group: STR, gid: STR, tension: STR, funnel: { type: 'string', enum: ['TOFU', 'MOFU', 'BOFU'] }, sum: STR,
+  crit: OBJ(Object.fromEntries(CRIT.map(c => [c[0], OBJ({ s: { type: 'integer' }, why: STR, fix: STR })]))),
+  law: OBJ({ ok: { type: 'boolean' }, issues: ARR }), conv: { type: 'string', enum: ['cao', 'vua', 'thap'] }, conv_why: STR,
+  good: ARR, top3: ARR, hooks: ARR, rewrite: STR
+});
 export const CH = { qc: '💰 Quảng cáo', fb: '📘 Fanpage', nhom: '👥 Hội nhóm Facebook', zalo: '💬 Nhóm Zalo', fbcn: '📣 Facebook cá nhân', tiktok: '🎵 TikTok / Reels', web: '🌐 Bài web' };
 export const KINDS = { bai: '📝 Bài viết', video: '🎬 Video / kịch bản', anh: '🖼 Ảnh / poster' };
 const verdict = (s, lawOk) => !lawOk ? 'luat' : s >= 80 ? 'ok' : s >= 60 ? 'sua' : 'lai';
@@ -101,7 +110,7 @@ async function scoreWrite(x, u, d) {
   const content = [];
   imgs.forEach((s, i) => { const m = s.match(/^data:(image\/[a-z]+);base64,(.+)$/); if (kind === 'video' && isFinite(ft[i])) content.push({ type: 'text', text: 'Hình ' + (i + 1) + ' · giây ' + ft[i] }); content.push({ type: 'image', source: { type: 'base64', media_type: m[1], data: m[2] } }); });
   content.push({ type: 'text', text: ask });
-  const req = { model: WRITER, max_tokens: 7000, output_config: { effort: 'medium' },
+  const req = { model: WRITER, max_tokens: 16000, output_config: { effort: 'medium', format: { type: 'json_schema', schema: SCHEMA } }, // max_tokens tính cả phần AI suy nghĩ (Opus 5.5): 7000 làm câu trả lời bị cắt 12/11/2026
     system: [{ type: 'text', text: 'Bạn là giám khảo content khắt khe nhưng tận tình của Thực Dưỡng Lành (VitaGreen Nutrition): thực phẩm dinh dưỡng từ hạt, trà thảo mộc, đồ chay. Bạn chấm theo phương pháp khoá content Tuấn Hà – Vinalink (insight = tension, 4Is, phễu TOFU / MOFU / BOFU, big idea → góc kể, Việt hoá văn AI) và luật quảng cáo thực phẩm Việt Nam. Tiếng Việt dễ hiểu cho người mới làm content.\n' + TRUTH_RULES },
       { type: 'text', text: 'TÀI LIỆU (thông tin chính thức, hồ sơ công bố của Thực Dưỡng Lành):\n\n' + know, cache_control: { type: 'ephemeral' } }],
     messages: [{ role: 'user', content }] };
@@ -109,9 +118,10 @@ async function scoreWrite(x, u, d) {
   try { res = await ai(x.env).beta.messages.create(Object.assign({ betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' }, req)); }
   catch (e) { if (!(e instanceof Anthropic.BadRequestError)) throw e; res = await ai(x.env).messages.create(req); }
   if (res.stop_reason === 'refusal') return { ok: false, error: 'AI từ chối chấm nội dung này.' };
+  if (res.stop_reason === 'max_tokens') return { ok: false, error: 'AI viết dài quá giới hạn nên bị cắt giữa chừng (' + (res.usage && res.usage.output_tokens) + ' token). Báo quản trị để nâng giới hạn.' };
   const raw = textOf(res), m = raw.match(/\{[\s\S]*\}/);
   let j = null; try { j = m && JSON.parse(m[0]); } catch (e) { }
-  if (!j || !j.crit) return { ok: false, error: 'AI chưa chấm xong, bấm chấm lại nhé.' };
+  if (!j || !j.crit) return { ok: false, error: 'AI trả lời sai định dạng (' + res.stop_reason + ', ' + raw.length + ' ký tự: ' + raw.slice(0, 80).replace(/\s+/g, ' ') + '…). Bấm chấm lại nhé.' };
   const crit = {}; let score = 0;
   for (const [k, max] of CRIT) { const c = j.crit[k] || {}, s = Math.max(0, Math.min(max, Math.round(Number(c.s) || 0))); score += s; crit[k] = { s, why: cut(c.why, 500), fix: cut(c.fix, 700) }; }
   const risk = insRisk(typed || text), law = { ok: !!(j.law && j.law.ok !== false), issues: (j.law && Array.isArray(j.law.issues) ? j.law.issues : []).map(s => cut(s, 300)).filter(Boolean).slice(0, 6) };
