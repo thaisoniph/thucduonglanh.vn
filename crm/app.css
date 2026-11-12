@@ -2187,3 +2187,7 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .inst-btn .small { font-weight: 500; font-size: 13px; }
 .inst-btn { flex-wrap: wrap; justify-content: center; text-align: center; column-gap: 4px; row-gap: 0; }
 .inst-warn { margin: 0 0 10px; padding: 10px 12px; border-radius: 12px; background: #fff3d6; color: #6b4a00; font-size: 14px; line-height: 1.45; }
+
+/* ✍️ 12/11/2026 trợ lý Zalo học từ bài nhân sự sửa */
+.zb-learn{margin:4px 0 10px;padding:6px 10px;border-radius:8px;background:color-mix(in srgb,var(--primary) 8%,transparent)}
+.zb-learn-t{color:var(--primary)}

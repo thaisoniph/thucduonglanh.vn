@@ -97,12 +97,13 @@ export async function zbotSchema(db) {
   await run(db, `CREATE TABLE IF NOT EXISTS zb_posts (id TEXT PRIMARY KEY, day TEXT, slot TEXT, topic TEXT DEFAULT '', text TEXT DEFAULT '', img TEXT DEFAULT '', prod TEXT DEFAULT '',
     status TEXT DEFAULT 'draft', by_name TEXT DEFAULT '', at INTEGER, sent_at INTEGER)`); // bài đăng hằng ngày (id = yyyyMMdd_slot)
   await run(db, 'CREATE INDEX IF NOT EXISTS zb_posts_day ON zb_posts(day)');
-  for (const c of ["funnel TEXT DEFAULT ''", 'eng_msgs INTEGER DEFAULT 0', 'eng_people INTEGER DEFAULT 0', 'eng_reacts INTEGER DEFAULT 0', "ev TEXT DEFAULT ''", "ins TEXT DEFAULT ''", "at_time TEXT DEFAULT ''", "plan TEXT DEFAULT ''"]) { try { await run(db, 'ALTER TABLE zb_posts ADD COLUMN ' + c); } catch (e) { } } // 31/10/2026: nhãn phễu + tương tác 2 tiếng sau khi đăng · 09/11/2026: ev = tên dịp lễ (zday.js) · 10/11/2026: ins = nhóm khách + tension bài nhắm tới (insight.js, JSON)
+  for (const c of ["funnel TEXT DEFAULT ''", 'eng_msgs INTEGER DEFAULT 0', 'eng_people INTEGER DEFAULT 0', 'eng_reacts INTEGER DEFAULT 0', "ev TEXT DEFAULT ''", "ins TEXT DEFAULT ''", "at_time TEXT DEFAULT ''", "plan TEXT DEFAULT ''", "ai_text TEXT DEFAULT ''", "ed_by TEXT DEFAULT ''", 'ed_at INTEGER']) { try { await run(db, 'ALTER TABLE zb_posts ADD COLUMN ' + c); } catch (e) { } } // 31/10/2026: nhãn phễu + tương tác 2 tiếng sau khi đăng · 09/11/2026: ev = tên dịp lễ (zday.js) · 10/11/2026: ins = nhóm khách + tension bài nhắm tới (insight.js, JSON)
   await run(db, `CREATE TABLE IF NOT EXISTS zb_log (rid INTEGER PRIMARY KEY AUTOINCREMENT, at INTEGER, kind TEXT, gid TEXT DEFAULT '', uid TEXT DEFAULT '', name TEXT DEFAULT '',
     text TEXT DEFAULT '', reply TEXT DEFAULT '')`); // nhật ký trợ lý (CRM xem)
   await run(db, 'CREATE INDEX IF NOT EXISTS zb_log_at ON zb_log(at)');
   for (const c of ['done_at INTEGER', "done_by TEXT DEFAULT ''"]) { try { await run(db, 'ALTER TABLE zb_log ADD COLUMN ' + c); } catch (e) { } } // 05/11/2026: ca cần người thật → ai xử lý, lúc nào
   await run(db, 'CREATE TABLE IF NOT EXISTS zb_act (dh TEXT PRIMARY KEY, msgs INTEGER DEFAULT 0, people INTEGER DEFAULT 0)');
+  // 12/11/2026: ai_text = bản AI viết (giữ nguyên khi nhân sự sửa), ed_by / ed_at = ai sửa chữ, lúc nào → zWrite học từ cặp "AI viết → người sửa" (edPairs)
   // 10/11/2026: zb_posts.at_time = giờ đăng riêng của bài (HH:mm, trống = giờ của khung) · plan = bài viết theo chủ đề kế hoạch ('ok' đã duyệt / 'draft' chưa duyệt / '' không có)
   // 📋 kế hoạch chủ đề: 1 dòng / bài (id = yyyyMMdd_slot như zb_posts). status draft (chờ duyệt) | ok (đã duyệt → trợ lý viết theo) | skip (không đăng bài này)
   await run(db, `CREATE TABLE IF NOT EXISTS zb_plan (id TEXT PRIMARY KEY, day TEXT, slot TEXT, f TEXT DEFAULT '', topic TEXT DEFAULT '', idea TEXT DEFAULT '', cta TEXT DEFAULT '',
@@ -723,6 +724,18 @@ const tagLinks = (t, id) => String(t).replace(/https:\/\/thucduonglanh\.vn[^\s)]
   const tail = (u.match(/[.,!?;:…]+$/) || [''])[0], [b, q = ''] = u.slice(0, u.length - tail.length).split('#')[0].split('?');
   return b + '?' + q.split('&').filter(s => s && !/^utm_/i.test(s)).concat(['utm_source=zalo', 'utm_medium=nhom', 'utm_campaign=' + id]).join('&') + tail;
 });
+// ✍️ 12/11/2026 (Thủy hỏi "em sửa bài thì trợ lý có học không"): so chữ bỏ khoảng trắng / link theo dõi để biết có sửa thật
+const edNorm = t => String(t || '').replace(/[?&]utm_[a-z]+=[^\s&)]*/g, '').replace(/\s+/g, ' ').trim();
+// 3 bài gần nhất (60 ngày) nhân sự sửa chữ bản AI, ưu tiên cùng khung sáng / tối → AI học giọng văn, độ dài, cách mở / kết của người duyệt
+async function edPairs(x, slot) {
+  const rows = await all(x.db, "SELECT slot, topic, ai_text, text, ed_by FROM zb_posts WHERE ed_at > ? AND COALESCE(ai_text, '') != '' AND status != 'skip' AND slot IN ('sang', 'toi') ORDER BY (slot = ?) DESC, ed_at DESC LIMIT 6", Date.now() - 60 * DAY, slot);
+  const ok = rows.filter(r => edNorm(r.ai_text) !== edNorm(r.text)).slice(0, 3);
+  if (!ok.length) return '';
+  const cut = (t, n) => { t = String(t).trim(); return t.length > n ? t.slice(0, n) + '…' : t; };
+  return 'NGƯỜI DUYỆT ĐÃ SỬA BÀI BẠN VIẾT NHƯ SAU (học cách họ sửa: giọng văn, độ dài, câu mở / câu kết, chữ họ bỏ đi hay thêm vào, cách xuống dòng, emoji. Viết bài hôm nay theo đúng kiểu người duyệt muốn. KHÔNG chép chủ đề hay nội dung các bài này):\n' +
+    ok.map((r, i) => '【Ví dụ ' + (i + 1) + ' · bài ' + (r.slot === 'toi' ? 'tối' : 'sáng') + ' · ' + r.topic + '】\nBẠN VIẾT:\n' + cut(r.ai_text, 900) + '\n→ NGƯỜI DUYỆT SỬA THÀNH:\n' + cut(r.text, 900)).join('\n\n');
+}
+
 export async function zWrite(x, day, slot, hint, by, grp) {
   const know = await kb(), prods = prodMap(know), wd = new Date(slotTime(day, '12:00') + TZ_MS).getUTCDay();
   const recent = await all(x.db, "SELECT day, slot, topic, img FROM zb_posts WHERE topic != '' AND slot != 'chuc' ORDER BY day DESC LIMIT 20");
@@ -750,6 +763,7 @@ export async function zWrite(x, day, slot, hint, by, grp) {
   const tod = hh < 9 ? 'sáng sớm' : hh < 11 ? 'buổi sáng' : hh < 13 ? 'buổi trưa' : hh < 18 ? 'buổi chiều' : 'buổi tối';
   const ip = await insPick(x, 'zalo', grp || og || (pl ? pl.g : ''), Object.assign(pl && pl.sp ? { prod: pl.sp } : {}, { noBig: !!(th.ev && !th.moved && th.f === 'TOFU') })); // nhân sự chọn nhóm khi viết lại > nhóm cũ > nhóm trong kế hoạch; bài chúc dịp lễ không theo big idea
   const plTn = pl && pl.tn && ip.g && ip.g.id === pl.g ? pl.tn : '';
+  const edits = await edPairs(x, slot);
   const learn = scored.length >= 4 ? 'Bài cùng loại trong nhóm này được nhiều người hưởng ứng nhất (học cách đặt vấn đề, cách hỏi):\n' + scored.slice(0, 3).map(r => '- ' + r.topic + ' (' + r.eng_people + ' người)').join('\n') + '\nBài ít người hưởng ứng (tránh kiểu này):\n' + scored.slice(-2).map(r => '- ' + r.topic + ' (' + r.eng_people + ' người)').join('\n') : '';
   const ask = [
     'Viết 1 bài đăng nhóm Zalo cộng đồng "Sống khỏe cùng Thực Dưỡng Lành" (thành viên phần lớn là cô chú trung niên, mẹ bỉm, người ăn chay, dân văn phòng).',
@@ -762,6 +776,7 @@ export async function zWrite(x, day, slot, hint, by, grp) {
     th.fb ? (fb ? 'CẢM NHẬN KHÁCH HÀNG (thật, khách đồng ý chia sẻ; chỉ dùng đúng ý này, không thêm chi tiết, không nêu họ tên đầy đủ – gọi "một chị khách", "anh khách quen"…):\n' + fb.note : 'Chưa có cảm nhận khách hàng mới: thay bằng câu hỏi mời mọi người kể trải nghiệm dùng sản phẩm của mình (không bịa cảm nhận).') : '',
     th.f === 'BOFU' ? (offers.length ? 'ƯU ĐÃI ĐANG CHẠY (chỉ nói đúng như sau):\n' + offers.map(o => '- ' + [o.title, o.prod ? 'sản phẩm: ' + o.prod : '', o.text, o.until ? 'hạn đến ' + o.until : ''].filter(Boolean).join(' · ')).join('\n') : 'Hiện không có ưu đãi riêng: không bịa khuyến mãi, chỉ nhắc freeship đơn từ 300k và được kiểm hàng trước khi nhận.') : '',
     learn,
+    edits,
     recent.length ? 'Các bài gần đây (KHÔNG lặp lại chủ đề / nguyên liệu / món / sản phẩm đã viết trong 7 ngày):\n' + recent.map(r => '- ' + r.day.slice(6, 8) + '/' + r.day.slice(4, 6) + ' ' + (SLOT_NAME[r.slot] || r.slot) + ': ' + r.topic).join('\n') : '',
     '',
     'Giọng văn: như một người chăm nhóm thật, ấm áp, gần gũi, kính trọng ("cô chú, anh chị"), xưng "Thực Dưỡng Lành" hoặc "em". Không văn quảng cáo, không giật tít, không hù dọa bệnh tật.',
@@ -794,9 +809,9 @@ export async function zWrite(x, day, slot, hint, by, grp) {
   // link web trong bài → gắn mã bài để CRM đếm đơn từ bài này (đơn ghi nguồn "zalo / nhom / <mã bài>")
   const tagged = tagLinks(body.replace(/(^|[\s(])_([^_\n]+)_(?=[\s).,!?]|$)/gm, '$1$2').replace(/(^|[\s(])\*([^*\n]+)\*(?=[\s).,!?]|$)/gm, '$1$2'), id);
   if (fb) { const all = (await kvJson(x.db, 'zb_fb', [])) || []; for (const f of all) if (f.id === fb.id) f.used = now; await kvSet(x.db, 'zb_fb', JSON.stringify(all)); }
-  await run(x.db, `INSERT INTO zb_posts (id, day, slot, topic, text, img, prod, status, by_name, at, funnel, ev, ins, at_time, plan) VALUES (?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?, ?, ?, ?, ?, ?)
-    ON CONFLICT(id) DO UPDATE SET topic = excluded.topic, text = excluded.text, img = excluded.img, prod = excluded.prod, status = 'draft', by_name = excluded.by_name, at = excluded.at, funnel = excluded.funnel, ev = excluded.ev, ins = excluded.ins, at_time = excluded.at_time, plan = excluded.plan`,
-    id, day, slot, topic, tagged.slice(0, 4000), img, prods[code] ? code : '', by || 'AI', now, th.f, th.ev || '', JSON.stringify(ins), atT, pl ? pl.status : '');
+  await run(x.db, `INSERT INTO zb_posts (id, day, slot, topic, text, img, prod, status, by_name, at, funnel, ev, ins, at_time, plan, ai_text, ed_by, ed_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?, ?, ?, ?, ?, ?, ?, '', NULL)
+    ON CONFLICT(id) DO UPDATE SET ai_text = excluded.ai_text, ed_by = '', ed_at = NULL, topic = excluded.topic, text = excluded.text, img = excluded.img, prod = excluded.prod, status = 'draft', by_name = excluded.by_name, at = excluded.at, funnel = excluded.funnel, ev = excluded.ev, ins = excluded.ins, at_time = excluded.at_time, plan = excluded.plan`,
+    id, day, slot, topic, tagged.slice(0, 4000), img, prods[code] ? code : '', by || 'AI', now, th.f, th.ev || '', JSON.stringify(ins), atT, pl ? pl.status : '', tagged.slice(0, 4000));
   await insLog(x, 'zalo', { g: ins.g, gn: ins.gn, f: th.f, t: ins.t, ref: id, sp: prods[code] ? code : '', a: ins.a, b: ins.b });
   if (!slotAuto(cfg, slot) && !by) x.later(telegram(x.env, '📝 <b>Bài Zalo chờ duyệt</b> – ' + (SLOT_NAME[slot] || slot) + ' ' + WD[wd] + ' ' + day.slice(6, 8) + '/' + day.slice(4, 6) + ' lúc ' + at.replace(':', 'h') + (th.ev ? ' · 📅 ' + esc(th.ev) : '') + (pl ? (pl.status === 'ok' ? ' · 📋 theo chủ đề đã duyệt' : ' · ⚠️ chủ đề kế hoạch chưa duyệt') : '') + ': ' + esc(topic) + '\n👉 Duyệt / sửa: ' + CRM_URL + '/#tro-ly-zalo'));
   return { id, topic };
@@ -809,7 +824,9 @@ export async function crmZbot(x, u, d, crmLog) {
   if (a === 'zb_view') {
     const cfg = await zCfg(x), st = await kvJson(x.db, 'zb_status', null);
     const from = fmtDate(now - DAY, 'yyyyMMdd');
-    const posts = await all(x.db, 'SELECT id, day, slot, topic, text, img, prod, status, by_name, at, sent_at, funnel, ev, ins, eng_msgs, eng_people, eng_reacts, at_time, plan FROM zb_posts WHERE day >= ? ORDER BY day, slot', from);
+    const posts = await all(x.db, 'SELECT id, day, slot, topic, text, img, prod, status, by_name, at, sent_at, funnel, ev, ins, eng_msgs, eng_people, eng_reacts, at_time, plan, ed_by, ed_at FROM zb_posts WHERE day >= ? ORDER BY day, slot', from);
+    const edRows = await all(x.db, "SELECT ai_text, text, ed_by FROM zb_posts WHERE ed_at > ? AND COALESCE(ai_text, '') != '' AND slot IN ('sang', 'toi')", now - 60 * DAY);
+    const edOk = edRows.filter(r => edNorm(r.ai_text) !== edNorm(r.text)), learnEd = { n: edOk.length, by: [...new Set(edOk.map(r => r.ed_by).filter(Boolean))] }; // ✍️ số bài sửa trợ lý đang học (60 ngày)
     const plan = await all(x.db, 'SELECT * FROM zb_plan WHERE day >= ? ORDER BY day, slot LIMIT 200', fmtDate(now, 'yyyyMMdd')); // 📋 kế hoạch chủ đề từ hôm nay
     // 30 ngày: bài đã đăng + tương tác + đơn từ link trong bài (nguồn đơn "zalo / nhom / <mã bài>")
     const since = now - 30 * DAY, done = await all(x.db, "SELECT id, funnel, eng_msgs, eng_people, eng_reacts FROM zb_posts WHERE status = 'sent' AND sent_at >= ?", since);
@@ -833,7 +850,7 @@ export async function crmZbot(x, u, d, crmLog) {
     const manual = man.map(p => { const r = mo.filter(o => o.ref === p.id), po = r.filter(o => o.kind === 'post'), wait = po.filter(o => o.status === 'new');
       return { id: p.id, text: p.text, img: p.img, by: p.by_name, at: p.at, status: p.status, sent_at: p.sent_at, funnel: p.funnel, due: wait.length ? Math.min(...wait.map(o => o.due)) : 0, wait: wait.length, err: po.some(o => o.status === 'err'),
         can: po.some(o => o.status === 'done' && o.msgs && !o.undone), undone: po.length > 0 && po.every(o => o.undone), undoing: r.some(o => o.kind === 'undo' && (o.status === 'new' || o.status === 'sent')) }; }).sort((a, b) => (b.due || b.sent_at || b.at) - (a.due || a.sent_at || a.at));
-    return { ok: true, manual, recallOk: !!(st && String(st.ver || '') >= RECALL_VER), cfg, status: st, posts, plan, prods, mix: Object.fromEntries(Object.entries(MIX).map(([k, v]) => [k, v.name])), log, open, lib, funnel, act, actDays, trial: TIME_TRIAL, trialRes, days: upcoming(fmtDate(now, 'yyyyMMdd'), 45, baseTheme), stats, users, err: await kvGet(x.db, 'zb_write_err'), planErr: await kvGet(x.db, 'zb_plan_err'), key: !!x.env.ZBOT_KEY, aiOn: !!x.env.ANTHROPIC_API_KEY, now,
+    return { ok: true, learnEd, manual, recallOk: !!(st && String(st.ver || '') >= RECALL_VER), cfg, status: st, posts, plan, prods, mix: Object.fromEntries(Object.entries(MIX).map(([k, v]) => [k, v.name])), log, open, lib, funnel, act, actDays, trial: TIME_TRIAL, trialRes, days: upcoming(fmtDate(now, 'yyyyMMdd'), 45, baseTheme), stats, users, err: await kvGet(x.db, 'zb_write_err'), planErr: await kvGet(x.db, 'zb_plan_err'), key: !!x.env.ZBOT_KEY, aiOn: !!x.env.ANTHROPIC_API_KEY, now,
       insG: (await insBank(x)).map(g => ({ id: g.id, name: g.name, on: g.on, tn: g.tensions.slice(0, 30) })) };
   }
   if (a === 'zb_cfg') {
@@ -868,6 +885,8 @@ export async function crmZbot(x, u, d, crmLog) {
       }
     }
     await run(x.db, 'UPDATE zb_posts SET text = ?, topic = ?, funnel = ?, ins = ?, status = ?, by_name = ?, at = ? WHERE id = ?', text, topic, funnel, ins, st, u.name, now, p.id);
+    if (['sang', 'toi'].includes(p.slot) && edNorm(text) !== edNorm(p.text)) // ✍️ 12/11/2026: nhân sự sửa chữ bài AI → giữ bản AI (bài cũ chưa có ai_text thì lấy chữ trước khi sửa), ghi người sửa để trợ lý học
+      await run(x.db, "UPDATE zb_posts SET ai_text = CASE WHEN COALESCE(ai_text, '') = '' THEN ? ELSE ai_text END, ed_by = ?, ed_at = ? WHERE id = ?", p.text, u.name, now, p.id);
     await crmLog(x, u, 'Bài Zalo', p.id, '', ({ ok: 'Duyệt', skip: 'Bỏ', draft: 'Sửa' }[st] || st) + (funnel !== p.funnel ? ' · phễu ' + (p.funnel || '–') + ' → ' + funnel : ''), topic);
     return { ok: true, warn: d.text !== undefined && d.text !== p.text ? await quizWarn(x, p) : '' };
   }

@@ -83,6 +83,12 @@ Khung xanh nhạt bên dưới là **bài sẽ hiện y như vậy trên Zalo** 
 2. Nếu viết lại hẳn sang nội dung khác (ví dụ đổi bài đố vui thành bài nhắc ưu đãi) thì sửa luôn các ô **Chủ đề**, **Tầng phễu**, **🎯 Nhóm khách** và **Tension** phía trên ô chữ, để bảng hiệu quả tính đúng loại bài. Ô Tension có gợi ý sẵn các tension của nhóm khách đang chọn, gõ câu khác cũng được. Các ô này không đăng lên nhóm.
 3. Bấm **💾 Lưu**, rồi bấm **✅ Duyệt bài này**. Bấm **Huỷ** nếu không muốn sửa nữa.
 
+**✍️ Trợ lý học từ bài bạn sửa:** mỗi lần bạn sửa chữ và bấm **💾 Lưu**, trợ lý giữ lại bản nó viết và bản bạn sửa. Khi viết bài mới, trợ lý xem 3 bài bạn sửa gần nhất để học: giọng văn, độ dài, câu mở đầu, câu kết, chữ bạn hay bỏ đi. Thẻ bài sẽ hiện dòng **✍️ … đã sửa chữ · trợ lý sẽ học từ bản sửa này**. Trên đầu khu bài đăng có dòng cho biết trợ lý đang học từ bao nhiêu bài.
+
+- Sửa càng đều tay, trợ lý viết càng giống ý bạn.
+- Chỉ đổi ảnh, đổi giờ hoặc bấm duyệt thì không tính là sửa.
+- Bấm **🔄 Viết lại** thì bản sửa của bài đó bị thay bằng bài mới, nên muốn trợ lý học thì sửa chữ thay vì viết lại.
+
 Bài đã duyệt hiện **✅ Đã duyệt · sẽ đăng…**. Đổi ý thì bấm **↩️ Bỏ duyệt**.
 
 ### ⏰ Hẹn giờ đăng riêng cho 1 bài
