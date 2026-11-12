@@ -6973,7 +6973,7 @@
    * Quy trình (khoá content Tuấn Hà): nhóm khách → 1 tension → tầng phễu TOFU / MOFU / BOFU → viết bài gỡ tension, có 1 lối ra. */
   var IN = { d: null, busy: 0, err: '' };
   var IN_CH = { web: '🌐 Web', zalo: '💬 Zalo', fb: '📘 Fanpage', video: '🎬 Video' };
-  var IN_FN = { TOFU: '🔵 TOFU · Nhận biết', MOFU: '⚪ MOFU · Cân nhắc', BOFU: '🟠 BOFU · Mua hàng' };
+  var IN_FN = { TOFU: '🔵 Thu hút (TOFU)', MOFU: '⚪ Tạo niềm tin (MOFU)', BOFU: '🟠 Bán hàng (BOFU)' };
   var IN_GENRE = { '': 'Tự chọn theo tension', kich: '🎭 Diễn kịch ngắn', tinh: '🧩 Tình huống', review: '⭐ Review / trải nghiệm thật', giai: '💡 Giải thích 1-2-3', trai: '🎥 Một khoảnh khắc (POV)' };
   var IN_KIND = { noi: '🙋 Người thật nói trước máy', canh: '🎥 Quay cảnh + giọng đọc (không lộ mặt)', chu: '🖼 Ảnh có sẵn + chữ + giọng đọc (không quay)' };
   function inFetch() {
@@ -6998,17 +6998,17 @@
   /** 🏷 Insight theo sản phẩm + 🌐 tension dùng chung */
   function inProdHtml(bank) {
     var M = (IN.d && IN.d.sp) || {}, on = bank.filter(function (g) { return g.on; });
-    var h = '<h2 class="zb-h">🏷 Insight theo sản phẩm</h2><p class="small muted">Tension có nhãn 🏷 là riêng của sản phẩm đó (trợ lý chỉ dùng khi bài nói về sản phẩm này). Tension 🌐 dùng chung hợp mọi sản phẩm và mọi bài thu hút (TOFU). Gắn nhãn bằng cách thêm <code>[SP: dilvang]</code> cuối dòng tension khi bấm ✏️ Sửa nhóm.</p>';
+    var h = '<h2 class="zb-h">🏷 Nỗi lòng theo sản phẩm</h2><p class="small muted">Dòng có nhãn 🏷 chỉ dùng khi bài nói về sản phẩm đó. Dòng 🌐 dùng chung hợp mọi bài. Gắn nhãn: thêm <code>[SP: dilvang]</code> cuối dòng khi bấm ✏️ Sửa nhóm.</p>';
     h += Object.keys(M).map(function (k) {
       var c = M[k][0], rows = [], gs = on.filter(function (g) { return (g.prods || []).indexOf(c) >= 0 || g.tensions.some(function (t) { return inTen(t).sp.indexOf(c) >= 0; }); });
       gs.forEach(function (g) { g.tensions.forEach(function (t) { var x = inTen(t); if (x.sp.indexOf(c) >= 0) rows.push('<li><b>' + esc(g.name) + ':</b> ' + esc(x.t) + '</li>'); }); });
       var common = gs.reduce(function (n, g) { return n + g.tensions.filter(function (t) { return !inTen(t).sp.length; }).length; }, 0);
-      return '<details class="box inx-pd"><summary><b>' + esc(M[k][1]) + '</b> <span class="small muted">' + rows.length + ' tension riêng · ' + gs.length + ' nhóm khách · +' + common + ' tension dùng chung</span></summary>' +
+      return '<details class="box inx-pd"><summary><b>' + esc(M[k][1]) + '</b> <span class="small muted">' + rows.length + ' nỗi lòng riêng · ' + gs.length + ' nhóm khách · +' + common + ' tension dùng chung</span></summary>' +
         '<p class="small">👥 ' + (gs.length ? esc(gs.map(function (g) { return g.name; }).join(', ')) : 'Chưa có nhóm khách nào gắn sản phẩm này') + '</p>' +
-        (rows.length ? '<ul class="small inx-tl">' + rows.join('') + '</ul>' : '<p class="small muted">Chưa có tension riêng: trợ lý dùng tension 🌐 dùng chung của các nhóm trên.</p>') + '</details>';
+        (rows.length ? '<ul class="small inx-tl">' + rows.join('') + '</ul>' : '<p class="small muted">Chưa có nỗi lòng riêng: trợ lý dùng các dòng 🌐 dùng chung của nhóm trên.</p>') + '</details>';
     }).join('');
     var all = []; on.forEach(function (g) { var L = g.tensions.filter(function (t) { return !inTen(t).sp.length; }); if (L.length) all.push('<p class="small" style="margin:8px 0 2px"><b>' + esc(g.name) + '</b></p><ul class="small inx-tl">' + L.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>'); });
-    h += '<details class="box inx-pd"><summary><b>🌐 Tension dùng chung cho mọi sản phẩm</b> <span class="small muted">' + on.reduce(function (n, g) { return n + g.tensions.filter(function (t) { return !inTen(t).sp.length; }).length; }, 0) + ' tension</span></summary>' + all.join('') + '</details>';
+    h += '<details class="box inx-pd"><summary><b>🌐 Nỗi lòng dùng chung cho mọi sản phẩm</b> <span class="small muted">' + on.reduce(function (n, g) { return n + g.tensions.filter(function (t) { return !inTen(t).sp.length; }).length; }, 0) + ' tension</span></summary>' + all.join('') + '</details>';
     return h;
   }
   /** 🎯 nhóm khách · tension của 1 bài (cột ins JSON ở Zalo / Fanpage, meta ở bài web) */
@@ -7067,7 +7067,7 @@
     if (log.length) h += '<p class="small inx-prd">🏷 <b>Theo sản phẩm:</b> ' + Object.keys(bySp).sort(function (a, b) { return bySp[b] - bySp[a]; }).map(function (k) { return (k ? esc(inSpName(k)) : 'không nói sản phẩm') + ' <b>' + bySp[k] + '</b>'; }).join(' · ') + '</p>';
     h += '</div>';
     var fc = Object.keys(IN_CH).filter(function (c) { return fun[c] && fun[c].n; });
-    if (fc.length) h += '<div class="box"><div class="zb-ph"><b>🔻 Tầng phễu theo kênh</b></div><p class="small muted" style="margin-top:0">Nên giữ khoảng <span class="inx-dot t"></span> Thu hút 60% · <span class="inx-dot m"></span> Tạo niềm tin 25% · <span class="inx-dot b"></span> Bán hàng 15%.</p>' +
+    if (fc.length) h += '<div class="box"><div class="zb-ph"><b>🔻 Loại bài theo kênh</b></div><p class="small muted" style="margin-top:0">Nên giữ khoảng <span class="inx-dot t"></span> Thu hút 60% · <span class="inx-dot m"></span> Tạo niềm tin 25% · <span class="inx-dot b"></span> Bán hàng 15%.</p>' +
       fc.map(function (c) {
         var f = fun[c], seg = function (k, cl) { var p = Math.round((f[k] || 0) * 100 / f.n); return p ? '<i class="' + cl + '" style="width:' + p + '%">' + (p >= 12 ? p + '%' : '') + '</i>' : ''; };
         return '<div class="inx-frow"><span class="small">' + IN_CH[c] + '</span><div class="inx-fbar">' + seg('TOFU', 't') + seg('MOFU', 'm') + seg('BOFU', 'b') + '</div></div>';
@@ -7089,6 +7089,8 @@
     L = L.slice(0, 3);
     return '<div class="box inx-todo"><div class="zb-ph"><b>👉 Nên làm ngay</b></div>' + (L.length ? L.map(function (x) { return '<div class="inx-todo-r"><p class="small">' + x[0] + '</p>' + x[1] + '</div>'; }).join('') : '<p class="small">✅ Mọi thứ đang ổn. Trợ lý tự viết bài theo lịch, anh chị chỉ cần duyệt bài.</p>') + '</div>';
   }
+  /** 1 dòng đầu mỗi thẻ: 📌 dùng để · 👉 nên làm (12/11/2026) */
+  function inTabi(dung, lam, note) { return '<div class="inx-tabi"><p>📌 <b>Dùng để:</b> ' + dung + '</p><p>👉 <b>Nên làm:</b> ' + lam + '</p>' + (note ? '<p class="muted">' + note + '</p>' : '') + '</div>'; }
   var IN_TABS = [['tong', '📊 Tổng quan'], ['tao', '✍️ Tạo nội dung'], ['nhom', '👥 Nhóm khách'], ['cai', '⚙️ Cài đặt']];
   function viewIns() {
     if (!IN.d && !IN.err && !IN.busy) setTimeout(inFetch, 0);
@@ -7097,8 +7099,8 @@
       '<p class="muted small lq-intro">Nơi dạy trợ lý AI <b>viết cho ai, chạm nỗi lòng gì</b>. Sửa ở đây là cả 4 trợ lý (bài web, nhóm Zalo, Fanpage, video) viết theo. <a href="/huong-dan/marketing/#insight-noi-dung" target="_blank" rel="noopener">Xem hướng dẫn</a></p>';
     if (!IN.d) return h + '<div class="box"><p class="muted">' + (IN.err ? '⚠️ ' + esc(IN.err) + ' <button class="link" data-in="reload">Thử lại</button>' : '⏳ Đang tải…') + '</p></div>';
     var j = IN.d, bank = j.bank || [], ed = inCanEdit(), tab = IN.tab;
-    h += '<div class="inx-flow"><div><b>1</b>👥 Chọn<br>nhóm khách</div><div><b>2</b>⚡ Chọn tension<br><small>điều họ mong ↔ điều cản họ</small></div><div><b>3</b>🔻 Chọn<br>tầng phễu</div><div><b>4</b>✍️ Viết bài<br>gỡ tension đó</div></div>';
-    h += '<details class="zb-info small"><summary>ⓘ Tìm hiểu thêm: quy trình 4Is (khoá content K133)</summary><ol>' +
+    h += '<div class="inx-flow"><div><b>1</b>👥 Chọn<br>nhóm khách</div><div><b>2</b>⚡ Chọn<br>nỗi lòng<small>điều họ mong ↔ điều cản họ</small></div><div><b>3</b>🔻 Chọn<br>loại bài<small>thu hút · niềm tin · bán</small></div><div><b>4</b>✍️ Viết bài<br>gỡ nỗi lòng đó</div></div>';
+    h += '<details class="zb-info small"><summary>ⓘ Tìm hiểu thêm: trợ lý viết bài theo cách nào (khoá content K133)</summary><ol>' +
       '<li><b>🔎 Issue</b>: 1 vấn đề cụ thể quan sát được của nhóm khách trong 1 cảnh (vd "2 giờ sáng cho con bú, khát mà không ai đun nước"). <b>🎯 Insight</b>: vì sao họ kẹt = tension. <b>💡 Idea</b>: góc tiếp cận gỡ tension. <b>✍️ Implementation</b>: viết đúng kênh, đúng tầng phễu. Thẻ bài ghi đủ 3 dòng 🔎 🎯 💡 để người duyệt kiểm tra.</li>' +
       '<li><b>Insight là tension</b>: thế giằng co khi điều khách <b>mong</b> va vào <b>rào cản</b> trong 1 cảnh đời cụ thể. Ví dụ: “Biết phải ăn sáng đủ chất ↔ sáng nào cũng vội, ăn tạm hoặc bỏ bữa”.</li>' +
       '<li><b>🌟 Big idea → 🎭 góc kể</b> (khoá K131): mỗi nhóm khách nên có 1 ý lớn chạy 2–4 tuần để mọi kênh nói nhất quán; big idea chia thành ~10 góc kể, mỗi bài 1 góc, trợ lý tự xoay vòng góc ít dùng nhất. Bài thu hút (TOFU) không xoay quanh sản phẩm.</li>' +
@@ -7112,11 +7114,11 @@
     if (tab === 'tao') {
       // 🎬 kịch bản video
       var gOpt = '<option value="">🔄 Tự chọn (nhóm ít video nhất)</option>' + bank.filter(function (g) { return g.on; }).map(function (g) { return '<option value="' + esc(g.id) + '"' + (IN.vg === g.id ? ' selected' : '') + '>' + esc(g.name) + '</option>'; }).join('');
-      h += '<p class="small muted inx-tabi">Bài web, nhóm Zalo, Fanpage trợ lý <b>tự viết theo lịch</b> (duyệt ở từng tab). Ở đây anh chị tự tạo thêm khi cần.</p>';
+      h += inTabi('Tự tạo thêm nội dung khi cần: kịch bản video, câu lệnh ảnh, bài Facebook cho sale, ưu đãi. Bài web, Zalo, Fanpage thì trợ lý đã tự viết theo lịch.', 'Chọn nhóm khách rồi bấm <b>🎬 Viết kịch bản</b>. Các ô khác để AI tự chọn cũng được.');
       h += '<div class="box inx-vd" id="inVd"><div class="zb-ph"><b>🎬 Viết kịch bản video ngắn</b></div>' +
-        '<p class="small muted" style="margin-top:0">Video dọc 9:16 cho TikTok, Reels, Shorts: Hook → Chẩn đoán → Giải pháp 1-2-3 → Kết + 1 lối ra. Có 3 câu hook, bảng cảnh quay, lời đọc sạch, caption. Chỉ cần bấm nút, các ô dưới để AI tự chọn cũng được.</p>' +
+        '<p class="small muted" style="margin-top:0">Video dọc cho TikTok, Reels, Shorts. AI viết sẵn câu mở đầu, từng cảnh quay, lời đọc và caption.</p>' +
         '<div class="inx-grid"><label class="f"><span>🎯 Nhóm khách</span><select id="inVg">' + gOpt + '</select></label>' +
-        '<label class="f"><span>Tầng phễu</span><select id="inVf"><option value="">Tự chọn theo tension</option>' + ['TOFU', 'MOFU', 'BOFU'].map(function (k) { return '<option value="' + k + '">' + IN_FN[k] + '</option>'; }).join('') + '</select></label>' +
+        '<label class="f"><span>Loại bài</span><select id="inVf"><option value="">AI tự chọn</option>' + ['TOFU', 'MOFU', 'BOFU'].map(function (k) { return '<option value="' + k + '">' + IN_FN[k] + '</option>'; }).join('') + '</select></label>' +
         '<label class="f"><span>Sản phẩm (không bắt buộc)</span><select id="inVp"><option value="">Không / để AI chọn</option>' + (j.prods || []).map(function (p) { return '<option value="' + esc(p.code) + '">' + esc(p.name) + '</option>'; }).join('') + '</select></label>' +
         '<label class="f"><span>Độ dài</span><select id="inVs">' + [15, 30, 45, 60, 90, 180, 300].map(function (n) { return '<option value="' + n + '"' + (n === 45 ? ' selected' : '') + '>' + (n > 90 ? n / 60 + ' phút (video dài ngang, YouTube)' : n + ' giây') + '</option>'; }).join('') + '</select></label>' +
         '<label class="f"><span>Kiểu quay</span><select id="inVk">' + Object.keys(IN_KIND).map(function (k) { return '<option value="' + k + '">' + IN_KIND[k] + '</option>'; }).join('') + '</select></label>' +
@@ -7133,37 +7135,37 @@
       h += '<h2 class="zb-h">🧰 Công cụ khác</h2><div class="inx-cards">' +
         '<div class="box"><b>📸 Câu lệnh tạo ảnh</b><p class="small muted">AI viết 3 câu lệnh để dán vào ChatGPT hoặc Gemini, giữ nguyên bao bì thật.</p><button class="btn sm" data-in="img">📸 Viết câu lệnh</button></div>' +
         (ed ? '<div class="box"><b>📣 Bài Facebook cá nhân cho sale</b><p class="small muted">Bài kể chuyện đời thường + bình luận ghim có link riêng từng sale.</p><button class="btn sm" data-spf="admin">📣 Mở</button></div>' +
-          '<div class="box"><b>🎁 Viết offer</b><p class="small muted">Dựng ưu đãi "khó từ chối" cho 1 sản phẩm + 1 tension, lưu nháp để duyệt giá.</p><button class="btn sm" data-in="offer">🎁 Viết offer</button></div>' : '') + '</div>';
+          '<div class="box"><b>🎁 Viết offer</b><p class="small muted">Dựng ưu đãi "khó từ chối" cho 1 sản phẩm + 1 nỗi lòng khách, lưu nháp để duyệt giá.</p><button class="btn sm" data-in="offer">🎁 Viết offer</button></div>' : '') + '</div>';
       h += inOffersHtml(j, ed);
     } else if (tab === 'nhom') {
       var nOn = bank.filter(function (g) { return g.on; }).length;
-      h += '<p class="small muted inx-tabi">Bấm vào tên nhóm để xem. Mỗi nhóm khách có <b>💚 mong muốn</b>, <b>🧱 rào cản</b> và các <b>⚡ tension</b>. Trợ lý chọn 1 tension rồi mới viết; tension xếp trên được ưu tiên. ' + (j.custom ? 'Đã chỉnh riêng' : 'Đang dùng bản mặc định') + ' · ' + nOn + ' / ' + bank.length + ' nhóm đang dùng.</p>';
-      if (ed) h += '<div class="lq-btns inx-acts"><button class="btn pri" data-in="find">🔍 AI tìm insight mới</button><button class="btn" data-in="imp">📥 Dán kết quả skill</button><button class="btn" data-in="gnew">➕ Thêm nhóm khách</button></div>';
+      h += inTabi('Cho trợ lý biết mỗi nhóm khách <b>mong gì</b> và <b>bị cản bởi điều gì</b>. Trợ lý chọn 1 nỗi lòng rồi mới viết, dòng xếp trên được ưu tiên.', 'Bấm tên nhóm để xem. Thấy chưa đúng với khách thật thì bấm <b>✏️ Sửa</b>.', nOn + ' / ' + bank.length + ' nhóm đang dùng · ' + (j.custom ? 'đã chỉnh riêng' : 'bản mặc định'));
+      if (ed) h += '<div class="lq-btns inx-acts"><button class="btn pri" data-in="find">🔍 AI tìm nỗi lòng mới</button><button class="btn" data-in="imp">📥 Dán kết quả skill</button><button class="btn" data-in="gnew">➕ Thêm nhóm khách</button></div>';
       h += bank.map(function (g, i) {
         var more = (g.trust ? '<p><b>🤝 Họ tin ai:</b> ' + esc(g.trust) + '</p>' : '') + (g.kw ? '<p><b>🔍 Họ hay tìm:</b> ' + esc(g.kw) + '</p>' : '') + (g.where ? '<p><b>📍 Nơi họ tụ tập:</b> ' + esc(g.where) + '</p>' : '') +
           (g.roles ? '<p><b>👥 3 vai:</b> ' + esc(g.roles) + '</p>' : '') + (g.real ? '<p><b>🗣 Lý do nói ra → lý do thật:</b> ' + esc(g.real) + '</p>' : '') + (g.excuse ? '<p><b>🎁 Cái cớ để mua:</b> ' + esc(g.excuse) + '</p>' : '') + (g.pay ? '<p><b>💰 Khả năng chi trả:</b> ' + esc(g.pay) + '</p>' : '') +
           ((g.prods || []).length ? '<p><b>🏷 Sản phẩm hợp:</b> ' + esc(g.prods.map(inSpName).join(', ')) + '</p>' : '') + (g.note ? '<p class="muted">📝 ' + esc(g.note) + '</p>' : '');
         var td = isoDate(Date.now()), run = (g.bigs || []).some(function (b) { return b.on && b.ang.length && (!b.until || b.until >= td); });
-        return '<details class="box inx-g' + (g.on ? '' : ' bw-off') + '"' + (IN.gOpen === i ? ' open' : '') + '><summary><span class="inx-gs"><b>' + esc(g.name) + '</b><span class="small muted">' + (g.on ? '🟢 Đang dùng' : '⏸ Tạm tắt') + ' · ' + g.tensions.length + ' tension' + (run ? ' · 🌟 có big idea' : '') + '</span></span></summary>' +
+        return '<details class="box inx-g' + (g.on ? '' : ' bw-off') + '"' + (IN.gOpen === i ? ' open' : '') + '><summary><span class="inx-gs"><b>' + esc(g.name) + '</b><span class="small muted">' + (g.on ? '🟢 Đang dùng' : '⏸ Tạm tắt') + ' · ' + g.tensions.length + ' nỗi lòng' + (run ? ' · 🌟 có ý lớn' : '') + '</span></span></summary>' +
           (g.who ? '<p class="small muted">' + esc(g.who) + '</p>' : '') +
           (g.want || g.block ? '<div class="inx-wb">' + (g.want ? '<div><b>💚 Họ mong</b><p class="small">' + esc(g.want) + '</p></div>' : '') + (g.block ? '<div><b>🧱 Điều cản họ</b><p class="small">' + esc(g.block) + '</p></div>' : '') + '</div>' : '') +
-          '<p class="small" style="margin:8px 0 0"><b>⚡ Tension</b> <span class="muted">(mong ↔ cản)</span></p><ul class="small inx-tl">' + g.tensions.map(function (t) { return '<li>' + inTenHtml(t) + '</li>'; }).join('') + '</ul>' + inBigHtml(g) +
+          '<p class="small" style="margin:8px 0 0"><b>⚡ Nỗi lòng</b> <span class="muted">(tension): điều họ mong ↔ điều cản họ</span></p><ul class="small inx-tl">' + g.tensions.map(function (t) { return '<li>' + inTenHtml(t) + '</li>'; }).join('') + '</ul>' + inBigHtml(g) +
           (more ? '<details class="small inx-more"><summary>📋 Chân dung đầy đủ (họ tin ai, hay tìm gì, ở đâu…)</summary>' + more + '</details>' : '') +
           (ed ? '<div class="lq-btns"><button class="btn sm" data-in="ged|' + i + '">✏️ Sửa</button><button class="btn sm ghost" data-in="gon|' + i + '">' + (g.on ? '⏸ Tạm tắt' : '▶️ Bật lại') + '</button><button class="btn sm ghost" data-in="gdel|' + i + '">🗑 Xoá</button></div>' : '') + '</details>';
       }).join('');
       h += inProdHtml(bank);
       if (ed && j.custom) h += '<div class="lq-btns"><button class="btn ghost" data-in="reset">↩️ Dùng lại bản mặc định</button></div>';
     } else if (tab === 'cai') {
-      h += '<p class="small muted inx-tabi">Những thứ trợ lý đọc thêm trước khi viết. Thường chỉ cần ghi <b>🔥 chuyện đang nóng</b> khi có, còn lại để nguyên.</p>';
+      h += inTabi('Những điều trợ lý đọc thêm trước khi viết: dịp sắp tới, chuyện đang nóng, từ khoá bài web, phương pháp.', 'Thường chỉ cần ghi <b>🔥 Chuyện đang nóng</b> khi có. Còn lại để nguyên.');
       h += inEvHtml(j, ed) + inKwHtml(j, ed) + inSkillsHtml(j, ed);
     } else {
-      h += inStatsHtml(j) + inLearnHtml(j.learn, j.fpNf);
+      h += inTabi('Xem 30 ngày qua trợ lý đã viết cho nhóm khách nào, bao nhiêu bài thu hút, tạo niềm tin, bán hàng.', 'Mỗi tuần xem 1 lần. Nhóm nào chưa có bài thì bấm tên nhóm để viết.') + inStatsHtml(j) + inLearnHtml(j.learn, j.fpNf);
     }
     return h;
   }
   /** 🌟 big idea của nhóm (khoá K131): khối đầu đang bật = đang chạy, trợ lý xoay vòng 10 góc kể của nó; các khối sau để dành */
   function inBigHtml(g) {
-    var B = g.bigs || []; if (!B.length) return '<p class="small muted">🌟 Chưa có big idea: trợ lý tự chọn góc kể từng bài. Bấm ✏️ Sửa → ✨ AI gợi ý big idea để cả 4 kênh nói nhất quán.</p>';
+    var B = g.bigs || []; if (!B.length) return '<p class="small muted">🌟 Chưa có ý lớn (big idea) để cả 4 kênh nói chung một chuyện. Bấm ✏️ Sửa → ✨ AI gợi ý.</p>';
     return B.map(function (b, k) {
       var td = isoDate(Date.now()), live = function (v) { return v.on && v.ang.length && (!v.until || v.until >= td); }, run = live(b) && k === B.findIndex(live);
       return '<details class="small inx-big"' + (run ? ' open' : '') + '><summary>🌟 <b>' + esc(b.t) + '</b> ' + (run ? '<span class="zb-due">▶️ Đang chạy' + (b.until ? ' đến ' + b.until.slice(8, 10) + '/' + b.until.slice(5, 7) : '') + '</span>' : '<span class="muted">· ' + (b.until && b.until < td ? 'đã hết hạn ' + b.until.slice(8, 10) + '/' + b.until.slice(5, 7) : 'để dành') + '</span>') + ' <span class="muted">· ' + b.ang.length + ' góc kể</span></summary><ol>' + b.ang.map(function (a) { return '<li>' + esc(a) + '</li>'; }).join('') + '</ol></details>';
@@ -7183,7 +7185,7 @@
     var ev = (j.evs || []).map(function (e) { var from = back(e.d, e.prep), now = td >= from; return '<li' + (now ? ' class="inx-ev-now"' : '') + '><b>' + esc(dm(e.d)) + ' · ' + esc(e.n) + '</b> <span class="muted">(' + (e.in ? 'còn ' + e.in + ' ngày' : 'hôm nay') + ')</span> · ' + (now ? '⏰ <b>đến lúc chuẩn bị</b>: lên big idea / bài gắn dịp, đăng trước 1–3 ngày' : 'nên chuẩn bị từ ' + dm(from)) + '</li>'; }).join('');
     var tr = j.trend;
     return '<div class="box inx-ev"><div class="zb-ph"><b>📅 Dịp sắp tới & 🔥 chuyện đang nóng</b></div>' +
-      '<p class="small muted">Trợ lý viết bài (web, Fanpage, video, Facebook cá nhân) tự biết các dịp trong 8 ngày tới để gắn bài khi hợp. Bài nhóm Zalo đã có lịch ngày lễ riêng.</p>' +
+      '<p class="small muted">Trợ lý tự gắn bài với dịp trong 8 ngày tới. Dòng ⏰ là dịp đã đến lúc chuẩn bị.</p>' +
       (ev ? '<ul class="small inx-ev-l">' + ev + '</ul>' : '<p class="small muted">45 ngày tới chưa có dịp nào.</p>') +
       '<p class="small" style="margin:10px 0 4px"><b>🔥 Chuyện đang nóng</b> <span class="muted">(mọi trợ lý đọc trong 2 ngày, tự đổi sang góc nhìn mới gắn với nỗi lòng khách; tin buồn, tai nạn, chính trị thì trợ lý bỏ qua)</span></p>' +
       (tr && tr.t ? '<p class="small inx-ev-tr">' + esc(tr.t) + ' <span class="muted">· ' + esc(tr.by || '') + ' ghi lúc ' + fDateTime(tr.at) + '</span></p>' : '<p class="small muted">Chưa ghi chuyện nào.</p>') +
@@ -7195,7 +7197,7 @@
     var gname = function (id) { var g = bank.find(function (b) { return b.id === id; }); return g ? g.name : 'nhóm tự chọn'; };
     L.forEach(function (v) { cnt[v.f] = (cnt[v.f] || 0) + 1; });
     return '<div class="box inx-kw"><div class="zb-ph"><b>🔑 Từ khoá cho bài web (Google + AI gợi ý)</b>' + (L.length ? '<span class="zb-due">' + used + ' / ' + L.length + ' đã viết</span>' : '') + '</div>' +
-      '<p class="small muted">Khoảng 100 từ khoá người ta thật sự gõ, theo nỗi lòng từng nhóm khách (khoá Marketing Plan K218). Mỗi lần trợ lý bài web tự chọn chủ đề, nó lấy 1 từ khoá chưa viết, đúng tầng phễu. Viết hết dần thì Google và ChatGPT, Gemini dễ gợi ý Thực Dưỡng Lành hơn.</p>' +
+      '<p class="small muted">Những câu khách hay gõ lên Google, ChatGPT. Mỗi bài web trợ lý lấy 1 từ khoá chưa viết; viết dần hết thì khách tìm dễ thấy Thực Dưỡng Lành hơn.</p>' +
       (L.length ? '<p class="small">🔵 Nhận biết ' + cnt.TOFU + ' · ⚪ Cân nhắc ' + cnt.MOFU + ' · 🟠 Mua hàng ' + cnt.BOFU + '</p><details class="small"><summary>Xem danh sách từ khoá</summary><ul class="small inx-kw-l">' + L.map(function (v) {
         return '<li' + (v.used ? ' class="muted"' : '') + '>' + (v.used ? '✅ ' : '') + esc(v.k) + ' <span class="muted">· ' + esc(gname(v.g)) + ' · ' + v.f + (v.used ? ' · viết ' + v.used.slice(8, 10) + '/' + v.used.slice(5, 7) : '') + '</span></li>';
       }).join('') + '</ul></details>' : '<p class="small">Chưa có từ khoá nào: trợ lý vẫn tự chọn chủ đề theo tension như cũ.</p>') +

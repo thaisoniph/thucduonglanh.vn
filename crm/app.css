@@ -2120,7 +2120,8 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .inx-todo-r p { margin: 0; flex: 1 1 260px; color: var(--ink); }
 .inx-tabs { margin-top: 4px; }
 .inx-tabs button { white-space: nowrap; }
-.inx-tabi { margin: 2px 0 10px; line-height: 1.5; }
+.inx-tabi { margin: 2px 0 12px; padding: 8px 12px; background: var(--primary-soft); border: 1px solid #cfe3d5; border-radius: 10px; font-size: 13.5px; line-height: 1.5; color: var(--ink); }
+.inx-tabi p { margin: 2px 0; }
 .inx-acts { margin: 0 0 12px; }
 .inx-kpis { margin-bottom: 12px; }
 .inx-sn { justify-content: space-between; }

@@ -221,11 +221,17 @@ Mở: menu **Thêm → 🎯 Insight & nội dung** (Marketing thấy ngay trên 
 
 Trên cùng là sơ đồ 4 bước (nhóm khách → tension → tầng phễu → viết bài) và ô cam **👉 Nên làm ngay**: tối đa 3 việc nên làm, mỗi việc có 1 nút bấm (vd dịp sắp tới, nhóm khách chưa có bài, chưa có từ khoá). Không có việc gì thì ô báo ✅ mọi thứ đang ổn.
 
-Bên dưới có 4 thẻ, bấm để chuyển (máy nhớ thẻ anh chị mở lần trước):
-- **📊 Tổng quan**: số bài trợ lý viết 30 ngày qua, bài theo từng nhóm khách. Nhóm chưa có bài gom vào 1 ô cam, bấm tên nhóm là mở ngay form viết kịch bản video cho nhóm đó. Thanh **🔻 Tầng phễu** 3 màu cho biết mỗi kênh đang viết bao nhiêu % bài thu hút / tạo niềm tin / bán hàng. Cuối thẻ là **📈 Học từ tương tác**.
+Bên dưới có 4 thẻ, bấm để chuyển (máy nhớ thẻ anh chị mở lần trước). Đầu mỗi thẻ có ô xanh **📌 Dùng để · 👉 Nên làm** nói ngắn thẻ đó để làm gì. Trên màn hình, "tension" được gọi là **nỗi lòng** (điều khách mong ↔ điều cản họ), "tầng phễu" gọi là **loại bài**: 🔵 Thu hút · ⚪ Tạo niềm tin · 🟠 Bán hàng.
+- **📊 Tổng quan**: số bài trợ lý viết 30 ngày qua, bài theo từng nhóm khách. Nhóm chưa có bài gom vào 1 ô cam, bấm tên nhóm là mở ngay form viết kịch bản video cho nhóm đó. Thanh **🔻 Loại bài theo kênh** 3 màu cho biết mỗi kênh đang viết bao nhiêu % bài thu hút / tạo niềm tin / bán hàng. Cuối thẻ là **📈 Học từ tương tác**.
 - **✍️ Tạo nội dung**: viết kịch bản video, kịch bản đã viết, và 3 công cụ khác (📸 câu lệnh tạo ảnh, 📣 bài Facebook cá nhân cho sale, 🎁 viết offer), offer nháp.
-- **👥 Nhóm khách**: ngân hàng insight. Mỗi nhóm thu gọn thành 1 dòng, bấm tên nhóm để mở: 💚 họ mong, 🧱 điều cản họ, ⚡ tension, 🌟 big idea, 📋 chân dung đầy đủ. Nút **🔍 AI tìm insight mới**, **📥 Dán kết quả skill**, **➕ Thêm nhóm khách** nằm đầu thẻ. Cuối thẻ là 🏷 Insight theo sản phẩm.
+- **👥 Nhóm khách**: ngân hàng insight. Mỗi nhóm thu gọn thành 1 dòng, bấm tên nhóm để mở: 💚 họ mong, 🧱 điều cản họ, ⚡ nỗi lòng (tension), 🌟 ý lớn (big idea), 📋 chân dung đầy đủ. Nút **🔍 AI tìm nỗi lòng mới**, **📥 Dán kết quả skill**, **➕ Thêm nhóm khách** nằm đầu thẻ. Cuối thẻ là 🏷 Nỗi lòng theo sản phẩm.
 - **⚙️ Cài đặt**: 📅 dịp sắp tới + 🔥 chuyện đang nóng, 🔑 từ khoá bài web, 📘 phương pháp trợ lý đang dùng (tải skill).
+
+### Dùng thế nào cho nhanh
+
+- **Mỗi ngày (1 phút)**: nhìn ô cam 👉 Nên làm ngay, có nút thì bấm. Có chuyện cả mạng đang bàn tán thì ghi vào 🔥 Chuyện đang nóng (thẻ ⚙️ Cài đặt).
+- **Mỗi tuần (10 phút, sáng thứ Hai)**: thẻ 📊 Tổng quan, nhóm nào chưa có bài thì bấm tên nhóm để viết video. Mở 📈 Học từ tương tác, xem bài 👍 giống nhau ở đâu rồi ghi vào Ghi chú của nhóm khách.
+- **Khi có dịp lớn hoặc chiến dịch**: thẻ 👥 Nhóm khách → ✏️ Sửa → thêm ý lớn (big idea) cho nhóm sẽ nhắm tới.
 
 ### Trợ lý viết theo 4 bước
 
