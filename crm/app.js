@@ -3713,10 +3713,10 @@
   /** 🧺 Kho chung (09/11/2026): số công ty giao quá N ngày chưa chốt, không có hẹn → tự về kho. Chỉ số công ty giao: không phải sale tự thêm, không phải khách giới thiệu, không phải file cũ, hỏi trong 45 ngày. */
   function poolApplies(l) { return !!l.owner && (l.by || '') !== l.owner && !l.refPhone && !l.refName && !/^File cũ/.test(l.channel || '') && (l.poolN || 0) < 2 && Date.now() - l.time < 45 * DAY; }
   /** Nhãn trên thẻ khách hỏi: người đang giữ thấy đếm ngược (còn ≤ 2 ngày); số đã về kho ghi “↩ từ …” để người nhận biết đọc lịch sử. */
-  /** 11/11/2026: 3 mốc về Kho chung (Cài đặt): chưa liên hệ sau poolNoCall ngày · poolIdle ngày không chăm lại · giữ tối đa poolDays ngày. Hẹn gọi lại ≤ 14 ngày thì giữ. Trả số ngày còn lại (nhỏ nhất) hoặc null. Liên hệ = lastAt (💬 Tư vấn); máy chủ còn tính cả nhật ký chăm sóc. */
+  /** 11/11/2026: 3 mốc về Kho chung (Cài đặt): chưa liên hệ sau poolNoCall ngày · poolIdle ngày không chăm lại · giữ tối đa poolDays ngày. Hẹn gọi lại ≤ 30 ngày thì giữ (13/11/2026, trước là 14). Trả số ngày còn lại (nhỏ nhất) hoặc null. Liên hệ = lastAt (💬 Tư vấn); máy chủ còn tính cả nhật ký chăm sóc. */
   function poolDaysLeft(l) {
     var R = S.d.rules || {}, now = Date.now(), own = l.ownAt || l.time, lc = l.lastAt || 0, cb = l.callback || 0, left = [];
-    if (cb >= now - DAY && cb <= now + 14 * DAY) return null;
+    if (cb >= now - DAY && cb <= now + 30 * DAY) return null; // 13/11/2026: hẹn tối đa 30 ngày (POOL_CB_MAX)
     if (R.poolNoCall && lc < own) left.push(R.poolNoCall - Math.floor((now - own) / DAY));
     if (R.poolIdle && lc >= own) left.push(R.poolIdle - Math.floor((now - lc) / DAY));
     if (R.poolDays) left.push(R.poolDays - Math.floor((now - own) / DAY));
@@ -3730,7 +3730,7 @@
     if (!poolApplies(l)) return '';
     var left = poolDaysLeft(l);
     if (left === null || left > 2) return '';
-    return '<span class="tag pool-due" title="Khách hỏi công ty giao tự về Kho chung khi ' + esc(poolRuleLine(R)) + ' (chưa chốt, không có lịch hẹn). Gọi / nhắn xong thì ghi 💬 Tư vấn; khách hẹn thì chọn ngày hẹn (tối đa 14 ngày), số được giữ tới ngày hẹn.">⏳ ' + (left > 0 ? 'còn ' + left + ' ngày' : 'sắp') + ' về Kho chung</span>';
+    return '<span class="tag pool-due" title="Khách hỏi công ty giao tự về Kho chung khi ' + esc(poolRuleLine(R)) + ' (chưa chốt, không có lịch hẹn). Gọi / nhắn xong thì ghi 💬 Tư vấn; khách hẹn thì chọn ngày hẹn (tối đa 30 ngày), số được giữ tới ngày hẹn.">⏳ ' + (left > 0 ? 'còn ' + left + ' ngày' : 'sắp') + ' về Kho chung</span>';
   }
   function leadCard(l) {
     var open = isOpenLead(l), due = /^(new|stale)$/.test(leadDue(l) || '') ? '' : leadDueLine(l), note = lastNote(l), c = cust(l.phone);
@@ -3862,8 +3862,20 @@
       '<div class="box"><h3>Ghi chú</h3><div class="pre">' + (l.note ? noteLinks(esc(leadNoteFmt(l.note))) : '<span class="muted">Chưa có ghi chú.</span>') + '</div></div>' +
       (open && !isMkt() ? giftBox(giftPerson(l.phone), '') : '') +
       '<div class="box"><h3>Lịch sử tư vấn (' + logs.length + ')</h3>' + (logs.length ? '<div class="timeline">' + logs.slice(0, 3).map(logItem).join('') + '</div>' + (logs.length > 3 ? '<details class="k-msg"><summary>Xem thêm ' + (logs.length - 3) + ' lần cũ hơn</summary><div class="timeline">' + logs.slice(3).map(logItem).join('') + '</div></details>' : '') : '<p class="muted">Chưa có.</p>') + '</div>' +
+      (open && !isMkt() && mode() === 'pool' && poolOn() && l.owner && (l.owner === S.user.name || lvl() >= 2) ? '<details class="p-edit"><summary>🧺 Trả số này về Kho chung</summary><div class="box" style="margin:8px 0 0"><p class="small muted" style="margin:0 0 8px">Dùng khi bạn không hợp với khách này hoặc không chăm tiếp được. Cả phòng sẽ thấy số và nhận được. Ghi lý do và cách bạn đã chăm để người sau gọi tốt hơn.</p><label class="f"><span>Lý do trả về (bắt buộc)</span><textarea id="pgWhy" rows="2" placeholder="Vd: gọi 3 lần không nghe, Zalo đã xem không trả lời; khách hỏi cho mẹ, thích nói chuyện buổi tối"></textarea></label><button class="btn" id="pgGo" style="margin-top:8px">🧺 Trả về Kho chung</button></div></details>' : '') +
       (lvl() >= 3 ? '<details class="p-edit"><summary>🗑 Xoá khách hỏi (chỉ Quản trị)</summary><div class="box" style="margin:8px 0 0"><p class="small muted" style="margin:0 0 8px">Dùng cho số nhập thử / nhập nhầm. Chỉ xoá lần hỏi này và lịch sử tư vấn của nó' + (c ? ', hồ sơ khách <b>' + esc(c.name) + '</b> và đơn hàng vẫn giữ nguyên' : '') + '. Không khôi phục được.</p><button class="btn danger" data-leaddel="' + esc(l.id) + '">🗑 Xoá khách hỏi này</button></div></details>' : '');
-    modal(cp(l.name, esc(l.name || 'Khách hỏi')) + ' ' + leadTag(l) + (leadIsReask(l, c) ? ' ' + REASK_TAG : ''), body, null, { route: '#tiem-nang', pushed: !fromRoute });
+    var lm = modal(cp(l.name, esc(l.name || 'Khách hỏi')) + ' ' + leadTag(l) + (leadIsReask(l, c) ? ' ' + REASK_TAG : ''), body, null, { route: '#tiem-nang', pushed: !fromRoute });
+    var pg = lm && $('#pgGo', lm); if (pg) pg.onclick = function () { poolGiveLead(l, $('#pgWhy', lm).value, pg); };
+  }
+  /** 13/11/2026 (Thủy, họp sale): sale tự trả khách hỏi chưa chốt về Kho chung, kèm lý do cho người nhận sau. */
+  function poolGiveLead(l, why, btn) {
+    why = String(why || '').trim(); if (why.length < 5) { toast('Ghi lý do vài chữ để người nhận sau biết cách chăm khách nhé', true); return; }
+    if (!confirm('Trả ' + (l.name || fPhone(l.phone)) + ' về Kho chung?\n\nCả phòng sẽ thấy và nhận được số này. Bạn không còn giữ số nữa.')) return;
+    btn.disabled = true; btn.textContent = 'Đang trả…';
+    api('pool_give', { leadId: l.id, why: why }).then(function () {
+      var now = Date.now(); l.poolFrom = l.owner; l.owner = ''; l.poolN = (l.poolN || 0) + 1; l.ownAt = now; l.callback = null; l.note = String(l.note || '') + '\n[' + fDate(now).slice(0, 5) + '] ↩ ' + S.user.name + ' trả về Kho chung: ' + why;
+      setData(S.d, S.loadedAt); closeModal(true); render(); navBadges(); toast('Đã trả về Kho chung ✓');
+    }, function (e) { toast(e.message, true); btn.disabled = false; btn.textContent = '🧺 Trả về Kho chung'; });
   }
 
   function ownerOptions(sel, withEmpty) {
@@ -4005,7 +4017,7 @@
       '<div class="quick q4">' + [['📵 Không nghe máy', 'Không nghe máy', 'gọi lại sau 1 ngày'], ['🤔 Đang cân nhắc', 'Đã tư vấn, khách cân nhắc', 'hẹn lại sau 2 ngày'], ['🛒 Chốt mua', 'Khách chốt mua', 'mở form lên đơn']].map(function (x) { return '<button type="button" class="btn' + (x[2] === 'mở form lên đơn' ? ' k-q-buy' : '') + '" data-cq="' + esc(x[1]) + '">' + x[0] + '<small>' + x[2] + '</small></button>'; }).join('') +
         '<button type="button" class="btn" id="cLostBtn">🚫 Không mua<small>chọn lý do</small></button></div>' +
       '<div class="k-cb" id="cLostQ" hidden><span>Khách không mua vì:</span>' + LOST_REASONS.map(function (r) { return '<button type="button" class="chip" data-cqr="' + esc(r) + '">' + esc(r) + '</button>'; }).join('') + '</div>' + // lý do cất sau nút Không mua cho gọn
-      '<div class="k-cb"><span>📅 Khách hẹn liên hệ lại:</span>' + [[1, 'Mai'], [3, '3 ngày'], [7, '1 tuần']].map(function (x) { return '<button type="button" class="chip" data-cqd="' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div>' +
+      '<div class="k-cb"><span>📅 Khách hẹn liên hệ lại:</span>' + [[1, 'Mai'], [3, '3 ngày'], [7, '1 tuần'], [14, '2 tuần'], [30, '1 tháng']].map(function (x) { return '<button type="button" class="chip" data-cqd="' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div>' +
       '<details class="k-more"><summary>Chọn kết quả khác / tự chọn ngày</summary><div style="margin-top:10px"><div class="radios" style="margin-bottom:12px">' + LEAD_RESULTS.map(function (r) { return '<label><input type="radio" name="cRes" value="' + esc(r.v) + '"><span>' + esc(r.v) + '</span></label>'; }).join('') + '</div>' +
       '<div id="cLost" hidden><label class="f"><span>Lý do không mua *</span><select id="cReason"><option value="">– Chọn –</option>' + LOST_REASONS.map(function (r) { return '<option>' + r + '</option>'; }).join('') + '</select></label></div>' +
       '<p class="notice info" id="cClose" hidden>Bấm <b>Lưu</b> → mở ngay form tạo đơn cho khách.</p>' +
@@ -11523,7 +11535,7 @@
       Object.keys(MODE_INFO).map(function (k) { return '<label class="mode"><input type="radio" name="amode" value="' + k + '"' + (k === md ? ' checked' : '') + '><span><b>' + MODE_INFO[k][0] + '</b>' + MODE_INFO[k][1] + '</span></label>'; }).join('') + '</div>' +
       '<button class="btn pri" id="modeSave">Lưu cách chia khách</button>' +
       '<h3 style="margin:18px 0 8px">⏳ Số chưa chốt tự về Kho chung</h3>' + (lvl() >= 3 ? '<label class="switch" style="margin:0 0 8px"><input type="checkbox" id="poolOn"' + (R.poolOn ? ' checked' : '') + '> <b>Bật Kho chung</b> (sale thấy mục 🧺 Kho chung, nhãn ⏳, máy tự trả số quá hạn về kho). Đang tắt thì ẩn hết, không số nào bị trả về kho.</label>' : (R.poolOn ? '' : '<p class="hint" style="margin:0 0 8px">🙈 Kho chung đang ẩn với sale (Quản trị bật sau khi họp).</p>')) + '<p class="hint" style="margin:0 0 8px">Khách hỏi do <b>công ty giao</b> (file số quảng cáo, web, quản lý giao) mà sale giữ quá số ngày dưới đây <b>chưa chốt và không có lịch hẹn</b> → tự về Kho chung, cả phòng thấy và ai cũng nhận được. Sale được báo Telegram <b>trước 1 ngày</b>. Không áp dụng cho khách sale tự tìm, khách do khách cũ giới thiệu, file cũ. Mỗi số về kho tối đa 2 lần. Ai chốt thì người đó được tính doanh số.</p>' +
-      '<p class="small muted" style="margin:0 0 8px">Khách hỏi công ty giao (không phải khách sale tự mang về) chưa chốt sẽ tự về Kho chung khi chạm <b>1 trong 3 mốc</b> dưới đây. Ghi 0 để tắt mốc đó. Có <b>hẹn gọi lại</b> (tối đa 14 ngày) thì vẫn giữ. Liên hệ = sale ghi 💬 Tư vấn / Ghi nhanh / Gửi ưu đãi trên CRM. Trước 1 ngày, máy báo Telegram cho sale. Khách hỏi đặt đơn web qua link của sale khác thì đơn tính cho người đang chăm, bỏ quá mốc thì tính cho người chốt được.</p>' +
+      '<p class="small muted" style="margin:0 0 8px">Khách hỏi công ty giao (không phải khách sale tự mang về) chưa chốt sẽ tự về Kho chung khi chạm <b>1 trong 3 mốc</b> dưới đây. Ghi 0 để tắt mốc đó. Có <b>hẹn gọi lại</b> (tối đa 30 ngày) thì vẫn giữ. Liên hệ = sale ghi 💬 Tư vấn / Ghi nhanh / Gửi ưu đãi trên CRM. Trước 1 ngày, máy báo Telegram cho sale. Khách hỏi đặt đơn web qua link của sale khác thì đơn tính cho người đang chăm, bỏ quá mốc thì tính cho người chốt được.</p>' +
       '<div class="row2c"><label class="f"><span>① Chưa liên hệ lần nào sau (ngày)</span><input type="number" id="poolNoCall" min="0" max="60" value="' + esc(R.poolNoCall === undefined ? 2 : R.poolNoCall) + '"></label>' +
       '<label class="f"><span>② Đã liên hệ nhưng không chăm lại (ngày)</span><input type="number" id="poolIdle" min="0" max="60" value="' + esc(R.poolIdle === undefined ? 10 : R.poolIdle) + '"></label></div>' +
       '<div class="row2c"><label class="f"><span>③ Giữ tối đa chưa chốt (ngày)</span><input type="number" id="poolDays" min="0" max="60" value="' + esc(R.poolDays === undefined ? 30 : R.poolDays) + '"></label>' +
@@ -12196,6 +12208,39 @@
     api('voucher_list').then(function (j) { D.list = j.list || []; list(); }, function (e) { var bx = $('#vcMain', m); if (bx) bx.innerHTML = '<p class="err">' + esc(e.message) + '</p>'; });
   }
   /* ---------- 🎁 Khách cũ giới thiệu + 🤝 Cộng tác viên / đối tác (api/src/partner.js) */
+  /** "Giảm 10%" → "giảm 35.000đ cho đơn 350.000đ (đơn 700.000đ giảm 70.000đ)" để khách lớn tuổi khỏi tự tính. Nhãn từ vcLabel (api/src/voucher.js). */
+  function rfMoneyEx(label, parts) {
+    var s = String(label || ''), p = s.match(/([\d.,]+)\s*%/), cap = s.match(/tối đa\s*([\d.]+)/), fix = !p && s.match(/Giảm\s*([\d.]+)/);
+    if (fix) return parts ? { head: 'GIẢM ' + money(+fix[1].replace(/\./g, '')) + ' đơn đầu', rows: [] } : 'giảm ' + money(+fix[1].replace(/\./g, '')) + ' đơn đầu';
+    if (!p) return parts ? null : '';
+    var n = +p[1].replace(',', '.'), mx = cap ? +cap[1].replace(/\./g, '') : 0, off = function (v) { var o = Math.round(v * n / 100 / 1000) * 1000; return mx && o > mx ? mx : o; };
+    if (parts) return { head: 'GIẢM ' + p[1] + '% đơn đầu', rows: ['Đơn 350.000đ: giảm ' + money(off(350000)), 'Đơn 700.000đ: giảm ' + money(off(700000))] };
+    return 'giảm ' + p[1] + '% đơn đầu: đơn 350.000đ giảm ' + money(off(350000)) + ', đơn 700.000đ giảm ' + money(off(700000));
+  }
+  /** 🖼️ Ảnh chương trình giới thiệu (13/11/2026, Thủy): thẻ dọc gửi Zalo, chữ to cho người lớn tuổi. Gửi bằng dyShare như báo cáo ngày. */
+  function rfCard(o) {
+    var SC = 2, W = 600, pad = 36, cv = document.createElement('canvas'), x = cv.getContext('2d');
+    var F = function (b, s) { return (b ? '700 ' : '400 ') + s + 'px -apple-system, "Segoe UI", Roboto, Arial, sans-serif'; };
+    var wrap = function (t, w, f) { x.font = f; var out = [], line = ''; String(t).split(' ').forEach(function (wd) { var tt = line ? line + ' ' + wd : wd; if (x.measureText(tt).width > w && line) { out.push(line); line = wd; } else line = tt; }); if (line) out.push(line); return out; };
+    var blocks = [
+      [F(true, 30), '#ffffff', '🎁 Quà cho bạn mới', 40],
+      [F(false, 20), '#e6efe4', 'Bạn được ' + o.guest + ' giới thiệu', 30],
+      null,
+      [F(true, 30), '#b4502a', o.ex.head, 40]].concat((o.ex.rows || []).map(function (r) { return [F(true, 22), '#2f5d3a', '✔ ' + r, 30]; })).concat([
+      [F(false, 6), '#fbfaf5', ' ', 4],
+      [F(false, 21), '#1f2a1c', '📞 Cách nhận: gọi hoặc nhắn Zalo ' + o.who + ', nói "' + o.guest + ' giới thiệu".', 31],
+      [F(false, 21), '#1f2a1c', '🌐 Hoặc đặt trên thucduonglanh.vn, nhập mã ' + o.code + '.', 31],
+      [F(true, 20), '#2f5d3a', '💚 Quà cảm ơn cho ' + o.guest + ' do công ty tặng thêm. Bạn không bị cộng giá đồng nào.', 30],
+      [F(false, 16), '#8a8d84', 'Chỉ áp dụng cho người mua lần đầu · Thực phẩm này không phải là thuốc, không có tác dụng thay thế thuốc chữa bệnh.', 24]
+    ]);
+    var lay = [], h = pad, headH = 0;
+    blocks.forEach(function (b, i) { if (!b) { headH = h + 12; h = headH + 28; return; } var ls = wrap(b[2], W - pad * 2, b[0]); lay.push({ b: b, ls: ls, y: h }); h += ls.length * b[3] + (i < 2 ? 4 : i === 3 ? 10 : /^✔/.test(b[2]) ? 4 : 18); });
+    var H = h + pad;
+    cv.width = W * SC; cv.height = H * SC; x.scale(SC, SC); x.textBaseline = 'top';
+    x.fillStyle = '#fbfaf5'; x.fillRect(0, 0, W, H); x.fillStyle = '#2f5d3a'; x.fillRect(0, 0, W, headH);
+    lay.forEach(function (it) { x.font = it.b[0]; x.fillStyle = it.b[1]; it.ls.forEach(function (l, k) { x.fillText(l, pad, it.y + k * it.b[3]); }); });
+    return cv;
+  }
   function rfCopyZalo(m, sel, phone) { copy($(sel, m).value).then(function () { toast('Đã copy tin ✓ Dán vào Zalo rồi gửi'); if (phone) window.open(zalo(phone), '_blank', 'noopener'); }); }
   /** Hồ sơ khách → 🌱 Mời giới thiệu bạn bè (trước 30/10/2026: 🎁 Mã giới thiệu): mã riêng của khách (TÊN + 3 số cuối), bạn bè đặt lần đầu trên web được giảm %, sale tặng quà cảm ơn khi bạn đặt. */
   function openRefCode(phone) {
@@ -12209,19 +12254,23 @@
       // 31/10/2026 (khách trung niên ngại thao tác): cách chính là đọc số người bạn cho sale / bạn nhắn Zalo sale nói tên người giới thiệu; link web để cuối cho ai rành
       var mine = !c.owner || c.owner === S.user.name, zl = mine ? ((S.d.prefs || {}).zalo || '') : '', who = mine && zl ? S.user.name + ' ' + fPhone(zl) : 'Thực Dưỡng Lành ' + HOTLINE_TDL;
       var t1 = fillTpl('Dạ [Tên] ơi, cảm ơn [Tên] đã tin dùng Thực Dưỡng Lành ❤️\nNgười thân, bạn bè của [Tên] muốn dùng thử thì cách dễ nhất: [Tên] nhắn em số điện thoại của bạn, em gọi tư vấn giúp ạ.\n🎁 Bạn của [Tên] mua lần đầu: giảm ' + pct + '\n🎁 [Tên]: ' + rfGiftShort(j.cfg, pct) + '\nHoặc [Tên] chuyển tiếp tin dưới đây cho bạn là xong ạ 👇', c);
-      var t2 = 'Mình dùng Thực Dưỡng Lành thấy hợp nên giới thiệu bạn 🌿 Bạn gọi hoặc nhắn Zalo ' + who + ', nói "' + (ambName(c.name) || 'mình') + ' giới thiệu" là được giảm ' + pct + ' đơn đầu, có người tư vấn tận tình. Muốn tự đặt trên web thì bấm link (mã ' + j.code + ' tự áp dụng): ' + url;
+      // 13/11/2026 (Thủy, họp sale): khách lớn tuổi không tự tính được "giảm 10%" → ghi luôn số tiền; người được giới thiệu sợ bị "ăn bớt" → nói rõ quà người giới thiệu do công ty tặng
+      var ex = rfMoneyEx(j.label), gname = ambName(c.name) || 'mình';
+      var t2 = 'Mình dùng Thực Dưỡng Lành thấy hợp nên giới thiệu bạn 🌿 Bạn gọi hoặc nhắn Zalo ' + who + ', nói "' + gname + ' giới thiệu" là được ' + (ex ? ex : 'giảm ' + pct + ' đơn đầu') + ', có người tư vấn tận tình. Quà cảm ơn cho mình là công ty tặng thêm, bạn không bị cộng giá đồng nào. Muốn tự đặt trên web thì bấm link (mã ' + j.code + ' tự áp dụng): ' + url;
       box.innerHTML = '<div class="box rf-code"><b style="font-size:20px;letter-spacing:1px">' + esc(j.code) + '</b> <span class="small">' + esc(j.label) + ' đơn đầu cho bạn bè</span><p class="small muted" style="margin:6px 0 0">' + (j.used ? '🎉 Đã có <b>' + j.used + '</b> người đặt bằng mã này.' : 'Chưa có ai dùng mã.') + ' Chỉ người <b>mua lần đầu</b> dùng được.</p></div>' +
         refScript(c, j) +
         '<label class="f"><span><b>① Tin gửi ' + nm + '</b> (sửa được)</span><textarea id="rfText" rows="6">' + esc(t1) + '</textarea></label>' +
         '<button class="btn pri" id="rfGo">📋 Copy tin ① & mở Zalo</button>' +
         '<label class="f" style="margin-top:14px"><span><b>② Tin để ' + nm + ' chuyển cho bạn bè</b>: gửi ngay sau tin ①</span><textarea id="rfText2" rows="3">' + esc(t2) + '</textarea></label>' +
-        '<button class="btn" id="rfGo2">📋 Copy tin ②</button>' +
+        '<button class="btn" id="rfGo2">📋 Copy tin ②</button> <button class="btn zalo" id="rfImg">🖼️ ' + (window.matchMedia && matchMedia('(pointer:coarse)').matches ? 'Gửi ảnh chương trình' : 'Copy ảnh chương trình') + '</button>' +
+        '<p class="small muted" style="margin:6px 0 0">🖼️ Ảnh ghi rõ bạn được giảm bao nhiêu tiền, cách nhận, và quà cho người giới thiệu là công ty tặng. Khách lớn tuổi chỉ cần chuyển tiếp ảnh cho bạn.</p>' +
         (mine && !zl ? '<div class="rf-zl"><label class="f"><span>📱 Số Zalo bán hàng của bạn: ghi vào tin ② để bạn của khách nhắn thẳng cho bạn (lưu 1 lần)</span><input type="tel" id="rfZl" placeholder="09xx xxx xxx"></label><button class="btn sm" id="rfZlS">Lưu số Zalo</button></div>' : '') +
         '<p class="small muted" style="margin:10px 0 0">💡 Gửi kèm <b>danh thiếp Zalo</b> của bạn để bạn của khách bấm là nhắn được: trong khung chat Zalo bấm <b>＋</b> (hoặc <b>⋯</b>) → <b>Danh thiếp</b> → chọn chính mình. Khách đọc số bạn bè qua điện thoại: <b>＋ Thêm khách hỏi</b> → <i>Khách đến từ đâu</i> chọn <b>Khách giới thiệu</b> → chọn ' + nm + '.</p>' +
         '<p class="small muted" style="margin:12px 0 0">Bạn bè đặt bằng mã → tự về ' + esc(c.owner || S.user.name) + ' phụ trách' + (S._rb && S._rb.cfg.bonus ? ' (số mới: thưởng đến ' + money(S._rb.cfg.bonus) + ' khi bạn mua đủ mức)' : '') + '. Giao xong 7 ngày CRM tự tạo voucher cảm ơn, tab Hôm nay nhắc ở mục <b>🎁 Cảm ơn khách giới thiệu</b>.</p>';
       $('#rfGo', m).onclick = function () { rfCopyZalo(m, '#rfText', c.phone); this.textContent = '✓ Đã copy ① — dán vào Zalo, rồi quay lại copy ②'; };
       var zs = $('#rfZlS', m); if (zs) zs.onclick = function () { var b = this, v = normPhone($('#rfZl', m).value); if (!/^0\d{9}$/.test(v)) return toast('Số Zalo chưa đúng (10 số, bắt đầu bằng 0)', true); b.disabled = true;
         api('prefs', { zalo: v }).then(function (j2) { S.d.prefs = j2.prefs; toast('Đã lưu số Zalo ✓'); closeModal(); openRefCode(phone); }, function (e) { toast(e.message, true); b.disabled = false; }); };
+      $('#rfImg', m).onclick = function () { dyShare(rfCard({ guest: gname, ex: rfMoneyEx(j.label, 1) || { head: 'GIẢM ' + pct + ' đơn đầu', rows: [] }, who: who, code: j.code }), 'Qua-gioi-thieu-' + slugName(gname) + '.png'); };
       $('#rfGo2', m).onclick = function () { var b = this; copy($('#rfText2', m).value).then(function () { toast('Đã copy tin ② ✓ Dán vào Zalo gửi tiếp'); b.textContent = '✓ Đã copy ②'; }); };
       if (S._rb && S._rb.inv && S._rb.inv.indexOf(c.phone) < 0) S._rb.inv.push(c.phone); // 🌱 đã có mã → bỏ khỏi mục Mời làm Đại sứ
     }, function (e) { var box = $('#rfMain', m); if (box) box.innerHTML = '<p class="err">' + esc(e.message) + '</p>'; });

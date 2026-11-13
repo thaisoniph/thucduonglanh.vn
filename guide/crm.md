@@ -252,10 +252,12 @@ Mỗi số khách hỏi công ty phải trả tiền quảng cáo để có. Vì
 **Khách hỏi đặt hàng trên web qua link của bạn khác:** nếu bạn **đang chăm** (chưa chạm mốc ① ②, hoặc có hẹn gọi lại) thì đơn **vẫn tính cho bạn**. Nếu bạn đã bỏ quá mốc thì đơn tính cho **bạn gửi link** (người chốt được), và máy báo Telegram cho bạn.
 
 1. **Trước 1 ngày**, Telegram báo riêng cho bạn: *"⏳ Ngày mai về Kho chung"* kèm danh sách. Trên thẻ khách hỏi cũng hiện nhãn **⏳ còn 1 ngày về Kho chung**.
-2. Muốn giữ số thì **gọi hoặc nhắn ngay, rồi ghi 💬 Tư vấn**. Khách hẹn thì bấm **💬 Tư vấn → chọn ngày hẹn** (Mai / 3 ngày / 1 tuần): số được giữ tới ngày hẹn. Mỗi lần hẹn tối đa **14 ngày**. Hẹn xa hơn thì máy coi như không hẹn.
+2. Muốn giữ số thì **gọi hoặc nhắn ngay, rồi ghi 💬 Tư vấn**. Khách hẹn thì bấm **💬 Tư vấn → chọn ngày hẹn** (Mai / 3 ngày / 1 tuần / 2 tuần / 1 tháng): số được giữ tới ngày hẹn. Mỗi lần hẹn tối đa **30 ngày** (từ 13/11/2026). Hẹn xa hơn thì máy coi như không hẹn.
 3. Hết hạn mà vẫn chưa chốt, chưa hẹn: số về Kho chung, Telegram báo bạn và báo cả nhóm. Lịch sử tư vấn của bạn vẫn còn trong số đó.
 4. **Nhận số từ Kho chung:** tab **Hôm nay** kéo xuống mục **🧺 Kho chung – ai nhận cũng được** (hoặc tab **Khách hỏi** bấm mục **🧺 Kho chung**). Số có nhãn **↩ từ [tên]** là số người khác đã gọi. **Đọc lịch sử tư vấn trước** rồi bấm **✋ Nhận khách này**. Thử cách khác người trước: nhắn Zalo thay vì gọi, hỏi về nỗi lo khác, đổi giờ gọi.
 5. Mỗi ngày mỗi người nhận tối đa **10 số** từ kho (quản lý đặt được số khác) để ai cũng có phần. **Ai chốt thì người đó được tính doanh số.**
+6. **Bạn nhận số người khác từng giữ** thì người đó nhận tin Telegram *"🧺 [tên bạn] vừa nhận khách…"*, để ai đang kết bạn Zalo với khách thì ngừng nhắn, khách không bị 2 người cùng nhắn.
+7. **Tự trả số về Kho chung** (từ 13/11/2026): khách không hợp với bạn, hoặc bạn không chăm tiếp được thì mở khách hỏi đó, kéo xuống bấm **🧺 Trả số này về Kho chung**, **ghi lý do** (đã gọi mấy lần, khách thích gì, giờ nào dễ nghe máy) rồi bấm **🧺 Trả về Kho chung**. Người nhận sau đọc được lý do trong ghi chú. Khách **đã mua** thì vẫn là khách của bạn, không trả được.
 
 **Không về kho:** khách bạn **tự tìm** (bạn tự thêm vào CRM), khách do **khách cũ giới thiệu**, khách trong file cũ, khách đã bấm **Không mua**. Mỗi số chỉ về kho tối đa 2 lần, sau đó ở lại với người đang giữ.
 

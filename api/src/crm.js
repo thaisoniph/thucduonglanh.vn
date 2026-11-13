@@ -773,7 +773,7 @@ async function guardLead(x, u, ld) {
   const owner = ld.owner || '';
   if (owner === u.name) return '';
   if (!owner && ld.by_name === 'Website' && !ld.pool_n) return 'Khách để lại số trên web: chờ quản lý giao người phụ trách.';
-  if (!owner && await assignMode(x) === 'pool') { const lim = await poolLimit(x, u); if (lim) return lim; await leadUpdate(x, ld.id, { owner: u.name }); ld.owner = u.name; await crmLog(x, u, 'Nhận khách', ld.phone, ld.name, 'Kho chung – tiềm năng' + (ld.pool_from ? ' (trước: ' + ld.pool_from + ')' : ''), ''); return ''; }
+  if (!owner && await assignMode(x) === 'pool') { const lim = await poolLimit(x, u); if (lim) return lim; await leadUpdate(x, ld.id, { owner: u.name }); poolTaken(x, u, ld); ld.owner = u.name; await crmLog(x, u, 'Nhận khách', ld.phone, ld.name, 'Kho chung – tiềm năng' + (ld.pool_from ? ' (trước: ' + ld.pool_from + ')' : ''), ''); return ''; }
   return owner ? 'Khách này do ' + owner + ' phụ trách. Nhờ quản lý chuyển nếu cần.' : 'Khách này chưa được giao cho bạn. Nhờ quản lý giao.';
 }
 /** Số điện thoại này của ai? Nhân viên chỉ biết tên người phụ trách, không thấy thông tin khách. */
@@ -824,9 +824,27 @@ async function crmRecv(x, u, d) {
   await userSet(x, y.email, 'recv', d.on ? 'Có' : 'Không'); await crmLog(x, u, 'Nhân sự', '-', y.name, 'Nhận khách mới: ' + (d.on ? 'Có' : 'Không'), '');
   return { ok: true };
 }
+/** 13/11/2026 (họp sale): có người nhận số từ Kho chung → báo người giữ cũ, để ai đang kết bạn Zalo với khách thì ngừng nhắn (khách không bị 2 người cùng nhắn). */
+function poolTaken(x, u, ld) {
+  if (ld && ld.pool_from && ld.pool_from !== u.name) x.later(telegramUser(x, ld.pool_from, '🧺 <b>' + esc(u.name) + '</b> vừa nhận khách <b>' + esc(ld.name || 'Khách') + '</b> – ' + esc(ld.phone || '') + ' từ Kho chung (trước đây bạn giữ). Từ giờ ' + esc(u.name) + ' chăm khách này: nếu bạn đang kết bạn Zalo với khách thì đừng nhắn thêm nhé, để khách không bị 2 người cùng nhắn.').catch(() => { }));
+}
+/** 13/11/2026 (Thủy đề xuất trong họp sale): sale tự trả khách hỏi chưa chốt về Kho chung, bắt buộc ghi lý do để người sau đọc. Khách đã mua thì vẫn là khách của người phụ trách (không trả được). */
+async function crmPoolGive(x, u, d) {
+  const R = await rulesCfg(x); if (await assignMode(x) !== 'pool' || !R.poolOn) return { ok: false, error: 'Kho chung đang tắt.' };
+  const ld = await leadGet(x, d.leadId); if (!ld) return { ok: false, error: 'Không tìm thấy khách hỏi.' };
+  if (ld.status !== 'Mới hỏi' && ld.status !== 'Đang tư vấn') return { ok: false, error: 'Chỉ trả được khách hỏi đang mở (chưa chốt, chưa báo Không mua).' };
+  if (ld.owner !== u.name && u.level < 2) return { ok: false, error: 'Chỉ người đang giữ số hoặc quản lý trả được.' };
+  if (!ld.owner) return { ok: false, error: 'Số này đang ở Kho chung rồi.' };
+  const why = String(d.why || '').trim().slice(0, 300); if (why.length < 5) return { ok: false, error: 'Ghi lý do (vài chữ) để người nhận sau biết cách chăm khách.' };
+  const now = Date.now();
+  await run(x.db, "UPDATE leads SET owner = '', own_at = ?, pool_n = coalesce(pool_n, 0) + 1, pool_from = ?, pool_warn = NULL, callback = NULL, note = ? WHERE id = ?", now, ld.owner,
+    String(ld.note || '') + '\n[' + fmtDate(now, 'dd/MM') + '] ↩ ' + u.name + ' trả về Kho chung: ' + why, ld.id);
+  await crmLog(x, u, 'Về kho chung', ld.phone, ld.name, ld.owner, 'Tự trả: ' + why);
+  return { ok: true };
+}
 async function crmClaim(x, u, d) {
   if (await assignMode(x) !== 'pool' && u.level < 2) return { ok: false, error: 'Đang không ở chế độ Kho chung.' };
-  if (d.leadId) { const ld = await leadGet(x, d.leadId); if (!ld) return { ok: false, error: 'Không tìm thấy khách.' }; if (ld.owner && ld.owner !== u.name) return { ok: false, error: 'Khách này vừa được ' + ld.owner + ' nhận.' }; if (!ld.owner && ld.by_name === 'Website' && !ld.pool_n && u.level < 2) return { ok: false, error: 'Khách để lại số trên web: chờ quản lý giao người phụ trách.' }; if (u.level < 2) { const lim = await poolLimit(x, u); if (lim) return { ok: false, error: lim }; } await leadUpdate(x, d.leadId, { owner: u.name }); }
+  if (d.leadId) { const ld = await leadGet(x, d.leadId); if (!ld) return { ok: false, error: 'Không tìm thấy khách.' }; if (ld.owner && ld.owner !== u.name) return { ok: false, error: 'Khách này vừa được ' + ld.owner + ' nhận.' }; if (!ld.owner && ld.by_name === 'Website' && !ld.pool_n && u.level < 2) return { ok: false, error: 'Khách để lại số trên web: chờ quản lý giao người phụ trách.' }; if (u.level < 2) { const lim = await poolLimit(x, u); if (lim) return { ok: false, error: lim }; } await leadUpdate(x, d.leadId, { owner: u.name }); poolTaken(x, u, ld); }
   if (d.phone) { const o = await ownerOf(x, d.phone); if (o && o !== u.name) return { ok: false, error: 'Khách này vừa được ' + o + ' nhận.' }; await setOwner(x, d.phone, u.name); }
   await crmLog(x, u, 'Nhận khách', normPhone(d.phone || ''), '', 'Kho chung', '');
   return { ok: true };
@@ -1030,7 +1048,7 @@ async function crmOwn(x, u, d) {
 const POOL_DAYS = 30, POOL_MAX = 10, POOL_ROUNDS = 2, POOL_FRESH = 45; // mặc định: về kho sau 30 ngày (anh Sơn 10/11/2026: tạm 30, họp sale rồi chỉnh ở Cài đặt); nhận tối đa 10 số / ngày; mỗi số về kho tối đa 2 vòng; chỉ xét khách hỏi trong 45 ngày gần đây (file cũ, số rất cũ không đụng)
 // 11/11/2026 (anh Sơn): 3 mốc, mỗi mốc chỉnh ở Cài đặt (0 = tắt mốc đó): chưa liên hệ lần nào sau POOL_NOCALL ngày · đã liên hệ nhưng POOL_IDLE ngày không chăm lại · giữ tối đa poolDays ngày chưa chốt.
 // Hẹn gọi lại giữ số, nhưng mỗi lần hẹn tối đa POOL_CB_MAX ngày (hẹn xa hơn coi như không hẹn → tránh hẹn ảo để giữ số). Liên hệ = leads.last_at (💬 Tư vấn) hoặc nhật ký chăm sóc của chính người giữ (CONTACT_WHAT).
-const POOL_NOCALL = 2, POOL_IDLE = 10, POOL_CB_MAX = 14;
+const POOL_NOCALL = 2, POOL_IDLE = 10, POOL_CB_MAX = 30; // 13/11/2026 họp sale: hẹn tối đa 14 → 30 ngày (có khách hẹn 20 ngày thật)
 const CONTACT_WHAT = "('Tư vấn', 'Ghi nhanh', 'Trả lời liên hệ', 'Gửi ưu đãi', 'Gửi quà tặng', 'Gửi lời chúc', 'Gọi xác minh', 'Cộng đồng')";
 const CARED_DAYS = 30; // đơn web: sale có liên hệ khách trong bấy nhiêu ngày trước khi đặt → tính như đặt qua link (đủ % khách mới)
 const LEAD_OWN = 'coalesce(own_at, time)';
@@ -2568,7 +2586,7 @@ export async function crmApi(x, d, sync, mgr) {
   const opKey = d.opId ? 'op_' + String(d.opId).slice(0, 40) : ''; // CRM gửi lại việc khi mạng chập chờn: việc đã làm rồi thì trả kết quả cũ, không ghi trùng
   if (opKey) { const done = await kvGet(x.db, opKey); if (done) return JSON.parse(done); }
   const h = { care: crmCare, customer: crmCustomer, order_status: crmOrderStatus, recon_apply: crmReconApply, contact: crmContact, settings: crmSettings, users: crmSaveUsers, order_edit: crmOrderEdit, order_adj: crmOrderAdj,
-    lead_save: crmLeadSave, lead_contact: crmLeadContact, target: crmTarget, assign: crmAssign, bulk: crmBulk, recv: crmRecv, claim: crmClaim,
+    lead_save: crmLeadSave, lead_contact: crmLeadContact, target: crmTarget, assign: crmAssign, bulk: crmBulk, recv: crmRecv, claim: crmClaim, pool_give: crmPoolGive,
     order_delete: crmOrderDelete, customer_delete: crmCustomerDelete, lead_delete: crmLeadDelete, gift: crmGift, greet: crmGreet, stop: crmStop, own: crmOwn }[a];
   if (h) {
     const res = await h(x, u, d);
