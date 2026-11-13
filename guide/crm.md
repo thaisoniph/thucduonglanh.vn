@@ -259,7 +259,9 @@ Mỗi số khách hỏi công ty phải trả tiền quảng cáo để có. Vì
 6. **Bạn nhận số người khác từng giữ** thì người đó nhận tin Telegram *"🧺 [tên bạn] vừa nhận khách…"*, để ai đang kết bạn Zalo với khách thì ngừng nhắn, khách không bị 2 người cùng nhắn.
 7. **Tự trả số về Kho chung** (từ 13/11/2026): khách không hợp với bạn, hoặc bạn không chăm tiếp được thì mở khách hỏi đó, kéo xuống bấm **🧺 Trả số này về Kho chung**, **ghi lý do** (đã gọi mấy lần, khách thích gì, giờ nào dễ nghe máy) rồi bấm **🧺 Trả về Kho chung**. Người nhận sau đọc được lý do trong ghi chú. Khách **đã mua** thì vẫn là khách của bạn, không trả được.
 
-**Không về kho:** khách bạn **tự tìm** (bạn tự thêm vào CRM), khách do **khách cũ giới thiệu**, khách trong file cũ, khách đã bấm **Không mua**. Mỗi số chỉ về kho tối đa 2 lần, sau đó ở lại với người đang giữ.
+**Không về kho:** khách bạn **tự tìm** (bạn tự thêm vào CRM), khách do **khách cũ giới thiệu**, khách trong file cũ. Mỗi số chỉ về kho tối đa 2 lần, sau đó ở lại với người đang giữ.
+
+**Khách hỏi từ quảng cáo đã nói "Không mua"** (từ 13/11/2026): bạn có **75 ngày**. Từ ngày thứ 45, khách hiện ở mục **😴 Gọi lại khách hỏi cũ** để bạn gọi lại trước. Quá 75 ngày mà bạn chưa liên hệ lại (chưa ghi 💬 Tư vấn) thì số về Kho chung để bạn khác thử với lý do mới, Telegram báo bạn. Không áp dụng cho số **không liên lạc được**, khách bạn tự tìm, khách được giới thiệu, file cũ.
 
 **Hết số quảng cáo thì làm gì? (từ 10/11/2026)**
 
@@ -294,7 +296,7 @@ Ví dụ: chị Hoa do bạn tự tìm, mua 350.000đ mỗi tháng trong 6 thán
 ## Việc 5: Cuối ngày gửi báo cáo
 
 1. Vào tab **Hôm nay**, kéo xuống cuối trang.
-2. Bấm **📋 Báo cáo cuối ngày (bảng)**. CRM tự đếm và hiện thành bảng như Excel: số mới, số đơn, doanh thu từng sản phẩm, khách cũ, tổng doanh thu, chăm sóc, lý do từ chối, % mục tiêu tháng. Bảng chỉ ghi **% mục tiêu**, không ghi số tiền luỹ kế tháng (giống bảng thi đua), nên bạn yên tâm gửi vào nhóm.
+2. Bấm **📋 Báo cáo cuối ngày (bảng)**. CRM tự đếm và hiện thành bảng như Excel: số mới, số đơn, doanh thu từng sản phẩm, khách cũ, tổng doanh thu, chăm sóc, lý do từ chối, % mục tiêu tháng. Từ 13/11/2026 có thêm nhóm **🌱 Mở rộng khách**: số khách bạn đã **mời giới thiệu**, số lần **hẹn gọi lại**, **khách tự tạo**, số **nhận từ Kho**. Ngày chưa có đơn, bạn vẫn báo cáo được công sức mình đã làm. Bảng chỉ ghi **% mục tiêu**, không ghi số tiền luỹ kế tháng (giống bảng thi đua), nên bạn yên tâm gửi vào nhóm.
 3. Gửi vào nhóm Zalo bằng ảnh bảng:
    - **Máy tính:** bấm **🖼️ Copy ảnh gửi Zalo** → mở nhóm Zalo → bấm **Ctrl+V** (máy Mac: **⌘+V**) → Gửi.
    - **Điện thoại:** bấm **🖼️ Gửi ảnh vào Zalo** → chọn **Zalo** → chọn nhóm → Gửi.

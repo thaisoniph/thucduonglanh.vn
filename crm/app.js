@@ -2282,9 +2282,13 @@
   var CS_COMMON = [
     ['“Uống cái này có khỏi bệnh không em?”', 'Dạ sản phẩm là thực phẩm, không phải là thuốc và không thay thế thuốc chữa bệnh ạ. Sản phẩm giúp mình bổ sung dinh dưỡng mỗi ngày, còn việc điều trị [Tên] vẫn theo bác sĩ nhé.', 'Không hứa khỏi bệnh, không nói “chữa”, “điều trị”. Ghi bệnh khách kể vào ô <b>Khách nói gì</b>.'],
     ['“Chị đang uống thuốc, dùng cùng được không?”', 'Dạ đây là thực phẩm nên mình vẫn dùng thuốc bình thường theo bác sĩ ạ. Nếu đang điều trị bệnh, [Tên] hỏi thêm bác sĩ đang theo dõi cho yên tâm nhé.', 'Không khuyên khách bỏ thuốc hay bớt thuốc.'],
-    ['Khách đang bận', 'Dạ em xin lỗi đã làm phiền ạ. Khi nào [Tên] tiện để em gọi lại ạ?', 'Bấm nút <b>📅 Mai</b> / <b>3 ngày</b>… ở Bước 2 theo giờ khách hẹn.']
+    ['Khách đang bận', 'Dạ em xin lỗi đã làm phiền ạ. Khi nào [Tên] tiện để em gọi lại ạ?', 'Bấm nút <b>📅 Mai</b> / <b>3 ngày</b>… ở Bước 2 theo giờ khách hẹn.'],
+    // 13/11/2026 (họp sale): tình huống khó chị em gặp thật
+    ['Người nhà nghe máy, báo khách đã mất', 'Dạ em thành thật chia buồn cùng gia đình ạ. Em xin lỗi đã làm phiền gia đình lúc này. Bên em sẽ không gọi làm phiền nữa ạ.', 'Không chào bán, không hỏi thêm. Bấm <b>📵 Ngừng liên hệ</b> (chọn đã mất) để cả công ty không gọi nữa. Gia đình muốn hỏi gì thêm thì báo quản lý.'],
+    ['Người nhà trách “tại dùng sản phẩm này mà ốm”', 'Dạ em rất tiếc khi nghe tin [Tên] không khoẻ ạ. Em hiểu gia đình đang lo. Em ghi lại đầy đủ để quản lý bên em gọi lại cho gia đình trong hôm nay ạ.', 'Lắng nghe, <b>không cãi, không giải thích công dụng, không hứa gì</b>. Người dùng đang mệt thì khuyên tạm dừng dùng và đi khám. Ghi đúng lời người nhà vào ô <b>Khách nói gì</b> rồi <b>báo quản lý ngay</b>.'],
+    ['Khách đã dừng dùng lâu', 'Dạ em gọi chỉ để hỏi thăm sức khoẻ [Tên] thôi ạ, không phải chào hàng đâu ạ. Dạo này [Tên] ăn ngủ, đi lại thế nào ạ?', 'Lần đầu gọi lại sau lâu: <b>chỉ hỏi thăm, chưa bán</b>. Ghi điều khách kể vào ô <b>Khách nói gì</b>, hẹn <b>2 tuần</b> sau hỏi thăm tiếp. Khách thấy được quan tâm thì lần sau mới mời.']
   ];
-  var CS_ALERT = ['Khách bị <b>ngứa, nổi mẩn, khó thở, đau bụng kéo dài</b> sau khi dùng → nói khách <b>tạm dừng dùng</b>, khó chịu nhiều thì đi khám ngay.', 'Hàng <b>bị vỡ, móp, thiếu, hết hạn, có mùi lạ</b> → xin khách ảnh chụp hộp và tem đơn qua Zalo.', 'Khách <b>đòi trả hàng, hoàn tiền</b>, hoặc đang rất bực.', 'Khách hỏi về <b>bệnh nặng</b> (ung thư, đang hoá trị, suy thận…) và muốn biết sản phẩm “có chữa được không”.'];
+  var CS_ALERT = ['Khách bị <b>ngứa, nổi mẩn, khó thở, đau bụng kéo dài</b> sau khi dùng → nói khách <b>tạm dừng dùng</b>, khó chịu nhiều thì đi khám ngay.', 'Hàng <b>bị vỡ, móp, thiếu, hết hạn, có mùi lạ</b> → xin khách ảnh chụp hộp và tem đơn qua Zalo.', 'Khách <b>đòi trả hàng, hoàn tiền</b>, hoặc đang rất bực.', 'Khách hỏi về <b>bệnh nặng</b> (ung thư, đang hoá trị, suy thận…) và muốn biết sản phẩm “có chữa được không”.', 'Người nhà <b>trách sản phẩm</b> làm người dùng ốm, hoặc báo người dùng <b>đã mất</b>.'];
   var CARE_SCRIPT = {
     d1: { t: 'hỏi nhận hàng, hướng dẫn dùng', use: 1, s: [
       ['1. Chào và hỏi nhận hàng', 'Dạ em chào anh/chị [Tên], em là [NV] bên Thực Dưỡng Lành. [Tên] đã nhận được [Sản phẩm] chưa ạ? Hàng tới nơi có nguyên vẹn không ạ?', ''],
@@ -11279,10 +11283,25 @@
     if (r.hoanN) lines.push('Đơn hoàn: ' + r.hoanN + ' · ' + mf(r.hoanV));
     var cs = careStats(name, dayStart(day), dayStart(day) + DAY);
     lines.push('KH cũ đã chăm sóc (kết nối): ' + cs.ok, 'Không nghe máy: ' + cs.knm);
+    var ef = effortStats(name, dayStart(day), dayStart(day) + DAY);
+    lines.push('🌱 Mở rộng khách: mời giới thiệu ' + ef.inv + ' · hẹn gọi lại ' + ef.cb + ' · khách tự tạo ' + ef.self + ' · nhận từ Kho ' + ef.pool);
     lines.push('Lý do từ chối:' + (cs.why.length ? '' : ' –')); cs.why.slice(0, 12).forEach(function (w) { lines.push('- ' + w); });
     var T = d.tot, mrev = sum(T.newR) + sum(T.oldR), tg = name ? targetOf(name, month) : null;
     if (tg && tg.amount) lines.push('', '📈 Luỹ kế ' + monthLabel(month) + ': đạt ' + pct(mrev, tg.amount) + '% mục tiêu'); // không ghi số tiền luỹ kế: sale ngại gửi vào nhóm chung (anh Sơn 31/10/2026), giống bảng thi đua
     return lines.join('\n');
+  }
+  /** 13/11/2026 (họp sale, Trang: gọi nhiều mà chưa ra đơn thì áp lực): đếm công sức mở rộng khách trong ngày để báo cáo ghi nhận cả việc đã làm, không chỉ doanh số.
+   *  inv = khách đã mời giới thiệu (nhật ký "Mời giới thiệu", máy chủ ghi khi mở 🌱) · cb = lần chăm sóc / tư vấn có hẹn gọi lại · self = khách hỏi bạn tự thêm · pool = số nhận từ Kho chung. */
+  function effortStats(name, from, to) {
+    var inv = {}, cb = 0, pool = 0;
+    (S.d.log || []).forEach(function (l) {
+      if (!l.time || l.time < from || l.time >= to || (name !== null && l.by !== name)) return;
+      if (l.what === 'Mời giới thiệu') inv[String(l.ref).replace(/^'/, '')] = 1;
+      else if (l.what === 'Nhận khách') pool++;
+      else if ((l.what === 'Tư vấn' || isCareLog(l)) && (l.result === 'Hẹn gọi lại' || /hẹn (gọi lại |liên hệ lại )?\d{1,2}\/\d{1,2}/i.test(l.note || ''))) cb++;
+    });
+    var self = (S.d.leads || []).filter(function (l) { return l.time >= from && l.time < to && l.by && (name === null ? l.by === l.owner : l.by === name) && !/^File/.test(l.channel || ''); }).length;
+    return { inv: Object.keys(inv).length, cb: cb, self: self, pool: pool };
   }
   /** Báo cáo ngày dạng bảng như Excel (góp ý chị Thuỷ 29/10/2026): cả nhóm = mỗi sale 1 dòng + dòng Tổng; 1 người = 2 cột Chỉ số | Số. Cột cả ngày bằng 0 thì ẩn. */
   function dailyTable(name, day) {
@@ -11290,7 +11309,7 @@
     var sum = function (o) { return BC_LINES.reduce(function (s0, l) { return s0 + o[l]; }, 0); };
     var adm = {}; (S.d.users || []).forEach(function (u) { if (u.role === 'Quản trị') adm[u.name] = 1; });
     var ents = (name === null ? [{ n: null, t: 'TỔNG cả nhóm' }].concat(userNames().map(function (n) { return { n: n, t: n }; })) : [{ n: name, t: name }]).map(function (e) {
-      var b = bcdtData(e.n, month); e.r = b.rows[idx] || b.rows[0]; e.T = b.tot; e.cs = careStats(e.n, d0, d0 + DAY); e.tg = e.n ? targetOf(e.n, month) : null; return e;
+      var b = bcdtData(e.n, month); e.r = b.rows[idx] || b.rows[0]; e.T = b.tot; e.cs = careStats(e.n, d0, d0 + DAY); e.ef = effortStats(e.n, d0, d0 + DAY); e.tg = e.n ? targetOf(e.n, month) : null; return e;
     });
     var cols = [];
     BC_LINES.forEach(function (l) {
@@ -11302,6 +11321,7 @@
       ['DT theo giờ lên đơn', 'Giờ hành chính', function (e) { return e.r.hrR['Trong giờ']; }, 1], ['DT theo giờ lên đơn', 'Tối / Chủ nhật', function (e) { return e.r.hrR['Ngoài giờ']; }, 1], ['DT theo giờ lên đơn', 'Ngày lễ', function (e) { return e.r.hrR['Ngày lễ']; }, 1], ['DT theo giờ lên đơn', 'Gõ vào file (không có giờ)', function (e) { return e.r.hrR['Không rõ giờ']; }, 1],
       ['Đơn hoàn', 'Số đơn', function (e) { return e.r.hoanN; }], ['Đơn hoàn', 'Giá trị', function (e) { return e.r.hoanV; }, 1],
       ['Chăm sóc khách cũ', 'Kết nối', function (e) { return e.cs.ok; }], ['Chăm sóc khách cũ', 'Không nghe máy', function (e) { return e.cs.knm; }],
+      ['Mở rộng khách', 'Mời giới thiệu', function (e) { return e.ef.inv; }], ['Mở rộng khách', 'Hẹn gọi lại', function (e) { return e.ef.cb; }], ['Mở rộng khách', 'Khách tự tạo', function (e) { return e.ef.self; }], ['Mở rộng khách', 'Nhận từ Kho', function (e) { return e.ef.pool; }],
       ['Luỹ kế ' + monthLabel(month), 'Doanh thu', function (e) { return sum(e.T.newR) + sum(e.T.oldR); }, 1, 0, 1], ['Luỹ kế ' + monthLabel(month), '% mục tiêu', function (e) { return e.tg && e.tg.amount ? pct(sum(e.T.newR) + sum(e.T.oldR), e.tg.amount) + '%' : ''; }]);
     cols = cols.filter(function (c) { return c[4] || ents.some(function (e) { return c[2](e); }); });
     if (name === null) ents = ents.filter(function (e, i) { return !i || !adm[e.n] || cols.some(function (c) { return c[2](e); }); }); // Quản trị không bán thì không hiện dòng trống

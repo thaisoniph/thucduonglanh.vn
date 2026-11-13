@@ -1092,6 +1092,25 @@ export async function leadKeeper(x, phone) {
   const caring = (cb >= now - DAY && cb <= now + POOL_CB_MAX * DAY) || (lc < own ? now - own < (R.poolNoCall || POOL_NOCALL) * DAY : now - lc < (R.poolIdle || POOL_IDLE) * DAY);
   return { owner: l.owner, caring, idle: Math.floor((now - Math.max(lc, own)) / DAY), never: lc < own };
 }
+/** 13/11/2026 (họp sale, anh Sơn "ok"): khách hỏi công ty giao đã báo "Không mua" quá POOL_NB_DAYS ngày, người giữ không liên hệ lại → về Kho chung (mở lại "Đang tư vấn") để người khác thử với lý do mới.
+ *  Người giữ có trước 30 ngày (45–75) trong mục 😴 Gọi lại khách hỏi cũ. Không áp cho số không liên lạc được, khách đã mua, sale tự thêm / giới thiệu / file cũ, hỏi quá 180 ngày; mỗi lượt tối đa 20 số. */
+const POOL_NB_DAYS = 75;
+async function poolNoBuy(x, now, users, tgOf, line) {
+  const L = await all(x.db, "SELECT *, " + LEAD_LASTC + " AS lc FROM leads WHERE status = 'Không mua' AND coalesce(owner, '') != '' AND time > ? AND coalesce(pool_n, 0) < " + POOL_ROUNDS +
+    " AND coalesce(by_name, '') != owner AND coalesce(ref_phone, '') = '' AND coalesce(ref_name, '') = '' AND coalesce(channel, '') NOT LIKE 'File cũ%' AND coalesce(reason, '') NOT LIKE '%liên lạc%'" +
+    " AND NOT EXISTS (SELECT 1 FROM customers c WHERE c.phone = leads.phone AND coalesce(c.orders, 0) > 0) AND NOT EXISTS (SELECT 1 FROM leads l2 WHERE l2.phone = leads.phone AND l2.status IN ('Mới hỏi', 'Đang tư vấn', 'Đã chốt')) ORDER BY time LIMIT 60", now - 180 * DAY);
+  const due = L.filter(l => now - (Number(l.lc) || Number(l.last_at) || Number(l.time)) >= POOL_NB_DAYS * DAY).slice(0, 20); if (!due.length) return;
+  const byOwner = {};
+  for (const l of due) {
+    const why = 'báo Không mua ' + Math.floor((now - (Number(l.lc) || Number(l.time))) / DAY) + ' ngày trước' + (l.reason ? ' (' + String(l.reason).slice(0, 60) + ')' : '');
+    await run(x.db, "UPDATE leads SET status = 'Đang tư vấn', owner = '', own_at = ?, pool_n = coalesce(pool_n, 0) + 1, pool_from = ?, pool_warn = NULL, callback = NULL, note = ? WHERE id = ?", now, l.owner,
+      String(l.note || '') + '\n[' + fmtDate(now, 'dd/MM') + '] ↩ Về Kho chung: ' + l.owner + ' ' + why + '. Gọi lại bằng lý do mới (sản phẩm mới, ưu đãi tháng này, hỏi thăm sức khoẻ).', l.id);
+    await crmLog(x, POOL_SYS, 'Về kho chung', l.phone, l.name, l.owner, 'Không mua ' + why);
+    (byOwner[l.owner] = byOwner[l.owner] || []).push(l);
+  }
+  for (const n of Object.keys(byOwner)) { const tg = tgOf(n); if (tg) await telegramTo(x.env, tg, '<b>↩️ Khách "Không mua" đã về Kho chung</b> (quá ' + POOL_NB_DAYS + ' ngày bạn chưa gọi lại, để bạn khác thử cách mới):\n' + byOwner[n].map(l => esc(line(l))).join('\n')); }
+  await telegram(x.env, '<b>🧺 KHO CHUNG có ' + due.length + ' khách từng nói "Không mua"</b> hơn ' + POOL_NB_DAYS + ' ngày trước – ai nhận cũng được. Đọc lý do cũ, gọi lại bằng lý do mới:\n' + due.map(l => esc(line(l)) + ' – từ ' + esc(l.owner)).join('\n') + '\n\n' + CRM_URL);
+}
 /** Chạy theo lịch (25 phút / lần, giờ làm việc). Bước 1: số đã báo trước ≥ 20 tiếng mà vẫn chưa chốt / chưa hẹn → về kho, báo người giữ cũ + nhóm Telegram. Bước 2: số sắp quá hạn (còn ≤ 1 ngày) → báo riêng người đang giữ 1 lần. */
 export async function poolTick(x) {
   if (await assignMode(x) !== 'pool') return;
@@ -1112,6 +1131,7 @@ export async function poolTick(x) {
     for (const n of Object.keys(byOwner)) { const tg = tgOf(n); if (tg) await telegramTo(x.env, tg, '<b>↩️ Đã về Kho chung</b> (cả phòng cùng khai thác):\n' + byOwner[n].map(l => esc(line(l) + ' – ' + l.why)).join('\n') + '\n\nLần sau: gọi / nhắn xong thì ghi 💬 Tư vấn; khách hẹn thì chọn ngày hẹn (tối đa ' + POOL_CB_MAX + ' ngày), số được giữ tới ngày hẹn.'); }
     await telegram(x.env, '<b>🧺 KHO CHUNG có ' + due.length + ' khách hỏi mới</b> – ai nhận cũng được. Đọc lịch sử tư vấn trước khi gọi, thử cách khác người trước:\n' + due.slice(0, 30).map(l => esc(line(l)) + ' – từ ' + esc(l.owner)).join('\n') + (due.length > 30 ? '\n… và ' + (due.length - 30) + ' khách nữa' : '') + '\n\n' + CRM_URL);
   }
+  await poolNoBuy(x, now, users, tgOf, line);
   const soon = await all(x.db, 'SELECT *, ' + LEAD_LASTC + ' AS lc ' + Q1.sql + ' AND (pool_warn IS NULL OR pool_warn < ' + LEAD_LASTC + ' OR pool_warn < coalesce(own_at, time)) ORDER BY time LIMIT 100', ...Q1.args);
   if (!soon.length) return;
   await run(x.db, 'UPDATE leads SET pool_warn = ? WHERE id IN (SELECT value FROM json_each(?))', now, JSON.stringify(soon.map(l => l.id)));

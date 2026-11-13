@@ -120,6 +120,9 @@ async function refCodeFor(x, u, d) {
   if (!await first(x.db, 'SELECT phone FROM customers WHERE phone = ?', phone)) return { ok: false, error: 'Không tìm thấy khách.' };
   const r = await makeRefCode(x, phone, u.name, cfg.refPct);
   if (!r) return { ok: false, error: 'Khách chưa có đơn hàng nào (không tính đơn huỷ / hoàn) nên chưa tạo được mã giới thiệu.' };
+  // 13/11/2026 (họp sale): ghi "Mời giới thiệu" (1 lần / khách / ngày) để báo cáo cuối ngày ghi nhận công sức mở rộng khách, không chỉ doanh số
+  const d0 = Date.now() - (Date.now() + 7 * 3600e3) % 86400e3;
+  if (!await first(x.db, "SELECT 1 FROM logs WHERE what = 'Mời giới thiệu' AND ref = ? AND by_name = ? AND time >= ?", phone, u.name, d0)) await run(x.db, 'INSERT INTO logs (time, by_name, what, ref, name, result, note) VALUES (?, ?, ?, ?, ?, ?, ?)', Date.now(), u.name, 'Mời giới thiệu', phone, '', r.code, '');
   return { ok: true, code: r.code, label: r.label, used: (await first(x.db, "SELECT count(*) AS n FROM orders WHERE voucher = ? AND " + LIVE, r.code)).n, isNew: !!r.isNew, cfg: { rwPct: cfg.rwPct, rwAmt: 0, rwSteps: stepsOf(cfg.rwSteps), winDays: cfg.winDays, vcMin: cfg.vcMin, tiers: ladder(cfg), tierN: cfg.tierN, tierGift: cfg.tierGift, auto: cfg.auto } };
 }
 /** Sale tặng quà / voucher cảm ơn khách đã giới thiệu (theo đơn của người được giới thiệu). */

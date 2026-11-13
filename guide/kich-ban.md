@@ -2,7 +2,7 @@
 title: Kịch bản gọi khách theo từng mốc
 nav: Kịch bản gọi
 order: 2.5
-updated: 2026-10-30
+updated: 2026-11-13
 description: Gọi khách sau khi mua thì nói gì, khách trả lời thế nào thì làm gì, khi nào báo quản lý. Có sẵn trong cửa sổ chăm sóc của CRM.
 ---
 
@@ -50,6 +50,12 @@ Mỗi trường hợp có 3 dòng:
 
 Những câu khách hay hỏi ở mọi mốc (*“Uống có khỏi bệnh không?”*, *“Đang uống thuốc dùng cùng được không?”*) có sẵn ở cuối danh sách.
 
+**Tình huống khó** (thêm 13/11/2026 sau họp sale), có ở mọi mốc:
+
+- **Người nhà nghe máy, báo khách đã mất**: chia buồn, xin lỗi đã làm phiền, **không chào bán**. Bấm **📵 Ngừng liên hệ** (chọn đã mất) để cả công ty không gọi nữa.
+- **Người nhà trách *“tại dùng sản phẩm này mà ốm”***: lắng nghe, **không cãi, không giải thích công dụng, không hứa gì**. Người dùng đang mệt thì khuyên tạm dừng dùng và đi khám. Ghi đúng lời người nhà rồi **báo quản lý ngay**.
+- **Khách đã dừng dùng lâu**: lần đầu gọi lại **chỉ hỏi thăm sức khoẻ, chưa bán**. Hẹn 2 tuần sau hỏi thăm tiếp, lần sau mới mời.
+
 ## Khi nào báo quản lý ngay
 
 ![Khung đỏ: các trường hợp phải báo quản lý](/huong-dan/img/kb-bao-quan-ly.webp)
@@ -60,6 +66,7 @@ Gặp một trong các chuyện trong **khung đỏ** thì **không tự xử l�
 - Hàng bị vỡ, móp, thiếu, hết hạn, có mùi lạ.
 - Khách đòi trả hàng, hoàn tiền, hoặc đang rất bực.
 - Khách hỏi về bệnh nặng và muốn biết sản phẩm “có chữa được không”.
+- Người nhà trách sản phẩm làm người dùng ốm, hoặc báo người dùng đã mất.
 
 Bạn nói với khách: *“Dạ em ghi lại đầy đủ và báo quản lý gọi lại cho anh/chị trong hôm nay ạ.”* Rồi ghi vào ô **Khách nói gì**, bấm **📅 Mai**, và **nhắn quản lý ngay**.
 
