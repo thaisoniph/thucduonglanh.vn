@@ -12182,12 +12182,14 @@
   function tbText(s) { return esc(s).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>').replace(/\n/g, '<br>'); }
   function tbPost(p) {
     var mgr = S.tb.canPost, who = p.read ? (S.tbWho === p.id ? '<div class="tb-who"><p><b>✅ Đã đọc (' + p.read.length + '):</b> ' + (p.read.map(function (r) { return esc(r.name); }).join(', ') || 'chưa ai') + '</p><p><b>⏳ Chưa đọc (' + p.unread.length + '):</b> ' + (p.unread.map(esc).join(', ') || 'không còn ai 🎉') + '</p><p class="hint">8h sáng hằng ngày (3 ngày đầu), ai chưa đọc được Telegram nhắc riêng, bạn nhận danh sách người chưa đọc.</p></div>' : '') : '';
-    return '<article class="tb-post' + (p.mine ? ' tb-seen' : '') + '"><div class="tb-kind">' + esc(p.kind) + ' · ' + fDateTime(p.at) + ' · ' + esc(p.by) + (p.upd ? ' · đã sửa' : '') + '</div>' +
+    var tag = (p.wait ? '<span class="tb-tag tb-wait">⏰ Hẹn hiện lúc ' + fDateTime(p.at) + ' · chỉ quản lý thấy</span>' : '') + (p.gone ? '<span class="tb-tag tb-gone">⌛ Đã hết hạn hiện (' + fDate(p.until - 1) + ') · nhân viên không còn thấy</span>' : '') +
+      (p.pin && !p.gone ? '<span class="tb-tag tb-pin">📌 Ghim đầu</span>' : '') + (p.until && !p.gone && !p.wait ? '<span class="tb-tag">Hiện đến hết ' + fDate(p.until - 1) + '</span>' : '');
+    return '<article class="tb-post' + (p.mine || p.wait || p.gone ? ' tb-seen' : '') + (p.pin && !p.gone ? ' tb-pinned' : '') + '">' + (tag ? '<div class="tb-tags">' + tag + '</div>' : '') + '<div class="tb-kind">' + esc(p.kind) + ' · ' + fDateTime(p.at) + ' · ' + esc(p.by) + (p.upd ? ' · đã sửa' : '') + '</div>' +
       '<h3>' + esc(p.title) + '</h3>' + (p.body ? '<p class="tb-body">' + tbText(p.body) + '</p>' : '') +
       (p.link ? '<a class="btn sm tb-link" href="' + esc(p.link) + '" target="_blank" rel="noopener">📄 Mở văn bản / link đính kèm</a>' : '') +
-      '<div class="tb-act">' + (p.mine ? '<span class="tb-ok">✅ ' + (p.own ? 'Bạn đăng tin này' : 'Bạn đã đọc lúc ' + fDateTime(p.mine)) + '</span>' : '<button class="btn pri" data-tb="read" data-id="' + p.id + '">✅ Tôi đã đọc</button>') +
+      '<div class="tb-act">' + (p.mine ? '<span class="tb-ok">✅ ' + (p.own ? 'Bạn đăng tin này' : 'Bạn đã đọc lúc ' + fDateTime(p.mine)) + '</span>' : p.wait || p.gone ? '' : '<button class="btn pri" data-tb="read" data-id="' + p.id + '">✅ Tôi đã đọc</button>') +
       (p.read ? '<button class="btn sm" data-tb="who" data-id="' + p.id + '">👁 ' + p.n + '/' + p.total + ' người đã đọc</button>' : '<span class="tb-cnt">' + p.n + ' người đã đọc</span>') +
-      (mgr && p.own ? '<button class="btn sm" data-tb="edit" data-id="' + p.id + '">✏️ Sửa</button>' : '') + (p.own || lvl() >= 3 ? '<button class="btn sm" data-tb="del" data-id="' + p.id + '">Ẩn</button>' : '') + '</div>' + who + '</article>';
+      (mgr && (p.own || lvl() >= 3) ? '<button class="btn sm" data-tb="edit" data-id="' + p.id + '">✏️ Sửa</button>' : '') + (p.own || lvl() >= 3 ? '<button class="btn sm" data-tb="del" data-id="' + p.id + '">Ẩn</button>' : '') + '</div>' + who + '</article>';
   }
   function tbForm() {
     var e = S.tbEdit && S.tb.posts.filter(function (p) { return p.id === S.tbEdit; })[0] || {};
@@ -12197,25 +12199,32 @@
       '<label>Nội dung<textarea id="tbBodyIn" rows="5" maxlength="4000" placeholder="Viết ngắn gọn: việc gì, ai cần làm gì, hạn khi nào">' + esc(e.body || '') + '</textarea></label>' +
       '<label>Link văn bản (không bắt buộc)<input id="tbLinkIn" maxlength="500" placeholder="Dán link Google Drive / Google Docs của văn bản" value="' + esc(e.link || '') + '"></label>' +
       '<p class="hint" style="margin:2px 0 6px">Văn bản để trên Google Drive, nhớ chia sẻ "Bất kỳ ai có đường liên kết đều xem được" hoặc chia sẻ cho email nhân sự.</p>' +
-      '<label class="tb-chk"><input type="checkbox" id="tbTg" checked> Gửi Telegram riêng cho mọi người (ai đã kết nối Telegram với CRM)</label>' +
+      '<div class="tb-when"><label>⏰ Bắt đầu hiện lúc<input type="datetime-local" id="tbShowIn" value="' + tbLocal(e.showAt) + '"><small>Để trống = hiện ngay khi bấm Đăng</small></label>' +
+      '<label>⌛ Hiện đến hết ngày<input type="date" id="tbUntilIn" value="' + (e.until ? tbLocal(e.until - 1).slice(0, 10) : '') + '"><small>Để trống = hiện 60 ngày. Quá ngày này nhân viên không thấy nữa</small></label></div>' +
+      '<label class="tb-chk"><input type="checkbox" id="tbPin"' + (e.pin ? ' checked' : '') + '> 📌 Ghim lên đầu (tin quan trọng, luôn nằm trên các tin khác tới khi hết hạn hiện)</label>' +
+      '<label class="tb-chk"><input type="checkbox" id="tbTg" checked> Gửi Telegram riêng cho mọi người (ai đã kết nối Telegram với CRM). Có hẹn giờ thì tới giờ mới gửi</label>' +
       '<div class="tb-act"><button class="btn pri" data-tb="save">' + (e.id ? 'Lưu' : '📢 Đăng') + '</button><button class="btn" data-tb="cancel">Huỷ</button></div></div>';
   }
+  /** ms → "2026-11-14T08:00" cho ô datetime-local (giờ máy người dùng). */
+  function tbLocal(ms) { if (!ms) return ''; var d = new Date(ms), z = function (n) { return (n < 10 ? '0' : '') + n; }; return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate()) + 'T' + z(d.getHours()) + ':' + z(d.getMinutes()); }
   function tbCard() {
-    var t = S.tb, P = t.posts, unread = P.filter(function (p) { return !p.mine; });
+    var t = S.tb, P = t.posts, unread = P.filter(function (p) { return !p.mine && !p.wait && !p.gone; }), MAXU = 3;
     if (!P.length && !t.canPost) return '';
     var fam = '<a class="tb-fam" href="https://family.thucduonglanh.vn" target="_blank" rel="noopener">📸 Xem khoảnh khắc trà đàm, lễ chùa, team building ở group Thực Dưỡng Lành Family</a>';
     if (!unread.length && !S.tbOpen && !S.tbNew) return '<button class="tb-mini" data-tb="open">📢 Thông báo công ty: <b>không có tin mới</b><span>' + (P.length ? 'Bấm để xem lại ' + P.length + ' tin gần đây' : 'Bấm để đăng thông báo') + '</span></button>';
-    var list = S.tbOpen ? P : unread;
+    // 14/11/2026: máy chủ xếp sẵn: tin hẹn giờ (quản lý) → 📌 ghim → mới nhất. Chưa đọc chỉ hiện đầy đủ 3 tin đầu, còn lại bấm xem tiếp.
+    var list = S.tbOpen ? P : unread.slice(0, S.tbMore ? 99 : MAXU), more = !S.tbOpen && !S.tbMore && unread.length > MAXU ? '<button class="tb-fold tb-morebtn" data-tb="more">Xem thêm ' + (unread.length - MAXU) + ' tin chưa đọc ▼</button>' : '';
     return '<section class="tb-card"><div class="tb-hd"><span>📢 Thông báo công ty' + (unread.length ? ' · <b>' + unread.length + ' tin chưa đọc</b>' : '') + '</span><span>' +
       (t.canPost && !S.tbNew ? '<button class="btn sm" data-tb="new">➕ Đăng thông báo</button> ' : '') +
       (unread.length && !S.tbOpen ? (P.length > unread.length ? '<button class="tb-fold" data-tb="open">Xem cả tin cũ</button>' : '') : '<button class="tb-fold" data-tb="close">Thu gọn ▲</button>') + '</span></div>' +
-      (S.tbNew ? tbForm() : '') + (list.length ? list.map(tbPost).join('') : '<p class="hint">Chưa có thông báo nào trong 60 ngày qua.</p>') + fam + '</section>';
+      (S.tbNew ? tbForm() : '') + (list.length ? list.map(tbPost).join('') : '<p class="hint">Chưa có thông báo nào trong 60 ngày qua.</p>') + more + fam + '</section>';
   }
   function tbBind() {
     $$('#tbBox [data-tb]').forEach(function (b) {
       b.onclick = function () {
         var k = b.getAttribute('data-tb'), id = +b.getAttribute('data-id') || 0;
         if (k === 'open') { S.tbOpen = 1; return tbPaint(); }
+        if (k === 'more') { S.tbMore = 1; return tbPaint(); }
         if (k === 'close') { S.tbOpen = 0; S.tbNew = 0; S.tbEdit = 0; return tbPaint(); }
         if (k === 'new') { S.tbNew = 1; S.tbEdit = 0; tbPaint(); var i = $('#tbTitle'); if (i) i.focus(); return; }
         if (k === 'edit') { S.tbNew = 1; S.tbEdit = id; S.tbOpen = 1; tbPaint(); $('#tbBox').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
@@ -12224,14 +12233,17 @@
         if (k === 'del' && !confirm('Ẩn thông báo này? Mọi người sẽ không thấy nữa.')) return;
         var p = { id: id }, ok = '';
         if (k === 'save') {
-          p = { id: S.tbEdit || 0, kind: $('#tbKind').value, title: $('#tbTitle').value, body: $('#tbBodyIn').value, link: $('#tbLinkIn').value, tg: $('#tbTg').checked ? 1 : 0 };
+          var sv = $('#tbShowIn').value, uv = $('#tbUntilIn').value;
+          p = { id: S.tbEdit || 0, kind: $('#tbKind').value, title: $('#tbTitle').value, body: $('#tbBodyIn').value, link: $('#tbLinkIn').value, tg: $('#tbTg').checked ? 1 : 0, pin: $('#tbPin').checked ? 1 : 0,
+            showAt: sv ? new Date(sv).getTime() : 0, until: uv ? new Date(uv + 'T00:00').getTime() + DAY : 0 }; // hiện đến HẾT ngày đã chọn
           if (!p.title.trim()) return toast('Bạn ghi tiêu đề thông báo nhé', true);
+          if (p.until && p.until <= Math.max(Date.now(), p.showAt || 0)) return toast('Ngày "hiện đến" phải sau giờ bắt đầu hiện', true);
         }
         b.disabled = true;
         api('tb_' + k, p).then(function (j) {
           S.tb = j.tb; if (k === 'save') { S.tbNew = 0; S.tbEdit = 0; S.tbOpen = 1; }
           tbPaint();
-          toast(k === 'read' ? '✅ Cảm ơn bạn đã đọc' : k === 'del' ? 'Đã ẩn thông báo' : '📢 Đã ' + (p.id ? 'lưu' : 'đăng') + (j.sent ? ', đã gửi Telegram cho ' + j.sent + ' người' : ''));
+          toast(k === 'read' ? '✅ Cảm ơn bạn đã đọc' : k === 'del' ? 'Đã ẩn thông báo' : p.showAt && p.showAt > Date.now() + 60e3 ? '⏰ Đã hẹn: hiện lúc ' + fDateTime(p.showAt) + (j.wait ? ', tới giờ tự gửi Telegram' : '') : '📢 Đã ' + (p.id ? 'lưu' : 'đăng') + (j.sent ? ', đã gửi Telegram cho ' + j.sent + ' người' : ''));
         }, function (e) { b.disabled = false; toast(e.message, true); });
       };
     });

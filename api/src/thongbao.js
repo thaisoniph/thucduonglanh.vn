@@ -18,26 +18,34 @@ async function schema(db) {
   if (schemaOk) return;
   await run(db, `CREATE TABLE IF NOT EXISTS tb_posts (id INTEGER PRIMARY KEY AUTOINCREMENT, kind TEXT DEFAULT '', title TEXT, body TEXT DEFAULT '', link TEXT DEFAULT '', by_email TEXT, by_name TEXT, at INTEGER, upd_at INTEGER, del INTEGER DEFAULT 0)`);
   await run(db, `CREATE TABLE IF NOT EXISTS tb_read (post INTEGER, email TEXT, name TEXT DEFAULT '', at INTEGER, PRIMARY KEY (post, email))`);
+  // 14/11/2026 anh Sơn: hẹn giờ hiện (show_at), hiện đến hết ngày (until), 📌 ghim đầu (pin), Telegram chờ tới giờ hẹn mới gửi (tg_wait)
+  const cols = (await all(db, 'PRAGMA table_info(tb_posts)')).map(c => c.name);
+  for (const [c, def] of [['show_at', 'INTEGER'], ['until', 'INTEGER'], ['pin', 'INTEGER DEFAULT 0'], ['tg_wait', 'INTEGER DEFAULT 0']]) if (!cols.includes(c)) { try { await run(db, `ALTER TABLE tb_posts ADD COLUMN ${c} ${def}`); } catch (e) { } }
   schemaOk = true;
 }
 
 const staff = async x => (await crmUsers(x)).filter(z => z.active);
 const clean = (s, n) => String(s || '').replace(/\r/g, '').trim().slice(0, n);
 
-/** Danh sách cho thẻ: tin 60 ngày qua (mới nhất trước), mình đã đọc chưa, bao nhiêu người đã đọc.
- *  Quản lý trở lên (và người đăng) có thêm danh sách đã đọc / chưa đọc từng tin. */
+const SHOW = 'coalesce(show_at, at)'; // giờ tin bắt đầu hiện (hẹn giờ) hoặc giờ đăng
+/** Danh sách cho thẻ: tin đang hiện (đã tới giờ hẹn, chưa quá ngày "hiện đến", không có hạn thì 60 ngày), 📌 ghim trước rồi mới nhất trước;
+ *  mình đã đọc chưa, bao nhiêu người đã đọc. Quản lý trở lên (và người đăng) có thêm danh sách đã đọc / chưa đọc,
+ *  và thấy cả tin đang hẹn giờ (wait) / đã hết hạn hiện (gone, 14 ngày gần đây) để sửa hoặc đăng lại. */
 export async function tbList(x, u) {
   await schema(x.db);
-  const posts = await all(x.db, 'SELECT id, kind, title, body, link, by_email, by_name, at, upd_at FROM tb_posts WHERE del = 0 AND at > ? ORDER BY at DESC LIMIT 30', Date.now() - KEEP);
+  const now = Date.now(), mgr = u.level >= 2;
+  const posts = await all(x.db, `SELECT id, kind, title, body, link, by_email, by_name, at, upd_at, show_at, until, pin FROM tb_posts WHERE del = 0 AND ${SHOW} > ? AND (? OR by_email = ? OR (${SHOW} <= ? AND (until IS NULL OR until > ?))) ORDER BY (${SHOW} > ?) DESC, (pin = 1 AND (until IS NULL OR until > ?)) DESC, ${SHOW} DESC LIMIT 40`,
+    now - KEEP, mgr ? 1 : 0, u.email, now, now, now, now);
   const ids = posts.map(p => p.id), reads = ids.length ? await all(x.db, `SELECT post, email, name, at FROM tb_read WHERE post IN (${ids.map(() => '?').join(',')})`, ...ids) : [];
-  const ppl = await staff(x), mgr = u.level >= 2;
-  const out = posts.map(p => {
+  const ppl = await staff(x);
+  const out = posts.filter(p => !(p.until && p.until <= now - 14 * DAY)).map(p => {
     const rs = reads.filter(r => r.post === p.id), me = rs.find(r => r.email === u.email), who = ppl.filter(z => z.email !== p.by_email);
-    const o = { id: p.id, kind: p.kind, title: p.title, body: p.body, link: p.link, by: p.by_name, at: p.at, upd: p.upd_at || null, mine: me ? me.at : (p.by_email === u.email ? p.at : null), own: p.by_email === u.email, n: rs.filter(r => r.email !== p.by_email).length, total: who.length };
+    const sh = p.show_at || p.at;
+    const o = { id: p.id, kind: p.kind, title: p.title, body: p.body, link: p.link, by: p.by_name, at: sh, posted: p.at, showAt: p.show_at || null, until: p.until || null, pin: p.pin ? 1 : 0, wait: sh > now ? 1 : 0, gone: p.until && p.until <= now ? 1 : 0, upd: p.upd_at || null, mine: me ? me.at : (p.by_email === u.email ? p.at : null), own: p.by_email === u.email, n: rs.filter(r => r.email !== p.by_email).length, total: who.length };
     if (mgr || o.own) { const got = {}; rs.forEach(r => { got[r.email] = r.at; }); o.read = who.filter(z => got[z.email]).map(z => ({ name: z.name, at: got[z.email] })); o.unread = who.filter(z => !got[z.email]).map(z => z.name); }
     return o;
   });
-  return { ok: true, tb: { posts: out, kinds: TB_KINDS, canPost: mgr, at: Date.now() } };
+  return { ok: true, tb: { posts: out, kinds: TB_KINDS, canPost: mgr, at: now } };
 }
 
 /** ✅ Tôi đã đọc. */
@@ -56,15 +64,34 @@ export async function tbSave(x, u, d) {
   let link = clean(d.link, 500);
   if (!title) return { ok: false, error: 'Bạn ghi tiêu đề thông báo nhé.' };
   if (link && !/^https?:\/\//i.test(link)) link = 'https://' + link;
-  const id = Number(d.id) || 0, now = Date.now();
-  if (id) await run(x.db, 'UPDATE tb_posts SET kind = ?, title = ?, body = ?, link = ?, upd_at = ? WHERE id = ? AND del = 0', kind, title, body, link, now, id);
-  else await run(x.db, 'INSERT INTO tb_posts (kind, title, body, link, by_email, by_name, at) VALUES (?, ?, ?, ?, ?, ?, ?)', kind, title, body, link, u.email, u.name, now);
+  const id = Number(d.id) || 0, now = Date.now(), pin = d.pin ? 1 : 0;
+  let showAt = Number(d.showAt) || null, until = Number(d.until) || null; // ms; trống = hiện ngay / không hạn (60 ngày)
+  if (showAt && showAt <= now + 60e3) showAt = null; // giờ đã qua → hiện ngay
+  if (showAt && showAt > now + 90 * DAY) return { ok: false, error: 'Chỉ hẹn giờ trong 90 ngày tới.' };
+  if (until && until <= (showAt || now)) return { ok: false, error: 'Ngày "hiện đến" phải sau giờ bắt đầu hiện.' };
+  const wait = d.tg && showAt ? 1 : 0; // hẹn giờ + gửi Telegram → tbTick gửi khi tới giờ
+  if (id) await run(x.db, 'UPDATE tb_posts SET kind = ?, title = ?, body = ?, link = ?, upd_at = ?, show_at = ?, until = ?, pin = ?, tg_wait = ? WHERE id = ? AND del = 0', kind, title, body, link, now, showAt, until, pin, wait, id);
+  else await run(x.db, 'INSERT INTO tb_posts (kind, title, body, link, by_email, by_name, at, show_at, until, pin, tg_wait) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', kind, title, body, link, u.email, u.name, now, showAt, until, pin, wait);
   let sent = 0;
-  if (d.tg) {
+  if (d.tg && !showAt) {
     const msg = kind + (id ? ' (đã sửa)' : '') + ': <b>' + esc(title) + '</b>\n' + (body ? esc(body.length > 600 ? body.slice(0, 600) + '…' : body) + '\n' : '') + (link ? '📎 ' + esc(link) + '\n' : '') + '\n— ' + esc(u.name) + '\n👉 Mở CRM bấm <b>✅ Tôi đã đọc</b>: ' + CRM_URL;
     for (const z of await staff(x)) if (z.tg && z.email !== u.email) { try { await telegramTo(x.env, z.tg, msg); sent++; } catch (e) { console.error('tb tg', e.message); } }
   }
-  const r = await tbList(x, u); r.sent = sent; return r;
+  const r = await tbList(x, u); r.sent = sent; r.wait = wait; return r;
+}
+
+/** Mỗi lượt cron (10 phút, 7h–22h): tin hẹn giờ có chọn gửi Telegram → tới giờ thì gửi riêng cho mọi người. */
+export async function tbTick(x) {
+  await schema(x.db);
+  const now = Date.now(), posts = await all(x.db, 'SELECT id, kind, title, body, link, by_email, by_name FROM tb_posts WHERE del = 0 AND tg_wait = 1 AND show_at <= ?', now);
+  if (!posts.length) return 0;
+  const ppl = await staff(x); let n = 0;
+  for (const p of posts) {
+    await run(x.db, 'UPDATE tb_posts SET tg_wait = 0 WHERE id = ?', p.id); // đánh dấu trước: lỗi giữa chừng không gửi lặp
+    const msg = p.kind + ': <b>' + esc(p.title) + '</b>\n' + (p.body ? esc(p.body.length > 600 ? p.body.slice(0, 600) + '…' : p.body) + '\n' : '') + (p.link ? '📎 ' + esc(p.link) + '\n' : '') + '\n— ' + esc(p.by_name) + '\n👉 Mở CRM bấm <b>✅ Tôi đã đọc</b>: ' + CRM_URL;
+    for (const z of ppl) if (z.tg && z.email !== p.by_email) { try { await telegramTo(x.env, z.tg, msg); n++; } catch (e) { console.error('tbTick tg', e.message); } }
+  }
+  return n;
 }
 
 /** Ẩn thông báo (người đăng hoặc Quản trị). Không xoá hẳn, vẫn còn trong D1. */
@@ -89,7 +116,7 @@ export async function crmTb(x, u, d) {
 /** 8h sáng: nhắc riêng người chưa đọc (tin đăng từ 20 tiếng đến ~3 ngày trước), báo người đăng ai còn chưa đọc. */
 export async function tbDaily(x) {
   await schema(x.db);
-  const now = Date.now(), posts = await all(x.db, 'SELECT id, title, by_email, by_name, at FROM tb_posts WHERE del = 0 AND at > ? AND at < ?', now - REMIND, now - 20 * 3600e3);
+  const now = Date.now(), posts = await all(x.db, `SELECT id, title, by_email, by_name, at FROM tb_posts WHERE del = 0 AND ${SHOW} > ? AND ${SHOW} < ? AND (until IS NULL OR until > ?)`, now - REMIND, now - 20 * 3600e3, now);
   if (!posts.length) return 0;
   const ppl = await staff(x), mine = {}, owner = {};
   for (const p of posts) {

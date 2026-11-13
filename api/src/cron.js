@@ -18,7 +18,7 @@ import { finSync, finMorning } from './fin.js';
 import { khoTick, khoMorning } from './kho.js';
 import { insWeekly } from './insight.js';
 import { vhLine } from './vanhoa.js';
-import { tbDaily } from './thongbao.js';
+import { tbDaily, tbTick } from './thongbao.js';
 
 function careMessage(items, leads, today, isGroup, who, R) {
   const block = (title, arr, tip) => !arr.length ? '' : '\n\n<b>' + title + ' (' + arr.length + ')</b> – ' + tip + '\n' + arr.slice(0, 25).map(c =>
@@ -163,6 +163,7 @@ export async function scheduled(x, cron) {
     try { await poolTick(x); } catch (e) { console.error('poolTick', e.message); } // 🧺 số công ty giao quá N ngày chưa chốt → báo trước 1 ngày rồi về Kho chung
     try { await ownTick(x); } catch (e) { console.error('ownTick', e.message); } // 🙋 khách mới có đơn đầu: sale tự mang về? → hoa hồng payplan.own % (6% từ 13/11/2026) trong 6 tháng, báo sale
   }
+  try { await tbTick(x); } catch (e) { console.error('tbTick', e.message); } // 📢 thông báo hẹn giờ tới giờ hiện → gửi Telegram (thongbao.js)
   try { await sanSheetTick(x); } catch (e) { console.error('sanSheet', e.message); } // Google Sheet báo cáo sàn, 30 phút/lần
   try { await wbTick(x); } catch (e) { console.error('wbTick', e.message); } // ghi ngược vào file sale (hàng trống: 1 câu đọc theo chỉ mục)
   try { await khoTick(x); } catch (e) { console.error('khoTick', e.message); } // 📦 trừ kho theo đơn vừa đổi, báo ngay khi sản phẩm chạm mức cần đặt
