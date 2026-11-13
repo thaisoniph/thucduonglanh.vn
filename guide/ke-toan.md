@@ -2,8 +2,8 @@
 title: Kế toán
 nav: Kế toán
 order: 4.6
-updated: 2026-11-12
-description: Ghi tiền về tài khoản (tải file đối soát COD Best / Viettel Post hoặc tích tay), đối soát Shopee từng đơn, ghi công nợ nhà cung cấp, xem tiền còn treo ở hãng vận chuyển, nhập chi phí, xem lãi lỗ theo ngày / tuần / tháng. Có hình từng bước.
+updated: 2026-11-13
+description: Ghi tiền về tài khoản (tải file đối soát COD Best / Viettel Post hoặc tích tay), đối soát Shopee từng đơn, ghi công nợ nhà cung cấp, tự chấm KPI tháng, xem tiền còn treo ở hãng vận chuyển, nhập chi phí, xem lãi lỗ theo ngày / tuần / tháng. Có hình từng bước.
 ---
 
 Trang này dành cho **kế toán**. Đọc khoảng 5 phút là làm được.
@@ -246,6 +246,52 @@ Mục **🧾 Công nợ nhà cung cấp** trên tab 💼 Kế toán:
 **Trước khi trả tiền:** so hoá đơn với **📥 Hàng về kho** (mục Hàng tồn kho bên dưới) xem kho đã nhận đủ chưa.
 
 Số công nợ này cũng hiện ở ô **🧾 Nợ nhà cung cấp** (Tổng quan của anh Sơn) và tin Telegram 8h sáng (khoản quá hạn, tới hạn 7 ngày). Nút **📋 Chép bảng công nợ** chép cả sổ để dán vào Google Sheet khi cần gửi báo cáo.
+
+## KPI tháng: tự chấm, quản lý chấm lại
+
+Mỗi tháng kế toán tự chấm 7 nhóm việc. Sau đó quản lý (chị Thủy) hoặc anh Sơn chấm lại và **chốt**. Điểm đã chốt được lưu để đánh giá cuối năm và xét điều chỉnh lương.
+
+![Chọn tháng (1), mở phiếu của bạn (2)](/huong-dan/img/ke-toan-kpi.webp)
+
+Mục **📋 KPI tháng của kế toán** trên tab 💼 Kế toán:
+
+1. **Chọn tháng.** Từ ngày 1 đến ngày 15, máy tự mở tháng trước. Bấm **‹ ›** để đổi tháng.
+2. **Phiếu KPI của bạn:** bấm vào để tự chấm.
+
+![Xem thời hạn (1), chọn mức (2), ghi bằng chứng (3), tổng điểm (4), lưu (5)](/huong-dan/img/ke-toan-kpi-cham.webp)
+
+Trong phiếu, làm từng nhóm việc:
+
+1. Bấm **Thời hạn & kết quả cần đạt** để xem nhóm đó cần làm gì, hạn ngày nào.
+2. **Chọn mức:**
+   - **100%**: đúng hạn, số đúng.
+   - **80%**: trễ 1–2 ngày làm việc, hoặc có 1 lỗi tự phát hiện và đã sửa.
+   - **50%**: trễ quá 2 ngày, lỗi do người khác phát hiện, hoặc lặp lại lỗi tháng trước.
+   - **0%**: công ty bị phạt hoặc mất tiền do lỗi kế toán.
+3. **Ghi bằng chứng:** link bảng đối soát, báo cáo hoặc biên nhận; nếu trễ thì ghi vì sao.
+4. **Tổng điểm** máy tự cộng, kèm xếp loại và lương tháng của bạn.
+5. Bấm **Lưu tự chấm**. Chưa chốt thì bạn sửa lại được.
+
+**Điểm cộng (tối đa 5):** dành cho việc phát hiện rủi ro (của hệ thống hoặc bộ phận khác), hoặc đề xuất cải tiến được duyệt. Ghi rõ việc gì, ngày nào.
+
+> 💡 Nếu bạn **báo trước hạn** rằng sẽ trễ (ví dụ thiếu dữ liệu từ người khác) và được đồng ý lùi hạn, thì vẫn tính **đúng hạn (100%)**.
+
+**Xếp loại:** từ 90 điểm là **A**; 75–89 điểm là **B**; 60–74 điểm là **C**; dưới 60 điểm thì họp riêng để xem lại. Không được loại A nếu nhóm 1, 5 hoặc 7 đạt dưới 70%, hoặc nếu tháng đó công ty bị phạt / mất tiền.
+
+**Lương** = lương cơ bản + lương hiệu quả theo xếp loại (chưa tính bảo hiểm). Tháng chấm thử: lương không thấp hơn mức đang nhận.
+
+### Quản lý chấm lại và chốt
+
+Chị Thủy (Quản lý) mở tab **Hiệu quả**, kéo xuống cuối trang. Anh Sơn (Quản trị) mở tab **💼 Kế toán**. Bấm tên người kế toán.
+
+![Điểm kế toán tự chấm (1), chọn mức của quản lý (2), tổng điểm (3), chốt (4)](/huong-dan/img/ke-toan-kpi-chot.webp)
+
+1. Dòng **🙋 Kế toán tự chấm** cho biết kế toán chọn mức nào và ghi chú gì.
+2. Phiếu mở sẵn theo mức kế toán tự chấm. Thấy khác thì chọn lại, ghi nhận xét.
+3. Xem tổng điểm, xếp loại và lương.
+4. Bấm **✅ Chốt tháng**. Sau khi chốt, kế toán không sửa được nữa. Cần sửa thì bấm **🔓 Mở lại để sửa**.
+
+Chưa xong thì bấm **Lưu nháp**. Các tháng đã chốt nằm ở **📈 Các tháng đã chốt**. Anh Sơn sửa mức lương theo xếp loại ở **⚙️ Mức lương theo xếp loại**.
 
 ## Nhập chi phí và xem lãi lỗ
 

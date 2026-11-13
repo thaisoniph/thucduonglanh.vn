@@ -5819,6 +5819,122 @@
       };
     });
   }
+  /* ---------- 📋 KPI tháng của kế toán (13/11/2026, chị Thủy gửi bảng "KPI kế toán nội bộ kiêm thuế", anh Sơn "Làm luôn"). Máy chủ api/src/kpi.js, lệnh kt_kpi {op}.
+   * Kế toán tự chấm từng nhóm việc (100 / 80 / 50 / 0%) + ghi chú bằng chứng → Quản lý / Quản trị chấm lại (bắt đầu từ điểm tự chấm), điểm cộng ≤ 5 → ✅ Chốt.
+   * Điểm = Σ trọng số × mức + điểm cộng (tối đa 100). Loại A ≥ 90, B 75–89, C 60–74, dưới 60 = họp riêng. Nhóm "key" (1, 5, 7) dưới 70% hoặc có nhóm 0% → không loại A.
+   * Lương = cơ bản + lương hiệu quả theo loại (kv kpi_cfg); tháng chấm thử: không thấp hơn mức sàn (lương đang nhận). Hiện ở 💼 Kế toán và Hiệu quả (Quản lý). */
+  var KPT = { d: null, busy: false, at: 0, err: '', m: '' };
+  var KPT_LV = [[100, '✅ Đúng hạn, số đúng'], [80, '🟡 Trễ 1–2 ngày, hoặc 1 lỗi tự phát hiện và sửa'], [50, '🟠 Trễ quá 2 ngày, lỗi người khác phát hiện, hoặc lặp lại lỗi tháng trước'], [0, '🔴 Công ty bị phạt / mất tiền do lỗi kế toán']];
+  var KPT_GR = { A: 'Loại A', B: 'Loại B', C: 'Loại C', D: 'Họp riêng để xem lại' };
+  function kptLoad(force) {
+    if (KPT.busy || (!force && KPT.d && Date.now() - KPT.at < 120e3)) return; KPT.busy = true; KPT.err = '';
+    api('kt_kpi', { op: 'list' }).then(function (j) { KPT.d = j; KPT.at = Date.now(); }, function (e) { KPT.err = /Không rõ thao tác|Không rõ lệnh|không có quyền|chỉ dùng được/i.test(e.message) && !/Chỉ kế toán/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message; })
+      .then(function () { KPT.busy = false; var v = route().view; if (v === 'ke-toan' || v === 'bao-cao') softRender(true); });
+  }
+  function kptMonthDef() { var t = isoDate(Date.now()), y = +t.slice(0, 4), m = +t.slice(5, 7); if (+t.slice(8, 10) > 15) return t.slice(0, 7); m--; if (!m) { m = 12; y--; } return y + '-' + (m < 10 ? '0' : '') + m; }
+  function kptMonthAdd(mo, k) { var y = +mo.slice(0, 4), m = +mo.slice(5, 7) + k; while (m < 1) { m += 12; y--; } while (m > 12) { m -= 12; y++; } return y + '-' + (m < 10 ? '0' : '') + m; }
+  function kptMl(mo) { return 'Tháng ' + (+mo.slice(5, 7)) + '/' + mo.slice(0, 4); }
+  function kptRow(mo, name) { return ((KPT.d && KPT.d.rows) || []).filter(function (r) { return r.month === mo && r.name === name; })[0] || null; }
+  function kptTpl(r) { return (r && r.tpl) || (KPT.d && KPT.d.cfg && KPT.d.cfg.groups) || []; }
+  /** Cộng điểm 1 phiếu chấm s theo các nhóm việc tpl. */
+  function kptCalc(tpl, s) {
+    var g = (s && s.g) || [], sum = 0, n = 0, why = [];
+    tpl.forEach(function (t, i) { var p = g[i] && g[i].p; if (p == null) return; n++; sum += t.w * p / 100; if (p === 0) why.push('nhóm ' + (i + 1) + ' làm công ty bị phạt / mất tiền'); else if (t.key && p < 70) why.push('nhóm ' + (i + 1) + ' (' + t.t + ') dưới 70%'); });
+    var plus = Math.min(5, Math.max(0, +(s && s.plus) || 0)), tot = Math.min(100, Math.round((sum + plus) * 10) / 10);
+    var gr = tot >= 90 ? 'A' : tot >= 75 ? 'B' : tot >= 60 ? 'C' : 'D'; if (gr === 'A' && why.length) gr = 'B';
+    return { tot: tot, plus: plus, gr: gr, why: why, full: n === tpl.length, n: n };
+  }
+  function kptPay(mo, gr) {
+    var c = KPT.d && KPT.d.cfg; if (!c || !c.base) return null;
+    var v = c.base + ((c.eff || {})[gr] || 0), tr = c.trial && c.trial === mo && c.floor > v; return { v: tr ? c.floor : v, eff: (c.eff || {})[gr] || 0, trial: tr };
+  }
+  function kptState(r) {
+    if (!r) return { t: 'Chưa chấm', cls: 'mid' };
+    if (r.done) { var c = kptCalc(kptTpl(r), r.mgr); return { t: '✅ Đã chốt: ' + c.tot + ' điểm · ' + KPT_GR[c.gr], cls: c.gr === 'A' ? 'ok' : c.gr === 'D' ? 'bad' : 'mid', c: c }; }
+    if (r.mgr) return { t: '✏️ Đang chấm lại (chưa chốt)', cls: 'mid' };
+    if (r.self) { var s = kptCalc(kptTpl(r), r.self); return { t: '🙋 Đã tự chấm ' + s.tot + ' điểm, chờ quản lý chấm lại', cls: 'mid' }; }
+    return { t: 'Chưa chấm', cls: 'mid' };
+  }
+  function kptHTML() {
+    var hd = '<section class="ktv-sec kpt-sec"><h2 class="ktv-h">📋 KPI tháng của kế toán <small>kế toán tự chấm → quản lý chấm lại → chốt</small></h2>';
+    if (!KPT.d) return hd + '<p class="muted small">' + (KPT.err ? '⚠️ ' + esc(KPT.err) + ' <button class="btn sm" data-kpt="re">Thử lại</button>' : '⏳ Đang lấy bảng KPI…') + '</p></section>';
+    var D = KPT.d, mo = KPT.m || (KPT.m = kptMonthDef()), cur = isoDate(Date.now()).slice(0, 7), h = hd;
+    h += '<div class="kpt-mon"><button class="btn sm ghost" data-kpt="mon|-1" aria-label="Tháng trước">‹</button><b>' + kptMl(mo) + '</b><button class="btn sm ghost" data-kpt="mon|1" aria-label="Tháng sau"' + (mo >= cur ? ' disabled' : '') + '>›</button></div>';
+    if (!D.staff.length) h += '<div class="notice info">Chưa có ai có quyền <b>Kế toán</b>. Quản trị vào <b>Cài đặt → Nhân sự</b>, đổi quyền của bạn kế toán thành <b>Kế toán</b> thì bảng KPI hiện ở đây.</div>';
+    else h += '<div class="box kpt-list">' + D.staff.map(function (n) {
+      var r = kptRow(mo, n), st = kptState(r), me = isKt();
+      var sub = st.t + (st.c && (me || D.can.mgr) ? (function () { var p = kptPay(mo, st.c.gr); return p ? ' · lương ' + moneyShort(p.v) + (p.trial ? ' (tháng chấm thử)' : '') : ''; })() : '');
+      var act = me ? (r && r.done ? 'Xem' : r && r.self ? 'Sửa tự chấm' : '🙋 Tự chấm') : r && r.done ? 'Xem' : r && r.self ? '✏️ Chấm lại' : 'Mở';
+      return '<button type="button" class="ktv-row kpt-' + st.cls + '" data-kpt="open|' + esc(n) + '"><span><b>' + esc(me ? 'Phiếu KPI của bạn' : n) + '</b><small>' + sub + '</small></span><b class="ktv-amt">' + act + '</b><i aria-hidden="true">›</i></button>';
+    }).join('') + '</div>';
+    var hist = (D.rows || []).filter(function (r) { return r.done; }).slice(0, 12);
+    if (hist.length) h += '<details class="box kpt-hist"><summary>📈 Các tháng đã chốt (căn cứ đánh giá cuối năm, xét lương)</summary>' + hist.map(function (r) { var c = kptCalc(kptTpl(r), r.mgr); return '<button type="button" class="ktv-row" data-kpt="open|' + esc(r.name) + '|' + r.month + '"><span><b>' + kptMl(r.month) + (D.staff.length > 1 && !isKt() ? ' · ' + esc(r.name) : '') + '</b><small>chốt bởi ' + esc(r.doneBy) + '</small></span><b class="ktv-amt">' + c.tot + ' · ' + c.gr + '</b><i aria-hidden="true">›</i></button>'; }).join('') + '</details>';
+    if (D.can && D.can.ceo) {
+      var c = D.cfg, e = c.eff || {}, inp = function (id, v) { return '<input type="text" inputmode="numeric" id="' + id + '" value="' + (v ? Number(v).toLocaleString('vi-VN') : '') + '">'; };
+      h += '<details class="box kpt-cfg"><summary>⚙️ Mức lương theo xếp loại <small class="muted">chỉ Quản trị sửa</small></summary><div class="kpt-cfg-g">' +
+        '<label>Lương cơ bản' + inp('kptB', c.base) + '</label><label>Hiệu quả loại A' + inp('kptA', e.A) + '</label><label>Loại B' + inp('kptBB', e.B) + '</label><label>Loại C' + inp('kptC', e.C) + '</label><label>Dưới 60 điểm' + inp('kptD', e.D) + '</label>' +
+        '<label>Tháng chấm thử<input type="month" id="kptT" value="' + esc(c.trial || '') + '"></label><label>Tháng chấm thử nhận ít nhất' + inp('kptF', c.floor) + '</label></div>' +
+        '<p class="small muted">Lương = cơ bản + hiệu quả theo loại (chưa tính bảo hiểm). Tháng chấm thử: lương không thấp hơn mức đang nhận. Kế toán chỉ thấy lương của mình.</p><button class="btn sm pri" data-kpt="cfg">Lưu mức lương</button></details>';
+    }
+    return h + '</section>';
+  }
+  function kptMoney(id) { var el = $('#' + id); return el ? Math.round(Number(String(el.value).replace(/[^\d]/g, '')) || 0) : 0; }
+  /** Mở phiếu chấm tháng mo của người name. Kế toán: sửa cột Tự chấm. Quản lý / Quản trị: sửa cột Quản lý chấm (bắt đầu từ điểm tự chấm). */
+  function openKpt(name, mo) {
+    mo = mo || KPT.m || kptMonthDef(); var D = KPT.d, r = kptRow(mo, name), tpl = kptTpl(r), me = isKt(), mgr = !!(D.can && D.can.mgr), done = !!(r && r.done);
+    var self = (r && r.self) || { g: [], plus: 0, pn: '' }, base = (r && r.mgr) || (r && r.self) || { g: [], plus: 0, pn: '' };
+    var W = { g: tpl.map(function (t, i) { var x = (me ? self : base).g[i] || {}; return { p: x.p == null ? null : x.p, n: me ? x.n || '' : (r && r.mgr && r.mgr.g[i] ? r.mgr.g[i].n || '' : '') }; }), plus: me ? self.plus || 0 : base.plus || 0, pn: me ? self.pn || '' : (r && r.mgr ? r.mgr.pn || '' : self.pn || '') };
+    var edit = !done && (me || mgr);
+    var body = '<p class="small muted">' + esc(name) + ' · ' + kptMl(mo) + (done ? ' · ✅ chốt bởi ' + esc(r.doneBy) : '') + '. ' + (me ? 'Chọn mức cho từng nhóm việc, ghi bằng chứng (link bảng đối soát, báo cáo, biên nhận). Quản lý sẽ chấm lại.' : 'Mức ban đầu lấy từ điểm kế toán tự chấm, anh / chị sửa nếu khác rồi bấm Chốt.') + '</p>' +
+      '<p class="small kpt-tip">💡 Báo trước hạn và được đồng ý lùi hạn → tính đúng hạn (100%).</p>';
+    body += tpl.map(function (t, i) {
+      var sp = self.g[i] && self.g[i].p, sn = self.g[i] && self.g[i].n;
+      return '<fieldset class="kpt-g" data-i="' + i + '"><legend>' + (i + 1) + '. ' + esc(t.t) + ' <span class="kpt-w">' + t.w + ' điểm' + (t.key ? ' · nhóm chính' : '') + '</span></legend>' +
+        '<details class="kpt-det"><summary>Thời hạn & kết quả cần đạt</summary><b>Thời hạn</b><ul>' + (t.due || []).map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul><b>Kết quả cần đạt</b><ul>' + (t.ok || []).map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></details>' +
+        (!me && (sp != null || sn) ? '<p class="small kpt-self">🙋 Kế toán tự chấm: <b>' + (sp == null ? 'chưa chọn' : sp + '%') + '</b>' + (sn ? ' · ' + esc(sn) : '') + '</p>' : '') +
+        '<div class="kpt-lv">' + KPT_LV.map(function (l) { return '<label class="kpt-o' + (W.g[i].p === l[0] ? ' on' : '') + '"><input type="radio" name="kpt' + i + '" value="' + l[0] + '"' + (W.g[i].p === l[0] ? ' checked' : '') + (edit ? '' : ' disabled') + '><b>' + l[0] + '%</b><span>' + l[1] + '</span></label>'; }).join('') + '</div>' +
+        '<textarea rows="2" class="kpt-n" placeholder="' + (me ? 'Bằng chứng / ghi chú, vd link bảng đối soát, trễ vì sao' : 'Nhận xét của quản lý') + '"' + (edit ? '' : ' disabled') + '>' + esc(W.g[i].n) + '</textarea></fieldset>';
+    }).join('');
+    body += '<fieldset class="kpt-g"><legend>➕ Điểm cộng <span class="kpt-w">tối đa 5</span></legend><p class="small muted">Phát hiện rủi ro (của hệ thống hoặc bộ phận khác) hoặc đề xuất cải tiến được duyệt. Ghi rõ việc và ngày.</p>' +
+      '<label class="kpt-plus">Số điểm <input type="number" min="0" max="5" step="1" id="kptP" value="' + (W.plus || 0) + '"' + (edit ? '' : ' disabled') + '></label><textarea rows="2" id="kptPn" placeholder="vd 05/11: phát hiện sao kê thiếu 2 khoản Best"' + (edit ? '' : ' disabled') + '>' + esc(W.pn) + '</textarea></fieldset>' +
+      '<div class="kpt-sum" id="kptSum"></div><p class="err kpt-err"></p>';
+    var foot = '<button class="btn" data-close>Đóng</button>' + (done && mgr ? '<button class="btn" id="kptRe">🔓 Mở lại để sửa</button>' : '') + (edit && me ? '<button class="btn pri" id="kptSave">Lưu tự chấm</button>' : '') + (edit && mgr ? '<button class="btn" id="kptSave">Lưu nháp</button><button class="btn pri" id="kptDone">✅ Chốt tháng</button>' : '');
+    var m = modal('📋 KPI ' + kptMl(mo).toLowerCase(), body, foot);
+    var read = function () {
+      return { g: tpl.map(function (t, i) { var c = $('input[name="kpt' + i + '"]:checked', m); return { p: c ? +c.value : null, n: $('fieldset[data-i="' + i + '"] .kpt-n', m).value }; }), plus: Math.max(0, Math.min(5, Math.round(+$('#kptP', m).value || 0))), pn: $('#kptPn', m).value };
+    };
+    var show = function () {
+      var s = read(), c = kptCalc(tpl, s), p = (me || mgr) ? kptPay(mo, c.gr) : null;
+      $$('.kpt-o', m).forEach(function (l) { l.classList.toggle('on', !!$('input', l).checked); });
+      $('#kptSum', m).innerHTML = '<b>' + c.tot + ' / 100 điểm · ' + KPT_GR[c.gr] + '</b>' + (c.full ? '' : '<small>Còn ' + (tpl.length - c.n) + ' nhóm chưa chấm</small>') +
+        (c.why.length ? '<small>Không xếp loại A vì ' + esc(c.why.join(', ')) + '.</small>' : '') + (p && c.full ? '<small>Lương tháng (chưa tính bảo hiểm): <b>' + money(p.v) + '</b>' + (p.trial ? ' · tháng chấm thử, không thấp hơn mức đang nhận' : ' = cơ bản + hiệu quả ' + moneyShort(p.eff)) + '</small>' : '');
+    };
+    m.addEventListener('change', show); m.addEventListener('input', show); show();
+    var go = function (b, data, msg) {
+      var t = b.textContent; b.disabled = true; b.textContent = '⏳ Đang lưu…';
+      api('kt_kpi', data).then(function (j) { KPT.d = j; KPT.at = Date.now(); toast(msg); closeModal(); render(); }, function (e) { b.disabled = false; b.textContent = t; $('.kpt-err', m).textContent = e.message; });
+    };
+    var sv = $('#kptSave', m); if (sv) sv.onclick = function () { go(sv, me ? { op: 'self', month: mo, s: read() } : { op: 'mgr', month: mo, name: name, s: read() }, me ? 'Đã lưu phiếu tự chấm ✓ Quản lý sẽ chấm lại.' : 'Đã lưu nháp ✓'); };
+    var dn = $('#kptDone', m); if (dn) dn.onclick = function () {
+      var s = read(), c = kptCalc(tpl, s); if (!c.full) { $('.kpt-err', m).textContent = 'Chấm đủ ' + tpl.length + ' nhóm việc rồi mới chốt.'; return; }
+      if (!confirm('Chốt KPI ' + kptMl(mo).toLowerCase() + ' của ' + name + ': ' + c.tot + ' điểm, ' + KPT_GR[c.gr] + '? Sau khi chốt, kế toán không sửa được nữa.')) return;
+      go(dn, { op: 'mgr', month: mo, name: name, s: s, done: 1, sum: c.tot + ' điểm, ' + KPT_GR[c.gr] }, 'Đã chốt ✓');
+    };
+    var re = $('#kptRe', m); if (re) re.onclick = function () { go(re, { op: 'reopen', month: mo, name: name }, 'Đã mở lại ✓'); };
+  }
+  function kptClick(e) {
+    var el = e.target.closest && e.target.closest('[data-kpt]'); if (!el || !KPT.d && el.getAttribute('data-kpt') !== 're') return;
+    var a = el.getAttribute('data-kpt').split('|');
+    if (a[0] === 're') { kptLoad(true); softRender(true); }
+    else if (a[0] === 'mon') { KPT.m = kptMonthAdd(KPT.m || kptMonthDef(), +a[1]); softRender(true); }
+    else if (a[0] === 'open') openKpt(a[1], a[2]);
+    else if (a[0] === 'cfg') {
+      el.disabled = true;
+      api('kt_kpi', { op: 'cfg', base: kptMoney('kptB'), A: kptMoney('kptA'), B: kptMoney('kptBB'), C: kptMoney('kptC'), D: kptMoney('kptD'), floor: kptMoney('kptF'), trial: ($('#kptT') || {}).value || '' })
+        .then(function (j) { KPT.d = j; KPT.at = Date.now(); toast('Đã lưu mức lương ✓'); render(); }, function (er) { el.disabled = false; toast(er.message, true); });
+    }
+  }
+  document.addEventListener('click', kptClick);
   function viewKtab() {
     var f = S.f.g || (S.f.g = {}); if (!f.p || f.p.k === 'all') f.p = { k: 'month' };
     if (!f.open) { try { f.open = JSON.parse(store('dash_open') || '{}') || {}; } catch (e) { f.open = {}; } }
@@ -5847,6 +5963,7 @@
     h += ktcHTML(R, f.p);
     h += ktAdjHTML(R, f.p);
     knLoad(); h += knHTML();
+    kptLoad(); h += kptHTML();
     h += '<section class="ktv-sec"><h2 class="ktv-h">📊 Lãi lỗ <small>cùng số với Tổng quan của Quản trị</small></h2>' + dashDaily(R, b, M, sj, f.p, month);
     var PL = dashPnl(T, b, bp, M, sj, R, P, month); h += dashMore('pnl', '🧮 Lãi lỗ sau mọi chi phí', PL.line, PL.body);
     var CO = dashCost(); if (CO) h += dashMore('cost', '📊 Chi phí lớn & cách tối ưu', CO.line, CO.body);
@@ -10524,7 +10641,7 @@
     cx.P = cmpRange(f.p);
     if (f.p.k === 'all') { cx.all = salesAllGet(); if (!cx.all) cx.allNote = S.salesAll ? '' : '<div class="notice">⏳ Đang lấy doanh số từ trước tới nay trên máy chủ…</div>'; else cx.allNote = '<p class="small muted">Mọi lúc: <b>doanh số, số đơn</b> tính đủ mọi đơn từ trước tới nay (cả đơn cũ nhập từ file sale). Các chỉ số khác (chăm sóc, tỷ lệ chốt, khách cũ) tính trên dữ liệu khoảng 13 tháng gần nhất.</p>'; }
     return '<div class="page-head"><h1>Hiệu quả</h1><div class="grow"></div>' + askBtn() + whoSel() + '</div>' + perChips('r', f.p, ['all'], false, who !== '-') +
-      (cx.allNote || '') + (!who ? viewTeam(cx) : who === '-' ? viewNoOwner(cx) : viewPerson(who, cx));
+      (cx.allNote || '') + (!who ? viewTeam(cx) : who === '-' ? viewNoOwner(cx) : viewPerson(who, cx)) + (!who && lvl() === 2 && !isMkt() && !isKt() ? (kptLoad(), kptHTML()) : ''); // 📋 KPI kế toán: Quản lý chấm lại ở đây (Quản trị ở 💼 Kế toán)
   }
   /** Tổng doanh số từ trước tới nay theo nhân viên bán (hỏi máy chủ, nhớ 10 phút). null = đang tải / máy chủ cũ chưa có. */
   function salesAllGet() {
