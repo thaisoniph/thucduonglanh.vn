@@ -88,23 +88,26 @@ Bấm **＋ Thêm khách được giới thiệu**. Nguồn **🎁 Khách giới
 
 💰 **Lợi ích:** bạn bè, người trong nhóm thấy bài và hỏi bạn. Khách tự tìm đến, đặt qua link riêng của bạn trong 30 ngày thì **đơn tính cho bạn**.
 
-Marketing viết sẵn bài **kể chuyện đời thường** (không quảng cáo lộ liễu). Bấm **Xem bài & cách đăng**.
+Mỗi bài đã **viết sẵn cho 3 nơi**, link riêng của bạn đã gắn sẵn. Bài mới tự có mỗi ngày: chuyển từ bài web và bài nhóm Zalo đã duyệt, Telegram báo bạn khi có. Bấm **Xem bài & cách đăng**.
 
-**♻️ Bài mới tự có mỗi ngày:** web vừa đăng bài ở Góc Sống Lành, hoặc nhóm Zalo "Sống khỏe cùng Thực Dưỡng Lành" vừa có bài hay, thì CRM tự chuyển thành bài cho bạn (nhãn **📰 Từ bài web** hoặc **💬 Từ bài nhóm Zalo**) và **Telegram báo bạn**. Một bài dùng được 3 nơi:
+![Bài đăng sẵn cho 3 nơi](/huong-dan/img/mr-fb.webp)
 
-- **Facebook cá nhân** và **hội nhóm**: làm theo 4 bước dưới.
-- **Zalo khách cũ, người quen**: bấm **💬 Copy tin Zalo gửi khách**, sửa "anh/chị" cho đúng rồi gửi. Link trong tin là link riêng của bạn (bài web dẫn về đúng bài viết, bài nhóm Zalo dẫn vào nhóm).
-
-![Bài Facebook viết sẵn](/huong-dan/img/mr-fb.webp)
-
+**① 📘 Facebook cá nhân**
 1. Bấm **📋 Copy bài**, đăng như bài bình thường. **Không dán link vào bài**: bài có link ít người thấy.
-2. Chờ bài có tương tác (2–3 tiếng), bấm **📋 Copy bình luận**, dán làm bình luận dưới bài.
-3. Bấm **📋 Copy câu có link**, dán làm **trả lời ngay dưới bình luận** ở bước 2.
-4. Trang cá nhân: trên điện thoại, giữ tay vào bình luận ở bước 2 → **Ghim**.
+2. Khi bài có người tương tác (2–3 tiếng), bấm **📋 Copy bình luận**, dán làm bình luận dưới bài.
+3. Bấm **📋 Copy câu có link**, dán làm trả lời ngay dưới bình luận ở bước 2. Trên điện thoại, giữ tay vào bình luận bước 2 → **Ghim**.
 
-**Đăng vào hội nhóm** (nhóm mẹ bỉm, ăn chay, hưu trí, nhóm khu phố… bạn đang tham gia): đọc nội quy nhóm trước, rồi làm như bước 1–3. Trong nhóm không ghim được thì bỏ bước 4. Một bài dùng được cho nhiều nhóm, mỗi nhóm cách nhau vài ngày.
+**② 👥 Hội nhóm Facebook** (nhóm mẹ bỉm, ăn chay, hưu trí, khu phố… bạn đang tham gia)
+1. Bấm **📋 Copy bài hội nhóm**: bài chia sẻ kinh nghiệm, không bán hàng, hợp nội quy nhóm.
+2. Đăng xong, bấm **📋 Copy bình luận có link**, tự bình luận dưới bài của mình.
 
-Mỗi ngày 1 bài: hôm nay trang cá nhân, mai hội nhóm. Trang cá nhân 2–3 bài / tuần là đủ. Bấm **📋 Copy bài** là việc 5 tự có dấu ✓.
+Đọc nội quy nhóm trước. Một bài dùng được cho nhiều nhóm, mỗi nhóm cách nhau vài ngày.
+
+**③ 💬 Zalo cá nhân**
+1. Bấm **📋 Copy nhật ký Zalo**, đăng lên **Nhật ký** Zalo (đã có link của bạn).
+2. Hoặc bấm **💬 Copy tin gửi khách**, nhắn riêng cho khách cũ, người quen (sửa "anh/chị" cho đúng).
+
+Gợi ý: hôm nay trang cá nhân, mai hội nhóm, ngày kia nhật ký Zalo. Bấm Copy bài ở bất kỳ nơi nào là việc 5 tự có dấu ✓.
 
 ## Cuối ngày: báo cáo có ghi công sức của bạn
 
