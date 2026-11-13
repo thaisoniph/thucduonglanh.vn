@@ -1109,12 +1109,13 @@
     var el = $('#view');
     var focusId = document.activeElement && document.activeElement.id, selStart = document.activeElement && document.activeElement.selectionStart;
     el.innerHTML = ({ 'hom-nay': viewToday, 'khach-hang': viewCustomers, 'don-hang': viewOrders, 'tiem-nang': viewLeads, 'bao-cao': viewReport, 'cai-dat': viewSettings, 'tong-quan': viewDash, san: viewSan, marketing: viewMkt, 'link-qr': viewLinks, 'tro-ly-zalo': viewZbot, fanpage: viewFp, 'bai-web': viewBlog, 'noi-dung': viewIns, 'hoi-so-lieu': viewAsk, kho: viewKho, 'ke-toan': viewKtab, them: viewMore })[v]();
-    if (v === homeView()) { vhMount(el); tbMount(el); } // 🌿 Quy tắc của ngày + 📢 Thông báo (nằm trên) ở đầu màn hình đầu tiên của mỗi người
+    if (v === homeView()) { btMount(el); vhMount(el); tbMount(el); } // 🌿 Quy tắc của ngày + 📢 Thông báo (nằm trên) ở đầu màn hình đầu tiên của mỗi người
     el.insertAdjacentHTML('beforeend', updatedLine());
     if (focusId && $('#' + focusId)) { var f = $('#' + focusId); f.focus(); try { f.setSelectionRange(selStart, selStart); } catch (e) { } }
     if (keepScroll) window.scrollTo(0, y); else window.scrollTo(0, 0);
     lastView = v;
     document.title = (v === 'them' ? 'Thêm' : VIEWS.filter(function (x) { return x.id === v; })[0].label) + ' – ' + APP_NM;
+    if (v === 'hom-nay') cheerCheck(); // 🎉 xong hết khách hôm nay → pháo giấy + báo Bảng tin (14/11/2026)
     if (v === 'cai-dat') bindSettings();
     if (v === 'them') bindMore();
     if (v === 'tong-quan') bindDash();
@@ -1540,10 +1541,10 @@
     ld = ld.filter(function (l) { return !isHotLead(l); });
     var up = unpaidOrders().filter(function (o) { return o.status !== 'Mới' && oOk(o); }).sort(function (a, b) { return a.time - b.time; });
     var t0 = today(), doneToday = S.d.log.filter(function (l) { return l.time >= t0 && l.what !== 'Cài đặt' && l.what !== 'Nhân sự' && (lvl() < 2 || !wn || l.by === wn); }).sort(function (a, b) { return b.time - a.time; });
-    var h = '<div class="page-head"><h1>Chào ' + esc(S.user.name) + ' 👋</h1><div class="grow"></div>' + whoSel() + '</div>';
+    var h = '<div class="page-head"><h1>' + hiGreet() + '</h1><div class="grow"></div>' + whoSel() + '</div>';
     var q = dayQueue(), total = q.list.length + q.done, pc = total ? Math.round(q.done * 100 / total) : 100;
     h += '<section class="hero"><div class="hero-t"><b>' + (q.list.length ? 'Hôm nay: ' + q.list.length + ' khách cần chăm sóc' : '🎉 Đã xong việc chăm sóc hôm nay') + '</b><span>đã xong ' + q.done + '</span></div>' +
-      '<div class="bar"><i style="width:' + pc + '%"></i></div>' +
+      '<div class="bar"><i style="width:' + pc + '%"></i></div>' + cheerLine(q, !wn || wn === S.user.name) +
       (q.list.length && (!wn || wn === S.user.name) ? '<button class="btn pri lg block" data-flow>▶ Bắt đầu gọi lần lượt</button>' : '') +
       (q.rest ? '<p class="small muted" style="margin:8px 0 0">Còn ' + q.rest + ' khách để các ngày sau (tối đa ' + dayLimit() + ' khách/ngày, đổi ở <a href="#cai-dat">Cài đặt</a>).</p>' : '') +
       (lvl() < 2 ? todayGoalLine() + refSaleLine() + growHeroLine() : '') + '</section>';
@@ -12039,6 +12040,102 @@
       sv.disabled = true;
       api('vh_save', { rules: out }).then(function (r) { S.vhAdm = r; S.vh = null; vhAdminPaint(); toast('✅ Đã lưu. Mọi người thấy câu mới từ lần mở CRM tới'); }, function (e) { sv.disabled = false; toast(e.message, true); });
     };
+  }
+  /* ================================================================ ☀️ Lời chào + động viên + 📣 Bảng tin vui đồng đội (14/11/2026, api bangtin.js)
+   * Tab Hôm nay: lời chào theo buổi, 1 câu động viên theo tiến độ chăm sóc, xong hết khách thì pháo giấy (1 lần/ngày) và tự báo Bảng tin.
+   * Bảng tin: 1 dòng nằm yên ở đầu màn hình đầu tiên của mọi người, 7 giây đổi tin (mờ dần, không chữ chạy), rê chuột / chạm thì dừng.
+   * Tin tự lấy: ai vừa chốt đơn (tên sản phẩm, KHÔNG ghi tiền), ai đã chăm sóc xong hết khách hôm nay. Nút 👏 Chúc mừng. */
+  function hiGreet() {
+    var hr = new Date(Date.now() + 7 * 3600e3).getUTCHours(), g = hr < 11 ? ['Chào buổi sáng', '🌞'] : hr < 13 ? ['Chào buổi trưa', '☀️'] : hr < 18 ? ['Chào buổi chiều', '🌤️'] : ['Chào buổi tối', '🌙'];
+    return g[0] + ', ' + esc(S.user.name) + ' ' + g[1];
+  }
+  function cheerLine(q, self) {
+    if (!self) return '';
+    var n = q.list.length, d = q.done, all = n + d, t;
+    if (!all) return '';
+    if (!n) t = '🎉 Tuyệt vời! Hôm nay bạn đã chăm sóc trọn vẹn ' + d + ' khách. Cảm ơn bạn!';
+    else if (!d) t = '💪 Khách đầu tiên đang chờ bạn. Mỗi cuộc gọi là một người được quan tâm, bắt đầu thôi!';
+    else if (n <= 2) t = '🏁 Chỉ còn ' + n + ' khách nữa là về đích!';
+    else if (d * 2 >= all) t = '🔥 Đã qua nửa chặng đường, giữ nhịp nhé!';
+    else t = '🌱 Khởi đầu tốt! Đã xong ' + d + ' khách, cứ đều tay là về đích.';
+    return '<p class="cheer-t' + (n ? '' : ' cheer-ok') + '">' + t + '</p>';
+  }
+  function cheerCheck() {
+    if (lvl() >= 2 && S.who && S.who !== S.user.name) return;
+    var q = dayQueue(), day = vhDay();
+    if (q.list.length || !q.done || S.cheerDay === day || store('cheer_day') === day) return;
+    S.cheerDay = day; store('cheer_day', day);
+    cheerBurst();
+    api('bt_done', { n: q.done }).then(function (j) { if (j && j.bt) { S.bt = j.bt; btPaint(); } }, function () { });
+  }
+  function cheerBurst() {
+    if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var box = document.createElement('div'), C = ['#2e7d32', '#f9a825', '#e53935', '#1e88e5', '#8e24aa', '#fb8c00'];
+    box.className = 'cheer-fx'; box.setAttribute('aria-hidden', 'true');
+    for (var i = 0; i < 70; i++) {
+      var p = document.createElement('i');
+      p.style.left = Math.random() * 100 + '%'; p.style.background = C[i % C.length];
+      p.style.animationDelay = Math.random() * .6 + 's'; p.style.animationDuration = 1.8 + Math.random() * 1.4 + 's';
+      p.style.setProperty('--cx', (Math.random() * 160 - 80) + 'px'); p.style.setProperty('--cr', (Math.random() * 720 - 360) + 'deg');
+      box.appendChild(p);
+    }
+    document.body.appendChild(box);
+    setTimeout(function () { if (box.parentNode) box.parentNode.removeChild(box); }, 4200);
+  }
+  function btAgo(t) {
+    var m = Math.max(0, Math.round((Date.now() - t) / 60e3));
+    return m < 1 ? 'vừa xong' : m < 60 ? m + ' phút trước' : m < 24 * 60 ? Math.round(m / 60) + ' giờ trước' : 'hôm qua';
+  }
+  function btLoad() {
+    if (S.btBusy) return; S.btBusy = 1;
+    api('bt_feed', {}).then(function (j) { S.btBusy = 0; if (j && j.bt) { S.bt = j.bt; btPaint(); } else S.btFail = Date.now(); }, function () { S.btBusy = 0; S.btFail = Date.now(); }); // máy chủ cũ / mất mạng: không hiện dòng
+  }
+  function btMount(el) {
+    if ((!S.bt || Date.now() - S.bt.at > 180e3) && !(S.btFail && Date.now() - S.btFail < 600e3)) btLoad();
+    el.insertAdjacentHTML('afterbegin', '<div id="btBox">' + (S.bt ? btCard() : '') + '</div>');
+    btBind();
+    if (!S.btTimer) S.btTimer = setInterval(btTick, 7000);
+  }
+  function btPaint() { var b = $('#btBox'); if (b) { b.innerHTML = btCard(); btBind(); } }
+  function btMe(i) { return i.me && i.t.indexOf(i.who) === 0 ? 'Bạn' + i.t.slice(i.who.length) : i.t; }
+  function btClapBtn(i) {
+    if (i.me) return !i.n ? '' : '<span class="bt-clapn" title="' + esc(i.by && i.by.length ? i.by.join(', ') + ' đã chúc mừng bạn' : 'Chưa ai chúc mừng') + '">👏 ' + i.n + '</span>';
+    return '<button class="bt-clap' + (i.mine ? ' on' : '') + '" data-bt="clap" data-k="' + esc(i.k) + '"' + (i.mine ? ' disabled' : '') + '>👏 ' + (i.mine ? i.n : 'Chúc mừng' + (i.n ? ' · ' + i.n : '')) + '</button>';
+  }
+  function btCard() {
+    var L = S.bt.items; if (!L.length) return '';
+    var k = (S.btI || 0) % L.length, i = L[k];
+    if (S.btOpen) return '<section class="bt-all"><div class="bt-hd"><span>📣 Tin vui đồng đội · 36 giờ qua</span><button class="bt-fold" data-bt="close">Thu gọn ▲</button></div>' +
+      L.map(function (x) {
+        return '<div class="bt-it"><p>' + x.ic + ' ' + esc(btMe(x)) + ' <small>· ' + btAgo(x.at) + '</small>' +
+          (x.me && x.by && x.by.length ? '<br><small class="bt-by">👏 ' + esc(x.by.join(', ')) + ' đã chúc mừng bạn</small>' : '') + '</p>' + btClapBtn(x) + '</div>';
+      }).join('') + '<p class="hint" style="margin:6px 0 0">Tin tự lên khi có người chốt đơn hoặc chăm sóc xong hết khách trong ngày. Không ghi số tiền.</p></section>';
+    return '<div class="bt-line"><span class="bt-txt" id="btTxt"><b class="bt-lb">📣 Tin vui</b> ' + i.ic + ' ' + esc(btMe(i)) + ' <small>· ' + btAgo(i.at) + '</small></span>' +
+      '<span class="bt-acts" id="btAct">' + btClapBtn(i) + (L.length > 1 ? '<button class="bt-more" data-bt="open">Xem cả ' + L.length + ' tin</button>' : '') + '</span></div>';
+  }
+  function btTick() {
+    var L = S.bt && S.bt.items, t = $('#btTxt');
+    if (!t || !L || L.length < 2 || S.btOpen || S.btHold || document.hidden) return;
+    t.classList.add('bt-fade');
+    setTimeout(function () { S.btI = ((S.btI || 0) + 1) % L.length; btPaint(); var n = $('#btTxt'); if (n) { n.classList.add('bt-fade'); requestAnimationFrame(function () { requestAnimationFrame(function () { n.classList.remove('bt-fade'); }); }); } }, 350);
+    if (Date.now() - S.bt.at > 180e3 && !(S.btFail && Date.now() - S.btFail < 600e3)) btLoad();
+  }
+  function btBind() {
+    var box = $('#btBox'); if (!box) return;
+    box.onmouseenter = function () { S.btHold = 1; }; box.onmouseleave = function () { S.btHold = 0; };
+    box.ontouchstart = function () { S.btHold = 1; clearTimeout(S.btHoldT); S.btHoldT = setTimeout(function () { S.btHold = 0; }, 15000); };
+    $$('#btBox [data-bt]').forEach(function (b) {
+      b.onclick = function () {
+        var k = b.getAttribute('data-bt');
+        if (k === 'open') { S.btOpen = 1; return btPaint(); }
+        if (k === 'close') { S.btOpen = 0; return btPaint(); }
+        if (k === 'clap') {
+          var key = b.getAttribute('data-k'), it = S.bt.items.filter(function (x) { return x.k === key; })[0];
+          b.disabled = true;
+          api('bt_clap', { k: key, who: it ? it.who : '' }).then(function (j) { if (j && j.bt) { S.bt = j.bt; S.btI = Math.max(0, S.bt.items.map(function (x) { return x.k; }).indexOf(key)); btPaint(); } toast('👏 Đã gửi lời chúc mừng' + (it ? ' tới ' + it.who : '')); }, function (e) { b.disabled = false; toast(e.message, true); });
+        }
+      };
+    });
   }
   /* ================================================================ 📢 Thông báo nội bộ (13/11/2026, api thongbao.js)
    * Thẻ ở đầu màn hình đầu tiên (trên thẻ 🌿 Quy tắc): tin chưa đọc hiện đầy đủ + ✅ Tôi đã đọc; hết tin mới thì thu 1 dòng, bấm xem lại.

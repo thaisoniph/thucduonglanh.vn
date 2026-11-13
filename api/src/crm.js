@@ -27,6 +27,7 @@ import { crmAi } from './ai.js';
 import { guideAsk, guideAskList } from './guideask.js';
 import { vhToday, vhAck, vhAdmin, vhSave } from './vanhoa.js';
 import { crmTb } from './thongbao.js';
+import { crmBt } from './bangtin.js';
 import { aiUsage, aiFund } from './aiuse.js';
 import { crmAsk, askAllowed } from './ask.js';
 import { crmMcp } from './mcp.js';
@@ -2521,6 +2522,7 @@ export async function crmApi(x, d, sync, mgr) {
   x.user = u;
   if (a === 'logout') { await run(x.db, 'DELETE FROM sessions WHERE token = ?', d.token); return { ok: true }; }
   if (/^tb_/.test(a)) return crmTb(x, u, d); // 📢 Thông báo nội bộ (thongbao.js): mọi vai trò đều đọc được
+  if (/^bt_/.test(a)) return crmBt(x, u, d); // 📣 Bảng tin vui đồng đội (bangtin.js, 14/11/2026): mọi vai trò
   if (a === 'guide_me') return { ok: true, me: publicUser(u) }; // 📖 trang hướng dẫn (guide.js) hỏi vai trò để chỉ hiện phần của vai trò đó; mọi vai trò đều gọi được
   if (u.role === 'Marketing' && !MKT_ACTIONS[a]) return { ok: false, error: 'Tài khoản Marketing chỉ xem được phần quảng cáo.' };
   if (u.role === 'Kho' && !KHO_ROLE_OK[a] && !/^kho_/.test(a)) return { ok: false, error: 'Tài khoản Kho chỉ dùng được tab 📦 Kho.' };

@@ -2382,3 +2382,26 @@ b.csx-c-ok { color: var(--primary-2); } b.csx-c-sua { color: var(--orange); } b.
 .amb-call { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; background: #eef6ee; text-decoration: none; font-size: 16px; flex: none; }
 .grow-hero b { white-space: nowrap; }
 .grow-box, details.grp[data-grp] { scroll-margin-top: 64px; }
+/* ☀️ Lời chào + 📣 Bảng tin vui đồng đội (14/11/2026) */
+.cheer-t { margin: 8px 0 10px; font-size: 14.5px; color: var(--ink); }
+.cheer-t.cheer-ok { color: var(--primary); font-weight: 600; }
+.cheer-fx { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 9999; }
+.cheer-fx i { position: absolute; top: -12px; width: 8px; height: 12px; border-radius: 2px; opacity: .95; animation: cheerFall 2.4s ease-in forwards; }
+@keyframes cheerFall { to { transform: translate(var(--cx), 105vh) rotate(var(--cr)); opacity: .2; } }
+.bt-line { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; background: #fff8e6; border: 1px solid #f3e0ad; border-radius: 12px; padding: 8px 12px; margin: 0 0 12px; min-height: 44px; }
+.bt-lb { font-weight: 700; font-size: 13px; color: #8a6100; white-space: nowrap; margin-right: 4px; }
+.bt-txt { flex: 1 1 240px; min-width: 0; font-size: 14px; color: var(--ink); transition: opacity .35s; }
+.bt-txt small, .bt-it small { color: var(--muted); }
+.bt-txt.bt-fade { opacity: 0; }
+.bt-acts { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.bt-clap, .bt-more { font: inherit; font-size: 13px; border: 1px solid #f0d58f; background: #fff; color: var(--ink); border-radius: 999px; padding: 4px 10px; cursor: pointer; white-space: nowrap; min-height: 32px; }
+.bt-clap.on { background: #fff1c7; color: #8a6100; cursor: default; }
+.bt-clapn { font-size: 13px; color: #8a6100; white-space: nowrap; }
+.bt-more { border-color: var(--line); color: var(--muted); }
+.bt-all { background: #fff8e6; border: 1px solid #f3e0ad; border-radius: 12px; padding: 10px 12px; margin: 0 0 12px; }
+.bt-hd { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; color: #8a6100; margin-bottom: 4px; }
+.bt-fold { font: inherit; font-size: 13px; background: none; border: 0; color: var(--muted); cursor: pointer; padding: 6px 0; }
+.bt-it { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 0; border-top: 1px solid #f3e6c4; }
+.bt-it p { margin: 0; font-size: 14px; flex: 1; min-width: 0; }
+.bt-by { color: #8a6100 !important; }
+@media (prefers-reduced-motion: reduce) { .bt-txt { transition: none; } }
