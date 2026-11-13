@@ -913,6 +913,11 @@ export async function ownTick(x) {
     if (q && (q.own === undefined || Number(q.own) === 5)) { q.own = 6; await kvSet(x.db, 'payplan_cfg', JSON.stringify(q)); await crmLog(x, OWN_SYS, 'Cài đặt', '-', '', 'Khách tự mang về: 5% → 6% mọi đơn trong 6 tháng', 'anh Sơn chốt 13/11/2026'); }
     await kvSet(x.db, 'own6_mig', '1');
   }
+  if (!(await kvGet(x.db, 'sale3_mig'))) { // 13/11/2026 anh Sơn duyệt (đề xuất Thủy): thưởng sale khách tự mang về thêm mốc 2 triệu → tổng 100k (20k / 50k / 100k)
+    const c = await kvJson(x.db, 'partner_cfg', null);
+    if (c && Array.isArray(c.saleSteps) && JSON.stringify(c.saleSteps.map(t => [Number(t[0]), Number(t[1])])) === '[[300000,20000],[700000,50000]]') { c.saleSteps = [[300000, 20000], [700000, 50000], [2000000, 100000]]; await kvSet(x.db, 'partner_cfg', JSON.stringify(c)); await crmLog(x, OWN_SYS, 'Cài đặt', '-', '', 'Thưởng sale khách tự mang về: thêm mốc đủ 2.000.000đ → tổng 100.000đ', 'anh Sơn duyệt 13/11/2026 (đề xuất Thủy)'); }
+    await kvSet(x.db, 'sale3_mig', '1');
+  }
   await run(x.db, 'DELETE FROM own_proof WHERE at < ?', Date.now() - OWN_PF_DAYS * DAY).catch(() => { });
   const PP = await ownPlan(x); if (!PP.own) return;
   const from = (dateOrBlank(PP.ownFrom) || 9 * 3600e3) - 9 * 3600e3, now = Date.now(); // dateOrBlank = 9h sáng → lùi về 0h ngày đó

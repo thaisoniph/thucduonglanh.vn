@@ -22,7 +22,8 @@ const DEF_TIERS = [[3, '1 hộp Trà DILVANG'], [5, 'Combo 3 hũ Ruốc Rong Bi�
 // 30/10/2026 (lần 3, anh Sơn + Thủy): thưởng tính CỘNG DỒN theo tiền hàng khách mới mua trong winDays (60) ngày đầu: đủ 300k → 20k, đủ 700k → tổng 50k
 // (cả voucher người giới thiệu `rwSteps` lẫn thưởng sale `saleSteps`; [[mức tiền hàng, tổng thưởng]]). Voucher chỉ dùng cho đơn từ vcMin. Đơn nhỏ không lỗ, sale có lý do chăm sóc khách mới.
 const DEF_STEPS = [[300000, 20000], [700000, 50000]];
-const DEF = { rate: 10, months: 6, refPct: 10, rwPct: 10, rwAmt: 50000, rwSteps: DEF_STEPS, saleSteps: DEF_STEPS, winDays: 60, vcMin: 300000, auto: 1, tiers: DEF_TIERS, tierN: 3, tierGift: '1 hộp Trà DILVANG', ctvN: 5, bonus: 50000, goalN: 20, goalGift: 'Liên hoan cả nhóm', appRate: 10, appVpct: 10 };
+const SALE_STEPS = [[300000, 20000], [700000, 50000], [2000000, 100000]]; // 13/11/2026 anh Sơn duyệt đề xuất Thủy: thêm mốc 2 triệu → tổng thưởng sale 100k (voucher khách cũ rwSteps giữ 2 mốc)
+const DEF = { rate: 10, months: 6, refPct: 10, rwPct: 10, rwAmt: 50000, rwSteps: DEF_STEPS, saleSteps: SALE_STEPS, winDays: 60, vcMin: 300000, auto: 1, tiers: DEF_TIERS, tierN: 3, tierGift: '1 hộp Trà DILVANG', ctvN: 5, bonus: 50000, goalN: 20, goalGift: 'Liên hoan cả nhóm', appRate: 10, appVpct: 10 };
 // 30/10/2026: người ngoài tự đăng ký CTV ở thucduonglanh.vn/cong-tac-vien/ → quản lý duyệt. Khi duyệt: hoa hồng appRate %, khách mới của CTV giảm appVpct % đơn đầu.
 const CTV_T = 1000; // ref_tiers.tier của mốc mời làm CTV = 1000 + ctvN (để không trùng mốc quà cùng số người)
 /** Bậc quà đã sắp xếp: [{n, gift}] */

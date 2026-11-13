@@ -30,6 +30,9 @@ Vì vậy công ty dành phần tiền lẽ ra trả cho quảng cáo để **tr
 |---|---|
 | 300.000đ | **20.000đ** |
 | 700.000đ | thêm **30.000đ** (tổng **50.000đ**) |
+| 2.000.000đ | thêm **50.000đ** (tổng **100.000đ**) |
+
+Mốc 2.000.000đ (từ 13/11/2026) dành cho khách mua combo, liệu trình, Bộ Ở Cữ, quà Tết… Tư vấn đúng nhu cầu để khách dùng đủ liệu trình là bạn có thêm thưởng.
 
 Doanh số của những khách này **vẫn cộng vào doanh thu tháng** để xét bậc lương và mục tiêu của bạn.
 
@@ -40,6 +43,8 @@ Chị Hoa do bạn tự tìm. Chị mua 350.000đ mỗi tháng, đều 6 tháng 
 - Hoa hồng 6%: **126.000đ**
 - Thưởng (đủ 700.000đ trong 60 ngày): **50.000đ**
 - **Tổng: 176.000đ** từ một khách, gấp khoảng 3–4 lần một khách quảng cáo.
+
+Anh Minh do khách cũ giới thiệu, mua liệu trình và quà Tết đủ **2.000.000đ** trong 60 ngày đầu: hoa hồng 6% **120.000đ** + thưởng **100.000đ** = **220.000đ**, chưa kể các đơn sau trong 6 tháng.
 
 Mỗi tháng bạn tự mang về **10 khách** như chị Hoa thì tiền **cộng chồng lên**, vì mỗi khách được tính 6 tháng:
 

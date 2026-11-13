@@ -12258,7 +12258,7 @@
     return S._rb || null;
   }
   /** Bậc thưởng (30/10/2026 lần 3): tính cộng dồn tiền hàng khách mới mua trong 60 ngày. steps = [[mức tiền hàng, tổng thưởng]]. */
-  function rbSteps() { if (S._rb && S._rb.cfg.saleOff) return []; return (S._rb && S._rb.cfg.saleSteps) || [[300000, 20000], [700000, 50000]]; } // 10/11/2026: thưởng cố định đã thay bằng hoa hồng khách tự mang về
+  function rbSteps() { if (S._rb && S._rb.cfg.saleOff) return []; return (S._rb && S._rb.cfg.saleSteps) || [[300000, 20000], [700000, 50000], [2000000, 100000]]; } // 10/11/2026: thưởng cố định đã thay bằng hoa hồng khách tự mang về
   /** Câu quyền lợi sale trong ô 🌱: luật 10% (chỉ nói rõ khi Quản trị đã bật mục Tự tạo khách), hoặc mức thưởng cố định cũ nếu luật 10% tắt. */
   function rbIntro(c) {
     if (!c.saleOff) return 'Thưởng tính <b>cộng dồn</b> tiền hàng khách mới mua trong ' + (c.winDays || 60) + ' ngày đầu: <b>' + rbStepTxt(rbSteps()) + '</b> (đơn đã giao xong 7 ngày). Khách mua ít lần đầu thì chăm sóc để khách mua thêm. ' + (c.ownBonus && selfOn() ? 'Cộng thêm hoa hồng <b>' + c.ownPct + '%</b> mọi đơn bạn bán cho khách đó trong ' + c.ownMonths + ' tháng đầu. Khách giới thiệu: gửi <b>ảnh tin nhắn</b> khách cũ giới thiệu ở hồ sơ khách để được tính nhanh.' : 'Hoa hồng % vẫn tính trên mọi đơn như khách cũ, thưởng này là cộng thêm.');

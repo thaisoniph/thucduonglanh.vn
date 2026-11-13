@@ -275,7 +275,7 @@ Làm đủ 4 việc này mỗi ngày thì bạn luôn có khách, kể cả tu�
 Khách **bạn tự tìm** (bạn tự thêm vào CRM, không từ số quảng cáo, không để số trên web) hoặc **khách cũ của bạn giới thiệu** mà mua hàng, thì:
 
 - **Mọi đơn bạn bán cho khách đó trong 6 tháng đầu** được tính **6% tiền hàng** (khách cũ thường 3–5% tùy thâm niên).
-- **Thưởng thêm tiền** theo tổng tiền hàng khách đó mua trong **60 ngày đầu** (đơn đã giao xong 7 ngày): đủ **300.000đ → 20.000đ**, đủ **700.000đ → thêm 30.000đ** (tổng 50.000đ). Thưởng ghi khi khách đã qua 14 ngày chờ chốt.
+- **Thưởng thêm tiền** theo tổng tiền hàng khách đó mua trong **60 ngày đầu** (đơn đã giao xong 7 ngày): đủ **300.000đ → 20.000đ**, đủ **700.000đ → tổng 50.000đ**, đủ **2.000.000đ → tổng 100.000đ** (từ 13/11/2026). Thưởng ghi khi khách đã qua 14 ngày chờ chốt.
 - **Khách được giới thiệu: gửi ảnh chụp tin nhắn** khách cũ giới thiệu bạn đó (Zalo, Messenger…). Mở hồ sơ khách → khung 🙋 → **📎 Chọn ảnh**. Có ảnh thì máy tự chốt sau 14 ngày. Không có tin nhắn (khách giới thiệu qua điện thoại, gặp trực tiếp) thì quản lý sẽ gọi hỏi người được giới thiệu rồi mới tính.
 
 - Máy tự nhận ra khi khách có đơn đầu, báo Telegram cho bạn: *"🙋 Khách bạn tự mang về … → 6% mọi đơn tới ngày …"*. Trong hồ sơ khách có nhãn **🙋 Tự tìm** hoặc **🙋 Được giới thiệu** kèm ngày hết hạn.
