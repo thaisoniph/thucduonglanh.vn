@@ -50,7 +50,7 @@ Trong khung đăng có thêm 3 ô, không bắt buộc:
 - **⌛ Hiện đến hết ngày**: chọn ngày cuối cùng tin còn hiện, ví dụ 30/11 cho đợt phát động. Để trống thì tin hiện 60 ngày. Qua ngày đó nhân viên không thấy tin nữa. Quản lý vẫn thấy tin với nhãn **⌛ Đã hết hạn hiện** thêm 14 ngày, để sửa hoặc gia hạn.
 - **📌 Ghim lên đầu**: dành cho tin quan trọng. Tin ghim luôn nằm trên các tin khác cho tới khi hết hạn hiện.
 
-Muốn đổi giờ hay gia hạn thì bấm **✏️ Sửa** rồi chọn lại ngày.
+Tin đang hẹn giờ: dòng đầu CRM của quản lý ghi **📢 … ⏰ 1 tin đang hẹn giờ**, bấm vào là thấy tin để xem lại. Muốn đổi giờ hay gia hạn thì bấm **✏️ Sửa** rồi chọn lại ngày.
 
 ### Nhiều thông báo thì xếp thế nào?
 
