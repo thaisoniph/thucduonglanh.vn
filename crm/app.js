@@ -1573,6 +1573,9 @@
     if (no.length || up.length) h += '<section class="section"><div class="section-h"><h2>1️⃣ Đơn mới – gọi khách xác nhận</h2>' + (no.length ? '<span class="count">' + no.length + '</span>' : '') + '<span class="tip">gọi xong bấm “Xác nhận”</span></div>' +
       (no.length ? grp('neworders', '🧾 Đơn mới chờ xác nhận', no.length, 'gọi khách xác nhận đơn', capRows(no, orderRow), 'crows') : '') +
       (up.length ? (function () { var f = firstG; firstG = false; var x = grp('unpaid', '💳 Chuyển khoản chưa nhận tiền', up.length, 'xem tài khoản VCB, tiền về thì mở đơn bấm “Xác nhận đã nhận tiền”', capRows(up, orderRow), 'crows'); firstG = f; return x; })() : '') + '</section>'; // nhóm chờ tiền không tính là “cần gọi”
+    var ODT = orderTodo().filter(function (g) { return g.k === 'fail' || g.k === 'late'; }); if (lvl() >= 2 && S.who) ODT.forEach(function (g) { g.list = g.list.filter(function (o) { return whoOk(orderOwner(o)); }); });
+    if (ODT[0].list.length + ODT[1].list.length) h += '<section class="section"><div class="section-h"><h2>🚚 Đơn đang giao cần gọi</h2><span class="count">' + (ODT[0].list.length + ODT[1].list.length) + '</span><span class="tip">gọi khách giữ đơn, tránh hoàn hàng</span></div>' + // 13/11/2026: hãng báo giao chưa được / giao quá 5 ngày (cùng nhóm ở Đơn hàng → Cần xử lý)
+      ODT.filter(function (g) { return g.list.length; }).map(function (g) { var f = firstG; firstG = false; var x = grp('ship' + g.k, g.t, g.list.length, g.tip, capRows(g.list, orderRow), 'crows'); firstG = f; return x; }).join('') + '</section>';
     if (hot.length) h += '<section class="section"><div class="section-h"><h2>2️⃣ 🔥 Khách vừa hỏi – liên hệ ngay</h2><span class="count">' + hot.length + '</span></div>' +
       grp('hot', '🔥 Khách vừa hỏi', hot.length, 'hỏi trong 24 giờ qua, chưa ai liên hệ. Gọi càng sớm càng dễ chốt', capRows(hot, leadCard), 'list cols" style="padding:10px') + '</section>';
 
@@ -6274,7 +6277,9 @@
     b.disabled = true; b.textContent = '⏳ Đang lưu…';
     api('kt_badd', { list: list }).then(function (j) {
       KTB.d = j.batches || KTB.d; KTB.at = Date.now(); ktvMerge(j.orders || []); closeModal();
-      toast('Đã lưu ' + (j.saved || []).length + ' phiếu ✓ Thấy tiền về trên sao kê thì bấm ✅ Đã về' + ((j.skip || []).length ? ' · bỏ qua ' + j.skip.length + ' phiếu đã về' : '')); render();
+      toast('Đã lưu ' + (j.saved || []).length + ' phiếu ✓' + (j.dlv ? ' ' + j.dlv + ' đơn tự chuyển sang Đã giao.' : '') + ' Thấy tiền về trên sao kê thì bấm ✅ Đã về' + ((j.skip || []).length ? ' · bỏ qua ' + j.skip.length + ' phiếu đã về' : ''));
+      if ((j.pend || []).length) alert('⚠️ ' + j.pend.length + ' đơn có trong phiếu (hãng đã giao, đã thu tiền) nhưng kho chưa bấm ✅ Đã gửi, nên máy chưa trừ kho:\n\n' + j.pend.slice(0, 20).join(', ') + (j.pend.length > 20 ? '…' : '') + '\n\nNhắn kho vào tab 📦 Kho → 🚚 Đơn chờ gửi, tích các đơn này và bấm ✅ Đã gửi.');
+      render();
     }, function (e) { b.disabled = false; b.textContent = 'Thử lại'; toast(/Không rõ thao tác|chỉ dùng được/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message, true); });
   }
   function ktbAge(b) { return b.made ? Math.max(0, Math.floor((today() - dayStart(b.made)) / DAY)) : 0; }

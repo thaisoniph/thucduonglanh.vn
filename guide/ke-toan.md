@@ -74,6 +74,8 @@ Ghi chú:
 - Tải lại cùng phiếu không sao: máy cập nhật, không tạo trùng.
 - Dòng quà tặng, đổi hàng (thu hộ 0đ) không ghi tiền về, nhưng máy vẫn ghi **phí ship thật** cho đơn đó.
 - 8h sáng tin Telegram **💼 Tài chính** báo số phiếu đang chờ tiền và phiếu quá 3 ngày.
+- **Lưu phiếu xong, máy tự chuyển các đơn trong phiếu từ Đang giao sang Đã giao** (hãng đã thu tiền khách tức là đã giao xong). Sale thấy ngay, không ai phải bấm tay.
+- Nếu máy báo **"… đơn kho chưa bấm ✅ Đã gửi"**: hàng đã đi nhưng kho chưa bấm nên máy chưa trừ kho. Nhắn kho vào tab 📦 Kho → 🚚 Đơn chờ gửi, tích các đơn đó và bấm ✅ Đã gửi.
 
 ## Tải file chi tiết đơn cả tháng (khi cần đối soát lại)
 

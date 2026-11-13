@@ -127,7 +127,18 @@ Mỗi đơn đi qua 4 bước: **Mới → Đã xác nhận → Đang giao → �
 1. **Gọi khách xác nhận.** Bấm **📞** để gọi. Hỏi lại địa chỉ cho đúng. Xong bấm **✅ Xác nhận**.
 2. **Nếu khách chuyển khoản:** mở tài khoản ngân hàng VCB của công ty. Thấy tiền về **đúng số tiền**, nội dung có **mã đơn** (ví dụ TDL2609271234), thì mở đơn, bấm **💳 Xác nhận đã nhận tiền**.
 3. **Gửi hàng.** Đóng gói, gửi bưu cục. Bấm **📦 Nhập mã VĐ**, gõ **mã vận đơn** (mã in trên phiếu gửi hàng), bấm **Lưu vận đơn**. Đơn tự chuyển sang **Đang giao**.
-4. **Khách đã nhận hàng:** bấm **📬 Đã giao**. Đơn gửi qua Viettel Post thì máy tự chuyển, không cần bấm.
+4. **Khách đã nhận hàng:** bấm **📬 Đã giao**. Thường bạn không phải bấm:
+   - Đơn **Viettel Post**: máy tự chuyển ngay khi Viettel Post báo.
+   - Đơn **Best**: kế toán tải phiếu đối soát (thứ 2, 4, 6) thì máy tự chuyển các đơn trong phiếu sang **Đã giao**.
+
+**🚚 Đơn đang giao cần gọi** (tab **Hôm nay**, ngay dưới Đơn mới): máy tự đưa lên những đơn cần bạn gọi khách để giữ đơn, tránh hoàn hàng.
+
+![Đơn hãng báo giao chưa được (1), đơn giao quá 5 ngày (2)](/huong-dan/img/crm-hom-nay-giao.webp)
+
+- **📵 Giao chưa được**: hãng báo khách vắng nhà, không nghe máy, hẹn ra bưu cục. **Gọi khách ngay**, hẹn lại giờ giao.
+- **🚚 Giao lâu chưa tới**: đã gửi hơn 5 ngày mà chưa giao xong. Gọi hỏi khách, giục bưu cục.
+
+Khách đã nhận rồi thì bấm **📬 Đã giao** ngay trên đơn.
 
 ![Mở một đơn: dòng Bước tiếp theo cho biết cần bấm gì](/huong-dan/img/crm-order.webp)
 

@@ -2524,7 +2524,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (u.role === 'Marketing' && !MKT_ACTIONS[a]) return { ok: false, error: 'Tài khoản Marketing chỉ xem được phần quảng cáo.' };
   if (u.role === 'Kho' && !KHO_ROLE_OK[a] && !/^kho_/.test(a)) return { ok: false, error: 'Tài khoản Kho chỉ dùng được tab 📦 Kho.' };
   if (u.role === 'Kế toán' && ((!KT_ROLE_OK[a] && !/^kt_/.test(a)) || (a === 'settings' && !ktSettingsOk(d)))) return { ok: false, error: 'Tài khoản Kế toán chỉ dùng được tab 💼 Kế toán.' };
-  if (a === 'kt_bl' || a === 'kt_badd' || a === 'kt_bpay' || a === 'kt_bdel') return crmKtBatch(x, u, d, crmLog); // 🧾 phiếu đối soát COD chờ tiền về (kt.js)
+  if (a === 'kt_bl' || a === 'kt_badd' || a === 'kt_bpay' || a === 'kt_bdel') return crmKtBatch(x, u, d, crmLog, o => crmOrderStatus(x, u, { row: o.rid, id: o.id, status: 'Đã giao', reason: 'Có trong phiếu đối soát của hãng (hãng đã thu tiền)' }, true)); // 🧾 phiếu đối soát COD chờ tiền về (kt.js)
   if (a === 'kt_kho') return ktKho(x, u); // 📦 giá trị tồn kho cho kế toán (chỉ đọc)
   if (a === 'kt_shp' || a === 'kt_simp' || a === 'kt_shk') return ktShopee(x, u, d, crmLog); // 🟠 đối soát Shopee từng đơn (san.js, 11/11/2026)
   if (a === 'kt_cash' || a === 'kt_cfg' || a === 'kt_why') return crmKt(x, u, d, crmLog); // 💼 tiền về tài khoản, ngày bắt đầu theo dõi (kt.js)

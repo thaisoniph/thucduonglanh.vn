@@ -170,7 +170,7 @@ async function ktbList(x) { await kbSchema(x.db); return (await all(x.db, "SELEC
 const int = v => Math.round(Number(v) || 0);
 
 /** kt_bl: danh sách phiếu · kt_badd {list: [phiếu]} · kt_bpay {id, day, got, acct, off} · kt_bdel {id}. Chỉ Kế toán, Quản trị. */
-export async function crmKtBatch(x, u, d, log) {
+export async function crmKtBatch(x, u, d, log, delivered) { // delivered(o): đổi đơn sang Đã giao (crmOrderStatus, như bấm tay)
   if (!finOk(u)) return { ok: false, error: 'Chỉ Kế toán và Quản trị làm được việc này.' };
   await kbSchema(x.db); const now = Date.now();
   if (d.action === 'kt_bl') return { ok: true, batches: await ktbList(x) };
@@ -192,9 +192,20 @@ export async function crmKtBatch(x, u, d, log) {
       saved.push(code);
     }
     for (let i = 0; i < fees.length; i += 100) await x.db.batch(fees.slice(i, i + 100));
-    if (saved.length) await log(x, u, 'Kế toán', '-', '', 'Lưu phiếu đối soát chờ tiền về: ' + saved.join(', '), '');
-    const rows = fees.length ? await allIn(x.db, 'SELECT * FROM orders WHERE rid IN (SELECT value FROM json_each(?))', list.flatMap(b => (b.items || []).map(it => int(it.row))).filter(Boolean)) : [];
-    return { ok: true, saved, skip, batches: await ktbList(x), orders: rows.map(ktOrderOut) };
+    // 13/11/2026 (anh Sơn): đơn có trong phiếu = hãng đã thu tiền khách = đã giao xong → đơn "Đang giao" tự chuyển "Đã giao" (Best chưa tự báo trạng thái như Viettel Post).
+    // Đơn còn "Mới / Đã xác nhận" = kho chưa bấm ✅ Đã gửi (chưa trừ kho) → không tự đổi, chỉ báo để nhắc kho bấm (bấm Đã gửi mới trừ kho đúng).
+    const allRid = [...new Set(list.flatMap(b => (b.items || []).map(it => int(it.row))).filter(Boolean))];
+    let rows = allRid.length ? await allIn(x.db, 'SELECT * FROM orders WHERE rid IN (SELECT value FROM json_each(?))', allRid) : [];
+    const want = {}; list.forEach(b => (b.items || []).forEach(it => { want[int(it.row)] = String(it.id || ''); }));
+    let dlv = 0; const pend = [];
+    for (const o of rows) {
+      if (want[o.rid] !== String(o.id)) continue;
+      if (o.status === 'Đang giao' && delivered) { const r = await delivered(o); if (r && r.ok) dlv++; }
+      else if (o.status === 'Mới' || o.status === 'Đã xác nhận') pend.push(o.id);
+    }
+    if (dlv) rows = await allIn(x.db, 'SELECT * FROM orders WHERE rid IN (SELECT value FROM json_each(?))', allRid);
+    if (saved.length) await log(x, u, 'Kế toán', '-', '', 'Lưu phiếu đối soát chờ tiền về: ' + saved.join(', ') + (dlv ? ' · ' + dlv + ' đơn → Đã giao' : '') + (pend.length ? ' · ' + pend.length + ' đơn kho chưa bấm Đã gửi' : ''), '');
+    return { ok: true, saved, skip, dlv, pend: pend.slice(0, 50), batches: await ktbList(x), orders: rows.map(ktOrderOut) };
   }
   const b = await x.db.prepare('SELECT * FROM kt_batch WHERE id = ?').bind(String(d.id || '')).first();
   if (!b) return { ok: false, error: 'Không thấy phiếu này. Tải lại trang rồi thử lại.' };

@@ -2,7 +2,7 @@
 title: Kho hàng
 nav: Kho
 order: 4.5
-updated: 2026-11-12
+updated: 2026-11-13
 description: Xem hàng còn bao nhiêu, nhận tin khi sắp hết, ghi đã đặt hàng, hàng về kho, lấy hàng ra (quà tặng, đại lý), nhận hàng hoàn, đếm kho cuối tuần. Có hình từng bước.
 ---
 
@@ -91,7 +91,7 @@ Hộp xác nhận hiện ra:
 
 1. Bấm vào hãng vận chuyển (không bắt buộc).
 2. Có **mã vận đơn** (in trên phiếu gửi) thì gõ vào để sale tra hành trình. Không có thì để trống.
-3. Bấm **✅ Xác nhận đã gửi**. Đơn chuyển sang **Đang giao**, máy **trừ kho ngay**.
+3. Bấm **✅ Xác nhận đã gửi**. Đơn chuyển sang **Đang giao**, máy **trừ kho ngay**. Nhớ bấm **ngay trong ngày gửi**: kế toán tải phiếu đối soát mà đơn vẫn "chờ gửi" thì máy báo kho chưa bấm, số kho trên máy sẽ cao hơn hàng thật.
 
 Đơn đặt **trước lần đếm kho** gần nhất mà vẫn ghi "chờ gửi" nằm riêng trong dòng **📦 … đơn đặt trước lần đếm kho**. Hàng các đơn này thường đã đi trước lúc đếm, nên bấm **✅ Đã gửi** chỉ để dọn danh sách, máy **không trừ kho thêm**. Dùng nút **☑️ Chọn hết** cho nhanh.
 
