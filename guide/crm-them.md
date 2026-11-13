@@ -270,9 +270,8 @@ Tab **Đơn hàng** mở sẵn mục **⚡ Cần xử lý**, chia thành nhóm:
 | Nhóm | Việc cần làm |
 | --- | --- |
 | 🆕 **Chờ xác nhận** | Gọi khách, bấm **✅ Xác nhận** |
-| 📦 **Chờ gửi hàng** | Đóng hàng, bấm **📦 Nhập mã VĐ** |
 | 📵 **Giao chưa được** | Bưu cục báo khách vắng nhà. **Gọi khách ngay**, hẹn lại giờ giao |
-| 🚚 **Giao lâu chưa tới** | Đã gửi hơn 5 ngày. Gọi hỏi khách, giục bưu cục |
+| 🚚 **Giao lâu chưa tới** | Đã lên đơn hơn 5 ngày mà chưa giao xong. Gọi hỏi khách, giục bưu cục |
 | 💳 **Chưa nhận tiền** | Kiểm tra tài khoản, tiền về thì bấm đã nhận tiền |
 | 📦 **Chờ hàng hoàn về kho** | Hãng đang chuyển hoàn, hàng chưa về. Người lo kho nhận hàng ở tab **📦 Kho → ↩ Hàng hoàn** (ghi đủ hay thiếu / hỏng, máy nhắn bạn). Không có người lo kho thì bấm **📦 Kho đã nhận** trên đơn (đơn chuyển sang **Hoàn**) |
 | ↩ **Hoàn gần đây** | Khách trả lại hàng. Gọi hỏi lý do |

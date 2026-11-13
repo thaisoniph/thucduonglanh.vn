@@ -193,15 +193,13 @@ export async function crmKtBatch(x, u, d, log, delivered) { // delivered(o): đ�
     }
     for (let i = 0; i < fees.length; i += 100) await x.db.batch(fees.slice(i, i + 100));
     // 13/11/2026 (anh Sơn): đơn có trong phiếu = hãng đã thu tiền khách = đã giao xong → đơn "Đang giao" tự chuyển "Đã giao" (Best chưa tự báo trạng thái như Viettel Post).
-    // Đơn còn "Mới / Đã xác nhận" = kho chưa bấm ✅ Đã gửi (chưa trừ kho) → không tự đổi, chỉ báo để nhắc kho bấm (bấm Đã gửi mới trừ kho đúng).
     const allRid = [...new Set(list.flatMap(b => (b.items || []).map(it => int(it.row))).filter(Boolean))];
     let rows = allRid.length ? await allIn(x.db, 'SELECT * FROM orders WHERE rid IN (SELECT value FROM json_each(?))', allRid) : [];
     const want = {}; list.forEach(b => (b.items || []).forEach(it => { want[int(it.row)] = String(it.id || ''); }));
-    let dlv = 0; const pend = [];
+    let dlv = 0; const pend = []; // giữ cho bản CRM cũ, luôn rỗng
     for (const o of rows) {
       if (want[o.rid] !== String(o.id)) continue;
-      if (o.status === 'Đang giao' && delivered) { const r = await delivered(o); if (r && r.ok) dlv++; }
-      else if (o.status === 'Mới' || o.status === 'Đã xác nhận') pend.push(o.id);
+      if (/^(Mới|Đã xác nhận|Đang giao)$/.test(o.status) && delivered) { const r = await delivered(o); if (r && r.ok) dlv++; } // 13/11/2026: sale lên đơn = đã trừ kho, nên Đã xác nhận cũng chuyển thẳng Đã giao
     }
     if (dlv) rows = await allIn(x.db, 'SELECT * FROM orders WHERE rid IN (SELECT value FROM json_each(?))', allRid);
     if (saved.length) await log(x, u, 'Kế toán', '-', '', 'Lưu phiếu đối soát chờ tiền về: ' + saved.join(', ') + (dlv ? ' · ' + dlv + ' đơn → Đã giao' : '') + (pend.length ? ' · ' + pend.length + ' đơn kho chưa bấm Đã gửi' : ''), '');

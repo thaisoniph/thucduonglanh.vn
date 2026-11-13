@@ -11,13 +11,13 @@ Trang này dành cho **người lo kho**. Đọc khoảng 5 phút là làm đư�
 
 > **Mỗi ngày chỉ cần:** mở **📦 Kho**, làm hết các thẻ ở mục **👉 Việc cần làm hôm nay**. Làm hết thẻ là xong việc kho hôm đó.
 >
-> **Quan trọng nhất:** gửi hàng cho hãng xong thì bấm **✅ Đã gửi** ở mục **🚚 Đơn chờ gửi**. Không bấm thì máy **không trừ kho**, số còn sẽ đứng yên.
+> **Gửi hàng không cần bấm gì trên CRM:** sale lên đơn (đơn sang Misa → Best / Viettel Post) là máy **tự trừ kho**. Kho chỉ việc in phiếu trên trang Best / Viettel Post, đóng hàng theo phiếu và gửi đi.
 
 **Cách xem hình:** ô khoanh đỏ có số **1, 2, 3** trên hình chính là **bước 1, 2, 3** viết ngay bên dưới hình.
 
 ## Kho trên CRM giúp gì cho bạn?
 
-- **Tự trừ hàng** mỗi khi đơn được gửi đi (đơn web, đơn sale, đơn sàn, cả quà 🎁 trong đơn).
+- **Tự trừ hàng** ngay khi sale lên đơn (đơn web sale đã xác nhận, đơn sale, đơn sàn, cả quà 🎁 trong đơn). Kho không phải bấm gì.
 - Cho biết mỗi sản phẩm **còn bao nhiêu**, **đủ bán mấy ngày**.
 - Sắp hết thì **nhắn Telegram** cho bạn, ghi luôn **nên đặt bao nhiêu**.
 - Nhắc mỗi sáng **đến khi bạn bấm "✅ Tôi đã đặt hàng"**. Sáng hôm sau vẫn chưa bấm thì máy báo Quản trị.
@@ -79,22 +79,12 @@ Màu ở đầu mỗi dòng:
 
 ### 🚚 Khi gửi hàng đi (làm mỗi ngày)
 
-Đơn sale lên trên CRM nằm ở mục **🚚 Đơn chờ gửi** (gần đầu tab Kho). Gói hàng, giao cho hãng vận chuyển xong thì:
+1. Mở trang **Best** / **Viettel Post**, in phiếu các đơn sale đã lên.
+2. Đóng hàng **theo phiếu**, giao cho hãng.
 
-![Đơn chờ gửi: tích đơn đã gửi (1), bấm Đã gửi (2)](/huong-dan/img/kho-gui-hang.webp)
+Xong. **Không cần bấm gì trên CRM**: sale lên đơn là máy đã trừ kho. Đơn bị huỷ thì máy tự cộng lại.
 
-1. Tích ✓ vào đơn vừa gửi (tích được nhiều đơn 1 lần).
-2. Bấm **✅ Đã gửi … đơn** ở dưới.
-
-Hộp xác nhận hiện ra:
-
-![Xác nhận đã gửi: hãng vận chuyển (1), mã vận đơn (2), Xác nhận (3)](/huong-dan/img/kho-gui-hang-2.webp)
-
-1. Bấm vào hãng vận chuyển (không bắt buộc).
-2. Có **mã vận đơn** (in trên phiếu gửi) thì gõ vào để sale tra hành trình. Không có thì để trống.
-3. Bấm **✅ Xác nhận đã gửi**. Đơn chuyển sang **Đang giao**, máy **trừ kho ngay**. Nhớ bấm **ngay trong ngày gửi**: kế toán tải phiếu đối soát mà đơn vẫn "chờ gửi" thì máy báo kho chưa bấm, số kho trên máy sẽ cao hơn hàng thật.
-
-Đơn đặt **trước lần đếm kho** gần nhất mà vẫn ghi "chờ gửi" nằm riêng trong dòng **📦 … đơn đặt trước lần đếm kho**. Hàng các đơn này thường đã đi trước lúc đếm, nên bấm **✅ Đã gửi** chỉ để dọn danh sách, máy **không trừ kho thêm**. Dùng nút **☑️ Chọn hết** cho nhanh.
+> Đơn **khách tự đặt trên web** chỉ trừ kho sau khi sale gọi khách và bấm **✅ Xác nhận**. Chưa xác nhận thì đơn chưa sang Misa, kho chưa có phiếu để in.
 
 ### 🛒 Khi máy báo sắp hết
 
@@ -187,7 +177,7 @@ Khác với hàng hoàn: đơn **không** chuyển sang Hoàn, vì khách đã n
 
 ## Đếm kho cuối tuần (thứ 6)
 
-Sáng thứ 6, thẻ **🧮 Đếm kho cuối tuần** hiện trong "Việc cần làm", Telegram cũng nhắc. Đếm thật từng sản phẩm trong kho, rồi bấm **🧮 Đếm kho**:
+Sáng thứ 6, thẻ **🧮 Đếm kho cuối tuần** hiện trong "Việc cần làm", Telegram cũng nhắc. Đếm thật từng sản phẩm trong kho. **Đếm sau khi đã đóng gửi hết các đơn sale lên trước giờ đếm** (máy đã trừ các đơn đó; hàng còn nằm trên kệ lúc đếm thì máy sẽ tính thừa). Rồi bấm **🧮 Đếm kho**:
 
 ![Đếm kho: ghi số đếm (1), hoặc bấm "Đúng …" (2), Lưu (3)](/huong-dan/img/kho-dem.webp)
 
@@ -226,7 +216,7 @@ Bấm vào 1 dòng ở **Hàng trong kho**:
 
 ## Hỏi nhanh
 
-**Máy trừ kho lúc nào?** Khi đơn chuyển sang **Đang giao**: kho bấm **✅ Đã gửi** ở mục 🚚 Đơn chờ gửi, hoặc sale gõ mã vận đơn trên đơn. Đơn **Mới / Đã xác nhận** là "đang chờ gửi", chưa trừ. Đơn **Huỷ** không trừ. Đơn **Đang chuyển hoàn** vẫn tính là đã đi, tới khi kho bấm **📦 Đã nhận hàng** mới cộng lại.
+**Máy trừ kho lúc nào?** Ngay khi **sale lên đơn** (đơn **Đã xác nhận**). Đơn **Mới** (khách tự đặt trên web, sale chưa gọi xác nhận) là "đang chờ gửi", chưa trừ. Đơn **Huỷ** không trừ. Đơn **Đang chuyển hoàn** vẫn tính là đã đi, tới khi kho bấm **📦 Đã nhận hàng** mới cộng lại.
 
 **Đơn sàn có trừ không?** Có, khi người phụ trách sàn tải **file đơn hàng** của sàn lên tab Sàn. Đếm kho cuối tuần sẽ sửa phần còn thiếu.
 

@@ -5,7 +5,7 @@
 //   kho_moves  nhập hàng (in), xuất khác (out: quà tặng, đại lý, livestream, hàng mẫu, hỏng…), kiểm kho (count: qty = số đếm thật, sys = số máy tính lúc đó).
 //   kho_po     lần đặt NCC: số lượng, ngày hẹn về (eta), open → done (đã nhập kho) / cancel.
 //   kho_out    sổ hàng đi theo đơn, máy tự lập từ orders + san_orders (khoSync): 1 dòng = 1 đơn × 1 sản phẩm kho.
-//              st: w = chờ gửi (Mới / Đã xác nhận), o = đã gửi (Đang giao / Đã giao / Đổi hàng / Đang chuyển hoàn), b = hoàn về kho (Hoàn).
+//              st: w = chờ gửi (Mới: khách tự đặt web, sale chưa xác nhận), o = đã gửi (Đã xác nhận = sale đã lên đơn, từ 13/11/2026 / Đang giao / Đã giao / Đổi hàng / Đang chuyển hoàn), b = hoàn về kho (Hoàn).
 //              out_at / back_at = lúc hàng đi / về (giữ nguyên khi đơn sửa sau đó). Đơn huỷ = xoá dòng.
 // Số còn = số kiểm kho gần nhất + nhập − xuất khác − hàng theo đơn đi + hàng hoàn về (mọi thứ sau lần kiểm đó).
 // Bán mỗi ngày = lấy số lớn hơn của (30 ngày, 14 ngày gần nhất): đơn đã gửi (không tính hoàn) + xuất khác (trừ hàng hỏng) → tháng bán chạy tự báo sớm hơn.
@@ -79,7 +79,7 @@ async function khoCtx(x, items) {
   const map = await kvJson(x.db, 'kho_map', {}) || {}, combos = await kvJson(x.db, 'kho_combos', {}) || {}, act = items.filter(i => i.active), ok = {}, byFam = {};
   act.forEach(i => { ok[i.id] = 1; const k = khoKey(i.name); if (k.f) (byFam[k.f] = byFam[k.f] || []).push({ id: i.id, k }); });
   const m2 = {}; Object.keys(map).forEach(k => { const v = (map[k] || []).filter(c => ok[c[0]]); if (!(map[k] || []).length || v.length) m2[k] = v; }); // ghép tay vào sản phẩm đã xoá → coi như chưa ghép
-  return { map: m2, combos, byFam, v: md5hex(JSON.stringify([act.map(i => [i.id, i.name]), m2, combos])).slice(0, 10) };
+  return { map: m2, combos, byFam, v: md5hex(JSON.stringify([act.map(i => [i.id, i.name]), m2, combos])).slice(0, 10) + 'r2' }; // r2 (13/11/2026): Đã xác nhận = đã gửi → đổi số này để khoSync tính lại cả sổ
 }
 
 /* ================================================================ sổ hàng đi theo đơn */
@@ -90,7 +90,8 @@ function stOf(s, shipAt, trk) {
   if (/hoan/.test(s)) return 'b';
   if (/huy/.test(s)) return '';
   if (/dang giao|da giao|doi hang|giao thanh cong|da nhan/.test(s)) return 'o';
-  if (!s || /^moi|xac nhan|cho /.test(s)) return shipAt ? 'o' : 'w';
+  if (/xac nhan/.test(s)) return 'o'; // 13/11/2026 (anh Sơn): sale lên đơn (Đã xác nhận → Misa → Best / Viettel Post) = kho in phiếu đóng gửi luôn → trừ kho, kho không bấm Đã gửi nữa
+  if (!s || /^moi|cho /.test(s)) return shipAt ? 'o' : 'w'; // Mới = khách tự đặt web, sale chưa gọi xác nhận → chưa đi
   return shipAt ? 'o' : '';
 }
 const SAN_ST = { ok: 'o', wait: 'w', return: 'b', cancel: '' };
@@ -110,7 +111,8 @@ export async function khoSync(x, force) {
   ord.forEach(o => {
     const t0 = Number(o.time) || Number(o.upd) || now; if (!full && t0 < now - WIN) return;
     const st = stOf(o.status, o.ship_at, String(o.tracking || '').trim());
-    want.push(['o', String(o.rid), t0, st, Number(o.ship_at) || (String(o.tracking || '').trim() ? Math.min(now, t0 + DAY) : 0), st ? unitsOf(khoLines(o.items), C) : {}, /da giao|doi hang|giao thanh cong|da nhan/.test(nrm(o.status))]);
+    // giờ đi: Đã xác nhận (13/11/2026) = lúc sale lên đơn; đơn trước lần đếm kho thì số đếm đã không còn hàng đó
+    want.push(['o', String(o.rid), t0, st, Number(o.ship_at) || (String(o.tracking || '').trim() ? Math.min(now, t0 + DAY) : /xac nhan/.test(nrm(o.status)) ? t0 : 0), st ? unitsOf(khoLines(o.items), C) : {}, /da giao|doi hang|giao thanh cong|da nhan/.test(nrm(o.status))]);
   });
   san.forEach(o => {
     const t0 = dateOrBlank(o.day) || now, st = SAN_ST[o.state] === undefined ? 'o' : SAN_ST[o.state];
@@ -264,7 +266,7 @@ export async function khoMorning(x) {
   if (risk.length) parts.push('<b>🟠 Có thể hết trước khi hàng về</b>\n' + risk.map(s => khoLine(s)).join('\n'));
   if (nob.length) parts.push('⚪ ' + nob.length + ' sản phẩm chưa đếm: ' + nob.map(s => esc(s.name)).join(', ') + '. Đếm rồi bấm 🧮 Đếm kho.');
   if (unm) parts.push('❓ ' + unm + ' tên hàng trong đơn 14 ngày qua máy chưa biết là sản phẩm nào → vào Kho, bấm vào dòng ❓ để chỉ cho máy.');
-  try { const cut = Number(((await first(x.db, "SELECT max(at) AS m FROM kho_moves WHERE kind = 'count'")) || {}).m) || 0, ws = await first(x.db, "SELECT count(*) AS n FROM orders WHERE status IN ('Mới', 'Đã xác nhận') AND time > ?", Math.max(cut, now - 45 * DAY)); if (ws && ws.n) parts.push('🚚 <b>' + ws.n + ' đơn chờ gửi.</b> Gói hàng giao hãng xong thì vào Kho → 🚚 Đơn chờ gửi, tích đơn, bấm ✅ Đã gửi. Không bấm thì máy không trừ kho.'); } catch (e) { } // 12/11/2026
+  // 🚚 nhắc kho bấm Đã gửi bỏ 13/11/2026: sale lên đơn là máy trừ kho
   try { const rt = await first(x.db, "SELECT count(*) AS n FROM orders WHERE status = 'Đang chuyển hoàn'"); if (rt && rt.n) parts.push('↩ <b>' + rt.n + ' đơn hoàn đang trên đường về kho.</b> Gói hàng hoàn về: mở hàng kiểm đủ chưa, rồi vào Kho → ↩ Hàng hoàn bấm 📦 Đã nhận hàng.'); } catch (e) { }
   if (wd === cday) parts.push('🧮 <b>Hôm nay ' + (cday === 0 ? 'chủ nhật' : 'thứ ' + (cday + 1)) + ': đếm kho cuối tuần.</b> Đếm từng sản phẩm, vào CRM → Kho bấm 🧮 Đếm kho. Máy tự sửa phần lệch.');
   if (parts.length) await toStaff(x, P, '📦 <b>Kho sáng ' + dm(now) + '</b>\n\n' + parts.join('\n\n') + '\n\n👉 ' + KHO_URL);
@@ -298,7 +300,7 @@ async function khoLoad(x, u, d) {
   const [chk, pos, moves, cfg, P, C] = await Promise.all([khoCheck(x, {}), all(x.db, "SELECT * FROM kho_po WHERE status = 'open' OR at > ? ORDER BY id DESC LIMIT 120", now - 120 * DAY),
     all(x.db, 'SELECT * FROM kho_moves WHERE at > ? ORDER BY at DESC, id DESC LIMIT 200', now - 90 * DAY), kvJson(x.db, 'kho_cfg', {}), khoPeople(x), khoCtx(x, items)]);
   const names = await khoNames(x, C, 60), map = await kvJson(x.db, 'kho_map', {}) || {};
-  const ship = await all(x.db, "SELECT " + RET_COLS + " FROM orders WHERE status IN ('Mới', 'Đã xác nhận') AND time > ? ORDER BY time LIMIT 300", now - 45 * DAY); // 🚚 đơn chờ gửi (12/11/2026)
+  const ship = []; // 🚚 đơn chờ gửi (12/11/2026) bỏ 13/11/2026: sale lên đơn là máy trừ kho, kho không phải bấm ✅ Đã gửi (lệnh kho_ship vẫn giữ cho bản CRM cũ)
   const [ret, got, part] = await Promise.all([all(x.db, "SELECT " + RET_COLS + " FROM orders WHERE status = 'Đang chuyển hoàn' ORDER BY time LIMIT 300"),
     all(x.db, "SELECT " + RET_COLS + " FROM orders WHERE status = 'Hoàn' AND upd > ? ORDER BY upd DESC LIMIT 60", now - 14 * DAY), // ↩ hàng hoàn đang về / vừa về
     all(x.db, "SELECT " + RET_COLS + ", adj_type, adj_out, adj_back, adj_kho_sent, adj_kho_sent_by, adj_trk, adj_note, adj_at, adj_kho_at, adj_kho_by, adj_kho_note FROM orders WHERE adj_type IN ('Ký 1 phần', 'Đổi hàng') AND (adj_kho_at IS NULL AND time > ? OR adj_kho_at > ?) ORDER BY time LIMIT 200", now - 120 * DAY, now - 14 * DAY)]); // ✂️ hàng trả về của đơn ký 1 phần (11/11/2026)

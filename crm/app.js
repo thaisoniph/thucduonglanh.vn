@@ -2660,7 +2660,7 @@
   function shipDays(o) { return daysSince(o.shipAt || o.time); }
   // Mã trạng thái Viettel Post (máy chủ tự ghi từ tin báo của Viettel Post) cần gọi khách ngay: chuyển hoàn, khách vắng, hẹn ra bưu cục…
   var VTP_WARN = { 502: 1, 503: 1, 505: 1, 506: 1, 507: 1, 515: 1, 900: 1 }; // 900 = file Hàng gửi của Best báo "kiện vấn đề" (khách không nghe máy…) khi đơn còn đang giao
-  function trkWarn(o) { return o.status === 'Đang giao' && !!VTP_WARN[o.trkCode]; }
+  function trkWarn(o) { return (o.status === 'Đang giao' || o.status === 'Đã xác nhận') && !!VTP_WARN[o.trkCode]; }
   /** Dòng hành trình mới nhất từ hãng vận chuyển (chỉ có khi máy chủ nhận được tin báo của hãng). */
   function trkLine(o) {
     if (!o.trk || !(/^(Mới|Đã xác nhận|Đang giao)$/.test(o.status) || /hoàn/i.test(o.status))) return '';
@@ -2670,9 +2670,9 @@
     var t0 = today(), d = function (o) { return daysSince(o.time); };
     var G = [
       { k: 'new', t: '🆕 Chờ xác nhận', tip: lvl() >= 2 ? 'gọi khách xác nhận đơn · chọn “Giao cho…” để giao nhân sự' : 'đơn quản lý giao cho bạn – gọi khách xác nhận', f: function (o) { return o.status === 'Mới' && newOrderSeen(o); } },
-      { k: 'pack', t: '📦 Chờ gửi hàng', tip: 'đã xác nhận, chưa có mã vận đơn – đóng hàng, nhập mã vận đơn', f: function (o) { return o.status === 'Đã xác nhận' && !o.tracking; } },
+      // 'pack' 📦 Chờ gửi hàng bỏ 13/11/2026: sale lên đơn (Misa → hãng) là kho in phiếu gửi luôn, không cần nhập mã vận đơn mới tính là đã gửi
       { k: 'fail', t: '📵 Giao chưa được', tip: 'hãng (Viettel Post, file đối soát Best) báo khách vắng / không liên lạc được / hẹn ra bưu cục / sắp hoàn – gọi khách ngay để giữ đơn', f: trkWarn },
-      { k: 'late', t: '🚚 Giao lâu chưa tới', tip: 'đang giao quá ' + SHIP_LATE + ' ngày – gọi hỏi khách, giục bưu cục để tránh hoàn', f: function (o) { return o.status === 'Đang giao' && shipDays(o) > SHIP_LATE && !trkWarn(o); } },
+      { k: 'late', t: '🚚 Giao lâu chưa tới', tip: 'đã gửi quá ' + SHIP_LATE + ' ngày – gọi hỏi khách, giục bưu cục để tránh hoàn', f: function (o) { return (o.status === 'Đang giao' || (o.status === 'Đã xác nhận' && shipDays(o) <= 30)) && shipDays(o) > SHIP_LATE && !trkWarn(o); } },
       { k: 'pay', t: '💳 Chưa nhận tiền', tip: 'chuyển khoản chưa thấy tiền về – kiểm tra tài khoản VCB', f: function (o) { return isBank(o) && !o.paid && !isVoid(o.status) && o.status !== 'Mới'; } },
       { k: 'otype', t: '⚠️ Kiểm tra loại đơn', tip: 'sale chọn loại đơn khác gợi ý của CRM – mở đơn, bấm ✓ Đúng hoặc đổi loại để tính hoa hồng đúng', f: function (o) { return lvl() >= 2 && !!o.oflag; } },
       { k: 'ret', t: '📦 Chờ hàng hoàn về kho', tip: 'hãng đang chuyển hoàn – kho nhận đủ hàng thì bấm “📦 Kho đã nhận” (đơn chuyển sang Hoàn)', f: function (o) { return o.status === 'Đang chuyển hoàn'; } },
@@ -6278,7 +6278,7 @@
     api('kt_badd', { list: list }).then(function (j) {
       KTB.d = j.batches || KTB.d; KTB.at = Date.now(); ktvMerge(j.orders || []); closeModal();
       toast('Đã lưu ' + (j.saved || []).length + ' phiếu ✓' + (j.dlv ? ' ' + j.dlv + ' đơn tự chuyển sang Đã giao.' : '') + ' Thấy tiền về trên sao kê thì bấm ✅ Đã về' + ((j.skip || []).length ? ' · bỏ qua ' + j.skip.length + ' phiếu đã về' : ''));
-      if ((j.pend || []).length) alert('⚠️ ' + j.pend.length + ' đơn có trong phiếu (hãng đã giao, đã thu tiền) nhưng kho chưa bấm ✅ Đã gửi, nên máy chưa trừ kho:\n\n' + j.pend.slice(0, 20).join(', ') + (j.pend.length > 20 ? '…' : '') + '\n\nNhắn kho vào tab 📦 Kho → 🚚 Đơn chờ gửi, tích các đơn này và bấm ✅ Đã gửi.');
+      // 13/11/2026: hết trường hợp "kho chưa bấm Đã gửi" (sale lên đơn là trừ kho)
       render();
     }, function (e) { b.disabled = false; b.textContent = 'Thử lại'; toast(/Không rõ thao tác|chỉ dùng được/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message, true); });
   }
@@ -13404,7 +13404,7 @@
   function openKhoCount(only) {
     var L = KH.d.list.filter(function (s) { return !only || (only === 'nobase' ? s.lv === 'nobase' : s.id === only); }); if (!L.length) L = KH.d.list;
     var sn = khoShipNew(KH.d).length;
-    var body = '<div class="kho-m">' + (sn ? '<p class="kho-note">🚚 Còn <b>' + sn + ' đơn chờ gửi</b>. Đơn nào đã gửi đi thì bấm <b>✅ Đã gửi</b> trước khi đếm, để máy tính đúng.</p>' : '') + '<p class="kho-todo-p" style="margin:0 0 12px">Đếm số hàng <b>đang nằm trong kho</b> rồi ghi vào ô. Hàng đã gói chờ shipper lấy vẫn tính là còn. Sản phẩm nào chưa đếm thì để trống.</p>' +
+    var body = '<div class="kho-m">' + '<p class="kho-note">📦 Đếm <b>sau khi đã đóng gửi hết đơn sale lên trước giờ đếm</b>: máy đã trừ các đơn đó rồi, nếu hàng của đơn còn nằm trên kệ lúc đếm thì máy sẽ tính thừa.</p>' + '<p class="kho-todo-p" style="margin:0 0 12px">Đếm số hàng <b>đang nằm trong kho</b> rồi ghi vào ô. Hàng đã gói chờ shipper lấy vẫn tính là còn. Sản phẩm nào chưa đếm thì để trống.</p>' +
       L.map(function (s) { var sys = s.have !== null && s.have >= 0 ? khoN(s.have) : ''; return '<div class="kho-cr"><div class="kho-cr-t"><b>' + esc(s.name) + '</b><small>' + (sys ? 'Máy đang tính: ' + sys + ' ' + esc(s.unit) : 'Đếm lần đầu') + '</small></div>' +
         '<div class="kho-cr-i"><input type="text" inputmode="decimal" data-khc="' + esc(s.id) + '" placeholder="Số ' + esc(s.unit) + '" aria-label="Số ' + esc(s.unit) + ' đếm được của ' + esc(s.name) + '">' + (sys ? '<button type="button" class="btn kho-same" data-khs="' + esc(s.id) + '" data-v="' + esc(sys.replace(/\./g, '')) + '">Đúng ' + sys + '</button>' : '') + '</div></div>'; }).join('') +
       '<details class="kho-adv"><summary>Đếm từ trước, giờ mới ghi? Sửa giờ đếm</summary><label class="f"><span>Đếm lúc</span><input type="datetime-local" id="khcAt" value="' + khoNowLocal() + '"></label><p class="hint">Để đơn gửi đi sau giờ đếm vẫn được trừ.</p></details>' +
@@ -13533,7 +13533,7 @@
   function openKhoHow() {
     var body = '<div class="kho-m kho-howt">' +
       '<p><b>📦 Số còn</b> = số bạn đếm ở lần 🧮 Đếm kho gần nhất + hàng về − hàng lấy ra − hàng theo đơn đã gửi + hàng hoàn đã về kho.</p>' +
-      '<p><b>🚚 Đơn hàng</b>: đơn chuyển sang <b>Đang giao</b> là máy trừ kho. Đơn <b>Mới / Đã xác nhận</b> là “chờ gửi”. Đơn <b>Huỷ</b> không trừ. Đơn hoàn: bấm <b>📦 Kho đã nhận</b> trên đơn thì hàng cộng lại. Đơn sàn trừ khi tải file đơn hàng của sàn lên tab Sàn. Quà 🎁 trong đơn cũng trừ.</p>' +
+      '<p><b>🚚 Đơn hàng</b>: sale <b>lên đơn</b> (đơn Đã xác nhận, đẩy sang Misa → Best / Viettel Post) là máy trừ kho ngay, kho không phải bấm gì. Đơn <b>Mới</b> (khách tự đặt trên web, sale chưa gọi xác nhận) là “chờ gửi”. Đơn <b>Huỷ</b> không trừ. Đơn hoàn: bấm <b>📦 Kho đã nhận</b> trên đơn thì hàng cộng lại. Đơn sàn trừ khi tải file đơn hàng của sàn lên tab Sàn. Quà 🎁 trong đơn cũng trừ.</p>' +
       '<p><b>📤 Hàng ra ngoài đơn</b> (quà tặng, đại lý, livestream, hàng mẫu, hàng hỏng): bấm <b>Lấy hàng ra</b>. Không ghi thì lần đếm sau sẽ thấy lệch.</p>' +
       '<p><b>📈 Bán mỗi ngày</b>: lấy số cao hơn giữa trung bình 30 ngày và 14 ngày gần nhất, nên khi bán chạy máy báo sớm hơn.</p>' +
       '<p><b>🔔 Khi nào báo đặt hàng</b>: khi hàng còn (trừ đơn chờ gửi, cộng hàng đã đặt chưa về) chỉ đủ bán ít hơn <b>số ngày nhà cung cấp giao + số ngày báo sớm</b>. Máy gợi ý đặt bao nhiêu để đủ bán thêm khoảng 1 tháng.</p>' +
