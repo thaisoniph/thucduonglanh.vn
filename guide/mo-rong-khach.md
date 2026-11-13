@@ -90,6 +90,11 @@ Bấm **＋ Thêm khách được giới thiệu**. Nguồn **🎁 Khách giới
 
 Marketing viết sẵn bài **kể chuyện đời thường** (không quảng cáo lộ liễu). Bấm **Xem bài & cách đăng**.
 
+**♻️ Bài mới tự có mỗi ngày:** web vừa đăng bài ở Góc Sống Lành, hoặc nhóm Zalo "Sống khỏe cùng Thực Dưỡng Lành" vừa có bài hay, thì CRM tự chuyển thành bài cho bạn (nhãn **📰 Từ bài web** hoặc **💬 Từ bài nhóm Zalo**) và **Telegram báo bạn**. Một bài dùng được 3 nơi:
+
+- **Facebook cá nhân** và **hội nhóm**: làm theo 4 bước dưới.
+- **Zalo khách cũ, người quen**: bấm **💬 Copy tin Zalo gửi khách**, sửa "anh/chị" cho đúng rồi gửi. Link trong tin là link riêng của bạn (bài web dẫn về đúng bài viết, bài nhóm Zalo dẫn vào nhóm).
+
 ![Bài Facebook viết sẵn](/huong-dan/img/mr-fb.webp)
 
 1. Bấm **📋 Copy bài**, đăng như bài bình thường. **Không dán link vào bài**: bài có link ít người thấy.

@@ -9,6 +9,7 @@ import { aiFetch } from './airelay.js';
 import { run, all, first, kvGet, kvSet, fmtDate, DAY } from './lib.js';
 import { edAdd, edBlock, edCount } from './edlearn.js';
 import { kb, safe, TRUTH_RULES } from './chat.js';
+import { telegramTo } from './google.js';
 import { insPick, insBlock, insParse, insLog, insRisk, insViet, insStyle, canIns, INS_HEAD, funOf } from './insight.js';
 
 const WRITER = 'claude-opus-5-5';
@@ -26,12 +27,14 @@ async function schema(db) {
   if (schemaOk) return;
   await run(db, `CREATE TABLE IF NOT EXISTS sp_posts (id INTEGER PRIMARY KEY AUTOINCREMENT, at INTEGER, by_name TEXT DEFAULT '', f TEXT DEFAULT '', ins TEXT DEFAULT '',
     text TEXT DEFAULT '', cmt TEXT DEFAULT '', reply TEXT DEFAULT '', to_k TEXT DEFAULT 'nhom', status TEXT DEFAULT 'draft', copies INTEGER DEFAULT 0, ok_by TEXT DEFAULT '', ok_at INTEGER)`);
+  for (const c of ["src TEXT DEFAULT ''", "src_ref TEXT DEFAULT ''", "path TEXT DEFAULT ''", "title TEXT DEFAULT ''", "zmsg TEXT DEFAULT ''"]) { try { await run(db, 'ALTER TABLE sp_posts ADD COLUMN ' + c); } catch (e) { } } // 13/11/2026: 1 bài → nhiều kênh (bài web / bài nhóm Zalo → bài FB cá nhân + tin Zalo gửi khách)
   schemaOk = true;
 }
 const canEdit = u => !!u && (u.level >= 2 || u.role === 'Marketing');
 const shape = (r, full) => {
   let ins = {}; try { ins = JSON.parse(r.ins || '{}') || {}; } catch (e) { }
-  const o = { id: r.id, at: r.at, f: r.f, text: r.text, cmt: r.cmt, reply: r.reply, to: SPF_TO[r.to_k] ? r.to_k : 'nhom', path: (SPF_TO[r.to_k] || SPF_TO.nhom)[0], status: r.status, copies: r.copies || 0, gn: ins.gn || '' };
+  const o = { id: r.id, at: r.at, f: r.f, text: r.text, cmt: r.cmt, reply: r.reply, to: SPF_TO[r.to_k] ? r.to_k : 'nhom', path: r.path || (SPF_TO[r.to_k] || SPF_TO.nhom)[0], status: r.status, copies: r.copies || 0, gn: ins.gn || '',
+    src: r.src || '', title: r.title || '', zmsg: r.zmsg || '' };
   if (full) Object.assign(o, { by: r.by_name, ok_by: r.ok_by, ins: Object.assign(ins, { w: insRisk([r.text, r.cmt, r.reply].join('\n')), v: insStyle(r.text) }) });
   return o;
 };
@@ -78,6 +81,55 @@ async function spWrite(x, u, d) {
   const id = r && r.meta && r.meta.last_row_id;
   await insLog(x, 'fbcn', { g: ins.g, gn: ins.gn, f, t: ins.t, ref: 'sp' + id, a: ins.a, b: ins.b });
   return { ok: true, post: shape(await first(x.db, 'SELECT * FROM sp_posts WHERE id = ?', id), true) };
+}
+
+/* ================================================================ ♻️ 1 bài → nhiều kênh (13/11/2026, anh Sơn): bài trợ lý đã đăng lên WEB (Góc Sống Lành) hoặc NHÓM ZALO "Sống khỏe cùng Thực Dưỡng Lành"
+ * → AI chuyển thành: bài Facebook cá nhân (đăng trang cá nhân / hội nhóm), bình luận ghim, câu trả lời có link riêng, TIN ZALO gửi khách cũ. Bài gốc đã được duyệt nên bản chuyển thể cho sale dùng ngay (status ok),
+ * quản lý vẫn sửa / ẩn được ở 📣. Bài web: link về chính bài viết (/goc-song-lanh/<slug>/?ref=sale). Bài nhóm Zalo: link mời vào nhóm (/nhom-zalo/?ref=sale), tối đa 1 bài / ngày.
+ * Chạy theo lịch (cron.js), mỗi lượt tối đa 1 bài; báo Telegram riêng cho sale. */
+const REPURPOSER = 'claude-sonnet-5-5';
+export async function spRepurposeTick(x) {
+  if (!x.env.ANTHROPIC_API_KEY) return;
+  await schema(x.db);
+  const now = Date.now(), day = fmtDate(now, 'yyyy-MM-dd'), done = new Set((await all(x.db, "SELECT src_ref FROM sp_posts WHERE src_ref != '' AND at > ?", now - 10 * DAY)).map(r => r.src_ref));
+  let src = null;
+  const web = await all(x.db, "SELECT day, title, slug, md FROM bl_posts WHERE status = 'published' AND pub_at > ? AND slug != '' AND md != '' ORDER BY pub_at DESC LIMIT 5", now - 3 * DAY).catch(() => []);
+  const w = web.find(p => !done.has('web:' + p.day));
+  if (w) src = { kind: 'web', ref: 'web:' + w.day, title: w.title, path: '/goc-song-lanh/' + w.slug + '/', body: String(w.md).replace(/^---[\s\S]*?---/, '').slice(0, 7000) };
+  else if (!(await first(x.db, "SELECT 1 FROM sp_posts WHERE src = 'zalo' AND at >= ?", now - (now + 7 * 3600e3) % DAY))) {
+    const zs = await all(x.db, "SELECT id, topic, text FROM zb_posts WHERE status = 'sent' AND sent_at > ? AND length(text) >= 300 ORDER BY sent_at DESC LIMIT 5", now - 2 * DAY).catch(() => []);
+    const z = zs.find(p => !done.has('zalo:' + p.id));
+    if (z) src = { kind: 'zalo', ref: 'zalo:' + z.id, title: z.topic || 'Bài nhóm Zalo', path: SPF_TO.nhom[0], body: String(z.text).slice(0, 5000) };
+  }
+  if (!src) return;
+  await run(x.db, "INSERT INTO sp_posts (at, by_name, f, ins, text, cmt, reply, to_k, status, src, src_ref, path, title) VALUES (?, 'AI', 'TOFU', '{}', '', '', '', ?, 'off', ?, ?, ?, ?)", now, src.kind === 'web' ? 'web' : 'nhom', src.kind, src.ref, src.path, cut(src.title, 200)); // giữ chỗ: lỗi AI không viết lại liên tục
+  const row = await first(x.db, 'SELECT id FROM sp_posts WHERE src_ref = ? ORDER BY id DESC LIMIT 1', src.ref);
+  const where = src.kind === 'web' ? 'bài viết trên website (Góc Sống Lành) có tên "' + src.title + '"' : 'bài trong nhóm Zalo "Sống khỏe cùng Thực Dưỡng Lành"';
+  const lead = src.kind === 'web' ? 'đọc đầy đủ bài viết trên web' : 'vào nhóm Zalo "Sống khỏe cùng Thực Dưỡng Lành" (miễn phí, mẹo sống khỏe mỗi ngày, hỏi đáp)';
+  const ask = [
+    'Dưới đây là 1 ' + where + ', đã được duyệt. Hãy CHUYỂN THỂ (không chép nguyên) để nhân viên tư vấn Thực Dưỡng Lành dùng trên nhiều kênh:',
+    '1) BÀI: đăng Facebook cá nhân hoặc hội nhóm Facebook. 120–250 chữ, xưng "mình", kể từ góc nhìn người đăng (điều mình vừa đọc / để ý / từng nghĩ sai), lấy 1–2 ý hay nhất của bài gốc, đoạn 1–3 câu, câu cuối là câu hỏi mở dễ trả lời. KHÔNG link, KHÔNG số điện thoại, KHÔNG giá, KHÔNG hashtag, KHÔNG "inbox".',
+    '2) BÌNH LUẬN GHIM: 1–2 câu, KHÔNG link, mời ' + lead + '.',
+    '3) TRẢ LỜI CÓ LINK: 1 câu ngắn, kết thúc đúng chữ [LINK].',
+    '4) TIN ZALO: tin nhắn riêng gửi khách cũ / người quen, 2–4 câu, ấm, hỏi thăm 1 câu rồi chia sẻ ý chính, mời ' + lead + ', kết thúc đúng chữ [LINK]. Gọi người nhận là [Tên].',
+    'Chỉ dùng thông tin có trong bài gốc. Không nói sản phẩm chữa / điều trị / khỏi bệnh.',
+    '', '# BÀI GỐC', src.body, '',
+    'Trả về ĐÚNG định dạng (không lời dẫn):', 'BÀI:', '<nội dung>', 'BÌNH LUẬN GHIM:', '<1–2 câu>', 'TRẢ LỜI CÓ LINK:', '<1 câu> [LINK]', 'TIN ZALO:', '<2–4 câu> [LINK]'
+  ].join('\n');
+  try {
+    const res = await ai(x.env).messages.create({ model: REPURPOSER, max_tokens: 2000, system: 'Bạn chuyển thể nội dung cho nhân viên Thực Dưỡng Lành (thực phẩm dinh dưỡng từ hạt, trà thảo mộc). Tiếng Việt đời thường, ấm, không văn quảng cáo.\n\n' + TRUTH_RULES, messages: [{ role: 'user', content: ask }] });
+    const raw = res.content.filter(b => b.type === 'text').map(b => b.text).join('\n');
+    const grab = (k, next) => { const m = raw.match(new RegExp('(?:^|\\n)\\s*\\**' + k + '\\**\\s*:\\**\\s*([\\s\\S]*?)' + (next ? '(?=\\n\\s*\\**' + next + ')' : '$'), 'i')); return m ? m[1].trim() : ''; };
+    const clean = s => insViet(safe(s)).replace(/https?:\/\/\S+/g, '').trim();
+    const text = clean(grab('BÀI', 'BÌNH LUẬN GHIM')), cmt = clean(grab('BÌNH LUẬN GHIM', 'TRẢ LỜI CÓ LINK')).replace(/\[LINK\]/g, '').trim();
+    let reply = clean(grab('TRẢ LỜI CÓ LINK', 'TIN ZALO')); if (!/\[LINK\]/.test(reply)) reply = (reply || 'Mình để link ở đây nhé') + ' [LINK]';
+    let zmsg = clean(grab('TIN ZALO', '')); if (zmsg && !/\[LINK\]/.test(zmsg)) zmsg += ' [LINK]';
+    if (text.length < 100 || !cmt) return;
+    await run(x.db, "UPDATE sp_posts SET text = ?, cmt = ?, reply = ?, zmsg = ?, status = 'ok', ok_by = 'Tự động (bài gốc đã duyệt)', ok_at = ? WHERE id = ?", text.slice(0, 5000), cmt.slice(0, 600), reply.slice(0, 400), zmsg.slice(0, 1200), now, row.id);
+    const us = await all(x.db, "SELECT name, tg FROM users WHERE active = 1 AND coalesce(tg, '') != '' AND role NOT IN ('Kho', 'Kế toán', 'Marketing')");
+    const msg = '📣 <b>Có bài mới để chia sẻ</b> (' + (src.kind === 'web' ? '📰 từ bài web' : '💬 từ nhóm Zalo') + '): ' + cut(src.title, 120).replace(/[<>&]/g, '') + '\nĐã có sẵn bài đăng Facebook cá nhân / hội nhóm và tin Zalo gửi khách, link riêng của bạn tự gắn.\n👉 CRM → Hôm nay → 🌱 việc 5 → Xem bài & cách đăng';
+    for (const v of us) { try { await telegramTo(x.env, v.tg, msg); } catch (e) { } }
+  } catch (e) { console.error('spRepurpose', e.message); }
 }
 
 export async function crmSpf(x, u, d, crmLog) {
