@@ -4,6 +4,7 @@ nav: Fanpage
 order: 7
 updated: 2026-11-10
 description: Trợ lý An Lành trả lời bình luận, nhắn tin Messenger, tặng quà, mời vào nhóm Zalo và soạn bài đăng cho các fanpage.
+roles: [mkt, ql]
 ---
 
 Trang này dành cho bạn **làm marketing**, **quản lý** và **anh Sơn** (phần kết nối ở cuối trang).

@@ -4,6 +4,7 @@ nav: Kịch bản gọi
 order: 2.5
 updated: 2026-11-13
 description: Gọi khách sau khi mua thì nói gì, khách trả lời thế nào thì làm gì, khi nào báo quản lý. Có sẵn trong cửa sổ chăm sóc của CRM.
+roles: [sale, ql]
 ---
 
 Trang này dành cho **người bán hàng và chăm sóc khách**, nhất là **bạn mới vào làm**.

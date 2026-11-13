@@ -4,6 +4,7 @@ nav: Website
 order: 6
 updated: 2026-11-10
 description: Đăng bài, sửa giá, sửa sản phẩm, đăng tin tuyển dụng. Làm trên máy tính.
+roles: [web]
 ---
 
 Trang này dành cho người **đăng bài, sửa sản phẩm, sửa giá** trên website [thucduonglanh.vn](https://thucduonglanh.vn).

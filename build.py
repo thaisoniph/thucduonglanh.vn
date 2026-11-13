@@ -3856,6 +3856,16 @@ SEARCH_HERO = """<div class="g-hero">
 </div>"""
 
 
+def _guide_roles_attr(meta):
+    """Trang hướng dẫn chỉ dành cho vai trò nào: front matter `roles: [sale, ql, …]` -> data-roles (guide.js ẩn tab / mục / kết quả tìm với người không thuộc vai trò; bỏ trống = mọi người).
+    Mã: sale = Sale & CSKH, ql = Quản lý, qt = Quản trị (thấy hết), mkt = Marketing, kho = quyền Kho hoặc phụ trách kho, kt = Kế toán, web = được sửa website, zb = trợ lý Zalo."""
+    r = meta.get("roles")
+    if not r:
+        return ""
+    r = [r] if isinstance(r, str) else r
+    return ' data-roles="' + html.escape(" ".join(str(x) for x in r)) + '"'
+
+
 def build_guide(out):
     """Hướng dẫn nội bộ cho nhân sự: guide/*.md (sửa được ở trang quản trị) -> crm.thucduonglanh.vn/huong-dan/."""
     src = ROOT / "guide"
@@ -3956,7 +3966,7 @@ def build_guide(out):
                     index.append({"p": nav, "u": url, "a": m.group(1), "h": plain(m.group(2)).rstrip(":"), "l": 4,
                                   "s": head, "k": "", "x": plain(blk)[:600]})
         tabs = "".join(
-            f'<a href="/huong-dan/{p["slug"] + "/" if p["slug"] else ""}"{" class=on aria-current=page" if p["slug"] == here else ""}>'
+            f'<a href="/huong-dan/{p["slug"] + "/" if p["slug"] else ""}"{" class=on aria-current=page" if p["slug"] == here else ""}{_guide_roles_attr(p["meta"])}>'
             f'{html.escape(p["meta"].get("nav", p["meta"].get("title", "")))}</a>' for p in pages if not p["meta"].get("hidden") or p["slug"] == here)  # trang ẩn (hidden: true): chỉ ai có link mới thấy
         upd = meta.get("updated")
         upd = upd.strftime("%d/%m/%Y") if hasattr(upd, "strftime") else (str(upd) if upd else "")
@@ -3972,7 +3982,7 @@ def build_guide(out):
 <link rel="icon" href="/icon-32.png" sizes="32x32">
 <link rel="stylesheet" href="/huong-dan/guide.css?v={ver}">
 </head>
-<body{' class="g-home"' if not here else ""} data-api="{html.escape(SITE.get('api_endpoint') or '')}">
+<body{' class="g-home"' if not here else ""}{_guide_roles_attr(meta)} data-api="{html.escape(SITE.get('api_endpoint') or '')}">
 <header class="g-top"><div class="g-in">
 <a class="g-brand" href="/huong-dan/"><img src="/icon-180.png" alt="" width="32" height="32"><span>Hướng dẫn nội bộ</span></a>
 <button type="button" class="g-find" data-find aria-label="Tìm trong hướng dẫn"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M16.5 16.5 21 21" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><span>Tìm</span><kbd>/</kbd></button>

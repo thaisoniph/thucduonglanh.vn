@@ -4,6 +4,7 @@ nav: Trợ lý Zalo
 order: 8
 updated: 2026-11-10
 description: Cài đặt và sử dụng tài khoản Zalo "Trợ lý An Lành" trong nhóm Sống khỏe cùng Thực Dưỡng Lành – chào người mới, trả lời, đăng bài, chuyển ca khó cho người thật.
+roles: [zb, mkt, ql]
 ---
 
 Trang này dành cho **người quản lý nhóm Zalo**, **marketing** và **sale trực Zalo**.

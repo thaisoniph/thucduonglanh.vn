@@ -4,6 +4,7 @@ nav: CRM thêm
 order: 3
 updated: 2026-11-13
 description: Mẹo và việc ít dùng hơn. Cần việc nào thì bấm vào mục đó ở "Trong trang này".
+roles: [sale, ql]
 ---
 
 Bạn nên đọc trang [CRM](/huong-dan/crm/) trước. Trang này là **các việc thêm**. Không cần đọc hết một lúc. Cần việc nào thì mở mục đó.
