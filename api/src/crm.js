@@ -702,7 +702,7 @@ async function crmRace(x, u) {
     adPh.length ? allIn(x.db, 'SELECT phone, time, last_at, status FROM leads WHERE phone IN (SELECT value FROM json_each(?)) AND coalesce(last_at, time) >= ?', adPh, a0) : []]);
   // 13/11/2026 (anh Sơn sau họp sale): 🌱 Công sức mở rộng khách = khách đã mời giới thiệu (1 / khách / ngày) + khách hỏi tự thêm + số nhận từ Kho chung → người chưa ra đơn vẫn được ghi nhận
   const [efLog, efLead] = await Promise.all([
-    all(x.db, "SELECT time, by_name, what, ref FROM logs WHERE what IN ('Mời giới thiệu', 'Nhận khách', 'Mời nhóm Zalo', 'Gọi lại khách cũ') AND time >= ?", from).catch(() => []),
+    all(x.db, "SELECT time, by_name, what, ref FROM logs WHERE what IN ('Mời giới thiệu', 'Nhận khách', 'Mời nhóm Zalo', 'Gọi lại khách cũ', 'Đăng bài FB') AND time >= ?", from).catch(() => []),
     all(x.db, "SELECT time, by_name FROM leads WHERE time >= ? AND coalesce(by_name, '') != '' AND by_name = owner AND coalesce(channel, '') NOT LIKE 'File%'", from).catch(() => [])]);
   const effortOf = (n, a, b) => efLog.filter(l => l.by_name === n && l.time >= a && l.time < b).length + efLead.filter(l => l.by_name === n && l.time >= a && l.time < b).length;
   const buyT = {}, ldBy = {}; ao.forEach(o => { (buyT[normPhone(o.phone)] = buyT[normPhone(o.phone)] || []).push(Number(o.time) || 0); }); al.forEach(l => { (ldBy[normPhone(l.phone)] = ldBy[normPhone(l.phone)] || []).push(l); });

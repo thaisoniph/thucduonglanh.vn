@@ -13,14 +13,16 @@ description: 5 việc, 30 phút mỗi ngày ở tab Hôm nay. Khách bạn tự 
 ![Khung 5 việc mở rộng khách ở tab Hôm nay](/huong-dan/img/mr-hom-nay.webp)
 
 - ⭐ **Hôm nay bạn đã làm mấy việc / 5.** Thanh xanh đầy là xong.
-- Làm **lần lượt từ việc 1**. Việc xong thì số thứ tự đổi thành dấu **✓** ①.
-- Mỗi việc có **1 nút xanh** ②③④, bấm là tới đúng chỗ.
-- ⑤ Khách đọc số bạn bè cho bạn: bấm **＋ Thêm khách được giới thiệu** (cũng tính 1 việc).
-- ⑥ Mỗi tuần đăng **2 bài Facebook** cá nhân: bấm **Xem bài & cách đăng**.
+- Làm **lần lượt từ việc 1 tới việc 5**. Việc xong thì số thứ tự đổi thành dấu **✓** ①.
+- Mỗi việc có **1 nút xanh** ②③④⑤, bấm là tới đúng chỗ.
+- 💰 Khung vàng dưới mỗi việc ghi **lợi ích của bạn** khi làm việc đó.
+- ⑥ Khách đọc số bạn bè cho bạn: bấm **＋ Thêm khách được giới thiệu** (cũng tính 1 việc).
 
 Việc nào chưa có khách thì làm thêm việc khác cho đủ 5. Chưa ra đơn vẫn được tính.
 
-## Việc 1: Mời 2 khách cũ giới thiệu bạn bè
+## Việc 1: Mời 1 khách cũ giới thiệu bạn bè
+
+💰 **Lợi ích:** bạn của khách là khách mới không tốn quảng cáo. Bạn hưởng **6% mọi đơn trong 6 tháng** + thưởng đến **100.000đ**.
 
 Gọi khách đã dùng 7–30 ngày, hỏi: *"Chị dùng thấy thế nào ạ?"*. **Khách khen** thì bấm **🌱 Mời giới thiệu**.
 
@@ -34,6 +36,8 @@ Gọi khách đã dùng 7–30 ngày, hỏi: *"Chị dùng thấy thế nào ạ
 
 ## Việc 2: Mời 1 khách vào nhóm Zalo cộng đồng
 
+💰 **Lợi ích:** công ty chăm khách mỗi ngày giúp bạn. Khách trong nhóm tin hơn, mua lại nhiều hơn, đơn khách cũ của bạn tăng.
+
 Nhóm **"Sống khỏe cùng Thực Dưỡng Lành"** có kiến thức dinh dưỡng, thực đơn, Zoom hỏi đáp miễn phí với chuyên gia. Khách trong nhóm được công ty chăm sóc mỗi ngày, gắn bó và mua lại nhiều hơn. Bấm **Mời vào nhóm**.
 
 ![Mời khách vào nhóm Zalo](/huong-dan/img/mr-zalo.webp)
@@ -45,12 +49,16 @@ Danh sách chỉ có khách của bạn đã mua, chưa vào nhóm. Khách đã 
 
 ## Việc 3: Gọi lại 1 khách từng nói "Không mua"
 
+💰 **Lợi ích:** khách đã biết sản phẩm, chỉ là lúc trước chưa đúng lúc, nên dễ chốt hơn một số lạ.
+
 Bấm **Gọi lại**. Đây là khách nói "Không mua" từ 1,5 đến 6 tháng trước, lâu nhất ở trên. Bấm vào khách → **💬 Tư vấn**, ghi kết quả như bình thường.
 
 - Mở lời bằng **lý do mới**: sản phẩm mới, ưu đãi tháng này, hỏi thăm sức khoẻ. Đừng hỏi lại y như lần trước.
 - Quá 75 ngày mà bạn chưa gọi lại thì số về Kho chung cho bạn khác thử.
 
 ## Việc 4: Nhận 1 số ở Kho chung
+
+💰 **Lợi ích:** có thêm khách ngay hôm nay, không phải chờ số quảng cáo. Ai chốt người đó được doanh số.
 
 Bấm **Nhận số**. Đây là số bạn khác chưa chốt được.
 
@@ -63,6 +71,8 @@ Mỗi ngày nhận tối đa **10 số**. **Ai chốt người đó được doa
 
 ## Khi khách đọc số bạn bè: Thêm khách được giới thiệu
 
+💰 **Lợi ích:** mỗi khách bạn thêm là khách của bạn: **6% mọi đơn trong 6 tháng**, cũng tính 1 việc.
+
 Bấm **＋ Thêm khách được giới thiệu**. Nguồn **🎁 Khách giới thiệu** đã chọn sẵn.
 
 ![Thêm khách được giới thiệu](/huong-dan/img/mr-them.webp)
@@ -74,18 +84,22 @@ Bấm **＋ Thêm khách được giới thiệu**. Nguồn **🎁 Khách giới
 
 📎 Có tin nhắn giới thiệu (Zalo, Messenger) thì chụp ảnh, gửi vào hồ sơ khách (**📎 Chọn ảnh**) để được tính nhanh.
 
-## Mỗi tuần: đăng 2 bài Facebook cá nhân
+## Việc 5: Đăng 1 bài lên Facebook cá nhân hoặc hội nhóm
 
-Marketing viết sẵn bài **kể chuyện đời thường** (không quảng cáo lộ liễu). Bạn đăng lên Facebook của mình, bạn bè thấy và hỏi, link riêng của bạn nằm ở bình luận ghim. Bấm **Xem bài & cách đăng**.
+💰 **Lợi ích:** bạn bè, người trong nhóm thấy bài và hỏi bạn. Khách tự tìm đến, đặt qua link riêng của bạn trong 30 ngày thì **đơn tính cho bạn**.
+
+Marketing viết sẵn bài **kể chuyện đời thường** (không quảng cáo lộ liễu). Bấm **Xem bài & cách đăng**.
 
 ![Bài Facebook viết sẵn](/huong-dan/img/mr-fb.webp)
 
-1. Bấm **📋 Copy bài**, đăng lên Facebook như bài bình thường. **Không dán link vào bài**: bài có link ít người thấy.
+1. Bấm **📋 Copy bài**, đăng như bài bình thường. **Không dán link vào bài**: bài có link ít người thấy.
 2. Chờ bài có tương tác (2–3 tiếng), bấm **📋 Copy bình luận**, dán làm bình luận dưới bài.
 3. Bấm **📋 Copy câu có link**, dán làm **trả lời ngay dưới bình luận** ở bước 2.
-4. Trên điện thoại, giữ tay vào bình luận ở bước 2 → **Ghim**.
+4. Trang cá nhân: trên điện thoại, giữ tay vào bình luận ở bước 2 → **Ghim**.
 
-Bạn bè bấm link rồi đặt trên web trong 30 ngày thì **đơn tính cho bạn**. Bấm **📋 Copy bài** là khung 🌱 tự đếm "tuần này 1/2".
+**Đăng vào hội nhóm** (nhóm mẹ bỉm, ăn chay, hưu trí, nhóm khu phố… bạn đang tham gia): đọc nội quy nhóm trước, rồi làm như bước 1–3. Trong nhóm không ghim được thì bỏ bước 4. Một bài dùng được cho nhiều nhóm, mỗi nhóm cách nhau vài ngày.
+
+Mỗi ngày 1 bài: hôm nay trang cá nhân, mai hội nhóm. Trang cá nhân 2–3 bài / tuần là đủ. Bấm **📋 Copy bài** là việc 5 tự có dấu ✓.
 
 ## Cuối ngày: báo cáo có ghi công sức của bạn
 
@@ -94,7 +108,7 @@ Bấm **📋 Báo cáo cuối ngày (bảng)** ở cuối tab Hôm nay.
 ![Báo cáo ngày có ghi nhận công sức](/huong-dan/img/mr-bao-cao.webp)
 
 1. Lời **cảm ơn** việc bạn đã làm hôm nay.
-2. Nhóm **Mở rộng khách**: mời giới thiệu, mời nhóm Zalo, gọi lại khách cũ, hẹn gọi lại, khách tự tạo, nhận từ Kho.
+2. Nhóm **Mở rộng khách**: mời giới thiệu, mời nhóm Zalo, gọi lại khách cũ, đăng bài Facebook, hẹn gọi lại, khách tự tạo, nhận từ Kho.
 3. Bấm **🖼️ Gửi ảnh vào Zalo** để gửi nhóm.
 
 Ngày chưa có đơn, bạn vẫn có cái để báo cáo.
