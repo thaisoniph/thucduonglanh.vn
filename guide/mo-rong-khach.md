@@ -11,6 +11,8 @@ roles: [sale, ql]
 
 ## Mỗi ngày: làm 5 việc ở khung 🌱 tab Hôm nay
 
+Đầu tab **Hôm nay** có dòng **🌱 Mở rộng khách hôm nay: … / 5 việc**. Bấm vào là tới ngay khung 5 việc.
+
 ![Khung 5 việc mở rộng khách ở tab Hôm nay](/huong-dan/img/mr-hom-nay.webp)
 
 - ⭐ **Hôm nay bạn đã làm mấy việc / 5.** Thanh xanh đầy là xong.
@@ -25,7 +27,7 @@ Việc nào chưa có khách thì làm thêm việc khác cho đủ 5. Chưa ra 
 
 💰 **Lợi ích:** bạn của khách là khách mới không tốn quảng cáo. Bạn hưởng **6% mọi đơn trong 6 tháng** + thưởng đến **100.000đ**.
 
-Gọi khách đã dùng 7–30 ngày, hỏi: *"Chị dùng thấy thế nào ạ?"*. **Khách khen** thì bấm **🌱 Mời giới thiệu**.
+Bấm **📞** cạnh tên khách để gọi khách đã dùng 7–30 ngày, hỏi: *"Chị dùng thấy thế nào ạ?"*. **Khách khen** thì bấm **🌱 Mời giới thiệu**.
 
 ![Cửa sổ mời giới thiệu](/huong-dan/img/mr-moi.webp)
 

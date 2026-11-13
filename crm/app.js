@@ -1546,7 +1546,7 @@
       '<div class="bar"><i style="width:' + pc + '%"></i></div>' +
       (q.list.length && (!wn || wn === S.user.name) ? '<button class="btn pri lg block" data-flow>▶ Bắt đầu gọi lần lượt</button>' : '') +
       (q.rest ? '<p class="small muted" style="margin:8px 0 0">Còn ' + q.rest + ' khách để các ngày sau (tối đa ' + dayLimit() + ' khách/ngày, đổi ở <a href="#cai-dat">Cài đặt</a>).</p>' : '') +
-      (lvl() < 2 ? todayGoalLine() + refSaleLine() : '') + '</section>';
+      (lvl() < 2 ? todayGoalLine() + refSaleLine() + growHeroLine() : '') + '</section>';
     h += occBlock(); // 🎉 dịp chúc khách: ngày lễ, rằm, mùng 1, sinh nhật (09/11/2026)
     if (lvl() >= 2) h += ownWaitBlock(); // 🙋 khách tự mang về có cờ / gọi xác minh (10/11/2026)
     if (lvl() >= 2) h += stopWaitBlock(); // 📵 khách sale báo ngừng liên hệ, chờ quản lý xem (31/10/2026)
@@ -3720,6 +3720,12 @@
   /** 🌱 Mở rộng khách (13/11/2026, anh Sơn: đơn giản, dễ nhìn, chị em làm hằng ngày): 1 khối gọn ở tab Hôm nay của sale.
    *  Đầu khối: hôm nay đã làm mấy việc (gợi ý 5) + lời khen; 4 ô to có chữ: Mời giới thiệu · Thêm khách được giới thiệu · Gọi lại khách "Không mua" · Kho chung; dưới: bài Facebook + link riêng.
    *  Danh sách chi tiết (🌱 Mời làm Đại sứ, 🧺 Kho chung, 😴) nằm ngay dưới, nút trong ô nhảy tới đúng chỗ. */
+  /** 13/11/2026 anh Sơn (rà lại mở rộng khách): khung 🌱 nằm dưới phần chăm sóc, nên đầu tab Hôm nay có 1 dòng nhắc số việc đã làm, bấm là nhảy xuống khung. */
+  function growHeroLine() {
+    if (isMkt() || !selfOn()) return '';
+    var t0 = today(), n = Math.min(5, effortStats(S.user.name, t0, t0 + DAY).tot);
+    return '<button type="button" class="grow-hero' + (n >= 5 ? ' ok' : '') + '" data-gopen="grow"><span>🌱 Mở rộng khách hôm nay: <b>' + n + ' / 5 việc</b></span><em>' + (n >= 5 ? '✅ Đủ rồi' : n ? 'Làm tiếp ›' : 'Bắt đầu ›') + '</em></button>';
+  }
   function idleBlock() {
     var me = S.user.name, pool = isPoolStaff() && poolOn() ? (S.d.leads || []).filter(function (l) { return !l.owner && isOpenLead(l); }).length : 0, idle = idleLeads(me), amb = 0;
     try { rbData(); var A = ambList(); amb = A ? A.list.length : 0; } catch (e) { amb = 0; }
@@ -3737,7 +3743,7 @@
     T.push({ v: ef.fb, n: 1, icon: '📣', t: 'Đăng 1 bài lên Facebook cá nhân hoặc hội nhóm', how: 'Bài viết sẵn: Copy bài → đăng, rồi bình luận câu có link riêng của bạn.', g: 'Bạn bè, người trong nhóm thấy và hỏi bạn: khách tự tìm đến, đặt qua link riêng trong 30 ngày thì đơn tính cho bạn.', b: '<button class="btn pri" data-spf="sale">Xem bài & cách đăng</button>' });
     var done = Math.min(GOAL, ef.tot);
     var row = function (x, i) { var ok = x.v >= x.n; return '<div class="gr-row' + (ok ? ' ok' : '') + '"><span class="gr-n">' + (ok ? '✓' : i + 1) + '</span><span class="gr-b"><b>' + x.icon + ' ' + x.t + '</b><small>' + x.how + '</small><small class="gr-g">💰 ' + x.g + '</small></span><span class="gr-p">' + (ok ? 'Xong' : Math.min(x.v, x.n) + '/' + x.n) + '</span><span class="gr-a">' + (ok ? '' : x.b) + '</span></div>'; };
-    return '<section class="section grow-box"><div class="section-h"><h2>🌱 Mở rộng khách: 5 việc mỗi ngày</h2></div>' +
+    return '<section class="section grow-box" data-grp="grow"><div class="section-h"><h2>🌱 Mở rộng khách: 5 việc mỗi ngày</h2><a class="gr-guide" href="/huong-dan/mo-rong-khach/" target="_blank" rel="noopener">📖 Hướng dẫn có hình</a></div>' +
       '<div class="grow-today"><div class="grow-today-h"><span>Hôm nay bạn đã làm</span><b>' + done + ' / ' + GOAL + ' việc</b></div><div class="grow-bar"><i style="width:' + (done * 100 / GOAL) + '%"></i></div>' +
       '<small>' + (done >= GOAL ? '🌟 Tuyệt vời, đủ 5 việc hôm nay! Làm thêm vẫn được tính vào thi đua.' : 'Làm lần lượt từ việc 1. Việc nào chưa có khách thì làm thêm việc khác cho đủ 5.') + (PP.own && ppOn() ? ' Khách bạn tự mang về: <b>' + PP.own + '%</b> mọi đơn trong ' + (PP.ownMonths || 6) + ' tháng + thưởng.' : '') + '</small></div>' +
       '<div class="gr-list">' + T.map(row).join('') + '</div>' +
@@ -12803,7 +12809,7 @@
       L.slice(0, 5).map(function (x) { var c = x.c, nm = ambName(c.name) || c.phone;
         return '<div class="amb-row click" data-cust="' + c.phone + '"><span class="amb-av">' + esc(ambAv(c.name)) + '</span><span class="amb-t"><b>' + esc(nm) + (isVip(c) ? ' <em class="amb-vip">VIP</em>' : '') + '</b>' +
           '<small>' + (c.products.length ? esc(shortProducts(c.products, 1)) + ' · ' : '') + 'nhận ' + x.d + ' ngày trước · ' + c.orders + ' đơn</small></span>' +
-          '<span class="amb-a"><button class="amb-go" data-refcode="' + c.phone + '">🌱 Mời giới thiệu</button><button class="amb-skip" data-ambskip="' + c.phone + '" title="Khách chưa hài lòng hoặc chưa tiện: ẩn 30 ngày">Để sau</button></span></div>'; }).join('') +
+          '<span class="amb-a"><a class="amb-call" href="tel:' + c.phone + '" title="Gọi hỏi khách dùng thấy thế nào">📞</a><button class="amb-go" data-refcode="' + c.phone + '">🌱 Mời giới thiệu</button><button class="amb-skip" data-ambskip="' + c.phone + '" title="Khách chưa hài lòng hoặc chưa tiện: ẩn 30 ngày">Để sau</button></span></div>'; }).join('') +
       '</div>' + (L.length > 5 ? '<p class="amb-more">Còn ' + (L.length - 5) + ' khách, mai hiện tiếp.</p>' : '') + '</section>';
   }
   function ptBox() {
