@@ -35,13 +35,13 @@ Chào Phương! Toàn bộ khách, đơn hàng và **ghi chú cũ** trong file c
 
 > Lần đầu mở CRM sẽ hơi lâu vì máy tải toàn bộ khách của em. **Từ lần thứ hai CRM hiện ngay.**
 
-## 2. Mỗi sáng: mở tab Hôm nay, bấm “Bắt đầu gọi lần lượt”
+## 2. Mỗi sáng: mở tab Hôm nay, bấm “▶ Bắt đầu”
 
-![Tab Hôm nay: thanh mục tiêu và các nhóm việc thu gọn](/huong-dan/img/ph-old.webp)
+![Tab Hôm nay: ô còn bao nhiêu việc và danh sách Cần gọi hôm nay](/huong-dan/img/crm-today.webp)
 
 Trên cùng là **số khách cần chăm sóc hôm nay** và **thanh tiến độ** (đã xong bao nhiêu). Mỗi ngày CRM đưa ra tối đa **30 khách**, khách quan trọng trước: hẹn gọi lại → sắp hết hàng → hỏi nhận hàng → việc bị trễ → các việc khác. Cùng một việc thì khách dễ mua lại đứng trước: khách VIP, khách mua nhiều lần. Khách từng hoàn đơn hoặc lần trước không nghe máy xếp sau. Khách chưa tới lượt tự dời sang hôm sau, không mất.
 
-Bên dưới, khách được chia **nhóm thu gọn** (bấm vào nhóm mới mở ra), mỗi khách 1 dòng với 3 nút **📞 Gọi · 📵 Không nghe · 💬 Ghi lại**:
+Bên dưới là **1 danh sách 📞 Cần gọi hôm nay** (đơn mới và khách vừa hỏi đứng đầu). Mỗi khách 1 dòng, cạnh tên có **nhãn lý do gọi**, bên phải có 2 nút **📞 Gọi · 💬 Ghi lại** (khách không nghe máy: bấm Ghi lại → 📵 Không nghe máy). Bấm nút lọc **💚 Chăm sóc** để chỉ xem khách chăm sóc. Các nhãn lý do:
 
 - **📞 Hẹn gọi lại**: khách em đã hẹn, hoặc hôm trước không nghe máy.
 - **📦 Hỏi nhận hàng**: CRM tự đọc tỉnh trong địa chỉ khách để đoán ngày hàng tới, rồi nhắc bạn **sau đó 1 ngày**. Khách **miền Bắc** (cả Thanh Hóa, Nghệ An, Hà Tĩnh): nhắc vào **ngày thứ 4** sau khi đặt. Khách **ở xa** (miền Trung, miền Nam): nhắc vào **ngày thứ 6**. Không đọc được tỉnh: nhắc vào **ngày thứ 5**. Khách nằm trong danh sách 3 ngày để bạn kịp gọi. Nếu bạn đã bấm khách nhận hàng ngày nào thì CRM tính theo ngày đó. Khách **mua lại đúng sản phẩm đã dùng** (🌟 khách quen) thì CRM không nhắc mốc này, mốc 1 tuần và mốc 14 ngày nữa, vì khách đã biết cách dùng; chỉ nhắc khi sắp hết hàng.

@@ -42,14 +42,21 @@ Mã chỉ dùng được trong 10 phút. Vào được rồi thì máy nhớ b�
 
 ## Việc 1: Mỗi sáng gọi khách (tab Hôm nay)
 
-Tab **Hôm nay** là danh sách khách bạn cần gọi hôm nay. Máy đã chọn sẵn, khách quan trọng nhất đứng đầu.
+Tab **Hôm nay** là danh sách khách bạn cần gọi hôm nay. Máy đã chọn sẵn, việc ra tiền nhất đứng đầu.
+
+- Ô trên cùng ghi **Hôm nay còn … việc**, có thanh tiến độ và nút xanh **▶ Bắt đầu** với người đầu tiên cần gọi.
+- Bên dưới là **1 danh sách 📞 Cần gọi hôm nay**, xếp theo thứ tự: đơn mới cần xác nhận → khách vừa hỏi → đơn đang giao cần gọi → khách cần chăm sóc → khách hỏi cần liên hệ.
+- Cạnh tên mỗi khách có **nhãn màu ghi lý do gọi**, ví dụ **🧾 Xác nhận đơn**, **🔥 Vừa hỏi**, **📦 Hỏi nhận hàng**, **🤝 Hỏi thăm 1 tuần**, **⏰ Sắp hết hàng**.
+- Muốn xem 1 loại thôi thì bấm nút lọc: **Tất cả · 🧾 Đơn mới · 🔥 Vừa hỏi · 💚 Chăm sóc · 🙋 Khách hỏi**.
+- Thẻ **🌿 Quy tắc hôm nay** thu gọn 1 dòng: bấm **✅ Mình sẽ làm** ngay trên dòng đó, bấm vào chữ để xem gợi ý.
+- Dưới danh sách: **🌱 Mở rộng khách** (bấm để mở 5 việc), rồi **🏁 Mục tiêu & thi đua**. Nút **🏁 Thi đua ›** ở ô trên cùng nhảy xuống ngay.
 
 ![Tab Hôm nay](/huong-dan/img/crm-today.webp)
 
 [[steps:goi-khach]]
 
 1. Mở tab **Hôm nay**.
-2. Bấm nút xanh **▶ Bắt đầu gọi lần lượt**. CRM mở từng khách một.
+2. Bấm nút xanh **▶ Bắt đầu** ở ô trên cùng. Có đơn mới hoặc khách vừa hỏi thì CRM mở người đó trước; xong quay lại, nút tự chuyển sang người tiếp theo. Tới phần chăm sóc, nút thành **▶ Bắt đầu gọi lần lượt** và CRM mở từng khách một.
 3. Đọc nhanh thông tin khách: khách mua gì, lần trước nói gì.
 4. Bấm **📞 Gọi**. Hoặc bấm **💬 Nhắn Zalo**: CRM chép sẵn tin nhắn và mở Zalo, bạn chỉ cần dán rồi gửi.
    Chưa biết nói gì? Đọc mục **💬 Kịch bản gọi** ngay bên dưới: có câu nói mẫu, cách dùng sản phẩm, khách nói gì thì làm gì. Xem trang [Kịch bản gọi](/huong-dan/kich-ban/).
@@ -98,7 +105,7 @@ Không có nút nào hợp? Bấm **Kết quả khác / tự chọn ngày hẹn*
 **Mẹo:**
 
 - Khách chưa gọi được, muốn để lát nữa: bấm **⏭ Để sau**. Muốn nghỉ: bấm **✕**.
-- Không muốn gọi lần lượt? Trên mỗi dòng khách có sẵn 3 nút: **📞 Gọi**, **📵 Không nghe** (khách không nghe máy), **💬 Ghi lại** (ghi kết quả).
+- Không muốn gọi lần lượt? Mỗi dòng khách có 2 nút: **📞 Gọi** và nút xanh (**✅ Xác nhận** với đơn mới, **💬 Tư vấn** với khách hỏi, **💬 Ghi lại** với khách chăm sóc). Khách không nghe máy thì bấm **💬 Ghi lại** → **📵 Không nghe máy**.
 - Mỗi ngày CRM đưa ra tối đa **30 khách**. Khách chưa tới lượt tự sang hôm sau, không mất.
 - Dòng **⏳ trễ 3 ngày** nghĩa là khách này lẽ ra phải gọi từ 3 ngày trước. Gọi sớm nhé.
 - Biểu tượng **Zalo** cạnh tên khách: bạn đã kết bạn Zalo với khách. Nên nhắn Zalo trước. Chưa kết bạn thì gọi trước, rồi xin kết bạn.
@@ -276,7 +283,7 @@ Mỗi số khách hỏi công ty phải trả tiền quảng cáo để có. Vì
 1. **Trước 1 ngày**, Telegram báo riêng cho bạn: *"⏳ Ngày mai về Kho chung"* kèm danh sách. Trên thẻ khách hỏi cũng hiện nhãn **⏳ còn 1 ngày về Kho chung**.
 2. Muốn giữ số thì **gọi hoặc nhắn ngay, rồi ghi 💬 Tư vấn**. Khách hẹn thì bấm **💬 Tư vấn → chọn ngày hẹn** (Mai / 3 ngày / 1 tuần / 2 tuần / 1 tháng): số được giữ tới ngày hẹn. Mỗi lần hẹn tối đa **30 ngày** (từ 13/11/2026). Hẹn xa hơn thì máy coi như không hẹn.
 3. Hết hạn mà vẫn chưa chốt, chưa hẹn: số về Kho chung, Telegram báo bạn và báo cả nhóm. Lịch sử tư vấn của bạn vẫn còn trong số đó.
-4. **Nhận số từ Kho chung:** tab **Hôm nay** kéo xuống mục **🧺 Kho chung – ai nhận cũng được** (hoặc tab **Khách hỏi** bấm mục **🧺 Kho chung**). Số có nhãn **↩ từ [tên]** là số người khác đã gọi. **Đọc lịch sử tư vấn trước** rồi bấm **✋ Nhận khách này**. Thử cách khác người trước: nhắn Zalo thay vì gọi, hỏi về nỗi lo khác, đổi giờ gọi.
+4. **Nhận số từ Kho chung:** tab **Hôm nay** bấm khung **🌱 Mở rộng khách** → mục **🧺 Kho chung – ai nhận cũng được** (hoặc tab **Khách hỏi** bấm mục **🧺 Kho chung**). Số có nhãn **↩ từ [tên]** là số người khác đã gọi. **Đọc lịch sử tư vấn trước** rồi bấm **✋ Nhận khách này**. Thử cách khác người trước: nhắn Zalo thay vì gọi, hỏi về nỗi lo khác, đổi giờ gọi.
 5. Mỗi ngày mỗi người nhận tối đa **10 số** từ kho (quản lý đặt được số khác) để ai cũng có phần. **Ai chốt thì người đó được tính doanh số.**
 6. **Bạn nhận số người khác từng giữ** thì người đó nhận tin Telegram *"🧺 [tên bạn] vừa nhận khách…"*, để ai đang kết bạn Zalo với khách thì ngừng nhắn, khách không bị 2 người cùng nhắn.
 7. **Tự trả số về Kho chung** (từ 13/11/2026): khách không hợp với bạn, hoặc bạn không chăm tiếp được thì mở khách hỏi đó, kéo xuống bấm **🧺 Trả số này về Kho chung**, **ghi lý do** (đã gọi mấy lần, khách thích gì, giờ nào dễ nghe máy) rồi bấm **🧺 Trả về Kho chung**. Người nhận sau đọc được lý do trong ghi chú. Khách **đã mua** thì vẫn là khách của bạn, không trả được.

@@ -34,12 +34,12 @@ goi-khach:
       tabs: sale
       act: 0
       els:
-        - ["h", "Việc hôm nay"]
-        - ["card", "12 khách cần gọi hôm nay", "Khách quan trọng nhất ở đầu", "g"]
-        - ["btn", "▶ Bắt đầu gọi lần lượt", "g"]
-        - ["card", "🚚 Đơn đang giao cần gọi", "2 đơn hãng báo giao chưa được", "y"]
-      hi: 2
-      text: "Mở tab <b>Hôm nay</b>. Bấm nút xanh <b>▶ Bắt đầu gọi lần lượt</b>. CRM mở từng khách một."
+        - ["h", "Hôm nay còn 12 việc"]
+        - ["btn", "▶ Bắt đầu: Chị Phương · xác nhận đơn", "g"]
+        - ["chips", ["Tất cả 12", "Đơn mới 2", "Chăm sóc 8"], 0]
+        - ["card", "Cô Lan · 📦 Hỏi nhận hàng", "📞 Gọi · 💬 Ghi lại", ""]
+      hi: 1
+      text: "Mở tab <b>Hôm nay</b>. Bấm nút xanh <b>▶ Bắt đầu</b>: CRM mở người cần gọi đầu tiên (đơn mới, khách vừa hỏi), tới khách chăm sóc thì mở lần lượt từng người."
     - title: Gọi khách
       els:
         - ["h", "Chị Lan · 0912 345 678"]

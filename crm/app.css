@@ -2428,3 +2428,31 @@ b.csx-c-ok { color: var(--primary-2); } b.csx-c-sua { color: var(--orange); } b.
 .hiw-ed { display: block; margin: 8px 0 0; font-weight: 600; }
 .hiw-ed textarea { display: block; width: 100%; margin-top: 4px; font-weight: 400; }
 .hiw-bday { display: inline-block; font-size: 14px; color: #8a5a00; background: var(--gold-light, #fff6e0); border-radius: 999px; padding: 4px 12px; margin: 8px 0 0; }
+/* 14/11/2026 tab Hôm nay của sale: 1 danh sách "Cần gọi hôm nay", nhãn lý do gọi trên từng dòng */
+.td-hero .hero-t b { font-size: 18px; }
+.td-hero .btn.lg b { font-weight: 800; }
+.td-jump { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.td-jump button { font: inherit; font-size: 13px; font-weight: 600; color: var(--primary); background: #f1f7f1; border: 1px solid #d5e7d5; border-radius: 999px; padding: 5px 11px; cursor: pointer; white-space: nowrap; }
+.td-list .section-h { margin-bottom: 8px; }
+.td-chips { margin-bottom: 8px; }
+.td-rows { background: var(--card); border-radius: 14px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.06); border-top: 0; }
+.td-rows .gm-more { margin: 10px 12px; }
+.td-r .rw-1 { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
+.td-r .rw-1 > b { font-size: 16px; }
+.td-tag { display: inline-flex; align-items: center; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap; line-height: 1.5; }
+.td-tag.t-red { background: #fdecea; color: #a1281d; }
+.td-tag.t-orange { background: #fff0e0; color: #9a4a00; }
+.td-tag.t-amber { background: #fff6d6; color: #7a5a00; }
+.td-tag.t-green { background: #e7f4ea; color: #1f5f3a; }
+.td-tag.t-blue { background: #e8f0fd; color: #1c4f9c; }
+.td-grow > summary + .section { margin-top: 0; }
+.td-grow .grow-box { padding: 10px; margin: 0; }
+.td-grow .grow-box > .section-h h2 { display: none; }
+.td-grow .amb, .td-grow .section { margin: 0; padding: 0 10px 10px; }
+.td-foot { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.td-foot .btn { flex: 1 1 180px; justify-content: center; }
+.vh-mini2 { align-items: center; flex-wrap: nowrap; cursor: default; }
+.vh-mini-t { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: 2px 8px; align-items: baseline; background: none; border: 0; padding: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.vh-mini-t span { color: var(--muted); font-size: 13px; }
+.vh-mini2 .btn { flex: none; white-space: nowrap; }
+.td-m { font-weight: 700; color: var(--ink); }

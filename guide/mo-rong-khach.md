@@ -11,7 +11,7 @@ roles: [sale, ql]
 
 ## Mỗi ngày: làm 5 việc ở khung 🌱 tab Hôm nay
 
-Đầu tab **Hôm nay** có dòng **🌱 Mở rộng khách hôm nay: … / 5 việc**. Bấm vào là tới ngay khung 5 việc.
+Đầu tab **Hôm nay** có nút **🌱 Mở rộng khách … / 5 ›**. Bấm vào là khung 5 việc mở ra ngay. Khung này nằm dưới danh sách **📞 Cần gọi hôm nay**, bình thường thu gọn: gọi xong khách hôm nay thì mở ra làm. Mời Đại sứ, khách "Không mua", Kho chung đều nằm trong khung này.
 
 ![Khung 5 việc mở rộng khách ở tab Hôm nay](/huong-dan/img/mr-hom-nay.webp)
 
@@ -124,7 +124,7 @@ Hôm nay trang cá nhân, mai hội nhóm, ngày kia Zalo. Bước 1 ở nơi n�
 
 ## Cuối ngày: báo cáo có ghi công sức của bạn
 
-Bấm **📋 Báo cáo cuối ngày (bảng)** ở cuối tab Hôm nay.
+Bấm **📋 Báo cáo cuối ngày** ở cuối tab Hôm nay.
 
 ![Báo cáo ngày có ghi nhận công sức](/huong-dan/img/mr-bao-cao.webp)
 
