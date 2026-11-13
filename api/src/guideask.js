@@ -3,7 +3,7 @@
  * AI đọc toàn bộ hướng dẫn (crm.thucduonglanh.vn/huong-dan/ai.txt do build.py sinh, mỗi mục có mã [[trang#mục]])
  * + thông tin sản phẩm chính thức (chat-kb.txt, dùng chung với trợ lý chat web), trả lời ngắn kèm link tới đúng mục.
  * Câu hỏi lưu ở bảng guide_q (miss = 1 khi hướng dẫn chưa có) để biết nhân sự hay vướng gì mà viết thêm.
- * Chi phí: claude-haiku-5-5, tài liệu ~80 nghìn token được lưu đệm 5 phút → khoảng 20–250đ / câu. */
+ * Chi phí: claude-haiku-5-5, chỉ gửi các trang hướng dẫn liên quan (≤ 85 nghìn token, dưới mốc 100 nghìn của Haiku) + lưu đệm 5 phút → khoảng 20–250đ / câu. */
 import Anthropic from '@anthropic-ai/sdk';
 import { aiFetch } from './airelay.js';
 import { kb, safe } from './chat.js';
@@ -41,6 +41,35 @@ async function guide() {
   return guideMem ? guideMem.text : '';
 }
 
+/* 13/11/2026 tối ưu chi phí: Haiku 5.5 tính giá GẤP 5 cho lời gọi gửi vào > 100 nghìn token. Hướng dẫn (~270 nghìn chữ) + thông tin sản phẩm
+ * đã vượt mốc này → chỉ gửi các trang hướng dẫn liên quan câu hỏi (trang Bắt đầu luôn có, trang đang xem, trang đúng vai trò, rồi trang trùng
+ * nhiều chữ với câu hỏi) cho vừa TOK_BUDGET. Số chữ / token đo lại sau mỗi lần hỏi (kv gq_cpt) nên tài liệu dài thêm vẫn không vượt mốc. */
+const TOK_BUDGET = 85000, CPT0 = 2.2;
+const ROLE_PAGES = { Sale: ['crm', 'kich-ban', 'mo-rong-khach', 'crm-them'], 'Quản lý': ['crm', 'quan-ly'], 'Quản trị': ['quan-ly'], Marketing: ['marketing'], Kho: ['kho'], 'Kế toán': ['ke-toan'] };
+const words = t => String(t).toLowerCase().normalize('NFC').split(/[^\p{L}\p{N}]+/u).filter(w => w.length > 1);
+function pickGuide(g, q, u, page, budget) {
+  if (g.length <= budget) return g;
+  const pages = g.split(/^(?=## Trang )/m).filter(Boolean).map((t, i) => {
+    const m = t.match(/\[\[([a-z0-9-]+)#\]\]/); return { i, t, slug: m ? m[1] : '', head: t.slice(0, 200).toLowerCase(), low: t.toLowerCase() };
+  });
+  const qw = words(q), bi = qw.slice(1).map((w, i) => qw[i] + ' ' + w), pl = page.toLowerCase();
+  const mine = new Set([...(ROLE_PAGES[u.role] || []), ...(u.kho ? ['kho'] : [])]);
+  for (const pg of pages) {
+    let s = 0;
+    for (const w of qw) if (pg.low.includes(w)) s += 1;
+    for (const b of bi) { const n = pg.low.split(b).length - 1; if (n) s += 3 + Math.min(n, 10) * 0.5; if (pg.head.includes(b)) s += 8; }
+    pg.score = s / Math.sqrt(pg.t.length / 10000) + (mine.has(pg.slug) ? 5 : 0);
+    if (pg.i === 0 || (pl && pg.slug && pl.includes(pg.head.match(/"([^"]+)"/)?.[1]?.toLowerCase() || '\u0000'))) pg.score = 1e9; // trang Bắt đầu, trang đang xem
+  }
+  const keep = new Set(); let used = 0;
+  for (const pg of [...pages].sort((a, b) => b.score - a.score)) {
+    if (used + pg.t.length > budget && keep.size) continue;
+    keep.add(pg.i); used += pg.t.length;
+  }
+  const out = pages.filter(pg => keep.has(pg.i)), left = pages.filter(pg => !keep.has(pg.i));
+  return out.map(pg => pg.t).join('') + (left.length ? '\n\n(Các trang hướng dẫn khác không gửi kèm lần này vì không liên quan câu hỏi: ' + left.map(pg => (pg.head.match(/"([^"]+)"/) || [])[1] + ' [[' + pg.slug + '#]]').join(', ') + '. Nếu câu hỏi thuộc các trang này, chỉ người hỏi tới trang đó.)' : '');
+}
+
 let schemaOk = false;
 async function schema(db) {
   if (schemaOk) return;
@@ -58,8 +87,10 @@ export async function guideAsk(x, u, d) {
   const [nu, nd] = await Promise.all([kvGet(x.db, uk), kvGet(x.db, dk)]).then(r => r.map(v => Number(v || 0)));
   if (nu >= USER_MAX) return { ok: false, error: 'Hôm nay bạn đã hỏi ' + USER_MAX + ' câu. Mai hỏi tiếp nhé, hoặc dùng ô tìm kiếm.' };
   if (nd >= DAY_MAX) return { ok: false, error: 'Hôm nay trợ lý đã trả lời đủ lượt của công ty. Bạn dùng ô tìm kiếm nhé.' };
-  const [g, p] = await Promise.all([guide(), kb()]);
-  if (!g) return { ok: false, error: 'Trợ lý chưa đọc được hướng dẫn, thử lại sau ít phút.' };
+  const [g0, p, cpt0] = await Promise.all([guide(), kb(), kvGet(x.db, 'gq_cpt')]);
+  if (!g0) return { ok: false, error: 'Trợ lý chưa đọc được hướng dẫn, thử lại sau ít phút.' };
+  const cpt = Number(cpt0) > 1 && Number(cpt0) < 8 ? Number(cpt0) : CPT0; // số chữ / token đo được ở lần hỏi trước
+  const g = pickGuide(g0, q, u, String(d.page || ''), Math.round(TOK_BUDGET * cpt) - p.length - RULES.length);
 
   const hist = (Array.isArray(d.hist) ? d.hist : []).slice(-4) // hỏi tiếp: gửi kèm 2 lượt hỏi – đáp trước
     .filter(m => m && (m.r === 'u' || m.r === 'a') && m.t).map(m => ({ role: m.r === 'u' ? 'user' : 'assistant', content: String(m.t).slice(0, 1500) }));
@@ -82,6 +113,8 @@ export async function guideAsk(x, u, d) {
     if (e instanceof Anthropic.RateLimitError) return { ok: false, error: 'Trợ lý đang bận, thử lại sau 1 phút.' };
     return { ok: false, error: 'Trợ lý chưa trả lời được, thử lại sau ít phút.' };
   }
+  const us = res.usage || {}, tok = (us.input_tokens || 0) + (us.cache_read_input_tokens || 0) + (us.cache_creation_input_tokens || 0);
+  if (tok > 1000) x.later(kvSet(x.db, 'gq_cpt', String(Math.round((RULES.length + g.length + p.length + q.length + 300) / tok * 100) / 100)).catch(() => {}));
   if (res.stop_reason === 'refusal') return { ok: false, error: 'Trợ lý không trả lời được câu này. Bạn hỏi quản lý nhé.' };
   let a = safe(res.content.filter(b => b.type === 'text').map(b => b.text).join('\n').trim());
   if (!a) return { ok: false, error: 'Trợ lý chưa trả lời, thử lại nhé.' };

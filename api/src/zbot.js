@@ -14,7 +14,7 @@
  *   Chế độ 'auto': tới giờ tự đăng (trừ bài đã bấm Bỏ). Chế độ 'approve': chỉ đăng bài đã bấm Duyệt.
  * Báo đăng ký (như nhóm Sống Khỏe 365): khách để số trên web mà đang ở trong nhóm → trợ lý chúc mừng @tên trong nhóm (chỉ tên Zalo + quà đã nhận, không số điện thoại, không bệnh).
  * Tự duyệt người xin vào nhóm: chỉ người đã để số qua web (tìm được tài khoản Zalo theo số) – người lạ báo Telegram để nhân sự duyệt tay (cổng nhóm 17/10/2026).
- * Chi phí AI: trả lời, chào dùng claude-haiku-5-5 (vài chục đồng/lần); bài đăng dùng claude-opus-5-5 (~2.500đ/bài, 2 bài/ngày ≈ 150k/tháng). */
+ * Chi phí AI: trả lời, chào dùng claude-haiku-5-5 (vài chục đồng/lần); bài đăng dùng claude-sonnet-5-5 (từ 13/11/2026, ~1.200đ/bài, 2 bài/ngày ≈ 75k/tháng). */
 import Anthropic from '@anthropic-ai/sdk';
 import { edAdd, edBlock, edCount } from './edlearn.js';
 import { aiFetch } from './airelay.js';
@@ -29,7 +29,7 @@ import { dayTheme, upcoming, addDay, weekday } from './zday.js';
 import { insPick, insBlock, insParse, insLog, insBank, insRisk, insViet, insStyle, INS_HEAD, FUN, spName } from './insight.js';
 
 const BOT = 'An Lành';
-const FAST = 'claude-haiku-5-5', WRITER = 'claude-opus-5-5';
+const FAST = 'claude-haiku-5-5', WRITER = 'claude-sonnet-5-5'; // 13/11/2026 tối ưu chi phí: bài nhóm hằng ngày Opus → Sonnet 5.5 (rẻ ½, văn vẫn tốt, có vòng học từ người sửa). Muốn lại Opus: 'claude-opus-5-5'
 const SITE = 'https://thucduonglanh.vn', API_URL = 'https://api.thucduonglanh.vn';
 const RECALL_VER = '2026-11-11a'; // chương trình Zalo từ bản này mới gửi mã tin khi đăng + làm việc 'undo' (thu hồi)
 const CFG0 = {

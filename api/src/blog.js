@@ -257,12 +257,20 @@ async function write(x, cfg, day, row) {
   }
 }
 
+let SEARCH_TOOL = 'web_search_20260209';
 /** Gọi Claude có công cụ tìm kiếm trên mạng. Trả chữ + danh sách link đã tìm được (để chỉ giữ link có thật). */
 async function aiWrite(env, system, ask) {
   const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 1, timeout: 9 * 60e3, fetch: aiFetch(env), defaultHeaders: { 'x-tdl-muc': 'web-bai' } });
   const messages = [{ role: 'user', content: ask }], urls = new Set(); let text = '';
   for (let i = 0; i < 4; i++) {
-    const res = await client.messages.create({ model: MODEL, max_tokens: 12000, system, messages, tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 6 }] });
+    // 13/11/2026 tối ưu chi phí: bản tìm kiếm 20260209 tự lọc kết quả trước khi đưa vào bài (ít token hơn, chạy code miễn phí); bị từ chối thì dùng bản cũ
+    let res;
+    try { res = await client.messages.create({ model: MODEL, max_tokens: 12000, system, messages, tools: [{ type: SEARCH_TOOL, name: 'web_search', max_uses: 6 }] }); }
+    catch (e) {
+      if (SEARCH_TOOL === 'web_search_20250305' || !(e && e.status === 400)) throw e;
+      console.error('blog web_search mới bị từ chối, dùng bản cũ', e.message); SEARCH_TOOL = 'web_search_20250305';
+      res = await client.messages.create({ model: MODEL, max_tokens: 12000, system, messages, tools: [{ type: SEARCH_TOOL, name: 'web_search', max_uses: 6 }] });
+    }
     for (const b of res.content || []) {
       if (b.type === 'text') text += b.text;
       if (b.type === 'web_search_tool_result' && Array.isArray(b.content)) for (const r of b.content) if (r.url) urls.add(r.url);

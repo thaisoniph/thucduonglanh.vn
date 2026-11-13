@@ -5,18 +5,21 @@
 import { run, all, first, kvGet, kvSet, kvDel, kvJson, fmtDate, DAY } from './lib.js';
 import { telegram } from './google.js';
 
-/** Giá USD / 1 triệu token (bảng giá Anthropic 10/2026): [đầu tên mô hình, vào, ra, đọc cache, ghi cache]. Mô hình lạ → tính theo Haiku. */
+/** Giá USD / 1 triệu token (platform.claude.com/docs/en/about-claude/pricing, đọc lại 13/11/2026): [đầu tên mô hình, vào, ra, đọc cache, ghi cache 5 phút].
+ * Mô hình lạ → tính theo Haiku. Haiku 5.5 có 2 mức: lời gọi gửi vào > 100 nghìn token (tính cả phần đọc / ghi cache) thì cả lượt tính giá gấp 5 (HAIKU_BIG). */
 const PRICE = [
   ['claude-haiku-5-5', 0.10, 0.50, 0.01, 0.125],
   ['claude-haiku-4-5', 1, 5, 0.10, 1.25],
-  ['claude-sonnet-5-5', 2, 10, 0.20, 2.5],
+  ['claude-sonnet-5-5', 2, 10, 0.10, 2.5],
   ['claude-sonnet-5', 2, 10, 0.20, 2.5],
   ['claude-sonnet-4-6', 3, 15, 0.30, 3.75],
   ['claude-opus-5-5', 4, 20, 0.20, 5],
   ['claude-opus-5', 5, 25, 0.50, 6.25],
   ['claude-opus-4', 5, 25, 0.50, 6.25],
+  ['claude-fable-5-2', 8, 40, 0.20, 10],
   ['claude-fable', 10, 50, 0.25, 12.5],
 ];
+const HAIKU_BIG = ['claude-haiku-5-5', 0.50, 2.50, 0.05, 0.625];
 /** Nhãn mục (header x-tdl-muc mỗi client AI gửi kèm). */
 export const MUC = {
   chat: '💬 Chat An Lành trên web', zalo: '🤖 Trợ lý Zalo trả lời, chào, nhắn riêng', 'zalo-bai': '📝 Soạn bài nhóm Zalo', 'zalo-kh': '📋 Kế hoạch chủ đề nhóm Zalo',
@@ -27,7 +30,9 @@ const RATE_DEF = 26500; // đ / USD, Quản trị sửa được
 const slotDay = d => Date.UTC(+d.slice(0, 4), +d.slice(4, 6) - 1, +d.slice(6, 8)); // 'yyyyMMdd' → mốc ngày để trừ nhau
 
 export function usdOf(model, u) {
-  const m = String(model || ''), p = PRICE.find(r => m.startsWith(r[0])) || PRICE[0];
+  const m = String(model || '');
+  let p = PRICE.find(r => m.startsWith(r[0])) || PRICE[0];
+  if (p[0] === 'claude-haiku-5-5' && (Number(u.input_tokens) || 0) + (Number(u.cache_read_input_tokens) || 0) + (Number(u.cache_creation_input_tokens) || 0) > 100000) p = HAIKU_BIG;
   return ((Number(u.input_tokens) || 0) * p[1] + (Number(u.output_tokens) || 0) * p[2] + (Number(u.cache_read_input_tokens) || 0) * p[3] + (Number(u.cache_creation_input_tokens) || 0) * p[4]) / 1e6;
 }
 

@@ -27,7 +27,7 @@ const HOOK_URL = 'https://api.thucduonglanh.vn/fb/hook', CB_URL = 'https://api.t
 const SCOPES = 'pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,pages_read_user_content,pages_manage_engagement,pages_manage_posts,business_management';
 const FIELDS = 'feed,messages,messaging_postbacks,message_echoes';
 const PERMS = ['pages_messaging', 'pages_manage_metadata', 'pages_read_engagement', 'pages_read_user_content', 'pages_manage_engagement', 'pages_manage_posts']; // quyền bot cần (kiểm tra khi dán mã)
-const FAST = 'claude-haiku-5-5', WRITER = 'claude-opus-5-5';
+const FAST = 'claude-haiku-5-5', WRITER = 'claude-sonnet-5-5'; // 13/11/2026: bài Fanpage hằng ngày Opus → Sonnet 5.5 (rẻ ½)
 const BOT = 'An Lành';
 const CAMNANG = 'https://camnangsongkhoe.thucduonglanh.vn/?ma=fb', ZALO_GROUP = 'https://zalo.me/g/tvepjg478'; // trùng data/site.json (camnang.reader, zalo_group)
 const PCFG0 = {

@@ -19,7 +19,8 @@ import { lrnPosts, lrnBlock } from './learn.js';
 import { eventsAhead } from './zday.js';
 import { crmScore } from './score.js';
 
-const WRITER = 'claude-opus-5-5';
+const WRITER = 'claude-opus-5-5'; // việc cần nghĩ sâu, ít lượt: kịch bản video, big idea
+const LITE = 'claude-sonnet-5-5'; // 13/11/2026: việc đọc / lọc / liệt kê (nhập insight, câu lệnh ảnh, từ khoá) → Sonnet 5.5, rẻ ½
 export const CH = { web: '🌐 Web', zalo: '💬 Zalo', fb: '📘 Fanpage', video: '🎬 Video', fbcn: '📣 FB cá nhân' };
 
 /** Mã ngắn sản phẩm để gắn nhãn (10/11/2026, anh Sơn: "insight / tension phân theo từng sản phẩm, cái nào dùng chung thì ghi lại").
@@ -434,7 +435,7 @@ async function insImport(x, d) {
     'Trả về DUY NHẤT 1 khối JSON, không lời dẫn:',
     '{"groups":[{"match":"","name":"","who":"","want":"","block":"","hooks":[""],"tensions":[{"t":"","sp":[],"score":0,"insight":""}]}]}',
     '', 'KẾT QUẢ:', text].filter(Boolean).join('\n');
-  const res = await ai(x.env).messages.create({ model: WRITER, max_tokens: 8000, output_config: { effort: 'low' },
+  const res = await ai(x.env).messages.create({ model: LITE, max_tokens: 8000, output_config: { effort: 'low' },
     system: 'Bạn tách dữ liệu insight khách hàng từ báo cáo tiếng Việt sang JSON, chính xác, không bịa.', messages: [{ role: 'user', content: ask }] }, { headers: { 'x-tdl-muc': 'insight' } });
   const raw = textOf(res), a = raw.indexOf('{'), b = raw.lastIndexOf('}');
   let j = null; try { j = JSON.parse(raw.slice(a, b + 1)); } catch (e) { }
@@ -558,7 +559,7 @@ async function imgWrite(x, d) {
     '', 'ĐỊNH DẠNG ĐẦU RA (không lời dẫn, không in đậm), 3 khối giống nhau:',
     '📸 HƯỚNG 1: <tên hướng, tiếng Việt>\nÝ tưởng: <1–2 câu tiếng Việt: ảnh trông thế nào, vì sao hợp bài>\nCâu lệnh:\n<câu lệnh tiếng Anh đầy đủ 7 ý, 1 đoạn>\nNếu ảnh chưa ưng, gõ thêm: <1–2 câu tiếng Việt để chỉnh: đổi góc máy / ánh sáng / xoá phông>',
     '(tương tự 📸 HƯỚNG 2, 📸 HƯỚNG 3)'].filter(Boolean).join('\n');
-  const res = await ai(x.env).messages.create({ model: WRITER, max_tokens: 3500, output_config: { effort: 'low' },
+  const res = await ai(x.env).messages.create({ model: LITE, max_tokens: 3500, output_config: { effort: 'low' },
     system: [{ type: 'text', text: 'Bạn là đạo diễn hình ảnh cho thương hiệu thực phẩm dinh dưỡng Việt Nam, giỏi viết câu lệnh tạo ảnh bằng ngôn ngữ nhiếp ảnh, đúng luật quảng cáo thực phẩm.\n' + TRUTH_RULES },
       { type: 'text', text: 'TÀI LIỆU (thông tin chính thức của Thực Dưỡng Lành):\n\n' + know, cache_control: { type: 'ephemeral' } }],
     messages: [{ role: 'user', content: ask }] }, { headers: { 'x-tdl-muc': 'insight-anh' } });
@@ -627,7 +628,7 @@ async function kwWrite(x, n) {
     ...bank.map(g => '- ' + g.id + ': ' + g.name + (g.kw ? ' – tìm: ' + g.kw : '') + (g.real ? ' – lý do thật: ' + g.real : '') + ' – tension: ' + g.tensions.map(tenOf).slice(0, 4).map(t => t.t).join(' | ')),
     old.length ? '\nTỪ KHOÁ ĐÃ CÓ (không lặp):\n' + old.map(v => v.k).join(', ') : '',
     '', 'ĐẦU RA: đúng ' + n + ' dòng, mỗi dòng: từ khoá | id nhóm | TOFU hoặc MOFU hoặc BOFU. Không đánh số, không tiêu đề, không lời dẫn.'].filter(Boolean).join('\n');
-  const res = await ai(x.env).messages.create({ model: WRITER, max_tokens: 8000, output_config: { effort: 'low' },
+  const res = await ai(x.env).messages.create({ model: LITE, max_tokens: 8000, output_config: { effort: 'low' },
     system: 'Bạn là chuyên gia SEO và tối ưu cho công cụ tìm kiếm AI (GEO) ở Việt Nam, hiểu sâu cách người Việt gõ tìm kiếm về ăn uống, sức khoẻ gia đình, quà biếu. Trung thực, đúng luật quảng cáo thực phẩm.',
     messages: [{ role: 'user', content: ask }] }, { headers: { 'x-tdl-muc': 'insight-kw' } });
   const L = kwParse(textOf(res), bank);
