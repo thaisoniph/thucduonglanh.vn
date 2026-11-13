@@ -1109,7 +1109,7 @@
     var el = $('#view');
     var focusId = document.activeElement && document.activeElement.id, selStart = document.activeElement && document.activeElement.selectionStart;
     el.innerHTML = ({ 'hom-nay': viewToday, 'khach-hang': viewCustomers, 'don-hang': viewOrders, 'tiem-nang': viewLeads, 'bao-cao': viewReport, 'cai-dat': viewSettings, 'tong-quan': viewDash, san: viewSan, marketing: viewMkt, 'link-qr': viewLinks, 'tro-ly-zalo': viewZbot, fanpage: viewFp, 'bai-web': viewBlog, 'noi-dung': viewIns, 'hoi-so-lieu': viewAsk, kho: viewKho, 'ke-toan': viewKtab, them: viewMore })[v]();
-    if (v === homeView()) { btMount(el); vhMount(el); tbMount(el); } // 🌿 Quy tắc của ngày + 📢 Thông báo (nằm trên) ở đầu màn hình đầu tiên của mỗi người
+    if (v === homeView()) { btMount(el); vhMount(el); tbMount(el); hiwMount(el); } // ☀️ lời chào + lời chúc mỗi ngày nằm trên cùng // 🌿 Quy tắc của ngày + 📢 Thông báo (nằm trên) ở đầu màn hình đầu tiên của mỗi người
     el.insertAdjacentHTML('beforeend', updatedLine());
     if (focusId && $('#' + focusId)) { var f = $('#' + focusId); f.focus(); try { f.setSelectionRange(selStart, selStart); } catch (e) { } }
     if (keepScroll) window.scrollTo(0, y); else window.scrollTo(0, 0);
@@ -1541,7 +1541,7 @@
     ld = ld.filter(function (l) { return !isHotLead(l); });
     var up = unpaidOrders().filter(function (o) { return o.status !== 'Mới' && oOk(o); }).sort(function (a, b) { return a.time - b.time; });
     var t0 = today(), doneToday = S.d.log.filter(function (l) { return l.time >= t0 && l.what !== 'Cài đặt' && l.what !== 'Nhân sự' && (lvl() < 2 || !wn || l.by === wn); }).sort(function (a, b) { return b.time - a.time; });
-    var h = '<div class="page-head"><h1>' + hiGreet() + '</h1><div class="grow"></div>' + whoSel() + '</div>';
+    var h = '<div class="page-head"><h1>' + (homeView() === 'hom-nay' ? 'Việc hôm nay' : hiGreet()) + '</h1><div class="grow"></div>' + whoSel() + '</div>';
     var q = dayQueue(), total = q.list.length + q.done, pc = total ? Math.round(q.done * 100 / total) : 100;
     h += '<section class="hero"><div class="hero-t"><b>' + (q.list.length ? 'Hôm nay: ' + q.list.length + ' khách cần chăm sóc' : '🎉 Đã xong việc chăm sóc hôm nay') + '</b><span>đã xong ' + q.done + '</span></div>' +
       '<div class="bar"><i style="width:' + pc + '%"></i></div>' + cheerLine(q, !wn || wn === S.user.name) +
@@ -11864,7 +11864,7 @@
     var act = (S.d.users || []).filter(function (u) { return u.active !== false; }), mk = act.filter(function (u) { return u.role === 'Marketing'; }).length, recvN = staff.filter(function (u) { return u.recv; }).length;
     var GQ = setGroup('gq', '✨ Nhân sự hỏi gì ở trang hướng dẫn', 'Xem câu nhân sự hỏi trợ lý · câu nào hướng dẫn chưa có thì nên viết thêm', '<div id="gqBox"><p class="hint" style="margin:0 0 10px">Ở trang <a href="/huong-dan/" target="_blank" rel="noopener">Hướng dẫn</a>, nhân sự gõ câu hỏi vào ô 🔍 Tìm rồi bấm <b>✨ Hỏi trợ lý An Lành</b>. Câu nào trợ lý báo <b>“hướng dẫn chưa có”</b> thì nên viết thêm vào hướng dẫn.</p><button class="btn" id="gqLoad">Xem câu đã hỏi</button></div>');
     h += setSec('👥 Nhân sự', 'Ai được vào CRM, được làm gì; nhân sự đang thắc mắc gì.', (G.us ? setGroup('us', '🧑‍💼 Ai được vào CRM', act.length + ' người đang dùng' + (mk ? ' · ' + mk + ' marketing' : '') + ' · thêm / khoá người, đổi quyền', G.us) : '') + GQ +
-      setGroup('vh', '🌿 Văn hoá: Quy tắc của ngày', 'Ai đã nhận quy tắc hôm nay · chuyện nhân sự ghi lại' + (lvl() >= 3 ? ' · sửa câu chữ gợi ý' : ''), '<div id="vhAdm"><p class="hint" style="margin:0 0 10px">Mỗi ngày làm việc, cả công ty cùng thấy 1 trong 10 Quy Tắc Danh Dự ở đầu màn hình CRM (10 ngày đủ 10 quy tắc), kèm gợi ý áp dụng. Nhân sự bấm <b>✅ Hôm nay mình sẽ làm</b> và có thể ghi 1 dòng chuyện đã làm. Tin Telegram 8h sáng cũng có quy tắc hôm nay.</p><button class="btn" id="vhLoad">Xem</button></div>'));
+      setGroup('vh', '🌿 Văn hoá: Quy tắc của ngày + ☀️ Lời chúc', 'Ai đã nhận quy tắc hôm nay · chuyện nhân sự ghi lại' + (lvl() >= 3 ? ' · sửa câu chữ gợi ý, sửa lời chúc mỗi ngày' : ''), '<div id="vhAdm"><p class="hint" style="margin:0 0 10px">Mỗi ngày làm việc, cả công ty cùng thấy 1 trong 10 Quy Tắc Danh Dự ở đầu màn hình CRM (10 ngày đủ 10 quy tắc), kèm gợi ý áp dụng. Nhân sự bấm <b>✅ Hôm nay mình sẽ làm</b> và có thể ghi 1 dòng chuyện đã làm. Tin Telegram 8h sáng cũng có quy tắc hôm nay.</p><button class="btn" id="vhLoad">Xem</button></div>'));
     h += setSec('🤝 Chia khách', 'Khách mới giao cho ai, xử lý khách trùng hoặc dùng nhiều số.', setGroup('mode', '🔀 Khách mới giao cho ai', MODE_INFO[md][0] + (md === 'pool' ? (!R.poolOn ? ' · 🙈 Kho chung đang ẩn' : poolRuleLine(R) ? ' · về kho khi ' + poolRuleLine(R) : '') : '') + ' · ' + recvN + ' người nhận khách mới' + (noOwner ? ' · ⚠️ ' + noOwner + ' khách chưa ai phụ trách' : ''), G.mode) +
       (lvl() >= 3 ? setGroup('self', '🔎 Tự tạo khách (tab Hôm nay của sale)', selfOn() ? '✅ Đang hiện cho sale' : '🙈 Đang ẩn · bật sau khi họp thống nhất', G.self) : '') +
       setGroup('dup', '👯 Khách trùng sale', 'Khách có ở file của 2 sale: chọn 1 người giữ', G.dup) +
@@ -11984,7 +11984,7 @@
   function vhDay() { return new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10); }
   function vhLoad() {
     if (S.vhBusy) return; S.vhBusy = 1;
-    api('vh_today', {}).then(function (j) { S.vhBusy = 0; if (j && j.vh) { S.vh = j.vh; vhPaint(); } else S.vhFail = Date.now(); }, function () { S.vhBusy = 0; S.vhFail = Date.now(); }); // máy chủ cũ / mất mạng: không hiện thẻ, không báo lỗi
+    api('vh_today', {}).then(function (j) { S.vhBusy = 0; if (j && j.vh) { S.vh = j.vh; vhPaint(); hiwPaint(); } else S.vhFail = Date.now(); }, function () { S.vhBusy = 0; S.vhFail = Date.now(); }); // máy chủ cũ / mất mạng: không hiện thẻ, không báo lỗi
   }
   function vhMount(el) {
     if ((!S.vh || S.vh.day !== vhDay()) && !(S.vhFail && Date.now() - S.vhFail < 600e3)) vhLoad();
@@ -12044,7 +12044,19 @@
           return '<div class="vh-edset"><b>Bộ ' + (k + 1) + '</b><label>💼 Công việc<textarea rows="2" data-vhe="' + i + '-' + k + '-w">' + esc(p.w) + '</textarea></label><label>🏡 Cuộc sống<textarea rows="2" data-vhe="' + i + '-' + k + '-l">' + esc(p.l) + '</textarea></label></div>';
         }).join('') + '</details>';
       }).join('') + '<button class="btn pri" id="vhSave" style="margin-top:8px">Lưu câu chữ</button></details>';
+    if (j.wish) h += '<details class="vh-ed"><summary><b>☀️ Lời chúc mỗi ngày</b> (hiện dưới lời chào ở đầu CRM)</summary><p class="hint">Hôm nay mọi người thấy: “' + esc(j.wishToday ? j.wishToday.t : '') + '”</p>' + (j.canEdit ?
+      '<p class="hint">Mỗi dòng 1 câu chúc, cả công ty cùng 1 câu / ngày, xoay vòng theo thứ tự. Ngày lễ, rằm, mùng 1 có câu riêng sẵn. Xoá trắng 1 ô = dùng lại câu gốc. Nên viết ấm áp, ngắn 1 dòng, không nhắc doanh số.</p>' +
+      [['daily', 'Ngày thường (thứ 3 – thứ 6)'], ['mon', 'Thứ Hai (đầu tuần)'], ['sat', 'Thứ Bảy (cuối tuần)'], ['sun', 'Chủ nhật (người trực)']].map(function (k) {
+        return '<label class="hiw-ed">' + k[1] + ' · <span data-hiwn="' + k[0] + '">' + j.wish[k[0]].length + '</span> câu<textarea rows="' + (k[0] === 'daily' ? 10 : 4) + '" data-hiwe="' + k[0] + '">' + esc(j.wish[k[0]].join('\n')) + '</textarea></label>';
+      }).join('') + '<button class="btn pri" id="hiwSave" style="margin-top:8px">Lưu lời chúc</button>' : '<p class="hint">Chỉ Quản trị sửa được câu chúc.</p>') + '</details>';
     box.innerHTML = h;
+    $$('[data-hiwe]', box).forEach(function (el) { el.oninput = function () { var n = $('[data-hiwn="' + el.getAttribute('data-hiwe') + '"]', box); if (n) n.textContent = el.value.split('\n').filter(function (x) { return x.trim(); }).length; }; });
+    var hs = $('#hiwSave');
+    if (hs) hs.onclick = function () {
+      var w = {}; $$('[data-hiwe]', box).forEach(function (el) { w[el.getAttribute('data-hiwe')] = el.value.split('\n'); });
+      hs.disabled = true;
+      api('vh_wish_save', { wish: w }).then(function (r) { if (r && r.ok === false) { hs.disabled = false; return toast(r.error || 'Chưa lưu được', true); } S.vhAdm = r; S.vh = null; vhAdminPaint(); toast('✅ Đã lưu lời chúc. Mọi người thấy từ lần mở CRM tới'); }, function (e) { hs.disabled = false; toast(/Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message, true); });
+    };
     var sv = $('#vhSave');
     if (sv) sv.onclick = function () {
       var out = j.rules.map(function (r) { return r.tips.map(function () { return { w: '', l: '' }; }); });
@@ -12057,6 +12069,11 @@
    * Tab Hôm nay: lời chào theo buổi, 1 câu động viên theo tiến độ chăm sóc, xong hết khách thì pháo giấy (1 lần/ngày) và tự báo Bảng tin.
    * Bảng tin: 1 dòng nằm yên ở đầu màn hình đầu tiên của mọi người, 7 giây đổi tin (mờ dần, không chữ chạy), rê chuột / chạm thì dừng.
    * Tin tự lấy: ai vừa chốt đơn (tên sản phẩm, KHÔNG ghi tiền), ai đã chăm sóc xong hết khách hôm nay. Nút 👏 Chúc mừng. */
+  /* ☀️ Lời chào + lời chúc mỗi ngày (14/11/2026, anh Sơn): trên cùng màn hình đầu tiên của MỌI vai trò. Câu chúc do máy chủ chọn (api loichuc.js, gửi kèm vh_today),
+   * cả công ty cùng 1 câu / ngày, ngày lễ có câu riêng. Máy chủ cũ / chưa tải xong → chỉ hiện lời chào. Quản trị sửa câu ở Cài đặt → 👥 Nhân sự → 🌿 Văn hoá. */
+  function hiwText() { var w = S.vh && S.vh.day === vhDay() && S.vh.wish; return w && w.t ? w.t : ''; }
+  function hiwMount(el) { var t = hiwText(); el.insertAdjacentHTML('afterbegin', '<div class="hiw-box"><p class="hiw-hi">' + hiGreet() + '</p><p class="hiw-wish" id="hiwLine"' + (t ? '' : ' hidden') + '>' + esc(t) + '</p></div>'); }
+  function hiwPaint() { var b = $('#hiwLine'), t = hiwText(); if (!b || !t) return; b.textContent = t; b.hidden = false; }
   function hiGreet() {
     var hr = new Date(Date.now() + 7 * 3600e3).getUTCHours(), g = hr < 11 ? ['Chào buổi sáng', '🌞'] : hr < 13 ? ['Chào buổi trưa', '☀️'] : hr < 18 ? ['Chào buổi chiều', '🌤️'] : ['Chào buổi tối', '🌙'];
     return g[0] + ', ' + esc(S.user.name) + ' ' + g[1];

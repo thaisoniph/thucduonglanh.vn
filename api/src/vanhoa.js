@@ -6,6 +6,7 @@
  * Quản lý / Quản trị xem ai đã bấm, chuyện hay trong tuần (Cài đặt → 🌿 Văn hoá); Quản trị sửa câu chữ gợi ý (lưu kv 'vh_rules').
  * Tin Telegram 8h (cron.js dailyCare) có thêm 1 dòng quy tắc hôm nay. Không dùng AI → không tốn tiền. */
 import { run, all, kvJson, kvSet, fmtDate, DAY, TZ_MS } from './lib.js';
+import { wishOfDay, wishes, wishSave } from './loichuc.js'; // ☀️ lời chúc mỗi ngày (14/11/2026) đi kèm vh_today
 
 export const VH_RULES = [
   { t: 'Luôn sát cánh cùng đồng đội', q: 'Đi một mình có thể nhanh. Đi cùng đội ngũ mới có thể đi xa.', tips: [
@@ -86,7 +87,8 @@ export async function vhToday(x, u) {
   const r = await vhOfDay(x.db);
   const [me] = await all(x.db, 'SELECT at, note FROM vh_ack WHERE day = ? AND email = ?', r.day, u.email);
   const [c] = await all(x.db, 'SELECT COUNT(*) AS n FROM vh_ack WHERE day = ?', r.day);
-  return { ok: true, vh: Object.assign(r, { mine: me ? { at: me.at, note: me.note || '' } : null, cnt: c ? c.n : 0 }) };
+  let wish = null; try { wish = await wishOfDay(x.db); } catch (e) { }
+  return { ok: true, vh: Object.assign(r, { mine: me ? { at: me.at, note: me.note || '' } : null, cnt: c ? c.n : 0, wish }) };
 }
 
 /** ✅ Hôm nay mình sẽ làm (+ 1 dòng chuyện đã làm, không bắt buộc). Bấm lại chỉ sửa dòng ghi chú. */
@@ -106,7 +108,7 @@ export async function vhAdmin(x, u) {
   const since = fmtDate(Date.now() - 30 * DAY, 'yyyy-MM-dd'), today = await vhOfDay(x.db);
   const rows = await all(x.db, 'SELECT day, email, name, rule, note, at FROM vh_ack WHERE day >= ? ORDER BY day DESC, at', since);
   let days = 0; for (let t = Date.now() - 29 * DAY; t <= Date.now(); t += DAY) if (new Date(t + TZ_MS).getUTCDay() !== 0) days++; // số ngày làm việc trong 30 ngày
-  return { ok: true, today, days, rows, rules: await rules(x.db), canEdit: u.level >= 3 };
+  return { ok: true, today, days, rows, rules: await rules(x.db), canEdit: u.level >= 3, wish: await wishes(x.db), wishToday: await wishOfDay(x.db) };
 }
 
 /** Quản trị sửa câu chữ gợi ý: d.rules = [[{w,l} ×3] ×10]. Ô để trống = dùng lại câu gốc. */
@@ -115,6 +117,13 @@ export async function vhSave(x, u, d) {
   const src = Array.isArray(d.rules) ? d.rules : [];
   const o = VH_RULES.map((r, i) => r.tips.map((p, j) => { const e = src[i] && src[i][j] || {}, w = String(e.w || '').trim().slice(0, 400), l = String(e.l || '').trim().slice(0, 400); return { w: w === p.w ? '' : w, l: l === p.l ? '' : l }; }));
   await kvSet(x.db, 'vh_rules', JSON.stringify(o));
+  return vhAdmin(x, u);
+}
+
+/** ☀️ Quản trị sửa câu chúc mỗi ngày: d.wish = { daily, mon, sat, sun } (mỗi ô nhiều dòng, 1 câu / dòng). */
+export async function vhWishSave(x, u, d) {
+  if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị sửa được.' };
+  await wishSave(x.db, d);
   return vhAdmin(x, u);
 }
 

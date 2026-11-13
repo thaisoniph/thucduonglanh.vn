@@ -2419,3 +2419,11 @@ b.csx-c-ok { color: var(--primary-2); } b.csx-c-sua { color: var(--orange); } b.
 .bt-pf2 { display: flex; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; }
 .bt-pf2 input { flex: 1 1 130px; min-width: 0; }
 .bt-pf textarea { width: 100%; box-sizing: border-box; margin-bottom: 6px; }
+
+/* ☀️ Lời chào + lời chúc mỗi ngày (14/11/2026) */
+.hiw-box { margin: 2px 0 14px; }
+.hiw-hi { font-size: 22px; font-weight: 800; color: var(--ink); margin: 0; letter-spacing: -.01em; }
+.hiw-wish { font-size: 15px; line-height: 1.5; color: #4a5a4f; margin: 4px 0 0; }
+@media (min-width: 860px) { .hiw-hi { font-size: 26px; } .hiw-wish { font-size: 16px; } }
+.hiw-ed { display: block; margin: 8px 0 0; font-weight: 600; }
+.hiw-ed textarea { display: block; width: 100%; margin-top: 4px; font-weight: 400; }

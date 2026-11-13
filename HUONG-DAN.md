@@ -440,6 +440,12 @@ Apps Script giới hạn 200 phiên bản/dự án: báo lỗi "Không tạo đ�
 - CRM `app.js`: `vhMount` chèn thẻ ở đầu màn hình đầu tiên của mỗi người (`homeView()`), `vhCard` / `vhBind`; chưa nhận = thẻ đầy đủ + nút ✅ Hôm nay mình sẽ làm; đã nhận = lần mở sau thu 1 dòng; nút Thu gọn nhớ theo ngày (localStorage `vh_fold`). Máy chủ chưa có lệnh thì không hiện thẻ. Cài đặt → 👥 Nhân sự → 🌿 Văn hoá (`vhAdminList` / `vhAdminPaint`). CSS `.vh-*`.
 - Hướng dẫn nhân sự: `guide/van-hoa.md` (/huong-dan/van-hoa/, link "Xem cả 10 quy tắc" trên thẻ).
 
+### ☀️ Lời chào + lời chúc mỗi ngày (14/11/2026, api `2026-11-14e`, anh Sơn)
+- Ai đăng nhập cũng thấy "Chào buổi <sáng/trưa/chiều/tối>, <tên>" + 1 câu chúc ở **trên cùng** màn hình đầu tiên (`homeView()`), mọi vai trò. Cả công ty chung 1 câu / ngày (giống 🌿), không AI.
+- Máy chủ `api/src/loichuc.js`: `WISH0` (60 câu ngày thường, 6 thứ Hai, 6 thứ Bảy, 3 Chủ nhật), `OCC` câu riêng theo id dịp của `zday.js` (`eventsAhead(day, 1)`: Tết, rằm, mùng 1, 8/3, 20/10, 20/11, Giáng sinh…; dịp không có câu → câu chung "Hôm nay là <tên dịp>…"). Ưu tiên dịp → thứ Hai / thứ Bảy / Chủ nhật (xoay theo tuần) → ngày thường (xoay theo ngày, mốc 14/11/2026). `wishOfDay` gửi kèm `vh_today` (`vh.wish = { day, t, occ? }`); `vh_admin` trả thêm `wish` + `wishToday`; lệnh `vh_wish_save {wish: {daily, mon, sat, sun}}` (Quản trị, kv `vh_wish`; danh sách trống / giống gốc = dùng gốc).
+- CRM `app.js`: `hiwMount` (gọi sau `tbMount` nên nằm trên cùng), `hiwText` / `hiwPaint` (điền câu khi `vh_today` về; máy chủ cũ thì chỉ có lời chào). Tab Hôm nay của sale đổi tiêu đề thành "Việc hôm nay" vì lời chào đã ở trên cùng. Sửa câu: Cài đặt → 👥 Nhân sự → 🌿 Văn hoá → ☀️ Lời chúc mỗi ngày (trong `vhAdminPaint`, `data-hiwe`). CSS `.hiw-*`. Bản thử: `flow.js` kịch bản `hiwfake` (+ `hiwadm`). Hướng dẫn: `guide/van-hoa.md#h-sua-loi-chuc`.
+- Chưa có ngày sinh nhân sự trong `users` nên chưa chúc sinh nhật nhân sự.
+
 ### 📣 Tin vui đồng đội + lời chào + lời khen khách (14/11/2026, api `2026-11-14b`, anh Sơn chọn: ý 1 + Bảng tin, không chữ chạy)
 - Code `api/src/bangtin.js` (bảng tự tạo trong `schema`, không qua SCHEMA_V): `bt_event` (day, email, kind 'done', n), `bt_clap` (k, email). Lệnh `bt_feed` / `bt_done` / `bt_clap` (mọi vai trò, route `/^bt_/` cạnh `tb_` trong crm.js).
 - Tin = đơn 36 giờ qua có `seller`, không huỷ/hoàn → "<sale> vừa chốt đơn <SP đầu>" (**không ghi tiền**, giữ tinh thần thi đua bớt so tiền) + sự kiện 🏁 xong hết khách hôm nay. Tối đa 12 tin. Người được chúc thấy tên người chúc.

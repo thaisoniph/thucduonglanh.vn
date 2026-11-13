@@ -12,7 +12,7 @@ Chào bạn! Trang này giúp bạn biết **mình cần đọc phần nào**. B
 
 | Bạn là… | Đọc phần này |
 | --- | --- |
-| **Mọi người** | [Văn hoá](/huong-dan/van-hoa/): 10 Quy Tắc Danh Dự, thẻ 🌿 Quy tắc hôm nay trong CRM |
+| **Mọi người** | [Văn hoá](/huong-dan/van-hoa/): 10 Quy Tắc Danh Dự, thẻ 🌿 Quy tắc hôm nay, ☀️ lời chào + lời chúc mỗi ngày |
 | **Mọi người** | [Thông báo](/huong-dan/thong-bao/): thông báo, văn bản công ty ở đầu CRM, bấm ✅ Tôi đã đọc |
 | **Mọi người** | [Tin vui](/huong-dan/tin-vui/): dòng 📣 Tin vui đồng đội, nút 👏 Chúc mừng, lời chào và pháo giấy khi xong việc |
 | **Bán hàng, chăm sóc khách** | [CRM](/huong-dan/crm/) (đọc trước), rồi [CRM thêm](/huong-dan/crm-them/) khi cần |

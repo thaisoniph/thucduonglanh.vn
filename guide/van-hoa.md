@@ -2,13 +2,26 @@
 title: 10 Quy Tắc Danh Dự Người VitaGreen
 nav: Văn hoá
 order: 1.5
-updated: 2026-11-13
+updated: 2026-11-14
 description: Mỗi ngày CRM nhắc 1 quy tắc kèm 1 việc nhỏ để làm. Đọc trang này khoảng 5 phút.
 ---
 
 **Sống tử tế – Làm thật – Cùng nhau phát triển.**
 
 10 quy tắc này không để kiểm soát ai. Nó là tấm gương để mỗi người tự soi lại mình, và là lời hứa thầm lặng mình trao cho nhau.
+
+## ☀️ Lời chào và lời chúc mỗi ngày
+
+Mở CRM ra, dòng trên cùng là **lời chào có tên bạn** (Chào buổi sáng / trưa / chiều / tối). Ngay dưới là **một câu chúc** cho ngày hôm nay.
+
+- Cả công ty cùng thấy **một câu chúc** mỗi ngày. Hôm sau sẽ là câu khác.
+- Thứ Hai có câu chúc đầu tuần, thứ Bảy có câu chúc cuối tuần.
+- Ngày lễ, rằm, mùng 1, Tết có câu chúc riêng.
+- Không cần bấm gì. Đọc, mỉm cười rồi bắt đầu ngày mới 😊
+
+<p id="h-sua-loi-chuc" class="g-q"><strong>Sửa hoặc thêm câu chúc ở đâu? (Quản trị)</strong></p>
+
+CRM → **⚙️ Cài đặt** → nhóm **👥 Nhân sự** → **🌿 Văn hoá: Quy tắc của ngày + ☀️ Lời chúc** → bấm **Xem** → mở mục **☀️ Lời chúc mỗi ngày**. Có 4 ô: ngày thường, thứ Hai, thứ Bảy, Chủ nhật. Mỗi dòng là 1 câu chúc. Sửa xong bấm **Lưu lời chúc**. Nếu xoá trắng một ô thì CRM dùng lại các câu có sẵn.
 
 ## Quy tắc của ngày trong CRM
 
