@@ -914,6 +914,11 @@ export async function ownTick(x) {
     if (q && (q.own === undefined || Number(q.own) === 5)) { q.own = 6; await kvSet(x.db, 'payplan_cfg', JSON.stringify(q)); await crmLog(x, OWN_SYS, 'Cài đặt', '-', '', 'Khách tự mang về: 5% → 6% mọi đơn trong 6 tháng', 'anh Sơn chốt 13/11/2026'); }
     await kvSet(x.db, 'own6_mig', '1');
   }
+  if (!(await kvGet(x.db, 'on1311_mig'))) { // 13/11/2026 anh Sơn họp sale xong: BẬT mục 🔎 Tự tạo khách + 🧺 Kho chung (mốc giữ nguyên trong Cài đặt, mặc định 2 / 10 / 30 ngày, 10 số / ngày)
+    const r = await kvJson(x.db, 'rules_cfg', {}) || {};
+    if (!r.selfOn || !r.poolOn) { r.selfOn = 1; r.poolOn = 1; await kvSet(x.db, 'rules_cfg', JSON.stringify(r)); x._rules = null; await crmLog(x, OWN_SYS, 'Cài đặt', '-', '', 'Bật mục Tự tạo khách + 🧺 Kho chung BẬT · ' + poolRuleTxt(await rulesCfg(x)), 'anh Sơn yêu cầu 13/11/2026 sau họp sale'); }
+    await kvSet(x.db, 'on1311_mig', '1');
+  }
   if (!(await kvGet(x.db, 'sale3_mig'))) { // 13/11/2026 anh Sơn duyệt (đề xuất Thủy): thưởng sale khách tự mang về thêm mốc 2 triệu → tổng 100k (20k / 50k / 100k)
     const c = await kvJson(x.db, 'partner_cfg', null);
     if (c && Array.isArray(c.saleSteps) && JSON.stringify(c.saleSteps.map(t => [Number(t[0]), Number(t[1])])) === '[[300000,20000],[700000,50000]]') { c.saleSteps = [[300000, 20000], [700000, 50000], [2000000, 100000]]; await kvSet(x.db, 'partner_cfg', JSON.stringify(c)); await crmLog(x, OWN_SYS, 'Cài đặt', '-', '', 'Thưởng sale khách tự mang về: thêm mốc đủ 2.000.000đ → tổng 100.000đ', 'anh Sơn duyệt 13/11/2026 (đề xuất Thủy)'); }

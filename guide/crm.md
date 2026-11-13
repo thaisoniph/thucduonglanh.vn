@@ -239,7 +239,7 @@ Khách để lại số trên web hay quảng cáo thì **tự vào đây**, b�
 
 **Khách hỏi không được chăm thì về Kho chung (từ 09/11/2026, đổi luật 11/11/2026):**
 
-> 🙈 **Phần này đang tạm tắt.** Công ty sẽ họp phổ biến và thống nhất mốc ngày rồi mới bật. Trong lúc chờ, bạn không thấy mục 🧺 Kho chung, và không số nào của bạn bị chuyển về kho.
+> ✅ **Bật từ 13/11/2026.** Mốc đang áp dụng: **2 ngày** chưa liên hệ · **10 ngày** không chăm lại · giữ tối đa **30 ngày**. Mỗi người nhận tối đa **10 số/ngày** từ kho. Muốn giữ số thì nhớ ghi **💬 Tư vấn** sau mỗi lần gọi, nhắn.
 
 Mỗi số khách hỏi công ty phải trả tiền quảng cáo để có. Vì vậy số **công ty giao** (file số quảng cáo, web, quản lý giao) mà bạn **không chăm** sẽ tự về **Kho chung** để cả phòng cùng khai thác. Số về kho khi chạm **1 trong 3 mốc** (mốc ngày do công ty chốt sau buổi họp, quản lý chỉnh ở Cài đặt; gợi ý 2 / 10 / 30 ngày):
 
