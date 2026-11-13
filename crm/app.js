@@ -12228,7 +12228,8 @@
     var t = S.tb, P = t.posts, unread = P.filter(function (p) { return !p.mine && !p.wait && !p.gone; }), MAXU = 3;
     if (!P.length && !t.canPost) return '';
     var fam = '<a class="tb-fam" href="https://family.thucduonglanh.vn" target="_blank" rel="noopener">📸 Xem khoảnh khắc trà đàm, lễ chùa, team building ở group Thực Dưỡng Lành Family</a>';
-    if (!unread.length && !S.tbOpen && !S.tbNew) return '<button class="tb-mini" data-tb="open">📢 Thông báo công ty: <b>không có tin mới</b><span>' + (P.length ? 'Bấm để xem lại ' + P.length + ' tin gần đây' : 'Bấm để đăng thông báo') + '</span></button>';
+    var waitN = P.filter(function (p) { return p.wait; }).length; // 14/11/2026: quản lý thấy ngay có tin đang hẹn giờ
+    if (!unread.length && !S.tbOpen && !S.tbNew) return '<button class="tb-mini" data-tb="open">📢 Thông báo công ty: <b>' + (waitN ? '⏰ ' + waitN + ' tin đang hẹn giờ' : 'không có tin mới') + '</b><span>' + (P.length ? 'Bấm để xem, sửa ' + P.length + ' tin' : 'Bấm để đăng thông báo') + '</span></button>';
     // 14/11/2026: máy chủ xếp sẵn: tin hẹn giờ (quản lý) → 📌 ghim → mới nhất. Chưa đọc chỉ hiện đầy đủ 3 tin đầu, còn lại bấm xem tiếp.
     var list = S.tbOpen ? P : unread.slice(0, S.tbMore ? 99 : MAXU), more = !S.tbOpen && !S.tbMore && unread.length > MAXU ? '<button class="tb-fold tb-morebtn" data-tb="more">Xem thêm ' + (unread.length - MAXU) + ' tin chưa đọc ▼</button>' : '';
     return '<section class="tb-card"><div class="tb-hd"><span>📢 Thông báo công ty' + (unread.length ? ' · <b>' + unread.length + ' tin chưa đọc</b>' : '') + '</span><span>' +

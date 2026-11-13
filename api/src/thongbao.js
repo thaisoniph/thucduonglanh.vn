@@ -33,6 +33,7 @@ const SHOW = 'coalesce(show_at, at)'; // giờ tin bắt đầu hiện (hẹn gi
  *  và thấy cả tin đang hẹn giờ (wait) / đã hết hạn hiện (gone, 14 ngày gần đây) để sửa hoặc đăng lại. */
 export async function tbList(x, u) {
   await schema(x.db);
+  if (u.level >= 2) try { await tbSeed(x); } catch (e) { console.error('tbSeed', e.message); } // tin đăng hộ anh Sơn có ngay khi quản lý mở CRM, không chờ cron 7h
   const now = Date.now(), mgr = u.level >= 2;
   const posts = await all(x.db, `SELECT id, kind, title, body, link, by_email, by_name, at, upd_at, show_at, until, pin FROM tb_posts WHERE del = 0 AND ${SHOW} > ? AND (? OR by_email = ? OR (${SHOW} <= ? AND (until IS NULL OR until > ?))) ORDER BY (${SHOW} > ?) DESC, (pin = 1 AND (until IS NULL OR until > ?)) DESC, ${SHOW} DESC LIMIT 40`,
     now - KEEP, mgr ? 1 : 0, u.email, now, now, now, now);
