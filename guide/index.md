@@ -32,6 +32,7 @@ Chào bạn! Trang này giúp bạn biết **mình cần đọc phần nào**. B
 | **Trang Marketing** | [mkt.thucduonglanh.vn](https://mkt.thucduonglanh.vn) |
 | **Trang Kho** | [kho.thucduonglanh.vn](https://kho.thucduonglanh.vn) |
 | **Trang Kế toán** | [ketoan.thucduonglanh.vn](https://ketoan.thucduonglanh.vn) |
+| **Trang Kinh doanh** – quản lý (như chị Thuỷ) | [kinhdoanh.thucduonglanh.vn](https://kinhdoanh.thucduonglanh.vn) |
 | Website bán hàng | [thucduonglanh.vn](https://thucduonglanh.vn) |
 | Sửa website (đăng bài, sửa sản phẩm) | [thucduonglanh.vn/admin](https://thucduonglanh.vn/admin/) |
 | Trang hướng dẫn này | [crm.thucduonglanh.vn/huong-dan](https://crm.thucduonglanh.vn/huong-dan/) |

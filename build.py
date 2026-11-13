@@ -3823,7 +3823,8 @@ def build_crm():
         "icons": [{"src": "/icon-180.png", "sizes": "180x180", "type": "image/png"}, {"src": "/icon-512.png", "sizes": "512x512", "type": "image/png"}]}, ensure_ascii=False), "utf-8")
     # quantri. / mkt. / kho. / ketoan.thucduonglanh.vn dùng chung CRM (10/11/2026); app.js đổi sang manifest theo tên miền để biểu tượng ngoài màn hình mang tên vai trò
     for key, nm, sn in (("quantri", "Quản trị Thực Dưỡng Lành", "Quản trị TDL"), ("mkt", "Marketing Thực Dưỡng Lành", "Marketing TDL"),
-                        ("kho", "Kho Thực Dưỡng Lành", "Kho TDL"), ("ketoan", "Kế toán Thực Dưỡng Lành", "Kế toán TDL")):
+                        ("kho", "Kho Thực Dưỡng Lành", "Kho TDL"), ("ketoan", "Kế toán Thực Dưỡng Lành", "Kế toán TDL"),
+                        ("kinhdoanh", "Kinh doanh Thực Dưỡng Lành", "Kinh doanh TDL")):
         (out / f"manifest-{key}.webmanifest").write_text(json.dumps({
             "name": nm, "short_name": sn, "start_url": "/", "display": "standalone",
             "background_color": "#f5f4ef", "theme_color": "#24805B",

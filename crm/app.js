@@ -206,18 +206,19 @@
   var ZI = '<svg class="zi" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0068ff"/><text x="16" y="20.5" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="11.5" font-weight="700" fill="#fff">Zalo</text></svg>'; // biểu tượng Zalo: khách đã kết bạn (khác 💬 = chăm sóc / nhắn tin)
   function lvl() { return S.user ? S.user.level : 0; }
   /* Mỗi vai trò một địa chỉ (anh Sơn 10/11/2026; mkt. có từ 19/10/2026), nhưng đều là CRM này – tên miền thêm vào project Pages thucduonglanh-crm (workflow deploy-crm.yml tự gắn):
-     crm. = Sale & CSKH, Quản lý · quantri. = chủ doanh nghiệp (Quản trị) · mkt. = Marketing · kho. = Kho · ketoan. = Kế toán.
+     crm. = Sale & CSKH, Quản lý · quantri. = chủ doanh nghiệp (Quản trị) · mkt. = Marketing · kho. = Kho · ketoan. = Kế toán · kinhdoanh. = Quản lý kinh doanh (như chị Thuỷ).
      Tên miền chỉ đổi tên hiển thị, chữ góc trái, biểu tượng ngoài màn hình (manifest riêng, build.py tạo) và tab mở đầu (homeView). Quyền vẫn lấy từ Nhân sự:
      ai không có tab đó mà mở nhầm thì shell() hiện hostGate() chỉ sang đúng địa chỉ; trên crm. người có địa chỉ riêng thấy dòng gợi ý hostTip() (tắt được). Trùng ROLE_URL ở api/src/lib.js. */
   var HOSTS = {
     quantri: { nm: 'Quản trị Thực Dưỡng Lành', short: 'Quản trị', home: 'tong-quan', who: 'chủ doanh nghiệp (quyền Quản trị)', guide: '' },
     mkt: { nm: 'Marketing Thực Dưỡng Lành', short: 'Marketing', home: 'marketing', who: 'người làm marketing', guide: 'marketing/' },
     kho: { nm: 'Kho Thực Dưỡng Lành', short: 'Kho', home: 'kho', who: 'người lo kho', guide: 'kho/' },
-    ketoan: { nm: 'Kế toán Thực Dưỡng Lành', short: 'Kế toán', home: 'ke-toan', who: 'kế toán', guide: 'ke-toan/' }
+    ketoan: { nm: 'Kế toán Thực Dưỡng Lành', short: 'Kế toán', home: 'ke-toan', who: 'kế toán', guide: 'ke-toan/' },
+    kinhdoanh: { nm: 'Kinh doanh Thực Dưỡng Lành', short: 'Kinh doanh', home: 'bao-cao', who: 'quản lý kinh doanh (quyền Quản lý)', guide: 'quan-ly/' }
   };
-  var HOST_KEY = (location.hostname.match(/^(quantri|mkt|kho|ketoan)\./) || [])[1] || '', HOST = HOSTS[HOST_KEY] || null, APP_NM = HOST ? HOST.nm : 'CRM Thực Dưỡng Lành';
+  var HOST_KEY = (location.hostname.match(/^(quantri|mkt|kho|ketoan|kinhdoanh)\./) || [])[1] || '', HOST = HOSTS[HOST_KEY] || null, APP_NM = HOST ? HOST.nm : 'CRM Thực Dưỡng Lành';
   if (HOST) { document.title = APP_NM; var mfl = document.querySelector('link[rel=manifest]'); if (mfl) mfl.href = '/manifest-' + HOST_KEY + '.webmanifest'; var amt = document.querySelector('meta[name=apple-mobile-web-app-title]'); if (amt) amt.content = HOST.short + ' TDL'; }
-  function roleHost(role) { return 'https://' + (role === 'Quản trị' ? 'quantri' : role === 'Marketing' ? 'mkt' : role === 'Kho' ? 'kho' : role === 'Kế toán' ? 'ketoan' : 'crm') + '.thucduonglanh.vn'; }
+  function roleHost(role) { return 'https://' + (role === 'Quản trị' ? 'quantri' : role === 'Marketing' ? 'mkt' : role === 'Kho' ? 'kho' : role === 'Kế toán' ? 'ketoan' : role === 'Quản lý' ? 'kinhdoanh' : 'crm') + '.thucduonglanh.vn'; }
   function hostOk() { return !HOST || !S.user || myViews().some(function (v) { return v.id === HOST.home; }); } // tên miền vai trò: chỉ ai có tab đó mới dùng được (Quản trị có mọi tab nên vào đâu cũng được)
   function hostGate() {
     var u = roleHost(S.user.role);

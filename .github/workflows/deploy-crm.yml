@@ -50,7 +50,7 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: crm   # để Cloudflare thấy crm/functions (cổng nhận tin Viettel Post /vtp-webhook)
           command: pages deploy ../dist-crm --project-name=thucduonglanh-crm --branch=main --commit-dirty=true
-      - name: Gắn tên miền crm. / quantri. / mkt. / kho. / ketoan.thucduonglanh.vn (bỏ qua nếu đã có)
+      - name: Gắn tên miền crm. / quantri. / mkt. / kho. / ketoan. / kinhdoanh.thucduonglanh.vn (bỏ qua nếu đã có)
         # 10/11/2026 (anh Sơn): mỗi vai trò một địa chỉ, đều trỏ về cùng project CRM này (crm/app.js nhìn tên miền để đổi tên + tab mở đầu)
         continue-on-error: true
         env:
@@ -60,7 +60,7 @@ jobs:
         run: |
           API=https://api.cloudflare.com/client/v4
           H=(-H "Authorization: Bearer $CF_TOKEN" -H "Content-Type: application/json")
-          for SUB in crm quantri mkt kho ketoan; do
+          for SUB in crm quantri mkt kho ketoan kinhdoanh; do
             DOM="$SUB.thucduonglanh.vn"
             if curl -s "${H[@]}" "$API/accounts/$CF_ACCOUNT/pages/projects/thucduonglanh-crm/domains" | grep -q "\"name\":\"$DOM\""; then
               echo "✅ $DOM: tên miền đã gắn"
