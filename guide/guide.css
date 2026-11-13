@@ -173,3 +173,16 @@ h2.g-flash, h3.g-flash, p.g-flash { animation: g-flash 1.6s ease-out; border-rad
 
 .g-tabs a[hidden], main tr[hidden], main table[hidden] { display: none; }
 .g-me { margin: 0 0 14px; padding: 10px 14px; background: #eef6f1; border-left: 4px solid #24805B; border-radius: 8px; font-size: 15px; }
+
+/* 🖼 hướng dẫn từng bước bằng hình (guide/steps.py) */
+.g-pics { margin: 14px 0 18px; border: 1px solid #cfe3d8; border-radius: 12px; background: #f6faf7; }
+.g-pics > summary { cursor: pointer; font-weight: 700; padding: 12px 14px; list-style: none; }
+.g-pics > summary::-webkit-details-marker { display: none; }
+.g-pics > summary small { font-weight: 400; color: #5b6b62; }
+.g-steps { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; padding: 0 12px 12px; }
+.g-stp { display: flex; gap: 12px; align-items: center; background: #fff; border-radius: 10px; padding: 10px; box-shadow: 0 1px 2px rgba(0, 0, 0, .06); }
+.g-art { flex: none; width: 118px; }
+.g-art .ph { width: 118px; height: auto; display: block; }
+.g-txt p { margin: 0; font-size: 15px; line-height: 1.45; }
+.g-num { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: #24805B; color: #fff; font-weight: 700; margin-bottom: 6px; }
+@media (max-width: 520px) { .g-stp { flex-direction: column; align-items: stretch; } .g-art { width: 100%; display: flex; justify-content: center; } .g-art .ph { width: 190px; } .g-txt { display: flex; gap: 10px; align-items: flex-start; } .g-num { flex: none; margin: 0; } }

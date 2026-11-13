@@ -15,6 +15,8 @@ Trang này chỉ có **những việc làm hằng ngày**. Việc ít dùng hơn
 
 ## Đăng nhập
 
+[[steps:dang-nhap]]
+
 ![Màn hình đăng nhập CRM](/huong-dan/img/crm-login.webp)
 
 1. Trên điện thoại, mở **[crm.thucduonglanh.vn](https://crm.thucduonglanh.vn)**.
@@ -43,6 +45,8 @@ Mã chỉ dùng được trong 10 phút. Vào được rồi thì máy nhớ b�
 Tab **Hôm nay** là danh sách khách bạn cần gọi hôm nay. Máy đã chọn sẵn, khách quan trọng nhất đứng đầu.
 
 ![Tab Hôm nay](/huong-dan/img/crm-today.webp)
+
+[[steps:goi-khach]]
 
 1. Mở tab **Hôm nay**.
 2. Bấm nút xanh **▶ Bắt đầu gọi lần lượt**. CRM mở từng khách một.
@@ -132,6 +136,10 @@ Mỗi đơn đi qua 4 bước: **Mới → Đã xác nhận → Đang giao → �
    - Đơn **Viettel Post**: máy tự chuyển ngay khi Viettel Post báo.
    - Đơn **Best**: kế toán tải phiếu đối soát (thứ 2, 4, 6) thì máy tự chuyển các đơn trong phiếu sang **Đã giao**.
 
+**Nhập mã vận đơn bằng hình:**
+
+[[steps:ma-van-don]]
+
 **🚚 Đơn đang giao cần gọi** (tab **Hôm nay**, ngay dưới Đơn mới): máy tự đưa lên những đơn cần bạn gọi khách để giữ đơn, tránh hoàn hàng.
 
 ![Đơn hãng báo giao chưa được (1), đơn giao quá 5 ngày (2)](/huong-dan/img/crm-hom-nay-giao.webp)
@@ -179,6 +187,8 @@ Doanh số của bạn tính theo **tiền thực thu**. Kế toán xem đơn n�
 ## Việc 3: Khách nhắn Zalo hoặc gọi điện đặt hàng
 
 Khách đặt qua Zalo, Facebook, điện thoại… thì bạn **tạo đơn trên CRM**. Có đơn trên CRM thì khách mới được nhắc chăm sóc, và doanh số mới tính cho bạn.
+
+[[steps:len-don]]
 
 ![Trang tạo đơn mới: dán tin nhắn, chọn sản phẩm](/huong-dan/img/crm-neworder.webp)
 
