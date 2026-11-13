@@ -77,7 +77,7 @@ Mỗi bạn có **một link web riêng**, ví dụ `thucduonglanh.vn/?ref=thuy`
 
 Marketing viết sẵn **bài kể chuyện đời thường** để bạn đăng lên Facebook cá nhân. Link riêng của bạn không nằm trong bài mà nằm ở **bình luận ghim**: bài không có link thì Facebook cho nhiều bạn bè thấy hơn.
 
-**Mở:** Cài đặt → **📣 Bài đăng Facebook cá nhân** → **Xem bài viết sẵn**. Nếu ở Hôm nay có khung **🔎 Tự tạo khách** thì bấm **Xem bài** ở dòng 📣.
+**Mở:** Cài đặt → **📣 Bài đăng Facebook cá nhân** → **Xem bài viết sẵn**. Hoặc ở Hôm nay, khung **🌱 Mở rộng khách**, bấm **Xem bài** ở dòng 📣.
 
 **Làm 5 bước:**
 

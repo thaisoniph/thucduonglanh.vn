@@ -67,7 +67,7 @@ Tài khoản Quản trị không nằm trong bảng so sánh nhân sự. Doanh s
 - **Xem**: hồ sơ khách có nhãn 🙋 kèm tên sale và ngày hết hạn; **Hiệu quả → 💰 Thu nhập tạm tính** có dòng và cột **🙋 HH khách tự mang về**; **Bảng thi đua** có hạng mục **🙋 Khách tự mang về**.
 - **Chỉnh mức**: Cài đặt → 💰 Lương & hoa hồng → 📑 Bảng lương theo bậc → mục **🙋 Khách sale tự mang về** (%, số tháng, áp dụng cho khách mua lần đầu từ ngày). Ghi 0 = tắt.
 
-**Công tắc ẩn / hiện (chỉ Quản trị):** Cài đặt → 🤝 Chia khách → **🔎 Tự tạo khách (tab Hôm nay của sale)**. Đang ẩn thì sale không thấy mục Hết số quảng cáo, dòng khách tự tạo, ô mục tiêu khách tự tạo, hạng thi đua và không nhận tin Telegram khách tự mang về; máy vẫn tính ngầm. Bật sau khi họp phòng kinh doanh thống nhất.
+**Công tắc ẩn / hiện (chỉ Quản trị):** Cài đặt → 🤝 Chia khách → **🔎 Tự tạo khách (tab Hôm nay của sale)**. Từ 13/11/2026 mục này trên tab Hôm nay của sale tên là **🌱 Mở rộng khách** (4 ô to + đếm việc hôm nay / 5, bảng thi đua có hạng **🌱 Công sức mở rộng khách**, báo cáo ngày có lời ghi nhận). Đang ẩn thì sale không thấy mục Hết số quảng cáo, dòng khách tự tạo, ô mục tiêu khách tự tạo, hạng thi đua và không nhận tin Telegram khách tự mang về; máy vẫn tính ngầm. Bật sau khi họp phòng kinh doanh thống nhất.
 
 ## Bao nhiêu người vào website (Tổng quan → 🌐 Website thucduonglanh.vn)
 

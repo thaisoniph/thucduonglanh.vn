@@ -1,106 +1,104 @@
 ---
-title: Chính sách mở rộng khách hàng
+title: Mở rộng khách mỗi ngày
 nav: Mở rộng khách
 order: 2.6
 updated: 2026-11-13
-description: Khách bạn tự mang về là khách của bạn. Hoa hồng 6% mọi đơn trong 6 tháng, cộng thưởng tiền. Làm từ hơn 8.000 khách đã có trong CRM.
+description: 30 phút mỗi ngày ở tab Hôm nay. Khách bạn tự mang về là khách của bạn, hoa hồng 6% mọi đơn trong 6 tháng, cộng thưởng tiền.
 ---
-
-## Vì sao công ty làm chính sách này?
-
-Quảng cáo ngày càng đắt. Tuần nào quảng cáo ít số thì cả phòng thiếu việc, thiếu thu nhập.
-
-Nhưng mình đang có **hơn 8.000 khách trong CRM**. Đó là người đã mua, đã hỏi, đã biết Thực Dưỡng Lành. Mỗi khách hài lòng lại có bố mẹ, chị em, bạn bè, đồng nghiệp. **Người thân tin lời khách hơn tin quảng cáo.**
-
-Vì vậy công ty dành phần tiền lẽ ra trả cho quảng cáo để **trả thẳng cho bạn** khi bạn tự mang khách mới về.
 
 > **Một câu dễ nhớ:** Khách bạn tự mang về là **khách của bạn**. Khách mua lâu thì bạn được tiền lâu.
 
+## Mỗi ngày: mở tab Hôm nay, kéo tới khung 🌱
+
+![Khung Mở rộng khách ở tab Hôm nay](/huong-dan/img/mr-hom-nay.webp)
+
+1. **Hôm nay bạn đã làm mấy việc.** Gợi ý mỗi ngày **5 việc**, khoảng 30 phút.
+2. **Mời ngay**: mời khách cũ giới thiệu bạn bè (xem **Việc 1**).
+3. **＋ Thêm khách**: ghi khách được giới thiệu hoặc khách bạn tự tìm (xem **Việc 2**).
+4. **Xem danh sách**: gọi lại khách từng nói "Không mua" (xem **Việc 3**).
+5. **Xem kho**: nhận số ở Kho chung (xem **Việc 4**).
+
+Mỗi lần mời 1 khách giới thiệu, thêm 1 khách, hoặc nhận 1 số từ kho là **được tính 1 việc**, kể cả khi chưa ra đơn.
+
+## Việc 1: Mời khách cũ giới thiệu
+
+Gọi khách đã dùng 7–30 ngày, hỏi: *"Chị dùng thấy thế nào ạ?"*. **Khách khen** thì bấm **🌱 Mời giới thiệu**.
+
+![Cửa sổ mời giới thiệu](/huong-dan/img/mr-moi.webp)
+
+1. Bấm **📋 Copy tin ① & mở Zalo**, dán vào Zalo, gửi khách.
+2. Quay lại bấm **📋 Copy tin ②**, gửi tiếp. Khách chỉ việc chuyển tin này cho bạn bè.
+3. Khách lớn tuổi: bấm **🖼️ Gửi ảnh chương trình**. Ảnh chữ to, ghi rõ bạn được giảm bao nhiêu tiền và gọi ai.
+
+💡 Dễ nhất với khách lớn tuổi: *"Chị không phải làm gì cả, chị đọc em số của bạn, em gọi tư vấn giúp."* Rồi làm **Việc 2**.
+
+## Việc 2: Thêm khách được giới thiệu
+
+Bấm **＋ Thêm khách**. Nguồn **🎁 Khách giới thiệu** đã chọn sẵn.
+
+![Thêm khách được giới thiệu](/huong-dan/img/mr-them.webp)
+
+1. Gõ **số điện thoại** người bạn (và tên).
+2. Nguồn đã là **🎁 Khách giới thiệu**. Khách bạn tự tìm thì bấm **Zalo** hoặc **Điện thoại**.
+3. Gõ vài chữ tên hoặc số của **người giới thiệu**, bấm chọn đúng người.
+4. Bấm **Tạo khách hỏi**. Gọi tư vấn người bạn ngay trong ngày.
+
+📎 Có tin nhắn giới thiệu (Zalo, Messenger) thì chụp ảnh, gửi vào hồ sơ khách (**📎 Chọn ảnh**) để được tính nhanh.
+
+## Việc 3: Gọi lại khách từng nói "Không mua"
+
+Bấm **Xem danh sách**. Đây là khách nói "Không mua" từ 1,5 đến 6 tháng trước, lâu nhất ở trên.
+
+- Mở lời bằng **lý do mới**: sản phẩm mới, ưu đãi tháng này, hỏi thăm sức khoẻ. Đừng hỏi lại y như lần trước.
+- Gọi xong bấm **💬 Tư vấn**, ghi kết quả như bình thường.
+- Quá 75 ngày mà bạn chưa gọi lại thì số về Kho chung cho bạn khác thử.
+
+## Việc 4: Nhận số ở Kho chung
+
+Bấm **Xem kho**. Đây là số bạn khác chưa chốt được.
+
+![Kho chung](/huong-dan/img/mr-kho.webp)
+
+1. **Đọc ghi chú** của người trước (đã gọi mấy lần, khách thích gì).
+2. Bấm **✋ Nhận khách này**, rồi gọi bằng cách khác người trước: nhắn Zalo thay vì gọi, đổi giờ gọi.
+
+Mỗi ngày nhận tối đa **10 số**. **Ai chốt người đó được doanh số.** Số mình không hợp thì mở khách hỏi đó, bấm **🧺 Trả số này về Kho chung** và ghi lý do.
+
+## Cuối ngày: báo cáo có ghi công sức của bạn
+
+Bấm **📋 Báo cáo cuối ngày (bảng)** ở cuối tab Hôm nay.
+
+![Báo cáo ngày có ghi nhận công sức](/huong-dan/img/mr-bao-cao.webp)
+
+1. Lời **cảm ơn** việc bạn đã làm hôm nay.
+2. Nhóm **Mở rộng khách**: mời giới thiệu, hẹn gọi lại, khách tự tạo, nhận từ Kho.
+3. Bấm **🖼️ Gửi ảnh vào Zalo** để gửi nhóm.
+
+Ngày chưa có đơn, bạn vẫn có cái để báo cáo.
+
+Bảng thi đua (cuối tab Hôm nay) có hạng **🌱 Công sức mở rộng khách**:
+
+![Hạng Công sức mở rộng khách](/huong-dan/img/mr-thi-dua.webp)
+
+1. Đếm số việc mở rộng khách trong tuần / tháng.
+2. Hạng của bạn, chỉ bạn thấy.
+
 ## Bạn được bao nhiêu?
 
-| Khách đến từ đâu | Hoa hồng của bạn |
-|---|---|
-| 📣 Quảng cáo của công ty (khách mới) | 2–3,5% (theo bậc doanh thu, thâm niên) |
-| 🔁 Khách cũ bạn chăm, mua lại | 3–5% (theo bậc doanh thu, thâm niên) |
-| 🙋 **Khách bạn tự tìm** hoặc **khách cũ giới thiệu** | **6% mọi đơn trong 6 tháng** + **thưởng tiền** |
+Khách **bạn tự tìm** hoặc **khách cũ giới thiệu** (số chưa từng có trong CRM):
 
-**Thưởng tiền** cho mỗi khách bạn tự mang về, tính theo tổng tiền hàng khách mua trong **60 ngày đầu** (cộng dồn nhiều đơn):
+- **6% mọi đơn** bạn bán cho khách đó trong **6 tháng**. Khách quảng cáo chỉ 2–3,5%.
+- **Thưởng thêm** theo tiền hàng khách mua trong 60 ngày đầu: đủ 300.000đ → **20.000đ**, đủ 700.000đ → tổng **50.000đ**, đủ 2.000.000đ → tổng **100.000đ**.
+- Hết 6 tháng, khách **vẫn là khách của bạn**. Doanh số vẫn cộng để lên bậc lương.
 
-| Khách đã mua đủ | Bạn được thưởng |
-|---|---|
-| 300.000đ | **20.000đ** |
-| 700.000đ | thêm **30.000đ** (tổng **50.000đ**) |
-| 2.000.000đ | thêm **50.000đ** (tổng **100.000đ**) |
+**Ví dụ:** khách mua 350.000đ mỗi tháng trong 6 tháng → bạn được **126.000đ + 50.000đ thưởng = 176.000đ**. Mỗi tháng mang về 10 khách như vậy thì sau 3 tháng thêm khoảng **2.500.000đ**.
 
-Mốc 2.000.000đ (từ 13/11/2026) dành cho khách mua combo, liệu trình, Bộ Ở Cữ, quà Tết… Tư vấn đúng nhu cầu để khách dùng đủ liệu trình là bạn có thêm thưởng.
+Bạn của khách mua lần đầu được **giảm 10%**. Khách cũ được voucher và quà khi đủ 3, 5, 10 bạn. Bạn đi **tặng quà**, không phải đi xin.
 
-Doanh số của những khách này **vẫn cộng vào doanh thu tháng** để xét bậc lương và mục tiêu của bạn.
+## 3 điều nhớ để được tính đủ
 
-### Ví dụ tính tiền
+1. Thêm khách **ngay khi có số**, chọn đúng **nguồn** và **người giới thiệu**.
+2. Số đã có trong CRM (từ quảng cáo, của bạn khác) thì tính % thường.
+3. Không tính người nhà, cùng địa chỉ người giới thiệu, đơn huỷ hoặc hoàn. Quản lý có thể gọi hỏi khách để xác minh.
 
-Chị Hoa do bạn tự tìm. Chị mua 350.000đ mỗi tháng, đều 6 tháng = 2.100.000đ.
-
-- Hoa hồng 6%: **126.000đ**
-- Thưởng (đủ 700.000đ trong 60 ngày): **50.000đ**
-- **Tổng: 176.000đ** từ một khách, gấp khoảng 3–4 lần một khách quảng cáo.
-
-Anh Minh do khách cũ giới thiệu, mua liệu trình và quà Tết đủ **2.000.000đ** trong 60 ngày đầu: hoa hồng 6% **120.000đ** + thưởng **100.000đ** = **220.000đ**, chưa kể các đơn sau trong 6 tháng.
-
-Mỗi tháng bạn tự mang về **10 khách** như chị Hoa thì tiền **cộng chồng lên**, vì mỗi khách được tính 6 tháng:
-
-- Tháng 1: khoảng **410.000đ**
-- Tháng 2: khoảng **920.000đ**
-- Tháng 3: khoảng **1.130.000đ**
-- **Sau 3 tháng: khoảng 2.500.000đ.** Nếu chỉ một nửa số khách mua lại đều mỗi tháng thì khoảng **1.800.000đ**.
-- Giữ nhịp 10 khách/tháng thì từ tháng thứ 6, **mỗi tháng thêm khoảng 1.760.000đ** đều đặn.
-
-### Thưởng cả nhóm
-
-Cả phòng mang về đủ **20 khách mới mỗi tháng** (nhờ khách cũ giới thiệu) thì **liên hoan cả nhóm**. Xem tiến độ ở tab **Hiệu quả** → ô **🌱 Khách mới nhờ khách cũ giới thiệu**.
-
-## Khách cũ cũng được quà, nên dễ mời
-
-Bạn không đi "xin" khách. Bạn mang **quà** đến cho khách và bạn bè của khách:
-
-- **Bạn của khách** mua lần đầu được **giảm 10%**.
-- **Khách cũ** được voucher **20.000đ** khi bạn mình mua đủ 300.000đ, thêm **30.000đ** khi đủ 700.000đ.
-- Giới thiệu đủ **3 bạn**: tặng 1 hộp Trà DILVANG. Đủ **5 bạn**: Combo 3 hũ Ruốc Rong Biển + mời làm CTV. Đủ **10 bạn**: 1 hộp Bữa Ăn Dinh Dưỡng 500g + danh hiệu **Đại sứ Vàng**.
-
-CRM tự tính voucher, tự nhắc bạn gửi quà. Bạn không phải nhớ.
-
-## 30 phút mỗi ngày: 5 việc lấy khách từ 8.000 khách sẵn có
-
-Tất cả nằm ở tab **Hôm nay**. Làm theo thứ tự:
-
-1. 🌱 **Mời khách cũ giới thiệu** (5 khách/ngày). Hỏi khách đã dùng 7–30 ngày: *"Chị dùng thấy thế nào ạ?"*. Khách khen thì bấm **🌱 Mời giới thiệu**, gửi 2 tin có sẵn.
-   *Ở đâu:* Hôm nay → 🌱 Mời làm Đại sứ.
-2. 😴 **Gọi lại khách từng nói "Không mua"** 1,5–6 tháng trước (5–10 khách/ngày). Mở lời bằng lý do mới: sản phẩm mới, ưu đãi tháng này, hỏi thăm sức khoẻ.
-   *Ở đâu:* Hôm nay → 🔎 Tự tạo khách.
-3. 🧺 **Nhận số ở Kho chung** (tối đa 10 số/ngày). Đọc lịch sử tư vấn, thử cách khác người trước. **Ai chốt người đó được doanh số.**
-   *Ở đâu:* Hôm nay → 🧺 Kho chung.
-4. 🔗 **Gửi Link đặt lại** cho khách sắp hết hàng, khách **Sắp mất** (lâu chưa mua). Link có sẵn giỏ hàng, khách chỉ bấm Đặt.
-   *Ở đâu:* hồ sơ khách → 🔗 Link đặt lại.
-5. 📣 **Đăng bài Facebook cá nhân** viết sẵn (2–3 bài/tuần). Link riêng của bạn nằm ở bình luận ghim.
-   *Ở đâu:* Cài đặt → 📣 Bài đăng Facebook cá nhân.
-
-**Mẹo với khách lớn tuổi:** đừng bắt khách vào web. Xin số người bạn ngay trong cuộc gọi: *"Chị không phải làm gì cả, chị đọc em số của bạn, em gọi tư vấn giúp, vẫn tính là chị giới thiệu."*
-
-Cách làm chi tiết từng nút: xem [CRM thêm → Khách cũ giới thiệu bạn bè](/huong-dan/crm-them/) và [CRM → Hết số quảng cáo thì làm gì](/huong-dan/crm/).
-
-## Luật công bằng (để ai làm thật được tính đủ)
-
-1. **Số phải chưa từng có trong CRM** trước lúc bạn thêm. Số đã có trong file quảng cáo, Kho chung, khách hỏi của bạn khác, đơn cũ… là khách công ty đã trả tiền quảng cáo, nên tính % thường.
-2. Lúc thêm khách hỏi, **chọn "🙋 Khách biết bạn qua đâu?"** và ghi rõ (tên nhóm, sự kiện, người quen là ai).
-3. Khách được giới thiệu: **gửi ảnh chụp tin nhắn** giới thiệu ở hồ sơ khách (📎 Chọn ảnh). Có ảnh thì máy tự chốt.
-4. Khách mới **chờ chốt 14 ngày**. Quản lý có thể gọi hỏi khách *"Chị biết Thực Dưỡng Lành qua đâu ạ?"*. Ghi đúng sự thật là được tính đủ.
-5. **Không tính:** người nhà, cùng địa chỉ với người giới thiệu, số trùng nhân sự, khách cũ đổi số, đơn huỷ hoặc hoàn.
-
-## Xem tiền của mình ở đâu?
-
-- Tab **Hiệu quả** → **📊 Bảng BCDT** → **💰 Thu nhập tạm tính**, dòng **🙋 HH khách tự mang về**.
-- Có khách mua đơn đầu thì **Telegram báo bạn** ngay.
-- Hồ sơ khách có nhãn **🙋 Tự tìm** hoặc **🙋 Được giới thiệu** kèm ngày hết hạn 6 tháng.
-
-Số trên CRM là tạm tính để bạn theo dõi. Số chốt lương do kế toán đối chiếu.
-
-> **Chính sách áp dụng cho khách mua đơn đầu từ 10/11/2026.** Mức hoa hồng và thưởng có thể điều chỉnh, công ty sẽ báo trước. Có thắc mắc thì hỏi quản lý.
+Xem tiền: tab **Hiệu quả** → **💰 Thu nhập tạm tính**, dòng **🙋 HH khách tự mang về**. Có thắc mắc thì hỏi quản lý.

@@ -1574,10 +1574,11 @@
       (ld.length ? '<details class="grp" data-grp="leads"' + (S.f.gopen && S.f.gopen.leads ? ' open' : '') + '><summary><span class="g-t">🙋 Người hỏi cần liên hệ</span><span class="count">' + ld.length + '</span><span class="g-tip">' + (hot.length ? 'đến hẹn, 3 ngày chưa liên hệ, hoặc hỏi đã lâu mà chưa ai liên hệ' : 'mới hỏi, đến hẹn hoặc 3 ngày chưa liên hệ') + '</span></summary><div class="list cols" style="padding:10px">' + ld.map(leadCard).join('') + '</div></details>' : empty('Không có khách hỏi cần liên hệ 🎉')) +
       '<button class="btn" data-newlead style="margin-top:10px">＋ Thêm khách hỏi</button></section>';
     // 30/10/2026 thứ tự theo tiền: đơn mới → khách vừa hỏi → chăm sóc (hẹn, sắp hết) → khách hỏi → 🌱 giới thiệu (tiền về sau, xây nguồn khách không tốn quảng cáo)
+    var growOn = lvl() < 2 && !isMkt() && selfOn(); // 13/11/2026: khối 🌱 Mở rộng khách đứng đầu phần mở rộng khách, các danh sách chi tiết ngay dưới
+    if (growOn) h += idleBlock();
     h += refThanksBlock(); // 🎁 bạn bè khách cũ đã đặt → báo voucher / quà cảm ơn người giới thiệu
-    h += ambBlock(q.list.reduce(function (m, c) { m[c.phone] = 1; return m; }, {}), hot.length ? '5️⃣' : '4️⃣');
+    h += ambBlock(q.list.reduce(function (m, c) { m[c.phone] = 1; return m; }, {}), growOn ? '' : hot.length ? '5️⃣' : '4️⃣');
     if (isPoolStaff() && poolOn()) h += poolBlock(); // 🧺 việc dự phòng khi hết số quảng cáo: số chưa ai chốt, ai nhận cũng được
-    if (lvl() < 2 && !isMkt() && selfOn()) h += idleBlock(); // 🔎 hết số quảng cáo thì làm gì: 4 việc tự tạo khách (Quản trị bật ở Cài đặt → Tự tạo khách)
 
     if (doneToday.length) h += '<section class="section"><details class="grp" data-grp="done"' + (S.f.gopen && S.f.gopen.done ? ' open' : '') + '><summary><span class="g-t">✅ Đã làm hôm nay</span><span class="count">' + doneToday.length + '</span></summary><div class="timeline" style="padding:12px">' +
       doneToday.slice(0, 40).map(logItem).join('') + '</div></details></section>';
@@ -1676,7 +1677,7 @@
   /* ---------- Bảng thi đua: Top 3 mỗi hạng mục + hạng của mình + còn cách người ngay trên bao nhiêu. Hỏi máy chủ lệnh 'race' (nhớ 10 phút);
    * máy chủ chỉ gửi cho nhân viên Top 3 và số của chính họ (người hạng 4 trở xuống không bị lộ). Máy chủ cũ chưa có lệnh này → ẩn khối. */
   // 17/10/2026: Doanh số xếp theo % mục tiêu (máy chủ gửi c.pct = 1); số tiền của người khác chỉ quản lý thấy. Máy chủ cũ (không có c.pct) vẫn hiện tiền như trước.
-  var RACE_CATS = { sales: ['🏆 Doanh số', '% mục tiêu đạt (không tính đơn huỷ / hoàn)'], close: ['🎯 Tỷ lệ chốt', 'data quảng cáo ra đơn (như tab Hiệu quả)'], own: ['🙋 Khách tự mang về', 'khách tự tìm + khách cũ giới thiệu đã mua (hoa hồng riêng)'], back: ['💚 Khách cũ quay lại', 'số khách cũ mua thêm đơn'], grow: ['🚀 Tiến bộ nhất', 'doanh số so với cùng kỳ trước'] };
+  var RACE_CATS = { sales: ['🏆 Doanh số', '% mục tiêu đạt (không tính đơn huỷ / hoàn)'], effort: ['🌱 Công sức mở rộng khách', 'mời giới thiệu + khách tự tạo + nhận từ Kho chung (chưa ra đơn vẫn được tính)'], close: ['🎯 Tỷ lệ chốt', 'data quảng cáo ra đơn (như tab Hiệu quả)'], own: ['🙋 Khách tự mang về', 'khách tự tìm + khách cũ giới thiệu đã mua (hoa hồng riêng)'], back: ['💚 Khách cũ quay lại', 'số khách cũ mua thêm đơn'], grow: ['🚀 Tiến bộ nhất', 'doanh số so với cùng kỳ trước'] };
   function raceGet() {
     var c = S.race;
     if ((!c || Date.now() - c.at > 600e3) && !S.raceBusy) {
@@ -1686,8 +1687,8 @@
     }
     return c ? c.d : undefined;
   }
-  function raceVal(k, v, pc) { return k === 'sales' && !pc ? moneyShort(v) : k === 'sales' ? v + '%' : k === 'back' || k === 'own' ? v + ' khách' : k === 'grow' ? (v > 0 ? '+' : '') + v + '%' : v + '%'; }
-  function raceGap(k, g, pc) { return k === 'sales' && !pc ? moneyShort(g) : k === 'back' || k === 'own' ? g + ' khách' : g + ' điểm %'; }
+  function raceVal(k, v, pc) { return k === 'sales' && !pc ? moneyShort(v) : k === 'sales' ? v + '%' : k === 'effort' ? v + ' việc' : k === 'back' || k === 'own' ? v + ' khách' : k === 'grow' ? (v > 0 ? '+' : '') + v + '%' : v + '%'; }
+  function raceGap(k, g, pc) { return k === 'sales' && !pc ? moneyShort(g) : k === 'effort' ? g + ' việc' : k === 'back' || k === 'own' ? g + ' khách' : g + ' điểm %'; }
   function raceCat(c, P, wk) {
     var lb = RACE_CATS[c.k], md = ['🥇', '🥈', '🥉'], list = lvl() >= 2 && c.all ? c.all : c.top;
     var money = function (s) { return s != null && c.pct ? ' <small class="race-money">' + moneyShort(s) + '</small>' : ''; }; // máy chủ chỉ gửi tiền của mình (hoặc của mọi người cho quản lý)
@@ -1695,7 +1696,7 @@
     if (c.none && c.none.length) rows += '<li class="race-none">Chưa đặt mục tiêu: ' + c.none.map(function (e) { return esc(e.n) + (e.s ? ' (' + moneyShort(e.s) + ')' : ''); }).join(', ') + '</li>';
     var me = '';
     if (lvl() < 2) {
-      if (!c.me) me = c.k === 'sales' && c.pct ? 'Đặt 🎯 mục tiêu tháng để vào bảng xếp hạng' : c.k === 'close' ? 'Cần ít nhất ' + (wk ? 3 : 5) + ' số data quảng cáo trong kỳ để xếp hạng' : c.k === 'grow' ? 'Cần doanh số kỳ trước từ 500k để so' : 'Chưa có số liệu';
+      if (!c.me) me = c.k === 'sales' && c.pct ? 'Đặt 🎯 mục tiêu tháng để vào bảng xếp hạng' : c.k === 'close' ? 'Cần ít nhất ' + (wk ? 3 : 5) + ' số data quảng cáo trong kỳ để xếp hạng' : c.k === 'grow' ? 'Cần doanh số kỳ trước từ 500k để so' : c.k === 'effort' ? 'Mời 1 khách giới thiệu hoặc tự thêm 1 khách hỏi là có tên ở đây' : 'Chưa có số liệu';
       else if (c.me.r === 1 && c.me.v > 0) me = '👑 Bạn đang dẫn đầu, giữ vững nhé!' + (c.me.s != null ? ' · ' + moneyShort(c.me.s) : '');
       else me = 'Bạn: <b>hạng ' + c.me.r + '/' + c.count + '</b> · ' + raceVal(c.k, c.me.v, c.pct) + (c.me.s != null ? ' (' + moneyShort(c.me.s) + ')' : '') + (c.me.gap ? ' · còn cách người trên <b>' + raceGap(c.k, c.me.gap, c.pct) + '</b>' : '');
     }
@@ -3695,18 +3696,25 @@
     return (S.d.leads || []).filter(function (l) { var at = l.lastAt || l.time; return l.status === 'Không mua' && l.owner === name && !/không liên lạc/i.test(l.reason || '') && at >= lo && at < hi && !cust(l.phone); })
       .sort(function (a, b) { return (a.lastAt || a.time) - (b.lastAt || b.time); });
   }
+  /** 🌱 Mở rộng khách (13/11/2026, anh Sơn: đơn giản, dễ nhìn, chị em làm hằng ngày): 1 khối gọn ở tab Hôm nay của sale.
+   *  Đầu khối: hôm nay đã làm mấy việc (gợi ý 5) + lời khen; 4 ô to có chữ: Mời giới thiệu · Thêm khách được giới thiệu · Gọi lại khách "Không mua" · Kho chung; dưới: bài Facebook + link riêng.
+   *  Danh sách chi tiết (🌱 Mời làm Đại sứ, 🧺 Kho chung, 😴) nằm ngay dưới, nút trong ô nhảy tới đúng chỗ. */
   function idleBlock() {
     var me = S.user.name, pool = isPoolStaff() && poolOn() ? (S.d.leads || []).filter(function (l) { return !l.owner && isOpenLead(l); }).length : 0, idle = idleLeads(me), amb = 0;
     try { rbData(); var A = ambList(); amb = A ? A.list.length : 0; } catch (e) { amb = 0; }
-    var row = function (icon, t, sub, act) { return '<div class="idle-r"><span class="idle-i">' + icon + '</span><span class="idle-t"><b>' + t + '</b><small class="muted">' + sub + '</small></span><span class="idle-a">' + act + '</span></div>'; };
-    var PP = (S.d.rules && S.d.rules.payplan) || {}, ownTxt = PP.own && ppOn() ? ' · khách bạn tự mang về: hoa hồng <b>' + PP.own + '%</b> mọi đơn trong ' + (PP.ownMonths || 6) + ' tháng' : '';
-    return '<section class="section idle"><div class="section-h"><h2>🔎 Hết số quảng cáo? Tự tạo khách</h2><span class="tip">việc nào cũng ra đơn mà không tốn tiền quảng cáo' + ownTxt + '</span></div><div class="box">' +
-      (isPoolStaff() && poolOn() ? row('🧺', 'Kho chung: ' + pool + ' số chưa ai chốt', 'số người khác giữ quá hạn · đọc lịch sử rồi thử cách khác', pool ? '<button class="btn sm" data-gopen="pool">Xem kho</button>' : '<span class="muted small">đang trống</span>') : '') +
-      row('😴', 'Gọi lại khách hỏi cũ: ' + idle.length + ' người', '“Không mua” 1,5–6 tháng trước · mở lời bằng lý do mới: sản phẩm mới, ưu đãi tháng này', idle.length ? '<button class="btn sm" data-gopen="idle">Xem danh sách</button>' : '<span class="muted small">chưa có</span>') +
-      row('🌱', 'Mời khách cũ giới thiệu: ' + amb + ' khách', 'khách vừa dùng 7–30 ngày · hỏi cảm nhận rồi mời (mục 🌱 Mời làm Đại sứ ở trên)', amb ? '<button class="btn sm" data-gopen="amb">Xem mục 🌱</button>' : '<span class="muted small">chưa có</span>') +
-      row('📣', 'Đăng bài Facebook cá nhân viết sẵn', 'bài kể chuyện + bình luận ghim có link riêng của bạn · 2–3 bài / tuần', '<button type="button" class="btn sm" data-spf="sale">Xem bài</button>') +
-      row('🔗', 'Đăng bài, gửi Zalo link riêng của bạn', 'khách vào qua link rồi đặt trong 30 ngày thì đơn tính cho bạn', '<button type="button" class="btn sm" data-copy="' + esc(refLink(me)) + '">📋 Copy link</button>') + '</div>' +
-      (idle.length ? '<details class="grp" data-grp="idle"' + (S.f.gopen && S.f.gopen.idle ? ' open' : '') + '><summary><span class="g-t">😴 Khách hỏi cũ gọi lại</span><span class="count">' + idle.length + '</span><span class="g-tip">lâu nhất lên trước · bấm 💬 Tư vấn lại, ghi kết quả như bình thường</span></summary><div class="list cols" style="padding:10px">' + capRows(idle.slice(0, 30), idleCard) + '</div></details>' : '') + '</section>';
+    var ef = effortStats(me, today(), today() + DAY), done = ef.inv + ef.self + ef.pool, GOAL = 5, PP = (S.d.rules && S.d.rules.payplan) || {};
+    var tile = function (icon, t, sub, btn) { return '<div class="grow-t"><span class="grow-i">' + icon + '</span><b>' + t + '</b><small>' + sub + '</small>' + btn + '</div>'; };
+    var go = function (k, n, label) { return n ? '<button class="btn pri sm" data-gopen="' + k + '">' + label + '</button>' : '<span class="grow-none">chưa có</span>'; };
+    return '<section class="section grow-box"><div class="section-h"><h2>🌱 Mở rộng khách</h2><span class="tip">30 phút mỗi ngày' + (PP.own && ppOn() ? ' · khách bạn tự mang về: <b>' + PP.own + '%</b> mọi đơn trong ' + (PP.ownMonths || 6) + ' tháng + thưởng' : '') + '</span></div>' +
+      '<div class="grow-today"><div class="grow-today-h"><span>Hôm nay bạn đã làm</span><b>' + done + ' / ' + GOAL + ' việc</b></div><div class="grow-bar"><i style="width:' + Math.min(100, done * 100 / GOAL) + '%"></i></div>' +
+      '<small>' + (done ? '🌟 ' + [ef.inv ? 'mời ' + ef.inv + ' khách giới thiệu' : '', ef.self ? 'tự tạo ' + ef.self + ' khách' : '', ef.pool ? 'nhận ' + ef.pool + ' số từ Kho' : ''].filter(Boolean).join(' · ') + (done >= GOAL ? ' · Tuyệt vời, đủ việc hôm nay!' : ' · cố thêm ' + (GOAL - done) + ' việc nữa nhé') : 'Mời 1 khách giới thiệu, thêm 1 khách được giới thiệu hoặc nhận 1 số từ Kho là được tính 1 việc.') + '</small></div>' +
+      '<div class="grow-grid">' +
+      tile('🌱', 'Mời khách cũ giới thiệu', amb ? amb + ' khách đã dùng 7–30 ngày' : 'chưa có khách tới lượt', go('amb', amb, 'Mời ngay')) +
+      tile('＋', 'Thêm khách được giới thiệu', 'khách cũ đọc số bạn bè, hoặc bạn tự tìm được', '<button class="btn pri sm" data-newlead>＋ Thêm khách</button>') +
+      tile('😴', 'Gọi lại khách từng nói “Không mua”', idle.length ? idle.length + ' khách, 1,5–6 tháng trước' : 'chưa có khách tới lượt', go('idle', idle.length, 'Xem danh sách')) +
+      (isPoolStaff() && poolOn() ? tile('🧺', 'Nhận số ở Kho chung', pool ? pool + ' số chưa ai chốt' : 'kho đang trống', go('pool', pool, 'Xem kho')) : '') + '</div>' +
+      '<div class="grow-more"><span>📣 Bài Facebook viết sẵn <button type="button" class="btn sm" data-spf="sale">Xem bài</button></span><span>🔗 Link riêng của bạn <button type="button" class="btn sm" data-copy="' + esc(refLink(me)) + '">📋 Copy link</button></span></div>' +
+      (idle.length ? '<details class="grp" data-grp="idle"' + (S.f.gopen && S.f.gopen.idle ? ' open' : '') + '><summary><span class="g-t">😴 Khách từng nói “Không mua”</span><span class="count">' + idle.length + '</span><span class="g-tip">lâu nhất lên trước · mở lời bằng lý do mới: sản phẩm mới, ưu đãi tháng này, hỏi thăm sức khoẻ</span></summary><div class="list cols" style="padding:10px">' + capRows(idle.slice(0, 30), idleCard) + '</div></details>' : '') + '</section>';
   }
   function idleCard(l) {
     return '<div class="card click" data-lead="' + esc(l.id) + '"><div class="r1"><b>' + esc(l.name || 'Khách') + '</b>' + leadTag(l) + '<span class="end small muted">' + esc(chLabel(l.channel)) + '</span></div>' +
@@ -3892,12 +3900,14 @@
    *  20/10/2026: dán số thiếu số 0 (copy từ Sheet / Facebook) → tự thêm 0; số đã có thì hiện ngay thông tin khách (đã mua / đang hỏi) để ghi nối, không tạo trùng;
    *  kênh 🎁 Khách giới thiệu → chọn người giới thiệu (gõ tên hoặc SĐT) để theo dõi ai giới thiệu bao nhiêu người, mang về bao nhiêu doanh thu. */
   function openLeadForm(l) {
-    var edit = !!l; l = l || { name: '', phone: '', channel: 'Facebook', interest: '', owner: S.user.name, note: '', callback: null, status: 'Mới hỏi', reason: '', refPhone: '', refName: '' };
+    var edit = !!l; l = l || { name: '', phone: '', channel: REF_CH, // 13/11/2026 anh Sơn: thêm khách hỏi mặc định 🎁 Khách giới thiệu (chị em mở rộng khách chọn nhanh)
+      interest: '', owner: S.user.name, note: '', callback: null, status: 'Mới hỏi', reason: '', refPhone: '', refName: '' };
     var ref = l.refPhone || l.refName ? { phone: l.refPhone || '', name: l.refName || '' } : null, chSel = chLabel(l.channel);
     var body = '<form id="lfForm" novalidate><div class="box">' +
       '<div class="row2c"><label class="f"><span>Số điện thoại *</span><input type="tel" name="phone" inputmode="tel" autocomplete="off" value="' + esc(l.phone) + '" placeholder="Dán hoặc gõ số, thiếu số 0 máy tự thêm"></label>' +
       '<label class="f"><span>Tên khách</span><input type="text" name="name" value="' + esc(l.name) + '" placeholder="vd: Chị Lan"></label></div><div id="lfHint"></div>' +
-      '<div class="row2c"><label class="f"><span>Khách đến từ đâu</span><select name="channel">' + CHANNELS.concat(CHANNELS.indexOf(chSel) < 0 && l.channel ? [l.channel] : []).map(function (c) { return '<option' + (c === chSel || c === l.channel ? ' selected' : '') + '>' + esc(c) + '</option>'; }).join('') + '</select></label>' +
+      (edit ? '' : '<div class="lf-src"><span>Khách đến từ đâu? Chọn nhanh:</span>' + [[REF_CH, '🎁 Khách giới thiệu'], ['Zalo', '💬 Zalo'], ['Điện thoại', '📞 Điện thoại'], ['Facebook', '📘 Facebook']].map(function (x) { return '<button type="button" class="chip' + (x[0] === chSel ? ' on' : '') + '" data-lfch="' + esc(x[0]) + '">' + x[1] + '</button>'; }).join('') + '</div>') +
+      '<div class="row2c"><label class="f"><span>Khách đến từ đâu</span><select name="channel">' + [REF_CH].concat(CHANNELS.filter(function (c) { return c !== REF_CH; })).concat(CHANNELS.indexOf(chSel) < 0 && l.channel ? [l.channel] : []).map(function (c) { return '<option' + (c === chSel || c === l.channel ? ' selected' : '') + '>' + esc(c) + '</option>'; }).join('') + '</select></label>' +
       '<label class="f"><span>Quan tâm sản phẩm</span><input type="text" name="interest" list="lfProducts" value="' + esc(l.interest) + '" placeholder="Chọn hoặc gõ"><datalist id="lfProducts">' + productNames().map(function (n) { return '<option value="' + esc(n) + '">'; }).join('') + '</datalist></label></div>' +
       '<div class="lf-ref" id="lfRef" hidden><span class="lf-ref-t">🎁 Ai giới thiệu khách này?</span><div id="lfRefSel"></div>' +
         '<div id="lfRefFind"><input type="text" id="lfRefQ" autocomplete="off" placeholder="Gõ tên hoặc số điện thoại người giới thiệu"><div class="ref-sug" id="lfRefSug"></div></div>' +
@@ -3940,7 +3950,8 @@
     refQ.addEventListener('input', findRef);
     var phNew = !edit; // 🙋 số mới (chưa là khách, chưa có khách hỏi đang mở) → bắt ghi khách biết qua đâu
     function drawHow() { $('#lfHowBox', m).hidden = OWN_HOW_CH.indexOf(F.channel.value) < 0 || (!edit && !phNew && !l.how); }
-    F.channel.addEventListener('change', function () { drawRef(); drawHow(); if (isRefCh(F.channel.value) && !ref) refQ.focus(); });
+    F.channel.addEventListener('change', function () { drawRef(); drawHow(); $$('[data-lfch]', m).forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-lfch') === F.channel.value); }); if (isRefCh(F.channel.value) && !ref) refQ.focus(); });
+    $$('[data-lfch]', m).forEach(function (b) { b.onclick = function () { F.channel.value = b.getAttribute('data-lfch'); touched.channel = 1; F.channel.dispatchEvent(new Event('change')); }; });
     drawRef(); drawHow();
 
     /* ---- số điện thoại: tự thêm số 0 / bỏ +84, dấu cách; số đã có → hiện thông tin khách ngay */
@@ -11285,6 +11296,7 @@
     lines.push('KH cũ đã chăm sóc (kết nối): ' + cs.ok, 'Không nghe máy: ' + cs.knm);
     var ef = effortStats(name, dayStart(day), dayStart(day) + DAY);
     lines.push('🌱 Mở rộng khách: mời giới thiệu ' + ef.inv + ' · hẹn gọi lại ' + ef.cb + ' · khách tự tạo ' + ef.self + ' · nhận từ Kho ' + ef.pool);
+    effortCheer(name, day).forEach(function (t) { lines.push(t); });
     lines.push('Lý do từ chối:' + (cs.why.length ? '' : ' –')); cs.why.slice(0, 12).forEach(function (w) { lines.push('- ' + w); });
     var T = d.tot, mrev = sum(T.newR) + sum(T.oldR), tg = name ? targetOf(name, month) : null;
     if (tg && tg.amount) lines.push('', '📈 Luỹ kế ' + monthLabel(month) + ': đạt ' + pct(mrev, tg.amount) + '% mục tiêu'); // không ghi số tiền luỹ kế: sale ngại gửi vào nhóm chung (anh Sơn 31/10/2026), giống bảng thi đua
@@ -11292,6 +11304,17 @@
   }
   /** 13/11/2026 (họp sale, Trang: gọi nhiều mà chưa ra đơn thì áp lực): đếm công sức mở rộng khách trong ngày để báo cáo ghi nhận cả việc đã làm, không chỉ doanh số.
    *  inv = khách đã mời giới thiệu (nhật ký "Mời giới thiệu", máy chủ ghi khi mở 🌱) · cb = lần chăm sóc / tư vấn có hẹn gọi lại · self = khách hỏi bạn tự thêm · pool = số nhận từ Kho chung. */
+  /** 🌟 Lời ghi nhận công sức trong báo cáo ngày (anh Sơn 13/11/2026: để chị em có tinh thần). 1 người: cảm ơn việc đã làm; cả nhóm: 3 người chăm mở rộng khách nhất. */
+  function effortCheer(name, day) {
+    var d0 = dayStart(day), d1 = d0 + DAY, tot = function (e) { return e.inv + e.self + e.pool; };
+    if (name !== null) {
+      var e = effortStats(name, d0, d1), t = [];
+      if (e.inv) t.push('mời ' + e.inv + ' khách giới thiệu'); if (e.self) t.push('tự tạo ' + e.self + ' khách mới'); if (e.pool) t.push('nhận ' + e.pool + ' số từ Kho chung'); if (e.cb) t.push('hẹn gọi lại ' + e.cb + ' khách');
+      return t.length ? ['🌟 Cảm ơn ' + name + ' hôm nay đã ' + t.join(', ') + '. Mỗi việc hôm nay là đơn hàng của những ngày sau!'] : [];
+    }
+    var top = userNames().map(function (n) { var e = effortStats(n, d0, d1); return { n: n, v: tot(e) }; }).filter(function (x) { return x.v > 0; }).sort(function (a, b) { return b.v - a.v; }).slice(0, 3);
+    return top.length ? ['🌟 Chăm mở rộng khách nhất hôm nay: ' + top.map(function (x) { return x.n + ' (' + x.v + ' việc)'; }).join(', ') + '. Cảm ơn cả nhà!'] : [];
+  }
   function effortStats(name, from, to) {
     var inv = {}, cb = 0, pool = 0;
     (S.d.log || []).forEach(function (l) {
@@ -11344,7 +11367,8 @@
       : { head: ['Chỉ số', name], rows: cols.map(function (c) { return { c: [c[0] ? c[0] + ' · ' + c[1] : c[1], String(fv(c, ents[0]) || '0')], b: !!c[4] }; }) };
     img.title = '📋 BÁO CÁO NGÀY ' + fDate(day) + ' – ' + (name || 'Cả nhóm');
     img.why = []; ents.forEach(function (e, i) { if (name === null && !i) return; e.cs.why.slice(0, 12).forEach(function (w) { img.why.push((name === null ? e.t + ': ' : '') + w); }); });
-    return { img: img, html: '<div class="bcdt-wrap">' + h + '</div>' + (name === null ? '<p class="small muted" style="margin:6px 0 0">Mỗi sale 1 dòng, xếp theo doanh thu trong ngày. Dòng mờ = chưa có đơn / chưa ghi chăm sóc. Số mới = số quảng cáo vào trong ngày. Cột cả ngày bằng 0 được ẩn cho gọn.</p>' : '') +
+    var cheer = effortCheer(name, day); img.cheer = cheer;
+    return { img: img, html: (cheer.length ? '<div class="notice info" style="margin:0 0 10px">' + esc(cheer[0]) + '</div>' : '') + '<div class="bcdt-wrap">' + h + '</div>' + (name === null ? '<p class="small muted" style="margin:6px 0 0">Mỗi sale 1 dòng, xếp theo doanh thu trong ngày. Dòng mờ = chưa có đơn / chưa ghi chăm sóc. Số mới = số quảng cáo vào trong ngày. Cột cả ngày bằng 0 được ẩn cho gọn.</p>' : '') +
       '<h3 style="margin:12px 0 6px">💬 Lý do khách từ chối</h3>' + (why.length ? '<ul class="dy-why">' + why.map(function (w) { return '<li>' + w + '</li>'; }).join('') + '</ul>' : '<p class="small muted" style="margin:0">Chưa có.</p>'), csv: csv };
   }
   /** Vẽ bảng báo cáo ngày thành ảnh PNG (canvas, không cần thư viện) để dán / chia sẻ vào Zalo. */
@@ -11361,10 +11385,13 @@
     var tblW = cw.reduce(function (a, b) { return a + b; }, 0), W = Math.max(tblW, 460) + pad * 2;
     var hl = sp.head.map(function (hd, i) { return wrap(hd, cw[i] - cp * 2, true, 14); }), hH = Math.max.apply(null, hl.map(function (l) { return l.length; })) * 18 + 14, rH = lh + 12;
     var why = []; (sp.why || []).forEach(function (w) { wrap('• ' + w, W - pad * 2, false).forEach(function (l) { why.push(l); }); });
-    var tl = wrap(sp.title, W - pad * 2, true, 19), H = pad + tl.length * 26 + 10 + hH + sp.rows.length * rH + (why.length ? 16 + lh + why.length * lh : 0) + 30 + pad;
+    var chl = []; (sp.cheer || []).forEach(function (w) { wrap(w, W - pad * 2, true, 15).forEach(function (l) { chl.push(l); }); }); // 🌟 ghi nhận công sức (13/11/2026)
+    var tl = wrap(sp.title, W - pad * 2, true, 19), H = pad + tl.length * 26 + 10 + (chl.length ? chl.length * lh + 10 : 0) + hH + sp.rows.length * rH + (why.length ? 16 + lh + why.length * lh : 0) + 30 + pad;
     cv.width = W * SC; cv.height = H * SC; x.scale(SC, SC); x.textBaseline = 'middle';
     x.fillStyle = '#fff'; x.fillRect(0, 0, W, H);
-    var y = pad + 13; x.fillStyle = '#2f5d3a'; tl.forEach(function (l) { x.font = font(true, 19); x.fillText(l, pad, y); y += 26; }); y += 10 - 13;
+    var y = pad + 13; x.fillStyle = '#2f5d3a'; tl.forEach(function (l) { x.font = font(true, 19); x.fillText(l, pad, y); y += 26; });
+    if (chl.length) { y -= 4; x.fillStyle = '#b4502a'; chl.forEach(function (l) { x.font = font(true, 15); x.fillText(l, pad, y); y += lh; }); y += 10; }
+    y += 10 - 13;
     var cx = function (i) { return pad + cw.slice(0, i).reduce(function (a, b) { return a + b; }, 0); };
     x.fillStyle = '#2f5d3a'; x.fillRect(pad, y, tblW, hH); x.fillStyle = '#fff';
     hl.forEach(function (ls, i) { ls.forEach(function (l, k) { x.font = font(true, 14); var lw = x.measureText(l).width; x.fillText(l, i ? cx(i) + (cw[i] - lw) / 2 : cx(i) + cp, y + hH / 2 + (k - (ls.length - 1) / 2) * 18); }); });
@@ -11568,7 +11595,7 @@
       '<p style="margin:0 0 8px">Có <b>' + noOwner + '</b> khách chưa ai phụ trách.</p><button class="btn" id="spreadBtn"' + (noOwner ? '' : ' disabled') + '>Chia đều cho những người đang “Nhận khách mới”</button>' +
       '<div class="row2c" style="margin-top:12px"><label class="f"><span>Chuyển toàn bộ khách của</span><select id="mvFrom">' + ownerOptions('', true) + '</select></label><label class="f"><span>sang</span><select id="mvTo">' + ownerOptions('', true) + '</select></label></div>' +
       '<button class="btn" id="moveBtn">Chuyển khách</button><p class="hint" style="margin:8px 0 0">Dùng khi nhân viên nghỉ việc hoặc đổi ca. Khách hỏi đang theo dõi cũng được chuyển theo.</p></div>';
-    G.self = '<div class="box"><h3>🔎 Tự tạo khách</h3><p class="hint" style="margin:0 0 10px">Bật thì sale thấy: mục <b>🔎 Hết số quảng cáo? Tự tạo khách</b> cuối tab Hôm nay, dòng <b>🙋 Khách tự tạo tháng này</b> dưới mục tiêu và ô đặt mục tiêu khách tự tạo, hạng <b>🙋 Khách tự mang về</b> trong bảng thi đua, và tin Telegram <i>“Khách bạn tự mang về → hoa hồng …%”</i>. Tắt thì ẩn hết các phần đó (máy vẫn tính hoa hồng và nhận diện khách ngầm, không mất dữ liệu). Kho chung và nguồn khách ở Tổng quan không bị ảnh hưởng.</p>' +
+    G.self = '<div class="box"><h3>🔎 Tự tạo khách</h3><p class="hint" style="margin:0 0 10px">Bật thì sale thấy: khung <b>🌱 Mở rộng khách</b> ở tab Hôm nay, dòng <b>🙋 Khách tự tạo tháng này</b> dưới mục tiêu và ô đặt mục tiêu khách tự tạo, hạng <b>🙋 Khách tự mang về</b> trong bảng thi đua, và tin Telegram <i>“Khách bạn tự mang về → hoa hồng …%”</i>. Tắt thì ẩn hết các phần đó (máy vẫn tính hoa hồng và nhận diện khách ngầm, không mất dữ liệu). Kho chung và nguồn khách ở Tổng quan không bị ảnh hưởng.</p>' +
       '<label class="switch"><input type="checkbox" id="selfOn"' + (selfOn() ? ' checked' : '') + '> Hiện mục Tự tạo khách cho sale</label><p></p><button class="btn pri" id="selfSave">Lưu</button></div>';
     G.dup = '<div class="box"><h3>🔀 Khách trùng sale</h3><p class="hint" style="margin:0 0 10px">Khách có trong file Sheet của 2 sale trở lên (trước khi gộp văn phòng, mỗi bạn chăm riêng). Mỗi khách chỉ để <b>1 sale phụ trách chính</b>: chọn người giữ rồi bấm <b>Chốt</b>. Đã chốt thì CRM không báo trùng nữa, các bạn không cần xoá dòng trong file.</p>' +
       '<button class="btn pri" id="dupOpen">Xem khách trùng sale</button></div>';

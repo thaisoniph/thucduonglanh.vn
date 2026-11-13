@@ -700,6 +700,11 @@ async function crmRace(x, u) {
     all(x.db, 'SELECT name, amount FROM targets WHERE month = ?', mk),
     adPh.length ? allIn(x.db, `SELECT phone, time FROM orders WHERE phone IN (SELECT value FROM json_each(?)) AND time >= ? AND ${VOID}`, adPh, a0) : [],
     adPh.length ? allIn(x.db, 'SELECT phone, time, last_at, status FROM leads WHERE phone IN (SELECT value FROM json_each(?)) AND coalesce(last_at, time) >= ?', adPh, a0) : []]);
+  // 13/11/2026 (anh Sơn sau họp sale): 🌱 Công sức mở rộng khách = khách đã mời giới thiệu (1 / khách / ngày) + khách hỏi tự thêm + số nhận từ Kho chung → người chưa ra đơn vẫn được ghi nhận
+  const [efLog, efLead] = await Promise.all([
+    all(x.db, "SELECT time, by_name, what, ref FROM logs WHERE what IN ('Mời giới thiệu', 'Nhận khách') AND time >= ?", from).catch(() => []),
+    all(x.db, "SELECT time, by_name FROM leads WHERE time >= ? AND coalesce(by_name, '') != '' AND by_name = owner AND coalesce(channel, '') NOT LIKE 'File%'", from).catch(() => [])]);
+  const effortOf = (n, a, b) => efLog.filter(l => l.by_name === n && l.time >= a && l.time < b).length + efLead.filter(l => l.by_name === n && l.time >= a && l.time < b).length;
   const buyT = {}, ldBy = {}; ao.forEach(o => { (buyT[normPhone(o.phone)] = buyT[normPhone(o.phone)] || []).push(Number(o.time) || 0); }); al.forEach(l => { (ldBy[normPhone(l.phone)] = ldBy[normPhone(l.phone)] || []).push(l); });
   const closeOf = (n, a, b) => { const seen = {}; let data = 0, won = 0; ads.forEach(r => { const [day, ph] = r; if (day < a || day >= b || r[2] !== n || seen[ph]) return; seen[ph] = 1; data++;
     if ((buyT[ph] || []).some(t => t >= day) || (ldBy[ph] || []).some(l => (Number(l.last_at) || Number(l.time) || 0) >= day && l.status === 'Đã chốt')) won++; }); return { data, won }; };
@@ -711,7 +716,8 @@ async function crmRace(x, u) {
       const back = {}; mine.forEach(o => { if (o.first && o.first < o.time - 3600e3) back[o.phone] = 1; });
       const cs = closeOf(n, a, b), won = cs.won, prev = sum(pa, pb, n), own = ownRows.filter(r => r.own_by === n && r.own_at >= a && r.own_at < b).length;
       const goal = (tgt[n] || 0) * gk;
-      return { n, sales, own, pct: goal > 0 ? Math.round(sales * 100 / goal) : null, orders: mine.length, back: Object.keys(back).length, data: cs.data, won, close: cs.data >= minLead ? Math.round(won * 100 / cs.data) : null,
+      const effort = effortOf(n, a, b);
+      return { n, sales, own, effort, pct: goal > 0 ? Math.round(sales * 100 / goal) : null, orders: mine.length, back: Object.keys(back).length, data: cs.data, won, close: cs.data >= minLead ? Math.round(won * 100 / cs.data) : null,
         grow: prev >= 500000 ? Math.round((sales - prev) * 100 / prev) : null, prev };
     }).filter(r => us.find(v => v.name === r.n).level === 1 || r.orders > 0); // quản lý không bán thì không đưa vào bảng
     const cat = (k, f, money) => {
@@ -726,7 +732,7 @@ async function crmRace(x, u) {
       return out;
     };
     const mine = rows.find(r => r.n === u.name);
-    return { from: a, to: b, n: rows.length, cats: [cat('sales', r => r.pct, 1), cat('close', r => r.close), cat('own', r => r.own), cat('back', r => r.back), cat('grow', r => r.grow)],
+    return { from: a, to: b, n: rows.length, cats: [cat('sales', r => r.pct, 1), cat('effort', r => r.effort), cat('close', r => r.close), cat('own', r => r.own), cat('back', r => r.back), cat('grow', r => r.grow)],
       mine: mine ? { sales: mine.sales, orders: mine.orders, back: mine.back, data: mine.data, won: mine.won, close: mine.close, grow: mine.grow } : null };
   };
   const el = now - w0, mel = now - m0;

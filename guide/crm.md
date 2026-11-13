@@ -263,16 +263,9 @@ Mỗi số khách hỏi công ty phải trả tiền quảng cáo để có. Vì
 
 **Khách hỏi từ quảng cáo đã nói "Không mua"** (từ 13/11/2026): bạn có **75 ngày**. Từ ngày thứ 45, khách hiện ở mục **😴 Gọi lại khách hỏi cũ** để bạn gọi lại trước. Quá 75 ngày mà bạn chưa liên hệ lại (chưa ghi 💬 Tư vấn) thì số về Kho chung để bạn khác thử với lý do mới, Telegram báo bạn. Không áp dụng cho số **không liên lạc được**, khách bạn tự tìm, khách được giới thiệu, file cũ.
 
-**Hết số quảng cáo thì làm gì? (từ 10/11/2026)**
+**Hết số quảng cáo thì làm gì?**
 
-Cuối tab **Hôm nay** có mục **🔎 Hết số quảng cáo? Tự tạo khách** với 4 việc, việc nào cũng ra đơn mà không tốn tiền quảng cáo:
-
-1. **🧺 Kho chung**: số người khác giữ quá hạn chưa chốt. Bấm **Xem kho**.
-2. **😴 Gọi lại khách hỏi cũ**: người đã nói "Không mua" 1,5–6 tháng trước (không tính số không liên lạc được). Người lâu nhất lên trước. Bấm **💬 Tư vấn lại** và mở lời bằng **lý do mới**: sản phẩm mới, ưu đãi tháng này, hỏi thăm sức khoẻ. Đừng hỏi lại y như lần trước.
-3. **🌱 Mời khách cũ giới thiệu**: khách vừa dùng 7–30 ngày. Hỏi cảm nhận, khách khen thì mời giới thiệu bạn bè (có sẵn tin nhắn).
-4. **🔗 Link riêng của bạn**: bấm **Copy link** rồi đăng bài Facebook, gửi nhóm Zalo. Khách vào qua link rồi đặt trong 30 ngày thì đơn tính cho bạn.
-
-Làm đủ 4 việc này mỗi ngày thì bạn luôn có khách, kể cả tuần nào quảng cáo ít số.
+Tab **Hôm nay** có khung **🌱 Mở rộng khách** (từ 13/11/2026): 4 ô to **Mời ngay · ＋ Thêm khách · Xem danh sách · Xem kho**, thanh **Hôm nay bạn đã làm … / 5 việc**, và nút copy link riêng, bài Facebook viết sẵn. Cách làm từng bước có hình: **[Mở rộng khách mỗi ngày](/huong-dan/mo-rong-khach/)**.
 
 **💰 Khách bạn tự mang về: hoa hồng 6% mọi đơn trong 6 tháng + thưởng tiền (từ 13/11/2026)**
 
