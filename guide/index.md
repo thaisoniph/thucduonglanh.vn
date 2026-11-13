@@ -12,6 +12,7 @@ Chào bạn! Trang này giúp bạn biết **mình cần đọc phần nào**. B
 
 | Bạn là… | Đọc phần này |
 | --- | --- |
+| **Mọi người** | [Văn hoá](/huong-dan/van-hoa/): 10 Quy Tắc Danh Dự, thẻ 🌿 Quy tắc hôm nay trong CRM |
 | **Bán hàng, chăm sóc khách** | [CRM](/huong-dan/crm/) (đọc trước), rồi [CRM thêm](/huong-dan/crm-them/) khi cần |
 | **Quản lý nhóm bán hàng** | [CRM](/huong-dan/crm/), rồi [Quản lý](/huong-dan/quan-ly/) |
 | **Kho** (quyền Kho, hoặc kiêm phụ trách kho) | [Kho hàng](/huong-dan/kho/) |

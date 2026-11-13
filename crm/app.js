@@ -1108,6 +1108,7 @@
     var el = $('#view');
     var focusId = document.activeElement && document.activeElement.id, selStart = document.activeElement && document.activeElement.selectionStart;
     el.innerHTML = ({ 'hom-nay': viewToday, 'khach-hang': viewCustomers, 'don-hang': viewOrders, 'tiem-nang': viewLeads, 'bao-cao': viewReport, 'cai-dat': viewSettings, 'tong-quan': viewDash, san: viewSan, marketing: viewMkt, 'link-qr': viewLinks, 'tro-ly-zalo': viewZbot, fanpage: viewFp, 'bai-web': viewBlog, 'noi-dung': viewIns, 'hoi-so-lieu': viewAsk, kho: viewKho, 'ke-toan': viewKtab, them: viewMore })[v]();
+    if (v === homeView()) vhMount(el); // 🌿 Quy tắc của ngày ở đầu màn hình đầu tiên của mỗi người
     el.insertAdjacentHTML('beforeend', updatedLine());
     if (focusId && $('#' + focusId)) { var f = $('#' + focusId); f.focus(); try { f.setSelectionRange(selStart, selStart); } catch (e) { } }
     if (keepScroll) window.scrollTo(0, y); else window.scrollTo(0, 0);
@@ -11570,7 +11571,8 @@
     var ca = R.ca || {}, hol = ca.holidays || ['01/01', '30/04', '01/05', '02/09'], cmOn = Object.keys(CMc).filter(function (k) { return CMc[k] !== '' && CMc[k] != null; });
     var act = (S.d.users || []).filter(function (u) { return u.active !== false; }), mk = act.filter(function (u) { return u.role === 'Marketing'; }).length, recvN = staff.filter(function (u) { return u.recv; }).length;
     var GQ = setGroup('gq', '✨ Nhân sự hỏi gì ở trang hướng dẫn', 'Xem câu nhân sự hỏi trợ lý · câu nào hướng dẫn chưa có thì nên viết thêm', '<div id="gqBox"><p class="hint" style="margin:0 0 10px">Ở trang <a href="/huong-dan/" target="_blank" rel="noopener">Hướng dẫn</a>, nhân sự gõ câu hỏi vào ô 🔍 Tìm rồi bấm <b>✨ Hỏi trợ lý An Lành</b>. Câu nào trợ lý báo <b>“hướng dẫn chưa có”</b> thì nên viết thêm vào hướng dẫn.</p><button class="btn" id="gqLoad">Xem câu đã hỏi</button></div>');
-    h += setSec('👥 Nhân sự', 'Ai được vào CRM, được làm gì; nhân sự đang thắc mắc gì.', (G.us ? setGroup('us', '🧑‍💼 Ai được vào CRM', act.length + ' người đang dùng' + (mk ? ' · ' + mk + ' marketing' : '') + ' · thêm / khoá người, đổi quyền', G.us) : '') + GQ);
+    h += setSec('👥 Nhân sự', 'Ai được vào CRM, được làm gì; nhân sự đang thắc mắc gì.', (G.us ? setGroup('us', '🧑‍💼 Ai được vào CRM', act.length + ' người đang dùng' + (mk ? ' · ' + mk + ' marketing' : '') + ' · thêm / khoá người, đổi quyền', G.us) : '') + GQ +
+      setGroup('vh', '🌿 Văn hoá: Quy tắc của ngày', 'Ai đã nhận quy tắc hôm nay · chuyện nhân sự ghi lại' + (lvl() >= 3 ? ' · sửa câu chữ gợi ý' : ''), '<div id="vhAdm"><p class="hint" style="margin:0 0 10px">Mỗi ngày làm việc, cả công ty cùng thấy 1 trong 10 Quy Tắc Danh Dự ở đầu màn hình CRM (10 ngày đủ 10 quy tắc), kèm gợi ý áp dụng. Nhân sự bấm <b>✅ Hôm nay mình sẽ làm</b> và có thể ghi 1 dòng chuyện đã làm. Tin Telegram 8h sáng cũng có quy tắc hôm nay.</p><button class="btn" id="vhLoad">Xem</button></div>'));
     h += setSec('🤝 Chia khách', 'Khách mới giao cho ai, xử lý khách trùng hoặc dùng nhiều số.', setGroup('mode', '🔀 Khách mới giao cho ai', MODE_INFO[md][0] + (md === 'pool' ? (!R.poolOn ? ' · 🙈 Kho chung đang ẩn' : poolRuleLine(R) ? ' · về kho khi ' + poolRuleLine(R) : '') : '') + ' · ' + recvN + ' người nhận khách mới' + (noOwner ? ' · ⚠️ ' + noOwner + ' khách chưa ai phụ trách' : ''), G.mode) +
       (lvl() >= 3 ? setGroup('self', '🔎 Tự tạo khách (tab Hôm nay của sale)', selfOn() ? '✅ Đang hiện cho sale' : '🙈 Đang ẩn · bật sau khi họp thống nhất', G.self) : '') +
       setGroup('dup', '👯 Khách trùng sale', 'Khách có ở file của 2 sale: chọn 1 người giữ', G.dup) +
@@ -11685,6 +11687,80 @@
       $$('[data-gqf]', box).forEach(function (b) { b.onclick = function () { gqList(b.getAttribute('data-gqf') === '1'); }; });
     }, function (e) { box.innerHTML = '<p class="hint">⚠️ ' + esc(e.message) + '</p>'; });
   }
+  /* ================================================================ 🌿 Quy tắc của ngày (13/11/2026, api vanhoa.js)
+   * Cả công ty cùng 1 trong 10 Quy Tắc Danh Dự mỗi ngày làm việc, kèm gợi ý áp dụng (công việc + cuộc sống), nút ✅ Hôm nay mình sẽ làm. */
+  function vhDay() { return new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10); }
+  function vhLoad() {
+    if (S.vhBusy) return; S.vhBusy = 1;
+    api('vh_today', {}).then(function (j) { S.vhBusy = 0; if (j && j.vh) { S.vh = j.vh; vhPaint(); } else S.vhFail = Date.now(); }, function () { S.vhBusy = 0; S.vhFail = Date.now(); }); // máy chủ cũ / mất mạng: không hiện thẻ, không báo lỗi
+  }
+  function vhMount(el) {
+    if ((!S.vh || S.vh.day !== vhDay()) && !(S.vhFail && Date.now() - S.vhFail < 600e3)) vhLoad();
+    el.insertAdjacentHTML('afterbegin', '<div id="vhBox">' + (S.vh && S.vh.day === vhDay() ? vhCard() : '') + '</div>');
+    vhBind();
+  }
+  function vhPaint() { var b = $('#vhBox'); if (b) { b.innerHTML = vhCard(); vhBind(); } }
+  function vhCard() {
+    var r = S.vh, m = r.mine, fold = store('vh_fold') === r.day;
+    if (fold || (m && !S.vhOpen)) return '<button class="vh-mini" data-vh="open">🌿 Quy tắc hôm nay: <b>' + r.n + '. ' + esc(r.t) + '</b><span>' + (m ? '✅ Đã nhận · ' + (m.note ? 'Bấm để xem' : 'Bấm để ghi chuyện của bạn') : 'Bấm để xem') + '</span></button>'; // đã nhận → lần mở sau thu thành 1 dòng, nhường chỗ cho việc
+    var foot = m ? '<p class="vh-done">✅ Bạn đã nhận lúc ' + fDateTime(m.at).slice(0, 5) + (r.cnt > 1 ? ' · cùng ' + (r.cnt - 1) + ' người khác' : '') + '</p>' +
+        (m.note && !S.vhEdit ? '<p class="vh-note">📝 ' + esc(m.note) + ' <button class="btn sm" data-vh="edit">Sửa</button></p>' :
+          '<div class="vh-in"><input id="vhNote" maxlength="300" placeholder="Làm rồi thì ghi 1 dòng chuyện của bạn (không bắt buộc)" value="' + esc(m.note || '') + '"><button class="btn sm pri" data-vh="note">Lưu</button></div><p class="hint" style="margin:4px 0 0">Chuyện hay được kể lại ở buổi trà đàm thứ 7.</p>')
+      : '<div class="vh-act"><button class="btn pri" data-vh="ack">✅ Hôm nay mình sẽ làm</button><span>' + (r.cnt ? r.cnt + ' người đã nhận hôm nay' : 'Bạn là người đầu tiên hôm nay') + '</span></div>';
+    return '<section class="vh-card"><div class="vh-hd"><span>🌿 Quy tắc hôm nay · số ' + r.n + '/10</span><button class="vh-fold" data-vh="fold">Thu gọn ▲</button></div>' +
+      '<h3>' + r.n + '. ' + esc(r.t) + '</h3><p class="vh-q">“' + esc(r.q) + '”</p>' +
+      '<div class="vh-tip"><b>💼 Áp dụng trong công việc hôm nay</b><p>' + esc(r.w) + '</p></div>' +
+      '<div class="vh-tip"><b>🏡 Áp dụng trong cuộc sống</b><p>' + esc(r.l) + '</p></div>' + foot +
+      '<a class="vh-all" href="/huong-dan/van-hoa/" target="_blank" rel="noopener">📖 Xem cả 10 quy tắc</a></section>';
+  }
+  function vhBind() {
+    $$('#vhBox [data-vh]').forEach(function (b) {
+      b.onclick = function () {
+        var k = b.getAttribute('data-vh');
+        if (k === 'fold') { store('vh_fold', S.vh.day); S.vhOpen = 0; return vhPaint(); }
+        if (k === 'open') { store('vh_fold', null); S.vhOpen = 1; return vhPaint(); }
+        if (k === 'edit') { S.vhEdit = 1; vhPaint(); var i = $('#vhNote'); if (i) i.focus(); return; }
+        var note = k === 'note' ? ($('#vhNote') || {}).value || '' : '';
+        if (k === 'note' && !note.trim()) return toast('Bạn ghi 1 dòng rồi bấm Lưu nhé', true);
+        b.disabled = true;
+        api('vh_ack', { note: note }).then(function (j) { S.vh = j.vh; S.vhEdit = 0; S.vhOpen = 1; vhPaint(); toast(k === 'ack' ? '✅ Đã nhận. Chúc bạn một ngày làm tốt quy tắc này!' : '📝 Đã lưu chuyện của bạn'); }, function (e) { b.disabled = false; toast(e.message, true); });
+      };
+    });
+  }
+  /** Cài đặt → 🌿 Văn hoá (Quản lý trở lên): ai đã nhận 30 ngày qua, chuyện nhân sự ghi, sửa câu chữ gợi ý (Quản trị). */
+  function vhAdminList() {
+    var box = $('#vhAdm'); if (!box) return;
+    box.innerHTML = '<p class="hint">Đang tải…</p>';
+    api('vh_admin', {}).then(function (j) { S.vhAdm = j; vhAdminPaint(); }, function (e) { box.innerHTML = '<p class="hint">⚠️ ' + esc(/Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message) + '</p>'; });
+  }
+  function vhAdminPaint() {
+    var box = $('#vhAdm'), j = S.vhAdm; if (!box || !j) return;
+    var by = {}, t = j.today, todayRows = j.rows.filter(function (r) { return r.day === t.day; });
+    j.rows.forEach(function (r) { var p = by[r.email] || (by[r.email] = { name: r.name, n: 0 }); p.n++; });
+    var ppl = Object.keys(by).map(function (k) { return by[k]; }).sort(function (a, b) { return b.n - a.n; });
+    var notes = j.rows.filter(function (r) { return r.note; });
+    var h = '<p style="margin:0 0 8px"><b>Hôm nay: ' + t.n + '. ' + esc(t.t) + '</b> · ' + todayRows.length + ' người đã nhận' + (todayRows.length ? ': ' + todayRows.map(function (r) { return esc(r.name); }).join(', ') : '') + '</p>' +
+      '<h4 class="vh-h4">Số ngày đã nhận (30 ngày qua, ' + j.days + ' ngày làm việc)</h4>' +
+      (ppl.length ? '<div class="vh-ppl">' + ppl.map(function (p) { return '<div><span>' + esc(p.name) + '</span><b>' + p.n + '/' + j.days + '</b></div>'; }).join('') + '</div>' : '<p class="hint">Chưa ai bấm nhận.</p>') +
+      '<p class="hint" style="margin:4px 0 10px">Ai không có tên ở đây là chưa bấm lần nào. Không cần nhắc nặng nề: khen trước cả nhóm những người làm đều là đủ.</p>' +
+      '<h4 class="vh-h4">📝 Chuyện nhân sự ghi lại (' + notes.length + ')</h4>' +
+      (notes.length ? notes.slice(0, 60).map(function (r) { return '<div class="vh-story"><b>' + esc(r.name) + '</b> · ' + esc(r.day.slice(8, 10) + '/' + r.day.slice(5, 7)) + ' · quy tắc ' + r.rule + '<p>' + esc(r.note) + '</p></div>'; }).join('') : '<p class="hint">Chưa có chuyện nào.</p>') +
+      '<p class="hint" style="margin:4px 0 10px">Chọn 2–3 chuyện hay để kể ở buổi trà đàm “Thứ 7 Máu Chảy Về Tim”.</p>';
+    if (j.canEdit) h += '<details class="vh-ed"><summary><b>✏️ Sửa câu chữ gợi ý</b> (10 quy tắc × 3 bộ, xoay vòng)</summary><p class="hint">Ô để trống = dùng lại câu gốc. Tên quy tắc và câu chốt lấy theo Sổ tay nhân viên, không sửa ở đây.</p>' +
+      j.rules.map(function (r, i) {
+        return '<details><summary>' + (i + 1) + '. ' + esc(r.t) + '</summary>' + r.tips.map(function (p, k) {
+          return '<div class="vh-edset"><b>Bộ ' + (k + 1) + '</b><label>💼 Công việc<textarea rows="2" data-vhe="' + i + '-' + k + '-w">' + esc(p.w) + '</textarea></label><label>🏡 Cuộc sống<textarea rows="2" data-vhe="' + i + '-' + k + '-l">' + esc(p.l) + '</textarea></label></div>';
+        }).join('') + '</details>';
+      }).join('') + '<button class="btn pri" id="vhSave" style="margin-top:8px">Lưu câu chữ</button></details>';
+    box.innerHTML = h;
+    var sv = $('#vhSave');
+    if (sv) sv.onclick = function () {
+      var out = j.rules.map(function (r) { return r.tips.map(function () { return { w: '', l: '' }; }); });
+      $$('[data-vhe]', box).forEach(function (el) { var p = el.getAttribute('data-vhe').split('-'); out[+p[0]][+p[1]][p[2]] = el.value; });
+      sv.disabled = true;
+      api('vh_save', { rules: out }).then(function (r) { S.vhAdm = r; S.vh = null; vhAdminPaint(); toast('✅ Đã lưu. Mọi người thấy câu mới từ lần mở CRM tới'); }, function (e) { sv.disabled = false; toast(e.message, true); });
+    };
+  }
   function setSec(title, desc, body) { return '<section class="set-sec"><h2>' + title + '</h2><p class="set-sec-d">' + desc + '</p>' + body + '</section>'; }
   /** 1 mục cài đặt thu gọn: tên + dòng tóm tắt đang cài thế nào; bấm mở ra phần sửa. Mở / đóng được nhớ trên máy (localStorage set_open: 1 mở, 0 đóng).
    *  def = mở sẵn khi người dùng chưa từng bấm mục này (Hướng dẫn nhanh; Telegram khi chưa kết nối). */
@@ -11713,6 +11789,7 @@
     if ($('#dayLimSave')) $('#dayLimSave').onclick = function () { var n = Math.max(5, Math.min(200, parseInt($('#dayLim').value, 10) || DAY_LIMIT_DEF)); store('crm_daylimit', String(n)); toast('Mỗi ngày tối đa ' + n + ' khách ✓'); navBadges(); };
     $('#logout').onclick = function () { if (confirm('Đăng xuất khỏi CRM?')) logout(); };
     if ($('#gqLoad')) $('#gqLoad').onclick = function () { gqList(false); };
+    if ($('#vhLoad')) $('#vhLoad').onclick = vhAdminList;
     if ($('#aiuLoad')) { $('#aiuLoad').onclick = function () { aiuShow(); }; if ($('#aiuBox').closest('details').open) aiuShow(); }
     var syncTags = function () { $$('#tagRows [data-ti]').forEach(function (r) { var i = +r.getAttribute('data-ti'); $$('[data-tk]', r).forEach(function (x) { S.f.tags[i][x.getAttribute('data-tk')] = x.value; }); }); };
     if ($('#tagRows')) $('#tagRows').addEventListener('input', syncTags);

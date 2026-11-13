@@ -24,6 +24,7 @@ import { journeySchema, wallHide } from './journey.js';
 import { crmLinks } from './links.js';
 import { crmAi } from './ai.js';
 import { guideAsk, guideAskList } from './guideask.js';
+import { vhToday, vhAck, vhAdmin, vhSave } from './vanhoa.js';
 import { aiUsage, aiFund } from './aiuse.js';
 import { crmAsk, askAllowed } from './ask.js';
 import { crmMcp } from './mcp.js';
@@ -2477,6 +2478,10 @@ export async function crmApi(x, d, sync, mgr) {
   if (a === 'load') return crmLoad(x, u, d);
   if (a === 'guide_ask') return guideAsk(x, u, d); // ✨ Hỏi trợ lý An Lành trong trang hướng dẫn (guideask.js)
   if (a === 'guide_ask_list') return guideAskList(x, u, d); // câu nhân sự đã hỏi trợ lý (Quản lý trở lên)
+  if (a === 'vh_today') return vhToday(x, u); // 🌿 Quy tắc của ngày (vanhoa.js)
+  if (a === 'vh_ack') return vhAck(x, u, d);
+  if (a === 'vh_admin') return vhAdmin(x, u);
+  if (a === 'vh_save') return vhSave(x, u, d);
   if (a === 'ai_usage') return aiUsage(x, u, d); // 🤖 mức dùng & chi phí AI theo mục (Quản trị, 10/11/2026, aiuse.js)
   if (a === 'ai_fund') return aiFund(x, u, d); // ghi số tiền đã nạp Anthropic → tính tiền còn lại, nhắc sắp hết
   if (a === 'ai_sum') return crmAi(x, u, d); // ✨ AI tóm tắt hồ sơ / gợi ý tin nhắn (chỉ khi có ANTHROPIC_API_KEY)

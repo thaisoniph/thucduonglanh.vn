@@ -427,6 +427,12 @@ Apps Script giới hạn 200 phiên bản/dự án: báo lỗi "Không tạo đ�
 
 ---
 
+### 🌿 Quy tắc của ngày – văn hoá (13/11/2026, api `2026-11-13c`)
+- Cả công ty cùng 1 trong 10 Quy Tắc Danh Dự Người VitaGreen mỗi ngày làm việc (anh Sơn chọn "chung", không ngẫu nhiên từng người). Xoay vòng theo ngày làm việc (bỏ Chủ nhật, CN dùng lại quy tắc thứ 7) từ 13/11/2026 = quy tắc 1; mỗi quy tắc 3 bộ gợi ý (💼 công việc + 🏡 cuộc sống), hết 10 ngày sang bộ kế tiếp → ~30 ngày làm việc mới lặp.
+- Máy chủ `api/src/vanhoa.js`: `VH_RULES` (nội dung gốc), `vhOfDay`, lệnh `vh_today`, `vh_ack {note}` (bảng `vh_ack` tự tạo, khoá day+email), `vh_admin` (Quản lý+), `vh_save` (Quản trị, lưu kv `vh_rules`, ô trống = câu gốc). `vhLine` thêm 1 dòng vào tin Telegram 8h (cron.js dailyCare, cả tin nhóm lẫn tin riêng). Không dùng AI.
+- CRM `app.js`: `vhMount` chèn thẻ ở đầu màn hình đầu tiên của mỗi người (`homeView()`), `vhCard` / `vhBind`; chưa nhận = thẻ đầy đủ + nút ✅ Hôm nay mình sẽ làm; đã nhận = lần mở sau thu 1 dòng; nút Thu gọn nhớ theo ngày (localStorage `vh_fold`). Máy chủ chưa có lệnh thì không hiện thẻ. Cài đặt → 👥 Nhân sự → 🌿 Văn hoá (`vhAdminList` / `vhAdminPaint`). CSS `.vh-*`.
+- Hướng dẫn nhân sự: `guide/van-hoa.md` (/huong-dan/van-hoa/, link "Xem cả 10 quy tắc" trên thẻ).
+
 ## 6b. Trợ lý viết bài tự động (10/11/2026)
 - Code: `api/src/blog.js`, cron 10 phút / lần (`blogTick`, chạy song song trong `cron.js`). Cài đặt + chủ đề: `data/blog-auto.json` (/admin → Cài đặt website → 🤖 Trợ lý viết bài tự động), máy chủ đọc qua GitHub API bằng mã `gh_cms_token`.
 - Ngày đăng theo số bài / tuần: 1 = T4; 2 = T3, T6; 3 = T2, T4, T6; 4 = T2, T3, T5, T7; 5 = T2–T6; 6 = T2–T7; 7 = mỗi ngày.

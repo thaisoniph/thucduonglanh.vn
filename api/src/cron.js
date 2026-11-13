@@ -16,6 +16,7 @@ import { refAuto, refSaleAuto } from './partner.js';
 import { finSync, finMorning } from './fin.js';
 import { khoTick, khoMorning } from './kho.js';
 import { insWeekly } from './insight.js';
+import { vhLine } from './vanhoa.js';
 
 function careMessage(items, leads, today, isGroup, who, R) {
   const block = (title, arr, tip) => !arr.length ? '' : '\n\n<b>' + title + ' (' + arr.length + ')</b> – ' + tip + '\n' + arr.slice(0, 25).map(c =>
@@ -39,11 +40,12 @@ export async function dailyCare(x) {
     items.push({ type: t.type, name: v.name, phone: v.phone, products: String(v.products || '').split('; ').slice(-2).join(', '), group: groupOf(v.orders, v.spent, v.last, R), ok: !!v.consent, owner: v.owner || '', late: t.late });
   }
   const leads = (await leadsData(x, "status IN ('Mới hỏi', 'Đang tư vấn')")).filter(l => leadDue(l, today));
-  await telegram(x.env, careMessage(items, leads, today, true, '', R));
+  let vh = ''; try { vh = await vhLine(x.db) + '\n\n'; } catch (e) { console.error('vhLine', e.message); } // 🌿 Quy tắc của ngày (vanhoa.js)
+  await telegram(x.env, vh + careMessage(items, leads, today, true, '', R));
   for (const u of await crmUsers(x)) {
     if (!u.active || !u.tg) continue;
     const mine = items.filter(i => i.owner === u.name), ml = leads.filter(l => l.owner === u.name);
-    if (mine.length || ml.length) await telegramTo(x.env, u.tg, careMessage(mine, ml, today, false, u.name, R));
+    if (mine.length || ml.length) await telegramTo(x.env, u.tg, vh + careMessage(mine, ml, today, false, u.name, R));
   }
   try { await usageAlert(x); } catch (e) { console.error('usageAlert', e.message); }
   return { items: items.length, leads: leads.length };
