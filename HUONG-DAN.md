@@ -434,6 +434,13 @@ Apps Script giới hạn 200 phiên bản/dự án: báo lỗi "Không tạo đ�
 - CRM `app.js`: `vhMount` chèn thẻ ở đầu màn hình đầu tiên của mỗi người (`homeView()`), `vhCard` / `vhBind`; chưa nhận = thẻ đầy đủ + nút ✅ Hôm nay mình sẽ làm; đã nhận = lần mở sau thu 1 dòng; nút Thu gọn nhớ theo ngày (localStorage `vh_fold`). Máy chủ chưa có lệnh thì không hiện thẻ. Cài đặt → 👥 Nhân sự → 🌿 Văn hoá (`vhAdminList` / `vhAdminPaint`). CSS `.vh-*`.
 - Hướng dẫn nhân sự: `guide/van-hoa.md` (/huong-dan/van-hoa/, link "Xem cả 10 quy tắc" trên thẻ).
 
+### 📢 Thông báo nội bộ (13/11/2026, api `2026-11-13w`)
+- Anh Sơn chọn: thông báo & văn bản quan trọng để trong CRM (biết ai đã đọc, người nghỉ hết quyền xem); group Facebook `family.thucduonglanh.vn` (Redirect Rule có sẵn → facebook.com/groups/thucduonglanhfamily) chỉ để lưu khoảnh khắc; ảnh gốc ở Drive `06_Nhân sự & Đào tạo`.
+- Máy chủ `api/src/thongbao.js`: bảng `tb_posts` (kind, title, body, link, by_email, by_name, at, upd_at, del) + `tb_read` (post, email, name, at), tự tạo (không qua SCHEMA_V). Lệnh `tb_list` / `tb_read {id}` (mọi vai trò, crm.js gọi `crmTb` trước bước chặn Marketing / Kho / Kế toán), `tb_save {id?, kind, title, body, link, tg}` (Quản lý+; `tg` = gửi Telegram riêng mọi người đã kết nối), `tb_del {id}` (người đăng hoặc Quản trị, chỉ ẩn `del = 1`). Thẻ hiện tin 60 ngày; Quản lý+ và người đăng nhận thêm `read` / `unread` từng tin. "Người cần đọc" = mọi tài khoản `active` trừ người đăng.
+- 8h sáng `tbDaily` (cron.js dailyCare): tin đăng từ 20 tiếng đến 3,5 ngày trước → Telegram riêng người chưa đọc + danh sách người chưa đọc cho người đăng.
+- CRM `app.js`: `tbMount` (cùng chỗ `vhMount`, nằm trên thẻ 🌿), `tbCard` / `tbPost` / `tbForm` / `tbBind`, tải lại sau 5 phút; hết tin chưa đọc thì thu thành `.tb-mini`. Có link family.thucduonglanh.vn. CSS `.tb-*`. Bản thử: `flow.js` kịch bản `tbfake` (+ `tbwho`, `tbnew`).
+- Hướng dẫn nhân sự: `guide/thong-bao.md` (/huong-dan/thong-bao/).
+
 ## 6b. Trợ lý viết bài tự động (10/11/2026)
 - Code: `api/src/blog.js`, cron 10 phút / lần (`blogTick`, chạy song song trong `cron.js`). Cài đặt + chủ đề: `data/blog-auto.json` (/admin → Cài đặt website → 🤖 Trợ lý viết bài tự động), máy chủ đọc qua GitHub API bằng mã `gh_cms_token`.
 - Ngày đăng theo số bài / tuần: 1 = T4; 2 = T3, T6; 3 = T2, T4, T6; 4 = T2, T3, T5, T7; 5 = T2–T6; 6 = T2–T7; 7 = mỗi ngày.

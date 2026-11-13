@@ -1109,7 +1109,7 @@
     var el = $('#view');
     var focusId = document.activeElement && document.activeElement.id, selStart = document.activeElement && document.activeElement.selectionStart;
     el.innerHTML = ({ 'hom-nay': viewToday, 'khach-hang': viewCustomers, 'don-hang': viewOrders, 'tiem-nang': viewLeads, 'bao-cao': viewReport, 'cai-dat': viewSettings, 'tong-quan': viewDash, san: viewSan, marketing: viewMkt, 'link-qr': viewLinks, 'tro-ly-zalo': viewZbot, fanpage: viewFp, 'bai-web': viewBlog, 'noi-dung': viewIns, 'hoi-so-lieu': viewAsk, kho: viewKho, 'ke-toan': viewKtab, them: viewMore })[v]();
-    if (v === homeView()) vhMount(el); // 🌿 Quy tắc của ngày ở đầu màn hình đầu tiên của mỗi người
+    if (v === homeView()) { vhMount(el); tbMount(el); } // 🌿 Quy tắc của ngày + 📢 Thông báo (nằm trên) ở đầu màn hình đầu tiên của mỗi người
     el.insertAdjacentHTML('beforeend', updatedLine());
     if (focusId && $('#' + focusId)) { var f = $('#' + focusId); f.focus(); try { f.setSelectionRange(selStart, selStart); } catch (e) { } }
     if (keepScroll) window.scrollTo(0, y); else window.scrollTo(0, 0);
@@ -12024,6 +12024,76 @@
       sv.disabled = true;
       api('vh_save', { rules: out }).then(function (r) { S.vhAdm = r; S.vh = null; vhAdminPaint(); toast('✅ Đã lưu. Mọi người thấy câu mới từ lần mở CRM tới'); }, function (e) { sv.disabled = false; toast(e.message, true); });
     };
+  }
+  /* ================================================================ 📢 Thông báo nội bộ (13/11/2026, api thongbao.js)
+   * Thẻ ở đầu màn hình đầu tiên (trên thẻ 🌿 Quy tắc): tin chưa đọc hiện đầy đủ + ✅ Tôi đã đọc; hết tin mới thì thu 1 dòng, bấm xem lại.
+   * Quản lý / Quản trị: ➕ Đăng thông báo (kèm link văn bản Drive, gửi Telegram riêng), xem ai đã đọc / chưa đọc, ẩn tin. */
+  function tbLoad() {
+    if (S.tbBusy) return; S.tbBusy = 1;
+    api('tb_list', {}).then(function (j) { S.tbBusy = 0; if (j && j.tb) { S.tb = j.tb; tbPaint(); } else S.tbFail = Date.now(); }, function () { S.tbBusy = 0; S.tbFail = Date.now(); }); // máy chủ cũ / mất mạng: không hiện thẻ
+  }
+  function tbMount(el) {
+    if ((!S.tb || Date.now() - S.tb.at > 300e3) && !(S.tbFail && Date.now() - S.tbFail < 600e3)) tbLoad();
+    el.insertAdjacentHTML('afterbegin', '<div id="tbBox">' + (S.tb ? tbCard() : '') + '</div>');
+    tbBind();
+  }
+  function tbPaint() { var b = $('#tbBox'); if (b) { b.innerHTML = tbCard(); tbBind(); } }
+  function tbText(s) { return esc(s).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>').replace(/\n/g, '<br>'); }
+  function tbPost(p) {
+    var mgr = S.tb.canPost, who = p.read ? (S.tbWho === p.id ? '<div class="tb-who"><p><b>✅ Đã đọc (' + p.read.length + '):</b> ' + (p.read.map(function (r) { return esc(r.name); }).join(', ') || 'chưa ai') + '</p><p><b>⏳ Chưa đọc (' + p.unread.length + '):</b> ' + (p.unread.map(esc).join(', ') || 'không còn ai 🎉') + '</p><p class="hint">8h sáng hằng ngày (3 ngày đầu), ai chưa đọc được Telegram nhắc riêng, bạn nhận danh sách người chưa đọc.</p></div>' : '') : '';
+    return '<article class="tb-post' + (p.mine ? ' tb-seen' : '') + '"><div class="tb-kind">' + esc(p.kind) + ' · ' + fDateTime(p.at) + ' · ' + esc(p.by) + (p.upd ? ' · đã sửa' : '') + '</div>' +
+      '<h3>' + esc(p.title) + '</h3>' + (p.body ? '<p class="tb-body">' + tbText(p.body) + '</p>' : '') +
+      (p.link ? '<a class="btn sm tb-link" href="' + esc(p.link) + '" target="_blank" rel="noopener">📄 Mở văn bản / link đính kèm</a>' : '') +
+      '<div class="tb-act">' + (p.mine ? '<span class="tb-ok">✅ ' + (p.own ? 'Bạn đăng tin này' : 'Bạn đã đọc lúc ' + fDateTime(p.mine)) + '</span>' : '<button class="btn pri" data-tb="read" data-id="' + p.id + '">✅ Tôi đã đọc</button>') +
+      (p.read ? '<button class="btn sm" data-tb="who" data-id="' + p.id + '">👁 ' + p.n + '/' + p.total + ' người đã đọc</button>' : '<span class="tb-cnt">' + p.n + ' người đã đọc</span>') +
+      (mgr && p.own ? '<button class="btn sm" data-tb="edit" data-id="' + p.id + '">✏️ Sửa</button>' : '') + (p.own || lvl() >= 3 ? '<button class="btn sm" data-tb="del" data-id="' + p.id + '">Ẩn</button>' : '') + '</div>' + who + '</article>';
+  }
+  function tbForm() {
+    var e = S.tbEdit && S.tb.posts.filter(function (p) { return p.id === S.tbEdit; })[0] || {};
+    return '<div class="tb-form"><b>' + (e.id ? '✏️ Sửa thông báo' : '➕ Đăng thông báo mới') + '</b>' +
+      '<label>Loại<select id="tbKind">' + S.tb.kinds.map(function (k) { return '<option' + (k === e.kind ? ' selected' : '') + '>' + esc(k) + '</option>'; }).join('') + '</select></label>' +
+      '<label>Tiêu đề<input id="tbTitle" maxlength="150" placeholder="Vd: Lịch nghỉ Tết Dương lịch 2027" value="' + esc(e.title || '') + '"></label>' +
+      '<label>Nội dung<textarea id="tbBodyIn" rows="5" maxlength="4000" placeholder="Viết ngắn gọn: việc gì, ai cần làm gì, hạn khi nào">' + esc(e.body || '') + '</textarea></label>' +
+      '<label>Link văn bản (không bắt buộc)<input id="tbLinkIn" maxlength="500" placeholder="Dán link Google Drive / Google Docs của văn bản" value="' + esc(e.link || '') + '"></label>' +
+      '<p class="hint" style="margin:2px 0 6px">Văn bản để trên Google Drive, nhớ chia sẻ "Bất kỳ ai có đường liên kết đều xem được" hoặc chia sẻ cho email nhân sự.</p>' +
+      '<label class="tb-chk"><input type="checkbox" id="tbTg" checked> Gửi Telegram riêng cho mọi người (ai đã kết nối Telegram với CRM)</label>' +
+      '<div class="tb-act"><button class="btn pri" data-tb="save">' + (e.id ? 'Lưu' : '📢 Đăng') + '</button><button class="btn" data-tb="cancel">Huỷ</button></div></div>';
+  }
+  function tbCard() {
+    var t = S.tb, P = t.posts, unread = P.filter(function (p) { return !p.mine; });
+    if (!P.length && !t.canPost) return '';
+    var fam = '<a class="tb-fam" href="https://family.thucduonglanh.vn" target="_blank" rel="noopener">📸 Xem khoảnh khắc trà đàm, lễ chùa, team building ở group Thực Dưỡng Lành Family</a>';
+    if (!unread.length && !S.tbOpen && !S.tbNew) return '<button class="tb-mini" data-tb="open">📢 Thông báo công ty: <b>không có tin mới</b><span>' + (P.length ? 'Bấm để xem lại ' + P.length + ' tin gần đây' : 'Bấm để đăng thông báo') + '</span></button>';
+    var list = S.tbOpen ? P : unread;
+    return '<section class="tb-card"><div class="tb-hd"><span>📢 Thông báo công ty' + (unread.length ? ' · <b>' + unread.length + ' tin chưa đọc</b>' : '') + '</span><span>' +
+      (t.canPost && !S.tbNew ? '<button class="btn sm" data-tb="new">➕ Đăng thông báo</button> ' : '') +
+      (unread.length && !S.tbOpen ? (P.length > unread.length ? '<button class="tb-fold" data-tb="open">Xem cả tin cũ</button>' : '') : '<button class="tb-fold" data-tb="close">Thu gọn ▲</button>') + '</span></div>' +
+      (S.tbNew ? tbForm() : '') + (list.length ? list.map(tbPost).join('') : '<p class="hint">Chưa có thông báo nào trong 60 ngày qua.</p>') + fam + '</section>';
+  }
+  function tbBind() {
+    $$('#tbBox [data-tb]').forEach(function (b) {
+      b.onclick = function () {
+        var k = b.getAttribute('data-tb'), id = +b.getAttribute('data-id') || 0;
+        if (k === 'open') { S.tbOpen = 1; return tbPaint(); }
+        if (k === 'close') { S.tbOpen = 0; S.tbNew = 0; S.tbEdit = 0; return tbPaint(); }
+        if (k === 'new') { S.tbNew = 1; S.tbEdit = 0; tbPaint(); var i = $('#tbTitle'); if (i) i.focus(); return; }
+        if (k === 'edit') { S.tbNew = 1; S.tbEdit = id; S.tbOpen = 1; tbPaint(); $('#tbBox').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+        if (k === 'cancel') { S.tbNew = 0; S.tbEdit = 0; return tbPaint(); }
+        if (k === 'who') { S.tbWho = S.tbWho === id ? 0 : id; return tbPaint(); }
+        if (k === 'del' && !confirm('Ẩn thông báo này? Mọi người sẽ không thấy nữa.')) return;
+        var p = { id: id }, ok = '';
+        if (k === 'save') {
+          p = { id: S.tbEdit || 0, kind: $('#tbKind').value, title: $('#tbTitle').value, body: $('#tbBodyIn').value, link: $('#tbLinkIn').value, tg: $('#tbTg').checked ? 1 : 0 };
+          if (!p.title.trim()) return toast('Bạn ghi tiêu đề thông báo nhé', true);
+        }
+        b.disabled = true;
+        api('tb_' + k, p).then(function (j) {
+          S.tb = j.tb; if (k === 'save') { S.tbNew = 0; S.tbEdit = 0; S.tbOpen = 1; }
+          tbPaint();
+          toast(k === 'read' ? '✅ Cảm ơn bạn đã đọc' : k === 'del' ? 'Đã ẩn thông báo' : '📢 Đã ' + (p.id ? 'lưu' : 'đăng') + (j.sent ? ', đã gửi Telegram cho ' + j.sent + ' người' : ''));
+        }, function (e) { b.disabled = false; toast(e.message, true); });
+      };
+    });
   }
   function setSec(title, desc, body) { return '<section class="set-sec"><h2>' + title + '</h2><p class="set-sec-d">' + desc + '</p>' + body + '</section>'; }
   /** 1 mục cài đặt thu gọn: tên + dòng tóm tắt đang cài thế nào; bấm mở ra phần sửa. Mở / đóng được nhớ trên máy (localStorage set_open: 1 mở, 0 đóng).

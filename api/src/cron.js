@@ -18,6 +18,7 @@ import { finSync, finMorning } from './fin.js';
 import { khoTick, khoMorning } from './kho.js';
 import { insWeekly } from './insight.js';
 import { vhLine } from './vanhoa.js';
+import { tbDaily } from './thongbao.js';
 
 function careMessage(items, leads, today, isGroup, who, R) {
   const block = (title, arr, tip) => !arr.length ? '' : '\n\n<b>' + title + ' (' + arr.length + ')</b> – ' + tip + '\n' + arr.slice(0, 25).map(c =>
@@ -49,6 +50,7 @@ export async function dailyCare(x) {
     if (mine.length || ml.length) await telegramTo(x.env, u.tg, vh + careMessage(mine, ml, today, false, u.name, R));
   }
   try { await usageAlert(x); } catch (e) { console.error('usageAlert', e.message); }
+  try { await tbDaily(x); } catch (e) { console.error('tbDaily', e.message); } // 📢 nhắc người chưa đọc thông báo (thongbao.js)
   return { items: items.length, leads: leads.length };
 }
 

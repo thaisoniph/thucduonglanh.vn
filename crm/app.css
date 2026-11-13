@@ -2356,3 +2356,21 @@ b.csx-c-ok { color: var(--primary-2); } b.csx-c-sua { color: var(--orange); } b.
 .kpt-plus input { width: 64px; margin: 0 0 6px 6px; }
 .kpt-sum { position: sticky; bottom: 0; background: var(--card, #fff); border-top: 2px solid var(--primary); padding: 8px 2px; }
 .kpt-sum b { font-size: 17px; } .kpt-sum small { display: block; color: var(--muted); }
+
+/* 📢 Thông báo nội bộ (13/11/2026, app.js tbCard) */
+.tb-card { background: #fff; border: 2px solid var(--primary); border-radius: 16px; padding: 12px 16px; margin: 0 0 12px; }
+.tb-hd { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 14px; color: var(--primary); font-weight: 700; }
+.tb-fold { border: 0; background: none; color: var(--muted); font-size: 13px; cursor: pointer; padding: 4px 0; }
+.tb-post { border-top: 1px solid var(--line); padding: 10px 0 8px; } .tb-post:first-of-type { border-top: 0; }
+.tb-seen { opacity: .85; }
+.tb-kind { font-size: 12px; color: var(--muted); }
+.tb-post h3 { font-size: 17px; color: var(--ink); margin: 2px 0 4px; }
+.tb-body { margin: 0 0 8px; white-space: normal; overflow-wrap: anywhere; }
+.tb-link { display: inline-block; margin: 0 0 8px; }
+.tb-act { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; } .tb-ok { color: var(--primary); font-weight: 600; font-size: 14px; } .tb-cnt { color: var(--muted); font-size: 13px; }
+.tb-who { background: var(--primary-soft); border-radius: 10px; padding: 6px 12px; margin-top: 8px; font-size: 14px; } .tb-who p { margin: 4px 0; }
+.tb-form { background: var(--primary-soft); border-radius: 12px; padding: 10px 12px; margin: 8px 0; } .tb-form label { display: block; font-size: 13px; margin-top: 6px; }
+.tb-form input:not([type=checkbox]), .tb-form textarea, .tb-form select { width: 100%; } .tb-chk { display: flex !important; gap: 6px; align-items: center; margin: 4px 0 8px !important; }
+.tb-fam { display: block; margin-top: 8px; font-size: 13px; }
+.tb-mini { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; width: 100%; text-align: left; background: var(--primary-soft); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; margin: 0 0 12px; font: inherit; color: var(--ink); cursor: pointer; }
+.tb-mini span { color: var(--muted); font-size: 13px; }

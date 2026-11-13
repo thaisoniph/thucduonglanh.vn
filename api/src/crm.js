@@ -26,6 +26,7 @@ import { crmLinks } from './links.js';
 import { crmAi } from './ai.js';
 import { guideAsk, guideAskList } from './guideask.js';
 import { vhToday, vhAck, vhAdmin, vhSave } from './vanhoa.js';
+import { crmTb } from './thongbao.js';
 import { aiUsage, aiFund } from './aiuse.js';
 import { crmAsk, askAllowed } from './ask.js';
 import { crmMcp } from './mcp.js';
@@ -2519,6 +2520,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (!u) return { ok: false, auth: true, error: 'Phiên đăng nhập đã hết. Vui lòng đăng nhập lại.' };
   x.user = u;
   if (a === 'logout') { await run(x.db, 'DELETE FROM sessions WHERE token = ?', d.token); return { ok: true }; }
+  if (/^tb_/.test(a)) return crmTb(x, u, d); // 📢 Thông báo nội bộ (thongbao.js): mọi vai trò đều đọc được
   if (u.role === 'Marketing' && !MKT_ACTIONS[a]) return { ok: false, error: 'Tài khoản Marketing chỉ xem được phần quảng cáo.' };
   if (u.role === 'Kho' && !KHO_ROLE_OK[a] && !/^kho_/.test(a)) return { ok: false, error: 'Tài khoản Kho chỉ dùng được tab 📦 Kho.' };
   if (u.role === 'Kế toán' && ((!KT_ROLE_OK[a] && !/^kt_/.test(a)) || (a === 'settings' && !ktSettingsOk(d)))) return { ok: false, error: 'Tài khoản Kế toán chỉ dùng được tab 💼 Kế toán.' };
