@@ -5,8 +5,8 @@
  * - Thẻ ở đầu màn hình đầu tiên của mỗi người (app.js tbCard): tin chưa đọc hiện đầy đủ + nút ✅ Tôi đã đọc.
  * - Người đăng / Quản lý trở lên xem ai đã đọc, ai chưa. 8h sáng (cron.js dailyCare → tbDaily): ai chưa đọc tin trong 3 ngày
  *   được Telegram nhắc riêng; người đăng nhận danh sách người chưa đọc. Không dùng AI. */
-import { run, all, esc, DAY, CRM_URL } from './lib.js';
-import { crmUsers } from './crm.js';
+import { run, all, esc, DAY, CRM_URL, kvGet, kvSet } from './lib.js';
+import { crmUsers, SUPER_ADMIN } from './crm.js';
 import { telegramTo } from './google.js';
 
 export const TB_KINDS = ['📢 Thông báo', '📄 Văn bản', '📅 Lịch / sự kiện', '🎉 Tin vui'];
@@ -80,9 +80,20 @@ export async function tbSave(x, u, d) {
   const r = await tbList(x, u); r.sent = sent; r.wait = wait; return r;
 }
 
+/** 14/11/2026 anh Sơn nhờ đăng hộ (1 lần): thông báo phát động mở rộng khách, hiện 7h30 14/11, ghim tới hết 30/11, Telegram khi tới giờ. */
+const TB_1411 = { kind: '📢 Thông báo', title: '🌱 Nửa tháng cuối, mỗi chị em mình thêm 6 người khách của riêng mình nhé!', link: 'https://crm.thucduonglanh.vn/huong-dan/mo-rong-khach/',
+  show: Date.UTC(2026, 10, 14, 0, 30), until: Date.UTC(2026, 10, 30, 17, 0), body: "Gửi cả nhà mình,\n\nChị em mình gọi điện mỗi ngày, có hôm chục cuộc mà chưa ra đơn nào. Sơn hiểu cảm giác đó. Nhưng Sơn tin một điều: khách mình chăm bằng cả tấm lòng thì sẽ không đi đâu cả. Họ sẽ quay lại, rồi rủ thêm người thân, bạn bè đến với mình.\n\nTừ hôm nay đến 30/11, Sơn mời chị em cùng làm một việc nhỏ mà ý nghĩa lâu dài: mỗi chị em có thêm 6 khách của riêng mình.\n🤝 4 khách do khách cũ giới thiệu · 🔍 2 khách chị em tự tìm\n\n💰 Khách chị em mang về là khách của chị em:\n• 6% mọi đơn trong 6 tháng\n• Thưởng thêm 20k – 50k – 100k theo mức khách mua\n• Hết 6 tháng, khách vẫn là của chị em\nMỗi người khách hôm nay là thu nhập đều đặn của những tháng sau.\n\n✅ Mỗi ngày chỉ 30 phút, 5 việc nhỏ (tab Hôm nay → 🌱 Mở rộng khách):\n1. Mời 2 khách cũ giới thiệu bạn bè\n2. Mời 1 khách vào nhóm Zalo\n3. Gọi lại 1 khách từng nói \"Không mua\"\n4. Nhận 1 số ở Kho chung\n5. Đăng 1 bài Facebook (bài viết sẵn, chỉ cần copy)\n\nHôm nào chưa ra đơn cũng không sao. Mọi công sức của chị em đều được ghi nhận trên bảng thi đua và trong báo cáo mỗi tối.\n\nNgày 24/11, Sơn và chị em cùng nhìn lại chặng giữa. Sơn tin chị em làm được, vì chị em đã vượt qua nhiều điều khó hơn thế này rồi. 💚\n\n(Khách tính khi số chưa có trong CRM, không tính người nhà và khách biết qua quảng cáo công ty.)\nĐọc xong chị em bấm ✅ Tôi đã đọc nhé!" };
+async function tbSeed(x) {
+  if (await kvGet(x.db, 'tb_1411_mig')) return;
+  await kvSet(x.db, 'tb_1411_mig', '1');
+  const boss = (await crmUsers(x)).find(z => z.email === SUPER_ADMIN), T = TB_1411;
+  await run(x.db, 'INSERT INTO tb_posts (kind, title, body, link, by_email, by_name, at, show_at, until, pin, tg_wait) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 1)', T.kind, T.title, T.body, T.link, SUPER_ADMIN, boss ? boss.name : 'Sơn', Date.now(), T.show > Date.now() + 60e3 ? T.show : null, T.until);
+}
+
 /** Mỗi lượt cron (10 phút, 7h–22h): tin hẹn giờ có chọn gửi Telegram → tới giờ thì gửi riêng cho mọi người. */
 export async function tbTick(x) {
   await schema(x.db);
+  try { await tbSeed(x); } catch (e) { console.error('tbSeed', e.message); }
   const now = Date.now(), posts = await all(x.db, 'SELECT id, kind, title, body, link, by_email, by_name FROM tb_posts WHERE del = 0 AND tg_wait = 1 AND show_at <= ?', now);
   if (!posts.length) return 0;
   const ppl = await staff(x); let n = 0;
