@@ -3,7 +3,7 @@
  * để mọi người có chuyện nói với nhau. Thứ tự ưu tiên: ngày lễ / rằm / mùng 1 (lịch zday.js) → thứ Hai → thứ Bảy → Chủ nhật → ngày thường.
  * Câu chúc ấm áp, 1 dòng, không nhắc doanh số / tiền / bán hàng. Quản trị sửa ở Cài đặt → 👥 Nhân sự → 🌿 Văn hoá (kv 'vh_wish': mỗi ô 1 câu / dòng, ô trống = câu gốc).
  * Không dùng AI → không tốn tiền. Gửi kèm lệnh vh_today (vanhoa.js). */
-import { kvJson, kvSet, fmtDate, DAY } from './lib.js';
+import { all, kvJson, kvSet, fmtDate, DAY } from './lib.js';
 import { eventsAhead } from './zday.js';
 
 export const WISH0 = {
@@ -138,6 +138,22 @@ export async function wishOfDay(db, t) {
   return { day, t: L[Math.floor(wd === 1 || wd === 6 || wd === 0 ? n / 7 : n) % L.length] };
 }
 
+/** 🎂 Ngày sinh nhân sự (14/11/2026): "25/3", "25-03-1995", "1995-03-25" → "25/03" hoặc "25/03/1995"; sai → ''. */
+export function dobNorm(v) {
+  const s = String(v || '').trim(); let d, m, y = '';
+  let r = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/); if (r) { y = r[1]; m = +r[2]; d = +r[3]; }
+  else if ((r = s.match(/^(\d{1,2})[\/.\-](\d{1,2})(?:[\/.\-](\d{4}))?$/))) { d = +r[1]; m = +r[2]; y = r[3] || ''; }
+  else return '';
+  if (!(m >= 1 && m <= 12 && d >= 1 && d <= 31)) return '';
+  return String(d).padStart(2, '0') + '/' + String(m).padStart(2, '0') + (y ? '/' + y : '');
+}
+
+/** Nhân sự đang làm có sinh nhật vào ngày VN `day` ('yyyy-MM-dd'): [{ email, name }]. Cột dob chưa có (máy chủ chưa chạy ensureSchema) → []. */
+export async function bdayStaff(db, day) {
+  const dm = day.slice(8, 10) + '/' + day.slice(5, 7);
+  try { return (await all(db, "SELECT email, name FROM users WHERE active = 1 AND substr(dob, 1, 5) = ?", dm)).map(r => ({ email: r.email, name: r.name || r.email.split('@')[0] })); } catch (e) { return []; }
+}
+
 /** Quản trị sửa: d.wish = { daily: [..], mon: [..], sat: [..], sun: [..] }. Danh sách trống hoặc giống hệt bản gốc = dùng bản gốc. */
 export async function wishSave(db, d) {
   const src = d && d.wish || {}, o = {};
@@ -146,4 +162,13 @@ export async function wishSave(db, d) {
     o[k] = L.join('\n') === WISH0[k].join('\n') ? [] : L;
   }
   await kvSet(db, 'vh_wish', JSON.stringify(o));
+}
+
+/** Câu chúc hôm nay cho 1 người: người có sinh nhật hôm nay nhận lời chúc sinh nhật riêng; người khác thấy thêm `bday` (tên những ai sinh nhật hôm nay) để nhắn chúc mừng. */
+export async function wishFor(db, u) {
+  const w = await wishOfDay(db), B = await bdayStaff(db, w.day);
+  const me = u && B.some(b => b.email === u.email), others = B.filter(b => !u || b.email !== u.email).map(b => b.name);
+  if (me) { w.t = 'Chúc mừng sinh nhật ' + u.name + '! 🎂 Cả nhà Thực Dưỡng Lành chúc bạn tuổi mới thật nhiều sức khoẻ, bình an và hạnh phúc 🎉'; w.mine = 1; }
+  if (others.length) w.bday = others;
+  return w;
 }

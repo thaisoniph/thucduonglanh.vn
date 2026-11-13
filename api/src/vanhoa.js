@@ -6,7 +6,7 @@
  * Quản lý / Quản trị xem ai đã bấm, chuyện hay trong tuần (Cài đặt → 🌿 Văn hoá); Quản trị sửa câu chữ gợi ý (lưu kv 'vh_rules').
  * Tin Telegram 8h (cron.js dailyCare) có thêm 1 dòng quy tắc hôm nay. Không dùng AI → không tốn tiền. */
 import { run, all, kvJson, kvSet, fmtDate, DAY, TZ_MS } from './lib.js';
-import { wishOfDay, wishes, wishSave } from './loichuc.js'; // ☀️ lời chúc mỗi ngày (14/11/2026) đi kèm vh_today
+import { wishOfDay, wishFor, wishes, wishSave, bdayStaff } from './loichuc.js'; // ☀️ lời chúc mỗi ngày (14/11/2026) đi kèm vh_today
 
 export const VH_RULES = [
   { t: 'Luôn sát cánh cùng đồng đội', q: 'Đi một mình có thể nhanh. Đi cùng đội ngũ mới có thể đi xa.', tips: [
@@ -87,7 +87,7 @@ export async function vhToday(x, u) {
   const r = await vhOfDay(x.db);
   const [me] = await all(x.db, 'SELECT at, note FROM vh_ack WHERE day = ? AND email = ?', r.day, u.email);
   const [c] = await all(x.db, 'SELECT COUNT(*) AS n FROM vh_ack WHERE day = ?', r.day);
-  let wish = null; try { wish = await wishOfDay(x.db); } catch (e) { }
+  let wish = null; try { wish = await wishFor(x.db, u); } catch (e) { }
   return { ok: true, vh: Object.assign(r, { mine: me ? { at: me.at, note: me.note || '' } : null, cnt: c ? c.n : 0, wish }) };
 }
 
@@ -129,6 +129,6 @@ export async function vhWishSave(x, u, d) {
 
 /** 1 dòng cho tin Telegram 8h. */
 export async function vhLine(db) {
-  const r = await vhOfDay(db);
-  return '🌿 <b>Quy tắc hôm nay · ' + r.n + '. ' + r.t + '</b>\n<i>' + r.q + '</i>\n👉 ' + r.w;
+  const r = await vhOfDay(db), B = await bdayStaff(db, r.day); // 🎂 sinh nhật nhân sự hôm nay → nhắc cả nhà chúc mừng
+  return '🌿 <b>Quy tắc hôm nay · ' + r.n + '. ' + r.t + '</b>\n<i>' + r.q + '</i>\n👉 ' + r.w + (B.length ? '\n🎂 Hôm nay sinh nhật <b>' + B.map(b => b.name).join(', ') + '</b>, nhớ gửi lời chúc mừng nhé!' : '');
 }

@@ -17,7 +17,12 @@ Mở CRM ra, dòng trên cùng là **lời chào có tên bạn** (Chào buổi 
 - Cả công ty cùng thấy **một câu chúc** mỗi ngày. Hôm sau sẽ là câu khác.
 - Thứ Hai có câu chúc đầu tuần, thứ Bảy có câu chúc cuối tuần.
 - Ngày lễ, rằm, mùng 1, Tết có câu chúc riêng.
+- **Sinh nhật đồng đội** 🎂: hôm đó người có sinh nhật thấy lời chúc mừng sinh nhật riêng. Mọi người khác thấy dòng “🎂 Hôm nay là sinh nhật …” để nhắn chúc mừng. Tin Telegram 8h sáng cũng nhắc.
 - Không cần bấm gì. Đọc, mỉm cười rồi bắt đầu ngày mới 😊
+
+<p id="h-ngay-sinh" class="g-q"><strong>Nhập ngày sinh nhân sự ở đâu? (Quản trị)</strong></p>
+
+CRM → **⚙️ Cài đặt** → **👥 Nhân sự** → ở dòng của từng người, gõ vào ô **🎂 Ngày sinh**, ví dụ `25/03` hoặc `25/03/1995` → bấm **Lưu nhân sự**. Chỉ Quản trị thấy ngày sinh. Mọi người chỉ thấy tên người có sinh nhật vào đúng ngày hôm đó.
 
 <p id="h-sua-loi-chuc" class="g-q"><strong>Sửa hoặc thêm câu chúc ở đâu? (Quản trị)</strong></p>
 

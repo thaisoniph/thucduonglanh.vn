@@ -2427,3 +2427,4 @@ b.csx-c-ok { color: var(--primary-2); } b.csx-c-sua { color: var(--orange); } b.
 @media (min-width: 860px) { .hiw-hi { font-size: 26px; } .hiw-wish { font-size: 16px; } }
 .hiw-ed { display: block; margin: 8px 0 0; font-weight: 600; }
 .hiw-ed textarea { display: block; width: 100%; margin-top: 4px; font-weight: 400; }
+.hiw-bday { display: inline-block; font-size: 14px; color: #8a5a00; background: var(--gold-light, #fff6e0); border-radius: 999px; padding: 4px 12px; margin: 8px 0 0; }
