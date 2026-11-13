@@ -21,9 +21,11 @@ roles: [sale, ql]
 - 💰 Khung vàng dưới mỗi việc ghi **lợi ích của bạn** khi làm việc đó.
 - ⑥ Khách đọc số bạn bè cho bạn: bấm **＋ Thêm khách được giới thiệu** (cũng tính 1 việc).
 
-Việc nào chưa có khách thì làm thêm việc khác cho đủ 5. Chưa ra đơn vẫn được tính.
+Việc nào chưa có khách thì làm thêm việc khác cho đủ 5 (làm dư ở việc khác, hoặc tự thêm khách, đều bù được). Chưa ra đơn vẫn được tính.
 
-## Việc 1: Mời 1 khách cũ giới thiệu bạn bè
+## Việc 1: Mời 2 khách cũ giới thiệu bạn bè
+
+Mỗi ngày mời **ít nhất 2 người** (từ 14/11/2026). Khoảng 5 lời mời thì ra 1 khách mới, nên mời đều mỗi ngày mới đủ mục tiêu tháng. Mời đủ 2 người thì việc 1 mới có dấu ✓.
 
 💰 **Lợi ích:** bạn của khách là khách mới không tốn quảng cáo. Bạn hưởng **6% mọi đơn trong 6 tháng** + thưởng đến **100.000đ**.
 

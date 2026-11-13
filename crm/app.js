@@ -3729,8 +3729,16 @@
   /** 13/11/2026 anh Sơn (rà lại mở rộng khách): khung 🌱 nằm dưới phần chăm sóc, nên đầu tab Hôm nay có 1 dòng nhắc số việc đã làm, bấm là nhảy xuống khung. */
   function growHeroLine() {
     if (isMkt() || !selfOn()) return '';
-    var t0 = today(), n = Math.min(5, effortStats(S.user.name, t0, t0 + DAY).tot);
+    var t0 = today(), n = growDone(effortStats(S.user.name, t0, t0 + DAY));
     return '<button type="button" class="grow-hero' + (n >= 5 ? ' ok' : '') + '" data-gopen="grow"><span>🌱 Mở rộng khách hôm nay: <b>' + n + ' / 5 việc</b></span><em>' + (n >= 5 ? '✅ Đủ rồi' : n ? 'Làm tiếp ›' : 'Bắt đầu ›') + '</em></button>';
+  }
+  /** 14/11/2026 anh Sơn (phát động mở rộng khách 6 khách/người đến 30/11): việc 1 = mời ít nhất 2 khách cũ giới thiệu / ngày (4 khách giới thiệu cần ~20 lời mời trong 14 ngày).
+   *  Mỗi việc cần đủ số lần mới tính xong; làm dư ở việc khác hoặc tự thêm khách thì bù cho việc chưa có khách, tối đa 5. */
+  function growNeed() { var p = isPoolStaff() && poolOn(); return { inv: p ? 2 : 3, zl: 1, old: 1, pool: p ? 1 : 0, fb: 1 }; }
+  function growDone(ef) {
+    var N = growNeed(), ok = 0, extra = ef.self || 0;
+    Object.keys(N).forEach(function (k) { if (!N[k]) return; var v = ef[k] || 0; if (v >= N[k]) { ok++; extra += v - N[k]; } });
+    return Math.min(5, ok + extra);
   }
   function idleBlock() {
     var me = S.user.name, pool = isPoolStaff() && poolOn() ? (S.d.leads || []).filter(function (l) { return !l.owner && isOpenLead(l); }).length : 0, idle = idleLeads(me), amb = 0;
@@ -3740,14 +3748,13 @@
     var none = function (t) { return '<span class="gr-none">' + t + '</span>'; };
     // 13/11/2026 anh Sơn: mỗi việc ghi rõ LỢI ÍCH cho sale (💰), đăng bài Facebook cá nhân / hội nhóm là việc thứ 5 (mỗi ngày 1 bài)
     var T = [
-      { v: ef.inv, n: 1, icon: '🌱', t: 'Mời 1 khách cũ giới thiệu bạn bè', how: 'Gọi khách đã dùng 7–30 ngày. Khách khen thì bấm 🌱 Mời giới thiệu, gửi tin có sẵn.', g: 'Bạn của khách là khách mới không tốn quảng cáo: bạn hưởng ' + (PP.own || 6) + '% mọi đơn trong 6 tháng + thưởng đến 100.000đ.', b: amb ? '<button class="btn pri" data-gopen="amb">Mời ngay</button>' : none('chưa có khách tới lượt') },
+      { v: ef.inv, n: growNeed().inv, icon: '🌱', t: 'Mời ' + growNeed().inv + ' khách cũ giới thiệu bạn bè', how: 'Gọi khách đã dùng 7–30 ngày. Khách khen thì bấm 🌱 Mời giới thiệu, gửi tin có sẵn. Mỗi ngày mời ít nhất ' + growNeed().inv + ' người: khoảng 5 lời mời ra 1 khách mới.', g: 'Bạn của khách là khách mới không tốn quảng cáo: bạn hưởng ' + (PP.own || 6) + '% mọi đơn trong 6 tháng + thưởng đến 100.000đ.', b: amb ? '<button class="btn pri" data-gopen="amb">Mời ngay</button>' : none('chưa có khách tới lượt') },
       { v: ef.zl, n: 1, icon: '👥', t: 'Mời 1 khách vào nhóm Zalo cộng đồng', how: 'Bấm Mời: lời mời có link nhóm tự copy, Zalo của khách tự mở.', g: 'Công ty chăm khách mỗi ngày giúp bạn: khách trong nhóm tin hơn, mua lại nhiều hơn, đơn khách cũ của bạn tăng.', b: zlN ? '<button class="btn pri" data-commpick>Mời vào nhóm</button>' : none('khách đều đã vào nhóm') },
       { v: ef.old, n: 1, icon: '😴', t: 'Gọi lại 1 khách từng nói “Không mua”', how: 'Mở lời bằng lý do mới: sản phẩm mới, ưu đãi tháng này, hỏi thăm sức khoẻ.', g: 'Khách đã biết sản phẩm, chỉ là lúc trước chưa đúng lúc: dễ chốt hơn một số lạ.', b: idle.length ? '<button class="btn pri" data-gopen="idle">Gọi lại</button>' : none('chưa có khách tới lượt') }
     ];
     if (isPoolStaff() && poolOn()) T.push({ v: ef.pool, n: 1, icon: '🧺', t: 'Nhận 1 số ở Kho chung', how: 'Đọc ghi chú người trước, bấm ✋ Nhận rồi gọi bằng cách khác.', g: 'Có thêm khách ngay hôm nay, không phải chờ số quảng cáo. Ai chốt người đó được doanh số.', b: pool ? '<button class="btn pri" data-gopen="pool">Nhận số</button>' : none('kho đang trống') });
-    else T[0].n = 2;
     T.push({ v: ef.fb, n: 1, icon: '📣', t: 'Đăng 1 bài lên Facebook cá nhân hoặc hội nhóm', how: 'Bài viết sẵn: Copy bài → đăng, rồi bình luận câu có link riêng của bạn.', g: 'Bạn bè, người trong nhóm thấy và hỏi bạn: khách tự tìm đến, đặt qua link riêng trong 30 ngày thì đơn tính cho bạn.', b: '<button class="btn pri" data-spf="sale">Xem bài & cách đăng</button>' });
-    var done = Math.min(GOAL, ef.tot);
+    var done = growDone(ef);
     var row = function (x, i) { var ok = x.v >= x.n; return '<div class="gr-row' + (ok ? ' ok' : '') + '"><span class="gr-n">' + (ok ? '✓' : i + 1) + '</span><span class="gr-b"><b>' + x.icon + ' ' + x.t + '</b><small>' + x.how + '</small><small class="gr-g">💰 ' + x.g + '</small></span><span class="gr-p">' + (ok ? 'Xong' : Math.min(x.v, x.n) + '/' + x.n) + '</span><span class="gr-a">' + (ok ? '' : x.b) + '</span></div>'; };
     return '<section class="section grow-box" data-grp="grow"><div class="section-h"><h2>🌱 Mở rộng khách: 5 việc mỗi ngày</h2><a class="gr-guide" href="/huong-dan/mo-rong-khach/" target="_blank" rel="noopener">📖 Hướng dẫn có hình</a></div>' +
       '<div class="grow-today"><div class="grow-today-h"><span>Hôm nay bạn đã làm</span><b>' + done + ' / ' + GOAL + ' việc</b></div><div class="grow-bar"><i style="width:' + (done * 100 / GOAL) + '%"></i></div>' +
