@@ -1427,10 +1427,27 @@
   }
   function commAct(phone, how) {
     var c = cust(phone); if (!c) return;
-    if (how === 'in') { sendOp('customer', { phone: phone, community: 'Đã vào' }); toast('Đã ghi: khách đã vào nhóm cộng đồng 👥'); $$('.comm').forEach(function (b) { b.remove(); }); render(); return; }
+    if (how === 'in') { sendOp('customer', { phone: phone, community: 'Đã vào' }); c.community = 'Đã vào'; addLog({ loc: 1, time: Date.now(), by: S.user.name, what: 'Vào nhóm Zalo', ref: phone, name: c.name }); toast('Đã ghi: khách đã vào nhóm cộng đồng 👥'); $$('.comm').forEach(function (b) { b.remove(); }); render(); return; }
     copy(commText(c)).then(function () { toast('Đã copy lời mời – dán vào khung chat Zalo của khách'); });
     if (how === 'zalo') window.open(zalo(phone), '_blank', 'noopener');
-    if (!invited(c)) sendOp('customer', { phone: phone, community: 'Đã mời' });
+    if (!invited(c)) { sendOp('customer', { phone: phone, community: 'Đã mời' }); c.community = 'Đã mời ' + fDate(Date.now()).slice(0, 6) + fDate(Date.now()).slice(8); addLog({ loc: 1, time: Date.now(), by: S.user.name, what: 'Mời nhóm Zalo', ref: phone, name: c.name }); if (S.cpRedraw) S.cpRedraw(); }
+  }
+  /** 👥 Chọn khách để mời vào nhóm Zalo cộng đồng (13/11/2026, anh Sơn: thúc đẩy chị em mời khách vào nhóm). Khách của mình đã mua, chưa vào nhóm, chưa mời trong 30 ngày;
+   *  đã kết bạn Zalo lên trước, rồi khách mua gần nhất. Bấm Mời: copy lời mời có link nhóm + mở Zalo của khách; khách vào rồi bấm ✅ Đã vào. */
+  function commPick() {
+    var me = S.user.name, now = Date.now(), recent = function (c) { var m = String(c.community || '').match(/(\d{1,2})\/(\d{1,2})\/(\d{2})/); if (!m) return false; var t = new Date(2000 + +m[3], +m[2] - 1, +m[1]).getTime(); return now - t < 30 * DAY; };
+    var m = modal('👥 Mời khách vào nhóm Zalo cộng đồng', '<div id="cpBody"></div>', '<button class="btn" data-close>Xong</button>');
+    var draw = function () {
+      var L = S.d.customers.filter(function (c) { return c.owner === me && c.orders > 0 && !inComm(c) && !recent(c) && !isStopped(c); }).sort(function (a, b) { return (b.zalo ? 1 : 0) - (a.zalo ? 1 : 0) || (b.last || 0) - (a.last || 0); });
+      var done = S.d.customers.filter(function (c) { return c.owner === me && invited(c) && recent(c); });
+      var b = $('#cpBody', m); if (!b) return;
+      b.innerHTML = '<p class="cp-how"><b>Cách làm:</b> ① bấm <b>📋 Mời</b>: lời mời có link nhóm đã copy và Zalo của khách mở ra, dán rồi gửi. ② Khách vào nhóm thì bấm <b>✅ Đã vào</b>. Nhóm có kiến thức dinh dưỡng, thực đơn, Zoom hỏi đáp miễn phí với chuyên gia: khách trong nhóm gắn bó và mua lại nhiều hơn.</p>' +
+        (L.length ? L.slice(0, 8).map(function (c) { return '<div class="cp-row"><span class="cp-t"><b>' + esc(ambName(c.name) || c.phone) + '</b><small>' + (c.zalo ? '✓ đã kết bạn Zalo · ' : '') + esc(shortProducts(c.products || [], 1)) + ' · mua ' + daysAgo(c.last) + '</small></span><span class="cp-a"><button class="btn zalo sm" data-comm="' + c.phone + '|zalo">📋 Mời</button><button class="btn sm" data-comm="' + c.phone + '|in">✅ Đã vào</button></span></div>'; }).join('') + (L.length > 8 ? '<p class="small muted">Còn ' + (L.length - 8) + ' khách, mời dần mỗi ngày.</p>' : '')
+          : '<p class="muted">Khách của bạn đều đã vào nhóm hoặc vừa được mời. Tuyệt vời!</p>') +
+        (done.length ? '<details class="small" style="margin-top:10px"><summary>Đã mời, chờ khách vào nhóm (' + done.length + ')</summary>' + done.slice(0, 20).map(function (c) { return '<div class="cp-row"><span class="cp-t"><b>' + esc(ambName(c.name) || c.phone) + '</b><small>' + esc(c.community) + '</small></span><span class="cp-a"><button class="btn sm" data-comm="' + c.phone + '|in">✅ Đã vào</button></span></div>'; }).join('') + '</details>' : '');
+    };
+    S.cpRedraw = function () { if ($('#cpBody', m)) draw(); render(); };
+    draw();
   }
   /* ---------- 🎁 tặng quà (cẩm nang, ebook) cho khách: thêm giá trị, mở lời bằng món quà thay vì chào bán ----------
      Mẫu tin mặc định ở GIFT_TPL; quản lý sửa được ở Cài đặt → Mẫu tin: thêm dòng Thời điểm "Quà tặng", Mục đích có chữ "cẩm nang" hoặc "ebook". */
@@ -1677,7 +1694,7 @@
   /* ---------- Bảng thi đua: Top 3 mỗi hạng mục + hạng của mình + còn cách người ngay trên bao nhiêu. Hỏi máy chủ lệnh 'race' (nhớ 10 phút);
    * máy chủ chỉ gửi cho nhân viên Top 3 và số của chính họ (người hạng 4 trở xuống không bị lộ). Máy chủ cũ chưa có lệnh này → ẩn khối. */
   // 17/10/2026: Doanh số xếp theo % mục tiêu (máy chủ gửi c.pct = 1); số tiền của người khác chỉ quản lý thấy. Máy chủ cũ (không có c.pct) vẫn hiện tiền như trước.
-  var RACE_CATS = { sales: ['🏆 Doanh số', '% mục tiêu đạt (không tính đơn huỷ / hoàn)'], effort: ['🌱 Công sức mở rộng khách', 'mời giới thiệu + khách tự tạo + nhận từ Kho chung (chưa ra đơn vẫn được tính)'], close: ['🎯 Tỷ lệ chốt', 'data quảng cáo ra đơn (như tab Hiệu quả)'], own: ['🙋 Khách tự mang về', 'khách tự tìm + khách cũ giới thiệu đã mua (hoa hồng riêng)'], back: ['💚 Khách cũ quay lại', 'số khách cũ mua thêm đơn'], grow: ['🚀 Tiến bộ nhất', 'doanh số so với cùng kỳ trước'] };
+  var RACE_CATS = { sales: ['🏆 Doanh số', '% mục tiêu đạt (không tính đơn huỷ / hoàn)'], effort: ['🌱 Công sức mở rộng khách', 'mời giới thiệu, mời nhóm Zalo, gọi lại khách cũ, khách tự tạo, nhận từ Kho (chưa ra đơn vẫn được tính)'], close: ['🎯 Tỷ lệ chốt', 'data quảng cáo ra đơn (như tab Hiệu quả)'], own: ['🙋 Khách tự mang về', 'khách tự tìm + khách cũ giới thiệu đã mua (hoa hồng riêng)'], back: ['💚 Khách cũ quay lại', 'số khách cũ mua thêm đơn'], grow: ['🚀 Tiến bộ nhất', 'doanh số so với cùng kỳ trước'] };
   function raceGet() {
     var c = S.race;
     if ((!c || Date.now() - c.at > 600e3) && !S.raceBusy) {
@@ -3702,20 +3719,28 @@
   function idleBlock() {
     var me = S.user.name, pool = isPoolStaff() && poolOn() ? (S.d.leads || []).filter(function (l) { return !l.owner && isOpenLead(l); }).length : 0, idle = idleLeads(me), amb = 0;
     try { rbData(); var A = ambList(); amb = A ? A.list.length : 0; } catch (e) { amb = 0; }
-    var ef = effortStats(me, today(), today() + DAY), done = ef.inv + ef.self + ef.pool, GOAL = 5, PP = (S.d.rules && S.d.rules.payplan) || {};
-    var tile = function (icon, t, sub, btn) { return '<div class="grow-t"><span class="grow-i">' + icon + '</span><b>' + t + '</b><small>' + sub + '</small>' + btn + '</div>'; };
-    var go = function (k, n, label) { return n ? '<button class="btn pri sm" data-gopen="' + k + '">' + label + '</button>' : '<span class="grow-none">chưa có</span>'; };
-    return '<section class="section grow-box"><div class="section-h"><h2>🌱 Mở rộng khách</h2><span class="tip">30 phút mỗi ngày' + (PP.own && ppOn() ? ' · khách bạn tự mang về: <b>' + PP.own + '%</b> mọi đơn trong ' + (PP.ownMonths || 6) + ' tháng + thưởng' : '') + '</span></div>' +
-      '<div class="grow-today"><div class="grow-today-h"><span>Hôm nay bạn đã làm</span><b>' + done + ' / ' + GOAL + ' việc</b></div><div class="grow-bar"><i style="width:' + Math.min(100, done * 100 / GOAL) + '%"></i></div>' +
-      '<small>' + (done ? '🌟 ' + [ef.inv ? 'mời ' + ef.inv + ' khách giới thiệu' : '', ef.self ? 'tự tạo ' + ef.self + ' khách' : '', ef.pool ? 'nhận ' + ef.pool + ' số từ Kho' : ''].filter(Boolean).join(' · ') + (done >= GOAL ? ' · Tuyệt vời, đủ việc hôm nay!' : ' · cố thêm ' + (GOAL - done) + ' việc nữa nhé') : 'Mời 1 khách giới thiệu, thêm 1 khách được giới thiệu hoặc nhận 1 số từ Kho là được tính 1 việc.') + '</small></div>' +
-      '<div class="grow-grid">' +
-      tile('🌱', 'Mời khách cũ giới thiệu', amb ? amb + ' khách đã dùng 7–30 ngày' : 'chưa có khách tới lượt', go('amb', amb, 'Mời ngay')) +
-      tile('＋', 'Thêm khách được giới thiệu', 'khách cũ đọc số bạn bè, hoặc bạn tự tìm được', '<button class="btn pri sm" data-newlead>＋ Thêm khách</button>') +
-      tile('😴', 'Gọi lại khách từng nói “Không mua”', idle.length ? idle.length + ' khách, 1,5–6 tháng trước' : 'chưa có khách tới lượt', go('idle', idle.length, 'Xem danh sách')) +
-      (isPoolStaff() && poolOn() ? tile('🧺', 'Nhận số ở Kho chung', pool ? pool + ' số chưa ai chốt' : 'kho đang trống', go('pool', pool, 'Xem kho')) : '') + '</div>' +
-      '<div class="grow-more"><span>📣 Bài Facebook viết sẵn <button type="button" class="btn sm" data-spf="sale">Xem bài</button></span><span>🔗 Link riêng của bạn <button type="button" class="btn sm" data-copy="' + esc(refLink(me)) + '">📋 Copy link</button></span></div>' +
-      (idle.length ? '<details class="grp" data-grp="idle"' + (S.f.gopen && S.f.gopen.idle ? ' open' : '') + '><summary><span class="g-t">😴 Khách từng nói “Không mua”</span><span class="count">' + idle.length + '</span><span class="g-tip">lâu nhất lên trước · mở lời bằng lý do mới: sản phẩm mới, ưu đãi tháng này, hỏi thăm sức khoẻ</span></summary><div class="list cols" style="padding:10px">' + capRows(idle.slice(0, 30), idleCard) + '</div></details>' : '') + '</section>';
+    var t0 = today(), ef = effortStats(me, t0, t0 + DAY), GOAL = 5, PP = (S.d.rules && S.d.rules.payplan) || {};
+    var w0 = t0 - ((new Date(t0 + 7 * 3600e3).getUTCDay() + 6) % 7) * DAY, fbW = effortStats(me, w0, t0 + DAY).fb;
+    var zlN = S.d.customers.filter(function (c) { return c.owner === me && c.orders > 0 && !inComm(c) && !isStopped(c); }).length;
+    var none = function (t) { return '<span class="gr-none">' + t + '</span>'; };
+    var T = [
+      { v: ef.inv, n: 2, icon: '🌱', t: 'Mời 2 khách cũ giới thiệu bạn bè', how: 'Gọi khách đã dùng 7–30 ngày. Khách khen thì bấm 🌱 Mời giới thiệu, gửi tin có sẵn.', b: amb ? '<button class="btn pri" data-gopen="amb">Mời ngay</button>' : none('chưa có khách tới lượt') },
+      { v: ef.zl, n: 1, icon: '👥', t: 'Mời 1 khách vào nhóm Zalo cộng đồng', how: 'Bấm Mời: lời mời có link nhóm tự copy, Zalo của khách tự mở.', b: zlN ? '<button class="btn pri" data-commpick>Mời vào nhóm</button>' : none('khách đều đã vào nhóm') },
+      { v: ef.old, n: 1, icon: '😴', t: 'Gọi lại 1 khách từng nói “Không mua”', how: 'Mở lời bằng lý do mới: sản phẩm mới, ưu đãi tháng này, hỏi thăm sức khoẻ.', b: idle.length ? '<button class="btn pri" data-gopen="idle">Gọi lại</button>' : none('chưa có khách tới lượt') }
+    ];
+    if (isPoolStaff() && poolOn()) T.push({ v: ef.pool, n: 1, icon: '🧺', t: 'Nhận 1 số ở Kho chung', how: 'Đọc ghi chú người trước, bấm ✋ Nhận rồi gọi bằng cách khác.', b: pool ? '<button class="btn pri" data-gopen="pool">Nhận số</button>' : none('kho đang trống') });
+    else T[0].n = 3;
+    var done = Math.min(GOAL, ef.tot);
+    var row = function (x, i) { var ok = x.v >= x.n; return '<div class="gr-row' + (ok ? ' ok' : '') + '"><span class="gr-n">' + (ok ? '✓' : i + 1) + '</span><span class="gr-b"><b>' + x.icon + ' ' + x.t + '</b><small>' + x.how + '</small></span><span class="gr-p">' + (ok ? 'Xong' : Math.min(x.v, x.n) + '/' + x.n) + '</span><span class="gr-a">' + (ok ? '' : x.b) + '</span></div>'; };
+    return '<section class="section grow-box"><div class="section-h"><h2>🌱 Mở rộng khách: 5 việc mỗi ngày</h2></div>' +
+      '<div class="grow-today"><div class="grow-today-h"><span>Hôm nay bạn đã làm</span><b>' + done + ' / ' + GOAL + ' việc</b></div><div class="grow-bar"><i style="width:' + (done * 100 / GOAL) + '%"></i></div>' +
+      '<small>' + (done >= GOAL ? '🌟 Tuyệt vời, đủ 5 việc hôm nay! Làm thêm vẫn được tính vào thi đua.' : 'Làm lần lượt từ việc 1. Việc nào chưa có khách thì làm thêm việc khác cho đủ 5.') + (PP.own && ppOn() ? ' Khách bạn tự mang về: <b>' + PP.own + '%</b> mọi đơn trong ' + (PP.ownMonths || 6) + ' tháng + thưởng.' : '') + '</small></div>' +
+      '<div class="gr-list">' + T.map(row).join('') + '</div>' +
+      '<div class="gr-plus"><span>📞 Khách đọc số bạn bè cho bạn, hoặc bạn tự tìm được khách?' + (ef.self ? ' <b>Hôm nay: ' + ef.self + ' khách</b>' : '') + '</span><button class="btn" data-newlead>＋ Thêm khách được giới thiệu</button></div>' +
+      '<div class="gr-plus"><span>📣 Mỗi tuần đăng 2 bài Facebook cá nhân · tuần này <b>' + Math.min(fbW, 2) + '/2</b></span><span class="gr-btns"><button type="button" class="btn" data-spf="sale">Xem bài & cách đăng</button><button type="button" class="btn" data-copy="' + esc(refLink(me)) + '">🔗 Copy link riêng</button></span></div>' +
+      (idle.length ? '<details class="grp" data-grp="idle"' + (S.f.gopen && S.f.gopen.idle ? ' open' : '') + '><summary><span class="g-t">😴 Khách từng nói “Không mua”</span><span class="count">' + idle.length + '</span><span class="g-tip">lâu nhất lên trước · bấm vào khách → 💬 Tư vấn, ghi kết quả như bình thường</span></summary><div class="list cols" style="padding:10px">' + capRows(idle.slice(0, 30), idleCard) + '</div></details>' : '') + '</section>';
   }
+
   function idleCard(l) {
     return '<div class="card click" data-lead="' + esc(l.id) + '"><div class="r1"><b>' + esc(l.name || 'Khách') + '</b>' + leadTag(l) + '<span class="end small muted">' + esc(chLabel(l.channel)) + '</span></div>' +
       '<div class="r2">' + cpPhone(l.phone) + (l.interest ? ' · Quan tâm: ' + esc(intLabel(l.interest)) : '') + ' · không mua ' + daysAgo(l.lastAt || l.time) + (l.reason ? ' · lý do: ' + esc(l.reason) : '') + '</div>' +
@@ -4072,7 +4097,9 @@
       if (pvNew && (!pvOld || pvOld.old !== pvNew.old)) note0 = '📍 ' + pvNew.old + (note0 ? ' – ' + note0 : ''); // lưu tỉnh vào ghi chú (Sheet khách hỏi chưa có cột tỉnh)
       var p = { id: l.id, result: o.v, note: note0, callback: o.lost || o.close ? '' : $('#cCb', m).value, status: o.lost ? 'Không mua' : 'Đang tư vấn', reason: reason };
       var btn = this; btn.disabled = true; btn.textContent = 'Đang lưu…';
+      var wasNo = l.status === 'Không mua'; // 13/11/2026: gọi lại khách từng nói "Không mua" = 1 việc mở rộng khách
       api('lead_contact', p).then(function (j) {
+        if (wasNo) addLog({ loc: 1, time: j.at, by: S.user.name, what: 'Gọi lại khách cũ', ref: l.phone, name: l.name, result: o.v });
         store(lnD, null); l.status = j.status; l.lastAt = j.at; l.owner = j.owner || l.owner; l.callback = p.callback ? new Date(p.callback + 'T09:00:00+07:00').getTime() : null;
         if (o.lost) l.reason = reason;
         if (p.note) l.note = (l.note ? l.note + '\n' : '') + '[' + fDate(j.at).slice(0, 5) + ' ' + S.user.name + '] ' + p.note;
@@ -7623,7 +7650,7 @@
     var draw = function () {
       var P = SPF.posts || [], b = $('#spfBody', m); if (!b) return;
       var gs = ((IN.d && IN.d.bank) || []).filter(function (g) { return g.on; });
-      b.innerHTML = (admin ? aiLearnLine(SPF.learnEd, 'bài') : '') + (admin ? (SPF.write ? '<div class="box"><p class="small"><b>✨ Viết bài mới</b> (khoảng 1 phút). Trợ lý chọn nhóm khách, tension, góc kể như các kênh khác.</p><div class="row2c"><label class="f"><span>Nhóm khách</span><select id="spfG"><option value="">Trợ lý tự chọn</option>' + gs.map(function (g) { return '<option value="' + esc(g.id) + '">' + esc(g.name) + '</option>'; }).join('') + '</select></label><label class="f"><span>Loại bài</span><select id="spfF"><option value="TOFU">🔵 Nhận biết (không nhắc sản phẩm)</option><option value="MOFU">⚪ Tạo niềm tin (nhắc chuyện nghề)</option></select></label></div><label class="f"><span>Bình luận ghim mời khách</span><select id="spfTo">' + Object.keys(SPF.to).map(function (k) { return '<option value="' + k + '">' + esc(SPF.to[k]) + '</option>'; }).join('') + '</select></label><label class="f"><span>Yêu cầu thêm <small class="muted">không bắt buộc</small></span><input type="text" id="spfH" placeholder="Vd: kể chuyện mùa lạnh, nhắc ngày 20/11"></label><div class="lq-btns"><button class="btn pri" data-spf="write">✨ Viết 1 bài</button></div></div>' : '') : SPF_STEPS) +
+      b.innerHTML = (admin ? aiLearnLine(SPF.learnEd, 'bài') : '<div class="box spf-guide"><b>📣 Đăng 1 bài mất 5 phút, mỗi tuần 2 bài</b>' + SPF_STEPS + '</div><p class="small spf-lab" style="margin:12px 0 6px"><b>Chọn 1 bài dưới đây</b> (bài kể chuyện đời thường, không quảng cáo lộ liễu):</p>') + (admin ? (SPF.write ? '<div class="box"><p class="small"><b>✨ Viết bài mới</b> (khoảng 1 phút). Trợ lý chọn nhóm khách, tension, góc kể như các kênh khác.</p><div class="row2c"><label class="f"><span>Nhóm khách</span><select id="spfG"><option value="">Trợ lý tự chọn</option>' + gs.map(function (g) { return '<option value="' + esc(g.id) + '">' + esc(g.name) + '</option>'; }).join('') + '</select></label><label class="f"><span>Loại bài</span><select id="spfF"><option value="TOFU">🔵 Nhận biết (không nhắc sản phẩm)</option><option value="MOFU">⚪ Tạo niềm tin (nhắc chuyện nghề)</option></select></label></div><label class="f"><span>Bình luận ghim mời khách</span><select id="spfTo">' + Object.keys(SPF.to).map(function (k) { return '<option value="' + k + '">' + esc(SPF.to[k]) + '</option>'; }).join('') + '</select></label><label class="f"><span>Yêu cầu thêm <small class="muted">không bắt buộc</small></span><input type="text" id="spfH" placeholder="Vd: kể chuyện mùa lạnh, nhắc ngày 20/11"></label><div class="lq-btns"><button class="btn pri" data-spf="write">✨ Viết 1 bài</button></div></div>' : '') : '') + // 13/11/2026: hướng dẫn cho sale đã đưa lên khung 📣 đầu cửa sổ
         (P.length ? P.map(function (p) { return spfCard(p, admin); }).join('') : '<p class="muted small">' + (admin ? 'Chưa có bài nào. Bấm ✨ Viết 1 bài.' : 'Chưa có bài nào được duyệt. Nhờ Marketing / Quản lý viết thêm ở tab 🎯 Insight & nội dung.') + '</p>') +
         (admin ? '<details class="small"><summary>Sale sẽ thấy hướng dẫn đăng như sau</summary>' + SPF_STEPS + '</details>' : '');
     };
@@ -7640,7 +7667,7 @@
     var t = e.target.closest('[data-spf]'); if (!t) return;
     var v = t.getAttribute('data-spf').split('|'), a = v[0], id = Number(v[1]), p = (SPF.posts || []).filter(function (q) { return q.id === id; })[0];
     if (a === 'admin' || a === 'sale') return spfOpen(a === 'admin');
-    if (a === 'cp' && p) { var txt = v[2] === 'text' ? p.text : v[2] === 'cmt' ? p.cmt : spfReply(p); copy(txt).then(function () { toast('📋 Đã copy ' + (v[2] === 'text' ? 'bài' : v[2] === 'cmt' ? 'bình luận ghim' : 'câu có link')); }); if (v[2] === 'text') api('spf_used', { id: id }).catch(function () { }); return; }
+    if (a === 'cp' && p) { var txt = v[2] === 'text' ? p.text : v[2] === 'cmt' ? p.cmt : spfReply(p); copy(txt).then(function () { toast('📋 Đã copy ' + (v[2] === 'text' ? 'bài' : v[2] === 'cmt' ? 'bình luận ghim' : 'câu có link')); }); if (v[2] === 'text') { api('spf_used', { id: id }).catch(function () { }); addLog({ loc: 1, time: Date.now(), by: S.user.name, what: 'Đăng bài FB', ref: '-', result: String(id) }); } return; }
     if (a === 'write') { t.disabled = true; t.textContent = '⏳ AI đang viết (khoảng 1 phút)…'; return api('spf_write', { g: $('#spfG').value, f: $('#spfF').value, to: $('#spfTo').value, hint: $('#spfH').value.trim() }).then(function (r) { SPF.posts = [r.post].concat(SPF.posts || []); SPF.draw(); toast('Đã viết xong ✓ Đọc lại, sửa nếu cần rồi bấm ✅ Cho sale dùng.'); }, function (er) { t.disabled = false; t.textContent = '✨ Viết 1 bài'; toast(er.message, true); }); }
     if (!p) return;
     if (a === 'edit') { closeModal(); return spfEdit(p); }
@@ -11295,7 +11322,7 @@
     var cs = careStats(name, dayStart(day), dayStart(day) + DAY);
     lines.push('KH cũ đã chăm sóc (kết nối): ' + cs.ok, 'Không nghe máy: ' + cs.knm);
     var ef = effortStats(name, dayStart(day), dayStart(day) + DAY);
-    lines.push('🌱 Mở rộng khách: mời giới thiệu ' + ef.inv + ' · hẹn gọi lại ' + ef.cb + ' · khách tự tạo ' + ef.self + ' · nhận từ Kho ' + ef.pool);
+    lines.push('🌱 Mở rộng khách: ' + ef.tot + ' việc (mời giới thiệu ' + ef.inv + ' · mời nhóm Zalo ' + ef.zl + ' · gọi lại khách cũ ' + ef.old + ' · khách tự tạo ' + ef.self + ' · nhận từ Kho ' + ef.pool + ') · hẹn gọi lại ' + ef.cb);
     effortCheer(name, day).forEach(function (t) { lines.push(t); });
     lines.push('Lý do từ chối:' + (cs.why.length ? '' : ' –')); cs.why.slice(0, 12).forEach(function (w) { lines.push('- ' + w); });
     var T = d.tot, mrev = sum(T.newR) + sum(T.oldR), tg = name ? targetOf(name, month) : null;
@@ -11306,26 +11333,34 @@
    *  inv = khách đã mời giới thiệu (nhật ký "Mời giới thiệu", máy chủ ghi khi mở 🌱) · cb = lần chăm sóc / tư vấn có hẹn gọi lại · self = khách hỏi bạn tự thêm · pool = số nhận từ Kho chung. */
   /** 🌟 Lời ghi nhận công sức trong báo cáo ngày (anh Sơn 13/11/2026: để chị em có tinh thần). 1 người: cảm ơn việc đã làm; cả nhóm: 3 người chăm mở rộng khách nhất. */
   function effortCheer(name, day) {
-    var d0 = dayStart(day), d1 = d0 + DAY, tot = function (e) { return e.inv + e.self + e.pool; };
+    var d0 = dayStart(day), d1 = d0 + DAY;
     if (name !== null) {
       var e = effortStats(name, d0, d1), t = [];
-      if (e.inv) t.push('mời ' + e.inv + ' khách giới thiệu'); if (e.self) t.push('tự tạo ' + e.self + ' khách mới'); if (e.pool) t.push('nhận ' + e.pool + ' số từ Kho chung'); if (e.cb) t.push('hẹn gọi lại ' + e.cb + ' khách');
+      if (e.inv) t.push('mời ' + e.inv + ' khách giới thiệu'); if (e.zl) t.push('mời ' + e.zl + ' khách vào nhóm Zalo'); if (e.old) t.push('gọi lại ' + e.old + ' khách cũ'); if (e.self) t.push('tự tạo ' + e.self + ' khách mới'); if (e.pool) t.push('nhận ' + e.pool + ' số từ Kho chung'); if (e.cb) t.push('hẹn gọi lại ' + e.cb + ' khách');
       return t.length ? ['🌟 Cảm ơn ' + name + ' hôm nay đã ' + t.join(', ') + '. Mỗi việc hôm nay là đơn hàng của những ngày sau!'] : [];
     }
-    var top = userNames().map(function (n) { var e = effortStats(n, d0, d1); return { n: n, v: tot(e) }; }).filter(function (x) { return x.v > 0; }).sort(function (a, b) { return b.v - a.v; }).slice(0, 3);
+    var top = userNames().map(function (n) { return { n: n, v: effortStats(n, d0, d1).tot }; }).filter(function (x) { return x.v > 0; }).sort(function (a, b) { return b.v - a.v; }).slice(0, 3);
     return top.length ? ['🌟 Chăm mở rộng khách nhất hôm nay: ' + top.map(function (x) { return x.n + ' (' + x.v + ' việc)'; }).join(', ') + '. Cảm ơn cả nhà!'] : [];
   }
+
   function effortStats(name, from, to) {
-    var inv = {}, cb = 0, pool = 0;
+    var inv = {}, zl = {}, cb = 0, pool = 0, old = 0, fb = 0;
     (S.d.log || []).forEach(function (l) {
       if (!l.time || l.time < from || l.time >= to || (name !== null && l.by !== name)) return;
-      if (l.what === 'Mời giới thiệu') inv[String(l.ref).replace(/^'/, '')] = 1;
+      var ph = String(l.ref).replace(/^'/, '');
+      if (l.what === 'Mời giới thiệu') inv[ph] = 1;
+      else if (l.what === 'Mời nhóm Zalo') zl[ph] = 1;
       else if (l.what === 'Nhận khách') pool++;
+      else if (l.what === 'Gọi lại khách cũ') old++;
+      else if (l.what === 'Đăng bài FB') fb++;
       else if ((l.what === 'Tư vấn' || isCareLog(l)) && (l.result === 'Hẹn gọi lại' || /hẹn (gọi lại |liên hệ lại )?\d{1,2}\/\d{1,2}/i.test(l.note || ''))) cb++;
     });
     var self = (S.d.leads || []).filter(function (l) { return l.time >= from && l.time < to && l.by && (name === null ? l.by === l.owner : l.by === name) && !/^File/.test(l.channel || ''); }).length;
-    return { inv: Object.keys(inv).length, cb: cb, self: self, pool: pool };
+    var o = { inv: Object.keys(inv).length, zl: Object.keys(zl).length, cb: cb, self: self, pool: pool, old: old, fb: fb };
+    o.tot = o.inv + o.zl + o.old + o.pool + o.self; // 🌱 số việc mở rộng khách (13/11/2026: + mời nhóm Zalo, gọi lại khách "Không mua")
+    return o;
   }
+
   /** Báo cáo ngày dạng bảng như Excel (góp ý chị Thuỷ 29/10/2026): cả nhóm = mỗi sale 1 dòng + dòng Tổng; 1 người = 2 cột Chỉ số | Số. Cột cả ngày bằng 0 thì ẩn. */
   function dailyTable(name, day) {
     var month = monthOf(day), R = monthRange(month), idx = Math.floor((dayStart(day) - R[0]) / DAY), d0 = dayStart(day);
@@ -11344,7 +11379,7 @@
       ['DT theo giờ lên đơn', 'Giờ hành chính', function (e) { return e.r.hrR['Trong giờ']; }, 1], ['DT theo giờ lên đơn', 'Tối / Chủ nhật', function (e) { return e.r.hrR['Ngoài giờ']; }, 1], ['DT theo giờ lên đơn', 'Ngày lễ', function (e) { return e.r.hrR['Ngày lễ']; }, 1], ['DT theo giờ lên đơn', 'Gõ vào file (không có giờ)', function (e) { return e.r.hrR['Không rõ giờ']; }, 1],
       ['Đơn hoàn', 'Số đơn', function (e) { return e.r.hoanN; }], ['Đơn hoàn', 'Giá trị', function (e) { return e.r.hoanV; }, 1],
       ['Chăm sóc khách cũ', 'Kết nối', function (e) { return e.cs.ok; }], ['Chăm sóc khách cũ', 'Không nghe máy', function (e) { return e.cs.knm; }],
-      ['Mở rộng khách', 'Mời giới thiệu', function (e) { return e.ef.inv; }], ['Mở rộng khách', 'Hẹn gọi lại', function (e) { return e.ef.cb; }], ['Mở rộng khách', 'Khách tự tạo', function (e) { return e.ef.self; }], ['Mở rộng khách', 'Nhận từ Kho', function (e) { return e.ef.pool; }],
+      ['Mở rộng khách', 'Mời giới thiệu', function (e) { return e.ef.inv; }], ['Mở rộng khách', 'Mời nhóm Zalo', function (e) { return e.ef.zl; }], ['Mở rộng khách', 'Gọi lại khách cũ', function (e) { return e.ef.old; }], ['Mở rộng khách', 'Hẹn gọi lại', function (e) { return e.ef.cb; }], ['Mở rộng khách', 'Khách tự tạo', function (e) { return e.ef.self; }], ['Mở rộng khách', 'Nhận từ Kho', function (e) { return e.ef.pool; }],
       ['Luỹ kế ' + monthLabel(month), 'Doanh thu', function (e) { return sum(e.T.newR) + sum(e.T.oldR); }, 1, 0, 1], ['Luỹ kế ' + monthLabel(month), '% mục tiêu', function (e) { return e.tg && e.tg.amount ? pct(sum(e.T.newR) + sum(e.T.oldR), e.tg.amount) + '%' : ''; }]);
     cols = cols.filter(function (c) { return c[4] || ents.some(function (e) { return c[2](e); }); });
     if (name === null) ents = ents.filter(function (e, i) { return !i || !adm[e.n] || cols.some(function (c) { return c[2](e); }); }); // Quản trị không bán thì không hiện dòng trống
@@ -13337,7 +13372,7 @@
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-gmore]'); if (!b) return; var r = b.previousElementSibling; if (r) r.hidden = false; b.remove(); });
   document.addEventListener('toggle', function (e) { var d = e.target; if (d && d.matches && d.matches('details[data-grp]')) { S.f.gopen = S.f.gopen || {}; S.f.gopen[d.getAttribute('data-grp')] = d.open; } }, true);
   document.addEventListener('click', function (e) {
-    var t = e.target.closest('[data-gopen],[data-recon],[data-otab],[data-per],[data-pq],[data-promo],[data-occ],[data-rf],[data-vipgo],[data-stopgo],[data-stop],[data-taghelp],[data-consent],[data-daily],[data-usage],[data-flow],[data-zalo],[data-quick],[data-care],[data-next],[data-neworder],[data-cf],[data-os],[data-och],[data-tf],[data-cat],[data-addtag],[data-deltag],[data-claim],[data-bcdt],[data-srcadd],[data-srcedit],[data-srcsync],[data-srcdel],[data-adsedit],[data-adssync],[data-who],[data-target],[data-race],[data-offer],[data-myold],[data-more],[data-add],[data-rm],[data-consult],[data-leadorder],[data-newlead],[data-editlead],[data-leaddel],[data-cust],[data-order],[data-lead]');
+    var t = e.target.closest('[data-gopen],[data-recon],[data-otab],[data-per],[data-pq],[data-promo],[data-occ],[data-rf],[data-vipgo],[data-stopgo],[data-stop],[data-taghelp],[data-consent],[data-daily],[data-usage],[data-flow],[data-zalo],[data-quick],[data-care],[data-next],[data-neworder],[data-cf],[data-os],[data-och],[data-tf],[data-cat],[data-addtag],[data-deltag],[data-claim],[data-bcdt],[data-srcadd],[data-srcedit],[data-srcsync],[data-srcdel],[data-adsedit],[data-adssync],[data-who],[data-target],[data-race],[data-offer],[data-myold],[data-more],[data-add],[data-rm],[data-consult],[data-leadorder],[data-newlead],[data-commpick],[data-editlead],[data-leaddel],[data-cust],[data-order],[data-lead]');
     if (!t || !S.d) return;
     if (e.target.closest('a[href]') && !t.hasAttribute('data-myold')) return; // nút gọi / Zalo bên trong thẻ
     if (e.target.closest('select[data-oassign]')) return; // ô “Giao cho…” trên dòng đơn: không mở hộp đơn
@@ -13392,6 +13427,7 @@
     if (t.hasAttribute('data-consult')) { openConsult(a('data-consult')); return; }
     if (t.hasAttribute('data-leadorder')) { var L = findLead(a('data-leadorder')); if (L) openOrderForm({ lead: L }); return; }
     if (t.hasAttribute('data-newlead')) { openLeadForm(); return; }
+    if (t.hasAttribute('data-commpick')) { commPick(); return; }
     if (t.hasAttribute('data-leaddel')) { leadDelete(findLead(a('data-leaddel')), t); return; }
     if (t.hasAttribute('data-editlead')) { var L2 = findLead(a('data-editlead')); if (L2) openLeadForm(L2); return; }
     if (t.hasAttribute('data-neworder')) { openNewOrder(a('data-neworder')); return; }

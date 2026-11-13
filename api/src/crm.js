@@ -702,7 +702,7 @@ async function crmRace(x, u) {
     adPh.length ? allIn(x.db, 'SELECT phone, time, last_at, status FROM leads WHERE phone IN (SELECT value FROM json_each(?)) AND coalesce(last_at, time) >= ?', adPh, a0) : []]);
   // 13/11/2026 (anh Sơn sau họp sale): 🌱 Công sức mở rộng khách = khách đã mời giới thiệu (1 / khách / ngày) + khách hỏi tự thêm + số nhận từ Kho chung → người chưa ra đơn vẫn được ghi nhận
   const [efLog, efLead] = await Promise.all([
-    all(x.db, "SELECT time, by_name, what, ref FROM logs WHERE what IN ('Mời giới thiệu', 'Nhận khách') AND time >= ?", from).catch(() => []),
+    all(x.db, "SELECT time, by_name, what, ref FROM logs WHERE what IN ('Mời giới thiệu', 'Nhận khách', 'Mời nhóm Zalo', 'Gọi lại khách cũ') AND time >= ?", from).catch(() => []),
     all(x.db, "SELECT time, by_name FROM leads WHERE time >= ? AND coalesce(by_name, '') != '' AND by_name = owner AND coalesce(channel, '') NOT LIKE 'File%'", from).catch(() => [])]);
   const effortOf = (n, a, b) => efLog.filter(l => l.by_name === n && l.time >= a && l.time < b).length + efLead.filter(l => l.by_name === n && l.time >= a && l.time < b).length;
   const buyT = {}, ldBy = {}; ao.forEach(o => { (buyT[normPhone(o.phone)] = buyT[normPhone(o.phone)] || []).push(Number(o.time) || 0); }); al.forEach(l => { (ldBy[normPhone(l.phone)] = ldBy[normPhone(l.phone)] || []).push(l); });
@@ -1764,6 +1764,10 @@ async function crmCustomer(x, u, d) {
     const was = await first(x.db, 'SELECT ' + ks.join(', ') + ', name AS nm FROM customers WHERE phone = ?', phone) || {};
     await run(x.db, 'UPDATE customers SET ' + ks.map(k => k + ' = ?').join(', ') + ' WHERE phone = ?', ...ks.map(k => set[k]), phone);
     await custEditLog(x, u, phone, was, set);
+    if (set.community !== undefined && set.community !== (was.community || '')) { // 👥 13/11/2026: mời / vào nhóm Zalo cộng đồng = việc mở rộng khách
+      if (/^Đã mời/.test(set.community) && !/^Đã mời/.test(was.community || '')) await crmLog(x, u, 'Mời nhóm Zalo', phone, was.nm || '', '', '');
+      if (set.community === 'Đã vào') await crmLog(x, u, 'Vào nhóm Zalo', phone, was.nm || '', '', '');
+    }
     // 30/10/2026 anh Sơn: sửa tên / địa chỉ khách trên CRM → đơn gần nhất cũng đổi (lần tính lại khách lấy tên, địa chỉ theo đơn gần nhất) + ghi ngược vào file sale
     const nmC = set.name !== undefined && String(set.name).trim() && set.name !== was.name, adC = ['address', 'ward', 'province'].some(k => set[k] !== undefined && set[k] !== was[k]);
     if (nmC || adC) {
@@ -2088,6 +2092,7 @@ async function crmLeadContact(x, u, d) {
   if (note) f.note = String(ld.note || '') + '\n[' + fmtDate(now, 'dd/MM') + ' ' + u.name + '] ' + note;
   await leadUpdate(x, d.id, f);
   await wbSafe(() => wbQueue(x, f.owner || ld.owner, normPhone(ld.phone), ld.name, [note || WB_SHORT[d.result] || d.result || st, st === 'Không mua' && d.reason ? 'không mua: ' + d.reason : ''].filter(String).join(', ') + cbTxt(st === 'Không mua' ? '' : d.callback)));
+  if (ld.status === 'Không mua') await crmLog(x, u, 'Gọi lại khách cũ', ld.phone, ld.name, d.result || st, ''); // 13/11/2026: 1 việc mở rộng khách (thi đua, báo cáo ngày)
   await crmLog(x, u, 'Tư vấn', ld.phone, ld.name, d.result || st, [note, st === 'Không mua' ? 'Lý do: ' + d.reason : '', d.callback ? 'hẹn ' + String(d.callback).split('-').reverse().join('/') : ''].filter(String).join(' – '));
   return { ok: true, status: st, at: now, owner: f.owner || ld.owner };
 }

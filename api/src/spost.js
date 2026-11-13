@@ -87,7 +87,7 @@ export async function crmSpf(x, u, d, crmLog) {
     const all_ = !!d.all && canEdit(u), rows = await all(x.db, all_ ? 'SELECT * FROM sp_posts ORDER BY id DESC LIMIT 40' : "SELECT * FROM sp_posts WHERE status = 'ok' ORDER BY id DESC LIMIT 15");
     return { ok: true, posts: rows.map(r => shape(r, all_)), to: Object.fromEntries(Object.entries(SPF_TO).map(([k, v]) => [k, v[1]])), edit: canEdit(u), write: canIns(u), learnEd: await edCount(x, 'sp') };
   }
-  if (a === 'spf_used') { await run(x.db, 'UPDATE sp_posts SET copies = copies + 1 WHERE id = ?', id); return { ok: true }; }
+  if (a === 'spf_used') { await run(x.db, 'UPDATE sp_posts SET copies = copies + 1 WHERE id = ?', id); await crmLog(x, u, 'Đăng bài FB', '-', '', String(id), ''); return { ok: true }; } // 13/11/2026: đếm bài / tuần của từng sale
   if (a === 'spf_write') {
     if (!canIns(u)) return { ok: false, error: 'Chỉ Marketing, Quản lý, Quản trị viết được bài.' };
     const dk = 'ins_ai_' + fmtDate(now, 'yyMMdd'), n = Number(await kvGet(x.db, dk) || 0);

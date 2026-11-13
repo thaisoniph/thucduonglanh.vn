@@ -265,7 +265,7 @@ Mỗi số khách hỏi công ty phải trả tiền quảng cáo để có. Vì
 
 **Hết số quảng cáo thì làm gì?**
 
-Tab **Hôm nay** có khung **🌱 Mở rộng khách** (từ 13/11/2026): 4 ô to **Mời ngay · ＋ Thêm khách · Xem danh sách · Xem kho**, thanh **Hôm nay bạn đã làm … / 5 việc**, và nút copy link riêng, bài Facebook viết sẵn. Cách làm từng bước có hình: **[Mở rộng khách mỗi ngày](/huong-dan/mo-rong-khach/)**.
+Tab **Hôm nay** có khung **🌱 Mở rộng khách: 5 việc mỗi ngày** (từ 13/11/2026): mời 2 khách giới thiệu · mời 1 khách vào nhóm Zalo · gọi lại 1 khách "Không mua" · nhận 1 số ở Kho chung, việc xong có dấu ✓, thanh **Hôm nay bạn đã làm … / 5 việc**; dưới là **＋ Thêm khách được giới thiệu** và 2 bài Facebook mỗi tuần. Cách làm từng bước có hình: **[Mở rộng khách mỗi ngày](/huong-dan/mo-rong-khach/)**.
 
 **💰 Khách bạn tự mang về: hoa hồng 6% mọi đơn trong 6 tháng + thưởng tiền (từ 13/11/2026)**
 

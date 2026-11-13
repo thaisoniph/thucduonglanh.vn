@@ -2290,3 +2290,31 @@ b.csx-c-ok { color: var(--primary-2); } b.csx-c-sua { color: var(--orange); } b.
 .grow-more span { display: inline-flex; align-items: center; gap: 8px; }
 .lf-src { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 10px; }
 .lf-src > span { width: 100%; font-size: 13px; font-weight: 600; color: #4b5a45; }
+
+/* 🌱 5 việc mở rộng khách mỗi ngày (13/11/2026) */
+.gr-list { display: flex; flex-direction: column; gap: 8px; }
+.gr-row { display: grid; grid-template-columns: 34px 1fr auto; grid-template-areas: "n b p" "n a a"; gap: 6px 10px; align-items: center; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+.gr-row .gr-n { grid-area: n; align-self: start; width: 30px; height: 30px; border-radius: 50%; background: var(--primary); color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+.gr-row .gr-b { grid-area: b; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.gr-row .gr-b b { font-size: 15px; line-height: 1.35; }
+.gr-row .gr-b small { color: #6b7066; font-size: 13px; line-height: 1.4; }
+.gr-row .gr-p { grid-area: p; align-self: start; font-weight: 700; color: var(--primary); background: #eef5ec; border-radius: 99px; padding: 3px 10px; font-size: 13px; white-space: nowrap; }
+.gr-row .gr-a { grid-area: a; }
+.gr-row .gr-a .btn { width: 100%; }
+.gr-row.ok { background: #f3f8f1; border-color: #cfe3c8; }
+.gr-row.ok .gr-n { background: #2f8a4c; }
+.gr-row.ok .gr-b b { color: #4b5a45; }
+.gr-none { color: #9a9c95; font-size: 13px; }
+@media (min-width: 700px) {
+  .gr-row { grid-template-columns: 34px 1fr auto 170px; grid-template-areas: "n b p a"; }
+  .gr-row .gr-p { align-self: center; }
+}
+.gr-plus { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin: 10px 0 0; padding: 10px 12px; border: 1px dashed #c9d8c3; border-radius: 12px; font-size: 14px; }
+.gr-plus .gr-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.spf-guide ol { margin: 8px 0 4px; padding-left: 20px; }
+.spf-guide li { margin: 0 0 6px; }
+.cp-how { background: #f3f8f1; border-radius: 10px; padding: 10px 12px; font-size: 14px; line-height: 1.5; margin: 0 0 10px; }
+.cp-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid #eee; }
+.cp-row .cp-t { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.cp-row .cp-t small { color: #6b7066; font-size: 12.5px; }
+.cp-row .cp-a { display: flex; gap: 6px; flex: none; }
