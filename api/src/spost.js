@@ -71,7 +71,7 @@ async function spWrite(x, u, d) {
     'Trả về ĐÚNG định dạng (không lời dẫn):', INS_HEAD, '---', 'BÀI:', '<nội dung bài>', 'BÌNH LUẬN GHIM:', '<1–2 câu>', 'TRẢ LỜI CÓ LINK:', '<1 câu> [LINK]', 'BÀI HỘI NHÓM:', '<nội dung>', 'NHẬT KÝ ZALO:', '<nội dung> [LINK]', 'TIN ZALO:', '<2–4 câu> [LINK]', 'GỢI Ý ẢNH:', '<1 câu: ảnh THẬT người đăng tự chụp bằng điện thoại đúng khoảnh khắc trong bài (vd ly trà trên bàn làm việc, mâm cơm tối, góc bếp buổi sáng); không chụp mặt khách, không ảnh sản phẩm trơn, không banner, không chữ trên ảnh>'
   ].join('\n');
   const know = await kb();
-  const req = { model: WRITER, max_tokens: 5000, output_config: { effort: 'medium' },
+  const req = { model: WRITER, max_tokens: 9000, // 13/11/2026: 5000 bị cụt phần Zalo + gợi ý ảnh ở bài dài output_config: { effort: 'medium' },
     system: [{ type: 'text', text: 'Bạn là người viết nội dung mạng xã hội cho nhân viên Thực Dưỡng Lành (VitaGreen Nutrition): thực phẩm dinh dưỡng từ hạt, trà thảo mộc, đồ chay. Tiếng Việt đời thường, ấm, thật, đúng luật quảng cáo thực phẩm Việt Nam.\n' + TRUTH_RULES },
       { type: 'text', text: 'TÀI LIỆU (thông tin chính thức của Thực Dưỡng Lành):\n\n' + know, cache_control: { type: 'ephemeral' } }],
     messages: [{ role: 'user', content: ask }] };
@@ -137,7 +137,7 @@ export async function spRepurposeTick(x) {
     'Trả về ĐÚNG định dạng (không lời dẫn):', 'BÀI:', '<nội dung>', 'BÌNH LUẬN GHIM:', '<1–2 câu>', 'TRẢ LỜI CÓ LINK:', '<1 câu> [LINK]', 'BÀI HỘI NHÓM:', '<nội dung>', 'NHẬT KÝ ZALO:', '<nội dung> [LINK]', 'TIN ZALO:', '<2–4 câu> [LINK]', 'GỢI Ý ẢNH:', '<1 câu: ảnh THẬT người đăng tự chụp bằng điện thoại đúng khoảnh khắc trong bài (vd ly trà trên bàn làm việc, mâm cơm tối, góc bếp buổi sáng); không chụp mặt khách, không ảnh sản phẩm trơn, không banner, không chữ trên ảnh>'
   ].join('\n');
   try {
-    const res = await ai(x.env).messages.create({ model: REPURPOSER, max_tokens: 3500, system: 'Bạn chuyển thể nội dung cho nhân viên Thực Dưỡng Lành (thực phẩm dinh dưỡng từ hạt, trà thảo mộc). Tiếng Việt đời thường, ấm, không văn quảng cáo.\n\n' + TRUTH_RULES, messages: [{ role: 'user', content: ask }] });
+    const res = await ai(x.env).messages.create({ model: REPURPOSER, max_tokens: 6000, system: 'Bạn chuyển thể nội dung cho nhân viên Thực Dưỡng Lành (thực phẩm dinh dưỡng từ hạt, trà thảo mộc). Tiếng Việt đời thường, ấm, không văn quảng cáo.\n\n' + TRUTH_RULES, messages: [{ role: 'user', content: ask }] });
     const raw = res.content.filter(b => b.type === 'text').map(b => b.text).join('\n');
     const grab = (k, next) => { const m = raw.match(new RegExp('(?:^|\\n)\\s*\\**' + k + '\\**\\s*:\\**\\s*([\\s\\S]*?)' + (next ? '(?=\\n\\s*\\**' + next + ')' : '$'), 'i')); return m ? m[1].trim() : ''; };
     const clean = s => insViet(safe(s)).replace(/https?:\/\/\S+/g, '').trim();

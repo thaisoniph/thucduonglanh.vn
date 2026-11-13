@@ -7677,7 +7677,7 @@
     var imgS = (p.imgh ? 'Gợi ý: ' + esc(p.imgh) : 'Ảnh thật bạn tự chụp đúng chuyện trong bài (mâm cơm, ly trà, góc bếp…).') + ' Không dùng banner, ảnh sản phẩm trơn.';
     return '<div class="box spf-card" data-spfid="' + p.id + '">' + head +
       '<details class="spf-ch" open><summary>📘 Facebook cá nhân <small>đăng lúc 9h, 12h hoặc 19–22h</small></summary>' +
-        step('fb1', 1, 'Copy bài và mở Facebook', 'Dán vào ô đăng bài. <b>Không dán link vào bài</b>: bài có link ít người thấy.', go('text', 'Copy bài & mở Facebook', 'fb'), p.text) +
+        step('fb1', 1, 'Copy bài và mở Facebook', 'Dán vào ô đăng bài, <b>sửa vài chi tiết cho đúng chuyện của bạn</b> (con trai hay con gái, quê ở đâu…). <b>Không dán link vào bài</b>: bài có link ít người thấy.', go('text', 'Copy bài & mở Facebook', 'fb'), p.text) +
         step('fb2', 2, '📸 Thêm 1 ảnh thật', imgS, imgB) +
         step('fb3', 3, '⏰ Chờ 2–3 tiếng, trả lời từng bình luận', 'Bài có vài chục bình luận rồi mới làm bước 4. Trả lời bạn bè giúp bài lan rộng hơn.', '<button class="btn" data-spf="mark|' + p.id + '|fb3">✓ Đã chờ, làm tiếp</button>') +
         step('fb4', 4, 'Viết bình luận dưới bài (không có link)', '', '<button class="btn pri" data-spf="cp|' + p.id + '|cmt">📋 Copy bình luận</button>', p.cmt) +
