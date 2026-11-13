@@ -4,6 +4,7 @@ nav: Quản lý
 order: 4
 updated: 2026-11-13
 description: Giao khách, theo dõi nhân viên, cài đặt CRM. Dành cho quyền Quản lý và Quản trị.
+roles: [ql]
 ---
 
 Trang này dành cho **Quản lý** và **Quản trị**. Bạn nên biết các việc ở trang [CRM](/huong-dan/crm/) trước.

@@ -2,6 +2,51 @@
 (function () {
   'use strict';
   var DATA = null, loading = null;
+  /* 📖 Chỉ hiện hướng dẫn của vai trò mình (15/11/2026): mỗi trang có data-roles (từ `roles:` ở đầu file guide/*.md; trống = mọi người). Vai trò lấy từ CRM
+     (action guide_me, cùng mã đăng nhập crm_token). Chưa đăng nhập hoặc chưa biết thì hiện tất cả như trước. Quản trị thấy hết. */
+  var ROLEMAP = {}, MY = null, API0 = document.body.getAttribute('data-api') || '';
+  document.querySelectorAll('.g-tabs a').forEach(function (a) { var m = (a.getAttribute('href') || '').match(/\/huong-dan\/([a-z0-9-]*)\/?$/); ROLEMAP[m ? m[1] : ''] = (a.getAttribute('data-roles') || '').split(' ').filter(Boolean); });
+  function slugOf(url) { var m = String(url || '').match(/\/huong-dan\/([a-z0-9-]*)\/?/); return m ? m[1] : ''; }
+  function seen(slug) { if (!MY || MY.indexOf('*') >= 0) return true; var r = ROLEMAP[slug]; return !r || !r.length || r.some(function (t) { return MY.indexOf(t) >= 0; }); }
+  function toks(u) {
+    if (u.role === 'Quản trị') return ['*'];
+    var t = [{ 'Sale & CSKH': 'sale', 'Quản lý': 'ql', 'Marketing': 'mkt', 'Kho': 'kho', 'Kế toán': 'kt' }[u.role] || 'sale'];
+    if (u.kho) t.push('kho'); if (u.web) t.push('web'); if (u.zb) t.push('zb');
+    return t;
+  }
+  function applyRole(me) {
+    if (!me) return;
+    MY = me.t;
+    document.querySelectorAll('.g-tabs a').forEach(function (a) { var m = (a.getAttribute('href') || '').match(/\/huong-dan\/([a-z0-9-]*)\/?$/); a.hidden = !seen(m ? m[1] : ''); });
+    var main = document.querySelector('main');
+    if (!main) return;
+    // trang Bắt đầu: ẩn dòng bảng chỉ dẫn tới trang của vai trò khác
+    main.querySelectorAll('tr').forEach(function (tr) {
+      var L = [].slice.call(tr.querySelectorAll('a[href^="/huong-dan/"]')); if (!L.length) return;
+      tr.hidden = !L.some(function (a) { return seen(slugOf(a.getAttribute('href'))); });
+    });
+    main.querySelectorAll('table').forEach(function (tb) { var b = tb.querySelectorAll('tbody tr'); if (b.length && [].every.call(b, function (r) { return r.hidden; })) tb.hidden = true; });
+    var old = document.getElementById('g-me'); if (old) old.remove();
+    var here = slugOf(location.pathname), h1 = main.querySelector('h1'), msg = '';
+    if (!seen(here)) msg = '<b>Trang này dành cho vai trò khác.</b> Bạn đang xem vì mở bằng đường link. Phần việc của bạn nằm ở các mục trên thanh menu.';
+    else if (document.body.classList.contains('g-home') && me.n) msg = 'Xin chào <b>' + esc(me.n) + '</b> (' + esc(me.r) + '). ' + (MY.indexOf('*') >= 0 ? 'Bạn là Quản trị nên thấy tất cả hướng dẫn.' : 'Thanh menu trên cùng chỉ có hướng dẫn cho vai trò của bạn.');
+    if (msg && h1) { var d = document.createElement('p'); d.id = 'g-me'; d.className = 'g-me'; d.innerHTML = msg; h1.insertAdjacentElement('afterend', d); }
+  }
+  (function () {
+    var tk = ''; try { tk = localStorage.getItem('crm_token') || ''; } catch (e) {}
+    if (!tk) return;
+    var cached = null; try { cached = JSON.parse(localStorage.getItem('g_me') || 'null'); } catch (e) {}
+    if (cached && cached.k === tk.slice(0, 16)) applyRole(cached); // hiện ngay theo lần trước, khỏi nháy
+    if (!API0) return;
+    fetch(API0, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ type: 'crm', action: 'guide_me', token: tk }) })
+      .then(function (r) { return r.json(); }).then(function (j) {
+        if (!j || !j.ok || !j.me) return;
+        var me = { k: tk.slice(0, 16), t: toks(j.me), n: j.me.name, r: j.me.role };
+        try { localStorage.setItem('g_me', JSON.stringify(me)); } catch (e) {}
+        applyRole(me);
+      }).catch(function () {});
+  })();
+
   // việc hay tìm: hiện thành nút bấm ở trang Bắt đầu và khi ô tìm còn trống
   var HINTS = ['Đăng nhập', 'Nối Telegram', 'Lên đơn', 'Mã vận đơn', 'Khách hỏi', 'Báo cáo cuối ngày', 'Đơn hoàn', 'Mục tiêu', 'Đếm kho', 'Đăng bài'];
   // từ gần nghĩa: gõ chữ bên trái thì tìm cả chữ bên phải (viết không dấu). Cách nói theo từng mục thì ghi ở guide/tu-khoa.yml
@@ -202,7 +247,7 @@
     if (!q.trim()) { list.innerHTML = '<p class="gs-tip">Hay tìm:</p>' + chips(); return; }
     load().then(function () {
       if (q !== lastQ) return;
-      results = search(q);
+      results = search(q).filter(function (r) { return seen(slugOf(r.e.u)); });
       if (!results.length) {
         list.innerHTML = aiRow(q) + '<div class="gs-none"><b>Ô tìm chưa thấy “' + esc(q) + '”.</b><br>Bấm <b>✨ Hỏi trợ lý</b> ở trên, hoặc thử gõ ngắn hơn (ví dụ “đơn” thay vì “đơn hàng mới”).</div>' + chips();
         return;

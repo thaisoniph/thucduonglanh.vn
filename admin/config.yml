@@ -610,6 +610,20 @@ collections:
       - { label: "Ngày cập nhật", name: updated, widget: datetime, format: "YYYY-MM-DD", time_format: false }
       - { label: "Mô tả ngắn dưới tiêu đề", name: description, widget: string, required: false }
       - { label: "Ẩn khỏi thanh menu", name: hidden, widget: boolean, required: false, default: false, hint: "Bật = trang riêng, chỉ ai có link mới mở được (vd hướng dẫn riêng cho 1 nhân sự)." }
+      - label: "Dành cho vai trò"
+        name: roles
+        widget: select
+        multiple: true
+        required: false
+        hint: "Chọn vai trò được thấy trang này trên thanh menu, trong tìm kiếm và ở trang Bắt đầu. Bỏ trống = mọi người thấy. Quản trị luôn thấy hết."
+        options:
+          - { label: "Sale & CSKH", value: sale }
+          - { label: "Quản lý", value: ql }
+          - { label: "Marketing", value: mkt }
+          - { label: "Kho (quyền Kho hoặc phụ trách kho)", value: kho }
+          - { label: "Kế toán", value: kt }
+          - { label: "Người được sửa website", value: web }
+          - { label: "Người phụ trách trợ lý Zalo", value: zb }
       - { label: "Nội dung", name: body, widget: markdown, hint: "Mỗi tiêu đề lớn (Heading 2) tự thành 1 mục trong phần “Trong trang này”. Ảnh chụp màn hình nên che tên, số điện thoại khách thật." }
 
   # ------------------------------------------------------------ CÀI ĐẶT

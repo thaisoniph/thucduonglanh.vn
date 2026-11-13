@@ -4,6 +4,7 @@ nav: Kho
 order: 4.5
 updated: 2026-11-13
 description: Xem hàng còn bao nhiêu, nhận tin khi sắp hết, ghi đã đặt hàng, hàng về kho, lấy hàng ra (quà tặng, đại lý), nhận hàng hoàn, đếm kho cuối tuần. Có hình từng bước.
+roles: [kho, ql]
 ---
 
 Trang này dành cho **người lo kho**. Đọc khoảng 5 phút là làm được.

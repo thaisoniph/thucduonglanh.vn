@@ -4,6 +4,7 @@ nav: Marketing
 order: 5
 updated: 2026-11-10
 description: Xem hiệu quả quảng cáo, nhập chi phí, tạo link và mã QR, cập nhật số liệu sàn.
+roles: [mkt, ql]
 ---
 
 Trang này dành cho bạn **làm marketing** và bạn **phụ trách sàn** (Shopee, TikTok Shop).

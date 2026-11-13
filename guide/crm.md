@@ -4,6 +4,7 @@ nav: CRM
 order: 2
 updated: 2026-11-13
 description: 6 việc bạn làm mỗi ngày trên CRM. Mỗi việc chỉ vài bước.
+roles: [sale, ql]
 ---
 
 CRM giống **cuốn sổ ghi khách hàng** trên điện thoại. Trong đó có mọi khách, mọi đơn hàng. Bạn gọi khách xong thì bấm vào CRM. Máy tự nhớ và tự nhắc bạn hôm nào cần gọi lại.

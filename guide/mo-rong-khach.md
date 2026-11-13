@@ -4,6 +4,7 @@ nav: Mở rộng khách
 order: 2.6
 updated: 2026-11-13
 description: 5 việc, 30 phút mỗi ngày ở tab Hôm nay. Khách bạn tự mang về là khách của bạn, hoa hồng 6% mọi đơn trong 6 tháng, cộng thưởng tiền.
+roles: [sale, ql]
 ---
 
 > **Một câu dễ nhớ:** Khách bạn tự mang về là **khách của bạn**. Khách mua lâu thì bạn được tiền lâu.

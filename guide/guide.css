@@ -170,3 +170,6 @@ h2.g-flash, h3.g-flash, p.g-flash { animation: g-flash 1.6s ease-out; border-rad
   h2 { break-after: avoid; }
   figure, .tbl { break-inside: avoid; }
 }
+
+.g-tabs a[hidden], main tr[hidden], main table[hidden] { display: none; }
+.g-me { margin: 0 0 14px; padding: 10px 14px; background: #eef6f1; border-left: 4px solid #24805B; border-radius: 8px; font-size: 15px; }
