@@ -88,26 +88,34 @@ Bấm **＋ Thêm khách được giới thiệu**. Nguồn **🎁 Khách giới
 
 💰 **Lợi ích:** bạn bè, người trong nhóm thấy bài và hỏi bạn. Khách tự tìm đến, đặt qua link riêng của bạn trong 30 ngày thì **đơn tính cho bạn**.
 
-Mỗi bài đã **viết sẵn cho 3 nơi**, link riêng của bạn đã gắn sẵn. Bài mới tự có mỗi ngày: chuyển từ bài web và bài nhóm Zalo đã duyệt, Telegram báo bạn khi có. Bấm **Xem bài & cách đăng**.
+Mỗi bài đã **viết sẵn cho 3 nơi**, kể chuyện như người thật, link riêng của bạn đã gắn sẵn. Bài mới tự có mỗi ngày (chuyển từ bài web và bài nhóm Zalo đã duyệt), Telegram báo bạn khi có. Bấm **Xem bài & cách đăng**, chọn 1 nơi, làm **lần lượt từng bước**. Bước xong có dấu ✓.
 
-![Bài đăng sẵn cho 3 nơi](/huong-dan/img/mr-fb.webp)
+**📘 Facebook cá nhân** (đăng lúc 9h, 12h hoặc 19–22h)
 
-**① 📘 Facebook cá nhân**
-1. Bấm **📋 Copy bài**, đăng như bài bình thường. **Không dán link vào bài**: bài có link ít người thấy.
-2. Khi bài có người tương tác (2–3 tiếng), bấm **📋 Copy bình luận**, dán làm bình luận dưới bài.
-3. Bấm **📋 Copy câu có link**, dán làm trả lời ngay dưới bình luận ở bước 2. Trên điện thoại, giữ tay vào bình luận bước 2 → **Ghim**.
+![Đăng bài Facebook cá nhân từng bước](/huong-dan/img/mr-fb.webp)
 
-**② 👥 Hội nhóm Facebook** (nhóm mẹ bỉm, ăn chay, hưu trí, khu phố… bạn đang tham gia)
-1. Bấm **📋 Copy bài hội nhóm**: bài chia sẻ kinh nghiệm, không bán hàng, hợp nội quy nhóm.
-2. Đăng xong, bấm **📋 Copy bình luận có link**, tự bình luận dưới bài của mình.
+1. **📋 Copy bài & mở Facebook**: bài đã copy, Facebook tự mở, dán vào ô đăng bài. **Không dán link vào bài**.
+2. **📸 Thêm 1 ảnh thật** bạn tự chụp đúng chuyện trong bài (có gợi ý chụp gì). Không dùng banner, ảnh sản phẩm trơn. Bài từ web thì có nút **⬇️ Tải ảnh bài web**.
+3. **⏰ Chờ 2–3 tiếng**, trả lời từng bình luận của bạn bè.
+4. **📋 Copy bình luận**, dán làm bình luận dưới bài (không có link).
+5. **📋 Copy câu có link**, dán làm **trả lời ngay dưới** bình luận bước 4.
+6. **📌 Ghim**: trên điện thoại, giữ tay vào bình luận bước 4 → **Ghim**. Facebook không cho ghim bình luận có link nên link nằm ở câu trả lời.
 
-Đọc nội quy nhóm trước. Một bài dùng được cho nhiều nhóm, mỗi nhóm cách nhau vài ngày.
+**👥 Hội nhóm Facebook** (nhóm mẹ bỉm, ăn chay, hưu trí, khu phố… bạn đang tham gia)
 
-**③ 💬 Zalo cá nhân**
-1. Bấm **📋 Copy nhật ký Zalo**, đăng lên **Nhật ký** Zalo (đã có link của bạn).
-2. Hoặc bấm **💬 Copy tin gửi khách**, nhắn riêng cho khách cũ, người quen (sửa "anh/chị" cho đúng).
+![Đăng bài hội nhóm từng bước](/huong-dan/img/mr-fb-nhom.webp)
 
-Gợi ý: hôm nay trang cá nhân, mai hội nhóm, ngày kia nhật ký Zalo. Bấm Copy bài ở bất kỳ nơi nào là việc 5 tự có dấu ✓.
+1. **📋 Copy bài & mở hội nhóm**: bài chia sẻ, không bán hàng. Đọc nội quy nhóm trước, làm bạn với admin.
+2. **🖼️ Lưu ảnh mã QR** rồi đăng kèm bài. Hội nhóm hay xoá bài có link, ảnh mã QR thì được. Mã QR là link riêng của bạn tới trang nhận cẩm nang miễn phí.
+3. **📋 Copy bình luận** mời mọi người quét mã nhận quà (không có link).
+
+Một bài dùng được cho nhiều nhóm, mỗi nhóm cách nhau vài ngày.
+
+**💬 Zalo cá nhân**
+1. **📋 Copy nhật ký & mở Zalo**: vào **Nhật ký**, dán (đã có link của bạn), thêm ảnh thật.
+2. Hoặc **💬 Copy tin gửi khách**, nhắn riêng cho khách cũ, người quen (sửa "anh/chị" cho đúng).
+
+Hôm nay trang cá nhân, mai hội nhóm, ngày kia Zalo. Bước 1 ở nơi nào xong là việc 5 tự có dấu ✓.
 
 ## Cuối ngày: báo cáo có ghi công sức của bạn
 

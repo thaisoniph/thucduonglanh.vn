@@ -27,14 +27,14 @@ async function schema(db) {
   if (schemaOk) return;
   await run(db, `CREATE TABLE IF NOT EXISTS sp_posts (id INTEGER PRIMARY KEY AUTOINCREMENT, at INTEGER, by_name TEXT DEFAULT '', f TEXT DEFAULT '', ins TEXT DEFAULT '',
     text TEXT DEFAULT '', cmt TEXT DEFAULT '', reply TEXT DEFAULT '', to_k TEXT DEFAULT 'nhom', status TEXT DEFAULT 'draft', copies INTEGER DEFAULT 0, ok_by TEXT DEFAULT '', ok_at INTEGER)`);
-  for (const c of ["src TEXT DEFAULT ''", "src_ref TEXT DEFAULT ''", "path TEXT DEFAULT ''", "title TEXT DEFAULT ''", "zmsg TEXT DEFAULT ''", "grp TEXT DEFAULT ''", "znk TEXT DEFAULT ''"]) { try { await run(db, 'ALTER TABLE sp_posts ADD COLUMN ' + c); } catch (e) { } } // 13/11/2026: 1 bài → nhiều kênh (bài web / bài nhóm Zalo → bài FB cá nhân + tin Zalo gửi khách)
+  for (const c of ["src TEXT DEFAULT ''", "src_ref TEXT DEFAULT ''", "path TEXT DEFAULT ''", "title TEXT DEFAULT ''", "zmsg TEXT DEFAULT ''", "grp TEXT DEFAULT ''", "znk TEXT DEFAULT ''", "imgh TEXT DEFAULT ''", "img TEXT DEFAULT ''"]) { try { await run(db, 'ALTER TABLE sp_posts ADD COLUMN ' + c); } catch (e) { } } // 13/11/2026: 1 bài → nhiều kênh (bài web / bài nhóm Zalo → bài FB cá nhân + tin Zalo gửi khách)
   schemaOk = true;
 }
 const canEdit = u => !!u && (u.level >= 2 || u.role === 'Marketing');
 const shape = (r, full) => {
   let ins = {}; try { ins = JSON.parse(r.ins || '{}') || {}; } catch (e) { }
   const o = { id: r.id, at: r.at, f: r.f, text: r.text, cmt: r.cmt, reply: r.reply, to: SPF_TO[r.to_k] ? r.to_k : 'nhom', path: r.path || (SPF_TO[r.to_k] || SPF_TO.nhom)[0], status: r.status, copies: r.copies || 0, gn: ins.gn || '',
-    src: r.src || '', title: r.title || '', zmsg: r.zmsg || '', grp: r.grp || '', znk: r.znk || '' }; // 13/11/2026: mỗi bài sẵn 3 kênh: Facebook cá nhân · hội nhóm Facebook (grp) · nhật ký Zalo (znk) + tin Zalo gửi khách (zmsg)
+    src: r.src || '', title: r.title || '', zmsg: r.zmsg || '', grp: r.grp || '', znk: r.znk || '', imgh: r.imgh || '', img: r.img || '' }; // imgh: gợi ý ảnh thật nên chụp; img: ảnh bài web gốc (bài chuyển thể) // 13/11/2026: mỗi bài sẵn 3 kênh: Facebook cá nhân · hội nhóm Facebook (grp) · nhật ký Zalo (znk) + tin Zalo gửi khách (zmsg)
   if (full) Object.assign(o, { by: r.by_name, ok_by: r.ok_by, ins: Object.assign(ins, { w: insRisk([r.text, r.cmt, r.reply].join('\n')), v: insStyle(r.text) }) });
   return o;
 };
@@ -51,6 +51,12 @@ async function spWrite(x, u, d) {
     hint ? 'Yêu cầu thêm của người giao việc: ' + hint : '',
     '', insBlock(p, f), '',
     await edBlock(x, 'sp'), // ✍️ 12/11/2026: học từ bài người duyệt đã sửa
+    '# Văn phong: như NGƯỜI THẬT kể chuyện (storytelling), áp dụng cho mọi bản dưới',
+    '- Mở bằng 1 KHOẢNH KHẮC CỤ THỂ có lúc, có chỗ (vd "Chiều qua tầm 3 giờ, ở văn phòng…", "Tối thứ Bảy về quê…"), KHÔNG mở bằng nhận định chung hay câu hỏi tu từ.',
+    '- Mạch kể: chuyện xảy ra → điều mình để ý / từng nghĩ sai → 1 chuyển biến nhỏ → điều mình rút ra (nói như tâm sự, không răn dạy). Có 1–2 chi tiết giác quan (mùi, tiếng, nhiệt độ, màu) và 1 câu thoại ngắn ngoài đời trong ngoặc kép.',
+    '- Câu ngắn dài xen kẽ, từ ngữ nói hằng ngày, được tự trào nhẹ. Bài Facebook cá nhân và nhật ký Zalo: KHÔNG gạch đầu dòng, KHÔNG đánh số 1-2-3 (người thật ít viết vậy). Bài hội nhóm được 2–3 ý ngắn nếu là mẹo.',
+    '- Tránh văn AI: "Hóa ra", "Thật ra thì", "Có những…", "hành trình", "không chỉ… mà còn", "hãy cùng", "đừng quên", cảm thán sáo rỗng, câu kết kiểu khẩu hiệu.',
+    '- Chuyện là của CHÍNH người đăng (bản thân, gia đình, đồng nghiệp, một ngày đi làm). KHÔNG bịa chuyện khách hàng, lời khách, kết quả dùng sản phẩm, số liệu.',
     '# Luật riêng của bài Facebook cá nhân',
     '- Xưng "mình", gọi người đọc "mọi người" / "các bạn" / "anh chị" hợp với nhóm khách. Kể từ góc nhìn của chính người đăng (một ngày làm việc, điều mình để ý, điều mình từng nghĩ sai). KHÔNG bịa lời khách, tên khách, câu chuyện khách cụ thể, số liệu, kết quả dùng sản phẩm.',
     '- 120–300 chữ, đoạn 1–3 câu. Câu cuối là 1 câu hỏi mở, dễ trả lời, để bạn bè bình luận (kể chuyện của họ, chọn A hay B).',
@@ -62,7 +68,7 @@ async function spWrite(x, u, d) {
     '- NHẬT KÝ ZALO: đăng nhật ký Zalo cá nhân (bạn bè Zalo là khách cũ, người quen). 60–120 chữ, ấm, gần gũi, được nhắc nhẹ mình làm ở Thực Dưỡng Lành, kết thúc bằng lời mời ngắn rồi đúng chữ [LINK].',
     '- TIN ZALO: tin nhắn riêng gửi khách cũ / người quen, 2–4 câu, gọi người nhận là [Tên], hỏi thăm 1 câu rồi chia sẻ ý chính, kết thúc đúng chữ [LINK].',
     '',
-    'Trả về ĐÚNG định dạng (không lời dẫn):', INS_HEAD, '---', 'BÀI:', '<nội dung bài>', 'BÌNH LUẬN GHIM:', '<1–2 câu>', 'TRẢ LỜI CÓ LINK:', '<1 câu> [LINK]', 'BÀI HỘI NHÓM:', '<nội dung>', 'NHẬT KÝ ZALO:', '<nội dung> [LINK]', 'TIN ZALO:', '<2–4 câu> [LINK]'
+    'Trả về ĐÚNG định dạng (không lời dẫn):', INS_HEAD, '---', 'BÀI:', '<nội dung bài>', 'BÌNH LUẬN GHIM:', '<1–2 câu>', 'TRẢ LỜI CÓ LINK:', '<1 câu> [LINK]', 'BÀI HỘI NHÓM:', '<nội dung>', 'NHẬT KÝ ZALO:', '<nội dung> [LINK]', 'TIN ZALO:', '<2–4 câu> [LINK]', 'GỢI Ý ẢNH:', '<1 câu: ảnh THẬT người đăng tự chụp bằng điện thoại đúng khoảnh khắc trong bài (vd ly trà trên bàn làm việc, mâm cơm tối, góc bếp buổi sáng); không chụp mặt khách, không ảnh sản phẩm trơn, không banner, không chữ trên ảnh>'
   ].join('\n');
   const know = await kb();
   const req = { model: WRITER, max_tokens: 5000, output_config: { effort: 'medium' },
@@ -80,10 +86,10 @@ async function spWrite(x, u, d) {
   const text = clean(grab('BÀI', 'BÌNH LUẬN GHIM')), cmt = clean(grab('BÌNH LUẬN GHIM', 'TRẢ LỜI CÓ LINK')).replace(/\[LINK\]/g, '').trim();
   let reply = clean(grab('TRẢ LỜI CÓ LINK', 'BÀI HỘI NHÓM')); if (!/\[LINK\]/.test(reply)) reply = (reply || 'Link đây nhé') + ' [LINK]';
   const grp = clean(grab('BÀI HỘI NHÓM', 'NHẬT KÝ ZALO')).replace(/\[LINK\]/g, '').trim(), withL = s => s && !/\[LINK\]/.test(s) ? s + ' [LINK]' : s;
-  const znk = withL(clean(grab('NHẬT KÝ ZALO', 'TIN ZALO'))), zmsg = withL(clean(grab('TIN ZALO', '')));
+  const znk = withL(clean(grab('NHẬT KÝ ZALO', 'TIN ZALO'))), zmsg = withL(clean(grab('TIN ZALO', 'GỢI Ý ẢNH'))), imgh = clean(grab('GỢI Ý ẢNH', '')).split('\n')[0];
   if (text.length < 120 || !cmt) return { ok: false, error: 'AI chưa viết đủ bài + bình luận ghim, bấm viết lại nhé.' };
   const ins = insParse(head, p.bank, p.g); if (p.angle) ins.a = p.angle; if (p.big) ins.b = p.big.t;
-  const r = await run(x.db, 'INSERT INTO sp_posts (at, by_name, f, ins, text, cmt, reply, to_k, status, grp, znk, zmsg) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', Date.now(), u.name, f, JSON.stringify(ins), text.slice(0, 5000), cmt.slice(0, 600), reply.slice(0, 400), to, 'draft', grp.slice(0, 4000), znk.slice(0, 1500), zmsg.slice(0, 1200));
+  const r = await run(x.db, 'INSERT INTO sp_posts (at, by_name, f, ins, text, cmt, reply, to_k, status, grp, znk, zmsg, imgh) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', Date.now(), u.name, f, JSON.stringify(ins), text.slice(0, 5000), cmt.slice(0, 600), reply.slice(0, 400), to, 'draft', grp.slice(0, 4000), znk.slice(0, 1500), zmsg.slice(0, 1200), imgh.slice(0, 300));
   const id = r && r.meta && r.meta.last_row_id;
   await insLog(x, 'fbcn', { g: ins.g, gn: ins.gn, f, t: ins.t, ref: 'sp' + id, a: ins.a, b: ins.b });
   return { ok: true, post: shape(await first(x.db, 'SELECT * FROM sp_posts WHERE id = ?', id), true) };
@@ -101,7 +107,7 @@ export async function spRepurposeTick(x) {
   let src = null;
   const web = await all(x.db, "SELECT day, title, slug, md FROM bl_posts WHERE status = 'published' AND pub_at > ? AND slug != '' AND md != '' ORDER BY pub_at DESC LIMIT 5", now - 3 * DAY).catch(() => []);
   const w = web.find(p => !done.has('web:' + p.day));
-  if (w) src = { kind: 'web', ref: 'web:' + w.day, title: w.title, path: '/goc-song-lanh/' + w.slug + '/', body: String(w.md).replace(/^---[\s\S]*?---/, '').slice(0, 7000) };
+  if (w) src = { kind: 'web', ref: 'web:' + w.day, title: w.title, path: '/goc-song-lanh/' + w.slug + '/', img: ((String(w.md).match(/^image:\s*(\S+)/m) || [])[1] || '').replace(/^["']|["']$/g, ''), body: String(w.md).replace(/^---[\s\S]*?---/, '').slice(0, 7000) };
   else if (!(await first(x.db, "SELECT 1 FROM sp_posts WHERE src = 'zalo' AND at >= ?", now - (now + 7 * 3600e3) % DAY))) {
     const zs = await all(x.db, "SELECT id, topic, text FROM zb_posts WHERE status = 'sent' AND sent_at > ? AND length(text) >= 300 ORDER BY sent_at DESC LIMIT 5", now - 2 * DAY).catch(() => []);
     const z = zs.find(p => !done.has('zalo:' + p.id));
@@ -120,9 +126,15 @@ export async function spRepurposeTick(x) {
     '4) BÀI HỘI NHÓM: đăng vào hội nhóm Facebook (nhóm mẹ bỉm, ăn chay, hưu trí, khu phố…). 100–220 chữ, chia sẻ mẹo / kinh nghiệm có ích trước, KHÔNG giới thiệu mình bán hàng, KHÔNG tên sản phẩm, KHÔNG link, câu cuối hỏi ý kiến mọi người trong nhóm.',
     '5) NHẬT KÝ ZALO: đăng nhật ký Zalo cá nhân, 60–120 chữ, ấm, gần gũi, kết thúc bằng lời mời ' + lead + ' rồi đúng chữ [LINK].',
     '6) TIN ZALO: tin nhắn riêng gửi khách cũ / người quen, 2–4 câu, ấm, hỏi thăm 1 câu rồi chia sẻ ý chính, mời ' + lead + ', kết thúc đúng chữ [LINK]. Gọi người nhận là [Tên].',
+    '# Văn phong: như NGƯỜI THẬT kể chuyện (storytelling), áp dụng cho mọi bản dưới',
+    '- Mở bằng 1 KHOẢNH KHẮC CỤ THỂ có lúc, có chỗ (vd "Chiều qua tầm 3 giờ, ở văn phòng…", "Tối thứ Bảy về quê…"), KHÔNG mở bằng nhận định chung hay câu hỏi tu từ.',
+    '- Mạch kể: chuyện xảy ra → điều mình để ý / từng nghĩ sai → 1 chuyển biến nhỏ → điều mình rút ra (nói như tâm sự, không răn dạy). Có 1–2 chi tiết giác quan (mùi, tiếng, nhiệt độ, màu) và 1 câu thoại ngắn ngoài đời trong ngoặc kép.',
+    '- Câu ngắn dài xen kẽ, từ ngữ nói hằng ngày, được tự trào nhẹ. Bài Facebook cá nhân và nhật ký Zalo: KHÔNG gạch đầu dòng, KHÔNG đánh số 1-2-3 (người thật ít viết vậy). Bài hội nhóm được 2–3 ý ngắn nếu là mẹo.',
+    '- Tránh văn AI: "Hóa ra", "Thật ra thì", "Có những…", "hành trình", "không chỉ… mà còn", "hãy cùng", "đừng quên", cảm thán sáo rỗng, câu kết kiểu khẩu hiệu.',
+    '- Chuyện là của CHÍNH người đăng (bản thân, gia đình, đồng nghiệp, một ngày đi làm). KHÔNG bịa chuyện khách hàng, lời khách, kết quả dùng sản phẩm, số liệu.',
     'Chỉ dùng thông tin có trong bài gốc. Không nói sản phẩm chữa / điều trị / khỏi bệnh.',
     '', '# BÀI GỐC', src.body, '',
-    'Trả về ĐÚNG định dạng (không lời dẫn):', 'BÀI:', '<nội dung>', 'BÌNH LUẬN GHIM:', '<1–2 câu>', 'TRẢ LỜI CÓ LINK:', '<1 câu> [LINK]', 'BÀI HỘI NHÓM:', '<nội dung>', 'NHẬT KÝ ZALO:', '<nội dung> [LINK]', 'TIN ZALO:', '<2–4 câu> [LINK]'
+    'Trả về ĐÚNG định dạng (không lời dẫn):', 'BÀI:', '<nội dung>', 'BÌNH LUẬN GHIM:', '<1–2 câu>', 'TRẢ LỜI CÓ LINK:', '<1 câu> [LINK]', 'BÀI HỘI NHÓM:', '<nội dung>', 'NHẬT KÝ ZALO:', '<nội dung> [LINK]', 'TIN ZALO:', '<2–4 câu> [LINK]', 'GỢI Ý ẢNH:', '<1 câu: ảnh THẬT người đăng tự chụp bằng điện thoại đúng khoảnh khắc trong bài (vd ly trà trên bàn làm việc, mâm cơm tối, góc bếp buổi sáng); không chụp mặt khách, không ảnh sản phẩm trơn, không banner, không chữ trên ảnh>'
   ].join('\n');
   try {
     const res = await ai(x.env).messages.create({ model: REPURPOSER, max_tokens: 3500, system: 'Bạn chuyển thể nội dung cho nhân viên Thực Dưỡng Lành (thực phẩm dinh dưỡng từ hạt, trà thảo mộc). Tiếng Việt đời thường, ấm, không văn quảng cáo.\n\n' + TRUTH_RULES, messages: [{ role: 'user', content: ask }] });
@@ -133,9 +145,10 @@ export async function spRepurposeTick(x) {
     let reply = clean(grab('TRẢ LỜI CÓ LINK', 'BÀI HỘI NHÓM')); if (!/\[LINK\]/.test(reply)) reply = (reply || 'Mình để link ở đây nhé') + ' [LINK]';
     const grp = clean(grab('BÀI HỘI NHÓM', 'NHẬT KÝ ZALO')).replace(/\[LINK\]/g, '').trim();
     let znk = clean(grab('NHẬT KÝ ZALO', 'TIN ZALO')); if (znk && !/\[LINK\]/.test(znk)) znk += ' [LINK]';
-    let zmsg = clean(grab('TIN ZALO', '')); if (zmsg && !/\[LINK\]/.test(zmsg)) zmsg += ' [LINK]';
+    let zmsg = clean(grab('TIN ZALO', 'GỢI Ý ẢNH')); if (zmsg && !/\[LINK\]/.test(zmsg)) zmsg += ' [LINK]';
+    const imgh = clean(grab('GỢI Ý ẢNH', '')).split('\n')[0];
     if (text.length < 100 || !cmt) return;
-    await run(x.db, "UPDATE sp_posts SET text = ?, cmt = ?, reply = ?, zmsg = ?, grp = ?, znk = ?, status = 'ok', ok_by = 'Tự động (bài gốc đã duyệt)', ok_at = ? WHERE id = ?", text.slice(0, 5000), cmt.slice(0, 600), reply.slice(0, 400), zmsg.slice(0, 1200), grp.slice(0, 4000), znk.slice(0, 1500), now, row.id);
+    await run(x.db, "UPDATE sp_posts SET text = ?, cmt = ?, reply = ?, zmsg = ?, grp = ?, znk = ?, imgh = ?, img = ?, status = 'ok', ok_by = 'Tự động (bài gốc đã duyệt)', ok_at = ? WHERE id = ?", text.slice(0, 5000), cmt.slice(0, 600), reply.slice(0, 400), zmsg.slice(0, 1200), grp.slice(0, 4000), znk.slice(0, 1500), imgh.slice(0, 300), String(src.img || '').slice(0, 300), now, row.id);
     const us = await all(x.db, "SELECT name, tg FROM users WHERE active = 1 AND coalesce(tg, '') != '' AND role NOT IN ('Kho', 'Kế toán', 'Marketing')");
     const msg = '📣 <b>Có bài mới để chia sẻ</b> (' + (src.kind === 'web' ? '📰 từ bài web' : '💬 từ nhóm Zalo') + '): ' + cut(src.title, 120).replace(/[<>&]/g, '') + '\nĐã có sẵn bài đăng Facebook cá nhân, bài hội nhóm, nhật ký Zalo và tin Zalo gửi khách, link riêng của bạn tự gắn.\n👉 CRM → Hôm nay → 🌱 việc 5 → Xem bài & cách đăng';
     for (const v of us) { try { await telegramTo(x.env, v.tg, msg); } catch (e) { } }
@@ -165,9 +178,9 @@ export async function crmSpf(x, u, d, crmLog) {
     const text = d.text != null ? insViet(cut(d.text, 5000)) : row.text, cmt = d.cmt != null ? cut(d.cmt, 600).replace(/https?:\/\/\S+/g, '') : row.cmt;
     let reply = d.reply != null ? cut(d.reply, 400) : row.reply; if (!/\[LINK\]/.test(reply)) reply = reply.trim() + ' [LINK]';
     const to = SPF_TO[d.to] ? d.to : row.to_k, grp = d.grp != null ? insViet(cut(d.grp, 4000)).replace(/https?:\/\/\S+/g, '') : row.grp || '';
-    let znk = d.znk != null ? cut(d.znk, 1500) : row.znk || '', zmsg = d.zmsg != null ? cut(d.zmsg, 1200) : row.zmsg || '';
+    let znk = d.znk != null ? cut(d.znk, 1500) : row.znk || '', zmsg = d.zmsg != null ? cut(d.zmsg, 1200) : row.zmsg || '', imgh = d.imgh != null ? cut(d.imgh, 300) : row.imgh || '';
     if (znk && !/\[LINK\]/.test(znk)) znk += ' [LINK]'; if (zmsg && !/\[LINK\]/.test(zmsg)) zmsg += ' [LINK]';
-    await run(x.db, 'UPDATE sp_posts SET grp = ?, znk = ?, zmsg = ? WHERE id = ?', grp, znk, zmsg, id);
+    await run(x.db, 'UPDATE sp_posts SET grp = ?, znk = ?, zmsg = ?, imgh = ? WHERE id = ?', grp, znk, zmsg, imgh, id);
     await run(x.db, 'UPDATE sp_posts SET text = ?, cmt = ?, reply = ?, to_k = ?, status = ?, ok_by = ?, ok_at = ? WHERE id = ?', text, cmt, reply, to, st,
       st === 'ok' && row.status !== 'ok' ? u.name : row.ok_by, st === 'ok' && row.status !== 'ok' ? now : row.ok_at, id);
     if (d.text != null || d.cmt != null) await edAdd(x, 'sp', { id: 'sp' + id, by: u.name, t: '', ai: row.text + '\n[BÌNH LUẬN GHIM] ' + row.cmt, hu: text + '\n[BÌNH LUẬN GHIM] ' + cmt }); // ✍️ trợ lý học từ bản sửa
