@@ -5,7 +5,7 @@ export const DAY = 864e5;
 export const CRM_URL = 'https://crm.thucduonglanh.vn';
 export const MKT_URL = 'https://mkt.thucduonglanh.vn'; // cùng trang CRM, mở thẳng tab Marketing – link gửi cho nhân sự marketing
 /** 10/11/2026 (anh Sơn): mỗi vai trò một địa chỉ, đều là cùng CRM – crm. (Sale & CSKH, Quản lý), quantri. (Quản trị), mkt., kho., ketoan. Trùng bảng HOSTS / roleHost trong crm/app.js. */
-export const ROLE_URL = role => role === 'Quản trị' ? 'https://quantri.thucduonglanh.vn' : role === 'Marketing' ? MKT_URL : role === 'Kho' ? 'https://kho.thucduonglanh.vn' : role === 'Kế toán' ? 'https://ketoan.thucduonglanh.vn' : CRM_URL;
+export const ROLE_URL = role => role === 'Quản trị' ? 'https://quantri.thucduonglanh.vn' : role === 'Marketing' ? MKT_URL : role === 'Kho' ? 'https://kho.thucduonglanh.vn' : role === 'Kế toán' ? 'https://ketoan.thucduonglanh.vn' : role === 'Quản lý' ? 'https://kinhdoanh.thucduonglanh.vn' : CRM_URL;
 
 export function normPhone(p) { p = String(p == null ? '' : p).replace(/\D/g, ''); if (p.indexOf('84') === 0 && p.length >= 11) p = '0' + p.slice(2); return p; }
 export function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
