@@ -3879,6 +3879,18 @@ def build_guide(out):
     shutil.copy(src / "guide.js", out / "guide.js")
     ver = hashlib.md5((src / "guide.css").read_bytes() + (src / "guide.js").read_bytes()).hexdigest()[:8]
     pages, index, ai_doc = [], [], []
+    # 🖼 hướng dẫn từng bước bằng hình (guide/steps.py + steps.yml): trong .md gọi bằng 1 dòng riêng [[steps:ten-viec]]
+    sys.path.insert(0, str(src))
+    import steps as _steps
+    steps_data = yaml.safe_load((src / "steps.yml").read_text("utf-8")) if (src / "steps.yml").exists() else {}
+
+    def expand_steps(h, text_only):
+        def rep(m):
+            if m.group(1) not in steps_data:
+                print(f"⚠️  guide: không có [[steps:{m.group(1)}]] trong guide/steps.yml")
+                return ""
+            return _steps.render(m.group(1), steps_data[m.group(1)], text_only)
+        return re.sub(r"<p>\[\[steps:([a-z0-9-]+)\]\]</p>", rep, h)
     # từ khoá thêm cho từng mục (cách nhân sự hay gõ khi gặp vấn đề): guide/tu-khoa.yml  "trang#mục": "từ, từ, …"
     kw = {}
     if (src / "tu-khoa.yml").exists():
@@ -3942,6 +3954,7 @@ def build_guide(out):
             used.add(aid)
             return f'<p id="{aid}" class="g-q"><strong>{m.group(1)}</strong>'
         body = re.sub(r"<p><strong>(.*?)</strong>", qid, body)
+        body_page, body = expand_steps(body, False), expand_steps(body, True)  # trang: có hình; tìm kiếm / trợ lý AI: chỉ chữ các bước
         if not meta.get("hidden"):
             ai_doc.append(f"## Trang \"{meta.get('nav', '')}\": {meta.get('title', '')} [[{here or 'index'}#]]\n"
                           + (str(meta.get("description", "")) + "\n" if meta.get("description") else "") + ai_text(body, here or "index"))
@@ -3996,7 +4009,7 @@ def build_guide(out):
 <h1>{title}</h1>
 {f'<p class="g-lead">{html.escape(meta["description"])}</p>' if meta.get("description") else ""}
 {SEARCH_HERO if not here else ""}
-{body}
+{body_page}
 <footer class="g-foot">{f"Cập nhật {upd} · " if upd else ""}Tài liệu nội bộ Thực Dưỡng Lành, không chia sẻ ra ngoài.</footer>
 </main>
 </div>

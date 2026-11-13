@@ -1,0 +1,114 @@
+# Hướng dẫn từng bước bằng hình cho người bán hàng (Sale & CSKH). Gọi trong guide/*.md bằng 1 dòng riêng: [[steps:dang-nhap]]
+# Sửa chữ trong "text" thoải mái (được dùng <b>). Sửa hình: els = các phần tử trong màn hình, hi = phần tử cần bấm (xem guide/steps.py).
+dang-nhap:
+  title: Đăng nhập CRM bằng mã email
+  steps:
+    - title: CRM Thực Dưỡng Lành
+      els:
+        - ["h", "Đăng nhập"]
+        - ["in", "Email của bạn", "ban@gmail.com"]
+        - ["btn", "Gửi mã đăng nhập", "g"]
+        - ["note", "Không cần mật khẩu"]
+      hi: 2
+      text: "Mở <b>crm.thucduonglanh.vn</b> trên điện thoại. Gõ email của bạn rồi bấm <b>Gửi mã đăng nhập</b>."
+    - title: Hộp thư email
+      els:
+        - ["h", "Hộp thư"]
+        - ["card", "Thực Dưỡng Lành CRM", "Mã đăng nhập của bạn: 482915", "y"]
+        - ["note", "Mã dùng được trong 10 phút"]
+        - ["note", "Không thấy thư? Tìm trong Spam"]
+      hi: 1
+      text: "Mở hộp thư email, tìm thư có <b>mã 6 số</b>. Không thấy thì tìm trong mục <b>Spam</b> hoặc <b>Quảng cáo</b>."
+    - title: CRM Thực Dưỡng Lành
+      els:
+        - ["h", "Nhập mã"]
+        - ["in", "Mã 6 số trong email", "482915"]
+        - ["note", "Gõ đủ 6 số là vào luôn"]
+        - ["card", "Máy nhớ bạn 30 ngày", "Lần sau không cần gõ lại mã", "g"]
+      hi: 1
+      text: "Gõ <b>6 số</b> vào CRM. Gõ đủ 6 số là vào luôn. Máy nhớ bạn <b>30 ngày</b>."
+goi-khach:
+  title: Gọi khách ở tab Hôm nay
+  steps:
+    - title: Hôm nay
+      tabs: sale
+      act: 0
+      els:
+        - ["h", "Việc hôm nay"]
+        - ["card", "12 khách cần gọi hôm nay", "Khách quan trọng nhất ở đầu", "g"]
+        - ["btn", "▶ Bắt đầu gọi lần lượt", "g"]
+        - ["card", "🚚 Đơn đang giao cần gọi", "2 đơn hãng báo giao chưa được", "y"]
+      hi: 2
+      text: "Mở tab <b>Hôm nay</b>. Bấm nút xanh <b>▶ Bắt đầu gọi lần lượt</b>. CRM mở từng khách một."
+    - title: Gọi khách
+      els:
+        - ["h", "Chị Lan · 0912 345 678"]
+        - ["card", "Đã mua Trà DILVANG 2 hộp", "Lần trước: chị bảo ngủ ngon hơn", ""]
+        - ["btn2", "📞 Gọi", "💬 Nhắn Zalo", "g"]
+        - ["note", "Chưa biết nói gì? Xem 💬 Kịch bản gọi"]
+      hi: 2
+      text: "Đọc nhanh khách mua gì, lần trước nói gì. Bấm <b>📞 Gọi</b> hoặc <b>💬 Nhắn Zalo</b> (CRM chép sẵn tin nhắn)."
+    - title: Ghi kết quả
+      els:
+        - ["in", "✍️ Khách nói gì?", "chị bảo còn 1 hộp"]
+        - ["btn", "📵 Không nghe máy", ""]
+        - ["btn", "👍 Dùng ok", ""]
+        - ["btn", "🛒 Lên đơn ngay", "g"]
+      hi: 1
+      text: "Gõ vài chữ khách nói, rồi bấm <b>1 nút kết quả</b> (ví dụ <b>📵 Không nghe máy</b>). CRM tự nhắc gọi lại đúng ngày và mở khách tiếp theo. Khách muốn mua thì bấm <b>🛒 Lên đơn ngay</b>."
+len-don:
+  title: Lên đơn khi khách đặt hàng
+  steps:
+    - title: Đơn hàng
+      tabs: sale
+      act: 2
+      els:
+        - ["h", "Đơn hàng"]
+        - ["btn", "＋ Tạo đơn", "g"]
+        - ["card", "Phuong201026-01 · Chị Lan", "Đang giao · 1.800.000đ", ""]
+      hi: 1
+      text: "Khách đặt qua Zalo hoặc điện thoại thì bạn tạo đơn trên CRM. Vào tab <b>Đơn hàng</b>, bấm <b>＋ Tạo đơn</b>."
+    - title: Tạo đơn
+      els:
+        - ["btn", "📋 Dán tin nhắn của khách", "g"]
+        - ["in", "Tên khách", "Chị Lan"]
+        - ["in", "Số điện thoại", "0912 345 678"]
+        - ["note", "🆕 Địa chỉ mới 34 tỉnh · 🕰 Địa chỉ cũ"]
+      hi: 0
+      text: "Bấm <b>📋 Dán tin nhắn của khách</b>, dán nguyên tin Zalo (có tên, số điện thoại, địa chỉ). CRM tự điền các ô, bạn chỉ cần <b>xem lại</b>, nhất là 2 ô địa chỉ."
+    - title: Tạo đơn
+      els:
+        - ["note", "Chọn sản phẩm"]
+        - ["chips", ["Trà DILVANG", "Progomax", "Combo"], "0"]
+        - ["in", "Số tiền thu của khách", "1tr8"]
+        - ["chips", ["COD", "Chuyển khoản"], "0"]
+      hi: 1
+      text: "Bấm <b>tên sản phẩm</b> (bấm thêm để tăng số lượng). Gõ <b>số tiền thu</b> (gõ <b>1tr8</b> cũng được). Chọn <b>COD</b> hoặc <b>Chuyển khoản</b>."
+    - title: Tạo đơn
+      els:
+        - ["card", "Mã đơn tự điền", "Phuong201026-01", "g"]
+        - ["card", "💵 COD · 🚚 BEST Express", "Phí ship 30.000đ", ""]
+        - ["btn", "Lưu & copy lên đơn", "g"]
+        - ["note", "Nội dung đơn đã chép sẵn để dán"]
+      hi: 2
+      text: "Kiểm tra lại, rồi bấm <b>Lưu & copy lên đơn</b>. Đơn được lưu, nội dung đơn đã chép sẵn, bạn <b>dán sang bên vận chuyển</b>."
+ma-van-don:
+  title: Nhập mã vận đơn sau khi gửi hàng
+  steps:
+    - title: Đơn hàng
+      tabs: sale
+      act: 2
+      els:
+        - ["h", "Đơn hàng"]
+        - ["card", "Phuong201026-01 · Chị Lan", "Đã xác nhận · 1.800.000đ", "g"]
+        - ["btn", "📦 Nhập mã VĐ", "g"]
+      hi: 2
+      text: "Gửi hàng xong, mở tab <b>Đơn hàng</b>. Trên đơn đó bấm <b>📦 Nhập mã VĐ</b>."
+    - title: Vận chuyển
+      els:
+        - ["h", "🚚 Vận chuyển"]
+        - ["in", "Mã vận đơn (in trên phiếu gửi hàng)", "BE1234567890"]
+        - ["btn", "Lưu vận đơn", "g"]
+        - ["note", "Đơn tự chuyển sang Đang giao"]
+      hi: 2
+      text: "Gõ <b>mã vận đơn</b> (mã in trên phiếu gửi hàng), bấm <b>Lưu vận đơn</b>. Đơn tự chuyển sang <b>Đang giao</b>."
