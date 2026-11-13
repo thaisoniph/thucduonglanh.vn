@@ -1383,7 +1383,7 @@ async function crmOrderStatus(x, u, d, sys) { // sys: lệnh nội bộ đã t�
 /** 📦 Đối soát vận chuyển (01/11/2026): CRM đọc file Best / Viettel Post / xe ôm ngay trên máy, khớp đơn theo mã + SĐT, quản lý xem lại rồi gửi lên.
  *  d.items = [{ row, id, fee, carrier, tracking, status }]: ghi phí thật, hãng, mã vận đơn (nếu đơn chưa có); status (nếu có) đổi như bấm tay (ghi nhật ký, tính lại khách, ghi file sale). */
 async function crmReconApply(x, u, d) {
-  if (u.level < 2) return { ok: false, error: 'Chỉ Quản lý / Quản trị đối soát được.' };
+  if (u.level < 2 && u.role !== 'Kế toán') return { ok: false, error: 'Chỉ Kế toán, Quản lý, Quản trị đối soát được.' }; // Kế toán: 13/11/2026 (anh Sơn)
   const items = (Array.isArray(d.items) ? d.items : []).slice(0, 3000), tag = String(d.src || 'Đối soát').slice(0, 40) + ' ' + fmtDate(Date.now(), 'dd/MM');
   let fee = 0, st = 0; const errs = [], ups = [];
   // 05/11/2026: đọc 1 lần cả lô + ghi gộp (trước: 2 lệnh / đơn, rất chậm); đổi trạng thái vẫn đi như bấm tay
@@ -1398,7 +1398,7 @@ async function crmReconApply(x, u, d) {
     if (typeof it.trk === 'string') { set.trk = it.trk.slice(0, 300); set.trk_at = Number(it.trkAt) || Date.now(); set.trk_code = it.trk ? 900 : 0; } // 05/11/2026: file Best báo "kiện vấn đề" khi đơn còn đang giao
     const ks = Object.keys(set); ups.push(x.db.prepare('UPDATE orders SET ' + ks.map(k => k + ' = ?').join(', ') + ' WHERE rid = ?').bind(...ks.map(k => set[k]), o.rid));
     if (it.status && it.status !== o.status && ORDER_STATUS.indexOf(it.status) >= 0) {
-      const r = await crmOrderStatus(x, u, { row: o.rid, id: o.id, status: it.status, reason: 'Đối soát ' + tag });
+      const r = await crmOrderStatus(x, u, { row: o.rid, id: o.id, status: it.status, reason: 'Đối soát ' + tag }, u.role === 'Kế toán'); // kế toán không phụ trách khách: quyền đã kiểm ở trên
       if (r.ok) st++; else errs.push(it.id);
     }
   }

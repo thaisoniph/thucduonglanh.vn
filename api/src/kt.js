@@ -12,7 +12,7 @@ export const isKt = u => !!u && u.role === KT_ROLE;
 /** Được làm việc tài chính: Quản trị hoặc Kế toán. */
 export const finOk = u => !!u && (u.level >= 3 || u.role === KT_ROLE);
 // Tài khoản Kế toán: ngoài các lệnh này + kt_* máy chủ từ chối hết (crmApi). settings: chỉ phần chi phí / bảng lương / giá vốn (ktSettingsOk).
-export const KT_ROLE_OK = { load: 1, logout: 1, guide_ask: 1, prefs: 1, tg_link: 1, tg_check: 1, tg_off: 1, perf: 1, usage: 1, feedback: 1, fb_list: 1, fb_img: 1, settings: 1, mkt: 1, san: 1, fin_save: 1, fin_test: 1 };
+export const KT_ROLE_OK = { load: 1, logout: 1, guide_ask: 1, prefs: 1, tg_link: 1, tg_check: 1, tg_off: 1, perf: 1, usage: 1, feedback: 1, fb_list: 1, fb_img: 1, settings: 1, mkt: 1, san: 1, fin_save: 1, fin_test: 1, recon_apply: 1 }; // recon_apply (13/11/2026): kế toán tải file Best / Viettel Post ở 💼 Kế toán → 📦 Cập nhật trạng thái đơn
 export function ktSettingsOk(d) { return Object.keys(d).every(k => ['type', 'action', 'token', 'opId', 'cost', 'opex', 'pay'].indexOf(k) >= 0); }
 const KT_FROM_DEF = '2026-10-01';
 // 10/11/2026 (file đối soát T10 của kế toán): tiền về tài khoản nào – Best / xe ôm có khi về TK công ty, có khi về TK anh Sơn, có đơn lên Hộ kinh doanh. Kế toán sửa danh sách ở ⚙️ Cài đặt kế toán.

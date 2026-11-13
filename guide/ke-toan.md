@@ -96,7 +96,25 @@ Ghi chú:
 - Tải lại cùng file cũng không sao: đơn đã ghi rồi thì máy bỏ qua.
 - Máy ghi luôn **ngày hãng trả tiền**, **mã phiếu thanh toán** (Best) và **phí ship thật** của đơn.
 - **❓ Không thấy trong CRM**: đơn chưa lên CRM hoặc sai mã. Mở dòng đó xem mã vận đơn rồi báo sale.
-- Hãng báo giao thành công mà CRM còn ghi "Đang giao": máy nhắc báo Quản lý chạy **📦 Đối soát vận chuyển** ở tab Đơn hàng. Kế toán không đổi trạng thái đơn.
+- Hãng báo giao thành công mà CRM còn ghi "Đang giao": bấm **📦 Cập nhật trạng thái đơn (file Best)** (mục ngay dưới).
+
+## Cập nhật trạng thái đơn bằng file Best
+
+Đơn **Viettel Post** tự cập nhật, không cần làm gì. Đơn **Best** thì kế toán tải file của Best để cập nhật, **mỗi ngày 1 lần** (hoặc thứ 2, 4, 6 cùng lúc tải phiếu đối soát). Sale nhờ đó thấy ngay đơn đã giao, đơn đang hoàn, đơn giao chưa được.
+
+![Nút Cập nhật trạng thái đơn (1)](/huong-dan/img/ke-toan-trang-thai-nut.webp)
+
+Lấy file trên trang Best: **Quản lý đơn hàng → Hàng gửi → Xuất ra Excel** (chọn khoảng 30 ngày gần nhất).
+
+![Chọn file (1), kết quả khớp (2), bấm Cập nhật (3)](/huong-dan/img/ke-toan-trang-thai.webp)
+
+1. Bấm **📦 Cập nhật trạng thái đơn (file Best)** ở tab 💼 Kế toán, rồi **Chọn tệp** → chọn file vừa tải.
+2. Máy đọc file, khớp từng vận đơn với đơn trên CRM (theo mã đơn hoặc mã vận đơn), cho xem trước: bao nhiêu đơn **cần đổi trạng thái**, bao nhiêu đơn **không có trong CRM**. Chưa đổi gì cho tới khi bấm nút.
+3. Bấm **✅ Cập nhật vào CRM**. Máy đổi trạng thái (Đã giao / Đang chuyển hoàn), ghi **phí ship thật** và cảnh báo **giao chưa được** để sale gọi khách.
+
+- Đơn **không có trong CRM**: sale chưa lên đơn trên CRM. Báo sale.
+- Đơn hãng báo **hoàn**: chuyển sang **Đang chuyển hoàn**. Kho nhận đủ hàng về mới thành **Hoàn**.
+- Tải lại cùng file không sao: đơn đã đúng thì máy bỏ qua.
 
 ## Tải sao kê VCB / MB: máy tự khớp tiền về, xếp khoản chi
 

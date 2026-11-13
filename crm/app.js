@@ -5963,7 +5963,7 @@
       card(old.length ? 'bad' : L.treo.length ? 'mid' : 'ok', '💤 Đang treo ở hãng vận chuyển', moneyShort(tv), L.treo.length ? L.treo.length + ' đơn đã giao, hãng chưa trả tiền' + (old.length ? ' · <b>⚠️ ' + old.length + ' đơn quá ' + KTV_OLD + ' ngày</b>' : '') : 'Không có đơn nào', L.treo.length ? 'treo' : '') +
       card(L.bank.length ? 'mid' : 'ok', '🏦 Chuyển khoản chờ xác nhận', moneyShort(bv), L.bank.length ? L.bank.length + ' đơn: xem sao kê VCB rồi tích' : 'Không có đơn nào', L.bank.length ? 'bank' : '') +
       card('', '🚚 Tiền sắp về', moneyShort(ktvSum(L.ship)), L.ship.length + ' đơn COD đang giao', '') + '</div>' +
-      '<div class="ktv-big"><button class="btn pri lg" data-ktv="cod">📥 Tải file đối soát COD</button><button class="btn lg" data-ktv="vcb">🏦 Tải sao kê VCB / MB</button><button class="btn lg" data-ktv="chi">💸 Tiền ra đã lưu</button><button class="btn lg" data-ktv="treo">✅ Ghi tiền về bằng tay</button></div>' +
+      '<div class="ktv-big"><button class="btn pri lg" data-ktv="cod">📥 Tải file đối soát COD</button><button class="btn lg" data-ktv="vcb">🏦 Tải sao kê VCB / MB</button><button class="btn lg" data-ktv="chi">💸 Tiền ra đã lưu</button><button class="btn lg" data-ktv="treo">✅ Ghi tiền về bằng tay</button><button class="btn lg" data-recon="">📦 Cập nhật trạng thái đơn (file Best)</button></div>' +
       ktbHTML() +
       (byL.length ? '<div class="box ktv-by"><h3>💤 Tiền treo theo hãng <small>bấm để xem từng đơn</small></h3>' + byL.map(function (x) {
         return '<button type="button" class="ktv-row" data-ktv="treo|' + esc(x.c) + '"><span><b>' + esc(x.c) + '</b><small>' + x.n + ' đơn · chờ lâu nhất ' + x.max + ' ngày' + (x.old ? ' · <em class="ktv-red">' + x.old + ' đơn quá ' + KTV_OLD + ' ngày (' + moneyShort(x.ov) + '): hỏi lại hãng</em>' : '') + '</small></span><b class="ktv-amt">' + moneyShort(x.v) + '</b><i aria-hidden="true">›</i></button>';
@@ -10103,14 +10103,17 @@
   }
   /** Khớp dòng file với đơn CRM: mã đơn + SĐT; mã khớp mà SĐT khác → thử theo SĐT (trong ±10 ngày), không được thì để "cần xem"; không có mã → theo SĐT. */
   function rcMatch(P) {
-    var byId = {}, byPh = {};
-    S.d.orders.forEach(function (o) { var k = rcKey(o.id); if (k) (byId[k] = byId[k] || []).push(o); if (o.phone) (byPh[o.phone] = byPh[o.phone] || []).push(o); });
+    var byId = {}, byPh = {}, byWb = {};
+    S.d.orders.forEach(function (o) { var k = rcKey(o.id); if (k) (byId[k] = byId[k] || []).push(o); if (o.phone) (byPh[o.phone] = byPh[o.phone] || []).push(o); var w = rcKey(o.tracking); if (w) (byWb[w] = byWb[w] || []).push(o); });
+    // 13/11/2026: khớp thêm theo mã vận đơn; tài khoản Kế toán chỉ có 4 số cuối SĐT (o.ph) → so 4 số cuối
+    var samePh = function (x, ph) { return x.phone ? x.phone === ph : !!(x.ph && ph && ph.slice(-4) === String(x.ph).slice(-4)); };
     var near = function (ph, day) { var L = (byPh[ph] || []).filter(function (o) { return !day || Math.abs(o.time - day) <= 10 * DAY; }); L.sort(function (a, b) { return Math.abs(a.time - day) - Math.abs(b.time - day); }); return L[0] || null; };
     var M = {}, none = [], doubt = [];
     P.rows.forEach(function (r) {
       var c = [], o = null, how = 'mã';
       r.codes.forEach(function (k) { (byId[k] || []).forEach(function (x) { if (c.indexOf(x) < 0) c.push(x); }); });
-      if (c.length) o = r.phone ? c.filter(function (x) { return x.phone === r.phone; })[0] || null : c[0];
+      if (!c.length && r.wb) { (byWb[rcKey(r.wb)] || []).forEach(function (x) { if (c.indexOf(x) < 0) c.push(x); }); how = 'mã vận đơn'; }
+      if (c.length) o = r.phone ? c.filter(function (x) { return samePh(x, r.phone); })[0] || null : c[0];
       if (!o && r.phone) { o = near(r.phone, r.day); how = 'SĐT'; }
       if (!o) { if (c.length) doubt.push({ r: r, o: c[0] }); else none.push(r); return; }
       var m = M[o.row] || (M[o.row] = { o: o, rows: [], fee: null, how: how });
@@ -10166,6 +10169,7 @@
     return o.trkCode === 900 ? { trk: '', at: Date.now() } : null;
   }
   function rcDayTime(s) { var m = String(s || '').match(/(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/); return m ? Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4] - 7, +m[5]) : 0; }
+  function rcPh(p) { return isKt() ? '…' + String(p || '').slice(-4) : fPhone(p); } // Kế toán không xem SĐT đầy đủ của khách
   function rcShow(m, P, R) {
     var rows = P.rows, fees = rows.filter(function (r) { return r.fee !== null; }), fT = fees.reduce(function (s0, r) { return s0 + r.fee; }, 0), days = rows.map(function (r) { return r.day; }).filter(Boolean);
     var bk = Object.keys(R.M).map(function (k) { return R.M[k]; }).filter(function (x) { return x.st === 'back'; }), bF = bk.reduce(function (s0, x) { return s0 + (x.fee || 0); }, 0);
@@ -10179,10 +10183,10 @@
       return '<label class="rc-row' + (x.warn ? ' rc-warn' : '') + '"><input type="checkbox" data-rcto="' + x.o.row + '"' + (x.warn && x.to !== 'Đang chuyển hoàn' ? '' : ' checked') + '><span>' + line(x) + '<br><small>CRM: ' + esc(x.o.status) + ' → <b>' + x.to + '</b> · ' + esc(P.carrier) + ': ' + esc(RC_ST[x.st]) + (x.warn ? ' · ⚠️ ' + esc(x.warn) : '') + '</small></span></label>';
     }).join('') + '</div>';
     if (R.none.length) h += '<h3>❓ Có trên file nhưng không tìm thấy trong CRM <small class="muted">(nhắc sale lên đơn)</small></h3><div class="rc-list">' + R.none.slice(0, 80).map(function (r) {
-      return '<div class="rc-row"><span><b>' + esc(r.label || '–') + '</b> · ' + (r.phone ? fPhone(r.phone) : 'không có SĐT') + (r.day ? ' · ' + fDate(r.day) : '') + ' · ' + esc(RC_ST[r.st]) + (r.cod ? ' · thu hộ ' + moneyShort(r.cod) : '') + '</span></div>';
+      return '<div class="rc-row"><span><b>' + esc(r.label || '–') + '</b> · ' + (r.phone ? rcPh(r.phone) : 'không có SĐT') + (r.day ? ' · ' + fDate(r.day) : '') + ' · ' + esc(RC_ST[r.st]) + (r.cod ? ' · thu hộ ' + moneyShort(r.cod) : '') + '</span></div>';
     }).join('') + (R.none.length > 80 ? '<p class="small muted">… và ' + (R.none.length - 80) + ' dòng nữa</p>' : '') + '</div>';
     if (R.doubt.length) h += '<h3>⚠️ Mã đơn trùng nhưng SĐT khác <small class="muted">(không tự cập nhật, kiểm tra tay)</small></h3><div class="rc-list">' + R.doubt.map(function (d) {
-      return '<div class="rc-row"><span><b>' + esc(d.r.label) + '</b> · file: ' + fPhone(d.r.phone) + ' · CRM: ' + fPhone(d.o.phone) + ' (' + esc(d.o.name) + ', ' + esc(d.o.status) + ') · ' + esc(RC_ST[d.r.st]) + '</span></div>';
+      return '<div class="rc-row"><span><b>' + esc(d.r.label) + '</b> · file: ' + rcPh(d.r.phone) + ' · CRM: ' + (d.o.phone ? rcPh(d.o.phone) : '…' + esc(d.o.ph || '')) + ' (' + esc(d.o.name) + ', ' + esc(d.o.status) + ') · ' + esc(RC_ST[d.r.st]) + '</span></div>';
     }).join('') + '</div>';
     $('#rcOut', m).innerHTML = h;
     var nM = Object.keys(R.M).length, go = $('#rcGo', m); go.hidden = !nM; go.textContent = '✅ Cập nhật vào CRM (' + nM + ' đơn: ghi phí, hãng' + (R.todo.length ? ', đổi trạng thái' : '') + ')';
