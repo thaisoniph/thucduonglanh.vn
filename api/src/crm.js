@@ -908,6 +908,11 @@ export async function ownTick(x) {
     if (q && (q.own === undefined || Number(q.own) === 10)) { q.own = 5; await kvSet(x.db, 'payplan_cfg', JSON.stringify(q)); await crmLog(x, OWN_SYS, 'Cài đặt', '-', '', 'Khách tự mang về: 10% → 5% + thưởng bậc', 'anh Sơn chốt 11/11/2026'); }
     await kvSet(x.db, 'own5_mig', '1');
   }
+  if (!(await kvGet(x.db, 'own6_mig'))) { // 13/11/2026 anh Sơn: khách tự mang về 5% → 6% mọi đơn trong 6 tháng (giữ thưởng bậc 20k / 50k)
+    const q = await kvJson(x.db, 'payplan_cfg', null);
+    if (q && (q.own === undefined || Number(q.own) === 5)) { q.own = 6; await kvSet(x.db, 'payplan_cfg', JSON.stringify(q)); await crmLog(x, OWN_SYS, 'Cài đặt', '-', '', 'Khách tự mang về: 5% → 6% mọi đơn trong 6 tháng', 'anh Sơn chốt 13/11/2026'); }
+    await kvSet(x.db, 'own6_mig', '1');
+  }
   await run(x.db, 'DELETE FROM own_proof WHERE at < ?', Date.now() - OWN_PF_DAYS * DAY).catch(() => { });
   const PP = await ownPlan(x); if (!PP.own) return;
   const from = (dateOrBlank(PP.ownFrom) || 9 * 3600e3) - 9 * 3600e3, now = Date.now(); // dateOrBlank = 9h sáng → lùi về 0h ngày đó
@@ -1782,7 +1787,7 @@ async function crmContact(x, u, d) {
 const COMM_KEYS = ['Khách mới', 'Khách cũ', 'Ngoài giờ', 'Ngày lễ', 'Đơn web'];
 // 💰 Phụ lục 01/CĐ2026 (anh Sơn gửi 30/10/2026): [doanh thu tháng từ, lương cơ bản, trợ cấp BH, [[% khách cũ, % khách mới] dưới 1 năm, 1–2 năm, trên 2 năm]].
 // Dưới bậc đầu (80 triệu) = "hỗ trợ theo năng lực" (quản lý quyết). senior: [số tháng làm từ, phụ cấp thâm niên / tháng]. webAuto: khách mới tự đặt web không qua link sale = % của mức khách mới.
-const PAYPLAN = { on: 1, webAuto: 50, off: 6, hol: 10, own: 5, ownMonths: 6, ownFrom: '2026-11-10', // own: % mọi đơn của khách sale tự mang về (tự tìm / được giới thiệu) trong ownMonths tháng, khách mua lần đầu từ ownFrom (anh Sơn 10/11/2026) // off / hol: % cố định đơn sale chốt tối / Chủ nhật (Ngoài giờ) và ngày lễ (anh Sơn gửi 30/10/2026), không theo bậc / thâm niên
+const PAYPLAN = { on: 1, webAuto: 50, off: 6, hol: 10, own: 6, ownMonths: 6, ownFrom: '2026-11-10', // own: % mọi đơn của khách sale tự mang về (tự tìm / được giới thiệu) trong ownMonths tháng, khách mua lần đầu từ ownFrom (anh Sơn 10/11/2026) // off / hol: % cố định đơn sale chốt tối / Chủ nhật (Ngoài giờ) và ngày lễ (anh Sơn gửi 30/10/2026), không theo bậc / thâm niên
   senior: [[36, 300000], [60, 500000]], tiers: [
   [80e6, 5500000, 1000000, [[3, 2], [4.5, 2.5], [5, 2.5]]], [100e6, 6500000, 1000000, [[3, 2.5], [4.5, 2.5], [5, 2.5]]], [150e6, 7000000, 1000000, [[3.5, 2.5], [4.5, 2.5], [5, 2.5]]],
   [200e6, 7500000, 1000000, [[3.5, 3], [4.5, 3], [5, 3.5]]], [250e6, 8000000, 1000000, [[4, 3], [4.5, 3], [5, 3.5]]], [300e6, 8500000, 1000000, [[4, 3], [4.5, 3], [5, 3.5]]], [350e6, 9000000, 1000000, [[4, 3], [4.5, 3], [5, 3.5]]]] };

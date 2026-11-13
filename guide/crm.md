@@ -2,7 +2,7 @@
 title: CRM cho người bán hàng
 nav: CRM
 order: 2
-updated: 2026-11-12
+updated: 2026-11-13
 description: 6 việc bạn làm mỗi ngày trên CRM. Mỗi việc chỉ vài bước.
 ---
 
@@ -270,24 +270,24 @@ Cuối tab **Hôm nay** có mục **🔎 Hết số quảng cáo? Tự tạo kh�
 
 Làm đủ 4 việc này mỗi ngày thì bạn luôn có khách, kể cả tuần nào quảng cáo ít số.
 
-**💰 Khách bạn tự mang về: hoa hồng 5% mọi đơn trong 6 tháng + thưởng tiền (từ 11/11/2026)**
+**💰 Khách bạn tự mang về: hoa hồng 6% mọi đơn trong 6 tháng + thưởng tiền (từ 13/11/2026)**
 
 Khách **bạn tự tìm** (bạn tự thêm vào CRM, không từ số quảng cáo, không để số trên web) hoặc **khách cũ của bạn giới thiệu** mà mua hàng, thì:
 
-- **Mọi đơn bạn bán cho khách đó trong 6 tháng đầu** được tính **5% tiền hàng** (khách cũ thường 3–5% tùy thâm niên).
+- **Mọi đơn bạn bán cho khách đó trong 6 tháng đầu** được tính **6% tiền hàng** (khách cũ thường 3–5% tùy thâm niên).
 - **Thưởng thêm tiền** theo tổng tiền hàng khách đó mua trong **60 ngày đầu** (đơn đã giao xong 7 ngày): đủ **300.000đ → 20.000đ**, đủ **700.000đ → thêm 30.000đ** (tổng 50.000đ). Thưởng ghi khi khách đã qua 14 ngày chờ chốt.
 - **Khách được giới thiệu: gửi ảnh chụp tin nhắn** khách cũ giới thiệu bạn đó (Zalo, Messenger…). Mở hồ sơ khách → khung 🙋 → **📎 Chọn ảnh**. Có ảnh thì máy tự chốt sau 14 ngày. Không có tin nhắn (khách giới thiệu qua điện thoại, gặp trực tiếp) thì quản lý sẽ gọi hỏi người được giới thiệu rồi mới tính.
 
-- Máy tự nhận ra khi khách có đơn đầu, báo Telegram cho bạn: *"🙋 Khách bạn tự mang về … → 5% mọi đơn tới ngày …"*. Trong hồ sơ khách có nhãn **🙋 Tự tìm** hoặc **🙋 Được giới thiệu** kèm ngày hết hạn.
+- Máy tự nhận ra khi khách có đơn đầu, báo Telegram cho bạn: *"🙋 Khách bạn tự mang về … → 6% mọi đơn tới ngày …"*. Trong hồ sơ khách có nhãn **🙋 Tự tìm** hoặc **🙋 Được giới thiệu** kèm ngày hết hạn.
 - Xem tiền ở **Hiệu quả → 💰 Thu nhập tạm tính**, dòng **🙋 HH khách tự mang về**.
 - **Số phải chưa từng có trong CRM** (từ 11/11/2026). Nếu trước lúc bạn thêm khách, số đó đã có ở bất kỳ đâu trong CRM thì **không tính**: số trong file quảng cáo (bao lâu cũng tính), khách hỏi ở Kho chung, khách hỏi của sale khác, đơn cũ (cả đơn huỷ), form liên hệ trên web. Lý do ghi trong hồ sơ khách. Những khách này công ty đã trả tiền quảng cáo để có, nên chỉ tính hoa hồng thường.
 - **Lúc thêm khách hỏi** (kênh Zalo, Điện thoại, Sự kiện, Khác) bạn phải chọn **🙋 Khách biết bạn qua đâu?** và ghi rõ (tên nhóm, sự kiện, người quen là ai). Khách xem quảng cáo hay fanpage công ty thì chọn **📣**. Quên ghi thì mở hồ sơ khách, chọn rồi bấm **Lưu nguồn khách**.
 - **Chờ chốt 14 ngày**: nhãn có chữ **⏳ chờ chốt**. Trong 14 ngày đó nếu số có trong file số quảng cáo thì máy tự gỡ và báo bạn. Hết 14 ngày không có gì lạ thì chốt hẳn.
-- **⚠️ chờ duyệt**: khách có dấu hiệu lạ (chưa ghi khách biết qua đâu, cùng địa chỉ khách cũ…) thì **chưa tính 5%** tới khi quản lý duyệt.
+- **⚠️ chờ duyệt**: khách có dấu hiệu lạ (chưa ghi khách biết qua đâu, cùng địa chỉ khách cũ…) thì **chưa tính 6%** tới khi quản lý duyệt.
 - **Quản lý có thể gọi hỏi khách** *"Chị biết Thực Dưỡng Lành qua đâu ạ?"* (mỗi tuần máy chọn ngẫu nhiên vài khách của mỗi bạn). Ghi đúng sự thật là được tính đủ.
 - **Không tính** khi: số đã có trong file số quảng cáo hoặc để lại trên web **trước** khi bạn thêm (kể cả ghi là "khách giới thiệu"); khách cũ đổi số (trùng tên + địa chỉ); người nhà của người giới thiệu (cùng địa chỉ); trùng số nhân sự / người nhà. Đơn do người khác bán cho khách đó tính % thường cho người đó.
 
-Ví dụ: chị Hoa do bạn tự tìm, mua 350.000đ mỗi tháng trong 6 tháng = 2.100.000đ → bạn được **105.000đ** hoa hồng + **50.000đ** thưởng = **155.000đ**, gấp khoảng 2,5–3,5 lần tiền % của một khách từ quảng cáo (2–3%). Thêm khách tự tìm là thêm thu nhập đều mỗi tháng.
+Ví dụ: chị Hoa do bạn tự tìm, mua 350.000đ mỗi tháng trong 6 tháng = 2.100.000đ → bạn được **126.000đ** hoa hồng + **50.000đ** thưởng = **176.000đ**, gấp khoảng 3–4 lần tiền % của một khách từ quảng cáo (2–3%). Thêm khách tự tìm là thêm thu nhập đều mỗi tháng.
 
 ## Việc 5: Cuối ngày gửi báo cáo
 

@@ -2,8 +2,8 @@
 title: Chính sách mở rộng khách hàng
 nav: Mở rộng khách
 order: 2.6
-updated: 2026-11-12
-description: Khách bạn tự mang về là khách của bạn. Hoa hồng 5% mọi đơn trong 6 tháng, cộng thưởng tiền. Làm từ hơn 8.000 khách đã có trong CRM.
+updated: 2026-11-13
+description: Khách bạn tự mang về là khách của bạn. Hoa hồng 6% mọi đơn trong 6 tháng, cộng thưởng tiền. Làm từ hơn 8.000 khách đã có trong CRM.
 ---
 
 ## Vì sao công ty làm chính sách này?
@@ -22,7 +22,7 @@ Vì vậy công ty dành phần tiền lẽ ra trả cho quảng cáo để **tr
 |---|---|
 | 📣 Quảng cáo của công ty (khách mới) | 2–3,5% (theo bậc doanh thu, thâm niên) |
 | 🔁 Khách cũ bạn chăm, mua lại | 3–5% (theo bậc doanh thu, thâm niên) |
-| 🙋 **Khách bạn tự tìm** hoặc **khách cũ giới thiệu** | **5% mọi đơn trong 6 tháng** + **thưởng tiền** |
+| 🙋 **Khách bạn tự tìm** hoặc **khách cũ giới thiệu** | **6% mọi đơn trong 6 tháng** + **thưởng tiền** |
 
 **Thưởng tiền** cho mỗi khách bạn tự mang về, tính theo tổng tiền hàng khách mua trong **60 ngày đầu** (cộng dồn nhiều đơn):
 
@@ -37,11 +37,17 @@ Doanh số của những khách này **vẫn cộng vào doanh thu tháng** đ�
 
 Chị Hoa do bạn tự tìm. Chị mua 350.000đ mỗi tháng, đều 6 tháng = 2.100.000đ.
 
-- Hoa hồng 5%: **105.000đ**
+- Hoa hồng 6%: **126.000đ**
 - Thưởng (đủ 700.000đ trong 60 ngày): **50.000đ**
-- **Tổng: 155.000đ** từ một khách, gấp khoảng 2,5–3,5 lần một khách quảng cáo.
+- **Tổng: 176.000đ** từ một khách, gấp khoảng 3–4 lần một khách quảng cáo.
 
-Mỗi tháng bạn tự mang về **10 khách** như chị Hoa thì thêm khoảng **1.550.000đ**. Tháng sau lại thêm 10 khách nữa, tiền **cộng chồng lên** vì mỗi khách được tính 6 tháng.
+Mỗi tháng bạn tự mang về **10 khách** như chị Hoa thì tiền **cộng chồng lên**, vì mỗi khách được tính 6 tháng:
+
+- Tháng 1: khoảng **410.000đ**
+- Tháng 2: khoảng **920.000đ**
+- Tháng 3: khoảng **1.130.000đ**
+- **Sau 3 tháng: khoảng 2.500.000đ.** Nếu chỉ một nửa số khách mua lại đều mỗi tháng thì khoảng **1.800.000đ**.
+- Giữ nhịp 10 khách/tháng thì từ tháng thứ 6, **mỗi tháng thêm khoảng 1.760.000đ** đều đặn.
 
 ### Thưởng cả nhóm
 

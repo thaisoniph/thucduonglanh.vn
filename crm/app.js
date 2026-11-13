@@ -11113,7 +11113,7 @@
       L.slice(0, 20).map(function (c) { return '<div class="own-card"><div><b class="link" data-cust="' + c.phone + '">' + esc(c.name || 'Khách') + '</b> · <a href="tel:' + c.phone + '">' + fPhone(c.phone) + '</a> · ' + c.orders + ' đơn ' + moneyShort(c.spent) + '</div>' + ownBox(c) + '</div>'; }).join('') +
       (L.length > 20 ? '<p class="small muted">… và ' + (L.length - 20) + ' khách nữa (xử lý xong mấy khách trên sẽ hiện tiếp).</p>' : '') + '</section>';
   }
-  function ownPctTxt() { return (((S.d.rules && S.d.rules.payplan) || {}).own || 5) + '%'; }
+  function ownPctTxt() { return (((S.d.rules && S.d.rules.payplan) || {}).own || 6) + '%'; }
   /* 📎 Ảnh tin nhắn khách giới thiệu (11/11/2026, 3 lớp anh Sơn chọn): sale gửi ảnh → máy chủ bỏ cờ thiếu ảnh; quản lý / sale đó xem lại được. Ảnh tự xoá sau 120 ngày. */
   document.addEventListener('change', function (e) {
     var f = e.target; if (!f || !f.matches || !f.matches('input[data-ownpf]') || !f.files || !f.files[0]) return;

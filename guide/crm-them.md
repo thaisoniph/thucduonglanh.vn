@@ -2,7 +2,7 @@
 title: CRM thêm cho người bán hàng
 nav: CRM thêm
 order: 3
-updated: 2026-11-12
+updated: 2026-11-13
 description: Mẹo và việc ít dùng hơn. Cần việc nào thì bấm vào mục đó ở "Trong trang này".
 ---
 
@@ -114,12 +114,12 @@ Voucher dùng cho đơn từ 300.000đ, hạn 90 ngày. Nói với khách cho d�
 - Bấm link của khách, mã giảm giá tự áp dụng.
 - Ở trang thanh toán, bấm **Có mã ưu đãi / người giới thiệu?**, rồi gõ **mã** (ví dụ `AN111`) hoặc **số điện thoại** của người giới thiệu.
 
-### 💰 Quyền lợi của bạn (sale): hoa hồng 5% mọi đơn trong 6 tháng + thưởng tiền (từ 11/11/2026)
+### 💰 Quyền lợi của bạn (sale): hoa hồng 6% mọi đơn trong 6 tháng + thưởng tiền (từ 13/11/2026)
 
 - Người được giới thiệu là **số mới, chưa có trong CRM** (chưa từng mua, chưa từng hỏi) → khách đó **thuộc về bạn**, nếu bạn đang phụ trách người giới thiệu. Ai nhập khách cũng vậy, kể cả khi người bạn tự đặt trên web.
-- Khách đó là **khách bạn tự mang về**: **mọi đơn bạn bán cho khách đó trong 6 tháng đầu** tính **5% tiền hàng**, cộng **thưởng** khi khách mua đủ 300.000đ (20.000đ) và 700.000đ (thêm 30.000đ) trong 60 ngày đầu. Ví dụ khách mới mua đơn 350.000đ mỗi tháng trong 6 tháng → hoa hồng 105.000đ + thưởng 50.000đ. **Nhớ gửi ảnh chụp tin nhắn** khách cũ giới thiệu ở hồ sơ khách (📎 Chọn ảnh) để được tính nhanh; không có ảnh thì quản lý gọi hỏi người được giới thiệu trước khi tính.
+- Khách đó là **khách bạn tự mang về**: **mọi đơn bạn bán cho khách đó trong 6 tháng đầu** tính **6% tiền hàng**, cộng **thưởng** khi khách mua đủ 300.000đ (20.000đ) và 700.000đ (thêm 30.000đ) trong 60 ngày đầu. Ví dụ khách mới mua đơn 350.000đ mỗi tháng trong 6 tháng → hoa hồng 126.000đ + thưởng 50.000đ. **Nhớ gửi ảnh chụp tin nhắn** khách cũ giới thiệu ở hồ sơ khách (📎 Chọn ảnh) để được tính nhanh; không có ảnh thì quản lý gọi hỏi người được giới thiệu trước khi tính.
 - Xem tiền ở tab **Hiệu quả** → **📊 Bảng BCDT** → **💰 Thu nhập tạm tính**, dòng **🙋 HH khách tự mang về**. Hồ sơ khách có nhãn **🙋 Được giới thiệu** kèm ngày hết hạn.
-- Khách mới mua ít thì khách **vẫn thuộc về bạn**, tính vào **mục tiêu nhóm**, chăm sóc để khách mua thêm (mỗi đơn thêm là thêm 5%, mua đủ 300.000đ / 700.000đ trong 60 ngày là có thưởng).
+- Khách mới mua ít thì khách **vẫn thuộc về bạn**, tính vào **mục tiêu nhóm**, chăm sóc để khách mua thêm (mỗi đơn thêm là thêm 6%, mua đủ 300.000đ / 700.000đ trong 60 ngày là có thưởng).
 - Không tính: số đã có trong CRM hoặc trong file số quảng cáo trước khi bạn ghi người giới thiệu, đơn huỷ hoặc hoàn, khách mới **cùng địa chỉ** với người giới thiệu, số trùng nhân sự hoặc người nhà. Khách mới chờ chốt 14 ngày; quản lý có thể gọi hỏi khách để xác minh.
 - Xem khách được giới thiệu: tab **Hôm nay**, dòng 🌱 ở khung đầu trang, hoặc tab **Hiệu quả** → ô **🌱 Khách mới nhờ khách cũ giới thiệu** (số khách mới và **🤝 mục tiêu cả nhóm** trong tháng).
 

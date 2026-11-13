@@ -32,7 +32,7 @@ export function ladder(c) { return (Array.isArray(c.tiers) ? c.tiers : [[c.tierN
 async function rawPartnerCfg(x) { let c = {}; try { c = JSON.parse((await kvGet(x.db, 'partner_cfg')) || '{}') || {}; } catch (e) { } return c; }
 /** 10/11/2026 (anh Sơn "Tắt 20k/30k"): luật hoa hồng khách tự mang về (payplan.own %, crm.js) thay thưởng sale cố định → khi own > 0, saleSteps hiệu lực = [] (refSaleAuto không ghi thưởng mới, thưởng đã ghi giữ nguyên).
  *  Đọc kv payplan_cfg thẳng (mặc định own 10, 6 tháng như PAYPLAN) để không import vòng từ crm.js. Tắt luật 10% (own = 0) thì mức thưởng cũ trong kv tự có hiệu lực lại. */
-async function ownRule(x) { let q = {}; try { q = JSON.parse((await kvGet(x.db, 'payplan_cfg')) || '{}') || {}; } catch (e) { } return { own: q.own === undefined ? 5 : Number(q.own) || 0, months: Number(q.ownMonths) || 6 }; }
+async function ownRule(x) { let q = {}; try { q = JSON.parse((await kvGet(x.db, 'payplan_cfg')) || '{}') || {}; } catch (e) { } return { own: q.own === undefined ? 6 : Number(q.own) || 0, months: Number(q.ownMonths) || 6 }; }
 export async function partnerCfg(x) {
   const cfg = Object.assign({}, DEF, await rawPartnerCfg(x)), o = await ownRule(x);
   if (o.own > 0) Object.assign(cfg, { ownPct: o.own, ownMonths: o.months, ownBonus: 1 }); // 11/11/2026 anh Sơn: 5% + thưởng bậc saleSteps cho MỌI khách tự mang về (tự tìm + giới thiệu), trả khi đã chốt (refSaleAuto)
