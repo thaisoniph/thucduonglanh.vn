@@ -2452,6 +2452,7 @@
       commBox(c, type, true) + giftBox(giftPerson(c.phone), type, true) + // thu gọn: để Bước 2 không bị đẩy xuống xa
       '<div class="box"><h3>Bước 2 · Ghi lại kết quả</h3>' +
       '<label class="f k-note-w"><span>✍️ Khách nói gì? <span class="muted" style="font-weight:400">(không bắt buộc)</span></span><textarea id="kNote" class="k-note" rows="2" placeholder="vd: chị bảo ngủ ngon hơn, còn nửa hộp…"></textarea></label>' +
+      '<label class="k-praise"><input type="checkbox" id="kPraise"><span>⭐ Đây là <b>lời khen của khách</b> <span class="muted">(hiện ở 📣 Tin vui cho cả công ty, không hiện số điện thoại)</span></span></label>' +
       '<p class="k-tap" id="kTap"></p>' + // dòng hướng dẫn đổi theo việc đã gõ ghi chú hay chưa → sale biết ghi chú được lưu khi bấm nút
       quickHtml(type) +
       '<details class="k-more"><summary>Kết quả khác / tự chọn ngày hẹn</summary><div style="margin-top:10px">' +
@@ -2473,7 +2474,8 @@
     $('#kCopy', m).onclick = function () { copy(msg.value).then(function () { toast('Đã copy tin nhắn'); }); };
     $('#kZalo', m).onclick = function () { copy(msg.value).then(function () { toast('Đã copy – dán vào khung chat Zalo'); }); window.open(zalo(c.phone), '_blank', 'noopener'); };
     $$('input[name=kRes]', m).forEach(function (r) { r.onchange = function () { if (r.value === 'Hẹn gọi lại' && !$('#kCb', m).value) { $('#kCb', m).value = isoDate(Date.now() + 2 * DAY); $('#kCb', m).focus(); } }; });
-    var kn = $('#kNote', m), dk = 'draft_k_' + c.phone; draftKeep(kn, dk); // chữ đang gõ: lỡ đóng cửa sổ thì lần mở sau vẫn còn
+    var kn = $('#kNote', m), dk = 'draft_k_' + c.phone; draftKeep(kn, dk);
+    S.kPraise = null; $('#kPraise', m).onchange = function () { S.kPraise = this.checked ? { phone: c.phone, ta: kn } : null; if (this.checked && !kn.value.trim()) { kn.focus(); toast('Ghi lời khách khen vào ô “Khách nói gì?” nhé'); } }; // ⭐ lời khen → Tin vui (14/11/2026) // chữ đang gõ: lỡ đóng cửa sổ thì lần mở sau vẫn còn
     noteTap(kn, $('#kTap', m));
     var buy = function () { openOrderForm({ phone: c.phone, autoRepeat: true, care: { task: $('#kTask', m).value, note: kn.value.trim() }, back: function () { openCare(c.phone, type, opt); } }); };
     $('#kBuy', m).onclick = buy;
@@ -2528,7 +2530,10 @@
     var f = function () { var on = !!ta.value.trim(); ta.classList.toggle('has', on); el.classList.toggle('on', on); el.innerHTML = on ? '✅ Đã có ghi chú. 👇 Bấm <b>1 nút</b> bên dưới để lưu ghi chú này cùng kết quả.' : '👇 Bấm <b>1 nút</b> đúng với khách. CRM tự lưu và tự hẹn ngày gọi lại.'; };
     ta.addEventListener('input', f); f();
   }
-  function saveCare(c, p) { sendOp('care', p); return Promise.resolve(); } // lưu ngay trên màn hình, gửi ngầm (xem hàng chờ gửi)
+  function saveCare(c, p) {
+    var pr = S.kPraise; if (pr && pr.phone === p.phone) { S.kPraise = null; var tx = pr.ta.value.trim(); if (tx) api('bt_praise', { phone: p.phone, text: tx }).then(function (j) { if (j && j.bt) { S.bt = j.bt; S.btI = 0; btPaint(); } toast('⭐ Đã đưa lời khen của khách lên 📣 Tin vui'); }, function () { }); }
+    sendOp('care', p); return Promise.resolve();
+  } // lưu ngay trên màn hình, gửi ngầm (xem hàng chờ gửi)
   /** 📵 Ngừng liên hệ: hỏi lại trước khi lưu (tránh bấm nhầm) – bắt chọn lý do. Lưu xong quản lý nhận Telegram, xem lại ở Khách đã mua → 📵 Ngừng liên hệ. */
   function openStop(c, note, back, done) {
     var body = '<div class="notice" style="background:var(--red-light);color:var(--red)">⚠️ <b>Bạn chắc chắn không liên hệ khách này nữa?</b><br>Khách <b>' + esc(c.name || '') + '</b> (' + fPhone(c.phone) + ', đã mua ' + (c.orders || 0) + ' đơn · ' + moneyShort(c.spent) + ') sẽ <b>không bao giờ hiện lại</b> ở danh sách chăm sóc và không nhận tin ưu đãi.</div>' +
@@ -12097,21 +12102,29 @@
     if (!S.btTimer) S.btTimer = setInterval(btTick, 7000);
   }
   function btPaint() { var b = $('#btBox'); if (b) { b.innerHTML = btCard(); btBind(); } }
-  function btMe(i) { return i.me && i.t.indexOf(i.who) === 0 ? 'Bạn' + i.t.slice(i.who.length) : i.t; }
+  function btMe(i) { if (!i.me) return i.t; if (i.pr) return i.t.replace(' · cảm ơn ' + i.who, ' · cảm ơn bạn'); return i.t.indexOf(i.who) === 0 ? 'Bạn' + i.t.slice(i.who.length) : i.t; }
   function btClapBtn(i) {
     if (i.me) return !i.n ? '' : '<span class="bt-clapn" title="' + esc(i.by && i.by.length ? i.by.join(', ') + ' đã chúc mừng bạn' : 'Chưa ai chúc mừng') + '">👏 ' + i.n + '</span>';
     return '<button class="bt-clap' + (i.mine ? ' on' : '') + '" data-bt="clap" data-k="' + esc(i.k) + '"' + (i.mine ? ' disabled' : '') + '>👏 ' + (i.mine ? i.n : 'Chúc mừng' + (i.n ? ' · ' + i.n : '')) + '</button>';
   }
   function btCard() {
-    var L = S.bt.items; if (!L.length) return '';
-    var k = (S.btI || 0) % L.length, i = L[k];
+    var L = S.bt.items;
+    if (!L.length && !S.btOpen) return '<div class="bt-line"><span class="bt-txt"><b class="bt-lb">📣 Tin vui</b> <span class="muted">Chưa có tin mới. Khách khen bạn? Ghi lại để cả nhóm cùng vui.</span></span><span class="bt-acts"><button class="bt-more" data-bt="padd">💬 Ghi lời khen của khách</button></span></div>';
+    var k = (S.btI || 0) % Math.max(1, L.length), i = L[k];
     if (S.btOpen) return '<section class="bt-all"><div class="bt-hd"><span>📣 Tin vui đồng đội · 36 giờ qua</span><button class="bt-fold" data-bt="close">Thu gọn ▲</button></div>' +
       L.map(function (x) {
         return '<div class="bt-it"><p>' + x.ic + ' ' + esc(btMe(x)) + ' <small>· ' + btAgo(x.at) + '</small>' +
-          (x.me && x.by && x.by.length ? '<br><small class="bt-by">👏 ' + esc(x.by.join(', ')) + ' đã chúc mừng bạn</small>' : '') + '</p>' + btClapBtn(x) + '</div>';
-      }).join('') + '<p class="hint" style="margin:6px 0 0">Tin tự lên khi có người chốt đơn hoặc chăm sóc xong hết khách trong ngày. Không ghi số tiền.</p></section>';
+          (x.me && x.by && x.by.length ? '<br><small class="bt-by">👏 ' + esc(x.by.join(', ')) + ' đã chúc mừng bạn</small>' : '') + (x.pr && x.del ? ' <button class="bt-pdel" data-bt="pdel" data-id="' + x.id + '">Ẩn</button>' : '') + '</p>' + btClapBtn(x) + '</div>';
+      }).join('') + (S.btPf ? btPfHtml() : '<button class="bt-more bt-padd" data-bt="padd">💬 Ghi lời khen của khách</button>') +
+      '<p class="hint" style="margin:6px 0 0">Tin tự lên khi có người chốt đơn, chăm sóc xong hết khách trong ngày, hoặc ghi lời khen của khách (tích ⭐ khi ghi chăm sóc). Không ghi số tiền.</p></section>';
     return '<div class="bt-line"><span class="bt-txt" id="btTxt"><b class="bt-lb">📣 Tin vui</b> ' + i.ic + ' ' + esc(btMe(i)) + ' <small>· ' + btAgo(i.at) + '</small></span>' +
-      '<span class="bt-acts" id="btAct">' + btClapBtn(i) + (L.length > 1 ? '<button class="bt-more" data-bt="open">Xem cả ' + L.length + ' tin</button>' : '') + '</span></div>';
+      '<span class="bt-acts" id="btAct">' + btClapBtn(i) + '<button class="bt-more" data-bt="open">' + (L.length > 1 ? 'Xem cả ' + L.length + ' tin' : 'Xem thêm') + '</button>' + '</span></div>';
+  }
+  function btPfHtml() {
+    return '<div class="bt-pf"><b>💬 Ghi lời khen của khách</b><p class="hint" style="margin:2px 0 6px">Lời khen cũ trong Zalo, tin nhắn, cuộc gọi… Ghi đúng lời khách. Chỉ dùng nội bộ: muốn đăng quảng cáo phải xin phép khách.</p>' +
+      '<div class="bt-pf2"><input id="btPfN" maxlength="60" placeholder="Tên khách, vd: Cô Hoa"><input id="btPfP" maxlength="40" placeholder="Tỉnh, vd: Nghệ An"></div>' +
+      '<textarea id="btPfT" rows="2" maxlength="240" placeholder="vd: Uống trà 2 tuần thấy ngủ ngon hơn, cảm ơn em tư vấn tận tình"></textarea>' +
+      '<div class="bt-acts"><button class="btn sm pri" data-bt="psave">Lưu lời khen</button><button class="btn sm" data-bt="pcancel">Huỷ</button></div></div>';
   }
   function btTick() {
     var L = S.bt && S.bt.items, t = $('#btTxt');
@@ -12128,7 +12141,16 @@
       b.onclick = function () {
         var k = b.getAttribute('data-bt');
         if (k === 'open') { S.btOpen = 1; return btPaint(); }
-        if (k === 'close') { S.btOpen = 0; return btPaint(); }
+        if (k === 'close') { S.btOpen = 0; S.btPf = 0; return btPaint(); }
+        if (k === 'padd') { S.btPf = 1; S.btOpen = 1; btPaint(); var n = $('#btPfN'); if (n) n.focus(); return; }
+        if (k === 'pcancel') { S.btPf = 0; return btPaint(); }
+        if (k === 'psave' || k === 'pdel') {
+          if (k === 'pdel' && !confirm('Ẩn lời khen này khỏi Tin vui?')) return;
+          var pp = k === 'pdel' ? { id: +b.getAttribute('data-id') } : { cname: $('#btPfN').value, prov: $('#btPfP').value, text: $('#btPfT').value };
+          if (k === 'psave' && pp.text.trim().length < 4) return toast('Bạn ghi lời khen của khách giúp nhé', true);
+          b.disabled = true;
+          return api(k === 'psave' ? 'bt_praise' : 'bt_pdel', pp).then(function (j) { S.bt = j.bt; S.btPf = 0; btPaint(); toast(k === 'pdel' ? 'Đã ẩn lời khen' : '⭐ Đã lưu lời khen, cả công ty thấy ở 📣 Tin vui'); }, function (e) { b.disabled = false; toast(e.message, true); });
+        }
         if (k === 'clap') {
           var key = b.getAttribute('data-k'), it = S.bt.items.filter(function (x) { return x.k === key; })[0];
           b.disabled = true;

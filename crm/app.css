@@ -2405,3 +2405,12 @@ b.csx-c-ok { color: var(--primary-2); } b.csx-c-sua { color: var(--orange); } b.
 .bt-it p { margin: 0; font-size: 14px; flex: 1; min-width: 0; }
 .bt-by { color: #8a6100 !important; }
 @media (prefers-reduced-motion: reduce) { .bt-txt { transition: none; } }
+/* 💬 Lời khen của khách (14/11/2026) */
+.k-praise { display: flex; gap: 8px; align-items: flex-start; font-size: 13.5px; margin: -2px 0 8px; cursor: pointer; line-height: 1.4; }
+.k-praise input { width: 18px; height: 18px; margin: 1px 0 0; flex: none; }
+.bt-padd { margin-top: 8px; }
+.bt-pdel { font: inherit; font-size: 12px; background: none; border: 0; color: var(--muted); text-decoration: underline; cursor: pointer; padding: 2px 4px; }
+.bt-pf { background: #fff; border: 1px solid #f0d58f; border-radius: 10px; padding: 10px; margin-top: 8px; }
+.bt-pf2 { display: flex; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; }
+.bt-pf2 input { flex: 1 1 130px; min-width: 0; }
+.bt-pf textarea { width: 100%; box-sizing: border-box; margin-bottom: 6px; }

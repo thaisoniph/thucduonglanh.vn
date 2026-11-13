@@ -439,10 +439,11 @@ Apps Script giới hạn 200 phiên bản/dự án: báo lỗi "Không tạo đ�
 - CRM `app.js`: `vhMount` chèn thẻ ở đầu màn hình đầu tiên của mỗi người (`homeView()`), `vhCard` / `vhBind`; chưa nhận = thẻ đầy đủ + nút ✅ Hôm nay mình sẽ làm; đã nhận = lần mở sau thu 1 dòng; nút Thu gọn nhớ theo ngày (localStorage `vh_fold`). Máy chủ chưa có lệnh thì không hiện thẻ. Cài đặt → 👥 Nhân sự → 🌿 Văn hoá (`vhAdminList` / `vhAdminPaint`). CSS `.vh-*`.
 - Hướng dẫn nhân sự: `guide/van-hoa.md` (/huong-dan/van-hoa/, link "Xem cả 10 quy tắc" trên thẻ).
 
-### 📣 Tin vui đồng đội + lời chào (14/11/2026, api `2026-11-14a`, anh Sơn chọn: ý 1 + Bảng tin, không chữ chạy)
+### 📣 Tin vui đồng đội + lời chào + lời khen khách (14/11/2026, api `2026-11-14b`, anh Sơn chọn: ý 1 + Bảng tin, không chữ chạy)
 - Code `api/src/bangtin.js` (bảng tự tạo trong `schema`, không qua SCHEMA_V): `bt_event` (day, email, kind 'done', n), `bt_clap` (k, email). Lệnh `bt_feed` / `bt_done` / `bt_clap` (mọi vai trò, route `/^bt_/` cạnh `tb_` trong crm.js).
 - Tin = đơn 36 giờ qua có `seller`, không huỷ/hoàn → "<sale> vừa chốt đơn <SP đầu>" (**không ghi tiền**, giữ tinh thần thi đua bớt so tiền) + sự kiện 🏁 xong hết khách hôm nay. Tối đa 12 tin. Người được chúc thấy tên người chúc.
 - Giao diện `crm/app.js` (`btMount/btCard/btTick`): dòng `.bt-line` ở đầu màn hình đầu tiên (dưới 📢, 🌿), 7 giây đổi tin bằng mờ dần, dừng khi rê chuột/chạm, tải lại 3 phút/lần. Tab Hôm nay: `hiGreet` (chào theo buổi giờ VN), `cheerLine` (câu động viên theo tiến độ `dayQueue`), `cheerCheck` → hết khách và đã xong ≥ 1 thì `cheerBurst` pháo giấy (1 lần/ngày, localStorage `cheer_day`, tắt khi prefers-reduced-motion) + gửi `bt_done`. Hướng dẫn: `guide/tin-vui.md`.
+- 💬 **Lời khen của khách** (14/11/2026, api `2026-11-14b`): bảng `bt_praise` (tên + tỉnh lấy từ customers theo SĐT, không trả SĐT ra). Hộp chăm sóc có ô `#kPraise` → `saveCare` gửi `bt_praise` với chữ ở `#kNote` (mọi nút lưu đều qua saveCare, kể cả lên đơn). Ghi tay ở Tin vui → 💬 Ghi lời khen (`btPfHtml`). Feed: 3 lời khen mới nhất 30 ngày; cũ hơn 36 giờ thì xen sau tin mới nhất để ngày nào cũng có. Ẩn: `bt_pdel` (người ghi / Quản lý trở lên).
 
 ### 📢 Thông báo nội bộ (13/11/2026, api `2026-11-13w`)
 - Anh Sơn chọn: thông báo & văn bản quan trọng để trong CRM (biết ai đã đọc, người nghỉ hết quyền xem); group Facebook `family.thucduonglanh.vn` (Redirect Rule có sẵn → facebook.com/groups/thucduonglanhfamily) chỉ để lưu khoảnh khắc; ảnh gốc ở Drive `06_Nhân sự & Đào tạo`.

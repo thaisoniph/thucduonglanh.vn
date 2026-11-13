@@ -3,7 +3,7 @@ title: Tin vui đồng đội và lời chào mỗi ngày
 nav: Tin vui
 order: 1.7
 updated: 2026-11-14
-description: Dòng 📣 Tin vui ở đầu CRM, nút 👏 Chúc mừng, lời chào và câu động viên ở tab Hôm nay. Đọc trang này khoảng 2 phút.
+description: Dòng 📣 Tin vui ở đầu CRM, nút 👏 Chúc mừng, ghi lời khen của khách, lời chào và câu động viên ở tab Hôm nay. Đọc trang này khoảng 2 phút.
 ---
 
 **Mở CRM là thấy ngay tin vui của cả nhóm.** Ai vừa chốt đơn, ai đã chăm sóc xong hết khách trong ngày, máy tự báo cho mọi người. Bạn không cần nhập gì.
@@ -25,7 +25,33 @@ Tin tự lên khi:
 | 🎉 *Lan vừa chốt đơn Trà DILVANG* | Có đơn mới ghi tên người bán (đơn huỷ, hoàn thì không hiện) |
 | 🏁 *Huy đã chăm sóc xong hết 12 khách hôm nay* | Một người làm xong hết danh sách chăm sóc trong ngày |
 
+| 💬 *Cô Hoa (Nghệ An): "Uống trà 2 tuần thấy ngủ ngon hơn" · cảm ơn Lan* | Bạn ghi lời khen của khách (xem cách ghi ở dưới) |
+
 > Tin **không ghi số tiền**. Ai cũng được chúc mừng như nhau, đơn to hay nhỏ đều đáng vui.
+
+## 💬 Ghi lời khen của khách
+
+Khách khen sản phẩm hay khen bạn tư vấn tận tình? Ghi lại để cả công ty cùng vui. Lời khen hiện ở dòng Tin vui, có tên khách và tỉnh, **không hiện số điện thoại**. Đồng đội bấm 👏 là chúc mừng bạn.
+
+**Cách 1: khi đang ghi chăm sóc khách** (hay dùng nhất)
+
+![Ghi lời khách nói (1), tích ô lời khen (2), bấm nút kết quả như mọi khi (3)](/huong-dan/img/loi-khen-tich.webp)
+
+1. Ghi lời khách nói vào ô **✍️ Khách nói gì?**
+2. Tích ô **⭐ Đây là lời khen của khách**.
+3. Bấm nút kết quả như mọi khi. Lời khen tự lên Tin vui.
+
+**Cách 2: ghi lời khen cũ** (khách nhắn Zalo, khen hôm trước…)
+
+Ở dòng Tin vui, bấm **Xem cả … tin**, rồi bấm **💬 Ghi lời khen của khách**.
+
+![Tên khách và tỉnh (1), lời khen (2), bấm Lưu (3)](/huong-dan/img/loi-khen-ghi.webp)
+
+1. Ghi **tên khách** và **tỉnh**.
+2. Ghi **đúng lời khách khen**.
+3. Bấm **Lưu lời khen**.
+
+> Lời khen chỉ dùng trong công ty. Muốn đăng lên Facebook hay quảng cáo thì phải hỏi khách trước, và không dùng các từ "chữa", "khỏi bệnh". Ghi nhầm thì bấm **Ẩn** cạnh lời khen.
 
 ## Xem ai đã chúc mừng bạn
 
