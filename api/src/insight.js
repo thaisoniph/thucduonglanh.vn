@@ -18,6 +18,7 @@ import { crmInSkill, skillsInfo, offerDrafts, skillOf, methodBlock } from './ins
 import { lrnPosts, lrnBlock } from './learn.js';
 import { eventsAhead } from './zday.js';
 import { crmScore } from './score.js';
+import { stInfo } from './sotay.js';
 
 const WRITER = 'claude-opus-5-5'; // việc cần nghĩ sâu, ít lượt: kịch bản video, big idea
 const LITE = 'claude-sonnet-5-5'; // 13/11/2026: việc đọc / lọc / liệt kê (nhập insight, câu lệnh ảnh, từ khoá) → Sonnet 5.5, rẻ ½
@@ -651,7 +652,8 @@ export async function crmIns(x, u, d, crmLog) {
     const evs = eventsAhead(fmtDate(now, 'yyyyMMdd'), 120).filter(e => e.in <= 45 || e.in <= e.prep), // 45 ngày tới + dịp xa đã tới lúc chuẩn bị (Tết: 90 ngày)
       trend = await kvJson(x.db, 'ins_trend', null);
     const fpNf = await kvJson(x.db, 'fp_nf_err', null), kwb = await kwBank(x);
-    return { ok: true, now, bank, kw: kwb, custom, upd, learn, evs, trend, fpNf, sp: SP, skills: await skillsInfo(x), drafts: await offerDrafts(x), log: log.slice(-300), scripts, prods, aiOn: !!x.env.ANTHROPIC_API_KEY, fun: Object.fromEntries(Object.entries(FUN).map(([k, v]) => [k, v.name])) };
+    let st = null; try { st = await stInfo(); } catch (e) { } // 📗 Sổ tay doanh nghiệp (sotay.js)
+    return { ok: true, now, st, bank, kw: kwb, custom, upd, learn, evs, trend, fpNf, sp: SP, skills: await skillsInfo(x), drafts: await offerDrafts(x), log: log.slice(-300), scripts, prods, aiOn: !!x.env.ANTHROPIC_API_KEY, fun: Object.fromEntries(Object.entries(FUN).map(([k, v]) => [k, v.name])) };
   }
   if (a === 'ins_save') {
     if (u.level < 2 && u.role !== 'Marketing') return { ok: false, error: 'Chỉ Marketing, Quản lý, Quản trị sửa được ngân hàng insight.' };

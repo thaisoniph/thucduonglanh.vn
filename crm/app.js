@@ -7717,8 +7717,8 @@
     } else if (tab === 'cham') {
       h += csxHtml(j);
     } else if (tab === 'cai') {
-      h += inTabi('Những điều trợ lý đọc thêm trước khi viết: dịp sắp tới, chuyện đang nóng, từ khoá bài web, phương pháp.', 'Thường chỉ cần ghi <b>🔥 Chuyện đang nóng</b> khi có. Còn lại để nguyên.');
-      h += inEvHtml(j, ed) + inKwHtml(j, ed) + inSkillsHtml(j, ed);
+      h += inTabi('Những điều trợ lý đọc thêm trước khi viết: 📗 Sổ tay doanh nghiệp, dịp sắp tới, chuyện đang nóng, từ khoá bài web, phương pháp.', 'Thường chỉ cần ghi <b>🔥 Chuyện đang nóng</b> khi có. Còn lại để nguyên.');
+      h += sotHtml(j.st) + inEvHtml(j, ed) + inKwHtml(j, ed) + inSkillsHtml(j, ed);
     } else {
       h += inTabi('Xem 30 ngày qua trợ lý đã viết cho nhóm khách nào, bao nhiêu bài thu hút, tạo niềm tin, bán hàng.', 'Mỗi tuần xem 1 lần. Nhóm nào chưa có bài thì bấm tên nhóm để viết.') + inStatsHtml(j) + inLearnHtml(j.learn, j.fpNf);
     }
@@ -7954,6 +7954,17 @@
     }).filter(function (b) { return b.t; });
   }
   /** 📅 Dịp sắp tới (zday.js eventsAhead, 45 ngày) + 🔥 chuyện đang nóng (kv ins_trend, 2 ngày): mọi trợ lý viết bài đọc */
+  /** 📗 Sổ tay doanh nghiệp (14/11/2026, api sotay.js stInfo): 1 nguồn duy nhất cho mọi trợ lý AI, sửa ở /admin; quá N ngày chưa xác nhận lại → Telegram nhắc */
+  function sotHtml(st) {
+    if (!st) return '';
+    var due = (st.items || []).filter(function (v) { return v.due; });
+    return '<div class="box sot-box"><div class="zb-ph"><b>📗 Sổ tay doanh nghiệp</b><span class="zb-due">' + st.ok + ' / ' + st.n + ' đã xác nhận</span></div>' +
+      '<p class="small muted">Một nguồn duy nhất: câu chuyện công ty, chính sách, giọng thương hiệu, câu hỏi khó + câu trả lời đã duyệt, điều không được nói. Trợ lý chat web, Zalo, Fanpage, trợ lý viết bài, chấm bài và cổng MCP đều đọc Sổ tay này. Mục quá ' + st.days + ' ngày chưa xác nhận lại thì Telegram nhắc anh Sơn sáng thứ Hai.</p>' +
+      (due.length ? '<details class="small"><summary>🟡 ' + due.length + ' mục cần xác nhận' + (st.old ? ' (⏰ ' + st.old + ' mục quá hạn)' : '') + '</summary><ul class="small sot-l">' + due.map(function (v) {
+        return '<li><b>' + esc(v.t) + '</b> <span class="muted">· ' + esc(v.g) + ' · ' + (v.s === 'Đã xác nhận' ? '⏰ xác nhận ' + v.age + ' ngày trước' : esc(v.s)) + '</span></li>';
+      }).join('') + '</ul></details>' : '<p class="small">✅ Mọi mục đã xác nhận trong ' + st.days + ' ngày qua.</p>') +
+      '<div class="lq-btns"><a class="btn sm" href="' + esc(st.admin) + '" target="_blank" rel="noopener">📝 Mở Sổ tay ở trang quản trị</a></div></div>';
+  }
   function inEvHtml(j, ed) {
     var td = isoDate(Date.now()).replace(/-/g, ''), dm = function (d) { return d.slice(6, 8) + '/' + d.slice(4, 6); };
     var back = function (d, n) { var t = new Date(Date.UTC(+d.slice(0, 4), +d.slice(4, 6) - 1, +d.slice(6, 8) - n)); return t.getUTCFullYear() + pad(t.getUTCMonth() + 1) + pad(t.getUTCDate()); };

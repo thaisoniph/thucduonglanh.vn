@@ -1009,7 +1009,26 @@ collections:
           - { label: "Mời nhận quà sau bao nhiêu câu hỏi", name: gift_after, widget: number, value_type: int, default: 2, min: 1, max: 6 }
           - { label: "Tiêu đề thẻ quà", name: gift_title, widget: string }
           - { label: "Mô tả quà", name: gift_text, widget: text, hint: "Chỉ ghi quà có thật. Khách hỏi về xương khớp thì bot tự đổi sang ebook Cơ Xương Khớp." }
-          - { label: "Kiến thức thêm cho trợ lý", name: knowledge, widget: markdown, required: false, hint: "Thông tin không có trên web mà bot cần biết: câu chuyện công ty, sản phẩm chưa bán trên web, chương trình đang chạy… Chỉ ghi điều đúng, không ghi công dụng chữa bệnh." }
+          - { label: "Kiến thức thêm cho trợ lý", name: knowledge, widget: markdown, required: false, hint: "Thông tin phụ không có trên web: cộng đồng, trò chơi, chương trình đang chạy… Câu chuyện công ty, chính sách, câu trả lời mẫu, điều không được nói thì ghi ở 📗 Sổ tay doanh nghiệp (ngay dưới). Chỉ ghi điều đúng, không ghi công dụng chữa bệnh." }
+
+      - name: so_tay
+        label: "📗 Sổ tay doanh nghiệp"
+        file: data/so-tay.json
+        format: json
+        description: "MỘT NGUỒN DUY NHẤT cho mọi trợ lý AI: chat web, nhóm Zalo, Fanpage, trợ lý viết bài, chấm bài, cổng MCP (ChatGPT / Gemini / Claude). Sửa ở đây, bấm Lưu, khoảng 10 phút sau mọi trợ lý dùng bản mới. Mỗi mục có người xác nhận + ngày: quá 90 ngày chưa xác nhận lại thì Telegram nhắc. Được dùng ô tự điền {hotline}, {shipping_fee}, {free_ship_threshold}, {company}, {tax_code}, {address}, {email}, {opening_hours}, {slogan}, {domain} (lấy từ Thông tin liên hệ). File này công khai trên GitHub: không ghi mật khẩu, số tài khoản riêng, tên hay số điện thoại khách."
+        fields:
+          - { label: "Nhắc xác nhận lại sau bao nhiêu ngày", name: remind_days, widget: number, value_type: int, default: 90, min: 30, max: 365 }
+          - label: "Các mục"
+            name: items
+            widget: list
+            summary: "{{fields.status}} · {{fields.group}} · {{fields.title}}"
+            fields:
+              - { label: "Nhóm", name: group, widget: select, options: ["📖 Câu chuyện công ty", "📜 Chính sách", "🎨 Bản sắc thương hiệu", "❓ Câu hỏi khó + câu trả lời đã duyệt", "🚫 Điều không được nói"] }
+              - { label: "Tiêu đề (câu hỏi khó thì ghi câu khách hỏi)", name: title, widget: string }
+              - { label: "Nội dung (câu hỏi khó thì ghi câu trả lời đã duyệt)", name: body, widget: text, hint: "Viết đúng điều công ty muốn trợ lý nói. Không ghi công dụng ngoài hồ sơ công bố." }
+              - { label: "Trạng thái", name: status, widget: select, default: "Chờ anh xác nhận", options: ["Chờ anh xác nhận", "Đã xác nhận", "Tắt"], hint: "Tắt = trợ lý không dùng mục này nữa." }
+              - { label: "Người xác nhận", name: by, widget: string, required: false, hint: "Ví dụ: Đinh Minh Thái Sơn" }
+              - { label: "Ngày xác nhận", name: date, widget: datetime, format: "YYYY-MM-DD", time_format: false, required: false, hint: "Đọc lại thấy vẫn đúng thì đổi sang ngày hôm nay." }
 
       - name: post_categories
         label: "Chuyên mục bài viết"

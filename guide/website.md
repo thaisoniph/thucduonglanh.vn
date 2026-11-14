@@ -2,7 +2,7 @@
 title: Hướng dẫn sửa website
 nav: Website
 order: 6
-updated: 2026-11-10
+updated: 2026-11-14
 description: Đăng bài, sửa giá, sửa sản phẩm, đăng tin tuyển dụng. Làm trên máy tính.
 roles: [web]
 ---
@@ -191,12 +191,37 @@ Cột trái chọn **Cài đặt website**. Các mục hay dùng:
 - **Trợ lý chat An Lành**: khung chat AI ở góc phải web (trên điện thoại: bấm **💬 Tư vấn** → **Hỏi trợ lý An Lành**). Bot tự đọc sản phẩm, giá, hỏi đáp, giấy tờ, chính sách trên web, nên **sửa sản phẩm là bot biết sau khoảng 10 phút**, không cần dạy lại. Ở đây chỉ sửa:
   - **Câu chào**, **Câu hỏi gợi ý** (3–5 câu khách hay hỏi nhất, khách bấm là hỏi luôn).
   - **Mời nhận quà sau bao nhiêu câu hỏi** (đang là 2), **Mô tả quà**: chỉ ghi quà có thật.
-  - **Kiến thức thêm**: điều bot cần biết mà web chưa có (chương trình đang chạy, sản phẩm chưa bán trên web…). Viết câu ngắn, đúng sự thật, không ghi công dụng chữa bệnh.
+  - **Kiến thức thêm**: điều phụ bot cần biết mà web chưa có (cộng đồng, trò chơi, chương trình đang chạy…). Câu chuyện công ty, chính sách, câu trả lời mẫu thì ghi ở **📗 Sổ tay doanh nghiệp** (ngay dưới). Viết câu ngắn, đúng sự thật, không ghi công dụng chữa bệnh.
+- **📗 Sổ tay doanh nghiệp**: xem mục [Sổ tay doanh nghiệp](#so-tay-doanh-nghiep) bên dưới.
   - Bot trả lời sai hoặc thiếu thì báo anh Sơn, hoặc sửa phần **Hỏi đáp** của sản phẩm đó.
 - **Trò chơi Bạn còn mấy ngón tay**: câu hỏi và kết quả. Sửa trong CRM (**⚙ Cài đặt → 🖐 Trò chơi**) dễ hơn trên điện thoại.
 - **Hồ sơ thương hiệu (brochure)**: sách lật, file PDF, ảnh bìa.
 - **Danh mục sản phẩm, Chuyên mục bài viết**: thêm, đổi tên. **Không đổi ô "Mã"** của danh mục đang có sản phẩm.
 - **Trang chính sách / hỗ trợ** (cột trái): giao hàng, đổi trả, bảo mật… Gõ {hotline}, {email}, {address} thì web tự thay bằng thông tin công ty.
+
+## Sổ tay doanh nghiệp
+
+**Sổ tay doanh nghiệp** là **một nơi duy nhất** ghi những điều mọi trợ lý AI phải nói đúng: trợ lý chat trên web, trợ lý nhóm Zalo và tin nhắn riêng, trợ lý Fanpage, trợ lý viết bài, chấm bài, và ChatGPT / Gemini / Claude nối vào CRM.
+
+Sổ tay có 5 nhóm:
+
+- 📖 **Câu chuyện công ty**: công ty là ai, câu chuyện ra đời, sứ mệnh, văn hoá.
+- 📜 **Chính sách**: phí ship, thanh toán, đổi trả, khuyến mãi.
+- 🎨 **Bản sắc thương hiệu**: giọng nói, câu chuyện thật được kể, quan điểm, điều tránh khi viết, cách dẫn dắt khách.
+- ❓ **Câu hỏi khó + câu trả lời đã duyệt**: khách hỏi câu khó thì trợ lý trả lời theo ý này.
+- 🚫 **Điều không được nói**: từ cấm, hứa hẹn, doạ, số điện thoại khác…
+
+Cách sửa:
+
+1. Trang quản trị → **Cài đặt website** → **📗 Sổ tay doanh nghiệp**.
+2. Bấm vào mục cần sửa. Sửa **Nội dung**.
+3. Đọc lại thấy đúng thì chọn **Trạng thái: Đã xác nhận**, ghi **Người xác nhận** và **Ngày xác nhận** = hôm nay.
+4. Bấm **Lưu**. Khoảng 10 phút sau mọi trợ lý dùng bản mới.
+
+> - Số tiền, hotline không gõ tay: gõ **{shipping_fee}**, **{free_ship_threshold}**, **{hotline}**… thì web tự lấy đúng số trong *Thông tin liên hệ*.
+> - Mục nào **quá 90 ngày** chưa xác nhận lại, sáng thứ Hai anh Sơn nhận tin Telegram nhắc.
+> - Không muốn trợ lý dùng một mục nữa thì chọn **Trạng thái: Tắt** (không cần xoá).
+> - Sổ tay ai cũng xem được trên mạng. **Không ghi** mật khẩu, tên hay số điện thoại khách.
 
 ## Bản tiếng Anh
 

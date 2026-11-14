@@ -3505,9 +3505,10 @@ def main():
     (DIST / "sitemap.xml").write_text("\n".join(sm), "utf-8")
     private = ["/gio-hang/", "/thanh-toan/", "/dat-hang-thanh-cong/", CTV_PATH]
     private += [ALT_ROUTES[lang][r] for lang in ALT_ROUTES for r in private if r in ALT_ROUTES[lang]]
-    (DIST / "robots.txt").write_text("User-agent: *\nAllow: /\n" + "".join(f"Disallow: {r}\n" for r in private) + f"Disallow: /admin/\nDisallow: /chat-kb.txt\n\nSitemap: {DOMAIN}/sitemap.xml\n", "utf-8")
+    (DIST / "robots.txt").write_text("User-agent: *\nAllow: /\n" + "".join(f"Disallow: {r}\n" for r in private) + f"Disallow: /admin/\nDisallow: /chat-kb.txt\nDisallow: /so-tay.json\n\nSitemap: {DOMAIN}/sitemap.xml\n", "utf-8")
     (DIST / "llms.txt").write_text(llms_txt(), "utf-8")
     (DIST / "chat-kb.txt").write_text(chat_kb(), "utf-8")  # kiến thức cho trợ lý chat (api/src/chat.js)
+    (DIST / "so-tay.json").write_text(json.dumps({"remind_days": SOTAY.get("remind_days") or 90, "items": sotay_items()}, ensure_ascii=False), "utf-8")  # 📗 Sổ tay: máy chủ đọc để nhắc xác nhận lại (api/src/sotay.js) + cổng MCP
     (DIST / "bot-proofs.json").write_text(json.dumps(bot_proofs(), ensure_ascii=False), "utf-8")  # ảnh giấy tờ cho trợ lý Fanpage (api/src/fb.js)
     (DIST / "ngay-doi.json").write_text(json.dumps(dd_api(), ensure_ascii=False), "utf-8")  # 🎉 Ngày Đôi: máy chủ đọc để miễn ship + thêm quà vào đơn (api/src/ngaydoi.js)
     (DIST / "anh-zalo.json").write_text(json.dumps(zalo_imgs(), ensure_ascii=False), "utf-8")  # kho ảnh thật cho bài đăng nhóm Zalo (api/src/zbot.js)
@@ -3591,6 +3592,39 @@ def llms_txt():
 
 _cbf = DATA / "chatbot.json"  # 💬 trợ lý chat An Lành (26/10/2026): sửa ở /admin → Cài đặt → Trợ lý chat
 CHAT = json.loads(_cbf.read_text("utf-8")) if _cbf.exists() else {}
+_stf = DATA / "so-tay.json"  # 📗 Sổ tay doanh nghiệp (14/11/2026): 1 nguồn duy nhất cho mọi trợ lý AI, sửa ở /admin → Cài đặt website → 📗 Sổ tay doanh nghiệp
+SOTAY = json.loads(_stf.read_text("utf-8")) if _stf.exists() else {"items": []}
+
+
+def sotay_fill(s):
+    """Ô {…} trong Sổ tay lấy từ Cài đặt website → đổi số ở 1 chỗ là cả Sổ tay đổi theo (không ghi số tay 2 nơi)."""
+    s = fill(str(s or ""))
+    for k in ("tax_code", "tax_date", "opening_hours", "slogan"):
+        s = s.replace("{" + k + "}", str(SITE.get(k) or ""))
+    for k in ("shipping_fee", "free_ship_threshold"):
+        s = s.replace("{" + k + "}", money(SITE.get(k) or 0))
+    return s
+
+
+def sotay_items():
+    """Mục Sổ tay đang dùng (bỏ mục Tắt), đã điền số từ Cài đặt website."""
+    return [{"group": x.get("group") or "Khác", "title": sotay_fill(x.get("title")), "body": sotay_fill(x.get("body")), "status": x.get("status") or "Chờ anh xác nhận",
+             "by": x.get("by") or "", "date": str(x.get("date") or "")[:10]} for x in SOTAY.get("items") or [] if x.get("title") and x.get("status") != "Tắt"]
+
+
+def sotay_kb():
+    """Phần Sổ tay trong /chat-kb.txt: mọi trợ lý (chat web, Zalo, Fanpage, viết bài, chấm bài) đọc qua kb() của api/src/chat.js."""
+    its = sotay_items()
+    if not its:
+        return []
+    out = ["# SỔ TAY DOANH NGHIỆP (nguồn chính thức: câu chuyện, chính sách, bản sắc, câu trả lời đã duyệt, điều không được nói)", "",
+           "Sổ tay là nguồn chính: thông tin công ty, chính sách, cách nói khác chỗ khác thì theo Sổ tay. Câu trả lời mẫu dùng đúng ý, được nói lại cho tự nhiên.", ""]
+    for g in dict.fromkeys(x["group"] for x in its):
+        out += [f"## {g}", ""]
+        for x in its:
+            if x["group"] == g:
+                out += [f"### {x['title']}", x["body"].strip(), ""]
+    return out
 
 
 def chat_cfg():
@@ -3739,6 +3773,7 @@ def chat_kb():
             out += [f"## {pg['title']} ({DOMAIN}/{pg['slug']}/)", strip_tags(fill(pg["content"])).strip()[:2500], ""]
     if CHAT.get("knowledge"):
         out += ["# KIẾN THỨC THÊM (soạn ở /admin)", "", str(CHAT["knowledge"]).strip(), ""]
+    out += sotay_kb()
     import html as _html
     return re.sub(r"[ \t]+\n", "\n", re.sub(r"\n{3,}", "\n\n", _html.unescape("\n".join(out))))
 

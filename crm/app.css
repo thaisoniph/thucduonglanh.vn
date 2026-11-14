@@ -2513,3 +2513,6 @@ b.csx-c-ok { color: var(--primary-2); } b.csx-c-sua { color: var(--orange); } b.
 .rpm-l { max-width: 320px; }
 .rpm-ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; line-height: 1.55; }
 .rpm-bars.many { gap: 3px; } .rpm-bars.many .rpm-b b { font-size: 10px; } .rpm-bars.many .rpm-b span { font-size: 10px; white-space: nowrap; }
+
+/* 📗 Sổ tay doanh nghiệp (14/11/2026) */
+.sot-l{margin:6px 0 0;padding-left:18px}.sot-l li{margin:3px 0}

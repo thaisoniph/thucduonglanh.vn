@@ -7,12 +7,13 @@
  *   Chỉ chuyển hướng về ChatGPT / OpenAI, Google (Gemini – trả về oauth-redirect.googleusercontent.com, chỉ đúng tên miền này, 06/11/2026), Claude và máy mình (localhost, để thử) – REDIRECT_OK.
  *   Mã truy cập 30 ngày, mã làm mới 365 ngày (đổi mã mỗi lần làm mới); trong D1 chỉ lưu mã băm SHA-256 (kv oat_ / ort_ / oac_ / ocl_).
  * - Công cụ: hoi_so_lieu (trợ lý số liệu Claude của CRM tự tra và trả lời – chắc nhất), mo_ta_du_lieu + tra_cuu + san_pham_ban (+ tai_chinh cho Quản trị),
- *   insight_noi_dung (10/11/2026: ngân hàng insight + quy trình Insight → Tension → Phễu, gọi trước khi viết nội dung)
+ *   so_tay (14/11/2026: Sổ tay doanh nghiệp, sotay.js), insight_noi_dung (10/11/2026: ngân hàng insight + quy trình Insight → Tension → Phễu, gọi trước khi viết nội dung)
  *   để AI bên ngoài tự tra. Tất cả chỉ đọc; dữ liệu khách đã che như ✨ Hỏi số liệu. Giới hạn MCP_DAY_MAX lượt gọi / người / ngày. */
 import { esc, kvGet, kvSet, kvJson, run, all, randHex, fmtDate, DAY } from './lib.js';
 import { crmUser, crmLogin, crmVerify, crmLog } from './crm.js';
 import { askAllowed, askCtx, askTool, askGuide, crmAsk } from './ask.js';
 import { insText } from './insight.js';
+import { stText } from './sotay.js';
 
 const AT_DAYS = 30, RT_DAYS = 365, CODE_MS = 10 * 60e3, MCP_DAY_MAX = 400, REG_IP_MAX = 30, SCOPE = 'crm.read';
 const REDIRECT_OK = /^https:\/\/([a-z0-9-]+\.)*(chatgpt\.com|openai\.com|google\.com|claude\.ai|claude\.com|anthropic\.com)(\/|$)|^https:\/\/oauth-redirect\.googleusercontent\.com\/|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?\//i;
@@ -166,6 +167,9 @@ function toolList(u) {
       inputSchema: { type: 'object', properties: { tu_ngay: { type: 'string', description: 'yyyy-mm-dd (giờ Việt Nam)' }, den_ngay: { type: 'string', description: 'yyyy-mm-dd, tính cả ngày này' }, nguoi_ban: { type: 'string', description: 'Tên nhân viên; bỏ trống = cả công ty' } }, required: ['tu_ngay', 'den_ngay'], additionalProperties: false } },
     { name: 'insight_noi_dung', title: 'Insight khách hàng & quy trình nội dung', annotations: Object.assign({ title: 'Insight khách hàng & quy trình nội dung' }, RO),
       description: 'Ngân hàng insight của Thực Dưỡng Lành (nhóm khách mục tiêu, mong muốn, rào cản, tension) + quy trình Insight → Tension → Phễu TOFU / MOFU / BOFU. GỌI TRƯỚC khi viết bất kỳ nội dung nào (bài web, bài nhóm Zalo, Fanpage, kịch bản video, quảng cáo) để bài nhắm đúng 1 nhóm khách và 1 tension.',
+      inputSchema: { type: 'object', properties: {}, additionalProperties: false } },
+    { name: 'so_tay', title: 'Sổ tay doanh nghiệp', annotations: Object.assign({ title: 'Sổ tay doanh nghiệp' }, RO),
+      description: 'Sổ tay doanh nghiệp Thực Dưỡng Lành (nguồn chính thức duy nhất): câu chuyện công ty, chính sách, bản sắc thương hiệu (giọng, quan điểm, điều tránh, cách dẫn dắt khách), câu hỏi khó + câu trả lời đã duyệt, điều không được nói. GỌI TRƯỚC khi viết nội dung hoặc soạn câu trả lời cho khách thay công ty.',
       inputSchema: { type: 'object', properties: {}, additionalProperties: false } }
   ];
   if (u.level >= 3) T.push({ name: 'tai_chinh', title: 'Số kế toán, lãi lỗ', annotations: Object.assign({ title: 'Số kế toán, lãi lỗ' }, RO),
@@ -184,6 +188,7 @@ async function callTool(x, u, name, a) {
     return r.ok ? txt(r.text + '\n\n(Nguồn: CRM Thực Dưỡng Lành. Số do trợ lý tự tra, tên khách đã che.)') : txt(r.error || 'Chưa trả lời được.', true);
   }
   if (name === 'insight_noi_dung') return txt(await insText(x));
+  if (name === 'so_tay') return txt(await stText());
   const ctx = await askCtx(x, u);
   if (name === 'mo_ta_du_lieu') return txt(askGuide(ctx));
   if (!['tra_cuu', 'san_pham_ban', 'tai_chinh'].includes(name) || (name === 'tai_chinh' && u.level < 3)) return txt('Không có công cụ ' + name, true);

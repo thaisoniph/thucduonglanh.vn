@@ -546,6 +546,16 @@ Apps Script giới hạn 200 phiên bản/dự án: báo lỗi "Không tạo đ�
 - 12/11/2026 tối (api `2026-11-12zh`, anh Sơn: "3 giây đầu chấm kỹ đầu tiên, chấm càng chi tiết càng tốt"): cắt 7 hình 0–3 giây (nửa giây 1 hình, cạnh dài 768px, JPEG 0,78) + 2 / 4 / 5 giây 1 hình (video ≤30 / ≤90 / dài hơn), tối đa 43 hình (~1,5 MB / video 3 phút); `thumb` 160px riêng; Whisper trả `segments` → lời thoại có mốc `[bắt đầu–kết thúc s]`; structured output thêm `hook3` (hinh / loi / chu / khop mỗi mục 0–10, ket_luan, 2 phương án sua) và `doan` (≤8 đoạn: t, xet, sua); CRM `csxHook` (ô xanh trên cùng kết quả), `.csx-doan`. Chi phí thêm ~500đ / video.
 - Việc sau (chưa làm): tự lấy kết quả quảng cáo Meta theo tên bài thay vì gõ tay; đưa bài điểm cao + kết quả tốt vào learn.js cho các trợ lý viết.
 
+## 6d. Nâng cấp theo khoá "AI Workforce: Claude & Codex" (14/11/2026, anh Sơn duyệt 5 việc)
+
+### 📗 Việc 1 – Sổ tay doanh nghiệp, một nguồn duy nhất (api `2026-11-14m`)
+- Nguồn: `data/so-tay.json` (/admin → Cài đặt website → 📗 Sổ tay doanh nghiệp, `admin/config.yml` file `so_tay`). Mỗi mục: `group` (📖 Câu chuyện công ty · 📜 Chính sách · 🎨 Bản sắc thương hiệu · ❓ Câu hỏi khó + câu trả lời đã duyệt · 🚫 Điều không được nói), `title`, `body`, `status` (Chờ anh xác nhận / Đã xác nhận / Tắt), `by`, `date`; `remind_days` (mặc định 90).
+- `build.py`: `sotay_fill` thay `{hotline} {email} {address} {company} {domain} {tax_code} {tax_date} {opening_hours} {slogan} {shipping_fee} {free_ship_threshold}` từ `data/site.json` (số chỉ ghi 1 nơi); `sotay_kb()` chèn cuối `/chat-kb.txt` → **mọi trợ lý đọc qua `kb()`** (chat web, Zalo nhóm + tin riêng, Fanpage, bài web, bài Zalo / Fanpage / FB cá nhân, video, chấm bài, trợ lý hướng dẫn). Xuất thêm `/so-tay.json` (robots chặn).
+- `api/src/sotay.js`: `soTay()` (đọc /so-tay.json, giữ 10 phút), `stInfo` (CRM tab 🎯 → ⚙️ Cài đặt, ô 📗 `sotHtml`), `stText` (MCP công cụ `so_tay`), `stRemind` (cron 8h thứ Hai, kv `st_rem_<ngày>`: mục chưa xác nhận hoặc quá `remind_days` → Telegram Quản trị đã nối Telegram).
+- Luật an toàn trong code (`chat.js` TRUTH_RULES, `insight.js` LAW / VIET) vẫn giữ làm "sàn"; Sổ tay thêm / thay thông tin công ty, chính sách, cách nói.
+- Bản nháp 25 mục điền từ CHAT_RULES, TRUTH_RULES, REF_RULES (chat.js), GROUP_RULES (zbot.js), LAW / VIET (insight.js), skill vtg, `data/site.json`; tất cả "Chờ anh xác nhận". Phần "Về Thực Dưỡng Lành" + "Sản phẩm chưa bán trên website" trong `data/chatbot.json` → `knowledge` đã chuyển sang Sổ tay (không ghi 2 nơi).
+- Đối chiếu skill vtg ↔ web (giá, quy cách, claim, giấy tờ…): Drive `08_Website, CRM & Tự động hoá/2026-11-14_Đối chiếu skill vtg với website.md`. Đáng chú ý: "Giá web luôn tốt hơn sàn" đang sai với DILVANG (Shopee 135k ↔ web 155k); ô giá chung Ruốc 89k ↔ hũ 165g 75k; skill còn nhiều claim bệnh ở sản phẩm chưa bán trên web.
+
 ## 7. Tên miền, DNS, chuyển hướng
 
 - Nameserver: `liberty.ns.cloudflare.com`, `randy.ns.cloudflare.com`. **Mọi thay đổi DNS làm trên Cloudflare**, không làm ở Tenten.
