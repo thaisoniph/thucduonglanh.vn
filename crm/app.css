@@ -1344,7 +1344,7 @@ div.f > span { display: block; font-size: 13px; font-weight: 600; color: var(--i
   .brand img { box-shadow: 0 0 0 1px rgba(0, 0, 0, .08); }
   .top .icon-btn { width: 36px; height: 36px; background: rgba(118, 118, 128, .12); color: var(--primary); }
   .top .icon-btn:hover { background: rgba(118, 118, 128, .2); }
-  .top .fb-btn, .top a.icon-btn[href^="/huong-dan/"], .top .top-set { display: none !important; }
+  .top .fb-btn { display: none !important; } /* 15/11/2026 anh Sơn: Hướng dẫn sử dụng và Cài đặt hiện thẳng trên thanh trên cùng cho nhân sự bấm nhanh, không phải vào ••• Thêm; Góp ý vẫn nằm trong Thêm */
   .top .nav { background: rgba(250, 250, 248, .86); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px); border-top: 1px solid rgba(0, 0, 0, .1); box-shadow: none; padding: 6px 6px calc(4px + var(--safe-b)); }
   .top .nav a.nav-x { display: none; }
   .top .nav a.nav-more { display: flex; }
@@ -2012,7 +2012,7 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
   .top.ceo .nav a.nav-more { display: flex; }
   .top.ceo .top-set { display: grid; }
   .top.ceo .top-set.on { background: rgba(255, 255, 255, .32); }
-  .top.ceo .fb-btn, .top.ceo a.icon-btn[href^="/huong-dan/"], .top.ceo #refresh { display: none; }
+  .top.ceo .fb-btn, .top.ceo #refresh { display: none; }
   .top.ceo .nav a { padding: 8px 14px; }
   .top.ceo .nav a svg { display: inline-block; }
 }

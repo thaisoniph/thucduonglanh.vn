@@ -35,7 +35,7 @@ Mã chỉ dùng được trong 10 phút. Vào được rồi thì máy nhớ b�
 
 **Nối Telegram** (làm 1 lần, mất 30 giây). Telegram sẽ báo bạn khi có đơn mới, có khách mới hỏi, và gửi việc cần làm lúc 8 giờ sáng.
 
-1. Trong CRM, mở **Cài đặt**: trên điện thoại bấm **••• Thêm** (góc phải thanh dưới cùng) → **Cài đặt**; trên máy tính bấm **⚙** ở trên cùng.
+1. Trong CRM, bấm **⚙** (Cài đặt) ở thanh trên cùng, cả điện thoại lẫn máy tính. Trên điện thoại vào qua **••• Thêm** → **Cài đặt** cũng được.
 2. Bấm **Kết nối Telegram**, rồi bấm **Mở Telegram**.
 3. Trong Telegram, bấm **Start** (hoặc **Bắt đầu**).
 4. Quay lại CRM, bấm **Tôi đã bấm Start**. Xong!
@@ -374,7 +374,7 @@ Từ đó, CRM cho bạn biết mỗi ngày cần bán bao nhiêu. Thanh màu ch
 - **Nhãn % ở Hiệu quả** = doanh số tháng này đã đạt bao nhiêu % mục tiêu tháng của bạn. Đây **không phải** điểm làm việc. Màu so với số ngày đã qua trong tháng: xanh = đúng tiến độ, cam = hơi chậm, đỏ = đang chậm.
 - Muốn xem số chia ra từng loại: trên máy tính **đưa chuột vào tab**; trên điện thoại mở **••• Thêm** (mỗi dòng có ghi chú dưới tên).
 
-**Các nút trên cùng** (trên điện thoại chỉ còn 🔍 và ⟳; Góp ý, Cài đặt nằm trong **••• Thêm**):
+**Các nút trên cùng** (trên điện thoại có 🔍, **❓ Hướng dẫn sử dụng**, **⚙ Cài đặt** và ⟳; Góp ý nằm trong **••• Thêm**):
 
 - **🔍** Tìm ở mọi tab: gõ tên, số điện thoại (từ 3 số) hoặc mã đơn. Máy tìm cùng lúc trong khách đã mua, đơn hàng và khách hỏi. Mỗi người chỉ hiện **1 dòng** (gom theo số điện thoại): đã mua thì bấm vào mở hồ sơ khách, trong đó có cả lần hỏi và các đơn; chưa mua thì mở lượt hỏi. Gõ mã đơn thì hiện thêm mục **📦 Đơn khớp mã**.
 - **⟳** Tải lại: xem dữ liệu mới nhất, ví dụ khi đồng nghiệp vừa sửa.
