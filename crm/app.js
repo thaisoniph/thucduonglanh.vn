@@ -3926,6 +3926,18 @@
     { k: 'noorder', l: '⚠️ Chốt chưa có đơn', f: function (l) { return !!leadNoOrder(l); } },
     { k: 'all', l: 'Tất cả', f: function () { return true; } }
   ];
+  /** 14/11/2026 (anh Sơn): sale ở chế độ Kho chung → mọi mục (trừ 🧺 Kho chung, Tất cả) chỉ đếm khách của mình; số Kho chung để cuối danh sách, hết khách mới mở. */
+  function poolSplit() { return isPoolStaff() && poolOn(); }
+  function leadInChip(x, l) { return x.f(l) && (!poolSplit() || x.k === 'pool' || x.k === 'all' || !!l.owner || !isOpenLead(l)); }
+  function leadPoolList() { return sortLeads((S.d.leads || []).filter(function (l) { return isOpenLead(l) && !l.owner; })); }
+  /** Khối Kho chung dưới danh sách “Cần liên hệ” của sale: còn khách của mình → 1 dòng gọn; hết khách → mở sẵn 4 số đầu. */
+  function leadPoolTail(mineLeft) {
+    if (!poolSplit() || (S.f.t.q || '').trim()) return '';
+    var ls = leadPoolList(); if (!ls.length) return '';
+    var go = '<button type="button" class="btn' + (mineLeft ? '' : ' pri') + '" data-tf="pool">🧺 Mở Kho chung (' + ls.length + ' số)</button>';
+    if (mineLeft) return '<div class="lkc-tail"><div><b>🧺 Kho chung: ' + ls.length + ' số chờ nhận</b><span class="small muted">Gọi hết ' + mineLeft + ' khách của bạn ở trên trước, rồi mới nhận thêm số ở đây.</span></div>' + go + '</div>';
+    return '<div class="lkc-tail open"><div><b>🧺 Hết khách cần gọi? Nhận thêm số ở Kho chung</b><span class="small muted">Khách hỏi chưa ai chốt · đọc ghi chú người trước rồi bấm ✋ Nhận khách này.</span></div>' + go + '</div><div class="list cols">' + ls.slice(0, 4).map(leadCard).join('') + '</div>';
+  }
   function leadChannels() { var n = {}; (S.d.leads || []).forEach(function (l) { var k = chLabel(l.channel); n[k] = (n[k] || 0) + 1; }); return Object.keys(n).sort(function (a, b) { return n[b] - n[a]; }); }
   /** Tỉnh của khách hỏi: lấy từ dòng “📍 …” sale ghi lúc tư vấn (khách hỏi chưa có địa chỉ). */
   function leadProv(l) {
@@ -3957,15 +3969,17 @@
   function leadsCountText(base) { var f = S.f.t || {}; if (f.q && f.q.trim()) return searchCount(base.length, 'khách hỏi', f.q.trim()); return base.length + ' lượt hỏi · ' + base.filter(isOpenLead).length + ' người đang theo dõi (chưa mua)'; }
   function renderLeadsChips(base, cur) {
     return LF.filter(function (x) { return x.k === 'mine' ? lvl() < 2 && !isMkt() : x.k === 'nogiao' ? lvl() >= 2 || isMkt() : x.k === 'pool' ? isPoolStaff() && poolOn() : true; }).map(function (x) {
-      var n = base.filter(x.f).length; if ((x.k === 'noorder' || x.k === 'nogiao') && !n && cur.k !== x.k) return '';
+      var n = base.filter(function (l) { return leadInChip(x, l); }).length; if ((x.k === 'noorder' || x.k === 'nogiao') && !n && cur.k !== x.k) return '';
       return '<button class="chip' + (x.k === cur.k ? ' on' : '') + '" data-tf="' + esc(x.k) + '">' + x.l + ' <em>' + n + '</em></button>';
     }).join('');
   }
   function renderLeadsList(list, n, curK) {
     var sq = S.f.t && S.f.t.q && S.f.t.q.trim();
+    var tail = curK === 'due' ? leadPoolTail(list.length) : '', top = curK === 'pool' && poolSplit() ? poolRuleBar().replace('class="kc-rule"', 'class="kc-rule" style="margin:0 0 10px"') : '';
+    if (!list.length && curK === 'due' && tail) return '<div class="empty">🎉 Bạn đã liên hệ hết khách của mình hôm nay.</div>' + tail;
     if (!list.length) return sq ? searchEmpty('khách hỏi', sq) + (curK !== 'all' ? '<p class="small muted" style="text-align:center">Đang lọc mục “' + ((LF.filter(function (x) { return x.k === curK; })[0] || {}).l || '') + '”. <button type="button" class="link" data-tf="all">Xem mọi mục</button></p>' : '') : empty(curK === 'due' ? 'Không có khách hỏi cần liên hệ 🎉' : 'Chưa có khách nào ở mục này.');
-    return '<div class="list cols">' + list.slice(0, n).map(leadCard).join('') + '</div>' +
-      (list.length > n ? '<button class="btn more" data-more="t">Xem thêm ' + Math.min(60, list.length - n) + ' khách</button>' : '');
+    return top + '<div class="list cols">' + list.slice(0, n).map(leadCard).join('') + '</div>' +
+      (list.length > n ? '<button class="btn more" data-more="t">Xem thêm ' + Math.min(60, list.length - n) + ' khách</button>' : '') + tail;
   }
   function renderLeadsPart(appendOnly) {
     var tList = $('#tList');
@@ -3974,7 +3988,7 @@
     var q = norm(f.q), qd = q.replace(/\D/g, ''), words = qWords(q), chs = leadChannels(); if (f.ch && chs.indexOf(f.ch) < 0) f.ch = '';
     var base = dedupLeads((S.d.leads || []).filter(function (l) { return (lvl() < 2 || whoOk(l.owner)) && (!f.ch || chLabel(l.channel) === f.ch) && (!q || leadHit(l, words) || (qd.length >= 3 && (l._phoneDigits || l.phone).indexOf(qd) >= 0)); }));
     if ((lvl() >= 2 || isMkt()) && f.k === 'mine') f.k = 'due';
-    var cur = LF.filter(function (x) { return x.k === f.k; })[0] || LF[0], list = sortLeads(base.filter(cur.f));
+    var cur = LF.filter(function (x) { return x.k === f.k; })[0] || LF[0], list = sortLeads(base.filter(function (l) { return leadInChip(cur, l); }));
 
     if (appendOnly) {
       var cols = $('.list.cols', tList);
@@ -3999,7 +4013,7 @@
     var q = norm(f.q), qd = q.replace(/\D/g, ''), words = qWords(q), chs = leadChannels(); if (f.ch && chs.indexOf(f.ch) < 0) f.ch = '';
     var base = dedupLeads((S.d.leads || []).filter(function (l) { return (lvl() < 2 || whoOk(l.owner)) && (!f.ch || chLabel(l.channel) === f.ch) && (!q || leadHit(l, words) || (qd.length >= 3 && (l._phoneDigits || l.phone).indexOf(qd) >= 0)); }));
     if ((lvl() >= 2 || isMkt()) && f.k === 'mine') f.k = 'due';
-    var cur = LF.filter(function (x) { return x.k === f.k; })[0] || LF[0], list = sortLeads(base.filter(cur.f));
+    var cur = LF.filter(function (x) { return x.k === f.k; })[0] || LF[0], list = sortLeads(base.filter(function (l) { return leadInChip(cur, l); }));
     return '<div class="page-head"><h1>Khách hỏi</h1><span class="muted" id="tCount">' + esc(leadsCountText(base)) + '</span><div class="grow"></div>' + whoSel() + (isMkt() ? '' : '<button class="btn pri" data-newlead>＋ Thêm khách hỏi</button>') + '</div>' + (isMkt() ? '<p class="small muted">Khách để lại số trên web (nhận ebook, vào nhóm Zalo, form liên hệ). Bạn chỉ xem; quản lý giao khách cho sale ở tab Hôm nay → 🧺 Kho chung.</p>' : '') +
       '<div class="tools"><div class="search">' + I.search + '<input type="search" id="tq" placeholder="Tìm tên, SĐT, sản phẩm…" value="' + esc(f.q) + '"><button type="button" class="search-x" aria-label="Xoá chữ tìm kiếm" title="Xoá">✕</button></div>' +
         '<select id="tch" class="' + (f.ch ? 'on' : '') + '" style="flex:0 0 auto;width:auto" title="Lọc theo kênh khách hỏi"><option value="">📣 Mọi kênh</option>' + chs.map(function (x) { return '<option' + (f.ch === x ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('') + '</select></div>' +

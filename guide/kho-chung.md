@@ -56,6 +56,7 @@ Người nhận sau đọc được lý do của bạn. Khách **đã mua** thì
 ## Nhận số từ Kho chung
 
 1. Tab **Hôm nay** → khung **🌱 Mở rộng khách** → việc **🧺 Nhận 1 số ở Kho chung** → bấm **Nhận số**. Hoặc tab **Khách hỏi** → mục **🧺 Kho chung**.
+   - Mục **Cần liên hệ** ở tab Khách hỏi chỉ hiện **khách của bạn**. Số Kho chung nằm ở **cuối danh sách** (khung vàng 🧺). Gọi hết khách của mình trước; khi hết khách, khung này tự mở sẵn vài số để bạn nhận tiếp.
 2. Số có nhãn **↩ từ [tên]** là số bạn khác đã gọi. **Đọc lịch sử tư vấn trước.**
 3. Bấm **✋ Nhận khách này** rồi gọi **bằng cách khác** người trước: nhắn Zalo thay vì gọi, hỏi về nỗi lo khác, đổi giờ gọi.
 

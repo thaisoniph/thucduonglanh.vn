@@ -2475,3 +2475,8 @@ b.csx-c-ok { color: var(--primary-2); } b.csx-c-sua { color: var(--orange); } b.
 .kc-rule > span:first-child { flex: 1 1 260px; }
 .kc-rule-b { display: flex; gap: 6px; flex-wrap: wrap; }
 .kc-lnk { background: none; border: 0; padding: 0; font: inherit; color: var(--brand, #2e7d32); text-decoration: underline; cursor: pointer; }
+
+/* 14/11/2026: Kho chung ở cuối mục Cần liên hệ của sale */
+.lkc-tail { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin: 14px 0 10px; padding: 12px 14px; border-radius: 12px; background: #fff8e1; border: 1px dashed #e0c070; }
+.lkc-tail > div { display: flex; flex-direction: column; gap: 2px; flex: 1 1 260px; }
+.lkc-tail.open { border-style: solid; }
