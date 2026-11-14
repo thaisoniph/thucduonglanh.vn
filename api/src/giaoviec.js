@@ -104,7 +104,7 @@ async function createTask(x, C, by, w, f, src) {
   const r = await run(x.db, 'INSERT INTO gv_tasks (title, body, who_email, who_name, by_email, by_name, due, due_t, status, at, upd_at, src) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     clean(f.title, 300), clean(f.body, 2000), w.email, w.name, by.email, by.name, f.due || null, f.due && f.dueT ? 1 : 0, w.email === by.email ? 'Đang làm' : 'Mới', now, now, src || 'crm');
   const id = r.meta && r.meta.last_row_id;
-  await addLog(x, id, by.name, src === 'tg' ? 'Giao qua Telegram' : 'Giao trong CRM');
+  await addLog(x, id, by.name, src === 'tg' ? 'Giao qua Telegram' : src === 'hop' ? '🎙 Giao từ biên bản cuộc họp' : 'Giao trong CRM');
   return getTask(x, id);
 }
 /** Đổi trạng thái / hạn / thêm kết quả. Kiểm quyền: người làm, người giao, người được giao việc. */
@@ -188,7 +188,54 @@ export async function gvRoute(x, req, path) {
     if (up) x.later(onUpdate(x, C, up).catch(e => console.error('gv update', e && e.stack || e))); // trả 200 ngay, AI đọc tin chạy nền (Telegram không gửi lặp)
     return new Response('ok');
   }
+  if (path === '/gv/import' && req.method === 'POST') return gvImport(x, req, C);
   return null;
+}
+
+/* ---------------------------------------------------------------- 🎙 nhận việc từ biên bản họp (14/11/2026, anh Sơn duyệt)
+ * Bot Zoom của web cá nhân (dinhminhthaison.com, worker/hoc.js) gửi việc sau cuộc họp: POST /gv/import, header x-gv-key = env.GV_IMPORT_KEY.
+ * Body { src: 'hop', meeting, tasks: [{ who, title, body, due: 'YYYY-MM-DD' | '' }] }. Người giao = anh Sơn, hạn = cuối ngày due.
+ * Tên không khớp đúng 1 nhân sự đang hoạt động (không dấu: họ tên đầy đủ, hoặc tên gọi / phần cuối họ tên) → không tạo, trả về unknown. */
+const BOSS = 'thaisoniph@gmail.com';
+const HONOR = /^(anh|chi|em|ban|co|chu|bac|a|c|e|mr|ms|mrs)\.?\s+/;
+/** Khớp tên trong cuộc họp với nhân sự. Trả về [người] (0, 1 hoặc nhiều). */
+export function gvMatch(ppl, who) {
+  const n = nrm(who).replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim().replace(HONOR, '');
+  if (!n) return [];
+  const full = ppl.filter(z => nrm(z.name) === n);
+  if (full.length) return full;
+  return ppl.filter(z => nrm(z.name).endsWith(' ' + n));
+}
+/** 'YYYY-MM-DD' → 23:59 giờ Việt Nam của ngày đó (due_t = 0: chỉ ngày, trễ hạn tính từ hết ngày). */
+function endOfDay(s) {
+  const m = String(s || '').match(/^(\d{4})-(\d{2})-(\d{2})$/); if (!m) return null;
+  const t = Date.UTC(+m[1], +m[2] - 1, +m[3], 23, 59) - TZ_MS;
+  return isNaN(t) ? null : t;
+}
+function sameKey(a, b) { if (!a || !b || a.length !== b.length) return false; let r = 0; for (let i = 0; i < a.length; i++) r |= a.charCodeAt(i) ^ b.charCodeAt(i); return r === 0; }
+async function gvImport(x, req, C) {
+  const j = (o, st) => new Response(JSON.stringify(o), { status: st || 200, headers: { 'Content-Type': 'application/json; charset=utf-8' } });
+  const key = x.env.GV_IMPORT_KEY;
+  if (!key || !sameKey(String(req.headers.get('x-gv-key') || ''), String(key))) return j({ ok: false, error: 'Sai khoá' }, 401);
+  const d = await req.json().catch(() => null);
+  if (!d || !Array.isArray(d.tasks)) return j({ ok: false, error: 'Thiếu danh sách việc (tasks)' }, 400);
+  const meeting = clean(d.meeting, 200), ppl = await staff(x);
+  const by = ppl.find(z => z.email === BOSS) || { email: BOSS, name: 'Thái Sơn' };
+  const made = [], unknown = [], skipped = [];
+  for (const v of d.tasks.slice(0, 40)) {
+    const title = clean(v && v.title, 300); if (!title) continue;
+    const who = clean(v.who, 80), hit = gvMatch(ppl, who);
+    if (hit.length !== 1) { unknown.push(who || '(không ghi tên)'); continue; }
+    const w = hit[0];
+    // bot gửi lại lần 2 (mạng chập chờn) → không tạo trùng
+    const dup = await first(x.db, `SELECT id FROM gv_tasks WHERE src = 'hop' AND who_email = ? AND title = ? AND at > ?`, w.email, title, Date.now() - 3 * DAY);
+    if (dup) { skipped.push({ who: w.name, title, id: dup.id }); continue; }
+    const body = [clean(v.body, 1700), meeting ? 'Từ cuộc họp: ' + meeting : ''].filter(Boolean).join('\n');
+    const t = await createTask(x, C, by, w, { title, body, due: endOfDay(v.due), dueT: 0 }, 'hop');
+    if (C.token) { try { await announce(x, C, t, { alsoPriv: 1 }); } catch (e) { console.error('gv import announce', e.message); } }
+    made.push({ who: w.name, title, id: t.id });
+  }
+  return j({ ok: true, made, unknown, skipped });
 }
 async function whoIs(x, from) {
   const id = String(from && from.id || ''); if (!id) return null;

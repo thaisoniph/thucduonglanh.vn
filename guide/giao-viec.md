@@ -38,6 +38,12 @@ Muốn gửi kèm kết quả: **trả lời (reply) vào tin việc** đó. Tr�
 - *em xin lùi sang thứ Hai vì chờ ảnh* → máy **chưa đổi hạn**, gửi người giao duyệt.
 - *em cần thêm thông tin giá* → máy ghi chú vào việc, báo người giao.
 
+## Việc từ cuộc họp 🎙
+
+Sau cuộc họp Zoom, máy đọc biên bản rồi **tự giao việc** cho từng người được nhắc tên. Việc này hiện trong CRM với chữ **🎙 từ cuộc họp**, người giao là anh Sơn, phần ghi chú có dòng **Từ cuộc họp: …**. Bạn nhận, báo xong y như việc thường.
+
+Máy chỉ giao khi tên trong cuộc họp khớp **đúng 1 người** trong CRM. Hai người cùng tên gọi (vd 2 bạn tên Hà) thì máy **không đoán**, anh Sơn sẽ giao tay. Vì vậy trong cuộc họp nên gọi đủ tên, vd *Thu Hà*, *Văn Hà*.
+
 ## Máy nhắc bạn
 
 - **8h sáng**: danh sách việc của bạn hôm nay.

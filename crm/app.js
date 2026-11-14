@@ -14093,7 +14093,7 @@
     return '<section class="gv-sec">' + (title ? '<h2 class="gv-h">' + title + ' <small>' + L.length + '</small></h2>' : '') + '<div class="gv-rows">' + L.map(function (t) {
       var who = t.whoE === me ? 'Bạn' : t.who, by = t.byE === me ? 'bạn giao' : t.by + ' giao';
       return '<button class="gv-row' + (t.late ? ' gv-late' : '') + (t.st === 'Xong' ? ' gv-done' : '') + '" data-gv="open|' + t.id + '"><span class="gv-ic" aria-hidden="true">' + GV_IC[t.st] + '</span><span class="gv-t"><b>' + esc(t.title) + '</b>' +
-        '<small>👤 ' + esc(who) + ' · 📅 ' + esc(gvDue(t)) + ' · ' + esc(by) + '</small><small class="gv-st">' + esc(GV_TX[t.st]) + (t.st === 'Xong' && t.done ? ' ' + esc(when(t.done)) : '') + (t.log.length > 1 ? ' · 💬 ' + (t.log.length - 1) + ' cập nhật' : '') + '</small></span><span class="mr-chev" aria-hidden="true">›</span></button>';
+        '<small>👤 ' + esc(who) + ' · 📅 ' + esc(gvDue(t)) + ' · ' + esc(by) + (t.src === 'hop' ? ' · 🎙 từ cuộc họp' : '') + '</small><small class="gv-st">' + esc(GV_TX[t.st]) + (t.st === 'Xong' && t.done ? ' ' + esc(when(t.done)) : '') + (t.log.length > 1 ? ' · 💬 ' + (t.log.length - 1) + ' cập nhật' : '') + '</small></span><span class="mr-chev" aria-hidden="true">›</span></button>';
     }).join('') + '</div></section>';
   }
   /** Thẻ nối Telegram cho mỗi người + hướng dẫn cài bot cho Quản trị (lần đầu). */

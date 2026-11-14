@@ -121,5 +121,35 @@ ok(r.ok && r.gv.tasks.every(t => t.whoE === 'trang@x.vn' || t.byE === 'trang@x.v
 const bad403 = await G.gvRoute(x, new Request('https://api.thucduonglanh.vn/gv/tg/abc', { method: 'POST', headers: { 'X-Telegram-Bot-Api-Secret-Token': 'sai' }, body: '{}' }), '/gv/tg/abc');
 ok(bad403 && bad403.status === 403, 'Tin giả mạo (sai mã bí mật) bị chặn');
 
+
+// 16. 🎙 nhận việc từ biên bản họp (POST /gv/import)
+x.env.GV_IMPORT_KEY = 'k-test-123';
+raw.exec("INSERT INTO users VALUES ('ha2@x.vn','Trần Văn Hà','Sale',1,'',4)"); delete x._users; // thêm người trùng tên gọi "Hà"
+const imp = (body, key) => G.gvRoute(x, new Request('https://api.thucduonglanh.vn/gv/import', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-gv-key': key }, body: JSON.stringify(body) }), '/gv/import');
+let res = await imp({ src: 'hop', meeting: 'Họp sale (14/11)', tasks: [{ who: 'Trang', title: 'Gửi bảng lương nháp' }] }, 'sai');
+ok(res.status === 401, 'Sai khoá → 401');
+res = await imp({ src: 'hop', meeting: 'Họp sale (14/11)', tasks: [] });
+ok(res.status === 401, 'Không có khoá → 401');
+sent.length = 0;
+res = await imp({ src: 'hop', meeting: 'Họp sale (14/11)', tasks: [
+  { who: 'chị Trang', title: 'Gửi bảng lương nháp T11', body: 'Gửi anh Sơn xem trước', due: '2026-11-20' },
+  { who: 'Nguyen Thi Thuy', title: 'Chốt lịch trực Chủ nhật', body: '', due: '' },
+  { who: 'Hà', title: 'Làm 3 video Tết', body: '', due: '2026-11-22' },
+  { who: 'Minh', title: 'Gọi lại nhà cung cấp', body: '', due: '' }] }, 'k-test-123');
+let J = await res.json();
+ok(res.status === 200 && J.ok && J.made.length === 2, 'Tạo 2 việc khớp tên (' + J.made.map(m => m.who).join(', ') + ')');
+ok(J.made.some(m => m.who === 'Lê Thu Trang') && J.made.some(m => m.who === 'Nguyễn Thị Thủy'), 'Khớp tên gọi "chị Trang" và họ tên không dấu');
+ok(J.unknown.indexOf('Hà') >= 0 && J.unknown.indexOf('Minh') >= 0, 'Trùng tên (2 người tên Hà) + tên lạ → unknown, không tạo');
+r = await G.crmGv(x, users.son, { action: 'gv_list' });
+const tl = r.gv.tasks.find(t => t.title === 'Gửi bảng lương nháp T11'), tc = r.gv.tasks.find(t => t.title === 'Chốt lịch trực Chủ nhật');
+ok(tl && tl.src === 'hop' && tl.byE === 'thaisoniph@gmail.com' && /Từ cuộc họp: Họp sale \(14\/11\)/.test(tl.body), 'Người giao = anh Sơn, src hop, body có "Từ cuộc họp"');
+const vn = new Date(tl.due + 7 * 3600e3);
+ok(tl.dueT === 0 && vn.getUTCDate() === 20 && vn.getUTCHours() === 23 && vn.getUTCMinutes() === 59, 'Hạn = cuối ngày 20/11 (23:59 giờ VN)');
+ok(tc && !tc.due, 'Hạn rỗng → không đặt hạn');
+ok(sent.filter(s => s.includes('sendMessage') && s.includes('Việc #')).length >= 2, 'Gửi Telegram cho người làm như khi giao trong CRM');
+res = await imp({ src: 'hop', meeting: 'Họp sale (14/11)', tasks: [{ who: 'Trang', title: 'Gửi bảng lương nháp T11', due: '2026-11-20' }] }, 'k-test-123');
+J = await res.json();
+ok(J.made.length === 0 && J.skipped.length === 1, 'Bot gửi lại lần 2 → không tạo trùng');
+
 origLog('sai:', bad);
 process.exit(bad ? 1 : 0);
