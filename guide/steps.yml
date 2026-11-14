@@ -112,3 +112,244 @@ ma-van-don:
         - ["note", "Đơn tự chuyển sang Đang giao"]
       hi: 2
       text: "Gõ <b>mã vận đơn</b> (mã in trên phiếu gửi hàng), bấm <b>Lưu vận đơn</b>. Đơn tự chuyển sang <b>Đang giao</b>."
+# ---------- Làm content theo khoá học (guide/content.md, 15/11/2026) – màn hình CRM → 🎯 Insight & nội dung
+ct-mo:
+  title: Mở màn hình 🎯 Insight & nội dung
+  steps:
+    - title: Marketing TDL
+      els:
+        - ["h", "Menu"]
+        - ["card", "📣 Marketing", "Quảng cáo, chi phí, khách mới", ""]
+        - ["card", "🎯 Insight & nội dung", "Nơi dạy trợ lý AI viết cho ai", "g"]
+        - ["card", "📍 Link & QR", "Link theo dõi, mã QR", ""]
+      hi: 2
+      text: "Mở CRM. Bấm <b>🎯 Insight</b> trên menu. Không thấy thì bấm <b>••• Thêm</b> → <b>🎯 Insight & nội dung</b>."
+    - title: Insight & nội dung
+      els:
+        - ["h", "🎯 Insight & nội dung"]
+        - ["chips", ["1 Nhóm", "2 Nỗi lòng", "3 Loại bài", "4 Viết"], -1]
+        - ["bar", "👉 Nên làm ngay: Tết sắp tới, lên ý lớn"]
+        - ["btn", "Làm ngay", "g"]
+        - ["note", "Không có việc gì thì ô báo ✅ mọi thứ ổn"]
+      hi: 3
+      text: "Trên cùng là 4 bước viết bài. Ngay dưới là ô cam <b>👉 Nên làm ngay</b> (tối đa 3 việc). Mỗi ngày chỉ cần nhìn ô này và <b>bấm nút trong ô</b>."
+    - title: Insight & nội dung
+      els:
+        - ["chips", ["📊 Tổng quan", "✍️ Tạo", "🧪 Chấm"], 1]
+        - ["chips", ["🗣 Lời khách", "🛡 Gác cổng", "👥 Nhóm"], -1]
+        - ["chips", ["⚙️ Cài đặt"], -1]
+        - ["card", "📌 Dùng để · 👉 Nên làm", "Đầu mỗi thẻ nói thẻ đó để làm gì", "g"]
+      hi: 0
+      text: "Bên dưới có <b>7 thẻ</b>. Bấm tên thẻ để chuyển. Đầu mỗi thẻ có ô xanh <b>📌 Dùng để · 👉 Nên làm</b>: đọc 2 dòng đó là biết thẻ để làm gì."
+ct-video:
+  title: Viết kịch bản video ngắn
+  steps:
+    - title: Insight & nội dung
+      els:
+        - ["chips", ["📊 Tổng quan", "✍️ Tạo nội dung", "🧪 Chấm"], 1]
+        - ["h", "🎬 Viết kịch bản video ngắn"]
+        - ["in", "🎯 Nhóm khách", "Mẹ sau sinh"]
+        - ["in", "Loại bài", "AI tự chọn"]
+        - ["in", "Độ dài", "45 giây"]
+        - ["in", "Thể loại", "Tình huống"]
+      hi: 2
+      text: "Bấm thẻ <b>✍️ Tạo nội dung</b>. Ở ô <b>🎬 Viết kịch bản video ngắn</b>, chọn <b>nhóm khách</b>. Các ô khác để <b>AI tự chọn</b> cũng được."
+    - title: Insight & nội dung
+      els:
+        - ["in", "Yêu cầu thêm (không bắt buộc)", "quay ở bếp, chị Lan nói"]
+        - ["btn", "🎬 Viết kịch bản", "g"]
+        - ["note", "Chờ khoảng 30–60 giây"]
+      hi: 1
+      text: "Muốn gì thì ghi vào ô <b>Yêu cầu thêm</b> (quay ở đâu, ai nói). Bấm <b>🎬 Viết kịch bản</b>, chờ khoảng 1 phút."
+    - title: Kịch bản đã viết
+      els:
+        - ["h", "📂 Kịch bản đã viết"]
+        - ["card", "3 câu mở đầu (hook)", "1 câu chính + 2 câu dự phòng", ""]
+        - ["card", "Bảng quay 8 cột", "Cảnh · góc máy · lời thoại · chữ…", ""]
+        - ["card", "Danh sách quay + caption", "Quay 1 lượt cho nhanh", ""]
+        - ["btn", "📋 Copy kịch bản", "g"]
+      hi: 4
+      text: "Kịch bản hiện ở <b>📂 Kịch bản đã viết</b>. Đọc lại, rồi bấm <b>📋 Copy kịch bản</b> để gửi người quay qua Zalo."
+ct-fb:
+  title: Viết bài Facebook cá nhân cho sale
+  steps:
+    - title: Insight & nội dung
+      els:
+        - ["chips", ["📊 Tổng quan", "✍️ Tạo nội dung", "🧪 Chấm"], 1]
+        - ["h", "🧰 Công cụ khác"]
+        - ["card", "📸 Câu lệnh tạo ảnh", "AI viết câu lệnh cho ChatGPT", ""]
+        - ["card", "📣 Bài Facebook cá nhân cho sale", "Bài đời thường + bình luận ghim", "g"]
+        - ["btn", "📣 Mở", ""]
+      hi: 4
+      text: "Thẻ <b>✍️ Tạo nội dung</b> → kéo xuống <b>🧰 Công cụ khác</b> → ô <b>📣 Bài Facebook cá nhân cho sale</b> → bấm <b>📣 Mở</b>."
+    - title: Bài Facebook cá nhân
+      els:
+        - ["in", "Nhóm khách", "Để trợ lý tự chọn"]
+        - ["in", "Loại bài", "🔵 Nhận biết (không nhắc SP)"]
+        - ["in", "Bình luận ghim mời khách", "Vào nhóm Zalo"]
+        - ["btn", "✨ Viết 1 bài", "g"]
+      hi: 3
+      text: "Chọn nhóm khách, loại bài, và <b>bình luận ghim mời khách đi đâu</b> (nhóm Zalo, quà tặng, trang chủ). Bấm <b>✨ Viết 1 bài</b>, chờ khoảng 1 phút."
+    - title: Bài Facebook cá nhân
+      els:
+        - ["card", "Bài đăng (không link)", "Kể chuyện đời thường", ""]
+        - ["card", "Bình luận ghim + câu trả lời [LINK]", "[LINK] tự thành link riêng từng sale", ""]
+        - ["btn2", "✏️ Sửa", "✅ Cho sale dùng", "g"]
+      hi: 2
+      text: "Đọc lại. Cần thì bấm <b>✏️ Sửa</b>. Ưng rồi bấm <b>✅ Cho sale dùng</b>. Sale thấy bài ở <b>Cài đặt → 📣 Bài đăng Facebook cá nhân</b>."
+ct-anh:
+  title: Viết câu lệnh tạo ảnh bằng AI
+  steps:
+    - title: Insight & nội dung
+      els:
+        - ["chips", ["📊 Tổng quan", "✍️ Tạo nội dung", "🧪 Chấm"], 1]
+        - ["h", "🧰 Công cụ khác"]
+        - ["card", "📸 Câu lệnh tạo ảnh", "Giữ nguyên bao bì thật", "g"]
+        - ["btn", "📸 Viết câu lệnh", ""]
+      hi: 3
+      text: "Thẻ <b>✍️ Tạo nội dung</b> → <b>🧰 Công cụ khác</b> → ô <b>📸 Câu lệnh tạo ảnh</b> → bấm <b>📸 Viết câu lệnh</b>."
+    - title: Câu lệnh tạo ảnh
+      els:
+        - ["in", "Sản phẩm", "Trà DILVANG"]
+        - ["in", "Mục đích", "Ảnh kèm bài"]
+        - ["in", "Khổ ảnh", "Vuông 1:1"]
+        - ["in", "Dán nội dung bài (nếu có)", "Sáng nào cũng vội…"]
+        - ["btn", "📸 Viết câu lệnh", "g"]
+      hi: 4
+      text: "Chọn sản phẩm (hoặc không), mục đích, khổ ảnh. Có bài rồi thì dán vào. Bấm <b>📸 Viết câu lệnh</b>."
+    - title: 3 hướng ảnh
+      els:
+        - ["card", "Hướng 1: Bếp sáng sớm", "Góc máy, ánh sáng, màu, bố cục", ""]
+        - ["btn", "📋 Copy câu lệnh", "g"]
+        - ["card", "Hướng 2: Bàn làm việc", "…", ""]
+        - ["note", "Dán vào ChatGPT / Gemini + ảnh SP thật"]
+      hi: 1
+      text: "AI viết <b>3 hướng ảnh</b>. Bấm <b>📋 Copy câu lệnh</b>, dán vào ChatGPT hoặc Gemini. Có sản phẩm thì <b>đính kèm ảnh sản phẩm thật</b>."
+ct-nong:
+  title: Ghi chuyện đang nóng cho trợ lý
+  steps:
+    - title: Insight & nội dung
+      els:
+        - ["chips", ["🗣 Lời khách", "👥 Nhóm", "⚙️ Cài đặt"], 2]
+        - ["h", "📅 Dịp sắp tới & 🔥 chuyện nóng"]
+        - ["card", "📅 Nhà giáo 20/11", "⏰ đến lúc chuẩn bị", "y"]
+        - ["in", "🔥 Chuyện đang nóng", "Cả mạng bàn chuyện…"]
+      hi: 3
+      text: "Bấm thẻ <b>⚙️ Cài đặt</b>. Tìm ô <b>🔥 Chuyện đang nóng</b>. Ghi 1–3 câu: chuyện gì, mọi người đang nói gì."
+    - title: Insight & nội dung
+      els:
+        - ["in", "Giai đoạn", "2 · Khẳng định lặp lại"]
+        - ["in", "Mục tiêu bài", "Để trợ lý tự chọn"]
+        - ["btn2", "💾 Lưu cho trợ lý", "🔍 AI xét trend", "g"]
+      hi: 2
+      text: "Chọn <b>giai đoạn</b> (xem bảng dưới). Không chắc chuyện có nên làm không thì bấm <b>🔍 AI xét trend</b> trước."
+    - title: AI xét trend
+      els:
+        - ["card", "✅ LÀM · hợp Mẹ sau sinh", "3 hướng bài gợi ý", "g"]
+        - ["btn", "✅ Dùng câu này cho ô 🔥", "g"]
+        - ["card", "⛔ BỎ · tin buồn", "Không dùng", "r"]
+      hi: 1
+      text: "AI trả lời <b>✅ LÀM</b> hay <b>⛔ BỎ</b>, vì sao, và 3 hướng bài. Chuyện nên làm thì bấm <b>✅ Dùng câu này cho ô 🔥</b> là xong."
+ct-big:
+  title: Lên ý lớn (big idea) cho 1 nhóm khách
+  steps:
+    - title: Insight & nội dung
+      els:
+        - ["chips", ["🗣 Lời khách", "👥 Nhóm khách", "⚙️ Cài đặt"], 1]
+        - ["card", "Mẹ sau sinh", "🟢 Đang dùng · 6 nỗi lòng", ""]
+        - ["card", "Con mua quà cho bố mẹ", "🟢 Đang dùng · 🌟 có ý lớn", ""]
+        - ["btn", "✏️ Sửa", ""]
+      hi: 3
+      text: "Thẻ <b>👥 Nhóm khách</b> → bấm tên nhóm để mở → bấm <b>✏️ Sửa</b>."
+    - title: Sửa nhóm khách
+      els:
+        - ["h", "🌟 Big idea và góc kể"]
+        - ["btn", "✨ AI gợi ý big idea", "g"]
+        - ["note", "Chờ khoảng 1 phút"]
+        - ["in", "Ô big idea", "Bà vẫn đúng, mẹ vẫn được nghỉ"]
+      hi: 1
+      text: "Kéo xuống ô <b>🌟 Big idea và góc kể</b>, bấm <b>✨ AI gợi ý big idea</b>. AI điền 3 ý lớn, mỗi ý 10 góc kể."
+    - title: Sửa nhóm khách
+      els:
+        - ["card", "Bà vẫn đúng, mẹ vẫn được nghỉ", "- Kể từ người mẹ  - Lời bà dặn…", "g"]
+        - ["note", "Giữ cái ưng nhất ở TRÊN CÙNG"]
+        - ["note", "Cái để dành: cách 1 dòng trống"]
+        - ["btn", "Lưu", "g"]
+      hi: 3
+      text: "<b>Giữ 1 ý ưng nhất ở trên cùng</b> (đó là ý đang chạy). Xoá hoặc để dành mấy ý còn lại. Bấm <b>Lưu</b>. Chạy 2–4 tuần rồi đổi."
+ct-insight:
+  title: Tìm nỗi lòng (insight) mới bằng AI
+  steps:
+    - title: Insight & nội dung
+      els:
+        - ["chips", ["🗣 Lời khách", "👥 Nhóm khách", "⚙️ Cài đặt"], 1]
+        - ["btn", "🔍 AI tìm nỗi lòng mới", "g"]
+        - ["btn2", "📥 Dán kết quả skill", "➕ Thêm nhóm", ""]
+      hi: 1
+      text: "Thẻ <b>👥 Nhóm khách</b> → bấm <b>🔍 AI tìm nỗi lòng mới</b>."
+    - title: Tìm insight
+      els:
+        - ["in", "Sản phẩm", "Sữa hạt Curcumin"]
+        - ["in", "Nhóm khách mẫu", "Để AI đề xuất"]
+        - ["in", "Mục tiêu", "Bán hàng"]
+        - ["btn", "🔍 Tìm insight", "g"]
+        - ["note", "AI đọc cả câu khách thật 60 ngày qua"]
+      hi: 3
+      text: "Chọn sản phẩm, mục tiêu. Bấm <b>🔍 Tìm insight</b>, chờ 1–2 phút."
+    - title: Insight tìm được
+      els:
+        - ["card", "☑ Muốn ngủ ngon ↔ đầu óc không nghỉ", "21/25 · 📌 có bằng chứng", "g"]
+        - ["card", "☐ Muốn khoẻ ↔ sợ tốn tiền", "14/25 · giả thuyết", ""]
+        - ["btn", "💾 Thêm vào ngân hàng", "g"]
+      hi: 2
+      text: "Tích dòng muốn giữ (ưu tiên dòng <b>📌 có bằng chứng</b>, điểm cao). Bấm <b>💾 Thêm vào ngân hàng</b>. Từ bài sau cả 4 trợ lý dùng ngay."
+ct-offer:
+  title: Viết ưu đãi (offer) nháp
+  steps:
+    - title: Insight & nội dung
+      els:
+        - ["chips", ["📊 Tổng quan", "✍️ Tạo nội dung", "🧪 Chấm"], 1]
+        - ["h", "🧰 Công cụ khác"]
+        - ["card", "🎁 Viết offer", "Ưu đãi khó từ chối, lưu nháp", "g"]
+        - ["btn", "🎁 Viết offer", ""]
+      hi: 3
+      text: "Thẻ <b>✍️ Tạo nội dung</b> → <b>🧰 Công cụ khác</b> → bấm <b>🎁 Viết offer</b>."
+    - title: Viết offer
+      els:
+        - ["in", "Sản phẩm", "Bữa Ăn Dinh Dưỡng"]
+        - ["in", "Nhóm khách", "Dân văn phòng"]
+        - ["in", "Loại offer", "Mồi (dùng thử)"]
+        - ["btn", "🎁 Viết offer", "g"]
+      hi: 3
+      text: "Chọn sản phẩm, nhóm khách, loại offer (mồi, chính, combo quà, mua lại). Bấm <b>🎁 Viết offer</b>, chờ khoảng 1 phút."
+    - title: Offer nháp
+      els:
+        - ["card", "Tên offer · lời hứa · giá đề xuất", "Bảng giá trị, bảo đảm, 3 hook", ""]
+        - ["bar", "⚠️ Nháp: chưa chạy, cần duyệt giá"]
+        - ["btn", "➕ Đưa vào Ưu đãi", "g"]
+      hi: 2
+      text: "Offer mới là <b>nháp</b>. Anh Sơn / quản lý duyệt giá, quà, số lượng xong mới bấm <b>➕ Đưa vào Ưu đãi</b>. Lúc đó sale và trợ lý mới nhắc tới."
+ct-loi:
+  title: Đọc lời khách thật (mỗi tuần 1 lần)
+  steps:
+    - title: Insight & nội dung
+      els:
+        - ["chips", ["🗣 Lời khách", "👥 Nhóm", "⚙️ Cài đặt"], 0]
+        - ["chips", ["😣 Nỗi đau", "🤔 Ngần ngại", "💚 Mong"], 0]
+        - ["card", "🟢 “sáng nào cũng vội, bỏ bữa”", "Fanpage · 3 ngày trước", ""]
+        - ["card", "🟡 “sợ uống không hợp”", "Sale ghi · Khách hỏi", ""]
+      hi: 1
+      text: "Thẻ <b>🗣 Lời khách</b>. Bấm các ô màu trên cùng để lọc. 🟢 = khách tự gõ, 🟡 = sale ghi / AI đoán."
+    - title: Lời khách
+      els:
+        - ["card", "“sợ uống không hợp”", "Đang ở ô: 😣 Nỗi đau", "y"]
+        - ["btn2", "✏️ Sửa", "🙈 Ẩn", ""]
+      hi: 1
+      text: "Câu AI xếp sai ô thì bấm <b>✏️ Sửa</b>. Câu không liên quan thì bấm <b>🙈 Ẩn</b>."
+    - title: Lời khách
+      els:
+        - ["btn", "➕ Ghi lời khách", "g"]
+        - ["in", "Lời khách (chép đúng lời)", "con gái mua cho mà mẹ ngại"]
+        - ["note", "Không ghi tên, số điện thoại"]
+      hi: 0
+      text: "Khách nói qua điện thoại câu hay thì bấm <b>➕ Ghi lời khách</b>, chép <b>đúng lời khách</b>. Trợ lý viết bài sẽ dùng câu này."

@@ -84,7 +84,7 @@ Mục **📄 Fanpage đã kết nối** có mỗi trang 1 dòng: tên trang, đa
 - **Bài đăng**: bật "AI soạn bài đăng", chọn giờ đăng (ví dụ `11:30, 20:00`), chọn **Chờ duyệt** hoặc **Tự đăng**. Điền ô **"Trang này dành cho ai"** (ví dụ "mẹ bỉm sau sinh, giọng chị em tâm sự") để AI viết đúng giọng của trang.
 - **🎯 Nhóm khách trang này nhắm tới**: tích 1 vài nhóm (ví dụ trang cho mẹ bỉm chỉ tích "Mẹ bỉm, mẹ sau sinh"). Không tích = mọi nhóm, xoay vòng.
 
-**Bài đăng theo phễu và insight.** Mỗi tuần AI soạn 4 bài 🔵 thu hút (kiến thức, bếp lành, thói quen, tâm an), 2 bài ⚪ tạo niềm tin (nguyên liệu, hỏi đáp), 1 bài 🟠 bán (góc sản phẩm, có link). Trước khi viết, AI chọn 1 nhóm khách + 1 tension (điều họ mong ↔ điều đang cản họ) rồi mới viết; thẻ bài có dòng **🎯** để bạn kiểm tra. Sửa nhóm khách ở tab **🎯 Insight & nội dung** ([xem hướng dẫn](/huong-dan/marketing/#insight-noi-dung)).
+**Bài đăng theo phễu và insight.** Mỗi tuần AI soạn 4 bài 🔵 thu hút (kiến thức, bếp lành, thói quen, tâm an), 2 bài ⚪ tạo niềm tin (nguyên liệu, hỏi đáp), 1 bài 🟠 bán (góc sản phẩm, có link). Trước khi viết, AI chọn 1 nhóm khách + 1 tension (điều họ mong ↔ điều đang cản họ) rồi mới viết; thẻ bài có dòng **🎯** để bạn kiểm tra. Sửa nhóm khách ở tab **🎯 Insight & nội dung** ([xem hướng dẫn](/huong-dan/content/)).
 
 Sửa xong, bấm **💾 Lưu cài đặt trang**.
 

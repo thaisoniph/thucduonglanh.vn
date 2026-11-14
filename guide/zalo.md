@@ -126,7 +126,7 @@ Mỗi bài có một nhãn màu cho biết bài đó để làm gì:
 
 Tối Thứ 4 có **đố vui**, sáng Thứ 5 trợ lý **công bố đáp án**. Tối Thứ 5 là bài **cảm nhận khách hàng** (dùng ảnh feedback thật).
 
-**🎯 Mỗi bài nhắm 1 nhóm khách.** Trước khi viết, trợ lý chọn 1 nhóm (mẹ bỉm, dân văn phòng, trung niên, người ăn chay, con cái mua quà cho bố mẹ; xoay vòng nhóm ít được viết nhất) và 1 **tension** của nhóm đó (điều họ mong ↔ điều đang cản họ), rồi viết bài đúng chủ đề hôm nay nhưng chạm đúng nỗi lòng ấy. Thẻ bài có dòng **🎯 nhóm khách · tension**. Bấm **🔄 Viết lại** để chọn nhóm khách khác hoặc ghi ý kiến. Sửa nhóm khách, tension ở tab **🎯 Insight & nội dung** ([xem hướng dẫn](/huong-dan/marketing/#insight-noi-dung)).
+**🎯 Mỗi bài nhắm 1 nhóm khách.** Trước khi viết, trợ lý chọn 1 nhóm (mẹ bỉm, dân văn phòng, trung niên, người ăn chay, con cái mua quà cho bố mẹ; xoay vòng nhóm ít được viết nhất) và 1 **tension** của nhóm đó (điều họ mong ↔ điều đang cản họ), rồi viết bài đúng chủ đề hôm nay nhưng chạm đúng nỗi lòng ấy. Thẻ bài có dòng **🎯 nhóm khách · tension**. Bấm **🔄 Viết lại** để chọn nhóm khách khác hoặc ghi ý kiến. Sửa nhóm khách, tension ở tab **🎯 Insight & nội dung** ([xem hướng dẫn](/huong-dan/content/)).
 
 ### 📅 Ngày lễ, rằm, mùng 1
 

@@ -86,7 +86,7 @@ Trợ lý tự viết bài cho Góc Sống Lành. **Bài chỉ lên web khi có 
 - **Chủ đề chờ viết**: thêm chủ đề muốn viết, trợ lý lấy chủ đề trên cùng trước. Bài đăng xong, chủ đề tự chuyển sang "Đã đăng" kèm link.
 - Khi giao chủ đề, chọn được **🎯 Nhóm khách bài nhắm tới** (để trống = trợ lý tự chọn nhóm ít được viết nhất).
 - Mọi bài, kể cả chủ đề được giao, đều qua bước **🎯 insight**: trợ lý chọn 1 nhóm khách + 1 tension (điều họ mong ↔ điều đang cản họ) rồi mới viết. Thẻ bài chờ duyệt có dòng 🎯 để bạn kiểm tra.
-- Hết chủ đề, trợ lý tự chọn chủ đề theo phễu 3 tầng (Nhận biết, Cân nhắc, Mua hàng) từ **ngân hàng insight** chung ở CRM → **🎯 Insight & nội dung** ([xem hướng dẫn](/huong-dan/marketing/#insight-noi-dung)). Ô **Ghi chú thêm về tệp khách** ở ⚙️ Cài đặt chỉ để ghi điều riêng cho bài web.
+- Hết chủ đề, trợ lý tự chọn chủ đề theo phễu 3 tầng (Nhận biết, Cân nhắc, Mua hàng) từ **ngân hàng insight** chung ở CRM → **🎯 Insight & nội dung** ([xem hướng dẫn](/huong-dan/content/)). Ô **Ghi chú thêm về tệp khách** ở ⚙️ Cài đặt chỉ để ghi điều riêng cho bài web.
 
 ## Sửa giá sản phẩm
 
