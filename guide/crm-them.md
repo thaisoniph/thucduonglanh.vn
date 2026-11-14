@@ -47,6 +47,7 @@ Dùng khi công ty có chương trình ưu đãi, muốn báo cho nhiều khách
 2. Bấm **📣 Gửi ưu đãi lần lượt**.
 3. Giữ dấu tích **Chỉ khách đã kết bạn Zalo** và **Chỉ khách đồng ý nhận ưu đãi**. Đây là quy định của pháp luật.
 4. Ở ô **Chọn ưu đãi / mẫu tin**, chọn ưu đãi trong nhóm **🎁 Ưu đãi đang chạy** (ví dụ 🎉 Ngày Đôi). Máy điền sẵn **tên chương trình** và **tin mẫu**, bạn không phải soạn. Có ưu đãi đang chạy thì máy chọn sẵn ưu đãi đầu tiên.
+   - Muốn **mời khách giới thiệu bạn bè**: chọn **🌱 Cảm ơn + mời** (đủ ý) hoặc **🌱 Ngắn gọn** trong nhóm **🌱 Mời giới thiệu bạn bè**. Mỗi khách bấm **✅ Đã gửi** được tính 1 lần mời ở việc 1 (Mở rộng khách).
    - Tự soạn cũng được: viết **[Tên]**, **[Sản phẩm]**, **[Link]**. Máy tự thay bằng tên khách, sản phẩm khách hay mua, và **link đặt hàng riêng của khách đó**.
    - **[Link]** đã gắn sẵn mã của người phụ trách khách (đơn tính cho người đó). Khách đã từng mua thì link mở ra **giỏ hàng có sẵn món khách hay mua**, khách chỉ cần điền địa chỉ và bấm Đặt hàng. Bạn không cần vào Cài đặt lấy link.
 5. Bấm **▶ Bắt đầu gửi**.

@@ -1273,6 +1273,7 @@
     }).sort(function (a, b) { return b.first - a.first; });
   }
   function promoSent(phone, name) { return S.d.log.some(function (l) { return l.what === 'Gửi ưu đãi' && l.result === name && String(l.ref).replace(/^'/, '') === phone; }); }
+  function prRefPct() { rbData(); return (S._rb && S._rb.cfg && S._rb.cfg.refPct) || 10; }
   function openPromo() {
     var pick = S.promoPick || { list: [], label: 'Tất cả' }, tp = S.d.templates || [];
     var stats = promoStats().slice(0, 6);
@@ -1281,7 +1282,7 @@
       '<label class="switch" style="margin-top:6px"><input type="checkbox" id="prC" checked> Chỉ khách <b>đồng ý nhận ưu đãi</b> (đúng Nghị định 13)</label>' +
       '<p class="small muted" id="prN" style="margin:8px 0 0"></p></div>' +
       '<div class="box"><label class="f"><span>Tên chương trình (để đo hiệu quả)</span><input type="text" id="prName" value="' + esc('Ưu đãi ' + fDate(Date.now()).slice(0, 5)) + '"></label>' +
-      '<label class="f"><span>Chọn ưu đãi / mẫu tin</span><select id="prTpl"><option value="-1">– Mẫu ưu đãi mặc định –</option><optgroup label="🎁 Ưu đãi đang chạy" id="prOffG"></optgroup><optgroup label="📝 Mẫu tin của công ty">' + tplOpts(tp, -1) + '</optgroup></select></label>' +
+      '<label class="f"><span>Chọn ưu đãi / mẫu tin</span><select id="prTpl"><option value="-1">– Mẫu ưu đãi mặc định –</option><optgroup label="🎁 Ưu đãi đang chạy" id="prOffG"></optgroup><optgroup label="🌱 Mời giới thiệu bạn bè">' + bkTpls(prRefPct()).map(function (t, k) { return '<option value="r' + k + '">🌱 ' + t[0] + '</option>'; }).join('') + '</optgroup><optgroup label="📝 Mẫu tin của công ty">' + tplOpts(tp, -1) + '</optgroup></select></label>' +
       '<label class="f"><span>Nội dung (máy tự điền [Tên], [Sản phẩm] và <b>[Link]</b> = link đặt hàng riêng của từng khách, đơn tính cho người phụ trách)</span><textarea id="prText" rows="7">' + esc(PROMO_DEF) + '</textarea></label></div>' +
       (stats.length ? '<div class="box"><h3>📊 Chương trình gần đây</h3><table class="tg-help">' + stats.map(function (x) { return '<tr><td><b>' + esc(x.name) + '</b><br><span class="small muted">' + fDate(x.first) + '</span></td><td>Đã gửi <b>' + x.sent + '</b> khách · <b>' + x.conv + '</b> khách mua trong 14 ngày (' + (x.sent ? pct(x.conv, x.sent) : 0) + '%) · ' + moneyShort(x.rev) + '</td></tr>'; }).join('') + '</table></div>' : '') +
       '<p class="small muted">Lưu ý: gửi rải trong ngày, không gửi dồn liên tục vài trăm tin để Zalo không hạn chế tài khoản. Tin gửi từ chính Zalo của bạn nên khách thấy gần gũi.</p>';
@@ -1297,13 +1298,14 @@
     };
     $('#prTpl', m).onchange = function () {
       var v = String(this.value);
+      if (v.charAt(0) === 'r') { var rt = bkTpls(prRefPct())[+v.slice(1)]; if (!rt) return; $('#prText', m).value = rt[1]; $('#prName', m).value = 'Mời giới thiệu ' + fDate(Date.now()).slice(0, 5); cnt(); return; } // 14/11/2026: mẫu 🌱 Cảm ơn + mời giới thiệu (dùng chung với 📨 Gửi tin mời ở Hôm nay)
       if (v.charAt(0) === 'o') { var o = offs[+v.slice(1)]; if (!o) return; $('#prText', m).value = promoOfferTpl(o); $('#prName', m).value = String(o.title).replace(/^[^0-9A-Za-zÀ-ỹ]+/, '').replace(/\s*\(.*\)\s*$/, '').slice(0, 60); cnt(); return; }
       var i = +v; $('#prText', m).value = i >= 0 ? tp[i][2] : PROMO_DEF;
     };
     if (S.offers && Date.now() - S.offers.at < 600e3) offFill(); else api('offers', {}).then(function (j) { S.offers = { at: Date.now(), list: j && j.ok ? j.list : null }; if (document.body.contains(m)) offFill(); }, function () { });
     $('#prGo', m).onclick = function () {
       var name = $('#prName', m).value.trim() || 'Ưu đãi', text = $('#prText', m).value.trim(); if (!text) { toast('Bạn soạn nội dung tin giúp nhé', true); return; }
-      S.promo = { name: name, text: text, list: pool().map(function (c) { return c.phone; }), i: 0, sent: 0, skip: 0 }; closeModal(true); promoStep();
+      S.promo = { name: name, text: text, list: pool().map(function (c) { return c.phone; }), i: 0, sent: 0, skip: 0, ref: String($('#prTpl', m).value).charAt(0) === 'r' }; closeModal(true); promoStep();
     };
   }
   function promoStep() {
@@ -1322,7 +1324,7 @@
     $('#pmCopy', m).onclick = function () { copy($('#pmMsg', m).value).then(function () { toast('Đã copy tin'); }); };
     $('#pmZalo', m).onclick = function () { copy($('#pmMsg', m).value).then(function () { toast('Đã copy – dán vào khung chat Zalo'); }); window.open(zalo(c.phone), '_blank', 'noopener'); };
     $('#pmSkip', m).onclick = function () { P.skip++; P.i++; closeModal(true); promoStep(); };
-    $('#pmDone', m).onclick = function () { sendOp('customer', { phone: c.phone, promo: P.name }); P.sent++; P.i++; closeModal(true); promoStep(); };
+    $('#pmDone', m).onclick = function () { sendOp('customer', { phone: c.phone, promo: P.name }); if (P.ref) api('ref_code', { phone: c.phone }).then(function () { if (S._rb && S._rb.inv && S._rb.inv.indexOf(c.phone) < 0) S._rb.inv.push(c.phone); }, function () { }); P.sent++; P.i++; closeModal(true); promoStep(); };
   }
   /* ---------- 🎉 Dịp chúc khách (09/11/2026, anh Sơn): ngày lễ, rằm, mùng 1, Tết (máy chủ api/src/zday.js gửi S.d.occ; máy chủ cũ không gửi → chỉ còn sinh nhật)
    * + sinh nhật khách → khối ở đầu tab Hôm nay. Gửi lần lượt qua Zalo của sale như 📣 Gửi ưu đãi; nhật ký "Gửi lời chúc" (mỗi người 1 lần / dịp), đo đơn 14 ngày sau.
