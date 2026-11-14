@@ -133,6 +133,7 @@ Mỗi bài đã **viết sẵn cho 3 nơi**, kể chuyện như người thật,
 Một bài dùng được cho nhiều nhóm, mỗi nhóm cách nhau vài ngày.
 
 **💬 Zalo cá nhân**
+
 1. **📋 Copy nhật ký & mở Zalo**: vào **Nhật ký**, dán (đã có link của bạn), thêm ảnh thật.
 2. Hoặc **💬 Copy tin gửi khách**, nhắn riêng cho khách cũ, người quen (sửa "anh/chị" cho đúng).
 

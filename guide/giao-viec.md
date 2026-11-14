@@ -34,6 +34,8 @@ Lành nhắc bạn đúng các mốc này qua Telegram. Việc phát sinh trong 
 
 ## Chốt việc trọng tâm (trước 9h sáng thứ Ba)
 
+[[steps:gv-chot]]
+
 Việc trọng tâm là **1–3 việc quan trọng nhất** tuần này, gắn với mục tiêu của công ty. Mỗi việc cần:
 
 1. **Việc cần làm**, bắt đầu bằng động từ. Ví dụ: *Đăng video Tết trà DILVANG lên TikTok*.
@@ -41,6 +43,7 @@ Việc trọng tâm là **1–3 việc quan trọng nhất** tuần này, gắn 
 3. **Hạn**.
 
 Cách chốt:
+
 - Trong CRM: bấm **⭐ Chốt việc trọng tâm**.
 - Hoặc nhắn Lành: *trọng tâm tuần: đăng 3 video trà DILVANG lên TikTok, hạn thứ Sáu*.
 
@@ -49,6 +52,8 @@ Cách chốt:
 Đã có đủ 3 việc trọng tâm thì máy không cho thêm việc thứ 4. Bạn **Dừng** bớt 1 việc (bàn với quản lý), hoặc ghi việc đó là **việc phát sinh**.
 
 ## Cập nhật tiến độ (trước 21h thứ Năm)
+
+[[steps:gv-tg]]
 
 19h thứ Năm, Lành gửi tin cho từng việc trọng tâm, kèm 3 nút:
 
@@ -63,6 +68,7 @@ Trong CRM: bấm vào việc → mục **📍 Tiến độ**.
 ## Chốt kết quả (trước 21h Chủ nhật)
 
 19h Chủ nhật, Lành hỏi kết quả từng việc trọng tâm. **Trả lời tin đó:**
+
 - **Xong rồi:** *xong, đã đăng 3 video, 4.200 lượt xem https://link-minh-chung*
 - **Có ảnh chụp:** gửi ảnh vào đúng tin đó, rồi trả lời *xong, …*
 - **Chưa xong:** *chưa xong vì …, tuần sau làm …*. Việc tự chuyển sang tuần sau, máy đếm số lần chuyển.
@@ -72,6 +78,7 @@ Trong CRM: bấm vào việc → mục **📍 Tiến độ**.
 ## Thứ Hai họp: báo cáo có sẵn
 
 7h sáng thứ Hai, Lành gửi bạn **bài báo cáo tuần**. Mỗi việc có 4 dòng:
+
 - 🎯 Cam kết
 - 📊 Thực tế
 - ✅ Đúng hạn / 🟠 Trễ / ⏭ Chuyển tuần
@@ -81,7 +88,10 @@ Trong họp, bạn chỉ cần đọc bài này (3–5 phút). Trong CRM: **✅ 
 
 ## Nhờ nhau một việc
 
+[[steps:gv-nho]]
+
 Ai cũng nhờ được ai một **việc phát sinh**, kể cả nhờ anh Sơn, nhờ Quản lý:
+
 - CRM: **＋ Việc phát sinh / nhờ ai đó** → chọn người làm. Có thể thêm **🤝 Người cùng làm**.
 - Hoặc nhắn Lành: *nhờ Trang gửi số chi quảng cáo tháng 10 trước 17h thứ Sáu*.
 
@@ -92,6 +102,7 @@ Việc trọng tâm của người khác thì chỉ người đó tự chốt, h
 ## Trả lời vào tin việc
 
 Trên điện thoại, vuốt tin việc sang trái, hoặc giữ tin rồi chọn **Trả lời**:
+
 - *xong, … + link* → ghi **Xong** + kết quả + minh chứng
 - Gửi **ảnh / file** → lưu làm minh chứng
 - *em xin lùi sang thứ Hai vì chờ ảnh* → máy **chưa đổi hạn**, gửi người nhờ duyệt
@@ -119,6 +130,7 @@ Máy chỉ ghi khi tên trong cuộc họp khớp **đúng 1 người** trong CR
 ## Nhóm "🌿 Nhà Lành · Cùng làm"
 
 Tạo nhóm Telegram, thêm Lành và mọi người vào, rồi anh Sơn hoặc Quản lý gõ **/noinhom** trong nhóm.
+
 - Nhóm thấy: việc mới, việc hạn hôm nay, lời cảm ơn khi ai đó xong việc, tổng kết cả tuần.
 - Nhóm **không** thấy việc trễ của ai.
 - Trong nhóm, Lành **chỉ đọc** tin gọi tên Lành, tin trả lời vào tin việc, và lệnh bắt đầu bằng **/**. Chuyện thường trong nhóm Lành không đọc.

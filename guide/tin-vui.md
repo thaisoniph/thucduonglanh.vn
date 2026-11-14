@@ -4,11 +4,13 @@ nav: Tin vui
 group: chung
 short: Tin vui đồng đội, lời chào mỗi ngày
 order: 1.7
-updated: 2026-11-14
+updated: 2026-11-15
 description: Dòng 📣 Tin vui ở đầu CRM, nút 👏 Chúc mừng, ghi lời khen của khách, lời chào và câu động viên ở tab Hôm nay. Đọc trang này khoảng 2 phút.
 ---
 
 **Mở CRM là thấy ngay tin vui của cả nhóm.** Ai vừa chốt đơn, ai đã chăm sóc xong hết khách trong ngày, máy tự báo cho mọi người. Bạn không cần nhập gì.
+
+> **Mỗi ngày chỉ cần:** lướt dòng **📣 Tin vui** đầu CRM, bấm **👏 Chúc mừng** đồng đội. Khách khen thì tích ô **⭐ Đây là lời khen của khách** khi ghi chăm sóc.
 
 ## Dòng 📣 Tin vui
 
@@ -72,5 +74,6 @@ Khách khen sản phẩm hay khen bạn tư vấn tận tình? Ghi lại để c
 3. **Câu động viên** đổi theo tiến độ: lúc bắt đầu, khi qua nửa chặng, khi chỉ còn 1–2 khách.
 
 Khi bạn chăm sóc **xong hết khách hôm nay**:
+
 - Màn hình bắn **pháo giấy 🎉** (mỗi ngày 1 lần).
 - Dòng Tin vui tự báo cho cả nhóm: *"… đã chăm sóc xong hết … khách hôm nay"*, để mọi người chúc mừng bạn.

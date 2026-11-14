@@ -155,6 +155,7 @@ Voucher dùng cho đơn từ 300.000đ, hạn 90 ngày. Nói với khách cho d�
 **Khách tự lấy link** ở trang **thucduonglanh.vn/gioi-thieu-ban-be/** (nhập số điện thoại đã mua), hoặc ngay trên trang cảm ơn sau khi đặt hàng. Trong gói hàng có **thẻ QR**. Khách quét thẻ là vào trang đó.
 
 **Bạn bè đặt hàng** theo 1 trong 2 cách:
+
 - Bấm link của khách, mã giảm giá tự áp dụng.
 - Ở trang thanh toán, bấm **Có mã ưu đãi / người giới thiệu?**, rồi gõ **mã** (ví dụ `AN111`) hoặc **số điện thoại** của người giới thiệu.
 
@@ -168,6 +169,7 @@ Voucher dùng cho đơn từ 300.000đ, hạn 90 ngày. Nói với khách cho d�
 - Xem khách được giới thiệu: tab **Hiệu quả** → ô **🌱 Khách mới nhờ khách cũ giới thiệu** (số khách mới và **🤝 mục tiêu cả nhóm** trong tháng).
 
 **Việc của bạn (sale):**
+
 1. Tab **Hôm nay** có mục **🌱 Mời làm Đại sứ** (bấm khung **🌱 Mở rộng khách** dưới danh sách gọi, hoặc bấm **Mời ngay** ở việc 1): mỗi ngày tối đa 5 khách của bạn đã nhận hàng 7–30 ngày. Hỏi "Chị dùng thấy thế nào ạ?". Khách khen thì bấm **🌱 Mời giới thiệu**. Cửa sổ có 2 tin ngắn: bấm **📋 Copy tin ① & mở Zalo**, dán gửi khách (cảm ơn + mã + quà). Quay lại bấm **📋 Copy tin ②**, dán gửi tiếp: đây là tin khách chỉ việc chuyển tiếp cho bạn bè, có sẵn link giảm giá, **ghi rõ số tiền được giảm** (vd đơn 350.000đ giảm 35.000đ) và câu *"quà cảm ơn cho người giới thiệu là công ty tặng thêm, bạn không bị cộng giá đồng nào"*. Khách lớn tuổi thì bấm **🖼️ Copy ảnh chương trình** (điện thoại: **🖼️ Gửi ảnh chương trình**): ảnh chữ to ghi rõ giảm bao nhiêu tiền, gọi ai, mã gì. Khách chỉ cần chuyển tiếp ảnh cho bạn (từ 13/11/2026, theo góp ý của chị Thủy). Khách chưa hài lòng hoặc chưa tiện thì bấm **Để sau**, khách ẩn 30 ngày. Bấm vào tên khách là mở hồ sơ.
    - Khách đang có trong việc **Chăm sóc khách** hôm nay thì không hiện ở mục này. Thẻ khách đó có nhãn **🌱 Mời giới thiệu**: gọi chăm sóc xong, khách thấy hợp thì bấm nhãn đó luôn. Gọi 1 lần làm được cả 2 việc. Khách khen sản phẩm lúc khác thì mở hồ sơ, bấm **🌱 Mời giới thiệu bạn bè**.
 2. Có bạn đặt hàng thì Telegram báo bạn.
@@ -180,6 +182,7 @@ Voucher dùng cho đơn từ 300.000đ, hạn 90 ngày. Nói với khách cho d�
 ### 👵 Khách lớn tuổi, ngại thao tác: cách dễ nhất
 
 Khách trung niên ngại vào web, ngại gõ mã. Ưu tiên theo thứ tự:
+
 1. **Xin số người bạn ngay trong cuộc gọi**: *"Chị không phải làm gì cả, chị đọc em số của bạn, em gọi tư vấn giúp, vẫn tính là chị giới thiệu."* Rồi **＋ Thêm khách hỏi** → *Khách đến từ đâu* chọn **Khách giới thiệu** → chọn khách cũ. Gọi người bạn ngay trong ngày.
 2. **Tin ② có số Zalo của bạn**: người bạn chỉ cần nhắn Zalo / gọi và nói tên người giới thiệu. Lần đầu bấm 🌱 Mời giới thiệu, CRM hỏi **số Zalo bán hàng của bạn** để ghi vào tin (lưu 1 lần). Gửi kèm **danh thiếp Zalo** của bạn: trong khung chat Zalo bấm **＋** (hoặc **⋯**) → **Danh thiếp** → chọn chính mình.
 3. **Phiếu giới thiệu giấy**: mỗi gói hàng kèm 2 phiếu cắt rời (file ở Drive *05_Ấn phẩm in ấn*, in đen trắng). Khách cũ ghi tên + số mình vào phiếu, đưa cho bạn. Người bạn gọi hotline đọc tên trên phiếu.

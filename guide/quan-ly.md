@@ -212,17 +212,20 @@ Vào **Cài đặt → 🤝 Cộng tác viên & khách giới thiệu → Quản
 2. Bấm **📋 Tin gửi CTV** để gửi link, mã và quy định cho CTV.
 
 **📝 Người lạ tự đăng ký làm CTV (từ 30/10/2026):** ai muốn làm CTV (chưa mua hàng cũng được) thì gửi họ trang **thucduonglanh.vn/cong-tac-vien/** để tự điền form. Có người đăng ký thì nhóm Telegram báo "🤝 ĐĂNG KÝ CỘNG TÁC VIÊN".
+
 1. Gọi hoặc nhắn Zalo làm quen: hỏi họ định giới thiệu cho ai, ở đâu. Thấy không ổn (số ảo, chỉ muốn tự mua lấy hoa hồng) thì không duyệt.
 2. Mở **Quản lý cộng tác viên**. Ô vàng **📝 … người đăng ký làm CTV, chờ duyệt** ở trên cùng. Bấm **✅ Duyệt**: CRM tự tạo link (ví dụ `?ref=huong678`), mã giảm 10% cho khách mới của họ, hoa hồng 10%. Không duyệt thì bấm **Từ chối** và ghi lý do (chỉ lưu trong CRM).
 3. Duyệt xong, ở thẻ CTV mới bấm **📋 Tin gửi CTV** rồi dán vào Zalo gửi họ (tin đã có link giới thiệu và link xem hoa hồng).
 Mức cho người tự đăng ký sửa ở **⚙️ Cài đặt chung**, dòng 📝. Đổi thì sửa luôn chữ trên web: **/admin → Cài đặt chung → Đăng ký cộng tác viên**. CTV tự mua bằng chính số của mình thì máy không tính hoa hồng.
 
 **🛡 Chống sale lách qua CTV (từ 30/10/2026):**
+
 - CTV chỉ được hoa hồng khi **số chưa từng có trong CRM** trước lúc khách bấm link CTV (từ 11/11/2026; trước đây chỉ chặn khách hỏi có sale trong 90 ngày). Số đã có trong file quảng cáo (bao lâu cũng tính), khách hỏi ở Kho chung, khách hỏi của sale, đơn cũ, form liên hệ → **không tính** hoa hồng CTV, khách vẫn thuộc sale. Đơn ghi "⚠️ … số đã có trong CRM từ … → không tính hoa hồng CTV", Nhật ký **CTV không tính**.
 - Thẻ CTV hiện ô đỏ ⚠️ khi: có khách đã được nhân sự gọi / ghi chăm sóc **trước** khi khách thuộc CTV; có lần đặt bị chặn như trên; CTV trùng SĐT, email, họ tên hoặc tài khoản ngân hàng mang tên nhân sự. Thấy ⚠️ thì xem kỹ trước khi bấm ✅ Đã chuyển tiền.
 - Để CRM nhận ra nhân sự: Quản trị điền **SĐT cá nhân**, **Họ tên đầy đủ**, **Số tài khoản** của từng người ở **Cài đặt → Nhân sự** rồi bấm Lưu. Người chưa có tài khoản CRM (kho, marketing mới…) ghi vào ô **Nhân sự chưa có tài khoản CRM** ngay bên dưới.
 
 **💰 Lương & hoa hồng tạm tính (Phụ lục 01, từ 30/10/2026):** mở **Hiệu quả → 📊 BCDT**. Xem 1 người: mục **💰 Thu nhập tạm tính** (lương cố định theo bậc doanh thu, hoa hồng khách cũ / khách mới theo thâm niên, phụ cấp thâm niên, còn bao nhiêu nữa thì lên bậc). Xem cả nhóm: bảng từng người.
+
 - Đơn khách tự đặt trên web tính như đơn sale lên: khách cũ theo % khách cũ, khách mới đặt qua **link riêng của sale** theo % khách mới. Khách mới sale **đã gọi / nhắn chăm sóc trong 30 ngày trước khi đặt** (có ghi ở CRM) mà tự lên web đặt, không bấm link, vẫn tính **đủ % khách mới**. Ghi chú đơn có dòng *🤝 … đã chăm khách trước khi đặt*. Khách mới tự tìm đến web mà sale chưa chăm lần nào thì tính **50%** mức khách mới.
 - Đơn sale chốt **tối / Chủ nhật** (loại đơn Ngoài giờ): **6%** cố định. Đơn **ngày lễ**: **10%** cố định. **Chỉ áp dụng với khách mới từ quảng cáo** (kể cả khách cũ nhắn lên page); khách cũ nhắn Zalo sale tối / lễ thì tính % khách cũ (Phụ lục 01, Thủy xác nhận 11/11/2026). CRM tự gợi ý đúng loại đơn và Thu nhập tạm tính tự chuyển đơn tối / lễ của khách cũ về % khách cũ. Không theo bậc, thâm niên, vẫn cộng vào doanh thu để xét bậc. Đơn khách tự đặt web lúc tối / lễ tính như đơn web thường.
 - Doanh thu dưới 80 triệu: hỗ trợ theo năng lực, quản lý tự quyết.
@@ -354,6 +357,7 @@ Tab đầu tiên, dành cho chủ doanh nghiệp. **Nhìn 5 giây là nắm đư
 Menu của Quản trị **trên máy tính và điện thoại giống nhau** (từ 11/11/2026), chỉ 4 mục: **Tổng quan · Đơn hàng · Hiệu quả · Marketing · ••• Thêm** (kết quả, đơn và tiền chờ thu, đội sale, tiền quảng cáo). Trên cùng chỉ còn 2 nút: **🔍** tìm 1 khách / số điện thoại / mã đơn, và **⚙** Cài đặt.
 
 Màn **••• Thêm** chia 4 nhóm:
+
 - **Việc của sale**: Hôm nay, Khách hỏi, Khách đã mua
 - **Tiền & hàng**: Kế toán, Kho, Sàn
 - **Kênh marketing**: Link & QR, Trợ lý Zalo, Fanpage, Insight & nội dung, Bài web

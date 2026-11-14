@@ -4,11 +4,13 @@ nav: Văn hoá
 group: chung
 short: 10 quy tắc, mỗi ngày 1 việc nhỏ
 order: 1.5
-updated: 2026-11-14
+updated: 2026-11-15
 description: Mỗi ngày CRM nhắc 1 quy tắc kèm 1 việc nhỏ để làm. Đọc trang này khoảng 5 phút.
 ---
 
 **Sống tử tế – Làm thật – Cùng nhau phát triển.**
+
+> **Mỗi ngày chỉ cần:** mở CRM, đọc thẻ **🌿 Quy tắc hôm nay**, bấm **✅ Hôm nay mình sẽ làm**. Mất 30 giây.
 
 10 quy tắc này không để kiểm soát ai. Nó là tấm gương để mỗi người tự soi lại mình, và là lời hứa thầm lặng mình trao cho nhau.
 
@@ -33,6 +35,8 @@ CRM → **⚙️ Cài đặt** → nhóm **👥 Nhân sự** → **🌿 Văn ho�
 ## Quy tắc của ngày trong CRM
 
 Mỗi ngày làm việc, khi mở CRM, bạn thấy **thẻ 🌿 Quy tắc hôm nay** ở đầu màn hình. Cả công ty cùng thấy **một quy tắc**, để mọi người cùng nói về một điều. Cứ 10 ngày làm việc là đủ 10 quy tắc, rồi quay lại từ đầu với gợi ý mới.
+
+[[steps:vh-the]]
 
 Trong thẻ có:
 

@@ -991,3 +991,87 @@ ql-nghi:
         - ["note", "Không cần xoá: bỏ tích là khoá"]
       hi: 0
       text: "Quản trị vào <b>Cài đặt → Nhân sự</b>, <b>bỏ tích Đang dùng</b> của người nghỉ (không cần xoá), bấm <b>Lưu nhân sự</b>."
+# ---------- Mọi người (guide/giao-viec.md, guide/van-hoa.md, 15/11/2026)
+gv-chot:
+  title: Chốt việc trọng tâm (trước 9h thứ Ba)
+  steps:
+    - title: Việc tuần
+      els:
+        - ["h", "✅ Việc tuần · tuần này"]
+        - ["btn", "⭐ Chốt việc trọng tâm", "g"]
+        - ["btn", "＋ Việc phát sinh / nhờ ai đó", ""]
+        - ["note", "Tối đa 3 việc trọng tâm mỗi tuần"]
+      hi: 1
+      text: "Mở CRM → <b>✅ Việc tuần</b> (điện thoại: <b>••• Thêm</b> → Việc tuần). Bấm <b>⭐ Chốt việc trọng tâm</b>."
+    - title: Chốt việc trọng tâm
+      els:
+        - ["in", "Việc cần làm (bắt đầu bằng động từ)", "Đăng video Tết trà DILVANG"]
+        - ["in", "🎯 Thế nào là xong (đo được)", "3 video đã đăng, có ảnh bìa"]
+        - ["in", "Hạn", "Thứ Sáu 20/11"]
+        - ["btn", "Lưu", "g"]
+      hi: 1
+      text: "Ghi <b>việc cần làm</b>, <b>🎯 Thế nào là xong</b> (con số hoặc sản phẩm bàn giao), và <b>hạn</b>."
+    - title: Chốt việc trọng tâm
+      els:
+        - ["card", "“hoàn thành video” chưa đo được", "Gợi ý: 3 video đã đăng lên TikTok", "y"]
+        - ["btn", "Dùng câu gợi ý", "g"]
+      hi: 1
+      text: "Viết chưa đo được thì máy gợi ý câu rõ hơn. Bấm <b>Dùng câu gợi ý</b> hoặc tự sửa. Cũng có thể nhắn Lành trong Telegram: <i>trọng tâm tuần: …, hạn thứ Sáu</i>."
+gv-tg:
+  title: Báo tiến độ và kết quả ngay trong Telegram
+  steps:
+    - title: Telegram · Lành
+      els:
+        - ["card", "📍 Thứ Năm: Đăng video Tết DILVANG", "Tiến độ thế nào?", ""]
+        - ["btn", "🟢 Đúng tiến độ", "g"]
+        - ["btn2", "🟡 Có thể trễ", "🔴 Cần hỗ trợ", ""]
+      hi: 1
+      text: "19h <b>thứ Năm</b>, Lành hỏi tiến độ từng việc. Bấm 1 nút, rồi <b>trả lời tin đó 1 câu</b>: đã làm gì → làm gì tiếp."
+    - title: Telegram · Lành
+      els:
+        - ["card", "🏁 Chủ nhật: Đăng video Tết DILVANG", "Kết quả thực tế + link minh chứng?", ""]
+        - ["in", "Trả lời tin này", "xong, 3 video, 4.200 xem https://…"]
+        - ["note", "Vuốt tin sang trái (hoặc giữ → Trả lời)"]
+      hi: 1
+      text: "19h <b>Chủ nhật</b>, trả lời tin: <i>xong, … + link</i>. Có ảnh thì gửi vào đúng tin đó. Chưa xong: <i>chưa xong vì …, tuần sau làm …</i>."
+    - title: Telegram · Lành
+      els:
+        - ["card", "📋 Báo cáo tuần của bạn (7h thứ Hai)", "🎯 Cam kết · 📊 Thực tế · 📎 Minh chứng", "g"]
+        - ["note", "Họp thứ Hai: chỉ cần đọc bài này"]
+      hi: 0
+      text: "<b>Việc chỉ được ghi Xong khi có kết quả thực tế + link minh chứng.</b> 7h thứ Hai Lành gửi sẵn bài báo cáo tuần để bạn đọc khi họp."
+gv-nho:
+  title: Nhờ đồng nghiệp một việc
+  steps:
+    - title: Việc tuần
+      els:
+        - ["btn", "＋ Việc phát sinh / nhờ ai đó", "g"]
+        - ["in", "Việc", "Gửi số chi quảng cáo tháng 10"]
+        - ["in", "Người làm · 🤝 Người cùng làm", "Trang"]
+        - ["in", "Hạn", "17h thứ Sáu"]
+      hi: 0
+      text: "Bấm <b>＋ Việc phát sinh / nhờ ai đó</b>, ghi việc, chọn người làm, hạn. Hoặc nhắn Lành: <i>nhờ Trang gửi số chi quảng cáo tháng 10 trước 17h thứ Sáu</i>."
+    - title: Việc tuần (người được nhờ)
+      els:
+        - ["card", "🙏 Sơn nhờ: Gửi số chi QC tháng 10", "Hạn 17h thứ Sáu", "y"]
+        - ["btn2", "🙋 Mình nhận", "✅ Xong rồi", "g"]
+      hi: 1
+      text: "Người được nhờ bấm <b>🙋 Mình nhận</b>, làm xong bấm <b>✅ Xong rồi</b>. Lành báo người nhờ và <b>cảm ơn trong nhóm</b>."
+vh-the:
+  title: Thẻ 🌿 Quy tắc hôm nay
+  steps:
+    - title: Hôm nay
+      els:
+        - ["card", "🌿 Quy tắc hôm nay · 7", "Nói thẳng với trái tim rộng mở", "g"]
+        - ["note", "💼 Công việc: góp ý trực tiếp 1 việc"]
+        - ["note", "🏡 Cuộc sống: hỏi thăm 1 người thân"]
+        - ["btn", "✅ Hôm nay mình sẽ làm", "g"]
+      hi: 3
+      text: "Mở CRM là thấy thẻ <b>🌿 Quy tắc hôm nay</b> ở đầu màn hình. Đọc 2 việc nhỏ, bấm <b>✅ Hôm nay mình sẽ làm</b>."
+    - title: Hôm nay
+      els:
+        - ["in", "Chuyện của bạn (không bắt buộc)", "Hôm nay em góp ý thẳng với…"]
+        - ["btn", "Lưu", "g"]
+        - ["btn", "Thu gọn ▲", ""]
+      hi: 0
+      text: "Làm rồi thì ghi <b>1 dòng chuyện của bạn</b>, bấm <b>Lưu</b> (chuyện hay được kể ở trà đàm thứ 7). Muốn thẻ nhỏ lại thì <b>Thu gọn ▲</b>."

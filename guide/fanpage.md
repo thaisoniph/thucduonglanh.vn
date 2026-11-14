@@ -215,6 +215,7 @@ Quay bằng QuickTime trên Mac: **File → Bản ghi màn hình mới**. Nói t
 > This app is used only by our own company (Thuc Duong Lanh / VitaGreen Nutrition, Vietnam) to manage our own Facebook Pages. There is no public login. To test: 1) Comment on any post of the Page "Thực Dưỡng Lành - Giải Pháp Sống Khỏe Tự Nhiên" (https://www.facebook.com/1100449419808795). Within about 10 minutes the Page likes and replies to your comment and sends you a private message. 2) Message the Page in Messenger (for example "what products do you have?") and the assistant replies in Vietnamese. Tap "Nhận quà" (Get gift) to see the gift flow. The screencast shows every permission in use, including our internal dashboard where staff connect Pages, change settings and publish posts.
 
 **Xử lý dữ liệu** (trả lời các câu hỏi của Facebook)
+
 - Đơn vị chịu trách nhiệm dữ liệu: **CÔNG TY TNHH TẬP ĐOÀN VITAGREEN NUTRITION**, Việt Nam.
 - Bên xử lý dữ liệu thay mặt công ty (data processors): **Cloudflare** (máy chủ và cơ sở dữ liệu), **Anthropic** (AI soạn câu trả lời), **Google** (bản sao dữ liệu Google Sheet, gửi email), **Telegram** (báo khách mới cho nhân viên).
 - Có chuyển dữ liệu cho bên khác để bán không: **Không**.

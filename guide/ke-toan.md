@@ -201,6 +201,7 @@ Máy đọc file và cho xem trước rồi mới bấm **Nhập**. Tải lại 
 | 🚚 **Đang giao** | Đơn chưa hoàn thành theo file đơn hàng mới nhất | Chờ |
 
 Bấm vào ô hoặc nút nhóm để xem từng đơn. Các nhóm khác:
+
 - **⚠️ Tiền về thấp**: Shopee trả dưới 50% giá bán (phí sàn, voucher, hoa hồng quá cao). Xem lại đơn đó.
 - **✏️ Có điều chỉnh**: Shopee trừ hoặc cộng thêm sau khi đã trả (hoàn tiền, phí trả hàng, khấu trừ hoa hồng tiếp thị liên kết).
 - **🤝 Qua tiếp thị liên kết**: đơn có hoa hồng cho đối tác (KOL, CreatorX…), hiện tên đối tác, kênh và đã trừ hay chưa.
@@ -351,6 +352,7 @@ Mục **👥 Bảng lương tháng** trên tab 💼 Kế toán. Bạn chỉ nh�
 ![Chọn tháng (1), nhập công (2), lấy tạm ứng từ file (3), bấm tên xem phiếu lương (4), trình duyệt (5), mức lương từng người (6)](/huong-dan/img/ke-toan-luong.webp)
 
 **Làm 1 lần:** bấm **⚙️ Nhân sự & mức lương** (6). Mỗi người điền:
+
 - **Cách tính:** *Sale* (lương cứng theo bậc doanh thu + hoa hồng, máy tự tính theo Phụ lục 01), *Theo KPI* (kế toán: lấy lương từ phiếu KPI đã chốt), hoặc *Lương cố định*.
 - Lương cơ bản (đủ công), lương đóng bảo hiểm, chuyên cần, phụ cấp xăng / ăn / điện thoại mỗi công, phụ cấp khác.
 - Sale: ô lương cơ bản là **mức hỗ trợ** khi doanh thu chưa tới bậc đầu.

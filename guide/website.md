@@ -233,6 +233,7 @@ Web có bản tiếng Anh tại [thucduonglanh.vn/en/](https://thucduonglanh.vn/
 ## Trợ lý viết bài: hiệu quả và cài đặt
 
 **Xem hiệu quả:** CRM → 📰 Bài web → 📊 Hiệu quả bài viết (chọn 7, 30 hoặc 90 ngày):
+
 - **Lượt xem, thời gian đọc, bấm mua trong bài**: lấy từ Google Analytics, chỉ đếm người bấm Đồng ý cookie nên số thật cao hơn.
 - **Đơn sau khi đọc**: khách đọc bài rồi đặt hàng trên web trong 7 ngày (tính cho bài đọc gần nhất, không tính đơn huỷ, hoàn).
 - **Chi phí AI**: tiền trợ lý viết bài, chia ra mỗi bài bao nhiêu.
@@ -241,6 +242,7 @@ Web có bản tiếng Anh tại [thucduonglanh.vn/en/](https://thucduonglanh.vn/
 **📈 Trợ lý tự học từ số đọc:** trước khi viết bài mới, trợ lý xem các bài web cùng loại (🔵 thu hút, ⚪ tạo niềm tin, 🟠 bán hàng) đã đăng trong 60 ngày. Trợ lý học theo bài được đọc nhiều, đọc lâu, nhiều người bấm mua, và tránh kiểu bài ít người đọc. Xem danh sách này ở CRM → 🎯 Insight & nội dung → **📈 Học từ tương tác** (dòng 🌐 Bài web). Mỗi loại cần ít nhất 3 bài đã đăng hơn 2 ngày mới bắt đầu so.
 
 **Cài đặt:** CRM → 📰 Bài web → ⚙️ Cài đặt và ➕ Thêm chủ đề. Sửa ở /admin → Cài đặt website → 🤖 Trợ lý viết bài tự động cũng được, hai chỗ dùng chung một bản.
+
 - **Số bài mỗi tuần** (1–7) và **Giờ đăng**.
 - **Chủ đề chờ viết**: thêm chủ đề muốn viết, trợ lý lấy chủ đề trên cùng trước. Bài đăng xong, chủ đề tự chuyển sang "Đã đăng" kèm link.
 - Khi giao chủ đề, chọn được **🎯 Nhóm khách bài nhắm tới** (để trống = trợ lý tự chọn nhóm ít được viết nhất).
