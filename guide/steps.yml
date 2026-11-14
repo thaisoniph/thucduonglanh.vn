@@ -894,3 +894,30 @@ kc-nhan:
         - ["note", "Tối đa 10 số / ngày · ai chốt người đó được"]
       hi: 0
       text: "Liên hệ <b>bằng cách khác</b> người trước: nhắn Zalo thay vì gọi, hỏi về nỗi lo khác, đổi giờ gọi."
+# ---------- Kế toán (guide/ke-toan.md, 15/11/2026)
+kt-shopee:
+  title: Đối soát Shopee từng đơn
+  steps:
+    - title: Kế toán
+      els:
+        - ["h", "🟠 Shopee – tiền về từng đơn"]
+        - ["btn", "📤 Tải file Shopee", "g"]
+        - ["note", "Chọn cùng lúc: Order.all + Số dư TK"]
+        - ["note", "(+ Tiếp thị liên kết nếu có)"]
+      hi: 1
+      text: "Tab <b>💼 Kế toán</b> → mục <b>🟠 Shopee – tiền về từng đơn</b> → <b>📤 Tải file Shopee</b>. Chọn <b>cùng lúc</b> file Đơn hàng và file Số dư TK Shopee (tuần 1 lần)."
+    - title: Shopee – tiền về từng đơn
+      els:
+        - ["chips", ["✅ Đã trả", "🔴 Quá hạn", "⏳ Chờ trả"], 1]
+        - ["card", "🔴 3 đơn quá hạn chưa thấy tiền", "Hỏi Shopee: Kênh Người Bán → Hỗ trợ", "r"]
+        - ["btn", "🧾 Xem kết quả & hạch toán từng đơn", "g"]
+      hi: 0
+      text: "Xem trước rồi bấm <b>Nhập</b>. Ô <b>🔴 Quá hạn, chưa thấy tiền</b> thì hỏi Shopee. <b>⏳ Chờ</b> và <b>🚚 Đang giao</b> thì chờ."
+    - title: Hạch toán từng đơn
+      els:
+        - ["h", "🧾 Đã trả, chưa hạch toán"]
+        - ["card", "☑ 2511…AB · trả 12/11", "Giá 390k · Shopee trừ 62k · nhận 328k", ""]
+        - ["card", "☑ 2511…CD · trả 12/11", "Giá 150k · Shopee trừ 25k · nhận 125k", ""]
+        - ["btn2", "✅ Đã hạch toán", "📋 Chép", "g"]
+      hi: 3
+      text: "Tích đơn đã hạch toán (hoặc <b>Chọn hết</b>), bấm <b>✅ Đã hạch toán</b>. Cần dán sang Excel / Misa thì bấm <b>📋 Chép</b>."

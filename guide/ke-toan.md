@@ -4,16 +4,38 @@ nav: Kế toán
 group: kho-ke-toan
 short: Đối soát tiền, công nợ, lãi lỗ, KPI
 order: 4.6
-updated: 2026-11-13
+updated: 2026-11-15
 description: Ghi tiền về tài khoản (tải file đối soát COD Best / Viettel Post hoặc tích tay), đối soát Shopee từng đơn, ghi công nợ nhà cung cấp, tự chấm KPI tháng, xem tiền còn treo ở hãng vận chuyển, nhập chi phí, xem lãi lỗ theo ngày / tuần / tháng. Có hình từng bước.
 roles: [kt]
 ---
 
 Trang này dành cho **kế toán**. Đọc khoảng 5 phút là làm được.
 
-> **Thứ 2, 4, 6 (ngày hãng chuyển tiền):** tải file phiếu đối soát của Best / Viettel Post. **Mỗi ngày:** tải file sao kê VCB / MB của từng tài khoản. Máy tự tìm phiếu và đơn chuyển khoản đã có tiền, tự xếp nhóm các khoản chi, lấy số dư cuối ngày; kế toán xem lại rồi bấm Lưu. Không cần ghi Sổ chi cho khoản chuyển khoản. **Khi nhận hoá đơn nhập hàng:** ghi vào **🧾 Công nợ nhà cung cấp**, máy tự trừ khi sao kê có khoản trả. Xong là anh Sơn xem được lãi lỗ và tiền thật gần như ngay lúc đó.
+> **Một câu dễ nhớ:** Bạn **tải file**, máy **tự khớp tiền**, bạn **xem lại rồi bấm Lưu**. Không cần ghi Sổ chi cho khoản chuyển khoản. Làm đều tay thì anh Sơn xem được lãi lỗ và tiền thật gần như ngay lúc đó.
 
 **Cách xem hình:** ô khoanh đỏ có số **1, 2, 3** trên hình chính là **bước 1, 2, 3** viết ngay bên dưới hình.
+
+## Lịch việc của bạn
+
+**Mỗi ngày:**
+
+1. Đọc tin Telegram **💼 Tài chính** lúc 8h.
+2. Tải **sao kê VCB / MB** từng tài khoản → [Sao kê](#tai-sao-ke-vcb-mb-may-tu-khop-tien-ve-xep-khoan-chi)
+3. Có chuyển khoản không có file: [ghi tiền về bằng tay](#ghi-tien-ve-bang-tay-chuyen-khoan-vcb-hoac-khong-co-file).
+
+**Thứ 2, 4, 6** (ngày hãng chuyển tiền): tải **phiếu đối soát** Best / Viettel Post → [Phiếu đối soát](#phieu-doi-soat-cho-tien-ve-thu-2-4-6)
+
+**Mỗi tuần:** tải **file Shopee** → [Shopee](#shopee-don-nao-shopee-da-tra-tien-thay-cho-vlookup)
+
+**Khi nhận hoá đơn nhập hàng:** ghi vào **🧾 Công nợ nhà cung cấp** → [Công nợ](#cong-no-nha-cung-cap)
+
+**Đầu tháng (ngày 1–15, cho tháng trước):**
+
+1. [Chốt doanh số theo sale](#chot-doanh-so-thang-theo-sale), xem [đơn hạ COD / ký 1 phần / đổi hàng](#don-ha-cod-ky-1-phan-doi-hang).
+2. [Tự chấm KPI](#kpi-thang-tu-cham-quan-ly-cham-lai).
+3. [Làm bảng lương](#bang-luong-thang) rồi trình duyệt.
+
+**Khi cần:** [cập nhật trạng thái đơn bằng file Best](#cap-nhat-trang-thai-don-bang-file-best) · [đối soát lại cả tháng](#tai-file-chi-tiet-don-ca-thang-khi-can-doi-soat-lai) · [nhập chi phí, xem lãi lỗ](#nhap-chi-phi-va-xem-lai-lo) · [giá trị tồn kho](#hang-ton-kho-tinh-bang-tien)
 
 ## Tài khoản Kế toán thấy gì?
 
@@ -22,17 +44,6 @@ Trang này dành cho **kế toán**. Đọc khoảng 5 phút là làm được.
 - Thấy **số hàng tồn kho** (chỉ xem, do người kho ghi trên CRM) và giá trị tồn kho tính bằng tiền.
 - **Không thấy** SĐT đầy đủ, địa chỉ, ghi chú chăm sóc. Không chăm sóc khách, không nhận khách mới.
 - 8h sáng nhận tin **💼 Tài chính** qua Telegram: tiền còn treo ở hãng, tiền về hôm qua, chuyển khoản chờ xác nhận, nợ nhà cung cấp sắp tới hạn, lãi lỗ. Nối Telegram ở **Cài đặt → 📲 Thông báo Telegram riêng** (làm 1 lần, 30 giây).
-
-## Quản trị cấp quyền Kế toán (làm 1 lần)
-
-![Chọn quyền Kế toán (1), bấm Lưu nhân sự (2)](/huong-dan/img/ke-toan-quyen.webp)
-
-Quản trị vào **Cài đặt → Nhân sự được vào CRM**, thêm email của kế toán (hoặc tìm dòng có sẵn), rồi:
-
-1. Ở ô **Quyền**, chọn **Kế toán**.
-2. Bấm **Lưu nhân sự**.
-
-Kế toán mở **[ketoan.thucduonglanh.vn](https://ketoan.thucduonglanh.vn)**, đăng nhập bằng email đó (mã 6 số gửi về email) là vào thẳng tab **💼 Kế toán**. Đưa ra màn hình điện thoại sẽ có biểu tượng **Kế toán TDL**. Quản trị muốn xem tab này: bấm **••• Thêm** → **Kế toán**.
 
 ## Màn hình 💼 Kế toán
 
@@ -166,6 +177,8 @@ Bấm ô **🏦 Chuyển khoản chờ xác nhận** (hoặc nút **✅ Ghi ti�
 ## Shopee: đơn nào Shopee đã trả tiền (thay cho VLOOKUP)
 
 Ở tab 💼 Kế toán, kéo xuống mục **🟠 Shopee – tiền về từng đơn**. Máy tự ghép file đơn hàng với file tiền Shopee trả **theo mã đơn**, kế toán không phải VLOOKUP nữa.
+
+[[steps:kt-shopee]]
 
 **Tải file (1 tuần 1 lần, hoặc cuối tháng):** bấm **📤 Tải file Shopee**, chọn **cùng lúc** các file xuất từ Kênh Người Bán Shopee:
 
@@ -430,6 +443,17 @@ Kéo xuống mục **📦 Hàng tồn kho** ở cuối tab 💼 Kế toán:
 Cuối trang, mục **⚙️ Cài đặt kế toán**: chọn **ngày bắt đầu theo dõi tiền về** rồi bấm Lưu. Đơn đặt trước ngày này không tính vào tiền treo (thường là đơn đã đối soát xong ở sổ sách cũ). Mặc định: 01/10/2026.
 
 Cũng ở đây: **Tài khoản nhận tiền**, mỗi dòng 1 tài khoản (mặc định: Công ty, Anh Sơn, Hộ kinh doanh). Sửa xong bấm **Lưu tài khoản**.
+
+## Quản trị cấp quyền Kế toán (làm 1 lần)
+
+![Chọn quyền Kế toán (1), bấm Lưu nhân sự (2)](/huong-dan/img/ke-toan-quyen.webp)
+
+Quản trị vào **Cài đặt → Nhân sự được vào CRM**, thêm email của kế toán (hoặc tìm dòng có sẵn), rồi:
+
+1. Ở ô **Quyền**, chọn **Kế toán**.
+2. Bấm **Lưu nhân sự**.
+
+Kế toán mở **[ketoan.thucduonglanh.vn](https://ketoan.thucduonglanh.vn)**, đăng nhập bằng email đó (mã 6 số gửi về email) là vào thẳng tab **💼 Kế toán**. Đưa ra màn hình điện thoại sẽ có biểu tượng **Kế toán TDL**. Quản trị muốn xem tab này: bấm **••• Thêm** → **Kế toán**.
 
 ## Câu hỏi hay gặp
 

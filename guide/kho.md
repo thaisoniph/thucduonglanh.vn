@@ -4,7 +4,7 @@ nav: Kho
 group: kho-ke-toan
 short: Nhập, xuất, đếm kho, hàng hoàn
 order: 4.5
-updated: 2026-11-13
+updated: 2026-11-15
 description: Xem hàng còn bao nhiêu, nhận tin khi sắp hết, ghi đã đặt hàng, hàng về kho, lấy hàng ra (quà tặng, đại lý), nhận hàng hoàn, đếm kho cuối tuần. Có hình từng bước.
 roles: [kho, ql]
 ---
@@ -16,6 +16,19 @@ Trang này dành cho **người lo kho**. Đọc khoảng 5 phút là làm đư�
 > **Gửi hàng không cần bấm gì trên CRM:** sale lên đơn (đơn sang Misa → Best / Viettel Post) là máy **tự trừ kho**. Kho chỉ việc in phiếu trên trang Best / Viettel Post, đóng hàng theo phiếu và gửi đi.
 
 **Cách xem hình:** ô khoanh đỏ có số **1, 2, 3** trên hình chính là **bước 1, 2, 3** viết ngay bên dưới hình.
+
+## Gặp việc gì thì xem đâu?
+
+- **Gửi hàng đi:** không bấm gì trên CRM → [Khi gửi hàng đi](#khi-gui-hang-di-lam-moi-ngay)
+- **Máy báo sắp hết hàng:** ghi đã đặt hàng → [Khi máy báo sắp hết](#khi-may-bao-sap-het)
+- **Hàng nhà cung cấp về:** ghi hàng về kho (kèm số hoá đơn) → [Khi hàng về](#khi-hang-ve)
+- **Lấy hàng làm quà, gửi đại lý, hàng hỏng:** → [Lấy hàng ra không có đơn](#khi-lay-hang-ra-ma-khong-co-don)
+- **Shipper trả hàng hoàn về:** → [Nhận hàng hoàn](#nhan-hang-hoan)
+- **Khách đổi hàng:** → [Gửi hàng đổi](#gui-hang-doi-nhan-hang-cu-ve)
+- **Khách chỉ nhận 1 phần:** → [Ký nhận 1 phần](#nhan-hang-tra-ve-cua-don-ky-nhan-1-phan)
+- **Thứ 6:** đếm kho → [Đếm kho cuối tuần](#dem-kho-cuoi-tuan-thu-6)
+- **Máy hỏi "tên hàng này là gì?":** → [Tên hàng máy chưa hiểu](#ten-hang-may-chua-hieu)
+- **Ghi nhầm số:** → [Ghi nhầm thì sao?](#ghi-nham-thi-sao)
 
 ## Kho trên CRM giúp gì cho bạn?
 
