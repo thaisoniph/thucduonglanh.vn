@@ -13291,12 +13291,14 @@
     }, function (e) { if ($('.sheet-b', m)) $('.sheet-b', m).innerHTML = '<p class="err">' + esc(e.message) + '</p>' + (/Không rõ thao tác/.test(e.message) ? '<p class="small">Máy chủ Apps Script chưa có bản 2026-10-07b. Đợi GitHub tự triển khai xong (vài phút) rồi thử lại.</p>' : ''); });
   }
   function usageTeam(r) {
-    var ppl = r.people.filter(function (p) { return p.level < 3; }); // bỏ tài khoản Quản trị
-    var st = teamStats(ppl.map(function (p) { return p.name; })), rows = ppl.slice().sort(function (a, b) { return (b.lastSeen || 0) - (a.lastSeen || 0); });
+    // 14/11/2026: hiện cả tài khoản Quản trị (anh Sơn, anh Hiếu) – xếp thành nhóm riêng ở cuối bảng
+    var byLast = function (a, b) { return (b.lastSeen || 0) - (a.lastSeen || 0); };
+    var staff = r.people.filter(function (p) { return p.level < 3; }).sort(byLast), admins = r.people.filter(function (p) { return p.level >= 3; }).sort(byLast);
+    var st = teamStats(r.people.map(function (p) { return p.name; })), rows = staff.concat(admins);
     return '<div class="team-wrap"><table class="team use"><thead><tr><th>Nhân sự</th><th>Lần cuối vào</th><th>Số ngày vào<br><small>' + r.days + ' ngày qua</small></th><th>Phút dùng</th><th>Thao tác<br><small>chăm sóc · đơn · ưu đãi</small></th><th>Chăm sóc hôm nay<br><small>đã xong / cần làm</small></th><th>Mốc</th><th>Đánh giá</th></tr></thead><tbody>' +
-      rows.map(function (p) {
+      rows.map(function (p, i) {
         var s = useStatus(p, r.days), x = st[p.name] || { doneN: 0, todo: 0 }, all = x.doneN + x.todo, pc = all ? Math.round(x.doneN * 100 / all) : 100, done = p.miles.filter(function (m) { return m.done; }).length;
-        return '<tr data-uw="' + esc(p.name) + '"><td><b>' + esc(p.name) + '</b>' + (p.level >= 2 ? ' <small class="muted">' + esc(p.role) + '</small>' : '') + '</td>' +
+        return (admins.length && i === staff.length ? '<tr class="off"><td colspan="8" style="text-align:left"><b>👑 Quản trị</b> <small class="muted">không tính vào nhắc Telegram “chưa vào CRM”</small></td></tr>' : '') + '<tr data-uw="' + esc(p.name) + '"><td><b>' + esc(p.name) + '</b>' + (p.level >= 2 ? ' <small class="muted">' + esc(p.role) + '</small>' : '') + '</td>' +
           '<td' + (useAgo(p.lastSeen) === null || useAgo(p.lastSeen) >= 2 ? ' class="bad"' : '') + '>' + useAgoText(p.lastSeen) + '</td>' +
           '<td>' + p.activeDays + '/' + r.days + '</td><td>' + (p.mins || '–') + '</td>' +
           '<td><b>' + p.actions + '</b> <small class="muted">' + p.acts.care + ' · ' + p.acts.order + ' · ' + p.acts.promo + '</small></td>' +

@@ -370,7 +370,8 @@ Tab **Hiệu quả** → nút **📈 Mức dùng CRM**. Chọn xem 7, 14 hoặc 
 
 - Mỗi người có ô **Đánh giá**: *⛔ chưa vào*, *⚠️ có vào nhưng chưa làm gì*, *⚠️ vào chưa đều*, *✅ dùng tốt*, kèm việc nên làm tiếp.
 - Bấm tên 1 người để xem các **mốc làm quen**: đăng nhập lần đầu → nối Telegram → ghi chăm sóc đầu tiên → gửi ưu đãi → tạo đơn đầu tiên → dùng đều 5/7 ngày.
-- Telegram 8h sáng báo tên những bạn **2 ngày chưa vào CRM**. Thứ Hai có thêm tóm tắt 7 ngày.
+- Tài khoản **👑 Quản trị** (anh Sơn, anh Hiếu) nằm nhóm riêng ở cuối bảng.
+- Telegram 8h sáng báo tên những bạn **2 ngày chưa vào CRM** (không tính Quản trị). Thứ Hai có thêm tóm tắt 7 ngày.
 
 ## Xoá dữ liệu nhập thử (chỉ Quản trị)
 
