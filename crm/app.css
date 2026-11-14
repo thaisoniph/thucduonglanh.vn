@@ -2480,3 +2480,10 @@ b.csx-c-ok { color: var(--primary-2); } b.csx-c-sua { color: var(--orange); } b.
 .lkc-tail { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin: 14px 0 10px; padding: 12px 14px; border-radius: 12px; background: #fff8e1; border: 1px dashed #e0c070; }
 .lkc-tail > div { display: flex; flex-direction: column; gap: 2px; flex: 1 1 260px; }
 .lkc-tail.open { border-style: solid; }
+
+/* 🧮 mục tiêu marketing tính từ mục tiêu sale (14/11/2026) */
+.mk-fs { margin-bottom: 12px; }
+.mk-fs > p { margin: 6px 0 0; line-height: 1.5; }
+.mk-fs .bar { margin-top: 10px; }
+.mk-fs-sug { display: block; margin: 4px 0; color: var(--primary); }
+.mk-fs-sug .btn { margin-left: 6px; }

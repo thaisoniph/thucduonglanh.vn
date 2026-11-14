@@ -236,13 +236,37 @@ export async function commValOf(x) {
   return out;
 }
 /** Ngân sách quảng cáo tháng này (kv mkt_budget {yyyy-MM: số tiền}, Quản trị đặt) + đã chi từ đầu tháng. Không lưu tạm: đổi ngân sách là thấy ngay. */
+/** 🧮 14/11/2026 anh Sơn: mục tiêu Marketing tự tính ngược từ mục tiêu sale văn phòng (quyền Sale & CSKH, không phải 🏠 CTV tại nhà — người nhận số quảng cáo).
+ *  Tổng mục tiêu sale × % tiền khách mới từ quảng cáo (thực tế 3 tháng trước) ÷ tiền đơn đầu TB → số khách mới ÷ tỷ lệ chốt data quảng cáo (3 tháng) → số data cần.
+ *  Khách mới = đơn đầu tiên của khách, bỏ khách sale tự tìm / khách cũ giới thiệu (own_src self/ref). Marketing chỉ nhận số tổng, không thấy mục tiêu từng người. */
+async function saleToMkt(x, month) {
+  const TZ = 7 * 3600e3, y = +month.slice(0, 4), mo = +month.slice(5, 7) - 1, M = k => Date.UTC(y, mo + k, 1) - TZ, m0 = M(0), m1 = M(1), p0 = M(-3);
+  const us = (await all(x.db, 'SELECT name, role, active, ctv FROM users')).filter(u => Number(u.active) && (u.role === 'Sale & CSKH' || u.role === 'Nhân viên') && String(u.ctv || '').trim() !== 'Có').map(u => String(u.name || '').trim());
+  if (!us.length) return null;
+  const tg = (await all(x.db, 'SELECT name, amount FROM targets WHERE month = ?', month)).filter(t => us.includes(t.name) && Number(t.amount) > 0);
+  const saleT = tg.reduce((s, t) => s + Number(t.amount), 0);
+  const os = (await all(x.db, 'SELECT o.seller, o.total, o.time, o.phone, o.status, c.first, c.own_src FROM orders o LEFT JOIN customers c ON c.phone = o.phone WHERE o.time >= ? AND o.time < ?', p0, m1)).filter(o => !isVoid(o.status) && us.includes(o.seller));
+  const isNew = o => o.first && Number(o.time) <= Number(o.first) + 3600e3 && o.own_src !== 'self' && o.own_src !== 'ref';
+  const past = os.filter(o => o.time < m0), tot = past.reduce((s, o) => s + (Number(o.total) || 0), 0), nw = past.filter(isNew), newRev = nw.reduce((s, o) => s + (Number(o.total) || 0), 0), newN = new Set(nw.map(o => o.phone)).size;
+  const cur = os.filter(o => o.time >= m0 && isNew(o)), curRev = cur.reduce((s, o) => s + (Number(o.total) || 0), 0);
+  const ads = ((await kvJson(x.db, 'ads_rows', [])) || []).map(a => [Number(a[0]) || 0, normPhone(a[1])]).filter(a => a[1] && a[0] >= p0 && a[0] < m1);
+  const first0 = {}, firstC = {}; ads.forEach(([t, ph]) => { const o = t < m0 ? first0 : firstC; if (!o[ph] || t < o[ph]) o[ph] = t; });
+  const ph0 = Object.keys(first0); let won = 0;
+  if (ph0.length) { const bt = {}; (await allIn(x.db, 'SELECT phone, time, status FROM orders WHERE phone IN (SELECT value FROM json_each(?)) AND time >= ?', ph0, p0)).forEach(o => { if (!isVoid(o.status)) (bt[normPhone(o.phone)] = bt[normPhone(o.phone)] || []).push(Number(o.time) || 0); }); ph0.forEach(ph => { if ((bt[ph] || []).some(t => t >= first0[ph])) won++; }); }
+  const share = tot ? newRev / tot : null, aov = newN >= 5 ? newRev / newN : null, cr = ph0.length >= 20 ? won / ph0.length : null;
+  const needRev = saleT && share !== null ? Math.round(saleT * share / 1e5) * 1e5 : null, needNew = needRev && aov ? Math.ceil(needRev / aov) : null, needData = needNew && cr ? Math.ceil(needNew / cr) : null;
+  const days = Math.round((m1 - m0) / DAY);
+  return { month, nSale: us.length, nSet: tg.length, saleT, share: share === null ? null : Math.round(share * 1000) / 10, aov: aov && Math.round(aov / 1000) * 1000, cr: cr === null ? null : Math.round(cr * 1000) / 10,
+    needRev, needNew, needData, perDay: needData ? Math.ceil(needData / days) : null, days, have: { data: Object.keys(firstC).length, rev: curRev, n: new Set(cur.map(o => o.phone)).size }, base: { tot, newRev, newN, data: ph0.length, won } };
+}
 async function budgetOf(x) {
   const now = Date.now(), m = fmtDate(now, 'yyyy-MM'), all0 = await kvJson(x.db, 'mkt_budget', {});
   const r = await first(x.db, 'SELECT SUM(spend) AS s FROM ad_spend WHERE day BETWEEN ? AND ?', m + '-01', m + '-31');
   const [y, mo] = m.split('-').map(Number), dim = new Date(Date.UTC(y, mo, 0)).getUTCDate(), day = Number(fmtDate(now, 'dd'));
   const people = (await all(x.db, "SELECT name FROM users WHERE role = 'Marketing' AND active = 1 ORDER BY ord, rowid")).map(r => r.name);
   const G = await kvJson(x.db, 'mkt_goals', {}), m2 = fmtDate(Date.UTC(y, mo, 1, 12), 'yyyy-MM');
-  return { budget: { m, amt: Number(all0[m]) || 0, spent: (r && r.s) || 0, day, dim }, people, goals: { [m]: G[m] || null, [m2]: G[m2] || null, prev: G[fmtDate(Date.UTC(y, mo - 2, 1, 12), 'yyyy-MM')] || null } };
+  const fs = {}; for (const k of [m, m2]) { try { fs[k] = await saleToMkt(x, k); } catch (e) { console.error('saleToMkt', e.message); } } // 🧮 mục tiêu marketing tính ngược từ mục tiêu sale (14/11/2026)
+  return { fromSale: fs, budget: { m, amt: Number(all0[m]) || 0, spent: (r && r.s) || 0, day, dim }, people, goals: { [m]: G[m] || null, [m2]: G[m2] || null, prev: G[fmtDate(Date.UTC(y, mo - 2, 1, 12), 'yyyy-MM')] || null } };
 }
 /** mkt_budget (Quản trị): { month: yyyy-MM, amount } → đặt ngân sách quảng cáo tháng (0 = bỏ). */
 export async function mktBudgetSet(x, d) {
