@@ -4,12 +4,39 @@ nav: Trợ lý Zalo
 group: marketing
 short: Trợ lý An Lành trong nhóm Zalo
 order: 8
-updated: 2026-11-14
-description: Cài đặt và sử dụng tài khoản Zalo "Trợ lý An Lành" trong nhóm Sống khỏe cùng Thực Dưỡng Lành – chào người mới, trả lời, đăng bài, chuyển ca khó cho người thật.
+updated: 2026-11-15
+description: Trợ lý An Lành trong nhóm Sống khỏe cùng Thực Dưỡng Lành tự chào, trả lời, đăng bài. Bạn duyệt bài, duyệt chủ đề và xử lý ca khó. Mỗi việc có hình.
 roles: [zb, mkt, ql]
 ---
-
 Trang này dành cho **người quản lý nhóm Zalo**, **marketing** và **sale trực Zalo**.
+
+> **Một câu dễ nhớ:** Trợ lý làm thay việc lặp lại. Bạn chỉ cần **duyệt bài**, **duyệt chủ đề** và **lo ca khó** khi Telegram báo.
+
+## Việc của bạn mỗi ngày, mỗi tuần
+
+**Mỗi ngày (khoảng 5 phút):**
+
+1. Duyệt bài chờ đăng ([Việc 1](#viec-1-duyet-bai)). Chỉ cần duyệt bài của ngày thứ 3; ngày bận thì duyệt dồn vẫn kịp.
+2. Telegram báo ca cần người thật thì xử lý ngay ([bảng bên dưới](#telegram-bao-gi-thi-lam-gi)).
+
+**Mỗi tuần:**
+
+1. Duyệt kế hoạch chủ đề tuần sau ([Việc 3](#viec-3-duyet-ke-hoach-chu-de)).
+2. Xem bài nào hiệu quả ([Việc 7](#viec-7-xem-bai-nao-hieu-qua)).
+3. Thấy trợ lý trả lời chưa đúng ý thì dạy lại ([Việc 2](#viec-2-xu-ly-ca-can-nguoi-that-va-day-tro-ly)).
+
+## Telegram báo gì thì làm gì
+
+| Telegram báo | Bạn làm |
+| --- | --- |
+| 📝 Bài Zalo chờ duyệt | Vào tab Zalo duyệt bài ([Việc 1](#viec-1-duyet-bai)) |
+| 📋 Kế hoạch chủ đề nhóm Zalo | Duyệt chủ đề ([Việc 3](#viec-3-duyet-ke-hoach-chu-de)) |
+| 🤖 TRỢ LÝ ZALO CẦN NGƯỜI THẬT | Có số khách: gọi từ **hotline 0966 326 522**. Chưa có số: nhắn tay trên **điện thoại trợ lý** |
+| 🔒 KHÁCH GỬI THÔNG TIN RIÊNG TRONG NHÓM | **Gọi khách trong 15 phút** từ hotline, ghi kết quả vào CRM |
+| 🛡 NGƯỜI GÁC CỔNG ĐÃ CHẶN 1 CÂU | Nhắn lại khách câu đúng, rồi CRM → 🎯 → **🛡 Gác cổng** → **✅ Đã xử lý** |
+| Bị đăng xuất | Mang điện thoại trợ lý tới anh Sơn quét lại mã QR |
+
+Chi tiết từng trường hợp ở mục [Trợ lý và người thật chia việc](#tro-ly-va-nguoi-that-chia-viec).
 
 ## Trợ lý Zalo là gì?
 
@@ -25,42 +52,7 @@ Trợ lý tự làm 6 việc:
 5. ✅ **Duyệt** người xin vào nhóm, nếu họ đã để số trên web.
 6. 📝 **Đăng bài** sáng và tối (giờ chung 7h30 và 20h, mỗi bài đổi giờ riêng được). Khung giờ nào để **Chờ duyệt** thì chỉ đăng bài đã được duyệt; khung giờ để **Tự đăng** thì tới giờ trợ lý tự đăng.
 
-Trợ lý **soạn bài trước 3 ngày** để bạn kịp duyệt, và **lên kế hoạch chủ đề** cho cả tuần / cả tháng để anh Sơn và người phụ trách duyệt chủ đề trước (xem [Kế hoạch chủ đề](#ke-hoach-chu-de)).
-
-## Trợ lý và người thật chia việc
-
-![Khách hỏi → trợ lý trả lời. Ca khó → Telegram báo → có số thì gọi từ hotline, chưa có số thì nhắn tay trên điện thoại trợ lý](/huong-dan/img/zalo-chia-viec.webp)
-
-- **Số mới** là của trợ lý.
-- **Hotline 0966 326 522** vẫn do người thật trực như cũ.
-
-**Khi Telegram báo "🤖 TRỢ LÝ ZALO CẦN NGƯỜI THẬT":**
-
-1. Tin có **số điện thoại** của khách → gọi hoặc nhắn khách từ **hotline 0966 326 522**.
-2. Tin **chưa có số** → mở **điện thoại của trợ lý**, nhắn tay cho khách.
-
-**Khi Telegram báo "🔒 KHÁCH GỬI THÔNG TIN RIÊNG TRONG NHÓM ZALO":**
-
-Khách lỡ gửi số điện thoại hoặc địa chỉ vào nhóm. Trợ lý đã **tự ẩn tin** để kẻ xấu không lấy được số, và đã nhắn trong nhóm cho khách biết nhân viên sẽ liên hệ. Việc của bạn:
-
-1. **Gọi khách trong 15 phút** từ hotline 0966 326 522 (ngoài giờ thì 8h sáng hôm sau): lên đơn, hoặc kiểm tra đơn, ưu đãi, quà.
-2. Ghi kết quả vào CRM (khách đã có sẵn ở **Khách hỏi**).
-
-Nếu tin báo "⚠️ Trợ lý CHƯA ẩn được tin" thì phó nhóm vào xoá tay ngay.
-
-**Khi Telegram báo "🛡 NGƯỜI GÁC CỔNG ĐÃ CHẶN 1 CÂU TRẢ LỜI":**
-
-Trợ lý (chat web hoặc Zalo) định trả lời sai giá, sai phí ship, sai khuyến mãi, sai hotline, nói công dụng ngoài trang sản phẩm, hoặc nói về bệnh. Máy đã giữ câu đó lại, khách chỉ nhận câu *"Dạ để em kiểm tra lại thông tin này cho thật chắc rồi báo anh/chị ngay nha"*. Việc của bạn:
-
-1. Đọc tin: khách hỏi gì, trợ lý định nói gì, sai ở đâu.
-2. **Nhắn lại khách câu đúng** (Zalo: nhắn tay trên điện thoại trợ lý hoặc gọi từ hotline; web: khách có số thì gọi).
-3. Vào CRM → **🎯 Insight & nội dung** → **🛡 Gác cổng**, bấm **✅ Đã xử lý**. Nếu máy chặn nhầm (câu thật ra đúng) thì ghi "chặn nhầm" để anh Sơn sửa.
-
-👉 **Bạn tự xoá tin của khách** (khi trợ lý chưa kịp): xoá xong **nhắn ngay 1 câu trong nhóm**, gọi tên khách, ví dụ: *"Dạ em cảm ơn cô ạ. Tin của cô có số điện thoại, địa chỉ nên em ẩn đi để giữ an toàn cho cô. Em gọi cô ngay ạ."* Rồi **gọi khách luôn**. Đừng xoá mà không nói gì: khách sẽ nghĩ mình bị lơ.
-
-Bạn nhắn tay thì trợ lý **tự im 2 tiếng** với khách đó. Trong nhóm, bạn trả lời ai thì trợ lý không chen vào với người đó.
-
-⚠️ Tài khoản trợ lý **chỉ dùng trên điện thoại**. Đừng đăng nhập Zalo máy tính hay Zalo web, vì đăng nhập vào là trợ lý ngừng chạy.
+Trợ lý **soạn bài trước 3 ngày** để bạn kịp duyệt, và **lên kế hoạch chủ đề** cho cả tuần / cả tháng để anh Sơn và người phụ trách duyệt chủ đề trước (xem [Kế hoạch chủ đề](#viec-3-duyet-ke-hoach-chu-de)).
 
 ## Mở tab Trợ lý Zalo
 
@@ -71,7 +63,7 @@ Vào CRM, bấm **Zalo** trên thanh menu. Quản trị thì vào **••• Th
 - 🟢 **Đang chạy**: trợ lý đang làm việc.
 - 🔴 **Mất kết nối**: báo anh Sơn.
 
-## Việc mỗi ngày: duyệt bài
+## Việc 1: Duyệt bài
 
 Khi Telegram báo **"📝 Bài Zalo chờ duyệt"**, bạn vào tab Zalo. **Bài cần duyệt nằm trên cùng, có viền vàng** và ghi rõ hạn, ví dụ "⏳ Cần duyệt trước 20:00 ngày mai".
 
@@ -102,69 +94,34 @@ Khung xanh nhạt bên dưới là **bài sẽ hiện y như vậy trên Zalo** 
 
 Bài đã duyệt hiện **✅ Đã duyệt · sẽ đăng…**. Đổi ý thì bấm **↩️ Bỏ duyệt**.
 
-### ⏰ Hẹn giờ đăng riêng cho 1 bài
-
-Bài nào cần đăng giờ khác giờ chung (ví dụ hôm có livestream, hay muốn đăng sáng sớm hơn):
-
-1. Bấm **⏰ Đổi giờ** trên thẻ bài.
-2. Chọn giờ: **bài sáng từ 6:00 đến 11:59**, **bài tối từ 12:00 đến 21:45** (sau 21h45 trợ lý không đăng vào nhóm).
-3. Bấm **💾 Lưu giờ**. Thẻ bài hiện giờ mới kèm dấu ⏰, hạn duyệt cũng đổi theo.
-
-Muốn bỏ giờ riêng thì bấm lại **⏰ Đổi giờ** → **↩️ Về giờ chung**. Bài chưa soạn thì đặt giờ ở **📋 Kế hoạch chủ đề** (✏️ Sửa → ô **⏰ Giờ đăng**). Đổi giờ chung cho mọi ngày thì sửa ở ⚙️ Cài đặt trợ lý.
+**Khung giờ đang để Chờ duyệt: bài chưa bấm Duyệt thì trợ lý không đăng.** Khung giờ để Tự đăng thì không cần bấm Duyệt (xem [Chọn giờ nào tự đăng](#chon-gio-nao-tu-dang-gio-nao-cho-duyet)).
 
 **Bài đã đăng** được thu gọn ở mục **📤 Đã đăng gần đây**, mỗi bài 1 dòng kèm số 👥 người · 💬 tin · ❤️ cảm xúc. Bấm vào dòng để xem lại bài.
 
-**Khung giờ đang để Chờ duyệt: bài chưa bấm Duyệt thì trợ lý không đăng.** Khung giờ để Tự đăng thì không cần bấm Duyệt (xem phần *Chọn giờ nào tự đăng* bên dưới).
 
-## Bài đăng theo phễu nội dung
+## Việc 2: Xử lý ca cần người thật và dạy trợ lý
 
-Mỗi bài có một nhãn màu cho biết bài đó để làm gì:
+Kéo xuống cuối tab, tới mục **🕘 Trợ lý vừa làm gì**.
 
-- **🔵 Nhận biết · tương tác** (8 bài/tuần): câu hỏi dễ trả lời, đố vui, mẹo, món ăn. Giúp nhóm vui, mọi người quen nói chuyện.
-- **⚪ Cân nhắc · tạo niềm tin** (4 bài/tuần): kiến thức dinh dưỡng, hỏi đáp sản phẩm, cảm nhận khách hàng thật.
-- **🟠 Chuyển đổi · bán hàng** (2 bài/tuần, **tối Thứ 3 và tối Thứ 7**): giới thiệu sản phẩm, ưu đãi đang chạy, cách đặt hàng. Từ 11/11/2026 (khoá K133): **buổi sáng không đăng bài bán**, sáng chỉ đăng kiến thức, mẹo, chuyện đang được bàn tán.
+![Nhật ký: 1 lọc Cần xử lý, 2 nút Đã xử lý, 3 mỗi ngày một nhóm](/huong-dan/img/zalo-nhat-ky.webp)
 
-Tối Thứ 4 có **đố vui**, sáng Thứ 5 trợ lý **công bố đáp án**. Tối Thứ 5 là bài **cảm nhận khách hàng** (dùng ảnh feedback thật).
+1. **Nút lọc** ở trên cùng: Tất cả · 🙋 Cần xử lý · 💬 Trả lời khách · 👋 Người mới & kết bạn · 📝 Bài đăng · ⚠️ Lỗi. Số đỏ cạnh **Cần xử lý** là số ca đang chờ người thật.
+2. **Ca cần người thật** (khung vàng) luôn nằm trên cùng. Bạn nhắn hoặc gọi khách xong thì bấm **✅ Đã xử lý**. CRM ghi tên bạn và giờ xử lý, để bạn khác không nhắn trùng. Bấm nhầm thì mở lại dòng đó, bấm **↩️ Bỏ đánh dấu**.
+3. **Mỗi ngày một nhóm**, kèm tóm tắt (ví dụ "2 bài · 3 trả lời · 1 lượt chào"). Bấm vào một dòng để xem **khách hỏi gì (bên trái)** và **trợ lý trả lời gì (bên phải)**, giống khung chat Zalo.
 
-**🎯 Mỗi bài nhắm 1 nhóm khách.** Trước khi viết, trợ lý chọn 1 nhóm (mẹ bỉm, dân văn phòng, trung niên, người ăn chay, con cái mua quà cho bố mẹ; xoay vòng nhóm ít được viết nhất) và 1 **tension** của nhóm đó (điều họ mong ↔ điều đang cản họ), rồi viết bài đúng chủ đề hôm nay nhưng chạm đúng nỗi lòng ấy. Thẻ bài có dòng **🎯 nhóm khách · tension**. Bấm **🔄 Viết lại** để chọn nhóm khách khác hoặc ghi ý kiến. Sửa nhóm khách, tension ở tab **🎯 Insight & nội dung** ([xem hướng dẫn](/huong-dan/content/)).
+Muốn xem các ngày cũ hơn thì bấm **Xem thêm các ngày trước** ở cuối.
 
-### 📅 Ngày lễ, rằm, mùng 1
+**Dạy trợ lý trả lời** khi thấy trợ lý trả lời chưa đúng ý:
 
-Trợ lý biết lịch âm và các ngày lễ lớn. Hôm đó bài đổi theo dịp, **vẫn chờ duyệt** như bài thường:
+[[steps:tl-day]]
 
-- **Mùng 1 âm**: sáng chúc mừng tháng mới.
-- **Rằm**: tối hôm trước gợi ý món chay để đi chợ; sáng chúc ngày rằm; tối mời khoe mâm cơm rằm hoặc kể 1 điều biết ơn.
-- **Lễ âm lịch**: Tết (từ 30 Tết tới mùng 3), ông Công ông Táo, rằm tháng Giêng, Hàn thực, Giỗ Tổ, Phật đản, Đoan Ngọ, Vu Lan, Trung thu, rằm tháng 10.
-- **Lễ dương lịch**: 1/1, 27/2, 8/3, 30/4, 1/6, 28/6, 27/7, 2/9, 20/10, 20/11, đêm 24/12.
+- Tin đã gửi cho khách **không đổi**. Trợ lý chỉ ghi nhớ để lần sau gặp câu hỏi giống thì trả lời theo cách của bạn.
+- Trợ lý trả lời ở nhóm Zalo, Zalo riêng, Fanpage và chat trên web đều học chung từ các câu bạn sửa.
+- Dòng đã dạy hiện nút **✍️ Đã dạy trợ lý · sửa lại**.
 
-Ngày lễ là bài 🔵 chúc mừng, **không bán hàng**. Vài ngày trước các dịp tặng quà (Tết, 8/3, Vu Lan, Trung thu, 20/10, 20/11) có thêm 1 bài 🟠 **gợi ý quà sức khỏe** (đăng **buổi tối**); Tết và Vu Lan có thêm 1 bài ⚪ kiến thức. Nếu ngày lễ rơi vào sáng Thứ 7 (bài bán), bài bán **dời sang sáng Chủ nhật**. Ngày đôi 11/11, 12/12 chỉ có bài bán khi Marketing đang chạy ưu đãi (CRM → Marketing → Ưu đãi).
+## Việc 3: Duyệt kế hoạch chủ đề
 
-Xem trước các dịp trong 45 ngày tới: tab Zalo → **📅 Ngày lễ sắp tới**. Bài theo dịp có nhãn vàng **📅 tên dịp**. Những ngày này nên có **người thật** góp mặt: ví dụ ngày rằm chụp mâm cơm chay của đội ngũ đăng vào nhóm. Trợ lý cũng trả lời được khi khách hỏi hôm nay là ngày mấy âm lịch.
-
-Bài đã đăng có dòng **📊** cho biết trong 2 tiếng sau khi đăng có bao nhiêu người nhắn, gửi ảnh, thả cảm xúc. Nếu khách bấm link trong bài rồi đặt hàng trên web, dòng này hiện thêm **🛒 số đơn**. Đầu tab có bảng **Hiệu quả bài đăng theo phễu (30 ngày)** để so loại bài nào làm nhóm sôi nổi, loại nào ra đơn.
-
-### Xem lại tất cả bài đã đăng
-
-Bấm nút **📚 Bài đã đăng & hiệu quả** ở đầu tab Zalo. Ở đây có mọi bài đã đăng trong 90 ngày:
-
-- Lọc theo loại bài: **🔵 Tương tác**, **⚪ Niềm tin**, **🟠 Bán hàng**.
-- Xếp theo: **🕘 Mới nhất**, **👥 Nhiều người tương tác** (3 bài tốt nhất có ⭐), **🛒 Ra đơn**.
-- Bấm vào một bài để xem lại nội dung.
-
-Mỗi tuần nên xem 1 lần: bài nào nhiều người hưởng ứng thì nhờ AI viết thêm kiểu đó (bấm **🔄 Viết lại** và gõ ý, ví dụ "viết kiểu đố vui như tuần trước"). AI cũng tự học: khi soạn bài mới, AI xem bài cùng loại nào được hưởng ứng nhiều nhất và ít nhất để viết cho hợp.
-
-### Thử giờ đăng bài sáng và giờ nhóm hay nhắn tin
-
-Từ **10/11 đến 23/11**, bài sáng được thử ở 2 giờ, mỗi giờ 1 tuần. Trợ lý tự đổi giờ, bạn không cần chỉnh gì:
-
-- **10/11–16/11:** đăng lúc **6h15**
-- **17/11–23/11:** đăng lúc **9h00**
-
-Hạn duyệt bài sáng cũng đổi theo (ví dụ "Cần duyệt trước 6h15 ngày mai"), nên tuần đầu **duyệt bài sáng từ tối hôm trước**.
-
-Trong tab Zalo, ô **🧪 Thử giờ đăng bài sáng** so số người tương tác trung bình mỗi bài ở 7h30 (trước đây), 6h15 và 9h00. Giờ tốt nhất có ⭐. Biểu đồ **🕐 Giờ thành viên hay nhắn tin** cho biết nhóm đông người nói chuyện nhất vào giờ nào. Thử xong, anh Sơn sẽ chốt 1 giờ cố định.
-
-## Kế hoạch chủ đề
+[[steps:zl-kh]]
 
 Mục **📋 Kế hoạch chủ đề** (nút ở đầu tab Zalo, hoặc kéo xuống dưới các bài chờ duyệt) là danh sách **chủ đề của từng bài trong tuần / trong tháng**. Anh Sơn và bạn phụ trách duyệt chủ đề trước, trợ lý viết bài **đúng chủ đề đã duyệt**.
 
@@ -208,7 +165,7 @@ Chủ đề đã duyệt, bài đã đăng / đã duyệt / đã sửa tay đư�
 
 Lối tắt: bài chưa soạn ở phần **📝 Bài đăng nhóm** cũng có nút **✅ Duyệt chủ đề**.
 
-## Đổi ảnh kèm bài
+## Việc 4: Đổi ảnh kèm bài
 
 AI tự chọn ảnh. Bài nói về sản phẩm thì kèm ảnh sản phẩm. Bài khác thì AI chọn một ảnh trên web hợp với chủ đề. Không có ảnh hợp thì bài chỉ có chữ.
 
@@ -230,7 +187,15 @@ Trước khi duyệt, kiểm tra 3 điều:
 - Không có chữ "chữa", "điều trị", "khỏi bệnh".
 - Bài nói về sản phẩm thì có dòng "không phải là thuốc".
 
-## Gửi tin của mình vào nhóm
+## Việc 5: Hẹn giờ đăng riêng cho 1 bài
+
+Bài cần đăng giờ khác giờ chung (ví dụ hôm có livestream):
+
+[[steps:zl-gio]]
+
+Muốn bỏ giờ riêng thì bấm lại **⏰ Đổi giờ** → **↩️ Về giờ chung**. Bài chưa soạn thì đặt giờ ở **📋 Kế hoạch chủ đề** (✏️ Sửa → ô **⏰ Giờ đăng**). Đổi giờ chung cho mọi ngày thì sửa ở ⚙️ Cài đặt trợ lý.
+
+## Việc 6: Gửi tin của mình vào nhóm
 
 Dùng khi có thông báo, livestream, khuyến mãi.
 
@@ -251,22 +216,88 @@ Tin này cũng được đo như bài AI soạn (xem ở **📚 Bài đã đăng
 - Tin **📤 đã đăng**: bấm **↩️ Thu hồi trên nhóm**. Khoảng 1 phút sau, trong nhóm hiện dòng "tin nhắn đã được thu hồi". Bài AI đã đăng trong 24 giờ cũng có nút này ở mục **📤 Đã đăng gần đây**.
 - Không thấy nút thu hồi (tin đăng trước khi có tính năng này, hoặc trợ lý trên máy chưa cập nhật): cầm **điện thoại Trợ lý An Lành**, mở nhóm, nhấn giữ tin, chọn **Thu hồi**. Không đăng nhập Zalo PC / web bằng tài khoản trợ lý.
 
-## Xem trợ lý vừa làm gì
+## Việc 7: Xem bài nào hiệu quả
 
-Kéo xuống cuối tab, tới mục **🕘 Trợ lý vừa làm gì**.
+Bài đã đăng có dòng **📊** cho biết trong 2 tiếng sau khi đăng có bao nhiêu người nhắn, gửi ảnh, thả cảm xúc. Nếu khách bấm link trong bài rồi đặt hàng trên web, dòng này hiện thêm **🛒 số đơn**. Đầu tab có bảng **Hiệu quả bài đăng theo phễu (30 ngày)** để so loại bài nào làm nhóm sôi nổi, loại nào ra đơn.
 
-![Nhật ký: 1 lọc Cần xử lý, 2 nút Đã xử lý, 3 mỗi ngày một nhóm](/huong-dan/img/zalo-nhat-ky.webp)
+Bấm nút **📚 Bài đã đăng & hiệu quả** ở đầu tab Zalo. Ở đây có mọi bài đã đăng trong 90 ngày:
 
-1. **Nút lọc** ở trên cùng: Tất cả · 🙋 Cần xử lý · 💬 Trả lời khách · 👋 Người mới & kết bạn · 📝 Bài đăng · ⚠️ Lỗi. Số đỏ cạnh **Cần xử lý** là số ca đang chờ người thật.
-2. **Ca cần người thật** (khung vàng) luôn nằm trên cùng. Bạn nhắn hoặc gọi khách xong thì bấm **✅ Đã xử lý**. CRM ghi tên bạn và giờ xử lý, để bạn khác không nhắn trùng. Bấm nhầm thì mở lại dòng đó, bấm **↩️ Bỏ đánh dấu**.
-3. **Mỗi ngày một nhóm**, kèm tóm tắt (ví dụ "2 bài · 3 trả lời · 1 lượt chào"). Bấm vào một dòng để xem **khách hỏi gì (bên trái)** và **trợ lý trả lời gì (bên phải)**, giống khung chat Zalo.
+- Lọc theo loại bài: **🔵 Tương tác**, **⚪ Niềm tin**, **🟠 Bán hàng**.
+- Xếp theo: **🕘 Mới nhất**, **👥 Nhiều người tương tác** (3 bài tốt nhất có ⭐), **🛒 Ra đơn**.
+- Bấm vào một bài để xem lại nội dung.
 
-Muốn xem các ngày cũ hơn thì bấm **Xem thêm các ngày trước** ở cuối.
+Mỗi tuần nên xem 1 lần: bài nào nhiều người hưởng ứng thì nhờ AI viết thêm kiểu đó (bấm **🔄 Viết lại** và gõ ý, ví dụ "viết kiểu đố vui như tuần trước"). AI cũng tự học: khi soạn bài mới, AI xem bài cùng loại nào được hưởng ứng nhiều nhất và ít nhất để viết cho hợp.
 
-**✍️ Dạy trợ lý trả lời:** thấy trợ lý trả lời chưa đúng ý, bạn mở dòng đó và bấm **✍️ Dạy trợ lý trả lời**. Sửa câu trả lời ngay trong ô (có thể ghi thêm 1 dòng dặn, ví dụ "khách hỏi giá thì báo giá luôn"), rồi bấm **💾 Lưu để trợ lý học**.
-- Tin đã gửi cho khách **không đổi**. Trợ lý chỉ ghi nhớ để lần sau gặp câu hỏi giống thì trả lời theo cách của bạn.
-- Trợ lý trả lời ở nhóm Zalo, Zalo riêng, Fanpage và chat trên web đều học chung từ các câu bạn sửa.
-- Dòng đã dạy hiện nút **✍️ Đã dạy trợ lý · sửa lại**.
+### Thử giờ đăng bài sáng và giờ nhóm hay nhắn tin
+
+Từ **10/11 đến 23/11**, bài sáng được thử ở 2 giờ, mỗi giờ 1 tuần. Trợ lý tự đổi giờ, bạn không cần chỉnh gì:
+
+- **10/11–16/11:** đăng lúc **6h15**
+- **17/11–23/11:** đăng lúc **9h00**
+
+Hạn duyệt bài sáng cũng đổi theo (ví dụ "Cần duyệt trước 6h15 ngày mai"), nên tuần đầu **duyệt bài sáng từ tối hôm trước**.
+
+Trong tab Zalo, ô **🧪 Thử giờ đăng bài sáng** so số người tương tác trung bình mỗi bài ở 7h30 (trước đây), 6h15 và 9h00. Giờ tốt nhất có ⭐. Biểu đồ **🕐 Giờ thành viên hay nhắn tin** cho biết nhóm đông người nói chuyện nhất vào giờ nào. Thử xong, anh Sơn sẽ chốt 1 giờ cố định.
+
+## Trợ lý và người thật chia việc
+
+![Khách hỏi → trợ lý trả lời. Ca khó → Telegram báo → có số thì gọi từ hotline, chưa có số thì nhắn tay trên điện thoại trợ lý](/huong-dan/img/zalo-chia-viec.webp)
+
+- **Số mới** là của trợ lý.
+- **Hotline 0966 326 522** vẫn do người thật trực như cũ.
+
+**Khi Telegram báo "🤖 TRỢ LÝ ZALO CẦN NGƯỜI THẬT":**
+
+1. Tin có **số điện thoại** của khách → gọi hoặc nhắn khách từ **hotline 0966 326 522**.
+2. Tin **chưa có số** → mở **điện thoại của trợ lý**, nhắn tay cho khách.
+
+**Khi Telegram báo "🔒 KHÁCH GỬI THÔNG TIN RIÊNG TRONG NHÓM ZALO":**
+
+Khách lỡ gửi số điện thoại hoặc địa chỉ vào nhóm. Trợ lý đã **tự ẩn tin** để kẻ xấu không lấy được số, và đã nhắn trong nhóm cho khách biết nhân viên sẽ liên hệ. Việc của bạn:
+
+1. **Gọi khách trong 15 phút** từ hotline 0966 326 522 (ngoài giờ thì 8h sáng hôm sau): lên đơn, hoặc kiểm tra đơn, ưu đãi, quà.
+2. Ghi kết quả vào CRM (khách đã có sẵn ở **Khách hỏi**).
+
+Nếu tin báo "⚠️ Trợ lý CHƯA ẩn được tin" thì phó nhóm vào xoá tay ngay.
+
+**Khi Telegram báo "🛡 NGƯỜI GÁC CỔNG ĐÃ CHẶN 1 CÂU TRẢ LỜI":**
+
+Trợ lý (chat web hoặc Zalo) định trả lời sai giá, sai phí ship, sai khuyến mãi, sai hotline, nói công dụng ngoài trang sản phẩm, hoặc nói về bệnh. Máy đã giữ câu đó lại, khách chỉ nhận câu *"Dạ để em kiểm tra lại thông tin này cho thật chắc rồi báo anh/chị ngay nha"*. Việc của bạn:
+
+1. Đọc tin: khách hỏi gì, trợ lý định nói gì, sai ở đâu.
+2. **Nhắn lại khách câu đúng** (Zalo: nhắn tay trên điện thoại trợ lý hoặc gọi từ hotline; web: khách có số thì gọi).
+3. Vào CRM → **🎯 Insight & nội dung** → **🛡 Gác cổng**, bấm **✅ Đã xử lý**. Nếu máy chặn nhầm (câu thật ra đúng) thì ghi "chặn nhầm" để anh Sơn sửa.
+
+👉 **Bạn tự xoá tin của khách** (khi trợ lý chưa kịp): xoá xong **nhắn ngay 1 câu trong nhóm**, gọi tên khách, ví dụ: *"Dạ em cảm ơn cô ạ. Tin của cô có số điện thoại, địa chỉ nên em ẩn đi để giữ an toàn cho cô. Em gọi cô ngay ạ."* Rồi **gọi khách luôn**. Đừng xoá mà không nói gì: khách sẽ nghĩ mình bị lơ.
+
+Bạn nhắn tay thì trợ lý **tự im 2 tiếng** với khách đó. Trong nhóm, bạn trả lời ai thì trợ lý không chen vào với người đó.
+
+⚠️ Tài khoản trợ lý **chỉ dùng trên điện thoại**. Đừng đăng nhập Zalo máy tính hay Zalo web, vì đăng nhập vào là trợ lý ngừng chạy.
+
+## Bài đăng theo phễu nội dung
+
+Mỗi bài có một nhãn màu cho biết bài đó để làm gì:
+
+- **🔵 Nhận biết · tương tác** (8 bài/tuần): câu hỏi dễ trả lời, đố vui, mẹo, món ăn. Giúp nhóm vui, mọi người quen nói chuyện.
+- **⚪ Cân nhắc · tạo niềm tin** (4 bài/tuần): kiến thức dinh dưỡng, hỏi đáp sản phẩm, cảm nhận khách hàng thật.
+- **🟠 Chuyển đổi · bán hàng** (2 bài/tuần, **tối Thứ 3 và tối Thứ 7**): giới thiệu sản phẩm, ưu đãi đang chạy, cách đặt hàng. Từ 11/11/2026 (khoá K133): **buổi sáng không đăng bài bán**, sáng chỉ đăng kiến thức, mẹo, chuyện đang được bàn tán.
+
+Tối Thứ 4 có **đố vui**, sáng Thứ 5 trợ lý **công bố đáp án**. Tối Thứ 5 là bài **cảm nhận khách hàng** (dùng ảnh feedback thật).
+
+**🎯 Mỗi bài nhắm 1 nhóm khách.** Trước khi viết, trợ lý chọn 1 nhóm (mẹ bỉm, dân văn phòng, trung niên, người ăn chay, con cái mua quà cho bố mẹ; xoay vòng nhóm ít được viết nhất) và 1 **tension** của nhóm đó (điều họ mong ↔ điều đang cản họ), rồi viết bài đúng chủ đề hôm nay nhưng chạm đúng nỗi lòng ấy. Thẻ bài có dòng **🎯 nhóm khách · tension**. Bấm **🔄 Viết lại** để chọn nhóm khách khác hoặc ghi ý kiến. Sửa nhóm khách, tension ở tab **🎯 Insight & nội dung** ([xem hướng dẫn](/huong-dan/content/)).
+
+### 📅 Ngày lễ, rằm, mùng 1
+
+Trợ lý biết lịch âm và các ngày lễ lớn. Hôm đó bài đổi theo dịp, **vẫn chờ duyệt** như bài thường:
+
+- **Mùng 1 âm**: sáng chúc mừng tháng mới.
+- **Rằm**: tối hôm trước gợi ý món chay để đi chợ; sáng chúc ngày rằm; tối mời khoe mâm cơm rằm hoặc kể 1 điều biết ơn.
+- **Lễ âm lịch**: Tết (từ 30 Tết tới mùng 3), ông Công ông Táo, rằm tháng Giêng, Hàn thực, Giỗ Tổ, Phật đản, Đoan Ngọ, Vu Lan, Trung thu, rằm tháng 10.
+- **Lễ dương lịch**: 1/1, 27/2, 8/3, 30/4, 1/6, 28/6, 27/7, 2/9, 20/10, 20/11, đêm 24/12.
+
+Ngày lễ là bài 🔵 chúc mừng, **không bán hàng**. Vài ngày trước các dịp tặng quà (Tết, 8/3, Vu Lan, Trung thu, 20/10, 20/11) có thêm 1 bài 🟠 **gợi ý quà sức khỏe** (đăng **buổi tối**); Tết và Vu Lan có thêm 1 bài ⚪ kiến thức. Nếu ngày lễ rơi vào sáng Thứ 7 (bài bán), bài bán **dời sang sáng Chủ nhật**. Ngày đôi 11/11, 12/12 chỉ có bài bán khi Marketing đang chạy ưu đãi (CRM → Marketing → Ưu đãi).
+
+Xem trước các dịp trong 45 ngày tới: tab Zalo → **📅 Ngày lễ sắp tới**. Bài theo dịp có nhãn vàng **📅 tên dịp**. Những ngày này nên có **người thật** góp mặt: ví dụ ngày rằm chụp mâm cơm chay của đội ngũ đăng vào nhóm. Trợ lý cũng trả lời được khi khách hỏi hôm nay là ngày mấy âm lịch.
 
 ## Cài đặt trợ lý
 

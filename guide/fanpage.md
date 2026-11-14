@@ -4,12 +4,27 @@ nav: Fanpage
 group: marketing
 short: Trợ lý trả lời Facebook, Messenger
 order: 7
-updated: 2026-11-14
-description: Trợ lý An Lành trả lời bình luận, nhắn tin Messenger, tặng quà, mời vào nhóm Zalo và soạn bài đăng cho các fanpage.
+updated: 2026-11-15
+description: Trợ lý An Lành trả lời bình luận, nhắn Messenger, tặng quà, xin số Zalo và soạn bài cho các fanpage. Bạn duyệt bài và lo ca khó. Mỗi việc có hình.
 roles: [mkt, ql]
 ---
-
 Trang này dành cho bạn **làm marketing**, **quản lý** và **anh Sơn** (phần kết nối ở cuối trang).
+
+> **Một câu dễ nhớ:** Trợ lý lo bình luận và tin nhắn cả ngày lẫn đêm. Việc quan trọng nhất là **lấy được số Zalo** của khách. Bạn **duyệt bài** và **lo ca khó** khi Telegram báo.
+
+## Việc của bạn mỗi ngày
+
+1. Duyệt bài AI soạn cho hôm nay và ngày mai ([Việc 1](#viec-1-duyet-bai-dang)).
+2. Telegram báo ca cần người thật thì trả lời khách ngay ([bảng bên dưới](#telegram-bao-gi-thi-lam-gi)).
+3. Lướt **🕘 Trợ lý vừa làm gì**, câu nào trả lời chưa đúng ý thì dạy lại ([Việc 5](#viec-5-xem-tro-ly-vua-lam-gi-va-day-tro-ly)).
+
+## Telegram báo gì thì làm gì
+
+| Telegram báo | Bạn làm |
+| --- | --- |
+| 📘 KHÁCH ĐỂ LẠI SỐ QUA FANPAGE | Khách đã vào tab **Khách hỏi** (kênh Facebook), sale gọi như khách hỏi thường |
+| 📘 FANPAGE CẦN NGƯỜI THẬT | Mở hộp thư trang trả lời khách, rồi bấm **✅ Đã xử lý** ([Việc 2](#viec-2-ca-can-nguoi-that)) |
+| 🛡 NGƯỜI GÁC CỔNG ĐÃ CHẶN 1 CÂU · Fanpage | Nhắn lại khách câu đúng, rồi CRM → 🎯 → **🛡 Gác cổng** → **✅ Đã xử lý** ([Việc 3](#viec-3-khi-nguoi-gac-cong-chan-1-cau)) |
 
 ## Trợ lý Fanpage làm gì?
 
@@ -35,9 +50,9 @@ Bình luận có **số điện thoại** sẽ được trợ lý **ẩn đi** �
 
 Trong CRM, bấm **FB** trên thanh menu. Quản trị bấm **••• Thêm → Fanpage**.
 
-## Việc hằng ngày của bạn
+## Việc 1: Duyệt bài đăng
 
-**1. Duyệt bài đăng.** AI soạn sẵn bài cho **hôm nay** và **ngày mai**, mỗi trang một bài riêng. Bài **cần duyệt** nằm trên cùng, có **viền vàng** và ghi "⏳ Cần duyệt trước … giờ". Khung trắng bên dưới là **bài sẽ hiện trên Facebook**. Nhiều trang thì bấm tên trang ở hàng nút phía trên để xem riêng từng trang (số đỏ = số bài đang chờ duyệt).
+AI soạn sẵn bài cho **hôm nay** và **ngày mai**, mỗi trang một bài riêng. Bài **cần duyệt** nằm trên cùng, có **viền vàng** và ghi "⏳ Cần duyệt trước … giờ". Khung trắng bên dưới là **bài sẽ hiện trên Facebook**. Nhiều trang thì bấm tên trang ở hàng nút phía trên để xem riêng từng trang (số đỏ = số bài đang chờ duyệt).
 
 ![Bài cần duyệt: 1 Duyệt bài này, 2 Sửa chữ, 3 Đăng ngay, 4 Viết lại, 5 Bỏ bài này](/huong-dan/img/fp-duyet.webp)
 
@@ -51,7 +66,9 @@ Bài đã đăng thu gọn thành 1 dòng ở mục **📤 Đã đăng gần đ�
 
 Kiểm tra kỹ trước khi duyệt: giá và ưu đãi phải đúng với web, và bài **không có** chữ "chữa", "điều trị", "khỏi bệnh". Facebook không hiện chữ đậm, nên bài chỉ có chữ thường và emoji. Bài nói về sản phẩm sẽ kèm link sản phẩm (có ảnh xem trước).
 
-**2. Khi Telegram báo "📘 FANPAGE CẦN NGƯỜI THẬT":** khách hỏi việc riêng (đơn hàng, đổi trả, giá sỉ, muốn gặp nhân viên…). Ca này cũng được **ghim viền vàng** ở đầu mục **🕘 Trợ lý vừa làm gì**.
+## Việc 2: Ca cần người thật
+
+Telegram báo **"📘 FANPAGE CẦN NGƯỜI THẬT"** khi khách hỏi việc riêng (đơn hàng, đổi trả, giá sỉ, muốn gặp nhân viên…). Ca này cũng được **ghim viền vàng** ở đầu mục **🕘 Trợ lý vừa làm gì**.
 
 ![Nhật ký: 1 lọc Cần xử lý, 2 Mở hộp thư trang, 3 Đã xử lý](/huong-dan/img/fp-nhat-ky.webp)
 
@@ -59,13 +76,20 @@ Kiểm tra kỹ trước khi duyệt: giá và ưu đãi phải đúng với web
 2. Bấm **💬 Mở hộp thư trang** để trả lời khách trên Facebook. Khi bạn đã nhắn cho khách, trợ lý **tự im 12 tiếng** với khách đó để không chen ngang.
 3. Trả lời xong, bấm **✅ Đã xử lý** để cả đội biết ca này đã có người lo (CRM ghi tên bạn và giờ xử lý).
 
-**Khi Telegram báo "🛡 NGƯỜI GÁC CỔNG ĐÃ CHẶN 1 CÂU TRẢ LỜI · 📘 Fanpage tin nhắn"** (từ 14/11/2026): trợ lý định nhắn khách sai giá, sai phí ship, sai khuyến mãi, sai hotline, nói công dụng ngoài trang sản phẩm hoặc nói về bệnh. Máy đã giữ lại, khách chỉ nhận câu *"Dạ để em kiểm tra lại thông tin này cho thật chắc rồi báo anh/chị ngay nha"*. Bạn mở hộp thư trang, **nhắn lại khách câu đúng**, rồi vào CRM → **🎯 Insight & nội dung** → **🛡 Gác cổng** bấm **✅ Đã xử lý** (chặn nhầm thì ghi "chặn nhầm").
+## Việc 3: Khi người gác cổng chặn 1 câu
 
-**3. Tự viết bài:** bấm **✍️ Viết bài đăng**, chọn trang, gõ nội dung. Để trống giờ thì bài đăng ngay. Chọn giờ thì bài đăng đúng giờ đó.
+Telegram báo **"🛡 NGƯỜI GÁC CỔNG ĐÃ CHẶN 1 CÂU TRẢ LỜI · 📘 Fanpage tin nhắn"** khi trợ lý định nhắn khách sai giá, sai phí ship, sai khuyến mãi, sai hotline, nói công dụng ngoài trang sản phẩm hoặc nói về bệnh. Máy đã giữ lại, khách chỉ nhận câu *"Dạ để em kiểm tra lại thông tin này cho thật chắc rồi báo anh/chị ngay nha"*. Bạn mở hộp thư trang, **nhắn lại khách câu đúng**, rồi vào CRM → **🎯 Insight & nội dung** → **🛡 Gác cổng** bấm **✅ Đã xử lý** (chặn nhầm thì ghi "chặn nhầm").
 
-**4. Xem trợ lý vừa làm gì:** nhật ký chia theo từng ngày, có dòng tóm tắt (bao nhiêu bình luận, tin nhắn, khách để số). Bấm vào từng dòng để xem khách nói gì (bên trái, ô xám) và trợ lý trả lời gì (bên phải, ô xanh). Hàng nút phía trên lọc theo loại việc. Muốn xem ngày cũ hơn thì bấm **Xem thêm các ngày trước** ở cuối.
+## Việc 4: Tự viết bài đăng
 
-**✍️ Dạy trợ lý trả lời:** thấy trợ lý trả lời chưa đúng ý, bạn mở dòng đó và bấm **✍️ Dạy trợ lý trả lời**. Sửa câu trả lời ngay trong ô (có thể ghi thêm 1 dòng dặn, ví dụ "khách hỏi giá thì báo giá luôn"), rồi bấm **💾 Lưu để trợ lý học**.
+[[steps:fp-viet]]
+
+## Việc 5: Xem trợ lý vừa làm gì và dạy trợ lý
+
+Nhật ký ở mục **🕘 Trợ lý vừa làm gì** chia theo từng ngày, có dòng tóm tắt (bao nhiêu bình luận, tin nhắn, khách để số). Bấm vào từng dòng để xem khách nói gì (bên trái, ô xám) và trợ lý trả lời gì (bên phải, ô xanh). Hàng nút phía trên lọc theo loại việc. Muốn xem ngày cũ hơn thì bấm **Xem thêm các ngày trước** ở cuối.
+
+[[steps:tl-day]]
+
 - Tin đã gửi cho khách trên Facebook **không đổi**. Trợ lý chỉ ghi nhớ để lần sau gặp câu hỏi giống thì trả lời theo cách của bạn.
 - Trợ lý trả lời ở nhóm Zalo, Zalo riêng, Fanpage và chat trên web đều học chung từ các câu bạn sửa.
 - Dòng đã dạy hiện nút **✍️ Đã dạy trợ lý · sửa lại**.

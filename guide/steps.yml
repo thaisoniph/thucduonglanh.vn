@@ -583,3 +583,93 @@ mk-san:
         - ["note", "Sau đó tải thêm file tiền về (2 file)"]
       hi: 1
       text: "Kiểm tra số đơn, doanh số rồi bấm <b>Nhập</b>. Muốn có <b>tiền thực về</b>: tải thêm file tiền về bằng cùng nút 📤 (sau file đơn hàng)."
+# ---------- Trợ lý Zalo + Fanpage (guide/zalo.md, guide/fanpage.md, 15/11/2026)
+tl-day:
+  title: Dạy trợ lý trả lời đúng ý
+  steps:
+    - title: Trợ lý vừa làm gì
+      els:
+        - ["chips", ["Tất cả", "🙋 Cần xử lý", "💬 Trả lời"], 2]
+        - ["card", "Khách: trà này uống tối được không?", "Trợ lý: Dạ trà dùng lúc nào cũng…", ""]
+        - ["btn", "✍️ Dạy trợ lý trả lời", "g"]
+      hi: 2
+      text: "Ở mục <b>🕘 Trợ lý vừa làm gì</b>, bấm vào dòng trợ lý trả lời chưa đúng ý. Bấm <b>✍️ Dạy trợ lý trả lời</b>."
+    - title: Dạy trợ lý trả lời
+      els:
+        - ["card", "Khách hỏi: trà này uống tối được không?", "", ""]
+        - ["in", "Câu trả lời đúng (sửa ngay trong ô)", "Dạ uống sau ăn tối 30 phút…"]
+        - ["in", "Dặn thêm (không bắt buộc)", "khách hỏi giá thì báo giá luôn"]
+        - ["btn", "💾 Lưu để trợ lý học", "g"]
+      hi: 3
+      text: "Sửa câu trả lời cho đúng ý bạn. Muốn dặn thêm thì ghi 1 dòng. Bấm <b>💾 Lưu để trợ lý học</b>."
+    - title: Trợ lý vừa làm gì
+      els:
+        - ["card", "Khách: trà này uống tối được không?", "Đã dạy trợ lý", "g"]
+        - ["btn", "✍️ Đã dạy trợ lý · sửa lại", ""]
+        - ["note", "Tin đã gửi cho khách không đổi"]
+      hi: 1
+      text: "Xong. Lần sau gặp câu giống vậy, trợ lý trả lời theo cách bạn dạy (ở cả nhóm Zalo, Zalo riêng, Fanpage, chat web)."
+fp-viet:
+  title: Tự viết bài đăng Fanpage
+  steps:
+    - title: Trợ lý Fanpage
+      els:
+        - ["h", "📘 Trợ lý Fanpage"]
+        - ["btn", "✍️ Viết bài đăng", "g"]
+        - ["card", "⏳ Cần duyệt trước 11:30", "Bài AI soạn cho hôm nay", "y"]
+      hi: 1
+      text: "Tab <b>📘 Fanpage</b> → bấm <b>✍️ Viết bài đăng</b> (nút xanh trên cùng)."
+    - title: Viết bài đăng fanpage
+      els:
+        - ["chips", ["☑ Trang chính", "☐ Trang mẹ bỉm"], 0]
+        - ["in", "Nội dung", "🌿 Sáng nay bạn đã uống đủ nước chưa?"]
+        - ["in", "Link kèm bài (tuỳ chọn)", "https://thucduonglanh.vn/…"]
+        - ["in", "Hẹn giờ (để trống = đăng ngay)", "20:00"]
+      hi: 1
+      text: "Chọn trang, gõ nội dung (Facebook không hiện chữ đậm). Muốn đăng giờ khác thì chọn <b>Hẹn giờ</b>, để trống là đăng ngay."
+    - title: Viết bài đăng fanpage
+      els:
+        - ["btn2", "Huỷ", "Đăng", "g"]
+        - ["note", "Kiểm tra: giá đúng web, không chữ chữa bệnh"]
+      hi: 0
+      text: "Đọc lại lần cuối rồi bấm <b>Đăng</b>."
+zl-kh:
+  title: Duyệt kế hoạch chủ đề nhóm Zalo
+  steps:
+    - title: Trợ lý Zalo
+      els:
+        - ["h", "📋 Kế hoạch chủ đề"]
+        - ["card", "Tuần 17/11 – 23/11", "⏳ chờ duyệt · 14 chủ đề", "y"]
+        - ["btn", "✅ Duyệt cả tuần", "g"]
+      hi: 1
+      text: "Tab <b>Zalo</b> → nút <b>📋 Kế hoạch chủ đề</b>. Mở tuần có nhãn vàng <b>⏳ chờ duyệt</b>."
+    - title: Kế hoạch chủ đề
+      els:
+        - ["card", "☀️ T2 · 🔵 Bếp lành: cháo hạt sen", "🎯 Người ăn chay · 👉 khoe món", ""]
+        - ["btn2", "✅ Duyệt", "✏️ Sửa", "g"]
+        - ["btn2", "🔄 Đổi chủ đề", "⏸ Không đăng", ""]
+      hi: 1
+      text: "Đọc từng chủ đề. Ổn thì <b>✅ Duyệt</b>. Muốn sửa thì <b>✏️ Sửa</b> → <b>✅ Lưu & duyệt</b>. Muốn chủ đề khác hẳn thì <b>🔄 Đổi chủ đề</b>."
+    - title: Kế hoạch chủ đề
+      els:
+        - ["card", "Tuần 17/11 – 23/11", "✅ đã duyệt 14 / 14", "g"]
+        - ["note", "Trợ lý viết bài đúng chủ đề đã duyệt"]
+        - ["btn", "✅ Duyệt cả tuần", "g"]
+      hi: 2
+      text: "Thấy cả tuần đều ổn thì bấm luôn <b>✅ Duyệt cả tuần</b>. Trợ lý soạn bài trước 3 ngày, đúng chủ đề đã duyệt."
+zl-gio:
+  title: Hẹn giờ đăng riêng cho 1 bài
+  steps:
+    - title: Trợ lý Zalo
+      els:
+        - ["card", "⏳ Cần duyệt trước 20:00 ngày mai", "Bài tối · 🟠 Bán hàng", "y"]
+        - ["btn2", "⏰ Đổi giờ", "🖼 Đổi ảnh", ""]
+      hi: 1
+      text: "Trên thẻ bài, bấm <b>⏰ Đổi giờ</b>."
+    - title: Đổi giờ đăng
+      els:
+        - ["in", "Giờ đăng", "19:30"]
+        - ["note", "Sáng 6:00–11:59 · Tối 12:00–21:45"]
+        - ["btn2", "↩️ Về giờ chung", "💾 Lưu giờ", "g"]
+      hi: 2
+      text: "Chọn giờ (bài sáng 6:00–11:59, bài tối 12:00–21:45). Bấm <b>💾 Lưu giờ</b>. Muốn bỏ giờ riêng thì <b>↩️ Về giờ chung</b>."
