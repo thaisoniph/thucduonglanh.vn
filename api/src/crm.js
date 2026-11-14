@@ -17,6 +17,7 @@ import { crmKho, khoSchema, khoRetOut, khoTell } from './kho.js';
 import { fetchXlsx, crmFin, crmKtChi, finFull } from './fin.js';
 import { crmNcc } from './ncc.js';
 import { crmKpi } from './kpi.js';
+import { crmLuong } from './luong.js';
 import { KT_ROLE_OK, ktSettingsOk, finOk, ktLoad, ktCfg, crmKt, ktKho, crmKtBatch } from './kt.js';
 import { crmSaleMkt, crmOffers } from './salemkt.js';
 import { cmsTokenSet, quizCms, webProds, cmsSso } from './cms.js';
@@ -2681,6 +2682,7 @@ export async function crmApi(x, d, sync, mgr) {
   }
   if (a === 'kt_fetch') return finOk(u) ? crmKtFetch(x, d) : { ok: false, error: 'Bạn không có quyền làm việc này.' };
   if (a === 'kt_chi' || a === 'kt_chis' || a === 'kt_chig') return crmKtChi(x, u, d, crmLog); // 🏦 tiền ra + số dư từ sao kê (fin.js, 11/11/2026)
+  if (a === 'kt_luong') return crmLuong(x, u, d, crmLog, await crmUsers(x)); // 👥 bảng lương tháng: kế toán nhập công → trình → Quản lý / Quản trị duyệt (luong.js, 14/11/2026)
   if (a === 'kt_kpi') return crmKpi(x, u, d, crmLog, await crmUsers(x)); // 📋 KPI tháng của kế toán: tự chấm → quản lý chấm lại, chốt (kpi.js, 13/11/2026)
   if (a === 'kt_ncc') return crmNcc(x, u, d, crmLog, async () => finFull(x, await kvJson(x.db, 'fin_cfg', null))); // 🧾 sổ công nợ nhà cung cấp (ncc.js, 12/11/2026)
   if (a === 'kt_link' || a === 'fin_save' || a === 'fin_test') return crmFin(x, u, d, a); // 💼 tài chính (05/11/2026)

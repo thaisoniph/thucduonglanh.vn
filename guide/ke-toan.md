@@ -329,6 +329,48 @@ Chị Thủy (Quản lý) mở tab **Hiệu quả**, kéo xuống cuối trang. 
 
 Chưa xong thì bấm **Lưu nháp**. Các tháng đã chốt nằm ở **📈 Các tháng đã chốt**. Anh Sơn sửa mức lương theo xếp loại ở **⚙️ Mức lương theo xếp loại**.
 
+## Bảng lương tháng
+
+Mục **👥 Bảng lương tháng** trên tab 💼 Kế toán. Bạn chỉ nhập ngày công, nghỉ, đi muộn, thưởng / phạt và tạm ứng. Máy tự cộng trừ ra **thực lĩnh** của từng người.
+
+![Chọn tháng (1), nhập công (2), lấy tạm ứng từ file (3), bấm tên xem phiếu lương (4), trình duyệt (5), mức lương từng người (6)](/huong-dan/img/ke-toan-luong.webp)
+
+**Làm 1 lần:** bấm **⚙️ Nhân sự & mức lương** (6). Mỗi người điền:
+- **Cách tính:** *Sale* (lương cứng theo bậc doanh thu + hoa hồng, máy tự tính theo Phụ lục 01), *Theo KPI* (kế toán: lấy lương từ phiếu KPI đã chốt), hoặc *Lương cố định*.
+- Lương cơ bản (đủ công), lương đóng bảo hiểm, chuyên cần, phụ cấp xăng / ăn / điện thoại mỗi công, phụ cấp khác.
+- Sale: ô lương cơ bản là **mức hỗ trợ** khi doanh thu chưa tới bậc đầu.
+- Người không có trong CRM thì gõ tên ở ô cuối rồi bấm **➕ Thêm**. Người nghỉ việc thì bỏ tích.
+- Không ghi số tài khoản ngân hàng ở đây.
+
+**Mỗi cuối tháng:**
+
+1. **Chọn tháng.** Từ ngày 1 đến ngày 15, máy tự mở tháng trước.
+2. Bấm **✏️ Nhập công & thưởng / phạt**.
+
+![Công thực tế (1), nghỉ không phép (2), đã tạm ứng (3), ghi chú (4), lưu (5)](/huong-dan/img/ke-toan-luong-nhap.webp)
+
+   - **Công thực tế** (1): để trống là đủ công.
+   - **Nghỉ không phép** (2), nghỉ có phép quá số buổi cho phép, hoặc đi muộn quá số lần cho phép thì máy tự bỏ chuyên cần.
+   - **Đã tạm ứng** (3), thưởng, phạt, thuế TNCN.
+   - **Ghi chú** (4) sẽ hiện trên phiếu lương, ví dụ "thưởng top doanh số".
+   - Bấm **Lưu** (5).
+3. Đã có file **Bảng tạm ứng lương** thì bấm **📥 Lấy tạm ứng từ file**. Máy đọc đúng tab của tháng và tự điền ô Đã tạm ứng.
+4. Xem bảng. Dòng có **⚠️** thì bấm vào tên để xem lý do, ví dụ chưa nhập công hay KPI chưa chốt.
+5. Bấm **📨 Trình duyệt**. Anh Sơn và chị Thủy nhận tin Telegram.
+6. Khi bảng đã **✅ Duyệt**, bấm **📤 Tải Excel** để làm lệnh chuyển khoản.
+
+**Phiếu lương:** bấm vào tên một người, rồi bấm **📋 Copy gửi Zalo** để dán vào tin nhắn riêng cho người đó.
+
+![Copy phiếu lương gửi Zalo (1)](/huong-dan/img/ke-toan-luong-phieu.webp)
+
+**Hoa hồng sale** do máy tự tính từ đơn hàng. Bạn không thấy đủ đơn nên máy lấy số khi anh Sơn hoặc chị Thủy mở mục này. Nếu dòng sale báo "chưa có hoa hồng", nhắn anh / chị mở CRM 1 lần.
+
+**Công chuẩn, % bảo hiểm, quy định chuyên cần, tiền trừ đi muộn** sửa ở **📏 Quy định tính lương**.
+
+### Quản lý duyệt bảng lương
+
+Chị Thủy mở tab **Hiệu quả** và kéo xuống cuối trang. Anh Sơn mở tab **💼 Kế toán**. Xem bảng, bấm từng tên nếu cần, rồi bấm **✅ Duyệt bảng lương**. Sau khi duyệt, kế toán không sửa được nữa. Cần sửa thì bấm **🔓 Mở lại để sửa**. Bấm **↻ Lấy lại hoa hồng sale** khi vừa sửa đơn của tháng đó.
+
 ## Nhập chi phí và xem lãi lỗ
 
 Lãi lỗ ở tab này **cùng số** với Tổng quan của anh Sơn.

@@ -2525,3 +2525,13 @@ b.csx-c-ok { color: var(--primary-2); } b.csx-c-sua { color: var(--orange); } b.
 /* ▶️ Báo cáo YouTube (14/11/2026) */
 .ytb-key{display:flex;gap:6px;margin:6px 0}.ytb-key input{flex:1;min-width:0}.ytb-tl{display:grid;gap:6px}.ytb-t{display:flex;gap:8px;align-items:flex-start;justify-content:space-between;border-top:1px solid var(--line, #eee);padding-top:6px}.ytb-t p{margin:0}
 .voq-sum .f input{width:100%;box-sizing:border-box}
+/* 👥 Bảng lương tháng (14/11/2026) */
+.lgt-st { font-size: 13px; padding: 3px 8px; border-radius: 10px; background: var(--soft, #f2f2f7); margin-left: 6px; } .lgt-st-duyet { color: var(--primary); } .lgt-st-trinh { color: #b26a00; }
+.lgt-kpis { margin: 0 0 10px; } .lgt-warn { margin: 0 0 10px; }
+.lgt-act { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 10px; }
+.lgt-tb td small { display: block; color: var(--muted); font-size: 12px; font-weight: 400; } .lgt-tr { cursor: pointer; } .lgt-tr:hover td { background: rgba(10, 125, 90, .06); }
+.lgt-p { border: 1px solid var(--line, #e5e5ea); border-radius: 12px; padding: 8px 10px 10px; margin: 0 0 10px; } .lgt-p.off { opacity: .55; } .lgt-p legend { padding: 0 4px; }
+.lgt-g { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; } .lgt-g label { display: flex; flex-direction: column; font-size: 12px; color: var(--muted); gap: 3px; } .lgt-g input, .lgt-g select { font-size: 15px; width: 100%; box-sizing: border-box; }
+.lgt-g .lgt-note { grid-column: 1 / -1; } .lgt-on { cursor: pointer; }
+.lgt-add { display: flex; gap: 8px; } .lgt-add input { flex: 1; }
+.lgt-slip { white-space: pre-wrap; font: 14px/1.55 inherit; font-family: inherit; background: var(--soft, #f7f7f9); padding: 10px 12px; border-radius: 10px; margin: 0; }
