@@ -1788,7 +1788,7 @@
     if ((!c || Date.now() - c.at > 600e3) && !S.raceBusy) {
       S.raceBusy = true;
       api('race', {}).then(function (j) { S.race = { at: Date.now(), d: j }; }, function (e) { S.race = { at: Date.now(), d: { ok: false, error: e && e.message } }; })
-        .then(function () { S.raceBusy = false; if (route().view === 'hom-nay' && !$('.modal')) render(); });
+        .then(function () { S.raceBusy = false; var rv = route().view; if ((rv === 'hom-nay' || rv === 'bao-cao' || (rv !== 'them' && rv === homeView())) && !$('.modal')) render(); });
     }
     return c ? c.d : undefined;
   }
@@ -2331,7 +2331,7 @@
       (r.missed ? '<span>📵 Sau đó đã gọi ' + r.missed + ' lần không nghe máy</span>' : '') + '</div></div>';
   }
   function info(k, v, full, cv) { var e = v === '' || v == null; return '<div' + (full ? ' class="full"' : '') + '><span>' + k + '</span><b>' + (cv && !e ? cp(cv === true ? v : cv, esc(v)) : esc(e ? '–' : v)) + '</b></div>'; }
-  function userNames() { return (S.d.users || []).filter(function (u) { return u.active !== false && u.role !== 'Marketing'; }).map(function (u) { return u.name; }); }
+  function userNames() { return (S.d.users || []).filter(function (u) { return u.active !== false && u.role !== 'Marketing' && u.role !== 'Kho' && u.role !== 'Kế toán'; }).map(function (u) { return u.name; }); } // 14/11/2026: Kho, Kế toán không bán hàng → không vào danh sách sale / mục tiêu
   /** Tài khoản Quản trị (chủ, điều hành) không bán hàng → không đưa vào các bảng thống kê nhân sự cho gọn. */
   function isAdminName(n) { return (S.d.users || []).some(function (u) { return u.name === n && u.role === 'Quản trị'; }); }
   function staffNames() { return userNames().filter(function (n) { return !isAdminName(n); }); }
@@ -11063,7 +11063,7 @@
     var h = targetBlockTeam(ms, tt, month, all.avg || prev.avg) + repMoneyLine(all, prev, cx);
     // 29/10/2026: cùng thứ tự màn hình 1 người: mục tiêu → việc cần làm → 6 bước → khâu cần sửa nhất → từng người → chi tiết → công cụ
     h += '<section class="dash-hero">' + repMgrTodo(rows, all, cx, noSeller) + repSteps(all, prev, mk, mk && mk.team, mk && mk.team) + repFix(all, prev, mk && mk.team, mk && mk.team, mk && mk.best) +
-      teamBlock() /* tiến độ hôm nay (việc trễ, đơn chưa xác nhận…) ngay trong Hiệu quả, quản lý không phải sang tab Hôm nay */ + repPeople(rows, all, cx) + '</section>';
+      teamBlock() /* tiến độ hôm nay (việc trễ, đơn chưa xác nhận…) ngay trong Hiệu quả, quản lý không phải sang tab Hôm nay */ + raceBlock() /* 14/11/2026: Quản trị xem bảng thi đua ngay ở Hiệu quả (Hôm nay nằm trong Thêm) */ + repPeople(rows, all, cx) + '</section>';
     h += refSaleBox(null);
     h += '<h2 class="dash-more-h">Xem chi tiết <small class="muted">(bấm để mở)</small></h2>';
     var lead = rows[0] && rows[0].sales ? rows[0] : null;
@@ -11126,21 +11126,28 @@
 
   /** Đặt / sửa mục tiêu doanh số tháng. */
   // 14/11/2026 anh Sơn: mỗi sale TỰ đặt mục tiêu từ đầu tháng; chưa đặt thì mỗi lần mở CRM hiện hộp nhắc. Mức thấp nhất = max(100 triệu công ty yêu cầu, thực tế tháng trước +10%).
-  var TG_MIN = 100e6, TG_ROLE = 'Sale & CSKH';
-  function tgFloor(last) { return Math.max(TG_MIN, Math.ceil(last * 1.1 / 1e6) * 1e6); }
-  function tgSug(last, k) { return Math.max(TG_MIN, Math.ceil(last * k / 1e6) * 1e6); }
-  function goalNag() { // gọi sau mỗi lần vẽ màn hình đầu: 1 lần / lần mở CRM
-    if (S.tgNag || S.stale || !S.user || S.user.role !== TG_ROLE || lvl() >= 2) return;
+  // 14/11/2026 (lần 2): 🏠 CTV tại nhà = TB 3 tháng gần nhất; Quản lý = tháng trước, không áp 100 triệu; Kho, Kế toán, Marketing không đặt. Phải khớp tgFloorSrv (api/src/crm.js).
+  var TG_MIN = 100e6;
+  function tgUser(name) { return (S.d.users || []).filter(function (u) { return u.name === name; })[0] || {}; }
+  function tgRule(name, month) {
+    var u = tgUser(name), ctv = !!u.ctv, office = u.role === 'Sale & CSKH' && !ctv, k = ctv ? 3 : 1, sum = 0;
+    for (var i = 1; i <= k; i++) sum += perf(name, monthRange(shiftMonth(month, -i))).sales;
+    var base = sum / k, up = function (f) { return Math.ceil(base * f / 1e6) * 1e6; }, lo = function (v) { return office ? Math.max(TG_MIN, v) : v; };
+    return { base: base, ctv: ctv, office: office, floor: lo(up(1.1)), sug: [[1.1, '+10%'], [1.15, '+15%'], [1.2, '+20%']].map(function (x) { return { v: lo(up(x[0])), l: lo(up(x[0])) > up(x[0]) ? 'mức tối thiểu' : x[1] }; }),
+      baseTxt: ctv ? 'Trung bình 3 tháng gần nhất' : 'Tháng trước đạt', why: office ? 'cao hơn trong 2 mức: công ty yêu cầu tối thiểu <b>100 triệu</b>, hoặc tháng trước +10%' : ctv ? 'trung bình 3 tháng +10% (cộng tác viên tại nhà, không áp mức 100 triệu)' : 'tháng trước +10% (quản lý, không áp mức 100 triệu)' };
+  }
+  function goalNag() { // gọi sau mỗi lần vẽ màn hình đầu: 1 lần / lần mở CRM. Sale + Quản lý tự đặt; Quản trị, Kho, Kế toán, Marketing không nhắc
+    if (S.tgNag || S.stale || !S.user || (S.user.role !== 'Sale & CSKH' && S.user.role !== 'Quản lý')) return;
     var mk = monthOf(Date.now()), t = targetOf(S.user.name, mk); if (t && t.amount) return;
     S.tgNag = 1; setTimeout(function () { if ($('.modal')) { S.tgNag = 0; return; } openTarget(S.user.name, mk, true); }, 900);
   }
   function openTarget(name, month, nag) {
-    var t = targetOf(name, month), last = perf(name, monthRange(shiftMonth(month, -1))).sales, self = name === S.user.name && lvl() < 2, floor = tgFloor(last);
-    var sug = [[1.1, '+10%'], [1.15, '+15%'], [1.2, '+20%']].map(function (x) { var v = tgSug(last, x[0]); return '<button class="btn ghost sm" type="button" data-tgv="' + v + '">' + moneyShort(v) + ' <small>(' + (v > Math.ceil(last * x[0] / 1e6) * 1e6 ? 'mức tối thiểu' : x[1]) + ')</small></button>'; });
+    var t = targetOf(name, month), G = tgRule(name, month), self = name === S.user.name && lvl() < 3, floor = G.floor;
+    var sug = G.sug.filter(function (x) { return x.v > 0; }).map(function (x) { return '<button class="btn ghost sm" type="button" data-tgv="' + x.v + '">' + moneyShort(x.v) + ' <small>(' + x.l + ')</small></button>'; });
     var body = '<div class="box">' + (nag ? '<p class="notice" style="margin:0 0 10px">🎯 Bạn chưa đặt <b>mục tiêu doanh số ' + monthLabel(month) + '</b>. Đặt ngay để vào bảng thi đua và CRM tính giúp mỗi ngày cần bán bao nhiêu.</p>' : '') +
       '<p style="margin:0 0 10px">Mục tiêu doanh số <b>' + monthLabel(month) + '</b> của <b>' + esc(name) + '</b>.</p>' +
-      '<p class="hint" style="margin:0 0 8px">Tháng trước đạt: <b>' + money(last) + '</b> (không tính đơn huỷ / hoàn).<br>Mức thấp nhất: <b>' + money(floor) + '</b> = cao hơn trong 2 mức: công ty yêu cầu tối thiểu <b>100 triệu</b>, hoặc tháng trước +10%.</p>' +
-      '<p class="hint" style="margin:0 0 6px">Bấm chọn nhanh:</p><div class="chips" style="margin-bottom:10px">' + sug.join('') + '</div>' +
+      '<p class="hint" style="margin:0 0 8px">' + G.baseTxt + ': <b>' + money(Math.round(G.base)) + '</b> (không tính đơn huỷ / hoàn).' + (floor ? '<br>Mức thấp nhất: <b>' + money(floor) + '</b> = ' + G.why + '.' : '') + '</p>' +
+      (sug.length ? '<p class="hint" style="margin:0 0 6px">Bấm chọn nhanh:</p><div class="chips" style="margin-bottom:10px">' + sug.join('') + '</div>' : '') +
       '<label class="f"><span>Hoặc gõ số khác (ví dụ 120000000 hoặc 120tr)</span><input type="text" id="tgAmt" inputmode="decimal" value="' + (t && t.amount ? t.amount : '') + '" autocomplete="off"></label>' +
       '<p class="hint" id="tgShow"></p>' +
       (selfOn() ? '<label class="f" style="margin-top:10px"><span>🙋 Khách tự tạo trong tháng (số khách, 0 = không đặt)</span><input type="number" id="tgSelf" min="0" max="999" value="' + (t && t.selfN ? t.selfN : '') + '" placeholder="vd 8"></label>' +
@@ -11154,7 +11161,7 @@
     $$('[data-tgv]', m).forEach(function (b) { b.onclick = function () { inp.value = b.getAttribute('data-tgv'); upd(); }; });
     $('#tgSave', m).onclick = function () {
       var v = val(), err = $('#tgErr', m); if (!v) { err.textContent = 'Nhập số tiền mục tiêu giúp em nhé.'; return; }
-      if (v < floor && self) { err.textContent = 'Mục tiêu cần từ ' + money(floor) + ' trở lên (công ty yêu cầu tối thiểu 100 triệu, và cao hơn tháng trước ít nhất 10%).'; return; }
+      if (v < floor && self) { err.innerHTML = 'Mục tiêu cần từ ' + money(floor) + ' trở lên (' + G.why + ').'; return; }
       if (v < floor && !confirm('Mục tiêu này thấp hơn mức tối thiểu ' + money(floor) + '. Quản lý vẫn lưu?')) return;
       var btn = this; btn.disabled = true; btn.textContent = 'Đang lưu…';
       var sn = $('#tgSelf', m) ? Math.max(0, Math.round(Number($('#tgSelf', m).value) || 0)) : (t && t.selfN) || 0;
@@ -11948,6 +11955,7 @@
         us.map(function (u, i) { return '<div class="edit-row usr" data-i="' + i + '"><input type="email" data-k="email" value="' + esc(u.email) + '" placeholder="email@gmail.com"><input type="text" data-k="name" value="' + esc(u.name) + '" placeholder="Tên"><select data-k="role">' + ['Quản trị', 'Quản lý', 'Marketing', 'Sale & CSKH', 'Kho', 'Kế toán'].map(function (r) { return '<option value="' + esc(r) + '"' + (r === u.role ? ' selected' : '') + '>' + esc(r) + '</option>'; }).join('') + '</select><label class="switch"><input type="checkbox" data-k="active"' + (u.active ? ' checked' : '') + '> Có</label><button class="rm" data-rm="us" data-i="' + i + '" aria-label="Xoá">✕</button>' +
           '<input type="text" data-k="alias" value="' + esc(u.alias || '') + '" placeholder="Tên trong file QC (vd Phương)" class="usr-x"><input type="text" data-k="prefix" value="' + esc(u.prefix || '') + '" placeholder="Tiền tố mã đơn (vd Phuong)" class="usr-x"><input type="tel" data-k="phone" value="' + esc(u.phone || '') + '" placeholder="SĐT cá nhân (chống tự làm CTV)" class="usr-x"><input type="text" data-k="full" value="' + esc(u.full || '') + '" placeholder="Họ tên đầy đủ (vd Nguyễn Thu Hương)" class="usr-x"><input type="text" inputmode="numeric" data-k="acct" value="' + esc(u.acct || '') + '" placeholder="Số tài khoản ngân hàng (chống tự làm CTV)" class="usr-x"><input type="text" data-k="joined" value="' + esc(u.joined || '') + '" placeholder="Ngày làm chính thức (vd 07/2024) – tính thâm niên" class="usr-x"><input type="text" inputmode="numeric" data-k="dob" value="' + esc(u.dob || '') + '" placeholder="🎂 Ngày sinh (vd 25/03) – CRM chúc mừng sinh nhật" class="usr-x"><label class="switch usr-w"><input type="checkbox" data-k="web"' + (u.web || u.role === 'Quản trị' ? ' checked' : '') + (u.role === 'Quản trị' ? ' disabled' : '') + '> 🌐 Sửa website (đăng bài, sửa sản phẩm ở thucduonglanh.vn/admin)</label>' +
           (u.role === 'Quản lý' || u.role === 'Sale & CSKH' ? '<label class="switch usr-w"><input type="checkbox" data-k="mkv"' + (u.mkv ? ' checked' : '') + '> 📣 Xem Marketing (chỉ xem tab Marketing: chi phí, hiệu quả quảng cáo; không sửa)</label>' : '') +
+          (u.role === 'Sale & CSKH' ? '<label class="switch usr-w"><input type="checkbox" data-k="ctv"' + (u.ctv ? ' checked' : '') + '> 🏠 Cộng tác viên tại nhà (không lương cứng): mục tiêu tháng gợi ý theo trung bình 3 tháng gần nhất +10–20%, không áp mức tối thiểu 100 triệu</label>' : '') +
           (u.role === 'Sale & CSKH' ? '<label class="switch usr-w"><input type="checkbox" data-k="zb"' + (u.zb ? ' checked' : '') + '> 🤖 Phụ trách Trợ lý Zalo (duyệt bài, đổi ảnh, gửi tin vào nhóm, cài đặt giờ đăng). Quản lý, Marketing đã có sẵn quyền này</label>' : '') +
           (u.role === 'Kế toán' ? '<p class="small muted usr-w" style="margin:4px 0 0">💼 Quyền Kế toán: chỉ vào tab Kế toán (tiền về, tiền treo ở hãng, chi phí, lãi lỗ, giá vốn). Thấy tên khách + 4 số cuối SĐT, không thấy SĐT đầy đủ, địa chỉ.</p>' : '') +
           (u.role === 'Kho' ? '<p class="small muted usr-w" style="margin:4px 0 0">📦 Quyền Kho: chỉ vào tab Kho (hàng về, lấy ra, đếm kho, nhận hàng hoàn) và nhận tin Telegram kho. Không thấy khách, đơn, doanh số.</p>' : '') +

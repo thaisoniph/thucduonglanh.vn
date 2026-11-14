@@ -341,6 +341,10 @@ Mỗi bạn **tự đặt** mục tiêu của mình ngay từ ngày 1 đầu th�
 
 **Mục tiêu thấp nhất** = số cao hơn trong 2 số: **100 triệu** (công ty yêu cầu) hoặc **doanh số thật tháng trước + 10%**. Ví dụ tháng trước bán 120 triệu thì mục tiêu ít nhất 132 triệu. Đặt thấp hơn thì CRM không cho lưu.
 
+- **🏠 Cộng tác viên tại nhà** (không lương cứng): mục tiêu thấp nhất = **trung bình 3 tháng gần nhất + 10%**, không áp mức 100 triệu.
+- **Quản lý** cũng tự đặt mục tiêu của mình: thấp nhất = **tháng trước + 10%**, không áp mức 100 triệu.
+- Kho, Kế toán, Marketing không đặt mục tiêu doanh số.
+
 1. Vào tab **Hiệu quả** (hoặc dùng hộp nhắc tự hiện).
 2. Bấm **🎯 Đặt mục tiêu**. Bấm 1 trong 3 nút gợi ý (**+10%**, **+15%**, **+20%** so với tháng trước), hoặc tự gõ số khác, ví dụ `150tr`.
 3. Ô **🙋 Khách tự tạo trong tháng** (từ 10/11/2026): gõ số khách bạn sẽ tự tìm, ví dụ `8` (mỗi tuần 2 khách). Khách tự tạo = khách hỏi bạn **tự thêm** vào CRM (không từ quảng cáo) + khách do **khách cũ của bạn giới thiệu**. Để trống nếu chưa đặt.

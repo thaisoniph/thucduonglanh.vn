@@ -37,7 +37,7 @@ import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, wbInf
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-11-14h'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
+const SCHEMA_V = '2026-11-14i'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -79,7 +79,7 @@ export async function ensureSchema(db) {
     if (!tcols.includes('self_n')) { try { await run(db, 'ALTER TABLE targets ADD COLUMN self_n INTEGER DEFAULT 0'); } catch (e) { } }
     const ucols = (await all(db, "PRAGMA table_info(users)")).map(r => r.name);
     if (!ucols.includes('web')) { try { await run(db, "ALTER TABLE users ADD COLUMN web TEXT DEFAULT ''"); } catch (e) { } } // Sửa website: đăng nhập /admin bằng email (api/src/cms.js)
-    for (const col of ['phone', 'full', 'acct', 'joined', 'dob']) if (!ucols.includes(col)) { try { await run(db, `ALTER TABLE users ADD COLUMN ${col} TEXT DEFAULT ''`); } catch (e) { } } // 30/10/2026: SĐT + họ tên đầy đủ nhân sự → cảnh báo nhân sự / người nhà đăng ký CTV (partner.js staffHit)
+    for (const col of ['phone', 'full', 'acct', 'joined', 'dob', 'ctv']) if (!ucols.includes(col)) { try { await run(db, `ALTER TABLE users ADD COLUMN ${col} TEXT DEFAULT ''`); } catch (e) { } } // 30/10/2026: SĐT + họ tên đầy đủ nhân sự → cảnh báo nhân sự / người nhà đăng ký CTV (partner.js staffHit)
     if (!ucols.includes('mkv')) { try { await run(db, "ALTER TABLE users ADD COLUMN mkv TEXT DEFAULT ''"); } catch (e) { } }
     if (!ucols.includes('zb')) { try { await run(db, "ALTER TABLE users ADD COLUMN zb TEXT DEFAULT ''"); } catch (e) { } }
     if (!ucols.includes('kho')) { try { await run(db, "ALTER TABLE users ADD COLUMN kho TEXT DEFAULT ''"); } catch (e) { } } // 06/11/2026: 📦 Phụ trách kho (nhận tin sắp hết hàng, nhập / xuất / kiểm kho) // 31/10/2026: 🤖 Phụ trách Trợ lý Zalo (người được giao, kể cả Sale) // 26/10/2026: 📣 Xem Marketing (Quản lý / Sale chỉ xem tab Marketing)
@@ -271,7 +271,7 @@ const USERS_SQL = 'SELECT * FROM users ORDER BY ord, rowid';
 function usersFrom(x, rows) {
   const list = rows.map(r => {
     const e = String(r.email || '').trim().toLowerCase(), role = roleOf(r.role);
-    return { email: e, name: String(r.name || e.split('@')[0]).trim(), role, active: !!r.active, recv: role === 'Marketing' || role === 'Kho' || role === 'Kế toán' ? false : String(r.recv || '').trim() === '' ? role === SALE : !no(r.recv), tg: String(r.tg || '').trim(), alias: String(r.alias || '').trim(), prefix: String(r.prefix || '').trim(), web: String(r.web || '').trim() === 'Có', phone: String(r.phone || '').trim(), full: String(r.full || '').trim(), acct: String(r.acct || '').trim(), joined: String(r.joined || '').trim(), dob: String(r.dob || '').trim(), mkv: role !== 'Marketing' && role !== 'Kho' && String(r.mkv || '').trim() === 'Có', zb: role !== 'Kho' && String(r.zb || '').trim() === 'Có', kho: role === 'Kho' || String(r.kho || '').trim() === 'Có' };
+    return { email: e, name: String(r.name || e.split('@')[0]).trim(), role, active: !!r.active, recv: role === 'Marketing' || role === 'Kho' || role === 'Kế toán' ? false : String(r.recv || '').trim() === '' ? role === SALE : !no(r.recv), tg: String(r.tg || '').trim(), alias: String(r.alias || '').trim(), prefix: String(r.prefix || '').trim(), web: String(r.web || '').trim() === 'Có', phone: String(r.phone || '').trim(), full: String(r.full || '').trim(), acct: String(r.acct || '').trim(), joined: String(r.joined || '').trim(), dob: String(r.dob || '').trim(), ctv: role === SALE && String(r.ctv || '').trim() === 'Có', mkv: role !== 'Marketing' && role !== 'Kho' && String(r.mkv || '').trim() === 'Có', zb: role !== 'Kho' && String(r.zb || '').trim() === 'Có', kho: role === 'Kho' || String(r.kho || '').trim() === 'Có' };
   }).filter(u => /@/.test(u.email));
   const sa = list.find(u => u.email === SUPER_ADMIN);
   if (!sa) list.unshift({ email: SUPER_ADMIN, name: 'Thái Sơn', role: 'Quản trị', active: true, recv: false, tg: '', alias: '', prefix: '', web: true });
@@ -575,7 +575,7 @@ async function loadSmall(x, u, R, mode, adV) {
     b('SELECT name, variant, days, basis FROM cycles ORDER BY rid'),
     b('SELECT when_txt, purpose, text FROM templates ORDER BY rid')
   ]); smallQ.catch(() => { });
-  const users = (await crmUsers(x)).filter(y => y.active || u.level >= 3).map(y => u.level >= 3 ? { email: y.email, name: y.name, role: y.role, active: y.active, recv: y.recv, tg: !!y.tg, alias: y.alias, prefix: y.prefix || slugName(y.name), web: y.web || y.level >= 3, mkv: y.mkv || y.level >= 3, zb: !!y.zb, kho: !!y.kho, phone: y.phone, full: y.full, acct: y.acct, joined: y.joined, dob: y.dob } : u.level >= 2 ? { name: y.name, role: y.role, recv: y.recv, tg: !!y.tg, joined: y.joined } : { name: y.name, role: y.role, joined: y.name === u.name ? y.joined : '' }); // SĐT, họ tên, số tài khoản nhân sự: chỉ Quản trị; ngày vào làm: tính thâm niên (Phụ lục 01)
+  const users = (await crmUsers(x)).filter(y => y.active || u.level >= 3).map(y => u.level >= 3 ? { email: y.email, name: y.name, role: y.role, active: y.active, recv: y.recv, tg: !!y.tg, alias: y.alias, prefix: y.prefix || slugName(y.name), web: y.web || y.level >= 3, mkv: y.mkv || y.level >= 3, zb: !!y.zb, kho: !!y.kho, phone: y.phone, full: y.full, acct: y.acct, joined: y.joined, dob: y.dob, ctv: y.ctv } : u.level >= 2 ? { name: y.name, role: y.role, recv: y.recv, tg: !!y.tg, joined: y.joined, ctv: y.ctv } : { name: y.name, role: y.role, joined: y.name === u.name ? y.joined : '', ctv: y.name === u.name ? y.ctv : undefined }); // SĐT, họ tên, số tài khoản nhân sự: chỉ Quản trị; ngày vào làm: tính thâm niên (Phụ lục 01)
   const adsP = adRowsOf(x, u, adV); adsP.catch(() => { });
   const areasP = u.level === 1 ? areaStats(x) : Promise.resolve(undefined); areasP.catch(() => { }); // quản lý đã có đủ khách → máy tự đếm
   const ktP = finOk(u) ? ktCfg(x) : Promise.resolve(null); ktP.catch(() => { });
@@ -966,6 +966,9 @@ export async function ownTick(x) {
     for (const n of names) await run(x.db, "INSERT INTO targets (month, name, amount, by_name, at, self_n) VALUES ('2026-11', ?, 0, ?, ?, 6) ON CONFLICT(month, name) DO UPDATE SET self_n = 6, at = excluded.at", n, 'Quản trị', Date.now());
     if (names.length) await crmLog(x, OWN_SYS, 'Mục tiêu', '2026-11', '', 'Khách tự tạo tháng 11 = 6 cho ' + names.length + ' sale: ' + names.join(', '), 'anh Sơn yêu cầu 14/11/2026');
     await kvSet(x.db, 'self6_1411_mig', '1');
+  }
+  if (!(await kvGet(x.db, 'ctv_tuyet_1411_mig'))) { // 14/11/2026 anh Sơn: Ánh Tuyết là CTV tại nhà (không lương cứng) → mục tiêu theo TB 3 tháng, không áp 100 triệu
+    try { const r = await run(x.db, "UPDATE users SET ctv = 'Có' WHERE name = 'Ánh Tuyết'"); x._users = null; if (r.meta.changes) await crmLog(x, OWN_SYS, 'Nhân sự', '-', 'Ánh Tuyết', '🏠 Cộng tác viên tại nhà', 'anh Sơn yêu cầu 14/11/2026'); await kvSet(x.db, 'ctv_tuyet_1411_mig', '1'); } catch (e) { console.error('ctv mig', e.message); }
   }
   if (!(await kvGet(x.db, 'sale3_mig'))) { // 13/11/2026 anh Sơn duyệt (đề xuất Thủy): thưởng sale khách tự mang về thêm mốc 2 triệu → tổng 100k (20k / 50k / 100k)
     const c = await kvJson(x.db, 'partner_cfg', null);
@@ -2018,25 +2021,33 @@ async function crmSaveUsers(x, u, d) {
   const seen = {}, rows = (d.users || []).map((y, i) => {
     const e = String(y.email || '').trim().toLowerCase(), o = cur[e] || {}, role = roleOf(y.role);
     return { email: e, name: String(y.name || '').trim(), role, active: y.active === false ? 0 : 1, recv: (y.recv !== undefined ? y.recv : o.recv !== undefined ? o.recv : role === SALE) ? 'Có' : 'Không', tg: o.tg || '',
-      alias: String(y.alias !== undefined ? y.alias : o.alias || '').trim(), prefix: String(y.prefix !== undefined ? y.prefix : o.prefix || '').replace(/[^A-Za-z0-9]/g, ''), web: (y.web !== undefined ? y.web : o.web) ? 'Có' : '', mkv: (y.mkv !== undefined ? y.mkv : o.mkv) ? 'Có' : '', zb: (y.zb !== undefined ? y.zb : o.zb) ? 'Có' : '', kho: (y.kho !== undefined ? y.kho : o.kho) ? 'Có' : '', phone: normPhone(y.phone !== undefined ? y.phone : o.phone || '') || '', full: String(y.full !== undefined ? y.full : o.full || '').trim().slice(0, 80), acct: String(y.acct !== undefined ? y.acct : o.acct || '').replace(/\D/g, '').slice(0, 24), joined: String(y.joined !== undefined ? y.joined : o.joined || '').trim().slice(0, 30), dob: dobNorm(y.dob !== undefined ? y.dob : o.dob), ord: i };
+      alias: String(y.alias !== undefined ? y.alias : o.alias || '').trim(), prefix: String(y.prefix !== undefined ? y.prefix : o.prefix || '').replace(/[^A-Za-z0-9]/g, ''), web: (y.web !== undefined ? y.web : o.web) ? 'Có' : '', mkv: (y.mkv !== undefined ? y.mkv : o.mkv) ? 'Có' : '', zb: (y.zb !== undefined ? y.zb : o.zb) ? 'Có' : '', kho: (y.kho !== undefined ? y.kho : o.kho) ? 'Có' : '', phone: normPhone(y.phone !== undefined ? y.phone : o.phone || '') || '', full: String(y.full !== undefined ? y.full : o.full || '').trim().slice(0, 80), acct: String(y.acct !== undefined ? y.acct : o.acct || '').replace(/\D/g, '').slice(0, 24), joined: String(y.joined !== undefined ? y.joined : o.joined || '').trim().slice(0, 30), dob: dobNorm(y.dob !== undefined ? y.dob : o.dob), ctv: (y.ctv !== undefined ? y.ctv : o.ctv) ? 'Có' : '', ord: i };
   }).filter(r => { if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(r.email) || seen[r.email]) return false; seen[r.email] = 1; return true; });
-  if (!seen[SUPER_ADMIN]) rows.unshift({ email: SUPER_ADMIN, name: 'Thái Sơn', role: 'Quản trị', active: 1, recv: 'Không', tg: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].tg || '' : '', alias: '', prefix: '', web: 'Có', mkv: '', zb: '', kho: cur[SUPER_ADMIN] && cur[SUPER_ADMIN].kho ? 'Có' : '', phone: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].phone || '' : '', full: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].full || '' : '', acct: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].acct || '' : '', joined: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].joined || '' : '', dob: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].dob || '' : '', ord: -1 });
+  if (!seen[SUPER_ADMIN]) rows.unshift({ email: SUPER_ADMIN, name: 'Thái Sơn', role: 'Quản trị', active: 1, recv: 'Không', tg: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].tg || '' : '', alias: '', prefix: '', web: 'Có', mkv: '', zb: '', kho: cur[SUPER_ADMIN] && cur[SUPER_ADMIN].kho ? 'Có' : '', phone: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].phone || '' : '', full: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].full || '' : '', acct: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].acct || '' : '', joined: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].joined || '' : '', dob: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].dob || '' : '', ctv: '', ord: -1 });
   const ren = {}; rows.forEach(r => { const o = cur[r.email]; if (o && o.name && r.name && o.name !== r.name && !rows.some(z => z.name === o.name)) ren[o.name] = r.name; }); // đổi tên → đơn, khách, file sale theo tên mới
-  await replaceRows(x.db, 'users', ['email', 'name', 'role', 'active', 'recv', 'tg', 'alias', 'prefix', 'web', 'mkv', 'zb', 'kho', 'phone', 'full', 'acct', 'joined', 'dob', 'ord'], rows); x._users = null;
+  await replaceRows(x.db, 'users', ['email', 'name', 'role', 'active', 'recv', 'tg', 'alias', 'prefix', 'web', 'mkv', 'zb', 'kho', 'phone', 'full', 'acct', 'joined', 'dob', 'ctv', 'ord'], rows); x._users = null;
   try { await unifyNames(x, ren); } catch (e) { console.error('unifyNames', e.message); }
   await crmLog(x, u, 'Nhân sự', '-', '', 'Cập nhật ' + rows.length + ' tài khoản', '');
   return { ok: true, users: await crmUsers(x) };
+}
+/** Mức mục tiêu tối thiểu (14/11/2026 anh Sơn): sale văn phòng = max(100 triệu, tháng trước +10%); 🏠 CTV tại nhà (users.ctv) = TB 3 tháng gần nhất +10%;
+ *  Quản lý (không nhận số quảng cáo hằng ngày) = tháng trước +10%, không áp 100 triệu. Phải khớp tgRule trong crm/app.js. */
+async function tgFloorSrv(x, tu, month) {
+  const y = +month.slice(0, 4), mo = +month.slice(5, 7) - 1, m = k => Date.UTC(y, mo - k, 1) - TZ_MS;
+  const ctv = !!tu.ctv, k = ctv ? 3 : 1;
+  const pr = await first(x.db, "SELECT coalesce(sum(total), 0) AS s FROM orders WHERE seller = ? AND time >= ? AND time < ? AND status NOT LIKE '%uỷ%' AND status NOT LIKE '%ủy%' AND status NOT LIKE '%oàn%'", tu.name, m(k), m(0));
+  const base = (Number(pr && pr.s) || 0) / k, up = Math.ceil(base * 1.1 / 1e6) * 1e6, office = tu.role === SALE && !ctv;
+  return { floor: office ? Math.max(100e6, up) : up, why: office ? 'công ty yêu cầu tối thiểu 100 triệu, và cao hơn tháng trước ít nhất 10%' : ctv ? 'trung bình 3 tháng gần nhất +10%' : 'tháng trước +10%' };
 }
 async function crmTarget(x, u, d) {
   const month = String(d.month || ''), amount = Math.round(Number(d.amount) || 0), name = String(d.name || u.name).trim();
   if (!/^\d{4}-\d{2}$/.test(month)) return { ok: false, error: 'Tháng không hợp lệ.' };
   if (amount < 0 || amount > 1e11) return { ok: false, error: 'Số tiền chưa đúng.' };
   if (name !== u.name && u.level < 2) return { ok: false, error: 'Bạn chỉ đặt được mục tiêu của mình.' };
-  if (u.level < 2) { // 14/11/2026 anh Sơn: sale tự đặt ≥ max(100 triệu, thực tế tháng trước +10%); quản lý đặt hộ thì không chặn
-    const y = +month.slice(0, 4), mo = +month.slice(5, 7) - 1, p0 = Date.UTC(y, mo - 1, 1) - TZ_MS, p1 = Date.UTC(y, mo, 1) - TZ_MS;
-    const pr = await first(x.db, "SELECT coalesce(sum(total), 0) AS s FROM orders WHERE seller = ? AND time >= ? AND time < ? AND status NOT LIKE '%uỷ%' AND status NOT LIKE '%ủy%' AND status NOT LIKE '%oàn%'", name, p0, p1);
-    const floor = Math.max(100e6, Math.ceil((Number(pr && pr.s) || 0) * 1.1 / 1e6) * 1e6);
-    if (amount < floor) return { ok: false, error: 'Mục tiêu cần từ ' + fmt(floor) + ' trở lên (công ty yêu cầu tối thiểu 100 triệu, và cao hơn tháng trước ít nhất 10%).' };
+  const tu = (await crmUsers(x)).find(v => v.name === name);
+  if (name === u.name && u.level < 3 && tu) { // 14/11/2026 anh Sơn: người tự đặt phải ≥ mức tối thiểu; quản lý / quản trị đặt hộ người khác thì không chặn
+    const fl = await tgFloorSrv(x, tu, month);
+    if (amount < fl.floor) return { ok: false, error: 'Mục tiêu cần từ ' + fmt(fl.floor) + ' trở lên (' + fl.why + ').' };
   }
   const selfN = d.selfN === undefined || d.selfN === null || d.selfN === '' ? null : Math.min(999, Math.max(0, Math.round(Number(d.selfN) || 0))); // 🙋 khách tự tạo / tháng (null = giữ số cũ)
   const old = await first(x.db, 'SELECT amount, self_n FROM targets WHERE month = ? AND name = ?', month, name);

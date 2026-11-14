@@ -386,3 +386,12 @@ Khi viết, nhớ: **câu ngắn, mỗi bước 1 việc, tên nút in đậm đ
 - Câu hỏi hay gặp thì viết thành **1 đoạn bắt đầu bằng câu hỏi in đậm**, ví dụ: **Không nhận được mã đăng nhập?** rồi viết cách làm ngay sau. Ô Tìm tự biến mỗi đoạn như vậy thành 1 kết quả, bấm vào là nhảy thẳng tới đoạn đó.
 - Xem nhân sự đã hỏi trợ lý những gì: **⚙ Cài đặt → ✨ Nhân sự hỏi gì ở trang hướng dẫn → Xem câu đã hỏi**. Bấm **❓ Hướng dẫn chưa có** để lọc các câu trợ lý chưa trả lời được. Đó là những chỗ nên viết thêm vào hướng dẫn.
 - Nhân sự gõ tìm mà không ra đúng chỗ? Gửi anh Sơn câu họ đã gõ để thêm vào danh sách từ khoá.
+
+## Mục tiêu tháng & bảng thi đua (14/11/2026)
+
+- Mỗi sale **tự đặt** mục tiêu tháng. Ai chưa đặt thì mỗi lần mở CRM sẽ hiện hộp nhắc 🎯. Quản lý cũng tự đặt mục tiêu của mình.
+- Sale làm ở văn phòng: thấp nhất **100 triệu** hoặc tháng trước +10% (lấy số cao hơn).
+- Cộng tác viên tại nhà: vào **Cài đặt → Nhân sự**, tích ô **🏠 Cộng tác viên tại nhà**. Người đó được gợi ý theo **trung bình 3 tháng gần nhất +10–20%**, không áp mức 100 triệu.
+- Quản lý / Quản trị đặt hộ người khác được phép đặt thấp hơn mức tối thiểu (CRM hỏi lại một lần).
+- **Bảng thi đua đầy đủ** (mọi người, mọi hạng mục, cả số tiền) xem ở tab **Hiệu quả**, ngay trên mục 👥 Từng nhân viên. Tab Hôm nay của quản lý cũng có.
+
