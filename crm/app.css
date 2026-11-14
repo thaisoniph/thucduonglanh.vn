@@ -2432,6 +2432,7 @@ b.csx-c-ok { color: var(--primary-2); } b.csx-c-sua { color: var(--orange); } b.
 .td-hero .hero-t b { font-size: 18px; }
 .td-hero .btn.lg b { font-weight: 800; }
 .td-jump { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.td-jump button.td-race { white-space: normal; text-align: left; flex-basis: 100%; background: #fff8e6; border-color: #f2dca6; color: #7a5200; } /* 14/11/2026 dòng thứ hạng thi đua */
 .td-jump button { font: inherit; font-size: 13px; font-weight: 600; color: var(--primary); background: #f1f7f1; border: 1px solid #d5e7d5; border-radius: 999px; padding: 5px 11px; cursor: pointer; white-space: nowrap; }
 .td-list .section-h { margin-bottom: 8px; }
 .td-chips { margin-bottom: 8px; }

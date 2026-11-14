@@ -1665,7 +1665,7 @@
     var h = '<section class="hero td-hero"><div class="hero-t"><b>' + (items.length ? 'Hôm nay còn ' + items.length + ' việc' : '🎉 Xong việc cần gọi hôm nay') + '</b><span>đã xong ' + done + '</span></div>' +
       '<div class="bar"><i style="width:' + pc + '%"></i></div>' + cheerLine(q, true) + tdStartBtn(items[0]) +
       (q.rest ? '<p class="small muted" style="margin:8px 0 0">Còn ' + q.rest + ' khách chăm sóc để các ngày sau (tối đa ' + dayLimit() + ' khách/ngày).</p>' : '') +
-      todayGoalLine() + '<div class="td-jump"><button type="button" data-gopen="tdgoal">🏁 Thi đua ›</button>' + (growOn ? '<button type="button" data-gopen="grow">🌱 Mở rộng khách ' + gn + '/5 ›</button>' : '') + '</div></section>';
+      todayGoalLine() + '<div class="td-jump"><button type="button" data-gopen="tdgoal"' + raceHeroAttr() + '>' + raceHero() + '</button>' + (growOn ? '<button type="button" data-gopen="grow">🌱 Mở rộng khách ' + gn + '/5 ›</button>' : '') + '</div></section>';
     h += '<section class="section td-list"><div class="section-h"><h2>📞 Cần gọi hôm nay</h2>' + (items.length ? '<span class="count">' + items.length + '</span>' : '') + '</div>';
     if (items.length) {
       var chips = TD_F.filter(function (c) { return cnt[c[0]]; });
@@ -1685,6 +1685,24 @@
     h += '<div class="td-foot"><button class="btn" data-daily="' + esc(S.user.name) + '">📋 Báo cáo cuối ngày</button>' + (isMkt() ? '' : '<button class="btn" data-newlead>＋ Thêm khách hỏi</button>') + '</div>';
     return h;
   }
+  /** 14/11/2026 anh Sơn: đầu tab Hôm nay của sale có 1 dòng thứ hạng thi đua tuần (bấm → nhảy xuống bảng đầy đủ). Ưu tiên hạng Doanh số;
+   *  chưa có thì lấy hạng tốt nhất của mình ở các mục khác. Dữ liệu dùng chung raceGet (nhớ 10 phút). */
+  var RACE_SHORT = { sales: 'doanh số', effort: 'công sức mở rộng khách', close: 'tỷ lệ chốt', own: 'khách tự mang về', back: 'khách cũ quay lại', grow: 'tiến bộ' };
+  function raceHeroPick() {
+    var d = raceGet(); if (!d || !d.ok || !d.week) return null;
+    var cs = d.week.cats.filter(function (c) { return (c.k !== 'own' || selfOn()) && c.me && c.me.v > 0; });
+    if (!cs.length) return { none: 1 };
+    var s0 = cs.filter(function (c) { return c.k === 'sales'; })[0];
+    return s0 || cs.slice().sort(function (a, b) { return a.me.r - b.me.r; })[0];
+  }
+  function raceHero() {
+    var c = raceHeroPick(); if (!c) return '🏁 Thi đua ›';
+    if (c.none) return '🏁 Tuần này bạn chưa có tên trên bảng thi đua · xem cách lên hạng ›';
+    var lb = RACE_SHORT[c.k] || '';
+    if (c.me.r === 1) return '👑 Tuần này bạn <b>dẫn đầu ' + lb + '</b> · giữ vững nhé ›';
+    return '🏁 Tuần này: <b>hạng ' + c.me.r + '/' + c.count + '</b> ' + lb + (c.me.gap ? ' · còn cách người trên <b>' + raceGap(c.k, c.me.gap, c.pct) + '</b>' : '') + ' ›';
+  }
+  function raceHeroAttr() { var c = raceHeroPick(); return c && !c.none ? ' class="td-race"' : ''; }
   /** Sale: 1 dòng mục tiêu tháng + hôm nay trong khung đầu trang Hôm nay (chi tiết ở cuối trang). */
   function todayGoalLine() {
     var me = S.user.name, mk = monthOf(Date.now()), R = monthRange(mk), t = targetOf(me, mk), t0 = today(), sales = perf(me, R).sales, td = perf(me, [t0, t0 + DAY]);

@@ -49,7 +49,7 @@ Tab **Hôm nay** là danh sách khách bạn cần gọi hôm nay. Máy đã ch�
 - Cạnh tên mỗi khách có **nhãn màu ghi lý do gọi**, ví dụ **🧾 Xác nhận đơn**, **🔥 Vừa hỏi**, **📦 Hỏi nhận hàng**, **🤝 Hỏi thăm 1 tuần**, **⏰ Sắp hết hàng**.
 - Muốn xem 1 loại thôi thì bấm nút lọc: **Tất cả · 🧾 Đơn mới · 🔥 Vừa hỏi · 💚 Chăm sóc · 🙋 Khách hỏi**.
 - Thẻ **🌿 Quy tắc hôm nay** thu gọn 1 dòng: bấm **✅ Mình sẽ làm** ngay trên dòng đó, bấm vào chữ để xem gợi ý.
-- Dưới danh sách: **🌱 Mở rộng khách** (bấm để mở 5 việc), rồi **🏁 Mục tiêu & thi đua**. Nút **🏁 Thi đua ›** ở ô trên cùng nhảy xuống ngay.
+- Dưới danh sách: **🌱 Mở rộng khách** (bấm để mở 5 việc), rồi **🏁 Mục tiêu & thi đua**. Ô trên cùng có dòng **🏁 thứ hạng thi đua tuần này** của bạn (ví dụ *hạng 2/6 doanh số · còn cách người trên 5 điểm %*, hoặc *👑 bạn dẫn đầu*). Bấm vào dòng đó là nhảy xuống bảng thi đua đầy đủ.
 
 ![Tab Hôm nay](/huong-dan/img/crm-today.webp)
 
