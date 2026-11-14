@@ -1797,11 +1797,12 @@
   function raceCat(c, P, wk) {
     var lb = RACE_CATS[c.k], md = ['🥇', '🥈', '🥉'], list = lvl() >= 2 && c.all ? c.all : c.top;
     var money = function (s) { return s != null && c.pct ? ' <small class="race-money">' + moneyShort(s) + '</small>' : ''; }; // máy chủ chỉ gửi tiền của mình (hoặc của mọi người cho quản lý)
-    var rows = list.length ? list.map(function (e) { return '<li' + (e.n === S.user.name ? ' class="race-me"' : '') + '><span>' + (md[e.r - 1] || e.r + '.') + ' ' + esc(e.n) + '</span><b>' + raceVal(c.k, e.v, c.pct) + money(e.s) + '</b></li>'; }).join('') : '<li class="race-none">Chưa có ai trong kỳ này</li>';
+    var rows = list.length ? list.map(function (e) { return '<li' + (e.n === S.user.name ? ' class="race-me"' : '') + '><span>' + (md[e.r - 1] || e.r + '.') + ' ' + esc(e.n) + '</span><b>' + raceVal(c.k, e.v, c.pct) + money(e.s) + '</b></li>'; }).join('') : '<li class="race-none">' + (c.k === 'sales' && c.pct && !c.count ? 'Chưa ai đặt 🎯 mục tiêu doanh số tháng này nên chưa xếp hạng được' : c.count ? 'Cả ' + c.count + ' người đều đang ở mức 0, ai có trước sẽ dẫn đầu' : 'Chưa có ai đủ điều kiện xếp hạng trong kỳ này') + '</li>'; // 14/11/2026: nói rõ vì sao trống thay vì "Chưa có ai"
     if (c.none && c.none.length) rows += '<li class="race-none">Chưa đặt mục tiêu: ' + c.none.map(function (e) { return esc(e.n) + (e.s ? ' (' + moneyShort(e.s) + ')' : ''); }).join(', ') + '</li>';
     var me = '';
     if (lvl() < 2) {
       if (!c.me) me = c.k === 'sales' && c.pct ? 'Đặt 🎯 mục tiêu tháng để vào bảng xếp hạng' : c.k === 'close' ? 'Cần ít nhất ' + (wk ? 3 : 5) + ' số data quảng cáo trong kỳ để xếp hạng' : c.k === 'grow' ? 'Cần doanh số kỳ trước từ 500k để so' : c.k === 'effort' ? 'Mời 1 khách giới thiệu hoặc tự thêm 1 khách hỏi là có tên ở đây' : 'Chưa có số liệu';
+      else if (!c.me.v && c.k !== 'grow') me = c.k === 'close' && P.mine ? 'Bạn: 0% · ' + P.mine.won + ' / ' + P.mine.data + ' data quảng cáo ra đơn trong kỳ' : c.k === 'own' ? 'Bạn chưa có: khách mới bạn tự tìm hoặc khách cũ giới thiệu, mua đơn đầu là có tên ở đây' : c.k === 'sales' ? 'Bạn chưa có doanh số trong kỳ này' : 'Bạn chưa có trong kỳ này'; // mọi người cùng 0 thì không ghi "hạng 1/7"
       else if (c.me.r === 1 && c.me.v > 0) me = '👑 Bạn đang dẫn đầu, giữ vững nhé!' + (c.me.s != null ? ' · ' + moneyShort(c.me.s) : '');
       else me = 'Bạn: <b>hạng ' + c.me.r + '/' + c.count + '</b> · ' + raceVal(c.k, c.me.v, c.pct) + (c.me.s != null ? ' (' + moneyShort(c.me.s) + ')' : '') + (c.me.gap ? ' · còn cách người trên <b>' + raceGap(c.k, c.me.gap, c.pct) + '</b>' : '');
     }

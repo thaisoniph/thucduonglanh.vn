@@ -346,6 +346,8 @@ Tab xếp theo đúng thứ tự một sale giỏi tự hỏi mỗi ngày, **đ�
 
 **Bảng thi đua** (cuối tab Hôm nay): xếp hạng theo **% mục tiêu** đạt được, không theo số tiền. Ai cũng thấy Top 3. Hạng của bạn chỉ bạn thấy. Số tiền của bạn chỉ bạn và quản lý thấy.
 
+Mục nào ghi **“Cả … người đều đang ở mức 0”** nghĩa là chưa ai có số ở mục đó, ai có trước sẽ dẫn đầu. Mục **🏆 Doanh số** ghi **“Chưa ai đặt mục tiêu”** thì cần đặt 🎯 mục tiêu doanh số tháng (bạn tự đặt hoặc nhờ quản lý), vì mục này xếp theo % mục tiêu.
+
 **Bảng BCDT:** tab **Hiệu quả → 📊 Bảng BCDT** là báo cáo doanh số cả tháng. Bấm **Tải file Excel** để gửi.
 
 ## Khách dùng nhiều số điện thoại
