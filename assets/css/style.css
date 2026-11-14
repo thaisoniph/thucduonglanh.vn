@@ -294,6 +294,8 @@ input,select,textarea{font-family:inherit;font-size:15px}
 .post-body{padding:20px 22px 22px;display:flex;flex-direction:column;flex:1}
 .post-meta{font-size:13px;color:var(--muted);margin-bottom:8px}
 .post-meta span,.post-meta a{color:var(--gold);font-weight:600}
+.post-rv{font-size:13.5px;color:var(--muted);margin:-4px 0 12px}.post-rv a{font-weight:600}.post-rv span,.post-rv a{white-space:nowrap}
+.post-exp{background:var(--primary-light);border-left:4px solid var(--primary);border-radius:10px;padding:14px 18px;margin:0 0 24px}.post-exp-h{font-weight:700;margin:0 0 6px}.post-exp p{margin:6px 0}.post-exp-by{font-style:italic;color:var(--muted)}
 .post-body h3{font-size:18px;line-height:1.45;margin-bottom:10px}
 .post-body h3 a{color:var(--ink)}
 .post-body h3 a:hover{color:var(--primary-2)}

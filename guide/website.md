@@ -45,6 +45,10 @@ Máy nhớ bạn 30 ngày.
 
 Muốn ẩn bài mà không xoá: tắt ô **Hiển thị trên web**.
 
+**🌿 Trải nghiệm thật** (không bắt buộc, từ 14/11/2026): nếu bạn, đồng nghiệp hoặc khách (đã đồng ý cho đăng) có chuyện thật liên quan chủ đề bài, ghi vào ô **🌿 Trải nghiệm thật** và **Người kể trải nghiệm**. Web hiện chuyện này trong khung xanh ở đầu bài. Google đánh giá cao bài có trải nghiệm thật (tiêu chí E-E-A-T). Chỉ ghi điều có thật, không ghi công dụng chữa bệnh. Để trống thì khung không hiện.
+
+Mọi bài Góc Sống Lành tự có dòng **"Người duyệt nội dung: Đinh Minh Thái Sơn"** (link sang dinhminhthaison.com) ngay dưới tiêu đề. Đổi người duyệt ở **Cài đặt website → Thông tin liên hệ… → Người duyệt nội dung bài viết**.
+
 ## Trợ lý viết bài tự động
 
 Trợ lý tự viết bài cho Góc Sống Lành. **Bài chỉ lên web khi có người bấm Đăng.**
@@ -62,6 +66,8 @@ Trợ lý tự viết bài cho Góc Sống Lành. **Bài chỉ lên web khi có 
    - **🖊 Tôi tự sửa trong /admin**: bài vào /admin ở dạng ẩn. Sửa xong bật "Hiển thị trên web" rồi bấm Xuất bản.
    - **🔁 Đổi chủ đề khác** hoặc **❌ Bỏ**.
 4. Tới giờ đăng mà chưa ai duyệt, trợ lý nhắc thêm 1 lần.
+
+**Giao chủ đề kèm trải nghiệm thật:** ở /admin → Cài đặt website → 🤖 Trợ lý viết bài tự động → Chủ đề chờ viết, có thêm ô **🌿 Trải nghiệm thật**. Ghi chuyện thật vào đó: trợ lý nhắc lại đúng ý trong bài (không thêm thắt) và web hiện riêng trong khung xanh đầu bài.
 
 **✍️ Trợ lý học từ bạn:** ý kiến bạn ghi khi bấm **✍️ Viết lại theo ý kiến** được trợ lý nhớ cho cả các bài sau, không chỉ bài đó. Bài bạn **tự sửa trong /admin** rồi bật hiển thị cũng vậy: khoảng 6 tiếng sau, trợ lý so bản nó viết với bản bạn sửa để học cách viết. Vì vậy hãy ghi ý kiến cụ thể, ví dụ "mở bài bằng tình huống thật, bớt số liệu", "câu ngắn hơn".
 

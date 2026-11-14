@@ -171,7 +171,7 @@ async function write(x, cfg, day, row) {
     const ask = [
       'Viết 1 bài cho mục "Góc Sống Lành" trên website thucduonglanh.vn. Ngày đăng: ' + dayTxt(day) + '/' + day.slice(0, 4) + '.',
       'Tầng phễu: ' + FUNNEL[funnel].name + '. Mục tiêu: ' + FUNNEL[funnel].goal,
-      topic ? 'CHỦ ĐỀ do nhân sự giao: ' + topic.title + (topic.note ? '\nGhi chú: ' + topic.note : '') + (topic.product ? '\nSản phẩm muốn nhắc: ' + topic.product : '')
+      topic ? 'CHỦ ĐỀ do nhân sự giao: ' + topic.title + (topic.note ? '\nGhi chú: ' + topic.note : '') + (topic.product ? '\nSản phẩm muốn nhắc: ' + topic.product : '') + (topic.experience ? '\nTRẢI NGHIỆM THẬT do nhân sự cung cấp (E-E-A-T, web sẽ hiện riêng trong khung 🌿 Trải nghiệm thật đầu bài): "' + String(topic.experience).slice(0, 1500) + '"' + (topic.experience_by ? ' – ' + topic.experience_by : '') + '\nTrong bài được nhắc lại đúng ý trải nghiệm này 1 lần, KHÔNG thêm chi tiết, không biến thành lời hứa công dụng, không bịa thêm trải nghiệm khác.' : '')
         : 'Chưa có chủ đề được giao: TỰ CHỌN 1 chủ đề. Cách chọn: lấy 1 tension của nhóm khách mục tiêu bên dưới (chưa được viết gần đây), rồi đặt chủ đề giải đúng tension đó ở tầng phễu trên. Ưu tiên chủ đề người Việt đang tìm trên Google, gắn với thời điểm (mùa, ngày lễ, ngày sức khỏe thế giới trong tháng) nếu hợp.',
       kw ? '🔑 TỪ KHOÁ CHÍNH của bài (ngân hàng từ khoá theo insight): "' + kw.k + '". Chủ đề bài = trả lời đúng và đủ điều người gõ từ khoá này đang muốn biết (để Google và các trợ lý AI chọn bài làm câu trả lời: có đoạn trả lời thẳng ngay sau mở bài, có mục hỏi đáp). Tiêu đề, câu mở và 1 tiêu đề mục chứa từ khoá đúng cách người ta gõ, tự nhiên, không nhồi. Từ khoá chỉ để hiểu người đọc, KHÔNG vì thế mà hứa công dụng ngoài hồ sơ công bố.' : '',
       topic ? 'Chủ đề được giao vẫn phải đi qua bước insight: viết chủ đề này cho nhóm khách mục tiêu bên dưới, xoay quanh 1 tension của họ.' : '',
@@ -235,7 +235,7 @@ async function write(x, cfg, day, row) {
     const cat = CATS.includes(get('CHUYÊN MỤC')) ? get('CHUYÊN MỤC') : CATS[0];
     const excerpt = get('MÔ TẢ').slice(0, 200), f2 = funnelOf(get('TẦNG PHỄU')) || funnel;
     const q = s => JSON.stringify(String(s)); // chuỗi YAML an toàn (có dấu : vẫn đúng)
-    const md = ['---', 'title: ' + q(title), 'date: ' + day, 'category: ' + cat, 'image: ' + cover, 'excerpt: ' + q(excerpt), 'published: true', '---', '', body, ''].join('\n');
+    const md = ['---', 'title: ' + q(title), 'date: ' + day, 'category: ' + cat, 'image: ' + cover, 'excerpt: ' + q(excerpt), ...(topic && topic.experience ? ['experience: ' + q(String(topic.experience).slice(0, 1500))].concat(topic.experience_by ? ['experience_by: ' + q(String(topic.experience_by).slice(0, 120))] : []) : []), 'published: true', '---', '', body, ''].join('\n');
     const ins = insParse(head, ip.bank, ip.g), rw = insRisk(body), rv = insStyle(body); if (ip.angle) ins.a = ip.angle;
     if (rv.length) checks.push('✍️ Văn còn giống AI: ' + rv.join(', ') + ' → sửa cho liền mạch, dùng dấu phẩy');
     if (rw.length) checks.push('⚠️ Đọc lại: ' + rw.join(', ') + ' → cụm dễ phạm luật quảng cáo chỉ giữ nếu đúng hồ sơ công bố hoặc là câu phủ định; hotline cũ 0896 869 333 đổi thành 0966 326 522');

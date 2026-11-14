@@ -10,7 +10,7 @@ export const KPI_GROUPS = [
     due: ['Cập nhật thu chi mỗi ngày làm việc (tải sao kê VCB / MB vào CRM)', 'Thứ Hai gửi kế hoạch thu chi trong tuần', 'Thứ Tư đối soát Shopee, TikTok Shop và COD', 'Chiều thứ Sáu rà khoản chưa khớp', 'Chốt tháng trước vào ngày làm việc thứ 3 của tháng sau'],
     ok: ['Sổ thu chi đủ, khớp số dư quỹ và ngân hàng', 'Kế hoạch tuần ghi rõ khoản phải chi, nguồn chi, ngày có nguy cơ thiếu tiền', 'Phiếu Best / Viettel Post không để quá 3 ngày (đỏ trên CRM); đơn Shopee quá hạn đã hỏi sàn', 'Doanh thu từng sàn khớp với hoá đơn đã xuất'] },
   { t: 'Công nợ phải thu, phải trả', w: 10,
-    due: ['Ngày 15 và ngày cuối tháng rà nợ quá hạn', 'Trình hồ sơ chi trước hạn thanh toán', 'Chốt số dư chậm nhất ngày mùng 5 tháng sau'],
+    due: ['Ngày 10 hằng tháng đối chiếu công nợ từng nhà cung cấp (CRM 🔍 Đối chiếu)', 'Ngày 15 và ngày cuối tháng rà nợ quá hạn', 'Trình hồ sơ chi trước hạn thanh toán', 'Chốt số dư chậm nhất ngày mùng 5 tháng sau'],
     ok: ['Sổ công nợ nhà cung cấp trên CRM ghi đủ hoá đơn, khoản quá hạn có bước xử lý', 'Đối chiếu nhà cung cấp đến kỳ, hồ sơ chi đủ chứng từ', 'Báo sớm nguy cơ chậm duyệt hoặc thiếu tiền chi'] },
   { t: 'Lương, BHXH và thuế TNCN', w: 10,
     due: ['Trình bảng lương trước ngày chi lương ít nhất 1 ngày làm việc', 'Báo tăng, giảm BHXH ngay trong tháng phát sinh', 'Chi theo mốc Giám đốc đã duyệt'],

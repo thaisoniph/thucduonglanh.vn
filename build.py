@@ -379,7 +379,8 @@ for f in sorted((CONTENT / "posts").glob("*.md")):
     d = d.date() if isinstance(d, datetime.datetime) else d
     d = d.isoformat() if isinstance(d, datetime.date) else str(d)[:10]
     _posts.append({"slug": f.stem, "title": meta.get("title", f.stem), "date": d, "category": meta.get("category", ""), "modified": max(d, src_date(f, tr_path(f)) or d),
-                   "image": meta.get("image") or "/assets/img/brand/og-image.jpg", "excerpt": meta.get("excerpt", ""), "content": md(body)})
+                   "image": meta.get("image") or "/assets/img/brand/og-image.jpg", "excerpt": meta.get("excerpt", ""), "content": md(body),
+                   "experience": str(meta.get("experience") or "").strip(), "experience_by": str(meta.get("experience_by") or "").strip()})  # 🌿 Trải nghiệm thật (E-E-A-T, 14/11/2026)
 POSTS = {"categories": load_json(DATA / "post-categories.json")[0]["categories"], "posts": _posts}
 
 PAGES = []
@@ -3224,12 +3225,19 @@ def page_post(p):
     bc, bld = breadcrumb([(t("Góc Sống Lành"), "/goc-song-lanh/"), (cat["name"], f"/goc-song-lanh/chuyen-muc/{cat['slug']}/"), (p["title"], None)])
     d = datetime.date.fromisoformat(p["date"]).strftime("%d/%m/%Y")
     others = sorted([x for x in POSTS["posts"] if x["slug"] != p["slug"]], key=lambda x: x["date"], reverse=True)[:3]
+    # E-E-A-T (14/11/2026): người duyệt nội dung (data/site.json → reviewer) + ô "Trải nghiệm thật" (tuỳ chọn, /admin → bài viết)
+    rv = SITE.get("reviewer") or {}
+    rv_line = (f'<p class="post-rv"><span>{t("Người duyệt nội dung")}:</span> <a href="{esc(rv["url"])}" target="_blank" rel="noopener">{esc(rv["name"])}</a>'
+               f' · <span>{t("cập nhật")} <time datetime="{p["modified"]}">{datetime.date.fromisoformat(p["modified"]).strftime("%d/%m/%Y")}</time></span></p>') if rv.get("name") and rv.get("url") else ""
+    exp_box = (f'<aside class="post-exp"><p class="post-exp-h">🌿 {t("Trải nghiệm thật")}</p>{md(p["experience"])}'
+               + (f'<p class="post-exp-by">– {esc(p["experience_by"])}</p>' if p.get("experience_by") else "") + '</aside>') if p.get("experience") else ""
     body = f'''<section class="section pt-2"><div class="container narrow">{bc}
 <article class="prose post">
   <div class="post-meta"><a href="/goc-song-lanh/chuyen-muc/{cat["slug"]}/">{esc(cat["name"])}</a> · <time datetime="{p["date"]}">{d}</time></div>
   <h1>{esc(p["title"])}</h1>
+  {rv_line}
   <img class="post-cover" src="{img_url(p["image"], 1400)}" alt="{esc(p["title"])}" width="1200" height="1200">
-  {post_html}
+  {exp_box}{post_html}
 </article>
 {pbox_end}{cn_cta("post")}{f'<p class="post-quiz">🖐 Bạn sống lành tới đâu? <a href="{QUIZ_PATH}?tu=post" data-cta="post_quiz">Chơi thử 1 phút: Bạn còn mấy ngón tay? →</a></p>' if IS_VI and QUIZ.get("questions") else ""}</div></section>
 <section class="section bg-soft"><div class="container"><h2 class="sec-title">{t("Bài viết khác")}</h2><div class="post-grid">{"".join(post_card(x) for x in others)}</div></div></section>'''
@@ -3238,8 +3246,13 @@ def page_post(p):
           "datePublished": p["date"], "dateModified": p["modified"], "image": DOMAIN + img_url(p["image"], 1200),
           "mainEntityOfPage": DOMAIN + path, "articleSection": cat["name"] or None, "author": org, "publisher": org}
     ld = {k: v for k, v in ld.items() if v}
+    jl = [ld, bld]
+    if rv.get("name") and rv.get("url"):  # Google: trang có người duyệt nội dung (WebPage.reviewedBy), bài vẫn do thương hiệu đăng
+        person = {"@type": "Person", "name": rv["name"], "url": rv["url"]}
+        ld["mainEntityOfPage"] = {"@type": "WebPage", "@id": DOMAIN + path, "reviewedBy": person, "lastReviewed": p["modified"]}
+        ld["editor"] = person
     meta = f'<meta property="article:published_time" content="{p["date"]}"><meta property="article:modified_time" content="{p["modified"]}">'
-    return layout(path, p["title"], p["excerpt"], body + bv_float(), og=img_url(p["image"], 1200), jsonld=[ld, bld], og_type="article", extra_head=meta)
+    return layout(path, p["title"], p["excerpt"], body + bv_float(), og=img_url(p["image"], 1200), jsonld=jl, og_type="article", extra_head=meta)
 
 
 def page_cart():

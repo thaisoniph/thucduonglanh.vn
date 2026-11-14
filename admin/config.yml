@@ -67,6 +67,8 @@ collections:
         display_fields: ["categories.*.name"]
       - { label: "Ảnh đại diện", name: image, widget: image, hint: "Ảnh vuông hoặc ngang, tối thiểu 1000px. Web tự nén ảnh." }
       - { label: "Mô tả ngắn", name: excerpt, i18n: true, widget: text, hint: "1–2 câu, hiện ở danh sách bài và khi chia sẻ Facebook/Zalo." }
+      - { label: "🌿 Trải nghiệm thật (không bắt buộc)", name: experience, i18n: true, widget: text, required: false, hint: "Chuyện thật của người viết, nhân sự hoặc khách (đã đồng ý cho đăng) liên quan chủ đề bài. Hiện trong khung xanh đầu bài, giúp Google tin bài hơn. Chỉ ghi điều có thật, không ghi công dụng chữa bệnh. Để trống thì không hiện." }
+      - { label: "Người kể trải nghiệm (không bắt buộc)", name: experience_by, widget: string, required: false, hint: "Ví dụ: Chị Hà, chuyên viên tư vấn Thực Dưỡng Lành. Khách thì chỉ ghi tên gọi + nơi ở nếu khách đồng ý." }
       - { label: "Hiển thị trên web", name: published, widget: boolean, default: true, hint: "Tắt để ẩn bài mà không xoá." }
       - { label: "Nội dung", name: body, i18n: true, widget: markdown }
 
@@ -649,6 +651,14 @@ collections:
           - { label: "Email", name: email, widget: string }
           - { label: "Địa chỉ", name: address, i18n: true, widget: string }
           - { label: "Giờ làm việc", name: opening_hours, i18n: true, widget: string }
+          - label: "Người duyệt nội dung bài viết (E-E-A-T)"
+            name: reviewer
+            widget: object
+            required: false
+            hint: "Hiện dưới tiêu đề mọi bài Góc Sống Lành + dữ liệu cho Google (reviewedBy). Xoá tên thì dòng này ẩn."
+            fields:
+              - { label: "Họ tên", name: name, widget: string, required: false }
+              - { label: "Trang giới thiệu (link)", name: url, widget: string, required: false }
           - label: "Mạng xã hội (chân trang)"
             name: socials
             widget: object
@@ -1078,5 +1088,7 @@ collections:
               - { label: "Tầng phễu", name: funnel, widget: select, default: "Tự chọn", options: ["Tự chọn", "TOFU – Nhận biết", "MOFU – Cân nhắc", "BOFU – Mua hàng"] }
               - { label: "Nhóm khách (không bắt buộc)", name: group, widget: string, required: false, hint: "Tên hoặc mã nhóm trong CRM → 🎯 Insight & nội dung, ví dụ: van-phong, me-bim, trung-nien, an-chay, mua-qua. Để trống = trợ lý tự chọn." }
               - { label: "Sản phẩm muốn nhắc (mã, không bắt buộc)", name: product, widget: string, required: false, hint: "Ví dụ: bua-an-dinh-duong-vitagreen" }
+              - { label: "🌿 Trải nghiệm thật (không bắt buộc)", name: experience, widget: text, required: false, hint: "Chuyện thật liên quan chủ đề (của bạn, đồng nghiệp hoặc khách đã đồng ý). Trợ lý nhắc lại đúng ý trong bài và web hiện riêng trong khung 🌿 đầu bài. Không bịa." }
+              - { label: "Người kể trải nghiệm", name: experience_by, widget: string, required: false }
               - { label: "Trạng thái", name: status, widget: select, default: "Chờ viết", options: ["Chờ viết", "Đã đăng", "Bỏ qua"] }
               - { label: "Link bài đã đăng", name: link, widget: string, required: false }

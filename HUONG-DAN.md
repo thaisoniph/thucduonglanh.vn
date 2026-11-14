@@ -572,6 +572,11 @@ Apps Script giới hạn 200 phiên bản/dự án: báo lỗi "Không tạo đ�
 - Đã chạy thử 14/11/2026: 16 câu (5 đúng, 11 sai giá / sai freeship / sai % + mã / số cũ 0896 / lợi sữa / giảm cân / dạ dày + trào ngược / huyết áp / khỏi bệnh tiểu đường / cam kết hiệu quả / doạ đột quỵ) → đúng cả 16; 211 câu đã duyệt trong tài liệu (Hỏi đáp, gạch đầu dòng) → không câu nào bị chặn nhầm. Bộ thử: `python3 build.py && node scripts/test-gate.mjs` (thêm câu mới vào mảng T khi gặp ca sai).
 - Fanpage (`fb.js`) chưa gắn: muốn thì thêm 1 dòng `gate(x, 'fb', …)` trước khi gửi bình luận / tin nhắn.
 
+### ✍️ Việc 4 – E-E-A-T cho bài Góc Sống Lành (14/11/2026)
+- `data/site.json` → `reviewer` { name: "Đinh Minh Thái Sơn", url: "https://dinhminhthaison.com" } (/admin → Thông tin liên hệ… → Người duyệt nội dung bài viết). `page_post` (build.py) hiện `.post-rv` dưới tiêu đề: "Người duyệt nội dung: <tên> · cập nhật <ngày sửa>" (cụm nowrap); JSON-LD Article thêm `editor` = Person và `mainEntityOfPage` = WebPage có `reviewedBy` + `lastReviewed`. Tác giả (`author`) vẫn là Organization. Xoá tên / link → dòng và dữ liệu tự ẩn.
+- Bài viết có 2 ô tuỳ chọn `experience` (🌿 Trải nghiệm thật, markdown) + `experience_by` (người kể): khung `.post-exp` đầu bài (sau ảnh bìa). Trợ lý viết bài: chủ đề trong `data/blog-auto.json` có thêm `experience`, `experience_by` → prompt bắt nhắc đúng ý 1 lần, không thêm chi tiết; frontmatter bài ghi luôn 2 ô này. Từ khoá dịch: "Người duyệt nội dung", "cập nhật", "Trải nghiệm thật" (`data/i18n/en.json`).
+- Không đụng repo / thư mục Website DMTS.
+
 ## 7. Tên miền, DNS, chuyển hướng
 
 - Nameserver: `liberty.ns.cloudflare.com`, `randy.ns.cloudflare.com`. **Mọi thay đổi DNS làm trên Cloudflare**, không làm ở Tenten.
