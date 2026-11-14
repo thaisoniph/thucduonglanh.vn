@@ -3824,7 +3824,7 @@
     var none = function (t) { return '<span class="gr-none">' + t + '</span>'; };
     // 13/11/2026 anh Sơn: mỗi việc ghi rõ LỢI ÍCH cho sale (💰), đăng bài Facebook cá nhân / hội nhóm là việc thứ 5 (mỗi ngày 1 bài)
     var T = [
-      { v: ef.inv, n: growNeed().inv, icon: '🌱', t: 'Mời ' + growNeed().inv + ' khách cũ giới thiệu bạn bè', how: 'Gọi khách đã dùng 7–30 ngày. Khách khen thì bấm 🌱 Mời giới thiệu, gửi tin có sẵn. Mỗi ngày mời ít nhất ' + growNeed().inv + ' người: khoảng 5 lời mời ra 1 khách mới.', g: 'Bạn của khách là khách mới không tốn quảng cáo: bạn hưởng ' + (PP.own || 6) + '% mọi đơn trong 6 tháng + thưởng đến 100.000đ.', b: amb ? '<button class="btn pri" data-gopen="amb">Mời ngay</button>' : none('chưa có khách tới lượt') },
+      { v: ef.inv, n: growNeed().inv, icon: '🌱', t: 'Mời ' + growNeed().inv + ' khách cũ giới thiệu bạn bè', how: 'Gọi khách đã dùng 7–30 ngày. Khách khen thì bấm 🌱 Mời giới thiệu, gửi tin có sẵn. Mỗi ngày mời ít nhất ' + growNeed().inv + ' người: khoảng 5 lời mời ra 1 khách mới.', g: 'Bạn của khách là khách mới không tốn quảng cáo: bạn hưởng ' + (PP.own || 6) + '% mọi đơn trong 6 tháng + thưởng đến 100.000đ.', b: amb ? '<button class="btn pri" data-gopen="amb">Mời ngay</button>' : '<button class="btn pri" data-bulkref>📨 Gửi tin mời</button>' },
       { v: ef.zl, n: 1, icon: '👥', t: 'Mời 1 khách vào nhóm Zalo cộng đồng', how: 'Bấm Mời: lời mời có link nhóm tự copy, Zalo của khách tự mở.', g: 'Công ty chăm khách mỗi ngày giúp bạn: khách trong nhóm tin hơn, mua lại nhiều hơn, đơn khách cũ của bạn tăng.', b: zlN ? '<button class="btn pri" data-commpick>Mời vào nhóm</button>' : none('khách đều đã vào nhóm') },
       { v: ef.old, n: 1, icon: '😴', t: 'Gọi lại 1 khách từng nói “Không mua”', how: 'Mở lời bằng lý do mới: sản phẩm mới, ưu đãi tháng này, hỏi thăm sức khoẻ.', g: 'Khách đã biết sản phẩm, chỉ là lúc trước chưa đúng lúc: dễ chốt hơn một số lạ.', b: idle.length ? '<button class="btn pri" data-gopen="idle">Gọi lại</button>' : none('chưa có khách tới lượt') }
     ];
@@ -13043,12 +13043,73 @@
     var L = A.list.filter(function (x) { return !busy[x.c.phone]; }); if (!L.length) return '';
     var bonus = S._rb.cfg.bonus, rc = S._rb.cfg, ownSay = !bonus && rc.saleOff && selfOn() ? ' Mỗi người bạn mới mua, bạn hưởng <b>' + rc.ownPct + '%</b> mọi đơn của họ trong ' + rc.ownMonths + ' tháng.' : '';
     return '<section class="section amb" data-grp="amb"><div class="section-h"><h2>' + (num || '') + ' 🌱 Mời làm Đại sứ</h2><span class="count">' + Math.min(5, L.length) + '</span></div>' +
-      '<p class="amb-sub">Khách đã dùng 7–30 ngày. Hỏi <i>“Chị dùng thấy thế nào ạ?”</i>, khách khen thì bấm <b>Mời giới thiệu</b>: có sẵn tin nhắn và kịch bản gọi.' + (bonus ? ' Mỗi người bạn mới mua, bạn được thưởng <b>đến ' + money(bonus) + '</b>.' : ownSay) + '</p><div class="amb-list">' +
+      '<p class="amb-sub">Khách đã dùng 7–30 ngày. Hỏi <i>“Chị dùng thấy thế nào ạ?”</i>, khách khen thì bấm <b>Mời giới thiệu</b>: có sẵn tin nhắn và kịch bản gọi.' + (bonus ? ' Mỗi người bạn mới mua, bạn được thưởng <b>đến ' + money(bonus) + '</b>.' : ownSay) + '</p><button type="button" class="btn sm bk-open" data-bulkref>📨 Gửi tin mời cho nhiều khách cũ</button><div class="amb-list">' +
       L.slice(0, 5).map(function (x) { var c = x.c, nm = ambName(c.name) || c.phone;
         return '<div class="amb-row click" data-cust="' + c.phone + '"><span class="amb-av">' + esc(ambAv(c.name)) + '</span><span class="amb-t"><b>' + esc(nm) + (isVip(c) ? ' <em class="amb-vip">VIP</em>' : '') + '</b>' +
           '<small>' + (c.products.length ? esc(shortProducts(c.products, 1)) + ' · ' : '') + 'nhận ' + x.d + ' ngày trước · ' + c.orders + ' đơn</small></span>' +
           '<span class="amb-a"><a class="amb-call" href="tel:' + c.phone + '" title="Gọi hỏi khách dùng thấy thế nào">📞</a><button class="amb-go" data-refcode="' + c.phone + '">🌱 Mời giới thiệu</button><button class="amb-skip" data-ambskip="' + c.phone + '" title="Khách chưa hài lòng hoặc chưa tiện: ẩn 30 ngày">Để sau</button></span></div>'; }).join('') +
       '</div>' + (L.length > 5 ? '<p class="amb-more">Còn ' + (L.length - 5) + ' khách, mai hiện tiếp.</p>' : '') + '</section>';
+  }
+  /** 📨 Gửi tin mời giới thiệu cho nhiều khách cũ (14/11/2026 anh Sơn): 1 mẫu tin dùng chung, danh sách khách cũ của sale (đã nhận hàng ≥ 7 ngày, chưa mời, không ngừng liên hệ).
+   *  Mỗi khách bấm 📋 Gửi: tin có sẵn tên khách được copy + Zalo khách tự mở; nền gọi ref_code (tạo mã + ghi "Mời giới thiệu" = tính việc 1).
+   *  Không gửi tự động: Zalo cá nhân không cho, gửi dồn dễ bị khoá. Bạn bè gõ SĐT người giới thiệu ở ô mã ưu đãi trên web (voucher.js) nên tin chung không cần mã riêng. */
+  var BK_DAYS = 60, BK_PAGE = 20;
+  function bkTpls(pct) {
+    var ex = rfMoneyEx('Giảm ' + pct + '%') || 'giảm ' + pct + '% đơn đầu', me = S.user.name;
+    return [
+      ['Cảm ơn + mời', 'Dạ [Tên] ơi, em là ' + me + ' bên Thực Dưỡng Lành ạ. Cảm ơn [Tên] đã tin dùng sản phẩm bên em thời gian qua ❤️\nBên em đang có chương trình cảm ơn khách quen:\n🎁 Người thân, bạn bè của [Tên] mua lần đầu được ' + ex + '\n🎁 [Tên]: mỗi bạn mua, [Tên] được voucher cho lần sau. Quà này công ty tặng, bạn của [Tên] không bị cộng giá đồng nào.\nCách dễ nhất: [Tên] nhắn em số điện thoại của bạn, em gọi tư vấn giúp ạ. Bạn muốn tự đặt thì vào thucduonglanh.vn, gõ số điện thoại của [Tên] ở ô mã ưu đãi là được giảm.\n[Tên] chưa tiện cũng không sao ạ, em chúc cả nhà mình luôn khoẻ 🌿'],
+      ['Ngắn gọn', 'Dạ [Tên] ơi, người thân, bạn bè của [Tên] muốn dùng thử Thực Dưỡng Lành thì [Tên] nhắn em số điện thoại của bạn nhé, em gọi tư vấn giúp ạ. Bạn mua lần đầu được giảm ' + pct + '%, còn [Tên] được voucher cảm ơn cho lần sau 🌿']
+    ];
+  }
+  function bkList() {
+    var me = lvl() < 2 ? S.user.name : whoName() || S.user.name, now = Date.now(), inv = {}, sent = {}, L = [];
+    ((S._rb && S._rb.inv) || []).forEach(function (p) { inv[p] = 1; });
+    try { sent = JSON.parse(store('crm_bk_sent') || '{}'); } catch (e) { }
+    S.d.customers.forEach(function (c) {
+      if (c.owner !== me || inv[c.phone] || isStopped(c) || (sent[c.phone] && sent[c.phone] > now - BK_DAYS * DAY)) return;
+      var o = ordersOf(c.phone).filter(function (x) { return !isVoid(x.status); })[0]; if (!o || !/đã giao/i.test(o.status || '')) return;
+      var d = Math.floor((now - (o.receivedAt || o.shipAt || o.time)) / DAY); if (d < 7) return;
+      L.push({ c: c, d: d });
+    });
+    return L.sort(function (a, b) { return (isVip(b.c) - isVip(a.c)) || (b.c.orders - a.c.orders) || (a.d - b.d); });
+  }
+  function openBulkRef() {
+    rbData();
+    var pct = (S._rb && S._rb.cfg && S._rb.cfg.refPct) || 10, T = bkTpls(pct), L = bkList(), shown = BK_PAGE, done = 0;
+    var k = +(store('crm_bk_tpl') || 0) || 0; if (!T[k]) k = 0;
+    var m = modal('📨 Mời khách cũ giới thiệu bạn bè',
+      '<ol class="bk-steps"><li>Chọn mẫu tin (sửa được).</li><li>Bấm <b>📋 Gửi</b> ở từng khách: tin đã có <b>tên khách</b> được copy, Zalo của khách tự mở.</li><li>Trong Zalo: giữ tay vào ô chat → <b>Dán</b> → <b>Gửi</b>. Quay lại bấm khách tiếp theo.</li></ol>' +
+      '<div class="bk-tabs">' + T.map(function (t, i) { return '<button type="button" class="chip' + (i === k ? ' on' : '') + '" data-bk="' + i + '">' + t[0] + '</button>'; }).join('') + '</div>' +
+      '<label class="f"><span>Mẫu tin: chữ <b>[Tên]</b> tự đổi thành tên từng khách</span><textarea id="bkText" rows="8"></textarea></label>' +
+      '<p class="bk-warn">⚠️ Mỗi ngày gửi khoảng <b>20 khách</b> thôi: gửi dồn một lúc Zalo dễ chặn tài khoản. Khách không trả lời thì thôi, không nhắn lại nhiều lần.</p>' +
+      '<div class="bk-h"><b>Khách cũ của bạn chưa được mời</b> <span class="count" id="bkN">' + L.length + '</span><small>Đã gửi hôm nay: <b id="bkDone">0</b></small></div><div class="bk-list" id="bkList"></div>',
+      '<button class="btn ghost" id="bkAll" title="Tin không có tên, để chuyển tiếp cho nhiều người trong Zalo">📋 Copy tin chung (không tên)</button><button class="btn ghost" data-close>Đóng</button>');
+    var ta = $('#bkText', m), saved = store('crm_bk_txt_' + k);
+    ta.value = saved || T[k][1];
+    ta.oninput = function () { store('crm_bk_txt_' + k, ta.value); };
+    $$('[data-bk]', m).forEach(function (b) { b.onclick = function () { k = +b.getAttribute('data-bk'); store('crm_bk_tpl', String(k)); $$('[data-bk]', m).forEach(function (x) { x.classList.toggle('on', x === b); }); ta.value = store('crm_bk_txt_' + k) || T[k][1]; }; });
+    var draw = function () {
+      var box = $('#bkList', m); if (!box) return;
+      if (!L.length) { box.innerHTML = '<p class="muted small">Chưa có khách nào: khách đã nhận hàng từ 7 ngày trở lên và chưa được mời sẽ hiện ở đây.</p>'; return; }
+      box.innerHTML = L.slice(0, shown).map(function (x) { var c = x.c;
+        return '<div class="bk-row' + (x.ok ? ' ok' : '') + '"><span class="bk-t"><b>' + esc(ambName(c.name) || c.phone) + (isVip(c) ? ' <em class="amb-vip">VIP</em>' : '') + '</b><small>' + (c.products.length ? esc(shortProducts(c.products, 1)) + ' · ' : '') + 'nhận ' + x.d + ' ngày trước · ' + c.orders + ' đơn</small></span>' +
+          (x.ok ? '<span class="bk-ok">✓ Đã gửi</span>' : '<button type="button" class="btn pri sm" data-bksend="' + c.phone + '">📋 Gửi</button>') + '</div>'; }).join('') +
+        (L.length > shown ? '<button type="button" class="btn ghost sm" id="bkMore">Xem thêm ' + Math.min(BK_PAGE, L.length - shown) + ' khách</button>' : '');
+      var mo = $('#bkMore', m); if (mo) mo.onclick = function () { shown += BK_PAGE; draw(); };
+      $$('[data-bksend]', m).forEach(function (b) { b.onclick = function () {
+        var ph = b.getAttribute('data-bksend'), x = L.filter(function (y) { return y.c.phone === ph; })[0]; if (!x) return;
+        copy(fillTpl(ta.value, x.c)).then(function () {
+          toast('Đã copy tin cho ' + (ambName(x.c.name) || ph) + ' ✓ Dán vào Zalo rồi gửi');
+          window.open(zalo(ph), '_blank', 'noopener');
+          x.ok = 1; done++; var dn = $('#bkDone', m); if (dn) dn.textContent = done;
+          var sent = {}; try { sent = JSON.parse(store('crm_bk_sent') || '{}'); } catch (e) { } sent[ph] = Date.now(); store('crm_bk_sent', JSON.stringify(sent));
+          draw();
+          api('ref_code', { phone: ph }).then(function () { if (S._rb && S._rb.inv && S._rb.inv.indexOf(ph) < 0) S._rb.inv.push(ph); }, function () { }); // tạo mã + ghi công sức "Mời giới thiệu"
+        });
+      }; });
+    };
+    draw();
+    $('#bkAll', m).onclick = function () { var b = this; copy(ta.value.replace(/\[Tên\]/gi, 'anh/chị')).then(function () { toast('Đã copy tin chung ✓ Trong Zalo: dán gửi 1 khách, rồi giữ tay vào tin → Chuyển tiếp → chọn nhiều người'); b.textContent = '✓ Đã copy'; }); };
   }
   function ptBox() {
     return '<div class="box"><h3>🤝 Cộng tác viên & khách giới thiệu</h3><p class="hint" style="margin:0 0 10px">CTV / đối tác có link và mã giảm giá riêng. Khách <b>mới</b> đặt qua link / mã của CTV thì mọi đơn của khách đó trong thời hạn (mặc định 6 tháng, kể cả đơn sale lên lại) được tính hoa hồng (mặc định 10% tiền hàng). Chỉ trả <b>1 tầng</b> (không trả theo người CTV rủ thêm: nhiều tầng là bán hàng đa cấp, phải có giấy phép). Hoa hồng đủ điều kiện khi đơn <b>đã giao + qua 7 ngày</b>; trả từ 2 triệu / lần thì trừ 10% thuế TNCN.</p>' +
@@ -13853,6 +13914,7 @@
     e.preventDefault(); e.target.click();
   });
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-refcode],[data-refgift],[data-reftell],[data-reftier]'); if (!b || !S.d) return; e.preventDefault(); e.stopPropagation(); if (b.hasAttribute('data-refcode')) openRefCode(b.getAttribute('data-refcode')); else if (b.hasAttribute('data-reftell')) openRefTell(b.getAttribute('data-reftell')); else if (b.hasAttribute('data-reftier')) openRefTier(b.getAttribute('data-reftier')); else openRefGift(b.getAttribute('data-refgift')); }, true);
+  document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-bulkref]'); if (!b || !S.d) return; e.preventDefault(); e.stopPropagation(); openBulkRef(); }, true);
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-rgoal],[data-ambskip]'); if (!b || !S.d) return; e.preventDefault(); e.stopPropagation();
     if (b.hasAttribute('data-rgoal')) return openRefGoal();
     var sk = {}; try { sk = JSON.parse(store('crm_amb_skip') || '{}'); } catch (x) { } sk[b.getAttribute('data-ambskip')] = Date.now() + 30 * DAY; store('crm_amb_skip', JSON.stringify(sk)); render(); }, true);

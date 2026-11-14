@@ -263,7 +263,7 @@ async function bonusList(x, u) {
   }
   const pays = (await all(x.db, "SELECT who, amount, at FROM ref_pay WHERE kind = 'sale' AND at >= ?" + (u.level >= 2 ? '' : ' AND who = ?'), ...(u.level >= 2 ? [since] : [since, u.name]))).map(p => ({ sale: p.who, amount: p.amount, at: p.at }));
   const inv = (await all(x.db, "SELECT DISTINCT v.ref_phone AS p FROM vouchers v JOIN customers c ON c.phone = v.ref_phone WHERE coalesce(v.ref_phone, '') != ''" + (u.level >= 2 ? '' : ' AND c.owner = ?'), ...(u.level >= 2 ? [] : [u.name]))).map(r => r.p);
-  return { ok: true, cfg: { bonus: max, saleSteps: steps, winDays: cfg.winDays, goalN: cfg.goalN, goalGift: cfg.goalGift, saleOff: cfg.saleOff ? 1 : 0, ownBonus: cfg.ownBonus ? 1 : 0, ownPct: cfg.ownPct || 0, ownMonths: cfg.ownMonths || 6 }, list: L, team, pays, inv };
+  return { ok: true, cfg: { bonus: max, saleSteps: steps, winDays: cfg.winDays, goalN: cfg.goalN, goalGift: cfg.goalGift, saleOff: cfg.saleOff ? 1 : 0, ownBonus: cfg.ownBonus ? 1 : 0, ownPct: cfg.ownPct || 0, ownMonths: cfg.ownMonths || 6, refPct: cfg.refPct }, list: L, team, pays, inv };
 }
 
 /** 🤖 Trợ lý chat web / Zalo / Fanpage (31/10/2026): khách nói "chị Lan giới thiệu…" → tìm số người giới thiệu trong tin khách (số khác số của khách) hoặc tên,

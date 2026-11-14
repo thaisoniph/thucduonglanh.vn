@@ -39,6 +39,18 @@ Bấm **📞** cạnh tên khách để gọi khách đã dùng 7–30 ngày, h�
 
 💡 Dễ nhất với khách lớn tuổi: *"Chị không phải làm gì cả, chị đọc em số của bạn, em gọi tư vấn giúp."* Rồi bấm **＋ Thêm khách được giới thiệu** (xem phần dưới).
 
+### 📨 Gửi tin mời cho nhiều khách cũ
+
+Chưa gọi được thì nhắn tin. Bấm **📨 Gửi tin mời cho nhiều khách cũ** (ở khung 🌱 Mời làm Đại sứ, hoặc nút **📨 Gửi tin mời** ở việc 1 khi chưa có khách tới lượt).
+
+1. Chọn mẫu tin: **Cảm ơn + mời** (đủ ý) hoặc **Ngắn gọn**. Sửa được, chữ **[Tên]** tự đổi thành tên từng khách.
+2. Bấm **📋 Gửi** ở từng khách: tin có sẵn tên khách được copy, Zalo của khách tự mở.
+3. Trong Zalo: giữ tay vào ô chat → **Dán** → **Gửi**. Quay lại bấm khách tiếp theo.
+
+Danh sách chỉ có khách của bạn đã nhận hàng từ 7 ngày trở lên, chưa được mời. Mỗi khách gửi xong tính **1 lần mời** cho việc 1, 60 ngày sau mới hiện lại.
+
+⚠️ Mỗi ngày gửi khoảng **20 khách** thôi: gửi dồn một lúc Zalo dễ chặn tài khoản. Khách không trả lời thì thôi, không nhắn lại nhiều lần.
+
 ## Việc 2: Mời 1 khách vào nhóm Zalo cộng đồng
 
 💰 **Lợi ích:** công ty chăm khách mỗi ngày giúp bạn. Khách trong nhóm tin hơn, mua lại nhiều hơn, đơn khách cũ của bạn tăng.

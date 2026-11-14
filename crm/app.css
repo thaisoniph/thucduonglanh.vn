@@ -2456,3 +2456,16 @@ b.csx-c-ok { color: var(--primary-2); } b.csx-c-sua { color: var(--orange); } b.
 .vh-mini-t span { color: var(--muted); font-size: 13px; }
 .vh-mini2 .btn { flex: none; white-space: nowrap; }
 .td-m { font-weight: 700; color: var(--ink); }
+/* 📨 Gửi tin mời giới thiệu cho nhiều khách cũ (14/11/2026) */
+.amb .bk-open { margin: 0 0 10px; }
+.bk-steps { margin: 0 0 10px; padding-left: 20px; font-size: 14px; line-height: 1.5; }
+.bk-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 8px; }
+.bk-warn { font-size: 13px; background: #fff7e6; color: #8a5a12; border-radius: 8px; padding: 6px 10px; margin: 6px 0 12px; }
+.bk-h { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0 0 6px; }
+.bk-h small { margin-left: auto; color: #667; }
+.bk-list { display: flex; flex-direction: column; gap: 6px; }
+.bk-row { display: flex; align-items: center; gap: 8px; border: 1px solid #e3e8e4; border-radius: 10px; padding: 8px 10px; }
+.bk-row.ok { background: #f1f8f2; }
+.bk-t { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.bk-t small { color: #667; font-size: 12.5px; }
+.bk-ok { color: #2e7d32; font-weight: 600; white-space: nowrap; }
