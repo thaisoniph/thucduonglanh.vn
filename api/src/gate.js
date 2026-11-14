@@ -1,4 +1,4 @@
-/* ================================================================ 🛡 Người gác cổng cho câu trả lời của trợ lý chat web + Zalo (14/11/2026, anh Sơn, khoá "AI Workforce: Claude & Codex")
+/* ================================================================ 🛡 Người gác cổng cho câu trả lời của trợ lý chat web + Zalo + Fanpage (tin nhắn, từ 14/11/2026 tối) (14/11/2026, anh Sơn, khoá "AI Workforce: Claude & Codex")
  * Trước khi gửi khách, kiểm tra câu AI vừa viết bằng LUẬT CỐ ĐỊNH (không gọi AI: không tốn tiền, không làm chậm chat):
  *   1. 💰 Giá / phí ship / mức miễn phí ship / số tiền giảm: mọi số tiền phải có trong TÀI LIỆU (chat-kb.txt), hoặc tính được từ đó
  *      (k × giá với k ≤ 10, giá + phí ship, tổng 2 giá, giá sau giảm % có trong tài liệu).
@@ -106,7 +106,7 @@ async function schema(db) {
   ready = true;
 }
 export async function gateCfg(x) { const c = await kvJson(x.db, 'gate_cfg', null); return { mode: c && c.mode === 'log' ? 'log' : 'block' }; }
-const CHN = { web: '💬 Chat web', zalo: '👥 Nhóm Zalo', zdm: '💬 Zalo tin riêng' };
+const CHN = { web: '💬 Chat web', zalo: '👥 Nhóm Zalo', zdm: '💬 Zalo tin riêng', fb: '📘 Fanpage tin nhắn' };
 /** Gọi ngay trước khi gửi khách. Trả câu được gửi (gốc hoặc GATE_MSG). Ghi nhật ký + Telegram chạy nền (x.later). */
 export async function gate(x, ch, reply, kbText, ctx) {
   let why = []; try { why = gateCheck(reply, kbText, ctx); } catch (e) { console.error('gate', e.message); return reply; }

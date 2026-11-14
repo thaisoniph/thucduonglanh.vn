@@ -20,6 +20,7 @@ import { kb, safe, workNow, TRUTH_RULES, REF_RULES, REF_TXT, PHONE_RE } from './
 import { botRef } from './partner.js';
 import { prodMap, zbotLead } from './zbot.js';
 import { edAdd, edBlock, edCount } from './edlearn.js';
+import { gate } from './gate.js';
 
 let GRAPH = 'https://graph.facebook.com/v23.0/';
 const useEnv = x => { if (x.env.FB_GRAPH) GRAPH = x.env.FB_GRAPH; }; // chạy thử trên máy: wrangler dev đặt FB_GRAPH = Facebook giả
@@ -211,7 +212,8 @@ async function commentOpener(x, p, name, text, post, hasPhone) {
     } catch (e) { console.error('fp opener ai', e.message); }
   }
   const prods = ans ? prodMap(await kb()) : {};
-  return [hi, ans ? fbText(safe(ans), prods, p).text : '', c.dm_text].filter(Boolean).join('\n\n').slice(0, 1990);
+  if (ans) ans = await gate(x, 'fb', safe(ans), await kb(), { q: text, ref: p.id }); // 🛡 người gác cổng (gate.js)
+  return [hi, ans ? fbText(ans, prods, p).text : '', c.dm_text].filter(Boolean).join('\n\n').slice(0, 1990);
 }
 
 /* ---------------------------------------------------------------- tin nhắn Messenger */
@@ -381,7 +383,7 @@ async function onMessage(x, p, m, app) {
     reply = res.stop_reason === 'refusal' ? 'Câu này em xin phép chưa trả lời được ạ, để chị chuyên viên bên em nhắn lại cho mình nha. [[zalo]]' : textOf(res);
   } catch (e) { aerr = e; console.error('fp ai', e && (e.status || ''), e && e.message); }
   if (!reply) { reply = 'Dạ em xem lại chút rồi nhắn mình ngay nha 🙏'; await flog(x, p.id, 'error', { name: u.name, text: 'AI lỗi khi trả lời: ' + lastAsk.slice(0, 120), reply: aerr ? String(aerr.status || '') + ' ' + String(aerr.message || aerr).slice(0, 300) : 'AI không trả lời' }); }
-  const z = fbText(safe(reply), prodMap(know), p); if (!z.text) return;
+  const z = fbText(await gate(x, 'fb', safe(reply), know, { q: lastAsk, ref: psid }), prodMap(know), p); if (!z.text) return; // 🛡 gate.js
   const qr = !u.phone && !u.gift && asked >= 2 ? [{ content_type: 'text', title: '🎁 Nhận quà', payload: 'GIFT' }] : null; // từ câu hỏi thứ 2: nút nhận quà dưới câu trả lời
   const pz = prodMap(know);
   await sendHuman(x, p, psid, z.text, z.proof ? null : qr, now, Date.now() - t1);

@@ -7957,7 +7957,7 @@
       .then(function () { GK.busy = 0; if (route().view === 'noi-dung') render(); });
   }
   function gtkHtml() {
-    var h = inTabi('Trước khi trợ lý chat web và Zalo gửi câu trả lời, máy kiểm tra: <b>giá, phí ship, mức miễn phí ship, khuyến mãi, hotline</b> có khớp dữ liệu web không; <b>câu công dụng</b> có trong trang sản phẩm (hồ sơ công bố) không; có <b>nói về bệnh, hứa hẹn, doạ</b> không. Không đạt thì khách nhận câu "để em kiểm tra lại rồi báo anh/chị", nhân sự nhận tin Telegram.', 'Thấy tin 🛡 trên Telegram thì <b>nhắn lại khách câu đúng</b>, rồi bấm <b>✅ Đã xử lý</b> ở đây. Câu bị chặn nhầm thì báo anh Sơn.');
+    var h = inTabi('Trước khi trợ lý chat web, Zalo và Fanpage gửi câu trả lời, máy kiểm tra: <b>giá, phí ship, mức miễn phí ship, khuyến mãi, hotline</b> có khớp dữ liệu web không; <b>câu công dụng</b> có trong trang sản phẩm (hồ sơ công bố) không; có <b>nói về bệnh, hứa hẹn, doạ</b> không. Không đạt thì khách nhận câu "để em kiểm tra lại rồi báo anh/chị", nhân sự nhận tin Telegram.', 'Thấy tin 🛡 trên Telegram thì <b>nhắn lại khách câu đúng</b>, rồi bấm <b>✅ Đã xử lý</b> ở đây. Câu bị chặn nhầm thì báo anh Sơn.');
     if (!GK.d) { if (!GK.busy && !GK.err) setTimeout(gtkFetch, 0); return h + '<div class="box"><p class="muted">' + (GK.err ? '⚠️ ' + esc(GK.err) + ' <button class="link" data-gtk="reload">Thử lại</button>' : '⏳ Đang tải…') + '</p></div>'; }
     var d = GK.d, n7 = (d.cnt || []).reduce(function (a, r) { return a + r.n; }, 0);
     h += '<div class="box"><div class="zb-ph"><b>🛡 Người gác cổng</b><span class="zb-due">' + (d.mode === 'log' ? '📝 Chỉ ghi nhật ký' : '✅ Đang chặn') + '</span></div>' +

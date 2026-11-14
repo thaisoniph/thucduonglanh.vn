@@ -2,7 +2,7 @@
 title: Trợ lý Fanpage Facebook
 nav: Fanpage
 order: 7
-updated: 2026-11-10
+updated: 2026-11-14
 description: Trợ lý An Lành trả lời bình luận, nhắn tin Messenger, tặng quà, mời vào nhóm Zalo và soạn bài đăng cho các fanpage.
 roles: [mkt, ql]
 ---
@@ -56,6 +56,8 @@ Kiểm tra kỹ trước khi duyệt: giá và ưu đãi phải đúng với web
 1. Bấm **🙋 Cần xử lý** để chỉ xem các ca chờ người thật.
 2. Bấm **💬 Mở hộp thư trang** để trả lời khách trên Facebook. Khi bạn đã nhắn cho khách, trợ lý **tự im 12 tiếng** với khách đó để không chen ngang.
 3. Trả lời xong, bấm **✅ Đã xử lý** để cả đội biết ca này đã có người lo (CRM ghi tên bạn và giờ xử lý).
+
+**Khi Telegram báo "🛡 NGƯỜI GÁC CỔNG ĐÃ CHẶN 1 CÂU TRẢ LỜI · 📘 Fanpage tin nhắn"** (từ 14/11/2026): trợ lý định nhắn khách sai giá, sai phí ship, sai khuyến mãi, sai hotline, nói công dụng ngoài trang sản phẩm hoặc nói về bệnh. Máy đã giữ lại, khách chỉ nhận câu *"Dạ để em kiểm tra lại thông tin này cho thật chắc rồi báo anh/chị ngay nha"*. Bạn mở hộp thư trang, **nhắn lại khách câu đúng**, rồi vào CRM → **🎯 Insight & nội dung** → **🛡 Gác cổng** bấm **✅ Đã xử lý** (chặn nhầm thì ghi "chặn nhầm").
 
 **3. Tự viết bài:** bấm **✍️ Viết bài đăng**, chọn trang, gõ nội dung. Để trống giờ thì bài đăng ngay. Chọn giờ thì bài đăng đúng giờ đó.
 
