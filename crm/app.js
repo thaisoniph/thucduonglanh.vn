@@ -5954,13 +5954,17 @@
         card(over ? 'bad' : 'ok', '⚠️ Quá hạn', moneyShort(over), over ? nOver + ' nhà cung cấp: trả ngay hoặc hẹn lại' : 'Không khoản nào quá hạn') +
         card(d7 ? 'mid' : 'ok', '📅 Tới hạn 7 ngày', moneyShort(d7), d7 ? 'chuẩn bị tiền' : 'Không khoản nào') + '</div>';
     }
+    var CK = knChkSt();
+    if (CK.due && CK.miss.length) h += '<button type="button" class="notice kn-unk" data-kn="chk">🔍 <b>Đã qua ngày ' + KN_CHK_DAY + ': còn ' + CK.miss.length + ' nhà cung cấp chưa đối chiếu công nợ ' + monthLabel(CK.mo) + '</b> (' + CK.miss.slice(0, 3).map(function (r) { return esc(r.s.name); }).join(', ') + (CK.miss.length > 3 ? '…' : '') + '). Xin nhà cung cấp gửi bảng công nợ rồi <u>bấm để đối chiếu</u>.</button>';
+    if (CK.diff.length) h += '<p class="notice warn small">⚠️ <b>Đối chiếu còn lệch:</b> ' + CK.diff.map(function (c) { var x = knSup(c.ncc); return esc(x ? x.name : '?') + ' ' + (c.their > c.ours ? '+' : '−') + moneyShort(Math.abs(c.their - c.ours)); }).join(', ') + '. Mở nhà cung cấp → xem lần đối chiếu → ghi cách xử lý, bấm ✅ Đã giải quyết.</p>';
     if (D.unk && D.unk.length) h += '<button type="button" class="notice kn-unk" data-kn="unk">⚠️ <b>' + D.unk.length + ' khoản trả nhà cung cấp trên sao kê</b> (' + moneyShort(D.unk.reduce(function (t, r) { return t + r.amt; }, 0)) + ') máy chưa biết trả cho ai. <u>Bấm để chọn</u>, lần sau máy tự nhận ra.</button>';
     var R = C.rows.filter(function (r) { return !r.s.off || r.owe; }).sort(function (a, b) { return (b.over ? 1 : 0) - (a.over ? 1 : 0) || (a.next || '9') .localeCompare(b.next || '9') || b.owe - a.owe; });
     if (R.length) h += '<div class="box kn-list">' + R.map(function (r) {
       var sub = r.owe ? (r.over ? '<em class="ktv-red">⚠️ quá hạn ' + moneyShort(r.over) + '</em> · ' : '') + r.open.length + ' hoá đơn chưa trả hết' + (r.next ? ' · hạn gần nhất ' + knDd(r.next).slice(0, 5) : '') : r.pre ? 'Đã trả trước ' + moneyShort(r.pre) : r.nb ? '✅ Đã trả hết' : 'Chưa có hoá đơn';
+      var lc = CK.last[r.s.id]; sub += lc ? (knChkOk(lc) ? ' · ✅ đã đối chiếu ' + knDd(isoDate(lc.at)).slice(0, 5) : ' · <em class="ktv-red">⚠️ đối chiếu lệch ' + moneyShort(Math.abs(lc.their - lc.ours)) + '</em>') : r.owe && CK.due ? ' · <em class="ktv-red">🔍 chưa đối chiếu ' + monthLabel(CK.mo).replace(/^tháng /, 'T') + '</em>' : '';
       return '<button type="button" class="ktv-row' + (r.over ? ' kn-late' : '') + '" data-kn="sup|' + r.s.id + '"><span><b>' + esc(r.s.name) + '</b><small>' + sub + '</small></span><b class="ktv-amt">' + (r.owe ? moneyShort(r.owe) : '–') + '</b><i aria-hidden="true">›</i></button>';
     }).join('') + '</div>';
-    h += '<div class="ktv-big kn-btns"><button class="btn pri" data-kn="bill">＋ Hoá đơn nhập hàng</button><button class="btn" data-kn="pay">＋ Ghi đã trả (tiền mặt)</button><button class="btn" data-kn="new">＋ Nhà cung cấp</button>' + (D.bills.length ? '<button class="btn ghost" data-kn="copy">📋 Chép bảng công nợ</button>' : '') + '</div>';
+    h += '<div class="ktv-big kn-btns"><button class="btn pri" data-kn="bill">＋ Hoá đơn nhập hàng</button><button class="btn" data-kn="pay">＋ Ghi đã trả (tiền mặt)</button><button class="btn" data-kn="new">＋ Nhà cung cấp</button>' + (D.bills.length ? '<button class="btn" data-kn="chk">🔍 Nhà cung cấp gửi công nợ</button>' : '') + (D.bills.length ? '<button class="btn ghost" data-kn="copy">📋 Chép bảng công nợ</button>' : '') + '</div>';
     return h + '</section>';
   }
   function knSupOpts(sel) { return '<option value="">— Chọn nhà cung cấp —</option>' + (KN.d ? KN.d.ncc : []).filter(function (s) { return !s.off || +s.id === +sel; }).map(function (s) { return '<option value="' + s.id + '"' + (+s.id === +sel ? ' selected' : '') + '>' + esc(s.name) + '</option>'; }).join(''); }
@@ -6022,7 +6026,8 @@
     var s = knSup(id); if (!s) return; var C = knCalc(), r = C.rows.filter(function (x) { return +x.s.id === +id; })[0];
     var B = KN.d.bills.filter(function (b) { return +b.ncc === +id; }), P = KN.d.pays.filter(function (p) { return +p.ncc === +id; });
     var h = '<p style="margin:0 0 4px">' + (s.phone ? '📞 ' + esc(s.phone) + ' · ' : '') + 'được nợ ' + (s.terms || 0) + ' ngày' + (s.note ? ' · ' + esc(s.note) : '') + '</p>' +
-      '<p class="kn-big">Còn nợ <b>' + money(r ? r.owe : 0) + '</b>' + (r && r.over ? ' · <b class="ktv-red">quá hạn ' + money(r.over) + '</b>' : '') + (r && r.pre ? ' · đã trả trước ' + money(r.pre) : '') + '</p>';
+      '<p class="kn-big">Còn nợ <b>' + money(r ? r.owe : 0) + '</b>' + (r && r.over ? ' · <b class="ktv-red">quá hạn ' + money(r.over) + '</b>' : '') + (r && r.pre ? ' · đã trả trước ' + money(r.pre) : '') + '</p>' +
+      '<p style="margin:0 0 6px"><button class="btn sm" id="knE">✏️ Sửa thông tin</button> <button class="btn sm" id="knP2">＋ Ghi đã trả (tiền mặt)</button></p>';
     h += '<h3 class="kts-h">Hoá đơn <small>' + B.length + ' hoá đơn · bấm để sửa</small></h3>' + (B.length ? '<div class="ktv-list">' + B.map(function (b) {
       var l = C.left[b.id] || 0, late = l > 0 && b.due && b.due < C.td;
       return '<button type="button" class="ktv-row kn-bill' + (late ? ' kn-late' : '') + '" data-knb="' + b.id + '"><span><b>' + (b.doc ? 'HĐ ' + esc(b.doc) + ' · ' : '') + knDd(b.day).slice(0, 5) + '</b><small>' + money(b.amt) + (b.due ? ' · hạn ' + knDd(b.due) : '') + (b.note ? ' · ' + esc(b.note) : '') + '</small></span><b class="ktv-amt">' + (l > 0 ? (late ? '⚠️ ' : '') + 'còn ' + moneyShort(l) : '<span class="ktv-ok">✅ đã trả</span>') + '</b></button>';
@@ -6030,8 +6035,22 @@
     h += '<h3 class="kts-h">Đã trả <small>' + P.length + ' lần · ' + money(P.reduce(function (t, p) { return t + p.amt; }, 0)) + '</small></h3>' + (P.length ? '<div class="ktv-list">' + P.map(function (p) {
       return '<div class="ktb-row"><span><b>' + knDd(p.day) + ' · ' + money(p.amt) + '</b><small>' + esc(p.src || '') + (p.note ? ' · ' + esc(p.note) : '') + (p.by ? ' · ' + esc(p.by) : '') + '</small></span>' +
         (/^tay:/.test(p.id) ? '<button class="btn sm ghost" data-knp="del|' + esc(p.id) + '" aria-label="Xoá lần trả">🗑</button>' : '<button class="btn sm ghost" data-knp="un|' + esc(p.id) + '" title="Khoản sao kê này không phải trả cho nhà cung cấp này">↩ Không phải</button>') + '</div>';
-    }).join('') + '</div>' : '<p class="small muted">Chưa có lần trả nào. Tải sao kê VCB / MB là máy tự lấy khoản chuyển khoản cho nhà cung cấp này.</p>') + '<p class="small muted">Tiền trả trừ dần vào hoá đơn có hạn sớm nhất.</p><p class="err kn-err"></p>';
-    var m = modal('🧾 ' + esc(s.name), h, '<button class="btn" id="knE">✏️ Sửa thông tin</button><button class="btn" id="knP2">＋ Đã trả</button><button class="btn pri" id="knB2">＋ Hoá đơn</button>');
+    }).join('') + '</div>' : '<p class="small muted">Chưa có lần trả nào. Tải sao kê VCB / MB là máy tự lấy khoản chuyển khoản cho nhà cung cấp này.</p>') + '<p class="small muted">Tiền trả trừ dần vào hoá đơn có hạn sớm nhất.</p>';
+    var CH = (KN.d.chks || []).filter(function (c) { return +c.ncc === +id; });
+    h += '<h3 class="kts-h">🔍 Đối chiếu với nhà cung cấp <small>' + (CH.length ? CH.length + ' lần' : 'chưa lần nào') + ' · ngày ' + KN_CHK_DAY + ' hằng tháng</small></h3>' + (CH.length ? '<div class="ktv-list">' + CH.slice(0, 12).map(function (c) {
+      var ok = knChkOk(c), df = c.their - c.ours;
+      return '<div class="ktb-row' + (ok ? '' : ' kn-late') + '"><span><b>' + (c.their === c.ours ? '✅ Khớp' : ok ? '✅ Lệch đã giải quyết' : '⚠️ Lệch ' + money(Math.abs(df)) + ': NCC báo ' + (df > 0 ? 'cao' : 'thấp') + ' hơn sổ') + '</b><small>Số đến ' + knDd(c.upto) + ': NCC báo ' + money(c.their) + ' · sổ CRM ' + money(c.ours) + ' · ' + esc(c.by || '') + ' ' + knDd(isoDate(c.at)).slice(0, 5) + (c.note ? '<br>📝 ' + esc(c.note) : '') + '</small></span>' +
+        (ok ? '' : '<button class="btn sm" data-knc="fix|' + c.id + '">✅ Đã giải quyết</button>') + '</div>';
+    }).join('') + '</div>' : '<p class="small muted">Khi nhà cung cấp gửi bảng công nợ, bấm <b>🔍 Đối chiếu</b>: máy so với sổ, chỉ ra khoản lệch trước khi xác nhận hay chuyển tiền.</p>') + '<p class="err kn-err"></p>';
+    var m = modal('🧾 ' + esc(s.name), h, '<button class="btn" id="knL">📒 Sổ chi tiết</button><button class="btn" id="knC">🔍 Đối chiếu</button><button class="btn pri" id="knB2">＋ Hoá đơn</button>');
+    $('#knL', m).onclick = function () { openKnLedger(id); }; $('#knC', m).onclick = function () { openKnChk(id); };
+    $$('[data-knc]', m).forEach(function (el) {
+      el.onclick = function () {
+        var c = CH.filter(function (x) { return x.id === +el.getAttribute('data-knc').split('|')[1]; })[0]; if (!c) return;
+        var why = prompt('Lệch ' + money(Math.abs(c.their - c.ours)) + ' đã xử lý thế nào? (vd: NCC đã gửi lại bảng trừ khoản 40tr ngày 21/10)', ''); if (why === null) return;
+        knDo(m, el, { op: 'chk', id: c.id, ncc: id, their: c.their, note: '✅ Đã giải quyết: ' + (why.trim() || 'đã thống nhất với nhà cung cấp') + (c.note ? ' · ' + c.note : '') }, 'Đã ghi giải quyết ✓', function () { openKnSup(id); });
+      };
+    });
     $('#knE', m).onclick = function () { openKnEdit(id); }; $('#knP2', m).onclick = function () { openKnPay(id); }; $('#knB2', m).onclick = function () { openKnBill(id); };
     $$('[data-knb]', m).forEach(function (el) { el.onclick = function () { openKnBill(id, +el.getAttribute('data-knb')); }; });
     $$('[data-knp]', m).forEach(function (el) {
@@ -6070,6 +6089,120 @@
       var l = C.left[b.id] || 0; return [nm[b.ncc] || '', b.doc, knDd(b.day), knDd(b.due), b.amt, b.amt - l, l, String(b.note || '').replace(/\t/g, ' ')].join('\t');
     })).join('\n');
   }
+  /* ---------- 🔍 Đối chiếu công nợ khi nhà cung cấp gửi số (14/11/2026, sau vụ NCC Dinh Dưỡng Hoa Kỳ báo 310tr quên trừ khoản chuyển 40tr ngày 21/10).
+   * Kế toán gõ số NCC báo → máy so với sổ tới cùng ngày (knOweAt giống oweAt trong ncc.js), dò khoản gây lệch, chép tin gửi NCC, in biên bản. Lưu lệnh kt_ncc {op: 'chk'}.
+   * Ngày 10 hằng tháng (anh Hiếu chốt) nhà cung cấp còn nợ chưa đối chiếu → nhắc ở đây, tin 8h, 👉 Cần anh xử lý (F.payChk). */
+  var KN_CHK_DAY = 10, KN_CO = { name: 'CÔNG TY TNHH TẬP ĐOÀN VITAGREEN NUTRITION', addr: 'HA10-SP8A-15, Đường Hải Âu 8A, KĐT Vinhomes Ocean Park, Gia Lâm, TP. Hà Nội' };
+  function knChkOk(c) { return c.their === c.ours || /đã giải quyết/i.test(c.note || ''); }
+  function knChkSt() {
+    var D = KN.d, td = isoDate(Date.now()), mo = td.slice(0, 7), last = {}, C = knCalc(), miss = [], diff = [];
+    (D.chks || []).forEach(function (c) { if (isoDate(c.at).slice(0, 7) === mo && (!last[c.ncc] || c.at > last[c.ncc].at)) last[c.ncc] = c; });
+    C.rows.forEach(function (r) { var c = last[r.s.id]; if (c) { if (!knChkOk(c)) diff.push(c); } else if (r.owe > 0) miss.push(r); });
+    return { due: +td.slice(8, 10) >= KN_CHK_DAY, mo: mo, last: last, miss: miss, diff: diff };
+  }
+  function knOweAt(nid, upto) {
+    var v = 0; KN.d.bills.forEach(function (b) { if (+b.ncc === +nid && b.day <= upto) v += b.amt; }); KN.d.pays.forEach(function (p) { if (+p.ncc === +nid && p.day <= upto) v -= p.amt; });
+    return v;
+  }
+  /** Sổ chi tiết kiểu bảng NCC gửi: số dư đầu kỳ + từng dòng (mua hàng / đã trả) + còn nợ sau mỗi dòng. */
+  function knLedger(nid, from, to) {
+    var open = knOweAt(nid, isoDate(new Date(from + 'T12:00:00+07:00').getTime() - DAY)), R = [];
+    KN.d.bills.forEach(function (b) { if (+b.ncc === +nid && b.day >= from && b.day <= to) R.push({ day: b.day, t: 'Mua hàng' + (b.doc ? ' – HĐ ' + b.doc : '') + (b.note ? ' (' + b.note + ')' : ''), buy: b.amt, pay: 0, k: 0, id: b.id }); });
+    KN.d.pays.forEach(function (p) { if (+p.ncc === +nid && p.day >= from && p.day <= to) R.push({ day: p.day, t: 'Thanh toán – ' + (p.src || '') + (p.note ? ' (' + p.note + ')' : ''), buy: 0, pay: p.amt, k: 1, id: p.id }); });
+    R.sort(function (a, b) { return a.day < b.day ? -1 : a.day > b.day ? 1 : a.k - b.k; });
+    var bal = open; R.forEach(function (r) { bal += r.buy - r.pay; r.bal = bal; });
+    return { open: open, rows: R, close: bal, buy: R.reduce(function (t, r) { return t + r.buy; }, 0), pay: R.reduce(function (t, r) { return t + r.pay; }, 0) };
+  }
+  function knLedgerTable(L) {
+    return '<div class="bcdt-wrap"><table class="pnl-t kn-led"><thead><tr><th>Ngày</th><th>Nội dung</th><th>Mua hàng</th><th>Đã trả</th><th>Còn nợ</th></tr></thead><tbody><tr class="muted"><td></td><td>Số dư đầu kỳ</td><td></td><td></td><td>' + money(L.open) + '</td></tr>' +
+      L.rows.map(function (r) { return '<tr><td>' + knDd(r.day) + '</td><td>' + esc(r.t) + '</td><td>' + (r.buy ? money(r.buy) : '') + '</td><td>' + (r.pay ? '<b>' + money(r.pay) + '</b>' : '') + '</td><td>' + money(r.bal) + '</td></tr>'; }).join('') +
+      '<tr><td></td><td><b>Cộng phát sinh / Số dư cuối kỳ</b></td><td><b>' + money(L.buy) + '</b></td><td><b>' + money(L.pay) + '</b></td><td><b>' + money(L.close) + '</b></td></tr></tbody></table></div>';
+  }
+  /** Sổ chi tiết trên màn hình (điện thoại): mỗi dòng 1 thẻ, tiền đã trả tô xanh. Bảng in vẫn dùng knLedgerTable. */
+  function knLedgerList(L) {
+    var row = function (l, sub, amt, bal, cls) { return '<div class="ktb-row' + (cls || '') + '"><span><b>' + l + '</b><small>' + sub + '</small></span><b class="ktv-amt">' + amt + '<small class="muted" style="display:block;font-weight:400">còn ' + moneyShort(bal) + '</small></b></div>'; };
+    return '<div class="ktv-list">' + row('Số dư đầu kỳ', 'nợ trước ngày bắt đầu', '', L.open) + L.rows.map(function (r) {
+      return row(knDd(r.day) + (r.pay ? ' · Đã trả' : ' · Mua hàng'), esc(r.t.replace(/^(Mua hàng|Thanh toán) – ?/, '')), r.pay ? '<span class="ktv-ok">− ' + money(r.pay) + '</span>' : '+ ' + money(r.buy), r.bal);
+    }).join('') + '</div><p class="kn-big">Cộng: mua ' + money(L.buy) + ' · đã trả ' + money(L.pay) + '<br>Còn nợ cuối kỳ: <b>' + money(L.close) + '</b></p>';
+  }
+  function knFrom(nid, to) { var f = isoDate(new Date(to.slice(0, 7) + '-01T12:00:00+07:00').getTime() - 40 * DAY).slice(0, 7) + '-01', d0 = KN.d.bills.filter(function (b) { return +b.ncc === +nid; }).map(function (b) { return b.day; }).sort()[0]; return d0 && d0 > f ? d0 : f; }
+  /** In biên bản đối chiếu công nợ (2 bên ký). their = số NCC báo (nếu có) để ghi chênh lệch. */
+  function knPrint(nid, from, to, their) {
+    var s = knSup(nid), L = knLedger(nid, from, to), w = window.open('', '_blank'); if (!w) { toast('Trình duyệt chặn cửa sổ in. Cho phép cửa sổ bật lên rồi bấm lại.', true); return; }
+    var df = their != null ? their - L.close : null, td = new Date();
+    w.document.write('<!doctype html><html lang="vi"><head><meta charset="utf-8"><title>Biên bản đối chiếu công nợ – ' + esc(s.name) + '</title><style>body{font:14px/1.5 "Times New Roman",serif;max-width:800px;margin:24px auto;padding:0 16px;color:#000}h1{text-align:center;font-size:18px;margin:16px 0 4px}p.c{text-align:center;margin:0}table{width:100%;border-collapse:collapse;margin:12px 0}td,th{border:1px solid #000;padding:4px 6px;vertical-align:top}td:nth-child(n+3),th:nth-child(n+3){text-align:right;white-space:nowrap}.sig{display:flex;justify-content:space-around;text-align:center;margin-top:28px}.sig div{width:40%;min-height:120px}@media print{button{display:none}}</style></head><body>' +
+      '<p class="c"><b>CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM</b><br>Độc lập – Tự do – Hạnh phúc</p><h1>BIÊN BẢN ĐỐI CHIẾU CÔNG NỢ</h1><p class="c">Từ ngày ' + knDd(from) + ' đến ngày ' + knDd(to) + '</p>' +
+      '<p>Hôm nay, ngày ' + td.getDate() + ' tháng ' + (td.getMonth() + 1) + ' năm ' + td.getFullYear() + ', chúng tôi gồm:</p><p><b>Bên mua (A): ' + KN_CO.name + '</b><br>Địa chỉ: ' + KN_CO.addr + '</p><p><b>Bên bán (B): ' + esc(s.name) + '</b>' + (s.phone ? '<br>Liên hệ: ' + esc(s.phone) : '') + '</p>' +
+      '<p>Cùng đối chiếu công nợ như sau (đơn vị: đồng):</p>' + knLedgerTable(L).replace(/<div[^>]*>|<\/div>/g, '').replace(/ class="[^"]*"/g, '') +
+      '<p>Tính đến hết ngày ' + knDd(to) + ', Bên A còn phải trả Bên B: <b>' + money(L.close) + '</b>' + (L.close < 0 ? ' (Bên A đã trả thừa ' + money(-L.close) + ')' : '') + '.</p>' +
+      (df ? '<p>Số Bên B báo: <b>' + money(their) + '</b>, chênh lệch <b>' + money(Math.abs(df)) + '</b>. Hai bên cùng kiểm tra lại các dòng trên trước khi ký.</p>' : '') +
+      '<p>Biên bản lập thành 02 bản, mỗi bên giữ 01 bản có giá trị như nhau. Sau 05 ngày kể từ ngày nhận mà Bên B không có ý kiến thì coi như đã xác nhận số liệu trên.</p>' +
+      '<div class="sig"><div><b>ĐẠI DIỆN BÊN A</b><br><i>(Ký, ghi rõ họ tên)</i></div><div><b>ĐẠI DIỆN BÊN B</b><br><i>(Ký, ghi rõ họ tên)</i></div></div><p style="text-align:center"><button onclick="print()">🖨 In</button></p></body></html>');
+    w.document.close(); setTimeout(function () { try { w.print(); } catch (e) {} }, 400);
+  }
+  function knLedgerTsv(L) {
+    return [['Ngày', 'Nội dung', 'Mua hàng', 'Đã trả', 'Còn nợ'].join('\t'), ['', 'Số dư đầu kỳ', '', '', L.open].join('\t')].concat(L.rows.map(function (r) { return [knDd(r.day), String(r.t).replace(/\t/g, ' '), r.buy || '', r.pay || '', r.bal].join('\t'); }), [['', 'Cộng / cuối kỳ', L.buy, L.pay, L.close].join('\t')]).join('\n');
+  }
+  function openKnLedger(nid) {
+    var s = knSup(nid); if (!s) return; var to = isoDate(Date.now()), from = knFrom(nid, to);
+    var m = modal('📒 Sổ chi tiết – ' + esc(s.name), '<p class="small" style="margin:0 0 8px">Giống bảng công nợ nhà cung cấp gửi: so <b>từng dòng</b>, nhất là các dòng <b>Đã trả</b>. Thiếu dòng nào là chỗ lệch.</p><div class="kn-2"><label class="f"><span>Từ ngày</span><input type="date" id="knF" value="' + from + '"></label><label class="f"><span>Đến ngày</span><input type="date" id="knT2" value="' + to + '"></label></div><div id="knLo"></div>',
+      '<button class="btn" id="knLc">📋 Chép bảng</button><button class="btn" id="knLp">🖨 In biên bản</button><button class="btn pri" id="knLk">🔍 Đối chiếu</button>');
+    var L, draw = function () { L = knLedger(nid, $('#knF', m).value, $('#knT2', m).value); $('#knLo', m).innerHTML = knLedgerList(L); };
+    $('#knF', m).onchange = draw; $('#knT2', m).onchange = draw; draw();
+    $('#knLc', m).onclick = function () { copy(knLedgerTsv(L)).then(function () { toast('Đã chép ✓ Dán vào Google Sheet hoặc Zalo'); }); };
+    $('#knLp', m).onclick = function () { knPrint(nid, $('#knF', m).value, $('#knT2', m).value); };
+    $('#knLk', m).onclick = function () { openKnChk(nid, $('#knT2', m).value); };
+  }
+  /** Dò khoản gây lệch: 1 hoặc 2 khoản đã trả / hoá đơn trong 180 ngày có tổng đúng bằng số lệch. */
+  function knGuess(nid, upto, df) {
+    if (!df) return [];
+    var a = Math.abs(df), d0 = isoDate(new Date(upto + 'T12:00:00+07:00').getTime() - 180 * DAY), out = [];
+    var P = KN.d.pays.filter(function (p) { return +p.ncc === +nid && p.day <= upto && p.day >= d0; }), B = KN.d.bills.filter(function (b) { return +b.ncc === +nid && b.day <= upto && b.day >= d0; });
+    var pl = function (p) { return 'khoản <b>đã trả ' + money(p.amt) + ' ngày ' + knDd(p.day) + '</b> (' + esc(p.src || '') + ')'; }, bl = function (b) { return '<b>hoá đơn ' + (b.doc ? esc(b.doc) + ' ' : '') + money(b.amt) + ' ngày ' + knDd(b.day) + '</b>'; };
+    if (df > 0) { // NCC báo cao hơn: NCC chưa trừ khoản mình đã trả, hoặc NCC có hoá đơn mình chưa ghi
+      P.forEach(function (p) { if (p.amt === a) out.push('Nhà cung cấp <b>chưa trừ</b> ' + pl(p) + '.'); });
+      if (!out.length) P.forEach(function (p, i) { P.slice(i + 1).forEach(function (q) { if (p.amt + q.amt === a) out.push('Nhà cung cấp <b>chưa trừ</b> 2 ' + pl(p) + ' và ' + pl(q) + '.'); }); });
+      out.push('Hoặc nhà cung cấp có hoá đơn ' + money(a) + ' mà bên mình chưa ghi: hỏi số hoá đơn, kiểm tra hàng về kho.');
+    } else {
+      B.forEach(function (b) { if (b.amt === a) out.push('Nhà cung cấp <b>chưa ghi</b> ' + bl(b) + ', hoặc bên mình ghi trùng / ghi nhầm hoá đơn này.'); });
+      out.push('Hoặc bên mình chưa ghi 1 khoản đã trả ' + money(a) + ' (tiền mặt / tài khoản chưa tải sao kê), hoặc chưa tải sao kê tới ngày ' + knDd(upto) + '.');
+    }
+    return out.slice(0, 5);
+  }
+  function openKnChk(nid, upto0) {
+    var CK = knChkSt(); nid = nid || (CK.miss[0] && CK.miss[0].s.id) || '';
+    var body = '<p class="small" style="margin:0 0 8px">Nhà cung cấp gửi bảng công nợ thì <b>đối chiếu ở đây trước</b> khi xác nhận hay chuyển tiền. Máy so với sổ CRM tới cùng ngày và chỉ ra khoản lệch.</p>' +
+      '<label class="f"><span>Nhà cung cấp</span><select id="knS">' + knSupOpts(nid) + '</select></label>' +
+      '<div class="kn-2"><label class="f"><span>Số tính đến ngày (ngày cuối trên bảng NCC gửi)</span><input type="date" id="knU" value="' + (upto0 || isoDate(Date.now())) + '"></label><label class="f"><span>Nhà cung cấp báo còn nợ</span><input type="text" inputmode="numeric" id="knA" placeholder="vd 310.400.000"></label></div>' +
+      '<div id="knR"></div><label class="f"><span>Ghi chú (không bắt buộc)</span><input type="text" id="knNo" placeholder="vd đã gửi lại NCC qua Zalo, chờ NCC sửa"></label><p class="err kn-err"></p>';
+    var m = modal('🔍 Đối chiếu công nợ nhà cung cấp', body, '<button class="btn" id="knCp" hidden>📋 Chép tin gửi NCC</button><button class="btn" id="knPr">🖨 In biên bản</button><button class="btn pri" id="knGo">Lưu kết quả</button>');
+    knMoneyIn($('#knA', m));
+    var st = {}, draw = function () {
+      var sid = $('#knS', m).value, up = $('#knU', m).value, raw = $('#knA', m).value.replace(/[^\d]/g, ''), o = $('#knR', m), s = knSup(sid);
+      st = { sid: sid, up: up, has: raw !== '' };
+      if (!s || !up) { o.innerHTML = ''; $('#knCp', m).hidden = true; return; }
+      var ours = knOweAt(sid, up), their = +raw, df = their - ours, P = KN.d.pays.filter(function (p) { return +p.ncc === +sid && p.day <= up; }).sort(function (a, b) { return a.day < b.day ? 1 : -1; }).slice(0, 6);
+      st.ours = ours; st.their = their; st.df = df;
+      var h = '<p class="kn-big">Sổ CRM tới ' + knDd(up) + ': <b>' + money(ours) + '</b>' + (ours < 0 ? ' (mình trả thừa)' : '') + '</p>';
+      if (st.has) h += df === 0 ? '<p class="notice info">✅ <b>Khớp.</b> Bấm Lưu kết quả để ghi đã đối chiếu tháng này.</p>' :
+        '<div class="notice warn"><b>⚠️ Lệch ' + money(Math.abs(df)) + '</b>: nhà cung cấp báo ' + (df > 0 ? 'cao' : 'thấp') + ' hơn sổ. Đừng xác nhận hay chuyển tiền theo số của nhà cung cấp. Có thể do:<ul class="small" style="margin:4px 0 0">' + knGuess(sid, up, df).map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul></div>';
+      h += '<p class="small" style="margin:8px 0 2px"><b>Các khoản đã trả gần nhất</b>: kiểm tra từng khoản có trong bảng nhà cung cấp gửi chưa.</p>' + (P.length ? '<ul class="small kn-pl">' + P.map(function (p) { return '<li>' + knDd(p.day) + ' · <b>' + money(p.amt) + '</b> · ' + esc(p.src || '') + (p.note ? ' · ' + esc(p.note) : '') + '</li>'; }).join('') + '</ul>' : '<p class="small muted">Chưa có khoản trả nào trong sổ. Đã tải sao kê VCB / MB tới ngày này chưa?</p>');
+      o.innerHTML = h; $('#knCp', m).hidden = !(st.has && df);
+    };
+    $('#knS', m).onchange = draw; $('#knU', m).onchange = draw; $('#knA', m).addEventListener('input', draw); draw();
+    $('#knCp', m).onclick = function () {
+      var s = knSup(st.sid), P = KN.d.pays.filter(function (p) { return +p.ncc === +st.sid && p.day <= st.up; }).sort(function (a, b) { return a.day < b.day ? 1 : -1; }).slice(0, 5);
+      var t = 'Dạ em chào anh/chị bên ' + s.name + '. Em bên Thực Dưỡng Lành (VitaGreen) đã nhận bảng công nợ tới ngày ' + knDd(st.up) + ' anh/chị gửi là ' + money(st.their) + '.\nBên em đối chiếu sổ thì còn nợ ' + money(st.ours) + ', chênh ' + money(Math.abs(st.df)) + '.\n' +
+        (st.df > 0 && P.length ? 'Các khoản bên em đã thanh toán gần đây:\n' + P.map(function (p) { return '- ' + knDd(p.day) + ': ' + money(p.amt) + (/Sao kê/.test(p.src || '') ? ' (chuyển khoản)' : ''); }).join('\n') + '\n' : '') +
+        'Anh/chị kiểm tra lại giúp em và gửi lại bảng công nợ đã cập nhật nhé. Em cảm ơn ạ!';
+      copy(t).then(function () { toast('Đã chép tin ✓ Dán vào Zalo gửi nhà cung cấp, kèm ảnh chứng từ chuyển khoản'); });
+    };
+    $('#knPr', m).onclick = function () { if (!st.sid) { $('.kn-err', m).textContent = 'Chọn nhà cung cấp.'; return; } knPrint(st.sid, knFrom(st.sid, st.up), st.up, st.has ? st.their : null); };
+    $('#knGo', m).onclick = function () {
+      if (!st.sid) { $('.kn-err', m).textContent = 'Chọn nhà cung cấp.'; return; } if (!st.has) { $('.kn-err', m).textContent = 'Ghi số nhà cung cấp báo còn nợ.'; return; }
+      var sid = st.sid; knDo(m, this, { op: 'chk', ncc: sid, upto: st.up, their: st.their, note: $('#knNo', m).value }, st.df ? 'Đã lưu: còn lệch, nhớ gửi lại nhà cung cấp' : 'Đã đối chiếu: khớp ✓', function () { openKnSup(sid); });
+    };
+  }
   function bindKn() {
     $$('[data-kn]').forEach(function (el) {
       el.onclick = function () {
@@ -6080,6 +6213,7 @@
         else if (a[0] === 'pay') openKnPay('');
         else if (a[0] === 'new') openKnEdit();
         else if (a[0] === 'unk') openKnUnk();
+        else if (a[0] === 'chk') openKnChk('');
         else if (a[0] === 'copy') copy(knTsv()).then(function () { toast('Đã chép bảng ✓ Mở Google Sheet, bấm ô A1 rồi Ctrl+V (Mac: ⌘+V)'); });
         else if (a[0] === 'import') {
           var F = S.d.rules.fin; if (!F || !F.pay || !confirm('Chép ' + F.pay.length + ' khoản còn nợ từ trang Công nợ vào sổ CRM? Từ nay ghi công nợ trong CRM, không cần cập nhật trang Công nợ nữa.')) return; el.disabled = true;
@@ -7780,6 +7914,40 @@
     if (a === 'del' && r) { if (!confirm('Ẩn câu này? Trợ lý sẽ không dùng nữa.')) return; return api('ins_vqdel', { id: id }).then(function () { VQ.d = null; render(); }, function (er) { toast(er.message, true); }); }
     if (a === 'run') { t.disabled = true; t.textContent = '⏳ Đang gom (khoảng 1 phút)…'; return api('ins_vqrun', {}).then(function (j) { toast('Đã gom ' + ((j.r && j.r.n) || 0) + ' câu mới, AI xếp ô ' + ((j.r && j.r.c) || 0) + ' câu ✓'); VQ.d = null; render(); }, function (er) { t.disabled = false; toast(er.message, true); }); }
   });
+  /* ---------------------------------------------------------------- ▶️ Báo cáo tuần YouTube (14/11/2026, api yt.js: ins_yt / ins_ytcfg / ins_ytrun) */
+  var YB = { d: null, busy: 0, err: '' };
+  function ytbFetch() {
+    YB.busy = 1; YB.err = '';
+    api('ins_yt', {}).then(function (j) { YB.d = j; }, function (e) { YB.err = /Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message; })
+      .then(function () { YB.busy = 0; if (route().view === 'noi-dung') render(); });
+  }
+  function ytbHtml() {
+    var h = '<h2 class="zb-h" id="ytb">▶️ Câu hỏi trên YouTube chưa ai trả lời</h2>';
+    if (!YB.d) { if (!YB.busy && !YB.err) setTimeout(ytbFetch, 0); return h + '<div class="box"><p class="muted">' + (YB.err ? '⚠️ ' + esc(YB.err) + ' <button class="link" data-ytb="reload">Thử lại</button>' : '⏳ Đang tải…') + '</p></div>'; }
+    var d = YB.d, r = d.rep, c = d.cfg;
+    h += '<div class="box"><p class="small muted" style="margin-top:0">Sáng thứ Hai máy tự tìm video YouTube 30 ngày qua theo từ khoá ngành, chọn video có lượt xem <b>gấp ' + c.x + ' lần trở lên</b> mức thường của kênh đó, đọc bình luận và lấy những câu người xem hỏi mà chưa ai trả lời. AI gom lại thành câu hỏi + gợi ý chủ đề, gửi Telegram. Chi phí AI khoảng 2 nghìn đồng / tuần; YouTube miễn phí.</p>' +
+      (d.key ? '<p class="small">🔑 Khoá YouTube: <b>đã có</b>' + (d.key !== 'env' ? ' (' + esc(d.key) + ')' : '') + '</p>' : '<p class="small">🔑 <b>Chưa có khoá YouTube.</b> Anh Sơn làm theo <a href="/huong-dan/marketing/#bao-cao-youtube" target="_blank" rel="noopener">hướng dẫn tạo khoá (5 phút, miễn phí)</a> rồi dán vào ô dưới. Không gửi khoá qua Zalo hay chat.</p>') +
+      (d.canKey ? '<div class="ytb-key"><input id="ytbK" type="password" autocomplete="off" placeholder="Dán khoá YouTube (AIza…)"><button class="btn sm" data-ytb="key">💾 Lưu khoá</button></div>' : '') +
+      '<details class="small"><summary>🔍 Từ khoá đang quét (' + c.kw.length + ')</summary><p>' + esc(c.kw.join(' · ')) + '</p>' + (d.ed ? '<label class="f"><span>Mỗi dòng 1 từ khoá, tối đa 12 <small class="muted">gõ như khách tìm trên YouTube</small></span><textarea id="ytbW" rows="6">' + esc(c.kw.join('\n')) + '</textarea></label><label class="f"><span>Video vượt mức khi lượt xem gấp mấy lần mức thường của kênh</span><input id="ytbX" type="number" min="3" max="50" value="' + c.x + '"></label><button class="btn sm" data-ytb="cfg">💾 Lưu từ khoá</button>' : '') + '</details>' +
+      (d.ed && d.key ? '<div class="lq-btns"><button class="btn sm pri" data-ytb="run">▶️ Chạy ngay</button></div>' : '') + '</div>';
+    if (!r) return h + '<div class="box"><p class="small muted">Chưa có báo cáo nào.</p></div>';
+    h += '<div class="box"><div class="zb-ph"><b>📋 Báo cáo ' + fDateTime(r.at) + '</b><span class="zb-due">' + r.nVid + ' video · ' + r.nQ + ' câu hỏi</span></div>';
+    if ((r.insights || []).length) h += '<p class="small"><b>💡 Vì sao các video này vượt mức</b></p><ul class="small">' + r.insights.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ul>';
+    if ((r.qs || []).length) h += '<p class="small"><b>❓ Câu người xem hỏi mà chưa ai trả lời</b></p><ol class="small">' + r.qs.map(function (q) { return '<li>' + esc(q.q) + (q.n > 1 ? ' <span class="muted">(' + q.n + ' người hỏi)</span>' : '') + (q.why ? '<br><span class="muted">' + esc(q.why) + '</span>' : '') + '</li>'; }).join('') + '</ol>';
+    if ((r.topics || []).length) h += '<p class="small"><b>📝 Gợi ý chủ đề</b> <span class="muted">bấm ➕ để đưa vào 🔑 Từ khoá bài web, trợ lý viết bài sẽ lấy trước</span></p><div class="ytb-tl">' + r.topics.map(function (t, i) { return '<div class="ytb-t"><p class="small"><b>' + esc(t.t) + '</b> <span class="muted">· ' + esc(t.f) + (t.g ? ' · ' + esc(t.g) : '') + '</span>' + (t.why ? '<br><span class="muted">' + esc(t.why) + '</span>' : '') + '</p>' + (t.added ? '<span class="small">✅ Đã thêm</span>' : d.ed ? '<button class="btn sm" data-ytb="add|' + i + '">➕ Thêm</button>' : '') + '</div>'; }).join('') + '</div>';
+    h += '<details class="small"><summary>🎬 Video đã đọc (' + r.videos.length + ')</summary><ul class="small">' + r.videos.map(function (v) { return '<li><a href="https://youtu.be/' + esc(v.id) + '" target="_blank" rel="noopener">' + esc(v.title) + '</a> <span class="muted">· ' + esc(v.ch) + ' · ' + Number(v.views).toLocaleString('vi-VN') + ' lượt · ' + (v.hot ? '🔥 ' : '') + 'gấp ' + v.ratio + ' lần · ' + v.q + ' câu hỏi</span></li>'; }).join('') + '</ul></details>';
+    if ((r.errs || []).length) h += '<p class="small muted">⚠️ ' + esc(r.errs.join(' · ')) + '</p>';
+    return h + '</div>';
+  }
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-ytb]'); if (!t) return;
+    var v = t.getAttribute('data-ytb').split('|'), a = v[0], done = function (msg) { return function () { if (msg) toast(msg); YB.d = null; render(); }; }, fail = function (er) { t.disabled = false; toast(er.message, true); };
+    if (a === 'reload') { YB.err = ''; YB.d = null; return render(); }
+    if (a === 'key') { var k = (($('#ytbK') || {}).value || '').trim(); if (!k) return toast('Dán khoá trước nhé.', true); t.disabled = true; return api('ins_ytcfg', { key: k }).then(done('Đã lưu khoá YouTube ✓'), fail); }
+    if (a === 'cfg') { t.disabled = true; return api('ins_ytcfg', { kw: ($('#ytbW') || {}).value || '', x: Number(($('#ytbX') || {}).value) || 10 }).then(done('Đã lưu từ khoá ✓'), fail); }
+    if (a === 'run') { t.disabled = true; t.textContent = '⏳ Đang quét YouTube (1–2 phút)…'; return api('ins_ytrun', {}).then(done('Đã có báo cáo mới ✓'), function (er) { t.disabled = false; t.textContent = '▶️ Chạy ngay'; toast(er.message, true); }); }
+    if (a === 'add') { t.disabled = true; return api('ins_yt', { add: Number(v[1]) }).then(function (j) { toast(j.dup ? 'Từ khoá này đã có rồi' : 'Đã thêm vào từ khoá bài web ✓'); YB.d = null; if (IN.d) IN.d = null; render(); }, fail); }
+  });
   /* ---------------------------------------------------------------- 🛡 Người gác cổng (14/11/2026, api gate.js: ins_gate): câu trả lời của trợ lý chat web + Zalo bị chặn trước khi gửi khách */
   var GK = { d: null, busy: 0, err: '' };
   var GK_K = { gia: '💰 Giá', ship: '🚚 Phí ship', km: '🏷 Khuyến mãi', sdt: '☎️ Số điện thoại', cong: '🌿 Công dụng', benh: '🚫 Nói về bệnh', hua: '🤞 Hứa hẹn', doa: '😨 Doạ' };
@@ -7914,40 +8082,6 @@
         if (done) return;
         try { var hook = v.currentTime <= 3.05, w = v.videoWidth || 480, hh = v.videoHeight || 852, sc = Math.min(1, (hook ? 768 : 480) / Math.max(w, hh)), c = document.createElement('canvas');
           c.width = Math.round(w * sc); c.height = Math.round(hh * sc); c.getContext('2d').drawImage(v, 0, 0, c.width, c.height); out.push(c.toDataURL('image/jpeg', hook ? 0.78 : 0.65)); out.t.push(Math.round(v.currentTime * 10) / 10); if (!out.thumb) { var c2 = document.createElement('canvas'), s2 = 160 / Math.max(w, hh); c2.width = Math.round(w * s2); c2.height = Math.round(hh * s2); c2.getContext('2d').drawImage(v, 0, 0, c2.width, c2.height); out.thumb = c2.toDataURL('image/jpeg', 0.7); } } catch (e) {}
-  /* ---------------------------------------------------------------- ▶️ Báo cáo tuần YouTube (14/11/2026, api yt.js: ins_yt / ins_ytcfg / ins_ytrun) */
-  var YB = { d: null, busy: 0, err: '' };
-  function ytbFetch() {
-    YB.busy = 1; YB.err = '';
-    api('ins_yt', {}).then(function (j) { YB.d = j; }, function (e) { YB.err = /Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message; })
-      .then(function () { YB.busy = 0; if (route().view === 'noi-dung') render(); });
-  }
-  function ytbHtml() {
-    var h = '<h2 class="zb-h" id="ytb">▶️ Câu hỏi trên YouTube chưa ai trả lời</h2>';
-    if (!YB.d) { if (!YB.busy && !YB.err) setTimeout(ytbFetch, 0); return h + '<div class="box"><p class="muted">' + (YB.err ? '⚠️ ' + esc(YB.err) + ' <button class="link" data-ytb="reload">Thử lại</button>' : '⏳ Đang tải…') + '</p></div>'; }
-    var d = YB.d, r = d.rep, c = d.cfg;
-    h += '<div class="box"><p class="small muted" style="margin-top:0">Sáng thứ Hai máy tự tìm video YouTube 30 ngày qua theo từ khoá ngành, chọn video có lượt xem <b>gấp ' + c.x + ' lần trở lên</b> mức thường của kênh đó, đọc bình luận và lấy những câu người xem hỏi mà chưa ai trả lời. AI gom lại thành câu hỏi + gợi ý chủ đề, gửi Telegram. Chi phí AI khoảng 2 nghìn đồng / tuần; YouTube miễn phí.</p>' +
-      (d.key ? '<p class="small">🔑 Khoá YouTube: <b>đã có</b>' + (d.key !== 'env' ? ' (' + esc(d.key) + ')' : '') + '</p>' : '<p class="small">🔑 <b>Chưa có khoá YouTube.</b> Anh Sơn làm theo <a href="/huong-dan/marketing/#bao-cao-youtube" target="_blank" rel="noopener">hướng dẫn tạo khoá (5 phút, miễn phí)</a> rồi dán vào ô dưới. Không gửi khoá qua Zalo hay chat.</p>') +
-      (d.canKey ? '<div class="ytb-key"><input id="ytbK" type="password" autocomplete="off" placeholder="Dán khoá YouTube (AIza…)"><button class="btn sm" data-ytb="key">💾 Lưu khoá</button></div>' : '') +
-      '<details class="small"><summary>🔍 Từ khoá đang quét (' + c.kw.length + ')</summary><p>' + esc(c.kw.join(' · ')) + '</p>' + (d.ed ? '<label class="f"><span>Mỗi dòng 1 từ khoá, tối đa 12 <small class="muted">gõ như khách tìm trên YouTube</small></span><textarea id="ytbW" rows="6">' + esc(c.kw.join('\n')) + '</textarea></label><label class="f"><span>Video vượt mức khi lượt xem gấp mấy lần mức thường của kênh</span><input id="ytbX" type="number" min="3" max="50" value="' + c.x + '"></label><button class="btn sm" data-ytb="cfg">💾 Lưu từ khoá</button>' : '') + '</details>' +
-      (d.ed && d.key ? '<div class="lq-btns"><button class="btn sm pri" data-ytb="run">▶️ Chạy ngay</button></div>' : '') + '</div>';
-    if (!r) return h + '<div class="box"><p class="small muted">Chưa có báo cáo nào.</p></div>';
-    h += '<div class="box"><div class="zb-ph"><b>📋 Báo cáo ' + fDateTime(r.at) + '</b><span class="zb-due">' + r.nVid + ' video · ' + r.nQ + ' câu hỏi</span></div>';
-    if ((r.insights || []).length) h += '<p class="small"><b>💡 Vì sao các video này vượt mức</b></p><ul class="small">' + r.insights.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ul>';
-    if ((r.qs || []).length) h += '<p class="small"><b>❓ Câu người xem hỏi mà chưa ai trả lời</b></p><ol class="small">' + r.qs.map(function (q) { return '<li>' + esc(q.q) + (q.n > 1 ? ' <span class="muted">(' + q.n + ' người hỏi)</span>' : '') + (q.why ? '<br><span class="muted">' + esc(q.why) + '</span>' : '') + '</li>'; }).join('') + '</ol>';
-    if ((r.topics || []).length) h += '<p class="small"><b>📝 Gợi ý chủ đề</b> <span class="muted">bấm ➕ để đưa vào 🔑 Từ khoá bài web, trợ lý viết bài sẽ lấy trước</span></p><div class="ytb-tl">' + r.topics.map(function (t, i) { return '<div class="ytb-t"><p class="small"><b>' + esc(t.t) + '</b> <span class="muted">· ' + esc(t.f) + (t.g ? ' · ' + esc(t.g) : '') + '</span>' + (t.why ? '<br><span class="muted">' + esc(t.why) + '</span>' : '') + '</p>' + (t.added ? '<span class="small">✅ Đã thêm</span>' : d.ed ? '<button class="btn sm" data-ytb="add|' + i + '">➕ Thêm</button>' : '') + '</div>'; }).join('') + '</div>';
-    h += '<details class="small"><summary>🎬 Video đã đọc (' + r.videos.length + ')</summary><ul class="small">' + r.videos.map(function (v) { return '<li><a href="https://youtu.be/' + esc(v.id) + '" target="_blank" rel="noopener">' + esc(v.title) + '</a> <span class="muted">· ' + esc(v.ch) + ' · ' + Number(v.views).toLocaleString('vi-VN') + ' lượt · ' + (v.hot ? '🔥 ' : '') + 'gấp ' + v.ratio + ' lần · ' + v.q + ' câu hỏi</span></li>'; }).join('') + '</ul></details>';
-    if ((r.errs || []).length) h += '<p class="small muted">⚠️ ' + esc(r.errs.join(' · ')) + '</p>';
-    return h + '</div>';
-  }
-  document.addEventListener('click', function (e) {
-    var t = e.target.closest('[data-ytb]'); if (!t) return;
-    var v = t.getAttribute('data-ytb').split('|'), a = v[0], done = function (msg) { return function () { if (msg) toast(msg); YB.d = null; render(); }; }, fail = function (er) { t.disabled = false; toast(er.message, true); };
-    if (a === 'reload') { YB.err = ''; YB.d = null; return render(); }
-    if (a === 'key') { var k = (($('#ytbK') || {}).value || '').trim(); if (!k) return toast('Dán khoá trước nhé.', true); t.disabled = true; return api('ins_ytcfg', { key: k }).then(done('Đã lưu khoá YouTube ✓'), fail); }
-    if (a === 'cfg') { t.disabled = true; return api('ins_ytcfg', { kw: ($('#ytbW') || {}).value || '', x: Number(($('#ytbX') || {}).value) || 10 }).then(done('Đã lưu từ khoá ✓'), fail); }
-    if (a === 'run') { t.disabled = true; t.textContent = '⏳ Đang quét YouTube (1–2 phút)…'; return api('ins_ytrun', {}).then(done('Đã có báo cáo mới ✓'), function (er) { t.disabled = false; t.textContent = '▶️ Chạy ngay'; toast(er.message, true); }); }
-    if (a === 'add') { t.disabled = true; return api('ins_yt', { add: Number(v[1]) }).then(function (j) { toast(j.dup ? 'Từ khoá này đã có rồi' : 'Đã thêm vào từ khoá bài web ✓'); YB.d = null; if (IN.d) IN.d = null; render(); }, fail); }
-  });
         next();
       };
       v.src = url; v.load();
@@ -11001,6 +11135,9 @@
     var warn = S.d.orders.filter(trkWarn);
     if (warn.length) U.push('🟠 <b>' + warn.length + ' đơn đang giao có cảnh báo vận chuyển</b>: gọi khách ngay để không bị hoàn.' + who('Sale phụ trách') + xem('#don-hang'));
     var unp = unpaidOrders().filter(function (o) { return now - (o.time || 0) > 2 * DAY; });
+    var PC = S.d.rules && S.d.rules.fin && S.d.rules.fin.payChk; // 🔍 đối chiếu công nợ nhà cung cấp ngày 10 (ncc.js nccChkState)
+    if (PC && PC.diff && PC.diff.length) U.push('🔴 <b>Công nợ nhà cung cấp lệch khi đối chiếu</b>: ' + PC.diff.slice(0, 3).map(function (r) { return esc(r[0]) + ' ' + (r[1] > 0 ? 'báo cao hơn ' : 'báo thấp hơn ') + moneyShort(Math.abs(r[1])); }).join(', ') + '. Chưa chuyển tiền theo số nhà cung cấp tới khi thống nhất.' + who('Kế toán') + xem(myViews().some(function (v) { return v.id === 'ke-toan'; }) ? '#ke-toan' : '#tong-quan'));
+    if (PC && PC.due && PC.miss && PC.miss.length) L.push('🟠 <b>' + PC.miss.length + ' nhà cung cấp chưa đối chiếu công nợ tháng này</b> (quy định ngày ' + KN_CHK_DAY + '): ' + PC.miss.slice(0, 3).map(function (r) { return esc(r[0]); }).join(', ') + (PC.miss.length > 3 ? '…' : '') + '.' + who('Kế toán') + xem(myViews().some(function (v) { return v.id === 'ke-toan'; }) ? '#ke-toan' : '#tong-quan'));
     if (unp.length) U.push('🟠 <b>' + unp.length + ' đơn chuyển khoản quá 2 ngày chưa thấy tiền</b> (' + moneyShort(sumT(unp)) + ').' + who('Kế toán') + xem(myViews().some(function (v) { return v.id === 'ke-toan'; }) ? '#ke-toan' : '#don-hang'));
     L = U.concat(L.filter(function (x) { return x.indexOf('Chậm mục tiêu tháng') < 0; }), L.filter(function (x) { return x.indexOf('Chậm mục tiêu tháng') >= 0; })); // mục tiêu tháng đã có ngay dòng đỏ bên dưới → xếp cuối
     var h = '';

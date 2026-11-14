@@ -263,6 +263,22 @@ Mục **🧾 Công nợ nhà cung cấp** trên tab 💼 Kế toán:
 
 **Khoản sao kê bị trừ nhầm nhà cung cấp:** mở nhà cung cấp đó, ở dòng đã trả bấm **↩ Không phải**.
 
+### Nhà cung cấp gửi công nợ: đối chiếu trước khi xác nhận
+
+**Quy định: ngày 10 hằng tháng** xin từng nhà cung cấp còn nợ gửi bảng công nợ rồi đối chiếu. Từ ngày 10, nhà cung cấp nào chưa đối chiếu trong tháng sẽ hiện chữ đỏ **🔍 chưa đối chiếu**, có trong tin Telegram 8h sáng và trong mục 👉 Cần anh xử lý của anh Sơn.
+
+Khi nhà cung cấp gửi bảng công nợ, **không xác nhận và không chuyển tiền theo số của họ ngay**. Bấm **🔍 Nhà cung cấp gửi công nợ** (hoặc mở nhà cung cấp → **🔍 Đối chiếu**):
+
+![Gõ số nhà cung cấp báo (1), máy báo lệch và khoản gây lệch (2), chép tin gửi lại / in biên bản / lưu (3)](/huong-dan/img/ke-toan-doi-chieu-ncc.webp)
+
+1. Chọn nhà cung cấp, chọn **ngày cuối trên bảng họ gửi**, gõ **số họ báo còn nợ**.
+2. Máy tính số của sổ CRM tới đúng ngày đó. **Khớp** thì hiện ✅. **Lệch** thì hiện số lệch và đoán khoản gây lệch, vd "nhà cung cấp chưa trừ khoản đã trả 40.000.000đ ngày 21/10". Xem thêm danh sách **các khoản đã trả gần nhất**: kiểm tra từng khoản có trong bảng họ gửi chưa.
+3. **📋 Chép tin gửi NCC**: chép sẵn tin nhắn (số họ báo, số mình, các khoản đã trả) để dán vào Zalo, gửi kèm ảnh chứng từ chuyển khoản. **🖨 In biên bản**: in biên bản đối chiếu công nợ để hai bên ký. **Lưu kết quả**: bấm cả khi khớp lẫn khi lệch để máy ghi là đã đối chiếu tháng này.
+
+Khi nhà cung cấp đã sửa lại số: mở nhà cung cấp → mục **🔍 Đối chiếu với nhà cung cấp** → bấm **✅ Đã giải quyết**, ghi cách xử lý. Lệch chưa giải quyết thì hiện đỏ ở tab Kế toán và ở Tổng quan của anh Sơn.
+
+**📒 Sổ chi tiết** (trong từng nhà cung cấp): từng dòng mua hàng / đã trả và số còn nợ sau mỗi dòng, giống bảng nhà cung cấp gửi. Đặt cạnh bảng của họ để so từng dòng, thiếu dòng nào là chỗ lệch. Có nút 📋 Chép bảng và 🖨 In biên bản.
+
 **Trước khi trả tiền:** so hoá đơn với **📥 Hàng về kho** (mục Hàng tồn kho bên dưới) xem kho đã nhận đủ chưa.
 
 Số công nợ này cũng hiện ở ô **🧾 Nợ nhà cung cấp** (Tổng quan của anh Sơn) và tin Telegram 8h sáng (khoản quá hạn, tới hạn 7 ngày). Nút **📋 Chép bảng công nợ** chép cả sổ để dán vào Google Sheet khi cần gửi báo cáo.
