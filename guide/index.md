@@ -21,7 +21,7 @@ Bấm vào tên trang trong ô của bạn. Ô **👋 Mọi người** thì ai c
 1. **Gửi email** bạn dùng hằng ngày cho anh Sơn hoặc quản lý. Được thêm xong là bạn vào được CRM. Không cần mật khẩu.
 2. **Cài Telegram** trên điện thoại. Telegram là ứng dụng nhắn tin. CRM dùng nó để báo bạn khi có đơn mới.
 3. **Đăng nhập CRM** và **nối Telegram**. Làm theo mục [Đăng nhập](/huong-dan/crm/#dang-nhap).
-4. Bạn cần **sửa website**? Nhờ anh Sơn bật quyền cho email của bạn. Xem [phần Website](/huong-dan/website/#chuan-bi-tai-khoan-sua-website).
+4. Bạn cần **sửa website**? Nhờ anh Sơn bật quyền cho email của bạn. Xem [phần Website](/huong-dan/website/#dang-nhap-trang-quan-tri).
 
 Bạn **không cần mở Google Sheet**. Mọi việc làm trên CRM. CRM tự ghi lại hết.
 

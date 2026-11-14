@@ -8939,7 +8939,7 @@
   function viewBlog() {
     if (!BW.d && !BW.err && !BW.busy) setTimeout(bwFetch, 0);
     var h = '<div class="page-head"><h1>📰 Trợ lý viết bài web</h1><div class="grow"></div><button class="btn pri" data-bw="tnew">➕ Giao chủ đề</button><button class="btn" data-bw="set">⚙️ Cài đặt</button></div>' +
-      '<p class="muted small lq-intro">Trợ lý tự viết bài cho <b>Góc Sống Lành</b> trên thucduonglanh.vn: chọn chủ đề, tìm nguồn tin, viết, tự kiểm tra từ cấm. Bạn chỉ cần đọc và bấm <b>✅ Đăng</b>. Chưa ai duyệt thì bài không lên web. <a href="/huong-dan/website/#tro-ly-viet-bai-tu-dong" target="_blank" rel="noopener">Xem hướng dẫn</a></p>';
+      '<p class="muted small lq-intro">Trợ lý tự viết bài cho <b>Góc Sống Lành</b> trên thucduonglanh.vn: chọn chủ đề, tìm nguồn tin, viết, tự kiểm tra từ cấm. Bạn chỉ cần đọc và bấm <b>✅ Đăng</b>. Chưa ai duyệt thì bài không lên web. <a href="/huong-dan/website/#viec-2-duyet-bai-tro-ly-viet" target="_blank" rel="noopener">Xem hướng dẫn</a></p>';
     if (!BW.d) return h + '<div class="box"><p class="muted">' + (BW.err ? '⚠️ ' + esc(BW.err) + ' <button class="link" data-bw="reload">Thử lại</button>' : '⏳ Đang tải…') + '</p></div>';
     var j = BW.d, c = j.cfg, P = {}, days = [];
     (j.posts || []).forEach(function (p) { P[p.day] = p; });

@@ -4,12 +4,16 @@ nav: Chấm bài
 group: marketing
 short: AI chấm bài trước khi đăng
 order: 5.5
-updated: 2026-11-12
+updated: 2026-11-15
 description: Dán bài viết, kịch bản hoặc video các bạn làm vào CRM, AI chấm 100 điểm xem đã thu hút, chạm đúng nỗi lòng khách và dẫn tới đơn chưa, chỉ ra chỗ cần sửa.
 roles: [ql, mkt]
 ---
 
 Trang này dành cho **anh Sơn, Marketing và Quản lý**, và cho **bạn nào làm content** muốn tự kiểm tra bài trước khi nộp.
+
+> **Một câu dễ nhớ:** Làm xong bài → **dán vào chấm** → **sửa 3 việc AI chỉ** → đăng → **3–7 ngày sau ghi kết quả thật**.
+
+**3 bước:** [1. Dán bài, bấm Chấm điểm](#buoc-1-dan-bai-bam-cham-diem) · [2. Đọc kết quả và sửa](#buoc-2-doc-ket-qua-va-sua) · [3. Ghi kết quả thật](#buoc-3-ghi-ket-qua-that-quan-trong-nhat)
 
 ## Dùng để làm gì?
 
@@ -29,7 +33,7 @@ Kết quả là **điểm trên 100**, kèm đèn màu:
 
 ## Mở ở đâu?
 
-CRM → menu **Thêm → 🎯 Insight & nội dung** → thẻ **🧪 Chấm bài**.
+CRM → **🎯 Insight** trên menu (không thấy thì **••• Thêm → 🎯 Insight & nội dung**) → thẻ **🧪 Chấm bài**. Các việc content khác xem trang [Content](/huong-dan/content/).
 
 ## Bước 1: Dán bài, bấm Chấm điểm
 

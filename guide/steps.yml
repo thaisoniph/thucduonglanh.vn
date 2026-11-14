@@ -673,3 +673,122 @@ zl-gio:
         - ["btn2", "↩️ Về giờ chung", "💾 Lưu giờ", "g"]
       hi: 2
       text: "Chọn giờ (bài sáng 6:00–11:59, bài tối 12:00–21:45). Bấm <b>💾 Lưu giờ</b>. Muốn bỏ giờ riêng thì <b>↩️ Về giờ chung</b>."
+# ---------- Sửa website (guide/website.md, 15/11/2026) – trang quản trị thucduonglanh.vn/admin + CRM 📰 Bài web
+wb-login:
+  title: Đăng nhập trang quản trị
+  steps:
+    - title: thucduonglanh.vn/admin
+      els:
+        - ["h", "Trang quản trị website"]
+        - ["btn", "Đăng nhập bằng email", "g"]
+        - ["note", "Cửa sổ nhỏ bị chặn? Bấm Cho phép"]
+      hi: 1
+      text: "Mở <b>thucduonglanh.vn/admin</b> trên máy tính. Bấm <b>Đăng nhập bằng email</b>."
+    - title: Đăng nhập
+      els:
+        - ["in", "Email (đúng email đăng nhập CRM)", "ban@gmail.com"]
+        - ["btn", "Gửi mã về email", "g"]
+      hi: 1
+      text: "Gõ <b>đúng email bạn dùng đăng nhập CRM</b>. Bấm <b>Gửi mã về email</b>."
+    - title: Đăng nhập
+      els:
+        - ["in", "Mã 6 số trong email", "482915"]
+        - ["btn", "Đăng nhập", "g"]
+        - ["note", "Máy nhớ bạn 30 ngày"]
+      hi: 1
+      text: "Mở email (xem cả Spam), gõ <b>mã 6 số</b>, bấm <b>Đăng nhập</b>. Không vào được? Nhờ anh Sơn bật ô <b>🌐 Sửa website</b>."
+wb-bai:
+  title: Đăng bài viết mới
+  steps:
+    - title: Trang quản trị
+      els:
+        - ["card", "Bài viết (Góc Sống Lành)", "", "g"]
+        - ["card", "Sản phẩm", "", ""]
+        - ["card", "Gói giải pháp", "", ""]
+        - ["btn", "Tạo mới", "g"]
+      hi: 3
+      text: "Cột trái chọn <b>Bài viết (Góc Sống Lành)</b>. Bấm <b>Tạo mới</b>."
+    - title: Bài viết mới
+      els:
+        - ["in", "Tiêu đề", "Bữa sáng 5 phút cho người bận"]
+        - ["in", "Ngày đăng · Chuyên mục", "15/11/2026 · Bếp lành"]
+        - ["in", "Ảnh đại diện (rộng từ 1000px)", "bua-sang.jpg"]
+        - ["in", "Mô tả ngắn (1–2 câu)", "Hiện khi chia sẻ lên Facebook, Zalo"]
+        - ["in", "Nội dung", "Soạn như Word…"]
+      hi: 0
+      text: "Điền <b>Tiêu đề</b>, <b>Ngày đăng</b>, <b>Chuyên mục</b>, <b>Ảnh đại diện</b>, <b>Mô tả ngắn</b>. Viết <b>Nội dung</b> như soạn Word (in đậm, tiêu đề nhỏ, chèn ảnh, link)."
+    - title: Bài viết mới
+      els:
+        - ["in", "🌿 Trải nghiệm thật (không bắt buộc)", "Chị Lan ăn sáng đủ 2 tuần…"]
+        - ["card", "☑ Hiển thị trên web", "Tắt = ẩn bài, không cần xoá", ""]
+        - ["btn", "Lưu", "g"]
+      hi: 2
+      text: "Có chuyện thật thì ghi vào <b>🌿 Trải nghiệm thật</b> (Google đánh giá cao). Bấm <b>Lưu</b>, chờ 1–2 phút là bài lên web."
+wb-duyet:
+  title: Duyệt bài trợ lý viết
+  steps:
+    - title: Telegram
+      els:
+        - ["card", "📰 Bài web chờ duyệt", "Bữa sáng 5 phút · đăng 9h mai", "y"]
+        - ["btn", "🔗 Bấm link trong tin", "g"]
+        - ["note", "Hoặc: CRM → ••• Thêm → 📰 Bài web"]
+      hi: 1
+      text: "Trước ngày đăng 1 ngày, Telegram nhắn bài nháp. Bấm link trong tin, hoặc vào CRM → <b>📰 Bài web</b>."
+    - title: Bài web chờ duyệt
+      els:
+        - ["card", "🎯 Dân văn phòng · vội ↔ muốn đủ chất", "Tự kiểm tra: từ cấm ✓ · nguồn ✓ · ảnh ✓", "g"]
+        - ["btn", "✅ Đăng bài này", "g"]
+        - ["btn", "✍️ Viết lại theo ý kiến", ""]
+        - ["btn", "🖊 Tôi tự sửa trong /admin", ""]
+      hi: 1
+      text: "Đọc dòng <b>🎯</b> và bản tự kiểm tra. Bài ổn thì bấm <b>✅ Đăng bài này</b>: bài tự lên web đúng giờ."
+    - title: Viết lại theo ý kiến
+      els:
+        - ["in", "Ý kiến của bạn", "mở bài bằng tình huống thật, bớt số liệu"]
+        - ["btn", "✍️ Viết lại theo ý kiến", "g"]
+        - ["note", "10–20 phút sau trợ lý nhắn bản mới"]
+      hi: 1
+      text: "Chưa ưng thì ghi ý kiến <b>cụ thể</b> rồi bấm <b>✍️ Viết lại theo ý kiến</b>. Trợ lý nhớ ý kiến này cho cả các bài sau."
+wb-gia:
+  title: Sửa giá sản phẩm
+  steps:
+    - title: Trang quản trị
+      els:
+        - ["card", "Sản phẩm", "", "g"]
+        - ["card", "Trà DILVANG", "Bấm để mở", ""]
+        - ["card", "Bữa Ăn Dinh Dưỡng", "", ""]
+      hi: 1
+      text: "Cột trái chọn <b>Sản phẩm</b>. Bấm vào sản phẩm cần sửa."
+    - title: Trà DILVANG
+      els:
+        - ["in", "Giá bán (đồng)", "140000"]
+        - ["in", "Giá gốc gạch ngang (đồng)", "160000"]
+        - ["note", "Gõ liền số: không dấu chấm, không chữ đ"]
+        - ["h", "Nhiều quy cách / nhiều giá"]
+        - ["card", "1. Hộp lẻ · 140000", "Dòng đầu LUÔN là hộp lẻ", "y"]
+      hi: 0
+      text: "Gõ giá <b>liền một dãy số</b> (ví dụ <b>140000</b>). Muốn giảm giá thì điền <b>Giá gốc gạch ngang</b>. Nhiều loại hộp thì sửa trong <b>Nhiều quy cách / nhiều giá</b>."
+    - title: Trà DILVANG
+      els:
+        - ["btn", "Lưu", "g"]
+        - ["note", "1–2 phút sau web đổi, CRM tự cập nhật"]
+      hi: 0
+      text: "Bấm <b>Lưu</b>. Giá trên web và trong CRM tự đổi theo."
+wb-sotay:
+  title: Sửa Sổ tay doanh nghiệp
+  steps:
+    - title: Trang quản trị
+      els:
+        - ["card", "Cài đặt website", "", "g"]
+        - ["card", "📗 Sổ tay doanh nghiệp", "Mọi trợ lý AI đọc ở đây", "g"]
+        - ["card", "❓ Khách hỏi: có dùng cho bà bầu?", "Chưa xác nhận · quá 90 ngày", "y"]
+      hi: 2
+      text: "<b>Cài đặt website</b> → <b>📗 Sổ tay doanh nghiệp</b>. Bấm vào mục cần sửa."
+    - title: Sổ tay doanh nghiệp
+      els:
+        - ["in", "Nội dung", "Dạ với mẹ bầu, mình nên hỏi bác sĩ…"]
+        - ["in", "Trạng thái", "Đã xác nhận"]
+        - ["in", "Người xác nhận · Ngày xác nhận", "Sơn · 15/11/2026"]
+        - ["btn", "Lưu", "g"]
+      hi: 1
+      text: "Sửa <b>Nội dung</b>. Đọc lại thấy đúng thì chọn <b>Đã xác nhận</b>, ghi tên và ngày. Bấm <b>Lưu</b>: 10 phút sau mọi trợ lý dùng bản mới."

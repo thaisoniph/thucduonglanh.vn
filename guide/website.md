@@ -4,46 +4,49 @@ nav: Website
 group: marketing
 short: Đăng bài, sửa giá, sửa sản phẩm
 order: 6
-updated: 2026-11-14
-description: Đăng bài, sửa giá, sửa sản phẩm, đăng tin tuyển dụng. Làm trên máy tính.
+updated: 2026-11-15
+description: Đăng bài, duyệt bài trợ lý viết, sửa giá, sửa sản phẩm, tạo gói, đăng tin tuyển dụng, sửa Sổ tay doanh nghiệp. Làm trên máy tính. Mỗi việc có hình.
 roles: [web]
 ---
-
 Trang này dành cho người **đăng bài, sửa sản phẩm, sửa giá** trên website [thucduonglanh.vn](https://thucduonglanh.vn).
 
 Nơi sửa website gọi là **trang quản trị**: [thucduonglanh.vn/admin](https://thucduonglanh.vn/admin/). Nên dùng **máy tính** (Chrome, Edge hoặc Safari).
 
 > **Nhớ 3 điều:**
+>
 > 1. Bấm **Lưu** xong, chờ **1–2 phút** thì web mới đổi.
 > 2. Sửa nhầm cũng không sao. Mọi lần lưu đều có lịch sử. Báo anh Sơn để lấy lại bản cũ.
 > 3. Không ghi sản phẩm "chữa bệnh", "điều trị", "khỏi bệnh". Chỉ ghi điều có thật.
 
-## Chuẩn bị tài khoản sửa website
+## Bạn muốn làm gì?
+
+| Việc | Xem |
+| --- | --- |
+| Đăng bài lên Góc Sống Lành | [Việc 1](#viec-1-dang-bai-viet-moi) |
+| Duyệt bài trợ lý AI viết | [Việc 2](#viec-2-duyet-bai-tro-ly-viet) |
+| Sửa giá, giảm giá | [Việc 3](#viec-3-sua-gia-san-pham) |
+| Sửa ảnh, mô tả, đánh giá sản phẩm | [Việc 4](#viec-4-sua-thong-tin-khac-cua-san-pham) |
+| Ẩn / hiện 1 sản phẩm (nhanh nhất, làm trong CRM) | [Marketing → Việc 8](/huong-dan/marketing/#viec-8-an-hien-san-pham-tren-website) |
+| Thêm sản phẩm mới / tạo gói | [Việc 5](#viec-5-them-san-pham-moi), [Việc 6](#viec-6-tao-goi-combo) |
+| Đăng tin tuyển dụng | [Việc 7](#viec-7-dang-tin-tuyen-dung) |
+| Sửa điều trợ lý AI phải nói đúng | [Việc 8](#viec-8-sua-so-tay-doanh-nghiep) |
+| Đổi hotline, link nhóm Zalo, ưu đãi web, nhạc nền… | [Cài đặt website](#cai-dat-website) |
+| Tạo link theo dõi, mã QR | [Marketing → Việc 6, 7](/huong-dan/marketing/#viec-7-link-theo-doi-khi-dang-bai) |
+
+## Đăng nhập trang quản trị
 
 Bạn dùng **đúng email đăng nhập CRM**. Không cần tạo tài khoản mới.
 
 - Nhờ anh Sơn bật ô **🌐 Sửa website** cho email của bạn.
 - Chưa có tài khoản CRM? Gửi email bạn dùng hằng ngày cho anh Sơn.
 
-## Đăng nhập trang quản trị
-
-1. Mở [thucduonglanh.vn/admin](https://thucduonglanh.vn/admin/) trên máy tính.
-2. Bấm **Đăng nhập bằng email**. Một cửa sổ nhỏ hiện ra. Trình duyệt chặn cửa sổ thì bấm **Cho phép**.
-3. Gõ email, bấm **Gửi mã về email**.
-4. Mở email (xem cả mục Spam), lấy **mã 6 số**, gõ vào, bấm **Đăng nhập**.
-
-Máy nhớ bạn 30 ngày.
+[[steps:wb-login]]
 
 **Đã lưu mà web chưa đổi?** Chờ 2 phút. Rồi tải lại trang: bấm **Ctrl + F5** (máy Windows) hoặc **Cmd + Shift + R** (máy Mac).
 
-## Đăng bài viết mới
+## Việc 1: Đăng bài viết mới
 
-1. Cột trái chọn **Bài viết (Góc Sống Lành)**. Bấm **Tạo mới**.
-2. Điền **Tiêu đề**, **Ngày đăng**, **Chuyên mục**.
-3. Chọn **Ảnh đại diện**: ảnh ngang hoặc vuông, rộng từ 1000px. Web tự làm nhỏ ảnh.
-4. Viết **Mô tả ngắn**: 1–2 câu. Câu này hiện khi chia sẻ bài lên Facebook, Zalo.
-5. Viết **Nội dung**: soạn giống Word (in đậm, tiêu đề nhỏ, gạch đầu dòng, chèn ảnh, chèn link).
-6. Bấm **Lưu**.
+[[steps:wb-bai]]
 
 Muốn ẩn bài mà không xoá: tắt ô **Hiển thị trên web**.
 
@@ -51,59 +54,31 @@ Muốn ẩn bài mà không xoá: tắt ô **Hiển thị trên web**.
 
 Mọi bài Góc Sống Lành tự có dòng **"Người duyệt nội dung: Đinh Minh Thái Sơn"** (link sang dinhminhthaison.com) ngay dưới tiêu đề. Đổi người duyệt ở **Cài đặt website → Thông tin liên hệ… → Người duyệt nội dung bài viết**.
 
-## Trợ lý viết bài tự động
+## Việc 2: Duyệt bài trợ lý viết
 
-Trợ lý tự viết bài cho Góc Sống Lành. **Bài chỉ lên web khi có người bấm Đăng.**
+Trợ lý tự viết bài cho Góc Sống Lành. **Bài chỉ lên web khi có người bấm Đăng.** Người duyệt: Quản trị, Quản lý và người được bật "Sửa website". Phải nối Telegram ở CRM mới nhận được tin duyệt.
 
-**Ai duyệt bài:** Quản trị, Quản lý và người được bật "Sửa website" ở CRM → Cài đặt → Nhân sự. Phải nối Telegram ở CRM thì mới nhận được tin duyệt.
+[[steps:wb-duyet]]
 
-**Duyệt ở đâu:** trong CRM, tab **📰 Bài web** (máy tính: menu **Thêm**, cạnh Trợ lý Zalo và Fanpage), hoặc bấm link trong tin Telegram. Hai chỗ cùng một việc, ai bấm trước thì bài theo người đó.
-
-**Lịch chạy:**
-1. Trước ngày đăng 1 ngày, trợ lý viết bài nháp rồi nhắn Telegram riêng cho từng người duyệt.
-2. Bấm link trong tin nhắn để xem bài và bản tự kiểm tra (từ cấm, nguồn dẫn, độ dài, ảnh bìa).
-3. Chọn một trong các nút:
-   - **✅ Đăng bài này**: bài tự lên web đúng giờ đăng. Duyệt muộn hơn giờ đăng thì bài lên ngay.
-   - **✍️ Viết lại theo ý kiến**: ghi ý kiến vào ô, khoảng 10–20 phút sau trợ lý nhắn lại bản mới.
-   - **🖊 Tôi tự sửa trong /admin**: bài vào /admin ở dạng ẩn. Sửa xong bật "Hiển thị trên web" rồi bấm Xuất bản.
-   - **🔁 Đổi chủ đề khác** hoặc **❌ Bỏ**.
-4. Tới giờ đăng mà chưa ai duyệt, trợ lý nhắc thêm 1 lần.
+**Các nút khác:** **🖊 Tôi tự sửa trong /admin** (bài vào /admin ở dạng ẩn; sửa xong bật "Hiển thị trên web" rồi Lưu), **🔁 Đổi chủ đề khác**, **❌ Bỏ**. Tới giờ đăng mà chưa ai duyệt, trợ lý nhắc thêm 1 lần. Ai bấm trước (Telegram hay CRM) thì bài theo người đó.
 
 **Giao chủ đề kèm trải nghiệm thật:** ở /admin → Cài đặt website → 🤖 Trợ lý viết bài tự động → Chủ đề chờ viết, có thêm ô **🌿 Trải nghiệm thật**. Ghi chuyện thật vào đó: trợ lý nhắc lại đúng ý trong bài (không thêm thắt) và web hiện riêng trong khung xanh đầu bài.
 
 **✍️ Trợ lý học từ bạn:** ý kiến bạn ghi khi bấm **✍️ Viết lại theo ý kiến** được trợ lý nhớ cho cả các bài sau, không chỉ bài đó. Bài bạn **tự sửa trong /admin** rồi bật hiển thị cũng vậy: khoảng 6 tiếng sau, trợ lý so bản nó viết với bản bạn sửa để học cách viết. Vì vậy hãy ghi ý kiến cụ thể, ví dụ "mở bài bằng tình huống thật, bớt số liệu", "câu ngắn hơn".
 
-**Xem hiệu quả:** CRM → 📰 Bài web → 📊 Hiệu quả bài viết (chọn 7, 30 hoặc 90 ngày):
-- **Lượt xem, thời gian đọc, bấm mua trong bài**: lấy từ Google Analytics, chỉ đếm người bấm Đồng ý cookie nên số thật cao hơn.
-- **Đơn sau khi đọc**: khách đọc bài rồi đặt hàng trên web trong 7 ngày (tính cho bài đọc gần nhất, không tính đơn huỷ, hoàn).
-- **Chi phí AI**: tiền trợ lý viết bài, chia ra mỗi bài bao nhiêu.
-- **🏆 Bài được đọc nhiều nhất**: cả bài viết tay để so với bài trợ lý viết.
+## Việc 3: Sửa giá sản phẩm
 
-**📈 Trợ lý tự học từ số đọc:** trước khi viết bài mới, trợ lý xem các bài web cùng loại (🔵 thu hút, ⚪ tạo niềm tin, 🟠 bán hàng) đã đăng trong 60 ngày. Trợ lý học theo bài được đọc nhiều, đọc lâu, nhiều người bấm mua, và tránh kiểu bài ít người đọc. Xem danh sách này ở CRM → 🎯 Insight & nội dung → **📈 Học từ tương tác** (dòng 🌐 Bài web). Mỗi loại cần ít nhất 3 bài đã đăng hơn 2 ngày mới bắt đầu so.
+[[steps:wb-gia]]
 
-**Cài đặt:** CRM → 📰 Bài web → ⚙️ Cài đặt và ➕ Thêm chủ đề. Sửa ở /admin → Cài đặt website → 🤖 Trợ lý viết bài tự động cũng được, hai chỗ dùng chung một bản.
-- **Số bài mỗi tuần** (1–7) và **Giờ đăng**.
-- **Chủ đề chờ viết**: thêm chủ đề muốn viết, trợ lý lấy chủ đề trên cùng trước. Bài đăng xong, chủ đề tự chuyển sang "Đã đăng" kèm link.
-- Khi giao chủ đề, chọn được **🎯 Nhóm khách bài nhắm tới** (để trống = trợ lý tự chọn nhóm ít được viết nhất).
-- Mọi bài, kể cả chủ đề được giao, đều qua bước **🎯 insight**: trợ lý chọn 1 nhóm khách + 1 tension (điều họ mong ↔ điều đang cản họ) rồi mới viết. Thẻ bài chờ duyệt có dòng 🎯 để bạn kiểm tra.
-- Hết chủ đề, trợ lý tự chọn chủ đề theo phễu 3 tầng (Nhận biết, Cân nhắc, Mua hàng) từ **ngân hàng insight** chung ở CRM → **🎯 Insight & nội dung** ([xem hướng dẫn](/huong-dan/content/)). Ô **Ghi chú thêm về tệp khách** ở ⚙️ Cài đặt chỉ để ghi điều riêng cho bài web.
+**Quy tắc giá:**
 
-## Sửa giá sản phẩm
-
-1. Cột trái chọn **Sản phẩm**. Bấm vào sản phẩm cần sửa.
-2. Gõ giá **liền một dãy số**. **Không có dấu chấm, không có chữ "đ".** Ví dụ: `140000`.
-    - Sản phẩm 1 loại: sửa ô **Giá bán**.
-    - Sản phẩm nhiều loại (Hộp 400g, Hộp 125g…): sửa trong mục **Nhiều quy cách / nhiều giá**.
-    - **Dòng đầu tiên luôn là hộp lẻ.** Gói Khởi động 10 ngày lấy dòng đầu tiên. Nếu dòng đầu là combo, gói sẽ ghi sai thành "3 hộp".
-    - **Combo** đặt tên kiểu `Combo 3 hộp` hoặc `Mua 3 tặng 1`. Ô **Giá gốc** = giá gốc 1 hộp × số hộp khách nhận (ví dụ Mua 3 tặng 1 Bữa Ăn: 450000 × 4 = `1800000`). Web tự tính "≈ giá/hộp", "-x%", gắn nhãn **Lợi nhất** và nhắc khách đổi sang combo trong giỏ.
-3. Bấm **Lưu**.
-
+- **Sản phẩm nhiều loại** (Hộp 400g, Hộp 125g…): **dòng đầu tiên luôn là hộp lẻ**. Gói Khởi động 10 ngày lấy dòng đầu tiên; dòng đầu là combo thì gói ghi sai thành "3 hộp".
+- **Combo** đặt tên kiểu `Combo 3 hộp` hoặc `Mua 3 tặng 1`. Ô **Giá gốc** = giá 1 hộp × số hộp khách nhận (ví dụ Mua 3 tặng 1 Bữa Ăn: 450000 × 4 = `1800000`). Web tự tính "≈ giá/hộp", "-x%", gắn nhãn **Lợi nhất**.
 - **Muốn giảm giá:** điền **Giá gốc gạch ngang** (lớn hơn Giá bán). Web tự hiện "-x%".
-- **Để trống Giá bán:** web hiện chữ "Liên hệ" và ẩn nút mua.
-- **Hết hàng, ngừng bán:** tắt ô **Hiển thị trên web**.
-- Giá sửa trên web cũng tự cập nhật vào CRM.
+- **Để trống Giá bán:** web hiện "Liên hệ" và ẩn nút mua.
+- **Hết hàng, ngừng bán:** tắt **Hiển thị trên web** (hoặc làm nhanh trong CRM, [Marketing → Việc 8](/huong-dan/marketing/#viec-8-an-hien-san-pham-tren-website)).
 
-## Sửa thông tin khác của sản phẩm
+## Việc 4: Sửa thông tin khác của sản phẩm
 
 Mở sản phẩm, sửa ô cần sửa, bấm **Lưu**.
 
@@ -123,7 +98,7 @@ Mở sản phẩm, sửa ô cần sửa, bấm **Lưu**.
 | **Đánh giá khách hàng** | **Chỉ nhập đánh giá thật** (tên, nơi ở, số sao, lời khen, ảnh tin nhắn). Không tự viết |
 | **Câu chuyện sản phẩm** | Hành trình từ vùng nguyên liệu đến tay khách, có ảnh, video, báo chí. Chỉ ghi điều có thật |
 
-## Thêm sản phẩm mới
+## Việc 5: Thêm sản phẩm mới
 
 1. Chọn **Sản phẩm**, bấm **Tạo mới**.
 2. Điền tên, danh mục, giá, 3–6 ảnh vuông, mô tả ngắn.
@@ -133,7 +108,7 @@ Mở sản phẩm, sửa ô cần sửa, bấm **Lưu**.
 6. **Hỏi đáp**: thêm 5–8 câu khách hay hỏi thật. Trả lời ngắn, nói thẳng ngay câu đầu.
 7. Bấm **Lưu**.
 
-## Tạo gói (combo)
+## Việc 6: Tạo gói (combo)
 
 Gói = nhiều sản phẩm bán chung 1 giá. Ví dụ **Gói Khởi Động 10 Ngày Sống Lành**.
 
@@ -149,7 +124,7 @@ Gói = nhiều sản phẩm bán chung 1 giá. Ví dụ **Gói Khởi Động 10
 - Mục **Link tài liệu lộ trình** và **Quyền lợi thêm**: chỉ điền khi đã có thật.
 - Tạm ngừng bán gói: tắt **Hiển thị trên web**.
 
-## Đăng tin tuyển dụng
+## Việc 7: Đăng tin tuyển dụng
 
 Trang tuyển dụng: [congsu.thucduonglanh.vn](https://congsu.thucduonglanh.vn). Mỗi vị trí là 1 mục trong **Tuyển dụng**.
 
@@ -164,11 +139,30 @@ Trang tuyển dụng: [congsu.thucduonglanh.vn](https://congsu.thucduonglanh.vn)
 - Đầu mỗi tin có **mức phù hợp**: 🟢 từ 80% (rất phù hợp, nên gọi ngay), 🟡 60–79% (đọc kỹ câu trả lời rồi quyết), 🔴 dưới 60% (cần cân nhắc). Dòng ⚠️ là điểm cần hỏi lại khi phỏng vấn.
 - Bộ câu hỏi chấm điểm không sửa được trong trang quản trị. Muốn đổi câu hỏi thì báo anh Sơn.
 
+## Việc 8: Sửa Sổ tay doanh nghiệp
+
+**Sổ tay doanh nghiệp** là **một nơi duy nhất** ghi những điều mọi trợ lý AI phải nói đúng: trợ lý chat trên web, trợ lý nhóm Zalo và tin nhắn riêng, trợ lý Fanpage, trợ lý viết bài, chấm bài, và ChatGPT / Gemini / Claude nối vào CRM.
+
+Sổ tay có 5 nhóm:
+
+- 📖 **Câu chuyện công ty**: công ty là ai, câu chuyện ra đời, sứ mệnh, văn hoá.
+- 📜 **Chính sách**: phí ship, thanh toán, đổi trả, khuyến mãi.
+- 🎨 **Bản sắc thương hiệu**: giọng nói, câu chuyện thật được kể, quan điểm, điều tránh khi viết, cách dẫn dắt khách.
+- ❓ **Câu hỏi khó + câu trả lời đã duyệt**: khách hỏi câu khó thì trợ lý trả lời theo ý này.
+- 🚫 **Điều không được nói**: từ cấm, hứa hẹn, doạ, số điện thoại khác…
+
+[[steps:wb-sotay]]
+
+> - Số tiền, hotline không gõ tay: gõ **{shipping_fee}**, **{free_ship_threshold}**, **{hotline}**… thì web tự lấy đúng số trong *Thông tin liên hệ*.
+> - Mục nào **quá 90 ngày** chưa xác nhận lại, sáng thứ Hai anh Sơn nhận tin Telegram nhắc.
+> - Không muốn trợ lý dùng một mục nữa thì chọn **Trạng thái: Tắt** (không cần xoá).
+> - Sổ tay ai cũng xem được trên mạng. **Không ghi** mật khẩu, tên hay số điện thoại khách.
+
 ## Cài đặt website
 
 Cột trái chọn **Cài đặt website**. Các mục hay dùng:
 
-**Thông tin liên hệ, mạng xã hội, ngân hàng:**
+### Thông tin liên hệ, ưu đãi, quà, hộp tư vấn
 
 - Hotline, Zalo, email, địa chỉ, giờ làm việc, link Facebook, TikTok, YouTube…
 - Tài khoản nhận chuyển khoản (mã QR), phí vận chuyển.
@@ -184,7 +178,9 @@ Cột trái chọn **Cài đặt website**. Các mục hay dùng:
 - **🎉 Ngày Đôi Sống Lành**: chương trình tự chạy vào các ngày 1/1, 2/2 … 12/12. Khách đặt trên web được miễn ship từ mức đặt sẵn (đang là 150.000đ), đơn đủ mức thì có quà 1, vài đơn đầu tiên trong ngày có thêm quà 2. Có thể đặt **quà bậc 2** (ví dụ đơn từ 700.000đ tặng Trà thay cho Ruốc): đơn đủ mức bậc 2 nhận quà bậc 2 thay quà 1, không nhận cả hai. Đơn dùng mã giảm giá không kèm quà. Sửa được: bật/tắt, mức miễn ship, mức tiền, sản phẩm làm quà, chữ hiện cho khách, số đơn đầu được quà, báo trước 1 ngày. Không cần tạo mã. Lưu xong 1–2 phút là web và máy nhận đơn đổi theo.
 - **Mốc đơn hàng thứ 2**: để tắt. Chỉ bật khi công ty đã duyệt một quyền lợi thật.
 
-**Nhạc nền website:** nút ♪ trên đầu trang. Sửa được: bật/tắt, âm lượng (nên 20–30%), danh sách bài.
+### Nhạc nền website
+
+ nút ♪ trên đầu trang. Sửa được: bật/tắt, âm lượng (nên 20–30%), danh sách bài.
 
 1. Bấm **Thêm**, đặt tên bài, tải file .mp3 (dưới 5 MB).
 2. Kéo bài mới lên đầu, hoặc tắt ô **Phát** của bài cũ.
@@ -192,7 +188,7 @@ Cột trái chọn **Cài đặt website**. Các mục hay dùng:
 
 **Không dán link Google Drive** (web không phát được). Chỉ dùng nhạc công ty có quyền dùng.
 
-**Các mục khác:**
+### Các mục khác
 
 - **Trang chủ – Ảnh lớn đầu trang & băng chuyền**: tiêu đề, ảnh, chữ trên nút, dòng tin cậy dưới nút.
 - **Chọn theo nhu cầu**: các thẻ *Bữa sáng bận rộn*… ở trang chủ. Không ghi tên bệnh.
@@ -200,36 +196,12 @@ Cột trái chọn **Cài đặt website**. Các mục hay dùng:
   - **Câu chào**, **Câu hỏi gợi ý** (3–5 câu khách hay hỏi nhất, khách bấm là hỏi luôn).
   - **Mời nhận quà sau bao nhiêu câu hỏi** (đang là 2), **Mô tả quà**: chỉ ghi quà có thật.
   - **Kiến thức thêm**: điều phụ bot cần biết mà web chưa có (cộng đồng, trò chơi, chương trình đang chạy…). Câu chuyện công ty, chính sách, câu trả lời mẫu thì ghi ở **📗 Sổ tay doanh nghiệp** (ngay dưới). Viết câu ngắn, đúng sự thật, không ghi công dụng chữa bệnh.
-- **📗 Sổ tay doanh nghiệp**: xem mục [Sổ tay doanh nghiệp](#so-tay-doanh-nghiep) bên dưới.
+- **📗 Sổ tay doanh nghiệp**: xem mục [Sổ tay doanh nghiệp](#viec-8-sua-so-tay-doanh-nghiep) bên dưới.
   - Bot trả lời sai hoặc thiếu thì báo anh Sơn, hoặc sửa phần **Hỏi đáp** của sản phẩm đó.
 - **Trò chơi Bạn còn mấy ngón tay**: câu hỏi và kết quả. Sửa trong CRM (**⚙ Cài đặt → 🖐 Trò chơi**) dễ hơn trên điện thoại.
 - **Hồ sơ thương hiệu (brochure)**: sách lật, file PDF, ảnh bìa.
 - **Danh mục sản phẩm, Chuyên mục bài viết**: thêm, đổi tên. **Không đổi ô "Mã"** của danh mục đang có sản phẩm.
 - **Trang chính sách / hỗ trợ** (cột trái): giao hàng, đổi trả, bảo mật… Gõ {hotline}, {email}, {address} thì web tự thay bằng thông tin công ty.
-
-## Sổ tay doanh nghiệp
-
-**Sổ tay doanh nghiệp** là **một nơi duy nhất** ghi những điều mọi trợ lý AI phải nói đúng: trợ lý chat trên web, trợ lý nhóm Zalo và tin nhắn riêng, trợ lý Fanpage, trợ lý viết bài, chấm bài, và ChatGPT / Gemini / Claude nối vào CRM.
-
-Sổ tay có 5 nhóm:
-
-- 📖 **Câu chuyện công ty**: công ty là ai, câu chuyện ra đời, sứ mệnh, văn hoá.
-- 📜 **Chính sách**: phí ship, thanh toán, đổi trả, khuyến mãi.
-- 🎨 **Bản sắc thương hiệu**: giọng nói, câu chuyện thật được kể, quan điểm, điều tránh khi viết, cách dẫn dắt khách.
-- ❓ **Câu hỏi khó + câu trả lời đã duyệt**: khách hỏi câu khó thì trợ lý trả lời theo ý này.
-- 🚫 **Điều không được nói**: từ cấm, hứa hẹn, doạ, số điện thoại khác…
-
-Cách sửa:
-
-1. Trang quản trị → **Cài đặt website** → **📗 Sổ tay doanh nghiệp**.
-2. Bấm vào mục cần sửa. Sửa **Nội dung**.
-3. Đọc lại thấy đúng thì chọn **Trạng thái: Đã xác nhận**, ghi **Người xác nhận** và **Ngày xác nhận** = hôm nay.
-4. Bấm **Lưu**. Khoảng 10 phút sau mọi trợ lý dùng bản mới.
-
-> - Số tiền, hotline không gõ tay: gõ **{shipping_fee}**, **{free_ship_threshold}**, **{hotline}**… thì web tự lấy đúng số trong *Thông tin liên hệ*.
-> - Mục nào **quá 90 ngày** chưa xác nhận lại, sáng thứ Hai anh Sơn nhận tin Telegram nhắc.
-> - Không muốn trợ lý dùng một mục nữa thì chọn **Trạng thái: Tắt** (không cần xoá).
-> - Sổ tay ai cũng xem được trên mạng. **Không ghi** mật khẩu, tên hay số điện thoại khách.
 
 ## Bản tiếng Anh
 
@@ -247,21 +219,26 @@ Web có bản tiếng Anh tại [thucduonglanh.vn/en/](https://thucduonglanh.vn/
 - Không dùng chữ *treat, cure, heal, prevent disease*. Thực phẩm bổ sung giữ câu *This product is not a medicine and does not replace medical treatment.*
 - Đơn từ bản tiếng Anh có ghi chú **🌐 Khách đặt từ web tiếng Anh**. Nên nhờ người nói được tiếng Anh gọi xác nhận.
 
-## Tạo link theo dõi khi đăng bài, chạy quảng cáo
-
-Đăng bài hay chạy quảng cáo dẫn khách về web thì dùng **link theo dõi**. Nhờ vậy biết khách đến từ bài nào.
-
-1. Mở [thucduonglanh.vn/admin/utm](https://thucduonglanh.vn/admin/utm).
-2. Dán link trang muốn dẫn khách tới.
-3. Chọn **Kênh** (Facebook, TikTok, Zalo…) và **Hình thức** (bài đăng, quảng cáo…).
-4. Gõ **Tên chiến dịch** không dấu, ví dụ `dilvang-combo`.
-5. Bấm **📋 Sao chép link**. Dùng link này khi đăng bài.
-
-Cần **mã QR** cho tờ rơi, standee? Làm trong CRM, xem [phần Marketing](/huong-dan/marketing/#viec-6-tao-link-va-ma-qr).
-
 ## Lưu ý khi sửa website
 
 1. **Không đổi "Mã"** của danh mục, hay đường dẫn của sản phẩm đang bán. Link cũ sẽ bị hỏng.
 2. Mỗi lần lưu, tên bạn được ghi lại trong lịch sử.
 3. Nội dung phải theo [5 điều không được làm](/huong-dan/#5-dieu-khong-duoc-lam).
 4. Muốn sửa chính trang hướng dẫn này: trong trang quản trị chọn **Hướng dẫn nội bộ**.
+
+## Trợ lý viết bài: hiệu quả và cài đặt
+
+**Xem hiệu quả:** CRM → 📰 Bài web → 📊 Hiệu quả bài viết (chọn 7, 30 hoặc 90 ngày):
+- **Lượt xem, thời gian đọc, bấm mua trong bài**: lấy từ Google Analytics, chỉ đếm người bấm Đồng ý cookie nên số thật cao hơn.
+- **Đơn sau khi đọc**: khách đọc bài rồi đặt hàng trên web trong 7 ngày (tính cho bài đọc gần nhất, không tính đơn huỷ, hoàn).
+- **Chi phí AI**: tiền trợ lý viết bài, chia ra mỗi bài bao nhiêu.
+- **🏆 Bài được đọc nhiều nhất**: cả bài viết tay để so với bài trợ lý viết.
+
+**📈 Trợ lý tự học từ số đọc:** trước khi viết bài mới, trợ lý xem các bài web cùng loại (🔵 thu hút, ⚪ tạo niềm tin, 🟠 bán hàng) đã đăng trong 60 ngày. Trợ lý học theo bài được đọc nhiều, đọc lâu, nhiều người bấm mua, và tránh kiểu bài ít người đọc. Xem danh sách này ở CRM → 🎯 Insight & nội dung → **📈 Học từ tương tác** (dòng 🌐 Bài web). Mỗi loại cần ít nhất 3 bài đã đăng hơn 2 ngày mới bắt đầu so.
+
+**Cài đặt:** CRM → 📰 Bài web → ⚙️ Cài đặt và ➕ Thêm chủ đề. Sửa ở /admin → Cài đặt website → 🤖 Trợ lý viết bài tự động cũng được, hai chỗ dùng chung một bản.
+- **Số bài mỗi tuần** (1–7) và **Giờ đăng**.
+- **Chủ đề chờ viết**: thêm chủ đề muốn viết, trợ lý lấy chủ đề trên cùng trước. Bài đăng xong, chủ đề tự chuyển sang "Đã đăng" kèm link.
+- Khi giao chủ đề, chọn được **🎯 Nhóm khách bài nhắm tới** (để trống = trợ lý tự chọn nhóm ít được viết nhất).
+- Mọi bài, kể cả chủ đề được giao, đều qua bước **🎯 insight**: trợ lý chọn 1 nhóm khách + 1 tension (điều họ mong ↔ điều đang cản họ) rồi mới viết. Thẻ bài chờ duyệt có dòng 🎯 để bạn kiểm tra.
+- Hết chủ đề, trợ lý tự chọn chủ đề theo phễu 3 tầng (Nhận biết, Cân nhắc, Mua hàng) từ **ngân hàng insight** chung ở CRM → **🎯 Insight & nội dung** ([xem hướng dẫn](/huong-dan/content/)). Ô **Ghi chú thêm về tệp khách** ở ⚙️ Cài đặt chỉ để ghi điều riêng cho bài web.
