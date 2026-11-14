@@ -4,12 +4,44 @@ nav: CRM thêm
 group: ban-hang
 short: Mẹo và việc ít dùng hơn
 order: 3
-updated: 2026-11-13
+updated: 2026-11-15
 description: Mẹo và việc ít dùng hơn. Cần việc nào thì bấm vào mục đó ở "Trong trang này".
 roles: [sale, ql]
 ---
 
 Bạn nên đọc trang [CRM](/huong-dan/crm/) trước. Trang này là **các việc thêm**. Không cần đọc hết một lúc. Cần việc nào thì mở mục đó.
+
+## Bạn muốn làm gì?
+
+**🎁 Chăm khách, bán thêm**
+
+| Việc | Xem |
+| --- | --- |
+| Tặng cẩm nang, ebook cho khách | [Tặng quà](#tang-qua-cho-khach-cam-nang-ebook) |
+| Mời khách vào nhóm Zalo | [Nhóm Zalo](#moi-khach-vao-nhom-zalo-cong-dong) |
+| Báo ưu đãi cho nhiều khách cùng lúc | [Gửi ưu đãi](#gui-uu-dai-cho-nhieu-khach-qua-zalo) |
+| Gửi link cho khách tự đặt trên web | [Link đặt hàng](#link-dat-hang-rieng-cua-ban) |
+| Đăng bài Facebook cá nhân có sẵn | [Bài Facebook](#dang-bai-facebook-ca-nhan-viet-san) |
+| Mời khách cũ giới thiệu bạn bè, xem hoa hồng | [Đại sứ Sống Lành](#khach-cu-gioi-thieu-ban-be-dai-su-song-lanh) |
+
+**🔍 Tìm và hiểu khách**
+
+| Việc | Xem |
+| --- | --- |
+| Xem khách đã mua gì, lần trước nói gì | [Hồ sơ khách](#xem-ho-so-khach) |
+| Tìm khách theo tên, số, tỉnh, nhóm | [Tìm và lọc](#tim-khach-va-loc-khach) |
+| Hiểu màu thẻ, nhóm VIP, sắp hết hàng… | [Nhóm và màu](#nhom-khach-va-mau-the) |
+| Biết vì sao hôm nay máy nhắc gọi khách này | [Khi nào máy nhắc](#khi-nao-may-nhac-ban-goi-khach) |
+| Khách có 2 số điện thoại | [Nhiều số](#khach-dung-nhieu-so-dien-thoai) |
+
+**📦 Đơn hàng và kết quả**
+
+| Việc | Xem |
+| --- | --- |
+| Đơn giao chậm, hoàn, huỷ, chờ tiền | [Nhóm đơn cần chú ý](#don-hang-cac-nhom-can-chu-y) |
+| Chọn đúng loại đơn để được đủ hoa hồng | [Loại đơn](#chon-loai-don-de-tinh-hoa-hong) |
+| Xem doanh số, mục tiêu, việc nên làm | [Tab Hiệu quả](#tab-hieu-qua-xem-ket-qua-cua-ban) |
+| Khách tự đặt trên web | [Khách từ website](#khach-den-tu-website) |
 
 ## Tặng quà cho khách (cẩm nang, ebook)
 
@@ -45,6 +77,10 @@ Nên mời lúc **hỏi nhận hàng** và **hỏi thăm sau 1 tuần**.
 
 Dùng khi công ty có chương trình ưu đãi, muốn báo cho nhiều khách.
 
+[[steps:sl-uudai]]
+
+**Chi tiết từng bước:**
+
 1. Vào tab **Khách**. Lọc nhóm khách muốn gửi. Ví dụ bấm **Đã kết bạn Zalo**, hoặc **VIP**.
 2. Bấm **📣 Gửi ưu đãi lần lượt**.
 3. Giữ dấu tích **Chỉ khách đã kết bạn Zalo** và **Chỉ khách đồng ý nhận ưu đãi**. Đây là quy định của pháp luật.
@@ -62,6 +98,10 @@ Khách chưa tiện thì bấm **⏭ Bỏ qua**. Muốn dừng thì bấm **✕*
 ## Link đặt hàng riêng của bạn
 
 Mỗi bạn có **một link web riêng**, ví dụ `thucduonglanh.vn/?ref=thuy`. Khách bấm link của bạn rồi đặt trên web trong **30 ngày** thì đơn **tính cho bạn**.
+
+[[steps:sl-link]]
+
+**Chi tiết:**
 
 1. Vào **⚙ Cài đặt → 🌐 Link đặt hàng của tôi**.
 

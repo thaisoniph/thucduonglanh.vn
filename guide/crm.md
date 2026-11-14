@@ -4,7 +4,7 @@ nav: CRM
 group: ban-hang
 short: 6 việc mỗi ngày trên CRM (đọc trước)
 order: 2
-updated: 2026-11-13
+updated: 2026-11-15
 description: 6 việc bạn làm mỗi ngày trên CRM. Mỗi việc chỉ vài bước.
 roles: [sale, ql]
 ---
@@ -15,16 +15,20 @@ Trang này chỉ có **những việc làm hằng ngày**. Việc ít dùng hơn
 
 > **Nhớ 1 câu:** **Gọi xong là bấm.** Gọi khách xong, luôn bấm 1 nút kết quả trên CRM. Không bấm thì máy coi như bạn chưa gọi.
 
+## Một ngày của bạn
+
+1. **8h sáng:** Đọc tin Telegram việc hôm nay → [Nối Telegram](#dang-nhap)
+1. **Sáng:** Mở tab **Hôm nay**, bấm **▶ Bắt đầu**, gọi lần lượt → [Việc 1](#viec-1-moi-sang-goi-khach-tab-hom-nay) · [Kịch bản gọi](/huong-dan/kich-ban/)
+1. **Có đơn mới:** Gọi xác nhận, gửi hàng, nhập mã vận đơn → [Việc 2](#viec-2-co-don-moi-thi-xac-nhan-va-gui-hang)
+1. **Khách nhắn / gọi đặt hàng:** Tạo đơn trên CRM → [Việc 3](#viec-3-khach-nhan-zalo-hoac-goi-dien-dat-hang)
+1. **Có người hỏi chưa mua:** Tư vấn ở tab **Khách hỏi** → [Việc 4](#viec-4-co-nguoi-hoi-ma-chua-mua-tab-khach-hoi)
+1. **30 phút trong ngày:** 5 việc mở rộng khách (khách tự mang về = hoa hồng 6%) → [Mở rộng khách](/huong-dan/mo-rong-khach/)
+1. **Cuối ngày:** Bấm **Báo cáo cuối ngày**, dán vào nhóm Zalo → [Việc 5](#viec-5-cuoi-ngay-gui-bao-cao)
+1. **Đầu tháng:** Tự đặt mục tiêu tháng → [Việc 6](#viec-6-dau-thang-dat-muc-tieu)
+
 ## Đăng nhập
 
 [[steps:dang-nhap]]
-
-![Màn hình đăng nhập CRM](/huong-dan/img/crm-login.webp)
-
-1. Trên điện thoại, mở **[crm.thucduonglanh.vn](https://crm.thucduonglanh.vn)**.
-2. Gõ email của bạn. Bấm **Gửi mã đăng nhập**.
-3. Mở hộp thư email. Tìm thư có **mã 6 số**. Không thấy thì tìm trong mục **Spam** hoặc **Quảng cáo**.
-4. Gõ 6 số đó vào CRM. Gõ đủ 6 số là vào luôn.
 
 Mã chỉ dùng được trong 10 phút. Vào được rồi thì máy nhớ bạn **30 ngày**.
 
@@ -37,7 +41,7 @@ Mã chỉ dùng được trong 10 phút. Vào được rồi thì máy nhớ b�
 
 **Nối Telegram** (làm 1 lần, mất 30 giây). Telegram sẽ báo bạn khi có đơn mới, có khách mới hỏi, và gửi việc cần làm lúc 8 giờ sáng.
 
-1. Trong CRM, mở **Cài đặt**: trên điện thoại bấm **••• Thêm** (góc phải thanh dưới cùng) → **Cài đặt**; trên máy tính bấm **⚙** ở trên cùng.
+1. Trong CRM, bấm nút **⚙ Cài đặt** ở góc trên bên phải (cạnh 🔍 và ❓).
 2. Bấm **Kết nối Telegram**, rồi bấm **Mở Telegram**.
 3. Trong Telegram, bấm **Start** (hoặc **Bắt đầu**).
 4. Quay lại CRM, bấm **Tôi đã bấm Start**. Xong!
@@ -358,7 +362,7 @@ Từ đó, CRM cho bạn biết mỗi ngày cần bán bao nhiêu. Thanh màu ch
 
 **Các tab** (trên điện thoại nằm ở thanh dưới cùng). Thanh dưới chỉ hiện **4 tab hay dùng + ••• Thêm**: với sale là **Hôm nay · Khách hỏi · Đơn hàng · Hiệu quả**. Tab nào không thấy thì bấm **••• Thêm**: ở đó có các tab còn lại (mỗi dòng ghi rõ dùng để làm gì), **Cài đặt**, **Hướng dẫn**, **💡 Góp ý**, **Tải lại dữ liệu**. Số đỏ trên nút Thêm = việc đang chờ ở các tab bên trong (ví dụ đơn mới).
 
-**Cần trợ giúp?** Trên cùng màn hình, góc phải, luôn có 3 nút tròn: **🔍 Tìm** · **❓ Hướng dẫn** · **⚙ Cài đặt**. Bấm **❓** là mở ngay trang hướng dẫn đúng việc của bạn, gõ câu hỏi vào ô tìm ở đó.
+**Cần trợ giúp?** Bấm **❓** ở góc trên bên phải là mở ngay trang hướng dẫn đúng việc của bạn, gõ câu hỏi vào ô tìm ở đó.
 
 | Tab | Dùng để |
 | --- | --- |
@@ -378,11 +382,12 @@ Từ đó, CRM cho bạn biết mỗi ngày cần bán bao nhiêu. Thanh màu ch
 - **Nhãn % ở Hiệu quả** = doanh số tháng này đã đạt bao nhiêu % mục tiêu tháng của bạn. Đây **không phải** điểm làm việc. Màu so với số ngày đã qua trong tháng: xanh = đúng tiến độ, cam = hơi chậm, đỏ = đang chậm.
 - Muốn xem số chia ra từng loại: trên máy tính **đưa chuột vào tab**; trên điện thoại mở **••• Thêm** (mỗi dòng có ghi chú dưới tên).
 
-**Các nút trên cùng** (trên điện thoại chỉ còn 🔍 và ⟳; Góp ý, Cài đặt nằm trong **••• Thêm**):
+**Các nút trên cùng** (góc phải: **🔍 · ❓ · ⚙ · ⟳**; trên điện thoại **💡 Góp ý** nằm trong **••• Thêm**):
 
 - **🔍** Tìm ở mọi tab: gõ tên, số điện thoại (từ 3 số) hoặc mã đơn. Máy tìm cùng lúc trong khách đã mua, đơn hàng và khách hỏi. Mỗi người chỉ hiện **1 dòng** (gom theo số điện thoại): đã mua thì bấm vào mở hồ sơ khách, trong đó có cả lần hỏi và các đơn; chưa mua thì mở lượt hỏi. Gõ mã đơn thì hiện thêm mục **📦 Đơn khớp mã**.
 - **⟳** Tải lại: xem dữ liệu mới nhất, ví dụ khi đồng nghiệp vừa sửa.
 - **💡 Góp ý:** báo lỗi hoặc gửi ý tưởng.
+- **❓** Hướng dẫn: mở trang hướng dẫn này.
 - **⚙** Cài đặt: nối Telegram, lấy link đặt hàng riêng của bạn.
 
 **Màu sắc:** 🟢 tốt · 🟠 cần để ý · 🔴 cần làm ngay. **Chấm đỏ có số** trên tab là số việc đang chờ.

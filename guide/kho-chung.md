@@ -4,7 +4,7 @@ nav: Luật Kho chung
 group: ban-hang
 short: Khi nào số về Kho chung, nhận số
 order: 2.65
-updated: 2026-11-14
+updated: 2026-11-15
 description: Khi nào số về Kho chung, số nào không bao giờ về kho, nhận số từ kho thế nào. Thấy luật chưa hợp lý thì góp ý để anh Sơn sửa.
 roles: [sale, ql]
 ---
@@ -42,6 +42,8 @@ Luật này **không áp dụng** cho: số **không liên lạc được**, kh�
 
 ## Bạn tự trả số về kho
 
+[[steps:kc-tra]]
+
 Khách không hợp với bạn, hoặc bạn không chăm tiếp được: mở khách hỏi đó, kéo xuống bấm **🧺 Trả số này về Kho chung**, **ghi lý do** (đã gọi mấy lần, khách thích gì, giờ nào dễ nghe máy), rồi bấm **🧺 Trả về Kho chung**.
 
 Người nhận sau đọc được lý do của bạn. Khách **đã mua** thì vẫn là khách của bạn, không trả được.
@@ -56,6 +58,10 @@ Người nhận sau đọc được lý do của bạn. Khách **đã mua** thì
 - ✅ Số đã về kho **đủ 2 lần** (không về lần thứ 3)
 
 ## Nhận số từ Kho chung
+
+[[steps:kc-nhan]]
+
+**Chi tiết:**
 
 1. Tab **Hôm nay** → khung **🌱 Mở rộng khách** → việc **🧺 Nhận 1 số ở Kho chung** → bấm **Nhận số**. Hoặc tab **Khách hỏi** → mục **🧺 Kho chung**.
    - Mục **Cần liên hệ** ở tab Khách hỏi chỉ hiện **khách của bạn**. Số Kho chung nằm ở **cuối danh sách** (khung vàng 🧺). Gọi hết khách của mình trước; khi hết khách, khung này tự mở sẵn vài số để bạn nhận tiếp.

@@ -778,15 +778,119 @@ wb-sotay:
   steps:
     - title: Insight & nội dung
       els:
-        - ["chips", ["📊 Tổng quan", "✍️ Tạo nội dung", "⚙️ Cài đặt"], 2]
-        - ["card", "📗 Sổ tay doanh nghiệp", "25 mục · 🟡 3 cần xác nhận", "g"]
-        - ["card", "❓ Khách hỏi: có dùng cho bà bầu?", "🟡 Chờ xác nhận", "y"]
-      hi: 2
-      text: "CRM → <b>🎯 Insight & nội dung</b> → <b>⚙️ Cài đặt</b> → bấm <b>📗 Sổ tay doanh nghiệp</b>. Bấm vào mục cần xem, rồi <b>✏️ Sửa</b>."
+        - ["chips", ["🗣 Lời khách", "👥 Nhóm", "⚙️ Cài đặt"], 2]
+        - ["h", "📗 Sổ tay doanh nghiệp"]
+        - ["card", "❓ Có dùng cho bà bầu được không?", "🟡 chờ xác nhận", "y"]
+        - ["btn2", "✏️ Sửa", "✅ Xác nhận vẫn đúng", ""]
+      hi: 3
+      text: "CRM → <b>🎯 Insight & nội dung</b> → thẻ <b>⚙️ Cài đặt</b> → <b>📗 Sổ tay doanh nghiệp</b>. Tìm mục cần sửa, bấm <b>✏️ Sửa</b>."
     - title: Sửa mục Sổ tay
       els:
         - ["in", "Nội dung", "Dạ với mẹ bầu, mình nên hỏi bác sĩ…"]
+        - ["chips", ["0966 326 522", "30.000 ₫", "300.000 ₫"], -1]
         - ["note", "👁 Trợ lý sẽ đọc thành: …"]
         - ["btn2", "💾 Lưu", "✅ Lưu + xác nhận", "g"]
+      hi: 3
+      text: "Sửa <b>Nội dung</b>. Số tiền, hotline thì bấm <b>nút số</b> để chèn (đổi số ở 1 nơi là Sổ tay đổi theo). Bấm <b>💾 Lưu</b>. Quản trị bấm <b>✅ Lưu + xác nhận</b>."
+    - title: Sổ tay doanh nghiệp
+      els:
+        - ["card", "❓ Có dùng cho bà bầu được không?", "🟢 Đã xác nhận · vừa sửa", "g"]
+        - ["note", "Khoảng 2 phút sau mọi trợ lý dùng bản mới"]
+        - ["btn", "↩️ Dùng lại bản này", ""]
       hi: 2
-      text: "Sửa <b>Nội dung</b>, bấm <b>💾 Lưu</b>. Anh Sơn đọc lại thấy đúng thì bấm <b>✅ Lưu + xác nhận</b> (hoặc <b>✅ Xác nhận vẫn đúng</b> ngoài danh sách). Khoảng 2 phút sau mọi trợ lý dùng bản mới."
+      text: "Khoảng <b>2 phút</b> sau mọi trợ lý dùng bản mới. Sửa nhầm thì mở 🕘 bản trước, bấm <b>↩️ Dùng lại bản này</b>."
+# ---------- Bán hàng thêm (guide/crm-them.md, guide/kho-chung.md, 15/11/2026)
+sl-uudai:
+  title: Gửi ưu đãi cho nhiều khách qua Zalo
+  steps:
+    - title: Khách đã mua
+      tabs: sale
+      act: 4
+      els:
+        - ["chips", ["Tất cả", "Đã kết bạn Zalo", "VIP"], 1]
+        - ["card", "48 khách", "Lọc nhóm muốn gửi", ""]
+        - ["btn", "📣 Gửi ưu đãi lần lượt", "g"]
+      hi: 2
+      text: "Tab <b>Khách</b> (trong <b>••• Thêm</b>). Lọc nhóm khách, ví dụ <b>Đã kết bạn Zalo</b>. Bấm <b>📣 Gửi ưu đãi lần lượt</b>."
+    - title: Gửi ưu đãi lần lượt
+      els:
+        - ["card", "☑ Chỉ khách đã kết bạn Zalo", "☑ Chỉ khách đồng ý nhận ưu đãi", ""]
+        - ["in", "Chọn ưu đãi / mẫu tin", "🎉 Ngày Đôi 12/12"]
+        - ["in", "Tin mẫu (máy điền sẵn)", "Chào [Tên], … [Link]"]
+        - ["btn", "▶ Bắt đầu gửi", "g"]
+      hi: 3
+      text: "<b>Giữ 2 dấu tích</b> (quy định pháp luật). Chọn ưu đãi ở ô <b>Chọn ưu đãi / mẫu tin</b>: máy điền sẵn tin. Bấm <b>▶ Bắt đầu gửi</b>."
+    - title: Gửi lần lượt · 1 / 48
+      els:
+        - ["card", "Chị Lan · đã mua DILVANG", "Tin đã điền tên + link riêng", ""]
+        - ["btn", "📋 Copy tin & mở Zalo", "g"]
+        - ["btn2", "✅ Đã gửi → tiếp", "⏭ Bỏ qua", ""]
+      hi: 1
+      text: "Mỗi khách: bấm <b>📋 Copy tin & mở Zalo</b>, dán, gửi. Quay lại bấm <b>✅ Đã gửi → khách tiếp</b>. Lần sau mở lại, máy chỉ đưa khách chưa gửi."
+sl-link:
+  title: Lấy link đặt hàng riêng của bạn
+  steps:
+    - title: Cài đặt
+      els:
+        - ["in", "🔍 Gõ để tìm", "link"]
+        - ["card", "🌐 Link đặt hàng của tôi", "thucduonglanh.vn/?ref=thuy", "g"]
+      hi: 1
+      text: "Bấm <b>⚙</b> trên cùng để mở Cài đặt. Gõ <b>link</b> vào ô tìm. Mở <b>🌐 Link đặt hàng của tôi</b>."
+    - title: Link đặt hàng của tôi
+      els:
+        - ["card", "thucduonglanh.vn/?ref=thuy", "Khách đặt trong 30 ngày = tính cho bạn", ""]
+        - ["btn", "📋 Copy", "g"]
+      hi: 1
+      text: "Bấm <b>📋 Copy</b>, gửi link cho khách qua Zalo. Khách đặt trên web trong <b>30 ngày</b> thì đơn tính cho bạn."
+    - title: Hồ sơ khách
+      els:
+        - ["card", "Chị Lan · sắp hết hàng", "Lần trước: 2 hộp DILVANG", "y"]
+        - ["btn", "🔗 Link đặt lại", "g"]
+        - ["note", "Giỏ hàng có sẵn món khách hay mua"]
+      hi: 1
+      text: "Khách cũ <b>sắp hết hàng</b>: mở hồ sơ khách, bấm <b>🔗 Link đặt lại</b>. Khách chỉ cần xem địa chỉ rồi bấm Đặt hàng."
+kc-tra:
+  title: Tự trả số về Kho chung
+  steps:
+    - title: Khách hỏi
+      tabs: sale
+      act: 1
+      els:
+        - ["card", "Anh Minh · hỏi Sữa hạt", "Đã gọi 3 lần, chưa nghe", ""]
+        - ["note", "Mở khách, kéo xuống cuối"]
+        - ["btn", "🧺 Trả số này về Kho chung", ""]
+      hi: 2
+      text: "Khách không hợp với bạn hoặc bạn không chăm tiếp được: mở khách đó, kéo xuống, bấm <b>🧺 Trả số này về Kho chung</b>."
+    - title: Trả về Kho chung
+      els:
+        - ["in", "Lý do (người sau đọc được)", "gọi 3 lần, thích nhắn Zalo tối"]
+        - ["btn", "🧺 Trả về Kho chung", "g"]
+        - ["note", "Khách đã mua thì không trả được"]
+      hi: 0
+      text: "<b>Ghi lý do</b>: đã gọi mấy lần, khách thích gì, giờ nào dễ nghe máy. Bấm <b>🧺 Trả về Kho chung</b>."
+kc-nhan:
+  title: Nhận số từ Kho chung
+  steps:
+    - title: Hôm nay
+      tabs: sale
+      act: 0
+      els:
+        - ["h", "🌱 Mở rộng khách"]
+        - ["card", "🧺 Nhận 1 số ở Kho chung", "Kho đang có 12 số", ""]
+        - ["btn", "Nhận số", "g"]
+      hi: 2
+      text: "Tab <b>Hôm nay</b> → khung <b>🌱 Mở rộng khách</b> → việc <b>🧺 Nhận 1 số ở Kho chung</b> → <b>Nhận số</b>."
+    - title: Kho chung
+      els:
+        - ["card", "Chị Hoa · ↩ từ Thuỷ", "Lý do: thích nhắn Zalo buổi tối", "y"]
+        - ["note", "Đọc lịch sử tư vấn trước khi gọi"]
+        - ["btn", "✋ Nhận khách này", "g"]
+      hi: 2
+      text: "Số có nhãn <b>↩ từ [tên]</b> là bạn khác đã gọi: <b>đọc lịch sử trước</b>. Bấm <b>✋ Nhận khách này</b>."
+    - title: Chị Hoa
+      els:
+        - ["btn2", "💬 Nhắn Zalo", "📞 Gọi", "g"]
+        - ["note", "Đổi cách: nhắn thay vì gọi, đổi giờ, đổi chủ đề"]
+        - ["note", "Tối đa 10 số / ngày · ai chốt người đó được"]
+      hi: 0
+      text: "Liên hệ <b>bằng cách khác</b> người trước: nhắn Zalo thay vì gọi, hỏi về nỗi lo khác, đổi giờ gọi."
