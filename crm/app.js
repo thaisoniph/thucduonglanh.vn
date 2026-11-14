@@ -349,7 +349,7 @@
     if (!CFG.endpoint) return Promise.reject(new Error('Chưa cấu hình máy chủ.'));
     tries = tries || 0; var t0 = Date.now();
     // chờ tối đa 30 giây (việc nặng của quản trị 90 giây) rồi báo, không để vòng quay mãi (16/10/2026)
-    var ac = typeof AbortController === 'function' ? new AbortController() : null, wait = action === 'ins_score' ? 240e3 : action === 'ai_ask' ? 180e3 : /^(spf_write|ins_(video|import|find|offer|big|img|kw|stt|ytrun|vqrun)|zb_(regen|plan_make|plan_redo))$/.test(action) ? 180e3 : API_HEAVY.test(action) ? 90e3 : 30e3, tm = ac && setTimeout(function () { ac.abort(); }, wait);
+    var ac = typeof AbortController === 'function' ? new AbortController() : null, wait = action === 'ins_score' ? 240e3 : action === 'ai_ask' ? 180e3 : /^(spf_write|ins_(video|import|find|offer|big|img|kw|stt|ytrun|vqrun|trendai)|zb_(regen|plan_make|plan_redo))$/.test(action) ? 180e3 : API_HEAVY.test(action) ? 90e3 : 30e3, tm = ac && setTimeout(function () { ac.abort(); }, wait);
     return fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), signal: ac ? ac.signal : undefined })
       .then(function (r) { clearTimeout(tm); return r.text().then(function (t) { return { t: t, st: r.status }; }); }, function (er) { clearTimeout(tm); var slow = er && er.name === 'AbortError', e0 = new Error(slow ? 'Máy chủ trả lời chậm quá ' + (wait / 1000) + ' giây. Bạn kiểm tra mạng rồi bấm lại nhé.' : 'Mất kết nối mạng. Bạn thử lại nhé.'); e0.net = true; throw e0; })
       .then(function (x) {
@@ -8434,7 +8434,7 @@
       return { t: t, ang: L.map(function (v) { return v.replace(/^[-•*\d.)\s]+/, ''); }).filter(Boolean), on: run && k === 0 };
     }).filter(function (b) { return b.t; });
   }
-  /** 📅 Dịp sắp tới (zday.js eventsAhead, 45 ngày) + 🔥 chuyện đang nóng (kv ins_trend, 2 ngày): mọi trợ lý viết bài đọc */
+  /** 📅 Dịp sắp tới (zday.js eventsAhead, 45 ngày) + 🔥 chuyện đang nóng (kv ins_trend { t, by, at, st, goal, until }: giai đoạn 2 giữ 3 ngày, giai đoạn 3 giữ 1 ngày): mọi trợ lý viết bài đọc */
   /** 📗 Sổ tay doanh nghiệp (14/11/2026, api sotay.js stInfo): 1 nguồn duy nhất cho mọi trợ lý AI, sửa ở /admin; quá N ngày chưa xác nhận lại → Telegram nhắc */
   function sotHtml(st) {
     if (!st) return '';
@@ -8450,13 +8450,52 @@
     var td = isoDate(Date.now()).replace(/-/g, ''), dm = function (d) { return d.slice(6, 8) + '/' + d.slice(4, 6); };
     var back = function (d, n) { var t = new Date(Date.UTC(+d.slice(0, 4), +d.slice(4, 6) - 1, +d.slice(6, 8) - n)); return t.getUTCFullYear() + pad(t.getUTCMonth() + 1) + pad(t.getUTCDate()); };
     var ev = (j.evs || []).map(function (e) { var from = back(e.d, e.prep), now = td >= from; return '<li' + (now ? ' class="inx-ev-now"' : '') + '><b>' + esc(dm(e.d)) + ' · ' + esc(e.n) + '</b> <span class="muted">(' + (e.in ? 'còn ' + e.in + ' ngày' : 'hôm nay') + ')</span> · ' + (now ? '⏰ <b>đến lúc chuẩn bị</b>: lên big idea / bài gắn dịp, đăng trước 1–3 ngày' : 'nên chuẩn bị từ ' + dm(from)) + '</li>'; }).join('');
-    var tr = j.trend;
+    var tr = j.trend, stOpt = function (cur) { return '<option value="2"' + (cur != 3 ? ' selected' : '') + '>Giai đoạn 2 · Khẳng định lặp lại (mới nổi, nhiều người bắt đầu lặp lại) → trợ lý dùng 3 ngày</option><option value="3"' + (cur == 3 ? ' selected' : '') + '>Giai đoạn 3 · Lây lan bùng nổ (báo lớn đã đưa, ai cũng nói) → chỉ dùng 1 ngày, bắt buộc góc nhìn mới</option>'; };
+    var goOpt = function (cur) { return '<option value="">Để trợ lý tự chọn</option>' + Object.keys(IN_TRG).map(function (k) { return '<option value="' + k + '"' + (cur === k ? ' selected' : '') + '>' + esc(IN_TRG[k][0] + ' · ' + IN_TRG[k][1]) + '</option>'; }).join(''); };
+    var trInfo = tr && tr.t ? [tr.st ? 'giai đoạn ' + tr.st + (tr.st == 3 ? ' (lây lan bùng nổ)' : ' (khẳng định lặp lại)') : '', tr.goal && IN_TRG[tr.goal] ? 'mục tiêu: ' + IN_TRG[tr.goal][0].toLowerCase() : '', 'trợ lý dùng tới ' + fDateTime(tr.until || tr.at + 2 * 864e5)].filter(Boolean).join(' · ') : '';
     return '<div class="box inx-ev"><div class="zb-ph"><b>📅 Dịp sắp tới & 🔥 chuyện đang nóng</b></div>' +
       '<p class="small muted">Trợ lý tự gắn bài với dịp trong 8 ngày tới. Dòng ⏰ là dịp đã đến lúc chuẩn bị.</p>' +
       (ev ? '<ul class="small inx-ev-l">' + ev + '</ul>' : '<p class="small muted">45 ngày tới chưa có dịp nào.</p>') +
-      '<p class="small" style="margin:10px 0 4px"><b>🔥 Chuyện đang nóng</b> <span class="muted">(mọi trợ lý đọc trong 2 ngày, tự đổi sang góc nhìn mới gắn với nỗi lòng khách; tin buồn, tai nạn, chính trị thì trợ lý bỏ qua)</span></p>' +
-      (tr && tr.t ? '<p class="small inx-ev-tr">' + esc(tr.t) + ' <span class="muted">· ' + esc(tr.by || '') + ' ghi lúc ' + fDateTime(tr.at) + '</span></p>' : '<p class="small muted">Chưa ghi chuyện nào.</p>') +
-      (ed ? '<label class="f"><span>Ghi chuyện mọi người đang bàn tán hôm nay <small class="muted">1–3 câu: chuyện gì, ở đâu, người ta đang nói gì</small></span><textarea id="inTrT" rows="2" placeholder="Vd: Cả mạng đang chia sẻ clip cô giáo mầm non ôm từng bạn nhỏ trước kỳ nghỉ 20/11">' + esc(tr && tr.t || '') + '</textarea></label><div class="lq-btns"><button class="btn sm pri" data-in="trend">💾 Lưu cho trợ lý dùng</button>' + (tr && tr.t ? '<button class="btn sm ghost" data-in="trendx">🗑 Xoá</button>' : '') + '</div>' : '') + '</div>';
+      '<p class="small" style="margin:10px 0 4px"><b>🔥 Chuyện đang nóng</b> <span class="muted">(mọi trợ lý đọc, tự đổi sang góc nhìn mới gắn với nỗi lòng khách; tin buồn, tai nạn, chính trị thì trợ lý bỏ qua). Một chuyện nóng thường chỉ sống khoảng 3 ngày: vào lúc nhiều người <b>mới bắt đầu lặp lại</b> (giai đoạn 2) là tốt nhất.</span></p>' +
+      (tr && tr.t ? '<p class="small inx-ev-tr">' + esc(tr.t) + ' <span class="muted">· ' + esc(tr.by || '') + ' ghi lúc ' + fDateTime(tr.at) + (trInfo ? ' · ' + esc(trInfo) : '') + '</span></p>' : '<p class="small muted">Chưa ghi chuyện nào.</p>') +
+      (ed ? '<label class="f"><span>Ghi chuyện mọi người đang bàn tán hôm nay <small class="muted">1–3 câu: chuyện gì, ở đâu, người ta đang nói gì</small></span><textarea id="inTrT" rows="2" placeholder="Vd: Cả mạng đang chia sẻ clip cô giáo mầm non ôm từng bạn nhỏ trước kỳ nghỉ 20/11">' + esc(tr && tr.t || '') + '</textarea></label>' +
+        '<label class="f"><span>Chuyện này đang ở giai đoạn nào? <small class="muted">giai đoạn 1 (mới 1–2 người đăng) thì chưa ghi; giai đoạn 4–5 (đã chia phe, chán rồi) thì bỏ</small></span><select id="inTrSt">' + stOpt(tr && tr.st) + '</select></label>' +
+        '<label class="f"><span>Bài bắt chuyện này nhắm điều gì?</span><select id="inTrGo">' + goOpt(tr && tr.goal || '') + '</select></label>' +
+        '<div class="lq-btns"><button class="btn sm pri" data-in="trend">💾 Lưu cho trợ lý dùng</button><button class="btn sm" data-in="trai">🔍 AI xét trend</button>' + (tr && tr.t ? '<button class="btn sm ghost" data-in="trendx">🗑 Xoá</button>' : '') + '</div>' +
+        '<p class="small muted">🔍 AI xét trend: dán 1–3 chuyện, AI cho biết chuyện đang ở giai đoạn nào, nên làm hay bỏ, hợp nhóm khách nào, 3 hướng bài và 1 câu để lưu vào ô này.</p>' : '') + '</div>';
+  }
+  /** 🔍 Radar trend (Zoom Vinalink 14/11/2026): 4 mục tiêu cho bài bắt trend → khớp MỤC TIÊU TƯƠNG TÁC của trợ lý (api insight.js TR_GOAL) */
+  var IN_TRG = { share: ['Chia sẻ / lưu lại', 'bài "Bản chất của…", tổng hợp đáng để dành'], cmt: ['Bình luận', 'câu hỏi chọn A / B, mời kể chuyện nhà mình'], bridge: ['Bắt cầu', 'mượn phim, sự kiện, câu nói ai cũng biết rồi dẫn sang nỗi lòng khách'], make: ['Tạo trend', 'tung 1 thứ người khác dùng lại được: câu lệnh AI, khuôn ảnh, thử thách 7 ngày'] };
+  var IN_TRGD = { 1: 'Giai đoạn 1 · Khởi mầm (mới vài người đăng)', 2: 'Giai đoạn 2 · Khẳng định lặp lại (lúc vào tốt nhất)', 3: 'Giai đoạn 3 · Lây lan bùng nổ (cần góc nhìn mới, đăng trong 24 giờ)', 4: 'Giai đoạn 4 · Chia phe / đỉnh điểm (người xem đã chán)', 5: 'Giai đoạn 5 · Thoái trào' };
+  /** 🔍 AI xét trend (ins_trendai): khung mục 8 file Radar trend; "Dùng câu này" ghi vào ô 🔥 kèm giai đoạn + mục tiêu */
+  function inTrendAiForm() {
+    var m = modal('🔍 AI xét trend',
+      '<p class="small muted" style="margin-top:0">Dán 1–3 chuyện cả mạng đang bàn (link hoặc 1–2 câu tả: ở đâu, từ hôm nào, người ta đang nói gì). AI xét từng chuyện: đang ở giai đoạn nào, nên làm hay bỏ, nối với nỗi lòng nhóm khách nào, 3 hướng bài. AI chỉ đọc điều bạn ghi, không tự lên mạng xem, nên tả càng rõ càng đúng.</p>' +
+      '<label class="f"><span>Các chuyện đang nóng <small class="muted">mỗi chuyện 1 đoạn</small></span><textarea id="inTaT" rows="5" placeholder="1) Từ tối qua nhiều người đăng ảnh mâm cơm có 3 món kèm câu &quot;cơm nhà là nhất&quot;, mới thấy trên TikTok, báo chưa viết.&#10;2) …"></textarea></label><div id="inTaOut"></div>',
+      '<button class="btn" data-close>Đóng</button><button class="btn pri" id="inTaGo">🔍 Xét trend</button>');
+    $('#inTaGo', m).onclick = function () {
+      var b = this, tv = $('#inTaT', m).value.trim(); if (tv.length < 10) return toast('Ghi chuyện trước nhé.', true);
+      b.disabled = true; b.textContent = '⏳ AI đang xét (khoảng 30–60 giây)…';
+      api('ins_trendai', { t: tv }).then(function (r) {
+        b.disabled = false; b.textContent = '🔍 Xét lại'; m._tr = r.list;
+        $('#inTaOut', m).innerHTML = r.list.map(function (v, k) {
+          return '<div class="box inx-tra ' + (v.lam ? 'inx-tra-ok' : 'inx-tra-no') + '"><p style="margin:0 0 4px"><b>' + (v.lam ? '✅ LÀM' : '⛔ BỎ') + '</b> · ' + esc(v.chuyen) + '</p>' +
+            '<p class="small" style="margin:2px 0">' + esc(IN_TRGD[v.gd] || '') + (v.song ? ' · còn sống ' + esc(v.song) : '') + '</p>' +
+            (v.dau.length ? '<p class="small muted" style="margin:2px 0">Dấu hiệu: ' + esc(v.dau.join(' · ')) + '</p>' : '') +
+            '<p class="small" style="margin:2px 0">Lý do: ' + esc(v.ly) + '</p>' +
+            (v.lam ? '<p class="small" style="margin:6px 0 2px">🎯 <b>' + esc(v.nhom) + '</b>: ' + esc(v.tension) + (IN_TRG[v.goal] ? '<br>🎯 Mục tiêu: <b>' + esc(IN_TRG[v.goal][0]) + '</b> (' + esc(IN_TRG[v.goal][1]) + ')' : '') + '</p>' +
+              '<ol class="small inx-tra-l">' + v.huong.map(function (h) { return '<li><b>' + esc(h.goc) + '</b>: ' + esc(h.y) + (h.mo ? '<br><span class="muted">Câu mở: “' + esc(h.mo) + '”</span>' : '') + '</li>'; }).join('') + '</ol>' +
+              (v.cau ? '<p class="small inx-ev-tr">' + esc(v.cau) + '</p><div class="lq-btns"><button type="button" class="btn sm pri" data-trk="' + k + '">✅ Dùng câu này cho ô 🔥</button></div>' : '') : '') +
+            (v.luat ? '<p class="small" style="margin:4px 0 0">⚠️ Kiểm luật: ' + esc(v.luat) + '</p>' : '') + '</div>';
+        }).join('');
+        [].forEach.call(m.querySelectorAll('[data-trk]'), function (bt) {
+          bt.onclick = function () {
+            var v = m._tr[Number(bt.getAttribute('data-trk'))]; bt.disabled = true;
+            api('ins_trend', { t: v.cau, st: v.st === 3 ? 3 : 2, goal: v.goal || '' }).then(function (r2) { IN.d.trend = r2.trend; closeModal(); toast('Đã lưu vào ô 🔥, trợ lý dùng trong ' + (r2.trend.st === 3 ? '1 ngày' : '3 ngày') + ' ✓'); render(); }, function (er) { bt.disabled = false; toast(er.message, true); });
+          };
+        });
+      }, function (e) { b.disabled = false; b.textContent = '🔍 Xét trend'; toast(e.message, true); });
+    };
   }
   /** 🔑 Ngân hàng từ khoá bài web (khoá Marketing Plan K218, kv bl_kw): trợ lý bài web tự chọn chủ đề thì lấy 1 từ khoá chưa viết */
   function inKwHtml(j, ed) {
@@ -8791,7 +8830,8 @@
     if (a === 'img') return inImgForm();
     if (a === 'kwed') return inKwForm();
     if (a === 'kwai') { t.disabled = true; t.textContent = '⏳ AI đang lập (khoảng 1 phút)…'; return api('ins_kw', {}).then(function (r) { IN.d.kw = r.kw; toast('Đã có ' + r.kw.list.length + ' từ khoá ✓'); render(); }, function (er) { t.disabled = false; t.textContent = '✨ AI lập từ khoá'; toast(er.message, true); }); }
-    if (a === 'trend' || a === 'trendx') { var tv = a === 'trend' ? ($('#inTrT') || {}).value || '' : ''; if (a === 'trend' && !tv.trim()) return toast('Ghi chuyện trước nhé.', true); t.disabled = true; return api('ins_trend', { t: tv.trim() }).then(function (r) { IN.d.trend = r.trend; toast(r.trend ? 'Đã lưu, các trợ lý dùng trong 2 ngày ✓' : 'Đã xoá'); render(); }, function (er) { t.disabled = false; toast(er.message, true); }); }
+    if (a === 'trai') return inTrendAiForm();
+    if (a === 'trend' || a === 'trendx') { var tv = a === 'trend' ? ($('#inTrT') || {}).value || '' : ''; if (a === 'trend' && !tv.trim()) return toast('Ghi chuyện trước nhé.', true); t.disabled = true; return api('ins_trend', { t: tv.trim(), st: Number(($('#inTrSt') || {}).value) || 2, goal: ($('#inTrGo') || {}).value || '' }).then(function (r) { IN.d.trend = r.trend; toast(r.trend ? 'Đã lưu, các trợ lý dùng trong ' + (r.trend.st === 3 ? '1 ngày' : '3 ngày') + ' ✓' : 'Đã xoá'); render(); }, function (er) { t.disabled = false; toast(er.message, true); }); }
     if (a === 'find') return inFindForm();
     if (a === 'offer') return inOfferForm();
     if (a === 'sk') { var fi = $('#inSkF'); fi.value = ''; fi.onchange = function () {

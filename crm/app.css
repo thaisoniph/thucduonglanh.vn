@@ -2093,6 +2093,11 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .inx-kw-l li { margin: 2px 0; }
 .inx-ev-now { color: var(--orange); }
 .inx-ev-tr { background: var(--orange-light); border-radius: 8px; padding: 6px 10px; }
+.inx-tra { margin-top: 10px; border-left: 4px solid var(--line); }
+.inx-tra-ok { border-left-color: var(--primary-2); }
+.inx-tra-no { border-left-color: var(--red); }
+.inx-tra-l { margin: 4px 0 6px; padding-left: 20px; }
+.inx-tra-l li { margin-bottom: 4px; }
 .inx-img-b { margin-top: 10px; }
 /* 🧾 Sổ công nợ nhà cung cấp (tab Kế toán, 12/11/2026) */
 .kn-start { margin: 0 0 10px; } .kn-list { margin: 10px 0; padding-top: 0; padding-bottom: 0; } .kn-late { background: var(--red-light); }

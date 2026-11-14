@@ -301,7 +301,13 @@ Xem báo cáo ở CRM → **🎯 Insight & nội dung** → **🗣 Lời khách*
 Dòng nào hiện **⏰ đến lúc chuẩn bị** thì lên big idea hoặc bài gắn dịp ngay. Bài gắn dịp nên đăng **trước dịp 1–3 ngày**, lúc mọi người đang nghĩ tới nó. Trợ lý viết bài web, Fanpage, video, Facebook cá nhân tự biết các dịp trong 8 ngày tới và gắn bài khi hợp. Bài nhóm Zalo đã có lịch ngày lễ riêng.
 
 Ô **🔥 Chuyện đang nóng**: thấy chuyện cả mạng đang bàn tán thì ghi 1–3 câu rồi bấm **💾 Lưu cho trợ lý dùng**.
-- Mọi trợ lý đọc chuyện này trong 2 ngày.
+- Chọn thêm **giai đoạn** của chuyện (từ 14/11/2026). Một chuyện nóng thường chỉ sống khoảng 3 ngày:
+  - **Giai đoạn 2 · Khẳng định lặp lại**: nhiều người mới bắt đầu lặp lại cùng 1 câu, 1 ảnh, báo lớn chưa viết. Đây là lúc vào tốt nhất. Trợ lý dùng chuyện này 3 ngày.
+  - **Giai đoạn 3 · Lây lan bùng nổ**: báo lớn đã đưa, nhiều thương hiệu ăn theo. Trợ lý chỉ dùng 1 ngày và bắt buộc tìm góc nhìn mới.
+  - Mới 1–2 người đăng (giai đoạn 1) thì chưa ghi. Đã chia phe, mọi người chán rồi (giai đoạn 4–5) thì bỏ.
+- Chọn **mục tiêu** của bài: chia sẻ / lưu lại, bình luận, bắt cầu (mượn phim, sự kiện ai cũng biết rồi dẫn sang nỗi lòng khách) hay tạo trend. Không chắc thì để "Để trợ lý tự chọn".
+- Không biết chuyện có nên làm không? Bấm **🔍 AI xét trend**, dán 1–3 chuyện (chuyện gì, ở đâu, từ hôm nào, người ta đang nói gì) → **🔍 Xét trend**. AI trả lời từng chuyện: ✅ LÀM hay ⛔ BỎ và vì sao, hợp nhóm khách nào, 3 hướng bài. Chuyện nên làm có nút **✅ Dùng câu này cho ô 🔥**: bấm là lưu luôn cả giai đoạn và mục tiêu.
+- AI chỉ đọc điều bạn ghi, không tự lên mạng xem, nên tả càng rõ càng đúng.
 - Trợ lý không đăng lại tin, mà **đổi sang góc nhìn mới gắn với nỗi lòng của nhóm khách**. Theo khoá K131: đăng chậm hơn người khác vẫn thắng nếu góc nhìn mới.
 - Tin buồn, tai nạn, bệnh dịch, chính trị, chuyện riêng người nổi tiếng thì trợ lý tự bỏ qua.
 
