@@ -1,7 +1,7 @@
 // Việc chạy theo lịch: 8h sáng gửi danh sách chăm sóc + báo mức dùng CRM + tin Marketing sáng nay, 10 phút/lần lấy số quảng cáo, 30 phút/lần tự nhập file sale + Google Sheet báo cáo sàn, 6 tiếng 1 lần chép bản sao dữ liệu sang Google Sheet.
 import { normPhone, esc, fmtDate, startOfDay, all, kvGet, kvSet, kvDel, kvJson, CRM_URL, DAY } from './lib.js';
 import { telegram, telegramTo, gInfo, sheetMeta, sheetClear, sheetWrite, sheetAddTabs, sheetBatch, a1 } from './google.js';
-import { recalcAll, crmUsers, unifyNames, unifyProducts, autoCloseLeads, rulesCfg, careTask, groupOf, leadsData, leadDue, adsCfg, usageAlert, poolTick, ownTick } from './crm.js';
+import { recalcAll, crmUsers, unifyNames, unifyProducts, autoCloseLeads, fixBestTiepNhan, rulesCfg, careTask, groupOf, leadsData, leadDue, adsCfg, usageAlert, poolTick, ownTick } from './crm.js';
 import { adsSync, srcAutoTick, fixAdsLeads } from './sync.js';
 import { sanSheetTick } from './san.js';
 import { mktTick } from './mkt.js';
@@ -165,6 +165,7 @@ export async function scheduled(x, cron) {
   }
   try { await tbTick(x); } catch (e) { console.error('tbTick', e.message); } // 📢 thông báo hẹn giờ tới giờ hiện → gửi Telegram (thongbao.js)
   try { await sanSheetTick(x); } catch (e) { console.error('sanSheet', e.message); } // Google Sheet báo cáo sàn, 30 phút/lần
+  try { await fixBestTiepNhan(x); } catch (e) { console.error('fixBestTiepNhan', e.message); } // 1 lần 14/11/2026: trả 7 đơn bị đọc nhầm Đã giao (Best "Tiếp nhận đơn hàng thành công")
   try { await wbTick(x); } catch (e) { console.error('wbTick', e.message); } // ghi ngược vào file sale (hàng trống: 1 câu đọc theo chỉ mục)
   try { await khoTick(x); } catch (e) { console.error('khoTick', e.message); } // 📦 trừ kho theo đơn vừa đổi, báo ngay khi sản phẩm chạm mức cần đặt
   if (!await kvGet(x.db, 'cus_src_v2')) { await kvSet(x.db, 'cus_src_v2', '1'); await kvSet(x.db, 'recalc_all', '1'); } // 12/10/2026: tính lại Nguồn khách cho mọi khách (custSource)

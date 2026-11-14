@@ -10205,7 +10205,10 @@
     var n = norm(st), b = norm(back).trim();
     if ((b && !/^(no|khong|0|false|-)$/.test(b)) || /hoan|tra ve|tra hang|return/.test(n)) return 'back';
     if (/huy|cancel/.test(n)) return 'cancel';
-    if (/thanh cong|da giao|da nhan|delivered|xong/.test(n)) return 'ok';
+    // 14/11/2026: Best "Tiếp nhận đơn hàng thành công" = Best mới nhận đơn, hàng CHƯA đi (trước đọc nhầm chữ "thành công" → Đã giao 7 đơn ngày 13/11)
+    if (/tiep nhan|tao don|nhan don|cho lay|chua lay|doi lay|cho xu ly|1 phan|mot phan/.test(n)) return ''; // ký nhận 1 phần: sale / kho ghi ở 🔀 Hạ COD · Ký 1 phần
+    if (/da lay|lay hang thanh cong/.test(n)) return 'ship';
+    if (/giao( hang)? thanh cong|phat thanh cong|da giao|da nhan hang|ky nhan|delivered|xong/.test(n)) return 'ok';
     if (/dang giao|tren duong|van chuyen|da lay|cho giao|luu kho|dang/.test(n)) return 'ship';
     return '';
   }

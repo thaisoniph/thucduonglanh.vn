@@ -1405,6 +1405,22 @@ async function crmOrderStatus(x, u, d, sys) { // sys: lệnh nội bộ đã t�
     await wbStatusQueue(x, [o.seller, ow], { id: o.id, sheet: m ? m[1] : '', phone: o.phone, name: o.name, time: Number(o.time) || 0, total: Number(o.total) || 0, status: set.status }); });
   return { ok: true, row: o.rid, status: status || old };
 }
+/** 14/11/2026 (sửa 1 lần): tối 13/11 file Hàng gửi của Best ghi "Tiếp nhận đơn hàng thành công" (Best mới nhận đơn, hàng chưa đi) bị đọc nhầm thành Đã giao
+ *  → trả 7 đơn ngày 13/11 về trạng thái trước đó (đọc ở nhật ký "X → Đã giao" lý do Đối soát), xoá ngày nhận hàng, ghi lại file sale. Đơn đã đổi sang trạng thái khác thì để nguyên. */
+const FIX_BEST_IDS = ['Luong131126-01', 'Phuong131126-01', 'Phuong131126-02', 'Chang131126-01', 'Chang131126-02', 'Thuy131126-01', 'Thuy131126-02'];
+export async function fixBestTiepNhan(x) {
+  if (await kvGet(x.db, 'fix_best_tn_1411')) return;
+  const bot = { name: 'Máy (sửa nhầm file Best)', email: '', level: 3, role: 'Hệ thống' }, done = [];
+  for (const id of FIX_BEST_IDS) {
+    const o = await first(x.db, "SELECT * FROM orders WHERE id = ? AND status = 'Đã giao' ORDER BY rid DESC LIMIT 1", id); if (!o) continue;
+    const lg = await first(x.db, "SELECT result FROM logs WHERE what = 'Đơn hàng' AND ref = ? AND result LIKE '% → Đã giao' AND note LIKE 'Đối soát%' ORDER BY time DESC LIMIT 1", id); if (!lg) continue;
+    const back = String(lg.result).split(' → ')[0].trim(); if (!back || back === 'Đã giao' || ORDER_STATUS.indexOf(back) < 0) continue;
+    const r = await crmOrderStatus(x, bot, { id: o.id, row: o.rid, status: back, reason: 'Sửa nhầm: Best mới tiếp nhận đơn, hàng chưa giao (14/11)' }, true);
+    if (r.ok) { await run(x.db, 'UPDATE orders SET received_at = NULL WHERE rid = ?', o.rid); done.push(id + ' → ' + back); }
+  }
+  await kvSet(x.db, 'fix_best_tn_1411', JSON.stringify({ at: Date.now(), done }));
+  if (done.length) try { await telegram(x.env, '🛠 <b>Đã sửa ' + done.length + ' đơn bị báo nhầm "Giao thành công"</b> (file Best ghi "Tiếp nhận đơn hàng thành công" = Best mới nhận đơn, hàng chưa đi):\n' + done.map(esc).join('\n')); } catch (e) { }
+}
 /** 📦 Đối soát vận chuyển (01/11/2026): CRM đọc file Best / Viettel Post / xe ôm ngay trên máy, khớp đơn theo mã + SĐT, quản lý xem lại rồi gửi lên.
  *  d.items = [{ row, id, fee, carrier, tracking, status }]: ghi phí thật, hãng, mã vận đơn (nếu đơn chưa có); status (nếu có) đổi như bấm tay (ghi nhật ký, tính lại khách, ghi file sale). */
 async function crmReconApply(x, u, d) {
