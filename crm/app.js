@@ -906,6 +906,7 @@
       group('Kênh marketing', pick(['link-qr', 'tro-ly-zalo', 'fanpage', 'noi-dung', 'bai-web'])) +
       group('Công cụ',
         pick(['doi-ai', 'hoi-so-lieu']) + rest.filter(function (v) { return known.indexOf(v.id) < 0; }).map(vrow).join('') +
+        row('<button type="button" class="mr-row" data-mr="use">', '📈', '#af52de', 'Mức dùng CRM', 'Ai vào, ai chưa vào, dùng bao lâu · cả anh và anh Hiếu', 0) + '</button>' + // 14/11: chuyển từ tab Hiệu quả sang đây
         vrow(VIEWS.filter(function (v) { return v.id === 'cai-dat'; })[0]) +
         row('<a class="mr-row" href="/huong-dan/crm/" target="_blank" rel="noopener">', I.help, '#30b0c7', 'Hướng dẫn sử dụng', 'Cách dùng từng màn hình, có hình', 0) + '</a>' +
         row('<button type="button" class="mr-row" data-mr="fb">', '💡', '#ffcc00', 'Góp ý', 'Báo lỗi, chỗ khó dùng, ý tưởng', S.d.fbNew) + '</button>' +
@@ -914,7 +915,7 @@
   }
   function bindMore() {
     $$('[data-mr]').forEach(function (b) {
-      b.onclick = function () { var k = b.getAttribute('data-mr'); if (k === 'search') openGlobalSearch(); else if (k === 'fb') openFeedback(); else if (k === 'inst') openInstall(); else { load(); toast('Đang tải lại dữ liệu…'); } };
+      b.onclick = function () { var k = b.getAttribute('data-mr'); if (k === 'search') openGlobalSearch(); else if (k === 'fb') openFeedback(); else if (k === 'inst') openInstall(); else if (k === 'use') openUsage(null); else { load(); toast('Đang tải lại dữ liệu…'); } };
     });
   }
   function meHTML() { return '<b>' + esc(S.user.name) + '</b>'; } // chỉ tên: mỗi người là chủ công việc của mình
@@ -11704,7 +11705,7 @@
     h += repMore('why', '🙅 Vì sao khách chưa mua', wt ? 'Nhiều nhất: ' + wt : 'Ghi lý do khi chăm sóc để máy gom', why);
     var geo = geoBlock(name, cx), gt = (geo.match(/Nhiều nhất: <b>([^<]*)</) || [])[1];
     h += repMore('geo', '📍 Khách ở tỉnh nào', gt ? 'Nhiều nhất: ' + gt : 'Chưa có địa chỉ', geo);
-    h += '<h2 class="dash-more-h">🧰 Công cụ</h2><div class="steps" style="margin:0 0 10px"><button class="btn pri" data-daily="' + esc(name) + '">📋 Báo cáo ngày (bảng)</button><button class="btn" data-bcdt="' + esc(name) + '|' + month + '">📊 Bảng BCDT ' + monthLabel(month) + '</button>' + (lvl() >= 3 && !me ? '<button class="btn" data-usage="' + esc(name) + '">📈 Mức dùng CRM</button>' : '') + '</div>' + refBox(c, p, name);
+    h += '<h2 class="dash-more-h">🧰 Công cụ</h2><div class="steps" style="margin:0 0 10px"><button class="btn pri" data-daily="' + esc(name) + '">📋 Báo cáo ngày (bảng)</button><button class="btn" data-bcdt="' + esc(name) + '|' + month + '">📊 Bảng BCDT ' + monthLabel(month) + '</button>' + '</div>' + refBox(c, p, name);
     h += '<p class="small muted">🟢 Tốt · 🟠 Cần để ý · 🔴 Cần xử lý, so với ' + (CMP_LABEL || 'kỳ trước') + ' hoặc mức tốt ghi trong ô. Doanh số tính theo “Nhân viên bán” ghi trên từng đơn; đơn khách tự đặt trên web tính cho người đang phụ trách khách đó.</p>';
     return h;
   }
@@ -11801,7 +11802,7 @@
     h += repMore('why', '🙅 Vì sao khách chưa mua', wt ? 'Nhiều nhất: ' + wt : 'Ghi lý do khi chăm sóc để máy gom', why + teamLostBlock(R));
     var geo = geoBlock(null, cx), gt = (geo.match(/Nhiều nhất: <b>([^<]*)</) || [])[1];
     h += repMore('geo', '📍 Khách ở tỉnh nào', gt ? 'Nhiều nhất: ' + gt : 'Chưa có địa chỉ', geo);
-    h += '<h2 class="dash-more-h">🧰 Công cụ</h2><div class="steps" style="margin:0 0 10px"><button class="btn pri" data-daily="">📋 Báo cáo ngày (bảng)</button><button class="btn" data-bcdt="|' + month + '">📊 Bảng BCDT cả nhóm ' + monthLabel(month) + '</button>' + (lvl() >= 3 ? '<button class="btn" data-usage="">📈 Mức dùng CRM</button>' : '') + '</div>' + refBox(all, prev, '');
+    h += '<h2 class="dash-more-h">🧰 Công cụ</h2><div class="steps" style="margin:0 0 10px"><button class="btn pri" data-daily="">📋 Báo cáo ngày (bảng)</button><button class="btn" data-bcdt="|' + month + '">📊 Bảng BCDT cả nhóm ' + monthLabel(month) + '</button>' + '</div>' + refBox(all, prev, '');
     h += '<p class="small muted">🟢 đúng tiến độ mục tiêu / tốt hơn ' + (CMP_LABEL || 'kỳ trước') + ' · 🟠 hơi chậm / giảm nhẹ · 🔴 đang chậm / giảm nhiều. 🥇🥈🥉 xếp theo doanh số trong kỳ đang chọn.</p>';
     return h;
   }

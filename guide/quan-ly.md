@@ -41,7 +41,7 @@ Khi vào CRM: nhân viên vào thẳng **Hôm nay**, quản lý vào **Hiệu qu
 4. **💡 Khâu cần sửa nhất**: 1 khâu yếu nhất của cả nhóm, cách sửa và số tiền thêm được nếu sửa. Dùng làm chủ đề họp nhóm.
 5. **👥 Tiến độ hôm nay** và **Từng nhân viên**: xếp theo doanh số. Viền màu: 🟢 đúng tiến độ · 🟠 hơi chậm · 🔴 đang chậm. Dòng **Cần kèm** chỉ ra tối đa 2 điểm yếu của người đó. Bấm vào để xem chi tiết và đặt mục tiêu.
 6. **Xem chi tiết**: **📊 So sánh nhân viên** (chọn chỉ số, vạch đậm = trung bình nhóm), bán hàng theo ngày, **📣 Từ quảng cáo** (công ty đã đầu tư cho cả nhóm, khách hỏi đi về đâu), chăm sóc khách, vì sao khách chưa mua, khách ở tỉnh nào.
-7. **🧰 Công cụ**: **📋 Báo cáo ngày (bảng)**: chọn *Cả nhóm* để xem mỗi sale 1 dòng như Excel (dòng TỔNG ở trên, dòng mờ = chưa có đơn/chưa ghi chăm sóc, lý do từ chối ghi kèm tên), chọn ngày khác để xem lại, **⬇️ Tải Excel** để lưu. Không cần đọc từng tin báo cáo trên Zalo nữa. Bảng BCDT, Mức dùng CRM, đơn khách tự đặt trên web.
+7. **🧰 Công cụ**: **📋 Báo cáo ngày (bảng)**: chọn *Cả nhóm* để xem mỗi sale 1 dòng như Excel (dòng TỔNG ở trên, dòng mờ = chưa có đơn/chưa ghi chăm sóc, lý do từ chối ghi kèm tên), chọn ngày khác để xem lại, **⬇️ Tải Excel** để lưu. Không cần đọc từng tin báo cáo trên Zalo nữa. Bảng BCDT, đơn khách tự đặt trên web.
 
 Sale chỉ thấy mức "giỏi nhất nhóm" dưới dạng % (không thấy tên, không thấy tiền của người khác).
 
@@ -381,7 +381,7 @@ Số website chỉ đếm khách đã bấm "Đồng ý" cookie, nên thấp hơ
 
 ## Theo dõi nhân viên dùng CRM (chỉ Quản trị)
 
-Tab **Hiệu quả** → nút **📈 Mức dùng CRM**. Chọn xem 7, 14 hoặc 30 ngày.
+Bấm **••• Thêm** → nhóm **Công cụ** → **📈 Mức dùng CRM** (chỉ Quản trị thấy). Chọn xem 7, 14 hoặc 30 ngày.
 
 - Mỗi người có ô **Đánh giá**: *⛔ chưa vào*, *⚠️ có vào nhưng chưa làm gì*, *⚠️ vào chưa đều*, *✅ dùng tốt*, kèm việc nên làm tiếp.
 - Bấm tên 1 người để xem các **mốc làm quen**: đăng nhập lần đầu → nối Telegram → ghi chăm sóc đầu tiên → gửi ưu đãi → tạo đơn đầu tiên → dùng đều 5/7 ngày.
