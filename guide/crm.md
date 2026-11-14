@@ -206,7 +206,7 @@ Khách đặt qua Zalo, Facebook, điện thoại… thì bạn **tạo đơn tr
 5. **Gõ số tiền thu của khách.** Gõ `1800000`, `1tr8` hay `1,8tr` đều được.
    **Gửi bù hàng / tặng quà, không thu tiền:** gõ `0`. CRM hỏi lại *Lưu đơn 0đ?*, bấm OK. Đơn vẫn lưu và ghi vào file lên đơn như đơn thường (không cần ghi 1đ nữa). Nên ghi lý do vào ghi chú, vd *gửi bù đơn Phuong011126-02*.
 6. Chọn cách trả tiền: **COD** (khách trả tiền khi nhận hàng) hoặc **Chuyển khoản**. Chọn **Đơn vị vận chuyển** (CRM chọn sẵn **BEST Express**; hãng ít dùng bấm **＋ Hãng khác**) và **Phí vận chuyển**: chọn sẵn **Miễn phí vận chuyển**, bấm **Cộng phí ship** nếu khách trả ship (CRM cộng 30.000đ vào tiền thu, sửa được).
-   **Mã đơn** tự điền: tên + ngày tháng năm + gạch + số thứ tự đơn trong ngày, vd `Phuong201026-01` (đơn 01 ngày 20/10/2026). Chọn Viettel Post thì tự thêm chữ **V** ở đầu (`VPhuong201026-01`). Lưu xong, mã ghi vào cột Mã đơn trong file của bạn. Muốn mã khác thì sửa ô này trước khi lưu.
+   **Mã đơn** tự điền: tên viết tắt 3 chữ + ngày tháng năm + gạch + số thứ tự đơn trong ngày, vd `Phg201026-01` (Phương, đơn 01 ngày 20/10/2026). Tên viết tắt: Phương = Phg, Lương = Lng, Thùy = Thy, Chang = Chg, Thu = Thu. Mã ngắn để phiếu giao in gọn 1 dòng, kho dễ đọc. Chọn Viettel Post thì tự thêm chữ **V** ở đầu (`VPhuong201026-01`). Lưu xong, mã ghi vào cột Mã đơn trong file của bạn. Muốn mã khác thì sửa ô này trước khi lưu.
    **Loại đơn (tính hoa hồng)** CRM tự chọn, chỉ hiện 1 dòng **🏷 Loại đơn: …**. Thấy sai thì bấm **Chọn khác** rồi chọn lại.
    **Ghi chú giao hàng:** các nút xếp theo 3 hàng **Xem hàng / Thời gian / Khác**. Bấm để chọn (nút có dấu **✓** là đã chọn), bấm lại để bỏ. Chọn **Không cho xem** thì **Cho xem hàng** tự bỏ, **Buổi sáng / Buổi chiều** cũng vậy. Khách cũ: CRM tự chọn sẵn như lần trước khách dặn (dòng *↺ Đã chọn sẵn…*). Cần ghi thêm thì gõ vào ô bên dưới.
 7. Bấm **Lưu & copy lên đơn**. Đơn được lưu. Nội dung đơn đã được chép sẵn, bạn dán sang bên vận chuyển. Dòng sản phẩm ghi **tên ngắn, số lượng ở sau** (ví dụ *Fucoidan PRO 900g x7, Trà mâm xôi x1*). Lên Misa thì vẫn chọn sản phẩm và gõ số lượng vào ô SL.
@@ -224,7 +224,7 @@ Form khách cũ được làm gọn (kể cả khi bấm **＋ Tạo đơn** r�
 
 Khách đổi địa chỉ, hoặc dòng nào ghi *chưa rõ*, thì bấm **✏️ Đổi địa chỉ** để chọn lại.
 
-**Thanh toán, vận chuyển, phí ship, mã đơn** của khách cũ gom thành 1 dòng, vd *💵 COD · 🚚 BEST Express · Miễn phí ship · Mã Phuong311026-01*. Đúng rồi thì để nguyên. Khách đổi gì thì bấm **✏️ Sửa**.
+**Thanh toán, vận chuyển, phí ship, mã đơn** của khách cũ gom thành 1 dòng, vd *💵 COD · 🚚 BEST Express · Miễn phí ship · Mã Phg311026-01*. Đúng rồi thì để nguyên. Khách đổi gì thì bấm **✏️ Sửa**.
 
 Lưu đơn xong, CRM **ở lại chỗ bạn đang làm** (hồ sơ khách, tab Hôm nay…), không nhảy sang tab Đơn hàng. Đơn vừa tạo xem ở tab **Đơn hàng**.
 

@@ -1,5 +1,5 @@
 // CRM: đăng nhập, dữ liệu, đơn hàng, khách, tiềm năng, cài đặt. Chuyển từ Apps Script sang, giữ nguyên cách làm việc & dữ liệu trả về cho giao diện.
-import { normPhone, nrm, esc, fmt, startOfDay, TZ_MS, fmtDate, dateOrBlank, slugName, replaceRows, isVoid, randHex, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, DAY, CRM_URL, ROLE_URL, refCode, crmSeen, adjOut, adjTot } from './lib.js';
+import { normPhone, nrm, esc, fmt, startOfDay, TZ_MS, fmtDate, dateOrBlank, slugName, codePre, replaceRows, isVoid, randHex, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, DAY, CRM_URL, ROLE_URL, refCode, crmSeen, adjOut, adjTot } from './lib.js';
 import { crmPartner, partnerSchema, partnerCfg, orderAttrib, refClaim, staffOf, staffHit } from './partner.js';
 import { chatSchema } from './chat.js';
 import { zbotSchema, crmZbot } from './zbot.js';
@@ -300,7 +300,7 @@ export async function unifyNames(x, ren) {
   return n;
 }
 export async function crmUser(x, email) { email = String(email || '').trim().toLowerCase(); return (await crmUsers(x)).find(u => u.email === email && u.active) || null; }
-function publicUser(u) { return { email: u.email, name: u.name, role: u.role, level: u.level, web: !!u.web || u.level >= 3, ask: askAllowed(u), tg: !!u.tg, prefix: u.prefix || slugName(u.name), mkv: !!u.mkv, zb: !!u.zb, kho: !!u.kho }; }
+function publicUser(u) { return { email: u.email, name: u.name, role: u.role, level: u.level, web: !!u.web || u.level >= 3, ask: askAllowed(u), tg: !!u.tg, prefix: u.prefix || codePre(u.name), mkv: !!u.mkv, zb: !!u.zb, kho: !!u.kho }; }
 async function userSet(x, email, field, value) {
   const r = await run(x.db, `UPDATE users SET ${field} = ? WHERE email = ?`, value, email);
   if (!r.meta.changes && email === SUPER_ADMIN) { await run(x.db, "INSERT INTO users (email, name, role, active, recv, ord) VALUES (?, 'Thái Sơn', 'Quản trị', 1, 'Không', -1)", SUPER_ADMIN); await run(x.db, `UPDATE users SET ${field} = ? WHERE email = ?`, value, email); }
@@ -575,7 +575,7 @@ async function loadSmall(x, u, R, mode, adV) {
     b('SELECT name, variant, days, basis FROM cycles ORDER BY rid'),
     b('SELECT when_txt, purpose, text FROM templates ORDER BY rid')
   ]); smallQ.catch(() => { });
-  const users = (await crmUsers(x)).filter(y => y.active || u.level >= 3).map(y => u.level >= 3 ? { email: y.email, name: y.name, role: y.role, active: y.active, recv: y.recv, tg: !!y.tg, alias: y.alias, prefix: y.prefix || slugName(y.name), web: y.web || y.level >= 3, mkv: y.mkv || y.level >= 3, zb: !!y.zb, kho: !!y.kho, phone: y.phone, full: y.full, acct: y.acct, joined: y.joined, dob: y.dob, ctv: y.ctv } : u.level >= 2 ? { name: y.name, role: y.role, recv: y.recv, tg: !!y.tg, joined: y.joined, ctv: y.ctv } : { name: y.name, role: y.role, joined: y.name === u.name ? y.joined : '', ctv: y.name === u.name ? y.ctv : undefined }); // SĐT, họ tên, số tài khoản nhân sự: chỉ Quản trị; ngày vào làm: tính thâm niên (Phụ lục 01)
+  const users = (await crmUsers(x)).filter(y => y.active || u.level >= 3).map(y => u.level >= 3 ? { email: y.email, name: y.name, role: y.role, active: y.active, recv: y.recv, tg: !!y.tg, alias: y.alias, prefix: y.prefix || codePre(y.name), web: y.web || y.level >= 3, mkv: y.mkv || y.level >= 3, zb: !!y.zb, kho: !!y.kho, phone: y.phone, full: y.full, acct: y.acct, joined: y.joined, dob: y.dob, ctv: y.ctv } : u.level >= 2 ? { name: y.name, role: y.role, recv: y.recv, tg: !!y.tg, joined: y.joined, ctv: y.ctv } : { name: y.name, role: y.role, joined: y.name === u.name ? y.joined : '', ctv: y.name === u.name ? y.ctv : undefined }); // SĐT, họ tên, số tài khoản nhân sự: chỉ Quản trị; ngày vào làm: tính thâm niên (Phụ lục 01)
   const adsP = adRowsOf(x, u, adV); adsP.catch(() => { });
   const areasP = u.level === 1 ? areaStats(x) : Promise.resolve(undefined); areasP.catch(() => { }); // quản lý đã có đủ khách → máy tự đếm
   const ktP = finOk(u) ? ktCfg(x) : Promise.resolve(null); ktP.catch(() => { });
@@ -1681,7 +1681,7 @@ async function crmMergeSkip(x, u, d) {
 /** Mã đơn theo sale (anh Sơn 20/10/2026): <V nếu gửi Viettel Post><tiền tố><ddMMyy>-<số thứ tự 2 chữ số trong ngày>,
  *  ví dụ Phuong201026-01, VPhuong201026-02 (gạch cho dễ nhìn; sync.js CODE_RE đọc 6 số ddMMyy). Mã không gạch Phuong20102601 (sáng 20/10/2026) vẫn được đếm. Số thứ tự đếm chung đơn có / không có chữ V của sale trong ngày (36 tiếng gần nhất để năm sau không đếm nhầm). */
 async function nextCode(x, u, now, vtp) {
-  const y = (await crmUsers(x)).find(z => z.email === u.email) || u, base = (y.prefix || slugName(u.name)) + fmtDate(now, 'ddMMyy');
+  const y = (await crmUsers(x)).find(z => z.email === u.email) || u, base = (y.prefix || codePre(u.name)) + fmtDate(now, 'ddMMyy');
   let n = 0; for (const r of await all(x.db, 'SELECT id FROM orders WHERE (substr(id, 1, ?) = ? OR substr(id, 1, ?) = ?) AND time > ?', base.length, base, base.length + 1, 'V' + base, now - 36 * 3600e3)) {
     const t = r.id.charAt(0) === 'V' && r.id.indexOf('V' + base) === 0 ? r.id.slice(base.length + 1) : r.id.slice(base.length), k = t.match(/^-?(\d{2})(?![\d-])/); if (k) n = Math.max(n, +k[1]); // bỏ mã trùng có đuôi SĐT (Phuong051004-5179)
   }

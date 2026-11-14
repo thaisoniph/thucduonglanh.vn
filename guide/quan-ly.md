@@ -150,7 +150,7 @@ Mỗi tháng (hoặc mỗi tuần) đối chiếu file của hãng vận chuyể
     - **⚠️ Mã trùng, SĐT khác**: mã đơn trùng nhưng số điện thoại khác → CRM không tự sửa, kiểm tra tay.
 4. Bấm **✅ Cập nhật vào CRM**. CRM ghi phí thật trả hãng, tên hãng, mã vận đơn vào từng đơn, đổi trạng thái như khi bấm tay (có ghi nhật ký, ghi cả vào file sale). Đơn đã đúng sẵn (đúng trạng thái, đã ghi phí, đã có mã vận đơn) thì CRM **bỏ qua**, nên cập nhật nhanh, tải lại cùng file cũng không sao.
 
-CRM khớp đơn theo **mã đơn ghi ở ô Ghi chú của vận đơn** (vd `Phuong281026-04`) cộng **số điện thoại**. Sale ghi đúng mã đơn khi tạo vận đơn thì khớp được nhiều nhất.
+CRM khớp đơn theo **mã đơn ghi ở ô Ghi chú của vận đơn** (vd `Phg281026-04`; đơn trước 14/11/2026 có mã tên đầy đủ như `Phuong281026-04`, vẫn khớp được) cộng **số điện thoại**. Sale ghi đúng mã đơn khi tạo vận đơn thì khớp được nhiều nhất.
 
 Sau khi đối soát, ô **↩️ Tỷ lệ hoàn** ở Tổng quan / Hiệu quả tính **tiền ship mất theo phí thật** của hãng. Đơn hoàn chưa đối soát tạm tính theo mức ở Cài đặt → 🚦 Mức đèn Tổng quan (mặc định 60.000đ/đơn). Bấm vào đơn sẽ thấy dòng "📦 Phí trả hãng".
 

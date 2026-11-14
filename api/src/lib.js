@@ -22,6 +22,14 @@ export function dateOrBlank(s) { if (!s) return null; const t = new Date(String(
 /** Mã link giới thiệu (?ref=…): tên bỏ dấu, viết liền (Thủy → thuy, Văn Hiếu → vanhieu). Trùng công thức refCode trong crm/app.js. */
 export const refCode = name => nrm(name).replace(/[^a-z0-9]/g, '');
 export function nrm(s) { return String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/\s+/g, ' ').trim(); }
+/** Tiền tố mã đơn ngắn ≤3 chữ (14/11/2026, anh Hiệp kho: phiếu Misa ghi mã đơn ở Ghi chú, tên dài chiếm 2 dòng): phụ âm đầu + chữ cuối,
+ *  Phuong → Phg, Chang → Chg, Thuy → Thy, Luong → Lng (thiếu thì lấy 2 chữ cuối), Thu → Thu. Quản trị đặt riêng ở Cài đặt → Nhân sự → ô Tiền tố thì dùng ô đó. Giống codePre trong crm/app.js. */
+export function codePre(n) {
+  const s = slugName(n); if (s.length <= 3) return s;
+  const h = (s.match(/^(ngh|ng|ph|th|tr|ch|kh|gh|gi|nh|qu|[^aeiouy])/i) || [s.charAt(0)])[0];
+  let t = h + s.slice(-1); if (t.length < 3) t = h + s.slice(-2);
+  return t.slice(0, 3);
+}
 export function slugName(n) { const s = String(n || 'NV').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').split(/\s+/).pop(); return s.charAt(0).toUpperCase() + s.slice(1); }
 export function isVoid(st) { return /huỷ|hủy|hoàn/i.test(String(st || '')); } // đơn huỷ / hoàn: không tính doanh thu, không tính vào khách
 export function randHex(n) { const b = new Uint8Array(n); crypto.getRandomValues(b); return [...b].map(x => x.toString(16).padStart(2, '0')).join(''); }
