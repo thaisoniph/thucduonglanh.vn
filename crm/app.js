@@ -1281,9 +1281,9 @@
       '<label class="switch"><input type="checkbox" id="prZ" checked> Chỉ khách <b>đã kết bạn Zalo</b></label><br>' +
       '<label class="switch" style="margin-top:6px"><input type="checkbox" id="prC" checked> Chỉ khách <b>đồng ý nhận ưu đãi</b> (đúng Nghị định 13)</label>' +
       '<p class="small muted" id="prN" style="margin:8px 0 0"></p></div>' +
-      '<div class="box"><label class="f"><span>Tên chương trình (để đo hiệu quả)</span><input type="text" id="prName" value="' + esc('Ưu đãi ' + fDate(Date.now()).slice(0, 5)) + '"></label>' +
-      '<label class="f"><span>Chọn ưu đãi / mẫu tin</span><select id="prTpl"><option value="-1">– Mẫu ưu đãi mặc định –</option><optgroup label="🎁 Ưu đãi đang chạy" id="prOffG"></optgroup><optgroup label="🌱 Mời giới thiệu bạn bè">' + bkTpls(prRefPct()).map(function (t, k) { return '<option value="r' + k + '">🌱 ' + t[0] + '</option>'; }).join('') + '</optgroup><optgroup label="📝 Mẫu tin của công ty">' + tplOpts(tp, -1) + '</optgroup></select></label>' +
-      '<label class="f"><span>Nội dung (máy tự điền [Tên], [Sản phẩm] và <b>[Link]</b> = link đặt hàng riêng của từng khách, đơn tính cho người phụ trách)</span><textarea id="prText" rows="7">' + esc(PROMO_DEF) + '</textarea></label></div>' +
+      '<div class="box"><label class="f"><span>Tên chương trình (để đo hiệu quả)</span><input type="text" id="prName" value="' + esc('Mời giới thiệu ' + fDate(Date.now()).slice(0, 5)) + '"></label>' +
+      '<label class="f"><span>Chọn ưu đãi / mẫu tin</span><select id="prTpl"><option value="-1">– Mẫu ưu đãi mặc định –</option><optgroup label="🎁 Ưu đãi đang chạy" id="prOffG"></optgroup><optgroup label="🌱 Mời giới thiệu bạn bè">' + bkTpls(prRefPct()).map(function (t, k) { return '<option value="r' + k + '"' + (k ? '' : ' selected') + '>🌱 ' + t[0] + '</option>'; }).join('') + '</optgroup><optgroup label="📝 Mẫu tin của công ty">' + tplOpts(tp, -1) + '</optgroup></select></label>' +
+      '<label class="f"><span>Nội dung (máy tự điền [Tên], [Sản phẩm] và <b>[Link]</b> = link đặt hàng riêng của từng khách, đơn tính cho người phụ trách)</span><textarea id="prText" rows="7">' + esc(bkTpls(prRefPct())[0][1]) + '</textarea></label></div>' +
       (stats.length ? '<div class="box"><h3>📊 Chương trình gần đây</h3><table class="tg-help">' + stats.map(function (x) { return '<tr><td><b>' + esc(x.name) + '</b><br><span class="small muted">' + fDate(x.first) + '</span></td><td>Đã gửi <b>' + x.sent + '</b> khách · <b>' + x.conv + '</b> khách mua trong 14 ngày (' + (x.sent ? pct(x.conv, x.sent) : 0) + '%) · ' + moneyShort(x.rev) + '</td></tr>'; }).join('') + '</table></div>' : '') +
       '<p class="small muted">Lưu ý: gửi rải trong ngày, không gửi dồn liên tục vài trăm tin để Zalo không hạn chế tài khoản. Tin gửi từ chính Zalo của bạn nên khách thấy gần gũi.</p>';
     var m = modal('📣 Gửi ưu đãi lần lượt', body, '<button class="btn" data-close>Đóng</button><button class="btn pri" id="prGo">▶ Bắt đầu gửi</button>');
@@ -2485,7 +2485,7 @@
   }
 
   /** Ô chọn mẫu tin: xếp theo thứ tự thời gian chăm sóc (anh Sơn 30/10/2026). value vẫn là vị trí gốc trong S.d.templates. Mẫu không nhận ra thứ tự thì để cuối, giữ thứ tự cũ. */
-  var TPL_ORDER = [/khach moi|moi hoi|tu van/, /^1 ngay|nhan hang \+|hoi nhan hang/, /^7 ngay|1 tuan/, /^14 ngay|cam nhan/, /het san pham|truoc khi het|dat lai/, /^30 ngay|gioi thieu san pham/, /^60 ngay|quay lai/, /cong dong|nhom zalo/];
+  var TPL_ORDER = [/khach moi|moi hoi|tu van/, /^1 ngay|nhan hang \+|hoi nhan hang/, /^7 ngay|1 tuan/, /^14 ngay|cam nhan/, /gioi thieu ban be/, /het san pham|truoc khi het|dat lai/, /^30 ngay|gioi thieu san pham/, /^60 ngay|quay lai/, /cong dong|nhom zalo/];
   function tplOpts(tp, ti) {
     var rank = function (t) { var k = norm(t[0] + ' – ' + t[1]); for (var j = 0; j < TPL_ORDER.length; j++) if (TPL_ORDER[j].test(k)) return j; return TPL_ORDER.length; };
     return tp.map(function (t, i) { return { t: t, i: i, r: rank(t) }; }).sort(function (a, b) { return a.r - b.r || a.i - b.i; })

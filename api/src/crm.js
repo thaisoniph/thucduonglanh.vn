@@ -1,6 +1,6 @@
 // CRM: đăng nhập, dữ liệu, đơn hàng, khách, tiềm năng, cài đặt. Chuyển từ Apps Script sang, giữ nguyên cách làm việc & dữ liệu trả về cho giao diện.
 import { normPhone, nrm, esc, fmt, startOfDay, TZ_MS, fmtDate, dateOrBlank, slugName, replaceRows, isVoid, randHex, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, DAY, CRM_URL, ROLE_URL, refCode, crmSeen, adjOut, adjTot } from './lib.js';
-import { crmPartner, partnerSchema, orderAttrib, refClaim, staffOf, staffHit } from './partner.js';
+import { crmPartner, partnerSchema, partnerCfg, orderAttrib, refClaim, staffOf, staffHit } from './partner.js';
 import { chatSchema } from './chat.js';
 import { zbotSchema, crmZbot } from './zbot.js';
 import { fbSchema, crmFp } from './fb.js';
@@ -37,7 +37,7 @@ import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, wbInf
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-11-14g'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
+const SCHEMA_V = '2026-11-14h'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -155,6 +155,7 @@ export async function ensureSchema(db) {
     await chatSchema(db); // 💬 trợ lý chat trên web (api/src/chat.js)
     await zbotSchema(db); // 🤖 trợ lý nhóm Zalo (api/src/zbot.js)
     await fbSchema(db); // 📘 trợ lý Fanpage Facebook (api/src/fb.js)
+    await tplRefSeed(db); // 14/11/2026: 2 mẫu tin 🌱 Mời giới thiệu bạn bè (1 lần, xoá ở Cài đặt → Mẫu tin thì không thêm lại)
     schemaDone = true;
     if (deltaOk) await run(db, "INSERT INTO kv (k, v) VALUES ('schema_v', ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v, exp = NULL", SCHEMA_V);
   } catch (e) {
@@ -229,6 +230,18 @@ export async function rulesCfg(x) {
     poolDays: r.poolDays !== undefined && r.poolDays !== '' ? Number(r.poolDays) : POOL_DAYS, poolNoCall: r.poolNoCall !== undefined && r.poolNoCall !== '' ? Number(r.poolNoCall) : POOL_NOCALL, poolIdle: r.poolIdle !== undefined && r.poolIdle !== '' ? Number(r.poolIdle) : POOL_IDLE, poolMax: r.poolMax !== undefined && r.poolMax !== '' ? Number(r.poolMax) : POOL_MAX, selfOn: r.selfOn ? 1 : 0, poolOn: r.poolOn ? 1 : 0 }); // poolOn: 11/11/2026 anh Sơn tạm ẩn Kho chung (tự về kho + mục 🧺 của sale) tới sau họp sale. selfOn: 10/11/2026 anh Sơn tạm ẩn mục Tự tạo khách tới sau họp sale, Quản trị bật ở Cài đặt
 }
 export async function caCfg(x) { if (!x._ca) x._ca = await kvJson(x.db, 'ca_cfg', {}) || {}; return x._ca; }
+/** 14/11/2026 anh Sơn: thêm 2 mẫu "Mời giới thiệu bạn bè" (giống khung 📨 Gửi tin mời / 📣 Gửi ưu đãi lần lượt) vào Mẫu tin chăm sóc. Chạy 1 lần (kv tpl_ref_seed). */
+async function tplRefSeed(db) {
+  if (await kvGet(db, 'tpl_ref_seed')) return;
+  let pct = 10; try { pct = Number((await partnerCfg({ db })).refPct) || 10; } catch (e) { }
+  const off = v => (Math.round(v * pct / 100 / 1000) * 1000).toLocaleString('vi-VN').replace(/,/g, '.') + 'đ';
+  const T = [
+    ['Mời giới thiệu bạn bè', 'Cảm ơn + mời', 'Dạ [Tên] ơi, em bên Thực Dưỡng Lành ạ. Cảm ơn [Tên] đã tin dùng sản phẩm bên em thời gian qua ❤️\nBên em đang có chương trình cảm ơn khách quen:\n🎁 Người thân, bạn bè của [Tên] mua lần đầu được giảm ' + pct + '% đơn đầu: đơn 350.000đ giảm ' + off(350000) + ', đơn 700.000đ giảm ' + off(700000) + '\n🎁 [Tên]: mỗi bạn mua, [Tên] được voucher cho lần sau. Quà này công ty tặng, bạn của [Tên] không bị cộng giá đồng nào.\nCách dễ nhất: [Tên] nhắn em số điện thoại của bạn, em gọi tư vấn giúp ạ. Bạn muốn tự đặt thì vào thucduonglanh.vn, gõ số điện thoại của [Tên] ở ô mã ưu đãi là được giảm.\n[Tên] chưa tiện cũng không sao ạ, em chúc cả nhà mình luôn khoẻ 🌿'],
+    ['Mời giới thiệu bạn bè', 'Ngắn gọn', 'Dạ [Tên] ơi, người thân, bạn bè của [Tên] muốn dùng thử Thực Dưỡng Lành thì [Tên] nhắn em số điện thoại của bạn nhé, em gọi tư vấn giúp ạ. Bạn mua lần đầu được giảm ' + pct + '%, còn [Tên] được voucher cảm ơn cho lần sau 🌿']
+  ];
+  for (const t of T) if (!await first(db, 'SELECT 1 FROM templates WHERE when_txt = ? AND purpose = ?', t[0], t[1])) await run(db, 'INSERT INTO templates (when_txt, purpose, text) VALUES (?, ?, ?)', t[0], t[1], t[2]);
+  await kvSet(db, 'tpl_ref_seed', '1');
+}
 export async function assignMode(x) { if (!x._mode) x._mode = (await kvGet(x.db, 'assign_mode')) || 'pool'; return x._mode; }
 export function groupOf(orders, spent, last, R) {
   if (last && (Date.now() - last) / DAY > R.atRisk) return 'Sắp mất';
