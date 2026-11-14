@@ -2,7 +2,7 @@
 title: CRM cho quản lý
 nav: Quản lý
 order: 4
-updated: 2026-11-13
+updated: 2026-11-14
 description: Giao khách, theo dõi nhân viên, cài đặt CRM. Dành cho quyền Quản lý và Quản trị.
 roles: [ql]
 ---
@@ -223,6 +223,21 @@ Mã giảm giá gửi riêng cho **khách cũ, đối tác**. Trên web không q
 - Mã nên khó đoán. Ai gõ sai mã 8 lần sẽ bị khoá 15 phút.
 
 **Mã SONGLANH5 (quà chào mừng, giảm 5%)**: web tự tặng mã này cho khách vừa để số nhận cẩm nang, nhận ebook, nhận quà sau trò chơi / cam kết, hoặc vào nhóm Zalo. Mã tự lưu trên máy khách và tự trừ khi đặt hàng. Mỗi số dùng 1 lần. Đơn từ 300.000đ vẫn được miễn phí ship như bình thường. Muốn dừng tặng thì **⏸ Tắt** mã này trong danh sách mã.
+
+## 🤖 Đội nhân sự AI (14/11/2026)
+
+**Một màn để biết trợ lý AI nào đang gánh việc thật.** Mở CRM → **Thêm** → **🤖 Đội nhân sự AI** (Quản lý và Quản trị).
+
+Mỗi trợ lý là 1 thẻ: chat trên website, trợ lý Zalo, Fanpage, viết bài web, người gác cổng, kho lời khách, bot giao việc, báo cáo YouTube, chấm bài, trợ lý trang hướng dẫn, và các nút ✨ AI trong CRM. Mỗi thẻ ghi:
+
+- **Làm việc gì** và **chạy lúc nào**.
+- **Lần gần nhất** trợ lý làm việc.
+- **Hôm nay / 7 ngày qua** làm được bao nhiêu (câu trả lời, bài viết, việc…).
+- **Kết quả thật**: khách để lại số, đơn và doanh số từ những khách đó. Chỗ nào ghi **Chưa đo** là chưa có số đo kết quả.
+- **Chi phí AI** hôm nay / 7 ngày / 30 ngày (ước tính).
+- **Lỗi gần nhất**.
+
+Màu ở góc thẻ: 🟢 đang chạy · 🔴 có lỗi trong 24 giờ hoặc mất kết nối · 🟡 không làm gì hơn 3 ngày · ⚪️ chưa bật. Thẻ 🔴 luôn nằm đầu, bấm nút **Mở …** ở cuối thẻ để vào tab của trợ lý đó và xử lý. Mở màn này **không tốn tiền AI**.
 
 ## ✨ Hỏi số liệu (đang dùng thử)
 
