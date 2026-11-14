@@ -2777,7 +2777,7 @@ button.inx-todo-r:hover > span { text-decoration: underline; }
 .nsv-lg small { display: block; color: var(--muted); font-size: 12px; }
 .nsv-list { display: grid; gap: 8px; margin-bottom: 10px; }
 .nsv-r { border: 1px solid var(--line); border-left: 5px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--card, #fff); }
-.nsv-r.ok { border-left-color: #2e9d57; } .nsv-r.mid { border-left-color: #e0a100; } .nsv-r.bad { border-left-color: var(--red); } .nsv-r.new { border-left-color: #7cb7e8; }
+.nsv-r.ok { border-left-color: #2e9d57; } .nsv-r.mid { border-left-color: #e0a100; } .nsv-r.bad { border-left-color: var(--red); } .nsv-r.new { border-left-color: #7cb7e8; } .nsv-r.mgr { border-left-color: #8a8fa3; }
 .nsv-t { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 10px; align-items: baseline; }
 .nsv-t b { font-size: 16px; } .nsv-t small { color: var(--muted); font-weight: 400; } .nsv-t span { font-size: 13px; color: var(--muted); }
 .nsv-n { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 8px 0 4px; }
