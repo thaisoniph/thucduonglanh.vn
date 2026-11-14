@@ -3082,6 +3082,16 @@
     }, function (e) { o.status = old; navBadges(); render(); toast(e.message, true); });
   }
 
+  /** Tên ngắn trên dòng 📦 Lên đơn (14/11/2026, anh Hiệp kho: phiếu Misa in "1 x 7 Sữa hạt Fucoidan PRO 900g…" dài, bị cắt).
+   *  Bỏ ngoặc, phụ đề sau "–", chữ chung; số lượng để sau tên ("x7"). Giống shipShort trong api/src/crm.js. */
+  function shipShort(name, variant) {
+    var n = String(name || '').replace(/\([^)]*\)/g, ' ').split(/\s[–-]\s/)[0];
+    n = n.replace(/^\s*sữa hạt\s+/i, '').replace(/^\s*trà\s+(thảo mộc|hoà tan|hòa tan)\s+/i, 'Trà ')
+      .replace(/^\s*ruốc rong biển.*$/i, 'Ruốc rong biển').replace(/^\s*dinh dưỡng từ hạt.*curcumin.*$/i, 'Hạt Curcumin')
+      .replace(/^\s*bữa ăn dinh dưỡng\s+/i, 'Bữa ăn ').replace(/^\s*xì dầu 2s.*$/i, 'Xì dầu 2S');
+    var v = String(variant || '').replace(/\([^)]*\)/g, ' ').replace(/^\s*(chiếc|cái)\s*$/i, '');
+    return (n + ' ' + v).replace(/\s+/g, ' ').trim();
+  }
   /* ---------- tạo / sửa đơn (giống sheet VTG_lendon: SĐT, tên, địa chỉ 1 dòng, sản phẩm, quà tặng, số tiền, ca) */
   function productOptions() {
     var o = []; (CFG.products || []).forEach(function (p) {
@@ -3527,7 +3537,7 @@
         return p ? { name: p.name, variant: p.variant, qty: q, price: p.price } : { name: parts[0], variant: parts.slice(1).join(' – '), qty: q, price: 0 };
       }).filter(Boolean);
     }
-    function shipLine(ls, gs) { return ls.map(function (i) { return i.qty + ' ' + i.name + (i.variant ? ' ' + i.variant : ''); }).concat(gs.map(function (i) { return i.qty + ' ' + i.name + (i.variant ? ' ' + i.variant : '') + ' (quà)'; })).join(', '); }
+    function shipLine(ls, gs) { return ls.map(function (i) { return shipShort(i.name, i.variant) + ' x' + i.qty; }).concat(gs.map(function (i) { return shipShort(i.name, i.variant) + ' x' + i.qty + ' (quà)'; })).join(', '); }
     function optSum() {
       var st = $('input[name=status]:checked', form), ship = +F.shipping.value || 0;
       $('#noOptSum', m).textContent = 'Tuỳ chọn khác: ' + [F.source ? F.source.value : '', st ? (st.value === 'Mới' ? 'Chưa xác nhận' : 'Đã chốt') : '', ship ? 'ship ' + money(ship) : ''].filter(Boolean).join(' · ') + ' – bấm để sửa';

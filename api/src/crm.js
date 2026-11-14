@@ -1276,7 +1276,17 @@ export async function unifyProducts(x) {
 }
 export function itemsText(items) { return items.map(i => (i.gift ? '🎁 ' : '') + i.name + (i.variant ? ' (' + i.variant + ')' : '') + ' x' + i.qty + ' = ' + fmt(i.gift ? 0 : i.subtotal)).join('\n'); }
 /** Câu "lên đơn" gửi vận chuyển: "4 Fucoidan Progomax 900g, 1 Bữa ăn dinh dưỡng (quà)". */
-export function shipText(items) { return (items || []).map(i => (Number(i.qty) || 1) + ' ' + i.name + (i.variant ? ' ' + i.variant : '') + (i.gift ? ' (quà)' : '')).join(', '); }
+/** Tên ngắn trên dòng "Lên đơn" (14/11/2026, anh Hiệp kho: phiếu Misa in "1 x 7 Sữa hạt Fucoidan PRO 900g…" dài, bị cắt chữ).
+ *  Bỏ phần trong ngoặc, phụ đề sau "–", chữ chung (Sữa hạt, Trà thảo mộc/hoà tan); số lượng để SAU tên ("x7") để dán vào Misa không lặp số. Giống shipShort trong crm/app.js. */
+export function shipShort(name, variant) {
+  let n = String(name || '').replace(/\([^)]*\)/g, ' ').split(/\s[–-]\s/)[0];
+  n = n.replace(/^\s*sữa hạt\s+/i, '').replace(/^\s*trà\s+(thảo mộc|hoà tan|hòa tan)\s+/i, 'Trà ')
+    .replace(/^\s*ruốc rong biển.*$/i, 'Ruốc rong biển').replace(/^\s*dinh dưỡng từ hạt.*curcumin.*$/i, 'Hạt Curcumin')
+    .replace(/^\s*bữa ăn dinh dưỡng\s+/i, 'Bữa ăn ').replace(/^\s*xì dầu 2s.*$/i, 'Xì dầu 2S');
+  const v = String(variant || '').replace(/\([^)]*\)/g, ' ').replace(/^\s*(chiếc|cái)\s*$/i, '');
+  return (n + ' ' + v).replace(/\s+/g, ' ').trim();
+}
+export function shipText(items) { return (items || []).map(i => shipShort(i.name, i.variant) + ' x' + (Number(i.qty) || 1) + (i.gift ? ' (quà)' : '')).join(', '); }
 function cleanItems(list) {
   return (list || []).filter(i => i && i.name && Number(i.qty) > 0).map(i => {
     const q = Math.round(Number(i.qty)), p = Math.round(Number(i.price) || 0);

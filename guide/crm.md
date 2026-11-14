@@ -138,7 +138,7 @@ Mỗi đơn đi qua 4 bước: **Mới → Đã xác nhận → Đang giao → �
 
 1. **Gọi khách xác nhận.** Bấm **📞** để gọi. Hỏi lại địa chỉ cho đúng. Xong bấm **✅ Xác nhận**.
 2. **Nếu khách chuyển khoản:** mở tài khoản ngân hàng VCB của công ty. Thấy tiền về **đúng số tiền**, nội dung có **mã đơn** (ví dụ TDL2609271234), thì mở đơn, bấm **💳 Xác nhận đã nhận tiền**.
-3. **Gửi hàng:** bạn lên đơn sang Misa như thường lệ. Kho in phiếu trên Best / Viettel Post, đóng hàng và gửi. **Bấm Xác nhận là máy đã trừ kho**, bạn không phải báo kho. Có **mã vận đơn** thì bấm **📦 Nhập mã VĐ** để tra hành trình (không bắt buộc).
+3. **Gửi hàng:** bạn lên đơn sang Misa như thường lệ. **Trên Misa, chọn sản phẩm có sẵn trong danh sách và gõ số lượng vào ô SL.** Không dán cả dòng chữ (ví dụ *Fucoidan PRO 900g x7*) vào ô tên hàng: dán như vậy phiếu in ra *"1 x 7 Sữa hạt…"*, dài, bị cắt chữ, kho không đọc được. Kho in phiếu trên Best / Viettel Post, đóng hàng và gửi. **Bấm Xác nhận là máy đã trừ kho**, bạn không phải báo kho. Có **mã vận đơn** thì bấm **📦 Nhập mã VĐ** để tra hành trình (không bắt buộc).
 4. **Khách đã nhận hàng:** bấm **📬 Đã giao**. Thường bạn không phải bấm:
    - Đơn **Viettel Post**: máy tự chuyển ngay khi Viettel Post báo.
    - Đơn **Best**: kế toán tải phiếu đối soát (thứ 2, 4, 6) thì máy tự chuyển các đơn trong phiếu sang **Đã giao**.
@@ -209,7 +209,7 @@ Khách đặt qua Zalo, Facebook, điện thoại… thì bạn **tạo đơn tr
    **Mã đơn** tự điền: tên + ngày tháng năm + gạch + số thứ tự đơn trong ngày, vd `Phuong201026-01` (đơn 01 ngày 20/10/2026). Chọn Viettel Post thì tự thêm chữ **V** ở đầu (`VPhuong201026-01`). Lưu xong, mã ghi vào cột Mã đơn trong file của bạn. Muốn mã khác thì sửa ô này trước khi lưu.
    **Loại đơn (tính hoa hồng)** CRM tự chọn, chỉ hiện 1 dòng **🏷 Loại đơn: …**. Thấy sai thì bấm **Chọn khác** rồi chọn lại.
    **Ghi chú giao hàng:** các nút xếp theo 3 hàng **Xem hàng / Thời gian / Khác**. Bấm để chọn (nút có dấu **✓** là đã chọn), bấm lại để bỏ. Chọn **Không cho xem** thì **Cho xem hàng** tự bỏ, **Buổi sáng / Buổi chiều** cũng vậy. Khách cũ: CRM tự chọn sẵn như lần trước khách dặn (dòng *↺ Đã chọn sẵn…*). Cần ghi thêm thì gõ vào ô bên dưới.
-7. Bấm **Lưu & copy lên đơn**. Đơn được lưu. Nội dung đơn đã được chép sẵn, bạn dán sang bên vận chuyển.
+7. Bấm **Lưu & copy lên đơn**. Đơn được lưu. Nội dung đơn đã được chép sẵn, bạn dán sang bên vận chuyển. Dòng sản phẩm ghi **tên ngắn, số lượng ở sau** (ví dụ *Fucoidan PRO 900g x7, Trà mâm xôi x1*). Lên Misa thì vẫn chọn sản phẩm và gõ số lượng vào ô SL.
    Đơn tự ghi vào sheet lên đơn (VTG_lendon) của bạn, khoảng **10 phút/lần** (7h–22h). Quá 10 phút chưa thấy: mở đơn trong tab **Đơn hàng** → khung **📄 File lên đơn của sale** → bấm **🔎 Kiểm tra đã vào file chưa**. CRM báo đơn đã ghi chưa, lỗi gì (vd file chưa chia sẻ quyền chỉnh sửa, chưa bật ghi ngược). Sửa xong thì bấm **✍️ Ghi lại vào file**.
 
 ![Cuối trang tạo đơn: số tiền, cách trả tiền, nút Lưu](/huong-dan/img/crm-neworder-save.webp)
