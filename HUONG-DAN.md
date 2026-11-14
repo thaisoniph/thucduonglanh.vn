@@ -556,6 +556,13 @@ Apps Script giới hạn 200 phiên bản/dự án: báo lỗi "Không tạo đ�
 - Bản nháp 25 mục điền từ CHAT_RULES, TRUTH_RULES, REF_RULES (chat.js), GROUP_RULES (zbot.js), LAW / VIET (insight.js), skill vtg, `data/site.json`; tất cả "Chờ anh xác nhận". Phần "Về Thực Dưỡng Lành" + "Sản phẩm chưa bán trên website" trong `data/chatbot.json` → `knowledge` đã chuyển sang Sổ tay (không ghi 2 nơi).
 - Đối chiếu skill vtg ↔ web (giá, quy cách, claim, giấy tờ…): Drive `08_Website, CRM & Tự động hoá/2026-11-14_Đối chiếu skill vtg với website.md`. Đáng chú ý: "Giá web luôn tốt hơn sàn" đang sai với DILVANG (Shopee 135k ↔ web 155k); ô giá chung Ruốc 89k ↔ hũ 165g 75k; skill còn nhiều claim bệnh ở sản phẩm chưa bán trên web.
 
+### 🗣 Việc 2 – Kho lời khách nguyên văn (api `2026-11-14n`)
+- Code `api/src/voc.js`, bảng D1 `vq_quotes` (tạo lười trong `vqSchema`, không qua SCHEMA_V): `at, src, text (đã che số), h (băm UNIQUE, chống trùng), prod (mã ngắn SP), slot (dau / ngai / muon / kich / hanh), color (xanh / vang / xam), ai, hide, note, by_name, ed_at`.
+- `vqTick` (cron, 9h mỗi ngày, kv `vq_<ngày>`, `vq_last`): gom từ `fp_log` (comment / dm / handoff), `zb_log` (answer / handoff / dm / dm_handoff), `chats` (tin khách; sid `zl…` = Zalo riêng), `leads.interest` + `leads.reason` (🟡 sale ghi). Lần đầu lấy 90 ngày. Ghi theo lô 80 câu (`db.batch`). Sau đó Haiku 5.5 xếp ô + sản phẩm + bỏ câu không liên quan (`hide = 1`), tối đa 2 × 150 câu / ngày; câu > 180 ngày tự đổi ⚪ (trừ câu người đã sửa).
+- Chi phí AI: mục `loikhach` (🗣 Kho lời khách) trong CRM → Chi phí AI. Ước tính ~60đ / 150 câu → 2–4 nghìn đồng / tháng (lần gom đầu vài trăm đồng).
+- Dùng: `insPick` gắn `p.voc = vqPick(x, { prod })` (ưu tiên 🟢, đúng sản phẩm, mỗi ô 1 câu) → `insBlock` chèn `vqBlock` (bài web, Zalo, Fanpage, FB cá nhân, video); `score.js` chấm bài (12 câu); `chat.js vocHint` cho chat web + `zbot.js` (nhóm + tin riêng): chỉ để hiểu cách khách nói, không trích lại.
+- CRM thẻ **🗣 Lời khách** trong `#noi-dung` (`IN_TABS` 'loi', `voqHtml`, `voqForm`, biến `VQ`, CSS `.voq-…`): lọc theo ô / màu / sản phẩm / chữ, sửa, ẩn, ➕ ghi tay (nguồn "Gọi điện"…), 🔄 Gom ngay. Lệnh `ins_vqlist / ins_vqsave / ins_vqdel / ins_vqadd / ins_vqrun` (crmIns → `crmVoc`; sửa: Marketing, Quản lý, Quản trị). `voc()` cũ trong inskill.js (🔍 Tìm insight) vẫn giữ.
+
 ## 7. Tên miền, DNS, chuyển hướng
 
 - Nameserver: `liberty.ns.cloudflare.com`, `randy.ns.cloudflare.com`. **Mọi thay đổi DNS làm trên Cloudflare**, không làm ở Tenten.

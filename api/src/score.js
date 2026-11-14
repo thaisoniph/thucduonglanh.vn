@@ -8,6 +8,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { aiFetch } from './airelay.js';
 import { run, all, first, kvGet, kvSet, kvJson, fmtDate, DAY } from './lib.js';
+import { vqPick, vqBlock } from './voc.js';
 import { kb, TRUTH_RULES } from './chat.js';
 import { insBank, tenOf, FUN, FORMULA, LAW, VIET, insRisk, insStyle, funOf } from './insight.js';
 
@@ -74,6 +75,7 @@ async function scoreWrite(x, u, d) {
   if (text.length < 20 && !imgs.length) return { ok: false, error: 'Dán nội dung bài (hoặc lời thoại video) vào trước nhé, tối thiểu vài câu.' };
   const bank = await insBank(x), on = bank.filter(g => g.on && g.tensions.length), want = on.find(g => g.id === d.g);
   const f = funOf(d.f), know = await kb();
+  let vq = []; try { vq = await vqPick(x, { n: 12 }); } catch (e) { } // 🗣 kho lời khách (voc.js)
   // bài đã có kết quả thật gần nhất → AI chấm sát dần với khách thật (vòng học)
   const past = await all(x.db, "SELECT id, ch, kind, title, score, f, gn, r_spend, r_leads, r_eng, r_orders, r_rev, r_note FROM cs_scores WHERE r_at > 0 ORDER BY r_at DESC LIMIT 8");
   const bankTxt = on.map(g => '- [' + g.id + '] ' + g.name + (g.who ? ' (' + g.who + ')' : '') + ': ' + g.tensions.slice(0, 5).map(t => tenOf(t).t).join(' | ')).join('\n');
@@ -91,6 +93,7 @@ async function scoreWrite(x, u, d) {
     '',
     '# NGÂN HÀNG INSIGHT (nhóm khách: tension đã biết, xếp trên = sắc hơn)',
     bankTxt || '(chưa có)',
+    vq.length ? '\n# ' + vqBlock(vq, 'dùng để xét bài có nói đúng nỗi lòng, đúng chữ khách thật không (tiêu chí nhóm, tension, cảm xúc): bài dùng chữ / cảnh giống lời khách thật thì cộng điểm, bài nói kiểu "văn quảng cáo" xa lời khách thì trừ và gợi ý câu gần lời khách hơn.') : '',
     '',
     '# LUẬT TẦNG PHỄU', Object.values(FUN).map(v => v.name + ': ' + v.rule).join('\n'),
     'Công thức hợp từng tầng: ' + Object.entries(FORMULA).map(([k, v]) => k + ': ' + v).join(' · '),

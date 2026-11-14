@@ -18,6 +18,7 @@ import { finSync, finMorning } from './fin.js';
 import { khoTick, khoMorning } from './kho.js';
 import { insWeekly } from './insight.js';
 import { stRemind } from './sotay.js';
+import { vqTick } from './voc.js';
 import { vhLine } from './vanhoa.js';
 import { tbDaily, tbTick } from './thongbao.js';
 
@@ -176,6 +177,7 @@ export async function scheduled(x, cron) {
   try { await backfillCustomerExtras(x); } catch (e) { console.error('backfill', e.message); } // 1 lần: Zalo / cộng đồng / ngày sinh từ Sheet cũ
   try { await mktTick(x); } catch (e) { console.error('mktTick', e.message); } // chi phí Facebook Ads: 3 tiếng 1 lần
   x.later(spRepurposeTick(x).catch(e => console.error('spRepurposeTick', e.message))); // ♻️ bài web / nhóm Zalo → bài FB cá nhân + tin Zalo cho sale (13/11/2026)
+  x.later(vqTick(x).catch(e => console.error('vqTick', e.message))); // 🗣 9h mỗi ngày: gom lời khách nguyên văn vào kho + AI phân loại (voc.js)
   x.later(blogTick(x)); // 📝 trợ lý viết bài web (blog.js): viết nháp trước 1 ngày, đăng bài đã duyệt đúng giờ. Chạy song song vì 1 bài mất 2–5 phút, không để chậm các việc khác
   try { await zbotTick(x); } catch (e) { console.error('zbotTick', e.message); } // 🤖 trợ lý Zalo: soạn bài đăng nhóm trước 3 ngày (cfg.lead), 📋 tự lập / nhắc duyệt kế hoạch chủ đề, báo khi mất kết nối
   try { await aiTick(x); } catch (e) { console.error('aiTick', e.message); } // 💳 tiền AI ước tính sắp hết → nhắc Telegram (aiuse.js)

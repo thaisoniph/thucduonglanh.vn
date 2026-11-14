@@ -19,6 +19,7 @@ import { lrnPosts, lrnBlock } from './learn.js';
 import { eventsAhead } from './zday.js';
 import { crmScore } from './score.js';
 import { stInfo } from './sotay.js';
+import { crmVoc, vqPick, vqBlock } from './voc.js';
 
 const WRITER = 'claude-opus-5-5'; // việc cần nghĩ sâu, ít lượt: kịch bản video, big idea
 const LITE = 'claude-sonnet-5-5'; // 13/11/2026: việc đọc / lọc / liệt kê (nhập insight, câu lệnh ảnh, từ khoá) → Sonnet 5.5, rẻ ½
@@ -255,7 +256,8 @@ export async function insPick(x, ch, want, opt) {
   let learn = {}; try { learn = await lrnPosts(x, ch); } catch (e) { } // 📈 bài nhiều / ít tương tác thật (learn.js)
   // 📅 dịp sắp tới (8 ngày; bài nhóm Zalo đã có lịch ngày lễ riêng trong zday.js) + 🔥 chuyện đang nóng Marketing ghi (kv ins_trend, hết hạn 2 ngày)
   let ev = [], trend = null; try { ev = ch === 'zalo' ? [] : eventsAhead(fmtDate(now, 'yyyyMMdd'), 8); trend = await kvJson(x.db, 'ins_trend', null); } catch (e) { }
-  return { bank, g, recent, prod, big, angle, recentA, learn, ev, trend };
+  let voc = []; try { voc = await vqPick(x, { prod, n: 8 }); } catch (e) { } // 🗣 câu khách thật (voc.js)
+  return { bank, g, recent, prod, big, angle, recentA, learn, ev, trend, voc };
 }
 
 /** 🎭 Kho góc kể chuyện (narrative angle, khoá content K131 Buổi 2, 5, 6): cùng 1 sự thật, kể từ cửa khác nhau thành bài khác hẳn. Mỗi bài 1 góc chính (+ 1 kỹ thuật phụ). */
@@ -318,6 +320,7 @@ export function insBlock(p, f, opt) {
     '   - Bài TOFU: góc kể KHÔNG xoay quanh sản phẩm, viết về điều nhóm khách quan tâm trong đời sống (khoảng 10 bài nhận biết mới có 1 bài nhắc sản phẩm, và chỉ 1 câu cầu nối ở cuối). Bài MOFU / BOFU: sản phẩm là cầu nối gỡ tension, không phải điểm xuất phát.',
     '   - ' + VIET,
     p && p.learn ? lrnBlock(p.learn, F ? f : '') : '',
+    p && p.voc && p.voc.length ? vqBlock(p.voc, 'dùng để chọn issue / tension có thật và viết đúng chữ khách hay dùng; câu khách thật gần với tension nào thì ưu tiên tension đó. KHÔNG trích như lời chứng thực, không gắn tên người, không sửa thành lời khen sản phẩm, không bịa thêm.') : '',
     p && p.ev && p.ev.length && !opt.light ? '📅 DỊP SẮP TỚI: ' + p.ev.map(e => e.n + ' (' + e.d.slice(6, 8) + '/' + e.d.slice(4, 6) + (e.in ? ', còn ' + e.in + ' ngày' : ', hôm nay') + ')').join('; ') + '. Bài đăng 1–3 ngày trước dịp là lúc người ta đang nghĩ tới nó (khoá K131: trend theo mùa chuẩn bị trước, đăng trước 1 ngày hoặc vài tiếng). Nếu dịp hợp nhóm khách và tension thì kể big idea / góc kể gắn với dịp, vẫn đúng tầng phễu; không biến bài thành lời chúc chung chung. Không hợp thì bỏ qua.' : '',
     p && p.trend && p.trend.t ? '🔥 CHUYỆN ĐANG NÓNG (Marketing ghi lúc ' + fmtDate(p.trend.at, 'HH:mm dd/MM') + '): ' + p.trend.t + '\nChỉ dùng khi nối được tự nhiên với tension của nhóm khách: KHÔNG đăng lại tin, mà đưa 1 góc nhìn mới gắn với nỗi lòng của nhóm khách (đăng chậm hơn người khác vẫn thắng nếu góc nhìn mới). Không dùng nếu là tin buồn, tai nạn, bệnh dịch, chính trị, chuyện riêng của người nổi tiếng; không gắn sản phẩm vào chuyện đó; không bịa chi tiết ngoài điều Marketing ghi.' : '',
     opt.light ? 'Bài này là bài theo dịp (chúc mừng / tương tác): giữ đúng chủ đề dịp, tension chỉ dùng để chọn góc chạm gần gũi (1–2 câu), không biến thành bài bán.' : '',
@@ -672,6 +675,7 @@ export async function crmIns(x, u, d, crmLog) {
     await kvSet(x.db, dk, String(n + 1), 2 * DAY);
     try { return await insImport(x, d); } catch (e) { return { ok: false, error: 'AI chưa đọc được: ' + String(e.message).slice(0, 150) }; }
   }
+  if (/^ins_vq/.test(a)) return crmVoc(x, u, d, crmLog); // 🗣 kho lời khách (voc.js)
   if (/^ins_s(view|core|res|del|tt)$/.test(a)) return crmScore(x, u, d, crmLog); // 🧪 chấm bài trước khi đăng (score.js)
   if (['ins_skill', 'ins_skilldel', 'ins_odel', 'ins_find', 'ins_offer'].includes(a)) return crmInSkill(x, u, d, crmLog); // 🧩 skill trong CRM (inskill.js)
   if (a === 'ins_merge') { // 📚 gộp bản mặc định mới vào ngân hàng đã sửa riêng (không xoá gì của anh chị đã sửa)

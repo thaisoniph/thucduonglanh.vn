@@ -2516,3 +2516,7 @@ b.csx-c-ok { color: var(--primary-2); } b.csx-c-sua { color: var(--orange); } b.
 
 /* 📗 Sổ tay doanh nghiệp (14/11/2026) */
 .sot-l{margin:6px 0 0;padding-left:18px}.sot-l li{margin:3px 0}
+/* 🗣 Kho lời khách (14/11/2026) */
+.voq-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}.voq-list{display:grid;gap:8px}
+.voq-r{padding:10px 12px;border-left:4px solid #3a9d5d}.voq-r.voq-vang{border-left-color:#e0b100}.voq-r.voq-xam{border-left-color:#aaa;opacity:.8}
+.voq-t{margin:0 0 4px;font-size:15px;line-height:1.45}

@@ -15,6 +15,7 @@ import { botRef } from './partner.js';
 import { telegram } from './google.js';
 import { zbotLead } from './zbot.js';
 import { lunar } from './lunar.js';
+import { vqPick, vqBlock } from './voc.js';
 
 const CHAT_MODEL = 'claude-haiku-5-5';
 const KB_URL = 'https://thucduonglanh.vn/chat-kb.txt';
@@ -81,6 +82,11 @@ export async function kb() {
 }
 
 /** Giờ làm việc chuyên viên: Thứ 2 – Thứ 7, 8h–17h (giờ Việt Nam). */
+/** 🗣 Câu khách thật hay nói (kho lời khách, voc.js) → trợ lý trả lời hiểu đúng nỗi lo thật, nói chữ khách hay dùng. Không trích lại cho khách khác. */
+export async function vocHint(x) {
+  try { const L = await vqPick(x, { n: 10 }); return L.length ? vqBlock(L, 'đây là cách các khách khác hay hỏi, hay lo (để hiểu khách và trả lời đúng nỗi lo thật, dùng chữ đời thường giống khách). KHÔNG nhắc lại các câu này, không nói "nhiều khách hỏi…" như bằng chứng, không lộ thông tin của khách khác.') : ''; } catch (e) { return ''; }
+}
+
 export function workNow(now) {
   const d = new Date(now + TZ_MS), h = d.getUTCHours() + d.getUTCMinutes() / 60, wd = d.getUTCDay();
   return { on: wd >= 1 && wd <= 6 && h >= 8 && h < 17, label: ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'][wd] + ' ' + fmtDate(now, 'HH:mm dd/MM/yyyy') + ' (âm lịch: ' + lunar(fmtDate(now, 'yyyyMMdd')).text + ')' }; // 09/11/2026: trợ lý biết ngày âm (khách hỏi mùng 1, rằm…)
@@ -121,6 +127,7 @@ export async function chat(x, d) {
         { type: 'text', text: RULES },
         { type: 'text', text: 'TÀI LIỆU (thông tin chính thức của Thực Dưỡng Lành):\n\n' + know, cache_control: { type: 'ephemeral' } }, // phần lớn, ít đổi → lưu đệm
         { type: 'text', text: (await edBlock(x, 'reply', { n: 5, len: 400 })) || '(chưa có câu trả lời nào được nhân sự sửa)' }, // ✍️ học từ câu trả lời nhân sự sửa (edlearn.js)
+        { type: 'text', text: (await vocHint(x)) || '(chưa có lời khách)' },
         { type: 'text', text: 'Bây giờ là ' + w.label + '. Chuyên viên ' + (w.on ? 'ĐANG trực Zalo, trả lời ngay.' : 'ngoài giờ làm việc (trực Thứ 2 – Thứ 7, 8h–17h): nhắn Zalo thì sáng hôm sau từ 8h chuyên viên trả lời.') + (d.page ? ' Khách đang xem trang: ' + String(d.page).slice(0, 200) : '') + note }
       ],
       messages

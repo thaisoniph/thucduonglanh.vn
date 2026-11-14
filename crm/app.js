@@ -7650,7 +7650,7 @@
   }
   /** 1 dòng đầu mỗi thẻ: 📌 dùng để · 👉 nên làm (12/11/2026) */
   function inTabi(dung, lam, note) { return '<div class="inx-tabi"><p>📌 <b>Dùng để:</b> ' + dung + '</p><p>👉 <b>Nên làm:</b> ' + lam + '</p>' + (note ? '<p class="muted">' + note + '</p>' : '') + '</div>'; }
-  var IN_TABS = [['tong', '📊 Tổng quan'], ['tao', '✍️ Tạo nội dung'], ['cham', '🧪 Chấm bài'], ['nhom', '👥 Nhóm khách'], ['cai', '⚙️ Cài đặt']];
+  var IN_TABS = [['tong', '📊 Tổng quan'], ['tao', '✍️ Tạo nội dung'], ['cham', '🧪 Chấm bài'], ['loi', '🗣 Lời khách'], ['nhom', '👥 Nhóm khách'], ['cai', '⚙️ Cài đặt']];
   function viewIns() {
     if (!IN.d && !IN.err && !IN.busy) setTimeout(inFetch, 0);
     if (!IN.tab) { try { IN.tab = localStorage.getItem('inTab') || 'tong'; } catch (e) { IN.tab = 'tong'; } }
@@ -7714,6 +7714,8 @@
       }).join('');
       h += inProdHtml(bank);
       if (ed && j.custom) h += '<div class="lq-btns"><button class="btn ghost" data-in="reset">↩️ Dùng lại bản mặc định</button></div>';
+    } else if (tab === 'loi') {
+      h += voqHtml();
     } else if (tab === 'cham') {
       h += csxHtml(j);
     } else if (tab === 'cai') {
@@ -7724,6 +7726,58 @@
     }
     return h;
   }
+  /* ---------------------------------------------------------------- 🗣 Kho lời khách nguyên văn (14/11/2026, api voc.js: ins_vqlist / ins_vqsave / ins_vqdel / ins_vqadd / ins_vqrun)
+   * Câu thật của khách (Fanpage, nhóm Zalo, chat web, lý do chưa mua…) lưu lâu dài, đã che số; ô nỗi đau / ngần ngại / mong muốn / điều kích hoạt / hành trình; màu 🟢 lời thật · 🟡 suy ra · ⚪ cũ. */
+  var VQ = { d: null, busy: 0, err: '', f: { slot: '', color: '', prod: '', q: '' } };
+  function voqFetch() {
+    VQ.busy = 1; VQ.err = '';
+    api('ins_vqlist', VQ.f).then(function (j) { VQ.d = j; }, function (e) { VQ.err = /Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message; })
+      .then(function () { VQ.busy = 0; if (route().view === 'noi-dung') render(); });
+  }
+  function voqSel(id, o, v, first) { return '<select id="' + id + '">' + (first ? '<option value="">' + first + '</option>' : '') + Object.keys(o).map(function (k) { return '<option value="' + esc(k) + '"' + (String(v || '') === k ? ' selected' : '') + '>' + esc(o[k]) + '</option>'; }).join('') + '</select>'; }
+  function voqHtml() {
+    var h = inTabi('Câu <b>nguyên văn</b> của khách thật (bình luận, tin nhắn, chat web, lý do chưa mua), máy tự gom mỗi sáng và đã che số điện thoại. Trợ lý viết bài, chấm bài, trợ lý chat đọc các câu này để nói đúng nỗi lòng khách.', 'Mỗi tuần lướt 1 lần: câu nào AI xếp sai ô thì bấm <b>✏️</b> sửa; câu khách nói qua điện thoại thì bấm <b>➕ Ghi lời khách</b>.', '🟢 Lời thật = khách tự gõ · 🟡 Suy ra = sale ghi lại / AI đoán · ⚪ Cũ = quá 180 ngày');
+    if (!VQ.d) { if (!VQ.busy && !VQ.err) setTimeout(voqFetch, 0); return h + '<div class="box"><p class="muted">' + (VQ.err ? '⚠️ ' + esc(VQ.err) + ' <button class="link" data-voq="reload">Thử lại</button>' : '⏳ Đang tải…') + '</p></div>'; }
+    var d = VQ.d, f = VQ.f, cnt = {}, tot = d.tot || {};
+    (d.cnt || []).forEach(function (r) { cnt[r.slot || ''] = (cnt[r.slot || ''] || 0) + r.n; });
+    h += '<div class="box voq-sum"><div class="voq-chips">' + Object.keys(d.slot).map(function (k) { return '<button type="button" class="chip' + (f.slot === k ? ' on' : '') + '" data-voq="slot|' + k + '">' + esc(d.slot[k]) + ' <b>' + (cnt[k] || 0) + '</b></button>'; }).join('') +
+      (cnt[''] ? '<button type="button" class="chip' + (f.slot === 'none' ? ' on' : '') + '" data-voq="slot|none">⏳ Chưa xếp ô <b>' + cnt[''] + '</b></button>' : '') + '</div>' +
+      '<p class="small muted">Tổng ' + (tot.n || 0) + ' câu' + (tot.h ? ' (đã ẩn ' + tot.h + ' câu chào hỏi / không liên quan)' : '') + (tot.w ? ' · ' + tot.w + ' câu chờ AI xếp ô' : '') + (d.last ? ' · gom lần cuối ' + fDateTime(d.last) : '') + ' · chi phí AI 30 ngày ≈ ' + Math.round((d.usd30 || 0) * 26500).toLocaleString('vi-VN') + 'đ</p>' +
+      '<div class="inx-grid"><label class="f"><span>Màu</span>' + voqSel('voqC', d.color, f.color, 'Tất cả') + '</label><label class="f"><span>Sản phẩm</span><select id="voqP"><option value="">Tất cả</option>' + Object.keys(d.sp).map(function (k) { return '<option value="' + k + '"' + (f.prod === k ? ' selected' : '') + '>' + esc(d.sp[k]) + '</option>'; }).join('') + '<option value="none"' + (f.prod === 'none' ? ' selected' : '') + '>Không nhắc sản phẩm</option></select></label>' +
+      '<label class="f"><span>Tìm chữ</span><input id="voqQ" value="' + esc(f.q || '') + '" placeholder="vd: đắt, mất ngủ, sau sinh"></label></div>' +
+      '<div class="lq-btns"><button class="btn sm pri" data-voq="filter">🔍 Lọc</button>' + (d.ed ? '<button class="btn sm" data-voq="add">➕ Ghi lời khách</button><button class="btn sm ghost" data-voq="run">🔄 Gom ngay</button>' : '') + '</div></div>';
+    var rows = d.rows || [];
+    h += rows.length ? '<div class="voq-list">' + rows.map(function (r) {
+      return '<div class="box voq-r voq-' + esc(r.color) + (r.hide ? ' bw-off' : '') + '"><p class="voq-t">“' + esc(r.text) + '”</p><p class="small muted">' + (d.color[r.color] || '') + ' · ' + (r.slot ? esc(d.slot[r.slot]) : '⏳ chưa xếp ô') + (r.prod ? ' · 🏷 ' + esc(d.sp[r.prod] || r.prod) : '') + ' · ' + esc(r.src) + ' · ' + fDate(r.at) + (r.ed_at ? ' · ✏️ ' + esc(r.by_name) : '') + (r.note ? '<br>📝 ' + esc(r.note) : '') + '</p>' +
+        (d.ed ? '<div class="lq-btns"><button class="btn sm ghost" data-voq="ed|' + r.id + '">✏️ Sửa</button><button class="btn sm ghost" data-voq="del|' + r.id + '">🙈 Ẩn</button></div>' : '') + '</div>';
+    }).join('') + '</div>' + (rows.length >= 200 ? '<p class="small muted">Hiện 200 câu mới nhất, lọc để xem câu khác.</p>' : '') : '<div class="box"><p class="small muted">Chưa có câu nào' + (tot.n ? ' khớp bộ lọc' : ': máy gom lần đầu lúc 9h sáng (hoặc bấm 🔄 Gom ngay)') + '.</p></div>';
+    return h;
+  }
+  function voqForm(r) {
+    var d = VQ.d, m = modal(r ? '✏️ Sửa lời khách' : '➕ Ghi lời khách',
+      '<label class="f"><span>Câu khách nói <small class="muted">chép nguyên văn, không sửa ý; không ghi số điện thoại, tên khách</small></span><textarea id="voqT" rows="3">' + esc(r ? r.text : '') + '</textarea></label>' +
+      '<div class="inx-grid"><label class="f"><span>Ô</span>' + voqSel('voqS', d.slot, r ? r.slot : '', 'Chưa xếp') + '</label><label class="f"><span>Màu</span>' + voqSel('voqK', d.color, r ? r.color : 'xanh') + '</label>' +
+      '<label class="f"><span>Sản phẩm</span>' + voqSel('voqR', d.sp, r ? r.prod : '', 'Không nhắc sản phẩm') + '</label>' + (r ? '' : '<label class="f"><span>Nguồn</span><input id="voqN" value="Gọi điện" placeholder="Gọi điện, gặp trực tiếp, Shopee…"></label>') + '</div>' +
+      '<label class="f"><span>Ghi chú <small class="muted">không bắt buộc</small></span><input id="voqO" value="' + esc(r ? r.note : '') + '"></label>',
+      '<button class="btn pri" id="voqSave">💾 Lưu</button>');
+    $('#voqSave', m).onclick = function () {
+      var o = { text: $('#voqT', m).value, slot: $('#voqS', m).value, color: $('#voqK', m).value, prod: $('#voqR', m).value, note: $('#voqO', m).value };
+      if (r) o.id = r.id; else o.src = $('#voqN', m).value;
+      this.disabled = true; var b = this;
+      api(r ? 'ins_vqsave' : 'ins_vqadd', o).then(function () { closeModal(); toast('Đã lưu ✓'); VQ.d = null; render(); }, function (er) { b.disabled = false; toast(er.message, true); });
+    };
+  }
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-voq]'); if (!t) return;
+    var v = t.getAttribute('data-voq').split('|'), a = v[0], id = Number(v[1]), r = VQ.d && (VQ.d.rows || []).filter(function (x) { return x.id === id; })[0];
+    if (a === 'reload') { VQ.err = ''; VQ.d = null; return render(); }
+    if (a === 'slot') { VQ.f.slot = VQ.f.slot === v[1] ? '' : v[1]; VQ.d = null; return render(); }
+    if (a === 'filter') { VQ.f.color = ($('#voqC') || {}).value || ''; VQ.f.prod = ($('#voqP') || {}).value || ''; VQ.f.q = (($('#voqQ') || {}).value || '').trim(); VQ.d = null; return render(); }
+    if (a === 'add') return voqForm(null);
+    if (a === 'ed' && r) return voqForm(r);
+    if (a === 'del' && r) { if (!confirm('Ẩn câu này? Trợ lý sẽ không dùng nữa.')) return; return api('ins_vqdel', { id: id }).then(function () { VQ.d = null; render(); }, function (er) { toast(er.message, true); }); }
+    if (a === 'run') { t.disabled = true; t.textContent = '⏳ Đang gom (khoảng 1 phút)…'; return api('ins_vqrun', {}).then(function (j) { toast('Đã gom ' + ((j.r && j.r.n) || 0) + ' câu mới, AI xếp ô ' + ((j.r && j.r.c) || 0) + ' câu ✓'); VQ.d = null; render(); }, function (er) { t.disabled = false; toast(er.message, true); }); }
+  });
   /* ---------------------------------------------------------------- 🧪 Chấm bài trước khi đăng (12/11/2026, api score.js: ins_sview / ins_score / ins_sres / ins_sdel)
    * Dán bài / kịch bản / lời thoại + tối đa 43 khung hình video (cắt ở trình duyệt, có ghi giây, 7 hình 3 giây đầu) hoặc 4 ảnh → AI chấm 9 tiêu chí /100 → ghi kết quả thật → so điểm với kết quả. */
   var CS = { d: null, busy: 0, err: '', f: {}, frames: [], fname: '', parent: 0, open: 0, run: 0 };

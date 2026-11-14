@@ -21,7 +21,7 @@ import { aiFetch } from './airelay.js';
 import { esc, run, all, first, kvGet, kvSet, kvJson, normPhone, fmtDate, isVoid, nrm, fmt, CRM_URL, TZ_MS, DAY } from './lib.js';
 import { telegram } from './google.js';
 import { addLead, telegramUser } from './crm.js';
-import { kb, safe, workNow, TRUTH_RULES, REF_RULES, REF_TXT, PHONE_RE } from './chat.js';
+import { kb, safe, workNow, vocHint, TRUTH_RULES, REF_RULES, REF_TXT, PHONE_RE } from './chat.js';
 import { botRef } from './partner.js';
 import { offersLive } from './salemkt.js';
 import { lunar } from './lunar.js';
@@ -369,6 +369,7 @@ async function zMsg(x, d) {
       system: [{ type: 'text', text: GROUP_RULES + '\n' + TRUTH_RULES.replace(/mời nhắn Zalo/g, 'mời nhắn riêng') },
         { type: 'text', text: 'TÀI LIỆU (thông tin chính thức của Thực Dưỡng Lành):\n\n' + know, cache_control: { type: 'ephemeral' } },
         { type: 'text', text: (await edBlock(x, 'reply', { n: 5, len: 400 })) || '(chưa có câu trả lời nào được nhân sự sửa)' },
+        { type: 'text', text: (await vocHint(x)) || '(chưa có lời khách)' },
         { type: 'text', text: 'Nhóm: "' + gname + '". Bây giờ là ' + w.label + '. Chuyên viên ' + (w.on ? 'đang trực.' : 'ngoài giờ (trực Thứ 2 – Thứ 7, 8h–17h).') + ' Đội ngũ ' + (known || od ? 'ĐÃ CÓ' : 'CHƯA có') + ' số điện thoại của người nhắn.' + (od ? '\nĐÃ TÌM THẤY ĐƠN của người nhắn: đặt lúc ' + fmtDate(od.time, 'HH:mm dd/MM') + ', trạng thái "' + (od.status || 'Mới') + '". Nói cho khách yên tâm là bên em đã nhận đơn (nêu giờ đặt), chuyên viên sẽ kiểm tra ưu đãi, quà rồi gọi xác nhận; thêm [[zalo]]. KHÔNG nêu mã đơn, số tiền, số điện thoại, địa chỉ trong nhóm; không bảo khách gọi hotline hay nhắn riêng.' : '') }],
       messages: [{ role: 'user', content: (ctx ? 'Các tin trước trong nhóm:\n' + ctx + '\n\n' : '') + 'TIN CẦN XỬ LÝ – ' + (d.name || 'Thành viên') + (direct ? ' (gọi em / trả lời tin của em)' : '') + ': ' + text }] });
     if (res.stop_reason === 'refusal') return { ok: true };
@@ -481,6 +482,7 @@ async function zDm(x, d) {
       system: [{ type: 'text', text: DM_RULES + '\n' + REF_RULES + '\n' + TRUTH_RULES.replace(/mời nhắn Zalo/g, 'thêm [[zalo]] để chuyên viên hỗ trợ') },
         { type: 'text', text: 'TÀI LIỆU (thông tin chính thức của Thực Dưỡng Lành):\n\n' + know, cache_control: { type: 'ephemeral' } },
         { type: 'text', text: (await edBlock(x, 'reply', { n: 5, len: 400 })) || '(chưa có câu trả lời nào được nhân sự sửa)' },
+        { type: 'text', text: (await vocHint(x)) || '(chưa có lời khách)' },
         { type: 'text', text: 'Bây giờ là ' + w.label + '. Chuyên viên ' + (w.on ? 'đang trực.' : 'ngoài giờ (trực Thứ 2 – Thứ 7, 8h–17h): gọi lại từ 8h sáng hôm sau.') + ' Tên Zalo của khách: ' + String(d.name || '').slice(0, 60) + '.' + (u && u.what ? ' Khách đã nhận trên web: ' + u.what + '.' : '') + (gotPhone ? '\n(Khách vừa gửi số điện thoại, hệ thống đã chuyển cho chuyên viên. Hãy cảm ơn và báo chuyên viên sẽ liên hệ.)' : '') }],
       messages: hist.map(m => ({ role: m.r === 'u' ? 'user' : 'assistant', content: m.t })) });
     reply = res.stop_reason === 'refusal' ? 'Dạ câu này em xin phép chưa trả lời được ạ, để chuyên viên bên em nhắn lại cho mình nha. [[zalo]]' : textOf(res);

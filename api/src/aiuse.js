@@ -24,7 +24,7 @@ const HAIKU_BIG = ['claude-haiku-5-5', 0.50, 2.50, 0.05, 0.625];
 export const MUC = {
   chat: '💬 Chat An Lành trên web', zalo: '🤖 Trợ lý Zalo trả lời, chào, nhắn riêng', 'zalo-bai': '📝 Soạn bài nhóm Zalo', 'zalo-kh': '📋 Kế hoạch chủ đề nhóm Zalo',
   fanpage: '📘 Trợ lý Fanpage trả lời', 'fb-bai': '📝 Soạn bài Fanpage', 'web-bai': '📰 Trợ lý viết bài web', video: '🎬 Kịch bản video', insight: '🔍 Tìm / đọc insight', offer: '🎁 Viết offer', chamdiem: '🧪 Chấm bài trước khi đăng', crm: '✨ AI trong CRM (tóm tắt khách, gợi ý tin)',
-  hoi: '📊 Hỏi số liệu CRM', huongdan: '📖 Hỏi trợ lý ở trang hướng dẫn', khac: 'Khác',
+  loikhach: '🗣 Kho lời khách (phân loại câu)', youtube: '▶️ Báo cáo tuần YouTube', hoi: '📊 Hỏi số liệu CRM', huongdan: '📖 Hỏi trợ lý ở trang hướng dẫn', khac: 'Khác',
 };
 const RATE_DEF = 26500; // đ / USD, Quản trị sửa được
 const slotDay = d => Date.UTC(+d.slice(0, 4), +d.slice(4, 6) - 1, +d.slice(6, 8)); // 'yyyyMMdd' → mốc ngày để trừ nhau
