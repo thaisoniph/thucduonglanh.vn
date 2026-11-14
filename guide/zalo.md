@@ -33,7 +33,7 @@ Trang này dành cho **người quản lý nhóm Zalo**, **marketing** và **sal
 | 📋 Kế hoạch chủ đề nhóm Zalo | Duyệt chủ đề ([Việc 3](#viec-3-duyet-ke-hoach-chu-de)) |
 | 🤖 TRỢ LÝ ZALO CẦN NGƯỜI THẬT | Có số khách: gọi từ **hotline 0966 326 522**. Chưa có số: nhắn tay trên **điện thoại trợ lý** |
 | 🔒 KHÁCH GỬI THÔNG TIN RIÊNG TRONG NHÓM | **Gọi khách trong 15 phút** từ hotline, ghi kết quả vào CRM |
-| 🛡 NGƯỜI GÁC CỔNG ĐÃ CHẶN 1 CÂU | Nhắn lại khách câu đúng, rồi CRM → 🎯 → **🛡 Gác cổng** → **✅ Đã xử lý** |
+| 🛡 NGƯỜI GÁC CỔNG ĐÃ CHẶN 1 CÂU | Nhắn lại khách câu đúng, rồi CRM → 🎯 → **🛡 Câu bị giữ** → **✅ Đã xử lý** |
 | Bị đăng xuất | Mang điện thoại trợ lý tới anh Sơn quét lại mã QR |
 
 Chi tiết từng trường hợp ở mục [Trợ lý và người thật chia việc](#tro-ly-va-nguoi-that-chia-viec).
@@ -266,7 +266,7 @@ Trợ lý (chat web hoặc Zalo) định trả lời sai giá, sai phí ship, sa
 
 1. Đọc tin: khách hỏi gì, trợ lý định nói gì, sai ở đâu.
 2. **Nhắn lại khách câu đúng** (Zalo: nhắn tay trên điện thoại trợ lý hoặc gọi từ hotline; web: khách có số thì gọi).
-3. Vào CRM → **🎯 Insight & nội dung** → **🛡 Gác cổng**, bấm **✅ Đã xử lý**. Nếu máy chặn nhầm (câu thật ra đúng) thì ghi "chặn nhầm" để anh Sơn sửa.
+3. Vào CRM → **🎯 Insight & nội dung** → **🛡 Câu bị giữ**, bấm **✅ Đã xử lý**. Nếu máy chặn nhầm (câu thật ra đúng) thì ghi "chặn nhầm" để anh Sơn sửa.
 
 👉 **Bạn tự xoá tin của khách** (khi trợ lý chưa kịp): xoá xong **nhắn ngay 1 câu trong nhóm**, gọi tên khách, ví dụ: *"Dạ em cảm ơn cô ạ. Tin của cô có số điện thoại, địa chỉ nên em ẩn đi để giữ an toàn cho cô. Em gọi cô ngay ạ."* Rồi **gọi khách luôn**. Đừng xoá mà không nói gì: khách sẽ nghĩ mình bị lơ.
 

@@ -127,20 +127,19 @@ ct-mo:
     - title: Insight & nội dung
       els:
         - ["h", "🎯 Insight & nội dung"]
-        - ["chips", ["1 Nhóm", "2 Nỗi lòng", "3 Loại bài", "4 Viết"], -1]
+        - ["note", "1 câu: trang này để làm gì, lợi ích gì"]
         - ["bar", "👉 Nên làm ngay: Tết sắp tới, lên ý lớn"]
-        - ["btn", "Làm ngay", "g"]
+        - ["btn", "✍️ Tạo nội dung ›", "g"]
         - ["note", "Không có việc gì thì ô báo ✅ mọi thứ ổn"]
       hi: 3
-      text: "Trên cùng là 4 bước viết bài. Ngay dưới là ô cam <b>👉 Nên làm ngay</b> (tối đa 3 việc). Mỗi ngày chỉ cần nhìn ô này và <b>bấm nút trong ô</b>."
+      text: "Trên cùng là 1 câu nói trang để làm gì. Ngay dưới là ô cam <b>👉 Nên làm ngay</b> (tối đa 3 việc). Mỗi ngày chỉ cần nhìn ô này và <b>bấm vào dòng việc</b>."
     - title: Insight & nội dung
       els:
-        - ["chips", ["📊 Tổng quan", "✍️ Tạo", "🧪 Chấm"], 1]
-        - ["chips", ["🗣 Lời khách", "🛡 Gác cổng", "👥 Nhóm"], -1]
-        - ["chips", ["⚙️ Cài đặt"], -1]
-        - ["card", "📌 Dùng để · 👉 Nên làm", "Đầu mỗi thẻ nói thẻ đó để làm gì", "g"]
+        - ["chips", ["📊 Tổng quan", "✍️ Tạo nội dung", "🧪 Chấm bài", "🗣 Lời khách"], 1]
+        - ["chips", ["🛡 Câu bị giữ", "👥 Nhóm khách", "⚙️ Cài đặt"], -1]
+        - ["card", "📌 Dùng để · ① ② ③", "Đầu mỗi thẻ: để làm gì + các bước", "g"]
       hi: 0
-      text: "Bên dưới có <b>7 thẻ</b>. Bấm tên thẻ để chuyển. Đầu mỗi thẻ có ô xanh <b>📌 Dùng để · 👉 Nên làm</b>: đọc 2 dòng đó là biết thẻ để làm gì."
+      text: "Bên dưới có <b>7 ô chọn việc</b>, dưới tên mỗi ô ghi <b>khi nào dùng</b> (vd 🧪 Chấm bài: trước khi đăng). Đầu mỗi thẻ có ô xanh <b>📌 Dùng để</b> và <b>các bước ① ② ③</b>: làm theo là xong."
 ct-video:
   title: Viết kịch bản video ngắn
   steps:
@@ -153,7 +152,7 @@ ct-video:
         - ["in", "Độ dài", "45 giây"]
         - ["in", "Thể loại", "Tình huống"]
       hi: 2
-      text: "Bấm thẻ <b>✍️ Tạo nội dung</b>. Ở ô <b>🎬 Viết kịch bản video ngắn</b>, chọn <b>nhóm khách</b>. Các ô khác để <b>AI tự chọn</b> cũng được."
+      text: "Bấm thẻ <b>✍️ Tạo nội dung</b> → ô <b>🎬 Kịch bản video</b> → <b>🎬 Viết kịch bản</b> (máy kéo xuống khung viết). Chọn <b>nhóm khách</b>. Các ô khác để <b>AI tự chọn</b> cũng được."
     - title: Insight & nội dung
       els:
         - ["in", "Yêu cầu thêm (không bắt buộc)", "quay ở bếp, chị Lan nói"]
@@ -176,12 +175,12 @@ ct-fb:
     - title: Insight & nội dung
       els:
         - ["chips", ["📊 Tổng quan", "✍️ Tạo nội dung", "🧪 Chấm"], 1]
-        - ["h", "🧰 Công cụ khác"]
+        - ["card", "🎬 Kịch bản video", "TikTok, Reels, Shorts", ""]
         - ["card", "📸 Câu lệnh tạo ảnh", "AI viết câu lệnh cho ChatGPT", ""]
-        - ["card", "📣 Bài Facebook cá nhân cho sale", "Bài đời thường + bình luận ghim", "g"]
+        - ["card", "📣 Bài Facebook cho sale", "Bài đời thường + bình luận ghim", "g"]
         - ["btn", "📣 Mở", ""]
       hi: 4
-      text: "Thẻ <b>✍️ Tạo nội dung</b> → kéo xuống <b>🧰 Công cụ khác</b> → ô <b>📣 Bài Facebook cá nhân cho sale</b> → bấm <b>📣 Mở</b>."
+      text: "Thẻ <b>✍️ Tạo nội dung</b> → hàng ô đầu thẻ → ô <b>📣 Bài Facebook cho sale</b> → bấm <b>📣 Mở</b>."
     - title: Bài Facebook cá nhân
       els:
         - ["in", "Nhóm khách", "Để trợ lý tự chọn"]
@@ -203,11 +202,11 @@ ct-anh:
     - title: Insight & nội dung
       els:
         - ["chips", ["📊 Tổng quan", "✍️ Tạo nội dung", "🧪 Chấm"], 1]
-        - ["h", "🧰 Công cụ khác"]
+        - ["card", "🎬 Kịch bản video", "TikTok, Reels, Shorts", ""]
         - ["card", "📸 Câu lệnh tạo ảnh", "Giữ nguyên bao bì thật", "g"]
         - ["btn", "📸 Viết câu lệnh", ""]
       hi: 3
-      text: "Thẻ <b>✍️ Tạo nội dung</b> → <b>🧰 Công cụ khác</b> → ô <b>📸 Câu lệnh tạo ảnh</b> → bấm <b>📸 Viết câu lệnh</b>."
+      text: "Thẻ <b>✍️ Tạo nội dung</b> → hàng ô đầu thẻ → ô <b>📸 Câu lệnh tạo ảnh</b> → bấm <b>📸 Viết câu lệnh</b>."
     - title: Câu lệnh tạo ảnh
       els:
         - ["in", "Sản phẩm", "Trà DILVANG"]
@@ -309,11 +308,11 @@ ct-offer:
     - title: Insight & nội dung
       els:
         - ["chips", ["📊 Tổng quan", "✍️ Tạo nội dung", "🧪 Chấm"], 1]
-        - ["h", "🧰 Công cụ khác"]
+        - ["card", "🎬 Kịch bản video", "TikTok, Reels, Shorts", ""]
         - ["card", "🎁 Viết offer", "Ưu đãi khó từ chối, lưu nháp", "g"]
         - ["btn", "🎁 Viết offer", ""]
       hi: 3
-      text: "Thẻ <b>✍️ Tạo nội dung</b> → <b>🧰 Công cụ khác</b> → bấm <b>🎁 Viết offer</b>."
+      text: "Thẻ <b>✍️ Tạo nội dung</b> → hàng ô đầu thẻ → ô <b>🎁 Viết offer</b> → bấm <b>🎁 Viết offer</b>."
     - title: Viết offer
       els:
         - ["in", "Sản phẩm", "Bữa Ăn Dinh Dưỡng"]

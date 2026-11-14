@@ -2699,3 +2699,47 @@ b.csx-c-ok { color: var(--primary-2); } b.csx-c-sua { color: var(--orange); } b.
 .ait-foot { margin-top: 16px; display: flex; gap: 10px; align-items: center; }
 .ait-foot small { color: var(--muted); }
 @media (max-width: 640px) { .ait-sum { grid-template-columns: repeat(2, 1fr); } .ait-grid { grid-template-columns: 1fr; } .ait-kv { grid-template-columns: 1fr; gap: 2px; } .ait-kv dd { margin-bottom: 6px; } }
+
+/* 🎯 Insight & nội dung sắp lại 15/11/2026: menu "chọn việc", dùng để + các bước, mục gập */
+.inx-intro { margin: -4px 0 10px; color: var(--ink); line-height: 1.5; }
+.inx-menu { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin: 12px 0 12px; }
+.inx-menu button { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 8px 4px 7px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; cursor: pointer; color: var(--ink); font: inherit; line-height: 1.25; text-align: center; }
+.inx-menu button i { font-style: normal; font-size: 20px; line-height: 1.2; }
+.inx-menu button b { font-size: 13.5px; font-weight: 700; }
+.inx-menu button small { font-size: 11.5px; color: var(--muted); }
+.inx-menu button:hover { border-color: var(--primary); }
+.inx-menu button.on { background: var(--primary); border-color: var(--primary); color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.12); }
+.inx-menu button.on small { color: rgba(255,255,255,.85); }
+.inx-tabi { padding: 10px 12px; }
+.inx-tabi .inx-use { margin: 0 0 6px; }
+.inx-steps { list-style: none; display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0; padding: 0; }
+.inx-steps li { display: flex; align-items: flex-start; gap: 6px; flex: 1 1 200px; }
+.inx-steps li > b { flex: none; width: 20px; height: 20px; border-radius: 50%; background: var(--primary); color: #fff; font-size: 12px; line-height: 20px; text-align: center; margin-top: 1px; }
+.inx-tabi .inx-note { margin: 6px 0 0; font-size: 12.5px; }
+.inx-acc { padding: 0; }
+.inx-acc > summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; padding: 12px 14px; cursor: pointer; list-style: none; }
+.inx-acc > summary::-webkit-details-marker { display: none; }
+.inx-acc > summary::before { content: '▸'; color: var(--muted); transition: transform .15s; }
+.inx-acc[open] > summary::before { transform: rotate(90deg); }
+.inx-acc[open] > summary { border-bottom: 1px solid var(--line); }
+.inx-acc-b { padding: 4px 14px 12px; }
+.inx-acc-b > .box { border: 0; box-shadow: none; padding: 0; margin: 8px 0 0; background: none; }
+.inx-acc-b > .box > .zb-ph:first-child, .inx-acc-b > h2.zb-h:first-child { display: none; }
+.inx-pick { margin-bottom: 12px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+.inx-glist { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 0 10px; align-items: start; }
+.inx-glist > details[open] { grid-column: 1 / -1; }
+@media (max-width: 720px) {
+  .inx-menu { grid-template-columns: repeat(4, 1fr); gap: 5px; }
+  .inx-menu button { padding: 6px 2px; border-radius: 10px; }
+  .inx-menu button i { font-size: 17px; }
+  .inx-menu button b { font-size: 12px; }
+  .inx-menu button small { font-size: 10.5px; }
+  .inx-steps li { flex-basis: 100%; }
+  .inx-glist { grid-template-columns: 1fr; }
+}
+button.inx-todo-r { width: 100%; background: none; border: 0; border-top: 1px solid #f3d3a4; font: inherit; text-align: left; cursor: pointer; padding: 7px 0; color: var(--ink); flex-wrap: nowrap; }
+button.inx-todo-r:first-of-type { border-top: 0; }
+button.inx-todo-r > span { flex: 1 1 auto; }
+button.inx-todo-r > b { flex: none; color: var(--primary); white-space: nowrap; }
+button.inx-todo-r:hover > span { text-decoration: underline; }
+@media (max-width: 720px) { button.inx-todo-r { flex-wrap: wrap; gap: 2px 8px; } button.inx-todo-r > b { margin-left: auto; } }

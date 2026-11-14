@@ -8004,25 +8004,35 @@
     var L = [], on = (j.bank || []).filter(function (g) { return g.on; }), has = {}, ev = (j.evs || []).filter(inEvNow)[0];
     (j.log || []).forEach(function (r) { has[r.g || r.gn] = 1; });
     var zero = on.filter(function (g) { return !has[g.id]; });
-    if (ed && j.upd) L.push(['📚 Bản insight mặc định có cập nhật mới từ tài liệu khoá học. Gộp vào không xoá gì anh chị đã sửa.', '<button class="btn sm pri" data-in="merge">📚 Gộp ngay</button>']);
-    if (ev) L.push(['📅 <b>' + esc(ev.n) + '</b> ' + (ev.in ? 'còn ' + ev.in + ' ngày' : 'là hôm nay') + ': đến lúc chuẩn bị bài gắn dịp.', '<button class="btn sm" data-in="tab|tao">✍️ Tạo nội dung</button>']);
-    if (zero.length) L.push(['⚠️ <b>' + zero.length + ' nhóm khách</b> chưa có bài nào 30 ngày qua (' + esc(zero.slice(0, 2).map(function (g) { return g.name; }).join(', ')) + (zero.length > 2 ? '…' : '') + ').', '<button class="btn sm" data-in="vgo|' + esc(zero[0].id) + '">🎬 Viết video cho nhóm này</button>']);
-    if (ed && !((j.kw && j.kw.list) || []).length) L.push(['🔑 Chưa có từ khoá cho bài web: Google và ChatGPT khó gợi ý Thực Dưỡng Lành.', '<button class="btn sm" data-in="tab|cai">🔑 Lập từ khoá</button>']);
+    if (ed && j.upd) L.push(['📚 Bản insight mặc định có cập nhật mới từ tài liệu khoá học. Gộp vào không xoá gì anh chị đã sửa.', 'merge', '📚 Gộp ngay']);
+    if (ev) L.push(['📅 <b>' + esc(ev.n) + '</b> ' + (ev.in ? 'còn ' + ev.in + ' ngày' : 'là hôm nay') + ': đến lúc chuẩn bị bài gắn dịp.', 'tab|tao', '✍️ Tạo nội dung']);
+    if (zero.length) L.push(['⚠️ <b>' + zero.length + ' nhóm khách</b> chưa có bài nào 30 ngày qua (' + esc(zero.slice(0, 2).map(function (g) { return g.name; }).join(', ')) + (zero.length > 2 ? '…' : '') + ').', 'vgo|' + esc(zero[0].id), '🎬 Viết video']);
+    if (ed && !((j.kw && j.kw.list) || []).length) L.push(['🔑 Chưa có từ khoá cho bài web: Google và ChatGPT khó gợi ý Thực Dưỡng Lành.', 'tab|cai|kw', '🔑 Lập từ khoá']);
     L = L.slice(0, 3);
-    return '<div class="box inx-todo"><div class="zb-ph"><b>👉 Nên làm ngay</b></div>' + (L.length ? L.map(function (x) { return '<div class="inx-todo-r"><p class="small">' + x[0] + '</p>' + x[1] + '</div>'; }).join('') : '<p class="small">✅ Mọi thứ đang ổn. Trợ lý tự viết bài theo lịch, anh chị chỉ cần duyệt bài.</p>') + '</div>';
+    return '<div class="box inx-todo"><div class="zb-ph"><b>👉 Nên làm ngay</b></div>' + (L.length ? L.map(function (x) { return '<button class="inx-todo-r" data-in="' + x[1] + '"><span class="small">' + x[0] + '</span><b class="small">' + x[2] + ' ›</b></button>'; }).join('') : '<p class="small">✅ Mọi thứ đang ổn. Trợ lý tự viết bài theo lịch, anh chị chỉ cần duyệt bài.</p>') + '</div>';
   }
   /** 1 dòng đầu mỗi thẻ: 📌 dùng để · 👉 nên làm (12/11/2026) */
-  function inTabi(dung, lam, note) { return '<div class="inx-tabi"><p>📌 <b>Dùng để:</b> ' + dung + '</p><p>👉 <b>Nên làm:</b> ' + lam + '</p>' + (note ? '<p class="muted">' + note + '</p>' : '') + '</div>'; }
-  var IN_TABS = [['tong', '📊 Tổng quan'], ['tao', '✍️ Tạo nội dung'], ['cham', '🧪 Chấm bài'], ['loi', '🗣 Lời khách'], ['gac', '🛡 Gác cổng'], ['nhom', '👥 Nhóm khách'], ['cai', '⚙️ Cài đặt']];
+  /** Đầu mỗi thẻ (15/11/2026): 📌 dùng để (lợi ích) + 👉 các bước đánh số ① ② ③ */
+  function inTabi(dung, lam, note) {
+    var L = [].concat(lam || []);
+    return '<div class="inx-tabi"><p class="inx-use">📌 <b>Dùng để:</b> ' + dung + '</p><ol class="inx-steps">' + L.map(function (x, k) { return '<li><b>' + (k + 1) + '</b><span>' + x + '</span></li>'; }).join('') + '</ol>' + (note ? '<p class="muted inx-note">' + note + '</p>' : '') + '</div>';
+  }
+  /** Thẻ của trang: [mã, biểu tượng, tên, khi nào dùng] */
+  var IN_TABS = [['tong', '📊', 'Tổng quan', 'xem mỗi tuần'], ['tao', '✍️', 'Tạo nội dung', 'video, ảnh, offer'], ['cham', '🧪', 'Chấm bài', 'trước khi đăng'], ['loi', '🗣', 'Lời khách', 'khách nói gì'], ['gac', '🛡', 'Câu bị giữ', 'khi Telegram báo'], ['nhom', '👥', 'Nhóm khách', 'khách là ai'], ['cai', '⚙️', 'Cài đặt', 'chuyện nóng, dịp']];
+  /** Mục gập / mở (giữ trạng thái khi vẽ lại) */
+  function inAcc(k, title, info, body, def) {
+    var open = IN.acc && k in IN.acc ? IN.acc[k] : def;
+    return '<details class="box inx-acc" data-inacc="' + k + '"' + (open ? ' open' : '') + '><summary><b>' + title + '</b>' + (info ? '<span class="small muted">' + info + '</span>' : '') + '</summary><div class="inx-acc-b">' + body + '</div></details>';
+  }
   function viewIns() {
     if (!IN.d && !IN.err && !IN.busy) setTimeout(inFetch, 0);
     if (!IN.tab) { try { IN.tab = localStorage.getItem('inTab') || 'tong'; } catch (e) { IN.tab = 'tong'; } }
     var h = '<div class="page-head"><h1>🎯 Insight & nội dung</h1></div>' +
-      '<p class="muted small lq-intro">Nơi dạy trợ lý AI <b>viết cho ai, chạm nỗi lòng gì</b>. Sửa ở đây là cả 4 trợ lý (bài web, nhóm Zalo, Fanpage, video) viết theo. <a href="/huong-dan/content/" target="_blank" rel="noopener">📖 Xem hướng dẫn có hình</a></p>';
+      '<p class="small lq-intro inx-intro">Dạy trợ lý AI <b>viết cho ai, chạm nỗi lòng gì</b>, để bài web, nhóm Zalo, Fanpage, video <b>thu hút hơn và ra đơn hơn</b>. Trợ lý tự viết theo lịch; việc của bạn là chọn thẻ bên dưới theo việc cần làm. <a href="/huong-dan/content/" target="_blank" rel="noopener">📖 Hướng dẫn có hình</a></p>';
     if (!IN.d) return h + '<div class="box"><p class="muted">' + (IN.err ? '⚠️ ' + esc(IN.err) + ' <button class="link" data-in="reload">Thử lại</button>' : '⏳ Đang tải…') + '</p></div>';
     var j = IN.d, bank = j.bank || [], ed = inCanEdit(), tab = IN.tab;
-    h += '<div class="inx-flow"><div><b>1</b>👥 Chọn<br>nhóm khách</div><div><b>2</b>⚡ Chọn<br>nỗi lòng<small>điều họ mong ↔ điều cản họ</small></div><div><b>3</b>🔻 Chọn<br>loại bài<small>thu hút · niềm tin · bán</small></div><div><b>4</b>✍️ Viết bài<br>gỡ nỗi lòng đó</div></div>';
-    h += '<details class="zb-info small"><summary>ⓘ Tìm hiểu thêm: trợ lý viết bài theo cách nào (khoá content K133)</summary><ol>' +
+    var how = '<div class="inx-flow"><div><b>1</b>👥 Chọn<br>nhóm khách</div><div><b>2</b>⚡ Chọn<br>nỗi lòng<small>điều họ mong ↔ điều cản họ</small></div><div><b>3</b>🔻 Chọn<br>loại bài<small>thu hút · niềm tin · bán</small></div><div><b>4</b>✍️ Viết bài<br>gỡ nỗi lòng đó</div></div>';
+    how += '<details class="zb-info small"><summary>ⓘ Chi tiết theo khoá content K131 + K133</summary><ol>' +
       '<li><b>🔎 Issue</b>: 1 vấn đề cụ thể quan sát được của nhóm khách trong 1 cảnh (vd "2 giờ sáng cho con bú, khát mà không ai đun nước"). <b>🎯 Insight</b>: vì sao họ kẹt = tension. <b>💡 Idea</b>: góc tiếp cận gỡ tension. <b>✍️ Implementation</b>: viết đúng kênh, đúng tầng phễu. Thẻ bài ghi đủ 3 dòng 🔎 🎯 💡 để người duyệt kiểm tra.</li>' +
       '<li><b>Insight là tension</b>: thế giằng co khi điều khách <b>mong</b> va vào <b>rào cản</b> trong 1 cảnh đời cụ thể. Ví dụ: “Biết phải ăn sáng đủ chất ↔ sáng nào cũng vội, ăn tạm hoặc bỏ bữa”.</li>' +
       '<li><b>🌟 Big idea → 🎭 góc kể</b> (khoá K131): mỗi nhóm khách nên có 1 ý lớn chạy 2–4 tuần để mọi kênh nói nhất quán; big idea chia thành ~10 góc kể, mỗi bài 1 góc, trợ lý tự xoay vòng góc ít dùng nhất. Bài thu hút (TOFU) không xoay quanh sản phẩm.</li>' +
@@ -8032,11 +8042,15 @@
       '<li>Luật quảng cáo thực phẩm: chỉ nói công dụng đúng hồ sơ công bố; kinh nghiệm dân gian phải nói là kinh nghiệm dân gian. Bài có cụm dễ phạm luật (lợi sữa, giảm cân, thanh lọc…) sẽ hiện ⚠️ để người duyệt đọc lại.</li>' +
       '<li>Tension gắn <b>🏷 nhãn sản phẩm</b> chỉ dùng khi bài nói về sản phẩm đó; tension <b>🌐 dùng chung</b> hợp mọi sản phẩm. Xem ở thẻ 👥 Nhóm khách → 🏷 Insight theo sản phẩm.</li></ol></details>';
     h += inTodoHtml(j, ed);
-    h += '<div class="tabs inx-tabs">' + IN_TABS.map(function (x) { return '<button class="' + (tab === x[0] ? 'on' : '') + '" data-in="tab|' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div>';
+    h += '<div class="inx-menu" role="tablist">' + IN_TABS.map(function (x) { return '<button role="tab" class="' + (tab === x[0] ? 'on' : '') + '" data-in="tab|' + x[0] + '"><i>' + x[1] + '</i><b>' + x[2] + '</b><small>' + x[3] + '</small></button>'; }).join('') + '</div>';
     if (tab === 'tao') {
       // 🎬 kịch bản video
       var gOpt = '<option value="">🔄 Tự chọn (nhóm ít video nhất)</option>' + bank.filter(function (g) { return g.on; }).map(function (g) { return '<option value="' + esc(g.id) + '"' + (IN.vg === g.id ? ' selected' : '') + '>' + esc(g.name) + '</option>'; }).join('');
-      h += inTabi('Tự tạo thêm nội dung khi cần: kịch bản video, câu lệnh ảnh, bài Facebook cho sale, ưu đãi. Bài web, Zalo, Fanpage thì trợ lý đã tự viết theo lịch.', 'Chọn nhóm khách rồi bấm <b>🎬 Viết kịch bản</b>. Các ô khác để AI tự chọn cũng được.');
+      h += inTabi('Tự tạo thêm nội dung khi cần: kịch bản video, câu lệnh ảnh, bài Facebook cho sale, ưu đãi. Bài web, Zalo, Fanpage thì trợ lý <b>đã tự viết theo lịch</b>, không cần làm ở đây.', ['Chọn việc cần làm ngay bên dưới', 'Chọn nhóm khách (các ô khác để AI tự chọn cũng được)', 'Bấm nút viết, đọc lại rồi <b>📋 Copy</b> đem dùng']);
+      h += '<div class="inx-cards inx-pick"><div class="box"><b>🎬 Kịch bản video</b><p class="small muted">TikTok, Reels, Shorts: câu mở đầu, từng cảnh, lời đọc, caption.</p><button class="btn sm pri" data-in="vfocus">🎬 Viết kịch bản</button></div>' +
+        '<div class="box"><b>📸 Câu lệnh tạo ảnh</b><p class="small muted">3 câu lệnh dán vào ChatGPT hoặc Gemini, giữ nguyên bao bì thật.</p><button class="btn sm" data-in="img">📸 Viết câu lệnh</button></div>' +
+        (ed ? '<div class="box"><b>📣 Bài Facebook cho sale</b><p class="small muted">Bài kể chuyện đời thường + bình luận ghim có link riêng từng sale.</p><button class="btn sm" data-spf="admin">📣 Mở</button></div>' +
+          '<div class="box"><b>🎁 Viết offer</b><p class="small muted">Ưu đãi "khó từ chối" cho 1 sản phẩm + 1 nỗi lòng khách, lưu nháp để duyệt giá.</p><button class="btn sm" data-in="offer">🎁 Viết offer</button></div>' : '') + '</div>';
       h += '<div class="box inx-vd" id="inVd"><div class="zb-ph"><b>🎬 Viết kịch bản video ngắn</b></div>' +
         '<p class="small muted" style="margin-top:0">Video dọc cho TikTok, Reels, Shorts. AI viết sẵn câu mở đầu, từng cảnh quay, lời đọc và caption.</p>' +
         '<div class="inx-grid"><label class="f"><span>🎯 Nhóm khách</span><select id="inVg">' + gOpt + '</select></label>' +
@@ -8054,16 +8068,13 @@
           (s.f ? '<span class="zb-fun zb-fun-' + s.f.toLowerCase() + '">' + (IN_FN[s.f] || s.f) + '</span> ' : '') + '</summary>' + inTag(s) +
           '<div class="inx-script">' + inScriptHtml(s.text) + '</div><div class="lq-btns"><button class="btn sm pri" data-in="vcopy|' + s.id + '">📋 Copy kịch bản</button><button class="btn sm ghost" data-in="vdel|' + s.id + '">🗑 Xoá</button></div></details>';
       }).join('') + '</div>';
-      h += '<h2 class="zb-h">🧰 Công cụ khác</h2><div class="inx-cards">' +
-        '<div class="box"><b>📸 Câu lệnh tạo ảnh</b><p class="small muted">AI viết 3 câu lệnh để dán vào ChatGPT hoặc Gemini, giữ nguyên bao bì thật.</p><button class="btn sm" data-in="img">📸 Viết câu lệnh</button></div>' +
-        (ed ? '<div class="box"><b>📣 Bài Facebook cá nhân cho sale</b><p class="small muted">Bài kể chuyện đời thường + bình luận ghim có link riêng từng sale.</p><button class="btn sm" data-spf="admin">📣 Mở</button></div>' +
-          '<div class="box"><b>🎁 Viết offer</b><p class="small muted">Dựng ưu đãi "khó từ chối" cho 1 sản phẩm + 1 nỗi lòng khách, lưu nháp để duyệt giá.</p><button class="btn sm" data-in="offer">🎁 Viết offer</button></div>' : '') + '</div>';
       h += inOffersHtml(j, ed);
     } else if (tab === 'nhom') {
       var nOn = bank.filter(function (g) { return g.on; }).length;
-      h += inTabi('Cho trợ lý biết mỗi nhóm khách <b>mong gì</b> và <b>bị cản bởi điều gì</b>. Trợ lý chọn 1 nỗi lòng rồi mới viết, dòng xếp trên được ưu tiên.', 'Bấm tên nhóm để xem. Thấy chưa đúng với khách thật thì bấm <b>✏️ Sửa</b>.', nOn + ' / ' + bank.length + ' nhóm đang dùng · ' + (j.custom ? 'đã chỉnh riêng' : 'bản mặc định'));
+      h += inTabi('Cho trợ lý biết mỗi nhóm khách <b>mong gì</b> và <b>bị cản bởi điều gì</b>. Đúng nỗi lòng thì bài mới chạm, mới ra đơn.', ['Bấm tên nhóm để xem', 'Thấy chưa đúng với khách thật thì bấm <b>✏️ Sửa</b>', 'Có kiểu khách mới thì bấm <b>➕ Thêm nhóm khách</b>'], nOn + ' / ' + bank.length + ' nhóm đang dùng · ' + (j.custom ? 'đã chỉnh riêng' : 'bản mặc định'));
+      h += inAcc('how', 'ⓘ Trợ lý dùng nhóm khách để viết bài thế nào?', '', how, false);
       if (ed) h += '<div class="lq-btns inx-acts"><button class="btn pri" data-in="find">🔍 AI tìm nỗi lòng mới</button><button class="btn" data-in="imp">📥 Dán kết quả skill</button><button class="btn" data-in="gnew">➕ Thêm nhóm khách</button></div>';
-      h += bank.map(function (g, i) {
+      h += '<div class="inx-glist">' + bank.map(function (g, i) {
         var more = (g.trust ? '<p><b>🤝 Họ tin ai:</b> ' + esc(g.trust) + '</p>' : '') + (g.kw ? '<p><b>🔍 Họ hay tìm:</b> ' + esc(g.kw) + '</p>' : '') + (g.where ? '<p><b>📍 Nơi họ tụ tập:</b> ' + esc(g.where) + '</p>' : '') +
           (g.roles ? '<p><b>👥 3 vai:</b> ' + esc(g.roles) + '</p>' : '') + (g.real ? '<p><b>🗣 Lý do nói ra → lý do thật:</b> ' + esc(g.real) + '</p>' : '') + (g.excuse ? '<p><b>🎁 Cái cớ để mua:</b> ' + esc(g.excuse) + '</p>' : '') + (g.pay ? '<p><b>💰 Khả năng chi trả:</b> ' + esc(g.pay) + '</p>' : '') +
           ((g.prods || []).length ? '<p><b>🏷 Sản phẩm hợp:</b> ' + esc(g.prods.map(inSpName).join(', ')) + '</p>' : '') + (g.note ? '<p class="muted">📝 ' + esc(g.note) + '</p>' : '');
@@ -8074,20 +8085,24 @@
           '<p class="small" style="margin:8px 0 0"><b>⚡ Nỗi lòng</b> <span class="muted">(tension): điều họ mong ↔ điều cản họ</span></p><ul class="small inx-tl">' + g.tensions.map(function (t) { return '<li>' + inTenHtml(t) + '</li>'; }).join('') + '</ul>' + inBigHtml(g) +
           (more ? '<details class="small inx-more"><summary>📋 Chân dung đầy đủ (họ tin ai, hay tìm gì, ở đâu…)</summary>' + more + '</details>' : '') +
           (ed ? '<div class="lq-btns"><button class="btn sm" data-in="ged|' + i + '">✏️ Sửa</button><button class="btn sm ghost" data-in="gon|' + i + '">' + (g.on ? '⏸ Tạm tắt' : '▶️ Bật lại') + '</button><button class="btn sm ghost" data-in="gdel|' + i + '">🗑 Xoá</button></div>' : '') + '</details>';
-      }).join('');
+      }).join('') + '</div>';
       h += inProdHtml(bank);
       if (ed && j.custom) h += '<div class="lq-btns"><button class="btn ghost" data-in="reset">↩️ Dùng lại bản mặc định</button></div>';
     } else if (tab === 'loi') {
-      h += voqHtml() + ytbHtml();
+      h += voqHtml() + inAcc('ytb', '▶️ Câu hỏi trên YouTube chưa ai trả lời', 'máy tự tìm sáng thứ Hai', ytbHtml(), false);
     } else if (tab === 'gac') {
       h += gtkHtml();
     } else if (tab === 'cham') {
       h += csxHtml(j);
     } else if (tab === 'cai') {
-      h += inTabi('Những điều trợ lý đọc thêm trước khi viết: 📗 Sổ tay doanh nghiệp, dịp sắp tới, chuyện đang nóng, từ khoá bài web, phương pháp.', 'Thường chỉ cần ghi <b>🔥 Chuyện đang nóng</b> khi có. Còn lại để nguyên.');
-      h += sotHtml(j.st) + inEvHtml(j, ed) + inKwHtml(j, ed) + inSkillsHtml(j, ed);
+      var st = j.st, kwL = (j.kw && j.kw.list) || [], tr = j.trend && j.trend.t;
+      h += inTabi('Những điều trợ lý đọc thêm trước khi viết, để bài hợp thời điểm và đúng giọng công ty.', ['Có chuyện mọi người đang bàn tán: ghi vào <b>🔥 Chuyện đang nóng</b>', 'Các mục khác để nguyên, khi cần mới bấm mở']);
+      h += inAcc('ev', '📅 Dịp sắp tới & 🔥 Chuyện đang nóng', tr ? '🔥 đang có 1 chuyện' : 'chưa ghi chuyện nóng', inEvHtml(j, ed), true) +
+        inAcc('sot', '📗 Sổ tay doanh nghiệp', st ? st.ok + ' / ' + st.n + ' mục đã xác nhận' : '', sotHtml(st), false) +
+        inAcc('kw', '🔑 Từ khoá cho bài web', kwL.length ? kwL.length + ' từ khoá' : 'chưa có từ khoá', inKwHtml(j, ed), false) +
+        inAcc('pp', '📘 Phương pháp trợ lý đang dùng', 'mặc định theo khoá học', inSkillsHtml(j, ed), false);
     } else {
-      h += inTabi('Xem 30 ngày qua trợ lý đã viết cho nhóm khách nào, bao nhiêu bài thu hút, tạo niềm tin, bán hàng.', 'Mỗi tuần xem 1 lần. Nhóm nào chưa có bài thì bấm tên nhóm để viết.') + inStatsHtml(j) + inLearnHtml(j.learn, j.fpNf);
+      h += inTabi('Biết 30 ngày qua trợ lý đã viết bao nhiêu bài, cho nhóm khách nào, để không bỏ sót nhóm khách nào.', ['Mỗi tuần mở xem 1 lần', 'Nhóm nào chưa có bài: bấm tên nhóm để viết video']) + inStatsHtml(j) + inLearnHtml(j.learn, j.fpNf);
     }
     return h;
   }
@@ -8101,7 +8116,7 @@
   }
   function voqSel(id, o, v, first) { return '<select id="' + id + '">' + (first ? '<option value="">' + first + '</option>' : '') + Object.keys(o).map(function (k) { return '<option value="' + esc(k) + '"' + (String(v || '') === k ? ' selected' : '') + '>' + esc(o[k]) + '</option>'; }).join('') + '</select>'; }
   function voqHtml() {
-    var h = inTabi('Câu <b>nguyên văn</b> của khách thật (bình luận, tin nhắn, chat web, lý do chưa mua), máy tự gom mỗi sáng và đã che số điện thoại. Trợ lý viết bài, chấm bài, trợ lý chat đọc các câu này để nói đúng nỗi lòng khách.', 'Mỗi tuần lướt 1 lần: câu nào AI xếp sai ô thì bấm <b>✏️</b> sửa; câu khách nói qua điện thoại thì bấm <b>➕ Ghi lời khách</b>.', '🟢 Lời thật = khách tự gõ · 🟡 Suy ra = sale ghi lại / AI đoán · ⚪ Cũ = quá 180 ngày');
+    var h = inTabi('Câu <b>nguyên văn</b> của khách thật (bình luận, tin nhắn, chat web, lý do chưa mua), máy tự gom mỗi sáng, đã che số điện thoại. Trợ lý đọc để viết đúng lời khách.', ['Mỗi tuần lướt 1 lần', 'Câu AI xếp sai ô: bấm <b>✏️</b> sửa', 'Khách nói qua điện thoại: bấm <b>➕ Ghi lời khách</b>'], '🟢 Lời thật = khách tự gõ · 🟡 Suy ra = sale ghi lại / AI đoán · ⚪ Cũ = quá 180 ngày');
     if (!VQ.d) { if (!VQ.busy && !VQ.err) setTimeout(voqFetch, 0); return h + '<div class="box"><p class="muted">' + (VQ.err ? '⚠️ ' + esc(VQ.err) + ' <button class="link" data-voq="reload">Thử lại</button>' : '⏳ Đang tải…') + '</p></div>'; }
     var d = VQ.d, f = VQ.f, cnt = {}, tot = d.tot || {};
     (d.cnt || []).forEach(function (r) { cnt[r.slot || ''] = (cnt[r.slot || ''] || 0) + r.n; });
@@ -8186,7 +8201,7 @@
       .then(function () { GK.busy = 0; if (route().view === 'noi-dung') render(); });
   }
   function gtkHtml() {
-    var h = inTabi('Trước khi trợ lý chat web, Zalo và Fanpage gửi câu trả lời, máy kiểm tra: <b>giá, phí ship, mức miễn phí ship, khuyến mãi, hotline</b> có khớp dữ liệu web không; <b>câu công dụng</b> có trong trang sản phẩm (hồ sơ công bố) không; có <b>nói về bệnh, hứa hẹn, doạ</b> không. Không đạt thì khách nhận câu "để em kiểm tra lại rồi báo anh/chị", nhân sự nhận tin Telegram.', 'Thấy tin 🛡 trên Telegram thì <b>nhắn lại khách câu đúng</b>, rồi bấm <b>✅ Đã xử lý</b> ở đây. Câu bị chặn nhầm thì báo anh Sơn.');
+    var h = inTabi('Trợ lý chat (web, Zalo, Fanpage) trả lời sai thì <b>khách không nhận câu sai</b>: máy kiểm tra giá, phí ship, khuyến mãi, hotline, câu công dụng (đúng hồ sơ công bố), lời nói về bệnh, hứa hẹn. Câu không đạt bị giữ lại, khách nhận câu "để em kiểm tra lại rồi báo anh/chị".', ['Telegram báo tin 🛡', 'Nhắn lại khách câu đúng', 'Bấm <b>✅ Đã xử lý</b> ở đây'], 'Câu bị giữ nhầm thì báo anh Sơn.');
     if (!GK.d) { if (!GK.busy && !GK.err) setTimeout(gtkFetch, 0); return h + '<div class="box"><p class="muted">' + (GK.err ? '⚠️ ' + esc(GK.err) + ' <button class="link" data-gtk="reload">Thử lại</button>' : '⏳ Đang tải…') + '</p></div>'; }
     var d = GK.d, n7 = (d.cnt || []).reduce(function (a, r) { return a + r.n; }, 0);
     h += '<div class="box"><div class="zb-ph"><b>🛡 Người gác cổng</b><span class="zb-due">' + (d.mode === 'log' ? '📝 Chỉ ghi nhật ký' : '✅ Đang chặn') + '</span></div>' +
@@ -8228,7 +8243,7 @@
     return L.join(' · ');
   }
   function csxHtml(j) {
-    var h = inTabi('Chấm bài các bạn làm <b>trước khi đăng hoặc chạy quảng cáo</b>: có thu hút không, có chạm đúng nỗi lòng khách không, có dẫn tới đơn không.', 'Dán bài (hoặc lời thoại video), chọn kênh, bấm <b>🧪 Chấm điểm</b>. Sau khi đăng vài ngày, bấm <b>📈 Ghi kết quả thật</b> để biết điểm chấm có đúng không. <a href="/huong-dan/cham-bai/" target="_blank" rel="noopener">Xem hướng dẫn có hình</a>');
+    var h = inTabi('Biết bài có thu hút, chạm đúng nỗi lòng khách, dẫn tới đơn không <b>trước khi đăng hoặc chạy quảng cáo</b>, đỡ tốn tiền cho bài yếu.', ['Dán bài (hoặc lời thoại video)', 'Chọn nơi đăng, bấm <b>🧪 Chấm điểm</b>, sửa theo góp ý', 'Đăng vài ngày thì bấm <b>📈 Ghi kết quả thật</b>'], '<a href="/huong-dan/cham-bai/" target="_blank" rel="noopener">📖 Xem hướng dẫn có hình</a>');
     if (!CS.d) { if (!CS.busy && !CS.err) setTimeout(csxFetch, 0); return h + '<div class="box"><p class="muted">' + (CS.err ? '⚠️ ' + esc(CS.err) + ' <button class="link" data-csx="reload">Thử lại</button>' : '⏳ Đang tải…') + '</p></div>'; }
     var d = CS.d, f = CS.f, bank = (j.bank || []).filter(function (g) { return g.on; }), sel = function (id, o, v) { return '<select id="' + id + '">' + o.map(function (x) { return '<option value="' + esc(x[0]) + '"' + (String(v || '') === x[0] ? ' selected' : '') + '>' + esc(x[1]) + '</option>'; }).join('') + '</select>'; };
     var kind = f.csxK || 'bai', authors = (d.authors || []).map(function (a) { return '<option value="' + esc(a.name) + '">'; }).join('');
@@ -8821,11 +8836,14 @@
       this.disabled = true; closeModal(); inSave(bank, i == null ? 'Đã thêm nhóm khách ✓' : 'Đã lưu nhóm khách ✓');
     };
   }
+  /** nhớ mục gập / mở của trang 🎯 (inAcc) để vẽ lại không bị đóng */
+  document.addEventListener('toggle', function (e) { var d = e.target; if (!d || !d.getAttribute || !d.getAttribute('data-inacc')) return; IN.acc = IN.acc || {}; IN.acc[d.getAttribute('data-inacc')] = d.open; }, true);
   document.addEventListener('click', function (e) {
     var t = e.target.closest('[data-in]'); if (!t || !IN.d && t.getAttribute('data-in') !== 'reload') return;
     var v = t.getAttribute('data-in').split('|'), a = v[0], bank = IN.d ? (IN.d.bank || []).slice() : [], i = Number(v[1]);
     if (a === 'reload') { IN.err = ''; IN.d = null; return render(); }
-    if (a === 'tab') { IN.tab = v[1]; try { localStorage.setItem('inTab', v[1]); } catch (er) {} return render(); }
+    if (a === 'tab') { IN.tab = v[1]; if (v[2]) { IN.acc = IN.acc || {}; IN.acc[v[2]] = true; } try { localStorage.setItem('inTab', v[1]); } catch (er) {} return render(); }
+    if (a === 'vfocus') { var vf = $('#inVd'); if (vf) { vf.scrollIntoView({ behavior: 'smooth', block: 'start' }); var sg = $('#inVg'); if (sg) setTimeout(function () { sg.focus(); }, 400); } return; }
     if (/^g(ed|on|del)$/.test(a)) IN.gOpen = i;
     if (a === 'vgo') { IN.tab = 'tao'; IN.vg = v[1]; try { localStorage.setItem('inTab', 'tao'); } catch (er) {} render(); var vd = $('#inVd'); if (vd) vd.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
     if (a === 'gnew') return inGroupForm(null);

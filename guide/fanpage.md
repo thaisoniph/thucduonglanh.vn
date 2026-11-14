@@ -24,7 +24,7 @@ Trang này dành cho bạn **làm marketing**, **quản lý** và **anh Sơn** (
 | --- | --- |
 | 📘 KHÁCH ĐỂ LẠI SỐ QUA FANPAGE | Khách đã vào tab **Khách hỏi** (kênh Facebook), sale gọi như khách hỏi thường |
 | 📘 FANPAGE CẦN NGƯỜI THẬT | Mở hộp thư trang trả lời khách, rồi bấm **✅ Đã xử lý** ([Việc 2](#viec-2-ca-can-nguoi-that)) |
-| 🛡 NGƯỜI GÁC CỔNG ĐÃ CHẶN 1 CÂU · Fanpage | Nhắn lại khách câu đúng, rồi CRM → 🎯 → **🛡 Gác cổng** → **✅ Đã xử lý** ([Việc 3](#viec-3-khi-nguoi-gac-cong-chan-1-cau)) |
+| 🛡 NGƯỜI GÁC CỔNG ĐÃ CHẶN 1 CÂU · Fanpage | Nhắn lại khách câu đúng, rồi CRM → 🎯 → **🛡 Câu bị giữ** → **✅ Đã xử lý** ([Việc 3](#viec-3-khi-nguoi-gac-cong-chan-1-cau)) |
 
 ## Trợ lý Fanpage làm gì?
 

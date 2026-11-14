@@ -51,7 +51,7 @@ Trước khi viết bất kỳ bài nào, trả lời 4 câu:
 
 [[steps:ct-mo]]
 
-**7 thẻ, mỗi thẻ để làm gì:**
+**7 ô chọn việc, mỗi ô để làm gì** (dưới tên ô có ghi khi nào dùng; đầu mỗi thẻ có 📌 Dùng để + các bước ① ② ③):
 
 | Thẻ | Dùng để |
 | --- | --- |
@@ -59,7 +59,7 @@ Trước khi viết bất kỳ bài nào, trả lời 4 câu:
 | ✍️ Tạo nội dung | Viết kịch bản video, câu lệnh ảnh, bài Facebook cho sale, ưu đãi |
 | 🧪 Chấm bài | AI chấm bài bạn làm trước khi đăng |
 | 🗣 Lời khách | Câu nguyên văn của khách thật |
-| 🛡 Gác cổng | Câu trả lời của trợ lý chat bị máy giữ lại vì nói sai |
+| 🛡 Câu bị giữ | Câu trả lời của trợ lý chat bị máy giữ lại vì nói sai (người gác cổng) |
 | 👥 Nhóm khách | Mỗi nhóm khách mong gì, bị cản bởi gì, ý lớn đang chạy |
 | ⚙️ Cài đặt | Chuyện đang nóng, dịp sắp tới, từ khoá bài web (thường để nguyên) |
 
