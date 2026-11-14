@@ -2810,3 +2810,19 @@ button.inx-todo-r:hover > span { text-decoration: underline; }
 .camp-tip { background: #fff8e6; border: 1px solid #f3d27a; border-radius: 10px; padding: 8px 12px; margin: 0 0 12px; }
 .camp-tip p { margin: 4px 0 0; }
 .camp-act { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+/* Tổng quan 15/11/2026: 🩺 điểm xanh gọn 1 hàng chip; 4 nhóm chi tiết thu gọn */
+.dash-hl-ok { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 8px 0 0; font-size: 14px; }
+.dash-hl-ok > span { color: var(--muted); font-weight: 600; }
+.dash-hl-chip { display: inline-flex; gap: 4px; align-items: center; padding: 4px 10px; border-radius: 999px; background: var(--primary-50, #eef6f0); border: 1px solid var(--line); color: var(--ink); font: inherit; font-size: 13px; cursor: pointer; text-decoration: none; }
+.dash-hl-chip b { color: var(--primary); }
+details.dash-grp { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); margin: 0 0 10px; box-shadow: var(--shadow); scroll-margin-top: 12px; }
+details.dash-grp > summary { list-style: none; cursor: pointer; display: flex; gap: 12px; align-items: flex-start; padding: 14px 44px 14px 14px; position: relative; }
+details.dash-grp > summary::-webkit-details-marker { display: none; }
+details.dash-grp > summary::after { content: '▾'; position: absolute; right: 16px; top: 50%; margin-top: -12px; font-size: 20px; color: var(--muted); transition: transform .2s; }
+details.dash-grp[open] > summary::after { transform: rotate(180deg); }
+.dash-grp-t { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.dash-grp-t b { font-size: 17px; color: var(--ink); }
+.dash-grp-t small { font-size: 14px; color: var(--muted); }
+.dash-grp-t em { font-style: normal; font-size: 14px; color: var(--ink); font-weight: 600; }
+.dash-grp-b { padding: 0 10px 4px; }
+.dash-grp-b details.dash-more { box-shadow: none; background: var(--bg, #f7f8f6); }
