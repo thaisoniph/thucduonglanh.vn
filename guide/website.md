@@ -257,7 +257,7 @@ Web có bản tiếng Anh tại [thucduonglanh.vn/en/](https://thucduonglanh.vn/
 4. Gõ **Tên chiến dịch** không dấu, ví dụ `dilvang-combo`.
 5. Bấm **📋 Sao chép link**. Dùng link này khi đăng bài.
 
-Cần **mã QR** cho tờ rơi, standee? Làm trong CRM, xem [phần Marketing](/huong-dan/marketing/#link-va-ma-qr-cho-to-roi-standee-goi-hang).
+Cần **mã QR** cho tờ rơi, standee? Làm trong CRM, xem [phần Marketing](/huong-dan/marketing/#viec-6-tao-link-va-ma-qr).
 
 ## Lưu ý khi sửa website
 

@@ -353,3 +353,233 @@ ct-loi:
         - ["note", "Không ghi tên, số điện thoại"]
       hi: 0
       text: "Khách nói qua điện thoại câu hay thì bấm <b>➕ Ghi lời khách</b>, chép <b>đúng lời khách</b>. Trợ lý viết bài sẽ dùng câu này."
+# ---------- Marketing (guide/marketing.md, 15/11/2026) – tab 📣 Marketing, 📍 Link & QR, Sàn
+mk-man:
+  title: Đọc màn hình Marketing trong 1 phút
+  steps:
+    - title: Marketing
+      els:
+        - ["h", "💵 Tiền"]
+        - ["chips", ["💸 Chi QC", "💰 Khách mới", "🚦 Chi/Thu"], -1]
+        - ["h", "📇 Data & khách"]
+        - ["chips", ["📇 Giá 1 data", "🛒 Mua/100", "👤 Giá 1 khách"], -1]
+        - ["note", "🟢 tốt · 🟠 để ý · 🔴 cần xử lý"]
+      hi: 1
+      text: "Mở tab <b>📣 Marketing</b>. Nhìn <b>6 ô số</b>: hàng trên là <b>tiền</b>, hàng dưới là <b>số điện thoại và khách</b>. Nhìn màu đèn trước."
+    - title: Marketing
+      els:
+        - ["h", "✅ Nên làm gì"]
+        - ["card", "🔴 Marketing: tắt chiến dịch SỮA-7-10", "Giá 1 số đắt hơn mức tốt 45%", "r"]
+        - ["card", "🟠 Sale: còn 12 số chưa gọi", "Nhắc sale gọi trong hôm nay", "y"]
+        - ["card", "🟢 Marketing: tăng 20% DILVANG", "Rẻ hơn mức tốt 25%", "g"]
+      hi: 1
+      text: "Ô <b>✅ Nên làm gì</b>: tối đa 5 việc, việc gấp đứng trước, ghi rõ <b>ai làm</b>. Làm theo <b>từ trên xuống</b>."
+    - title: Marketing
+      els:
+        - ["h", "📘 Quảng cáo Facebook đang chạy"]
+        - ["card", "Hôm nay chi 1,2tr · ⭐ 1 SĐT 240k", "CPM · CTR · tin nhắn", "g"]
+        - ["chips", ["🔴 Xử lý", "🟢 Tăng", "🟠 Giữ"], 0]
+        - ["note", "Kéo xuống: 4 câu hỏi · Xem chi tiết"]
+      hi: 1
+      text: "Ngay dưới là <b>📘 Quảng cáo Facebook đang chạy</b>. Số quan trọng nhất: <b>⭐ giá 1 SĐT</b> (tốt: dưới 300k). Phần chi tiết thu gọn, bấm tiêu đề mới mở."
+mk-fb:
+  title: Xem và sửa quảng cáo Facebook mỗi ngày
+  steps:
+    - title: Marketing
+      els:
+        - ["h", "📘 Quảng cáo Facebook đang chạy"]
+        - ["chips", ["🔴 Cần xử lý", "🟢 Nên tăng", "🟠 Giữ"], 0]
+        - ["card", "SỮA-7-10 · 🔴 Nên giảm / tắt", "1 tin 7 ngày đắt hơn mức tốt 40%", "r"]
+        - ["card", "DILVANG-11 · 🟢 Nên tăng tiền", "Rẻ hơn mức tốt 20%", "g"]
+      hi: 1
+      text: "Bấm <b>🔴 Cần xử lý</b> để lọc. Mỗi chiến dịch có sẵn dòng <b>👉 việc nên làm</b>: đọc là làm theo."
+    - title: Chiến dịch SỮA-7-10
+      els:
+        - ["card", "👉 Giảm 30%: 600k → 420k / ngày", "Lời khuyên của máy", "y"]
+        - ["btn", "👉 Làm ngay", "g"]
+        - ["btn2", "💰 Sửa ngân sách", "⏸ Tắt", ""]
+        - ["btn", "🔍 Xem như khách thấy", ""]
+      hi: 1
+      text: "Đồng ý với lời khuyên thì bấm <b>👉 Làm ngay</b>. Muốn số khác thì <b>💰 Sửa ngân sách</b>. Muốn dừng thì <b>⏸ Tắt</b>."
+    - title: Hỏi lại
+      els:
+        - ["h", "Giảm ngân sách SỮA-7-10?"]
+        - ["card", "600.000đ → 420.000đ / ngày", "Mỗi lần chỉ đổi khoảng 20–30%", ""]
+        - ["btn2", "Huỷ", "Đồng ý", "g"]
+        - ["note", "Máy ghi vào Nhật ký: ai sửa, lúc nào"]
+      hi: 2
+      text: "Máy luôn <b>hỏi lại</b> trước khi sửa. Bấm <b>Đồng ý</b>. Đổi xong chờ <b>2–3 ngày</b> rồi mới đổi tiếp (đổi mạnh Facebook phải học lại, giá tăng)."
+mk-mt:
+  title: Đặt mục tiêu tháng
+  steps:
+    - title: Marketing
+      els:
+        - ["h", "🎯 Mục tiêu & ngân sách tháng"]
+        - ["card", "🧮 Cần 120 khách mới · 900 số data", "≈ 30 số mỗi ngày (tính từ mục tiêu sale)", "g"]
+        - ["btn", "🎯 Đặt mục tiêu của tôi", ""]
+      hi: 2
+      text: "Đầu tháng, kéo xuống mục <b>🎯 Mục tiêu & ngân sách tháng</b>. Đọc khung <b>🧮</b>: cần bao nhiêu khách mới, bao nhiêu số. Bấm <b>🎯 Đặt mục tiêu của tôi</b>."
+    - title: Đặt mục tiêu
+      els:
+        - ["in", "📘 Facebook · tiền khách mới", "180.000.000"]
+        - ["btn", "Dùng số gợi ý", ""]
+        - ["in", "Chi phí tối đa (%)", "30"]
+        - ["note", "Kênh người khác có 🔒, chỉ xem"]
+      hi: 1
+      text: "Bấm <b>Dùng số gợi ý</b> để lấy số CRM tính sẵn (vẫn sửa được). Nhập <b>chi phí tối đa (%)</b>: bỏ ra 100đ quảng cáo thì tối đa bao nhiêu đ."
+    - title: Đặt mục tiêu
+      els:
+        - ["btn", "Lưu", "g"]
+        - ["card", "🏁 Thi đua theo % mục tiêu", "Vượt mức chi phí thì không đứng hạng 1", ""]
+      hi: 0
+      text: "Bấm <b>Lưu</b>. Từ giờ CRM tự báo tiến độ mỗi ngày, cả trong tin Telegram 8h sáng."
+mk-cp:
+  title: Nhập chi phí quảng cáo ngoài Facebook
+  steps:
+    - title: Marketing
+      els:
+        - ["h", "📣 Marketing"]
+        - ["btn", "⚙️ Nhập chi phí", ""]
+        - ["note", "Facebook tự cập nhật, không cần nhập"]
+      hi: 1
+      text: "Tab <b>📣 Marketing</b> → bấm <b>⚙️ Nhập chi phí</b>. Facebook đã tự cập nhật mỗi tiếng, chỉ nhập các kênh khác."
+    - title: Nhập chi phí
+      els:
+        - ["chips", ["📄 Nhập file", "✍️ Nhập tay", "📋 Đã nhập"], 1]
+        - ["in", "Kênh", "KOL"]
+        - ["in", "Số tiền", "5.000.000"]
+        - ["in", "Từ ngày · Đến ngày", "01/11 · 10/11"]
+        - ["btn", "Lưu", "g"]
+      hi: 4
+      text: "TikTok, Google: <b>📄 Nhập file</b> (xuất CSV theo ngày). KOL, in ấn, sự kiện, quà: <b>✍️ Nhập tay</b>, máy chia đều theo ngày. Bấm <b>Lưu</b>."
+    - title: Nhập chi phí
+      els:
+        - ["chips", ["📄 Nhập file", "✍️ Nhập tay", "📋 Đã nhập"], 2]
+        - ["card", "KOL chị Hà · 5.000.000đ", "01/11 → 10/11", ""]
+        - ["btn", "🗑 Xoá lần nhập sai", ""]
+      hi: 0
+      text: "Nhập sai thì vào <b>📋 Đã nhập</b> để xoá. Nhập lại file cùng ngày thì số mới tự thay số cũ."
+mk-ud:
+  title: Báo ưu đãi đang chạy cho sale
+  steps:
+    - title: Marketing
+      els:
+        - ["h", "🎁 Ưu đãi / thông điệp đang chạy"]
+        - ["btn", "＋ Thêm", "g"]
+        - ["note", "Sale xem ở đầu tab Khách hỏi"]
+      hi: 1
+      text: "Tab <b>📣 Marketing</b> → mục <b>🎁 Ưu đãi / thông điệp đang chạy</b> → bấm <b>＋ Thêm</b>."
+    - title: Thêm ưu đãi
+      els:
+        - ["in", "Tên ưu đãi", "Mua 2 tặng 1 DILVANG"]
+        - ["in", "Sale cần nói đúng", "Giá 390k, tặng 1 hộp, tới 30/11"]
+        - ["in", "Mẫu tin sale gửi khách", "Chào [Tên], … [Link]"]
+        - ["in", "Hết hạn", "30/11/2026"]
+        - ["btn", "Lưu", "g"]
+      hi: 4
+      text: "Ghi tên, điều sale <b>phải nói đúng</b> (giá, quà, điều kiện), ngày hết hạn. Ô <b>Mẫu tin</b>: viết <b>[Tên]</b>, <b>[Sản phẩm]</b>, <b>[Link]</b> thì máy tự điền cho từng khách. Bấm <b>Lưu</b>."
+    - title: Khách hỏi (sale thấy)
+      els:
+        - ["bar", "🎁 Đang chạy: Mua 2 tặng 1 DILVANG"]
+        - ["btn", "📣 Gửi ưu đãi lần lượt", "g"]
+        - ["note", "Hết hạn thì tự ẩn"]
+      hi: 0
+      text: "Sale thấy ngay ở đầu tab <b>Khách hỏi</b> và gửi tin bằng <b>📣 Gửi ưu đãi lần lượt</b>. Hết hạn thì tự ẩn."
+mk-qr:
+  title: Tạo link và mã QR cho tờ rơi, standee, sự kiện
+  steps:
+    - title: Link & mã QR
+      els:
+        - ["h", "📍 Link & mã QR"]
+        - ["btn", "＋ Tạo link mới", "g"]
+        - ["card", "dt-an-lac · Tờ rơi đối tác An Lạc", "👀 120 quét · 🛒 8 đơn", ""]
+      hi: 1
+      text: "Bấm <b>QR</b> trên menu (hoặc <b>••• Thêm → Link & QR</b>). Bấm <b>＋ Tạo link mới</b>."
+    - title: Tạo link mới
+      els:
+        - ["in", "Mã ngắn (không đổi được)", "dt-an-lac"]
+        - ["in", "Tên", "Tờ rơi đối tác An Lạc"]
+        - ["in", "Loại", "Tờ rơi"]
+        - ["in", "Trang đích", "/san-pham/tra-dilvang/"]
+        - ["btn", "Lưu", "g"]
+      hi: 0
+      text: "<b>Mã ngắn</b> càng ngắn QR càng dễ quét (tạo xong không đổi được). <b>Trang đích</b>: <b>/</b> là trang chủ. Bấm <b>Lưu</b>, link chạy ngay."
+    - title: Link & mã QR
+      els:
+        - ["card", "dt-an-lac · Tờ rơi đối tác An Lạc", "👀 0 quét · mới tạo", "g"]
+        - ["btn2", "⬇ Tải QR", "📋 Link in", "g"]
+        - ["btn2", "📋 Link quảng cáo", "✏️ Sửa", ""]
+        - ["note", "In QR rộng từ 2,5 cm, nền trắng"]
+      hi: 1
+      text: "<b>⬇ Tải QR</b>: PNG để dán Canva / gửi Zalo, SVG gửi nhà in. Đổi trang đích ở <b>✏️ Sửa</b> thì QR đã in tự dẫn sang trang mới."
+mk-utm:
+  title: Tạo link theo dõi khi đăng bài
+  steps:
+    - title: Tạo link UTM
+      els:
+        - ["h", "thucduonglanh.vn/admin/utm"]
+        - ["in", "Link trang muốn dẫn khách tới", "thucduonglanh.vn/san-pham/…"]
+        - ["note", "Mở trên máy tính hoặc điện thoại"]
+      hi: 1
+      text: "Mở <b>thucduonglanh.vn/admin/utm</b>. Dán link trang muốn dẫn khách tới."
+    - title: Tạo link UTM
+      els:
+        - ["in", "Kênh (nguồn)", "Facebook"]
+        - ["in", "Hình thức", "Bài đăng"]
+        - ["in", "Tên chiến dịch (không dấu)", "dilvang-combo"]
+      hi: 2
+      text: "Chọn <b>Kênh</b>, <b>Hình thức</b>. Gõ <b>tên chiến dịch không dấu</b>, ví dụ <b>dilvang-combo</b>."
+    - title: Tạo link UTM
+      els:
+        - ["card", "Link đã có mã theo dõi", "…?utm_source=facebook&utm_…", "g"]
+        - ["btn", "📋 Sao chép link", "g"]
+      hi: 1
+      text: "Bấm <b>📋 Sao chép link</b>, dùng link này khi đăng bài. CRM sẽ biết đơn đến từ bài nào."
+mk-sp:
+  title: Ẩn / hiện sản phẩm trên website
+  steps:
+    - title: Marketing
+      els:
+        - ["h", "4 🌱 Kênh tự có"]
+        - ["card", "🛍 Sản phẩm nào đang hiện trên web?", "Bấm để mở", ""]
+        - ["btn", "🛍 Bật / tắt sản phẩm trên web", "g"]
+      hi: 2
+      text: "Tab <b>📣 Marketing</b> → kéo xuống câu hỏi <b>4 🌱 Kênh tự có</b> → mục <b>🛍</b> → bấm <b>🛍 Bật / tắt sản phẩm trên web</b>."
+    - title: Sản phẩm trên web
+      els:
+        - ["card", "Trà DILVANG", "☑ Hiện trên web · ☑ Hiện ở trang chủ", ""]
+        - ["card", "Set Trọn Năm (Tết)", "☑ Hiện trên web · ☐ Hiện ở trang chủ", "y"]
+        - ["card", "Bột Đậu Xanh Rau Má", "☐ Hiện trên web (hết hàng)", "r"]
+      hi: 1
+      text: "<b>Hiện trên web</b> bỏ tích = sản phẩm biến mất hẳn (hết hàng, ngừng bán). <b>Hiện ở trang chủ</b> bỏ tích = vẫn mở được bằng link (chạy thử quảng cáo, set chưa có ảnh)."
+    - title: Sản phẩm trên web
+      els:
+        - ["note", "Đã lưu ✓"]
+        - ["btn", "🖊 Mở trang quản trị web", ""]
+        - ["note", "Sửa giá, ảnh, chữ: vào trang quản trị"]
+      hi: 1
+      text: "Thấy <b>Đã lưu ✓</b> là xong, 1–2 phút sau web cập nhật. Sửa giá, ảnh, chữ thì bấm <b>🖊 Mở trang quản trị web</b> (không cần nhập mã)."
+mk-san:
+  title: Đưa số Shopee, TikTok Shop lên CRM
+  steps:
+    - title: Shopee · Kênh Người Bán
+      els:
+        - ["h", "Đơn hàng"]
+        - ["chips", ["Tất cả", "Chờ lấy hàng", "Đang giao"], 0]
+        - ["btn", "Xuất · 30 ngày gần nhất", "g"]
+      hi: 2
+      text: "Shopee: <b>Đơn hàng</b> → tab <b>Tất cả</b> (không phải Chờ lấy hàng) → <b>Xuất</b> → <b>30 ngày gần nhất</b> → tải file."
+    - title: Sàn
+      els:
+        - ["h", "🛒 Sàn"]
+        - ["btn", "📤 Tải file từ sàn", "g"]
+        - ["btn", "🔄 Lấy số từ Google Sheet", ""]
+      hi: 1
+      text: "CRM → tab <b>Sàn</b> → <b>📤 Tải file từ sàn</b> → chọn file vừa tải. Tải lại đơn cũ không bị tính trùng."
+    - title: Xem trước
+      els:
+        - ["card", "312 đơn · 48.500.000đ", "30 ngày · Shopee", "g"]
+        - ["btn", "Nhập", "g"]
+        - ["note", "Sau đó tải thêm file tiền về (2 file)"]
+      hi: 1
+      text: "Kiểm tra số đơn, doanh số rồi bấm <b>Nhập</b>. Muốn có <b>tiền thực về</b>: tải thêm file tiền về bằng cùng nút 📤 (sau file đơn hàng)."
