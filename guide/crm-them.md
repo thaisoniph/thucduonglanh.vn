@@ -1,6 +1,8 @@
 ---
 title: CRM thêm cho người bán hàng
 nav: CRM thêm
+group: ban-hang
+short: Mẹo và việc ít dùng hơn
 order: 3
 updated: 2026-11-13
 description: Mẹo và việc ít dùng hơn. Cần việc nào thì bấm vào mục đó ở "Trong trang này".

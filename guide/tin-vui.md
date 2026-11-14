@@ -1,6 +1,8 @@
 ---
 title: Tin vui đồng đội và lời chào mỗi ngày
 nav: Tin vui
+group: chung
+short: Tin vui đồng đội, lời chào mỗi ngày
 order: 1.7
 updated: 2026-11-14
 description: Dòng 📣 Tin vui ở đầu CRM, nút 👏 Chúc mừng, ghi lời khen của khách, lời chào và câu động viên ở tab Hôm nay. Đọc trang này khoảng 2 phút.

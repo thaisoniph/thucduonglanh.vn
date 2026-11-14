@@ -1,6 +1,8 @@
 ---
 title: Chấm bài trước khi đăng
 nav: Chấm bài
+group: marketing
+short: AI chấm bài trước khi đăng
 order: 5.5
 updated: 2026-11-12
 description: Dán bài viết, kịch bản hoặc video các bạn làm vào CRM, AI chấm 100 điểm xem đã thu hút, chạm đúng nỗi lòng khách và dẫn tới đơn chưa, chỉ ra chỗ cần sửa.

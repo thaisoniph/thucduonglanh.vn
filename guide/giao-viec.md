@@ -1,6 +1,8 @@
 ---
 title: Việc tuần · cùng làm
 nav: Việc tuần
+group: chung
+short: Chốt 3 việc tuần, báo xong có minh chứng
 order: 1.7
 updated: 2026-11-15
 description: Mỗi tuần mỗi người chốt tối đa 3 việc trọng tâm, cập nhật tiến độ, chốt kết quả có minh chứng. Thứ Hai họp dùng báo cáo có sẵn. Đọc trang này khoảng 4 phút.

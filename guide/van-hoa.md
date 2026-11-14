@@ -1,6 +1,8 @@
 ---
 title: 10 Quy Tắc Danh Dự Người VitaGreen
 nav: Văn hoá
+group: chung
+short: 10 quy tắc, mỗi ngày 1 việc nhỏ
 order: 1.5
 updated: 2026-11-14
 description: Mỗi ngày CRM nhắc 1 quy tắc kèm 1 việc nhỏ để làm. Đọc trang này khoảng 5 phút.

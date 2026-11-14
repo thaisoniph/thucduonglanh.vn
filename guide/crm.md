@@ -1,6 +1,8 @@
 ---
 title: CRM cho người bán hàng
 nav: CRM
+group: ban-hang
+short: 6 việc mỗi ngày trên CRM (đọc trước)
 order: 2
 updated: 2026-11-13
 description: 6 việc bạn làm mỗi ngày trên CRM. Mỗi việc chỉ vài bước.

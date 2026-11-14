@@ -1,6 +1,8 @@
 ---
 title: Trợ lý Zalo An Lành
 nav: Trợ lý Zalo
+group: marketing
+short: Trợ lý An Lành trong nhóm Zalo
 order: 8
 updated: 2026-11-14
 description: Cài đặt và sử dụng tài khoản Zalo "Trợ lý An Lành" trong nhóm Sống khỏe cùng Thực Dưỡng Lành – chào người mới, trả lời, đăng bài, chuyển ca khó cho người thật.

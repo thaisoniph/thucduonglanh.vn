@@ -1,6 +1,8 @@
 ---
 title: Giao việc cho AI
 nav: Giao việc cho AI
+group: chung
+short: Nhờ AI làm việc đúng ngay lần đầu
 order: 1.8
 updated: 2026-11-14
 description: Nhờ AI (Claude, ChatGPT, Gemini) làm việc thay bạn mà không phải sửa đi sửa lại. 4 cấp giao việc, công thức 3 phần, 5 câu lệnh mẫu đúng việc công ty. Đọc trang này khoảng 5 phút.

@@ -1,6 +1,8 @@
 ---
 title: Mở rộng khách mỗi ngày
 nav: Mở rộng khách
+group: ban-hang
+short: Tự tìm khách, hoa hồng 6%
 order: 2.6
 updated: 2026-11-13
 description: 5 việc, 30 phút mỗi ngày ở tab Hôm nay. Khách bạn tự mang về là khách của bạn, hoa hồng 6% mọi đơn trong 6 tháng, cộng thưởng tiền.

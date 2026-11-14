@@ -3904,6 +3904,23 @@ SEARCH_HERO = """<div class="g-hero">
 </div>"""
 
 
+# 📚 Nhóm hướng dẫn (anh Sơn 14/11/2026: menu cũ 20 mục 1 hàng quá dài): thanh menu chỉ hiện nhóm, trang con nằm ở dòng dưới.
+# Mỗi trang guide/*.md ghi `group:` (khoá dưới đây) và `short:` (1 dòng ngắn cho ô ở trang Bắt đầu). Trang không ghi group → "Mọi người".
+GUIDE_GROUPS = [
+    ("bat-dau", "🏠", "Bắt đầu", "Đọc trước"),
+    ("chung", "👋", "Mọi người", "Ai cũng đọc: văn hoá, thông báo, việc tuần, dùng AI"),
+    ("ban-hang", "📞", "Bán hàng", "Sale, chăm sóc khách"),
+    ("quan-ly", "🧭", "Quản lý", "Quản lý nhóm bán hàng"),
+    ("kho-ke-toan", "📦", "Kho & Kế toán", "Người lo kho, kế toán"),
+    ("marketing", "📣", "Marketing & Web", "Marketing, sàn, fanpage, Zalo, sửa website"),
+]
+
+
+def _guide_grp(meta):
+    g = str(meta.get("group") or "chung")
+    return g if g in {k for k, *_ in GUIDE_GROUPS} else "chung"
+
+
 def _guide_roles_attr(meta):
     """Trang hướng dẫn chỉ dành cho vai trò nào: front matter `roles: [sale, ql, …]` -> data-roles (guide.js ẩn tab / mục / kết quả tìm với người không thuộc vai trò; bỏ trống = mọi người).
     Mã: sale = Sale & CSKH, ql = Quản lý, qt = Quản trị (thấy hết), mkt = Marketing, kho = quyền Kho hoặc phụ trách kho, kt = Kế toán, web = được sửa website, zb = trợ lý Zalo."""
@@ -4003,6 +4020,7 @@ def build_guide(out):
             return f'<p id="{aid}" class="g-q"><strong>{m.group(1)}</strong>'
         body = re.sub(r"<p><strong>(.*?)</strong>", qid, body)
         body_page, body = expand_steps(body, False), expand_steps(body, True)  # trang: có hình; tìm kiếm / trợ lý AI: chỉ chữ các bước
+        body = body.replace("<p>[[nhom]]</p>", "")  # ô nhóm ở trang Bắt đầu chỉ là đường link, không đưa vào tìm kiếm
         if not meta.get("hidden"):
             ai_doc.append(f"## Trang \"{meta.get('nav', '')}\": {meta.get('title', '')} [[{here or 'index'}#]]\n"
                           + (str(meta.get("description", "")) + "\n" if meta.get("description") else "") + ai_text(body, here or "index"))
@@ -4026,9 +4044,38 @@ def build_guide(out):
                     blk = sec[m.end():qs[j + 1].start() if j + 1 < len(qs) else len(sec)]
                     index.append({"p": nav, "u": url, "a": m.group(1), "h": plain(m.group(2)).rstrip(":"), "l": 4,
                                   "s": head, "k": "", "x": plain(blk)[:600]})
-        tabs = "".join(
-            f'<a href="/huong-dan/{p["slug"] + "/" if p["slug"] else ""}"{" class=on aria-current=page" if p["slug"] == here else ""}{_guide_roles_attr(p["meta"])}>'
-            f'{html.escape(p["meta"].get("nav", p["meta"].get("title", "")))}</a>' for p in pages if not p["meta"].get("hidden") or p["slug"] == here)  # trang ẩn (hidden: true): chỉ ai có link mới thấy
+        vis = [p for p in pages if not p["meta"].get("hidden")]
+        here_g = _guide_grp(meta)
+
+        def href(p):
+            return f'/huong-dan/{p["slug"] + "/" if p["slug"] else ""}'
+        tabs = ""
+        for gk, gi, gl, _ in GUIDE_GROUPS:
+            gp = [p for p in vis if _guide_grp(p["meta"]) == gk]
+            if not gp:
+                continue
+            on = gk == here_g
+            tabs += (f'<a href="{href(gp[0])}" data-grp="{gk}"{" class=on aria-current=page" if on else ""}>'
+                     f'<span aria-hidden="true">{gi}</span> {html.escape(gl)}</a>')
+        sub = ""
+        gp = [p for p in vis if _guide_grp(p["meta"]) == here_g]
+        if len(gp) > 1 and here:
+            gl = next(x[2] for x in GUIDE_GROUPS if x[0] == here_g)
+            sub = (f'<nav class="g-sub g-in" aria-label="Các trang trong phần {html.escape(gl)}"><span class="g-sub-l">Trong phần {html.escape(gl)}:</span>'
+                   + "".join(f'<a href="{href(p)}" data-pg="{p["slug"]}"{" class=on aria-current=page" if p["slug"] == here else ""}>'
+                             f'{html.escape(p["meta"].get("nav", p["meta"].get("title", "")))}</a>' for p in gp) + '</nav>')
+        roles_json = html.escape(json.dumps({p["slug"]: ([p["meta"]["roles"]] if isinstance(p["meta"].get("roles"), str) else p["meta"].get("roles") or []) for p in pages}, ensure_ascii=False))
+        grp_json = html.escape(json.dumps({p["slug"]: _guide_grp(p["meta"]) for p in vis}, ensure_ascii=False))
+        if not here:  # trang Bắt đầu: [[nhom]] → mỗi nhóm 1 ô, trong ô là các trang (bấm vào là mở)
+            cards = ""
+            for gk, gi, gl, who in GUIDE_GROUPS:
+                gp = [p for p in vis if _guide_grp(p["meta"]) == gk]
+                if gk == "bat-dau" or not gp:
+                    continue
+                cards += (f'<section class="g-card" data-grp="{gk}"><h3><span aria-hidden="true">{gi}</span> {html.escape(gl)}</h3><p class="g-card-who">{html.escape(who)}</p><ul>'
+                          + "".join(f'<li data-pg="{p["slug"]}"><a href="{href(p)}"><b>{html.escape(p["meta"].get("nav", ""))}</b>'
+                                    f'<span>{html.escape(str(p["meta"].get("short") or ""))}</span></a></li>' for p in gp) + '</ul></section>')
+            body_page = body_page.replace("<p>[[nhom]]</p>", f'<div class="g-cards">{cards}</div>')
         upd = meta.get("updated")
         upd = upd.strftime("%d/%m/%Y") if hasattr(upd, "strftime") else (str(upd) if upd else "")
         title = html.escape(meta.get("title", "Hướng dẫn"))
@@ -4043,7 +4090,7 @@ def build_guide(out):
 <link rel="icon" href="/icon-32.png" sizes="32x32">
 <link rel="stylesheet" href="/huong-dan/guide.css?v={ver}">
 </head>
-<body{' class="g-home"' if not here else ""}{_guide_roles_attr(meta)} data-api="{html.escape(SITE.get('api_endpoint') or '')}">
+<body{' class="g-home"' if not here else ""}{_guide_roles_attr(meta)} data-api="{html.escape(SITE.get('api_endpoint') or '')}" data-pg="{here}" data-roles-map="{roles_json}" data-grp-map="{grp_json}">
 <header class="g-top"><div class="g-in">
 <a class="g-brand" href="/huong-dan/"><img src="/icon-180.png" alt="" width="32" height="32"><span>Hướng dẫn nội bộ</span></a>
 <button type="button" class="g-find" data-find aria-label="Tìm trong hướng dẫn"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M16.5 16.5 21 21" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><span>Tìm</span><kbd>/</kbd></button>
@@ -4051,6 +4098,7 @@ def build_guide(out):
 </div>
 <nav class="g-tabs g-in" aria-label="Các phần hướng dẫn">{tabs}</nav>
 </header>
+{sub}
 <div class="g-wrap g-in">
 <aside class="g-toc"><details open><summary>Trong trang này</summary><ol>{toc}</ol></details></aside>
 <main>

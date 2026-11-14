@@ -1,6 +1,8 @@
 ---
 title: Kịch bản gọi khách theo từng mốc
 nav: Kịch bản gọi
+group: ban-hang
+short: Gọi khách theo mốc thì nói gì
 order: 2.5
 updated: 2026-11-13
 description: Gọi khách sau khi mua thì nói gì, khách trả lời thế nào thì làm gì, khi nào báo quản lý. Có sẵn trong cửa sổ chăm sóc của CRM.

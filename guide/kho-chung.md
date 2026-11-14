@@ -1,6 +1,8 @@
 ---
 title: Luật Kho chung
 nav: Luật Kho chung
+group: ban-hang
+short: Khi nào số về Kho chung, nhận số
 order: 2.65
 updated: 2026-11-14
 description: Khi nào số về Kho chung, số nào không bao giờ về kho, nhận số từ kho thế nào. Thấy luật chưa hợp lý thì góp ý để anh Sơn sửa.

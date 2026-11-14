@@ -1,6 +1,8 @@
 ---
 title: Hướng dẫn sửa website
 nav: Website
+group: marketing
+short: Đăng bài, sửa giá, sửa sản phẩm
 order: 6
 updated: 2026-11-14
 description: Đăng bài, sửa giá, sửa sản phẩm, đăng tin tuyển dụng. Làm trên máy tính.

@@ -1,6 +1,8 @@
 ---
 title: Kho hàng
 nav: Kho
+group: kho-ke-toan
+short: Nhập, xuất, đếm kho, hàng hoàn
 order: 4.5
 updated: 2026-11-13
 description: Xem hàng còn bao nhiêu, nhận tin khi sắp hết, ghi đã đặt hàng, hàng về kho, lấy hàng ra (quà tặng, đại lý), nhận hàng hoàn, đếm kho cuối tuần. Có hình từng bước.

@@ -1,48 +1,20 @@
 ---
 title: Hướng dẫn cho nhân sự Thực Dưỡng Lành
 nav: Bắt đầu
+group: bat-dau
+short: Đọc trước, biết mình cần đọc phần nào
 order: 1
-updated: 2026-10-19
-description: Đọc trang này trước. Mất khoảng 3 phút.
+updated: 2026-11-14
+description: Bấm vào ô đúng việc của bạn. Không cần đọc hết. Cần gì thì gõ vào ô Tìm.
 ---
-
-Chào bạn! Trang này giúp bạn biết **mình cần đọc phần nào**. Bạn không cần đọc hết. Chỉ đọc phần đúng với việc của mình.
 
 ## Bạn làm việc gì?
 
-| Bạn là… | Đọc phần này |
-| --- | --- |
-| **Mọi người** | [Văn hoá](/huong-dan/van-hoa/): 10 Quy Tắc Danh Dự, thẻ 🌿 Quy tắc hôm nay, ☀️ lời chào + lời chúc mỗi ngày |
-| **Mọi người** | [Thông báo](/huong-dan/thong-bao/): thông báo, văn bản công ty ở đầu CRM, bấm ✅ Tôi đã đọc |
-| **Mọi người** | [Tin vui](/huong-dan/tin-vui/): dòng 📣 Tin vui đồng đội, nút 👏 Chúc mừng, lời chào và pháo giấy khi xong việc |
-| **Bán hàng, chăm sóc khách** | [CRM](/huong-dan/crm/) (đọc trước), rồi [CRM thêm](/huong-dan/crm-them/) khi cần |
-| **Quản lý nhóm bán hàng** | [CRM](/huong-dan/crm/), rồi [Quản lý](/huong-dan/quan-ly/) |
-| **Kho** (quyền Kho, hoặc kiêm phụ trách kho) | [Kho hàng](/huong-dan/kho/) |
-| **Kế toán** | [Kế toán](/huong-dan/ke-toan/) |
-| **Marketing, phụ trách sàn** | [Marketing](/huong-dan/marketing/) |
-| **Chăm fanpage Facebook** | [Fanpage](/huong-dan/fanpage/) |
-| **Đăng bài, sửa sản phẩm trên web** | [Website](/huong-dan/website/) |
+Bấm vào tên trang trong ô của bạn. Ô **👋 Mọi người** thì ai cũng nên đọc. Trong mỗi trang có dòng **"Trong phần…"** ở trên cùng để sang các trang cùng nhóm.
+
+[[nhom]]
 
 > **CRM là gì?** Là một trang web giống **cuốn sổ ghi khách hàng**. Mọi khách, mọi đơn hàng đều nằm trong đó. Bạn gọi khách xong thì bấm vào CRM. Máy tự nhớ, tự nhắc bạn hôm nào gọi lại.
-
-## Các địa chỉ cần nhớ
-
-| Để làm gì | Địa chỉ |
-| --- | --- |
-| **CRM** – sale, chăm sóc khách, quản lý | [crm.thucduonglanh.vn](https://crm.thucduonglanh.vn) |
-| **Trang Quản trị** – chủ doanh nghiệp | [quantri.thucduonglanh.vn](https://quantri.thucduonglanh.vn) |
-| **Trang Marketing** | [mkt.thucduonglanh.vn](https://mkt.thucduonglanh.vn) |
-| **Trang Kho** | [kho.thucduonglanh.vn](https://kho.thucduonglanh.vn) |
-| **Trang Kế toán** | [ketoan.thucduonglanh.vn](https://ketoan.thucduonglanh.vn) |
-| **Trang Kinh doanh** – quản lý (như chị Thuỷ) | [kinhdoanh.thucduonglanh.vn](https://kinhdoanh.thucduonglanh.vn) |
-| Website bán hàng | [thucduonglanh.vn](https://thucduonglanh.vn) |
-| Sửa website (đăng bài, sửa sản phẩm) | [thucduonglanh.vn/admin](https://thucduonglanh.vn/admin/) |
-| Trang hướng dẫn này | [crm.thucduonglanh.vn/huong-dan](https://crm.thucduonglanh.vn/huong-dan/) |
-| Hotline / Zalo của công ty | 0966 326 522 |
-
-> Năm địa chỉ trên là **cùng một hệ thống**, chỉ khác tên và màn hình mở đầu. Mỗi người chỉ cần nhớ **địa chỉ của vai trò mình** (email mã đăng nhập cũng ghi sẵn địa chỉ đó). Mở nhầm địa chỉ của vai trò khác thì máy chỉ sang đúng địa chỉ.
-
-> **Mẹo:** đưa CRM ra màn hình điện thoại để mở nhanh như một ứng dụng. Cách làm ở mục [Đăng nhập](/huong-dan/crm/#dang-nhap).
 
 ## Ngày đầu tiên: chuẩn bị (làm 1 lần)
 
@@ -76,7 +48,27 @@ Từng việc được hướng dẫn kỹ ở [phần CRM](/huong-dan/crm/).
 
 ## Cần giúp đỡ?
 
+- Trong CRM, bấm nút **❓** ở góc trên bên phải (cạnh 🔍 và ⚙) là mở trang này.
 - Gõ việc bạn đang vướng vào ô **🔍 Tìm** ở đầu trang hướng dẫn. Không thấy đúng thì bấm **✨ Hỏi trợ lý An Lành**: trợ lý đọc hướng dẫn rồi trả lời ngắn, kèm link tới đúng mục (cần đăng nhập CRM trước).
 - Hỏi quản lý, hoặc nhắn anh Sơn.
-- Hoặc bấm **💡 Góp ý** trong CRM (điện thoại: **••• Thêm → Góp ý**; máy tính: nút trên đầu trang). Gõ vài chữ, gửi kèm ảnh chụp màn hình.
+- Hoặc bấm **💡 Góp ý** trong CRM (**••• Thêm → Góp ý**). Gõ vài chữ, gửi kèm ảnh chụp màn hình.
 - Khi gửi ảnh ra ngoài CRM, nhớ **che tên và số điện thoại khách**.
+
+## Các địa chỉ cần nhớ
+
+| Để làm gì | Địa chỉ |
+| --- | --- |
+| **CRM** – sale, chăm sóc khách, quản lý | [crm.thucduonglanh.vn](https://crm.thucduonglanh.vn) |
+| **Trang Quản trị** – chủ doanh nghiệp | [quantri.thucduonglanh.vn](https://quantri.thucduonglanh.vn) |
+| **Trang Marketing** | [mkt.thucduonglanh.vn](https://mkt.thucduonglanh.vn) |
+| **Trang Kho** | [kho.thucduonglanh.vn](https://kho.thucduonglanh.vn) |
+| **Trang Kế toán** | [ketoan.thucduonglanh.vn](https://ketoan.thucduonglanh.vn) |
+| **Trang Kinh doanh** – quản lý (như chị Thuỷ) | [kinhdoanh.thucduonglanh.vn](https://kinhdoanh.thucduonglanh.vn) |
+| Website bán hàng | [thucduonglanh.vn](https://thucduonglanh.vn) |
+| Sửa website (đăng bài, sửa sản phẩm) | [thucduonglanh.vn/admin](https://thucduonglanh.vn/admin/) |
+| Trang hướng dẫn này | [crm.thucduonglanh.vn/huong-dan](https://crm.thucduonglanh.vn/huong-dan/) |
+| Hotline / Zalo của công ty | 0966 326 522 |
+
+> Các địa chỉ CRM trên là **cùng một hệ thống**, chỉ khác tên và màn hình mở đầu. Mỗi người chỉ cần nhớ **địa chỉ của vai trò mình** (email mã đăng nhập cũng ghi sẵn địa chỉ đó). Mở nhầm địa chỉ của vai trò khác thì máy chỉ sang đúng địa chỉ.
+
+> **Mẹo:** đưa CRM ra màn hình điện thoại để mở nhanh như một ứng dụng. Cách làm ở mục [Đăng nhập](/huong-dan/crm/#dang-nhap).

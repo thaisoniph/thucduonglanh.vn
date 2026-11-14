@@ -607,8 +607,21 @@ collections:
     public_folder: /huong-dan/img
     fields:
       - { label: "Tiêu đề trang", name: title, widget: string }
-      - { label: "Tên trên thanh menu", name: nav, widget: string, hint: "Ngắn, 1–2 chữ. Ví dụ: CRM, Website." }
-      - { label: "Thứ tự trên menu", name: order, widget: number, value_type: int, default: 50 }
+      - { label: "Tên trang (ngắn)", name: nav, widget: string, hint: "Ngắn, 1–2 chữ. Ví dụ: CRM, Website. Hiện ở dòng “Trong phần…” và ô ở trang Bắt đầu." }
+      - label: "Nằm trong nhóm"
+        name: group
+        widget: select
+        default: chung
+        hint: "Thanh menu trên cùng chỉ hiện 6 nhóm này. Trang mới chọn đúng nhóm để nhân sự dễ tìm."
+        options:
+          - { label: "🏠 Bắt đầu (chỉ trang đầu)", value: bat-dau }
+          - { label: "👋 Mọi người", value: chung }
+          - { label: "📞 Bán hàng", value: ban-hang }
+          - { label: "🧭 Quản lý", value: quan-ly }
+          - { label: "📦 Kho & Kế toán", value: kho-ke-toan }
+          - { label: "📣 Marketing & Web", value: marketing }
+      - { label: "Mô tả 1 dòng (ở trang Bắt đầu)", name: short, widget: string, required: false, hint: "Dưới 8 chữ, nói trang này giúp làm gì. Ví dụ: Gọi khách theo mốc thì nói gì." }
+      - { label: "Thứ tự trong nhóm", name: order, widget: number, value_type: int, default: 50 }
       - { label: "Ngày cập nhật", name: updated, widget: datetime, format: "YYYY-MM-DD", time_format: false }
       - { label: "Mô tả ngắn dưới tiêu đề", name: description, widget: string, required: false }
       - { label: "Ẩn khỏi thanh menu", name: hidden, widget: boolean, required: false, default: false, hint: "Bật = trang riêng, chỉ ai có link mới mở được (vd hướng dẫn riêng cho 1 nhân sự)." }

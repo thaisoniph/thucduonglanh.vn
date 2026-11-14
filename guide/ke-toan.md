@@ -1,6 +1,8 @@
 ---
 title: Kế toán
 nav: Kế toán
+group: kho-ke-toan
+short: Đối soát tiền, công nợ, lãi lỗ, KPI
 order: 4.6
 updated: 2026-11-13
 description: Ghi tiền về tài khoản (tải file đối soát COD Best / Viettel Post hoặc tích tay), đối soát Shopee từng đơn, ghi công nợ nhà cung cấp, tự chấm KPI tháng, xem tiền còn treo ở hãng vận chuyển, nhập chi phí, xem lãi lỗ theo ngày / tuần / tháng. Có hình từng bước.

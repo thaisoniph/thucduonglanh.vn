@@ -1,6 +1,8 @@
 ---
 title: CRM cho quản lý
 nav: Quản lý
+group: quan-ly
+short: Giao khách, theo dõi nhân viên, cài đặt
 order: 4
 updated: 2026-11-14
 description: Giao khách, theo dõi nhân viên, cài đặt CRM. Dành cho quyền Quản lý và Quản trị.

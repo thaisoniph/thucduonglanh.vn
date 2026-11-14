@@ -1,6 +1,8 @@
 ---
 title: Hướng dẫn cho Marketing và phụ trách sàn
 nav: Marketing
+group: marketing
+short: Quảng cáo, chi phí, link và mã QR, sàn
 order: 5
 updated: 2026-11-14
 description: Xem hiệu quả quảng cáo, nhập chi phí, tạo link và mã QR, cập nhật số liệu sàn.

@@ -1,6 +1,8 @@
 ---
 title: Thông báo công ty
 nav: Thông báo
+group: chung
+short: Đọc thông báo công ty, bấm Đã đọc
 order: 1.6
 updated: 2026-11-13
 description: Thông báo và văn bản quan trọng của công ty nằm ở đầu CRM. Đọc xong bấm ✅ Tôi đã đọc. Đọc trang này khoảng 3 phút.

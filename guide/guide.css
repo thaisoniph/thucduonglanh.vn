@@ -186,3 +186,24 @@ h2.g-flash, h3.g-flash, p.g-flash { animation: g-flash 1.6s ease-out; border-rad
 .g-txt p { margin: 0; font-size: 15px; line-height: 1.45; }
 .g-num { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: #24805B; color: #fff; font-weight: 700; margin-bottom: 6px; }
 @media (max-width: 520px) { .g-stp { flex-direction: column; align-items: stretch; } .g-art { width: 100%; display: flex; justify-content: center; } .g-art .ph { width: 190px; } .g-txt { display: flex; gap: 10px; align-items: flex-start; } .g-num { flex: none; margin: 0; } }
+
+/* ---------- Menu theo nhóm (14/11/2026): thanh trên chỉ 6 nhóm, trang con ở dòng "Trong phần…", trang Bắt đầu có ô từng nhóm */
+.g-tabs a span[aria-hidden] { margin-right: 2px; }
+.g-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; padding-top: 14px; }
+.g-sub-l { color: var(--muted); font-size: 14px; font-weight: 600; margin-right: 2px; }
+.g-sub a { font-size: 14px; font-weight: 600; text-decoration: none; padding: 6px 12px; border-radius: 999px; background: var(--card); box-shadow: 0 0 0 1px var(--line) inset; color: var(--ink); white-space: nowrap; }
+.g-sub a:hover { box-shadow: 0 0 0 1px var(--primary) inset; }
+.g-sub a.on { background: var(--primary); color: #fff; box-shadow: none; }
+.g-sub[hidden], .g-sub a[hidden], .g-card[hidden], .g-card li[hidden] { display: none; }
+.g-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; margin: 14px 0 18px; }
+.g-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px 16px 10px; }
+.g-card h3 { margin: 0; font-size: 18px; border: 0; padding: 0; }
+.g-card-who { margin: 2px 0 8px; color: var(--muted); font-size: 14px; }
+.g-card ul { list-style: none; margin: 0; padding: 0; }
+.g-card li { border-top: 1px solid var(--line); }
+.g-card li a { display: block; padding: 9px 22px 9px 0; text-decoration: none; color: var(--ink); position: relative; }
+.g-card li a::after { content: "›"; position: absolute; right: 4px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 20px; }
+.g-card li a b { display: block; color: var(--primary); font-size: 16px; }
+.g-card li a span { display: block; color: var(--muted); font-size: 14px; line-height: 1.35; }
+.g-card li a:hover b { text-decoration: underline; }
+@media (max-width: 699px) { .g-tabs a { padding: 10px 11px 11px; font-size: 14.5px; } }

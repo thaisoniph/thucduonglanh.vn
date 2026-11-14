@@ -1,6 +1,8 @@
 ---
 title: Trợ lý Fanpage Facebook
 nav: Fanpage
+group: marketing
+short: Trợ lý trả lời Facebook, Messenger
 order: 7
 updated: 2026-11-14
 description: Trợ lý An Lành trả lời bình luận, nhắn tin Messenger, tặng quà, mời vào nhóm Zalo và soạn bài đăng cho các fanpage.
