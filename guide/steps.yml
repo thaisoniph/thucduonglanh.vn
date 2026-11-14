@@ -921,3 +921,73 @@ kt-shopee:
         - ["btn2", "✅ Đã hạch toán", "📋 Chép", "g"]
       hi: 3
       text: "Tích đơn đã hạch toán (hoặc <b>Chọn hết</b>), bấm <b>✅ Đã hạch toán</b>. Cần dán sang Excel / Misa thì bấm <b>📋 Chép</b>."
+# ---------- Quản lý (guide/quan-ly.md, 15/11/2026)
+ql-ngay:
+  title: Mỗi sáng của quản lý (5 phút)
+  steps:
+    - title: Hiệu quả
+      els:
+        - ["in", "👤 Người phụ trách", "Tất cả nhân sự"]
+        - ["card", "🎯 Cả nhóm: 62% mục tiêu", "Mỗi ngày cần 18tr ≈ 22 đơn", "g"]
+        - ["h", "👉 Quản lý làm 3 việc này trước"]
+        - ["card", "🔴 12 số quảng cáo chưa ai gọi", "Bấm để giao", "r"]
+        - ["card", "🟠 Lan đang chậm mục tiêu", "Bấm tên để xem", "y"]
+      hi: 3
+      text: "Mở tab <b>Hiệu quả</b>, chọn <b>Tất cả nhân sự</b>. Làm 3 việc ở khung <b>👉 Quản lý làm 3 việc này trước</b>, việc gấp đứng đầu."
+    - title: Hiệu quả
+      els:
+        - ["h", "👥 Tiến độ nhân sự hôm nay"]
+        - ["card", "🟢 Thuỷ · đã gọi 24 / 30", "Đúng tiến độ", "g"]
+        - ["card", "🔴 Lan · đã gọi 5 / 28", "Cần kèm: gọi chậm, chốt thấp", "r"]
+        - ["note", "Bấm tên 1 người để xem chi tiết"]
+      hi: 2
+      text: "Xem <b>👥 Tiến độ nhân sự hôm nay</b>: ai gọi được bao nhiêu, ai đang chậm. Dòng <b>Cần kèm</b> chỉ điểm yếu để nhắc."
+    - title: Hôm nay
+      els:
+        - ["h", "🧺 Kho chung · chờ giao"]
+        - ["card", "Chị Mai · để số nhận ebook", "Khách web: chỉ quản lý giao", ""]
+        - ["in", "Giao cho…", "Thuỷ"]
+      hi: 2
+      text: "Mở tab <b>Hôm nay</b> → <b>🧺 Kho chung</b>: giao khách chưa ai phụ trách (khách để số trên web luôn chờ quản lý). Đơn mới chưa có người bán thì chọn ở ô <b>Giao cho…</b>."
+ql-duyet:
+  title: Duyệt khách sale tự mang về
+  steps:
+    - title: Hôm nay
+      els:
+        - ["h", "🙋 Khách tự mang về chờ quản lý"]
+        - ["card", "Chị Hà · Lan ghi: được giới thiệu", "⚠️ Chưa có ảnh tin nhắn giới thiệu", "y"]
+        - ["btn", "🖼 Xem ảnh", ""]
+      hi: 1
+      text: "Tab <b>Hôm nay</b> → <b>🙋 Khách tự mang về chờ quản lý xem</b>. Đọc cờ ⚠️ vì sao máy chưa tính. Có ảnh thì bấm <b>🖼 Xem ảnh</b>."
+    - title: Gọi xác minh
+      els:
+        - ["card", "📞 Gọi người được giới thiệu", "“Chị biết bên em qua ai ạ?”", ""]
+        - ["note", "So câu trả lời với điều sale ghi"]
+      hi: 0
+      text: "Không có ảnh thì gọi <b>người được giới thiệu</b>: <i>“Chị biết bên em qua ai ạ?”</i>, so với điều sale ghi."
+    - title: Hôm nay
+      els:
+        - ["btn", "✅ Tính hoa hồng", "g"]
+        - ["in", "Lý do không tính (sale nhận được)", "khách nói biết qua quảng cáo"]
+        - ["btn", "⛔ Không tính", ""]
+      hi: 0
+      text: "Đúng thì bấm <b>✅ Tính hoa hồng</b>. Sai thì ghi lý do rồi <b>⛔ Không tính</b>: sale nhận tin kèm lý do."
+ql-nghi:
+  title: Khi có người nghỉ việc
+  steps:
+    - title: Cài đặt · Chia khách
+      els:
+        - ["h", "🔀 Khách mới giao cho ai"]
+        - ["card", "Chuyển toàn bộ khách của A sang B", "", ""]
+        - ["in", "Từ", "Lan"]
+        - ["in", "Sang", "Thuỷ"]
+        - ["btn", "Chuyển", "g"]
+      hi: 1
+      text: "<b>Cài đặt → 🤝 Chia khách</b> → <b>Chuyển toàn bộ khách của A sang B</b>: chọn người nghỉ và người nhận."
+    - title: Cài đặt · Nhân sự
+      els:
+        - ["card", "Lan · Sale & CSKH", "☐ Đang dùng · ☐ Nhận khách mới", "y"]
+        - ["btn", "Lưu nhân sự", "g"]
+        - ["note", "Không cần xoá: bỏ tích là khoá"]
+      hi: 0
+      text: "Quản trị vào <b>Cài đặt → Nhân sự</b>, <b>bỏ tích Đang dùng</b> của người nghỉ (không cần xoá), bấm <b>Lưu nhân sự</b>."

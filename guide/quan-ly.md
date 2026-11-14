@@ -4,12 +4,52 @@ nav: Quản lý
 group: quan-ly
 short: Giao khách, theo dõi nhân viên, cài đặt
 order: 4
-updated: 2026-11-14
+updated: 2026-11-15
 description: Giao khách, theo dõi nhân viên, cài đặt CRM. Dành cho quyền Quản lý và Quản trị.
 roles: [ql]
 ---
 
 Trang này dành cho **Quản lý** và **Quản trị**. Bạn nên biết các việc ở trang [CRM](/huong-dan/crm/) trước.
+
+> **Một câu dễ nhớ:** Mỗi sáng mở **Hiệu quả** → làm **3 việc** quản lý được máy chọn sẵn → giao khách ở **🧺 Kho chung**. Phần còn lại máy tự nhắc qua Telegram.
+
+## Lịch việc của quản lý
+
+**Mỗi sáng (khoảng 5 phút):** [3 bước buổi sáng](#viec-moi-ngay-cua-quan-ly): Hiệu quả → 3 việc trước → giao khách Kho chung, giao đơn mới chưa có người bán.
+
+**Trong ngày, khi Telegram báo:**
+
+- Khách sale tự mang về có cờ ⚠️ → [duyệt Tính / Không tính](#hoa-hong-khach-sale-tu-mang-ve-6-trong-6-thang-thuong-tien-tu-13-11-2026)
+- Sale báo khách ngừng liên hệ → [kiểm tra lại](#khach-sale-bao-ngung-lien-he)
+- Có người đăng ký làm CTV → [gọi làm quen rồi duyệt](#cong-tac-vien-va-doi-tac)
+
+**Mỗi tuần:**
+
+- Thứ Hai: gọi xác minh 2 khách 🙋 / sale máy chọn sẵn ([xem](#hoa-hong-khach-sale-tu-mang-ve-6-trong-6-thang-thuong-tien-tu-13-11-2026)).
+- Xem đơn [⚠️ Kiểm tra loại đơn](#kiem-tra-loai-don) và thẻ 🔴 ở [🤖 Đội nhân sự AI](#doi-nhan-su-ai-14-11-2026).
+
+**Mỗi tháng:**
+
+- Đầu tháng: nhắc sale [tự đặt mục tiêu](#muc-tieu-thang-bang-thi-dua-14-11-2026), duyệt KPI và bảng lương kế toán trình ([trang Kế toán](/huong-dan/ke-toan/#kpi-thang-tu-cham-quan-ly-cham-lai)).
+- [Đối soát vận chuyển](#doi-soat-van-chuyen-best-viettel-post-xe-om) Best, Viettel Post, xe ôm.
+- Trả tiền CTV ở [💰 Đơn & đối soát](#cong-tac-vien-va-doi-tac).
+
+**Khi có người mới / nghỉ việc:** [thêm nhân sự, chuyển khách](#giao-khach-va-chuyen-khach).
+
+## Bạn muốn làm gì?
+
+| Việc | Xem |
+| --- | --- |
+| Biết ai đang chậm, nhóm cần sửa khâu nào | [Đọc màn Hiệu quả](#doc-man-hinh-hieu-qua-cua-ca-nhom) |
+| Mục tiêu tháng, bảng thi đua | [Mục tiêu](#muc-tieu-thang-bang-thi-dua-14-11-2026) |
+| Giao khách, đổi người phụ trách, khách trùng sale | [Giao khách](#giao-khach-va-chuyen-khach) |
+| Luật Kho chung, số tự về kho | [Kho chung](#giao-khach-va-chuyen-khach) · [Luật cho sale](/huong-dan/kho-chung/) |
+| Hoa hồng khách tự mang về, chống lách | [Hoa hồng tự mang về](#hoa-hong-khach-sale-tu-mang-ve-6-trong-6-thang-thuong-tien-tu-13-11-2026) |
+| Cộng tác viên, khách cũ giới thiệu | [CTV](#cong-tac-vien-va-doi-tac) |
+| Tạo mã giảm giá cho khách | [Mã ưu đãi](#ma-uu-dai-dat-hang-web) |
+| Chu kỳ dùng, mẫu tin, nhân sự, file sale | [Cài đặt bán hàng](#cai-dat-ban-hang-va-cham-soc) |
+| Xem trợ lý AI nào đang chạy, lỗi gì | [Đội nhân sự AI](#doi-nhan-su-ai-14-11-2026) |
+| Hỏi số liệu bằng câu nói | [Hỏi số liệu](#hoi-so-lieu-dang-dung-thu) |
 
 ## Mỗi quyền làm được gì?
 
@@ -24,9 +64,13 @@ Khi vào CRM: nhân viên vào thẳng **Hôm nay**, quản lý vào **Hiệu qu
 
 ## Việc mỗi ngày của quản lý
 
+[[steps:ql-ngay]]
+
+**Chi tiết:**
+
 1. Mở tab **Hiệu quả**, chọn **Tất cả nhân sự**.
 2. Xem bảng **👥 Tiến độ nhân sự hôm nay**: mỗi người đã gọi bao nhiêu khách, còn bao nhiêu, việc nào bị trễ.
-3. Làm theo mục **👉 Quản lý nên làm ngay** (tối đa 5 việc). Ví dụ: ai đang chậm mục tiêu, số quảng cáo chưa ai gọi, khách VIP chưa ai gọi, đơn chưa có người bán (bấm **Gán**).
+3. Làm theo khung **👉 Quản lý làm 3 việc này trước** (bấm **＋ việc khác** để xem thêm). Ví dụ: ai đang chậm mục tiêu, số quảng cáo chưa ai gọi, khách VIP chưa ai gọi, đơn chưa có người bán (bấm **Gán**).
 4. Mở tab **Hôm nay**, xem mục **🧺 Kho chung**. Đây là khách chưa ai phụ trách. Giao cho người phù hợp.
 5. Giao **đơn mới**: trên mỗi đơn mới có ô **Giao cho…**, chọn tên nhân viên. Nhân viên chỉ thấy đơn đã giao cho mình.
 
@@ -49,9 +93,68 @@ Sale chỉ thấy mức "giỏi nhất nhóm" dưới dạng % (không thấy t�
 
 Tài khoản Quản trị không nằm trong bảng so sánh nhân sự. Doanh số cả nhóm vẫn tính đủ.
 
+## Mục tiêu tháng & bảng thi đua (14/11/2026)
+
+- Mỗi sale **tự đặt** mục tiêu tháng. Ai chưa đặt thì mỗi lần mở CRM sẽ hiện hộp nhắc 🎯. Quản lý cũng tự đặt mục tiêu của mình.
+- Sale làm ở văn phòng: thấp nhất **100 triệu** hoặc tháng trước +10% (lấy số cao hơn).
+- Cộng tác viên tại nhà: vào **Cài đặt → Nhân sự**, tích ô **🏠 Cộng tác viên tại nhà**. Người đó được gợi ý theo **trung bình 3 tháng gần nhất +10–20%**, không áp mức 100 triệu.
+- Quản lý / Quản trị đặt hộ người khác được phép đặt thấp hơn mức tối thiểu (CRM hỏi lại một lần).
+- **Bảng thi đua đầy đủ** (mọi người, mọi hạng mục, cả số tiền) xem ở tab **Hiệu quả**, ngay trên mục 👥 Từng nhân viên. Tab Hôm nay của quản lý cũng có.
+
+## Giao khách và chuyển khách
+
+**Đổi người phụ trách 1 khách:** mở hồ sơ khách → **⚙️ Sửa thông tin** → ô **Người phụ trách** → **Lưu thay đổi**.
+
+**Cài đặt → 🤝 Chia khách → 🔀 Khách mới giao cho ai:**
+
+- **Khách mới được giao thế nào:**
+    - *Tự chia đều*: lần lượt cho những người đang bật "Nhận khách mới".
+    - *Quản lý giao tay*: khách mới chờ quản lý giao.
+    - *Kho chung*: khách mới nằm ở Kho chung. Ai xác nhận đơn hoặc chăm sóc trước thì được khách.
+- **Khách để lại số trên web** (nhận ebook, xin vào nhóm Zalo, form liên hệ): dù chọn chế độ nào, khách mới chưa từng mua **luôn chờ quản lý giao**. Sale không thấy và không tự nhận được. Giao ở tab **Hôm nay → 🧺 Kho chung**, hoặc tab **Khách hỏi** bấm mục **🧺 Chờ giao** để xem danh sách. Khách đã có người phụ trách từ trước thì vẫn về người đó.
+- **⏳ Số chưa chốt tự về Kho chung** (chỉ chạy ở chế độ *Kho chung*; bật lại 13/11/2026 sau họp sale). Quản trị bật / tắt ở **Cài đặt → Chia khách → ô Bật Kho chung**. Luật đầy đủ cho sale: trang [Luật Kho chung](/huong-dan/kho-chung/).
+    - **3 mốc về kho** (mỗi mốc 1 ô, ghi 0 = tắt; gợi ý 2 / 10 / 30 ngày): ① chưa liên hệ lần nào sau N ngày kể từ lúc giao · ② đã liên hệ nhưng không chăm lại N ngày · ③ giữ tối đa N ngày. "Liên hệ" = sale ghi 💬 Tư vấn / Ghi nhanh / 📣 Gửi ưu đãi trên CRM. Có hẹn gọi lại (tối đa 30 ngày) thì giữ.
+    - **Chỉ áp cho số công ty giao** (file số quảng cáo, web, quản lý giao). Không áp cho khách sale tự tìm, khách cũ giới thiệu, file cũ. Mỗi số về kho tối đa 2 lần.
+    - **Ô thứ hai:** mỗi người nhận từ kho tối đa bao nhiêu số / ngày (mặc định 10, 0 = không giới hạn).
+    - **Khách hỏi quảng cáo "Không mua" quá 75 ngày** mà người giữ chưa gọi lại → tự mở lại và về kho (mỗi lượt tối đa 20 số). Không áp cho số không liên lạc được, khách đã mua, hỏi quá 180 ngày.
+    - **Sale tự trả số** bằng nút **🧺 Trả số này về Kho chung** (bắt buộc ghi lý do).
+    - **Báo tin:** sale được Telegram báo trước 1 ngày; khi số về kho thì báo sale và nhóm; khi có người nhận số, người giữ cũ được báo để ngừng nhắn Zalo khách. Nhật ký ghi dòng **Về kho chung**.
+    - **Đơn web qua link của sale khác:** người giữ đang chăm (chưa chạm mốc ①②, hoặc có hẹn) thì đơn tính cho người giữ; quá mốc thì tính cho sale gửi link.
+- **Ai được nhận khách mới**: bật hoặc tắt cho từng người. Ví dụ tắt khi nghỉ phép.
+- **Chia đều khách chưa ai phụ trách**: dùng 1 lần cho khách cũ.
+- **Chuyển toàn bộ khách của A sang B**: dùng khi có người nghỉ việc.
+
+**Cài đặt → 🤝 Chia khách → 👯 Khách trùng sale:** khách có trong file của 2 sale trở lên. Mỗi khách chỉ để **1 người giữ**.
+
+1. Xem khách có trong file của ai, ai đã bán bao nhiêu.
+2. Chọn người giữ (máy đã gợi ý sẵn). Bấm **Chốt**. Hoặc bấm **Chốt cả … khách theo lựa chọn đang hiện**.
+3. Chốt rồi thì máy không báo trùng nữa. Không cần nhắc các bạn xoá dòng trong file.
+
+- Cột **"Trùng sale"** trong file số quảng cáo và người phụ trách trên CRM luôn khớp nhau. **Sửa ở đâu sau cùng thì lấy theo đó** (khoảng 10 phút sau).
+- Sale kia vẫn lên đơn cho khách đó thì doanh số vẫn tính cho người lên đơn. Chỉ việc chăm sóc là của người giữ.
+- Muốn xem ngay thì bấm **🔄 Quét lại file sale**.
+
+**Cài đặt → 🤝 Chia khách → 🔗 Khách dùng nhiều số:** bấm **Xem khách nghi trùng**. Chọn số chính → **🔗 Gộp vào số đã chọn**. Không phải 1 người thì bấm **Không phải 1 người**.
+
+**Khi có người nghỉ việc:**
+
+[[steps:ql-nghi]]
+
+## Khách sale báo ngừng liên hệ
+
+Sale bấm **🕊️ Khách đã mất / bỏ số** khi khách đã mất hoặc bỏ số. Khách đó không hiện ở danh sách chăm sóc nữa. Để sale không bỏ phí số khách còn gọi được, quản lý kiểm tra lại:
+
+1. Có khách mới bị báo thì bạn nhận **tin Telegram riêng** (cần đã kết nối Telegram). Đầu tab **Hôm nay** cũng có dòng **🕊️ … khách sale báo ngừng liên hệ**. Bấm **Xem danh sách**.
+2. Danh sách nằm ở **Khách đã mua → 🕊️ Ngừng liên hệ**. Đầu danh sách ghi số khách mỗi sale bấm trong tháng. Sale nào bấm nhiều bất thường thì gọi thử vài số.
+3. Mở hồ sơ khách. Bấm **✓ Đúng, giữ ngừng liên hệ**, hoặc **↩️ Trả lại cho sale chăm sóc** (sale nhận tin Telegram báo khách đã được trả lại).
+
 ## Hoa hồng khách sale tự mang về (6% trong 6 tháng + thưởng tiền, từ 13/11/2026)
 
 Để sale chủ động tìm khách và mời khách cũ giới thiệu thay vì chỉ chờ số quảng cáo, công ty trả **6% tiền hàng mọi đơn** (13/11/2026 anh Sơn nâng từ 5% lên 6%, máy tự đổi ở Cài đặt) sale bán cho khách mình **tự mang về** trong **6 tháng** kể từ đơn đầu, cộng **thưởng bậc** theo tiền hàng khách mua trong 60 ngày đầu: đủ 300.000đ → 20.000đ, đủ 700.000đ → tổng 50.000đ, đủ 2.000.000đ → tổng 100.000đ (13/11/2026 anh Sơn duyệt đề xuất của Thủy; đổi ở Hiệu quả → 🌱 → ⚙️ Đổi mức thưởng). Thưởng chỉ ghi khi khách đã chốt (qua 14 ngày không cờ, hoặc quản lý duyệt). 11/11/2026 anh Sơn đổi từ 10% xuống 5% + thưởng sau họp với Thủy, Hiếu: mức 10% chênh nhiều so với % khách cũ (3–5%) nên dễ có chuyện nhờ khách cũ đặt bằng số người nhà.
+
+**Duyệt khách sale tự mang về** (khi khách có cờ ⚠️):
+
+[[steps:ql-duyet]]
 
 **Bằng chứng khách giới thiệu (3 lớp):** (1) sale gửi **ảnh tin nhắn** khách cũ giới thiệu ở hồ sơ khách → máy bỏ cờ, tự chốt sau 14 ngày; (2) **không có ảnh** → khách có cờ ⚠️ *Chưa có ảnh tin nhắn khách giới thiệu*, nằm ở Hôm nay → 🙋 chờ quản lý: gọi hỏi **người được giới thiệu** *"Chị biết bên em qua ai ạ?"* rồi bấm Tính / Không tính; (3) máy tự chặn như dưới. Quản lý bấm **🖼 Xem ảnh** để xem. Ảnh tự xoá sau 120 ngày (dữ liệu cá nhân của khách).
 
@@ -71,61 +174,6 @@ Tài khoản Quản trị không nằm trong bảng so sánh nhân sự. Doanh s
 - **Chỉnh mức**: Cài đặt → 💰 Lương & hoa hồng → 📑 Bảng lương theo bậc → mục **🙋 Khách sale tự mang về** (%, số tháng, áp dụng cho khách mua lần đầu từ ngày). Ghi 0 = tắt.
 
 **Công tắc ẩn / hiện (chỉ Quản trị):** Cài đặt → 🤝 Chia khách → **🔎 Tự tạo khách (tab Hôm nay của sale)**. Từ 13/11/2026 mục này trên tab Hôm nay của sale tên là **🌱 Mở rộng khách** (4 ô to + đếm việc hôm nay / 5, bảng thi đua có hạng **🌱 Công sức mở rộng khách**, báo cáo ngày có lời ghi nhận). Đang ẩn thì sale không thấy mục Hết số quảng cáo, dòng khách tự tạo, ô mục tiêu khách tự tạo, hạng thi đua và không nhận tin Telegram khách tự mang về; máy vẫn tính ngầm. Bật sau khi họp phòng kinh doanh thống nhất.
-
-## Bao nhiêu người vào website (Tổng quan → 🌐 Website thucduonglanh.vn)
-
-Mở tab **Tổng quan**, kéo xuống mục **🌐 Website thucduonglanh.vn** rồi bấm vào để mở. Có 2 nguồn số:
-
-- **Cloudflare** đếm **lượt vào web**: đếm đủ mọi người vì không dùng cookie. Ô **Lượt vào web** và **Tỷ lệ ra đơn** (đơn web ÷ lượt vào) lấy từ đây.
-- **Google Analytics** chỉ đếm khách đã bấm **Đồng ý** ở thông báo cookie, nên ít hơn số thật. Dùng để xem **hành vi**: khách ở lại xem bao lâu, rơi ở bước nào trong phễu mua hàng, vào từ bài đăng nào (link UTM).
-
-Dưới ô Lượt vào web có dòng *Google Analytics chỉ thấy … lượt (≈ …% khách bấm Đồng ý)*: đó là tỷ lệ khách chịu bấm Đồng ý cookie.
-
-**Lần đầu kết nối Cloudflare (Quản trị, làm 1 lần, trên máy tính):** trong mục Website, mở hộp **🔌 Đếm đủ 100% lượt vào web bằng Cloudflare**, làm theo 3 bước ghi sẵn (tạo mã API ở Cloudflare với quyền *Account Analytics: Read*, dán vào ô, bấm **Kết nối**). Mã chỉ lưu trên máy chủ CRM. Muốn bỏ thì bấm **ngắt Cloudflare** ở dòng chú thích đầu mục.
-
-Bấm **Xem thêm** ở cuối mục để xem khách vào từ đâu (Facebook, Google, vào thẳng…), trang nào xem nhiều, điện thoại hay máy tính.
-
-## Doanh số đến từ đâu (Tổng quan → 🧭 Doanh số theo nguồn khách)
-
-Từ 10/11/2026, ngay dưới **🧩 Theo từng mảng** ở tab **Tổng quan** có khối **🧭 Doanh số theo nguồn khách**. Mỗi đơn được xếp vào đúng 1 nguồn: **🤝 Cộng tác viên** → **🎁 Khách cũ giới thiệu** → **🧺 Kho chung** → **🔁 Khách cũ mua lại** → **🙋 Sale tự tìm** → **🌐 Web tự đặt** → **📣 Quảng cáo (khách mới)**.
-
-Dòng đầu cho biết **bao nhiêu % doanh số không cần quảng cáo mới** (tất cả nguồn trừ Quảng cáo) và so với kỳ trước. Mục tiêu **từ 30%**: 🟢 đạt, 🟠 20–30%, 🔴 dưới 20% nghĩa là đang lệ thuộc quảng cáo, tuần nào quảng cáo hỏng là cả phòng thiếu việc. Muốn tăng số này: đặt mục tiêu **khách tự tạo** cho từng sale, nhắc sale làm mục **🔎 Hết số quảng cáo? Tự tạo khách** ở tab Hôm nay, và duyệt thêm CTV.
-
-## Giao khách và chuyển khách
-
-**Đổi người phụ trách 1 khách:** mở hồ sơ khách → **⚙️ Sửa thông tin** → ô **Người phụ trách** → **Lưu thay đổi**.
-
-**Cài đặt → 🤝 Chia khách → 🔀 Khách mới giao cho ai:**
-
-- **Khách mới được giao thế nào:**
-    - *Tự chia đều*: lần lượt cho những người đang bật "Nhận khách mới".
-    - *Quản lý giao tay*: khách mới chờ quản lý giao.
-    - *Kho chung*: khách mới nằm ở Kho chung. Ai xác nhận đơn hoặc chăm sóc trước thì được khách.
-- **Khách để lại số trên web** (nhận ebook, xin vào nhóm Zalo, form liên hệ): dù chọn chế độ nào, khách mới chưa từng mua **luôn chờ quản lý giao**. Sale không thấy và không tự nhận được. Giao ở tab **Hôm nay → 🧺 Kho chung**, hoặc tab **Khách hỏi** bấm mục **🧺 Chờ giao** để xem danh sách. Khách đã có người phụ trách từ trước thì vẫn về người đó.
-- **⏳ Số chưa chốt tự về Kho chung** (từ 09/11/2026, chỉ chạy ở chế độ *Kho chung*): 11/11/2026 tạm tắt, **bật lại 13/11/2026** sau họp sale (cùng mục 🔎 Tự tạo khách). Quản trị bật / tắt ở **Cài đặt → Chia khách → ô Bật Kho chung**. Lúc tắt, sale không thấy mục 🧺 Kho chung và nhãn ⏳, máy không trả số nào về kho; quản lý vẫn giao khách chưa ai phụ trách như cũ. khách hỏi do công ty giao (file số quảng cáo, web, quản lý giao) chưa chốt, không có lịch hẹn (hẹn tối đa 30 ngày, trước 13/11/2026 là 14 ngày) thì tự về Kho chung khi chạm **1 trong 3 mốc** (từ 11/11/2026, mỗi mốc 1 ô, 0 = tắt mốc đó; gợi ý 2 / 10 / 30): **① chưa liên hệ lần nào** sau N ngày kể từ lúc giao · **② đã liên hệ nhưng không chăm lại** N ngày · **③ giữ tối đa** N ngày. Liên hệ = sale ghi 💬 Tư vấn / Ghi nhanh / 📣 Gửi ưu đãi… trên CRM. Khách hỏi đặt đơn web qua link của sale khác: người giữ đang chăm (chưa chạm ① ②, hoặc có hẹn) thì đơn tính cho người giữ; quá mốc thì tính cho sale gửi link, Telegram báo người giữ cũ. Các ô này, cả phòng thấy và ai cũng nhận được. Sale được Telegram báo trước 1 ngày; khi số về kho, Telegram báo sale đó và báo nhóm. Ghi **0** để tắt. Ô thứ hai: mỗi người nhận từ kho tối đa bao nhiêu số 1 ngày (mặc định 10, 0 = không giới hạn). Không áp dụng cho khách sale tự tìm, khách do khách cũ giới thiệu, file cũ; mỗi số về kho tối đa 2 lần. Nhật ký ghi dòng **Về kho chung** (người làm: *Kho chung (tự động)*). Số về kho mang nhãn **↩ từ [tên]** để người nhận đọc lịch sử trước. **Khách hỏi QC "Không mua" về kho (13/11/2026):** quá 75 ngày kể từ lần liên hệ cuối mà người giữ chưa gọi lại (45–75 ngày nằm ở mục 😴 của người giữ) → tự mở lại "Đang tư vấn" và về Kho chung, mỗi lượt tối đa 20 số; không áp cho số không liên lạc được, khách đã mua, sale tự thêm / giới thiệu / file cũ, hỏi quá 180 ngày; Telegram báo người giữ + nhóm, Nhật ký *Về kho chung · Không mua …*. **Từ 13/11/2026 (họp sale):** sale tự trả khách hỏi đang mở về kho bằng nút **🧺 Trả số này về Kho chung** trong khách hỏi (bắt buộc ghi lý do, Nhật ký ghi *Về kho chung · Tự trả: …*); khi có người nhận số từ kho, người giữ cũ nhận Telegram để ngừng nhắn Zalo khách.
-- **Ai được nhận khách mới**: bật hoặc tắt cho từng người. Ví dụ tắt khi nghỉ phép.
-- **Chia đều khách chưa ai phụ trách**: dùng 1 lần cho khách cũ.
-- **Chuyển toàn bộ khách của A sang B**: dùng khi có người nghỉ việc.
-
-**Cài đặt → 🤝 Chia khách → 👯 Khách trùng sale:** khách có trong file của 2 sale trở lên. Mỗi khách chỉ để **1 người giữ**.
-
-1. Xem khách có trong file của ai, ai đã bán bao nhiêu.
-2. Chọn người giữ (máy đã gợi ý sẵn). Bấm **Chốt**. Hoặc bấm **Chốt cả … khách theo lựa chọn đang hiện**.
-3. Chốt rồi thì máy không báo trùng nữa. Không cần nhắc các bạn xoá dòng trong file.
-
-- Cột **"Trùng sale"** trong file số quảng cáo và người phụ trách trên CRM luôn khớp nhau. **Sửa ở đâu sau cùng thì lấy theo đó** (khoảng 10 phút sau).
-- Sale kia vẫn lên đơn cho khách đó thì doanh số vẫn tính cho người lên đơn. Chỉ việc chăm sóc là của người giữ.
-- Muốn xem ngay thì bấm **🔄 Quét lại file sale**.
-
-**Cài đặt → 🤝 Chia khách → 🔗 Khách dùng nhiều số:** bấm **Xem khách nghi trùng**. Chọn số chính → **🔗 Gộp vào số đã chọn**. Không phải 1 người thì bấm **Không phải 1 người**.
-
-## Khách sale báo ngừng liên hệ
-
-Sale bấm **🕊️ Khách đã mất / bỏ số** khi khách đã mất hoặc bỏ số. Khách đó không hiện ở danh sách chăm sóc nữa. Để sale không bỏ phí số khách còn gọi được, quản lý kiểm tra lại:
-
-1. Có khách mới bị báo thì bạn nhận **tin Telegram riêng** (cần đã kết nối Telegram). Đầu tab **Hôm nay** cũng có dòng **🕊️ … khách sale báo ngừng liên hệ**. Bấm **Xem danh sách**.
-2. Danh sách nằm ở **Khách đã mua → 🕊️ Ngừng liên hệ**. Đầu danh sách ghi số khách mỗi sale bấm trong tháng. Sale nào bấm nhiều bất thường thì gọi thử vài số.
-3. Mở hồ sơ khách. Bấm **✓ Đúng, giữ ngừng liên hệ**, hoặc **↩️ Trả lại cho sale chăm sóc** (sale nhận tin Telegram báo khách đã được trả lại).
 
 ## Kiểm tra loại đơn
 
@@ -155,16 +203,6 @@ Mỗi tháng (hoặc mỗi tuần) đối chiếu file của hãng vận chuyể
 CRM khớp đơn theo **mã đơn ghi ở ô Ghi chú của vận đơn** (vd `Phg281026-04`; đơn trước 14/11/2026 có mã tên đầy đủ như `Phuong281026-04`, vẫn khớp được) cộng **số điện thoại**. Sale ghi đúng mã đơn khi tạo vận đơn thì khớp được nhiều nhất.
 
 Sau khi đối soát, ô **↩️ Tỷ lệ hoàn** ở Tổng quan / Hiệu quả tính **tiền ship mất theo phí thật** của hãng. Đơn hoàn chưa đối soát tạm tính theo mức ở Cài đặt → 🚦 Mức đèn Tổng quan (mặc định 60.000đ/đơn). Bấm vào đơn sẽ thấy dòng "📦 Phí trả hãng".
-
-## Cài đặt bán hàng và chăm sóc
-
-- **Chu kỳ dùng sản phẩm**: khách dùng hết 1 hộp trong bao nhiêu ngày. Máy dùng số này để nhắc khách đặt lại. Tên sản phẩm chỉ cần 1 phần (ví dụ "DILVANG").
-- **Mẫu tin nhắn chăm sóc**: viết **[Tên]** và **[Sản phẩm]** để máy tự thay. Cột *Thời điểm* cần có chữ "1 ngày", "hết", "14", "30" hoặc "60" để máy chọn đúng mẫu. Mẫu tặng quà: Thời điểm "Quà tặng", dùng **[Tên]** và **[Link quà]**. **Không hứa chữa bệnh.**
-- **⭐ Nhóm khách**: mức để máy xếp khách **VIP** và **Sắp mất**, số ngày giao hàng cho khách miền Bắc (mặc định 3) và khách ở xa (mặc định 5), số ngày giãn cách giữa 2 lần chào bán (ghi 0 = tắt). Bấm **Lưu nhóm khách**.
-- **Nhân sự được vào CRM** (chỉ Quản trị): **＋ Thêm người**, nhập email, tên, chọn quyền, bấm **Lưu nhân sự**. Người nghỉ việc thì **bỏ tích "Đang dùng"**, không cần xoá. Ô **🌐 Sửa website** để cho người đó sửa website. Ô **📣 Xem Marketing** (có ở Quản lý và Sale) cho người đó xem thêm tab **📣 Marketing**: chi phí quảng cáo, khách mới, hiệu quả từng kênh. Chỉ xem được, không nhập chi phí, không đặt mục tiêu. Quyền **Kho** (từ 09/11/2026) cho người **chỉ lo kho**: chỉ thấy tab **📦 Kho** (hàng về, lấy ra, đếm kho, đặt thêm hàng, nhận hàng hoàn), không thấy khách, đơn, doanh số, không được chia khách mới. Ô **📦 Kiêm phụ trách kho** (ở Sale, Quản lý) cho người vừa làm việc khác vừa lo kho: vào tab **📦 Kho**, nhận tin Telegram khi sản phẩm sắp hết, ghi hàng về / lấy hàng ra / đếm kho, ghi đã đặt hàng. Người phụ trách kho là Sale & CSKH thì nên bỏ tích **Nhận khách mới**. Cách dùng: [Kho hàng](/huong-dan/kho/).
-- **📂 File của sale** (chỉ Quản trị): nối file Google Sheet của sale với CRM. Tích **✍️ Ghi kết quả chăm sóc ngược vào file này** để máy ghi vào file của sale. Sale cần **chia sẻ quyền Chỉnh sửa** file cho tài khoản chạy CRM.
-  - **Doanh số sale lấy theo file.** Sale xoá dòng hoặc đổi mã đơn: đơn từ đầu tháng trước tới nay không còn dòng nào trong file thì CRM **tự xoá** (kể cả đơn đã giao, đã hoàn) và nhắn Telegram cho Quản trị (🧹). Sale sửa số tiền (kể cả về 0 hoặc để trống) thì CRM sửa theo. **Sửa ở đâu cũng được**: sửa đơn trên CRM thì CRM tự sửa dòng đó trong file (khoảng 10 phút), đổi trạng thái cũng vậy. Quản trị xoá đơn trên CRM thì dòng trong file ghi **Huỷ** (không xoá dòng của sale). Đơn tạo trên CRM đã ghi vào file mà sale xoá dòng thì CRM cũng xoá đơn. Tên, địa chỉ, số điện thoại khách cũng sửa được ở cả 2 nơi. File nào chưa tích **✍️ Ghi kết quả chăm sóc ngược vào file này** thì chỉ có chiều file → CRM. Mất hơn 15 đơn cùng lúc (file hỏng, đổi cột) thì CRM chỉ báo, không xoá.
-  - Doanh thu sự kiện chia đều cho các sale: mỗi sale ghi 1 dòng **khách sự kiện** + ngày + số tiền của mình, không cần số điện thoại. CRM tính vào doanh số của sale, không tính là khách mới của quảng cáo nào.
 
 ## Cộng tác viên và đối tác
 
@@ -225,6 +263,16 @@ Mã giảm giá gửi riêng cho **khách cũ, đối tác**. Trên web không q
 - Mã nên khó đoán. Ai gõ sai mã 8 lần sẽ bị khoá 15 phút.
 
 **Mã SONGLANH5 (quà chào mừng, giảm 5%)**: web tự tặng mã này cho khách vừa để số nhận cẩm nang, nhận ebook, nhận quà sau trò chơi / cam kết, hoặc vào nhóm Zalo. Mã tự lưu trên máy khách và tự trừ khi đặt hàng. Mỗi số dùng 1 lần. Đơn từ 300.000đ vẫn được miễn phí ship như bình thường. Muốn dừng tặng thì **⏸ Tắt** mã này trong danh sách mã.
+
+## Cài đặt bán hàng và chăm sóc
+
+- **Chu kỳ dùng sản phẩm**: khách dùng hết 1 hộp trong bao nhiêu ngày. Máy dùng số này để nhắc khách đặt lại. Tên sản phẩm chỉ cần 1 phần (ví dụ "DILVANG").
+- **Mẫu tin nhắn chăm sóc**: viết **[Tên]** và **[Sản phẩm]** để máy tự thay. Cột *Thời điểm* cần có chữ "1 ngày", "hết", "14", "30" hoặc "60" để máy chọn đúng mẫu. Mẫu tặng quà: Thời điểm "Quà tặng", dùng **[Tên]** và **[Link quà]**. **Không hứa chữa bệnh.**
+- **⭐ Nhóm khách**: mức để máy xếp khách **VIP** và **Sắp mất**, số ngày giao hàng cho khách miền Bắc (mặc định 3) và khách ở xa (mặc định 5), số ngày giãn cách giữa 2 lần chào bán (ghi 0 = tắt). Bấm **Lưu nhóm khách**.
+- **Nhân sự được vào CRM** (chỉ Quản trị): **＋ Thêm người**, nhập email, tên, chọn quyền, bấm **Lưu nhân sự**. Người nghỉ việc thì **bỏ tích "Đang dùng"**, không cần xoá. Ô **🌐 Sửa website** để cho người đó sửa website. Ô **📣 Xem Marketing** (có ở Quản lý và Sale) cho người đó xem thêm tab **📣 Marketing**: chi phí quảng cáo, khách mới, hiệu quả từng kênh. Chỉ xem được, không nhập chi phí, không đặt mục tiêu. Quyền **Kho** (từ 09/11/2026) cho người **chỉ lo kho**: chỉ thấy tab **📦 Kho** (hàng về, lấy ra, đếm kho, đặt thêm hàng, nhận hàng hoàn), không thấy khách, đơn, doanh số, không được chia khách mới. Ô **📦 Kiêm phụ trách kho** (ở Sale, Quản lý) cho người vừa làm việc khác vừa lo kho: vào tab **📦 Kho**, nhận tin Telegram khi sản phẩm sắp hết, ghi hàng về / lấy hàng ra / đếm kho, ghi đã đặt hàng. Người phụ trách kho là Sale & CSKH thì nên bỏ tích **Nhận khách mới**. Cách dùng: [Kho hàng](/huong-dan/kho/).
+- **📂 File của sale** (chỉ Quản trị): nối file Google Sheet của sale với CRM. Tích **✍️ Ghi kết quả chăm sóc ngược vào file này** để máy ghi vào file của sale. Sale cần **chia sẻ quyền Chỉnh sửa** file cho tài khoản chạy CRM.
+  - **Doanh số sale lấy theo file.** Sale xoá dòng hoặc đổi mã đơn: đơn từ đầu tháng trước tới nay không còn dòng nào trong file thì CRM **tự xoá** (kể cả đơn đã giao, đã hoàn) và nhắn Telegram cho Quản trị (🧹). Sale sửa số tiền (kể cả về 0 hoặc để trống) thì CRM sửa theo. **Sửa ở đâu cũng được**: sửa đơn trên CRM thì CRM tự sửa dòng đó trong file (khoảng 10 phút), đổi trạng thái cũng vậy. Quản trị xoá đơn trên CRM thì dòng trong file ghi **Huỷ** (không xoá dòng của sale). Đơn tạo trên CRM đã ghi vào file mà sale xoá dòng thì CRM cũng xoá đơn. Tên, địa chỉ, số điện thoại khách cũng sửa được ở cả 2 nơi. File nào chưa tích **✍️ Ghi kết quả chăm sóc ngược vào file này** thì chỉ có chiều file → CRM. Mất hơn 15 đơn cùng lúc (file hỏng, đổi cột) thì CRM chỉ báo, không xoá.
+  - Doanh thu sự kiện chia đều cho các sale: mỗi sale ghi 1 dòng **khách sự kiện** + ngày + số tiền của mình, không cần số điện thoại. CRM tính vào doanh số của sale, không tính là khách mới của quảng cáo nào.
 
 ## 🤖 Đội nhân sự AI (14/11/2026)
 
@@ -294,6 +342,10 @@ Tên menu có thể khác một chút theo bản cập nhật của ChatGPT / Ge
 - Mỗi câu hỏi qua ChatGPT / Gemini vẫn tính vào giới hạn 60 câu / người / ngày, khoảng 2.000đ tiền AI của CRM (ngoài tiền gói ChatGPT / Gemini).
 - **Ngắt kết nối**: mục 🔌 → **Ngắt tất cả**. Tài khoản bị khoá hoặc bỏ quyền thì ChatGPT / Gemini cũng hết hỏi được ngay.
 - Chỉ người dùng được ✨ Hỏi số liệu mới kết nối được (tạm thời anh Sơn, anh Hiếu).
+
+## Góp ý của nhân viên
+
+Nút **💡 Góp ý** có số đỏ khi có góp ý mới (trên điện thoại nằm trong **••• Thêm**, số đỏ hiện cả trên nút Thêm). Mở **💡 Góp ý → Danh sách góp ý** để xem ảnh, đổi trạng thái (*Mới → Đang làm → Đã xong*) và trả lời. Nhân viên nhận trả lời qua Telegram.
 
 ## Tổng quan (chỉ Quản trị)
 
@@ -381,6 +433,25 @@ Chọn thời gian ở hàng nút trên cùng. Kỳ đang chạy so với **cùn
 
 Số website chỉ đếm khách đã bấm "Đồng ý" cookie, nên thấp hơn thực tế. Số đơn và doanh số thì đủ.
 
+## Bao nhiêu người vào website (Tổng quan → 🌐 Website thucduonglanh.vn)
+
+Mở tab **Tổng quan**, kéo xuống mục **🌐 Website thucduonglanh.vn** rồi bấm vào để mở. Có 2 nguồn số:
+
+- **Cloudflare** đếm **lượt vào web**: đếm đủ mọi người vì không dùng cookie. Ô **Lượt vào web** và **Tỷ lệ ra đơn** (đơn web ÷ lượt vào) lấy từ đây.
+- **Google Analytics** chỉ đếm khách đã bấm **Đồng ý** ở thông báo cookie, nên ít hơn số thật. Dùng để xem **hành vi**: khách ở lại xem bao lâu, rơi ở bước nào trong phễu mua hàng, vào từ bài đăng nào (link UTM).
+
+Dưới ô Lượt vào web có dòng *Google Analytics chỉ thấy … lượt (≈ …% khách bấm Đồng ý)*: đó là tỷ lệ khách chịu bấm Đồng ý cookie.
+
+**Lần đầu kết nối Cloudflare (Quản trị, làm 1 lần, trên máy tính):** trong mục Website, mở hộp **🔌 Đếm đủ 100% lượt vào web bằng Cloudflare**, làm theo 3 bước ghi sẵn (tạo mã API ở Cloudflare với quyền *Account Analytics: Read*, dán vào ô, bấm **Kết nối**). Mã chỉ lưu trên máy chủ CRM. Muốn bỏ thì bấm **ngắt Cloudflare** ở dòng chú thích đầu mục.
+
+Bấm **Xem thêm** ở cuối mục để xem khách vào từ đâu (Facebook, Google, vào thẳng…), trang nào xem nhiều, điện thoại hay máy tính.
+
+## Doanh số đến từ đâu (Tổng quan → 🧭 Doanh số theo nguồn khách)
+
+Từ 10/11/2026, ngay dưới **🧩 Theo từng mảng** ở tab **Tổng quan** có khối **🧭 Doanh số theo nguồn khách**. Mỗi đơn được xếp vào đúng 1 nguồn: **🤝 Cộng tác viên** → **🎁 Khách cũ giới thiệu** → **🧺 Kho chung** → **🔁 Khách cũ mua lại** → **🙋 Sale tự tìm** → **🌐 Web tự đặt** → **📣 Quảng cáo (khách mới)**.
+
+Dòng đầu cho biết **bao nhiêu % doanh số không cần quảng cáo mới** (tất cả nguồn trừ Quảng cáo) và so với kỳ trước. Mục tiêu **từ 30%**: 🟢 đạt, 🟠 20–30%, 🔴 dưới 20% nghĩa là đang lệ thuộc quảng cáo, tuần nào quảng cáo hỏng là cả phòng thiếu việc. Muốn tăng số này: đặt mục tiêu **khách tự tạo** cho từng sale, nhắc sale làm mục **🔎 Hết số quảng cáo? Tự tạo khách** ở tab Hôm nay, và duyệt thêm CTV.
+
 ## Theo dõi nhân viên dùng CRM (chỉ Quản trị)
 
 Bấm **••• Thêm** → nhóm **Công cụ** → **📈 Mức dùng CRM** (chỉ Quản trị thấy). Chọn xem 7, 14 hoặc 30 ngày.
@@ -398,10 +469,6 @@ Bấm **••• Thêm** → nhóm **Công cụ** → **📈 Mức dùng CRM** 
 - CRM hỏi lại 2 lần (lần 2 phải gõ chữ **XOA**). **Xoá rồi không lấy lại được.**
 - Khách huỷ đơn thật thì chọn **Huỷ**, **đừng xoá**, để còn số liệu.
 
-## Góp ý của nhân viên
-
-Nút **💡 Góp ý** có số đỏ khi có góp ý mới (trên điện thoại nằm trong **••• Thêm**, số đỏ hiện cả trên nút Thêm). Mở **💡 Góp ý → Danh sách góp ý** để xem ảnh, đổi trạng thái (*Mới → Đang làm → Đã xong*) và trả lời. Nhân viên nhận trả lời qua Telegram.
-
 ## Sửa trang hướng dẫn này
 
 Vào [thucduonglanh.vn/admin](https://thucduonglanh.vn/admin/) → **Hướng dẫn nội bộ**. Bấm vào trang cần sửa, sửa xong bấm **Lưu**. Khoảng 2 phút sau trang được cập nhật.
@@ -414,12 +481,4 @@ Khi viết, nhớ: **câu ngắn, mỗi bước 1 việc, tên nút in đậm đ
 - Câu hỏi hay gặp thì viết thành **1 đoạn bắt đầu bằng câu hỏi in đậm**, ví dụ: **Không nhận được mã đăng nhập?** rồi viết cách làm ngay sau. Ô Tìm tự biến mỗi đoạn như vậy thành 1 kết quả, bấm vào là nhảy thẳng tới đoạn đó.
 - Xem nhân sự đã hỏi trợ lý những gì: **⚙ Cài đặt → ✨ Nhân sự hỏi gì ở trang hướng dẫn → Xem câu đã hỏi**. Bấm **❓ Hướng dẫn chưa có** để lọc các câu trợ lý chưa trả lời được. Đó là những chỗ nên viết thêm vào hướng dẫn.
 - Nhân sự gõ tìm mà không ra đúng chỗ? Gửi anh Sơn câu họ đã gõ để thêm vào danh sách từ khoá.
-
-## Mục tiêu tháng & bảng thi đua (14/11/2026)
-
-- Mỗi sale **tự đặt** mục tiêu tháng. Ai chưa đặt thì mỗi lần mở CRM sẽ hiện hộp nhắc 🎯. Quản lý cũng tự đặt mục tiêu của mình.
-- Sale làm ở văn phòng: thấp nhất **100 triệu** hoặc tháng trước +10% (lấy số cao hơn).
-- Cộng tác viên tại nhà: vào **Cài đặt → Nhân sự**, tích ô **🏠 Cộng tác viên tại nhà**. Người đó được gợi ý theo **trung bình 3 tháng gần nhất +10–20%**, không áp mức 100 triệu.
-- Quản lý / Quản trị đặt hộ người khác được phép đặt thấp hơn mức tối thiểu (CRM hỏi lại một lần).
-- **Bảng thi đua đầy đủ** (mọi người, mọi hạng mục, cả số tiền) xem ở tab **Hiệu quả**, ngay trên mục 👥 Từng nhân viên. Tab Hôm nay của quản lý cũng có.
 
