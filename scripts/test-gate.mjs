@@ -1,6 +1,9 @@
+// 🛡 Thử người gác cổng (api/src/gate.js) với dữ liệu web thật: python3 build.py && node scripts/test-gate.mjs
 import fs from 'node:fs';
-const G = await import((process.argv[2] || new URL('..', import.meta.url).pathname.replace(/\/$/, '')) + '/api/src/gate.js');
-const kb = fs.readFileSync((process.argv[2] || new URL('..', import.meta.url).pathname.replace(/\/$/, '')) + '/dist/chat-kb.txt', 'utf8');
+import { fileURLToPath } from 'node:url';
+const ROOT = process.argv[2] || fileURLToPath(new URL('..', import.meta.url)).replace(/\/$/, '');
+const G = await import('file://' + ROOT + '/api/src/gate.js');
+const kb = fs.readFileSync(ROOT + '/dist/chat-kb.txt', 'utf8');
 const T = [
  ['ĐÚNG', 'Dạ hộp Bữa Ăn Dinh Dưỡng 500g giá 450.000đ ạ, đơn từ 300.000đ là được miễn phí ship nha chị.'],
  ['ĐÚNG', 'Dạ trà DILVANG 155k một hộp, combo 3 hộp 435k ạ. Mình gọi 0966 326 522 nha.'],
