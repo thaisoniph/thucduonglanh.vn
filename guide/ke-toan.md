@@ -327,6 +327,8 @@ Lãi lỗ ở tab này **cùng số** với Tổng quan của anh Sơn.
 3. Mở **🧮 Lãi lỗ sau mọi chi phí** → **✏️ Nhập chi phí tháng …**: gõ từng khoản (thuê văn phòng, lương, điện, nước, tiền ship trả hãng…), bấm Lưu.
 4. Hoặc **📎 Tải file kế toán** (file báo cáo tháng) và **👥 Tải bảng lương**: máy tự đọc các khoản chi phí.
 
+**📊 Báo cáo 3 · 6 · 12 tháng & 🎯 KPI sale** (ngay dưới 🧮): lãi lỗ, doanh số từng tháng, mức cần bán để hoà vốn và KPI sale đề xuất. Số lãi lỗ lấy từ file báo cáo bạn tải lên ở bước 4, nên **mỗi tháng nhớ tải file ngay khi chốt sổ**; tháng nào thiếu file sẽ ghi *chưa có số kế toán*.
+
 5. **Khoản chi chuyển khoản** máy lấy từ sao kê (mục 🏦 Tải sao kê VCB / MB ở trên). **Khoản chi tiền mặt** ghi vào trang **Sổ chi** trong file Google Sheet kế toán: 1 dòng **đúng ngày chi**. Lãi lỗ ngày đó trừ đúng số tiền đó.
 
 ### Khoản chi (sao kê + Sổ chi) tính vào lãi lỗ thế nào

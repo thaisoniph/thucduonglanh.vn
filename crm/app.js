@@ -4872,6 +4872,120 @@
     var R = monthRange(m), nm = {}, t = 0; S.d.orders.forEach(function (o) { if (o.seller && o.time >= R[0] && o.time < R[1]) nm[o.seller] = 1; });
     Object.keys(nm).forEach(function (n) { var p = payOf(n, m); if (p) t += p.total; }); return t;
   }
+  /* ---------- 📊 Báo cáo 3 · 6 · 12 tháng + 🎯 KPI sale để hoà vốn (14/11/2026, anh Sơn sau buổi họp với Ý: "Cải tổ cơ chế lương, tuyển dụng").
+   * Chỉ tính tháng trọn (kết thúc ở tháng trước). Doanh số = đơn CRM đã trừ hoàn / huỷ (có VAT). Lãi lỗ = số kế toán tải lên (opexMonth(m).kt: dt, cogs, cost, profit, groups).
+   * Hoà vốn: chi phí cố định TB ÷ (1 − (giá vốn + chi phí biến đổi) ÷ doanh thu), chi phí biến đổi = nhóm khớp RPM_VAR (quảng cáo, hỗ trợ MKT, sàn, vận chuyển), còn lại là cố định.
+   * Quy đổi sang thang CRM: (hoà vốn − Shopee TB) × (doanh số CRM ÷ doanh thu sale kế toán) − phần không do sale văn phòng bán (web không sale, quản lý, CTV).
+   * KPI 1 sale = max(TB 1 sale ÷ 70% (cách Ý: TB 70tr → KPI 100tr), phần hoà vốn ÷ số sale văn phòng đang làm), làm tròn lên 5 tr. Dưới 70% KPI → 50% lương cứng (đề xuất, chưa áp vào bảng lương Phụ lục 01).
+   * Tuyển thêm: 1 sale mới phải bán tối thiểu lương cứng ÷ (phần còn lại sau giá vốn + chi phí biến đổi, quy về thang CRM − % hoa hồng TB thật) thì không thành gánh nặng. */
+  var RPM_LOW = 0.7, RPM_CUT = 0.5, RPM_VAR = /quảng cáo|hỗ trợ mkt|sàn|vận chuyển|giao hàng|\bship/i, RPM_C = {};
+  function rpmN() { var n = +store('rpm_n'); return n === 3 || n === 12 ? n : 6; }
+  function rpmMonths(n) { var last = shiftMonth(monthOf(Date.now()), -1), a = []; for (var i = n - 1; i >= 0; i--) a.push(shiftMonth(last, -i)); return a; }
+  function rpmOffice(name) { var u = (S.d.users || []).filter(function (z) { return z.name === name; })[0]; return u ? u.role === 'Sale & CSKH' && !u.ctv : true; } // người đã nghỉ (không còn trong Nhân sự) tính là sale văn phòng
+  function rpmRound(v) { return Math.ceil(v / 5e6) * 5e6; }
+  function rpmL() { var v = +store('rpm_L'), T = (S.d.rules.payplan || {}).tiers; return v > 0 ? v : T && T[0] ? T[0][1] + T[0][2] : 6500000; }
+  function rpmData(n) {
+    var ms = rpmMonths(n), O = (S.d.rules && S.d.rules.opex) || {}, ck = n + '|' + S.d.orders.length + '|' + (S.d.orders[0] || {}).time + '|' + Object.keys(O).map(function (k) { return k + (O[k].at || ''); }).join(',');
+    if (RPM_C.k === ck) return RPM_C.v;
+    var idx = {}, rows = ms.map(function (m, i) { idx[m] = i; return { m: m, ds: 0, hh: 0, nd: 0, sale: {}, pay: 0, comm: 0, payRev: 0 }; });
+    var R0 = monthRange(ms[0])[0], R1 = monthRange(ms[ms.length - 1])[1];
+    S.d.orders.forEach(function (o) {
+      if (!o.time || o.time < R0 || o.time >= R1) return; var r = rows[idx[monthOf(o.time)]]; if (!r) return; var t = Number(o.total) || 0;
+      if (isVoid(o.status)) { r.hh += t; return; }
+      r.ds += t; r.nd++; if (o.seller && rpmOffice(o.seller)) r.sale[o.seller] = (r.sale[o.seller] || 0) + t;
+    });
+    var sm = { kN: 0, dt: 0, cogs: 0, vr: 0, fix: 0, pr: 0, sh: 0, sk: 0, ds: 0, other: 0, comm: 0, cRev: 0 }, cells = [];
+    rows.forEach(function (r) {
+      var names = Object.keys(r.sale), office = 0; names.forEach(function (nm) { office += r.sale[nm]; if (r.sale[nm] > 0) cells.push([nm, r.m, r.sale[nm]]); });
+      r.ns = names.filter(function (nm) { return r.sale[nm] > 0; }).length; r.office = office; r.tb = r.ns ? office / r.ns : 0;
+      if (ppOn()) names.forEach(function (nm) { var p = payOf(nm, r.m); if (p) { r.pay += p.total; r.comm += p.comm; r.payRev += p.rev; } });
+      sm.comm += r.comm; sm.cRev += r.payRev;
+      var x = opexMonth(r.m), K = x && x.kt;
+      r.k = K && K.dt > 0 && K.cogs > 0 && K.cost > 0 ? K : null;
+      if (r.k) {
+        var vv = 0; (K.groups || []).forEach(function (g) { if (RPM_VAR.test(g[0])) vv += g[1] || 0; });
+        r.vr = vv; r.fix = K.cost - vv; r.pr = K.profit != null ? K.profit : K.dt - K.cogs - K.cost;
+        sm.kN++; sm.dt += K.dt; sm.cogs += K.cogs; sm.vr += vv; sm.fix += r.fix; sm.pr += r.pr; sm.sh += K.shopee || 0; sm.sk += K.sale || (K.dt - (K.shopee || 0)); sm.ds += r.ds; sm.other += r.ds - office;
+      }
+    });
+    var v = sm.kN ? (sm.cogs + sm.vr) / sm.dt : null, F = sm.kN ? sm.fix / sm.kN : null, be = v !== null && v < 1 ? F / (1 - v) : null, vat = sm.sk > 0 ? sm.ds / sm.sk : 1.08;
+    var beCrm = be !== null ? Math.max(0, be - sm.sh / sm.kN) * vat : null, beSale = beCrm !== null ? Math.max(0, beCrm - sm.other / sm.kN) : null;
+    var staff = (S.d.users || []).filter(function (u) { return u.role === 'Sale & CSKH' && !u.ctv; }).map(function (u) { return u.name; });
+    var tb = cells.length ? cells.reduce(function (a, c) { return a + c[2]; }, 0) / cells.length : 0, nS = staff.length || 1;
+    var kNl = tb ? rpmRound(tb / RPM_LOW) : 0, kHv = beSale !== null ? rpmRound(beSale / nS) : 0, kp = Math.max(kNl, kHv);
+    var cr = sm.cRev > 0 ? sm.comm / sm.cRev : 0.03, mg = v !== null ? (1 - v) / vat - cr : null, L = rpmL();
+    var per = {}; cells.forEach(function (c) { var p = per[c[0]] = per[c[0]] || { name: c[0], tot: 0, n: 0, last: 0, low: 0 }; p.tot += c[2]; p.n++; });
+    staff.forEach(function (nm) { per[nm] = per[nm] || { name: nm, tot: 0, n: 0, last: 0, low: 0 }; });
+    var lastM = rows[rows.length - 1];
+    Object.keys(per).forEach(function (nm) { var p = per[nm]; p.tb = p.n ? p.tot / p.n : 0; p.last = lastM.sale[nm] || 0; p.cur = staff.indexOf(nm) >= 0; rows.forEach(function (r) { if (kp && (r.sale[nm] || 0) > 0 && r.sale[nm] < kp * RPM_LOW) p.low++; }); });
+    var prevDs = 0, t0 = S.d.orders.reduce(function (a, o) { return o.time && o.time < a ? o.time : a; }, Infinity); if (t0 <= monthRange(rpmMonths(n * 2)[0])[0]) rpmMonths(n * 2).slice(0, n).forEach(function (m) { var R = monthRange(m); S.d.orders.forEach(function (o) { if (o.time >= R[0] && o.time < R[1] && !isVoid(o.status)) prevDs += Number(o.total) || 0; }); });
+    var res = { n: n, ms: ms, rows: rows, sm: sm, v: v, F: F, be: be, vat: vat, beCrm: beCrm, beSale: beSale, staff: staff, nS: nS, tb: tb, kNl: kNl, kHv: kHv, kpi: kp, cr: cr, mg: mg, L: L,
+      newMin: mg !== null && mg > 0 ? L / mg : null, per: Object.keys(per).map(function (k) { return per[k]; }).sort(function (a, b) { return b.tb - a.tb; }),
+      ds: rows.reduce(function (a, r) { return a + r.ds; }, 0), prevDs: prevDs, pay: rows.reduce(function (a, r) { return a + r.pay; }, 0), office: rows.reduce(function (a, r) { return a + r.office; }, 0) };
+    RPM_C = { k: ck, v: res }; return res;
+  }
+  function rpmTh(m) { return 'T' + (+m.slice(5, 7)) + (m.slice(5, 7) === '01' ? '/' + m.slice(2, 4) : ''); }
+  /** Cột doanh số từng tháng (đỏ = tiền đơn hoàn / huỷ chồng lên trên). */
+  function rpmBars(D) {
+    var mx = Math.max.apply(null, D.rows.map(function (r) { return r.ds + r.hh; }).concat([1]));
+    return '<div class="rpm-bars' + (D.n > 6 ? ' many' : '') + '" role="img" aria-label="Doanh số từng tháng">' + D.rows.map(function (r) {
+      return '<div class="rpm-b" title="' + esc(monthLabel(r.m) + ': doanh số ' + money(r.ds) + ' (' + r.nd + ' đơn) · hoàn / huỷ ' + money(r.hh)) + '"><b>' + (D.n > 6 ? Math.round(r.ds / 1e6).toLocaleString('vi-VN') : moneyShort(r.ds)) + '</b>' +
+        '<div class="rpm-col"><i class="rpm-hh" style="height:' + (r.hh / mx * 100).toFixed(1) + '%"></i><i class="rpm-ds" style="height:' + (r.ds / mx * 100).toFixed(1) + '%"></i></div><span>' + rpmTh(r.m) + '</span></div>';
+    }).join('') + '</div><p class="rpm-lg">' + (D.n > 6 ? '<span>Số trên cột: triệu đồng</span>' : '') + '<span><i class="rpm-ds"></i>Doanh số giữ được</span><span><i class="rpm-hh"></i>Tiền đơn hoàn / huỷ</span></p>';
+  }
+  /** Thanh lãi / lỗ từng tháng có số kế toán. */
+  function rpmPnlBars(D) {
+    var K = D.rows.filter(function (r) { return r.k; }); if (!K.length) return '<p class="notice small">Chưa có tháng nào có số kế toán trong khoảng này: bấm <b>📎 Tải file kế toán</b> ở mục 🧮 Lãi lỗ.</p>';
+    var mx = Math.max.apply(null, K.map(function (r) { return Math.abs(r.pr); }).concat([1]));
+    return '<div class="rpm-pl">' + D.rows.map(function (r) {
+      if (!r.k) return '<div class="rpm-plr"><span>' + rpmTh(r.m) + '</span><em class="muted small">chưa có số kế toán</em><b></b></div>';
+      return '<div class="rpm-plr" title="' + esc(monthLabel(r.m) + ': doanh thu ' + money(r.k.dt) + ', giá vốn ' + money(r.k.cogs) + ', chi phí ' + money(r.k.cost)) + '"><span>' + rpmTh(r.m) + '</span><i class="' + (r.pr < 0 ? 'bad' : 'ok') + '" style="width:' + Math.max(2, Math.abs(r.pr) / mx * 100).toFixed(1) + '%"></i><b class="' + (r.pr < 0 ? 'bad' : 'ok') + '">' + (r.pr < 0 ? 'Lỗ ' : 'Lãi ') + moneyShort(Math.abs(r.pr)) + '</b></div>';
+    }).join('') + '</div>';
+  }
+  function rpmHtml() {
+    var n = rpmN(), D = rpmData(n), sm = D.sm, pct = function (x) { return Math.round(x * 100) + '%'; };
+    var chips = '<div class="per-q rpm-chips" role="group" aria-label="Khoảng thời gian">' + [[3, '3 tháng (1 quý)'], [6, '6 tháng'], [12, '12 tháng']].map(function (c) { return '<button class="chip' + (c[0] === n ? ' on' : '') + '" data-dash="rpmn" data-n="' + c[0] + '">' + c[1] + '</button>'; }).join('') + '</div>';
+    var from = monthLabel(D.ms[0]).replace(/^t/, 'T'), to = monthLabel(D.ms[D.ms.length - 1]);
+    var dP = D.prevDs ? Math.round((D.ds - D.prevDs) * 100 / D.prevDs) : null;
+    var h = chips + '<p class="small muted" style="margin:6px 0 10px">' + from + ' → ' + to + ' (chỉ tính tháng trọn, tháng này chưa hết nên chưa tính). Xem theo ngày, tuần, tháng: chọn ở đầu trang Tổng quan.</p>';
+    h += '<div class="kpis">' + kpi('💰 Doanh số TB / tháng', moneyShort(D.ds / n), '', '', 'đơn CRM đã trừ hoàn / huỷ' + (dP !== null ? ' · ' + (dP >= 0 ? '▲ ' : '▼ ') + Math.abs(dP) + '% so với ' + n + ' tháng trước đó' : '')) +
+      (sm.kN ? kpi(sm.pr < 0 ? '🔴 Lỗ TB / tháng' : '🟢 Lãi TB / tháng', moneyShort(Math.abs(sm.pr / sm.kN)), sm.pr < 0 ? 'bad' : 'good', '', sm.kN + ' tháng có số kế toán · cộng lại ' + (sm.pr < 0 ? 'lỗ ' : 'lãi ') + moneyShort(Math.abs(sm.pr))) : kpi('🧮 Lãi lỗ', '–', '', '', 'chưa có số kế toán')) +
+      (D.beCrm !== null ? kpi('⚖️ Cần bán để hoà vốn / tháng', moneyShort(D.beCrm), '', '', 'quy về doanh số CRM (có VAT), không gồm Shopee') : '') +
+      kpi('👤 TB 1 sale / tháng', moneyShort(D.tb), '', '', 'sale văn phòng, chỉ tính tháng có bán') + '</div>';
+    h += '<h3 class="rpm-h">Doanh số từng tháng</h3>' + rpmBars(D);
+    h += '<h3 class="rpm-h">Lãi / lỗ từng tháng <small>(số kế toán, sau giá vốn và mọi chi phí)</small></h3>' + rpmPnlBars(D);
+    if (D.v !== null) h += '<div class="box rpm-why"><p><b>Vì sao lãi / lỗ:</b> cứ 100đ doanh thu thì giá vốn ' + pct(sm.cogs / sm.dt) + ', quảng cáo + ship + phí sàn ' + pct(sm.vr / sm.dt) + ', còn lại <b>' + pct(1 - D.v) + '</b> để trả lương, thuê nhà, điện… (chi phí cố định TB <b>' + moneyShort(D.F) + '</b> / tháng, bán ít hay nhiều cũng phải trả).</p>' +
+      '<p>Nên mỗi tháng cần doanh thu kế toán khoảng <b>' + moneyShort(D.be) + '</b> (≈ <b>' + moneyShort(D.beCrm) + '</b> doanh số CRM) mới hoà vốn; ' + n + ' tháng qua TB đạt ' + moneyShort(D.ds / n) + '.' +
+      (1 - D.v < 0.35 ? ' Giảm quảng cáo hoặc giá vốn 5đ / 100đ là mức hoà vốn giảm khoảng ' + moneyShort(D.be - D.F / (1 - D.v + 0.05)) + '.' : '') + '</p></div>';
+    // bảng từng tháng
+    h += '<h3 class="rpm-h">Bảng từng tháng</h3><div class="bcdt-wrap pnl-wrap"><table class="pnl-t"><thead><tr><th>Tháng</th><th>Doanh số CRM</th><th>Hoàn / huỷ</th><th>Số sale bán</th><th>TB 1 sale</th>' + (ppOn() ? '<th>Lương + HH sale (tạm tính)</th><th>Chi sale / 100đ bán</th>' : '') + '<th>Doanh thu kế toán</th><th>Lãi / lỗ</th><th>Tiền NH cuối tháng</th></tr></thead><tbody>' +
+      D.rows.map(function (r) { var k = r.k; return '<tr><td>' + rpmTh(r.m) + '</td><td>' + moneyShort(r.ds) + '</td><td>' + moneyShort(r.hh) + '</td><td>' + r.ns + '</td><td>' + moneyShort(r.tb) + '</td>' + (ppOn() ? '<td>' + moneyShort(r.pay) + '</td><td>' + (r.office ? Math.round(r.pay * 100 / r.office) + 'đ' : '–') + '</td>' : '') +
+        '<td>' + (k ? moneyShort(k.dt) : '<span class="muted">chưa có</span>') + '</td><td class="' + (k && r.pr < 0 ? 'bad' : '') + '">' + (k ? (r.pr < 0 ? '−' : '') + moneyShort(Math.abs(r.pr)) : '–') + '</td><td>' + (k && k.cash != null ? moneyShort(k.cash) : '–') + '</td></tr>'; }).join('') + '</tbody></table></div>';
+    h += '<p class="small muted">"Lương + HH sale" do CRM tạm tính theo Phụ lục 01 (sale dưới bậc đầu tính 0 vì hỗ trợ theo năng lực), số chốt lương do kế toán. Tháng chưa có số kế toán: bấm 📎 Tải file kế toán ở mục 🧮 Lãi lỗ.</p>';
+    return h + rpmKpiHtml(D);
+  }
+  /** 🎯 KPI 1 sale để công ty hoà vốn + quy tắc 70% / 50% lương cứng + tuyển thêm sale có lời không. */
+  function rpmKpiHtml(D) {
+    if (!D.tb) return '';
+    var low = D.kpi * RPM_LOW, pickNl = D.kNl >= D.kHv, L = D.L;
+    var h = '<h3 class="rpm-h">🎯 KPI 1 sale cần đạt <small>(đề xuất từ số liệu, chưa áp vào bảng lương)</small></h3><div class="box rpm-kpi">' +
+      '<div class="kpis">' + kpi('Theo năng lực thật', moneyShort(D.kNl), pickNl ? 'good' : '', '', 'TB 1 sale ' + moneyShort(D.tb) + ' ÷ 70% (cách chị Ý: TB 70tr → KPI 100tr)') +
+      (D.beSale !== null ? kpi('Để công ty hoà vốn', moneyShort(D.kHv), pickNl ? '' : 'good', '', 'phần sale văn phòng cần bán ' + moneyShort(D.beSale) + ' ÷ ' + D.nS + ' sale đang làm') : '') +
+      kpi('👉 KPI đề xuất', moneyShort(D.kpi), 'good', '', 'lấy mức cao hơn, làm tròn lên 5 tr') + kpi('Mức 70% KPI', moneyShort(low), '', '', 'dưới mức này: lương cứng còn 50%, hoa hồng giữ nguyên') + '</div>' +
+      '<p class="small">' + (pickNl ? 'Đặt KPI cao hơn mức trung bình một chút để ai cũng phải cố, người làm bằng mức trung bình hiện nay mới đạt 70%.' : '⚠️ Mức để hoà vốn cao hơn năng lực trung bình hiện nay: với số sale này, dù ai cũng đạt mức trung bình công ty vẫn lỗ. Cần nâng doanh số mỗi người, giảm chi phí quảng cáo / giá vốn, hoặc bớt chi phí cố định.') + '</p>';
+    h += '<div class="bcdt-wrap pnl-wrap"><table class="pnl-t"><thead><tr><th>Sale</th><th>TB / tháng (' + D.n + ' tháng)</th><th>Tháng gần nhất</th><th>% KPI tháng gần nhất</th><th>Lương cứng nếu áp dụng</th><th>Số tháng dưới 70%</th></tr></thead><tbody>' +
+      D.per.map(function (p) { var pc = D.kpi ? p.last / D.kpi : 0, ok = pc >= RPM_LOW; return '<tr><td>' + esc(p.name) + (p.cur ? '' : ' <small>(đã nghỉ)</small>') + '</td><td>' + moneyShort(p.tb) + '</td><td>' + moneyShort(p.last) + '</td><td class="' + (ok ? '' : 'bad') + '">' + Math.round(pc * 100) + '%</td><td class="' + (ok ? '' : 'bad') + '">' + (p.cur ? ok ? '100%' : '50%' : '–') + '</td><td>' + p.low + ' / ' + p.n + '</td></tr>'; }).join('') + '</tbody></table></div>';
+    h += '<h3 class="rpm-h">➕ Tuyển thêm 1 sale có lời không?</h3>' +
+      '<label class="f rpm-l"><span>Lương cứng + bảo hiểm 1 sale mới (đ / tháng)</span><input type="text" inputmode="numeric" id="rpmL" value="' + esc(L.toLocaleString('vi-VN')) + '"></label>';
+    if (D.mg === null) h += '<p class="notice small">Cần ít nhất 1 tháng có số kế toán để tính.</p>';
+    else if (D.mg <= 0) h += '<p class="notice">🔴 Hiện mỗi đơn bán ra, sau giá vốn, quảng cáo, ship và hoa hồng <b>không còn đồng nào</b> để trả lương: tuyển thêm người chỉ lỗ thêm. Cần giảm quảng cáo / giá vốn trước.</p>';
+    else h += '<ul class="rpm-ul"><li>Mỗi 100đ sale bán (giá CRM), sau giá vốn, quảng cáo, ship, phí sàn và hoa hồng TB ' + String(Math.round(D.cr * 1000) / 10).replace('.', ',') + '%, công ty còn <b>' + Math.round(D.mg * 100) + 'đ</b>.</li>' +
+      '<li>Sale mới phải bán tối thiểu <b>' + moneyShort(D.newMin) + ' / tháng</b> mới đủ trả lương cứng của chính mình (chưa tính chỗ ngồi, máy, đào tạo).</li>' +
+      '<li>Nếu sale mới đạt ' + moneyShort(low) + ' (70% KPI): công ty ' + (low * D.mg - L >= 0 ? 'lãi thêm ' : 'lỗ ') + '<b>' + moneyShort(Math.abs(low * D.mg - L)) + '</b> / tháng. Đạt đủ KPI ' + moneyShort(D.kpi) + ': ' + (D.kpi * D.mg - L >= 0 ? 'lãi thêm ' : 'lỗ ') + '<b>' + moneyShort(Math.abs(D.kpi * D.mg - L)) + '</b>.</li>' +
+      '<li>Không đạt 70% thì lương cứng còn 50% (' + moneyShort(L * RPM_CUT) + '): mức lỗ xấu nhất mỗi người không đạt ≈ <b>' + moneyShort(L * RPM_CUT) + '</b> / tháng, tính trước được.</li></ul>';
+    return h + '<p class="small muted">Số tự cập nhật khi có đơn mới và khi kế toán tải file tháng mới. Doanh số CRM có VAT nên cao hơn số kế toán khoảng ' + Math.round((D.vat - 1) * 100) + '%; máy đã quy đổi. Lương + BHXH trong số kế toán là của cả công ty.</p></div>';
+  }
+  function rpmLine() { var D = rpmData(rpmN()), sm = D.sm; return D.n + ' tháng: TB ' + moneyShort(D.ds / D.n) + ' / tháng' + (sm.kN ? ' · ' + (sm.pr < 0 ? 'lỗ' : 'lãi') + ' TB ' + moneyShort(Math.abs(sm.pr / sm.kN)) : '') + (D.kpi ? ' · KPI đề xuất ' + moneyShort(D.kpi) + ' / sale' : ''); }
   function dashPnl(T, b, bp, M, sj, R, P, month) {
     var ML = monthLabel(month), btn = '<button class="btn sm pri" data-dash="opex" data-m="' + month + '">✏️ Nhập chi phí ' + ML + '</button><button class="btn sm" data-dash="kt">📎 Tải file kế toán</button><button class="btn sm" data-dash="pay">👥 Tải bảng lương</button>';
     if (!costCfg()) return { line: '⚠️ Chưa nhập giá vốn', body: '<div class="box"><p class="notice" style="margin:0">Cần giá vốn sản phẩm để tính lãi: vào <b>Cài đặt → 💰 Giá vốn sản phẩm</b>.</p></div>' };
@@ -5511,6 +5625,7 @@
     h += dashHero(T, b, bp, M, gl, month, sj, f.p);
     h += '<div class="section-h dash-more-h"><h2>🔎 Xem chi tiết từng phần</h2><span class="tip">bấm vào từng mục để mở / đóng</span></div>';
     if (lvl() >= 3) { var PL = dashPnl(T, b, bp, M, sj, R, P, month); h += dashMore('pnl', '🧮 Lãi lỗ sau mọi chi phí', PL.line, PL.body); }
+    if (lvl() >= 3) h += dashMore('rpm', '📊 Báo cáo 3 · 6 · 12 tháng & 🎯 KPI sale', rpmLine(), rpmHtml());
     if (lvl() >= 3) { var CO = dashCost(); if (CO) h += dashMore('cost', '📊 Chi phí lớn & cách tối ưu', CO.line, CO.body); }
     // ---- bán hàng văn phòng (đường nhỏ: bizStats từng ngày / tuần / tháng)
     var DB = T.tr.B, BZ = trendEachMemo('biz', DB, bizStats), sk = function (v, bad) { return v ? sparkSvg(v, DB.partial, bad) : ''; };
@@ -6120,6 +6235,7 @@
     kptLoad(); h += kptHTML();
     h += '<section class="ktv-sec"><h2 class="ktv-h">📊 Lãi lỗ <small>cùng số với Tổng quan của Quản trị</small></h2>' + dashDaily(R, b, M, sj, f.p, month);
     var PL = dashPnl(T, b, bp, M, sj, R, P, month); h += dashMore('pnl', '🧮 Lãi lỗ sau mọi chi phí', PL.line, PL.body);
+    h += dashMore('rpm', '📊 Báo cáo 3 · 6 · 12 tháng & 🎯 KPI sale', rpmLine(), rpmHtml());
     var CO = dashCost(); if (CO) h += dashMore('cost', '📊 Chi phí lớn & cách tối ưu', CO.line, CO.body);
     h += '</section><section class="ktv-sec"><h2 class="ktv-h">🏦 Tiền & công nợ</h2>' + dashFin() + '</section>';
     ktkLoad(); h += '<section class="ktv-sec"><h2 class="ktv-h">📦 Hàng tồn kho <small>tính bằng tiền</small></h2>' + ktkHTML() + '</section>';
@@ -10780,11 +10896,13 @@
     return w;
   }
   function bindDash() {
+    var rl = $('#rpmL'); if (rl) rl.onchange = function () { var v = +String(rl.value).replace(/[^\d]/g, ''); store('rpm_L', v > 0 ? String(v) : null); RPM_C = {}; render(); };
     $$('[data-dash]').forEach(function (el) {
       el.onclick = function () {
         var a = el.getAttribute('data-dash'), f = S.f.g, key = gaKey(perRange(f.p), cmpRange(f.p));
         if (a === 'mkt') { openMkt(); return; }
         if (a === 'opex') { opexEdit(el.getAttribute('data-m')); return; }
+        if (a === 'rpmn') { store('rpm_n', el.getAttribute('data-n')); S.f.g.open.rpm = 1; render(); return; }
         if (a === 'kt') { ktUpload(); return; }
         if (a === 'pay') { payUpload(); return; }
         if (a === 'finlink') { finLinkEdit(); return; }
