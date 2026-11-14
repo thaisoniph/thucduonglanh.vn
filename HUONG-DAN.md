@@ -577,6 +577,13 @@ Apps Script giới hạn 200 phiên bản/dự án: báo lỗi "Không tạo đ�
 - Bài viết có 2 ô tuỳ chọn `experience` (🌿 Trải nghiệm thật, markdown) + `experience_by` (người kể): khung `.post-exp` đầu bài (sau ảnh bìa). Trợ lý viết bài: chủ đề trong `data/blog-auto.json` có thêm `experience`, `experience_by` → prompt bắt nhắc đúng ý 1 lần, không thêm chi tiết; frontmatter bài ghi luôn 2 ô này. Từ khoá dịch: "Người duyệt nội dung", "cập nhật", "Trải nghiệm thật" (`data/i18n/en.json`).
 - Không đụng repo / thư mục Website DMTS.
 
+### ▶️ Việc 5 – Báo cáo tuần từ YouTube (api `2026-11-14q`)
+- Code `api/src/yt.js`. Khoá YouTube Data API v3: `env.YOUTUBE_API_KEY` (wrangler secret, nếu có) hoặc kv `yt_key` (Quản trị dán ở CRM, máy thử khoá trước khi lưu; CRM chỉ hiện 4 ký tự cuối). Cách tạo khoá: guide/marketing.md mục ▶️ Báo cáo YouTube. **Chưa có khoá (14/11/2026)** → chờ anh Sơn tạo.
+- `ytCfg` (kv `yt_cfg`): `kw` (≤12 từ khoá, mặc định `YT_KW0`), `x` (mặc định 10 = gấp 10 lần), `days` 30.
+- `ytRun`: `search` (type video, regionCode VN, relevanceLanguage vi, publishedAfter 30 ngày, order viewCount, 25 / từ khoá; 100 đơn vị / lần) → `videos` (lượt xem, số bình luận) → `channels` (mức thường = viewCount ÷ videoCount của kênh) → `ratio` = lượt xem ÷ mức thường; chọn `ratio ≥ x` và ≥ 2.000 lượt (ít hơn 3 video thì lấy 6 video ratio cao nhất) → `commentThreads` (100, order relevance): chỉ câu hỏi (dấu ? hoặc từ hỏi) có `totalReplyCount = 0`, tối đa 25 / video, không lưu tên người bình luận → Sonnet 5.5 (mục chi phí `youtube`, ~2 nghìn đồng / lần) trả `insights`, `questions` (≤10), `topics` (≤6: t, g nhóm khách, f tầng phễu, why) → kv `yt_rep`.
+- `ytWeekly` (cron 8h thứ Hai, kv `yt_w_<ngày>`, chạy nền `x.later`): chạy + Telegram Quản trị / Quản lý / Marketing đã nối Telegram. Không có khoá thì im lặng.
+- CRM: thẻ 🗣 Lời khách → khối **▶️ Câu hỏi trên YouTube** (`ytbHtml`, biến `YB`, CSS `.ytb-…`): khoá, từ khoá, ▶️ Chạy ngay (`ins_ytrun`, 3 lần / ngày, CRM chờ 180 giây), ➕ đưa chủ đề vào đầu `bl_kw` (`ins_yt { add }`, dùng `kwClean` của insight.js) → trợ lý bài web lấy trước.
+
 ## 7. Tên miền, DNS, chuyển hướng
 
 - Nameserver: `liberty.ns.cloudflare.com`, `randy.ns.cloudflare.com`. **Mọi thay đổi DNS làm trên Cloudflare**, không làm ở Tenten.

@@ -19,6 +19,7 @@ import { khoTick, khoMorning } from './kho.js';
 import { insWeekly } from './insight.js';
 import { stRemind } from './sotay.js';
 import { vqTick } from './voc.js';
+import { ytWeekly } from './yt.js';
 import { vhLine } from './vanhoa.js';
 import { tbDaily, tbTick } from './thongbao.js';
 
@@ -145,6 +146,7 @@ export async function scheduled(x, cron) {
     if (!await kvGet(x.db, kk)) { await kvSet(x.db, kk, '1', 2 * DAY); try { await khoMorning(x); } catch (e) { console.error('khoMorning', e.message); } }
     const wk = 'insw_' + fmtDate(now, 'yyyyMMdd'); // 📊 thứ Hai: tin content tuần (insight.js insWeekly) cho Quản trị, Quản lý, Marketing
     if (vn.getUTCDay() === 1 && !await kvGet(x.db, wk)) { await kvSet(x.db, wk, '1', 2 * DAY); try { const t = await insWeekly(x); for (const u of await crmUsers(x)) if (u.active && u.tg && (u.level >= 2 || u.role === 'Marketing')) await telegramTo(x.env, u.tg, t); } catch (e) { console.error('insWeekly', e.message); } }
+    x.later(ytWeekly(x).catch(e => console.error('ytWeekly', e.message))); // ▶️ thứ Hai: báo cáo YouTube (yt.js), chạy nền 1–2 phút
     try { await stRemind(x); } catch (e) { console.error('stRemind', e.message); } // 📗 thứ Hai: Sổ tay doanh nghiệp còn mục chưa xác nhận / quá 90 ngày → Telegram Quản trị (sotay.js)
     const mk = 'mktd_' + fmtDate(now, 'yyyyMMdd'); // tin Telegram marketing buổi sáng
     if (!await kvGet(x.db, mk)) { await kvSet(x.db, mk, '1', 2 * DAY); try { for (const m of await mktDailyMsgs(x, await crmUsers(x))) await telegramTo(x.env, m.tg, m.text); } catch (e) { console.error('mktDaily', e.message); } }

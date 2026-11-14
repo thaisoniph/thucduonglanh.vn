@@ -21,6 +21,7 @@ import { crmScore } from './score.js';
 import { stInfo } from './sotay.js';
 import { crmVoc, vqPick, vqBlock } from './voc.js';
 import { crmGate } from './gate.js';
+import { crmYt } from './yt.js';
 
 const WRITER = 'claude-opus-5-5'; // việc cần nghĩ sâu, ít lượt: kịch bản video, big idea
 const LITE = 'claude-sonnet-5-5'; // 13/11/2026: việc đọc / lọc / liệt kê (nhập insight, câu lệnh ảnh, từ khoá) → Sonnet 5.5, rẻ ½
@@ -602,7 +603,7 @@ async function bigWrite(x, d) {
  * 100 từ khoá người Việt thật sự gõ (Google + hỏi AI), mỗi từ gắn 1 nhóm khách + 1 tầng phễu → trợ lý bài web (blog.js) mỗi lần TỰ CHỌN chủ đề thì lấy 1 từ khoá chưa viết,
  * viết hết dần trong vài tháng để Google và các AI gợi ý Thực Dưỡng Lành. kv bl_kw { list: [{ k, g, f, used: yyyy-mm-dd | '' }], at, by } */
 export async function kwBank(x) { const b = await kvJson(x.db, 'bl_kw', null); return b && Array.isArray(b.list) ? b : { list: [] }; }
-function kwClean(list, old) {
+export function kwClean(list, old) {
   const U = {}, seen = {}; (old || []).forEach(v => { if (v.used) U[nrm(v.k)] = v.used; });
   return (Array.isArray(list) ? list : []).map(v => ({ k: cut(String(v.k || '').replace(/^[-•*\d.)\s]+/, ''), 120), g: cut(v.g, 30), f: /^(TOFU|MOFU|BOFU)$/.test(v.f) ? v.f : 'TOFU', used: /^\d{4}-\d\d-\d\d$/.test(v.used || '') ? v.used : '' }))
     .filter(v => v.k && !seen[nrm(v.k)] && (seen[nrm(v.k)] = 1)).slice(0, 150).map(v => Object.assign(v, { used: v.used || U[nrm(v.k)] || '' }));
@@ -677,6 +678,7 @@ export async function crmIns(x, u, d, crmLog) {
     try { return await insImport(x, d); } catch (e) { return { ok: false, error: 'AI chưa đọc được: ' + String(e.message).slice(0, 150) }; }
   }
   if (a === 'ins_gate') return crmGate(x, u, d, crmLog); // 🛡 người gác cổng (gate.js)
+  if (/^ins_yt/.test(a)) return crmYt(x, u, d, crmLog); // ▶️ báo cáo tuần YouTube (yt.js)
   if (/^ins_vq/.test(a)) return crmVoc(x, u, d, crmLog); // 🗣 kho lời khách (voc.js)
   if (/^ins_s(view|core|res|del|tt)$/.test(a)) return crmScore(x, u, d, crmLog); // 🧪 chấm bài trước khi đăng (score.js)
   if (['ins_skill', 'ins_skilldel', 'ins_odel', 'ins_find', 'ins_offer'].includes(a)) return crmInSkill(x, u, d, crmLog); // 🧩 skill trong CRM (inskill.js)

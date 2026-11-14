@@ -348,7 +348,7 @@
     if (!CFG.endpoint) return Promise.reject(new Error('Chưa cấu hình máy chủ.'));
     tries = tries || 0; var t0 = Date.now();
     // chờ tối đa 30 giây (việc nặng của quản trị 90 giây) rồi báo, không để vòng quay mãi (16/10/2026)
-    var ac = typeof AbortController === 'function' ? new AbortController() : null, wait = action === 'ins_score' ? 240e3 : action === 'ai_ask' ? 180e3 : /^(spf_write|ins_(video|import|find|offer|big|img|kw|stt)|zb_(regen|plan_make|plan_redo))$/.test(action) ? 180e3 : API_HEAVY.test(action) ? 90e3 : 30e3, tm = ac && setTimeout(function () { ac.abort(); }, wait);
+    var ac = typeof AbortController === 'function' ? new AbortController() : null, wait = action === 'ins_score' ? 240e3 : action === 'ai_ask' ? 180e3 : /^(spf_write|ins_(video|import|find|offer|big|img|kw|stt|ytrun|vqrun)|zb_(regen|plan_make|plan_redo))$/.test(action) ? 180e3 : API_HEAVY.test(action) ? 90e3 : 30e3, tm = ac && setTimeout(function () { ac.abort(); }, wait);
     return fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), signal: ac ? ac.signal : undefined })
       .then(function (r) { clearTimeout(tm); return r.text().then(function (t) { return { t: t, st: r.status }; }); }, function (er) { clearTimeout(tm); var slow = er && er.name === 'AbortError', e0 = new Error(slow ? 'Máy chủ trả lời chậm quá ' + (wait / 1000) + ' giây. Bạn kiểm tra mạng rồi bấm lại nhé.' : 'Mất kết nối mạng. Bạn thử lại nhé.'); e0.net = true; throw e0; })
       .then(function (x) {
@@ -7715,7 +7715,7 @@
       h += inProdHtml(bank);
       if (ed && j.custom) h += '<div class="lq-btns"><button class="btn ghost" data-in="reset">↩️ Dùng lại bản mặc định</button></div>';
     } else if (tab === 'loi') {
-      h += voqHtml();
+      h += voqHtml() + ytbHtml();
     } else if (tab === 'gac') {
       h += gtkHtml();
     } else if (tab === 'cham') {
@@ -7914,6 +7914,40 @@
         if (done) return;
         try { var hook = v.currentTime <= 3.05, w = v.videoWidth || 480, hh = v.videoHeight || 852, sc = Math.min(1, (hook ? 768 : 480) / Math.max(w, hh)), c = document.createElement('canvas');
           c.width = Math.round(w * sc); c.height = Math.round(hh * sc); c.getContext('2d').drawImage(v, 0, 0, c.width, c.height); out.push(c.toDataURL('image/jpeg', hook ? 0.78 : 0.65)); out.t.push(Math.round(v.currentTime * 10) / 10); if (!out.thumb) { var c2 = document.createElement('canvas'), s2 = 160 / Math.max(w, hh); c2.width = Math.round(w * s2); c2.height = Math.round(hh * s2); c2.getContext('2d').drawImage(v, 0, 0, c2.width, c2.height); out.thumb = c2.toDataURL('image/jpeg', 0.7); } } catch (e) {}
+  /* ---------------------------------------------------------------- ▶️ Báo cáo tuần YouTube (14/11/2026, api yt.js: ins_yt / ins_ytcfg / ins_ytrun) */
+  var YB = { d: null, busy: 0, err: '' };
+  function ytbFetch() {
+    YB.busy = 1; YB.err = '';
+    api('ins_yt', {}).then(function (j) { YB.d = j; }, function (e) { YB.err = /Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message; })
+      .then(function () { YB.busy = 0; if (route().view === 'noi-dung') render(); });
+  }
+  function ytbHtml() {
+    var h = '<h2 class="zb-h" id="ytb">▶️ Câu hỏi trên YouTube chưa ai trả lời</h2>';
+    if (!YB.d) { if (!YB.busy && !YB.err) setTimeout(ytbFetch, 0); return h + '<div class="box"><p class="muted">' + (YB.err ? '⚠️ ' + esc(YB.err) + ' <button class="link" data-ytb="reload">Thử lại</button>' : '⏳ Đang tải…') + '</p></div>'; }
+    var d = YB.d, r = d.rep, c = d.cfg;
+    h += '<div class="box"><p class="small muted" style="margin-top:0">Sáng thứ Hai máy tự tìm video YouTube 30 ngày qua theo từ khoá ngành, chọn video có lượt xem <b>gấp ' + c.x + ' lần trở lên</b> mức thường của kênh đó, đọc bình luận và lấy những câu người xem hỏi mà chưa ai trả lời. AI gom lại thành câu hỏi + gợi ý chủ đề, gửi Telegram. Chi phí AI khoảng 2 nghìn đồng / tuần; YouTube miễn phí.</p>' +
+      (d.key ? '<p class="small">🔑 Khoá YouTube: <b>đã có</b>' + (d.key !== 'env' ? ' (' + esc(d.key) + ')' : '') + '</p>' : '<p class="small">🔑 <b>Chưa có khoá YouTube.</b> Anh Sơn làm theo <a href="/huong-dan/marketing/#bao-cao-youtube" target="_blank" rel="noopener">hướng dẫn tạo khoá (5 phút, miễn phí)</a> rồi dán vào ô dưới. Không gửi khoá qua Zalo hay chat.</p>') +
+      (d.canKey ? '<div class="ytb-key"><input id="ytbK" type="password" autocomplete="off" placeholder="Dán khoá YouTube (AIza…)"><button class="btn sm" data-ytb="key">💾 Lưu khoá</button></div>' : '') +
+      '<details class="small"><summary>🔍 Từ khoá đang quét (' + c.kw.length + ')</summary><p>' + esc(c.kw.join(' · ')) + '</p>' + (d.ed ? '<label class="f"><span>Mỗi dòng 1 từ khoá, tối đa 12 <small class="muted">gõ như khách tìm trên YouTube</small></span><textarea id="ytbW" rows="6">' + esc(c.kw.join('\n')) + '</textarea></label><label class="f"><span>Video vượt mức khi lượt xem gấp mấy lần mức thường của kênh</span><input id="ytbX" type="number" min="3" max="50" value="' + c.x + '"></label><button class="btn sm" data-ytb="cfg">💾 Lưu từ khoá</button>' : '') + '</details>' +
+      (d.ed && d.key ? '<div class="lq-btns"><button class="btn sm pri" data-ytb="run">▶️ Chạy ngay</button></div>' : '') + '</div>';
+    if (!r) return h + '<div class="box"><p class="small muted">Chưa có báo cáo nào.</p></div>';
+    h += '<div class="box"><div class="zb-ph"><b>📋 Báo cáo ' + fDateTime(r.at) + '</b><span class="zb-due">' + r.nVid + ' video · ' + r.nQ + ' câu hỏi</span></div>';
+    if ((r.insights || []).length) h += '<p class="small"><b>💡 Vì sao các video này vượt mức</b></p><ul class="small">' + r.insights.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ul>';
+    if ((r.qs || []).length) h += '<p class="small"><b>❓ Câu người xem hỏi mà chưa ai trả lời</b></p><ol class="small">' + r.qs.map(function (q) { return '<li>' + esc(q.q) + (q.n > 1 ? ' <span class="muted">(' + q.n + ' người hỏi)</span>' : '') + (q.why ? '<br><span class="muted">' + esc(q.why) + '</span>' : '') + '</li>'; }).join('') + '</ol>';
+    if ((r.topics || []).length) h += '<p class="small"><b>📝 Gợi ý chủ đề</b> <span class="muted">bấm ➕ để đưa vào 🔑 Từ khoá bài web, trợ lý viết bài sẽ lấy trước</span></p><div class="ytb-tl">' + r.topics.map(function (t, i) { return '<div class="ytb-t"><p class="small"><b>' + esc(t.t) + '</b> <span class="muted">· ' + esc(t.f) + (t.g ? ' · ' + esc(t.g) : '') + '</span>' + (t.why ? '<br><span class="muted">' + esc(t.why) + '</span>' : '') + '</p>' + (t.added ? '<span class="small">✅ Đã thêm</span>' : d.ed ? '<button class="btn sm" data-ytb="add|' + i + '">➕ Thêm</button>' : '') + '</div>'; }).join('') + '</div>';
+    h += '<details class="small"><summary>🎬 Video đã đọc (' + r.videos.length + ')</summary><ul class="small">' + r.videos.map(function (v) { return '<li><a href="https://youtu.be/' + esc(v.id) + '" target="_blank" rel="noopener">' + esc(v.title) + '</a> <span class="muted">· ' + esc(v.ch) + ' · ' + Number(v.views).toLocaleString('vi-VN') + ' lượt · ' + (v.hot ? '🔥 ' : '') + 'gấp ' + v.ratio + ' lần · ' + v.q + ' câu hỏi</span></li>'; }).join('') + '</ul></details>';
+    if ((r.errs || []).length) h += '<p class="small muted">⚠️ ' + esc(r.errs.join(' · ')) + '</p>';
+    return h + '</div>';
+  }
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-ytb]'); if (!t) return;
+    var v = t.getAttribute('data-ytb').split('|'), a = v[0], done = function (msg) { return function () { if (msg) toast(msg); YB.d = null; render(); }; }, fail = function (er) { t.disabled = false; toast(er.message, true); };
+    if (a === 'reload') { YB.err = ''; YB.d = null; return render(); }
+    if (a === 'key') { var k = (($('#ytbK') || {}).value || '').trim(); if (!k) return toast('Dán khoá trước nhé.', true); t.disabled = true; return api('ins_ytcfg', { key: k }).then(done('Đã lưu khoá YouTube ✓'), fail); }
+    if (a === 'cfg') { t.disabled = true; return api('ins_ytcfg', { kw: ($('#ytbW') || {}).value || '', x: Number(($('#ytbX') || {}).value) || 10 }).then(done('Đã lưu từ khoá ✓'), fail); }
+    if (a === 'run') { t.disabled = true; t.textContent = '⏳ Đang quét YouTube (1–2 phút)…'; return api('ins_ytrun', {}).then(done('Đã có báo cáo mới ✓'), function (er) { t.disabled = false; t.textContent = '▶️ Chạy ngay'; toast(er.message, true); }); }
+    if (a === 'add') { t.disabled = true; return api('ins_yt', { add: Number(v[1]) }).then(function (j) { toast(j.dup ? 'Từ khoá này đã có rồi' : 'Đã thêm vào từ khoá bài web ✓'); YB.d = null; if (IN.d) IN.d = null; render(); }, fail); }
+  });
         next();
       };
       v.src = url; v.load();

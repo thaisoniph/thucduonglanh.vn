@@ -254,6 +254,30 @@ Bạn nên làm:
 2. Câu AI xếp sai ô thì bấm **✏️ Sửa**. Câu không liên quan thì bấm **🙈 Ẩn**.
 3. Khách nói qua điện thoại câu hay: bấm **➕ Ghi lời khách**, chép đúng lời khách (không ghi tên, số điện thoại).
 
+### ▶️ Báo cáo YouTube
+
+Sáng **thứ Hai** máy tự làm 4 việc:
+
+1. Tìm video YouTube 30 ngày qua theo **từ khoá ngành** (thực dưỡng, sữa hạt, mẹ sau sinh nên ăn gì, chè vằng…).
+2. Chọn video có lượt xem **gấp 10 lần trở lên** so với mức thường của kênh đó (video "nổ").
+3. Đọc bình luận, lấy những **câu người xem hỏi mà chưa ai trả lời**.
+4. AI gom lại thành câu hỏi + gợi ý chủ đề, gửi Telegram cho Quản trị, Quản lý, Marketing.
+
+Xem báo cáo ở CRM → **🎯 Insight & nội dung** → **🗣 Lời khách** → kéo xuống **▶️ Câu hỏi trên YouTube**. Thấy chủ đề hay thì bấm **➕ Thêm**: chủ đề vào **🔑 Từ khoá bài web**, trợ lý viết bài lấy trước. Sửa từ khoá quét ở ô **🔍 Từ khoá đang quét**.
+
+**Tạo khoá YouTube (anh Sơn làm 1 lần, khoảng 5 phút, miễn phí):**
+
+1. Mở [console.cloud.google.com](https://console.cloud.google.com/) trên máy tính, đăng nhập Gmail công ty.
+2. Trên cùng bấm ô chọn dự án → **Dự án mới** (New Project) → đặt tên **TDL YouTube** → **Tạo**. Chờ vài giây rồi chọn dự án vừa tạo.
+3. Ô tìm kiếm trên cùng gõ **YouTube Data API v3** → bấm vào kết quả → bấm **Bật** (Enable).
+4. Menu trái → **API và dịch vụ** → **Thông tin xác thực** (Credentials) → **+ Tạo thông tin xác thực** → **Khoá API** (API key). Màn hình hiện khoá bắt đầu bằng **AIza…**
+5. Bấm **Chỉnh sửa khoá API** → mục **Hạn chế API** chọn **Hạn chế khoá** → tích **YouTube Data API v3** → **Lưu**. (Khoá này chỉ dùng được cho YouTube, lộ ra cũng không làm gì được việc khác.)
+6. Sao chép khoá → mở CRM → **🎯 Insight & nội dung** → **🗣 Lời khách** → ô **▶️ Câu hỏi trên YouTube** → dán vào ô **Dán khoá YouTube** → **💾 Lưu khoá**. Máy tự thử khoá, báo ✓ là xong.
+
+> - **Không gửi khoá qua Zalo, Messenger hay chat với Claude.** Chỉ dán thẳng vào CRM (chỉ Quản trị thấy ô này).
+> - Google cho miễn phí 10.000 đơn vị / ngày; 1 báo cáo dùng khoảng 1.000. Không cần nhập thẻ thanh toán.
+> - Muốn chạy thử ngay thì bấm **▶️ Chạy ngay** (tối đa 3 lần / ngày).
+
 ### Dùng thế nào cho nhanh
 
 - **Mỗi ngày (1 phút)**: nhìn ô cam 👉 Nên làm ngay, có nút thì bấm. Có chuyện cả mạng đang bàn tán thì ghi vào 🔥 Chuyện đang nóng (thẻ ⚙️ Cài đặt).

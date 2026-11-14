@@ -2522,3 +2522,6 @@ b.csx-c-ok { color: var(--primary-2); } b.csx-c-sua { color: var(--orange); } b.
 .voq-t{margin:0 0 4px;font-size:15px;line-height:1.45}
 /* 🛡 Người gác cổng (14/11/2026) */
 .gtk-r{padding:10px 12px;border-left:4px solid #c0392b}.gtk-why{margin:4px 0;padding-left:18px;color:#a12a1e}
+/* ▶️ Báo cáo YouTube (14/11/2026) */
+.ytb-key{display:flex;gap:6px;margin:6px 0}.ytb-key input{flex:1;min-width:0}.ytb-tl{display:grid;gap:6px}.ytb-t{display:flex;gap:8px;align-items:flex-start;justify-content:space-between;border-top:1px solid var(--line, #eee);padding-top:6px}.ytb-t p{margin:0}
+.voq-sum .f input{width:100%;box-sizing:border-box}
