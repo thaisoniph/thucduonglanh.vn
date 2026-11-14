@@ -17,6 +17,7 @@ import { zbotLead } from './zbot.js';
 import { lunar } from './lunar.js';
 import { vqPick, vqBlock } from './voc.js';
 import { gate } from './gate.js';
+import { stKb } from './sotay.js';
 
 const CHAT_MODEL = 'claude-haiku-5-5';
 const KB_URL = 'https://thucduonglanh.vn/chat-kb.txt';
@@ -79,7 +80,9 @@ export async function kb() {
     const r = await fetch(KB_URL, { cf: { cacheTtl: 600, cacheEverything: true } });
     if (r.ok) { const t = await r.text(); if (t.length > 2000) kbMem = { t: Date.now(), text: t }; }
   } catch (e) { console.error('chat kb', e.message); }
-  return kbMem ? kbMem.text : '';
+  const base = kbMem ? kbMem.text : '';
+  if (!base || base.includes('# SỔ TAY DOANH NGHIỆP')) return base; // web cũ còn tự nối Sổ tay
+  const st = await stKb(); return st ? base + '\n\n' + st : base; // 📗 Sổ tay trong CRM (sotay.js, 15/11/2026)
 }
 
 /** Giờ làm việc chuyên viên: Thứ 2 – Thứ 7, 8h–17h (giờ Việt Nam). */

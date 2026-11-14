@@ -5,7 +5,7 @@ group: marketing
 short: Đăng bài, sửa giá, sửa sản phẩm
 order: 6
 updated: 2026-11-15
-description: Đăng bài, duyệt bài trợ lý viết, sửa giá, sửa sản phẩm, tạo gói, đăng tin tuyển dụng, sửa Sổ tay doanh nghiệp. Làm trên máy tính. Mỗi việc có hình.
+description: Đăng bài, duyệt bài trợ lý viết, sửa giá, sửa sản phẩm, tạo gói, đăng tin tuyển dụng, sửa Sổ tay doanh nghiệp (trong CRM). Làm trên máy tính. Mỗi việc có hình.
 roles: [web]
 ---
 Trang này dành cho người **đăng bài, sửa sản phẩm, sửa giá** trên website [thucduonglanh.vn](https://thucduonglanh.vn).
@@ -141,6 +141,8 @@ Trang tuyển dụng: [congsu.thucduonglanh.vn](https://congsu.thucduonglanh.vn)
 
 ## Việc 8: Sửa Sổ tay doanh nghiệp
 
+Từ 15/11/2026 Sổ tay **sửa trong CRM** (không còn ở trang quản trị web), làm được cả trên điện thoại: CRM → **🎯 Insight & nội dung** → **⚙️ Cài đặt** → **📗 Sổ tay doanh nghiệp**.
+
 **Sổ tay doanh nghiệp** là **một nơi duy nhất** ghi những điều mọi trợ lý AI phải nói đúng: trợ lý chat trên web, trợ lý nhóm Zalo và tin nhắn riêng, trợ lý Fanpage, trợ lý viết bài, chấm bài, và ChatGPT / Gemini / Claude nối vào CRM.
 
 Sổ tay có 5 nhóm:
@@ -153,10 +155,12 @@ Sổ tay có 5 nhóm:
 
 [[steps:wb-sotay]]
 
-> - Số tiền, hotline không gõ tay: gõ **{shipping_fee}**, **{free_ship_threshold}**, **{hotline}**… thì web tự lấy đúng số trong *Thông tin liên hệ*.
-> - Mục nào **quá 90 ngày** chưa xác nhận lại, sáng thứ Hai anh Sơn nhận tin Telegram nhắc.
-> - Không muốn trợ lý dùng một mục nữa thì chọn **Trạng thái: Tắt** (không cần xoá).
-> - Sổ tay ai cũng xem được trên mạng. **Không ghi** mật khẩu, tên hay số điện thoại khách.
+> - Số tiền, hotline không gõ tay: trong hộp sửa bấm vào **nút số** (0966 326 522, 30.000 ₫…) để chèn ô tự điền. Đổi số ở *Cài đặt website → Thông tin liên hệ* là Sổ tay đổi theo. Dòng **👁 Trợ lý sẽ đọc thành** cho xem trước.
+> - Ai sửa được: Marketing, Quản lý, Quản trị, người có ô 🌐 Sửa website. **Chỉ Quản trị bấm ✅ Xác nhận.** Sửa chữ mục đã xác nhận thì mục về 🟡 chờ xác nhận.
+> - Lưu xong **khoảng 2 phút** sau mọi trợ lý dùng bản mới. Mỗi mục giữ **5 bản trước** (🕘), bấm **↩️ Dùng lại bản này** nếu sửa nhầm.
+> - Mục nào **quá 90 ngày** chưa xác nhận lại, sáng thứ Hai anh Sơn nhận tin Telegram kèm link mở thẳng Sổ tay.
+> - Không muốn trợ lý dùng một mục nữa thì **✏️ Sửa → Tạm tắt** (không cần xoá).
+> - **Không ghi** mật khẩu, tên hay số điện thoại khách.
 
 ## Cài đặt website
 
@@ -195,8 +199,8 @@ Cột trái chọn **Cài đặt website**. Các mục hay dùng:
 - **Trợ lý chat An Lành**: khung chat AI ở góc phải web (trên điện thoại: bấm **💬 Tư vấn** → **Hỏi trợ lý An Lành**). Bot tự đọc sản phẩm, giá, hỏi đáp, giấy tờ, chính sách trên web, nên **sửa sản phẩm là bot biết sau khoảng 10 phút**, không cần dạy lại. Ở đây chỉ sửa:
   - **Câu chào**, **Câu hỏi gợi ý** (3–5 câu khách hay hỏi nhất, khách bấm là hỏi luôn).
   - **Mời nhận quà sau bao nhiêu câu hỏi** (đang là 2), **Mô tả quà**: chỉ ghi quà có thật.
-  - **Kiến thức thêm**: điều phụ bot cần biết mà web chưa có (cộng đồng, trò chơi, chương trình đang chạy…). Câu chuyện công ty, chính sách, câu trả lời mẫu thì ghi ở **📗 Sổ tay doanh nghiệp** (ngay dưới). Viết câu ngắn, đúng sự thật, không ghi công dụng chữa bệnh.
-- **📗 Sổ tay doanh nghiệp**: xem mục [Sổ tay doanh nghiệp](#viec-8-sua-so-tay-doanh-nghiep) bên dưới.
+  - **Kiến thức thêm**: điều phụ bot cần biết mà web chưa có (cộng đồng, trò chơi, chương trình đang chạy…). Câu chuyện công ty, chính sách, câu trả lời mẫu thì ghi ở **📗 Sổ tay doanh nghiệp** trong CRM. Viết câu ngắn, đúng sự thật, không ghi công dụng chữa bệnh.
+- **📗 Sổ tay doanh nghiệp**: đã chuyển sang CRM, xem [Việc 8](#viec-8-sua-so-tay-doanh-nghiep).
   - Bot trả lời sai hoặc thiếu thì báo anh Sơn, hoặc sửa phần **Hỏi đáp** của sản phẩm đó.
 - **Trò chơi Bạn còn mấy ngón tay**: câu hỏi và kết quả. Sửa trong CRM (**⚙ Cài đặt → 🖐 Trò chơi**) dễ hơn trên điện thoại.
 - **Hồ sơ thương hiệu (brochure)**: sách lật, file PDF, ảnh bìa.

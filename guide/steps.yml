@@ -774,20 +774,19 @@ wb-gia:
       hi: 0
       text: "Bấm <b>Lưu</b>. Giá trên web và trong CRM tự đổi theo."
 wb-sotay:
-  title: Sửa Sổ tay doanh nghiệp
+  title: Sửa Sổ tay doanh nghiệp (trong CRM)
   steps:
-    - title: Trang quản trị
+    - title: Insight & nội dung
       els:
-        - ["card", "Cài đặt website", "", "g"]
-        - ["card", "📗 Sổ tay doanh nghiệp", "Mọi trợ lý AI đọc ở đây", "g"]
-        - ["card", "❓ Khách hỏi: có dùng cho bà bầu?", "Chưa xác nhận · quá 90 ngày", "y"]
+        - ["chips", ["📊 Tổng quan", "✍️ Tạo nội dung", "⚙️ Cài đặt"], 2]
+        - ["card", "📗 Sổ tay doanh nghiệp", "25 mục · 🟡 3 cần xác nhận", "g"]
+        - ["card", "❓ Khách hỏi: có dùng cho bà bầu?", "🟡 Chờ xác nhận", "y"]
       hi: 2
-      text: "<b>Cài đặt website</b> → <b>📗 Sổ tay doanh nghiệp</b>. Bấm vào mục cần sửa."
-    - title: Sổ tay doanh nghiệp
+      text: "CRM → <b>🎯 Insight & nội dung</b> → <b>⚙️ Cài đặt</b> → bấm <b>📗 Sổ tay doanh nghiệp</b>. Bấm vào mục cần xem, rồi <b>✏️ Sửa</b>."
+    - title: Sửa mục Sổ tay
       els:
         - ["in", "Nội dung", "Dạ với mẹ bầu, mình nên hỏi bác sĩ…"]
-        - ["in", "Trạng thái", "Đã xác nhận"]
-        - ["in", "Người xác nhận · Ngày xác nhận", "Sơn · 15/11/2026"]
-        - ["btn", "Lưu", "g"]
-      hi: 1
-      text: "Sửa <b>Nội dung</b>. Đọc lại thấy đúng thì chọn <b>Đã xác nhận</b>, ghi tên và ngày. Bấm <b>Lưu</b>: 10 phút sau mọi trợ lý dùng bản mới."
+        - ["note", "👁 Trợ lý sẽ đọc thành: …"]
+        - ["btn2", "💾 Lưu", "✅ Lưu + xác nhận", "g"]
+      hi: 2
+      text: "Sửa <b>Nội dung</b>, bấm <b>💾 Lưu</b>. Anh Sơn đọc lại thấy đúng thì bấm <b>✅ Lưu + xác nhận</b> (hoặc <b>✅ Xác nhận vẫn đúng</b> ngoài danh sách). Khoảng 2 phút sau mọi trợ lý dùng bản mới."

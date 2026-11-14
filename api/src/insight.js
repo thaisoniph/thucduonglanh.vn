@@ -18,7 +18,7 @@ import { crmInSkill, skillsInfo, offerDrafts, skillOf, methodBlock } from './ins
 import { lrnPosts, lrnBlock } from './learn.js';
 import { eventsAhead } from './zday.js';
 import { crmScore } from './score.js';
-import { stInfo } from './sotay.js';
+import { stInfo, crmSt } from './sotay.js';
 import { crmVoc, vqPick, vqBlock } from './voc.js';
 import { crmGate } from './gate.js';
 import { crmYt } from './yt.js';
@@ -716,7 +716,7 @@ export async function crmIns(x, u, d, crmLog) {
     const evs = eventsAhead(fmtDate(now, 'yyyyMMdd'), 120).filter(e => e.in <= 45 || e.in <= e.prep), // 45 ngày tới + dịp xa đã tới lúc chuẩn bị (Tết: 90 ngày)
       trend = await kvJson(x.db, 'ins_trend', null);
     const fpNf = await kvJson(x.db, 'fp_nf_err', null), kwb = await kwBank(x);
-    let st = null; try { st = await stInfo(); } catch (e) { } // 📗 Sổ tay doanh nghiệp (sotay.js)
+    let st = null; try { st = await stInfo(x); } catch (e) { } // 📗 Sổ tay doanh nghiệp (sotay.js)
     return { ok: true, now, st, bank, kw: kwb, custom, upd, learn, evs, trend, fpNf, sp: SP, skills: await skillsInfo(x), drafts: await offerDrafts(x), log: log.slice(-300), scripts, prods, aiOn: !!x.env.ANTHROPIC_API_KEY, fun: Object.fromEntries(Object.entries(FUN).map(([k, v]) => [k, v.name])) };
   }
   if (a === 'ins_save') {
@@ -736,6 +736,7 @@ export async function crmIns(x, u, d, crmLog) {
     await kvSet(x.db, dk, String(n + 1), 2 * DAY);
     try { return await insImport(x, d); } catch (e) { return { ok: false, error: 'AI chưa đọc được: ' + String(e.message).slice(0, 150) }; }
   }
+  if (['ins_st', 'ins_stsave', 'ins_stok', 'ins_stdel', 'ins_stcfg'].includes(a)) return crmSt(x, u, d, crmLog); // 📗 Sổ tay doanh nghiệp sửa trong CRM (sotay.js)
   if (a === 'ins_gate') return crmGate(x, u, d, crmLog); // 🛡 người gác cổng (gate.js)
   if (/^ins_yt/.test(a)) return crmYt(x, u, d, crmLog); // ▶️ báo cáo tuần YouTube (yt.js)
   if (/^ins_vq/.test(a)) return crmVoc(x, u, d, crmLog); // 🗣 kho lời khách (voc.js)

@@ -3521,7 +3521,9 @@ def main():
     (DIST / "robots.txt").write_text("User-agent: *\nAllow: /\n" + "".join(f"Disallow: {r}\n" for r in private) + f"Disallow: /admin/\nDisallow: /chat-kb.txt\nDisallow: /so-tay.json\n\nSitemap: {DOMAIN}/sitemap.xml\n", "utf-8")
     (DIST / "llms.txt").write_text(llms_txt(), "utf-8")
     (DIST / "chat-kb.txt").write_text(chat_kb(), "utf-8")  # kiến thức cho trợ lý chat (api/src/chat.js)
-    (DIST / "so-tay.json").write_text(json.dumps({"remind_days": SOTAY.get("remind_days") or 90, "items": sotay_items()}, ensure_ascii=False), "utf-8")  # 📗 Sổ tay: máy chủ đọc để nhắc xác nhận lại (api/src/sotay.js) + cổng MCP
+    # 📗 Sổ tay (15/11/2026 chuyển sang CRM, bản chính trong D1 – api/src/sotay.js): vars = số điền ô {hotline}, {shipping_fee}… từ Cài đặt website; seed = bản cũ data/so-tay.json để máy chủ chép sang lần đầu; items giữ cho máy chủ bản cũ
+    _vars = {k: sotay_fill("{" + k + "}") for k in ("hotline", "company", "email", "address", "domain", "brand", "tax_code", "tax_date", "opening_hours", "slogan", "shipping_fee", "free_ship_threshold")}
+    (DIST / "so-tay.json").write_text(json.dumps({"remind_days": SOTAY.get("remind_days") or 90, "vars": _vars, "seed": SOTAY.get("items") or [], "items": sotay_items()}, ensure_ascii=False), "utf-8")
     (DIST / "bot-proofs.json").write_text(json.dumps(bot_proofs(), ensure_ascii=False), "utf-8")  # ảnh giấy tờ cho trợ lý Fanpage (api/src/fb.js)
     (DIST / "ngay-doi.json").write_text(json.dumps(dd_api(), ensure_ascii=False), "utf-8")  # 🎉 Ngày Đôi: máy chủ đọc để miễn ship + thêm quà vào đơn (api/src/ngaydoi.js)
     (DIST / "anh-zalo.json").write_text(json.dumps(zalo_imgs(), ensure_ascii=False), "utf-8")  # kho ảnh thật cho bài đăng nhóm Zalo (api/src/zbot.js)
@@ -3605,7 +3607,7 @@ def llms_txt():
 
 _cbf = DATA / "chatbot.json"  # 💬 trợ lý chat An Lành (26/10/2026): sửa ở /admin → Cài đặt → Trợ lý chat
 CHAT = json.loads(_cbf.read_text("utf-8")) if _cbf.exists() else {}
-_stf = DATA / "so-tay.json"  # 📗 Sổ tay doanh nghiệp (14/11/2026): 1 nguồn duy nhất cho mọi trợ lý AI, sửa ở /admin → Cài đặt website → 📗 Sổ tay doanh nghiệp
+_stf = DATA / "so-tay.json"  # 📗 Sổ tay doanh nghiệp: từ 15/11/2026 sửa trong CRM (D1); file này chỉ còn là bản gốc để chép sang lần đầu
 SOTAY = json.loads(_stf.read_text("utf-8")) if _stf.exists() else {"items": []}
 
 
@@ -3786,7 +3788,7 @@ def chat_kb():
             out += [f"## {pg['title']} ({DOMAIN}/{pg['slug']}/)", strip_tags(fill(pg["content"])).strip()[:2500], ""]
     if CHAT.get("knowledge"):
         out += ["# KIẾN THỨC THÊM (soạn ở /admin)", "", str(CHAT["knowledge"]).strip(), ""]
-    out += sotay_kb()
+    # 📗 Sổ tay không nối ở đây nữa (15/11/2026): máy chủ tự nối bản trong CRM vào cuối kiến thức (api/src/chat.js kb() + sotay.js stKb)
     import html as _html
     return re.sub(r"[ \t]+\n", "\n", re.sub(r"\n{3,}", "\n\n", _html.unescape("\n".join(out))))
 

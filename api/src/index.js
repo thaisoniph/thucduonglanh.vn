@@ -21,12 +21,13 @@ import { refMe, ctvMe, ctvApply } from './partner.js';
 import { fbRoute } from './fb.js';
 import { mcpRoute } from './mcp.js';
 import { ddApply, ddStatus, qtetApply } from './ngaydoi.js';
+import { stBind } from './sotay.js'; // 📗 kb() đọc Sổ tay trong D1
 export { AiRelay } from './airelay.js'; // Durable Object chuyển tiếp lời gọi AI qua Bắc Mỹ
 
-const API_VERSION = '2026-11-15b'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
+const API_VERSION = '2026-11-15c'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
 const ORIGINS = /^https:\/\/((www\.|crm\.|quantri\.|mkt\.|kho\.|ketoan\.|kinhdoanh\.|congsu\.|camnangsongkhoe\.)?thucduonglanh\.vn|([a-z0-9-]+\.)?(thucduonglanh(-crm|-congsu)?|camnang-song-khoe-thuc-duong-lanh)\.pages\.dev)$|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
-function ctxOf(env, ectx) { return { env, db: env.DB, later: p => ectx.waitUntil(Promise.resolve(p).catch(e => console.error('later', e && e.message))) }; }
+function ctxOf(env, ectx) { stBind(env.DB); return { env, db: env.DB, later: p => ectx.waitUntil(Promise.resolve(p).catch(e => console.error('later', e && e.message))) }; }
 function json(o, origin, status) {
   const h = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' };
   if (origin && ORIGINS.test(origin)) { h['Access-Control-Allow-Origin'] = origin; h['Vary'] = 'Origin'; }

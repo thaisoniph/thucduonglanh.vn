@@ -2743,3 +2743,28 @@ button.inx-todo-r > span { flex: 1 1 auto; }
 button.inx-todo-r > b { flex: none; color: var(--primary); white-space: nowrap; }
 button.inx-todo-r:hover > span { text-decoration: underline; }
 @media (max-width: 720px) { button.inx-todo-r { flex-wrap: wrap; gap: 2px 8px; } button.inx-todo-r > b { margin-left: auto; } }
+
+/* 📗 Sổ tay doanh nghiệp trong CRM (15/11/2026) */
+.st-lead { margin: 6px 0 10px; }
+.st-bar { display: flex; flex-direction: column; gap: 8px; margin-bottom: 6px; }
+.st-tools { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.st-tools input { flex: 1 1 200px; min-width: 0; }
+.st-gh { margin: 14px 0 4px; font-weight: 700; font-size: 13.5px; }
+.st-it { border: 1px solid var(--line); border-radius: 10px; margin: 0 0 6px; background: var(--card); }
+.st-it > summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; padding: 9px 12px; cursor: pointer; list-style: none; }
+.st-it > summary::-webkit-details-marker { display: none; }
+.st-it > summary b { flex: 1 1 220px; font-size: 14px; }
+.st-it[open] > summary { border-bottom: 1px solid var(--line); }
+.st-it > :not(summary) { margin-left: 12px; margin-right: 12px; }
+.st-it .lq-btns { margin-bottom: 10px; }
+.st-body { margin-top: 8px; line-height: 1.55; }
+.st-meta { margin: 6px 0; }
+.st-s { font-size: 12px; font-weight: 600; white-space: nowrap; }
+.st-s.ok { color: var(--primary); } .st-s.due { color: #b26a00; } .st-s.off { color: var(--muted); }
+.st-vars { line-height: 2; }
+.st-vars .chip { padding: 3px 9px; font-size: 12px; }
+.st-hist .st-hv { border-top: 1px dashed var(--line); padding: 6px 0; }
+.st-foot input { width: 64px; padding: 2px 6px; }
+.st-pv { margin: -4px 0 10px; padding: 6px 10px; background: var(--primary-soft); border-radius: 8px; color: var(--ink); } .st-pv:empty { display: none; }
+.st-bar .voq-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+@media (max-width: 720px) { .st-bar .voq-chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; } .st-bar .voq-chips::-webkit-scrollbar { display: none; } }

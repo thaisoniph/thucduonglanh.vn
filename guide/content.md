@@ -61,7 +61,7 @@ Trước khi viết bất kỳ bài nào, trả lời 4 câu:
 | 🗣 Lời khách | Câu nguyên văn của khách thật |
 | 🛡 Câu bị giữ | Câu trả lời của trợ lý chat bị máy giữ lại vì nói sai (người gác cổng) |
 | 👥 Nhóm khách | Mỗi nhóm khách mong gì, bị cản bởi gì, ý lớn đang chạy |
-| ⚙️ Cài đặt | Chuyện đang nóng, dịp sắp tới, từ khoá bài web (thường để nguyên) |
+| ⚙️ Cài đặt | Chuyện đang nóng, dịp sắp tới, 📗 [Sổ tay doanh nghiệp](/huong-dan/website/#viec-8-sua-so-tay-doanh-nghiep), từ khoá bài web |
 
 ## Việc 1: Duyệt bài trợ lý viết
 

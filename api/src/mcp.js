@@ -188,7 +188,7 @@ async function callTool(x, u, name, a) {
     return r.ok ? txt(r.text + '\n\n(Nguồn: CRM Thực Dưỡng Lành. Số do trợ lý tự tra, tên khách đã che.)') : txt(r.error || 'Chưa trả lời được.', true);
   }
   if (name === 'insight_noi_dung') return txt(await insText(x));
-  if (name === 'so_tay') return txt(await stText());
+  if (name === 'so_tay') return txt(await stText(x));
   const ctx = await askCtx(x, u);
   if (name === 'mo_ta_du_lieu') return txt(askGuide(ctx));
   if (!['tra_cuu', 'san_pham_ban', 'tai_chinh'].includes(name) || (name === 'tai_chinh' && u.level < 3)) return txt('Không có công cụ ' + name, true);

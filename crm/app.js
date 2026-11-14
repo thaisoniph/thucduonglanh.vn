@@ -8027,6 +8027,7 @@
   function viewIns() {
     if (!IN.d && !IN.err && !IN.busy) setTimeout(inFetch, 0);
     if (!IN.tab) { try { IN.tab = localStorage.getItem('inTab') || 'tong'; } catch (e) { IN.tab = 'tong'; } }
+    if (route().id === 'so-tay' && !IN.stGo) { IN.stGo = 1; IN.tab = 'cai'; IN.acc = IN.acc || {}; IN.acc.sot = true; }
     var h = '<div class="page-head"><h1>🎯 Insight & nội dung</h1></div>' +
       '<p class="small lq-intro inx-intro">Dạy trợ lý AI <b>viết cho ai, chạm nỗi lòng gì</b>, để bài web, nhóm Zalo, Fanpage, video <b>thu hút hơn và ra đơn hơn</b>. Trợ lý tự viết theo lịch; việc của bạn là chọn thẻ bên dưới theo việc cần làm. <a href="/huong-dan/content/" target="_blank" rel="noopener">📖 Hướng dẫn có hình</a></p>';
     if (!IN.d) return h + '<div class="box"><p class="muted">' + (IN.err ? '⚠️ ' + esc(IN.err) + ' <button class="link" data-in="reload">Thử lại</button>' : '⏳ Đang tải…') + '</p></div>';
@@ -8098,7 +8099,7 @@
       var st = j.st, kwL = (j.kw && j.kw.list) || [], tr = j.trend && j.trend.t;
       h += inTabi('Những điều trợ lý đọc thêm trước khi viết, để bài hợp thời điểm và đúng giọng công ty.', ['Có chuyện mọi người đang bàn tán: ghi vào <b>🔥 Chuyện đang nóng</b>', 'Các mục khác để nguyên, khi cần mới bấm mở']);
       h += inAcc('ev', '📅 Dịp sắp tới & 🔥 Chuyện đang nóng', tr ? '🔥 đang có 1 chuyện' : 'chưa ghi chuyện nóng', inEvHtml(j, ed), true) +
-        inAcc('sot', '📗 Sổ tay doanh nghiệp', st ? st.ok + ' / ' + st.n + ' mục đã xác nhận' : '', sotHtml(st), false) +
+        inAcc('sot', '📗 Sổ tay doanh nghiệp', stInfoLine(st), sotHtml(), false) +
         inAcc('kw', '🔑 Từ khoá cho bài web', kwL.length ? kwL.length + ' từ khoá' : 'chưa có từ khoá', inKwHtml(j, ed), false) +
         inAcc('pp', '📘 Phương pháp trợ lý đang dùng', 'mặc định theo khoá học', inSkillsHtml(j, ed), false);
     } else {
@@ -8454,16 +8455,93 @@
   }
   /** 📅 Dịp sắp tới (zday.js eventsAhead, 45 ngày) + 🔥 chuyện đang nóng (kv ins_trend { t, by, at, st, goal, until }: giai đoạn 2 giữ 3 ngày, giai đoạn 3 giữ 1 ngày): mọi trợ lý viết bài đọc */
   /** 📗 Sổ tay doanh nghiệp (14/11/2026, api sotay.js stInfo): 1 nguồn duy nhất cho mọi trợ lý AI, sửa ở /admin; quá N ngày chưa xác nhận lại → Telegram nhắc */
-  function sotHtml(st) {
-    if (!st) return '';
-    var due = (st.items || []).filter(function (v) { return v.due; });
-    return '<div class="box sot-box"><div class="zb-ph"><b>📗 Sổ tay doanh nghiệp</b><span class="zb-due">' + st.ok + ' / ' + st.n + ' đã xác nhận</span></div>' +
-      '<p class="small muted">Một nguồn duy nhất: câu chuyện công ty, chính sách, giọng thương hiệu, câu hỏi khó + câu trả lời đã duyệt, điều không được nói. Trợ lý chat web, Zalo, Fanpage, trợ lý viết bài, chấm bài và cổng MCP đều đọc Sổ tay này. Mục quá ' + st.days + ' ngày chưa xác nhận lại thì Telegram nhắc anh Sơn sáng thứ Hai.</p>' +
-      (due.length ? '<details class="small"><summary>🟡 ' + due.length + ' mục cần xác nhận' + (st.old ? ' (⏰ ' + st.old + ' mục quá hạn)' : '') + '</summary><ul class="small sot-l">' + due.map(function (v) {
-        return '<li><b>' + esc(v.t) + '</b> <span class="muted">· ' + esc(v.g) + ' · ' + (v.s === 'Đã xác nhận' ? '⏰ xác nhận ' + v.age + ' ngày trước' : esc(v.s)) + '</span></li>';
-      }).join('') + '</ul></details>' : '<p class="small">✅ Mọi mục đã xác nhận trong ' + st.days + ' ngày qua.</p>') +
-      '<div class="lq-btns"><a class="btn sm" href="' + esc(st.admin) + '" target="_blank" rel="noopener">📝 Mở Sổ tay ở trang quản trị</a></div></div>';
+  /* ---------------------------------------------------------------- 📗 Sổ tay doanh nghiệp sửa trong CRM (15/11/2026, api sotay.js: ins_st / ins_stsave / ins_stok / ins_stdel / ins_stcfg)
+   * Trước ở /admin (file data/so-tay.json, chờ build web). Nay lưu D1, mọi trợ lý đọc bản mới sau khoảng 2 phút. */
+  var SBK = { d: null, busy: 0, err: '', g: '', q: '' };
+  function stFetch() {
+    SBK.busy = 1; SBK.err = '';
+    api('ins_st', {}).then(function (j) { SBK.d = j.st; }, function (e) { SBK.err = /Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message; })
+      .then(function () { SBK.busy = 0; if (route().view === 'noi-dung') render(); });
   }
+  function stFill(t) { var v = (SBK.d && SBK.d.vars) || {}; return String(t || '').replace(/\{(\w+)\}/g, function (m, k) { return v[k] != null && v[k] !== '' ? v[k] : m; }); }
+  /** mục cần xác nhận: chưa xác nhận, hoặc xác nhận quá số ngày nhắc */
+  function stDue(v) { if (v.status === 'Tắt') return false; if (v.status !== 'Đã xác nhận' || !v.date) return true; return (Date.now() - new Date(v.date + 'T09:00:00+07:00').getTime()) / 864e5 > ((SBK.d && SBK.d.remind_days) || 90); }
+  function stInfoLine(st) { var d = SBK.d; if (d) { var on = d.items.filter(function (v) { return v.status !== 'Tắt'; }), due = on.filter(stDue).length; return on.length + ' mục · ' + (due ? '🟡 ' + due + ' cần xác nhận' : '✅ đã xác nhận hết'); } return st ? st.n + ' mục · ' + (st.n - st.ok ? '🟡 ' + (st.n - st.ok) + ' cần xác nhận' : '✅ đã xác nhận hết') : ''; }
+  function sotHtml() {
+    var h = '<p class="small muted st-lead">Một nơi duy nhất ghi điều mọi trợ lý AI phải nói đúng: chat web, nhóm Zalo, Fanpage, trợ lý viết bài, chấm bài, ChatGPT / Claude nối vào CRM. Sửa ở đây, <b>khoảng 2 phút sau</b> mọi trợ lý dùng bản mới.</p>';
+    if (!SBK.d) { if (!SBK.busy && !SBK.err) setTimeout(stFetch, 0); return h + '<p class="muted small">' + (SBK.err ? '⚠️ ' + esc(SBK.err) + ' <button class="link" data-st="reload">Thử lại</button>' : '⏳ Đang tải Sổ tay…') + '</p>'; }
+    var d = SBK.d, its = d.items, q = SBK.q.trim().toLowerCase(), cnt = {}, due = its.filter(stDue);
+    its.forEach(function (v) { cnt[v.group] = (cnt[v.group] || 0) + 1; });
+    var L = its.filter(function (v) { return (!SBK.g || (SBK.g === 'due' ? stDue(v) : v.group === SBK.g)) && (!q || (v.title + ' ' + v.body).toLowerCase().indexOf(q) >= 0); });
+    h += '<div class="st-bar"><div class="voq-chips"><button type="button" class="chip' + (!SBK.g ? ' on' : '') + '" data-st="g|">Tất cả <em>' + its.length + '</em></button>' +
+      (due.length ? '<button type="button" class="chip' + (SBK.g === 'due' ? ' on' : '') + '" data-st="g|due">🟡 Cần xác nhận <em>' + due.length + '</em></button>' : '') +
+      d.groups.map(function (g) { return cnt[g] ? '<button type="button" class="chip' + (SBK.g === g ? ' on' : '') + '" data-st="g|' + esc(g) + '">' + esc(g.replace(' + câu trả lời đã duyệt', '')) + ' <em>' + cnt[g] + '</em></button>' : ''; }).join('') + '</div>' +
+      '<div class="st-tools"><input type="search" id="stQ" placeholder="🔍 Tìm trong Sổ tay" value="' + esc(SBK.q) + '">' + (d.ed ? '<button class="btn sm pri" data-st="new">➕ Thêm mục</button>' : '') +
+      (d.adm && SBK.g === 'due' && L.length ? '<button class="btn sm" data-st="okall">✅ Xác nhận ' + L.length + ' mục này</button>' : '') + '</div></div>';
+    if (!L.length) h += '<p class="small muted">' + (its.length ? 'Không có mục nào khớp.' : 'Sổ tay chưa có mục nào. Bấm ➕ Thêm mục.') + '</p>';
+    var gs = d.groups.filter(function (g) { return L.some(function (v) { return v.group === g; }); });
+    h += gs.map(function (g) {
+      return '<p class="st-gh">' + esc(g) + '</p>' + L.filter(function (v) { return v.group === g; }).map(function (v) {
+        var st = v.status === 'Tắt' ? '<span class="st-s off">⏸ Tắt</span>' : stDue(v) ? '<span class="st-s due">🟡 ' + (v.status === 'Đã xác nhận' ? 'Quá hạn xác nhận lại' : 'Chờ xác nhận') + '</span>' : '<span class="st-s ok">✅ Đã xác nhận</span>';
+        return '<details class="st-it' + (v.status === 'Tắt' ? ' bw-off' : '') + '"' + (SBK.open === v.id ? ' open' : '') + ' data-stid="' + esc(v.id) + '"><summary><b>' + esc(stFill(v.title)) + '</b>' + st + '</summary>' +
+          '<div class="st-body small">' + esc(stFill(v.body)).replace(/\n/g, '<br>') + '</div>' +
+          '<p class="small muted st-meta">' + (v.status === 'Đã xác nhận' ? 'Xác nhận: ' + esc(v.by || '') + ' ' + esc(v.date.split('-').reverse().join('/')) + ' · ' : '') + (v.upd ? 'Sửa lần cuối: ' + esc(v.ub || '') + ' ' + fDateTime(v.upd) : 'Chưa sửa trong CRM') + ((v.hist || []).length ? ' · ' + v.hist.length + ' bản trước' : '') + '</p>' +
+          (d.ed ? '<div class="lq-btns"><button class="btn sm" data-st="ed|' + esc(v.id) + '">✏️ Sửa</button>' + (d.adm && stDue(v) ? '<button class="btn sm pri" data-st="ok|' + esc(v.id) + '">✅ Xác nhận vẫn đúng</button>' : '') + (d.adm ? '<button class="btn sm ghost" data-st="del|' + esc(v.id) + '">🗑 Xoá</button>' : '') + '</div>' : '') + '</details>';
+      }).join('');
+    }).join('');
+    h += '<p class="small muted st-foot">' + (d.adm ? 'Nhắc anh xác nhận lại sau <input type="number" id="stDays" min="30" max="365" value="' + d.remind_days + '"> ngày (Telegram sáng thứ Hai). ' : 'Mục quá ' + d.remind_days + ' ngày chưa xác nhận lại thì Telegram nhắc anh Sơn sáng thứ Hai. ') + 'Chỉ Quản trị bấm được ✅ Xác nhận; sửa chữ mục đã xác nhận thì mục về 🟡 chờ xác nhận.</p>';
+    return h;
+  }
+  function stForm(id) {
+    var d = SBK.d, v = d.items.filter(function (x) { return x.id === id; })[0] || { group: SBK.g && SBK.g !== 'due' ? SBK.g : d.groups[0], title: '', body: '', status: 'Chờ anh xác nhận', hist: [] };
+    var vars = Object.keys(d.vars || {}).filter(function (k) { return d.vars[k]; });
+    var m = modal(id ? '✏️ Sửa mục Sổ tay' : '➕ Thêm mục Sổ tay',
+      '<label class="f"><span>Nhóm</span><select id="stG">' + d.groups.map(function (g) { return '<option' + (g === v.group ? ' selected' : '') + '>' + esc(g) + '</option>'; }).join('') + '</select></label>' +
+      '<label class="f"><span>Tiêu đề <small class="muted">câu hỏi khó thì ghi đúng câu khách hỏi</small></span><input type="text" id="stT" value="' + esc(v.title) + '"></label>' +
+      '<label class="f"><span>Nội dung <small class="muted">viết đúng điều công ty muốn trợ lý nói; câu hỏi khó thì ghi câu trả lời đã duyệt</small></span><textarea id="stB" rows="9">' + esc(v.body) + '</textarea></label>' +
+      '<p class="small st-pv" id="stPv"></p>' +
+      (vars.length ? '<p class="small muted st-vars">Số tiền, hotline đừng gõ tay, bấm để chèn ô tự điền (đổi ở Cài đặt website là Sổ tay đổi theo): ' + vars.map(function (k) { return '<button type="button" class="chip" data-stv="' + k + '" title="' + esc(d.vars[k]) + '">' + esc(d.vars[k].length > 22 ? d.vars[k].slice(0, 20) + '…' : d.vars[k]) + '</button>'; }).join(' ') + '</p>' : '') +
+      '<label class="switch"><input type="checkbox" id="stOff"' + (v.status === 'Tắt' ? ' checked' : '') + '> Tạm tắt (trợ lý không dùng mục này, không cần xoá)</label>' +
+      ((v.hist || []).length ? '<details class="small st-hist"><summary>🕘 ' + v.hist.length + ' bản trước</summary>' + v.hist.slice().reverse().map(function (x, k) { return '<div class="st-hv"><p class="muted">' + esc(x.by || '') + (x.at ? ' · ' + fDateTime(x.at) : '') + '</p><p><b>' + esc(x.title) + '</b><br>' + esc(x.body).replace(/\n/g, '<br>') + '</p><button type="button" class="btn sm ghost" data-sth="' + (v.hist.length - 1 - k) + '">↩️ Dùng lại bản này</button></div>'; }).join('') + '</details>' : ''),
+      '<button class="btn" data-close>Huỷ</button><button class="btn' + (d.adm ? '' : ' pri') + '" id="stSave">💾 Lưu</button>' + (d.adm ? '<button class="btn pri" id="stSaveOk">✅ Lưu + xác nhận</button>' : ''));
+    m.addEventListener('click', function (e) {
+      var c = e.target.closest('[data-stv]'), hb = e.target.closest('[data-sth]');
+      if (c) { var ta = $('#stB', m), k = '{' + c.getAttribute('data-stv') + '}', p0 = ta.selectionStart || ta.value.length; ta.value = ta.value.slice(0, p0) + k + ta.value.slice(ta.selectionEnd || p0); ta.focus(); ta.selectionStart = ta.selectionEnd = p0 + k.length; pv(); }
+      if (hb) { var hv = v.hist[+hb.getAttribute('data-sth')]; $('#stT', m).value = hv.title; $('#stB', m).value = hv.body; pv(); toast('Đã chép bản cũ vào ô, bấm Lưu để dùng.'); }
+    });
+    var pv = function () { var t = $('#stB', m).value, f = stFill(t); $('#stPv', m).innerHTML = f !== t ? '👁 Trợ lý sẽ đọc thành: ' + esc(f).replace(/\n/g, '<br>') : ''; };
+    $('#stB', m).addEventListener('input', pv); pv();
+    var save = function (ok) {
+      return function () {
+        var b = this, it = { id: id || '', group: $('#stG', m).value, title: $('#stT', m).value.trim(), body: $('#stB', m).value.trim(), status: $('#stOff', m).checked ? 'Tắt' : 'Chờ anh xác nhận' };
+        if (!it.title || !it.body) return toast('Cần có tiêu đề và nội dung.', true);
+        b.disabled = true;
+        api('ins_stsave', { item: it, ok: ok ? 1 : 0 }).then(function (r) { SBK.d = r.st; closeModal(); toast(ok ? '✅ Đã lưu + xác nhận. Khoảng 2 phút sau trợ lý dùng bản mới.' : '💾 Đã lưu. Khoảng 2 phút sau trợ lý dùng bản mới.'); render(); }, function (er) { b.disabled = false; toast(er.message, true); });
+      };
+    };
+    $('#stSave', m).onclick = save(false);
+    if ($('#stSaveOk', m)) $('#stSaveOk', m).onclick = save(true);
+  }
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-st]'); if (!t) return;
+    var v = t.getAttribute('data-st').split('|'), a = v[0];
+    if (a === 'reload') { SBK.err = ''; SBK.d = null; return render(); }
+    if (!SBK.d) return;
+    if (a === 'g') { SBK.g = v.slice(1).join('|'); return render(); }
+    if (a === 'new') return stForm(null);
+    if (a === 'ed') { SBK.open = v[1]; return stForm(v[1]); }
+    var done = function (msg) { return function (r) { SBK.d = r.st; toast(msg); render(); }; }, fail = function (er) { t.disabled = false; toast(er.message, true); };
+    if (a === 'ok') { t.disabled = true; SBK.open = v[1]; return api('ins_stok', { id: v[1] }).then(done('✅ Đã xác nhận'), fail); }
+    if (a === 'okall') { var ids = SBK.d.items.filter(stDue).map(function (x) { return x.id; }); if (!confirm('Xác nhận ' + ids.length + ' mục là vẫn đúng? Nên đọc qua trước khi bấm.')) return; t.disabled = true; return api('ins_stok', { ids: ids }).then(done('✅ Đã xác nhận ' + ids.length + ' mục'), fail); }
+    if (a === 'del') { var it = SBK.d.items.filter(function (x) { return x.id === v[1]; })[0]; if (!it || !confirm('Xoá hẳn mục “' + it.title + '”? Muốn trợ lý tạm không dùng thì bấm ✏️ Sửa → Tạm tắt.')) return; t.disabled = true; return api('ins_stdel', { id: v[1] }).then(done('Đã xoá mục'), fail); }
+  });
+  document.addEventListener('toggle', function (e) { var d = e.target; if (d && d.getAttribute && d.getAttribute('data-stid') && d.open) SBK.open = d.getAttribute('data-stid'); }, true);
+  document.addEventListener('input', function (e) {
+    if (e.target.id === 'stQ') { SBK.q = e.target.value; clearTimeout(SBK.qt); SBK.qt = setTimeout(function () { render(); var q = $('#stQ'); if (q) { q.focus(); q.selectionStart = q.selectionEnd = q.value.length; } }, 350); }
+  });
+  document.addEventListener('change', function (e) {
+    if (e.target.id === 'stDays' && SBK.d) api('ins_stcfg', { remind_days: +e.target.value }).then(function (r) { SBK.d = r.st; toast('Đã lưu: nhắc sau ' + r.st.remind_days + ' ngày'); }, function (er) { toast(er.message, true); });
+  });
   function inEvHtml(j, ed) {
     var td = isoDate(Date.now()).replace(/-/g, ''), dm = function (d) { return d.slice(6, 8) + '/' + d.slice(4, 6); };
     var back = function (d, n) { var t = new Date(Date.UTC(+d.slice(0, 4), +d.slice(4, 6) - 1, +d.slice(6, 8) - n)); return t.getUTCFullYear() + pad(t.getUTCMonth() + 1) + pad(t.getUTCDate()); };
