@@ -1721,7 +1721,12 @@
     var ls = (S.d.leads || []).filter(function (l) { return !l.owner && isOpenLead(l); }).sort(function (a, b) { return (b.ownAt || b.time) - (a.ownAt || a.time); });
     if (!ls.length) return '';
     var R = S.d.rules || {}, t0 = today(), got = (S.d.log || []).filter(function (l) { return l.by === S.user.name && l.what === 'Nhận khách' && l.time >= t0; }).length;
-    return '<section class="section"><details class="grp" data-grp="pool"' + (S.f.gopen && S.f.gopen.pool ? ' open' : '') + '><summary><span class="g-t">🧺 Kho chung – ai nhận cũng được</span><span class="count">' + ls.length + '</span><span class="g-tip">khách hỏi chưa ai chốt · đọc lịch sử rồi bấm ✋ Nhận' + (R.poolMax ? ' · hôm nay bạn đã nhận ' + got + ' / ' + R.poolMax : '') + '</span></summary><div class="list cols" style="padding:10px">' + capRows(ls, leadCard) + '</div></details></section>';
+    return '<section class="section"><details class="grp" data-grp="pool"' + (S.f.gopen && S.f.gopen.pool ? ' open' : '') + '><summary><span class="g-t">🧺 Kho chung – ai nhận cũng được</span><span class="count">' + ls.length + '</span><span class="g-tip">khách hỏi chưa ai chốt · đọc lịch sử rồi bấm ✋ Nhận' + (R.poolMax ? ' · hôm nay bạn đã nhận ' + got + ' / ' + R.poolMax : '') + '</span></summary>' + poolRuleBar() + '<div class="list cols" style="padding:10px">' + capRows(ls, leadCard) + '</div></details></section>';
+  }
+  /** 14/11/2026 (anh Sơn): dòng luật Kho chung + link trang hướng dẫn + nút góp ý luật, để sale xem lại và góp ý cải tiến. */
+  function poolRuleBar() {
+    var r = poolRuleLine(S.d.rules || {});
+    return '<div class="kc-rule"><span>📏 Về kho khi ' + esc(r || '(mốc đang tắt)') + ' · hẹn gọi lại ≤ 30 ngày thì giữ · khách tự tìm / giới thiệu không bao giờ về kho</span><span class="kc-rule-b"><a class="btn sm" href="/huong-dan/kho-chung/" target="_blank" rel="noopener">📖 Xem luật Kho chung</a><button type="button" class="btn sm" data-fbpool>💡 Góp ý luật</button></span></div>';
   }
   /** Quản lý: khách / khách hỏi chưa có người phụ trách → giao ngay tại chỗ. */
   function waitingBlock() {
@@ -2681,14 +2686,14 @@
       fr.readAsDataURL(file);
     });
   }
-  function openFeedback(tab) {
+  function openFeedback(tab, pre) { // pre: chữ điền sẵn vào ô nội dung (vd 'Luật Kho chung: '), chọn sẵn loại 💡 Ý tưởng
     tab = tab || 'send';
     var mgr = lvl() >= 2, here = route().view, imgs = [];
     var tabs = '<div class="chips" style="margin:0 0 12px"><button class="chip' + (tab === 'send' ? ' on' : '') + '" data-fbtab="send">✍️ Gửi góp ý</button><button class="chip' + (tab === 'list' ? ' on' : '') + '" data-fbtab="list">' + (mgr ? '📥 Danh sách góp ý' + (S.d.fbNew ? ' <em>' + S.d.fbNew + ' mới</em>' : '') : '📋 Góp ý của tôi') + '</button></div>';
     var body = tabs + (tab === 'send' ?
       '<p class="small muted" style="margin:0 0 10px">Gặp lỗi, chỗ khó dùng hay có ý tưởng? <b>Chụp màn hình</b> chỗ đó, rồi gửi kèm vài chữ. Máy tự ghi bạn đang ở màn hình nào.</p>' +
-      '<div class="radios" style="margin-bottom:10px">' + FB_KINDS.map(function (k, i) { return '<label><input type="radio" name="fbKind" value="' + k[1] + '"' + (i === 0 ? ' checked' : '') + '><span>' + k[0] + '</span></label>'; }).join('') + '</div>' +
-      '<label class="f"><span>Nội dung</span><textarea id="fbText" rows="4" placeholder="vd: Bấm KNM xong khách vẫn còn trong danh sách / Muốn có nút gửi tin Zalo hàng loạt…"></textarea></label>' +
+      '<div class="radios" style="margin-bottom:10px">' + FB_KINDS.map(function (k, i) { return '<label><input type="radio" name="fbKind" value="' + k[1] + '"' + (i === (pre ? 2 : 0) ? ' checked' : '') + '><span>' + k[0] + '</span></label>'; }).join('') + '</div>' +
+      '<label class="f"><span>Nội dung</span><textarea id="fbText" rows="4" placeholder="vd: Bấm KNM xong khách vẫn còn trong danh sách / Muốn có nút gửi tin Zalo hàng loạt…">' + esc(pre || '') + '</textarea></label>' +
       '<div class="f"><span style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--ink)">Ảnh chụp màn hình (tối đa 3)</span><div class="fb-imgs" id="fbImgs"></div>' +
       '<label class="btn" style="margin-top:6px">📷 Chọn ảnh<input type="file" id="fbFile" accept="image/*" multiple hidden></label> <span class="small muted">Trên máy tính: bấm Ctrl+V để dán ảnh</span></div><p class="err" id="fbErr"></p>'
       : '<div id="fbList"><p class="muted">Đang tải…</p></div>');
@@ -2699,7 +2704,7 @@
     var add = function (files) { Array.prototype.slice.call(files || []).filter(function (f) { return /^image\//.test(f.type); }).slice(0, 3 - imgs.length).forEach(function (f) { shrinkImage(f).then(function (src) { if (imgs.length < 3) { imgs.push(src); draw(); } }, function () { toast('Không đọc được ảnh này', true); }); }); };
     $('#fbFile', m).onchange = function () { add(this.files); this.value = ''; };
     m.addEventListener('paste', function (e) { var fs = []; Array.prototype.forEach.call((e.clipboardData || {}).items || [], function (it) { if (it.kind === 'file') fs.push(it.getAsFile()); }); if (fs.length) { e.preventDefault(); add(fs); } });
-    setTimeout(function () { $('#fbText', m).focus(); }, 50);
+    setTimeout(function () { var ta = $('#fbText', m); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }, 50);
     $('#fbSend', m).onclick = function () {
       var text = $('#fbText', m).value.trim(), err = $('#fbErr', m); if (!text && !imgs.length) { err.textContent = 'Bạn gõ vài chữ hoặc chọn ảnh giúp nhé.'; return; }
       var b = this; b.disabled = true; b.textContent = 'Đang gửi…';
@@ -3830,7 +3835,7 @@
       { v: ef.zl, n: 1, icon: '👥', t: 'Mời 1 khách vào nhóm Zalo cộng đồng', how: 'Bấm Mời: lời mời có link nhóm tự copy, Zalo của khách tự mở.', g: 'Công ty chăm khách mỗi ngày giúp bạn: khách trong nhóm tin hơn, mua lại nhiều hơn, đơn khách cũ của bạn tăng.', b: zlN ? '<button class="btn pri" data-commpick>Mời vào nhóm</button>' : none('khách đều đã vào nhóm') },
       { v: ef.old, n: 1, icon: '😴', t: 'Gọi lại 1 khách từng nói “Không mua”', how: 'Mở lời bằng lý do mới: sản phẩm mới, ưu đãi tháng này, hỏi thăm sức khoẻ.', g: 'Khách đã biết sản phẩm, chỉ là lúc trước chưa đúng lúc: dễ chốt hơn một số lạ.', b: idle.length ? '<button class="btn pri" data-gopen="idle">Gọi lại</button>' : none('chưa có khách tới lượt') }
     ];
-    if (isPoolStaff() && poolOn()) T.push({ v: ef.pool, n: 1, icon: '🧺', t: 'Nhận 1 số ở Kho chung', how: 'Đọc ghi chú người trước, bấm ✋ Nhận rồi gọi bằng cách khác.', g: 'Có thêm khách ngay hôm nay, không phải chờ số quảng cáo. Ai chốt người đó được doanh số.', b: pool ? '<button class="btn pri" data-gopen="pool">Nhận số</button>' : none('kho đang trống') });
+    if (isPoolStaff() && poolOn()) T.push({ v: ef.pool, n: 1, icon: '🧺', t: 'Nhận 1 số ở Kho chung', how: 'Đọc ghi chú người trước, bấm ✋ Nhận rồi gọi bằng cách khác. <a href="/huong-dan/kho-chung/" target="_blank" rel="noopener">📖 Luật Kho chung</a> · <button type="button" class="kc-lnk" data-fbpool>💡 Góp ý luật</button>', g: 'Có thêm khách ngay hôm nay, không phải chờ số quảng cáo. Ai chốt người đó được doanh số.', b: pool ? '<button class="btn pri" data-gopen="pool">Nhận số</button>' : none('kho đang trống') });
     T.push({ v: ef.fb, n: 1, icon: '📣', t: 'Đăng 1 bài lên Facebook cá nhân hoặc hội nhóm', how: 'Bài viết sẵn: Copy bài → đăng, rồi bình luận câu có link riêng của bạn.', g: 'Bạn bè, người trong nhóm thấy và hỏi bạn: khách tự tìm đến, đặt qua link riêng trong 30 ngày thì đơn tính cho bạn.', b: '<button class="btn pri" data-spf="sale">Xem bài & cách đăng</button>' });
     var done = growDone(ef);
     var row = function (x, i) { var ok = x.v >= x.n; return '<div class="gr-row' + (ok ? ' ok' : '') + '"><span class="gr-n">' + (ok ? '✓' : i + 1) + '</span><span class="gr-b"><b>' + x.icon + ' ' + x.t + '</b><small>' + x.how + '</small><small class="gr-g">💰 ' + x.g + '</small></span><span class="gr-p">' + (ok ? 'Xong' : Math.min(x.v, x.n) + '/' + x.n) + '</span><span class="gr-a">' + (ok ? '' : x.b) + '</span></div>'; };
@@ -13925,7 +13930,7 @@
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-gmore]'); if (!b) return; var r = b.previousElementSibling; if (r) r.hidden = false; b.remove(); });
   document.addEventListener('toggle', function (e) { var d = e.target; if (d && d.matches && d.matches('details[data-grp]')) { S.f.gopen = S.f.gopen || {}; S.f.gopen[d.getAttribute('data-grp')] = d.open; } }, true);
   document.addEventListener('click', function (e) {
-    var t = e.target.closest('[data-gopen],[data-recon],[data-otab],[data-per],[data-pq],[data-promo],[data-occ],[data-rf],[data-vipgo],[data-stopgo],[data-stop],[data-taghelp],[data-consent],[data-daily],[data-usage],[data-flow],[data-tdf],[data-zalo],[data-quick],[data-care],[data-next],[data-neworder],[data-cf],[data-os],[data-och],[data-tf],[data-cat],[data-addtag],[data-deltag],[data-claim],[data-bcdt],[data-srcadd],[data-srcedit],[data-srcsync],[data-srcdel],[data-adsedit],[data-adssync],[data-who],[data-target],[data-race],[data-offer],[data-myold],[data-more],[data-add],[data-rm],[data-consult],[data-leadorder],[data-newlead],[data-commpick],[data-editlead],[data-leaddel],[data-cust],[data-order],[data-lead]');
+    var t = e.target.closest('[data-fbpool],[data-gopen],[data-recon],[data-otab],[data-per],[data-pq],[data-promo],[data-occ],[data-rf],[data-vipgo],[data-stopgo],[data-stop],[data-taghelp],[data-consent],[data-daily],[data-usage],[data-flow],[data-tdf],[data-zalo],[data-quick],[data-care],[data-next],[data-neworder],[data-cf],[data-os],[data-och],[data-tf],[data-cat],[data-addtag],[data-deltag],[data-claim],[data-bcdt],[data-srcadd],[data-srcedit],[data-srcsync],[data-srcdel],[data-adsedit],[data-adssync],[data-who],[data-target],[data-race],[data-offer],[data-myold],[data-more],[data-add],[data-rm],[data-consult],[data-leadorder],[data-newlead],[data-commpick],[data-editlead],[data-leaddel],[data-cust],[data-order],[data-lead]');
     if (!t || !S.d) return;
     if (e.target.closest('a[href]') && !t.hasAttribute('data-myold')) return; // nút gọi / Zalo bên trong thẻ
     if (e.target.closest('select[data-oassign]')) return; // ô “Giao cho…” trên dòng đơn: không mở hộp đơn
@@ -13957,6 +13962,7 @@
     if (t.hasAttribute('data-srcdel')) { if (confirm('Xoá cấu hình file này? Dữ liệu đã nhập vào CRM vẫn giữ nguyên.')) api('src_delete', { id: a('data-srcdel') }).then(function () { toast('Đã xoá'); load(true); }, function (e) { toast(e.message, true); }); return; }
     if (t.hasAttribute('data-adsedit')) { openAds(); return; }
     if (t.hasAttribute('data-adssync')) { runAds(a('data-adssync') === 'dry', t); return; }
+    if (t.hasAttribute('data-fbpool')) { openFeedback('send', 'Luật Kho chung: '); return; } // 14/11/2026: sale góp ý luật Kho chung (ô nội dung điền sẵn chữ đầu)
     if (t.hasAttribute('data-gopen')) { // nhảy tới 1 nhóm trên trang (Kho chung, khách hỏi cũ, mục 🌱) và mở ra
       var gk = a('data-gopen'), gd = $('[data-grp="' + gk + '"]'); if (gd) { if (gd.tagName === 'DETAILS') gd.open = true; for (var pd = gd.parentElement && gd.parentElement.closest('details'); pd; pd = pd.parentElement && pd.parentElement.closest('details')) pd.open = true; gd.scrollIntoView({ behavior: 'smooth', block: 'start' }); } return;
     }

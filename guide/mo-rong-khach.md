@@ -84,6 +84,8 @@ Bấm **Nhận số**. Đây là số bạn khác chưa chốt được.
 1. **Đọc ghi chú** của người trước (đã gọi mấy lần, khách thích gì).
 2. Bấm **✋ Nhận khách này**, rồi gọi bằng cách khác người trước: nhắn Zalo thay vì gọi, đổi giờ gọi.
 
+Khi nào số về kho, số nào không bao giờ về kho: xem **[Luật Kho chung](/huong-dan/kho-chung/)**.
+
 Mỗi ngày nhận tối đa **10 số**. **Ai chốt người đó được doanh số.** Số mình không hợp thì mở khách hỏi đó, bấm **🧺 Trả số này về Kho chung** và ghi lý do.
 
 ## Khi khách đọc số bạn bè: Thêm khách được giới thiệu

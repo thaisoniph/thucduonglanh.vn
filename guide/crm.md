@@ -266,7 +266,7 @@ Khách để lại số trên web hay quảng cáo thì **tự vào đây**, b�
 
 > **Khách mới hỏi rất dễ chốt.** Mục **🔥 Khách vừa hỏi** ở tab Hôm nay là người vừa hỏi trong 24 giờ. Gọi ngay khi thấy.
 
-**Khách hỏi không được chăm thì về Kho chung (từ 09/11/2026, đổi luật 11/11/2026):**
+**Khách hỏi không được chăm thì về Kho chung (từ 09/11/2026, đổi luật 11/11/2026):** tóm tắt 1 trang dễ đọc + cách góp ý luật ở **[Luật Kho chung](/huong-dan/kho-chung/)**.
 
 > ✅ **Bật từ 13/11/2026.** Mốc đang áp dụng: **2 ngày** chưa liên hệ · **10 ngày** không chăm lại · giữ tối đa **30 ngày**. Mỗi người nhận tối đa **10 số/ngày** từ kho. Muốn giữ số thì nhớ ghi **💬 Tư vấn** sau mỗi lần gọi, nhắn.
 
