@@ -1109,7 +1109,7 @@
     var el = $('#view');
     var focusId = document.activeElement && document.activeElement.id, selStart = document.activeElement && document.activeElement.selectionStart;
     el.innerHTML = ({ 'hom-nay': viewToday, 'khach-hang': viewCustomers, 'don-hang': viewOrders, 'tiem-nang': viewLeads, 'bao-cao': viewReport, 'cai-dat': viewSettings, 'tong-quan': viewDash, san: viewSan, marketing: viewMkt, 'link-qr': viewLinks, 'tro-ly-zalo': viewZbot, fanpage: viewFp, 'bai-web': viewBlog, 'noi-dung': viewIns, 'hoi-so-lieu': viewAsk, kho: viewKho, 'ke-toan': viewKtab, them: viewMore })[v]();
-    if (v === homeView()) { btMount(el); vhMount(el); tbMount(el); hiwMount(el); } // ☀️ lời chào + lời chúc mỗi ngày nằm trên cùng // 🌿 Quy tắc của ngày + 📢 Thông báo (nằm trên) ở đầu màn hình đầu tiên của mỗi người
+    if (v === homeView()) { btMount(el); vhMount(el); tbMount(el); hiwMount(el); goalNag(); } // ☀️ lời chào + lời chúc mỗi ngày nằm trên cùng // 🌿 Quy tắc của ngày + 📢 Thông báo (nằm trên) ở đầu màn hình đầu tiên của mỗi người
     el.insertAdjacentHTML('beforeend', updatedLine());
     if (focusId && $('#' + focusId)) { var f = $('#' + focusId); f.focus(); try { f.setSelectionRange(selStart, selStart); } catch (e) { } }
     if (keepScroll) window.scrollTo(0, y); else window.scrollTo(0, 0);
@@ -11125,23 +11125,37 @@
   }
 
   /** Đặt / sửa mục tiêu doanh số tháng. */
-  function openTarget(name, month) {
-    var t = targetOf(name, month), last = perf(name, monthRange(shiftMonth(month, -1))).sales;
-    var body = '<div class="box"><p style="margin:0 0 10px">Mục tiêu doanh số <b>' + monthLabel(month) + '</b> của <b>' + esc(name) + '</b>.</p>' +
-      '<label class="f"><span>Số tiền (gõ số, ví dụ 30000000 hoặc 30tr)</span><input type="text" id="tgAmt" inputmode="decimal" value="' + (t ? t.amount : '') + '" autocomplete="off"></label>' +
+  // 14/11/2026 anh Sơn: mỗi sale TỰ đặt mục tiêu từ đầu tháng; chưa đặt thì mỗi lần mở CRM hiện hộp nhắc. Mức thấp nhất = max(100 triệu công ty yêu cầu, thực tế tháng trước +10%).
+  var TG_MIN = 100e6, TG_ROLE = 'Sale & CSKH';
+  function tgFloor(last) { return Math.max(TG_MIN, Math.ceil(last * 1.1 / 1e6) * 1e6); }
+  function tgSug(last, k) { return Math.max(TG_MIN, Math.ceil(last * k / 1e6) * 1e6); }
+  function goalNag() { // gọi sau mỗi lần vẽ màn hình đầu: 1 lần / lần mở CRM
+    if (S.tgNag || S.stale || !S.user || S.user.role !== TG_ROLE || lvl() >= 2) return;
+    var mk = monthOf(Date.now()), t = targetOf(S.user.name, mk); if (t && t.amount) return;
+    S.tgNag = 1; setTimeout(function () { if ($('.modal')) { S.tgNag = 0; return; } openTarget(S.user.name, mk, true); }, 900);
+  }
+  function openTarget(name, month, nag) {
+    var t = targetOf(name, month), last = perf(name, monthRange(shiftMonth(month, -1))).sales, self = name === S.user.name && lvl() < 2, floor = tgFloor(last);
+    var sug = [[1.1, '+10%'], [1.15, '+15%'], [1.2, '+20%']].map(function (x) { var v = tgSug(last, x[0]); return '<button class="btn ghost sm" type="button" data-tgv="' + v + '">' + moneyShort(v) + ' <small>(' + (v > Math.ceil(last * x[0] / 1e6) * 1e6 ? 'mức tối thiểu' : x[1]) + ')</small></button>'; });
+    var body = '<div class="box">' + (nag ? '<p class="notice" style="margin:0 0 10px">🎯 Bạn chưa đặt <b>mục tiêu doanh số ' + monthLabel(month) + '</b>. Đặt ngay để vào bảng thi đua và CRM tính giúp mỗi ngày cần bán bao nhiêu.</p>' : '') +
+      '<p style="margin:0 0 10px">Mục tiêu doanh số <b>' + monthLabel(month) + '</b> của <b>' + esc(name) + '</b>.</p>' +
+      '<p class="hint" style="margin:0 0 8px">Tháng trước đạt: <b>' + money(last) + '</b> (không tính đơn huỷ / hoàn).<br>Mức thấp nhất: <b>' + money(floor) + '</b> = cao hơn trong 2 mức: công ty yêu cầu tối thiểu <b>100 triệu</b>, hoặc tháng trước +10%.</p>' +
+      '<p class="hint" style="margin:0 0 6px">Bấm chọn nhanh:</p><div class="chips" style="margin-bottom:10px">' + sug.join('') + '</div>' +
+      '<label class="f"><span>Hoặc gõ số khác (ví dụ 120000000 hoặc 120tr)</span><input type="text" id="tgAmt" inputmode="decimal" value="' + (t && t.amount ? t.amount : '') + '" autocomplete="off"></label>' +
       '<p class="hint" id="tgShow"></p>' +
-      (last ? '<p class="hint">Tháng trước đạt: <b>' + money(last) + '</b>. <button class="btn ghost" id="tgSame" type="button">Lấy bằng tháng trước +10%</button></p>' : '') +
       (selfOn() ? '<label class="f" style="margin-top:10px"><span>🙋 Khách tự tạo trong tháng (số khách, 0 = không đặt)</span><input type="number" id="tgSelf" min="0" max="999" value="' + (t && t.selfN ? t.selfN : '') + '" placeholder="vd 8"></label>' +
       '<p class="hint">Khách tự tạo = khách hỏi bạn <b>tự thêm</b> (không từ quảng cáo) + khách do <b>khách cũ của bạn giới thiệu</b>. Ví dụ 8 = mỗi tuần 2 khách. Có khách tự tạo thì không lo quảng cáo hết số.</p>' : '') +
       (t && t.by ? '<p class="small muted">Lần sửa gần nhất: ' + esc(t.by) + (t.at ? ', ' + fDateTime(t.at) : '') + '</p>' : '') + '<p class="err" id="tgErr"></p></div>';
-    var m = modal('🎯 Mục tiêu ' + monthLabel(month), body, '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="tgSave">Lưu mục tiêu</button>');
+    var m = modal('🎯 Mục tiêu ' + monthLabel(month), body, '<button class="btn" data-close>' + (nag ? 'Để lát nữa' : 'Huỷ') + '</button><button class="btn pri" id="tgSave">Lưu mục tiêu</button>');
     var inp = $('#tgAmt', m), show = $('#tgShow', m);
     function val() { return moneyIn(inp.value); }
-    function upd() { var v = val(); show.innerHTML = v ? '= <b>' + money(v) + '</b>' : ''; }
+    function upd() { var v = val(); show.innerHTML = v ? '= <b>' + money(v) + '</b>' + (v < floor ? ' <span style="color:#b42318">· thấp hơn mức tối thiểu ' + moneyShort(floor) + '</span>' : '') : ''; }
     inp.addEventListener('input', upd); upd(); setTimeout(function () { inp.focus(); inp.select(); }, 60);
-    if ($('#tgSame', m)) $('#tgSame', m).onclick = function () { inp.value = Math.round(last * 1.1 / 1e5) * 1e5; upd(); };
+    $$('[data-tgv]', m).forEach(function (b) { b.onclick = function () { inp.value = b.getAttribute('data-tgv'); upd(); }; });
     $('#tgSave', m).onclick = function () {
       var v = val(), err = $('#tgErr', m); if (!v) { err.textContent = 'Nhập số tiền mục tiêu giúp em nhé.'; return; }
+      if (v < floor && self) { err.textContent = 'Mục tiêu cần từ ' + money(floor) + ' trở lên (công ty yêu cầu tối thiểu 100 triệu, và cao hơn tháng trước ít nhất 10%).'; return; }
+      if (v < floor && !confirm('Mục tiêu này thấp hơn mức tối thiểu ' + money(floor) + '. Quản lý vẫn lưu?')) return;
       var btn = this; btn.disabled = true; btn.textContent = 'Đang lưu…';
       var sn = $('#tgSelf', m) ? Math.max(0, Math.round(Number($('#tgSelf', m).value) || 0)) : (t && t.selfN) || 0;
       api('target', { month: month, name: name, amount: v, selfN: $('#tgSelf', m) ? sn : undefined }).then(function () {

@@ -711,7 +711,8 @@ async function crmRace(x, u) {
   const a0 = Math.min(w0, m0), a1 = Math.max(w0 + 7 * DAY, m1);
   const ads = ((await kvJson(x.db, 'ads_rows', [])) || []).map(a => [Number(a[0]) || 0, normPhone(a[1]), String(a[2] || '')]).filter(a => a[1] && a[0] >= a0 && a[0] < a1);
   const adPh = [...new Set(ads.map(a => a[1]))];
-  const [os, tg, ao, al, ownRows] = await Promise.all([
+  // 14/11/2026 sửa lỗi: từ 10/11 thứ tự tên bên trái lệch với thứ tự câu truy vấn (thêm ownRows ở giữa) → mục tiêu đọc nhầm = 0, tỷ lệ chốt luôn 0%, khách tự mang về luôn 0
+  const [os, ownRows, tg, ao, al] = await Promise.all([
     all(x.db, `SELECT o.seller, o.time, o.total, o.phone, c.first FROM orders o LEFT JOIN customers c ON c.phone = o.phone WHERE o.time >= ? AND ${VOID.replace(/status/g, 'o.status')}`, from),
     all(x.db, "SELECT own_by, own_at FROM customers WHERE own_src IN ('self', 'ref') AND own_at >= ?", from).catch(() => []), // 🙋 khách tự mang về (10/11/2026)
     all(x.db, 'SELECT name, amount FROM targets WHERE month = ?', mk),
@@ -2031,6 +2032,12 @@ async function crmTarget(x, u, d) {
   if (!/^\d{4}-\d{2}$/.test(month)) return { ok: false, error: 'Tháng không hợp lệ.' };
   if (amount < 0 || amount > 1e11) return { ok: false, error: 'Số tiền chưa đúng.' };
   if (name !== u.name && u.level < 2) return { ok: false, error: 'Bạn chỉ đặt được mục tiêu của mình.' };
+  if (u.level < 2) { // 14/11/2026 anh Sơn: sale tự đặt ≥ max(100 triệu, thực tế tháng trước +10%); quản lý đặt hộ thì không chặn
+    const y = +month.slice(0, 4), mo = +month.slice(5, 7) - 1, p0 = Date.UTC(y, mo - 1, 1) - TZ_MS, p1 = Date.UTC(y, mo, 1) - TZ_MS;
+    const pr = await first(x.db, "SELECT coalesce(sum(total), 0) AS s FROM orders WHERE seller = ? AND time >= ? AND time < ? AND status NOT LIKE '%uỷ%' AND status NOT LIKE '%ủy%' AND status NOT LIKE '%oàn%'", name, p0, p1);
+    const floor = Math.max(100e6, Math.ceil((Number(pr && pr.s) || 0) * 1.1 / 1e6) * 1e6);
+    if (amount < floor) return { ok: false, error: 'Mục tiêu cần từ ' + fmt(floor) + ' trở lên (công ty yêu cầu tối thiểu 100 triệu, và cao hơn tháng trước ít nhất 10%).' };
+  }
   const selfN = d.selfN === undefined || d.selfN === null || d.selfN === '' ? null : Math.min(999, Math.max(0, Math.round(Number(d.selfN) || 0))); // 🙋 khách tự tạo / tháng (null = giữ số cũ)
   const old = await first(x.db, 'SELECT amount, self_n FROM targets WHERE month = ? AND name = ?', month, name);
   await run(x.db, 'INSERT INTO targets (month, name, amount, by_name, at, self_n) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(month, name) DO UPDATE SET amount = excluded.amount, by_name = excluded.by_name, at = excluded.at, self_n = coalesce(excluded.self_n, targets.self_n)', month, name, amount, u.name, Date.now(), selfN);
