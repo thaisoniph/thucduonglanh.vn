@@ -2787,3 +2787,26 @@ button.inx-todo-r:hover > span { text-decoration: underline; }
 .nsv-d { margin: 6px 0 12px; } .nsv-d summary { cursor: pointer; font-weight: 700; padding: 6px 0; }
 .nsv-set { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; }
 @media (max-width: 520px) { .nsv-lg { grid-template-columns: 1fr; } .nsv-lg b { display: inline; margin-right: 4px; } }
+
+/* 📊 Đợt phát động mở rộng khách (15/11/2026) */
+.camp-lead { margin: 0 0 6px; }
+.camp-sum span b { font-size: 19px; }
+.camp-t { border-collapse: collapse; width: 100%; font-size: 13px; min-width: 760px; }
+.camp-t th, .camp-t td { border: 1px solid var(--line); padding: 6px 7px; text-align: center; vertical-align: middle; }
+.camp-t th { font-weight: 600; font-size: 12px; background: var(--card, #fff); }
+.camp-t th small, .camp-t td small { display: block; color: var(--muted); font-size: 11px; font-weight: 400; }
+.camp-t th.g1 { background: #eef6ff; } .camp-t th.g2 { background: #f0f8ef; } .camp-t th.g3 { background: #fff6e8; }
+.camp-t td.nm { text-align: left; font-weight: 600; white-space: nowrap; }
+.camp-t td.z { color: var(--muted); background: rgba(0, 0, 0, .025); }
+.camp-t td.ok { color: #1e7d3c; font-weight: 600; }
+.camp-t tr.bad td.nm { color: #c0392b; }
+.camp-bars { display: flex; gap: 6px; align-items: flex-end; overflow-x: auto; padding: 4px 0 8px; }
+.camp-bar { display: flex; flex-direction: column; align-items: center; min-width: 42px; font-size: 12px; }
+.camp-bar i { display: block; width: 22px; background: #34a853; border-radius: 4px 4px 0 0; margin: 2px 0; }
+.camp-bar small { color: var(--muted); } .camp-bar em { font-style: normal; font-size: 11px; color: var(--muted); }
+.camp-eff { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; margin: 0 0 12px; }
+.camp-eff > div { background: var(--card, #fff); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; font-size: 14px; line-height: 1.35; }
+.camp-eff > div > b, .camp-eff > div > span, .camp-eff > div > small { display: block; } .camp-eff small { color: var(--muted); font-size: 12px; margin-top: 2px; }
+.camp-tip { background: #fff8e6; border: 1px solid #f3d27a; border-radius: 10px; padding: 8px 12px; margin: 0 0 12px; }
+.camp-tip p { margin: 4px 0 0; }
+.camp-act { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }

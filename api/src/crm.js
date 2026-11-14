@@ -29,6 +29,7 @@ import { guideAsk, guideAskList } from './guideask.js';
 import { vhToday, vhAck, vhAdmin, vhSave, vhWishSave } from './vanhoa.js';
 import { dobNorm } from './loichuc.js'; // 🎂 ngày sinh nhân sự (14/11/2026)
 import { crmTb } from './thongbao.js';
+import { crmCamp } from './camp.js';
 import { crmGv } from './giaoviec.js';
 import { crmBt } from './bangtin.js';
 import { aiUsage, aiFund } from './aiuse.js';
@@ -2589,6 +2590,7 @@ export async function crmApi(x, d, sync, mgr) {
   x.user = u;
   if (a === 'logout') { await run(x.db, 'DELETE FROM sessions WHERE token = ?', d.token); return { ok: true }; }
   if (/^gv_/.test(a)) return crmGv(x, u, d); // ✅ Giao việc (giaoviec.js, 14/11/2026): mọi vai trò, quyền kiểm trong giaoviec.js
+  if (a === 'camp_view') return crmCamp(x, u); // 📊 Đợt phát động mở rộng khách (camp.js, 15/11/2026): chỉ Quản lý / Quản trị
   if (/^tb_/.test(a)) return crmTb(x, u, d); // 📢 Thông báo nội bộ (thongbao.js): mọi vai trò đều đọc được
   if (/^bt_/.test(a)) return crmBt(x, u, d); // 📣 Bảng tin vui đồng đội (bangtin.js, 14/11/2026): mọi vai trò
   if (a === 'guide_me') return { ok: true, me: publicUser(u) }; // 📖 trang hướng dẫn (guide.js) hỏi vai trò để chỉ hiện phần của vai trò đó; mọi vai trò đều gọi được

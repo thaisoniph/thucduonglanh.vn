@@ -25,6 +25,7 @@ Trang này dành cho **Quản lý** và **Quản trị**. Bạn nên biết các
 
 **Mỗi tuần:**
 
+- Từ 14/11 đến 30/11/2026: xem [📊 Đợt phát động mở rộng khách](#dot-phat-dong-mo-rong-khach-14-11-30-11-2026): ai đã làm, làm những gì, ra bao nhiêu khách.
 - Thứ Hai: gọi xác minh 2 khách 🙋 / sale máy chọn sẵn ([xem](#hoa-hong-khach-sale-tu-mang-ve-6-trong-6-thang-thuong-tien-tu-13-11-2026)).
 - Xem đơn [⚠️ Kiểm tra loại đơn](#kiem-tra-loai-don) và thẻ 🔴 ở [🤖 Đội nhân sự AI](#doi-nhan-su-ai-14-11-2026).
 
@@ -35,6 +36,22 @@ Trang này dành cho **Quản lý** và **Quản trị**. Bạn nên biết các
 - Trả tiền CTV ở [💰 Đơn & đối soát](#cong-tac-vien-va-doi-tac).
 
 **Khi có người mới / nghỉ việc:** [thêm nhân sự, chuyển khách](#giao-khach-va-chuyen-khach).
+
+## 📊 Đợt phát động mở rộng khách (14/11 – 30/11/2026)
+
+> **Mỗi tuần chỉ cần:** mở khung này → khen người làm tốt → hỏi riêng người chưa làm.
+
+**Mở ở đâu:** Quản lý mở tab **Hiệu quả**, khung nằm trên cùng. Quản trị mở **Tổng quan → 🔎 Xem chi tiết từng phần → 📊 Đợt phát động mở rộng khách**.
+
+**Mỗi sale có 1 dòng, đọc từ trái qua phải:**
+
+1. **Hưởng ứng:** đã bấm ✅ đọc thông báo chưa, có làm bao nhiêu ngày trên tổng số ngày làm việc (thứ 2 – thứ 7). 🟢 làm từ 70% số ngày · 🟡 có làm nhưng chưa đều · 🔴 chưa làm ngày nào.
+2. **Đã làm:** tổng số lần mời giới thiệu, mời nhóm Zalo, gọi lại khách "Không mua", nhận số Kho chung, đăng bài Facebook trong cả đợt.
+3. **Kết quả:** khách được giới thiệu (mục tiêu 4), khách tự tìm (mục tiêu 2), số khách mới đã mua.
+
+**Bên dưới có:** cột số việc cả nhóm mỗi ngày (tinh thần đang lên hay xuống), **🎯 Việc nào ra kết quả** (để dồn sức vào việc hiệu quả), **👉 Nên làm** (khen ai, hỏi ai, nhắc ai đọc thông báo) và nút **📋 Copy tóm tắt gửi nhóm** (không ghi số tiền từng người).
+
+Số lấy thẳng trên máy chủ, cách tính giống khung 🌱 trên tab Hôm nay của sale. Không cần sale bấm thêm gì.
 
 ## Bạn muốn làm gì?
 

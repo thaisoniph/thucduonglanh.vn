@@ -4992,6 +4992,133 @@
     return h + '<p class="small muted">Số tự cập nhật khi có đơn mới và khi kế toán tải file tháng mới. Doanh số CRM có VAT nên cao hơn số kế toán khoảng ' + Math.round((D.vat - 1) * 100) + '%; máy đã quy đổi. Lương + BHXH trong số kế toán là của cả công ty.</p></div>';
   }
   function rpmLine() { var D = rpmData(rpmN()), sm = D.sm; return D.n + ' tháng: TB ' + moneyShort(D.ds / D.n) + ' / tháng' + (sm.kN ? ' · ' + (sm.pr < 0 ? 'lỗ' : 'lãi') + ' TB ' + moneyShort(Math.abs(sm.pr / sm.kN)) : '') + (D.kpi ? ' · KPI đề xuất ' + moneyShort(D.kpi) + ' / sale' : ''); }
+  /* ---------- 📊 Đợt phát động mở rộng khách 14/11 → 30/11/2026 (15/11/2026, anh Sơn: "xem các sale đã triển khai được những phần gì để đánh giá mức độ hưởng ứng phát động của công ty và việc chị em làm thực tế").
+   * Quản trị: Tổng quan → 🔎 mục 📊 · Quản lý: đầu tab Hiệu quả. Số thô lấy từ máy chủ (api camp_view, camp.js) vì CRM chỉ tải 6000 dòng nhật ký gần nhất.
+   * 3 tầng mỗi sale: 1) có hưởng ứng không (đã đọc thông báo, số ngày có làm / ngày làm việc, đèn) 2) làm những gì (tổng 5 việc) 3) ra kết quả gì (khách mới so với 4 giới thiệu + 2 tự tìm, khách mới đã mua, doanh số).
+   * Mỗi ngày tính như khung 🌱 của sale (growDone): mời giới thiệu cần 2, mỗi việc khác 1, làm dư / tự thêm khách bù cho việc thiếu, tối đa 5. Chủ nhật nghỉ, không tính ngày làm việc (vẫn cộng việc nếu có làm). */
+  var CAMP = { d: null, busy: false, at: 0, err: '', open: store('camp_open') === '1' }, CAMP_NEED = { inv: 2, zl: 1, old: 1, pool: 1, fb: 1 }, CAMP_GOAL = { ref: 4, self: 2 };
+  document.addEventListener('toggle', function (e) { var d = e.target; if (d && d.id === 'dm-camp') { CAMP.open = d.open; store('camp_open', d.open ? '1' : null); if (d.open && !CAMP.d) campLoad(); } }, true);
+  function campLoad() {
+    if (CAMP.busy || (CAMP.d && Date.now() - CAMP.at < 300e3)) return; CAMP.busy = true;
+    api('camp_view', {}).then(function (j) { CAMP.busy = false; CAMP.at = Date.now(); if (j && j.ok) { CAMP.d = j; CAMP.err = ''; } else CAMP.err = (j && j.error) || 'Máy chủ chưa có số đợt phát động.'; campPaint(); },
+      function () { CAMP.busy = false; CAMP.at = Date.now(); CAMP.err = 'Chưa tải được, thử ↻ Cập nhật số.'; campPaint(); });
+  }
+  function campPaint() { var b = $('#dm-camp'); if (!b) return; var s = $('summary > span', b), x = $('.dash-more-b', b); if (s) s.innerHTML = campLine(); if (x) x.innerHTML = campHtml(); }
+  function campOn() { return lvl() >= 2 && !isMkt() && Date.now() < Date.UTC(2026, 11, 15); } // hiện tới 15/12/2026 để còn nhìn lại sau khi đợt kết thúc
+  function campBox() {
+    if (!campOn()) return '';
+    if (CAMP.open || !CAMP.d) campLoad();
+    return '<details class="dash-more camp-box" id="dm-camp"' + (CAMP.open ? ' open' : '') + '><summary><b>📊 Đợt phát động mở rộng khách (14/11 – 30/11)</b><span>' + campLine() + '</span></summary><div class="dash-more-b">' + campHtml() + '</div></details>';
+  }
+  /** Ngày làm việc (thứ 2–7) từ đầu đợt tới hôm nay. */
+  function campDays(D) { var L = [], d = dayStart(D.from), end = Math.min(today(), dayStart(D.to - 1)); for (; d <= end; d += DAY) { if (new Date(d + 7 * 3600e3).getUTCDay() !== 0) L.push(d); } return L; }
+  function campCalc() {
+    var D = CAMP.d; if (!D) return null;
+    var days = campDays(D), P = {}, phDay = {}, invAt = {}, act = { zl: [], old: [], pool: [] };
+    D.sales.forEach(function (s) { P[s.name] = { name: s.name, role: s.role, day: {}, inv: 0, zl: 0, old: 0, pool: 0, fb: 0, self: 0, ref: 0, own: 0, buy: 0, rev: 0, invHit: 0, read: null }; });
+    var dayOf = function (p, t) { var k = dayStart(t); return p.day[k] || (p.day[k] = { inv: 0, zl: 0, old: 0, pool: 0, fb: 0, self: 0 }); };
+    var K = { 'Mời giới thiệu': 'inv', 'Mời nhóm Zalo': 'zl', 'Gọi lại khách cũ': 'old', 'Nhận khách': 'pool', 'Đăng bài FB': 'fb' };
+    D.logs.forEach(function (l) {
+      var p = P[l[1]], k = K[l[2]]; if (!p || !k) return;
+      var u = l[1] + '|' + k + '|' + dayStart(l[0]) + '|' + (k === 'fb' ? l[4] : k === 'inv' || k === 'zl' ? l[3] : Math.random()); // như effortStats: mời 1 khách / ngày tính 1 lần, mỗi bài FB / ngày 1 lần
+      if (phDay[u]) return; phDay[u] = 1;
+      dayOf(p, l[0])[k]++; p[k]++;
+      if (k === 'inv' && l[3]) { var ph = normPhone(l[3]); if (!invAt[ph] || invAt[ph].t > l[0]) invAt[ph] = { t: l[0], by: l[1] }; }
+      if (act[k] && l[3]) act[k].push({ ph: normPhone(l[3]), t: l[0] });
+    });
+    // khách mới trong đợt: được giới thiệu (người giữ = sale) hoặc sale tự thêm (không phải quảng cáo / file), như selfMade
+    var nw = {}, refFr = {};
+    D.leads.forEach(function (r) {
+      var lead = { time: r[0], phone: r[1], by: r[2], owner: r[3], channel: r[4], how: r[5], refPhone: r[6], refName: r[7] };
+      if (lead.refPhone) { var rp = normPhone(lead.refPhone), iv = invAt[rp]; if (iv && iv.t <= lead.time) { refFr[normPhone(lead.phone)] = lead.time; if (P[iv.by]) P[iv.by].invHit++; } }
+      var p = null, kind = '';
+      if (lead.refPhone || lead.refName) { p = P[lead.owner]; kind = 'ref'; } else if (selfLead(lead)) { p = P[lead.by]; kind = 'self'; }
+      if (lead.by && !/^File/.test(lead.channel || '') && P[lead.by]) dayOf(P[lead.by], lead.time).self++; // việc "tự thêm khách" trong ngày (như effortStats)
+      if (!p) return; p[kind]++;
+      var ph = normPhone(lead.phone); if (ph && !nw[ph]) nw[ph] = { t: lead.time, p: p };
+    });
+    var ord = D.orders.map(function (o) { return { t: o[0], ph: normPhone(o[1]), v: o[2] }; });
+    var bought = function (ph, t) { var v = 0, n = 0; ord.forEach(function (o) { if (o.ph === ph && o.t >= t) { n++; v += o.v; } }); return { n: n, v: v }; };
+    Object.keys(nw).forEach(function (ph) { var b = bought(ph, nw[ph].t - DAY); if (b.n) { nw[ph].p.buy++; nw[ph].p.rev += b.v; } });
+    // ngày: số việc như khung 🌱 (growDone) với số cần cố định
+    var rows = D.sales.map(function (s) {
+      var p = P[s.name], aD = 0, fD = 0;
+      p.done = {}; Object.keys(p.day).forEach(function (k) { var e = p.day[k], ok = 0, ex = e.self; Object.keys(CAMP_NEED).forEach(function (j) { var v = e[j] || 0; if (v >= CAMP_NEED[j]) { ok++; ex += v - CAMP_NEED[j]; } }); p.done[k] = Math.min(5, ok + ex); });
+      days.forEach(function (d) { var n = p.done[d] || 0, e = p.day[d], any = e && (e.inv + e.zl + e.old + e.pool + e.fb + e.self); if (any) aD++; if (n >= 5) fD++; });
+      p.aD = aD; p.fD = fD; p.tot = p.inv + p.zl + p.old + p.pool + p.fb; p.own = p.ref + p.self;
+      p.lv = !days.length ? 'mid' : aD === 0 ? 'bad' : aD / days.length >= 0.7 ? 'ok' : 'mid';
+      return p;
+    });
+    var rd = {}; (D.read || []).forEach(function (r) { rd[r.n] = r.at; }); rows.forEach(function (p) { p.read = rd[p.name] || null; });
+    rows.sort(function (a, b) { return (b.own - a.own) || (b.aD - a.aD) || (b.tot - a.tot); });
+    // việc nào ra kết quả (cả nhóm)
+    var hit = function (L) { var seen = {}, n = 0, b = 0, v = 0; L.forEach(function (x) { if (!x.ph || seen[x.ph]) return; seen[x.ph] = 1; n++; var r = bought(x.ph, x.t); if (r.n) { b++; v += r.v; } }); return { n: n, b: b, v: v }; };
+    var invN = 0, frN = Object.keys(refFr).length, frB = 0, frV = 0; rows.forEach(function (p) { invN += p.inv; });
+    Object.keys(refFr).forEach(function (ph) { var r = bought(ph, refFr[ph]); if (r.n) { frB++; frV += r.v; } });
+    var T = { inv: { n: invN, k: frN, b: frB, v: frV }, zl: hit(act.zl), old: hit(act.old), pool: hit(act.pool), fb: 0 };
+    rows.forEach(function (p) { T.fb += p.fb; });
+    var team = days.map(function (d) { var n = 0, w = 0; rows.forEach(function (p) { var e = p.day[d]; if (e) { var t = e.inv + e.zl + e.old + e.pool + e.fb + e.self; n += t; if (t) w++; } }); return { d: d, n: n, w: w }; });
+    var S0 = { n: rows.length, act: rows.filter(function (p) { return p.aD > 0; }).length, read: rows.filter(function (p) { return p.read; }).length, own: 0, ref: 0, self: 0, buy: 0, rev: 0, tot: 0 };
+    rows.forEach(function (p) { S0.own += p.own; S0.ref += p.ref; S0.self += p.self; S0.buy += p.buy; S0.rev += p.rev; S0.tot += p.tot; });
+    return { rows: rows, days: days, T: T, team: team, S: S0, goal: CAMP_GOAL.ref + CAMP_GOAL.self };
+  }
+  function campLine() {
+    if (!CAMP.d) return CAMP.err ? '⚠️ ' + esc(CAMP.err) : 'Ai đã làm, làm những gì, ra bao nhiêu khách';
+    var C = campCalc(); return C.S.act + '/' + C.S.n + ' sale đã làm · ' + C.S.own + '/' + (C.S.n * C.goal) + ' khách mới · ' + C.S.read + '/' + C.S.n + ' đã đọc thông báo';
+  }
+  function campHtml() {
+    if (!CAMP.d) return CAMP.err ? '<p class="notice">⚠️ ' + esc(CAMP.err) + '</p>' : '<p class="muted">⏳ Đang lấy số cả đợt…</p>';
+    var C = campCalc(), D = CAMP.d, wd = C.days.length, left = 0, d = today() + DAY;
+    for (; d < D.to; d += DAY) if (new Date(d + 7 * 3600e3).getUTCDay() !== 0) left++;
+    var ICO = { ok: '🟢', mid: '🟡', bad: '🔴' };
+    var h = '<p class="camp-lead">Mỗi sale đọc từ trái qua phải: <b>có hưởng ứng không → làm những gì → ra bao nhiêu khách</b>. Mục tiêu đợt: mỗi người <b>6 khách của riêng mình</b> (4 khách được giới thiệu + 2 khách tự tìm).</p>';
+    h += '<p class="small muted" style="margin:0 0 10px">Đã qua <b>' + wd + '</b> ngày làm việc' + (left ? ', còn ' + left + ' ngày' : ', đợt đã kết thúc') + ' (thứ 2 – thứ 7, Chủ nhật nghỉ). Số lấy thẳng trên máy chủ, ' + fDateTime(CAMP.at) + '.</p>';
+    h += '<div class="nsv-lg camp-sum"><span><b>' + C.S.act + ' / ' + C.S.n + '</b> sale đã bắt tay làm<small>' + C.S.read + ' / ' + C.S.n + ' đã bấm ✅ đọc thông báo</small></span>' +
+      '<span><b>' + C.S.tot + '</b> việc đã làm<small>mời giới thiệu, nhóm Zalo, gọi lại, Kho chung, bài Facebook</small></span>' +
+      '<span><b>' + C.S.own + ' / ' + (C.S.n * C.goal) + '</b> khách mới<small>' + C.S.ref + ' được giới thiệu · ' + C.S.self + ' tự tìm · ' + C.S.buy + ' đã mua' + (C.S.rev ? ' · ' + moneyShort(C.S.rev) : '') + '</small></span></div>';
+    // bảng từng sale
+    h += '<div class="bcdt-wrap"><table class="camp-t"><thead><tr><th rowspan="2">Sale</th><th colspan="2" class="g1">1. Hưởng ứng</th><th colspan="5" class="g2">2. Đã làm (cả đợt)</th><th colspan="3" class="g3">3. Kết quả</th></tr>' +
+      '<tr><th class="g1">Đọc thông báo</th><th class="g1">Ngày có làm</th><th class="g2">🌱 Mời giới thiệu</th><th class="g2">👥 Mời nhóm Zalo</th><th class="g2">😴 Gọi lại “Không mua”</th><th class="g2">🧺 Nhận Kho chung</th><th class="g2">📣 Bài Facebook</th><th class="g3">🤝 Được giới thiệu<small>/ 4</small></th><th class="g3">🔍 Tự tìm<small>/ 2</small></th><th class="g3">🛒 Đã mua</th></tr></thead><tbody>' +
+      C.rows.map(function (p) {
+        var g = function (v, n) { return '<td class="' + (v >= n ? 'ok' : v ? '' : 'z') + '">' + v + (v >= n ? ' ✅' : '') + '</td>'; }, z = function (v) { return '<td' + (v ? '' : ' class="z"') + '>' + v + '</td>'; };
+        return '<tr class="' + p.lv + '"><td class="nm">' + ICO[p.lv] + ' ' + esc(p.name) + '</td>' +
+          '<td' + (p.read ? '>✅ ' + fDate(p.read).slice(0, 5) : ' class="z">⏳ chưa') + '</td>' +
+          '<td>' + p.aD + ' / ' + wd + (p.fD ? '<small>' + p.fD + ' ngày đủ 5 việc</small>' : '') + '</td>' +
+          z(p.inv) + z(p.zl) + z(p.old) + z(p.pool) + z(p.fb) + g(p.ref, CAMP_GOAL.ref) + g(p.self, CAMP_GOAL.self) +
+          '<td' + (p.buy ? '>' + p.buy + ' khách<small>' + moneyShort(p.rev) + '</small>' : ' class="z">0') + '</td></tr>';
+      }).join('') + '</tbody></table></div>';
+    h += '<p class="small muted">🟢 có làm ít nhất 70% số ngày · 🟡 có làm nhưng chưa đều · 🔴 chưa làm ngày nào. Ô xám = chưa làm. Khách mới tính như ô 🙋 Khách tự tạo của sale: khách được giới thiệu (người giữ là sale) + khách sale tự thêm, không tính số quảng cáo công ty, số nhập từ file.</p>';
+    // đường theo ngày
+    var mx = Math.max.apply(null, C.team.map(function (x) { return x.n; }).concat([1]));
+    if (C.team.length) h += '<h3 class="rpm-h">📈 Cả nhóm làm mỗi ngày <small>(tinh thần đang lên hay đang hụt)</small></h3><div class="camp-bars">' + C.team.map(function (x) {
+      return '<div class="camp-bar" title="' + fDate(x.d) + ': ' + x.n + ' việc, ' + x.w + ' người làm"><b>' + x.n + '</b><i style="height:' + Math.max(3, Math.round(x.n * 70 / mx)) + 'px"></i><small>' + fDate(x.d).slice(0, 5) + '</small><em>' + x.w + ' người</em></div>';
+    }).join('') + '</div>';
+    // việc nào hiệu quả
+    var T = C.T, rr = function (a, b) { return a ? (b ? 'cứ ' + oneDec(a / b) + ' lần ra 1' : 'chưa ra') : '–'; };
+    h += '<h3 class="rpm-h">🎯 Việc nào ra kết quả <small>(cả nhóm, để phát huy việc hiệu quả)</small></h3><div class="camp-eff">' +
+      '<div><b>🌱 Mời giới thiệu</b><span>' + T.inv.n + ' lời mời → <b>' + T.inv.k + ' khách được giới thiệu</b> → ' + T.inv.b + ' đã mua' + (T.inv.v ? ' · ' + moneyShort(T.inv.v) : '') + '</span><small>' + rr(T.inv.n, T.inv.k) + ' khách mới (công ty tính khoảng 5 lời mời ra 1 khách)</small></div>' +
+      '<div><b>👥 Mời nhóm Zalo</b><span>' + T.zl.n + ' khách được mời → <b>' + T.zl.b + ' mua tiếp</b>' + (T.zl.v ? ' · ' + moneyShort(T.zl.v) : '') + '</span><small>hiệu quả thường thấy sau 2 – 4 tuần</small></div>' +
+      '<div><b>😴 Gọi lại “Không mua”</b><span>' + T.old.n + ' khách gọi lại → <b>' + T.old.b + ' mua</b>' + (T.old.v ? ' · ' + moneyShort(T.old.v) : '') + '</span><small>' + rr(T.old.n, T.old.b) + ' đơn</small></div>' +
+      '<div><b>🧺 Nhận Kho chung</b><span>' + T.pool.n + ' số đã nhận → <b>' + T.pool.b + ' mua</b>' + (T.pool.v ? ' · ' + moneyShort(T.pool.v) : '') + '</span><small>' + rr(T.pool.n, T.pool.b) + ' đơn</small></div>' +
+      '<div><b>📣 Bài Facebook</b><span>' + T.fb + ' bài đã đăng</span><small>khách đến từ bài nằm trong cột 🔍 Tự tìm (khách hỏi sale) và đơn qua link riêng</small></div></div>';
+    // việc nên làm
+    var none = C.rows.filter(function (p) { return !p.aD; }).map(function (p) { return p.name; }), unread = C.rows.filter(function (p) { return !p.read; }).map(function (p) { return p.name; });
+    var topR = C.rows.filter(function (p) { return p.own; }).slice(0, 3); if (!topR.length) topR = C.rows.filter(function (p) { return p.tot; }).sort(function (a, b) { return b.tot - a.tot; }).slice(0, 3); // khen người có khách mới trước, chưa ai có thì khen người chăm làm nhất
+    var top = topR.map(function (p) { return p.name + ' (' + (p.own ? p.own + ' khách mới, ' : '') + p.tot + ' việc)'; });
+    var tips = [];
+    if (top.length) tips.push('👏 Khen trong nhóm: ' + top.join(', ') + '.');
+    if (none.length) tips.push('📞 Hỏi riêng người chưa làm ngày nào (' + none.join(', ') + '): vướng ở đâu, cần giúp gì.');
+    if (unread.length) tips.push('📢 Nhắc đọc thông báo phát động: ' + unread.join(', ') + '.');
+    if (T.inv.n >= 10 && !T.inv.k) tips.push('🌱 Đã mời ' + T.inv.n + ' lần mà chưa có khách được giới thiệu: xem lại câu mời, mời khách vừa khen sản phẩm.');
+    if (tips.length) h += '<div class="camp-tip"><b>👉 Nên làm</b>' + tips.map(function (t) { return '<p>' + esc(t) + '</p>'; }).join('') + '</div>';
+    // tóm tắt để dán nhóm
+    var txt = ['🌱 ĐỢT MỞ RỘNG KHÁCH 14/11 – 30/11 · cập nhật ' + fDate(Date.now()), C.S.act + '/' + C.S.n + ' chị em đã bắt tay làm · ' + C.S.tot + ' việc · ' + C.S.own + '/' + (C.S.n * C.goal) + ' khách mới (' + C.S.ref + ' được giới thiệu, ' + C.S.self + ' tự tìm)', '']
+      .concat(C.rows.map(function (p) { return ICO[p.lv] + ' ' + p.name + ': ' + p.own + '/6 khách mới · làm ' + p.aD + '/' + wd + ' ngày · ' + p.tot + ' việc'; }))
+      .concat(top.length ? ['', '👏 Cảm ơn ' + topR.map(function (p) { return p.name; }).join(', ') + '!'] : []);
+    h += '<div class="camp-act"><button type="button" class="btn pri" data-copy="' + esc(txt.join('\n')) + '">📋 Copy tóm tắt gửi nhóm</button><span class="small muted">không ghi số tiền từng người, giống bảng thi đua</span></div>';
+    return h;
+  }
+
   /* ---------- 💎 Giá trị nhân sự (15/11/2026, anh Sơn: "ai đang đem lại lợi nhuận, ai đang là gánh nặng, có đủ lương công ty trả không"). Bản thử, chỉ Quản trị xem.
    * Mỗi người 1 sổ lãi lỗ riêng, lấy trung bình các tháng trọn gần nhất (mặc định 3 tháng; tháng này chưa hết nên chưa tính).
    * Sale: LÀM RA = doanh số giữ được − giá vốn (itemCost; dòng chưa khớp bảng giá vốn tính theo tỷ lệ chung) − phí ship đơn hoàn (backFee) − tiền data quảng cáo (số SĐT quảng cáo được chia × giá 1 SĐT tháng đó).
@@ -5802,6 +5929,7 @@
     h += '<div class="section-h dash-more-h"><h2>🔎 Xem chi tiết từng phần</h2><span class="tip">bấm vào từng mục để mở / đóng</span></div>';
     if (lvl() >= 3) { var PL = dashPnl(T, b, bp, M, sj, R, P, month); h += dashMore('pnl', '🧮 Lãi lỗ sau mọi chi phí', PL.line, PL.body); }
     if (lvl() >= 3) h += dashMore('rpm', '📊 Báo cáo 3 · 6 · 12 tháng & 🎯 KPI sale', rpmLine(), rpmHtml());
+    h += campBox(); // 📊 Đợt phát động mở rộng khách (15/11/2026)
     if (lvl() >= 3) h += dashMore('nsv', '💎 Giá trị từng nhân sự', nsvLine(), nsvHtml());
     if (lvl() >= 3) { var CO = dashCost(); if (CO) h += dashMore('cost', '📊 Chi phí lớn & cách tối ưu', CO.line, CO.body); }
     // ---- bán hàng văn phòng (đường nhỏ: bizStats từng ngày / tuần / tháng)
@@ -11749,7 +11877,7 @@
     cx.P = cmpRange(f.p);
     if (f.p.k === 'all') { cx.all = salesAllGet(); if (!cx.all) cx.allNote = S.salesAll ? '' : '<div class="notice">⏳ Đang lấy doanh số từ trước tới nay trên máy chủ…</div>'; else cx.allNote = '<p class="small muted">Mọi lúc: <b>doanh số, số đơn</b> tính đủ mọi đơn từ trước tới nay (cả đơn cũ nhập từ file sale). Các chỉ số khác (chăm sóc, tỷ lệ chốt, khách cũ) tính trên dữ liệu khoảng 13 tháng gần nhất.</p>'; }
     return '<div class="page-head"><h1>Hiệu quả</h1><div class="grow"></div>' + askBtn() + whoSel() + '</div>' + perChips('r', f.p, ['all'], false, who !== '-') +
-      (cx.allNote || '') + (!who ? viewTeam(cx) : who === '-' ? viewNoOwner(cx) : viewPerson(who, cx)) + (!who && lvl() === 2 && !isMkt() && !isKt() ? (kptLoad(), kptHTML() + (lgtLoad(), lgtHTML())) : ''); // 📋 KPI kế toán: Quản lý chấm lại ở đây (Quản trị ở 💼 Kế toán)
+      (cx.allNote || '') + (!who && lvl() === 2 ? campBox() : '') + (!who ? viewTeam(cx) : who === '-' ? viewNoOwner(cx) : viewPerson(who, cx)) + (!who && lvl() === 2 && !isMkt() && !isKt() ? (kptLoad(), kptHTML() + (lgtLoad(), lgtHTML())) : ''); // 📋 KPI kế toán: Quản lý chấm lại ở đây (Quản trị ở 💼 Kế toán)
   }
   /** Tổng doanh số từ trước tới nay theo nhân viên bán (hỏi máy chủ, nhớ 10 phút). null = đang tải / máy chủ cũ chưa có. */
   function salesAllGet() {
