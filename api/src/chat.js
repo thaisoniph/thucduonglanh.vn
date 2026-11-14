@@ -16,6 +16,7 @@ import { telegram } from './google.js';
 import { zbotLead } from './zbot.js';
 import { lunar } from './lunar.js';
 import { vqPick, vqBlock } from './voc.js';
+import { gate } from './gate.js';
 
 const CHAT_MODEL = 'claude-haiku-5-5';
 const KB_URL = 'https://thucduonglanh.vn/chat-kb.txt';
@@ -139,6 +140,7 @@ export async function chat(x, d) {
     return { ok: true, reply: ERR_MSG, err: true };
   }
   if (!reply) return { ok: true, reply: ERR_MSG, err: true };
+  reply = await gate(x, 'web', reply, know, { q: text, ref: sid }); // 🛡 người gác cổng (gate.js): sai giá / công dụng / nói bệnh → "để em kiểm tra lại"
   if (/\[\[zalo\]\]|chưa có thông tin/i.test(reply)) miss = 1;
   msgs.push({ r: 'a', t: reply, at: Date.now() });
   const prods = [...new Set([...(row && row.prods ? row.prods.split(',') : []), ...[...reply.matchAll(/\[\[sp:([a-z0-9-]+)\]\]/g)].map(m => m[1])])].filter(Boolean).join(',');

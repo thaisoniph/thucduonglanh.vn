@@ -563,6 +563,15 @@ Apps Script giới hạn 200 phiên bản/dự án: báo lỗi "Không tạo đ�
 - Dùng: `insPick` gắn `p.voc = vqPick(x, { prod })` (ưu tiên 🟢, đúng sản phẩm, mỗi ô 1 câu) → `insBlock` chèn `vqBlock` (bài web, Zalo, Fanpage, FB cá nhân, video); `score.js` chấm bài (12 câu); `chat.js vocHint` cho chat web + `zbot.js` (nhóm + tin riêng): chỉ để hiểu cách khách nói, không trích lại.
 - CRM thẻ **🗣 Lời khách** trong `#noi-dung` (`IN_TABS` 'loi', `voqHtml`, `voqForm`, biến `VQ`, CSS `.voq-…`): lọc theo ô / màu / sản phẩm / chữ, sửa, ẩn, ➕ ghi tay (nguồn "Gọi điện"…), 🔄 Gom ngay. Lệnh `ins_vqlist / ins_vqsave / ins_vqdel / ins_vqadd / ins_vqrun` (crmIns → `crmVoc`; sửa: Marketing, Quản lý, Quản trị). `voc()` cũ trong inskill.js (🔍 Tìm insight) vẫn giữ.
 
+### 🛡 Việc 3 – Người gác cổng cho câu trả lời chat web + Zalo (api `2026-11-14p`)
+- Code `api/src/gate.js`, gọi ngay trước khi gửi khách: `chat.js chat()` (kênh `web`), `zbot.js zMsg` (`zalo`, nhóm) và `zDm` (`zdm`, tin riêng). Kiểm tra bằng luật cố định, **không gọi AI** (0đ, không chậm).
+- `facts(kb)` đọc `/chat-kb.txt` (bỏ phần Sổ tay khi xét công dụng): số tiền cho phép = mọi số tiền trong tài liệu + k × giá (k ≤ 10) + giá + 30.000 + tổng 2 giá + giá sau giảm % có trong tài liệu; `free` = mức trong câu "miễn phí … từ X" (hiện 300.000), `fee` = "phí ship X" (30.000); % và mã giảm (chữ in hoa có số) phải có trong tài liệu; số điện thoại chỉ 0966 326 522 (hoặc số khách vừa gửi).
+- `gateCheck`: `VERB` (giúp, hỗ trợ, tốt cho, giảm, hạ, ngừa…) + trong cùng vế câu có `DISEASE` (ung thư, tiểu đường, huyết áp, dạ dày, trào ngược, mất ngủ…) → chặn; + `BENEFIT` (lợi sữa, giảm cân, tiêu hoá, đề kháng, gan…) mà chữ đó không có trong phần sản phẩm của tài liệu → chặn. `CURE` (chữa khỏi, đặc trị, khỏi bệnh, giúp điều trị…), `PROMISE` (cam kết hiệu quả, 100% khỏi, sau N ngày hết…), `THREAT` (nếu không dùng … đột quỵ / ung thư…). Có phủ định trong 40 ký tự trước ("không có tác dụng thay thế thuốc chữa bệnh") hoặc vế là câu hỏi thì bỏ qua.
+- Không đạt: khách nhận `GATE_MSG` (+ `[[zalo]]` → web hiện nút Zalo, nhóm Zalo chuyển người thật như ca khó), bảng D1 `gate_log` (tự tạo), Telegram nhóm nhân sự (`telegram(env)`, tối đa 30 tin / ngày). kv `gate_cfg { mode: block | log }`: Quản trị bật "chỉ ghi nhật ký" ở CRM nếu thấy chặn nhầm.
+- CRM thẻ **🛡 Gác cổng** trong `#noi-dung` (`gtkHtml`, biến `GK`, CSS `.gtk-…`), lệnh `ins_gate` (xem 30 ngày, `ok_id` = ✅ Đã xử lý + ghi chú, `mode` = đổi chế độ).
+- Đã chạy thử 14/11/2026: 16 câu (5 đúng, 11 sai giá / sai freeship / sai % + mã / số cũ 0896 / lợi sữa / giảm cân / dạ dày + trào ngược / huyết áp / khỏi bệnh tiểu đường / cam kết hiệu quả / doạ đột quỵ) → đúng cả 16; 211 câu đã duyệt trong tài liệu (Hỏi đáp, gạch đầu dòng) → không câu nào bị chặn nhầm. Bộ thử: `python3 build.py && node scripts/test-gate.mjs` (thêm câu mới vào mảng T khi gặp ca sai).
+- Fanpage (`fb.js`) chưa gắn: muốn thì thêm 1 dòng `gate(x, 'fb', …)` trước khi gửi bình luận / tin nhắn.
+
 ## 7. Tên miền, DNS, chuyển hướng
 
 - Nameserver: `liberty.ns.cloudflare.com`, `randy.ns.cloudflare.com`. **Mọi thay đổi DNS làm trên Cloudflare**, không làm ở Tenten.

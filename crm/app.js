@@ -7650,7 +7650,7 @@
   }
   /** 1 dòng đầu mỗi thẻ: 📌 dùng để · 👉 nên làm (12/11/2026) */
   function inTabi(dung, lam, note) { return '<div class="inx-tabi"><p>📌 <b>Dùng để:</b> ' + dung + '</p><p>👉 <b>Nên làm:</b> ' + lam + '</p>' + (note ? '<p class="muted">' + note + '</p>' : '') + '</div>'; }
-  var IN_TABS = [['tong', '📊 Tổng quan'], ['tao', '✍️ Tạo nội dung'], ['cham', '🧪 Chấm bài'], ['loi', '🗣 Lời khách'], ['nhom', '👥 Nhóm khách'], ['cai', '⚙️ Cài đặt']];
+  var IN_TABS = [['tong', '📊 Tổng quan'], ['tao', '✍️ Tạo nội dung'], ['cham', '🧪 Chấm bài'], ['loi', '🗣 Lời khách'], ['gac', '🛡 Gác cổng'], ['nhom', '👥 Nhóm khách'], ['cai', '⚙️ Cài đặt']];
   function viewIns() {
     if (!IN.d && !IN.err && !IN.busy) setTimeout(inFetch, 0);
     if (!IN.tab) { try { IN.tab = localStorage.getItem('inTab') || 'tong'; } catch (e) { IN.tab = 'tong'; } }
@@ -7716,6 +7716,8 @@
       if (ed && j.custom) h += '<div class="lq-btns"><button class="btn ghost" data-in="reset">↩️ Dùng lại bản mặc định</button></div>';
     } else if (tab === 'loi') {
       h += voqHtml();
+    } else if (tab === 'gac') {
+      h += gtkHtml();
     } else if (tab === 'cham') {
       h += csxHtml(j);
     } else if (tab === 'cai') {
@@ -7777,6 +7779,37 @@
     if (a === 'ed' && r) return voqForm(r);
     if (a === 'del' && r) { if (!confirm('Ẩn câu này? Trợ lý sẽ không dùng nữa.')) return; return api('ins_vqdel', { id: id }).then(function () { VQ.d = null; render(); }, function (er) { toast(er.message, true); }); }
     if (a === 'run') { t.disabled = true; t.textContent = '⏳ Đang gom (khoảng 1 phút)…'; return api('ins_vqrun', {}).then(function (j) { toast('Đã gom ' + ((j.r && j.r.n) || 0) + ' câu mới, AI xếp ô ' + ((j.r && j.r.c) || 0) + ' câu ✓'); VQ.d = null; render(); }, function (er) { t.disabled = false; toast(er.message, true); }); }
+  });
+  /* ---------------------------------------------------------------- 🛡 Người gác cổng (14/11/2026, api gate.js: ins_gate): câu trả lời của trợ lý chat web + Zalo bị chặn trước khi gửi khách */
+  var GK = { d: null, busy: 0, err: '' };
+  var GK_K = { gia: '💰 Giá', ship: '🚚 Phí ship', km: '🏷 Khuyến mãi', sdt: '☎️ Số điện thoại', cong: '🌿 Công dụng', benh: '🚫 Nói về bệnh', hua: '🤞 Hứa hẹn', doa: '😨 Doạ' };
+  function gtkFetch() {
+    GK.busy = 1; GK.err = '';
+    api('ins_gate', {}).then(function (j) { GK.d = j; }, function (e) { GK.err = /Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message; })
+      .then(function () { GK.busy = 0; if (route().view === 'noi-dung') render(); });
+  }
+  function gtkHtml() {
+    var h = inTabi('Trước khi trợ lý chat web và Zalo gửi câu trả lời, máy kiểm tra: <b>giá, phí ship, mức miễn phí ship, khuyến mãi, hotline</b> có khớp dữ liệu web không; <b>câu công dụng</b> có trong trang sản phẩm (hồ sơ công bố) không; có <b>nói về bệnh, hứa hẹn, doạ</b> không. Không đạt thì khách nhận câu "để em kiểm tra lại rồi báo anh/chị", nhân sự nhận tin Telegram.', 'Thấy tin 🛡 trên Telegram thì <b>nhắn lại khách câu đúng</b>, rồi bấm <b>✅ Đã xử lý</b> ở đây. Câu bị chặn nhầm thì báo anh Sơn.');
+    if (!GK.d) { if (!GK.busy && !GK.err) setTimeout(gtkFetch, 0); return h + '<div class="box"><p class="muted">' + (GK.err ? '⚠️ ' + esc(GK.err) + ' <button class="link" data-gtk="reload">Thử lại</button>' : '⏳ Đang tải…') + '</p></div>'; }
+    var d = GK.d, n7 = (d.cnt || []).reduce(function (a, r) { return a + r.n; }, 0);
+    h += '<div class="box"><div class="zb-ph"><b>🛡 Người gác cổng</b><span class="zb-due">' + (d.mode === 'log' ? '📝 Chỉ ghi nhật ký' : '✅ Đang chặn') + '</span></div>' +
+      '<p class="small">7 ngày qua: <b>' + n7 + '</b> câu bị giữ lại' + ((d.cnt || []).length ? ' (' + d.cnt.map(function (r) { return esc(d.ch[r.ch] || r.ch) + ' ' + r.n; }).join(' · ') + ')' : '') + (d.chats7 ? ' · ' + d.chats7 + ' cuộc chat' : '') + '.</p>' +
+      (d.canMode ? '<div class="lq-btns">' + (d.mode === 'log' ? '<button class="btn sm pri" data-gtk="mode|block">✅ Bật chặn</button>' : '<button class="btn sm ghost" data-gtk="mode|log">📝 Tạm chỉ ghi nhật ký (không chặn)</button>') + '</div>' : '') + '</div>';
+    var rows = d.rows || [];
+    h += rows.length ? '<div class="voq-list">' + rows.map(function (r) {
+      return '<div class="box gtk-r' + (r.ok_by ? ' bw-off' : '') + '"><p class="small muted">' + fDateTime(r.at) + ' · ' + esc(d.ch[r.ch] || r.ch) + (r.mode === 'log' ? ' · 📝 chỉ ghi' : ' · ⛔ đã chặn') + (r.ok_by ? ' · ✅ ' + esc(r.ok_by) + ' đã xử lý' : '') + '</p>' +
+        '<p class="small"><b>❓ Khách hỏi:</b> ' + esc(r.q) + '</p><p class="small"><b>🤖 Trợ lý định trả lời:</b> ' + esc(String(r.draft || '').replace(/\[\[[^\]]*\]\]/g, '')) + '</p>' +
+        '<ul class="small gtk-why">' + (r.why || []).map(function (w) { return '<li>' + (GK_K[w.k] || '⚠️') + ': ' + esc(w.t) + '</li>'; }).join('') + '</ul>' + (r.ok_note ? '<p class="small muted">📝 ' + esc(r.ok_note) + '</p>' : '') +
+        (r.ok_by ? '' : '<div class="lq-btns"><button class="btn sm" data-gtk="ok|' + r.id + '">✅ Đã xử lý</button></div>') + '</div>';
+    }).join('') + '</div>' : '<div class="box"><p class="small muted">30 ngày qua chưa có câu nào bị giữ lại.</p></div>';
+    return h;
+  }
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-gtk]'); if (!t) return;
+    var v = t.getAttribute('data-gtk').split('|'), a = v[0];
+    if (a === 'reload') { GK.err = ''; GK.d = null; return render(); }
+    if (a === 'mode') { if (v[1] === 'log' && !confirm('Tạm không chặn? Trợ lý sẽ gửi nguyên câu cho khách, chỉ ghi nhật ký + báo Telegram.')) return; t.disabled = true; return api('ins_gate', { mode: v[1] }).then(function () { GK.d = null; render(); }, function (er) { t.disabled = false; toast(er.message, true); }); }
+    if (a === 'ok') { var note = prompt('Ghi chú (đã nhắn lại khách gì, hoặc "chặn nhầm"):', '') ; if (note === null) return; return api('ins_gate', { ok_id: Number(v[1]), note: note }).then(function () { GK.d = null; render(); }, function (er) { toast(er.message, true); }); }
   });
   /* ---------------------------------------------------------------- 🧪 Chấm bài trước khi đăng (12/11/2026, api score.js: ins_sview / ins_score / ins_sres / ins_sdel)
    * Dán bài / kịch bản / lời thoại + tối đa 43 khung hình video (cắt ở trình duyệt, có ghi giây, 7 hình 3 giây đầu) hoặc 4 ảnh → AI chấm 9 tiêu chí /100 → ghi kết quả thật → so điểm với kết quả. */

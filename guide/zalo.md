@@ -2,7 +2,7 @@
 title: Trợ lý Zalo An Lành
 nav: Trợ lý Zalo
 order: 8
-updated: 2026-11-10
+updated: 2026-11-14
 description: Cài đặt và sử dụng tài khoản Zalo "Trợ lý An Lành" trong nhóm Sống khỏe cùng Thực Dưỡng Lành – chào người mới, trả lời, đăng bài, chuyển ca khó cho người thật.
 roles: [zb, mkt, ql]
 ---
@@ -45,6 +45,14 @@ Khách lỡ gửi số điện thoại hoặc địa chỉ vào nhóm. Trợ lý
 2. Ghi kết quả vào CRM (khách đã có sẵn ở **Khách hỏi**).
 
 Nếu tin báo "⚠️ Trợ lý CHƯA ẩn được tin" thì phó nhóm vào xoá tay ngay.
+
+**Khi Telegram báo "🛡 NGƯỜI GÁC CỔNG ĐÃ CHẶN 1 CÂU TRẢ LỜI":**
+
+Trợ lý (chat web hoặc Zalo) định trả lời sai giá, sai phí ship, sai khuyến mãi, sai hotline, nói công dụng ngoài trang sản phẩm, hoặc nói về bệnh. Máy đã giữ câu đó lại, khách chỉ nhận câu *"Dạ để em kiểm tra lại thông tin này cho thật chắc rồi báo anh/chị ngay nha"*. Việc của bạn:
+
+1. Đọc tin: khách hỏi gì, trợ lý định nói gì, sai ở đâu.
+2. **Nhắn lại khách câu đúng** (Zalo: nhắn tay trên điện thoại trợ lý hoặc gọi từ hotline; web: khách có số thì gọi).
+3. Vào CRM → **🎯 Insight & nội dung** → **🛡 Gác cổng**, bấm **✅ Đã xử lý**. Nếu máy chặn nhầm (câu thật ra đúng) thì ghi "chặn nhầm" để anh Sơn sửa.
 
 👉 **Bạn tự xoá tin của khách** (khi trợ lý chưa kịp): xoá xong **nhắn ngay 1 câu trong nhóm**, gọi tên khách, ví dụ: *"Dạ em cảm ơn cô ạ. Tin của cô có số điện thoại, địa chỉ nên em ẩn đi để giữ an toàn cho cô. Em gọi cô ngay ạ."* Rồi **gọi khách luôn**. Đừng xoá mà không nói gì: khách sẽ nghĩ mình bị lơ.
 

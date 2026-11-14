@@ -20,6 +20,7 @@ import { eventsAhead } from './zday.js';
 import { crmScore } from './score.js';
 import { stInfo } from './sotay.js';
 import { crmVoc, vqPick, vqBlock } from './voc.js';
+import { crmGate } from './gate.js';
 
 const WRITER = 'claude-opus-5-5'; // việc cần nghĩ sâu, ít lượt: kịch bản video, big idea
 const LITE = 'claude-sonnet-5-5'; // 13/11/2026: việc đọc / lọc / liệt kê (nhập insight, câu lệnh ảnh, từ khoá) → Sonnet 5.5, rẻ ½
@@ -675,6 +676,7 @@ export async function crmIns(x, u, d, crmLog) {
     await kvSet(x.db, dk, String(n + 1), 2 * DAY);
     try { return await insImport(x, d); } catch (e) { return { ok: false, error: 'AI chưa đọc được: ' + String(e.message).slice(0, 150) }; }
   }
+  if (a === 'ins_gate') return crmGate(x, u, d, crmLog); // 🛡 người gác cổng (gate.js)
   if (/^ins_vq/.test(a)) return crmVoc(x, u, d, crmLog); // 🗣 kho lời khách (voc.js)
   if (/^ins_s(view|core|res|del|tt)$/.test(a)) return crmScore(x, u, d, crmLog); // 🧪 chấm bài trước khi đăng (score.js)
   if (['ins_skill', 'ins_skilldel', 'ins_odel', 'ins_find', 'ins_offer'].includes(a)) return crmInSkill(x, u, d, crmLog); // 🧩 skill trong CRM (inskill.js)

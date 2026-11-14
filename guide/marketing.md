@@ -223,11 +223,12 @@ Mở: menu **Thêm → 🎯 Insight & nội dung** (Marketing thấy ngay trên 
 
 Trên cùng là sơ đồ 4 bước (nhóm khách → tension → tầng phễu → viết bài) và ô cam **👉 Nên làm ngay**: tối đa 3 việc nên làm, mỗi việc có 1 nút bấm (vd dịp sắp tới, nhóm khách chưa có bài, chưa có từ khoá). Không có việc gì thì ô báo ✅ mọi thứ đang ổn.
 
-Bên dưới có 6 thẻ, bấm để chuyển (máy nhớ thẻ anh chị mở lần trước). Đầu mỗi thẻ có ô xanh **📌 Dùng để · 👉 Nên làm** nói ngắn thẻ đó để làm gì. Trên màn hình, "tension" được gọi là **nỗi lòng** (điều khách mong ↔ điều cản họ), "tầng phễu" gọi là **loại bài**: 🔵 Thu hút · ⚪ Tạo niềm tin · 🟠 Bán hàng.
+Bên dưới có 7 thẻ, bấm để chuyển (máy nhớ thẻ anh chị mở lần trước). Đầu mỗi thẻ có ô xanh **📌 Dùng để · 👉 Nên làm** nói ngắn thẻ đó để làm gì. Trên màn hình, "tension" được gọi là **nỗi lòng** (điều khách mong ↔ điều cản họ), "tầng phễu" gọi là **loại bài**: 🔵 Thu hút · ⚪ Tạo niềm tin · 🟠 Bán hàng.
 - **📊 Tổng quan**: số bài trợ lý viết 30 ngày qua, bài theo từng nhóm khách. Nhóm chưa có bài gom vào 1 ô cam, bấm tên nhóm là mở ngay form viết kịch bản video cho nhóm đó. Thanh **🔻 Loại bài theo kênh** 3 màu cho biết mỗi kênh đang viết bao nhiêu % bài thu hút / tạo niềm tin / bán hàng. Cuối thẻ là **📈 Học từ tương tác**.
 - **✍️ Tạo nội dung**: viết kịch bản video, kịch bản đã viết, và 3 công cụ khác (📸 câu lệnh tạo ảnh, 📣 bài Facebook cá nhân cho sale, 🎁 viết offer), offer nháp.
 - **🧪 Chấm bài** (từ 12/11/2026): dán bài, kịch bản hoặc video các bạn làm, AI chấm 100 điểm theo 9 tiêu chí (câu mở, đúng nhóm khách, nỗi lòng, lời mời, luật quảng cáo…), chỉ 3 việc cần sửa và viết sẵn bản sửa. Sau khi đăng thì ghi kết quả thật để so điểm với kết quả. Xem trang **[Chấm bài trước khi đăng](/huong-dan/cham-bai/)**.
 - **🗣 Lời khách** (từ 14/11/2026): kho câu nguyên văn của khách thật. Xem mục [🗣 Kho lời khách](#kho-loi-khach) bên dưới.
+- **🛡 Gác cổng** (từ 14/11/2026): những câu trả lời của trợ lý chat web và Zalo bị máy giữ lại vì sai giá, sai công dụng, nói về bệnh… Cách xử lý xem trang [Trợ lý Zalo](/huong-dan/zalo/#tro-ly-va-nguoi-that-chia-viec).
 - **👥 Nhóm khách**: ngân hàng insight. Mỗi nhóm thu gọn thành 1 dòng, bấm tên nhóm để mở: 💚 họ mong, 🧱 điều cản họ, ⚡ nỗi lòng (tension), 🌟 ý lớn (big idea), 📋 chân dung đầy đủ. Nút **🔍 AI tìm nỗi lòng mới**, **📥 Dán kết quả skill**, **➕ Thêm nhóm khách** nằm đầu thẻ. Cuối thẻ là 🏷 Nỗi lòng theo sản phẩm.
 - **⚙️ Cài đặt**: 📗 Sổ tay doanh nghiệp (bao nhiêu mục đã xác nhận, nút mở Sổ tay), 📅 dịp sắp tới + 🔥 chuyện đang nóng, 🔑 từ khoá bài web, 📘 phương pháp trợ lý đang dùng (tải skill).
 

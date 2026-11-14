@@ -21,6 +21,7 @@ import { aiFetch } from './airelay.js';
 import { esc, run, all, first, kvGet, kvSet, kvJson, normPhone, fmtDate, isVoid, nrm, fmt, CRM_URL, TZ_MS, DAY } from './lib.js';
 import { telegram } from './google.js';
 import { addLead, telegramUser } from './crm.js';
+import { gate } from './gate.js';
 import { kb, safe, workNow, vocHint, TRUTH_RULES, REF_RULES, REF_TXT, PHONE_RE } from './chat.js';
 import { botRef } from './partner.js';
 import { offersLive } from './salemkt.js';
@@ -377,7 +378,7 @@ async function zMsg(x, d) {
   } catch (e) { console.error('zMsg ai', e && e.message); return { ok: true }; }
   if (!reply || /\[BO_QUA\]/.test(reply)) { if (direct) await zlog(x, 'skip', { gid, uid: d.uid, name: d.name, text }); return { ok: true }; }
   if (/^\s*\[TIM\]\s*$/.test(reply) || (/\[TIM\]/.test(reply) && reply.replace(/\[TIM\]/g, '').trim().length < 3)) { await zlog(x, 'react', { gid, uid: d.uid, name: d.name, text }); return { ok: true, react: 'heart' }; }
-  const z = zText(safe(reply.replace(/\[(TIM|BO_QUA)\]/g, '')), prodMap(know));
+  const z = zText(await gate(x, 'zalo', safe(reply.replace(/\[(TIM|BO_QUA)\]/g, '')), know, { q: text, ref: gid }), prodMap(know)); // 🛡 gate.js
   await kvSet(x.db, hk, String(n + 1), 2 * 3600e3);
   await zlog(x, z.zalo ? 'handoff' : 'answer', { gid, uid: d.uid, name: d.name, text, reply: z.text });
   if (z.zalo || od) x.later(handoff(x, { where: 'nhóm "' + gname + '"', name: d.name, uid: d.uid, text, reply: z.text, order: od }));
@@ -487,7 +488,7 @@ async function zDm(x, d) {
       messages: hist.map(m => ({ role: m.r === 'u' ? 'user' : 'assistant', content: m.t })) });
     reply = res.stop_reason === 'refusal' ? 'Dạ câu này em xin phép chưa trả lời được ạ, để chuyên viên bên em nhắn lại cho mình nha. [[zalo]]' : textOf(res);
   } catch (e) { console.error('zDm ai', e && e.message); return { ok: true, reply: 'Dạ em đang hơi chậm một chút, anh/chị nhắn lại giúp em sau ít phút nha 🙏' }; }
-  const z = zText(safe(reply).replace(/\*\*/g, ''), prodMap(know));
+  const z = zText(await gate(x, 'zdm', safe(reply).replace(/\*\*/g, ''), know, { q: text, ref: uid }), prodMap(know)); // 🛡 gate.js
   if (!z.text) return { ok: true };
   msgs.push({ r: 'a', t: z.text, at: Date.now() });
   await run(x.db, `INSERT INTO chats (sid, start, last, n, page, src, msgs, miss) VALUES (?, ?, ?, 1, 'Zalo trợ lý', 'Zalo', ?, ?)
