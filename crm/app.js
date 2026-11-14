@@ -13242,7 +13242,8 @@
   function vhPaint() { var b = $('#vhBox'); if (b) { b.innerHTML = vhCard(); vhBind(); } }
   function vhCard() {
     var r = S.vh, m = r.mine, fold = store('vh_fold') === r.day;
-    if (!m && !S.vhOpen && lvl() < 2) return '<div class="vh-mini vh-mini2"><button type="button" class="vh-mini-t" data-vh="open">🌿 Quy tắc hôm nay: <b>' + r.n + '. ' + esc(r.t) + '</b><span>Bấm để xem gợi ý áp dụng</span></button><button class="btn sm pri" data-vh="ack">✅ Mình sẽ làm</button></div>'; // 14/11/2026 sale: 1 dòng mảnh, nhận quy tắc ngay tại dòng, nhường màn đầu cho khách cần gọi
+    // 15/11/2026 anh Sơn: Quản trị cũng 1 dòng mảnh như sale để Tổng quan lên sát đầu màn hình
+    if (!m && !S.vhOpen && (lvl() < 2 || isCeo())) return '<div class="vh-mini vh-mini2"><button type="button" class="vh-mini-t" data-vh="open">🌿 Quy tắc hôm nay: <b>' + r.n + '. ' + esc(r.t) + '</b><span>Bấm để xem gợi ý áp dụng</span></button><button class="btn sm pri" data-vh="ack">✅ Mình sẽ làm</button></div>'; // 14/11/2026 sale: 1 dòng mảnh, nhận quy tắc ngay tại dòng, nhường màn đầu cho khách cần gọi
     if (fold || (m && !S.vhOpen)) return '<button class="vh-mini" data-vh="open">🌿 Quy tắc hôm nay: <b>' + r.n + '. ' + esc(r.t) + '</b><span>' + (m ? '✅ Đã nhận · ' + (m.note ? 'Bấm để xem' : 'Bấm để ghi chuyện của bạn') : 'Bấm để xem') + '</span></button>'; // đã nhận → lần mở sau thu thành 1 dòng, nhường chỗ cho việc
     var foot = m ? '<p class="vh-done">✅ Bạn đã nhận lúc ' + fDateTime(m.at).slice(0, 5) + (r.cnt > 1 ? ' · cùng ' + (r.cnt - 1) + ' người khác' : '') + '</p>' +
         (m.note && !S.vhEdit ? '<p class="vh-note">📝 ' + esc(m.note) + ' <button class="btn sm" data-vh="edit">Sửa</button></p>' :

@@ -36,6 +36,8 @@ CRM → **⚙️ Cài đặt** → nhóm **👥 Nhân sự** → **🌿 Văn ho�
 
 Mỗi ngày làm việc, khi mở CRM, bạn thấy **thẻ 🌿 Quy tắc hôm nay** ở đầu màn hình. Cả công ty cùng thấy **một quy tắc**, để mọi người cùng nói về một điều. Cứ 10 ngày làm việc là đủ 10 quy tắc, rồi quay lại từ đầu với gợi ý mới.
 
+Với **Sale** và **Quản trị**, thẻ thu gọn thành **1 dòng mảnh** để nhường chỗ cho việc: bấm **✅ Mình sẽ làm** ngay trên dòng, hoặc bấm vào chữ để mở xem gợi ý áp dụng.
+
 [[steps:vh-the]]
 
 Trong thẻ có:
