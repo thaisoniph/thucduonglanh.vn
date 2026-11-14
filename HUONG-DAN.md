@@ -461,6 +461,16 @@ Apps Script giới hạn 200 phiên bản/dự án: báo lỗi "Không tạo đ�
 - CRM `app.js`: `tbMount` (cùng chỗ `vhMount`, nằm trên thẻ 🌿), `tbCard` / `tbPost` / `tbForm` / `tbBind`, tải lại sau 5 phút; hết tin chưa đọc thì thu thành `.tb-mini`. Có link family.thucduonglanh.vn. CSS `.tb-*`. Bản thử: `flow.js` kịch bản `tbfake` (+ `tbwho`, `tbnew`).
 - Hướng dẫn nhân sự: `guide/thong-bao.md` (/huong-dan/thong-bao/).
 
+### ✅ Giao việc qua Telegram (14/11/2026, api `2026-11-14t`, anh Sơn chọn: lưu trong CRM, áp dụng mọi nhân sự)
+- Anh Sơn / Quản lý / người được tích "Được giao việc" (kv `gv_cfg.leads`, vd trưởng phòng Marketing) giao việc cho mọi nhân sự đang hoạt động; ai cũng tự ghi việc cho mình. Kế toán, Kho, Marketing đều thấy tab (lệnh `gv_*` chạy trước chặn vai trò trong `crmApi`).
+- **Bot riêng** (không dùng @thucduonglanh_donhang_bot: bot đó đọc tin bằng `getUpdates` cho nút Kết nối Telegram, bật webhook sẽ hỏng). Quản trị dán khoá BotFather ở tab ✅ Giao việc → `gv_cfg` gọi getMe, `setWebhook` tới `https://api.thucduonglanh.vn/gv/tg/<secret>` (+ header secret_token), setMyCommands. Khoá lưu kv `gv_cfg` trong D1 (không ở repo).
+- Máy chủ `api/src/giaoviec.js`: bảng `gv_tasks` (title, body, who/by email+name, due ms, due_t có giờ, status Mới/Đang làm/Xong/Huỷ, rem 0/1 nhắc trước/2 báo trễ, result), `gv_log`, `gv_msg` (chat, msg → task: biết nút / tin trả lời thuộc việc nào), tự tạo (không qua SCHEMA_V).
+- Nhận diện người nhắn: kv `gv_tg_<email>` (nối bằng `/start <mã>` từ nút Kết nối trong tab, mã kv `gvl_<mã>` 1 tiếng) hoặc `users.tg` (mã người dùng Telegram, giống nhau ở mọi bot). Trong nhóm (privacy mode) bot chỉ nhận tin gọi tên bot, trả lời tin của bot, lệnh `/`. Nhóm nối bằng `/noinhom` (Quản lý trở lên).
+- Tin tự nhiên → AI Haiku (`aiRead`, mục chi phí `giaoviec`, tối đa 400 lượt/ngày) trả JSON giao / cập nhật / hỏi. Nút ✋ Nhận / ✅ Xong và trả lời "xong", "nhận" vào tin việc không tốn AI. Người làm xin lùi hạn → không đổi, báo người giao duyệt.
+- Cron: `gvTick` mỗi 10 phút (nhắc trước ~1 tiếng việc có giờ, báo quá hạn 1 lần); `gvMorning` 8h (danh sách riêng từng người đã nối, bảng việc hôm nay/trễ vào nhóm, thứ Hai tổng kết tuần cho người giao).
+- CRM `app.js`: `viewGv` / `bindGv` / `openGvTask` / `openGvForm` (tab `giao-viec`, cờ `gv:1` trong VIEWS), CSS `.gv-*`. Thử trên máy: `node scripts/test-giaoviec.mjs` (D1 giả node:sqlite, Telegram/AI giả).
+- Hướng dẫn nhân sự: `guide/giao-viec.md` (/huong-dan/giao-viec/).
+
 ## 6b. Trợ lý viết bài tự động (10/11/2026)
 - Code: `api/src/blog.js`, cron 10 phút / lần (`blogTick`, chạy song song trong `cron.js`). Cài đặt + chủ đề: `data/blog-auto.json` (/admin → Cài đặt website → 🤖 Trợ lý viết bài tự động), máy chủ đọc qua GitHub API bằng mã `gh_cms_token`.
 - Ngày đăng theo số bài / tuần: 1 = T4; 2 = T3, T6; 3 = T2, T4, T6; 4 = T2, T3, T5, T7; 5 = T2–T6; 6 = T2–T7; 7 = mỗi ngày.

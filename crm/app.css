@@ -2535,3 +2535,56 @@ b.csx-c-ok { color: var(--primary-2); } b.csx-c-sua { color: var(--orange); } b.
 .lgt-g .lgt-note { grid-column: 1 / -1; } .lgt-on { cursor: pointer; }
 .lgt-add { display: flex; gap: 8px; } .lgt-add input { flex: 1; }
 .lgt-slip { white-space: pre-wrap; font: 14px/1.55 inherit; font-family: inherit; background: var(--soft, #f7f7f9); padding: 10px 12px; border-radius: 10px; margin: 0; }
+
+/* ---------- ✅ Giao việc (14/11/2026, app.js viewGv) */
+.gv-wrap { max-width: 760px; }
+.gv-intro { margin: -6px 0 12px; color: var(--muted); font-size: 14px; }
+.gv-new { margin-bottom: 14px; }
+.gv-chips .gv-n { display: inline-block; min-width: 20px; padding: 0 6px; margin-left: 2px; border-radius: 999px; background: rgba(0,0,0,.08); font-size: 12px; }
+.gv-chips .chip.on .gv-n { background: rgba(255,255,255,.25); }
+.gv-who { max-width: 320px; }
+.gv-who select { width: 100%; min-height: 40px; border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; background: #fff; }
+.gv-sec { margin-bottom: 16px; }
+.gv-h { font-size: 15px; margin: 0 0 8px; }
+.gv-h small { color: var(--muted); font-weight: 600; }
+.gv-rows { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.gv-row { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; min-height: 60px; border: 0; border-top: 1px solid var(--line); border-left: 5px solid transparent; background: #fff; text-align: left; cursor: pointer; color: inherit; font: inherit; }
+.gv-row:first-child { border-top: 0; }
+.gv-row:hover { background: var(--primary-soft); }
+.gv-row.gv-late { border-left-color: var(--red); }
+.gv-row.gv-done .gv-t b { color: var(--muted); text-decoration: line-through; }
+.gv-ic { flex: none; font-size: 20px; }
+.gv-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.gv-t b { color: var(--ink); overflow-wrap: anywhere; }
+.gv-t small { color: var(--muted); font-size: 13px; }
+.gv-t .gv-st { font-size: 12px; }
+.gv-empty { color: var(--muted); }
+.gv-setup { border-color: #c9dcf5; background: var(--blue-light); }
+.gv-p { margin: 0 0 10px; font-size: 14px; }
+.gv-ol { margin: 0 0 12px; padding-left: 20px; font-size: 14px; }
+.gv-ol li { margin-bottom: 4px; }
+.gv-steps { display: flex; gap: 8px; flex-wrap: wrap; }
+.gv-err { color: var(--red); font-size: 13px; margin: -6px 0 8px; min-height: 0; }
+.gv-err:empty { display: none; }
+.gv-setup input[type=text] { width: 100%; min-height: 44px; border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; background: #fff; font-family: ui-monospace, Menlo, monospace; font-size: 14px; }
+.gv-adv { margin: 18px 0; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); }
+.gv-adv summary { padding: 12px 14px; cursor: pointer; font-weight: 600; color: var(--ink); }
+.gv-adv-b { padding: 0 14px 14px; }
+.gv-leads { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 6px; margin-bottom: 10px; }
+.gv-lead { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; }
+.gv-lead small { color: var(--muted); }
+.gv-m-t { font-size: 17px; font-weight: 700; color: var(--ink); margin: 0 0 6px; overflow-wrap: anywhere; }
+.gv-m-b { margin: 0 0 10px; background: var(--primary-soft); border-radius: 10px; padding: 8px 10px; overflow-wrap: anywhere; }
+.gv-kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 14px; margin-bottom: 12px; }
+.gv-kv span { color: var(--muted); }
+.gv-kv b { color: var(--ink); font-weight: 600; overflow-wrap: anywhere; }
+.gv-h3 { font-size: 14px; margin: 0 0 6px; }
+.gv-log { list-style: none; margin: 0 0 12px; padding: 0; max-height: 220px; overflow: auto; border-left: 3px solid var(--line); }
+.gv-log li { padding: 4px 0 6px 10px; font-size: 14px; }
+.gv-log small { display: block; color: var(--muted); font-size: 12px; }
+.gv-m textarea, .gv-m select, .gv-dt input { width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; background: #fff; min-height: 44px; }
+.gv-lbl { display: block; font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+.gv-qd { flex-wrap: wrap; margin-bottom: 6px; }
+.gv-dt { display: grid; grid-template-columns: 1fr 130px; gap: 8px; margin-bottom: 4px; }
+.gv-cb { display: flex; align-items: center; gap: 8px; font-size: 14px; margin-top: 4px; }
+.gv-tools { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }

@@ -1,6 +1,7 @@
 // Máy chủ CRM + nhận đơn Thực Dưỡng Lành trên Cloudflare Workers (api.thucduonglanh.vn), dữ liệu ở Cloudflare D1.
 // Giao diện gửi POST (text/plain, JSON) giống hệt Apps Script trước đây: {type:'crm', action, token, …} / {type:'order'} / {type:'contact'}.
 import { esc, run, first, kvGet, normPhone, CRM_URL } from './lib.js';
+import { gvRoute } from './giaoviec.js';
 import { crmApi, saveOrder, addLead, telegramUser, vtpWebhook, ensureSchema, adminByToken, userByToken } from './crm.js';
 import { driveVideo } from './score.js';
 import { canIns } from './insight.js';
@@ -22,7 +23,7 @@ import { mcpRoute } from './mcp.js';
 import { ddApply, ddStatus, qtetApply } from './ngaydoi.js';
 export { AiRelay } from './airelay.js'; // Durable Object chuyển tiếp lời gọi AI qua Bắc Mỹ
 
-const API_VERSION = '2026-11-14s'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
+const API_VERSION = '2026-11-14t'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
 const ORIGINS = /^https:\/\/((www\.|crm\.|quantri\.|mkt\.|kho\.|ketoan\.|kinhdoanh\.|congsu\.|camnangsongkhoe\.)?thucduonglanh\.vn|([a-z0-9-]+\.)?(thucduonglanh(-crm|-congsu)?|camnang-song-khoe-thuc-duong-lanh)\.pages\.dev)$|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
 function ctxOf(env, ectx) { return { env, db: env.DB, later: p => ectx.waitUntil(Promise.resolve(p).catch(e => console.error('later', e && e.message))) }; }
@@ -114,6 +115,10 @@ export default {
     if (path.startsWith('/bai/')) { // 🤖 trang duyệt bài web do trợ lý viết (blog.js), mở từ link Telegram
       try { await ensureSchema(x.db); const r = await blogRoute(x, req, path, url); if (r) return r; }
       catch (err) { console.error('blog', err && err.stack || err); return new Response('Có lỗi, vui lòng thử lại sau ít phút.', { status: 500, headers: { 'Content-Type': 'text/plain; charset=utf-8' } }); }
+    }
+    if (path.startsWith('/gv/')) { // ✅ bot Telegram giao việc: nhận tin + nút bấm (giaoviec.js)
+      try { await ensureSchema(x.db); const r = await gvRoute(x, req, path); if (r) return r; }
+      catch (err) { console.error('gv', err && err.stack || err); return new Response('ok'); } // trả 200 để Telegram không gửi lặp
     }
     if (path.startsWith('/fb/')) { // 📘 trợ lý Fanpage: webhook Facebook + đăng nhập kết nối trang (fb.js)
       try { await ensureSchema(x.db); const r = await fbRoute(x, req, path, url); if (r) return r; }

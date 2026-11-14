@@ -22,6 +22,7 @@ import { vqTick } from './voc.js';
 import { ytWeekly } from './yt.js';
 import { vhLine } from './vanhoa.js';
 import { tbDaily, tbTick } from './thongbao.js';
+import { gvTick, gvMorning } from './giaoviec.js';
 
 function careMessage(items, leads, today, isGroup, who, R) {
   const block = (title, arr, tip) => !arr.length ? '' : '\n\n<b>' + title + ' (' + arr.length + ')</b> – ' + tip + '\n' + arr.slice(0, 25).map(c =>
@@ -148,6 +149,8 @@ export async function scheduled(x, cron) {
     if (vn.getUTCDay() === 1 && !await kvGet(x.db, wk)) { await kvSet(x.db, wk, '1', 2 * DAY); try { const t = await insWeekly(x); for (const u of await crmUsers(x)) if (u.active && u.tg && (u.level >= 2 || u.role === 'Marketing')) await telegramTo(x.env, u.tg, t); } catch (e) { console.error('insWeekly', e.message); } }
     x.later(ytWeekly(x).catch(e => console.error('ytWeekly', e.message))); // ▶️ thứ Hai: báo cáo YouTube (yt.js), chạy nền 1–2 phút
     try { await stRemind(x); } catch (e) { console.error('stRemind', e.message); } // 📗 thứ Hai: Sổ tay doanh nghiệp còn mục chưa xác nhận / quá 90 ngày → Telegram Quản trị (sotay.js)
+    const gk = 'gvm_' + fmtDate(now, 'yyyyMMdd'); // ✅ 8h: danh sách việc từng người + nhóm, thứ Hai tổng kết tuần (giaoviec.js)
+    if (!await kvGet(x.db, gk)) { await kvSet(x.db, gk, '1', 2 * DAY); try { await gvMorning(x); } catch (e) { console.error('gvMorning', e.message); } }
     const mk = 'mktd_' + fmtDate(now, 'yyyyMMdd'); // tin Telegram marketing buổi sáng
     if (!await kvGet(x.db, mk)) { await kvSet(x.db, mk, '1', 2 * DAY); try { for (const m of await mktDailyMsgs(x, await crmUsers(x))) await telegramTo(x.env, m.tg, m.text); } catch (e) { console.error('mktDaily', e.message); } }
   }
@@ -168,6 +171,7 @@ export async function scheduled(x, cron) {
     try { await poolTick(x); } catch (e) { console.error('poolTick', e.message); } // 🧺 số công ty giao quá N ngày chưa chốt → báo trước 1 ngày rồi về Kho chung
     try { await ownTick(x); } catch (e) { console.error('ownTick', e.message); } // 🙋 khách mới có đơn đầu: sale tự mang về? → hoa hồng payplan.own % (6% từ 13/11/2026) trong 6 tháng, báo sale
   }
+  try { await gvTick(x); } catch (e) { console.error('gvTick', e.message); } // ✅ việc sắp tới hạn / quá hạn → nhắc qua bot giao việc
   try { await tbTick(x); } catch (e) { console.error('tbTick', e.message); } // 📢 thông báo hẹn giờ tới giờ hiện → gửi Telegram (thongbao.js)
   try { await sanSheetTick(x); } catch (e) { console.error('sanSheet', e.message); } // Google Sheet báo cáo sàn, 30 phút/lần
   try { await fixBestTiepNhan(x); } catch (e) { console.error('fixBestTiepNhan', e.message); } // 1 lần 14/11/2026: trả 7 đơn bị đọc nhầm Đã giao (Best "Tiếp nhận đơn hàng thành công")

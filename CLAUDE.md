@@ -45,7 +45,8 @@ Nếu CRM web (`crm/`) cần Apps Script bản mới mới chạy được thì 
 
 ## Đơn hàng & CRM
 - Sheet "Đơn hàng website Thực Dưỡng Lành": từ 12/10/2026 chỉ còn "📖 Hướng dẫn" + các tab "CRM · …" (bản sao từ D1, 6 tiếng/lần, sửa trên Sheet không có tác dụng). Dữ liệu thật nằm ở D1.
-- Báo đơn qua email và Telegram (bot @thucduonglanh_donhang_bot, nhóm "Đơn hàng Thực Dưỡng Lành"). Tin "CSKH hôm nay" gửi lúc 8h sáng.
+- Báo đơn qua email và Telegram (bot @thucduonglanh_donhang_bot, nhóm "Đơn hàng Thực Dưỡng Lành"). Tin "CSKH hôm nay" gửi lúc 8h sáng. **Không bật webhook cho bot này** (nút Kết nối Telegram đọc tin bằng getUpdates).
+- ✅ Giao việc (14/11/2026): bot Telegram RIÊNG, webhook `/gv/tg/<secret>`, code `api/src/giaoviec.js`, tab CRM `giao-viec`, áp dụng mọi nhân sự (HUONG-DAN.md mục 6, "Giao việc qua Telegram"). Thử: `node scripts/test-giaoviec.mjs`.
 - CRM: đăng nhập bằng mã email; quyền lấy từ bảng `users` trong D1, sửa ở CRM → Cài đặt (thaisoniph@gmail.com luôn là Quản trị).
 - Phí ship 30.000đ, miễn phí từ 300.000đ. Chuyển khoản qua QR VCB. Hotline/Zalo: 0966 326 522.
 

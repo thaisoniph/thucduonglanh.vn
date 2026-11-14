@@ -105,6 +105,7 @@
     lead: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>',
     dash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>',
     chart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M8 17V10M13 17V6M18 17v-4"/></svg>',
+    task: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 9l2 2 4-4M8 15h8"/></svg>',
     help: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg>',
     search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>',
     qr: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></svg>',
@@ -844,10 +845,11 @@
     { id: 'kho', label: 'Kho', icon: 'kho', kho: 1 }, // 📦 kho hàng (api/src/kho.js): người tích Phụ trách kho, Quản lý, Quản trị (Quản lý / Quản trị vào từ Thêm, Tổng quan)
     { id: 'ke-toan', label: 'Kế toán', icon: 'kt', kt: 1 }, // 💼 tiền về, tiền treo ở hãng, chi phí, lãi lỗ (api/src/kt.js): quyền Kế toán + Quản trị (Quản trị vào từ Thêm)
     { id: 'san', label: 'Sàn', icon: 'shop', san: 1 }, // doanh số Shopee / TikTok Shop: Quản trị + người phụ trách sàn (Quản trị vào từ Tổng quan, không chiếm chỗ trên menu)
+    { id: 'giao-viec', label: 'Giao việc', short: 'Việc', icon: 'task', gv: 1 }, // ✅ giao việc + bot Telegram (api/src/giaoviec.js, 14/11/2026): mọi vai trò
     { id: 'cai-dat', label: 'Cài đặt', icon: 'gear' }
   ];
   // Marketing: tab Marketing, Link & QR, Khách hỏi (24/10/2026: chỉ xem khách để lại số trên web), Cài đặt
-  function myViews() { if (isKt()) return VIEWS.filter(function (v) { return v.kt || v.id === 'cai-dat'; }); if (isKho()) return VIEWS.filter(function (v) { return v.kho || v.id === 'cai-dat'; }); if (isMkt()) return VIEWS.filter(function (v) { return v.mkt || v.lq || (v.bw && S.user && S.user.web) || v.id === 'tiem-nang' || v.id === 'cai-dat'; }); return VIEWS.filter(function (v) { return (!v.min || lvl() >= v.min) && (!v.ask || !!(S.user && S.user.ask)) && (!v.lq || lvl() >= 2 || (v.id === 'tro-ly-zalo' && S.user && S.user.zb)) && (!v.bw || lvl() >= 2 || !!(S.user && S.user.web)) && (!v.san || (S.d && S.d.sanOk) || lvl() >= 3) && (!v.kho || khoCan()) && (!v.kt || lvl() >= 3) && (!v.mkt || lvl() >= 3 || mkvOnly()); }); }
+  function myViews() { if (isKt()) return VIEWS.filter(function (v) { return v.kt || v.gv || v.id === 'cai-dat'; }); if (isKho()) return VIEWS.filter(function (v) { return v.kho || v.gv || v.id === 'cai-dat'; }); if (isMkt()) return VIEWS.filter(function (v) { return v.mkt || v.gv || v.lq || (v.bw && S.user && S.user.web) || v.id === 'tiem-nang' || v.id === 'cai-dat'; }); return VIEWS.filter(function (v) { return (!v.min || lvl() >= v.min) && (!v.ask || !!(S.user && S.user.ask)) && (!v.lq || lvl() >= 2 || (v.id === 'tro-ly-zalo' && S.user && S.user.zb)) && (!v.bw || lvl() >= 2 || !!(S.user && S.user.web)) && (!v.san || (S.d && S.d.sanOk) || lvl() >= 3) && (!v.kho || khoCan()) && (!v.kt || lvl() >= 3) && (!v.mkt || lvl() >= 3 || mkvOnly()); }); }
   function navViews() { return myViews().filter(function (v) { return !((v.san || v.lq || v.bw || v.ask || v.kho || v.kt) && lvl() >= 2 && !isMkt()); }); } // Quản trị: Marketing có trên menu (29/10/2026), Sàn / Link & QR / Zalo / Fanpage vào từ Thêm; Quản lý cũng vậy (anh Sơn 31/10/2026: menu máy tính rối)
   /** Điện thoại (29/10/2026, kiểu Apple): thanh dưới chỉ 4 mục hay dùng + "Thêm"; mục còn lại, Cài đặt, Hướng dẫn, Góp ý nằm ở màn Thêm. Máy tính vẫn hiện đủ. */
   var NAV_FIRST = ['hom-nay', 'tiem-nang', 'khach-hang', 'don-hang', 'bao-cao'];
@@ -867,9 +869,9 @@
     'khach-hang': 'Hồ sơ, lịch sử mua, chăm sóc', 'don-hang': 'Đơn mới, đang giao, hoàn / huỷ', 'bao-cao': 'Doanh số, mục tiêu, thi đua',
     marketing: 'Quảng cáo, chi phí, giá 1 số điện thoại', 'link-qr': 'Link và mã QR theo dõi nguồn khách', 'tro-ly-zalo': 'Trợ lý An Lành trong nhóm Zalo',
     fanpage: 'Trả lời bình luận, tin nhắn Fanpage', 'bai-web': 'Trợ lý viết bài cho Góc Sống Lành', 'noi-dung': 'Nhóm khách, tension, phễu; kịch bản video', san: 'Doanh số Shopee, TikTok Shop', kho: 'Hàng còn bao nhiêu, sắp hết, đặt thêm hàng', 'ke-toan': 'Tiền về tài khoản, tiền treo ở hãng, lãi lỗ', 'cai-dat': 'Nhân sự, mục tiêu, mẫu tin, tài khoản',
-    'hoi-so-lieu': 'Hỏi bằng lời, AI tự tra số và báo cáo'
+    'hoi-so-lieu': 'Hỏi bằng lời, AI tự tra số và báo cáo', 'giao-viec': 'Giao việc, nhận việc, báo xong qua Telegram'
   };
-  var VIEW_TINT = { 'tong-quan': '#1f5f3a', 'hom-nay': '#34a853', 'tiem-nang': '#ff9500', 'khach-hang': '#007aff', 'don-hang': '#a2845e', 'bao-cao': '#5856d6', marketing: '#ff2d55', 'link-qr': '#636366', 'tro-ly-zalo': '#0068ff', fanpage: '#1877f2', 'bai-web': '#24805b', 'noi-dung': '#d9480f', san: '#ee4d2d', kho: '#8e5a2b', 'ke-toan': '#0a7d5a', 'cai-dat': '#8e8e93', 'hoi-so-lieu': '#af52de' };
+  var VIEW_TINT = { 'tong-quan': '#1f5f3a', 'hom-nay': '#34a853', 'tiem-nang': '#ff9500', 'khach-hang': '#007aff', 'don-hang': '#a2845e', 'bao-cao': '#5856d6', marketing: '#ff2d55', 'link-qr': '#636366', 'tro-ly-zalo': '#0068ff', fanpage: '#1877f2', 'bai-web': '#24805b', 'noi-dung': '#d9480f', san: '#ee4d2d', kho: '#8e5a2b', 'ke-toan': '#0a7d5a', 'cai-dat': '#8e8e93', 'hoi-so-lieu': '#af52de', 'giao-viec': '#0a84ff' };
   function viewMore() {
     var main = navMain(), n = navCounts(), info = navInfo();
     var rest = myViews().filter(function (v) { return main.indexOf(v.id) < 0 && v.id !== 'cai-dat'; });
@@ -1108,7 +1110,7 @@
     var keepScroll = lastView === v, y = window.scrollY;
     var el = $('#view');
     var focusId = document.activeElement && document.activeElement.id, selStart = document.activeElement && document.activeElement.selectionStart;
-    el.innerHTML = ({ 'hom-nay': viewToday, 'khach-hang': viewCustomers, 'don-hang': viewOrders, 'tiem-nang': viewLeads, 'bao-cao': viewReport, 'cai-dat': viewSettings, 'tong-quan': viewDash, san: viewSan, marketing: viewMkt, 'link-qr': viewLinks, 'tro-ly-zalo': viewZbot, fanpage: viewFp, 'bai-web': viewBlog, 'noi-dung': viewIns, 'hoi-so-lieu': viewAsk, kho: viewKho, 'ke-toan': viewKtab, them: viewMore })[v]();
+    el.innerHTML = ({ 'hom-nay': viewToday, 'khach-hang': viewCustomers, 'don-hang': viewOrders, 'tiem-nang': viewLeads, 'bao-cao': viewReport, 'cai-dat': viewSettings, 'tong-quan': viewDash, san: viewSan, marketing: viewMkt, 'link-qr': viewLinks, 'tro-ly-zalo': viewZbot, fanpage: viewFp, 'bai-web': viewBlog, 'noi-dung': viewIns, 'hoi-so-lieu': viewAsk, kho: viewKho, 'ke-toan': viewKtab, 'giao-viec': viewGv, them: viewMore })[v]();
     if (v === homeView()) { btMount(el); vhMount(el); tbMount(el); hiwMount(el); goalNag(); } // ☀️ lời chào + lời chúc mỗi ngày nằm trên cùng // 🌿 Quy tắc của ngày + 📢 Thông báo (nằm trên) ở đầu màn hình đầu tiên của mỗi người
     el.insertAdjacentHTML('beforeend', updatedLine());
     if (focusId && $('#' + focusId)) { var f = $('#' + focusId); f.focus(); try { f.setSelectionRange(selStart, selStart); } catch (e) { } }
@@ -1124,6 +1126,7 @@
     if (v === 'tong-quan' || v === 'san') bindSan();
     if (v === 'hoi-so-lieu') bindAsk(!keepScroll);
     if (v === 'kho') bindKho();
+    if (v === 'giao-viec') bindGv();
     if (v === 'ke-toan') { bindKtab(); bindSan(); }
     if (r.id && !$('.modal')) {
       if (v === 'khach-hang' && cust(r.id)) openCustomer(r.id, true);
@@ -14033,6 +14036,177 @@
       api('dup_scan').then(function (j) { got(j); toast('Đã đọc ' + j.scanned + ' sheet' + (j.errors.length ? ', ' + j.errors.length + ' sheet lỗi: ' + j.errors[0] : '') + ' ✓', !!j.errors.length); b.disabled = false; b.textContent = '🔄 Quét lại file sale'; },
         function (e) { toast(e.message, true); b.disabled = false; b.textContent = '🔄 Quét lại file sale'; });
     };
+  }
+
+  /* ================================================================ ✅ Giao việc (14/11/2026, máy chủ api/src/giaoviec.js)
+   * Anh Sơn / Quản lý / người được cấp quyền giao việc cho mọi nhân sự; nhân sự nhận, báo xong ngay trong Telegram (bot giao việc riêng) hoặc ở đây.
+   * Chip lọc: Việc của tôi · Tôi giao · Cả công ty · Đã xong. Bấm 1 việc → hộp chi tiết có nút Nhận / Xong / Ghi chú / Sửa / Huỷ. */
+  var GV = { d: null, err: '', busy: 0, at: 0, tab: '', who: '' };
+  function gvFetch() {
+    if (GV.busy) return; GV.busy = 1;
+    api('gv_list', {}).then(function (j) { GV.busy = 0; GV.d = j.gv; GV.err = ''; GV.at = Date.now(); if (route().view === 'giao-viec') render(); },
+      function (e) { GV.busy = 0; GV.err = /Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message; if (route().view === 'giao-viec') render(); });
+  }
+  function gvSetD(j) { if (j && j.gv) { GV.d = j.gv; GV.at = Date.now(); } }
+  function gvDue(t) {
+    if (!t.due) return 'Không đặt hạn';
+    var n = Math.round((dayStart(t.due) - today()) / DAY), x = vnDate(t.due), hm = t.dueT ? ' ' + pad(x.h) + ':' + pad(x.mi) : '';
+    var wd = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][new Date(t.due + 7 * 3600e3).getUTCDay()];
+    return (n === 0 ? 'Hôm nay' : n === 1 ? 'Ngày mai' : n === -1 ? 'Hôm qua' : wd + ' ' + fDate(t.due).slice(0, 5)) + hm;
+  }
+  var GV_IC = { 'Mới': '🆕', 'Đang làm': '⏳', 'Xong': '✅', 'Huỷ': '✖️' };
+  var GV_TX = { 'Mới': 'Chưa nhận', 'Đang làm': 'Đang làm', 'Xong': 'Đã xong', 'Huỷ': 'Đã huỷ' };
+  function gvOpen(t) { return t.st === 'Mới' || t.st === 'Đang làm'; }
+  function gvTabs(D) {
+    var me = D.me, mine = D.tasks.filter(function (t) { return t.whoE === me && gvOpen(t); }), gave = D.tasks.filter(function (t) { return t.byE === me && t.whoE !== me && gvOpen(t); });
+    var all = D.tasks.filter(gvOpen), done = D.tasks.filter(function (t) { return !gvOpen(t); });
+    var T = [['mine', 'Việc của tôi', mine]]; if (D.lead) T.push(['gave', 'Tôi giao', gave], ['all', 'Cả công ty', all]); T.push(['done', 'Đã xong', done]);
+    return T;
+  }
+  function viewGv() {
+    if (!GV.d && !GV.err) setTimeout(gvFetch, 0); else if (GV.d && !GV.busy && Date.now() - GV.at > 60e3) setTimeout(gvFetch, 0); // việc đổi từ Telegram: mở lại tab quá 1 phút thì tải lại
+    var D = GV.d;
+    var h = '<div class="gv-wrap"><div class="page-head"><h1>✅ Giao việc</h1><div class="grow"></div><button class="btn ghost" data-gv="reload" title="Tải lại việc mới nhất">⟳ Tải lại</button></div>';
+    if (!D) return h + '<div class="box"><p class="muted">' + (GV.err ? '⚠️ ' + esc(GV.err) + ' <button class="btn sm" data-gv="reload">Thử lại</button>' : '⏳ Đang tải việc…') + '</p></div></div>';
+    h += '<p class="gv-intro">' + (D.lead ? 'Giao việc cho bất kỳ ai trong công ty. Người làm nhận tin Telegram, bấm <b>✋ Nhận việc</b> / <b>✅ Xong</b> ngay trên điện thoại. Máy nhắc hạn và báo bạn khi xong.' : 'Việc anh Sơn, Quản lý giao cho bạn nằm ở đây. Làm xong bấm <b>✅ Xong</b> (ở đây hoặc ngay trong Telegram).') + '</p>';
+    h += gvSetup(D);
+    h += '<button class="btn pri lg block gv-new" data-gv="new">＋ ' + (D.lead ? 'Giao việc mới' : 'Ghi việc của tôi') + '</button>';
+    var T = gvTabs(D); if (!GV.tab || !T.some(function (x) { return x[0] === GV.tab; })) GV.tab = T[0][2].length || !D.lead ? T[0][0] : 'gave';
+    h += '<div class="chips gv-chips" role="tablist">' + T.map(function (x) { return '<button class="chip' + (x[0] === GV.tab ? ' on' : '') + '" data-gv="tab|' + x[0] + '">' + x[1] + ' <span class="gv-n">' + x[2].length + '</span></button>'; }).join('') + '</div>';
+    var list = T.filter(function (x) { return x[0] === GV.tab; })[0][2];
+    if (GV.tab === 'all' || GV.tab === 'done') {
+      var names = {}; list.forEach(function (t) { names[t.who] = (names[t.who] || 0) + 1; });
+      if (Object.keys(names).length > 1) h += '<label class="f gv-who"><span>Xem việc của</span><select data-gvsel="who"><option value="">Mọi người (' + list.length + ')</option>' + Object.keys(names).sort().map(function (n) { return '<option value="' + esc(n) + '"' + (GV.who === n ? ' selected' : '') + '>' + esc(n) + ' (' + names[n] + ')</option>'; }).join('') + '</select></label>';
+      if (GV.who) list = list.filter(function (t) { return t.who === GV.who; });
+    }
+    if (!list.length) return h + '<div class="box gv-empty">' + (GV.tab === 'mine' ? '🎉 Bạn không còn việc nào đang mở.' : GV.tab === 'gave' ? 'Bạn chưa giao việc nào đang mở. Bấm <b>＋ Giao việc mới</b> ở trên, hoặc nhắn bot Telegram.' : GV.tab === 'done' ? 'Chưa có việc nào xong trong 30 ngày.' : '🎉 Cả công ty không còn việc nào đang mở.') + '</div>' + gvAdmin(D) + '</div>';
+    if (GV.tab === 'done') return h + gvSec('', list.slice().sort(function (a, b) { return (b.done || b.upd) - (a.done || a.upd); })) + gvAdmin(D) + '</div>';
+    var t0 = today(), late = [], tod = [], next = [], none = [];
+    list.forEach(function (t) { if (t.late) late.push(t); else if (t.due && dayStart(t.due) === t0) tod.push(t); else if (t.due) next.push(t); else none.push(t); });
+    var byDue = function (a, b) { return a.due - b.due; };
+    h += gvSec('🔴 Trễ hạn', late.sort(byDue)) + gvSec('📅 Hạn hôm nay', tod.sort(byDue)) + gvSec('🗓 Sắp tới', next.sort(byDue)) + gvSec('📌 Không đặt hạn', none);
+    return h + gvAdmin(D) + '</div>';
+  }
+  function gvSec(title, L) {
+    if (!L.length) return '';
+    var me = GV.d.me;
+    return '<section class="gv-sec">' + (title ? '<h2 class="gv-h">' + title + ' <small>' + L.length + '</small></h2>' : '') + '<div class="gv-rows">' + L.map(function (t) {
+      var who = t.whoE === me ? 'Bạn' : t.who, by = t.byE === me ? 'bạn giao' : t.by + ' giao';
+      return '<button class="gv-row' + (t.late ? ' gv-late' : '') + (t.st === 'Xong' ? ' gv-done' : '') + '" data-gv="open|' + t.id + '"><span class="gv-ic" aria-hidden="true">' + GV_IC[t.st] + '</span><span class="gv-t"><b>' + esc(t.title) + '</b>' +
+        '<small>👤 ' + esc(who) + ' · 📅 ' + esc(gvDue(t)) + ' · ' + esc(by) + '</small><small class="gv-st">' + esc(GV_TX[t.st]) + (t.st === 'Xong' && t.done ? ' ' + esc(when(t.done)) : '') + (t.log.length > 1 ? ' · 💬 ' + (t.log.length - 1) + ' cập nhật' : '') + '</small></span><span class="mr-chev" aria-hidden="true">›</span></button>';
+    }).join('') + '</div></section>';
+  }
+  /** Thẻ nối Telegram cho mỗi người + hướng dẫn cài bot cho Quản trị (lần đầu). */
+  function gvSetup(D) {
+    if (!D.on) return D.admin ? '<div class="box gv-setup"><h2 class="gv-h">🤖 Bước đầu: tạo bot Telegram giao việc (2 phút, làm 1 lần)</h2><ol class="gv-ol">' +
+      '<li>Mở Telegram, tìm <b>@BotFather</b> → bấm <b>Start</b>.</li><li>Gõ <b>/newbot</b>. Đặt tên hiện, ví dụ <i>Giao việc Thực Dưỡng Lành</i>. Đặt tên bot kết thúc bằng <i>bot</i>, ví dụ <i>tdl_giaoviec_bot</i>.</li>' +
+      '<li>BotFather gửi lại 1 dòng <b>khoá</b> dạng <i>123456789:AAH…</i>. Chép dòng đó dán vào ô dưới rồi bấm <b>Lưu</b>.</li></ol>' +
+      '<label class="f"><span>Khoá bot (BotFather gửi)</span><input type="text" id="gvTok" placeholder="123456789:AAH…" autocomplete="off" spellcheck="false"></label><p class="gv-err" id="gvTokErr"></p><button class="btn pri" data-gv="tok">Lưu và bật bot</button>' +
+      '<p class="small muted">Dùng bot MỚI, không dùng bot báo đơn @thucduonglanh_donhang_bot.</p></div>'
+      : '<div class="box gv-setup"><p class="muted" style="margin:0">🤖 Anh Sơn đang cài bot Telegram giao việc. Trong lúc chờ, bạn vẫn xem và bấm ✅ Xong ở đây.</p></div>';
+    var h = '';
+    if (!D.linked) h += '<div class="box gv-setup"><h2 class="gv-h">📲 Nối Telegram (30 giây, làm 1 lần)</h2><p class="gv-p">Để nhận việc được giao, lời nhắc hạn và bấm <b>✅ Xong</b> ngay trên điện thoại.</p><div class="gv-steps" id="gvSteps"><button class="btn pri" data-gv="link">Kết nối Telegram</button></div></div>';
+    if (D.lead && !D.group) h += '<div class="box gv-setup"><h2 class="gv-h">👥 Nối nhóm Telegram (không bắt buộc)</h2><p class="gv-p">Muốn việc giao hiện chung trong 1 nhóm (cả phòng cùng thấy ai đang làm gì): tạo nhóm Telegram, thêm bot <b>@' + esc(D.bot) + '</b> và mọi người vào nhóm, rồi ' + (D.admin || lvl() >= 2 ? 'gõ <b>/noinhom</b> trong nhóm.' : 'nhờ anh Sơn / Quản lý gõ <b>/noinhom</b> trong nhóm.') + ' Không nối nhóm thì bot nhắn riêng từng người.</p></div>';
+    return h;
+  }
+  /** Quản trị: ai được giao việc cho người khác, nhóm đang nối, tắt bot. */
+  function gvAdmin(D) {
+    if (!D.admin || !D.on) return '';
+    var cand = D.staff.filter(function (z) { return z.lv < 2; });
+    return '<details class="gv-adv"><summary>⚙️ Cài đặt giao việc</summary><div class="gv-adv-b">' +
+      '<p class="gv-p">🤖 Bot: <b>@' + esc(D.bot) + '</b> · 👥 Nhóm: ' + (D.group ? '<b>' + esc(D.group) + '</b> <button class="btn sm" data-gv="ungroup">Bỏ nối nhóm</button>' : 'chưa nối (gõ /noinhom trong nhóm)') + (D.ai ? '' : ' · ⚠️ AI chưa bật: bot chỉ hiểu nút bấm và trả lời "xong"') + '</p>' +
+      '<p class="gv-p"><b>Ai được giao việc cho người khác?</b> Quản trị, Quản lý luôn được. Tích thêm người (vd trưởng phòng Marketing):</p><div class="gv-leads">' +
+      cand.map(function (z) { return '<label class="gv-lead"><input type="checkbox" data-gvlead="' + esc(z.email) + '"' + ((D.leads || []).indexOf(z.email) >= 0 ? ' checked' : '') + '><span>' + esc(z.name) + ' <small>' + esc(z.role) + '</small></span></label>'; }).join('') +
+      '</div><button class="btn pri" data-gv="leads">Lưu người được giao việc</button>' +
+      '<p class="gv-p" style="margin-top:14px"><b>Ai đã nối Telegram:</b> ' + D.staff.map(function (z) { return esc(z.name) + (z.tg ? ' ✅' : ' ⚪️'); }).join(' · ') + '</p>' +
+      '<button class="btn danger sm" data-gv="off">Tắt bot giao việc</button></div></details>';
+  }
+  function gvFind(id) { return GV.d && GV.d.tasks.filter(function (t) { return t.id === +id; })[0]; }
+  function gvDo(action, payload, btn, msg) {
+    var t = btn ? btn.textContent : ''; if (btn) { btn.disabled = true; btn.textContent = '⏳ Đang lưu…'; }
+    return api(action, payload).then(function (j) { gvSetD(j); closeModal(true); toast(msg || 'Đã lưu ✓'); render(); return j; },
+      function (e) { if (btn) { btn.disabled = false; btn.textContent = t; } toast(e.message, true); });
+  }
+  /** Chi tiết 1 việc: thông tin, lịch sử cập nhật, nút theo quyền. */
+  function openGvTask(id) {
+    var t = gvFind(id); if (!t) return;
+    var D = GV.d, mine = t.whoE === D.me, boss = t.byE === D.me || D.lead, open = gvOpen(t);
+    var body = '<div class="gv-m"><p class="gv-m-t">' + esc(t.title) + '</p>' + (t.body ? '<p class="gv-m-b">' + esc(t.body).replace(/\n/g, '<br>') + '</p>' : '') +
+      '<div class="gv-kv"><span>👤 Người làm</span><b>' + esc(t.who) + '</b><span>📅 Hạn</span><b>' + esc(gvDue(t)) + (t.late ? ' · 🔴 trễ hạn' : '') + '</b><span>📝 Người giao</span><b>' + esc(t.by) + ' · ' + esc(when(t.at)) + '</b><span>Trạng thái</span><b>' + GV_IC[t.st] + ' ' + esc(GV_TX[t.st]) + '</b>' + (t.result ? '<span>📎 Kết quả</span><b>' + linkify(t.result) + '</b>' : '') + '</div>' +
+      (t.log.length ? '<h3 class="gv-h3">Lịch sử</h3><ul class="gv-log">' + t.log.slice().reverse().map(function (l) { return '<li><small>' + esc(when(l.at)) + ' · ' + esc(l.by) + '</small>' + esc(l.text) + '</li>'; }).join('') + '</ul>' : '') +
+      (open ? '<label class="f"><span>' + (mine ? 'Kết quả / ghi chú (link bài, file… không bắt buộc)' : 'Ghi chú cho ' + esc(t.who)) + '</span><textarea id="gvNote" rows="2" placeholder="' + (mine ? 'vd: https://… hoặc: em cần thêm ảnh sản phẩm' : 'vd: nhớ gửi anh xem trước khi đăng') + '"></textarea></label>' : '') + '</div>';
+    var b = [];
+    if (open && mine && t.st === 'Mới') b.push('<button class="btn" data-gvm="nhan">✋ Nhận việc</button>');
+    if (open && (mine || boss)) b.push('<button class="btn" data-gvm="note">💬 Gửi ghi chú</button>', '<button class="btn pri" data-gvm="xong">✅ Xong</button>');
+    if (!open && boss) b.push('<button class="btn" data-gvm="mo">↩ Mở lại việc</button>');
+    if (open && boss) body = body.replace('<div class="gv-m">', '<div class="gv-m"><div class="gv-tools"><button class="btn sm" data-gvm="sua">✏️ Sửa việc, đổi người, đổi hạn</button><button class="btn sm danger" data-gvm="huy">✖️ Huỷ việc</button></div>');
+    var m = modal('Việc #' + t.id, body, b.join('') || '<button class="btn" data-close>Đóng</button>');
+    $$('[data-gvm]', m).forEach(function (el) {
+      el.onclick = function () {
+        var k = el.getAttribute('data-gvm'), note = $('#gvNote') ? $('#gvNote').value.trim() : '';
+        if (k === 'sua') { openGvForm(t); return; }
+        if (k === 'note') { if (!note) { toast('Gõ ghi chú trước nhé.', true); return; } gvDo('gv_set', { id: t.id, note: note }, el, 'Đã gửi ghi chú ✓'); return; }
+        if (k === 'huy' && !confirm('Huỷ việc "' + t.title + '"? Người làm sẽ nhận tin báo.')) return;
+        var st = { nhan: 'Đang làm', xong: 'Xong', huy: 'Huỷ', mo: 'Đang làm' }[k], p = { id: t.id, st: st };
+        if (note) { if (k === 'xong' && /https?:\/\//.test(note)) p.result = note; else p.note = note; }
+        gvDo('gv_set', p, el, k === 'xong' ? '✅ Đã ghi xong. Cảm ơn bạn!' : k === 'nhan' ? '⏳ Đã nhận việc' : 'Đã lưu ✓');
+      };
+    });
+  }
+  function linkify(s) { return esc(s).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>'); }
+  /** "2026-11-20" + "17:00" (giờ VN) → ms. Không có giờ: 9h sáng (máy chủ hiểu là cả ngày). */
+  function gvMs(d, hm) { var a = String(d || '').split('-'); if (a.length !== 3) return null; var h = String(hm || '').split(':'); return Date.UTC(+a[0], +a[1] - 1, +a[2], hm ? +h[0] : 9, hm ? +h[1] || 0 : 0) - 7 * 3600e3; }
+  function gvYmd(t) { var x = vnDate(t); return x.y + '-' + pad(x.m) + '-' + pad(x.d); }
+  /** Hộp giao việc mới / sửa việc. */
+  function openGvForm(t) {
+    var D = GV.d, edit = !!t, ppl = D.lead ? D.staff : D.staff.filter(function (z) { return z.email === D.me; });
+    var who = edit ? t.whoE : D.lead ? (GV.who ? (D.staff.filter(function (z) { return z.name === GV.who; })[0] || {}).email : '') : D.me;
+    var d0 = today(), wd = new Date(d0 + 7 * 3600e3).getUTCDay(), fri = d0 + ((5 - wd + 7) % 7 || 7) * DAY, mon = d0 + ((1 - wd + 7) % 7 || 7) * DAY;
+    var quick = [['Hôm nay', d0], ['Ngày mai', d0 + DAY], ['Thứ Sáu', fri], ['Thứ Hai tới', mon], ['Không hạn', 0]];
+    var x = edit && t.due ? vnDate(t.due) : null;
+    var body = '<div class="gv-m">' +
+      '<label class="f"><span>Việc cần làm</span><textarea id="gvT" rows="2" placeholder="vd: Viết 3 bài Tết cho Trà DILVANG">' + (edit ? esc(t.title) : '') + '</textarea></label>' +
+      '<label class="f"><span>Người làm</span><select id="gvW">' + (who ? '' : '<option value="">Chọn người làm…</option>') + ppl.map(function (z) { return '<option value="' + esc(z.email) + '"' + (z.email === who ? ' selected' : '') + '>' + esc(z.name) + ' · ' + esc(z.role) + (z.tg ? '' : ' (chưa nối Telegram)') + '</option>'; }).join('') + '</select></label>' +
+      '<div class="f"><span class="gv-lbl">Hạn</span><div class="chips gv-qd">' + quick.map(function (q) { return '<button type="button" class="chip" data-gvq="' + (q[1] ? gvYmd(q[1]) : '') + '">' + q[0] + '</button>'; }).join('') + '</div>' +
+      '<div class="gv-dt"><input type="date" id="gvD" value="' + (edit && t.due ? gvYmd(t.due) : '') + '" aria-label="Ngày hạn"><input type="time" id="gvH" value="' + (x && t.dueT ? pad(x.h) + ':' + pad(x.mi) : '') + '" aria-label="Giờ hạn (không bắt buộc)"></div><small class="muted">Giờ không bắt buộc. Có giờ thì máy nhắc trước 1 tiếng.</small></div>' +
+      '<label class="f"><span>Ghi chú thêm (không bắt buộc)</span><textarea id="gvB" rows="3" placeholder="Yêu cầu, link tài liệu…">' + (edit ? esc(t.body || '') : '') + '</textarea></label>' +
+      (!edit && D.on ? '<label class="gv-cb"><input type="checkbox" id="gvTg" checked> Báo ngay qua Telegram</label>' : '') + '</div>';
+    var m = modal(edit ? '✏️ Sửa việc #' + t.id : (D.lead ? '＋ Giao việc mới' : '＋ Ghi việc của tôi'), body, '<button class="btn" data-close>Thôi</button><button class="btn pri" id="gvSave">' + (edit ? 'Lưu' : D.lead ? 'Giao việc' : 'Ghi việc') + '</button>');
+    $$('[data-gvq]', m).forEach(function (c) { c.onclick = function () { $('#gvD').value = c.getAttribute('data-gvq'); if (!c.getAttribute('data-gvq')) $('#gvH').value = ''; $$('[data-gvq]', m).forEach(function (o) { o.classList.toggle('on', o === c); }); }; });
+    $('#gvT').focus();
+    $('#gvSave').onclick = function () {
+      var title = $('#gvT').value.trim(); if (!title) { toast('Ghi việc cần làm nhé.', true); $('#gvT').focus(); return; }
+      if (!$('#gvW').value) { toast('Chọn người làm nhé.', true); $('#gvW').focus(); return; }
+      var dv = $('#gvD').value, hv = $('#gvH').value, p = { title: title, who: $('#gvW').value, body: $('#gvB').value.trim(), due: dv ? gvMs(dv, hv) : 0, dueT: dv && hv ? 1 : 0 };
+      if (edit) p.id = t.id; else p.tg = !!($('#gvTg') && $('#gvTg').checked);
+      gvDo('gv_save', p, this, edit ? 'Đã lưu ✓' : 'Đã giao việc ✓').then(function (j) { if (j && !edit && p.tg && !j.sent && D.on) toast('Đã giao ✓ Người làm chưa nối Telegram nên sẽ thấy việc khi mở CRM.'); });
+    };
+  }
+  function gvLinkFlow(btn) {
+    btn.disabled = true; btn.textContent = 'Đang tạo link…';
+    api('gv_link').then(function (j) {
+      $('#gvSteps').innerHTML = '<a class="btn zalo" href="' + esc(j.url) + '" target="_blank" rel="noopener">① Mở Telegram, bấm Start</a><button class="btn pri" data-gv="linked">② Tôi đã bấm Start</button>';
+      bindGv($('#gvSteps'));
+    }, function (e) { toast(e.message, true); btn.disabled = false; btn.textContent = 'Kết nối Telegram'; });
+  }
+  function bindGv(root) {
+    $$('[data-gvsel="who"]', root).forEach(function (s) { s.onchange = function () { GV.who = s.value; render(); }; });
+    $$('[data-gv]', root).forEach(function (el) {
+      el.onclick = function (e) {
+        if (el.tagName === 'A') return; e.preventDefault();
+        var a = el.getAttribute('data-gv').split('|'), k = a[0];
+        if (k === 'reload') { GV.d = GV.d || null; GV.err = ''; gvFetch(); toast('Đang tải lại…'); }
+        else if (k === 'tab') { GV.tab = a[1]; GV.who = ''; render(); }
+        else if (k === 'open') openGvTask(a[1]);
+        else if (k === 'new') openGvForm(null);
+        else if (k === 'link') gvLinkFlow(el);
+        else if (k === 'linked') { el.disabled = true; el.textContent = 'Đang kiểm tra…'; api('gv_list', {}).then(function (j) { gvSetD(j); if (GV.d.linked) toast('Đã nối Telegram ✓ Bot vừa gửi tin chào bạn.'); else toast('Chưa thấy bạn bấm Start. Mở lại Telegram, bấm Start rồi thử lại.', true); render(); }, function (er) { toast(er.message, true); render(); }); }
+        else if (k === 'tok') { var v = $('#gvTok').value.trim(); if (!v) { $('#gvTokErr').textContent = 'Dán khoá bot vào ô trên.'; return; } el.disabled = true; el.textContent = '⏳ Đang kiểm tra khoá…'; api('gv_cfg', { bot: v }).then(function (j) { gvSetD(j); toast('Đã bật bot @' + GV.d.bot + ' ✓'); render(); }, function (er) { el.disabled = false; el.textContent = 'Lưu và bật bot'; $('#gvTokErr').textContent = er.message; }); }
+        else if (k === 'leads') gvDo('gv_cfg', { leads: $$('[data-gvlead]').filter(function (c) { return c.checked; }).map(function (c) { return c.getAttribute('data-gvlead'); }) }, el, 'Đã lưu người được giao việc ✓');
+        else if (k === 'ungroup') { if (confirm('Bỏ nối nhóm Telegram? Việc sẽ nhắn riêng từng người.')) gvDo('gv_cfg', { ungroup: 1 }, el); }
+        else if (k === 'off') { if (confirm('Tắt bot giao việc? Việc vẫn còn trong CRM, Telegram ngừng nhận tin.')) gvDo('gv_cfg', { off: 1 }, el, 'Đã tắt bot'); }
+      };
+    });
   }
 
   /* ================================================================ 📦 Kho hàng (06/11/2026, máy chủ api/src/kho.js)
