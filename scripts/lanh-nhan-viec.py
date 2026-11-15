@@ -18,9 +18,10 @@ API = os.environ.get('TDL_PM_API') or 'https://api.thucduonglanh.vn/pm/agent'  #
 ROOM = os.environ.get('TDL_PM_ROOM') or os.path.expanduser('~/Library/CloudStorage/GoogleDrive-thaisoniph@gmail.com/Drive của tôi/03_CÔNG VIỆC/02_VITAGREEN/09_Phòng Marketing AI')
 CLAUDE = os.environ.get('TDL_PM_CLAUDE') or os.path.expanduser('~/.local/bin/claude')
 LOCK = os.environ.get('TDL_PM_LOCK') or os.path.expanduser('~/Library/Caches/lanh-nhan-viec.lock')
+CACHE = os.environ.get('TDL_PM_CACHE') or os.path.expanduser('~/Library/Caches/lanh-ketqua')  # macOS chặn python (launchd) đọc Google Drive → Lành chép kết quả sang đây
 TIMEOUT = 45 * 60  # 1 việc tối đa 45 phút
 MAX_PER_RUN = 3
-TOOLS = 'Read Write Edit Glob Grep Agent Task Skill WebSearch WebFetch TodoWrite'
+TOOLS = 'Read Write Edit Glob Grep Agent Task Skill WebSearch WebFetch TodoWrite Bash(cp:*)'
 NAMES = {'lanh': 'Lanh', 'tham': 'Tham', 'van': 'Van', 'chuan': 'Chuan', 'phat': 'Phat'}
 
 
@@ -54,7 +55,7 @@ def vn_time(ms):
     return time.strftime('%d/%m/%Y', time.gmtime(ms / 1000 + 7 * 3600)) if ms else ''
 
 
-def prompt_for(t, team, rel):
+def prompt_for(t, team, rel, out):
     who = next((m for m in team if m['id'] == t['who']), None)
     giao = 'Để Lành tự chia việc cho đúng người' if t['who'] == 'lanh' else 'Anh giao thẳng cho %s (%s) – em vẫn là người gom, kiểm và gửi kết quả' % (who['name'], who['role'])
     p = ['Anh Sơn vừa giao việc cho Phòng Marketing AI qua CRM. Em là **Lành – Trưởng phòng**, làm đúng theo CLAUDE.md của phòng.', '',
@@ -73,6 +74,7 @@ def prompt_for(t, team, rel):
           '2. Anh KHÔNG ngồi đây để trả lời câu hỏi. Thiếu thông tin thì tự tra trong phòng và Drive công ty; vẫn thiếu thì ghi rõ "THIẾU: …" trong kết quả và làm phần làm được.',
           '3. Không đăng bài, không gửi tin, không sửa website / CRM / quảng cáo / Notion. Chỉ soạn để anh duyệt.',
           '4. Ghi TOÀN BỘ kết quả cuối (đã qua Chuẩn) vào đúng file: `%s` (ghi đè nếu đã có). Đầu file là 3–5 dòng "Tóm tắt cho anh" đọc được trên điện thoại: việc gì, ai làm, kết quả chính, anh cần quyết gì. Sau đó mới là nội dung đầy đủ (dùng tiêu đề ##, gạch đầu dòng, bảng nếu cần). Tiếng Việt đời thường.' % rel,
+          '4b. Ghi file xong, chạy đúng lệnh `cp "%s" "%s"` để gửi kết quả về CRM. Lệnh cp báo lỗi thì dùng Write ghi lại nguyên nội dung file vào `%s`.' % (os.path.join(ROOM, rel), out, out),
           '5. Cập nhật `05_Bảng việc/Bảng việc.md`: 1 dòng cho mã %s, trạng thái "Chờ anh duyệt (CRM)".' % t['code'],
           '6. Dòng CUỐI CÙNG câu trả lời của em ghi đúng dạng `CHAM: <điểm Chuẩn chấm 0-100>` (việc không cần chấm thì `CHAM: -`). Nếu hoàn toàn không làm được thì dòng cuối ghi `KHONG_LAM_DUOC: <lý do ngắn>`.']
     return '\n'.join(p)
@@ -90,15 +92,15 @@ def do_task(k, t, team):
     who = NAMES.get(t['who'], 'Lanh')
     month = time.strftime('%Y-%m', time.gmtime(time.time() + 7 * 3600))
     rel = t.get('file') or '08_Kết quả công việc/%s/%s_%s_%s.md' % (month, t['code'], who, slug(t['title']))
-    path = os.path.join(ROOM, rel)
-    os.makedirs(os.path.dirname(path), exist_ok=True)
+    out_f = os.path.join(CACHE, t['code'] + '.md')
+    os.makedirs(CACHE, exist_ok=True)
+    if os.path.exists(out_f): os.remove(out_f)
     post(k, {'op': 'update', 'id': t['id'], 'status': 'dang', 'step': 'Lành đã nhận, đang chia việc' if t['status'] != 'sua' else 'Lành đang sửa theo lời anh'})
-    before = os.path.getmtime(path) if os.path.exists(path) else 0
     stop, t0 = threading.Event(), time.time()
     th = threading.Thread(target=ticker, args=(k, t['id'], stop, t0), daemon=True); th.start()
     out, err = '', ''
     try:
-        r = subprocess.run([CLAUDE, '-p', prompt_for(t, team, rel), '--output-format', 'json', '--permission-mode', 'acceptEdits', '--allowedTools', TOOLS],
+        r = subprocess.run([CLAUDE, '-p', prompt_for(t, team, rel, out_f), '--output-format', 'json', '--permission-mode', 'acceptEdits', '--add-dir', CACHE, '--allowedTools', TOOLS],
                            cwd=ROOM, capture_output=True, text=True, timeout=TIMEOUT,
                            env=dict(os.environ, CLAUDE_CODE_DISABLE_BACKGROUND_TASKS='1'))  # nhân sự chạy nền sẽ bị dừng khi phiên -p kết thúc (CRM-1, 16/11/2026)
         try:
@@ -115,8 +117,8 @@ def do_task(k, t, team):
     m_no = re.match(r'`?KHONG_LAM_DUOC:\s*(.+?)`?$', last)
     m_sc = re.search(r'CHAM:\s*(\d{1,3})', out[-300:])
     res = ''
-    if os.path.exists(path) and os.path.getmtime(path) > before:
-        with open(path, encoding='utf-8') as f: res = f.read()
+    if os.path.exists(out_f):
+        with open(out_f, encoding='utf-8') as f: res = f.read()
     if err or m_no or not res:
         why = (m_no.group(1) if m_no else err) or 'Lành dừng trước khi ghi file kết quả. Anh bấm Sửa lại, ghi "làm lại" để Lành làm tiếp'
         log('loi', t['code'], why)
