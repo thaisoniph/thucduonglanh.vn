@@ -895,7 +895,8 @@
       group('Khác',
         vrow(VIEWS.filter(function (v) { return v.id === 'cai-dat'; })[0]) +
         row('<a class="mr-row" href="/huong-dan/' + (isMkt() ? 'marketing' : isKho() ? 'kho' : isKt() ? 'ke-toan' : 'crm') + '/" target="_blank" rel="noopener">', I.help, '#30b0c7', 'Hướng dẫn sử dụng', 'Cách dùng từng màn hình, có hình', 0) + '</a>' +
-        row('<button type="button" class="mr-row" data-mr="ht">', '🤝', '#2f7d5b', 'Hiểu & Thương của tôi', '9 câu để đội hiểu bạn, ghép Đệ nhị thân', 0) + '</button>' +
+        (htForms().pf ? row('<button type="button" class="mr-row" data-mr="pf">', '📝', '#3a7bd5', 'Thông tin của tôi', 'Cập nhật để công ty hỗ trợ, chăm sóc bạn', 0) + '</button>' : '') +
+        (htForms().ht ? row('<button type="button" class="mr-row" data-mr="ht">', '🤝', '#2f7d5b', 'Hiểu & Thương của tôi', '9 câu để đội hiểu bạn, ghép Đệ nhị thân', 0) + '</button>' : '') +
         row('<button type="button" class="mr-row" data-mr="fb">', '💡', '#ffcc00', 'Góp ý', 'Báo lỗi, chỗ khó dùng, ý tưởng', lvl() >= 2 ? S.d.fbNew : 0) + '</button>' +
         (isApp() ? '' : row('<button type="button" class="mr-row" data-mr="inst">', '📲', '#5856d6', 'Cài ra màn hình điện thoại', 'Mở CRM 1 chạm như ứng dụng, có hình từng bước', 0) + '</button>') +
         row('<button type="button" class="mr-row" data-mr="re">', I.refresh, '#34c759', 'Tải lại dữ liệu', 'Lấy số mới nhất từ máy chủ', 0) + '</button>')) +
@@ -920,7 +921,7 @@
   }
   function bindMore() {
     $$('[data-mr]').forEach(function (b) {
-      b.onclick = function () { var k = b.getAttribute('data-mr'); if (k === 'search') openGlobalSearch(); else if (k === 'ht') openHtForm(); else if (k === 'fb') openFeedback(); else if (k === 'inst') openInstall(); else if (k === 'use') openUsage(null); else { load(); toast('Đang tải lại dữ liệu…'); } };
+      b.onclick = function () { var k = b.getAttribute('data-mr'); if (k === 'search') openGlobalSearch(); else if (k === 'ht') openHtForm(); else if (k === 'pf') openPfForm(); else if (k === 'fb') openFeedback(); else if (k === 'inst') openInstall(); else if (k === 'use') openUsage(null); else { load(); toast('Đang tải lại dữ liệu…'); } };
     });
   }
   function meHTML() { return '<b>' + esc(S.user.name) + '</b>'; } // chỉ tên: mỗi người là chủ công việc của mình
@@ -13251,7 +13252,12 @@
     var ca = R.ca || {}, hol = ca.holidays || ['01/01', '30/04', '01/05', '02/09'], cmOn = Object.keys(CMc).filter(function (k) { return CMc[k] !== '' && CMc[k] != null; });
     var act = (S.d.users || []).filter(function (u) { return u.active !== false; }), mk = act.filter(function (u) { return u.role === 'Marketing'; }).length, recvN = staff.filter(function (u) { return u.recv; }).length;
     var GQ = setGroup('gq', '✨ Nhân sự hỏi gì ở trang hướng dẫn', 'Xem câu nhân sự hỏi trợ lý · câu nào hướng dẫn chưa có thì nên viết thêm', '<div id="gqBox"><p class="hint" style="margin:0 0 10px">Ở trang <a href="/huong-dan/" target="_blank" rel="noopener">Hướng dẫn</a>, nhân sự gõ câu hỏi vào ô 🔍 Tìm rồi bấm <b>✨ Hỏi trợ lý An Lành</b>. Câu nào trợ lý báo <b>“hướng dẫn chưa có”</b> thì nên viết thêm vào hướng dẫn.</p><button class="btn" id="gqLoad">Xem câu đã hỏi</button></div>');
-    h += setSec('👥 Nhân sự', 'Ai được vào CRM, được làm gì; nhân sự đang thắc mắc gì.', (G.us ? setGroup('us', '🧑‍💼 Ai được vào CRM', act.length + ' người đang dùng' + (mk ? ' · ' + mk + ' marketing' : '') + ' · thêm / khoá người, đổi quyền', G.us) : '') + GQ +
+    var FM = htForms(); if (!S.ht && lvl() >= 3) htLoad(function () { if (route().view === 'cai-dat') render(); });
+    var GF = lvl() >= 3 ? setGroup('forms', '📝 Form cho nhân sự', S.ht ? 'Thông tin của tôi: ' + (FM.pf ? '✅ bật' : '🙈 tắt') + ' · Hiểu & Thương: ' + (FM.ht ? '✅ bật' : '🙈 tắt') : 'Bật / tắt form nhân sự tự điền',
+      '<div class="box"><p class="hint" style="margin:0 0 10px">Bật thì nhân sự thấy thẻ mời điền ở màn hình đầu CRM (cho tới khi điền xong) và dòng mở form ở <b>Thêm</b>. Tắt thì ẩn hết, câu trả lời đã có vẫn giữ trong 🗂 Hồ sơ nhân sự trên hr.</p>' +
+      '<label class="switch"><input type="checkbox" id="fmPf"' + (FM.pf ? ' checked' : '') + '> <span>📝 Thông tin của tôi<br><span class="muted small">(thông tin cá nhân, giấy tờ, người thân, điều để công ty chăm sóc)</span></span></label><p></p>' +
+      '<label class="switch"><input type="checkbox" id="fmHt"' + (FM.ht ? ' checked' : '') + '> <span>🤝 Hiểu & Thương<br><span class="muted small">(9 câu, ghép Đệ nhị thân)</span></span></label><p></p><button class="btn pri" id="fmSave"' + (S.ht ? '' : ' disabled') + '>Lưu</button></div>') : '';
+    h += setSec('👥 Nhân sự', 'Ai được vào CRM, được làm gì; nhân sự đang thắc mắc gì.', GF + (G.us ? setGroup('us', '🧑‍💼 Ai được vào CRM', act.length + ' người đang dùng' + (mk ? ' · ' + mk + ' marketing' : '') + ' · thêm / khoá người, đổi quyền', G.us) : '') + GQ +
       setGroup('vh', '🌿 Văn hoá: Quy tắc của ngày + ☀️ Lời chúc', 'Ai đã nhận quy tắc hôm nay · chuyện nhân sự ghi lại' + (lvl() >= 3 ? ' · sửa câu chữ gợi ý, sửa lời chúc mỗi ngày' : ''), '<div id="vhAdm"><p class="hint" style="margin:0 0 10px">Mỗi ngày làm việc, cả công ty cùng thấy 1 trong 10 Quy Tắc Danh Dự ở đầu màn hình CRM (10 ngày đủ 10 quy tắc), kèm gợi ý áp dụng. Nhân sự bấm <b>✅ Hôm nay mình sẽ làm</b> và có thể ghi 1 dòng chuyện đã làm. Tin Telegram 8h sáng cũng có quy tắc hôm nay.</p><button class="btn" id="vhLoad">Xem</button></div>'));
     h += setSec('🤝 Chia khách', 'Khách mới giao cho ai, xử lý khách trùng hoặc dùng nhiều số.', setGroup('mode', '🔀 Khách mới giao cho ai', MODE_INFO[md][0] + (md === 'pool' ? (!R.poolOn ? ' · 🙈 Kho chung đang ẩn' : poolRuleLine(R) ? ' · về kho khi ' + poolRuleLine(R) : '') : '') + ' · ' + recvN + ' người nhận khách mới' + (noOwner ? ' · ⚠️ ' + noOwner + ' khách chưa ai phụ trách' : ''), G.mode) +
       (lvl() >= 3 ? setGroup('self', '🔎 Tự tạo khách (tab Hôm nay của sale)', selfOn() ? '✅ Đang hiện cho sale' : '🙈 Đang ẩn · bật sau khi họp thống nhất', G.self) : '') +
@@ -13699,6 +13705,7 @@
         var b = this; b.disabled = true;
         api('settings', { rules: { vipOrders: $('#rVipN').value, vipSpent: moneyIn($('#rVipS').value), atRisk: $('#rRisk').value, coolDays: $('#rCool').value, shipDays: $('#rShip').value, shipFar: $('#rShipFar').value, famMin: $('#rFam').value } }).then(function (j) { Object.assign(S.d.rules, j.rules); toast('Đã lưu. Nhóm khách được tính lại ✓'); load(true); }, function (e) { toast(e.message, true); b.disabled = false; });
       }; }
+    if ($('#fmSave')) $('#fmSave').onclick = function () { var b = this; b.disabled = true; api('ht', { op: 'forms', pf: $('#fmPf').checked ? 1 : 0, ht: $('#fmHt').checked ? 1 : 0 }).then(function (j) { S.ht = j; S.htAt = Date.now(); HSO.d = null; toast('Đã lưu ✓ Thông tin của tôi ' + (j.forms.pf ? 'bật' : 'tắt') + ', Hiểu & Thương ' + (j.forms.ht ? 'bật' : 'tắt')); render(); }, function (e) { toast(e.message, true); b.disabled = false; }); };
     if ($('#selfSave')) $('#selfSave').onclick = function () {
       var b = this; b.disabled = true;
       api('settings', { self: { on: $('#selfOn').checked } }).then(function (j) { Object.assign(S.d.rules, j.rules); toast(j.rules.selfOn ? 'Đã bật: sale thấy mục Tự tạo khách ✓' : 'Đã ẩn mục Tự tạo khách với sale'); render(); }, function (e) { toast(e.message, true); b.disabled = false; });
@@ -15830,7 +15837,7 @@
   }
   function hsoAnniv(s) { var t = ppJoinTs(s.joined); if (!t) return null; var j = new Date(t), dm = { d: j.getDate(), m: j.getMonth() + 1 }, n = hsoNext(dm), yrs = vnDate(Date.now() + n * DAY).y - j.getFullYear(); return yrs >= 1 ? { n: n, y: yrs } : null; }
   function hsoMiss(s) { var L = []; if (!s.full) L.push('họ tên đầy đủ'); if (!hsoDm(s.dob)) L.push('ngày sinh'); if (!ppJoinTs(s.joined)) L.push('ngày vào làm'); if (!s.phone) L.push('số điện thoại'); if (!s.pos) L.push('vị trí'); if (HSO.d.qt && !s.idno) L.push('số CCCD'); return L; }
-  function hsoIn(s, k) { var b = hsoNext(hsoDm(s.dob)), a = hsoAnniv(s); return k === 'off' ? !s.active : !s.active ? false : k === 'on' ? true : k === 'bd' ? (b != null && b <= 30) || (a && a.n <= 30) : k === 'miss' ? hsoMiss(s).length > 0 : k === 'ht' ? !(s.ht && s.ht.a) : k === 'hd' ? !!hctNeed(s) : true; }
+  function hsoIn(s, k) { var b = hsoNext(hsoDm(s.dob)), a = hsoAnniv(s); return k === 'off' ? !s.active : !s.active ? false : k === 'on' ? true : k === 'bd' ? (b != null && b <= 30) || (a && a.n <= 30) : k === 'miss' ? hsoMiss(s).length > 0 : k === 'ht' ? !(s.ht && s.ht.a) : k === 'pf' ? !s.pf : k === 'hd' ? !!hctNeed(s) : true; }
   function viewHso() {
     if (!HSO.d && !HSO.err) setTimeout(hsoFetch, 0); else if (HSO.d && !HSO.busy && Date.now() - HSO.at > 90e3) setTimeout(hsoFetch, 0);
     var h = '<div class="hso-wrap"><div class="page-head"><h1>🗂 Hồ sơ nhân sự</h1><div class="grow"></div><a class="btn ghost" href="#tuyen-dung">🧑‍💼 Tuyển dụng</a><button class="btn ghost" data-hso="reload">⟳ Tải lại</button></div>';
@@ -15842,7 +15849,7 @@
     up.sort(function (a, b) { return a[0] - b[0]; });
     if (up.length) h += '<div class="box hso-up"><h3>📅 30 ngày tới</h3>' + up.map(function (u) { return '<button class="hso-up-i" data-hso="open|' + esc(u[2].email) + '">' + u[1] + ' <b>' + esc(u[2].name) + '</b> ' + esc(u[3]) + ' <span class="hso-when' + (u[0] <= 1 ? ' now' : '') + '">' + (u[0] === 0 ? 'hôm nay' : u[0] === 1 ? 'ngày mai' : 'còn ' + u[0] + ' ngày') + '</span></button>'; }).join('') + '</div>';
     if (D.qt) h = h.replace('<button class="btn ghost" data-hso="reload">', '<button class="btn ghost" data-hso="ctcfg">⚙️ Mẫu hợp đồng</button><button class="btn ghost" data-hso="reload">') + hctBox(D) + hsoNtBox(D) + hsoFbBox(D);
-    var tabs = [['on', 'Đang làm'], ['bd', 'Sinh nhật, kỷ niệm'], ['miss', 'Thiếu thông tin'], ['ht', 'Chưa điền Hiểu & Thương']].concat(D.qt ? [['hd', 'Hợp đồng cần xử lý'], ['off', 'Đã nghỉ']] : []);
+    var tabs = [['on', 'Đang làm'], ['bd', 'Sinh nhật, kỷ niệm'], ['miss', 'Thiếu thông tin']].concat(D.forms && D.forms.pf ? [['pf', 'Chưa cập nhật thông tin']] : []).concat(D.forms && D.forms.ht ? [['ht', 'Chưa điền Hiểu & Thương']] : []).concat(D.qt ? [['hd', 'Hợp đồng cần xử lý'], ['off', 'Đã nghỉ']] : []);
     h += '<div class="chips hso-chips">' + tabs.map(function (t) { var n = D.staff.filter(function (s) { return hsoIn(s, t[0]); }).length; return '<button class="chip' + (HSO.f === t[0] ? ' on' : '') + '" data-hso="tab|' + t[0] + '">' + t[1] + ' <span class="tuy-n' + (t[0] === 'miss' && n ? ' hot' : '') + '">' + n + '</span></button>'; }).join('') + '</div>';
     if (HSO.f === 'bd') h += snhHrBox(D);
     h += '<div class="tuy-filter"><input type="search" data-hsosel="q" placeholder="🔍 Tìm tên, vị trí, số điện thoại" value="' + esc(HSO.q) + '"></div>';
@@ -15915,6 +15922,7 @@
       hsoRow('Ngày vào làm', s.joined) + hsoRow('Quản lý trực tiếp', s.boss) + hsoRow('Học vấn, chuyên môn', s.edu) + hsoRow('Quê quán', s.home) + '</div>' + (s.app ? '<p class="small"><a href="#tuyen-dung" data-hsoapp="' + s.app.id + '">🧑‍💼 Xem hồ sơ tuyển dụng (' + esc(s.app.job) + ')</a></p>' : '') + '</section>';
     h += '<section class="tuy-sec"><h3>💚 Đồng đội trân trọng ở ' + esc(s.name) + (s.fb.n ? ' <small>' + s.fb.n + ' phiếu</small>' : '') + '</h3>' + (s.fb.good.length ? hsoQuotes(s.fb.good, 'good') : '<p class="muted small">Chưa có phiếu “Món quà âm thầm” nào cho bạn này.</p>') + '</section>';
     if (s.strong) h += '<section class="tuy-sec"><h3>⭐ Điểm mạnh (quản lý ghi nhận)</h3><p class="hso-note">' + esc(s.strong) + '</p></section>';
+    h += hsoPfSec(s);
     h += hsoHtSec(s);
     if (D.qt && s.fb.imp.length) h += '<section class="tuy-sec"><details class="tuy-det"><summary>🌱 Điều có thể tốt hơn (' + s.fb.imp.length + ' ý · chỉ Quản trị thấy)</summary><p class="small muted">Dùng để trao đổi riêng, động viên; không đọc to trước tập thể.</p>' + hsoQuotes(s.fb.imp, 'imp') + '</details></section>';
     if (D.qt) {
@@ -16168,21 +16176,67 @@
     if (J.qt) h += '<details class="tuy-det"><summary>Chọn Trưởng ban đời sống</summary><div class="ht-chips">' + J.staff.map(function (s) { return '<label><input type="checkbox" name="snhLife" value="' + esc(s.email) + '"' + (J.life.indexOf(s.email) >= 0 ? ' checked' : '') + '><span>' + esc(s.name) + '</span></label>'; }).join('') + '</div><button class="btn sm pri" data-hso="snhlife">Lưu</button></details>';
     return h + '</div></div>';
   }
+  /* ================================================================ 📝 Thông tin của tôi (15/11/2026) – lệnh ht {op: pf_save | forms}; bật / tắt ở Cài đặt → Nhân sự → 📝 Form cho nhân sự */
+  function htForms() { return S.ht && S.ht.forms || { ht: 0, pf: 0 }; }
+  function pfCard() {
+    if (!S.ht || !htForms().pf || !S.ht.pf || S.ht.pf.at || Number(store('pf_later') || 0) > Date.now()) return '';
+    return '<div class="ht-card pf-card"><div class="ht-card-t"><b>📝 Cập nhật thông tin của bạn</b><small>Khoảng 3 phút. Để công ty làm hợp đồng, trả lương, đóng bảo hiểm đúng, liên hệ người thân khi cần, và chăm sóc bạn tốt hơn (sinh nhật, quà cho các con, đồng phục…).</small></div>' +
+      '<div class="ht-card-b"><button class="btn pri" data-pfc="go">✍️ Điền ngay</button><button class="btn ghost" data-pfc="later">Để sau</button></div></div>';
+  }
+  function pfBindCard() { $$('[data-pfc]').forEach(function (b) { b.onclick = function () { if (b.getAttribute('data-pfc') === 'go') openPfForm(); else { store('pf_later', String(Date.now() + 3 * DAY)); var c = $('.pf-card'); if (c) c.remove(); toast('Lúc nào rảnh: Thêm → 📝 Thông tin của tôi'); } }; }); }
+  function openPfForm() {
+    if (!S.ht) { toast('⏳ Đang mở…'); return htLoad(openPfForm); }
+    if (!htForms().pf) return toast('Form này đang tạm tắt.', true);
+    var P = S.ht.pf || {}, C = P.care || {}, O = S.ht.pfOpt, em = String(P.emer || '').split(' – ');
+    if (em.length === 2) em = ['', em[0], em[1]];
+    var inp = function (id, v, ph, type) { return tuyIn2(id, v, ph && !/^(09|Chỉ|Số nhà)/.test(ph) ? 'Ví dụ: ' + ph : ph, type); }, F = function (l, i, h) { return tuyF(l, i, h); };
+    var sel = function (id, L, v) { return '<select id="' + id + '"><option value="">– chọn –</option>' + L.map(function (o) { return '<option' + (o === v ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join('') + '</select>'; };
+    var b = '<p class="small muted">Thông tin này chỉ dùng trong công ty: làm hợp đồng, trả lương, bảo hiểm, liên hệ người thân khi cần và chăm sóc bạn. Câu có <b>*</b> là bắt buộc. Mục 🔒 chỉ Ban lãnh đạo xem.</p>' +
+      '<h3 class="hso-h">👤 Thông tin cơ bản</h3>' + F('Họ tên đầy đủ *', inp('pfFull', P.full, 'Nguyễn Thị Thu Thủy')) +
+      '<div class="tuy-2">' + F('Ngày sinh *', inp('pfDob', P.dob, '14/09/1993')) + F('Số điện thoại *', inp('pfPhone', P.phone, '09…', 'tel')) + '</div>' +
+      F('Quê quán', inp('pfHome', P.home, 'Nam Định')) + F('Nơi ở hiện tại * 🔒', inp('pfAddr', P.addr, 'Số nhà, đường, phường, tỉnh')) +
+      '<h3 class="hso-h">🪪 Giấy tờ, nhận lương 🔒</h3><p class="small muted">Để làm hợp đồng, đóng bảo hiểm và chuyển lương. Chưa tiện thì bỏ trống, bổ sung sau.</p>' +
+      '<div class="tuy-2">' + F('Số CCCD', inp('pfId', P.idno)) + F('Ngày cấp', inp('pfIdd', P.idd, '12/08/2021')) + '</div>' + F('Nơi cấp', inp('pfIdp', P.idp, 'Cục Cảnh sát QLHC về TTXH')) +
+      '<div class="tuy-2">' + F('Số tài khoản', inp('pfAcct', P.acct, 'Chỉ số')) + F('Ngân hàng, chi nhánh', inp('pfBank', P.bank, 'VCB – CN Long Biên')) + '</div>' +
+      '<h3 class="hso-h">🆘 Người thân liên hệ khi cần *</h3><div class="tuy-2">' + F('Quan hệ', inp('pfER', em[0], 'Mẹ, chồng, chị gái…')) + F('Họ tên *', inp('pfEN', em[1], 'Nguyễn Thị A')) + '</div>' + F('Số điện thoại *', inp('pfEP', em[2], '09…', 'tel')) +
+      '<h3 class="hso-h">💛 Để công ty chăm sóc bạn tốt hơn</h3><p class="small muted">Không bắt buộc. Điền càng nhiều, công ty càng hiểu và chăm sóc bạn đúng hơn.</p>' +
+      '<div class="tuy-2">' + F('Tình trạng gia đình', sel('pf_fam', O.fam, C.fam)) + F('Size áo (đồng phục)', sel('pf_shirt', O.shirt, C.shirt)) + '</div>' +
+      F('Con (số con, năm sinh)', inp('pf_kids', C.kids, '2 bé: 2018, 2021'), 'Để công ty tặng quà 1/6, Trung thu cho các con') + F('Ngày cưới', inp('pf_wed', C.wed, '20/10')) +
+      F('Sở thích, món ăn / đồ uống yêu thích', inp('pf_like', C.like, 'Đọc sách, trà sữa ít đường…')) + F('Món quà nhỏ bạn thích', inp('pf_gift', C.gift, 'Sách, cây xanh, đồ handmade…')) +
+      F('Đi làm bằng gì, mất bao lâu', inp('pf_go', C.go, 'Xe máy, 30 phút')) + F('Lưu ý sức khoẻ, dị ứng thức ăn 🔒', inp('pf_health', C.health, 'Dị ứng hải sản…'), 'Để công ty lưu ý khi liên hoan, du lịch') +
+      F('Bạn mong công ty hỗ trợ thêm điều gì?', '<textarea id="pf_wish" rows="2">' + esc(C.wish || '') + '</textarea>') +
+      '<label class="ht-ok"><input type="checkbox" id="pfOk"' + (P.at ? ' checked' : '') + '> Tôi đồng ý để công ty lưu và dùng các thông tin trên cho công việc và chăm sóc nhân sự (Luật Bảo vệ dữ liệu cá nhân 91/2025). Tôi có thể sửa hoặc yêu cầu xoá bất cứ lúc nào.</label>';
+    var m = modal('📝 Thông tin của tôi', b, '<button class="btn pri" id="pfSave">Gửi thông tin</button>');
+    $('#pfSave', m).onclick = function (e) {
+      e.preventDefault(); var btn = e.target, g = function (id) { var x = $('#' + id, m); return x ? x.value.trim() : ''; };
+      var data = { op: 'pf_save', full: g('pfFull'), dob: g('pfDob'), phone: g('pfPhone'), home: g('pfHome'), addr: g('pfAddr'), idno: g('pfId'), idd: g('pfIdd'), idp: g('pfIdp'), acct: g('pfAcct'), bank: g('pfBank'), emerRel: g('pfER'), emerName: g('pfEN'), emerPhone: g('pfEP'), consent: $('#pfOk', m).checked ? 1 : 0 };
+      O.care.forEach(function (c) { data[c.k] = g('pf_' + c.k); });
+      btn.disabled = true;
+      api('ht', data).then(function (j) { S.ht = j; S.htAt = Date.now(); closeModal(true); toast('Đã lưu thông tin của bạn ✓ Cảm ơn bạn!'); var c = $('.pf-card'); if (c) c.remove(); }, function (er) { btn.disabled = false; toast(er.message, true); });
+    };
+  }
+  /** 💛 trong hồ sơ nhân sự (hr.) */
+  function hsoPfSec(s) {
+    var D = HSO.d; if (!D.forms || !D.forms.pf) { if (!s.pf) return ''; }
+    if (!s.pf) return '<section class="tuy-sec"><h3>💛 Để công ty chăm sóc</h3><p class="muted small">' + esc(s.name) + ' chưa điền form 📝 Thông tin của tôi.</p></section>';
+    var L = (D.pfOpt ? D.pfOpt.care : []).filter(function (c) { return s.pf.c[c.k]; });
+    return '<section class="tuy-sec"><h3>💛 Để công ty chăm sóc <small>tự cập nhật ' + esc(fDate(s.pf.at)) + '</small></h3>' + (L.length ? '<div class="tuy-info">' + L.map(function (c) { return hsoRow(c.t + (c.priv ? ' 🔒' : ''), s.pf.c[c.k]); }).join('') + '</div>' : '<p class="muted small">Chưa ghi phần chăm sóc.</p>') + '</section>';
+  }
   /* ================================================================ 🤝 Hiểu & Thương – 9 câu (15/11/2026, anh Sơn; máy chủ api/src/hrstaff.js lệnh ht {op: me | save})
      Mọi nhân sự tự điền: thẻ mời ở màn hình đầu (htMount, "Để sau" ẩn 3 ngày) + Thêm → 🤝 Hiểu & Thương của tôi. Quản lý / Quản trị xem trong 🗂 Hồ sơ nhân sự, Quản trị ghép Đệ nhị thân. */
   function htLoad(cb) {
     if (S.htBusy) return; S.htBusy = 1;
-    api('ht', { op: 'me' }).then(function (j) { S.htBusy = 0; S.ht = j; S.htAt = Date.now(); if (cb) cb(); else { var b = $('#htBox'); if (b) b.innerHTML = htCard(); htBindCard(); } }, function () { S.htBusy = 0; S.htFail = Date.now(); });
+    api('ht', { op: 'me' }).then(function (j) { S.htBusy = 0; S.ht = j; S.htAt = Date.now(); if (cb) cb(); else { var b = $('#htBox'); if (b) b.innerHTML = htCard() + pfCard(); htBindCard(); pfBindCard(); } }, function () { S.htBusy = 0; S.htFail = Date.now(); });
   }
   function htCard() {
-    if (!S.ht || S.ht.ans || Number(store('ht_later') || 0) > Date.now()) return '';
+    if (!S.ht || !htForms().ht || S.ht.ans || Number(store('ht_later') || 0) > Date.now()) return '';
     return '<div class="ht-card"><div class="ht-card-t"><b>🤝 Hiểu & Thương: 9 câu để đội hiểu bạn hơn</b><small>Khoảng 5–7 phút. Bạn giỏi gì, đang cần gì, muốn được đồng hành thế nào → công ty ghép cho bạn một <b>Đệ nhị thân</b> cùng tiến bộ 30 ngày. Câu riêng tư được bỏ qua.</small></div>' +
       '<div class="ht-card-b"><button class="btn pri" data-htc="go">✍️ Điền ngay</button><button class="btn ghost" data-htc="later">Để sau</button></div></div>';
   }
   function htBindCard() { $$('[data-htc]').forEach(function (b) { b.onclick = function () { if (b.getAttribute('data-htc') === 'go') openHtForm(); else { store('ht_later', String(Date.now() + 3 * DAY)); var c = $('#htBox'); if (c) c.innerHTML = ''; toast('Lúc nào rảnh: Thêm → 🤝 Hiểu & Thương của tôi'); } }; }); }
   function htMount(el) {
     if ((!S.ht || Date.now() - S.htAt > 600e3) && !(S.htFail && Date.now() - S.htFail < 600e3)) htLoad();
-    el.insertAdjacentHTML('afterbegin', '<div id="htBox">' + htCard() + '</div>'); htBindCard();
+    el.insertAdjacentHTML('afterbegin', '<div id="htBox">' + htCard() + pfCard() + '</div>'); htBindCard(); pfBindCard();
   }
   function htChips(name, L, cur) { return '<div class="ht-chips" data-htmax="3">' + L.map(function (o) { return '<label><input type="checkbox" name="' + name + '" value="' + esc(o) + '"' + ((cur || []).indexOf(o) >= 0 ? ' checked' : '') + '><span>' + esc(o) + '</span></label>'; }).join('') + '</div>'; }
   function openHtForm() {

@@ -83,3 +83,10 @@ Mở hồ sơ một người → mục **📄 Hợp đồng**.
 - Quản trị mở **Chọn Trưởng ban đời sống** → chọn 1–2 người lo sinh nhật, liên hoan → **Lưu**.
 - Trưởng ban, Quản lý, Quản trị thấy thẻ **🎂 Sinh nhật tháng này** ở màn hình đầu CRM (từ ngày 20 thấy thêm tháng sau). Chỉ hiện tên và ngày/tháng, không hiện năm sinh hay số điện thoại.
 - Telegram nhắc **ngày 25** (danh sách tháng sau) và **trước mỗi sinh nhật 3 ngày**. Trưởng ban cần nối Telegram trong CRM mới nhận được tin.
+
+## 📝 Thông tin của tôi và bật / tắt form
+
+- Nhân sự tự cập nhật ở **Thêm → 📝 Thông tin của tôi** (hoặc thẻ mời ở màn hình đầu): họ tên, ngày sinh, số điện thoại, nơi ở, CCCD, tài khoản nhận lương, người thân liên hệ khi cần, và phần **💛 Để công ty chăm sóc** (gia đình, các con, ngày cưới, sở thích, quà thích, size áo, đi làm, lưu ý sức khoẻ, mong muốn).
+- Thông tin tự điền vào hồ sơ trên hr. Quản lý thấy phần chăm sóc (trừ sức khoẻ); CCCD, nơi ở, tài khoản, sức khoẻ chỉ Quản trị thấy.
+- Tab **Chưa cập nhật thông tin** cho biết ai chưa điền.
+- Quản trị bật / tắt 2 form ở **Cài đặt → 👥 Nhân sự → 📝 Form cho nhân sự**: 📝 Thông tin của tôi, 🤝 Hiểu & Thương. Tắt thì nhân sự không thấy thẻ mời và dòng ở Thêm; câu trả lời cũ vẫn giữ.

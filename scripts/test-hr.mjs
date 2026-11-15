@@ -182,6 +182,13 @@ nl = await H.crmHr(x, son, { op: 'st_nt_pull' }, log);
 ok(nl.staff.find(z => z.email === 'thuy@x.vn').pos === 'Đã sửa trên CRM', 'Lấy lại không ghi đè ô CRM đã có');
 // form 9 câu
 const HT = await import('file://' + ROOT + '/api/src/hrstaff.js');
+{ const mx = { email: 'myanh@x.vn', name: 'Mỹ Anh', role: 'Sale & CSKH', level: 1 };
+  const m0 = await HT.crmHt(x, mx, { op: 'me' });
+  ok(m0.forms.ht === 0 && m0.forms.pf === 1 && m0.pf && !m0.pf.at, 'Mặc định: Hiểu & Thương tắt, Thông tin của tôi bật');
+  ok(!(await HT.crmHt(x, mx, { op: 'save', q2: 'a', q4: 'b', q6: 'c', q9: 'd', give: ['Giao tiếp / kết nối'], need: ['Lập kế hoạch / ưu tiên'], how: 'Hỏi và lắng nghe', consent: 1 })).ok, 'Form Hiểu & Thương tắt thì không gửi được');
+  ok(!(await HT.crmHt(x, mx, { op: 'forms', ht: 1, pf: 1 })).ok, 'Sale không bật / tắt được form');
+  ok((await HT.crmHt(x, son, { op: 'forms', ht: 1, pf: 1 })).forms.ht === 1, 'Quản trị bật lại Hiểu & Thương');
+}
 const ma2 = { email: 'myanh@x.vn', name: 'Mỹ Anh', role: 'Sale & CSKH', level: 1 };
 ok((await HT.crmHt(x, ma2, { op: 'me' })).ans === null, 'Nhân sự chưa điền thì ans = null (hiện thẻ mời)');
 ok(!(await HT.crmHt(x, ma2, { op: 'save', q2: 'Chăm khách' })).ok, 'Thiếu câu bắt buộc bị chặn');
@@ -209,6 +216,21 @@ ok(sp && sp.b.properties['Quê quán'] && sp.b.properties['Ngày sinh'].date.sta
 nl = await H.crmHr(x, son, { op: 'st_nt_push', all: 1 }, log);
 ok(nl.push.ok && nl.push.n >= 4 && nl.nt.wait === 0, 'Nút ghi tất cả sang Notion: tạo trang cho người chưa có');
 
+// 10b. 📝 Thông tin của tôi
+{
+const mx = { email: 'myanh@x.vn', name: 'Mỹ Anh', role: 'Sale & CSKH', level: 1 };
+ok(!(await HT.crmHt(x, mx, { op: 'pf_save', full: 'Bùi Thị Mỹ Anh', dob: '02/12', phone: '0912000102', addr: 'Gia Lâm', emerName: 'Mẹ', emerPhone: '0912000999', consent: 1 })).ok, 'Ngày sinh thiếu năm bị chặn');
+ok(!(await HT.crmHt(x, mx, { op: 'pf_save', full: 'Bùi Thị Mỹ Anh', dob: '02/12/1998', phone: '0912000102', addr: 'Gia Lâm', consent: 1 })).ok, 'Thiếu người thân liên hệ bị chặn');
+let pj = await HT.crmHt(x, mx, { op: 'pf_save', full: 'Bùi Thị Mỹ Anh', dob: '2/12/1998', phone: '0912 000 102', home: 'Thái Bình', addr: 'Ocean Park, Gia Lâm', idno: '034198000111', acct: '0011 2233', bank: 'VCB', emerRel: 'Mẹ', emerName: 'Nguyễn Thị Hoa', emerPhone: '0912000999', fam: 'Đã kết hôn', kids: '1 bé 2022', health: 'Dị ứng tôm', shirt: 'M', consent: 1 });
+ok(pj.ok && pj.saved && pj.pf.at && pj.pf.dob === '02/12/1998' && pj.pf.emer === 'Mẹ – Nguyễn Thị Hoa – 0912000999' && pj.pf.care.kids === '1 bé 2022', 'Nhân sự tự cập nhật: lưu vào hồ sơ + phần chăm sóc');
+let pl = await H.crmHr(x, son, { op: 'st_list' }, log), pm = pl.staff.find(z => z.email === 'myanh@x.vn');
+ok(pm.full === 'Bùi Thị Mỹ Anh' && pm.home === 'Thái Bình' && pm.idno === '034198000111' && pm.acct === '00112233' && pm.pf.c.health === 'Dị ứng tôm', 'Quản trị thấy đủ trong hồ sơ (cả CCCD, sức khoẻ)');
+pm = (await H.crmHr(x, thuy, { op: 'st_list' }, log)).staff.find(z => z.email === 'myanh@x.vn');
+ok(pm.pf.c.kids && !pm.pf.c.health && !pm.idno && !pm.addr, 'Quản lý thấy phần chăm sóc, không thấy sức khoẻ, CCCD, nơi ở');
+await HT.crmHt(x, son, { op: 'forms', ht: 1, pf: 0 });
+ok(!(await HT.crmHt(x, mx, { op: 'pf_save', full: 'x' })).ok, 'Tắt form Thông tin của tôi thì không gửi được');
+await HT.crmHt(x, son, { op: 'forms', ht: 1, pf: 1 });
+}
 // 11. 📄 Hợp đồng
 {
 const CT = await import('file://' + ROOT + '/api/src/hrhd.js');
@@ -223,7 +245,7 @@ ok(cs.ok && mc.cts.length === 1 && /^01\/\d{4}\/HĐTV-VTG$/.test(mc.cts[0].no) &
 const ctId = mc.cts[0].id;
 let dc = await H.crmHr(x, son, { op: 'ct_doc', id: ctId }, log);
 ok(/thời hạn <b>[^<]+<\/b>, từ ngày <b>[^<]+<\/b> đến hết ngày <b>/.test(dc.html) || /đến hết ngày <b>/.test(dc.html), 'Câu “từ ngày … đến hết ngày …” có dấu cách');
-ok(dc.ok && /HỢP ĐỒNG THỬ VIỆC/.test(dc.html) && /Nhân viên kinh doanh/.test(dc.html) && /6\.000\.000đ/.test(dc.html) && dc.miss.indexOf('dia_chi') >= 0 && dc.miss.indexOf('dai_dien') >= 0 && /class="dot"/.test(dc.html), 'Bản in điền thông tin, chỗ thiếu (nơi ở, người đại diện) để dòng chấm');
+ok(dc.ok && /HỢP ĐỒNG THỬ VIỆC/.test(dc.html) && /Nhân viên kinh doanh/.test(dc.html) && /6\.000\.000đ/.test(dc.html) && dc.miss.indexOf('noi_cap') >= 0 && dc.miss.indexOf('dai_dien') >= 0 && /class="dot"/.test(dc.html), 'Bản in điền thông tin, chỗ thiếu (nơi cấp CCCD, người đại diện) để dòng chấm');
 ok(/0111053409/.test(dc.html) && /VITAGREEN/.test(dc.html), 'Bản in có tên công ty + mã số doanh nghiệp');
 let cf = await H.crmHr(x, son, { op: 'ct_cfg', save: 1, rep: 'Người Đại Diện', repTitle: 'Giám đốc', tpl: { tv: CT.TPL_DEF.tv + '\nĐiều riêng của anh.' } }, log);
 ok(cf.ok && cf.ctCfg.rep === 'Người Đại Diện' && cf.ctCfg.edited.indexOf('tv') >= 0, 'Lưu người đại diện + sửa mẫu thử việc');

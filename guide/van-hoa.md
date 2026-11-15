@@ -156,6 +156,8 @@ Vì vậy ở VitaGreen:
 
 ## 🤝 Hiểu & Thương: 9 câu để đội hiểu bạn
 
+*Form này chỉ hiện khi công ty bật (Cài đặt → Nhân sự → 📝 Form cho nhân sự).*
+
 Ở màn hình đầu CRM có thẻ **🤝 Hiểu & Thương**. Bấm **✍️ Điền ngay**, trả lời 9 câu (mỗi câu 2–3 dòng), chọn tối đa 3 thế mạnh, 3 điều đang cần hỗ trợ và cách bạn muốn được đồng hành. Mất khoảng 5–7 phút.
 
 - Câu có 🔒 chỉ Ban lãnh đạo đọc. Câu không bắt buộc thì được bỏ qua.

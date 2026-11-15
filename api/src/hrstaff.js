@@ -28,6 +28,7 @@ export async function staffSchema(db) {
     if (!cols.includes(c)) { try { await run(db, `ALTER TABLE hr_staff ADD COLUMN ${c} ${t}`); } catch (e) { } }
   await run(db, `CREATE TABLE IF NOT EXISTS hr_ht (email TEXT PRIMARY KEY, ans TEXT DEFAULT '', at INTEGER, upd INTEGER, pair TEXT DEFAULT '', pair_why TEXT DEFAULT '', pair_st TEXT DEFAULT '',
     nt_id TEXT DEFAULT '', nt_dirty INTEGER DEFAULT 0, nt_err TEXT DEFAULT '')`);
+  await run(db, 'CREATE TABLE IF NOT EXISTS hr_pf (email TEXT PRIMARY KEY, data TEXT DEFAULT \'\', at INTEGER)'); // 📝 Thông tin của tôi
   ok = true;
 }
 
@@ -88,17 +89,18 @@ async function listOut(x, u) {
   const cts = qt ? await ctList(x.db) : {};
   const apps = {}; for (const r of await all(x.db, "SELECT id, name, job, time, offer FROM applicants WHERE status = 'Đã nhận việc'").catch(() => [])) apps[r.id] = r;
   const ht = {}; for (const r of await all(x.db, 'SELECT * FROM hr_ht')) ht[r.email] = r;
+  const pfr = {}; for (const r of await all(x.db, 'SELECT * FROM hr_pf')) pfr[r.email] = r;
   const staff = users.filter(z => z.email).map(z => {
     const e = ext[z.email] || {}, o = { email: z.email, name: z.name, role: z.role, active: z.active, full: z.full || '', phone: z.phone || '', joined: z.joined || '', dob: z.dob || '', ctv: !!z.ctv,
       pos: e.pos || '', dept: e.dept || '', boss: e.boss || '', edu: e.edu || '', note: e.note || '', upd: e.upd || 0, updBy: e.upd_by || '', app: e.app_id && apps[e.app_id] ? { id: e.app_id, job: apps[e.app_id].job } : null, fb: fb[z.email] || { good: [], imp: [], n: 0 },
-      strong: e.strong || '', home: e.home || '', ht: htOut(ht[z.email], qt) };
+      strong: e.strong || '', home: e.home || '', ht: htOut(ht[z.email], qt), pf: pfOut(pfr[z.email], qt) };
     if (qt) { o.nt = { id: e.nt_id || '', dirty: !!e.nt_dirty, err: e.nt_err || '' }; }
     if (qt) { PRIV.forEach(k => { o[k] = e[k] || ''; }); o.acct = z.acct || ''; o.docs = docs[z.email] || []; o.cts = cts[z.email] || []; const of = e.app_id && apps[e.app_id] ? parse(apps[e.app_id].offer) : null; o.offer = of ? { pay: of.pay || '', trial: of.trial || '', trialPay: of.trialPay || '', extra: of.extra || '', place: of.place || '', hours: of.hours || '', start: of.start || '' } : null; }
     return o;
   });
   const src = qt ? await kvJson(x.db, 'hr_fb_src', null) : null;
   const N = qt ? await ntState(x) : null;
-  return { ok: true, staff, qt, roles: ROLE_LIST, htOpt: HT_OPT, nt: N, fbMiss: qt ? Object.keys(miss).map(k => ({ who: k, n: miss[k] })) : [], fbSrc: src ? { has: !!src.id, at: src.at || 0, n: src.n || 0, err: src.err || '' } : null, fbTot: (await first(x.db, 'SELECT COUNT(*) n FROM hr_fb')).n };
+  return { ok: true, staff, qt, roles: ROLE_LIST, htOpt: HT_OPT, forms: await formsOf(x.db), pfOpt: PF_OPT, nt: N, fbMiss: qt ? Object.keys(miss).map(k => ({ who: k, n: miss[k] })) : [], fbSrc: src ? { has: !!src.id, at: src.at || 0, n: src.n || 0, err: src.err || '' } : null, fbTot: (await first(x.db, 'SELECT COUNT(*) n FROM hr_fb')).n };
 }
 
 /** hr {op: st_*}: gọi từ crmHr (hr.js), quyền Quản lý + Quản trị đã kiểm. */
@@ -213,7 +215,14 @@ function htClean(d) {
 /** ht {op: me | save}: mọi vai trò, chỉ phần của chính mình. */
 export async function crmHt(x, u, d) {
   await staffSchema(x.db);
-  const r = await first(x.db, 'SELECT * FROM hr_ht WHERE email = ?', u.email);
+  let F = await formsOf(x.db);
+  const me = async () => { const r2 = await first(x.db, 'SELECT * FROM hr_ht WHERE email = ?', u.email); return { ok: true, ans: r2 ? parse(r2.ans) : null, opt: HT_OPT, forms: F, pf: await pfMe(x, u), pfOpt: PF_OPT }; };
+  if (d.op === 'forms') { // Quản trị bật / tắt 2 form (Cài đặt → Nhân sự)
+    if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị bật / tắt được form.' };
+    F = { ht: d.ht ? 1 : 0, pf: d.pf ? 1 : 0 }; await kvSet(x.db, 'hr_forms', JSON.stringify(F)); return me();
+  }
+  if (d.op === 'pf_save') { if (!F.pf) return { ok: false, error: 'Form này đang tạm tắt.' }; const j = await pfSave(x, u, d); return j.ok ? Object.assign(await me(), { saved: 1 }) : j; }
+  if (d.op === 'save' && !F.ht) return { ok: false, error: 'Form Hiểu & Thương đang tạm tắt.' };
   if (d.op === 'save') {
     const a = htClean(d), miss = HT_Q.filter(q => q[3] && !a[q[0]]).map(q => q[1].split('.')[0]);
     if (miss.length) return { ok: false, error: 'Bạn trả lời thêm câu ' + miss.join(', ') + ' (bắt buộc) nhé.' };
@@ -223,9 +232,9 @@ export async function crmHt(x, u, d) {
     await run(x.db, `INSERT INTO hr_ht (email, ans, at, upd, nt_dirty) VALUES (?, ?, ?, ?, 1) ON CONFLICT(email) DO UPDATE SET ans = excluded.ans, upd = excluded.upd, at = COALESCE(hr_ht.at, excluded.at), nt_dirty = 1`, u.email, JSON.stringify(a), now, now);
     await run(x.db, "INSERT INTO hr_staff (email, upd, upd_by) VALUES (?, ?, ?) ON CONFLICT(email) DO NOTHING", u.email, now, u.name);
     x.later(ntPush(x, 10).catch(er => console.error('ntPush', er.message)));
-    return { ok: true, saved: 1, ans: a, opt: HT_OPT };
+    return Object.assign(await me(), { saved: 1 });
   }
-  return { ok: true, ans: r ? parse(r.ans) : null, opt: HT_OPT };
+  return me();
 }
 
 /* ================================================================ 📒 Notion: lấy về 1 lần (chỉ điền ô CRM đang trống) + ghi ngược làm bản lưu dự phòng
@@ -347,4 +356,45 @@ export async function ntPush(x, max) {
   }
   const L = await kvJson(x.db, 'hr_nt_last', null) || {}; L.push = Date.now(); L.pushMsg = 'ghi ' + n + ' mục' + (bad ? ', lỗi ' + bad + ' (' + err + ')' : ''); await kvSet(x.db, 'hr_nt_last', JSON.stringify(L));
   return { ok: !bad, n, bad, error: bad ? 'Có ' + bad + ' mục chưa ghi được sang Notion: ' + err : '' };
+}
+
+/* ================================================================ 📝 Thông tin của tôi (15/11/2026, anh Sơn: form để nhân sự tự cập nhật, công ty hỗ trợ + chăm sóc tốt hơn)
+ * kv hr_forms = { ht: 0|1, pf: 0|1 } – Quản trị bật / tắt 2 form ở Cài đặt (mặc định: Hiểu & Thương tắt, Thông tin của tôi bật).
+ * Lưu thẳng vào hồ sơ: users (full, dob, phone, acct) + hr_staff (home, addr, idno, idd, idp, emer, bank); phần chăm sóc vào hr_pf (data JSON).
+ * Quản lý xem phần chăm sóc trừ sức khoẻ; CCCD, nơi ở, tài khoản, sức khoẻ chỉ Quản trị (giống PRIV). */
+const FORMS_DEF = { ht: 0, pf: 1 };
+export async function formsOf(db) { return Object.assign({}, FORMS_DEF, await kvJson(db, 'hr_forms', null) || {}); }
+const PF_CARE = [['fam', 'Tình trạng gia đình'], ['kids', 'Con (số con, năm sinh)'], ['wed', 'Ngày cưới'], ['like', 'Sở thích, món ăn / đồ uống yêu thích'], ['gift', 'Món quà nhỏ bạn thích'],
+  ['shirt', 'Size áo'], ['go', 'Đi làm bằng gì, mất bao lâu'], ['health', 'Lưu ý sức khoẻ, dị ứng'], ['wish', 'Mong công ty hỗ trợ thêm']];
+const PF_PRIV = ['health'];
+export const PF_OPT = { care: PF_CARE.map(c => ({ k: c[0], t: c[1], priv: PF_PRIV.indexOf(c[0]) >= 0 })), fam: ['Độc thân', 'Đã kết hôn', 'Khác'], shirt: ['S', 'M', 'L', 'XL', 'XXL'] };
+async function pfMe(x, u) {
+  const z = (await crmUsers(x)).find(y => y.email === u.email) || {}, e = await first(x.db, 'SELECT * FROM hr_staff WHERE email = ?', u.email) || {}, p = await first(x.db, 'SELECT * FROM hr_pf WHERE email = ?', u.email);
+  return { full: z.full || '', dob: z.dob || '', phone: z.phone || '', acct: z.acct || '', home: e.home || '', addr: e.addr || '', idno: e.idno || '', idd: e.idd || '', idp: e.idp || '', emer: e.emer || '', bank: e.bank || '', care: p ? parse(p.data) || {} : {}, at: p ? p.at : 0 };
+}
+/** cho listOut: phần chăm sóc theo quyền. */
+export function pfOut(r, qt) {
+  if (!r) return null; const c = parse(r.data) || {}, o = {};
+  PF_CARE.forEach(([k]) => { if (c[k] && (qt || PF_PRIV.indexOf(k) < 0)) o[k] = c[k]; });
+  return { c: o, at: r.at || 0 };
+}
+async function pfSave(x, u, d) {
+  const full = cut(d.full, 80), phone = normPhone(d.phone || ''), dob = dobNorm(d.dob), addr = cut(d.addr, 300);
+  if (!full || !dob || !/\/\d{4}$/.test(dob) || !phone || !addr) return { ok: false, error: 'Bạn điền đủ họ tên, ngày sinh (có năm), số điện thoại, nơi ở hiện tại nhé.' };
+  const en = cut(d.emerName, 80), ep = normPhone(d.emerPhone || '');
+  if (!en || !ep) return { ok: false, error: 'Bạn ghi tên và số điện thoại người liên hệ khi cần (người thân).' };
+  if (!d.consent) return { ok: false, error: 'Tích ô đồng ý ở cuối để gửi.' };
+  const now = Date.now(), care = {};
+  PF_CARE.forEach(([k]) => { const v = cut(d[k], 500); if (v) care[k] = v; });
+  for (const [k, v] of [['full', full], ['phone', phone], ['dob', dob]]) await run(x.db, `UPDATE users SET ${k} = ? WHERE email = ?`, v, u.email);
+  const acct = String(d.acct || '').replace(/\D/g, '').slice(0, 24); if (acct) await run(x.db, 'UPDATE users SET acct = ? WHERE email = ?', acct, u.email);
+  x._users = null;
+  const emer = [cut(d.emerRel, 40), en, ep].filter(Boolean).join(' – ');
+  await run(x.db, "INSERT INTO hr_staff (email, upd, upd_by) VALUES (?, ?, ?) ON CONFLICT(email) DO NOTHING", u.email, now, u.name);
+  const sets = [['home', cut(d.home, 300)], ['addr', addr], ['idno', cut(d.idno, 30)], ['idd', cut(d.idd, 30)], ['idp', cut(d.idp, 200)], ['emer', emer], ['bank', cut(d.bank, 300)]].filter(s => s[1]);
+  for (const [k, v] of sets) await run(x.db, `UPDATE hr_staff SET ${k} = ? WHERE email = ?`, v, u.email);
+  await run(x.db, 'UPDATE hr_staff SET upd = ?, upd_by = ? WHERE email = ?', now, u.name + ' (tự cập nhật)', u.email);
+  await run(x.db, 'INSERT INTO hr_pf (email, data, at) VALUES (?, ?, ?) ON CONFLICT(email) DO UPDATE SET data = excluded.data, at = excluded.at', u.email, JSON.stringify(care), now);
+  await ntDirty(x, u.email);
+  return { ok: true, saved: 1 };
 }

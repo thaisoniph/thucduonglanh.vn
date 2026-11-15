@@ -3056,3 +3056,6 @@ details.dash-grp[open] > summary::after { transform: rotate(180deg); }
 .snh-ms { margin: 4px 0 8px; flex-wrap: wrap; overflow: visible; }
 .snh-life { margin-top: 10px; padding-top: 10px; border-top: 1px solid #eef0ea; }
 .snh-life .ht-chips { margin: 8px 0; }
+
+.ht-ok { display: flex; gap: 8px; align-items: flex-start; font-size: 13.5px; margin-top: 12px; line-height: 1.45; }
+.pf-card { background: #eef4fc; border-color: #c9dbf2; }

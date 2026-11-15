@@ -507,6 +507,10 @@ Apps Script giới hạn 200 phiên bản/dự án: báo lỗi "Không tạo đ�
 - `api/src/sinhnhat.js`: kv `hr_life` {emails} = 🎉 Trưởng ban đời sống (Quản trị chọn). Lệnh `snh {op: list}` cho Trưởng ban + level ≥ 2 (đặt trước bộ lọc quyền trong crmApi; chỉ trả tên, họ tên, dd/MM), `snh {op: life}` Quản trị. `snhTick` (cron, sau 8h, 1 lần/ngày): ngày 25 gửi danh sách tháng sau + người thiếu ngày sinh, mỗi ngày gửi "còn 3 ngày" → Telegram Trưởng ban + Quản lý + Quản trị.
 - CRM: `snhMount` (thẻ màn hình đầu), `snhHrBox` (hr. tab Sinh nhật: 12 tháng + chọn trưởng ban); CSS `.snh-…`. Thử: `node scripts/test-hr.mjs`.
 
+### 📝 Thông tin của tôi + bật / tắt form (15/11/2026, api `2026-11-15p`)
+- kv `hr_forms` {ht, pf}, mặc định Hiểu & Thương **tắt** (anh Sơn yêu cầu tạm ẩn), Thông tin của tôi bật. Lệnh `ht {op: forms}` Quản trị; `ht {op: me}` trả thêm `forms`, `pf`, `pfOpt`; `ht {op: pf_save}` ghi users (full, dob có năm, phone, acct) + hr_staff (home, addr, idno, idd, idp, emer, bank) + bảng `hr_pf` (phần chăm sóc JSON, `health` chỉ Quản trị – `pfOut`).
+- CRM: `pfCard` / `openPfForm` (thẻ mời + Thêm → 📝), `hsoPfSec` trong hồ sơ, tab "Chưa cập nhật thông tin", Cài đặt → Nhân sự → 📝 Form cho nhân sự (`#fmSave`).
+
 ## 6a2. 👀 Giám sát Zalo của sale (15/11/2026, anh Sơn)
 
 Mục đích: Quản lý / Quản trị xem sale chăm khách qua Zalo mà sale **không đổi thói quen** (vẫn dùng Zalo điện thoại + Zalo PC). Anh Sơn đã thử 14/11: 1 tài khoản Zalo đăng nhập song song điện thoại + Zalo PC + Zalo Web được, nên chương trình đọc ngồi ở chỗ "Zalo Web".
