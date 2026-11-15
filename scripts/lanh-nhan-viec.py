@@ -69,6 +69,7 @@ def prompt_for(t, team, rel):
               'Kết quả lần trước đang ở file %s – đọc lại, sửa đúng chỗ anh nói, giữ phần anh không chê.' % rel]
     p += ['', 'Cách làm:',
           '1. Chia việc cho đúng nhân sự trong `.claude/agents/` (Thám, Văn, Chuẩn, Phát). Mọi nội dung gửi ra ngoài phải qua Chuẩn chấm theo Phiếu kiểm duyệt trước khi gửi anh.',
+          '   QUAN TRỌNG: gọi nhân sự bằng Agent ở chế độ CHỜ KẾT QUẢ (không chạy nền, run_in_background = false). Phiên này kết thúc là mọi nhân sự đang làm dở bị dừng, nên chỉ trả lời sau khi đã có đủ kết quả và đã ghi file ở bước 4.',
           '2. Anh KHÔNG ngồi đây để trả lời câu hỏi. Thiếu thông tin thì tự tra trong phòng và Drive công ty; vẫn thiếu thì ghi rõ "THIẾU: …" trong kết quả và làm phần làm được.',
           '3. Không đăng bài, không gửi tin, không sửa website / CRM / quảng cáo / Notion. Chỉ soạn để anh duyệt.',
           '4. Ghi TOÀN BỘ kết quả cuối (đã qua Chuẩn) vào đúng file: `%s` (ghi đè nếu đã có). Đầu file là 3–5 dòng "Tóm tắt cho anh" đọc được trên điện thoại: việc gì, ai làm, kết quả chính, anh cần quyết gì. Sau đó mới là nội dung đầy đủ (dùng tiêu đề ##, gạch đầu dòng, bảng nếu cần). Tiếng Việt đời thường.' % rel,
@@ -98,7 +99,8 @@ def do_task(k, t, team):
     out, err = '', ''
     try:
         r = subprocess.run([CLAUDE, '-p', prompt_for(t, team, rel), '--output-format', 'json', '--permission-mode', 'acceptEdits', '--allowedTools', TOOLS],
-                           cwd=ROOM, capture_output=True, text=True, timeout=TIMEOUT)
+                           cwd=ROOM, capture_output=True, text=True, timeout=TIMEOUT,
+                           env=dict(os.environ, CLAUDE_CODE_DISABLE_BACKGROUND_TASKS='1'))  # nhân sự chạy nền sẽ bị dừng khi phiên -p kết thúc (CRM-1, 16/11/2026)
         try:
             j = json.loads(r.stdout or '{}'); out = j.get('result') or ''
             if j.get('is_error'): err = out or 'claude báo lỗi'
@@ -116,7 +118,7 @@ def do_task(k, t, team):
     if os.path.exists(path) and os.path.getmtime(path) > before:
         with open(path, encoding='utf-8') as f: res = f.read()
     if err or m_no or not res:
-        why = (m_no.group(1) if m_no else err) or 'Lành không ghi được file kết quả'
+        why = (m_no.group(1) if m_no else err) or 'Lành dừng trước khi ghi file kết quả. Anh bấm Sửa lại, ghi "làm lại" để Lành làm tiếp'
         log('loi', t['code'], why)
         post(k, {'op': 'update', 'id': t['id'], 'status': 'loi', 'step': why[:300], 'result': res or out[-8000:] or why})
         return
