@@ -9747,7 +9747,7 @@
     if (st && !c.on) TD.push('⏸ <b>Trợ lý đang tắt</b>: bật lại ở ⚙️ Cài đặt trợ lý. <button class="link" data-zb="go|zbSet">Mở cài đặt</button>');
     if (opN) TD.push('🙋 <b>' + opN + ' khách đang chờ người thật trả lời</b>. Nhắn khách trên Zalo, xong bấm ✅ Đã xử lý. <button class="link" data-zb="go|zbLog|need">Xem</button>');
     if (needP.length) TD.push('📝 <b>Duyệt ' + needP.length + ' bài sắp đăng</b> (gần nhất: ' + zbDay(needP[0].d).toLowerCase() + ' lúc ' + zbWhen(needP[0].sl, needP[0].d) + '). Chưa duyệt thì tới giờ bài không được đăng. <button class="link" data-zb="go|zbPosts">Xem</button>');
-    if (plW) TD.push('📋 <b>Duyệt ' + plW + ' chủ đề</b> trong kế hoạch: duyệt trước thì trợ lý soạn bài sớm ' + lead + ' ngày, đúng chủ đề đó. <button class="link" data-zb="go|zbPlan">Xem kế hoạch</button>');
+    if (plW) TD.push('📋 <b>' + plW + ' chủ đề</b> sắp tới trợ lý sẽ tự soạn (không bắt buộc duyệt chủ đề; chỉ cần duyệt bài). Chủ đề nào chưa ổn thì đổi trước cho đỡ mất công. <button class="link" data-zb="go|zbPlan">Xem kế hoạch</button>');
     if (g('error')) TD.push('⚠️ <b>' + g('error') + ' lỗi</b> trong 7 ngày qua: xem trợ lý vướng gì. <button class="link" data-zb="go|zbLog|err">Xem</button>');
     h += aiTodoBox(TD, st ? '🎉 Không có việc nào đang chờ bạn. Trợ lý đang tự chạy; có bài cần duyệt hoặc ca khó thì việc sẽ hiện ở đây.' : 'Trợ lý chưa chạy lần nào: Quản trị cần bật chương trình trợ lý trước (xem ô phía trên).');
     h += '<div class="zb-done-h"><h2 class="zb-h" id="zbPosts">📝 Bài đăng nhóm</h2><span class="small">' + (c.slots || []).filter(function (q) { return q.on; }).map(function (q) { return (q.id === 'toi' ? '🌙 Bài tối ' : '☀️ Bài sáng ') + zbAt(q, today) + ': <b>' + (slA(q.id) ? '🤖 tự đăng' : '⏳ chờ duyệt') + '</b>'; }).join(' · ') + ' · soạn trước <b>' + lead + ' ngày</b></span></div>' +
@@ -9762,25 +9762,28 @@
       var p = it.p, sl = it.sl, lbl = zbDay(it.d) + ' · ' + slotTxt(sl, it.d), auto = slA(sl.id), q = it.q;
       var ev0 = zbEv[it.d + '_' + sl.id];
       if (!p) {
-        var qs = !q ? '⏳ chưa soạn – AI soạn trước giờ đăng' : q.status === 'skip' ? '⏸ Kế hoạch ghi không đăng bài này' : q.status === 'ok' ? '📋 Chủ đề đã duyệt – trợ lý đang soạn (khoảng 10 phút)' : '📋 Chủ đề chưa duyệt – duyệt để trợ lý soạn ngay, không thì 24 tiếng trước giờ đăng mới soạn';
+        var qs = !q ? '⏳ chưa soạn – AI soạn trước giờ đăng' : q.status === 'skip' ? '⏸ Kế hoạch ghi không đăng bài này' : q.status === 'ok' ? '📋 Chủ đề đã duyệt – trợ lý đang soạn (khoảng 10 phút)' : '📋 Trợ lý sẽ tự soạn bài này, soạn xong sẽ có thẻ để anh chị xem và bấm Duyệt (không cần duyệt chủ đề)';
         h += '<div class="box zb-post zb-none"><p><b>' + lbl + '</b> · <span class="muted">' + qs + '</span>' + (q && q.topic ? '<br>📋 <b>' + esc(q.topic) + '</b> <span class="zb-fun zb-fun-' + String(q.f).toLowerCase() + '">' + (ZB_FUN[q.f] || q.f) + '</span>' : '') + (ev0 && !ev0.offer ? '<br>📅 ' + esc(ev0.ev) : '') + '</p>' +
-          '<div class="lq-btns">' + (q && q.status === 'draft' ? '<button class="btn sm pri" data-zb="pok|' + q.id + '">✅ Duyệt chủ đề</button>' : '') + (!q || q.status !== 'skip' ? '<button class="btn sm" data-zb="regen|' + it.d + '_' + sl.id + '">✍️ Soạn ngay</button>' : '') + '</div></div>'; return;
+          '<div class="lq-btns">' + (q && q.status === 'draft' ? '<button class="btn sm ghost" data-zb="pok|' + q.id + '">Duyệt chủ đề (không bắt buộc)</button><button class="btn sm ghost" data-zb="predo|' + q.id + '">🔄 Đổi chủ đề</button>' : '') + (!q || q.status !== 'skip' ? '<button class="btn sm" data-zb="regen|' + it.d + '_' + sl.id + '">✍️ Soạn ngay</button>' : '') + '</div></div>'; return;
       }
       var when = zbWhen(sl, it.d) + ' ' + zbDay(it.d).toLowerCase(), need = p.status !== 'ok' && !auto;
+      var tm0 = zbWhen(sl, it.d).split(':'), tms = Date.UTC(+it.d.slice(0, 4), +it.d.slice(4, 6) - 1, +it.d.slice(6, 8), (+tm0[0]) - 7, +tm0[1] || 0), isLate = j.now >= tms, isGone = j.now > tms + 2 * 3600e3; // ⏰ 15/11/2026: nút Duyệt nói rõ giờ đăng; quá giờ thì đăng ngay (hỏi lại)
+      var okBtn = isGone ? '<p class="small zp-warn-t" style="margin:6px 0">⌛ Đã quá giờ đăng (' + zbWhen(sl, it.d) + '), duyệt cũng không tự đăng. Bấm <b>⏰ Đổi giờ</b> chọn giờ khác hôm nay, hoặc <b>📣 Gửi tin vào nhóm</b> để hẹn ngày khác.</p>'
+        : '<button class="btn pri zb-act" data-zb="ok|' + p.id + (isLate ? '|now' : '') + '">✅ Duyệt &amp; đăng ' + (isLate ? 'ngay' : 'lúc ' + esc(when)) + '</button>';
       var due = p.status === 'ok' ? '✅ Đã duyệt · sẽ đăng ' + when : auto ? '🤖 Sẽ tự đăng ' + when : '⏳ Cần duyệt trước ' + when;
       h += '<div class="box zb-post zb-' + p.status + (need ? ' zb-need' : '') + '" data-zbcard="' + p.id + '"><div class="zb-ph"><b>' + lbl + '</b><span class="zb-due">' + due + '</span></div>' +
         '<div class="zb-grid"><div class="zb-prev">' + (p.img ? '<img src="' + esc(p.img) + '" alt="Ảnh kèm bài" loading="lazy">' : '') + '<div class="zb-bub">' + zbRender(p.text) + '</div>' + (p.img ? '' : '<p class="small muted" style="margin:6px 2px 0">Bài này không kèm ảnh</p>') + '</div>' +
         '<div class="zb-side">' + (p.funnel ? '<span class="zb-fun zb-fun-' + p.funnel.toLowerCase() + '">' + ZB_FUN[p.funnel] + '</span>' : '') + (p.ev ? ' <span class="zb-fun zb-evb">📅 ' + esc(p.ev) + '</span>' : '') +
         '<p class="small" style="margin:6px 0"><b>Chủ đề:</b> ' + esc(p.topic) + '<br><span class="muted">' + (p.by_name && p.by_name !== 'AI' ? 'Sửa bởi ' + esc(p.by_name) : 'AI soạn') + ' · ' + fDateTime(p.at) + '</span>' +(p.ed_at ? '<br><span class="zb-learn-t">✍️ ' + esc(p.ed_by || '') + ' đã sửa chữ · trợ lý sẽ học từ bản sửa này</span>' : '') +
         (p.plan === 'ok' ? '<br><span class="zp-ok-t">📋 Theo chủ đề đã duyệt trong kế hoạch</span>' : p.plan === 'draft' ? '<br><span class="zp-warn-t">📋 Theo chủ đề kế hoạch chưa duyệt</span>' : '') + '</p>' + inTag(p.ins) +
-        (need ? '<button class="btn pri zb-act" data-zb="ok|' + p.id + '">✅ Duyệt bài này</button>' : '') +
-        '<div class="zb-more"><button class="btn sm" data-zb="edit|' + p.id + '">✏️ Sửa chữ</button><button class="btn sm" data-zb="img|' + p.id + '">🖼 ' + (p.img ? 'Đổi ảnh' : 'Thêm ảnh') + '</button><button class="btn sm" data-zb="regen|' + p.id + '">🔄 Viết lại</button><button class="btn sm" data-zb="time|' + p.id + '">⏰ Đổi giờ</button>' +
+        (need ? okBtn : '') +
+        '<div class="zb-more"><button class="btn sm" data-zb="edit|' + p.id + '">✏️ Sửa chữ</button><button class="btn sm" data-zb="img|' + p.id + '">🖼 ' + (p.img ? 'Đổi ảnh' : 'Thêm ảnh') + '</button><button class="btn sm" data-zb="other|' + p.id + '">🔄 Làm bài khác</button><button class="btn sm" data-zb="regen|' + p.id + '">✍️ Viết lại bài này</button><button class="btn sm" data-zb="time|' + p.id + '">⏰ Đổi giờ</button>' +
         (p.status === 'ok' ? '<button class="btn sm ghost" data-zb="draft|' + p.id + '">↩️ Bỏ duyệt</button>' : '') + '<button class="btn sm ghost" data-zb="skip|' + p.id + '">⏸ Bỏ bài này</button></div>' +
         '<div class="zp-tedit" id="zbTm_' + p.id + '"><label class="f"><span>⏰ Giờ đăng riêng cho bài này <small class="muted">' + (sl.id === 'toi' ? 'bài tối: 12:00–21:45' : 'bài sáng: 6:00–11:59') + ' · giờ chung: ' + zbAt(sl, it.d) + '</small></span><input type="time" id="zbTmI_' + p.id + '" value="' + esc(zbWhen(sl, it.d)) + '" min="' + (sl.id === 'toi' ? '12:00' : '06:00') + '" max="' + (sl.id === 'toi' ? '21:45' : '11:59') + '"></label><div class="lq-btns"><button class="btn sm pri" data-zb="tsave|' + p.id + '">💾 Lưu giờ</button>' + (p.at_time ? '<button class="btn sm" data-zb="treset|' + p.id + '">↩️ Về giờ chung ' + zbAt(sl, it.d) + '</button>' : '') + '<button class="btn sm ghost" data-zb="time|' + p.id + '">Huỷ</button></div></div>' +
         '<div class="zb-edit"><label class="f"><span>Chủ đề <small class="muted">nhãn để đo hiệu quả, không đăng lên nhóm</small></span><input type="text" id="zbTp_' + p.id + '" maxlength="120" value="' + esc(p.topic || '') + '"></label>' +
         '<label class="f"><span>Tầng phễu</span><select id="zbFn_' + p.id + '">' + ['TOFU', 'MOFU', 'BOFU', 'TIN'].concat(p.funnel && !/^(TOFU|MOFU|BOFU|TIN)$/.test(p.funnel) ? [p.funnel] : []).map(function (k) { return '<option value="' + k + '"' + (k === p.funnel ? ' selected' : '') + '>' + esc(ZB_FUN[k] || k) + '</option>'; }).join('') + '</select></label>' +
         zbInsEdit(p) +
-        '<textarea class="zb-text" id="zbT_' + p.id + '" rows="' + Math.min(18, Math.max(6, String(p.text).split('\n').length + 2)) + '">' + esc(p.text) + '</textarea><div class="lq-btns"><button class="btn sm pri" data-zb="save|' + p.id + '">💾 Lưu</button><button class="btn sm ghost" data-zb="edit|' + p.id + '">Huỷ</button></div></div>' +
+        '<textarea class="zb-text" id="zbT_' + p.id + '" rows="' + Math.min(18, Math.max(6, String(p.text).split('\n').length + 2)) + '">' + esc(p.text) + '</textarea><div class="lq-btns"><button class="btn sm pri" data-zb="save|' + p.id + '">💾 Lưu</button><button class="btn sm ghost" data-zb="edit|' + p.id + '">Huỷ</button></div><p class="small muted" style="margin:6px 0 0">⏰ Lưu chữ không làm bài đăng. Bài ' + (p.status === 'ok' ? 'đã duyệt, sẽ đăng ' : 'sẽ đăng (sau khi duyệt) ') + esc(when) + '. Muốn đổi giờ thì bấm ⏰ Đổi giờ.</p></div>' +
         '</div></div></div>';
     });
     h += zbManualHtml(j); // 📣 tin nhân sự gửi: hẹn giờ (🗑 huỷ) / đã đăng (↩️ thu hồi)
@@ -9868,7 +9871,7 @@
     if (!j.plan) return h + '<p class="muted small">Máy chủ đang cập nhật bản mới, thử lại sau vài phút.</p>';
     var list = j.plan.slice(), td = zpKey(j.now), pm = c.pmix || {};
     var m28 = list.filter(function (q) { return q.status !== 'skip' && q.day < zpAdd(td, 28); }), wait = list.filter(function (q) { return q.status === 'draft' && !(P[q.id] && P[q.id].status === 'sent'); });
-    h += '<p class="muted small">Trợ lý lên trước <b>chủ đề cụ thể</b> cho từng bài theo lịch tuần + ngày lễ, chia đủ 3 tầng phễu 🔵 ⚪ 🟠 (khoá Content), mỗi bài nhắm 1 nhóm khách + 1 tension. Anh/chị và người phụ trách <b>duyệt chủ đề</b> → trợ lý soạn bài đúng chủ đề đó, sớm ' + lead + ' ngày. Chủ đề chưa duyệt thì 24 tiếng trước giờ đăng trợ lý mới soạn theo chủ đề nháp.</p>' +
+    h += '<p class="muted small">Trợ lý lên trước <b>chủ đề cụ thể</b> cho từng bài theo lịch tuần + ngày lễ, chia đủ 3 tầng phễu 🔵 ⚪ 🟠 (khoá Content), mỗi bài nhắm 1 nhóm khách + 1 tension. <b>Người phụ trách chỉ cần duyệt bài</b> (khi bài soạn xong). Duyệt chủ đề là tuỳ chọn: duyệt trước thì trợ lý soạn bài sớm ' + lead + ' ngày, chưa duyệt thì 24 tiếng trước giờ đăng trợ lý vẫn tự soạn. Chủ đề nào chưa ổn thì bấm 🔄 Đổi chủ đề.</p>' +
       '<div class="box zp-sum small"><p><b>Tỉ lệ phễu' + (m28.length ? ' ' + m28.length + ' bài sắp tới' : '') + ':</b> ' + (zpMix(m28) || '<span class="muted">chưa có kế hoạch</span>') + '</p>' +
       '<p class="muted">Khoá Content gợi ý: nhóm mới 70/20/10 · khởi đầu 60/25/15 · <b>nhóm ấm 50/30/20</b> (nhóm Zalo: người đã để số nhận quà) · mùa cao điểm 🟠 30–40%, tối đa 2 tuần.</p>' +
       (pm.to && pm.to >= td ? '<p>Đang dùng tới ' + zpDayTxt(pm.to) + ': <b>' + esc((j.mix || {})[pm.mix] || pm.mix || '') + '</b>' + (pm.focus ? ' · 🎯 trọng tâm: ' + esc(pm.focus) : '') + '</p>' : '') +
@@ -10000,9 +10003,15 @@
       if (v[0] === 'tsave' && !zat) return toast('Bạn chọn giờ đăng nhé.', true);
       t.disabled = true; return api('zb_time', { id: id, at: zat }).then(after(zat ? 'Đã hẹn giờ đăng ' + zat.replace(':', 'h') + ' ✓' : 'Bài quay về giờ chung ✓'), fail);
     }
+    if (v[0] === 'other') {
+      if (!confirm('Làm bài khác hoàn toàn? Trợ lý sẽ đổi cả chủ đề lẫn nhóm khách rồi viết bài mới (khoảng 30 giây). Bài hiện tại và chữ anh chị đã sửa sẽ mất.')) return;
+      t.disabled = true; t.textContent = '⏳ AI đang viết bài khác (khoảng 30 giây)…';
+      return api('zb_other', { id: id }).then(after('AI đã viết bài khác ✓ Xem lại, sửa nếu cần rồi bấm Duyệt.'), fail);
+    }
+    if (v[0] === 'ok' && v[2] === 'now' && !confirm('Đã tới giờ đăng nên trợ lý sẽ đăng bài này vào nhóm NGAY (trong 1–2 phút).\n\nĐăng luôn?\n\nBấm Huỷ nếu muốn đổi giờ hoặc xem lại bài.')) { var zcd2 = t.closest('[data-zbcard]'); if (zcd2) zcd2.classList.add('zb-timing'); return; }
     if (v[0] === 'save' || v[0] === 'ok' || v[0] === 'skip' || v[0] === 'draft') {
       var ta = $('#zbT_' + id), ztp = $('#zbTp_' + id), zfn = $('#zbFn_' + id), zig = $('#zbIg_' + id), zit = $('#zbIt_' + id); t.disabled = true; // 11/11/2026: sửa cả chủ đề + tầng phễu + nhóm khách + tension (nhãn đo hiệu quả)
-      return api('zb_post', { id: id, text: ta ? ta.value : undefined, topic: ztp ? ztp.value : undefined, funnel: zfn ? zfn.value : undefined, ins_g: zig ? zig.value : undefined, ins_t: zit ? zit.value : undefined, status: v[0] === 'save' ? undefined : v[0] }).then(after({ save: 'Đã lưu bài ✓', ok: 'Đã duyệt ✓ Tới giờ trợ lý sẽ đăng.', skip: 'Đã bỏ bài này, trợ lý sẽ không đăng.', draft: 'Bài đã quay lại chờ duyệt ✓' }[v[0]]), fail);
+      return api('zb_post', { id: id, text: ta ? ta.value : undefined, topic: ztp ? ztp.value : undefined, funnel: zfn ? zfn.value : undefined, ins_g: zig ? zig.value : undefined, ins_t: zit ? zit.value : undefined, status: v[0] === 'save' ? undefined : v[0] }).then(after({ save: 'Đã lưu chữ ✓ Bài chưa đăng: xem lại giờ đăng rồi bấm Duyệt.', ok: v[2] === 'now' ? 'Đã duyệt ✓ Trợ lý đăng trong 1–2 phút.' : 'Đã duyệt ✓ Tới giờ trợ lý sẽ đăng.', skip: 'Đã bỏ bài này, trợ lý sẽ không đăng.', draft: 'Bài đã quay lại chờ duyệt ✓' }[v[0]]), fail);
     }
     if (v[0] === 'img') return zbImgOpen(id);
     if (v[0] === 'cancel' || v[0] === 'recall') { // 🗑 huỷ tin hẹn giờ / ↩️ thu hồi tin đã đăng (11/11/2026)

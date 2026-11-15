@@ -21,7 +21,7 @@ Trang này dành cho **người quản lý nhóm Zalo**, **marketing** và **sal
 
 **Mỗi tuần:**
 
-1. Duyệt kế hoạch chủ đề tuần sau ([Việc 3](#viec-3-duyet-ke-hoach-chu-de)).
+1. Liếc qua chủ đề tuần sau ([Việc 3](#viec-3-duyet-ke-hoach-chu-de)); chủ đề nào lệch thì bấm **🔄 Đổi chủ đề**. Không bắt buộc duyệt.
 2. Xem bài nào hiệu quả ([Việc 7](#viec-7-xem-bai-nao-hieu-qua)).
 3. Thấy trợ lý trả lời chưa đúng ý thì dạy lại ([Việc 2](#viec-2-xu-ly-ca-can-nguoi-that-va-day-tro-ly)).
 
@@ -30,7 +30,7 @@ Trang này dành cho **người quản lý nhóm Zalo**, **marketing** và **sal
 | Telegram báo | Bạn làm |
 | --- | --- |
 | 📝 Bài Zalo chờ duyệt | Vào tab Zalo duyệt bài ([Việc 1](#viec-1-duyet-bai)) |
-| 📋 Kế hoạch chủ đề nhóm Zalo | Duyệt chủ đề ([Việc 3](#viec-3-duyet-ke-hoach-chu-de)) |
+| 📋 Chủ đề bài Zalo | Chỉ để biết trước. Chủ đề nào lệch thì đổi ([Việc 3](#viec-3-duyet-ke-hoach-chu-de)); không đổi cũng được |
 | 🤖 TRỢ LÝ ZALO CẦN NGƯỜI THẬT | Có số khách: gọi từ **hotline 0966 326 522**. Chưa có số: nhắn tay trên **điện thoại trợ lý** |
 | 🔒 KHÁCH GỬI THÔNG TIN RIÊNG TRONG NHÓM | **Gọi khách trong 15 phút** từ hotline, ghi kết quả vào CRM |
 | 🛡 NGƯỜI GÁC CỔNG ĐÃ CHẶN 1 CÂU | Nhắn lại khách câu đúng, rồi CRM → 🎯 → **🛡 Câu bị giữ** → **✅ Đã xử lý** |
@@ -83,10 +83,17 @@ Khung xanh nhạt bên dưới là **bài sẽ hiện y như vậy trên Zalo** 
 
 ![Bài cần duyệt: 1 Duyệt bài này, 2 Sửa chữ, 3 Viết lại, 4 Bỏ bài này](/huong-dan/img/zalo-duyet.webp)
 
-1. Đọc bài. Bài ổn thì bấm **✅ Duyệt bài này** là xong.
-2. Muốn sửa vài chữ thì bấm **✏️ Sửa chữ** (xem bước sửa bên dưới).
-3. Muốn bài khác thì bấm **🔄 Viết lại**, gõ ý muốn (ví dụ "ngắn hơn"), chờ 30 giây.
-4. Không muốn đăng thì bấm **⏸ Bỏ bài này**.
+1. Đọc bài. **Nhìn xem bài nói với ai**: người đọc nhóm là chính các cô chú, các mẹ, nên bài không được nói kiểu "hãy gọi cho bố mẹ của bạn". Bài lệch đối tượng thì bấm **🔄 Làm bài khác**.
+2. Nhìn **giờ đăng ghi ngay trên nút duyệt**, ví dụ **✅ Duyệt & đăng lúc 20:00 hôm nay**. Giờ ổn và bài ổn thì bấm nút đó là xong.
+3. Muốn sửa vài chữ thì bấm **✏️ Sửa chữ** (xem bước sửa bên dưới).
+4. Muốn **bài hoàn toàn khác** (đổi cả chủ đề) thì bấm **🔄 Làm bài khác**, chờ 30 giây. Muốn **giữ chủ đề, chỉ viết lại** thì bấm **✍️ Viết lại bài này**, gõ ý muốn (ví dụ "ngắn hơn").
+5. Không muốn đăng thì bấm **⏸ Bỏ bài này**.
+
+**Chỉ duyệt một lần: duyệt bài.** Chủ đề trợ lý tự lên và tự viết, bạn không cần duyệt chủ đề (anh Sơn hoặc quản lý xem chủ đề tuần là đủ). Bài viết xong thì có thẻ chờ duyệt ở đây và tin Telegram "📝 Bài Zalo chờ duyệt".
+
+**Đã quá giờ đăng thì sao?** Nếu giờ đăng đã tới mà bạn bấm duyệt, nút ghi **✅ Duyệt & đăng ngay** và CRM hỏi lại: *"Trợ lý sẽ đăng NGAY, đăng luôn?"*. Bấm **Huỷ** thì bài chưa duyệt và mở sẵn ô **⏰ Đổi giờ**. Nếu đã quá giờ hơn 2 tiếng, trợ lý không tự đăng nữa: chọn giờ khác hôm nay ở **⏰ Đổi giờ**, hoặc dùng **📣 Gửi tin vào nhóm** để hẹn sang ngày khác.
+
+**Lỡ đăng bài chưa ưng:** trong mục **📤 Đã đăng gần đây**, bấm vào bài rồi **↩️ Thu hồi bài này trên nhóm** (trong 24 tiếng đầu). Sau đó dùng **📣 Gửi tin vào nhóm** nếu muốn đăng bài thay.
 
 **Sửa chữ:**
 
@@ -94,13 +101,13 @@ Khung xanh nhạt bên dưới là **bài sẽ hiện y như vậy trên Zalo** 
 
 1. Sửa ngay trong ô. Chữ muốn in đậm thì để trong **hai dấu sao**, ví dụ `**Hạt sen**`.
 2. Nếu viết lại hẳn sang nội dung khác (ví dụ đổi bài đố vui thành bài nhắc ưu đãi) thì sửa luôn các ô **Chủ đề**, **Tầng phễu**, **🎯 Nhóm khách** và **Tension** phía trên ô chữ, để bảng hiệu quả tính đúng loại bài. Ô Tension có gợi ý sẵn các tension của nhóm khách đang chọn, gõ câu khác cũng được. Các ô này không đăng lên nhóm.
-3. Bấm **💾 Lưu**, rồi bấm **✅ Duyệt bài này**. Bấm **Huỷ** nếu không muốn sửa nữa.
+3. Bấm **💾 Lưu**. **Lưu chữ không làm bài đăng**, và ô sửa có ghi sẵn giờ đăng. Kiểm tra giờ, cần thì bấm **⏰ Đổi giờ**, rồi bấm nút **✅ Duyệt & đăng lúc …**. Bấm **Huỷ** nếu không muốn sửa nữa.
 
 **✍️ Trợ lý học từ bài bạn sửa:** mỗi lần bạn sửa chữ và bấm **💾 Lưu**, trợ lý giữ lại bản nó viết và bản bạn sửa. Khi viết bài mới, trợ lý xem 3 bài bạn sửa gần nhất để học: giọng văn, độ dài, câu mở đầu, câu kết, chữ bạn hay bỏ đi. Thẻ bài sẽ hiện dòng **✍️ … đã sửa chữ · trợ lý sẽ học từ bản sửa này**. Trên đầu khu bài đăng có dòng cho biết trợ lý đang học từ bao nhiêu bài.
 
 - Sửa càng đều tay, trợ lý viết càng giống ý bạn.
 - Chỉ đổi ảnh, đổi giờ hoặc bấm duyệt thì không tính là sửa.
-- Bấm **🔄 Viết lại** thì bản sửa của bài đó bị thay bằng bài mới, nên muốn trợ lý học thì sửa chữ thay vì viết lại.
+- Bấm **✍️ Viết lại bài này** hoặc **🔄 Làm bài khác** thì bản sửa của bài đó bị thay bằng bài mới, nên muốn trợ lý học thì sửa chữ thay vì viết lại.
 
 Bài đã duyệt hiện **✅ Đã duyệt · sẽ đăng…**. Đổi ý thì bấm **↩️ Bỏ duyệt**.
 
@@ -133,7 +140,7 @@ Muốn xem các ngày cũ hơn thì bấm **Xem thêm các ngày trước** ở 
 
 [[steps:zl-kh]]
 
-Mục **📋 Kế hoạch chủ đề** (bấm **📋 Kế hoạch chủ đề** ở hàng *Đi nhanh tới*, hoặc kéo xuống dưới các bài chờ duyệt) là danh sách **chủ đề của từng bài trong tuần / trong tháng**. Anh Sơn và bạn phụ trách duyệt chủ đề trước, trợ lý viết bài **đúng chủ đề đã duyệt**.
+Mục **📋 Kế hoạch chủ đề** (bấm **📋 Kế hoạch chủ đề** ở hàng *Đi nhanh tới*, hoặc kéo xuống dưới các bài chờ duyệt) là danh sách **chủ đề của từng bài trong tuần / trong tháng**. Duyệt chủ đề là **tuỳ chọn** (từ 15/11): người phụ trách chỉ bắt buộc duyệt bài. Duyệt chủ đề trước thì trợ lý viết bài sớm hơn; không duyệt thì trợ lý vẫn tự viết, chậm nhất 24 tiếng trước giờ đăng. Chủ đề nào không hợp (ví dụ nói với con cái về bố mẹ, trong khi nhóm là các bậc cha mẹ) thì bấm **🔄 Đổi chủ đề**.
 
 Mỗi chủ đề có:
 
