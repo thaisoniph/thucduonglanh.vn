@@ -839,6 +839,7 @@
     { id: 'marketing', label: 'Marketing', icon: 'mega', mkt: 1 }, // quyền Marketing: chỉ thấy tab này + Cài đặt; Quản trị vào từ Tổng quan (không chiếm chỗ trên menu)
     { id: 'link-qr', label: 'Link & QR', short: 'QR', icon: 'qr', lq: 1 }, // 📍 link / mã QR theo dõi nguồn khách: Marketing, Quản lý, Quản trị (Quản trị vào từ Tổng quan / Marketing)
     { id: 'tro-ly-zalo', label: 'Trợ lý Zalo', short: 'Zalo', icon: 'bot', lq: 1 }, // 🤖 trợ lý An Lành trong nhóm Zalo (api/src/zbot.js): cùng quyền với Link & QR
+    { id: 'zalo-sale', label: 'Zalo của sale', short: 'Zalo sale', icon: 'mail', min: 2 }, // 👀 xem sale chăm khách qua Zalo (api/src/zsale.js): chỉ Quản lý, Quản trị
     { id: 'fanpage', label: 'Fanpage', short: 'FB', icon: 'mail', lq: 1 }, // 📘 trợ lý Fanpage: trả lời bình luận, Messenger, bài đăng (api/src/fb.js): cùng quyền với Link & QR
     { id: 'noi-dung', label: 'Insight & nội dung', short: 'Insight', icon: 'aim', lq: 1 }, // 🎯 ngân hàng insight chung + 🎬 kịch bản video (api/src/insight.js): cùng quyền với Link & QR
     { id: 'bai-web', label: 'Bài web', short: 'Bài', icon: 'doc', bw: 1 }, // 📰 trợ lý viết bài cho Góc Sống Lành (api/src/blog.js): Quản lý, Quản trị, người bật Sửa website
@@ -851,7 +852,7 @@
   ];
   // Marketing: tab Marketing, Link & QR, Khách hỏi (24/10/2026: chỉ xem khách để lại số trên web), Cài đặt
   function myViews() { if (isKt()) return VIEWS.filter(function (v) { return v.kt || v.gv || v.id === 'cai-dat'; }); if (isKho()) return VIEWS.filter(function (v) { return v.kho || v.gv || v.id === 'cai-dat'; }); if (isMkt()) return VIEWS.filter(function (v) { return v.mkt || v.gv || v.lq || (v.bw && S.user && S.user.web) || v.id === 'tiem-nang' || v.id === 'cai-dat'; }); return VIEWS.filter(function (v) { return (!v.min || lvl() >= v.min) && (!v.ask || !!(S.user && S.user.ask)) && (!v.lq || lvl() >= 2 || (v.id === 'tro-ly-zalo' && S.user && S.user.zb)) && (!v.bw || lvl() >= 2 || !!(S.user && S.user.web)) && (!v.san || (S.d && S.d.sanOk) || lvl() >= 3) && (!v.kho || khoCan()) && (!v.kt || lvl() >= 3) && (!v.mkt || lvl() >= 3 || mkvOnly()); }); }
-  function navViews() { return myViews().filter(function (v) { return !((v.san || v.lq || v.bw || v.ask || v.kho || v.kt || v.ait) && lvl() >= 2 && !isMkt()); }); } // Quản trị: Marketing có trên menu (29/10/2026), Sàn / Link & QR / Zalo / Fanpage vào từ Thêm; Quản lý cũng vậy (anh Sơn 31/10/2026: menu máy tính rối)
+  function navViews() { return myViews().filter(function (v) { return !((v.san || v.lq || v.bw || v.ask || v.kho || v.kt || v.ait || v.id === 'zalo-sale') && lvl() >= 2 && !isMkt()); }); } // Quản trị: Marketing có trên menu (29/10/2026), Sàn / Link & QR / Zalo / Fanpage vào từ Thêm; Quản lý cũng vậy (anh Sơn 31/10/2026: menu máy tính rối)
   /** Điện thoại (29/10/2026, kiểu Apple): thanh dưới chỉ 4 mục hay dùng + "Thêm"; mục còn lại, Cài đặt, Hướng dẫn, Góp ý nằm ở màn Thêm. Máy tính vẫn hiện đủ. */
   var NAV_FIRST = ['hom-nay', 'tiem-nang', 'khach-hang', 'don-hang', 'bao-cao'];
   var NAV_SALE = ['hom-nay', 'tiem-nang', 'bao-cao', 'don-hang']; // sale: Hiệu quả ở chính giữa thanh dưới (anh Sơn 29/10/2026); 31/10/2026 Đơn hàng (có số đang giao) thay Khách, Khách vào Thêm
@@ -868,11 +869,11 @@
   var VIEW_DESC = {
     'tong-quan': 'Bức tranh kinh doanh cả công ty', 'hom-nay': 'Khách cần gọi, đơn mới hôm nay', 'tiem-nang': 'Người để lại số, chưa mua',
     'khach-hang': 'Hồ sơ, lịch sử mua, chăm sóc', 'don-hang': 'Đơn mới, đang giao, hoàn / huỷ', 'bao-cao': 'Doanh số, mục tiêu, thi đua',
-    marketing: 'Quảng cáo, chi phí, giá 1 số điện thoại', 'link-qr': 'Link và mã QR theo dõi nguồn khách', 'tro-ly-zalo': 'Trợ lý An Lành trong nhóm Zalo',
+    marketing: 'Quảng cáo, chi phí, giá 1 số điện thoại', 'link-qr': 'Link và mã QR theo dõi nguồn khách', 'tro-ly-zalo': 'Trợ lý An Lành trong nhóm Zalo', 'zalo-sale': 'Xem sale chăm khách qua Zalo',
     fanpage: 'Trả lời bình luận, tin nhắn Fanpage', 'bai-web': 'Trợ lý viết bài cho Góc Sống Lành', 'noi-dung': 'Nhóm khách, tension, phễu; kịch bản video', san: 'Doanh số Shopee, TikTok Shop', kho: 'Hàng còn bao nhiêu, sắp hết, đặt thêm hàng', 'ke-toan': 'Tiền về tài khoản, tiền treo ở hãng, lãi lỗ', 'cai-dat': 'Nhân sự, mục tiêu, mẫu tin, tài khoản',
     'hoi-so-lieu': 'Hỏi bằng lời, AI tự tra số và báo cáo', 'giao-viec': '3 việc trọng tâm, nhờ nhau, báo cáo họp thứ Hai', 'doi-ai': 'Trợ lý AI nào đang gánh việc thật, tốn bao nhiêu'
   };
-  var VIEW_TINT = { 'doi-ai': '#7d4cdb', 'tong-quan': '#1f5f3a', 'hom-nay': '#34a853', 'tiem-nang': '#ff9500', 'khach-hang': '#007aff', 'don-hang': '#a2845e', 'bao-cao': '#5856d6', marketing: '#ff2d55', 'link-qr': '#636366', 'tro-ly-zalo': '#0068ff', fanpage: '#1877f2', 'bai-web': '#24805b', 'noi-dung': '#d9480f', san: '#ee4d2d', kho: '#8e5a2b', 'ke-toan': '#0a7d5a', 'cai-dat': '#8e8e93', 'hoi-so-lieu': '#af52de', 'giao-viec': '#0a84ff' };
+  var VIEW_TINT = { 'doi-ai': '#7d4cdb', 'tong-quan': '#1f5f3a', 'hom-nay': '#34a853', 'tiem-nang': '#ff9500', 'khach-hang': '#007aff', 'don-hang': '#a2845e', 'bao-cao': '#5856d6', marketing: '#ff2d55', 'link-qr': '#636366', 'tro-ly-zalo': '#0068ff', 'zalo-sale': '#0b63c4', fanpage: '#1877f2', 'bai-web': '#24805b', 'noi-dung': '#d9480f', san: '#ee4d2d', kho: '#8e5a2b', 'ke-toan': '#0a7d5a', 'cai-dat': '#8e8e93', 'hoi-so-lieu': '#af52de', 'giao-viec': '#0a84ff' };
   function viewMore() {
     var main = navMain(), n = navCounts(), info = navInfo();
     var rest = myViews().filter(function (v) { return main.indexOf(v.id) < 0 && v.id !== 'cai-dat'; });
@@ -900,8 +901,8 @@
   /** Màn Thêm của Quản trị: Việc của sale / Tiền & hàng / Kênh marketing / Công cụ. */
   function moreCeo(rest, vrow, row, group) {
     var pick = function (ids) { return ids.map(function (id) { return rest.filter(function (v) { return v.id === id; })[0]; }).filter(Boolean).map(vrow).join(''); };
-    var known = ['hom-nay', 'tiem-nang', 'khach-hang', 'ke-toan', 'kho', 'san', 'link-qr', 'tro-ly-zalo', 'fanpage', 'noi-dung', 'bai-web', 'hoi-so-lieu', 'doi-ai'];
-    return group('Việc của sale', pick(['hom-nay', 'tiem-nang', 'khach-hang'])) +
+    var known = ['hom-nay', 'tiem-nang', 'khach-hang', 'zalo-sale', 'ke-toan', 'kho', 'san', 'link-qr', 'tro-ly-zalo', 'fanpage', 'noi-dung', 'bai-web', 'hoi-so-lieu', 'doi-ai'];
+    return group('Việc của sale', pick(['hom-nay', 'tiem-nang', 'khach-hang', 'zalo-sale'])) +
       group('Tiền & hàng', pick(['ke-toan', 'kho', 'san'])) +
       group('Kênh marketing', pick(['link-qr', 'tro-ly-zalo', 'fanpage', 'noi-dung', 'bai-web'])) +
       group('Công cụ',
@@ -1112,7 +1113,7 @@
     var keepScroll = lastView === v, y = window.scrollY;
     var el = $('#view');
     var focusId = document.activeElement && document.activeElement.id, selStart = document.activeElement && document.activeElement.selectionStart;
-    el.innerHTML = ({ 'hom-nay': viewToday, 'khach-hang': viewCustomers, 'don-hang': viewOrders, 'tiem-nang': viewLeads, 'bao-cao': viewReport, 'cai-dat': viewSettings, 'tong-quan': viewDash, san: viewSan, marketing: viewMkt, 'link-qr': viewLinks, 'tro-ly-zalo': viewZbot, fanpage: viewFp, 'bai-web': viewBlog, 'noi-dung': viewIns, 'hoi-so-lieu': viewAsk, kho: viewKho, 'ke-toan': viewKtab, 'giao-viec': viewGv, 'doi-ai': viewAit, them: viewMore })[v]();
+    el.innerHTML = ({ 'hom-nay': viewToday, 'khach-hang': viewCustomers, 'don-hang': viewOrders, 'tiem-nang': viewLeads, 'bao-cao': viewReport, 'cai-dat': viewSettings, 'tong-quan': viewDash, san: viewSan, marketing: viewMkt, 'link-qr': viewLinks, 'tro-ly-zalo': viewZbot, 'zalo-sale': viewZsale, fanpage: viewFp, 'bai-web': viewBlog, 'noi-dung': viewIns, 'hoi-so-lieu': viewAsk, kho: viewKho, 'ke-toan': viewKtab, 'giao-viec': viewGv, 'doi-ai': viewAit, them: viewMore })[v]();
     if (v === homeView()) { btMount(el); vhMount(el); tbMount(el); hiwMount(el); goalNag(); } // ☀️ lời chào + lời chúc mỗi ngày nằm trên cùng // 🌿 Quy tắc của ngày + 📢 Thông báo (nằm trên) ở đầu màn hình đầu tiên của mỗi người
     el.insertAdjacentHTML('beforeend', updatedLine());
     if (focusId && $('#' + focusId)) { var f = $('#' + focusId); f.focus(); try { f.setSelectionRange(selStart, selStart); } catch (e) { } }
@@ -1130,6 +1131,7 @@
     if (v === 'kho') bindKho();
     if (v === 'giao-viec') bindGv();
     if (v === 'doi-ai') bindAit();
+    if (v === 'zalo-sale') bindZsale();
     if (v === 'ke-toan') { bindKtab(); bindSan(); }
     if (r.id && !$('.modal')) {
       if (v === 'khach-hang' && cust(r.id)) openCustomer(r.id, true);
@@ -2240,7 +2242,7 @@
       (c.backN ? '<span>↩ ' + c.backN + ' lần hoàn' + (c.lastBack ? ' (gần nhất ' + fDate(c.lastBack) + ')' : '') + (riskyReturn(c) ? ' · <span class="bad-line">hay hoàn: nên nhờ khách chuyển khoản trước</span>' : ' · vẫn là khách tốt') + '</span>' : '') +
       noteExtras(c.note).map(function (l) { var i = l.indexOf(':'), k = l.slice(0, i).trim(); return '<span>' + (EXTRA_IC[k] || '•') + ' ' + esc(k) + ': <b>' + esc(l.slice(i + 1).trim()) + '</b></span>'; }).join('') +
       (sg ? '<span><span class="sug" title="Khách mua sản phẩm giống khách này hay mua thêm sản phẩm này">💡 Gợi ý giới thiệu: ' + esc(sg) + '</span></span>' : '') + '</div>' + refIntroBox(c) + aiBox(c) +
-      giftBox(giftPerson(c.phone), '') +
+      giftBox(giftPerson(c.phone), '') + zsCustBox(c) +
       '<div class="tabs" role="tablist"><button data-ptab="hist" class="on">Lịch sử</button><button data-ptab="orders">Đơn hàng (' + c.orders + ')</button><button data-ptab="info">Thông tin</button></div><div id="pTab"></div>' +
       '<details class="p-edit" id="pEdit"><summary>⚙️ Sửa thông tin (người phụ trách, hẹn gọi lại, ngày sinh, nhãn màu, ghi chú)</summary><div class="box" style="margin:8px 0 0"><div class="row2c">' +
       (lvl() >= 2 ? '<label class="f"><span>Người phụ trách</span><select id="cOwner"><option value="">– Chưa ai –</option>' + owners.map(function (n) { return '<option' + (n === c.owner ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('') + '</select></label>' : '') +
@@ -2257,6 +2259,7 @@
       (lvl() >= 3 ? '<details class="p-edit"><summary>🗑 Xoá khách (chỉ Quản trị)</summary><div class="box" style="margin:8px 0 0"><p class="small muted" style="margin:0 0 8px">Dùng cho khách nhập thử / nhập nhầm. Xoá hồ sơ khách cùng <b>toàn bộ đơn hàng</b> (kể cả đơn huỷ/hoàn), khách hỏi và nhật ký chăm sóc của số ' + fPhone(c.phone) + '. Không khôi phục được.</p><button class="btn danger" id="cDel">🗑 Xoá khách này</button></div></details>' : '');
     var foot = '<div class="p-quick"><input type="text" id="cQuick" placeholder="✏️ Ghi nhanh: kh dùng ok, hẹn cuối tháng…" enterkeyhint="send"><button class="btn pri" id="cQSave">Lưu</button></div>';
     var m = modal(cp(c.name, esc(c.name || 'Khách')) + ' ' + custTags(c) + famTag(c), body, foot, { route: '#khach-hang', pushed: !fromRoute });
+    zsCustBind(m, c); // 💬 Zalo của sale với khách này (tải khi mở, chỉ Quản lý/Quản trị)
     var draw = function () {
       var list = all || ordersOf(c.phone), box = $('#pTab', m); if (!box) return;
       $$('[data-ptab]', m).forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-ptab') === tab); });
@@ -14546,6 +14549,100 @@
   }
   function bindAit() {
     $$('[data-ait="re"]').forEach(function (b) { b.onclick = function () { b.disabled = true; b.textContent = 'Đang tải…'; AIT.at = 0; aitFetch(); }; });
+  }
+  /* ================================================================ 👀 Zalo của sale (15/11/2026, máy chủ api/src/zsale.js)
+   * Xem sale chăm khách qua Zalo mà không đổi thói quen của sale. Chương trình "người đọc" (zalo-bot/sale-reader.js) chỉ ĐỌC
+   * tin nhắn riêng của sale với khách rồi lưu về đây. Chỉ Quản lý / Quản trị xem. Dữ liệu từ zs_view / zs_thread. */
+  var ZS = { d: null, at: 0, busy: 0, err: '' };
+  function zsFetch() {
+    if (ZS.busy) return; ZS.busy = 1;
+    api('zs_view', {}).then(function (j) { ZS.busy = 0; ZS.d = j; ZS.err = ''; ZS.at = Date.now(); if (route().view === 'zalo-sale') render(); },
+      function (e) { ZS.busy = 0; ZS.err = /Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message; if (route().view === 'zalo-sale') render(); });
+  }
+  function zsWaitRow(w) {
+    return '<button type="button" class="zs-wait" data-zst="' + esc(w.sale) + '|' + esc(w.uid) + '|' + esc(w.phone || '') + '|' + esc(w.name) + '">' +
+      '<span class="zs-dot"></span><span class="zs-wt"><b>' + esc(w.name) + '</b>' + (w.phone ? ' · ' + esc(w.phone) : '') +
+      '<small>' + esc(w.saleName) + (w.owner ? ' · 👤' + esc(w.owner) : '') + '</small></span>' +
+      '<span class="zs-min">' + (w.mins < 60 ? w.mins + ' phút' : Math.round(w.mins / 60) + ' giờ') + '</span></button>';
+  }
+  function zsThreadRow(r) {
+    return '<button type="button" class="zs-th' + (r.wait ? ' zs-th-wait' : '') + '" data-zst="' + esc(r.sale) + '|' + esc(r.uid) + '|' + esc(r.phone || '') + '|' + esc(r.name) + '">' +
+      '<span class="zs-wt"><b>' + esc(r.name) + '</b>' + (r.wait ? ' <em class="zs-badge">chờ trả lời</em>' : '') +
+      '<small>' + esc(r.saleName) + (r.owner ? ' · 👤' + esc(r.owner) : '') + ' · ' + r.n + ' tin · ' + esc(when(r.last)) + '</small></span><span class="zs-chev">›</span></button>';
+  }
+  function viewZsale() {
+    if (!ZS.d || Date.now() - ZS.at > 60e3) zsFetch();
+    var h = '<div class="zs-wrap"><div class="page-head"><h1>👀 Zalo của sale</h1></div>' +
+      '<p class="zs-intro">Xem sale đang nhắn Zalo chăm khách thế nào, mà sale <b>vẫn dùng Zalo như cũ</b> (điện thoại + máy tính). Một chương trình đọc tin nhắn riêng của sale với khách rồi đưa về đây. <b>Chỉ đọc, không gửi thay.</b> Chỉ Quản lý và Quản trị thấy mục này.</p>';
+    if (ZS.err && !ZS.d) return h + '<div class="box"><p class="err">' + esc(ZS.err) + '</p><button class="btn" data-zs="re">🔄 Thử lại</button></div></div>';
+    if (!ZS.d) return h + '<div class="box">Đang tải…</div></div>';
+    var D = ZS.d;
+    if (!D.sales || !D.sales.length) {
+      return h + '<div class="box zs-empty"><p><b>Chưa kết nối Zalo của sale nào.</b></p>' +
+        '<p class="small">Đây là tính năng mới, nên chạy thử với <b>1 sale</b> trong 1–2 tuần trước. Người kỹ thuật cần:</p>' +
+        '<ol class="small"><li>Đặt khoá chung cho máy chủ: <code>wrangler secret put ZSALE_KEY</code>.</li>' +
+        '<li>Trên máy chủ (VPS), cài người đọc cho 1 sale: <code>ZSALE_KEY=… bash zalo-bot/cai-sale.sh tdl-vps thuy "Chị Thuý"</code>, quét mã QR bằng Zalo của sale đó.</li>' +
+        '<li>Ghi nội quy + cho sale ký đồng ý lưu hội thoại công việc để kiểm tra chất lượng.</li></ol>' +
+        '<p class="small muted">Chi tiết: zalo-bot/README.md và hướng dẫn <a href="/huong-dan/zalo-sale/" target="_blank" rel="noopener">Zalo của sale</a>.</p>' +
+        '<p><button class="btn" data-zs="re">🔄 Tải lại</button></p></div></div>';
+    }
+    // trạng thái từng người đọc
+    h += '<div class="zs-sales">' + D.sales.map(function (s) {
+      return '<span class="zs-sale ' + (s.online ? 'on' : 'off') + '">' + (s.online ? '🟢' : '🔴') + ' ' + esc(s.name) + (s.phone ? ' <small>' + esc(s.phone) + '</small>' : '') + '</span>';
+    }).join('') + '</div>';
+    if (D.sales.some(function (s) { return !s.online; })) h += '<p class="zs-warn">🔴 = chương trình đọc đang mất kết nối (máy tắt / mất mạng / Zalo bắt đăng nhập lại). Các tin trong lúc đó chưa được lưu.</p>';
+    // khách đang chờ trả lời
+    if (D.waiting && D.waiting.length) h += '<section class="zs-sec"><h2>💬 Khách đang chờ trả lời (' + D.waiting.length + ')</h2><div class="zs-list">' + D.waiting.map(zsWaitRow).join('') + '</div></section>';
+    // thống kê hôm nay từng sale
+    h += '<section class="zs-sec"><h2>📊 Hôm nay từng sale</h2><div class="zs-cards">' + D.perSale.map(function (p) {
+      return '<article class="zs-card"><header>' + (p.online ? '🟢' : '🔴') + ' <b>' + esc(p.name) + '</b></header>' +
+        '<div class="zs-nums"><div><b>' + p.threads + '</b><small>khách nhắn</small></div><div><b>' + p.reply + '</b><small>sale trả lời</small></div>' +
+        '<div><b>' + (p.avgMin == null ? '–' : p.avgMin < 60 ? p.avgMin + "'" : (p.avgMin / 60).toFixed(1) + 'h') + '</b><small>trả lời sau</small></div>' +
+        '<div class="' + (p.waiting ? 'zs-bad' : '') + '"><b>' + p.waiting + '</b><small>đang chờ</small></div></div></article>';
+    }).join('') + '</div><p class="small muted">"Trả lời sau" = trung bình thời gian khách nhắn đến khi sale trả lời (hôm nay).</p></section>';
+    // cuộc trò chuyện gần đây
+    if (D.recent && D.recent.length) h += '<section class="zs-sec"><h2>🕐 Trò chuyện gần đây</h2><div class="zs-list">' + D.recent.map(zsThreadRow).join('') + '</div></section>';
+    // cài đặt (Quản trị)
+    if (D.admin) h += '<details class="zs-sec zs-cfg"><summary>⚙️ Cài đặt</summary><div class="box">' +
+      '<label class="zs-ck"><input type="checkbox" id="zsOn"' + (D.cfg.on ? ' checked' : '') + '> Bật theo dõi Zalo của sale</label>' +
+      '<label class="f"><span>Nhắc Telegram khi khách chờ quá (phút)</span><input type="number" id="zsMins" min="5" max="240" value="' + (D.cfg.replyMins || 30) + '"></label>' +
+      '<button class="btn pri" data-zs="save">Lưu cài đặt</button></div></details>';
+    h += '<p class="zs-foot"><button class="btn" data-zs="re">🔄 Tải lại</button> <small>Cập nhật ' + esc(when(ZS.at)) + '</small></p></div>';
+    return h;
+  }
+  function zsOpen(sale, uid, phone, title) {
+    var m = modal('💬 ' + esc(title || 'Zalo'), '<div class="zs-conv" id="zsConv">Đang tải…</div>', '', {});
+    api('zs_thread', { sale: sale, uid: uid, phone: phone }).then(function (j) {
+      var box = $('#zsConv', m); if (!box) return;
+      if (!j.msgs || !j.msgs.length) { box.innerHTML = '<p class="muted">Chưa có tin nào được lưu.</p>'; return; }
+      var head = (j.owner ? '<p class="zs-conv-h">👤 Phụ trách: <b>' + esc(j.owner) + '</b></p>' : '');
+      box.innerHTML = head + j.msgs.map(function (x) {
+        return '<div class="zs-b ' + (x.self ? 'zs-me' : 'zs-cust') + '"><div class="zs-tx">' + esc(x.text).replace(/\n/g, '<br>') + '</div><time>' + (x.self ? esc(x.saleName) + ' · ' : '') + esc(when(x.ts)) + '</time></div>';
+      }).join('');
+      box.scrollTop = box.scrollHeight;
+    }, function (e) { var box = $('#zsConv', m); if (box) box.innerHTML = '<p class="err">' + esc(e.message) + '</p>'; });
+  }
+  function bindZsale() {
+    $$('[data-zs="re"]').forEach(function (b) { b.onclick = function () { ZS.at = 0; zsFetch(); }; });
+    $$('[data-zst]').forEach(function (b) { b.onclick = function () { var p = b.getAttribute('data-zst').split('|'); zsOpen(p[0], p[1], p[2], p[3]); }; });
+    var sv = $('[data-zs="save"]'); if (sv) sv.onclick = function () {
+      sv.disabled = true; api('zs_cfg', { on: $('#zsOn').checked ? 1 : 0, replyMins: +$('#zsMins').value || 30 })
+        .then(function (j) { ZS.d.cfg = j.cfg; toast('Đã lưu ✓'); sv.disabled = false; }, function (e) { toast(e.message, true); sv.disabled = false; });
+    };
+  }
+  /** 💬 Khối Zalo trong hồ sơ khách: chỉ Quản lý/Quản trị, tải tin khi mở ra (không tải sẵn cho nhẹ). */
+  function zsCustBox(c) { return lvl() >= 2 ? '<details class="p-edit zs-cbox" id="zsCustBox"><summary>💬 Zalo của sale với khách này</summary><div class="zs-conv" id="zsCustBody" style="margin:8px 0 0">Bấm để xem…</div></details>' : ''; }
+  function zsCustBind(m, c) {
+    var dt = $('#zsCustBox', m); if (!dt) return;
+    dt.addEventListener('toggle', function () {
+      if (!dt.open || dt.getAttribute('data-done')) return; dt.setAttribute('data-done', '1');
+      var bd = $('#zsCustBody', m); bd.textContent = 'Đang tải…';
+      api('zs_thread', { phone: c.phone }).then(function (j) {
+        if (!j.msgs || !j.msgs.length) { bd.innerHTML = '<p class="muted small">Chưa có tin Zalo nào được lưu cho khách này. (Cần đã kết nối Zalo của sale phụ trách.)</p>'; return; }
+        bd.innerHTML = j.msgs.map(function (x) { return '<div class="zs-b ' + (x.self ? 'zs-me' : 'zs-cust') + '"><div class="zs-tx">' + esc(x.text).replace(/\n/g, '<br>') + '</div><time>' + (x.self ? esc(x.saleName) + ' · ' : '') + esc(when(x.ts)) + '</time></div>'; }).join('');
+        bd.scrollTop = bd.scrollHeight;
+      }, function (e) { bd.innerHTML = '<p class="err small">' + esc(e.message) + '</p>'; });
+    });
   }
   /* ================================================================ ✅ Việc tuần · cùng làm (14–15/11/2026, máy chủ api/src/giaoviec.js)
    * Nhịp tuần anh Sơn đặt: tối đa 3 việc ⭐ trọng tâm / người / tuần (chốt trước 9h T3) · cập nhật tiến độ trước 21h T5 · kết quả + link minh chứng trước 21h CN · họp thứ Hai dùng 📋 Báo cáo tuần.

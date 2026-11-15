@@ -64,3 +64,26 @@ Từ 28/10/2026 trợ lý chạy **24/7 trên VPS của công ty** (cùng máy v
 ## Bí mật (không đưa lên GitHub)
 
 `~/.tdl-zalo-bot/.env` (ZBOT_KEY, phải giống secret `ZBOT_KEY` của Worker `thucduonglanh-api`) và `~/.tdl-zalo-bot/creds.json` (phiên đăng nhập Zalo). Ai có `creds.json` là dùng được tài khoản trợ lý, nên không gửi file này cho ai.
+
+---
+
+# 👀 Người đọc Zalo của sale (`sale-reader.js`) – giám sát, chỉ đọc
+
+Khác với Trợ lý An Lành (`bot.js`, tài khoản phụ, có gửi tin trong nhóm), `sale-reader.js` giữ **tài khoản Zalo của 1 sale** và **chỉ đọc** tin nhắn riêng (1–1) của sale với khách, gửi về máy chủ (`api/src/zsale.js`, type `zsale`) để Quản lý / Quản trị xem trong CRM → tab **👀 Zalo của sale**. **Không bao giờ gửi tin, không thả tim, không đụng nhóm** → rủi ro Zalo khoá thấp.
+
+Anh Sơn đã thử (14/11/2026): cùng 1 tài khoản Zalo đăng nhập song song **điện thoại + Zalo PC + Zalo Web** được, nên sale **không phải đổi thói quen** – chương trình này ngồi ở chỗ "Zalo Web", sale vẫn dùng điện thoại và Zalo PC như cũ.
+
+- Mỗi sale = 1 bản chạy riêng, `.env` riêng (`SALE_ID`, `SALE_NAME`, `ZSALE_KEY`) và `creds.<sale>.json` riêng. `ZSALE_KEY` phải giống secret `ZSALE_KEY` của Worker `thucduonglanh-api` (đặt 1 lần: `npx wrangler secret put ZSALE_KEY`).
+- Cài / cập nhật lên VPS (chạy trên Mac người kỹ thuật, lần đầu quét QR bằng Zalo của sale):
+  ```
+  ZSALE_KEY=<khoá> bash zalo-bot/cai-sale.sh tdl-vps thuy "Chị Thuý"
+  ```
+  Tạo dịch vụ systemd `tdl-zalo-sale-<sale>` (không đụng `tdl-zalo-bot` của trợ lý).
+- Nhật ký: `ssh tdl-vps journalctl -u tdl-zalo-sale-thuy -f`
+- Zalo bắt đăng nhập lại: `ssh tdl-vps 'cd /opt/tdl-zalo-sale/thuy && sudo -u tdlbot node sale-reader.js --dang-nhap'` rồi chép `qr.thuy.png` về quét.
+- Tắt theo dõi 1 sale: `ssh tdl-vps systemctl disable --now tdl-zalo-sale-thuy`.
+- Bật / tắt chung + số phút nhắc "khách chờ lâu": CRM → 👀 Zalo của sale → ⚙️ Cài đặt (Quản trị).
+
+**Pháp luật (Luật BVDLCN 91/2025):** Zalo công ty cấp cho sale dùng cho công việc. Trước khi bật phải ghi nội quy / hợp đồng rằng Zalo công việc được lưu để kiểm tra chất lượng và cho sale ký đồng ý. Chỉ Quản lý / Quản trị xem; tin tự xoá sau 12 tháng (`RETAIN_DAYS` trong `zsale.js`).
+
+**Bí mật (không đưa lên GitHub):** `.env` (`ZSALE_KEY`) và `creds.<sale>.json` (phiên đăng nhập Zalo của sale). Ai có `creds` là dùng được tài khoản Zalo của sale đó.

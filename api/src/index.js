@@ -17,6 +17,7 @@ import { journeyCounts, pledge, quiz, wall } from './journey.js';
 import { apply } from './apply.js';
 import { chat, chatLead } from './chat.js';
 import { zbot, zbotLead, zbImg } from './zbot.js';
+import { zsale } from './zsale.js'; // 👀 giám sát Zalo của sale (zsale.js, zalo-bot/sale-reader.js)
 import { refMe, ctvMe, ctvApply } from './partner.js';
 import { fbRoute } from './fb.js';
 import { mcpRoute } from './mcp.js';
@@ -24,7 +25,7 @@ import { ddApply, ddStatus, qtetApply } from './ngaydoi.js';
 import { stBind } from './sotay.js'; // 📗 kb() đọc Sổ tay trong D1
 export { AiRelay } from './airelay.js'; // Durable Object chuyển tiếp lời gọi AI qua Bắc Mỹ
 
-const API_VERSION = '2026-11-15d'; // CRM web so với số này để biết giao diện & máy chủ khớp nhau
+const API_VERSION = '2026-11-15e'; // + giám sát Zalo của sale (zsale.js) // CRM web so với số này để biết giao diện & máy chủ khớp nhau
 const ORIGINS = /^https:\/\/((www\.|crm\.|quantri\.|mkt\.|kho\.|ketoan\.|kinhdoanh\.|congsu\.|camnangsongkhoe\.)?thucduonglanh\.vn|([a-z0-9-]+\.)?(thucduonglanh(-crm|-congsu)?|camnang-song-khoe-thuc-duong-lanh)\.pages\.dev)$|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
 function ctxOf(env, ectx) { stBind(env.DB); return { env, db: env.DB, later: p => ectx.waitUntil(Promise.resolve(p).catch(e => console.error('later', e && e.message))) }; }
@@ -63,6 +64,7 @@ async function website(x, data) {
   if (data.type === 'chat') return await chat(x, data); // 💬 trợ lý chat An Lành trên web (chat.js)
   if (data.type === 'chat_lead') return await chatLead(x, data); // khách để lại số trong khung chat
   if (data.type === 'zbot') { await ensureSchema(x.db); return await zbot(x, data); } // 🤖 chương trình Zalo "Trợ lý An Lành" (zbot.js, zalo-bot/); bảng mới (zb_act…) tạo cả khi chưa ai mở CRM
+  if (data.type === 'zsale') { await ensureSchema(x.db); return await zsale(x, data); } // 👀 người đọc Zalo của sale (zsale.js, zalo-bot/sale-reader.js): chỉ lưu tin, không gửi
   if (data.type === 'order') {
     try {
       // đơn gửi lại (mạng chập chờn) đã lưu rồi thì không kiểm tra lại mã (mã 1 lần sẽ báo "đã dùng") và không tính lại suất quà Ngày Đôi

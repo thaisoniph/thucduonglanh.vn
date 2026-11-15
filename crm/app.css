@@ -2826,3 +2826,48 @@ details.dash-grp[open] > summary::after { transform: rotate(180deg); }
 .dash-grp-t em { font-style: normal; font-size: 14px; color: var(--ink); font-weight: 600; }
 .dash-grp-b { padding: 0 10px 4px; }
 .dash-grp-b details.dash-more { box-shadow: none; background: var(--bg, #f7f8f6); }
+
+/* ================= 👀 Zalo của sale (zalo-sale, api/src/zsale.js) ================= */
+.zs-intro{color:var(--muted);margin:0 0 14px;line-height:1.5}
+.zs-empty ol{margin:8px 0 0;padding-left:20px;line-height:1.7}
+.zs-empty code{background:#f1f1f4;padding:1px 5px;border-radius:5px;font-size:12px;word-break:break-all}
+.zs-sales{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
+.zs-sale{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:999px;font-weight:600;font-size:13px;background:#eef4ff;border:1px solid #d6e4ff}
+.zs-sale.off{background:#fdecec;border-color:#f6c9c9}
+.zs-sale small{font-weight:400;color:var(--muted)}
+.zs-warn{color:#b42318;font-size:12.5px;margin:0 0 12px}
+.zs-sec{margin:0 0 18px}
+.zs-sec>h2{font-size:15px;margin:0 0 8px}
+.zs-list{display:flex;flex-direction:column;gap:6px}
+.zs-wait,.zs-th{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer}
+.zs-wait:hover,.zs-th:hover{background:#f7f9fc}
+.zs-wait{border-left:4px solid #ff8f00}
+.zs-th-wait{border-left:4px solid #ff8f00}
+.zs-dot{width:9px;height:9px;border-radius:50%;background:#ff8f00;flex:none}
+.zs-wt{flex:1;min-width:0;display:flex;flex-direction:column}
+.zs-wt b{font-size:14px}
+.zs-wt small{color:var(--muted);font-size:12px}
+.zs-min{font-weight:700;color:#b35c00;font-size:13px;white-space:nowrap}
+.zs-badge{font-style:normal;background:#fff3e0;color:#b35c00;border-radius:6px;padding:1px 6px;font-size:11px;font-weight:700}
+.zs-chev{color:#c4c4c8;font-size:20px}
+.zs-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.zs-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px}
+.zs-card>header{font-size:14px;margin:0 0 8px}
+.zs-nums{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center}
+.zs-nums>div{background:#f6f7f9;border-radius:9px;padding:7px 2px}
+.zs-nums b{display:block;font-size:17px;line-height:1.1}
+.zs-nums small{font-size:10.5px;color:var(--muted)}
+.zs-nums .zs-bad{background:#fdecec}
+.zs-nums .zs-bad b{color:#b42318}
+.zs-cfg .zs-ck{display:flex;align-items:center;gap:8px;font-weight:600;margin:0 0 10px}
+.zs-foot{display:flex;align-items:center;gap:10px;margin:14px 0 0}
+.zs-foot small{color:var(--muted)}
+/* hội thoại (cửa sổ + trong hồ sơ khách) */
+.zs-conv{max-height:60vh;overflow:auto;display:flex;flex-direction:column;gap:7px;padding:4px 2px}
+.zs-conv-h{margin:0 0 6px;color:var(--muted);font-size:13px}
+.zs-b{max-width:82%;padding:8px 11px;border-radius:14px;font-size:14px;line-height:1.45}
+.zs-b time{display:block;font-size:10.5px;color:var(--muted);margin-top:3px}
+.zs-cust{align-self:flex-start;background:#f0f1f4;border-bottom-left-radius:4px}
+.zs-me{align-self:flex-end;background:#dcefff;border-bottom-right-radius:4px}
+.zs-me time{text-align:right}
+.zs-cbox .zs-conv{max-height:46vh}
