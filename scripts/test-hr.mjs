@@ -257,6 +257,24 @@ cs = await H.crmHr(x, son, { op: 'ct_off', id: ctId, date: dIso(9), why: 'Kết 
 ok(cs.staff.find(z => z.email === 'myanh@x.vn').cts.find(c => c.id === ctId).st === 'Đã thanh lý', 'Thanh lý hợp đồng');
 if (OUT) writeFileSync(OUT + '/hop-dong.html', (await H.crmHr(x, son, { op: 'ct_doc', id: ctId }, log)).html);
 }
+// 12. 🎂 Sinh nhật theo tháng
+{
+const SN = await import('file://' + ROOT + '/api/src/sinhnhat.js');
+const ma3 = { email: 'myanh@x.vn', name: 'Mỹ Anh', role: 'Sale & CSKH', level: 1 };
+const d3 = new Date(Date.now() + 7 * 36e5 + 3 * 864e5), dm3 = String(d3.getUTCDate()).padStart(2, '0') + '/' + String(d3.getUTCMonth() + 1).padStart(2, '0');
+await DB.prepare("UPDATE users SET dob = ?, tg = '300' WHERE email = 'myanh@x.vn'").bind(dm3 + '/1998').run();
+await DB.prepare("UPDATE users SET tg = '200' WHERE email = 'thuy@x.vn'").bind().run(); x._users = null;
+ok((await SN.crmSnh(x, ma3, { op: 'list' })).show === false, 'Sale thường không thấy danh sách sinh nhật');
+ok(!(await SN.crmSnh(x, thuy, { op: 'life', emails: ['myanh@x.vn'] })).ok, 'Quản lý không chọn được Trưởng ban');
+ok((await SN.crmSnh(x, son, { op: 'life', emails: ['myanh@x.vn', 'la@x.vn'] })).life.join() === 'myanh@x.vn', 'Quản trị chọn Trưởng ban (bỏ email không có tài khoản)');
+const sl = await SN.crmSnh(x, ma3, { op: 'list' });
+ok(sl.show && sl.me && sl.staff.some(z => z.email === 'myanh@x.vn' && z.dm === dm3) && sl.staff.every(z => z.dm === '' || z.dm.length === 5) && !sl.staff.some(z => z.phone), 'Trưởng ban thấy tên + ngày/tháng, không có năm sinh, số điện thoại');
+ok((await SN.crmSnh(x, thuy, { op: 'list' })).show, 'Quản lý thấy danh sách');
+tg.length = 0; await SN.snhTick(x, 1);
+ok(tg.some(t => /TG 300/.test(t) && /Còn 3 ngày/.test(t)) && tg.some(t => /TG 200/.test(t) && /Còn 3 ngày/.test(t)), 'Telegram báo trước 3 ngày cho Trưởng ban + Quản lý');
+tg.length = 0; await SN.snhTick(x, 1); ok(!tg.length, 'Cùng ngày không báo lại');
+}
+
 L = await H.crmHr(x, son, { op: 'del', id: r.id }, log); ok(L.rows.length === 0 && !(await DB.prepare('SELECT 1 FROM hr_cv').bind().first()), 'Quản trị xoá hồ sơ + file CV');
 
 origLog(bad ? '\n❌ ' + bad + ' bước lỗi' : '\n✅ Tất cả đều đúng');

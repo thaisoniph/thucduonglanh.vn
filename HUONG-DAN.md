@@ -503,6 +503,10 @@ Apps Script giới hạn 200 phiên bản/dự án: báo lỗi "Không tạo đ�
 - Nhắc: `ctTick` trong hrTick, 1 lần/ngày sau 8h, mốc 30/15/7/0/quá hạn (+ mỗi 7 ngày tới 30 ngày); Quản trị không tính "chưa có hợp đồng".
 - CRM: `hctSec`, `hctBox`, `hctNeed`, `hctSuggest`, `openHct`, `openHctSign`, `openHctCfg`, `hctPrint` (mở cửa sổ in); tab "Hợp đồng cần xử lý"; CSS `.hct-…`. Thử: `node scripts/test-hr.mjs` (95 bước).
 
+### 🎂 Sinh nhật theo tháng (15/11/2026, api `2026-11-15m`)
+- `api/src/sinhnhat.js`: kv `hr_life` {emails} = 🎉 Trưởng ban đời sống (Quản trị chọn). Lệnh `snh {op: list}` cho Trưởng ban + level ≥ 2 (đặt trước bộ lọc quyền trong crmApi; chỉ trả tên, họ tên, dd/MM), `snh {op: life}` Quản trị. `snhTick` (cron, sau 8h, 1 lần/ngày): ngày 25 gửi danh sách tháng sau + người thiếu ngày sinh, mỗi ngày gửi "còn 3 ngày" → Telegram Trưởng ban + Quản lý + Quản trị.
+- CRM: `snhMount` (thẻ màn hình đầu), `snhHrBox` (hr. tab Sinh nhật: 12 tháng + chọn trưởng ban); CSS `.snh-…`. Thử: `node scripts/test-hr.mjs`.
+
 ## 6a2. 👀 Giám sát Zalo của sale (15/11/2026, anh Sơn)
 
 Mục đích: Quản lý / Quản trị xem sale chăm khách qua Zalo mà sale **không đổi thói quen** (vẫn dùng Zalo điện thoại + Zalo PC). Anh Sơn đã thử 14/11: 1 tài khoản Zalo đăng nhập song song điện thoại + Zalo PC + Zalo Web được, nên chương trình đọc ngồi ở chỗ "Zalo Web".

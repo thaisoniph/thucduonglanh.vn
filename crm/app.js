@@ -1118,7 +1118,7 @@
     var el = $('#view');
     var focusId = document.activeElement && document.activeElement.id, selStart = document.activeElement && document.activeElement.selectionStart;
     el.innerHTML = ({ 'hom-nay': viewToday, 'khach-hang': viewCustomers, 'don-hang': viewOrders, 'tiem-nang': viewLeads, 'bao-cao': viewReport, 'cai-dat': viewSettings, 'tong-quan': viewDash, san: viewSan, marketing: viewMkt, 'link-qr': viewLinks, 'tro-ly-zalo': viewZbot, 'zalo-sale': viewZsale, fanpage: viewFp, 'bai-web': viewBlog, 'noi-dung': viewIns, 'hoi-so-lieu': viewAsk, kho: viewKho, 'ke-toan': viewKtab, 'giao-viec': viewGv, 'tuyen-dung': viewTuy, 'nhan-su': viewHso, 'doi-ai': viewAit, them: viewMore })[v]();
-    if (v === homeView()) { btMount(el); vhMount(el); htMount(el); tbMount(el); hiwMount(el); goalNag(); } // ☀️ lời chào + lời chúc mỗi ngày nằm trên cùng // 🌿 Quy tắc của ngày + 📢 Thông báo (nằm trên) ở đầu màn hình đầu tiên của mỗi người
+    if (v === homeView()) { btMount(el); vhMount(el); htMount(el); snhMount(el); tbMount(el); hiwMount(el); goalNag(); } // ☀️ lời chào + lời chúc mỗi ngày nằm trên cùng // 🌿 Quy tắc của ngày + 📢 Thông báo (nằm trên) ở đầu màn hình đầu tiên của mỗi người
     el.insertAdjacentHTML('beforeend', updatedLine());
     if (focusId && $('#' + focusId)) { var f = $('#' + focusId); f.focus(); try { f.setSelectionRange(selStart, selStart); } catch (e) { } }
     if (keepScroll) window.scrollTo(0, y); else window.scrollTo(0, 0);
@@ -15835,6 +15835,7 @@
     if (D.qt) h = h.replace('<button class="btn ghost" data-hso="reload">', '<button class="btn ghost" data-hso="ctcfg">⚙️ Mẫu hợp đồng</button><button class="btn ghost" data-hso="reload">') + hctBox(D) + hsoNtBox(D) + hsoFbBox(D);
     var tabs = [['on', 'Đang làm'], ['bd', 'Sinh nhật, kỷ niệm'], ['miss', 'Thiếu thông tin'], ['ht', 'Chưa điền Hiểu & Thương']].concat(D.qt ? [['hd', 'Hợp đồng cần xử lý'], ['off', 'Đã nghỉ']] : []);
     h += '<div class="chips hso-chips">' + tabs.map(function (t) { var n = D.staff.filter(function (s) { return hsoIn(s, t[0]); }).length; return '<button class="chip' + (HSO.f === t[0] ? ' on' : '') + '" data-hso="tab|' + t[0] + '">' + t[1] + ' <span class="tuy-n' + (t[0] === 'miss' && n ? ' hot' : '') + '">' + n + '</span></button>'; }).join('') + '</div>';
+    if (HSO.f === 'bd') h += snhHrBox(D);
     h += '<div class="tuy-filter"><input type="search" data-hsosel="q" placeholder="🔍 Tìm tên, vị trí, số điện thoại" value="' + esc(HSO.q) + '"></div>';
     var L = D.staff.filter(function (s) { return hsoIn(s, HSO.f) && (!HSO.q || norm(s.name + ' ' + s.full + ' ' + s.pos + ' ' + s.phone + ' ' + s.role).indexOf(norm(HSO.q)) >= 0); });
     if (HSO.f === 'bd') L.sort(function (a, b) { var f = function (s) { var x = hsoNext(hsoDm(s.dob)), y = hsoAnniv(s); return Math.min(x == null ? 999 : x, y ? y.n : 999); }; return f(a) - f(b); });
@@ -15867,6 +15868,7 @@
   }
   function bindHso(root) {
     $$('[data-hsosel="q"]', root).forEach(function (s) { s.oninput = function () { HSO.q = s.value; clearTimeout(HSO.qt); HSO.qt = setTimeout(function () { render(); var n = $('[data-hsosel="q"]'); if (n) { n.focus(); n.setSelectionRange(n.value.length, n.value.length); } }, 350); }; });
+    $$('[data-snhm]', root).forEach(function (b) { b.onclick = function () { HSO.snhM = +b.getAttribute('data-snhm'); render(); }; });
     $$('[data-hsomap]', root).forEach(function (s) { s.onchange = function () { if (s.value) hsoDo('st_fb_map', { who: s.getAttribute('data-hsomap'), email: s.value }, null, 'Đã khớp tên ✓').catch(function () { }); }; });
     var ff = $('#hsoFbFile', root); if (ff) ff.onchange = function () {
       var f = ff.files[0]; if (!f) return; toast('⏳ Đang đọc file…');
@@ -15882,6 +15884,7 @@
         else if (a[0] === 'ntpull') { if (!confirm('Lấy hồ sơ từ Notion? Máy chỉ điền vào ô đang trống trên hr., không ghi đè thông tin đã có.')) return; el.disabled = true; el.textContent = '⏳ Đang lấy…'; hsoDo('st_nt_pull', {}).catch(function () { el.disabled = false; }); }
         else if (a[0] === 'ntpush') { el.disabled = true; el.textContent = '⏳ Đang ghi…'; hsoDo('st_nt_push', { all: 1 }).catch(function () { el.disabled = false; }); }
         else if (a[0] === 'ctcfg') openHctCfg();
+        else if (a[0] === 'snhlife') { var em = $$('input[name="snhLife"]:checked', root).map(function (c) { return c.value; }); el.disabled = true; api('snh', { op: 'life', emails: em }).then(function () { toast('Đã lưu Trưởng ban đời sống ✓'); S.snh = null; snhLoad(); }, function (er) { el.disabled = false; toast(er.message, true); }); }
         else if (a[0] === 'ntchk') hsoDo('st_nt', {}, el, 'Đã kiểm tra lại').catch(function () { });
         else if (a[0] === 'nttok') hsoDo('st_nt', { token: $('#hsoNtTok').value.trim() }, el, 'Đã lưu khoá').catch(function () { });
         else if (a[0] === 'fbsync') { el.disabled = true; el.textContent = '⏳ Đang đọc…'; hsoDo('st_fb_sync', {}).catch(function () { el.disabled = false; }); }
@@ -16107,6 +16110,54 @@
       api('hr', { op: 'st_hire', id: r.id, email: $('#thEmail', m).value.trim(), name: $('#thName', m).value.trim(), role: $('#thRole', m).value }).then(function (j) { hsoSet(j); toast('Đã tạo tài khoản + hồ sơ ✓ Nhắc bạn ấy đăng nhập bằng email ' + j.made); closeModal(true); location.hash = '#nhan-su'; setTimeout(function () { openHso(j.made); }, 500); load(true); },
         function (er) { btn.disabled = false; toast(er.message, true); });
     };
+  }
+  /* ================================================================ 🎂 Sinh nhật theo tháng (15/11/2026) – máy chủ api/src/sinhnhat.js lệnh snh {op: list | life}
+     Thẻ ở màn hình đầu cho 🎉 Trưởng ban đời sống + Quản lý + Quản trị; hr. → Hồ sơ nhân sự → tab Sinh nhật: xem 12 tháng, Quản trị chọn trưởng ban. */
+  function snhLoad(cb) {
+    if (S.snhBusy) return; S.snhBusy = 1;
+    api('snh', { op: 'list' }).then(function (j) { S.snhBusy = 0; S.snh = j; S.snhAt = Date.now(); if (cb) cb(); else { var b = $('#snhBox'); if (b) b.innerHTML = snhCard(); if (route().view === 'nhan-su' && HSO.f === 'bd') render(); } }, function () { S.snhBusy = 0; S.snhFail = Date.now(); });
+  }
+  /** [{s, dm, n}] người có sinh nhật trong tháng m (1–12) của năm y; n = số ngày tới (âm = đã qua). */
+  function snhMonth(L, y, m, today) {
+    var mm = ('0' + m).slice(-2), t0 = Date.UTC(+today.slice(0, 4), +today.slice(5, 7) - 1, +today.slice(8, 10));
+    return L.filter(function (s) { return s.dm && s.dm.slice(3) === mm; }).map(function (s) { return { s: s, dm: s.dm, n: Math.round((Date.UTC(y, m - 1, +s.dm.slice(0, 2)) - t0) / DAY) }; }).sort(function (a, b) { return a.dm.localeCompare(b.dm); });
+  }
+  function snhRows(R) {
+    return R.map(function (o) {
+      var w = o.n === 0 ? '<span class="snh-w now">🎉 hôm nay</span>' : o.n < 0 ? '<span class="snh-w past">đã qua</span>' : '<span class="snh-w' + (o.n <= 3 ? ' soon' : '') + '">còn ' + o.n + ' ngày</span>';
+      return '<li' + (o.n < 0 ? ' class="past"' : '') + '><b class="snh-d">' + esc(o.dm) + '</b> <span>' + esc(o.s.name) + (o.s.full && o.s.full !== o.s.name ? ' <small class="muted">' + esc(o.s.full) + '</small>' : '') + '</span>' + w + '</li>';
+    }).join('');
+  }
+  function snhCard() {
+    var J = S.snh; if (!J || !J.show) return '';
+    var t = J.today, y = +t.slice(0, 4), m = +t.slice(5, 7), A = snhMonth(J.staff, y, m, t), ny = m === 12 ? y + 1 : y, nmo = m === 12 ? 1 : m + 1, B = +t.slice(8, 10) >= 20 ? snhMonth(J.staff, ny, nmo, t) : [];
+    var miss = J.staff.filter(function (s) { return !s.dm; });
+    if (!A.length && !B.length && !J.me) return '';
+    var h = '<details class="snh-card"' + (store('snh_shut') === t.slice(0, 7) ? '' : ' open') + '><summary><b>🎂 Sinh nhật tháng ' + m + '</b> <span class="tuy-n">' + A.length + ' người</span>' + (J.me ? ' <span class="snh-me">🎉 Bạn là Trưởng ban đời sống</span>' : '') + '</summary>';
+    h += A.length ? '<ul class="snh-l">' + snhRows(A) + '</ul>' : '<p class="small muted">Tháng này không có sinh nhật nào.</p>';
+    if (B.length) h += '<p class="snh-sub">Tháng ' + nmo + ' (' + B.length + ' người)</p><ul class="snh-l">' + snhRows(B) + '</ul>';
+    h += '<p class="small muted">' + (A.length ? 'Gợi ý: gộp 1 buổi chúc mừng chung cuối tháng, hoặc bánh nhỏ đúng ngày từng người. ' : '') + 'Telegram nhắc ngày 25 (danh sách tháng sau) và trước mỗi sinh nhật 3 ngày.' + (miss.length ? ' Chưa có ngày sinh: ' + esc(miss.map(function (s) { return s.name; }).join(', ')) + '.' : '') + '</p></details>';
+    return h;
+  }
+  function snhMount(el) {
+    if ((!S.snh || Date.now() - S.snhAt > 600e3) && !(S.snhFail && Date.now() - S.snhFail < 600e3)) snhLoad();
+    el.insertAdjacentHTML('afterbegin', '<div id="snhBox">' + snhCard() + '</div>');
+    var d = $('#snhBox details', el); if (d) d.addEventListener('toggle', function () { if (S.snh) store('snh_shut', d.open ? '' : S.snh.today.slice(0, 7)); });
+  }
+  /** hr. tab Sinh nhật: 12 tháng + chọn Trưởng ban đời sống (Quản trị). */
+  function snhHrBox(D) {
+    var J = S.snh; if (!J) { snhLoad(); return '<div class="box"><p class="muted small">⏳ Đang tải sinh nhật theo tháng…</p></div>'; }
+    if (!J.show) return '';
+    var t = J.today, y = +t.slice(0, 4), cur = HSO.snhM || +t.slice(5, 7), cnt = [];
+    for (var i = 1; i <= 12; i++) cnt.push(snhMonth(J.staff, y, i, t).length);
+    var R = snhMonth(J.staff, y, cur, t), miss = J.staff.filter(function (s) { return !s.dm; });
+    var h = '<div class="box snh-hr"><h3>🎂 Sinh nhật theo tháng</h3><div class="chips snh-ms">' + cnt.map(function (n, k) { return '<button class="chip' + (k + 1 === cur ? ' on' : '') + '" data-snhm="' + (k + 1) + '">T' + (k + 1) + (n ? ' <span class="tuy-n">' + n + '</span>' : '') + '</button>'; }).join('') + '</div>';
+    h += R.length ? '<ul class="snh-l">' + snhRows(R) + '</ul>' : '<p class="small muted">Tháng ' + cur + ' không có sinh nhật nào.</p>';
+    if (miss.length) h += '<p class="small hso-miss">⚠️ Chưa có ngày sinh: ' + esc(miss.map(function (s) { return s.name; }).join(', ')) + '. Mở hồ sơ → ✏️ Sửa hồ sơ để thêm.</p>';
+    var lifeN = J.life.map(function (e) { var s = J.staff.filter(function (z) { return z.email === e; })[0]; return s ? s.name : e; });
+    h += '<div class="snh-life"><b>🎉 Trưởng ban đời sống:</b> ' + (lifeN.length ? esc(lifeN.join(', ')) : '<span class="muted">chưa chọn</span>') + '<p class="small muted">Người này thấy thẻ 🎂 Sinh nhật tháng này ở màn hình đầu CRM (chỉ tên và ngày sinh nhật) và nhận Telegram nhắc ngày 25 + trước mỗi sinh nhật 3 ngày, cùng Quản lý.</p>';
+    if (J.qt) h += '<details class="tuy-det"><summary>Chọn Trưởng ban đời sống</summary><div class="ht-chips">' + J.staff.map(function (s) { return '<label><input type="checkbox" name="snhLife" value="' + esc(s.email) + '"' + (J.life.indexOf(s.email) >= 0 ? ' checked' : '') + '><span>' + esc(s.name) + '</span></label>'; }).join('') + '</div><button class="btn sm pri" data-hso="snhlife">Lưu</button></details>';
+    return h + '</div></div>';
   }
   /* ================================================================ 🤝 Hiểu & Thương – 9 câu (15/11/2026, anh Sơn; máy chủ api/src/hrstaff.js lệnh ht {op: me | save})
      Mọi nhân sự tự điền: thẻ mời ở màn hình đầu (htMount, "Để sau" ẩn 3 ngày) + Thêm → 🤝 Hiểu & Thương của tôi. Quản lý / Quản trị xem trong 🗂 Hồ sơ nhân sự, Quản trị ghép Đệ nhị thân. */

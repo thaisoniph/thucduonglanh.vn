@@ -76,3 +76,10 @@ Mở hồ sơ một người → mục **📄 Hợp đồng**.
 - Trang Hồ sơ nhân sự có khung **📄 Hợp đồng cần xử lý**: 🔴 đã hết hạn, 🟠 còn ≤ 30 ngày, ✍️ nháp chưa ký, ⚪ người chưa có hợp đồng.
 - Máy nhắn Telegram cho Quản trị lúc 8h khi hợp đồng còn 30, 15, 7 ngày, ngày hết hạn và mỗi tuần khi đã quá hạn.
 - Sửa thông tin công ty, người đại diện ký, giờ làm, ngày trả lương và nội dung 3 mẫu (lao động, thử việc, cộng tác viên) ở nút **⚙️ Mẫu hợp đồng** đầu trang. Nên nhờ kế toán hoặc luật sư xem mẫu một lần.
+
+## 🎂 Sinh nhật theo tháng và 🎉 Trưởng ban đời sống
+
+- Trên hr., tab **Sinh nhật, kỷ niệm** có khung **🎂 Sinh nhật theo tháng**: bấm T1…T12 để xem ai sinh nhật tháng đó, ai còn thiếu ngày sinh.
+- Quản trị mở **Chọn Trưởng ban đời sống** → chọn 1–2 người lo sinh nhật, liên hoan → **Lưu**.
+- Trưởng ban, Quản lý, Quản trị thấy thẻ **🎂 Sinh nhật tháng này** ở màn hình đầu CRM (từ ngày 20 thấy thêm tháng sau). Chỉ hiện tên và ngày/tháng, không hiện năm sinh hay số điện thoại.
+- Telegram nhắc **ngày 25** (danh sách tháng sau) và **trước mỗi sinh nhật 3 ngày**. Trưởng ban cần nối Telegram trong CRM mới nhận được tin.

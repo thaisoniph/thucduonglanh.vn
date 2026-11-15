@@ -1,5 +1,6 @@
 // CRM: đăng nhập, dữ liệu, đơn hàng, khách, tiềm năng, cài đặt. Chuyển từ Apps Script sang, giữ nguyên cách làm việc & dữ liệu trả về cho giao diện.
 import { normPhone, nrm, esc, fmt, startOfDay, TZ_MS, fmtDate, dateOrBlank, slugName, codePre, replaceRows, isVoid, randHex, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, DAY, CRM_URL, ROLE_URL, refCode, crmSeen, adjOut, adjTot } from './lib.js';
+import { crmSnh } from './sinhnhat.js'; // 🎂 15/11/2026
 import { crmPartner, partnerSchema, partnerCfg, orderAttrib, refClaim, staffOf, staffHit } from './partner.js';
 import { chatSchema } from './chat.js';
 import { zbotSchema, crmZbot } from './zbot.js';
@@ -2595,6 +2596,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (a === 'logout') { await run(x.db, 'DELETE FROM sessions WHERE token = ?', d.token); return { ok: true }; }
   if (/^gv_/.test(a)) return crmGv(x, u, d); // ✅ Giao việc (giaoviec.js, 14/11/2026): mọi vai trò, quyền kiểm trong giaoviec.js
   if (a === 'camp_view') return crmCamp(x, u); // 📊 Đợt phát động mở rộng khách (camp.js, 15/11/2026): chỉ Quản lý / Quản trị
+  if (a === 'snh') return crmSnh(x, u, d); // 🎂 sinh nhật theo tháng (sinhnhat.js): Trưởng ban đời sống + Quản lý + Quản trị
   if (a === 'ht') return crmHt(x, u, d); // 🤝 Hiểu & Thương (hrstaff.js, 15/11/2026): mọi vai trò, chỉ phần của mình
   if (/^tb_/.test(a)) return crmTb(x, u, d); // 📢 Thông báo nội bộ (thongbao.js): mọi vai trò đều đọc được
   if (/^bt_/.test(a)) return crmBt(x, u, d); // 📣 Bảng tin vui đồng đội (bangtin.js, 14/11/2026): mọi vai trò

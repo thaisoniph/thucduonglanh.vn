@@ -3040,3 +3040,19 @@ details.dash-grp[open] > summary::after { transform: rotate(180deg); }
 .mk-tools { margin: 16px 0 0; padding: 12px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); }
 .mk-tools .steps { margin: 8px 0; }
 @media (max-width: 720px) { .lv-box .lv-f { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; } .lv-box .lv-f .chip { flex: 0 0 auto; white-space: nowrap; } }
+
+/* 🎂 Sinh nhật theo tháng (15/11/2026) */
+.snh-card { background: #fff7ec; border: 1px solid #f3d9b1; border-radius: 14px; padding: 10px 14px; margin-bottom: 12px; }
+.snh-card summary { cursor: pointer; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.snh-me { font-size: 12.5px; background: #fde6c4; color: #8a4b00; padding: 2px 8px; border-radius: 99px; font-weight: 600; }
+.snh-l { list-style: none; margin: 8px 0; padding: 0; }
+.snh-l li { display: flex; align-items: baseline; gap: 8px; padding: 6px 0; border-top: 1px dashed #eadfcd; font-size: 14.5px; }
+.snh-l li:first-child { border-top: 0; }
+.snh-l li.past { opacity: .55; }
+.snh-d { min-width: 44px; font-variant-numeric: tabular-nums; }
+.snh-w { margin-left: auto; font-size: 13px; color: #5d6158; white-space: nowrap; }
+.snh-w.soon { color: #c2410c; font-weight: 700; } .snh-w.now { color: #b91c1c; font-weight: 700; }
+.snh-sub { margin: 10px 0 0; font-weight: 600; font-size: 14px; }
+.snh-ms { margin: 4px 0 8px; flex-wrap: wrap; overflow: visible; }
+.snh-life { margin-top: 10px; padding-top: 10px; border-top: 1px solid #eef0ea; }
+.snh-life .ht-chips { margin: 8px 0; }
