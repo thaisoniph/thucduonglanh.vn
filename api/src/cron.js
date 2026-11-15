@@ -9,6 +9,7 @@ import { mktDailyMsgs } from './mktv.js';
 import { wbTick } from './wb.js';
 import { backfillCustomerExtras } from './migrate.js';
 import { zbotTick } from './zbot.js';
+import { zsaleTick } from './zsale.js';
 import { blogTick } from './blog.js';
 import { spRepurposeTick } from './spost.js';
 import { aiTick } from './aiuse.js';
@@ -186,6 +187,7 @@ export async function scheduled(x, cron) {
   x.later(vqTick(x).catch(e => console.error('vqTick', e.message))); // 🗣 9h mỗi ngày: gom lời khách nguyên văn vào kho + AI phân loại (voc.js)
   x.later(blogTick(x)); // 📝 trợ lý viết bài web (blog.js): viết nháp trước 1 ngày, đăng bài đã duyệt đúng giờ. Chạy song song vì 1 bài mất 2–5 phút, không để chậm các việc khác
   try { await zbotTick(x); } catch (e) { console.error('zbotTick', e.message); } // 🤖 trợ lý Zalo: soạn bài đăng nhóm trước 3 ngày (cfg.lead), 📋 tự lập / nhắc duyệt kế hoạch chủ đề, báo khi mất kết nối
+  try { await zsaleTick(x); } catch (e) { console.error('zsaleTick', e.message); } // 👀 Zalo của sale: báo khách chưa được trả lời, báo người đọc mất kết nối, dọn tin cũ
   try { await aiTick(x); } catch (e) { console.error('aiTick', e.message); } // 💳 tiền AI ước tính sắp hết → nhắc Telegram (aiuse.js)
   try { await fpTick(x); } catch (e) { console.error('fpTick', e.message); } // 📘 trợ lý Fanpage: nhắc khách chưa để số, đăng bài tới giờ, soạn bài trước
   const last = Number(await kvGet(x.db, 'mirror_last') || 0);

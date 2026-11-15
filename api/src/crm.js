@@ -3,6 +3,7 @@ import { normPhone, nrm, esc, fmt, startOfDay, TZ_MS, fmtDate, dateOrBlank, slug
 import { crmPartner, partnerSchema, partnerCfg, orderAttrib, refClaim, staffOf, staffHit } from './partner.js';
 import { chatSchema } from './chat.js';
 import { zbotSchema, crmZbot } from './zbot.js';
+import { zsaleSchema, crmZsale } from './zsale.js'; // 👀 giám sát Zalo của sale
 import { fbSchema, crmFp } from './fb.js';
 import { crmBlog } from './blog.js';
 import { crmIns } from './insight.js';
@@ -41,7 +42,7 @@ import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, wbInf
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-11-14i'; // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
+const SCHEMA_V = '2026-11-15z'; // + bảng zs_* (giám sát Zalo của sale) // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -158,6 +159,7 @@ export async function ensureSchema(db) {
     await partnerSchema(db); // 🤝 CTV / đối tác + 🎁 khách giới thiệu (api/src/partner.js)
     await chatSchema(db); // 💬 trợ lý chat trên web (api/src/chat.js)
     await zbotSchema(db); // 🤖 trợ lý nhóm Zalo (api/src/zbot.js)
+    await zsaleSchema(db); // 👀 giám sát Zalo của sale (api/src/zsale.js)
     await fbSchema(db); // 📘 trợ lý Fanpage Facebook (api/src/fb.js)
     await tplRefSeed(db); // 14/11/2026: 2 mẫu tin 🌱 Mời giới thiệu bạn bè (1 lần, xoá ở Cài đặt → Mẫu tin thì không thêm lại)
     schemaDone = true;
@@ -2675,6 +2677,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (a === 'merge_skip') return crmMergeSkip(x, u, d);
   if (a === 'merge') return crmMerge(x, u, d);
   if (/^zb_/.test(a)) return crmZbot(x, u, d, crmLog); // 🤖 Trợ lý Zalo An Lành (Quản lý, Quản trị, Marketing)
+  if (/^zs_/.test(a)) return crmZsale(x, u, d, crmLog); // 👀 Zalo của sale (Quản lý, Quản trị): xem sale chăm khách qua Zalo
   if (/^bl_/.test(a)) return crmBlog(x, u, d); // 📰 Trợ lý viết bài web (Quản lý, Quản trị, người bật Sửa website)
   if (/^fp_/.test(a)) return crmFp(x, u, d, crmLog); // 📘 Trợ lý Fanpage (Quản lý, Quản trị, Marketing; kết nối: Quản trị)
   if (/^spf_/.test(a)) return crmSpf(x, u, d, crmLog); // 📣 bài viết sẵn cho sale đăng Facebook cá nhân (spost.js)

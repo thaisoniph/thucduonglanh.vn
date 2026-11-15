@@ -64,3 +64,31 @@ Từ 28/10/2026 trợ lý chạy **24/7 trên VPS của công ty** (cùng máy v
 ## Bí mật (không đưa lên GitHub)
 
 `~/.tdl-zalo-bot/.env` (ZBOT_KEY, phải giống secret `ZBOT_KEY` của Worker `thucduonglanh-api`) và `~/.tdl-zalo-bot/creds.json` (phiên đăng nhập Zalo). Ai có `creds.json` là dùng được tài khoản trợ lý, nên không gửi file này cho ai.
+
+
+---
+
+# 👀 Giữ Zalo của sale (`sale-manager.js`) – giám sát, chỉ đọc
+
+Khác với Trợ lý An Lành (`bot.js`, tài khoản phụ, có gửi tin trong nhóm), `sale-manager.js` giữ **Zalo của nhiều sale** và **chỉ đọc** tin nhắn riêng (1–1) của sale với khách, gửi về máy chủ (`api/src/zsale.js`, type `zsale`) để Quản lý / Quản trị xem trong CRM → tab **👀 Zalo của sale**. **Không gửi tin, không thả tim, không đụng nhóm** → rủi ro Zalo khoá thấp.
+
+Anh Sơn đã thử (14/11/2026): 1 tài khoản Zalo chạy song song **điện thoại + Zalo PC + Zalo Web** được, nên sale **không phải đổi thói quen** – chương trình ngồi ở chỗ "Zalo Web".
+
+**Cài 1 lần** (trên Mac, đã SSH được VPS):
+```
+bash zalo-bot/cai-zalo-sale.sh tdl-vps
+```
+Tạo dịch vụ systemd `tdl-zalo-sale` (dir `/opt/tdl-zalo-sale`, user `tdlbot`; không đụng `tdl-zalo-bot`). Khoá tự lấy lại `ZBOT_KEY` của trợ lý An Lành (không cần đặt secret mới). Chương trình cũng dùng được secret riêng `ZSALE_KEY` nếu có.
+
+**Về sau mọi việc bấm trong CRM** → 👀 Zalo của sale:
+- ➕ **Kết nối** 1 sale → mã QR hiện ngay trong CRM → sale quét bằng Zalo của mình → xong.
+- ✕ cạnh tên sale = **ngắt** (chương trình tự xoá phiên đăng nhập của sale đó).
+- Bật/tắt chung + số phút nhắc "khách chờ lâu": ⚙️ Cài đặt (Quản trị).
+
+Không cần SSH để kết nối/ngắt từng sale. Cập nhật code sau này: chạy lại `bash zalo-bot/cai-zalo-sale.sh tdl-vps`.
+
+- Nhật ký: `ssh tdl-vps journalctl -u tdl-zalo-sale -f` · Khởi động lại: `ssh tdl-vps systemctl restart tdl-zalo-sale`.
+
+**Pháp luật (Luật BVDLCN 91/2025):** Zalo công ty cấp cho công việc. Trước khi bật phải ghi nội quy / hợp đồng rằng Zalo công việc được lưu để kiểm tra chất lượng và cho sale ký đồng ý. Chỉ Quản lý / Quản trị xem; tin tự xoá sau 12 tháng (`RETAIN_DAYS` trong `zsale.js`).
+
+**Bí mật (không đưa lên GitHub):** `.env` (khoá) và `creds/<sale>.json` (phiên đăng nhập Zalo của từng sale).
