@@ -1688,17 +1688,20 @@
    * Giờ làm: 8:00–16:45, giải lao 10:00–10:15 và 15:00–15:15, nghỉ trưa 11:45–13:30 (giờ nghỉ hiện màn nghỉ, có nút "Làm tiếp luôn").
    * Đơn mới + khách vừa hỏi luôn chen lên đầu lượt ở mọi khung. Khung hết việc thì lấy việc khung sau. Lượt nhớ trong máy (td_b, theo ngày).
    * "Để sau" = đẩy khách xuống cuối; đơn đang giao không tự mất khỏi danh sách nên có nút "✓ Đã gọi". */
+  // 16/11/2026 anh Sơn: đây là LỊCH GỢI Ý (mỗi sale có cách riêng), dựng theo cách làm của sale bán tốt nhất (Thu Phương, số liệu 30 ngày tới 16/11):
+  // vào việc từ 8:00, ~70% cuộc gọi dồn buổi sáng, 9h là giờ chốt nhiều đơn nhất, 14h là đỉnh thứ hai; buổi sáng chủ yếu "Gọi lại theo hẹn"
+  // (cuộc gọi chưa chốt nào cũng hẹn giờ gọi lại → sáng hôm sau có sẵn danh sách). Sale khác thường dồn gọi lúc 16h, khi khách ít mua hơn.
   var TD_SLOTS = [
-    { s: 480, e: 495, ic: '☀️', t: 'Khởi động', d: 'xác nhận đơn mới, gọi khách vừa hỏi', g: ['order', 'hot'] },
-    { s: 495, e: 600, ic: '🔥', t: 'Giờ vàng', d: 'gọi giữ đơn đang giao, khách hẹn gọi lại', g: ['order', 'hot', 'ship', 'cb'] },
+    { s: 480, e: 495, ic: '☀️', t: 'Khởi động', d: 'xác nhận đơn mới, gọi khách vừa hỏi, xem danh sách hẹn gọi lại hôm nay', g: ['order', 'hot'], tip: 'Vào việc ngay từ 8:00, buổi sáng khách dễ nghe máy và dễ chốt nhất.' },
+    { s: 495, e: 600, ic: '🔥', t: 'Giờ vàng sáng', d: 'gọi khách hẹn gọi lại, giữ đơn đang giao, gọi khách cũ', g: ['order', 'hot', 'cb', 'ship', 'care'], tip: '9h là giờ chốt được nhiều đơn nhất trong ngày. Gọi dồn trong khung này, đừng để dành tới chiều.' },
     { s: 600, e: 615, brk: 'Giải lao', say: 'Uống nước, đứng dậy vươn vai nhé.' },
-    { s: 615, e: 705, ic: '💚', t: 'Chăm sóc khách cũ', d: 'hỏi nhận hàng, sắp hết hàng, hỏi thăm', g: ['cb', 'care'] },
+    { s: 615, e: 705, ic: '💚', t: 'Chăm sóc khách cũ', d: 'hỏi nhận hàng, sắp hết hàng, hỏi thăm, mời đặt lại', g: ['cb', 'care'], tip: 'Khách chưa nghe máy thì nhắn Zalo 1 câu ngắn và hẹn giờ gọi lại.' },
     { s: 705, e: 810, brk: 'Nghỉ trưa', say: 'Ăn trưa ngon miệng, nghỉ ngơi cho chiều thêm sức.' },
-    { s: 810, e: 900, ic: '🙋', t: 'Khách hỏi chưa chốt', d: 'tư vấn khách hỏi, chăm sóc tiếp', g: ['lead', 'cb', 'care'] },
+    { s: 810, e: 900, ic: '🔥', t: 'Giờ vàng chiều', d: 'gọi lại khách hẹn chiều, tư vấn khách hỏi, gọi khách cũ', g: ['cb', 'lead', 'care'], tip: '14h là giờ chốt đơn nhiều thứ hai trong ngày. Vào việc ngay sau nghỉ trưa.' },
     { s: 900, e: 915, brk: 'Giải lao', say: 'Uống nước, thả lỏng vai gáy nhé.' },
-    { s: 915, e: 975, ic: '🌱', t: 'Mở rộng khách', d: 'mời giới thiệu, nhóm Zalo, Kho chung, gọi nốt khách còn lại', g: ['all'] },
-    { s: 975, e: 1005, ic: '📋', t: 'Chốt ngày', d: 'gọi nốt việc còn lại, hẹn lịch khách ngày mai, báo cáo cuối ngày', g: ['all'] },
-    { s: 1005, e: 1440, ic: '🌙', t: 'Ca trực', d: 'trả lời khách mới từ quảng cáo, xác nhận đơn mới, rồi làm nốt việc còn lại', g: ['order', 'hot', 'lead'], duty: 1 }
+    { s: 915, e: 975, ic: '🌱', t: 'Mở rộng khách', d: 'mời giới thiệu, nhóm Zalo, Kho chung, gọi nốt khách còn lại', g: ['all'], tip: 'Khách vừa khen sản phẩm là lúc mời giới thiệu bạn bè dễ nhất.' },
+    { s: 975, e: 1005, ic: '📋', t: 'Chốt ngày', d: 'hẹn giờ gọi lại cho từng khách chưa chốt, báo cáo cuối ngày', g: ['all'], tip: 'Khách nào chưa chốt cũng hẹn giờ gọi lại. Sáng mai bạn có sẵn danh sách để gọi trong giờ vàng.' },
+    { s: 1005, e: 1440, ic: '🌙', t: 'Ca trực', d: 'trả lời khách mới từ quảng cáo, xác nhận đơn mới, rồi làm nốt việc còn lại', g: ['order', 'hot', 'lead'], duty: 1, tip: 'Khách vừa hỏi được trả lời sớm thì dễ chốt hơn.' }
   ];
   // 16/11/2026 anh Sơn: sau 16:45 và Chủ nhật KHÔNG báo "hết giờ" (như nhắc nhân sự về). Tinh thần VitaGreen: làm hết việc, không phải hết giờ;
   // tối và Chủ nhật có người trực khách quảng cáo → hiện "🌙 Ca trực", ưu tiên đơn mới + khách vừa hỏi.
@@ -1757,7 +1760,7 @@
     } else {
       var nb = TD_SLOTS.filter(function (s) { return s.brk && s.s >= sl.e; })[0], nx = nb || TD_SLOTS[ix + 1], left = nx ? nx.s - m : 0;
       head = sl.ic + ' ' + sl.t; sub = tdsHm(sl.s) + ' – ' + tdsHm(sl.e) + ' · ' + sl.d + (nx && !nx.duty ? ' · còn ' + left + ' phút ' + (nb ? 'rồi ' + nb.brk.toLowerCase() : 'sang ' + nx.ic + ' ' + nx.t) : '');
-      hi += 'Khung ' + (wn.indexOf(sl) + 1) + '/' + (wn.length - 1);
+      hi += 'Gợi ý lúc này';
     }
     var st = tdsState(), by = {};
     items.forEach(function (x) { by[tdsKey(x)] = x; });
@@ -1766,7 +1769,7 @@
     var isDone = function (k) { return !by[k] || st.ok[k]; };
     if (!st.ids.length && items.length) tdsPick(items);
     var live = st.ids.filter(function (k) { return !isDone(k) && !st.skip[k]; }), dn = st.ids.filter(function (k) { return isDone(k) && !st.skip[k]; }).length;
-    var h = '<section class="hero td-hero tds-hero"><div class="tds-hi">' + hi.replace(/ · $/, '') + '</div><b class="tds-t">' + head + '</b><div class="tds-sub">' + sub + '</div>';
+    var h = '<section class="hero td-hero tds-hero"><div class="tds-hi">' + hi.replace(/ · $/, '') + '</div><b class="tds-t">' + head + '</b><div class="tds-sub">' + sub + '</div>' + (sl && sl.tip ? '<div class="tds-tip">💡 ' + sl.tip + '</div>' : '');
     var growBtn = growOn && gn < 5 ? '<button type="button" class="btn ' + (sl && sl.t === 'Mở rộng khách' ? 'pri lg block' : '') + '" data-gopen="grow">🌱 Mở rộng khách: còn ' + (5 - gn) + ' việc ›</button>' : '';
     if (!items.length) {
       h += '<p class="cheer-t cheer-ok">🎉 Xong hết khách cần gọi hôm nay. Tuyệt vời!</p>' + (growBtn || '') + '<div class="tds-foot"><button class="btn" data-daily="' + esc(S.user.name) + '">📋 Báo cáo cuối ngày</button></div></section>';
@@ -1795,11 +1798,11 @@
   function tdsPlan() {
     var m = tdsMin(), sun = tdsSun();
     if (sun) m = -1;
-    return '<section class="section"><details class="grp tds-plan" data-grp="tdplan"' + (S.f.gopen && S.f.gopen.tdplan ? ' open' : '') + '><summary><span class="g-t">🗓 Lịch làm việc hôm nay</span><span class="g-tip">mỗi khung giờ làm gì · làm hết việc, không phải hết giờ</span></summary><div class="tds-plan-l">' +
+    return '<section class="section"><details class="grp tds-plan" data-grp="tdplan"' + (S.f.gopen && S.f.gopen.tdplan ? ' open' : '') + '><summary><span class="g-t">🗓 Lịch làm việc gợi ý</span><span class="g-tip">khung tham khảo theo cách làm của sale bán tốt nhất · mỗi người có thể làm theo cách riêng</span></summary><div class="tds-plan-l">' +
       TD_SLOTS.map(function (s) {
         var st = sun ? (s.duty ? 'now' : '') : m >= s.e ? 'past' : m >= s.s ? 'now' : '';
         return '<div class="tds-p ' + st + (s.brk ? ' brk' : '') + '"><span class="tds-p-h">' + tdsHm(s.s) + '</span><span>' + (st === 'past' ? '✓ ' : st === 'now' ? '👉 ' : '') + (s.brk ? (s.brk === 'Nghỉ trưa' ? '🍱 ' : '🍵 ') + s.brk + ' tới ' + tdsHm(s.e) : s.ic + ' <b>' + (s.duty ? 'Ca trực tối và Chủ nhật' : s.t) + '</b> · ' + s.d) + '</span></div>';
-      }).join('') + '<p class="small muted" style="margin:8px 0 0">Đơn mới và khách vừa hỏi luôn được đưa lên đầu, ở khung nào cũng vậy. Khung nào hết việc thì máy lấy sẵn việc của khung sau.</p></div></details></section>';
+      }).join('') + '<p class="small muted" style="margin:8px 0 0">Đây là lịch gợi ý, dựng từ cách làm của sale bán tốt nhất văn phòng: vào việc từ 8:00, dồn gọi buổi sáng (9h chốt được nhiều đơn nhất, 14h là giờ chốt nhiều thứ hai), khách nào chưa chốt cũng hẹn giờ gọi lại để sáng hôm sau gọi. Bạn có cách làm hiệu quả hơn thì cứ làm theo cách của mình. Đơn mới và khách vừa hỏi luôn được đưa lên đầu; khung nào hết việc thì máy lấy sẵn việc của khung sau. Người VitaGreen làm hết việc, không phải hết giờ.</p></div></details></section>';
   }
   // Sang khung giờ mới (vd 10:00 giải lao) thì tab Hôm nay của sale tự đổi, không cần tải lại
   setInterval(function () { if (!S.d || document.hidden || $('.modal') || lvl() >= 2 || S.tdIx === undefined) return; var rv = route().view; if (rv && rv !== 'hom-nay') return; if (tdsIx(tdsMin()) !== S.tdIx) render(); }, 30e3);

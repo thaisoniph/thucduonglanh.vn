@@ -54,24 +54,26 @@ Tab **Hôm nay** chia ngày làm việc thành **từng khung giờ**, mỗi l�
 
 > **Câu dễ nhớ:** *Nhìn khung giờ → gọi 5 khách → mở lượt tiếp.*
 
-**Lịch một ngày** (bấm **🗓 Lịch làm việc hôm nay** để xem):
+**Lịch làm việc gợi ý** (bấm **🗓 Lịch làm việc gợi ý** để xem). Lịch này dựng từ cách làm của sale bán tốt nhất văn phòng. Đây chỉ là khung tham khảo, ai có cách làm hiệu quả hơn thì cứ làm theo cách của mình.
 
-- **8:00 ☀️ Khởi động:** xác nhận đơn mới, gọi khách vừa hỏi.
-- **8:15 🔥 Giờ vàng:** gọi giữ đơn đang giao, khách hẹn gọi lại.
+- **8:00 ☀️ Khởi động:** xác nhận đơn mới, gọi khách vừa hỏi, xem danh sách hẹn gọi lại hôm nay.
+- **8:15 🔥 Giờ vàng sáng:** gọi khách hẹn gọi lại, giữ đơn đang giao, gọi khách cũ. **9h là giờ chốt được nhiều đơn nhất trong ngày.**
 - 10:00 🍵 Giải lao 15 phút.
-- **10:15 💚 Chăm sóc khách cũ:** hỏi nhận hàng, sắp hết hàng, hỏi thăm.
+- **10:15 💚 Chăm sóc khách cũ:** hỏi nhận hàng, sắp hết hàng, hỏi thăm, mời đặt lại.
 - 11:45 🍱 Nghỉ trưa tới 13:30.
-- **13:30 🙋 Khách hỏi chưa chốt:** tư vấn khách hỏi, chăm sóc tiếp.
+- **13:30 🔥 Giờ vàng chiều:** gọi lại khách hẹn chiều, tư vấn khách hỏi, gọi khách cũ. **14h là giờ chốt đơn nhiều thứ hai.**
 - 15:00 🍵 Giải lao 15 phút.
 - **15:15 🌱 Mở rộng khách:** mời giới thiệu, nhóm Zalo, Kho chung, gọi nốt khách còn lại.
-- **16:15 📋 Chốt ngày:** gọi nốt việc còn lại, hẹn lịch khách ngày mai, bấm **📋 Báo cáo cuối ngày**.
+- **16:15 📋 Chốt ngày:** hẹn giờ gọi lại cho từng khách chưa chốt, bấm **📋 Báo cáo cuối ngày**.
 - **Từ 16:45 và Chủ nhật 🌙 Ca trực:** người trực trả lời khách mới từ quảng cáo, xác nhận đơn mới, rồi làm nốt việc còn lại.
+
+> **Bí quyết của sale bán tốt nhất:** vào việc ngay từ 8:00 và gọi dồn buổi sáng. Khách nào chưa chốt cũng **hẹn giờ gọi lại**, nên sáng hôm sau đã có sẵn danh sách để gọi trong giờ vàng.
 
 > Người VitaGreen **làm hết việc, không phải hết giờ**. CRM không báo "hết giờ": việc còn thì vẫn hiện để ai đang làm, đang trực làm tiếp.
 
 Trên màn hình:
 
-- Ô trên cùng ghi **khung giờ đang làm** (ví dụ **🔥 Giờ vàng · 8:15 – 10:00 · còn 40 phút rồi giải lao**).
+- Ô trên cùng ghi **Gợi ý lúc này** và khung giờ (ví dụ **🔥 Giờ vàng sáng · 8:15 – 10:00 · còn 40 phút rồi giải lao**), kèm 1 dòng **💡 mẹo** cho khung đó.
 - **Thanh 5 ô** = 5 khách của lượt này. Gọi xong 1 khách thì 1 ô chuyển xanh.
 - Nút xanh to **▶ Gọi tiếp: tên khách · lý do gọi**. Bấm là mở đúng khách đó.
 - Dưới nút là 5 khách của lượt. Khách đã xong có dấu **✓**.
