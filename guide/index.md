@@ -64,7 +64,7 @@ Từng việc được hướng dẫn kỹ ở [phần CRM](/huong-dan/crm/).
 | **Trang Kho** | [kho.thucduonglanh.vn](https://kho.thucduonglanh.vn) |
 | **Trang Kế toán** | [ketoan.thucduonglanh.vn](https://ketoan.thucduonglanh.vn) |
 | **Trang Kinh doanh** – quản lý (như chị Thuỷ) | [kinhdoanh.thucduonglanh.vn](https://kinhdoanh.thucduonglanh.vn) |
-| **Trang Nhân sự** – tuyển dụng (Quản lý, Quản trị) | [hr.thucduonglanh.vn](https://hr.thucduonglanh.vn) |
+| **Trang Nhân sự** – hồ sơ nhân sự, tuyển dụng (Quản lý, Quản trị) | [hr.thucduonglanh.vn](https://hr.thucduonglanh.vn) |
 | Website bán hàng | [thucduonglanh.vn](https://thucduonglanh.vn) |
 | Sửa website (đăng bài, sửa sản phẩm) | [thucduonglanh.vn/admin](https://thucduonglanh.vn/admin/) |
 | Trang hướng dẫn này | [crm.thucduonglanh.vn/huong-dan](https://crm.thucduonglanh.vn/huong-dan/) |

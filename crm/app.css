@@ -2940,3 +2940,33 @@ details.dash-grp[open] > summary::after { transform: rotate(180deg); }
 .tuy-prev-s { background: #f7f8f4; padding: 8px 12px; font-size: 13px; }
 @media (max-width: 560px) { .tuy-2 { grid-template-columns: 1fr; } .tuy-list { grid-template-columns: 1fr; } }
 .tuy-prev { overflow-x: auto; }
+
+/* 🗂 Hồ sơ nhân sự – hr.thucduonglanh.vn đợt 2 (15/11/2026, viewHso / openHso trong app.js; dùng chung .tuy-card, .tuy-info, .tuy-sec) */
+.hso-up h3 { margin: 0 0 6px; }
+.hso-up-i { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; width: 100%; text-align: left; font: inherit; font-size: 14.5px; background: none; border: 0; border-top: 1px dashed #eef0ea; padding: 7px 0; cursor: pointer; color: inherit; }
+.hso-up-i:first-of-type { border-top: 0; }
+.hso-when { margin-left: auto; font-size: 13px; color: #5d6158; }
+.hso-when.now { color: #c2410c; font-weight: 700; }
+.hso-fb summary { cursor: pointer; }
+.hso-fb p { margin: 8px 0; }
+.hso-fb-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.hso-fb-row input { flex: 1 1 240px; min-width: 0; }
+.hso-file { color: var(--primary); text-decoration: underline; cursor: pointer; }
+.hso-miss-box { margin-top: 10px; padding: 10px 12px; background: #fff8e6; border: 1px solid #f2dca6; border-radius: 10px; font-size: 14px; }
+.hso-map { margin: 8px 0 0; }
+.hso-chips { margin-bottom: 10px; }
+.hso-role { flex: none; font-size: 12px; font-weight: 600; color: #5d6158; background: #eef0ea; border-radius: 999px; padding: 2px 8px; }
+.hso-tags { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 13px; color: #3b3f36; }
+.hso-miss { font-size: 13px; color: #8a5a00; font-weight: 600; }
+.hso-nx-w { background: #fff8e6; border-color: #f2dca6; }
+.hso-q-g { margin: 0 0 8px; }
+.hso-q { margin: 4px 0 0; padding-left: 0; list-style: none; }
+.hso-q li { position: relative; margin: 4px 0; padding: 6px 10px 6px 12px; border-left: 3px solid #9fd1b4; background: #f4faf6; border-radius: 0 8px 8px 0; font-size: 14px; line-height: 1.45; }
+.hso-q.imp li { border-left-color: #f2c26b; background: #fffaf0; }
+.hso-docs { list-style: none; padding: 0; margin: 0 0 8px; font-size: 14px; }
+.hso-docs li { padding: 5px 0; border-bottom: 1px dashed #eef0ea; }
+.hso-del { margin-left: 6px; }
+.hso-up-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.hso-up-row select { flex: 1 1 200px; min-width: 0; }
+.hso-note { white-space: pre-wrap; margin: 0; }
+.hso-h { font-size: 15px; margin: 14px 0 8px; }

@@ -10,6 +10,7 @@ import { aiFetch } from './airelay.js';
 import { esc, all, first, run, kvJson, kvSet, kvGet, randHex, fmtDate, nrm, DAY } from './lib.js';
 import { telegramTo, sendMail, tgConf } from './google.js';
 import { fitScore } from './apply.js';
+import { crmHrStaff, fbSync } from './hrstaff.js'; // 🗂 đợt 2: hồ sơ nhân sự (lệnh hr {op: st_*})
 
 export const HR_ST = ['Mới', 'Hẹn phỏng vấn', 'Đã phỏng vấn', 'Mời nhận việc', 'Đã nhận việc', 'Không phù hợp', 'Từ chối nhận việc'];
 const API = 'https://api.thucduonglanh.vn', CONGSU = 'https://congsu.thucduonglanh.vn', LOGO = 'https://thucduonglanh.vn/assets/img/brand/logo.png';
@@ -132,7 +133,7 @@ export async function hrTick(x, users) {
     }
   }
   const dk = 'hr_clean_' + fmtDate(Date.now(), 'yyyyMMdd');
-  if (!await kvGet(x.db, dk)) { await kvSet(x.db, dk, '1', 2 * DAY); await hrClean(x.db); }
+  if (!await kvGet(x.db, dk)) { await kvSet(x.db, dk, '1', 2 * DAY); await hrClean(x.db); try { const S = await kvJson(x.db, 'hr_fb_src', null); if (S && S.id) await fbSync(x); } catch (e) { console.error('hr fbSync', e.message); } } // 🗂 mỗi ngày đọc lại Sheet phiếu góp ý (câu trả lời mới)
 }
 async function hrClean(db) {
   const old = Date.now() - 365 * DAY;
@@ -213,6 +214,7 @@ function offerOf(d) {
 export async function crmHr(x, u, d, log) {
   if (!okRole(u)) return { ok: false, error: 'Chỉ Quản lý và Quản trị xem được hồ sơ tuyển dụng.' };
   await hrSchema(x.db);
+  if (/^st_/.test(String(d.op || ''))) return crmHrStaff(x, u, d, log);
   const op = String(d.op || 'list'), id = Number(d.id) || 0, cfg = await cfgOf(x.db);
   const list = async () => {
     const R = await all(x.db, 'SELECT * FROM applicants ORDER BY time DESC LIMIT 400'), C = {};

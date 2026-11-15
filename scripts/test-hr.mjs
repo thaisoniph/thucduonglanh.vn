@@ -7,7 +7,8 @@ const ROOT = fileURLToPath(new URL('..', import.meta.url)).replace(/\/$/, '');
 const OUT = process.argv[2] || '';
 const raw = new DatabaseSync(':memory:');
 const DB = { prepare(sql) { const st = raw.prepare(sql); let a = []; const o = { bind(...x) { a = x.map(v => v === undefined ? null : typeof v === 'boolean' ? (v ? 1 : 0) : v); return o; }, async all() { return { results: st.all(...a) }; }, async first() { return st.get(...a) || null; }, async run() { const r = st.run(...a); return { meta: { last_row_id: Number(r.lastInsertRowid), changes: r.changes } }; } }; return o; } };
-raw.exec(`CREATE TABLE kv (k TEXT PRIMARY KEY, v TEXT, exp INTEGER); CREATE TABLE users (email TEXT, name TEXT, role TEXT, active INTEGER, tg TEXT, ord INTEGER);
+raw.exec(`CREATE TABLE kv (k TEXT PRIMARY KEY, v TEXT, exp INTEGER); CREATE TABLE users (email TEXT PRIMARY KEY, name TEXT, role TEXT, active INTEGER, recv TEXT DEFAULT '', tg TEXT DEFAULT '', alias TEXT DEFAULT '', prefix TEXT DEFAULT '', ord INTEGER, web TEXT DEFAULT '', mkv TEXT DEFAULT '', zb TEXT DEFAULT '', kho TEXT DEFAULT '', phone TEXT DEFAULT '', full TEXT DEFAULT '', acct TEXT DEFAULT '', joined TEXT DEFAULT '', dob TEXT DEFAULT '', ctv TEXT DEFAULT '');
+INSERT INTO users (email, name, role, active, ord, full) VALUES ('thaisoniph@gmail.com','Thái Sơn','Quản trị',1,0,'Đinh Minh Thái Sơn'), ('thuy@x.vn','Thu Thủy','Quản lý',1,1,'Nguyễn Thị Thu Thủy'), ('myanh@x.vn','Mỹ Anh','Sale & CSKH',1,2,'');
 CREATE TABLE logs (time INTEGER, who TEXT, what TEXT, ref TEXT, name TEXT, result TEXT, note TEXT);`);
 let aiCalls = 0, aiBody = null;
 const realFetch = globalThis.fetch;
@@ -115,6 +116,44 @@ await DB.prepare("INSERT INTO applicants (time, job, name, status) VALUES (?, 'K
 await DB.prepare("DELETE FROM kv WHERE k LIKE 'hr_clean_%'").bind().run();
 await H.hrTick(x, users);
 ok((await DB.prepare("SELECT COUNT(*) n FROM applicants").bind().first()).n === 1, 'Hồ sơ không trúng tuyển quá 12 tháng tự xoá, người đã nhận việc giữ lại');
+// 9. 🗂 đợt 2: hồ sơ nhân sự
+const S2 = await import('file://' + ROOT + '/api/src/hrstaff.js');
+let st = await H.crmHr(x, son, { op: 'st_hire', id: r.id, email: 'an@example.com', name: 'Văn An', role: 'Marketing' }, log);
+ok(st.ok && st.made === 'an@example.com', 'Tạo tài khoản + hồ sơ từ ứng viên đã nhận việc');
+let an = st.staff.find(z => z.email === 'an@example.com');
+ok(an && an.full === 'Trần Văn An' && an.phone === '0912345678' && an.pos === 'Trưởng phòng Marketing' && an.role === 'Marketing' && /\d{2}\/\d{2}\/\d{4}/.test(an.joined), 'Hồ sơ chép đủ họ tên, SĐT, vị trí, ngày vào làm');
+ok(an.docs.some(dc => /CV/.test(dc.kind)) && an.docs.some(dc => /Thư mời/.test(dc.kind)), 'CV + thư mời đã ký sang mục Giấy tờ');
+ok(!(await H.crmHr(x, son, { op: 'st_hire', id: r.id, email: 'an@example.com', name: 'An 2', role: 'Marketing' }, log)).ok, 'Không tạo trùng tài khoản');
+ok(!(await H.crmHr(x, thuy, { op: 'st_hire', id: r.id, email: 'z@x.vn', name: 'Z', role: 'Kho' }, log)).ok, 'Quản lý không tạo được tài khoản');
+// phiếu góp ý
+st = await H.crmHr(x, son, { op: 'st_fb_rows', rows: [['Dấu thời gian', 'Đồng đội được yêu thương?', 'Điểm mạnh số 1 – Điều bạn trân trọng', 'Điểm mạnh số 2', 'Điểm cần cải thiện số 1 – Người này có thể thay đổi', 'Điểm cần cải thiện số 2'],
+  ['17/09/2026 18:53:48', 'Bùi Thị Mỹ Anh', 'Có tinh thần học hỏi', 'Biết lắng nghe', 'Mạnh dạn đưa ý kiến hơn', 'Em chưa tìm ra'], ['17/09/2026 19:05:09', 'Nguyễn Thị Thu Thủy', 'Tháo vát', 'Chăm chỉ', 'Em chưa tìm raa', ''], ['18/09/2026 9:00:00', 'Lê Văn Lạ', 'Vui vẻ', '', '', '']] }, log);
+ok(st.imp && st.imp.ok && st.imp.n === 3, 'Nhập 3 câu trả lời phiếu Món quà âm thầm');
+let thuyP = st.staff.find(z => z.email === 'thuy@x.vn'), ma = st.staff.find(z => z.email === 'myanh@x.vn');
+ok(thuyP.fb.good.length === 2 && thuyP.fb.imp.length === 0, 'Thủy khớp theo họ tên đầy đủ, bỏ câu “Em chưa tìm raa”');
+ok(ma.fb.good.length === 2 && ma.fb.imp.length === 1, 'Mỹ Anh khớp theo tên gọi (đuôi họ tên)');
+ok(st.fbMiss.length === 1 && st.fbMiss[0].who === 'Lê Văn Lạ', 'Tên lạ hiện ở danh sách chưa khớp');
+st = await H.crmHr(x, son, { op: 'st_fb_rows', rows: [['Dấu thời gian', 'Đồng đội được yêu thương?', 'Điểm mạnh số 1'], ['17/09/2026 18:53:48', 'Bùi Thị Mỹ Anh', 'Có tinh thần học hỏi']] }, log);
+ok(st.imp.ok, 'Nhập lại file (đã có) không lỗi');
+st = await H.crmHr(x, son, { op: 'st_fb_map', who: 'Lê Văn Lạ', email: 'an@example.com' }, log);
+ok(st.fbMiss.length === 0 && st.staff.find(z => z.email === 'an@example.com').fb.good.length === 1, 'Khớp tay tên lạ → nhân sự, máy nhớ');
+const lq = await H.crmHr(x, thuy, { op: 'st_list' }, log), mq = lq.staff.find(z => z.email === 'myanh@x.vn');
+ok(mq.fb.good.length === 2 && mq.fb.imp.length === 0 && mq.idno === undefined && mq.docs === undefined, 'Quản lý thấy điểm mạnh, không thấy điều cần cải thiện / CCCD / giấy tờ');
+// sửa hồ sơ
+ok(!(await H.crmHr(x, thuy, { op: 'st_save', email: 'myanh@x.vn', dob: '35/13/1990' }, log)).ok, 'Ngày sinh sai bị chặn');
+st = await H.crmHr(x, thuy, { op: 'st_save', email: 'myanh@x.vn', full: 'Bùi Thị Mỹ Anh', dob: '5/9/1998', joined: '01/03/2025', pos: 'Nhân viên kinh doanh', idno: '001', acct: '999' }, log);
+ma = (await H.crmHr(x, son, { op: 'st_list' }, log)).staff.find(z => z.email === 'myanh@x.vn');
+ok(ma.dob === '05/09/1998' && ma.pos === 'Nhân viên kinh doanh' && ma.full === 'Bùi Thị Mỹ Anh' && !ma.idno && !ma.acct, 'Quản lý sửa thông tin công việc, không ghi được CCCD / số tài khoản');
+await H.crmHr(x, son, { op: 'st_save', email: 'myanh@x.vn', full: 'Bùi Thị Mỹ Anh', dob: '05/09/1998', joined: '01/03/2025', pos: 'Nhân viên kinh doanh', idno: '001098000123', acct: '1234 567 890', emer: 'Mẹ – 0912' }, log);
+ma = (await H.crmHr(x, son, { op: 'st_list' }, log)).staff.find(z => z.email === 'myanh@x.vn');
+ok(ma.idno === '001098000123' && ma.acct === '1234567890' && ma.emer === 'Mẹ – 0912', 'Quản trị ghi CCCD, số tài khoản, liên hệ khẩn cấp');
+// giấy tờ
+ok(!(await H.crmHr(x, thuy, { op: 'st_doc_add', email: 'myanh@x.vn', kind: 'CCCD', name: 'a.png', data: 'AAAA' }, log)).ok, 'Quản lý không tải giấy tờ');
+st = await H.crmHr(x, son, { op: 'st_doc_add', email: 'myanh@x.vn', kind: 'CCCD (2 mặt)', name: 'cccd.png', data: 'data:image/png;base64,AAAA' }, log);
+const dc = st.staff.find(z => z.email === 'myanh@x.vn').docs[0];
+ok(dc && (await H.crmHr(x, son, { op: 'st_doc_get', id: dc.id }, log)).b64 === 'AAAA', 'Tải lên + tải về giấy tờ');
+st = await H.crmHr(x, son, { op: 'st_doc_del', id: dc.id }, log); ok(!st.staff.find(z => z.email === 'myanh@x.vn').docs.length, 'Xoá giấy tờ');
+
 L = await H.crmHr(x, son, { op: 'del', id: r.id }, log); ok(L.rows.length === 0 && !(await DB.prepare('SELECT 1 FROM hr_cv').bind().first()), 'Quản trị xoá hồ sơ + file CV');
 
 origLog(bad ? '\n❌ ' + bad + ' bước lỗi' : '\n✅ Tất cả đều đúng');
