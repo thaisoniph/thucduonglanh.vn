@@ -14551,7 +14551,7 @@
     $$('[data-ait="re"]').forEach(function (b) { b.onclick = function () { b.disabled = true; b.textContent = 'Đang tải…'; AIT.at = 0; aitFetch(); }; });
   }
   /* ================================================================ 👀 Zalo của sale (15/11/2026, máy chủ api/src/zsale.js)
-   * Xem sale chăm khách qua Zalo mà không đổi thói quen của sale. Chương trình "người đọc" (zalo-bot/sale-reader.js) chỉ ĐỌC
+   * Xem sale chăm khách qua Zalo mà không đổi thói quen của sale. Chương trình "người đọc" (zalo-bot/sale-manager.js) chỉ ĐỌC
    * tin nhắn riêng của sale với khách rồi lưu về đây. Chỉ Quản lý / Quản trị xem. Dữ liệu từ zs_view / zs_thread. */
   var ZS = { d: null, at: 0, busy: 0, err: '' };
   function zsFetch() {
@@ -14577,25 +14577,30 @@
     if (ZS.err && !ZS.d) return h + '<div class="box"><p class="err">' + esc(ZS.err) + '</p><button class="btn" data-zs="re">🔄 Thử lại</button></div></div>';
     if (!ZS.d) return h + '<div class="box">Đang tải…</div></div>';
     var D = ZS.d;
-    if (!D.sales || !D.sales.length) {
-      return h + '<div class="box zs-empty"><p><b>Chưa kết nối Zalo của sale nào.</b></p>' +
-        '<p class="small">Đây là tính năng mới, nên chạy thử với <b>1 sale</b> trong 1–2 tuần trước. Người kỹ thuật cần:</p>' +
-        '<ol class="small"><li>Đặt khoá chung cho máy chủ: <code>wrangler secret put ZSALE_KEY</code>.</li>' +
-        '<li>Trên máy chủ (VPS), cài người đọc cho 1 sale: <code>ZSALE_KEY=… bash zalo-bot/cai-sale.sh tdl-vps thuy "Chị Thuý"</code>, quét mã QR bằng Zalo của sale đó.</li>' +
-        '<li>Ghi nội quy + cho sale ký đồng ý lưu hội thoại công việc để kiểm tra chất lượng.</li></ol>' +
-        '<p class="small muted">Chi tiết: zalo-bot/README.md và hướng dẫn <a href="/huong-dan/zalo-sale/" target="_blank" rel="noopener">Zalo của sale</a>.</p>' +
+    // chưa cài chương trình giữ Zalo trên máy chủ
+    if (!D.hostOn && !(D.sales && D.sales.length)) {
+      return h + '<div class="box zs-empty"><p><b>Chưa bật tính năng này.</b> Cần cài <b>1 lần</b> chương trình giữ Zalo lên máy chủ (người kỹ thuật, 1 lệnh):</p>' +
+        '<p class="zs-cmd"><code>bash zalo-bot/cai-zalo-sale.sh tdl-vps</code></p>' +
+        '<p class="small muted">Cài xong, quay lại đây bấm <b>➕ Kết nối</b> cho từng sale – mã QR hiện ngay trong trang này, không cần làm gì trên máy chủ nữa.</p>' +
+        '<p class="small muted">Trước khi bật: ghi nội quy + cho sale ký đồng ý lưu hội thoại công việc để kiểm tra chất lượng (Luật 91/2025). Chi tiết: <a href="/huong-dan/zalo-sale/" target="_blank" rel="noopener">hướng dẫn Zalo của sale</a>.</p>' +
         '<p><button class="btn" data-zs="re">🔄 Tải lại</button></p></div></div>';
     }
-    // trạng thái từng người đọc
-    h += '<div class="zs-sales">' + D.sales.map(function (s) {
-      return '<span class="zs-sale ' + (s.online ? 'on' : 'off') + '">' + (s.online ? '🟢' : '🔴') + ' ' + esc(s.name) + (s.phone ? ' <small>' + esc(s.phone) + '</small>' : '') + '</span>';
+    // nút kết nối sale (Quản trị)
+    if (D.admin) h += '<div class="zs-top"><button class="btn pri" data-zs="add">➕ Kết nối Zalo của 1 sale</button>' +
+      '<span class="small muted">Chạy thử 1 sale trong 1–2 tuần trước khi mở rộng.</span></div>';
+    // trạng thái từng tài khoản đã kết nối
+    if (D.sales && D.sales.length) h += '<div class="zs-sales">' + D.sales.map(function (s) {
+      var cls = s.online ? 'on' : s.on ? 'off' : 'wait', ic = s.online ? '🟢' : s.on ? '🔴' : '🟡';
+      return '<span class="zs-sale ' + cls + '">' + ic + ' ' + esc(s.name) + (s.phone ? ' <small>' + esc(s.phone) + '</small>' : '') +
+        (s.pairing && !s.on ? ' <button type="button" class="zs-qrbtn" data-zsqr="' + esc(s.sale) + '|' + esc(s.name) + '">Hiện mã QR</button>' : '') +
+        (D.admin ? '<button type="button" class="zs-x" data-zsoff="' + esc(s.sale) + '|' + esc(s.name) + '" title="Ngắt theo dõi">✕</button>' : '') + '</span>';
     }).join('') + '</div>';
-    if (D.sales.some(function (s) { return !s.online; })) h += '<p class="zs-warn">🔴 = chương trình đọc đang mất kết nối (máy tắt / mất mạng / Zalo bắt đăng nhập lại). Các tin trong lúc đó chưa được lưu.</p>';
+    if (D.sales && D.sales.some(function (s) { return s.on && !s.online; })) h += '<p class="zs-warn">🔴 = đang mất kết nối (máy chủ tắt / mất mạng / Zalo bắt đăng nhập lại). 🟡 = chờ sale quét mã QR. Tin trong lúc mất kết nối chưa được lưu.</p>';
     // khách đang chờ trả lời
     if (D.waiting && D.waiting.length) h += '<section class="zs-sec"><h2>💬 Khách đang chờ trả lời (' + D.waiting.length + ')</h2><div class="zs-list">' + D.waiting.map(zsWaitRow).join('') + '</div></section>';
     // thống kê hôm nay từng sale
     h += '<section class="zs-sec"><h2>📊 Hôm nay từng sale</h2><div class="zs-cards">' + D.perSale.map(function (p) {
-      return '<article class="zs-card"><header>' + (p.online ? '🟢' : '🔴') + ' <b>' + esc(p.name) + '</b></header>' +
+      return '<article class="zs-card"><header>' + (p.online ? '🟢' : p.on ? '🔴' : '🟡') + ' <b>' + esc(p.name) + '</b></header>' +
         '<div class="zs-nums"><div><b>' + p.threads + '</b><small>khách nhắn</small></div><div><b>' + p.reply + '</b><small>sale trả lời</small></div>' +
         '<div><b>' + (p.avgMin == null ? '–' : p.avgMin < 60 ? p.avgMin + "'" : (p.avgMin / 60).toFixed(1) + 'h') + '</b><small>trả lời sau</small></div>' +
         '<div class="' + (p.waiting ? 'zs-bad' : '') + '"><b>' + p.waiting + '</b><small>đang chờ</small></div></div></article>';
@@ -14625,10 +14630,41 @@
   function bindZsale() {
     $$('[data-zs="re"]').forEach(function (b) { b.onclick = function () { ZS.at = 0; zsFetch(); }; });
     $$('[data-zst]').forEach(function (b) { b.onclick = function () { var p = b.getAttribute('data-zst').split('|'); zsOpen(p[0], p[1], p[2], p[3]); }; });
+    var add = $('[data-zs="add"]'); if (add) add.onclick = zsAddOpen;
+    $$('[data-zsqr]').forEach(function (b) { b.onclick = function () { var p = b.getAttribute('data-zsqr').split('|'); zsQrOpen(p[0], p[1]); }; });
+    $$('[data-zsoff]').forEach(function (b) { b.onclick = function () { var p = b.getAttribute('data-zsoff').split('|');
+      if (!confirm('Ngắt theo dõi Zalo của ' + p[1] + '? (Có thể kết nối lại sau.)')) return;
+      api('zs_disconnect', { sale: p[0] }).then(function () { toast('Đã ngắt ✓'); ZS.at = 0; zsFetch(); }, function (e) { toast(e.message, true); }); }; });
     var sv = $('[data-zs="save"]'); if (sv) sv.onclick = function () {
       sv.disabled = true; api('zs_cfg', { on: $('#zsOn').checked ? 1 : 0, replyMins: +$('#zsMins').value || 30 })
         .then(function (j) { ZS.d.cfg = j.cfg; toast('Đã lưu ✓'); sv.disabled = false; }, function (e) { toast(e.message, true); sv.disabled = false; });
     };
+  }
+  /** ➕ Chọn 1 sale để kết nối: gõ tên (gợi ý từ danh sách sale) → tạo slot → mở cửa sổ QR. */
+  function zsAddOpen() {
+    var names = userNames();
+    var body = '<p class="small muted">Chọn hoặc gõ tên sale (số Zalo công ty cấp cho sale đó). Sau khi bấm Kết nối, mã QR hiện ra – đưa cho <b>sale đó quét bằng Zalo của họ</b>.</p>' +
+      '<label class="f"><span>Tên sale</span><input type="text" id="zsName" list="zsNames" placeholder="VD Chị Thuý" autocomplete="off"></label>' +
+      '<datalist id="zsNames">' + names.map(function (n) { return '<option value="' + esc(n) + '">'; }).join('') + '</datalist>';
+    var m = modal('➕ Kết nối Zalo của sale', body, '<button class="btn pri" id="zsAddGo">Kết nối → hiện mã QR</button>', {});
+    $('#zsAddGo', m).onclick = function () {
+      var name = ($('#zsName', m).value || '').trim(); if (!name) { toast('Nhập tên sale', true); return; }
+      this.disabled = true;
+      api('zs_connect', { name: name }).then(function (j) { closeModal(true); zsQrOpen(j.sale, j.name); ZS.at = 0; zsFetch(); }, function (e) { toast(e.message, true); });
+    };
+  }
+  /** Cửa sổ mã QR: hỏi máy chủ mã mỗi 3 giây, đổi mã khi hết hạn; kết nối xong thì báo và đóng. */
+  function zsQrOpen(sale, name) {
+    var m = modal('📲 Quét mã kết nối – ' + esc(name), '<div class="zs-qrbox" id="zsQrBox"><p class="muted">Đang tạo mã QR… (chờ ~15 giây)</p></div>' +
+      '<p class="small muted">Đưa máy cho <b>' + esc(name) + '</b>: mở Zalo → biểu tượng QR (góc trên) → Quét mã này → Đăng nhập. Sale vẫn dùng Zalo điện thoại bình thường.</p>', '', {});
+    var timer = setInterval(tick, 3000); tick(); // tự dừng khi cửa sổ đóng (tick thấy mất #zsQrBox)
+    function tick() {
+      api('zs_qr', { sale: sale }).then(function (j) {
+        var box = $('#zsQrBox', m); if (!box) { clearInterval(timer); return; }
+        if (j.on) { box.innerHTML = '<p class="zs-ok">✅ Đã kết nối Zalo của ' + esc(name) + '!</p>'; clearInterval(timer); ZS.at = 0; zsFetch(); setTimeout(function () { closeModal(true); }, 1500); return; }
+        if (j.qr) box.innerHTML = '<img class="zs-qrimg" src="' + j.qr + '" alt="Mã QR Zalo">';
+      }, function () { });
+    }
   }
   /** 💬 Khối Zalo trong hồ sơ khách: chỉ Quản lý/Quản trị, tải tin khi mở ra (không tải sẵn cho nhẹ). */
   function zsCustBox(c) { return lvl() >= 2 ? '<details class="p-edit zs-cbox" id="zsCustBox"><summary>💬 Zalo của sale với khách này</summary><div class="zs-conv" id="zsCustBody" style="margin:8px 0 0">Bấm để xem…</div></details>' : ''; }

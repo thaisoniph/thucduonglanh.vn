@@ -17,7 +17,7 @@ import { journeyCounts, pledge, quiz, wall } from './journey.js';
 import { apply } from './apply.js';
 import { chat, chatLead } from './chat.js';
 import { zbot, zbotLead, zbImg } from './zbot.js';
-import { zsale } from './zsale.js'; // 👀 giám sát Zalo của sale (zsale.js, zalo-bot/sale-reader.js)
+import { zsale } from './zsale.js'; // 👀 giám sát Zalo của sale (zsale.js, zalo-bot/sale-manager.js)
 import { refMe, ctvMe, ctvApply } from './partner.js';
 import { fbRoute } from './fb.js';
 import { mcpRoute } from './mcp.js';
@@ -64,7 +64,7 @@ async function website(x, data) {
   if (data.type === 'chat') return await chat(x, data); // 💬 trợ lý chat An Lành trên web (chat.js)
   if (data.type === 'chat_lead') return await chatLead(x, data); // khách để lại số trong khung chat
   if (data.type === 'zbot') { await ensureSchema(x.db); return await zbot(x, data); } // 🤖 chương trình Zalo "Trợ lý An Lành" (zbot.js, zalo-bot/); bảng mới (zb_act…) tạo cả khi chưa ai mở CRM
-  if (data.type === 'zsale') { await ensureSchema(x.db); return await zsale(x, data); } // 👀 người đọc Zalo của sale (zsale.js, zalo-bot/sale-reader.js): chỉ lưu tin, không gửi
+  if (data.type === 'zsale') { await ensureSchema(x.db); return await zsale(x, data); } // 👀 người đọc Zalo của sale (zsale.js, zalo-bot/sale-manager.js): chỉ lưu tin, không gửi
   if (data.type === 'order') {
     try {
       // đơn gửi lại (mạng chập chờn) đã lưu rồi thì không kiểm tra lại mã (mã 1 lần sẽ báo "đã dùng") và không tính lại suất quà Ngày Đôi

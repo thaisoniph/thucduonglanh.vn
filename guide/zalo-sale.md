@@ -32,6 +32,17 @@ Trong **hồ sơ khách** (tab Khách đã mua / Khách hỏi) cũng có mục *
 
 Khi khách nhắn Zalo mà **quá 30 phút chưa ai trả lời** (trong giờ làm), hệ thống nhắc vào nhóm Telegram và nhắn riêng cho sale phụ trách. Đổi số phút ở **⚙️ Cài đặt** cuối tab (chỉ Quản trị).
 
+## Kết nối 1 sale (bấm ngay trong CRM)
+
+Sau khi người kỹ thuật đã **cài 1 lần** (xem dưới), mọi việc bạn làm trong CRM:
+
+1. Tab **👀 Zalo của sale** → bấm **➕ Kết nối Zalo của 1 sale**.
+2. Chọn / gõ **tên sale** → bấm **Kết nối**. Một **mã QR** hiện ra ngay trong trang.
+3. Đưa máy cho **sale đó**: mở Zalo trên điện thoại → biểu tượng **QR** → **Quét mã** → **Đăng nhập**.
+4. Xong. Thẻ sale chuyển 🟢. Sale **vẫn dùng Zalo điện thoại bình thường**.
+
+Ngắt theo dõi 1 sale: bấm dấu **✕** cạnh tên sale.
+
 ## Lưu ý quan trọng
 
 - **Chạy thử trước**: đây là tính năng mới, nên thử với **1 sale** trong 1–2 tuần rồi mới mở rộng.
@@ -40,10 +51,14 @@ Khi khách nhắn Zalo mà **quá 30 phút chưa ai trả lời** (trong giờ l
 - Chỉ lưu **tin chữ** của tin nhắn riêng (1–1). Không đụng nhóm Zalo. Tin tự xoá sau 12 tháng.
 - **Chỉ lấy tin từ lúc kết nối trở đi**, không lấy được tin cũ.
 
-## Bật cho 1 sale (người kỹ thuật làm)
+## Cài 1 lần lên máy chủ (người kỹ thuật, 1 lệnh)
 
-1. Đặt khoá chung cho máy chủ 1 lần: `npx wrangler secret put ZSALE_KEY` (máy chủ `thucduonglanh-api`).
-2. Trên máy chủ (VPS), cài người đọc cho 1 sale: `ZSALE_KEY=… bash zalo-bot/cai-sale.sh tdl-vps thuy "Chị Thuý"`, rồi quét mã QR bằng Zalo của sale đó (giống đăng nhập Zalo trên máy tính).
-3. Tắt theo dõi 1 sale: `ssh tdl-vps systemctl disable --now tdl-zalo-sale-thuy`.
+Trên máy Mac (đã vào SSH được VPS như trợ lý An Lành):
+
+```
+bash zalo-bot/cai-zalo-sale.sh tdl-vps
+```
+
+Chỉ cần chạy 1 lần cho cả công ty. Không phải đặt khoá mới (tự dùng lại khoá của trợ lý An Lành). Xong rồi mọi việc kết nối/ngắt từng sale làm trong CRM như trên.
 
 Chi tiết kỹ thuật ở `zalo-bot/README.md` và `HUONG-DAN.md`.

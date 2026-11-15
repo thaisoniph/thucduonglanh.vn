@@ -2871,3 +2871,14 @@ details.dash-grp[open] > summary::after { transform: rotate(180deg); }
 .zs-me{align-self:flex-end;background:#dcefff;border-bottom-right-radius:4px}
 .zs-me time{text-align:right}
 .zs-cbox .zs-conv{max-height:46vh}
+/* kết nối / QR / ngắt (zalo-sale) */
+.zs-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 12px}
+.zs-cmd{margin:8px 0}
+.zs-cmd code,.zs-empty code{background:#1e1e28;color:#e6e6ea;padding:3px 8px;border-radius:6px;font-size:12.5px;word-break:break-all}
+.zs-sale.wait{background:#fff8e6;border-color:#f3dd9a}
+.zs-qrbtn{margin-left:6px;border:1px solid #d6e4ff;background:#fff;border-radius:7px;padding:2px 8px;font-size:12px;cursor:pointer;color:#0b63c4}
+.zs-x{margin-left:4px;border:none;background:transparent;color:#b0b0b6;cursor:pointer;font-size:13px;line-height:1}
+.zs-x:hover{color:#b42318}
+.zs-qrbox{display:flex;align-items:center;justify-content:center;min-height:240px;text-align:center}
+.zs-qrimg{width:240px;height:240px;image-rendering:pixelated;border:1px solid var(--line);border-radius:10px;background:#fff}
+.zs-ok{font-size:16px;font-weight:700;color:#1a7f37}
