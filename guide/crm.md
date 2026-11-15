@@ -85,7 +85,7 @@ Trên màn hình:
 - **Giờ nghỉ** CRM hiện màn **🍵 Giải lao tới 10:15** và cho biết quay lại thì làm gì. Có việc gấp thì bấm **Làm tiếp luôn ›**.
 - Muốn xem hết khách của hôm nay: bấm **📞 Xem tất cả việc gọi hôm nay** (đã thu gọn). Trong đó lọc được: **Tất cả · 🧾 Đơn mới · 🔥 Vừa hỏi · 💚 Chăm sóc · 🙋 Khách hỏi**.
 - Cạnh tên mỗi khách có **nhãn màu ghi lý do gọi**, ví dụ **🧾 Xác nhận đơn**, **🔥 Vừa hỏi**, **📦 Hỏi nhận hàng**, **⏰ Sắp hết hàng**.
-- Thẻ **🌿 Quy tắc hôm nay** thu gọn 1 dòng: bấm **✅ Mình sẽ làm** ngay trên dòng đó.
+- Ngay dưới lời chào là **🌿 điều văn hoá hôm nay**: bấm **💚 Mình cùng giữ** ngay trên dòng đó.
 - Phía dưới có doanh số tháng, dòng **🏁 thứ hạng thi đua tuần này** (bấm để xem bảng thi đua), **🌱 Mở rộng khách** và **🏁 Mục tiêu & thi đua**.
 
 ![Tab Hôm nay](/huong-dan/img/crm-today.webp)

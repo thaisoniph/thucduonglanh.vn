@@ -1136,7 +1136,7 @@
     var el = $('#view');
     var focusId = document.activeElement && document.activeElement.id, selStart = document.activeElement && document.activeElement.selectionStart;
     el.innerHTML = ({ 'hom-nay': viewToday, 'khach-hang': viewCustomers, 'don-hang': viewOrders, 'tiem-nang': viewLeads, 'bao-cao': viewReport, 'cai-dat': viewSettings, 'tong-quan': viewDash, san: viewSan, marketing: viewMkt, 'link-qr': viewLinks, 'tro-ly-zalo': viewZbot, 'zalo-sale': viewZsale, fanpage: viewFp, 'bai-web': viewBlog, 'noi-dung': viewIns, 'hoi-so-lieu': viewAsk, kho: viewKho, 'ke-toan': viewKtab, 'giao-viec': viewGv, 'tuyen-dung': viewTuy, 'nhan-su': viewHso, 'doi-ai': viewAit, them: viewMore })[v]();
-    if (v === homeView()) { btMount(el); vhMount(el); htMount(el); snhMount(el); tbMount(el); hiwMount(el); goalNag(); } // ☀️ lời chào + lời chúc mỗi ngày nằm trên cùng // 🌿 Quy tắc của ngày + 📢 Thông báo (nằm trên) ở đầu màn hình đầu tiên của mỗi người
+    if (v === homeView()) { btMount(el); htMount(el); snhMount(el); tbMount(el); vhMount(el); hiwMount(el); goalNag(); } // ☀️ lời chào + lời chúc trên cùng, ngay dưới là 🌿 điều văn hoá hôm nay (16/11/2026 liền mạch với lời chào), rồi 📢 Thông báo
     el.insertAdjacentHTML('beforeend', updatedLine());
     if (focusId && $('#' + focusId)) { var f = $('#' + focusId); f.focus(); try { f.setSelectionRange(selStart, selStart); } catch (e) { } }
     if (keepScroll) window.scrollTo(0, y); else window.scrollTo(0, 0);
@@ -13539,31 +13539,48 @@
   }
   function vhPaint() { var b = $('#vhBox'); if (b) { b.innerHTML = vhCard(); vhBind(); } }
   function vhCard() {
-    var r = S.vh, m = r.mine, fold = store('vh_fold') === r.day;
-    // 15/11/2026 anh Sơn: Quản trị cũng 1 dòng mảnh như sale để Tổng quan lên sát đầu màn hình
-    if (!m && !S.vhOpen && (lvl() < 2 || isCeo())) return '<div class="vh-mini vh-mini2"><button type="button" class="vh-mini-t" data-vh="open">🌿 Quy tắc hôm nay: <b>' + r.n + '. ' + esc(r.t) + '</b><span>Bấm để xem gợi ý áp dụng</span></button><button class="btn sm pri" data-vh="ack">✅ Mình sẽ làm</button></div>'; // 14/11/2026 sale: 1 dòng mảnh, nhận quy tắc ngay tại dòng, nhường màn đầu cho khách cần gọi
-    if (fold || (m && !S.vhOpen)) return '<button class="vh-mini" data-vh="open">🌿 Quy tắc hôm nay: <b>' + r.n + '. ' + esc(r.t) + '</b><span>' + (m ? '✅ Đã nhận · ' + (m.note ? 'Bấm để xem' : 'Bấm để ghi chuyện của bạn') : 'Bấm để xem') + '</span></button>'; // đã nhận → lần mở sau thu thành 1 dòng, nhường chỗ cho việc
-    var foot = m ? '<p class="vh-done">✅ Bạn đã nhận lúc ' + fDateTime(m.at).slice(0, 5) + (r.cnt > 1 ? ' · cùng ' + (r.cnt - 1) + ' người khác' : '') + '</p>' +
+    var r = S.vh, m = r.mine;
+    // 16/11/2026 anh Sơn: bớt "cứng". Quy tắc thành lời nhắn ấm áp ngay dưới lời chào: "Hôm nay cả nhà mình cùng giữ điều N" + câu nói thân thiện (r.s)
+    // + chuỗi 10 hạt (đi tới điều nào trong vòng 10 ngày) để ôn dần cả 10 điều. Bấm vào mới mở gợi ý áp dụng + ôn nhanh.
+    if (!S.vhOpen) return '<div class="vh-soft"><button type="button" class="vh-soft-t" data-vh="open"><span class="vh-k">🌿 Hôm nay cả nhà mình cùng giữ <b>điều ' + r.n + '</b></span>' +
+      '<b class="vh-tt">' + esc(r.t) + '</b><span class="vh-s">' + esc(r.s || r.q) + '</span></button>' +
+      '<div class="vh-soft-r">' + (m ? '<span class="vh-with">💚 ' + esc(vhWith(r)) + '</span>' : '<button class="btn sm vh-keep" data-vh="ack">💚 Mình cùng giữ</button>') + vhBeads(r) + '</div></div>';
+    var foot = m ? '<p class="vh-done">💚 ' + esc(vhWith(r)) + ' · từ ' + fDateTime(m.at).slice(0, 5) + '</p>' +
         (m.note && !S.vhEdit ? '<p class="vh-note">📝 ' + esc(m.note) + ' <button class="btn sm" data-vh="edit">Sửa</button></p>' :
-          '<div class="vh-in"><input id="vhNote" maxlength="300" placeholder="Làm rồi thì ghi 1 dòng chuyện của bạn (không bắt buộc)" value="' + esc(m.note || '') + '"><button class="btn sm pri" data-vh="note">Lưu</button></div><p class="hint" style="margin:4px 0 0">Chuyện hay được kể lại ở buổi trà đàm thứ 7.</p>')
-      : '<div class="vh-act"><button class="btn pri" data-vh="ack">✅ Hôm nay mình sẽ làm</button><span>' + (r.cnt ? r.cnt + ' người đã nhận hôm nay' : 'Bạn là người đầu tiên hôm nay') + '</span></div>';
-    return '<section class="vh-card"><div class="vh-hd"><span>🌿 Quy tắc hôm nay · số ' + r.n + '/10</span><button class="vh-fold" data-vh="fold">Thu gọn ▲</button></div>' +
-      '<h3>' + r.n + '. ' + esc(r.t) + '</h3><p class="vh-q">“' + esc(r.q) + '”</p>' +
-      '<div class="vh-tip"><b>💼 Áp dụng trong công việc hôm nay</b><p>' + esc(r.w) + '</p></div>' +
-      '<div class="vh-tip"><b>🏡 Áp dụng trong cuộc sống</b><p>' + esc(r.l) + '</p></div>' + foot +
-      '<a class="vh-all" href="/huong-dan/van-hoa/" target="_blank" rel="noopener">📖 Xem cả 10 quy tắc</a></section>';
+          '<div class="vh-in"><input id="vhNote" maxlength="300" placeholder="Hôm nay bạn đã giữ điều này thế nào? Kể 1 dòng nhé (không bắt buộc)" value="' + esc(m.note || '') + '"><button class="btn sm pri" data-vh="note">Lưu</button></div><p class="hint" style="margin:4px 0 0">Chuyện hay được kể lại ở buổi trà đàm thứ 7.</p>')
+      : '<div class="vh-act"><button class="btn pri vh-keep" data-vh="ack">💚 Mình cùng giữ</button><span>' + esc(vhWith(r)) + '</span></div>';
+    var all = r.all && r.all.length === 10 ? '<details class="vh-ro"><summary>🧠 Ôn nhanh: bạn còn nhớ cả 10 điều không? <span>Nghĩ trước rồi chạm từng số để xem</span></summary><div class="vh-rg">' +
+      r.all.map(function (x, i) { return '<details class="vh-r' + (i + 1 === r.n ? ' vh-now' : '') + '"><summary>' + (i + 1) + '</summary><b>' + esc(x.t) + '</b><span>' + esc(x.s || '') + '</span></details>'; }).join('') + '</div></details>' : '';
+    return '<section class="vh-card"><div class="vh-hd"><span>🌿 Hôm nay cả nhà mình cùng giữ điều ' + r.n + '</span><button class="vh-fold" data-vh="fold">Thu gọn ▲</button></div>' +
+      '<h3>' + esc(r.t) + '</h3><p class="vh-s2">' + esc(r.s || '') + '</p><p class="vh-q">“' + esc(r.q) + '”</p>' +
+      '<div class="vh-tip"><b>💼 Một việc nhỏ trong công việc hôm nay</b><p>' + esc(r.w) + '</p></div>' +
+      '<div class="vh-tip"><b>🏡 Một việc nhỏ ở nhà</b><p>' + esc(r.l) + '</p></div>' + foot + vhBeads(r, 1) + all +
+      '<a class="vh-all" href="/huong-dan/van-hoa/" target="_blank" rel="noopener">📖 Đọc câu chuyện của 10 quy tắc</a></section>';
+  }
+  /** "Bạn cùng Thu Phương, Hiếu và 3 đồng đội đang cùng giữ" — thấy mình không giữ một mình. */
+  function vhWith(r) {
+    var W = (r.who || []).slice(0, 2), mine = r.mine ? 1 : 0, rest = Math.max(0, (r.cnt || 0) - mine - W.length);
+    var o = W.join(', ') + (rest ? (W.length ? ' và ' : '') + rest + ' đồng đội' : '');
+    if (mine) return o ? 'Bạn cùng ' + o + ' đang cùng giữ' : 'Bạn là người đầu tiên giữ hôm nay';
+    return o ? o + ' đã cùng giữ' : 'Chưa ai bấm, bạn mở đầu nhé';
+  }
+  /** Chuỗi 10 hạt: điều đã đi qua trong vòng 10 ngày (nhạt), hôm nay (đậm), còn lại (trống). Rê chuột / chạm giữ thấy tên điều đó. */
+  function vhBeads(r, big) {
+    var h = '';
+    for (var i = 1; i <= 10; i++) { var x = r.all && r.all[i - 1]; h += '<i class="' + (i < r.n ? 'p' : i === r.n ? 'n' : '') + '"' + (x ? ' title="' + i + '. ' + esc(x.t) + '"' : '') + '></i>'; }
+    return '<span class="vh-beads' + (big ? ' vh-beads-b' : '') + '" aria-label="Điều ' + r.n + ' trên 10">' + h + (big ? '<small>Vòng 10 ngày: hôm nay là điều ' + r.n + '/10</small>' : '') + '</span>';
   }
   function vhBind() {
     $$('#vhBox [data-vh]').forEach(function (b) {
       b.onclick = function () {
         var k = b.getAttribute('data-vh');
-        if (k === 'fold') { store('vh_fold', S.vh.day); S.vhOpen = 0; return vhPaint(); }
-        if (k === 'open') { store('vh_fold', null); S.vhOpen = 1; return vhPaint(); }
+        if (k === 'fold') { S.vhOpen = 0; return vhPaint(); }
+        if (k === 'open') { S.vhOpen = 1; return vhPaint(); }
         if (k === 'edit') { S.vhEdit = 1; vhPaint(); var i = $('#vhNote'); if (i) i.focus(); return; }
         var note = k === 'note' ? ($('#vhNote') || {}).value || '' : '';
         if (k === 'note' && !note.trim()) return toast('Bạn ghi 1 dòng rồi bấm Lưu nhé', true);
         b.disabled = true;
-        api('vh_ack', { note: note }).then(function (j) { S.vh = j.vh; S.vhEdit = 0; S.vhOpen = 1; vhPaint(); toast(k === 'ack' ? '✅ Đã nhận. Chúc bạn một ngày làm tốt quy tắc này!' : '📝 Đã lưu chuyện của bạn'); }, function (e) { b.disabled = false; toast(e.message, true); });
+        api('vh_ack', { note: note }).then(function (j) { S.vh = j.vh; S.vhEdit = 0; if (k !== 'ack') S.vhOpen = 1; vhPaint(); toast(k === 'ack' ? '💚 Cảm ơn bạn! Hôm nay mình cùng giữ điều này nhé' : '📝 Đã lưu chuyện của bạn'); }, function (e) { b.disabled = false; toast(e.message, true); });
       };
     });
   }

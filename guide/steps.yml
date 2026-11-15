@@ -1059,16 +1059,16 @@ gv-nho:
       hi: 1
       text: "Người được nhờ bấm <b>🙋 Mình nhận</b>, làm xong bấm <b>✅ Xong rồi</b>. Lành báo người nhờ và <b>cảm ơn trong nhóm</b>."
 vh-the:
-  title: Thẻ 🌿 Quy tắc hôm nay
+  title: 🌿 Điều văn hoá hôm nay
   steps:
     - title: Hôm nay
       els:
-        - ["card", "🌿 Quy tắc hôm nay · 7", "Nói thẳng với trái tim rộng mở", "g"]
-        - ["note", "💼 Công việc: góp ý trực tiếp 1 việc"]
-        - ["note", "🏡 Cuộc sống: hỏi thăm 1 người thân"]
-        - ["btn", "✅ Hôm nay mình sẽ làm", "g"]
+        - ["card", "🌿 Hôm nay cả nhà mình cùng giữ điều 7", "Nói thẳng với trái tim rộng mở", "g"]
+        - ["note", "Có gì cứ nói thẳng với nhau, bằng cả tấm lòng."]
+        - ["note", "●●●●●●◉○○○ (chuỗi 10 hạt)"]
+        - ["btn", "💚 Mình cùng giữ", "g"]
       hi: 3
-      text: "Mở CRM là thấy thẻ <b>🌿 Quy tắc hôm nay</b> ở đầu màn hình. Đọc 2 việc nhỏ, bấm <b>✅ Hôm nay mình sẽ làm</b>."
+      text: "Ngay dưới lời chào là <b>điều văn hoá hôm nay</b>. Đọc 1 câu, bấm <b>💚 Mình cùng giữ</b>. Bấm vào chữ để xem việc nhỏ gợi ý và ôn cả 10 điều."
     - title: Hôm nay
       els:
         - ["in", "Chuyện của bạn (không bắt buộc)", "Hôm nay em góp ý thẳng với…"]

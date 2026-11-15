@@ -9,43 +9,43 @@ import { run, all, kvJson, kvSet, fmtDate, DAY, TZ_MS } from './lib.js';
 import { wishOfDay, wishFor, wishes, wishSave, bdayStaff } from './loichuc.js'; // ☀️ lời chúc mỗi ngày (14/11/2026) đi kèm vh_today
 
 export const VH_RULES = [
-  { t: 'Luôn sát cánh cùng đồng đội', q: 'Đi một mình có thể nhanh. Đi cùng đội ngũ mới có thể đi xa.', tips: [
+  { t: 'Luôn sát cánh cùng đồng đội', s: 'Ai đang vướng thì mình đỡ một tay, đi cùng nhau mới đi được xa.', q: 'Đi một mình có thể nhanh. Đi cùng đội ngũ mới có thể đi xa.', tips: [
     { w: 'Hỏi 1 bạn trong nhóm: “Hôm nay có việc gì mình đỡ được không?” rồi làm giúp 1 việc nhỏ.', l: 'Tối nay làm giúp người nhà 1 việc họ hay phải làm một mình (rửa bát, đón con, dọn nhà).' },
     { w: 'Hôm nay được ai giúp thì nhắn cảm ơn, nói rõ cảm ơn vì việc gì.', l: 'Nhắn hỏi thăm 1 người bạn đã lâu chưa liên lạc.' },
     { w: 'Thấy đồng đội đang vướng (khách khó, đơn rối, file lỗi) thì hỏi thăm trước khi họ phải lên tiếng nhờ.', l: 'Khi người thân kể chuyện mệt, ngồi nghe hết rồi mới góp ý.' }] },
-  { t: 'Đặt mục tiêu chung cao hơn cái tôi cá nhân', q: 'Cái tôi nhỏ lại, đội ngũ lớn lên.', tips: [
+  { t: 'Đặt mục tiêu chung cao hơn cái tôi cá nhân', s: 'Cái tôi nhỏ lại một chút, cả đội lớn lên một chút.', q: 'Cái tôi nhỏ lại, đội ngũ lớn lên.', tips: [
     { w: 'Trước khi phản đối ý của ai, tự hỏi: “Điều gì tốt nhất cho mục tiêu chung?”', l: 'Hôm nay nhường người nhà chọn món ăn hoặc chương trình xem.' },
     { w: 'Việc đã thống nhất trong họp thì dốc sức làm, kể cả khi lúc đầu mình chưa đồng ý.', l: 'Khi tranh luận ở nhà, nói “Mình cùng tìm cách nhé” thay vì cố nói cho thắng.' },
     { w: 'Kể thành tích của nhóm, không chỉ của riêng mình: nhắc tên 1 người đã góp sức.', l: 'Chịu thiệt một chút trong 1 chuyện nhỏ để cả nhà vui hơn.' }] },
-  { t: 'Minh bạch trong công việc, bảo mật trong dữ liệu', q: 'Rõ ràng tạo ra niềm tin. Bảo mật gìn giữ niềm tin.', tips: [
+  { t: 'Minh bạch trong công việc, bảo mật trong dữ liệu', s: 'Có gì nói rõ với nhau, còn thông tin của khách thì giữ kín như của nhà mình.', q: 'Rõ ràng tạo ra niềm tin. Bảo mật gìn giữ niềm tin.', tips: [
     { w: 'Có sai sót nào chưa báo? Báo ngay trong sáng nay, kèm cách mình sẽ sửa.', l: 'Nói thật nhẹ nhàng 1 điều mình còn ngại nói với người thân.' },
     { w: 'Không gửi ảnh chụp CRM, số điện thoại khách hay tài liệu nội bộ ra ngoài, kể cả đưa lên AI công khai. Xem lại điện thoại có lưu file khách ở chỗ lạ không.', l: 'Đổi mật khẩu yếu nhất của mình (Facebook, Zalo, ngân hàng).' },
     { w: 'Ghi kết quả công việc vào CRM đúng sự thật, kể cả khi kết quả chưa tốt.', l: 'Ghi lại chi tiêu hôm nay rõ ràng, minh bạch với người cùng lo tiền nhà.' }] },
-  { t: 'Tạo giá trị nhiều hơn mong đợi', q: 'Việc nhỏ làm cẩu thả tạo nên con người cẩu thả. Việc nhỏ làm tử tế tạo nên con người đáng tin.', tips: [
+  { t: 'Tạo giá trị nhiều hơn mong đợi', s: 'Làm thêm một bước nhỏ thôi, để khách và đồng đội thấy ấm lòng.', q: 'Việc nhỏ làm cẩu thả tạo nên con người cẩu thả. Việc nhỏ làm tử tế tạo nên con người đáng tin.', tips: [
     { w: 'Chọn 1 việc hôm nay và làm thêm 1 bước: gói hàng kỹ hơn, ghi chú khách rõ hơn, báo cáo dễ đọc hơn.', l: 'Làm 1 điều nhỏ bất ngờ cho người thân: pha ly nước, viết 1 dòng cảm ơn.' },
     { w: 'Làm xong việc thì kiểm tra lại 1 lần: đúng tên, đúng số, đúng giờ chưa.', l: 'Việc nhà đã nhận thì làm đến nơi: rửa bát xong lau luôn bếp.' },
     { w: 'Với 1 khách hoặc 1 đồng đội hôm nay, nghĩ thêm 1 bước: làm gì để họ đỡ mất công hơn?', l: 'Gọi cho bố mẹ, trò chuyện lâu hơn thường ngày 5 phút.' }] },
-  { t: 'Liên tục cải tiến', q: 'Mỗi ngày tốt hơn 1%, một năm sau ta sẽ gặp một phiên bản rất khác của chính mình.', tips: [
+  { t: 'Liên tục cải tiến', s: 'Tìm một chỗ nhỏ để hôm nay làm tốt hơn hôm qua một chút.', q: 'Mỗi ngày tốt hơn 1%, một năm sau ta sẽ gặp một phiên bản rất khác của chính mình.', tips: [
     { w: 'Ghi lại 1 việc mình làm đi làm lại mỗi ngày, nghĩ cách làm nhanh hơn, rồi bấm 💡 Góp ý trong CRM để gửi.', l: 'Bớt 1 thói quen nhỏ chưa tốt hôm nay (thức khuya, lướt điện thoại lúc ăn).' },
     { w: 'Lỗi nào mình đã mắc 2 lần? Viết 1 dòng nhắc để lần sau không lặp lại.', l: 'Học 1 điều mới trong 10 phút: 1 món ăn lành, 1 bài tập thở.' },
     { w: 'Thay vì than “cái này khó”, đề xuất với quản lý 1 cách sửa cụ thể. Mỗi tháng ít nhất 1 đề xuất.', l: 'Sắp xếp lại 1 góc nhỏ trong nhà cho gọn, dễ dùng hơn.' }] },
-  { t: 'Nhanh, tập trung và hiệu quả', q: 'Đừng chỉ bận rộn. Hãy tạo ra kết quả.', tips: [
+  { t: 'Nhanh, tập trung và hiệu quả', s: 'Bớt bận rộn, thêm kết quả: việc quan trọng nhất mình làm trước.', q: 'Đừng chỉ bận rộn. Hãy tạo ra kết quả.', tips: [
     { w: 'Đầu giờ viết ra 3 việc quan trọng nhất hôm nay, làm xong việc số 1 trước.', l: 'Bữa tối nay cất điện thoại, ăn chậm bên người thân.' },
     { w: 'Làm 45 phút thật tập trung: tắt thông báo mạng xã hội, xong mới nghỉ ngắn.', l: 'Tối nay ngủ sớm hơn 30 phút để mai đủ sức.' },
     { w: 'Cuối ngày tự hỏi: hôm nay mình tạo ra kết quả gì, chứ không chỉ bận việc gì?', l: 'Dành trọn 15 phút chơi với con hoặc trò chuyện với người thân, không làm việc khác.' }] },
-  { t: 'Nói thẳng với trái tim rộng mở', q: 'Nói thật với thiện chí là xây đội. Nói sau lưng là phá đội.', tips: [
+  { t: 'Nói thẳng với trái tim rộng mở', s: 'Có gì cứ nói thẳng với nhau, bằng cả tấm lòng.', q: 'Nói thật với thiện chí là xây đội. Nói sau lưng là phá đội.', tips: [
     { w: 'Khen thật lòng 1 đồng đội, nói rõ việc họ đã làm tốt.', l: 'Nói lời cảm ơn hoặc lời khen với người nhà, nói rõ vì sao.' },
     { w: 'Đang để bụng điều gì với ai? Nói riêng với người đó: nói về sự việc, không chê con người.', l: 'Khi góp ý người thân, bắt đầu bằng 1 điều tốt của họ.' },
     { w: 'Nghe ai nói xấu đồng đội, nhẹ nhàng gợi ý họ nói thẳng với người đó.', l: 'Được góp ý thì nói “Cảm ơn, mình sẽ xem lại” trước khi giải thích.' }] },
-  { t: 'Chịu trách nhiệm 100%, không đổ lỗi', q: 'Đổ lỗi làm ta yếu đi. Nhận trách nhiệm làm ta lớn lên.', tips: [
+  { t: 'Chịu trách nhiệm 100%, không đổ lỗi', s: 'Gặp chuyện thì mình nhận phần mình trước, tìm cách sửa sau.', q: 'Đổ lỗi làm ta yếu đi. Nhận trách nhiệm làm ta lớn lên.', tips: [
     { w: 'Có việc trục trặc, nói “Phần này mình lo” và nêu cách sửa trước, giải thích lý do sau.', l: 'Hôm nay thay câu “Tại…” bằng câu “Lần sau mình sẽ…”.' },
     { w: 'Khách hoặc đồng đội phàn nàn: nhận phần của mình trước, hỏi cách giúp, rồi mới tìm nguyên nhân.', l: 'Cả ngày hôm nay không than phiền. Gặp chuyện thì tìm 1 việc làm được ngay.' },
     { w: 'Làm xong 1 việc đang dở dang mà không đợi ai nhắc.', l: 'Xin lỗi 1 người nếu gần đây mình đã làm họ buồn.' }] },
-  { t: 'Đã hứa là làm, không chắc thì nói rõ', q: 'Một người giữ lời tạo nên niềm tin. Một đội ngũ giữ lời tạo nên thương hiệu.', tips: [
+  { t: 'Đã hứa là làm, không chắc thì nói rõ', s: 'Hứa gì làm nấy. Chưa chắc thì mình nói rõ từ đầu.', q: 'Một người giữ lời tạo nên niềm tin. Một đội ngũ giữ lời tạo nên thương hiệu.', tips: [
     { w: 'Xem lại các lời hẹn: hẹn gọi lại khách, hẹn gửi file, hẹn trả lời. Hôm nay làm cho xong.', l: 'Làm 1 điều đã hứa với người thân mà còn hoãn.' },
     { w: 'Việc nào có thể trễ thì báo ngay hôm nay, kèm ngày xong mới. Đừng đợi đến hạn.', l: 'Chỉ hứa điều chắc làm được, kể cả chuyện nhỏ như “tối nay về sớm”.' },
     { w: 'Trước khi nhận việc, hỏi lại cho rõ: làm gì, khi nào xong, kết quả cần ra sao.', l: 'Đúng giờ với mọi cuộc hẹn hôm nay, đến sớm 5 phút.' }] },
-  { t: 'Phát triển bản thân mỗi ngày', q: 'Mỗi người tốt hơn, VitaGreen tốt hơn. VitaGreen tốt hơn, tương lai của mỗi người cũng tốt hơn.', tips: [
+  { t: 'Phát triển bản thân mỗi ngày', s: 'Mỗi ngày học thêm một điều nhỏ, mình tốt hơn, công ty cũng tốt hơn.', q: 'Mỗi người tốt hơn, VitaGreen tốt hơn. VitaGreen tốt hơn, tương lai của mỗi người cũng tốt hơn.', tips: [
     { w: 'Học 1 điều mới trong 15 phút: 1 mục trong Hướng dẫn, 1 thông tin sản phẩm, hoặc 1 cách dùng AI cho công việc.', l: 'Đọc 5 trang sách trước khi ngủ.' },
     { w: 'Chưa biết thì hỏi ngay, không ngại: hôm nay hỏi 1 người giỏi hơn mình 1 câu.', l: 'Viết ra 3 điều biết ơn trong ngày.' },
     { w: 'Chia sẻ lại cho đồng đội 1 điều mình mới học, 1 tin nhắn trong nhóm là đủ.', l: 'Vận động 20 phút: đi bộ, đạp xe hoặc tập thở.' }] }
@@ -65,13 +65,13 @@ function workIdx(day) {
 async function rules(db) { // bản Quản trị đã sửa (nếu có), thiếu chỗ nào thì lấy bản gốc
   const o = await kvJson(db, 'vh_rules', null);
   if (!Array.isArray(o)) return VH_RULES;
-  return VH_RULES.map((r, i) => ({ t: r.t, q: r.q, tips: r.tips.map((p, j) => { const e = o[i] && o[i][j] || {}; return { w: String(e.w || '').trim() || p.w, l: String(e.l || '').trim() || p.l }; }) }));
+  return VH_RULES.map((r, i) => ({ t: r.t, s: r.s, q: r.q, tips: r.tips.map((p, j) => { const e = o[i] && o[i][j] || {}; return { w: String(e.w || '').trim() || p.w, l: String(e.l || '').trim() || p.l }; }) }));
 }
 
-/** Quy tắc của 1 ngày: { day, i (0–9), v (0–2), n (số thứ tự 1–10), t, q, w, l }. */
+/** Quy tắc của 1 ngày: { day, i (0–9), v (0–2), n (số thứ tự 1–10), t, s (lời nhắn thân thiện), q, w, l, all: [{t, s}] ×10 để ôn }. */
 export async function vhOfDay(db, t) {
   const day = fmtDate(t || Date.now(), 'yyyy-MM-dd'), k = workIdx(day), i = k % 10, v = Math.floor(k / 10) % 3, R = await rules(db), r = R[i];
-  return { day, i, v, n: i + 1, t: r.t, q: r.q, w: r.tips[v].w, l: r.tips[v].l };
+  return { day, i, v, n: i + 1, t: r.t, s: r.s, q: r.q, w: r.tips[v].w, l: r.tips[v].l, all: R.map(x => ({ t: x.t, s: x.s })) };
 }
 
 let schemaOk = false;
@@ -87,8 +87,9 @@ export async function vhToday(x, u) {
   const r = await vhOfDay(x.db);
   const [me] = await all(x.db, 'SELECT at, note FROM vh_ack WHERE day = ? AND email = ?', r.day, u.email);
   const [c] = await all(x.db, 'SELECT COUNT(*) AS n FROM vh_ack WHERE day = ?', r.day);
+  const who = (await all(x.db, 'SELECT name FROM vh_ack WHERE day = ? AND email != ? ORDER BY at LIMIT 3', r.day, u.email)).map(o => o.name).filter(Boolean); // 16/11/2026: "Thu Phương, Hiếu… cũng đang cùng giữ" → thấy mình không giữ một mình
   let wish = null; try { wish = await wishFor(x.db, u); } catch (e) { }
-  return { ok: true, vh: Object.assign(r, { mine: me ? { at: me.at, note: me.note || '' } : null, cnt: c ? c.n : 0, wish }) };
+  return { ok: true, vh: Object.assign(r, { mine: me ? { at: me.at, note: me.note || '' } : null, cnt: c ? c.n : 0, who, wish }) };
 }
 
 /** ✅ Hôm nay mình sẽ làm (+ 1 dòng chuyện đã làm, không bắt buộc). Bấm lại chỉ sửa dòng ghi chú. */
@@ -130,5 +131,5 @@ export async function vhWishSave(x, u, d) {
 /** 1 dòng cho tin Telegram 8h. */
 export async function vhLine(db) {
   const r = await vhOfDay(db), B = await bdayStaff(db, r.day); // 🎂 sinh nhật nhân sự hôm nay → nhắc cả nhà chúc mừng
-  return '🌿 <b>Quy tắc hôm nay · ' + r.n + '. ' + r.t + '</b>\n<i>' + r.q + '</i>\n👉 ' + r.w + (B.length ? '\n🎂 Hôm nay sinh nhật <b>' + B.map(b => b.name).join(', ') + '</b>, nhớ gửi lời chúc mừng nhé!' : '');
+  return '🌿 Hôm nay cả nhà mình cùng giữ điều ' + r.n + ': <b>' + r.t + '</b>\n<i>' + r.s + '</i>\n👉 Việc nhỏ hôm nay: ' + r.w + (B.length ? '\n🎂 Hôm nay sinh nhật <b>' + B.map(b => b.name).join(', ') + '</b>, nhớ gửi lời chúc mừng nhé!' : '');
 }

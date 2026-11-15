@@ -34,21 +34,18 @@ CRM → **⚙️ Cài đặt** → nhóm **👥 Nhân sự** → **🌿 Văn ho�
 
 ## Quy tắc của ngày trong CRM
 
-Mỗi ngày làm việc, khi mở CRM, bạn thấy **thẻ 🌿 Quy tắc hôm nay** ở đầu màn hình. Cả công ty cùng thấy **một quy tắc**, để mọi người cùng nói về một điều. Cứ 10 ngày làm việc là đủ 10 quy tắc, rồi quay lại từ đầu với gợi ý mới.
+Mỗi ngày làm việc, khi mở CRM, ngay dưới lời chào bạn thấy **🌿 Hôm nay cả nhà mình cùng giữ điều …**. Cả công ty cùng giữ **một điều**, để mọi người cùng nói về một chuyện. Cứ 10 ngày làm việc là đi hết 10 điều, rồi quay lại từ đầu với gợi ý mới.
 
-Với **Sale** và **Quản trị**, thẻ thu gọn thành **1 dòng mảnh** để nhường chỗ cho việc: bấm **✅ Mình sẽ làm** ngay trên dòng, hoặc bấm vào chữ để mở xem gợi ý áp dụng.
+Dòng này gồm: tên quy tắc, **1 câu nói thân thiện** dễ nhớ, và **chuỗi 10 hạt** (hạt đậm là hôm nay, hạt nhạt là các điều đã đi qua trong vòng).
 
 [[steps:vh-the]]
 
-Trong thẻ có:
+1. Đọc 1 câu, bấm **💚 Mình cùng giữ**. Xong rồi đó, mất 10 giây.
+2. Bấm xong, dòng hiện **“Bạn cùng Thu Phương, Hiếu và … đồng đội đang cùng giữ”**: cả nhà cùng giữ, không ai giữ một mình.
+3. Muốn xem thêm thì **bấm vào chữ**. Thẻ mở ra có **💼 một việc nhỏ trong công việc**, **🏡 một việc nhỏ ở nhà**, và ô kể **1 dòng chuyện của bạn** (không bắt buộc). Chuyện hay được kể lại ở buổi trà đàm thứ 7.
+4. Trong thẻ có mục **🧠 Ôn nhanh**: 10 ô số từ 1 đến 10. Tự nghĩ xem điều số mấy là gì, rồi chạm vào số để xem đáp án. Mỗi ngày ôn 1–2 điều là lâu dần thuộc cả 10.
 
-1. **Tên quy tắc** và câu chốt.
-2. **💼 Áp dụng trong công việc hôm nay**: 1 việc nhỏ, làm được ngay.
-3. **🏡 Áp dụng trong cuộc sống**: 1 việc nhỏ với gia đình, bạn bè, chính mình.
-4. Nút **✅ Hôm nay mình sẽ làm**: bấm 1 lần là xong.
-5. Làm rồi thì ghi **1 dòng chuyện của bạn** rồi bấm **Lưu** (không bắt buộc). Chuyện hay được kể lại ở buổi trà đàm thứ 7.
-
-Không muốn thẻ chiếm chỗ thì bấm **Thu gọn ▲**. Thẻ thu thành 1 dòng, bấm vào là mở lại.
+Bấm **Thu gọn ▲** để thẻ trở lại 1 dòng.
 
 > Tin Telegram 8h sáng cũng có quy tắc hôm nay.
 
