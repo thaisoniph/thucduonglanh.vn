@@ -38,6 +38,7 @@ import { crmGv } from './giaoviec.js';
 import { crmBt } from './bangtin.js';
 import { aiUsage, aiFund } from './aiuse.js';
 import { aiTeam } from './aiteam.js';
+import { crmPm } from './phongai.js';
 import { crmAsk, askAllowed } from './ask.js';
 import { crmMcp } from './mcp.js';
 import { saleDays } from './zday.js';
@@ -2620,6 +2621,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (a === 'vh_admin') return vhAdmin(x, u);
   if (a === 'vh_save') return vhSave(x, u, d);
   if (a === 'vh_wish_save') return vhWishSave(x, u, d); // ☀️ lời chúc mỗi ngày (loichuc.js)
+  if (/^pm_(view|add|review|cancel)$/.test(a)) return crmPm(x, u, a, d); // 📣 Phòng Marketing AI: giao việc cho Lành trên Mac, duyệt kết quả (phongai.js, 16/11/2026)
   if (a === 'aiteam') return aiTeam(x, u); // 🤖 Đội nhân sự AI: mỗi trợ lý 1 thẻ (Quản lý + Quản trị, 14/11/2026, aiteam.js)
   if (a === 'ai_usage') return aiUsage(x, u, d); // 🤖 mức dùng & chi phí AI theo mục (Quản trị, 10/11/2026, aiuse.js)
   if (a === 'ai_fund') return aiFund(x, u, d); // ghi số tiền đã nạp Anthropic → tính tiền còn lại, nhắc sắp hết

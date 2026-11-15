@@ -65,6 +65,7 @@ Số lấy thẳng trên máy chủ, cách tính giống khung 🌱 trên tab H�
 | Cộng tác viên, khách cũ giới thiệu | [CTV](#cong-tac-vien-va-doi-tac) |
 | Tạo mã giảm giá cho khách | [Mã ưu đãi](#ma-uu-dai-dat-hang-web) |
 | Chu kỳ dùng, mẫu tin, nhân sự, file sale | [Cài đặt bán hàng](#cai-dat-ban-hang-va-cham-soc) |
+| Giao việc cho Phòng Marketing AI, duyệt kết quả | [Phòng Marketing AI](#phong-marketing-ai-giao-viec-duyet-ket-qua-16-11-2026) |
 | Xem trợ lý AI nào đang chạy, lỗi gì | [Đội nhân sự AI](#doi-nhan-su-ai-14-11-2026) |
 | Hỏi số liệu bằng câu nói | [Hỏi số liệu](#hoi-so-lieu-dang-dung-thu) |
 
@@ -294,9 +295,36 @@ Mã giảm giá gửi riêng cho **khách cũ, đối tác**. Trên web không q
   - **Doanh số sale lấy theo file.** Sale xoá dòng hoặc đổi mã đơn: đơn từ đầu tháng trước tới nay không còn dòng nào trong file thì CRM **tự xoá** (kể cả đơn đã giao, đã hoàn) và nhắn Telegram cho Quản trị (🧹). Sale sửa số tiền (kể cả về 0 hoặc để trống) thì CRM sửa theo. **Sửa ở đâu cũng được**: sửa đơn trên CRM thì CRM tự sửa dòng đó trong file (khoảng 10 phút), đổi trạng thái cũng vậy. Quản trị xoá đơn trên CRM thì dòng trong file ghi **Huỷ** (không xoá dòng của sale). Đơn tạo trên CRM đã ghi vào file mà sale xoá dòng thì CRM cũng xoá đơn. Tên, địa chỉ, số điện thoại khách cũng sửa được ở cả 2 nơi. File nào chưa tích **✍️ Ghi kết quả chăm sóc ngược vào file này** thì chỉ có chiều file → CRM. Mất hơn 15 đơn cùng lúc (file hỏng, đổi cột) thì CRM chỉ báo, không xoá.
   - Doanh thu sự kiện chia đều cho các sale: mỗi sale ghi 1 dòng **khách sự kiện** + ngày + số tiền của mình, không cần số điện thoại. CRM tính vào doanh số của sale, không tính là khách mới của quảng cáo nào.
 
+## 📣 Phòng Marketing AI: giao việc, duyệt kết quả (16/11/2026)
+
+**Câu dễ nhớ: gõ việc, chờ Lành, bấm Duyệt.** Mở CRM → **Thêm** → **🤖 Đội nhân sự AI**. Phần trên cùng là Phòng Marketing AI (Quản lý và Quản trị).
+
+**Sơ đồ phòng:** Anh Sơn → **Lành** (trưởng phòng, chia việc) → **Thám** (hiểu khách, làm offer) · **Văn** (viết nội dung) · **Chuẩn** (kiểm duyệt) · **Phát** (quảng cáo, đo lường). Bấm vào một người để xem người đó làm gì và chỉ xem việc của người đó. Dưới mỗi người có chữ: Rảnh / Có việc / Đang làm / Chờ anh duyệt.
+
+Góc trên bên phải cho biết Lành có đang trực không: 🟢 máy Mac đang bật · 🔴 máy Mac đang tắt (việc vẫn được lưu, mở máy là Lành làm tiếp).
+
+**Việc 1 – Giao việc**
+1. Ô **Giao cho**: để **Để Lành chia việc**, hoặc chọn thẳng 1 người.
+2. Gõ **Việc cần làm** thật cụ thể: cho ai, tầng phễu nào, bao nhiêu bài. Ví dụ: *Viết 3 bài Quà Tết cho tệp mẹ bỉm, tầng MOFU*.
+3. Cần thì bấm **➕ Thêm chi tiết** để dán bối cảnh, số liệu, link Drive, thế nào là đạt.
+4. Chọn **Hạn**, bấm **📨 Giao việc**. Việc hiện ở cột **📥 Mới giao**.
+
+**Việc 2 – Chờ Lành làm.** Khoảng 5 phút Lành xem việc mới 1 lần, nhận việc là việc chuyển sang **⚙️ Đang làm** (có ghi Lành đang làm bao nhiêu phút). Lành chia việc trong phòng, Chuẩn chấm trước khi gửi anh. Một việc thường mất 5–30 phút.
+
+**Việc 3 – Duyệt kết quả.** Xong việc, Telegram báo anh và việc hiện ở cột **👀 Chờ anh duyệt** (Tổng quan và màn Thêm cũng có dòng nhắc). Bấm vào việc:
+- Đọc **Tóm tắt cho anh** ở đầu, rồi đến nội dung đầy đủ. Bản gốc nằm trong Drive (`09_Phòng Marketing AI/08_Kết quả công việc/`).
+- **✅ Duyệt**: việc sang cột **Xong**. Rồi giao Phương đăng, hoặc anh Hiếu bấm quảng cáo như thường lệ.
+- **✏️ Sửa lại**: ghi rõ cần sửa chỗ nào, bấm **📨 Gửi lời sửa cho Lành**. Lành sửa đúng chỗ đó rồi gửi lại.
+- **📋 Copy kết quả** để dán vào Zalo, Fanpage. **🗑 Huỷ việc** nếu không cần nữa.
+
+Lưu ý:
+- Phòng **chỉ soạn**: không tự đăng bài, không gửi tin cho khách, không sửa quảng cáo, website hay CRM.
+- Thiếu thông tin thì Lành ghi **THIẾU: …** trong kết quả. Không làm được thì việc về cột Chờ anh duyệt kèm chữ ⚠️ và lý do: anh bấm Sửa lại, ghi thêm thông tin.
+- Máy Mac tắt hơn 1 tiếng mà còn việc chờ thì Telegram báo 1 lần. Muốn Lành làm cả đêm thì để máy Mac cắm sạc, không cho máy ngủ.
+
 ## 🤖 Đội nhân sự AI (14/11/2026)
 
-**Một màn để biết trợ lý AI nào đang gánh việc thật.** Mở CRM → **Thêm** → **🤖 Đội nhân sự AI** (Quản lý và Quản trị).
+**Một màn để biết trợ lý AI nào đang gánh việc thật.** Mở CRM → **Thêm** → **🤖 Đội nhân sự AI** (Quản lý và Quản trị), kéo xuống phần **⚙️ Trợ lý AI chạy tự động** (dưới Phòng Marketing AI).
 
 Mỗi trợ lý là 1 thẻ: chat trên website, trợ lý Zalo, Fanpage, viết bài web, người gác cổng, kho lời khách, bot giao việc, báo cáo YouTube, chấm bài, trợ lý trang hướng dẫn, và các nút ✨ AI trong CRM. Mỗi thẻ ghi:
 

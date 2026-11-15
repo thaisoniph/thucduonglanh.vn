@@ -874,7 +874,7 @@
     'khach-hang': 'Hồ sơ, lịch sử mua, chăm sóc', 'don-hang': 'Đơn mới, đang giao, hoàn / huỷ', 'bao-cao': 'Doanh số, mục tiêu, thi đua',
     marketing: 'Quảng cáo, chi phí, giá 1 số điện thoại', 'link-qr': 'Link và mã QR theo dõi nguồn khách', 'tro-ly-zalo': 'Trợ lý An Lành trong nhóm Zalo', 'zalo-sale': 'Xem sale chăm khách qua Zalo',
     fanpage: 'Trả lời bình luận, tin nhắn Fanpage', 'bai-web': 'Trợ lý viết bài cho Góc Sống Lành', 'noi-dung': 'Nhóm khách, tension, phễu; kịch bản video', san: 'Doanh số Shopee, TikTok Shop', kho: 'Hàng còn bao nhiêu, sắp hết, đặt thêm hàng', 'ke-toan': 'Tiền về tài khoản, tiền treo ở hãng, lãi lỗ', 'cai-dat': 'Nhân sự, mục tiêu, mẫu tin, tài khoản',
-    'hoi-so-lieu': 'Hỏi bằng lời, AI tự tra số và báo cáo', 'giao-viec': '3 việc trọng tâm, nhờ nhau, báo cáo họp thứ Hai', 'tuyen-dung': 'Ứng viên, AI chấm CV, hẹn phỏng vấn, thư mời', 'nhan-su': 'Hồ sơ, sinh nhật, thâm niên, điểm mạnh, giấy tờ', 'doi-ai': 'Trợ lý AI nào đang gánh việc thật, tốn bao nhiêu'
+    'hoi-so-lieu': 'Hỏi bằng lời, AI tự tra số và báo cáo', 'giao-viec': '3 việc trọng tâm, nhờ nhau, báo cáo họp thứ Hai', 'tuyen-dung': 'Ứng viên, AI chấm CV, hẹn phỏng vấn, thư mời', 'nhan-su': 'Hồ sơ, sinh nhật, thâm niên, điểm mạnh, giấy tờ', 'doi-ai': 'Phòng Marketing AI: giao việc, duyệt kết quả · trợ lý AI tự chạy'
   };
   var VIEW_TINT = { 'doi-ai': '#7d4cdb', 'tong-quan': '#1f5f3a', 'hom-nay': '#34a853', 'tiem-nang': '#ff9500', 'khach-hang': '#007aff', 'don-hang': '#a2845e', 'bao-cao': '#5856d6', marketing: '#ff2d55', 'link-qr': '#636366', 'tro-ly-zalo': '#0068ff', 'zalo-sale': '#0b63c4', fanpage: '#1877f2', 'bai-web': '#24805b', 'noi-dung': '#d9480f', san: '#ee4d2d', kho: '#8e5a2b', 'ke-toan': '#0a7d5a', 'cai-dat': '#8e8e93', 'hoi-so-lieu': '#af52de', 'giao-viec': '#0a84ff', 'tuyen-dung': '#2f7d5b', 'nhan-su': '#3a7bd5' };
   function viewMore() {
@@ -915,16 +915,19 @@
     if (k.need) todo.push(['#kho', '📦', '#8e5a2b', 'Đặt thêm hàng', k.need + ' sản phẩm sắp hết', k.need]);
     if (k.ret) todo.push(['#kho', '↩️', '#8e5a2b', 'Nhận hàng hoàn về kho', k.ret + ' đơn hoàn đang về', k.ret]);
     if (up) todo.push(['#ke-toan', '💳', '#0a7d5a', 'Kiểm tra tiền chuyển khoản', up + ' đơn chưa thấy tiền về', up]);
+    if (!PMA.d || Date.now() - PMA.at > 5 * 60e3) pmaFetch(function () { if (route().view === 'them' && PMA.d && PMA.d.tasks.some(function (t) { return t.status === 'duyet'; })) render(); });
+    var pmw = PMA.d ? PMA.d.tasks.filter(function (t) { return t.status === 'duyet'; }).length : 0; // 📣 Phòng Marketing AI gửi kết quả (phongai.js, 16/11/2026)
+    if (pmw) todo.push(['#doi-ai', '📣', '#7d4cdb', 'Duyệt kết quả Phòng Marketing AI', pmw + ' việc Lành đã làm xong, chờ anh xem', pmw]);
     var todoH = todo.length ? '<section class="mr-g mr-todo"><h2>👉 Việc cần làm bây giờ</h2><div class="mr-list">' + todo.map(function (t) { return row('<a class="mr-row" href="' + t[0] + '">', t[1], t[2], t[3], t[4], t[5]) + '</a>'; }).join('') + (fb ? row('<button type="button" class="mr-row" data-mr="fb">', '💡', '#ffcc00', 'Đọc góp ý mới', fb + ' góp ý từ nhân sự', fb) + '</button>' : '') + '</div></section>'
       : '<div class="mr-ok">✅ <b>Chưa có việc gấp.</b> Muốn xem kỹ hơn thì chọn một bước bên dưới.</div>';
-    var more = rest.filter(function (v) { return known.indexOf(v.id) < 0 || v.id === 'doi-ai'; }).map(vrow).join('') +
+    var more = rest.filter(function (v) { return known.indexOf(v.id) < 0; }).map(vrow).join('') +
       row('<button type="button" class="mr-row" data-mr="use">', '📈', '#af52de', 'Mức dùng CRM', 'Ai vào, ai chưa vào, dùng bao lâu', 0) + '</button>' + // 14/11: chuyển từ tab Hiệu quả sang đây
       (isApp() ? '' : row('<button type="button" class="mr-row" data-mr="inst">', '📲', '#5856d6', 'Cài ra màn hình điện thoại', 'Mở CRM 1 chạm như ứng dụng', 0) + '</button>') +
       row('<button type="button" class="mr-row" data-mr="re">', I.refresh, '#34c759', 'Tải lại dữ liệu', 'Lấy số mới nhất từ máy chủ', 0) + '</button>';
     return todoH +
       group('① Xem đội sale', pick(['hom-nay', 'tiem-nang', 'khach-hang', 'zalo-sale']), 'Sale có đang gọi khách và chốt đơn không?') +
       group('② Kiểm tiền & hàng', pick(['ke-toan', 'kho', 'san']), 'Tiền đã về chưa? Hàng còn đủ bán không?') +
-      group('③ Kênh kéo khách về', pick(['link-qr', 'tro-ly-zalo', 'fanpage', 'noi-dung', 'bai-web']), 'Nơi khách tìm đến công ty: Zalo, Fanpage, bài viết, mã QR') +
+      group('③ Kênh kéo khách về', pick(['doi-ai', 'link-qr', 'tro-ly-zalo', 'fanpage', 'noi-dung', 'bai-web']), 'Giao việc cho Phòng Marketing AI, và nơi khách tìm đến công ty: Zalo, Fanpage, bài viết, mã QR') +
       group('④ Công cụ & trợ giúp',
         pick(['hoi-so-lieu']) +
         row('<a class="mr-row" href="/huong-dan/crm/" target="_blank" rel="noopener">', I.help, '#30b0c7', 'Hướng dẫn sử dụng', 'Từng bước làm, có hình minh hoạ', 0) + '</a>' +
@@ -11977,6 +11980,11 @@
     if (PC && PC.diff && PC.diff.length) U.push('🔴 <b>Công nợ nhà cung cấp lệch khi đối chiếu</b>: ' + PC.diff.slice(0, 3).map(function (r) { return esc(r[0]) + ' ' + (r[1] > 0 ? 'báo cao hơn ' : 'báo thấp hơn ') + moneyShort(Math.abs(r[1])); }).join(', ') + '. Chưa chuyển tiền theo số nhà cung cấp tới khi thống nhất.' + who('Kế toán') + xem(myViews().some(function (v) { return v.id === 'ke-toan'; }) ? '#ke-toan' : '#tong-quan'));
     if (PC && PC.due && PC.miss && PC.miss.length) L.push('🟠 <b>' + PC.miss.length + ' nhà cung cấp chưa đối chiếu công nợ tháng này</b> (quy định ngày ' + KN_CHK_DAY + '): ' + PC.miss.slice(0, 3).map(function (r) { return esc(r[0]); }).join(', ') + (PC.miss.length > 3 ? '…' : '') + '.' + who('Kế toán') + xem(myViews().some(function (v) { return v.id === 'ke-toan'; }) ? '#ke-toan' : '#tong-quan'));
     if (unp.length) U.push('🟠 <b>' + unp.length + ' đơn chuyển khoản quá 2 ngày chưa thấy tiền</b> (' + moneyShort(sumT(unp)) + ').' + who('Kế toán') + xem(myViews().some(function (v) { return v.id === 'ke-toan'; }) ? '#ke-toan' : '#don-hang'));
+    if (lvl() >= 2) { // 📣 Phòng Marketing AI gửi kết quả chờ duyệt (phongai.js, 16/11/2026)
+      if (!PMA.d || Date.now() - PMA.at > 5 * 60e3) pmaFetch(function () { if (route().view === 'tong-quan' && PMA.d && PMA.d.tasks.some(function (t) { return t.status === 'duyet'; })) render(); });
+      var PW = PMA.d ? PMA.d.tasks.filter(function (t) { return t.status === 'duyet'; }) : [];
+      if (PW.length) U.push('📣 <b>Phòng Marketing AI có ' + PW.length + ' kết quả chờ anh duyệt</b>: ' + PW.slice(0, 2).map(function (t) { return esc(t.title); }).join(' · ') + '.' + who('Anh Sơn') + xem('#doi-ai'));
+    }
     L = U.concat(L.filter(function (x) { return x.indexOf('Chậm mục tiêu tháng') < 0; }), L.filter(function (x) { return x.indexOf('Chậm mục tiêu tháng') >= 0; })); // mục tiêu tháng đã có ngay dòng đỏ bên dưới → xếp cuối
     var h = '';
     if (L.length) h += '<div class="box dash-notes"><h3>👉 Cần anh xử lý hôm nay <small class="muted" style="font-weight:400">· việc gấp trước · ghi rõ ai làm</small></h3>' + L.slice(0, 3).map(function (x, i) { return '<p><b class="dash-todo-n">' + (i + 1) + '.</b> ' + x + '</p>'; }).join('') + (L.length > 3 ? '<details class="dash-todo-more"><summary>Xem thêm ' + (L.length - 3) + ' việc nhỏ hơn</summary>' + L.slice(3).map(function (x, i) { return '<p><b class="dash-todo-n">' + (i + 4) + '.</b> ' + x + '</p>'; }).join('') + '</details>' : '') + '</div>';
@@ -14662,6 +14670,142 @@
     };
   }
 
+  /* ================================================================ 📣 Phòng Marketing AI (16/11/2026, máy chủ api/src/phongai.js, anh Sơn chọn "Cách A: Lành trên Mac")
+   * Đầu tab 🤖 Đội nhân sự AI: sơ đồ phòng (anh Sơn → Lành → Thám, Văn, Chuẩn, Phát), ô giao việc, bảng việc 4 cột, mở việc xem kết quả + Duyệt / Sửa lại.
+   * Người làm thật: phiên Claude "Lành" trên máy Mac (scripts/lanh-nhan-viec.sh, 5 phút / lần). Mở màn này không gọi AI. Tên biến: PMA / pma* (pm* đã dùng ở chỗ khác). */
+  var PMA = { d: null, err: '', busy: 0, at: 0, pick: '', open: 0, timer: 0 };
+  var PMA_DUE = [['', 'Không gấp'], ['0', 'Hôm nay'], ['1', 'Ngày mai'], ['3', '3 ngày'], ['7', '1 tuần']];
+  function pmaFetch(cb) {
+    if (PMA.busy) return; PMA.busy = 1;
+    api('pm_view', {}).then(function (j) { PMA.busy = 0; PMA.d = j; PMA.err = ''; PMA.at = Date.now(); if (cb) cb(); else if (route().view === 'doi-ai') pmaPaint(); },
+      function (e) { PMA.busy = 0; PMA.err = /Không rõ thao tác|unknown/i.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message; if (route().view === 'doi-ai') pmaPaint(); });
+  }
+  function pmaMem(id) { return (PMA.d && PMA.d.team || []).filter(function (m) { return m.id === id; })[0] || { id: id, name: id, ic: '🤖', role: '' }; }
+  function pmaMac() {
+    var a = PMA.d && PMA.d.alive, D = PMA.d;
+    if (!a) return ['off', '⚪️', 'Lành chưa kết nối', 'Máy Mac chưa cài chương trình nhận việc. Việc giao vẫn được lưu, Lành sẽ làm khi kết nối.'];
+    var ago = D.now - a.at;
+    if (ago > D.offMs) return ['down', '🔴', 'Máy Mac đang tắt', 'Lần cuối Lành trực: ' + when(a.at) + '. Việc anh giao vẫn được lưu, mở máy Mac là Lành tự làm.'];
+    if (a.busy) return ['busy', '🟢', 'Lành đang làm việc', 'Máy Mac đang bật, Lành đang làm ' + esc('CRM-' + a.busy) + '.'];
+    return ['ok', '🟢', 'Lành đang trực', 'Máy Mac đang bật, 5 phút Lành xem việc mới 1 lần.'];
+  }
+  function pmaCard(t) {
+    var m = pmaMem(t.who), late = t.due && t.due < Date.now() && ['moi', 'dang', 'sua'].indexOf(t.status) >= 0;
+    return '<button type="button" class="pma-task pma-' + t.status + '" data-pmat="' + t.id + '"><b>' + esc(t.title) + '</b>' +
+      '<small>' + m.ic + ' ' + esc(m.name) + (t.status === 'duyet' && t.score != null ? ' · 🛡 ' + t.score + '/100' : '') + (t.rounds ? ' · sửa ' + t.rounds + ' lần' : '') + '</small>' +
+      (t.step && t.status !== 'xong' ? '<small class="pma-step">' + esc(t.step) + '</small>' : '') +
+      (t.due ? '<small class="' + (late ? 'pma-late' : '') + '">⏰ ' + (late ? 'Quá hạn ' : 'Hạn ') + esc(fDate(t.due).slice(0, 5)) + '</small>' : '') + '</button>';
+  }
+  function pmaHTML() {
+    var h = '<section class="pma" id="pmaBox"><div class="pma-head"><h2>📣 Phòng Marketing AI</h2>';
+    if (PMA.err && !PMA.d) return h + '</div><p class="err">' + esc(PMA.err) + '</p><button class="btn" data-pma="re">🔄 Thử lại</button></section>';
+    if (!PMA.d) return h + '</div><p class="muted">Đang tải phòng…</p></section>';
+    var D = PMA.d, mac = pmaMac(), T = D.tasks || [], team = D.team || [];
+    h += '<span class="pma-mac pma-mac-' + mac[0] + '" title="' + esc(mac[3]) + '">' + mac[1] + ' ' + mac[2] + '</span></div>' +
+      '<p class="pma-intro">Anh giao việc ở đây, <b>Lành</b> (trên máy Mac) chia cho đúng người làm, <b>Chuẩn</b> chấm trước, rồi kết quả về cột <b>Chờ anh duyệt</b>. ' + esc(mac[3]) + '</p>';
+    // sơ đồ phòng
+    var lanh = team.filter(function (m) { return m.id === 'lanh'; })[0], four = team.filter(function (m) { return m.id !== 'lanh'; });
+    var mcard = function (m, big) {
+      var st = m.busy ? '<i class="pma-on">● Đang làm</i>' : m.wait ? '<i class="pma-wait">● Chờ anh duyệt ' + m.wait + '</i>' : m.open ? '<i class="pma-on">● Có ' + m.open + ' việc</i>' : '<i>● Rảnh</i>';
+      return '<button type="button" class="pma-mem' + (big ? ' pma-lead' : '') + (PMA.pick === m.id ? ' on' : '') + '" data-pmam="' + m.id + '"><span class="pma-ic">' + m.ic + '</span><b>' + esc(m.name) + '</b><small>' + esc(m.role) + '</small>' + st + '</button>';
+    };
+    h += '<div class="pma-org"><div class="pma-boss">👤 <b>Anh Sơn</b> <small>giao việc · duyệt cuối</small></div><div class="pma-line"></div>' +
+      (lanh ? mcard(lanh, 1) : '') + '<div class="pma-line"></div><div class="pma-four">' + four.map(function (m) { return mcard(m); }).join('') + '</div>' +
+      '<p class="pma-real">Người thật nhận phần bấm: <b>anh Hiếu</b> bấm quảng cáo theo phiếu của Phát · <b>Phương</b> đăng bài đã duyệt.</p></div>';
+    var pm = PMA.pick && pmaMem(PMA.pick);
+    if (pm) h += '<div class="pma-job"><b>' + pm.ic + ' ' + esc(pm.name) + ' – ' + esc(pm.role) + '</b><p>' + esc(pm.job) + '</p><small>Chuyên môn: ' + esc((pm.skills || []).join(', ')) + ' · Đã xong 30 ngày: ' + (pm.done30 || 0) + ' việc</small></div>';
+    // ô giao việc
+    h += '<div class="pma-add"><h3>✉️ Giao việc</h3><div class="pma-row"><label class="f"><span>Giao cho</span><select id="pmaWho"><option value="">🌿 Để Lành chia việc</option>' +
+      four.map(function (m) { return '<option value="' + m.id + '"' + (PMA.pick === m.id ? ' selected' : '') + '>' + m.ic + ' ' + esc(m.name) + ' – ' + esc(m.role) + '</option>'; }).join('') + '</select></label>' +
+      '<label class="f"><span>Hạn</span><select id="pmaDue">' + PMA_DUE.map(function (o) { return '<option value="' + o[0] + '">' + o[1] + '</option>'; }).join('') + '</select></label></div>' +
+      '<label class="f"><span>Việc cần làm</span><textarea id="pmaTitle" rows="2" placeholder="' + esc(pm && pm.ex || 'Viết 3 bài Quà Tết cho tệp mẹ bỉm, tầng MOFU') + '"></textarea></label>' +
+      '<details class="pma-more"><summary>➕ Thêm chi tiết, link Drive (không bắt buộc)</summary><textarea id="pmaBody" rows="3" placeholder="Bối cảnh, số liệu, link tài liệu, thế nào là đạt…"></textarea></details>' +
+      '<p class="err" id="pmaErr" hidden></p><button class="btn pri" data-pma="add">📨 Giao việc</button></div>';
+    // bảng 4 cột
+    var col = function (key, lab, list, empty) {
+      return '<div class="pma-col pma-col-' + key + '"><h3>' + lab + ' <span>' + list.length + '</span></h3>' + (list.length ? list.map(pmaCard).join('') : '<p class="pma-empty">' + empty + '</p>') + '</div>';
+    };
+    var by = function (sts) { return T.filter(function (t) { return sts.indexOf(t.status) >= 0 && (!PMA.pick || t.who === PMA.pick); }); };
+    h += (PMA.pick ? '<p class="pma-filter">Đang xem việc của <b>' + esc(pm.name) + '</b> <button type="button" class="linkbtn" data-pma="all">Xem cả phòng</button></p>' : '') +
+      '<div class="pma-board">' + col('moi', '📥 Mới giao', by(['moi']), 'Chưa có việc mới') + col('dang', '⚙️ Đang làm', by(['dang', 'sua']), 'Không có việc đang làm') +
+      col('duyet', '👀 Chờ anh duyệt', by(['duyet']), 'Không có gì chờ duyệt') + col('xong', '✅ Xong (30 ngày)', by(['xong']).slice(0, 8), 'Chưa có việc xong') + '</div>';
+    return h + '</section>';
+  }
+  function pmaPaint() { var el = $('#pmaBox'); if (!el) return; var keep = pmaKeep(); el.outerHTML = pmaHTML(); pmaBind(); pmaKeep(keep); }
+  function pmaKeep(k) { // giữ chữ đang gõ khi bảng tự tải lại
+    if (!k) { var t = $('#pmaTitle'), b = $('#pmaBody'), w = $('#pmaWho'), d = $('#pmaDue'); return t ? { t: t.value, b: b && b.value, w: w && w.value, d: d && d.value, f: document.activeElement && document.activeElement.id } : null; }
+    if ($('#pmaTitle')) { $('#pmaTitle').value = k.t || ''; $('#pmaBody').value = k.b || ''; if (k.w != null) $('#pmaWho').value = k.w; if (k.d != null) $('#pmaDue').value = k.d; if (k.b) $('.pma-more').open = true; if (k.f && $('#' + k.f)) $('#' + k.f).focus(); }
+  }
+  function pmaDueMs(v) { if (v === '') return null; var d = new Date(); d.setHours(23, 59, 0, 0); return d.getTime() + Number(v) * DAY; }
+  function pmaBind() {
+    var box = $('#pmaBox'); if (!box) return;
+    $$('[data-pma="re"]', box).forEach(function (b) { b.onclick = function () { PMA.at = 0; pmaFetch(); }; });
+    $$('[data-pma="all"]', box).forEach(function (b) { b.onclick = function () { PMA.pick = ''; pmaPaint(); }; });
+    $$('[data-pmam]', box).forEach(function (b) { b.onclick = function () { var id = b.getAttribute('data-pmam'); PMA.pick = PMA.pick === id ? '' : id; pmaPaint(); if (PMA.pick && id !== 'lanh') { var t = $('#pmaTitle'); if (t) t.focus({ preventScroll: true }); } }; });
+    $$('[data-pmat]', box).forEach(function (b) { b.onclick = function () { pmaOpen(Number(b.getAttribute('data-pmat'))); }; });
+    var ta = $('#pmaTitle', box); if (ta) ta.oninput = function () { var e = $('#pmaErr'); if (e) e.hidden = true; };
+    var add = $('[data-pma="add"]', box); if (add) add.onclick = function () {
+      var title = $('#pmaTitle').value.trim(), e = $('#pmaErr');
+      if (!title) { e.textContent = 'Anh gõ việc cần làm trước nhé.'; e.hidden = false; $('#pmaTitle').focus(); return; }
+      add.disabled = true; add.textContent = 'Đang giao…';
+      api('pm_add', { who: $('#pmaWho').value || 'lanh', title: title, body: $('#pmaBody').value.trim(), due: pmaDueMs($('#pmaDue').value) }).then(function (j) {
+        toast('Đã giao ' + j.code + ' ✓ ' + (pmaMac()[0] === 'down' || pmaMac()[0] === 'off' ? 'Lành sẽ làm khi máy Mac bật' : 'Lành nhận trong ~5 phút'));
+        $('#pmaTitle').value = ''; $('#pmaBody').value = ''; PMA.at = 0; pmaFetch();
+      }, function (er) { add.disabled = false; add.textContent = '📨 Giao việc'; e.textContent = er.message; e.hidden = false; });
+    };
+    clearTimeout(PMA.timer); // tự tải lại 1 phút / lần khi đang mở màn này
+    PMA.timer = setTimeout(function () { if (route().view === 'doi-ai' && !$('.modal')) { PMA.at = 0; pmaFetch(); } }, 60e3);
+  }
+  /** Markdown gọn cho kết quả của phòng: tiêu đề, đậm, nghiêng, gạch đầu dòng, đánh số, trích dẫn, khối mã, bảng, đường kẻ. */
+  function pmaMd(s) {
+    var out = [], lines = String(s || '').replace(/\r/g, '').split('\n'), i = 0, inl = function (t) {
+      return esc(t).replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/(^|[^*])\*([^*\s][^*]*)\*/g, '$1<i>$2</i>')
+        .replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+    };
+    while (i < lines.length) {
+      var l = lines[i];
+      if (/^```/.test(l)) { var c = []; i++; while (i < lines.length && !/^```/.test(lines[i])) c.push(lines[i++]); i++; out.push('<pre>' + esc(c.join('\n')) + '</pre>'); continue; }
+      if (/^\s*\|.*\|\s*$/.test(l)) { var rows = []; while (i < lines.length && /^\s*\|.*\|\s*$/.test(lines[i])) rows.push(lines[i++]); rows = rows.filter(function (r) { return !/^\s*\|[\s:|-]+\|\s*$/.test(r); });
+        out.push('<div class="pma-tw"><table>' + rows.map(function (r, k) { var cs = r.trim().replace(/^\||\|$/g, '').split('|'); return '<tr>' + cs.map(function (cc) { return (k ? '<td>' : '<th>') + inl(cc.trim()) + (k ? '</td>' : '</th>'); }).join('') + '</tr>'; }).join('') + '</table></div>'); continue; }
+      var m;
+      if ((m = l.match(/^(#{1,4})\s+(.*)/))) { out.push('<h' + (m[1].length + 2) + '>' + inl(m[2]) + '</h' + (m[1].length + 2) + '>'); i++; continue; }
+      if (/^\s*([-*•]|\d+[.)])\s+/.test(l)) { var ol = /^\s*\d/.test(l), it = []; while (i < lines.length && /^\s*([-*•]|\d+[.)])\s+/.test(lines[i])) it.push('<li>' + inl(lines[i++].replace(/^\s*([-*•]|\d+[.)])\s+/, '')) + '</li>'); out.push((ol ? '<ol>' : '<ul>') + it.join('') + (ol ? '</ol>' : '</ul>')); continue; }
+      if (/^>\s?/.test(l)) { var q = []; while (i < lines.length && /^>\s?/.test(lines[i])) q.push(inl(lines[i++].replace(/^>\s?/, ''))); out.push('<blockquote>' + q.join('<br>') + '</blockquote>'); continue; }
+      if (/^\s*(---|\*\*\*)\s*$/.test(l)) { out.push('<hr>'); i++; continue; }
+      if (!l.trim()) { i++; continue; }
+      var p = []; while (i < lines.length && lines[i].trim() && !/^(#{1,4}\s|```|>|\s*\||\s*([-*•]|\d+[.)])\s+)/.test(lines[i])) p.push(inl(lines[i++]));
+      out.push('<p>' + p.join('<br>') + '</p>');
+    }
+    return out.join('');
+  }
+  function pmaOpen(id) {
+    var t = (PMA.d && PMA.d.tasks || []).filter(function (z) { return z.id === id; })[0]; if (!t) return;
+    var m = pmaMem(t.who), st = (PMA.d.st || {})[t.status] || t.status, wait = t.status === 'duyet';
+    var hist = (t.hist || []).map(function (h) { return '<li><small>' + esc(when(h[0])) + '</small> ' + esc(h[1]) + '</li>'; }).join('');
+    var body = '<div class="pma-sheet"><p class="pma-meta">' + m.ic + ' <b>' + esc(m.name) + '</b> · ' + esc(t.code) + ' · <span class="pma-badge pma-' + t.status + '">' + esc(st) + '</span>' +
+      (t.score != null ? ' · 🛡 Chuẩn chấm <b>' + t.score + '/100</b>' : '') + '<br><small>' + esc(t.by || '') + ' giao ' + esc(when(t.at)) + (t.due ? ' · hạn ' + esc(fDate(t.due)) : '') + '</small></p>' +
+      (t.body ? '<div class="pma-brief"><b>Chi tiết anh ghi:</b><br>' + esc(t.body).replace(/\n/g, '<br>') + '</div>' : '') +
+      (t.note && t.status !== 'xong' ? '<div class="pma-brief pma-note"><b>Lời sửa gần nhất:</b><br>' + esc(t.note).replace(/\n/g, '<br>') + '</div>' : '') +
+      (t.result ? '<h3 class="pma-rh">📄 Kết quả</h3><div class="pma-res">' + pmaMd(t.result) + '</div>' + (t.file ? '<p class="small muted">📁 Bản đầy đủ trong Drive: ' + esc(t.file) + '</p>' : '')
+        : '<p class="muted">' + (t.status === 'moi' ? 'Lành chưa nhận việc này (' + esc(pmaMac()[2].toLowerCase()) + ').' : 'Lành đang làm: ' + esc(t.step || '') + '. Xong sẽ hiện kết quả ở đây và báo anh qua Telegram.') + '</p>') +
+      (wait ? '<div class="pma-fix" id="pmaFix" hidden><label class="f"><span>Cần sửa chỗ nào? (Lành đọc câu này để làm lại)</span><textarea id="pmaNote" rows="3" placeholder="Bài 2 dài quá, rút còn 150 chữ; thêm giá set 2"></textarea></label><p class="err" id="pmaNErr" hidden></p></div>' : '') +
+      (hist ? '<details class="pma-hist"><summary>🕘 Lịch sử việc</summary><ul>' + hist + '</ul></details>' : '') + '</div>';
+    var foot = (t.result ? '<button class="btn" id="pmaCopy">📋 Copy kết quả</button>' : '') +
+      (t.status !== 'xong' && t.status !== 'huy' ? '<button class="btn" id="pmaCancel">🗑 Huỷ việc</button>' : '') +
+      (wait ? '<button class="btn" id="pmaRedo">✏️ Sửa lại</button><button class="btn pri" id="pmaOk">✅ Duyệt</button>' : '');
+    var md = modal(esc(t.title), body, foot);
+    var done = function (msg) { closeModal(); toast(msg); PMA.at = 0; pmaFetch(); };
+    var fail = function (b, lab) { return function (e) { b.disabled = false; b.textContent = lab; toast(e.message, true); }; };
+    if ($('#pmaCopy', md)) $('#pmaCopy', md).onclick = function () { copy(t.result).then(function () { toast('Đã copy kết quả'); }); };
+    if ($('#pmaCancel', md)) $('#pmaCancel', md).onclick = function () { if (!confirm('Huỷ việc "' + t.title + '"? Lành sẽ không làm việc này nữa.')) return; var b = this; b.disabled = true; api('pm_cancel', { id: t.id }).then(function () { done('Đã huỷ việc'); }, fail(b, '🗑 Huỷ việc')); };
+    if ($('#pmaOk', md)) $('#pmaOk', md).onclick = function () { var b = this; b.disabled = true; b.textContent = 'Đang lưu…'; api('pm_review', { id: t.id, ok: 1 }).then(function () { done('Đã duyệt ✓'); }, fail(b, '✅ Duyệt')); };
+    if ($('#pmaRedo', md)) $('#pmaRedo', md).onclick = function () {
+      var f = $('#pmaFix', md), n = $('#pmaNote', md), e = $('#pmaNErr', md), b = this;
+      if (f.hidden) { f.hidden = false; b.textContent = '📨 Gửi lời sửa cho Lành'; n.focus(); n.oninput = function () { e.hidden = true; }; return; }
+      if (!n.value.trim()) { e.textContent = 'Anh ghi cần sửa chỗ nào trước nhé.'; e.hidden = false; n.focus(); return; }
+      b.disabled = true; api('pm_review', { id: t.id, note: n.value.trim() }).then(function () { done('Đã gửi lời sửa, Lành làm lại ✓'); }, fail(b, '📨 Gửi lời sửa cho Lành'));
+    };
+  }
   /* ================================================================ 🤖 Đội nhân sự AI (14/11/2026, máy chủ api/src/aiteam.js)
    * Mỗi trợ lý AI 1 thẻ. Chỉ đọc nhật ký có sẵn ở máy chủ, mở màn này không gọi AI (0đ). Quản lý + Quản trị. */
   var AIT = { d: null, err: '', busy: 0, at: 0 };
@@ -14693,8 +14837,9 @@
   }
   function viewAit() {
     if (!AIT.d || Date.now() - AIT.at > 60e3) aitFetch();
-    var h = '<div class="ait-wrap"><div class="page-head"><h1>🤖 Đội nhân sự AI</h1></div>' +
-      '<p class="ait-intro">Mỗi thẻ là <b>1 trợ lý AI</b> đang làm việc cho công ty: làm gì, chạy lúc nào, làm được bao nhiêu, ra kết quả gì, tốn bao nhiêu tiền. Số lấy từ nhật ký có sẵn, mở màn này <b>không tốn tiền AI</b>.</p>';
+    if (!PMA.d || Date.now() - PMA.at > 30e3) pmaFetch();
+    var h = '<div class="ait-wrap"><div class="page-head"><h1>🤖 Đội nhân sự AI</h1></div>' + pmaHTML() +
+      '<h2 class="ait-h2">⚙️ Trợ lý AI chạy tự động</h2><p class="ait-intro">Mỗi thẻ là <b>1 trợ lý AI</b> đang làm việc cho công ty: làm gì, chạy lúc nào, làm được bao nhiêu, ra kết quả gì, tốn bao nhiêu tiền. Số lấy từ nhật ký có sẵn, mở màn này <b>không tốn tiền AI</b>.</p>';
     if (AIT.err && !AIT.d) return h + '<div class="box"><p class="err">' + esc(AIT.err) + '</p><button class="btn" data-ait="re">🔄 Thử lại</button></div></div>';
     if (!AIT.d) return h + '<div class="box">Đang đọc nhật ký các trợ lý…</div></div>';
     var D = AIT.d, cs = D.cards.slice().sort(function (a, b) { return (AIT_ORD[a.state] - AIT_ORD[b.state]) || (b.d7 - a.d7); });
@@ -14708,6 +14853,7 @@
     return h;
   }
   function bindAit() {
+    pmaBind();
     $$('[data-ait="re"]').forEach(function (b) { b.onclick = function () { b.disabled = true; b.textContent = 'Đang tải…'; AIT.at = 0; aitFetch(); }; });
   }
   /* ================================================================ 👀 Zalo của sale (15/11/2026, máy chủ api/src/zsale.js)

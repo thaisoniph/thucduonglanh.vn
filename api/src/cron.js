@@ -23,6 +23,7 @@ import { vqTick } from './voc.js';
 import { ytWeekly } from './yt.js';
 import { vhLine } from './vanhoa.js';
 import { tbDaily, tbTick } from './thongbao.js';
+import { pmTick } from './phongai.js';
 import { gvTick, gvMorning } from './giaoviec.js';
 import { hrTick } from './hr.js';
 import { snhTick } from './sinhnhat.js'; // 🎂 ngày 25 + trước 3 ngày
@@ -177,6 +178,7 @@ export async function scheduled(x, cron) {
   try { await hrTick(x, await crmUsers(x)); } catch (e) { console.error('hrTick', e.message); } // 🧑‍💼 AI đọc CV ứng viên mới (≤ 3 hồ sơ / lượt), báo Quản trị; dọn hồ sơ quá 12 tháng (hr.js)
   try { await snhTick(x); } catch (e) { console.error('snhTick', e.message); } // 🎂 sinh nhật nhân sự: ngày 25 báo tháng sau, báo trước 3 ngày (Trưởng ban đời sống + Quản lý)
   try { await gvTick(x); } catch (e) { console.error('gvTick', e.message); } // ✅ việc sắp tới hạn / quá hạn → nhắc qua bot giao việc
+  try { await pmTick(x); } catch (e) { console.error('pmTick', e.message); } // 📣 việc Phòng Marketing AI chờ mà Mac của Lành tắt > 1 tiếng → báo anh 1 lần
   try { await tbTick(x); } catch (e) { console.error('tbTick', e.message); } // 📢 thông báo hẹn giờ tới giờ hiện → gửi Telegram (thongbao.js)
   try { await sanSheetTick(x); } catch (e) { console.error('sanSheet', e.message); } // Google Sheet báo cáo sàn, 30 phút/lần
   try { await fixBestTiepNhan(x); } catch (e) { console.error('fixBestTiepNhan', e.message); } // 1 lần 14/11/2026: trả 7 đơn bị đọc nhầm Đã giao (Best "Tiếp nhận đơn hàng thành công")
