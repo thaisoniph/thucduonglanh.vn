@@ -39,7 +39,7 @@ const CFG0 = {
   mode: 'approve', // approve: chỉ đăng bài đã duyệt (anh Sơn chọn 27/10/2026) · auto: tới giờ tự đăng bài nháp
   lead: 3, // soạn bài trước mấy ngày (anh Sơn 10/11/2026: hiện trước 2–3 ngày để nhân sự kịp duyệt)
   planAuto: true, // 📋 tự lập kế hoạch chủ đề tuần kế tiếp (chờ duyệt)
-  slots: [{ id: 'sang', at: '07:30', on: true }, { id: 'toi', at: '20:00', on: true }],
+  slots: [{ id: 'sang', at: '07:30', on: true }, { id: 'toi', at: '19:15', on: true }],
   maxHour: 8 // số câu trả lời tối đa / nhóm / giờ (tránh "nói nhiều", Zalo khoá)
 };
 /** 15/11/2026 (Thủy góp ý): người đọc nhóm là chính các bậc cha mẹ, cô chú → không viết như con cái nói với bố mẹ */
@@ -119,7 +119,9 @@ export async function zbotSchema(db) {
 
 /** Khung giờ này tự đăng hay chờ duyệt (31/10/2026: mỗi khung giờ chọn riêng; khung chưa chọn thì theo chế độ chung) */
 const slotAuto = (cfg, slot) => { const s = (cfg.slots || []).find(z => z.id === slot); return ((s && s.mode) || cfg.mode) === 'auto'; };
-export async function zCfg(x) { const c = Object.assign({}, CFG0, await kvJson(x.db, 'zb_cfg', {})); if (!Array.isArray(c.slots) || !c.slots.length) c.slots = CFG0.slots; return c; }
+export async function zCfg(x) { const c = Object.assign({}, CFG0, await kvJson(x.db, 'zb_cfg', {})); if (!Array.isArray(c.slots) || !c.slots.length) c.slots = CFG0.slots;
+  const toi = c.slots.find(z => z.id === 'toi'); if (toi && toi.at === '20:00' && !c.m1915) { toi.at = '19:15'; c.m1915 = 1; await kvSet(x.db, 'zb_cfg', JSON.stringify(c)); } // 15/11/2026 anh Sơn: giờ chung bài tối 20:00 → 19:15 (làm 1 lần; sau đó nhân sự đổi lại ở Cài đặt thì giữ)
+  return c; }
 const zlog = (x, kind, o) => run(x.db, 'INSERT INTO zb_log (at, kind, gid, uid, name, text, reply) VALUES (?, ?, ?, ?, ?, ?, ?)', Date.now(), kind, o.gid || '', o.uid || '', String(o.name || '').slice(0, 80), String(o.text || '').slice(0, 1000), String(o.reply || '').slice(0, 2000));
 const vnHour = t => { const d = new Date(t + TZ_MS); return d.getUTCHours() + d.getUTCMinutes() / 60; };
 const quiet = t => { const h = vnHour(t); return h >= 21.75 || h < 6; }; // 21h45 – 6h: không chủ động nhắn vào nhóm
@@ -761,7 +763,7 @@ export async function zWrite(x, day, slot, hint, by, grp, other) { // other = �
   // đố vui tối qua → sáng nay công bố đáp án
   const quiz = th.quiz && !dayTheme(addDay(day, -1), 'toi', baseTheme, live.length > 0).ev ? await first(x.db, "SELECT text FROM zb_posts WHERE day = ? AND slot = 'toi'", addDay(day, -1)) : null; // tối qua là bài ngày lễ thì không có đố vui
   // ⏰ giờ đăng thật của bài (giờ riêng nhân sự đặt / giờ khung / giờ thử) → AI viết lời chào hợp buổi
-  const sl0 = cfg.slots.find(z => z.id === slot) || { id: slot, at: sang ? '07:30' : '20:00' };
+  const sl0 = cfg.slots.find(z => z.id === slot) || { id: slot, at: sang ? '07:30' : '19:15' };
   // cảm nhận khách hàng thật (anh Sơn cho phép đăng trong nhóm 31/10/2026): lấy cái lâu chưa dùng nhất
   const fbs = th.fb ? ((await kvJson(x.db, 'zb_fb', [])) || []).filter(f => f.on !== false).sort((a, b) => (a.used || 0) - (b.used || 0)) : [];
   const fb = fbs[0] || null;

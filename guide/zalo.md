@@ -50,7 +50,7 @@ Trợ lý tự làm 6 việc:
    Tin chào người mới và tin chúc mừng có **link mời kết bạn** với trợ lý. Kết bạn rồi trợ lý mới nhắn riêng được cho khách. Trợ lý tự đồng ý tối đa **30 lời mời mỗi ngày**, cách nhau ít nhất 3 phút.
 4. 🎉 **Chúc mừng** người vừa nhận quà trên web.
 5. ✅ **Duyệt** người xin vào nhóm, nếu họ đã để số trên web.
-6. 📝 **Đăng bài** sáng và tối (giờ chung 7h30 và 20h, mỗi bài đổi giờ riêng được). Khung giờ nào để **Chờ duyệt** thì chỉ đăng bài đã được duyệt; khung giờ để **Tự đăng** thì tới giờ trợ lý tự đăng.
+6. 📝 **Đăng bài** sáng và tối (giờ chung 7h30 và 19h15; đổi giờ chung ở ⚙️ Cài đặt trợ lý, mỗi bài đổi giờ riêng được). Khung giờ nào để **Chờ duyệt** thì chỉ đăng bài đã được duyệt; khung giờ để **Tự đăng** thì tới giờ trợ lý tự đăng.
 
 Trợ lý **soạn bài trước 3 ngày** để bạn kịp duyệt, và **lên kế hoạch chủ đề** cho cả tuần / cả tháng để anh Sơn và người phụ trách duyệt chủ đề trước (xem [Kế hoạch chủ đề](#viec-3-duyet-ke-hoach-chu-de)).
 
@@ -84,7 +84,7 @@ Khung xanh nhạt bên dưới là **bài sẽ hiện y như vậy trên Zalo** 
 ![Bài cần duyệt: 1 Duyệt bài này, 2 Sửa chữ, 3 Viết lại, 4 Bỏ bài này](/huong-dan/img/zalo-duyet.webp)
 
 1. Đọc bài. **Nhìn xem bài nói với ai**: người đọc nhóm là chính các cô chú, các mẹ, nên bài không được nói kiểu "hãy gọi cho bố mẹ của bạn". Bài lệch đối tượng thì bấm **🔄 Làm bài khác**.
-2. Nhìn **giờ đăng ghi ngay trên nút duyệt**, ví dụ **✅ Duyệt & đăng lúc 20:00 hôm nay**. Giờ ổn và bài ổn thì bấm nút đó là xong.
+2. Nhìn **giờ đăng ghi ngay trên nút duyệt**, ví dụ **✅ Duyệt & đăng lúc 19:15 hôm nay**. Giờ ổn và bài ổn thì bấm nút đó là xong.
 3. Muốn sửa vài chữ thì bấm **✏️ Sửa chữ** (xem bước sửa bên dưới).
 4. Muốn **bài hoàn toàn khác** (đổi cả chủ đề) thì bấm **🔄 Làm bài khác**, chờ 30 giây. Muốn **giữ chủ đề, chỉ viết lại** thì bấm **✍️ Viết lại bài này**, gõ ý muốn (ví dụ "ngắn hơn").
 5. Không muốn đăng thì bấm **⏸ Bỏ bài này**.
