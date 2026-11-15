@@ -642,7 +642,7 @@ zl-kh:
         - ["card", "Tuần 17/11 – 23/11", "⏳ chờ duyệt · 14 chủ đề", "y"]
         - ["btn", "✅ Duyệt cả tuần", "g"]
       hi: 1
-      text: "Tab <b>Zalo</b> → nút <b>📋 Kế hoạch chủ đề</b>. Mở tuần có nhãn vàng <b>⏳ chờ duyệt</b>."
+      text: "Tab <b>Zalo</b> → bấm <b>📋 Kế hoạch chủ đề</b> ở hàng <i>Đi nhanh tới</i> (hoặc bấm <b>Xem kế hoạch</b> trong ô ✅ Việc cần làm hôm nay). Mở tuần có nhãn vàng <b>⏳ chờ duyệt</b>."
     - title: Kế hoạch chủ đề
       els:
         - ["card", "☀️ T2 · 🔵 Bếp lành: cháo hạt sen", "🎯 Người ăn chay · 👉 khoe món", ""]

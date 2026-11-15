@@ -9684,8 +9684,10 @@
 
   function viewZbot() {
     if (!ZB.d && !ZB.err && !ZB.busy) setTimeout(zbFetch, 0);
-    var h = '<div class="page-head"><h1>🤖 Trợ lý Zalo An Lành</h1><div class="grow"></div><button class="btn pri" data-zb="send">📣 Gửi tin vào nhóm</button><button class="btn" data-zb="toplan">📋 Kế hoạch chủ đề</button><button class="btn" data-zb="hist">📚 Bài đã đăng &amp; hiệu quả</button></div>' +
-      '<p class="muted small lq-intro">Tài khoản Zalo <b>“Trợ lý An Lành”</b> làm phó nhóm: chào người mới, trả lời câu hỏi, chúc mừng khách vừa nhận quà trên web, tự duyệt người đã để số, đăng bài sáng và tối. Câu nào cần người thật thì báo Telegram.</p>';
+    var h = '<div class="page-head"><h1>🤖 Trợ lý Zalo An Lành</h1><div class="grow"></div><button class="btn pri" data-zb="send">📣 Gửi tin vào nhóm</button><button class="btn" data-zb="hist">📚 Bài đã đăng &amp; hiệu quả</button></div>' +
+      '<div class="mk-jump"><span class="small muted">Đi nhanh tới:</span>' + [['zbPosts', '📝 Bài cần duyệt'], ['zbPlan', '📋 Kế hoạch chủ đề'], ['zbStat', '📊 Kết quả'], ['zbSet', '⚙️ Cài đặt'], ['zbLog', '🕘 Trợ lý vừa làm gì']].map(function (x) { return '<button type="button" class="chip" data-zb="go|' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div>' +
+      '<p class="muted small lq-intro">Trợ lý tự chào người mới, trả lời câu hỏi và đăng bài trong nhóm Zalo. <b>Việc của bạn: duyệt bài và trả lời ca khó.</b> <a href="/huong-dan/zalo/" target="_blank" rel="noopener">Xem hướng dẫn</a></p>' +
+      '<details class="zb-info small"><summary>ⓘ Trợ lý này làm những gì?</summary><p>Tài khoản Zalo <b>“Trợ lý An Lành”</b> làm phó nhóm: chào người mới, trả lời câu hỏi, chúc mừng khách vừa nhận quà trên web, tự duyệt người đã để số, đăng bài sáng và tối. Câu nào cần người thật thì báo Telegram.</p></details>';
     if (!ZB.d) return h + '<div class="box"><p class="muted">' + (ZB.err ? '⚠️ ' + esc(ZB.err) + ' <button class="link" data-zb="reload">Thử lại</button>' : '⏳ Đang tải…') + '</p></div>';
     var j = ZB.d, c = j.cfg, st = j.status, live = st && !st.down && j.now - st.at < 15 * 60e3, n = {};
     (j.stats || []).forEach(function (r) { n[r.kind] = r.n; });
@@ -9697,7 +9699,7 @@
       (!j.aiOn ? '<p class="small">⚠️ Máy chủ chưa có khoá AI nên trợ lý chưa trả lời, chưa soạn bài được.</p>' : '') + (!j.key ? '<p class="small">⚠️ Máy chủ chưa có mã ZBOT_KEY nên chương trình trợ lý chưa kết nối được.</p>' : '') +
       (st && st.groups && st.groups.length ? '<p class="small">Nhóm đang chăm sóc: ' + st.groups.filter(function (x) { return c.groups.indexOf(x.id) >= 0; }).map(function (x) { return '<b>' + esc(x.name) + '</b> (' + x.total + ' người' + (x.admin ? '' : ', ⚠️ trợ lý chưa là phó nhóm nên chưa tự duyệt được') + ')'; }).join(', ') + (c.groups.length ? '' : '⚠️ chưa chọn nhóm nào (chọn ở Cài đặt)') + '</p>' : '') + '</div>';
     // 7 ngày qua
-    h += '<h2 class="zb-h">7 ngày qua</h2><div class="metrics dash-m3">' + metric('👋 Chào người mới', g('welcome'), 'Mỗi lần chào có thể gồm nhiều người vào cùng lúc.', '') +
+    var ST7 = '<h2 class="zb-h" id="zbStat">📊 Kết quả 7 ngày qua</h2><div class="metrics dash-m3">' + metric('👋 Chào người mới', g('welcome'), 'Mỗi lần chào có thể gồm nhiều người vào cùng lúc.', '') +
       metric('💬 Trả lời trong nhóm', g('answer') + g('handoff'), g('react') ? 'Thả tim ' + g('react') + ' lần cho chia sẻ của thành viên.' : 'Chỉ trả lời câu hỏi chưa ai trong đội ngũ trả lời.', '') +
       metric('📩 Trả lời tin riêng', g('dm') + g('dm_handoff'), 'Khách kết bạn, nhắn riêng cho trợ lý.', '') +
       metric('🙋 Cần người thật', g('handoff') + g('dm_handoff'), 'Đã báo Telegram để nhân sự nhắn khách.', '') +
@@ -9715,7 +9717,7 @@
     var zbOwn = function (sl, d) { var p0 = P[d + '_' + sl.id], q0 = PL[d + '_' + sl.id]; return (p0 ? p0.at_time : q0 ? q0.at_time : '') || ''; };
     var zbWhen = function (sl, d) { return zbOwn(sl, d) || zbAt(sl, d); };
     var fu = j.funnel || {}, fk = ['TOFU', 'MOFU', 'BOFU', 'TIN', 'CHUC'].filter(function (k) { return fu[k]; });
-    if (fk.length) h += '<h2 class="zb-h">📊 Hiệu quả bài đăng theo phễu (30 ngày)</h2><p class="muted small">Đếm trong 2 tiếng sau mỗi bài: số người nhắn / gửi ảnh / thả cảm xúc (không tính đội ngũ). Đơn: khách bấm link trong bài rồi đặt trên web.</p><div class="zb-funs">' +
+    if (fk.length) ST7 += '<h2 class="zb-h">📊 Hiệu quả bài đăng theo phễu (30 ngày)</h2><p class="muted small">Đếm trong 2 tiếng sau mỗi bài: số người nhắn / gửi ảnh / thả cảm xúc (không tính đội ngũ). Đơn: khách bấm link trong bài rồi đặt trên web.</p><div class="zb-funs">' +
       fk.map(function (k) { var f = fu[k]; return '<div class="box zb-funbox"><span class="zb-fun zb-fun-' + k.toLowerCase() + '">' + ZB_FUN[k] + '</span><p><b>' + f.posts + '</b> bài · trung bình <b>' + (Math.round(f.people / f.posts * 10) / 10) + '</b> người tương tác / bài</p><p class="small muted">💬 ' + f.msgs + ' tin · ❤️ ' + f.reacts + ' cảm xúc' + (f.orders ? ' · 🛒 ' + f.orders + ' đơn, ' + moneyShort(f.rev) : '') + '</p></div>'; }).join('') + '</div>';
     // 📝 bài đăng (05/11/2026 sắp lại): bài cần duyệt lên đầu + xem trước giống Zalo, bài đã đăng thu gọn 1 dòng
     var items = [];
@@ -9729,17 +9731,26 @@
     var fd = function (d) { return d.slice(6, 8) + '/' + d.slice(4, 6); }, hh = function (at) { return at.replace(':', 'h').replace(/^0/, ''); };
     var trRows = [{ h: '07', at: '07:30', lbl: 'trước ' + (tr[0] ? fd(tr[0].from) : '') }].concat(tr.map(function (z) { return { h: z.at.slice(0, 2), at: z.at, lbl: fd(z.from) + '–' + fd(z.to) }; }));
     var best = null; trRows.forEach(function (r) { var x = tres[r.h]; r.x = x; if (x && x.posts >= 3 && (!best || x.people / x.posts > best.x.people / best.x.posts)) best = r; });
-    h += '<h2 class="zb-h">🧪 Thử giờ đăng bài sáng</h2><p class="muted small">' + (curT ? 'Tuần này (' + fd(curT.from) + '–' + fd(curT.to) + ') bài sáng đăng lúc <b>' + hh(curT.at) + '</b>. ' : tr.length && today < tr[0].from ? 'Bắt đầu từ ' + fd(tr[0].from) + ': mỗi giờ thử 1 tuần. ' : 'Đã thử xong, chọn giờ có nhiều người tương tác nhất ở ⚙️ Cài đặt trợ lý. ') + 'So số người tương tác trung bình mỗi bài sáng trong 2 tiếng sau khi đăng.</p><div class="zb-funs">' +
-      trRows.map(function (r) { var x = r.x; return '<div class="box zb-funbox' + (best === r ? ' zb-best' : '') + '"><b style="font-size:1.15rem">☀️ ' + hh(r.at) + '</b>' + (best === r ? ' <span class="zb-due">⭐ tốt nhất</span>' : '') + '<p class="small muted" style="margin:2px 0 0">' + r.lbl + '</p><p>' + (x ? '<b>' + String(Math.round(x.people / x.posts * 10) / 10).replace('.', ',') + '</b> người / bài · ' + x.posts + ' bài' : '<span class="muted">chưa có số đo</span>') + '</p></div>'; }).join('') + '</div>';
+    ST7 += '<details class="box zb-set"><summary><b>🧪 Thử giờ đăng bài sáng</b> <span class="muted small">· ' + (curT ? 'tuần này đăng lúc ' + hh(curT.at) : 'xem kết quả') + (best ? ' · tốt nhất: ' + hh(best.at) : '') + '</span></summary><p class="muted small">' + (curT ? 'Tuần này (' + fd(curT.from) + '–' + fd(curT.to) + ') bài sáng đăng lúc <b>' + hh(curT.at) + '</b>. ' : tr.length && today < tr[0].from ? 'Bắt đầu từ ' + fd(tr[0].from) + ': mỗi giờ thử 1 tuần. ' : 'Đã thử xong, chọn giờ có nhiều người tương tác nhất ở ⚙️ Cài đặt trợ lý. ') + 'So số người tương tác trung bình mỗi bài sáng trong 2 tiếng sau khi đăng.</p><div class="zb-funs">' +
+      trRows.map(function (r) { var x = r.x; return '<div class="box zb-funbox' + (best === r ? ' zb-best' : '') + '"><b style="font-size:1.15rem">☀️ ' + hh(r.at) + '</b>' + (best === r ? ' <span class="zb-due">⭐ tốt nhất</span>' : '') + '<p class="small muted" style="margin:2px 0 0">' + r.lbl + '</p><p>' + (x ? '<b>' + String(Math.round(x.people / x.posts * 10) / 10).replace('.', ',') + '</b> người / bài · ' + x.posts + ' bài' : '<span class="muted">chưa có số đo</span>') + '</p></div>'; }).join('') + '</div></details>';
     var act = {}, mx = 0; (j.act || []).forEach(function (a) { act[Number(a.h)] = a; });
     var per = function (H) { var a = act[H]; return a && j.actDays ? a.msgs / j.actDays : 0; }; for (var H = 0; H < 24; H++) mx = Math.max(mx, per(H));
     if (mx > 0) {
       var postH = {}; (c.slots || []).forEach(function (q) { if (q.on) postH[Number(zbAt(q, today).slice(0, 2))] = 1; });
       var topH = []; for (var H2 = 0; H2 < 24; H2++) topH.push(H2); topH.sort(function (a, b) { return per(b) - per(a); });
-      h += '<h2 class="zb-h">🕐 Giờ thành viên hay nhắn tin trong nhóm</h2><p class="muted small">Trung bình mỗi ngày, ' + j.actDays + ' ngày gần nhất (không tính đội ngũ). Đông nhất: <b>' + topH.slice(0, 3).filter(function (x) { return per(x) > 0; }).map(function (x) { return x + 'h'; }).join(', ') + '</b>. Cột xanh đậm = giờ đang đăng bài.</p>' +
-        '<div class="box zb-hours" role="img" aria-label="Số tin nhắn trung bình theo giờ">' + Array.from({ length: 24 }, function (_, H3) { var v = per(H3); return '<div class="zb-hcol' + (postH[H3] ? ' on' : '') + '" title="' + H3 + 'h: ' + String(Math.round(v * 10) / 10).replace('.', ',') + ' tin/ngày"><span style="height:' + Math.max(2, Math.round(v / mx * 100)) + '%"></span><i>' + (H3 % 3 === 0 ? H3 : '') + '</i></div>'; }).join('') + '</div>';
+      ST7 += '<details class="box zb-set"><summary><b>🕐 Giờ thành viên hay nhắn tin trong nhóm</b> <span class="muted small">· đông nhất: ' + topH.slice(0, 3).filter(function (x) { return per(x) > 0; }).map(function (x) { return x + 'h'; }).join(', ') + '</span></summary><p class="muted small">Trung bình mỗi ngày, ' + j.actDays + ' ngày gần nhất (không tính đội ngũ). Đông nhất: <b>' + topH.slice(0, 3).filter(function (x) { return per(x) > 0; }).map(function (x) { return x + 'h'; }).join(', ') + '</b>. Cột xanh đậm = giờ đang đăng bài.</p>' +
+        '<div class="box zb-hours" role="img" aria-label="Số tin nhắn trung bình theo giờ">' + Array.from({ length: 24 }, function (_, H3) { var v = per(H3); return '<div class="zb-hcol' + (postH[H3] ? ' on' : '') + '" title="' + H3 + 'h: ' + String(Math.round(v * 10) / 10).replace('.', ',') + ' tin/ngày"><span style="height:' + Math.max(2, Math.round(v / mx * 100)) + '%"></span><i>' + (H3 % 3 === 0 ? H3 : '') + '</i></div>'; }).join('') + '</div></details>';
     }
-    h += '<div class="zb-done-h"><h2 class="zb-h">📝 Bài đăng nhóm</h2><span class="small">' + (c.slots || []).filter(function (q) { return q.on; }).map(function (q) { return (q.id === 'toi' ? '🌙 Bài tối ' : '☀️ Bài sáng ') + zbAt(q, today) + ': <b>' + (slA(q.id) ? '🤖 tự đăng' : '⏳ chờ duyệt') + '</b>'; }).join(' · ') + ' · soạn trước <b>' + lead + ' ngày</b></span></div>' +
+    // ✅ việc cần làm hôm nay (15/11/2026): việc đang chờ người thật lên đầu, đánh số bước, mỗi bước 1 nút tới đúng chỗ; số liệu (ST7) dời xuống dưới bài đăng
+    var TD = [], needP = todo.filter(function (it) { return it.p && it.p.status !== 'ok' && !slA(it.sl.id); }), opN = (j.open || []).length, plW = (j.plan || []).filter(function (q) { return q.status === 'draft' && !(P[q.id] && P[q.id].status === 'sent'); }).length;
+    if (st && c.on && !live) TD.push('🔴 <b>Trợ lý đang mất kết nối</b>: kiểm tra máy chạy trợ lý (xem ô đỏ phía trên). Mất kết nối thì trợ lý không chào, không trả lời, không đăng bài.');
+    if (st && !c.on) TD.push('⏸ <b>Trợ lý đang tắt</b>: bật lại ở ⚙️ Cài đặt trợ lý. <button class="link" data-zb="go|zbSet">Mở cài đặt</button>');
+    if (opN) TD.push('🙋 <b>' + opN + ' khách đang chờ người thật trả lời</b>. Nhắn khách trên Zalo, xong bấm ✅ Đã xử lý. <button class="link" data-zb="go|zbLog|need">Xem</button>');
+    if (needP.length) TD.push('📝 <b>Duyệt ' + needP.length + ' bài sắp đăng</b> (gần nhất: ' + zbDay(needP[0].d).toLowerCase() + ' lúc ' + zbWhen(needP[0].sl, needP[0].d) + '). Chưa duyệt thì tới giờ bài không được đăng. <button class="link" data-zb="go|zbPosts">Xem</button>');
+    if (plW) TD.push('📋 <b>Duyệt ' + plW + ' chủ đề</b> trong kế hoạch: duyệt trước thì trợ lý soạn bài sớm ' + lead + ' ngày, đúng chủ đề đó. <button class="link" data-zb="go|zbPlan">Xem kế hoạch</button>');
+    if (g('error')) TD.push('⚠️ <b>' + g('error') + ' lỗi</b> trong 7 ngày qua: xem trợ lý vướng gì. <button class="link" data-zb="go|zbLog|err">Xem</button>');
+    h += aiTodoBox(TD, st ? '🎉 Không có việc nào đang chờ bạn. Trợ lý đang tự chạy; có bài cần duyệt hoặc ca khó thì việc sẽ hiện ở đây.' : 'Trợ lý chưa chạy lần nào: Quản trị cần bật chương trình trợ lý trước (xem ô phía trên).');
+    h += '<div class="zb-done-h"><h2 class="zb-h" id="zbPosts">📝 Bài đăng nhóm</h2><span class="small">' + (c.slots || []).filter(function (q) { return q.on; }).map(function (q) { return (q.id === 'toi' ? '🌙 Bài tối ' : '☀️ Bài sáng ') + zbAt(q, today) + ': <b>' + (slA(q.id) ? '🤖 tự đăng' : '⏳ chờ duyệt') + '</b>'; }).join(' · ') + ' · soạn trước <b>' + lead + ' ngày</b></span></div>' +
       // ✍️ 12/11/2026: trợ lý học từ bài nhân sự sửa chữ (api edPairs: 3 bài gần nhất trong 60 ngày)
       '<p class="small zb-learn">✍️ ' + (j.learnEd && j.learnEd.n ? 'Trợ lý đang học cách viết từ <b>' + j.learnEd.n + ' bài</b> anh chị đã sửa' + (j.learnEd.by.length ? ' (' + esc(j.learnEd.by.join(', ')) + ')' : '') + '. Mỗi bài mới, AI xem 3 bài sửa gần nhất để viết giống cách anh chị muốn.' : 'Anh chị bấm <b>✏️ Sửa chữ</b> bài AI viết rồi <b>💾 Lưu</b>: trợ lý sẽ học cách anh chị sửa (giọng văn, độ dài, câu mở, câu kết) cho các bài sau.') + '</p>' +
       '<details class="zb-info small"><summary>ⓘ Cách hoạt động</summary><p>AI soạn trước theo lịch chủ đề trong tuần (mỗi chủ đề có tầng phễu 🔵 ⚪ 🟠), dùng đúng thông tin sản phẩm trên web. Trước khi viết, AI chọn <b>🎯 1 nhóm khách + 1 tension</b> (xoay vòng nhóm ít được viết nhất) rồi viết bài chạm đúng nỗi lòng đó; dòng 🎯 trên thẻ bài cho biết bài nhắm ai. Sửa nhóm khách ở tab <a href="#noi-dung">🎯 Insight & nội dung</a>. <b>Chờ duyệt</b>: chỉ bài đã bấm <b>✅ Duyệt</b> mới được đăng. <b>Tự đăng</b>: tới giờ trợ lý đăng bài AI soạn, thấy chưa ổn thì sửa hoặc bấm <b>⏸ Bỏ bài này</b>. Đổi ở <b>⚙️ Cài đặt trợ lý</b>.</p><p><b>📋 Kế hoạch chủ đề</b>: duyệt chủ đề trước thì trợ lý soạn bài đúng chủ đề đó, sớm ' + lead + ' ngày; chủ đề chưa duyệt thì 24 tiếng trước giờ đăng mới soạn. <b>⏰ Đổi giờ</b> trên thẻ bài: hẹn giờ đăng riêng cho bài đó (sáng 6:00–11:59, tối 12:00–21:45).</p><p>AI tự chọn ảnh: bài về sản phẩm kèm ảnh sản phẩm, bài khác chọn ảnh thật hợp chủ đề (không có ảnh hợp thì chỉ đăng chữ). Không đăng từ 21h45 tới 6h sáng. Khung bên trái là <b>bài sẽ hiện trên Zalo</b>; muốn sửa chữ bấm <b>✏️ Sửa chữ</b> (chữ trong **hai dấu sao** sẽ in đậm).</p>' + (j.err ? '<p class="err">Lần soạn lỗi gần nhất: ' + esc(j.err) + '</p>' : '') + '</details>';
@@ -9747,8 +9758,6 @@
     var zbEv = {}; (j.days || []).forEach(function (e) { zbEv[e.d + '_' + e.s] = e; });
     if ((j.days || []).length) h += '<details class="zb-info small zb-days"><summary>📅 Ngày lễ sắp tới (45 ngày): ' + j.days.filter(function (e) { return !e.moved; }).length + ' bài theo dịp</summary><p class="muted">Mùng 1, rằm, lễ Tết: bài 🔵 chúc mừng, không bán. Trước dịp tặng quà có bài 🟠 gợi ý quà. Bài bán bị ngày lễ chiếm chỗ thì dời sang hôm sau. Ngày đôi chỉ đăng khi Marketing có ưu đãi đang chạy.</p><ul>' +
       j.days.map(function (e) { return '<li><b>' + zbDay(e.d) + '</b> · ' + (e.s === 'toi' ? '🌙 tối' : '☀️ sáng') + ' · ' + esc(e.ev) + ' <span class="zb-fun zb-fun-' + String(e.f).toLowerCase() + '">' + (ZB_FUN[e.f] || e.f) + '</span>' + (e.offer ? ' <span class="muted">(chỉ khi có ưu đãi)</span>' : '') + '<br><span class="muted">Âm lịch: ' + esc(e.lu) + '</span></li>'; }).join('') + '</ul></details>';
-    var pWait = (j.plan || []).filter(function (q) { return q.status === 'draft' && !(P[q.id] && P[q.id].status === 'sent'); }).length;
-    if (pWait) h += '<p class="small notice zp-nag">📋 Có <b>' + pWait + ' chủ đề</b> trong kế hoạch đang chờ duyệt. Duyệt chủ đề trước thì trợ lý soạn bài sớm ' + lead + ' ngày, đúng chủ đề đó. <button class="link" data-zb="toplan">Xem kế hoạch ↓</button></p>';
     todo.forEach(function (it) {
       var p = it.p, sl = it.sl, lbl = zbDay(it.d) + ' · ' + slotTxt(sl, it.d), auto = slA(sl.id), q = it.q;
       var ev0 = zbEv[it.d + '_' + sl.id];
@@ -9790,7 +9799,8 @@
     }
     // cài đặt
     var sg = (st && st.groups) || [], ck = function (k, t, sub) { return '<label class="zb-ck"><input type="checkbox" data-zbc="' + k + '"' + (c[k] ? ' checked' : '') + '><span><b>' + t + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</span></label>'; };
-    h += '<details class="box zb-set"><summary><b>⚙️ Cài đặt trợ lý</b></summary>' +
+    h += ST7;
+    h += '<details class="box zb-set" id="zbSet"><summary><b>⚙️ Cài đặt trợ lý</b></summary>' +
       ck('on', 'Bật trợ lý', 'Tắt thì trợ lý im lặng hoàn toàn (không chào, không trả lời, không đăng).') +
       '<p class="zb-sub"><b>Nhóm trợ lý chăm sóc</b></p>' + (sg.length ? sg.map(function (x) { return '<label class="zb-ck"><input type="checkbox" data-zbg="' + esc(x.id) + '"' + (c.groups.indexOf(x.id) >= 0 ? ' checked' : '') + '><span><b>' + esc(x.name) + '</b><small>' + x.total + ' người' + (x.admin ? ' · trợ lý là phó nhóm' : ' · ⚠️ trợ lý chưa là phó nhóm') + '</small></span></label>'; }).join('') : '<p class="small muted">Trợ lý chưa chạy hoặc chưa ở nhóm nào. Thêm tài khoản “Trợ lý An Lành” vào nhóm và đặt làm phó nhóm.</p>') +
       '<p class="zb-sub"><b>Việc trợ lý làm</b></p>' + ck('welcome', 'Chào người mới vào nhóm', 'Gọi tên @… , gộp người vào trong 1 phút thành 1 tin.') + ck('answer', 'Trả lời câu hỏi trong nhóm', 'Chờ 1,5 phút; đội ngũ (trưởng / phó nhóm) trả lời trước thì trợ lý thôi. Người gọi tên trợ lý thì trả lời ngay.') +
@@ -9805,7 +9815,7 @@
       '<label class="f"><span>Tối đa số câu trả lời / nhóm / giờ</span><input type="number" id="zbMax" min="1" max="30" value="' + (c.maxHour || 8) + '"></label>' +
       '<button class="btn pri" data-zb="cfg">Lưu cài đặt</button></details>';
     // 🕘 nhật ký (05/11/2026 sắp lại): ca cần người thật ghim đầu + nút Đã xử lý, lọc theo loại, chia theo ngày, mở ra dạng khung chat
-    h += '<h2 class="zb-h">🕘 Trợ lý vừa làm gì</h2>' + zbLogHtml(j);
+    h += '<h2 class="zb-h" id="zbLog">🕘 Trợ lý vừa làm gì</h2>' + zbLogHtml(j);
     return h;
   }
   function zbSendOpen() {
@@ -9999,6 +10009,7 @@
       if (!confirm(v[0] === 'cancel' ? 'Huỷ tin này? Trợ lý sẽ không đăng nữa.' : 'Thu hồi tin này trên nhóm Zalo? Thành viên sẽ thấy dòng "tin nhắn đã được thu hồi".')) return;
       t.disabled = true; return api('zb_' + v[0], { id: id }).then(after(v[0] === 'cancel' ? 'Đã huỷ tin ✓' : 'Đã gửi lệnh thu hồi ✓ Trợ lý thu hồi trong khoảng 1 phút.'), fail);
     }
+    if (v[0] === 'go') { if (v[2]) { ZB.lf = v[2]; render(); } var goEl = document.getElementById(id); if (goEl) { if (goEl.tagName === 'DETAILS') goEl.open = true; goEl.scrollIntoView({ behavior: 'smooth', block: 'start' }); } return; }
     if (v[0] === 'lf') { ZB.lf = id; return render(); }
     if (v[0] === 'teach') return aiTeachOpen('zb', (ZB.d.log || []).concat(ZB.more || [], ZB.d.open || []).filter(function (l) { return String(l.rid) === id; })[0], zbFetch);
     if (v[0] === 'done' || v[0] === 'undone') { t.disabled = true; return api('zb_done', { rid: Number(id), undo: v[0] === 'undone' }).then(after(v[0] === 'done' ? 'Đã ghi: bạn xử lý ca này ✓' : 'Đã bỏ đánh dấu'), fail); }
@@ -10158,7 +10169,9 @@
   function viewFp() {
     if (!FP.d && !FP.err && !FP.busy) setTimeout(fpFetch, 0);
     var h = '<div class="page-head"><h1>📘 Trợ lý Fanpage</h1><div class="grow"></div><button class="btn pri" data-fp="send">✍️ Viết bài đăng</button></div>' +
-      '<p class="muted small lq-intro">Khách bình luận bài đăng hoặc quảng cáo → trợ lý <b>An Lành</b> thích, trả lời và nhắn riêng → tư vấn trong Messenger → xin số Zalo → gửi quà + link nhóm Zalo, khách vào tab Khách hỏi. AI soạn bài đăng cho từng trang để bạn duyệt. <a href="/huong-dan/fanpage/" target="_blank" rel="noopener">Xem hướng dẫn</a></p>';
+      '<div class="mk-jump"><span class="small muted">Đi nhanh tới:</span>' + [['fpPosts', '📝 Bài cần duyệt'], ['fpStat', '📊 Kết quả'], ['fpPages', '📄 Fanpage & cài đặt'], ['fpLog', '🕘 Trợ lý vừa làm gì']].map(function (x) { return '<button type="button" class="chip" data-fp="go|' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div>' +
+      '<p class="muted small lq-intro">Trợ lý tự trả lời bình luận, tin nhắn và xin số điện thoại khách trên Fanpage. <b>Việc của bạn: duyệt bài và trả lời ca khó.</b> <a href="/huong-dan/fanpage/" target="_blank" rel="noopener">Xem hướng dẫn</a></p>' +
+      '<details class="zb-info small"><summary>ⓘ Trợ lý này làm những gì?</summary><p>Khách bình luận bài đăng hoặc quảng cáo → trợ lý <b>An Lành</b> thích, trả lời và nhắn riêng → tư vấn trong Messenger → xin số Zalo → gửi quà + link nhóm Zalo, khách vào tab Khách hỏi. AI soạn bài đăng cho từng trang để bạn duyệt.</p></details>';
     if (!FP.d) return h + '<div class="box"><p class="muted">' + (FP.err ? '⚠️ ' + esc(FP.err) + ' <button class="link" data-fp="reload">Thử lại</button>' : '⏳ Đang tải…') + '</p></div>';
     var j = FP.d, A = j.app, ps = j.pages || [], n = {}, on = ps.filter(function (p) { return p.active; }), bad = ps.filter(function (p) { return p.err; });
     (j.stats || []).forEach(function (r) { n[r.kind] = r.n; });
@@ -10173,7 +10186,7 @@
       (on.length ? '<p class="small">Trợ lý tự quét bình luận mới 10 phút / lần (7h–22h). <button class="btn sm" data-fp="scan">🔄 Quét bình luận ngay</button></p>' : '') + '</div>';
     if (!ready) h += fpConnHtml(j, true);
     // 7 ngày qua
-    h += '<h2 class="zb-h">7 ngày qua</h2><div class="metrics dash-m3">' +
+    var ST7 = '<h2 class="zb-h" id="fpStat">📊 Kết quả 7 ngày qua</h2><div class="metrics dash-m3">' +
       metric('💬 Bình luận đã xử lý', g('comment'), 'Thích + trả lời công khai + nhắn riêng (mỗi người 1 lần / 24 giờ).', '') +
       metric('📩 Khách nhắn lại', j.talk || 0, 'Số người trò chuyện với trợ lý trong Messenger. Trợ lý trả lời ' + g('dm') + ' tin.', '') +
       metric('🎁 Khách để số', g('lead'), 'Đã gửi quà + link nhóm Zalo, khách vào tab Khách hỏi. Xin số ' + g('gift_ask') + ' lần, nhắc ' + g('nudge') + ' lần.', '') +
@@ -10195,7 +10208,16 @@
     var todo = items.filter(function (it) { return !isDone(it); }), past = items.filter(isDone);
     var needN = function (pid) { return todo.filter(function (it) { return (!pid || it.p.page === pid) && fpNeed(it.p); }).length; };
     var pids = []; items.forEach(function (it) { if (pids.indexOf(it.p.page) < 0) pids.push(it.p.page); });
-    h += '<div class="zb-done-h"><h2 class="zb-h">📝 Bài đăng fanpage</h2><span class="small">' + posting.map(function (pg) { return esc(pg.name) + ': <b>' + (pg.cfg.mode === 'auto' ? '🤖 tự đăng' : '⏳ chờ duyệt') + '</b> lúc ' + (pg.cfg.slots || []).join(', '); }).join(' · ') + '</span></div>' +
+    // ✅ việc cần làm hôm nay (15/11/2026): giống tab Trợ lý Zalo; số liệu (ST7) dời xuống dưới bài đăng
+    var TD = [], opN = (j.open || []).length, nP = needN();
+    if (!ready) TD.push(j.admin ? '🔗 <b>Kết nối Facebook</b>: làm 4 bước ở ô <b>🔗 Kết nối Facebook</b> ngay phía trên. Chưa kết nối thì trợ lý chưa làm việc.' : '🔗 <b>Chưa kết nối Facebook</b>: nhờ Quản trị kết nối ứng dụng và fanpage (ô 🔗 phía trên).');
+    if (ready && !on.length) TD.push('⏸ <b>Trợ lý đang tắt trên mọi trang</b>: bấm vào tên trang để bật. <button class="link" data-fp="go|fpPages">Xem</button>');
+    bad.slice(0, 2).forEach(function (p) { TD.push('⚠️ Trang <b>' + esc(p.name) + '</b> đang lỗi: ' + esc(p.err) + ' <button class="link" data-fp="go|fpPages">Xem</button>'); });
+    if (opN) TD.push('🙋 <b>' + opN + ' khách đang chờ người thật trả lời</b>. Trả lời trong hộp thư trang, xong bấm ✅ Đã xử lý. <button class="link" data-fp="go|fpLog|need">Xem</button>');
+    if (nP) TD.push('📝 <b>Duyệt ' + nP + ' bài sắp đăng</b>. Chưa duyệt thì tới giờ bài không được đăng. <button class="link" data-fp="go|fpPosts">Xem</button>');
+    if (g('error')) TD.push('⚠️ <b>' + g('error') + ' lỗi</b> trong 7 ngày qua: xem trợ lý vướng gì. <button class="link" data-fp="go|fpLog|err">Xem</button>');
+    h += aiTodoBox(TD, '🎉 Không có việc nào đang chờ bạn. Trợ lý đang tự chạy; có bài cần duyệt hoặc ca khó thì việc sẽ hiện ở đây.');
+    h += '<div class="zb-done-h"><h2 class="zb-h" id="fpPosts">📝 Bài đăng fanpage</h2><span class="small">' + posting.map(function (pg) { return esc(pg.name) + ': <b>' + (pg.cfg.mode === 'auto' ? '🤖 tự đăng' : '⏳ chờ duyệt') + '</b> lúc ' + (pg.cfg.slots || []).join(', '); }).join(' · ') + '</span></div>' +
       '<details class="zb-info small"><summary>ⓘ Cách hoạt động</summary><p>AI soạn trước 1 ngày theo lịch chủ đề trong tuần (mỗi chủ đề có tầng phễu: 4 bài 🔵 thu hút, 2 bài ⚪ tạo niềm tin, 1 bài 🟠 bán / tuần), dùng đúng thông tin sản phẩm trên web, cuối bài mời bình luận “QUÀ” để trợ lý nhắn riêng (bài 🟠 thì mời đặt qua link sản phẩm). Trước khi viết, AI chọn <b>🎯 1 nhóm khách + 1 tension</b> (trong các nhóm tích ở cài đặt trang) rồi mới viết; dòng 🎯 trên thẻ bài cho biết bài nhắm ai. <b>Chờ duyệt</b>: chỉ bài đã bấm <b>✅ Duyệt</b> mới được đăng. <b>Tự đăng</b>: tới giờ trợ lý đăng bài AI soạn, thấy chưa ổn thì sửa hoặc bấm <b>⏸ Bỏ bài này</b>. Đổi ở <b>⚙️ cài đặt từng trang</b> (mục 📄 Fanpage).</p><p>Khung bên trái là <b>bài sẽ hiện trên Facebook</b>. Facebook không hiện chữ đậm nên bài chỉ có chữ thường + emoji. Bài có link sản phẩm sẽ hiện ảnh xem trước của trang sản phẩm. Muốn sửa bấm <b>✏️ Sửa chữ</b>.</p>' + (j.err ? '<p class="err">Lần soạn lỗi gần nhất: ' + esc(j.err) + '</p>' : '') + '</details>';
     h += aiLearnLine(j.learnEd, 'bài'); // ✍️ 12/11/2026
     if (pids.length > 1) h += '<div class="chips zb-lf"><button class="chip' + (pf ? '' : ' on') + '" data-fp="pf|">Tất cả trang' + (needN() ? ' <em>' + needN() + '</em>' : '') + '</button>' + pids.map(function (pid) { var c = needN(pid); return '<button class="chip' + (pf === pid ? ' on' : '') + '" data-fp="pf|' + esc(pid) + '">' + esc(fpPageOf(pid).name) + (c ? ' <em>' + c + '</em>' : '') + '</button>'; }).join('') + '</div>';
@@ -10215,9 +10237,10 @@
       });
     }
     // 📄 từng trang: thu gọn 1 dòng, bấm mở cài đặt
-    h += '<h2 class="zb-h">📄 Fanpage đã kết nối</h2>' + (ps.length ? '<p class="small muted" style="margin:-4px 0 8px">Bấm vào tên trang để bật / tắt trợ lý và cài đặt.</p>' + ps.slice().sort(function (a, b) { return (b.active - a.active) || (a.name < b.name ? -1 : 1); }).map(fpPageBox).join('') : '<div class="box"><p class="muted">Chưa kết nối trang nào (xem 🔗 Kết nối Facebook).</p></div>');
+    h += ST7;
+    h += '<h2 class="zb-h" id="fpPages">📄 Fanpage đã kết nối</h2>' + (ps.length ? '<p class="small muted" style="margin:-4px 0 8px">Bấm vào tên trang để bật / tắt trợ lý và cài đặt.</p>' + ps.slice().sort(function (a, b) { return (b.active - a.active) || (a.name < b.name ? -1 : 1); }).map(fpPageBox).join('') : '<div class="box"><p class="muted">Chưa kết nối trang nào (xem 🔗 Kết nối Facebook).</p></div>');
     // 🕘 nhật ký
-    h += '<h2 class="zb-h">🕘 Trợ lý vừa làm gì</h2>' + fpLogHtml(j);
+    h += '<h2 class="zb-h" id="fpLog">🕘 Trợ lý vừa làm gì</h2>' + fpLogHtml(j);
     if (ready) h += fpConnHtml(j, false);
     return h;
   }
@@ -10358,6 +10381,7 @@
     if (v[0] === 'cp') return copy(id).then(function () { toast('Đã chép ✓'); });
     var after = function (msg) { return function () { toast(msg); fpFetch(); }; }, fail = function (e) { t.disabled = false; toast(e.message, true); };
     if (v[0] === 'pf') { FP.pf = id; return render(); }
+    if (v[0] === 'go') { if (v[2]) { FP.lf = v[2]; render(); } var goEl = document.getElementById(id); if (goEl) { if (goEl.tagName === 'DETAILS') goEl.open = true; goEl.scrollIntoView({ behavior: 'smooth', block: 'start' }); } return; }
     if (v[0] === 'lf') { FP.lf = id; return render(); }
     if (v[0] === 'edit') { var cd = t.closest('[data-fpcard]'); if (cd) { cd.classList.toggle('zb-editing'); var te = document.getElementById('fpT_' + id); if (te && cd.classList.contains('zb-editing')) te.focus(); } return; }
     if (v[0] === 'done' || v[0] === 'undone') { t.disabled = true; return api('fp_done', { rid: Number(id), undo: v[0] === 'undone' }).then(after(v[0] === 'done' ? 'Đã ghi: bạn xử lý ca này ✓' : 'Đã bỏ đánh dấu'), fail); }
@@ -10677,9 +10701,16 @@
       (C ? '<div class="bar"><i style="width:' + Math.min(100, C.p * 100).toFixed(1) + '%"></i>' + (C.isCur ? '<u style="left:' + (C.tp * 100).toFixed(1) + '%"></u>' : '') + '</div><p class="bar-legend">Thanh xanh = số điện thoại đã về · vạch đen = hôm nay' + (C.isCur && C.p < 1 ? ' · còn thiếu <b>' + (f.needData - f.have.data) + ' số</b> trong ' + C.left + ' ngày' : '') + '</p>' : '') +
       '<p class="small muted">Máy tự tính lại khi sale đổi mục tiêu. Bấm <b>🎯 Đặt mục tiêu</b> → ô Facebook có nút <b>Dùng số gợi ý</b> để lấy ' + moneyShort(f.needRev) + ' làm mục tiêu tiền khách mới (chạy nhiều kênh thì chia ra).</p></div>';
   }
-  /** Mục thu gọn trong tab Marketing (15/11/2026): nhớ trạng thái mở / đóng trong S.f.m.lvo (1 = mở, 0 = đóng tay) để vẽ lại không tự đóng. open = mặc định mở. */
+  /** Mục thu gọn trong tab Marketing (15/11/2026): nhớ trạng thái mở / đóng trong LVO (1 = mở, 0 = đóng tay) để vẽ lại không tự đóng. open = mặc định mở. */
+  var LVO = {};
+  document.addEventListener('toggle', function (e) { var d = e.target; if (d && d.getAttribute && d.getAttribute('data-lvo')) LVO[d.getAttribute('data-lvo')] = d.open ? 1 : 0; }, true);
+  /** ✅ Việc cần làm hôm nay cho tab Trợ lý Zalo / Fanpage (15/11/2026): cùng khuôn với tab Marketing – đánh số bước, mỗi bước 1 nút tới đúng chỗ. L rỗng → 1 câu "không có việc". */
+  function aiTodoBox(L, okTxt) {
+    return '<div class="box dash-notes mk-steps"><h3>✅ Việc cần làm hôm nay' + (L.length ? ' <small class="muted" style="font-weight:400">· làm lần lượt từ bước 1</small>' : '') + '</h3>' +
+      (L.length ? '<ol class="mk-step-l">' + L.map(function (x, i) { return '<li><span class="mk-step-n">' + (i + 1) + '</span><div>' + x + '</div></li>'; }).join('') + '</ol>' : '<p>' + okTxt + '</p>') + '</div>';
+  }
   function lvMore(k, title, line, body, open) {
-    var o = (S.f.m && S.f.m.lvo) || {};
+    var o = LVO;
     return '<details class="lv-more" data-lvo="' + esc(k) + '"' + (o[k] === 1 || (o[k] === undefined && open) ? ' open' : '') + '><summary><b>' + title + '</b>' + (line ? '<span>' + line + '</span>' : '') + '</summary><div class="lv-more-b">' + body + '</div></details>';
   }
   /** 📇 Số điện thoại về cho sale: đủ chưa, giá bao nhiêu? (15/11/2026, anh Sơn: ưu tiên đủ số cho sale với chi phí tốt nhất). Ô đầu tab Marketing.
@@ -10934,7 +10965,6 @@
     $$('#view [data-dash="sfb"]').forEach(function (el) { el.onclick = function () { var f = S.f.m; f.sfb = !f.sfb; store('dash_sfb', f.sfb ? '1' : '0'); render(); }; });
     $$('#view [data-dgo]').forEach(function (el) { el.onclick = function () { var g = el.getAttribute('data-dgo').replace(/^mk-/, ''), t = $('#mk-' + g); if (!t) return; if (t.tagName === 'DETAILS') t.open = true; t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }; });
     $$('details[data-mk]').forEach(function (d) { d.addEventListener('toggle', function () { var o = S.f.m.open || (S.f.m.open = {}), k = d.getAttribute('data-mk'); if (d.open) o[k] = 1; else delete o[k]; store('mkt_open', JSON.stringify(o)); }); });
-    $$('details[data-lvo]').forEach(function (d) { d.addEventListener('toggle', function () { var o = S.f.m.lvo || (S.f.m.lvo = {}); o[d.getAttribute('data-lvo')] = d.open ? 1 : 0; }); });
     $$('[data-mka]').forEach(function (el) { el.onclick = function () { S.f.m.acc = el.getAttribute('data-mka'); render(); }; });
     $$('[data-mkc]').forEach(function (el) { el.onclick = function () { S.f.m.cv = el.getAttribute('data-mkc'); S.f.m.call = 0; render(); }; });
     $$('[data-kpd]').forEach(function (el) { el.onclick = function () { S.f.m.kd = el.getAttribute('data-kpd'); S.f.m.kall = 0; render(); }; });

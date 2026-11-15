@@ -14,6 +14,8 @@ Trang này dành cho bạn **làm marketing**, **quản lý** và **anh Sơn** (
 
 ## Việc của bạn mỗi ngày
 
+Mở tab **Fanpage**, nhìn ô **✅ Việc cần làm hôm nay** và làm từ bước 1. Ô này tự gom mọi việc đang chờ bạn; bấm **Xem** để tới đúng chỗ. Thường là 3 việc:
+
 1. Duyệt bài AI soạn cho hôm nay và ngày mai ([Việc 1](#viec-1-duyet-bai-dang)).
 2. Telegram báo ca cần người thật thì trả lời khách ngay ([bảng bên dưới](#telegram-bao-gi-thi-lam-gi)).
 3. Lướt **🕘 Trợ lý vừa làm gì**, câu nào trả lời chưa đúng ý thì dạy lại ([Việc 5](#viec-5-xem-tro-ly-vua-lam-gi-va-day-tro-ly)).
@@ -49,6 +51,8 @@ Bình luận có **số điện thoại** sẽ được trợ lý **ẩn đi** �
 ## Mở tab Fanpage
 
 Trong CRM, bấm **FB** trên thanh menu. Quản trị bấm **••• Thêm → Fanpage**.
+
+Màn hình xếp theo thứ tự làm việc (từ 15/11/2026): **ô trạng thái** 🟢 → **✅ Việc cần làm hôm nay** (khách đang chờ người thật, bài cần duyệt, lỗi) → **📝 Bài đăng fanpage** → **📊 Kết quả 7 ngày qua** → **📄 Fanpage đã kết nối** (cài đặt từng trang) → **🕘 Trợ lý vừa làm gì**. Hàng **Đi nhanh tới** dưới tên trang đưa bạn tới thẳng từng phần.
 
 ## Việc 1: Duyệt bài đăng
 

@@ -14,7 +14,7 @@ Trang này dành cho **người quản lý nhóm Zalo**, **marketing** và **sal
 
 ## Việc của bạn mỗi ngày, mỗi tuần
 
-**Mỗi ngày (khoảng 5 phút):**
+**Mỗi ngày (khoảng 5 phút):** mở tab **Zalo**, nhìn ô **✅ Việc cần làm hôm nay** và làm từ bước 1. Ô này tự gom mọi việc đang chờ bạn; bấm **Xem** để tới đúng chỗ. Thường là 2 việc:
 
 1. Duyệt bài chờ đăng ([Việc 1](#viec-1-duyet-bai)). Chỉ cần duyệt bài của ngày thứ 3; ngày bận thì duyệt dồn vẫn kịp.
 2. Telegram báo ca cần người thật thì xử lý ngay ([bảng bên dưới](#telegram-bao-gi-thi-lam-gi)).
@@ -62,6 +62,16 @@ Vào CRM, bấm **Zalo** trên thanh menu. Quản trị thì vào **••• Th
 
 - 🟢 **Đang chạy**: trợ lý đang làm việc.
 - 🔴 **Mất kết nối**: báo anh Sơn.
+
+Màn hình xếp theo thứ tự làm việc (từ 15/11/2026):
+
+1. **Ô trạng thái** 🟢 / 🔴.
+2. **✅ Việc cần làm hôm nay**: các việc đánh số 1, 2, 3 (khách đang chờ người thật, bài cần duyệt, chủ đề cần duyệt, lỗi). Không có việc thì ô ghi 🎉 không có việc nào đang chờ.
+3. **📝 Bài đăng nhóm**, rồi **📋 Kế hoạch chủ đề**.
+4. **📊 Kết quả 7 ngày qua** (số liệu, hiệu quả theo phễu, thử giờ đăng).
+5. **⚙️ Cài đặt trợ lý** và **🕘 Trợ lý vừa làm gì**.
+
+Hàng **Đi nhanh tới** dưới tên trang đưa bạn tới thẳng từng phần.
 
 ## Việc 1: Duyệt bài
 
@@ -123,7 +133,7 @@ Muốn xem các ngày cũ hơn thì bấm **Xem thêm các ngày trước** ở 
 
 [[steps:zl-kh]]
 
-Mục **📋 Kế hoạch chủ đề** (nút ở đầu tab Zalo, hoặc kéo xuống dưới các bài chờ duyệt) là danh sách **chủ đề của từng bài trong tuần / trong tháng**. Anh Sơn và bạn phụ trách duyệt chủ đề trước, trợ lý viết bài **đúng chủ đề đã duyệt**.
+Mục **📋 Kế hoạch chủ đề** (bấm **📋 Kế hoạch chủ đề** ở hàng *Đi nhanh tới*, hoặc kéo xuống dưới các bài chờ duyệt) là danh sách **chủ đề của từng bài trong tuần / trong tháng**. Anh Sơn và bạn phụ trách duyệt chủ đề trước, trợ lý viết bài **đúng chủ đề đã duyệt**.
 
 Mỗi chủ đề có:
 
@@ -237,7 +247,7 @@ Từ **10/11 đến 23/11**, bài sáng được thử ở 2 giờ, mỗi giờ 
 
 Hạn duyệt bài sáng cũng đổi theo (ví dụ "Cần duyệt trước 6h15 ngày mai"), nên tuần đầu **duyệt bài sáng từ tối hôm trước**.
 
-Trong tab Zalo, ô **🧪 Thử giờ đăng bài sáng** so số người tương tác trung bình mỗi bài ở 7h30 (trước đây), 6h15 và 9h00. Giờ tốt nhất có ⭐. Biểu đồ **🕐 Giờ thành viên hay nhắn tin** cho biết nhóm đông người nói chuyện nhất vào giờ nào. Thử xong, anh Sơn sẽ chốt 1 giờ cố định.
+Trong tab Zalo, bấm **📊 Kết quả** ở hàng *Đi nhanh tới*, rồi bấm mở ô **🧪 Thử giờ đăng bài sáng**: so số người tương tác trung bình mỗi bài ở 7h30 (trước đây), 6h15 và 9h00. Giờ tốt nhất có ⭐. Bấm mở ô **🕐 Giờ thành viên hay nhắn tin** để xem biểu đồ cho biết nhóm đông người nói chuyện nhất vào giờ nào. Thử xong, anh Sơn sẽ chốt 1 giờ cố định.
 
 ## Trợ lý và người thật chia việc
 
