@@ -64,7 +64,10 @@ Tab **Hôm nay** chia ngày làm việc thành **từng khung giờ**, mỗi l�
 - **13:30 🙋 Khách hỏi chưa chốt:** tư vấn khách hỏi, chăm sóc tiếp.
 - 15:00 🍵 Giải lao 15 phút.
 - **15:15 🌱 Mở rộng khách:** mời giới thiệu, nhóm Zalo, Kho chung, gọi nốt khách còn lại.
-- **16:15 📋 Chốt ngày:** gọi nốt việc còn lại, hẹn lịch mai, bấm **📋 Báo cáo cuối ngày**.
+- **16:15 📋 Chốt ngày:** gọi nốt việc còn lại, hẹn lịch khách ngày mai, bấm **📋 Báo cáo cuối ngày**.
+- **Từ 16:45 và Chủ nhật 🌙 Ca trực:** người trực trả lời khách mới từ quảng cáo, xác nhận đơn mới, rồi làm nốt việc còn lại.
+
+> Người VitaGreen **làm hết việc, không phải hết giờ**. CRM không báo "hết giờ": việc còn thì vẫn hiện để ai đang làm, đang trực làm tiếp.
 
 Trên màn hình:
 

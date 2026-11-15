@@ -1697,12 +1697,15 @@
     { s: 810, e: 900, ic: '🙋', t: 'Khách hỏi chưa chốt', d: 'tư vấn khách hỏi, chăm sóc tiếp', g: ['lead', 'cb', 'care'] },
     { s: 900, e: 915, brk: 'Giải lao', say: 'Uống nước, thả lỏng vai gáy nhé.' },
     { s: 915, e: 975, ic: '🌱', t: 'Mở rộng khách', d: 'mời giới thiệu, nhóm Zalo, Kho chung, gọi nốt khách còn lại', g: ['all'] },
-    { s: 975, e: 1005, ic: '📋', t: 'Chốt ngày', d: 'gọi nốt việc còn lại, hẹn lịch mai, báo cáo cuối ngày', g: ['all'] }
+    { s: 975, e: 1005, ic: '📋', t: 'Chốt ngày', d: 'gọi nốt việc còn lại, hẹn lịch khách ngày mai, báo cáo cuối ngày', g: ['all'] },
+    { s: 1005, e: 1440, ic: '🌙', t: 'Ca trực', d: 'trả lời khách mới từ quảng cáo, xác nhận đơn mới, rồi làm nốt việc còn lại', g: ['order', 'hot', 'lead'], duty: 1 }
   ];
+  // 16/11/2026 anh Sơn: sau 16:45 và Chủ nhật KHÔNG báo "hết giờ" (như nhắc nhân sự về). Tinh thần VitaGreen: làm hết việc, không phải hết giờ;
+  // tối và Chủ nhật có người trực khách quảng cáo → hiện "🌙 Ca trực", ưu tiên đơn mới + khách vừa hỏi.
   var TD_BATCH = 5;
   function tdsMin() { var d = vnDate(Date.now()); return d.h * 60 + d.mi; }
   function tdsSun() { return new Date(Date.now() + 7 * 3600e3).getUTCDay() === 0; }
-  function tdsIx(m) { for (var i = 0; i < TD_SLOTS.length; i++) if (m >= TD_SLOTS[i].s && m < TD_SLOTS[i].e) return i; return m < TD_SLOTS[0].s ? -1 : 99; }
+  function tdsIx(m) { if (tdsSun()) return TD_SLOTS.length - 1; for (var i = 0; i < TD_SLOTS.length; i++) if (m >= TD_SLOTS[i].s && m < TD_SLOTS[i].e) return i; return m < TD_SLOTS[0].s ? -1 : 99; }
   function tdsHm(m) { return Math.floor(m / 60) + ':' + pad(m % 60); }
   function tdsKey(x) { return x.k + ':' + (x.k === 'care' ? x.c.phone : x.l ? x.l.id : x.o.id); }
   function tdsGrp(x) { return x.k === 'care' && taskKey(x.c) === 'callback' ? 'cb' : x.k; }
@@ -1747,13 +1750,14 @@
         '<button type="button" class="btn" data-tdbrk="' + ix + '">Làm tiếp luôn ›</button></section>';
     }
     var head, sub = '', wn = TD_SLOTS.filter(function (s) { return !s.brk; });
-    if (sun) { head = '🌙 Chủ nhật nghỉ'; sub = 'Hôm nay chỉ người trực số quảng cáo làm. Có việc gấp thì làm ở dưới.'; }
-    else if (ix < 0) { head = '☀️ Ca làm bắt đầu lúc 8:00'; sub = 'Đến sớm thì làm trước lượt đầu tiên nhé.'; }
-    else if (ix === 99) { head = '🌙 Hết giờ làm (16:45)'; sub = 'Cảm ơn bạn!' + (helped ? ' Hôm nay bạn đã chăm sóc ' + helped + ' khách.' : '') + ' Nhớ gửi báo cáo cuối ngày.'; }
-    else {
-      var nb = TD_SLOTS.filter(function (s) { return s.brk && s.s >= sl.e; })[0], left = (nb ? nb.s : 1005) - m;
-      head = sl.ic + ' ' + sl.t; sub = tdsHm(sl.s) + ' – ' + tdsHm(sl.e) + ' · ' + sl.d + ' · còn ' + left + ' phút ' + (nb ? 'rồi ' + nb.brk.toLowerCase() : 'là hết giờ');
-      hi += 'Khung ' + (wn.indexOf(sl) + 1) + '/' + wn.length;
+    if (ix < 0) { head = '🌅 Khởi động sớm'; sub = 'Ca chính bắt đầu 8:00. Bạn đến sớm thì làm trước lượt đầu tiên, khách được quan tâm sớm hơn.'; }
+    else if (sl.duty) {
+      head = sl.ic + ' ' + (sun ? 'Trực Chủ nhật' : 'Ca trực tối');
+      sub = 'Ưu tiên trả lời khách mới từ quảng cáo và xác nhận đơn mới, rồi làm nốt việc còn lại.' + (helped ? ' Hôm nay bạn đã chăm sóc <b>' + helped + ' khách</b>, cảm ơn bạn!' : '');
+    } else {
+      var nb = TD_SLOTS.filter(function (s) { return s.brk && s.s >= sl.e; })[0], nx = nb || TD_SLOTS[ix + 1], left = nx ? nx.s - m : 0;
+      head = sl.ic + ' ' + sl.t; sub = tdsHm(sl.s) + ' – ' + tdsHm(sl.e) + ' · ' + sl.d + (nx && !nx.duty ? ' · còn ' + left + ' phút ' + (nb ? 'rồi ' + nb.brk.toLowerCase() : 'sang ' + nx.ic + ' ' + nx.t) : '');
+      hi += 'Khung ' + (wn.indexOf(sl) + 1) + '/' + (wn.length - 1);
     }
     var st = tdsState(), by = {};
     items.forEach(function (x) { by[tdsKey(x)] = x; });
@@ -1790,10 +1794,11 @@
   /** Lịch cả ngày, thu gọn: khung đã qua ✓, khung đang làm tô xanh. */
   function tdsPlan() {
     var m = tdsMin(), sun = tdsSun();
-    return '<section class="section"><details class="grp tds-plan" data-grp="tdplan"' + (S.f.gopen && S.f.gopen.tdplan ? ' open' : '') + '><summary><span class="g-t">🗓 Lịch làm việc hôm nay</span><span class="g-tip">8:00 – 16:45 · mỗi khung làm gì</span></summary><div class="tds-plan-l">' +
+    if (sun) m = -1;
+    return '<section class="section"><details class="grp tds-plan" data-grp="tdplan"' + (S.f.gopen && S.f.gopen.tdplan ? ' open' : '') + '><summary><span class="g-t">🗓 Lịch làm việc hôm nay</span><span class="g-tip">mỗi khung giờ làm gì · làm hết việc, không phải hết giờ</span></summary><div class="tds-plan-l">' +
       TD_SLOTS.map(function (s) {
-        var st = sun ? '' : m >= s.e ? 'past' : m >= s.s ? 'now' : '';
-        return '<div class="tds-p ' + st + (s.brk ? ' brk' : '') + '"><span class="tds-p-h">' + tdsHm(s.s) + '</span><span>' + (st === 'past' ? '✓ ' : st === 'now' ? '👉 ' : '') + (s.brk ? (s.brk === 'Nghỉ trưa' ? '🍱 ' : '🍵 ') + s.brk + ' tới ' + tdsHm(s.e) : s.ic + ' <b>' + s.t + '</b> · ' + s.d) + '</span></div>';
+        var st = sun ? (s.duty ? 'now' : '') : m >= s.e ? 'past' : m >= s.s ? 'now' : '';
+        return '<div class="tds-p ' + st + (s.brk ? ' brk' : '') + '"><span class="tds-p-h">' + tdsHm(s.s) + '</span><span>' + (st === 'past' ? '✓ ' : st === 'now' ? '👉 ' : '') + (s.brk ? (s.brk === 'Nghỉ trưa' ? '🍱 ' : '🍵 ') + s.brk + ' tới ' + tdsHm(s.e) : s.ic + ' <b>' + (s.duty ? 'Ca trực tối và Chủ nhật' : s.t) + '</b> · ' + s.d) + '</span></div>';
       }).join('') + '<p class="small muted" style="margin:8px 0 0">Đơn mới và khách vừa hỏi luôn được đưa lên đầu, ở khung nào cũng vậy. Khung nào hết việc thì máy lấy sẵn việc của khung sau.</p></div></details></section>';
   }
   // Sang khung giờ mới (vd 10:00 giải lao) thì tab Hôm nay của sale tự đổi, không cần tải lại
