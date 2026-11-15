@@ -358,29 +358,29 @@ mk-man:
   steps:
     - title: Marketing
       els:
-        - ["h", "💵 Tiền"]
-        - ["chips", ["💸 Chi QC", "💰 Khách mới", "🚦 Chi/Thu"], -1]
-        - ["h", "📇 Data & khách"]
-        - ["chips", ["📇 Giá 1 data", "🛒 Mua/100", "👤 Giá 1 khách"], -1]
-        - ["note", "🟢 tốt · 🟠 để ý · 🔴 cần xử lý"]
+        - ["h", "📇 Số điện thoại về cho sale"]
+        - ["card", "🔴 Đang thiếu số", "Về 39 số / ngày · cần 79 số / ngày", "r"]
+        - ["chips", ["Hôm nay 18 số", "Tháng 506 / 1.767"], -1]
+        - ["chips", ["⭐ 1 số 96k", "⏳ Chưa gọi 244"], -1]
+        - ["note", "💰 Ngân sách còn đủ mua bao nhiêu số"]
       hi: 1
-      text: "Mở tab <b>📣 Marketing</b>. Nhìn <b>6 ô số</b>: hàng trên là <b>tiền</b>, hàng dưới là <b>số điện thoại và khách</b>. Nhìn màu đèn trước."
+      text: "Mở tab <b>📣 Marketing</b>. Ô đầu tiên trả lời câu quan trọng nhất: <b>số điện thoại về cho sale đã đủ chưa, giá 1 số bao nhiêu</b>. Đọc dòng có đèn 🟢🟠🔴 trước."
     - title: Marketing
       els:
-        - ["h", "✅ Nên làm gì"]
-        - ["card", "🔴 Marketing: tắt chiến dịch SỮA-7-10", "Giá 1 số đắt hơn mức tốt 45%", "r"]
-        - ["card", "🟠 Sale: còn 12 số chưa gọi", "Nhắc sale gọi trong hôm nay", "y"]
-        - ["card", "🟢 Marketing: tăng 20% DILVANG", "Rẻ hơn mức tốt 25%", "g"]
+        - ["h", "✅ Việc cần làm hôm nay"]
+        - ["card", "1 · Marketing: tắt chiến dịch SỮA-7-10", "Giá 1 tin đắt gấp 2 lần mức tốt", "r"]
+        - ["card", "2 · Marketing: tăng 20% DILVANG", "Rẻ hơn mức tốt 25%", "g"]
+        - ["card", "3 · Sale: còn 12 số chưa gọi", "Nhắc sale gọi trong hôm nay", "y"]
       hi: 1
-      text: "Ô <b>✅ Nên làm gì</b>: tối đa 5 việc, việc gấp đứng trước, ghi rõ <b>ai làm</b>. Làm theo <b>từ trên xuống</b>."
+      text: "Ô <b>✅ Việc cần làm hôm nay</b>: các việc đã <b>đánh số 1, 2, 3</b>, ghi rõ <b>ai làm</b>. Làm lần lượt từ bước 1. Bấm <b>Xem</b> để tới đúng chỗ cần sửa."
     - title: Marketing
       els:
         - ["h", "📘 Quảng cáo Facebook đang chạy"]
-        - ["card", "Hôm nay chi 1,2tr · ⭐ 1 SĐT 240k", "CPM · CTR · tin nhắn", "g"]
-        - ["chips", ["🔴 Xử lý", "🟢 Tăng", "🟠 Giữ"], 0]
-        - ["note", "Kéo xuống: 4 câu hỏi · Xem chi tiết"]
-      hi: 1
-      text: "Ngay dưới là <b>📘 Quảng cáo Facebook đang chạy</b>. Số quan trọng nhất: <b>⭐ giá 1 SĐT</b> (tốt: dưới 300k). Phần chi tiết thu gọn, bấm tiêu đề mới mở."
+        - ["card", "DILVANG-11 · 🟢 Nên tăng tiền", "👉 Tăng 20% ngân sách", "g"]
+        - ["btn", "👉 Làm ngay: ➕ Tăng 20%", "g"]
+        - ["note", "Kéo xuống: 📊 Kết quả theo kỳ · 🔎 Chi tiết"]
+      hi: 2
+      text: "Ngay dưới là <b>📘 Quảng cáo Facebook đang chạy</b>: mỗi chiến dịch có 1 dòng <b>👉 việc nên làm</b> và nút <b>👉 Làm ngay</b>. Kéo xuống nữa là <b>📊 Kết quả theo kỳ</b> (6 ô số) và phần chi tiết."
 mk-fb:
   title: Xem và sửa quảng cáo Facebook mỗi ngày
   steps:
@@ -396,10 +396,10 @@ mk-fb:
       els:
         - ["card", "👉 Giảm 30%: 600k → 420k / ngày", "Lời khuyên của máy", "y"]
         - ["btn", "👉 Làm ngay", "g"]
-        - ["btn2", "💰 Sửa ngân sách", "⏸ Tắt", ""]
-        - ["btn", "🔍 Xem như khách thấy", ""]
+        - ["btn", "▸ Xem thêm, sửa tay", ""]
+        - ["note", "Trong đó: 💰 Sửa ngân sách · ⏸ Tắt · mẫu quảng cáo"]
       hi: 1
-      text: "Đồng ý với lời khuyên thì bấm <b>👉 Làm ngay</b>. Muốn số khác thì <b>💰 Sửa ngân sách</b>. Muốn dừng thì <b>⏸ Tắt</b>."
+      text: "Đồng ý với lời khuyên thì bấm <b>👉 Làm ngay</b>. Muốn số khác, muốn tắt hay xem mẫu quảng cáo: bấm <b>Xem thêm, sửa tay</b> rồi chọn <b>💰 Sửa ngân sách</b> hoặc <b>⏸ Tắt</b>."
     - title: Hỏi lại
       els:
         - ["h", "Giảm ngân sách SỮA-7-10?"]
@@ -413,11 +413,12 @@ mk-mt:
   steps:
     - title: Marketing
       els:
+        - ["h", "📇 Số điện thoại về cho sale"]
+        - ["card", "🧮 Máy tính ra số cần thế nào?", "120 khách mới · 900 số · ≈ 30 số / ngày", "g"]
         - ["h", "🎯 Mục tiêu & ngân sách tháng"]
-        - ["card", "🧮 Cần 120 khách mới · 900 số data", "≈ 30 số mỗi ngày (tính từ mục tiêu sale)", "g"]
         - ["btn", "🎯 Đặt mục tiêu của tôi", ""]
-      hi: 2
-      text: "Đầu tháng, kéo xuống mục <b>🎯 Mục tiêu & ngân sách tháng</b>. Đọc khung <b>🧮</b>: cần bao nhiêu khách mới, bao nhiêu số. Bấm <b>🎯 Đặt mục tiêu của tôi</b>."
+      hi: 3
+      text: "Đầu tháng, mở <b>🧮 Máy tính ra số cần thế nào?</b> trong ô <b>📇</b> đầu trang để biết cần bao nhiêu khách mới, bao nhiêu số. Rồi bấm <b>🎯 Mục tiêu</b> (hàng <i>Đi nhanh tới</i>) → <b>🎯 Đặt mục tiêu của tôi</b>."
     - title: Đặt mục tiêu
       els:
         - ["in", "📘 Facebook · tiền khách mới", "180.000.000"]

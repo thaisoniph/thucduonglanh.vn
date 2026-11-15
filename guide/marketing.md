@@ -10,7 +10,7 @@ roles: [mkt, ql]
 ---
 Trang này dành cho bạn **làm marketing** và bạn **phụ trách sàn** (Shopee, TikTok Shop).
 
-> **Một câu dễ nhớ:** Mỗi sáng mở tab **📣 Marketing**, làm theo ô **✅ Nên làm gì** từ trên xuống. Số quan trọng nhất là **⭐ giá 1 số điện thoại**.
+> **Một câu dễ nhớ:** Mỗi sáng mở tab **📣 Marketing**, nhìn ô **📇** đầu trang xem số điện thoại về cho sale đã đủ chưa, rồi làm theo ô **✅ Việc cần làm hôm nay** từ bước 1. Số quan trọng nhất là **⭐ giá 1 số điện thoại**.
 
 Làm bài viết, video, ảnh theo khoá content: xem trang **[Content](/huong-dan/content/)**.
 
@@ -19,7 +19,7 @@ Làm bài viết, video, ảnh theo khoá content: xem trang **[Content](/huong-
 **Mỗi sáng (khoảng 10 phút):**
 
 1. Đọc tin Telegram **📣 Marketing sáng nay** (8h).
-2. Mở tab **📣 Marketing**, làm các việc trong **✅ Nên làm gì** ([cách đọc màn hình](#viec-1-doc-man-hinh-marketing)).
+2. Mở tab **📣 Marketing**, xem ô **📇 Số điện thoại về cho sale** rồi làm các việc trong **✅ Việc cần làm hôm nay** ([cách đọc màn hình](#viec-1-doc-man-hinh-marketing)).
 3. Xem **📘 Quảng cáo Facebook**: chiến dịch 🔴 thì giảm / tắt, 🟢 thì tăng tiền ([Việc 2](#viec-2-xem-va-sua-quang-cao-facebook)).
 4. Duyệt bài trợ lý viết ([trang Content](/huong-dan/content/#viec-1-duyet-bai-tro-ly-viet)).
 
@@ -52,20 +52,39 @@ Bạn không thấy khách đã mua, đơn hàng hay doanh số toàn công ty. 
 
 [[steps:mk-man]]
 
-**6 ô số:**
+Màn hình xếp theo đúng thứ tự làm việc, đọc từ trên xuống (từ 15/11/2026). Hàng **Đi nhanh tới** dưới tên trang đưa bạn tới thẳng từng phần.
+
+**1. Ô 📇 Số điện thoại về cho sale: đủ chưa, giá bao nhiêu?** Luôn tính **hôm nay** và **tháng này**.
+
+| Ô | Nghĩa là |
+| --- | --- |
+| 📅 Hôm nay đã về | Số điện thoại khách để lại hôm nay, và mỗi ngày cần bao nhiêu số |
+| 🗓 Tháng này đã về | Đã về bao nhiêu trên tổng số cần cả tháng (thanh xanh, vạch đen = hôm nay) |
+| ⭐ Giá 1 số điện thoại | Tiền quảng cáo tháng này ÷ số đã về. Tốt: dưới 300k |
+| ⏳ Số sale chưa gọi xong | Số về từ hôm qua trở về trước mà sale chưa ghi kết quả gọi |
+
+- Dòng có đèn nói ngay: 🟢 đang đủ nhịp, 🟠 hơi thiếu, 🔴 đang thiếu số (7 ngày qua mỗi ngày về bao nhiêu, từ nay cần bao nhiêu số / ngày).
+- Dòng **💰** nói ngân sách còn lại đủ mang về bao nhiêu số ở giá hiện tại. Không đủ thì có 2 cách: kéo giá 1 số xuống, hoặc xin thêm ngân sách.
+- **🧮 Máy tính ra số cần thế nào?** (bấm để mở): CRM cộng mục tiêu các sale văn phòng, lấy phần phải đến từ khách mới quảng cáo, tính ra cần bao nhiêu khách mới và bao nhiêu số. Sale đổi mục tiêu thì số này tự đổi.
+
+**2. Ô ✅ Việc cần làm hôm nay:** các việc đánh số 1, 2, 3… Làm lần lượt từ bước 1. Nhãn màu ghi ai làm (Marketing hay Sale).
+
+**3. 📘 Quảng cáo Facebook đang chạy:** nơi bạn sửa quảng cáo ([Việc 2](#viec-2-xem-va-sua-quang-cao-facebook)).
+
+**4. 📊 Kết quả theo kỳ:** chọn kỳ (Hôm nay, Tuần này, Tháng này…) rồi đọc **6 ô số**:
 
 | Ô | Nghĩa là | Tốt khi |
 | --- | --- | --- |
-| 💸 Chi quảng cáo | Tiền đã bỏ ra quảng cáo | Đúng ngân sách |
-| 💰 Khách mới | Tiền khách mới mua (tính cả đơn hoàn / huỷ, vì hoàn huỷ là việc của sale) | Tăng |
-| 🚦 Chi / Thu | Chi phí so với tiền khách mới | Thấp hơn mục tiêu % |
-| 📇 Giá 1 data | Chi bao nhiêu để có 1 số điện thoại | Dưới 300k |
-| 🛒 Mua / 100 | 100 số thì mấy người mua | Tăng |
-| 👤 Giá 1 khách | Chi bao nhiêu để có 1 khách mới | Thấp hơn mức tối đa |
+| 💸 Tiền bỏ ra quảng cáo | Tiền đã bỏ ra quảng cáo | Đúng ngân sách |
+| 💰 Doanh số khách mới | Tiền khách mới mua (tính cả đơn hoàn / huỷ, vì hoàn huỷ là việc của sale) | Tăng |
+| 🚦 Chi phí / tiền khách mới | Chi phí so với tiền khách mới | Thấp hơn mục tiêu % |
+| 📇 Giá 1 số điện thoại | Chi bao nhiêu để có 1 số điện thoại | Dưới 300k |
+| 🛒 100 số thì mấy người mua? | 100 số thì mấy người mua | Từ 25 người |
+| 👤 Chi phí có 1 khách mới | Chi bao nhiêu để có 1 khách mới | Thấp hơn mức tối đa |
 
-**"Data"** = 1 số điện thoại khách để lại khi xem quảng cáo. **Đèn:** 🟢 tốt · 🟠 cần để ý · 🔴 cần xử lý. Ô chi phí *đang xuống* là tốt.
+Dân marketing hay gọi 1 số điện thoại khách để lại là **"data"**. Trong CRM ghi thẳng là **số điện thoại** cho dễ hiểu. **Đèn:** 🟢 tốt · 🟠 cần để ý · 🔴 cần xử lý. Ô chi phí *đang xuống* là tốt.
 
-**Biểu đồ:** **đường xanh** là tiền khách mới, **đường vàng** là chi phí. Xanh càng cao hơn vàng thì quảng cáo càng có lời. Số tính lại 30 phút một lần, bấm **↻** để tính ngay.
+**Biểu đồ:** **đường xanh** là tiền khách mới, **đường vàng** là chi phí. Xanh càng cao hơn vàng thì quảng cáo càng có lời. Số tính lại 30 phút một lần, bấm **↻ Tính lại** để tính ngay.
 
 Con số cạnh chữ **Marketing** trên thanh tab = số khách để lại số trên web **hôm nay**.
 
@@ -85,17 +104,17 @@ Con số cạnh chữ **Marketing** trên thanh tab = số khách để lại s�
 
 Dòng màu cam: 🎨 khách bấm ít dần → làm hình / video mới; 💸 hôm nay giá thầu đắt → chưa tăng tiền.
 
-**🩺 Khám 7 ngày qua: tiền quảng cáo hở ở đâu?** (ngay dưới dòng tóm tắt): 7 ô có đèn, đọc từ trái sang phải theo đường đi của khách: giá đấu thầu (CPM, tốt dưới 80k) → người thấy có bấm (CTR, tốt từ 1,5%) → bấm vào có nhắn tin (tốt từ 15%) → giá 1 tin → nhắn tin có để số (tốt từ 40%) → ⭐ giá 1 số điện thoại → tiêu hết ngân sách hôm qua (tốt từ 85%). Dòng **🔍 Chỗ hở lớn nhất** nói ô đỏ quan trọng nhất và cách sửa. Tài khoản bị khoá hoặc sắp chạm hạn mức chi cũng báo ở đây.
+Mỗi chiến dịch chỉ hiện nhãn, dòng **👉 việc nên làm** và nút **👉 Làm ngay**. Muốn xem lý do kỹ hơn, số hôm nay, mẫu quảng cáo, hoặc tự sửa ngân sách / tắt: bấm **Xem thêm, sửa tay**.
+
+**🩺 Khám 7 ngày qua: tiền quảng cáo hở ở đâu?** (ngay dưới dòng tóm tắt): dòng **🔍 Chỗ hở lớn nhất** hiện sẵn; bấm **Xem 7 chỉ số** để mở 7 ô có đèn, đọc từ trái sang phải theo đường đi của khách: giá đấu thầu (CPM, tốt dưới 80k) → người thấy có bấm (CTR, tốt từ 1,5%) → bấm vào có nhắn tin (tốt từ 15%) → giá 1 tin → nhắn tin có để số (tốt từ 40%) → ⭐ giá 1 số điện thoại → tiêu hết ngân sách hôm qua (tốt từ 85%). Dòng **🔍 Chỗ hở lớn nhất** nói ô đỏ quan trọng nhất và cách sửa. Tài khoản bị khoá hoặc sắp chạm hạn mức chi cũng báo ở đây.
 
 **🐢 Không tiêu hết tiền**: chiến dịch hôm qua tiêu chưa tới 60% ngân sách. Dòng cam bên dưới nói nguyên nhân: đang tối ưu cho *Mua hàng* khi còn ít đơn, chỉ chạy *tệp nóng*, *độ tuổi hẹp* và tắt Advantage+, hoặc *giới hạn giá thầu*. Những cài đặt này sửa trong Trình quản lý quảng cáo.
 
-**🐢 Không tiêu hết tiền**: chiến dịch hôm qua tiêu chưa tới 60% ngân sách. Dòng cam bên dưới nói nguyên nhân (tối ưu *Mua hàng* khi còn ít đơn, chỉ chạy *tệp nóng*, *độ tuổi hẹp*, *giới hạn giá thầu*). Những cài đặt này sửa trong Trình quản lý quảng cáo.
-
 Lời khuyên còn xem: 🔁 **tần suất** (1 người thấy quảng cáo mấy lần / 7 ngày, trên 2,5 là khách ngán), 🎓 **đang học** (chiến dịch mới: chưa sửa gì 3–5 ngày), CTR thấp (hình chưa hút), bấm nhiều mà ít nhắn (lời chào chưa hay).
 
-Số tự cập nhật 1 tiếng một lần (7h–22h). Trước 7h sáng hiện số hôm qua. Bấm **Hôm qua** để xem cả ngày hôm qua. Bấm **↻** để lấy ngay.
+Số tự cập nhật 1 tiếng một lần (7h–22h). Trước 7h sáng hiện số hôm qua. Bấm **Hôm qua** để xem cả ngày hôm qua. Bấm **↻ Tính lại** để lấy ngay. Dòng **📊 Chỉ số hôm nay của mọi chiến dịch** ghi sẵn số điện thoại, giá 1 số, tin nhắn, CPM, CTR; bấm vào để xem từng ô.
 
-Số tự cập nhật 1 tiếng một lần (7h–22h). Trước 7h sáng hiện số hôm qua. Sửa quảng cáo trong CRM chỉ có ở tài khoản **Marketing** và **Quản trị**; mọi lần sửa đều ghi vào **Nhật ký**.
+Sửa quảng cáo trong CRM chỉ có ở tài khoản **Marketing** và **Quản trị**; mọi lần sửa đều ghi vào **Nhật ký**.
 
 ## Việc 3: Đặt mục tiêu tháng
 
@@ -229,19 +248,20 @@ Muốn biết chính xác khách đến từ kênh nào: khi đăng Zalo, gửi 
 ### 🎯 Mục tiêu & ngân sách tháng
 
 - **🎯 Mục tiêu & ngân sách tháng** (dưới khối 📘 Quảng cáo Facebook): tiến độ mục tiêu của từng bạn, từ 2 người có mục tiêu trở lên thì có bảng thi đua xếp theo **% mục tiêu** (vượt mức chi phí thì không đứng hạng 1); thanh ngân sách đã chi so với ngân sách (chỉ Quản trị đặt).
-  - Khung **🧮 Mục tiêu marketing tính từ mục tiêu sale** (từ 14/11/2026) nằm đầu mục 🎯: CRM cộng mục tiêu các sale văn phòng, lấy phần phải đến từ **khách mới quảng cáo** (theo tỷ lệ thật 3 tháng trước), rồi tính ra cần bao nhiêu **khách mới** và bao nhiêu **số data** cả tháng / mỗi ngày, kèm thanh tiến độ số data đã về. Sale đổi mục tiêu thì số này tự đổi. Bấm **🎯 Đặt mục tiêu** → ô Facebook có nút **Dùng số gợi ý** để lấy luôn số đó (bạn vẫn sửa được), mức **chi phí tối đa %** bạn tự nhập như cũ.
+  - Khung **🧮 Máy tính ra số cần thế nào?** nằm trong ô **📇** đầu trang (từ 15/11/2026; trước đó nằm đầu mục 🎯): CRM cộng mục tiêu các sale văn phòng, lấy phần phải đến từ **khách mới quảng cáo** (theo tỷ lệ thật 3 tháng trước), rồi tính ra cần bao nhiêu **khách mới** và bao nhiêu **số điện thoại** cả tháng / mỗi ngày, kèm thanh tiến độ số đã về. Sale đổi mục tiêu thì số này tự đổi. Bấm **🎯 Đặt mục tiêu** → ô Facebook có nút **Dùng số gợi ý** để lấy luôn số đó (bạn vẫn sửa được), mức **chi phí tối đa %** bạn tự nhập như cũ.
   - Dòng **🧮 Tính ngược** trên thẻ từng kênh (từ 11/11/2026): từ mục tiêu tiền, CRM tính ra **cần khoảng bao nhiêu khách mới**, **bao nhiêu số / tin nhắn** (theo tỷ lệ chốt thật), và **mỗi số được chi tối đa bao nhiêu**. 🟢 = giá mỗi số đang thấp hơn mức đó, 🔴 = đang đắt quá, cần sửa quảng cáo.
 
 ### 👥 Giá trị 1 thành viên nhóm Zalo
 
 - **👥 Khách trong nhóm Zalo mua lại bao nhiêu?** có ô **Giá trị 1 thành viên nhóm**: 1 người trong nhóm mang về bao nhiêu tiền mua lại trong 90 ngày. Kéo 1 người vào nhóm (quà, minigame, quảng cáo) nên tốn **ít hơn** con số này.
-- **🗺 Hệ thống Marketing** (nút góc trên): sơ đồ hệ thống marketing của công ty.
 
-**🗺 Hệ thống Marketing** (nút góc trên): sơ đồ hệ thống marketing của công ty.
+### 🧰 Công cụ (cuối trang)
+
+Bấm **🧰 Công cụ** ở hàng *Đi nhanh tới*: **📍 Link & QR**, **🗺 Hệ thống Marketing** (sơ đồ hệ thống marketing của công ty), **👥 Tệp khách FB** (chỉ Quản trị).
 
 ## Tin Telegram mỗi sáng
 
-Nối Telegram ở **⚙ Cài đặt → 📲 Thông báo Telegram riêng** (cách làm giống bên sale, xem [Đăng nhập](/huong-dan/crm/#dang-nhap)). 8h sáng bạn nhận tin **"📣 Marketing sáng nay"**: hạng thi đua của bạn, tiến độ mục tiêu, số hôm qua, việc nên làm. Muốn xem ngay: cuối tab Marketing bấm **Gửi thử cho tôi**.
+Nối Telegram ở **⚙ Cài đặt → 📲 Thông báo Telegram riêng** (cách làm giống bên sale, xem [Đăng nhập](/huong-dan/crm/#dang-nhap)). 8h sáng bạn nhận tin **"📣 Marketing sáng nay"**: dòng đầu là **📇 Số điện thoại cho sale** (hôm qua về bao nhiêu số, giá 1 số, từ nay cần bao nhiêu số / ngày), rồi hạng thi đua của bạn, tiến độ mục tiêu, số hôm qua, việc nên làm. Muốn xem ngay: cuối tab Marketing bấm **Gửi thử cho tôi**.
 
 ## Trợ lý Zalo, Fanpage
 
@@ -251,7 +271,7 @@ Duyệt bài đăng nhóm, gửi tin vào nhóm, xử lý ca khó: trang **[Tr�
 
 | Chữ | Nghĩa là |
 | --- | --- |
-| Data | 1 số điện thoại khách để lại |
+| Data | 1 số điện thoại khách để lại (trong CRM ghi là "số điện thoại") |
 | CPM | Giá để 1.000 lượt thấy quảng cáo (tốt dưới 80k) |
 | CTR | Trong 100 người thấy, mấy người bấm (tốt từ 1,5%) |
 | CPC | Giá 1 lượt bấm |

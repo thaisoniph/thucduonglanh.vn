@@ -3008,3 +3008,35 @@ details.dash-grp[open] > summary::after { transform: rotate(180deg); }
 .hct-tag.soon { color: #b45309; font-weight: 600; } .hct-tag.late { color: #b91c1c; font-weight: 600; } .hct-tag.none, .hct-tag.draft { color: #8a6d00; }
 .hct-dur { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; font-size: 13px; margin: -4px 0 10px; }
 .hct-tpl { width: 100%; font: 13px/1.5 ui-monospace, Menlo, monospace; margin-top: 8px; box-sizing: border-box; }
+
+/* ---- Marketing 15/11/2026: 📇 đủ số điện thoại chưa · ✅ việc theo bước · mục thu gọn trong khối Facebook · đi nhanh · công cụ */
+.mk-jump { display: flex; align-items: center; gap: 6px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding: 2px 0 6px; margin: 0 0 6px; }
+.mk-jump::-webkit-scrollbar { display: none; }
+.mk-jump > * { flex: 0 0 auto; white-space: nowrap; }
+.mk-need { border: 2px solid #cfe3d5; margin-bottom: 12px; }
+.mk-need.bad { border-color: #f2c4bf; } .mk-need.mid { border-color: #f3d9ad; }
+.mk-need h2 { margin: 0 0 6px; font-size: 17px; line-height: 1.35; color: var(--ink); }
+.mk-need h2 small { font-weight: 400; font-size: 13px; color: var(--muted); white-space: nowrap; }
+.mk-need-v { margin: 0 0 10px; font-size: 16px; font-weight: 600; line-height: 1.45; color: var(--ink); }
+.mk-need-g { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+@media (max-width: 720px) { .mk-need-g { grid-template-columns: repeat(2, 1fr); } }
+.mk-need-g .lv-hl-c b { font-size: 19px; }
+.mk-need .bar { margin: 12px 0 4px; height: 10px; }
+.mk-need-m { margin: 8px 0 0; font-size: 14px; line-height: 1.5; color: var(--ink); }
+.mk-need .link { background: none; border: 0; padding: 0; color: var(--primary); font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer; }
+.mk-need .mk-fs > p { font-size: 14px; }
+.mk-step-l { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
+.mk-step-l li { display: flex; gap: 10px; align-items: flex-start; background: #fff; border: 1px solid #cfe3d5; border-radius: 10px; padding: 8px 10px; font-size: 14px; line-height: 1.5; color: var(--ink); }
+.mk-step-n { flex: 0 0 auto; width: 24px; height: 24px; border-radius: 50%; background: var(--primary); color: #fff; font-weight: 700; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; margin-top: 1px; }
+.lv-more { margin-top: 8px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+.lv-more > summary { cursor: pointer; padding: 8px 10px; font-size: 14px; display: flex; flex-wrap: wrap; gap: 2px 8px; align-items: baseline; list-style: none; }
+.lv-more > summary::-webkit-details-marker { display: none; }
+.lv-more > summary::before { content: '▸'; color: var(--muted); }
+.lv-more[open] > summary::before { content: '▾'; }
+.lv-more > summary b { color: var(--primary); }
+.lv-more > summary span { color: var(--muted); font-size: 13px; }
+.lv-more-b { padding: 2px 10px 10px; }
+.lv-more-b > .mk-camp { box-shadow: none; border: 0; padding: 0; }
+.mk-tools { margin: 16px 0 0; padding: 12px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); }
+.mk-tools .steps { margin: 8px 0; }
+@media (max-width: 720px) { .lv-box .lv-f { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; } .lv-box .lv-f .chip { flex: 0 0 auto; white-space: nowrap; } }
