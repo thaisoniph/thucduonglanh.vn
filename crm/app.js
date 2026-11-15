@@ -881,9 +881,9 @@
     var main = navMain(), n = navCounts(), info = navInfo();
     var rest = myViews().filter(function (v) { return main.indexOf(v.id) < 0 && v.id !== 'cai-dat'; });
     var badge = function (k) { return k ? '<em class="mr-n">' + (k > 99 ? '99+' : k) + '</em>' : ''; };
-    var row = function (open, icon, tint, label, desc, k, x) { return open + '<i class="mr-ic" style="background:' + tint + '">' + icon + '</i><span class="mr-t"><b>' + label + '</b>' + (desc ? '<small>' + desc + '</small>' : '') + (x ? '<small class="mr-kpi-t">' + esc(x.tip) + '</small>' : '') + '</span>' + (x ? navKpi(x) : '') + badge(k) + '<span class="mr-chev" aria-hidden="true">›</span>'; };
+    var row = function (open, icon, tint, label, desc, k, x) { return open + '<i class="mr-ic" style="background:' + tint + '">' + icon + '</i><span class="mr-t"><b>' + label + '</b>' + (desc ? '<small>' + desc + '</small>' : '') + '</span>' + (x ? navKpi(x) : '') + badge(k) + '<span class="mr-chev" aria-hidden="true">›</span>'; };
     var vrow = function (v) { return row('<a class="mr-row" href="#' + v.id + '">', I[v.icon], VIEW_TINT[v.id] || '#8e8e93', v.label, VIEW_DESC[v.id], n[v.id], info[v.id]) + '</a>'; };
-    var group = function (t, rows) { return rows ? '<section class="mr-g">' + (t ? '<h2>' + t + '</h2>' : '') + '<div class="mr-list">' + rows + '</div></section>' : ''; };
+    var group = function (t, rows, sub) { return rows ? '<section class="mr-g">' + (t ? '<h2>' + t + '</h2>' : '') + (sub ? '<p class="mr-sub">' + sub + '</p>' : '') + '<div class="mr-list">' + rows + '</div></section>' : ''; };
     var isCh = function (v) { return v.mkt || v.lq || v.san || v.ait; };
     var h = '<div class="mr"><div class="page-head"><h1>Thêm</h1></div>' +
       '<div class="mr-me"><span class="mr-av">' + esc((S.user.name || '?').trim().split(/\s+/).pop().charAt(0).toUpperCase()) + '</span><span class="mr-t"><b>' + esc(S.user.name) + '</b><small>' + esc(S.user.role || '') + ' · ' + esc(S.user.email || '') + '</small></span></div>' +
@@ -907,17 +907,30 @@
   function moreCeo(rest, vrow, row, group) {
     var pick = function (ids) { return ids.map(function (id) { return rest.filter(function (v) { return v.id === id; })[0]; }).filter(Boolean).map(vrow).join(''); };
     var known = ['hom-nay', 'tiem-nang', 'khach-hang', 'zalo-sale', 'ke-toan', 'kho', 'san', 'link-qr', 'tro-ly-zalo', 'fanpage', 'noi-dung', 'bai-web', 'hoi-so-lieu', 'doi-ai'];
-    return group('Việc của sale', pick(['hom-nay', 'tiem-nang', 'khach-hang', 'zalo-sale'])) +
-      group('Tiền & hàng', pick(['ke-toan', 'kho', 'san'])) +
-      group('Kênh marketing', pick(['link-qr', 'tro-ly-zalo', 'fanpage', 'noi-dung', 'bai-web'])) +
-      group('Công cụ',
-        pick(['doi-ai', 'hoi-so-lieu']) + rest.filter(function (v) { return known.indexOf(v.id) < 0; }).map(vrow).join('') +
-        row('<button type="button" class="mr-row" data-mr="use">', '📈', '#af52de', 'Mức dùng CRM', 'Ai vào, ai chưa vào, dùng bao lâu · cả anh và anh Hiếu', 0) + '</button>' + // 14/11: chuyển từ tab Hiệu quả sang đây
+    var k = S.d.kho || {}, no = newOrders().length, hot = hotLeads().length, up = unpaidOrders().length, fb = S.d.fbNew || 0;
+    // Khung "Việc cần làm bây giờ" (16/11/2026): mỗi dòng = 1 việc, chữ đầu là động từ, bấm là tới đúng chỗ làm
+    var todo = [];
+    if (no) todo.push(['#don-hang', '🛒', '#a2845e', 'Xác nhận đơn mới', no + ' đơn mới đang chờ', no]);
+    if (hot) todo.push(['#tiem-nang', '📞', '#ff9500', 'Nhắc sale gọi khách vừa hỏi', hot + ' người để lại số, chưa ai gọi', hot]);
+    if (k.need) todo.push(['#kho', '📦', '#8e5a2b', 'Đặt thêm hàng', k.need + ' sản phẩm sắp hết', k.need]);
+    if (k.ret) todo.push(['#kho', '↩️', '#8e5a2b', 'Nhận hàng hoàn về kho', k.ret + ' đơn hoàn đang về', k.ret]);
+    if (up) todo.push(['#ke-toan', '💳', '#0a7d5a', 'Kiểm tra tiền chuyển khoản', up + ' đơn chưa thấy tiền về', up]);
+    var todoH = todo.length ? '<section class="mr-g mr-todo"><h2>👉 Việc cần làm bây giờ</h2><div class="mr-list">' + todo.map(function (t) { return row('<a class="mr-row" href="' + t[0] + '">', t[1], t[2], t[3], t[4], t[5]) + '</a>'; }).join('') + (fb ? row('<button type="button" class="mr-row" data-mr="fb">', '💡', '#ffcc00', 'Đọc góp ý mới', fb + ' góp ý từ nhân sự', fb) + '</button>' : '') + '</div></section>'
+      : '<div class="mr-ok">✅ <b>Chưa có việc gấp.</b> Muốn xem kỹ hơn thì chọn một bước bên dưới.</div>';
+    var more = rest.filter(function (v) { return known.indexOf(v.id) < 0 || v.id === 'doi-ai'; }).map(vrow).join('') +
+      row('<button type="button" class="mr-row" data-mr="use">', '📈', '#af52de', 'Mức dùng CRM', 'Ai vào, ai chưa vào, dùng bao lâu', 0) + '</button>' + // 14/11: chuyển từ tab Hiệu quả sang đây
+      (isApp() ? '' : row('<button type="button" class="mr-row" data-mr="inst">', '📲', '#5856d6', 'Cài ra màn hình điện thoại', 'Mở CRM 1 chạm như ứng dụng', 0) + '</button>') +
+      row('<button type="button" class="mr-row" data-mr="re">', I.refresh, '#34c759', 'Tải lại dữ liệu', 'Lấy số mới nhất từ máy chủ', 0) + '</button>';
+    return todoH +
+      group('① Xem đội sale', pick(['hom-nay', 'tiem-nang', 'khach-hang', 'zalo-sale']), 'Sale có đang gọi khách và chốt đơn không?') +
+      group('② Kiểm tiền & hàng', pick(['ke-toan', 'kho', 'san']), 'Tiền đã về chưa? Hàng còn đủ bán không?') +
+      group('③ Kênh kéo khách về', pick(['link-qr', 'tro-ly-zalo', 'fanpage', 'noi-dung', 'bai-web']), 'Nơi khách tìm đến công ty: Zalo, Fanpage, bài viết, mã QR') +
+      group('④ Công cụ & trợ giúp',
+        pick(['hoi-so-lieu']) +
+        row('<a class="mr-row" href="/huong-dan/crm/" target="_blank" rel="noopener">', I.help, '#30b0c7', 'Hướng dẫn sử dụng', 'Từng bước làm, có hình minh hoạ', 0) + '</a>' +
         vrow(VIEWS.filter(function (v) { return v.id === 'cai-dat'; })[0]) +
-        row('<a class="mr-row" href="/huong-dan/crm/" target="_blank" rel="noopener">', I.help, '#30b0c7', 'Hướng dẫn sử dụng', 'Cách dùng từng màn hình, có hình', 0) + '</a>' +
-        row('<button type="button" class="mr-row" data-mr="fb">', '💡', '#ffcc00', 'Góp ý', 'Báo lỗi, chỗ khó dùng, ý tưởng', S.d.fbNew) + '</button>' +
-        (isApp() ? '' : row('<button type="button" class="mr-row" data-mr="inst">', '📲', '#5856d6', 'Cài ra màn hình điện thoại', 'Mở CRM 1 chạm như ứng dụng, có hình từng bước', 0) + '</button>') +
-        row('<button type="button" class="mr-row" data-mr="re">', I.refresh, '#34c759', 'Tải lại dữ liệu', 'Lấy số mới nhất từ máy chủ', 0) + '</button>');
+        (fb ? '' : row('<button type="button" class="mr-row" data-mr="fb">', '💡', '#ffcc00', 'Góp ý', 'Báo lỗi, chỗ khó dùng, ý tưởng', 0) + '</button>') +
+        '<details class="mr-fold"><summary>Công cụ ít dùng</summary>' + more + '</details>');
   }
   function bindMore() {
     $$('[data-mr]').forEach(function (b) {

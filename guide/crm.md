@@ -363,6 +363,8 @@ Từ đó, CRM cho bạn biết mỗi ngày cần bán bao nhiêu. Thanh màu ch
 
 **Các tab** (trên điện thoại nằm ở thanh dưới cùng). Thanh dưới chỉ hiện **4 tab hay dùng + ••• Thêm**: với sale là **Hôm nay · Khách hỏi · Đơn hàng · Hiệu quả**. Tab nào không thấy thì bấm **••• Thêm**: ở đó có các tab còn lại (mỗi dòng ghi rõ dùng để làm gì), **Cài đặt**, **Hướng dẫn**, **💡 Góp ý**, **Tải lại dữ liệu**. Số đỏ trên nút Thêm = việc đang chờ ở các tab bên trong (ví dụ đơn mới).
 
+**Màn Thêm của Quản trị** đọc từ trên xuống: khung đỏ **👉 Việc cần làm bây giờ** (mỗi dòng là một việc, chữ đầu là việc cần làm, bấm vào là tới đúng chỗ; không có khung đỏ nghĩa là chưa có việc gấp) → 4 bước **① Xem đội sale · ② Kiểm tiền & hàng · ③ Kênh kéo khách về · ④ Công cụ & trợ giúp**. Công cụ ít dùng (Mức dùng CRM, Đội nhân sự AI, Cài ra màn hình, Tải lại dữ liệu) được cất trong dòng **Công cụ ít dùng**.
+
 **Cần trợ giúp?** Bấm **❓** ở góc trên bên phải là mở ngay trang hướng dẫn đúng việc của bạn, gõ câu hỏi vào ô tìm ở đó.
 
 | Tab | Dùng để |

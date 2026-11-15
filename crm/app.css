@@ -1374,6 +1374,18 @@ div.f > span { display: block; font-size: 13px; font-weight: 600; color: var(--i
 .mr-t small { font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
 .mr-n { font-style: normal; background: #e53935; color: #fff; border-radius: 10px; min-width: 22px; height: 22px; padding: 0 7px; font-size: 12px; font-weight: 700; line-height: 22px; text-align: center; flex: none; }
 .mr-chev { color: #c4c4c7; font-size: 24px; line-height: 1; flex: none; }
+/* Màn Thêm của Quản trị (16/11/2026): khung việc cần làm + 4 bước đánh số */
+.mr-sub { font-size: 13px; color: var(--muted); margin: -2px 0 8px 14px; }
+.mr-todo h2 { color: #c62828; }
+.mr-todo .mr-list { border: 1.5px solid #f1b8b0; background: #fff; }
+.mr-todo .mr-t b { font-size: 17px; }
+.mr-todo .mr-t small { color: #5c5c60; font-size: 14px; }
+.mr-ok { background: #eaf4ec; color: var(--primary); border-radius: 14px; padding: 13px 14px; margin-bottom: 22px; font-size: 15px; line-height: 1.4; }
+.mr-fold { border-top: 1px solid var(--line); }
+.mr-fold > summary { list-style: none; cursor: pointer; padding: 14px 14px; font-size: 15px; font-weight: 600; color: var(--muted); display: flex; justify-content: space-between; align-items: center; }
+.mr-fold > summary::-webkit-details-marker { display: none; }
+.mr-fold > summary::after { content: "﹀"; font-size: 14px; }
+.mr-fold[open] > summary::after { content: "︿"; }
 
 /* Sale: nhãn % mục tiêu tháng trên nút Hiệu quả (29/10/2026). Xanh = đúng tiến độ, cam = hơi chậm, đỏ = đang chậm */
 .nav-kpi { min-width: 30px; height: 18px; padding: 0 6px; border-radius: 9px; background: var(--primary); color: #fff; font-size: 11px; font-weight: 800; line-height: 18px; text-align: center; font-variant-numeric: tabular-nums; white-space: nowrap; flex: none; }
