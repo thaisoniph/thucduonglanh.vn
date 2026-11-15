@@ -54,7 +54,7 @@ Tab **Hôm nay** chia ngày làm việc thành **từng khung giờ**, mỗi l�
 
 > **Câu dễ nhớ:** *Nhìn khung giờ → gọi 5 khách → mở lượt tiếp.*
 
-**Lịch làm việc gợi ý** (bấm **🗓 Lịch làm việc gợi ý** để xem). Lịch này dựng từ cách làm của sale bán tốt nhất văn phòng. Đây chỉ là khung tham khảo, ai có cách làm hiệu quả hơn thì cứ làm theo cách của mình.
+**Lịch làm việc gợi ý** (bấm **🗓 Lịch làm việc gợi ý** để xem). Lịch này học từ cách làm hay của **Thu Phương**, cảm ơn Phương đã chia sẻ. Đây chỉ là khung tham khảo: mỗi người một cách, mỗi ngày tốt hơn hôm qua một chút là được. Bạn có mẹo hay thì bấm **💡 Góp ý** để cả nhóm cùng học.
 
 - **8:00 ☀️ Khởi động:** xác nhận đơn mới, gọi khách vừa hỏi, xem danh sách hẹn gọi lại hôm nay.
 - **8:15 🔥 Giờ vàng sáng:** gọi khách hẹn gọi lại, giữ đơn đang giao, gọi khách cũ. **9h là giờ chốt được nhiều đơn nhất trong ngày.**
@@ -67,7 +67,7 @@ Tab **Hôm nay** chia ngày làm việc thành **từng khung giờ**, mỗi l�
 - **16:15 📋 Chốt ngày:** hẹn giờ gọi lại cho từng khách chưa chốt, bấm **📋 Báo cáo cuối ngày**.
 - **Từ 16:45 và Chủ nhật 🌙 Ca trực:** người trực trả lời khách mới từ quảng cáo, xác nhận đơn mới, rồi làm nốt việc còn lại.
 
-> **Bí quyết của sale bán tốt nhất:** vào việc ngay từ 8:00 và gọi dồn buổi sáng. Khách nào chưa chốt cũng **hẹn giờ gọi lại**, nên sáng hôm sau đã có sẵn danh sách để gọi trong giờ vàng.
+> **Mẹo hay từ Thu Phương:** vào việc ngay từ 8:00 và gọi dồn buổi sáng. Khách nào chưa chốt cũng **hẹn giờ gọi lại**, nên sáng hôm sau đã có sẵn danh sách để gọi trong giờ vàng.
 
 > Người VitaGreen **làm hết việc, không phải hết giờ**. CRM không báo "hết giờ": việc còn thì vẫn hiện để ai đang làm, đang trực làm tiếp.
 
