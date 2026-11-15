@@ -46,7 +46,7 @@ import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, wbInf
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-11-15z'; // + bảng zs_* (giám sát Zalo của sale) // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
+const SCHEMA_V = '2026-11-16a'; // + users.gv (✅ Việc tuần bật theo từng người) + sessions.seen / ua (lần cuối vào CRM, máy nào) // + bảng zs_* (giám sát Zalo của sale) // đổi số này khi thêm bảng / cột / chỉ mục bên dưới → lần chạy sau tự kiểm tra lại
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -91,6 +91,14 @@ export async function ensureSchema(db) {
     for (const col of ['phone', 'full', 'acct', 'joined', 'dob', 'ctv']) if (!ucols.includes(col)) { try { await run(db, `ALTER TABLE users ADD COLUMN ${col} TEXT DEFAULT ''`); } catch (e) { } } // 30/10/2026: SĐT + họ tên đầy đủ nhân sự → cảnh báo nhân sự / người nhà đăng ký CTV (partner.js staffHit)
     if (!ucols.includes('mkv')) { try { await run(db, "ALTER TABLE users ADD COLUMN mkv TEXT DEFAULT ''"); } catch (e) { } }
     if (!ucols.includes('zb')) { try { await run(db, "ALTER TABLE users ADD COLUMN zb TEXT DEFAULT ''"); } catch (e) { } }
+    if (!ucols.includes('gv')) { try { await run(db, "ALTER TABLE users ADD COLUMN gv TEXT DEFAULT ''"); } catch (e) { } } // 16/11/2026 anh Sơn: ✅ Việc tuần bật theo từng người (thử nghiệm vài bạn trước, sale chưa bật)
+    if (!(await db.prepare("SELECT v FROM kv WHERE k = 'gv_mig'").first())) { // chạy 1 lần: ai đang tham gia nhịp tuần (không nằm trong danh sách bỏ tích cũ gv_cfg.out), trừ sale, thì bật sẵn
+      try { const g = await db.prepare("SELECT v FROM kv WHERE k = 'gv_cfg'").first(), out = g ? (JSON.parse(g.v).out || []) : null; if (out) for (const r of await all(db, "SELECT email FROM users WHERE active = 1 AND role != 'Sale & CSKH' AND role != 'Nhân viên'")) if (out.indexOf(String(r.email).toLowerCase()) < 0) await run(db, "UPDATE users SET gv = 'Có' WHERE email = ?", r.email); await run(db, "INSERT INTO kv (k, v) VALUES ('gv_mig', ?) ON CONFLICT(k) DO NOTHING", String(Date.now())); } catch (e) { console.error('gv migrate', e.message); }
+    }
+    const scols = (await all(db, "PRAGMA table_info(sessions)")).map(r => r.name); // 16/11/2026: lần cuối vào CRM + máy nào (Cài đặt → Nhân sự, nút Đăng xuất mọi máy)
+    if (!scols.includes('seen')) { try { await run(db, 'ALTER TABLE sessions ADD COLUMN seen INTEGER'); } catch (e) { } }
+    if (!scols.includes('ua')) { try { await run(db, "ALTER TABLE sessions ADD COLUMN ua TEXT DEFAULT ''"); } catch (e) { } }
+    if (!scols.includes('at')) { try { await run(db, 'ALTER TABLE sessions ADD COLUMN at INTEGER'); } catch (e) { } }
     if (!ucols.includes('kho')) { try { await run(db, "ALTER TABLE users ADD COLUMN kho TEXT DEFAULT ''"); } catch (e) { } } // 06/11/2026: 📦 Phụ trách kho (nhận tin sắp hết hàng, nhập / xuất / kiểm kho) // 31/10/2026: 🤖 Phụ trách Trợ lý Zalo (người được giao, kể cả Sale) // 26/10/2026: 📣 Xem Marketing (Quản lý / Sale chỉ xem tab Marketing)
     await run(db, "UPDATE users SET role = 'Sale & CSKH' WHERE role = 'Nhân viên'"); // 15/10/2026: đổi tên quyền
     if (!ccols.includes('zone')) await run(db, "INSERT INTO kv (k, v) VALUES ('recalc_all', '1') ON CONFLICT(k) DO UPDATE SET v = '1'"); // 27/10/2026: vùng giao hàng đọc từ địa chỉ → tính lại mọi khách 1 lần
@@ -281,11 +289,11 @@ const USERS_SQL = 'SELECT * FROM users ORDER BY ord, rowid';
 function usersFrom(x, rows) {
   const list = rows.map(r => {
     const e = String(r.email || '').trim().toLowerCase(), role = roleOf(r.role);
-    return { email: e, name: String(r.name || e.split('@')[0]).trim(), role, active: !!r.active, recv: role === 'Marketing' || role === 'Kho' || role === 'Kế toán' ? false : String(r.recv || '').trim() === '' ? role === SALE : !no(r.recv), tg: String(r.tg || '').trim(), alias: String(r.alias || '').trim(), prefix: String(r.prefix || '').trim(), web: String(r.web || '').trim() === 'Có', phone: String(r.phone || '').trim(), full: String(r.full || '').trim(), acct: String(r.acct || '').trim(), joined: String(r.joined || '').trim(), dob: String(r.dob || '').trim(), ctv: role === SALE && String(r.ctv || '').trim() === 'Có', mkv: role !== 'Marketing' && role !== 'Kho' && String(r.mkv || '').trim() === 'Có', zb: role !== 'Kho' && String(r.zb || '').trim() === 'Có', kho: role === 'Kho' || String(r.kho || '').trim() === 'Có' };
+    return { email: e, name: String(r.name || e.split('@')[0]).trim(), role, active: !!r.active, recv: role === 'Marketing' || role === 'Kho' || role === 'Kế toán' ? false : String(r.recv || '').trim() === '' ? role === SALE : !no(r.recv), tg: String(r.tg || '').trim(), alias: String(r.alias || '').trim(), prefix: String(r.prefix || '').trim(), web: String(r.web || '').trim() === 'Có', phone: String(r.phone || '').trim(), full: String(r.full || '').trim(), acct: String(r.acct || '').trim(), joined: String(r.joined || '').trim(), dob: String(r.dob || '').trim(), ctv: role === SALE && String(r.ctv || '').trim() === 'Có', mkv: role !== 'Marketing' && role !== 'Kho' && String(r.mkv || '').trim() === 'Có', zb: role !== 'Kho' && String(r.zb || '').trim() === 'Có', kho: role === 'Kho' || String(r.kho || '').trim() === 'Có', gv: e === SUPER_ADMIN || String(r.gv || '').trim() === 'Có' };
   }).filter(u => /@/.test(u.email));
   const sa = list.find(u => u.email === SUPER_ADMIN);
-  if (!sa) list.unshift({ email: SUPER_ADMIN, name: 'Thái Sơn', role: 'Quản trị', active: true, recv: false, tg: '', alias: '', prefix: '', web: true });
-  else { sa.role = 'Quản trị'; sa.active = true; }
+  if (!sa) list.unshift({ email: SUPER_ADMIN, name: 'Thái Sơn', role: 'Quản trị', active: true, recv: false, tg: '', alias: '', prefix: '', web: true, gv: true });
+  else { sa.role = 'Quản trị'; sa.active = true; sa.gv = true; }
   list.forEach(u => { u.level = ROLES[u.role]; });
   return (x._users = list);
 }
@@ -310,7 +318,7 @@ export async function unifyNames(x, ren) {
   return n;
 }
 export async function crmUser(x, email) { email = String(email || '').trim().toLowerCase(); return (await crmUsers(x)).find(u => u.email === email && u.active) || null; }
-function publicUser(u) { return { email: u.email, name: u.name, role: u.role, level: u.level, web: !!u.web || u.level >= 3, ask: askAllowed(u), tg: !!u.tg, prefix: u.prefix || codePre(u.name), mkv: !!u.mkv, zb: !!u.zb, kho: !!u.kho }; }
+function publicUser(u) { return { email: u.email, name: u.name, role: u.role, level: u.level, web: !!u.web || u.level >= 3, ask: askAllowed(u), tg: !!u.tg, prefix: u.prefix || codePre(u.name), mkv: !!u.mkv, zb: !!u.zb, kho: !!u.kho, gv: !!u.gv }; }
 async function userSet(x, email, field, value) {
   const r = await run(x.db, `UPDATE users SET ${field} = ? WHERE email = ?`, value, email);
   if (!r.meta.changes && email === SUPER_ADMIN) { await run(x.db, "INSERT INTO users (email, name, role, active, recv, ord) VALUES (?, 'Thái Sơn', 'Quản trị', 1, 'Không', -1)", SUPER_ADMIN); await run(x.db, `UPDATE users SET ${field} = ? WHERE email = ?`, value, email); }
@@ -585,7 +593,7 @@ async function loadSmall(x, u, R, mode, adV) {
     b('SELECT name, variant, days, basis FROM cycles ORDER BY rid'),
     b('SELECT when_txt, purpose, text FROM templates ORDER BY rid')
   ]); smallQ.catch(() => { });
-  const users = (await crmUsers(x)).filter(y => y.active || u.level >= 3).map(y => u.level >= 3 ? { email: y.email, name: y.name, role: y.role, active: y.active, recv: y.recv, tg: !!y.tg, alias: y.alias, prefix: y.prefix || codePre(y.name), web: y.web || y.level >= 3, mkv: y.mkv || y.level >= 3, zb: !!y.zb, kho: !!y.kho, phone: y.phone, full: y.full, acct: y.acct, joined: y.joined, dob: y.dob, ctv: y.ctv } : u.level >= 2 ? { name: y.name, role: y.role, recv: y.recv, tg: !!y.tg, joined: y.joined, ctv: y.ctv } : { name: y.name, role: y.role, joined: y.name === u.name ? y.joined : '', ctv: y.name === u.name ? y.ctv : undefined }); // SĐT, họ tên, số tài khoản nhân sự: chỉ Quản trị; ngày vào làm: tính thâm niên (Phụ lục 01)
+  const users = (await crmUsers(x)).filter(y => y.active || u.level >= 3).map(y => u.level >= 3 ? { email: y.email, name: y.name, role: y.role, active: y.active, recv: y.recv, tg: !!y.tg, alias: y.alias, prefix: y.prefix || codePre(y.name), web: y.web || y.level >= 3, mkv: y.mkv || y.level >= 3, zb: !!y.zb, kho: !!y.kho, gv: !!y.gv, phone: y.phone, full: y.full, acct: y.acct, joined: y.joined, dob: y.dob, ctv: y.ctv } : u.level >= 2 ? { name: y.name, role: y.role, recv: y.recv, tg: !!y.tg, joined: y.joined, ctv: y.ctv } : { name: y.name, role: y.role, joined: y.name === u.name ? y.joined : '', ctv: y.name === u.name ? y.ctv : undefined }); // SĐT, họ tên, số tài khoản nhân sự: chỉ Quản trị; ngày vào làm: tính thâm niên (Phụ lục 01)
   const adsP = adRowsOf(x, u, adV); adsP.catch(() => { });
   const areasP = u.level === 1 ? areaStats(x) : Promise.resolve(undefined); areasP.catch(() => { }); // quản lý đã có đủ khách → máy tự đếm
   const ktP = finOk(u) ? ktCfg(x) : Promise.resolve(null); ktP.catch(() => { });
@@ -1218,7 +1226,7 @@ export async function crmLogin(x, d) {
   const email = String(d.email || '').trim().toLowerCase();
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return { ok: false, error: 'Email chưa đúng.' };
   const lu = await crmUser(x, email);
-  if (!lu) return { ok: false, error: 'Email này chưa được cấp quyền vào CRM. Nhờ anh Sơn hoặc quản lý thêm email của bạn.' };
+  if (!lu) return { ok: false, error: 'Email này chưa được cấp quyền vào CRM (hoặc tài khoản đang tạm khoá). Bạn nhắn anh Sơn thêm đúng email này ở Cài đặt → Nhân sự nhé.' };
   const rk = 'rl_' + email, n = Number(await kvGet(x.db, rk) || 0);
   if (n >= 5) return { ok: false, error: 'Bạn đã xin mã quá nhiều lần. Vui lòng đợi 15 phút rồi thử lại.' };
   await kvSet(x.db, rk, String(n + 1), 900e3);
@@ -1242,7 +1250,7 @@ export async function crmVerify(x, d) {
   const u = await crmUser(x, email); if (!u) return { ok: false, error: 'Tài khoản đã bị khoá.' };
   await run(x.db, 'DELETE FROM sessions WHERE exp < ?', Date.now());
   const token = randHex(32);
-  await run(x.db, 'INSERT INTO sessions (token, email, exp) VALUES (?, ?, ?)', token, email, Date.now() + SESSION_DAYS * DAY);
+  await run(x.db, 'INSERT INTO sessions (token, email, exp, seen, at, ua) VALUES (?, ?, ?, ?, ?, ?)', token, email, Date.now() + SESSION_DAYS * DAY, Date.now(), Date.now(), uaName(x.ua));
   return { ok: true, token, user: publicUser(u) };
 }
 /** Trang kiểm tra kỹ thuật (GET /api/status…) chỉ cho Quản trị: ?token=<phiên đăng nhập CRM>. */
@@ -1251,12 +1259,34 @@ export async function userByToken(x, token) { return crmSession(x, token); }
 export async function adminByToken(x, token) { const u = await crmSession(x, token); return u && u.level >= 3 ? u : null; }
 async function crmSession(x, token) {
   if (!/^[a-f0-9]{64}$/.test(String(token || ''))) return null;
-  const [sr, ur] = await x.db.batch([x.db.prepare('SELECT email, exp FROM sessions WHERE token = ?').bind(token), x.db.prepare(USERS_SQL)]); // 1 lượt hỏi thay vì 2
+  const [sr, ur] = await x.db.batch([x.db.prepare('SELECT email, exp, seen FROM sessions WHERE token = ?').bind(token), x.db.prepare(USERS_SQL)]); // 1 lượt hỏi thay vì 2
   const s = (sr.results || [])[0]; if (!s) return null;
   if (!x._users) usersFrom(x, ur.results || []);
   if (s.exp < Date.now()) { await run(x.db, 'DELETE FROM sessions WHERE token = ?', token); return null; }
   const u = await crmUser(x, s.email); if (!u) { await run(x.db, 'DELETE FROM sessions WHERE token = ?', token); return null; }
+  const now = Date.now(); // 16/11/2026: đang dùng thì tự gia hạn 30 ngày (không phải nhập mã lại giữa chừng), bỏ 30 ngày không vào mới phải đăng nhập lại; ghi lần cuối vào (tối đa 1 lần / giờ)
+  if (!s.seen || now - s.seen > 3600e3) { try { await run(x.db, 'UPDATE sessions SET seen = ?, exp = ? WHERE token = ?', now, Math.max(s.exp, now + SESSION_DAYS * DAY), token); } catch (e) { } }
   return u;
+}
+/** Tên máy dễ hiểu từ User-Agent: "iPhone · Safari", "Máy tính Windows · Chrome"… */
+function uaName(ua) {
+  ua = String(ua || ''); if (!ua) return '';
+  const dev = /iPhone/.test(ua) ? 'iPhone' : /iPad/.test(ua) ? 'iPad' : /Android/.test(ua) ? 'Điện thoại Android' : /Macintosh|Mac OS X/.test(ua) ? 'Máy Mac' : /Windows/.test(ua) ? 'Máy tính Windows' : /Linux/.test(ua) ? 'Máy tính Linux' : 'Máy khác';
+  const br = /Zalo/i.test(ua) ? 'Zalo' : /FBAN|FBAV|FB_IAB/.test(ua) ? 'Facebook' : /Edg\//.test(ua) ? 'Edge' : /CriOS|Chrome\//.test(ua) ? 'Chrome' : /FxiOS|Firefox\//.test(ua) ? 'Firefox' : /Safari\//.test(ua) ? 'Safari' : '';
+  return dev + (br ? ' · ' + br : '');
+}
+/** 🔐 Cài đặt → Nhân sự (Quản trị): mỗi người vào CRM lần cuối lúc nào, đang đăng nhập trên mấy máy; đăng xuất mọi máy của 1 người (mất điện thoại, nghỉ việc). */
+async function crmSess(x, u, d) {
+  if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị xem được phần này.' };
+  if (d.action === 'sess_kill') {
+    const email = String(d.email || '').trim().toLowerCase(); if (!email) return { ok: false, error: 'Thiếu email.' };
+    const r = await run(x.db, 'DELETE FROM sessions WHERE email = ?' + (email === u.email ? ' AND token != ?' : ''), ...(email === u.email ? [email, d.token] : [email]));
+    await crmLog(x, u, 'Nhân sự', '-', email, 'Đăng xuất mọi máy (' + (r.meta.changes || 0) + ' máy)', '');
+  }
+  await run(x.db, 'DELETE FROM sessions WHERE exp < ?', Date.now());
+  const rows = await all(x.db, 'SELECT email, seen, at, ua FROM sessions ORDER BY coalesce(seen, at, 0) DESC'), out = {};
+  rows.forEach(r => { const e = String(r.email || '').toLowerCase(), o = out[e] || (out[e] = { n: 0, seen: 0, dev: [] }); o.n++; o.seen = Math.max(o.seen, Number(r.seen || r.at) || 0); if (r.ua && o.dev.indexOf(r.ua) < 0) o.dev.push(r.ua); });
+  return { ok: true, sess: out };
 }
 
 /* ================================================================ đơn hàng */
@@ -2057,11 +2087,11 @@ async function crmSaveUsers(x, u, d) {
   const seen = {}, rows = (d.users || []).map((y, i) => {
     const e = String(y.email || '').trim().toLowerCase(), o = cur[e] || {}, role = roleOf(y.role);
     return { email: e, name: String(y.name || '').trim(), role, active: y.active === false ? 0 : 1, recv: (y.recv !== undefined ? y.recv : o.recv !== undefined ? o.recv : role === SALE) ? 'Có' : 'Không', tg: o.tg || '',
-      alias: String(y.alias !== undefined ? y.alias : o.alias || '').trim(), prefix: String(y.prefix !== undefined ? y.prefix : o.prefix || '').replace(/[^A-Za-z0-9]/g, ''), web: (y.web !== undefined ? y.web : o.web) ? 'Có' : '', mkv: (y.mkv !== undefined ? y.mkv : o.mkv) ? 'Có' : '', zb: (y.zb !== undefined ? y.zb : o.zb) ? 'Có' : '', kho: (y.kho !== undefined ? y.kho : o.kho) ? 'Có' : '', phone: normPhone(y.phone !== undefined ? y.phone : o.phone || '') || '', full: String(y.full !== undefined ? y.full : o.full || '').trim().slice(0, 80), acct: String(y.acct !== undefined ? y.acct : o.acct || '').replace(/\D/g, '').slice(0, 24), joined: String(y.joined !== undefined ? y.joined : o.joined || '').trim().slice(0, 30), dob: dobNorm(y.dob !== undefined ? y.dob : o.dob), ctv: (y.ctv !== undefined ? y.ctv : o.ctv) ? 'Có' : '', ord: i };
+      alias: String(y.alias !== undefined ? y.alias : o.alias || '').trim(), prefix: String(y.prefix !== undefined ? y.prefix : o.prefix || '').replace(/[^A-Za-z0-9]/g, ''), web: (y.web !== undefined ? y.web : o.web) ? 'Có' : '', mkv: (y.mkv !== undefined ? y.mkv : o.mkv) ? 'Có' : '', zb: (y.zb !== undefined ? y.zb : o.zb) ? 'Có' : '', kho: (y.kho !== undefined ? y.kho : o.kho) ? 'Có' : '', gv: e === SUPER_ADMIN || (y.gv !== undefined ? y.gv : o.gv) ? 'Có' : '', phone: normPhone(y.phone !== undefined ? y.phone : o.phone || '') || '', full: String(y.full !== undefined ? y.full : o.full || '').trim().slice(0, 80), acct: String(y.acct !== undefined ? y.acct : o.acct || '').replace(/\D/g, '').slice(0, 24), joined: String(y.joined !== undefined ? y.joined : o.joined || '').trim().slice(0, 30), dob: dobNorm(y.dob !== undefined ? y.dob : o.dob), ctv: (y.ctv !== undefined ? y.ctv : o.ctv) ? 'Có' : '', ord: i };
   }).filter(r => { if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(r.email) || seen[r.email]) return false; seen[r.email] = 1; return true; });
-  if (!seen[SUPER_ADMIN]) rows.unshift({ email: SUPER_ADMIN, name: 'Thái Sơn', role: 'Quản trị', active: 1, recv: 'Không', tg: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].tg || '' : '', alias: '', prefix: '', web: 'Có', mkv: '', zb: '', kho: cur[SUPER_ADMIN] && cur[SUPER_ADMIN].kho ? 'Có' : '', phone: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].phone || '' : '', full: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].full || '' : '', acct: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].acct || '' : '', joined: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].joined || '' : '', dob: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].dob || '' : '', ctv: '', ord: -1 });
+  if (!seen[SUPER_ADMIN]) rows.unshift({ email: SUPER_ADMIN, name: 'Thái Sơn', role: 'Quản trị', active: 1, recv: 'Không', tg: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].tg || '' : '', alias: '', prefix: '', web: 'Có', mkv: '', zb: '', gv: 'Có', kho: cur[SUPER_ADMIN] && cur[SUPER_ADMIN].kho ? 'Có' : '', phone: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].phone || '' : '', full: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].full || '' : '', acct: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].acct || '' : '', joined: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].joined || '' : '', dob: cur[SUPER_ADMIN] ? cur[SUPER_ADMIN].dob || '' : '', ctv: '', ord: -1 });
   const ren = {}; rows.forEach(r => { const o = cur[r.email]; if (o && o.name && r.name && o.name !== r.name && !rows.some(z => z.name === o.name)) ren[o.name] = r.name; }); // đổi tên → đơn, khách, file sale theo tên mới
-  await replaceRows(x.db, 'users', ['email', 'name', 'role', 'active', 'recv', 'tg', 'alias', 'prefix', 'web', 'mkv', 'zb', 'kho', 'phone', 'full', 'acct', 'joined', 'dob', 'ctv', 'ord'], rows); x._users = null;
+  await replaceRows(x.db, 'users', ['email', 'name', 'role', 'active', 'recv', 'tg', 'alias', 'prefix', 'web', 'mkv', 'zb', 'kho', 'gv', 'phone', 'full', 'acct', 'joined', 'dob', 'ctv', 'ord'], rows); x._users = null;
   try { await unifyNames(x, ren); } catch (e) { console.error('unifyNames', e.message); }
   await crmLog(x, u, 'Nhân sự', '-', '', 'Cập nhật ' + rows.length + ' tài khoản', '');
   return { ok: true, users: await crmUsers(x) };
@@ -2595,7 +2625,8 @@ export async function crmApi(x, d, sync, mgr) {
   if (!u) return { ok: false, auth: true, error: 'Phiên đăng nhập đã hết. Vui lòng đăng nhập lại.' };
   x.user = u;
   if (a === 'logout') { await run(x.db, 'DELETE FROM sessions WHERE token = ?', d.token); return { ok: true }; }
-  if (/^gv_/.test(a)) return crmGv(x, u, d); // ✅ Giao việc (giaoviec.js, 14/11/2026): mọi vai trò, quyền kiểm trong giaoviec.js
+  if (/^gv_/.test(a)) return u.gv ? crmGv(x, u, d) : { ok: false, error: 'Việc tuần chưa bật cho bạn. Anh Sơn bật ở Cài đặt → Nhân sự (ô ✅ Việc tuần).' }; // ✅ Giao việc (giaoviec.js, 14/11/2026): 16/11/2026 chỉ người được bật ở Cài đặt → Nhân sự, quyền chi tiết kiểm trong giaoviec.js
+  if (a === 'sess_list' || a === 'sess_kill') return crmSess(x, u, d); // 🔐 lần cuối vào CRM, đăng xuất mọi máy (Quản trị)
   if (a === 'camp_view') return crmCamp(x, u); // 📊 Đợt phát động mở rộng khách (camp.js, 15/11/2026): chỉ Quản lý / Quản trị
   if (a === 'snh') return crmSnh(x, u, d); // 🎂 sinh nhật theo tháng (sinhnhat.js): Trưởng ban đời sống + Quản lý + Quản trị
   if (a === 'ht') return crmHt(x, u, d); // 🤝 Hiểu & Thương (hrstaff.js, 15/11/2026): mọi vai trò, chỉ phần của mình

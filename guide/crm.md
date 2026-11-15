@@ -30,9 +30,11 @@ Trang này chỉ có **những việc làm hằng ngày**. Việc ít dùng hơn
 
 [[steps:dang-nhap]]
 
-Mã chỉ dùng được trong 10 phút. Vào được rồi thì máy nhớ bạn **30 ngày**.
+Mã chỉ dùng được trong 10 phút. Vào được rồi thì **ngày nào bạn cũng dùng thì không phải nhập mã lại**. Bỏ không vào CRM **30 ngày** thì lần sau nhập mã mới.
 
-> **Máy báo "Email này chưa được cấp quyền"?** Nhờ quản lý hoặc anh Sơn thêm email của bạn.
+> **Máy báo "Email này chưa được cấp quyền"?** Nhắn anh Sơn thêm **đúng email** của bạn (anh thêm ở Cài đặt → Nhân sự).
+
+> **Mất điện thoại, hoặc nghi người khác dùng tài khoản của bạn?** Báo anh Sơn ngay. Anh bấm **Đăng xuất mọi máy** ở dòng của bạn (Cài đặt → Nhân sự), mọi máy đang vào bằng email của bạn sẽ bị thoát ra.
 
 **Đưa CRM ra màn hình điện thoại** (để mở nhanh như một ứng dụng). Trong CRM có sẵn hướng dẫn **có hình từng bước**: ở màn đăng nhập bấm **📲 Cài CRM ra màn hình điện thoại**; đã vào CRM thì bấm **••• Thêm** → **Cài ra màn hình điện thoại**. Tóm tắt:
 

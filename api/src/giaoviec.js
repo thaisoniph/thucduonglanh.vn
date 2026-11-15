@@ -47,7 +47,8 @@ async function schema(db) {
 }
 
 const clean = (s, n) => String(s || '').replace(/\r/g, '').trim().slice(0, n);
-const staff = async x => (await crmUsers(x)).filter(z => z.active);
+/** 16/11/2026 anh Sơn: chỉ người được bật ✅ Việc tuần (Cài đặt → Nhân sự, users.gv) mới nhận việc, lời nhắc, có trong báo cáo. Sale giai đoạn này chưa bật. */
+const staff = async x => (await crmUsers(x)).filter(z => z.active && z.gv);
 async function cfgOf(x) { return Object.assign({ token: '', bot: '', secret: '', group: '', groupName: '', leads: [], out: [], notion: null }, await kvJson(x.db, 'gv_cfg', {})); }
 async function cfgSet(x, c) { await kvSet(x.db, 'gv_cfg', JSON.stringify(c)); }
 /** Đặt việc trọng tâm cho người khác, dừng việc, nghiệm thu: Quản trị, Quản lý, người được tích (vd trưởng phòng Marketing). */
@@ -57,8 +58,8 @@ const shortName = n => String(n || '').trim().split(/\s+/).pop();
 export function weekOf(t) { const d = startOfDay(t); return d - ((new Date(d + TZ_MS).getUTCDay() + 6) % 7) * DAY; }
 const wkLabel = w => fmtDate(w, 'dd/MM') + '–' + fmtDate(w + 6 * DAY, 'dd/MM');
 const helpersOf = t => String(t.helpers || '').split(',').filter(Boolean);
-/** Người tham gia nhịp tuần: mọi nhân sự đang làm, trừ người Quản trị bỏ tích. */
-async function members(x, C) { return (await staff(x)).filter(z => (C.out || []).indexOf(z.email) < 0); }
+/** Người tham gia nhịp tuần = người được bật ✅ Việc tuần (16/11/2026, thay danh sách bỏ tích C.out cũ). */
+async function members(x) { return staff(x); }
 const hasLink = s => /https?:\/\/\S+/.test(String(s || ''));
 const linkOf = s => (String(s || '').match(/https?:\/\/\S+/) || [''])[0].replace(/[),.;]+$/, '');
 function proofUrl(C, t) { if (!t.proof) return ''; if (/^tg:/.test(t.proof)) return API + '/gv/f/' + t.id + '/' + md5hex((C.secret || 'x') + ':' + t.id).slice(0, 12); return t.proof; }
@@ -308,6 +309,12 @@ async function gvImport(x, req, C) {
   }
   return j({ ok: true, made, unknown, skipped });
 }
+/** Người có trong CRM nhưng chưa được bật Việc tuần (nhắn bot thì báo nhẹ nhàng, không bảo đi kết nối). */
+async function offUser(x, from) {
+  const id = String(from && from.id || ''); if (!id) return null;
+  for (const z of (await crmUsers(x)).filter(y => y.active && !y.gv)) if (z.tg === id || await kvGet(x.db, 'gv_tg_' + z.email) === id) return z;
+  return null;
+}
 async function whoIs(x, from) {
   const id = String(from && from.id || ''); if (!id) return null;
   const ppl = await staff(x);
@@ -340,6 +347,7 @@ async function onUpdate(x, C, up) {
   const rTask = rid ? await first(x.db, 'SELECT task FROM gv_msg WHERE chat = ? AND msg = ?', String(chat.id), rid) : null;
   const cmd = (text.match(/^\/(\w+)/) || [])[1];
   if (!priv && !mentioned && !rTask && !cmd) return; // trong nhóm: chỉ đọc tin gọi tên bot, trả lời tin việc, hoặc lệnh /
+  if (!u && await offUser(x, msg.from)) return reply('Việc tuần đang thử nghiệm với một số bạn, chưa bật cho bạn. Khi nào anh Sơn bật, em sẽ nhắn bạn nhé 🌿');
   if (!u) return reply('Em chưa biết bạn là ai trong CRM. Bạn vào CRM → <b>✅ Việc tuần</b> → bấm <b>Kết nối Telegram</b> (30 giây) rồi nhắn lại nhé.\n' + VIEW_URL);
   if (cmd === 'start' && priv) { await kvSet(x.db, 'gv_tg_' + u.email, String(chat.id)); return reply('Chào ' + esc(shortName(u.name)) + '! 🌿\n' + helpText(u, C)); }
   if (cmd === 'noinhom') {
@@ -657,7 +665,7 @@ async function gvList(x, u) {
   const tasks = rows.map(t => ({ id: t.id, title: t.title, body: t.body, goal: t.goal, kind: t.kind, who: t.who_name, whoE: t.who_email, by: t.by_name, byE: t.by_email, due: t.due, dueT: t.due_t ? 1 : 0, st: t.status, at: t.at, upd: t.upd_at, done: t.done_at, src: t.src,
     result: t.result, proof: proofUrl(C, t), proofTg: /^tg:/.test(t.proof) ? 1 : 0, pace: t.pace, paceAt: t.pace_at, next: t.next, block: t.block, carry: t.carry, qa: t.qa, helpers: helpersOf(t), thisWeek: inW.has(t.id) ? 1 : 0, late: late(t, now) ? 1 : 0, nOk: t.nid && !t.ndirty ? 1 : 0, log: L[t.id] || [] }));
   const out = { tasks, me: u.email, lead: lead ? 1 : 0, admin: u.level >= 3 ? 1 : 0, linked: linked[u.email] ? 1 : 0, bot: C.bot, group: C.groupName || (C.group ? 'đã nối' : ''), on: C.token ? 1 : 0, ai: x.env.ANTHROPIC_API_KEY ? 1 : 0, week: W, weekLabel: wkLabel(W), max: MAX_TT, now,
-    staff: ppl.map(z => ({ email: z.email, name: z.name, role: z.role, tg: linked[z.email] || !!z.tg ? 1 : 0, lead: canAssign(z, C) ? 1 : 0, lv: z.level, mem: (C.out || []).indexOf(z.email) < 0 ? 1 : 0 })) };
+    staff: ppl.map(z => ({ email: z.email, name: z.name, role: z.role, tg: linked[z.email] || !!z.tg ? 1 : 0, lead: canAssign(z, C) ? 1 : 0, lv: z.level, mem: 1 })), off: (await crmUsers(x)).filter(z => z.active && !z.gv).map(z => ({ email: z.email, name: z.name, role: z.role })) };
   if (u.level >= 3) { out.leads = C.leads || []; out.notion = C.notion ? { title: C.notion.title || '', wait: (await first(x.db, 'SELECT COUNT(*) n FROM gv_tasks WHERE ndirty = 1 AND ntry < 5')).n, fail: (await first(x.db, 'SELECT COUNT(*) n FROM gv_tasks WHERE ndirty = 1 AND ntry >= 5')).n, err: ((await first(x.db, "SELECT nerr FROM gv_tasks WHERE nerr <> '' ORDER BY upd_at DESC LIMIT 1")) || {}).nerr || '' } : null; }
   return { ok: true, gv: out };
 }
@@ -728,7 +736,11 @@ async function gvCfg(x, u, d) {
     }
   }
   if (Array.isArray(d.leads)) C.leads = d.leads.map(e => String(e).toLowerCase()).filter(e => /@/.test(e)).slice(0, 30);
-  if (Array.isArray(d.out)) C.out = d.out.map(e => String(e).toLowerCase()).filter(e => /@/.test(e)).slice(0, 80);
+  if (Array.isArray(d.on)) { // ✅ bật / tắt Việc tuần theo người (ghi users.gv, cùng ô với Cài đặt → Nhân sự)
+    const on = d.on.map(e => String(e).toLowerCase());
+    for (const z of (await crmUsers(x)).filter(y => y.active)) { const v = z.email === BOSS || on.indexOf(z.email) >= 0 ? 'Có' : ''; if (!!z.gv !== (v === 'Có')) await run(x.db, 'UPDATE users SET gv = ? WHERE email = ?', v, z.email); }
+    x._users = null;
+  }
   if (d.ungroup) { C.group = ''; C.groupName = ''; }
   if (d.off) { if (C.token) await tg(x, C, 'deleteWebhook', {}); Object.assign(C, { token: '', bot: '', secret: '' }); }
   await cfgSet(x, C);

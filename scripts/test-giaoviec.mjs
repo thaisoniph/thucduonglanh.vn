@@ -7,8 +7,8 @@ const G = await import('file://' + ROOT + '/api/src/giaoviec.js');
 
 const raw = new DatabaseSync(':memory:');
 const DB = { prepare(sql) { const st = raw.prepare(sql); let a = []; const o = { bind(...x) { a = x.map(v => v === undefined ? null : typeof v === 'boolean' ? (v ? 1 : 0) : v); return o; }, async all() { return { results: st.all(...a) }; }, async first() { return st.get(...a) || null; }, async run() { const r = st.run(...a); return { meta: { last_row_id: Number(r.lastInsertRowid), changes: r.changes } }; } }; return o; } };
-raw.exec(`CREATE TABLE kv (k TEXT PRIMARY KEY, v TEXT, exp INTEGER); CREATE TABLE users (email TEXT, name TEXT, role TEXT, active INTEGER, tg TEXT, ord INTEGER, full TEXT);
-INSERT INTO users VALUES ('thaisoniph@gmail.com','Thái Sơn','Quản trị',1,'100',0,'Đinh Minh Thái Sơn'), ('thuy@x.vn','Nguyễn Thị Thủy','Quản lý',1,'',1,'Nguyễn Thị Thu Thủy'), ('trang@x.vn','Lê Thu Trang','Kế toán',1,'300',2,'Nguyễn Thị Kiều Trang'), ('ha@x.vn','Phạm Thu Hà','Marketing',1,'',3,'');`);
+raw.exec(`CREATE TABLE kv (k TEXT PRIMARY KEY, v TEXT, exp INTEGER); CREATE TABLE users (email TEXT, name TEXT, role TEXT, active INTEGER, tg TEXT, ord INTEGER, full TEXT, gv TEXT);
+INSERT INTO users VALUES ('thaisoniph@gmail.com','Thái Sơn','Quản trị',1,'100',0,'Đinh Minh Thái Sơn',''), ('thuy@x.vn','Nguyễn Thị Thủy','Quản lý',1,'',1,'Nguyễn Thị Thu Thủy','Có'), ('trang@x.vn','Lê Thu Trang','Kế toán',1,'300',2,'Nguyễn Thị Kiều Trang','Có'), ('ha@x.vn','Phạm Thu Hà','Marketing',1,'',3,'','Có'), ('lan@x.vn','Ngô Thị Lan','Sale & CSKH',1,'500',4,'','');`);
 
 let aiReply = null; const sent = [], notionCalls = [];
 const realFetch = globalThis.fetch;
@@ -168,7 +168,7 @@ ok(bad403 && bad403.status === 403, 'Tin giả mạo (sai mã bí mật) bị ch
 
 // 16. 🎙 nhận việc từ biên bản họp (POST /gv/import)
 x.env.GV_IMPORT_KEY = 'k-test-123';
-raw.exec("INSERT INTO users VALUES ('ha2@x.vn','Trần Văn Hà','Sale',1,'',4,'')"); delete x._users; // thêm người trùng tên gọi "Hà"
+raw.exec("INSERT INTO users VALUES ('ha2@x.vn','Trần Văn Hà','Sale',1,'',4,'','Có')"); delete x._users; // thêm người trùng tên gọi "Hà"
 const imp = (body, key) => G.gvRoute(x, new Request('https://api.thucduonglanh.vn/gv/import', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-gv-key': key }, body: JSON.stringify(body) }), '/gv/import');
 let res = await imp({ src: 'hop', meeting: 'Họp sale (14/11)', tasks: [{ who: 'Trang', title: 'Gửi bảng lương nháp' }] }, 'sai');
 ok(res.status === 401, 'Sai khoá → 401');
@@ -194,6 +194,15 @@ ok(sent.filter(s => s.includes('sendMessage') && s.includes('Việc #')).length 
 res = await imp({ src: 'hop', meeting: 'Họp sale (14/11)', tasks: [{ who: 'Trang', title: 'Gửi bảng lương nháp T11', due: '2026-11-20' }] }, 'k-test-123');
 J = await res.json();
 ok(J.made.length === 0 && J.skipped.length === 1, 'Bot gửi lại lần 2 → không tạo trùng');
+
+// 16/11/2026: Việc tuần bật theo người: sale chưa bật → không có trong danh sách, không giao được, bot báo chưa bật
+r = await G.crmGv(x, users.son, { action: 'gv_list' });
+ok(!r.gv.staff.some(z => z.email === 'lan@x.vn') && r.gv.off.some(z => z.email === 'lan@x.vn'), 'Sale chưa bật → nằm ở danh sách chưa bật');
+ok(r.gv.staff.some(z => z.email === 'thaisoniph@gmail.com'), 'Anh Sơn luôn bật (ô trống vẫn bật)');
+r = await G.crmGv(x, users.son, { action: 'gv_save', kind: 'ps', title: 'Gọi 5 khách', goal: '5 cuộc gọi', who: 'lan@x.vn' });
+ok(!r.ok || !(r.gv.tasks || []).some(t => t.whoE === 'lan@x.vn'), 'Không giao được việc cho sale chưa bật');
+r = await G.crmGv(x, users.son, { action: 'gv_cfg', on: ['thuy@x.vn', 'lan@x.vn'] });
+ok(r.gv.staff.some(z => z.email === 'lan@x.vn') && !r.gv.staff.some(z => z.email === 'ha@x.vn') && r.gv.staff.some(z => z.email === 'thaisoniph@gmail.com'), 'Bật Lan, tắt Hà, anh Sơn vẫn bật');
 
 origLog('sai:', bad);
 process.exit(bad ? 1 : 0);

@@ -4,13 +4,17 @@ nav: Việc tuần
 group: chung
 short: Chốt 3 việc tuần, báo xong có minh chứng
 order: 1.7
-updated: 2026-11-15
+updated: 2026-11-16
 description: Mỗi tuần mỗi người chốt tối đa 3 việc trọng tâm, cập nhật tiến độ, chốt kết quả có minh chứng. Thứ Hai họp dùng báo cáo có sẵn. Đọc trang này khoảng 4 phút.
 ---
 
 **Việc của cả nhà nằm ở CRM → ✅ Việc tuần.** Bạn cũng chốt việc, cập nhật và báo xong được **ngay trong Telegram**, với "Lành", bạn cùng làm của Thực Dưỡng Lành.
 
 > **Nhớ 1 câu:** **Mỗi tuần 3 việc quan trọng nhất, mỗi việc có kết quả đo được và link minh chứng.**
+
+> **Không thấy tab Việc tuần?** Việc tuần đang **thử nghiệm với một số bạn trước**, chưa bật cho mọi người (sale giai đoạn này chưa dùng). Khi anh Sơn bật cho bạn, tab sẽ tự hiện.
+
+**Anh Sơn bật / tắt cho từng người:** ⚙ **Cài đặt → 👥 Nhân sự → 🧑‍💼 Ai được vào CRM** → ở dòng của người đó tích ô **✅ Việc tuần** → **Lưu nhân sự**. Hoặc ở **✅ Việc tuần → ⚙️ Cài đặt việc tuần → Ai dùng Việc tuần?**. Người chưa bật: không thấy tab, không nhận việc, không nhận lời nhắc Telegram, không có trong báo cáo thứ Hai.
 
 ## Nhịp tuần
 
