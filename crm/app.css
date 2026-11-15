@@ -3131,3 +3131,40 @@ details.dash-grp[open] > summary::after { transform: rotate(180deg); }
 @media (max-width: 700px) { .edit-row.usr .usr-more-b { grid-template-columns: 1fr; } }
 .edit-row.usr .usr-perm { margin: 6px 0 0; font-weight: 600; }
 .edit-row.usr .usr-sess { margin: 6px 0 2px; padding: 6px 10px; background: #f5f7f5; border-radius: 8px; }
+/* 16/11/2026 tab Hôm nay của sale: khung giờ + lượt 5 khách (tds-) */
+.tds-hi { font-size: 13px; color: var(--muted); }
+.tds-t { display: block; font-size: 20px; color: var(--ink); margin: 2px 0; }
+.tds-sub { font-size: 13.5px; color: var(--muted); margin-bottom: 10px; }
+.tds-dots { display: flex; gap: 6px; margin: 4px 0 6px; }
+.tds-dots i { flex: 1; height: 9px; border-radius: 5px; background: #e4e8e4; }
+.tds-dots i.ok { background: var(--primary-2); }
+.tds-dots i.now { background: #fff; box-shadow: inset 0 0 0 2px var(--primary-2); }
+.tds-dots i.sk { background: repeating-linear-gradient(45deg, #e4e8e4 0 4px, #f4f6f4 4px 8px); }
+.tds-cnt { font-size: 13.5px; color: var(--muted); margin-bottom: 10px; }
+.tds-grow { margin: 0 0 10px; }
+.tds-list { margin-top: 12px; border-top: 1px solid #eef1ee; }
+.tds-ok, .tds-sk { font-size: 14px; padding: 8px 2px; border-bottom: 1px solid #f1f3f1; }
+.tds-ok { color: var(--primary); }
+.tds-sk { color: var(--muted); }
+.tds-it { border-bottom: 1px solid #f1f3f1; }
+.tds-it.now { background: var(--primary-soft); border-radius: 10px; }
+.tds-it .rw { border: 0; background: transparent; }
+.tds-act { display: flex; gap: 6px; justify-content: flex-end; padding: 0 10px 8px; }
+.tds-act { margin-top: -6px; }
+.tds-act .btn.sm { padding: 3px 10px; font-size: 12.5px; min-height: 0; min-width: 0; border-radius: 999px; font-weight: 600; }
+.tds-hero .btn.lg span { display: block; text-align: center; }
+.tds-foot { margin-top: 10px; }
+.tds-more { padding: 10px 14px; }
+.tds-more .td-jump { margin-top: 6px; }
+.tds-brk { text-align: center; }
+.tds-brk-ic { font-size: 34px; line-height: 1; }
+.tds-brk-t { display: block; font-size: 20px; margin: 6px 0; color: var(--ink); }
+.tds-brk p { margin: 6px 0; font-size: 14.5px; }
+.tds-brk-nx { color: var(--primary); }
+.tds-brk-ur { color: #a1460b; font-size: 13.5px !important; }
+.tds-plan-l { padding: 8px 12px 12px; }
+.tds-p { display: flex; gap: 10px; font-size: 14px; padding: 5px 6px; border-radius: 8px; }
+.tds-p-h { flex: 0 0 44px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.tds-p.past { color: var(--muted); }
+.tds-p.now { background: var(--primary-light); color: var(--primary); }
+.tds-p.brk { color: var(--muted); font-size: 13px; }

@@ -50,21 +50,45 @@ Mã chỉ dùng được trong 10 phút. Vào được rồi thì **ngày nào b
 
 ## Việc 1: Mỗi sáng gọi khách (tab Hôm nay)
 
-Tab **Hôm nay** là danh sách khách bạn cần gọi hôm nay. Máy đã chọn sẵn, việc ra tiền nhất đứng đầu.
+Tab **Hôm nay** chia ngày làm việc thành **từng khung giờ**, mỗi lần chỉ đưa bạn **5 khách** (1 lượt). Không cần nhìn cả danh sách dài, cứ làm hết lượt này rồi mở lượt sau.
 
-- Ô trên cùng ghi **Hôm nay còn … việc**, có thanh tiến độ và nút xanh **▶ Bắt đầu** với người đầu tiên cần gọi.
-- Bên dưới là **1 danh sách 📞 Cần gọi hôm nay**, xếp theo thứ tự: đơn mới cần xác nhận → khách vừa hỏi → đơn đang giao cần gọi → khách cần chăm sóc → khách hỏi cần liên hệ.
-- Cạnh tên mỗi khách có **nhãn màu ghi lý do gọi**, ví dụ **🧾 Xác nhận đơn**, **🔥 Vừa hỏi**, **📦 Hỏi nhận hàng**, **🤝 Hỏi thăm 1 tuần**, **⏰ Sắp hết hàng**.
-- Muốn xem 1 loại thôi thì bấm nút lọc: **Tất cả · 🧾 Đơn mới · 🔥 Vừa hỏi · 💚 Chăm sóc · 🙋 Khách hỏi**.
-- Thẻ **🌿 Quy tắc hôm nay** thu gọn 1 dòng: bấm **✅ Mình sẽ làm** ngay trên dòng đó, bấm vào chữ để xem gợi ý.
-- Dưới danh sách: **🌱 Mở rộng khách** (bấm để mở 5 việc), rồi **🏁 Mục tiêu & thi đua**. Ô trên cùng có dòng **🏁 thứ hạng thi đua tuần này** của bạn (ví dụ *hạng 2/6 doanh số · còn cách người trên 5 điểm %*, hoặc *👑 bạn dẫn đầu*). Bấm vào dòng đó là nhảy xuống bảng thi đua đầy đủ.
+> **Câu dễ nhớ:** *Nhìn khung giờ → gọi 5 khách → mở lượt tiếp.*
+
+**Lịch một ngày** (bấm **🗓 Lịch làm việc hôm nay** để xem):
+
+- **8:00 ☀️ Khởi động:** xác nhận đơn mới, gọi khách vừa hỏi.
+- **8:15 🔥 Giờ vàng:** gọi giữ đơn đang giao, khách hẹn gọi lại.
+- 10:00 🍵 Giải lao 15 phút.
+- **10:15 💚 Chăm sóc khách cũ:** hỏi nhận hàng, sắp hết hàng, hỏi thăm.
+- 11:45 🍱 Nghỉ trưa tới 13:30.
+- **13:30 🙋 Khách hỏi chưa chốt:** tư vấn khách hỏi, chăm sóc tiếp.
+- 15:00 🍵 Giải lao 15 phút.
+- **15:15 🌱 Mở rộng khách:** mời giới thiệu, nhóm Zalo, Kho chung, gọi nốt khách còn lại.
+- **16:15 📋 Chốt ngày:** gọi nốt việc còn lại, hẹn lịch mai, bấm **📋 Báo cáo cuối ngày**.
+
+Trên màn hình:
+
+- Ô trên cùng ghi **khung giờ đang làm** (ví dụ **🔥 Giờ vàng · 8:15 – 10:00 · còn 40 phút rồi giải lao**).
+- **Thanh 5 ô** = 5 khách của lượt này. Gọi xong 1 khách thì 1 ô chuyển xanh.
+- Nút xanh to **▶ Gọi tiếp: tên khách · lý do gọi**. Bấm là mở đúng khách đó.
+- Dưới nút là 5 khách của lượt. Khách đã xong có dấu **✓**.
+- Chưa gọi được khách nào (máy bận, khách hẹn giờ khác) thì bấm **⏭ Để sau**. Khách đó sẽ quay lại ở lượt sau.
+- Với **đơn đang giao**: gọi xong thì bấm **✓ Đã gọi xong**.
+- Xong 5 khách thì CRM khen **🎉 Xong lượt** và hiện nút **▶ Mở lượt tiếp**.
+- **Đơn mới và khách vừa hỏi luôn được chen lên đầu lượt**, ở khung giờ nào cũng vậy.
+- Khung giờ nào hết việc thì máy tự lấy việc của khung sau. Bạn lúc nào cũng có việc để làm.
+- **Giờ nghỉ** CRM hiện màn **🍵 Giải lao tới 10:15** và cho biết quay lại thì làm gì. Có việc gấp thì bấm **Làm tiếp luôn ›**.
+- Muốn xem hết khách của hôm nay: bấm **📞 Xem tất cả việc gọi hôm nay** (đã thu gọn). Trong đó lọc được: **Tất cả · 🧾 Đơn mới · 🔥 Vừa hỏi · 💚 Chăm sóc · 🙋 Khách hỏi**.
+- Cạnh tên mỗi khách có **nhãn màu ghi lý do gọi**, ví dụ **🧾 Xác nhận đơn**, **🔥 Vừa hỏi**, **📦 Hỏi nhận hàng**, **⏰ Sắp hết hàng**.
+- Thẻ **🌿 Quy tắc hôm nay** thu gọn 1 dòng: bấm **✅ Mình sẽ làm** ngay trên dòng đó.
+- Phía dưới có doanh số tháng, dòng **🏁 thứ hạng thi đua tuần này** (bấm để xem bảng thi đua), **🌱 Mở rộng khách** và **🏁 Mục tiêu & thi đua**.
 
 ![Tab Hôm nay](/huong-dan/img/crm-today.webp)
 
 [[steps:goi-khach]]
 
 1. Mở tab **Hôm nay**.
-2. Bấm nút xanh **▶ Bắt đầu** ở ô trên cùng. Có đơn mới hoặc khách vừa hỏi thì CRM mở người đó trước; xong quay lại, nút tự chuyển sang người tiếp theo. Tới phần chăm sóc, nút thành **▶ Bắt đầu gọi lần lượt** và CRM mở từng khách một.
+2. Bấm nút xanh **▶ Bắt đầu** (hoặc **▶ Gọi tiếp**) ở ô trên cùng. CRM mở đúng khách đầu tiên của lượt. Xong quay lại, nút tự chuyển sang khách tiếp theo.
 3. Đọc nhanh thông tin khách: khách mua gì, lần trước nói gì.
 4. Bấm **📞 Gọi**. Hoặc bấm **💬 Nhắn Zalo**: CRM chép sẵn tin nhắn và mở Zalo, bạn chỉ cần dán rồi gửi.
    Chưa biết nói gì? Đọc mục **💬 Kịch bản gọi** ngay bên dưới: có câu nói mẫu, cách dùng sản phẩm, khách nói gì thì làm gì. Xem trang [Kịch bản gọi](/huong-dan/kich-ban/).
@@ -73,7 +97,7 @@ Tab **Hôm nay** là danh sách khách bạn cần gọi hôm nay. Máy đã ch�
 6. Bấm **1 nút kết quả** (xem bảng dưới). CRM lưu kết quả **cùng ghi chú bạn vừa gõ**, báo lại nội dung đã lưu, rồi tự mở khách tiếp theo.
    **Khách muốn mua luôn?** Không cần kéo xuống. Ngay dưới thông tin khách có khung **Khách muốn mua?**: bấm nút xanh **🛒 Lên đơn ngay**. Form tạo đơn mở ra, **đã điền sẵn như đơn trước** (sản phẩm, số tiền, cách trả tiền). Sửa chỗ khách đổi rồi bấm **Lưu đơn**. CRM tự ghi "Đã đặt lại" và mở khách tiếp theo. Bấm nhầm thì bấm **✕**, CRM quay lại đúng khách đang gọi.
    Nút bên cạnh **🔗 Gửi link cho khách tự đặt** là gửi link để **khách tự đặt trên web**, bạn không lên đơn. Chỉ bấm nút này khi khách muốn tự đặt.
-7. Làm đến khi hết danh sách.
+7. Xong 5 khách thì bấm **▶ Mở lượt tiếp**. Cứ thế theo khung giờ tới 16:45.
 
 ![Cửa sổ gọi lần lượt: thông tin khách và Bước 1 gọi hoặc nhắn](/huong-dan/img/crm-care.webp)
 
