@@ -140,6 +140,8 @@ Muốn xem các ngày cũ hơn thì bấm **Xem thêm các ngày trước** ở 
 
 [[steps:zl-kh]]
 
+**Cách xem chủ đề:** phần đầu mục chỉ là tóm tắt tỉ lệ. Chủ đề nằm **bên dưới**, chia theo tuần: bấm vào dòng **"Tuần …"** để mở, mỗi bài có 1 thẻ ghi chủ đề, nói với ai, sản phẩm. Nút **✅ Duyệt cả tuần** có hộp hỏi lại kèm danh sách chủ đề trước khi duyệt.
+
 Mục **📋 Kế hoạch chủ đề** (bấm **📋 Kế hoạch chủ đề** ở hàng *Đi nhanh tới*, hoặc kéo xuống dưới các bài chờ duyệt) là danh sách **chủ đề của từng bài trong tuần / trong tháng**. Duyệt chủ đề là **tuỳ chọn** (từ 15/11): người phụ trách chỉ bắt buộc duyệt bài. Duyệt chủ đề trước thì trợ lý viết bài sớm hơn; không duyệt thì trợ lý vẫn tự viết, chậm nhất 24 tiếng trước giờ đăng. Chủ đề nào không hợp (ví dụ nói với con cái về bố mẹ, trong khi nhóm là các bậc cha mẹ) thì bấm **🔄 Đổi chủ đề**.
 
 Mỗi chủ đề có:

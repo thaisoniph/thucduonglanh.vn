@@ -9877,7 +9877,7 @@
       '<p class="muted">Khoá Content gợi ý: nhóm mới 70/20/10 · khởi đầu 60/25/15 · <b>nhóm ấm 50/30/20</b> (nhóm Zalo: người đã để số nhận quà) · mùa cao điểm 🟠 30–40%, tối đa 2 tuần.</p>' +
       (pm.to && pm.to >= td ? '<p>Đang dùng tới ' + zpDayTxt(pm.to) + ': <b>' + esc((j.mix || {})[pm.mix] || pm.mix || '') + '</b>' + (pm.focus ? ' · 🎯 trọng tâm: ' + esc(pm.focus) : '') + '</p>' : '') +
       (j.planErr ? '<p class="err">Lần tự lập lỗi gần nhất: ' + esc(j.planErr) + '</p>' : '') +
-      '<div class="lq-btns"><button class="btn pri sm" data-zb="pmake">✨ Lập kế hoạch tuần / tháng</button>' + (wait.length > 1 ? '<button class="btn sm" data-zb="pall|' + wait.map(function (q) { return q.id; }).join(',') + '">✅ Duyệt tất cả ' + wait.length + ' chủ đề đang chờ</button>' : '') + '</div></div>';
+      '<div class="lq-btns"><button class="btn pri sm" data-zb="pmake">✨ Lập kế hoạch tuần / tháng</button>' + '</div>' + (list.length ? '<p class="small" style="margin:10px 0 0">👇 <b>Cách xem chủ đề:</b> kéo xuống dưới, bấm vào dòng <b>"Tuần …"</b> để mở danh sách. Mỗi bài có 1 thẻ ghi chủ đề, nói với ai, nút ✅ Duyệt / 🔄 Đổi chủ đề. <b>Không duyệt cũng được</b>, trợ lý vẫn tự viết.' + (wait.length ? ' Còn ' + wait.length + ' chủ đề chưa duyệt.' : ' Tất cả chủ đề đã duyệt.') + '</p>' : '') + '</div>';
     if (!list.length) return h + '<p class="muted small">Chưa có kế hoạch. Bấm <b>✨ Lập kế hoạch</b>' + (c.planAuto !== false ? ', hoặc chờ trợ lý tự lập tuần kế tiếp (trong vài tiếng)' : '') + '.</p>';
     var W = {}, wk = [];
     list.forEach(function (q) { var w = zpAdd(q.day, -((zpWd(q.day) + 6) % 7)); if (!W[w]) { W[w] = []; wk.push(w); } W[w].push(q); }); // tuần từ Thứ 2
@@ -9984,7 +9984,10 @@
     var after = function (msg) { return function (r) { toast(msg + (r && r.warn ? ' ⚠️ ' + r.warn : '')); zbFetch(); }; }, fail = function (e) { t.disabled = false; toast(e.message, true); };
     // 📋 kế hoạch chủ đề
     if (v[0] === 'pok' || v[0] === 'pdraft' || v[0] === 'pskip') { t.disabled = true; return api('zb_plan_set', { id: id, status: { pok: 'ok', pdraft: 'draft', pskip: 'skip' }[v[0]] }).then(function (r) { toast(zpMsg(r, { pok: 'Đã duyệt chủ đề ✓', pdraft: 'Chủ đề quay lại chờ duyệt ✓', pskip: 'Đã ghi: không đăng bài này ✓' }[v[0]])); zbFetch(); }, fail); }
-    if (v[0] === 'pall') { var zpIds = id.split(',').filter(Boolean); t.disabled = true; return api('zb_plan_set', { ids: zpIds, status: 'ok' }).then(function (r) { toast(zpMsg(r, 'Đã duyệt ' + (r.n || 0) + ' chủ đề ✓')); zbFetch(); }, fail); }
+    if (v[0] === 'pall') { var zpIds = id.split(',').filter(Boolean);
+      var zpTx = zpIds.slice(0, 8).map(function (k) { var q0 = ((ZB.d && ZB.d.plan) || []).filter(function (z) { return z.id === k; })[0]; return q0 ? '• ' + zpDayTxt(q0.day) + (q0.slot === 'toi' ? ' tối' : ' sáng') + ': ' + q0.topic : ''; }).filter(Boolean).join('\n');
+      if (!confirm('Duyệt ' + zpIds.length + ' chủ đề này?\n\n' + zpTx + (zpIds.length > 8 ? '\n… và ' + (zpIds.length - 8) + ' chủ đề nữa' : '') + '\n\n(Duyệt xong trợ lý soạn bài sớm. Vẫn đổi được từng chủ đề sau.)')) return;
+      t.disabled = true; return api('zb_plan_set', { ids: zpIds, status: 'ok' }).then(function (r) { toast(zpMsg(r, 'Đã duyệt ' + (r.n || 0) + ' chủ đề ✓')); zbFetch(); }, fail); }
     if (v[0] === 'pedit') { var zpCd = t.closest('[data-zpcard]'); if (zpCd) { zpCd.classList.toggle('zp-editing'); var zpIn = $('#zpT_' + id); if (zpIn && zpCd.classList.contains('zp-editing')) zpIn.focus(); } return; }
     if (v[0] === 'predo') return zpRedoOpen(id, t);
     if (v[0] === 'psave') {
