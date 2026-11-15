@@ -2882,3 +2882,61 @@ details.dash-grp[open] > summary::after { transform: rotate(180deg); }
 .zs-qrbox{display:flex;align-items:center;justify-content:center;min-height:240px;text-align:center}
 .zs-qrimg{width:240px;height:240px;image-rendering:pixelated;border:1px solid var(--line);border-radius:10px;background:#fff}
 .zs-ok{font-size:16px;font-weight:700;color:#1a7f37}
+
+/* 🧑‍💼 Tuyển dụng – hr.thucduonglanh.vn (15/11/2026, viewTuy / openTuy trong app.js) */
+.tuy-lead { font-size: 14px; color: var(--muted, #5d6158); margin: -4px 0 12px; line-height: 1.55; }
+.tuy-chips { margin-bottom: 10px; }
+.tuy-n { display: inline-block; min-width: 20px; padding: 0 6px; border-radius: 999px; background: #e9ece6; font-size: 12px; font-weight: 700; text-align: center; }
+.tuy-n.hot { background: #ff3b30; color: #fff; }
+.tuy-filter { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.tuy-filter select, .tuy-filter input { flex: 1 1 220px; min-width: 0; }
+.tuy-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; }
+.tuy-card { display: flex; flex-direction: column; gap: 4px; text-align: left; font: inherit; color: inherit; background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; cursor: pointer; }
+.tuy-card:hover { border-color: #b9d6c4; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+.tuy-c1 { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 16px; }
+.tuy-c2 { font-size: 13px; color: #5d6158; }
+.tuy-c3 { font-size: 13.5px; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.tuy-c4 { font-size: 13.5px; font-weight: 600; color: #1f5f3a; }
+.tuy-sc { flex: none; font-size: 12.5px; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+.tuy-sc b { font-size: 14px; }
+.tuy-sc-A { background: #e3f4e8; color: #17663a; }
+.tuy-sc-B { background: #fff3d6; color: #8a5a00; }
+.tuy-sc-C { background: #fde8e4; color: #a33a24; }
+.tuy-sc-n { background: #eef0ea; color: #5d6158; }
+.tuy-empty { text-align: center; color: #5d6158; }
+.tuy-law { margin-top: 14px; }
+.tuy-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+.tuy-job { font-weight: 700; font-size: 16px; }
+.tuy-contact { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 10px; }
+.tuy-nx { background: #eaf4ef; border: 1px solid #c8e2d3; border-radius: 10px; padding: 9px 12px; font-weight: 600; font-size: 14px; margin-bottom: 12px; }
+.tuy-sec { border-top: 1px solid var(--line); padding: 12px 0 4px; }
+.tuy-sec h3 { font-size: 15px; margin: 0 0 8px; }
+.tuy-sec h3 small { font-weight: 600; color: #5d6158; font-size: 13px; }
+.tuy-sec textarea { width: 100%; margin-bottom: 6px; }
+.tuy-sum { font-weight: 600; margin: 0 0 8px; }
+.tuy-ai-b { margin: 0 0 8px; font-size: 14px; }
+.tuy-ai-b ul { margin: 4px 0 0; padding-left: 20px; }
+.tuy-ai-b li { margin: 2px 0; }
+.tuy-flag { font-size: 13.5px; color: #8a5a00; margin: 2px 0; }
+.tuy-info { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 6px 14px; margin: 8px 0; font-size: 14px; }
+.tuy-info span { display: block; font-size: 12px; color: #5d6158; }
+.tuy-star0 { color: #d6d9d2; }
+.tuy-det { margin: 6px 0; font-size: 14px; }
+.tuy-det summary { cursor: pointer; font-weight: 600; color: #1f5f3a; }
+.tuy-det p { margin: 6px 0 0; white-space: pre-wrap; }
+.tuy-hist ul { list-style: none; padding: 0; margin: 6px 0 0; font-size: 13px; }
+.tuy-hist li { padding: 3px 0; border-bottom: 1px dashed #eef0ea; }
+.tuy-hist li span { color: #5d6158; }
+.tuy-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; }
+.tuy-ck { display: flex; gap: 8px; align-items: center; font-weight: 600; margin: 4px 0 10px; }
+.tuy-crit > span { display: block; margin-bottom: 6px; }
+.tuy-stars { display: flex; gap: 6px; flex-wrap: wrap; }
+.tuy-stars label { cursor: pointer; }
+.tuy-stars input { position: absolute; opacity: 0; pointer-events: none; }
+.tuy-stars span { display: inline-block; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; font-weight: 700; font-size: 14px; background: #fff; }
+.tuy-stars input:checked + span { background: #24805b; border-color: #24805b; color: #fff; }
+.tuy-stars input:focus-visible + span { outline: 2px solid #24805b; outline-offset: 2px; }
+.tuy-prev { border: 1px dashed #b9d6c4; border-radius: 12px; margin-top: 12px; overflow: hidden; }
+.tuy-prev-s { background: #f7f8f4; padding: 8px 12px; font-size: 13px; }
+@media (max-width: 560px) { .tuy-2 { grid-template-columns: 1fr; } .tuy-list { grid-template-columns: 1fr; } }
+.tuy-prev { overflow-x: auto; }

@@ -24,6 +24,7 @@ import { ytWeekly } from './yt.js';
 import { vhLine } from './vanhoa.js';
 import { tbDaily, tbTick } from './thongbao.js';
 import { gvTick, gvMorning } from './giaoviec.js';
+import { hrTick } from './hr.js';
 
 function careMessage(items, leads, today, isGroup, who, R) {
   const block = (title, arr, tip) => !arr.length ? '' : '\n\n<b>' + title + ' (' + arr.length + ')</b> – ' + tip + '\n' + arr.slice(0, 25).map(c =>
@@ -172,6 +173,7 @@ export async function scheduled(x, cron) {
     try { await poolTick(x); } catch (e) { console.error('poolTick', e.message); } // 🧺 số công ty giao quá N ngày chưa chốt → báo trước 1 ngày rồi về Kho chung
     try { await ownTick(x); } catch (e) { console.error('ownTick', e.message); } // 🙋 khách mới có đơn đầu: sale tự mang về? → hoa hồng payplan.own % (6% từ 13/11/2026) trong 6 tháng, báo sale
   }
+  try { await hrTick(x, await crmUsers(x)); } catch (e) { console.error('hrTick', e.message); } // 🧑‍💼 AI đọc CV ứng viên mới (≤ 3 hồ sơ / lượt), báo Quản trị; dọn hồ sơ quá 12 tháng (hr.js)
   try { await gvTick(x); } catch (e) { console.error('gvTick', e.message); } // ✅ việc sắp tới hạn / quá hạn → nhắc qua bot giao việc
   try { await tbTick(x); } catch (e) { console.error('tbTick', e.message); } // 📢 thông báo hẹn giờ tới giờ hiện → gửi Telegram (thongbao.js)
   try { await sanSheetTick(x); } catch (e) { console.error('sanSheet', e.message); } // Google Sheet báo cáo sàn, 30 phút/lần

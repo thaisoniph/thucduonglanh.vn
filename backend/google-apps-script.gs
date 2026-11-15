@@ -143,7 +143,7 @@ function bridgeOp(d) {
   if (!ok) return { ok: false, error: 'Không xác nhận được yêu cầu' };
   var pp = PropertiesService.getScriptProperties();
   if (d.op === 'token') return { ok: true, token: ScriptApp.getOAuthToken(), sheetId: SpreadsheetApp.getActiveSpreadsheet().getId(), account: Session.getEffectiveUser().getEmail(), tg: TELEGRAM_TOKEN, chats: TELEGRAM_CHAT_IDS, notify: NOTIFY_EMAIL };
-  if (d.op === 'mail') { var m = d.mail || {}; MailApp.sendEmail({ to: m.to, subject: m.subject, body: m.body, name: m.name || 'Thực Dưỡng Lành' }); return { ok: true }; }
+  if (d.op === 'mail') { var m = d.mail || {}, o = { to: m.to, subject: m.subject, body: m.body, name: m.name || 'Thực Dưỡng Lành' }; if (m.htmlBody) o.htmlBody = m.htmlBody; if (m.replyTo) o.replyTo = m.replyTo; MailApp.sendEmail(o); return { ok: true }; } // 15/11/2026: thư mời phỏng vấn / nhận việc có HTML + địa chỉ nhận trả lời (api/src/hr.js)
   if (d.op === 'props') return { ok: true, props: pp.getProperties() };
   if (d.op === 'retire' || d.op === 'clean_triggers') { // tắt các lịch chạy cũ đã chuyển sang máy chủ Worker (D1)
     ScriptApp.getProjectTriggers().forEach(function (t) {

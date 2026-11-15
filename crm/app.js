@@ -215,9 +215,10 @@
     mkt: { nm: 'Marketing Thực Dưỡng Lành', short: 'Marketing', home: 'marketing', who: 'người làm marketing', guide: 'marketing/' },
     kho: { nm: 'Kho Thực Dưỡng Lành', short: 'Kho', home: 'kho', who: 'người lo kho', guide: 'kho/' },
     ketoan: { nm: 'Kế toán Thực Dưỡng Lành', short: 'Kế toán', home: 'ke-toan', who: 'kế toán', guide: 'ke-toan/' },
+    hr: { nm: 'Nhân sự Thực Dưỡng Lành', short: 'Nhân sự', home: 'tuyen-dung', who: 'người lo tuyển dụng, nhân sự (quyền Quản lý hoặc Quản trị)', guide: 'tuyen-dung/' }, // 🧑‍💼 15/11/2026: tuyển dụng (đợt 1), sau thêm hồ sơ nhân sự, hợp đồng
     kinhdoanh: { nm: 'Kinh doanh Thực Dưỡng Lành', short: 'Kinh doanh', home: 'bao-cao', who: 'quản lý kinh doanh (quyền Quản lý)', guide: 'quan-ly/' }
   };
-  var HOST_KEY = (location.hostname.match(/^(quantri|mkt|kho|ketoan|kinhdoanh)\./) || [])[1] || '', HOST = HOSTS[HOST_KEY] || null, APP_NM = HOST ? HOST.nm : 'CRM Thực Dưỡng Lành';
+  var HOST_KEY = (location.hostname.match(/^(quantri|mkt|kho|ketoan|kinhdoanh|hr)\./) || [])[1] || '', HOST = HOSTS[HOST_KEY] || null, APP_NM = HOST ? HOST.nm : 'CRM Thực Dưỡng Lành';
   if (HOST) { document.title = APP_NM; var mfl = document.querySelector('link[rel=manifest]'); if (mfl) mfl.href = '/manifest-' + HOST_KEY + '.webmanifest'; var amt = document.querySelector('meta[name=apple-mobile-web-app-title]'); if (amt) amt.content = HOST.short + ' TDL'; }
   function roleHost(role) { return 'https://' + (role === 'Quản trị' ? 'quantri' : role === 'Marketing' ? 'mkt' : role === 'Kho' ? 'kho' : role === 'Kế toán' ? 'ketoan' : role === 'Quản lý' ? 'kinhdoanh' : 'crm') + '.thucduonglanh.vn'; }
   function hostOk() { return !HOST || !S.user || myViews().some(function (v) { return v.id === HOST.home; }); } // tên miền vai trò: chỉ ai có tab đó mới dùng được (Quản trị có mọi tab nên vào đâu cũng được)
@@ -847,12 +848,13 @@
     { id: 'ke-toan', label: 'Kế toán', icon: 'kt', kt: 1 }, // 💼 tiền về, tiền treo ở hãng, chi phí, lãi lỗ (api/src/kt.js): quyền Kế toán + Quản trị (Quản trị vào từ Thêm)
     { id: 'san', label: 'Sàn', icon: 'shop', san: 1 }, // doanh số Shopee / TikTok Shop: Quản trị + người phụ trách sàn (Quản trị vào từ Tổng quan, không chiếm chỗ trên menu)
     { id: 'doi-ai', label: 'Đội nhân sự AI', short: 'AI', icon: 'bot', min: 2, ait: 1 }, // 🤖 mỗi trợ lý AI 1 thẻ: làm gì, chạy lúc nào, làm được bao nhiêu, chi phí, lỗi (api/src/aiteam.js, 14/11/2026): Quản lý + Quản trị, vào từ Thêm
+    { id: 'tuyen-dung', label: 'Tuyển dụng', short: 'Tuyển', icon: 'users', min: 2, hr: 1 }, // 🧑‍💼 hồ sơ ứng viên, AI chấm CV, hẹn phỏng vấn, thư mời nhận việc (api/src/hr.js, 15/11/2026): Quản lý + Quản trị, mở thẳng ở hr.thucduonglanh.vn
     { id: 'giao-viec', label: 'Việc tuần', short: 'Việc', icon: 'task', gv: 1 }, // ✅ giao việc + bot Telegram (api/src/giaoviec.js, 14/11/2026): mọi vai trò
     { id: 'cai-dat', label: 'Cài đặt', icon: 'gear' }
   ];
   // Marketing: tab Marketing, Link & QR, Khách hỏi (24/10/2026: chỉ xem khách để lại số trên web), Cài đặt
   function myViews() { if (isKt()) return VIEWS.filter(function (v) { return v.kt || v.gv || v.id === 'cai-dat'; }); if (isKho()) return VIEWS.filter(function (v) { return v.kho || v.gv || v.id === 'cai-dat'; }); if (isMkt()) return VIEWS.filter(function (v) { return v.mkt || v.gv || v.lq || (v.bw && S.user && S.user.web) || v.id === 'tiem-nang' || v.id === 'cai-dat'; }); return VIEWS.filter(function (v) { return (!v.min || lvl() >= v.min) && (!v.ask || !!(S.user && S.user.ask)) && (!v.lq || lvl() >= 2 || (v.id === 'tro-ly-zalo' && S.user && S.user.zb)) && (!v.bw || lvl() >= 2 || !!(S.user && S.user.web)) && (!v.san || (S.d && S.d.sanOk) || lvl() >= 3) && (!v.kho || khoCan()) && (!v.kt || lvl() >= 3) && (!v.mkt || lvl() >= 3 || mkvOnly()); }); }
-  function navViews() { return myViews().filter(function (v) { return !((v.san || v.lq || v.bw || v.ask || v.kho || v.kt || v.ait || v.id === 'zalo-sale') && lvl() >= 2 && !isMkt()); }); } // Quản trị: Marketing có trên menu (29/10/2026), Sàn / Link & QR / Zalo / Fanpage vào từ Thêm; Quản lý cũng vậy (anh Sơn 31/10/2026: menu máy tính rối)
+  function navViews() { return myViews().filter(function (v) { return !((v.san || v.lq || v.bw || v.ask || v.kho || v.kt || v.ait || (v.hr && HOST_KEY !== 'hr') || v.id === 'zalo-sale') && lvl() >= 2 && !isMkt()); }); } // Quản trị: Marketing có trên menu (29/10/2026), Sàn / Link & QR / Zalo / Fanpage vào từ Thêm; Quản lý cũng vậy (anh Sơn 31/10/2026: menu máy tính rối)
   /** Điện thoại (29/10/2026, kiểu Apple): thanh dưới chỉ 4 mục hay dùng + "Thêm"; mục còn lại, Cài đặt, Hướng dẫn, Góp ý nằm ở màn Thêm. Máy tính vẫn hiện đủ. */
   var NAV_FIRST = ['hom-nay', 'tiem-nang', 'khach-hang', 'don-hang', 'bao-cao'];
   var NAV_SALE = ['hom-nay', 'tiem-nang', 'bao-cao', 'don-hang']; // sale: Hiệu quả ở chính giữa thanh dưới (anh Sơn 29/10/2026); 31/10/2026 Đơn hàng (có số đang giao) thay Khách, Khách vào Thêm
@@ -871,9 +873,9 @@
     'khach-hang': 'Hồ sơ, lịch sử mua, chăm sóc', 'don-hang': 'Đơn mới, đang giao, hoàn / huỷ', 'bao-cao': 'Doanh số, mục tiêu, thi đua',
     marketing: 'Quảng cáo, chi phí, giá 1 số điện thoại', 'link-qr': 'Link và mã QR theo dõi nguồn khách', 'tro-ly-zalo': 'Trợ lý An Lành trong nhóm Zalo', 'zalo-sale': 'Xem sale chăm khách qua Zalo',
     fanpage: 'Trả lời bình luận, tin nhắn Fanpage', 'bai-web': 'Trợ lý viết bài cho Góc Sống Lành', 'noi-dung': 'Nhóm khách, tension, phễu; kịch bản video', san: 'Doanh số Shopee, TikTok Shop', kho: 'Hàng còn bao nhiêu, sắp hết, đặt thêm hàng', 'ke-toan': 'Tiền về tài khoản, tiền treo ở hãng, lãi lỗ', 'cai-dat': 'Nhân sự, mục tiêu, mẫu tin, tài khoản',
-    'hoi-so-lieu': 'Hỏi bằng lời, AI tự tra số và báo cáo', 'giao-viec': '3 việc trọng tâm, nhờ nhau, báo cáo họp thứ Hai', 'doi-ai': 'Trợ lý AI nào đang gánh việc thật, tốn bao nhiêu'
+    'hoi-so-lieu': 'Hỏi bằng lời, AI tự tra số và báo cáo', 'giao-viec': '3 việc trọng tâm, nhờ nhau, báo cáo họp thứ Hai', 'tuyen-dung': 'Ứng viên, AI chấm CV, hẹn phỏng vấn, thư mời', 'doi-ai': 'Trợ lý AI nào đang gánh việc thật, tốn bao nhiêu'
   };
-  var VIEW_TINT = { 'doi-ai': '#7d4cdb', 'tong-quan': '#1f5f3a', 'hom-nay': '#34a853', 'tiem-nang': '#ff9500', 'khach-hang': '#007aff', 'don-hang': '#a2845e', 'bao-cao': '#5856d6', marketing: '#ff2d55', 'link-qr': '#636366', 'tro-ly-zalo': '#0068ff', 'zalo-sale': '#0b63c4', fanpage: '#1877f2', 'bai-web': '#24805b', 'noi-dung': '#d9480f', san: '#ee4d2d', kho: '#8e5a2b', 'ke-toan': '#0a7d5a', 'cai-dat': '#8e8e93', 'hoi-so-lieu': '#af52de', 'giao-viec': '#0a84ff' };
+  var VIEW_TINT = { 'doi-ai': '#7d4cdb', 'tong-quan': '#1f5f3a', 'hom-nay': '#34a853', 'tiem-nang': '#ff9500', 'khach-hang': '#007aff', 'don-hang': '#a2845e', 'bao-cao': '#5856d6', marketing: '#ff2d55', 'link-qr': '#636366', 'tro-ly-zalo': '#0068ff', 'zalo-sale': '#0b63c4', fanpage: '#1877f2', 'bai-web': '#24805b', 'noi-dung': '#d9480f', san: '#ee4d2d', kho: '#8e5a2b', 'ke-toan': '#0a7d5a', 'cai-dat': '#8e8e93', 'hoi-so-lieu': '#af52de', 'giao-viec': '#0a84ff', 'tuyen-dung': '#2f7d5b' };
   function viewMore() {
     var main = navMain(), n = navCounts(), info = navInfo();
     var rest = myViews().filter(function (v) { return main.indexOf(v.id) < 0 && v.id !== 'cai-dat'; });
@@ -1113,7 +1115,7 @@
     var keepScroll = lastView === v, y = window.scrollY;
     var el = $('#view');
     var focusId = document.activeElement && document.activeElement.id, selStart = document.activeElement && document.activeElement.selectionStart;
-    el.innerHTML = ({ 'hom-nay': viewToday, 'khach-hang': viewCustomers, 'don-hang': viewOrders, 'tiem-nang': viewLeads, 'bao-cao': viewReport, 'cai-dat': viewSettings, 'tong-quan': viewDash, san: viewSan, marketing: viewMkt, 'link-qr': viewLinks, 'tro-ly-zalo': viewZbot, 'zalo-sale': viewZsale, fanpage: viewFp, 'bai-web': viewBlog, 'noi-dung': viewIns, 'hoi-so-lieu': viewAsk, kho: viewKho, 'ke-toan': viewKtab, 'giao-viec': viewGv, 'doi-ai': viewAit, them: viewMore })[v]();
+    el.innerHTML = ({ 'hom-nay': viewToday, 'khach-hang': viewCustomers, 'don-hang': viewOrders, 'tiem-nang': viewLeads, 'bao-cao': viewReport, 'cai-dat': viewSettings, 'tong-quan': viewDash, san: viewSan, marketing: viewMkt, 'link-qr': viewLinks, 'tro-ly-zalo': viewZbot, 'zalo-sale': viewZsale, fanpage: viewFp, 'bai-web': viewBlog, 'noi-dung': viewIns, 'hoi-so-lieu': viewAsk, kho: viewKho, 'ke-toan': viewKtab, 'giao-viec': viewGv, 'tuyen-dung': viewTuy, 'doi-ai': viewAit, them: viewMore })[v]();
     if (v === homeView()) { btMount(el); vhMount(el); tbMount(el); hiwMount(el); goalNag(); } // ☀️ lời chào + lời chúc mỗi ngày nằm trên cùng // 🌿 Quy tắc của ngày + 📢 Thông báo (nằm trên) ở đầu màn hình đầu tiên của mỗi người
     el.insertAdjacentHTML('beforeend', updatedLine());
     if (focusId && $('#' + focusId)) { var f = $('#' + focusId); f.focus(); try { f.setSelectionRange(selStart, selStart); } catch (e) { } }
@@ -1130,6 +1132,7 @@
     if (v === 'hoi-so-lieu') bindAsk(!keepScroll);
     if (v === 'kho') bindKho();
     if (v === 'giao-viec') bindGv();
+    if (v === 'tuyen-dung') bindTuy();
     if (v === 'doi-ai') bindAit();
     if (v === 'zalo-sale') bindZsale();
     if (v === 'ke-toan') { bindKtab(); bindSan(); }
@@ -15472,6 +15475,204 @@
     modal('❓ Máy tính số kho thế nào?', body, '<button class="btn block" data-close>Đóng</button>');
   }
 
+  /* ================================================================ 🧑‍💼 Tuyển dụng – hr.thucduonglanh.vn đợt 1 (15/11/2026, anh Sơn; máy chủ api/src/hr.js, lệnh hr {op})
+     Quản lý + Quản trị. Bước: Mới → Hẹn phỏng vấn → Đã phỏng vấn → Mời nhận việc → Đã nhận việc (hoặc Không phù hợp / Từ chối nhận việc).
+     Điểm gộp tuyFit = AI đọc CV 60% + trắc nghiệm văn hoá trên congsu 40%. Email gửi qua Apps Script (HTML có logo), ứng viên trả lời ở api /tm/<mã>. */
+  var TUY = { d: null, busy: 0, err: '', at: 0, st: 'todo', job: '', q: '' };
+  var TUY_IC = { 'Mới': '🆕', 'Hẹn phỏng vấn': '📅', 'Đã phỏng vấn': '🗣', 'Mời nhận việc': '✉️', 'Đã nhận việc': '🎉', 'Không phù hợp': '🚫', 'Từ chối nhận việc': '🙏' };
+  var TUY_CRIT = [['than', 'Thân', 'tác phong, sức khoẻ, đúng giờ'], ['tam', 'Tâm', 'thái độ, trung thực, tử tế'], ['tri', 'Trí', 'năng lực, kinh nghiệm cho việc này'], ['vh', 'Hợp văn hoá', '10 Quy Tắc Danh Dự, lối sống lành'], ['gb', 'Gắn bó', 'mong muốn và cam kết làm lâu dài']];
+  var TUY_QS = [['why', 'Vì sao muốn đồng hành cùng VitaGreen'], ['hard', 'Việc khó nhất đã theo đến cùng'], ['rules', 'Quy tắc làm tốt nhất / cần rèn thêm'], ['ai', 'AI và công cụ số đang dùng'], ['life', 'Lối sống lành hiện nay']];
+  var TUY_TABS = [['todo', 'Cần làm'], ['Mới', 'Hồ sơ mới'], ['Hẹn phỏng vấn', 'Hẹn phỏng vấn'], ['Đã phỏng vấn', 'Đã phỏng vấn'], ['Mời nhận việc', 'Đã gửi thư mời'], ['Đã nhận việc', 'Đã nhận việc'], ['out', 'Không tiếp tục'], ['all', 'Tất cả']];
+  function tuyFetch() {
+    if (TUY.busy) return; TUY.busy = 1;
+    api('hr', { op: 'list' }).then(function (j) { TUY.busy = 0; tuySet(j); if (route().view === 'tuyen-dung') render(); },
+      function (e) { TUY.busy = 0; TUY.err = /Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message; if (route().view === 'tuyen-dung') render(); });
+  }
+  function tuySet(j) { TUY.d = j; TUY.err = ''; TUY.at = Date.now(); }
+  function tuyRow(id) { return TUY.d ? TUY.d.rows.filter(function (r) { return r.id === +id; })[0] : null; }
+  function tuyFit(r) { var a = r.ai ? r.ai.score : null, q = r.quiz; return a != null && q != null ? Math.round(a * 0.6 + q * 0.4) : a != null ? a : q != null ? q : null; }
+  function tuyRank(r) { var f = tuyFit(r); return f == null ? '' : f >= 75 ? 'A' : f >= 55 ? 'B' : 'C'; }
+  function tuyDt(t) { if (!t) return ''; var x = vnDate(t); return pad(x.h) + ':' + pad(x.mi) + ' ' + ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][new Date(t + 7 * 3600e3).getUTCDay()] + ' ' + pad(x.d) + '/' + pad(x.m); }
+  function tuyDay(s) { var m = String(s || '').match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? m[3] + '/' + m[2] + '/' + m[1] : String(s || ''); }
+  function tuyOut(r) { return r.st === 'Không phù hợp' || r.st === 'Từ chối nhận việc'; }
+  function tuyTodo(r) { // việc người tuyển dụng cần làm ngay
+    if (r.st === 'Mới') return true;
+    if (r.st === 'Hẹn phỏng vấn') return !r.iv || r.iv.at < Date.now() || (r.ivr && r.ivr.ok === -1);
+    if (r.st === 'Đã phỏng vấn') return !r.ivs || r.ivs.verdict !== 'Cân nhắc';
+    if (r.st === 'Mời nhận việc') return !!(r.ofr && r.ofr.ok === 0) || (r.offer && r.offer.due < isoDate(Date.now()));
+    return false;
+  }
+  function tuyNext(r) {
+    var now = Date.now(), rk = tuyRank(r);
+    if (r.st === 'Mới') return !r.ai && TUY.d.ai && (r.aiTry || 0) < 3 && now - r.time < 3 * DAY ? '⏳ AI đang đọc hồ sơ, khoảng 10 phút' : rk === 'A' ? '👉 Nên hẹn phỏng vấn sớm' : rk === 'C' ? '👉 Xem lại, có thể báo chưa phù hợp' : '👉 Xem hồ sơ, gọi hỏi thêm';
+    if (r.st === 'Hẹn phỏng vấn') return !r.iv ? '👉 Chọn lịch phỏng vấn' : (r.iv.at < now ? '👉 Đã qua giờ hẹn: chấm phiếu phỏng vấn' : '📅 ' + tuyDt(r.iv.at)) + (r.ivr ? r.ivr.ok === 1 ? ' · ✅ ứng viên đã xác nhận' : ' · ⚠️ ứng viên xin đổi lịch' : r.iv.sent ? ' · chờ ứng viên xác nhận' : ' · chưa gửi email');
+    if (r.st === 'Đã phỏng vấn') return r.ivs ? '⭐ ' + r.ivs.avg + '/5 · ' + r.ivs.verdict + (r.ivs.verdict === 'Nhận' ? ' 👉 gửi thư mời nhận việc' : '') : '👉 Chấm phiếu phỏng vấn';
+    if (r.st === 'Mời nhận việc' && r.offer) return r.ofr && r.ofr.ok === 0 ? '💬 Ứng viên hỏi thêm: ' + (r.ofr.note || '(không ghi)') : r.offer.due < isoDate(now) ? '⚠️ Quá hạn trả lời ' + tuyDay(r.offer.due) + ': gọi hỏi ứng viên' : '⏳ Chờ trả lời đến ' + tuyDay(r.offer.due);
+    if (r.st === 'Đã nhận việc' && r.offer) return '🎉 Bắt đầu ' + tuyDay(r.offer.start) + (r.ofr && r.ofr.sign ? ' · đã ký tên “' + r.ofr.sign + '”' : '');
+    return '';
+  }
+  function tuyScore(r) {
+    var f = tuyFit(r), rk = tuyRank(r);
+    if (f == null) return '<span class="tuy-sc tuy-sc-n">Chưa có điểm</span>';
+    return '<span class="tuy-sc tuy-sc-' + rk + '"><b>' + f + '%</b> hạng ' + rk + '</span>';
+  }
+  function viewTuy() {
+    if (!TUY.d && !TUY.err) setTimeout(tuyFetch, 0); else if (TUY.d && !TUY.busy && Date.now() - TUY.at > 90e3) setTimeout(tuyFetch, 0);
+    var h = '<div class="tuy-wrap"><div class="page-head"><h1>🧑‍💼 Tuyển dụng</h1><div class="grow"></div>' + (TUY.d && TUY.d.admin ? '<button class="btn ghost" data-tuy="cfg">⚙️ Mẫu thư</button>' : '') + '<button class="btn ghost" data-tuy="reload">⟳ Tải lại</button></div>';
+    if (!TUY.d) return h + '<div class="box"><p class="muted">' + (TUY.err ? '⚠️ ' + esc(TUY.err) + ' <button class="btn sm" data-tuy="reload">Thử lại</button>' : '⏳ Đang tải hồ sơ ứng viên…') + '</p></div></div>';
+    var R = TUY.d.rows, jobs = {};
+    R.forEach(function (r) { jobs[r.job] = (jobs[r.job] || 0) + 1; });
+    h += '<p class="tuy-lead">Ứng viên nộp ở <a href="https://congsu.thucduonglanh.vn" target="_blank" rel="noopener">congsu.thucduonglanh.vn</a> tự vào đây. AI đọc CV, so với mô tả công việc rồi cho <b>% phù hợp</b> (AI 60% + bài trắc nghiệm văn hoá 40%). Hạng <b>A</b> ≥ 75% nên hẹn sớm · <b>B</b> 55–74% gọi hỏi thêm · <b>C</b> dưới 55%.' + (TUY.d.ai ? '' : ' <b>⚠️ Máy chủ chưa có khoá AI nên mới có điểm trắc nghiệm.</b>') + '</p>';
+    var cnt = function (k) { return R.filter(function (r) { return tuyIn(r, k); }).length; };
+    h += '<div class="chips tuy-chips" role="tablist">' + TUY_TABS.map(function (t) { var n = cnt(t[0]); return '<button class="chip' + (t[0] === TUY.st ? ' on' : '') + '" data-tuy="tab|' + t[0] + '">' + t[1] + (n ? ' <span class="tuy-n' + (t[0] === 'todo' ? ' hot' : '') + '">' + n + '</span>' : '') + '</button>'; }).join('') + '</div>';
+    h += '<div class="tuy-filter">' + (Object.keys(jobs).length > 1 ? '<select data-tuysel="job"><option value="">Mọi vị trí (' + R.length + ')</option>' + Object.keys(jobs).sort().map(function (j) { return '<option value="' + esc(j) + '"' + (j === TUY.job ? ' selected' : '') + '>' + esc(j) + ' (' + jobs[j] + ')</option>'; }).join('') + '</select>' : '') +
+      '<input type="search" data-tuysel="q" placeholder="🔍 Tìm tên, số điện thoại, email" value="' + esc(TUY.q) + '"></div>';
+    var L = R.filter(function (r) { return tuyIn(r, TUY.st) && (!TUY.job || r.job === TUY.job) && (!TUY.q || norm(r.name + ' ' + r.phone + ' ' + r.email).indexOf(norm(TUY.q)) >= 0); });
+    L.sort(function (a, b) { var fa = tuyFit(a), fb = tuyFit(b); return TUY.st === 'Hẹn phỏng vấn' && a.iv && b.iv ? a.iv.at - b.iv.at : (fb == null ? -1 : fb) - (fa == null ? -1 : fa) || b.time - a.time; });
+    if (!L.length) h += '<div class="box tuy-empty">' + (TUY.st === 'todo' ? '🌿 Không còn hồ sơ nào cần xử lý.' : 'Chưa có hồ sơ ở mục này.') + '</div>';
+    else h += '<div class="tuy-list">' + L.map(function (r) {
+      return '<button class="tuy-card" data-tuy="open|' + r.id + '"><span class="tuy-c1"><b>' + esc(r.name) + '</b>' + tuyScore(r) + '</span>' +
+        '<span class="tuy-c2">' + esc(r.job) + ' · nộp ' + esc(daysAgo(r.time)) + (TUY.st === 'all' || TUY.st === 'todo' || TUY.st === 'out' ? ' · ' + TUY_IC[r.st] + ' ' + esc(r.st) : '') + '</span>' +
+        (r.ai && r.ai.sum ? '<span class="tuy-c3">🤖 ' + esc(r.ai.sum) + '</span>' : '') + '<span class="tuy-c4">' + esc(tuyNext(r)) + '</span></button>';
+    }).join('') + '</div>';
+    return h + '<p class="small muted tuy-law">🔒 Hồ sơ ứng viên là dữ liệu cá nhân (Luật 91/2025): chỉ Quản lý, Quản trị xem; không chép ra nhóm chat; hồ sơ không trúng tuyển tự xoá sau 12 tháng.</p></div>';
+  }
+  function tuyIn(r, k) { return k === 'all' ? true : k === 'todo' ? tuyTodo(r) : k === 'out' ? tuyOut(r) : r.st === k; }
+  function bindTuy(root) {
+    $$('[data-tuysel="job"]', root).forEach(function (s) { s.onchange = function () { TUY.job = s.value; render(); }; });
+    $$('[data-tuysel="q"]', root).forEach(function (s) { s.oninput = function () { TUY.q = s.value; clearTimeout(TUY.qt); TUY.qt = setTimeout(function () { render(); var n = $('[data-tuysel="q"]'); if (n) { n.focus(); n.setSelectionRange(n.value.length, n.value.length); } }, 350); }; });
+    $$('[data-tuy]', root).forEach(function (el) {
+      el.onclick = function (e) {
+        e.preventDefault(); var a = el.getAttribute('data-tuy').split('|');
+        if (a[0] === 'reload') { TUY.err = ''; tuyFetch(); toast('Đang tải lại…'); }
+        else if (a[0] === 'tab') { TUY.st = a[1]; render(); }
+        else if (a[0] === 'open') openTuy(+a[1]);
+        else if (a[0] === 'cfg') openTuyCfg();
+      };
+    });
+  }
+  function tuyDo(op, data, btn, okMsg) {
+    var t = btn && btn.textContent; if (btn) { btn.disabled = true; btn.textContent = '⏳ Đang lưu…'; }
+    return api('hr', Object.assign({ op: op }, data)).then(function (j) { tuySet(j); if (okMsg) toast(okMsg); if (route().view === 'tuyen-dung') render(); return j; },
+      function (er) { if (btn) { btn.disabled = false; btn.textContent = t; } toast(er.message, true); throw er; });
+  }
+  function tuyList(title, L) { return L && L.length ? '<div class="tuy-ai-b"><b>' + title + '</b><ul>' + L.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ul></div>' : ''; }
+  function openTuy(id) {
+    var r = tuyRow(id); if (!r) return toast('Không thấy hồ sơ.', true);
+    var A = r.ai, f = tuyFit(r), b = '';
+    b += '<div class="tuy-top"><div><div class="tuy-job">' + esc(r.job) + '</div><div class="small muted">' + TUY_IC[r.st] + ' ' + esc(r.st) + ' · nộp ' + esc(fDateTime(r.time)) + (r.heard ? ' · biết tin từ ' + esc(r.heard) : '') + '</div></div>' + tuyScore(r) + '</div>';
+    b += '<div class="tuy-contact"><a class="btn sm" href="tel:' + esc(r.phone) + '">📞 ' + esc(fPhone(r.phone)) + '</a><a class="btn sm" href="' + zalo(r.phone) + '" target="_blank" rel="noopener">💬 Zalo</a>' + (r.email ? '<a class="btn sm" href="mailto:' + esc(r.email) + '">✉️ ' + esc(r.email) + '</a>' : '') +
+      (r.cv ? '<button class="btn sm" data-tuyd="cv">📎 Tải CV</button>' : r.cv_link ? '<a class="btn sm" href="' + esc(r.cv_link) + '" target="_blank" rel="noopener">🔗 Mở link CV</a>' : r.file ? '<span class="small muted">📎 CV ' + esc(r.file) + ' đã gửi Telegram Quản trị</span>' : '') + '</div>';
+    var nx = tuyNext(r); if (nx) b += '<div class="tuy-nx">' + esc(nx) + '</div>';
+    // AI
+    b += '<section class="tuy-sec"><h3>🤖 AI đọc hồ sơ' + (A ? ' <small>' + A.score + '% · hạng ' + A.rank + ' · ' + esc(fDateTime(r.aiAt)) + '</small>' : '') + '</h3>';
+    if (A) b += '<p class="tuy-sum">' + esc(A.sum) + '</p>' + tuyList('Vì sao có điểm này', A.why) + tuyList('👍 Điểm mạnh', A.good) + tuyList('⚠️ Cần hỏi lại / lưu ý', A.risk) + tuyList('❓ Câu hỏi nên hỏi khi phỏng vấn', A.ask) + (A.cv ? '<details class="tuy-det"><summary>Tóm tắt CV</summary><p>' + esc(A.cv) + '</p></details>' : '') + (A.note ? '<p class="small muted">ℹ️ ' + esc(A.note) + '</p>' : '');
+    else b += '<p class="muted">' + (!TUY.d.ai ? 'Máy chủ chưa có khoá AI.' : (r.aiTry || 0) >= 3 ? 'AI chưa đọc được hồ sơ này sau 3 lần thử.' : 'AI sẽ đọc trong khoảng 10 phút sau khi ứng viên nộp (7h–22h).') + '</p>';
+    if (TUY.d.ai) b += '<button class="btn sm" data-tuyd="ai">🔁 ' + (A ? 'Chấm lại' : 'Chấm ngay') + '</button>';
+    b += '</section>';
+    // trắc nghiệm + câu trả lời
+    b += '<section class="tuy-sec"><h3>📝 Bài trắc nghiệm văn hoá' + (r.quiz != null ? ' <small>' + r.quiz + '% · ' + esc(r.qlv) + '</small>' : '') + '</h3>' + (r.quiz != null ? '<p class="small muted">' + esc(r.qdet) + '</p>' + r.qflags.map(function (x) { return '<div class="tuy-flag">⚠️ ' + esc(x) + '</div>'; }).join('') : '<p class="muted">Không làm bài.</p>') +
+      '<div class="tuy-info">' + [['Kinh nghiệm', r.exp], ['Nơi ở', r.area], ['Năm sinh', r.birth], ['Thu nhập mong muốn', r.salary], ['Có thể bắt đầu', r.start]].filter(function (x) { return x[1]; }).map(function (x) { return '<div><span>' + x[0] + '</span><b>' + esc(x[1]) + '</b></div>'; }).join('') + '</div>' +
+      TUY_QS.filter(function (q) { return r.ans[q[0]]; }).map(function (q) { return '<details class="tuy-det"><summary>' + q[1] + '</summary><p>' + esc(r.ans[q[0]]) + '</p></details>'; }).join('') + '</section>';
+    if (r.iv) b += '<section class="tuy-sec"><h3>📅 Lịch phỏng vấn</h3><p><b>' + esc(tuyDt(r.iv.at)) + '</b> · ' + esc(r.iv.mode) + ' · ' + esc(r.iv.place) + '<br>Người phỏng vấn: ' + esc(r.iv.by) + (r.iv.sent ? ' · đã gửi email ' + esc(fDateTime(r.iv.sent)) : ' · chưa gửi email') + '</p>' + (r.ivr ? '<p>' + (r.ivr.ok === 1 ? '✅ Ứng viên xác nhận tham gia' : '⚠️ Ứng viên xin đổi lịch') + ' lúc ' + esc(fDateTime(r.ivr.at)) + (r.ivr.note ? ': “' + esc(r.ivr.note) + '”' : '') + '</p>' : '') + '</section>';
+    if (r.ivs) b += '<section class="tuy-sec"><h3>⭐ Phiếu phỏng vấn <small>' + r.ivs.avg + '/5 · ' + esc(r.ivs.verdict) + ' · ' + esc(r.ivs.by) + '</small></h3><div class="tuy-info">' + TUY_CRIT.map(function (c) { return '<div><span>' + c[1] + '</span><b>' + '★★★★★'.slice(0, r.ivs.s[c[0]]) + '<span class="tuy-star0">' + '★★★★★'.slice(r.ivs.s[c[0]]) + '</span></b></div>'; }).join('') + '</div>' + (r.ivs.note ? '<p>' + esc(r.ivs.note) + '</p>' : '') + '</section>';
+    if (r.offer) b += '<section class="tuy-sec"><h3>✉️ Thư mời nhận việc <small>gửi ' + esc(fDateTime(r.offer.sent)) + '</small></h3><div class="tuy-info">' + [['Vị trí', r.offer.pos], ['Bắt đầu', tuyDay(r.offer.start)], ['Lương chính thức', r.offer.pay], ['Thử việc', [r.offer.trial, r.offer.trialPay].filter(Boolean).join(' · ')], ['Hạn trả lời', tuyDay(r.offer.due)]].filter(function (x) { return x[1]; }).map(function (x) { return '<div><span>' + x[0] + '</span><b>' + esc(x[1]) + '</b></div>'; }).join('') + '</div>' +
+      (r.ofr ? '<p>' + (r.ofr.ok === 1 ? '🎉 Đồng ý nhận việc, ký tên “' + esc(r.ofr.sign) + '”' : r.ofr.ok === -1 ? '🙏 Chưa nhận lời' : '💬 Hỏi thêm') + ' lúc ' + esc(fDateTime(r.ofr.at)) + (r.ofr.note ? ': “' + esc(r.ofr.note) + '”' : '') + '</p>' : '') + '</section>';
+    b += '<section class="tuy-sec"><h3>🗒 Ghi chú nội bộ</h3><textarea id="tuyNote" rows="3" placeholder="Ví dụ: đã gọi 15/11, bạn hẹn gửi thêm hồ sơ năng lực">' + esc(r.note) + '</textarea><button class="btn sm" data-tuyd="note">Lưu ghi chú</button></section>';
+    b += '<details class="tuy-det tuy-hist"><summary>🕘 Lịch sử (' + r.hist.length + ')</summary><ul>' + r.hist.slice().reverse().map(function (x) { return '<li><span>' + esc(fDateTime(x[0])) + '</span> <b>' + esc(x[1]) + '</b>: ' + esc(x[2]) + '</li>'; }).join('') + '</ul></details>';
+    if (r.link) b += '<p class="small muted">Link trả lời của ứng viên: <a href="' + esc(r.link) + '" target="_blank" rel="noopener">xem như ứng viên thấy</a></p>';
+    var out = tuyOut(r), foot = out ? '<button class="btn" data-tuyd="back">↩ Mở lại hồ sơ</button>' + (TUY.d.admin ? '<button class="btn danger" data-tuyd="del">🗑 Xoá hồ sơ</button>' : '') :
+      '<button class="btn' + (r.st === 'Mới' ? ' pri' : '') + '" data-tuyd="iv">📅 ' + (r.iv ? 'Đổi lịch phỏng vấn' : 'Hẹn phỏng vấn') + '</button>' +
+      (r.iv ? '<button class="btn' + (r.st === 'Hẹn phỏng vấn' && r.iv.at < Date.now() ? ' pri' : '') + '" data-tuyd="ivs">⭐ ' + (r.ivs ? 'Sửa phiếu phỏng vấn' : 'Chấm phỏng vấn') + '</button>' : '') +
+      (r.st !== 'Mới' || r.ivs ? '<button class="btn' + (r.st === 'Đã phỏng vấn' && r.ivs && r.ivs.verdict === 'Nhận' ? ' pri' : '') + '" data-tuyd="offer">✉️ ' + (r.offer ? 'Gửi lại thư mời' : 'Thư mời nhận việc') + '</button>' : '') +
+      (r.st !== 'Đã nhận việc' ? '<button class="btn ghost" data-tuyd="no">🚫 Không phù hợp</button>' : '');
+    var m = modal(esc(r.name), b, foot);
+    $$('[data-tuyd]', m).forEach(function (el) {
+      el.onclick = function (e) {
+        e.preventDefault(); var k = el.getAttribute('data-tuyd');
+        if (k === 'note') tuyDo('note', { id: r.id, note: $('#tuyNote').value }, el, 'Đã lưu ghi chú ✓').then(function () { el.disabled = false; el.textContent = 'Lưu ghi chú'; }, function () { });
+        else if (k === 'ai') { el.disabled = true; el.textContent = '⏳ AI đang đọc, khoảng 30 giây…'; tuyDo('ai', { id: r.id }, null, 'AI đã chấm xong ✓').then(function () { openTuy(r.id); }, function () { el.disabled = false; el.textContent = '🔁 Chấm lại'; }); }
+        else if (k === 'cv') { el.disabled = true; api('hr', { op: 'cv', id: r.id }).then(function (j) { el.disabled = false; var bin = atob(j.b64), u8 = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i); lqDl(j.name, new Blob([u8])); }, function (er) { el.disabled = false; toast(er.message, true); }); }
+        else if (k === 'iv') openTuyIv(r);
+        else if (k === 'ivs') openTuyIvs(r);
+        else if (k === 'offer') openTuyOffer(r);
+        else if (k === 'no') { var why = prompt('Lý do chưa phù hợp (ghi cho nội bộ, ứng viên không thấy):', ''); if (why === null) return; tuyDo('stage', { id: r.id, st: 'Không phù hợp', why: why }, el, 'Đã chuyển sang Không phù hợp').then(function () { closeModal(); }, function () { }); }
+        else if (k === 'back') tuyDo('stage', { id: r.id, st: r.offer ? 'Mời nhận việc' : r.ivs ? 'Đã phỏng vấn' : r.iv ? 'Hẹn phỏng vấn' : 'Mới' }, el, 'Đã mở lại hồ sơ').then(function () { openTuy(r.id); }, function () { });
+        else if (k === 'del') { if (!confirm('Xoá hẳn hồ sơ của ' + r.name + '? Không lấy lại được. (Làm khi ứng viên yêu cầu xoá dữ liệu.)')) return; tuyDo('del', { id: r.id }, el, 'Đã xoá hồ sơ').then(function () { closeModal(); }, function () { }); }
+      };
+    });
+  }
+  function tuyF(lbl, inp, hint) { return '<label class="f"><span>' + lbl + '</span>' + inp + (hint ? '<small class="muted">' + hint + '</small>' : '') + '</label>'; }
+  function tuyIn2(id, v, ph, type) { return '<input id="' + id + '" type="' + (type || 'text') + '" value="' + esc(v || '') + '"' + (ph ? ' placeholder="' + esc(ph) + '"' : '') + '>'; }
+  function tuyPrevBox(m, kind, get) { // 👁 xem trước thư đúng như ứng viên nhận
+    var pb = $('#tuyPrevBtn', m); if (!pb) return;
+    pb.onclick = function (e) {
+      e.preventDefault(); var d = get(); if (!d) return; pb.disabled = true;
+      api('hr', Object.assign({ op: 'prev', kind: kind }, d)).then(function (j) { pb.disabled = false; var box = $('#tuyPrev', m); box.innerHTML = '<div class="tuy-prev-s">Tiêu đề: <b>' + esc(j.subject) + '</b></div>' + j.html; box.hidden = false; box.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, function (er) { pb.disabled = false; toast(er.message, true); });
+    };
+  }
+  function openTuyIv(r) {
+    var C = TUY.d.cfg, iv = r.iv || {}, at = iv.at ? new Date(iv.at + 7 * 3600e3).toISOString().slice(0, 16) : '';
+    var b = '<p class="small muted">Gửi email mời phỏng vấn cho <b>' + esc(r.name) + '</b> (' + esc(r.email || 'chưa có email') + '). Trong thư có nút để ứng viên <b>xác nhận</b> hoặc <b>xin đổi lịch</b>; bạn nhận tin Telegram khi họ trả lời.</p>' +
+      tuyF('Ngày giờ phỏng vấn', '<input id="tiAt" type="datetime-local" value="' + at + '">') +
+      tuyF('Hình thức', '<select id="tiMode">' + ['Tại văn phòng', 'Online qua Google Meet', 'Gọi video Zalo', 'Gọi điện thoại'].map(function (x) { return '<option' + (x === iv.mode ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select>') +
+      tuyF('Địa điểm hoặc link tham gia', tuyIn2('tiPlace', iv.place || C.place)) +
+      tuyF('Người phỏng vấn', tuyIn2('tiBy', iv.by || S.user.name), 'Ghi tên + chức vụ, ví dụ “Chị Thu Thủy – Quản lý kinh doanh”') +
+      tuyF('Lời dặn ứng viên', '<textarea id="tiNote" rows="3">' + esc(iv.note || C.ivNote) + '</textarea>') +
+      '<label class="tuy-ck"><input type="checkbox" id="tiSend"' + (r.email ? ' checked' : ' disabled') + '> Gửi email mời ngay</label><div id="tuyPrev" class="tuy-prev" hidden></div>';
+    var m = modal('📅 Hẹn phỏng vấn – ' + esc(r.name), b, '<button class="btn" id="tuyPrevBtn">👁 Xem trước thư</button><button class="btn pri" id="tiSave">Lưu lịch hẹn</button>');
+    var get = function () {
+      var v = $('#tiAt', m).value; if (!v) { toast('Chọn ngày giờ phỏng vấn.', true); return null; }
+      return { id: r.id, at: Date.parse(v + ':00+07:00'), mode: $('#tiMode', m).value, place: $('#tiPlace', m).value.trim(), by: $('#tiBy', m).value.trim(), note: $('#tiNote', m).value.trim() };
+    };
+    tuyPrevBox(m, 'iv', get);
+    $('#tiSave', m).onclick = function (e) { e.preventDefault(); var d = get(); if (!d) return; d.send = $('#tiSend', m).checked ? 1 : 0; tuyDo('iv', d, e.target).then(function (j) { toast(j.sent ? 'Đã lưu lịch và gửi email mời ✓' : 'Đã lưu lịch hẹn ✓'); openTuy(r.id); }, function () { }); };
+  }
+  function openTuyIvs(r) {
+    var s = r.ivs || { s: {} };
+    var b = '<p class="small muted">Chấm ngay sau buổi phỏng vấn, mỗi mục 1–5 sao. Phiếu chỉ người tuyển dụng thấy.</p>' + TUY_CRIT.map(function (c) {
+      return '<div class="f tuy-crit"><span><b>' + c[1] + '</b> <small class="muted">' + c[2] + '</small></span><div class="tuy-stars">' + [1, 2, 3, 4, 5].map(function (n) { return '<label><input type="radio" name="tv_' + c[0] + '" value="' + n + '"' + (s.s[c[0]] === n ? ' checked' : '') + '><span>' + n + '★</span></label>'; }).join('') + '</div></div>';
+    }).join('') + tuyF('Nhận xét', '<textarea id="tvNote" rows="3" placeholder="Điều ấn tượng, điều còn băn khoăn">' + esc(s.note || '') + '</textarea>') +
+      tuyF('Kết luận', '<select id="tvVer">' + ['Nhận', 'Cân nhắc', 'Không nhận'].map(function (x) { return '<option' + (x === (s.verdict || 'Cân nhắc') ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select>', '“Không nhận” sẽ chuyển hồ sơ sang Không phù hợp');
+    var m = modal('⭐ Phiếu phỏng vấn – ' + esc(r.name), b, '<button class="btn pri" id="tvSave">Lưu phiếu</button>');
+    $('#tvSave', m).onclick = function (e) {
+      e.preventDefault(); var sc = {}, miss = TUY_CRIT.filter(function (c) { var x = $('input[name="tv_' + c[0] + '"]:checked', m); if (x) sc[c[0]] = +x.value; return !x; });
+      if (miss.length) return toast('Chấm thêm mục: ' + miss.map(function (c) { return c[1]; }).join(', '), true);
+      tuyDo('ivs', { id: r.id, s: sc, note: $('#tvNote', m).value.trim(), verdict: $('#tvVer', m).value }, e.target, 'Đã lưu phiếu phỏng vấn ✓').then(function () { openTuy(r.id); }, function () { });
+    };
+  }
+  function openTuyOffer(r) {
+    var C = TUY.d.cfg, o = r.offer || {}, due = o.due || isoDate(Date.now() + 3 * DAY);
+    var b = '<p class="small muted">Thư mời gửi tới <b>' + esc(r.email || 'chưa có email') + '</b>. Ứng viên bấm nút trong thư, tích đồng ý và gõ họ tên để xác nhận; bạn nhận tin Telegram ngay.</p>' +
+      tuyF('Vị trí', tuyIn2('toPos', o.pos || r.job)) +
+      '<div class="tuy-2">' + tuyF('Ngày bắt đầu', tuyIn2('toStart', o.start, '', 'date')) + tuyF('Hạn trả lời', tuyIn2('toDue', due, '', 'date')) + '</div>' +
+      tuyF('Lương chính thức', tuyIn2('toPay', o.pay, 'Ví dụ: 12.000.000đ/tháng + thưởng theo KPI'), r.salary ? 'Ứng viên mong muốn: ' + esc(r.salary) : '') +
+      '<div class="tuy-2">' + tuyF('Thời gian thử việc', tuyIn2('toTrial', o.trial, 'Ví dụ: 2 tháng')) + tuyF('Lương thử việc', tuyIn2('toTrialPay', o.trialPay, 'Ví dụ: 85% lương chính thức')) + '</div>' +
+      tuyF('Phụ cấp, thưởng, phúc lợi', '<textarea id="toExtra" rows="2" placeholder="Ví dụ: phụ cấp ăn trưa, BHXH sau thử việc, 12 ngày phép/năm">' + esc(o.extra || '') + '</textarea>') +
+      tuyF('Địa điểm làm việc', tuyIn2('toPlace', o.place || C.place)) + tuyF('Thời gian làm việc', tuyIn2('toHours', o.hours || C.hours, 'Ví dụ: 8h00–17h30, thứ Hai đến thứ Bảy')) +
+      tuyF('Người quản lý trực tiếp', tuyIn2('toBoss', o.boss, 'Ví dụ: Chị Thu Thủy – Quản lý kinh doanh')) +
+      tuyF('Giấy tờ mang theo ngày đầu', '<textarea id="toDocs" rows="2">' + esc(o.docs || C.docs) + '</textarea>') +
+      tuyF('Lời nhắn riêng (không bắt buộc)', '<textarea id="toMsg" rows="2" placeholder="Ví dụ: Cả đội rất ấn tượng với câu chuyện bạn kể về…">' + esc(o.msg || '') + '</textarea>') + '<div id="tuyPrev" class="tuy-prev" hidden></div>';
+    var m = modal('✉️ Thư mời nhận việc – ' + esc(r.name), b, '<button class="btn" id="tuyPrevBtn">👁 Xem trước thư</button><button class="btn pri" id="toSend"' + (r.email ? '' : ' disabled') + '>Gửi thư mời</button>');
+    var get = function () { var d = { id: r.id }; [['pos', 'toPos'], ['start', 'toStart'], ['due', 'toDue'], ['pay', 'toPay'], ['trial', 'toTrial'], ['trialPay', 'toTrialPay'], ['extra', 'toExtra'], ['place', 'toPlace'], ['hours', 'toHours'], ['boss', 'toBoss'], ['docs', 'toDocs'], ['msg', 'toMsg']].forEach(function (k) { d[k[0]] = $('#' + k[1], m).value.trim(); }); return d; };
+    tuyPrevBox(m, 'offer', get);
+    $('#toSend', m).onclick = function (e) {
+      e.preventDefault(); var d = get();
+      if (!d.pos || !d.start || !d.pay || !d.due) return toast('Điền đủ vị trí, ngày bắt đầu, lương chính thức và hạn trả lời.', true);
+      if (!confirm('Gửi thư mời nhận việc tới ' + r.email + '? Thư là cam kết của công ty, kiểm tra kỹ mức lương và ngày bắt đầu.')) return;
+      tuyDo('offer', d, e.target, 'Đã gửi thư mời nhận việc ✓').then(function () { openTuy(r.id); }, function () { });
+    };
+  }
+  function openTuyCfg() {
+    var C = TUY.d.cfg;
+    var b = '<p class="small muted">Dùng cho mọi thư mời phỏng vấn / nhận việc. Thư gửi từ hộp thư Google của công ty (tài khoản chạy Apps Script).</p>' +
+      tuyF('Tên người gửi', tuyIn2('tcFrom', C.from)) + tuyF('Email nhận trả lời', tuyIn2('tcReply', C.reply, 'Để trống = hộp thư nhận báo đơn'), 'Ứng viên bấm “Trả lời” trong thư sẽ gửi về địa chỉ này') +
+      tuyF('Chữ ký cuối thư', '<textarea id="tcSign" rows="2">' + esc(C.sign) + '</textarea>', 'Ví dụ: Đinh Minh Thái Sơn – Giám đốc') +
+      tuyF('Địa điểm làm việc / phỏng vấn mặc định', tuyIn2('tcPlace', C.place)) + tuyF('Thời gian làm việc mặc định', tuyIn2('tcHours', C.hours, '8h00–17h30, thứ Hai đến thứ Bảy')) +
+      tuyF('Lời dặn khi mời phỏng vấn', '<textarea id="tcIv" rows="2">' + esc(C.ivNote) + '</textarea>') + tuyF('Giấy tờ mang theo ngày đầu', '<textarea id="tcDocs" rows="2">' + esc(C.docs) + '</textarea>');
+    var m = modal('⚙️ Mẫu thư tuyển dụng', b, '<button class="btn pri" id="tcSave">Lưu</button>');
+    $('#tcSave', m).onclick = function (e) { e.preventDefault(); tuyDo('cfg', { from: $('#tcFrom', m).value, reply: $('#tcReply', m).value.trim(), sign: $('#tcSign', m).value, place: $('#tcPlace', m).value, hours: $('#tcHours', m).value, ivNote: $('#tcIv', m).value, docs: $('#tcDocs', m).value }, e.target, 'Đã lưu mẫu thư ✓').then(function () { closeModal(); }, function () { }); };
+  }
   function modal(title, body, foot, opt) {
     closeModal(true);
     var m = document.createElement('div'); m.className = 'modal'; m.setAttribute('role', 'dialog'); m.setAttribute('aria-modal', 'true');

@@ -5,6 +5,7 @@ import { esc, all, run, normPhone, fmtDate } from './lib.js';
 import QUIZ from './apply-quiz.js';
 import { telegramTo, telegram, sendMail, tgConf } from './google.js';
 import { crmUsers } from './crm.js';
+import { hrAfterApply } from './hr.js'; // 🧑‍💼 tuyển dụng (15/11/2026): giữ file CV cho AI đọc, mã link trả lời của ứng viên
 
 const MAX_FILE = 5 * 1024 * 1024; // 5 MB
 const FILE_TYPES = /\.(pdf|docx?|png|jpe?g|webp)$/i;
@@ -67,15 +68,16 @@ export async function apply(x, d) {
   const fit = fitScore(qa0);
   await applySchema(x.db);
   const now = Date.now();
-  await run(x.db, 'INSERT INTO applicants (time, job, name, phone, email, birth, area, exp, salary, start, cv_link, file_name, answers, heard, source, score, quiz) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+  const ins = await run(x.db, 'INSERT INTO applicants (time, job, name, phone, email, birth, area, exp, salary, start, cv_link, file_name, answers, heard, source, score, quiz) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     now, a.job, a.name, a.phone, a.email, a.birth, a.area, a.exp, a.salary, a.start, a.cv_link, file ? file.name : '', JSON.stringify(ans), a.heard, a.source, fit.score, JSON.stringify(qa0));
+  try { await hrAfterApply(x.db, ins.meta && ins.meta.last_row_id, file); } catch (e) { console.error('hrAfterApply', e.message); }
 
   const line = (k, v) => v ? '\n' + k + ': ' + esc(v) : '';
   const head = (fit.score >= 80 ? '🌟' : '🧑‍💼') + ' <b>ỨNG TUYỂN: ' + esc(a.job) + '</b>\n👤 ' + esc(a.name) + (a.birth ? ' (' + esc(a.birth) + ')' : '') + ' – <b>' + esc(a.phone) + '</b>\n✉️ ' + esc(a.email)
     + '\n\n🎯 <b>Mức phù hợp: ' + fit.score + '% – ' + fit.level + '</b>\n' + esc(fit.detail) + fit.flags.map(f => '\n⚠️ ' + esc(f)).join('') + '\n'
     + line('📍 Nơi ở', a.area) + line('💼 Kinh nghiệm', a.exp) + line('💰 Mong muốn', a.salary) + line('📅 Bắt đầu', a.start) + line('🔗 CV', a.cv_link) + (file ? '\n📎 File CV gửi ngay dưới' : '') + line('📣 Biết tin từ', a.heard);
   const qa = QS.filter(([k]) => ans[k]).map(([k, q]) => '\n\n<b>' + q + '</b>\n' + esc(ans[k].slice(0, 600))).join('');
-  const msg = (head + qa).slice(0, 3900) + '\n\n👉 Gọi / nhắn Zalo cho ứng viên trong 2 ngày làm việc';
+  const msg = (head + qa).slice(0, 3900) + '\n\n👉 Gọi / nhắn Zalo cho ứng viên trong 2 ngày làm việc. AI sẽ đọc CV và báo điểm trong khoảng 10 phút.\nhttps://hr.thucduonglanh.vn/#tuyen-dung';
   x.later((async () => {
     const admins = (await crmUsers(x)).filter(u => u.active && u.role === 'Quản trị' && u.tg);
     for (const u of admins) { await telegramTo(x.env, u.tg, msg); if (file) await telegramFile(x.env, u.tg, file.b64, file.name, 'CV ' + a.name + ' – ' + a.job); }
