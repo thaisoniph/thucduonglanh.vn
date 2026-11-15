@@ -3114,7 +3114,7 @@ details.dash-grp[open] > summary::after { transform: rotate(180deg); }
 .pma-meta { margin: 0 0 10px; font-size: 14px; } .pma-meta small { color: var(--muted); }
 .pma-brief { background: #f7f7f4; border-radius: 8px; padding: 8px 10px; font-size: 14px; margin-bottom: 8px; } .pma-note { background: var(--blue-light); }
 .pma-rh { font-size: 15px; margin: 12px 0 6px; }
-.pma-res { border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; font-size: 14.5px; line-height: 1.6; max-height: 60vh; overflow: auto; overflow-wrap: anywhere; }
+.pma-res { background: #fff; border-radius: 12px; padding: 18px 22px; font-size: 16.5px; line-height: 1.75; color: var(--ink); overflow-wrap: anywhere; max-width: 780px; margin: 0 auto; }
 .pma-res h3, .pma-res h4, .pma-res h5, .pma-res h6 { margin: 12px 0 4px; font-size: 15px; } .pma-res p { margin: 6px 0; } .pma-res ul, .pma-res ol { margin: 4px 0; padding-left: 22px; }
 .pma-res pre { white-space: pre-wrap; background: #f7f7f4; border-radius: 8px; padding: 8px; font-size: 13px; }
 .pma-res blockquote { margin: 6px 0; border-left: 3px solid var(--line); padding-left: 10px; color: var(--muted); border-radius: 0; }
@@ -3204,3 +3204,20 @@ details.dash-grp[open] > summary::after { transform: rotate(180deg); }
 .vh-card { background: linear-gradient(180deg, #eef6ef, #fff 70%); border-color: #cfe3d3; } .vh-hd { color: var(--primary); }
 /* 16/11/2026: hết tin mới thì dòng 📢 nhẹ đi, nhường chỗ cho lời chào + điều văn hoá */
 .tb-mini { background: transparent; border-style: dashed; padding: 6px 12px; font-size: 14px; }
+
+/* 16/11/2026 khung đọc kết quả rộng: 1 thanh cuộn, chữ to, Tóm tắt nổi bật, mục lục, nút cố định dưới */
+.pma-read .sheet { max-width: 1000px; height: 96vh; max-height: 96vh; }
+.pma-read .sheet-b { padding: 14px 18px 24px; flex: 1; }
+.pma-read .pma-meta, .pma-read .pma-brief, .pma-read .pma-fix, .pma-read .pma-hist, .pma-read .pma-sheet > .small { max-width: 780px; margin-left: auto; margin-right: auto; }
+.pma-brief summary { cursor: pointer; } .pma-brief p { margin: 6px 0 0; }
+.pma-read .pma-res h3 { font-size: 20px; margin: 22px 0 8px; scroll-margin-top: 10px; } .pma-read .pma-res h4 { font-size: 17.5px; margin: 18px 0 6px; scroll-margin-top: 10px; }
+.pma-read .pma-res > h3:first-child { margin-top: 0; }
+.pma-read .pma-res .pma-sum-h { color: var(--primary); }
+.pma-read .pma-res .pma-sum { background: var(--primary-soft); border: 1px solid #cfe3d4; border-radius: 10px; padding: 10px 14px 10px 30px; margin: 0 0 14px; }
+.pma-read .pma-res li { margin: 4px 0; }
+.pma-toc { max-width: 780px; margin: 0 auto 10px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; font-size: 13px; }
+.pma-toc span { color: var(--muted); } .pma-toc button { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 3px 10px; cursor: pointer; font-size: 13px; }
+.pma-read .sheet-f .pma-sm { flex: 0 0 auto; }
+.pma-read .sheet-f #pmaOk { flex: 1.6; }
+@media (max-width: 640px) { .pma-read .sheet { height: 100%; max-height: 100%; border-radius: 0; } .pma-read .sheet-h { border-radius: 0; } .pma-read .sheet-b { padding: 10px 10px 20px; } .pma-res { padding: 14px; font-size: 16px; } .pma-read .sheet-f .pma-sm span { display: none; } .pma-read .sheet-f .btn { white-space: nowrap; }
+  .pma-toc { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; } .pma-toc button { white-space: nowrap; flex: none; } .pma-toc span { flex: none; } }

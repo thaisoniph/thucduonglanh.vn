@@ -14945,16 +14945,28 @@
     var hist = (t.hist || []).map(function (h) { return '<li><small>' + esc(when(h[0])) + '</small> ' + esc(h[1]) + '</li>'; }).join('');
     var body = '<div class="pma-sheet"><p class="pma-meta">' + m.ic + ' <b>' + esc(m.name) + '</b> · ' + esc(t.code) + ' · <span class="pma-badge pma-' + t.status + '">' + esc(st) + '</span>' +
       (t.score != null ? ' · 🛡 Chuẩn chấm <b>' + t.score + '/100</b>' : '') + '<br><small>' + esc(t.by || '') + ' giao ' + esc(when(t.at)) + (t.due ? ' · hạn ' + esc(fDate(t.due)) : '') + '</small></p>' +
-      (t.body ? '<div class="pma-brief"><b>Chi tiết anh ghi:</b><br>' + esc(t.body).replace(/\n/g, '<br>') + '</div>' : '') +
-      (t.note && t.status !== 'xong' ? '<div class="pma-brief pma-note"><b>Lời sửa gần nhất:</b><br>' + esc(t.note).replace(/\n/g, '<br>') + '</div>' : '') +
-      (t.result ? '<h3 class="pma-rh">📄 Kết quả</h3><div class="pma-res">' + pmaMd(t.result) + '</div>' + (t.file ? '<p class="small muted">📁 Bản đầy đủ trong Drive: ' + esc(t.file) + '</p>' : '')
+      (t.body || t.note ? '<details class="pma-brief"><summary>📝 Anh đã ghi' + (t.note && t.status !== 'xong' ? ' · lời sửa: <i>' + esc(t.note.slice(0, 60)) + (t.note.length > 60 ? '…' : '') + '</i>' : '') + '</summary>' +
+        (t.body ? '<p><b>Chi tiết khi giao:</b><br>' + esc(t.body).replace(/\n/g, '<br>') + '</p>' : '') + (t.note ? '<p><b>Lời sửa gần nhất:</b><br>' + esc(t.note).replace(/\n/g, '<br>') + '</p>' : '') + '</details>' : '') +
+      (t.result ? '<nav class="pma-toc" id="pmaToc" hidden></nav><article class="pma-res">' + pmaMd(t.result) + '</article>' + (t.file ? '<p class="small muted">📁 Bản đầy đủ trong Drive: ' + esc(t.file) + '</p>' : '')
         : '<p class="muted">' + (t.status === 'moi' ? 'Lành chưa nhận việc này (' + esc(pmaMac()[2].toLowerCase()) + ').' : 'Lành đang làm: ' + esc(t.step || '') + '. Xong sẽ hiện kết quả ở đây và báo anh qua Telegram.') + '</p>') +
       (wait ? '<div class="pma-fix" id="pmaFix" hidden><label class="f"><span>Cần sửa chỗ nào? (Lành đọc câu này để làm lại)</span><textarea id="pmaNote" rows="3" placeholder="Bài 2 dài quá, rút còn 150 chữ; thêm giá set 2"></textarea></label><p class="err" id="pmaNErr" hidden></p></div>' : '') +
       (hist ? '<details class="pma-hist"><summary>🕘 Lịch sử việc</summary><ul>' + hist + '</ul></details>' : '') + '</div>';
-    var foot = (t.result ? '<button class="btn" id="pmaCopy">📋 Copy kết quả</button>' : '') +
-      (t.status !== 'xong' && t.status !== 'huy' ? '<button class="btn" id="pmaCancel">🗑 Huỷ việc</button>' : '') +
+    var foot = (t.result ? '<button class="btn pma-sm" id="pmaCopy" title="Copy kết quả">📋<span> Copy</span></button>' : '') +
+      (t.status !== 'xong' && t.status !== 'huy' ? '<button class="btn pma-sm" id="pmaCancel" title="Huỷ việc">🗑<span> Huỷ</span></button>' : '') +
       (wait ? '<button class="btn" id="pmaRedo">✏️ Sửa lại</button><button class="btn pri" id="pmaOk">✅ Duyệt</button>' : '');
     var md = modal(esc(t.title), body, foot);
+    md.classList.add('pma-read'); // 16/11/2026 anh Sơn: khung đọc rộng, 1 thanh cuộn, Tóm tắt nổi bật, mục lục nhảy nhanh
+    var res = $('.pma-res', md);
+    if (res) {
+      var hs = $$('h3, h4', res), h3s = hs.filter(function (z) { return z.tagName === 'H3'; }), h4s = hs.filter(function (z) { return z.tagName === 'H4'; });
+      hs.forEach(function (h) { if (/tóm tắt/i.test(h.textContent)) { h.classList.add('pma-sum-h'); var n = h.nextElementSibling; if (n && !/^H\d$/.test(n.tagName)) n.classList.add('pma-sum'); } });
+      var toc = $('#pmaToc', md), main = (h3s.length >= 3 ? h3s : h4s.length >= 3 ? h4s : hs).filter(function (h) { return h !== res.firstElementChild; }).slice(0, 8); // mục lục gọn: 1 cấp tiêu đề, bỏ tên bài, tối đa 8 nút
+      if (toc && main.length >= 3) {
+        toc.innerHTML = '<span>Đi tới:</span>' + main.map(function (h, k) { return '<button type="button" data-pmh="' + k + '">' + esc(h.textContent.slice(0, 42)) + '</button>'; }).join('');
+        toc.hidden = false;
+        $$('[data-pmh]', toc).forEach(function (b) { b.onclick = function () { main[Number(b.getAttribute('data-pmh'))].scrollIntoView({ behavior: 'smooth', block: 'start' }); }; });
+      }
+    }
     var done = function (msg) { closeModal(); toast(msg); PMA.at = 0; pmaFetch(); };
     var fail = function (b, lab) { return function (e) { b.disabled = false; b.textContent = lab; toast(e.message, true); }; };
     if ($('#pmaCopy', md)) $('#pmaCopy', md).onclick = function () { copy(t.result).then(function () { toast('Đã copy kết quả'); }); };
@@ -14962,9 +14974,9 @@
     if ($('#pmaOk', md)) $('#pmaOk', md).onclick = function () { var b = this; b.disabled = true; b.textContent = 'Đang lưu…'; api('pm_review', { id: t.id, ok: 1 }).then(function () { done('Đã duyệt ✓'); }, fail(b, '✅ Duyệt')); };
     if ($('#pmaRedo', md)) $('#pmaRedo', md).onclick = function () {
       var f = $('#pmaFix', md), n = $('#pmaNote', md), e = $('#pmaNErr', md), b = this;
-      if (f.hidden) { f.hidden = false; b.textContent = '📨 Gửi lời sửa cho Lành'; n.focus(); n.oninput = function () { e.hidden = true; }; return; }
+      if (f.hidden) { f.hidden = false; b.textContent = '📨 Gửi lời sửa'; f.scrollIntoView({ block: 'center' }); n.focus({ preventScroll: true }); n.oninput = function () { e.hidden = true; }; return; }
       if (!n.value.trim()) { e.textContent = 'Anh ghi cần sửa chỗ nào trước nhé.'; e.hidden = false; n.focus(); return; }
-      b.disabled = true; api('pm_review', { id: t.id, note: n.value.trim() }).then(function () { done('Đã gửi lời sửa, Lành làm lại ✓'); }, fail(b, '📨 Gửi lời sửa cho Lành'));
+      b.disabled = true; api('pm_review', { id: t.id, note: n.value.trim() }).then(function () { done('Đã gửi lời sửa, Lành làm lại ✓'); }, fail(b, '📨 Gửi lời sửa'));
     };
   }
   /* ================================================================ 🤖 Đội nhân sự AI (14/11/2026, máy chủ api/src/aiteam.js)

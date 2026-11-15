@@ -312,7 +312,7 @@ Góc trên bên phải cho biết Lành có đang trực không: 🟢 máy Mac �
 **Việc 2 – Chờ Lành làm.** Khoảng 5 phút Lành xem việc mới 1 lần, nhận việc là việc chuyển sang **⚙️ Đang làm** (có ghi Lành đang làm bao nhiêu phút). Lành chia việc trong phòng, Chuẩn chấm trước khi gửi anh. Một việc thường mất 5–30 phút.
 
 **Việc 3 – Duyệt kết quả.** Xong việc, Telegram báo anh và việc hiện ở cột **👀 Chờ anh duyệt** (Tổng quan và màn Thêm cũng có dòng nhắc). Bấm vào việc:
-- Đọc **Tóm tắt cho anh** ở đầu, rồi đến nội dung đầy đủ. Bản gốc nằm trong Drive (`09_Phòng Marketing AI/08_Kết quả công việc/`).
+- Việc mở ra thành màn đọc rộng (trên điện thoại là toàn màn hình), chữ to, một thanh cuộn. Đọc khung xanh **Tóm tắt cho anh** ở đầu; hàng **Đi tới** để nhảy nhanh tới từng phần. Nút Duyệt / Sửa lại luôn nằm cố định ở dưới. Bản gốc nằm trong Drive (`09_Phòng Marketing AI/08_Kết quả công việc/`).
 - **✅ Duyệt**: việc sang cột **Xong**. Rồi giao Phương đăng, hoặc anh Hiếu bấm quảng cáo như thường lệ.
 - **✏️ Sửa lại**: ghi rõ cần sửa chỗ nào, bấm **📨 Gửi lời sửa cho Lành**. Lành sửa đúng chỗ đó rồi gửi lại.
 - **📋 Copy kết quả** để dán vào Zalo, Fanpage. **🗑 Huỷ việc** nếu không cần nữa.
