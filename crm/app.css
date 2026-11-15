@@ -2995,3 +2995,16 @@ details.dash-grp[open] > summary::after { transform: rotate(180deg); }
 .ht-sg { margin: 0 0 8px; line-height: 1.6; }
 .ht-key { margin-top: 8px; }
 .ht-key summary { cursor: pointer; color: #5d6158; }
+
+/* 📄 Hợp đồng nhân sự (hr. đợt 3) */
+.hct-box h3 { margin: 0 0 6px; }
+.hct-list { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 8px; }
+.hct-i { border: 1px solid #e3e6dd; border-radius: 10px; padding: 9px 11px; background: #fbfcf9; }
+.hct-i.off, .hct-i.old { opacity: .65; }
+.hct-h { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.hct-st { margin-left: auto; font-size: 12.5px; padding: 2px 8px; border-radius: 99px; background: #e8f3ec; color: #24805b; font-weight: 600; }
+.hct-st.soon { background: #fff1e0; color: #b45309; } .hct-st.late { background: #fde8e8; color: #b91c1c; } .hct-st.draft, .hct-st.wait { background: #eef0ea; color: #5d6158; } .hct-st.off, .hct-st.old { background: #f1f1f1; color: #777; }
+.hct-act { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 6px; }
+.hct-tag.soon { color: #b45309; font-weight: 600; } .hct-tag.late { color: #b91c1c; font-weight: 600; } .hct-tag.none, .hct-tag.draft { color: #8a6d00; }
+.hct-dur { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; font-size: 13px; margin: -4px 0 10px; }
+.hct-tpl { width: 100%; font: 13px/1.5 ui-monospace, Menlo, monospace; margin-top: 8px; box-sizing: border-box; }

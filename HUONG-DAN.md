@@ -495,6 +495,12 @@ Apps Script giới hạn 200 phiên bản/dự án: báo lỗi "Không tạo đ�
 - Notion: khoá kv `hr_nt` hoặc dùng chung `gv_cfg.notion.token` (✅ Việc tuần), API `2022-06-28`. `ntPull` khớp theo email → họ tên đầy đủ → tên gọi, **chỉ điền ô CRM trống**, người không có tài khoản chỉ liệt kê; đọc thêm câu trả lời Hiểu & Thương trên Notion mà CRM chưa có. `ntPush` ghi các dòng `nt_dirty` (sau mỗi lần lưu qua `x.later`, mỗi lượt cron ≤ 15, nút ghi tất cả), **không gửi ô trống, không gửi lương**, Trạng thái chỉ đặt khi tạo trang mới hoặc người đã nghỉ; Hiểu & Thương nối quan hệ "Hồ sơ nhân sự" + "Đệ nhị thân đề xuất" sang trang Nhân sự.
 - CRM: `htMount` (thẻ mời ở màn hình đầu, "Để sau" 3 ngày `ht_later`), `openHtForm`, Thêm → 🤝 Hiểu & Thương của tôi; trong hồ sơ `hsoHtSec`, `hsoPairSuggest` (điểm = cần ∩ người kia giỏi ×2 + chiều ngược), `openHsoPair`, `hsoNtBox`; CSS `.ht-…`. Hướng dẫn: `guide/nhan-su.md`, `guide/van-hoa.md`. Thử: `node scripts/test-hr.mjs` (72 bước, Notion giả).
 
+### 📄 Hợp đồng nhân sự (15/11/2026, đợt 3, api `2026-11-15k`)
+- `api/src/hrhd.js`: bảng `hr_ct` (kind Thử việc / Xác định thời hạn / Không xác định thời hạn / Cộng tác viên, no tự đánh `NN/năm/HĐTV|HĐLĐ|HĐCTV-VTG`, start/end ISO, pay, allow, st Nháp → Đã ký → Đã thanh lý, body = HTML chốt lúc ký, doc_id → `hr_doc` bản scan, rem = mốc nhắc đã gửi). Lệnh `hr {op: ct_save | ct_doc | ct_sign | ct_off | ct_del | ct_cfg}` chỉ Quản trị (crmHr chuyển `ct_*` sang crmHrStaff). `ctWarn` = cảnh báo Bộ luật Lao động 2019 (Điều 20, 25, 26), trả `warn` → CRM hỏi rồi gửi lại `force: 1`.
+- Mẫu: `TPL_DEF` (tv / ld / ctv) + kv `hr_ct_cfg` (công ty, người đại diện, giờ làm, ngày trả lương, mẫu đã sửa). Ô `{ten}` xem `CT_PH`; thiếu → dòng chấm.
+- Nhắc: `ctTick` trong hrTick, 1 lần/ngày sau 8h, mốc 30/15/7/0/quá hạn (+ mỗi 7 ngày tới 30 ngày); Quản trị không tính "chưa có hợp đồng".
+- CRM: `hctSec`, `hctBox`, `hctNeed`, `hctSuggest`, `openHct`, `openHctSign`, `openHctCfg`, `hctPrint` (mở cửa sổ in); tab "Hợp đồng cần xử lý"; CSS `.hct-…`. Thử: `node scripts/test-hr.mjs` (95 bước).
+
 ## 6a2. 👀 Giám sát Zalo của sale (15/11/2026, anh Sơn)
 
 Mục đích: Quản lý / Quản trị xem sale chăm khách qua Zalo mà sale **không đổi thói quen** (vẫn dùng Zalo điện thoại + Zalo PC). Anh Sơn đã thử 14/11: 1 tài khoản Zalo đăng nhập song song điện thoại + Zalo PC + Zalo Web được, nên chương trình đọc ngồi ở chỗ "Zalo Web".

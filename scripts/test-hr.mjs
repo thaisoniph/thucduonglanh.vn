@@ -209,6 +209,54 @@ ok(sp && sp.b.properties['Quê quán'] && sp.b.properties['Ngày sinh'].date.sta
 nl = await H.crmHr(x, son, { op: 'st_nt_push', all: 1 }, log);
 ok(nl.push.ok && nl.push.n >= 4 && nl.nt.wait === 0, 'Nút ghi tất cả sang Notion: tạo trang cho người chưa có');
 
+// 11. 📄 Hợp đồng
+{
+const CT = await import('file://' + ROOT + '/api/src/hrhd.js');
+const dIso = n => new Date(Date.now() + 7 * 36e5 + n * 864e5).toISOString().slice(0, 10);
+ok(!(await H.crmHr(x, thuy, { op: 'ct_save', email: 'myanh@x.vn', kind: 'Thử việc', start: dIso(0), end: dIso(59), pay: '6.000.000đ' }, log)).ok, 'Quản lý không làm được hợp đồng (có lương)');
+let cs = await H.crmHr(x, son, { op: 'ct_save', email: 'myanh@x.vn', kind: 'Thử việc', start: dIso(0), end: dIso(89), pay: '5.000.000đ', offerPay: '7.000.000đ' }, log);
+ok(!cs.ok && cs.warn && cs.warn.some(w => /60 ngày/.test(w)) && cs.warn.some(w => /85%/.test(w)), 'Thử việc 90 ngày + lương < 85% → cảnh báo theo luật, chưa lưu');
+ok(!(await H.crmHr(x, son, { op: 'ct_save', email: 'myanh@x.vn', kind: 'Xác định thời hạn', start: dIso(0), end: '', pay: '7tr' }, log)).ok, 'Xác định thời hạn thiếu ngày kết thúc bị chặn');
+cs = await H.crmHr(x, son, { op: 'ct_save', email: 'myanh@x.vn', kind: 'Thử việc', start: dIso(-50), end: dIso(9), pay: '6.000.000đ', pos: 'Nhân viên kinh doanh', offerPay: '7.000.000đ' }, log);
+let mc = cs.staff.find(z => z.email === 'myanh@x.vn');
+ok(cs.ok && mc.cts.length === 1 && /^01\/\d{4}\/HĐTV-VTG$/.test(mc.cts[0].no) && mc.cts[0].st === 'Nháp', 'Lưu hợp đồng thử việc nháp, tự đánh số ' + (mc.cts[0] || {}).no);
+const ctId = mc.cts[0].id;
+let dc = await H.crmHr(x, son, { op: 'ct_doc', id: ctId }, log);
+ok(/thời hạn <b>[^<]+<\/b>, từ ngày <b>[^<]+<\/b> đến hết ngày <b>/.test(dc.html) || /đến hết ngày <b>/.test(dc.html), 'Câu “từ ngày … đến hết ngày …” có dấu cách');
+ok(dc.ok && /HỢP ĐỒNG THỬ VIỆC/.test(dc.html) && /Nhân viên kinh doanh/.test(dc.html) && /6\.000\.000đ/.test(dc.html) && dc.miss.indexOf('dia_chi') >= 0 && dc.miss.indexOf('dai_dien') >= 0 && /class="dot"/.test(dc.html), 'Bản in điền thông tin, chỗ thiếu (nơi ở, người đại diện) để dòng chấm');
+ok(/0111053409/.test(dc.html) && /VITAGREEN/.test(dc.html), 'Bản in có tên công ty + mã số doanh nghiệp');
+let cf = await H.crmHr(x, son, { op: 'ct_cfg', save: 1, rep: 'Người Đại Diện', repTitle: 'Giám đốc', tpl: { tv: CT.TPL_DEF.tv + '\nĐiều riêng của anh.' } }, log);
+ok(cf.ok && cf.ctCfg.rep === 'Người Đại Diện' && cf.ctCfg.edited.indexOf('tv') >= 0, 'Lưu người đại diện + sửa mẫu thử việc');
+dc = await H.crmHr(x, son, { op: 'ct_doc', id: ctId }, log);
+ok(/Người Đại Diện/.test(dc.html) && /Điều riêng của anh/.test(dc.html) && dc.miss.indexOf('dai_dien') < 0, 'Bản in dùng mẫu đã sửa + người đại diện');
+cs = await H.crmHr(x, son, { op: 'st_list' }, log); mc = cs.staff.find(z => z.email === 'myanh@x.vn');
+ok(mc.cts[0].state.k === 'draft', 'Nháp đã tới ngày bắt đầu → hiện cần ký');
+cs = await H.crmHr(x, son, { op: 'ct_sign', id: ctId, sign: dIso(-50), data: 'data:application/pdf;base64,' + pdf, name: 'HĐTV My Anh.pdf' }, log);
+mc = cs.staff.find(z => z.email === 'myanh@x.vn');
+ok(mc.cts[0].st === 'Đã ký' && mc.cts[0].doc > 0 && mc.cts[0].locked && mc.docs.some(d => /Hợp đồng thử việc .* \(bản ký\)/.test(d.kind)), 'Đã ký: lưu bản scan vào Giấy tờ, chốt nội dung');
+ok(mc.cts[0].state.k === 'soon' && mc.cts[0].state.n === 9, 'Thử việc còn 9 ngày → Sắp hết hạn');
+ok(!(await H.crmHr(x, son, { op: 'ct_save', id: ctId, email: 'myanh@x.vn', kind: 'Thử việc', start: dIso(-50), end: dIso(20), pay: '6tr' }, log)).ok, 'Hợp đồng đã ký không sửa được');
+await H.crmHr(x, son, { op: 'ct_cfg', save: 1, rep: 'Tên Khác' }, log);
+ok(!/Tên Khác/.test((await H.crmHr(x, son, { op: 'ct_doc', id: ctId }, log)).html), 'Bản đã ký in đúng nội dung lúc ký');
+ok(!(await H.crmHr(x, son, { op: 'ct_del', id: ctId }, log)).ok, 'Không xoá được hợp đồng đã ký');
+// nhắc Telegram
+await DB.prepare("DELETE FROM kv WHERE k LIKE 'hr_ct_tg_%'").bind().run(); tg.length = 0; await CT.ctTick(x, users, 1);
+ok(tg.some(t => /Hợp đồng nhân sự cần xử lý/.test(t) && /TG 100/.test(t)) && (await DB.prepare('SELECT rem FROM hr_ct WHERE id = ?').bind(ctId).first()).rem === 2 && !tg.some(t => /Hợp đồng nhân sự/.test(t) && /TG 200/.test(t)), 'Telegram 8h báo Quản trị: thử việc còn 9 ngày');
+tg.length = 0; await CT.ctTick(x, users, 1); ok(!tg.length, 'Cùng ngày không nhắc lại');
+await DB.prepare("DELETE FROM kv WHERE k LIKE 'hr_ct_tg_%'").bind().run(); tg.length = 0; await CT.ctTick(x, users, 1); ok(!tg.length, 'Hôm sau cùng mốc (còn ≤ 15 ngày) không nhắc lại');
+// hợp đồng tiếp theo + luật 2 lần xác định thời hạn
+let todo = await CT.ctTodo(x); ok(todo.some(i => i.k === 'none' && i.z.email === 'thuy@x.vn') && !todo.some(i => i.z.email === 'thaisoniph@gmail.com') && todo.some(i => i.k === 'soon' && i.z.email === 'myanh@x.vn'), 'Việc cần xử lý: Thủy chưa có hợp đồng, Mỹ Anh sắp hết thử việc');
+for (const [a, b] of [[10, 375], [376, 740]]) { const r2 = await H.crmHr(x, son, { op: 'ct_save', email: 'myanh@x.vn', kind: 'Xác định thời hạn', start: dIso(a), end: dIso(b), pay: '7.000.000đ', force: 1 }, log); await H.crmHr(x, son, { op: 'ct_sign', id: r2.staff.find(z => z.email === 'myanh@x.vn').cts[0].id }, log); }
+todo = await CT.ctTodo(x); ok(!todo.some(i => i.z.email === 'myanh@x.vn'), 'Đã có hợp đồng tiếp theo → hết cảnh báo thử việc');
+cs = await H.crmHr(x, son, { op: 'ct_save', email: 'myanh@x.vn', kind: 'Xác định thời hạn', start: dIso(741), end: dIso(1100), pay: '8tr' }, log);
+ok(cs.warn && cs.warn.some(w => /không xác định thời hạn/.test(w)), 'Lần 3 xác định thời hạn → nhắc phải ký không xác định thời hạn (Điều 20)');
+cs = await H.crmHr(x, son, { op: 'ct_save', email: 'myanh@x.vn', kind: 'Không xác định thời hạn', start: dIso(741), end: dIso(900), pay: '8tr' }, log);
+mc = cs.staff.find(z => z.email === 'myanh@x.vn'); ok(cs.ok && mc.cts[0].end === '' && /HĐLĐ-VTG/.test(mc.cts[0].no), 'Không xác định thời hạn: bỏ ngày kết thúc');
+dc = await H.crmHr(x, son, { op: 'ct_doc', id: mc.cts[0].id }, log); ok(/không xác định thời hạn/.test(dc.html) && !/đến hết ngày/.test(dc.html), 'Bản in không thời hạn không có "đến hết ngày"');
+cs = await H.crmHr(x, son, { op: 'ct_off', id: ctId, date: dIso(9), why: 'Kết thúc thử việc' }, log);
+ok(cs.staff.find(z => z.email === 'myanh@x.vn').cts.find(c => c.id === ctId).st === 'Đã thanh lý', 'Thanh lý hợp đồng');
+if (OUT) writeFileSync(OUT + '/hop-dong.html', (await H.crmHr(x, son, { op: 'ct_doc', id: ctId }, log)).html);
+}
 L = await H.crmHr(x, son, { op: 'del', id: r.id }, log); ok(L.rows.length === 0 && !(await DB.prepare('SELECT 1 FROM hr_cv').bind().first()), 'Quản trị xoá hồ sơ + file CV');
 
 origLog(bad ? '\n❌ ' + bad + ' bước lỗi' : '\n✅ Tất cả đều đúng');

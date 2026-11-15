@@ -62,3 +62,17 @@ hr. là **bản chính**. Mỗi lần sửa hồ sơ, nhân sự điền Hiểu 
 2. Người có trong Notion nhưng chưa có tài khoản CRM (cố vấn, người đã nghỉ…) chỉ được liệt kê, máy không tự tạo.
 3. Muốn chắc chắn Notion đủ mới: bấm **⬆️ Ghi tất cả sang Notion**.
 4. Báo “chưa đọc được bảng”: mở bảng đó trên Notion → **•••** → **Kết nối** → chọn tích hợp của CRM (cùng tích hợp đang dùng cho ✅ Việc tuần) → bấm **⟳ Kiểm tra lại**.
+
+## 📄 Hợp đồng (Quản trị)
+
+Mở hồ sơ một người → mục **📄 Hợp đồng**.
+
+1. Bấm **➕ Làm hợp đồng …**. Máy gợi ý đúng loại theo luật: chưa có thì thử việc (nếu thư mời có thử việc), sau thử việc là 12 tháng, đã ký 2 lần có thời hạn thì lần sau phải **không xác định thời hạn**. Lương, vị trí lấy sẵn từ thư mời nhận việc hoặc hợp đồng trước.
+2. Kiểm tra ngày, lương → **Lưu hợp đồng**. Nếu sai luật (thử việc quá 60 ngày, lương thử việc dưới 85%, có thời hạn quá 36 tháng…) máy báo trước, anh chọn sửa hoặc vẫn lưu.
+3. Bấm **🖨 Xem, in** → **In / Lưu PDF**. Chỗ còn thiếu thông tin hiện dòng chấm: bổ sung ở ✏️ Sửa hồ sơ hoặc viết tay khi ký.
+4. Ký xong bấm **✅ Đã ký**, tải bản scan (không bắt buộc). Bản đã ký được chốt nội dung, nằm cả trong mục Giấy tờ.
+5. Nghỉ việc / kết thúc: bấm **Thanh lý**.
+
+- Trang Hồ sơ nhân sự có khung **📄 Hợp đồng cần xử lý**: 🔴 đã hết hạn, 🟠 còn ≤ 30 ngày, ✍️ nháp chưa ký, ⚪ người chưa có hợp đồng.
+- Máy nhắn Telegram cho Quản trị lúc 8h khi hợp đồng còn 30, 15, 7 ngày, ngày hết hạn và mỗi tuần khi đã quá hạn.
+- Sửa thông tin công ty, người đại diện ký, giờ làm, ngày trả lương và nội dung 3 mẫu (lao động, thử việc, cộng tác viên) ở nút **⚙️ Mẫu hợp đồng** đầu trang. Nên nhờ kế toán hoặc luật sư xem mẫu một lần.

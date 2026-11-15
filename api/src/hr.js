@@ -10,7 +10,8 @@ import { aiFetch } from './airelay.js';
 import { esc, all, first, run, kvJson, kvSet, kvGet, randHex, fmtDate, nrm, DAY } from './lib.js';
 import { telegramTo, sendMail, tgConf } from './google.js';
 import { fitScore } from './apply.js';
-import { crmHrStaff, fbSync, ntPush } from './hrstaff.js'; // 🗂 đợt 2: hồ sơ nhân sự (lệnh hr {op: st_*})
+import { crmHrStaff, fbSync, ntPush } from './hrstaff.js'; // 🗂 đợt 2: hồ sơ nhân sự (lệnh hr {op: st_*}, đợt 3 thêm ct_* hợp đồng)
+import { ctTick } from './hrhd.js'; // 📄 đợt 3: nhắc hợp đồng sắp hết hạn
 
 export const HR_ST = ['Mới', 'Hẹn phỏng vấn', 'Đã phỏng vấn', 'Mời nhận việc', 'Đã nhận việc', 'Không phù hợp', 'Từ chối nhận việc'];
 const API = 'https://api.thucduonglanh.vn', CONGSU = 'https://congsu.thucduonglanh.vn', LOGO = 'https://thucduonglanh.vn/assets/img/brand/logo.png';
@@ -133,6 +134,7 @@ export async function hrTick(x, users) {
     }
   }
   try { const w = await first(x.db, 'SELECT (SELECT COUNT(*) FROM hr_staff WHERE nt_dirty = 1 AND nt_err = \'\') + (SELECT COUNT(*) FROM hr_ht WHERE nt_dirty = 1 AND nt_err = \'\') n'); if (w && w.n) await ntPush(x, 15); } catch (e) { } // 📒 hồ sơ vừa đổi → ghi sang Notion (bảng chưa có thì bỏ qua)
+  try { await ctTick(x, users); } catch (e) { console.error('hr ctTick', e.message); } // 📄 8h: hợp đồng còn 30 / 15 / 7 / 0 ngày, quá hạn
   const dk = 'hr_clean_' + fmtDate(Date.now(), 'yyyyMMdd');
   if (!await kvGet(x.db, dk)) { await kvSet(x.db, dk, '1', 2 * DAY); await hrClean(x.db); try { const S = await kvJson(x.db, 'hr_fb_src', null); if (S && S.id) await fbSync(x); } catch (e) { console.error('hr fbSync', e.message); } } // 🗂 mỗi ngày đọc lại Sheet phiếu góp ý (câu trả lời mới)
 }
@@ -215,7 +217,7 @@ function offerOf(d) {
 export async function crmHr(x, u, d, log) {
   if (!okRole(u)) return { ok: false, error: 'Chỉ Quản lý và Quản trị xem được hồ sơ tuyển dụng.' };
   await hrSchema(x.db);
-  if (/^st_/.test(String(d.op || ''))) return crmHrStaff(x, u, d, log);
+  if (/^(st|ct)_/.test(String(d.op || ''))) return crmHrStaff(x, u, d, log);
   const op = String(d.op || 'list'), id = Number(d.id) || 0, cfg = await cfgOf(x.db);
   const list = async () => {
     const R = await all(x.db, 'SELECT * FROM applicants ORDER BY time DESC LIMIT 400'), C = {};

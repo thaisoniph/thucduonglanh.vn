@@ -7,6 +7,7 @@ import { all, first, run, kvJson, kvSet, normPhone, fmtDate, md5hex, DAY } from 
 import { sheetValues, serialToMs } from './google.js';
 import { crmUsers, nameKey } from './crm.js';
 import { dobNorm } from './loichuc.js';
+import { ctList, crmHrCt } from './hrhd.js'; // 📄 đợt 3: hợp đồng
 
 const DOC_MAX = 1.9e6;
 const ROLE_LIST = ['Sale & CSKH', 'Quản lý', 'Marketing', 'Kho', 'Kế toán', 'Quản trị'];
@@ -84,14 +85,15 @@ async function listOut(x, u) {
     const f = fb[e] || (fb[e] = { good: [], imp: [], n: 0 }); f.n++;
     (parse(r.good) || []).forEach(s => f.good.push([r.at, s])); if (qt) (parse(r.imp) || []).forEach(s => f.imp.push([r.at, s]));
   }
-  const apps = {}; for (const r of await all(x.db, "SELECT id, name, job, time FROM applicants WHERE status = 'Đã nhận việc'").catch(() => [])) apps[r.id] = r;
+  const cts = qt ? await ctList(x.db) : {};
+  const apps = {}; for (const r of await all(x.db, "SELECT id, name, job, time, offer FROM applicants WHERE status = 'Đã nhận việc'").catch(() => [])) apps[r.id] = r;
   const ht = {}; for (const r of await all(x.db, 'SELECT * FROM hr_ht')) ht[r.email] = r;
   const staff = users.filter(z => z.email).map(z => {
     const e = ext[z.email] || {}, o = { email: z.email, name: z.name, role: z.role, active: z.active, full: z.full || '', phone: z.phone || '', joined: z.joined || '', dob: z.dob || '', ctv: !!z.ctv,
       pos: e.pos || '', dept: e.dept || '', boss: e.boss || '', edu: e.edu || '', note: e.note || '', upd: e.upd || 0, updBy: e.upd_by || '', app: e.app_id && apps[e.app_id] ? { id: e.app_id, job: apps[e.app_id].job } : null, fb: fb[z.email] || { good: [], imp: [], n: 0 },
       strong: e.strong || '', home: e.home || '', ht: htOut(ht[z.email], qt) };
     if (qt) { o.nt = { id: e.nt_id || '', dirty: !!e.nt_dirty, err: e.nt_err || '' }; }
-    if (qt) { PRIV.forEach(k => { o[k] = e[k] || ''; }); o.acct = z.acct || ''; o.docs = docs[z.email] || []; }
+    if (qt) { PRIV.forEach(k => { o[k] = e[k] || ''; }); o.acct = z.acct || ''; o.docs = docs[z.email] || []; o.cts = cts[z.email] || []; const of = e.app_id && apps[e.app_id] ? parse(apps[e.app_id].offer) : null; o.offer = of ? { pay: of.pay || '', trial: of.trial || '', trialPay: of.trialPay || '', extra: of.extra || '', place: of.place || '', hours: of.hours || '', start: of.start || '' } : null; }
     return o;
   });
   const src = qt ? await kvJson(x.db, 'hr_fb_src', null) : null;
@@ -105,6 +107,7 @@ export async function crmHrStaff(x, u, d, log) {
   const op = String(d.op), qt = u.level >= 3, email = cut(d.email, 120).toLowerCase(), now = Date.now();
   if (op === 'st_list') return listOut(x, u);
   const needQt = () => qt ? null : { ok: false, error: 'Chỉ Quản trị làm được việc này.' };
+  if (op.startsWith('ct_')) { const e = needQt(); if (e) return e; const r = await crmHrCt(x, u, d, log); return !r.ok || r.html || r.ctCfg ? r : Object.assign(await listOut(x, u), r); }
   if (op === 'st_save') {
     const z = (await crmUsers(x)).find(y => y.email === email); if (!z) return { ok: false, error: 'Không thấy nhân sự.' };
     const dob = cut(d.dob, 20) ? dobNorm(d.dob) : ''; if (cut(d.dob, 20) && !dob) return { ok: false, error: 'Ngày sinh chưa đúng (ví dụ 05/09/1995).' };
