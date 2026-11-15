@@ -2970,3 +2970,25 @@ details.dash-grp[open] > summary::after { transform: rotate(180deg); }
 .hso-up-row select { flex: 1 1 200px; min-width: 0; }
 .hso-note { white-space: pre-wrap; margin: 0; }
 .hso-h { font-size: 15px; margin: 14px 0 8px; }
+
+/* 🤝 Hiểu & Thương + 📒 Notion (15/11/2026, htCard / openHtForm / hsoHtSec / hsoNtBox trong app.js) */
+.ht-card { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; background: #eef7f1; border: 1px solid #c8e2d3; border-radius: 14px; padding: 12px 14px; margin-bottom: 12px; }
+.ht-card-t { flex: 1 1 260px; }
+.ht-card-t small { display: block; margin-top: 4px; color: #3b3f36; font-size: 13.5px; line-height: 1.45; }
+.ht-card-b { display: flex; gap: 6px; }
+.ht-lb { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+.ht-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.ht-chips label { cursor: pointer; }
+.ht-chips input { position: absolute; opacity: 0; pointer-events: none; }
+.ht-chips span { display: inline-block; padding: 6px 11px; border: 1px solid var(--line); border-radius: 999px; font-size: 13.5px; background: #fff; }
+.ht-chips input:checked + span { background: #24805b; border-color: #24805b; color: #fff; font-weight: 600; }
+.ht-chips input:focus-visible + span { outline: 2px solid #24805b; outline-offset: 2px; }
+.ht-tags { display: flex; flex-wrap: wrap; gap: 5px; margin: 0 0 8px; }
+.ht-tags span { font-size: 12.5px; border-radius: 999px; padding: 3px 9px; }
+.ht-give { background: #e3f4e8; color: #17663a; }
+.ht-need { background: #fff3d6; color: #8a5a00; }
+.ht-how { background: #e8eefc; color: #2c4f9e; }
+.ht-pair { margin: 10px 0 6px; font-size: 14px; }
+.ht-sg { margin: 0 0 8px; line-height: 1.6; }
+.ht-key { margin-top: 8px; }
+.ht-key summary { cursor: pointer; color: #5d6158; }

@@ -895,6 +895,7 @@
       group('Khác',
         vrow(VIEWS.filter(function (v) { return v.id === 'cai-dat'; })[0]) +
         row('<a class="mr-row" href="/huong-dan/' + (isMkt() ? 'marketing' : isKho() ? 'kho' : isKt() ? 'ke-toan' : 'crm') + '/" target="_blank" rel="noopener">', I.help, '#30b0c7', 'Hướng dẫn sử dụng', 'Cách dùng từng màn hình, có hình', 0) + '</a>' +
+        row('<button type="button" class="mr-row" data-mr="ht">', '🤝', '#2f7d5b', 'Hiểu & Thương của tôi', '9 câu để đội hiểu bạn, ghép Đệ nhị thân', 0) + '</button>' +
         row('<button type="button" class="mr-row" data-mr="fb">', '💡', '#ffcc00', 'Góp ý', 'Báo lỗi, chỗ khó dùng, ý tưởng', lvl() >= 2 ? S.d.fbNew : 0) + '</button>' +
         (isApp() ? '' : row('<button type="button" class="mr-row" data-mr="inst">', '📲', '#5856d6', 'Cài ra màn hình điện thoại', 'Mở CRM 1 chạm như ứng dụng, có hình từng bước', 0) + '</button>') +
         row('<button type="button" class="mr-row" data-mr="re">', I.refresh, '#34c759', 'Tải lại dữ liệu', 'Lấy số mới nhất từ máy chủ', 0) + '</button>')) +
@@ -919,7 +920,7 @@
   }
   function bindMore() {
     $$('[data-mr]').forEach(function (b) {
-      b.onclick = function () { var k = b.getAttribute('data-mr'); if (k === 'search') openGlobalSearch(); else if (k === 'fb') openFeedback(); else if (k === 'inst') openInstall(); else if (k === 'use') openUsage(null); else { load(); toast('Đang tải lại dữ liệu…'); } };
+      b.onclick = function () { var k = b.getAttribute('data-mr'); if (k === 'search') openGlobalSearch(); else if (k === 'ht') openHtForm(); else if (k === 'fb') openFeedback(); else if (k === 'inst') openInstall(); else if (k === 'use') openUsage(null); else { load(); toast('Đang tải lại dữ liệu…'); } };
     });
   }
   function meHTML() { return '<b>' + esc(S.user.name) + '</b>'; } // chỉ tên: mỗi người là chủ công việc của mình
@@ -1117,7 +1118,7 @@
     var el = $('#view');
     var focusId = document.activeElement && document.activeElement.id, selStart = document.activeElement && document.activeElement.selectionStart;
     el.innerHTML = ({ 'hom-nay': viewToday, 'khach-hang': viewCustomers, 'don-hang': viewOrders, 'tiem-nang': viewLeads, 'bao-cao': viewReport, 'cai-dat': viewSettings, 'tong-quan': viewDash, san: viewSan, marketing: viewMkt, 'link-qr': viewLinks, 'tro-ly-zalo': viewZbot, 'zalo-sale': viewZsale, fanpage: viewFp, 'bai-web': viewBlog, 'noi-dung': viewIns, 'hoi-so-lieu': viewAsk, kho: viewKho, 'ke-toan': viewKtab, 'giao-viec': viewGv, 'tuyen-dung': viewTuy, 'nhan-su': viewHso, 'doi-ai': viewAit, them: viewMore })[v]();
-    if (v === homeView()) { btMount(el); vhMount(el); tbMount(el); hiwMount(el); goalNag(); } // ☀️ lời chào + lời chúc mỗi ngày nằm trên cùng // 🌿 Quy tắc của ngày + 📢 Thông báo (nằm trên) ở đầu màn hình đầu tiên của mỗi người
+    if (v === homeView()) { btMount(el); vhMount(el); htMount(el); tbMount(el); hiwMount(el); goalNag(); } // ☀️ lời chào + lời chúc mỗi ngày nằm trên cùng // 🌿 Quy tắc của ngày + 📢 Thông báo (nằm trên) ở đầu màn hình đầu tiên của mỗi người
     el.insertAdjacentHTML('beforeend', updatedLine());
     if (focusId && $('#' + focusId)) { var f = $('#' + focusId); f.focus(); try { f.setSelectionRange(selStart, selStart); } catch (e) { } }
     if (keepScroll) window.scrollTo(0, y); else window.scrollTo(0, 0);
@@ -15698,7 +15699,7 @@
   }
   function hsoAnniv(s) { var t = ppJoinTs(s.joined); if (!t) return null; var j = new Date(t), dm = { d: j.getDate(), m: j.getMonth() + 1 }, n = hsoNext(dm), yrs = vnDate(Date.now() + n * DAY).y - j.getFullYear(); return yrs >= 1 ? { n: n, y: yrs } : null; }
   function hsoMiss(s) { var L = []; if (!s.full) L.push('họ tên đầy đủ'); if (!hsoDm(s.dob)) L.push('ngày sinh'); if (!ppJoinTs(s.joined)) L.push('ngày vào làm'); if (!s.phone) L.push('số điện thoại'); if (!s.pos) L.push('vị trí'); if (HSO.d.qt && !s.idno) L.push('số CCCD'); return L; }
-  function hsoIn(s, k) { var b = hsoNext(hsoDm(s.dob)), a = hsoAnniv(s); return k === 'off' ? !s.active : !s.active ? false : k === 'on' ? true : k === 'bd' ? (b != null && b <= 30) || (a && a.n <= 30) : k === 'miss' ? hsoMiss(s).length > 0 : true; }
+  function hsoIn(s, k) { var b = hsoNext(hsoDm(s.dob)), a = hsoAnniv(s); return k === 'off' ? !s.active : !s.active ? false : k === 'on' ? true : k === 'bd' ? (b != null && b <= 30) || (a && a.n <= 30) : k === 'miss' ? hsoMiss(s).length > 0 : k === 'ht' ? !(s.ht && s.ht.a) : true; }
   function viewHso() {
     if (!HSO.d && !HSO.err) setTimeout(hsoFetch, 0); else if (HSO.d && !HSO.busy && Date.now() - HSO.at > 90e3) setTimeout(hsoFetch, 0);
     var h = '<div class="hso-wrap"><div class="page-head"><h1>🗂 Hồ sơ nhân sự</h1><div class="grow"></div><a class="btn ghost" href="#tuyen-dung">🧑‍💼 Tuyển dụng</a><button class="btn ghost" data-hso="reload">⟳ Tải lại</button></div>';
@@ -15709,8 +15710,8 @@
     act.forEach(function (s) { var b = hsoNext(hsoDm(s.dob)), a = hsoAnniv(s); if (b != null && b <= 30) up.push([b, '🎂', s, 'sinh nhật ' + s.dob.slice(0, 5)]); if (a && a.n <= 30) up.push([a.n, '🎉', s, 'tròn ' + a.y + ' năm làm việc']); });
     up.sort(function (a, b) { return a[0] - b[0]; });
     if (up.length) h += '<div class="box hso-up"><h3>📅 30 ngày tới</h3>' + up.map(function (u) { return '<button class="hso-up-i" data-hso="open|' + esc(u[2].email) + '">' + u[1] + ' <b>' + esc(u[2].name) + '</b> ' + esc(u[3]) + ' <span class="hso-when' + (u[0] <= 1 ? ' now' : '') + '">' + (u[0] === 0 ? 'hôm nay' : u[0] === 1 ? 'ngày mai' : 'còn ' + u[0] + ' ngày') + '</span></button>'; }).join('') + '</div>';
-    if (D.qt) h += hsoFbBox(D);
-    var tabs = [['on', 'Đang làm'], ['bd', 'Sinh nhật, kỷ niệm'], ['miss', 'Thiếu thông tin']].concat(D.qt ? [['off', 'Đã nghỉ']] : []);
+    if (D.qt) h += hsoNtBox(D) + hsoFbBox(D);
+    var tabs = [['on', 'Đang làm'], ['bd', 'Sinh nhật, kỷ niệm'], ['miss', 'Thiếu thông tin'], ['ht', 'Chưa điền Hiểu & Thương']].concat(D.qt ? [['off', 'Đã nghỉ']] : []);
     h += '<div class="chips hso-chips">' + tabs.map(function (t) { var n = D.staff.filter(function (s) { return hsoIn(s, t[0]); }).length; return '<button class="chip' + (HSO.f === t[0] ? ' on' : '') + '" data-hso="tab|' + t[0] + '">' + t[1] + ' <span class="tuy-n' + (t[0] === 'miss' && n ? ' hot' : '') + '">' + n + '</span></button>'; }).join('') + '</div>';
     h += '<div class="tuy-filter"><input type="search" data-hsosel="q" placeholder="🔍 Tìm tên, vị trí, số điện thoại" value="' + esc(HSO.q) + '"></div>';
     var L = D.staff.filter(function (s) { return hsoIn(s, HSO.f) && (!HSO.q || norm(s.name + ' ' + s.full + ' ' + s.pos + ' ' + s.phone + ' ' + s.role).indexOf(norm(HSO.q)) >= 0); });
@@ -15720,7 +15721,7 @@
       var sen = hsoSeniority(s), b = hsoNext(hsoDm(s.dob)), ms = hsoMiss(s);
       return '<button class="tuy-card hso-card" data-hso="open|' + esc(s.email) + '"><span class="tuy-c1"><b>' + esc(s.full || s.name) + '</b><span class="hso-role">' + esc(s.role) + (s.ctv ? ' · CTV' : '') + '</span></span>' +
         '<span class="tuy-c2">' + esc([s.pos, s.dept].filter(Boolean).join(' · ') || 'Chưa ghi vị trí') + (sen ? ' · ' + esc(sen) : '') + '</span>' +
-        '<span class="hso-tags">' + (b != null ? '<span>🎂 ' + esc(s.dob.slice(0, 5)) + (b <= 30 ? ' (' + (b === 0 ? 'hôm nay' : 'còn ' + b + ' ngày') + ')' : '') + '</span>' : '') + (s.fb.good.length ? '<span>💚 ' + s.fb.good.length + ' điều đồng đội trân trọng</span>' : '') + (D.qt && s.docs && s.docs.length ? '<span>📎 ' + s.docs.length + ' giấy tờ</span>' : '') + '</span>' +
+        '<span class="hso-tags">' + (b != null ? '<span>🎂 ' + esc(s.dob.slice(0, 5)) + (b <= 30 ? ' (' + (b === 0 ? 'hôm nay' : 'còn ' + b + ' ngày') + ')' : '') + '</span>' : '') + (s.fb.good.length ? '<span>💚 ' + s.fb.good.length + ' điều đồng đội trân trọng</span>' : '') + (s.ht && s.ht.a ? '<span>🤝 Đã điền Hiểu & Thương</span>' : '') + (s.ht && s.ht.pair ? '<span>👥 Có Đệ nhị thân</span>' : '') + (D.qt && s.docs && s.docs.length ? '<span>📎 ' + s.docs.length + ' giấy tờ</span>' : '') + '</span>' +
         (ms.length ? '<span class="hso-miss">⚠️ Thiếu ' + esc(ms.join(', ')) + '</span>' : '') + '</button>';
     }).join('') + '</div>';
     return h + '<p class="small muted tuy-law">🔒 Hồ sơ nhân sự là dữ liệu cá nhân (Luật 91/2025): Quản lý xem thông tin công việc và điểm mạnh; CCCD, nơi ở, số tài khoản, giấy tờ, điều cần cải thiện chỉ Quản trị xem. Thêm / tắt tài khoản CRM ở Cài đặt → Nhân sự.</p></div>';
@@ -15737,7 +15738,7 @@
     }).join('') + '</div>';
     return h + '</details>';
   }
-  function hsoAfter(j, msg) { hsoSet(j); var i = j.imp; if (i) toast(i.ok ? 'Đã đọc ' + i.tot + ' câu trả lời, ' + i.n + ' câu mới ✓' : i.error, !i.ok); else if (msg) toast(msg); if (route().view === 'nhan-su') render(); return j; }
+  function hsoAfter(j, msg) { if (j.pull) j.pullMiss = j.pull.miss || []; else if (HSO.d && HSO.d.pullMiss) j.pullMiss = HSO.d.pullMiss; hsoSet(j); if (j.pull) { toast(j.pull.ok ? 'Đã lấy từ Notion: ' + j.pull.msg + ' ✓' : j.pull.error, !j.pull.ok); if (route().view === 'nhan-su') render(); return j; } if (j.push) { toast(j.push.ok ? 'Đã ghi ' + j.push.n + ' mục sang Notion ✓' : j.push.error, !j.push.ok); if (route().view === 'nhan-su') render(); return j; } var i = j.imp; if (i) toast(i.ok ? 'Đã đọc ' + i.tot + ' câu trả lời, ' + i.n + ' câu mới ✓' : i.error, !i.ok); else if (msg) toast(msg); if (route().view === 'nhan-su') render(); return j; }
   function hsoDo(op, data, btn, msg) {
     var t = btn && btn.textContent; if (btn) { btn.disabled = true; btn.textContent = '⏳ Đang lưu…'; }
     return api('hr', Object.assign({ op: op }, data)).then(function (j) { if (btn) { btn.disabled = false; btn.textContent = t; } return hsoAfter(j, msg); }, function (er) { if (btn) { btn.disabled = false; btn.textContent = t; } toast(er.message, true); throw er; });
@@ -15756,6 +15757,10 @@
         else if (a[0] === 'tab') { HSO.f = a[1]; render(); }
         else if (a[0] === 'open') openHso(a[1]);
         else if (a[0] === 'fblink') { var v = $('#hsoFbUrl').value.trim(); if (!v) return toast('Dán link Google Sheet trước.', true); el.disabled = true; el.textContent = '⏳ Đang đọc Sheet…'; hsoDo('st_fb_link', { url: v }).catch(function () { el.disabled = false; el.textContent = 'Lưu link, đọc ngay'; }); }
+        else if (a[0] === 'ntpull') { if (!confirm('Lấy hồ sơ từ Notion? Máy chỉ điền vào ô đang trống trên hr., không ghi đè thông tin đã có.')) return; el.disabled = true; el.textContent = '⏳ Đang lấy…'; hsoDo('st_nt_pull', {}).catch(function () { el.disabled = false; }); }
+        else if (a[0] === 'ntpush') { el.disabled = true; el.textContent = '⏳ Đang ghi…'; hsoDo('st_nt_push', { all: 1 }).catch(function () { el.disabled = false; }); }
+        else if (a[0] === 'ntchk') hsoDo('st_nt', {}, el, 'Đã kiểm tra lại').catch(function () { });
+        else if (a[0] === 'nttok') hsoDo('st_nt', { token: $('#hsoNtTok').value.trim() }, el, 'Đã lưu khoá').catch(function () { });
         else if (a[0] === 'fbsync') { el.disabled = true; el.textContent = '⏳ Đang đọc…'; hsoDo('st_fb_sync', {}).catch(function () { el.disabled = false; }); }
       };
     });
@@ -15772,11 +15777,13 @@
     h += '<div class="tuy-contact">' + (s.phone ? '<a class="btn sm" href="tel:' + esc(s.phone) + '">📞 ' + esc(fPhone(s.phone)) + '</a><a class="btn sm" href="' + zalo(s.phone) + '" target="_blank" rel="noopener">💬 Zalo</a>' : '') + '<a class="btn sm" href="mailto:' + esc(s.email) + '">✉️ ' + esc(s.email) + '</a></div>';
     if (ms.length) h += '<div class="tuy-nx hso-nx-w">⚠️ Còn thiếu: ' + esc(ms.join(', ')) + '. Bấm ✏️ Sửa hồ sơ để bổ sung.</div>';
     h += '<section class="tuy-sec"><h3>📋 Thông tin chính</h3><div class="tuy-info">' + hsoRow('Họ tên đầy đủ', s.full) + hsoRow('Tên gọi trong CRM', s.name) + hsoRow('Ngày sinh', s.dob ? s.dob + (age ? ' · ' + age + ' tuổi' : '') + (b != null && b <= 30 ? ' · 🎂 ' + (b === 0 ? 'hôm nay' : 'còn ' + b + ' ngày') : '') : '') +
-      hsoRow('Ngày vào làm', s.joined) + hsoRow('Quản lý trực tiếp', s.boss) + hsoRow('Học vấn, chuyên môn', s.edu) + '</div>' + (s.app ? '<p class="small"><a href="#tuyen-dung" data-hsoapp="' + s.app.id + '">🧑‍💼 Xem hồ sơ tuyển dụng (' + esc(s.app.job) + ')</a></p>' : '') + '</section>';
+      hsoRow('Ngày vào làm', s.joined) + hsoRow('Quản lý trực tiếp', s.boss) + hsoRow('Học vấn, chuyên môn', s.edu) + hsoRow('Quê quán', s.home) + '</div>' + (s.app ? '<p class="small"><a href="#tuyen-dung" data-hsoapp="' + s.app.id + '">🧑‍💼 Xem hồ sơ tuyển dụng (' + esc(s.app.job) + ')</a></p>' : '') + '</section>';
     h += '<section class="tuy-sec"><h3>💚 Đồng đội trân trọng ở ' + esc(s.name) + (s.fb.n ? ' <small>' + s.fb.n + ' phiếu</small>' : '') + '</h3>' + (s.fb.good.length ? hsoQuotes(s.fb.good, 'good') : '<p class="muted small">Chưa có phiếu “Món quà âm thầm” nào cho bạn này.</p>') + '</section>';
+    if (s.strong) h += '<section class="tuy-sec"><h3>⭐ Điểm mạnh (quản lý ghi nhận)</h3><p class="hso-note">' + esc(s.strong) + '</p></section>';
+    h += hsoHtSec(s);
     if (D.qt && s.fb.imp.length) h += '<section class="tuy-sec"><details class="tuy-det"><summary>🌱 Điều có thể tốt hơn (' + s.fb.imp.length + ' ý · chỉ Quản trị thấy)</summary><p class="small muted">Dùng để trao đổi riêng, động viên; không đọc to trước tập thể.</p>' + hsoQuotes(s.fb.imp, 'imp') + '</details></section>';
     if (D.qt) {
-      h += '<section class="tuy-sec"><h3>🔒 Riêng tư <small>chỉ Quản trị</small></h3><div class="tuy-info">' + hsoRow('Số CCCD', s.idno) + hsoRow('Ngày cấp', s.idd) + hsoRow('Nơi cấp', s.idp) + hsoRow('Nơi ở hiện tại', s.addr) + hsoRow('Liên hệ khẩn cấp', s.emer) + hsoRow('Số tài khoản nhận lương', s.acct) + '</div>' +
+      h += '<section class="tuy-sec"><h3>🔒 Riêng tư <small>chỉ Quản trị</small></h3><div class="tuy-info">' + hsoRow('Số CCCD', s.idno) + hsoRow('Ngày cấp', s.idd) + hsoRow('Nơi cấp', s.idp) + hsoRow('Nơi ở hiện tại', s.addr) + hsoRow('Liên hệ khẩn cấp', s.emer) + hsoRow('Tài khoản nhận lương', s.bank || s.acct) + '</div>' +
         (!s.idno && !s.addr && !s.emer ? '<p class="muted small">Chưa có. Bấm ✏️ Sửa hồ sơ để thêm.</p>' : '') + '</section>';
       h += '<section class="tuy-sec"><h3>📎 Giấy tờ</h3>' + (s.docs.length ? '<ul class="hso-docs">' + s.docs.map(function (dc) { return '<li><button class="link" data-hsod="get|' + dc.id + '">📄 ' + esc(dc.kind) + '</button> <small class="muted">' + esc(dc.name) + ' · ' + esc(fDate(dc.time)) + '</small> <button class="link hso-del" data-hsod="del|' + dc.id + '" title="Xoá file">🗑</button></li>'; }).join('') + '</ul>' : '<p class="muted small">Chưa có giấy tờ nào.</p>') +
         '<div class="hso-up-row"><select id="hsoKind">' + HSO_DOC.map(function (k) { return '<option>' + k + '</option>'; }).join('') + '</select><label class="btn sm">📤 Tải file lên<input type="file" id="hsoDoc" accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx" hidden></label></div><p class="small muted">PDF hoặc ảnh, tối đa 1,4 MB / file. Hợp đồng sẽ có mục riêng ở đợt 3.</p></section>';
@@ -15784,6 +15791,7 @@
     if (s.note) h += '<section class="tuy-sec"><h3>🗒 Ghi chú</h3><p class="hso-note">' + esc(s.note) + '</p></section>';
     if (s.upd) h += '<p class="small muted">Sửa lần cuối ' + esc(fDateTime(s.upd)) + (s.updBy ? ' bởi ' + esc(s.updBy) : '') + '</p>';
     var m = modal(esc(s.full || s.name), h, '<button class="btn pri" data-hsod="edit">✏️ Sửa hồ sơ</button>');
+    $$('[data-hsopair]', m).forEach(function (b) { b.onclick = function (e) { e.preventDefault(); openHsoPair(s, b.getAttribute('data-hsopair'), b.getAttribute('data-why')); }; });
     $$('[data-hsoapp]', m).forEach(function (a) { a.onclick = function (e) { e.preventDefault(); closeModal(true); location.hash = '#tuyen-dung'; setTimeout(function () { if (TUY.d) openTuy(+a.getAttribute('data-hsoapp')); }, 600); }; });
     var fi = $('#hsoDoc', m); if (fi) fi.onchange = function () {
       var f = fi.files[0]; if (!f) return; if (f.size > 1.4e6) return toast('File lớn hơn 1,4 MB. Nén PDF hoặc chụp ảnh nhỏ hơn rồi tải lại.', true);
@@ -15793,6 +15801,7 @@
       el.onclick = function (e) {
         e.preventDefault(); var a = el.getAttribute('data-hsod').split('|');
         if (a[0] === 'edit') openHsoEdit(s);
+        else if (a[0] === 'pair') openHsoPair(s);
         else if (a[0] === 'get') { el.disabled = true; api('hr', { op: 'st_doc_get', id: +a[1] }).then(function (j) { el.disabled = false; var bin = atob(j.b64), u8 = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i); lqDl(j.name, new Blob([u8])); }, function (er) { el.disabled = false; toast(er.message, true); }); }
         else if (a[0] === 'del') { if (!confirm('Xoá file này? Không lấy lại được.')) return; hsoDo('st_doc_del', { id: +a[1] }, null, 'Đã xoá file').then(function () { openHso(s.email); }, function () { }); }
       };
@@ -15805,14 +15814,15 @@
       '<div class="tuy-2">' + tuyF('Ngày sinh', inp('heDob', s.dob, '05/09/1995')) + tuyF('Ngày vào làm', inp('heJoin', s.joined, '01/03/2025'), 'Đang thử việc thì ghi “TV 01/03/2025”') + '</div>' +
       tuyF('Số điện thoại', inp('hePhone', s.phone, '09…', 'tel')) +
       '<div class="tuy-2">' + tuyF('Vị trí, chức danh', inp('hePos', s.pos, 'Nhân viên kinh doanh')) + tuyF('Bộ phận', inp('heDept', s.dept, 'Kinh doanh')) + '</div>' +
-      tuyF('Quản lý trực tiếp', inp('heBoss', s.boss, 'Chị Thu Thủy')) + tuyF('Học vấn, chuyên môn', inp('heEdu', s.edu, 'Cử nhân Kế toán – ĐH Thương mại')) +
+      tuyF('Quản lý trực tiếp', inp('heBoss', s.boss, 'Chị Thu Thủy')) + tuyF('Học vấn, chuyên môn', inp('heEdu', s.edu, 'Cử nhân Kế toán – ĐH Thương mại')) + tuyF('Quê quán', inp('heHome', s.home, 'Nam Định')) +
+      tuyF('Điểm mạnh (quản lý ghi nhận)', '<textarea id="heStrong" rows="2" placeholder="Ví dụ: chăm khách cũ rất kỹ, nhớ tên từng khách">' + esc(s.strong) + '</textarea>') +
       (D.qt ? '<h3 class="hso-h">🔒 Riêng tư (chỉ Quản trị)</h3><div class="tuy-2">' + tuyF('Số CCCD', inp('heId', s.idno)) + tuyF('Ngày cấp', inp('heIdd', s.idd, '12/08/2021')) + '</div>' + tuyF('Nơi cấp', inp('heIdp', s.idp, 'Cục Cảnh sát QLHC về TTXH')) +
-        tuyF('Nơi ở hiện tại', inp('heAddr', s.addr)) + tuyF('Liên hệ khẩn cấp', inp('heEmer', s.emer, 'Mẹ – Nguyễn Thị A – 0912…')) + tuyF('Số tài khoản nhận lương', inp('heAcct', s.acct, 'Chỉ số, ví dụ 1234567890'), 'Dùng chung với Bảng lương') : '') +
+        tuyF('Nơi ở hiện tại', inp('heAddr', s.addr)) + tuyF('Liên hệ khẩn cấp', inp('heEmer', s.emer, 'Mẹ – Nguyễn Thị A – 0912…')) + tuyF('Số tài khoản nhận lương', inp('heAcct', s.acct, 'Chỉ số, ví dụ 1234567890'), 'Dùng chung với Bảng lương') + tuyF('Ngân hàng, chi nhánh', inp('heBank', s.bank, 'VCB – 1234567890 – CN Long Biên')) : '') +
       tuyF('Ghi chú', '<textarea id="heNote" rows="3">' + esc(s.note) + '</textarea>');
     var m = modal('✏️ Hồ sơ – ' + esc(s.full || s.name), b, '<button class="btn pri" id="heSave">Lưu hồ sơ</button>');
     $('#heSave', m).onclick = function (e) {
       e.preventDefault(); var v = function (id) { var x = $('#' + id, m); return x ? x.value.trim() : undefined; };
-      hsoDo('st_save', { email: s.email, full: v('heFull'), dob: v('heDob'), joined: v('heJoin'), phone: v('hePhone'), pos: v('hePos'), dept: v('heDept'), boss: v('heBoss'), edu: v('heEdu'), idno: v('heId'), idd: v('heIdd'), idp: v('heIdp'), addr: v('heAddr'), emer: v('heEmer'), acct: v('heAcct'), note: v('heNote') }, e.target, 'Đã lưu hồ sơ ✓').then(function () { openHso(s.email); }, function () { });
+      hsoDo('st_save', { email: s.email, full: v('heFull'), dob: v('heDob'), joined: v('heJoin'), phone: v('hePhone'), pos: v('hePos'), dept: v('heDept'), boss: v('heBoss'), edu: v('heEdu'), idno: v('heId'), idd: v('heIdd'), idp: v('heIdp'), addr: v('heAddr'), emer: v('heEmer'), acct: v('heAcct'), bank: v('heBank'), home: v('heHome'), strong: v('heStrong'), note: v('heNote') }, e.target, 'Đã lưu hồ sơ ✓').then(function () { openHso(s.email); }, function () { });
     };
   }
   /** 🧑‍💼 → 🗂 ứng viên đã nhận việc: tạo tài khoản CRM + hồ sơ nhân sự (Quản trị). */
@@ -15827,6 +15837,92 @@
       api('hr', { op: 'st_hire', id: r.id, email: $('#thEmail', m).value.trim(), name: $('#thName', m).value.trim(), role: $('#thRole', m).value }).then(function (j) { hsoSet(j); toast('Đã tạo tài khoản + hồ sơ ✓ Nhắc bạn ấy đăng nhập bằng email ' + j.made); closeModal(true); location.hash = '#nhan-su'; setTimeout(function () { openHso(j.made); }, 500); load(true); },
         function (er) { btn.disabled = false; toast(er.message, true); });
     };
+  }
+  /* ================================================================ 🤝 Hiểu & Thương – 9 câu (15/11/2026, anh Sơn; máy chủ api/src/hrstaff.js lệnh ht {op: me | save})
+     Mọi nhân sự tự điền: thẻ mời ở màn hình đầu (htMount, "Để sau" ẩn 3 ngày) + Thêm → 🤝 Hiểu & Thương của tôi. Quản lý / Quản trị xem trong 🗂 Hồ sơ nhân sự, Quản trị ghép Đệ nhị thân. */
+  function htLoad(cb) {
+    if (S.htBusy) return; S.htBusy = 1;
+    api('ht', { op: 'me' }).then(function (j) { S.htBusy = 0; S.ht = j; S.htAt = Date.now(); if (cb) cb(); else { var b = $('#htBox'); if (b) b.innerHTML = htCard(); htBindCard(); } }, function () { S.htBusy = 0; S.htFail = Date.now(); });
+  }
+  function htCard() {
+    if (!S.ht || S.ht.ans || Number(store('ht_later') || 0) > Date.now()) return '';
+    return '<div class="ht-card"><div class="ht-card-t"><b>🤝 Hiểu & Thương: 9 câu để đội hiểu bạn hơn</b><small>Khoảng 5–7 phút. Bạn giỏi gì, đang cần gì, muốn được đồng hành thế nào → công ty ghép cho bạn một <b>Đệ nhị thân</b> cùng tiến bộ 30 ngày. Câu riêng tư được bỏ qua.</small></div>' +
+      '<div class="ht-card-b"><button class="btn pri" data-htc="go">✍️ Điền ngay</button><button class="btn ghost" data-htc="later">Để sau</button></div></div>';
+  }
+  function htBindCard() { $$('[data-htc]').forEach(function (b) { b.onclick = function () { if (b.getAttribute('data-htc') === 'go') openHtForm(); else { store('ht_later', String(Date.now() + 3 * DAY)); var c = $('#htBox'); if (c) c.innerHTML = ''; toast('Lúc nào rảnh: Thêm → 🤝 Hiểu & Thương của tôi'); } }; }); }
+  function htMount(el) {
+    if ((!S.ht || Date.now() - S.htAt > 600e3) && !(S.htFail && Date.now() - S.htFail < 600e3)) htLoad();
+    el.insertAdjacentHTML('afterbegin', '<div id="htBox">' + htCard() + '</div>'); htBindCard();
+  }
+  function htChips(name, L, cur) { return '<div class="ht-chips" data-htmax="3">' + L.map(function (o) { return '<label><input type="checkbox" name="' + name + '" value="' + esc(o) + '"' + ((cur || []).indexOf(o) >= 0 ? ' checked' : '') + '><span>' + esc(o) + '</span></label>'; }).join('') + '</div>'; }
+  function openHtForm() {
+    if (!S.ht) { toast('⏳ Đang mở…'); return htLoad(openHtForm); }
+    var O = S.ht.opt, a = S.ht.ans || {}, HINT = { q1: 'Gia đình hoặc điều bạn đang gánh vác, để đồng đội hiểu và hỗ trợ đúng lúc. Chưa sẵn sàng thì bỏ qua.', q2: 'Bạn giỏi nhất 1–2 việc gì? Nêu một ví dụ hoặc kết quả cụ thể.', q3: 'Kinh nghiệm nổi bật nhất hoặc số người bạn từng hướng dẫn.', q4: 'Một điểm cần phát huy và một điểm bạn muốn khắc phục.', q5: 'Điều bạn thực sự muốn tạo ra trong 1–2 năm tới.', q6: 'Bạn hiểu sâu hoặc làm tốt điều gì, có thể hỗ trợ đội ngũ ra sao?', q7: 'Chia sẻ khi bạn thấy sẵn sàng.', q8: 'Bạn muốn đóng góp gì cho đội ngũ, khách hàng hoặc cộng đồng?', q9: 'Bạn muốn thay đổi điều gì? Viết một kết quả cụ thể, đo được.' };
+    var b = '<p class="small muted">Bộ 9 câu giúp ban quản lý biết cách đồng hành đúng với bạn và ghép cho bạn một <b>Đệ nhị thân</b>, người hỗ trợ bạn hằng ngày cả công việc lẫn tinh thần. Mỗi câu 2–3 dòng là đủ. Câu có <b>*</b> là bắt buộc. Câu 🔒 chỉ Ban lãnh đạo đọc. Câu trả lời <b>không dùng để tính lương, thưởng</b>.</p>' +
+      O.q.map(function (q) { return '<label class="f"><span>' + esc(q.t) + (q.req ? ' *' : '') + (q.priv ? ' 🔒' : '') + '</span><textarea id="ht_' + q.k + '" rows="2" placeholder="' + esc(HINT[q.k] || '') + '">' + esc(a[q.k] || '') + '</textarea></label>'; }).join('') +
+      '<div class="f"><span class="ht-lb">Thế mạnh bạn có thể dùng để hỗ trợ đồng đội * <small class="muted">(tối đa 3)</small></span>' + htChips('htg', O.sk, a.give) + '</div>' +
+      '<div class="f"><span class="ht-lb">Nội dung bạn đang cần đồng đội hỗ trợ * <small class="muted">(tối đa 3)</small></span>' + htChips('htn', O.sk, a.need) + '</div>' +
+      '<div class="f"><span class="ht-lb">Bạn muốn được đồng hành theo cách nào? *</span><div class="ht-chips">' + O.how.map(function (o) { return '<label><input type="radio" name="hth" value="' + esc(o) + '"' + (a.how === o ? ' checked' : '') + '><span>' + esc(o) + '</span></label>'; }).join('') + '</div></div>' +
+      '<label class="f"><span>Điều bạn không muốn chia sẻ công khai 🔒</span><textarea id="ht_priv" rows="2" placeholder="Ban lãnh đạo sẽ tôn trọng ranh giới này">' + esc(a.priv || '') + '</textarea></label>' +
+      '<label class="tuy-ck"><input type="checkbox" id="ht_ok"' + (a.consent ? ' checked' : '') + '> Tôi đồng ý dùng câu trả lời để phát triển, hỗ trợ đội ngũ và đề xuất Đệ nhị thân *</label>';
+    var m = modal('🤝 Hiểu & Thương', b, '<button class="btn pri" id="htSave">' + (S.ht.ans ? 'Lưu thay đổi' : 'Gửi câu trả lời') + '</button>');
+    $$('.ht-chips[data-htmax]', m).forEach(function (box) { box.addEventListener('change', function (e) { var on = $$('input:checked', box); if (on.length > 3) { e.target.checked = false; toast('Chọn tối đa 3 mục rõ nhất nhé.', true); } }); });
+    O.q.forEach(function (q) { draftKeep($('#ht_' + q.k, m), 'ht_d_' + q.k); });
+    $('#htSave', m).onclick = function (e) {
+      var d = { op: 'save', give: $$('input[name=htg]:checked', m).map(function (c) { return c.value; }), need: $$('input[name=htn]:checked', m).map(function (c) { return c.value; }), how: ($('input[name=hth]:checked', m) || {}).value || '', priv: $('#ht_priv', m).value, consent: $('#ht_ok', m).checked ? 1 : 0 };
+      O.q.forEach(function (q) { d[q.k] = $('#ht_' + q.k, m).value; });
+      var btn = e.target; btn.disabled = true;
+      api('ht', d).then(function (j) { S.ht = j; O.q.forEach(function (q) { store('ht_d_' + q.k, null); }); closeModal(); var c = $('#htBox'); if (c) c.innerHTML = ''; toast('Cảm ơn bạn đã chia sẻ 🌿 Ban quản lý sẽ đọc và trao đổi riêng với bạn.'); if (HSO.d) hsoFetch(); },
+        function (er) { btn.disabled = false; toast(er.message, true); });
+    };
+  }
+  /* ---------- trong 🗂 Hồ sơ nhân sự: xem bài Hiểu & Thương + gợi ý / ghép Đệ nhị thân (Quản trị) */
+  function hsoPairSuggest(s) {
+    var me = s.ht && s.ht.a; if (!me) return [];
+    return HSO.d.staff.filter(function (o) { return o.email !== s.email && o.active && o.ht && o.ht.a; }).map(function (o) {
+      var a = (me.need || []).filter(function (k) { return (o.ht.a.give || []).indexOf(k) >= 0; }), b = (o.ht.a.need || []).filter(function (k) { return (me.give || []).indexOf(k) >= 0; });
+      return { o: o, sc: a.length * 2 + b.length, why: (a.length ? o.name + ' giỏi ' + a.join(', ') + ' (bạn đang cần)' : '') + (a.length && b.length ? '; ' : '') + (b.length ? 'bạn giúp lại được ' + b.join(', ') : '') };
+    }).filter(function (x) { return x.sc > 0; }).sort(function (x, y) { return y.sc - x.sc; }).slice(0, 3);
+  }
+  function hsoHtSec(s) {
+    var D = HSO.d, H = s.ht, A = H && H.a, O = D.htOpt, pair = H && H.pair ? hsoOne(H.pair) : null;
+    var h = '<section class="tuy-sec"><h3>🤝 Hiểu & Thương' + (H && H.upd && A ? ' <small>điền ' + esc(fDate(H.upd)) + '</small>' : '') + '</h3>';
+    if (!A) h += '<p class="muted small">Chưa điền. Nhắc bạn ấy: mở CRM → thẻ <b>🤝 Hiểu & Thương</b> ở màn hình đầu (hoặc Thêm → 🤝 Hiểu & Thương của tôi).</p>';
+    else {
+      h += '<div class="ht-tags">' + (A.give || []).map(function (k) { return '<span class="ht-give">💪 ' + esc(k) + '</span>'; }).join('') + (A.need || []).map(function (k) { return '<span class="ht-need">🙋 ' + esc(k) + '</span>'; }).join('') + (A.how ? '<span class="ht-how">🧭 ' + esc(A.how) + '</span>' : '') + '</div>';
+      h += O.q.filter(function (q) { return A[q.k]; }).map(function (q) { return '<details class="tuy-det"' + (q.k === 'q2' || q.k === 'q9' ? ' open' : '') + '><summary>' + esc(q.t) + (q.priv ? ' 🔒' : '') + '</summary><p>' + esc(A[q.k]) + '</p></details>'; }).join('');
+      if (A.priv) h += '<details class="tuy-det"><summary>Điều không muốn chia sẻ công khai 🔒</summary><p>' + esc(A.priv) + '</p></details>';
+    }
+    h += '<div class="ht-pair"><b>👥 Đệ nhị thân:</b> ' + (pair ? esc(pair.full || pair.name) + ' · ' + esc(H.pairSt || '') + (H.pairWhy ? '<br><small class="muted">' + esc(H.pairWhy) + '</small>' : '') : '<span class="muted">chưa ghép</span>') + '</div>';
+    if (D.qt) {
+      var sg = hsoPairSuggest(s);
+      h += (sg.length ? '<div class="small ht-sg">Gợi ý theo câu trả lời: ' + sg.map(function (x) { return '<button class="link" data-hsopair="' + esc(x.o.email) + '" data-why="' + esc(x.why) + '">' + esc(x.o.name) + '</button> <span class="muted">(' + esc(x.why) + ')</span>'; }).join(' · ') + '</div>' : '') +
+        '<button class="btn sm" data-hsod="pair">👥 ' + (pair ? 'Đổi Đệ nhị thân' : 'Ghép Đệ nhị thân') + '</button>';
+    }
+    return h + '</section>';
+  }
+  function openHsoPair(s, pre, why) {
+    var H = s.ht || {}, D = HSO.d;
+    var b = tuyF('Đệ nhị thân của ' + esc(s.name), '<select id="hpP"><option value="">– chưa ghép –</option>' + D.staff.filter(function (o) { return o.active && o.email !== s.email; }).map(function (o) { return '<option value="' + esc(o.email) + '"' + ((pre || H.pair) === o.email ? ' selected' : '') + '>' + esc((o.full || o.name) + ' · ' + o.role + (o.ht && o.ht.a ? ' · đã điền' : '')) + '</option>'; }).join('') + '</select>') +
+      tuyF('Lý do ghép', '<textarea id="hpW" rows="2">' + esc(why || H.pairWhy || '') + '</textarea>') +
+      tuyF('Trạng thái', '<select id="hpS">' + ['Đã đề xuất', 'Đã thống nhất', 'Cần điều chỉnh', 'Chưa phân tích'].map(function (x) { return '<option' + (x === (H.pairSt || 'Đã đề xuất') ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select>') +
+      '<label class="tuy-ck"><input type="checkbox" id="hpB" checked> Ghép cả 2 chiều (người kia cũng nhận ' + esc(s.name) + ' làm Đệ nhị thân)</label>';
+    var m = modal('👥 Ghép Đệ nhị thân', b, '<button class="btn pri" id="hpSave">Lưu</button>');
+    $('#hpSave', m).onclick = function (e) { hsoDo('st_pair', { email: s.email, pair: $('#hpP', m).value, why: $('#hpW', m).value, st: $('#hpS', m).value, both: $('#hpB', m).checked ? 1 : 0 }, e.target, 'Đã lưu ✓').then(function () { openHso(s.email); }, function () { }); };
+  }
+  /* ---------- 📒 khung Notion (Quản trị): lấy về 1 lần, ghi ngược làm bản lưu dự phòng */
+  function hsoNtBox(D) {
+    var N = D.nt || {}, L = N.last || {};
+    var st = !N.tok ? '<span class="tuy-flag">Chưa có khoá Notion.</span>' : (N.staff ? '✅ Đọc được bảng 👥 Nhân sự' : '⚠️ Chưa đọc được bảng 👥 Nhân sự') + ' · ' + (N.ht ? '✅ bảng 🤝 Hiểu & Thương' : '⚠️ chưa đọc được bảng 🤝 Hiểu & Thương');
+    var h = '<details class="box hso-fb"' + (!N.tok || !N.staff || !N.ht || N.err ? ' open' : '') + '><summary><b>📒 Bản lưu dự phòng trên Notion</b> <span class="muted small">' + (N.wait ? N.wait + ' mục chờ ghi' : L.push ? 'ghi lúc ' + esc(fDateTime(L.push)) : '') + '</span></summary>' +
+      '<p class="small">Hồ sơ trên hr. là bản chính. Mỗi lần sửa hồ sơ, điền Hiểu & Thương, ghép Đệ nhị thân, máy <b>tự ghi sang Notion</b> (bảng 👥 Nhân sự và 🤝 Hiểu & Thương). Không xoá ô nào bên Notion, không gửi lương.</p><p class="small">' + st + '</p>' +
+      ((N.staffErr || N.htErr) && N.tok ? '<p class="small muted">Cách sửa: mở từng bảng trên Notion → ••• (góc trên phải) → <b>Kết nối</b> → chọn tích hợp của CRM (cùng tích hợp đang dùng cho ✅ Việc tuần). Rồi bấm ⟳ Kiểm tra lại.</p>' : '') +
+      (N.err ? '<p class="tuy-flag">⚠️ Lần ghi gần nhất lỗi: ' + esc(N.err) + '</p>' : '') +
+      (L.pullMsg ? '<p class="small muted">Lần lấy từ Notion ' + esc(fDateTime(L.pull)) + ': ' + esc(L.pullMsg) + '</p>' : '') + (L.pushMsg ? '<p class="small muted">Lần ghi ' + esc(fDateTime(L.push)) + ': ' + esc(L.pushMsg) + '</p>' : '') +
+      '<div class="hso-fb-row">' + (N.tok ? '<button class="btn sm pri" data-hso="ntpull">⬇️ Lấy hồ sơ từ Notion</button><button class="btn sm" data-hso="ntpush">⬆️ Ghi tất cả sang Notion</button><button class="btn sm ghost" data-hso="ntchk">⟳ Kiểm tra lại</button>' : '') + '</div>' +
+      '<details class="small ht-key"><summary>' + (N.tok ? 'Đổi khoá Notion riêng cho mục này' : 'Dán khoá Notion') + '</summary><div class="hso-fb-row"><input id="hsoNtTok" placeholder="ntn_…"><button class="btn sm" data-hso="nttok">Lưu khoá</button></div><p class="muted">Để trống thì dùng chung khoá của ✅ Việc tuần.</p></details>' +
+      (D.pullMiss && D.pullMiss.length ? '<div class="hso-miss-box"><b>Có trong Notion nhưng chưa có tài khoản CRM</b> (không tự tạo, tránh nhầm người): ' + D.pullMiss.map(function (p) { return esc(p.name) + (p.st ? ' (' + esc(p.st) + ')' : ''); }).join(', ') + '. Ai đang làm thì thêm tài khoản ở Cài đặt → Nhân sự rồi bấm ⬇️ lần nữa.</div>' : '') + '</details>';
+    return h;
   }
   function modal(title, body, foot, opt) {
     closeModal(true);

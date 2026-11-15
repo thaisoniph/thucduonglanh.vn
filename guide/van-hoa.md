@@ -153,3 +153,12 @@ Vì vậy ở VitaGreen:
 - Điều tốt được ghi nhận. Điều chưa tốt được góp ý để sửa, không giấu đi.
 
 > Một đội ngũ tan rã hiếm khi vì một cú đánh lớn. Nó tan rã vì hàng trăm lần “thôi kệ, cho qua”.
+
+## 🤝 Hiểu & Thương: 9 câu để đội hiểu bạn
+
+Ở màn hình đầu CRM có thẻ **🤝 Hiểu & Thương**. Bấm **✍️ Điền ngay**, trả lời 9 câu (mỗi câu 2–3 dòng), chọn tối đa 3 thế mạnh, 3 điều đang cần hỗ trợ và cách bạn muốn được đồng hành. Mất khoảng 5–7 phút.
+
+- Câu có 🔒 chỉ Ban lãnh đạo đọc. Câu không bắt buộc thì được bỏ qua.
+- Từ câu trả lời, công ty ghép cho bạn một **Đệ nhị thân**: người hỗ trợ bạn hằng ngày cả công việc lẫn tinh thần, cùng tiến bộ 30 ngày.
+- Câu trả lời **không dùng để tính lương, thưởng**.
+- Muốn sửa lại: **Thêm → 🤝 Hiểu & Thương của tôi**. Bấm **Để sau** thì 3 ngày sau thẻ hiện lại.

@@ -5,7 +5,7 @@ group: quan-ly
 short: Hồ sơ, sinh nhật, điểm mạnh, giấy tờ
 order: 4.1
 updated: 2026-11-15
-description: Xem và sửa hồ sơ từng nhân sự, sinh nhật và ngày tròn năm làm việc sắp tới, điểm mạnh đồng đội ghi nhận (phiếu Món quà âm thầm), giấy tờ. Dành cho Quản lý và Quản trị.
+description: Hiểu & Thương, Đệ nhị thân, bản lưu Notion. Xem và sửa hồ sơ từng nhân sự, sinh nhật và ngày tròn năm làm việc sắp tới, điểm mạnh đồng đội ghi nhận (phiếu Món quà âm thầm), giấy tờ. Dành cho Quản lý và Quản trị.
 roles: [ql]
 ---
 
@@ -45,3 +45,20 @@ Ngày sinh, ngày vào làm, số tài khoản dùng chung với **lời chúc s
 Khi ứng viên đã bấm **đồng ý nhận việc**, Quản trị mở hồ sơ ứng viên ở **🧑‍💼 Tuyển dụng** → **➕ Tạo hồ sơ nhân sự**. Chọn email đăng nhập, tên gọi trong CRM, quyền. Máy tạo tài khoản CRM, chép sẵn họ tên, số điện thoại, ngày sinh, ngày bắt đầu, vị trí; CV và thư mời đã ký vào mục **Giấy tờ**. Nhắc bạn mới đăng nhập bằng email đó.
 
 Tên gọi, quyền, bật / tắt tài khoản vẫn sửa ở **Cài đặt → Nhân sự**.
+
+## 🤝 Hiểu & Thương và Đệ nhị thân
+
+Mỗi nhân sự tự điền **9 câu Hiểu & Thương** ngay trong CRM: thẻ mời hiện ở màn hình đầu cho tới khi điền xong (hoặc **Thêm → 🤝 Hiểu & Thương của tôi**). Mục **Chưa điền Hiểu & Thương** cho biết còn ai chưa điền.
+
+- Quản lý xem câu 2–6, 8, 9 và thế mạnh / điều cần hỗ trợ. **Câu 1, câu 7 và “điều không muốn chia sẻ” chỉ Quản trị đọc.**
+- Quản trị mở hồ sơ → **👥 Ghép Đệ nhị thân**. Máy gợi ý người hợp theo câu trả lời: người này giỏi đúng điều người kia đang cần.
+- Câu trả lời không dùng để tính lương, thưởng.
+
+## 📒 Bản lưu dự phòng trên Notion (Quản trị)
+
+hr. là **bản chính**. Mỗi lần sửa hồ sơ, nhân sự điền Hiểu & Thương, ghép Đệ nhị thân, máy **tự ghi sang Notion** (bảng 👥 Nhân sự VitaGreen và 🤝 Hiểu & Thương). Không xoá ô nào bên Notion, không gửi lương.
+
+1. Lần đầu: mở khung **📒 Bản lưu dự phòng trên Notion** → **⬇️ Lấy hồ sơ từ Notion**. Máy chỉ điền vào ô đang trống trên hr., không ghi đè.
+2. Người có trong Notion nhưng chưa có tài khoản CRM (cố vấn, người đã nghỉ…) chỉ được liệt kê, máy không tự tạo.
+3. Muốn chắc chắn Notion đủ mới: bấm **⬆️ Ghi tất cả sang Notion**.
+4. Báo “chưa đọc được bảng”: mở bảng đó trên Notion → **•••** → **Kết nối** → chọn tích hợp của CRM (cùng tích hợp đang dùng cho ✅ Việc tuần) → bấm **⟳ Kiểm tra lại**.

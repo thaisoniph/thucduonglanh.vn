@@ -18,7 +18,8 @@ import { crmKho, khoSchema, khoRetOut, khoTell } from './kho.js';
 import { fetchXlsx, crmFin, crmKtChi, finFull } from './fin.js';
 import { crmNcc } from './ncc.js';
 import { crmKpi } from './kpi.js';
-import { crmHr } from './hr.js'; // 🧑‍💼 tuyển dụng – hr.thucduonglanh.vn đợt 1 (15/11/2026)
+import { crmHr } from './hr.js';
+import { crmHt } from './hrstaff.js'; // 🤝 Hiểu & Thương: mọi nhân sự tự điền 9 câu // 🧑‍💼 tuyển dụng – hr.thucduonglanh.vn đợt 1 (15/11/2026)
 import { crmLuong } from './luong.js';
 import { KT_ROLE_OK, ktSettingsOk, finOk, ktLoad, ktCfg, crmKt, ktKho, crmKtBatch } from './kt.js';
 import { crmSaleMkt, crmOffers } from './salemkt.js';
@@ -2594,6 +2595,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (a === 'logout') { await run(x.db, 'DELETE FROM sessions WHERE token = ?', d.token); return { ok: true }; }
   if (/^gv_/.test(a)) return crmGv(x, u, d); // ✅ Giao việc (giaoviec.js, 14/11/2026): mọi vai trò, quyền kiểm trong giaoviec.js
   if (a === 'camp_view') return crmCamp(x, u); // 📊 Đợt phát động mở rộng khách (camp.js, 15/11/2026): chỉ Quản lý / Quản trị
+  if (a === 'ht') return crmHt(x, u, d); // 🤝 Hiểu & Thương (hrstaff.js, 15/11/2026): mọi vai trò, chỉ phần của mình
   if (/^tb_/.test(a)) return crmTb(x, u, d); // 📢 Thông báo nội bộ (thongbao.js): mọi vai trò đều đọc được
   if (/^bt_/.test(a)) return crmBt(x, u, d); // 📣 Bảng tin vui đồng đội (bangtin.js, 14/11/2026): mọi vai trò
   if (a === 'guide_me') return { ok: true, me: publicUser(u) }; // 📖 trang hướng dẫn (guide.js) hỏi vai trò để chỉ hiện phần của vai trò đó; mọi vai trò đều gọi được

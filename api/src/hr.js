@@ -10,7 +10,7 @@ import { aiFetch } from './airelay.js';
 import { esc, all, first, run, kvJson, kvSet, kvGet, randHex, fmtDate, nrm, DAY } from './lib.js';
 import { telegramTo, sendMail, tgConf } from './google.js';
 import { fitScore } from './apply.js';
-import { crmHrStaff, fbSync } from './hrstaff.js'; // 🗂 đợt 2: hồ sơ nhân sự (lệnh hr {op: st_*})
+import { crmHrStaff, fbSync, ntPush } from './hrstaff.js'; // 🗂 đợt 2: hồ sơ nhân sự (lệnh hr {op: st_*})
 
 export const HR_ST = ['Mới', 'Hẹn phỏng vấn', 'Đã phỏng vấn', 'Mời nhận việc', 'Đã nhận việc', 'Không phù hợp', 'Từ chối nhận việc'];
 const API = 'https://api.thucduonglanh.vn', CONGSU = 'https://congsu.thucduonglanh.vn', LOGO = 'https://thucduonglanh.vn/assets/img/brand/logo.png';
@@ -132,6 +132,7 @@ export async function hrTick(x, users) {
       for (const u of (users || []).filter(z => z.active && z.tg && z.level >= 3)) await telegramTo(x.env, u.tg, msg);
     }
   }
+  try { const w = await first(x.db, 'SELECT (SELECT COUNT(*) FROM hr_staff WHERE nt_dirty = 1 AND nt_err = \'\') + (SELECT COUNT(*) FROM hr_ht WHERE nt_dirty = 1 AND nt_err = \'\') n'); if (w && w.n) await ntPush(x, 15); } catch (e) { } // 📒 hồ sơ vừa đổi → ghi sang Notion (bảng chưa có thì bỏ qua)
   const dk = 'hr_clean_' + fmtDate(Date.now(), 'yyyyMMdd');
   if (!await kvGet(x.db, dk)) { await kvSet(x.db, dk, '1', 2 * DAY); await hrClean(x.db); try { const S = await kvJson(x.db, 'hr_fb_src', null); if (S && S.id) await fbSync(x); } catch (e) { console.error('hr fbSync', e.message); } } // 🗂 mỗi ngày đọc lại Sheet phiếu góp ý (câu trả lời mới)
 }

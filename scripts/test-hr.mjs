@@ -10,7 +10,12 @@ const DB = { prepare(sql) { const st = raw.prepare(sql); let a = []; const o = {
 raw.exec(`CREATE TABLE kv (k TEXT PRIMARY KEY, v TEXT, exp INTEGER); CREATE TABLE users (email TEXT PRIMARY KEY, name TEXT, role TEXT, active INTEGER, recv TEXT DEFAULT '', tg TEXT DEFAULT '', alias TEXT DEFAULT '', prefix TEXT DEFAULT '', ord INTEGER, web TEXT DEFAULT '', mkv TEXT DEFAULT '', zb TEXT DEFAULT '', kho TEXT DEFAULT '', phone TEXT DEFAULT '', full TEXT DEFAULT '', acct TEXT DEFAULT '', joined TEXT DEFAULT '', dob TEXT DEFAULT '', ctv TEXT DEFAULT '');
 INSERT INTO users (email, name, role, active, ord, full) VALUES ('thaisoniph@gmail.com','Thái Sơn','Quản trị',1,0,'Đinh Minh Thái Sơn'), ('thuy@x.vn','Thu Thủy','Quản lý',1,1,'Nguyễn Thị Thu Thủy'), ('myanh@x.vn','Mỹ Anh','Sale & CSKH',1,2,'');
 CREATE TABLE logs (time INTEGER, who TEXT, what TEXT, ref TEXT, name TEXT, result TEXT, note TEXT);`);
-let aiCalls = 0, aiBody = null;
+let aiCalls = 0, aiBody = null; const ntCalls = [];
+const T = s => ({ type: 'text', plain_text: s, text: { content: s } });
+const NT_ROWS = [
+  { id: 'pg-thuy', created_time: '2026-09-01T00:00:00Z', properties: { 'Họ tên': { title: [T('Nguyễn Thị Thu Thủy')] }, 'Email': { email: null }, 'Số điện thoại': { phone_number: '0912 000 101' }, 'Ngày sinh': { date: { start: '1990-11-18' } }, 'Ngày bắt đầu': { date: { start: '2023-11-01' } }, 'Vai trò': { rich_text: [T('Quản lý kinh doanh')] }, 'Bộ phận': { select: { name: 'Quản lý' } }, 'Trạng thái': { status: { name: 'Đang làm' } }, 'Điểm mạnh': { rich_text: [T('Giữ đội ổn định')] }, 'Tài khoản ngân hàng': { rich_text: [T('VCB – 0011 0022 33 – CN Long Biên')] } } },
+  { id: 'pg-co-van', created_time: '2026-09-01T00:00:00Z', properties: { 'Họ tên': { title: [T('Trần Cố Vấn')] }, 'Trạng thái': { status: { name: 'Cố vấn/Đối tác' } }, 'Vai trò': { rich_text: [T('Cố vấn')] } } }
+];
 const realFetch = globalThis.fetch;
 const JR = o => new Response(JSON.stringify(o), { headers: { 'content-type': 'application/json' } });
 globalThis.fetch = async (url, init) => {
@@ -19,6 +24,13 @@ globalThis.fetch = async (url, init) => {
   if (u === 'https://congsu.thucduonglanh.vn/') return new Response('<a class="fw-chip" href="/truong-phong-marketing/">Vị trí Trưởng phòng Marketing</a>');
   if (u.includes('congsu.thucduonglanh.vn/truong-phong-marketing')) return new Response('<html><header>menu</header><main><h1>Trưởng phòng Marketing</h1><p>Yêu cầu: 5 năm kinh nghiệm marketing, dẫn đội.</p></main></html>');
   if (u.includes('api.telegram.org')) return JR({ ok: true });
+  if (u.includes('api.notion.com')) { // Notion giả: 2 bảng, ghi lại mọi lần tạo / sửa trang
+    const b = init && init.body ? JSON.parse(init.body) : null; ntCalls.push({ m: init.method, u, b });
+    if (/databases\/[a-f0-9]+\/query/.test(u)) return JR({ results: /584ef1e1/.test(u) ? NT_ROWS : [], has_more: false });
+    if (/databases\//.test(u)) return JR({ id: 'db' });
+    if (/pages$/.test(u)) return JR({ id: 'new-' + ntCalls.length });
+    return JR({ id: 'ok' });
+  }
   return realFetch(url, init);
 };
 const tg = []; const origLog = console.log; console.log = (...a) => { if (a[0] === 'TG' || a[0] === 'MAIL') tg.push(a.join(' ')); else origLog(...a); };
@@ -153,6 +165,49 @@ st = await H.crmHr(x, son, { op: 'st_doc_add', email: 'myanh@x.vn', kind: 'CCCD 
 const dc = st.staff.find(z => z.email === 'myanh@x.vn').docs[0];
 ok(dc && (await H.crmHr(x, son, { op: 'st_doc_get', id: dc.id }, log)).b64 === 'AAAA', 'Tải lên + tải về giấy tờ');
 st = await H.crmHr(x, son, { op: 'st_doc_del', id: dc.id }, log); ok(!st.staff.find(z => z.email === 'myanh@x.vn').docs.length, 'Xoá giấy tờ');
+
+// 10. 🤝 Hiểu & Thương + 📒 Notion
+ok(!(await H.crmHr(x, son, { op: 'st_nt_pull' }, log)).pull.ok, 'Chưa có khoá Notion → báo rõ');
+await DB.prepare("INSERT INTO kv (k, v) VALUES ('gv_cfg', ?)").bind(JSON.stringify({ notion: { token: 'ntn_' + 'x'.repeat(30), db: 'gv' } })).run();
+let nl = await H.crmHr(x, son, { op: 'st_list' }, log);
+ok(nl.nt.tok && nl.nt.staff && nl.nt.ht, 'Dùng chung khoá Notion của Việc tuần, đọc được 2 bảng');
+await DB.prepare("UPDATE users SET dob = '' WHERE email = 'thuy@x.vn'").bind().run();
+nl = await H.crmHr(x, son, { op: 'st_nt_pull' }, log);
+const th = nl.staff.find(z => z.email === 'thuy@x.vn');
+ok(nl.pull.ok && nl.pull.n === 1 && th.dob === '18/11/1990' && th.joined === '01/11/2023' && th.pos === 'Quản lý kinh doanh' && th.strong === 'Giữ đội ổn định', 'Lấy từ Notion: khớp Thủy theo họ tên, điền ô trống');
+ok(th.acct === '0011002233' && th.bank.startsWith('VCB'), 'Số tài khoản tách từ ô ngân hàng Notion');
+ok(nl.pull.miss.length === 1 && nl.pull.miss[0].name === 'Trần Cố Vấn', 'Người chưa có tài khoản CRM chỉ liệt kê, không tự tạo');
+await DB.prepare("UPDATE hr_staff SET pos = 'Đã sửa trên CRM' WHERE email = 'thuy@x.vn'").bind().run();
+nl = await H.crmHr(x, son, { op: 'st_nt_pull' }, log);
+ok(nl.staff.find(z => z.email === 'thuy@x.vn').pos === 'Đã sửa trên CRM', 'Lấy lại không ghi đè ô CRM đã có');
+// form 9 câu
+const HT = await import('file://' + ROOT + '/api/src/hrstaff.js');
+const ma2 = { email: 'myanh@x.vn', name: 'Mỹ Anh', role: 'Sale & CSKH', level: 1 };
+ok((await HT.crmHt(x, ma2, { op: 'me' })).ans === null, 'Nhân sự chưa điền thì ans = null (hiện thẻ mời)');
+ok(!(await HT.crmHt(x, ma2, { op: 'save', q2: 'Chăm khách' })).ok, 'Thiếu câu bắt buộc bị chặn');
+ntCalls.length = 0;
+let hs = await HT.crmHt(x, ma2, { op: 'save', q1: 'Mẹ đơn thân', q2: 'Chăm khách cũ', q4: 'Kiên nhẫn', q6: 'Nhớ khách', q9: 'Gọi 30 khách/ngày', give: ['Giao tiếp / kết nối', 'Lắng nghe / tinh thần', 'Sáng tạo / nội dung', 'X lạ'], need: ['Lập kế hoạch / ưu tiên'], how: 'Hỏi và lắng nghe', priv: 'chuyện nhà', consent: 1 });
+await flush();
+ok(hs.ok && hs.ans.give.length === 3 && hs.ans.give.indexOf('X lạ') < 0, 'Lưu 9 câu, chỉ nhận lựa chọn hợp lệ, tối đa 3');
+ok(ntCalls.some(c => c.m === 'POST' && /pages$/.test(c.u) && c.b.parent.database_id === 'c4a8bccc9c3f4e32a1700132c543991a' && c.b.properties['1. Cá nhân và gia đình']), 'Tự ghi bài Hiểu & Thương sang Notion ngay sau khi lưu');
+const ql = (await H.crmHr(x, thuy, { op: 'st_list' }, log)).staff.find(z => z.email === 'myanh@x.vn').ht;
+ok(ql.a.q2 === 'Chăm khách cũ' && ql.a.q1 === undefined && ql.a.priv === undefined, 'Quản lý xem được câu 2, không thấy câu 1 / điều riêng tư');
+const qa = (await H.crmHr(x, son, { op: 'st_list' }, log)).staff.find(z => z.email === 'myanh@x.vn').ht;
+ok(qa.a.q1 === 'Mẹ đơn thân' && qa.a.priv === 'chuyện nhà', 'Quản trị xem đủ');
+// ghép Đệ nhị thân + ghi Notion có quan hệ
+ntCalls.length = 0;
+nl = await H.crmHr(x, son, { op: 'st_pair', email: 'myanh@x.vn', pair: 'thuy@x.vn', why: 'Thủy giỏi lập kế hoạch', st: 'Đã đề xuất', both: 1 }, log); await flush();
+ok(nl.staff.find(z => z.email === 'thuy@x.vn').ht.pair === 'myanh@x.vn' && nl.staff.find(z => z.email === 'myanh@x.vn').ht.pairSt === 'Đã đề xuất', 'Ghép Đệ nhị thân 2 chiều');
+const pc = ntCalls.find(c => c.b && c.b.properties && c.b.properties['Đệ nhị thân đề xuất']);
+ok(pc && pc.b.properties['Đệ nhị thân đề xuất'].relation[0].id === 'pg-thuy', 'Ghi sang Notion kèm quan hệ Đệ nhị thân → trang Notion của Thủy');
+ok(!(await H.crmHr(x, thuy, { op: 'st_pair', email: 'myanh@x.vn', pair: '' }, log)).ok, 'Quản lý không ghép được');
+// sửa hồ sơ → tự ghi Notion, không gửi ô trống
+ntCalls.length = 0;
+await H.crmHr(x, son, { op: 'st_save', email: 'thuy@x.vn', full: 'Nguyễn Thị Thu Thủy', dob: '18/11/1990', joined: '01/11/2023', pos: 'Quản lý kinh doanh', home: 'Nam Định', note: '' }, log); await flush();
+const sp = ntCalls.find(c => c.m === 'PATCH' && /pages\/pg-thuy/.test(c.u));
+ok(sp && sp.b.properties['Quê quán'] && sp.b.properties['Ngày sinh'].date.start === '1990-11-18' && !sp.b.properties['Ghi chú'] && !sp.b.properties['Chi phí/Lương tháng'], 'Sửa hồ sơ → tự sửa trang Notion (bỏ ô trống, không gửi lương)');
+nl = await H.crmHr(x, son, { op: 'st_nt_push', all: 1 }, log);
+ok(nl.push.ok && nl.push.n >= 4 && nl.nt.wait === 0, 'Nút ghi tất cả sang Notion: tạo trang cho người chưa có');
 
 L = await H.crmHr(x, son, { op: 'del', id: r.id }, log); ok(L.rows.length === 0 && !(await DB.prepare('SELECT 1 FROM hr_cv').bind().first()), 'Quản trị xoá hồ sơ + file CV');
 
