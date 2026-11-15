@@ -2784,6 +2784,9 @@ button.inx-todo-r:hover > span { text-decoration: underline; }
 .nsv-n span { font-size: 12px; color: var(--muted); } .nsv-n b { display: block; font-size: 16px; color: var(--ink); white-space: nowrap; }
 .nsv-n b.bad { color: var(--red); } .nsv-n b.ok { color: var(--primary); }
 .nsv-w { margin: 4px 0 0; font-size: 14px; }
+.nsv-s { margin: 2px 0 0; font-size: 12px; color: var(--muted); }
+.nsv-bo { border: 1px dashed var(--line); border-radius: 10px; padding: 8px 10px; margin: 0 0 12px; font-size: 13px; line-height: 1.4; }
+.nsv-bo b { display: block; font-size: 15px; } .nsv-bo span { color: var(--muted); }
 .nsv-d { margin: 6px 0 12px; } .nsv-d summary { cursor: pointer; font-weight: 700; padding: 6px 0; }
 .nsv-set { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; }
 @media (max-width: 520px) { .nsv-lg { grid-template-columns: 1fr; } .nsv-lg b { display: inline; margin-right: 4px; } }
