@@ -3268,3 +3268,16 @@ details.dash-grp[open] > summary::after { transform: rotate(180deg); }
 .aiq-row .aiq-tt b { display: block; font-size: 14px; color: var(--ink); } .aiq-row .aiq-tt small { color: var(--muted); font-size: 12.5px; }
 .aiq-legend { font-size: 12.5px; color: var(--muted); margin: 4px 0 0; }
 @media (max-width: 640px) { .aiq { padding: 12px; } .aiq-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } .aiq-grid { grid-template-columns: 1fr; } .aiq-kv { grid-template-columns: 1fr; } }
+/* 💎 thẻ sale dạng trừ dần (16/11/2026) */
+.nsv-hd { font-size: 14px !important; } .nsv-hd b.ok { color: #2e9d57; } .nsv-hd b.bad { color: var(--red); }
+.nsv-bar { display: flex; height: 14px; border-radius: 7px; overflow: hidden; background: var(--line); margin: 8px 0 4px; }
+.nsv-bar i { display: block; height: 100%; } .nsv-bar i.pf { background: #2e9d57; }
+.nsv-dot { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 5px; vertical-align: 1px; }
+.nsv-wf { width: 100%; border-collapse: collapse; font-size: 14px; margin: 6px 0 2px; }
+.nsv-wf td { padding: 3px 0; border-bottom: 1px dashed var(--line); vertical-align: top; }
+.nsv-wf td:nth-child(2) { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; padding-left: 8px; }
+.nsv-wf td:nth-child(3) { text-align: right; white-space: nowrap; color: var(--muted); width: 48px; font-size: 12px; padding-left: 6px; }
+.nsv-wf small { color: var(--muted); font-size: 12px; }
+.nsv-wf tr.rev td { font-weight: 700; }
+.nsv-wf tr.end td { font-weight: 700; border-bottom: 0; border-top: 2px solid var(--ink); font-size: 15px; }
+.nsv-wf tr.end.ok td:nth-child(2) { color: #2e9d57; } .nsv-wf tr.end.bad td:nth-child(2) { color: var(--red); }
