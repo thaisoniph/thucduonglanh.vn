@@ -91,11 +91,12 @@ CRM có nhiều mục. Để nhân sự không bị rối, mỗi người chỉ 
 | --- | --- |
 | **Quản lý** | Hôm nay, Khách hỏi, Đơn hàng, Hiệu quả. Ở **Thêm**: Khách đã mua, Trợ lý Zalo, Việc tuần, Cài đặt |
 | **Marketing** | Marketing, Khách hỏi, Insight & nội dung, Cài đặt |
+| **Quản trị** (trừ tài khoản anh Sơn) | Tổng quan, Đơn hàng, Hiệu quả, Marketing. Ở **Thêm**: Hôm nay, Khách hỏi, Hỏi số liệu, Cài đặt |
 | **Sale, Kho, Kế toán** | Như cũ (đã gọn sẵn) |
 
 Mục anh đã bật riêng cho 1 người (Marketing, Phụ trách kho, Trợ lý Zalo, Việc tuần) vẫn hiện. Mục bị ẩn chỉ không có trên menu. Bấm link trong tin Telegram vẫn mở được.
 
-**Mở thêm cho 1 người (chỉ Quản trị):**
+**Mở thêm cho 1 người (chỉ Quản trị; tài khoản anh Sơn luôn thấy đủ):**
 
 1. Mở **⚙ Cài đặt** → **👥 Nhân sự** → **🌱 Mở dần tính năng cho từng người**.
 2. Tìm tên người đó. Nút **xanh** = đang hiện. Nút **trắng, viền chấm** = đang ẩn.

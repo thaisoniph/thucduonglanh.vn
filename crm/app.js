@@ -877,13 +877,14 @@
   /** 🌱 Mở dần tính năng (anh Sơn 16/11/2026: "nhân sự thấy đơn giản, dễ dùng trước, quen rồi mới mở thêm").
    *  Mỗi vai trò chỉ thấy mục dùng hằng ngày (GON_CORE, chọn theo Mức dùng CRM 02–16/11); mục anh đã bật riêng cho người đó (Marketing, Kho, Trợ lý Zalo, Bài web, Việc tuần) vẫn hiện.
    *  Quản trị mở thêm / ẩn bớt từng mục cho từng người ở Cài đặt → Nhân sự → 🌱 (kv gon_cfg, lệnh gon_save). Chỉ ẩn khỏi menu: link Telegram / nút trong màn khác vẫn mở được. Quản trị không bị ẩn gì. */
-  var GON_CORE = { 'Quản lý': ['hom-nay', 'tiem-nang', 'khach-hang', 'don-hang', 'bao-cao', 'tro-ly-zalo'], 'Marketing': ['marketing', 'tiem-nang', 'noi-dung'] };
-  var GON_LIST = { 'Quản lý': ['hom-nay', 'tiem-nang', 'khach-hang', 'don-hang', 'bao-cao', 'marketing', 'tro-ly-zalo', 'zalo-sale', 'kho', 'san', 'link-qr', 'fanpage', 'noi-dung', 'bai-web', 'doi-ai', 'nhan-su', 'tuyen-dung', 'giao-viec'], 'Marketing': ['marketing', 'tiem-nang', 'noi-dung', 'link-qr', 'tro-ly-zalo', 'fanpage', 'bai-web', 'giao-viec'], 'Sale & CSKH': ['hom-nay', 'tiem-nang', 'khach-hang', 'don-hang', 'bao-cao', 'giao-viec'] };
+  var GON_CORE = { 'Quản trị': ['tong-quan', 'bao-cao', 'marketing', 'don-hang', 'hom-nay', 'tiem-nang', 'hoi-so-lieu'], 'Quản lý': ['hom-nay', 'tiem-nang', 'khach-hang', 'don-hang', 'bao-cao', 'tro-ly-zalo'], 'Marketing': ['marketing', 'tiem-nang', 'noi-dung'] };
+  var GON_LIST = { 'Quản trị': ['tong-quan', 'hom-nay', 'tiem-nang', 'khach-hang', 'don-hang', 'bao-cao', 'marketing', 'hoi-so-lieu', 'ke-toan', 'kho', 'san', 'zalo-sale', 'link-qr', 'tro-ly-zalo', 'fanpage', 'noi-dung', 'bai-web', 'doi-ai', 'nhan-su', 'tuyen-dung', 'giao-viec'], 'Quản lý': ['hom-nay', 'tiem-nang', 'khach-hang', 'don-hang', 'bao-cao', 'marketing', 'tro-ly-zalo', 'zalo-sale', 'kho', 'san', 'link-qr', 'fanpage', 'noi-dung', 'bai-web', 'doi-ai', 'nhan-su', 'tuyen-dung', 'giao-viec'], 'Marketing': ['marketing', 'tiem-nang', 'noi-dung', 'link-qr', 'tro-ly-zalo', 'fanpage', 'bai-web', 'giao-viec'], 'Sale & CSKH': ['hom-nay', 'tiem-nang', 'khach-hang', 'don-hang', 'bao-cao', 'giao-viec'] };
+  function gonBoss(e) { return String(e || '').toLowerCase() === 'thaisoniph@gmail.com'; } // 16/11/2026: chỉ tài khoản anh Sơn luôn đủ; Quản trị khác (anh Hiếu) cũng để gọn lúc đầu
   function gonCfg(email) { return (S.d && S.d.gon || {})[String(email || '').toLowerCase()] || {}; }
   function gonBase(u, id) { if (id === 'marketing' && u.mkv || id === 'kho' && u.kho || id === 'tro-ly-zalo' && u.zb || id === 'bai-web' && u.web && u.role === 'Marketing' || id === 'giao-viec' && u.gv) return true; var c = GON_CORE[u.role]; return !c || c.indexOf(id) >= 0; }
   function gonOn(u, id) { var c = gonCfg(u.email); if ((c.hide || []).indexOf(id) >= 0) return false; return gonBase(u, id) || (c.open || []).indexOf(id) >= 0; }
   function gonHid(v) {
-    if (!S.user || S.user.role === 'Quản trị' || v.id === 'cai-dat') return false;
+    if (!S.user || gonBoss(S.user.email) || v.id === 'cai-dat') return false;
     if (HOST && HOST.home === v.id || HOST_KEY === 'hr' && v.hr) return false; // địa chỉ riêng của vai trò (kho., ketoan., hr.…) luôn mở được mục chính
     return !gonOn(S.user, v.id);
   }
@@ -892,14 +893,14 @@
   /** Cài đặt → Nhân sự → 🌱: mỗi người 1 dòng, mỗi mục 1 nút bật / tắt (lưu ngay). Mục cần quyền riêng chưa bật thì không đưa vào. */
   function gonNeed(u, id) { return id === 'giao-viec' ? !u.gv : id === 'marketing' ? u.role !== 'Marketing' && !u.mkv : id === 'bai-web' ? u.role === 'Marketing' && !u.web : false; }
   function gonSetHTML() {
-    var us = (S.d.users || []).filter(function (u) { return u.active !== false && u.email && GON_LIST[u.role]; });
+    var us = (S.d.users || []).filter(function (u) { return u.active !== false && u.email && GON_LIST[u.role] && !gonBoss(u.email); });
     var VL = {}; VIEWS.forEach(function (v) { VL[v.id] = v.label; });
     var rows = us.map(function (u) {
       var ids = GON_LIST[u.role].filter(function (id) { return !gonNeed(u, id); }), off = ids.filter(function (id) { return !gonOn(u, id); }).length;
       return '<div class="gon-u" data-gonu="' + esc(u.email) + '"><div class="gon-h"><b>' + esc(u.name) + '</b> <span class="muted small">' + esc(u.role) + (off ? ' · đang ẩn ' + off + ' mục' : ' · thấy đủ') + '</span></div><div class="chips gon-c">' +
         ids.map(function (id) { var on = gonOn(u, id); return '<button type="button" class="chip' + (on ? ' on' : '') + '" data-gon="' + id + '" title="' + (on ? 'Đang hiện – bấm để ẩn' : 'Đang ẩn – bấm để mở cho ' + esc(u.name)) + '">' + (on ? '✓ ' : '+ ') + esc(VL[id] || id) + '</button>'; }).join('') + '</div></div>';
     }).join('');
-    return '<div class="box"><p class="hint" style="margin:0 0 10px">Nút <b>xanh</b> = đang hiện trên menu của người đó. Nút <b>trắng</b> = đang ẩn cho gọn. Bấm để mở / ẩn, lưu ngay. Mục ẩn chỉ không nằm trên menu; bấm link trong tin Telegram vẫn mở được. Kho, Kế toán, Quản trị không cần chỉnh (đã gọn sẵn).</p>' + (rows || '<p class="muted">Chưa có nhân sự Sale, Quản lý, Marketing nào.</p>') + '</div>';
+    return '<div class="box"><p class="hint" style="margin:0 0 10px">Nút <b>xanh</b> = đang hiện trên menu của người đó. Nút <b>trắng</b> = đang ẩn cho gọn. Bấm để mở / ẩn, lưu ngay. Mục ẩn chỉ không nằm trên menu; bấm link trong tin Telegram vẫn mở được. Kho, Kế toán không cần chỉnh (đã gọn sẵn). Tài khoản của anh luôn thấy đủ.</p>' + (rows || '<p class="muted">Chưa có nhân sự Sale, Quản lý, Marketing nào.</p>') + '</div>';
   }
   function gonBind() {
     $$('[data-gon]').forEach(function (b) {
@@ -964,6 +965,7 @@
     if (!PMA.d || Date.now() - PMA.at > 5 * 60e3) pmaFetch(function () { if (route().view === 'them' && PMA.d && PMA.d.tasks.some(function (t) { return t.status === 'duyet'; })) render(); });
     var pmw = PMA.d ? PMA.d.tasks.filter(function (t) { return t.status === 'duyet'; }).length : 0; // 📣 Phòng Marketing AI gửi kết quả (phongai.js, 16/11/2026)
     if (pmw) todo.push(['#doi-ai', '📣', '#7d4cdb', 'Duyệt kết quả Phòng Marketing AI', pmw + ' việc Lành đã làm xong, chờ anh xem', pmw]);
+    todo = todo.filter(function (t) { var v = VIEWS.filter(function (x) { return '#' + x.id === t[0]; })[0]; return !v || !gonHid(v); }); // 🌱 mục đang ẩn với người này (vd anh Hiếu chưa mở Kho, Kế toán) → không nhắc việc ở đó
     var todoH = todo.length ? '<section class="mr-g mr-todo"><h2>👉 Việc cần làm bây giờ</h2><div class="mr-list">' + todo.map(function (t) { return row('<a class="mr-row" href="' + t[0] + '">', t[1], t[2], t[3], t[4], t[5]) + '</a>'; }).join('') + (fb ? row('<button type="button" class="mr-row" data-mr="fb">', '💡', '#ffcc00', 'Đọc góp ý mới', fb + ' góp ý từ nhân sự', fb) + '</button>' : '') + '</div></section>'
       : '<div class="mr-ok">✅ <b>Chưa có việc gấp.</b> Muốn xem kỹ hơn thì chọn một bước bên dưới.</div>';
     var more = rest.filter(function (v) { return known.indexOf(v.id) < 0; }).map(vrow).join('') +
@@ -13742,7 +13744,7 @@
       '<div class="box"><p class="hint" style="margin:0 0 10px">Bật thì nhân sự thấy thẻ mời điền ở màn hình đầu CRM (cho tới khi điền xong) và dòng mở form ở <b>Thêm</b>. Tắt thì ẩn hết, câu trả lời đã có vẫn giữ trong 🗂 Hồ sơ nhân sự trên hr.</p>' +
       '<label class="switch"><input type="checkbox" id="fmPf"' + (FM.pf ? ' checked' : '') + '> <span>📝 Thông tin của tôi<br><span class="muted small">(thông tin cá nhân, giấy tờ, người thân, điều để công ty chăm sóc)</span></span></label><p></p>' +
       '<label class="switch"><input type="checkbox" id="fmHt"' + (FM.ht ? ' checked' : '') + '> <span>🤝 Hiểu & Thương<br><span class="muted small">(9 câu, ghép Đệ nhị thân)</span></span></label><p></p><button class="btn pri" id="fmSave"' + (S.ht ? '' : ' disabled') + '>Lưu</button></div>') : '';
-    var GN = lvl() >= 3 ? setGroup('gon', '🌱 Mở dần tính năng cho từng người', (function () { var n = (S.d.users || []).filter(function (u) { return u.active !== false && GON_LIST[u.role] && GON_LIST[u.role].some(function (id) { return !gonNeed(u, id) && !gonOn(u, id); }); }).length; return n ? n + ' người đang để màn hình gọn · mở thêm mục khi họ đã quen' : 'Mọi người đang thấy đủ mục'; })(), gonSetHTML()) : '';
+    var GN = lvl() >= 3 ? setGroup('gon', '🌱 Mở dần tính năng cho từng người', (function () { var n = (S.d.users || []).filter(function (u) { return u.active !== false && GON_LIST[u.role] && !gonBoss(u.email) && GON_LIST[u.role].some(function (id) { return !gonNeed(u, id) && !gonOn(u, id); }); }).length; return n ? n + ' người đang để màn hình gọn · mở thêm mục khi họ đã quen' : 'Mọi người đang thấy đủ mục'; })(), gonSetHTML()) : '';
     h += setSec('👥 Nhân sự', 'Ai được vào CRM, được làm gì; nhân sự đang thắc mắc gì.', GN + GF + (G.us ? setGroup('us', '🧑‍💼 Ai được vào CRM', act.length + ' người đang dùng' + (mk ? ' · ' + mk + ' marketing' : '') + ' · thêm / khoá người, đổi quyền', G.us) : '') + GQ +
       setGroup('vh', '🌿 Văn hoá: Quy tắc của ngày + ☀️ Lời chúc', 'Ai đã nhận quy tắc hôm nay · chuyện nhân sự ghi lại' + (lvl() >= 3 ? ' · sửa câu chữ gợi ý, sửa lời chúc mỗi ngày' : ''), '<div id="vhAdm"><p class="hint" style="margin:0 0 10px">Mỗi ngày làm việc, cả công ty cùng thấy 1 trong 10 Quy Tắc Danh Dự ở đầu màn hình CRM (10 ngày đủ 10 quy tắc), kèm gợi ý áp dụng. Nhân sự bấm <b>✅ Hôm nay mình sẽ làm</b> và có thể ghi 1 dòng chuyện đã làm. Tin Telegram 8h sáng cũng có quy tắc hôm nay.</p><button class="btn" id="vhLoad">Xem</button></div>'));
     h += setSec('🤝 Chia khách', 'Khách mới giao cho ai, xử lý khách trùng hoặc dùng nhiều số.', setGroup('mode', '🔀 Khách mới giao cho ai', MODE_INFO[md][0] + (md === 'pool' ? (!R.poolOn ? ' · 🙈 Kho chung đang ẩn' : poolRuleLine(R) ? ' · về kho khi ' + poolRuleLine(R) : '') : '') + ' · ' + recvN + ' người nhận khách mới' + (noOwner ? ' · ⚠️ ' + noOwner + ' khách chưa ai phụ trách' : ''), G.mode) +

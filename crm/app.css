@@ -3402,7 +3402,7 @@ details.dash-grp[open] > summary::after { transform: rotate(180deg); }
 @media (prefers-reduced-motion: reduce) { .tbk-ic { animation: none; } }
 
 /* 🌱 Mở dần tính năng (16/11/2026) */
-.mr-gon { margin: 14px 4px 0; font-size: 13px; color: var(--mid); line-height: 1.5; }
+.mr-gon { margin: 14px 4px 0; font-size: 13px; color: var(--muted); line-height: 1.5; }
 .gon-u { padding: 10px 0; border-top: 1px solid var(--line); }
 .gon-u:first-of-type { border-top: 0; }
 .gon-h { margin-bottom: 6px; }
