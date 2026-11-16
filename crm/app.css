@@ -3473,3 +3473,8 @@ details.dash-grp[open] > summary::after { transform: rotate(180deg); }
 }
 .ktv-wrap > .stat-key, .ktv-wrap > .stat-key-fold { display: none; } /* 4 ô tiền của kế toán không có đèn / mũi tên / đường nhỏ */
 @media (max-width: 640px) { .ktd-top h2 small { display: block; margin: 2px 0 0; } }
+/* 📦 Kho: Việc hôm nay đánh số (16/11/2026, cùng khuôn Kế toán) */
+.kho-td-top { margin: 0 0 8px; }
+.kho-td-top h2 { font-size: 19px; }
+.kho-td-hint { margin: -2px 0 8px; font-size: 13px; color: var(--muted); }
+.kho-td-n { display: inline-flex; width: 24px; height: 24px; border-radius: 50%; background: var(--primary); color: #fff; font-size: 14px; align-items: center; justify-content: center; margin-right: 8px; vertical-align: 1px; }

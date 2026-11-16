@@ -16018,11 +16018,15 @@
     L.filter(function (s) { return s.have !== null && s.have < 0; }).forEach(function (s) { T.push({ cls: 'mid', t: '⚠️ Số kho bị âm: ' + esc(s.name), p: 'Có hàng đi ra mà chưa ghi (quà tặng, đơn ngoài CRM…). Đếm lại sản phẩm này để máy sửa.', b: '<button class="btn pri kho-bt" data-kho="count|' + esc(s.id) + '">🧮 Đếm lại</button>' }); });
     var un = (D.names || []).filter(function (n) { return !n.to; }).length;
     if (un) T.push({ cls: 'mid', t: '❓ ' + un + ' tên hàng máy chưa hiểu', p: 'Trong đơn có tên hàng máy chưa biết là sản phẩm nào, nên chưa trừ kho. Bấm xem rồi chọn đúng sản phẩm.', b: '<button class="btn pri kho-bt" data-kho="names">Xem và chọn</button>' });
+    var rn = (D.ret || []).length + (D.part || []).filter(function (o) { return !o.kAt; }).length; // 16/11/2026: hàng hoàn / trả về là 1 việc trong danh sách, mục bên dưới chỉ hiện khi có
+    if (rn) T.push({ cls: 'info', t: '↩ ' + rn + ' gói hàng hoàn / trả về', p: 'Gói tới kho thì mở gói kiểm hàng rồi bấm vào đúng đơn để ghi nhận.', b: '<button class="btn pri kho-bt" data-kho="retgo">Xem gói hoàn</button>' });
     var sn = khoShipNew(D).length;
     if (sn) T.unshift({ cls: 'info', t: '🚚 ' + sn + ' đơn chờ gửi', p: 'Gói hàng giao cho hãng xong thì tích đơn và bấm <b>✅ Đã gửi</b>. Có bấm thì máy mới trừ kho.', b: '<button class="btn pri kho-bt" data-kho="shipgo">Xem đơn chờ gửi</button>' });
-    var h = '<section class="kho-sec2"><h2 class="kho-h">👉 Việc cần làm hôm nay</h2>';
+    /* 16/11/2026: cùng khuôn 👉 Việc hôm nay của Kế toán: đánh số, "Còn N việc", làm lần lượt từ trên xuống. */
+    var nTodo = T.filter(function (x) { return x.cls !== 'ok'; }).length, k = 0;
+    var h = '<section class="kho-sec2"><div class="ktd-top kho-td-top"><h2>👉 Việc hôm nay <small>' + ['Chủ nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'][new Date().getDay()] + ' ' + fDate(Date.now()).slice(0, 5) + '</small></h2><span class="ktd-left' + (nTodo ? '' : ' ok') + '">' + (nTodo ? 'Còn ' + nTodo + ' việc' : '🎉 Xong hết') + '</span></div>';
     if (!T.length) return h + '<div class="kho-todo ok"><p class="kho-todo-t">✅ Hôm nay kho không có việc gì gấp</p><p class="kho-todo-p">Máy tự trừ hàng theo đơn và sẽ nhắn Telegram khi có sản phẩm sắp hết.</p></div></section>';
-    return h + T.map(function (x) { return '<div class="kho-todo ' + x.cls + '"><p class="kho-todo-t">' + x.t + '</p><p class="kho-todo-p">' + x.p + '</p>' + (x.big ? '<p class="kho-todo-big">' + x.big + '</p>' : '') + (x.b ? '<div class="kho-todo-b">' + x.b + '</div>' : '') + '</div>'; }).join('') + '</section>';
+    return h + (nTodo > 1 ? '<p class="kho-td-hint">Làm lần lượt từ trên xuống.</p>' : '') + T.map(function (x) { return '<div class="kho-todo ' + x.cls + '"><p class="kho-todo-t">' + (x.cls === 'ok' ? '' : '<span class="kho-td-n">' + (++k) + '</span>') + x.t + '</p><p class="kho-todo-p">' + x.p + '</p>' + (x.big ? '<p class="kho-todo-big">' + x.big + '</p>' : '') + (x.b ? '<div class="kho-todo-b">' + x.b + '</div>' : '') + '</div>'; }).join('') + '</section>';
   }
   /** Các bước bắt đầu (hiện tới khi làm xong cả 3): thêm sản phẩm → đếm lần đầu → người phụ trách kho nối Telegram. */
   function khoSetup(D) {
@@ -16093,8 +16097,9 @@
    *  → máy chủ kho_recv: đơn → Hoàn (hàng cộng lại kho), ghi đủ / thiếu, hỏng vào ghi chú đơn, nhắn sale gọi khách. Gói hoàn mà CRM chưa báo: 🔍 tìm (kho_find). */
   function khoRetSec(D) {
     var R = D.ret || [], G = D.got || [];
+    if (!R.length && !khoPartSec(D)) return ''; // 16/11/2026: không có gói hoàn → không chiếm chỗ; tìm gói hoàn / đã nhận nằm ở mục Khác
     var mrow = function (a, ic, t, sub) { return '<button class="kho-row kho-row-m" data-kho="' + a + '"><span class="kho-row-ic">' + ic + '</span><span class="kho-row-t"><b>' + t + '</b><small>' + sub + '</small></span><span class="kho-chev" aria-hidden="true">›</span></button>'; };
-    return '<section class="kho-sec2"><h2 class="kho-h">↩ Hàng hoàn về kho' + (R.length ? ' <em class="kho-badge">' + R.length + '</em>' : '') + ' <small>gói khách không nhận, hãng trả về</small></h2>' +
+    return '<section class="kho-sec2" id="kho-ret"><h2 class="kho-h">↩ Hàng hoàn về kho' + (R.length ? ' <em class="kho-badge">' + R.length + '</em>' : '') + ' <small>gói khách không nhận, hãng trả về</small></h2>' +
       (R.length ? '<p class="small muted" style="margin:0 0 8px">Gói hoàn về tới kho: mở gói kiểm hàng rồi bấm vào đúng đơn.</p><div class="kho-rows">' + R.map(khoRetRow).join('') + '</div>' : '<p class="kho-note">✅ Không có đơn hoàn nào đang trên đường về kho.</p>') +
       khoPartSec(D) +
       '<div class="kho-rows kho-mt">' + mrow('retfind', '🔍', 'Gói hoàn không có trong danh sách?', 'Tìm theo mã đơn, mã vận đơn, 4 số cuối SĐT hoặc tên khách') + (G.length ? mrow('retgot', '✅', 'Đã nhận 14 ngày qua', G.length + ' đơn') : '') + '</div></section>';
@@ -16219,6 +16224,7 @@
   function khoMoreList(D, empty) {
     var un = (D.names || []).filter(function (n) { return !n.to; }).length, row = function (a, ic, t, sub, badge) { return '<button class="kho-row kho-row-m" data-kho="' + a + '"><span class="kho-row-ic">' + ic + '</span><span class="kho-row-t"><b>' + t + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</span>' + (badge ? '<em class="kho-badge">' + badge + '</em>' : '') + '<span class="kho-chev" aria-hidden="true">›</span></button>'; };
     return '<section class="kho-sec2"><h2 class="kho-h">Khác</h2><div class="kho-rows">' +
+      (D.ret && D.ret.length || khoPartSec(D) ? '' : row('retfind', '↩', 'Tìm gói hàng hoàn', 'Theo mã đơn, mã vận đơn, 4 số cuối SĐT hoặc tên khách', '') + ((D.got || []).length ? row('retgot', '✅', 'Hàng hoàn đã nhận 14 ngày qua', D.got.length + ' đơn', '') : '')) +
       (empty ? '' : row('names', '🔗', 'Tên hàng trong đơn', 'Máy đang trừ kho tên hàng nào vào sản phẩm nào', un ? un + ' chưa hiểu' : '') + row('pos', '🛒', 'Các lần đặt hàng', 'Đã đặt bao nhiêu, hẹn về ngày nào', '') + row('hist', '🕘', 'Lịch sử', 'Hàng về, lấy ra, đếm kho · xoá dòng ghi nhầm', '') + row('cfg', '⚙️', 'Cài đặt kho', 'Ngày đếm kho hằng tuần, ai nhận tin Telegram', '')) +
       row('how', '❓', 'Máy tính số kho thế nào?', '', '') + '<a class="kho-row kho-row-m" href="/huong-dan/kho/" target="_blank" rel="noopener"><span class="kho-row-ic">📖</span><span class="kho-row-t"><b>Hướng dẫn có hình</b></span><span class="kho-chev" aria-hidden="true">›</span></a></div></section>';
   }
@@ -16247,7 +16253,7 @@
     else if (a === 'retfind') openKhoFind();
     else if (a === 'retgot') openKhoGot();
     else if (a === 'ship') openKhoShip();
-    else if (a === 'shipgo') { var se = $('#kho-ship'); if (se) se.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    else if (a === 'shipgo' || a === 'retgo') { var se = $(a === 'retgo' ? '#kho-ret' : '#kho-ship'); if (se) se.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
     else if (a === 'shipall') { var dd = el.closest('details'); $$('[data-kship]', dd).forEach(function (c) { c.checked = true; }); khoShipUpd(); }
   }
   function bindKho(root) {

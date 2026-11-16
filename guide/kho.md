@@ -4,14 +4,14 @@ nav: Kho
 group: kho-ke-toan
 short: Nhập, xuất, đếm kho, hàng hoàn
 order: 4.5
-updated: 2026-11-15
+updated: 2026-11-16
 description: Xem hàng còn bao nhiêu, nhận tin khi sắp hết, ghi đã đặt hàng, hàng về kho, lấy hàng ra (quà tặng, đại lý), nhận hàng hoàn, đếm kho cuối tuần. Có hình từng bước.
 roles: [kho, ql]
 ---
 
 Trang này dành cho **người lo kho**. Đọc khoảng 5 phút là làm được.
 
-> **Mỗi ngày chỉ cần:** mở **📦 Kho**, làm hết các thẻ ở mục **👉 Việc cần làm hôm nay**. Làm hết thẻ là xong việc kho hôm đó.
+> **Mỗi ngày chỉ cần:** mở **📦 Kho**, làm lần lượt các thẻ có số **1, 2, 3…** ở mục **👉 Việc hôm nay**. Góc phải ghi **Còn mấy việc**; hiện **🎉 Xong hết** là xong việc kho hôm đó.
 >
 > **Gửi hàng không cần bấm gì trên CRM:** sale lên đơn (đơn sang Misa → Best / Viettel Post) là máy **tự trừ kho**. Kho chỉ việc in phiếu trên trang Best / Viettel Post, đóng hàng theo phiếu và gửi đi.
 
@@ -62,13 +62,13 @@ Sau đó:
 
 ## Màn hình Kho có gì?
 
-Trên cùng là **👉 Việc cần làm hôm nay**. Mỗi việc là 1 thẻ. Ví dụ thẻ "Đặt gấp":
+Trên cùng là **👉 Việc hôm nay**. Mỗi việc là 1 thẻ có số thứ tự, làm từ trên xuống. Có gói hàng hoàn thì cũng hiện 1 thẻ **↩ gói hàng hoàn / trả về**. Ví dụ thẻ "Đặt gấp":
 
-![Việc cần làm hôm nay: mỗi việc là 1 thẻ, bấm nút xanh là xong](/huong-dan/img/kho-viec-can-lam.webp)
+![Việc hôm nay: còn mấy việc (1), số nên đặt (2), bấm nút xanh khi xong (3)](/huong-dan/img/kho-viec-can-lam.webp)
 
-1. Số máy gợi ý nên đặt.
-2. **📞 Gọi nhà cung cấp** (có nút này khi đã ghi số điện thoại nhà cung cấp).
-3. Đặt xong thì bấm **✅ Tôi đã đặt hàng**.
+1. **Còn mấy việc** hôm nay. Hết việc thì hiện **🎉 Xong hết**.
+2. Số máy gợi ý nên đặt.
+3. Đặt xong thì bấm **✅ Tôi đã đặt hàng**. Đã ghi số điện thoại nhà cung cấp thì thẻ có thêm nút **📞 Gọi nhà cung cấp**.
 
 Không có việc gì thì máy ghi "✅ Hôm nay kho không có việc gì gấp".
 
@@ -155,8 +155,8 @@ Khách không nhận hàng thì hãng (Viettel Post, Best…) trả gói về kh
 
 ![Danh sách hàng hoàn: bấm đúng đơn (1), gói không có trong danh sách thì tìm (2)](/huong-dan/img/kho-hang-hoan.webp)
 
-1. Mở gói, kiểm hàng. Ở mục **↩ Hàng hoàn về kho** bấm vào **đúng đơn** (so mã vận đơn, tên khách, 4 số cuối SĐT trên gói).
-2. Gói hoàn **không có** trong danh sách (hãng chưa báo cho CRM): bấm **🔍 Gói hoàn không có trong danh sách?**, gõ mã đơn, mã vận đơn, 4 số cuối SĐT hoặc tên khách, rồi bấm vào đúng đơn.
+1. Mở gói, kiểm hàng. Bấm **Xem gói hoàn** ở thẻ trong Việc hôm nay (hoặc kéo tới mục **↩ Hàng hoàn về kho**, mục này chỉ hiện khi có gói hoàn), rồi bấm vào **đúng đơn** (so mã vận đơn, tên khách, 4 số cuối SĐT trên gói).
+2. Gói hoàn **không có** trong danh sách (hãng chưa báo cho CRM): bấm **🔍 Gói hoàn không có trong danh sách?** (lúc không có gói hoàn nào: mục **Khác** → **↩ Tìm gói hàng hoàn**), gõ mã đơn, mã vận đơn, 4 số cuối SĐT hoặc tên khách, rồi bấm vào đúng đơn.
 
 Hộp **📦 Nhận hàng hoàn** mở ra:
 
@@ -174,7 +174,7 @@ Máy tự làm:
 
 Hộp hỏng không bán được: sau khi nhận, bấm **📤 Lấy hàng ra** → lý do **Hàng hỏng / hết hạn** để trừ khỏi kho.
 
-Muốn xem lại các đơn đã nhận: bấm **✅ Đã nhận 14 ngày qua** dưới danh sách. Sáng nào có đơn đang chuyển hoàn, tin Telegram **Kho sáng** lúc 8h cũng nhắc.
+Muốn xem lại các đơn đã nhận: bấm **✅ Đã nhận 14 ngày qua** dưới danh sách (lúc không có gói hoàn: ở mục **Khác**). Sáng nào có đơn đang chuyển hoàn, tin Telegram **Kho sáng** lúc 8h cũng nhắc.
 
 ## 🔁 Gửi hàng đổi, nhận hàng cũ về
 
@@ -205,7 +205,7 @@ Khác với hàng hoàn: đơn **không** chuyển sang Hoàn, vì khách đã n
 
 ## Đếm kho cuối tuần (thứ 6)
 
-Sáng thứ 6, thẻ **🧮 Đếm kho cuối tuần** hiện trong "Việc cần làm", Telegram cũng nhắc. Đếm thật từng sản phẩm trong kho. **Đếm sau khi đã đóng gửi hết các đơn sale lên trước giờ đếm** (máy đã trừ các đơn đó; hàng còn nằm trên kệ lúc đếm thì máy sẽ tính thừa). Rồi bấm **🧮 Đếm kho**:
+Sáng thứ 6, thẻ **🧮 Đếm kho cuối tuần** hiện trong "Việc hôm nay", Telegram cũng nhắc. Đếm thật từng sản phẩm trong kho. **Đếm sau khi đã đóng gửi hết các đơn sale lên trước giờ đếm** (máy đã trừ các đơn đó; hàng còn nằm trên kệ lúc đếm thì máy sẽ tính thừa). Rồi bấm **🧮 Đếm kho**:
 
 ![Đếm kho: ghi số đếm (1), hoặc bấm "Đúng …" (2), Lưu (3)](/huong-dan/img/kho-dem.webp)
 
