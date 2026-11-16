@@ -443,7 +443,8 @@ Số đỏ trên nút Thêm không cộng việc gọi khách của sale.
 - **Quản trị** có 3 chỗ có số:
   - **Tổng quan** = doanh số tháng cả công ty (văn phòng + sàn, đã trừ hoàn / huỷ) đạt bao nhiêu % mục tiêu. Nhãn hiện sau khi mở Tổng quan 1 lần (chờ tải số sàn).
   - **Đơn hàng**: số đỏ = đơn mới chờ xác nhận; nhãn **🚚** = số đơn đang giao. Đưa chuột vào để xem thêm: đơn bị cảnh báo vận chuyển, đơn đã xác nhận chờ gửi, đơn chuyển khoản chưa nhận tiền.
-  - **Marketing** = **1đ→2,1đ**: tháng này bỏ 1đ quảng cáo, khách mới mua bao nhiêu đ (cùng số với ô 📣 Quảng cáo trong 🩺 Sức khỏe công ty ở Tổng quan). 🟢 xanh = có lời, 🟠 cam = tạm ổn, 🔴 đỏ = chưa có lời. Đưa chuột vào để thấy tiền chi, doanh số khách mới, chi bao nhiêu có 1 khách mới. Nhãn hiện sau khi mở Tổng quan 1 lần.
+  - **Marketing** = **×2,1**: tháng này bỏ 1đ quảng cáo thu về 2,1đ doanh số khách mới (cùng số với ô 📣 Quảng cáo trong 🩺 Sức khỏe công ty ở Tổng quan). 🟢 xanh = có lời, 🟠 cam = tạm ổn, 🔴 đỏ = chưa có lời. Đưa chuột vào để thấy tiền chi, doanh số khách mới, chi bao nhiêu có 1 khách mới. Nhãn hiện sau khi mở Tổng quan 1 lần.
+  - **Góc phải thanh trên** chỉ còn 3 nút: **🔍 Tìm**, **✅ Việc tuần** và **nút tròn chữ cái đầu tên ▾**. Bấm nút tên để mở: ⚙ Cài đặt, 👁 Xem như nhân sự, ❓ Hướng dẫn, 💡 Góp ý (có số đỏ khi có góp ý mới), ↻ Tải lại dữ liệu.
   - Doanh số đội sale, khách mới, khách hỏi mới, khách hỏi quá hạn đều nằm trong **Tổng quan** (ô số và mục 👉 Việc hôm nay), nên không lặp lại trên tab. Trong **••• Thêm**, tab **Sàn** có nhãn % mục tiêu các sàn.
 - **Quản lý**:
   - Trên máy tính, menu chỉ còn các tab hay dùng: **Hôm nay · Khách hỏi · Khách · Đơn hàng · Hiệu quả** (thêm **Marketing** nếu được xem) **· ⚙ Cài đặt · ••• Thêm**. Link & QR, Zalo, Fanpage, Sàn nằm trong **••• Thêm**.

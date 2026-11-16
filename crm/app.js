@@ -1016,6 +1016,7 @@
       (S.user && S.user.gv ? '<a class="icon-btn top-gv" href="#giao-viec" title="✅ Việc tuần của tôi" aria-label="Việc tuần">' + I.task + '<em class="gv-bdg" id="gvBdg" hidden></em></a>' : '') + // 16/11/2026 anh Sơn: Việc tuần mở 1 chạm ở mọi màn hình
       (lvl() >= 3 && !VA_TK ? '<button class="icon-btn va-btn" id="vaBtn" title="👁 Xem như: xem giao diện của từng người / vai trò, không cần xin mã" aria-label="Xem như nhân sự">👁<span class="va-lbl">Xem như</span></button>' : '') +
       '<a class="icon-btn top-set" href="#cai-dat" title="Cài đặt" aria-label="Cài đặt">' + I.gear + '</a>' +
+      (isCeo() ? umHTML() : '') + // 17/11/2026 anh Sơn: thanh Quản trị gọn – ❓ 👁 ⚙ ↻ gom vào 1 nút tài khoản
       '<button class="icon-btn" id="refresh" title="Tải lại dữ liệu" aria-label="Tải lại dữ liệu">' + I.refresh + '</button>' +
       '</div></header>' + vaBar() + hostTip() + instTip() + '<main id="view"></main>';
     var ht = $('#hostTip'); if (ht) $('[data-ht]', ht).onclick = function () { store('crm_hosttip', S.user.role); ht.remove(); };
@@ -1025,7 +1026,33 @@
     if ($('#gsBtn')) $('#gsBtn').onclick = function () { openGlobalSearch(); };
     if ($('#vaBtn')) $('#vaBtn').onclick = function () { openViewAs(); };
     if ($('#vaOut')) $('#vaOut').onclick = function () { logout(); };
+    bindUm();
     navBadges(); pendingBadge(); gvBadge();
+  }
+  /** Nút tài khoản (Quản trị, 17/11/2026): chữ cái đầu tên + ▾ → Cài đặt, Xem như, Hướng dẫn, Góp ý, Tải lại. Thanh trên chỉ còn 🔍 ✅ và nút này. */
+  function umHTML() {
+    var ini = esc((S.user.name || '?').trim().split(/\s+/).pop().charAt(0).toUpperCase()), it = function (k, ic, t, s) { return '<button type="button" role="menuitem" data-um="' + k + '"><span class="um-ic">' + ic + '</span><span class="um-t"><b>' + t + '</b><small>' + s + '</small></span></button>'; };
+    return '<div class="um-wrap"><button type="button" class="um-btn" id="umBtn" aria-haspopup="menu" aria-expanded="false" title="Tài khoản: Cài đặt, Xem như, Hướng dẫn, Góp ý"><span class="um-av">' + ini + '</span><span class="um-car">▾</span><em class="um-dot" hidden></em></button>' +
+      '<div class="um-pop" id="umPop" role="menu" hidden><div class="um-me"><b>' + esc(S.user.name) + '</b><small>' + esc(S.user.role || '') + '</small></div>' +
+      it('set', I.gear, 'Cài đặt', 'Nhân sự, mục tiêu, kết nối') +
+      (VA_TK ? '' : it('va', '👁', 'Xem như nhân sự', 'Mở giao diện của từng người, chỉ xem')) +
+      it('help', I.help, 'Hướng dẫn sử dụng', 'Cách dùng từng màn hình') +
+      it('fb', '💡', 'Góp ý', 'Báo lỗi, ý tưởng · đọc góp ý nhân sự') +
+      it('re', I.refresh, 'Tải lại dữ liệu', 'Lấy số mới nhất từ máy chủ') + '</div></div>';
+  }
+  function bindUm() {
+    var b = $('#umBtn'), p = $('#umPop'); if (!b || !p) return;
+    var close = function () { p.hidden = true; b.setAttribute('aria-expanded', 'false'); };
+    b.onclick = function (e) { e.stopPropagation(); p.hidden = !p.hidden; b.setAttribute('aria-expanded', String(!p.hidden)); };
+    $$('[data-um]', p).forEach(function (x) {
+      x.onclick = function () {
+        var k = x.getAttribute('data-um'); close();
+        if (k === 'set') location.hash = '#cai-dat'; else if (k === 'va') openViewAs(); else if (k === 'help') window.open('/huong-dan/crm/', '_blank', 'noopener'); else if (k === 'fb') openFeedback(); else { load(); toast('Đang tải lại dữ liệu…'); }
+      };
+    });
+    if (window.__umDoc) return; window.__umDoc = 1;
+    document.addEventListener('click', function (e) { var q = $('#umPop'); if (q && !q.hidden && !e.target.closest('.um-wrap')) { q.hidden = true; var bb = $('#umBtn'); if (bb) bb.setAttribute('aria-expanded', 'false'); } });
+    document.addEventListener('keydown', function (e) { var q = $('#umPop'); if (e.key === 'Escape' && q && !q.hidden) q.hidden = true; });
   }
   /** 👁 Xem như (16/11/2026, anh Sơn: "mỗi lần cần xem vai trò gì lại phải nhắn người đó gửi mã email"): Quản trị chọn 1 người → tab mới đúng giao diện người đó, chỉ xem. */
   function vaBar() {
@@ -1123,6 +1150,7 @@
   /** Số trên tab (31/10/2026, anh Sơn: nhìn tab là biết sơ bộ). Số đỏ = việc cần làm (đưa chuột vào tab thấy tách từng loại); nhãn màu = con số tham khảo theo quyền (navInfo). */
   function navBadges() {
     var fb = $('#fbBtn'); if (fb) { var fd = $('.dot', fb); if (fd) fd.remove(); if (lvl() >= 2 && S.d.fbNew) fb.insertAdjacentHTML('beforeend', '<span class="dot">' + S.d.fbNew + '</span>'); }
+    var ud = $('.um-dot'); if (ud) { ud.hidden = !S.d.fbNew; ud.textContent = S.d.fbNew || ''; } // góp ý mới: số đỏ trên nút tài khoản
     var nd = navData(), n = nd.n, main = navMain(), more = lvl() >= 2 ? S.d.fbNew || 0 : 0, info = navInfo();
     Object.keys(n).forEach(function (v) { if (main.indexOf(v) < 0 && !(lvl() >= 3 && (v === 'hom-nay' || v === 'tiem-nang'))) more += n[v]; });
     n.them = more; // số trên nút Thêm = số của các mục đang nằm trong Thêm (đơn mới, góp ý mới…)
@@ -1178,7 +1206,7 @@
     var M = mktCalc(key, R, P, sj), v = null;
     if (M && M.tot) {
       var lv = adsLv(M.tot, M.nr), x = M.nr / M.tot;
-      v = { t: '1đ→' + oneDec(x) + 'đ', s: '', lv: lv === 'ok' ? 'done' : lv || 'info', tip: monthLabel(monthOf(Date.now())).replace(/^t/, 'T') + ': chi quảng cáo ' + moneyShort(M.tot) + ' → ' + moneyShort(M.nr) + ' doanh số khách mới, bỏ 1đ thu về ' + oneDec(x) + 'đ · ' + ({ ok: '🟢 có lời', mid: '🟠 tạm ổn, cần rẻ hơn', bad: '🔴 chưa có lời' }[lv] || '') + (M.newN ? ' · ' + M.newN + ' khách mới, chi ' + moneyShort(Math.round(M.tot / M.newN)) + ' có 1 khách' : '') };
+      v = { t: '×' + oneDec(x), s: 'thu về', lv: lv === 'ok' ? 'done' : lv || 'info', tip: monthLabel(monthOf(Date.now())).replace(/^t/, 'T') + ': chi quảng cáo ' + moneyShort(M.tot) + ' → ' + moneyShort(M.nr) + ' doanh số khách mới, bỏ 1đ thu về ' + oneDec(x) + 'đ · ' + ({ ok: '🟢 có lời', mid: '🟠 tạm ổn, cần rẻ hơn', bad: '🔴 chưa có lời' }[lv] || '') + (M.newN ? ' · ' + M.newN + ' khách mới, chi ' + moneyShort(Math.round(M.tot / M.newN)) + ' có 1 khách' : '') };
     }
     NAV_MK = { sig: sig, v: v }; return v;
   }
@@ -1215,7 +1243,7 @@
   function render() {
     if (!S.d || !$('#view')) return;
     var wide = window.matchMedia && matchMedia('(min-width: 860px)').matches, r = route(), v = r.view === 'them' ? 'them' : myViews().some(function (x) { return x.id === r.view; }) ? r.view : homeView(), main = navMain();
-    $$('.nav a').forEach(function (a) { var d = a.getAttribute('data-v'); a.classList.toggle('on', d === v || (d === 'them' && (wide && !isCeo() && !gonBar() ? !navViews().some(function (x) { return x.id === v; }) : main.indexOf(v) < 0))); }); var ts = $('.top-set'); if (ts) ts.classList.toggle('on', v === 'cai-dat');
+    $$('.nav a').forEach(function (a) { var d = a.getAttribute('data-v'); a.classList.toggle('on', d === v || (d === 'them' && (wide && !isCeo() && !gonBar() ? !navViews().some(function (x) { return x.id === v; }) : main.indexOf(v) < 0))); }); var ts = $('.top-set'); if (ts) ts.classList.toggle('on', v === 'cai-dat'); var ub = $('#umBtn'); if (ub) ub.classList.toggle('on', v === 'cai-dat');
     var keepScroll = lastView === v, y = window.scrollY;
     var el = $('#view');
     var focusId = document.activeElement && document.activeElement.id, selStart = document.activeElement && document.activeElement.selectionStart;

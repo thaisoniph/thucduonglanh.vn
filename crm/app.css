@@ -3514,3 +3514,40 @@ details.top-fold[open] > summary::after { transform: rotate(180deg); }
 .be-sale-left { font-weight: 500; } .be-sale-none { color: var(--red); }
 .be-sale .be-sale-tier { font-size: 14px; background: var(--bg); border-radius: 8px; padding: 6px 10px; margin-top: 8px; }
 .adt-tb td, .adt-tb th { white-space: nowrap; }
+
+/* ---------- 17/11/2026 anh Sơn: thanh Quản trị gọn – chữ vai trò không xuống dòng; ❓ 👁 ⚙ ↻ 💡 gom vào 1 nút tài khoản (chữ cái đầu + ▾) */
+.brand { white-space: nowrap; flex: none; }
+.top.ceo .top-help, .top.ceo .va-btn, .top.ceo .top-set, .top.ceo .fb-btn, .top.ceo #refresh { display: none !important; }
+.um-wrap { position: relative; flex: none; }
+.um-btn { display: flex; align-items: center; gap: 4px; height: 38px; padding: 0 8px 0 4px; border: 0; border-radius: 19px; background: rgba(255, 255, 255, .14); color: #fff; cursor: pointer; position: relative; font: inherit; }
+.um-btn:hover, .um-btn[aria-expanded="true"], .um-btn.on { background: rgba(255, 255, 255, .26); }
+.um-av { width: 30px; height: 30px; border-radius: 50%; background: #fff; color: var(--primary); display: grid; place-items: center; font-weight: 800; font-size: 14px; }
+.um-car { font-size: 11px; opacity: .85; }
+.um-dot { position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: #e53935; color: #fff; font-size: 11px; font-style: normal; font-weight: 700; line-height: 18px; text-align: center; }
+.um-dot[hidden] { display: none; }
+.um-pop { position: absolute; right: 0; top: calc(100% + 8px); width: 290px; background: #fff; color: var(--ink); border-radius: 14px; box-shadow: 0 12px 32px rgba(0, 0, 0, .18), 0 0 0 1px rgba(0, 0, 0, .06); padding: 6px; z-index: 60; }
+.um-pop[hidden] { display: none; }
+.um-me { padding: 10px 12px 8px; border-bottom: 1px solid var(--line); margin-bottom: 4px; }
+.um-me b { display: block; font-size: 14.5px; }
+.um-me small { color: var(--muted); font-size: 12.5px; }
+.um-pop [data-um] { display: flex; align-items: center; gap: 12px; width: 100%; padding: 9px 10px; border: 0; background: none; border-radius: 10px; text-align: left; cursor: pointer; font: inherit; color: inherit; }
+.um-pop [data-um]:hover, .um-pop [data-um]:focus-visible { background: var(--primary-light); outline: none; }
+.um-ic { width: 32px; height: 32px; flex: none; border-radius: 9px; background: #eef3ef; color: var(--primary); display: grid; place-items: center; font-size: 16px; }
+.um-ic svg { width: 18px; height: 18px; }
+.um-t b { display: block; font-size: 14px; font-weight: 600; }
+.um-t small { display: block; color: var(--muted); font-size: 12px; line-height: 1.3; }
+@media (max-width: 859px) {
+  .um-btn { height: 36px; background: rgba(118, 118, 128, .12); color: var(--primary); }
+  .um-btn:hover, .um-btn[aria-expanded="true"], .um-btn.on { background: rgba(118, 118, 128, .2); }
+  .um-av { width: 28px; height: 28px; background: var(--primary); color: #fff; font-size: 13px; }
+}
+@media (min-width: 860px) {
+  .top.ceo .top-in { gap: 14px; }
+  .top.ceo .nav { gap: 4px; }
+  .top.ceo .grow + .me { display: none; }
+}
+@media (min-width: 860px) {
+  .top.ceo .nav-many a.nav-more span { display: inline; } /* Quản trị chỉ 5 mục → chữ "Thêm" luôn hiện (••• một mình khó hiểu) */
+  .top-in:has(.nav-many) .top.ceo .brand, .top.ceo .top-in .brand { font-size: 17px; gap: 10px; }
+}
+@media (min-width: 860px) and (max-width: 1099px) { .top.ceo .top-in .brand { font-size: 0; gap: 0; } .top.ceo .nav a { padding: 8px 10px; } }
