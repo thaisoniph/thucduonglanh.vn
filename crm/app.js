@@ -1659,26 +1659,15 @@
       (q.list.length && (!wn || wn === S.user.name) ? '<button class="btn pri lg block" data-flow>▶ Bắt đầu gọi lần lượt</button>' : '') +
       (q.rest ? '<p class="small muted" style="margin:8px 0 0">Còn ' + q.rest + ' khách để các ngày sau (tối đa ' + dayLimit() + ' khách/ngày, đổi ở <a href="#cai-dat">Cài đặt</a>).</p>' : '') +
       (lvl() < 2 ? todayGoalLine() + refSaleLine() + growHeroLine() : '') + '</section>';
-    h += occBlock(); // 🎉 dịp chúc khách: ngày lễ, rằm, mùng 1, sinh nhật (09/11/2026)
-    if (lvl() >= 2) h += ownWaitBlock(); // 🙋 khách tự mang về có cờ / gọi xác minh (10/11/2026)
-    if (lvl() >= 2) h += stopWaitBlock(); // 📵 khách sale báo ngừng liên hệ, chờ quản lý xem (31/10/2026)
-    // Đợt 2 (16/10/2026): sale mở máy thấy ngay khách cần gọi; mục tiêu chi tiết + thi đua + báo cáo cuối ngày chuyển xuống cuối trang. Quản lý giữ thi đua + ô số ở đầu.
-    if (lvl() >= 2) {
-      h += raceBlock(); // bảng thi đua: quản lý thấy cả bảng, kể cả khi đang lọc 1 nhân viên
+    if (lvl() >= 2) { // 🌱 16/11/2026 anh Sơn "làm gọn tiếp": quản lý thấy việc trước – 4 ô số → việc chờ quản lý → tiến độ từng người → Kho chung; thi đua gập lại 1 dòng; bỏ 2 ô Doanh số / Khách mới tháng (đã có ở Hiệu quả)
       h += '<div class="minis">' + mini('🧾 Đơn mới', no.length, '#don-hang', no.length ? 'warn' : '') + mini('🙋 Khách hỏi', hot.length + ld.length, '#tiem-nang', hot.length + ld.length ? 'bad' : '') + mini('✅ Đã làm', doneToday.length, '', '') + miniGoal() + '</div>';
-    }
+      h += ownWaitBlock() + stopWaitBlock(); // 🙋 khách tự mang về cần xác minh · 📵 khách sale báo ngừng liên hệ
+      if (!wn) h += teamBlock() + waitingBlock(); // đang xem 1 nhân viên → ẩn khách chưa ai phụ trách
+      h += occBlock(); // 🎉 dịp chúc khách
+      var rOpen = S.f.gopen && 'race' in S.f.gopen ? S.f.gopen.race : false;
+      h += '<details class="fold-race" data-grp="race"' + (rOpen ? ' open' : '') + '><summary><b>🏁 Thi đua & mục tiêu cả nhóm</b><span class="muted small">bấm để xem bảng xếp hạng tuần / tháng</span></summary>' + raceBlock() + '</details>';
+    } else h += occBlock(); // 🎉 dịp chúc khách: ngày lễ, rằm, mùng 1, sinh nhật (09/11/2026)
     var TB = trendBuckets(monthRange(monthOf(Date.now()))), tsk = function (v) { return sparkSvg(v, TB.partial); };
-    if (lvl() >= 2 && wn) {
-      var pm = perf(wn, monthRange(monthOf(Date.now())));
-      h += '<div class="kpis">' + kpi('Doanh số tháng ' + (new Date().getMonth() + 1) + ' của ' + esc(wn), moneyShort(pm.sales), '', '', pm.orders + ' đơn · chốt ' + (pm.closePct === null ? '–' : pm.closePct + '%'), tsk(repSeries(wn, TB, 0, 'sales'))) +
-        kpi('Khách đang phụ trách', pm.mine, '', '', pm.care + ' lượt chăm sóc tháng này') + '</div>';
-    } else if (lvl() >= 2) {
-      var m = monthStats();
-      h += '<div class="kpis">' + kpi('Doanh số tháng ' + m.month, moneyShort(m.revenue), '', '', m.orders + ' đơn · ' + (m.prev ? (m.revenue >= m.prev ? '▲ ' : '▼ ') + 'tháng trước ' + moneyShort(m.prev) : 'chưa có tháng trước'), tsk(repSeries(null, TB, 0, 'sales'))) +
-        kpi('Khách mới tháng ' + m.month, m.newCus, '', '', m.returning + ' khách mua lại', tsk(trendSum(TB, S.d.customers.filter(function (c) { return c.first; }), function (c) { return c.first; }, function () { return 1; }))) + '</div>';
-    }
-
-    if (lvl() >= 2 && !wn) h += teamBlock() + waitingBlock(); // đang xem 1 nhân viên → ẩn khách chưa ai phụ trách
     // Mở tab lần đầu: chỉ mục cần gọi đầu tiên mở sẵn (và chỉ hiện vài khách), các mục khác gập lại – sale tự bấm mở khi tới lượt
     var go = S.f.gopen || {}, firstG = true;
     var grp = function (k, title, n, tip, body, cls) { var op = k in go ? go[k] : firstG; firstG = false; return '<details class="grp" data-grp="' + k + '"' + (op ? ' open' : '') + '><summary><span class="g-t">' + title + '</span><span class="count">' + n + '</span>' + (tip ? '<span class="g-tip">' + tip + '</span>' : '') + '</summary><div class="' + cls + '">' + body + '</div></details>'; };

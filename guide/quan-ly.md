@@ -101,6 +101,8 @@ Mục anh đã bật riêng cho 1 người (Marketing, Phụ trách kho, Trợ l
 2. Tìm tên người đó. Nút **xanh** = đang hiện. Nút **trắng, viền chấm** = đang ẩn.
 3. Bấm nút trắng để **mở**. Bấm nút xanh để **ẩn**. Máy lưu ngay, người đó tải lại CRM là thấy.
 
+**Màn Hôm nay của quản lý** xếp theo thứ tự việc cần làm: 4 ô số (đơn mới, khách hỏi, đã làm, mục tiêu) → khách chờ quản lý xem → **👥 Tiến độ nhân sự hôm nay** → **🧺 Kho chung** → dịp chúc khách. **🏁 Thi đua & mục tiêu cả nhóm** gập lại thành 1 dòng, bấm vào là mở. Doanh số và khách mới của tháng xem ở tab **Hiệu quả**.
+
 Máy tính cũng gọn như điện thoại: thanh trên chỉ 4 mục + **Thêm**. Nút tròn bên phải: 🔍 Tìm, ❓ Hướng dẫn, ✅ Việc tuần, ⚙ Cài đặt. **Góp ý** và **Tải lại dữ liệu** nằm trong **Thêm**.
 
 ## Việc mỗi ngày của quản lý
