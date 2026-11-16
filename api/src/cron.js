@@ -4,6 +4,7 @@ import { telegram, telegramTo, gInfo, sheetMeta, sheetClear, sheetWrite, sheetAd
 import { recalcAll, crmUsers, unifyNames, unifyProducts, autoCloseLeads, fixBestTiepNhan, rulesCfg, careTask, groupOf, leadsData, leadDue, adsCfg, usageAlert, poolTick, ownTick } from './crm.js';
 import { adsSync, srcAutoTick, fixAdsLeads } from './sync.js';
 import { sanSheetTick } from './san.js';
+import { sanAiMorning } from './sanai.js';
 import { mktTick } from './mkt.js';
 import { mktDailyMsgs } from './mktv.js';
 import { wbTick } from './wb.js';
@@ -155,6 +156,8 @@ export async function scheduled(x, cron) {
     try { await stRemind(x); } catch (e) { console.error('stRemind', e.message); } // 📗 thứ Hai: Sổ tay doanh nghiệp còn mục chưa xác nhận / quá 90 ngày → Telegram Quản trị (sotay.js)
     const gk = 'gvm_' + fmtDate(now, 'yyyyMMdd'); // ✅ 8h: danh sách việc từng người + nhóm, thứ Hai tổng kết tuần (giaoviec.js)
     if (!await kvGet(x.db, gk)) { await kvSet(x.db, gk, '1', 2 * DAY); try { await gvMorning(x); } catch (e) { console.error('gvMorning', e.message); } }
+    const sk = 'sanai_m_' + fmtDate(now, 'yyyyMMdd'); // 🛒 8h: nhắc người phụ trách sàn chấm sức khoẻ shop, thứ Hai xem đối thủ (sanai.js)
+    if (!await kvGet(x.db, sk)) { await kvSet(x.db, sk, '1', 2 * DAY); try { await sanAiMorning(x, await crmUsers(x), telegramTo); } catch (e) { console.error('sanAiMorning', e.message); } }
     const mk = 'mktd_' + fmtDate(now, 'yyyyMMdd'); // tin Telegram marketing buổi sáng
     if (!await kvGet(x.db, mk)) { await kvSet(x.db, mk, '1', 2 * DAY); try { for (const m of await mktDailyMsgs(x, await crmUsers(x))) await telegramTo(x.env, m.tg, m.text); } catch (e) { console.error('mktDaily', e.message); } }
   }

@@ -1076,3 +1076,89 @@ vh-the:
         - ["btn", "Thu gọn ▲", ""]
       hi: 0
       text: "Làm rồi thì ghi <b>1 dòng chuyện của bạn</b>, bấm <b>Lưu</b> (chuyện hay được kể ở trà đàm thứ 7). Muốn thẻ nhỏ lại thì <b>Thu gọn ▲</b>."
+san-cach:
+  title: 📋 Dán cách đánh giá của bạn (làm 1 lần)
+  steps:
+    - title: Sàn TMĐT
+      els:
+        - ["h", "🩺 Sức khoẻ shop Shopee"]
+        - ["btn", "📋 Cách đánh giá", ""]
+        - ["btn", "🩺 Chấm sức khoẻ shop hôm nay", "g"]
+      hi: 1
+      text: "Vào tab <b>Sàn</b>, ở khối <b>🩺 Sức khoẻ shop</b> bấm <b>📋 Cách đánh giá</b>."
+    - title: 📋 Cách đánh giá shop
+      els:
+        - ["in", "Cách đánh giá của bạn", "Dán nội dung skill vào đây…"]
+        - ["note", "Để trống = dùng cách mặc định"]
+        - ["btn", "Lưu", "g"]
+      hi: 0
+      text: "Mở file skill Claude bạn đang dùng trên máy, <b>chép hết chữ</b>, dán vào ô này, bấm <b>Lưu</b>. Làm tương tự với nút <b>📋 Cách xem đối thủ</b> ở khối 🔍."
+san-suc-khoe:
+  title: 🩺 Chấm sức khoẻ shop mỗi sáng
+  steps:
+    - title: Kênh Người Bán Shopee
+      els:
+        - ["h", "Đơn hàng → Tất cả → Xuất"]
+        - ["h", "Quảng cáo Shopee → Xuất dữ liệu"]
+        - ["h", "Phân tích bán hàng → Tải dữ liệu"]
+        - ["note", "File nào có thì tải file đó"]
+      hi: 0
+      text: "Trên Kênh Người Bán, tải các file bạn hay xem: <b>đơn hàng 30 ngày</b> (bắt buộc nên có), <b>quảng cáo</b>, <b>phân tích bán hàng</b>."
+    - title: Sàn TMĐT
+      els:
+        - ["h", "🩺 Sức khoẻ shop Shopee"]
+        - ["btn", "🩺 Chấm sức khoẻ shop hôm nay", "g"]
+      hi: 1
+      text: "Vào CRM tab <b>Sàn</b>, bấm <b>🩺 Chấm sức khoẻ shop hôm nay</b>."
+    - title: 🩺 Chấm sức khoẻ shop
+      els:
+        - ["in", "File Shopee", "Order.all…xlsx, Quảng cáo…csv"]
+        - ["note", "📦 đơn hàng → tự nhập vào số sàn"]
+        - ["note", "📄 file khác → AI đọc"]
+        - ["in", "Bạn ghi thêm", "Hôm qua chạy flash sale 12h"]
+        - ["btn", "🩺 Chấm điểm", "g"]
+      hi: 0
+      text: "Chọn <b>cùng lúc tất cả file</b> vừa tải. Muốn thì ghi thêm 1 dòng (hôm qua làm gì đặc biệt). Bấm <b>🩺 Chấm điểm</b>, chờ khoảng 1 phút."
+    - title: Sàn TMĐT
+      els:
+        - ["card", "72/100 · Sức khoẻ shop", "Doanh số 7 ngày 15,8 tr ▲ +50%", "g"]
+        - ["card", "1. Tạo combo DILVANG + mâm xôi 299k", "Giá trị 1 đơn 254k, gần ngưỡng 300k", "y"]
+        - ["btn", "✅ Đã làm", "g"]
+      hi: 2
+      text: "Đọc điểm, nhận xét và <b>3 việc làm hôm nay</b> (bấm <b>Làm thế nào</b> để xem từng bước). Làm xong việc nào bấm <b>✅ Đã làm</b> việc đó."
+    - title: Sàn TMĐT (7 ngày sau)
+      els:
+        - ["card", "📈 Sau 7 ngày", "Doanh số TB/ngày 1,6 tr → 2,3 tr ▲ +45% · 👍 hiệu quả", "g"]
+      hi: 0
+      text: "Sau <b>7 ngày</b>, CRM tự so doanh số trước và sau ngày bạn làm. Lần chấm sau AI đọc kết quả này: việc hiệu quả thì gợi ý làm tiếp, việc chưa hiệu quả thì rút kinh nghiệm."
+san-doi-thu:
+  title: 🔍 Xem đối thủ đầu tuần
+  steps:
+    - title: App Shopee
+      els:
+        - ["in", "Tìm kiếm", "trà đinh lăng"]
+        - ["chips", ["Liên quan", "Mới nhất", "Bán chạy", "Giá"], 2]
+        - ["card", "Trà đinh lăng 30 gói", "135.000đ · Đã bán 2,1k · ★4.9", ""]
+      hi: 1
+      text: "Mở Shopee, tìm từ khoá của mình, chọn <b>Bán chạy</b>. <b>Chụp 2–4 màn hình</b>. Muốn xem 1 shop cụ thể thì vào trang shop đó, chụp phần sản phẩm."
+    - title: Sàn TMĐT
+      els:
+        - ["h", "🔍 Đối thủ cùng ngách"]
+        - ["btn", "🔍 Xem đối thủ tuần này", "g"]
+      hi: 1
+      text: "Vào CRM tab <b>Sàn</b>, kéo xuống khối <b>🔍 Đối thủ cùng ngách</b>, bấm <b>🔍 Xem đối thủ tuần này</b>."
+    - title: 🔍 Đối thủ tuần này
+      els:
+        - ["in", "Từ khoá đang theo dõi", "trà đinh lăng, bột ngũ cốc"]
+        - ["in", "Ảnh chụp màn hình", "4 ảnh"]
+        - ["in", "Hoặc dán chữ trang Shopee", ""]
+        - ["btn", "🔍 Xem đối thủ", "g"]
+      hi: 1
+      text: "Chọn ảnh vừa chụp (tối đa 8). Trên máy tính có thể <b>Ctrl+A, Ctrl+C</b> ở trang Shopee rồi dán vào ô chữ thay cho ảnh. Bấm <b>🔍 Xem đối thủ</b>, chờ 1–2 phút."
+    - title: Sàn TMĐT
+      els:
+        - ["card", "🔄 Thay đổi so tuần trước", "Shop A giảm giá 15k · Shop B bán tăng mạnh", "y"]
+        - ["card", "📋 Bảng sản phẩm đối thủ", "Giá · Đã bán · ★ · Khuyến mãi", ""]
+        - ["btn", "✅ Đã làm", "g"]
+      hi: 2
+      text: "Đọc thay đổi, vị trí của mình và <b>phương án tuần này</b>. Làm xong bấm <b>✅ Đã làm</b>. Tuần sau CRM tự so với bảng tuần này."

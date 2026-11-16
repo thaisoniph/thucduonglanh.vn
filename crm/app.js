@@ -353,7 +353,7 @@
     if (!CFG.endpoint) return Promise.reject(new Error('Chưa cấu hình máy chủ.'));
     tries = tries || 0; var t0 = Date.now();
     // chờ tối đa 30 giây (việc nặng của quản trị 90 giây) rồi báo, không để vòng quay mãi (16/10/2026)
-    var ac = typeof AbortController === 'function' ? new AbortController() : null, wait = action === 'ins_score' ? 240e3 : action === 'ai_ask' ? 180e3 : /^(spf_write|ins_(video|import|find|offer|big|img|kw|stt|ytrun|vqrun|trendai)|zb_(regen|plan_make|plan_redo))$/.test(action) ? 180e3 : API_HEAVY.test(action) ? 90e3 : 30e3, tm = ac && setTimeout(function () { ac.abort(); }, wait);
+    var ac = typeof AbortController === 'function' ? new AbortController() : null, wait = action === 'ins_score' ? 240e3 : action === 'ai_ask' ? 180e3 : /^(san_ai_(shop|dt)|spf_write|ins_(video|import|find|offer|big|img|kw|stt|ytrun|vqrun|trendai)|zb_(regen|plan_make|plan_redo))$/.test(action) ? 180e3 : API_HEAVY.test(action) ? 90e3 : 30e3, tm = ac && setTimeout(function () { ac.abort(); }, wait);
     return fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), signal: ac ? ac.signal : undefined })
       .then(function (r) { clearTimeout(tm); return r.text().then(function (t) { return { t: t, st: r.status }; }); }, function (er) { clearTimeout(tm); var slow = er && er.name === 'AbortError', e0 = new Error(slow ? 'Máy chủ trả lời chậm quá ' + (wait / 1000) + ' giây. Bạn kiểm tra mạng rồi bấm lại nhé.' : 'Mất kết nối mạng. Bạn thử lại nhé.'); e0.net = true; throw e0; })
       .then(function (x) {
@@ -1224,6 +1224,7 @@
     if (v === 'bao-cao') bindRep();
     if (v === 'marketing') bindMkv();
     if (v === 'tong-quan' || v === 'san') bindSan();
+    if (v === 'san') bindSai();
     if (v === 'hoi-so-lieu') bindAsk(!keepScroll);
     if (v === 'kho') bindKho();
     if (v === 'giao-viec') bindGv();
@@ -11641,7 +11642,135 @@
     h += '<section class="section"><div class="section-h"><h2>📊 Kết quả ' + esc(perLabel(f.p).toLowerCase()) + '</h2></div>' + sanStats(sj, R, false, P) + '</section>';
     h += '<div class="steps">' + (sj.sheet && sj.sheet.id ? '<button class="btn" data-san="sheet">🔄 Lấy số từ Google Sheet</button><a class="btn" target="_blank" rel="noopener" href="https://docs.google.com/spreadsheets/d/' + esc(sj.sheet.id) + '/edit">📗 Mở Sheet báo cáo</a>' : '') +
       (sj.admin ? '<button class="btn" data-san="sheetcfg">⚙️ Link Sheet báo cáo</button>' : '') + '<button class="btn" data-san="list">📋 Các lần tải file</button>' + (sj.admin ? '<button class="btn" data-san="people">👤 Người phụ trách sàn' + (sj.people.length ? ': ' + esc(sj.people.join(', ')) : '') + '</button>' : '') + '</div>';
-    return h + sanHowTo(false);
+    return h + saiBlock() + sanHowTo(false);
+  }
+  /* ---------- 🛒 Trợ lý sàn Shopee (16/11/2026, anh Sơn: Thủy dùng skill Claude rời rạc trên máy → gom vào tab Sàn). Máy chủ: api/src/sanai.js
+   * 🩺 Sức khoẻ shop: 1 ô tải mọi file (file đơn hàng / tiền về tự nhập vào số sàn, file khác như quảng cáo, phân tích bán hàng gửi cho AI đọc) → điểm, 3 việc hôm nay, ✅ Đã làm → sau 7 ngày đo kết quả.
+   * 🔍 Đối thủ: ảnh chụp màn hình Shopee + chữ dán → bảng giá / đã bán / sao so tuần trước, phương án tuần này. Cách đánh giá dán từ skill của người phụ trách (📋). */
+  var SAI = { j: null, busy: false, err: '' };
+  function saiGet() {
+    if (SAI.j || SAI.busy || SAI.err) return SAI.j; SAI.busy = true;
+    api('san_ai_view').then(function (j) { SAI.j = j; }, function (e) { SAI.err = /Không rõ thao tác|Lệnh không đúng/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message; }).then(function () { SAI.busy = false; if (route().view === 'san') softRender(true); });
+    return null;
+  }
+  function saiReload(msg) { SAI.j = null; SAI.err = ''; if (msg) toast(msg); saiGet(); }
+  function saiPct(a, b) { if (!b) return ''; var p = Math.round((a - b) * 100 / b); return ' <span class="' + (p >= 0 ? 'sai-up' : 'sai-down') + '">' + (p >= 0 ? '▲ +' : '▼ ') + p + '%</span>'; }
+  function saiActs(r) {
+    var mine = r.kind === 'shop';
+    return '<ol class="sai-acts">' + (r.acts || []).map(function (a, i) {
+      var res = a.res, rs = res ? '<div class="sai-res">📈 Sau 7 ngày: doanh số TB / ngày ' + moneyShort(res.g0) + ' → <b>' + moneyShort(res.g1) + '</b>' + saiPct(res.g1, res.g0) + ' · đơn / ngày ' + res.n0 + ' → <b>' + res.n1 + '</b>' + (res.g1 > res.g0 * 1.05 ? ' · 👍 hiệu quả, làm tiếp' : res.g1 < res.g0 * 0.95 ? ' · 🤔 chưa hiệu quả, AI sẽ rút kinh nghiệm' : ' · ➖ chưa thấy khác') + '</div>' : a.done && mine ? '<div class="sai-res muted">⏳ Đã làm ngày ' + esc(a.done.slice(8, 10) + '/' + a.done.slice(5, 7)) + ', đủ 7 ngày CRM tự đo kết quả.</div>' : '';
+      return '<li' + (a.done ? ' class="sai-done"' : '') + '><b>' + esc(a.t) + '</b><div class="small">' + esc(a.why) + '</div>' +
+        '<details class="small"><summary>Làm thế nào</summary><div style="white-space:pre-wrap">' + esc(a.do) + '</div></details>' + rs +
+        '<button class="btn sm' + (a.done ? '' : ' pri') + '" data-saiact="' + esc(r.id) + '" data-i="' + i + '" data-done="' + (a.done ? 0 : 1) + '">' + (a.done ? '↩ Chưa làm' : '✅ Đã làm') + '</button></li>';
+    }).join('') + '</ol>';
+  }
+  function saiShopCard(r) {
+    var j = r.j || {}, M = r.m || {}, A = M.A || {}, B = M.B || {}, sc = j.diem || 0, cl = sc >= 75 ? 'ok' : sc >= 55 ? 'mid' : 'bad';
+    return '<div class="box sai-card"><div class="sai-head"><div class="sai-score sai-' + cl + '">' + sc + '<small>/100</small></div><div class="grow"><b>Sức khoẻ shop ' + esc(fDate(r.at)) + '</b><div class="small muted">' + esc(r.by || '') + ' · số ' + esc((M.a0 || '').slice(8) + '/' + (M.a0 || '').slice(5, 7)) + '–' + esc((M.end || '').slice(8) + '/' + (M.end || '').slice(5, 7)) + ' so 7 ngày trước' + ((j.files || []).length ? ' · có đọc ' + j.files.length + ' file thêm' : '') + '</div></div></div>' +
+      '<div class="sai-kpi"><div><span>Doanh số 7 ngày</span><b>' + moneyShort(A.g) + '</b>' + saiPct(A.g, B.g) + '</div><div><span>Đơn thành công</span><b>' + (A.n || 0) + '</b>' + saiPct(A.n, B.n) + '</div><div><span>Giá trị 1 đơn</span><b>' + moneyShort(A.aov) + '</b>' + saiPct(A.aov, B.aov) + '</div><div><span>Huỷ + hoàn</span><b>' + (A.huy || 0) + '%</b><small class="muted"> trước ' + (B.huy || 0) + '%</small></div></div>' +
+      '<p>' + esc(j.sum || '') + '</p>' +
+      ((j.tot || []).length ? '<p class="small"><b>👍 Đang tốt:</b> ' + j.tot.map(esc).join(' · ') + '</p>' : '') +
+      ((j.chua || []).length ? '<p class="small"><b>⚠️ Cần sửa:</b></p><ul class="small">' + j.chua.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ul>' : '') +
+      '<h3 class="sai-h3">👉 Việc làm hôm nay</h3>' + saiActs(r) +
+      (j.hoc ? '<p class="small"><b>📚 Rút kinh nghiệm:</b> ' + esc(j.hoc) + '</p>' : '') + (j.can_them ? '<p class="small muted">💡 Lần sau tải thêm: ' + esc(j.can_them) + '</p>' : '') + '</div>';
+  }
+  function saiDtCard(r) {
+    var j = r.j || {};
+    return '<div class="box sai-card"><b>Đối thủ tuần ' + esc(fDate(r.at)) + '</b> <span class="small muted">' + esc(r.by || '') + ' · ' + (j.n || 0) + ' ảnh' + (j.txt ? ' + chữ dán' : '') + '</span>' +
+      '<p>' + esc(j.sum || '') + '</p>' + ((j.doi || []).length ? '<p class="small"><b>🔄 Thay đổi so tuần trước:</b></p><ul class="small">' + j.doi.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ul>' : '') +
+      (j.minh ? '<p class="small"><b>🌿 Thực Dưỡng Lành đang ở đâu:</b> ' + esc(j.minh) + '</p>' : '') +
+      '<details class="small"' + ((j.rows || []).length <= 8 ? ' open' : '') + '><summary><b>📋 Bảng ' + (j.rows || []).length + ' sản phẩm đối thủ</b></summary><div class="sai-tbl"><table><tr><th>Shop · sản phẩm</th><th>Giá</th><th>Đã bán</th><th>★</th><th>Khuyến mãi · so tuần trước</th></tr>' +
+      (j.rows || []).map(function (x) { return '<tr><td><b>' + esc(x.shop) + '</b><br>' + esc(x.sp) + '</td><td>' + esc(x.gia) + '</td><td>' + esc(x.daban) + '</td><td>' + esc(x.sao) + '</td><td>' + esc(x.km) + (x.ghichu ? '<br><b>' + esc(x.ghichu) + '</b>' : '') + '</td></tr>'; }).join('') + '</table></div></details>' +
+      '<h3 class="sai-h3">👉 Phương án tuần này</h3>' + saiActs(r) + '</div>';
+  }
+  function saiBlock() {
+    var j = saiGet(), h = '';
+    if (!j) return '<section class="section"><div class="box"><p class="muted">' + (SAI.err ? '⚠️ ' + esc(SAI.err) : '⏳ Đang tải trợ lý sàn…') + '</p></div></section>';
+    var shop = j.list.filter(function (r) { return r.kind === 'shop'; }), dt = j.list.filter(function (r) { return r.kind === 'dt'; }), td = isoDate(today());
+    var s0 = shop[0], d0 = dt[0], dOld = !d0 || Date.now() - d0.at > 6 * DAY, mon = new Date(Date.now() + 7 * 3600e3).getUTCDay() === 1;
+    h += '<section class="section" id="sai-shop"><div class="section-h"><h2>🩺 Sức khoẻ shop Shopee</h2><div class="grow"></div><button class="btn sm" data-sai="cfg" data-k="shop">📋 Cách đánh giá</button></div>' +
+      (!j.aiOn ? '<div class="notice warn">AI chưa bật trên máy chủ (thiếu khoá ANTHROPIC_API_KEY).</div>' : '') +
+      '<div class="box"><p class="small" style="margin:0 0 8px"><b>Mỗi sáng 2 phút:</b> ① Tải file Shopee mới (đơn hàng, quảng cáo, phân tích bán hàng) → ② CRM chấm điểm theo đúng cách đánh giá của bạn → ③ làm 3 việc, bấm ✅ Đã làm. Sau 7 ngày CRM tự cho biết việc đó có làm doanh số tăng không.</p>' +
+      '<button class="btn pri" data-sai="shop">🩺 ' + (s0 && s0.day === td ? 'Chấm lại hôm nay' : 'Chấm sức khoẻ shop hôm nay') + '</button></div>' +
+      (s0 ? saiShopCard(s0) : '') + '</section>';
+    h += '<section class="section" id="sai-dt"><div class="section-h"><h2>🔍 Đối thủ cùng ngách</h2><div class="grow"></div><button class="btn sm" data-sai="cfg" data-k="dt">📋 Cách xem đối thủ</button></div>' +
+      '<div class="box"><p class="small" style="margin:0 0 8px"><b>Đầu tuần 5 phút:</b> ① Mở Shopee, tìm từ khoá của mình' + (j.cfg.kw ? ' (<b>' + esc(j.cfg.kw) + '</b>)' : '') + ' hoặc vào shop đối thủ → ② chụp màn hình (hoặc chọn hết chữ, sao chép) → ③ đưa vào đây. AI đọc giá, đã bán, số sao rồi so với tuần trước.</p>' +
+      (dOld && mon ? '<div class="notice info" style="margin:0 0 8px">📅 Hôm nay thứ Hai: tới lúc xem đối thủ tuần này.</div>' : '') +
+      '<button class="btn ' + (dOld ? 'pri' : '') + '" data-sai="dt">🔍 Xem đối thủ tuần này</button></div>' + (d0 ? saiDtCard(d0) : '') + '</section>';
+    if (j.list.length > 1) h += '<div class="steps"><button class="btn sm" data-sai="hist">🗂 Các lần chấm trước (' + j.list.length + ')</button></div>';
+    return h;
+  }
+  function bindSai() {
+    $$('[data-sai]').forEach(function (el) { el.onclick = function () { var a = el.getAttribute('data-sai'); if (a === 'shop') openSaiShop(); else if (a === 'dt') openSaiDt(); else if (a === 'cfg') openSaiCfg(el.getAttribute('data-k')); else if (a === 'hist') openSaiHist(); }; });
+    $$('[data-saiact]').forEach(function (b) {
+      b.onclick = function () { b.disabled = true; api('san_ai_act', { id: b.getAttribute('data-saiact'), i: +b.getAttribute('data-i'), done: b.getAttribute('data-done') === '1' }).then(function () { saiReload(b.getAttribute('data-done') === '1' ? 'Đã ghi ✅. 7 ngày sau CRM tự đo kết quả.' : 'Đã bỏ đánh dấu'); }, function (e) { b.disabled = false; toast(e.message, true); }); };
+    });
+  }
+  /** File không phải đơn hàng / tiền về → bảng chữ (cột cách tab) cho AI đọc, tối đa 15.000 ký tự / file. */
+  function saiSheetText(sheets) {
+    var out = ''; (sheets || []).forEach(function (rows, si) { var t = (rows || []).filter(function (r) { return r && r.some(function (c) { return String(c == null ? '' : c).trim(); }); }).slice(0, 200).map(function (r) { return r.map(function (c) { return String(c == null ? '' : c).replace(/\s+/g, ' ').trim(); }).join('\t'); }).join('\n'); if (t) out += (si ? '\n--- trang ' + (si + 1) + ' ---\n' : '') + t; });
+    return out.slice(0, 15000);
+  }
+  function openSaiShop() {
+    var body = '<p>Chọn <b>một hoặc nhiều file</b> vừa tải trên Kênh Người Bán Shopee. CRM tự phân loại:</p><ul class="small"><li><b>File đơn hàng / doanh thu</b> → tự nhập vào số sàn (như nút 📤).</li><li><b>File khác</b> (Quảng cáo Shopee, Phân tích bán hàng, Hiệu quả sản phẩm, Lượt truy cập…) → AI đọc để đánh giá.</li></ul>' +
+      '<label class="f"><span>File Shopee (không bắt buộc, chưa có file mới thì chấm bằng số đã có)</span><input type="file" id="saiF" multiple accept=".xlsx,.xls,.csv,.txt"></label><div id="saiPv" class="small"></div>' +
+      '<label class="f"><span>Bạn ghi thêm (không bắt buộc)</span><textarea id="saiN" rows="3" placeholder="vd: hôm qua chạy flash sale DILVANG 12h, đối thủ X vừa giảm giá…"></textarea></label><p class="err" id="saiE"></p>';
+    var m = modal('🩺 Chấm sức khoẻ shop', body, '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="saiGo">🩺 Chấm điểm</button>'), F = [];
+    $('#saiF', m).onchange = function () {
+      var fs = Array.prototype.slice.call(this.files || []), pv = $('#saiPv', m); F = []; pv.innerHTML = '⏳ Đang đọc file…';
+      Promise.all(fs.map(function (f) { return sanReadFile(f).then(function (sh) { var P = null; try { P = sanParse(sh); } catch (e) { } return { name: f.name, P: P && !P.err ? P : null, text: P && !P.err ? '' : saiSheetText(sh) }; }, function (e) { return { name: f.name, bad: e.message }; }); })).then(function (R) {
+        F = R; pv.innerHTML = R.map(function (r) { return '<div>' + (r.bad ? '⚠️ ' : r.P ? '📦 ' : '📄 ') + esc(r.name) + ' → ' + (r.bad ? esc(r.bad) : r.P ? (r.P.kind === 'income' ? 'tiền về' : r.P.kind === 'aff' ? 'tiếp thị liên kết' : 'đơn hàng') + ' ' + r.P.rows.length + ' đơn, sẽ nhập vào số sàn' : 'AI đọc (' + r.text.length + ' ký tự)') + '</div>'; }).join('');
+      });
+    };
+    $('#saiGo', m).onclick = function () {
+      var btn = this, err = $('#saiE', m); btn.disabled = true; err.textContent = '';
+      var imp = F.filter(function (r) { return r.P; }), step = Promise.resolve();
+      imp.forEach(function (r) { step = step.then(function () { btn.textContent = '⏳ Nhập ' + r.name.slice(0, 20) + '…'; return api('san_import', { shop: r.P.shop, kind: r.P.kind, file: r.name, rows: r.P.rows, adj: r.P.adj || [] }); }); });
+      step.then(function () {
+        if (imp.length) SN.cache = {};
+        btn.textContent = '⏳ AI đang chấm (khoảng 30–60 giây)…';
+        return api('san_ai_shop', { files: F.filter(function (r) { return r.text; }).map(function (r) { return { name: r.name, text: r.text }; }), note: $('#saiN', m).value.trim() });
+      }).then(function () { closeModal(true); saiReload('Đã chấm xong ✓'); }, function (e) { btn.disabled = false; btn.textContent = '🩺 Chấm điểm'; err.textContent = e.message; });
+    };
+  }
+  function saiImg(f) {
+    return new Promise(function (ok, no) { var rd = new FileReader(); rd.onerror = no; rd.onload = function () { var im = new Image(); im.onerror = no; im.onload = function () { var s = Math.min(1, 1800 / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.round(im.width * s); c.height = Math.round(im.height * s); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); ok(c.toDataURL('image/jpeg', 0.8)); }; im.src = rd.result; }; rd.readAsDataURL(f); });
+  }
+  function openSaiDt() {
+    var C = (SAI.j && SAI.j.cfg) || {}, imgs = [];
+    var body = '<p class="small">Trên Shopee (điện thoại hoặc máy tính): tìm từ khoá của mình, sắp xếp <b>Bán chạy</b>, chụp 2–4 màn hình. Hoặc vào trang shop đối thủ, chụp phần sản phẩm. Tối đa 8 ảnh.</p>' +
+      '<label class="f"><span>Từ khoá đang theo dõi</span><input type="text" id="saiKw" value="' + esc(C.kw || '') + '" placeholder="vd: trà đinh lăng, bột ngũ cốc, ruốc nấm"></label>' +
+      '<label class="f"><span>Shop đối thủ đang theo dõi</span><input type="text" id="saiRv" value="' + esc(C.rivals || '') + '" placeholder="tên shop, cách nhau dấu phẩy"></label>' +
+      '<label class="f"><span>Ảnh chụp màn hình</span><input type="file" id="saiI" multiple accept="image/*"></label><div class="fb-imgs" id="saiIm"></div>' +
+      '<label class="f"><span>Hoặc dán chữ trang Shopee (không bắt buộc)</span><textarea id="saiT" rows="4" placeholder="Trên máy tính: bấm Ctrl+A rồi Ctrl+C ở trang kết quả tìm kiếm, dán vào đây"></textarea></label><p class="err" id="saiE2"></p>';
+    var m = modal('🔍 Đối thủ tuần này', body, '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="saiGo2">🔍 Xem đối thủ</button>');
+    var draw = function () { $('#saiIm', m).innerHTML = imgs.map(function (s, i) { return '<div class="fb-img"><img src="' + s + '" alt=""><button type="button" data-rmi="' + i + '" aria-label="Bỏ ảnh">✕</button></div>'; }).join(''); $$('[data-rmi]', m).forEach(function (b) { b.onclick = function () { imgs.splice(+b.getAttribute('data-rmi'), 1); draw(); }; }); };
+    $('#saiI', m).onchange = function () { var fs = Array.prototype.slice.call(this.files || []).slice(0, 8 - imgs.length); Promise.all(fs.map(saiImg)).then(function (a) { imgs = imgs.concat(a).slice(0, 8); draw(); }, function () { toast('Không đọc được ảnh', true); }); this.value = ''; };
+    $('#saiGo2', m).onclick = function () {
+      var btn = this, err = $('#saiE2', m), kw = $('#saiKw', m).value.trim(), rv = $('#saiRv', m).value.trim(), tx = $('#saiT', m).value.trim();
+      if (!imgs.length && !tx) { err.textContent = 'Chọn ảnh chụp màn hình hoặc dán chữ trước nhé.'; return; }
+      btn.disabled = true; btn.textContent = '⏳ AI đang đọc (khoảng 1–2 phút)…'; err.textContent = '';
+      (kw !== (C.kw || '') || rv !== (C.rivals || '') ? api('san_ai_cfg', { kw: kw, rivals: rv }) : Promise.resolve()).then(function () { return api('san_ai_dt', { imgs: imgs, text: tx }); })
+        .then(function () { closeModal(true); saiReload('Đã xem xong đối thủ ✓'); }, function (e) { btn.disabled = false; btn.textContent = '🔍 Xem đối thủ'; err.textContent = e.message; });
+    };
+  }
+  function openSaiCfg(k) {
+    var J = SAI.j || { cfg: {}, def: {} }, cur = (J.cfg || {})[k] || '', def = (J.def || {})[k] || '';
+    var body = '<p>Dán <b>cách đánh giá</b> bạn đang dùng (nội dung skill Claude trên máy, hoặc tự viết từng bước). AI sẽ làm đúng theo cách này mỗi lần ' + (k === 'shop' ? 'chấm sức khoẻ shop' : 'xem đối thủ') + '.</p>' +
+      '<p class="small muted">Để trống = dùng cách mặc định (xem bên dưới). Không cần dán số liệu, CRM tự gửi số mới nhất.</p>' +
+      '<label class="f"><span>Cách đánh giá của bạn</span><textarea id="saiP" rows="12" placeholder="Dán nội dung skill vào đây…">' + esc(cur) + '</textarea></label>' +
+      '<details class="small"><summary>Cách mặc định</summary><div style="white-space:pre-wrap">' + esc(def) + '</div></details>' + (J.cfg && J.cfg.by ? '<p class="small muted">Sửa lần cuối: ' + esc(J.cfg.by) + ', ' + fDateTime(J.cfg.at) + '</p>' : '') + '<p class="err" id="saiPE"></p>';
+    var m = modal(k === 'shop' ? '📋 Cách đánh giá shop' : '📋 Cách xem đối thủ', body, '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="saiPS">Lưu</button>');
+    $('#saiPS', m).onclick = function () { var btn = this, o = {}; o[k] = $('#saiP', m).value; btn.disabled = true; api('san_ai_cfg', o).then(function () { closeModal(true); saiReload('Đã lưu cách đánh giá ✓'); }, function (e) { btn.disabled = false; $('#saiPE', m).textContent = e.message; }); };
+  }
+  function openSaiHist() {
+    var L = (SAI.j && SAI.j.list) || [], adm = lvl() >= 3;
+    var m = modal('🗂 Các lần chấm trước', L.map(function (r) {
+      var j = r.j || {}, dn = (r.acts || []).filter(function (a) { return a.done; }).length;
+      return '<details class="box"><summary><b>' + (r.kind === 'shop' ? '🩺 ' + (j.diem || 0) + '/100' : '🔍 Đối thủ') + '</b> · ' + fDate(r.at) + ' · ' + esc(r.by || '') + ' · ✅ ' + dn + '/' + (r.acts || []).length + ' việc</summary>' + (r.kind === 'shop' ? saiShopCard(r) : saiDtCard(r)) + (adm ? '<button class="link" data-saidel="' + esc(r.id) + '">Xoá</button>' : '') + '</details>';
+    }).join('') || '<p class="muted">Chưa có.</p>', '<button class="btn" data-close>Đóng</button>');
+    bindSai();
+    $$('[data-saidel]', m).forEach(function (b) { b.onclick = function () { if (!confirm('Xoá bản này?')) return; api('san_ai_del', { id: b.getAttribute('data-saidel') }).then(function () { closeModal(true); saiReload('Đã xoá'); }, function (e) { toast(e.message, true); }); }; });
   }
   function sanHowTo(open) {
     return '<details class="box san-how"' + (open ? ' open' : '') + '><summary><b>Cách xuất file trên sàn</b></summary><div class="small">' +
