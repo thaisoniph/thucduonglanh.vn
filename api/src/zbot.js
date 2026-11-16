@@ -556,7 +556,8 @@ export async function zbotTick(x) {
     const t = slotTime(day, (pl && pl.at_time) || slotAt(sl, day));
     if (t < now + 20 * 60e3) continue;
     if (pl && pl.status === 'draft' && t - now > DAY) continue; // 📋 chủ đề chưa duyệt: chờ duyệt, còn dưới 24 tiếng mới viết theo chủ đề nháp (vẫn kịp duyệt bài)
-    try { await zWrite(x, day, sl.id, ''); } catch (e) { console.error('zWrite', e.message); await kvSet(x.db, 'zb_write_err', fmtDate(now, 'HH:mm dd/MM') + ': ' + String(e.message).slice(0, 200)); }
+    // soạn được thì xoá lỗi cũ (16/11/2026: khoá AI hết hạn, chạy lại rồi mà CRM vẫn đỏ 24 giờ)
+    try { await zWrite(x, day, sl.id, ''); if (await kvGet(x.db, 'zb_write_err')) await kvSet(x.db, 'zb_write_err', ''); } catch (e) { console.error('zWrite', e.message); await kvSet(x.db, 'zb_write_err', fmtDate(now, 'HH:mm dd/MM') + ': ' + String(e.message).slice(0, 200)); }
     return;
   }
   try { await planTick(x, cfg, now); } catch (e) { console.error('planTick', e.message); await kvSet(x.db, 'zb_plan_err', fmtDate(now, 'HH:mm dd/MM') + ': ' + String(e.message).slice(0, 200)); }
