@@ -4,6 +4,9 @@
 // - Bảng luong_th: 1 dòng / tháng. inp = {tên: {cong, phep, kp, late, thuong, phat, ung, thue, note}} kế toán nhập.
 //   auto = {tên: {fixed, comm, sen, bon, rev, tier}} hoa hồng sale do CRM của Quản lý / Quản trị tính (kế toán không thấy đơn đầy đủ nên không tự tính được).
 //   st = '' (đang nhập) | 'trinh' (đã trình) | 'duyet' (đã duyệt, khoá sửa).
+// - kv luong_real (16/11/2026, anh Sơn gửi file "Quản lý Nội Bộ" của Trang): lương THỰC TRẢ từng tháng đọc từ tab "Tính lương".
+//   {tháng: {tên trong file: {u: tên CRM, g: nhóm, cong, std, dt, cb, kpi, hh, pc, tn, bhc, bhn, ung}}} – tn = tổng thu nhập chưa BH, bhc = phụ cấp BH trả tiền mặt (+), bhn = trích BH người lao động (−).
+//   Dùng cho 💎 Giá trị nhân sự (chi phí thật từng người). kv luong_link = {link, map: {tên file: [tên CRM, nhóm]}} để đọc lại tháng sau.
 // - Cộng trừ ra thực lĩnh ở CRM (lgCalc trong crm/app.js), máy chủ chỉ lưu. Không lưu số tài khoản ngân hàng.
 import { all, run, kvJson, kvSet } from './lib.js';
 import { telegramTo } from './google.js';
@@ -43,6 +46,20 @@ function cleanAuto(a) {
   Object.keys(a).slice(0, 80).forEach(k => { const r = a[k] || {}, n = txt(k, 60); if (n) o[n] = { fixed: money(r.fixed), comm: money(r.comm), sen: money(r.sen), bon: money(r.bon), rev: money(r.rev), tier: txt(r.tier, 40) }; });
   return o;
 }
+const REAL_G = { Sale: 1, 'Quản lý': 1, 'Kế toán': 1, Kho: 1, Marketing: 1, 'Ban giám đốc': 1, 'Khác': 1 };
+const sMoney = v => Math.max(-1e9, Math.min(1e10, Math.round(Number(v) || 0)));
+function cleanReal(all) {
+  const out = {}; all = all && typeof all === 'object' ? all : {};
+  Object.keys(all).filter(m => MON.test(m)).sort().slice(-24).forEach(m => {
+    const o = {}, src = all[m] || {};
+    Object.keys(src).slice(0, 60).forEach(k => {
+      const r = src[k] || {}, n = txt(k, 60); if (!n) return;
+      o[n] = { u: txt(r.u, 60), g: REAL_G[r.g] ? r.g : 'Khác', cong: numf(r.cong, 31), std: numf(r.std, 31), dt: money(r.dt), cb: money(r.cb), kpi: money(r.kpi), hh: money(r.hh), pc: money(r.pc), tn: money(r.tn), bhc: sMoney(r.bhc), bhn: sMoney(r.bhn), ung: money(r.ung) };
+    });
+    if (Object.keys(o).length) out[m] = o;
+  });
+  return out;
+}
 const outRow = r => r ? { month: r.month, inp: parse(r.inp) || {}, auto: parse(r.auto) || {}, autoBy: r.auto_by || '', autoAt: r.auto_at || 0, st: r.st || '', stBy: r.st_by || '', stAt: r.st_at || 0, updBy: r.upd_by || '', updAt: r.upd_at || 0 } : null;
 
 /** kt_luong {op}: list {month} · staff {list} · cfg {...} · save {month, inp} · auto {month, auto} (Quản lý / Quản trị) · st {month, st: 'trinh' | 'duyet' | ''}.
@@ -52,13 +69,13 @@ export async function crmLuong(x, u, d, log, users) {
   if (!kt && !mgr) return { ok: false, error: 'Chỉ kế toán, Quản lý và Quản trị xem được bảng lương.' };
   await lgSchema(x.db);
   const op = String(d.op || 'list'), now = Date.now(), month = String(d.month || '');
-  if (!MON.test(month) && op !== 'staff' && op !== 'cfg') return { ok: false, error: 'Chọn tháng.' };
+  if (!MON.test(month) && op !== 'staff' && op !== 'cfg' && op !== 'real') return { ok: false, error: 'Chọn tháng.' };
   const getRow = async m => outRow((await all(x.db, 'SELECT * FROM luong_th WHERE month = ?', m))[0]);
   const staffOf = async () => cleanStaff(await kvJson(x.db, 'luong_staff', null) || []);
   const list = async m => {
     const cfg = Object.assign({}, LG_CFG, await kvJson(x.db, 'luong_cfg', null) || {});
     const crm = (users || []).filter(z => z.active).map(z => ({ name: z.name, full: z.full || '', role: z.role, joined: z.joined || '' }));
-    return { ok: true, cfg, staff: await staffOf(), crm, row: await getRow(m || month) || { month: m || month, inp: {}, auto: {}, st: '' }, can: { mgr, ceo: u.level >= 3 && !kt, kt } };
+    return { ok: true, cfg, staff: await staffOf(), crm, real: await kvJson(x.db, 'luong_real', null) || {}, realLink: await kvJson(x.db, 'luong_link', null) || {}, row: await getRow(m || month) || { month: m || month, inp: {}, auto: {}, st: '' }, can: { mgr, ceo: u.level >= 3 && !kt, kt } };
   };
   if (op === 'list') return list();
   const row = MON.test(month) ? await getRow(month) : null, locked = row && row.st === 'duyet';
@@ -67,6 +84,19 @@ export async function crmLuong(x, u, d, log, users) {
     const s = cleanStaff(d.list); await kvSet(x.db, 'luong_staff', JSON.stringify(s));
     await log(x, u, 'Kế toán', '-', '', 'Sửa mức lương nhân sự (' + s.length + ' người)', '');
     return list(MON.test(month) ? month : '');
+  }
+  if (op === 'real') {
+    // 📥 Lương thực trả từ tab "Tính lương" (kế toán đọc link Google Sheet trên CRM). Ghi đè từng tháng có trong d.months, tháng khác giữ nguyên.
+    const cur = await kvJson(x.db, 'luong_real', null) || {}, add = cleanReal(d.months), ms = Object.keys(add);
+    if (!ms.length && !d.clear) return { ok: false, error: 'Không có tháng nào để lưu.' };
+    ms.forEach(m => { cur[m] = add[m]; }); if (d.clear && MON.test(String(d.clear))) delete cur[String(d.clear)];
+    await kvSet(x.db, 'luong_real', JSON.stringify(cleanReal(cur)));
+    const map = {}, mp = d.map && typeof d.map === 'object' ? d.map : {};
+    Object.keys(mp).slice(0, 80).forEach(k => { const v = Array.isArray(mp[k]) ? mp[k] : []; const n = txt(k, 60); if (n) map[n] = [txt(v[0], 60), REAL_G[v[1]] ? v[1] : 'Khác']; });
+    const link = /^https:\/\/(docs|drive)\.google\.com\//.test(String(d.link || '')) ? txt(d.link, 300) : ((await kvJson(x.db, 'luong_link', null)) || {}).link || '';
+    await kvSet(x.db, 'luong_link', JSON.stringify({ link, map, by: u.name, at: now }));
+    await log(x, u, 'Kế toán', '-', '', 'Cập nhật lương thực trả ' + ms.map(m => 'T' + (+m.slice(5))).join(', '), '');
+    return list(MON.test(month) ? month : ms.sort().pop());
   }
   if (op === 'cfg') {
     const c = { std: numf(d.std, 31) || 26, bhPct: numf(d.bhPct, 50), ccOff: numf(d.ccOff, 31), ccLate: numf(d.ccLate, 99), lateFee: money(d.lateFee), prorate: d.prorate ? 1 : 0 };

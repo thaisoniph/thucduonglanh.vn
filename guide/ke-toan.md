@@ -399,6 +399,17 @@ Mục **👥 Bảng lương tháng** trên tab 💼 Kế toán. Bạn chỉ nh�
 
 **Hoa hồng sale** do máy tự tính từ đơn hàng. Bạn không thấy đủ đơn nên máy lấy số khi anh Sơn hoặc chị Thủy mở mục này. Nếu dòng sale báo "chưa có hoa hồng", nhắn anh / chị mở CRM 1 lần.
 
+### Lương thực trả từ file Tính lương
+
+Bạn vẫn tính lương trong file Google Sheet **Quản lý Nội Bộ** (tab **Tính lương**) như cũ. Mỗi tháng sau khi chi lương (ngày 10), cho CRM đọc file 1 lần:
+
+1. Ở mục **👥 Bảng lương tháng**, bấm **📥 Đọc file Tính lương** (hoặc **↻ Đọc lại file**).
+2. Dán link file (lần sau máy nhớ link), bấm **📥 Đọc file**. File cần để chế độ chia sẻ **Bất kỳ ai có đường liên kết đều xem được**.
+3. Xem bảng **👤 Ai là ai trong CRM**: máy tự khớp tên. Ai chưa có tài khoản CRM (vd người chạy quảng cáo) thì chọn đúng **Nhóm** (Marketing, Kho, Khác…). Lần sau máy nhớ.
+4. Bấm **Lưu vào CRM**.
+
+CRM chỉ lấy số tiền: lương cơ bản thực nhận, KPI, hoa hồng, phụ cấp, bảo hiểm, tạm ứng. **Không lấy số tài khoản ngân hàng.** Anh Sơn dùng số này để xem 💎 Giá trị từng nhân sự. Bạn giữ nguyên tên cột trong file (*Nhân sự*, *Tổng thu nhập (Chưa BH)*, *Phụ cấp Bảo Hiểm*…) để máy đọc đúng; thêm cột mới không sao.
+
 **Công chuẩn, % bảo hiểm, quy định chuyên cần, tiền trừ đi muộn** sửa ở **📏 Quy định tính lương**.
 
 ### Quản lý duyệt bảng lương
