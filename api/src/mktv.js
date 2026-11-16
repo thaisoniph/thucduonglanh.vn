@@ -202,11 +202,12 @@ export async function mktView(x, u, d) {
   return Object.assign(out, await budgetOf(x));
 }
 
-/** Giá trị 1 khách mới trong 90 ngày đầu: khách mua lần đầu cách đây 90–270 ngày (đã đủ 90 ngày để xem họ mua tiếp không), theo nguồn khách.
- *  Tính 1 lần / ngày (kv mkt_ltv_<ngày>) cho đỡ tốn lượt đọc. → { n, avg (tiền 90 ngày / khách), first (đơn đầu / khách), rep (% mua lại), by: {nguồn: {n, avg, rep}} } */
-export async function ltvOf(x) {
-  const now = startOfDay(Date.now()), k = 'mkt_ltv_' + iso(now), c = await kvJson(x.db, k, null); if (c) return c;
-  const A = now - 270 * DAY, B = now - 90 * DAY;
+/** Giá trị 1 khách mới theo nguồn khách. Tính 1 lần / ngày (kv mkt_ltv2_<ngày>) cho đỡ tốn lượt đọc.
+ *  - 90 ngày đầu: khách mua lần đầu cách đây 90–270 ngày (đã đủ 90 ngày để xem họ mua tiếp không) → { n, avg, first, rep, from, to, by }
+ *  - y (16/11/2026 anh Sơn: giá trị vòng đời để biết trần chi phí có 1 khách): khách mua lần đầu cách đây 365–730 ngày, tiền 12 tháng đầu → { n, avg, first, rep (% mua đơn thứ 2), from, to, by }
+ *  Bỏ đơn hoàn / huỷ. Khách đã mua trước khung (customers.first sớm hơn) không tính là khách mới. */
+async function ltvCohort(x, now, age, win) {
+  const A = now - (age + 180 + (win > 90 ? 185 : 0)) * DAY, B = now - age * DAY; // 90 ngày: khung 180 ngày; 12 tháng: khung 365 ngày
   const ords = (await all(x.db, 'SELECT phone, time, total, status FROM orders WHERE time >= ? ORDER BY time', A)).filter(o => !isVoid(o.status) && normPhone(o.phone));
   const by = {}; ords.forEach(o => { const p = normPhone(o.phone); (by[p] = by[p] || []).push(o); });
   const cand = Object.keys(by).filter(p => by[p][0].time < B);
@@ -214,12 +215,18 @@ export async function ltvOf(x) {
   const G = {}, add = (g, rev, fst, rep) => { const o = G[g] || (G[g] = { n: 0, rev: 0, fst: 0, rep: 0 }); o.n++; o.rev += rev; o.fst += fst; o.rep += rep; };
   cand.forEach(p => {
     const c0 = info[p], f = by[p][0].time; if (!c0 || (Number(c0.first) || f) < A || Math.abs((Number(c0.first) || f) - f) > DAY) return; // khách đã mua trước khung → không phải khách mới
-    const in90 = by[p].filter(o => o.time < f + 90 * DAY), rev = in90.reduce((a, o) => a + (Number(o.total) || 0), 0), src = String(c0.source || '').trim() || 'Chưa rõ nguồn';
-    add('*', rev, Number(by[p][0].total) || 0, in90.length > 1 ? 1 : 0); add(src, rev, Number(by[p][0].total) || 0, in90.length > 1 ? 1 : 0);
+    const inW = by[p].filter(o => o.time < f + win * DAY), rev = inW.reduce((a, o) => a + (Number(o.total) || 0), 0), src = String(c0.source || '').trim() || 'Chưa rõ nguồn';
+    add('*', rev, Number(by[p][0].total) || 0, inW.length > 1 ? 1 : 0); add(src, rev, Number(by[p][0].total) || 0, inW.length > 1 ? 1 : 0);
   });
   const fmt = o => o ? { n: o.n, avg: Math.round(o.rev / o.n), first: Math.round(o.fst / o.n), rep: Math.round(o.rep * 100 / o.n) } : null;
   const out = Object.assign(fmt(G['*']) || { n: 0 }, { from: iso(A), to: iso(B - DAY), by: {} });
-  Object.keys(G).forEach(g => { if (g !== '*' && G[g].n >= 10) out.by[g] = fmt(G[g]); });
+  Object.keys(G).forEach(g => { if (g !== '*' && G[g].n >= (win > 90 ? 30 : 10)) out.by[g] = fmt(G[g]); });
+  return out;
+}
+export async function ltvOf(x) {
+  const now = startOfDay(Date.now()), k = 'mkt_ltv2_' + iso(now), c = await kvJson(x.db, k, null); if (c) return c;
+  const out = await ltvCohort(x, now, 90, 90);
+  try { out.y = await ltvCohort(x, now, 365, 365); } catch (e) { console.error('ltv 12 tháng', e.message); }
   await kvSet(x.db, k, JSON.stringify(out), DAY);
   return out;
 }

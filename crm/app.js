@@ -10941,18 +10941,32 @@
       });
     }
   });
-  /** 💎 Giá trị 1 khách mới (90 ngày đầu) → nên chi tối đa bao nhiêu để có 1 khách mới. */
+  /** 💎 Giá trị vòng đời 1 khách mới → được chi tối đa bao nhiêu để có 1 khách mới (16/11/2026 anh Sơn).
+   *  Lãi gộp = doanh thu × biên (trừ giá vốn theo file kế toán gần nhất, mặc định 31,5%, + hoa hồng ~4%, ship ~2%, hoàn ~1%).
+   *  🟢 tốt: ≤ lãi gộp 12 tháng ÷ 3 (lãi gấp 3 lần chi, đủ bù chi phí cố định) · 🟠 tới trần: ≤ lãi gộp đơn đầu (đơn đầu đã hoàn vốn) · 🔴 quá trần.
+   *  Chưa đủ khách 12 tháng (Y.n < 30) → cách cũ: % tiền 90 ngày theo mức đèn quảng cáo. Máy chủ: ltvOf (api/src/mktv.js). */
+  function ltvMargin() { var k = ktCogsRate(), c = k && k.r > 0.05 && k.r < 0.8 ? k.r : 0.315; return { m: 1 - c - 0.07, c: c }; }
   function mkLtvBlock(mj, cpn) {
     var L = mj.ltv; if (!L || !L.n) return { h: '' };
-    var g = (L.by && L.by['Facebook Ads']) || L, A = dashAds(), cap = Math.round(g.avg * A[0] / 100), lv = cpn ? (cpn <= cap ? 'ok' : cpn <= g.avg * A[1] / 100 ? 'mid' : 'bad') : '';
+    var pick = function (o) { return o && ((o.by && o.by['Facebook Ads']) || o); };
+    var g = pick(L), Y = pick(L.y), A = dashAds();
+    if (!Y || !Y.n || Y.n < 30) { // chưa đủ khách 12 tháng: cách cũ
+      var cap0 = Math.round(g.avg * A[0] / 100), lv0 = cpn ? (cpn <= cap0 ? 'ok' : cpn <= g.avg * A[1] / 100 ? 'mid' : 'bad') : '';
+      return { h: '<div class="box mk-ltv ' + lv0 + '"><p>🎯 <b>Nên chi tối đa ' + moneyShort(cap0) + ' để có 1 khách mới</b> (= ' + A[0] + '% của ' + moneyShort(g.avg) + ' khách mua trong 3 tháng).</p></div>', lv: lv0, cap: cap0, sub: 'Nên dưới ' + moneyShort(cap0), line: 'Nên chi tối đa ' + moneyShort(cap0) + ' / khách mới' };
+    }
+    var M = ltvMargin(), gpY = Math.round(Y.avg * M.m), r4 = function (v) { return Math.round(v / 1e4) * 1e4; }, gp1 = r4(Y.first * M.m), good = Math.min(r4(gpY / 3), gp1), cap = gp1;
+    var lv = cpn ? (cpn <= good ? 'ok' : cpn <= cap ? 'mid' : 'bad') : '', d8 = function (s) { return s.split('-').reverse().join('/'); };
     var h = '<div class="metrics dash-m3">' +
-      metric('1 khách mới mua trong 3 tháng đầu', moneyShort(g.avg), 'Gồm đơn đầu + các lần mua lại trong 90 ngày.', '') +
-      metric('Đơn đầu tiên', moneyShort(g.first), 'Lần mua lại sau đó mang thêm ' + moneyShort(Math.max(0, g.avg - g.first)) + '.', '') +
-      metric('Khách mua lại trong 3 tháng', g.rep + '%', 'Cứ 100 khách mới có ' + g.rep + ' người mua thêm lần nữa.', '') +
-      '</div><div class="box mk-ltv ' + lv + '"><p>🎯 <b>Nên chi tối đa ' + moneyShort(cap) + ' để có 1 khách mới</b> (= ' + A[0] + '% của ' + moneyShort(g.avg) + ').</p>' +
-      (cpn ? '<p>' + DASH_LV[lv] + ' Kỳ này đang chi <b>' + moneyShort(cpn) + '</b> cho 1 khách mới' + (lv === 'ok' ? ': trong mức cho phép, có thể tăng ngân sách.' : lv === 'mid' ? ': hơi cao, cần tối ưu chiến dịch đắt.' : ': quá cao so với mức cho phép. Giảm chiến dịch đắt, dồn tiền chiến dịch 🟢.') + '</p>' : '') +
-      '</div><p class="bar-legend">Tính từ ' + g.n + ' khách mua lần đầu từ ' + L.from.split('-').reverse().join('/') + ' đến ' + L.to.split('-').reverse().join('/') + ' (đã đủ 3 tháng để xem họ mua lại)' + (g !== L ? ', nguồn Facebook Ads' : '') + '. Cập nhật mỗi ngày.</p>';
-    return { h: h, lv: lv, cap: cap, line: 'Nên chi tối đa ' + moneyShort(cap) + ' / khách mới' + (cpn ? ' · đang chi ' + moneyShort(cpn) + ' ' + DASH_LV[lv] : '') };
+      metric('1 khách mang về trong 12 tháng', moneyShort(Y.avg), 'Lãi gộp khoảng ' + moneyShort(gpY) + '. Đơn đầu ' + moneyShort(Y.first) + ', các lần mua lại thêm ' + moneyShort(Math.max(0, Y.avg - Y.first)) + '.', '') +
+      metric('Khách mua đơn thứ 2', Y.rep + '%', 'Cứ 100 khách mới có ' + Y.rep + ' người quay lại mua trong 12 tháng. Tăng số này là tăng được mức chi.', '') +
+      metric('Khách gần đây mua lại trong 3 tháng', g.rep + '%', 'Khách mua lần đầu ' + d8(L.from) + '–' + d8(L.to) + ', mỗi người mang về ' + moneyShort(g.avg) + ' trong 3 tháng.', '') +
+      '</div><div class="box mk-ltv ' + lv + '"><p>🎯 <b>Chi phí để có 1 khách mới</b></p>' +
+      '<p>🟢 Tốt: dưới <b>' + moneyShort(good) + '</b> (lãi 12 tháng gấp 3 lần tiền bỏ ra) → tăng ngân sách được.<br>' +
+      '🟠 Trần: tới <b>' + moneyShort(cap) + '</b> (= lãi gộp đơn đầu, khách mua 1 lần là hoà vốn quảng cáo).<br>' +
+      '🔴 Quá ' + moneyShort(cap) + ': lỗ ngay đơn đầu, phải chờ khách mua lại mới gỡ → cắt chiến dịch đắt.</p>' +
+      (cpn ? '<p>' + DASH_LV[lv] + ' Kỳ này đang chi <b>' + moneyShort(cpn) + '</b> cho 1 khách mới' + (lv === 'ok' ? ': tốt, có thể tăng ngân sách cho chiến dịch 🟢.' : lv === 'mid' ? ': chưa lỗ nhưng còn cao, tối ưu chiến dịch đắt.' : ': vượt trần. Giảm chiến dịch đắt, dồn tiền chiến dịch 🟢, và nhắc sale chăm khách mới để họ mua đơn thứ 2.') + '</p>' : '') +
+      '</div><p class="bar-legend">12 tháng: tính từ ' + Y.n + ' khách mua lần đầu ' + d8(L.y.from) + '–' + d8(L.y.to) + (Y !== L.y ? ' (nguồn Facebook Ads)' : '') + '. Lãi gộp ≈ ' + Math.round(M.m * 100) + '% doanh thu (đã trừ giá vốn ' + oneDec(M.c * 100) + '%, hoa hồng, ship, hoàn), chưa trừ lương cứng, mặt bằng. Cập nhật mỗi ngày.</p>';
+    return { h: h, lv: lv, cap: cap, sub: '🟢 dưới ' + moneyShort(good) + ' · trần ' + moneyShort(cap) + ' (lãi gộp đơn đầu)', line: 'Tốt dưới ' + moneyShort(good) + ', trần ' + moneyShort(cap) + ' / khách mới' + (cpn ? ' · đang chi ' + moneyShort(cpn) + ' ' + DASH_LV[lv] : '') };
   }
   /** 💰 Ngân sách quảng cáo tháng này: đã chi / ngân sách, vạch "hôm nay", cứ đà này cuối tháng chi bao nhiêu. */
   function mkBudgetCalc(b) {
@@ -10997,7 +11011,7 @@
     var ad = mj.ad; if (ad && ad.idle >= 3) L.push({ p: 2, t: '⏳ <b>' + ad.idle + ' số điện thoại</b> từ hôm qua trở về trước sale chưa ghi kết quả gọi. Nhắc sale gọi ngay: để lâu khách nguội, phí tiền quảng cáo.' });
     if (ad && ad.n >= 20 && ad.junk * 100 / ad.n >= 15) L.push({ p: 3, t: '🗑 ' + pct(ad.junk, ad.n) + '% số điện thoại là số rác: xem lại đối tượng / mẫu form quảng cáo.' });
     if (ctx.bud && ctx.bud.lv !== 'ok') L.push({ p: 4, t: '💰 ' + ctx.bud.txt });
-    if (ctx.ltv && ctx.ltv.lv === 'bad') L.push({ p: 2, t: '💎 Đang chi quá ' + moneyShort(ctx.ltv.cap) + ' (mức tối đa) để có 1 khách mới. <button class="link" data-dgo="mk-ltv">Xem</button>' });
+    if (ctx.ltv && ctx.ltv.lv === 'bad') L.push({ p: 2, t: '💎 Đang chi quá trần ' + moneyShort(ctx.ltv.cap) + ' (lãi gộp đơn đầu) để có 1 khách mới. <button class="link" data-dgo="mk-ltv">Xem</button>' });
     var P = (mj.prod || []).filter(function (p) { return p.k && !/^Ebook/.test(p.k) && p.sp >= 1e6; });
     P.filter(function (p) { return adsLv(p.sp, p.rev) === 'bad'; }).slice(0, 1).forEach(function (p) { L.push({ p: 3, t: '🧴 Quảng cáo <b>' + esc(p.k) + '</b> chi phí cao: chi ' + moneyShort(p.sp) + ', khách mới mua ' + moneyShort(p.rev) + '.' }); });
     (ctx.more || []).forEach(function (x) { L.push(x); });
@@ -11415,7 +11429,7 @@
       '</div><p class="mk-row-l">📇 Số điện thoại &amp; khách</p><div class="dash-tiles mk3">' +
       dashTile('data', kpGoal().sdt && cpd ? kpLv(cpd, kpGoal().sdt, 0, 0) : up(cpd, cpdP), '📇 Giá 1 số điện thoại', cpd ? moneyShort(cpd) : '–', cpd && cpdP ? inv(delta(cpd, cpdP)) : '', ad ? ad.n.toLocaleString('vi-VN') + ' số điện thoại khách để lại' + (kpGoal().sdt ? ' · tốt: dưới ' + moneyShort(kpGoal().sdt) : '') + (adp && adp.n ? ' · ' + CMP_LABEL + ' ' + moneyShort(cpdP) + ' / số' : '') : 'Chưa có file số quảng cáo', ksk(trendRateNZ(kSp, kAn), true)) +
       dashTile('sale', wr === null ? '' : wr >= 25 ? 'ok' : wr >= 15 ? 'mid' : 'bad', '🛒 100 số thì mấy người mua?', wr === null ? '–' : wr + '%', ad ? delta(wr, adp && adp.n ? pct(adp.won, adp.n) : null, 'rate') : '', ad ? 'Cứ 100 số có ' + wr + ' người mua · ' + ad.won + ' / ' + ad.n + ' · tốt: từ 25%' : 'Chưa có file số quảng cáo') +
-      dashTile('ltv', LT.cap && cpn ? LT.lv : up(cpn, newNp && totp ? Math.round(totp / newNp) : 0), '👤 Chi phí có 1 khách mới', cpn ? moneyShort(cpn) : '–', cpn && newNp && totp ? inv(delta(cpn, Math.round(totp / newNp))) : '', LT.cap ? 'Nên dưới ' + moneyShort(LT.cap) + ' (= ' + A[0] + '% tiền 1 khách mua trong 3 tháng)' : newN + ' khách mới', ksk(trendRateNZ(kSp, kNn), true)) +
+      dashTile('ltv', LT.cap && cpn ? LT.lv : up(cpn, newNp && totp ? Math.round(totp / newNp) : 0), '👤 Chi phí có 1 khách mới', cpn ? moneyShort(cpn) : '–', cpn && newNp && totp ? inv(delta(cpn, Math.round(totp / newNp))) : '', LT.sub || newN + ' khách mới', ksk(trendRateNZ(kSp, kNn), true)) +
       '</div></section>';
     var GB = mkGoalBlock(gKey === key ? mj : gm, mj), BH = mkBudgetBlock(mj.budget);
     var FN = mkFunnel(mj, nr, newN), BC = mkBudgetCalc(mj.budget), SB = mkSaleBlock(mj), CB = mkCampBlock(mj, f), PB = mkProdBlock(mj);

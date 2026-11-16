@@ -83,7 +83,7 @@ Màn hình xếp theo đúng thứ tự làm việc, đọc từ trên xuống (
 | 🚦 Chi phí / tiền khách mới | Chi phí so với tiền khách mới | Thấp hơn mục tiêu % |
 | 📇 Giá 1 số điện thoại | Chi bao nhiêu để có 1 số điện thoại | Dưới 300k |
 | 🛒 100 số thì mấy người mua? | 100 số thì mấy người mua | Từ 25 người |
-| 👤 Chi phí có 1 khách mới | Chi bao nhiêu để có 1 khách mới | Thấp hơn mức tối đa |
+| 👤 Chi phí có 1 khách mới | Chi bao nhiêu để có 1 khách mới | 🟢 dưới mức tốt, không quá trần (lãi gộp đơn đầu) |
 
 Dân marketing hay gọi 1 số điện thoại khách để lại là **"data"**. Trong CRM ghi thẳng là **số điện thoại** cho dễ hiểu. **Đèn:** 🟢 tốt · 🟠 cần để ý · 🔴 cần xử lý. Ô chi phí *đang xuống* là tốt.
 
@@ -229,7 +229,7 @@ File không đọc được: chụp màn hình gửi Quản trị. File .xls cũ
 Phần dưới màn hình là **4 câu hỏi** theo đúng thứ tự người làm marketing cần trả lời. Dưới mỗi câu hỏi có **câu trả lời ngắn** (đèn 🟢🟠🔴). Câu nào đèn đỏ thì bấm mở các mục bên dưới để tìm nguyên nhân.
 
 1. **💰 Tiền quảng cáo có lời không?** Bỏ 1đ quảng cáo, khách mới mua bao nhiêu đ.
-   - 📊 Kênh nào bỏ 1 đồng thu về nhiều nhất · 📈 Hiệu quả đang tốt lên hay kém đi · 💎 Được chi tối đa bao nhiêu để có 1 khách mới · 🎯 Mỗi kênh đạt bao nhiêu % mục tiêu.
+   - 📊 Kênh nào bỏ 1 đồng thu về nhiều nhất · 📈 Hiệu quả đang tốt lên hay kém đi · 💎 Được chi tối đa bao nhiêu để có 1 khách mới (1 khách mang về bao nhiêu tiền trong 12 tháng, mức 🟢 tốt và mức trần) · 🎯 Mỗi kênh đạt bao nhiêu % mục tiêu.
 2. **📣 Quảng cáo nào tốt, quảng cáo nào dở?**
    - 🎬 Tính cả kỳ: chiến dịch nào nên tăng, nên tắt (gồm cả chiến dịch đã tắt) · 🧴 Sản phẩm nào chạy quảng cáo có lời · 🪜 Khách rơi rụng ở bước nào (thấy → bấm → nhắn → để số → mua).
 3. **📇 Số điện thoại về sale có ra đơn không?**
@@ -281,3 +281,18 @@ Duyệt bài đăng nhóm, gửi tin vào nhóm, xử lý ca khó: trang **[Tr�
 | Tần suất | 1 người thấy quảng cáo mấy lần / 7 ngày (trên 2,5 là khách ngán) |
 | Ngân sách | Tiền cho quảng cáo chạy mỗi ngày |
 | UTM | Đuôi gắn vào link để biết khách đến từ bài nào |
+
+### 💎 1 khách đáng bao nhiêu, được chi tối đa bao nhiêu? (từ 16/11/2026)
+
+Câu dễ nhớ: **Chi để có 1 khách mới không quá tiền lãi của đơn đầu tiên.**
+
+Mở mục **💎 Được chi tối đa bao nhiêu để có 1 khách mới?** ở tab Marketing:
+
+1. **1 khách mang về trong 12 tháng**: tiền trung bình 1 khách mới mua trong 12 tháng đầu (đơn đầu + các lần mua lại), kèm tiền lãi gộp.
+2. **Khách mua đơn thứ 2**: cứ 100 khách mới có bao nhiêu người quay lại. Số này tăng thì mức được chi cũng tăng.
+3. **3 mức chi cho 1 khách mới**:
+   - 🟢 **Tốt**: dưới mức này thì lãi 12 tháng gấp 3 lần tiền quảng cáo → được tăng ngân sách.
+   - 🟠 **Trần**: bằng tiền lãi đơn đầu. Khách mua 1 lần là đủ bù tiền quảng cáo.
+   - 🔴 **Quá trần**: lỗ ngay đơn đầu → cắt chiến dịch đắt, dồn tiền cho chiến dịch 🟢.
+
+CRM tự tính lại mỗi ngày từ đơn thật. Tiền lãi gộp đã trừ giá vốn (theo file kế toán gần nhất), hoa hồng, ship, hàng hoàn; chưa trừ lương cứng và mặt bằng.
