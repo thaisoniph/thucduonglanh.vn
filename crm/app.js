@@ -5291,7 +5291,10 @@
   function nsvLoad() {
     var mo = shiftMonth(monthOf(Date.now()), -1);
     if (NSV.busy || (NSV.d && NSV.m === mo && Date.now() - NSV.at < 600e3)) return; NSV.busy = true;
-    api('kt_luong', { op: 'list', month: mo }).then(function (j) { NSV.d = j; }, function () { NSV.d = { staff: [], cfg: {}, err: 1 }; })
+    // 16/11/2026 anh Sơn: lương back office tự theo 👥 Bảng lương tháng kế toán nhập → lấy 6 tháng gần nhất
+    var ms6 = [0, 1, 2, 3, 4, 5].map(function (i) { return shiftMonth(mo, -i); }), rows = {};
+    Promise.all(ms6.map(function (m) { return api('kt_luong', { op: 'list', month: m }).then(function (j) { rows[m] = j.row; if (m === mo) NSV.d = j; }, function () { if (m === mo) NSV.d = { staff: [], cfg: {}, err: 1 }; }); }))
+      .then(function () { if (NSV.d) NSV.d.rows = rows; })
       .then(function () { NSV.busy = false; NSV.m = mo; NSV.at = Date.now(); NSV_C = {}; if (route().view === 'tong-quan') softRender(true); });
   }
   function nsvLv(r, x) { return r === null ? '' : r >= x ? 'ok' : r >= 1 ? 'mid' : 'bad'; }
@@ -5382,7 +5385,24 @@
     var sup = [], KIND = { 'Quản lý': 'mgr', 'Kế toán': 'kt', 'Kho': 'kho', 'Marketing': 'mkt' };
     users.forEach(function (u) {
       if (u.active === false || u.ctv || !KIND[u.role]) return; var st = stOf(u.name) || staff.filter(function (q) { return q.name === u.full; })[0] || null;
-      sup.push({ name: u.name, crm: u.name, u: u, k: KIND[u.role], st: st, cost: extra(st, false), isNew: !!ppJoinTs(u.joined) && now - ppJoinTs(u.joined) < 61 * DAY });
+      sup.push({ name: u.name, crm: u.name, u: u, k: KIND[u.role], st: st, cost: 0, isNew: !!ppJoinTs(u.joined) && now - ppJoinTs(u.joined) < 61 * DAY });
+    });
+    /* Lương back office từng tháng, ưu tiên: ① 👥 Bảng lương tháng kế toán đã nhập công (tổng thu nhập + BH công ty đóng) → ② file bảng lương tải lên (tổng bộ phận ÷ số người)
+     * → ③ mức lương ở 👥 Bảng lương (kế toán hoặc anh Sơn nhập 1 lần). Không có gì → ô nhập nhanh. */
+    var DEPT = { mgr: 'Quản lý', kt: 'Kế toán', kho: 'Kho', mkt: 'Marketing' }, rows = (NSV.d && NSV.d.rows) || {}, cfg = (NSV.d && NSV.d.cfg) || {};
+    sup.forEach(function (z) {
+      var t = 0, c = 0, src = {};
+      M.forEach(function (Mi) {
+        var v = 0, r = rows[Mi.m], pf = payMonth(Mi.m);
+        if (z.st && r && r.inp && r.inp[z.st.name] && r.inp[z.st.name].cong != null) {
+          var sv = LGT.d; LGT.d = { cfg: cfg, row: r, staff: staff }; try { var q = lgtCalc(z.st, Mi.m); v = q.gross + Math.round((z.st.bh || 0) * NSV_BH); } catch (e) { v = 0; } LGT.d = sv;
+          if (v > 0) src.th = 1;
+        }
+        if (!v && pf && pf.kind === 'luong') { var dp = (pf.dept || []).filter(function (d) { return d[0] === DEPT[z.k]; })[0]; if (dp && dp[1]) { v = dp[2] / dp[1]; src.file = 1; } }
+        if (!v && z.st) { v = extra(z.st, false); if (v > 0) src.muc = 1; }
+        if (v > 0) { t += v; c++; }
+      });
+      z.cost = c ? t / c : 0; z.src = src.th ? 'Bảng lương tháng kế toán nhập' : src.file ? 'file bảng lương kế toán gửi (trung bình bộ phận ' + DEPT[z.k] + ')' : src.muc ? 'mức lương ở 👥 Bảng lương' : '';
     });
     var supAll = sup.length && sup.every(function (z) { return z.cost > 0; }), BOP = supAll ? sup.reduce(function (a, z) { return a + z.cost; }, 0) : null;
     /* 🏢 Chia chi phí chung cho sale (15/11 góp ý của Ý, 16/11 anh Sơn tách 2 ô tích):
@@ -5504,10 +5524,10 @@
       : [s.k === 'kho' || s.k === 'kt' ? 'Thuê ngoài mất' : 'Làm ra', nsvSign(s.val), 'Chi phí', s.net === null ? 'Chênh' : s.net >= 0 ? 'Công ty lợi' : 'Công ty bù', s.net === null ? '–' : moneyShort(Math.abs(s.net))];
     var good = s.k === 'mgr' ? s.lv === 'ok' : s.net !== null && s.net >= 0;
     var lab = s.lv === 'nocost' ? 'Chưa có lương' : s.lv === 'new' ? NSV_TXT['new'] : s.k === 'mgr' ? (s.lv === 'ok' ? 'Nhóm gánh tốt lương quản lý' : s.lv === 'mid' ? 'Tạm ổn' : 'Lương quản lý cao so với kết quả nhóm') : s.k === 'mkt' ? NSV_TXT[s.lv] || '' : s.lv === 'ok' ? 'Rẻ hơn thuê ngoài' : s.lv === 'bad' ? 'Đắt hơn thuê ngoài' : 'Gần bằng thuê ngoài';
-    var inp = !(s.cost > 0) ? '<div class="nsv-pay"><label>Lương 1 tháng của ' + esc(s.name) + ' (gồm phụ cấp, BH công ty đóng)<input type="text" inputmode="numeric" placeholder="vd 8.000.000" data-nsvpay="' + esc(s.name) + '"></label><button class="btn sm pri" data-nsvpaysave="' + esc(s.name) + '">Lưu</button></div><p class="small muted" style="margin:2px 0 0">Lưu vào 👥 Bảng lương (kế toán sửa lại được).</p>' : '';
+    var inp = !(s.cost > 0) ? '<div class="nsv-pay"><label>Lương 1 tháng của ' + esc(s.name) + ' (gồm phụ cấp, BH công ty đóng)<input type="text" inputmode="numeric" placeholder="vd 8.000.000" data-nsvpay="' + esc(s.name) + '"></label><button class="btn sm pri" data-nsvpaysave="' + esc(s.name) + '">Lưu</button></div><p class="small muted" style="margin:2px 0 0">Kế toán chưa nhập lương người này. Khi kế toán nhập ở 💼 Kế toán → 👥 Bảng lương, số ở đây tự cập nhật; anh nhập tạm thì cũng lưu vào đó (kế toán sửa lại được).</p>' : '';
     return '<div class="nsv-r ' + s.lv + '"><div class="nsv-t"><b>' + NSV_ICO[s.lv] + ' ' + esc(s.name) + ' <small>(' + NSV_K[s.k] + ')</small></b><span>' + lab + '</span></div>' +
       '<div class="nsv-big"><span>' + top[0] + '<b>' + top[1] + '</b></span><span>' + top[2] + '<b>' + (s.cost > 0 ? moneyShort(s.cost) : '–') + '</b></span><span class="' + (s.cost > 0 ? good ? 'ok' : 'bad' : '') + '">' + top[3] + '<b>' + (s.cost > 0 ? top[4] : '–') + '</b></span></div>' +
-      '<p class="nsv-w">' + esc(s.how) + '</p>' + inp + '</div>';
+      '<p class="nsv-w">' + esc(s.how) + '</p>' + (s.src ? '<p class="nsv-s">Lương lấy tự động theo ' + esc(s.src) + '.</p>' : '') + inp + '</div>';
   }
   function nsvHtml() {
     nsvLoad();
@@ -12217,7 +12237,7 @@
       if (!(v >= 100000)) { toast('Nhập lương 1 tháng, ví dụ 8.000.000', true); return; }
       var u = (S.d.users || []).filter(function (z) { return z.name === nm; })[0] || {}, L = ((NSV.d || {}).staff || []).slice();
       L.push({ name: nm, dept: u.role || '', kind: 'fix', base: v, bh: 0, cc: 0, pa: [0, 0, 0], other: 0, on: true }); b.disabled = true;
-      api('kt_luong', { op: 'staff', list: L }).then(function (j) { NSV.d = j; NSV_C = {}; S.f.g.open.nsv = 1; toast('Đã lưu lương ' + nm + ' ✓'); render(); }, function (er) { b.disabled = false; toast(er.message, true); });
+      api('kt_luong', { op: 'staff', list: L }).then(function (j) { j.rows = (NSV.d || {}).rows; NSV.d = j; NSV_C = {}; S.f.g.open.nsv = 1; toast('Đã lưu lương ' + nm + ' ✓'); render(); }, function (er) { b.disabled = false; toast(er.message, true); });
     }; });
     var no = $('#nsvO'); if (no) no.onchange = function () { var v = lgtF(no.value); store('nsv_o', v >= 0 && v < 100 ? String(v) : null); NSV_C = {}; S.f.g.open.nsv = 1; render(); };
     var rl = $('#rpmL'); if (rl) rl.onchange = function () { var v = +String(rl.value).replace(/[^\d]/g, ''); store('rpm_L', v > 0 ? String(v) : null); RPM_C = {}; render(); };
