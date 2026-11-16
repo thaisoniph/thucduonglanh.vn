@@ -19,7 +19,7 @@ description: Mỗi tuần mỗi người chốt tối đa 3 việc trọng tâm,
 ## Mở Việc tuần ở đâu?
 
 - **Nút ✅ trên đầu màn hình** (cạnh 🔍 ❓ ⚙), màn nào cũng có. **Số đỏ** = số việc đang chờ bạn: việc mới cần nhận, việc quá hạn, việc đến lúc cập nhật, việc trong nhóm bạn theo dõi bị trễ hoặc cần hỗ trợ.
-- **Dòng ✅ Việc tuần** ở đầu màn hình đầu tiên: nói luôn việc gì cần làm. Bấm là mở.
+- **Nhãn ✅ Việc tuần** ở dòng lời chào trên cùng màn hình đầu tiên: nhãn tô cam là có việc cần bạn. Bấm nhãn để mở dòng Việc tuần, bấm tiếp là vào việc.
 - Màn **Thêm** → mục **Việc của tôi** (đầu danh sách).
 
 ## Ai xem được việc của ai

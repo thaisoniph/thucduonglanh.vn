@@ -16,7 +16,7 @@ description: Dòng 📣 Tin vui ở đầu CRM, nút 👏 Chúc mừng, ghi lờ
 
 ## Dòng 📣 Tin vui
 
-Dòng này nằm ở đầu màn hình đầu tiên của CRM. Cứ 7 giây nó đổi sang tin khác.
+Dòng này nằm trong khung lời chào trên cùng màn hình đầu tiên: bấm nhãn **📣 Tin vui** (hoặc bấm dòng lời chào) để mở. Cứ 7 giây nó đổi sang tin khác.
 
 ![Đọc tin (1), bấm Chúc mừng (2), xem cả các tin (3)](/huong-dan/img/bang-tin-dong.webp)
 

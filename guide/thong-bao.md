@@ -4,7 +4,7 @@ nav: Thông báo
 group: chung
 short: Đọc thông báo công ty, bấm Đã đọc
 order: 1.6
-updated: 2026-11-15
+updated: 2026-11-16
 description: Thông báo và văn bản quan trọng của công ty nằm ở đầu CRM. Đọc xong bấm ✅ Tôi đã đọc. Đọc trang này khoảng 3 phút.
 ---
 
@@ -12,7 +12,7 @@ description: Thông báo và văn bản quan trọng của công ty nằm ở đ
 
 > **Mỗi ngày chỉ cần:** thấy thẻ **📢 Thông báo** ở đầu CRM thì đọc, mở văn bản nếu có, rồi bấm **✅ Tôi đã đọc**.
 
-Vì sao? Trên Facebook, tin dễ bị trôi và không biết ai đã đọc. Trong CRM, tin luôn nằm ở đầu màn hình cho tới khi bạn đọc xong.
+Vì sao? Trên Facebook, tin dễ bị trôi và không biết ai đã đọc. Trong CRM, có tin chưa đọc thì dòng lời chào trên cùng hiện nhãn cam **📢 … thông báo mới** cho tới khi bạn đọc xong. Bấm nhãn là mở tin.
 
 | Việc | Xem ở đâu |
 | --- | --- |

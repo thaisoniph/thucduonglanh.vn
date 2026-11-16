@@ -3489,3 +3489,16 @@ details.dash-grp[open] > summary::after { transform: rotate(180deg); }
 .td-box .ktd-top { margin-bottom: 4px; }
 .td-hint { margin: 0 0 8px; font-size: 13px; color: var(--muted); }
 .td-info { font-size: 14px; color: var(--muted); margin: 8px 0 0; }
+/* ☀️ Gộp thẻ đầu trang (16/11/2026): 1 dòng chào + nhãn nhỏ, bấm mới mở */
+details.top-fold { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); margin: 0 0 14px; }
+details.top-fold > summary { list-style: none; cursor: pointer; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 10px 40px 10px 14px; position: relative; }
+details.top-fold > summary::-webkit-details-marker { display: none; }
+details.top-fold > summary::after { content: '▾'; position: absolute; right: 14px; top: 50%; margin-top: -11px; font-size: 18px; color: var(--muted); transition: transform .2s; }
+details.top-fold[open] > summary::after { transform: rotate(180deg); }
+.tf-hi { font-weight: 700; font-size: 16px; }
+.tf-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.tf-chips:empty { display: none; }
+.tf-chip { border: 1px solid var(--line); background: #f6f6f2; border-radius: 999px; padding: 4px 10px; font-size: 13px; cursor: pointer; color: var(--ink); }
+.tf-chip.hot { background: #fff4e5; border-color: #f0c27a; color: #8a4b00; font-weight: 600; }
+.tf-body { padding: 0 12px 12px; }
+.tf-body > * { margin-top: 10px; }

@@ -1220,7 +1220,7 @@
     var el = $('#view');
     var focusId = document.activeElement && document.activeElement.id, selStart = document.activeElement && document.activeElement.selectionStart;
     el.innerHTML = ({ 'hom-nay': viewToday, 'khach-hang': viewCustomers, 'don-hang': viewOrders, 'tiem-nang': viewLeads, 'bao-cao': viewReport, 'cai-dat': viewSettings, 'tong-quan': viewDash, san: viewSan, marketing: viewMkt, 'link-qr': viewLinks, 'tro-ly-zalo': viewZbot, 'zalo-sale': viewZsale, fanpage: viewFp, 'bai-web': viewBlog, 'noi-dung': viewIns, 'hoi-so-lieu': viewAsk, kho: viewKho, 'ke-toan': viewKtab, 'giao-viec': viewGv, 'tuyen-dung': viewTuy, 'nhan-su': viewHso, 'doi-ai': viewAit, them: viewMore })[v]();
-    if (v === homeView()) { btMount(el); htMount(el); snhMount(el); tbMount(el); vhMount(el); hiwMount(el); gvHomeMount(el); goalNag(); } // ☀️ lời chào + lời chúc trên cùng, ngay dưới là 🌿 điều văn hoá hôm nay (16/11/2026 liền mạch với lời chào), rồi 📢 Thông báo
+    if (v === homeView()) { btMount(el); htMount(el); snhMount(el); tbMount(el); vhMount(el); hiwMount(el); gvHomeMount(el); topFold(el); goalNag(); } // ☀️ lời chào + lời chúc trên cùng, ngay dưới là 🌿 điều văn hoá hôm nay (16/11/2026 liền mạch với lời chào), rồi 📢 Thông báo
     el.insertAdjacentHTML('beforeend', updatedLine());
     if (focusId && $('#' + focusId)) { var f = $('#' + focusId); f.focus(); try { f.setSelectionRange(selStart, selStart); } catch (e) { } }
     if (keepScroll) window.scrollTo(0, y); else window.scrollTo(0, 0);
@@ -14116,6 +14116,39 @@
   function hiwBday() { var w = S.vh && S.vh.day === vhDay() && S.vh.wish, b = w && w.bday; return b && b.length ? '🎂 Hôm nay là sinh nhật ' + b.join(', ') + '. Nhớ gửi lời chúc mừng nhé!' : ''; } // 🎂 sinh nhật đồng đội (ngày sinh ở Cài đặt → Nhân sự)
   function hiwMount(el) { var t = hiwText(); el.insertAdjacentHTML('afterbegin', '<div class="hiw-box"><p class="hiw-hi">' + hiGreet() + '</p><p class="hiw-wish" id="hiwLine"' + (t ? '' : ' hidden') + '>' + esc(t) + '</p><p class="hiw-bday" id="hiwBday"' + (hiwBday() ? '' : ' hidden') + '>' + esc(hiwBday()) + '</p></div>'); }
   function hiwPaint() { var b = $('#hiwLine'), t = hiwText(), c = $('#hiwBday'), d = hiwBday(); if (c && d) { c.textContent = d; c.hidden = false; } if (!b || !t) return; b.textContent = t; b.hidden = false; }
+  /* ---------- ☀️ Gộp thẻ đầu trang (16/11/2026, anh Sơn "Gộp gọn lại"): lời chào, Việc tuần, điều văn hoá, thông báo, sinh nhật, cập nhật thông tin, tin vui
+   * trước đây 6–7 thẻ chồng nhau đẩy 👉 Việc hôm nay xuống gần 1 màn điện thoại. Nay chỉ còn 1 dòng chào + nhãn nhỏ; nhãn tô màu = có việc cần bạn (tin chưa đọc,
+   * thông tin chưa điền, việc tuần chưa chốt). Bấm dòng / nhãn để mở. Các khung giữ nguyên id (btBox, tbBox…) nên tự vẽ lại khi có số mới, nhãn tự đếm lại (MutationObserver). */
+  var TF = { open: false, mo: null };
+  function topFold(el) {
+    var hi = $('.hiw-box', el), ids = ['gvHome', 'vhBox', 'tbBox', 'snhBox', 'htBox', 'btBox'];
+    var parts = ids.map(function (i) { return $('#' + i, el); }).filter(Boolean); if (!hi && !parts.length) return;
+    var d = document.createElement('details'); d.className = 'top-fold'; d.id = 'topFold'; if (TF.open) d.open = true;
+    d.innerHTML = '<summary><span class="tf-hi">' + hiGreet() + '</span><span class="tf-chips" id="tfChips"></span><span class="tf-arrow" aria-hidden="true"></span></summary><div class="tf-body"></div>';
+    el.insertBefore(d, el.firstChild);
+    var body = $('.tf-body', d); if (hi) { var g = $('.hiw-hi', hi); if (g) g.remove(); body.appendChild(hi); }
+    ['gvHome', 'vhBox', 'tbBox', 'snhBox', 'htBox', 'btBox'].forEach(function (i) { var x = $('#' + i, el); if (x) body.appendChild(x); });
+    d.addEventListener('toggle', function () { TF.open = d.open; });
+    $('#tfChips', d).addEventListener('click', function (e) {
+      var c = e.target.closest('[data-tfgo]'); if (!c) return; e.preventDefault(); d.open = true; TF.open = true;
+      var t = $('#' + c.getAttribute('data-tfgo')); if (t) setTimeout(function () { t.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 30);
+    });
+    tfChips();
+    if (TF.mo) TF.mo.disconnect(); if (window.MutationObserver) { TF.mo = new MutationObserver(function () { tfChips(); }); TF.mo.observe(body, { childList: true, subtree: true, characterData: true }); }
+  }
+  function tfChips() {
+    var box = $('#tfChips'); if (!box) return;
+    var has = function (i) { var x = $('#' + i); return x && x.textContent.trim() ? x : null; }, C = [];
+    var chip = function (id, txt, hot) { C.push('<button type="button" class="tf-chip' + (hot ? ' hot' : '') + '" data-tfgo="' + id + '">' + txt + '</button>'); };
+    var tb = has('tbBox'); if (tb) { var m = (tb.textContent.match(/(\d+) tin chưa đọc/) || [])[1]; chip('tbBox', m ? '📢 ' + m + ' thông báo mới' : '📢 Thông báo', !!m); }
+    var pf = has('htBox'); if (pf) chip('htBox', '📝 Điền thông tin', true);
+    var gv = has('gvHome'); if (gv) { var gh = $('.gv-home', gv); chip('gvHome', '✅ Việc tuần', !!(gh && gh.classList.contains('hot'))); }
+    if (has('vhBox')) chip('vhBox', '🌿 Điều hôm nay', false);
+    if (has('snhBox')) chip('snhBox', '🎂 Sinh nhật', false);
+    if (has('btBox')) chip('btBox', '📣 Tin vui', false);
+    var bd = $('#hiwBday'); if (bd && !bd.hidden) C.unshift('<button type="button" class="tf-chip hot" data-tfgo="hiwBday">🎂 Sinh nhật đồng đội</button>');
+    var html = C.join(''); if (box.innerHTML !== html) box.innerHTML = html;
+  }
   function hiGreet() {
     var hr = new Date(Date.now() + 7 * 3600e3).getUTCHours(), g = hr < 11 ? ['Chào buổi sáng', '🌞'] : hr < 13 ? ['Chào buổi trưa', '☀️'] : hr < 18 ? ['Chào buổi chiều', '🌤️'] : ['Chào buổi tối', '🌙'];
     return g[0] + ', ' + esc(S.user.name) + ' ' + g[1];
