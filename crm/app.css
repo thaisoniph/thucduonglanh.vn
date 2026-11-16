@@ -3330,3 +3330,19 @@ details.dash-grp[open] > summary::after { transform: rotate(180deg); }
 .gv-home-ic { font-size: 22px; }
 .gv-home-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .gv-home-t small { font-size: 13px; color: var(--text); }
+
+/* 📦 Kho hôm nay cho sale (16/11/2026) */
+.kss-b { padding: 8px 12px 12px; }
+.kss-g { border-radius: var(--radius-sm); padding: 8px 10px; margin-top: 8px; }
+.kss-push { background: var(--primary-soft); }
+.kss-low { background: var(--red-light); }
+.kss-ok { background: var(--bg); }
+.kss-h { margin: 0 0 4px; font-weight: 600; }
+.kss-h small { font-weight: 400; color: var(--muted); margin-left: 4px; }
+.kss-g ul { list-style: none; margin: 0; padding: 0; }
+.kss-g li { padding: 5px 0; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 2px 8px; align-items: baseline; }
+.kss-g li:first-child { border-top: 0; }
+.kss-g li span { flex-basis: 100%; color: var(--text); font-size: 14px; }
+.kss-g li small { flex-basis: 100%; color: var(--muted); }
+.kss-f { margin: 8px 0 0; }
+.kss-hint { background: var(--orange-light); border-radius: var(--radius-sm); padding: 8px 10px; margin-top: 8px; line-height: 1.5; }

@@ -1824,6 +1824,7 @@
     // 16/11/2026 anh Sơn: không hiện "còn 81 việc" + danh sách dài nữa. Màn chính = khung giờ đang làm + lượt 5 khách (tdsHero/tdsBatch).
     var h = tdsHero(items, q, growOn, gn);
     h += '<section class="section tds-more">' + todayGoalLine() + '<div class="td-jump"><button type="button" data-gopen="tdgoal"' + raceHeroAttr() + '>' + raceHero() + '</button>' + (growOn ? '<button type="button" data-gopen="grow">🌱 Mở rộng khách ' + gn + '/5 ›</button>' : '') + '</div></section>';
+    h += khoSaleBlock(); // 📦 Kho hôm nay (16/11/2026)
     h += tdsPlan();
     if (items.length) {
       var chips = TD_F.filter(function (c) { return cnt[c[0]]; });
@@ -3508,7 +3509,7 @@
       '<div class="box"><h3>② Sản phẩm <span class="muted small" style="font-weight:400">· bấm để thêm, bấm lại để tăng số lượng</span></h3><div class="chips wrap" id="noChips"></div>' +
       '<div class="items" id="noItems">' + (sItems.length ? sItems.map(function (i) { return row('prod', i); }).join('') : row('prod')) + '</div>' +
       '<div class="steps" style="margin-top:8px"><button type="button" class="btn" id="noAdd">＋ Sản phẩm khác</button><button type="button" class="btn" id="noAddGift">🎁 Thêm quà</button></div>' +
-      '<div class="items" id="noGifts" style="margin-top:8px">' + sGifts.map(function (i) { return row('gift', i); }).join('') + '</div></div>' +
+      '<div class="items" id="noGifts" style="margin-top:8px">' + sGifts.map(function (i) { return row('gift', i); }).join('') + '</div><p class="hint kss-hint" id="noKho" hidden></p></div>' +
       '<div class="box"><h3>③ Tiền & giao hàng</h3><label class="f"><span>Số tiền thu khách *</span><input type="text" name="total" inputmode="decimal" autocomplete="off" placeholder="vd 1800000 hoặc 1tr8" value="' + (eo ? eo.total : '') + '"></label><p class="hint" id="noTotalHint"></p>' +
       '<div class="no-sum" id="noSum"' + (sumMini ? '' : ' hidden') + '><span id="noSumT"></span><button type="button" class="btn sm" id="noSumEdit">✏️ Sửa</button></div>' + // khách cũ: thanh toán / vận chuyển / phí ship / mã đơn như mọi lần → 1 dòng, bấm Sửa mới mở
       '<div id="noShipBox"' + (sumMini ? ' hidden' : '') + '>' +
@@ -3715,6 +3716,7 @@
       var tot = moneyIn(F.total.value);
       $('#noTotalHint', m).innerHTML = (tot ? '= <b>' + money(tot) + '</b>' : F.total.value.trim() ? '= <b>0đ</b> (gửi bù / tặng quà)' : '') + (base ? ' · giá niêm yết ' + money(base) + (tot && tot - ship !== base ? ' (bạn đang bán ' + (tot - ship > base ? 'cao' : 'thấp') + ' hơn ' + money(Math.abs(tot - ship - base)) + ')' : '') : '');
       $('#noShip', m).textContent = shipLine(ls, gs) || 'chưa có sản phẩm';
+      var kh = $('#noKho', m), kt = khoSaleHint(ls.concat(gs)); if (kh) { kh.innerHTML = kt; kh.hidden = !kt; } // 📦 nhắc hết / sắp hết hàng (16/11/2026)
       $('#noSave', m).textContent = (eo ? 'Lưu đơn' : 'Lưu & copy lên đơn') + (tot ? ' · ' + money(tot) : '');
       optSum(); sumSync();
     }
@@ -15612,6 +15614,55 @@
   var KHO_DAYS = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
   var KHO_WHY_IC = { 'Quà tặng': '🎁', 'Đại lý / bán sỉ': '🏪', 'Livestream / sự kiện': '📺', 'Hàng mẫu': '🧪', 'Hàng hỏng / hết hạn': '💔', 'Khác': '📝' };
   function khoCan() { return !isMkt() && (lvl() >= 2 || !!(S.user && S.user.kho)); }
+  /* ---- 📦 Kho cho sale (16/11/2026, anh Hiệp + anh Sơn): sale biết sản phẩm nào còn nhiều để ưu tiên tư vấn, sản phẩm nào sắp hết để báo khách trước.
+   *  Số lấy từ máy chủ (kho_sale, chỉ sản phẩm đã đếm kho, không có giá). Nhóm: hết (còn 0) → sắp hết (đủ bán ≤ 14 ngày)
+   *  → 💚 nên ưu tiên (⭐ kho gắn, hoặc đủ bán ≥ 60 ngày, hoặc 30 ngày chưa bán) → 🟢 đủ hàng. */
+  var KS_LOW = 14, KS_MANY = 60;
+  function khoSaleList() { return (S.d && S.d.khoSale && S.d.khoSale.list) || []; }
+  function khoSaleGrp(s) { return s.a <= 0 ? 'out' : s.d !== null && s.d <= KS_LOW ? 'low' : s.st || s.d === null || s.d >= KS_MANY ? 'push' : 'ok'; }
+  function khoSaleDays(s) { return s.d === null ? ' · 30 ngày qua bán chậm' : ' · đủ bán ~' + s.d + ' ngày'; }
+  function khoSaleEta(s) { return s.eta ? 'hàng về ~' + fDate(s.eta).slice(0, 5) : 'chưa có ngày hàng về'; }
+  /** Tên hàng trong đơn → sản phẩm kho (cùng cách đọc loại + trọng lượng như máy chủ trừ kho). Trả { s, m: số hộp trong 1 suất } hoặc null. */
+  function khoSaleFind(t) {
+    var L = khoSaleList(); if (!L.length) return null;
+    var k = costKey(t); if (!k.f) return null;
+    var c = L.filter(function (s) { return s.f === k.f; }); if (!c.length) return null;
+    var hit = c.filter(function (s) { return s.w === k.w; })[0] || (!k.w ? c.slice().sort(function (a, b) { return b.w - a.w; })[0] : null) || (c.length === 1 && !c[0].w ? c[0] : null);
+    return hit ? { s: hit, m: k.m || 1 } : null;
+  }
+  /** Thẻ 📦 Kho hôm nay ở tab Hôm nay: dòng tóm tắt luôn thấy, bấm mở chi tiết. */
+  function khoSaleBlock() {
+    var L = khoSaleList(); if (!L.length) return '';
+    var G = { out: [], low: [], push: [], ok: [] };
+    L.forEach(function (s) { G[khoSaleGrp(s)].push(s); });
+    G.push.sort(function (a, b) { return b.st - a.st || (b.d === null ? 1e9 : b.d) - (a.d === null ? 1e9 : a.d); });
+    var bad = G.out.concat(G.low), nm = function (a) { return a.map(function (s) { return (s.st ? '⭐ ' : '') + esc(s.n); }).join(', '); };
+    var tip = [G.push.length ? '💚 Nên tư vấn: ' + nm(G.push.slice(0, 3)) + (G.push.length > 3 ? '…' : '') : '', bad.length ? '🔴 Sắp hết: ' + nm(bad) : ''].filter(Boolean).join('<br>') || '🟢 Sản phẩm nào cũng đủ hàng';
+    var li = function (s, kind) {
+      var main = kind === 'out' ? '<b>đã hết</b> · ' + khoSaleEta(s) : 'còn ' + s.a + ' ' + esc(s.u) + khoSaleDays(s) + (kind === 'low' ? ' · ' + khoSaleEta(s) : '');
+      return '<li><b>' + (s.st ? '⭐ ' : '') + esc(s.n) + '</b><span>' + main + '</span>' + (s.sn ? '<small>📝 ' + esc(s.sn) + '</small>' : '') + '</li>';
+    };
+    var h = '<section class="section"><details class="grp kss" data-grp="khosale"' + (S.f.gopen && S.f.gopen.khosale ? ' open' : '') + '><summary><span class="g-t">📦 Kho hôm nay</span><span class="g-tip">' + tip + '</span></summary><div class="kss-b">';
+    if (G.push.length) h += '<div class="kss-g kss-push"><p class="kss-h">💚 Nên ưu tiên tư vấn <small>còn nhiều hàng' + (G.push.some(function (s) { return s.st; }) ? ', ⭐ = kho nhờ đẩy bán' : '') + '</small></p><ul>' + G.push.map(function (s) { return li(s, 'push'); }).join('') + '</ul></div>';
+    if (bad.length) h += '<div class="kss-g kss-low"><p class="kss-h">🔴 Sắp hết / đã hết <small>báo khách trước, hẹn ngày giao, gợi ý sản phẩm khác</small></p><ul>' + G.out.map(function (s) { return li(s, 'out'); }).concat(G.low.map(function (s) { return li(s, 'low'); })).join('') + '</ul></div>';
+    if (G.ok.length) h += '<div class="kss-g kss-ok"><p class="kss-h">🟢 Đủ hàng, bán bình thường</p><ul>' + G.ok.map(function (s) { return li(s, 'ok'); }).join('') + '</ul></div>';
+    return h + '<p class="small muted kss-f">Số kho tự trừ theo đơn sale lên. Sản phẩm kho chưa đếm thì chưa hiện ở đây.</p></div></details></section>';
+  }
+  /** Form lên đơn: nhắc ngay khi sản phẩm đã hết / sắp hết / đơn cần nhiều hơn số còn. */
+  function khoSaleHint(lines) {
+    var seen = {}, out = [];
+    lines.forEach(function (i) {
+      var t = i.name + (i.variant ? ' (' + i.variant + ')' : ''), r = khoSaleFind(t); if (!r) return;
+      var s = r.s, need = (seen[s.n] || 0) + i.qty * r.m; seen[s.n] = need;
+    });
+    Object.keys(seen).forEach(function (n) {
+      var s = khoSaleList().filter(function (x) { return x.n === n; })[0], need = seen[n], g = khoSaleGrp(s);
+      if (g === 'out') out.push('⚠️ <b>' + esc(s.n) + '</b>: kho <b>đã hết</b> · ' + khoSaleEta(s) + '. Báo khách trước khi chốt.');
+      else if (need > s.a) out.push('⚠️ <b>' + esc(s.n) + '</b>: đơn cần ' + need + ' ' + esc(s.u) + ', kho chỉ còn <b>' + s.a + '</b> · ' + khoSaleEta(s) + '.');
+      else if (g === 'low') out.push('🟠 <b>' + esc(s.n) + '</b>: kho còn ' + s.a + ' ' + esc(s.u) + khoSaleDays(s) + ', sắp hết. Gửi được, nhưng nhắc khách đặt sớm lần sau.');
+    });
+    return out.join('<br>');
+  }
   function khoCombos() { return (CFG.products || []).filter(function (p) { return p.parts && p.parts.length; }).map(function (p) { return [p.name, p.parts]; }); }
   function khoFetch() {
     if (KH.busy) return; KH.busy = true; KH.err = '';
@@ -15860,7 +15911,8 @@
   }
   function khoRow(s) {
     var n = s.have === null ? '–' : khoN(s.have);
-    return '<button class="kho-row kho-lv-' + s.lv + '" data-kho="det|' + esc(s.id) + '"><span class="kho-row-t"><b>' + esc(s.name) + '</b><small>' + KHO_IC[s.lv] + ' ' + esc(khoState(s)) + (s.wait ? ' · 🚚 ' + khoN(s.wait) + ' chờ gửi' : '') + '</small></span>' +
+    var st = KH.d && KH.d.star && KH.d.star[s.id];
+    return '<button class="kho-row kho-lv-' + s.lv + '" data-kho="det|' + esc(s.id) + '"><span class="kho-row-t"><b>' + (st ? '⭐ ' : '') + esc(s.name) + '</b><small>' + (st ? 'Nhờ sale đẩy bán' + (st.note ? ': ' + esc(st.note) : '') + ' · ' : '') + KHO_IC[s.lv] + ' ' + esc(khoState(s)) + (s.wait ? ' · 🚚 ' + khoN(s.wait) + ' chờ gửi' : '') + '</small></span>' +
       '<span class="kho-row-n"><b>' + n + '</b><small>' + (s.have === null ? 'chưa đếm' : esc(s.unit)) + '</small></span><span class="kho-chev" aria-hidden="true">›</span></button>';
   }
   function khoEmpty() {
@@ -15888,6 +15940,7 @@
     else if (a === 'poedit') openKhoPoEdit(+p[1]);
     else if (a === 'add') openKhoItem('');
     else if (a === 'edit') openKhoItem(p[1]);
+    else if (a === 'star') openKhoStar(p[1]);
     else if (a === 'map') openKhoMap(el.getAttribute('data-t'));
     else if (a === 'names') openKhoNames();
     else if (a === 'pos') openKhoPos();
@@ -15952,8 +16005,18 @@
     var body = '<div class="kho-det kho-lv-' + s.lv + '"><p class="kho-det-n">' + (s.have === null ? 'Chưa đếm' : 'Còn <b>' + khoN(s.have) + '</b> ' + u) + '</p><p class="kho-det-s">' + KHO_IC[s.lv] + ' ' + esc(khoState(s)) + '</p>' +
       (s.need ? '<p class="kho-todo-big">👉 Nên đặt ' + (s.short ? 'thêm ' : '') + '<b>' + khoN(s.sug) + ' ' + u + '</b></p>' : '') + '<ul class="kho-det-l">' + li.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul></div>' +
       '<div class="kho-det-b">' + (s.lv === 'nobase' ? bt('count|' + s.id, '🧮 Đếm sản phẩm này', 1) : '') + (s.need ? khoCallBtn(s).replace('class="btn kho-bt"', 'class="btn kho-bt block"') + bt('po|' + s.id, '✅ Tôi đã đặt hàng', 1) : '') + (po ? bt('in|' + s.id + '|' + po.id, '📥 Hàng đã về', !s.need) : bt('in|' + s.id, '📥 Hàng về kho')) +
-      bt('out|' + s.id, '📤 Lấy hàng ra (quà, đại lý…)') + (s.lv !== 'nobase' ? bt('count|' + s.id, '🧮 Đếm lại sản phẩm này') : '') + (!s.need ? bt('po|' + s.id, '🛒 Ghi đã đặt hàng') : '') + (po ? bt('poedit|' + po.id, '📅 Đổi ngày hẹn / huỷ lần đặt') : '') + bt('edit|' + s.id, '✏️ Sửa tên, số ngày giao, nhà cung cấp') + '</div>';
+      bt('star|' + s.id, KH.d.star && KH.d.star[s.id] ? '⭐ Đang nhờ sale đẩy bán · sửa / bỏ' : '⭐ Nhờ sale ưu tiên bán sản phẩm này') + bt('out|' + s.id, '📤 Lấy hàng ra (quà, đại lý…)') + (s.lv !== 'nobase' ? bt('count|' + s.id, '🧮 Đếm lại sản phẩm này') : '') + (!s.need ? bt('po|' + s.id, '🛒 Ghi đã đặt hàng') : '') + (po ? bt('poedit|' + po.id, '📅 Đổi ngày hẹn / huỷ lần đặt') : '') + bt('edit|' + s.id, '✏️ Sửa tên, số ngày giao, nhà cung cấp') + '</div>';
     var m = modal(esc(s.name), body, '<button class="btn block" data-close>Đóng</button>'); bindKho(m);
+  }
+  /** ⭐ Nhờ sale ưu tiên bán (16/11/2026): sản phẩm lên đầu mục 💚 Nên ưu tiên tư vấn ở tab Hôm nay của sale, kèm 1 dòng lý do. */
+  function openKhoStar(id) {
+    var s = khoStat(id); if (!s) return; var cur = (KH.d.star || {})[id];
+    var body = '<div class="kho-m"><p class="kho-todo-p" style="margin:0 0 10px">Sale sẽ thấy <b>⭐ ' + esc(s.name) + '</b> ở đầu mục <b>💚 Nên ưu tiên tư vấn</b> trong tab Hôm nay.</p>' +
+      '<label class="f"><span>Vì sao cần đẩy bán? (sale đọc được, không bắt buộc)</span><input type="text" id="kstNote" maxlength="120" value="' + esc(cur ? cur.note || '' : '') + '" placeholder="vd lô hạn dùng 03/2027, còn 200 hộp"></label>' +
+      (s.lv === 'nobase' ? '<p class="kho-note">⚠️ Sản phẩm này chưa đếm kho nên sale chưa thấy. Đếm kho xong là hiện.</p>' : '') + '<p class="err" id="kstErr"></p></div>';
+    var m = modal('⭐ Nhờ sale ưu tiên bán', body, (cur ? '<button class="btn" id="kstOff">Bỏ ⭐</button>' : '<button class="btn" data-close>Huỷ</button>') + '<button class="btn pri" id="kstSave">⭐ ' + (cur ? 'Lưu' : 'Gắn ⭐') + '</button>');
+    $('#kstSave', m).onclick = function () { khoDo('kho_star', { item: id, on: true, note: $('#kstNote', m).value }, this, $('#kstErr', m), 'Đã gắn ⭐ · sale thấy ở tab Hôm nay'); };
+    var off = $('#kstOff', m); if (off) off.onclick = function () { khoDo('kho_star', { item: id, on: false }, off, $('#kstErr', m), 'Đã bỏ ⭐'); };
   }
   function openKhoItem(id) {
     var it = id ? khoItem(id) : null, v = it || { name: '', unit: 'hộp', lead: '', safety: 7, cover: 30, min: 0, supplier: '', note: '' };

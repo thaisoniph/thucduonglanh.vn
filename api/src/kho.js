@@ -227,11 +227,12 @@ const vnH = t => new Date(t + 7 * 3600e3).getUTCHours();
 export async function khoCheck(x, opt) {
   opt = opt || {};
   const items = (await khoItems(x)).filter(i => i.active), now = Date.now();
-  if (!items.length) { await kvSet(x.db, 'kho_sum', JSON.stringify({ n: 0, at: now })); return { list: [], A: {} }; }
+  if (!items.length) { await kvSet(x.db, 'kho_sum', JSON.stringify({ n: 0, at: now })); await khoSaleSave(x, []); return { list: [], A: {} }; }
   const list = await khoStats(x, items), cnt = k => list.filter(s => s.lv === k).length;
   const sum = { n: list.length, need: list.filter(s => s.act).length, out: cnt('out'), late: list.filter(s => s.late).length, nobase: cnt('nobase'), at: now,
     top: list.filter(s => s.act || s.late || s.lv === 'out').slice(0, 5).map(s => [s.name, s.lv, s.left, s.unit]) };
   await kvSet(x.db, 'kho_sum', JSON.stringify(sum));
+  await khoSaleSave(x, list);
   const A0 = await kvJson(x.db, 'kho_alert', {}) || {}, A = {}, fresh = [];
   list.forEach(s => { if (s.act) { A[s.id] = A0[s.id] || { since: now }; if (!A0[s.id]) fresh.push(s); } });
   if (fresh.length && opt.notify !== false && vnH(now) >= 7 && vnH(now) < 21) {
@@ -243,6 +244,15 @@ export async function khoCheck(x, opt) {
   }
   if (JSON.stringify(A) !== JSON.stringify(A0)) await kvSet(x.db, 'kho_alert', JSON.stringify(A));
   return { list, A, sum };
+}
+/** 📦 Kho cho sale (16/11/2026, anh Hiệp + anh Sơn): bản rút gọn số kho để sale biết nên ưu tiên tư vấn sản phẩm nào (tab Hôm nay + nhắc khi lên đơn).
+ *  Chỉ sản phẩm đã đếm kho (chưa đếm thì số chưa đúng, không cho sale xem). Không có giá, không có nhà cung cấp.
+ *  kho_star: ⭐ Cần đẩy bán do người lo kho gắn (lô cận hạn, về nhiều hàng…) {mã sản phẩm: {note, by, at}}. */
+async function khoSaleSave(x, list) {
+  const star = await kvJson(x.db, 'kho_star', {}) || {};
+  const L = list.filter(s => s.lv !== 'nobase').map(s => { const k = khoKey(s.name), st = star[s.id]; return { n: s.name, u: s.unit, a: Math.max(0, Math.floor(s.avail)), d: s.left, eta: s.eta || null, st: st ? 1 : 0, sn: st ? st.note || '' : '', f: k.f, w: k.w }; });
+  const v = JSON.stringify({ list: L }), old = await kvJson(x.db, 'kho_sale', null);
+  if (!old || JSON.stringify({ list: old.list }) !== v) await kvSet(x.db, 'kho_sale', JSON.stringify({ list: L, at: Date.now() }));
 }
 /** 10 phút / lần (cron): cập nhật sổ hàng theo đơn mới; có thay đổi thì tính lại và báo ngay nếu vừa chạm mức. */
 export async function khoTick(x) {
@@ -309,7 +319,7 @@ async function khoLoad(x, u, d) {
   return { ok: true, list: chk.list, items: items.map(i => ({ id: i.id, name: i.name, unit: i.unit, lead: i.lead, safety: i.safety, cover: i.cover, min: i.min_qty, supplier: i.supplier, note: i.note, active: !!i.active, realLead: realLead[i.id] || [] })),
     pos: pos.map(p => ({ id: p.id, item: p.item, qty: r1(p.qty), got: r1(p.got), eta: p.eta, note: p.note, by: p.by_name, at: p.at, status: p.status, doneAt: p.done_at })),
     moves: moves.map(m => ({ id: m.id, item: m.item, kind: m.kind, qty: r1(m.qty), sys: m.sys === null ? null : r1(m.sys), reason: m.reason, note: m.note, po: m.po, by: m.by_name, at: m.at, made: m.made || m.at })),
-    names, manual: Object.keys(map).length, cfg: Object.assign({ countDay: 5 }, cfg || {}), reasons: KHO_REASONS, alert: chk.A,
+    names, manual: Object.keys(map).length, star: await kvJson(x.db, 'kho_star', {}) || {}, cfg: Object.assign({ countDay: 5 }, cfg || {}), reasons: KHO_REASONS, alert: chk.A,
     staff: P.staff.map(s => ({ name: s.name, tg: !!s.tg })), syncErr, ship: ship.map(khoRetOut), ret: ret.map(khoRetOut), got: got.map(khoRetOut), part: part.map(o => Object.assign(khoRetOut(o), { t: o.adj_type, out: o.adj_out || '', back: o.adj_back || '', kSent: o.adj_kho_sent || null, kSentBy: o.adj_kho_sent_by || '', trk2: o.adj_trk || '', snote: o.adj_note || '', adjAt: o.adj_at || null, kAt: o.adj_kho_at || null, kBy: o.adj_kho_by || '', kNote: o.adj_kho_note || '' })) };
 }
 /** ↩ Đơn hoàn cho tab Kho (09/11/2026): chỉ phần kho cần để khớp gói hàng (mã đơn, tên, 4 số cuối SĐT, hàng, hãng + mã vận đơn), không gửi địa chỉ / tiền. */
@@ -409,6 +419,14 @@ export async function crmKho(x, u, d, log) {
     const it = await itemOf(x, m.item);
     await log(x, u, 'Kho', '-', it ? it.name : m.item, 'Xoá dòng ' + ({ in: 'hàng về kho', out: 'lấy hàng ra', count: 'đếm kho' })[m.kind] + ' ' + nf(m.qty), fmtDate(m.at, 'HH:mm dd/MM'));
     return khoLoad(x, u, {});
+  }
+  if (a === 'kho_star') { // ⭐ Cần đẩy bán (16/11/2026): sale thấy sản phẩm này đầu mục 💚 Nên ưu tiên tư vấn
+    const it = await itemOf(x, d.item); if (!it) return { ok: false, error: 'Không tìm thấy sản phẩm này.' };
+    const star = await kvJson(x.db, 'kho_star', {}) || {}, note = String(d.note || '').replace(/\s+/g, ' ').trim().slice(0, 120);
+    if (d.on) star[it.id] = { note, by: u.name, at: now }; else delete star[it.id];
+    await kvSet(x.db, 'kho_star', JSON.stringify(star));
+    await log(x, u, 'Kho', '-', it.name, d.on ? '⭐ Gắn cần đẩy bán' : 'Bỏ ⭐ cần đẩy bán', note);
+    return khoLoad(x, u, {}); // khoLoad → khoCheck → khoSaleSave: sale thấy ngay lần tải sau
   }
   if (a === 'kho_cfg') {
     const cday = Number(d.countDay); if (!(cday >= -1 && cday <= 6)) return { ok: false, error: 'Ngày kiểm kho chưa đúng.' };

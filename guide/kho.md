@@ -29,6 +29,7 @@ Trang này dành cho **người lo kho**. Đọc khoảng 5 phút là làm đư�
 - **Thứ 6:** đếm kho → [Đếm kho cuối tuần](#dem-kho-cuoi-tuan-thu-6)
 - **Máy hỏi "tên hàng này là gì?":** → [Tên hàng máy chưa hiểu](#ten-hang-may-chua-hieu)
 - **Ghi nhầm số:** → [Ghi nhầm thì sao?](#ghi-nham-thi-sao)
+- **Muốn sale bán nhanh 1 sản phẩm** (lô sắp hết hạn, về nhiều hàng): gắn ⭐ → [Nhờ sale ưu tiên bán](#nho-sale-uu-tien-ban)
 
 ## Kho trên CRM giúp gì cho bạn?
 
@@ -135,6 +136,18 @@ Lấy hàng đi tặng, đưa đại lý, livestream, làm hàng mẫu, hàng h�
 4. Bấm **✅ Lưu: đã lấy ra**.
 
 Không ghi thì lần đếm kho sau sẽ thấy lệch.
+
+### ⭐ Nhờ sale ưu tiên bán
+
+Sale thấy số kho ở tab **Hôm nay** (khung **📦 Kho hôm nay**): sản phẩm còn nhiều, sắp hết, ngày hàng về. Muốn sale tập trung bán 1 sản phẩm:
+
+1. Bấm vào sản phẩm trong **📋 Hàng trong kho**.
+2. Bấm **⭐ Nhờ sale ưu tiên bán sản phẩm này**.
+3. Ghi lý do, vd *lô hạn dùng 03/2027, còn 200 hộp*. Bấm **⭐ Gắn ⭐**.
+
+Sản phẩm lên đầu mục **💚 Nên ưu tiên tư vấn** của sale. Bán bớt rồi thì vào lại, bấm **Bỏ ⭐**.
+
+Sale chỉ thấy sản phẩm **đã đếm kho**. Nên đếm đều thứ 6 hằng tuần để số sale thấy luôn đúng.
 
 ## ↩ Nhận hàng hoàn
 

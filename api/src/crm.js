@@ -598,15 +598,15 @@ async function loadSmall(x, u, R, mode, adV) {
   const adsP = adRowsOf(x, u, adV); adsP.catch(() => { });
   const areasP = u.level === 1 ? areaStats(x) : Promise.resolve(undefined); areasP.catch(() => { }); // quản lý đã có đủ khách → máy tự đếm
   const ktP = finOk(u) ? ktCfg(x) : Promise.resolve(null); ktP.catch(() => { });
-  const [ca, fbNew, prefs, tagColors, sources, ads, commission, sanOk, dash, qrLinks, mktDoc, cost, payplan, staffGuard, opex, fin, ktLink, kho] = await Promise.all([caCfg(x), // hỏi song song: mỗi lần hỏi máy chủ dữ liệu mất một nhịp
+  const [ca, fbNew, prefs, tagColors, sources, ads, commission, sanOk, dash, qrLinks, mktDoc, cost, payplan, staffGuard, opex, fin, ktLink, kho, khoSale] = await Promise.all([caCfg(x), // hỏi song song: mỗi lần hỏi máy chủ dữ liệu mất một nhịp
     u.level >= 2 ? first(x.db, "SELECT count(*) AS n FROM feedback WHERE status = 'Mới'").then(r => (r || {}).n || 0) : 0,
     prefsOf(x, u.email), allTagColors(x), u.level >= 3 ? srcList(x) : [], u.level >= 3 ? adsCfg(x) : null, kvJson(x.db, 'commission_cfg', {}).then(r => r || {}), sanAllowed(x, u).catch(() => false), kvJson(x.db, 'dash_cfg', {}).then(r => r || {}),
     all(x.db, 'SELECT code, name FROM links').then(r => r.map(l => [l.code, l.name])).catch(() => []),
     u.level >= 3 || u.role === 'Marketing' || u.mkv ? kvJson(x.db, 'mkt_doc', null).then(r => r || MKT_DOC_DEF) : null,
-    finOk(u) ? kvJson(x.db, 'cost_cfg', null) : null, kvJson(x.db, 'payplan_cfg', null).then(r => Object.assign({}, PAYPLAN, r || {})), u.level >= 3 ? kvJson(x.db, 'staff_guard', []).then(r => r || []) : [], finOk(u) ? kvJson(x.db, 'opex_cfg', {}).then(r => r || {}) : null, finOk(u) ? kvJson(x.db, 'fin_cfg', null).then(F => finFull(x, F)) : null, finOk(u) ? kvJson(x.db, 'kt_link', null) : null, u.level >= 2 || u.kho ? kvJson(x.db, 'kho_sum', null) : null]); // 💰 giá nhập sản phẩm: chỉ Quản trị (không nằm trong repo công khai) // 📍 tên link QR → nguồn đơn web hiện "📍 <tên>"
+    finOk(u) ? kvJson(x.db, 'cost_cfg', null) : null, kvJson(x.db, 'payplan_cfg', null).then(r => Object.assign({}, PAYPLAN, r || {})), u.level >= 3 ? kvJson(x.db, 'staff_guard', []).then(r => r || []) : [], finOk(u) ? kvJson(x.db, 'opex_cfg', {}).then(r => r || {}) : null, finOk(u) ? kvJson(x.db, 'fin_cfg', null).then(F => finFull(x, F)) : null, finOk(u) ? kvJson(x.db, 'kt_link', null) : null, u.level >= 2 || u.kho ? kvJson(x.db, 'kho_sum', null) : null, u.role === 'Kế toán' ? null : kvJson(x.db, 'kho_sale', null)]); // 💰 giá nhập sản phẩm: chỉ Quản trị (không nằm trong repo công khai) // 📍 tên link QR → nguồn đơn web hiện "📍 <tên>"
   const [ct, tg, cy, tp] = (await smallQ).map(r => r.results || []), ar = await adsP, areas = await areasP.catch(() => undefined);
   return {
-    ok: true, user: publicUser(u), areas, sanOk, kho, now: Date.now(), today: startOfDay(Date.now()), fbNew, users, prefs, tagColors, sources, ads, adV: ar.v, adRows: ar.rows, qrLinks,
+    ok: true, user: publicUser(u), areas, sanOk, kho, khoSale, now: Date.now(), today: startOfDay(Date.now()), fbNew, users, prefs, tagColors, sources, ads, adV: ar.v, adRows: ar.rows, qrLinks,
     occ: saleDays(fmtDate(Date.now() - 864e5, 'yyyyMMdd'), 5), // 🎉 dịp chúc khách hôm qua → 3 ngày tới (zday.js), CRM tự lọc theo ngày
     contacts: ct.reverse().map(contactOut), targets: tg.map(t => ({ month: t.month, name: t.name, amount: t.amount || 0, selfN: t.self_n || 0, by: t.by_name || '', at: t.at })),
     cycles: cy.filter(r => r.name).map(r => [r.name, r.variant || '', Number(r.days) || 0, r.basis || '']), templates: tp.filter(r => r.text).map(r => [r.when_txt || '', r.purpose || '', r.text]),

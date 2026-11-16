@@ -148,6 +148,16 @@ Không có nút nào hợp? Bấm **Kết quả khác / tự chọn ngày hẹn*
 - Biểu tượng **Zalo** cạnh tên khách: bạn đã kết bạn Zalo với khách. Nên nhắn Zalo trước. Chưa kết bạn thì gọi trước, rồi xin kết bạn.
 - Trên máy tính: đang gõ ghi chú mà kéo xuống chọn nút thì ô **Khách nói gì?** tự ghim ở trên cùng, bạn vẫn thấy chữ vừa gõ. Cứ bấm nút như bình thường.
 
+### 📦 Kho hôm nay: nên tư vấn sản phẩm gì?
+
+Trong tab **Hôm nay** có khung **📦 Kho hôm nay**. Dòng đầu đã nói gọn: **💚 Nên tư vấn** sản phẩm nào, **🔴 Sắp hết** sản phẩm nào. Bấm vào khung để xem số hộp còn lại.
+
+- **💚 Nên ưu tiên tư vấn:** kho còn nhiều hàng. Sản phẩm có **⭐** là kho nhờ đẩy bán (vd lô sắp hết hạn), đọc dòng 📝 để biết lý do. Khách chưa biết chọn gì thì gợi ý các sản phẩm này trước.
+- **🔴 Sắp hết / đã hết:** báo khách trước, hẹn ngày hàng về, hoặc gợi ý sản phẩm khác. Đừng hứa giao ngay.
+- **🟢 Đủ hàng:** bán bình thường.
+
+Khi lên đơn mà sản phẩm đã hết, hoặc khách mua nhiều hơn số kho còn, form lên đơn hiện dòng **⚠️** màu cam ngay dưới sản phẩm. Gọi báo khách trước khi chốt.
+
 ### 🎉 Dịp chúc khách (ngày lễ, rằm, sinh nhật)
 
 Ngày lễ hoặc ngày sinh nhật khách, đầu tab **Hôm nay** có khung **🎉 Dịp chúc khách**. Một lời chúc đúng dịp giúp khách nhớ tới mình mà không thấy bị chào bán.
@@ -239,7 +249,7 @@ Khách đặt qua Zalo, Facebook, điện thoại… thì bạn **tạo đơn tr
 1. Vào tab **Đơn hàng**, bấm **＋ Tạo đơn**.
 2. Bấm **📋 Dán tin nhắn của khách**. Dán nguyên tin Zalo của khách (có tên, số điện thoại, địa chỉ). CRM tự điền vào các ô. Bạn chỉ cần xem lại. (Hoặc gõ số điện thoại: khách cũ thì tên và địa chỉ tự hiện ra.)
 3. **Xem lại 2 ô địa chỉ.** Ô xanh là **🆕 Địa chỉ mới** (34 tỉnh, không có huyện), dùng để giao hàng. Ô vàng là **🕰 Địa chỉ cũ** (63 tỉnh, có huyện), dùng khi lên đơn Misa. Khách ghi kiểu cũ hay kiểu mới đều được: CRM tự điền cả 2 ô. Ô nào trống hoặc sai thì gõ vào ô đó để tìm, **không cần gõ dấu** (vd gõ `vinh phuc`, `hoi thinh`), rồi bấm chọn trong danh sách. Điền 1 bên, bên kia tự điền theo. Bấm **Copy** ở góc ô để chép địa chỉ đó.
-4. **Chọn sản phẩm:** bấm vào tên sản phẩm. Bấm thêm lần nữa để tăng số lượng. Có quà thì bấm **🎁 Thêm quà**.
+4. **Chọn sản phẩm:** bấm vào tên sản phẩm. Bấm thêm lần nữa để tăng số lượng. Có quà thì bấm **🎁 Thêm quà**. Hiện dòng **⚠️ kho đã hết / kho chỉ còn…** thì báo khách trước khi chốt ([Kho hôm nay](#kho-hom-nay-nen-tu-van-san-pham-gi)).
 5. **Gõ số tiền thu của khách.** Gõ `1800000`, `1tr8` hay `1,8tr` đều được.
    **Gửi bù hàng / tặng quà, không thu tiền:** gõ `0`. CRM hỏi lại *Lưu đơn 0đ?*, bấm OK. Đơn vẫn lưu và ghi vào file lên đơn như đơn thường (không cần ghi 1đ nữa). Nên ghi lý do vào ghi chú, vd *gửi bù đơn Phuong011126-02*.
 6. Chọn cách trả tiền: **COD** (khách trả tiền khi nhận hàng) hoặc **Chuyển khoản**. Chọn **Đơn vị vận chuyển** (CRM chọn sẵn **BEST Express**; hãng ít dùng bấm **＋ Hãng khác**) và **Phí vận chuyển**: chọn sẵn **Miễn phí vận chuyển**, bấm **Cộng phí ship** nếu khách trả ship (CRM cộng 30.000đ vào tiền thu, sửa được).
