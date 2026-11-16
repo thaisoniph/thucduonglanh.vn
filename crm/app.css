@@ -2505,6 +2505,8 @@ b.csx-c-ok { color: var(--primary-2); } b.csx-c-sua { color: var(--orange); } b.
 .mk-fs { margin-bottom: 12px; }
 .mk-fs > p { margin: 6px 0 0; line-height: 1.5; }
 .mk-fs .bar { margin-top: 10px; }
+.mk-fs-br { margin-top: 10px; padding: 8px 12px; border-left: 3px solid var(--primary); background: rgba(0,0,0,.025); border-radius: 6px; }
+.mk-fs-br p { margin: 4px 0 0; line-height: 1.5; font-size: 14px; }
 .mk-fs-sug { display: block; margin: 4px 0; color: var(--primary); }
 .mk-fs-sug .btn { margin-left: 6px; }
 

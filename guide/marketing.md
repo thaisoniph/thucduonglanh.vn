@@ -65,7 +65,10 @@ Màn hình xếp theo đúng thứ tự làm việc, đọc từ trên xuống (
 
 - Dòng có đèn nói ngay: 🟢 đang đủ nhịp, 🟠 hơi thiếu, 🔴 đang thiếu số (7 ngày qua mỗi ngày về bao nhiêu, từ nay cần bao nhiêu số / ngày).
 - Dòng **💰** nói ngân sách còn lại đủ mang về bao nhiêu số ở giá hiện tại. Không đủ thì có 2 cách: kéo giá 1 số xuống, hoặc xin thêm ngân sách.
-- **🧮 Máy tính ra số cần thế nào?** (bấm để mở): CRM cộng mục tiêu các sale văn phòng, lấy phần phải đến từ khách mới quảng cáo, tính ra cần bao nhiêu khách mới và bao nhiêu số. Sale đổi mục tiêu thì số này tự đổi.
+- **🧮 Máy tính ra số cần thế nào?** (bấm để mở): CRM cộng mục tiêu các sale văn phòng rồi chia làm 2 phần:
+  1. **Khách cũ mua lại** (việc của sale) = tiền khách cũ tháng trước.
+  2. **Khách mới** = mục tiêu − phần khách cũ. Lấy phần đến từ số quảng cáo (theo tỷ lệ thật 3 tháng trước) → chia đơn đầu trung bình ra **số khách mới** → chia tỷ lệ chốt ra **số điện thoại cần** và **ngân sách** (số cần × giá tốt 1 số).
+  Sale đổi mục tiêu thì số này tự đổi. Khách cũ mua lại nhiều hơn thì Marketing cần ít số hơn.
 
 **2. Ô ✅ Việc cần làm hôm nay:** các việc đánh số 1, 2, 3… Làm lần lượt từ bước 1. Nhãn màu ghi ai làm (Marketing hay Sale).
 
@@ -248,7 +251,7 @@ Muốn biết chính xác khách đến từ kênh nào: khi đăng Zalo, gửi 
 ### 🎯 Mục tiêu & ngân sách tháng
 
 - **🎯 Mục tiêu & ngân sách tháng** (dưới khối 📘 Quảng cáo Facebook): tiến độ mục tiêu của từng bạn, từ 2 người có mục tiêu trở lên thì có bảng thi đua xếp theo **% mục tiêu** (vượt mức chi phí thì không đứng hạng 1); thanh ngân sách đã chi so với ngân sách (chỉ Quản trị đặt).
-  - Khung **🧮 Máy tính ra số cần thế nào?** nằm trong ô **📇** đầu trang (từ 15/11/2026; trước đó nằm đầu mục 🎯): CRM cộng mục tiêu các sale văn phòng, lấy phần phải đến từ **khách mới quảng cáo** (theo tỷ lệ thật 3 tháng trước), rồi tính ra cần bao nhiêu **khách mới** và bao nhiêu **số điện thoại** cả tháng / mỗi ngày, kèm thanh tiến độ số đã về. Sale đổi mục tiêu thì số này tự đổi. Bấm **🎯 Đặt mục tiêu** → ô Facebook có nút **Dùng số gợi ý** để lấy luôn số đó (bạn vẫn sửa được), mức **chi phí tối đa %** bạn tự nhập như cũ.
+  - Khung **🧮 Máy tính ra số cần thế nào?** nằm trong ô **📇** đầu trang (từ 15/11/2026; trước đó nằm đầu mục 🎯): CRM cộng mục tiêu các sale văn phòng, trừ phần **khách cũ mua lại** (bằng tiền khách cũ tháng trước), phần còn lại là **khách mới**; lấy phần khách mới đến từ **số quảng cáo** (theo tỷ lệ thật 3 tháng trước, từ 16/11/2026), rồi tính ra cần bao nhiêu **khách mới** và bao nhiêu **số điện thoại** cả tháng / mỗi ngày, kèm thanh tiến độ số đã về. Sale đổi mục tiêu thì số này tự đổi. Bấm **🎯 Đặt mục tiêu** → ô Facebook có nút **Dùng số gợi ý** để lấy luôn số đó (bạn vẫn sửa được), mức **chi phí tối đa %** bạn tự nhập như cũ.
   - Dòng **🧮 Tính ngược** trên thẻ từng kênh (từ 11/11/2026): từ mục tiêu tiền, CRM tính ra **cần khoảng bao nhiêu khách mới**, **bao nhiêu số / tin nhắn** (theo tỷ lệ chốt thật), và **mỗi số được chi tối đa bao nhiêu**. 🟢 = giá mỗi số đang thấp hơn mức đó, 🔴 = đang đắt quá, cần sửa quảng cáo.
 
 ### 👥 Giá trị 1 thành viên nhóm Zalo

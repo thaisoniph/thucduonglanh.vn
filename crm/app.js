@@ -11044,22 +11044,31 @@
     h += '<p class="bar-legend">' + (solo ? '' : 'Xếp theo % mục tiêu đạt (kênh lớn, kênh nhỏ đều công bằng). ') + 'Vạch đen = hôm nay: thanh vượt vạch là nhanh hơn tiến độ. ' + (solo ? '' : 'Vượt mức chi phí (🔴) thì không đứng hạng 1. ') + 'Mục tiêu từng kênh xem ở mục 🎯 bên dưới.</p>';
     return { h: h, todo: T };
   }
-  /** 🧮 14/11/2026 anh Sơn: mục tiêu Marketing tính ngược từ mục tiêu sale văn phòng (máy chủ saleToMkt trong api/src/mktv.js). Máy gợi ý, Marketing xác nhận ở 🎯 Đặt mục tiêu. */
+  /** 🧮 Mục tiêu marketing tính ngược từ mục tiêu sale văn phòng (máy chủ saleToMkt trong api/src/mktv.js). 16/11/2026 anh Sơn: cây mục tiêu tách khách cũ (việc của sale) / khách mới (việc của Marketing). Máy gợi ý, Marketing xác nhận ở 🎯 Đặt mục tiêu. */
   function mkFsOf(live, month) { return live && live.fromSale ? live.fromSale[month] || null : null; }
   function mkFsBox(live, month, bare) {
     var f = mkFsOf(live, month); if (!f) return '';
     var hd = bare ? '<div class="mk-fs">' : '<div class="box mk-fs"><b>🧮 Mục tiêu marketing tính từ mục tiêu sale</b>';
     if (!f.saleT) return hd + '<p class="muted">Sale chưa đặt mục tiêu ' + monthLabel(month) + ' nên chưa tính được cần mang về bao nhiêu số điện thoại.</p></div>';
-    var L = ['Mục tiêu ' + f.nSale + ' sale văn phòng (người nhận số quảng cáo): <b>' + moneyShort(f.saleT) + '</b>' + (f.nSet < f.nSale ? ' <span class="muted">(' + f.nSet + '/' + f.nSale + ' người đã đặt)</span>' : '') + '.'];
-    if (f.share === null || !f.needRev) return hd + '<p>' + L[0] + '</p><p class="muted">Chưa đủ số liệu 3 tháng trước để tính phần khách mới.</p></div>';
-    L.push('3 tháng trước, khách mới từ quảng cáo chiếm <b>' + f.share + '%</b> doanh số của các bạn → cần <b>' + moneyShort(f.needRev) + '</b> tiền khách mới · đã có <b>' + moneyShort(f.have.rev) + '</b> (' + pct(f.have.rev, f.needRev) + '%).');
-    if (f.needNew) L.push('1 khách mới mua đơn đầu trung bình ' + moneyShort(f.aov) + ' → cần khoảng <b>' + f.needNew + ' khách mới</b> · đã có ' + f.have.n + '.');
-    if (f.needData) L.push('Sale chốt được <b>' + f.cr + '%</b> số quảng cáo → cần mang về khoảng <b>' + f.needData + ' số điện thoại</b> (mỗi ngày ~' + f.perDay + ' số) · đã về <b>' + f.have.data + '</b>.');
-    else if (f.needNew) L.push('<span class="muted">Chưa đủ 20 số quảng cáo trong 3 tháng trước để tính tỷ lệ chốt.</span>');
+    var nf = function (n) { return Number(n || 0).toLocaleString('vi-VN'); }, o = f.old || {}, h = hd, G = kpGoal();
+    h += '<p>🎯 Mục tiêu ' + f.nSale + ' sale văn phòng (người nhận số quảng cáo): <b>' + moneyShort(f.saleT) + '</b>' + (f.nSet < f.nSale ? ' <span class="muted">(' + f.nSet + '/' + f.nSale + ' người đã đặt)</span>' : '') + '. Chia làm 2 phần:</p>';
+    if (!o.base && !f.base) return h + '<p class="muted">Chưa đủ số liệu tháng trước để tính.</p></div>';
+    h += '<div class="mk-fs-br"><b>① Khách cũ mua lại · việc của sale: ' + moneyShort(o.need) + '</b>' +
+      '<p>Lấy bằng tiền khách cũ ' + monthLabel(f.refMonth) + ' (' + moneyShort(o.base) + ' · trung bình 3 tháng ' + moneyShort(o.avg) + ').' + (o.needN ? ' Mỗi lượt mua lại trung bình ' + moneyShort(o.aov) + ' → cần khoảng <b>' + nf(o.needN) + ' lượt khách cũ mua lại</b>.' : '') + '</p>' +
+      '<p class="small muted">Tháng này đã có ' + moneyShort(o.have) + ' (' + pct(o.have, o.need) + '%) · ' + nf(o.haveN) + ' lượt.</p></div>';
+    h += '<div class="mk-fs-br"><b>② Khách mới · ' + moneyShort(f.needRev) + '</b> <span class="muted">(= ' + moneyShort(f.saleT) + ' − ' + moneyShort(o.need) + ')</span>';
+    if (f.adShare === null || f.needAdRev === null) h += '<p class="muted">Chưa đủ số liệu 3 tháng trước để tính phần đến từ quảng cáo.</p>';
+    else {
+      h += '<p>3 tháng trước, <b>' + String(f.adShare).replace('.', ',') + '%</b> tiền khách mới đến từ số quảng cáo (còn lại từ web, Zalo, kênh khác) → Marketing cần mang về <b>' + moneyShort(f.needAdRev) + '</b> tiền khách mới từ quảng cáo.</p>';
+      if (f.needNew) h += '<p>Khách mới từ quảng cáo mua đơn đầu trung bình ' + moneyShort(f.aov) + ' → cần khoảng <b>' + nf(f.needNew) + ' khách mới</b> · đã có ' + nf(f.have.adN) + '.</p>';
+      if (f.needData) h += '<p>Cứ 100 số mới (chưa từng mua) sale chốt được <b>' + String(f.cr).replace('.', ',') + '</b> → cần khoảng <b>' + nf(f.needData) + ' số điện thoại</b> (mỗi ngày ~' + f.perDay + ' số) · đã về <b>' + nf(f.have.data) + '</b>.</p>';
+      else if (f.needNew) h += '<p class="muted">Chưa đủ 20 số quảng cáo trong 3 tháng trước để tính tỷ lệ chốt.</p>';
+      if (f.needData && G.sdt) h += '<p>💰 Với giá tốt ' + moneyShort(G.sdt) + ' / số → ngân sách quảng cáo cả tháng khoảng <b>' + moneyShort(f.needData * G.sdt) + '</b>.</p>';
+    }
+    h += '</div>';
     var C = f.needData ? goalCalc(f.have.data, f.needData, month) : null;
-    return hd + L.map(function (x) { return '<p>' + x + '</p>'; }).join('') +
-      (C ? '<div class="bar"><i style="width:' + Math.min(100, C.p * 100).toFixed(1) + '%"></i>' + (C.isCur ? '<u style="left:' + (C.tp * 100).toFixed(1) + '%"></u>' : '') + '</div><p class="bar-legend">Thanh xanh = số điện thoại đã về · vạch đen = hôm nay' + (C.isCur && C.p < 1 ? ' · còn thiếu <b>' + (f.needData - f.have.data) + ' số</b> trong ' + C.left + ' ngày' : '') + '</p>' : '') +
-      '<p class="small muted">Máy tự tính lại khi sale đổi mục tiêu. Bấm <b>🎯 Đặt mục tiêu</b> → ô Facebook có nút <b>Dùng số gợi ý</b> để lấy ' + moneyShort(f.needRev) + ' làm mục tiêu tiền khách mới (chạy nhiều kênh thì chia ra).</p></div>';
+    return h + (C ? '<div class="bar"><i style="width:' + Math.min(100, C.p * 100).toFixed(1) + '%"></i>' + (C.isCur ? '<u style="left:' + (C.tp * 100).toFixed(1) + '%"></u>' : '') + '</div><p class="bar-legend">Thanh xanh = số điện thoại đã về · vạch đen = hôm nay' + (C.isCur && C.p < 1 ? ' · còn thiếu <b>' + (f.needData - f.have.data) + ' số</b> trong ' + C.left + ' ngày' : '') + '</p>' : '') +
+      '<p class="small muted">Máy tự tính lại khi sale đổi mục tiêu. Khách cũ mua lại nhiều hơn thì Marketing cần ít số hơn. Bấm <b>🎯 Đặt mục tiêu</b> → ô Facebook có nút <b>Dùng số gợi ý</b> để lấy ' + moneyShort(f.needAdRev || f.needRev) + ' làm mục tiêu tiền khách mới (chạy nhiều kênh thì chia ra).</p></div>';
   }
   /** Mục thu gọn trong tab Marketing (15/11/2026): nhớ trạng thái mở / đóng trong LVO (1 = mở, 0 = đóng tay) để vẽ lại không tự đóng. open = mặc định mở. */
   var LVO = {};
@@ -11107,7 +11116,7 @@
     var nx = lack && lvN !== 'ok' ? '👉 Muốn thêm số: làm lần lượt các bước ở ô <b>✅ Việc cần làm hôm nay</b> ngay dưới (tắt chiến dịch đắt, tăng tiền chiến dịch rẻ, nhắc sale gọi số cũ).' : '👉 Việc hôm nay: xem ô <b>✅ Việc cần làm hôm nay</b> ngay dưới.';
     return '<section class="box mk-need ' + (lack ? lvN : '') + '" id="mk-need"><h2>📇 Số điện thoại về cho sale: đủ chưa, giá bao nhiêu? <small>· luôn tính hôm nay và ' + monthLabel(month) + '</small></h2>' +
       '<p class="mk-need-v">' + v + '</p><div class="mk-need-g">' + cells + '</div>' + bar + (m ? '<p class="mk-need-m">' + m + '</p>' : '') + '<p class="mk-need-m">' + nx + '</p>' +
-      (f && f.saleT ? lvMore('fs', '🧮 Máy tính ra số cần thế nào?', 'từ mục tiêu của ' + f.nSale + ' sale: ' + moneyShort(f.saleT), mkFsBox(src, month, true)) : '') + '</section>';
+      (f && f.saleT ? lvMore('fs', '🧮 Máy tính ra số cần thế nào?', 'từ mục tiêu ' + moneyShort(f.saleT) + ': khách cũ ' + moneyShort((f.old || {}).need) + ' + khách mới ' + moneyShort(f.needRev), mkFsBox(src, month, true)) : '') + '</section>';
   }
   function mkGoalBlock(gm, live) {
     var own = lvl() >= 3 || isMkt(), month = live && live.budget ? live.budget.m : monthOf(Date.now()), G = live && live.goals ? live.goals[month] : null;
@@ -11158,7 +11167,7 @@
       '<label class="f"><span>' + (c.k === MK_COMM ? 'Tiền mua lại mục tiêu' : c.k === 'Website' ? 'Tiền đơn web mục tiêu (khách mới + cũ)' : c.san ? 'Doanh số sàn mục tiêu' : 'Tiền khách mới mục tiêu') + '</span><input type="text" inputmode="decimal" data-g="rev" value="' + (g.rev || '') + '" placeholder="vd 450tr"' + dis + '></label>' +
       '<label class="f"><span>Chi phí tối đa (%)</span><input type="number" min="0" max="100" step="1" data-g="pct" value="' + (g.pct || '') + '" placeholder="vd 30"' + dis + '></label>' +
       (adm ? '<label class="f"><span>Người phụ trách</span><input type="text" data-g="who" list="mkWho" value="' + esc(g.who || '') + '" placeholder="tên bạn marketing"></label>' : '<div class="f mk-gr-who"><span>Người phụ trách</span><b>' + (g.who ? esc(g.who) : ok ? '<span class="muted">Bạn, khi đặt mục tiêu</span>' : '') + '</b></div>') +
-      (c.k === 'Facebook' && ok && FS && FS.needRev ? '<small class="mk-fs-sug">🧮 Gợi ý từ mục tiêu sale: <b>' + moneyShort(FS.needRev) + '</b> tiền khách mới <button type="button" class="btn sm" data-fsv="' + FS.needRev + '">Dùng số gợi ý</button></small>' : '') +
+      (c.k === 'Facebook' && ok && FS && (FS.needAdRev || FS.needRev) ? '<small class="mk-fs-sug">🧮 Gợi ý từ mục tiêu sale: <b>' + moneyShort(FS.needAdRev || FS.needRev) + '</b> tiền khách mới từ quảng cáo <button type="button" class="btn sm" data-fsv="' + (FS.needAdRev || FS.needRev) + '">Dùng số gợi ý</button></small>' : '') +
       '<small class="mk-gr-hint"></small>' + (g.by ? '<small class="mk-gr-by">' + esc(g.by) + ' sửa' + (g.at ? ' ' + fDateTime(g.at) : '') + '</small>' : '') + '</div>'; };
     var MAIN = ['Facebook', 'Website', 'Shopee', 'TikTok Shop', MK_COMM], chs = mkGoalCh(); if (!adm) chs = chs.filter(function (c) { return G[c.k] && G[c.k].who && sameWho(G[c.k].who, me); }).concat(chs.filter(function (c) { return !(G[c.k] && G[c.k].who && sameWho(G[c.k].who, me)); }));
     var body = '<div class="chips">' + [m0, m1].filter(Boolean).map(function (m) { return '<button class="chip' + (m === month ? ' on' : '') + '" data-gm="' + m + '">' + monthLabel(m) + '</button>'; }).join('') + (prev ? '<button class="chip" id="mgPrev">↺ Lấy theo tháng trước</button>' : '') + '</div>' +

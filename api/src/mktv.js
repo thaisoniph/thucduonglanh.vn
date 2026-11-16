@@ -236,28 +236,46 @@ export async function commValOf(x) {
   return out;
 }
 /** Ngân sách quảng cáo tháng này (kv mkt_budget {yyyy-MM: số tiền}, Quản trị đặt) + đã chi từ đầu tháng. Không lưu tạm: đổi ngân sách là thấy ngay. */
-/** 🧮 14/11/2026 anh Sơn: mục tiêu Marketing tự tính ngược từ mục tiêu sale văn phòng (quyền Sale & CSKH, không phải 🏠 CTV tại nhà — người nhận số quảng cáo).
- *  Tổng mục tiêu sale × % tiền khách mới từ quảng cáo (thực tế 3 tháng trước) ÷ tiền đơn đầu TB → số khách mới ÷ tỷ lệ chốt data quảng cáo (3 tháng) → số data cần.
- *  Khách mới = đơn đầu tiên của khách, bỏ khách sale tự tìm / khách cũ giới thiệu (own_src self/ref). Marketing chỉ nhận số tổng, không thấy mục tiêu từng người. */
+/** 🧮 Mục tiêu Marketing tính ngược từ mục tiêu sale văn phòng (quyền Sale & CSKH, không phải 🏠 CTV tại nhà — người nhận số quảng cáo). 14/11/2026, làm lại 16/11/2026 (anh Sơn: tách khách cũ / khách mới).
+ *  Cây mục tiêu: Tổng mục tiêu sale − tiền khách cũ dự kiến (= tiền khách cũ tháng đủ gần nhất) = tiền khách mới cần
+ *  → × % tiền khách mới đến từ số quảng cáo (3 tháng) = tiền khách mới từ quảng cáo → ÷ đơn đầu TB của khách đó = số khách mới
+ *  → ÷ tỷ lệ chốt số quảng cáo (chỉ tính số chưa từng mua, 3 tháng) = số điện thoại cần.
+ *  Khách mới = đơn đầu tiên của khách, bỏ khách sale tự tìm / khách cũ giới thiệu (own_src self/ref). "3 tháng" = 3 tháng đủ trước tháng đang tính (tính tháng sau thì lùi về trước tháng này).
+ *  Marketing chỉ nhận số tổng, không thấy mục tiêu từng người. Cùng cách tính với crm/app.js mkFsBox. */
 async function saleToMkt(x, month) {
-  const TZ = 7 * 3600e3, y = +month.slice(0, 4), mo = +month.slice(5, 7) - 1, M = k => Date.UTC(y, mo + k, 1) - TZ, m0 = M(0), m1 = M(1), p0 = M(-3);
+  const TZ = 7 * 3600e3, y = +month.slice(0, 4), mo = +month.slice(5, 7) - 1, M = k => Date.UTC(y, mo + k, 1) - TZ, m0 = M(0), m1 = M(1);
+  const nowM = fmtDate(Date.now(), 'yyyy-MM'), ref = month > nowM ? Date.UTC(+nowM.slice(0, 4), +nowM.slice(5, 7) - 1, 1) - TZ : m0, RM = k => { const d = new Date(ref + TZ); return Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + k, 1) - TZ; }, p0 = RM(-3), pL = RM(-1);
   const us = (await all(x.db, 'SELECT name, role, active, ctv FROM users')).filter(u => Number(u.active) && (u.role === 'Sale & CSKH' || u.role === 'Nhân viên') && String(u.ctv || '').trim() !== 'Có').map(u => String(u.name || '').trim());
   if (!us.length) return null;
   const tg = (await all(x.db, 'SELECT name, amount FROM targets WHERE month = ?', month)).filter(t => us.includes(t.name) && Number(t.amount) > 0);
   const saleT = tg.reduce((s, t) => s + Number(t.amount), 0);
   const os = (await all(x.db, 'SELECT o.seller, o.total, o.time, o.phone, o.status, c.first, c.own_src FROM orders o LEFT JOIN customers c ON c.phone = o.phone WHERE o.time >= ? AND o.time < ?', p0, m1)).filter(o => !isVoid(o.status) && us.includes(o.seller));
   const isNew = o => o.first && Number(o.time) <= Number(o.first) + 3600e3 && o.own_src !== 'self' && o.own_src !== 'ref';
-  const past = os.filter(o => o.time < m0), tot = past.reduce((s, o) => s + (Number(o.total) || 0), 0), nw = past.filter(isNew), newRev = nw.reduce((s, o) => s + (Number(o.total) || 0), 0), newN = new Set(nw.map(o => o.phone)).size;
-  const cur = os.filter(o => o.time >= m0 && isNew(o)), curRev = cur.reduce((s, o) => s + (Number(o.total) || 0), 0);
+  const sum = L => L.reduce((s, o) => s + (Number(o.total) || 0), 0), uniq = L => new Set(L.map(o => normPhone(o.phone))).size;
+  const past = os.filter(o => o.time < ref), tot = sum(past), nw = past.filter(isNew), newRev = sum(nw), newN = uniq(nw);
+  // 👵 Khách cũ: tháng đủ gần nhất + trung bình 3 tháng
+  const oldL = past.filter(o => o.time >= pL && !isNew(o)), oldBase = sum(oldL), oldAvg = Math.round((tot - newRev) / 3);
+  const curO = os.filter(o => o.time >= m0), curNew = curO.filter(isNew), curOld = curO.filter(o => !isNew(o));
+  // 📇 Số quảng cáo
   const ads = ((await kvJson(x.db, 'ads_rows', [])) || []).map(a => [Number(a[0]) || 0, normPhone(a[1])]).filter(a => a[1] && a[0] >= p0 && a[0] < m1);
-  const first0 = {}, firstC = {}; ads.forEach(([t, ph]) => { const o = t < m0 ? first0 : firstC; if (!o[ph] || t < o[ph]) o[ph] = t; });
-  const ph0 = Object.keys(first0); let won = 0;
-  if (ph0.length) { const bt = {}; (await allIn(x.db, 'SELECT phone, time, status FROM orders WHERE phone IN (SELECT value FROM json_each(?)) AND time >= ?', ph0, p0)).forEach(o => { if (!isVoid(o.status)) (bt[normPhone(o.phone)] = bt[normPhone(o.phone)] || []).push(Number(o.time) || 0); }); ph0.forEach(ph => { if ((bt[ph] || []).some(t => t >= first0[ph])) won++; }); }
-  const share = tot ? newRev / tot : null, aov = newN >= 5 ? newRev / newN : null, cr = ph0.length >= 20 ? won / ph0.length : null;
-  const needRev = saleT && share !== null ? Math.round(saleT * share / 1e5) * 1e5 : null, needNew = needRev && aov ? Math.ceil(needRev / aov) : null, needData = needNew && cr ? Math.ceil(needNew / cr) : null;
-  const days = Math.round((m1 - m0) / DAY);
-  return { month, nSale: us.length, nSet: tg.length, saleT, share: share === null ? null : Math.round(share * 1000) / 10, aov: aov && Math.round(aov / 1000) * 1000, cr: cr === null ? null : Math.round(cr * 1000) / 10,
-    needRev, needNew, needData, perDay: needData ? Math.ceil(needData / days) : null, days, have: { data: Object.keys(firstC).length, rev: curRev, n: new Set(cur.map(o => o.phone)).size }, base: { tot, newRev, newN, data: ph0.length, won } };
+  const first0 = {}, firstC = {}; ads.forEach(([t, ph]) => { if (t >= ref && t < m0) return; const o = t < ref ? first0 : firstC; if (!o[ph] || t < o[ph]) o[ph] = t; });
+  const ph0 = Object.keys(first0); let won = 0, nData = 0;
+  if (ph0.length) {
+    const bt = {}; (await allIn(x.db, 'SELECT phone, time, status FROM orders WHERE phone IN (SELECT value FROM json_each(?))', ph0)).forEach(o => { if (!isVoid(o.status)) (bt[normPhone(o.phone)] = bt[normPhone(o.phone)] || []).push(Number(o.time) || 0); });
+    ph0.forEach(ph => { const T = bt[ph] || []; if (T.some(t => t < first0[ph] - 3600e3)) return; nData++; if (T.some(t => t >= first0[ph] - 3600e3)) won++; }); // bỏ số của người đã là khách trước khi để số
+  }
+  const adAll = new Set(ads.map(a => a[1])), adSet = new Set(ph0), nwA = nw.filter(o => adSet.has(normPhone(o.phone))), adRev = sum(nwA), adN = uniq(nwA);
+  const adShare = newRev ? adRev / newRev : null, aov = adN >= 5 ? adRev / adN : null, cr = nData >= 20 ? won / nData : null;
+  const r1e5 = v => Math.round(v / 1e5) * 1e5;
+  const needOld = saleT ? Math.min(saleT, r1e5(oldBase)) : null, needRev = saleT ? Math.max(0, saleT - needOld) : null;
+  const needAdRev = needRev !== null && adShare !== null ? r1e5(needRev * adShare) : null, needNew = needAdRev && aov ? Math.ceil(needAdRev / aov) : null, needData = needNew && cr ? Math.ceil(needNew / cr) : null;
+  const oldAov = oldL.length ? Math.round(oldBase / oldL.length / 1000) * 1000 : 0, days = Math.round((m1 - m0) / DAY), pc1 = v => v === null ? null : Math.round(v * 1000) / 10;
+  return { month, nSale: us.length, nSet: tg.length, saleT, refMonth: fmtDate(pL + 12 * 3600e3, 'yyyy-MM'),
+    old: { need: needOld, base: oldBase, avg: oldAvg, n: oldL.length, buyers: uniq(oldL), aov: oldAov, needN: oldAov && needOld ? Math.ceil(needOld / oldAov) : null, have: sum(curOld), haveN: curOld.length },
+    share: tot ? pc1(newRev / tot) : null, adShare: pc1(adShare), aov: aov && Math.round(aov / 1000) * 1000, cr: pc1(cr),
+    needRev, needAdRev, needNew, needData, perDay: needData ? Math.ceil(needData / days) : null, days,
+    have: { data: Object.keys(firstC).length, rev: sum(curNew), adRev: sum(curNew.filter(o => adAll.has(normPhone(o.phone)))), n: uniq(curNew), adN: uniq(curNew.filter(o => adAll.has(normPhone(o.phone)))) },
+    base: { tot, newRev, newN, adRev, adN, data: nData, won } };
 }
 async function budgetOf(x) {
   const now = Date.now(), m = fmtDate(now, 'yyyy-MM'), all0 = await kvJson(x.db, 'mkt_budget', {});
