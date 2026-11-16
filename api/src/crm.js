@@ -606,8 +606,9 @@ async function loadSmall(x, u, R, mode, adV) {
     u.level >= 3 || u.role === 'Marketing' || u.mkv ? kvJson(x.db, 'mkt_doc', null).then(r => r || MKT_DOC_DEF) : null,
     finOk(u) ? kvJson(x.db, 'cost_cfg', null) : null, kvJson(x.db, 'payplan_cfg', null).then(r => Object.assign({}, PAYPLAN, r || {})), u.level >= 3 ? kvJson(x.db, 'staff_guard', []).then(r => r || []) : [], finOk(u) ? kvJson(x.db, 'opex_cfg', {}).then(r => r || {}) : null, finOk(u) ? kvJson(x.db, 'fin_cfg', null).then(F => finFull(x, F)) : null, finOk(u) ? kvJson(x.db, 'kt_link', null) : null, u.level >= 2 || u.kho ? kvJson(x.db, 'kho_sum', null) : null, u.role === 'Kế toán' ? null : kvJson(x.db, 'kho_sale', null)]); // 💰 giá nhập sản phẩm: chỉ Quản trị (không nằm trong repo công khai) // 📍 tên link QR → nguồn đơn web hiện "📍 <tên>"
   const [ct, tg, cy, tp] = (await smallQ).map(r => r.results || []), ar = await adsP, areas = await areasP.catch(() => undefined);
+  const gonAll = await kvJson(x.db, 'gon_cfg', {}).catch(() => ({})) || {}; // 🌱 Mở dần tính năng (16/11/2026): Quản trị bật / tắt từng mục cho từng người
   return {
-    ok: true, user: publicUser(u), areas, sanOk, kho, khoSale, now: Date.now(), today: startOfDay(Date.now()), fbNew, users, prefs, tagColors, sources, ads, adV: ar.v, adRows: ar.rows, qrLinks,
+    ok: true, user: publicUser(u), gon: u.level >= 3 ? gonAll : { [u.email]: gonAll[u.email] || {} }, areas, sanOk, kho, khoSale, now: Date.now(), today: startOfDay(Date.now()), fbNew, users, prefs, tagColors, sources, ads, adV: ar.v, adRows: ar.rows, qrLinks,
     occ: saleDays(fmtDate(Date.now() - 864e5, 'yyyyMMdd'), 5), // 🎉 dịp chúc khách hôm qua → 3 ngày tới (zday.js), CRM tự lọc theo ngày
     contacts: ct.reverse().map(contactOut), targets: tg.map(t => ({ month: t.month, name: t.name, amount: t.amount || 0, selfN: t.self_n || 0, by: t.by_name || '', at: t.at })),
     cycles: cy.filter(r => r.name).map(r => [r.name, r.variant || '', Number(r.days) || 0, r.basis || '']), templates: tp.filter(r => r.text).map(r => [r.when_txt || '', r.purpose || '', r.text]),
@@ -2746,6 +2747,13 @@ export async function crmApi(x, d, sync, mgr) {
   if (a === 'perf') return crmPerf(x, u, d);
   if (a === 'usage') return crmUsage(x, u, d);
   if (a === 'usage_report') return crmUsageReport(x, u, d);
+  if (a === 'gon_save') { // 🌱 Mở dần tính năng: { email, open: [id], hide: [id] } – chỉ Quản trị
+    if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị làm được việc này.' };
+    const e = String(d.email || '').toLowerCase().trim(); if (!/@/.test(e)) return { ok: false, error: 'Thiếu email nhân sự.' };
+    const ids = v => (Array.isArray(v) ? v : []).map(z => String(z).replace(/[^a-z-]/g, '').slice(0, 30)).filter(Boolean).slice(0, 40);
+    const cfg = await kvJson(x.db, 'gon_cfg', {}) || {}; cfg[e] = { open: ids(d.open), hide: ids(d.hide), at: Date.now(), by: u.name };
+    await kvSet(x.db, 'gon_cfg', JSON.stringify(cfg)); return { ok: true, gon: cfg };
+  }
   if (a === 'feedback') return crmFeedback(x, u, d);
   if (a === 'fb_list') return crmFbList(x, u);
   if (a === 'fb_img') return crmFbImg(x, u, d);

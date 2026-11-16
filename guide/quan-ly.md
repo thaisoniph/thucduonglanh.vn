@@ -4,7 +4,7 @@ nav: Quản lý
 group: quan-ly
 short: Giao khách, theo dõi nhân viên, cài đặt
 order: 4
-updated: 2026-11-15
+updated: 2026-11-16
 description: Giao khách, theo dõi nhân viên, cài đặt CRM. Dành cho quyền Quản lý và Quản trị.
 roles: [ql]
 ---
@@ -68,6 +68,7 @@ Số lấy thẳng trên máy chủ, cách tính giống khung 🌱 trên tab H�
 | Giao việc cho Phòng Marketing AI, duyệt kết quả | [Phòng Marketing AI](#phong-marketing-ai-giao-viec-duyet-ket-qua-16-11-2026) |
 | Xem trợ lý AI nào đang chạy, lỗi gì | [Đội nhân sự AI](#doi-nhan-su-ai-14-11-2026) |
 | Hỏi số liệu bằng câu nói | [Hỏi số liệu](#hoi-so-lieu-dang-dung-thu) |
+| Mở thêm / ẩn bớt mục trên menu của từng người | [Mở dần tính năng](#mo-dan-tinh-nang-cho-tung-nguoi-16-11-2026) |
 
 ## Mỗi quyền làm được gì?
 
@@ -79,6 +80,28 @@ Số lấy thẳng trên máy chủ, cách tính giống khung 🌱 trên tab H�
 | **Quản trị** | Thêm: thêm hoặc khoá nhân sự, đổi quyền, xoá dữ liệu nhập thử. Thấy tab Tổng quan |
 
 Khi vào CRM: nhân viên vào thẳng **Hôm nay**, quản lý vào **Hiệu quả**, quản trị vào **Tổng quan**. Bấm logo **CRM** góc trái để quay về.
+
+## 🌱 Mở dần tính năng cho từng người (16/11/2026)
+
+> **Một câu dễ nhớ:** Mới vào thì thấy ít, quen rồi mới mở thêm.
+
+CRM có nhiều mục. Để nhân sự không bị rối, mỗi người chỉ thấy các mục dùng hằng ngày:
+
+| Quyền | Thấy trên menu |
+| --- | --- |
+| **Quản lý** | Hôm nay, Khách hỏi, Đơn hàng, Hiệu quả. Ở **Thêm**: Khách đã mua, Trợ lý Zalo, Việc tuần, Cài đặt |
+| **Marketing** | Marketing, Khách hỏi, Insight & nội dung, Cài đặt |
+| **Sale, Kho, Kế toán** | Như cũ (đã gọn sẵn) |
+
+Mục anh đã bật riêng cho 1 người (Marketing, Phụ trách kho, Trợ lý Zalo, Việc tuần) vẫn hiện. Mục bị ẩn chỉ không có trên menu. Bấm link trong tin Telegram vẫn mở được.
+
+**Mở thêm cho 1 người (chỉ Quản trị):**
+
+1. Mở **⚙ Cài đặt** → **👥 Nhân sự** → **🌱 Mở dần tính năng cho từng người**.
+2. Tìm tên người đó. Nút **xanh** = đang hiện. Nút **trắng, viền chấm** = đang ẩn.
+3. Bấm nút trắng để **mở**. Bấm nút xanh để **ẩn**. Máy lưu ngay, người đó tải lại CRM là thấy.
+
+Máy tính cũng gọn như điện thoại: thanh trên chỉ 4 mục + **Thêm**. Nút tròn bên phải: 🔍 Tìm, ❓ Hướng dẫn, ✅ Việc tuần, ⚙ Cài đặt. **Góp ý** và **Tải lại dữ liệu** nằm trong **Thêm**.
 
 ## Việc mỗi ngày của quản lý
 

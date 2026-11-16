@@ -475,7 +475,7 @@
       // khách mới thuộc quyền xem mà trên máy chưa có đủ đơn cũ (vd vừa được giao khách) → tải đủ
       var cnt = {}; d.orders.forEach(function (o) { if (!/Huỷ|Hủy|Hoàn/i.test(o.status)) cnt[o.phone] = (cnt[o.phone] || 0) + 1; });
       if (j.customers.some(function (c) { return hadPhone[c.phone] == null && (cnt[c.phone] || 0) < c.orders; })) return 'full';
-      ['user', 'now', 'fbNew', 'users', 'prefs', 'tagColors', 'sources', 'ads', 'adV', 'adRows', 'contacts', 'targets', 'cycles', 'templates', 'rules', 'areas', 'sv', 'lr'].forEach(function (k) { if (j[k] !== undefined) d[k] = j[k]; });
+      ['user', 'now', 'fbNew', 'users', 'prefs', 'tagColors', 'sources', 'ads', 'adV', 'adRows', 'contacts', 'targets', 'cycles', 'templates', 'rules', 'areas', 'sv', 'lr', 'gon'].forEach(function (k) { if (j[k] !== undefined) d[k] = j[k]; });
       S.stale = false; setData(d, Date.now()); S.perf = { core: Date.now() - t0, srv: j.t, kb: j.__kb, delta: 1 };
       idb('set', 'data', { tk: S.token.slice(-12), at: S.loadedAt, fa: S.fullAt, d: d });
       if ($('.me')) { $('.me').innerHTML = meHTML(); navBadges(); }
@@ -861,7 +861,7 @@
   // Marketing: tab Marketing, Link & QR, Khách hỏi (24/10/2026: chỉ xem khách để lại số trên web), Cài đặt
   function myViews() { return myViews0().filter(function (v) { return !v.gv || !!(S.user && S.user.gv); }); } // ✅ Việc tuần chỉ hiện với người được bật ở Cài đặt → Nhân sự (16/11/2026)
   function myViews0() { if (isKt()) return VIEWS.filter(function (v) { return v.kt || v.gv || v.id === 'cai-dat'; }); if (isKho()) return VIEWS.filter(function (v) { return v.kho || v.gv || v.id === 'cai-dat'; }); if (isMkt()) return VIEWS.filter(function (v) { return v.mkt || v.gv || v.lq || (v.bw && S.user && S.user.web) || v.id === 'tiem-nang' || v.id === 'cai-dat'; }); return VIEWS.filter(function (v) { return (!v.min || lvl() >= v.min) && (!v.ask || !!(S.user && S.user.ask)) && (!v.lq || lvl() >= 2 || (v.id === 'tro-ly-zalo' && S.user && S.user.zb)) && (!v.bw || lvl() >= 2 || !!(S.user && S.user.web)) && (!v.san || (S.d && S.d.sanOk) || lvl() >= 3) && (!v.kho || khoCan()) && (!v.kt || lvl() >= 3) && (!v.mkt || lvl() >= 3 || mkvOnly()); }); }
-  function navViews() { return myViews().filter(function (v) { return !((v.san || v.lq || v.bw || v.ask || v.kho || v.kt || v.ait || (v.hr && HOST_KEY !== 'hr') || v.id === 'zalo-sale') && lvl() >= 2 && !isMkt()); }); } // Quản trị: Marketing có trên menu (29/10/2026), Sàn / Link & QR / Zalo / Fanpage vào từ Thêm; Quản lý cũng vậy (anh Sơn 31/10/2026: menu máy tính rối)
+  function navViews() { return myViews().filter(function (v) { return !gonHid(v) && !((v.san || v.lq || v.bw || v.ask || v.kho || v.kt || v.ait || (v.hr && HOST_KEY !== 'hr') || v.id === 'zalo-sale') && lvl() >= 2 && !isMkt()); }); } // Quản trị: Marketing có trên menu (29/10/2026), Sàn / Link & QR / Zalo / Fanpage vào từ Thêm; Quản lý cũng vậy (anh Sơn 31/10/2026: menu máy tính rối)
   /** Điện thoại (29/10/2026, kiểu Apple): thanh dưới chỉ 4 mục hay dùng + "Thêm"; mục còn lại, Cài đặt, Hướng dẫn, Góp ý nằm ở màn Thêm. Máy tính vẫn hiện đủ. */
   var NAV_FIRST = ['hom-nay', 'tiem-nang', 'khach-hang', 'don-hang', 'bao-cao'];
   var NAV_SALE = ['hom-nay', 'tiem-nang', 'bao-cao', 'don-hang']; // sale: Hiệu quả ở chính giữa thanh dưới (anh Sơn 29/10/2026); 31/10/2026 Đơn hàng (có số đang giao) thay Khách, Khách vào Thêm
@@ -874,6 +874,44 @@
     return out;
   }
   function isCeo() { return lvl() >= 3 && !isMkt() && !isKho() && !isKt(); }
+  /** 🌱 Mở dần tính năng (anh Sơn 16/11/2026: "nhân sự thấy đơn giản, dễ dùng trước, quen rồi mới mở thêm").
+   *  Mỗi vai trò chỉ thấy mục dùng hằng ngày (GON_CORE, chọn theo Mức dùng CRM 02–16/11); mục anh đã bật riêng cho người đó (Marketing, Kho, Trợ lý Zalo, Bài web, Việc tuần) vẫn hiện.
+   *  Quản trị mở thêm / ẩn bớt từng mục cho từng người ở Cài đặt → Nhân sự → 🌱 (kv gon_cfg, lệnh gon_save). Chỉ ẩn khỏi menu: link Telegram / nút trong màn khác vẫn mở được. Quản trị không bị ẩn gì. */
+  var GON_CORE = { 'Quản lý': ['hom-nay', 'tiem-nang', 'khach-hang', 'don-hang', 'bao-cao', 'tro-ly-zalo'], 'Marketing': ['marketing', 'tiem-nang', 'noi-dung'] };
+  var GON_LIST = { 'Quản lý': ['hom-nay', 'tiem-nang', 'khach-hang', 'don-hang', 'bao-cao', 'marketing', 'tro-ly-zalo', 'zalo-sale', 'kho', 'san', 'link-qr', 'fanpage', 'noi-dung', 'bai-web', 'doi-ai', 'nhan-su', 'tuyen-dung', 'giao-viec'], 'Marketing': ['marketing', 'tiem-nang', 'noi-dung', 'link-qr', 'tro-ly-zalo', 'fanpage', 'bai-web', 'giao-viec'], 'Sale & CSKH': ['hom-nay', 'tiem-nang', 'khach-hang', 'don-hang', 'bao-cao', 'giao-viec'] };
+  function gonCfg(email) { return (S.d && S.d.gon || {})[String(email || '').toLowerCase()] || {}; }
+  function gonBase(u, id) { if (id === 'marketing' && u.mkv || id === 'kho' && u.kho || id === 'tro-ly-zalo' && u.zb || id === 'bai-web' && u.web && u.role === 'Marketing' || id === 'giao-viec' && u.gv) return true; var c = GON_CORE[u.role]; return !c || c.indexOf(id) >= 0; }
+  function gonOn(u, id) { var c = gonCfg(u.email); if ((c.hide || []).indexOf(id) >= 0) return false; return gonBase(u, id) || (c.open || []).indexOf(id) >= 0; }
+  function gonHid(v) {
+    if (!S.user || S.user.role === 'Quản trị' || v.id === 'cai-dat') return false;
+    if (HOST && HOST.home === v.id || HOST_KEY === 'hr' && v.hr) return false; // địa chỉ riêng của vai trò (kho., ketoan., hr.…) luôn mở được mục chính
+    return !gonOn(S.user, v.id);
+  }
+  function gonBar() { return lvl() >= 2 || isMkt() || isKho() || isKt(); } // máy tính: thanh trên gọn 4 mục + Thêm (sale giữ như cũ)
+  function gonN() { return myViews().filter(gonHid).length; }
+  /** Cài đặt → Nhân sự → 🌱: mỗi người 1 dòng, mỗi mục 1 nút bật / tắt (lưu ngay). Mục cần quyền riêng chưa bật thì không đưa vào. */
+  function gonNeed(u, id) { return id === 'giao-viec' ? !u.gv : id === 'marketing' ? u.role !== 'Marketing' && !u.mkv : id === 'bai-web' ? u.role === 'Marketing' && !u.web : false; }
+  function gonSetHTML() {
+    var us = (S.d.users || []).filter(function (u) { return u.active !== false && u.email && GON_LIST[u.role]; });
+    var VL = {}; VIEWS.forEach(function (v) { VL[v.id] = v.label; });
+    var rows = us.map(function (u) {
+      var ids = GON_LIST[u.role].filter(function (id) { return !gonNeed(u, id); }), off = ids.filter(function (id) { return !gonOn(u, id); }).length;
+      return '<div class="gon-u" data-gonu="' + esc(u.email) + '"><div class="gon-h"><b>' + esc(u.name) + '</b> <span class="muted small">' + esc(u.role) + (off ? ' · đang ẩn ' + off + ' mục' : ' · thấy đủ') + '</span></div><div class="chips gon-c">' +
+        ids.map(function (id) { var on = gonOn(u, id); return '<button type="button" class="chip' + (on ? ' on' : '') + '" data-gon="' + id + '" title="' + (on ? 'Đang hiện – bấm để ẩn' : 'Đang ẩn – bấm để mở cho ' + esc(u.name)) + '">' + (on ? '✓ ' : '+ ') + esc(VL[id] || id) + '</button>'; }).join('') + '</div></div>';
+    }).join('');
+    return '<div class="box"><p class="hint" style="margin:0 0 10px">Nút <b>xanh</b> = đang hiện trên menu của người đó. Nút <b>trắng</b> = đang ẩn cho gọn. Bấm để mở / ẩn, lưu ngay. Mục ẩn chỉ không nằm trên menu; bấm link trong tin Telegram vẫn mở được. Kho, Kế toán, Quản trị không cần chỉnh (đã gọn sẵn).</p>' + (rows || '<p class="muted">Chưa có nhân sự Sale, Quản lý, Marketing nào.</p>') + '</div>';
+  }
+  function gonBind() {
+    $$('[data-gon]').forEach(function (b) {
+      b.onclick = function () {
+        var box = b.closest('[data-gonu]'), em = box.getAttribute('data-gonu'), id = b.getAttribute('data-gon'), u = (S.d.users || []).filter(function (x) { return x.email === em; })[0]; if (!u) return;
+        var c = gonCfg(em), open = (c.open || []).filter(function (z) { return z !== id; }), hide = (c.hide || []).filter(function (z) { return z !== id; });
+        if (gonOn(u, id)) hide.push(id); else if (!gonBase(u, id)) open.push(id);
+        b.disabled = true;
+        api('gon_save', { email: em, open: open, hide: hide }).then(function (j) { S.d.gon = j.gon; toast((gonOn(u, id) ? '✓ Đã mở ' : 'Đã ẩn ') + ((VIEWS.filter(function (v) { return v.id === id; })[0] || {}).label || id) + ' cho ' + u.name); render(); }, function (e) { b.disabled = false; toast(e.message, true); });
+      };
+    });
+  }
   function navSig() { return navViews().map(function (v) { return v.id; }).join() + '|' + navMain().join(); }
   var VIEW_DESC = {
     'tong-quan': 'Bức tranh kinh doanh cả công ty', 'hom-nay': 'Khách cần gọi, đơn mới hôm nay', 'tiem-nang': 'Người để lại số, chưa mua',
@@ -885,7 +923,7 @@
   var VIEW_TINT = { 'doi-ai': '#7d4cdb', 'tong-quan': '#1f5f3a', 'hom-nay': '#34a853', 'tiem-nang': '#ff9500', 'khach-hang': '#007aff', 'don-hang': '#a2845e', 'bao-cao': '#5856d6', marketing: '#ff2d55', 'link-qr': '#636366', 'tro-ly-zalo': '#0068ff', 'zalo-sale': '#0b63c4', fanpage: '#1877f2', 'bai-web': '#24805b', 'noi-dung': '#d9480f', san: '#ee4d2d', kho: '#8e5a2b', 'ke-toan': '#0a7d5a', 'cai-dat': '#8e8e93', 'hoi-so-lieu': '#af52de', 'giao-viec': '#0a84ff', 'tuyen-dung': '#2f7d5b', 'nhan-su': '#3a7bd5' };
   function viewMore() {
     var main = navMain(), n = navCounts(), info = navInfo();
-    var rest = myViews().filter(function (v) { return main.indexOf(v.id) < 0 && v.id !== 'cai-dat' && v.id !== 'giao-viec'; }), gvV = main.indexOf('giao-viec') < 0 && myViews().filter(function (v) { return v.id === 'giao-viec'; })[0]; // ✅ Việc tuần lên đầu màn Thêm (16/11/2026)
+    var rest = myViews().filter(function (v) { return !gonHid(v) && main.indexOf(v.id) < 0 && v.id !== 'cai-dat' && v.id !== 'giao-viec'; }), gvV = main.indexOf('giao-viec') < 0 && myViews().filter(function (v) { return v.id === 'giao-viec' && !gonHid(v); })[0]; // ✅ Việc tuần lên đầu màn Thêm (16/11/2026)
     var badge = function (k) { return k ? '<em class="mr-n">' + (k > 99 ? '99+' : k) + '</em>' : ''; };
     var row = function (open, icon, tint, label, desc, k, x) { return open + '<i class="mr-ic" style="background:' + tint + '">' + icon + '</i><span class="mr-t"><b>' + label + '</b>' + (desc ? '<small>' + desc + '</small>' : '') + '</span>' + (x ? navKpi(x) : '') + badge(k) + '<span class="mr-chev" aria-hidden="true">›</span>'; };
     var vrow = function (v) { return row('<a class="mr-row" href="#' + v.id + '">', I[v.icon], VIEW_TINT[v.id] || '#8e8e93', v.label, VIEW_DESC[v.id], n[v.id], info[v.id]) + '</a>'; };
@@ -907,6 +945,7 @@
         row('<button type="button" class="mr-row" data-mr="fb">', '💡', '#ffcc00', 'Góp ý', 'Báo lỗi, chỗ khó dùng, ý tưởng', lvl() >= 2 ? S.d.fbNew : 0) + '</button>' +
         (isApp() ? '' : row('<button type="button" class="mr-row" data-mr="inst">', '📲', '#5856d6', 'Cài ra màn hình điện thoại', 'Mở CRM 1 chạm như ứng dụng, có hình từng bước', 0) + '</button>') +
         row('<button type="button" class="mr-row" data-mr="re">', I.refresh, '#34c759', 'Tải lại dữ liệu', 'Lấy số mới nhất từ máy chủ', 0) + '</button>')) +
+      (gonN() ? '<p class="mr-gon">🌱 Màn hình đang để gọn: chỉ hiện mục bạn dùng hằng ngày. Khi quen rồi, công ty sẽ mở thêm dần.</p>' : '') +
       '</div>';
     return h;
   }
@@ -956,7 +995,7 @@
     if (!hostOk()) { $('#app').innerHTML = hostGate(); $('[data-gout]').onclick = function () { logout(); }; return; } // mở nhầm địa chỉ của vai trò khác
     var main = navMain(), tc = $('meta[name="theme-color"]');
     if (tc && window.matchMedia) tc.content = matchMedia('(max-width: 859px)').matches ? '#f7f7f4' : '#1f5f3a'; // điện thoại: thanh trên sáng màu
-    $('#app').innerHTML = '<header class="top' + (isCeo() ? ' ceo' : '') + '"><div class="top-in">' + // Quản trị (anh Sơn 11/11/2026, PA A): máy tính chỉ 4 mục + Thêm như điện thoại, nút tròn chỉ còn 🔍 + ⚙
+    $('#app').innerHTML = '<header class="top' + (isCeo() ? ' ceo' : '') + (gonBar() ? ' gon' : '') + '"><div class="top-in">' + // Quản trị (anh Sơn 11/11/2026, PA A): máy tính chỉ 4 mục + Thêm như điện thoại, nút tròn chỉ còn 🔍 + ⚙
 
       '<a class="brand" href="#' + homeView() + '"><img src="/icon-180.png" alt="">' + (HOST ? HOST.short : 'CRM') + '</a>' +
       '<nav class="nav' + (navViews().length > 6 || lvl() >= 2 ? ' nav-many' : '') + (navViews().length < myViews().length ? ' nav-hasmore' : '') + '" data-sig="' + navSig() + '">' + navViews().map(function (v) { return '<a href="#' + v.id + '" data-v="' + v.id + '"' + (v.id === 'cai-dat' ? ' class="nav-set"' : main.indexOf(v.id) < 0 ? ' class="nav-x"' : '') + '>' + I[v.icon] + '<span' + (v.short ? ' data-short="' + v.short + '"' : '') + '>' + v.label + '</span></a>'; }).join('') +
@@ -1167,7 +1206,7 @@
   function render() {
     if (!S.d || !$('#view')) return;
     var wide = window.matchMedia && matchMedia('(min-width: 860px)').matches, r = route(), v = r.view === 'them' ? 'them' : myViews().some(function (x) { return x.id === r.view; }) ? r.view : homeView(), main = navMain();
-    $$('.nav a').forEach(function (a) { var d = a.getAttribute('data-v'); a.classList.toggle('on', d === v || (d === 'them' && (wide && !isCeo() ? !navViews().some(function (x) { return x.id === v; }) : main.indexOf(v) < 0))); }); var ts = $('.top-set'); if (ts) ts.classList.toggle('on', v === 'cai-dat');
+    $$('.nav a').forEach(function (a) { var d = a.getAttribute('data-v'); a.classList.toggle('on', d === v || (d === 'them' && (wide && !isCeo() && !gonBar() ? !navViews().some(function (x) { return x.id === v; }) : main.indexOf(v) < 0))); }); var ts = $('.top-set'); if (ts) ts.classList.toggle('on', v === 'cai-dat');
     var keepScroll = lastView === v, y = window.scrollY;
     var el = $('#view');
     var focusId = document.activeElement && document.activeElement.id, selStart = document.activeElement && document.activeElement.selectionStart;
@@ -13585,7 +13624,8 @@
       '<div class="box"><p class="hint" style="margin:0 0 10px">Bật thì nhân sự thấy thẻ mời điền ở màn hình đầu CRM (cho tới khi điền xong) và dòng mở form ở <b>Thêm</b>. Tắt thì ẩn hết, câu trả lời đã có vẫn giữ trong 🗂 Hồ sơ nhân sự trên hr.</p>' +
       '<label class="switch"><input type="checkbox" id="fmPf"' + (FM.pf ? ' checked' : '') + '> <span>📝 Thông tin của tôi<br><span class="muted small">(thông tin cá nhân, giấy tờ, người thân, điều để công ty chăm sóc)</span></span></label><p></p>' +
       '<label class="switch"><input type="checkbox" id="fmHt"' + (FM.ht ? ' checked' : '') + '> <span>🤝 Hiểu & Thương<br><span class="muted small">(9 câu, ghép Đệ nhị thân)</span></span></label><p></p><button class="btn pri" id="fmSave"' + (S.ht ? '' : ' disabled') + '>Lưu</button></div>') : '';
-    h += setSec('👥 Nhân sự', 'Ai được vào CRM, được làm gì; nhân sự đang thắc mắc gì.', GF + (G.us ? setGroup('us', '🧑‍💼 Ai được vào CRM', act.length + ' người đang dùng' + (mk ? ' · ' + mk + ' marketing' : '') + ' · thêm / khoá người, đổi quyền', G.us) : '') + GQ +
+    var GN = lvl() >= 3 ? setGroup('gon', '🌱 Mở dần tính năng cho từng người', (function () { var n = (S.d.users || []).filter(function (u) { return u.active !== false && GON_LIST[u.role] && GON_LIST[u.role].some(function (id) { return !gonNeed(u, id) && !gonOn(u, id); }); }).length; return n ? n + ' người đang để màn hình gọn · mở thêm mục khi họ đã quen' : 'Mọi người đang thấy đủ mục'; })(), gonSetHTML()) : '';
+    h += setSec('👥 Nhân sự', 'Ai được vào CRM, được làm gì; nhân sự đang thắc mắc gì.', GN + GF + (G.us ? setGroup('us', '🧑‍💼 Ai được vào CRM', act.length + ' người đang dùng' + (mk ? ' · ' + mk + ' marketing' : '') + ' · thêm / khoá người, đổi quyền', G.us) : '') + GQ +
       setGroup('vh', '🌿 Văn hoá: Quy tắc của ngày + ☀️ Lời chúc', 'Ai đã nhận quy tắc hôm nay · chuyện nhân sự ghi lại' + (lvl() >= 3 ? ' · sửa câu chữ gợi ý, sửa lời chúc mỗi ngày' : ''), '<div id="vhAdm"><p class="hint" style="margin:0 0 10px">Mỗi ngày làm việc, cả công ty cùng thấy 1 trong 10 Quy Tắc Danh Dự ở đầu màn hình CRM (10 ngày đủ 10 quy tắc), kèm gợi ý áp dụng. Nhân sự bấm <b>✅ Hôm nay mình sẽ làm</b> và có thể ghi 1 dòng chuyện đã làm. Tin Telegram 8h sáng cũng có quy tắc hôm nay.</p><button class="btn" id="vhLoad">Xem</button></div>'));
     h += setSec('🤝 Chia khách', 'Khách mới giao cho ai, xử lý khách trùng hoặc dùng nhiều số.', setGroup('mode', '🔀 Khách mới giao cho ai', MODE_INFO[md][0] + (md === 'pool' ? (!R.poolOn ? ' · 🙈 Kho chung đang ẩn' : poolRuleLine(R) ? ' · về kho khi ' + poolRuleLine(R) : '') : '') + ' · ' + recvN + ' người nhận khách mới' + (noOwner ? ' · ⚠️ ' + noOwner + ' khách chưa ai phụ trách' : ''), G.mode) +
       (lvl() >= 3 ? setGroup('self', '🔎 Tự tạo khách (tab Hôm nay của sale)', selfOn() ? '✅ Đang hiện cho sale' : '🙈 Đang ẩn · bật sau khi họp thống nhất', G.self) : '') +
@@ -14056,6 +14096,7 @@
         var b = this; b.disabled = true;
         api('settings', { rules: { vipOrders: $('#rVipN').value, vipSpent: moneyIn($('#rVipS').value), atRisk: $('#rRisk').value, coolDays: $('#rCool').value, shipDays: $('#rShip').value, shipFar: $('#rShipFar').value, famMin: $('#rFam').value } }).then(function (j) { Object.assign(S.d.rules, j.rules); toast('Đã lưu. Nhóm khách được tính lại ✓'); load(true); }, function (e) { toast(e.message, true); b.disabled = false; });
       }; }
+    gonBind();
     if ($('#fmSave')) $('#fmSave').onclick = function () { var b = this; b.disabled = true; api('ht', { op: 'forms', pf: $('#fmPf').checked ? 1 : 0, ht: $('#fmHt').checked ? 1 : 0 }).then(function (j) { S.ht = j; S.htAt = Date.now(); HSO.d = null; toast('Đã lưu ✓ Thông tin của tôi ' + (j.forms.pf ? 'bật' : 'tắt') + ', Hiểu & Thương ' + (j.forms.ht ? 'bật' : 'tắt')); render(); }, function (e) { toast(e.message, true); b.disabled = false; }); };
     if ($('#selfSave')) $('#selfSave').onclick = function () {
       var b = this; b.disabled = true;
