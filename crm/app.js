@@ -5589,7 +5589,7 @@
     return a.join('; ') + '.';
   }
   var NSV_ICO = { mgr: '🧭', ok: '🟢', mid: '🟡', bad: '🔴', new: '🌱', nocost: '⚪', '': '⚪' }, NSV_TXT = { mgr: 'Quản lý (có tự bán)', ok: 'Đem lại lợi nhuận', mid: 'Đủ nuôi mình', bad: 'Chưa đủ lương', new: 'Đang học việc', nocost: 'Chưa có lương', '': 'Chưa đo được' };
-  function nsvSign(v) { return v === null ? '–' : (v < 0 ? '−' : '') + moneyShort(Math.abs(v)); }
+  function nsvSign(v) { return v === null ? '–' : (v < 0 ? '−' : '') + moneyShort(Math.abs(v) < 1e6 ? Math.round(Math.abs(v) / 1000) * 1000 : Math.abs(v)); }
   function nsvX(r) { return r === null ? '–' : (r < 0 ? '−' : '') + oneDec(Math.abs(r)) + ' lần'; }
   /** 1 thẻ sale (16/11/2026 anh Sơn: "trực quan, dễ hiểu"): doanh số trừ dần từng khoản → lãi ròng, kèm thanh màu chia 100đ doanh số. */
   var D_O = 0.05, D_V = 0.08, NSV_SEG = [['vat', 'Thuế VAT', '#7d8590'], ['cogs', 'Giá vốn hàng', '#b9a184'], ['ad', 'Quảng cáo', '#ff7a90'], ['ship', 'Vận chuyển', '#8fb3e8'], ['pay', 'Lương, hoa hồng, BH', '#f2b544'], ['fx', 'Chi phí cố định', '#a9a3d6'], ['bp', 'Lương back office', '#d39bd6'], ['opp', 'Chi phí cơ hội', '#c7c7cc']];
@@ -5685,7 +5685,7 @@
       '<label class="f"><span>Chi phí cơ hội (% doanh số)</span><input type="text" inputmode="decimal" id="nsvO" value="' + oneDec(D.O * 100) + '"></label>' +
       '<label class="f"><span>Thuế VAT gồm trong doanh số (%)</span><input type="text" inputmode="decimal" id="nsvV" value="' + oneDec(D.VT * 100) + '"></label></div>' +
       '<p class="small muted">Sale: 🟢 = trừ hết các khoản đang tích vẫn còn lãi. Kế toán, kho: so với thuê ngoài. Marketing: lãi gộp khách mới − quảng cáo, 🟢 khi gấp ' + X + ' lần lương. Quản lý: 🟢 khi lương quản lý ≤ 10% số nhóm sale làm ra, 🟡 ≤ 20%.</p></details>';
-    return h + '<p class="small muted">Bản thử: lương lấy từ 👥 Bảng lương (kế toán nhập), hoa hồng CRM tạm tính. Xem trung bình nhiều tháng, đừng quyết chỉ vì 1 tháng. Sale và marketing cùng làm ra 1 đơn: bảng sale đã trừ tiền quảng cáo, bảng marketing xem quảng cáo có lời không, nên không cộng 2 bảng.</p>';
+    return h + '<p class="small muted">Bản thử: ' + (D.realMs && D.realMs.length ? 'lương lấy theo số thực trả của kế toán (file Tính lương), tháng chưa có thì CRM tự ước.' : 'lương lấy từ 👥 Bảng lương (kế toán nhập), hoa hồng CRM tạm tính.') + ' Xem trung bình nhiều tháng, đừng quyết chỉ vì 1 tháng. Sale và marketing cùng làm ra 1 đơn: bảng sale đã trừ tiền quảng cáo, bảng marketing xem quảng cáo có lời không, nên không cộng 2 bảng.</p>';
   }
   function nsvLine() {
     if (!NSV.d || !costCfg()) { nsvLoad(); return 'Ai đem lại lợi nhuận, ai chưa đủ lương'; }
