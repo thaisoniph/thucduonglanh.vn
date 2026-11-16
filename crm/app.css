@@ -3434,3 +3434,42 @@ details.dash-grp[open] > summary::after { transform: rotate(180deg); }
 .fold-race[open] > summary::after { transform: rotate(90deg); }
 .fold-race > .race-box { margin: 0 12px 12px; }
 .gon-main { margin-top: 4px; color: var(--text); }
+/* 👉 Việc hôm nay của kế toán (16/11/2026): bước đánh số, làm xong ✅; phần còn lại gập trong nhóm */
+.ktd { padding: 16px; margin: 0 0 18px; border: 2px solid var(--primary); }
+.ktd-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+.ktd-top h2 { margin: 0; font-size: 20px; flex: 1; }
+.ktd-top h2 small { font-size: 14px; font-weight: 400; color: var(--muted); margin-left: 6px; }
+.ktd-left { font-weight: 700; background: #fff4e5; color: #8a4b00; padding: 4px 12px; border-radius: 999px; font-size: 14px; }
+.ktd-left.ok { background: #e7f6ec; color: #1f6b3a; }
+.ktd-l { list-style: none; margin: 0; padding: 0; }
+.ktd-s { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); }
+.ktd-s:first-child { border-top: 0; }
+.ktd-n { flex: none; width: 32px; height: 32px; border-radius: 50%; background: var(--primary); color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+.ktd-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.ktd-t b { font-size: 16px; }
+.ktd-t small { font-size: 14px; color: var(--muted); line-height: 1.4; }
+.ktd-b { flex: none; }
+.ktd-b .btn { min-width: 132px; }
+.ktd-s.done .ktd-n { background: #34a853; }
+.ktd-s.done .ktd-t b { color: var(--muted); }
+.ktd-s.done .ktd-t small { color: #1f6b3a; }
+.ktd-s.done .ktd-b .btn, .ktd-s.opt .ktd-b .btn { opacity: .75; }
+.ktd-s.opt .ktd-n { background: #c7c7cc; }
+.ktd-s.opt .ktd-t b { color: var(--muted); }
+.ktd-foot { margin: 8px 0 0; font-size: 13px; color: var(--muted); }
+.ktd-h2 { margin-top: 4px; }
+.ktd-more-h { margin: 22px 0 10px; font-size: 17px; }
+.ktd-more-h span { font-size: 14px; color: var(--muted); margin-left: 6px; }
+.ktd-grp > summary { align-items: center; }
+.ktd-ic { flex: none; width: 34px; height: 34px; border-radius: 10px; background: var(--bg, #f4f4f0); display: flex; align-items: center; justify-content: center; font-size: 19px; }
+.ktd-grp .dash-grp-b { padding: 0 14px 14px; }
+.ktd-grp .ktv-sec { margin-top: 0; }
+.ktd-tools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 12px 0 0; }
+.ktd-sub { margin: 16px 0 8px; font-size: 16px; }
+@media (max-width: 640px) {
+  .ktd-s { flex-wrap: wrap; }
+  .ktd-b { width: 100%; padding-left: 44px; }
+  .ktd-b .btn { width: 100%; }
+}
+.ktv-wrap > .stat-key, .ktv-wrap > .stat-key-fold { display: none; } /* 4 ô tiền của kế toán không có đèn / mũi tên / đường nhỏ */
+@media (max-width: 640px) { .ktd-top h2 small { display: block; margin: 2px 0 0; } }

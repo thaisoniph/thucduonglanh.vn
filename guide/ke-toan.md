@@ -4,7 +4,7 @@ nav: Kế toán
 group: kho-ke-toan
 short: Đối soát tiền, công nợ, lãi lỗ, KPI
 order: 4.6
-updated: 2026-11-15
+updated: 2026-11-16
 description: Ghi tiền về tài khoản (tải file đối soát COD Best / Viettel Post hoặc tích tay), đối soát Shopee từng đơn, ghi công nợ nhà cung cấp, tự chấm KPI tháng, xem tiền còn treo ở hãng vận chuyển, nhập chi phí, xem lãi lỗ theo ngày / tuần / tháng. Có hình từng bước.
 roles: [kt]
 ---
@@ -16,6 +16,8 @@ Trang này dành cho **kế toán**. Đọc khoảng 5 phút là làm được.
 **Cách xem hình:** ô khoanh đỏ có số **1, 2, 3** trên hình chính là **bước 1, 2, 3** viết ngay bên dưới hình.
 
 ## Lịch việc của bạn
+
+Mở tab **💼 Kế toán**: khung **👉 Việc hôm nay** trên cùng đã xếp sẵn việc cần làm hôm nay. Làm lần lượt từ trên xuống, bấm nút bên cạnh từng việc. Bên dưới là lịch đầy đủ để bạn nắm.
 
 **Mỗi ngày:**
 
@@ -47,21 +49,36 @@ Trang này dành cho **kế toán**. Đọc khoảng 5 phút là làm được.
 
 ## Màn hình 💼 Kế toán
 
-![Màn hình đầu: hướng dẫn bắt đầu (1), tải file COD (2), tiền treo (3), từng hãng (4)](/huong-dan/img/ke-toan-tab.webp)
+Màn hình có 3 phần, đọc từ trên xuống:
 
-1. Lần đầu dùng có khung **👋 Bắt đầu**. Khung này tự ẩn sau lần đầu ghi tiền về.
-2. Nút **📥 Tải file đối soát COD**: cách nhanh nhất để ghi tiền về (xem mục dưới).
-3. Ô **💤 Đang treo ở hãng vận chuyển**: đơn **đã giao xong** mà hãng **chưa trả tiền** cho công ty. Ô đỏ khi có đơn quá **10 ngày**. Bấm vào ô để xem từng đơn.
-4. **Tiền treo theo hãng**: Best, Viettel Post riêng. Dòng chữ đỏ = số đơn quá 10 ngày: gọi hỏi hãng.
+![Việc hôm nay (1), việc đã xong (2), nút làm việc (3), 4 ô tiền (4), mục xem thêm (5)](/huong-dan/img/ke-toan-tab.webp)
 
-4 ô ở trên cùng:
+1. **👉 Việc hôm nay**: danh sách việc cần làm hôm nay, có số thứ tự. Góc phải ghi **Còn mấy việc**. Hết việc thì hiện **🎉 Xong hết**.
+2. Làm xong việc nào (lưu thành công), máy tự đổi số thành **✓ xanh** và ghi **✅ Đã làm hôm nay**. Sáng mai danh sách tự làm mới.
+3. Mỗi việc có **1 nút** ngay bên cạnh: bấm là mở đúng chỗ cần làm. Nút **xanh đậm** = việc nên làm ngay.
+4. **4 ô tiền** của công ty (bấm ô để xem từng đơn):
 
 | Ô | Nghĩa là |
 |---|---|
-| ✅ **Đã về** | Tiền đã ghi nhận về tài khoản trong kỳ đang xem (tính theo **ngày tiền về**) |
-| 💤 **Đang treo ở hãng** | Đơn COD đã giao, hãng chưa trả tiền |
-| 🏦 **Chuyển khoản chờ xác nhận** | Đơn khách chuyển khoản, kế toán chưa đối chiếu sao kê |
-| 🚚 **Tiền sắp về** | Đơn COD còn đang giao |
+| ✅ **Đã về tài khoản** | Tiền đã ghi nhận về tài khoản trong kỳ đang xem (tính theo **ngày tiền về**) |
+| 💤 **Hãng chưa trả** | Đơn thu hộ (COD) đã giao, hãng chưa trả tiền. Ô đỏ khi có đơn quá **10 ngày** |
+| 🏦 **Chuyển khoản chờ tích** | Đơn khách chuyển khoản, kế toán chưa đối chiếu sao kê |
+| 🚚 **Tiền sắp về** | Đơn thu hộ còn đang giao |
+
+5. **📂 Xem thêm khi cần**: các mục ít dùng được cất gọn, bấm vào tên mục để mở, bấm lần nữa để gập. Máy nhớ mục bạn đang mở.
+   - **🧾 Phiếu đối soát & tiền treo ở hãng**: danh sách phiếu chờ tiền, tiền treo theo từng hãng, nút ghi tiền về bằng tay, xem tiền ra đã lưu.
+   - **🟠 Shopee**, **🧾 Công nợ nhà cung cấp**.
+   - **📅 Việc cuối tháng**: chốt doanh số theo sale, đơn hạ COD, bảng lương, KPI.
+   - **📊 Lãi lỗ & báo cáo**, **📦 Hàng tồn kho**.
+
+**Việc hôm nay gồm những gì?**
+
+- **Mỗi ngày:** 📦 cập nhật trạng thái đơn Best, 🏦 tải sao kê ngân hàng.
+- **Thứ 2, 4, 6:** 📥 tải phiếu tiền thu hộ. Ngày khác dòng này màu xám, ghi "Hôm nay không cần".
+- **Khi có việc phát sinh** (tự hiện, xong thì tự mất): phiếu chờ tiền về, đơn chuyển khoản chờ tích, đơn hãng chưa trả quá 10 ngày, đơn hãng thu khác tiền chưa ghi lý do, nợ nhà cung cấp quá hạn hoặc đến hạn trong 3 ngày.
+- **Ngày 25 đến ngày 5 tháng sau:** 📅 chốt sổ tháng.
+
+Dấu ✅ lưu trên máy bạn đang dùng. Làm trên máy khác thì máy này chưa hiện ✅, không sao cả.
 
 ## Phiếu đối soát chờ tiền về (thứ 2, 4, 6)
 
@@ -176,7 +193,7 @@ Bấm ô **🏦 Chuyển khoản chờ xác nhận** (hoặc nút **✅ Ghi ti�
 
 ## Shopee: đơn nào Shopee đã trả tiền (thay cho VLOOKUP)
 
-Ở tab 💼 Kế toán, kéo xuống mục **🟠 Shopee – tiền về từng đơn**. Máy tự ghép file đơn hàng với file tiền Shopee trả **theo mã đơn**, kế toán không phải VLOOKUP nữa.
+Ở tab 💼 Kế toán, mở mục **🟠 Shopee: tiền về từng đơn** (trong 📂 Xem thêm khi cần). Máy tự ghép file đơn hàng với file tiền Shopee trả **theo mã đơn**, kế toán không phải VLOOKUP nữa.
 
 [[steps:kt-shopee]]
 
@@ -334,7 +351,7 @@ Trong phiếu, làm từng nhóm việc:
 
 ### Quản lý chấm lại và chốt
 
-Chị Thủy (Quản lý) mở tab **Hiệu quả**, kéo xuống cuối trang. Anh Sơn (Quản trị) mở tab **💼 Kế toán**. Bấm tên người kế toán.
+Chị Thủy (Quản lý) mở tab **Hiệu quả**, kéo xuống cuối trang. Anh Sơn (Quản trị) mở tab **💼 Kế toán** → mục **📅 Việc cuối tháng**. Bấm tên người kế toán.
 
 ![Điểm kế toán tự chấm (1), chọn mức của quản lý (2), tổng điểm (3), chốt (4)](/huong-dan/img/ke-toan-kpi-chot.webp)
 
@@ -386,7 +403,7 @@ Mục **👥 Bảng lương tháng** trên tab 💼 Kế toán. Bạn chỉ nh�
 
 ### Quản lý duyệt bảng lương
 
-Chị Thủy mở tab **Hiệu quả** và kéo xuống cuối trang. Anh Sơn mở tab **💼 Kế toán**. Xem bảng, bấm từng tên nếu cần, rồi bấm **✅ Duyệt bảng lương**. Sau khi duyệt, kế toán không sửa được nữa. Cần sửa thì bấm **🔓 Mở lại để sửa**. Bấm **↻ Lấy lại hoa hồng sale** khi vừa sửa đơn của tháng đó.
+Chị Thủy mở tab **Hiệu quả** và kéo xuống cuối trang. Anh Sơn mở tab **💼 Kế toán** → mục **📅 Việc cuối tháng**. Xem bảng, bấm từng tên nếu cần, rồi bấm **✅ Duyệt bảng lương**. Sau khi duyệt, kế toán không sửa được nữa. Cần sửa thì bấm **🔓 Mở lại để sửa**. Bấm **↻ Lấy lại hoa hồng sale** khi vừa sửa đơn của tháng đó.
 
 ## Nhập chi phí và xem lãi lỗ
 
@@ -425,7 +442,7 @@ Ghi chú:
 - Tháng này chưa nhập chi phí thì máy **tạm lấy theo tháng gần nhất** đã có, ghi rõ trên màn hình.
 - Quảng cáo máy tự lấy, không cần nhập.
 - **💰 Giá vốn sản phẩm** (giá nhập từng sản phẩm) sửa ở **Cài đặt**. Có giá vốn thì máy mới tính được lãi.
-- **🏦 Tiền & công nợ** (cuối trang): bấm **🔗 Nối link** để nối file Google Sheet kế toán (Sổ chi, Số dư ngân hàng). Công nợ nhà cung cấp ghi ở mục **🧾 Công nợ nhà cung cấp** phía trên. Máy tự đọc lại 3 tiếng 1 lần.
+- **🏦 Tiền & công nợ** (trong mục 📊 Lãi lỗ & báo cáo): bấm **🔗 Nối link** để nối file Google Sheet kế toán (Sổ chi, Số dư ngân hàng). Công nợ nhà cung cấp ghi ở mục **🧾 Công nợ nhà cung cấp**. Máy tự đọc lại 3 tiếng 1 lần.
 
 ## Hàng tồn kho tính bằng tiền
 
