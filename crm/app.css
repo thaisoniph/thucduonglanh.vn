@@ -3478,3 +3478,9 @@ details.dash-grp[open] > summary::after { transform: rotate(180deg); }
 .kho-td-top h2 { font-size: 19px; }
 .kho-td-hint { margin: -2px 0 8px; font-size: 13px; color: var(--muted); }
 .kho-td-n { display: inline-flex; width: 24px; height: 24px; border-radius: 50%; background: var(--primary); color: #fff; font-size: 14px; align-items: center; justify-content: center; margin-right: 8px; vertical-align: 1px; }
+
+.sai-shp { margin-bottom: 10px; }
+.sai-chip { display: inline-block; background: #eef5ef; border-radius: 12px; padding: 2px 8px; margin: 2px 2px 0 0; }
+.sai-mine td { background: #f3f9f4; }
+.sai-bmk { margin: 0 0 8px; } .sai-bmk ol { padding-left: 18px; } .sai-bmk-a { cursor: grab; }
+.sai-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }

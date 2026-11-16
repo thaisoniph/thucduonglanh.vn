@@ -11688,6 +11688,7 @@
     h += '<section class="section"><div class="section-h"><h2>📊 Kết quả ' + esc(perLabel(f.p).toLowerCase()) + '</h2></div>' + sanStats(sj, R, false, P) + '</section>';
     h += '<div class="steps">' + (sj.sheet && sj.sheet.id ? '<button class="btn" data-san="sheet">🔄 Lấy số từ Google Sheet</button><a class="btn" target="_blank" rel="noopener" href="https://docs.google.com/spreadsheets/d/' + esc(sj.sheet.id) + '/edit">📗 Mở Sheet báo cáo</a>' : '') +
       (sj.admin ? '<button class="btn" data-san="sheetcfg">⚙️ Link Sheet báo cáo</button>' : '') + '<button class="btn" data-san="list">📋 Các lần tải file</button>' + (sj.admin ? '<button class="btn" data-san="people">👤 Người phụ trách sàn' + (sj.people.length ? ': ' + esc(sj.people.join(', ')) : '') + '</button>' : '') + '</div>';
+    if (sj.admin && SAI.j && !SAI.cogsSent) { var cr0 = sanCostRate(sj); if (cr0 && !cr0.est && Math.abs((SAI.j.cfg.cogs || 0) - cr0.r) > 0.005) { SAI.cogsSent = 1; api('san_ai_cfg', { cogs: cr0.r }).then(function () { SAI.j = null; saiGet(); }, function () {}); } } // 🎯 ROI hoà vốn cho người phụ trách sàn: chỉ gửi tỷ lệ giá vốn, không gửi giá nhập
     return h + saiBlock() + sanHowTo(false);
   }
   /* ---------- 🛒 Trợ lý sàn Shopee (16/11/2026, anh Sơn: Thủy dùng skill Claude rời rạc trên máy → gom vào tab Sàn). Máy chủ: api/src/sanai.js
@@ -11725,8 +11726,10 @@
     return '<div class="box sai-card"><b>Đối thủ tuần ' + esc(fDate(r.at)) + '</b> <span class="small muted">' + esc(r.by || '') + ' · ' + (j.n || 0) + ' ảnh' + (j.txt ? ' + chữ dán' : '') + '</span>' +
       '<p>' + esc(j.sum || '') + '</p>' + ((j.doi || []).length ? '<p class="small"><b>🔄 Thay đổi so tuần trước:</b></p><ul class="small">' + j.doi.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ul>' : '') +
       (j.minh ? '<p class="small"><b>🌿 Thực Dưỡng Lành đang ở đâu:</b> ' + esc(j.minh) + '</p>' : '') +
+      ((j.tukhoa || []).length ? '<p class="small"><b>🔑 Từ khoá đối thủ hay đặt trong tên:</b> ' + j.tukhoa.map(function (t) { return '<span class="sai-chip">' + esc(t) + '</span>'; }).join(' ') + '</p>' : '') +
+      ((j.rows || []).some(function (x) { return x.url; }) ? '<p class="small muted">📥 ' + (j.items || 0) + ' sản phẩm từ ' + (j.pages || []).length + ' trang (' + esc((j.pages || []).join(', ')) + '). Có thay đổi: <b>' + (j.rows || []).filter(function (x) { return x.ghichu && x.ghichu.indexOf('mới thấy') < 0; }).length + '</b> sản phẩm.</p>' : '') +
       '<details class="small"' + ((j.rows || []).length <= 8 ? ' open' : '') + '><summary><b>📋 Bảng ' + (j.rows || []).length + ' sản phẩm đối thủ</b></summary><div class="sai-tbl"><table><tr><th>Shop · sản phẩm</th><th>Giá</th><th>Đã bán</th><th>★</th><th>Khuyến mãi · so tuần trước</th></tr>' +
-      (j.rows || []).map(function (x) { return '<tr><td><b>' + esc(x.shop) + '</b><br>' + esc(x.sp) + '</td><td>' + esc(x.gia) + '</td><td>' + esc(x.daban) + '</td><td>' + esc(x.sao) + '</td><td>' + esc(x.km) + (x.ghichu ? '<br><b>' + esc(x.ghichu) + '</b>' : '') + '</td></tr>'; }).join('') + '</table></div></details>' +
+      (j.rows || []).slice().sort(function (a, b) { return (b.ghichu && b.ghichu.indexOf('mới thấy') < 0 ? 1 : 0) - (a.ghichu && a.ghichu.indexOf('mới thấy') < 0 ? 1 : 0); }).map(function (x) { return '<tr' + (x.mine ? ' class="sai-mine"' : '') + '><td>' + (x.shop ? '<b>' + esc(x.shop) + '</b><br>' : '') + (x.url ? '<a href="' + esc(x.url) + '" target="_blank" rel="noopener">' + esc(x.sp) + '</a>' : esc(x.sp)) + (x.mine ? ' <b>(mình)</b>' : '') + (x.kw ? '<br><span class="muted">' + esc(x.kw) + '</span>' : '') + '</td><td>' + esc(x.gia) + '</td><td>' + esc(x.daban) + '</td><td>' + esc(x.sao) + '</td><td>' + esc(x.km) + (x.ghichu ? '<br><b>' + esc(x.ghichu) + '</b>' : '') + '</td></tr>'; }).join('') + '</table></div></details>' +
       '<h3 class="sai-h3">👉 Phương án tuần này</h3>' + saiActs(r) + '</div>';
   }
   function saiBlock() {
@@ -11734,20 +11737,90 @@
     if (!j) return '<section class="section"><div class="box"><p class="muted">' + (SAI.err ? '⚠️ ' + esc(SAI.err) : '⏳ Đang tải trợ lý sàn…') + '</p></div></section>';
     var shop = j.list.filter(function (r) { return r.kind === 'shop'; }), dt = j.list.filter(function (r) { return r.kind === 'dt'; }), td = isoDate(today());
     var s0 = shop[0], d0 = dt[0], dOld = !d0 || Date.now() - d0.at > 6 * DAY, mon = new Date(Date.now() + 7 * 3600e3).getUTCDay() === 1;
+    h += saiShpBox(j);
     h += '<section class="section" id="sai-shop"><div class="section-h"><h2>🩺 Sức khoẻ shop Shopee</h2><div class="grow"></div><button class="btn sm" data-sai="cfg" data-k="shop">📋 Cách đánh giá</button></div>' +
       (!j.aiOn ? '<div class="notice warn">AI chưa bật trên máy chủ (thiếu khoá ANTHROPIC_API_KEY).</div>' : '') +
       '<div class="box"><p class="small" style="margin:0 0 8px"><b>Mỗi sáng 2 phút:</b> ① Tải file Shopee mới (đơn hàng, quảng cáo, phân tích bán hàng) → ② CRM chấm điểm theo đúng cách đánh giá của bạn → ③ làm 3 việc, bấm ✅ Đã làm. Sau 7 ngày CRM tự cho biết việc đó có làm doanh số tăng không.</p>' +
       '<button class="btn pri" data-sai="shop">🩺 ' + (s0 && s0.day === td ? 'Chấm lại hôm nay' : 'Chấm sức khoẻ shop hôm nay') + '</button></div>' +
-      (s0 ? saiShopCard(s0) : '') + '</section>';
+      (s0 ? saiShopCard(s0) : '') + '</section>' + saiBook(j);
     h += '<section class="section" id="sai-dt"><div class="section-h"><h2>🔍 Đối thủ cùng ngách</h2><div class="grow"></div><button class="btn sm" data-sai="cfg" data-k="dt">📋 Cách xem đối thủ</button></div>' +
-      '<div class="box"><p class="small" style="margin:0 0 8px"><b>Đầu tuần 5 phút:</b> ① Mở Shopee, tìm từ khoá của mình' + (j.cfg.kw ? ' (<b>' + esc(j.cfg.kw) + '</b>)' : '') + ' hoặc vào shop đối thủ → ② chụp màn hình (hoặc chọn hết chữ, sao chép) → ③ đưa vào đây. AI đọc giá, đã bán, số sao rồi so với tuần trước.</p>' +
+      '<div class="box"><p class="small" style="margin:0 0 8px"><b>Đầu tuần 5 phút:</b> ① Mở Shopee, tìm từ khoá của mình' + (j.cfg.kw ? ' (<b>' + esc(j.cfg.kw) + '</b>)' : '') + ' hoặc vào shop đối thủ → ② bấm nút <b>📥 Gửi về CRM</b> trên thanh dấu trang (hoặc chụp màn hình) → ③ dán vào đây. CRM tự so tên, giá, số đã bán với tuần trước.</p>' + saiBmkBox() +
       (dOld && mon ? '<div class="notice info" style="margin:0 0 8px">📅 Hôm nay thứ Hai: tới lúc xem đối thủ tuần này.</div>' : '') +
       '<button class="btn ' + (dOld ? 'pri' : '') + '" data-sai="dt">🔍 Xem đối thủ tuần này</button></div>' + (d0 ? saiDtCard(d0) : '') + '</section>';
     if (j.list.length > 1) h += '<div class="steps"><button class="btn sm" data-sai="hist">🗂 Các lần chấm trước (' + j.list.length + ')</button></div>';
     return h;
   }
+  /** 📥 nút "Gửi về CRM" (bookmarklet) chạy trên trang Shopee của Thủy: lấy chữ trên từng thẻ sản phẩm (link có mã shop.sản phẩm), cộng dồn nhiều trang trong 6 tiếng (localStorage của shopee.vn), chép vào bộ nhớ để dán vào CRM.
+   * Không gửi thẳng lên máy chủ (Shopee chặn gọi ra ngoài), không đăng nhập hộ, chỉ đọc trang Thủy đang xem. */
+  var SAI_BMK = "(function(){var K='tdlShp',now=Date.now(),S;try{S=JSON.parse(localStorage.getItem(K)||'null')}catch(e){}if(!S||now-S.t>216e5)S={t:now,p:[]};var seen={},it=[];document.querySelectorAll('a[href]').forEach(function(a){var m=a.href.match(/-i\\.(\\d+)\\.(\\d+)|\\/product\\/(\\d+)\\/(\\d+)/);if(!m)return;var id=(m[1]||m[3])+'.'+(m[2]||m[4]);if(seen[id])return;var t=(a.innerText||'').trim();if(t.length<8)return;seen[id]=1;it.push([id,t.replace(/\\s*\\n\\s*/g,' | ').slice(0,400)])});if(!it.length){alert('Chưa thấy sản phẩm nào. Kéo trang xuống cho hiện hết sản phẩm rồi bấm lại.');return}var u=new URL(location.href),k=u.searchParams.get('keyword')||document.title.replace(/\\s*\\|.*$/,'');S.p=S.p.filter(function(p){return p.u!==location.href});S.p.push({u:location.href,k:k,i:it});try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}var n=0;S.p.forEach(function(p){n+=p.i.length});var out='TDL-SHOPEE-1\\n'+JSON.stringify(S.p.map(function(p){return{k:p.k,i:p.i}}));var ok=function(){alert('📥 Đã lấy '+it.length+' sản phẩm ở trang này (gộp '+S.p.length+' trang, '+n+' sản phẩm).\\nMở thêm trang khác thì bấm tiếp. Xong thì vào CRM → Sàn → 🔍 Xem đối thủ → dán (Ctrl+V).')};if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(out).then(ok,function(){prompt('Chép đoạn này (Ctrl+C) rồi dán vào CRM:',out)});else prompt('Chép đoạn này (Ctrl+C) rồi dán vào CRM:',out)})();";
+  function saiBmkHref() { return 'javascript:' + encodeURIComponent(SAI_BMK); }
+  /** Dữ liệu dán từ nút 📥 → [{k, i: [[id, chữ]]}] hoặc null. */
+  function saiPages(t) { t = String(t || '').trim(); if (t.indexOf('TDL-SHOPEE-1') !== 0) return null; try { var a = JSON.parse(t.slice(12).trim()); return Array.isArray(a) ? a : null; } catch (e) { return null; } }
+  function saiBmkBox() {
+    return '<details class="box small sai-bmk"><summary><b>📥 Cài nút "Gửi về CRM" (làm 1 lần trên máy tính)</b></summary>' +
+      '<p>Nút này nằm trên thanh dấu trang của Chrome. Mở Shopee, tìm từ khoá hoặc vào shop đối thủ, bấm nút: CRM nhận <b>tên, giá, đã bán</b> của mọi sản phẩm trên trang, không cần chụp ảnh. Mở nhiều trang thì bấm nút ở từng trang, dữ liệu tự gộp.</p>' +
+      '<ol><li>Bật thanh dấu trang: bấm <b>Ctrl + Shift + B</b> (máy Mac: <b>⌘ + Shift + B</b>).</li><li><b>Kéo</b> nút xanh bên dưới thả lên thanh dấu trang. <span class="muted">(Bấm thẳng vào nút ở đây sẽ không chạy, phải kéo.)</span></li><li>Kéo không được: bấm <b>📋 Chép mã nút</b> → chuột phải thanh dấu trang → <b>Thêm trang</b> → Tên: <i>Gửi về CRM</i>, URL: dán mã vào → Lưu.</li></ol>' +
+      '<p><a class="btn pri sai-bmk-a" href="' + esc(saiBmkHref()) + '" draggable="true" data-saibmk="1">📥 Gửi về CRM</a> <button class="btn sm" type="button" data-sai="bmkcopy">📋 Chép mã nút</button></p></details>';
+  }
+  /** ☀️ Ca sáng: số Shopee tự lấy (khi đã nối Shopee chính chủ) + trạng thái nối. */
+  function saiShpBox(j) {
+    var S0 = j.shp || {}, L = S0.live || {}, E = L.err || {}, adm = j.admin;
+    if (!S0.on) {
+      if (!adm) return '';
+      return '<div class="box small sai-shp"><b>🔗 Nối Shopee tự động</b> <span class="muted">(chỉ Quản trị thấy)</span><p style="margin:6px 0">' + (S0.app ? 'Đã có mã ứng dụng. Bấm <b>Cho phép CRM đọc shop</b>, đăng nhập Shopee bằng tài khoản shop, bấm Đồng ý.' : 'Khi Shopee duyệt ứng dụng, CRM tự lấy <b>đơn chờ đóng gói, số dư và chi phí quảng cáo, tin nhắn chưa đọc</b> 30 phút/lần, Thủy không cần tải file. Cách đăng ký: trang hướng dẫn <a href="/huong-dan/san/#noi-shopee" target="_blank">Sàn Shopee → Nối Shopee</a>.') + '</p>' +
+        '<button class="btn sm" data-sai="shpapp">' + (S0.app ? '✏️ Đổi mã ứng dụng' : '🔑 Dán mã ứng dụng Shopee') + '</button>' + (S0.app ? ' <button class="btn sm pri" data-sai="shpauth">🔗 Cho phép CRM đọc shop</button>' : '') + '</div>';
+    }
+    var errs = Object.keys(E).map(function (k) { return { order: 'đơn hàng', bal: 'số dư QC', ads: 'quảng cáo', chat: 'tin nhắn', auth: 'cho phép' }[k] + ': ' + E[k]; });
+    return '<div class="box sai-shp"><div class="sai-kpi">' +
+      '<div><span>📦 Đơn chờ đóng gói</span><b>' + (L.pending != null ? L.pending : '–') + '</b></div>' +
+      '<div><span>💬 Tin nhắn chưa đọc</span><b>' + (L.chat != null ? L.chat : '–') + '</b>' + (E.chat ? '<small class="muted"> Shopee chưa cấp quyền</small>' : '') + '</div>' +
+      '<div><span>💳 Số dư quảng cáo</span><b>' + (L.bal != null ? moneyShort(L.bal) : '–') + '</b></div></div>' +
+      '<p class="small muted" style="margin:6px 0 0">🔗 Đã nối Shopee · lấy số lúc ' + (L.at ? fDateTime(L.at) : '–') + ' (30 phút/lần) <button class="link" data-sai="shpsync">🔄 Lấy ngay</button>' + (adm ? ' · <button class="link" data-sai="shpoff">Ngắt</button>' : '') + '</p>' +
+      (errs.length ? '<details class="small"><summary>⚠️ ' + errs.length + ' phần chưa lấy được</summary><ul>' + errs.map(function (e) { return '<li>' + esc(e) + '</li>'; }).join('') + '</ul></details>' : '') + '</div>';
+  }
+  /** 📒 Sổ theo dõi ngày (thay bảng Thủy gõ tay cuối ngày): doanh số / đơn tự lấy từ đơn Shopee, chi phí quảng cáo, ROI, đơn video / live / affiliate. */
+  function saiBook(j) {
+    var B = j.book || { rows: [] }, be = B.be, bal = B.bal, rows = B.rows.slice(0, 14), td = isoDate(today());
+    var roi = function (r) { return r.ads ? Math.round((r.ads_gmv || 0) / r.ads * 10) / 10 : null; };
+    var h = '<section class="section" id="sai-book"><div class="section-h"><h2>📒 Sổ theo dõi ngày</h2><div class="grow"></div><button class="btn sm pri" data-sai="day" data-day="' + td + '">✏️ Ghi số hôm nay</button></div>';
+    h += '<div class="box">' +
+      (be ? '<p class="small" style="margin:0 0 6px">🎯 <b>ROI hoà vốn ≈ ' + String(be.roi).replace('.', ',') + '</b>: quảng cáo có ROI thấp hơn mức này là đang lỗ (Shopee trả về ' + Math.round(be.fee * 100) + '% doanh số, giá vốn ' + Math.round(be.cogs * 100) + '%). Nên giữ ROI ≥ ' + String(Math.round(be.roi * 13) / 10).replace('.', ',') + ' để có lãi.</p>' : '<p class="small muted" style="margin:0 0 6px">🎯 ROI hoà vốn: chưa tính được (cần anh Sơn mở tab Sàn 1 lần để CRM lấy tỷ lệ giá vốn, và có file tiền về Shopee).</p>') +
+      (bal ? '<p class="small" style="margin:0 0 6px">💳 Số dư quảng cáo ' + moneyShort(bal.v) + ' (ngày ' + esc(bal.day.slice(8) + '/' + bal.day.slice(5, 7)) + ')' + (bal.left != null ? ', chi TB ' + moneyShort(bal.avg) + '/ngày → ' + (bal.left < 3 ? '<b class="sai-down">⚠️ chỉ đủ ~' + bal.left + ' ngày, nạp thêm!</b>' : 'đủ ~' + bal.left + ' ngày') : '') + '</p>' : '') +
+      '<div class="sai-tbl"><table><tr><th>Ngày</th><th>Doanh số</th><th>Đơn</th><th>Chi phí QC</th><th>ROI</th><th>Video</th><th>Live</th><th>Affiliate</th><th></th></tr>' +
+      (rows.length ? rows.map(function (r) {
+        var R = roi(r), bad = R !== null && be && R < be.roi, n = function (v) { return v == null ? '<span class="muted">–</span>' : v; };
+        return '<tr><td>' + esc(r.day.slice(8) + '/' + r.day.slice(5, 7)) + '</td><td>' + moneyShort(r.g) + '</td><td>' + r.n + '</td><td>' + (r.ads != null ? moneyShort(r.ads) + (r.src === 'api' ? ' <small title="Shopee tự đổ về">🔗</small>' : '') : '<span class="muted">–</span>') + '</td><td' + (bad ? ' class="sai-down"' : '') + '>' + (R !== null ? String(R).replace('.', ',') + (bad ? ' ⚠️' : '') : '<span class="muted">–</span>') + '</td><td>' + n(r.vid) + '</td><td>' + n(r.live) + '</td><td>' + n(r.aff) + '</td><td><button class="link" data-sai="day" data-day="' + esc(r.day) + '">✏️</button></td></tr>';
+      }).join('') : '<tr><td colspan="9" class="muted">Chưa có số. Bấm ✏️ Ghi số hôm nay.</td></tr>') + '</table></div>' +
+      '<p class="small muted" style="margin:6px 0 0">Doanh số, số đơn: CRM tự lấy từ đơn Shopee. ROI = doanh thu quảng cáo ÷ chi phí quảng cáo. 21h Telegram nhắc nếu hôm nay chưa ghi.</p></div></section>';
+    return h;
+  }
+  function openSaiDay(day) {
+    var r = ((SAI.j && SAI.j.book && SAI.j.book.rows) || []).filter(function (x) { return x.day === day; })[0] || {};
+    var f = function (id, lb, v, ph) { return '<label class="f"><span>' + lb + '</span><input type="text" inputmode="numeric" autocomplete="off" id="' + id + '" value="' + (v == null ? '' : esc(v)) + '" placeholder="' + (ph || '') + '"></label>'; };
+    var body = '<label class="f"><span>Ngày</span><input type="date" id="sdD" value="' + esc(day) + '"></label>' +
+      '<p class="small muted">Doanh số ' + moneyShort(r.g || 0) + ' · ' + (r.n || 0) + ' đơn (CRM tự lấy từ đơn Shopee).</p>' +
+      f('sdA', 'Chi phí quảng cáo (đ)', r.ads, 'vd 350000') + f('sdG', 'Doanh thu từ quảng cáo (đ)', r.ads_gmv, 'vd 1500000') + f('sdB', 'Số dư quảng cáo còn lại (đ)', r.bal, 'để báo khi sắp hết') +
+      '<div class="sai-3">' + f('sdV', 'Đơn từ video', r.vid) + f('sdL', 'Đơn từ live', r.live) + f('sdF', 'Đơn affiliate', r.aff) + '</div>' +
+      '<label class="f"><span>Ghi chú</span><input type="text" id="sdN" value="' + esc(r.note || '') + '" placeholder="vd: chạy flash sale 12h"></label><p class="err" id="sdE"></p>';
+    var m = modal('📒 Ghi sổ ngày', body, '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="sdS">Lưu</button>');
+    $('#sdD', m).onchange = function () { closeModal(true); openSaiDay(this.value); };
+    $('#sdS', m).onclick = function () {
+      var btn = this, g = function (id) { var v = $('#' + id, m).value.trim(); return v === '' ? '' : moneyIn(v); }, gi = function (id) { var v = $('#' + id, m).value.replace(/\D/g, ''); return v === '' ? '' : +v; };
+      btn.disabled = true;
+      api('san_ai_day', { day: $('#sdD', m).value, ads: g('sdA'), ads_gmv: g('sdG'), bal: g('sdB'), vid: gi('sdV'), live: gi('sdL'), aff: gi('sdF'), note: $('#sdN', m).value.trim() }).then(function () { closeModal(true); saiReload('Đã ghi sổ ✓'); }, function (e) { btn.disabled = false; $('#sdE', m).textContent = e.message; });
+    };
+  }
+  function openSaiShpApp() {
+    var m = modal('🔑 Mã ứng dụng Shopee', '<p>Lấy trên <b>open.shopee.com → Console → App List</b> (ứng dụng đã được Shopee duyệt, môi trường Live).</p><label class="f"><span>Partner ID (Live)</span><input type="text" id="spI" inputmode="numeric" autocomplete="off"></label><label class="f"><span>Partner Key (Live)</span><input type="password" id="spK" autocomplete="off"></label><p class="small muted">Mã lưu trên máy chủ CRM, không ai xem lại được. Đường dẫn chuyển về (Redirect URL) điền trên Shopee: <b>' + esc(((SAI.j || {}).shp || {}).cb || '') + '</b></p><p class="err" id="spE"></p>', '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="spS">Lưu</button>');
+    $('#spS', m).onclick = function () { var b = this; b.disabled = true; api('san_shp_app', { pid: $('#spI', m).value, pkey: $('#spK', m).value }).then(function () { closeModal(true); saiReload('Đã lưu. Bấm 🔗 Cho phép CRM đọc shop.'); }, function (e) { b.disabled = false; $('#spE', m).textContent = e.message; }); };
+  }
   function bindSai() {
-    $$('[data-sai]').forEach(function (el) { el.onclick = function () { var a = el.getAttribute('data-sai'); if (a === 'shop') openSaiShop(); else if (a === 'dt') openSaiDt(); else if (a === 'cfg') openSaiCfg(el.getAttribute('data-k')); else if (a === 'hist') openSaiHist(); }; });
+    $$('[data-sai]').forEach(function (el) { el.onclick = function () { var a = el.getAttribute('data-sai'); if (a === 'shop') openSaiShop(); else if (a === 'dt') openSaiDt(); else if (a === 'cfg') openSaiCfg(el.getAttribute('data-k')); else if (a === 'hist') openSaiHist(); else if (a === 'day') openSaiDay(el.getAttribute('data-day')); else if (a === 'shpapp') openSaiShpApp();
+        else if (a === 'bmkcopy') { if (navigator.clipboard) navigator.clipboard.writeText(saiBmkHref()).then(function () { toast('Đã chép mã nút. Dán vào ô URL khi thêm dấu trang.'); }); }
+        else if (a === 'shpauth') { el.disabled = true; api('san_shp_auth').then(function (r) { el.disabled = false; window.open(r.url, '_blank'); }, function (e) { el.disabled = false; toast(e.message, true); }); }
+        else if (a === 'shpsync') { el.disabled = true; api('san_shp_sync').then(function () { saiReload('Đã lấy số mới từ Shopee'); }, function (e) { el.disabled = false; toast(e.message, true); }); }
+        else if (a === 'shpoff') { if (confirm('Ngắt nối Shopee? CRM thôi tự lấy số.')) api('san_shp_off').then(function () { saiReload('Đã ngắt'); }, function (e) { toast(e.message, true); }); } }; });
+    $$('[data-saibmk]').forEach(function (a) { a.onclick = function (e) { e.preventDefault(); toast('Kéo nút này lên thanh dấu trang của Chrome, rồi bấm nó khi đang ở trang Shopee.', true); }; });
     $$('[data-saiact]').forEach(function (b) {
       b.onclick = function () { b.disabled = true; api('san_ai_act', { id: b.getAttribute('data-saiact'), i: +b.getAttribute('data-i'), done: b.getAttribute('data-done') === '1' }).then(function () { saiReload(b.getAttribute('data-done') === '1' ? 'Đã ghi ✅. 7 ngày sau CRM tự đo kết quả.' : 'Đã bỏ đánh dấu'); }, function (e) { b.disabled = false; toast(e.message, true); }); };
     });
@@ -11788,15 +11861,18 @@
       '<label class="f"><span>Từ khoá đang theo dõi</span><input type="text" id="saiKw" value="' + esc(C.kw || '') + '" placeholder="vd: trà đinh lăng, bột ngũ cốc, ruốc nấm"></label>' +
       '<label class="f"><span>Shop đối thủ đang theo dõi</span><input type="text" id="saiRv" value="' + esc(C.rivals || '') + '" placeholder="tên shop, cách nhau dấu phẩy"></label>' +
       '<label class="f"><span>Ảnh chụp màn hình</span><input type="file" id="saiI" multiple accept="image/*"></label><div class="fb-imgs" id="saiIm"></div>' +
-      '<label class="f"><span>Hoặc dán chữ trang Shopee (không bắt buộc)</span><textarea id="saiT" rows="4" placeholder="Trên máy tính: bấm Ctrl+A rồi Ctrl+C ở trang kết quả tìm kiếm, dán vào đây"></textarea></label><p class="err" id="saiE2"></p>';
+      '<label class="f"><span>Dán dữ liệu từ nút 📥 Gửi về CRM (Ctrl+V), hoặc chữ trang Shopee</span><textarea id="saiT" rows="4" placeholder="Bấm nút 📥 trên trang Shopee rồi dán vào đây"></textarea></label><p class="small" id="saiTp"></p><p class="err" id="saiE2"></p>';
+    body = body.replace('<label class="f"><span>Ảnh chụp màn hình</span>', '<label class="f"><span>Hoặc ảnh chụp màn hình (khi không dùng được nút 📥)</span>');
     var m = modal('🔍 Đối thủ tuần này', body, '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="saiGo2">🔍 Xem đối thủ</button>');
     var draw = function () { $('#saiIm', m).innerHTML = imgs.map(function (s, i) { return '<div class="fb-img"><img src="' + s + '" alt=""><button type="button" data-rmi="' + i + '" aria-label="Bỏ ảnh">✕</button></div>'; }).join(''); $$('[data-rmi]', m).forEach(function (b) { b.onclick = function () { imgs.splice(+b.getAttribute('data-rmi'), 1); draw(); }; }); };
+    $('#saiT', m).addEventListener('input', function () { var P = saiPages(this.value), n = 0; if (P) P.forEach(function (p) { n += (p.i || []).length; }); $('#saiTp', m).innerHTML = P ? '📥 Đã nhận <b>' + P.length + '</b> trang, <b>' + n + '</b> sản phẩm: ' + esc(P.map(function (p) { return p.k; }).join(', ')) : ''; });
     $('#saiI', m).onchange = function () { var fs = Array.prototype.slice.call(this.files || []).slice(0, 8 - imgs.length); Promise.all(fs.map(saiImg)).then(function (a) { imgs = imgs.concat(a).slice(0, 8); draw(); }, function () { toast('Không đọc được ảnh', true); }); this.value = ''; };
     $('#saiGo2', m).onclick = function () {
-      var btn = this, err = $('#saiE2', m), kw = $('#saiKw', m).value.trim(), rv = $('#saiRv', m).value.trim(), tx = $('#saiT', m).value.trim();
-      if (!imgs.length && !tx) { err.textContent = 'Chọn ảnh chụp màn hình hoặc dán chữ trước nhé.'; return; }
+      var btn = this, err = $('#saiE2', m), kw = $('#saiKw', m).value.trim(), rv = $('#saiRv', m).value.trim(), tx = $('#saiT', m).value.trim(), pages = saiPages(tx);
+      if (pages) tx = '';
+      if (!imgs.length && !tx && !pages) { err.textContent = 'Chọn ảnh chụp màn hình hoặc dán chữ trước nhé.'; return; }
       btn.disabled = true; btn.textContent = '⏳ AI đang đọc (khoảng 1–2 phút)…'; err.textContent = '';
-      (kw !== (C.kw || '') || rv !== (C.rivals || '') ? api('san_ai_cfg', { kw: kw, rivals: rv }) : Promise.resolve()).then(function () { return api('san_ai_dt', { imgs: imgs, text: tx }); })
+      (kw !== (C.kw || '') || rv !== (C.rivals || '') ? api('san_ai_cfg', { kw: kw, rivals: rv }) : Promise.resolve()).then(function () { return api('san_ai_dt', { imgs: imgs, text: tx, pages: pages || [] }); })
         .then(function () { closeModal(true); saiReload('Đã xem xong đối thủ ✓'); }, function (e) { btn.disabled = false; btn.textContent = '🔍 Xem đối thủ'; err.textContent = e.message; });
     };
   }

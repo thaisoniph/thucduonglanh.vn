@@ -242,7 +242,7 @@ async function sanSheetCmd(x, u, d) {
 export async function crmSan(x, u, d) {
   if (u.role === 'Kế toán') return d.action === 'san' ? sanLoad(x, u, d) : { ok: false, error: 'Kế toán chỉ xem số sàn.' }; // 💼 09/11/2026: số sàn cho lãi lỗ
   if (!await sanAllowed(x, u)) return { ok: false, error: 'Bạn chưa được giao phụ trách sàn. Nhờ Quản trị thêm tên ở tab Sàn → ⚙️ Người phụ trách sàn.' };
-  if (/^san_ai_/.test(d.action)) return crmSanAi(x, u, d); // 🛒 trợ lý sàn: 🩺 sức khoẻ shop + 🔍 đối thủ (sanai.js, 16/11/2026)
+  if (/^san_(ai|shp)(_|$)/.test(d.action)) return crmSanAi(x, u, d); // 🛒 trợ lý sàn: 🩺 sức khoẻ shop + 🔍 đối thủ (sanai.js, 16/11/2026)
   switch (d.action) {
     case 'san': return sanLoad(x, u, d);
     case 'san_import': return sanImport(x, u, d);

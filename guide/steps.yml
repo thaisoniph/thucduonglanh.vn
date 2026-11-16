@@ -1139,8 +1139,9 @@ san-doi-thu:
         - ["in", "Tìm kiếm", "trà đinh lăng"]
         - ["chips", ["Liên quan", "Mới nhất", "Bán chạy", "Giá"], 2]
         - ["card", "Trà đinh lăng 30 gói", "135.000đ · Đã bán 2,1k · ★4.9", ""]
-      hi: 1
-      text: "Mở Shopee, tìm từ khoá của mình, chọn <b>Bán chạy</b>. <b>Chụp 2–4 màn hình</b>. Muốn xem 1 shop cụ thể thì vào trang shop đó, chụp phần sản phẩm."
+        - ["bar", "📥 Gửi về CRM (thanh dấu trang)"]
+      hi: 3
+      text: "Trên máy tính, mở Shopee, tìm từ khoá của mình, chọn <b>Bán chạy</b>, kéo xuống cuối trang. Bấm <b>📥 Gửi về CRM</b> trên thanh dấu trang. Làm tiếp ở trang từ khoá / shop khác, dữ liệu tự gộp."
     - title: Sàn TMĐT
       els:
         - ["h", "🔍 Đối thủ cùng ngách"]
@@ -1150,14 +1151,14 @@ san-doi-thu:
     - title: 🔍 Đối thủ tuần này
       els:
         - ["in", "Từ khoá đang theo dõi", "trà đinh lăng, bột ngũ cốc"]
-        - ["in", "Ảnh chụp màn hình", "4 ảnh"]
-        - ["in", "Hoặc dán chữ trang Shopee", ""]
+        - ["in", "Dán dữ liệu từ nút 📥 (Ctrl+V)", "TDL-SHOPEE-1 …"]
+        - ["note", "📥 Đã nhận 3 trang, 120 sản phẩm"]
         - ["btn", "🔍 Xem đối thủ", "g"]
       hi: 1
-      text: "Chọn ảnh vừa chụp (tối đa 8). Trên máy tính có thể <b>Ctrl+A, Ctrl+C</b> ở trang Shopee rồi dán vào ô chữ thay cho ảnh. Bấm <b>🔍 Xem đối thủ</b>, chờ 1–2 phút."
+      text: "Bấm vào ô <b>Dán dữ liệu</b>, nhấn <b>Ctrl+V</b>. Thấy dòng <b>📥 Đã nhận … sản phẩm</b> là đúng. Bấm <b>🔍 Xem đối thủ</b>, chờ 1–2 phút. (Không có máy tính: chọn ảnh chụp màn hình thay cho dán.)"
     - title: Sàn TMĐT
       els:
-        - ["card", "🔄 Thay đổi so tuần trước", "Shop A giảm giá 15k · Shop B bán tăng mạnh", "y"]
+        - ["card", "🔻 giảm giá 135k → 120k · 📈 bán thêm ~300", "✏️ đổi tên +lợi sữa", "y"]
         - ["card", "📋 Bảng sản phẩm đối thủ", "Giá · Đã bán · ★ · Khuyến mãi", ""]
         - ["btn", "✅ Đã làm", "g"]
       hi: 2

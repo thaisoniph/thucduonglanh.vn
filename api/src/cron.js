@@ -4,7 +4,8 @@ import { telegram, telegramTo, gInfo, sheetMeta, sheetClear, sheetWrite, sheetAd
 import { recalcAll, crmUsers, unifyNames, unifyProducts, autoCloseLeads, fixBestTiepNhan, rulesCfg, careTask, groupOf, leadsData, leadDue, adsCfg, usageAlert, poolTick, ownTick } from './crm.js';
 import { adsSync, srcAutoTick, fixAdsLeads } from './sync.js';
 import { sanSheetTick } from './san.js';
-import { sanAiMorning } from './sanai.js';
+import { sanAiMorning, sanAiEvening } from './sanai.js';
+import { shpTick } from './sanshp.js';
 import { mktTick } from './mkt.js';
 import { mktDailyMsgs } from './mktv.js';
 import { wbTick } from './wb.js';
@@ -161,6 +162,8 @@ export async function scheduled(x, cron) {
     const mk = 'mktd_' + fmtDate(now, 'yyyyMMdd'); // tin Telegram marketing buổi sáng
     if (!await kvGet(x.db, mk)) { await kvSet(x.db, mk, '1', 2 * DAY); try { for (const m of await mktDailyMsgs(x, await crmUsers(x))) await telegramTo(x.env, m.tg, m.text); } catch (e) { console.error('mktDaily', e.message); } }
   }
+  if (vn.getUTCHours() === 21 && vn.getUTCMinutes() < 10) { const ek = 'sanai_e_' + fmtDate(now, 'yyyyMMdd'); if (!await kvGet(x.db, ek)) { await kvSet(x.db, ek, '1', 2 * DAY); try { await sanAiEvening(x, await crmUsers(x), telegramTo); } catch (e) { console.error('sanAiEvening', e.message); } } } // 📒 21h nhắc ghi sổ Shopee (sanai.js)
+  try { await shpTick(x, false); } catch (e) { console.error('shpTick', e.message); } // 🔗 Shopee chính chủ: tự lấy số 30 phút / lần khi đã nối (sanshp.js)
   if (vn.getUTCHours() >= 8 && vn.getUTCHours() <= 20) { // 💼 ngoài 7h30: đọc lại file kế toán 3 tiếng / lần (gói Workers $5 đủ sức, đọc ~70ms)
     const L = await kvJson(x.db, 'kt_link', null);
     if (L && L.link && now - (L.last || 0) > 3 * 3600e3 && now - (L.errAt || 0) > 3 * 3600e3) { try { await finSync(x); } catch (e) { console.error('finSync', e.message); } }

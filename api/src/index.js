@@ -1,5 +1,6 @@
 // Máy chủ CRM + nhận đơn Thực Dưỡng Lành trên Cloudflare Workers (api.thucduonglanh.vn), dữ liệu ở Cloudflare D1.
 // Giao diện gửi POST (text/plain, JSON) giống hệt Apps Script trước đây: {type:'crm', action, token, …} / {type:'order'} / {type:'contact'}.
+import { shpRoute } from './sanshp.js';
 import { esc, run, first, kvGet, normPhone, CRM_URL } from './lib.js';
 import { gvRoute } from './giaoviec.js';
 import { pmRoute } from './phongai.js';
@@ -27,7 +28,7 @@ import { ddApply, ddStatus, qtetApply } from './ngaydoi.js';
 import { stBind } from './sotay.js'; // 📗 kb() đọc Sổ tay trong D1
 export { AiRelay } from './airelay.js'; // Durable Object chuyển tiếp lời gọi AI qua Bắc Mỹ
 
-const API_VERSION = '2026-11-16t'; // + 🧮 cây mục tiêu: khách cũ (sale) / khách mới (Marketing) trong saleToMkt · + 🛒 trợ lý sàn Shopee: 🩺 sức khoẻ shop + 🔍 đối thủ đầu tuần (sanai.js) · + 📣 Tin vui PA A (số đơn chung nhóm, mốc % mục tiêu riêng, 🙈 ẩn tên) · + 🕐 giờ chốt đơn (closedAt, entered_at, cờ chờ quản lý duyệt) · + 👁 Xem như: Quản trị xem giao diện từng nhân sự, chỉ đọc (as_open, vaOk) · + 📦 Kho cho sale (kho_sale, ⭐ kho_star) · + 👀 Việc tuần: ai xem việc của ai (users.gvsee), nhóm Telegram không lộ nội dung việc · + 🌿 điều văn hoá nhẹ nhàng (câu thân thiện, ôn 10 điều, ai cùng giữ) · + ✅ Việc tuần bật theo từng người + 🔐 lần cuối vào CRM / đăng xuất mọi máy / phiên tự gia hạn · + 📣 Phòng Marketing AI giao việc cho Lành trên Mac (phongai.js) · + 📝 Thông tin của tôi + bật/tắt form nhân sự (hrstaff.js) · + 🌙 Zalo bài tối mặc định 19:15 · + 📝 Zalo: nút Duyệt nói rõ giờ đăng + Làm bài khác + quy tắc người đọc là cha mẹ · + 🎂 sinh nhật theo tháng (sinhnhat.js) · 📇 số điện thoại cho sale trong tin Marketing 8h (mktv.js) · 📄 hợp đồng nhân sự (hrhd.js) // CRM web so với số này để biết giao diện & máy chủ khớp nhau
+const API_VERSION = '2026-11-16u'; // + 📥 nút Gửi về CRM (đối thủ so tuần trước bằng máy) + 📒 sổ theo dõi ngày + ROI hoà vốn + 🔗 nối Shopee chính chủ (sanshp.js) · + 🧮 cây mục tiêu: khách cũ (sale) / khách mới (Marketing) trong saleToMkt · + 🛒 trợ lý sàn Shopee: 🩺 sức khoẻ shop + 🔍 đối thủ đầu tuần (sanai.js) · + 📣 Tin vui PA A (số đơn chung nhóm, mốc % mục tiêu riêng, 🙈 ẩn tên) · + 🕐 giờ chốt đơn (closedAt, entered_at, cờ chờ quản lý duyệt) · + 👁 Xem như: Quản trị xem giao diện từng nhân sự, chỉ đọc (as_open, vaOk) · + 📦 Kho cho sale (kho_sale, ⭐ kho_star) · + 👀 Việc tuần: ai xem việc của ai (users.gvsee), nhóm Telegram không lộ nội dung việc · + 🌿 điều văn hoá nhẹ nhàng (câu thân thiện, ôn 10 điều, ai cùng giữ) · + ✅ Việc tuần bật theo từng người + 🔐 lần cuối vào CRM / đăng xuất mọi máy / phiên tự gia hạn · + 📣 Phòng Marketing AI giao việc cho Lành trên Mac (phongai.js) · + 📝 Thông tin của tôi + bật/tắt form nhân sự (hrstaff.js) · + 🌙 Zalo bài tối mặc định 19:15 · + 📝 Zalo: nút Duyệt nói rõ giờ đăng + Làm bài khác + quy tắc người đọc là cha mẹ · + 🎂 sinh nhật theo tháng (sinhnhat.js) · 📇 số điện thoại cho sale trong tin Marketing 8h (mktv.js) · 📄 hợp đồng nhân sự (hrhd.js) // CRM web so với số này để biết giao diện & máy chủ khớp nhau
 const ORIGINS = /^https:\/\/((www\.|crm\.|quantri\.|mkt\.|kho\.|ketoan\.|kinhdoanh\.|hr\.|congsu\.|camnangsongkhoe\.)?thucduonglanh\.vn|([a-z0-9-]+\.)?(thucduonglanh(-crm|-congsu)?|camnang-song-khoe-thuc-duong-lanh)\.pages\.dev)$|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
 function ctxOf(env, ectx) { stBind(env.DB); return { env, db: env.DB, later: p => ectx.waitUntil(Promise.resolve(p).catch(e => console.error('later', e && e.message))) }; }
@@ -124,6 +125,10 @@ export default {
     if (path.startsWith('/tm/')) { // 🧑‍💼 thư mời phỏng vấn / nhận việc: ứng viên bấm xác nhận (hr.js, 15/11/2026)
       try { await ensureSchema(x.db); const r = await hrRoute(x, req, path, await crmUsers(x)); if (r) return r; }
       catch (err) { console.error('hr', err && err.stack || err); return new Response('Có lỗi, vui lòng thử lại sau ít phút hoặc gọi 0966 326 522.', { status: 500, headers: { 'Content-Type': 'text/plain; charset=utf-8' } }); }
+    }
+    if (path === '/shopee/cb') { // 🔗 Shopee chuyển về sau khi chủ shop bấm Cho phép (sanshp.js, 16/11/2026)
+      try { await ensureSchema(x.db); const r = await shpRoute(x, req, path, url); if (r) return r; }
+      catch (err) { console.error('shp', err && err.stack || err); return new Response('Có lỗi, thử lại sau.', { status: 500 }); }
     }
     if (path === '/pm/agent') { // 📣 Lành trên Mac nhận việc / gửi kết quả cho Phòng Marketing AI (phongai.js, 16/11/2026)
       try { await ensureSchema(x.db); const r = await pmRoute(x, req, path); if (r) return r; }
