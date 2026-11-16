@@ -16,6 +16,23 @@ description: Mỗi tuần mỗi người chốt tối đa 3 việc trọng tâm,
 
 **Anh Sơn bật / tắt cho từng người:** ⚙ **Cài đặt → 👥 Nhân sự → 🧑‍💼 Ai được vào CRM** → ở dòng của người đó tích ô **✅ Việc tuần** → **Lưu nhân sự**. Hoặc ở **✅ Việc tuần → ⚙️ Cài đặt việc tuần → Ai dùng Việc tuần?**. Người chưa bật: không thấy tab, không nhận việc, không nhận lời nhắc Telegram, không có trong báo cáo thứ Hai.
 
+## Ai xem được việc của ai
+
+| Ai | Thấy việc của |
+|---|---|
+| **Quản trị** (anh Sơn, anh Hiếu) | Mọi người |
+| Người được giao **👀 theo dõi** (vd chị Thủy theo dõi Phương, Trang) | Mình + những người được giao theo dõi |
+| Mọi người khác | Việc mình làm, việc mình nhờ người khác, việc mình cùng làm |
+
+- Người theo dõi thấy thêm tab **👀 Nhóm tôi theo dõi**: mỗi người 1 thẻ, ghi số việc, **⏰ trễ**, **🙏 cần hỗ trợ**. Bấm thẻ để xem việc của riêng người đó.
+- Người theo dõi đặt được **việc trọng tâm** cho người mình theo dõi, nghiệm thu, và nhận tin nhắc nhịp tuần của nhóm mình.
+- **Nhóm Telegram** chỉ có lời nhắc chung và lời cảm ơn, **không ghi nội dung việc**. Việc của ai thì Lành nhắn riêng người đó.
+- Anh Sơn sửa ở **⚙ Cài đặt → 👥 Nhân sự** → thẻ của người đó → **👀 Theo dõi Việc tuần của** → tích tên → **Lưu nhân sự**.
+
+## Biết ngay việc nào cần làm gì
+
+Trên mỗi việc của bạn có 1 dòng xanh **👉** nói bước tiếp theo: **Bấm để nhận việc**, **Cập nhật tiến độ** (thứ Năm), **Ghi kết quả + link minh chứng** (cuối tuần), hoặc **Quá hạn: báo xong, hoặc xin lùi hạn**. Bấm vào việc để làm bước đó.
+
 ## Nhịp tuần
 
 | Khi nào | Bạn làm gì |

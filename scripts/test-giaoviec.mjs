@@ -56,16 +56,17 @@ r = await G.crmGv(x, users.ha, { action: 'gv_save', kind: 'ps', title: 'Việc t
 ok(r.ok, 'Ghi là việc phát sinh thì được');
 // 3. ai cũng nhờ được ai (phát sinh); trọng tâm của người khác thì không
 r = await G.crmGv(x, users.ha, { action: 'gv_save', kind: 'tt', title: 'Trang làm gì đó', goal: '1 file báo cáo', who: 'trang@x.vn' });
-ok(!r.ok && /tự chốt hoặc Quản lý/.test(r.error), 'Hà không đặt việc trọng tâm cho Trang');
+ok(!r.ok && /tự chốt hoặc người phụ trách/.test(r.error), 'Hà không đặt việc trọng tâm cho Trang');
 r = await G.crmGv(x, users.ha, { action: 'gv_save', kind: 'ps', title: 'Gửi số chi quảng cáo tháng 10', goal: '1 con số tổng chi T10', who: 'trang@x.vn' });
 ok(r.ok, 'Hà nhờ Trang 1 việc phát sinh được');
 
-// 4. anh Sơn đặt việc trọng tâm cho Trang, hạn ~50 phút nữa
+// 4. anh Sơn đặt việc trọng tâm cho Trang, hạn ~50 phút nữa (16/11/2026: việc chỉ nhắn riêng, không đăng vào nhóm)
+raw.exec("INSERT OR REPLACE INTO kv (k, v) VALUES ('gv_tg_trang@x.vn', '300')");
 sent.length = 0;
 r = await G.crmGv(x, users.son, { action: 'gv_save', kind: 'tt', title: 'Gửi bảng lương tháng 11', goal: 'Bảng lương 12 người trong 1 file Sheet', who: 'trang@x.vn', due: Date.now() + 50 * 60e3, dueT: 1, tg: true });
 const t2 = r.gv.tasks.find(t => t.title === 'Gửi bảng lương tháng 11');
-ok(r.ok && t2.st === 'Mới' && sent.some(s => s.includes('-500') && s.includes('Việc trọng tâm')), 'Tin việc ⭐ vào nhóm, có "Thế nào là xong"');
-const msg = await DB.prepare('SELECT * FROM gv_msg WHERE task = ? AND chat = ?').bind(t2.id, '-500').first();
+ok(r.ok && t2.st === 'Mới' && sent.some(s => s.includes('"chat_id":"300"') && s.includes('Việc trọng tâm')) && !sent.some(s => s.includes('-500') && s.includes('bảng lương')), 'Tin việc ⭐ nhắn riêng Trang, không đăng nội dung vào nhóm');
+const msg = await DB.prepare('SELECT * FROM gv_msg WHERE task = ? AND chat = ?').bind(t2.id, '300').first();
 await hook({ callback_query: { id: 'q1', from: { id: 300 }, data: 'gv:nhan:' + t2.id } });
 ok((await find(0, /bảng lương tháng 11/)).st === 'Đang làm', 'Trang bấm 🙋 Mình nhận → Đang làm');
 // 5. ✅ Xong khi chưa có minh chứng → không cho
@@ -77,10 +78,10 @@ sent.length = 0; await tick();
 ok(sent.some(s => s.includes('Còn khoảng 1 tiếng')), 'Nhắc trước hạn 1 tiếng');
 // 7. trả lời tin việc "xong + kết quả + link"
 sent.length = 0;
-await hook({ message: { message_id: 50, from: { id: 300 }, chat: { id: -500, type: 'supergroup' }, text: 'xong rồi ạ, bảng lương 12 người https://docs.google.com/spreadsheets/abc', reply_to_message: { message_id: msg.msg } } });
+await hook({ message: { message_id: 50, from: { id: 300 }, chat: { id: 300, type: 'private' }, text: 'xong rồi ạ, bảng lương 12 người https://docs.google.com/spreadsheets/abc', reply_to_message: { message_id: msg.msg } } });
 const t2b = await find(0, /bảng lương tháng 11/);
 ok(t2b.st === 'Xong' && /12 người/.test(t2b.result) && /docs.google/.test(t2b.proof), 'Trả lời "xong, kết quả + link" → Xong, tách kết quả + minh chứng');
-ok(sent.some(s => s.includes('-500') && s.includes('Cảm ơn')), 'Bot cảm ơn trong nhóm');
+ok(sent.some(s => s.includes('-500') && s.includes('Cảm ơn')) && !sent.some(s => s.includes('-500') && s.includes('bảng lương')), 'Bot cảm ơn trong nhóm, không nêu nội dung việc');
 ok(sent.some(s => s.includes('"chat_id":"100"') && s.includes('Xong rồi')), 'Báo riêng anh Sơn (người nhờ)');
 
 // 8. nhắn bot trong nhóm, AI tách việc trọng tâm + phát sinh
@@ -101,7 +102,7 @@ ok((await G.crmGv(x, users.ha, { action: 'gv_list' })).gv.linked === 1, 'Hà n�
 
 // 10. nhịp tuần
 sent.length = 0; await tick(at(0, 20, 5));
-ok(sent.some(s => s.includes('-500') && s.includes('Tuần mới') && s.includes('tg://user?id=300')), 'Thứ Hai 20h: người chưa nối bot riêng được gắn tên chung 1 tin trong nhóm');
+ok(sent.some(s => s.includes('-500') && s.includes('Tuần mới') && s.includes('Thủy')), 'Thứ Hai 20h: người chưa nối bot riêng (Thủy) được gắn tên chung 1 tin trong nhóm');
 ok(!sent.some(s => s.includes('"chat_id":"400"') && s.includes('Tuần mới')), 'Hà đã đủ 3 việc ⭐ → không bị nhắc');
 sent.length = 0; await tick(at(1, 9, 5));
 ok(sent.some(s => s.includes('"chat_id":"100"') && s.includes('chưa chốt việc trọng tâm') && s.includes('Lê Thu Trang') === false), '9h thứ Ba: Quản lý nhận danh sách người chưa chốt');
@@ -190,7 +191,7 @@ ok(tl && tl.src === 'hop' && tl.byE === 'thaisoniph@gmail.com' && /Từ cuộc h
 const vn = new Date(tl.due + 7 * 3600e3);
 ok(tl.dueT === 0 && vn.getUTCDate() === 20 && vn.getUTCHours() === 23 && vn.getUTCMinutes() === 59, 'Hạn = cuối ngày 20/11 (23:59 giờ VN)');
 ok(tc && !tc.due, 'Hạn rỗng → không đặt hạn');
-ok(sent.filter(s => s.includes('sendMessage') && s.includes('Việc #')).length >= 2, 'Gửi Telegram cho người làm như khi giao trong CRM');
+ok(sent.filter(s => s.includes('sendMessage') && s.includes('Việc #')).length >= 1 && !sent.some(s => s.includes('-500') && s.includes('Việc #')), 'Gửi Telegram riêng cho người làm (không đăng vào nhóm)');
 res = await imp({ src: 'hop', meeting: 'Họp sale (14/11)', tasks: [{ who: 'Trang', title: 'Gửi bảng lương nháp T11', due: '2026-11-20' }] }, 'k-test-123');
 J = await res.json();
 ok(J.made.length === 0 && J.skipped.length === 1, 'Bot gửi lại lần 2 → không tạo trùng');
@@ -203,6 +204,28 @@ r = await G.crmGv(x, users.son, { action: 'gv_save', kind: 'ps', title: 'Gọi 5
 ok(!r.ok || !(r.gv.tasks || []).some(t => t.whoE === 'lan@x.vn'), 'Không giao được việc cho sale chưa bật');
 r = await G.crmGv(x, users.son, { action: 'gv_cfg', on: ['thuy@x.vn', 'lan@x.vn'] });
 ok(r.gv.staff.some(z => z.email === 'lan@x.vn') && !r.gv.staff.some(z => z.email === 'ha@x.vn') && r.gv.staff.some(z => z.email === 'thaisoniph@gmail.com'), 'Bật Lan, tắt Hà, anh Sơn vẫn bật');
+
+// 16/11/2026: ai xem việc của ai. Quản trị xem hết; Thủy (Quản lý) chỉ xem việc của mình + người được giao theo dõi (Trang, Hà)
+await G.crmGv(x, users.son, { action: 'gv_cfg', on: ['thuy@x.vn', 'lan@x.vn', 'trang@x.vn', 'ha@x.vn'] });
+await G.crmGv(x, users.son, { action: 'gv_save', kind: 'ps', title: 'Lan gọi 5 khách cũ', goal: '5 cuộc gọi ghi CRM', who: 'lan@x.vn' });
+const thuy0 = Object.assign({}, users.thuy, { gvsee: [] }), thuy1 = Object.assign({}, users.thuy, { gvsee: ['trang@x.vn', 'ha@x.vn'] });
+r = await G.crmGv(x, thuy0, { action: 'gv_list' });
+ok(!r.gv.tasks.some(t => t.whoE === 'trang@x.vn' && t.byE !== 'thuy@x.vn') && r.gv.lead === 0, 'Thủy chưa được giao theo dõi → không thấy việc của Trang, không có tab nhóm');
+r = await G.crmGv(x, thuy1, { action: 'gv_list' });
+ok(r.gv.tasks.some(t => t.whoE === 'trang@x.vn') && r.gv.tasks.some(t => t.whoE === 'ha@x.vn') && !r.gv.tasks.some(t => t.whoE === 'lan@x.vn') && r.gv.lead === 1 && r.gv.all === 0, 'Thủy theo dõi Trang + Hà: thấy việc 2 bạn, không thấy việc sale Lan');
+r = await G.crmGv(x, users.son, { action: 'gv_list' });
+ok(r.gv.tasks.some(t => t.whoE === 'lan@x.vn') && r.gv.all === 1, 'Anh Sơn (Quản trị) thấy việc của mọi người');
+r = await G.crmGv(x, users.ha, { action: 'gv_list' });
+ok(r.gv.tasks.every(t => t.whoE === 'ha@x.vn' || t.byE === 'ha@x.vn' || t.helpers.indexOf('ha@x.vn') >= 0), 'Hà chỉ thấy việc mình làm / mình nhờ / mình cùng làm');
+r = await G.crmGv(x, thuy1, { action: 'gv_rep', week: W });
+ok(r.rep.people.every(p => ['thuy@x.vn', 'trang@x.vn', 'ha@x.vn'].indexOf(p.email) >= 0), 'Báo cáo tuần của Thủy chỉ có Thủy, Trang, Hà');
+r = await G.crmGv(x, thuy1, { action: 'gv_save', kind: 'tt', title: 'Đối soát Shopee tuần', goal: '1 file đối soát khớp 100% đơn', who: 'trang@x.vn' });
+ok(r.ok, 'Thủy đặt được việc trọng tâm cho Trang (người mình theo dõi)');
+r = await G.crmGv(x, thuy1, { action: 'gv_save', kind: 'tt', title: 'Lan làm gì đó', goal: '1 file', who: 'lan@x.vn' });
+ok(!r.ok, 'Thủy không đặt được việc trọng tâm cho sale Lan');
+
+r = await G.crmGv(x, users.son, { action: 'gv_cfg', on: ['thuy@x.vn'] }); r = await G.crmGv(x, users.son, { action: 'gv_save', kind: 'ps', title: 'Việc cho người chưa bật', goal: '1 việc', who: 'ha@x.vn' });
+ok(!r.ok && /chưa bật/.test(r.error), 'Giao cho người chưa bật → báo rõ, không tự giao cho mình');
 
 origLog('sai:', bad);
 process.exit(bad ? 1 : 0);

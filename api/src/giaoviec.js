@@ -51,8 +51,20 @@ const clean = (s, n) => String(s || '').replace(/\r/g, '').trim().slice(0, n);
 const staff = async x => (await crmUsers(x)).filter(z => z.active && z.gv);
 async function cfgOf(x) { return Object.assign({ token: '', bot: '', secret: '', group: '', groupName: '', leads: [], out: [], notion: null }, await kvJson(x.db, 'gv_cfg', {})); }
 async function cfgSet(x, c) { await kvSet(x.db, 'gv_cfg', JSON.stringify(c)); }
-/** Đặt việc trọng tâm cho người khác, dừng việc, nghiệm thu: Quản trị, Quản lý, người được tích (vd trưởng phòng Marketing). */
-function canAssign(u, C) { return u.level >= 2 || (C.leads || []).indexOf(u.email) >= 0; }
+/** 16/11/2026 anh Sơn: ai xem việc của ai. Quản trị (anh Sơn, Hiếu) xem mọi người; người khác chỉ xem việc mình làm / mình nhờ / mình cùng làm,
+ *  cộng việc của những người được giao theo dõi ở Cài đặt → Nhân sự → ô "👀 Theo dõi việc của" (users.gvsee, vd Thủy → Phương, Trang).
+ *  Người theo dõi được: đặt việc trọng tâm cho người đó, dừng việc, nghiệm thu, nhận tóm tắt nhịp tuần của nhóm mình. */
+const seeList = (u, C) => (u.gvsee || []).filter(e => e !== u.email);
+function canManage(u, C, email) { return u.level >= 3 || seeList(u, C).indexOf(email) >= 0; }
+/** Có người để theo dõi (Quản trị = cả công ty). */
+function canAssign(u, C) { return u.level >= 3 || seeList(u, C).length > 0; }
+/** Danh sách email u được xem việc (null = mọi người). */
+function scopeOf(u, C) { return u.level >= 3 ? null : [u.email].concat(seeList(u, C)); }
+/** Điều kiện SQL lọc việc u được thấy: việc của người trong phạm vi, việc mình nhờ, việc mình cùng làm. */
+function scopeSql(u, C) {
+  const sc = scopeOf(u, C); if (!sc) return { sql: '', args: [] };
+  return { sql: ` AND (who_email IN (${sc.map(() => '?').join(',')}) OR by_email = ? OR (',' || helpers || ',') LIKE ?)`, args: [...sc, u.email, '%,' + u.email + ',%'] };
+}
 const shortName = n => String(n || '').trim().split(/\s+/).pop();
 /** Thứ Hai 0h (giờ VN) của tuần chứa t. */
 export function weekOf(t) { const d = startOfDay(t); return d - ((new Date(d + TZ_MS).getUTCDay() + 6) % 7) * DAY; }
@@ -80,7 +92,7 @@ async function tgIdOf(x, u) { return (await privChat(x, u)) || u.tg || ''; }
 /** Nhắn riêng nếu đã nối bot; chưa nối thì gắn tên trong nhóm (groupOk = false: tin dễ làm người nhận ngại → chỉ nhắn riêng). */
 async function tell(x, C, u, text, extra, groupOk) {
   const p = await privChat(x, u); if (p) return say(x, C, p, text, extra);
-  if (groupOk !== false && C.group) return say(x, C, C.group, mention(u, u.tg) + ' ' + text, extra);
+  if (groupOk === true && C.group) return say(x, C, C.group, mention(u, u.tg) + ' ' + text, extra); // 16/11/2026: chỉ khi gọi rõ groupOk = true (tin không có nội dung việc)
   return null;
 }
 async function remember(x, r, task) { if (r && r.ok && r.result && r.result.message_id && r.result.chat) await run(x.db, 'INSERT OR REPLACE INTO gv_msg (chat, msg, task, at) VALUES (?, ?, ?, ?)', String(r.result.chat.id), r.result.message_id, task, Date.now()); }
@@ -111,8 +123,9 @@ async function announce(x, C, t, opt) {
   const text = taskText(C, t, mention(w, wid)), sent = [];
   const send = async chat => { const r = await say(x, C, chat, text, { reply_markup: kb(t) }); if (r && r.ok) { await remember(x, r, t.id); sent.push(String(chat)); } };
   const priv = await privChat(x, w);
-  if (C.group && !opt.privOnly) await send(C.group);
-  if (priv && (!C.group || opt.alsoPriv || opt.privOnly) && sent.indexOf(String(priv)) < 0) await send(priv);
+  // 16/11/2026 anh Sơn: mỗi người chỉ xem việc của mình (Quản trị xem hết, người theo dõi xem nhóm mình) → không đăng nội dung việc vào nhóm, chỉ nhắn riêng
+  if (priv && sent.indexOf(String(priv)) < 0) await send(priv);
+  for (const b of (await staff(x)).filter(z => z.email !== w.email && z.email !== t.by_email && helpersOf(t).indexOf(z.email) < 0 && canManage(z, C, w.email) && z.level < 3)) { const p = await privChat(x, b); if (p && sent.indexOf(String(p)) < 0) { const r = await say(x, C, p, '👀 Việc mới của ' + esc(w.name) + ' (bạn đang theo dõi):\n' + text); await remember(x, r, t.id); } }
   for (const e of helpersOf(t)) { const h = ppl.find(z => z.email === e); const p = h && await privChat(x, h); if (p && sent.indexOf(String(p)) < 0) { const r = await say(x, C, p, '🤝 Bạn cùng làm với ' + esc(w.name) + ':\n' + text, { reply_markup: kb(t) }); await remember(x, r, t.id); } }
   return sent.length;
 }
@@ -142,14 +155,14 @@ async function createTask(x, C, by, w, f, src) {
 }
 /** Kiểm tra trước khi đặt việc trọng tâm: tối đa 3 / người / tuần. */
 async function ttGuard(x, C, by, w, skipId) {
-  if (w.email !== by.email && !canAssign(by, C)) return 'Việc trọng tâm của ' + w.name + ' do ' + shortName(w.name) + ' tự chốt hoặc Quản lý đặt. Bạn nhờ việc này dưới dạng việc phát sinh nhé.';
+  if (w.email !== by.email && !canManage(by, C, w.email)) return 'Việc trọng tâm của ' + w.name + ' do ' + shortName(w.name) + ' tự chốt hoặc người phụ trách đặt. Bạn nhờ việc này dưới dạng việc phát sinh nhé.';
   const wk = weekOf(Date.now());
   if (await ttCount(x, w.email, wk, skipId) >= MAX_TT) { const L = await ttList(x, w.email, wk); return w.name + ' đã có ' + MAX_TT + ' việc trọng tâm tuần này: ' + L.map(t => '#' + t.id + ' ' + t.title).join('; ') + '. Dừng bớt 1 việc, hoặc ghi việc này là phát sinh.'; }
   return '';
 }
 /** Đổi việc. Quyền: người làm, người cùng làm (tiến độ, ghi chú, kết quả), người nhờ / Quản lý (mọi thứ). */
 async function changeTask(x, C, u, t, ch) {
-  const mine = t.who_email === u.email, help = helpersOf(t).indexOf(u.email) >= 0, boss = t.by_email === u.email || canAssign(u, C);
+  const mine = t.who_email === u.email, help = helpersOf(t).indexOf(u.email) >= 0, boss = t.by_email === u.email || canManage(u, C, t.who_email);
   if (!mine && !boss && !help) return { ok: false, error: 'Việc #' + t.id + ' là của ' + t.who_name + ', bạn chưa cùng làm việc này.' };
   const now = Date.now(), notes = [], set = {};
   const proof = ch.proof !== undefined && ch.proof !== '' ? clean(ch.proof, 500) : t.proof, result = ch.result !== undefined && ch.result !== '' ? clean(ch.result, 1000) : t.result;
@@ -190,7 +203,7 @@ async function changeTask(x, C, u, t, ch) {
     if (set.who_email) await announce(x, C, nt, { alsoPriv: 1 });
     if (notes.length && !ch.quiet) await tellBoss(x, C, nt, '<b>Việc #' + nt.id + '</b> (' + esc(nt.who_name) + '): ' + esc(nt.title) + '\n' + notes.map(esc).join('\n') + (ch.ask ? '\n👉 Đồng ý thì sửa hạn trong CRM (bấm việc → ✏️ Sửa): ' + VIEW_URL : ''), u.email);
     if (boss && !mine && notes.length) { const w = (await staff(x)).find(z => z.email === nt.who_email); if (w) { const p = await privChat(x, w); if (p) await say(x, C, p, '<b>Việc #' + nt.id + '</b>: ' + esc(nt.title) + '\n' + esc(u.name) + ': ' + notes.map(esc).join(' · ')); } }
-    if (set.status === 'Xong' && C.group) await say(x, C, C.group, '🌿 Cảm ơn <b>' + esc(nt.who_name) + '</b> đã xong' + (nt.kind === 'tt' ? ' việc trọng tâm' : '') + ': ' + esc(nt.title) + (nt.result ? '\n📊 ' + esc(nt.result.slice(0, 200)) : '') + (nt.by_email !== nt.who_email ? '\n🤝 ' + esc(nt.by_name) + ' nhờ' : ''));
+    if (set.status === 'Xong' && C.group) await say(x, C, C.group, '🌿 Cảm ơn <b>' + esc(nt.who_name) + '</b> vừa xong 1' + (nt.kind === 'tt' ? ' việc trọng tâm' : ' việc') + ' 💚'); // 16/11/2026: nhóm chỉ thấy lời cảm ơn, không thấy nội dung việc
   } catch (e) { console.error('gv notify', e.message); }
   return { ok: true, t: nt };
 }
@@ -223,8 +236,8 @@ export async function goalCheck(x, title, goal) {
   return { ok: !!J.do_duoc, tip: clean(J.vi_sao, 200), goal: clean(J.goi_y, 300) };
 }
 async function aiRead(x, u, C, text, ctxTask) {
-  const ppl = await staff(x), lead = canAssign(u, C);
-  const open = await all(x.db, `SELECT id, title, who_name, by_name, due, due_t, status, kind FROM gv_tasks WHERE ${OPEN} ${lead ? '' : 'AND (who_email = ? OR by_email = ?)'} ORDER BY id DESC LIMIT 60`, ...(lead ? [] : [u.email, u.email]));
+  const ppl = await staff(x), sq = scopeSql(u, C);
+  const open = await all(x.db, `SELECT id, title, who_name, by_name, due, due_t, status, kind FROM gv_tasks WHERE ${OPEN}${sq.sql} ORDER BY id DESC LIMIT 60`, ...sq.args);
   const now = Date.now(), wd = ['Chủ nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'][new Date(now + TZ_MS).getUTCDay()];
   return aiJson(x, 'Hôm nay: ' + wd + ' ' + fmtDate(now, 'yyyy-MM-dd HH:mm') + ' (giờ Việt Nam). Công ty Thực Dưỡng Lành. Mỗi người tối đa 3 việc TRỌNG TÂM/tuần (chốt trước 9h thứ Ba); việc khác là PHÁT SINH.\n' +
     'Người nhắn: ' + u.name + ' (' + u.role + ').\n' +
@@ -403,7 +416,7 @@ async function onUpdate(x, C, up) {
       if (c.vuong) ch.block = c.vuong;
       if (lk) ch.proof = lk; else if (file) ch.proof = 'tg:' + file.file_id;
       const r = await changeTask(x, C, u, t, ch);
-      lines.push(r.ok ? (r.same ? 'ℹ️ Việc #' + t.id + ' không có gì thay đổi.' : '✓ Việc #' + t.id + ': ' + esc(ST_TX[r.t.status]) + (r.t.pace && r.t.status !== 'Xong' ? ' · ' + PACE[r.t.pace] : '') + (d && !canAssign(u, C) && t.by_email !== u.email ? ' · đã gửi ' + esc(t.by_name) + ' duyệt lùi hạn' : '')) : '⚠️ ' + esc(r.error));
+      lines.push(r.ok ? (r.same ? 'ℹ️ Việc #' + t.id + ' không có gì thay đổi.' : '✓ Việc #' + t.id + ': ' + esc(ST_TX[r.t.status]) + (r.t.pace && r.t.status !== 'Xong' ? ' · ' + PACE[r.t.pace] : '') + (d && !canManage(u, C, t.who_email) && t.by_email !== u.email ? ' · đã gửi ' + esc(t.by_name) + ' duyệt lùi hạn' : '')) : '⚠️ ' + esc(r.error));
     }
     return reply(lines.join('\n'));
   }
@@ -429,13 +442,13 @@ function helpText(u, C) {
     '• Bấm <b>🙋 Mình nhận</b> / <b>✅ Xong rồi</b> dưới tin việc\n• Trả lời (reply) tin việc: <i>xong, đăng 3 video https://…</i> · gửi ảnh kết quả · <i>xin lùi sang thứ Hai</i>\n• /viec: việc của tôi · /baocao: báo cáo tuần của tôi' + (canAssign(u, C) ? ' · /phong: việc cả công ty' : '') + '\n• Xem đủ trong CRM: ' + VIEW_URL;
 }
 async function listText(x, C, u, scope) {
-  const all_ = scope === 'all' && canAssign(u, C), now = Date.now();
-  const rows = await all(x.db, `SELECT * FROM gv_tasks WHERE ${OPEN} ${all_ ? '' : "AND (who_email = ? OR (',' || helpers || ',') LIKE ?)"} ORDER BY (kind <> 'tt'), (due IS NULL), due, id LIMIT 80`, ...(all_ ? [] : [u.email, '%,' + u.email + ',%']));
+  const all_ = scope === 'all' && canAssign(u, C), now = Date.now(), sq = scopeSql(u, C);
+  const rows = await all(x.db, `SELECT * FROM gv_tasks WHERE ${OPEN} ${all_ ? sq.sql : "AND (who_email = ? OR (',' || helpers || ',') LIKE ?)"} ORDER BY (kind <> 'tt'), (due IS NULL), due, id LIMIT 80`, ...(all_ ? sq.args : [u.email, '%,' + u.email + ',%']));
   if (!rows.length) return all_ ? '🎉 Không còn việc nào đang mở.' : '🎉 ' + esc(shortName(u.name)) + ' không còn việc nào đang mở.';
   const line = t => (t.kind === 'tt' ? '⭐' : '•') + ' #' + t.id + ' ' + esc(t.title) + ' · ' + esc(dueTxt(t)) + (late(t, now) ? ' ⏰' : '') + (t.pace ? ' · ' + PACE[t.pace].split(' ')[0] : '');
   if (!all_) return '<b>Việc của ' + esc(u.name) + '</b> (' + rows.length + ')\n' + rows.map(line).join('\n');
   const by = {}; rows.forEach(t => (by[t.who_name] || (by[t.who_name] = [])).push(t));
-  return '<b>Việc đang mở cả công ty</b> (' + rows.length + ')\n' + Object.keys(by).map(n => '\n<b>' + esc(n) + '</b>\n' + by[n].map(line).join('\n')).join('\n');
+  return '<b>Việc đang mở ' + (u.level >= 3 ? 'cả công ty' : 'nhóm bạn theo dõi') + '</b> (' + rows.length + ')\n' + Object.keys(by).map(n => '\n<b>' + esc(n) + '</b>\n' + by[n].map(line).join('\n')).join('\n');
 }
 
 /* ---------------------------------------------------------------- báo cáo tuần (họp thứ Hai) */
@@ -443,11 +456,12 @@ async function listText(x, C, u, scope) {
 export async function weekReport(x, C, W, onlyEmail, nowArg) {
   await schema(x.db);
   const end = W + 7 * DAY, now = nowArg || Date.now(), ppl = await members(x, C);
-  const tt = await all(x.db, "SELECT t.* FROM gv_tasks t JOIN gv_wk w ON w.task = t.id WHERE w.week = ? AND t.kind = 'tt' AND t.status <> 'Huỷ'" + (onlyEmail ? ' AND t.who_email = ?' : '') + ' ORDER BY t.id', W, ...(onlyEmail ? [onlyEmail] : []));
-  const ps = await all(x.db, "SELECT * FROM gv_tasks WHERE kind = 'ps' AND status = 'Xong' AND done_at >= ? AND done_at < ?" + (onlyEmail ? ' AND who_email = ?' : '') + ' ORDER BY done_at', W, end, ...(onlyEmail ? [onlyEmail] : []));
+  const only = Array.isArray(onlyEmail) ? onlyEmail : onlyEmail ? [onlyEmail] : null, inS = e => !only || only.indexOf(e) >= 0; // 16/11/2026: báo cáo theo phạm vi người xem
+  const tt = (await all(x.db, "SELECT t.* FROM gv_tasks t JOIN gv_wk w ON w.task = t.id WHERE w.week = ? AND t.kind = 'tt' AND t.status <> 'Huỷ' ORDER BY t.id", W)).filter(t => inS(t.who_email));
+  const ps = (await all(x.db, "SELECT * FROM gv_tasks WHERE kind = 'ps' AND status = 'Xong' AND done_at >= ? AND done_at < ? ORDER BY done_at", W, end)).filter(t => inS(t.who_email));
   const people = [];
   for (const z of ppl) {
-    if (onlyEmail && z.email !== onlyEmail) continue;
+    if (!inS(z.email)) continue;
     const mine = tt.filter(t => t.who_email === z.email).map(t => {
       const doneIn = t.status === 'Xong' && t.done_at < end, ontime = doneIn && (!t.due || t.done_at <= dueEnd(t));
       return { id: t.id, title: t.title, goal: t.goal, due: t.due, dueT: t.due_t, result: t.result, proof: proofUrl(C, t), qa: t.qa, pace: t.pace, next: t.next, block: t.block, carry: t.carry, by: t.by_email === t.who_email ? '' : t.by_name,
@@ -458,8 +472,11 @@ export async function weekReport(x, C, W, onlyEmail, nowArg) {
     people.push({ email: z.email, name: z.name, role: z.role, tt: mine, ps: extra, n, done, ontime, pctDone: n ? Math.round(done * 100 / n) : null, pctOn: n ? Math.round(ontime * 100 / n) : null,
       help: mine.filter(r => (r.pace === 'help' || r.block) && (r.st === 'open' || r.st === 'carried')).length, noProof: mine.filter(r => r.noProof).length });
   }
+  return { week: W, label: wkLabel(W), people, total: totalOf(people) };
+}
+function totalOf(people) {
   const T = people.reduce((a, p) => { a.n += p.n; a.done += p.done; a.ontime += p.ontime; return a; }, { n: 0, done: 0, ontime: 0 });
-  return { week: W, label: wkLabel(W), people, total: { n: T.n, done: T.done, ontime: T.ontime, pctDone: T.n ? Math.round(T.done * 100 / T.n) : null, pctOn: T.n ? Math.round(T.ontime * 100 / T.n) : null } };
+  return { n: T.n, done: T.done, ontime: T.ontime, pctDone: T.n ? Math.round(T.done * 100 / T.n) : null, pctOn: T.n ? Math.round(T.ontime * 100 / T.n) : null };
 }
 /** Bài nói 3–5 phút cho buổi họp thứ Hai, theo "Công thức báo cáo" trong Quy trình họp tuần. */
 export function speech(p, label, nextTT) {
@@ -482,7 +499,8 @@ async function myReportText(x, C, u, W) { const R = await weekReport(x, C, W, u.
 /* ---------------------------------------------------------------- nhịp tuần + nhắc (cron, 10 phút/lần, 7h–22h) */
 async function once(x, key) { if (await kvGet(x.db, key)) return false; await kvSet(x.db, key, '1', 9 * DAY); return true; }
 async function leadsOf(x, C) { return (await staff(x)).filter(z => canAssign(z, C)); }
-async function toLeads(x, C, msg) { for (const b of await leadsOf(x, C)) { const p = await privChat(x, b); if (p) await say(x, C, p, msg); } }
+/** Gửi tóm tắt cho người theo dõi. msg là chữ, hoặc hàm (inScope: email → true/false) → chữ ('' = không gửi), để mỗi người chỉ thấy nhóm mình. */
+async function toLeads(x, C, msg) { for (const b of await leadsOf(x, C)) { const p = await privChat(x, b); if (!p) continue; const sc = scopeOf(b, C), t = typeof msg === 'function' ? msg(e => !sc || sc.indexOf(e) >= 0) : msg; if (t) await say(x, C, p, t); } }
 const weekTT = (x, W) => all(x.db, `SELECT t.* FROM gv_tasks t JOIN gv_wk w ON w.task = t.id WHERE w.week = ? AND t.kind = 'tt' AND ${OPEN_T} ORDER BY t.id`, W);
 export async function gvTick(x, nowArg) {
   const C = await cfgOf(x);
@@ -513,8 +531,8 @@ export async function gvTick(x, nowArg) {
     if (noTg.length && C.group) await say(x, C, C.group, '🌱 Tuần mới rồi cả nhà! ' + noTg.map(z => mention(z, z.tg)).join(', ') + ' nhớ chốt tối đa 3 việc ⭐ trọng tâm trước <b>9h sáng thứ Ba</b> nhé (nhắn em hoặc vào CRM). Bấm Kết nối Telegram trong CRM để em nhắc riêng: ' + VIEW_URL); }
   }
   if (wd === 2 && hm >= 9 * 60 && hm < 12 * 60 && await once(x, 'gvr_plan9_' + W)) { // ② 9h thứ Ba: báo Quản lý ai chưa chốt
-    const miss = []; for (const z of mem) if (!(await ttList(x, z.email, W)).length) miss.push(z.name);
-    await toLeads(x, C, miss.length ? '📋 9h thứ Ba · còn <b>' + miss.length + '</b> người chưa chốt việc trọng tâm tuần ' + wkLabel(W) + ': ' + esc(miss.join(', ')) + '\nCRM: ' + VIEW_URL : '✅ 9h thứ Ba · cả nhà đã chốt việc trọng tâm tuần ' + wkLabel(W) + ' 🌿');
+    const miss0 = []; for (const z of mem) if (!(await ttList(x, z.email, W)).length) miss0.push(z);
+    await toLeads(x, C, inS => { const miss = miss0.filter(z => inS(z.email)).map(z => z.name); return miss.length ? '📋 9h thứ Ba · còn <b>' + miss.length + '</b> người chưa chốt việc trọng tâm tuần ' + wkLabel(W) + ': ' + esc(miss.join(', ')) + '\nCRM: ' + VIEW_URL : '✅ 9h thứ Ba · mọi người bạn theo dõi đã chốt việc trọng tâm tuần ' + wkLabel(W) + ' 🌿'; });
   }
   if (wd === 4 && hm >= 19 * 60 && hm < 21 * 60 && await once(x, 'gvr_pace_' + W)) { // ③ 19h thứ Năm: hỏi tiến độ từng việc trọng tâm
     for (const t of await weekTT(x, W)) {
@@ -525,8 +543,8 @@ export async function gvTick(x, nowArg) {
   }
   if (wd === 4 && hm >= 21 * 60 && await once(x, 'gvr_pace21_' + W)) { // ④ 21h thứ Năm: Quản lý xem ai chưa cập nhật, việc cần hỗ trợ
     const rows = await weekTT(x, W), d0 = startOfDay(now) + 12 * 3600e3; // cập nhật từ trưa thứ Năm trở đi
-    const miss = rows.filter(t => !(t.pace_at >= d0)), help = rows.filter(t => t.pace === 'help' || t.pace === 'risk');
-    if (miss.length || help.length) await toLeads(x, C, '📍 21h thứ Năm · tiến độ việc trọng tâm' + (miss.length ? '\n<b>Chưa cập nhật:</b> ' + esc([...new Set(miss.map(t => t.who_name))].join(', ')) : '') + (help.length ? '\n<b>Cần mình hỗ trợ:</b>\n' + help.map(t => (t.pace === 'help' ? '🔴 ' : '🟡 ') + esc(t.who_name) + ': ' + esc(t.title) + (t.block ? ' — ' + esc(t.block) : t.next ? ' — ' + esc(t.next) : '')).join('\n') : '') + '\nCRM: ' + VIEW_URL);
+    await toLeads(x, C, inS => { const R = rows.filter(t => inS(t.who_email)), miss = R.filter(t => !(t.pace_at >= d0)), help = R.filter(t => t.pace === 'help' || t.pace === 'risk');
+    if (miss.length || help.length) return '📍 21h thứ Năm · tiến độ việc trọng tâm' + (miss.length ? '\n<b>Chưa cập nhật:</b> ' + esc([...new Set(miss.map(t => t.who_name))].join(', ')) : '') + (help.length ? '\n<b>Cần mình hỗ trợ:</b>\n' + help.map(t => (t.pace === 'help' ? '🔴 ' : '🟡 ') + esc(t.who_name) + ': ' + esc(t.title) + (t.block ? ' — ' + esc(t.block) : t.next ? ' — ' + esc(t.next) : '')).join('\n') : '') + '\nCRM: ' + VIEW_URL; return ''; });
   }
   if (wd === 0 && hm >= 19 * 60 && hm < 21 * 60 && await once(x, 'gvr_res_' + W)) { // ⑤ 19h Chủ nhật: hỏi kết quả + minh chứng
     for (const t of await weekTT(x, W)) {
@@ -536,8 +554,9 @@ export async function gvTick(x, nowArg) {
     }
   }
   if (wd === 0 && hm >= 21 * 60 && await once(x, 'gvr_res21_' + W)) { // ⑥ 21h Chủ nhật: Quản lý xem còn thiếu gì
-    const R = await weekReport(x, C, W), miss = R.people.filter(p => p.tt.some(r => r.st === 'open') || p.noProof);
-    await toLeads(x, C, '🏁 21h Chủ nhật · tuần ' + R.label + ': xong ' + R.total.done + '/' + R.total.n + ' việc trọng tâm' + (miss.length ? '\n<b>Còn mở hoặc thiếu minh chứng:</b> ' + esc(miss.map(p => p.name).join(', ')) : ' 🌿') + '\nBáo cáo họp thứ Hai: ' + VIEW_URL);
+    const R = await weekReport(x, C, W);
+    await toLeads(x, C, inS => { const P = R.people.filter(p => inS(p.email)), T = totalOf(P), miss = P.filter(p => p.tt.some(r => r.st === 'open') || p.noProof);
+      return '🏁 21h Chủ nhật · tuần ' + R.label + ': xong ' + T.done + '/' + T.n + ' việc trọng tâm' + (miss.length ? '\n<b>Còn mở hoặc thiếu minh chứng:</b> ' + esc(miss.map(p => p.name).join(', ')) : ' 🌿') + '\nBáo cáo họp thứ Hai: ' + VIEW_URL; });
   }
 }
 /** 7h thứ Hai: chuyển việc trọng tâm chưa xong sang tuần mới + gửi mỗi người bài báo cáo cho buổi họp + tổng tuần cho Quản lý, lời cảm ơn trong nhóm. */
@@ -556,7 +575,7 @@ export async function gvMonday(x, C, W, nowArg) {
     const pc = await privChat(x, z); if (!pc) continue;
     await say(x, C, pc, speech(p, R.label, await ttList(x, p.email, W)) + '\n\n<i>Dùng bài này để báo cáo 3–5 phút trong buổi họp nhé.</i>');
   }
-  await toLeads(x, C, '📊 <b>Tuần ' + R.label + '</b>: xong ' + R.total.done + '/' + R.total.n + ' việc trọng tâm' + (R.total.pctDone == null ? '' : ' (' + R.total.pctDone + '%)') + ', đúng hạn ' + R.total.ontime + '.\nBáo cáo từng người cho buổi họp: CRM → ✅ Việc tuần → 📋 Báo cáo tuần\n' + VIEW_URL);
+  await toLeads(x, C, inS => { const T = totalOf(R.people.filter(p => inS(p.email))); return '📊 <b>Tuần ' + R.label + '</b>: xong ' + T.done + '/' + T.n + ' việc trọng tâm' + (T.pctDone == null ? '' : ' (' + T.pctDone + '%)') + ', đúng hạn ' + T.ontime + '.\nBáo cáo từng người cho buổi họp: CRM → ✅ Việc tuần → 📋 Báo cáo tuần\n' + VIEW_URL; });
   const psN = R.people.reduce((a, p) => a + p.ps.length, 0);
   if (C.group && (R.total.done || psN)) await say(x, C, C.group, '🌿 Tuần ' + R.label + ' Nhà Lành cùng xong <b>' + R.total.done + '</b> việc trọng tâm' + (psN ? ' và ' + psN + ' việc phát sinh' : '') + '. Cảm ơn cả nhà 💚');
   return R;
@@ -578,7 +597,7 @@ export async function gvMorning(x) {
     const hot = open.filter(t => t.due && startOfDay(t.due) === d0);
     if (hot.length) {
       const by = {}; hot.forEach(t => (by[t.who_email] || (by[t.who_email] = [])).push(t));
-      await say(x, C, C.group, '☀️ <b>Hôm nay Nhà Lành cùng làm</b> (' + hot.length + ' việc hạn hôm nay)\n' + Object.keys(by).map(e => { const w = ppl.find(z => z.email === e) || { name: by[e][0].who_name }; return '\n<b>' + esc(w.name) + '</b>\n' + by[e].map(t => (t.kind === 'tt' ? '⭐ ' : '• ') + esc(t.title) + (t.due_t ? ' · ' + fmtDate(t.due, 'HH:mm') : '')).join('\n'); }).join('\n'));
+      await say(x, C, C.group, '☀️ Hôm nay cả nhà có <b>' + hot.length + '</b> việc đến hạn. Ai có việc em đã nhắn riêng, xong thì bấm ✅ hoặc trả lời "xong" nhé 🌿'); // 16/11/2026: không nêu tên việc trong nhóm
     }
   }
 }
@@ -655,8 +674,8 @@ export async function gvNotionTick(x, C, max) {
 /* ---------------------------------------------------------------- CRM */
 async function gvList(x, u) {
   await schema(x.db);
-  const C = await cfgOf(x), lead = canAssign(u, C), now = Date.now();
-  const rows = await all(x.db, `SELECT * FROM gv_tasks WHERE (${OPEN} OR upd_at > ?) ${lead ? '' : "AND (who_email = ? OR by_email = ? OR (',' || helpers || ',') LIKE ?)"} ORDER BY id DESC LIMIT 500`, now - 30 * DAY, ...(lead ? [] : [u.email, u.email, '%,' + u.email + ',%']));
+  const C = await cfgOf(x), lead = canAssign(u, C), now = Date.now(), sq = scopeSql(u, C);
+  const rows = await all(x.db, `SELECT * FROM gv_tasks WHERE (${OPEN} OR upd_at > ?)${sq.sql} ORDER BY id DESC LIMIT 500`, now - 30 * DAY, ...sq.args);
   const ids = rows.map(t => t.id), logs = ids.length ? await all(x.db, `SELECT task, at, by_name, text FROM gv_log WHERE task IN (${ids.map(() => '?').join(',')}) ORDER BY id`, ...ids) : [];
   const L = {}; logs.forEach(l => (L[l.task] || (L[l.task] = [])).push({ at: l.at, by: l.by_name, text: l.text }));
   const ppl = await staff(x), linked = {};
@@ -664,14 +683,15 @@ async function gvList(x, u) {
   const W = weekOf(now), inW = new Set((await all(x.db, 'SELECT task FROM gv_wk WHERE week = ?', W)).map(r => r.task));
   const tasks = rows.map(t => ({ id: t.id, title: t.title, body: t.body, goal: t.goal, kind: t.kind, who: t.who_name, whoE: t.who_email, by: t.by_name, byE: t.by_email, due: t.due, dueT: t.due_t ? 1 : 0, st: t.status, at: t.at, upd: t.upd_at, done: t.done_at, src: t.src,
     result: t.result, proof: proofUrl(C, t), proofTg: /^tg:/.test(t.proof) ? 1 : 0, pace: t.pace, paceAt: t.pace_at, next: t.next, block: t.block, carry: t.carry, qa: t.qa, helpers: helpersOf(t), thisWeek: inW.has(t.id) ? 1 : 0, late: late(t, now) ? 1 : 0, nOk: t.nid && !t.ndirty ? 1 : 0, log: L[t.id] || [] }));
-  const out = { tasks, me: u.email, lead: lead ? 1 : 0, admin: u.level >= 3 ? 1 : 0, linked: linked[u.email] ? 1 : 0, bot: C.bot, group: C.groupName || (C.group ? 'đã nối' : ''), on: C.token ? 1 : 0, ai: x.env.ANTHROPIC_API_KEY ? 1 : 0, week: W, weekLabel: wkLabel(W), max: MAX_TT, now,
+  const out = { tasks, me: u.email, lead: lead ? 1 : 0, admin: u.level >= 3 ? 1 : 0, linked: linked[u.email] ? 1 : 0, bot: C.bot, group: C.groupName || (C.group ? 'đã nối' : ''), on: C.token ? 1 : 0, ai: x.env.ANTHROPIC_API_KEY ? 1 : 0, week: W, weekLabel: wkLabel(W), max: MAX_TT, now, all: u.level >= 3 ? 1 : 0, see: seeList(u, C),
     staff: ppl.map(z => ({ email: z.email, name: z.name, role: z.role, tg: linked[z.email] || !!z.tg ? 1 : 0, lead: canAssign(z, C) ? 1 : 0, lv: z.level, mem: 1 })), off: (await crmUsers(x)).filter(z => z.active && !z.gv).map(z => ({ email: z.email, name: z.name, role: z.role })) };
-  if (u.level >= 3) { out.leads = C.leads || []; out.notion = C.notion ? { title: C.notion.title || '', wait: (await first(x.db, 'SELECT COUNT(*) n FROM gv_tasks WHERE ndirty = 1 AND ntry < 5')).n, fail: (await first(x.db, 'SELECT COUNT(*) n FROM gv_tasks WHERE ndirty = 1 AND ntry >= 5')).n, err: ((await first(x.db, "SELECT nerr FROM gv_tasks WHERE nerr <> '' ORDER BY upd_at DESC LIMIT 1")) || {}).nerr || '' } : null; }
+  if (u.level >= 3) { out.seeMap = {}; (await crmUsers(x)).forEach(z => { if (z.active && z.gvsee && z.gvsee.length) out.seeMap[z.email] = z.gvsee; }); out.notion = C.notion ? { title: C.notion.title || '', wait: (await first(x.db, 'SELECT COUNT(*) n FROM gv_tasks WHERE ndirty = 1 AND ntry < 5')).n, fail: (await first(x.db, 'SELECT COUNT(*) n FROM gv_tasks WHERE ndirty = 1 AND ntry >= 5')).n, err: ((await first(x.db, "SELECT nerr FROM gv_tasks WHERE nerr <> '' ORDER BY upd_at DESC LIMIT 1")) || {}).nerr || '' } : null; }
   return { ok: true, gv: out };
 }
 async function gvSave(x, u, d) {
   await schema(x.db);
   const C = await cfgOf(x), ppl = await staff(x), w = ppl.find(z => z.email === String(d.who || '').toLowerCase()) || (d.id ? null : u);
+  if (d.who && !ppl.some(z => z.email === String(d.who).toLowerCase())) { const z = (await crmUsers(x)).find(y => y.email === String(d.who).toLowerCase()); return { ok: false, error: (z ? z.name : 'Người này') + ' chưa bật ✅ Việc tuần. Anh Sơn bật ở Cài đặt → Nhân sự rồi giao lại nhé.' }; } // 16/11/2026: trước đây im lặng giao cho chính mình
   const due = Number(d.due) || null, dueT = d.dueT ? 1 : 0, kind = d.kind === 'tt' ? 'tt' : 'ps', helpers = (Array.isArray(d.helpers) ? d.helpers : []).map(e => String(e).toLowerCase()).filter(e => ppl.some(z => z.email === e));
   const title = clean(d.title, 300), goal = clean(d.goal, 500);
   if (!title) return { ok: false, error: 'Bạn ghi việc cần làm nhé.' };
@@ -703,10 +723,10 @@ async function gvLink(x, u) {
   return { ok: true, url: 'https://t.me/' + C.bot + '?start=' + code };
 }
 async function gvRep(x, u, d) {
-  const C = await cfgOf(x), W = Number(d.week) || weekOf(Date.now()), lead = canAssign(u, C);
-  const R = await weekReport(x, C, W, lead ? null : u.email);
+  const C = await cfgOf(x), W = Number(d.week) || weekOf(Date.now()), lead = canAssign(u, C), sc = scopeOf(u, C);
+  const R = await weekReport(x, C, W, sc);
   R.people.forEach(p => { p.text = speech(p, R.label).replace(/<[^>]+>/g, ''); });
-  const trend = []; if (lead) for (let i = 1; i <= 4; i++) { const r = await weekReport(x, C, W - i * 7 * DAY); trend.push({ week: r.week, label: r.label, total: r.total, people: r.people.map(p => ({ email: p.email, n: p.n, done: p.done, ontime: p.ontime })) }); }
+  const trend = []; if (lead) for (let i = 1; i <= 4; i++) { const r = await weekReport(x, C, W - i * 7 * DAY, sc); trend.push({ week: r.week, label: r.label, total: r.total, people: r.people.map(p => ({ email: p.email, n: p.n, done: p.done, ontime: p.ontime })) }); }
   return { ok: true, rep: R, trend, lead: lead ? 1 : 0, thisWeek: weekOf(Date.now()) };
 }
 async function gvCfg(x, u, d) {
@@ -735,7 +755,6 @@ async function gvCfg(x, u, d) {
       C.notion = N; await run(x.db, 'UPDATE gv_tasks SET ndirty = 1, ntry = 0');
     }
   }
-  if (Array.isArray(d.leads)) C.leads = d.leads.map(e => String(e).toLowerCase()).filter(e => /@/.test(e)).slice(0, 30);
   if (Array.isArray(d.on)) { // ✅ bật / tắt Việc tuần theo người (ghi users.gv, cùng ô với Cài đặt → Nhân sự)
     const on = d.on.map(e => String(e).toLowerCase());
     for (const z of (await crmUsers(x)).filter(y => y.active)) { const v = z.email === BOSS || on.indexOf(z.email) >= 0 ? 'Có' : ''; if (!!z.gv !== (v === 'Có')) await run(x.db, 'UPDATE users SET gv = ? WHERE email = ?', v, z.email); }

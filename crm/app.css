@@ -3307,3 +3307,16 @@ details.dash-grp[open] > summary::after { transform: rotate(180deg); }
 .nsv-tk:not(.on):not(.base) b { color: var(--muted); font-weight: 600; }
 .nsv-pay { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-end; margin-top: 6px; }
 .nsv-pay label { flex: 1 1 220px; font-size: 13px; color: var(--muted); } .nsv-pay input { display: block; width: 100%; margin-top: 3px; }
+
+/* 16/11/2026 Việc tuần: thẻ từng người (lọc), bước tiếp theo trên dòng, ô 👀 theo dõi ở Nhân sự */
+.gv-ppl { display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 10px; margin-bottom: 4px; }
+.gv-pp { flex: 0 0 auto; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 120px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 12px; background: #fff; cursor: pointer; text-align: left; font: inherit; }
+.gv-pp b { font-size: 14px; } .gv-pp small { font-size: 12px; color: var(--muted); }
+.gv-pp.warn small { color: var(--red); }
+.gv-pp.on { border: 2px solid var(--primary); padding: 7px 11px; background: var(--primary-soft); }
+.gv-t .gv-next { font-size: 12.5px; font-weight: 600; color: var(--primary); }
+.gv-resd > summary { cursor: pointer; list-style: none; } .gv-resd > summary::-webkit-details-marker { display: none; }
+.gv-resd > summary .gv-h3 { display: inline; }
+.gv-resd:not([open]) > summary .gv-h3::after { content: ' ›'; color: var(--muted); }
+.edit-row.usr .usr-see > summary { cursor: pointer; font-size: 13px; padding: 4px 0; }
+.edit-row.usr .usr-see-l { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 4px; }
