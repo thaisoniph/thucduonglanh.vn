@@ -87,6 +87,35 @@ async function bestCalc(x, R, people) {
 function blank() { return { n: 0, won: 0, junk: 0, lost: 0, open: 0, cost: 0, rev: 0, same: 0, next: 0, late: 0, none: 0, wait: 0, prod: {} }; }
 function fin(b) { b.cost = Math.round(b.cost); Object.keys(b.prod).forEach(k => { b.prod[k].cost = Math.round(b.prod[k].cost); }); return b; }
 
+/* ---------- 🅰️🅱️©️ Chia số quảng cáo theo nhóm (16/11/2026 anh Sơn + anh Hiếu): quảng cáo đắt, số ít → ưu tiên số cho sale chốt tốt.
+ * Nhóm theo 60 ngày gần nhất (tới hôm qua): tiền mang về từ số quảng cáo ÷ tiền quảng cáo của các số đó (ROI).
+ * A ≥ 1,8đ (gần / qua mức ~2đ đủ bù quảng cáo sau giá vốn, ship, thuế, hoa hồng) → 3 lượt / vòng · B ≥ 1,2đ → 2 lượt · C dưới 1,2đ → 1 lượt (vẫn có số để cố gắng lên nhóm).
+ * Thử với số thật 16/11: luật "gọi trong ngày dưới 60% xuống 1 nhóm" đẩy Lương (1,97đ, 57%) xuống C vì nhiều cuộc gọi không ghi CRM → bỏ, % gọi trong ngày chỉ để xem.
+ * Dưới 15 số (người mới) → B. Tính lại 7 ngày / lần (kv ads_tier). */
+export const TIER = { A: { w: 3, min: 1.8 }, B: { w: 2, min: 1.2 }, C: { w: 1, min: 0 } }, TIER_SP = 60, TIER_MINN = 15, TIER_DAYS = 60;
+const isoVN = t => new Date(t + 7 * 3600e3).toISOString().slice(0, 10);
+export async function adsTier(x, force) {
+  const c = await kvJson(x.db, 'ads_tier', null);
+  if (c && !force && Date.now() - c.at < 7 * DAY) return c;
+  const to = isoVN(Date.now() - DAY), from = isoVN(Date.now() - TIER_DAYS * DAY), T = await teamCalc(x, from, to), P = {};
+  Object.keys(T.people || {}).forEach(k => {
+    const b = T.people[k], called = b.same + b.next + b.late + b.none, roi = b.cost ? Math.round(b.rev / b.cost * 100) / 100 : null, sp = called ? Math.round(b.same * 100 / called) : null;
+    const g = b.n < TIER_MINN || roi === null ? 'B' : roi >= TIER.A.min ? 'A' : roi >= TIER.B.min ? 'B' : 'C', down = false;
+    P[k] = { g, roi, sp, n: b.n, rev: b.rev, cost: b.cost, down, nw: b.n < TIER_MINN };
+  });
+  const out = { at: Date.now(), from, to, people: P };
+  await kvSet(x.db, 'ads_tier', JSON.stringify(out));
+  return out;
+}
+/** Lệnh 'ads_tier' { force? }: Quản lý / Quản trị xem nhóm từng người; Quản trị bấm Xếp lại ngay (force). */
+export async function crmAdsTier(x, u, d) {
+  if (u.level < 2) return { ok: false, error: 'Chỉ Quản lý, Quản trị.' };
+  const cfg = (await kvJson(x.db, 'ads_cfg', {})) || {}, w = (await kvJson(x.db, 'ads_wrr', {})) || {};
+  return { ok: true, t: await adsTier(x, !!d.force && u.level >= 3), W: TIER, sp: TIER_SP, minN: TIER_MINN, mode: cfg.mode || 'staff', today: w.cnt || {}, day: w.day || '' };
+}
+/** Nhóm của 1 người (không có số liệu → B). */
+export function tierOf(t, name) { return (t && t.people && t.people[name]) || { g: 'B', nw: true }; }
+
 /** Lệnh 'sale_mkt' { from, to, name? }: name rỗng = cả nhóm (quản lý), nhân viên luôn là chính mình. */
 export async function crmSaleMkt(x, u, d) {
   if (![d.from, d.to].every(s => DAY_RE.test(String(s || '')))) return { ok: false, error: 'Khoảng thời gian chưa đúng.' };
@@ -96,7 +125,7 @@ export async function crmSaleMkt(x, u, d) {
     const tm = T.team || blank(), prod = {};
     Object.keys(tm.prod || {}).forEach(k => { const p = tm.prod[k]; prod[k] = { n: p.n, won: p.won, junk: p.junk }; });
     const team = { n: tm.n, won: tm.won, junk: tm.junk, lost: tm.lost, open: tm.open, same: tm.same, next: tm.next, late: tm.late, none: tm.none, wait: tm.wait, cost: 0, rev: 0, roi: tm.cost ? Math.round(tm.rev / tm.cost * 10) / 10 : null, prod };
-    return { ok: true, at: T.at, team, me, best: T.best || null, offers: await offersLive(x), mine: 1, be: await kvJson(x.db, 'be_vr', null) };
+    return { ok: true, at: T.at, team, me, best: T.best || null, offers: await offersLive(x), mine: 1, be: await kvJson(x.db, 'be_vr', null), tier: tierOf(await adsTier(x), name), tierW: TIER, split: ((await kvJson(x.db, 'ads_cfg', {})) || {}).mode || 'staff' };
   }
   return { ok: true, be: await kvJson(x.db, 'be_vr', null), at: T.at, spend: T.spend, n: T.n, cpl: T.cpl, cplBy: T.cplBy, cplRest: T.cplRest, team: T.team, me, best: T.best || null, offers: await offersLive(x), people: T.people };
 }

@@ -150,6 +150,8 @@ Tài khoản Quản trị không nằm trong bảng so sánh nhân sự. Doanh s
 
 **Đổi người phụ trách 1 khách:** mở hồ sơ khách → **⚙️ Sửa thông tin** → ô **Người phụ trách** → **Lưu thay đổi**.
 
+**Số quảng cáo chia theo nhóm 🟢 A / 🟠 B / 🔴 C** (từ 16/11/2026): xem ở **Cài đặt → Đồng bộ → 📣 File số quảng cáo chung → 🅰️🅱️©️ Chia số quảng cáo theo nhóm**. Bảng ghi từng sale: nhóm, 1đ quảng cáo mang về bao nhiêu (60 ngày gần nhất), % gọi trong ngày, phần số được chia. Chỉ chạy khi file để **CRM tự chia** (bấm **⚙️ Cài đặt** của file → chọn **CRM tự chia**): mỗi vòng nhóm A nhận 3 số, B nhận 2, C nhận 1, tối đa 10 số / người / ngày, khách cũ vẫn về sale cũ. CRM tự xếp lại nhóm 7 ngày / lần; Quản trị bấm **↻ Xếp lại ngay** khi cần. Ai không nên nhận số (nghỉ phép, kiêm kho) thì tắt **Nhận khách mới** ở Nhân sự.
+
 **Cài đặt → 🤝 Chia khách → 🔀 Khách mới giao cho ai:**
 
 - **Khách mới được giao thế nào:**

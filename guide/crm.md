@@ -158,6 +158,13 @@ Mỗi số điện thoại khách hỏi từ quảng cáo là **tiền thật c�
 
 Muốn xem theo từng sản phẩm thì bấm **Xem chi tiết ›** (tab Hiệu quả → 📣 Từ quảng cáo).
 
+**Chia số theo nhóm (từ 16/11/2026):** quảng cáo đắt nên công ty ưu tiên số cho bạn chốt tốt. CRM xếp nhóm mỗi tuần theo 60 ngày gần nhất, dựa trên câu hỏi: **1đ quảng cáo bạn mang về bao nhiêu đồng?**
+- 🟢 **Nhóm A** (từ 1,8đ): mỗi vòng chia số nhận **3 số**.
+- 🟠 **Nhóm B** (từ 1,2đ): nhận **2 số**. Người mới (chưa đủ 15 số) cũng ở nhóm B.
+- 🔴 **Nhóm C** (dưới 1,2đ): nhận **1 số**. Lúc ít số thì chăm khách cũ, nhận Kho chung, xin khách giới thiệu. Bán tốt hơn thì tuần sau tự lên nhóm.
+
+Khung 💸 ghi rõ bạn đang ở nhóm nào và cần bao nhiêu để lên nhóm.
+
 ### 📦 Kho hôm nay: nên tư vấn sản phẩm gì?
 
 Trong tab **Hôm nay** có khung **📦 Kho hôm nay**. Dòng đầu đã nói gọn: **💚 Nên tư vấn** sản phẩm nào, **🔴 Sắp hết** sản phẩm nào. Bấm vào khung để xem số hộp còn lại.

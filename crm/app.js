@@ -12888,6 +12888,8 @@
         (left ? '<p class="be-sale-left">' + DASH_LV[lv] + ' Còn thiếu <b>' + moneyShort(left) + '</b>' + (nO ? ', khoảng <b>' + nO + ' đơn</b>' : '') + ' nữa. Mỗi số là tiền thật của công ty, tư vấn hết sức nhé!</p>'
           : '<p class="be-sale-left">🎉 Đã qua mức hoà vốn! Từ đây mỗi đơn bạn chốt là công ty có lãi. Cảm ơn bạn 💚</p>');
     } else h += '<p>Bạn đã bán được <b>' + moneyShort(rev) + '</b> từ các số này' + (rev ? ' → cứ 1đ công ty chi, bạn mang về <b>' + oneDec(rev / b.cost) + 'đ</b> ' + (DASH_LV[lv] || '') : '') + '.</p>';
+    var tr = d.tier, TW = d.tierW; if (d.split === 'crm' && tr && TW) h += '<p class="be-sale-tier">' + DASH_LV[{ A: 'ok', B: 'mid', C: 'bad' }[tr.g]] + ' Bạn đang ở <b>nhóm ' + tr.g + '</b>: mỗi vòng chia số bạn nhận <b>' + TW[tr.g].w + ' số</b>' +
+      (tr.g === 'A' ? '. Giữ vững nhé 💚' : ', lên nhóm ' + (tr.g === 'C' ? 'B khi 1đ quảng cáo mang về từ ' + oneDec(TW.B.min) + 'đ' : 'A khi 1đ quảng cáo mang về từ ' + oneDec(TW.A.min) + 'đ') + (tr.roi != null ? ' (bạn đang ' + oneDec(tr.roi) + 'đ)' : '') + '. Lúc ít số thì chăm khách cũ, Kho chung, khách giới thiệu.') + '</p>';
     if (b.none) h += '<p class="be-sale-none">📵 Còn <b>' + b.none + ' số chưa gọi</b> = <b>' + moneyShort(Math.round(b.none * cpl)) + '</b> tiền công ty đã trả. Gọi ngay để khách còn nhớ!</p>';
     else if (b.open) h += '<p class="small muted" style="margin:6px 0 0">Còn ' + b.open + ' số chưa có kết quả (≈ ' + moneyShort(Math.round(b.open * cpl)) + '), chăm tiếp để ra đơn.</p>';
     return h + '<p class="small muted" style="margin:6px 0 0">' + (need ? 'Hoà vốn = đủ trả tiền quảng cáo, tiền hàng, phí ship, thuế và hoa hồng của bạn (chưa tính lương cứng, văn phòng). ' : '') + 'Tính các số quảng cáo bạn nhận từ đầu tháng, cập nhật khoảng 30 phút một lần. <a href="#bao-cao">Xem chi tiết ›</a></p></section>';
@@ -13284,8 +13286,33 @@
         '<p style="margin:0 0 10px">Lấy số từ ngày <b>' + esc(ads.since ? ads.since.split('-').reverse().join('/') : '–') + '</b> · ' + (ads.auto ? '🔁 tự lấy 10 phút/lần' : 'lấy bằng tay') + (ads.last ? ' · lần cuối ' + when(ads.last) : '') + '</p>' +
         '<div class="steps"><button class="btn pri" data-adssync="1">🔄 Lấy số mới ngay</button><button class="btn" data-adssync="dry">👀 Xem trước</button><button class="btn" data-adsedit>⚙️ Cài đặt</button></div>'
       : '<p class="hint" style="margin:0 0 10px">Số quảng cáo mới trong file chung sẽ tự vào mục <b>Khách hỏi</b> của đúng sale (theo tên ở cột Sale). Tên sale trong file khai ở Nhân sự → “Tên trong file QC”.</p><button class="btn" data-adsedit>⚙️ Kết nối file số quảng cáo</button>') + '</div>';
+    if (ads && ads.fileId) h += tierBox(ads);
     return h;
   }
+  /* ---------- 🅰️🅱️©️ Nhóm chia số quảng cáo (16/11/2026): máy chủ xếp nhóm theo 60 ngày (adsTier, salemkt.js), CRM tự chia A 3 · B 2 · C 1 lượt mỗi vòng. */
+  var TIER_IC = { A: '🟢 A', B: '🟠 B', C: '🔴 C' };
+  function tierLoad(force) {
+    if (S.adtBusy) return; S.adtBusy = 1;
+    api('ads_tier', { force: force ? 1 : 0 }).then(function (j) { S.adt = j; if (force) toast('Đã xếp lại nhóm theo số mới nhất ✓'); }, function (e) { S.adt = { err: e.message }; })
+      .then(function () { S.adtBusy = 0; if (route().view === 'cai-dat') softRender(true); });
+  }
+  function tierBox(ads) {
+    var j = S.adt; if (!j && !S.adtBusy) tierLoad(); if (!j) return '<div class="box"><p class="muted">⏳ Đang tải nhóm chia số…</p></div>';
+    if (j.err) return '<div class="box"><p class="muted">Chưa tải được nhóm chia số: ' + esc(j.err) + '</p></div>';
+    var T = j.t || { people: {} }, W = j.W, recv = (S.d.users || []).filter(function (u) { return u.active !== false && u.recv; }).map(function (u) { return u.name; });
+    var tot = recv.reduce(function (a, n) { var p = T.people[n]; return a + W[(p || { g: 'B' }).g].w; }, 0) || 1;
+    var rows = recv.map(function (n) { return [n, T.people[n] || { g: 'B', nw: true }]; }).sort(function (a, b) { return (a[1].g > b[1].g ? 1 : a[1].g < b[1].g ? -1 : 0) || (b[1].roi || 0) - (a[1].roi || 0); });
+    var on = j.mode === 'crm';
+    return '<div class="box"><h3>🅰️🅱️©️ Chia số quảng cáo theo nhóm</h3>' +
+      '<p class="hint" style="margin:0 0 8px">' + (on ? '✅ Đang dùng: CRM tự chia số mới, ' : '⏸ Chưa dùng: file đang để <b>Nhân sự tự chia</b>. Muốn dùng thì bấm <b>⚙️ Cài đặt</b> ở trên → chọn <b>CRM tự chia</b>. Khi bật, ') +
+      'cứ 1 vòng nhóm 🟢 A nhận <b>' + W.A.w + ' số</b>, 🟠 B nhận <b>' + W.B.w + '</b>, 🔴 C nhận <b>' + W.C.w + '</b>. Tối đa 10 số / người / ngày. Khách cũ gọi lại vẫn về sale cũ.</p>' +
+      '<div class="bcdt-wrap"><table class="bcdt adt-tb"><thead><tr><th>Sale</th><th>Nhóm</th><th>1đ QC mang về</th><th>Gọi trong ngày</th><th>Số 60 ngày</th><th>Phần số</th>' + (on && j.day ? '<th>Hôm nay</th>' : '') + '</tr></thead><tbody>' +
+      rows.map(function (r) { var p = r[1]; return '<tr><td>' + esc(r[0]) + '</td><td><b>' + TIER_IC[p.g] + '</b>' + (p.nw ? ' <small class="muted">(chưa đủ ' + j.minN + ' số)</small>' : '') + '</td><td>' + (p.roi != null ? oneDec(p.roi) + 'đ' : '–') + '</td><td>' + (p.sp != null ? p.sp + '%' : '–') + '</td><td>' + (p.n || 0) + '</td><td>' + Math.round(W[p.g].w * 100 / tot) + '%</td>' + (on && j.day ? '<td>' + ((j.today || {})[r[0]] || 0) + '</td>' : '') + '</tr>'; }).join('') +
+      '</tbody></table></div>' +
+      '<p class="small muted" style="margin:8px 0 0">Xếp nhóm theo số quảng cáo từ ' + esc(fDate(new Date(T.from + 'T00:00:00+07:00').getTime())) + ' tới ' + esc(fDate(new Date(T.to + 'T00:00:00+07:00').getTime())) + ', tự xếp lại 7 ngày / lần (lần này ' + when(T.at) + '). 🟢 A: 1đ quảng cáo mang về từ ' + oneDec(W.A.min) + 'đ (gần hoặc qua mức khoảng 2đ là đủ bù quảng cáo sau tiền hàng, ship, thuế, hoa hồng) · 🟠 B: từ ' + oneDec(W.B.min) + 'đ · 🔴 C: dưới ' + oneDec(W.B.min) + 'đ. Cột Gọi trong ngày để quản lý nhắc nhở (gọi mà không ghi CRM thì không được tính). Người mới (dưới ' + j.minN + ' số) để nhóm B. Tắt <b>Nhận khách mới</b> ở Nhân sự thì không nhận số.</p>' +
+      (lvl() >= 3 ? '<button class="btn" data-retier style="margin-top:8px">↻ Xếp lại ngay</button>' : '') + '</div>';
+  }
+  document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-retier]'); if (!b) return; b.disabled = true; tierLoad(true); });
   function caBox() {
     var ca = (S.d.rules && S.d.rules.ca) || {};
     return '<div class="box"><h3>🕘 Ca làm việc (tính lương)</h3><p class="hint" style="margin:0 0 10px">Đơn lên sau giờ ca tối hoặc vào Chủ nhật → <b>Tối/CN</b>. Ngày lễ → <b>Lễ</b>. Sale vẫn sửa lại được khi lên đơn.</p>' +
@@ -13452,7 +13479,7 @@
       '<button class="btn pri" id="adRead">📖 Đọc file</button><p class="err" id="adErr"></p></div>' +
       '<div class="box"><div class="f"><span class="lbl">Ai chia số?</span>' +
       '<label class="mode"><input type="radio" name="adMode" value="staff"' + (cur.mode !== 'crm' ? ' checked' : '') + '><span><b>Nhân sự tự chia</b>Người chia số ghi tên sale vào cột Sale như hiện nay. CRM chỉ đọc và đưa số vào đúng sale.</span></label>' +
-      '<label class="mode"><input type="radio" name="adMode" value="crm"' + (cur.mode === 'crm' ? ' checked' : '') + '><span><b>CRM tự chia</b>Số chưa có tên sale: CRM chia lần lượt theo từng sheet sản phẩm (số trùng → giao lại sale cũ) và ghi tên vào cột Sale. Cần quyền sửa file.</span></label></div>' +
+      '<label class="mode"><input type="radio" name="adMode" value="crm"' + (cur.mode === 'crm' ? ' checked' : '') + '><span><b>CRM tự chia</b>Số chưa có tên sale: CRM chia theo nhóm 🟢 A / 🟠 B / 🔴 C (sale chốt tốt nhận nhiều số hơn, số trùng → giao lại sale cũ) và ghi tên vào cột Sale. Cần quyền sửa file.</span></label></div>' +
       '<div class="row2c"><label class="f"><span>Chỉ lấy số từ ngày</span><input type="date" id="adSince" value="' + esc(since) + '"></label>' +
       '<label class="switch" style="align-self:center"><input type="checkbox" id="adAuto"' + (cur.auto ? ' checked' : '') + '> Tự lấy số mới 10 phút/lần</label></div>' +
       '<p class="hint" style="margin:0">Tên sale trong file phải khớp tên ở <b>Nhân sự → Tên trong file QC</b>. Hiện có: ' + (aliases.length ? aliases.join(', ') : '<b>chưa khai ai</b>') + '. Số của sale chưa có trong CRM sẽ được bỏ qua.</p></div><div id="adSheets"></div>';

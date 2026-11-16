@@ -3,6 +3,7 @@
 import { normPhone, esc, fmtDate, nrm, isVoid, hashKey, hashKeyLegacy, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, CRM_URL, DAY } from './lib.js';
 import { sheetMeta, sheetValues, sheetWrite, a1, serialToMs } from './google.js';
 import { wbKeys, wbHas, wbPending } from './wb.js';
+import { adsTier, tierOf, TIER } from './salemkt.js';
 import { phoneAlias, crmUsers, crmLog, recalc, deletedOrderIds, delMark, setCallbacks, caCfg, caOf, normLine, itemsText, shipText, ORDER_COLS, srcList, adsCfg, telegramUser, unifyNames, prodKey, canonItems } from './crm.js';
 
 const FIELD_LABEL = { date: 'Ngày', name: 'Tên khách', phone: 'SĐT', address: 'Địa chỉ', product: 'Sản phẩm', qty: 'Số lượng', gift1: 'Quà tặng 1', gift1qty: 'SL quà 1', gift2: 'Quà tặng 2', gift2qty: 'SL quà 2',
@@ -780,6 +781,17 @@ export async function adsSync(x, u, dry) {
   const since = cfg.since ? new Date(cfg.since + 'T00:00:00+07:00').getTime() : Date.now() - 3 * DAY;
   const rows = [], perSale = {}, perSheet = {}, writes = [], rr = {}; let skipped = 0, merged = 0;
   const nextFrom = async (pool, key) => { if (!(key in rr)) rr[key] = (await kvGet(x.db, key)) || ''; const n = pool[(pool.indexOf(rr[key]) + 1) % pool.length]; rr[key] = n; return n; };
+  /* 🅰️🅱️©️ 16/11/2026: CRM tự chia theo nhóm A/B/C (adsTier, salemkt.js): A 3 lượt, B 2, C 1 mỗi vòng, chung mọi tab sản phẩm.
+   * Cách chia đều có trọng số (smooth weighted round robin), trạng thái ở kv ads_wrr. Trần 10 số / người / ngày, ai đủ trần thì chia người khác. */
+  let wrr = null; const WCAP = 10;
+  const pickW = async pool => {
+    if (!wrr) { wrr = (await kvJson(x.db, 'ads_wrr', null)) || {}; wrr.cur = wrr.cur || {}; wrr.tier = await adsTier(x); }
+    const day = fmtDate(Date.now(), 'yyyyMMdd'); if (wrr.day !== day) { wrr.day = day; wrr.cnt = {}; }
+    let cand = pool.filter(n => (wrr.cnt[n] || 0) < WCAP); if (!cand.length) cand = pool;
+    const w = n => (TIER[tierOf(wrr.tier, n).g] || TIER.B).w, sum = cand.reduce((a, n) => a + w(n), 0); let best = cand[0];
+    cand.forEach(n => { wrr.cur[n] = (wrr.cur[n] || 0) + w(n); if (wrr.cur[n] > wrr.cur[best]) best = n; });
+    wrr.cur[best] -= sum; wrr.cnt[best] = (wrr.cnt[best] || 0) + 1; wrr.dirty = 1; return best;
+  };
   const scan = [], reg = [], seen = {}, regFrom = Date.now() - 100 * DAY; // reg: mọi dòng có SĐT trong 100 ngày → đếm data quảng cáo (tỷ lệ chốt), không phụ thuộc việc tạo khách hỏi
   const keep = {}, keepRaw = {}, rowsOf = {}, AL = await phoneAlias(x), mp = p => AL[p] || p; // mp: số phụ của khách đã gộp → số chính. Cột Trùng sale: {sđt: sale phụ trách khách} (dòng dưới cùng có ghi thắng) – không phụ thuộc file sale nào nhập trước
   const sheets = [], missing = [];
@@ -823,7 +835,7 @@ export async function adsSync(x, u, dry) {
     const saleTxt = String(cell(r, m, 'sale') || '').trim(); let owner = keep[phone] || who(saleTxt);
     if (cfg.mode === 'crm' && !saleTxt && !keep[phone]) { // CRM chia
       const old = (owners[phone] && owners[phone].owner) || openBy[phone] || '';
-      owner = old || (pool.length ? await nextFrom(pool, 'rr_ads_' + hashKey(sc.name)) : '');
+      owner = old || (pool.length ? await pickW(pool) : ''); // trước 16/11/2026: chia đều lần lượt từng tab (nextFrom)
       if (owner) { const ux = users.find(y => y.name === owner); writes.push({ sheet: sc.name, row: hr + 1 + i, col: m.sale, val: (String(ux.alias || '').split(',')[0].trim() || owner), dupCol: old ? m.dup : undefined }); }
     }
     if (!owner) { skipped++; continue; } // sale chưa có trong CRM (giai đoạn thử nghiệm) → bỏ qua
@@ -845,6 +857,7 @@ export async function adsSync(x, u, dry) {
     if (fresh.length) await telegramUser(x, n, '🙋 <b>' + fresh.length + ' số quảng cáo mới</b> cho bạn:\n' + fresh.slice(0, 15).map(r => '• ' + esc(r.name) + ' – <a href="https://zalo.me/' + r.phone + '">' + r.phone + '</a> · ' + esc(r.interest)).join('\n') + '\n\n👉 ' + CRM_URL + '/#tiem-nang');
   }
   for (const k of Object.keys(rr)) await kvSet(x.db, k, rr[k]);
+  if (wrr && wrr.dirty) { const { tier, dirty, ...st } = wrr; await kvSet(x.db, 'ads_wrr', JSON.stringify(st)); }
   cfg.last = Date.now(); await kvSet(x.db, 'ads_cfg', JSON.stringify(cfg));
   if (u && u.email) await crmLog(x, u, 'Đồng bộ file', 'QC', '', rows.length + ' số mới', JSON.stringify(perSale));
   return res;
