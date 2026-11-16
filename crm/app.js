@@ -5423,8 +5423,9 @@
     var pa = function (p) { return (p.pa || []).reduce(function (a, v) { return a + (v || 0); }, 0) * std; };
     var extra = function (p, sale) { return p ? (sale ? 0 : p.base || 0) + (p.cc || 0) + pa(p) + (p.other || 0) + Math.round((p.bh || 0) * NSV_BH) : 0; };
     // 📥 lương thực trả kế toán (file Tính lương, 16/11/2026): có thì dùng thay lương CRM tự ước
-    var RL = (NSV.d && NSV.d.real) || {}, realFor = function (m, nm) { var o = RL[m], t = 0, f = 0; if (o) Object.keys(o).forEach(function (k) { if (o[k].u === nm) { t += lgrCost(o[k]); f = 1; } }); return f ? t : null; };
-    var realG = function (m, g) { var o = RL[m], t = 0; if (o) Object.keys(o).forEach(function (k) { if (o[k].g === g && !(o[k].u && users.some(function (z) { return z.name === o[k].u && z.active !== false && KIND0[z.role]; }))) t += lgrCost(o[k]); }); return t; }, KIND0 = { 'Quản lý': 1, 'Kế toán': 1, 'Kho': 1, 'Marketing': 1 };
+    var RL = (NSV.d && NSV.d.real) || {}, uAct = users.filter(function (z) { return z.active !== false; }), rU = function (k, r) { if (r.u) return r.u; var h = lgrMatch(k, uAct); return h ? h.name : ''; }; // người chưa có tài khoản lúc đọc file, nay đã có → tự khớp theo tên
+    var realFor = function (m, nm) { var o = RL[m], t = 0, f = 0; if (o) Object.keys(o).forEach(function (k) { if (rU(k, o[k]) === nm) { t += lgrCost(o[k]); f = 1; } }); return f ? t : null; };
+    var realG = function (m, g) { var o = RL[m], t = 0; if (o) Object.keys(o).forEach(function (k) { var uu = rU(k, o[k]); if (o[k].g === g && !(uu && users.some(function (z) { return z.name === uu && z.active !== false && KIND0[z.role]; }))) t += lgrCost(o[k]); }); return t; }, KIND0 = { 'Quản lý': 1, 'Kế toán': 1, 'Kho': 1, 'Marketing': 1 };
     var dk = (S.d.rules && S.d.rules.dash && S.d.rules.dash.kpi) || {}, sdt0 = Number(dk.sdt) || 300000;
     var R0 = monthRange(ms[0])[0], R1 = monthRange(ms[ms.length - 1])[1], g0 = gpOf(bizStats([R0, R1])), r0 = g0 ? g0.r : 0.32;
     var VT = nsvVat() / 100, X = nsvOpt('x', 3), kho1 = nsvOpt('kho', 12000), kt1 = nsvOpt('kt', 6000000);
@@ -7314,7 +7315,7 @@
     }); });
     Object.keys(G).forEach(function (n) {
       var x = G[n], u = lgrMatch(n, crm), mp = map && map[n];
-      if (mp) { x.u = mp[0]; x.g = mp[1]; }
+      if (mp) { x.u = mp[0] || (u ? u.name : ''); x.g = mp[1]; } // lần trước chưa có tài khoản CRM, nay đã có → tự gắn
       else if (u) { x.u = u.name; x.g = LGR_ROLE[u.role] || 'Khác'; }
       else { x.u = ''; x.g = x.data ? 'Marketing' : x.dt > 20e6 ? 'Sale' : 'Khác'; }
     });
