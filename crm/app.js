@@ -2944,7 +2944,7 @@
       { k: 'fail', t: '📵 Giao chưa được', tip: 'hãng (Viettel Post, file đối soát Best) báo khách vắng / không liên lạc được / hẹn ra bưu cục / sắp hoàn – gọi khách ngay để giữ đơn', f: trkWarn },
       { k: 'late', t: '🚚 Giao lâu chưa tới', tip: 'đã gửi quá ' + SHIP_LATE + ' ngày – gọi hỏi khách, giục bưu cục để tránh hoàn', f: function (o) { return (o.status === 'Đang giao' || (o.status === 'Đã xác nhận' && shipDays(o) <= 30)) && shipDays(o) > SHIP_LATE && !trkWarn(o); } },
       { k: 'pay', t: '💳 Chưa nhận tiền', tip: 'chuyển khoản chưa thấy tiền về – kiểm tra tài khoản VCB', f: function (o) { return isBank(o) && !o.paid && !isVoid(o.status) && o.status !== 'Mới'; } },
-      { k: 'otype', t: '⚠️ Kiểm tra loại đơn', tip: 'sale chọn loại đơn khác gợi ý của CRM – mở đơn, bấm ✓ Đúng hoặc đổi loại để tính hoa hồng đúng', f: function (o) { return lvl() >= 2 && !!o.oflag; } },
+      { k: 'otype', t: '⚠️ Kiểm tra loại đơn', tip: 'sale chọn loại đơn khác gợi ý của CRM, hoặc 🕐 lùi giờ chốt làm đơn thành Ngoài giờ / Ngày lễ – mở đơn, bấm ✓ Đúng hoặc đổi loại để tính hoa hồng đúng', f: function (o) { return lvl() >= 2 && !!o.oflag; } },
       { k: 'ret', t: '📦 Chờ hàng hoàn về kho', tip: 'hãng đang chuyển hoàn – kho nhận đủ hàng thì bấm “📦 Kho đã nhận” (đơn chuyển sang Hoàn)', f: function (o) { return o.status === 'Đang chuyển hoàn'; } },
       { k: 'back', t: '↩ Hoàn gần đây', tip: 'đơn hoàn (đặt trong 3 tuần) – gọi hỏi lý do, giữ khách', f: function (o) { return o.status !== 'Đang chuyển hoàn' && /hoàn/i.test(o.status) && d(o) <= 21; } }
     ];
@@ -2974,7 +2974,7 @@
       '<div class="rw-1"><b>' + esc(o.name) + '</b>' + (inGrp === true ? '' : stTag(o.status)) + (shipping ? '<span class="tag ' + (dd > SHIP_LATE ? 'st-late' : 'st-giao') + '" title="' + (o.shipAt ? 'Đã gửi ' + dd + ' ngày (gửi ngày ' + fDate(o.shipAt).slice(0, 5) + ')' : 'Tính từ ngày đặt ' + fDate(o.time).slice(0, 5) + ' (đơn này chưa ghi ngày gửi)') + '">🚚 ' + dd + ' ngày' + (dd > SHIP_LATE ? ' ⚠️' : '') + '</span>' : '') + (oc.key !== 'void' ? catChip(oc) : '') + (backWarn ? '<span class="tag st-back" title="' + esc('Khách này đã hoàn ' + oc0.backN + ' đơn' + (oc0.lastBack ? ', gần nhất ' + fDate(oc0.lastBack) : '') + '. Gọi xác nhận kỹ trước khi gửi; đơn lớn nên nhờ chuyển khoản trước.') + '">⚠️ đã hoàn ' + oc0.backN + ' lần</span>' : '') + '<span class="end">' + (shipping && !isBank(o) ? '<small class="muted">thu hộ </small>' : '') + money(o.total) + '</span></div>' +
       '<div class="rw-2">' + (pv ? '<b class="prov">📍 ' + esc(pv.old) + '</b> · ' : '') + when(o.time) + ' · ' + esc(o.payment) + (isBank(o) && !isVoid(o.status) ? (o.paid ? ' ✓' : ' <span class="warn-line">chưa nhận tiền</span>') : '') + ' · ' + esc(itemNames(o.items).join(', ')) + '</div>' +
       trkLine(o) + (kn ? '<div class="keynote">📌 ' + esc(nt.length > 140 ? nt.slice(0, 140) + '…' : nt) + '</div>' : '') +
-      '<div class="rw-3">' + (o.oflag ? '<span class="tag st-late" title="' + esc(o.oflag) + '">⚠️ Kiểm tra loại đơn</span> ' : '') + (o.tracking ? trackLink(o) + ' · ' : carrierOf(o) ? '<span class="muted">🚚 ' + esc(carrierOf(o)) + '</span> · ' : '') + '<span class="muted">' + cp(o.id) + ' · ' + (isWebOrder(o) ? '<span class="tag st-giao" title="' + esc('Khách tự đặt trên website · nguồn: ' + (o.source || 'Truy cập trực tiếp')) + '">🌐 Web · ' + esc(webSrc(o)) + '</span>' : esc(otLabel(otypeOf(o)))) + '</span>' + (o.seller && (lvl() >= 2 || o.seller !== S.user.name) ? ' · 👤 ' + esc(o.seller) : '') + (nt && !kn ? ' · 📝 ' + esc(nt.length > 60 ? nt.slice(0, 60) + '…' : nt) : '') + '</div></div>' +
+      '<div class="rw-3">' + (o.oflag ? '<span class="tag st-late" title="' + esc(o.oflag) + '">' + (/^🕐/.test(o.oflag) ? '🕐 Chờ duyệt giờ chốt' : '⚠️ Kiểm tra loại đơn') + '</span> ' : o.enteredAt ? '<span class="tag" title="Chốt ' + esc(fDateTime(o.time)) + ', lên đơn ' + esc(fDateTime(o.enteredAt)) + '">🕐 Lùi giờ chốt</span> ' : '') + (o.tracking ? trackLink(o) + ' · ' : carrierOf(o) ? '<span class="muted">🚚 ' + esc(carrierOf(o)) + '</span> · ' : '') + '<span class="muted">' + cp(o.id) + ' · ' + (isWebOrder(o) ? '<span class="tag st-giao" title="' + esc('Khách tự đặt trên website · nguồn: ' + (o.source || 'Truy cập trực tiếp')) + '">🌐 Web · ' + esc(webSrc(o)) + '</span>' : esc(otLabel(otypeOf(o)))) + '</span>' + (o.seller && (lvl() >= 2 || o.seller !== S.user.name) ? ' · 👤 ' + esc(o.seller) : '') + (nt && !kn ? ' · 📝 ' + esc(nt.length > 60 ? nt.slice(0, 60) + '…' : nt) : '') + '</div></div>' +
       '<div class="rw-a">' + (lvl() >= 2 && o.status === 'Mới' ? oAssignSel(o) : '') + act + '<a class="btn" href="tel:' + o.phone + '" aria-label="Gọi">📞<small>Gọi</small></a></div></div>';
   }
   /** Quản lý: giao đơn mới cho nhân sự (ghi vào NV bán) – nhân sự đó mới thấy đơn ở Hôm nay. */
@@ -3069,9 +3069,12 @@
     var c = cust(o.phone), logs = logOf(o.id);
     var body = '<div class="acts steps" style="margin-bottom:12px"><a class="btn" href="tel:' + o.phone + '">📞 Gọi</a><a class="btn zalo" href="' + zalo(o.phone) + '" target="_blank" rel="noopener">Zalo</a>' +
       (c ? '<button class="btn" data-cust="' + c.phone + '">👤 Xem khách (' + c.orders + ' đơn)</button>' : '') + '<button class="btn" id="oCopy">📋 Copy thông tin giao hàng</button><button class="btn" id="oEdit">✏️ Sửa đơn</button></div>' +
-      (o.oflag ? '<div class="notice" id="oOtBox">⚠️ <b>Kiểm tra loại đơn:</b> sale chọn <b>' + esc(otLabel(otypeOf(o))) + '</b>. ' + esc(o.oflag) + '.' + (lvl() >= 2 ? '<div class="steps" style="margin-top:8px"><button class="btn pri" id="oOtOk">✓ Đúng, giữ ' + esc(otypeOf(o)) + '</button>' + OTYPES.filter(function (t) { return t !== otypeOf(o); }).map(function (t) { return '<button class="btn" data-otset="' + esc(t) + '">Đổi sang ' + esc(otLabel(t)) + '</button>'; }).join('') + '</div>' : '<br>Quản lý sẽ kiểm tra lại.') + '</div>' : '') +
+      (o.oflag && /^🕐/.test(o.oflag) ? (function () { var to = (o.oflag.match(/→ ([^:]+):/) || [])[1] || 'Ngoài giờ'; // 🕐 16/11/2026: sale lùi giờ chốt làm đơn thành Ngoài giờ / Ngày lễ → quản lý duyệt
+        return '<div class="notice" id="oOtBox">🕐 <b>Chờ duyệt giờ chốt:</b> ' + esc(o.oflag.replace(/^🕐 Lùi giờ chốt → [^:]+: /, '')) + '.<br>Đang tính tạm: <b>' + esc(otLabel(otypeOf(o))) + '</b>.' +
+          (lvl() >= 2 ? '<div class="steps" style="margin-top:8px"><button class="btn pri" data-otset="' + esc(to) + '">✓ Đúng, tính ' + esc(otLabel(to)) + '</button><button class="btn" id="oOtOk">Không đúng, giữ ' + esc(otLabel(otypeOf(o))) + '</button></div>' : '<br>Quản lý sẽ duyệt.') + '</div>'; })() :
+      o.oflag ? '<div class="notice" id="oOtBox">⚠️ <b>Kiểm tra loại đơn:</b> sale chọn <b>' + esc(otLabel(otypeOf(o))) + '</b>. ' + esc(o.oflag) + '.' + (lvl() >= 2 ? '<div class="steps" style="margin-top:8px"><button class="btn pri" id="oOtOk">✓ Đúng, giữ ' + esc(otypeOf(o)) + '</button>' + OTYPES.filter(function (t) { return t !== otypeOf(o); }).map(function (t) { return '<button class="btn" data-otset="' + esc(t) + '">Đổi sang ' + esc(otLabel(t)) + '</button>'; }).join('') + '</div>' : '<br>Quản lý sẽ kiểm tra lại.') + '</div>' : '') +
       '<div class="box"><h3>Trạng thái</h3>' + (NEXT[o.status] ? '<p class="next-hint">👉 Bước tiếp theo: bấm <b>' + NEXT[o.status] + '</b>' + { 'Mới': ' sau khi gọi khách xác nhận đơn.', 'Đã xác nhận': ' khi đã gửi hàng (hoặc nhập mã vận đơn bên dưới).', 'Đang giao': ' khi khách đã nhận hàng.', 'Đang chuyển hoàn': ' khi kho đã nhận đủ hàng hoàn về.' }[o.status] + '</p>' : '') + '<div class="radios">' + STATUS.map(function (s) { return '<label><input type="radio" name="oSt" value="' + s + '"' + (s === o.status ? ' checked' : '') + '><span>' + s + '</span></label>'; }).join('') + '</div></div>' +
-      '<div class="box"><div class="grid-info">' + info('Khách', o.name, false, true) + info('Điện thoại', fPhone(o.phone), false, normPhone(o.phone)) + info('Thời gian', fDateTime(o.time) + ' ' + vnDate(o.time).y) + info('Thanh toán', o.payment) +
+      '<div class="box"><div class="grid-info">' + info('Khách', o.name, false, true) + info('Điện thoại', fPhone(o.phone), false, normPhone(o.phone)) + info(o.enteredAt ? '🕐 Chốt lúc' : 'Thời gian', fDateTime(o.time) + ' ' + vnDate(o.time).y + (o.enteredAt ? ' · lên đơn ' + fDateTime(o.enteredAt) : '')) + info('Thanh toán', o.payment) +
       info('Địa chỉ', fullAddr(o), true, true) + (o.addrOld ? info('Địa chỉ cũ (Misa)', o.addrOld, true, true) : '') + (o.email ? info('Email', o.email, true, true) : '') + info('Nguồn', o.source || '–', true) + '</div>' +
       (lvl() >= 2 ? '<label class="f" style="margin:10px 0 0"><span>Nhân viên bán (tính doanh số)</span><select id="oSeller">' + ownerOptions(o.seller, true) + '</select></label>' : '<p class="small muted" style="margin:8px 0 0">Nhân viên bán: <b>' + esc(o.seller || '–') + '</b></p>') + '</div>' +
       '<div class="box"><h3>Sản phẩm</h3><div class="pre">' + cp(o.items) + '</div>' +
@@ -3521,6 +3524,7 @@
       '<label class="f" id="noShipFee"' + (free0 ? ' hidden' : '') + '><span>Phí ship cộng vào tiền thu khách</span><input type="number" name="shipping" min="0" step="1000" inputmode="numeric" value="' + (free0 ? 0 : fee0) + '"></label>' +
       '<label class="f"><span>Mã đơn' + (eo ? ' (không đổi được khi sửa)' : '') + '</span><input type="text" name="code" autocomplete="off" value="' + (eo ? esc(eo.id) : '') + '"' + (eo ? ' readonly' : '') + '></label>' +
       (eo ? '' : '<p class="hint" id="noCodeHint">Tự điền: tên + ngày tháng năm + gạch + số thứ tự đơn trong ngày (vd Phuong201026-01), ghi vào cột Mã đơn trong file của bạn. Gửi Viettel Post thì thêm chữ V ở đầu.</p>') + '</div>' +
+      '<div class="f" id="noClose"><span class="lbl">🕐 Chốt với khách lúc</span><div class="chips wrap" id="noCloseChips"></div><input type="datetime-local" name="closedAt" id="noCloseIn"' + (eo ? '' : ' hidden') + ' style="max-width:260px;margin-top:6px"><p class="hint" id="noCloseHint" style="margin:6px 0 0"></p></div>' + // 🕐 16/11/2026: chốt tối / Chủ nhật, hôm sau mới lên đơn
       '<div class="no-sum" id="noOtSum"><span id="noOtSumT"></span><button type="button" class="btn sm" id="noOtEdit">Chọn khác</button></div><div id="noOtBox" hidden>' + otField + '</div>' + // loại đơn CRM tự chọn; sale chọn khác mới mở 4 ô
       (eo ? '<label class="f"><span>Lý do sửa (không bắt buộc)</span><input type="text" name="reason" placeholder="vd: khách đổi sang hộp 400g"></label>' : '<div class="f"><span class="lbl">Ghi chú giao hàng <span class="muted small" style="font-weight:400">· bấm để thêm nhanh</span></span><div id="noNoteChips" class="nq-groups">' + NOTE_GROUPS.map(function (g) { return '<div class="nq-row"><span class="nq-k">' + g[0] + '</span><div class="chips wrap">' + g[1].map(function (x) { return '<button type="button" class="chip" data-nq="' + esc(x[0]) + '">' + esc(x[1] || x[0]) + '</button>'; }).join('') + '</div></div>'; }).join('') + '</div><p class="hint nq-prev" id="noNotePrev" hidden></p>' +
         '<textarea name="note" rows="2" placeholder="Ghi thêm nếu cần, vd: giao sau 17h, gửi nhà hàng xóm số 12"></textarea></div>') +
@@ -3662,6 +3666,43 @@
     });
     /* ---- loại đơn: chọn sẵn theo gợi ý; sale chọn khác → cảnh báo, quản lý kiểm tra */
     var otPicked = !!eo, otTime = eo ? eo.time : Date.now();
+    /* ---- 🕐 giờ chốt (16/11/2026, sale góp ý): mặc định Bây giờ; chốt tối qua / Chủ nhật thì bấm 1 nút. Sale lùi ≤ 3 ngày, không sang tháng trước (trừ mùng 1);
+       lùi giờ làm đơn thành Ngoài giờ / Ngày lễ → quản lý duyệt (máy chủ closeTime / closeGuard) */
+    var closeT = eo ? eo.time : 0, closeIn = $('#noCloseIn', m);
+    function dtVal(t) { var x = vnDate(t); return x.y + '-' + pad(x.m) + '-' + pad(x.d) + 'T' + pad(x.h) + ':' + pad(x.mi); }
+    function dtParse(v) { var t = v ? new Date(v + ':00+07:00').getTime() : 0; return isNaN(t) ? 0 : t; }
+    function closeMin() { var n = Date.now(), v = vnDate(n), lo = n - 3 * 864e5; if (v.d !== 1) lo = Math.max(lo, new Date(v.y + '-' + pad(v.m) + '-01T00:00:00+07:00').getTime()); return lo; }
+    function closeYest() { var v = vnDate(Date.now() - 864e5); return new Date(v.y + '-' + pad(v.m) + '-' + pad(v.d) + 'T20:00:00+07:00').getTime(); }
+    function closeDraw() {
+      var n = Date.now(), v = vnDate(n), dow = new Date(n + 7 * 3600e3).getUTCDay(), y = closeYest(), chips = '';
+      if (!eo) {
+        chips = '<button type="button" class="chip' + (closeT ? '' : ' on') + '" data-closeat="now">Bây giờ</button>';
+        if ((dow === 1 || v.h < 12) && (mgr || y >= closeMin())) chips += '<button type="button" class="chip' + (closeT && closeT === y ? ' on' : '') + '" data-closeat="' + y + '">' + (dow === 1 ? '☀️ Chủ nhật' : '🌙 Tối qua') + '</button>';
+        chips += '<button type="button" class="chip' + (closeT && closeT !== y ? ' on' : '') + '" data-closeat="pick">📅 Chọn giờ khác</button>';
+      }
+      $('#noCloseChips', m).innerHTML = chips;
+      closeIn.max = dtVal(n); closeIn.min = mgr ? '' : dtVal(closeMin());
+      if (closeT && closeIn.value !== dtVal(closeT)) closeIn.value = dtVal(closeT);
+      var back = closeT && closeT < n - 2 * 60e3, sug = back ? otypeSug(F.phone.value, closeT) : null, high = sug && (sug.t === 'Ngoài giờ' || sug.t === 'Ngày lễ') && !(function () { var r = otypeSug(F.phone.value, n).t; return r === 'Ngoài giờ' || r === 'Ngày lễ'; })();
+      $('#noCloseHint', m).innerHTML = !closeT ? 'Ghi theo giờ bấm Lưu. Chốt từ ' + (dow === 1 ? 'Chủ nhật' : 'tối qua') + ' mà giờ mới lên đơn thì bấm nút bên cạnh.'
+        : back ? '🕐 Doanh số tính vào ngày <b>' + fDate(closeT) + '</b>. CRM vẫn ghi lại giờ lên đơn thật.' + (high && !mgr ? '<br>⚠️ Giờ chốt này làm đơn thành <b>' + esc(sug.t) + '</b>: <b>quản lý duyệt</b> rồi mới tính % ' + esc(sug.t.toLowerCase()) + '.' : '') + (mgr ? '' : '<br><span class="muted">Lùi tối đa 3 ngày, không lùi sang tháng trước.</span>')
+        : eo ? 'Giờ chốt của đơn này. Sửa nếu lúc lên đơn ghi sai giờ.' : '';
+    }
+    $('#noCloseChips', m).addEventListener('click', function (e) {
+      var b = e.target.closest('[data-closeat]'); if (!b) return; var k = b.getAttribute('data-closeat');
+      if (k === 'now') { closeT = 0; closeIn.hidden = true; closeIn.value = ''; }
+      else if (k === 'pick') { closeIn.hidden = false; if (!closeT) closeT = closeYest() >= closeMin() || mgr ? closeYest() : Date.now(); closeIn.focus(); }
+      else { closeT = +k; closeIn.hidden = false; }
+      otTime = closeT || Date.now(); closeDraw(); otUpdate();
+    });
+    closeIn.addEventListener('change', function () {
+      var t = dtParse(closeIn.value), n = Date.now();
+      if (!t) { closeT = eo ? eo.time : 0; }
+      else if (t > n + 60e3) { toast('Giờ chốt không được sau giờ hiện tại', true); closeT = eo ? eo.time : 0; closeIn.value = closeT ? dtVal(closeT) : ''; }
+      else if (!mgr && t < closeMin()) { toast('Chỉ lùi tối đa 3 ngày, không lùi sang tháng trước. Đơn cũ hơn nhờ quản lý lên giúp.', true); closeIn.value = closeT ? dtVal(closeT) : ''; }
+      else closeT = t;
+      otTime = closeT || Date.now(); closeDraw(); otUpdate();
+    });
     function otUpdate() {
       var sug = otypeSug(F.phone.value, otTime), cur = $('input[name=otype]:checked', form);
       if (!otPicked) { var r0 = $('input[name=otype][value="' + sug.t + '"]', form); if (r0) r0.checked = true; cur = r0; }
@@ -3765,7 +3806,7 @@
     }
     var shipText = function () { var addr = F.full.value.trim(); return F.name.value.trim() + ' – ' + normPhone(F.phone.value) + '\n' + addr + '\n' + $('#noShip', m).textContent + '\nThu: ' + money(moneyIn(F.total.value)) + ($('input[name=payment]:checked', form).value === 'bank' ? ' (đã chuyển khoản)' : ' (COD)') + (F.note && F.note.value.trim() ? '\nGhi chú: ' + F.note.value.trim() : ''); };
     $('#noCopy', m).onclick = function (e) { e.preventDefault(); copy(shipText()).then(function () { toast('Đã copy nội dung lên đơn'); }); };
-    showOld(curC); calc(); otUpdate();
+    showOld(curC); calc(); closeDraw(); otUpdate();
     var addrOpen = function () { if ($('#noAddrMini', m)) { $('#noAddrMini', m).hidden = true; $('#noAddrBox', m).hidden = false; } };
     var addrManual = false, pasted = false;
     $('#noAddrEdit', m).onclick = function () { addrManual = true; addrOpen(); F.full.focus(); };
@@ -3794,7 +3835,7 @@
       var btn = this; btn.disabled = true; btn.textContent = 'Đang lưu…'; err.textContent = '';
       var full = F.full.value.trim(), cu = { phone: ph, name: F.name.value.trim(), province: prov.value.trim(), ward: ward.value.trim(), address: full, addrOld: oldText() };
       var otIn = $('input[name=otype]:checked', form), carIn = $('input[name=carrier]:checked', form);
-      var common = { customer: cu, items: ls, gifts: gs, total: tot, shipping: ship, payment: $('input[name=payment]:checked', form).value, otype: otIn ? otIn.value : undefined, carrier: carIn ? carIn.value : '' }; // máy chủ tính lại gợi ý, khác gợi ý → quản lý kiểm tra
+      var common = { customer: cu, items: ls, gifts: gs, total: tot, shipping: ship, payment: $('input[name=payment]:checked', form).value, otype: otIn ? otIn.value : undefined, carrier: carIn ? carIn.value : '', closedAt: closeT && (!eo || Math.abs(closeT - eo.time) >= 60e3) ? closeT : undefined }; // 🕐 giờ chốt; máy chủ tính lại gợi ý, khác gợi ý → quản lý kiểm tra
       var fail = function (e) { btn.disabled = false; calc(); err.textContent = e.message; };
       if (eo) {
         common.id = eo.id; common.row = eo.row; common.reason = F.reason.value.trim();
@@ -3812,10 +3853,10 @@
         saved = true;
         if (opt.care) { // từ hộp chăm sóc: ghi "Đã đặt lại", ở lại Hôm nay, gọi lần lượt thì mở khách tiếp
           saveCare(null, { phone: opt.phone, task: opt.care.task || 'other', result: 'Đã đặt lại', note: 'kh đặt lại, đơn ' + j.id + (opt.care.note ? ', ' + opt.care.note : ''), callback: '' }); store('draft_k_' + opt.phone, null);
-          closeModal(); toast('Đã tạo đơn ' + j.id + ' ✓ · nội dung lên đơn đã copy, dán sang bên vận chuyển'); if (j.oflag) toast('⚠️ Loại đơn khác gợi ý của CRM (' + j.oflag.replace(/^CRM gợi ý /, '') + '). Quản lý sẽ kiểm tra lại.', true);
+          closeModal(); toast('Đã tạo đơn ' + j.id + ' ✓ · nội dung lên đơn đã copy, dán sang bên vận chuyển'); if (j.oflag) toast(/^🕐/.test(j.oflag) ? '🕐 Đơn lùi giờ chốt thành ' + (j.oflag.match(/→ ([^:]+):/) || [])[1] + ': chờ quản lý duyệt rồi mới tính % này.' : '⚠️ Loại đơn khác gợi ý của CRM (' + j.oflag.replace(/^CRM gợi ý /, '') + '). Quản lý sẽ kiểm tra lại.', true);
           navBadges(); load(true); if (S.flow) setTimeout(nextFlow, 600); return;
         }
-        closeModal(); toast('Đã tạo đơn ' + j.id + ' ✓ · nội dung lên đơn đã copy, dán sang bên vận chuyển'); if (j.oflag) toast('⚠️ Loại đơn khác gợi ý của CRM (' + j.oflag.replace(/^CRM gợi ý /, '') + '). Quản lý sẽ kiểm tra lại.', true);
+        closeModal(); toast('Đã tạo đơn ' + j.id + ' ✓ · nội dung lên đơn đã copy, dán sang bên vận chuyển'); if (j.oflag) toast(/^🕐/.test(j.oflag) ? '🕐 Đơn lùi giờ chốt thành ' + (j.oflag.match(/→ ([^:]+):/) || [])[1] + ': chờ quản lý duyệt rồi mới tính % này.' : '⚠️ Loại đơn khác gợi ý của CRM (' + j.oflag.replace(/^CRM gợi ý /, '') + '). Quản lý sẽ kiểm tra lại.', true);
         navBadges(); load(true).then(function () { if (!$('.modal')) render(); }); // ở lại trang đang làm; đang ở hồ sơ khách thì hồ sơ tự mở lại (Chang góp ý 31/10/2026)
       }, function (e) { if (!e.handled) fail(e); });
     };

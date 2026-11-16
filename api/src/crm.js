@@ -46,7 +46,7 @@ import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, wbInf
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-11-16c'; // + users.gvsee (👀 theo dõi việc của ai, 16/11/2026) · users.gv (✅ Việc tuần) + sessions.seen / ua
+const SCHEMA_V = '2026-11-16g'; // + orders.entered_at (🕐 giờ lên đơn thật khi sale chọn giờ chốt sớm hơn, 16/11/2026) · + users.gvsee (👀 theo dõi việc của ai, 16/11/2026) · users.gv (✅ Việc tuần) + sessions.seen / ua
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -68,6 +68,7 @@ export async function ensureSchema(db) {
     await addCol('voucher', "TEXT DEFAULT ''"); // mã ưu đãi khách nhập khi đặt web (api/src/voucher.js)
     await addCol('discount', 'INTEGER DEFAULT 0');
     await addCol('addr_old', "TEXT DEFAULT ''");
+    await addCol('entered_at', 'INTEGER'); // 🕐 16/11/2026: giờ bấm Lưu thật khi sale chọn giờ chốt sớm hơn (time = giờ chốt: doanh số, loại đơn; entered_at: kho, chống trùng)
     await addCol('ship_fee', 'INTEGER'); // 01/11/2026: phí thật trả hãng vận chuyển (từ file đối soát Best / Viettel Post / xe ôm)
     await addCol('recon', "TEXT DEFAULT ''"); // lần đối soát gần nhất: "Best 01/11"
     await addCol('cash_at', 'INTEGER'); // 💼 09/11/2026: lúc tiền đơn về tài khoản công ty (kế toán ghi tay / file COD Best, Viettel Post) – kt.js
@@ -519,7 +520,7 @@ const leadOut = r => ({ id: r.id, time: r.time, name: r.name || '', phone: r.pho
 /** ✏️ Điều chỉnh tiền đơn (11/11/2026): sale ghi Hạ COD / Ký 1 phần / Đổi hàng → total = tiền thực thu, adj_from = tiền ban đầu. */
 const orderOut = r => ({ row: r.rid, time: r.time, id: r.id, name: r.name || '', phone: r.phone || '', email: r.email || '', province: r.province || '', ward: r.ward || '', address: r.address || '', items: r.items || '', subtotal: r.subtotal || 0,
   shipping: r.shipping || 0, total: r.total || 0, payment: r.payment || '', note: r.note || '', status: r.status || 'Mới', source: r.source || '', consent: !!r.consent, paid: r.paid || '', carrier: r.carrier || '', tracking: r.tracking || '', seller: r.seller || '', ca: r.ca || '', line: r.line || '', ship: r.ship || '',
-  shipAt: r.ship_at, receivedAt: r.received_at, otype: r.otype || '', oflag: r.oflag || '', trk: r.trk || '', trkAt: r.trk_at, trkCode: r.trk_code || 0, voucher: r.voucher || '', refPhone: r.ref_phone || '', refGift: r.ref_gift || '', refTold: r.ref_told ? 1 : 0, partner: r.partner || '', pRate: r.partner_rate || 0, discount: r.discount || 0, addrOld: r.addr_old || '', shipFee: r.ship_fee == null ? null : r.ship_fee, recon: r.recon || '', cashAt: r.cash_at || null, cashAmt: r.cash_amt == null ? null : r.cash_amt, cashSrc: r.cash_src || '', cashAcct: r.cash_acct || '', cashWhy: r.cash_why || '', adj: adjOut(r) });
+  shipAt: r.ship_at, receivedAt: r.received_at, otype: r.otype || '', oflag: r.oflag || '', enteredAt: r.entered_at || null, trk: r.trk || '', trkAt: r.trk_at, trkCode: r.trk_code || 0, voucher: r.voucher || '', refPhone: r.ref_phone || '', refGift: r.ref_gift || '', refTold: r.ref_told ? 1 : 0, partner: r.partner || '', pRate: r.partner_rate || 0, discount: r.discount || 0, addrOld: r.addr_old || '', shipFee: r.ship_fee == null ? null : r.ship_fee, recon: r.recon || '', cashAt: r.cash_at || null, cashAmt: r.cash_amt == null ? null : r.cash_amt, cashSrc: r.cash_src || '', cashAcct: r.cash_acct || '', cashWhy: r.cash_why || '', adj: adjOut(r) });
 export async function leadsData(x, where, ...args) { return (await all(x.db, 'SELECT * FROM leads' + (where ? ' WHERE ' + where : '') + ' ORDER BY rid DESC LIMIT 3000', ...args)).reverse().map(leadOut); }
 
 async function prefsOf(x, email) { return await kvJson(x.db, 'prefs_' + email, {}) || {}; }
@@ -1403,10 +1404,11 @@ export async function saveOrder(x, data, opt) {
   // 11/11/2026 (anh Sơn): khách sale đã chăm (có ghi nhật ký liên hệ trong 30 ngày trước khi đặt) tự lên web đặt, không bấm link → vẫn đủ % khách mới như đặt qua link (CRM payOf đọc dấu 🤝)
   if (!manual && seller && seller !== refBy) { try { const lg = await first(x.db, "SELECT time FROM logs WHERE ref IN (?, '''' || ?) AND by_name = ? AND what IN " + CONTACT_WHAT + ' AND time >= ? AND time < ? ORDER BY time DESC LIMIT 1', phone, phone, seller, now - CARED_DAYS * DAY, now);
     if (lg) c.note = (c.note ? c.note + ' · ' : '') + '🤝 ' + seller + ' đã chăm khách trước khi đặt (' + fmtDate(lg.time, 'dd/MM') + ')'; } catch (e) { console.error('cared', e.message); } }
-  await insertMany(x.db, 'orders', ORDER_COLS, [{ id: String(data.id || ''), time: now, name: c.name || '', phone, email: c.email || '', province: c.province || '', ward: c.district || '', address: c.address || '', items,
+  await insertMany(x.db, 'orders', ORDER_COLS, [{ id: String(data.id || ''), time: opt.time || now, name: c.name || '', phone, email: c.email || '', province: c.province || '', ward: c.district || '', address: c.address || '', items,
     subtotal: Number(data.subtotal) || 0, shipping: Number(data.shipping) || 0, total: Number(data.total) || 0, payment: pay, note: c.note || '', status: opt.status || 'Mới', source: data.source || '', first_source: data.first_source || '',
     consent: data.marketing_consent ? 1 : 0, paid: '', carrier: '', tracking: '', seller: seller || '', ca, line, ship }]);
   if (opt.otype || opt.oflag) await run(x.db, 'UPDATE orders SET otype = ?, oflag = ? WHERE id = ? AND phone = ?', opt.otype || '', opt.oflag || '', String(data.id || ''), phone);
+  if (opt.time && opt.time < now) await run(x.db, 'UPDATE orders SET entered_at = ? WHERE id = ? AND phone = ?', now, String(data.id || ''), phone); // 🕐 lùi giờ chốt: giữ giờ lên đơn thật
   if (data.voucher) await run(x.db, 'UPDATE orders SET voucher = ?, discount = ? WHERE id = ? AND phone = ?', String(data.voucher), Math.round(Number(data.discount) || 0), String(data.id || ''), phone);
   try { await comboCycles(x, data.items || []); } catch (e) { console.error('comboCycles', e.message); }
   await recalc(x, [phone], assigned ? { owners: { [phone]: assigned } } : {});
@@ -1538,12 +1540,20 @@ async function crmOrderEdit(x, u, d) {
     ship: shipText(items), line: lineOf(items.filter(i => !i.gift).map(i => i.name + ' ' + i.variant).join(' ')) };
   if (c.addrOld !== undefined) set.addr_old = String(c.addrOld || '').slice(0, 300);
   if (d.carrier) set.carrier = String(d.carrier).slice(0, 40);
-  if (OTYPES.indexOf(d.otype) >= 0 && d.otype !== o.otype) { // đổi loại đơn: quản lý → xong; nhân viên khác gợi ý → chờ quản lý kiểm tra
-    set.otype = d.otype; set.ca = otypeCa(d.otype); set.oflag = u.level >= 2 ? '' : otypeFlag(d.otype, await otypeSuggest(x, phone, Number(o.time) || Date.now()));
+  const now = Date.now(), t0 = Number(o.time) || now; let t1 = t0;
+  if (d.closedAt && Math.abs(Number(d.closedAt) - t0) >= 60e3) { // 🕐 đổi giờ chốt (cùng giới hạn như lúc tạo đơn) → tính lại loại đơn theo giờ mới
+    const cl = closeTime(d.closedAt, u, now); if (cl.error) return { ok: false, error: cl.error };
+    t1 = cl.t; set.time = t1; if (!o.entered_at) set.entered_at = t0;
+  }
+  if ((OTYPES.indexOf(d.otype) >= 0 && d.otype !== o.otype) || t1 !== t0) { // đổi loại đơn / giờ chốt: quản lý → xong; nhân viên khác gợi ý → chờ quản lý kiểm tra
+    const sug = await otypeSuggest(x, phone, t1), pick = OTYPES.indexOf(d.otype) >= 0 && d.otype !== o.otype ? d.otype : sug.t; // chỉ đổi giờ → loại đơn theo giờ mới
+    let ot = pick, fl = u.level >= 2 ? '' : otypeFlag(pick, sug);
+    const cg = await closeGuard(x, u, phone, t1, Number(o.entered_at) || t0, pick, sug); if (cg) { ot = cg.otype; fl = cg.oflag; }
+    set.otype = ot; set.ca = otypeCa(ot); set.oflag = fl;
   }
   const ks = Object.keys(set);
   await run(x.db, 'UPDATE orders SET ' + ks.map(k => k + ' = ?').join(', ') + ' WHERE rid = ?', ...ks.map(k => set[k]), o.rid);
-  await crmLog(x, u, 'Sửa đơn', d.id, c.name, fmt(o.total) + ' → ' + fmt(sub + ship), d.reason || '');
+  await crmLog(x, u, 'Sửa đơn', d.id, c.name, fmt(o.total) + ' → ' + fmt(sub + ship), [d.reason || '', t1 !== t0 ? '🕐 giờ chốt ' + fmtDate(t0, 'HH:mm dd/MM') + ' → ' + fmtDate(t1, 'HH:mm dd/MM') : ''].filter(Boolean).join(' · '));
   await recalc(x, [o.phone, phone]);
   await wbSafe(async () => { // 30/10/2026 anh Sơn: sửa đơn trên CRM → ghi ngược vào dòng đơn trong file sale (sửa ở đâu cũng được)
     const ow = await ownerOf(x, phone), m = String(o.source || '').match(/^File .+? – (.+)$/), real0 = items.filter(i => !i.gift), gift0 = items.filter(i => i.gift)[0];
@@ -1754,6 +1764,27 @@ async function nextCode(x, u, now, vtp) {
   }
   return (vtp ? 'V' : '') + base + '-' + (n + 1 < 10 ? '0' : '') + (n + 1);
 }
+/** 🕐 Giờ chốt (16/11/2026, sale góp ý, anh Sơn chọn "chặt hơn: quản lý duyệt"): chốt tối / Chủ nhật, hôm sau mới lên đơn → chọn giờ chốt.
+ *  time = giờ chốt (doanh số, thi đua, loại đơn); entered_at = giờ bấm Lưu thật (kho, chống trùng). Sale lùi tối đa CLOSE_BACK_DAYS ngày,
+ *  không sang tháng trước (trừ ngày mùng 1, để đơn chốt tối 31 vẫn vào tháng cũ), không chọn giờ sau hiện tại; quản lý chỉ không chọn giờ tương lai. */
+export const CLOSE_BACK_DAYS = 3;
+export function closeTime(v, u, now) {
+  const t = Math.round(Number(v) || 0);
+  if (!t || Math.abs(now - t) < 2 * 60e3) return { t: now };
+  if (t > now + 5 * 60e3) return { error: 'Giờ chốt không được sau giờ hiện tại.' };
+  if (u.level >= 2) return t < now - 400 * DAY ? { error: 'Giờ chốt quá xa, kiểm tra lại năm.' } : { t: Math.min(t, now) };
+  if (now - t > CLOSE_BACK_DAYS * DAY) return { error: 'Chỉ lùi giờ chốt tối đa ' + CLOSE_BACK_DAYS + ' ngày. Đơn cũ hơn nhờ quản lý lên giúp.' };
+  const a = new Date(t + 7 * 3600e3), b = new Date(now + 7 * 3600e3);
+  if (a.getUTCMonth() !== b.getUTCMonth() && b.getUTCDate() !== 1) return { error: 'Không lùi giờ chốt sang tháng trước (chỉ được làm vào ngày mùng 1). Nhờ quản lý sửa giúp.' };
+  return { t: Math.min(t, now) };
+}
+const OT_HIGH = t => t === 'Ngoài giờ' || t === 'Ngày lễ';
+/** Sale lùi giờ chốt làm đơn thành Ngoài giờ / Ngày lễ (% cao hơn) → lưu loại đơn theo giờ lên đơn thật, cờ 🕐 chờ quản lý duyệt. */
+async function closeGuard(x, u, phone, t, now, otype, sug) {
+  if (u.level >= 2 || t >= now || !OT_HIGH(otype)) return null;
+  const real = await otypeSuggest(x, phone, now); if (OT_HIGH(real.t)) return null;
+  return { otype: real.t, oflag: '🕐 Lùi giờ chốt → ' + otype + ': sale ghi chốt lúc ' + fmtDate(t, 'HH:mm dd/MM') + ', bấm lên đơn lúc ' + fmtDate(now, 'HH:mm dd/MM') + ' (' + (otype === sug.t ? sug.why : 'sale chọn ' + otype) + '). Đúng thì quản lý bấm duyệt tính ' + otype };
+}
 async function crmOrderCreate(x, u, d) {
   const c = d.customer || {}, raw = normPhone(c.phone), phone = await mainPhone(x, raw);
   if (!/^0\d{9,10}$/.test(phone)) return { ok: false, error: 'Số điện thoại chưa đúng.' };
@@ -1764,9 +1795,10 @@ async function crmOrderCreate(x, u, d) {
   let items = cleanItems(d.items); if (!items.length) return { ok: false, error: 'Chưa chọn sản phẩm.' };
   const ship = Math.max(0, Math.round(Number(d.shipping) || 0)), sub = applyTotal(items, d.total, ship);
   items = items.concat(cleanItems(d.gifts).map(g => Object.assign(g, { gift: true, price: 0, subtotal: 0 })));
-  const now = Date.now();
+  const now = Date.now(), cl = closeTime(d.closedAt, u, now); if (cl.error) return { ok: false, error: cl.error };
+  const t = cl.t; // 🕐 giờ chốt
   if (!d.force) { // bấm Lưu 2 lần (lần đầu mạng chập chờn, đơn đã lưu nhưng máy không nhận được trả lời) → không tạo đơn trùng
-    const dup = await first(x.db, "SELECT id, time FROM orders WHERE phone = ? AND total = ? AND time > ? AND status NOT IN ('Huỷ', 'Hoàn', 'Đang chuyển hoàn') ORDER BY time DESC LIMIT 1", phone, sub + ship, now - 60 * 60e3);
+    const dup = await first(x.db, "SELECT id, time FROM orders WHERE phone = ? AND total = ? AND coalesce(entered_at, time) > ? AND status NOT IN ('Huỷ', 'Hoàn', 'Đang chuyển hoàn') ORDER BY time DESC LIMIT 1", phone, sub + ship, now - 60 * 60e3);
     if (dup) return { ok: false, dupOf: dup.id, error: 'Khách này vừa có đơn ' + dup.id + ' cùng số tiền ' + fmt(sub + ship) + ' lúc ' + fmtDate(Number(dup.time), 'HH:mm') + '. Có thể lần trước đã lưu rồi.' };
   }
   const vtp = /viettel/i.test(String(d.carrier || '')), want = String(d.code || '').trim().replace(/\s+/g, ' ');
@@ -1777,20 +1809,21 @@ async function crmOrderCreate(x, u, d) {
     else if (!d.codeAuto) return { ok: false, error: 'Mã đơn ' + want + ' đã có rồi. Sửa mã khác rồi lưu lại.' };
   }
   if (!id) id = await nextCode(x, u, now, vtp);
-  const sug = await otypeSuggest(x, phone, now); // gợi ý tính TRƯỚC khi lưu (lưu xong khách đã thành "đã mua")
-  const otype = OTYPES.indexOf(d.otype) >= 0 ? d.otype : sug.t, oflag = u.level >= 2 ? '' : otypeFlag(otype, sug);
+  const sug = await otypeSuggest(x, phone, t); // gợi ý tính TRƯỚC khi lưu (lưu xong khách đã thành "đã mua"); theo giờ chốt
+  let otype = OTYPES.indexOf(d.otype) >= 0 ? d.otype : sug.t, oflag = u.level >= 2 ? '' : otypeFlag(otype, sug);
+  const cg = await closeGuard(x, u, phone, t, now, otype, sug); if (cg) { otype = cg.otype; oflag = cg.oflag; }
   const src = ld && ld.channel ? 'Tiềm năng – ' + ld.channel : 'Nhập tay – ' + (d.source || 'Khác');
   await saveOrder(x, { id, customer: { name: String(c.name).trim(), phone: raw, email: c.email || '', province: c.province || '', district: c.ward || '', address: c.address || '', note: c.note || '' },
     items, subtotal: sub, shipping: ship, total: sub + ship, payment: d.payment === 'bank' ? 'bank' : 'cod', source: src, first_source: src, marketing_consent: !!d.consent },
-    { by: u.name, status: ORDER_STATUS.indexOf(d.status) >= 0 ? d.status : 'Đã xác nhận', ca: otypeCa(otype), otype, oflag });
+    { by: u.name, status: ORDER_STATUS.indexOf(d.status) >= 0 ? d.status : 'Đã xác nhận', ca: otypeCa(otype), otype, oflag, time: t });
   await run(x.db, "UPDATE customers SET owner = ? WHERE phone = ? AND (owner = '' OR owner IS NULL)", u.name, phone);
   const ao = String(c.addrOld || '').trim().slice(0, 300); // địa chỉ cũ (Misa) – lưu vào đơn + hồ sơ khách để lần sau tự điền
   if (d.carrier) await run(x.db, 'UPDATE orders SET carrier = ? WHERE id = ? AND phone = ?', String(d.carrier).slice(0, 40), id, phone); // đơn vị vận chuyển chọn lúc lên đơn
   if (ao) { await run(x.db, 'UPDATE orders SET addr_old = ? WHERE id = ? AND phone = ?', ao, id, phone); await run(x.db, 'UPDATE customers SET addr_old = ? WHERE phone = ?', ao, phone); }
-  await crmLog(x, u, 'Tạo đơn', id, c.name, fmt(sub + ship), src);
+  await crmLog(x, u, 'Tạo đơn', id, c.name, fmt(sub + ship), src + (t < now ? ' · 🕐 chốt lúc ' + fmtDate(t, 'HH:mm dd/MM') : ''));
   await wbSafe(async () => { // ghi ngược vào sheet lên đơn của sale
     const cv = await first(x.db, 'SELECT owner, orders FROM customers WHERE phone = ?', phone), real0 = items.filter(i => !i.gift), gift0 = items.filter(i => i.gift)[0];
-    await wbOrderQueue(x, (cv && cv.owner) || u.name, { id, time: now, name: String(c.name).trim(), phone: raw, address: [c.address, c.ward, c.province].filter(Boolean).join(', '),
+    await wbOrderQueue(x, (cv && cv.owner) || u.name, { id, time: t, name: String(c.name).trim(), phone: raw, address: [c.address, c.ward, c.province].filter(Boolean).join(', '),
       product: real0.map(i => i.name + (i.variant ? ' ' + i.variant : '') + (real0.length > 1 ? ' x' + i.qty : '')).join(', '), qty: real0.length === 1 ? real0[0].qty : '', gift: gift0 ? gift0.name : '', giftQty: gift0 ? gift0.qty : '',
       total: sub + ship, status: ORDER_STATUS.indexOf(d.status) >= 0 ? d.status : 'Đã xác nhận', ship: shipText(items), note: c.note || '', ca: otypeCa(otype), otype, old: !!cv && Number(cv.orders) > 1 });
   });
@@ -1798,7 +1831,7 @@ async function crmOrderCreate(x, u, d) {
   // 🎁 khách hỏi do khách khác giới thiệu → đơn đầu tiên ghi người giới thiệu: tab Hôm nay nhắc "Cảm ơn khách giới thiệu" (api/src/partner.js)
   const rl = ld && ld.ref_phone ? ld : await first(x.db, "SELECT ref_phone FROM leads WHERE phone = ? AND coalesce(ref_phone, '') != '' ORDER BY rid DESC LIMIT 1", phone);
   if (rl && rl.ref_phone) { try { await run(x.db, "UPDATE orders SET ref_phone = ? WHERE id = ? AND coalesce(ref_phone, '') = '' AND NOT EXISTS (SELECT 1 FROM orders o2 WHERE o2.phone = ? AND coalesce(o2.ref_phone, '') != '')", rl.ref_phone, id, phone); } catch (e) { } }
-  return { ok: true, id, otype, oflag };
+  return { ok: true, id, otype, oflag, time: t };
 }
 
 /* ================================================================ khách: chăm sóc, sửa thông tin */

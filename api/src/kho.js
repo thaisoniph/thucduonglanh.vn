@@ -102,14 +102,14 @@ export async function khoSync(x, force) {
   const C = await khoCtx(x, items), now = Date.now(), cur = await kvJson(x.db, 'kho_cur', null) || {}, LIM = 2000;
   const init = !cur.o, full = force || init || cur.v !== C.v || now - (cur.full || 0) > 3 * DAY; // 3 ngày tính lại 1 lần: dọn đơn đã xoá
   const curO = full ? ((await first(x.db, 'SELECT max(upd) AS m FROM orders')) || {}).m || 0 : 0, curS = full ? ((await first(x.db, 'SELECT max(at) AS m FROM san_orders')) || {}).m || 0 : 0;
-  const ord = full ? await all(x.db, 'SELECT rid, time, items, status, ship_at, tracking, upd FROM orders WHERE time > ?', now - WIN)
-    : await all(x.db, 'SELECT rid, time, items, status, ship_at, tracking, upd FROM orders WHERE upd > ? ORDER BY upd LIMIT ' + LIM, cur.o || 0);
+  const ord = full ? await all(x.db, 'SELECT rid, time, entered_at, items, status, ship_at, tracking, upd FROM orders WHERE time > ?', now - WIN)
+    : await all(x.db, 'SELECT rid, time, entered_at, items, status, ship_at, tracking, upd FROM orders WHERE upd > ? ORDER BY upd LIMIT ' + LIM, cur.o || 0);
   const san = full ? await all(x.db, "SELECT shop, id, day, state, items, at FROM san_orders WHERE day >= ? AND items NOT IN ('', '[]')", fmtDate(now - WIN, 'yyyy-MM-dd'))
     : await all(x.db, 'SELECT shop, id, day, state, items, at FROM san_orders WHERE at > ? ORDER BY at LIMIT ' + LIM, cur.s || 0);
   const want = []; // [src, ref, t0, st, shipAt, {mã sản phẩm kho: số đơn vị}]
   const unitsOf = (lines, C) => { const u = {}; lines.forEach(([t, q]) => { const r = khoResolve(t, C); if (r) r.forEach(([id, n]) => { u[id] = (u[id] || 0) + n * q; }); }); return u; };
   ord.forEach(o => {
-    const t0 = Number(o.time) || Number(o.upd) || now; if (!full && t0 < now - WIN) return;
+    const t0 = Number(o.entered_at) || Number(o.time) || Number(o.upd) || now; // 🕐 đơn lùi giờ chốt: hàng đi lúc lên đơn thật if (!full && t0 < now - WIN) return;
     const st = stOf(o.status, o.ship_at, String(o.tracking || '').trim());
     // giờ đi: Đã xác nhận (13/11/2026) = lúc sale lên đơn; đơn trước lần đếm kho thì số đếm đã không còn hàng đó
     want.push(['o', String(o.rid), t0, st, Number(o.ship_at) || (String(o.tracking || '').trim() ? Math.min(now, t0 + DAY) : /xac nhan/.test(nrm(o.status)) ? t0 : 0), st ? unitsOf(khoLines(o.items), C) : {}, /da giao|doi hang|giao thanh cong|da nhan/.test(nrm(o.status))]);
