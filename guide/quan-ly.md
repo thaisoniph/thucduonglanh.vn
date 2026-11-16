@@ -297,9 +297,9 @@ Mã giảm giá gửi riêng cho **khách cũ, đối tác**. Trên web không q
 
 ## 📣 Phòng Marketing AI: giao việc, duyệt kết quả (16/11/2026)
 
-**Câu dễ nhớ: gõ việc, chờ Lành, bấm Duyệt.** Mở CRM → **Thêm** → **🤖 Đội nhân sự AI**. Phần trên cùng là Phòng Marketing AI (Quản lý và Quản trị).
+**Câu dễ nhớ: gõ việc, chờ Lành, bấm Duyệt.** Mở CRM → **Thêm** → **🤖 Đội nhân sự AI**. Phần trên cùng là Phòng Marketing AI. Tạm thời **chỉ anh Sơn và anh Hiếu** (quyền Quản trị) thấy và dùng mục này; Quản lý chỉ thấy phần trợ lý AI tự chạy.
 
-**Sơ đồ phòng:** Anh Sơn → **Lành** (trưởng phòng, chia việc) → **Thám** (hiểu khách, làm offer) · **Văn** (viết nội dung) · **Chuẩn** (kiểm duyệt) · **Phát** (quảng cáo, đo lường). Bấm vào một người để xem người đó làm gì và chỉ xem việc của người đó. Dưới mỗi người có chữ: Rảnh / Có việc / Đang làm / Chờ anh duyệt.
+**Sơ đồ phòng:** Anh Sơn, anh Hiếu (giao việc, duyệt kết quả) → **Lành** (trưởng phòng, chia việc) → **Thám** (hiểu khách, làm offer) · **Văn** (viết nội dung) · **Chuẩn** (kiểm duyệt) · **Phát** (quảng cáo, đo lường). Bấm vào một người để xem người đó làm gì và chỉ xem việc của người đó. Dưới mỗi người có chữ: Rảnh / Có việc / Đang làm / Chờ anh duyệt.
 
 Góc trên bên phải cho biết Lành có đang trực không: 🟢 máy Mac đang bật · 🔴 máy Mac đang tắt (việc vẫn được lưu, mở máy là Lành làm tiếp).
 
@@ -324,18 +324,15 @@ Lưu ý:
 
 ## 🤖 Đội nhân sự AI (14/11/2026)
 
-**Một màn để biết trợ lý AI nào đang gánh việc thật.** Mở CRM → **Thêm** → **🤖 Đội nhân sự AI** (Quản lý và Quản trị), kéo xuống phần **⚙️ Trợ lý AI chạy tự động** (dưới Phòng Marketing AI).
+**Một màn để biết trợ lý AI nào đang gánh việc thật.** Mở CRM → **Thêm** → **🤖 Đội nhân sự AI** (Quản lý và Quản trị), phần **⚙️ Trợ lý AI chạy tự động** (dưới Phòng Marketing AI).
 
-Mỗi trợ lý là 1 thẻ: chat trên website, trợ lý Zalo, Fanpage, viết bài web, người gác cổng, kho lời khách, bot giao việc, báo cáo YouTube, chấm bài, trợ lý trang hướng dẫn, và các nút ✨ AI trong CRM. Mỗi thẻ ghi:
+Đọc từ trên xuống (trình bày lại 16/11/2026):
+- **4 ô số:** bao nhiêu trợ lý đang làm việc, bao nhiêu cần xem, bao nhiêu im lặng / chưa bật, tiền AI 7 ngày.
+- **🔴 Cần xem ngay:** trợ lý có lỗi trong 24 giờ hoặc mất kết nối, viền đỏ, dòng lỗi ghi ngay trên thẻ. Bấm nút **Mở …** để vào xử lý.
+- **🟢 Đang làm việc:** mỗi thẻ có 1 câu "làm việc gì", 2 số to (**hôm nay**, **7 ngày qua**), kết quả thật dạng ô xanh 🎯 (khách để lại số, đơn, doanh số), giờ làm gần nhất và tiền AI 7 ngày. Bấm **Xem thêm** để xem lịch chạy, chi phí từng mục, lỗi cũ.
+- **😴 Im lặng hoặc chưa bật:** gập lại cho gọn, mỗi trợ lý 1 dòng kèm lý do (vd chưa có khoá YouTube) và nút **Mở** để bật.
 
-- **Làm việc gì** và **chạy lúc nào**.
-- **Lần gần nhất** trợ lý làm việc.
-- **Hôm nay / 7 ngày qua** làm được bao nhiêu (câu trả lời, bài viết, việc…).
-- **Kết quả thật**: khách để lại số, đơn và doanh số từ những khách đó. Chỗ nào ghi **Chưa đo** là chưa có số đo kết quả.
-- **Chi phí AI** hôm nay / 7 ngày / 30 ngày (ước tính).
-- **Lỗi gần nhất**.
-
-Màu ở góc thẻ: 🟢 đang chạy · 🔴 có lỗi trong 24 giờ hoặc mất kết nối · 🟡 không làm gì hơn 3 ngày · ⚪️ chưa bật. Thẻ 🔴 luôn nằm đầu, bấm nút **Mở …** ở cuối thẻ để vào tab của trợ lý đó và xử lý. Mở màn này **không tốn tiền AI**.
+Mở màn này **không tốn tiền AI**.
 
 ## ✨ Hỏi số liệu (đang dùng thử)
 

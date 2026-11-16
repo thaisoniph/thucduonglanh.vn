@@ -875,7 +875,7 @@
     'khach-hang': 'Hồ sơ, lịch sử mua, chăm sóc', 'don-hang': 'Đơn mới, đang giao, hoàn / huỷ', 'bao-cao': 'Doanh số, mục tiêu, thi đua',
     marketing: 'Quảng cáo, chi phí, giá 1 số điện thoại', 'link-qr': 'Link và mã QR theo dõi nguồn khách', 'tro-ly-zalo': 'Trợ lý An Lành trong nhóm Zalo', 'zalo-sale': 'Xem sale chăm khách qua Zalo',
     fanpage: 'Trả lời bình luận, tin nhắn Fanpage', 'bai-web': 'Trợ lý viết bài cho Góc Sống Lành', 'noi-dung': 'Nhóm khách, tension, phễu; kịch bản video', san: 'Doanh số Shopee, TikTok Shop', kho: 'Hàng còn bao nhiêu, sắp hết, đặt thêm hàng', 'ke-toan': 'Tiền về tài khoản, tiền treo ở hãng, lãi lỗ', 'cai-dat': 'Nhân sự, mục tiêu, mẫu tin, tài khoản',
-    'hoi-so-lieu': 'Hỏi bằng lời, AI tự tra số và báo cáo', 'giao-viec': '3 việc trọng tâm, nhờ nhau, báo cáo họp thứ Hai', 'tuyen-dung': 'Ứng viên, AI chấm CV, hẹn phỏng vấn, thư mời', 'nhan-su': 'Hồ sơ, sinh nhật, thâm niên, điểm mạnh, giấy tờ', 'doi-ai': 'Phòng Marketing AI: giao việc, duyệt kết quả · trợ lý AI tự chạy'
+    'hoi-so-lieu': 'Hỏi bằng lời, AI tự tra số và báo cáo', 'giao-viec': '3 việc trọng tâm, nhờ nhau, báo cáo họp thứ Hai', 'tuyen-dung': 'Ứng viên, AI chấm CV, hẹn phỏng vấn, thư mời', 'nhan-su': 'Hồ sơ, sinh nhật, thâm niên, điểm mạnh, giấy tờ', 'doi-ai': 'Trợ lý AI tự chạy · Phòng Marketing AI (Quản trị)'
   };
   var VIEW_TINT = { 'doi-ai': '#7d4cdb', 'tong-quan': '#1f5f3a', 'hom-nay': '#34a853', 'tiem-nang': '#ff9500', 'khach-hang': '#007aff', 'don-hang': '#a2845e', 'bao-cao': '#5856d6', marketing: '#ff2d55', 'link-qr': '#636366', 'tro-ly-zalo': '#0068ff', 'zalo-sale': '#0b63c4', fanpage: '#1877f2', 'bai-web': '#24805b', 'noi-dung': '#d9480f', san: '#ee4d2d', kho: '#8e5a2b', 'ke-toan': '#0a7d5a', 'cai-dat': '#8e8e93', 'hoi-so-lieu': '#af52de', 'giao-viec': '#0a84ff', 'tuyen-dung': '#2f7d5b', 'nhan-su': '#3a7bd5' };
   function viewMore() {
@@ -5306,13 +5306,19 @@
     var R0 = monthRange(ms[0])[0], R1 = monthRange(ms[ms.length - 1])[1], g0 = gpOf(bizStats([R0, R1])), r0 = g0 ? g0.r : 0.32;
     var X = nsvOpt('x', 3), kho1 = nsvOpt('kho', 12000), kt1 = nsvOpt('kt', 6000000);
     var M = ms.map(function (m) {
-      var R = monthRange(m), x = opexMonth(m), K = x && x.kt, ad = 0, ph = {}, vv = 0, sp = 0;
-      if (K) (K.groups || []).forEach(function (g) { if (/quảng cáo/i.test(g[0]) && !/sàn|shopee|tiktok shop|lazada/i.test(g[0])) ad += g[1] || 0; if (RPM_VAR.test(g[0])) vv += g[1] || 0; if (/vận chuyển|giao hàng|\bship/i.test(g[0])) sp += g[1] || 0; });
+      var R = monthRange(m), x = opexMonth(m), K = x && x.kt, ad = 0, ph = {}, vv = 0, sp = 0, kOk = function (k) { return !!(k && k.dt > 0 && k.cost > 0); }, kFrom = null;
+      if (K) (K.groups || []).forEach(function (g) { if (/quảng cáo/i.test(g[0]) && !/sàn|shopee|tiktok shop|lazada/i.test(g[0])) ad += g[1] || 0; });
+      // 16/11/2026 anh Sơn muốn luôn trừ chi phí văn phòng: tháng chưa có file kế toán → mượn chi phí cố định của tháng gần nhất có file (±3 tháng)
+      var KB = kOk(K) ? K : null;
+      for (var j = 1; !KB && j <= 3; j++) [shiftMonth(m, -j), shiftMonth(m, j)].forEach(function (k2) { var y = !KB && opexMonth(k2); if (y && kOk(y.kt)) { KB = y.kt; kFrom = k2; } });
+      if (KB) (KB.groups || []).forEach(function (g) { if (RPM_VAR.test(g[0])) vv += g[1] || 0; if (/vận chuyển|giao hàng|\bship/i.test(g[0])) sp += g[1] || 0; });
+      // không có file kế toán nào gần → bảng ✏️ Nhập chi phí (bỏ dòng lương sale, ship, quảng cáo vì đã trừ riêng từng sale)
+      var man = null; if (!KB) { var xo = x && x.tot ? x : (opexEst(m) || {}).x; if (xo && xo.tot) man = xo.items.reduce(function (a, r) { return a + (/sale|ship|vận chuyển|giao hàng|quảng cáo/i.test(r[0]) ? 0 : r[1] || 0); }, 0); }
       (S.d.adRows || []).forEach(function (a) { if (a[0] >= R[0] && a[0] < R[1]) ph[normPhone(a[1])] = 1; });
-      var np = Object.keys(ph).length, gm = gpOf(bizStats(R)), kOk = !!(K && K.dt > 0 && K.cost > 0);
+      var np = Object.keys(ph).length, gm = gpOf(bizStats(R));
       // back office (15/11/2026, Ý): chi phí cố định tháng = tổng chi phí − chi phí biến đổi (quảng cáo, sàn, vận chuyển) trong file kế toán
-      return { m: m, R: R, ad: ad, np: np, cpl: ad && np ? ad / np : sdt0, est: !(ad && np), nwGp: gm ? gm.nw : 0, sent: 0,
-        fix: kOk ? K.cost - vv : null, vr: kOk ? Math.min(0.95, ((K.cogs || 0) + vv) / K.dt) : null, shipR: kOk ? sp / K.dt : 0, shop: kOk ? K.shopee || 0 : 0, sk: kOk ? K.sale || (K.dt - (K.shopee || 0)) : 0, crm: 0, sPay: 0, nS: 0 };
+      return { m: m, R: R, ad: ad, np: np, cpl: ad && np ? ad / np : sdt0, est: !(ad && np), nwGp: gm ? gm.nw : 0, sent: 0, kFrom: kFrom, man: man !== null,
+        fix: KB ? KB.cost - vv : man, vr: KB ? Math.min(0.95, ((KB.cogs || 0) + vv) / KB.dt) : man !== null ? Math.min(0.95, r0 + 0.1) : null, shipR: KB ? sp / KB.dt : 0, shop: KB && !kFrom ? KB.shopee || 0 : 0, sk: KB && !kFrom ? KB.sale || (KB.dt - (KB.shopee || 0)) : 0, crm: 0, sPay: 0, nS: 0 };
     });
     // đơn theo SĐT để biết số quảng cáo nào đã ra đơn
     var byPh = {}; S.d.orders.forEach(function (o) { if (!isVoid(o.status) && o.time >= R0) { var p = normPhone(o.phone); if (p) (byPh[p] = byPh[p] || []).push(o); } });
@@ -5375,7 +5381,7 @@
       Mi.share = null; if (Mi.fix === null || !Mi.nS) return;
       var off = 0, vat = Mi.sk > 0 ? Math.min(1.3, Math.max(1, Mi.crm / Mi.sk)) : 1.08, m1 = 1 - Mi.vr;
       sales.forEach(function (p) { if (!p.mgr && p.mo[i] && p.mi.indexOf(i) >= 0) off += p.mo[i].rev; });
-      Mi.bo = Math.max(0, Mi.fix - Mi.sPay); Mi.oth = Math.max(0, (Mi.shop + Math.max(0, Mi.crm - off) / vat) * m1);
+      Mi.bo = Math.max(0, Mi.fix - (Mi.man ? 0 : Mi.sPay)); Mi.oth = Math.max(0, (Mi.shop + Math.max(0, Mi.crm - off) / vat) * m1);
       Mi.share = Math.max(0, Mi.bo - Mi.oth) / Mi.nS;
     });
     if (hasBo) sales.forEach(function (p) {
@@ -5384,10 +5390,9 @@
       p.bo = b / k; p.opp = o / k; p.full = p.cost + p.bo + p.opp; p.net = p.val - p.full;
       if (!p.isNew && p.cost > 0) p.lv = p.val >= p.full ? 'ok' : p.val >= p.cost ? 'mid' : 'bad';
     });
-    if (hasBo) sales.sort(function (a, b) { return (b.full ? b.val - b.full : -1e12) - (a.full ? a.val - a.full : -1e12); });
     var teamCr = tot.nData ? tot.won / tot.nData : null;
     sales.forEach(function (p) { p.why = nsvWhy(p, teamCr, X, O); });
-    sales.sort(function (a, b) { return (b.ratio === null ? -9 : b.ratio) - (a.ratio === null ? -9 : a.ratio); });
+    sales.sort(function (a, b) { return (b.lv === 'new' || b.mgr ? -1e12 : b.net) - (a.lv === 'new' || a.mgr ? -1e12 : a.net); });
     // bộ phận không bán hàng: lấy từ 👥 Bảng lương (Kế toán), người nào là sale thì đã tính ở trên
     var sup = [], kind = function (p, u) { var t = norm((p.dept || '') + ' ' + (u ? u.role : '')); return /kho/.test(t) ? 'kho' : /ke toan/.test(t) || p.kind === 'kpi' ? 'kt' : /marketing|mkt/.test(t) ? 'mkt' : 'other'; };
     staff.forEach(function (p) {
@@ -5406,7 +5411,7 @@
       s.lv = s.isNew ? 'new' : !s.cost ? 'nocost' : s.ratio === null ? '' : s.k === 'mkt' ? nsvLv(s.ratio, X) : s.ratio >= 1 ? 'ok' : s.ratio >= 0.7 ? 'mid' : 'bad';
     });
     var bo = { fix: 0, pay: 0, oth: 0, share: 0, nS: 0 }; if (hasBo) M.forEach(function (Mi) { bo.fix += Mi.fix / n; bo.pay += Mi.sPay / n; bo.oth += Math.min(Mi.oth || 0, Mi.bo || 0) / n; bo.share += (Mi.share || 0) / n; bo.nS += Mi.nS / n; });
-    var res = { hasBo: hasBo, bo: bo, O: O, skip: skip, n: n, ms: ms, M: M, sales: sales, sup: sup, tot: tot, teamCr: teamCr, X: X, kho1: kho1, kt1: kt1, est: M.some(function (x) { return x.est; }), noStaff: !staff.length, err: !!D.err, adKnown: adKnown };
+    var res = { boEst: M.filter(function (x) { return x.kFrom || x.man; }).map(function (x) { return rpmTh(x.m) + (x.kFrom ? ' lấy ' + rpmTh(x.kFrom) : ' theo ✏️ chi phí nhập tay'); }), hasBo: hasBo, bo: bo, O: O, skip: skip, n: n, ms: ms, M: M, sales: sales, sup: sup, tot: tot, teamCr: teamCr, X: X, kho1: kho1, kt1: kt1, est: M.some(function (x) { return x.est; }), noStaff: !staff.length, err: !!D.err, adKnown: adKnown };
     NSV_C = { k: ck, v: res }; return res;
   }
   /** 1 câu vì sao + nên làm gì cho 1 sale. */
@@ -5429,11 +5434,32 @@
   var NSV_ICO = { mgr: '🧭', ok: '🟢', mid: '🟡', bad: '🔴', new: '🌱', nocost: '⚪', '': '⚪' }, NSV_TXT = { mgr: 'Quản lý (có tự bán)', ok: 'Đem lại lợi nhuận', mid: 'Đủ nuôi mình', bad: 'Chưa đủ lương', new: 'Đang học việc', nocost: 'Chưa có lương', '': 'Chưa đo được' };
   function nsvSign(v) { return v === null ? '–' : (v < 0 ? '−' : '') + moneyShort(Math.abs(v)); }
   function nsvX(r) { return r === null ? '–' : (r < 0 ? '−' : '') + oneDec(Math.abs(r)) + ' lần'; }
+  /** 1 thẻ sale (16/11/2026 anh Sơn: "trực quan, dễ hiểu"): doanh số trừ dần từng khoản → lãi ròng, kèm thanh màu chia 100đ doanh số. */
+  var D_O = 0.05, NSV_SEG = [['cogs', 'Giá vốn hàng', '#b9a184'], ['ad', 'Quảng cáo', '#ff7a90'], ['ship', 'Vận chuyển', '#8fb3e8'], ['pay', 'Lương, hoa hồng, BH', '#f2b544'], ['bo', 'Văn phòng & bộ máy chung', '#a9a3d6'], ['opp', 'Chi phí cơ hội', '#c7c7cc']];
+  function nsvCard(p) {
+    var k = p.aM || 1, rev = p.revM || 0, v = { cogs: p.cogs / k, ad: p.data / k, ship: (p.ship + p.back) / k, pay: p.cost, bo: p.bo || 0, opp: p.opp || 0 };
+    var used = NSV_SEG.reduce(function (a, g) { return a + v[g[0]]; }, 0), net = rev - used, base = Math.max(rev, used) || 1, per = rev > 0 ? Math.round(net * 100 / rev) : null;
+    var head = p.isNew ? 'Đang học việc' : p.mgr ? 'Quản lý (có tự bán)' : !(p.cost > 0) ? 'Chưa có lương' : net >= 0 ? 'Lãi cho công ty <b class="ok">' + moneyShort(net) + '</b> / tháng' : 'Công ty đang bù <b class="bad">' + moneyShort(-net) + '</b> / tháng';
+    var bar = NSV_SEG.map(function (g) { var w = v[g[0]] * 100 / base; return w > 0.3 ? '<i style="width:' + w.toFixed(2) + '%;background:' + g[2] + '" title="' + g[1] + ' ' + moneyShort(v[g[0]]) + '"></i>' : ''; }).join('') +
+      (net > 0 ? '<i class="pf" style="width:' + (net * 100 / base).toFixed(2) + '%" title="Lãi ' + moneyShort(net) + '"></i>' : '');
+    var nd = Math.round(p.nData / k), L = '<tr class="rev"><td>Doanh số giữ được <small>(đã trừ đơn hoàn, huỷ)</small></td><td>' + moneyShort(rev) + '</td><td>100đ</td></tr>';
+    NSV_SEG.forEach(function (g) {
+      var x = v[g[0]]; if (g[0] === 'bo' && p.bo === undefined || g[0] === 'opp' && !(x > 0)) return;
+      var note = g[0] === 'ad' ? (nd ? nd + ' số × ' + moneyShort(nd ? x / nd : 0) : 'không nhận số quảng cáo') : g[0] === 'ship' ? (p.backN ? 'gồm ship ' + p.backN + ' đơn hoàn' : '') : g[0] === 'pay' ? (p.low ? 'dưới bậc đầu, tính mức hỗ trợ' : '') : g[0] === 'bo' ? 'thuê nhà, điện nước, kế toán, kho, quản lý… chia đều' : g[0] === 'opp' ? oneDec(D_O * 100) + '% doanh số' : '';
+      L += '<tr><td><span class="nsv-dot" style="background:' + g[2] + '"></span>− ' + g[1] + (note ? ' <small>' + note + '</small>' : '') + '</td><td>' + moneyShort(x) + '</td><td>' + (rev > 0 ? Math.round(x * 100 / rev) + 'đ' : '') + '</td></tr>';
+    });
+    L += '<tr class="end ' + (net < 0 ? 'bad' : 'ok') + '"><td>= ' + (net >= 0 ? 'Lãi ròng cho công ty' : 'Công ty phải bù') + '</td><td>' + moneyShort(Math.abs(net)) + '</td><td>' + (per !== null ? Math.abs(per) + 'đ' : '') + '</td></tr>';
+    return '<div class="nsv-r ' + p.lv + '"><div class="nsv-t"><b>' + NSV_ICO[p.lv] + ' ' + esc(p.name) + (p.role !== 'Sale & CSKH' ? ' <small>(' + esc(p.role) + ')</small>' : '') + '</b><span class="nsv-hd">' + head + '</span></div>' +
+      '<div class="nsv-bar" role="img" aria-label="Chia 100 đồng doanh số">' + bar + '</div>' +
+      (per !== null && !p.isNew && !p.mgr && p.cost > 0 ? '<p class="nsv-s">' + (net >= 0 ? 'Cứ 100đ người này bán ra, công ty còn lãi <b>' + per + 'đ</b> sau khi trừ hết chi phí.' : 'Cứ 100đ người này bán ra, công ty đang lỗ <b>' + (-per) + 'đ</b>.') + '</p>' : '') +
+      '<table class="nsv-wf"><tbody>' + L + '</tbody></table>' +
+      '<p class="nsv-w">' + (/^(👍|🌱|🧭)/.test(p.why) ? '' : '👉 ') + esc(p.why) + '</p></div>';
+  }
   function nsvHtml() {
     nsvLoad();
     if (!NSV.d) return '<p class="muted">⏳ Đang lấy mức lương từ 👥 Bảng lương…</p>';
     if (!costCfg()) return '<p class="notice">Cần giá vốn sản phẩm để tính: vào <b>Cài đặt → 💰 Giá vốn sản phẩm</b>.</p>';
-    var n = nsvN(), D = nsvData(n), X = D.X, cnt = { ok: 0, mid: 0, bad: 0 };
+    var n = nsvN(), D = nsvData(n), X = D.X, cnt = { ok: 0, mid: 0, bad: 0 }; D_O = D.O;
     D.sales.concat(D.sup).forEach(function (p) { if (cnt[p.lv] !== undefined) cnt[p.lv]++; });
     var from = monthLabel(D.ms[0]).replace(/^t/, 'T'), to = monthLabel(D.ms[D.ms.length - 1]);
     var h = '<p class="nsv-lead">Mỗi người 1 sổ lãi lỗ: <b>tiền làm ra cho công ty − tiền công ty bỏ ra cho người đó</b>. Chỉ anh (Quản trị) xem được.</p>';
@@ -5446,12 +5472,7 @@
     if (D.noStaff) h += '<p class="notice small">⚠️ Chưa có mức lương từng người: kế toán nhập ở <b>💼 Kế toán → 👥 Bảng lương → ⚙️ Nhân sự &amp; mức lương</b>. Tạm thời sale chỉ tính lương + hoa hồng theo Phụ lục 01, bộ phận khác chưa hiện.</p>';
     if (D.est) h += '<p class="notice small">⚠️ Có tháng chưa có số quảng cáo của kế toán: tiền data tạm tính ' + moneyShort(Number((((S.d.rules || {}).dash || {}).kpi || {}).sdt) || 300000) + ' / số điện thoại.</p>';
     // sale
-    h += '<h3 class="rpm-h">👤 Sale <small>(sắp từ cao xuống thấp)</small></h3><div class="nsv-list">' + D.sales.map(function (p) {
-      return '<div class="nsv-r ' + p.lv + '"><div class="nsv-t"><b>' + NSV_ICO[p.lv] + ' ' + esc(p.name) + (p.left ? ' <small>(đã nghỉ)</small>' : p.role !== 'Sale & CSKH' ? ' <small>(' + esc(p.role) + ')</small>' : '') + '</b><span>' + NSV_TXT[p.lv] + (p.ratio !== null && !p.isNew && !p.mgr ? p.ratio > 0 ? ' · gấp ' + nsvX(p.ratio) : ' · chưa đủ bù tiền quảng cáo' : '') + '</span></div>' +
-        '<div class="nsv-n"><span>Làm ra<b>' + nsvSign(p.val) + '</b></span><span>' + (p.full !== undefined ? 'Phải gánh' : 'Chi phí') + '<b>' + moneyShort(p.full !== undefined ? p.full : p.cost) + '</b></span><span>' + (p.net >= 0 ? 'Công ty còn lại' : 'Công ty bù') + '<b class="' + (p.net < 0 ? 'bad' : 'ok') + '">' + moneyShort(Math.abs(p.net)) + '</b></span></div>' +
-        (p.full !== undefined ? '<p class="nsv-s">Phải gánh = lương ' + moneyShort(p.cost) + ' + back office ' + moneyShort(p.bo) + ' + cơ hội ' + moneyShort(p.opp) + '</p>' : '') +
-        '<p class="nsv-w">' + (/^(👍|🌱|🧭)/.test(p.why) ? '' : '👉 ') + esc(p.why) + '</p></div>';
-    }).join('') + '</div>';
+    h += '<h3 class="rpm-h">👤 Sale <small>(lãi cho công ty từ cao xuống thấp)</small></h3><div class="nsv-list">' + D.sales.map(nsvCard).join('') + '</div>';
     var sk = Object.keys(D.skip || {}); if (sk.length) h += '<p class="small muted">Không tính ' + sk.reduce(function (a, k) { return a + D.skip[k]; }, 0) + ' đơn ghi người bán không có trong Nhân sự đang làm (' + sk.slice(0, 6).map(function (k) { return '“' + esc(k) + '” ' + D.skip[k] + ' đơn'; }).join(', ') + (sk.length > 6 ? '…' : '') + '). Muốn tính thì sửa tên người bán trong đơn cho đúng tên nhân sự.</p>';
     h += '<details class="nsv-d"><summary>🔍 Cách tính từng sale (số 1 tháng)</summary><div class="bcdt-wrap pnl-wrap"><table class="pnl-t"><thead><tr><th>Sale</th><th>Doanh số giữ được</th><th>− Giá vốn</th><th>− Ship đơn hoàn</th><th>− Data quảng cáo</th><th>− Ship</th><th>= Làm ra</th><th>Lương + hoa hồng</th><th>Phụ cấp, BH</th>' + (D.hasBo ? '<th>Back office</th><th>Cơ hội</th><th>= Còn lại</th>' : '') + '<th>Số quảng cáo nhận → ra đơn</th></tr></thead><tbody>' +
       D.sales.map(function (p) { var k = p.aM || 1; return '<tr><td>' + esc(p.name) + '</td><td>' + moneyShort(p.revM) + '</td><td>' + moneyShort(p.cogs / k) + '</td><td>' + moneyShort(p.back / k) + '</td><td>' + moneyShort(p.data / k) + '</td><td>' + moneyShort(p.ship / k) + '</td><td><b>' + nsvSign(p.val) + '</b></td><td>' + moneyShort(p.pay / k) + (p.low ? ' <small>*</small>' : '') + '</td><td>' + moneyShort(p.ex / k) + '</td>' + (D.hasBo ? p.full !== undefined ? '<td>' + moneyShort(p.bo) + '</td><td>' + moneyShort(p.opp) + '</td><td><b>' + nsvSign(p.net) + '</b></td>' : '<td>–</td><td>–</td><td>–</td>' : '') + '<td>' + Math.round(p.nData / k) + ' → ' + (p.cr === null ? '–' : Math.round(p.cr * 100) + '%') + '</td></tr>'; }).join('') +
@@ -12106,10 +12127,10 @@
     if (PC && PC.diff && PC.diff.length) U.push('🔴 <b>Công nợ nhà cung cấp lệch khi đối chiếu</b>: ' + PC.diff.slice(0, 3).map(function (r) { return esc(r[0]) + ' ' + (r[1] > 0 ? 'báo cao hơn ' : 'báo thấp hơn ') + moneyShort(Math.abs(r[1])); }).join(', ') + '. Chưa chuyển tiền theo số nhà cung cấp tới khi thống nhất.' + who('Kế toán') + xem(myViews().some(function (v) { return v.id === 'ke-toan'; }) ? '#ke-toan' : '#tong-quan'));
     if (PC && PC.due && PC.miss && PC.miss.length) L.push('🟠 <b>' + PC.miss.length + ' nhà cung cấp chưa đối chiếu công nợ tháng này</b> (quy định ngày ' + KN_CHK_DAY + '): ' + PC.miss.slice(0, 3).map(function (r) { return esc(r[0]); }).join(', ') + (PC.miss.length > 3 ? '…' : '') + '.' + who('Kế toán') + xem(myViews().some(function (v) { return v.id === 'ke-toan'; }) ? '#ke-toan' : '#tong-quan'));
     if (unp.length) U.push('🟠 <b>' + unp.length + ' đơn chuyển khoản quá 2 ngày chưa thấy tiền</b> (' + moneyShort(sumT(unp)) + ').' + who('Kế toán') + xem(myViews().some(function (v) { return v.id === 'ke-toan'; }) ? '#ke-toan' : '#don-hang'));
-    if (lvl() >= 2) { // 📣 Phòng Marketing AI gửi kết quả chờ duyệt (phongai.js, 16/11/2026)
+    if (lvl() >= 3) { // 📣 Phòng Marketing AI gửi kết quả chờ duyệt (chỉ Quản trị: anh Sơn, anh Hiếu) (phongai.js, 16/11/2026)
       if (!PMA.d || Date.now() - PMA.at > 5 * 60e3) pmaFetch(function () { if (route().view === 'tong-quan' && PMA.d && PMA.d.tasks.some(function (t) { return t.status === 'duyet'; })) render(); });
       var PW = PMA.d ? PMA.d.tasks.filter(function (t) { return t.status === 'duyet'; }) : [];
-      if (PW.length) U.push('📣 <b>Phòng Marketing AI có ' + PW.length + ' kết quả chờ anh duyệt</b>: ' + PW.slice(0, 2).map(function (t) { return esc(t.title); }).join(' · ') + '.' + who('Anh Sơn') + xem('#doi-ai'));
+      if (PW.length) U.push('📣 <b>Phòng Marketing AI có ' + PW.length + ' kết quả chờ anh duyệt</b>: ' + PW.slice(0, 2).map(function (t) { return esc(t.title); }).join(' · ') + '.' + who('Anh Sơn, anh Hiếu') + xem('#doi-ai'));
     }
     L = U.concat(L.filter(function (x) { return x.indexOf('Chậm mục tiêu tháng') < 0; }), L.filter(function (x) { return x.indexOf('Chậm mục tiêu tháng') >= 0; })); // mục tiêu tháng đã có ngay dòng đỏ bên dưới → xếp cuối
     var h = '';
@@ -14863,16 +14884,16 @@
     if (!PMA.d) return h + '</div><p class="muted">Đang tải phòng…</p></section>';
     var D = PMA.d, mac = pmaMac(), T = D.tasks || [], team = D.team || [];
     h += '<span class="pma-mac pma-mac-' + mac[0] + '" title="' + esc(mac[3]) + '">' + mac[1] + ' ' + mac[2] + '</span></div>' +
-      '<p class="pma-intro">Anh giao việc ở đây, <b>Lành</b> (trên máy Mac) chia cho đúng người làm, <b>Chuẩn</b> chấm trước, rồi kết quả về cột <b>Chờ anh duyệt</b>. ' + esc(mac[3]) + '</p>';
+      '<p class="pma-intro">Anh Sơn, anh Hiếu giao việc ở đây, <b>Lành</b> (trên máy Mac) chia cho đúng người làm, <b>Chuẩn</b> chấm trước, rồi kết quả về cột <b>Chờ anh duyệt</b>. ' + esc(mac[3]) + '</p>';
     // sơ đồ phòng
     var lanh = team.filter(function (m) { return m.id === 'lanh'; })[0], four = team.filter(function (m) { return m.id !== 'lanh'; });
     var mcard = function (m, big) {
       var st = m.busy ? '<i class="pma-on">● Đang làm</i>' : m.wait ? '<i class="pma-wait">● Chờ anh duyệt ' + m.wait + '</i>' : m.open ? '<i class="pma-on">● Có ' + m.open + ' việc</i>' : '<i>● Rảnh</i>';
       return '<button type="button" class="pma-mem' + (big ? ' pma-lead' : '') + (PMA.pick === m.id ? ' on' : '') + '" data-pmam="' + m.id + '"><span class="pma-ic">' + m.ic + '</span><b>' + esc(m.name) + '</b><small>' + esc(m.role) + '</small>' + st + '</button>';
     };
-    h += '<div class="pma-org"><div class="pma-boss">👤 <b>Anh Sơn</b> <small>giao việc · duyệt cuối</small></div><div class="pma-line"></div>' +
+    h += '<div class="pma-org"><div class="pma-bosses"><div class="pma-boss">👤 <b>Anh Sơn</b></div><div class="pma-boss">👤 <b>Anh Hiếu</b></div></div><small class="pma-boss-t">giao việc · duyệt kết quả</small><div class="pma-line"></div>' +
       (lanh ? mcard(lanh, 1) : '') + '<div class="pma-line"></div><div class="pma-four">' + four.map(function (m) { return mcard(m); }).join('') + '</div>' +
-      '<p class="pma-real">Người thật nhận phần bấm: <b>anh Hiếu</b> bấm quảng cáo theo phiếu của Phát · <b>Phương</b> đăng bài đã duyệt.</p></div>';
+      '<p class="pma-real">Sau khi duyệt: <b>anh Hiếu</b> bấm quảng cáo theo phiếu của Phát · <b>Phương</b> đăng bài. Chỉ anh Sơn và anh Hiếu thấy mục này.</p></div>';
     var pm = PMA.pick && pmaMem(PMA.pick);
     if (pm) h += '<div class="pma-job"><b>' + pm.ic + ' ' + esc(pm.name) + ' – ' + esc(pm.role) + '</b><p>' + esc(pm.job) + '</p><small>Chuyên môn: ' + esc((pm.skills || []).join(', ')) + ' · Đã xong 30 ngày: ' + (pm.done30 || 0) + ' việc</small></div>';
     // ô giao việc
@@ -14991,38 +15012,56 @@
   }
   function aitNum(v, kind) { return kind === 'd' ? money(v) : (Number(v) || 0).toLocaleString('vi-VN'); }
   function aitCard(c) {
+    // 16/11/2026 anh Sơn "trực quan, dễ nhìn": 1 câu việc gì → 2 số to → kết quả thật thành chip → 1 dòng giờ / tiền → lỗi (nếu có) → chi tiết cất trong "Xem thêm"
     var st = AIT_ST[c.state] || AIT_ST.idle, can = c.link && myViews().some(function (v) { return v.id === c.link; });
     var lab = (VIEWS.filter(function (v) { return v.id === c.link; })[0] || {}).label;
     var res = (c.res || []).filter(function (r) { return r[1] || /số|Đơn|Doanh/.test(r[0]); });
-    var h = '<article class="ait-card ait-' + c.state + '"><header class="ait-hd"><span class="ait-ic" aria-hidden="true">' + c.ic + '</span><h2>' + esc(c.name) + '</h2><span class="ait-st">' + st[0] + ' ' + st[1] + '</span></header>' +
-      '<p class="ait-what">' + esc(c.what) + '</p>' +
-      (c.off && c.offTxt ? '<p class="ait-off">⚪️ ' + esc(c.offTxt) + '</p>' : '') +
-      '<div class="ait-nums"><div><b>' + aitNum(c.today) + '</b><small>hôm nay</small></div><div><b>' + aitNum(c.d7) + '</b><small>7 ngày qua</small></div><div class="ait-unit"><small>đơn vị đếm</small><span>' + esc(c.unit) + '</span></div></div>' +
-      '<dl class="ait-kv"><dt>⏰ Chạy lúc nào</dt><dd>' + esc(c.when) + '</dd>' +
-      '<dt>🕘 Lần gần nhất</dt><dd>' + (c.last ? esc(when(c.last)) + (c.lastNote ? ' <small>(' + esc(c.lastNote) + ')</small>' : '') : 'Chưa chạy lần nào') + (c.alive ? '<br><small>Máy trợ lý báo còn chạy lúc ' + esc(when(c.alive)) + '</small>' : '') + '</dd>' +
-      '<dt>🎯 Kết quả thật</dt><dd>' + (res.length ? '<ul class="ait-res">' + res.map(function (r) { return '<li><span>' + esc(r[0]) + '</span><b>' + aitNum(r[1], r[2]) + '</b></li>'; }).join('') + '</ul>' : '<span class="ait-none">Chưa đo</span>') +
-        (c.resNote ? '<small class="ait-note">' + esc(c.resNote) + '</small>' : '') + '</dd>' +
-      '<dt>💳 Chi phí AI</dt><dd>' + (c.cost ? (c.cost.d30 || c.cost.d7 ? 'Hôm nay <b>' + money(c.cost.today) + '</b> · 7 ngày <b>' + money(c.cost.d7) + '</b> · 30 ngày <b>' + money(c.cost.d30) + '</b>' : '0đ trong 30 ngày') +
-        (c.parts && c.parts.length ? '<ul class="ait-res ait-parts">' + c.parts.map(function (p) { return '<li><span>' + esc(p.name) + '</span><b>' + money(p.d30) + '</b></li>'; }).join('') + '</ul><small class="ait-note">tiền 30 ngày từng mục</small>' : '') : 'Không dùng AI, 0đ') + '</dd>' +
-      '<dt>⚠️ Lỗi gần nhất</dt><dd>' + (c.err ? esc(c.err.txt) + (c.err.at ? ' <small>(' + esc(when(c.err.at)) + ')</small>' : '') : '<span class="ait-none">Không có lỗi được ghi lại</span>') + '</dd></dl>' +
-      (can ? '<a class="btn ait-go" href="#' + c.link + '">Mở ' + esc(lab) + ' ›</a>' : '') + '</article>';
-    return h;
+    var bad = c.state === 'err' || c.state === 'down';
+    var cost = c.cost ? (c.cost.d7 ? money(c.cost.d7) + ' / 7 ngày' : '0đ tuần này') : 'không tốn tiền AI';
+    var more = '<dl class="aiq-kv"><dt>⏰ Chạy lúc nào</dt><dd>' + esc(c.when) + '</dd>' +
+      (c.alive ? '<dt>📡 Máy trợ lý</dt><dd>báo còn chạy ' + esc(when(c.alive)) + '</dd>' : '') +
+      (c.lastNote ? '<dt>📝 Ghi chú</dt><dd>' + esc(c.lastNote) + '</dd>' : '') +
+      (c.resNote ? '<dt>🎯 Về kết quả</dt><dd>' + esc(c.resNote) + '</dd>' : '') +
+      (c.cost ? '<dt>💳 Tiền AI</dt><dd>Hôm nay ' + money(c.cost.today) + ' · 7 ngày ' + money(c.cost.d7) + ' · 30 ngày ' + money(c.cost.d30) +
+        (c.parts && c.parts.length ? '<ul class="aiq-parts">' + c.parts.map(function (q) { return '<li><span>' + esc(q.name) + '</span><b>' + money(q.d30) + '</b></li>'; }).join('') + '</ul>' : '') + '</dd>' : '') +
+      (c.err && !bad ? '<dt>⚠️ Lỗi cũ</dt><dd>' + esc(c.err.txt) + (c.err.at ? ' <small>(' + esc(when(c.err.at)) + ')</small>' : '') + '</dd>' : '') + '</dl>';
+    return '<article class="aiq-card aiq-' + c.state + '"><header class="aiq-hd"><span class="aiq-ic" aria-hidden="true">' + c.ic + '</span>' +
+      '<div class="aiq-tt"><h3>' + esc(c.name) + '</h3><p>' + esc(c.what) + '</p></div></header>' +
+      (bad && c.err ? '<p class="aiq-err">⚠️ ' + esc(c.err.txt) + (c.err.at ? ' <small>' + esc(when(c.err.at)) + '</small>' : '') + '</p>' : '') +
+      '<div class="aiq-nums"><div><b>' + aitNum(c.today) + '</b><small>hôm nay</small></div><div><b>' + aitNum(c.d7) + '</b><small>7 ngày qua</small></div><p>' + esc(c.unit) + '</p></div>' +
+      '<div class="aiq-res">' + (res.filter(function (r) { return r[1]; }).length ? res.filter(function (r) { return r[1]; }).map(function (r, k) { return '<span class="aiq-chip' + (k === 0 ? ' aiq-chip-on' : '') + '">🎯 ' + esc(r[0]) + ' <b>' + aitNum(r[1], r[2]) + '</b></span>'; }).join('')
+        : '<span class="aiq-chip aiq-chip-no">🎯 ' + (res.length ? esc(res[0][0]) + ': chưa có trong 7 ngày' : 'Chưa đo kết quả') + '</span>') + '</div>' +
+      '<p class="aiq-meta"><span>🕘 ' + (c.last ? esc(when(c.last)) : 'Chưa chạy lần nào') + '</span><span>💳 ' + cost + '</span></p>' +
+      '<footer class="aiq-ft"><details class="aiq-more"><summary>Xem thêm</summary>' + more + '</details>' + (can ? '<a class="btn aiq-go" href="#' + c.link + '">Mở ' + esc(lab) + ' ›</a>' : '') + '</footer></article>';
+  }
+  /** Trợ lý im lặng / chưa bật: 1 dòng gọn (đỡ chiếm chỗ), bấm Mở để bật. */
+  function aitRow(c) {
+    var st = AIT_ST[c.state] || AIT_ST.idle, can = c.link && myViews().some(function (v) { return v.id === c.link; });
+    return '<div class="aiq-row"><span class="aiq-ic" aria-hidden="true">' + c.ic + '</span><div class="aiq-tt"><b>' + esc(c.name) + '</b><small>' + st[0] + ' ' +
+      esc(c.state === 'off' ? (c.offTxt || 'Chưa bật') : 'Lần cuối làm việc: ' + (c.last ? when(c.last) : 'chưa có')) + '</small></div>' + (can ? '<a class="btn aiq-go" href="#' + c.link + '">Mở ›</a>' : '') + '</div>';
   }
   function viewAit() {
+    var boss = lvl() >= 3; // 📣 Phòng Marketing AI: chỉ Quản trị (anh Sơn, anh Hiếu) – anh Sơn 16/11/2026
     if (!AIT.d || Date.now() - AIT.at > 60e3) aitFetch();
-    if (!PMA.d || Date.now() - PMA.at > 30e3) pmaFetch();
-    var h = '<div class="ait-wrap"><div class="page-head"><h1>🤖 Đội nhân sự AI</h1></div>' + pmaHTML() +
-      '<h2 class="ait-h2">⚙️ Trợ lý AI chạy tự động</h2><p class="ait-intro">Mỗi thẻ là <b>1 trợ lý AI</b> đang làm việc cho công ty: làm gì, chạy lúc nào, làm được bao nhiêu, ra kết quả gì, tốn bao nhiêu tiền. Số lấy từ nhật ký có sẵn, mở màn này <b>không tốn tiền AI</b>.</p>';
-    if (AIT.err && !AIT.d) return h + '<div class="box"><p class="err">' + esc(AIT.err) + '</p><button class="btn" data-ait="re">🔄 Thử lại</button></div></div>';
-    if (!AIT.d) return h + '<div class="box">Đang đọc nhật ký các trợ lý…</div></div>';
-    var D = AIT.d, cs = D.cards.slice().sort(function (a, b) { return (AIT_ORD[a.state] - AIT_ORD[b.state]) || (b.d7 - a.d7); });
-    var cnt = function (k) { return cs.filter(function (c) { return k.indexOf(c.state) >= 0; }).length; };
-    var bad = cnt(['err', 'down']);
-    h += '<div class="ait-sum"><div><b>' + cnt(['ok']) + '</b><small>🟢 đang chạy</small></div><div' + (bad ? ' class="ait-sum-bad"' : '') + '><b>' + bad + '</b><small>🔴 cần xem</small></div><div><b>' + cnt(['idle', 'off']) + '</b><small>🟡 ⚪️ im lặng / chưa bật</small></div><div><b>' + moneyShort(D.tot.d7) + '</b><small>💳 tiền AI 7 ngày</small></div></div>' +
-      (D.aiOn ? '' : '<p class="ait-off">⚠️ Máy chủ chưa có khoá AI: các trợ lý dùng AI đang dừng.</p>') +
-      '<p class="ait-legend">🟢 Đang chạy · 🔴 Có lỗi trong 24 giờ hoặc mất kết nối · 🟡 Không làm gì hơn 3 ngày · ⚪️ Chưa bật. Thẻ cần xem xếp lên đầu. Tiền là ước tính theo số chữ AI đọc / viết (tỷ giá ' + (D.rate || 0).toLocaleString('vi-VN') + 'đ / USD)' + (D.admin ? ', số chính thức xem ở Cài đặt → 🤖 Chi phí trợ lý AI' : '') + '.</p>' +
-      '<div class="ait-grid">' + cs.map(aitCard).join('') + '</div>' +
-      '<p class="ait-foot"><button class="btn" data-ait="re">🔄 Tải lại số</button> <small>Cập nhật ' + esc(when(AIT.at)) + '</small></p></div>';
+    if (boss && (!PMA.d || Date.now() - PMA.at > 30e3)) pmaFetch();
+    var h = '<div class="ait-wrap"><div class="page-head"><h1>🤖 Đội nhân sự AI</h1></div>' + (boss ? pmaHTML() : '') +
+      '<section class="aiq"><div class="aiq-head"><h2>⚙️ Trợ lý AI chạy tự động</h2><button class="btn aiq-re" data-ait="re">🔄 Tải lại</button></div>' +
+      '<p class="aiq-intro">Các trợ lý tự làm việc mỗi ngày, không cần ai giao. Mở màn này <b>không tốn tiền AI</b>.</p>';
+    if (AIT.err && !AIT.d) return h + '<p class="err">' + esc(AIT.err) + '</p></section></div>';
+    if (!AIT.d) return h + '<p class="muted">Đang đọc nhật ký các trợ lý…</p></section></div>';
+    var D = AIT.d, by = function (a, b) { return (b.d7 - a.d7) || (b.today - a.today); };
+    var badL = D.cards.filter(function (c) { return c.state === 'err' || c.state === 'down'; }).sort(by),
+      okL = D.cards.filter(function (c) { return c.state === 'ok'; }).sort(by),
+      zzL = D.cards.filter(function (c) { return c.state === 'idle' || c.state === 'off'; }).sort(function (a, b) { return AIT_ORD[a.state] - AIT_ORD[b.state]; });
+    var tile = function (n, lab, cls) { return '<div class="aiq-tile ' + cls + '"><b>' + n + '</b><small>' + lab + '</small></div>'; };
+    h += '<div class="aiq-tiles">' + tile(okL.length, '🟢 đang làm việc', 'aiq-t-ok') + tile(badL.length, '🔴 cần xem', badL.length ? 'aiq-t-bad' : '') +
+      tile(zzL.length, '😴 im lặng / chưa bật', '') + tile(moneyShort(D.tot.d7), '💳 tiền AI 7 ngày', '') + '</div>' +
+      (D.aiOn ? '' : '<p class="aiq-err">⚠️ Máy chủ chưa có khoá AI: các trợ lý dùng AI đang dừng.</p>');
+    if (badL.length) h += '<h3 class="aiq-g aiq-g-bad">🔴 Cần xem ngay (' + badL.length + ')</h3><div class="aiq-grid">' + badL.map(aitCard).join('') + '</div>';
+    if (okL.length) h += '<h3 class="aiq-g">🟢 Đang làm việc (' + okL.length + ')</h3><div class="aiq-grid">' + okL.map(aitCard).join('') + '</div>';
+    if (zzL.length) h += '<details class="aiq-zz"><summary>😴 Im lặng hoặc chưa bật (' + zzL.length + ') <small>bấm để xem</small></summary>' + zzL.map(aitRow).join('') + '</details>';
+    h += '<p class="aiq-legend">🟢 có làm việc trong 3 ngày · 🔴 có lỗi trong 24 giờ hoặc mất kết nối · 🟡 im lặng hơn 3 ngày · ⚪️ chưa bật. Tiền AI là ước tính (tỷ giá ' + (D.rate || 0).toLocaleString('vi-VN') + 'đ / USD)' +
+      (D.admin ? ', số chính thức ở Cài đặt → 🤖 Chi phí trợ lý AI' : '') + '. Cập nhật ' + esc(when(AIT.at)) + '.</p></section></div>';
     return h;
   }
   function bindAit() {

@@ -4,7 +4,7 @@
  *   chương trình nhỏ website/scripts/lanh-nhan-viec.sh chạy 5 phút 1 lần (launchd) → POST /pm/agent {op:'pull'} lấy việc mới / việc bị trả sửa
  *   → báo 'dang' → chạy `claude -p` trong thư mục phòng (đủ skill + Drive) → gửi kết quả {op:'update', status:'duyet', result, file, score}.
  * Khoá cổng: env.PM_AGENT_KEY (wrangler secret), trên Mac lưu ở Keychain "tdl-pm-agent". Máy chủ KHÔNG gọi AI (0đ), chỉ lưu và báo Telegram.
- * Lệnh CRM: pm_view, pm_add, pm_review, pm_cancel (Quản lý + Quản trị). Giao diện: viewAit (tab doi-ai) phần đầu, crm/app.js (PM, pm*). */
+ * Lệnh CRM: pm_view, pm_add, pm_review, pm_cancel (chỉ Quản trị = anh Sơn, anh Hiếu, 16/11/2026). Giao diện: viewAit (tab doi-ai) phần đầu, crm/app.js (PM, pm*). */
 import { all, first, run, kvGet, kvSet, esc, DAY, CRM_URL } from './lib.js';
 import { crmUsers } from './crm.js';
 import { telegramTo } from './google.js';
@@ -43,7 +43,7 @@ async function tellBoss(x, msg, exceptEmail) {
 
 /* ---------------------------------------------------------------- lệnh CRM */
 export async function crmPm(x, u, a, d) {
-  if (u.level < 2) return { ok: false, error: 'Phòng Marketing AI dành cho anh Sơn và Quản lý.' };
+  if (u.level < 3) return { ok: false, error: 'Phòng Marketing AI chỉ dành cho anh Sơn và anh Hiếu (quyền Quản trị).' }; // anh Sơn 16/11/2026: tạm thời chỉ Quản trị
   await pmSchema(x.db);
   if (a === 'pm_view') return pmView(x);
   if (a === 'pm_add') return pmAdd(x, u, d);
