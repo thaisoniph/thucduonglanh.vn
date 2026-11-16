@@ -3431,3 +3431,4 @@ details.dash-grp[open] > summary::after { transform: rotate(180deg); }
 .fold-race > summary::after { content: '›'; margin-left: auto; font-size: 20px; color: var(--mid); transition: transform .2s; }
 .fold-race[open] > summary::after { transform: rotate(90deg); }
 .fold-race > .race-box { margin: 0 12px 12px; }
+.gon-main { margin-top: 4px; color: var(--text); }

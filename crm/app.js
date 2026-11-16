@@ -870,7 +870,7 @@
   var NAV_CEO = ['tong-quan', 'bao-cao', 'marketing', 'don-hang']; // Quản trị (anh Sơn 29/10/2026): kết quả, đội sale, tiền quảng cáo, đơn / tiền chờ thu. Hôm nay, Khách hỏi, Khách là việc của sale → Thêm
   function navMain() {
     var all = navViews().filter(function (v) { return v.id !== 'cai-dat'; }).map(function (v) { return v.id; }), out = [], sale = lvl() < 2 && !isMkt() && !isKho() && !isKt();
-    (HOST_KEY === 'hr' ? ['nhan-su', 'tuyen-dung'] : sale ? (S.user && S.user.kho ? NAV_KHO : NAV_SALE) : lvl() >= 3 ? NAV_CEO : lvl() >= 2 && !isMkt() ? NAV_MGR : [homeView()]).concat(NAV_FIRST, all).forEach(function (id) { if (out.length < 4 && all.indexOf(id) >= 0 && out.indexOf(id) < 0) out.push(id); });
+    (S.user && !gonBoss(S.user.email) && (gonCfg(S.user.email).main || []).length ? gonCfg(S.user.email).main : HOST_KEY === 'hr' ? ['nhan-su', 'tuyen-dung'] : sale ? (S.user && S.user.kho ? NAV_KHO : NAV_SALE) : lvl() >= 3 ? NAV_CEO : lvl() >= 2 && !isMkt() ? NAV_MGR : [homeView()]).concat(NAV_FIRST, all).forEach(function (id) { if (out.length < 4 && all.indexOf(id) >= 0 && out.indexOf(id) < 0) out.push(id); });
     return out;
   }
   function isCeo() { return lvl() >= 3 && !isMkt() && !isKho() && !isKt(); }
@@ -897,7 +897,8 @@
     var VL = {}; VIEWS.forEach(function (v) { VL[v.id] = v.label; });
     var rows = us.map(function (u) {
       var ids = GON_LIST[u.role].filter(function (id) { return !gonNeed(u, id); }), off = ids.filter(function (id) { return !gonOn(u, id); }).length;
-      return '<div class="gon-u" data-gonu="' + esc(u.email) + '"><div class="gon-h"><b>' + esc(u.name) + '</b> <span class="muted small">' + esc(u.role) + (off ? ' · đang ẩn ' + off + ' mục' : ' · thấy đủ') + '</span></div><div class="chips gon-c">' +
+      var mn = (gonCfg(u.email).main || []).map(function (id) { return VL[id] || id; });
+      return '<div class="gon-u" data-gonu="' + esc(u.email) + '"><div class="gon-h"><b>' + esc(u.name) + '</b> <span class="muted small">' + esc(u.role) + (off ? ' · đang ẩn ' + off + ' mục' : ' · thấy đủ') + '</span>' + (mn.length ? '<div class="small gon-main">⭐ Thanh trên (theo việc trọng tâm): <b>' + mn.map(esc).join(' · ') + '</b> · mở CRM vào thẳng <b>' + esc(mn[0]) + '</b></div>' : '') + '</div><div class="chips gon-c">' +
         ids.map(function (id) { var on = gonOn(u, id); return '<button type="button" class="chip' + (on ? ' on' : '') + '" data-gon="' + id + '" title="' + (on ? 'Đang hiện – bấm để ẩn' : 'Đang ẩn – bấm để mở cho ' + esc(u.name)) + '">' + (on ? '✓ ' : '+ ') + esc(VL[id] || id) + '</button>'; }).join('') + '</div></div>';
     }).join('');
     return '<div class="box"><p class="hint" style="margin:0 0 10px">Nút <b>xanh</b> = đang hiện trên menu của người đó. Nút <b>trắng</b> = đang ẩn cho gọn. Bấm để mở / ẩn, lưu ngay. Mục ẩn chỉ không nằm trên menu; bấm link trong tin Telegram vẫn mở được. Kho, Kế toán không cần chỉnh (đã gọn sẵn). Tài khoản của anh luôn thấy đủ.</p>' + (rows || '<p class="muted">Chưa có nhân sự Sale, Quản lý, Marketing nào.</p>') + '</div>';
@@ -912,6 +913,12 @@
         api('gon_save', { email: em, open: open, hide: hide }).then(function (j) { S.d.gon = j.gon; toast((gonOn(u, id) ? '✓ Đã mở ' : 'Đã ẩn ') + ((VIEWS.filter(function (v) { return v.id === id; })[0] || {}).label || id) + ' cho ' + u.name); render(); }, function (e) { b.disabled = false; toast(e.message, true); });
       };
     });
+  }
+  function navOrd() { // ⭐ người có thanh trên riêng (gon_cfg.main, vd anh Hiếu: Marketing trước) → xếp đúng thứ tự đó
+    var nv = navViews(), m = S.user && !gonBoss(S.user.email) && gonCfg(S.user.email).main;
+    if (!m || !m.length) return nv;
+    var ix = function (v) { var i = m.indexOf(v.id); return i < 0 ? 99 : i; };
+    return nv.map(function (v, i) { return [v, i]; }).sort(function (x, y) { return ix(x[0]) - ix(y[0]) || x[1] - y[1]; }).map(function (x) { return x[0]; });
   }
   function navSig() { return navViews().map(function (v) { return v.id; }).join() + '|' + navMain().join(); }
   var VIEW_DESC = {
@@ -1000,7 +1007,7 @@
     $('#app').innerHTML = '<header class="top' + (isCeo() ? ' ceo' : '') + (gonBar() ? ' gon' : '') + '"><div class="top-in">' + // Quản trị (anh Sơn 11/11/2026, PA A): máy tính chỉ 4 mục + Thêm như điện thoại, nút tròn chỉ còn 🔍 + ⚙
 
       '<a class="brand" href="#' + homeView() + '"><img src="/icon-180.png" alt="">' + (HOST ? HOST.short : 'CRM') + '</a>' +
-      '<nav class="nav' + (navViews().length > 6 || lvl() >= 2 ? ' nav-many' : '') + (navViews().length < myViews().length ? ' nav-hasmore' : '') + '" data-sig="' + navSig() + '">' + navViews().map(function (v) { return '<a href="#' + v.id + '" data-v="' + v.id + '"' + (v.id === 'cai-dat' ? ' class="nav-set"' : main.indexOf(v.id) < 0 ? ' class="nav-x"' : '') + '>' + I[v.icon] + '<span' + (v.short ? ' data-short="' + v.short + '"' : '') + '>' + v.label + '</span></a>'; }).join('') +
+      '<nav class="nav' + (navViews().length > 6 || lvl() >= 2 ? ' nav-many' : '') + (navViews().length < myViews().length ? ' nav-hasmore' : '') + '" data-sig="' + navSig() + '">' + navOrd().map(function (v) { return '<a href="#' + v.id + '" data-v="' + v.id + '"' + (v.id === 'cai-dat' ? ' class="nav-set"' : main.indexOf(v.id) < 0 ? ' class="nav-x"' : '') + '>' + I[v.icon] + '<span' + (v.short ? ' data-short="' + v.short + '"' : '') + '>' + v.label + '</span></a>'; }).join('') +
       '<a href="#them" data-v="them" class="nav-more">' + I.more + '<span>Thêm</span></a></nav>' +
       '<div class="grow"></div><div class="me">' + meHTML() + '</div>' +
       '<button class="icon-btn fb-btn" id="fbBtn" title="Góp ý: báo lỗi, chỗ khó dùng, ý tưởng" aria-label="Góp ý">💡<span class="fb-lbl">Góp ý</span></button>' +
@@ -1202,7 +1209,7 @@
   /** Quản lý / Quản trị: số trên tab là của cả nhóm, hoặc của người đang lọc ở ô 👥. Sale: rỗng. */
   function navWho() { return lvl() >= 2 ? (S.who ? ' của ' + (S.who === '-' ? 'khách chưa giao' : S.who) : ' (cả nhóm)') : ''; }
   /** Tab mở mặc định theo quyền: Quản trị → Tổng quan, Quản lý → Hiệu quả, nhân viên → Hôm nay. */
-  function homeView() { if (HOST && myViews().some(function (x) { return x.id === HOST.home; })) return HOST.home; return isKt() ? 'ke-toan' : isKho() ? 'kho' : isMkt() ? 'marketing' : lvl() >= 3 ? 'tong-quan' : lvl() >= 2 ? 'bao-cao' : S.user && S.user.kho ? 'kho' : 'hom-nay'; } // tên miền vai trò (quantri. / mkt. / kho. / ketoan.) mở thẳng tab của vai trò đó
+  function homeView() { var gm = S.user && !gonBoss(S.user.email) && (gonCfg(S.user.email).main || [])[0]; if (gm && myViews().some(function (x) { return x.id === gm; }) && !gonHid({ id: gm })) return gm; if (HOST && myViews().some(function (x) { return x.id === HOST.home; })) return HOST.home; return isKt() ? 'ke-toan' : isKho() ? 'kho' : isMkt() ? 'marketing' : lvl() >= 3 ? 'tong-quan' : lvl() >= 2 ? 'bao-cao' : S.user && S.user.kho ? 'kho' : 'hom-nay'; } // tên miền vai trò (quantri. / mkt. / kho. / ketoan.) mở thẳng tab của vai trò đó
   function route() { var h = (location.hash || '').slice(1).split('/'); return { view: h[0] === 'lien-he' ? 'tiem-nang' : h[0] || homeView(), id: decodeURIComponent(h[1] || '') }; }
   var lastView = '';
   function render() {

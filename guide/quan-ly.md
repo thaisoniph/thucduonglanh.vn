@@ -92,6 +92,7 @@ CRM có nhiều mục. Để nhân sự không bị rối, mỗi người chỉ 
 | **Quản lý** | Hôm nay, Khách hỏi, Đơn hàng, Hiệu quả. Ở **Thêm**: Khách đã mua, Trợ lý Zalo, Việc tuần, Cài đặt |
 | **Marketing** | Marketing, Khách hỏi, Insight & nội dung, Cài đặt |
 | **Quản trị** (trừ tài khoản anh Sơn) | Tổng quan, Đơn hàng, Hiệu quả, Marketing. Ở **Thêm**: Hôm nay, Khách hỏi, Hỏi số liệu, Cài đặt |
+| **Anh Hiếu** (tập trung quảng cáo Facebook) | Mở CRM vào thẳng **Marketing**. Thanh trên: Marketing · Khách hỏi · Hiệu quả · Tổng quan. Mở thêm **Insight & nội dung** (chấm bài, kịch bản video trước khi chạy quảng cáo) |
 | **Sale, Kho, Kế toán** | Như cũ (đã gọn sẵn) |
 
 Mục anh đã bật riêng cho 1 người (Marketing, Phụ trách kho, Trợ lý Zalo, Việc tuần) vẫn hiện. Mục bị ẩn chỉ không có trên menu. Bấm link trong tin Telegram vẫn mở được.

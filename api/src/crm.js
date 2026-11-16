@@ -2751,7 +2751,7 @@ export async function crmApi(x, d, sync, mgr) {
     if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị làm được việc này.' };
     const e = String(d.email || '').toLowerCase().trim(); if (!/@/.test(e)) return { ok: false, error: 'Thiếu email nhân sự.' };
     const ids = v => (Array.isArray(v) ? v : []).map(z => String(z).replace(/[^a-z-]/g, '').slice(0, 30)).filter(Boolean).slice(0, 40);
-    const cfg = await kvJson(x.db, 'gon_cfg', {}) || {}; cfg[e] = { open: ids(d.open), hide: ids(d.hide), at: Date.now(), by: u.name };
+    const cfg = await kvJson(x.db, 'gon_cfg', {}) || {}, old = cfg[e] || {}; cfg[e] = { open: ids(d.open), hide: ids(d.hide), main: d.main !== undefined ? ids(d.main).slice(0, 4) : old.main || [], at: Date.now(), by: u.name }; // main = 4 mục thanh trên theo việc trọng tâm của người đó (mục đầu = màn mở CRM)
     await kvSet(x.db, 'gon_cfg', JSON.stringify(cfg)); return { ok: true, gon: cfg };
   }
   if (a === 'feedback') return crmFeedback(x, u, d);
