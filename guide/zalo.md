@@ -4,7 +4,7 @@ nav: Trợ lý Zalo
 group: marketing
 short: Trợ lý An Lành trong nhóm Zalo
 order: 8
-updated: 2026-11-15
+updated: 2026-11-16
 description: Trợ lý An Lành trong nhóm Sống khỏe cùng Thực Dưỡng Lành tự chào, trả lời, đăng bài. Bạn duyệt bài, duyệt chủ đề và xử lý ca khó. Mỗi việc có hình.
 roles: [zb, mkt, ql]
 ---
@@ -14,7 +14,7 @@ Trang này dành cho **người quản lý nhóm Zalo**, **marketing** và **sal
 
 ## Việc của bạn mỗi ngày, mỗi tuần
 
-**Mỗi ngày (khoảng 5 phút):** mở tab **Zalo**, nhìn ô **✅ Việc cần làm hôm nay** và làm từ bước 1. Ô này tự gom mọi việc đang chờ bạn; bấm **Xem** để tới đúng chỗ. Thường là 2 việc:
+**Mỗi ngày (khoảng 5 phút):** mở tab **Zalo**, nhìn ô **👉 Việc hôm nay** và làm từ bước 1. Ô này tự gom mọi việc đang chờ bạn; bấm **Xem** để tới đúng chỗ. Thường là 2 việc:
 
 1. Duyệt bài chờ đăng ([Việc 1](#viec-1-duyet-bai)). Chỉ cần duyệt bài của ngày thứ 3; ngày bận thì duyệt dồn vẫn kịp.
 2. Telegram báo ca cần người thật thì xử lý ngay ([bảng bên dưới](#telegram-bao-gi-thi-lam-gi)).
@@ -66,7 +66,7 @@ Vào CRM, bấm **Zalo** trên thanh menu. Quản trị thì vào **••• Th
 Màn hình xếp theo thứ tự làm việc (từ 15/11/2026):
 
 1. **Ô trạng thái** 🟢 / 🔴.
-2. **✅ Việc cần làm hôm nay**: các việc đánh số 1, 2, 3 (khách đang chờ người thật, bài cần duyệt, chủ đề cần duyệt, lỗi). Không có việc thì ô ghi 🎉 không có việc nào đang chờ.
+2. **👉 Việc hôm nay**: các việc đánh số 1, 2, 3 (khách đang chờ người thật, bài cần duyệt, chủ đề cần duyệt, lỗi). Không có việc thì ô ghi 🎉 không có việc nào đang chờ.
 3. **📝 Bài đăng nhóm**, rồi **📋 Kế hoạch chủ đề**.
 4. **📊 Kết quả 7 ngày qua** (số liệu, hiệu quả theo phễu, thử giờ đăng).
 5. **⚙️ Cài đặt trợ lý** và **🕘 Trợ lý vừa làm gì**.

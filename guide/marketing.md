@@ -4,13 +4,13 @@ nav: Marketing
 group: marketing
 short: Quảng cáo, chi phí, link và mã QR, sàn
 order: 5
-updated: 2026-11-15
+updated: 2026-11-16
 description: Xem và sửa quảng cáo, đặt mục tiêu, nhập chi phí, báo ưu đãi cho sale, tạo link và mã QR, cập nhật số sàn. Mỗi việc có hình từng bước.
 roles: [mkt, ql]
 ---
 Trang này dành cho bạn **làm marketing** và bạn **phụ trách sàn** (Shopee, TikTok Shop).
 
-> **Một câu dễ nhớ:** Mỗi sáng mở tab **📣 Marketing**, nhìn ô **📇** đầu trang xem số điện thoại về cho sale đã đủ chưa, rồi làm theo ô **✅ Việc cần làm hôm nay** từ bước 1. Số quan trọng nhất là **⭐ giá 1 số điện thoại**.
+> **Một câu dễ nhớ:** Mỗi sáng mở tab **📣 Marketing**, làm theo khung **👉 Việc hôm nay** trên cùng từ bước 1 (góc phải ghi **Còn mấy việc**), rồi nhìn ô **📇** ngay dưới xem số điện thoại về cho sale đã đủ chưa. Số quan trọng nhất là **⭐ giá 1 số điện thoại**.
 
 Làm bài viết, video, ảnh theo khoá content: xem trang **[Content](/huong-dan/content/)**.
 
@@ -19,7 +19,7 @@ Làm bài viết, video, ảnh theo khoá content: xem trang **[Content](/huong-
 **Mỗi sáng (khoảng 10 phút):**
 
 1. Đọc tin Telegram **📣 Marketing sáng nay** (8h).
-2. Mở tab **📣 Marketing**, xem ô **📇 Số điện thoại về cho sale** rồi làm các việc trong **✅ Việc cần làm hôm nay** ([cách đọc màn hình](#viec-1-doc-man-hinh-marketing)).
+2. Mở tab **📣 Marketing**, làm các việc trong **👉 Việc hôm nay**, rồi xem ô **📇 Số điện thoại về cho sale** ([cách đọc màn hình](#viec-1-doc-man-hinh-marketing)).
 3. Xem **📘 Quảng cáo Facebook**: chiến dịch 🔴 thì giảm / tắt, 🟢 thì tăng tiền ([Việc 2](#viec-2-xem-va-sua-quang-cao-facebook)).
 4. Duyệt bài trợ lý viết ([trang Content](/huong-dan/content/#viec-1-duyet-bai-tro-ly-viet)).
 
@@ -54,7 +54,9 @@ Bạn không thấy khách đã mua, đơn hàng hay doanh số toàn công ty. 
 
 Màn hình xếp theo đúng thứ tự làm việc, đọc từ trên xuống (từ 15/11/2026). Hàng **Đi nhanh tới** dưới tên trang đưa bạn tới thẳng từng phần.
 
-**1. Ô 📇 Số điện thoại về cho sale: đủ chưa, giá bao nhiêu?** Luôn tính **hôm nay** và **tháng này**.
+**1. Khung 👉 Việc hôm nay** (trên cùng): các việc đánh số 1, 2, 3… Làm lần lượt từ bước 1. Góc phải ghi **Còn mấy việc**; không có việc thì ghi **🎉 Xong hết**. Nhãn màu ghi ai làm (Marketing hay Sale).
+
+**2. Ô 📇 Số điện thoại về cho sale: đủ chưa, giá bao nhiêu?** Luôn tính **hôm nay** và **tháng này**.
 
 | Ô | Nghĩa là |
 | --- | --- |
@@ -69,8 +71,6 @@ Màn hình xếp theo đúng thứ tự làm việc, đọc từ trên xuống (
   1. **Khách cũ mua lại** (việc của sale) = tiền khách cũ tháng trước.
   2. **Khách mới** = mục tiêu − phần khách cũ. Lấy phần đến từ số quảng cáo (theo tỷ lệ thật 3 tháng trước) → chia đơn đầu trung bình ra **số khách mới** → chia tỷ lệ chốt ra **số điện thoại cần** và **ngân sách** (số cần × giá tốt 1 số).
   Sale đổi mục tiêu thì số này tự đổi. Khách cũ mua lại nhiều hơn thì Marketing cần ít số hơn.
-
-**2. Ô ✅ Việc cần làm hôm nay:** các việc đánh số 1, 2, 3… Làm lần lượt từ bước 1. Nhãn màu ghi ai làm (Marketing hay Sale).
 
 **3. 📘 Quảng cáo Facebook đang chạy:** nơi bạn sửa quảng cáo ([Việc 2](#viec-2-xem-va-sua-quang-cao-facebook)).
 

@@ -358,21 +358,21 @@ mk-man:
   steps:
     - title: Marketing
       els:
+        - ["h", "👉 Việc hôm nay · Còn 3 việc"]
+        - ["card", "1 · Marketing: tắt chiến dịch SỮA-7-10", "Giá 1 tin đắt gấp 2 lần mức tốt", "r"]
+        - ["card", "2 · Marketing: tăng 20% DILVANG", "Rẻ hơn mức tốt 25%", "g"]
+        - ["card", "3 · Sale: còn 12 số chưa gọi", "Nhắc sale gọi trong hôm nay", "y"]
+      hi: 1
+      text: "Mở tab <b>📣 Marketing</b>. Trên cùng là khung <b>👉 Việc hôm nay</b>: góc phải ghi <b>Còn mấy việc</b>, các việc đã <b>đánh số 1, 2, 3</b>, ghi rõ <b>ai làm</b>. Làm lần lượt từ bước 1. Bấm <b>Xem</b> để tới đúng chỗ cần sửa."
+    - title: Marketing
+      els:
         - ["h", "📇 Số điện thoại về cho sale"]
         - ["card", "🔴 Đang thiếu số", "Về 39 số / ngày · cần 79 số / ngày", "r"]
         - ["chips", ["Hôm nay 18 số", "Tháng 506 / 1.767"], -1]
         - ["chips", ["⭐ 1 số 96k", "⏳ Chưa gọi 244"], -1]
         - ["note", "💰 Ngân sách còn đủ mua bao nhiêu số"]
       hi: 1
-      text: "Mở tab <b>📣 Marketing</b>. Ô đầu tiên trả lời câu quan trọng nhất: <b>số điện thoại về cho sale đã đủ chưa, giá 1 số bao nhiêu</b>. Đọc dòng có đèn 🟢🟠🔴 trước."
-    - title: Marketing
-      els:
-        - ["h", "✅ Việc cần làm hôm nay"]
-        - ["card", "1 · Marketing: tắt chiến dịch SỮA-7-10", "Giá 1 tin đắt gấp 2 lần mức tốt", "r"]
-        - ["card", "2 · Marketing: tăng 20% DILVANG", "Rẻ hơn mức tốt 25%", "g"]
-        - ["card", "3 · Sale: còn 12 số chưa gọi", "Nhắc sale gọi trong hôm nay", "y"]
-      hi: 1
-      text: "Ô <b>✅ Việc cần làm hôm nay</b>: các việc đã <b>đánh số 1, 2, 3</b>, ghi rõ <b>ai làm</b>. Làm lần lượt từ bước 1. Bấm <b>Xem</b> để tới đúng chỗ cần sửa."
+      text: "Ngay dưới là ô <b>📇</b>, trả lời câu quan trọng nhất: <b>số điện thoại về cho sale đã đủ chưa, giá 1 số bao nhiêu</b>. Đọc dòng có đèn 🟢🟠🔴 trước."
     - title: Marketing
       els:
         - ["h", "📘 Quảng cáo Facebook đang chạy"]

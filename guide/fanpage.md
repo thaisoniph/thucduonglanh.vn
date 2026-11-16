@@ -4,7 +4,7 @@ nav: Fanpage
 group: marketing
 short: Trợ lý trả lời Facebook, Messenger
 order: 7
-updated: 2026-11-15
+updated: 2026-11-16
 description: Trợ lý An Lành trả lời bình luận, nhắn Messenger, tặng quà, xin số Zalo và soạn bài cho các fanpage. Bạn duyệt bài và lo ca khó. Mỗi việc có hình.
 roles: [mkt, ql]
 ---
@@ -14,7 +14,7 @@ Trang này dành cho bạn **làm marketing**, **quản lý** và **anh Sơn** (
 
 ## Việc của bạn mỗi ngày
 
-Mở tab **Fanpage**, nhìn ô **✅ Việc cần làm hôm nay** và làm từ bước 1. Ô này tự gom mọi việc đang chờ bạn; bấm **Xem** để tới đúng chỗ. Thường là 3 việc:
+Mở tab **Fanpage**, nhìn ô **👉 Việc hôm nay** và làm từ bước 1. Ô này tự gom mọi việc đang chờ bạn; bấm **Xem** để tới đúng chỗ. Thường là 3 việc:
 
 1. Duyệt bài AI soạn cho hôm nay và ngày mai ([Việc 1](#viec-1-duyet-bai-dang)).
 2. Telegram báo ca cần người thật thì trả lời khách ngay ([bảng bên dưới](#telegram-bao-gi-thi-lam-gi)).
@@ -52,7 +52,7 @@ Bình luận có **số điện thoại** sẽ được trợ lý **ẩn đi** �
 
 Trong CRM, bấm **FB** trên thanh menu. Quản trị bấm **••• Thêm → Fanpage**.
 
-Màn hình xếp theo thứ tự làm việc (từ 15/11/2026): **ô trạng thái** 🟢 → **✅ Việc cần làm hôm nay** (khách đang chờ người thật, bài cần duyệt, lỗi) → **📝 Bài đăng fanpage** → **📊 Kết quả 7 ngày qua** → **📄 Fanpage đã kết nối** (cài đặt từng trang) → **🕘 Trợ lý vừa làm gì**. Hàng **Đi nhanh tới** dưới tên trang đưa bạn tới thẳng từng phần.
+Màn hình xếp theo thứ tự làm việc (từ 15/11/2026): **ô trạng thái** 🟢 → **👉 Việc hôm nay** (khách đang chờ người thật, bài cần duyệt, lỗi) → **📝 Bài đăng fanpage** → **📊 Kết quả 7 ngày qua** → **📄 Fanpage đã kết nối** (cài đặt từng trang) → **🕘 Trợ lý vừa làm gì**. Hàng **Đi nhanh tới** dưới tên trang đưa bạn tới thẳng từng phần.
 
 ## Việc 1: Duyệt bài đăng
 

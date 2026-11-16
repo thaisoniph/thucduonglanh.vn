@@ -3484,3 +3484,8 @@ details.dash-grp[open] > summary::after { transform: rotate(180deg); }
 .sai-mine td { background: #f3f9f4; }
 .sai-bmk { margin: 0 0 8px; } .sai-bmk ol { padding-left: 18px; } .sai-bmk-a { cursor: grab; }
 .sai-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+/* 👉 Việc hôm nay dùng chung (16/11/2026): Tổng quan, Marketing, Trợ lý Zalo, Fanpage cùng khung với Kế toán / Kho */
+.td-box { border: 2px solid var(--primary); padding: 16px; }
+.td-box .ktd-top { margin-bottom: 4px; }
+.td-hint { margin: 0 0 8px; font-size: 13px; color: var(--muted); }
+.td-info { font-size: 14px; color: var(--muted); margin: 8px 0 0; }

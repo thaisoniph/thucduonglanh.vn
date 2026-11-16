@@ -11113,8 +11113,13 @@
   var LVO = {};
   document.addEventListener('toggle', function (e) { var d = e.target; if (d && d.getAttribute && d.getAttribute('data-lvo')) LVO[d.getAttribute('data-lvo')] = d.open ? 1 : 0; }, true);
   /** ✅ Việc cần làm hôm nay cho tab Trợ lý Zalo / Fanpage (15/11/2026): cùng khuôn với tab Marketing – đánh số bước, mỗi bước 1 nút tới đúng chỗ. L rỗng → 1 câu "không có việc". */
+  /** Đầu khung 👉 Việc hôm nay dùng chung mọi vai trò (16/11/2026, anh Sơn: vào màn hình nào cũng thấy ngay cần làm gì, làm theo từng bước):
+   *  tiêu đề + thứ, ngày + nhãn "Còn N việc" / "🎉 Xong hết" + 1 dòng hướng dẫn. Kế toán (ktTodayHTML) và Kho (khoTodo) dùng cùng lớp ktd-top. */
+  function todayHead(title, n, hint) {
+    return '<div class="ktd-top"><h2>' + title + ' <small>' + ['Chủ nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'][new Date().getDay()] + ' ' + fDate(Date.now()).slice(0, 5) + '</small></h2><span class="ktd-left' + (n ? '' : ' ok') + '">' + (n ? 'Còn ' + n + ' việc' : '🎉 Xong hết') + '</span></div>' + (hint && n ? '<p class="td-hint">' + hint + '</p>' : '');
+  }
   function aiTodoBox(L, okTxt) {
-    return '<div class="box dash-notes mk-steps"><h3>✅ Việc cần làm hôm nay' + (L.length ? ' <small class="muted" style="font-weight:400">· làm lần lượt từ bước 1</small>' : '') + '</h3>' +
+    return '<div class="box dash-notes mk-steps td-box">' + todayHead('👉 Việc hôm nay', L.length, 'Làm lần lượt từ bước 1, mỗi bước có nút tới đúng chỗ.') +
       (L.length ? '<ol class="mk-step-l">' + L.map(function (x, i) { return '<li><span class="mk-step-n">' + (i + 1) + '</span><div>' + x + '</div></li>'; }).join('') + '</ol>' : '<p>' + okTxt + '</p>') + '</div>';
   }
   function lvMore(k, title, line, body, open) {
@@ -11152,9 +11157,9 @@
         : cost <= left ? '💰 Ngân sách còn <b>' + moneyShort(left) + '</b>: đủ để mang về ' + nf(lack) + ' số còn thiếu ở giá hiện tại (cần khoảng ' + moneyShort(cost) + ').'
         : '💰 Ngân sách còn <b>' + moneyShort(left) + '</b>: ở giá hiện tại chỉ đủ khoảng <b>' + nf(Math.floor(left / cps)) + ' số</b> trong ' + nf(lack) + ' số còn thiếu. Có 2 cách: kéo giá 1 số xuống còn khoảng <b>' + moneyShort(Math.round(left / lack / 1000) * 1000) + '</b>, hoặc thêm khoảng <b>' + moneyShort(cost - left) + '</b> ngân sách.';
     }
-    var nx = lack && lvN !== 'ok' ? '👉 Muốn thêm số: làm lần lượt các bước ở ô <b>✅ Việc cần làm hôm nay</b> ngay dưới (tắt chiến dịch đắt, tăng tiền chiến dịch rẻ, nhắc sale gọi số cũ).' : '👉 Việc hôm nay: xem ô <b>✅ Việc cần làm hôm nay</b> ngay dưới.';
+    var nx = lack && lvN !== 'ok' ? '👉 Muốn thêm số: làm lần lượt các bước ở khung <b>👉 Việc hôm nay</b> phía trên (tắt chiến dịch đắt, tăng tiền chiến dịch rẻ, nhắc sale gọi số cũ).' : '';
     return '<section class="box mk-need ' + (lack ? lvN : '') + '" id="mk-need"><h2>📇 Số điện thoại về cho sale: đủ chưa, giá bao nhiêu? <small>· luôn tính hôm nay và ' + monthLabel(month) + '</small></h2>' +
-      '<p class="mk-need-v">' + v + '</p><div class="mk-need-g">' + cells + '</div>' + bar + (m ? '<p class="mk-need-m">' + m + '</p>' : '') + '<p class="mk-need-m">' + nx + '</p>' +
+      '<p class="mk-need-v">' + v + '</p><div class="mk-need-g">' + cells + '</div>' + bar + (m ? '<p class="mk-need-m">' + m + '</p>' : '') + (nx ? '<p class="mk-need-m">' + nx + '</p>' : '') +
       (f && f.saleT ? lvMore('fs', '🧮 Máy tính ra số cần thế nào?', 'từ mục tiêu ' + moneyShort(f.saleT) + ': khách cũ ' + moneyShort((f.old || {}).need) + ' + khách mới ' + moneyShort(f.needRev), mkFsBox(src, month, true)) : '') + '</section>';
   }
   function mkGoalBlock(gm, live) {
@@ -11301,10 +11306,11 @@
     // 📇 đủ số chưa → ✅ việc cần làm theo bước → 📘 Facebook đang chạy (nơi làm) → 📊 kết quả theo kỳ (6 ô) → 🎯 mục tiêu & ngân sách → 🎁 ưu đãi → 🔎 chi tiết → 🧰 công cụ
     var OA = offerAdmin();
     h += '<div class="mk-jump"><span class="small muted">Đi nhanh tới:</span>' + jump('live', '📘 Quảng cáo đang chạy') + jump('kq', '📊 Kết quả') + jump('mt', '🎯 Mục tiêu') + (OA ? jump('ud', '🎁 Ưu đãi') : '') + jump('ct', '🔎 Chi tiết') + jump('cc', '🧰 Công cụ') + '</div>';
-    h += mkNeedBox(gKey === key ? mj : gm, mj);
+    // 16/11/2026: 👉 Việc hôm nay lên TRÊN CÙNG (cùng khung mọi vai trò), ô 📇 số điện thoại ngay dưới
     var Linfo = L.filter(function (x) { return /^(🏆|ℹ️)/.test(x); }), Ldo = L.filter(function (x) { return !/^(🏆|ℹ️)/.test(x); });
-    if (L.length) h += '<div class="box dash-notes mk-steps"><h3>✅ Việc cần làm hôm nay <small class="muted" style="font-weight:400">· làm lần lượt từ bước 1 · nhãn màu = ai làm' + (f.p.k !== 'month' && f.p.k !== 'today' ? ' · tính theo kỳ đang xem: ' + esc(perLabel(f.p)) : '') + '</small></h3>' + Linfo.map(function (x) { return '<p>' + x + '</p>'; }).join('') +
-      (Ldo.length ? '<ol class="mk-step-l">' + Ldo.map(function (x, i) { return '<li><span class="mk-step-n">' + (i + 1) + '</span><div>' + x + '</div></li>'; }).join('') + '</ol>' : '') + '</div>';
+    h += '<div class="box dash-notes mk-steps td-box">' + todayHead('👉 Việc hôm nay', Ldo.length, 'Làm lần lượt từ bước 1 · nhãn màu = ai làm' + (f.p.k !== 'month' && f.p.k !== 'today' ? ' · tính theo kỳ đang xem: ' + esc(perLabel(f.p)) : '')) +
+      (Ldo.length ? '<ol class="mk-step-l">' + Ldo.map(function (x, i) { return '<li><span class="mk-step-n">' + (i + 1) + '</span><div>' + x + '</div></li>'; }).join('') + '</ol>' : '<p>✅ Hôm nay quảng cáo đang ổn, chưa có việc gì cần sửa. Xem số điện thoại về ở ô ngay dưới.</p>') + Linfo.map(function (x) { return '<p class="td-info">' + x + '</p>'; }).join('') + '</div>';
+    h += mkNeedBox(gKey === key ? mj : gm, mj);
     h += LB.h;
     h += '<h2 class="mk-more-h" id="mk-kq">📊 Kết quả theo kỳ <span class="tip">chọn kỳ muốn xem · các số bên dưới đổi theo kỳ</span></h2>' + perChips('m', f.p) + HT;
     h += GB.h ? GB.h.replace(/<\/section>$/, BH + '</section>') : BH ? '<div id="mk-mt">' + BH + '</div>' : '';
@@ -12570,8 +12576,10 @@
     }
     L = U.concat(L.filter(function (x) { return x.indexOf('Chậm mục tiêu tháng') < 0; }), L.filter(function (x) { return x.indexOf('Chậm mục tiêu tháng') >= 0; })); // mục tiêu tháng đã có ngay dòng đỏ bên dưới → xếp cuối
     var h = '';
-    if (L.length) h += '<div class="box dash-notes"><h3>👉 Cần anh xử lý hôm nay <small class="muted" style="font-weight:400">· việc gấp trước · ghi rõ ai làm</small></h3>' + L.slice(0, 3).map(function (x, i) { return '<p><b class="dash-todo-n">' + (i + 1) + '.</b> ' + x + '</p>'; }).join('') + (L.length > 3 ? '<details class="dash-todo-more"><summary>Xem thêm ' + (L.length - 3) + ' việc nhỏ hơn</summary>' + L.slice(3).map(function (x, i) { return '<p><b class="dash-todo-n">' + (i + 4) + '.</b> ' + x + '</p>'; }).join('') + '</details>' : '') + '</div>';
-    else h += '<div class="box dash-notes"><p>✅ <b>Mọi thứ ổn</b>, chưa thấy việc gì cần anh xử lý gấp.</p></div>';
+    // 16/11/2026: cùng khung 👉 Việc hôm nay với Kế toán / Kho / Marketing (todayHead + mk-step-l số tròn)
+    var stp = function (x, i) { return '<li><span class="mk-step-n">' + (i + 1) + '</span><div>' + x + '</div></li>'; };
+    if (L.length) h += '<div class="box dash-notes mk-steps td-box">' + todayHead('👉 Việc hôm nay', L.length, 'Việc gấp trước · ghi rõ ai làm · bấm Xem để tới đúng chỗ') + '<ol class="mk-step-l">' + L.slice(0, 3).map(stp).join('') + '</ol>' + (L.length > 3 ? '<details class="dash-todo-more"><summary>Xem thêm ' + (L.length - 3) + ' việc nhỏ hơn</summary><ol class="mk-step-l">' + L.slice(3).map(function (x, i) { return stp(x, i + 3); }).join('') + '</ol></details>' : '') + '</div>';
+    else h += '<div class="box dash-notes td-box">' + todayHead('👉 Việc hôm nay', 0) + '<p>✅ <b>Mọi thứ ổn</b>, chưa thấy việc gì cần anh xử lý gấp.</p></div>';
     if (OK.length) h += '<p class="dash-bright">🌟 <b>Điểm sáng:</b> ' + OK.slice(0, 3).join(' · ') + '.</p>';
     return h;
   }
