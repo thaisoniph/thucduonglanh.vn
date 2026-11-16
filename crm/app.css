@@ -3281,3 +3281,20 @@ details.dash-grp[open] > summary::after { transform: rotate(180deg); }
 .nsv-wf tr.rev td { font-weight: 700; }
 .nsv-wf tr.end td { font-weight: 700; border-bottom: 0; border-top: 2px solid var(--ink); font-size: 15px; }
 .nsv-wf tr.end.ok td:nth-child(2) { color: #2e9d57; } .nsv-wf tr.end.bad td:nth-child(2) { color: var(--red); }
+/* 💎 bảng xếp hạng + 3 số to (16/11/2026) */
+.nsv-rank { border: 1px solid var(--line); border-radius: 12px; padding: 12px; background: var(--card, #fff); margin: 0 0 12px; }
+.nsv-rank-h b { display: block; font-size: 16px; } .nsv-rank-h small { color: var(--muted); font-size: 12px; }
+.nsv-rk { display: grid; grid-template-columns: minmax(110px, 30%) 1fr auto; gap: 8px; align-items: center; margin-top: 8px; font-size: 14px; }
+.nsv-rk .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nsv-rk .tr { height: 16px; background: var(--line); border-radius: 8px; overflow: hidden; }
+.nsv-rk .tr i { display: block; height: 100%; border-radius: 8px; background: #2e9d57; } .nsv-rk .tr i.bad { background: var(--red); }
+.nsv-rk b { font-size: 15px; white-space: nowrap; min-width: 64px; text-align: right; } .nsv-rk b.ok { color: #2e9d57; } .nsv-rk b.bad { color: var(--red); }
+.nsv-big { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 8px 0 2px; }
+.nsv-big span { font-size: 12px; color: var(--muted); } .nsv-big b { display: block; font-size: 20px; color: var(--ink); white-space: nowrap; }
+.nsv-big span.ok b { color: #2e9d57; } .nsv-big span.bad b { color: var(--red); }
+.nsv-s b.ok { color: #2e9d57; } .nsv-s b.bad { color: var(--red); }
+.nsv-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 2px; }
+.nsv-chips span { font-size: 13px; background: var(--bg, #f4f3ef); border: 1px solid var(--line); border-radius: 999px; padding: 3px 9px; }
+.nsv-wd { margin-top: 6px; } .nsv-wd summary { cursor: pointer; font-size: 14px; color: var(--primary); font-weight: 600; padding: 4px 0; }
+@media (max-width: 520px) { .nsv-big b { font-size: 17px; } .nsv-rk { grid-template-columns: 124px 1fr auto; font-size: 13px; gap: 6px; } .nsv-rk b { min-width: 56px; } }
+.nsv-key { font-size: 12px; color: var(--muted); margin: 0 0 8px; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; } .nsv-key > span { white-space: nowrap; }

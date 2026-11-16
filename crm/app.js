@@ -5324,7 +5324,7 @@
     });
     // đơn theo SĐT để biết số quảng cáo nào đã ra đơn
     var byPh = {}; S.d.orders.forEach(function (o) { if (!isVoid(o.status) && o.time >= R0) { var p = normPhone(o.phone); if (p) (byPh[p] = byPh[p] || []).push(o); } });
-    var P = {}, get = function (nm) { return P[nm] || (P[nm] = { name: nm, mo: {}, mi: [], ship: 0, rev: 0, cogs: 0, back: 0, backN: 0, n: 0, nData: 0, data: 0, won: 0, pay: 0, ex: 0, aM: 0, low: 0, est: 0 }); };
+    var P = {}, get = function (nm) { return P[nm] || (P[nm] = { name: nm, mo: {}, mi: [], ship: 0, rev: 0, cogs: 0, back: 0, backN: 0, n: 0, nData: 0, data: 0, won: 0, pay: 0, ex: 0, aM: 0, low: 0, est: 0, oldRev: 0 }); };
     var mo = function (p, i) { return p.mo[i] || (p.mo[i] = { rev: 0, n: 0, nData: 0 }); };
     M.forEach(function (Mi, i) {
       var R = Mi.R;
@@ -5335,7 +5335,7 @@
         if (!o.seller) return; if (!okP(o.seller)) { if (!users.some(function (z) { return z.name === o.seller; })) skip[o.seller] = (skip[o.seller] || 0) + 1; return; }
         var p = get(o.seller), t = Number(o.total) || 0;
         if (isVoid(o.status)) { if (isBack(o.status)) { p.back += backFee(o); p.backN++; } return; }
-        p.rev += t; p.n++; mo(p, i).rev += t; mo(p, i).n++; p.ship += t * Mi.shipR;
+        p.rev += t; p.n++; if (otypeOf(o) === 'Khách cũ') p.oldRev += t; mo(p, i).rev += t; mo(p, i).n++; p.ship += t * Mi.shipR;
         var it = parseItems(o.items), c = 0, iv = 0; it.forEach(function (q) { var k = itemCost(q); if (q.gift) { c += k || 0; return; } iv += q.qty * q.price; c += k !== null ? k : q.qty * q.price * r0; });
         p.cogs += it.length ? c : t * r0;
       });
@@ -5438,24 +5438,45 @@
   function nsvX(r) { return r === null ? '–' : (r < 0 ? '−' : '') + oneDec(Math.abs(r)) + ' lần'; }
   /** 1 thẻ sale (16/11/2026 anh Sơn: "trực quan, dễ hiểu"): doanh số trừ dần từng khoản → lãi ròng, kèm thanh màu chia 100đ doanh số. */
   var D_O = 0.05, D_V = 0.08, NSV_SEG = [['vat', 'Thuế VAT', '#7d8590'], ['cogs', 'Giá vốn hàng', '#b9a184'], ['ad', 'Quảng cáo', '#ff7a90'], ['ship', 'Vận chuyển', '#8fb3e8'], ['pay', 'Lương, hoa hồng, BH', '#f2b544'], ['bo', 'Văn phòng & bộ máy chung', '#a9a3d6'], ['opp', 'Chi phí cơ hội', '#c7c7cc']];
-  function nsvCard(p) {
+  function nsvParts(p) {
     var k = p.aM || 1, rev = p.revM || 0, v = { vat: (p.vat || 0) / k, cogs: p.cogs / k, ad: p.data / k, ship: (p.ship + p.back) / k, pay: p.cost, bo: p.bo || 0, opp: p.opp || 0 };
-    var used = NSV_SEG.reduce(function (a, g) { return a + v[g[0]]; }, 0), net = rev - used, base = Math.max(rev, used) || 1, per = rev > 0 ? Math.round(net * 100 / rev) : null;
-    var head = p.isNew ? 'Đang học việc' : p.mgr ? 'Quản lý (có tự bán)' : !(p.cost > 0) ? 'Chưa có lương' : net >= 0 ? 'Lãi cho công ty <b class="ok">' + moneyShort(net) + '</b> / tháng' : 'Công ty đang bù <b class="bad">' + moneyShort(-net) + '</b> / tháng';
+    var used = NSV_SEG.reduce(function (a, g) { return a + v[g[0]]; }, 0);
+    return { k: k, rev: rev, v: v, used: used, net: rev - used, per: rev > 0 ? Math.round((rev - used) * 100 / rev) : null };
+  }
+  /** 🏆 Bảng xếp hạng 1 nhìn (16/11/2026 anh Sơn: "trực quan cho chủ doanh nghiệp"): mỗi sale 1 thanh lãi ròng / tháng, xanh = lãi, đỏ = công ty bù. */
+  function nsvRank(list) {
+    var L = list.filter(function (p) { return !p.isNew && !p.mgr && p.cost > 0; }).map(function (p) { return { p: p, x: nsvParts(p) }; });
+    if (!L.length) return '';
+    var mx = Math.max.apply(null, L.map(function (r) { return Math.abs(r.x.net); })) || 1;
+    return '<div class="nsv-rank"><div class="nsv-rank-h"><b>🏆 Mỗi sale đem về cho công ty bao nhiêu / tháng</b><small>đã trừ hết: thuế, giá vốn, quảng cáo, vận chuyển, lương, văn phòng</small></div>' + L.map(function (r, i) {
+      var n = r.x.net, w = Math.max(2, Math.abs(n) * 100 / mx);
+      return '<div class="nsv-rk"><span class="nm">' + (i + 1) + '. ' + esc(r.p.name) + '</span><span class="tr"><i class="' + (n < 0 ? 'bad' : 'ok') + '" style="width:' + w.toFixed(1) + '%"></i></span><b class="' + (n < 0 ? 'bad' : 'ok') + '">' + (n < 0 ? '−' : '+') + moneyShort(Math.abs(n)) + '</b></div>';
+    }).join('') + '<p class="small muted" style="margin:6px 0 0">Thanh càng dài càng nhiều lãi. Màu đỏ: công ty đang phải bù tiền cho người đó.</p></div>';
+  }
+  /** 1 thẻ sale (16/11/2026 anh Sơn: "trực quan, dễ hiểu"): 3 số to (bán ra / tổng chi phí / lãi ròng) + thanh màu chia 100đ; bảng trừ từng khoản gập lại. */
+  function nsvCard(p) {
+    var X = nsvParts(p), v = X.v, rev = X.rev, net = X.net, used = X.used, base = Math.max(rev, used) || 1, per = X.per, k = X.k;
     var bar = NSV_SEG.map(function (g) { var w = v[g[0]] * 100 / base; return w > 0.3 ? '<i style="width:' + w.toFixed(2) + '%;background:' + g[2] + '" title="' + g[1] + ' ' + moneyShort(v[g[0]]) + '"></i>' : ''; }).join('') +
       (net > 0 ? '<i class="pf" style="width:' + (net * 100 / base).toFixed(2) + '%" title="Lãi ' + moneyShort(net) + '"></i>' : '');
     var nd = Math.round(p.nData / k), L = '<tr class="rev"><td>Doanh số giữ được <small>(đã trừ đơn hoàn, huỷ, có VAT)</small></td><td>' + moneyShort(rev) + '</td><td>100đ</td></tr>';
     NSV_SEG.forEach(function (g) {
-      var x = v[g[0]]; if (g[0] === 'bo' && p.bo === undefined || g[0] === 'opp' && !(x > 0) || g[0] === 'vat' && !(x > 0)) return;
+      var x = v[g[0]]; if (g[0] === 'bo' && p.bo === undefined || (g[0] === 'opp' || g[0] === 'vat') && !(x > 0)) return;
       var note = g[0] === 'vat' ? oneDec(D_V * 100) + '% đã gồm trong giá bán, nộp nhà nước' : g[0] === 'ad' ? (nd ? nd + ' số × ' + moneyShort(nd ? x / nd : 0) : 'không nhận số quảng cáo') : g[0] === 'ship' ? (p.backN ? 'gồm ship ' + p.backN + ' đơn hoàn' : '') : g[0] === 'pay' ? (p.low ? 'dưới bậc đầu, tính mức hỗ trợ' : '') : g[0] === 'bo' ? 'thuê nhà, điện nước, kế toán, kho, quản lý… chia đều' : g[0] === 'opp' ? oneDec(D_O * 100) + '% doanh số' : '';
       L += '<tr><td><span class="nsv-dot" style="background:' + g[2] + '"></span>− ' + g[1] + (note ? ' <small>' + note + '</small>' : '') + '</td><td>' + moneyShort(x) + '</td><td>' + (rev > 0 ? Math.round(x * 100 / rev) + 'đ' : '') + '</td></tr>';
     });
     L += '<tr class="end ' + (net < 0 ? 'bad' : 'ok') + '"><td>= ' + (net >= 0 ? 'Lãi ròng cho công ty' : 'Công ty phải bù') + '</td><td>' + moneyShort(Math.abs(net)) + '</td><td>' + (per !== null ? Math.abs(per) + 'đ' : '') + '</td></tr>';
-    return '<div class="nsv-r ' + p.lv + '"><div class="nsv-t"><b>' + NSV_ICO[p.lv] + ' ' + esc(p.name) + (p.role !== 'Sale & CSKH' ? ' <small>(' + esc(p.role) + ')</small>' : '') + '</b><span class="nsv-hd">' + head + '</span></div>' +
+    var old = p.rev ? Math.round((p.oldRev || 0) * 100 / p.rev) : null, chips = [];
+    if (old !== null) chips.push('🔁 Khách cũ <b>' + old + '%</b> doanh số');
+    chips.push('📞 ' + (nd ? 'Nhận <b>' + nd + '</b> số quảng cáo / tháng' + (p.cr !== null && p.cr !== undefined ? ', chốt <b>' + Math.round(p.cr * 100) + '%</b>' : '') : 'Không nhận số quảng cáo'));
+    if (p.backN) chips.push('↩️ <b>' + Math.round(p.backN / k) + '</b> đơn hoàn / tháng');
+    var head = p.isNew ? '🌱 Đang học việc' : p.mgr ? '🧭 Quản lý (có tự bán)' : !(p.cost > 0) ? 'Chưa có lương' : NSV_TXT[p.lv];
+    return '<div class="nsv-r ' + p.lv + '"><div class="nsv-t"><b>' + NSV_ICO[p.lv] + ' ' + esc(p.name) + (p.role && p.role !== 'Sale & CSKH' ? ' <small>(' + esc(p.role) + ')</small>' : '') + '</b><span>' + head + '</span></div>' +
+      '<div class="nsv-big"><span>Bán ra<b>' + moneyShort(rev) + '</b></span><span>Tổng chi phí<b>' + moneyShort(used) + '</b></span><span class="' + (net < 0 ? 'bad' : 'ok') + '">' + (net >= 0 ? 'Lãi cho công ty' : 'Công ty bù') + '<b>' + moneyShort(Math.abs(net)) + '</b></span></div>' +
       '<div class="nsv-bar" role="img" aria-label="Chia 100 đồng doanh số">' + bar + '</div>' +
-      (per !== null && !p.isNew && !p.mgr && p.cost > 0 ? '<p class="nsv-s">' + (net >= 0 ? 'Cứ 100đ người này bán ra, công ty còn lãi <b>' + per + 'đ</b> sau khi trừ hết chi phí.' : 'Cứ 100đ người này bán ra, công ty đang lỗ <b>' + (-per) + 'đ</b>.') + '</p>' : '') +
-      '<table class="nsv-wf"><tbody>' + L + '</tbody></table>' +
-      '<p class="nsv-w">' + (/^(👍|🌱|🧭)/.test(p.why) ? '' : '👉 ') + esc(p.why) + '</p></div>';
+      (per !== null && !p.isNew && p.cost > 0 ? '<p class="nsv-s">' + (net >= 0 ? 'Cứ 100đ bán ra, công ty còn lãi <b class="ok">' + per + 'đ</b> sau khi trừ hết chi phí.' : 'Cứ 100đ bán ra, công ty đang lỗ <b class="bad">' + (-per) + 'đ</b>.') + '</p>' : '') +
+      '<div class="nsv-chips">' + chips.map(function (c) { return '<span>' + c + '</span>'; }).join('') + '</div>' +
+      '<p class="nsv-w">' + (/^(👍|🌱|🧭)/.test(p.why) ? '' : '👉 ') + esc(p.why) + '</p>' +
+      '<details class="nsv-wd"><summary>Xem từng khoản trừ</summary><table class="nsv-wf"><tbody>' + L + '</tbody></table></details></div>';
   }
   function nsvHtml() {
     nsvLoad();
@@ -5464,9 +5485,10 @@
     var n = nsvN(), D = nsvData(n), X = D.X, cnt = { ok: 0, mid: 0, bad: 0 }; D_O = D.O; D_V = D.VT;
     D.sales.concat(D.sup).forEach(function (p) { if (cnt[p.lv] !== undefined) cnt[p.lv]++; });
     var from = monthLabel(D.ms[0]).replace(/^t/, 'T'), to = monthLabel(D.ms[D.ms.length - 1]);
-    var h = '<p class="nsv-lead">Mỗi sale 1 sổ lãi lỗ: <b>doanh số người đó bán − thuế VAT − giá vốn − quảng cáo − vận chuyển − lương − phần văn phòng</b> = công ty lãi hay phải bù. Thanh màu = 100đ doanh số được chia đi đâu, <b style="color:#2e9d57">phần xanh lá là lãi</b>. Chỉ anh (Quản trị) xem được.</p>';
+    var h = '<p class="nsv-lead"><b>Tiền sale bán ra − mọi chi phí cho người đó = công ty lãi hay phải bù.</b> Chỉ Quản trị xem được.</p>';
     h += '<div class="per-q rpm-chips" role="group" aria-label="Khoảng thời gian">' + [[1, 'Tháng trước'], [3, '3 tháng'], [6, '6 tháng']].map(function (c) { return '<button class="chip' + (c[0] === n ? ' on' : '') + '" data-dash="nsvn" data-n="' + c[0] + '">' + c[1] + '</button>'; }).join('') + '</div>';
     h += '<p class="small muted" style="margin:6px 0 10px">' + (n > 1 ? from + ' → ' + to + ', số trung bình 1 tháng' : 'Cả ' + to) + ' (tháng này chưa hết nên chưa tính).</p>';
+    h += nsvRank(D.sales);
     h += D.hasBo ? '<div class="nsv-lg"><span><b>🟢 ' + cnt.ok + '</b> đem lại lợi nhuận<small>trừ hết chi phí vẫn còn lãi</small></span><span><b>🟡 ' + cnt.mid + '</b> đủ nuôi mình<small>đủ lương mình, chưa đủ phần văn phòng</small></span><span><b>🔴 ' + cnt.bad + '</b> chưa đủ lương<small>công ty đang bù</small></span></div>'
       : '<div class="nsv-lg"><span><b>🟢 ' + cnt.ok + '</b> đem lại lợi nhuận<small>làm ra ≥ ' + X + ' lần chi phí</small></span><span><b>🟡 ' + cnt.mid + '</b> đủ nuôi mình<small>1 – ' + X + ' lần</small></span><span><b>🔴 ' + cnt.bad + '</b> chưa đủ lương<small>công ty đang bù</small></span></div>';
     if (D.hasBo) { var B = D.bo; h += '<div class="nsv-bo"><b>🏢 Mỗi sale gánh ' + moneyShort(B.share) + ' / tháng tiền văn phòng & bộ máy chung</b><span>Chi phí cố định cả công ty ' + moneyShort(B.fix) + (B.pay ? ' − lương sale ' + moneyShort(B.pay) + ' (đã trừ riêng từng người)' : '') + (B.oth ? ' − phần Shopee, kênh khác tự gánh ' + moneyShort(B.oth) : '') + ', còn lại chia đều ' + oneDec(B.nS) + ' sale.' + (D.boEst.length ? ' Tháng chưa có file kế toán: ' + D.boEst.join(', ') + '.' : '') + '</span></div>'; }
@@ -5474,7 +5496,7 @@
     if (D.noStaff) h += '<p class="notice small">⚠️ Chưa có mức lương từng người: kế toán nhập ở <b>💼 Kế toán → 👥 Bảng lương → ⚙️ Nhân sự &amp; mức lương</b>. Tạm thời sale chỉ tính lương + hoa hồng theo Phụ lục 01, bộ phận khác chưa hiện.</p>';
     if (D.est) h += '<p class="notice small">⚠️ Có tháng chưa có số quảng cáo của kế toán: tiền data tạm tính ' + moneyShort(Number((((S.d.rules || {}).dash || {}).kpi || {}).sdt) || 300000) + ' / số điện thoại.</p>';
     // sale
-    h += '<h3 class="rpm-h">👤 Sale <small>(lãi cho công ty từ cao xuống thấp)</small></h3><div class="nsv-list">' + D.sales.map(nsvCard).join('') + '</div>';
+    h += '<h3 class="rpm-h">👤 Từng sale <small>(lãi cho công ty từ cao xuống thấp)</small></h3><p class="nsv-key">Thanh màu = 100đ bán ra chia đi đâu: ' + NSV_SEG.map(function (g) { return '<span><span class="nsv-dot" style="background:' + g[2] + '"></span>' + g[1] + '</span>'; }).join('') + '<span><span class="nsv-dot" style="background:#2e9d57"></span><b>Lãi</b></span></p><div class="nsv-list">' + D.sales.map(nsvCard).join('') + '</div>';
     var sk = Object.keys(D.skip || {}); if (sk.length) h += '<p class="small muted">Không tính ' + sk.reduce(function (a, k) { return a + D.skip[k]; }, 0) + ' đơn ghi người bán không có trong Nhân sự đang làm (' + sk.slice(0, 6).map(function (k) { return '“' + esc(k) + '” ' + D.skip[k] + ' đơn'; }).join(', ') + (sk.length > 6 ? '…' : '') + '). Muốn tính thì sửa tên người bán trong đơn cho đúng tên nhân sự.</p>';
     h += '<details class="nsv-d"><summary>🔍 Cách tính từng sale (số 1 tháng)</summary><div class="bcdt-wrap pnl-wrap"><table class="pnl-t"><thead><tr><th>Sale</th><th>Doanh số giữ được</th><th>− VAT</th><th>− Giá vốn</th><th>− Ship đơn hoàn</th><th>− Data quảng cáo</th><th>− Ship</th><th>= Làm ra</th><th>Lương + hoa hồng</th><th>Phụ cấp, BH</th>' + (D.hasBo ? '<th>Văn phòng</th><th>Cơ hội</th><th>= Còn lại</th>' : '') + '<th>Số quảng cáo nhận → ra đơn</th></tr></thead><tbody>' +
       D.sales.map(function (p) { var k = p.aM || 1; return '<tr><td>' + esc(p.name) + '</td><td>' + moneyShort(p.revM) + '</td><td>' + moneyShort((p.vat || 0) / k) + '</td><td>' + moneyShort(p.cogs / k) + '</td><td>' + moneyShort(p.back / k) + '</td><td>' + moneyShort(p.data / k) + '</td><td>' + moneyShort(p.ship / k) + '</td><td><b>' + nsvSign(p.val) + '</b></td><td>' + moneyShort(p.pay / k) + (p.low ? ' <small>*</small>' : '') + '</td><td>' + moneyShort(p.ex / k) + '</td>' + (D.hasBo ? p.full !== undefined ? '<td>' + moneyShort(p.bo) + '</td><td>' + moneyShort(p.opp) + '</td><td><b>' + nsvSign(p.net) + '</b></td>' : '<td>–</td><td>–</td><td>–</td>' : '') + '<td>' + Math.round(p.nData / k) + ' → ' + (p.cr === null ? '–' : Math.round(p.cr * 100) + '%') + '</td></tr>'; }).join('') +
